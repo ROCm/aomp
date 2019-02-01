@@ -1,0 +1,98 @@
+#!/bin/bash
+#
+# clang-ocl:  Driver for OpenCL to call clang
+#             This does not use the roc-cl driver. 
+#
+
+function version(){
+   echo $PROGVERSION
+   exit 0
+}
+
+set -e
+ 
+PROGVERSION="X.Y-Z"
+OPENCL_ROOT=$AOMP
+CLANG=${OPENCL_ROOT}/bin/clang
+LLVM_LINK=${OPENCL_ROOT}/bin/llvm-link
+
+TRIPLE=amdgcn-amd-amdhsa-amdgizcl
+
+if [[ "$AMD_DEBUG_AMDGIZ" == 1 ]]; then
+  TRIPLE=amdgcn-amd-amdhsa-amdgizcl
+fi
+
+gfxip=803
+ 
+while (( "$#" ))
+do
+    arg="$1"
+    case "$arg" in
+    -o)
+        shift
+        output_file=$1
+        ;;
+    -mcpu=gfx*)
+        gfxip=${1##*gfx}
+        ;&
+    -version)
+        version
+        ;;
+    --version)
+        version
+        ;;
+    -*)
+        options="${options} $1"
+        ;;
+    *)
+        input_file=$1
+        ;;
+    esac
+    shift
+done
+
+BITCODE_DIR=${OPENCL_ROOT}/lib/libdevice/gfx$gfxip
+ 
+${CLANG} -c -emit-llvm \
+-target $TRIPLE -x cl \
+-D__AMD__=1  \
+-D__gfx${gfxip}__=1  \
+-D__gfx${gfxip}=1  \
+-D__OPENCL_VERSION__=120  \
+-D__IMAGE_SUPPORT__=1 \
+-O3 \
+-m64 \
+-cl-kernel-arg-info \
+-cl-std=CL1.2 \
+-mllvm -amdgpu-early-inline-all \
+-Xclang -cl-ext=+cl_khr_fp64,+cl_khr_global_int32_base_atomics,+cl_khr_global_int32_extended_atomics,+cl_khr_local_int32_base_atomics,+cl_khr_local_int32_extended_atomics,+cl_khr_int64_base_atomics,+cl_khr_int64_extended_atomics,+cl_khr_3d_image_writes,+cl_khr_byte_addressable_store,+cl_khr_gl_sharing,+cl_amd_media_ops,+cl_amd_media_ops2,+cl_khr_subgroups \
+-include ${OPENCL_ROOT}/include/opencl-c.h \
+${options} -o ${output_file}.orig.bc ${input_file}
+ 
+${LLVM_LINK} -f -o ${output_file}.linked.bc ${output_file}.orig.bc \
+$BITCODE_DIR/opencl.amdgcn.bc \
+$BITCODE_DIR/ocml.amdgcn.bc \
+$BITCODE_DIR/ockl.amdgcn.bc \
+$BITCODE_DIR/oclc_correctly_rounded_sqrt_off.amdgcn.bc \
+$BITCODE_DIR/oclc_daz_opt_on.amdgcn.bc \
+$BITCODE_DIR/oclc_finite_only_off.amdgcn.bc \
+$BITCODE_DIR/oclc_isa_version_${gfxip}.amdgcn.bc \
+$BITCODE_DIR/oclc_unsafe_math_off.amdgcn.bc |& tee ${output_file}.linked.bc.out
+
+# Fail on warnings
+if grep -qi warning ${output_file}.linked.bc.out; then
+    echo "llvm-link failed!"
+    exit 1
+fi
+ 
+${CLANG} \
+-target $TRIPLE \
+-O3 \
+-m64 \
+-cl-kernel-arg-info \
+-mllvm -amdgpu-internalize-symbols -mllvm -amdgpu-early-inline-all \
+-mllvm -enable-si-insert-waitcnts \
+${options} -o ${output_file} ${output_file}.linked.bc
+
+# Remove extra files
+rm ${output_file}.linked.bc*
