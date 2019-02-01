@@ -1,0 +1,25 @@
+diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
+index 37a9b09..5b223b2 100644
+--- a/src/CMakeLists.txt
++++ b/src/CMakeLists.txt
+@@ -168,6 +168,7 @@ set_property ( TARGET ${CORE_RUNTIME_TARGET} PROPERTY SOVERSION "${BUILD_VERSION
+ 
+ target_link_libraries ( ${CORE_RUNTIME_TARGET}
+   PRIVATE hsakmt
++  -L${HSAKMT_LIB_PATH} -lhsakmt -Wl,-rpath,${HSAKMT_LIB_PATH}
+   elf dl pthread rt
+ )
+ 
+diff --git a/src/inc/hsa.h b/src/inc/hsa.h
+index 0ed2b68..e7627a1 100644
+--- a/src/inc/hsa.h
++++ b/src/inc/hsa.h
+@@ -80,7 +80,7 @@
+ // Try to detect CPU endianness
+ #if !defined(LITTLEENDIAN_CPU) && !defined(BIGENDIAN_CPU)
+ #if defined(__i386__) || defined(__x86_64__) || defined(_M_IX86) || \
+-    defined(_M_X64)
++    defined(_M_X64) || defined(__PPC64__)
+ #define LITTLEENDIAN_CPU
+ #endif
+ #endif

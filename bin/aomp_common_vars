@@ -1,0 +1,210 @@
+#!/bin/bash
+#
+#  aomp_common_vars: FIle sourced by all AOMP build scripts.
+#     This script is stored in aomp/ bin directory of aomp repo
+#
+# Set the AOMP VERSION STRING. 
+# After a release, this is changed to the next release under development
+AOMP_VERSION_STRING=${AOMP_VERSION_STRING:-"0.6-0"}
+export AOMP_VERSION_STRING
+
+# set install directory and the link directory
+# AOMP will be a symbolic link AOMP_INSTALL_DIR is the versioned dir name
+AOMP=${AOMP:-$HOME/rocm/aomp}
+AOMP_INSTALL_DIR=${AOMP}_${AOMP_VERSION_STRING}
+
+# Set the directory location where all local AOMP git repos are stored 
+# For exampe the aomp main repo is typically stored in $HOME/git/aomp/aomp
+# Clang repo is $HOME/aomp/clang
+AOMP_REPOS=${AOMP_REPOS:-/$HOME/git/aomp}
+
+# Set list of default nvptx subarchitectures to build
+# Only Cuda 9 and above supports sm_70
+NVPTXGPUS_DEFAULT="30,35,50,60"
+if [ -f /usr/local/cuda/version.txt ] ; then
+  if [ `head -1 /usr/local/cuda/version.txt | cut -d " " -f 3 | cut -d "." -f 1` -ge 9 ] ; then
+    NVPTXGPUS_DEFAULT+=",70"
+  fi
+fi
+#  Developers should override NVPTXGPUS to shorten build time.
+NVPTXGPUS=${NVPTXGPUS:-"${NVPTXGPUS_DEFAULT}"}
+
+# Set list of default amdgcn subarchitectures to build
+#  Developers should override GFXLIST to shorten build time.
+GFXLIST=${GFXLIST:-"gfx700 gfx701 gfx801 gfx803 gfx900"}
+export GFXLIST
+
+# These are the web sites where the AOMP git repos are pulled from
+GITROC="https://github.com/radeonopencompute"
+GITROCDEV="https://github.com/ROCm-Developer-Tools"
+GITROCLIB="https://github.com/AMDComputeLibraries"
+GITKHRONOS="https://github.com/KhronosGroup"
+
+# The  git repos and branches that the AOMP build scripts will use
+AOMP_REPO_NAME=${AOMP_REPO_NAME:-aomp}
+AOMP_REPO_BRANCH=${AOMP_REPO_BRANCH:-master}
+AOMP_LLVM_REPO_NAME=${AOMP_LLVM_REPO_NAME:-llvm}
+AOMP_LLVM_REPO_BRANCH=${AOMP_LLVM_REPO_BRANCH:-HCC2-181213}
+AOMP_CLANG_REPO_NAME=${AOMP_CLANG_REPO_NAME:-clang}
+AOMP_CLANG_REPO_BRANCH=${AOMP_CLANG_REPO_BRANCH:-HCC2-181213}
+AOMP_LLD_REPO_NAME=${AOMP_LLD_REPO_NAME:-lld}
+AOMP_LLD_REPO_BRANCH=${AOMP_LLD_REPO_BRANCH:-HCC2-181213}
+AOMP_OPENMP_REPO_NAME=${AOMP_OPENMP_REPO_NAME:-openmp}
+AOMP_OPENMP_REPO_BRANCH=${AOMP_OPENMP_REPO_BRANCH:-AOMP-181213}
+AOMP_LIBDEVICE_REPO_NAME=${AOMP_LIBDEVICE_REPO_NAME:-rocm-device-libs}
+AOMP_LIBDEVICE_REPO_BRANCH=${AOMP_LIBDEVICE_REPO_BRANCH:-HCC2-181210}
+AOMP_OCLRUNTIME_REPO_NAME=${AOMP_OCLRUNTIME_REPO_NAME:-rocm-opencl-runtime}
+AOMP_OCLRUNTIME_REPO_BRANCH=${AOMP_OCLRUNTIME_REPO_BRANCH:-roc-1.9.x}
+AOMP_OCLDRIVER_REPO_NAME=${AOMP_OCLDRIVER_REPO_NAME:-rocm-opencl-driver}
+AOMP_OCLDRIVER_REPO_BRANCH=${AOMP_OCLDRIVER_REPO_BRANCH:-roc-1.9.x}
+AOMP_OCLICD_REPO_NAME=${AOMP_OCLICD_REPO_NAME:-opencl-icd-loader}
+AOMP_OCLICD_REPO_BRANCH=${AOMP_OCLICD_REPO_BRANCH:-master}
+AOMP_HIP_REPO_NAME=${AOMP_HIP_REPO_NAME:-hip}
+AOMP_HIP_REPO_BRANCH=${AOMP_HIP_REPO_BRANCH:-HCC2.180805}
+AOMP_ROCT_REPO_NAME=${AOMP_ROCT_REPO_NAME:-roct-thunk-interface}
+AOMP_ROCT_REPO_BRANCH=${AOMP_ROCT_REPO_BRANCH:-roc-1.9.x}
+AOMP_ROCR_REPO_NAME=${AOMP_ROCR_REPO_NAME:-rocr-runtime}
+AOMP_ROCR_REPO_BRANCH=${AOMP_ROCR_REPO_BRANCH:-roc-1.9.x}
+AOMP_ATMI_REPO_NAME=${AOMP_ATMI_REPO_NAME:-atmi}
+AOMP_ATMI_REPO_BRANCH=${AOMP_ATMI_REPO_BRANCH:-atmi-0.5}
+AOMP_APPS_REPO_NAME=${AOMP_APPS_REPO_NAME:-openmpapps}
+AOMP_APPS_REPO_BRANCH=${AOMP_APPS_REPO_BRANCH:-AOMP-0.5}
+
+STASH_BEFORE_PULL=${STASH_BEFORE_PULL:-YES}
+
+# It is highly recommendded that developers set SUDO to disable and 
+# this have update access to install directory $AOMP. In the future
+# we may set this default to disable 
+SUDO=${SUDO:-NO}
+if [ "$SUDO" == "set" ]  || [ "$SUDO" == "yes" ] || [ "$SUDO" == "YES" ] ; then
+   SUDO="sudo"
+else
+   SUDO=""
+fi
+
+# The default for BUILD_AOMP is AOMP_REPOS. 
+# The cmake and make builds are actually done in 
+# BUILD_AOMP/build, not the actual repos. 
+BUILD_AOMP=${BUILD_AOMP:-$AOMP_REPOS}
+BUILD_DIR=$BUILD_AOMP
+
+# If you override BUILD_AOMP to something other than AOMP_REPOS
+# then the scripts will copy the repository sources from AOMP_REPOS
+# to the directory BUILD_AOMP. A developer would do this for a
+# couple of reasons.  1) access to git repos is slow and 
+# access to BUILD_AOMP is fast or 2) lots of updates and test code
+# is planned that are not desired in his git repository. 
+# This COPYSOURCE flag is used by build scripts to conditianlly rsync
+# source code to the BUILD_AOMP directory.  
+if [ "$BUILD_DIR" != "$AOMP_REPOS" ] ; then
+   COPYSOURCE=true
+fi
+
+#  Check the repositories exist and are on the correct branch
+function checkrepo(){
+   cd $REPO_DIR
+   COBRANCH=`git branch --list | grep "\*" | cut -d" " -f2`
+   if [ "$COBRANCH" != "$REPO_BRANCH" ] ; then
+      if [ "$COBRANCH" == "master" ] ; then 
+        echo "EXIT:  Repository $REPO_DIR is on development branch: master"
+        exit 1
+      else 
+        echo "ERROR:  The repository at $REPO_DIR is not on branch $REPO_BRANCH"
+        echo "          It is on branch $COBRANCH"
+        exit 1
+     fi
+   fi
+   if [ ! -d $REPO_DIR ] ; then
+      echo "ERROR:  Missing repository directory $REPO_DIR"
+      exit 1
+   fi
+}
+
+function help_build_aomp(){
+   /bin/cat 2>&1 <<"EOF"
+
+  build_llvm.sh is a smart clang/llvm compiler build script.
+  
+  Repositories:
+     build_llvm.sh uses these local git repositories:
+     DIRECTORY                         BRANCH
+     ---------                         ------
+     $AOMP_REPOS/$AOMP_CLANG_REPO_NAME     $AOMP_CLANG_REPO_BRANCH
+     $AOMP_REPOS/$AOMP_LLVM_REPO_NAME      $AOMP_LLVM_REPO_BRANCH
+     $AOMP_REPOS/$AOMP_LLD_REPO_NAME       $AOMP_LLD_REPO_BRANCH
+  
+  Initial Build:
+     build_llvm.sh with no options does the initial build with these actions:
+     - Links clang and lld repos in $AOMP_LLVM_REPO_NAME/tools for a full build.
+     - mkdir -p $BUILD_DIR/build/llvm 
+     - cd $BUILD_DIR/build/llvm
+     - cmake $BUILD_DIR/$AOMP_LLVM_REPO_NAME (with cmake options below)
+     - make
+  
+  Optional Arguments 'nocmake' and 'install' :
+     build_llvm.sh takes one optional argument: 'nocmake' or 'install'. 
+     The 'nocmake' or 'install' options can only be used after your initial build
+     with no options. The 'nocmake' option is intended to restart make after 
+     you fix code following a failed build. The 'install' option will run 'make' 
+     and 'make install' causing installation into the directorey $AOMP_INSTALL_DIR . 
+     The 'install' option will also create a symbolic link to directory $AOMP .
+  
+     COMMAND                   ACTIONS
+     -------                   -------
+     ./build_llvm.sh nocmake   make
+     ./build_llvm.sh install   make install
+  
+  Environment Variables:
+     You can set environment variables to override behavior of build_llvm.sh
+     NAME              DEFAULT                  DESCRIPTION
+     ----              -------                  -----------
+     AOMP              $HOME/rocm/aomp           Where the compiler will be installed
+     AOMP_REPOS        $HOME/git/aomp           Location of llvm, clang, lld, and aomp repos
+     AOMP_CLANG_REPO_NAME   clang                    Name of the clang repo
+     AOMP_LLVM_REPO_NAME    llvm                     Name of the llvm repo
+     AOMP_LLD_REPO_NAME     lld                      Name of the lld repo
+     AOMP_LLVM_REPO_BRANCH   $AOMP_LLVM_REPO_BRANCH  The branch for llvm
+     AOMP_CLANG_REPO_BRANCH   $AOMP_CLANG_REPO_BRANCH  The branch for clang
+     AOMP_LLD_REPO_BRANCH   $AOMP_LLD_REPO_BRANCH  The branch for lld
+     BUILD_TYPE        Release                  The CMAKE build type
+     BUILD_AOMP        same as AOMP_REPOS       Different build location than AOMP_REPOS
+     AOMP_INSTALL_DIR  <AOMP>_${AOMP_VERSION_STRING}             Different install location than <AOMP>_${AOMP_VERSION_STRING}
+  
+    Since install typically requires sudo authority, the default for SUOO is 'set'
+    Any other value will not use sudo to install. 
+  
+  Examples:
+     To build a debug version of the compiler, run this command before the build:
+        export BUILD_TYPE=debug
+     To install the compiler in a different location without sudo, run these commands
+        export AOMP=$HOME/install/aomp 
+        export SUDO=no
+  
+  Post-Install Requirements:
+     The AOMP compiler needs openmp, hip, and rocm device libraries. Use the companion build
+     scripts build_openmp.sh, build_libdevice.sh build_hiprt.sh in that order to build and
+     install these components. You must have successfully built and installed the compiler
+     before building these components.
+  
+  The BUILD_AOMP Envronment Variable:
+  
+     build_llvm.sh will always build with cmake and make outside your source git trees.
+     By default (without BUILD_AOMP) the build will occur in a subdirectory of
+     AOMP_REPOS.  That subdirectory is $AOMP_REPOS/build/llvm
+  
+     The BUILD_AOMP environment variable enables source development outside your git
+     repositories. By default, this feature is OFF.  The BUILD_AOMP environment variable 
+     can be used if access to your git repositories is very slow or you want to test 
+     changes outside of your local git repositories (specified by AOMP_REPOS env var). 
+     If BUILD_AOMP is set, your git repositories (specifed by AOMP_REPOS) will be
+     replicated to subdirectories of BUILD_AOMP using rsync.  The subsequent build 
+     (cmake and make) will occur in subdirectory BUILD_AOMP/build/llvm.
+     This replication only happens on your initial build, that is, if you specify no arguments.
+     The option 'nocmake' skips replication and then restarts make in the build directory.
+     The install option skips replication, skips cmake, runs 'make' and 'make install'. 
+     Be careful to always use options nocmake or install if you made local changes in
+     BUILD_AOMP or your changes will be lost by a new replica of your git repositories.
+  
+EOF
+   exit 0
+}

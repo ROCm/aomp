@@ -1,0 +1,174 @@
+
+
+https://github.com/ROCm-Developer-Tools/aomp/bin/README
+
+AOMP = Heterogenous Compute Compiler Version 2
+
+This is the developer README for AOMP.
+
+This bin directory contains scripts to build AOMP from source.
+
+clone_aomp.sh      -  A script to make sure the necessary repos are up to date.
+                      See below for a list of these libraries.
+
+build_aomp.sh      -  Run all build and install scripts for each component
+
+build_roct.sh      -  Build the hsa thunk library
+
+build_rocr.sh      -  Built the ROCm runtime
+
+build_llvm.sh      -  Build llvm, clang, and lld components of AOMP compiler.
+                      This compiler supports openmp, clang hip, clang cuda,
+                      opencl, and the GPU  kernel frontend cloc.
+                      It contains a recent version of the AMD Lightning compiler
+                      (llvm amdgcn backend) and the llvm nvptx backend.
+                      This compiler works for both Nvidia and AMD Radeon GPUs.
+
+build_utils.sh     -  Builds the AOMP utilities
+                      This installs in /opt/rocm/aomp (or $AOMP)
+
+build_atmi.sh      -  Builds early release of ATMI for aomp.
+                      This installs in /opt/rocm/aomp (or $AOMP)
+
+build_hip.sh       -  Builds the hip host runtimes needed by aomp.
+                      This also installs in /opt/rocm/aomp (or $AOMP)
+
+build_openmp.sh    -  Builds the OpenMP libraries for aomp.
+                      This also installs in /opt/rocm/aomp (or $AOMP)
+
+build_libdevice.sh -  Builds the device bc libraries from rocm-device-libs
+                      This also installs in /opt/rocm/aomp (or $AOMP)
+
+build_libm.sh      -  Built the libm DBCL (Device BC Library)
+
+AOMP_VERSION_STRING - File to set the version of AOMP to clone and build . 
+
+The repositories and branches needed by AOMP_0.5-5 currently are:
+
+DIRECTORY NAME *                  AOMP REPOSITORY **       
+-------------------------------   ---------------------------
+$HOME/git/aomp/aomp               %rocdev/aomp
+$HOME/git/aomp/clang              %rocdev/clang
+$HOME/git/aomp/llvm               %rocdev/llvm
+$HOME/git/aomp/lld                %rocdev/lld
+$HOME/git/aomp/openmp             %rocdev/openmp
+$HOME/git/aomp/hip                %rocdev/hip
+$HOME/git/aomp/rocm-device-libs   %roc/rocm-device-libs
+$HOME/git/aomp/atmi               %roc/atmi
+$HOME/git/aomp/openmpapps         %roclib/openmpapps
+$HOME/git/aomp/rocr-runtime       %roclib/rocr-runtime
+$HOME/git/aomp/roct-thunk-interfaces  %roclib/roct-thunk-interfaces  master
+
+   * Clone your repositories here or override with environment variables.
+  ** Replace %roc with "https://github.com/RadeonOpenCompute"
+  ** Replace %rocdev with "https://github.com/ROCm-Developer-Tools"
+  ** Replace %roclib with "https://github.com/AMDComputeLibraries"
+ *** These are the primary development repositories for AOMP. They are updated often.
+
+The scripts and example makefiles use these environment variables and these 
+defaults if they are not set. This is not a complete list.  See the script headers
+for other environment variables that you may override including repo names. 
+
+AOMP              /opt/rocm/aomp           *
+CUDA              /usr/local/cuda          *
+AOMP_REPOS        $HOME/git/aomp
+BUILD_TYPE        Release
+SUDO              set
+
+  * The clang driver uses these environment variables to find device libraries.
+ ** The sm_70 (70 in NVPTXGPUS) requires CUDA 9 and above.
+
+If you do not have root access to your machine, you can override the above by setting
+the values in your .bashrc or .bash_profile to build your HOME directory.
+Here is a sample for your .bash_profile
+
+SUDO="disable"
+AOMP=$HOME/install/aomp
+BUILD_TYPE=Debug
+NVPTXGPUS=30,35,50,60,70
+export SUDO AOMP NVPTXGPUS BUILD_TYPE
+
+The build scripts will build from the source directories identified by the 
+environment variable AOMP_REPOS.
+
+To set alternative installation path for the component INSTALL_<COMPONENT> environment 
+variable can be used, e.g. INSTALL_openmp
+
+To build all components, first clone aomp repo and checkout the master branch
+to build our development repository.  Checkout a tag such as rel_0.5-1 to build
+a released version. 
+
+	git clone https://github.com/ROCm-Developer-Tools/aomp.git
+
+	git checkout master 
+
+Or to build rel_0.5-1, run this command:
+
+	git checkout rel_0.5-1
+	
+To be sure you have the latest sources from the git repositories, run command.
+
+        ./clone_aomp.sh
+
+The first time you do this, It could take a long time to clone the repositories.
+Subsequent calls will pull the latest updates.
+
+To build aomp, you MUST have the Nvidia CUDA SDK version 8 installed because
+AOMP can build  applications for NVIDIA GPUs. We have not done testing for CUDA
+version 9.  The current default list of Nvidia subarchs is "30,35,50,60,70".
+For example, that will support application builds with --offload-arch=sm_30
+and --offload-arch=sm_60 etc.
+This can be changed with the NVPTXGPUS environment variable.
+
+After you have all the source repositories and have both cuda and rocm are
+installed, run these scripts in the following order:
+
+	./build_roct.sh
+	./build_roct.sh install
+
+	./build_rocr.sh
+	./build_rocr.sh install
+
+	./build_llvm.sh
+	./build_llvm.sh install
+
+	./build_utils.sh
+	./build_utils.sh install
+
+	./build_hip.sh
+	./build_hip.sh install
+
+	./build_atmi.sh
+	./build_atmi.sh install
+
+	./build_openmp.sh  
+	./build_openmp.sh install
+
+	./build_libdevice.sh  
+	./build_libdevice.sh install
+
+	./build_libm.sh  
+	./build_libm.sh install
+
+For now, run this command for some minor fixups to the install.
+
+        ./build_fixup.sh
+
+ ==>  OR run this 1 command that runs each of the above commands:
+
+       ./build_aomp.sh
+
+Only run build_aomp.sh if you are confident it will will build without failure.
+
+The first execution of the these scripts does not run "make install" in
+case their is a build failure.  In case of a build failure, you can restart
+the build by running "make" or "make install" in the build directory. 
+
+Bootstrapping:
+The LLVM compiler created by build_llvm.sh is needed by all of the components.
+So you must run 'build_llvm.sh' and 'build_llvm.sh' install first before
+building any of the components.
+
+The utilities created by build_utils.sh are needed by the 4 library components
+build_atmi.sh, build_openmp.sh, build_libdevice.sh and build_hip.sh. 
+So you must build and install the utilities before building the libraries.

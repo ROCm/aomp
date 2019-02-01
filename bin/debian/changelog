@@ -1,0 +1,107 @@
+aomp (0.5-5) UNRELEASED; urgency=medium
+
+  * Initial release of aomp is 0.3-2
+  *   Please see example in /opt/rocm/aomp/examples/vmuldemo 
+  *   aomp requires amdllvm, amdlibgcn, cuda, and libatmi
+  * 0.3-3 Fixes data sharing constructs, include SOURCE ID in commandline
+  *   updates to libcuda2gcn.bc 
+  * 0.3-6 Major updates to support OpenMP 4.5
+  *   now with ROCm 1.6
+  *   This is now a single compiler, no need for amdllvm. 
+  * 0.3-7 cloc.sh is now part of aomp. See examples/cloc . 
+  *   Important fix for the simd example
+  *   Change max teams limit to 128 for amdgcn
+  *   Minor driver fix so -c -S -emit-llvm only does a single pass
+  *   Added clang-fixup-fatbin tool to allow gcn images in fatbin
+  * 0.3-8 support for target regions that span mulitple source files
+  *   fixed compiler abort message to open issue on aomp
+  * 0.3-9 fix atomics used to write to print buffer
+  *   new atmi device library 
+  *   set-linkage moved to bin for building bc libs
+  *   new GFXLIST added to build environment to help developers minimize build time
+  *   support for cuda9
+  * 0.4-0 is a major upgrade
+  *   Merge yorktown coral CLANG 4.0 compiler as of Nov 15, 2017 
+  *     This provides significant enhancements for synthesized GPU kernels. 
+  *   Support for optimized libomptarget bc libraries for multiple nvptx subarchs 
+  *   Support for cudaclang for both nvidia and amdgcn targets
+  *   specification of the target on command line changed to -march=
+  *     This may change again in the future
+  *   autodetect the target of the current machine with the mygpu script
+  *   all smoke tests now run for both nvidia and amdgcn targets. 
+  *     stream test still does not vectorize
+  *   Stop using release branches in our github.  We now use github release mechanism
+  *     and attach deb and rpm files to the release
+  *   Tasklist is currently managed in aomp/aomp/bin/TODOs. 
+  *   Testing removed from "examples" directory into test/smoke directories. 
+  *   Added test/omptests directory for enhanced testing. 
+  * 0.5-0 is a major upgrade
+  *   This clang 7.0 is a large patch to support OpenMP on amdgcn.  
+  *   Patch is against the clang and openmp development trunks as of 
+  *   July 18 2018
+  * 0.5-1 
+  *   Cleanup the atmi-staging repo
+  *   Fix smoke tests vmulsum and assertok_error caused by missing smid function for amdgcn
+  *   Fixed the cuda toolchain to pickup includes from the compiler install first. 
+  * 0.5-2 
+  *   Fix all smoke tests except reduce and issue_apps_001
+  *   The __AMDGCN__ compiler macro now provides the gfx number
+  *   The bug message now points to the correct URL to report bugs. 
+  *   Started an initial list of limitations
+  *   Includes llvm/clang/openmp/lld trunk updates up to Aug 8, 2018. 
+  *      We are now at llvm/clang 8.0.0 
+  * 0.5-3 
+  *   Lower the thread_limit to 512 for amdgcn. Can still have many teams.
+  *   Created a new kernel launch trace option with envvar LIBOMPTARGET_KERNEL_DEBUG
+  *   Cleaned up some compilation warnings in the build of openmp libraries
+  *   Removed c++ delete functions from the libomptarget device runtime.
+  *     Destructors should not be generated on the device pass. 
+  *   Now building AOMP with a public available version of ATMI.
+  *   Add addrspace cast in emitGenericVarsProlog because some of the captured 
+  *     variables may be from a kernel arg in address space 1, so we need to cast 
+  *     to generic.  This fixes some of the OPenMP Proxy apps.
+  *   Fix driver error when extra libs are specified on the command line such as -lm. 
+  *     Now applications that need standard host libraries should run.
+  *   Cleaned up example openmp makefiles and the README for openmp examples.
+  *   Fixed the unbundle.sh script to work with amdgcn .o files. 
+  * 
+  * 0.5-4
+  *   Support user-definable libdevice libraries (DBCLs) with -l option.
+  *     The use of this option is consistent with host library management.
+  *     See the file examples/libdevice/README.md for more info.    
+  *   Provide libm as an example DBCL which provide platform specific math functions.  
+  *   Remove all definitions of math functions from header files that were borrowed 
+  *     from cuda or hip. To use math functions, you must now use -lm command line
+  *     options. Also include the same math headers <cmath> or math.h as host.
+  *     The -lm option will cause the driver to search for a libm bc file, DBCL
+  *     to lllvm-link the generated LLVM IR.  The search algorithm is consistent
+  *     with host library search.  
+  *   There is a new simple auto-include in clang Headers called 
+  *     __clang_openmp_runtime_wrapper.h
+  *     This auto-include does not define built-in functions for every compile
+  *     like cuda and hip.  Its primary purpose is to turn off host optimizations
+  *      in standard system header files.  
+  *   Add C++ openmp example
+  *   Start using the environment variable AOMP_GPU in example makefiles showing
+  *     we can easily switch from amdgcn to nvptx.  For example, change AOMP_GPU
+  *     from gfx803 to sm_30.
+  *   Change mymcpu and mygpu to lookup pci identifiers from a reformated and
+  *      filtered cache of the pci.ids file.
+  *   Fixed ATMI to avoid use of CPU resources for large CPU core machines.
+  *   Fix printf to work with string arguments including variable string args.
+  *   Add a kernel trace feature that does not require debug libraries.  
+  *      Set LIBOMPTARGET_KERNEL_TRACE=1  to see the kernel trace.
+  *   Temporarily do not provide debug versions of libomptarget device libraries
+  *     for amdgcn.  Link to release versions of these libraries to support
+  *     use of debug runtime libraries. 
+  *   Temporary solution for device archive libraries whose members are bundles.
+  *     This only works for  single device time archive files. 
+  *
+  * 0.5-5
+  *   Same as 0.5-4 but built for ROCm 1.9
+  *   AOMP now includes both roct (thunk libraries) and rocr (ROCm runtime). 
+  *   Cleanup and additional automation of the source build process. 
+  *   The arm64 package is now built for AOMP.
+  *   
+
+ -- Greg Rodgers <Gregory.Rodgers@amd.com>  Thu, 29 Nov 2018 15:25:10 -0600

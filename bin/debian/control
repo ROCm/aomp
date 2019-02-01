@@ -1,0 +1,18 @@
+Source: aomp
+Maintainer: Greg Rodgers <Gregory.Rodgers@amd.com>
+Section: misc
+Priority: optional
+Standards-Version: 3.9.5
+Build-Depends: debhelper (>= 9) 
+Build-Depends-Indep: cli-common-dev (>= 0.8)
+Homepage: http://github.com/RadeonOpenCompute
+
+Package: aomp 
+Architecture: amd64
+#Depends: ${shlibs:Depends},${misc:Depends}
+Depends: ${misc:Depends}
+Description: AOMP is an experimental OpenMP compiler 
+ LLVM 9.0 for offloading to either Radeon GPUs or Nvidia GPUs. 
+ Nvidia GPUs are not supported on aarch64.
+ AOMP requires either rocm, cuda, or both.
+ Dependencies are not specified here for flexibility. 

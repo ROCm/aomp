@@ -1,0 +1,6 @@
+opt/rocm/aomp_0.5-5 opt/rocm/aomp
+opt/rocm/aomp_0.5-5/bin/bundle.sh  /usr/bin/bundle.sh
+opt/rocm/aomp_0.5-5/bin/unbundle.sh  /usr/bin/unbundle.sh
+opt/rocm/aomp_0.5-5/bin/cloc.sh /usr/bin/cloc.sh
+opt/rocm/aomp_0.5-5/bin/mymcpu  /usr/bin/mymcpu
+opt/rocm/aomp_0.5-5/bin/mygpu  /usr/bin/mygpu
