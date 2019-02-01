@@ -16,7 +16,7 @@ AOMP_INSTALL_DIR=${AOMP}_${AOMP_VERSION_STRING}
 # Set the directory location where all local AOMP git repos are stored 
 # For exampe the aomp main repo is typically stored in $HOME/git/aomp/aomp
 # Clang repo is $HOME/aomp/clang
-AOMP_REPOS=${AOMP_REPOS:-/$HOME/git/aomp}
+AOMP_REPOS=${AOMP_REPOS:-$HOME/git/aomp}
 
 # Set list of default nvptx subarchitectures to build
 # Only Cuda 9 and above supports sm_70
