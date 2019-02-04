@@ -28,7 +28,7 @@ ifeq ("$(wildcard $(AOMP))","")
   endif
 endif
 # --- End Standard Makefile check for AOMP installation ---
-AOMP_GPU       ?= gfx803   # Default AOMP_GPU is gfx803 which is fiji
+AOMP_GPU       ?= gfx900   # Default AOMP_GPU is gfx900 which is vega
 AOMP_CPUTARGET ?= x86_64-pc-linux-gnu
 CC              = $(AOMP)/bin/clang
 
@@ -107,7 +107,7 @@ endif
 	@echo " make help"
 	@echo
 	@echo "Environment variables used by this Makefile:"
-	@echo "  AOMP_GPU=<GPU>       Target GPU, e.g sm_30, default=gfx803. To build for"
+	@echo "  AOMP_GPU=<GPU>       Target GPU, e.g sm_30, default=gfx900. To build for"
 	@echo "                       Nvidia GPUs, set AOMP_GPU=sm_60 or appropriate sm_"
 	@echo "  AOMP=<dir>           AOMP install dir, default=/opt/rocm/aomp"
 	@echo "  EXTRA_CFLAGS=<args>  extra arguments for compiler"
