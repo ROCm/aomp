@@ -20,6 +20,7 @@ add_custom_target(aomputils ALL)
 find_package(LLVM QUIET CONFIG
   PATHS
   $ENV{AOMP}
+  $ENV{HOME}/rocm/aomp
   /usr/lib/rocm/aomp
   /opt/rocm/aomp
   NO_DEFAULT_PATH

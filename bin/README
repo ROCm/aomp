@@ -25,19 +25,19 @@ build_llvm.sh      -  Build llvm, clang, and lld components of AOMP compiler.
                       This compiler works for both Nvidia and AMD Radeon GPUs.
 
 build_utils.sh     -  Builds the AOMP utilities
-                      This installs in /opt/rocm/aomp (or $AOMP)
+                      This installs in $HOME/rocm/aomp (or $AOMP)
 
 build_atmi.sh      -  Builds early release of ATMI for aomp.
-                      This installs in /opt/rocm/aomp (or $AOMP)
+                      This installs in $HOME/rocm/aomp (or $AOMP)
 
 build_hip.sh       -  Builds the hip host runtimes needed by aomp.
-                      This also installs in /opt/rocm/aomp (or $AOMP)
+                      This also installs in $HOME/rocm/aomp (or $AOMP)
 
 build_openmp.sh    -  Builds the OpenMP libraries for aomp.
-                      This also installs in /opt/rocm/aomp (or $AOMP)
+                      This also installs in $HOME/rocm/aomp (or $AOMP)
 
 build_libdevice.sh -  Builds the device bc libraries from rocm-device-libs
-                      This also installs in /opt/rocm/aomp (or $AOMP)
+                      This also installs in $HOME/rocm/aomp (or $AOMP)
 
 build_libm.sh      -  Built the libm DBCL (Device BC Library)
 
@@ -69,7 +69,7 @@ The scripts and example makefiles use these environment variables and these
 defaults if they are not set. This is not a complete list.  See the script headers
 for other environment variables that you may override including repo names. 
 
-AOMP              /opt/rocm/aomp           *
+AOMP              $HOME/rocm/aomp           *
 CUDA              /usr/local/cuda          *
 AOMP_REPOS        $HOME/git/aomp
 BUILD_TYPE        Release

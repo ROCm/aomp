@@ -13,7 +13,10 @@
 #     Add -v option , remove all echos otherwise
 #     Add -h option
 
-AOMP=${AOMP:-/opt/rocm/aomp}
+AOMP=${AOMP:-$HOME/rocm/aomp}
+if [ ! -d $AOMP ] ; then 
+   AOMP="/opt/rocm/aomp"
+fi
 EXECBIN=$AOMP/bin/clang-offload-bundler
 if [ ! -f $EXECBIN ] ; then 
    echo "ERROR: $EXECBIN not found "

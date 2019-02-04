@@ -71,7 +71,7 @@ function usage(){
     -k        Keep temporary files
 
    Options with values:
-    -aomp      <path>           $AOMP or /opt/rocm/aomp
+    -aomp      <path>           $AOMP, $HOME/rocm/aomp, or /opt/rocm/aomp
     -libgcn    <path>           $DEVICELIB or $AOMP/lib/libdevice
     -cuda-path <path>           $CUDA_PATH or /usr/local/cuda
     -atmipath  <path>           $ATMI_PATH or /opt/rocm/aomp
@@ -224,7 +224,16 @@ fi
 cdir=$(getdname $0)
 [ ! -L "$cdir/cloc.sh" ] || cdir=$(getdname `readlink "$cdir/cloc.sh"`)
 
-AOMP=${AOMP:-/opt/rocm/aomp}
+AOMP=${AOMP:-$HOME/rocm/aomp}
+if [ ! -d $AOMP ] ; then
+   AOMP="/opt/rocm/aomp"
+fi
+if [ ! -d $AOMP ] ; then
+   echo "ERROR: AOMP not found at $AOMP"
+   echo "       Please install AOMP or correctly set env-var AOMP"
+   exit 1
+fi
+
 DEVICELIB=${DEVICELIB:-$AOMP/lib/libdevice}
 TARGET_TRIPLE=${TARGET_TRIPLE:-amdgcn-amd-amdhsa}
 CUDA_PATH=${CUDA_PATH:-/usr/local/cuda}

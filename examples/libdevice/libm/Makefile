@@ -15,7 +15,23 @@ LIB       = libm
 LIBMSRC   = libm.c
 LIBMPPSRC = libm.cpp
 
-AOMP     ?= /opt/rocm/aomp
+# --- Standard Makefile check for AOMP installation ---
+ifeq ("$(wildcard $(AOMP))","")
+  ifneq ($(AOMP),)
+    $(warning AOMP not found at $(AOMP))
+  endif
+  AOMP = $(HOME)/rocm/aomp
+  ifeq ("$(wildcard $(AOMP))","")
+    $(warning AOMP not found at $(AOMP))
+    AOMP = /opt/rocm/aomp
+    ifeq ("$(wildcard $(AOMP))","")
+      $(warning AOMP not found at $(AOMP))
+      $(error Please install AOMP or correctly set env-var AOMP)
+    endif
+  endif
+endif
+# --- End Standard Makefile check for AOMP installation ---
+
 AOMP_GPU ?= sm_60
 CXX       = $(AOMP)/bin/clang++
 CC        = $(AOMP)/bin/clang

@@ -28,7 +28,15 @@
 # 
 inputfile=`echo "$3" | cut -d"=" -f2`
 inputfiletype=`file $inputfile | cut -d":" -f2`
-AOMP="${AOMP:-/opt/rocm/aomp}"
+AOMP=${AOMP:-$HOME/rocm/aomp}
+if [ ! -d $AOMP ] ; then
+   AOMP="/opt/rocm/aomp"
+fi
+if [ ! -d $AOMP ] ; then
+   echo "ERROR: AOMP not found at $AOMP"
+   echo "       Please install AOMP or correctly set env-var AOMP"
+   exit 1
+fi
 CUDA="${CUDA:-/usr/local/cuda}"
 
 if [ "$inputfiletype" == " current ar archive" ] ; then

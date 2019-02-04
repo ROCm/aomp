@@ -6,7 +6,15 @@
 #
 #  Written by Greg Rodgers
 # 
-AOMP=${AOMP:-/opt/rocm/aomp}
+AOMP=${AOMP:-$HOME/rocm/aomp}
+if [ ! -d $AOMP ] ; then
+   AOMP="/opt/rocm/aomp"
+fi
+if [ ! -d $AOMP ] ; then
+   echo "ERROR: AOMP not found at $AOMP"
+   echo "       Please install AOMP or correctly set env-var AOMP"
+   exit 1
+fi
 EXECBIN=$AOMP/bin/clang-offload-bundler
 if [ ! -f $EXECBIN ] ; then 
    echo "ERROR: $EXECBIN not found"
