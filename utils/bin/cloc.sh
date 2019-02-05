@@ -258,30 +258,17 @@ fi
 
 BCFILES=""
 
-# Check if user supplied libgcn has libdevice convention
-GCNDEVICE=`echo $DEVICELIB | grep libdevice`
-
-if [ -z $GCNDEVICE ]; then
-  # Here a User supplied libgcn does not have libdevice convention
-  DEVICELIBDIR=$DEVICELIB
-else
-  # This is the default path. bc files are found with libdevice convention
-  # $AOMP/lib/libdevice/$LC-MCPU/
-  DEVICELIBDIR=$DEVICELIB/$LC_MCPU
-fi
-
-BCFILES="$BCFILES $DEVICELIBDIR/cuda2gcn.amdgcn.bc"
-BCFILES="$BCFILES $DEVICELIBDIR/hip.amdgcn.bc"
-BCFILES="$BCFILES $DEVICELIBDIR/hc.amdgcn.bc"
-BCFILES="$BCFILES $DEVICELIBDIR/opencl.amdgcn.bc"
-BCFILES="$BCFILES $DEVICELIBDIR/ocml.amdgcn.bc"
-BCFILES="$BCFILES $DEVICELIBDIR/ockl.amdgcn.bc"
-BCFILES="$BCFILES $DEVICELIBDIR/oclc_isa_version.amdgcn.bc"
-if [ -f $ATMI_PATH/lib/libdevice/$LC_MCPU/libatmi.bc ]; then
-    BCFILES="$BCFILES $ATMI_PATH/lib/libdevice/$LC_MCPU/libatmi.bc"
+BCFILES="$BCFILES $DEVICELIB/cuda2gcn.amdgcn.bc"
+BCFILES="$BCFILES $DEVICELIB/hip.amdgcn.bc"
+BCFILES="$BCFILES $DEVICELIB/hc.amdgcn.bc"
+BCFILES="$BCFILES $DEVICELIB/opencl.amdgcn.bc"
+BCFILES="$BCFILES $DEVICELIB/ocml.amdgcn.bc"
+BCFILES="$BCFILES $DEVICELIB/ockl.amdgcn.bc"
+if [ -f $ATMI_PATH/lib/libdevice/libatmi.bc ]; then
+    BCFILES="$BCFILES $ATMI_PATH/lib/libdevice/libatmi.bc"
 else 
-  if [ -f $DEVICELIBDIR/libatmi.bc ]; then
-    BCFILES="$BCFILES $DEVICELIBDIR/libatmi.bc"
+  if [ -f $DEVICELIB/libatmi.bc ]; then
+    BCFILES="$BCFILES $DEVICELIB/libatmi.bc"
   fi
 fi
 
@@ -315,18 +302,14 @@ if [ $CUDACLANG ] ; then
    INCLUDES="-I $CUDA_PATH/include ${INCLUDES}"
    CMD_CLC=${CMD_CLC:-clang++ $CUOPTS $INCLUDES} 
 else
-  if [ -z $GCNDEVICE ]; then
-    INCLUDES="-I ${DEVICELIB}/include ${INCLUDES}"
-  else
-    INCLUDES="-I ${DEVICELIB}/$LC_MCPU/include ${INCLUDES}"
-  fi
+  INCLUDES="-I ${DEVICELIB}/include ${INCLUDES}"
   CMD_CLC=${CMD_CLC:-clang -x cl -Xclang -cl-std=CL2.0 $CLOPTS $LINKOPTS $INCLUDES -include opencl-c.h -Dcl_clang_storage_class_specifiers -Dcl_khr_fp64 -target ${TARGET_TRIPLE}}
 fi
 CMD_LLA=${CMD_LLA:-llvm-dis}
 CMD_ASM=${CMD_ASM:-llvm-as}
 CMD_LLL=${CMD_LLL:-llvm-link}
 CMD_OPT=${CMD_OPT:-opt -O$LLVMOPT -mcpu=$LC_MCPU -amdgpu-annotate-kernel-features}
-CMD_LLC=${CMD_LLC:-llc -mtriple ${TARGET_TRIPLE} -mcpu=$LC_MCPU -filetype=obj}
+CMD_LLC=${CMD_LLC:-llc -mtriple ${TARGET_TRIPLE} -filetype=obj -mattr=-code-object-v3 -mcpu=$LC_MCPU}
 
 RUNDATE=`date`
 
