@@ -116,13 +116,22 @@ To build AOMP from source run these commands.
 
 ```
    sudo apt-get install FIXME GET DEPS FIXME 
+   sudo apt-get install cuda
    cd $HOME ; mkdir -p git/aomp ; cd git/aomp
    git clone https://github.com/rocm-developer-tools/aomp
    cd $HOME/git/aomp/aomp/bin
+   git checkout master
    ./clone_aomp.sh
    ./build_aomp.sh
 ```
 Depending on your system, the last two commands could take a very long time.
+
+The source build process above builds the development version of AOMP by checking out the master branch of AOMP.   The development version is the next version to be released.  It is possible that the development version is broken due to regressions that often occur during development.  If you want to build from the sources of a previous release such as 0.6-0, run these commands before running clone_aomp.sh.
+```
+   git checkout rel_0.6.0
+   git pull
+```
+You only need to do this in the aomp repository. The file "bin/aomp_common_vars" lists the branches of each repository for a particular aomp release. In the master branch of aomp, aomp_common_vars lists the development branches. It is a good idea to run clone_aomp.sh twice after you checkout a release to be sure you pulled all the checkouts for a particular release.
 
 If your are interested in joining the development of AOMP, please read the details on the source build at [README](bin/README.md).
 
