@@ -106,7 +106,6 @@ Then permanently set the environment variable AOMP to $HOME/rocm/aomp.  For exam
 ```
 
 ### Source Install
-```
 Build and install from sources is possible.  However, the source build for AOMP is complex for several reasons.  
 - Many repos are required.  The clone_aomp.sh script ensures you have all repos and the correct branch.
 - Requires that both the Cuda SDK and ROCm are installed regardless of which graphic cards you have.
