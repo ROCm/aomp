@@ -63,7 +63,7 @@ endif
 CC       =$(AOMP)/bin/clang++
 
 #  compiler automatically adds "libdevice/<target>/ to -L opts
-LFLAGS   =-L/opt/rocm/hcc2/lib
+LFLAGS   =-L$(AOMP)/lib
 
 # Add cudart only if we have an Nvidia sm_ target
 ifeq (sm_,$(findstring sm_,$(TARGETS)))
