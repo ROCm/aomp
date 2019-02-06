@@ -90,9 +90,10 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    BUILDTYPE="Release"
    echo rm -rf $BUILD_AOMP/build/atmi
    rm -rf $BUILD_AOMP/build/atmi
-   MYCMAKEOPTS="-DCMAKE_BUILD_TYPE=$BUILDTYPE -DATMI_HSA_INTEROP=on -DATMI_WITH_HCC2=on -DCMAKE_INSTALL_PREFIX=$INSTALL_ATMI $HSACMAKEOPTS"
+   MYCMAKEOPTS="-DCMAKE_BUILD_TYPE=$BUILDTYPE -DATMI_HSA_INTEROP=on -DATMI_WITH_AOMP=on -DCMAKE_INSTALL_PREFIX=$INSTALL_ATMI $HSACMAKEOPTS"
    mkdir -p $BUILD_AOMP/build/atmi
    cd $BUILD_AOMP/build/atmi
+   echo
    echo " -----Running atmi cmake ---- " 
    echo cmake $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_ATMI_REPO_NAME/src
    cmake $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_ATMI_REPO_NAME/src
@@ -105,10 +106,11 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    BUILDTYPE="Debug"
    echo rm -rf $BUILD_AOMP/build/atmi_debug
    rm -rf $BUILD_AOMP/build/atmi_debug
-   MYCMAKEOPTS="-DCMAKE_BUILD_TYPE=$BUILDTYPE -DATMI_HSA_INTEROP=on -DATMI_WITH_HCC2=on -DCMAKE_INSTALL_PREFIX=$INSTALL_ATMI $HSACMAKEOPTS "
+   MYCMAKEOPTS="-DCMAKE_BUILD_TYPE=$BUILDTYPE -DATMI_HSA_INTEROP=on -DATMI_WITH_AOMP=on -DCMAKE_INSTALL_PREFIX=$INSTALL_ATMI $HSACMAKEOPTS "
 
    mkdir -p $BUILD_AOMP/build/atmi_debug
    cd $BUILD_AOMP/build/atmi_debug
+   echo
    echo " -----Running atmi cmake for debug ---- " 
    cmake $MYCMAKEOPTS $AOMP_REPOS/$AOMP_ATMI_REPO_NAME/src
    if [ $? != 0 ] ; then 
@@ -132,6 +134,7 @@ if [ $? != 0 ] ; then
 fi
 
 cd $BUILD_AOMP/build/atmi_debug
+echo
 echo " -----Running make for lib-debug ---- " 
 make -j $NUM_THREADS
 if [ $? != 0 ] ; then 
