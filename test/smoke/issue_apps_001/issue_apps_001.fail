@@ -1,0 +1,39 @@
+WARNING! HCC2 environment variable is set, using /opt/rocm/hcc2
+WARNING! OMPRT environment is set, using /opt/rocm/hcc2
+WARNING! ATMI environment variable is set, using /opt/rocm/atmi
+DEBUG Mode ON
+env C_INCLUDE_PATH=/opt/rocm/hcc2/include: CPLUS_INCLUDE_PATH=/opt/rocm/hcc2/include: LIBRARY_PATH=/opt/rocm/hcc2/lib-debug/libdevice:/opt/rocm/hcc2/lib-debug:/opt/rocm/atmi/lib-debug/libdevice:/opt/rocm/atmi/lib-debug:/opt/rocm/libamdgcn/gfx803/lib: PATH=/opt/rocm/hcc2/bin:/home/andy/bin:/home/andy/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin  /opt/rocm/hcc2/bin/clang  -O2 -DUSE_MPI=0 -target x86_64-pc-linux-gnu -fopenmp -fopenmp-targets=amdgcn--cuda -Xopenmp-target=amdgcn--cuda -march=gfx803   lulesh.cc -o issue_apps_001 
+llc: /tmp/grodgers/rel/hcc2/hcc2-llvm/lib/Target/AMDGPU/SIInstrInfo.cpp:4176: unsigned int llvm::SIInstrInfo::isStackAccess(const llvm::MachineInstr&, int&) const: Assertion `!MI.memoperands_empty() && (*MI.memoperands_begin())->getAddrSpace() == AMDGPUASI.PRIVATE_ADDRESS' failed.
+#0 0x00000000017ab33a llvm::sys::PrintStackTrace(llvm::raw_ostream&) (/opt/rocm/hcc2_0.4-0/bin/llc+0x17ab33a)
+#1 0x00000000017a93ee llvm::sys::RunSignalHandlers() (/opt/rocm/hcc2_0.4-0/bin/llc+0x17a93ee)
+#2 0x00000000017a9552 (/opt/rocm/hcc2_0.4-0/bin/llc+0x17a9552)
+#3 0x00007fe817c40390 __restore_rt (/lib/x86_64-linux-gnu/libpthread.so.0+0x11390)
+#4 0x00007fe8169b2428 gsignal /build/glibc-bfm8X4/glibc-2.23/signal/../sysdeps/unix/sysv/linux/raise.c:54:0
+#5 0x00007fe8169b402a abort /build/glibc-bfm8X4/glibc-2.23/stdlib/abort.c:91:0
+#6 0x00007fe8169aabd7 __assert_fail_base /build/glibc-bfm8X4/glibc-2.23/assert/assert.c:92:0
+#7 0x00007fe8169aac82 (/lib/x86_64-linux-gnu/libc.so.6+0x2dc82)
+#8 0x0000000000788139 llvm::SIInstrInfo::isStackAccess(llvm::MachineInstr const&, int&) const (/opt/rocm/hcc2_0.4-0/bin/llc+0x788139)
+#9 0x000000000109c560 (/opt/rocm/hcc2_0.4-0/bin/llc+0x109c560)
+#10 0x00000000010a5c4e (/opt/rocm/hcc2_0.4-0/bin/llc+0x10a5c4e)
+#11 0x0000000000fd9525 llvm::MachineFunctionPass::runOnFunction(llvm::Function&) (/opt/rocm/hcc2_0.4-0/bin/llc+0xfd9525)
+#12 0x00000000012c02c3 llvm::FPPassManager::runOnFunction(llvm::Function&) (/opt/rocm/hcc2_0.4-0/bin/llc+0x12c02c3)
+#13 0x0000000000d6af0f (/opt/rocm/hcc2_0.4-0/bin/llc+0xd6af0f)
+#14 0x00000000012c110f llvm::legacy::PassManagerImpl::run(llvm::Module&) (/opt/rocm/hcc2_0.4-0/bin/llc+0x12c110f)
+#15 0x00000000006eaa23 (/opt/rocm/hcc2_0.4-0/bin/llc+0x6eaa23)
+#16 0x0000000000698794 main (/opt/rocm/hcc2_0.4-0/bin/llc+0x698794)
+#17 0x00007fe81699d830 __libc_start_main /build/glibc-bfm8X4/glibc-2.23/csu/../csu/libc-start.c:325:0
+#18 0x00000000006df76a _start (/opt/rocm/hcc2_0.4-0/bin/llc+0x6df76a)
+Stack dump:
+0.	Program arguments: /opt/rocm/hcc2_0.4-0/bin/llc /tmp/LLC_INPUT-2d46b6.bc -mtriple=amdgcn--cuda -filetype=obj -mcpu=gfx803 -o /tmp/LLD_INPUT-c62d0d.hsaco 
+1.	Running pass 'CallGraph Pass Manager' on module '/tmp/LLC_INPUT-2d46b6.bc'.
+2.	Running pass 'Greedy Register Allocator' on function '@lulesh_cc_omp_outlined_3_wrapper'
+clang-6.0: error: unable to execute command: Aborted (core dumped)
+clang-6.0: error: GPU-linker command failed due to signal (use -v to see invocation)
+HCC clang version 6.0.0  (based on HCC 0.4-0 )
+Target: x86_64-pc-linux-gnu
+Thread model: posix
+InstalledDir: /opt/rocm/hcc2/bin
+clang-6.0: note: diagnostic msg: PLEASE open an issue in to https://github.com/ROCm-Developer-Tools/hcc2/ and include the crash backtrace, preprocessed source, and associated run script.
+clang-6.0: note: diagnostic msg: Error generating preprocessed source(s).
+../Makefile.rules:9: recipe for target 'issue_apps_001' failed
+make: *** [issue_apps_001] Error 254

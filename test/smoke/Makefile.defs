@@ -1,0 +1,111 @@
+ifeq ($(AOMP),)
+# --- Standard Makefile check for AOMP installation ---
+ifeq ("$(wildcard $(AOMP))","")
+  ifneq ($(AOMP),)
+    $(warning AOMP not found at $(AOMP))
+  endif
+  AOMP = $(HOME)/rocm/aomp
+  ifeq ("$(wildcard $(AOMP))","")
+    $(warning AOMP not found at $(AOMP))
+    AOMP = /opt/rocm/aomp
+    ifeq ("$(wildcard $(AOMP))","")
+      $(warning AOMP not found at $(AOMP))
+      $(error Please install AOMP or correctly set env-var AOMP)
+    endif
+  endif
+endif
+# --- End Standard Makefile check for AOMP installation ---
+else
+  $(info    WARNING! AOMP environment variable is set, using $(AOMP))
+endif
+
+ifneq ($(TIMEOUT),)
+  TKILL= timeout $(TIMEOUT)
+endif
+
+UNAMEP=$(shell uname -p)
+
+ifeq ($(HOST_TARGET),)
+  HOST_TARGET = $(UNAMEP)-pc-linux-gnu
+endif
+ifeq ($(DEVICE_TARGET),)
+  DEVICE_TARGET = nvptx64-nvidia-cuda
+  DEVICE_TARGET = amdgcn-amd-amdhsa
+endif
+
+ifeq ($(SMNAME),)
+  SMNAME = sm_30
+endif
+ifeq ($(GFXNAME),)
+  GFXNAME = gfx900
+endif
+
+ifeq ($(DEVICE_ARCH),)
+ifeq ($(findstring amdgcn,$(DEVICE_TARGET)),)
+  DEVICE_ARCH = $(SMNAME)
+else
+  DEVICE_ARCH = $(GFXNAME)
+endif
+endif
+
+ifeq ($(TARGET),)
+  TARGET  =  -fopenmp-targets=$(DEVICE_TARGET) -Xopenmp-target=$(DEVICE_TARGET) -march=$(DEVICE_ARCH)
+endif
+
+# OFFLOAD_DEBUG is used by this test harnass to turn on HOST and/or DEVICE level debug
+ifeq ($(OFFLOAD_DEBUG),1)
+  $(info    DEBUG Mode ON)
+  SET_DEVICE_DEBUG =  LIBOMPTARGET_DEBUG=1
+  SETENV  = env LIBRARY_PATH=$(AOMP)/lib-debug
+endif
+ifeq ($(OFFLOAD_DEBUG),2)
+  $(info    DEBUG Mode ON)
+  SET_DEVICE_DEBUG = LIBOMPTARGET_DEVICE_RTL_DEBUG=-1
+  SETENV  = env LIBRARY_PATH=$(AOMP)/lib-debug
+endif
+ifeq ($(OFFLOAD_DEBUG),3)
+  $(info    DEBUG Mode ON)
+  SET_DEVICE_DEBUG = LIBOMPTARGET_DEBUG=1 LIBOMPTARGET_DEVICE_RTL_DEBUG=-1
+  SETENV  = env LIBRARY_PATH=$(AOMP)/lib-debug
+endif
+ifeq ($(OFFLOAD_DEBUG),4)
+  $(info    DEBUG Mode ON)
+  SET_DEVICE_DEBUG = ATMI_DEBUG=1
+  SETENV  = env LIBRARY_PATH=$(AOMP)/lib-debug
+endif
+
+ifeq ($(OMP_FLAGS),)
+OMP_FLAGS = -target $(HOST_TARGET) -fopenmp $(TARGET)
+endif
+OMP_FLAGS += $(EXTRA_OMP_FLAGS)
+
+ifeq ($(VERBOSE),1)
+  $(info    Compilation and linking VERBOSE Mode ON)
+  VERBOSE = -v
+endif
+
+ifeq ($(TEMPS),1)
+  $(info    Compilation and linking save-temp Mode ON)
+  VERBOSE += -save-temps -fopenmp-dump-offload-linker-script
+endif
+
+ifeq ($(NOOPT),1)
+CFLAGS =
+else
+CFLAGS = -O2
+endif
+
+ifeq ($(findstring amdgcn,$(OMP_FLAGS)),)
+LINK_FLAGS = -L$(CUDA)/targets/$(UNAMEP)-linux/lib -lcudart -L$(AOMP)/lib-debug -lomp
+else
+LINK_FLAGS =
+endif
+LINK_FLAGS += $(EXTRA_LDFLAGS)
+
+
+CUDA      = /usr/local/cuda
+
+RUNPROF =  $(CUDA)/bin/nvprof 
+RUNPROF =
+
+RUNENV   = env $(SET_DEVICE_DEBUG) $(TKILL)

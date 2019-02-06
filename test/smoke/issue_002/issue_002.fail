@@ -1,0 +1,51 @@
+WARNING! LIBAMDGCN environment variable is set, using /srv/akasauro/git/hcc2/install/libamdgcn
+WARNING! HCC2 environment variable is set, using /srv/akasauro/git/hcc2/install/llvm
+WARNING! OMPRT environment is set, using /srv/akasauro/git/hcc2/install/omprt
+WARNING! ATMI environment variable is set, using /srv/akasauro/git/hcc2/install/atmi
+env LIBRARY_PATH=/srv/akasauro/git/hcc2/install/omprt/lib/libdevice:/srv/akasauro/git/hcc2/install/omprt/lib:/srv/akasauro/git/hcc2/install/atmi/lib/libdevice:/srv/akasauro/git/hcc2/install/atmi/lib:/srv/akasauro/git/hcc2/install/libamdgcn/gfx803/lib PATH=/srv/akasauro/git/hcc2/install/llvm/bin:/home/andy/bin:/home/andy/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin /srv/akasauro/git/hcc2/install/llvm/bin/clang  -O2 -I/srv/akasauro/git/hcc2/install/omprt/include -g -target x86_64-pc-linux-gnu -fopenmp -fopenmp-targets=amdgcn--cuda --cuda-gpu-arch=gfx803 -L/srv/akasauro/git/hcc2/install/omprt/lib -L/srv/akasauro/git/hcc2/install/omprt/lib/libdevice issue_002.c -o issue_002 
+inlinable function call in a function with debug info must have a !dbg location
+  call void @__omp_offloading_812_2c0124e_main_l23_data_share(%struct.__kmpc_data_sharing_slot** %data_share_slot_saved_casted, i8** %data_share_stack_saved_casted, i8** %data_share_frame_saved_casted, i64* %data_share_active_thr_saved_casted, i32** %_data_share_addrspace_cast, i32* %13, i32** %_data_share_addrspace_cast18, i32* %conv2, [320000 x double]* %25, [320000 x double]* %26, [320000 x double]* %27)
+inlinable function call in a function with debug info must have a !dbg location
+  call void @_omp_outlined(i32* null, i32* null, i32* %26, i32* %27, [320000 x double]* %28, [320000 x double]* %29, [320000 x double]* %30)
+clang-6.0: /srv/akasauro/git/hcc2/hcc2-llvm/lib/IR/Verifier.cpp:4681: virtual bool {anonymous}::VerifierLegacyPass::doFinalization(llvm::Module&): Assertion `!V->hasBrokenDebugInfo() && "Module contains invalid debug info"' failed.
+#0 0x00000000033cf699 llvm::sys::PrintStackTrace(llvm::raw_ostream&) /srv/akasauro/git/hcc2/hcc2-llvm/lib/Support/Unix/Signals.inc:398:0
+#1 0x00000000033cf72c PrintStackTraceSignalHandler(void*) /srv/akasauro/git/hcc2/hcc2-llvm/lib/Support/Unix/Signals.inc:462:0
+#2 0x00000000033cd973 llvm::sys::RunSignalHandlers() /srv/akasauro/git/hcc2/hcc2-llvm/lib/Support/Signals.cpp:49:0
+#3 0x00000000033cef0e SignalHandler(int) /srv/akasauro/git/hcc2/hcc2-llvm/lib/Support/Unix/Signals.inc:252:0
+#4 0x00007fa963598390 __restore_rt (/lib/x86_64-linux-gnu/libpthread.so.0+0x11390)
+#5 0x00007fa96230a428 gsignal /build/glibc-bfm8X4/glibc-2.23/signal/../sysdeps/unix/sysv/linux/raise.c:54:0
+#6 0x00007fa96230c02a abort /build/glibc-bfm8X4/glibc-2.23/stdlib/abort.c:91:0
+#7 0x00007fa962302bd7 __assert_fail_base /build/glibc-bfm8X4/glibc-2.23/assert/assert.c:92:0
+#8 0x00007fa962302c82 (/lib/x86_64-linux-gnu/libc.so.6+0x2dc82)
+#9 0x0000000002d4c1d6 (anonymous namespace)::VerifierLegacyPass::doFinalization(llvm::Module&) /srv/akasauro/git/hcc2/hcc2-llvm/lib/IR/Verifier.cpp:4685:0
+#10 0x0000000002cb25eb llvm::FPPassManager::doFinalization(llvm::Module&) /srv/akasauro/git/hcc2/hcc2-llvm/lib/IR/LegacyPassManager.cpp:1553:0
+#11 0x0000000002cb1eb5 llvm::legacy::FunctionPassManagerImpl::doFinalization(llvm::Module&) /srv/akasauro/git/hcc2/hcc2-llvm/lib/IR/LegacyPassManager.cpp:1425:0
+#12 0x0000000002cb1d4e llvm::legacy::FunctionPassManager::doFinalization() /srv/akasauro/git/hcc2/hcc2-llvm/lib/IR/LegacyPassManager.cpp:1401:0
+#13 0x000000000368f6b4 (anonymous namespace)::EmitAssemblyHelper::EmitAssembly(clang::BackendAction, std::unique_ptr<llvm::raw_pwrite_stream, std::default_delete<llvm::raw_pwrite_stream> >) /srv/akasauro/git/hcc2/hcc2-llvm/tools/clang/lib/CodeGen/BackendUtil.cpp:822:0
+#14 0x00000000036920dc clang::EmitBackendOutput(clang::DiagnosticsEngine&, clang::HeaderSearchOptions const&, clang::CodeGenOptions const&, clang::TargetOptions const&, clang::LangOptions const&, llvm::DataLayout const&, llvm::Module*, clang::BackendAction, std::unique_ptr<llvm::raw_pwrite_stream, std::default_delete<llvm::raw_pwrite_stream> >, bool) /srv/akasauro/git/hcc2/hcc2-llvm/tools/clang/lib/CodeGen/BackendUtil.cpp:1211:0
+#15 0x0000000004256153 clang::BackendConsumer::HandleTranslationUnit(clang::ASTContext&) /srv/akasauro/git/hcc2/hcc2-llvm/tools/clang/lib/CodeGen/CodeGenAction.cpp:268:0
+#16 0x0000000004f7ca3f clang::ParseAST(clang::Sema&, bool, bool) /srv/akasauro/git/hcc2/hcc2-llvm/tools/clang/lib/Parse/ParseAST.cpp:161:0
+#17 0x0000000003d424c1 clang::ASTFrontendAction::ExecuteAction() /srv/akasauro/git/hcc2/hcc2-llvm/tools/clang/lib/Frontend/FrontendAction.cpp:1004:0
+#18 0x0000000004253f18 clang::CodeGenAction::ExecuteAction() /srv/akasauro/git/hcc2/hcc2-llvm/tools/clang/lib/CodeGen/CodeGenAction.cpp:998:0
+#19 0x0000000003d41ed6 clang::FrontendAction::Execute() /srv/akasauro/git/hcc2/hcc2-llvm/tools/clang/lib/Frontend/FrontendAction.cpp:906:0
+#20 0x0000000003cdea50 clang::CompilerInstance::ExecuteAction(clang::FrontendAction&) /srv/akasauro/git/hcc2/hcc2-llvm/tools/clang/lib/Frontend/CompilerInstance.cpp:987:0
+#21 0x0000000003e8d199 clang::ExecuteCompilerInvocation(clang::CompilerInstance*) /srv/akasauro/git/hcc2/hcc2-llvm/tools/clang/lib/FrontendTool/ExecuteCompilerInvocation.cpp:252:0
+#22 0x0000000001c7076a cc1_main(llvm::ArrayRef<char const*>, char const*, void*) /srv/akasauro/git/hcc2/hcc2-llvm/tools/clang/tools/driver/cc1_main.cpp:221:0
+#23 0x0000000001c659d5 ExecuteCC1Tool(llvm::ArrayRef<char const*>, llvm::StringRef) /srv/akasauro/git/hcc2/hcc2-llvm/tools/clang/tools/driver/driver.cpp:306:0
+#24 0x0000000001c665f3 main /srv/akasauro/git/hcc2/hcc2-llvm/tools/clang/tools/driver/driver.cpp:387:0
+#25 0x00007fa9622f5830 __libc_start_main /build/glibc-bfm8X4/glibc-2.23/csu/../csu/libc-start.c:325:0
+#26 0x0000000001c62fe9 _start (/mnt/1TB_2/akasauro/git/hcc2_new/install/llvm_debug_gcc.20171016/bin/clang-6.0+0x1c62fe9)
+Stack dump:
+0.	Program arguments: /mnt/1TB_2/akasauro/git/hcc2_new/install/llvm_debug_gcc.20171016/bin/clang-6.0 -cc1 -D__KALMAR_CPU__=1 -D__HCC_CPU__=1 -triple amdgcn--cuda -aux-triple x86_64-pc-linux-gnu -emit-llvm-bc -emit-llvm-uselists -disable-free -main-file-name issue_002.c -mrelocation-model pic -pic-level 2 -mthread-model posix -mdisable-fp-elim -fmath-errno -no-integrated-as -fuse-init-array -target-cpu gfx803 -dwarf-column-info -debug-info-kind=limited -dwarf-version=4 -debugger-tuning=gdb -resource-dir /mnt/1TB_2/akasauro/git/hcc2_new/install/llvm_debug_gcc.20171016/lib/clang/6.0.0 -I /srv/akasauro/git/hcc2/install/omprt/include -I /srv/akasauro/git/hcc2/install/omprt/include -internal-isystem /usr/local/include -internal-isystem /mnt/1TB_2/akasauro/git/hcc2_new/install/llvm_debug_gcc.20171016/lib/clang/6.0.0/include -internal-externc-isystem /usr/include/x86_64-linux-gnu -internal-externc-isystem /include -internal-externc-isystem /usr/include -internal-isystem /usr/local/include -internal-isystem /mnt/1TB_2/akasauro/git/hcc2_new/install/llvm_debug_gcc.20171016/lib/clang/6.0.0/include -internal-externc-isystem /usr/include/x86_64-linux-gnu -internal-externc-isystem /include -internal-externc-isystem /usr/include -O2 -fno-dwarf-directory-asm -fdebug-compilation-dir /srv/akasauro/git/hcc2/hcc2/test/issue_002 -ferror-limit 19 -fmessage-length 0 -fopenmp -fobjc-runtime=gcc -fdiagnostics-show-option -vectorize-slp -o /tmp/issue_002-6aa7ba.bc -x c issue_002.c -fopenmp-is-device -fopenmp-host-ir-file-path /tmp/issue_002-8b4a4f.bc 
+1.	<eof> parser at end of file
+2.	Per-function optimization
+clang-6.0: error: unable to execute command: Aborted (core dumped)
+clang-6.0: error: clang frontend command failed due to signal (use -v to see invocation)
+HCC clang version 6.0.0  (based on HCC 0.3-6 )
+Target: x86_64-pc-linux-gnu
+Thread model: posix
+InstalledDir: /srv/akasauro/git/hcc2/install/llvm/bin
+clang-6.0: note: diagnostic msg: PLEASE open an issue in to https://github.com/ROCm-Developer-Tools/hcc2/ and include the crash backtrace, preprocessed source, and associated run script.
+clang-6.0: note: diagnostic msg: Error generating preprocessed source(s).
+../Makefile.rules:9: recipe for target 'issue_002' failed
+make: *** [issue_002] Error 254
