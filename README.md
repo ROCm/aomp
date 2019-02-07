@@ -122,6 +122,7 @@ To build AOMP from source run these commands.
    cd $HOME/git/aomp/aomp/bin
    git checkout master
    ./clone_aomp.sh
+   unset LD_LIBRARY_PATH
    ./build_aomp.sh
 ```
 Depending on your system, the last two commands could take a very long time.

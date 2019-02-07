@@ -115,9 +115,12 @@ To build aomp, you MUST have the Nvidia CUDA SDK version 8 or greater installed 
 After you have all the source repositories and you have cuda and all the dependencies installed, 
 run this script to build aomp.
 ```
+   unset LD_LIBRARY_PATH
    ./build_aomp.sh
 ```
-The default build directory for each component is $HOME/git/aomp/build/<component>. 
+All dynamic runtime libraries that are built by a component of AOMP and then are referenced by another AOMP component will resolve the the absolute location within the AOMP installation.  These include libraries that may have been installed by ROCm. Because some installations of ROCm cause the default environment to set LD_LIBRARY_PATH, you should unset this before building aomp so as not to pickup ROCm components that may not have been tested with AOMP.  In other words, with the exception of the cuda toolkit, AOMP does not require installation of ROCm.
+
+The default build directory for each component is $HOME/git/aomp/build/<component>.
 
 Use build_aomp.sh script if you are confident it will will build without failure.
 Otherwise, run these  scripts in the folowing order:
