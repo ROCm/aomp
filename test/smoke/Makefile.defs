@@ -25,31 +25,18 @@ endif
 
 UNAMEP=$(shell uname -p)
 
-ifeq ($(HOST_TARGET),)
-  HOST_TARGET = $(UNAMEP)-pc-linux-gnu
-endif
-ifeq ($(DEVICE_TARGET),)
-  DEVICE_TARGET = nvptx64-nvidia-cuda
-  DEVICE_TARGET = amdgcn-amd-amdhsa
-endif
+AOMP_GPU       ?= gfx900   # Default AOMP_GPU is gfx900 which is vega
+AOMP_CPUTARGET ?= $(UNAMEP)-pc-linux-gnu
+CC              = $(AOMP)/bin/clang
 
-ifeq ($(SMNAME),)
-  SMNAME = sm_30
-endif
-ifeq ($(GFXNAME),)
-  GFXNAME = gfx900
-endif
-
-ifeq ($(DEVICE_ARCH),)
-ifeq ($(findstring amdgcn,$(DEVICE_TARGET)),)
-  DEVICE_ARCH = $(SMNAME)
+ifeq (sm_,$(findstring sm_,$(AOMP_GPU)))
+  AOMP_GPUTARGET = nvptx64-nvidia-cuda
 else
-  DEVICE_ARCH = $(GFXNAME)
-endif
+  AOMP_GPUTARGET = amdgcn-amd-amdhsa
 endif
 
 ifeq ($(TARGET),)
-  TARGET  =  -fopenmp-targets=$(DEVICE_TARGET) -Xopenmp-target=$(DEVICE_TARGET) -march=$(DEVICE_ARCH)
+  TARGET  =  -fopenmp-targets=$(AOMP_GPUTARGET) -Xopenmp-target=$(AOMP_GPUTARGET) -march=$(AOMP_GPU)
 endif
 
 # OFFLOAD_DEBUG is used by this test harnass to turn on HOST and/or DEVICE level debug
@@ -75,7 +62,7 @@ ifeq ($(OFFLOAD_DEBUG),4)
 endif
 
 ifeq ($(OMP_FLAGS),)
-OMP_FLAGS = -target $(HOST_TARGET) -fopenmp $(TARGET)
+OMP_FLAGS = -target $(AOMP_CPUTARGET) -fopenmp $(TARGET)
 endif
 OMP_FLAGS += $(EXTRA_OMP_FLAGS)
 

@@ -40,7 +40,7 @@ help:
 	@echo "Compiler:		$(OMP_BIN)"
 	@echo "LLVM Tool Chain:	$(AOMP)/bin"
 	@echo "Offload Targets:	$(TARGET)"
-	@echo "Host Targe:		$(HOST_TARGET)"
+	@echo "Host Target:		$(AOMP_CPUTARGET)"
 	@echo "Application Binary:	$(TESTNAME)"
 	@echo 
 	@echo "This Makefile supports the following flags:"

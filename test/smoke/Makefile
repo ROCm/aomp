@@ -60,9 +60,9 @@ run run_obin run_sbin run_llbin clean clean_log llbin sbin obin:
 
 help:
 	@echo 
-	@echo "LLVM Tool Chain:		$(AOMP)/bin"
-	@echo "Offload Targets: 	$(TARGET)"
-	@echo "Host Targe:		$(HOST_TARGET)"
+	@echo "LLVM Tool Chain:	$(AOMP)/bin"
+	@echo "Offload Targets:	$(TARGET)"
+	@echo "Host Target:		$(AOMP_CPUTARGET)"
 	@echo "Application Dirs:	$(TESTS_DIR)"
 	@echo 
 	@echo "This Makefile supports the following flags:"
