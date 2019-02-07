@@ -1,0 +1,23 @@
+#/usr/bin/bash
+if [ ! -d $1 ]; then
+  echo "  usage: flip dir-name"
+  echo "    will flip a t-dirme to xt-dirname and back"
+  exit
+fi
+
+if [[ $1 =~ ^xt-(.*)$ ]]; then
+  filename="t-${BASH_REMATCH[1]}"
+  echo "  swich broken dir $1 back to normal dir $filename"
+fi
+if [[ $1 =~ ^t-(.*)$ ]]; then
+  filename="xt-${BASH_REMATCH[1]}"
+  echo "  swich normal dir $1 to broken dir $filename"
+fi
+
+if [ -d $filename ]; then
+  echo "  target dir $filename already exist, abort"
+  exit
+fi
+
+echo "  mv $1 $filename"
+mv $1 $filename

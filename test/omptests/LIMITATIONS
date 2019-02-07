@@ -1,0 +1,33 @@
+#######################################################################################
+#                                                                                     #
+# This file lists known limitations of the current version of the C and C++ compiler. #
+#                                                                                     #
+#######################################################################################
+
+ - The 'reduction' clause is supported on the following directives only:
+     parallel, parallel for, for, sections, parallel sections, distribute parallel for,
+     target parallel, target parallel for, teams, teams distribute parallel for,
+     target teams distribute parallel for.
+ - In addition, the 'reduction' clause is supported on a parallel or a simd directive
+   nested within another parallel directive.
+ - min- and max-reduction are unsupported.
+
+ - 'target parallel' and 'target parallel for' are supported in part.
+ - A maximum of 992 threads are supported in a target construct. Up to 1024 threads per team
+   are supported in the constructs: 'target parallel', 'target parallel for',
+   'target teams distribute parallel for', and 'teams distribute parallel for'.
+ - The 'shared' and 'lastprivate' clauses are not yet supported.
+ - When implicitly mapping a scalar as firstprivate, currently the scalar is made
+   firstprivate on all threads in the parallel region.  The correct behavior is
+   to make it firstprivate on the device but shared across all threads in the team.
+
+ - 'distribute parallel for' is supported, but only dist_schedule and schedule clauses are extensively tested.
+
+ - Other combined directives with 'target', 'teams' or 'distribute' are not supported.
+
+ - Variable-length array types are not supported when their declaration is enclosed by
+   '#pragma omp target' and used in a parallel regions.
+
+ - Orphaned directives with 'parallel' and 'simd' are not supported in device functions.
+
+ - Experimental support for "implicit declare target" is supported with the following option: -fopenmp-implicit-declare-target

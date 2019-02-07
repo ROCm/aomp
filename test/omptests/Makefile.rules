@@ -1,0 +1,110 @@
+
+#
+# Append extraflags to the commands
+#
+cmdc += $(EXTRAFLAGS)
+cmdx += $(EXTRAFLAGS)
+
+#
+# Force a given optimization effort to be used
+#
+
+ifneq ($(FORCE_OPT),)
+	cmdc := $(shell echo $(cmdc) | sed 's/-O[0-9]//g')
+	cmdx := $(shell echo $(cmdx) | sed 's/-O[0-9]//g')
+	
+	cmdc += -$(FORCE_OPT)
+	cmdx += -$(FORCE_OPT)
+endif
+
+#
+# Find files
+#
+
+CFILES += $(wildcard *.c)
+
+CXXFILES += $(wildcard *.cpp)
+CXXFILES += $(wildcard *.cc)
+
+cmdc += $(addprefix $(shell pwd)/,$(CFILES))
+cmdx += $(addprefix $(shell pwd)/,$(CXXFILES))
+
+#
+# Create the command
+#
+
+ifneq ($(CFILES),)
+  cmd := $(cmdc)
+else ifneq ($(CXXFILES),)
+  cmd := $(cmdx)
+else
+  $(error No source files found in $(main_folder))
+endif
+
+all: static run
+
+static: $(results_folder)/a.out
+	@if [ ! -e $< ] ; then \
+		echo "#### Error #### Binary not generated for $(main_folder)" | tee -a $(error_log); \
+		echo "#### Error #### Command to reproduce"; \
+		cat $(compile_cmd)                                             | tee -a $(error_log); \
+		false; \
+	fi
+	@echo " ---> Binary built successfully: $(main_folder)"
+
+ifeq ($(CUSTOM_STATIC_BUILD),)
+$(results_folder)/a.out: prepare_folder_to_build
+	@export LIBRARY_PATH
+	@export LD_LIBRARY_PATH
+	@echo "$(cmd) -o $(results_folder)/a.out" >> $(compile_cmd)
+	@cd $(results_folder) ; $(cmd) -o $(results_folder)/a.out 2> $(compile_log) ; true
+
+endif
+
+dynamic: $(results_folder)/a.so
+	@if [ ! -e $< ] ; then \
+		echo "#### Error #### Binary not generated for $(main_folder)" | tee -a $(error_log); \
+		echo "#### Error #### Command to reproduce"; \
+		cat $(compile_cmd)                                             | tee -a $(error_log); \
+		false; \
+	fi
+	@echo " ---> Library	 built successfully: $(main_folder)"
+
+ifeq ($(CUSTOM_DYNAMIC_BUILD),)
+$(results_folder)/a.so: prepare_folder_to_build
+	@export LIBRARY_PATH
+	@export LD_LIBRARY_PATH
+	@echo "$(cmd) -o $(results_folder)/a.so -shared -fPIC" >> $(compile_cmd)
+	@cd $(results_folder) ; $(cmd) -o $(results_folder)/a.so -shared -fPIC 2> $(compile_log) ; true
+
+endif
+
+run: prepare_folder_to_run
+	@export LIBRARY_PATH
+	@export LD_LIBRARY_PATH
+	@echo "$(cmd) -o $(results_folder)/a.out" >> $(compile_cmd)
+	@$(results_folder)/a.out 1>$(results_folder)/stdout 2>$(results_folder)/stderr ; true
+	@diff $(results_folder)/stdout expected > /dev/null || \
+	(if [ $$? ] ; then \
+		echo "#### Error #### Result mismatch for $(main_folder)" | tee -a $(error_log); \
+		echo "#### Error #### Command to reproduce"; \
+		cat $(compile_cmd)                                        | tee -a $(error_log); \
+		false; \
+	fi)
+	@echo " ---> Binary runs successfully: $(main_folder)"
+
+prepare_folder_to_build:
+	@echo " -> Building test $(main_folder)..." ; echo -n " ---> Description: " ; cat desc
+	@rm -rf $(results_folder)
+	@mkdir -p $(results_folder)
+	@echo "export LIBRARY_PATH=\"$(LIBRARY_PATH)\"" >  $(compile_cmd)
+	@echo "export LD_LIBRARY_PATH=\"$(LD_LIBRARY_PATH)\"" >>  $(compile_cmd)
+	@echo "cd $(main_folder)" >>  $(compile_cmd)
+	
+prepare_folder_to_run:	
+	@echo " -> Running test $(main_folder)..." ; echo -n " ---> Description: " ; cat desc
+	@mkdir -p $(results_folder)
+	@echo "export LIBRARY_PATH=\"$(LIBRARY_PATH)\"" >  $(compile_cmd)
+	@echo "export LD_LIBRARY_PATH=\"$(LD_LIBRARY_PATH)\"" >>  $(compile_cmd)
+	@echo "cd $(main_folder)" >>  $(compile_cmd)
+  

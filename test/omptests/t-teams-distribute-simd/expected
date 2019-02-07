@@ -1,0 +1,33 @@
+Able to use offloading!
+iterations = teams
+Succeeded
+iterations > teams
+Succeeded
+iterations < teams
+Succeeded
+num_teams(512) dist_schedule(static,1)
+Succeeded
+num_teams(512) dist_schedule(static,512)
+Succeeded
+num_teams(512) dist_schedule(static, chunkSize)
+Succeeded
+num_teams(1024) dist_schedule(static, chunkSize)
+Succeeded
+num_teams(1024) dist_schedule(static, 1)
+Succeeded
+num_teams(3) dist_schedule(static, 1)
+Succeeded
+num_teams(3) dist_schedule(static, 3)
+Succeeded
+num_teams(10) dist_schedule(static, 99)
+Succeeded
+num_teams(256) dist_schedule(static, 992)
+Succeeded
+num_teams(nte) thread_limit(tl) with parallel for innermost
+Succeeded
+num_teams(nte) thread_limit(tl) with parallel for innermost
+Succeeded
+num_teams(512) collapse(2)
+Succeeded
+num_teams(512) collapse(3)
+Succeeded

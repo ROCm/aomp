@@ -1,0 +1,8 @@
+Able to use offloading!
+Test full extent: Succeeded
+Test full extent with zero length ptrs: Succeeded
+Test full extent with zero length ptrs and NULL ptr: Succeeded
+Test full extent with implicit zero length ptrs: Succeeded
+Test Offset: Succeeded
+Test first-private: Succeeded
+Test device_ptr: Succeeded

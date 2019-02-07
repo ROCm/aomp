@@ -1,0 +1,1 @@
+check the number of threads and tasks in teams distr par for: MUST RUN WITH "export OMP_NUM_TEAMS=32" as set in makefile

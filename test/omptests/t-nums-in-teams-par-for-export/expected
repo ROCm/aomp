@@ -1,0 +1,8 @@
+got num teams = 32
+test 1: use iteration trip count with default number of threads
+  completed
+test 2: use iteration trip count with 512 threads
+  completed
+test 3: use iteration trip count with 25 teams & 512 threads
+  completed
+tests completed with 0 errors

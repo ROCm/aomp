@@ -1,0 +1,1 @@
+Test that checks a zero-size struct with a single Ctor enclosed in declare target and with the implicit declare target activated at the same time.

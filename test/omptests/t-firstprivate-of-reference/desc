@@ -1,0 +1,1 @@
+Test that uses firstprivate for a variable captured by reference in the outer scope. I.e., it passes by value a reference in a parallel wrapper function.

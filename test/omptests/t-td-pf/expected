@@ -1,0 +1,36 @@
+-, no schedule clauses
+Succeeded
+-, schedule static no chunk
+Succeeded
+-, schedule dynamic no chunk
+Succeeded
+-, schedule static chunk
+Succeeded
+-, schedule dynamic chunk
+Succeeded
+dist_schedule(static), -
+Succeeded
+dist_schedule(static, sch), -
+Succeeded
+dist_schedule(static), schedule(static)
+Succeeded
+dist_schedule(static), schedule(static, sch)
+Succeeded
+dist_schedule(static), schedule(static, sch)
+Succeeded
+dist_schedule(static, dssch), schedule(static, sch)
+Succeeded
+dist_schedule(static, sch), schedule(dynamic)
+Succeeded
+dist_schedule(static, dssch), schedule(dynamic, sch)
+Succeeded
+dist_schedule(static, sch), schedule guided
+Succeeded
+dist_schedule(static, dssch), schedule(guided, sch)
+Succeeded
+dist_schedule(static, sch), schedule runtime
+Succeeded
+dist_schedule(static, sch), schedule auto
+Succeeded
+dist_schedule(static,dssch), schedule(guided, sch)
+Succeeded

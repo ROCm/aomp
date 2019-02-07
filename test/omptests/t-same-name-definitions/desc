@@ -1,0 +1,1 @@
+Test that target regions in function with the same and in templates included several times do not generate duplicated entries.

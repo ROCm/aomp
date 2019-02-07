@@ -1,0 +1,1 @@
+Test that device code is generated correctly even if exception are used for the host code.
