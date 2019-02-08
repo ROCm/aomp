@@ -92,18 +92,17 @@ sudo rpm -i aomp-0.6-0.x86_64.rpm
 
 ### No root Install
 
-The current packages are built without listing dependencies.
-By default, they install their content to the release directory /opt/rocm/aomp_0.X-Y and then a  symbolic link is created at /opt/rocm/aomp to the release directory. This requires root access.  You can use the --prefix option of the rpm install command to change the location so as not to require root access.
+By default, the packages install their content to the release directory /opt/rocm/aomp_0.X-Y and then a  symbolic link is created at /opt/rocm/aomp to the release directory. This requires root access.
 
+To install the debian package without root access into your home directory, you can run these commands.
 ```
-   wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_0.6-0/aomp-0.6-0.x86_64.rpm
-   mkdir -p $HOME/rocm/aomp
-   rpm -i aomp-0.6-0.x86_64.rpm --prefix=$HOME/rocm/aomp
-```
-Then permanently set the environment variable AOMP to $HOME/rocm/aomp.  For example in .bash_profile add the command 
-```
+   wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_0.6-0/aomp_0.6-0_amd64.deb
+   dpkg -x aomp_0.6-0_amd64.deb /tmp/temproot
+   mv /tmp/temproot/opt/rocm $HOME
+   export PATH=$PATH:$HOME/rocm/aomp/bin
    export AOMP=$HOME/rocm/aomp
 ```
+The last two commads could be put into your .bash_profile file so you can always access the compiler.
 
 ### Source Install
 Build and install from sources is possible.  However, the source build for AOMP is complex for several reasons.  
