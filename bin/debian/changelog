@@ -1,4 +1,4 @@
-aomp (0.5-5) UNRELEASED; urgency=medium
+aomp (0.6-0) UNRELEASED; urgency=medium
 
   * Initial release of aomp is 0.3-2
   *   Please see example in /opt/rocm/aomp/examples/vmuldemo 
@@ -96,12 +96,19 @@ aomp (0.5-5) UNRELEASED; urgency=medium
   *     use of debug runtime libraries. 
   *   Temporary solution for device archive libraries whose members are bundles.
   *     This only works for  single device time archive files. 
-  *
   * 0.5-5
   *   Same as 0.5-4 but built for ROCm 1.9
   *   AOMP now includes both roct (thunk libraries) and rocr (ROCm runtime). 
   *   Cleanup and additional automation of the source build process. 
-  *   The arm64 package is now built for AOMP.
   *   
+  * 0.6-0 
+  *   Renamed from HCC2 to AOMP. 
+  *   Most device libraries now stored flat in lib/libdevice directory. 
+  *   Massive cleanup of build scripts, default install is $HOME/rocm/aomp.
+  *   All rocm dll references are now absolute and within the aomp installation
+  *      to avoid testing many rocm releases. So there are no rocm 
+  *      dependencies for aomp. aomp contains roct and rocr versions 1.9. 
+  *   The aarch64 package is now built for AOMP.
+  * 
 
- -- Greg Rodgers <Gregory.Rodgers@amd.com>  Thu, 29 Nov 2018 15:25:10 -0600
+ -- Greg Rodgers <Gregory.Rodgers@amd.com>  Fri, 08 Feb 2019 13:44:00 -0600
