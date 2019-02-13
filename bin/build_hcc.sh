@@ -32,13 +32,9 @@ thisdir=$(getdname $0)
 INSTALL_HCC=${INSTALL_HCC:-$AOMP_INSTALL_DIR/hcc}
 
 PROC=`uname -p`
-GCC=`which gcc`
-GCPLUSCPLUS=`which g++`
 if [ "$PROC" == "ppc64le" ] ; then 
-   COMPILERS="-DCMAKE_C_COMPILER=/usr/bin/gcc-7 -DCMAKE_CXX_COMPILER=/usr/bin/g++-7"
    TARGETS_TO_BUILD="AMDGPU;PowerPC"
 else
-   COMPILERS="-DCMAKE_C_COMPILER=$GCC -DCMAKE_CXX_COMPILER=$GCPLUSCPLUS"
    if [ "$PROC" == "aarch64" ] ; then 
       TARGETS_TO_BUILD="AMDGPU;AArch64"
    else
@@ -46,13 +42,44 @@ else
    fi
 fi
 
-MYCMAKEOPTS="-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON -DCMAKE_INSTALL_RPATH=$AOMP_INSTALL_DIR/lib:$AOMP_INSTALL_DIR/hcc/lib -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX=$INSTALL_HCC -DLLVM_ENABLE_ASSERTIONS=ON -DLLVM_TARGETS_TO_BUILD=$TARGETS_TO_BUILD $COMPILERS -DHSA_HEADER_DIR=$AOMP_INSTALL_DIR/hsa/include -DHSA_LIBRARY_DIR=$AOMP_INSTALL_DIR/hsa/lib"
+GCCMIN=5
+function getgcc5orless(){
+   _loc=`which gcc`
+   [ "$_loc" == "" ] && return
+   gccver=`$_loc --version | grep gcc | cut -d")" -f2 | cut -d"." -f1`
+   [ $gccver -gt $GCCMIN ] && _loc=`which gcc-$GCCMIN`
+   echo $_loc
+}
+function getgxx5orless(){
+   _loc=`which g++`
+   [ "$_loc" == "" ] && return
+   gxxver=`$_loc --version | grep g++ | cut -d")" -f2 | cut -d"." -f1`
+   [ $gxxver -gt $GCCMIN ] && _loc=`which g++-$GCCMIN`
+   echo $_loc
+}
+GCCLOC=$(getgcc5orless)
+GXXLOC=$(getgxx5orless)
+if [ "$GCCLOC" == "" ] ; then
+   echo "ERROR: NO ADEQUATE gcc"
+   echo "       Please install gcc-5"
+   exit 1
+fi
+if [ "$GXXLOC" == "" ] ; then
+   echo "ERROR: NO ADEQUATE g++"
+   echo "       Please install g++-5"
+   exit 1
+fi
+COMPILERS="-DCMAKE_C_COMPILER=$GCCLOC -DCMAKE_CXX_COMPILER=$GXXLOC"
+
+GFXSEMICOLONS=`echo $GFXLIST | tr ' ' ';' `
+MYCMAKEOPTS="-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON -DCMAKE_INSTALL_RPATH=$AOMP_INSTALL_DIR/lib:$AOMP_INSTALL_DIR/hcc/lib -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX=$INSTALL_HCC -DLLVM_ENABLE_ASSERTIONS=ON -DHSA_AMDGPU_GPU_TARGET=$GFXSEMICOLONS $COMPILERS -DHSA_HEADER_DIR=$AOMP_INSTALL_DIR/hsa/include -DHSA_LIBRARY_DIR=$AOMP_INSTALL_DIR/hsa/lib -DCLANG_ANALYZER_ENABLE_Z3_SOLVER=OFF -DLLVM_INCLUDE_BENCHMARKS=OFF"
+
+# -DLLVM_TARGETS_TO_BUILD=$TARGETS_TO_BUILD 
 #  For now build hcc with ROCDL. because using the AOMP libdevice 
 #  with the following option would force build_hcc.sh to be after build_libdevice.sh
 #  And since build_hip.sh must be after build_hcc.sh, build_hip.sh would be almost last.
 # -DHCC_INTEGRATE_ROCDL=OFF -DROCM_DEVICE_LIB_DIR=$AOMP_INSTALL_DIR/lib/libdevice
 # 
-# -DCLANG_ANALYZER_ENABLE_Z3_SOLVER=0 -DLLVM_INCLUDE_BENCHMARKS=0
 
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then 
   help_build_aomp
