@@ -27,6 +27,8 @@ build_utils.sh     -  Builds the AOMP utilities
 
 build_atmi.sh      -  Builds early release of ATMI for aomp.
 
+build_hcc.sh       -  Builds the hcc compiler needed by hip
+
 build_hip.sh       -  Builds the hip host runtimes needed by aomp.
 
 build_openmp.sh    -  Builds the OpenMP libraries for aomp.
@@ -137,6 +139,9 @@ Otherwise, run these  scripts in the folowing order:
 
    ./build_utils.sh
    ./build_utils.sh install
+
+   ./build_hcc.sh
+   ./build_hcc.sh install
 
    ./build_hip.sh
    ./build_hip.sh install

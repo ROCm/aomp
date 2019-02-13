@@ -69,7 +69,7 @@ date
 echo " =================  START build_aomp.sh ==================="   
 echo 
 
-components="roct rocr llvm utils hip atmi openmp libdevice libm"
+components="roct rocr llvm utils hcc hip atmi openmp libdevice libm"
 for COMPONENT in $components ; do 
    echo 
    echo " =================  BUILDING COMPONENT $COMPONENT ==================="   

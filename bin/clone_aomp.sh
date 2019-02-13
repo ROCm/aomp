@@ -3,13 +3,6 @@
 #  clone_aomp.sh:  Clone the repositories needed to build the aomp compiler.  
 #                  Currently AOMP needs 14 repositories.
 #
-# This script and other utility scripts are now kept in the bin directory of the aomp repository 
-#
-GITROC="https://github.com/radeonopencompute"
-GITROCDEV="https://github.com/ROCm-Developer-Tools"
-GITROCLIB="https://github.com/AMDComputeLibraries"
-GITKHRONOS="https://github.com/KhronosGroup"
-
 # --- Start standard header ----
 function getdname(){
    local __DIRN=`dirname "$1"`
@@ -50,14 +43,22 @@ if [ -d $repodirname  ] ; then
    git checkout $COBRANCH
    echo "git pull "
    git pull 
+   if [ "$reponame" == "$AOMP_HCC_REPO_NAME" ] ; then
+     echo "git submodule update"
+     git submodule update
+   fi
 else 
    echo --- NEW CLONE of repo $reponame to $repodirname ----
    cd $AOMP_REPOS
-   echo git clone $repo_web_location/$reponame
-   git clone $repo_web_location/$reponame $reponame
-   echo "cd $repodirname ; git checkout $COBRANCH"
-   cd $repodirname
-   git checkout $COBRANCH
+   if [ "$reponame" == "$AOMP_HCC_REPO_NAME" ] ; then
+     git clone --recursive -b $COBRANCH $repo_web_location/$reponame $reponame
+   else
+     echo git clone $repo_web_location/$reponame
+     git clone $repo_web_location/$reponame $reponame
+     echo "cd $repodirname ; git checkout $COBRANCH"
+     cd $repodirname
+     git checkout $COBRANCH
+   fi
 fi
 }
 
@@ -119,6 +120,10 @@ clone_or_pull
 
 reponame=$AOMP_OCLRUNTIME_REPO_NAME
 COBRANCH=$AOMP_OCLRUNTIME_REPO_BRANCH
+clone_or_pull
+
+reponame=$AOMP_HCC_REPO_NAME
+COBRANCH=$AOMP_HCC_REPO_BRANCH
 clone_or_pull
 
 # ---------------------------------------
