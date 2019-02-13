@@ -103,12 +103,17 @@ aomp (0.6-0) UNRELEASED; urgency=medium
   *   
   * 0.6-0 
   *   Renamed from HCC2 to AOMP. 
-  *   Most device libraries now stored flat in lib/libdevice directory. 
-  *   Massive cleanup of build scripts, default install is $HOME/rocm/aomp.
-  *   All rocm dll references are now absolute and within the aomp installation
-  *      to avoid testing many rocm releases. So there are no rocm 
+  *   Device libraries now stored flat in lib/libdevice directory. 
+  *   Massive cleanup of build scripts, 
+  *   Default install is now $HOME/rocm/aomp.
+  *   All rocm dll references are now use absolute rpath and within the aomp 
+  *      installation to avoid testing many rocm releases. So there are no rocm 
   *      dependencies for aomp. aomp contains roct and rocr versions 1.9. 
+  *   hcc is now a build component because build_hip.sh requires hcc to compile hip runtime.
+  *      Only the necessary libraries are preserved in the package to save space
+  *   Moved all ROCm component dependencies to branch 2.1.x
+  *   Moved cuda to cuda10. 
   *   The aarch64 package is now built for AOMP.
   * 
 
- -- Greg Rodgers <Gregory.Rodgers@amd.com>  Fri, 08 Feb 2019 13:44:00 -0600
+ -- Greg Rodgers <Gregory.Rodgers@amd.com>  Wed, 13 Feb 2019 14:27:38 -0600
