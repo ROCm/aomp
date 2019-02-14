@@ -51,13 +51,13 @@ The first column is the AOMP component that uses the repositories.
 | llvm      | $HOME/git/aomp/clang                  | [clang](https://github.com/ROCm-Developer-Tools/clang)
 | llvm      | $HOME/git/aomp/llvm                   | [llvm](https://github.com/ROCm-Developer-Tools/llvm)
 | llvm      | $HOME/git/aomp/lld                    | [lld](https://github.com/ROCm-Developer-Tools/lld)
-| utils     | $HOME/git/aomp/aomp                   | [aomp/utils](https://github.com/ROCm-Developer-Tools/aomp/utils)
+| utils     | $HOME/git/aomp/aomp                   | [aomp/utils](https://github.com/ROCm-Developer-Tools/aomp/tree/master/utils)
 | hcc       | $HOME/git/aomp/hcc                    | [hcc](https://github.com/radeonopencompute/hcc)
 | hip       | $HOME/git/aomp/hip                    | [hip](https://github.com/ROCm-Developer-Tools/hip)
 | atmi      | $HOME/git/aomp/atmi                   | [atmi](https://github.com/radeonopencompute/atmi)
 | openmp    | $HOME/git/aomp/openmp                 | [openmp](https://github.com/ROCm-Developer-Tools/openmp)
 | libdevice | $HOME/git/aomp/rocm-device-libs       | [rocm-device-libs](https://github.com/radeonopencompute/rocm-device-libs)
-| libm      | $HOME/git/aomp/aomp                   | [aomp/examples](https://github.com/ROCm-Developer-Tools/aomp/examples/libdevice)
+| libm      | $HOME/git/aomp/aomp                   | [aomp/examples](https://github.com/ROCm-Developer-Tools/aomp/tree/master/examples/libdevice)
 |           | $HOME/git/aomp/openmpapps             | [openmpapps](https://github.com/AMDComputeLibraries/openmpapps)
 
 
