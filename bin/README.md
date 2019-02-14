@@ -42,14 +42,14 @@ The repositories needed by AOMP are:
 
 | Component | DIRECTORY NAME *                      | AOMP REPOSITORY **       
 | --------- | ----------------                      | ------------------
-| roct      | $HOME/git/aomp/roct-thunk-interfaces  | [roct-thunk-interfaces]:(https://github.com/radeonopencompute/roct-thunk-interface)
-| rocr      | $HOME/git/aomp/rocr-runtime           | [rocr-runtime]:(https://github.com/radeonopencompute/rocr-runtime)
-| llvm      | $HOME/git/aomp/clang                  | [clang]:(https://github.com/ROCm-Developer-Tools/clang)
-| llvm      | $HOME/git/aomp/llvm                   | [llvm]:(https://github.com/ROCm-Developer-Tools/llvm)
-| llvm      | $HOME/git/aomp/lld                    | [lld]:(https://github.com/ROCm-Developer-Tools/lld)
-| utils     | $HOME/git/aomp/aomp                   | [aomp]:(https://github.com/ROCm-Developer-Tools/aomp)
-| hcc       | $HOME/git/aomp/hcc                    | [hcc]:(https://github.com/ROCm-Developer-Tools/hcc)
-| hip       | $HOME/git/aomp/hip                    | [hip]:(https://github.com/ROCm-Developer-Tools/hip)
+| roct      | $HOME/git/aomp/roct-thunk-interfaces  | [roct-thunk-interfaces](https://github.com/radeonopencompute/roct-thunk-interface)
+| rocr      | $HOME/git/aomp/rocr-runtime           | [rocr-runtime](https://github.com/radeonopencompute/rocr-runtime)
+| llvm      | $HOME/git/aomp/clang                  | [clang](https://github.com/ROCm-Developer-Tools/clang)
+| llvm      | $HOME/git/aomp/llvm                   | [llvm](https://github.com/ROCm-Developer-Tools/llvm)
+| llvm      | $HOME/git/aomp/lld                    | [lld](https://github.com/ROCm-Developer-Tools/lld)
+| utils     | $HOME/git/aomp/aomp                   | [aomp](https://github.com/ROCm-Developer-Tools/aomp)
+| hcc       | $HOME/git/aomp/hcc                    | [hcc](https://github.com/radeonopencompute/hcc)
+| hip       | $HOME/git/aomp/hip                    | [hip](https://github.com/ROCm-Developer-Tools/hip)
 | atmi      | $HOME/git/aomp/atmi                   | %roc/atmi
 | openmp    | $HOME/git/aomp/openmp                 | %rocdev/openmp 
 | libdevice | $HOME/git/aomp/rocm-device-libs       | %roc/rocm-device-libs
