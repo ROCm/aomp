@@ -28,6 +28,7 @@ UNAMEP=$(shell uname -p)
 AOMP_GPU       ?= gfx900   # Default AOMP_GPU is gfx900 which is vega
 AOMP_CPUTARGET ?= $(UNAMEP)-pc-linux-gnu
 CC              = $(AOMP)/bin/clang
+CUDA           ?= /usr/local/cuda
 
 ifeq (sm_,$(findstring sm_,$(AOMP_GPU)))
   AOMP_GPUTARGET = nvptx64-nvidia-cuda
@@ -82,15 +83,12 @@ else
 CFLAGS = -O2
 endif
 
-ifeq ($(findstring amdgcn,$(OMP_FLAGS)),)
-LINK_FLAGS = -L$(CUDA)/targets/$(UNAMEP)-linux/lib -lcudart -L$(AOMP)/lib-debug -lomp
+ifeq (sm_,$(findstring sm_,$(AOMP_GPU)))
+LINK_FLAGS = -L$(CUDA)/targets/$(UNAMEP)-linux/lib -lcudart
 else
 LINK_FLAGS =
 endif
 LINK_FLAGS += $(EXTRA_LDFLAGS)
-
-
-CUDA      = /usr/local/cuda
 
 RUNPROF =  $(CUDA)/bin/nvprof 
 RUNPROF =
