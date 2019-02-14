@@ -40,27 +40,38 @@ build_libm.sh      -  Built the libm DBCL (Device BC Library)
 These scripts install into $HOME/rocm/aomp (or $AOMP if set). 
 The repositories needed by AOMP are:
 
-Component   DIRECTORY NAME *                      AOMP REPOSITORY **       
----------   ----------------------------          ---------------------------
-roct        $HOME/git/aomp/roct-thunk-interfaces  [roct-thunk-interfaces] (https://github.com/RadeonOpenCompute/roct-thunk-interfaces)
-rocr        $HOME/git/aomp/rocr-runtime       	  %roc/rocr-runtime
-llvm        $HOME/git/aomp/clang                  %rocdev/clang ***
-llvm        $HOME/git/aomp/llvm                   %rocdev/llvm
-llvm        $HOME/git/aomp/lld                	%rocdev/lld
-utils       $HOME/git/aomp/aomp               	%rocdev/aomp ***
-hcc         $HOME/git/aomp/hcc                	%rocdev/hcc
-hip         $HOME/git/aomp/hip                	%rocdev/hip
-atmi        $HOME/git/aomp/atmi               	%roc/atmi
-openmp      $HOME/git/aomp/openmp             	%rocdev/openmp ***
-libdevice   $HOME/git/aomp/rocm-device-libs   	%roc/rocm-device-libs
-libm        $HOME/git/aomp/aomp               	%rocdev/aomp ***
-            $HOME/git/aomp/openmpapps         	%roclib/openmpapps
+ Component   DIRECTORY NAME *                      AOMP REPOSITORY **       
+ ---------   ----------------------------          ---------------------------
+ roct        $HOME/git/aomp/roct-thunk-interfaces  [roct-thunk-interfaces] (https://github.com/radeonopencompute/roct-thunk-interface)
+
+ rocr        $HOME/git/aomp/rocr-runtime       	   %roc/rocr-runtime
+
+ llvm        $HOME/git/aomp/clang                  %rocdev/clang
+
+ llvm        $HOME/git/aomp/llvm                   %rocdev/llvm
+
+ llvm        $HOME/git/aomp/lld                	   %rocdev/lld
+
+ utils       $HOME/git/aomp/aomp                   %rocdev/aomp
+
+ hcc         $HOME/git/aomp/hcc                	   %rocdev/hcc
+
+ hip         $HOME/git/aomp/hip                    %rocdev/hip
+
+ atmi        $HOME/git/aomp/atmi                   %roc/atmi
+
+ openmp      $HOME/git/aomp/openmp                 %rocdev/openmp 
+
+ libdevice   $HOME/git/aomp/rocm-device-libs       %roc/rocm-device-libs
+
+ libm        $HOME/git/aomp/aomp                   %rocdev/aomp
+ 
+             $HOME/git/aomp/openmpapps             %roclib/openmpapps
 
    * By default, repositories clone here
   ** Replace %roc with "https://github.com/RadeonOpenCompute"
   ** Replace %rocdev with "https://github.com/ROCm-Developer-Tools"
   ** Replace %roclib with "https://github.com/AMDComputeLibraries"
- *** These are the primary development repositories for AOMP. They are updated often.
 
 The scripts and example makefiles use these environment variables and these 
 defaults if they are not set. This is not a complete list.  See the script headers
