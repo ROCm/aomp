@@ -40,7 +40,6 @@ build_libm.sh      -  Built the libm DBCL (Device BC Library)
 These scripts install into $HOME/rocm/aomp (or $AOMP if set). 
 The repositories needed by AOMP are:
 
-```
 Component   DIRECTORY NAME *                      AOMP REPOSITORY **       
 ---------   ----------------------------          ---------------------------
 roct        $HOME/git/aomp/roct-thunk-interfaces  [roct-thunk-interfaces] (https://github.com/RadeonOpenCompute/roct-thunk-interfaces)
@@ -62,7 +61,6 @@ libm        $HOME/git/aomp/aomp               	%rocdev/aomp ***
   ** Replace %rocdev with "https://github.com/ROCm-Developer-Tools"
   ** Replace %roclib with "https://github.com/AMDComputeLibraries"
  *** These are the primary development repositories for AOMP. They are updated often.
-```
 
 The scripts and example makefiles use these environment variables and these 
 defaults if they are not set. This is not a complete list.  See the script headers
