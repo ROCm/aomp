@@ -73,14 +73,8 @@ Software License Agreement.
 On Ubuntu 18.04 LTS (bionic beaver), run these commands:
 ```
 wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_0.6-0/aomp_0.6-0_amd64.deb
-sudo dpkg -P hcc2
-sudo dpkg -P libamdgcn
-sudo dpkg -P amdcloc
-sudo dpkg -P mymcpu
 sudo dpkg -i aomp_0.6-0_amd64.deb
 ```
-The "dpkg -P" commands are used to delete previous versions of hcc2, libamdgcn, amdcloc, and mymcpu which may conflict with the installation.  If these are not installed it is ok to just let the "dpkg -P" commands fail.
-
 The AOMP bin directory (which includes the standard clang and llvm binaries) is not intended to be in your PATH for typical operation.
 
 ### RPM Install
@@ -111,7 +105,7 @@ Build and install from sources is possible.  However, the source build for AOMP 
 - It is a bootstrapped build. The built and installed LLVM compiler is used to build library components.
 - Additional package dependencies are required that are not required when installing the AOMP package.
 
-To build AOMP from source on ubuntu 16.04, run these commands.
+To build AOMP from source, run these commands.
 
 ```
    sudo apt-get install cmake g++-5 g++ pkg-config libpci-dev libnuma-dev libelf-dev libffi-dev
@@ -127,7 +121,7 @@ To build AOMP from source on ubuntu 16.04, run these commands.
    ./clone_aomp.sh
    ./build_aomp.sh
 ```
-Depending on your system, the last two commands and the cuda install could take a very long time.
+Depending on your system, the last two commands and the cuda install could take a very long time. For more information, please refer to the AOMP developers README file located [HERE](bin/README.md).
 
 The source build process above builds the development version of AOMP by checking out the master branch of AOMP.   The development version is the next version to be released.  It is possible that the development version is broken due to regressions that often occur during development.  If you want to build from the sources of a previous release such as 0.6-0, run these commands before running clone_aomp.sh.
 ```
