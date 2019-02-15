@@ -5,10 +5,12 @@ AOMP is the AMD OpenMP Compiler. This is the AOMP developer README stored at:
 ```
 https://github.com/ROCm-Developer-Tools/aomp/bin/README.md
 ```
+The AOMP compiler supports OpenMP, clang-hip, clang-cuda, device OpenCL, and the offline kernel compilatino tool called cloc.  It contains a recent version of the AMD Lightning compiler (llvm amdgcn backend) and the llvm nvptx backend.  Except for clang-cuda, this compiler works for both Nvidia and AMD Radeon GPUs. 
+
 This bin directory contains scripts to build AOMP from source.
 ```
 clone_aomp.sh      -  A script to make sure the necessary repos are up to date.
-                      See below for a list of these libraries.
+                      See below for a list of these source repositories.
 
 build_aomp.sh      -  Run all build and install scripts in the correct order. 
 
@@ -17,11 +19,6 @@ build_roct.sh      -  Build the hsa thunk library
 build_rocr.sh      -  Built the ROCm runtime
 
 build_llvm.sh      -  Build llvm, clang, and lld components of AOMP compiler.
-                      This compiler supports openmp, clang hip, clang cuda,
-                      opencl, and the GPU  kernel frontend cloc.
-                      It contains a recent version of the AMD Lightning compiler
-                      (llvm amdgcn backend) and the llvm nvptx backend.
-                      This compiler works for both Nvidia and AMD Radeon GPUs.
 
 build_utils.sh     -  Builds the AOMP utilities
 
@@ -85,8 +82,6 @@ BUILD_TYPE=Debug
 NVPTXGPUS=30,35,50,60,70
 export SUDO AOMP NVPTXGPUS BUILD_TYPE
 ```
-The sm_70 (70 in NVPTXGPUS) requires CUDA 9 and above.
-
 The build scripts will build from the source directories identified by the 
 environment variable AOMP_REPOS.
 
@@ -109,22 +104,19 @@ To be sure you have the latest sources from the git repositories, run command.
 
 The first time you do this, It could take a long time to clone the repositories.  Subsequent calls will pull the latest updates so you can run clone_aomp.sh anytime to be sure you are on the latest development sources. 
 
-WARING: The script clone_aomp.sh does not pull updates for the aomp repository. You must pull aomp repository manually. 
+WANRING: The script clone_aomp.sh does not pull updates for the aomp repository. You must pull aomp repository manually. So please run "clone_aomp.sh" and "cd $HOME/git/aomp/aomp; git pull" frequently to stay current with aomp development.
 
-To build aomp, you MUST have the Nvidia CUDA SDK version 8 or greater installed because AOMP can build applications for NVIDIA GPUs. We have not done testing for CUDA version 10.  The current default list of Nvidia subarchs is "30,35,50,60,70".  For example, the default list will support application builds with --offload-arch=sm_30 and --offload-arch=sm_60 etc.  This list can be changed with the NVPTXGPUS environment variable.
+The Nvidia CUDA SDK is NOT required for a package install of AOMP. However, to build AOMP from source, you MUST have the Nvidia CUDA SDK version 10 installed because AOMP may be used to build applications for NVIDIA GPUs.  The current default build list of Nvidia subarchs is "30,35,50,60,61,70".  For example, the default list will support application builds with --offload-arch=sm_30 and --offload-arch=sm_60 etc.  This build list can be changed with the NVPTXGPUS environment variable. Set this before running build_aomp.sh.
 
-After you have all the source repositories and you have cuda and all the dependencies installed, 
+After you have all the source repositories and you have CUDA and all the dependencies installed, 
 run this script to build aomp.
 ```
-   unset LD_LIBRARY_PATH
    ./build_aomp.sh
 ```
-All dynamic runtime libraries that are built by a component of AOMP and then are referenced by another AOMP component will resolve the the absolute location within the AOMP installation.  These include libraries that may have been installed by ROCm. Because some installations of ROCm cause the default environment to set LD_LIBRARY_PATH, you should unset this before building aomp so as not to pickup ROCm components that may not have been tested with AOMP.  In other words, with the exception of the cuda toolkit, AOMP does not require installation of ROCm.
+Through extensive use of RPATH, all dynamic runtime libraries that are built by any component of AOMP and then are referenced by another AOMP component will resolve the absolute location within the AOMP installation.  This strategy significantly simplifies the AOMP test matrix.  Libraries that may have been installed by a previous ROCm installation including roct and rocr, will not be used by AOMP. 
 
-The default build directory for each component is $HOME/git/aomp/build/<component>.
 
-Use build_aomp.sh script if you are confident it will will build without failure.
-Otherwise, run these  scripts in the folowing order:
+Developers may update a component and then run these  scripts in the folowing order:
 
 ```
    ./build_roct.sh
@@ -163,10 +155,10 @@ For now, run this command for some minor fixups to the install.
 ```
    ./build_fixup.sh
 ```
-
-Once you have a successful development build, components can be incrementally rebuilt without rebuilding the entire system. For example, if you change a file in the clang repository. Run this command to incrementally build llvm, clang, and lld and update your installation. 
-
+Once you have a successful development build, individual components can be incrementally rebuilt without rebuilding the entire system or the entire component. For example, if you change a file in the clang repository. Run this command to incrementally build llvm, clang, and lld and update your installation.
 ```
    ./build_llvm.sh install
 ```
-WARNING:  if you do not specify the "install" option, the script will rebuild the entire component by wiping out the build directory.
+The default out-of-source build directory for each component is $HOME/git/aomp/build/<component>.
+
+WARNING: When the build scripts are run with NO arguments (that is, you do not specify "install" or "nocmake"), the build scripts will rebuild the entire component by DELETING THE BUILD DIRECTORY before running cmake and make.
