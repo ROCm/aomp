@@ -5,14 +5,14 @@ AOMP is the AMD OpenMP Compiler. This is the AOMP developer README stored at:
 ```
 https://github.com/ROCm-Developer-Tools/aomp/bin/README.md
 ```
-The AOMP compiler supports OpenMP, clang-hip, clang-cuda, device OpenCL, and the offline kernel compilatino tool called cloc.  It contains a recent version of the AMD Lightning compiler (llvm amdgcn backend) and the llvm nvptx backend.  Except for clang-cuda, this compiler works for both Nvidia and AMD Radeon GPUs. 
+The AOMP compiler supports OpenMP, clang-hip, clang-cuda, device OpenCL, and the offline kernel compilatino tool called cloc.  It contains a recent version of the AMD Lightning compiler (llvm amdgcn backend) and the llvm nvptx backend.  Except for clang-cuda, this compiler works for both Nvidia and AMD Radeon GPUs.
 
 This bin directory contains scripts to build AOMP from source.
 ```
 clone_aomp.sh      -  A script to make sure the necessary repos are up to date.
                       See below for a list of these source repositories.
 
-build_aomp.sh      -  Run all build and install scripts in the correct order. 
+build_aomp.sh      -  Run all build and install scripts in the correct order.
 
 build_roct.sh      -  Build the hsa thunk library
 
@@ -34,14 +34,14 @@ build_libdevice.sh -  Builds the device bc libraries from rocm-device-libs
 
 build_libm.sh      -  Built the libm DBCL (Device BC Library)
 ```
-These scripts install into $HOME/rocm/aomp (or $AOMP if set). 
+These scripts install into $HOME/rocm/aomp (or $AOMP if set).
 
 The clone_aomp.sh script clones the necessary repositories and the correct
 branches into subdirectories of $HOME/git/aomp (or $AOMP_REPOS if set)
 The repositories needed by AOMP are shown in the following table.
 The first column is the AOMP component that uses the repositories.
 
-| Component | SUBDIRECTORY                          | REPOSITORY LINKS      
+| Component | SUBDIRECTORY                          | REPOSITORY LINKS
 | --------- | ------------                          | ----------------
 | roct      | $HOME/git/aomp/roct-thunk-interfaces  | [roct-thunk-interfaces](https://github.com/radeonopencompute/roct-thunk-interface)
 | rocr      | $HOME/git/aomp/rocr-runtime           | [rocr-runtime](https://github.com/radeonopencompute/rocr-runtime)
@@ -58,9 +58,9 @@ The first column is the AOMP component that uses the repositories.
 |           | $HOME/git/aomp/openmpapps             | [openmpapps](https://github.com/AMDComputeLibraries/openmpapps)
 
 
-The scripts and example makefiles use these environment variables and these 
+The scripts and example makefiles use these environment variables and these
 defaults if they are not set. This is not a complete list.  See the script headers
-for other environment variables that you may override including repo names. 
+for other environment variables that you may override including repo names.
 
 ```
    AOMP              $HOME/rocm/aomp
@@ -69,7 +69,7 @@ for other environment variables that you may override including repo names.
    BUILD_TYPE        Release
 ```
 
-Many other environment variables can be set.  See the file aomp_common_vars that is sourced by all build scritps. 
+Many other environment variables can be set.  See the file aomp_common_vars that is sourced by all build scritps.
 
 
 You can override the above by setting by setting values in your .bashrc or .bash_profile.
@@ -82,18 +82,18 @@ BUILD_TYPE=Debug
 NVPTXGPUS=30,35,50,60,70
 export SUDO AOMP NVPTXGPUS BUILD_TYPE
 ```
-The build scripts will build from the source directories identified by the 
+The build scripts will build from the source directories identified by the
 environment variable AOMP_REPOS.
 
-To set alternative installation path for the component INSTALL_<COMPONENT> environment 
+To set alternative installation path for the component INSTALL_<COMPONENT> environment
 variable can be used, e.g. INSTALL_openmp
 
 To build all components, first clone aomp repo and checkout the master branch
-to build our development repository.  
+to build our development repository.
 
 ```
    git clone https://github.com/ROCm-Developer-Tools/aomp.git
-   git checkout master 
+   git checkout master
 ```
 	
 To be sure you have the latest sources from the git repositories, run command.
@@ -102,18 +102,18 @@ To be sure you have the latest sources from the git repositories, run command.
    ./clone_aomp.sh
 ```
 
-The first time you do this, It could take a long time to clone the repositories.  Subsequent calls will pull the latest updates so you can run clone_aomp.sh anytime to be sure you are on the latest development sources. 
+The first time you do this, It could take a long time to clone the repositories.  Subsequent calls will pull the latest updates so you can run clone_aomp.sh anytime to be sure you are on the latest development sources.
 
 WANRING: The script clone_aomp.sh does not pull updates for the aomp repository. You must pull aomp repository manually. So please run "clone_aomp.sh" and "cd $HOME/git/aomp/aomp; git pull" frequently to stay current with aomp development.
 
 The Nvidia CUDA SDK is NOT required for a package install of AOMP. However, to build AOMP from source, you MUST have the Nvidia CUDA SDK version 10 installed because AOMP may be used to build applications for NVIDIA GPUs.  The current default build list of Nvidia subarchs is "30,35,50,60,61,70".  For example, the default list will support application builds with --offload-arch=sm_30 and --offload-arch=sm_60 etc.  This build list can be changed with the NVPTXGPUS environment variable. Set this before running build_aomp.sh.
 
-After you have all the source repositories and you have CUDA and all the dependencies installed, 
+After you have all the source repositories and you have CUDA and all the dependencies installed,
 run this script to build aomp.
 ```
    ./build_aomp.sh
 ```
-Through extensive use of RPATH, all dynamic runtime libraries that are built by any component of AOMP and then are referenced by another AOMP component will resolve the absolute location within the AOMP installation.  This strategy significantly simplifies the AOMP test matrix.  Libraries that may have been installed by a previous ROCm installation including roct and rocr, will not be used by AOMP. 
+Through extensive use of RPATH, all dynamic runtime libraries that are built by any component of AOMP and then are referenced by another AOMP component will resolve the absolute location within the AOMP installation.  This strategy significantly simplifies the AOMP test matrix.  Libraries that may have been installed by a previous ROCm installation including roct and rocr, will not be used by AOMP.
 
 
 Developers may update a component and then run these  scripts in the folowing order:
@@ -136,17 +136,17 @@ Developers may update a component and then run these  scripts in the folowing or
 
    ./build_hip.sh
    ./build_hip.sh install
-   
+
    ./build_atmi.sh
    ./build_atmi.sh install
 
-   ./build_openmp.sh  
+   ./build_openmp.sh
    ./build_openmp.sh install
 
-   ./build_libdevice.sh  
+   ./build_libdevice.sh
    ./build_libdevice.sh install
 
-   ./build_libm.sh  
+   ./build_libm.sh
    ./build_libm.sh install
 ```
 
