@@ -3,7 +3,7 @@ AOMP - V 0.6-0
 
 aomp:  AMD OpenMP Compiler 
 
-This is README.md for https:/github.com/ROCM-Developer-Tools/aomp .  This is the base repository for AOMP,  Use this for issues, documentation, packaging, examples, build.  
+This is README.md for https://github.com/ROCM-Developer-Tools/aomp .  This is the base repository for AOMP,  Use this for issues, documentation, packaging, examples, build.
 
 AOMP is an experimental PROTOTYPE that is intended to support multiple programming models including OpenMP 4.5+,
 , HIP, and cuda clang.  It supports offloading to multiple GPU acceleration targets(multi-target).  It also supports different host platforms such as AMD64, PPC64LE, and AARCH64. (multi-platform). 
