@@ -18,6 +18,11 @@ AOMP_INSTALL_DIR=${AOMP}_${AOMP_VERSION_STRING}
 # Clang repo is $HOME/aomp/clang
 AOMP_REPOS=${AOMP_REPOS:-$HOME/git/aomp}
 
+CUDA=${CUDA:-/usr/local/cuda}
+CUDAT=${CUDAT:-$CUDA/targets}
+CUDAINCLUDE=${CUDAINCLUDE:-$CUDA/include}
+CUDABIN=${CUDAH:-$CUDA/bin}
+
 # Set list of default nvptx subarchitectures to build
 # Only Cuda 9 and above supports sm_70
 NVPTXGPUS_DEFAULT="30,35,50,60,61"

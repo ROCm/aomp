@@ -43,9 +43,9 @@ if [ "$PROC" == "aarch64" ] ; then
    NVPTXGPUS_DEFAULT=""
    NVPTXGPUS=""
 else
-   CUDAH=`find /usr/local/cuda/targets -type f -name "cuda.h" 2>/dev/null`
+   CUDAH=`find $CUDAT -type f -name "cuda.h" 2>/dev/null`
    if [ "$CUDAH" == "" ] ; then
-      CUDAH=`find /usr/local/cuda/include -type f -name "cuda.h" 2>/dev/null`
+      CUDAH=`find $CUDAINCLUDE -type f -name "cuda.h" 2>/dev/null`
    fi
    if [ "$CUDAH" == "" ] ; then
       echo
@@ -82,8 +82,8 @@ if [ ! -z `which "getconf"` ]; then
 fi
 
 GCCMIN=5
-if [ -f /usr/local/cuda/bin/nvcc ] ; then
-   CUDAVER=`/usr/local/cuda/bin/nvcc --version | grep compilation | cut -d" " -f5 | cut -d"." -f1 `
+if [ -f $CUDABIN/nvcc ] ; then
+   CUDAVER=`$CUDABIN/nvcc --version | grep compilation | cut -d" " -f5 | cut -d"." -f1 `
    echo "CUDA VERSION IS $CUDAVER"
    if [ $CUDAVER -gt 8 ] ; then
      GCCMIN=7
