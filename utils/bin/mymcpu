@@ -142,6 +142,8 @@ function code2gpu(){
       ;;
       "gtx980")   gpuname="sm_35"
       ;;
+      "gtx1050")   gpuname="sm_61"
+      ;;
       "gtx1060")   gpuname="sm_61"
       ;;
       "gtx1080")   gpuname="sm_61"
