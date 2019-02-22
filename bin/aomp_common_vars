@@ -21,12 +21,12 @@ AOMP_REPOS=${AOMP_REPOS:-$HOME/git/aomp}
 CUDA=${CUDA:-/usr/local/cuda}
 CUDAT=${CUDAT:-$CUDA/targets}
 CUDAINCLUDE=${CUDAINCLUDE:-$CUDA/include}
-CUDABIN=${CUDAH:-$CUDA/bin}
+CUDABIN=${CUDABIN:-$CUDA/bin}
 
 # Set list of default nvptx subarchitectures to build
 # Only Cuda 9 and above supports sm_70
 NVPTXGPUS_DEFAULT="30,35,50,60,61"
-if [ -f /usr/local/cuda/version.txt ] ; then
+if [ -f $CUDA/version.txt ] ; then
   if [ `head -1 /usr/local/cuda/version.txt | cut -d " " -f 3 | cut -d "." -f 1` -ge 9 ] ; then
     NVPTXGPUS_DEFAULT+=",70"
   fi
