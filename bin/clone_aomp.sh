@@ -39,10 +39,12 @@ if [ -d $repodirname  ] ; then
    if [ "$STASH_BEFORE_PULL" == "YES" ] ; then
       git stash -u
    fi
-   echo "cd $repodirname ; git checkout $COBRANCH"
-   git checkout $COBRANCH
    echo "git pull "
    git pull 
+   echo "cd $repodirname ; git checkout $COBRANCH"
+   git checkout $COBRANCH
+   #echo "git pull "
+   #git pull 
    if [ "$reponame" == "$AOMP_HCC_REPO_NAME" ] ; then
      echo "git submodule update"
      git submodule update
@@ -60,6 +62,8 @@ else
      git checkout $COBRANCH
    fi
 fi
+echo git status
+git status
 }
 
 mkdir -p $AOMP_REPOS
