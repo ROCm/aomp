@@ -69,7 +69,7 @@ for other environment variables that you may override including repo names.
    BUILD_TYPE        Release
 ```
 
-Many other environment variables can be set. See the file [aomp_common_vars](amd_common_vars) that is sourced by all build scritps. This file has the names of the branches that make up the release that is in development.  You can override the appropriate environment variable if you want to test your source build with a different release.
+Many other environment variables can be set. See the file [aomp_common_vars](aomp_common_vars) that is sourced by all build scritps. This file has the names of the branches that make up the release that is in development.  You can override the appropriate environment variable if you want to test your source build with a different release.
 
 
 You can override the above by setting by setting values in your .bashrc or .bash_profile.
