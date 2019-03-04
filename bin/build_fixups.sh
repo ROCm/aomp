@@ -28,21 +28,6 @@ thisdir=$(getdname $0)
 . $thisdir/aomp_common_vars
 # --- end standard header ----
 
-# Temporarily remove debug libdevice and replace with release 
-savedir=$PWD
-echo cd $AOMP/lib-debug
-cd $AOMP/lib-debug
-if [ -L libdevice ] ; then
-   $SUDO rm libdevice
-fi
-if [ -d libdevice ] ; then
-  $SUDO rm -rf libdevice
-fi
-# Now link to nondefault libdevice
-echo $SUDO ln -sf ../lib/libdevice libdevice
-$SUDO ln -sf ../lib/libdevice libdevice
-cd $savedir
-
 # Copy examples 
 if [ -d $AOMP/examples ] ; then 
   $SUDO rm -rf $AOMP/examples
