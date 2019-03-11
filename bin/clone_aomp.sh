@@ -130,6 +130,10 @@ reponame=$AOMP_HCC_REPO_NAME
 COBRANCH=$AOMP_HCC_REPO_BRANCH
 clone_or_pull
 
+reponame=$AOMP_COMGR_REPO_NAME
+COBRANCH=$AOMP_COMGR_REPO_BRANCH
+clone_or_pull
+
 # ---------------------------------------
 # The following repos is in AMDComputeLibraries
 # ---------------------------------------
@@ -144,4 +148,9 @@ clone_or_pull
 repo_web_location=$GITKHRONOS
 reponame=$AOMP_OCLICD_REPO_NAME
 COBRANCH=$AOMP_OCLICD_REPO_BRANCH
+clone_or_pull
+
+repo_web_location=$GITFLANG
+reponame=$AOMP_FLANG_REPO_NAME
+COBRANCH=$AOMP_FLANG_REPO_BRANCH
 clone_or_pull
