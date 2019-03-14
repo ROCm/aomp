@@ -55,10 +55,7 @@ if [ "$1" != "install" ] ; then
          exit 1
       fi
    done
-   PROC=`uname -p`
-   if [ "$PROC" == "aarch64" ] ; then
-      echo "WARNING:  No cuda for aarch64 so skipping libm creation for $NVPTXGPUS"
-   else
+   if [ "$AOMP_BUILD_CUDA" == 1 ]  ; then
       origIFS=$IFS
       IFS=","
       for gpu in $NVPTXGPUS ; do

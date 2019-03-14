@@ -66,8 +66,7 @@ if [ "$1" == "install" ] ; then
    $SUDO rm $INSTALL_ATMI/testfile
 fi
 
-PROC=`uname -p`
-if [ "$PROC" == "ppc64le" ] ||  [ "$PROC" == "aarch64" ] ; then
+if [ "$AOMP_PROC" == "ppc64le" ] ||  [ "$AOMP_PROC" == "aarch64" ] ; then
 # FIXME: CHANGE THIS TO $INSTALL_ATMI/hsa to see if ldd libatmi_rutime shows libhsa-runtime64, 
 #        if not, then try to set rpath when building the library
    export HSA_DIR=$INSTALL_ATMI

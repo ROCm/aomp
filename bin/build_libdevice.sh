@@ -51,15 +51,14 @@ if [ ! -d $AOMP_INSTALL_DIR/lib ] ; then
   exit 1
 fi
 
-PROC=`uname -p`
 NUM_THREADS=
 if [ ! -z `which "getconf"` ]; then
    NUM_THREADS=$(`which "getconf"` _NPROCESSORS_ONLN)
-   if [ "$PROC" == "ppc64le" ] || [ "$PROC" == "aarch64" ] ; then
+   if [ "$AOMP_PROC" == "ppc64le" ] || [ "$AOMP_PROC" == "aarch64" ] ; then
       NUM_THREADS=$(( NUM_THREADS / 2))
    fi
    # having problems on arm so ...
-   if  [ "$PROC" == "aarch64" ] ; then
+   if  [ "$AOMP_PROC" == "aarch64" ] ; then
       NUM_THREADS=$(( NUM_THREADS / 4))
    fi
 fi

@@ -38,18 +38,14 @@ REPO_BRANCH=$AOMP_OPENMP_REPO_BRANCH
 REPO_DIR=$AOMP_REPOS/$AOMP_OPENMP_REPO_NAME
 checkrepo
 
-PROC=`uname -p`
-if [ "$PROC" == "aarch64" ] ; then
-   NVPTXGPUS_DEFAULT=""
-   NVPTXGPUS=""
-else
+if [ "$AOMP_BUILD_CUDA" == 1 ] ; then
    CUDAH=`find $CUDAT -type f -name "cuda.h" 2>/dev/null`
    if [ "$CUDAH" == "" ] ; then
       CUDAH=`find $CUDAINCLUDE -type f -name "cuda.h" 2>/dev/null`
    fi
    if [ "$CUDAH" == "" ] ; then
       echo
-      echo "ERROR:  THE cuda.h FILE WAS NOT FOUND WITH ARCH $PROC"
+      echo "ERROR:  THE cuda.h FILE WAS NOT FOUND WITH ARCH $AOMP_PROC"
       echo "        A CUDA installation is necessary to build libomptarget deviceRTLs"
       echo "        Please install CUDA to build openmp"
       echo
@@ -82,11 +78,13 @@ if [ ! -z `which "getconf"` ]; then
 fi
 
 GCCMIN=5
-if [ -f $CUDABIN/nvcc ] ; then
-   CUDAVER=`$CUDABIN/nvcc --version | grep compilation | cut -d" " -f5 | cut -d"." -f1 `
-   echo "CUDA VERSION IS $CUDAVER"
-   if [ $CUDAVER -gt 8 ] ; then
-     GCCMIN=7
+if [ "$AOMP_BUILD_CUDA" == 1 ] ; then
+   if [ -f $CUDABIN/nvcc ] ; then
+      CUDAVER=`$CUDABIN/nvcc --version | grep compilation | cut -d" " -f5 | cut -d"." -f1 `
+      echo "CUDA VERSION IS $CUDAVER"
+      if [ $CUDAVER -gt 8 ] ; then
+        GCCMIN=7
+      fi
    fi
 fi
 
@@ -105,7 +103,7 @@ function getgxx5orless(){
    echo $_loc
 }
 
-if [ "$PROC" == "ppc64le" ] ; then
+if [ "$AOMP_PROC" == "ppc64le" ] ; then
    GCCLOC=`which gcc`
    GXXLOC=`which g++`
 else
@@ -127,11 +125,16 @@ COMMON_CMAKE_OPTS="-DOPENMP_ENABLE_LIBOMPTARGET=1
 -DCMAKE_INSTALL_PREFIX=$INSTALL_OPENMP
 -DOPENMP_TEST_C_COMPILER=$AOMP/bin/clang
 -DOPENMP_TEST_CXX_COMPILER=$AOMP/bin/clang++
+-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON "
+
+if [ "$AOMP_BUILD_CUDA" == 1 ] ; then
+   COMMON_CMAKE_OPTS="$COMMON_CMAKE_OPTS
 -DLIBOMPTARGET_NVPTX_ENABLE_BCLIB=ON
 -DLIBOMPTARGET_NVPTX_CUDA_COMPILER=$AOMP/bin/clang++
 -DLIBOMPTARGET_NVPTX_ALTERNATE_HOST_COMPILER=$GCCLOC
 -DLIBOMPTARGET_NVPTX_BC_LINKER=$AOMP/bin/llvm-link
 -DLIBOMPTARGET_NVPTX_COMPUTE_CAPABILITIES=$NVPTXGPUS"
+fi
 
 export HSA_RUNTIME_PATH=$INSTALL_OPENMP/hsa
 
@@ -149,7 +152,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 
       echo rm -rf $BUILD_DIR/build/openmp
       rm -rf $BUILD_DIR/build/openmp
-      MYCMAKEOPTS="$COMMON_CMAKE_OPTS -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON -DCMAKE_INSTALL_RPATH=$AOMP_INSTALL_DIR/lib"
+      MYCMAKEOPTS="$COMMON_CMAKE_OPTS -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_RPATH=$AOMP_INSTALL_DIR/lib"
       mkdir -p $BUILD_DIR/build/openmp
       cd $BUILD_DIR/build/openmp
       echo " -----Running openmp cmake ---- " 
@@ -163,9 +166,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 
       echo rm -rf $BUILD_DIR/build/openmp_debug
       rm -rf $BUILD_DIR/build/openmp_debug
-      export OMPTARGET_DEBUG=1
-      MYCMAKEOPTS="$COMMON_CMAKE_OPTS -DLIBOMPTARGET_NVPTX_DEBUG=ON -DCMAKE_BUILD_TYPE=Debug -DOMPTARGET_DEBUG=1
--DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON -DCMAKE_INSTALL_RPATH=$AOMP_INSTALL_DIR/lib-debug:$AOMP_INSTALL_DIR/lib"
+      MYCMAKEOPTS="$COMMON_CMAKE_OPTS -DLIBOMPTARGET_NVPTX_DEBUG=ON -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_RPATH=$AOMP_INSTALL_DIR/lib-debug"
       mkdir -p $BUILD_DIR/build/openmp_debug
       cd $BUILD_DIR/build/openmp_debug
       echo
@@ -196,7 +197,6 @@ cd $BUILD_DIR/build/openmp_debug
 echo
 echo
 echo " -----Running make for $BUILD_DIR/build/openmp_debug ---- "
-export OMPTARGET_DEBUG=1
 make -j $NUM_THREADS
 if [ $? != 0 ] ; then 
       echo "ERROR make -j $NUM_THREADS failed"

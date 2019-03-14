@@ -122,7 +122,7 @@ To build AOMP from source, run these commands.
    ./clone_aomp.sh
    ./build_aomp.sh
 ```
-Depending on your system, the last two commands and the cuda install could take a very long time. For more information, please refer to the AOMP developers README file located [HERE](bin/README.md).
+Depending on your system, the last two commands and the cuda install could take a very long time. For more information, please refer to the AOMP developers README file located [HERE](bin/README.md). The cuda installation is now optional. 
 
 The source build process above builds the development version of AOMP by checking out the master branch of AOMP.   The development version is the next version to be released.  It is possible that the development version is broken due to regressions that often occur during development.  If you want to build from the sources of a previous release such as 0.6-0, run these commands before running clone_aomp.sh.
 ```

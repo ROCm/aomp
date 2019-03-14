@@ -31,18 +31,18 @@ thisdir=$(getdname $0)
 
 INSTALL_HCC=${INSTALL_HCC:-$AOMP_INSTALL_DIR/hcc}
 
-PROC=`uname -p`
-if [ "$PROC" == "ppc64le" ] ; then 
+if [ "$AOMP_PROC" == "ppc64le" ] ; then 
+   GCCMIN=7
    TARGETS_TO_BUILD="AMDGPU;PowerPC"
 else
-   if [ "$PROC" == "aarch64" ] ; then 
+   GCCMIN=5
+   if [ "$AOMP_PROC" == "aarch64" ] ; then 
       TARGETS_TO_BUILD="AMDGPU;AArch64"
    else
       TARGETS_TO_BUILD="AMDGPU;X86"
    fi
 fi
 
-GCCMIN=5
 function getgcc5orless(){
    _loc=`which gcc`
    [ "$_loc" == "" ] && return
@@ -112,8 +112,13 @@ fi
 NUM_THREADS=
 if [ ! -z `which "getconf"` ]; then
    NUM_THREADS=$(`which "getconf"` _NPROCESSORS_ONLN)
-   if [ "$PROC" == "ppc64le" ] ; then
-      NUM_THREADS=$(( NUM_THREADS / 2))
+   if [ "$AOMP_PROC" == "ppc64le" ] ; then
+      NUM_THREADS=$(( NUM_THREADS / 4))
+      echo
+      echo
+      echo "---------------------------------  $NUM_THREADS JOBS --------------------------"
+      echo
+      echo
    fi
 fi
 

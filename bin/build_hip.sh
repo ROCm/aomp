@@ -58,8 +58,7 @@ thisdir=$(getdname $0)
 
 HIP_REPO_DIR=$AOMP_REPOS/$AOMP_HIP_REPO_NAME
 
-PROC=`uname -p`
-if [ "$PROC" == "ppc64le" ] ||  [ "$PROC" == "aarch64" ] ; then
+if [ "$AOMP_PROC" == "ppc64le" ] ||  [ "$AOMP_PROC" == "aarch64" ] ; then
    export HIP_PLATFORM="none"
 else
    export HIP_PLATFORM="hcc"
@@ -113,7 +112,7 @@ fi
 NUM_THREADS=
 if [ ! -z `which "getconf"` ]; then
    NUM_THREADS=$(`which "getconf"` _NPROCESSORS_ONLN)
-   if [ "$PROC" == "ppc64le" ] || [ "$PROC" == "aarch64" ] ; then
+   if [ "$AOMP_PROC" == "ppc64le" ] || [ "$AOMP_PROC" == "aarch64" ] ; then
       NUM_THREADS=$(( NUM_THREADS / 2))
    fi
 
