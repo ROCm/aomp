@@ -127,8 +127,11 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
      rm -rf $BUILD_DIR/build/hip
   fi
 
-  MYCMAKEOPTS="-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON -DCMAKE_INSTALL_RPATH=$AOMP_INSTALL_DIR/lib:$AOMP_INSTALL_DIR/hcc/lib -DCMAKE_BUILD_TYPE=$BUILDTYPE -DCMAKE_INSTALL_PREFIX=$INSTALL_HIP -DHIP_PLATFORM=hcc -DHCC_HOME=$AOMP_INSTALL_DIR/hcc -DHSA_PATH=$AOMP_INSTALL_DIR/hsa -DHIP_INSTALL_ALL_SOURCE=OFF"
-# -DBUILD_SHARED_LIBS=ON -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DLLVM_DIR=$LLVM_BUILD/lib/cmake/llvm"
+  if [ "$AOMP_BUILD_HIP" == 1 ] ; then
+    MYCMAKEOPTS="-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON -DCMAKE_INSTALL_RPATH=$AOMP_INSTALL_DIR/lib:$AOMP_INSTALL_DIR/hcc/lib -DCMAKE_BUILD_TYPE=$BUILDTYPE -DCMAKE_INSTALL_PREFIX=$INSTALL_HIP -DHIP_PLATFORM=hcc -DHCC_HOME=$AOMP_INSTALL_DIR/hcc -DHSA_PATH=$AOMP_INSTALL_DIR/hsa -DHIP_INSTALL_ALL_SOURCE=OFF"
+  else
+    MYCMAKEOPTS="-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON -DCMAKE_INSTALL_RPATH=$AOMP_INSTALL_DIR/lib:$AOMP_INSTALL_DIR/hcc/lib -DCMAKE_BUILD_TYPE=$BUILDTYPE -DCMAKE_INSTALL_PREFIX=$INSTALL_HIP -DHIP_INSTALL_INCLUDES_ONLY=ON"
+  fi
 
   mkdir -p $BUILD_DIR/build/hip
   cd $BUILD_DIR/build/hip
@@ -155,6 +158,13 @@ if [ $? != 0 ] ; then
       echo "  cd $BUILD_DIR/build/hip"
       echo "  make "
       exit 1
+else
+  if [ "$1" != "install" ] ; then
+      echo
+      echo " BUILD COMPLETE! To install hip component run this command:"
+      echo "  $0 install"
+      echo
+  fi
 fi
 
 #  ----------- Install only if asked  ----------------------------

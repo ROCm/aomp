@@ -23,10 +23,12 @@ CUDAT=${CUDAT:-$CUDA/targets}
 CUDAINCLUDE=${CUDAINCLUDE:-$CUDA/include}
 CUDABIN=${CUDABIN:-$CUDA/bin}
 
+AOMP_BUILD_HIP=${AOMP_BUILD_HIP:-1}
 AOMP_BUILD_CUDA=1
 AOMP_PROC=`uname -p`
 if [ "$AOMP_PROC" == "aarch64" ] ; then
    AOMP_BUILD_CUDA=0
+   AOMP_BUILD_HIP=0
 fi
 if [ ! -d "$CUDABIN" ] ; then
    AOMP_BUILD_CUDA=0
