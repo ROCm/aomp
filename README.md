@@ -107,14 +107,20 @@ Build and install from sources is possible.  However, the source build for AOMP 
 - It is a bootstrapped build. The built and installed LLVM compiler is used to build library components.
 - Additional package dependencies are required that are not required when installing the AOMP package.
 
-To build AOMP from source, run these commands.
+Building aomp from source requires these dependencies that can be resolved on an ubuntu system with apt-get.
 
 ```
-   sudo apt-get install cmake g++-5 g++ pkg-config libpci-dev libnuma-dev libelf-dev libffi-dev
+   sudo apt-get install cmake g++-5 g++ pkg-config libpci-dev libnuma-dev libelf-dev libffi-dev git
+```
+To build aomp with support for nvptx GPUs, you must first install cuda 10.  We recommend cuda 10.0.  Cuda 10.1 will not work till aomp moves to the trunk development of LLVM 9.  Once you download cuda 10.0 local install file, these commands should complete the install of cuda.
+```
    sudo dpkg -i cuda-repo-ubuntu1604-10-0-local-10.0.130-410.48_1.0-1_amd64.deb
    sudo apt-key add /var/cuda-repo-10-0-local-10.0.130-410.48/7fa2af80.pub
    sudo apt-get update
    sudo apt-get install cuda
+```
+To build AOMP from source, run these commands.
+```
    cd $HOME ; mkdir -p git/aomp ; cd git/aomp
    git clone https://github.com/rocm-developer-tools/aomp
    cd $HOME/git/aomp/aomp/bin
