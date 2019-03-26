@@ -161,11 +161,11 @@ Developers may update a component and then run these  scripts in the folowing or
 For now, run this command for some minor fixups to the install.
 
 ```
-   ./build_fixup.sh
+   ./build_fixups.sh
 ```
 Once you have a successful development build, individual components can be incrementally rebuilt without rebuilding the entire system or the entire component. For example, if you change a file in the clang repository. Run this command to incrementally build llvm, clang, and lld and update your installation.
 ```
-   ./build_llvm.sh install
+   ./build_clang.sh install
 ```
 The default out-of-source build directory for each component is $HOME/git/aomp/build/<component>.
 
