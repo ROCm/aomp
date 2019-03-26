@@ -430,12 +430,12 @@
 1002:6665 17aa 368f jet : Radeon R5 A230
 1002:6667 0000 0000 jet : Jet ULT [Radeon R5 M230]
 1002:666f 0000 0000 sun : Sun LE [Radeon HD 8550M / R5 M230]
-1002:66a0 0000 0000 vega : Vega 20 [Radeon Instinct]
-1002:66a1 0000 0000 vega : Vega 20
-1002:66a2 0000 0000 vega : Vega 20
-1002:66a3 0000 0000 vega : Vega 20
-1002:66a7 0000 0000 vega : Vega 20 [Radeon Pro Vega 20]
-1002:66af 0000 0000 vega : Vega 20
+1002:66a0 0000 0000 vega20 : Vega 20 [Radeon Instinct]
+1002:66a1 0000 0000 vega20 : Vega 20
+1002:66a2 0000 0000 vega20 : Vega 20
+1002:66a3 0000 0000 vega20 : Vega 20
+1002:66a7 0000 0000 vega20 : Vega 20 [Radeon Pro Vega 20]
+1002:66af 0000 0000 vega20 : Vega 20
 1002:6718 0000 0000 cayman : Cayman XT [Radeon HD 6970]
 1002:6719 0000 0000 cayman : Cayman PRO [Radeon HD 6950]
 1002:671c 0000 0000 antilles : Antilles [Radeon HD 6990]
