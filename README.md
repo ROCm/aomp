@@ -123,7 +123,7 @@ sudo install rock_dkms
 sudo reboot
 sudo usermod -a -G video $LOGNAME
 ```
-To build aomp with support for nvptx GPUs, you must first install cuda 10.  We recommend cuda 10.0.  Cuda 10.1 will not work till aomp moves to the trunk development of LLVM 9.  Once you download cuda 10.0 local install file, these commands should complete the install of cuda.
+To build aomp with support for nvptx GPUs, you must first install cuda 10.  We recommend cuda 10.0.  Cuda 10.1 will not work till aomp moves to the trunk development of LLVM 9.  Once you download cuda 10.0 local install file, these commands should complete the install of cuda. Note the first command references the install for Ubuntu 16.04.
 ```
    sudo dpkg -i cuda-repo-ubuntu1604-10-0-local-10.0.130-410.48_1.0-1_amd64.deb
    sudo apt-key add /var/cuda-repo-10-0-local-10.0.130-410.48/7fa2af80.pub
