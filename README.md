@@ -110,7 +110,18 @@ Build and install from sources is possible.  However, the source build for AOMP 
 Building aomp from source requires these dependencies that can be resolved on an ubuntu system with apt-get.
 
 ```
-   sudo apt-get install cmake g++-5 g++ pkg-config libpci-dev libnuma-dev libelf-dev libffi-dev git
+   sudo apt-get install cmake g++-5 g++ pkg-config libpci-dev libnuma-dev libelf-dev libffi-dev git python libopenmpi-dev
+```
+The ROCm kernel driver is required for AMD GPU support. These commands are for supported Debian-based systems and target only the rock_dkms core component. More information can be found [HERE](https://rocm.github.io/ROCmInstall.html#ubuntu-support---installing-from-a-debian-repository).
+```
+echo 'SUBSYSTEM=="kfd", KERNEL=="kfd", TAG+="uaccess", GROUP="video"' | sudo tee /etc/udev/rules.d/70-kfd.rules
+wget -qO - http://repo.radeon.com/rocm/apt/debian/rocm.gpg.key | sudo apt-key add -
+echo 'deb [arch=amd64] http://repo.radeon.com/rocm/apt/debian/ xenial main' | sudo tee /etc/apt/sources.list.d/rocm.list
+sudo apt update
+sudo install rock_dkms
+
+sudo reboot
+sudo usermod -a -G video $LOGNAME
 ```
 To build aomp with support for nvptx GPUs, you must first install cuda 10.  We recommend cuda 10.0.  Cuda 10.1 will not work till aomp moves to the trunk development of LLVM 9.  Once you download cuda 10.0 local install file, these commands should complete the install of cuda.
 ```
