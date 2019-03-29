@@ -107,7 +107,7 @@ Build and install from sources is possible.  However, the source build for AOMP 
 - It is a bootstrapped build. The built and installed LLVM compiler is used to build library components.
 - Additional package dependencies are required that are not required when installing the AOMP package.
 
-Building aomp from source requires these dependencies that can be resolved on an ubuntu system with apt-get.
+Building AOMP from source requires these dependencies that can be resolved on an ubuntu system with apt-get.
 
 ```
    sudo apt-get install cmake g++-5 g++ pkg-config libpci-dev libnuma-dev libelf-dev libffi-dev git python libopenmpi-dev
@@ -123,7 +123,7 @@ sudo install rock_dkms
 sudo reboot
 sudo usermod -a -G video $LOGNAME
 ```
-To build aomp with support for nvptx GPUs, you must first install cuda 10.  We recommend cuda 10.0.  Cuda 10.1 will not work till aomp moves to the trunk development of LLVM 9.  Once you download cuda 10.0 local install file, these commands should complete the install of cuda. Note the first command references the install for Ubuntu 16.04.
+To build AOMP with support for nvptx GPUs, you must first install cuda 10.  We recommend cuda 10.0.  Cuda 10.1 will not work till AOMP moves to the trunk development of LLVM 9.  Once you download cuda 10.0 local install file, these commands should complete the install of cuda. Note the first command references the install for Ubuntu 16.04.
 ```
    sudo dpkg -i cuda-repo-ubuntu1604-10-0-local-10.0.130-410.48_1.0-1_amd64.deb
    sudo apt-key add /var/cuda-repo-10-0-local-10.0.130-410.48/7fa2af80.pub
@@ -146,7 +146,7 @@ The source build process above builds the development version of AOMP by checkin
    git checkout rel_0.6.0
    git pull
 ```
-You only need to do this in the aomp repository. The file "bin/aomp_common_vars" lists the branches of each repository for a particular aomp release. In the master branch of aomp, aomp_common_vars lists the development branches. It is a good idea to run clone_aomp.sh twice after you checkout a release to be sure you pulled all the checkouts for a particular release.
+You only need to do this in the AOMP repository. The file "bin/aomp_common_vars" lists the branches of each repository for a particular AOMP release. In the master branch of AOMP, aomp_common_vars lists the development branches. It is a good idea to run clone_aomp.sh twice after you checkout a release to be sure you pulled all the checkouts for a particular release.
 
 If your are interested in joining the development of AOMP, please read the details on the source build at [README](bin/README.md).
 
