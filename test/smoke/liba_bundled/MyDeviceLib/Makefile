@@ -65,11 +65,11 @@ lib$(LIB)-$(ARCH)-$(AOMP_GPU).a : $(MEM_PREFIX_1).bc $(MEM_PREFIX_2).bc $(MEM_PR
 	$(AOMP)/bin/llvm-ar r $@ $^ 
 
 $(MEM_PREFIX_1).bc: $(MEM_PREFIX_1).bundled.bc
-	$(AOMP)/bin/clang-offload-bundler -unbundle -type bc -inputs=$^ -targets=openmp-$(TRIPLE),host-$(HOST_TARGET) -outputs=$@,$(TMPDIR)/$(LIBSRC1).host.bc
+	$(AOMP)/bin/clang-offload-bundler -unbundle -type bc -inputs=$^ -targets=openmp-$(TRIPLE)-$(AOMP_GPU),host-$(HOST_TARGET) -outputs=$@,$(TMPDIR)/$(LIBSRC1).host.bc
 $(MEM_PREFIX_2).bc: $(MEM_PREFIX_2).bundled.bc
-	$(AOMP)/bin/clang-offload-bundler -unbundle -type bc -inputs=$^ -targets=openmp-$(TRIPLE),host-$(HOST_TARGET) -outputs=$@,$(TMPDIR)/$(LIBSRC2).host.bc
+	$(AOMP)/bin/clang-offload-bundler -unbundle -type bc -inputs=$^ -targets=openmp-$(TRIPLE)-$(AOMP_GPU),host-$(HOST_TARGET) -outputs=$@,$(TMPDIR)/$(LIBSRC2).host.bc
 $(MEM_PREFIX_3).bc: $(MEM_PREFIX_3).bundled.bc
-	$(AOMP)/bin/clang-offload-bundler -unbundle -type bc -inputs=$^ -targets=openmp-$(TRIPLE),host-$(HOST_TARGET) -outputs=$@,$(TMPDIR)/$(LIBSRC3).host.bc
+	$(AOMP)/bin/clang-offload-bundler -unbundle -type bc -inputs=$^ -targets=openmp-$(TRIPLE)-$(AOMP_GPU),host-$(HOST_TARGET) -outputs=$@,$(TMPDIR)/$(LIBSRC3).host.bc
 
 #   ---------------------  create host library ------------------- 
 #
@@ -84,11 +84,11 @@ $(MEM_PREFIX_3).bundled.o: $(LIBSRC3).c
 	$(CC) $(CFLAGS)  $^ -o $@
 
 $(TMPDIR)/$(LIBSRC1).o: $(MEM_PREFIX_1).bundled.o
-	$(AOMP)/bin/clang-offload-bundler -unbundle -type o -inputs=$^ -targets=openmp-$(TRIPLE),host-$(HOST_TARGET) -outputs=$(MEM_PREFIX_1).device.bc,$@
+	$(AOMP)/bin/clang-offload-bundler -unbundle -type o -inputs=$^ -targets=openmp-$(TRIPLE)-$(AOMP_GPU),host-$(HOST_TARGET) -outputs=$(MEM_PREFIX_1).device.bc,$@
 $(TMPDIR)/$(LIBSRC2).o: $(MEM_PREFIX_2).bundled.o
-	$(AOMP)/bin/clang-offload-bundler -unbundle -type o -inputs=$^ -targets=openmp-$(TRIPLE),host-$(HOST_TARGET) -outputs=$(MEM_PREFIX_2).device.bc,$@
+	$(AOMP)/bin/clang-offload-bundler -unbundle -type o -inputs=$^ -targets=openmp-$(TRIPLE)-$(AOMP_GPU),host-$(HOST_TARGET) -outputs=$(MEM_PREFIX_2).device.bc,$@
 $(TMPDIR)/$(LIBSRC3).o: $(MEM_PREFIX_3).bundled.o
-	$(AOMP)/bin/clang-offload-bundler -unbundle -type o -inputs=$^ -targets=openmp-$(TRIPLE),host-$(HOST_TARGET) -outputs=$(MEM_PREFIX_3).device.bc,$@
+	$(AOMP)/bin/clang-offload-bundler -unbundle -type o -inputs=$^ -targets=openmp-$(TRIPLE)-$(AOMP_GPU),host-$(HOST_TARGET) -outputs=$(MEM_PREFIX_3).device.bc,$@
 
 clean:
 	rm -f $(TMPDIR)/*.bc $(TMPDIR)/*.ll $(TMPDIR)/*.o *.a

@@ -72,10 +72,10 @@ $(TMPNAME).b.c.bc: $(LIBMSRC)
 	$(CC) $(CFLAGS) $^ -o $@
 
 $(TMPNAME).cpp.bc: $(TMPNAME).b.cpp.bc
-	$(AOMP)/bin/clang-offload-bundler -unbundle -type bc -inputs=$^ -targets=openmp-$(TRIPLE),host-$(HOST_TARGET) -outputs=$@,$(TMPNAME).host.cpp.bc
+	$(AOMP)/bin/clang-offload-bundler -unbundle -type bc -inputs=$^ -targets=openmp-$(TRIPLE)-$(AOMP_GPU),host-$(HOST_TARGET) -outputs=$@,$(TMPNAME).host.cpp.bc
 
 $(TMPNAME).c.bc: $(TMPNAME).b.c.bc
-	$(AOMP)/bin/clang-offload-bundler -unbundle -type bc -inputs=$^ -targets=openmp-$(TRIPLE),host-$(HOST_TARGET) -outputs=$@,$(TMPNAME).host.c.bc
+	$(AOMP)/bin/clang-offload-bundler -unbundle -type bc -inputs=$^ -targets=openmp-$(TRIPLE)-$(AOMP_GPU),host-$(HOST_TARGET) -outputs=$@,$(TMPNAME).host.c.bc
 
 $(LIBNAME).bc: $(TMPNAME).c.bc $(TMPNAME).cpp.bc
 	mkdir -p $(LIBPATH)/libdevice
