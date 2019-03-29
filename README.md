@@ -123,7 +123,7 @@ sudo install rock_dkms
 sudo reboot
 sudo usermod -a -G video $LOGNAME
 ```
-To build AOMP with support for nvptx GPUs, you must first install cuda 10.  We recommend cuda 10.0.  Cuda 10.1 will not work till AOMP moves to the trunk development of LLVM 9.  Once you download cuda 10.0 local install file, these commands should complete the install of cuda. Note the first command references the install for Ubuntu 16.04.
+To build AOMP with support for nvptx GPUs, you must first install cuda 10.  We recommend CUDA 10.0.  CUDA 10.1 will not work till AOMP moves to the trunk development of LLVM 9.  Once you download CUDA 10.0 local install file, these commands should complete the install of CUDA. The CUDA installation is now optional. Note the first command references the install for Ubuntu 16.04.
 ```
    sudo dpkg -i cuda-repo-ubuntu1604-10-0-local-10.0.130-410.48_1.0-1_amd64.deb
    sudo apt-key add /var/cuda-repo-10-0-local-10.0.130-410.48/7fa2af80.pub
@@ -139,7 +139,7 @@ To build AOMP from source, run these commands.
    ./clone_aomp.sh
    ./build_aomp.sh
 ```
-Depending on your system, the last two commands and the cuda install could take a very long time. For more information, please refer to the AOMP developers README file located [HERE](bin/README.md). The cuda installation is now optional. 
+Depending on your system, the last two commands and the CUDA install could take a very long time. For more information, please refer to the AOMP developers README file located [HERE](bin/README.md).
 
 The source build process above builds the development version of AOMP by checking out the master branch of AOMP.   The development version is the next version to be released.  It is possible that the development version is broken due to regressions that often occur during development.  If you want to build from the sources of a previous release such as 0.6-0, run these commands before running clone_aomp.sh.
 ```
