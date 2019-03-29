@@ -23,8 +23,7 @@ int main(void) {
   }
 
   int num_teams = omp_is_initial_device() ? HOST_MAX_TEAMS : 512;
-  printf("Using num_teams = %d\n", num_teams);
-
+  fprintf(stderr, "Using num_teams = %d\n", num_teams);
   for (int t = 0 ; t < TRIALS ; t++) {
     #pragma omp target
     #pragma omp teams num_teams(num_teams)

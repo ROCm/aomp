@@ -1,6 +1,7 @@
 include Makefile.defs
 
 TESTS_DIR = \
+    aomp_mappings \
     DeclareSharedMemory \
     assertok_error \
     atomic \

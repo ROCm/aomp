@@ -18,7 +18,9 @@ build_roct.sh      -  Build the hsa thunk library
 
 build_rocr.sh      -  Built the ROCm runtime
 
-build_llvm.sh      -  Build llvm, clang, and lld components of AOMP compiler.
+build_llvm.sh      -  Build llvm component
+build_lld.sh       -  Build lld component
+build_clang.sh     -  Build clang component
 
 build_utils.sh     -  Builds the AOMP utilities
 
@@ -45,9 +47,9 @@ The first column is the AOMP component that uses the repositories.
 | --------- | ------------                          | ----------------
 | roct      | $HOME/git/aomp/roct-thunk-interfaces  | [roct-thunk-interfaces](https://github.com/radeonopencompute/roct-thunk-interface)
 | rocr      | $HOME/git/aomp/rocr-runtime           | [rocr-runtime](https://github.com/radeonopencompute/rocr-runtime)
-| llvm      | $HOME/git/aomp/clang                  | [clang](https://github.com/ROCm-Developer-Tools/clang)
 | llvm      | $HOME/git/aomp/llvm                   | [llvm](https://github.com/ROCm-Developer-Tools/llvm)
-| llvm      | $HOME/git/aomp/lld                    | [lld](https://github.com/ROCm-Developer-Tools/lld)
+| lld       | $HOME/git/aomp/lld                    | [lld](https://github.com/ROCm-Developer-Tools/lld)
+| clang     | $HOME/git/aomp/clang                  | [clang](https://github.com/ROCm-Developer-Tools/clang)
 | utils     | $HOME/git/aomp/aomp                   | [aomp/utils](https://github.com/ROCm-Developer-Tools/aomp/tree/master/utils)
 | hcc       | $HOME/git/aomp/hcc                    | [hcc](https://github.com/radeonopencompute/hcc)
 | hip       | $HOME/git/aomp/hip                    | [hip](https://github.com/ROCm-Developer-Tools/hip)
@@ -128,6 +130,12 @@ Developers may update a component and then run these  scripts in the folowing or
    ./build_llvm.sh
    ./build_llvm.sh install
 
+   ./build_lld.sh
+   ./build_lld.sh install
+
+   ./build_clang.sh
+   ./build_clang.sh install
+
    ./build_utils.sh
    ./build_utils.sh install
 
@@ -153,11 +161,11 @@ Developers may update a component and then run these  scripts in the folowing or
 For now, run this command for some minor fixups to the install.
 
 ```
-   ./build_fixup.sh
+   ./build_fixups.sh
 ```
 Once you have a successful development build, individual components can be incrementally rebuilt without rebuilding the entire system or the entire component. For example, if you change a file in the clang repository. Run this command to incrementally build llvm, clang, and lld and update your installation.
 ```
-   ./build_llvm.sh install
+   ./build_clang.sh install
 ```
 The default out-of-source build directory for each component is $HOME/git/aomp/build/<component>.
 

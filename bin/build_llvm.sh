@@ -68,12 +68,6 @@ fi
 REPO_BRANCH=$AOMP_LLVM_REPO_BRANCH
 REPO_DIR=$AOMP_REPOS/$AOMP_LLVM_REPO_NAME
 checkrepo
-REPO_BRANCH=$AOMP_CLANG_REPO_BRANCH
-REPO_DIR=$AOMP_REPOS/$AOMP_CLANG_REPO_NAME
-checkrepo
-REPO_BRANCH=$AOMP_LLD_REPO_BRANCH
-REPO_DIR=$AOMP_REPOS/$AOMP_LLD_REPO_NAME
-checkrepo
 
 # Make sure we can update the install directory
 if [ "$1" == "install" ] ; then 
@@ -129,48 +123,6 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
       echo
       echo rsync -a --exclude ".git" --exclude "CommandLine.cpp" --delete $AOMP_REPOS/$AOMP_LLVM_REPO_NAME $BUILD_DIR 2>&1 
       rsync -a --exclude ".git" --exclude "CommandLine.cpp" --delete $AOMP_REPOS/$AOMP_LLVM_REPO_NAME $BUILD_DIR 2>&1 
-      echo rsync -a --exclude ".git" --delete $AOMP_REPOS/$AOMP_CLANG_REPO_NAME $BUILD_DIR
-      rsync -a --exclude ".git" --delete $AOMP_REPOS/$AOMP_CLANG_REPO_NAME $BUILD_DIR 2>&1 
-      echo rsync -a --exclude ".git" --delete $AOMP_REPOS/$AOMP_LLD_REPO_NAME $BUILD_DIR
-      rsync -a --exclude ".git" --delete $AOMP_REPOS/$AOMP_LLD_REPO_NAME $BUILD_DIR 2>&1
-
-      mkdir -p $BUILD_DIR/$AOMP_LLVM_REPO_NAMEE/tools
-      if [ -L $BUILD_DIR/$AOMP_LLVM_REPO_NAME/tools/clang ] ; then 
-        rm $BUILD_DIR/$AOMP_LLVM_REPO_NAME/tools/clang
-      fi
-      ln -sf $BUILD_DIR/$AOMP_CLANG_REPO_NAME $BUILD_DIR/$AOMP_LLVM_REPO_NAME/tools/clang
-      if [ $? != 0 ] ; then 
-         echo "ERROR link command for $AOMP_CLANG_REPO_NAME to clang failed."
-         exit 1
-      fi
-      #  Remove old ld link, now using lld
-      if [ -L $BUILD_DIR/$AOMP_LLVM_REPO_NAME/tools/ld ] ; then
-         rm $BUILD_DIR/$AOMP_LLVM_REPO_NAME/tools/ld
-      fi
-      if [ -L $BUILD_DIR/$AOMP_LLVM_REPO_NAME/tools/lld ] ; then
-        rm $BUILD_DIR/$AOMP_LLVM_REPO_NAME/tools/lld
-      fi
-      ln -sf $BUILD_DIR/$AOMP_LLD_REPO_NAME $BUILD_DIR/$AOMP_LLVM_REPO_NAME/tools/lld
-      if [ $? != 0 ] ; then
-         echo "ERROR link command for $AOMP_LLD_REPO_NAME to lld failed."
-         exit 1
-      fi
-
-   else
-      cd $BUILD_DIR/$AOMP_LLVM_REPO_NAME/tools
-      rm -f $BUILD_DIR/$AOMP_LLVM_REPO_NAME/tools/clang
-      if [ ! -L $BUILD_DIR/$AOMP_LLVM_REPO_NAME/tools/clang ] ; then
-         echo ln -sf $BUILD_DIR/$AOMP_CLANG_REPO_NAME clang
-         ln -sf $BUILD_DIR/$AOMP_CLANG_REPO_NAME clang
-      fi
-      #  Remove old ld link, now using lld
-      if [ -L $BUILD_DIR/$AOMP_LLVM_REPO_NAME/tools/ld ] ; then
-         rm $BUILD_DIR/$AOMP_LLVM_REPO_NAME/tools/ld
-      fi
-      if [ ! -L $BUILD_DIR/$AOMP_LLVM_REPO_NAME/tools/lld ] ; then
-         echo ln -sf $BUILD_DIR/$AOMP_LLD_REPO_NAME lld
-         ln -sf $BUILD_DIR/$AOMP_LLD_REPO_NAME lld
-      fi
    fi
 
 else
