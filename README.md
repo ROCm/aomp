@@ -82,7 +82,7 @@ The AOMP bin directory (which includes the standard clang and llvm binaries) is 
 ### RPM Install
 For rpm-based Linux distributions, use this rpm
 ```
-wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_0.6-0/aomp-0.6-0.x86_64.rpm
+wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_0.6-0/aomp-0.6-0.arm64.rpm
 sudo rpm -i aomp-0.6-0.x86_64.rpm
 ```
 
