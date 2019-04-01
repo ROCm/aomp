@@ -102,6 +102,9 @@ fi
 
 cd $BUILD_DIR/build/$AOMP_LLD_REPO_NAME
 
+#  Need llvm-config to come from previous LLVM build
+export PATH=$AOMP_INSTALL_DIR/bin:$PATH
+
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    echo
    echo " -----Running cmake ---- " 
