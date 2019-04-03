@@ -7,7 +7,7 @@
 
 export AOMP_REPOS=$HOME/git/trunk
 export AOMP=/tmp/$USER/install/trunk
-export BUILD_AOMP=/tmp/$USER/trunk
+#export BUILD_AOMP=/tmp/$USER/trunk
 export AOMP_LLVM_REPO_BRANCH=master
 export AOMP_LLD_REPO_BRANCH=master
 export AOMP_CLANG_REPO_BRANCH=master
@@ -39,13 +39,13 @@ thisdir=$(getdname $0)
 # --- end standard header ----
 
 function build_trunk_component() {
-   $AOMP_REPOS/$AOMP_REPO_NAME/bin/build_$COMPONENT.sh
+   $HOME/git/aomp/$AOMP_REPO_NAME/bin/build_$COMPONENT.sh
    rc=$?
    if [ $rc != 0 ] ; then 
       echo " !!!  build_trunk.sh: BUILD FAILED FOR COMPONENT $COMPONENT !!!"
       exit $rc
    fi  
-   $AOMP_REPOS/$AOMP_REPO_NAME/bin/build_$COMPONENT.sh install
+   $HOME/git/aomp/$AOMP_REPO_NAME/bin/build_$COMPONENT.sh install
    rc=$?
    if [ $rc != 0 ] ; then 
       echo " !!!  build_trunk.sh: INSTALL FAILED FOR COMPONENT $COMPONENT !!!"
@@ -90,7 +90,7 @@ for COMPONENT in $components ; do
    echo " =================  DONE INSTALLING COMPONENT $COMPONENT ==================="   
 done
 
-$AOMP_REPOS/$AOMP_REPO_NAME/bin/build_fixups.sh
+
 echo 
 date
 echo " =================  END build_trunk.sh ==================="   
