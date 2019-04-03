@@ -79,7 +79,7 @@ if [ "$1" == "install" ] ; then
    fi
    $SUDO rm $INSTALL_LLVM/testfile
 fi
-
+if [ "$AOMP_LLVM_REPO_BRANCH" != "master" ] ; then
 # Fix the banner to print the AOMP version string. 
 cd $AOMP_REPOS/$AOMP_LLVM_REPO_NAME
 LLVMID=`git log | grep -m1 commit | cut -d" " -f2`
@@ -95,6 +95,7 @@ sed "s/LLVM (http:\/\/llvm\.org\/):/AOMP-${AOMP_VERSION_STRING} ($WEBSITE):\\\n 
 if [ $? != 0 ] ; then 
    echo "ERROR sed command to fix CommandLine.cpp failed."
    exit 1
+fi
 fi
 
 # Calculate the number of threads to use for make
