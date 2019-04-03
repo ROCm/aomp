@@ -195,6 +195,8 @@ if [ "$1" == "install" ] ; then
    $SUDO cp -p $BUILD_DIR/build/$AOMP_LLVM_REPO_NAME/bin/llvm-lit $AOMP/bin/llvm-lit
    $SUDO cp -p $BUILD_DIR/build/$AOMP_LLVM_REPO_NAME/bin/FileCheck $AOMP/bin/FileCheck
    $SUDO cp -p $BUILD_DIR/build/$AOMP_LLVM_REPO_NAME/bin/count $AOMP/bin/count
+   $SUDO cp -p $BUILD_DIR/build/$AOMP_LLVM_REPO_NAME/bin/not $AOMP/bin/not
+   $SUDO cp -p $BUILD_DIR/build/$AOMP_LLVM_REPO_NAME/bin/yaml-bench $AOMP/bin/yaml-bench
    echo
    echo "SUCCESSFUL INSTALL to $INSTALL_LLVM with link to $AOMP"
    echo
