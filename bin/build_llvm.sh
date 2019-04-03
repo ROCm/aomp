@@ -194,6 +194,7 @@ if [ "$1" == "install" ] ; then
    # add executables forgot by make install but needed for testing
    $SUDO cp -p $BUILD_DIR/build/$AOMP_LLVM_REPO_NAME/bin/llvm-lit $AOMP/bin/llvm-lit
    $SUDO cp -p $BUILD_DIR/build/$AOMP_LLVM_REPO_NAME/bin/FileCheck $AOMP/bin/FileCheck
+   $SUDO cp -p $BUILD_DIR/build/$AOMP_LLVM_REPO_NAME/bin/count $AOMP/bin/count
    echo
    echo "SUCCESSFUL INSTALL to $INSTALL_LLVM with link to $AOMP"
    echo

@@ -138,7 +138,7 @@ if [ "$1" == "install" ] ; then
       echo "ERROR make install/local failed "
       exit 1
    fi
-   echo "SUCCESSFUL INSTALL to $INSTALL_LLD with link to $AOMP"
+   echo "SUCCESSFUL INSTALL to $INSTALL_LLD "
    echo
 else 
    echo 
