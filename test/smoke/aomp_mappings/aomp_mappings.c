@@ -20,7 +20,7 @@ int main()
   for (i=0; i<N; i++)
     active_mask[i] = 0;
   for (i=0; i<N; i++)
-    thread_num[i]=team_num[i]=default_dev[i]=warp_id[i]=lane_id[i]=master_thread_id[i]=smid[i]=is_spmd_mode[i] = -1;
+    thread_num[i]=team_num[i]=default_dev[i]=warp_id[i]=lane_id[i]=master_thread_id[i]=smid[i]=is_spmd_mode[i]=num_threads[i]=num_teams[i] = -1;
 
 
 fprintf(stderr,"#pragma omp target teams distribute parallel for thread_limit(4)\n");
