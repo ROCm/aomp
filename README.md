@@ -79,14 +79,14 @@ sudo dpkg -i aomp_0.6-0_amd64.deb
 ```
 The AOMP bin directory (which includes the standard clang and llvm binaries) is not intended to be in your PATH for typical operation.
 
-### RPM Install
+<!--### RPM Install
 For rpm-based Linux distributions, use this rpm
 ```
 wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_0.6-0/aomp-0.6-0.x86_64.rpm
 sudo rpm -i aomp-0.6-0.x86_64.rpm
 ```
-
-### No root Install
+-->
+### No root Debian Install
 
 By default, the packages install their content to the release directory /opt/rocm/aomp_0.X-Y and then a  symbolic link is created at /opt/rocm/aomp to the release directory. This requires root access.
 
@@ -100,6 +100,20 @@ To install the debian package without root access into your home directory, you 
 ```
 The last two commads could be put into your .bash_profile file so you can always access the compiler.
 
+### No root RPM install
+
+By default, the packages install their content to the release directory /opt/rocm/aomp_0.X-Y and then a  symbolic link is created at /opt/rocm/aomp to the release directory. This requires root access.
+
+To install the rpm package without root access into your home directory, you can run these commands.
+```
+   mkdir /tmp/temproot ; cd /tmp/temproot 
+   wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_0.6-0/aomp-0.6-0.x86_64.rpm
+   rpm2cpio aomp-0.6-0.x86_64.rpm | cpio -idmv
+   mv /tmp/temproot/opt/rocm $HOME
+   export PATH=$PATH:$HOME/rocm/aomp/bin
+   export AOMP=$HOME/rocm/aomp
+```
+The last two commads could be put into your .bash_profile file so you can always access the compiler.
 ### Source Install
 Build and install from sources is possible.  However, the source build for AOMP is complex for several reasons.
 - Many repos are required.  The clone_aomp.sh script ensures you have all repos and the correct branch.
@@ -123,7 +137,7 @@ sudo install rock_dkms
 sudo reboot
 sudo usermod -a -G video $LOGNAME
 ```
-To build AOMP with support for nvptx GPUs, you must first install cuda 10.  We recommend CUDA 10.0.  CUDA 10.1 will not work till AOMP moves to the trunk development of LLVM 9.  Once you download CUDA 10.0 local install file, these commands should complete the install of CUDA. The CUDA installation is now optional. Note the first command references the install for Ubuntu 16.04.
+To build AOMP with support for nvptx GPUs, you must first install CUDA 10.  We recommend CUDA 10.0.  CUDA 10.1 will not work till AOMP moves to the trunk development of LLVM 9.  Once you download CUDA 10.0 local install file, these commands should complete the install of CUDA. The CUDA installation is now optional. Note the first command references the install for Ubuntu 16.04.
 ```
    sudo dpkg -i cuda-repo-ubuntu1604-10-0-local-10.0.130-410.48_1.0-1_amd64.deb
    sudo apt-key add /var/cuda-repo-10-0-local-10.0.130-410.48/7fa2af80.pub
