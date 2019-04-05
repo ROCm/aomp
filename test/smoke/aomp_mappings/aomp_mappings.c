@@ -2,24 +2,25 @@
 #include <omp.h>
 int main()
 {
-  int N = 102;
+  int N = 128;
+  int NN = 1024;
 
-  int thread_num[N];
-  int team_num[N];
-  int default_dev[N];
-  int warp_id[N];
-  int lane_id[N];
-  int smid[N];
-  int is_spmd_mode[N];
-  int master_thread_id[N];
-  int num_teams[N];
-  int num_threads[N];
-  unsigned long long active_mask[N];
+  int thread_num[NN];
+  int team_num[NN];
+  int default_dev[NN];
+  int warp_id[NN];
+  int lane_id[NN];
+  int smid[NN];
+  int is_spmd_mode[NN];
+  int master_thread_id[NN];
+  int num_teams[NN];
+  int num_threads[NN];
+  unsigned long long active_mask[NN];
   int i;
 
-  for (i=0; i<N; i++)
+  for (i=0; i<NN; i++)
     active_mask[i] = 0;
-  for (i=0; i<N; i++)
+  for (i=0; i<NN; i++)
     thread_num[i]=team_num[i]=default_dev[i]=warp_id[i]=lane_id[i]=master_thread_id[i]=smid[i]=is_spmd_mode[i]=num_threads[i]=num_teams[i] = -1;
 
 
@@ -69,9 +70,8 @@ fprintf(stderr,"#pragma omp target teams distribute parallel for\n");
 
 fprintf(stderr,"#pragma omp target teams \n");
 #pragma omp target teams
-//#pragma omp parallel
   {
-    for (int j = 0; j< N; j++) {
+       int j = omp_get_team_num();
        thread_num[j] = omp_get_thread_num();
        num_threads[j] = omp_get_num_threads();
        team_num[j] = omp_get_team_num();
@@ -83,7 +83,6 @@ fprintf(stderr,"#pragma omp target teams \n");
        smid[j] = omp_get_smid();
        master_thread_id[j] = omp_get_master_thread_id();
        is_spmd_mode[j] = omp_is_spmd_mode();
-    }
   }
 
   int rc = 0;
