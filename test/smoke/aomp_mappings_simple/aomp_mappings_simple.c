@@ -16,7 +16,7 @@ int main()
   {
     for (int j = 0; j< N; j++) {
        team_num[j] = omp_get_team_num();
-       smid[j] = omp_get_smid();
+       smid[j] = omp_ext_get_smid();
     }
   }
 
