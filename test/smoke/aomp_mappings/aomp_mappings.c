@@ -33,12 +33,12 @@ fprintf(stderr,"#pragma omp target teams distribute parallel for thread_limit(4)
        team_num[j] = omp_get_team_num();
        num_teams[j] = omp_get_num_teams();
        default_dev[j] = omp_get_default_device();
-       warp_id[j] = omp_get_warp_id();
-       lane_id[j] = omp_get_lane_id();
-       active_mask[j] = omp_get_active_threads_mask();
-       smid[j] = omp_get_smid();
-       master_thread_id[j] = omp_get_master_thread_id();
-       is_spmd_mode[j] = omp_is_spmd_mode();
+       warp_id[j] = omp_ext_get_warp_id();
+       lane_id[j] = omp_ext_get_lane_id();
+       active_mask[j] = omp_ext_get_active_threads_mask();
+       smid[j] = omp_ext_get_smid();
+       master_thread_id[j] = omp_ext_get_master_thread_id();
+       is_spmd_mode[j] = omp_ext_is_spmd_mode();
     }
   }
   fprintf(stderr,"    i thrd# team#  dev# warp# lane# MastThrd smid  SPMD num_threads num_teams ActiveMask\n");
@@ -55,12 +55,12 @@ fprintf(stderr,"#pragma omp target teams distribute parallel for\n");
        team_num[j] = omp_get_team_num();
        num_teams[j] = omp_get_num_teams();
        default_dev[j] = omp_get_default_device();
-       warp_id[j] = omp_get_warp_id();
-       lane_id[j] = omp_get_lane_id();
-       active_mask[j] = omp_get_active_threads_mask();
-       smid[j] = omp_get_smid();
-       master_thread_id[j] = omp_get_master_thread_id();
-       is_spmd_mode[j] = omp_is_spmd_mode();
+       warp_id[j] = omp_ext_get_warp_id();
+       lane_id[j] = omp_ext_get_lane_id();
+       active_mask[j] = omp_ext_get_active_threads_mask();
+       smid[j] = omp_ext_get_smid();
+       master_thread_id[j] = omp_ext_get_master_thread_id();
+       is_spmd_mode[j] = omp_ext_is_spmd_mode();
     }
   }
   fprintf(stderr,"    i thrd# team#  dev# warp# lane# MastThrd smid  SPMD num_threads num_teams ActiveMask\n");
@@ -77,12 +77,12 @@ fprintf(stderr,"#pragma omp target teams \n");
        team_num[j] = omp_get_team_num();
        num_teams[j] = omp_get_num_teams();
        default_dev[j] = omp_get_default_device();
-       warp_id[j] = omp_get_warp_id();
-       lane_id[j] = omp_get_lane_id();
-       active_mask[j] = omp_get_active_threads_mask();
-       smid[j] = omp_get_smid();
-       master_thread_id[j] = omp_get_master_thread_id();
-       is_spmd_mode[j] = omp_is_spmd_mode();
+       warp_id[j] = omp_ext_get_warp_id();
+       lane_id[j] = omp_ext_get_lane_id();
+       active_mask[j] = omp_ext_get_active_threads_mask();
+       smid[j] = omp_ext_get_smid();
+       master_thread_id[j] = omp_ext_get_master_thread_id();
+       is_spmd_mode[j] = omp_ext_is_spmd_mode();
   }
 
   int rc = 0;
