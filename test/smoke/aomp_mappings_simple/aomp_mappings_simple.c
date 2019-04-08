@@ -2,22 +2,21 @@
 #include <omp.h>
 int main()
 {
-  int N = 102;
+  int N = 128;
+  int NN = 1024;
 
-  int team_num[N];
-  int smid[N];
+  int team_num[NN];
+  int smid[NN];
   int i;
 
-  for (i=0; i<N; i++)
+  for (i=0; i<NN; i++)
    team_num[i]=smid[i]= -1;
 
 #pragma omp target teams
-//#pragma omp parallel
-  {
-    for (int j = 0; j< N; j++) {
+  {    
+       int j = omp_get_team_num();
        team_num[j] = omp_get_team_num();
        smid[j] = omp_ext_get_smid();
-    }
   }
 
   int rc = 0;
