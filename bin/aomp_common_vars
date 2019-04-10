@@ -5,7 +5,9 @@
 #
 # Set the AOMP VERSION STRING. 
 # After a release, this is changed to the next release under development
-AOMP_VERSION_STRING=${AOMP_VERSION_STRING:-"0.6-1"}
+AOMP_VERSION=${AOMP_VERSION:-"0.6"}
+AOMP_VERSION_MOD=${AOMP_VERSION_MOD:-"1"}
+AOMP_VERSION_STRING=${AOMP_VERSION_STRING:-"$AOMP_VERSION-$AOMP_VERSION_MOD"}
 export AOMP_VERSION_STRING
 
 # set install directory and the link directory
@@ -62,7 +64,6 @@ GITROC="https://github.com/radeonopencompute"
 GITROCDEV="https://github.com/ROCm-Developer-Tools"
 GITROCLIB="https://github.com/AMDComputeLibraries"
 GITKHRONOS="https://github.com/KhronosGroup"
-GITFLANG="https://github.com/flang-compiler"
 
 # The  git repos and branches that the AOMP build scripts will use
 AOMP_REPO_NAME=${AOMP_REPO_NAME:-aomp}
