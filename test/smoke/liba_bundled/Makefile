@@ -9,7 +9,7 @@ CLANG           = clang
 OMP_BIN         = $(AOMP)/bin/$(CLANG)
 CC              = $(OMP_BIN) $(VERBOSE)
 EXTRA_CFLAGS    =
-EXTRA_LDFLAGS   =
+EXTRA_LDFLAGS   = MyDeviceLib/build/func_1v-$(GPUTYPE)-$(AOMP_GPU).bundled.bc MyDeviceLib/build/func_2v-$(GPUTYPE)-$(AOMP_GPU).bundled.bc MyDeviceLib/build/func_3v-$(GPUTYPE)-$(AOMP_GPU).bundled.bc
 EXTRA_OMP_FLAGS =
 
 ifeq (sm_,$(findstring sm_,$(AOMP_GPU)))
