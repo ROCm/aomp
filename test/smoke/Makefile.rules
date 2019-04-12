@@ -20,6 +20,12 @@ $(TESTNAME): prerequisites $(TESTSRC_ALL)
 run: $(TESTNAME)
 	$(RUNENV) $(RUNPROF) ./$(TESTNAME) 2>&1 | tee $@.log
 
+check: $(TESTNAME)
+	if   (./$(TESTNAME)> /dev/null 2>&1); then \
+		echo $(TESTNAME) return code: $$?'\n' >> ../check-smoke.txt; \
+	else	echo $(TESTNAME) return code: $$?'\n' >> ../check-smoke.txt; \
+	fi 
+
 # ----- Demo compile and link to object file
 ifneq ($(TESTNAME), $(findstring $(TESTNAME),$(TESTNAMES_ALL)))
 .PHONY: $(TESTNAME).o

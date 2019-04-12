@@ -7,8 +7,9 @@
 int main (void)
 {
   int a, i;
+  int error = 0;
 
-  #pragma omp target parallel shared(a) private(i)
+  #pragma omp target parallel shared(a) private(i) map(tofrom: error)
   {
     #pragma omp master
     a = 0;
@@ -23,12 +24,16 @@ int main (void)
     // The Sum shall be sum:[0:N]
     #pragma omp single
     {
-      if (a != SUM)
+      if (a != SUM){
         printf ("Incorrect result = %d, expected = %d!\n", a, SUM);
-      else
+	error = 1;
+      }
+      else{
         printf ("The result is correct = %d!\n", a);
+	error = 0;
+      }
     }
   }
 
-  return 0;
+  return error;
 }

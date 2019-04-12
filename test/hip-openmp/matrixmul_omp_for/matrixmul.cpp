@@ -122,6 +122,7 @@ bool haveComputeDevice() {
 }
 
 int main() {
+  int N_errors = 0;
   if (!haveComputeDevice()) {
     printf("No compute device available\n");
     return 0;
@@ -173,9 +174,9 @@ int main() {
                                         N * P * sizeof(int),
                                         hipMemcpyDeviceToHost))) {
 
-          int N_errors = matrixMul_check(hostSrcMatA, hostSrcMatB, hostDstMat,
+          N_errors = matrixMul_check(hostSrcMatA, hostSrcMatB, hostDstMat,
                                          N, M, P);
-          if (N_errors != 0) {
+	  if (N_errors != 0) {
             printf("Interation: %d \t\t FAILED: %d Errors >>>\n", i, N_errors);
             printf("A: ");
             printMatrix(hostSrcMatA, N, M);
@@ -203,6 +204,10 @@ int main() {
 //#pragma omp taskwait
     printf("Interation: %d finished >>>\n",i);
   }
-
-  return 0;
+  if(!N_errors)
+    printf("%s", "Success\n");
+  else
+    printf("%s", "Failed\n");
+  
+  return N_errors;
 }
