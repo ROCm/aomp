@@ -59,6 +59,24 @@ void printMatrix(int *matrix, int Rows, int Cols) {
   }
 }
 
+int checkMatrix(int *finalMatrix, int ARows, int ACols, int BCols, int *matrixA, int *matrixB) {
+  int checkIndex = 0;
+  int errors = 0;
+  for (int i = 0; i < ARows; i++) {
+    for (int j=0; j < BCols; j++){
+      int value =0;
+      for(int k = 0; k < ACols; k++) { 
+         value += matrixA[i * ACols + k] * matrixB[k * BCols + j];
+      }
+       if(finalMatrix[checkIndex] != value){
+           errors++;
+       }
+       checkIndex++;
+    }
+  } 
+  return errors;
+}
+
 void printHipError(hipError_t error) {
   printf("Hip Error: %s\n", hipGetErrorString(error));
 }
@@ -105,6 +123,7 @@ int main() {
   int hostSrcMatA[N * M];
   int hostSrcMatB[M * P];
   int hostDstMat[N * P];
+  int error = 0;
 
   if (!haveComputeDevice()) {
     printf("No compute device available\n");
@@ -154,6 +173,9 @@ int main() {
         printf("Mul: ");
         printMatrix(hostDstMat, N, P);
         printf("\n");
+	
+	//Verify Final Matrix
+	error = checkMatrix(hostDstMat, N, M, P, hostSrcMatA, hostSrcMatB);
       } else {
         printf("Unable to copy memory from device to host\n");
       }
@@ -166,6 +188,14 @@ int main() {
     hipFree(deviceSrcMatB);
   if (matrixCAllocated)
     hipFree(deviceDstMat);
-
+  
+  if (error == 0){
+    printf("%s", "Success\n");
+    return error;	
+  }
+  else{
+    printf("%s", "Failed, Final Matrix does not match expected values\n");
+    return error;
+  }
   return 0;
 }

@@ -37,6 +37,13 @@ int main() {
     }
   }
 
-  if(fail) printf("Failed\n");
-  else printf("Succeeded\n");
+  if(fail){
+	printf("Failed\n");
+	return 1;
+  }
+
+  else{
+	printf("Succeeded\n");
+	return 0;
+  }
 }
