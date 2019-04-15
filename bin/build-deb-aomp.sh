@@ -8,11 +8,35 @@
 #                      You must also have sudo access to build the debs.
 #                      You will be prompted for your password for sudo. 
 #
+# --- Start standard header ----
+function getdname(){
+   local __DIRN=`dirname "$1"`
+   if [ "$__DIRN" = "." ] ; then
+      __DIRN=$PWD;
+   else
+      if [ ${__DIRN:0:1} != "/" ] ; then
+         if [ ${__DIRN:0:2} == ".." ] ; then
+               __DIRN=`dirname $PWD`/${__DIRN:3}
+         else
+            if [ ${__DIRN:0:1} = "." ] ; then
+               __DIRN=$PWD/${__DIRN:2}
+            else
+               __DIRN=$PWD/$__DIRN
+            fi
+         fi
+      fi
+   fi
+   echo $__DIRN
+}
+thisdir=$(getdname $0)
+[ ! -L "$0" ] || thisdir=$(getdname `readlink "$0"`)
+. $thisdir/aomp_common_vars
+# --- End standard header ----
+. /etc/lsb-release
+RELSTRING=`echo $DISTRIB_ID$DISTRIB_RELEASE | tr -d "."`
+echo RELSTRING=$RELSTRING
 pkgname=aomp
-# FIXME: Get version and mod from AOMP_VERSION_STRING file in directory with this script
-version="0.6"
-mod="0"
-dirname="aomp_$version-$mod"
+dirname="aomp_${AOMP_VERSION_STRING}"
 sourcedir="/opt/rocm/$dirname"
 installdir="/opt/rocm/$dirname"
 
@@ -41,7 +65,7 @@ if [ -d $builddir ] ; then
 fi
 
 debdir=$PWD/debian
-froot=$builddir/$pkgname-${version}
+froot=$builddir/$pkgname-$AOMP_VERSION
 mkdir -p $froot$installdir
 mkdir -p $froot/usr/share/doc/$dirname
 echo 
@@ -67,17 +91,17 @@ echo "opt/rocm/$dirname" > $froot/debian/$pkgname.install
 echo "usr/share/doc/$dirname" >> $froot/debian/$pkgname.install
 
 echo 
-echo "--- BUILDING SOURCE TARBALL $builddir/${pkgname}_${version}.orig.tar.gz "
+echo "--- BUILDING SOURCE TARBALL $builddir/${pkgname}_$AOMP_VERSION.orig.tar.gz "
 echo "    FROM FAKEROOT: $froot "
 cd $builddir
-tar -czf $builddir/${pkgname}_${version}.orig.tar.gz ${pkgname}-${version}
+tar -czf $builddir/${pkgname}_$AOMP_VERSION.orig.tar.gz ${pkgname}-$AOMP_VERSION
 echo "    DONE BUILDING TARBALL"
 
 echo 
 echo "--- RUNNING dch TO MANANGE CHANGELOG "
 cd  $froot
-echo dch -v ${version}-${mod} -e --package $pkgname
-dch -v ${version}-${mod} --package $pkgname
+echo dch -v ${AOMP_VERSION_STRING} -e --package $pkgname
+dch -v ${AOMP_VERSION_STRING} --package $pkgname
 # Backup the debian changelog to git repo, be sure to commit this 
 cp -p $froot/debian/changelog $debdir/.
 
@@ -95,17 +119,18 @@ fi
 cp -p $froot/debian/${pkgname}.debhelper.log $debdir/.
 
 mkdir -p $tmpdir/debs
-if [ -f $tmpdir/debs/${pkgname}_$version-${mod}_$DEBARCH.deb ] ; then 
-  rm -f $tmpdir/debs/${pkgname}_$version-${mod}_$DEBARCH.deb 
+if [ -f $tmpdir/debs/${pkgname}_${AOMP_VERSION_STRING}_$DEBARCH.deb ] ; then 
+  rm -f $tmpdir/debs/${pkgname}_${AOMP_VERSION_STRING}_$DEBARCH.deb 
 fi
-mv $builddir/${pkgname}_$version-${mod}_$DEBARCH.deb $tmpdir/debs/.
+# Insert the os release name
+cp -p $builddir/${pkgname}_${AOMP_VERSION_STRING}_$DEBARCH.deb $tmpdir/debs/${pkgname}_${RELSTRING}_${AOMP_VERSION_STRING}_$DEBARCH.deb
 mkdir -p $tmpdir/rpms
 cd $tmpdir/rpms
 echo 
-echo "--- BUILDING RPM: alien -k --scripts --to-rpm $tmpdir/debs/${pkgname}_$version-${mod}_$DEBARCH.deb"
-sudo alien -k --scripts --to-rpm $tmpdir/debs/${pkgname}_$version-${mod}_$DEBARCH.deb 
+echo "--- BUILDING RPM: alien -k --scripts --to-rpm $tmpdir/debs/${pkgname}_${AOMP_VERSION_STRING}_$DEBARCH.deb"
+sudo alien -k --scripts --to-rpm $builddir/${pkgname}_${AOMP_VERSION_STRING}_$DEBARCH.deb 
 
 echo 
-echo "DONE Debian package is in $tmpdir/debs/${pkgname}_$version-${mod}_$DEBARCH.deb"
-echo "     rpm package is in $tmpdir/rpms/${pkgname}_$version-${mod}.$RPMARCH.rpm"
+echo "DONE Debian package is in $tmpdir/debs/${pkgname}_${AOMP_VERSION_STRING}_$DEBARCH.deb"
+echo "     rpm package is in $tmpdir/rpms/${pkgname}_${AOMP_VERSION_STRING}.$RPMARCH.rpm"
 echo 
