@@ -1,4 +1,4 @@
-aomp (0.6-0) UNRELEASED; urgency=medium
+aomp (0.6-1) UNRELEASED; urgency=medium
 
   * Initial release of aomp is 0.3-2
   *   Please see example in /opt/rocm/aomp/examples/vmuldemo 
@@ -115,5 +115,32 @@ aomp (0.6-0) UNRELEASED; urgency=medium
   *   Moved all ROCm component dependencies to branch 2.1.x
   *   Now requires cuda 10 to build from source.
   * 
-
- -- Greg Rodgers <Gregory.Rodgers@amd.com>  Mon, 25 Feb 2019 16:26:07 -0600
+  * 0.6-1
+  *   Disabled SILoadStoreOptimizer pass to work around 64 bit address calculation issue
+  *   Added 6 new device APIs as extentions to OpenMP device apis
+  *      omp_ext_get_warp_id
+  *      omp_ext_get_lane_id
+  *      omp_ext_get_master_thread_id
+  *      omp_ext_get_smid
+  *      omp_ext_is_spmd_mode
+  *      omp_ext_get_active_threads_mask
+  *   rtl get_launch_vals added, rewrite algorithm for threads,teams computation
+  *   throttle code for teams and threads off by default, enabled with THREAD_TEAM_THROTTLE
+  *   Add support for an LLC and OPT specific env-var AOMP_LLC_ARGS AOMP_OPT_ARGS
+  *      Which allows adding compiler options to opt and llc via env-var, useful for triage, dumps, and debug.
+  *   Added clang-unbundle-archive tool.
+  *   Added support for device library archives in clang when using -l flag.
+  *   Updated llvm-link to work with archives of .bc components
+  *   Added new method AddStaticDeviceLibs to CommonArgs.cpp that searches for static device libs using -l flag
+  *     in a way similar to search method for host libraries with added feature of searching for
+  *     names that specify the architecture and/or GPU.
+  *   Cleanup of aomp build scripts including split of llvm component into llvm, clang, and lld.
+  *     Fix where llvm-config is found during build
+  *     Added installed binaries from llvm to help with clang lit testing
+  *     New build script for comgr.  This is not part of the compiler build yet. Developers and
+  *     those building from source can run build_comgr.sh
+  *     Do not build hip runtime for ppc and arm builds.
+  *  Added two new smoke tests and improved automation of smoke tests
+  *  Corrected mymcpu and mygpu for vega20
+  *
+ -- Greg Rodgers <Gregory.Rodgers@amd.com>  Mon, 15 Apr 2019 13:05:57 -0500
