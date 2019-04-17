@@ -61,7 +61,7 @@ $(MEM_PREFIX_2).bundled.bc: $(LIBSRC2).c
 $(MEM_PREFIX_3).bundled.bc: $(LIBSRC3).c
 	$(CC) $(CFLAGS) -emit-llvm $^ -o $@
 
-lib$(LIB)-$(ARCH)-$(AOMP_GPU).a : $(MEM_PREFIX_1).bc $(MEM_PREFIX_2).bc $(MEM_PREFIX_3).bc
+libbc-$(LIB)-$(ARCH)-$(AOMP_GPU).a : $(MEM_PREFIX_1).bc $(MEM_PREFIX_2).bc $(MEM_PREFIX_3).bc
 	$(AOMP)/bin/llvm-ar r $@ $^ 
 
 $(MEM_PREFIX_1).bc: $(MEM_PREFIX_1).bundled.bc
