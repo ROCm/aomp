@@ -21,10 +21,10 @@ Table of contents
 - [Software License Agreement](LICENSE)
 - [Verify and Install Linux Support](#Linux-Support)
 - [Install](#Install)
+- [Getting Started](#Getting-Started)
 - [Examples](examples)
 - [Development](bin/README.md)
 - [TODOs](bin/TODOs) List of TODOs for this release
-- [Getting Started](#Getting-Started)
 - [Limitations](#Limitations)
 
 ## Copyright and Disclaimer
