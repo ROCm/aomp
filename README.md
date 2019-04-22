@@ -19,10 +19,12 @@ Table of contents
 
 - [Copyright and Disclaimer](#Copyright)
 - [Software License Agreement](LICENSE)
+- [Check and Install Linux Support](#Linux-Support)
 - [Install](#Install)
 - [Examples](examples)
 - [Development](bin/README.md)
 - [TODOs](bin/TODOs) List of TODOs for this release
+- [Getting Started](#Getting-Started)
 - [Limitations](#Limitations)
 
 ## Copyright and Disclaimer
@@ -67,6 +69,10 @@ EXPORT RESTRICTIONS: The Materials may be subject to export restrictions as stat
 Software License Agreement.
 
 ## AOMP Install V 0.6-1
+
+<A NAME="Install">
+### Check and Install Linux Support
+AOMP needs certain support for Linux to function properly, such as the KFD driver for AMD GPUs and CUDA for NVIDIA. Click [LINUXSUPPORT](LINUXSUPPORT.md) for more information.
 
 <A NAME="Install">
 
@@ -123,6 +129,31 @@ Build and install from sources is possible.  However, the source build for AOMP 
 - Additional package dependencies are required that are not required when installing the AOMP package.
 
 For instructions on how to install from source, click [SOURCEINSTALL](SOURCEINSTALL.md).
+
+## Getting Started
+<A NAME="Getting-Started">
+The default install location is /opt/rocm/aomp. To run the given examples, for example in /opt/rocm/aomp/examples/openmp do the following:
+
+### Copy the example openmp directory somewhere writable
+```
+cd /opt/rocm/aomp/examples/
+cp -rp openmp /work/tmp/openmp-examples
+cd /work/tmp/openmp-examples/vmulsum
+```
+
+### Point to the installed AOMP by setting AOMP environment variable
+```
+export AOMP=/opt/rocm/aomp
+```
+
+### Make Instructions
+```
+make clean
+make run
+
+Run 'make help' for more information.  
+```
+View the OpenMP Examples [README](/examples/openmp) for more information.
 
 ## AOMP Limitations
 
