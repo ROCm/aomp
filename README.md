@@ -68,17 +68,17 @@ Materials by the Government constitutes acknowledgement of AMD's proprietary rig
 EXPORT RESTRICTIONS: The Materials may be subject to export restrictions as stated in the 
 Software License Agreement.
 
-## AOMP Verify Linux Support
+## AOMP Verify and Install Linux Support
+
 <A NAME="Linux-Support">
 
-### Verify and Install Linux Support
-AOMP needs certain support for Linux to function properly, such as the KFD driver for AMD GPUs and CUDA for NVIDIA. Click [LINUXSUPPORT](LINUXSUPPORT.md) for more information.
+AOMP needs certain support for Linux to function properly, such as the KFD driver for AMD GPUs and CUDA for nvptx. Click [LINUXSUPPORT](LINUXSUPPORT.md) for more information.
 
 ## AOMP Install V 0.6-1
 
 <A NAME="Install">
 
-### Debian/Ubunutu install
+### Debian/Ubunutu Install
 
 On Ubuntu 18.04 LTS (bionic beaver), run these commands:
 ```
@@ -133,7 +133,9 @@ Build and install from sources is possible.  However, the source build for AOMP 
 For instructions on how to install from source, click [SOURCEINSTALL](SOURCEINSTALL.md).
 
 ## Getting Started
+
 <A NAME="Getting-Started">
+
 The default install location is /opt/rocm/aomp. To run the given examples, for example in /opt/rocm/aomp/examples/openmp do the following:
 
 ### Copy the example openmp directory somewhere writable
@@ -152,9 +154,9 @@ export AOMP=/opt/rocm/aomp
 ```
 make clean
 make run
-
-Run 'make help' for more information.  
 ```
+Run 'make help' for more details.  
+
 View the OpenMP Examples [README](/examples/openmp) for more information.
 
 ## AOMP Limitations
