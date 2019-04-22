@@ -1,4 +1,4 @@
-# Check and Install Linux Support 
+# Verify and Install Linux Support 
 The ROCm kernel driver is required for AMD GPU support and CUDA is required for nvptx GPU support.
 
 ## Debian Support
