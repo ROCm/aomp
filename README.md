@@ -19,7 +19,7 @@ Table of contents
 
 - [Copyright and Disclaimer](#Copyright)
 - [Software License Agreement](LICENSE)
-- [Check and Install Linux Support](#Linux-Support)
+- [Verify and Install Linux Support](#Linux-Support)
 - [Install](#Install)
 - [Examples](examples)
 - [Development](bin/README.md)
@@ -68,11 +68,13 @@ Materials by the Government constitutes acknowledgement of AMD's proprietary rig
 EXPORT RESTRICTIONS: The Materials may be subject to export restrictions as stated in the 
 Software License Agreement.
 
-## AOMP Install V 0.6-1
+## AOMP Verify Linux Support
+<A NAME="Linux-Support">
 
-<A NAME="Install">
-### Check and Install Linux Support
+### Verify and Install Linux Support
 AOMP needs certain support for Linux to function properly, such as the KFD driver for AMD GPUs and CUDA for NVIDIA. Click [LINUXSUPPORT](LINUXSUPPORT.md) for more information.
+
+## AOMP Install V 0.6-1
 
 <A NAME="Install">
 
