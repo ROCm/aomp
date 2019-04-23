@@ -25,7 +25,8 @@ endif
 
 UNAMEP=$(shell uname -p)
 
-AOMP_GPU       ?= gfx900   # Default AOMP_GPU is gfx900 which is vega
+# Default AOMP_GPU is gfx900 which is vega
+AOMP_GPU       ?= gfx900
 AOMP_CPUTARGET ?= $(UNAMEP)-pc-linux-gnu
 CC              = $(AOMP)/bin/clang
 CUDA           ?= /usr/local/cuda
