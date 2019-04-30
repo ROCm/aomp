@@ -1,11 +1,11 @@
-AOMP - V 0.6-1
+AOMP - V 0.6-2
 ==============
 
 AOMP:  AMD OpenMP Compiler
 
 This is README.md for https://github.com/ROCM-Developer-Tools/aomp .  This is the base repository for AOMP,  Use this for issues, documentation, packaging, examples, build.
 
-The last release of AOMP is version 0.6-1.  Currently version 0.6-2 is under development.
+The last release of AOMP is version 0.6-2.  Currently version 0.6-3 is under development.
 
 AOMP is an experimental PROTOTYPE that is intended to support multiple programming models including OpenMP 4.5+,
 , HIP, and cuda clang.  It supports offloading to multiple GPU acceleration targets(multi-target).  It also supports different host platforms such as AMD64, PPC64LE, and AARCH64. (multi-platform). 
@@ -74,7 +74,7 @@ Software License Agreement.
 
 AOMP needs certain support for Linux to function properly, such as the KFD driver for AMD GPUs and CUDA for nvptx. Click [LINUXSUPPORT](LINUXSUPPORT.md) for more information.
 
-## AOMP Install V 0.6-1
+## AOMP Install V 0.6-2
 
 <A NAME="Install">
 
@@ -82,16 +82,16 @@ AOMP needs certain support for Linux to function properly, such as the KFD drive
 
 On Ubuntu 18.04 LTS (bionic beaver), run these commands:
 ```
-wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/r/aomp_Ubuntu1804_0.6-1_amd64.deb
-sudo dpkg -i aomp_Ubuntu1804_0.6-1_amd64.deb
+wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/r/aomp_Ubuntu1804_0.6-2_amd64.deb
+sudo dpkg -i aomp_Ubuntu1804_0.6-2_amd64.deb
 ```
 The AOMP bin directory (which includes the standard clang and llvm binaries) is not intended to be in your PATH for typical operation.
 
 <!--### RPM Install
 For rpm-based Linux distributions, use this rpm
 ```
-wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/r/aomp-0.6-1.x86_64.rpm
-sudo rpm -i aomp-0.6-1.x86_64.rpm
+wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/r/aomp-0.6-2.x86_64.rpm
+sudo rpm -i aomp-0.6-2.x86_64.rpm
 ```
 -->
 ### No root Debian Install
@@ -100,8 +100,8 @@ By default, the packages install their content to the release directory /opt/roc
 
 To install the debian package without root access into your home directory, you can run these commands.
 ```
-   wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/r/aomp_Ubuntu1604_0.6-1_amd64.deb
-   dpkg -x aomp_Ubuntu1604_0.6-1_amd64.deb /tmp/temproot
+   wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/r/aomp_Ubuntu1604_0.6-2_amd64.deb
+   dpkg -x aomp_Ubuntu1604_0.6-2_amd64.deb /tmp/temproot
    mv /tmp/temproot/opt/rocm $HOME
    export PATH=$PATH:$HOME/rocm/aomp/bin
    export AOMP=$HOME/rocm/aomp
@@ -115,8 +115,8 @@ By default, the packages install their content to the release directory /opt/roc
 To install the rpm package without root access into your home directory, you can run these commands.
 ```
    mkdir /tmp/temproot ; cd /tmp/temproot 
-   wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/r/aomp-0.6-1.x86_64.rpm
-   rpm2cpio aomp-0.6-1.x86_64.rpm | cpio -idmv
+   wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/r/aomp-0.6-2.x86_64.rpm
+   rpm2cpio aomp-0.6-2.x86_64.rpm | cpio -idmv
    mv /tmp/temproot/opt/rocm $HOME
    export PATH=$PATH:$HOME/rocm/aomp/bin
    export AOMP=$HOME/rocm/aomp

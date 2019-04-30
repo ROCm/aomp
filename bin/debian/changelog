@@ -1,4 +1,4 @@
-aomp (0.6-1) UNRELEASED; urgency=medium
+aomp (0.6-2) UNRELEASED; urgency=medium
 
   * Initial release of aomp is 0.3-2
   *   Please see example in /opt/rocm/aomp/examples/vmuldemo 
@@ -143,4 +143,23 @@ aomp (0.6-1) UNRELEASED; urgency=medium
   *  Added two new smoke tests and improved automation of smoke tests
   *  Corrected mymcpu and mygpu for vega20
   *
- -- Greg Rodgers <Gregory.Rodgers@amd.com>  Mon, 15 Apr 2019 13:05:57 -0500
+  * 0.6-2
+  *   Fixed issue with constant size teams and threads.
+  *   Moved to the stable clang/llvm 8.0 code base
+  *   Fixed code in deviceRTLs/amdgcn that set Max_Warp_Number to 16, was 64
+  *   Enable Float16 for 0.6-2, disabled by default in release_80 merge
+  *   Disable META data opt, and provide evar AMDGPU_ENABLE_META_OPT_BUG to enable
+  *   Add archive handling for bc linking.
+  *   For performance, rewrite select_outline_wrapper calls, to be direct calls.
+  *    Example:  change the generated from:
+  *       @_HASHW_DeclareSharedMemory_cpp__omp_outlined___wrapper =
+  *          local_unnamed_addr addrspace(4) constant i64 -4874776124079246075
+  *     call void @select_outline_wrapper(i16 0, i32 %6, i64 -4874776124079246075)
+  *     to:
+  *        call void @DeclareSharedMemory_cpp__omp_outlined___wrapper(i16 0, i32 %6)
+  *  In release_80, Loop_tripcount API is now used, so we need to limit num_groups/teams
+  *     to no more than Max_Teams, fixes assertok_error, and snap4
+  *     Also handle num_teams clause inside loop_tripcount logic.
+  *  BALLOT_SYNC macro replaced with ACTIVEMASK in release_80
+
+ -- Greg Rodgers <Gregory.Rodgers@amd.com>  Tue, 30 Apr 2019 11:11:14 -0500

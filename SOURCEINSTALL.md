@@ -1,4 +1,4 @@
-# Source Install V 0.6-2 (DEV)
+# Source Install V 0.6-3 (DEV)
 
 Build and install from sources is possible.  However, the source build for AOMP is complex for several reasons.
 - Many repos are required.  The clone_aomp.sh script ensures you have all repos and the correct branch.
@@ -40,9 +40,9 @@ To build AOMP from source, run these commands.
 ```
 Depending on your system, the last two commands and the CUDA install could take a very long time. For more information, please refer to the AOMP developers README file located [HERE](bin/README.md).
 
-The source build process above builds the development version of AOMP by checking out the master branch of AOMP.   The development version is the next version to be released.  It is possible that the development version is broken due to regressions that often occur during development.  If you want to build from the sources of a previous release such as 0.6-1, run these commands before running clone_aomp.sh.
+The source build process above builds the development version of AOMP by checking out the master branch of AOMP.   The development version is the next version to be released.  It is possible that the development version is broken due to regressions that often occur during development.  If you want to build from the sources of a previous release such as 0.6-2, run these commands before running clone_aomp.sh.
 ```
-   git checkout rel_0.6.1
+   git checkout rel_0.6-2
    git pull
 ```
 You only need to do this in the AOMP repository. The file "bin/aomp_common_vars" lists the branches of each repository for a particular AOMP release. In the master branch of AOMP, aomp_common_vars lists the development branches. It is a good idea to run clone_aomp.sh twice after you checkout a release to be sure you pulled all the checkouts for a particular release.
