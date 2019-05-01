@@ -32,6 +32,7 @@ TESTS_DIR = \
     teams \
     test \
     threads \
+    Threads1xxx \
     veccopy \
     vmuldemo \
     vmulsum
