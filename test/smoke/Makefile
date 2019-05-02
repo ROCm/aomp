@@ -31,6 +31,7 @@ TESTS_DIR = \
     target-in-other-source \
     teams \
     test \
+    thread_limit\
     threads \
     Threads1xxx \
     veccopy \

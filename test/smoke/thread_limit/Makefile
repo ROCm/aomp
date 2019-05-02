@@ -1,7 +1,7 @@
 include ../Makefile.defs
 
-TESTNAME     = aomp_mappings_simple
-TESTSRC_MAIN = aomp_mappings_simple.c
+TESTNAME     = thread_limit
+TESTSRC_MAIN = thread_limit.c
 TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 
