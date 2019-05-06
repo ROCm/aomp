@@ -9,7 +9,7 @@ echo 'SUBSYSTEM=="kfd", KERNEL=="kfd", TAG+="uaccess", GROUP="video"' | sudo tee
 wget -qO - http://repo.radeon.com/rocm/apt/debian/rocm.gpg.key | sudo apt-key add -
 echo 'deb [arch=amd64] http://repo.radeon.com/rocm/apt/debian/ xenial main' | sudo tee /etc/apt/sources.list.d/rocm.list
 sudo apt update
-sudo install rock_dkms
+sudo apt install rock_dkms
 
 sudo reboot
 sudo usermod -a -G video $LOGNAME
