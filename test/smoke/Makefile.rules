@@ -21,10 +21,13 @@ run: $(TESTNAME)
 	$(RUNENV) $(RUNPROF) ./$(TESTNAME) 2>&1 | tee $@.log
 
 check: $(TESTNAME)
+	path=`pwd`; \
+	base=`basename $$path`; \
 	if   (./$(TESTNAME)> /dev/null 2>&1); then \
-		echo $(TESTNAME) return code: $$?'\n' >> ../check-smoke.txt; \
-	else	echo $(TESTNAME) return code: $$?'\n' >> ../check-smoke.txt; \
-	fi 
+		echo $$base return code: $$?'\n' >> ../check-smoke.txt; \
+		echo $$base >> ../passing-tests.txt; \
+	else	echo $$base return code: $$?'\n' >> ../check-smoke.txt; \
+	fi
 
 # ----- Demo compile and link to object file
 ifneq ($(TESTNAME), $(findstring $(TESTNAME),$(TESTNAMES_ALL)))
