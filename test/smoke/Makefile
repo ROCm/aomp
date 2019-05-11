@@ -21,6 +21,7 @@ TESTS_DIR = \
     math_sqrt_float \
     nativetests \
     nested_loop \
+    omp_num_teams_SPMD \
     pfspecifier \
     pfspecifier_str \
     reduce \
