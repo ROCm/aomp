@@ -22,6 +22,8 @@ build_llvm.sh      -  Build llvm component
 build_lld.sh       -  Build lld component
 build_clang.sh     -  Build clang component
 
+build_extras.sh    -  Builds hostcall, libm, and utils all stored in the aomp-extras repo
+
 build_utils.sh     -  Builds the AOMP utilities
 
 build_atmi.sh      -  Builds early release of ATMI for aomp.
@@ -32,7 +34,8 @@ build_hip.sh       -  Builds the hip host runtimes needed by aomp.
 
 build_openmp.sh    -  Builds the OpenMP libraries for aomp.
 
-build_libdevice.sh -  Builds the device bc libraries from rocm-device-libs
+build_libdevice.sh -  Builds the rocdl device bc libraries from rocm-device-libs
+
 
 build_libm.sh      -  Built the libm DBCL (Device BC Library)
 ```
@@ -135,6 +138,9 @@ Developers may update a component and then run these  scripts in the folowing or
 
    ./build_clang.sh
    ./build_clang.sh install
+
+   ./build_extras.sh
+   ./build_extras.sh install
 
    ./build_utils.sh
    ./build_utils.sh install
