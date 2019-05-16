@@ -115,7 +115,7 @@ By default, the packages install their content to the release directory /opt/roc
 To install the rpm package without root access into your home directory, you can run these commands.
 ```
    mkdir /tmp/temproot ; cd /tmp/temproot 
-   wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_0.6-2/aomp-0.6-2.x86_64.rpm 
+   wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_0.6-2/aomp-0.6-2.x86_64.rpm
    rpm2cpio aomp-0.6-2.x86_64.rpm | cpio -idmv
    mv /tmp/temproot/opt/rocm $HOME
    export PATH=$PATH:$HOME/rocm/aomp/bin
