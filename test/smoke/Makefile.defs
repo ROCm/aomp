@@ -38,7 +38,9 @@ else
 endif
 
 ifeq ($(TARGET),)
-  TARGET  =  -fopenmp-targets=$(AOMP_GPUTARGET) -Xopenmp-target=$(AOMP_GPUTARGET) -march=$(AOMP_GPU)
+  ifeq ($(OMP_HOST),)
+    TARGET  =  -fopenmp-targets=$(AOMP_GPUTARGET) -Xopenmp-target=$(AOMP_GPUTARGET) -march=$(AOMP_GPU)
+  endif
 endif
 
 # OFFLOAD_DEBUG is used by this test harnass to turn on HOST and/or DEVICE level debug
@@ -69,9 +71,13 @@ ifeq ($(OFFLOAD_DEBUG),5)
 endif
 
 ifeq ($(OMP_FLAGS),)
-OMP_FLAGS = -target $(AOMP_CPUTARGET) -fopenmp $(TARGET)
+    ifeq ($(OMP_HOST),)
+      OMP_FLAGS = -target $(AOMP_CPUTARGET) -fopenmp $(TARGET)
+    else
+      OMP_FLAGS = -target $(AOMP_CPUTARGET) -fopenmp
+    endif
 endif
-OMP_FLAGS += $(EXTRA_OMP_FLAGS)
+  OMP_FLAGS += $(EXTRA_OMP_FLAGS)
 
 ifeq ($(VERBOSE),1)
   $(info    Compilation and linking VERBOSE Mode ON)
