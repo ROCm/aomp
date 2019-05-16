@@ -82,7 +82,7 @@ AOMP needs certain support for Linux to function properly, such as the KFD drive
 
 On Ubuntu 18.04 LTS (bionic beaver), run these commands:
 ```
-wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/r/aomp_Ubuntu1804_0.6-2_amd64.deb
+wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_0.6-2/aomp_Ubuntu1804_0.6-2_amd64.deb
 sudo dpkg -i aomp_Ubuntu1804_0.6-2_amd64.deb
 ```
 The AOMP bin directory (which includes the standard clang and llvm binaries) is not intended to be in your PATH for typical operation.
@@ -100,7 +100,7 @@ By default, the packages install their content to the release directory /opt/roc
 
 To install the debian package without root access into your home directory, you can run these commands.
 ```
-   wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/r/aomp_Ubuntu1604_0.6-2_amd64.deb
+   wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_0.6-2/aomp_Ubuntu1604_0.6-2_amd64.deb
    dpkg -x aomp_Ubuntu1604_0.6-2_amd64.deb /tmp/temproot
    mv /tmp/temproot/opt/rocm $HOME
    export PATH=$PATH:$HOME/rocm/aomp/bin
@@ -115,7 +115,7 @@ By default, the packages install their content to the release directory /opt/roc
 To install the rpm package without root access into your home directory, you can run these commands.
 ```
    mkdir /tmp/temproot ; cd /tmp/temproot 
-   wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/r/aomp-0.6-2.x86_64.rpm
+   wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_0.6-2/aomp-0.6-2.x86_64.rpm 
    rpm2cpio aomp-0.6-2.x86_64.rpm | cpio -idmv
    mv /tmp/temproot/opt/rocm $HOME
    export PATH=$PATH:$HOME/rocm/aomp/bin
