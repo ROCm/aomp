@@ -352,12 +352,15 @@ int main()
   }
 
  //Print results and return total errors
-  if(!errors)
+  if(!errors){
     fprintf(stderr, "Success\n");
-  else
+    return 0;
+  }
+  else {
     fprintf(stderr, "Fail\n");
-  fprintf(stderr, "Errors: %d\n", errors);
-  return errors;
+    fprintf(stderr, "Errors: %d\n", errors);
+    return 1;
+  }
 }
 
 
