@@ -29,7 +29,7 @@ thisdir=$(getdname $0)
 # --- end standard header ----
 
 function clone_or_pull(){
-repodirname=$AOMP_REPOS/$reponame
+repodirname=${diroverride:-$AOMP_REPOS/$reponame}
 echo
 if [ -d $repodirname  ] ; then 
    echo "--- Pulling updates to existing dir $repodirname ----"
@@ -59,8 +59,8 @@ else
    if [ "$reponame" == "$AOMP_HCC_REPO_NAME" ] ; then
      git clone --recursive -b $COBRANCH $repo_web_location/$reponame $reponame
    else
-     echo git clone $repo_web_location/$reponame
-     git clone $repo_web_location/$reponame $reponame
+     echo git clone $repo_web_location/$reponame $repodirname
+     git clone $repo_web_location/$reponame $repodirname
      echo "cd $repodirname ; git checkout $COBRANCH"
      cd $repodirname
      git checkout $COBRANCH
@@ -145,6 +145,12 @@ clone_or_pull
 reponame=$AOMP_COMGR_REPO_NAME
 COBRANCH=$AOMP_COMGR_REPO_BRANCH
 clone_or_pull
+
+diroverride=hostcall
+reponame=$AOMP_HOSTCALL_REPO_NAME
+COBRANCH=$AOMP_HOSTCALL_REPO_BRANCH
+clone_or_pull
+unset diroverride
 
 # ---------------------------------------
 # The following repos is in AMDComputeLibraries
