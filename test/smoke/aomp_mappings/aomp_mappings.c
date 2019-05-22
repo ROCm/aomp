@@ -1,13 +1,14 @@
 #include <stdio.h>
 #include <omp.h>
+#include <string.h>
 
-//Constants
-const int THREAD_LIMIT = 4;
-const int MAX_THREADS_PER_TEAM = 256;
-const int MAX_TEAMS = 128;
-const int WARP_SIZE = 64;
-const int GENERIC = 0;
-const int SPMD = 1;
+//Shared Variables
+int THREAD_LIMIT = 4;
+int MAX_TEAMS = 128;
+int GENERIC = 0;
+int SPMD = 1;
+int MAX_THREADS_PER_TEAM = 256;
+int WARP_SIZE = 64;
 
 /*
  * Function: recordError
@@ -24,6 +25,20 @@ void recordError(int* error , char *message, int iteration, int * array, unsigne
 
 int main()
 {
+  //Determine which GPU type (NVIDIA or AMD)
+  char* nvidia= "sm";
+  char* aomp_gpu= getenv("AOMP_GPU");
+  int isAMDGPU = 1;
+  if(strstr(aomp_gpu, nvidia) != NULL)
+    isAMDGPU = 0;
+
+  //Logic for correct shared variables - AMD vs NVIDIA GPU
+  if(!isAMDGPU){
+    printf("%s\n", getenv("AOMP_GPU"));
+    MAX_THREADS_PER_TEAM = 128;
+    WARP_SIZE = 32;
+  }
+
   int N = 128;
   int NN = 1024;
 
@@ -85,7 +100,8 @@ int main()
     //check team #
     if (i % THREAD_LIMIT == 0){
       correctTeamNum++;
-      correctTeamNum = correctTeamNum % MAX_TEAMS;
+      if(isAMDGPU)
+        correctTeamNum = correctTeamNum % MAX_TEAMS;
     }
     if (team_num[i] != correctTeamNum)
       recordError(&errors, "TEAM NUMBER", i, team_num, NULL);
@@ -120,8 +136,8 @@ int main()
       correctNumTeams = ((N + num_threads[i]) / num_threads[i]);
     else
       correctNumTeams = N / THREAD_LIMIT;
-    if (correctNumTeams > MAX_TEAMS)
-        correctNumTeams = MAX_TEAMS;
+    if (correctNumTeams > MAX_TEAMS && isAMDGPU)
+      correctNumTeams = MAX_TEAMS;
 
     if (num_teams[i] != correctNumTeams)
       recordError(&errors, "NUM TEAMS", i, num_teams, NULL);
@@ -246,7 +262,10 @@ int main()
 
     //Set mask for warps with full (64) active threads
     if (i < N - remainder){
-      mask = 0xffffffffffffffff;
+      if(isAMDGPU)
+        mask = 0xffffffffffffffff;
+      else
+        mask = 0xffffffff;
     }
     else{ //set mask for iterations with non full warps
       mask = 0;
@@ -362,5 +381,3 @@ int main()
     return 1;
   }
 }
-
-
