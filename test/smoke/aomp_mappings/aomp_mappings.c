@@ -29,7 +29,7 @@ int main()
   char* nvidia= "sm";
   char* aomp_gpu= getenv("AOMP_GPU");
   int isAMDGPU = 1;
-  if(strstr(aomp_gpu, nvidia) != NULL)
+  if(aomp_gpu && strstr(aomp_gpu, nvidia) != NULL)
     isAMDGPU = 0;
 
   //Logic for correct shared variables - AMD vs NVIDIA GPU

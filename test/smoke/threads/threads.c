@@ -10,7 +10,7 @@ int main()
   int isAMDGPU = 1;
   int masterWarpThread = -1;
 
-  if(strstr(aomp_gpu, nvidia) != NULL)
+  if(aomp_gpu && strstr(aomp_gpu, nvidia) != NULL)
     isAMDGPU = 0;
 
   if(isAMDGPU)
