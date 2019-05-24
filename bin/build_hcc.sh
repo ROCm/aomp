@@ -72,7 +72,7 @@ fi
 COMPILERS="-DCMAKE_C_COMPILER=$GCCLOC -DCMAKE_CXX_COMPILER=$GXXLOC"
 
 GFXSEMICOLONS=`echo $GFXLIST | tr ' ' ';' `
-MYCMAKEOPTS="-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON -DCMAKE_INSTALL_RPATH=$AOMP_INSTALL_DIR/lib:$AOMP_INSTALL_DIR/hcc/lib -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX=$INSTALL_HCC -DLLVM_ENABLE_ASSERTIONS=ON -DHSA_AMDGPU_GPU_TARGET=$GFXSEMICOLONS $COMPILERS -DHSA_HEADER_DIR=$AOMP_INSTALL_DIR/hsa/include -DHSA_LIBRARY_DIR=$AOMP_INSTALL_DIR/hsa/lib -DCLANG_ANALYZER_ENABLE_Z3_SOLVER=OFF -DLLVM_INCLUDE_BENCHMARKS=OFF"
+MYCMAKEOPTS="-DROCM_ROOT=$AOMP_INSTALL_DIR -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON -DCMAKE_INSTALL_RPATH=$AOMP_INSTALL_DIR/lib:$AOMP_INSTALL_DIR/hcc/lib -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX=$INSTALL_HCC -DHSA_AMDGPU_GPU_TARGET=$GFXSEMICOLONS -DHSA_HEADER_DIR=$AOMP_INSTALL_DIR/hsa/include -DHSA_LIBRARY_DIR=$AOMP_INSTALL_DIR/hsa/lib -DCLANG_ANALYZER_ENABLE_Z3_SOLVER=OFF -DLLVM_INCLUDE_BENCHMARKS=OFF"
 
 # -DLLVM_TARGETS_TO_BUILD=$TARGETS_TO_BUILD 
 #  For now build hcc with ROCDL. because using the AOMP libdevice 
@@ -122,6 +122,7 @@ if [ ! -z `which "getconf"` ]; then
    fi
 fi
 
+
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    #  When build_hcc.sh is run with no args, start fresh and clean out the build directory.
    echo 
@@ -155,6 +156,11 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
          git clone -b $AOMP_HCC_REPO_BRANCH --recursive $GITROC/$AOMP_HCC_REPO_NAME.git
          cd hcc
       fi
+      if [ ! -f this_repo_was_patched ] ; then 
+         echo patch -p1  $thisdir/hcc.patch
+         patch -p1  < $thisdir/hcc.patch
+         touch this_repo_was_patched
+      fi
       echo "   git status"
       git status
       echo
@@ -168,6 +174,13 @@ else
       echo "       run $0 without nocmake or install options. " 
       exit 1
    fi
+fi
+
+if [ ! -f $AOMP_REPOS/$AOMP_HCC_REPO_NAME/this_repo_was_patched ] ; then 
+  cd $AOMP_REPOS/$AOMP_HCC_REPO_NAME
+  echo patch -p1  $thisdir/hcc.patch
+  patch -p1  < $thisdir/hcc.patch
+  touch this_repo_was_patched
 fi
 
 cd $BUILD_DIR/build/$AOMP_HCC_REPO_NAME
@@ -213,6 +226,16 @@ if [ "$1" == "install" ] ; then
 #      echo "ERROR make install/local failed "
 #      exit 1
 #   fi
+   #  remove that patch
+   if [ -f $AOMP_REPOS/$AOMP_HCC_REPO_NAME/this_repo_was_patched ] ; then 
+      cd $AOMP_REPOS/$AOMP_HCC_REPO_NAME
+      echo patch -p1 -R $thisdir/hcc.patch
+      patch -p1 -R < $thisdir/hcc.patch
+      if [ -f lib/hsa/mcwamp_hsa.cpp.orig ] ; then 
+        rm lib/hsa/mcwamp_hsa.cpp.orig
+      fi
+      rm  $AOMP_REPOS/$AOMP_HCC_REPO_NAME/this_repo_was_patched
+   fi
    echo
    echo "SUCCESSFUL INSTALL to $INSTALL_HCC to $AOMP_INSTALL_DIR/hcc"
    echo
@@ -222,3 +245,4 @@ else
    echo "  to install hcc into $AOMP/hcc"
    echo 
 fi
+

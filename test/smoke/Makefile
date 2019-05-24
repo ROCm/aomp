@@ -11,6 +11,7 @@ TESTS_DIR = \
     collapse \
     devices \
     firstprivate \
+    flags \
     function \
     function_overload \
     function_template \
@@ -21,6 +22,7 @@ TESTS_DIR = \
     math_sqrt_float \
     nativetests \
     nested_loop \
+    omp_num_teams_SPMD \
     pfspecifier \
     pfspecifier_str \
     reduce \
@@ -31,7 +33,9 @@ TESTS_DIR = \
     target-in-other-source \
     teams \
     test \
+    thread_limit\
     threads \
+    Threads1xxx \
     veccopy \
     vmuldemo \
     vmulsum

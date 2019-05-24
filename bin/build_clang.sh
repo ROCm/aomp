@@ -4,6 +4,9 @@
 #
 #
 BUILD_TYPE=${BUILD_TYPE:-Release}
+if [ $CLANG_BUILD_TYPE"1" != "1" ] ; then
+BUILD_TYPE=$CLANG_BUILD_TYPE
+fi
 
 # --- Start standard header ----
 function getdname(){

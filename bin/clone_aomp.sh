@@ -37,7 +37,9 @@ if [ -d $repodirname  ] ; then
    # FIXME look in $repodir/.git/config to be sure 
    cd $repodirname
    if [ "$STASH_BEFORE_PULL" == "YES" ] ; then
-      git stash -u
+      if [ "$reponame" != "$AOMP_HCC_REPO_NAME" ] ; then
+         git stash -u
+      fi
    fi
    echo "git pull "
    git pull 
@@ -48,6 +50,8 @@ if [ -d $repodirname  ] ; then
    if [ "$reponame" == "$AOMP_HCC_REPO_NAME" ] ; then
      echo "git submodule update"
      git submodule update
+     echo "git pull"
+     git pull
    fi
 else 
    echo --- NEW CLONE of repo $reponame to $repodirname ----
@@ -79,6 +83,10 @@ COBRANCH=$AOMP_REPO_BRANCH
 
 reponame=$AOMP_OPENMP_REPO_NAME
 COBRANCH=$AOMP_OPENMP_REPO_BRANCH
+clone_or_pull
+
+reponame=$AOMP_EXTRAS_REPO_NAME
+COBRANCH=$AOMP_EXTRAS_REPO_BRANCH
 clone_or_pull
 
 reponame=$AOMP_LLVM_REPO_NAME
