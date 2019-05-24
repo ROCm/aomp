@@ -70,7 +70,7 @@ ifeq (sm_,$(findstring sm_,$(TARGETS)))
   LFLAGS +=-L$(CUDA)/targets/x86_64-linux/lib -lcudart -Wl,-rpath,$(CUDA)/targets/x86_64-linux/lib
   CFLAGS +=-x cuda -I$(CUDA)/include
 else
-  CFLAGS = -x hip -lhostcall
+  CFLAGS = -x hip
 endif
 
 # ----- Demo compile and link in one step, no object code saved
