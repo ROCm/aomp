@@ -1,4 +1,4 @@
-aomp (0.6-2) UNRELEASED; urgency=medium
+aomp (0.6-3) UNRELEASED; urgency=medium
 
   * Initial release of aomp is 0.3-2
   *   Please see example in /opt/rocm/aomp/examples/vmuldemo 
@@ -161,5 +161,22 @@ aomp (0.6-2) UNRELEASED; urgency=medium
   *     to no more than Max_Teams, fixes assertok_error, and snap4
   *     Also handle num_teams clause inside loop_tripcount logic.
   *  BALLOT_SYNC macro replaced with ACTIVEMASK in release_80
+  *
+  * 0.6-3
+  *   New support for synchronous services called hostcall.
+  *   The source to support hostcall can be found in a new repository called aomp-extras in hostcall directory
+  *   There are minor changes to atmi to support hostcall. These are in branch atmi-0.5-063.
+  *   Removed printf end-of-kernel service and added to hostcall. printf is now much more reliable from the gpu.
+  *   Enhancements to toolchain to support static device libraries
+  *   Fix to correctly pickup math functions from libm-.bc.
+  *     Previously it was seeing math functions as builtins.
+  *   Suppress calls to __kmpc_push_target_count for host code, resolves undefined reference.
+  *   Allow -frtti flag to be honored if user requests it on command line.
+  *   Add AOMP/include path before /usr/local/include to pick up correct header for omp.h.
+  *   Generate Metadata for both SPMD and Generic offload targets.
+  *   Honor OMP_TEAM_LIMIT for work groups, just like OMP_NUM_TEAMS.
+  *   Added *_wg_size symbol to reflect compile time known thread limit for a kernel.
+  *   Added support to openmp runtimes to support 1024 threads per team/work group.
+  *   Reenabled SILoadStoreOptimizer pass after pulling upstream fix for scalar carry corruption.
 
- -- Greg Rodgers <Gregory.Rodgers@amd.com>  Tue, 30 Apr 2019 11:11:14 -0500
+ -- Greg Rodgers <Gregory.Rodgers@amd.com>  Tue, 28 May 2019 09:38:58 -0500
