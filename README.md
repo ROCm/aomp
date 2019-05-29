@@ -168,7 +168,4 @@ See the release notes in github.  Here are some limitations.
 ```
  - Dwarf debugging is turned off for GPUs. -g will turn on host level debugging only.
  - Some simd constructs fail to vectorize on both host and GPUs.  
- - There are debug versions of the runtime libraries.  However, these use printf on the device
-   which currently print when the kernel terminates.  So it is not a very useful debug feature if the GPU 
-   kernel crashes. 
 ```
