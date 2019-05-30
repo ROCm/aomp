@@ -63,7 +63,7 @@ endif
 CC       =$(AOMP)/bin/clang++
 #CFLAGS   =-O3 --target=x86_64-pc-linux-gnu -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target amdgcn-amd-amdhsa #--offload-arch=$(AOMP_GPU)
 #CFLAGS   =-x hip -O3 -target x86_64-pc-linux-gnu -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=gfx900
-CFLAGS   =-x hip -O3 -target x86_64-pc-linux-gnu -fopenmp
+CFLAGS   =-O3 -target x86_64-pc-linux-gnu -fopenmp
 #CFLAGS   =-O3 -fopenmp -target x86_64-pc-linux-gnu
 
 # Add cudart only if we have an Nvidia sm_ target
