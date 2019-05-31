@@ -1,3 +1,16 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 06e3e5b..9253fd6 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -6,6 +6,8 @@ include(GNUInstallDirs)
+ SET(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/scripts/cmake")
+ MESSAGE("Module path: ${CMAKE_MODULE_PATH}")
+
++add_compile_options(-w)
++
+ # set as release build by default
+ IF (NOT CMAKE_BUILD_TYPE)
+   SET(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build, options are: Release Debug" FORCE)
 diff --git a/include/hc.hpp b/include/hc.hpp
 index dea6141d..c8673201 100644
 --- a/include/hc.hpp
