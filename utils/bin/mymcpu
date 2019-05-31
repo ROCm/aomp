@@ -61,6 +61,7 @@ function usage(){
 
    Options without values:
     -h        Print this help message
+    -d        If GPU is unknown, set to this default device
     -version  Print the version of mymcpu and mygpu
 
    Options with values:
@@ -162,7 +163,7 @@ function code2gpu(){
       ;;
       "")  gpuname="sm_35"
       ;;
-      *) gpuname="unknown" 
+      *) gpuname=$unknown_value
       ;;
    esac
    echo $gpuname
@@ -232,6 +233,7 @@ fi
 TYPERUN=${0##*\/}
 MODE=
 
+unknown_value="unknown"
 #  process args
 while [ $# -gt 0 ] ; do 
    case "$1" in 
@@ -239,6 +241,7 @@ while [ $# -gt 0 ] ; do
       -getcodename)     INPUT_GPUNAME=$2; shift ;;
       -n) 	        MODE=num; shift ;;
       -h) 	        usage ;; 
+      -d) 	        unknown_value=$2; shift ;;
       -help) 	        usage ;; 
       --help) 	        usage ;; 
       -version) 	version ;; 
