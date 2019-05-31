@@ -5,10 +5,40 @@ TESTSRC_MAIN = flags.c
 TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 
-CLANG        = clang
-OMP_BIN      = $(AOMP)/bin/$(CLANG)
-CC           = $(OMP_BIN) $(VERBOSE)
-#-ccc-print-phases
-#"-\#\#\#"
+file="options.txt"
+TESTNAMES_ALL = $(basename $(TESTSRC_ALL))
 
-include ../Makefile.rules
+all: $(TESTNAME)
+
+.PRECIOUS: %.o %.ll %.ll.s %.s %.s.o
+
+$(TESTNAME): $(TESTSRC_ALL)
+	@./run_options.sh
+
+
+compile:
+ifdef nvidia_targets
+	$(CC) $(make_options) $(nvidia_targets) $(march) $(cuda) -o $(TESTNAME)
+else ifdef march
+	$(CC) $(make_options) $(march) -o $(TESTNAME)
+else ifdef make_options
+	$(CC) $(make_options) -o $(TESTNAME)
+else
+	$(SETENV) $(CC) $(CFLAGS) $(EXTRA_CFLAGS) $(OMP_FLAGS) $(LINK_FLAGS) $(wordlist 2,$(words $^),$^) -o $(TESTNAME)
+endif
+
+run:
+	@./run_options.sh run 2>&1 | tee $@.log
+
+check: compile
+	@path=`pwd`; \
+	base=`basename $$path`; \
+	if   (./$(TESTNAME)> /dev/null 2>&1); then \
+		echo $$base $$test_num return code: $$?'\n' >> ../check-smoke.txt; \
+		echo $$base $$test_num  >> ../passing-tests.txt; \
+	else  echo $$base $$test_num return code: $$?'\n' >> ../check-smoke.txt; \
+		echo $$base $$test_num  >> ../failing-tests.txt; \
+	fi
+
+clean::
+	rm -f $(TESTNAME) $(TESTNAME).a llbin sbin obin *.i *.ii *.bc *.lk a.out-* *.ll *.s *.o *.log
