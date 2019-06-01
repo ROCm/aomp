@@ -1,7 +1,16 @@
 diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
-index 37a9b09..5b223b2 100644
+index 65a039c..9884fc8 100644
 --- a/src/CMakeLists.txt
 +++ b/src/CMakeLists.txt
+@@ -110,7 +110,7 @@ else ()
+ endif ()
+ 
+ ## ------------------------- Linux Compiler and Linker options -------------------------
+-set ( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror -fexceptions -fno-rtti -fvisibility=hidden -Wno-error=sign-compare -Wno-sign-compare -Wno-write-strings -Wno-conversion-null -fno-math-errno -fno-threadsafe-statics -fmerge-all-constants -fms-extensions -Wno-error=comment -Wno-comment -Wno-error=pointer-arith -Wno-pointer-arith -Wno-error=unused-variable -Wno-error=unused-but-set-variable -Wno-error=unused-function" )
++set ( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror -fexceptions -fno-rtti -fvisibility=hidden -Wno-error=sign-compare -Wno-sign-compare -Wno-write-strings -Wno-conversion-null -fno-math-errno -fno-threadsafe-statics -fmerge-all-constants -fms-extensions -Wno-error=comment -Wno-comment -Wno-error=pointer-arith -Wno-pointer-arith -Wno-error=unused-variable -Wno-error=unused-but-set-variable -Wno-error=unused-function -w" )
+ 
+ set ( DRVDEF "${CMAKE_CURRENT_SOURCE_DIR}/hsacore.so.def" )
+ 
 @@ -168,6 +168,7 @@ set_property ( TARGET ${CORE_RUNTIME_TARGET} PROPERTY SOVERSION "${BUILD_VERSION
  
  target_link_libraries ( ${CORE_RUNTIME_TARGET}
