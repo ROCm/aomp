@@ -11,6 +11,7 @@ TESTS_DIR = \
     collapse \
     devices \
     firstprivate \
+    firstprivate2 \
     flags \
     function \
     function_overload \
