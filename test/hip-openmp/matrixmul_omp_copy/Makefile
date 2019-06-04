@@ -53,9 +53,11 @@ endif
 ifeq ($(CUDA),)
 CUDA = /usr/local/cuda
 endif
-ifeq ($(AOMP_GPU),)
-AOMP_GPU = gfx900
+
+ifeq ($(AOMP_GPU),) #if AOMP_GPU is not set
+AOMP_GPU = $(shell mygpu -d gfx900) #get installed card, if unknown return gfx900
 endif
+
 ifeq ($(TARGETS),)
 TARGETS =--offload-arch=$(AOMP_GPU)
 endif

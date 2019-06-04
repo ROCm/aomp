@@ -54,7 +54,8 @@ ifeq ($(CUDA),)
 CUDA = /usr/local/cuda
 endif
 ifeq ($(AOMP_GPU),)
-AOMP_GPU = gfx900
+INSTALLED_GPU  = $(shell mygpu -d gfx900) # Default AOMP_GPU is gfx900 which is vega
+AOMP_GPU       ?= $(INSTALLED_GPU)
 endif
 ifeq ($(TARGETS),)
 TARGETS =--offload-arch=$(AOMP_GPU)

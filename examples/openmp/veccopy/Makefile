@@ -28,7 +28,8 @@ ifeq ("$(wildcard $(AOMP))","")
   endif
 endif
 # --- End Standard Makefile check for AOMP installation ---
-AOMP_GPU       ?= gfx900   # Default AOMP_GPU is gfx900 which is vega
+INSTALLED_GPU  = $(shell mygpu -d gfx900)# Default AOMP_GPU is gfx900 which is vega
+AOMP_GPU       ?= $(INSTALLED_GPU)
 AOMP_CPUTARGET ?= x86_64-pc-linux-gnu
 CC              = $(AOMP)/bin/clang
 

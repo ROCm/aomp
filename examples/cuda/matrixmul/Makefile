@@ -52,9 +52,20 @@ endif
 ifeq ($(CUDA),)
 CUDA = /usr/local/cuda
 endif
-ifeq ($(AOMP_GPU),)
-AOMP_GPU = sm_60
+
+ifeq ($(AOMP_GPU),) #if AOMP_GPU is not set
+  INSTALLED_GPU = $(shell mygpu -d sm_60) #get installed card, if unknown return sm_60
+  ifneq ($(findstring sm_, $(INSTALLED_GPU)),) #if sm is found in INSTALLED_GPU set AOMP_GPU
+    AOMP_GPU = $(INSTALLED_GPU)
+  else
+    AOMP_GPU = sm_60 #default to sm_60
+  endif
+else #AOMP_GPU is set
+  ifeq ($(findstring sm_, $(AOMP_GPU)),) #if sm not found default to sm_60
+    AOMP_GPU = sm_60
+  endif
 endif
+
 ifeq ($(TARGETS),)
 TARGETS =--offload-arch=$(AOMP_GPU)
 endif
