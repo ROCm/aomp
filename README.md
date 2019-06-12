@@ -7,12 +7,12 @@ This is README.md for https://github.com/ROCM-Developer-Tools/aomp .  This is th
 
 The last release of AOMP is version 0.6-3.  Currently version 0.6-4 is under development.
 
-AOMP is an experimental PROTOTYPE that is intended to support multiple programming models including OpenMP 4.5+,
-, HIP, and cuda clang.  It supports offloading to multiple GPU acceleration targets(multi-target).  It also supports different host platforms such as AMD64, PPC64LE, and AARCH64. (multi-platform). 
+AOMP is an experimental compiler that is intended to support multiple programming models including OpenMP,
+HIP, device OpenCL, and cuda clang.  It supports offloading to multiple GPU acceleration targets(multi-target).
 
-The bin directory of this repository contains a README.md and build scripts needed to build and install AOMP. However, we recommend that you install from the debian or rpm packages described below.
+The bin directory of this repository contains a README.md and build scripts needed to build and install AOMP. However, we recommend that you install from the debian or rpm packages described in the [install page](docs/INSTALL.md).
 
-Attention Users!  Use this repository for issues. Do not put issues in the source code repositories.  Before creating an issue, you may want to see the developers list of TODOs.  See link below.
+Attention Users!  Please use this repository for issues. Do not put issues in the source code repositories.
 
 Table of contents
 -----------------
