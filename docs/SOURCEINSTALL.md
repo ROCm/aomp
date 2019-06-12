@@ -41,8 +41,8 @@ The development version is the next version to be released.  It is possible that
    ./clone_aomp.sh
    ./build_aomp.sh
 ```
-Depending on your system, the last two commands could take a very long time. For more information, please refer to the AOMP developers README file located [HERE](bin/README.md).
+Depending on your system, the last two commands could take a very long time. For more information, please refer to the AOMP developers README file located [HERE](../bin/README.md).
 
 You only need to do the checkout/pull in the AOMP repository. The file "bin/aomp_common_vars" lists the branches of each repository for a particular AOMP release. In the master branch of AOMP, aomp_common_vars lists the development branches. It is a good idea to run clone_aomp.sh twice after you checkout a release to be sure you pulled all the checkouts for a particular release.
 
-If your are interested in joining the development of AOMP, please read the details on the source build at [README](bin/README.md).
+If your are interested in joining the development of AOMP, please read the details on the source build at [README](../bin/README.md).
