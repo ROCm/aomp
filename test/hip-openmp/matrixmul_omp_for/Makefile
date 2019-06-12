@@ -55,7 +55,7 @@ CUDA = /usr/local/cuda
 endif
 
 ifeq ($(AOMP_GPU),)
-AOMP_GPU = $(shell mygpu -d gfx900) #get installed card, if unknown return gfx900
+AOMP_GPU = $(shell $(AOMP)/bin/mygpu -d gfx900) #get installed card, if unknown return gfx900
 endif
 
 ifeq ($(TARGETS),)

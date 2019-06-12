@@ -25,7 +25,7 @@ endif
 
 UNAMEP=$(shell uname -p)
 
-INSTALLED_GPU  = $(shell mygpu -d gfx900) # Default AOMP_GPU is gfx900 which is vega
+INSTALLED_GPU  = $(shell $(AOMP)/bin/mygpu -d gfx900) # Default AOMP_GPU is gfx900 which is vega
 AOMP_GPU       ?= $(INSTALLED_GPU)
 AOMP_CPUTARGET ?= $(UNAMEP)-pc-linux-gnu
 CC              = $(AOMP)/bin/clang

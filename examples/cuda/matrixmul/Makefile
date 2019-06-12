@@ -54,7 +54,7 @@ CUDA = /usr/local/cuda
 endif
 
 ifeq ($(AOMP_GPU),) #if AOMP_GPU is not set
-  INSTALLED_GPU = $(shell mygpu -d sm_60) #get installed card, if unknown return sm_60
+  INSTALLED_GPU = $(shell $(AOMP)/bin/mygpu -d sm_60) #get installed card, if unknown return sm_60
   ifneq ($(findstring sm_, $(INSTALLED_GPU)),) #if sm is found in INSTALLED_GPU set AOMP_GPU
     AOMP_GPU = $(INSTALLED_GPU)
   else
