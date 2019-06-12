@@ -77,7 +77,7 @@ if [ ! -z `which "getconf"` ]; then
     NUM_THREADS=$(`which "getconf"` _NPROCESSORS_ONLN)
 fi
 
-GCCMIN=5
+GCCMIN=7
 if [ "$AOMP_BUILD_CUDA" == 1 ] ; then
    if [ -f $CUDABIN/nvcc ] ; then
       CUDAVER=`$CUDABIN/nvcc --version | grep compilation | cut -d" " -f5 | cut -d"." -f1 `
@@ -88,14 +88,14 @@ if [ "$AOMP_BUILD_CUDA" == 1 ] ; then
    fi
 fi
 
-function getgcc5orless(){
+function getgcc7orless(){
    _loc=`which gcc`
    [ "$_loc" == "" ] && return
    gccver=`$_loc --version | grep gcc | cut -d")" -f2 | cut -d"." -f1`
    [ $gccver -gt $GCCMIN ] && _loc=`which gcc-$GCCMIN`
    echo $_loc
 }
-function getgxx5orless(){
+function getgxx7orless(){
    _loc=`which g++`
    [ "$_loc" == "" ] && return
    gxxver=`$_loc --version | grep g++ | cut -d")" -f2 | cut -d"." -f1`
@@ -107,17 +107,17 @@ if [ "$AOMP_PROC" == "ppc64le" ] ; then
    GCCLOC=`which gcc`
    GXXLOC=`which g++`
 else
-   GCCLOC=$(getgcc5orless)
-   GXXLOC=$(getgxx5orless)
+   GCCLOC=$(getgcc7orless)
+   GXXLOC=$(getgxx7orless)
 fi
 if [ "$GCCLOC" == "" ] ; then
    echo "ERROR: NO ADEQUATE gcc"
-   echo "       Please install gcc-5"
+   echo "       Please install gcc-5 or gcc-7"
    exit 1
 fi
 if [ "$GXXLOC" == "" ] ; then
    echo "ERROR: NO ADEQUATE g++"
-   echo "       Please install g++-5"
+   echo "       Please install g++-5 or g++-7"
    exit 1
 fi
 
