@@ -91,14 +91,3 @@ make run
 Run 'make help' for more details.  
 
 View the OpenMP Examples [README](../examples/openmp) for more information.
-
-## AOMP Limitations
-
-<A NAME="Limitations">
-
-See the release notes in github.  Here are some limitations. 
-
-```
- - Dwarf debugging is turned off for GPUs. -g will turn on host level debugging only.
- - Some simd constructs fail to vectorize on both host and GPUs.  
-```
