@@ -35,4 +35,29 @@ fi
 echo $SUDO cp -rp $AOMP_REPOS/$AOMP_REPO_NAME/examples $AOMP
 $SUDO cp -rp $AOMP_REPOS/$AOMP_REPO_NAME/examples $AOMP
 
+echo Cleaning AOMP Directory...
+#examples
+$SUDO rm -f $AOMP/examples/hip/*.txt
+$SUDO rm -f $AOMP/examples/hip/*.sh
+$SUDO rm -f $AOMP/examples/openmp/*.txt
+$SUDO rm -f $AOMP/examples/openmp/*.sh
+
+#Clean libexec, share
+$SUDO rm -rf $AOMP/libexec
+$SUDO rm -rf $AOMP/share
+#Clean hcc
+$SUDO rm -rf $AOMP/hcc/bin
+$SUDO rm -rf $AOMP/hcc/include
+$SUDO rm -rf $AOMP/hcc/libexec
+$SUDO rm -rf $AOMP/hcc/rocdl
+$SUDO rm -rf $AOMP/hcc/share
+#Clean hcc/lib
+$SUDO rm -rf $AOMP/hcc/lib/clang
+$SUDO rm -rf $AOMP/hcc/lib/cmake
+$SUDO rm -rf $AOMP/hcc/lib/*.bc
+$SUDO rm -rf $AOMP/hcc/lib/LLVM*
+$SUDO rm -rf $AOMP/hcc/lib/libclang*
+$SUDO rm -rf $AOMP/hcc/lib/libLLVM*
+$SUDO rm -rf $AOMP/hcc/lib/libLTO*
+
 echo "Done with $0"
