@@ -29,8 +29,34 @@ To build AOMP with support for nvptx GPUs, you must first install CUDA 10.  We r
 ```
 Depending on your system the CUDA install could take a very long time.
 
-## openSuse Support
-Coming Soon.
+## SUSE SLES-15-SP1 Support
+### KFD for AMD GPUs
+SUSE SLES-15-SP1 comes with kfd support installed. To verify this:
+```
+  sudo dmesg | grep kfd
+  sudo dmesg | grep amdgpu
+```
+
+###Set Group Access
+```
+  echo 'SUBSYSTEM=="kfd", KERNEL=="kfd", TAG+="uaccess", GROUP="video"' | sudo tee /etc/udev/rules.d/70-kfd.rules
+  sudo usermod -a -G video $LOGNAME
+  sudo reboot
+```
+
+### NVIDIA CUDA Driver
+To build AOMP with support for nvptx GPUs, you must first install CUDA 10.  We recommend CUDA 10.0.  CUDA 10.1 will not work until AOMP moves to the trunk development of LLVM 9. The CUDA installation is now optional.
+
+<b>Download Instructions for CUDA (Ubuntu 16.04)</b>
+1. Go to https://developer.nvidia.com/cuda-10.0-download-archive
+2. For SLES-15, select Linux, x86_64, SLES, 15.0, rpm(local) and then click Download.
+3. Navigate to the rpm in your Linux directory and run the following commands:
+```
+  sudo rpm -i cuda-repo-sles15-10-0-local-10.0.130-410.48-1.0-1.x86_64.rpm
+  sudo zypper refresh
+  sudo zypper install cuda
+```
+If prompted, select the 'always trust key' option. Depending on your system the CUDA install could take a very long time.
 
 ## CentOS/RedHat Support
 Coming Soon.

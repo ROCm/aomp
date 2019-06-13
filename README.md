@@ -3,7 +3,7 @@ AOMP - V 0.6-3
 
 AOMP:  AMD OpenMP Compiler
 
-This is README.md for https://github.com/ROCM-Developer-Tools/aomp .  This is the base repository for AOMP,  Use this for issues, documentation, packaging, examples, build.
+This is README.md for https://github.com/ROCM-Developer-Tools/aomp .  This is the base repository for AOMP. Use this for issues, documentation, packaging, examples, and building.
 
 The last release of AOMP is version 0.6-3.  Currently version 0.6-4 is under development.
 

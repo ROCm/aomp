@@ -53,6 +53,7 @@ The first column is the AOMP component that uses the repositories.
 | llvm      | $HOME/git/aomp/llvm                   | [llvm](https://github.com/ROCm-Developer-Tools/llvm)
 | lld       | $HOME/git/aomp/lld                    | [lld](https://github.com/ROCm-Developer-Tools/lld)
 | clang     | $HOME/git/aomp/clang                  | [clang](https://github.com/ROCm-Developer-Tools/clang)
+| extras    | $HOME/git/aomp/aomp-extras            | [aomp-extras](https://github.com/ROCm-Developer-Tools/aomp-extras)
 | utils     | $HOME/git/aomp/aomp                   | [aomp/utils](https://github.com/ROCm-Developer-Tools/aomp/tree/master/utils)
 | hcc       | $HOME/git/aomp/hcc                    | [hcc](https://github.com/radeonopencompute/hcc)
 | hip       | $HOME/git/aomp/hip                    | [hip](https://github.com/ROCm-Developer-Tools/hip)
@@ -74,7 +75,7 @@ for other environment variables that you may override including repo names.
    BUILD_TYPE        Release
 ```
 
-Many other environment variables can be set. See the file [aomp_common_vars](aomp_common_vars) that is sourced by all build scritps. This file has the names of the branches that make up the release that is in development.  You can override the appropriate environment variable if you want to test your source build with a different release.
+Many other environment variables can be set. See the file [aomp_common_vars](aomp_common_vars) that is sourced by all build scripts. This file has the names of the branches that make up the release that is in development.  You can override the appropriate environment variable if you want to test your source build with a different release.
 
 
 You can override the above by setting by setting values in your .bashrc or .bash_profile.
