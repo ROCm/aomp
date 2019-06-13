@@ -25,8 +25,9 @@ Table of contents
 - [Development](bin/README.md)
 - [Limitations](#Limitations)
 
-<A NAME="Copyright">
 ## Copyright and Disclaimer
+
+<A NAME="Copyright">
 
 Copyright (c) 2019 ADVANCED MICRO DEVICES, INC.
 
