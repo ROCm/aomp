@@ -54,7 +54,7 @@ ifeq ($(CUDA),)
 CUDA = /usr/local/cuda
 endif
 ifeq ($(AOMP_GPU),)
-AOMP_GPU = gfx900
+AOMP_GPU = $(shell $(AOMP)/bin/mygpu -d gfx900)
 endif
 ifeq ($(TARGETS),)
 TARGETS =--offload-arch=$(AOMP_GPU)
