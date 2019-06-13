@@ -13,7 +13,7 @@ all: $(TESTNAME)
 .PRECIOUS: %.o %.ll %.ll.s %.s %.s.o
 
 $(TESTNAME): $(TESTSRC_ALL)
-	@./run_options.sh
+	@./run_options.sh $(AOMP_GPU)
 
 
 compile:
@@ -28,15 +28,17 @@ else
 endif
 
 run:
-	@./run_options.sh run 2>&1 | tee $@.log
+	@./run_options.sh run $(AOMP_GPU) 2>&1 | tee $@.log
 
 check: compile
 	@path=`pwd`; \
 	base=`basename $$path`; \
 	if   (./$(TESTNAME)> /dev/null 2>&1); then \
-		echo $$base $$test_num return code: $$?'\n' >> ../check-smoke.txt; \
+		echo $$base $$test_num return code: $$? >> ../check-smoke.txt; \
+		echo "" >> ../check-smoke.txt; \
 		echo $$base $$test_num  >> ../passing-tests.txt; \
-	else  echo $$base $$test_num return code: $$?'\n' >> ../check-smoke.txt; \
+	else  echo $$base $$test_num return code: $$? >> ../check-smoke.txt; \
+		echo "" >> ../check-smoke.txt; \
 		echo $$base $$test_num  >> ../failing-tests.txt; \
 	fi
 

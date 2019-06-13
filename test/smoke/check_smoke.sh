@@ -44,7 +44,7 @@ for directory in ./*/; do
     #flags has multiple runs
     elif [ $base == 'flags' ] ; then
       make
-      make run
+      make run > /dev/null 2>&1
     else
       make
       if [ $? -ne 0 ]; then

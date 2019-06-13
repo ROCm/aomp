@@ -18,8 +18,13 @@ while read -r line; do
     temp_line=${line/"-$march_match"}
     mygpu=$AOMP_GPU
     if [ -z $mygpu ]; then
-      echo -e "$RED"AOMP_GPU NOT SET DEFAULTING TO gfx900!"$BLK"
-      mygpu="gfx900"
+      echo -e "$RED"AOMP_GPU NOT SET, USING MYGPU UTILITY!"$BLK"
+      if [[ $1 != "run" ]]; then
+        mygpu="$1"
+      fi
+      if [[ $1 == "run" ]]; then
+        mygpu="$2"
+      fi
     fi
 
     #If NVIDIA system, add nvptx targets, cuda, and remove amdgcn targets. This is done for testing purpose to avoid rewriting original amd command.
@@ -33,7 +38,7 @@ while read -r line; do
       fi
     fi
     #send variables to make
-    if [[ $1 == "" ]]; then
+    if [[ $1 != "run" ]]; then
       make --no-print-directory make_options="$temp_line" nvidia_targets="$nvidia_args" march="-march=$mygpu" cuda="$cuda_args" compile
     fi
     if [[ $1 == "run" ]]; then
@@ -43,7 +48,7 @@ while read -r line; do
       echo "$base $test_num: Make Failed" >> ../make-fail.txt
     fi
     else
-      if [[ $1 == "" ]]; then
+      if [[ $1 != "run" ]]; then
         make --no-print-directory make_options="$line" compile
       fi
       if [[ $1 == "run" ]]; then
