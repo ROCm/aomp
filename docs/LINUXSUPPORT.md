@@ -37,7 +37,7 @@ SUSE SLES-15-SP1 comes with kfd support installed. To verify this:
   sudo dmesg | grep amdgpu
 ```
 
-###Set Group Access
+### Set Group Access
 ```
   echo 'SUBSYSTEM=="kfd", KERNEL=="kfd", TAG+="uaccess", GROUP="video"' | sudo tee /etc/udev/rules.d/70-kfd.rules
   sudo usermod -a -G video $LOGNAME

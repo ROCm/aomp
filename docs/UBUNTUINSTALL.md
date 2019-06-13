@@ -16,7 +16,7 @@ The AOMP bin directory (which includes the standard clang and llvm binaries) is 
 
 By default, the packages install their content to the release directory /opt/rocm/aomp_0.X-Y and then a  symbolic link is created at /opt/rocm/aomp to the release directory. This requires root access.
 
-To install the debian package without root access into your home directory, you can run these commands.
+To install the debian package without root access into your home directory, you can run these commands.<br>
 On Ubuntu 18.04 LTS (bionic beaver):
 ```
    wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_0.6-3/aomp_Ubuntu1804_0.6-3_amd64.deb
