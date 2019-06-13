@@ -59,5 +59,6 @@ $SUDO rm -rf $AOMP/hcc/lib/LLVM*
 $SUDO rm -rf $AOMP/hcc/lib/libclang*
 $SUDO rm -rf $AOMP/hcc/lib/libLLVM*
 $SUDO rm -rf $AOMP/hcc/lib/libLTO*
+$SUDO rm -rf $AOMP/hcc/lib/libRemarks*
 
 echo "Done with $0"
