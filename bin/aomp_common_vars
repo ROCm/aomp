@@ -8,7 +8,7 @@
 AOMP_VERSION=${AOMP_VERSION:-"0.6"}
 AOMP_VERSION_MOD=${AOMP_VERSION_MOD:-"4"}
 AOMP_VERSION_STRING=${AOMP_VERSION_STRING:-"$AOMP_VERSION-$AOMP_VERSION_MOD"}
-export AOMP_VERSION_STRING
+export AOMP_VERSION_STRING AOMP_VERSION AOMP_VERSION_MOD
 
 # set install directory and the link directory
 # AOMP will be a symbolic link AOMP_INSTALL_DIR is the versioned dir name
