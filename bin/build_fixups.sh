@@ -60,5 +60,7 @@ $SUDO rm -rf $AOMP/hcc/lib/libclang*
 $SUDO rm -rf $AOMP/hcc/lib/libLLVM*
 $SUDO rm -rf $AOMP/hcc/lib/libLTO*
 $SUDO rm -rf $AOMP/hcc/lib/libRemarks*
+#Clean hip
+$SUDO rm -rf $AOMP/bin/hip*
 
 echo "Done with $0"
