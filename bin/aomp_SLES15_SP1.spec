@@ -4,12 +4,14 @@ Version: __VERSION1
 Release: __VERSION3_MOD 
 Source: ~/rpm/SOURCES/aomp_SLES15_SP1.tar.gz
 URL: https://github.com/ROCm-Developer-Tools/aomp
-License: none
+License: NCSA
 Group: System/Base
 Vendor: AMD
 
 %description
-The AMD OpenMP Compiler (AOMP). 
+ The AMD OpenMP Compiler (AOMP) is an experimental LLVM compiler
+ suite for offloading to either Radeon GPUs or Nvidia GPUs.
+ AOMP requires either rocm, cuda, or both.
 
 %prep
 %setup -n %{name}
