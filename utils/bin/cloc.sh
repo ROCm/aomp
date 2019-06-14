@@ -239,10 +239,10 @@ TARGET_TRIPLE=${TARGET_TRIPLE:-amdgcn-amd-amdhsa}
 CUDA_PATH=${CUDA_PATH:-/usr/local/cuda}
 ATMI_PATH=${ATMI_PATH:-/opt/rocm/aomp}
 
-# Determine which gfx processor to use, default to Fiji (gfx803)
+# Determine which gfx processor to use, default to Vega (gfx900)
 if [ ! $LC_MCPU ] ; then 
    # Use the mygpu in pair with this script, no the pre-installed one.
-   LC_MCPU=`$cdir/mygpu`
+   LC_MCPU=`$cdir/mygpu -d gfx900`
    if [ "$LC_MCPU" == "" ] ; then 
       LC_MCPU="gfx803"
    fi
