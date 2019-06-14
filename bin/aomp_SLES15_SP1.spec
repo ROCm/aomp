@@ -51,7 +51,6 @@ echo "DONE POST INSTALL SCRIPT FROM spec file RUNNING IN $PWD"
 
 %files
 %defattr(-,root,root)
-%{_prefix}/lib/aomp___VERSION2_STRING/*
 %{_prefix}/lib/aomp___VERSION2_STRING
 
 %postun
