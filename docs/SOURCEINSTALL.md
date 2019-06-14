@@ -24,7 +24,7 @@ Please verify you have the proper software installed as AOMP needs certain suppo
 ```
 
 <b>Choose a Build Version (Development or Release)</b>
-The development version is the next version to be released.  It is possible that the development version is broken due to regressions that often occur during development.  If instead, you want to build from the sources of a previous release such as 0.6-3 that is possible as well.
+The development version is the next version to be released.  It is possible that the development version is broken due to regressions that often occur during development.  If instead, you want to build from the sources of a previous release such as 0.6-4 that is possible as well.
 
 <b>For the Development Branch:</b>
 ```
@@ -33,7 +33,7 @@ The development version is the next version to be released.  It is possible that
 
 <b>For the Release Branch:</b>
 ```
-   git checkout rel_0.6-3
+   git checkout rel_0.6-4
    git pull
 ```
 <b>Clone and Build:</b>
