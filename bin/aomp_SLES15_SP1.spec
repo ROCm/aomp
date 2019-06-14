@@ -19,10 +19,12 @@ Vendor: AMD
 %build
 
 %install
+echo "INSTALL RUNNING IN $PWD"
 mkdir -p $RPM_BUILD_ROOT/usr/lib
 rsync -a usr/lib $RPM_BUILD_ROOT/usr
 
 %clean
+echo "CLEAN RUNNING IN $PWD"
 rm -rf $RPM_BUILD_ROOT
 echo rm -rf %{_tmppath}/%{name}
 rm -rf %{_tmppath}/%{name}
@@ -30,6 +32,7 @@ echo rm -rf %{_topdir}/BUILD/%{name}
 rm -rf %{_topdir}/BUILD/%{name}
 
 %post
+echo "POST INSTALL SCRIPT FROM spec file RUNNING IN $PWD"
 if [ -L /usr/lib/aomp ] ; then rm /usr/lib/aomp ; fi
 ln -sf /usr/lib/aomp___VERSION2_STRING /usr/lib/aomp
 if [ -L /usr/bin/aompversion ] ; then rm /usr/bin/aompversion ; fi
@@ -44,10 +47,17 @@ if [ -f /etc/profile.d/aomp.sh ] ; then rm /etc/profile.d/aomp.sh ; fi
 echo "export AOMP=/usr/lib/aomp" >/etc/profile.d/aomp.sh
 if [ -f /etc/profile.d/aomp.csh ] ; then rm /etc/profile.d/aomp.csh ; fi
 echo "setenv AOMP /usr/lib/aomp" >/etc/profile.d/aomp.csh
+echo "DONE POST INSTALL SCRIPT FROM spec file RUNNING IN $PWD"
 
 %files
 %defattr(-,root,root)
 %{_prefix}/lib/aomp___VERSION2_STRING/*
+%{_prefix}/bin/aompversion
+%{_prefix}/bin/mymcpu
+%{_prefix}/bin/mygpu
+%{_prefix}/bin/cloc.sh
+%{_prefix}/../etc/profile.d/aomp.sh
+%{_prefix}/../etc/profile.d/aomp.csh
 
 %changelog
 * Thu Jun 13 2019 Greg Rodgers <gregory.rodgers@amd.com>
