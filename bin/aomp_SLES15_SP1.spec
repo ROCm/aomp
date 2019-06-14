@@ -52,12 +52,15 @@ echo "DONE POST INSTALL SCRIPT FROM spec file RUNNING IN $PWD"
 %files
 %defattr(-,root,root)
 %{_prefix}/lib/aomp___VERSION2_STRING/*
-%{_prefix}/bin/aompversion
-%{_prefix}/bin/mymcpu
-%{_prefix}/bin/mygpu
-%{_prefix}/bin/cloc.sh
-%{_prefix}/../etc/profile.d/aomp.sh
-%{_prefix}/../etc/profile.d/aomp.csh
+
+%postun
+rm /usr/lib/aomp
+rm /usr/bin/aompversion
+rm /usr/bin/mymcpu
+rm /usr/bin/mygpu
+rm /usr/bin/cloc.sh
+rm /etc/profile.d/aomp.sh
+rm /etc/profile.d/aomp.csh
 
 %changelog
 * Thu Jun 13 2019 Greg Rodgers <gregory.rodgers@amd.com>
