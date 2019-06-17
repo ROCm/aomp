@@ -140,9 +140,6 @@ Developers may update a component and then run these  scripts in the folowing or
    ./build_clang.sh
    ./build_clang.sh install
 
-   ./build_extras.sh
-   ./build_extras.sh install
-
    ./build_utils.sh
    ./build_utils.sh install
 
@@ -151,6 +148,9 @@ Developers may update a component and then run these  scripts in the folowing or
 
    ./build_hip.sh
    ./build_hip.sh install
+
+   ./build_extras.sh
+   ./build_extras.sh install
 
    ./build_atmi.sh
    ./build_atmi.sh install
