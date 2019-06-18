@@ -9,6 +9,7 @@ TESTS_DIR = \
     atomic_double \
     class \
     collapse \
+    data_enter_issue01/data_enter_issue01 \
     devices \
     firstprivate \
     firstprivate2 \
