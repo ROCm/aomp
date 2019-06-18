@@ -443,9 +443,10 @@ int ilogb(double __a) { return __nv_ilogb(__a); }
 
 int __finite(double __a) { return __nv_isfinited(__a); }
 
-int __isinf(double __a) { return __nv_isinfd(__a); }
+// These symbols, isnan and isinf, cause issues on some RHEL systems.
+//int __isinf(double __a) { return __nv_isinfd(__a); }
 
-int __isnan(double __a) { return __nv_isnand(__a); }
+//int __isnan(double __a) { return __nv_isnand(__a); }
 
 double j0(double __a) { return __nv_j0(__a); }
 
