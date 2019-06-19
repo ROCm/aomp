@@ -558,9 +558,9 @@ int ilogb(double x) { return __ocml_ilogb_f64(x); }
 
 int __finite(double x) { return __ocml_isfinite_f64(x); }
 
-int __isinf(double x) { return __ocml_isinf_f64(x); }
+//int __isinf(double x) { return __ocml_isinf_f64(x); }
 
-int __isnan(double x) { return __ocml_isnan_f64(x); }
+//int __isnan(double x) { return __ocml_isnan_f64(x); }
 
 double j0(double x) { return __ocml_j0_f64(x); }
 
