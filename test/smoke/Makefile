@@ -2,13 +2,13 @@ include Makefile.defs
 
 TESTS_DIR = \
     aomp_mappings \
-    aomp_mappings_simple \
     DeclareSharedMemory \
     assertok_error \
     atomic \
     atomic_double \
     class \
     collapse \
+    data_enter_issue01 \
     devices \
     firstprivate \
     firstprivate2 \
@@ -32,6 +32,7 @@ TESTS_DIR = \
     simd \
     stream \
     target-in-other-source \
+    target_teams_reduction \
     teams \
     test \
     thread_limit\

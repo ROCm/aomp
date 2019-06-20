@@ -1,11 +1,11 @@
 include ../Makefile.defs
 
-TESTNAME     = targets_in_loop
-TESTSRC_MAIN = targets_in_loop.c
+TESTNAME     = reduction
+TESTSRC_MAIN = reduction.cpp
 TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 
-CLANG        = clang $(KLIMIT)
+CLANG        = clang++
 OMP_BIN      = $(AOMP)/bin/$(CLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
 #-ccc-print-phases

@@ -3,7 +3,10 @@
 
 int main(void) {
 
-for (int k=0; k<5 ; k++) {
+#ifndef KLIMIT
+#define KLIMIT 5
+#endif
+for (int k=0; k<KLIMIT ; k++) {
   printf(" in host loop interation %d\n",k);
   #pragma omp target
   printf(" on device iteration %d\n",k);

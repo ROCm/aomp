@@ -52,11 +52,11 @@ float frexp(float __arg, int *__exp) {
 }
 
 bool isinf(float __x) { return __isinff(__x); }
-bool isinf(double __x) { return __isinf(__x); }
+//bool isinf(double __x) { return __isinf(__x); }
 bool isfinite(float __x) { return __finitef(__x); }
 bool isfinite(double __x) { return __isfinited(__x); }
 bool isnan(float __x) { return __isnanf(__x); }
-bool isnan(double __x) { return __isnan(__x); }
+//bool isnan(double __x) { return __isnan(__x); }
 
 bool isgreater(float __x, float __y) {
   return __builtin_isgreater(__x, __y);
