@@ -1,4 +1,4 @@
-aomp (0.6-3) UNRELEASED; urgency=medium
+aomp (0.6-4) UNRELEASED; urgency=medium
 
   * Initial release of aomp is 0.3-2
   *   Please see example in /opt/rocm/aomp/examples/vmuldemo 
@@ -178,5 +178,23 @@ aomp (0.6-3) UNRELEASED; urgency=medium
   *   Added *_wg_size symbol to reflect compile time known thread limit for a kernel.
   *   Added support to openmp runtimes to support 1024 threads per team/work group.
   *   Reenabled SILoadStoreOptimizer pass after pulling upstream fix for scalar carry corruption.
+  * 
+  * 0.6-4
+  *   support for building from source on SLES15 SP1
+  *   Generate new  rpm package for SLES15 SP1
+  *   Do not create a host thread for GPU hostcall services if no services are
+  *       used by any kernel in the application. This fixes a performance
+  *       regression we saw with openmpapps in 0.6-3 because none of those
+  *       apps currently use printf on the device. This still needs more study.
+  *   Reorganized the github README and linked pages to make it less confusing
+  *       and to ready support for more platforms.
+  *   Removed hip wrapper scripts such as hipcc. Users must compile hip with
+  *        clang++ as demonstrated in examples to get openmp support with hip.
+  *   Properly set amdgpu-flat-work-group-size for generic mode: add wave_size
+  *   Add -lelf to link step of libomptarget.rtl.hsa.so
+  *   More gracefully exit when gpu arch of kernel does not match device arch
+  *   Refine LIBPOMPTARGET_KERNEL_TRACE 1=>minimal, 2=>verbos'er
+  *   More pervasive use of mygpu in the examples to identify the proper gfx
+  *       or sm identifier. 
 
- -- Greg Rodgers <Gregory.Rodgers@amd.com>  Tue, 28 May 2019 09:38:58 -0500
+ -- Greg Rodgers <Gregory.Rodgers@amd.com>  Thu, 13 Jun 2019 20:54:46 -0500
