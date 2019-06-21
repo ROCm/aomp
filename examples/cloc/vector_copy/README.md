@@ -16,16 +16,13 @@ The Makefile will execute these commands to build the vector_copy binary:
 
 
 ```
-  g++ -I/opt/rocm/include -c -std=c++11 -o obj/vector_copy.o vector_copy.cpp
-  g++  obj/vector_copy.o -L/opt/rocm/lib -lhsa-runtime64 -o vector_copy
-```
-
-The vectory_copy program will look for the file vector_copy.hsaco.
-To create this file with cloc.sh, the Makefile runs the cloc.sh utility
-as follows:
+g++ -c -std=c++11 -I/opt/rocm/aomp/include -o obj/vector_copy.o vector_copy.cpp
+g++ obj/vector_copy.o -L/opt/rocm/aomp/lib -lhsa-runtime64 -Wl,-rpath=/opt/rocm/aomp/lib -o vector_copy
+/opt/rocm/aomp/bin/cloc.sh -mcpu gfx803 vector_copy.cl
 
 ```
-  /opt/rocm/aomp/bin/cloc.sh vector_copy.cl
+The vectory_copy program will load the GPU binary in the file vector_copy.hsaco.
+To create this file with cloc.sh, the Makefile runs the cloc.sh utility as the last command.
 ```
 
 
