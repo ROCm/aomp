@@ -20,6 +20,7 @@ TESTS_DIR = \
     issue_001 \
     issue_002 \
     liba_bundled \
+    liba_bundled_cmdline \
     math_sqrt_float \
     nativetests \
     nested_loop \
