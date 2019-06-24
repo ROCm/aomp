@@ -2,7 +2,7 @@ include ../Makefile.defs
 
 TESTNAME        = liba_bundled
 TESTSRC_MAIN    = main.c
-TESTSRC_AUX     = MyDeviceLib/libMyDeviceLib.a
+TESTSRC_AUX     =
 TESTSRC_ALL     = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 
 CLANG           = clang
