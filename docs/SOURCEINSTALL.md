@@ -6,7 +6,7 @@ Build and install from sources is possible.  However, the source build for AOMP 
 - It is a bootstrapped build. The built and installed LLVM compiler is used to build library components.
 - Additional package dependencies are required that are not required when installing the AOMP package.
 
-Building AOMP from source requires these dependencies:
+## Building AOMP from source requires these dependencies:<br>
 <b>Ubuntu</b>
 
 ```
@@ -51,4 +51,4 @@ Depending on your system, the last two commands could take a very long time. For
 
 You only need to do the checkout/pull in the AOMP repository. The file "bin/aomp_common_vars" lists the branches of each repository for a particular AOMP release. In the master branch of AOMP, aomp_common_vars lists the development branches. It is a good idea to run clone_aomp.sh twice after you checkout a release to be sure you pulled all the checkouts for a particular release.
 
-If your are interested in joining the development of AOMP, please read the details on the source build at [README](../bin/README.md).
+If you are interested in joining the development of AOMP, please read the details on the source build at [README](../bin/README.md).
