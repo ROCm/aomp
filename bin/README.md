@@ -3,7 +3,7 @@ AOMP Developer README.md
 
 AOMP is the AMD OpenMP Compiler. This is the AOMP developer README stored at:
 ```
-https://github.com/ROCm-Developer-Tools/aomp/bin/README.md
+https://github.com/ROCm-Developer-Tools/aomp/blob/master/bin/README.md
 ```
 The AOMP compiler supports OpenMP, clang-hip, clang-cuda, device OpenCL, and the offline kernel compilatino tool called cloc.  It contains a recent version of the AMD Lightning compiler (llvm amdgcn backend) and the llvm nvptx backend.  Except for clang-cuda, this compiler works for both Nvidia and AMD Radeon GPUs.
 

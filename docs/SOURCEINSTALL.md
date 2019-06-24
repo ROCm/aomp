@@ -6,10 +6,16 @@ Build and install from sources is possible.  However, the source build for AOMP 
 - It is a bootstrapped build. The built and installed LLVM compiler is used to build library components.
 - Additional package dependencies are required that are not required when installing the AOMP package.
 
-Building AOMP from source requires these dependencies that can be resolved on an ubuntu system with apt-get.
+Building AOMP from source requires these dependencies:
+<b>Ubuntu</b>
 
 ```
    sudo apt-get install cmake g++-5 g++ pkg-config libpci-dev libnuma-dev libelf-dev libffi-dev git python libopenmpi-dev
+```
+<b>SLES-15-SP1</b>
+
+```
+sudo zypper install -y git pciutils-devel cmake python-base libffi-devel gcc gcc-c++ libnuma-devel libelf-devel patchutils openmpi2-devel
 ```
 ## AOMP Verify and Install Linux Support
 
