@@ -20,7 +20,7 @@ OBJ_FILES := $(addprefix obj/, $(notdir $(CXX_FILES:.cpp=.o)))
 all: $(TEST_NAME) $(CU_FILE).hsaco
 
 $(TEST_NAME): $(OBJ_FILES) $(COMMON_OBJ_FILES)
-	$(CXX) $(LFLAGS) $(OBJ_FILES) -L$(AOMP)/hsa/lib -lhsa-runtime64 -o $(TEST_NAME)
+	$(CXX) $(LFLAGS) $(OBJ_FILES) -L$(AOMP)/hsa/lib -lhsa-runtime64 -o $(TEST_NAME) -Wl,-rpath=$(AOMP)/hsa/lib
 
 $(CU_FILE).hsaco :
 	$(AOMP)/bin/cloc.sh $(FUNOPTS)  $(CU_FILE).cu
