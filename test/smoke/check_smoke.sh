@@ -52,7 +52,7 @@ for directory in ./*/; do
       fi
       make check > /dev/null 2>&1
       #liba_bundled has an additional Makefile, that may fail on the make check
-      if [ $? -ne 0 ] && [ $base == 'liba_bundled' ] ; then
+      if [ $? -ne 0 ] && ( [ $base == 'liba_bundled' ] || [ $base == 'liba_bundled_cmdline' ] ) ; then
         echo "$base: Make Failed" >> ../make-fail.txt
       fi
     fi
