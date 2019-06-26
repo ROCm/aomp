@@ -1,4 +1,4 @@
-aomp (0.6-4) UNRELEASED; urgency=medium
+aomp (0.6-5) UNRELEASED; urgency=medium
 
   * Initial release of aomp is 0.3-2
   *   Please see example in /opt/rocm/aomp/examples/vmuldemo 
@@ -196,5 +196,15 @@ aomp (0.6-4) UNRELEASED; urgency=medium
   *   Refine LIBPOMPTARGET_KERNEL_TRACE 1=>minimal, 2=>verbos'er
   *   More pervasive use of mygpu in the examples to identify the proper gfx
   *       or sm identifier. 
+  *
+  * 0.6-5
+  *   Added support for archives of bundles on command line.
+  *   Created hostcall payload on system memory instead of GPU memory. This avoids
+  *       cache effects of HBM memory that gets flushed only at kernel boundaries.
+  *   Cleaned up examples.
+  *   Readability changes to various README files in docs.
+  *   Added SLES-15-SP1 source install dependencies and important notes for linux support.
+  *   Emit struct of per kernal attributes.
+  *   Detect and warn that a target exit data clause fails, rather than abort.
 
- -- Greg Rodgers <Gregory.Rodgers@amd.com>  Thu, 13 Jun 2019 20:54:46 -0500
+ -- Greg Rodgers <Gregory.Rodgers@amd.com>  Tue, 25 Jun 2019 08:53:17 -0500
