@@ -81,28 +81,16 @@ reponame=$AOMP_REPO_NAME
 COBRANCH=$AOMP_REPO_BRANCH
 #clone_or_pull
 
-reponame=$AOMP_OPENMP_REPO_NAME
-COBRANCH=$AOMP_OPENMP_REPO_BRANCH
-clone_or_pull
-
 reponame=$AOMP_EXTRAS_REPO_NAME
 COBRANCH=$AOMP_EXTRAS_REPO_BRANCH
 clone_or_pull
 
-reponame=$AOMP_LLVM_REPO_NAME
-COBRANCH=$AOMP_LLVM_REPO_BRANCH
-clone_or_pull
-
-reponame=$AOMP_CLANG_REPO_NAME
-COBRANCH=$AOMP_CLANG_REPO_BRANCH
+reponame=$AOMP_PROJECT_REPO_NAME
+COBRANCH=$AOMP_PROJECT_REPO_BRANCH
 clone_or_pull
 
 reponame=$AOMP_FLANG_REPO_NAME
 COBRANCH=$AOMP_FLANG_REPO_BRANCH
-clone_or_pull
-
-reponame=$AOMP_LLD_REPO_NAME
-COBRANCH=$AOMP_LLD_REPO_BRANCH
 clone_or_pull
 
 reponame=$AOMP_HIP_REPO_NAME
@@ -130,14 +118,6 @@ reponame=$AOMP_ATMI_REPO_NAME
 COBRANCH=$AOMP_ATMI_REPO_BRANCH
 clone_or_pull
 
-reponame=$AOMP_OCLDRIVER_REPO_NAME
-COBRANCH=$AOMP_OCLDRIVER_REPO_BRANCH
-clone_or_pull
-
-reponame=$AOMP_OCLRUNTIME_REPO_NAME
-COBRANCH=$AOMP_OCLRUNTIME_REPO_BRANCH
-clone_or_pull
-
 reponame=$AOMP_HCC_REPO_NAME
 COBRANCH=$AOMP_HCC_REPO_BRANCH
 clone_or_pull
@@ -153,12 +133,3 @@ repo_web_location=$GITROCLIB
 reponame=$AOMP_APPS_REPO_NAME
 COBRANCH=$AOMP_APPS_REPO_BRANCH
 clone_or_pull
-
-# ---------------------------------------
-# The following repo is in KhronosGroup
-# ---------------------------------------
-repo_web_location=$GITKHRONOS
-reponame=$AOMP_OCLICD_REPO_NAME
-COBRANCH=$AOMP_OCLICD_REPO_BRANCH
-clone_or_pull
-

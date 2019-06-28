@@ -3,7 +3,7 @@ AOMP Developer README.md
 
 AOMP is the AMD OpenMP Compiler. This is the AOMP developer README stored at:
 ```
-https://github.com/ROCm-Developer-Tools/aomp/bin/README.md
+https://github.com/ROCm-Developer-Tools/aomp/blob/master/bin/README.md
 ```
 The AOMP compiler supports OpenMP, clang-hip, clang-cuda, device OpenCL, and the offline kernel compilatino tool called cloc.  It contains a recent version of the AMD Lightning compiler (llvm amdgcn backend) and the llvm nvptx backend.  Except for clang-cuda, this compiler works for both Nvidia and AMD Radeon GPUs.
 
@@ -11,34 +11,18 @@ This bin directory contains scripts to build AOMP from source.
 ```
 clone_aomp.sh      -  A script to make sure the necessary repos are up to date.
                       See below for a list of these source repositories.
-
 build_aomp.sh      -  Run all build and install scripts in the correct order.
-
 build_roct.sh      -  Build the hsa thunk library
-
 build_rocr.sh      -  Built the ROCm runtime
-
-build_llvm.sh      -  Build llvm component
-build_lld.sh       -  Build lld component
-build_clang.sh     -  Build clang component
-
-build_extras.sh    -  Builds hostcall, libm, and utils all stored in the aomp-extras repo
-
-build_utils.sh     -  Builds the AOMP utilities
-
-build_atmi.sh      -  Builds early release of ATMI for aomp.
-
-build_hcc.sh       -  Builds the hcc compiler needed by hip
-
-build_hip.sh       -  Builds the hip host runtimes needed by aomp.
-
-build_openmp.sh    -  Builds the OpenMP libraries for aomp.
-
+build_project.sh   -  Build llvm, lld, and clang components
 build_libdevice.sh -  Builds the rocdl device bc libraries from rocm-device-libs
-
-
-build_libm.sh      -  Built the libm DBCL (Device BC Library)
+build_hcc.sh       -  Builds the hcc compiler needed by hip
+build_hip.sh       -  Builds the hip host runtimes needed by aomp.
+build_extras.sh    -  Builds hostcall, libm, and utils all stored in the aomp-extras repo
+build_atmi.sh      -  Builds early release of ATMI for aomp.
+build_openmp.sh    -  Builds the OpenMP libraries for aomp.
 ```
+
 These scripts install into $HOME/rocm/aomp (or $AOMP if set).
 
 The clone_aomp.sh script clones the necessary repositories and the correct
@@ -50,19 +34,14 @@ The first column is the AOMP component that uses the repositories.
 | --------- | ------------                          | ----------------
 | roct      | $HOME/git/aomp/roct-thunk-interfaces  | [roct-thunk-interfaces](https://github.com/radeonopencompute/roct-thunk-interface)
 | rocr      | $HOME/git/aomp/rocr-runtime           | [rocr-runtime](https://github.com/radeonopencompute/rocr-runtime)
-| llvm      | $HOME/git/aomp/llvm                   | [llvm](https://github.com/ROCm-Developer-Tools/llvm)
-| lld       | $HOME/git/aomp/lld                    | [lld](https://github.com/ROCm-Developer-Tools/lld)
-| clang     | $HOME/git/aomp/clang                  | [clang](https://github.com/ROCm-Developer-Tools/clang)
+| llvm-project  | $HOME/git/aomp/llvm-project       | [llvm-project](https://github.com/ROCm-Developer-Tools/llvm-project)
 | extras    | $HOME/git/aomp/aomp-extras            | [aomp-extras](https://github.com/ROCm-Developer-Tools/aomp-extras)
-| utils     | $HOME/git/aomp/aomp                   | [aomp/utils](https://github.com/ROCm-Developer-Tools/aomp/tree/master/utils)
 | hcc       | $HOME/git/aomp/hcc                    | [hcc](https://github.com/radeonopencompute/hcc)
 | hip       | $HOME/git/aomp/hip                    | [hip](https://github.com/ROCm-Developer-Tools/hip)
 | atmi      | $HOME/git/aomp/atmi                   | [atmi](https://github.com/radeonopencompute/atmi)
-| openmp    | $HOME/git/aomp/openmp                 | [openmp](https://github.com/ROCm-Developer-Tools/openmp)
+| openmp    | $HOME/git/aomp/llvm-project/openmp    | [llvm-project/openmp](https://github.com/ROCm-Developer-Tools/llvm-project)
 | libdevice | $HOME/git/aomp/rocm-device-libs       | [rocm-device-libs](https://github.com/radeonopencompute/rocm-device-libs)
-| libm      | $HOME/git/aomp/aomp                   | [aomp/examples](https://github.com/ROCm-Developer-Tools/aomp/tree/master/examples/libdevice)
 |           | $HOME/git/aomp/openmpapps             | [openmpapps](https://github.com/AMDComputeLibraries/openmpapps)
-
 
 The scripts and example makefiles use these environment variables and these
 defaults if they are not set. This is not a complete list.  See the script headers
@@ -85,7 +64,7 @@ Here is a sample for your .bash_profile
 SUDO="disable"
 AOMP=$HOME/install/aomp
 BUILD_TYPE=Debug
-NVPTXGPUS=30,35,50,60,70
+NVPTXGPUS=30,35,50,60,61,70
 export SUDO AOMP NVPTXGPUS BUILD_TYPE
 ```
 The build scripts will build from the source directories identified by the
@@ -131,17 +110,11 @@ Developers may update a component and then run these  scripts in the folowing or
    ./build_rocr.sh
    ./build_rocr.sh install
 
-   ./build_llvm.sh
-   ./build_llvm.sh install
+   ./build_project.sh
+   ./build_project.sh install
 
-   ./build_lld.sh
-   ./build_lld.sh install
-
-   ./build_clang.sh
-   ./build_clang.sh install
-
-   ./build_utils.sh
-   ./build_utils.sh install
+   ./build_libdevice.sh
+   ./build_libdevice.sh install
 
    ./build_hcc.sh
    ./build_hcc.sh install
@@ -157,12 +130,6 @@ Developers may update a component and then run these  scripts in the folowing or
 
    ./build_openmp.sh
    ./build_openmp.sh install
-
-   ./build_libdevice.sh
-   ./build_libdevice.sh install
-
-   ./build_libm.sh
-   ./build_libm.sh install
 ```
 
 For now, run this command for some minor fixups to the install.
@@ -170,9 +137,9 @@ For now, run this command for some minor fixups to the install.
 ```
    ./build_fixups.sh
 ```
-Once you have a successful development build, individual components can be incrementally rebuilt without rebuilding the entire system or the entire component. For example, if you change a file in the clang repository. Run this command to incrementally build llvm, clang, and lld and update your installation.
+Once you have a successful development build, individual components can be incrementally rebuilt without rebuilding the entire system or the entire component. For example, if you change a file in the llvm-project repository. Run this command to incrementally build llvm, clang, and lld and update your installation.
 ```
-   ./build_clang.sh install
+   ./build_project.sh install
 ```
 The default out-of-source build directory for each component is $HOME/git/aomp/build/<component>.
 
