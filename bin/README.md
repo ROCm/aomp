@@ -16,6 +16,7 @@ build_roct.sh      -  Build the hsa thunk library
 build_rocr.sh      -  Built the ROCm runtime
 build_project.sh   -  Build llvm, lld, and clang components
 build_libdevice.sh -  Builds the rocdl device bc libraries from rocm-device-libs
+build_comgr.sh     -  Builds the code object manager (needs rocm-device-libs)
 build_hcc.sh       -  Builds the hcc compiler needed by hip
 build_hip.sh       -  Builds the hip host runtimes needed by aomp.
 build_extras.sh    -  Builds hostcall, libm, and utils all stored in the aomp-extras repo
@@ -37,6 +38,7 @@ The first column is the AOMP component that uses the repositories.
 | llvm-project  | $HOME/git/aomp/llvm-project       | [llvm-project](https://github.com/ROCm-Developer-Tools/llvm-project)
 | extras    | $HOME/git/aomp/aomp-extras            | [aomp-extras](https://github.com/ROCm-Developer-Tools/aomp-extras)
 | hcc       | $HOME/git/aomp/hcc                    | [hcc](https://github.com/radeonopencompute/hcc)
+| comgr     | $HOME/git/aomp/rocm-compilersupport   | [comgr](https://github.com/radeonopencompute/rocm-compilersupport)
 | hip       | $HOME/git/aomp/hip                    | [hip](https://github.com/ROCm-Developer-Tools/hip)
 | atmi      | $HOME/git/aomp/atmi                   | [atmi](https://github.com/radeonopencompute/atmi)
 | openmp    | $HOME/git/aomp/llvm-project/openmp    | [llvm-project/openmp](https://github.com/ROCm-Developer-Tools/llvm-project)
@@ -115,6 +117,9 @@ Developers may update a component and then run these  scripts in the folowing or
 
    ./build_libdevice.sh
    ./build_libdevice.sh install
+
+   ./build_comgr.sh
+   ./build_comgr.sh install
 
    ./build_hcc.sh
    ./build_hcc.sh install

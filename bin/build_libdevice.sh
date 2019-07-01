@@ -34,7 +34,7 @@ HSA_DIR=${HSA_DIR:-$AOMP/hsa}
 SKIPTEST=${SKIPTEST:-"YES"}
 
 INSTALL_ROOT_DIR=${INSTALL_LIBDEVICE:-$AOMP_INSTALL_DIR}
-INSTALL_DIR=$INSTALL_ROOT_DIR/lib/libdevice
+INSTALL_DIR=$INSTALL_ROOT_DIR
 
 LLVM_BUILD=$AOMP
 SOURCEDIR=$AOMP_REPOS/$AOMP_LIBDEVICE_REPO_NAME
@@ -141,14 +141,14 @@ if [ "$1" == "install" ] ; then
 
    # rocm-device-lib cmake installs to lib dir, move all bc files up one level
    # and cleanup unused oclc_isa_version bc files and link correct one
-   echo
-   echo "POST-INSTALL REORG OF SUBDIRECTORIES $INSTALL_DIR"
-   echo "--"
-   echo "-- $INSTALL_DIR"
-   echo "-- MOVING bc FILES FROM lib DIRECTORY UP ONE LEVEL"
-   $SUDO mv $INSTALL_DIR/lib/*.bc $INSTALL_DIR
-   $SUDO rm -rf $INSTALL_DIR/lib/cmake
-   $SUDO rmdir $INSTALL_DIR/lib 
+   #echo
+   #echo "POST-INSTALL REORG OF SUBDIRECTORIES $INSTALL_DIR"
+   #echo "--"
+   #echo "-- $INSTALL_DIR"
+   #echo "-- MOVING bc FILES FROM lib DIRECTORY UP ONE LEVEL"
+   #$SUDO mv $INSTALL_DIR/lib/*.bc $INSTALL_DIR
+   #$SUDO rm -rf $INSTALL_DIR/lib/cmake
+   #$SUDO rmdir $INSTALL_DIR/lib 
 
    # END OF POST-INSTALL REORG 
 
