@@ -32,6 +32,9 @@ Depending on your system the CUDA install could take a very long time.
 
 # SUSE SLES-15-SP1 Support
 ### KFD for AMD GPUs
+<b>Important Note:</b>
+There is a conflict with the KFD when simultaneously running the GUI on SLES-15-SP1, which leads to unpredicatable behavior when offloading to the GPU. We recommend using SLES-15-SP1 in text mode to avoid running both the KFD and GUI at the same time.
+
 SUSE SLES-15-SP1 comes with kfd support installed. To verify this:
 ```
   sudo dmesg | grep kfd
@@ -41,6 +44,7 @@ SUSE SLES-15-SP1 comes with kfd support installed. To verify this:
 ### Set Group Access
 ```
   echo 'SUBSYSTEM=="kfd", KERNEL=="kfd", TAG+="uaccess", GROUP="video"' | sudo tee /etc/udev/rules.d/70-kfd.rules
+  sudo reboot
   sudo usermod -a -G video $USER
 ```
 
@@ -58,5 +62,11 @@ To build AOMP with support for nvptx GPUs, you must first install CUDA 10.  We r
 ```
 If prompted, select the 'always trust key' option. Depending on your system the CUDA install could take a very long time.
 
+<b>Important Note:</b>
+If using a GUI on SLES-15-SP1, such as gnome, the installation of CUDA may cause the GUI to fail to load. This seems to be caused by a symbolic link pointing to nvidia-libglx.so instead of xorg-libglx.so. This can be fixed by updating the symbolic link:
+```
+  sudo rm /etc/alternatives/libglx.so
+  sudo ln -s /usr/lib64/xorg/modules/extensions/xorg/xorg-libglx.so /etc/alternatives/libglx.so
+```
 # CentOS/RedHat Support
 Coming Soon.

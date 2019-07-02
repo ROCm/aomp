@@ -22,7 +22,7 @@ else ifdef march
 else ifdef make_options
 	$(CC) $(make_options) -o $@
 else
-	$(SETENV) $(CC) $(CFLAGS) $(EXTRA_CFLAGS) $(OMP_FLAGS) $(LINK_FLAGS) $(wordlist 2,$(words $^),$^) -o $@
+	$(SETENV) $(CC) $(CFLAGS) $(EXTRA_CFLAGS) $(OMP_FLAGS) $(wordlist 2,$(words $^),$^) -o $@ $(LINK_FLAGS)
 endif
 
 run: $(TESTNAME)

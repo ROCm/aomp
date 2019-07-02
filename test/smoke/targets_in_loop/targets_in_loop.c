@@ -4,7 +4,7 @@
 int main(void) {
 
 #ifndef KLIMIT
-#define KLIMIT 5
+#define KLIMIT 100
 #endif
 for (int k=0; k<KLIMIT ; k++) {
   printf(" in host loop interation %d\n",k);

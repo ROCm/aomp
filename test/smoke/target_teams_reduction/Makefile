@@ -1,7 +1,7 @@
 include ../Makefile.defs
 
-TESTNAME     = reduction
-TESTSRC_MAIN = reduction.cpp
+TESTNAME     = target_teams_reduction
+TESTSRC_MAIN = target_teams_reduction.cpp
 TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 
