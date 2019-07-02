@@ -84,8 +84,8 @@ for COMPONENT in $components ; do
    date
    echo " =================  DONE INSTALLING COMPONENT $COMPONENT ==================="   
 done
-
-$AOMP_REPOS/$AOMP_REPO_NAME/bin/build_fixups.sh
+#Run build_fixups.sh to clean the AOMP directory before packaging
+#$AOMP_REPOS/$AOMP_REPO_NAME/bin/build_fixups.sh
 echo 
 date
 echo " =================  END build_aomp.sh ==================="   
