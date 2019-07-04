@@ -15,8 +15,6 @@ ifeq ("$(wildcard $(AOMP))","")
   endif
 endif
 # --- End Standard Makefile check for AOMP installation ---
-else
-  $(info    WARNING! AOMP environment variable is set, using $(AOMP))
 endif
 
 ifneq ($(TIMEOUT),)

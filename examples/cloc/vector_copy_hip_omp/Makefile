@@ -7,7 +7,8 @@ ifeq ($(AOMP),)
 else
   $(info AOMP environment variable using $(AOMP))
 endif
-AOMP_GPU       ?= gfx803   # Default AOMP_GPU is gfx803 which is fiji
+# find the current gpu, default to vega10 if unknown
+AOMP_GPU       ?= $(shell $(AOMP)/bin/mygpu -d gfx900)
 AOMP_CPUTARGET ?= x86_64-pc-linux-gnu
 
 ifeq (sm_,$(findstring sm_,$(AOMP_GPU)))
@@ -52,20 +53,20 @@ OBJ_FILES := $(addprefix obj/, $(notdir $(CXX_FILES:.cpp=.o)))
 all: $(TEST_NAME) $(CU_FILE).hsaco
 
 $(TEST_NAME): $(OBJ_FILES) $(COMMON_OBJ_FILES)
-	$(AOMP)/bin/clang++  $(OBJ_FILES) $(CFLAGS) -L/opt/rocm/lib -lhip_hcc -o $(TEST_NAME) $(LFLAGS)
+	$(AOMP)/bin/clang++  $(OBJ_FILES) $(CFLAGS) -L$(AOMP)/lib -lhip_hcc -o $(TEST_NAME) $(LFLAGS)
 
 $(CU_FILE).hsaco :
 	$(AOMP)/bin/cloc.sh $(FUNOPTS)  $(CU_FILE).cu
 
 obj/%.o: %.cpp
 	mkdir -p obj
-	$(AOMP)/bin/clang++ -I/opt/rocm/include -c $(CFLAGS) -o $@ $< 
+	$(AOMP)/bin/clang++ -I$(AOMP)/include -c $(CFLAGS) -o $@ $<
 
 clean:
 	rm -rf obj/*o *.hsaco *.ll $(TEST_NAME)
 
 
-test:	
+run:
 	./$(TEST_NAME)
 
 

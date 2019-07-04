@@ -7,7 +7,7 @@ ifeq ($(AOMP),)
 endif
 
 CFLAGS = -std=c++11 -I$(AOMP)/include
-LFLAGS = -L$(AOMP)/lib -lhsa-runtime64 -Wl,-rpath=$(AOMP)/lib
+LFLAGS = -L$(AOMP)/lib -lhsa-runtime64 -Wl,-rpath=$(AOMP)/hsa/lib
 # find the current gpu, default to vega10 if unknown
 MYGPU = $(shell $(AOMP)/bin/mygpu -d gfx900)
 
