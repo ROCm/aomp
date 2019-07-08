@@ -17,10 +17,10 @@ Build and install from sources is possible.  However, the source build for AOMP 
 ```
   sudo zypper install -y git pciutils-devel cmake python-base libffi-devel gcc gcc-c++ libnuma-devel libelf-devel patchutils openmpi2-devel
 ```
-<b>RHEL 7</b>
-Building from source requires a newer gcc. Devtoolset-7 is recommended, follow instructions 1-3 here:<br><br>
-https://www.softwarecollections.org/en/scls/rhscl/devtoolset-7/<br>
+<b>RHEL 7</b><br>
+Building from source requires a newer gcc. Devtoolset-7 is recommended, follow instructions 1-3 here:<br>
 Note that devtoolset-7 is a Software Collections package, and it is not supported by AMD.
+https://www.softwarecollections.org/en/scls/rhscl/devtoolset-7/<br>
 
 ```
   sudo yum install cmake3 pciutils-devel numactl-devel libffi-devel
