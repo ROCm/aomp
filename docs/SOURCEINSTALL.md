@@ -10,13 +10,26 @@ Build and install from sources is possible.  However, the source build for AOMP 
 <b>Ubuntu</b>
 
 ```
-   sudo apt-get install cmake g++-5 g++ pkg-config libpci-dev libnuma-dev libelf-dev libffi-dev git python libopenmpi-dev
+  sudo apt-get install cmake g++-5 g++ pkg-config libpci-dev libnuma-dev libelf-dev libffi-dev git python libopenmpi-dev
 ```
 <b>SLES-15-SP1</b>
 
 ```
-sudo zypper install -y git pciutils-devel cmake python-base libffi-devel gcc gcc-c++ libnuma-devel libelf-devel patchutils openmpi2-devel
+  sudo zypper install -y git pciutils-devel cmake python-base libffi-devel gcc gcc-c++ libnuma-devel libelf-devel patchutils openmpi2-devel
 ```
+<b>RHEL 7</b>
+Building from source requires a newer gcc. Devtoolset-7 is recommended, follow instructions 1-3 here:<br><br>
+https://www.softwarecollections.org/en/scls/rhscl/devtoolset-7/<br>
+Note that devtoolset-7 is a Software Collections package, and it is not supported by AMD.
+
+```
+  sudo yum install cmake3 pciutils-devel numactl-devel libffi-devel
+```
+The build scripts use cmake, so we need to link cmake --> cmake3 in /usr/bin
+```
+  sudo ln -s /usr/bin/cmake3 /usr/bin/cmake
+```
+
 ## AOMP Verify and Install Linux Support
 
 Please verify you have the proper software installed as AOMP needs certain support for Linux to function properly, such as the KFD driver for AMD GPUs and CUDA for nvptx. Click [LINUXSUPPORT](LINUXSUPPORT.md) for more information.

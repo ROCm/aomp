@@ -68,5 +68,37 @@ If using a GUI on SLES-15-SP1, such as gnome, the installation of CUDA may cause
   sudo rm /etc/alternatives/libglx.so
   sudo ln -s /usr/lib64/xorg/modules/extensions/xorg/xorg-libglx.so /etc/alternatives/libglx.so
 ```
-# CentOS/RedHat Support
-Coming Soon.
+# CentOS/RHEL 7 Support
+### KFD for AMD GPUs
+```
+  sudo subscription-manager repos --enable rhel-server-rhscl-7-rpms
+  sudo subscription-manager repos --enable rhel-7-server-optional-rpms
+  sudo subscription-manager repos --enable rhel-7-server-extras-rpms
+  sudo rpm -ivh https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+```
+<b>Install and setup Devtoolset-7</b>
+Devtoolset-7 is recommended, follow instructions 1-3 here:<br><br>
+https://www.softwarecollections.org/en/scls/rhscl/devtoolset-7/<br>
+Note that devtoolset-7 is a Software Collections package, and it is not supported by AMD.
+<b>Install dkms tool</b>
+```
+  sudo yum install -y epel-release
+  sudo yum install -y dkms kernel-headers-`uname -r` kernel-devel-`uname -r`
+```
+Create a /etc/yum.repos.d/rocm.repo file with the following contents:
+```
+  [ROCm]
+  name=ROCm
+  baseurl=http://repo.radeon.com/rocm/yum/rpm
+  enabled=1
+  gpgcheck=0
+```
+```
+  sudo yum install rock-dkms
+```
+### Set Group Access
+```
+  echo 'SUBSYSTEM=="kfd", KERNEL=="kfd", TAG+="uaccess", GROUP="video"' | sudo tee /etc/udev/rules.d/70-kfd.rules
+  sudo reboot
+  sudo usermod -a -G video $USER
+```
