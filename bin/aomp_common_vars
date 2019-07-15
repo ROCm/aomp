@@ -42,7 +42,7 @@ fi
 # Set list of default nvptx subarchitectures to build
 # Only Cuda 9 and above supports sm_70
 if [ "$AOMP_BUILD_CUDA" == 1 ] ; then
-   NVPTXGPUS_DEFAULT="30,35,50,60,61"
+   NVPTXGPUS_DEFAULT="30,32,35,50,60,61"
    if [ -f $CUDA/version.txt ] ; then
       if [ `head -1 /usr/local/cuda/version.txt | cut -d " " -f 3 | cut -d "." -f 1` -ge 9 ] ; then
          NVPTXGPUS_DEFAULT+=",70"
@@ -72,7 +72,7 @@ GITKHRONOS="https://github.com/KhronosGroup"
 AOMP_REPO_NAME=${AOMP_REPO_NAME:-aomp}
 AOMP_REPO_BRANCH=${AOMP_REPO_BRANCH:-0.7}
 AOMP_PROJECT_REPO_NAME=${AOMP_PROJECT_REPO_NAME:-llvm-project}
-AOMP_PROJECT_REPO_BRANCH=${AOMP_PROJECT_REPO_BRANCH:-AOMP-190618}
+AOMP_PROJECT_REPO_BRANCH=${AOMP_PROJECT_REPO_BRANCH:-AOMP-190715}
 AOMP_LLVM_REPO_NAME=${AOMP_LLVM_REPO_NAME:-llvm}
 AOMP_LLVM_REPO_BRANCH=${AOMP_LLVM_REPO_BRANCH:-release_80_AOMP_063}
 AOMP_CLANG_REPO_NAME=${AOMP_CLANG_REPO_NAME:-clang}
