@@ -12,7 +12,7 @@
 1002:131b 0000 0000 kaveri : Kaveri [Radeon R4 Graphics]
 1002:131c 0000 0000 kaveri : Kaveri [Radeon R7 Graphics]
 1002:131d 0000 0000 kaveri : Kaveri [Radeon R6 Graphics]
-1002:15dd 0000 0000 vega : Raven Ridge [Radeon Vega Series / Radeon Vega Mobile Series]
+1002:15dd 0000 0000 gfx902 : Raven Ridge [Radeon Vega Series / Radeon Vega Mobile Series]
 1002:15dd 103c 83c6 vega : Radeon Vega 8 Mobile
 1002:15dd 1458 d000 vega : Radeon RX Vega 11
 1002:15ff 0000 0000 vega : Vega 11 [Radeon Vega 28 Mobile]

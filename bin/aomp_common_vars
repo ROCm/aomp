@@ -62,7 +62,7 @@ fi
 
 # Set list of default amdgcn subarchitectures to build
 #  Developers should override GFXLIST to shorten build time.
-GFXLIST=${GFXLIST:-"gfx700 gfx701 gfx801 gfx803 gfx900 gfx906"}
+GFXLIST=${GFXLIST:-"gfx700 gfx701 gfx801 gfx803 gfx900 gfx902 gfx906"}
 export GFXLIST
 
 # These are the web sites where the AOMP git repos are pulled from
