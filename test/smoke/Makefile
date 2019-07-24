@@ -29,6 +29,7 @@ TESTS_DIR = \
     pfspecifier_str \
     reduce \
     reduction \
+    reduction_issue_16 \
     schedule \
     simd \
     stream \
