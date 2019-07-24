@@ -49,7 +49,7 @@ int main()
     if(isAMDGPU)
       maxThrd += 64;
     else
-       maxThrd += 32;
+      maxThrd += 32;
     if (maxThrd == 1023)
       passed = 1;
   }
