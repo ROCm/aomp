@@ -65,11 +65,6 @@ if [ "$1" == "install" ] ; then
    $SUDO rm $INSTALL_ROCT/testfile
 fi
 
-NUM_THREADS=
-if [ ! -z `which "getconf"` ]; then
-    NUM_THREADS=$(`which "getconf"` _NPROCESSORS_ONLN)
-fi
-
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then 
 
    echo " " 

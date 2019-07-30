@@ -109,21 +109,6 @@ if [ "$1" == "install" ] ; then
    $SUDO rm $INSTALL_HCC/testfile
 fi
 
-# Calculate the number of threads to use for make
-NUM_THREADS=
-if [ ! -z `which "getconf"` ]; then
-   NUM_THREADS=$(`which "getconf"` _NPROCESSORS_ONLN)
-   if [ "$AOMP_PROC" == "ppc64le" ] ; then
-      NUM_THREADS=$(( NUM_THREADS / 4))
-      echo
-      echo
-      echo "---------------------------------  $NUM_THREADS JOBS --------------------------"
-      echo
-      echo
-   fi
-fi
-
-
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    #  When build_hcc.sh is run with no args, start fresh and clean out the build directory.
    echo 

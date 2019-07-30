@@ -72,11 +72,6 @@ if [ "$1" == "install" ] ; then
    $SUDO rm $INSTALL_OPENMP/testfile
 fi
 
-NUM_THREADS=
-if [ ! -z `which "getconf"` ]; then
-    NUM_THREADS=$(`which "getconf"` _NPROCESSORS_ONLN)
-fi
-
 GCCMIN=7
 if [ "$AOMP_BUILD_CUDA" == 1 ] ; then
    if [ -f $CUDABIN/nvcc ] ; then
