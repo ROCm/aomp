@@ -103,15 +103,6 @@ if [ "$1" == "install" ] ; then
    $SUDO rm $INSTALL_EXTRAS/testfile
 fi
 
-NUM_THREADS=
-if [ ! -z `which "getconf"` ]; then
-   NUM_THREADS=$(`which "getconf"` _NPROCESSORS_ONLN)
-   if [ "$AOMP_PROC" == "ppc64le" ] || [ "$AOMP_PROC" == "aarch64" ] ; then
-      NUM_THREADS=$(( NUM_THREADS / 2))
-   fi
-
-fi
-
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 
   if [ -d "$BUILD_DIR/build/extras" ] ; then

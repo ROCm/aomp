@@ -52,18 +52,6 @@ if [ ! -d $AOMP_INSTALL_DIR/lib ] ; then
   exit 1
 fi
 
-NUM_THREADS=
-if [ ! -z `which "getconf"` ]; then
-   NUM_THREADS=$(`which "getconf"` _NPROCESSORS_ONLN)
-   if [ "$AOMP_PROC" == "ppc64le" ] || [ "$AOMP_PROC" == "aarch64" ] ; then
-      NUM_THREADS=$(( NUM_THREADS / 2))
-   fi
-   # having problems on arm so ...
-   if  [ "$AOMP_PROC" == "aarch64" ] ; then
-      NUM_THREADS=$(( NUM_THREADS / 4))
-   fi
-fi
-
 export LLVM_BUILD HSA_DIR
 export PATH=$LLVM_BUILD/bin:$PATH
 

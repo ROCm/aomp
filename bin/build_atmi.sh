@@ -75,11 +75,6 @@ else
    HSACMAKEOPTS=""
 fi
 
-NUM_THREADS=
-if [ ! -z `which "getconf"` ]; then
-    NUM_THREADS=$(`which "getconf"` _NPROCESSORS_ONLN)
-fi
-
 export LLVM_DIR=$AOMP_INSTALL_DIR
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then 
 

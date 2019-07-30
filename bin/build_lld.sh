@@ -65,15 +65,6 @@ if [ "$1" == "install" ] ; then
    $SUDO rm $INSTALL_LLD/testfile
 fi
 
-# Calculate the number of threads to use for make
-NUM_THREADS=
-if [ ! -z `which "getconf"` ]; then
-   NUM_THREADS=$(`which "getconf"` _NPROCESSORS_ONLN)
-   if [ "$AOMP_PROC" == "ppc64le" ] ; then
-      NUM_THREADS=$(( NUM_THREADS / 2))
-   fi
-fi
-
 # Skip synchronization from git repos if nocmake or install are specified
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    echo 

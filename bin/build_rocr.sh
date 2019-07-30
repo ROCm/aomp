@@ -71,11 +71,6 @@ if [ "$1" == "install" ] ; then
    $SUDO rm $INSTALL_ROCM/testfile
 fi
 
-NUM_THREADS=
-if [ ! -z `which "getconf"` ]; then
-    NUM_THREADS=$(`which "getconf"` _NPROCESSORS_ONLN)
-fi
-
 cd $AOMP_REPOS/$AOMP_ROCR_REPO_NAME
 echo patch -p1 $thisdir/rocr-runtime.patch
 patch -p1 < $thisdir/rocr-runtime.patch
