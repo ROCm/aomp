@@ -82,7 +82,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
       rsync -a --exclude ".git" --delete $AOMP_REPOS/$AOMP_FLANG_REPO_NAME $BUILD_DIR 2>&1
    fi
 else
-   if [ ! -d $BUILD_DIR/build/flang_runtime] ; then 
+   if [ ! -d $BUILD_DIR/build/flang_runtime ] ; then
       echo "ERROR: The build directory $BUILD_DIR/build/flang_runtime does not exist"
       echo "       run $0 without nocmake or install options. " 
       exit 1
