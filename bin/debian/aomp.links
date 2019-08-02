@@ -1,6 +1,6 @@
-opt/rocm/aomp_0.5-5 opt/rocm/aomp
-opt/rocm/aomp_0.5-5/bin/bundle.sh  /usr/bin/bundle.sh
-opt/rocm/aomp_0.5-5/bin/unbundle.sh  /usr/bin/unbundle.sh
-opt/rocm/aomp_0.5-5/bin/cloc.sh /usr/bin/cloc.sh
-opt/rocm/aomp_0.5-5/bin/mymcpu  /usr/bin/mymcpu
-opt/rocm/aomp_0.5-5/bin/mygpu  /usr/bin/mygpu
+usr/lib/aomp_0.7-0 usr/lib/aomp
+usr/lib/aomp_0.7-0/bin/bundle.sh  /usr/bin/bundle.sh
+usr/lib/aomp_0.7-0/bin/unbundle.sh  /usr/bin/unbundle.sh
+usr/lib/aomp_0.7-0/bin/cloc.sh /usr/bin/cloc.sh
+usr/lib/aomp_0.7-0/bin/mymcpu  /usr/bin/mymcpu
+usr/lib/aomp_0.7-0/bin/mygpu  /usr/bin/mygpu
