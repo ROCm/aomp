@@ -28,18 +28,20 @@ thisdir=$(getdname $0)
 # --- end standard header ----
 
 function build_aomp_component() {
-   $AOMP_REPOS/$AOMP_REPO_NAME/bin/build_$COMPONENT.sh
+   $AOMP_REPOS/$AOMP_REPO_NAME/bin/build_$COMPONENT.sh "$@"
    rc=$?
    if [ $rc != 0 ] ; then 
       echo " !!!  build_aomp.sh: BUILD FAILED FOR COMPONENT $COMPONENT !!!"
       exit $rc
    fi  
-   $AOMP_REPOS/$AOMP_REPO_NAME/bin/build_$COMPONENT.sh install
-   rc=$?
-   if [ $rc != 0 ] ; then 
-      echo " !!!  build_aomp.sh: INSTALL FAILED FOR COMPONENT $COMPONENT !!!"
-      exit $rc
-   fi  
+   if [ $# -eq 0 ] ; then
+       $AOMP_REPOS/$AOMP_REPO_NAME/bin/build_$COMPONENT.sh install
+       rc=$?
+       if [ $rc != 0 ] ; then 
+           echo " !!!  build_aomp.sh: INSTALL FAILED FOR COMPONENT $COMPONENT !!!"
+           exit $rc
+       fi
+   fi
 }
 
 
@@ -80,7 +82,7 @@ for COMPONENT in $components ; do
    echo 
    echo " =================  BUILDING COMPONENT $COMPONENT ==================="   
    echo 
-   build_aomp_component
+   build_aomp_component "$@"
    date
    echo " =================  DONE INSTALLING COMPONENT $COMPONENT ==================="   
 done
