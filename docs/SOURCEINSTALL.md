@@ -10,7 +10,7 @@ Build and install from sources is possible.  However, the source build for AOMP 
 <b>Ubuntu</b>
 
 ```
-   sudo apt-get install cmake g++-5 g++ pkg-config libpci-dev libnuma-dev libelf-dev libffi-dev git python libopenmpi-dev
+   sudo apt-get install cmake g++-5 g++ pkg-config libpci-dev libnuma-dev libelf-dev libffi-dev git python libopenmpi-dev gawk
 ```
 <b>SLES-15-SP1</b>
 
