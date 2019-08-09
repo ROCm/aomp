@@ -66,6 +66,17 @@ if [ $? != 0 ] ; then
 fi
 $TOPSUDO rm $AOMP_INSTALL_DIR/testfile
 
+#Check for gawk on Ubuntu, which is needed for the flang build.
+GAWK=$(gawk --version | grep "^GNU Awk")
+OS=$(cat /etc/os-release | grep "^NAME=")
+
+if [[ -z $GAWK ]] && [[ "$OS" == *"Ubuntu"* ]] ; then
+   echo
+   echo "Build Error: gawk was not found and is required for building flang! Please run 'sudo apt-get install gawk' and run build_aomp.sh again."
+   echo
+   exit 1
+fi
+
 echo 
 date
 echo " =================  START build_aomp.sh ==================="   
