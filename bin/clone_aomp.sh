@@ -133,3 +133,19 @@ repo_web_location=$GITROCLIB
 reponame=$AOMP_APPS_REPO_NAME
 COBRANCH=$AOMP_APPS_REPO_BRANCH
 clone_or_pull
+
+# ---------------------------------------
+# The following repo is internal to AMD
+# ---------------------------------------
+ping -c 1 $AOMP_INTERNAL_IP
+if [ $? == 0 ] ; then
+   echo
+   echo " +---------------------------------------------------------------"
+   echo " |  WARNING: USE YOUR AMD USERID AND PASSWORD TO CLONE FROM $GITINTERNAL"
+   echo " +---------------------------------------------------------------"
+   echo
+   repo_web_location=$GITINTERNAL
+   reponame=$AOMP_IAPPS_REPO_NAME
+   COBRANCH=$AOMP_IAPPS_REPO_BRANCH
+   clone_or_pull
+fi

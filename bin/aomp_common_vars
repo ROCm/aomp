@@ -81,6 +81,11 @@ GITROCDEV="https://github.com/ROCm-Developer-Tools"
 GITROCLIB="https://github.com/AMDComputeLibraries"
 GITKHRONOS="https://github.com/KhronosGroup"
 
+AOMP_INTERNAL_IP="gitlab1.amd.com"
+GITINTERNAL="http://${AOMP_INTERNAL_IP}/dmcdouga"  # This will change soon
+AOMP_IAPPS_REPO_NAME=${AOMP_IAPPS_REPO_NAME:-Nekbone}  #  This will change soon
+AOMP_IAPPS_REPO_BRANCH=${AOMP_IAPPS_REPO_BRANCH:-openmp_amd}
+
 # The  git repos and branches that the AOMP build scripts will use
 AOMP_REPO_NAME=${AOMP_REPO_NAME:-aomp}
 AOMP_REPO_BRANCH=${AOMP_REPO_BRANCH:-0.7}
