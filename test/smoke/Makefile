@@ -21,6 +21,7 @@ TESTS_DIR = \
     issue_002 \
     liba_bundled \
     liba_bundled_cmdline \
+    math_modff \
     math_sqrt_float \
     nativetests \
     nested_loop \
@@ -29,6 +30,7 @@ TESTS_DIR = \
     pfspecifier_str \
     reduce \
     reduction \
+    reduction_issue_16 \
     schedule \
     simd \
     stream \

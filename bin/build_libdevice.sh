@@ -34,33 +34,22 @@ HSA_DIR=${HSA_DIR:-$AOMP/hsa}
 SKIPTEST=${SKIPTEST:-"YES"}
 
 INSTALL_ROOT_DIR=${INSTALL_LIBDEVICE:-$AOMP_INSTALL_DIR}
-INSTALL_DIR=$INSTALL_ROOT_DIR/lib/libdevice
+INSTALL_DIR=$INSTALL_ROOT_DIR
 
-LLVM_BUILD=$AOMP
+export LLVM_DIR=$AOMP_INSTALL_DIR
+export LLVM_BUILD=$AOMP_INSTALL_DIR
 SOURCEDIR=$AOMP_REPOS/$AOMP_LIBDEVICE_REPO_NAME
 
 REPO_BRANCH=$AOMP_LIBDEVICE_REPO_BRANCH
 REPO_DIR=$AOMP_REPOS/$AOMP_LIBDEVICE_REPO_NAME
 checkrepo
 
-MYCMAKEOPTS="-DLLVM_DIR=$LLVM_BUILD -DBUILD_HC_LIB=ON -DBUILD_CUDA2GCN=ON -DROCM_DEVICELIB_INCLUDE_TESTS=OFF -DPREPARE_BUILTINS=$AOMP/bin/prepare-builtins"
+MYCMAKEOPTS="-DLLVM_DIR=$LLVM_DIR -DBUILD_HC_LIB=ON -DROCM_DEVICELIB_INCLUDE_TESTS=OFF"
 
 if [ ! -d $AOMP_INSTALL_DIR/lib ] ; then 
   echo "ERROR: Directory $AOMP/lib is missing"
   echo "       AOMP must be installed in $AOMP_INSTALL_DIR to continue"
   exit 1
-fi
-
-NUM_THREADS=
-if [ ! -z `which "getconf"` ]; then
-   NUM_THREADS=$(`which "getconf"` _NPROCESSORS_ONLN)
-   if [ "$AOMP_PROC" == "ppc64le" ] || [ "$AOMP_PROC" == "aarch64" ] ; then
-      NUM_THREADS=$(( NUM_THREADS / 2))
-   fi
-   # having problems on arm so ...
-   if  [ "$AOMP_PROC" == "aarch64" ] ; then
-      NUM_THREADS=$(( NUM_THREADS / 4))
-   fi
 fi
 
 export LLVM_BUILD HSA_DIR
@@ -141,14 +130,14 @@ if [ "$1" == "install" ] ; then
 
    # rocm-device-lib cmake installs to lib dir, move all bc files up one level
    # and cleanup unused oclc_isa_version bc files and link correct one
-   echo
-   echo "POST-INSTALL REORG OF SUBDIRECTORIES $INSTALL_DIR"
-   echo "--"
-   echo "-- $INSTALL_DIR"
-   echo "-- MOVING bc FILES FROM lib DIRECTORY UP ONE LEVEL"
-   $SUDO mv $INSTALL_DIR/lib/*.bc $INSTALL_DIR
-   $SUDO rm -rf $INSTALL_DIR/lib/cmake
-   $SUDO rmdir $INSTALL_DIR/lib 
+   #echo
+   #echo "POST-INSTALL REORG OF SUBDIRECTORIES $INSTALL_DIR"
+   #echo "--"
+   #echo "-- $INSTALL_DIR"
+   #echo "-- MOVING bc FILES FROM lib DIRECTORY UP ONE LEVEL"
+   #$SUDO mv $INSTALL_DIR/lib/*.bc $INSTALL_DIR
+   #$SUDO rm -rf $INSTALL_DIR/lib/cmake
+   #$SUDO rmdir $INSTALL_DIR/lib 
 
    # END OF POST-INSTALL REORG 
 

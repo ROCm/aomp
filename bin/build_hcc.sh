@@ -109,21 +109,6 @@ if [ "$1" == "install" ] ; then
    $SUDO rm $INSTALL_HCC/testfile
 fi
 
-# Calculate the number of threads to use for make
-NUM_THREADS=
-if [ ! -z `which "getconf"` ]; then
-   NUM_THREADS=$(`which "getconf"` _NPROCESSORS_ONLN)
-   if [ "$AOMP_PROC" == "ppc64le" ] ; then
-      NUM_THREADS=$(( NUM_THREADS / 4))
-      echo
-      echo
-      echo "---------------------------------  $NUM_THREADS JOBS --------------------------"
-      echo
-      echo
-   fi
-fi
-
-
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    #  When build_hcc.sh is run with no args, start fresh and clean out the build directory.
    echo 
@@ -157,11 +142,6 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
          git clone -b $AOMP_HCC_REPO_BRANCH --recursive $GITROC/$AOMP_HCC_REPO_NAME.git
          cd hcc
       fi
-      if [ ! -f this_repo_was_patched ] ; then 
-         echo patch -p1  $thisdir/hcc.patch
-         patch -p1  < $thisdir/hcc.patch
-         touch this_repo_was_patched
-      fi
       echo "   git status"
       git status
       echo
@@ -175,13 +155,6 @@ else
       echo "       run $0 without nocmake or install options. " 
       exit 1
    fi
-fi
-
-if [ ! -f $AOMP_REPOS/$AOMP_HCC_REPO_NAME/this_repo_was_patched ] ; then 
-  cd $AOMP_REPOS/$AOMP_HCC_REPO_NAME
-  echo patch -p1  $thisdir/hcc.patch
-  patch -p1  < $thisdir/hcc.patch
-  touch this_repo_was_patched
 fi
 
 cd $BUILD_DIR/build/$AOMP_HCC_REPO_NAME
@@ -216,26 +189,6 @@ if [ "$1" == "install" ] ; then
    if [ $? != 0 ] ; then 
       echo "ERROR make install failed "
       exit 1
-   fi
-# 
-# Not sure we need make install/local for hcc
-# It does something useful in build_llvm.sh
-#   echo
-#   echo " ----- Now running make install/local ----"
-#   $SUDO make install/local
-#   if [ $? != 0 ] ; then 
-#      echo "ERROR make install/local failed "
-#      exit 1
-#   fi
-   #  remove that patch
-   if [ -f $AOMP_REPOS/$AOMP_HCC_REPO_NAME/this_repo_was_patched ] ; then 
-      cd $AOMP_REPOS/$AOMP_HCC_REPO_NAME
-      echo patch -p1 -R $thisdir/hcc.patch
-      patch -p1 -R < $thisdir/hcc.patch
-      if [ -f lib/hsa/mcwamp_hsa.cpp.orig ] ; then 
-        rm lib/hsa/mcwamp_hsa.cpp.orig
-      fi
-      rm  $AOMP_REPOS/$AOMP_HCC_REPO_NAME/this_repo_was_patched
    fi
    echo
    echo "SUCCESSFUL INSTALL to $INSTALL_HCC to $AOMP_INSTALL_DIR/hcc"

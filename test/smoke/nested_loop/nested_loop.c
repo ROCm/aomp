@@ -32,7 +32,7 @@ int main() {
   }
   for(int i = 0 ; i < 256 ; i++) {
     if (A[i] != TRIALS) {
-      printf("Error at A[%d], h = %lf, d = %lf\n", i, (double) (2.0+3.0)*TRIALS, A[i]);
+      printf("Error at A[%d], h = %lf, d = %lf\n", i, (double)TRIALS, A[i]);
       fail = 1;
     }
   }

@@ -1,5 +1,5 @@
 # Verify and Install Linux Support 
-The ROCm kernel driver is required for AMD GPU support and CUDA is required for nvptx GPU support.
+The ROCm kernel driver is required for AMD GPU support.
 Also, to control access to the ROCm device, a linux user group "video" must be created and users added to this group.
 
 # Debian or Ubuntu Support
@@ -16,7 +16,8 @@ sudo reboot
 sudo usermod -a -G video $USER
 ```
 ### NVIDIA CUDA Driver
-To build AOMP with support for nvptx GPUs, you must first install CUDA 10.  We recommend CUDA 10.0.  CUDA 10.1 will not work until AOMP moves to the trunk development of LLVM 9. The CUDA installation is now optional. Note these instructions reference the install for Ubuntu 16.04.
+If you build AOMP with support for nvptx GPUs, you must first install CUDA 10.
+Note these instructions reference the install for Ubuntu 16.04.
 
 <b>Download Instructions for CUDA (Ubuntu 16.04)</b>
 1. Go to https://developer.nvidia.com/cuda-10.0-download-archive
@@ -49,7 +50,7 @@ SUSE SLES-15-SP1 comes with kfd support installed. To verify this:
 ```
 
 ### NVIDIA CUDA Driver
-To build AOMP with support for nvptx GPUs, you must first install CUDA 10.  We recommend CUDA 10.0.  CUDA 10.1 will not work until AOMP moves to the trunk development of LLVM 9. The CUDA installation is now optional.
+If you build AOMP with support for nvptx GPUs, you must first install CUDA 10.
 
 <b>Download Instructions for CUDA (SLES15)</b>
 1. Go to https://developer.nvidia.com/cuda-10.0-download-archive

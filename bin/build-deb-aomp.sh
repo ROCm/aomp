@@ -3,7 +3,7 @@
 #  build-deb-aomp.sh:  Using debhelper and alien, build the aomp debian and rpm packages
 #                      This script is tested on amd64 and ppc64le linux architectures. 
 #                      This script needs packages: debuitils,devscripts,cli-common-dev,alien
-#                      A complete build of aomp in /opt/rocm/aomp_$AOMP_VERSION_STRING
+#                      A complete build of aomp in /usr/lib/aomp_$AOMP_VERSION_STRING
 #                      is required before running this script.
 #                      You must also have sudo access to build the debs.
 #                      You will be prompted for your password for sudo. 
@@ -37,8 +37,8 @@ RELSTRING=`echo $DISTRIB_ID$DISTRIB_RELEASE | tr -d "."`
 echo RELSTRING=$RELSTRING
 pkgname=aomp
 dirname="aomp_${AOMP_VERSION_STRING}"
-sourcedir="/opt/rocm/$dirname"
-installdir="/opt/rocm/$dirname"
+sourcedir="/usr/lib/$dirname"
+installdir="/usr/lib/$dirname"
 
 DEBFULLNAME="Greg Rodgers"
 DEBEMAIL="Gregory.Rodgers@amd.com"
@@ -80,14 +80,14 @@ if [ "$DEBARCH" != "amd64" ] ; then
 fi
 
 # Make the install and links file version specific
-echo "opt/rocm/$dirname opt/rocm/aomp" > $froot/debian/$pkgname.links
-echo "opt/rocm/$dirname/bin/bundle.sh  /usr/bin/bundle.sh" >> $froot/debian/$pkgname.links
-echo "opt/rocm/$dirname/bin/unbundle.sh  /usr/bin/unbundle.sh" >> $froot/debian/$pkgname.links
-echo "opt/rocm/$dirname/bin/cloc.sh /usr/bin/cloc.sh" >> $froot/debian/$pkgname.links
-echo "opt/rocm/$dirname/bin/mymcpu  /usr/bin/mymcpu" >> $froot/debian/$pkgname.links
-echo "opt/rocm/$dirname/bin/mygpu  /usr/bin/mygpu" >> $froot/debian/$pkgname.links
-echo "opt/rocm/$dirname/bin/aompversion /usr/bin/aompversion" >> $froot/debian/$pkgname.links
-echo "opt/rocm/$dirname" > $froot/debian/$pkgname.install
+echo "usr/lib/$dirname usr/lib/aomp" > $froot/debian/$pkgname.links
+echo "usr/lib/$dirname/bin/bundle.sh  /usr/bin/bundle.sh" >> $froot/debian/$pkgname.links
+echo "usr/lib/$dirname/bin/unbundle.sh  /usr/bin/unbundle.sh" >> $froot/debian/$pkgname.links
+echo "usr/lib/$dirname/bin/cloc.sh /usr/bin/cloc.sh" >> $froot/debian/$pkgname.links
+echo "usr/lib/$dirname/bin/mymcpu  /usr/bin/mymcpu" >> $froot/debian/$pkgname.links
+echo "usr/lib/$dirname/bin/mygpu  /usr/bin/mygpu" >> $froot/debian/$pkgname.links
+echo "usr/lib/$dirname/bin/aompversion /usr/bin/aompversion" >> $froot/debian/$pkgname.links
+echo "usr/lib/$dirname" > $froot/debian/$pkgname.install
 echo "usr/share/doc/$dirname" >> $froot/debian/$pkgname.install
 
 echo 

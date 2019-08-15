@@ -34,8 +34,8 @@ if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   help_build_aomp
 fi
 
-REPO_BRANCH=$AOMP_OPENMP_REPO_BRANCH
-REPO_DIR=$AOMP_REPOS/$AOMP_OPENMP_REPO_NAME
+REPO_BRANCH=$AOMP_PROJECT_REPO_BRANCH
+REPO_DIR=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME
 checkrepo
 
 if [ "$AOMP_BUILD_CUDA" == 1 ] ; then
@@ -55,9 +55,9 @@ if [ "$AOMP_BUILD_CUDA" == 1 ] ; then
    export CUDAFE_FLAGS="-w"
 fi
 
-if [ ! -d $AOMP_REPOS/$AOMP_OPENMP_REPO_NAME ] ; then 
-   echo "ERROR:  Missing repository $AOMP_REPOS/$AOMP_OPENMP_REPO_NAME "
-   echo "        Consider setting env variables AOMP_REPOS and/or AOMP_OPENMP_REPO_NAME "
+if [ ! -d $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME ] ; then 
+   echo "ERROR:  Missing repository $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME "
+   echo "        Consider setting env variables AOMP_REPOS and/or AOMP_PROJECT_REPO_NAME "
    exit 1
 fi
 
@@ -70,11 +70,6 @@ if [ "$1" == "install" ] ; then
       exit 1
    fi
    $SUDO rm $INSTALL_OPENMP/testfile
-fi
-
-NUM_THREADS=
-if [ ! -z `which "getconf"` ]; then
-    NUM_THREADS=$(`which "getconf"` _NPROCESSORS_ONLN)
 fi
 
 GCCMIN=7
@@ -141,13 +136,12 @@ export HSA_RUNTIME_PATH=$INSTALL_OPENMP/hsa
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then 
 
    echo " " 
-   echo "This is a FRESH START. ERASING any previous builds in $BUILD_DIR/$AOMP_OPENMP_REPO_NAME "
+   echo "This is a FRESH START. ERASING any previous builds in $BUILD_DIR/openmp "
    echo "Use ""$0 nocmake"" or ""$0 install"" to avoid FRESH START."
 
    if [ $COPYSOURCE ] ; then 
-      mkdir -p $BUILD_DIR/$AOMP_OPENMP_REPO_NAME
-      echo rsync -av --exclude ".git" --delete $AOMP_REPOS/$AOMP_OPENMP_REPO_NAME/ $BUILD_DIR/$AOMP_OPENMP_REPO_NAME/ 
-      rsync -av --exclude ".git" --delete $AOMP_REPOS/$AOMP_OPENMP_REPO_NAME/ $BUILD_DIR/$AOMP_OPENMP_REPO_NAME/ 
+      echo rsync -av --exclude ".git" --delete $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/  $BUILD_DIR/$AOMP_PROJECT_REPO_NAME/openmp/
+      rsync -av --exclude ".git" --delete $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/  $BUILD_DIR/$AOMP_PROJECT_REPO_NAME/openmp/
    fi
 
       echo rm -rf $BUILD_DIR/build/openmp
@@ -156,8 +150,8 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
       mkdir -p $BUILD_DIR/build/openmp
       cd $BUILD_DIR/build/openmp
       echo " -----Running openmp cmake ---- " 
-      echo cmake $MYCMAKEOPTS  $BUILD_DIR/$AOMP_OPENMP_REPO_NAME
-      cmake $MYCMAKEOPTS  $BUILD_DIR/$AOMP_OPENMP_REPO_NAME
+      echo cmake $MYCMAKEOPTS  $BUILD_DIR/$AOMP_PROJECT_REPO_NAME/openmp
+      cmake $MYCMAKEOPTS  $BUILD_DIR/$AOMP_PROJECT_REPO_NAME/openmp
       if [ $? != 0 ] ; then 
          echo "ERROR openmp cmake failed. Cmake flags"
          echo "      $MYCMAKEOPTS"
@@ -171,8 +165,8 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
       cd $BUILD_DIR/build/openmp_debug
       echo
       echo " -----Running openmp cmake for debug ---- " 
-      echo cmake $MYCMAKEOPTS  $BUILD_DIR/$AOMP_OPENMP_REPO_NAME
-      cmake $MYCMAKEOPTS  $BUILD_DIR/$AOMP_OPENMP_REPO_NAME
+      echo cmake $MYCMAKEOPTS  $BUILD_DIR/$AOMP_PROJECT_REPO_NAME/openmp
+      cmake $MYCMAKEOPTS  $BUILD_DIR/$AOMP_PROJECT_REPO_NAME/openmp
       if [ $? != 0 ] ; then 
          echo "ERROR openmp debug cmake failed. Cmake flags"
          echo "      $MYCMAKEOPTS"

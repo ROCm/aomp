@@ -1,10 +1,7 @@
 dh_update_autotools_config
 override_dh_auto_configure dh_auto_configure
 dh_auto_configure
-dh_auto_build
-dh_auto_test
 dh_prep
-dh_auto_install
 dh_install
 dh_installdocs
 dh_installchangelogs
@@ -14,6 +11,7 @@ dh_strip_nondeterminism
 dh_compress
 dh_fixperms
 dh_clifixperms
+dh_missing
 dh_strip
 dh_makeshlibs
 override_dh_shlibdeps dh_shlibdeps
@@ -27,5 +25,4 @@ dh_clideps
 dh_installdeb
 dh_gencontrol
 dh_md5sums
-dh_builddeb
 dh_builddeb

@@ -1,11 +1,7 @@
 #!/bin/bash
-# 
-#  build_comgr.sh:  Script to build the comgr component of the AOMP compiler. 
 #
+#  build_comgr.sh:  Script to build the code object manager for aomp
 #
-BUILD_TYPE=${BUILD_TYPE:-Release}
-
-# --- Start standard header ----
 function getdname(){
    local __DIRN=`dirname "$1"`
    if [ "$__DIRN" = "." ] ; then
@@ -25,28 +21,38 @@ function getdname(){
    fi
    echo $__DIRN
 }
+
 thisdir=$(getdname $0)
 . $thisdir/aomp_common_vars
-# --- end standard header ----
 
 INSTALL_COMGR=${INSTALL_COMGR:-$AOMP_INSTALL_DIR}
 
-GCC=`which gcc`
-GCPLUSCPLUS=`which g++`
-if [ "$AOMP_PROC" == "ppc64le" ] ; then
-   COMPILERS="-DCMAKE_C_COMPILER=/usr/bin/gcc-7 -DCMAKE_CXX_COMPILER=/usr/bin/g++-7"
-else
-   COMPILERS="-DCMAKE_C_COMPILER=$GCC -DCMAKE_CXX_COMPILER=$GCPLUSCPLUS"
-fi
-MYCMAKEOPTS="-DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX=$INSTALL_COMGR -DLLVM_DIR=$AOMP_INSTALL_DIR/lib/cmake/llvm -DLLVM_ENABLE_ASSERTIONS=ON -DLLVM_TARGETS_TO_BUILD=AMDGPU $COMPILERS -DLLVM_VERSION_SUFFIX=_AOMP_Version_$AOMP_VERSION_STRING -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON -DCMAKE_INSTALL_RPATH=$AOMP_INSTALL_DIR/lib"
+REPO_DIR=$AOMP_REPOS/$AOMP_COMGR_REPO_NAME
+REPO_BRANCH=$AOMP_COMGR_REPO_BRANCH
+checkrepo
 
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then 
-  help_build_aomp
+  echo " "
+  echo " This script builds the code object manager"
+  echo " It gets the source from:  $AOMP_REPOS/$AOMP_COMGR_REPO_NAME/lib/comgr"
+  echo " It builds libraries in:   $BUILD_AOMP/build/comgr"
+  echo " It installs in:           $INSTALL_COMGR"
+  echo " "
+  echo "Example commands and actions: "
+  echo "  ./build_comgr.sh                   cmake, make , NO Install "
+  echo "  ./build_comgr.sh nocmake           NO cmake, make, NO install "
+  echo "  ./build_comgr.sh install           NO Cmake, make , INSTALL"
+  echo " "
+  echo "To build aomp, see the README file in this directory"
+  echo " "
+  exit 
 fi
 
-REPO_BRANCH=$AOMP_COMGR_REPO_BRANCH
-REPO_DIR=$AOMP_REPOS/$AOMP_COMGR_REPO_NAME
-checkrepo
+if [ ! -d $AOMP_REPOS/$AOMP_COMGR_REPO_NAME ] ; then 
+   echo "ERROR:  Missing repository $AOMP_REPOS/$AOMP_COMGR_REPO_NAME"
+   echo "        Are environment variables AOMP_REPOS and AOMP_COMGR_REPO_NAME set correctly?"
+   exit 1
+fi
 
 # Make sure we can update the install directory
 if [ "$1" == "install" ] ; then 
@@ -59,80 +65,51 @@ if [ "$1" == "install" ] ; then
    $SUDO rm $INSTALL_COMGR/testfile
 fi
 
-# Calculate the number of threads to use for make
-NUM_THREADS=
-if [ ! -z `which "getconf"` ]; then
-   NUM_THREADS=$(`which "getconf"` _NPROCESSORS_ONLN)
-   if [ "$AOMP_PROC" == "ppc64le" ] ; then
-      NUM_THREADS=$(( NUM_THREADS / 2))
-   fi
-fi
+if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then 
 
-# Skip synchronization from git repos if nocmake or install are specified
-if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
-   echo 
-   echo "This is a FRESH START. ERASING any previous builds in $BUILD_DIR/build/$AOMP_COMGR_REPO_NAME"
+   echo " " 
+   echo "This is a FRESH START. ERASING any previous builds in $BUILD_AOMP/build_comgr"
    echo "Use ""$0 nocmake"" or ""$0 install"" to avoid FRESH START."
-   rm -rf $BUILD_DIR/build/$AOMP_COMGR_REPO_NAME
-   mkdir -p $BUILD_DIR/build/$AOMP_COMGR_REPO_NAME
 
-   if [ $COPYSOURCE ] ; then 
-      #  Copy/rsync the git repos into /tmp for faster compilation
-      mkdir -p $BUILD_DIR
-      echo
-      echo "WARNING!  BUILD_DIR($BUILD_DIR) != AOMP_REPOS($AOMP_REPOS)"
-      echo "SO RSYNCING AOMP_REPOS TO: $BUILD_DIR"
-      echo
-      echo rsync -a --exclude ".git" --delete $AOMP_REPOS/$AOMP_COMGR_REPO_NAME $BUILD_DIR
-      rsync -a --exclude ".git" --delete $AOMP_REPOS/$AOMP_COMGR_REPO_NAME $BUILD_DIR 2>&1
-   fi
-else
-   if [ ! -d $BUILD_DIR/build/$AOMP_COMGR_REPO_NAME ] ; then 
-      echo "ERROR: The build directory $BUILD_DIR/build/$AOMP_COMGR_REPO_NAME does not exist"
-      echo "       run $0 without nocmake or install options. " 
-      exit 1
-   fi
-fi
-
-cd $BUILD_DIR/build/$AOMP_COMGR_REPO_NAME
-
-#  Need llvm-config to come from previous LLVM build
-export PATH=$AOMP_INSTALL_DIR/bin:$PATH
-
-if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
-   echo
-   echo " -----Running cmake ---- " 
-   echo cmake $MYCMAKEOPTS  $BUILD_DIR/$AOMP_COMGR_REPO_NAME/lib/comgr
-   cmake $MYCMAKEOPTS  $BUILD_DIR/$AOMP_COMGR_REPO_NAME/lib/comgr 2>&1
+   BUILDTYPE="Release"
+   echo $SUDO rm -rf $BUILD_AOMP/build/comgr
+   $SUDO rm -rf $BUILD_AOMP/build/comgr
+   export LLVM_DIR=$AOMP_INSTALL_DIR
+   export Clang_DIR=$AOMP_INSTALL_DIR
+   MYCMAKEOPTS="-DCMAKE_INSTALL_PREFIX=$INSTALL_COMGR -DCMAKE_BUILD_TYPE=$BUILDTYPE -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON -DCMAKE_INSTALL_RPATH=$AOMP_INSTALL_DIR/lib -DLLVM_BUILD_MAIN_SRC_DIR=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/llvm -DLLVM_DIR=$AOMP_INSTALL_DIR -DClang_DIR=$AOMP_INSTALL_DIR"
+   mkdir -p $BUILD_AOMP/build/comgr
+   cd $BUILD_AOMP/build/comgr
+   echo " -----Running comgr cmake ---- " 
+   echo cmake $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_COMGR_REPO_NAME/lib/comgr
+   cmake $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_COMGR_REPO_NAME/lib/comgr
    if [ $? != 0 ] ; then 
-      echo "ERROR cmake failed. Cmake flags"
+      echo "ERROR comgr cmake failed. cmake flags"
       echo "      $MYCMAKEOPTS"
       exit 1
    fi
+
 fi
 
+cd $BUILD_AOMP/build/comgr
 echo
-echo " -----Running make ---- " 
-echo make amd_comgr -j $NUM_THREADS 
-make amd_comgr -j $NUM_THREADS 
+echo " -----Running make for comgr ---- " 
+make -j $NUM_THREADS
 if [ $? != 0 ] ; then 
-   echo "ERROR make -j $NUM_THREADS failed"
-   exit 1
+      echo " "
+      echo "ERROR: make -j $NUM_THREADS  FAILED"
+      echo "To restart:" 
+      echo "  cd $BUILD_AOMP/build/comgr"
+      echo "  make"
+      exit 1
 fi
 
-if [ "$1" == "install" ] ; then
-   echo " -----Installing to $INSTALL_COMGR ---- " 
-   echo "make install/strip "
-   $SUDO make install/strip 
-   if [ $? != 0 ] ; then 
-      echo "ERROR make install/strip failed "
-      exit 1
-   fi
-   echo "SUCCESSFUL INSTALL to $INSTALL_COMGR with link to $AOMP"
-   echo
-else 
-   echo 
-   echo "SUCCESSFUL BUILD, please run:  $0 install"
-   echo "  to install into $AOMP"
-   echo 
+#  ----------- Install only if asked  ----------------------------
+if [ "$1" == "install" ] ; then 
+      cd $BUILD_AOMP/build/comgr
+      echo " -----Installing to $INSTALL_COMGR/lib ----- " 
+      $SUDO make install 
+      if [ $? != 0 ] ; then 
+         echo "ERROR make install failed "
+         exit 1
+      fi
 fi

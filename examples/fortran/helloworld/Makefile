@@ -1,6 +1,7 @@
 #-----------------------------------------------------------------------
 #
-#  Makefile: Cuda clang demo Makefile for nvptx targets.
+#  Makefile: Cuda clang demo Makefile for both amdgcn and nvptx targets.
+#            amdgcn targets begin with gfx. nvptx targets begin with sm_
 #
 #  Run "make help" to see how to use this Makefile
 #
@@ -28,8 +29,8 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-TESTNAME =vectorAdd
-FILETYPE =cu
+TESTNAME =helloworld
+FILETYPE =f90
 
 ifeq ($(AOMP),)
 # --- Standard Makefile check for AOMP installation ---
@@ -52,58 +53,48 @@ endif
 ifeq ($(CUDA),)
 CUDA = /usr/local/cuda
 endif
-
-ifeq ($(AOMP_GPU),) #if AOMP_GPU is not set
-  INSTALLED_GPU = $(shell $(AOMP)/bin/mygpu -d sm_60) #get installed card, if unknown return sm_60
-  ifneq ($(findstring sm_, $(INSTALLED_GPU)),) #if sm_ string found in INSTALLED_GPU set AOMP_GPU
-    AOMP_GPU = $(INSTALLED_GPU)
-  else
-    AOMP_GPU = sm_60 #default to sm_60
-  endif
-else #AOMP_GPU is set
-  ifeq ($(findstring sm_, $(AOMP_GPU)),) #if sm_ string not found default to sm_60
-    AOMP_GPU = sm_60
-  endif
+ifeq ($(AOMP_GPU),)
+INSTALLED_GPU  = $(shell $(AOMP)/bin/mygpu -d gfx900) # Default AOMP_GPU is gfx900 which is vega
+AOMP_GPU       ?= $(INSTALLED_GPU)
 endif
-
 ifeq ($(TARGETS),)
 TARGETS =--offload-arch=$(AOMP_GPU)
 endif
 
-CC       =$(AOMP)/bin/clang++
-LFLAGS +=-L$(CUDA)/targets/x86_64-linux/lib -lcudart -Wl,-rpath,$(CUDA)/targets/x86_64-linux/lib
-CFLAGS += -I$(CUDA)/include
+FORT   =$(AOMP)/bin/flang
+LFLAGS = 
+FFLAGS =
 
 # ----- Demo compile and link in one step, no object code saved
 $(TESTNAME): $(TESTNAME).$(FILETYPE)
-	$(CC) $(CFLAGS) $(TARGETS) $(LFLAGS) $^ -o $@
+	$(FORT) $(FFLAGS) $(TARGETS) $(LFLAGS) $^ -o $@
 
 run: $(TESTNAME)
 	./$(TESTNAME)
 
 #  ----   Demo compile and link in two steps, object saved
 $(TESTNAME).o: $(TESTNAME).$(FILETYPE)
-	$(CC) -c $(CFLAGS) $(TARGETS) $^
+	$(FORT) -c $(FFLAGS) $(TARGETS) $^
 
 obin:	$(TESTNAME).o 
-	$(CC) $(LFLAGS) $^ -o obin
+	$(FORT) $(LFLAGS) $^ -o obin
 
 run_obin: obin 
 	./obin
 
 #  ----   Demo compile to intermediates LLVMIR or assembly
 $(TESTNAME).ll: $(TESTNAME).$(FILETYPE)
-	$(CC) -c -S -emit-llvm $(CFLAGS) $(TARGETS) $^
+	$(FORT) -c -S -emit-llvm $(FFLAGS) $(TARGETS) $^
 
 $(TESTNAME).s: $(TESTNAME).$(FILETYPE)
-	$(CC)  -c -S $(CFLAGS) $(TARGETS)  $^
+	$(FORT)  -c -S $(FFLAGS) $(TARGETS)  $^
 
 help: 
 	@echo
 	@echo "Makefile Help:"
 	@echo "  Source:		$(TESTNAME).$(FILETYPE)"
-	@echo "  Compiler: 		$(CC)"
-	@echo "  Compiler flags: 	$(CFLAGS)"
+	@echo "  Compiler: 		$(FORT)"
+	@echo "  Compiler flags: 	$(FFLAGS)"
 	@echo
 	@echo "Avalable Targets:"
 	@echo "  make			// build binary $(TESTNAME)"
@@ -118,10 +109,13 @@ help:
 	@echo
 	@echo "Environment Variables:"
 	@echo "  AOMP      default: $(HOME)/rocm/aomp     value: $(AOMP)"
-	@echo "  AOMP_GPU  default: sm_60                 value: $(AOMP_GPU)"
+	@echo "  AOMP_GPU  default: gfx900                value: $(AOMP_GPU)"
 	@echo "  CUDA      default: /usr/local/cuda       value: $(CUDA)"
 	@echo "  TARGETS   default: --offload-arch=$(AOMP_GPU)"
 	@echo "              value: $(TARGETS)"
+	@echo
+	@echo "Link Flags:"
+	@echo "  Link flags: $(LFLAGS)"
 	@echo
 
 # Cleanup anything this makefile can create

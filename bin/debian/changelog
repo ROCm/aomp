@@ -1,7 +1,7 @@
-aomp (0.6-5) UNRELEASED; urgency=medium
+aomp (0.7-0) UNRELEASED; urgency=medium
 
   * Initial release of aomp is 0.3-2
-  *   Please see example in /opt/rocm/aomp/examples/vmuldemo 
+  *   Please see example in /usr/lib/aomp/examples/vmuldemo 
   *   aomp requires amdllvm, amdlibgcn, cuda, and libatmi
   * 0.3-3 Fixes data sharing constructs, include SOURCE ID in commandline
   *   updates to libcuda2gcn.bc 
@@ -207,5 +207,20 @@ aomp (0.6-5) UNRELEASED; urgency=medium
   *   Emit struct of per kernal attributes.
   *   Detect and warn that a target exit data clause fails, rather than abort.
   *   Fixed linking issue when archive files contain no BC files.
+  * 
+  * 0.7-0
+  *   Now installs in /usr/lib/aomp_0.7-X with sympbol link from /usr/lib/aomp
+  *   Based of clang/llvm trunk 9.0 as of July 15, 2019
+  *   Uses native build of rocm-device-libs from rocm 2.6
+  *   New untested infrastructure to eventually support fortran with flang
+  *   Moved to the new monorepo llvm-project.  This eliminates need for
+  *      clang,llvm,lld, and openmp repositories. 
+  *   no longer build for nvptx backend, removed cuda examples
+  *   moved utils to aomp-extras repository
+  *   moved custom libraries from rocm-device-libs to aomp-device-libs
+  *   hcc now build with rocm 2.6.x
+  *   roct and rocr are now build from rocm 2.6.x sources
+  *   fixes for a number of new test cases
+  *   (FIXME: More details on this release will be provided later) 
 
- -- Greg Rodgers <Gregory.Rodgers@amd.com>  Tue, 25 Jun 2019 08:53:17 -0500
+ -- Greg Rodgers <Gregory.Rodgers@amd.com>  Fri, 02 Aug 2019 07:39:37 -0500

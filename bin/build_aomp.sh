@@ -28,18 +28,20 @@ thisdir=$(getdname $0)
 # --- end standard header ----
 
 function build_aomp_component() {
-   $AOMP_REPOS/$AOMP_REPO_NAME/bin/build_$COMPONENT.sh
+   $AOMP_REPOS/$AOMP_REPO_NAME/bin/build_$COMPONENT.sh "$@"
    rc=$?
    if [ $rc != 0 ] ; then 
       echo " !!!  build_aomp.sh: BUILD FAILED FOR COMPONENT $COMPONENT !!!"
       exit $rc
    fi  
-   $AOMP_REPOS/$AOMP_REPO_NAME/bin/build_$COMPONENT.sh install
-   rc=$?
-   if [ $rc != 0 ] ; then 
-      echo " !!!  build_aomp.sh: INSTALL FAILED FOR COMPONENT $COMPONENT !!!"
-      exit $rc
-   fi  
+   if [ $# -eq 0 ] ; then
+       $AOMP_REPOS/$AOMP_REPO_NAME/bin/build_$COMPONENT.sh install
+       rc=$?
+       if [ $rc != 0 ] ; then 
+           echo " !!!  build_aomp.sh: INSTALL FAILED FOR COMPONENT $COMPONENT !!!"
+           exit $rc
+       fi
+   fi
 }
 
 
@@ -64,28 +66,39 @@ if [ $? != 0 ] ; then
 fi
 $TOPSUDO rm $AOMP_INSTALL_DIR/testfile
 
+#Check for gawk on Ubuntu, which is needed for the flang build.
+GAWK=$(gawk --version | grep "^GNU Awk")
+OS=$(cat /etc/os-release | grep "^NAME=")
+
+if [[ -z $GAWK ]] && [[ "$OS" == *"Ubuntu"* ]] ; then
+   echo
+   echo "Build Error: gawk was not found and is required for building flang! Please run 'sudo apt-get install gawk' and run build_aomp.sh again."
+   echo
+   exit 1
+fi
+
 echo 
 date
 echo " =================  START build_aomp.sh ==================="   
 echo 
 
 if [ "$AOMP_BUILD_HIP" == 1 ] ; then
-   components="roct rocr llvm lld clang utils hcc hip extras atmi openmp libdevice libm"
+   components="roct rocr project libdevice comgr hcc hip extras atmi openmp pgmath flang flang_runtime"
 else
    # The hip build will only install headers if AOMP_BUILD_HIP is off
    # if AOMP_BUILD_HIP is off, then hcc is not built
-   components="roct rocr llvm lld clang utils hip extras atmi openmp libdevice libm"
+   components="roct rocr project libdevice comgr hip extras atmi openmp pgmath flang flang_runtime"
 fi
 for COMPONENT in $components ; do 
    echo 
    echo " =================  BUILDING COMPONENT $COMPONENT ==================="   
    echo 
-   build_aomp_component
+   build_aomp_component "$@"
    date
    echo " =================  DONE INSTALLING COMPONENT $COMPONENT ==================="   
 done
-
-$AOMP_REPOS/$AOMP_REPO_NAME/bin/build_fixups.sh
+#Run build_fixups.sh to clean the AOMP directory before packaging
+#$AOMP_REPOS/$AOMP_REPO_NAME/bin/build_fixups.sh
 echo 
 date
 echo " =================  END build_aomp.sh ==================="   

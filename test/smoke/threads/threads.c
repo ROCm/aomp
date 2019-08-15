@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <omp.h>
 #include <string.h>
+#include <stdlib.h>
 
 int main()
 {
@@ -13,13 +14,9 @@ int main()
   if(aomp_gpu && strstr(aomp_gpu, nvidia) != NULL)
     isAMDGPU = 0;
 
-  if(isAMDGPU)
-    masterWarpThread = 959;
-  else
-    masterWarpThread = 991;
-
   int thread_id[1024] ;
   for (int i=0; i < 1024; i++) thread_id[i] = -1;
+
   //#pragma omp target map (tofrom: thread_id)
   #pragma omp target parallel for num_threads(1024)
   for (int i=0; i< 1024; i++) {
@@ -34,10 +31,32 @@ int main()
      maxThrd = thread_id[i];
   }
   printf("Max thread id %d\n", maxThrd);
-  if (maxThrd == masterWarpThread) {
-    printf("Passed\n");
+
+  //Determine execution Mode
+  if (maxThrd == 1023)
+    printf("Running in SPMD Mode\n");
+  else
+    printf("Running in Generic Mode\n");
+
+  //Verify Results
+  int passed = 0;
+
+  //Check SPMD results
+  if (maxThrd == 1023)
+    passed = 1;
+  else{
+    //Check generic results
+    if(isAMDGPU)
+      maxThrd += 64;
+    else
+      maxThrd += 32;
+    if (maxThrd == 1023)
+      passed = 1;
+  }
+  if (passed){
+    printf("Passed!\n");
     return 0;
-  } else {
+  } else{
     printf("Failed\n");
     return 1;
   }

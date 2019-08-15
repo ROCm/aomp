@@ -1,4 +1,4 @@
-# Source Install V 0.6-5 (DEV)
+# Source Install V 0.7-0 (DEV)
 
 Build and install from sources is possible.  However, the source build for AOMP is complex for several reasons.
 - Many repos are required.  The clone_aomp.sh script ensures you have all repos and the correct branch.
@@ -10,7 +10,7 @@ Build and install from sources is possible.  However, the source build for AOMP 
 <b>Ubuntu</b>
 
 ```
-  sudo apt-get install cmake g++-5 g++ pkg-config libpci-dev libnuma-dev libelf-dev libffi-dev git python libopenmpi-dev
+   sudo apt-get install cmake g++-5 g++ pkg-config libpci-dev libnuma-dev libelf-dev libffi-dev git python libopenmpi-dev gawk
 ```
 <b>SLES-15-SP1</b>
 
@@ -40,19 +40,21 @@ Please verify you have the proper software installed as AOMP needs certain suppo
    cd $HOME ; mkdir -p git/aomp ; cd git/aomp
    git clone https://github.com/rocm-developer-tools/aomp
    cd $HOME/git/aomp/aomp/bin
+   git checkout 0.7
+   git pull
 ```
 
 <b>Choose a Build Version (Development or Release)</b>
-The development version is the next version to be released.  It is possible that the development version is broken due to regressions that often occur during development.  If instead, you want to build from the sources of a previous release such as 0.6-5 that is possible as well.
+The development version is the next version to be released.  It is possible that the development version is broken due to regressions that often occur during development.  If instead, you want to build from the sources of a previous release such as 0.7-0 that is possible as well.
 
 <b>For the Development Branch:</b>
 ```
-   git checkout master 
+   git checkout 0.7
 ```
 
 <b>For the Release Branch:</b>
 ```
-   git checkout rel_0.6-5
+   git checkout rel_0.7-0
    git pull
 ```
 <b>Clone and Build:</b>

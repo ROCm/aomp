@@ -1,12 +1,12 @@
 #!/bin/bash
 # 
-#  build_llvm.sh:  Script to build the llvm, clang , and lld components of the AOMP compiler. 
+#  build_project.sh:  Script to build the llvm, clang , and lld components of the AOMP compiler. 
 #                  This clang 9.0 compiler supports clang hip, OpenMP, and clang cuda
 #                  offloading languages for BOTH nvidia and Radeon accelerator cards.
 #                  This compiler has both the NVPTX and AMDGPU LLVM backends.
 #                  The AMDGPU LLVM backend is referred to as the Lightning Compiler.
 #
-# See the help text below, run 'build_llvm.sh -h' for more information. 
+# See the help text below, run 'build_project.sh -h' for more information. 
 #
 BUILD_TYPE=${BUILD_TYPE:-Release}
 
@@ -34,7 +34,7 @@ thisdir=$(getdname $0)
 . $thisdir/aomp_common_vars
 # --- end standard header ----
 
-INSTALL_LLVM=${INSTALL_LLVM:-$AOMP_INSTALL_DIR}
+INSTALL_PROJECT=${INSTALL_PROJECT:-$AOMP_INSTALL_DIR}
 
 WEBSITE="http\:\/\/github.com\/ROCm-Developer-Tools\/aomp"
 
@@ -51,7 +51,7 @@ else
       TARGETS_TO_BUILD="AMDGPU;${AOMP_NVPTX_TARGET}X86"
    fi
 fi
-MYCMAKEOPTS="-DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX=$INSTALL_LLVM -DLLVM_ENABLE_ASSERTIONS=ON -DLLVM_TARGETS_TO_BUILD=$TARGETS_TO_BUILD $COMPILERS -DLLVM_VERSION_SUFFIX=_AOMP_Version_$AOMP_VERSION_STRING -DBUG_REPORT_URL='https://github.com/ROCm-Developer-Tools/aomp' -DCLANG_ANALYZER_ENABLE_Z3_SOLVER=0 -DLLVM_INCLUDE_BENCHMARKS=0 -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON -DCMAKE_INSTALL_RPATH=$AOMP_INSTALL_DIR/lib"
+MYCMAKEOPTS="-DLLVM_ENABLE_PROJECTS=clang;lld -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX=$INSTALL_PROJECT -DLLVM_ENABLE_ASSERTIONS=ON -DLLVM_TARGETS_TO_BUILD=$TARGETS_TO_BUILD $COMPILERS -DLLVM_VERSION_SUFFIX=_AOMP_Version_$AOMP_VERSION_STRING -DBUG_REPORT_URL='https://github.com/ROCm-Developer-Tools/aomp' -DCLANG_ANALYZER_ENABLE_Z3_SOLVER=0 -DLLVM_INCLUDE_BENCHMARKS=0 -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON -DCMAKE_INSTALL_RPATH=$AOMP_INSTALL_DIR/lib"
 
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then 
   help_build_aomp
@@ -65,32 +65,28 @@ if [ ! -L $AOMP ] ; then
   fi
 fi
 
-REPO_BRANCH=$AOMP_LLVM_REPO_BRANCH
-REPO_DIR=$AOMP_REPOS/$AOMP_LLVM_REPO_NAME
+REPO_BRANCH=$AOMP_PROJECT_REPO_BRANCH
+REPO_DIR=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME
 checkrepo
 
 # Make sure we can update the install directory
 if [ "$1" == "install" ] ; then 
-   $SUDO mkdir -p $INSTALL_LLVM
-   $SUDO touch $INSTALL_LLVM/testfile
+   $SUDO mkdir -p $INSTALL_PROJECT
+   $SUDO touch $INSTALL_PROJECT/testfile
    if [ $? != 0 ] ; then 
-      echo "ERROR: No update access to $INSTALL_LLVM"
+      echo "ERROR: No update access to $INSTALL_PROJECT"
       exit 1
    fi
-   $SUDO rm $INSTALL_LLVM/testfile
+   $SUDO rm $INSTALL_PROJECT/testfile
 fi
-if [ "$AOMP_LLVM_REPO_BRANCH" != "master" ] ; then
+if [ "$AOMP_PROJECT_REPO_BRANCH" != "master" ] ; then
 # Fix the banner to print the AOMP version string. 
-cd $AOMP_REPOS/$AOMP_LLVM_REPO_NAME
-LLVMID=`git log | grep -m1 commit | cut -d" " -f2`
-cd $AOMP_REPOS/$AOMP_CLANG_REPO_NAME
-CLANGID=`git log | grep -m1 commit | cut -d" " -f2`
-cd $AOMP_REPOS/$AOMP_LLD_REPO_NAME
-LLDID=`git log | grep -m1 commit | cut -d" " -f2`
-SOURCEID="Source ID:$AOMP_VERSION_STRING-$AOMP_LLVMID-$CLANGID-$LLDID"
+cd $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME
+MONO_REPO_ID=`git log | grep -m1 commit | cut -d" " -f2`
+SOURCEID="Source ID:$AOMP_VERSION_STRING-$MONO_REPO_ID"
 TEMPCLFILE="/tmp/clfile$$.cpp"
-ORIGCLFILE="$AOMP_REPOS/$AOMP_LLVM_REPO_NAME/lib/Support/CommandLine.cpp"
-BUILDCLFILE="$BUILD_DIR/$AOMP_LLVM_REPO_NAME/lib/Support/CommandLine.cpp"
+ORIGCLFILE="$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/llvm/lib/Support/CommandLine.cpp"
+BUILDCLFILE="$BUILD_DIR/$AOMP_PROJECT_REPO_NAME/llvm/lib/Support/CommandLine.cpp"
 sed "s/LLVM (http:\/\/llvm\.org\/):/AOMP-${AOMP_VERSION_STRING} ($WEBSITE):\\\n $SOURCEID/" $ORIGCLFILE > $TEMPCLFILE
 if [ $? != 0 ] ; then 
    echo "ERROR sed command to fix CommandLine.cpp failed."
@@ -98,43 +94,34 @@ if [ $? != 0 ] ; then
 fi
 fi
 
-# Calculate the number of threads to use for make
-NUM_THREADS=
-if [ ! -z `which "getconf"` ]; then
-   NUM_THREADS=$(`which "getconf"` _NPROCESSORS_ONLN)
-   if [ "$AOMP_PROC" == "ppc64le" ] ; then
-      NUM_THREADS=$(( NUM_THREADS / 2))
-   fi
-fi
-
 # Skip synchronization from git repos if nocmake or install are specified
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    echo 
-   echo "This is a FRESH START. ERASING any previous builds in $BUILD_DIR/build/$AOMP_LLVM_REPO_NAME"
+   echo "This is a FRESH START. ERASING any previous builds in $BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME"
    echo "Use ""$0 nocmake"" or ""$0 install"" to avoid FRESH START."
-   rm -rf $BUILD_DIR/build/$AOMP_LLVM_REPO_NAME
-   mkdir -p $BUILD_DIR/build/$AOMP_LLVM_REPO_NAME
+   rm -rf $BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME
+   mkdir -p $BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME
 
    if [ $COPYSOURCE ] ; then 
       #  Copy/rsync the git repos into /tmp for faster compilation
       mkdir -p $BUILD_DIR
       echo
       echo "WARNING!  BUILD_DIR($BUILD_DIR) != AOMP_REPOS($AOMP_REPOS)"
-      echo "SO RSYNCING AOMP_REPOS TO: $BUILD_DIR"
+      echo "SO REPLICATING AOMP_REPOS/$AOMP_PROJECT_REPO_NAME  TO: $BUILD_DIR"
       echo
-      echo rsync -a --exclude ".git" --exclude "CommandLine.cpp" --delete $AOMP_REPOS/$AOMP_LLVM_REPO_NAME $BUILD_DIR 2>&1 
-      rsync -a --exclude ".git" --exclude "CommandLine.cpp" --delete $AOMP_REPOS/$AOMP_LLVM_REPO_NAME $BUILD_DIR 2>&1 
+      echo rsync -a --exclude ".git" --exclude "CommandLine.cpp" --delete $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME $BUILD_DIR 2>&1 
+      rsync -a --exclude ".git" --exclude "CommandLine.cpp" --delete $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME $BUILD_DIR 2>&1 
    fi
 
 else
-   if [ ! -d $BUILD_DIR/build/$AOMP_LLVM_REPO_NAME ] ; then 
-      echo "ERROR: The build directory $BUILD_DIR/build/$AOMP_LLVM_REPO_NAME does not exist"
+   if [ ! -d $BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME ] ; then 
+      echo "ERROR: The build directory $BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME does not exist"
       echo "       run $0 without nocmake or install options. " 
       exit 1
    fi
 fi
 
-cd $BUILD_DIR/build/$AOMP_LLVM_REPO_NAME
+cd $BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME
 
 if [ -f $BUILDCLFILE ] ; then 
    # only copy if there has been a change to the source.  
@@ -151,13 +138,13 @@ else
 fi
 rm $TEMPCLFILE
 
-cd $BUILD_DIR/build/$AOMP_LLVM_REPO_NAME
+cd $BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME
 
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    echo
    echo " -----Running cmake ---- " 
-   echo cmake $MYCMAKEOPTS  $BUILD_DIR/$AOMP_LLVM_REPO_NAME
-   cmake $MYCMAKEOPTS  $BUILD_DIR/$AOMP_LLVM_REPO_NAME 2>&1
+   echo cmake $MYCMAKEOPTS  $BUILD_DIR/$AOMP_PROJECT_REPO_NAME/llvm
+   cmake $MYCMAKEOPTS  $BUILD_DIR/$AOMP_PROJECT_REPO_NAME/llvm 2>&1
    if [ $? != 0 ] ; then 
       echo "ERROR cmake failed. Cmake flags"
       echo "      $MYCMAKEOPTS"
@@ -175,7 +162,7 @@ if [ $? != 0 ] ; then
 fi
 
 if [ "$1" == "install" ] ; then
-   echo " -----Installing to $INSTALL_LLVM ---- " 
+   echo " -----Installing to $INSTALL_PROJECT ---- " 
    $SUDO make install 
    if [ $? != 0 ] ; then 
       echo "ERROR make install failed "
@@ -187,19 +174,20 @@ if [ "$1" == "install" ] ; then
       exit 1
    fi
    echo " "
-   echo "------ Linking $INSTALL_LLVM to $AOMP -------"
+   echo "------ Linking $INSTALL_PROJECT to $AOMP -------"
    if [ -L $AOMP ] ; then 
       $SUDO rm $AOMP   
    fi
-   $SUDO ln -sf $INSTALL_LLVM $AOMP   
+   $SUDO ln -sf $INSTALL_PROJECT $AOMP   
    # add executables forgot by make install but needed for testing
-   $SUDO cp -p $BUILD_DIR/build/$AOMP_LLVM_REPO_NAME/bin/llvm-lit $AOMP/bin/llvm-lit
-   $SUDO cp -p $BUILD_DIR/build/$AOMP_LLVM_REPO_NAME/bin/FileCheck $AOMP/bin/FileCheck
-   $SUDO cp -p $BUILD_DIR/build/$AOMP_LLVM_REPO_NAME/bin/count $AOMP/bin/count
-   $SUDO cp -p $BUILD_DIR/build/$AOMP_LLVM_REPO_NAME/bin/not $AOMP/bin/not
-   $SUDO cp -p $BUILD_DIR/build/$AOMP_LLVM_REPO_NAME/bin/yaml-bench $AOMP/bin/yaml-bench
+   echo add executables forgot by make install but needed for testing
+   $SUDO cp -p $BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME/bin/llvm-lit $AOMP/bin/llvm-lit
+   $SUDO cp -p $BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME/bin/FileCheck $AOMP/bin/FileCheck
+   $SUDO cp -p $BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME/bin/count $AOMP/bin/count
+   $SUDO cp -p $BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME/bin/not $AOMP/bin/not
+   $SUDO cp -p $BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME/bin/yaml-bench $AOMP/bin/yaml-bench
    echo
-   echo "SUCCESSFUL INSTALL to $INSTALL_LLVM with link to $AOMP"
+   echo "SUCCESSFUL INSTALL to $INSTALL_PROJECT with link to $AOMP"
    echo
 else 
    echo 
