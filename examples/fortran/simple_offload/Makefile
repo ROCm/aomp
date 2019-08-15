@@ -66,7 +66,7 @@ FFLAGS = -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-
 $(TESTNAME): $(TESTNAME).$(FILETYPE)
 	$(FORT) $(FFLAGS) $(TARGETS) $(LFLAGS) $^ -o $@
 
-run: $(TESTNAME)
+run: .FORCE $(TESTNAME)
 	LIBOMPTARGET_KERNEL_TRACE=1 ./$(TESTNAME)
 
 #  ----   Demo compile and link in two steps, object saved
@@ -77,7 +77,7 @@ obin:	$(TESTNAME).o
 	$(FORT) $(LFLAGS) $^ -o obin
 
 run_obin: obin 
-	./obin
+	LIBOMPTARGET_KERNEL_TRACE=1 ./obin
 
 #  ----   Demo compile to intermediates LLVMIR or assembly
 $(TESTNAME).ll: $(TESTNAME).$(FILETYPE)
@@ -85,6 +85,9 @@ $(TESTNAME).ll: $(TESTNAME).$(FILETYPE)
 
 $(TESTNAME).s: $(TESTNAME).$(FILETYPE)
 	$(FORT)  -c -S $(FFLAGS) $(TARGETS)  $^
+
+.FORCE:
+	rm -f $(TESTNAME)
 
 help: 
 	@echo
