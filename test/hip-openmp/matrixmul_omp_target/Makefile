@@ -56,24 +56,26 @@ endif
 ifeq ($(AOMP_GPU),)
 AOMP_GPU = $(shell $(AOMP)/bin/mygpu -d gfx900) #get installed card, if unknown return gfx900
 endif
-ifeq ($(TARGETS),)
-TARGETS =--offload-arch=$(AOMP_GPU)
-endif
 
-CC       =$(AOMP)/bin/clang++
+CC = $(AOMP)/bin/clang++
 
 # Add cudart only if we have an Nvidia sm_ target
-ifeq (sm_,$(findstring sm_,$(TARGETS)))
-  LFLAGS +=-L$(CUDA)/targets/x86_64-linux/lib -lcudart -Wl,-rpath,$(CUDA)/targets/x86_64-linux/lib
-  CFLAGS +=-x cuda -I$(CUDA)/include
+# We have not tested CUDA+OpenMP target offload
+ifeq (sm_,$(findstring sm_,$(AOMP_GPU)))
+  LFLAGS = -L$(CUDA)/targets/x86_64-linux/lib -lcudart -Wl,-rpath,$(CUDA)/targets/x86_64-linux/lib
+  TRIPLE = nvptx64-nvidia-cuda
+  PLATFORM = -D__HIP_PLATFORM_NVCC__=1
 else
-  CFLAGS += -x hip
+  TRIPLE = amdgcn-amd-amdhsa
+  PLATFORM = -D__HIP_PLATFORM_HCC__=1
 endif
 
-#  FIXME: We need to combine hip with opemp target offload syntax.
-FAILSTRING = -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$(AOMP_GPU)
-FAILSTRING = 
-CFLAGS  += -O2 -target x86_64-pc-linux-gnu -fopenmp $(FAILSTRING) -x hip $(TARGETS)
+#  These HIPFLAGS provide HIP+OpenMP for CPU only. No target offload
+HIPFLAGS = -x hip $(PLATFORM) -O2 --offload-arch=$(AOMP_GPU) -target x86_64-pc-linux-gnu -fopenmp 
+#  These OMP_TARGET_FLAGS added to HIPFLAGS provide HIP+OpenMP with GPU target offload
+OMP_TARGET_FLAGS = -fopenmp-targets=$(TRIPLE) -Xopenmp-target=$(TRIPLE) -march=$(AOMP_GPU)
+
+CFLAGS = $(HIPFLAGS) $(OMP_TARGET_FLAGS)
 
 # ----- Demo compile and link in one step, no object code saved
 $(TESTNAME): $(TESTNAME).$(FILETYPE)
@@ -84,20 +86,13 @@ run: $(TESTNAME)
 
 #  ----   Demo compile and link in two steps, object saved
 $(TESTNAME).o: $(TESTNAME).$(FILETYPE)
-	$(CC) -c $(CFLAGS) $(TARGETS) $^
+	$(CC) -c $(CFLAGS) $^
 
 obin:	$(TESTNAME).o 
 	$(CC) $(LFLAGS) $^ -o obin
 
 run_obin: obin 
 	./obin
-
-#  ----   Demo compile to intermediates LLVMIR or assembly
-$(TESTNAME).ll: $(TESTNAME).$(FILETYPE)
-	$(CC) -c -S -emit-llvm $(CFLAGS) $(TARGETS) $^
-
-$(TESTNAME).s: $(TESTNAME).$(FILETYPE)
-	$(CC)  -c -S $(CFLAGS) $(TARGETS)  $^
 
 help: 
 	@echo
@@ -112,20 +107,12 @@ help:
 	@echo "  make $(TESTNAME).o	// compile, be, & assemble : -c"
 	@echo "  make obin         	// link step only"
 	@echo "  make run_obin     	// run obin "
-	@echo "  make $(TESTNAME).s	// compile & backend steps : -c -S"
-	@echo "  make $(TESTNAME).ll	// compile step only       : -c -S -emit-llvm"
 	@echo "  make clean		// cleanup files"
 	@echo "  make help 		// this help"
 	@echo
 	@echo "Environment Variables:"
-	@echo "  AOMP      default: $(HOME)/rocm/aomp     value: $(AOMP)"
-	@echo "  AOMP_GPU  default: gfx900                value: $(AOMP_GPU)"
-	@echo "  CUDA      default: /usr/local/cuda       value: $(CUDA)"
-	@echo "  TARGETS   default: --offload-arch=$(AOMP_GPU)"
-	@echo "              value: $(TARGETS)"
-	@echo
-	@echo "Link Flags:"
-	@echo "  Link flags: $(LFLAGS)"
+	@echo "  AOMP      default: $(HOME)/rocm/aomp 	value: $(AOMP)"
+	@echo "  AOMP_GPU  default: gfx900                	value: $(AOMP_GPU)"
 	@echo
 
 # Cleanup anything this makefile can create
