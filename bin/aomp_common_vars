@@ -86,6 +86,10 @@ GITINTERNAL="http://${AOMP_INTERNAL_IP}/dmcdouga"  # This will change soon
 AOMP_IAPPS_REPO_NAME=${AOMP_IAPPS_REPO_NAME:-Nekbone}  #  This will change soon
 AOMP_IAPPS_REPO_BRANCH=${AOMP_IAPPS_REPO_BRANCH:-openmp_amd}
 
+GITLLNL="https://github.com/llnl"
+AOMP_RAJA_REPO_NAME=${AOMP_RAJA_REPO_NAME:-raja}
+AOMP_RAJA_REPO_BRANCH=${AOMP_RAJA_REPO_BRANCH:-master}
+
 # The  git repos and branches that the AOMP build scripts will use
 AOMP_REPO_NAME=${AOMP_REPO_NAME:-aomp}
 AOMP_REPO_BRANCH=${AOMP_REPO_BRANCH:-0.7}

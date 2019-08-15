@@ -37,7 +37,7 @@ if [ -d $repodirname  ] ; then
    # FIXME look in $repodir/.git/config to be sure 
    cd $repodirname
    if [ "$STASH_BEFORE_PULL" == "YES" ] ; then
-      if [ "$reponame" != "$AOMP_HCC_REPO_NAME" ] ; then
+      if [ "$reponame" != "$AOMP_HCC_REPO_NAME" ] && [ "$reponame" != "$AOMP_RAJA_REPO_NAME" ] ; then
          git stash -u
       fi
    fi
@@ -47,7 +47,7 @@ if [ -d $repodirname  ] ; then
    git checkout $COBRANCH
    #echo "git pull "
    #git pull 
-   if [ "$reponame" == "$AOMP_HCC_REPO_NAME" ] ; then
+   if [ "$reponame" == "$AOMP_HCC_REPO_NAME" ] || [ "$reponame" == "$AOMP_RAJA_REPO_NAME" ] ; then
      echo "git submodule update"
      git submodule update
      echo "git pull"
@@ -56,7 +56,7 @@ if [ -d $repodirname  ] ; then
 else 
    echo --- NEW CLONE of repo $reponame to $repodirname ----
    cd $AOMP_REPOS
-   if [ "$reponame" == "$AOMP_HCC_REPO_NAME" ] ; then
+   if [ "$reponame" == "$AOMP_HCC_REPO_NAME" ] || [ "$reponame" == "$AOMP_RAJA_REPO_NAME" ] ; then
      git clone --recursive -b $COBRANCH $repo_web_location/$reponame $reponame
    else
      echo git clone $repo_web_location/$reponame
@@ -132,6 +132,14 @@ clone_or_pull
 repo_web_location=$GITROCLIB
 reponame=$AOMP_APPS_REPO_NAME
 COBRANCH=$AOMP_APPS_REPO_BRANCH
+clone_or_pull
+
+# ---------------------------------------
+# The following repo is for testing raja from LLNL
+# ---------------------------------------
+repo_web_location=$GITLLNL
+reponame=$AOMP_RAJA_REPO_NAME
+COBRANCH=$AOMP_RAJA_REPO_BRANCH
 clone_or_pull
 
 # ---------------------------------------
