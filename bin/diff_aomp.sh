@@ -62,7 +62,7 @@ repo_web_location=$GITROCDEV
 
 reponame=$AOMP_REPO_NAME
 COBRANCH=$AOMP_REPO_BRANCH
-#just_diff
+just_diff
 
 reponame=$AOMP_EXTRAS_REPO_NAME
 COBRANCH=$AOMP_EXTRAS_REPO_BRANCH
