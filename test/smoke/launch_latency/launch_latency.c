@@ -6,6 +6,7 @@
 
 #define TRIALS (1000)
 
+int n =1024;
 
 int main(void) {
 
@@ -22,9 +23,10 @@ int main(void) {
   double m = (t1.tv_sec - t0.tv_sec) + (t1.tv_nsec - t0.tv_nsec)/1e9;
   fprintf(stderr, "1st kernel Time %12.8f\n", m);
   for (int j = 1; j <= MAX_TEAMS; j = j<<1) {
+    clock_gettime(CLOCK_REALTIME, &t1);
     for (int t = 0 ; t < TRIALS ; t++) {
-      #pragma omp target
-      #pragma omp teams num_teams(j)
+      #pragma omp target teams distribute num_teams(j) thread_limit(1024)
+      for (int k =0; k < n; k++)
       {
         // nothing
       }
