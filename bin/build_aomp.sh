@@ -83,11 +83,11 @@ echo " =================  START build_aomp.sh ==================="
 echo 
 
 if [ "$AOMP_BUILD_HIP" == 1 ] ; then
-   components="roct rocr project libdevice comgr hcc hip extras atmi openmp pgmath flang flang_runtime"
+   components="roct rocr project libdevice comgr rocminfo hcc hip extras atmi openmp pgmath flang flang_runtime"
 else
    # The hip build will only install headers if AOMP_BUILD_HIP is off
    # if AOMP_BUILD_HIP is off, then hcc is not built
-   components="roct rocr project libdevice comgr hip extras atmi openmp pgmath flang flang_runtime"
+   components="roct rocr project libdevice comgr rocminfo hip extras atmi openmp pgmath flang flang_runtime"
 fi
 for COMPONENT in $components ; do 
    echo 

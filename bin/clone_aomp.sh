@@ -126,6 +126,10 @@ reponame=$AOMP_COMGR_REPO_NAME
 COBRANCH=$AOMP_COMGR_REPO_BRANCH
 clone_or_pull
 
+reponame=$AOMP_RINFO_REPO_NAME
+COBRANCH=$AOMP_RINFO_REPO_BRANCH
+clone_or_pull
+
 # ---------------------------------------
 # The following repos is in AMDComputeLibraries
 # ---------------------------------------
