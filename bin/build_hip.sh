@@ -117,12 +117,16 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
      echo rm -rf $BUILD_DIR/build/hip
      rm -rf $BUILD_DIR/build/hip
   fi
-
-  if [ "$AOMP_BUILD_HIP" == 1 ] ; then
-    MYCMAKEOPTS="-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON -DCMAKE_INSTALL_RPATH=$AOMP_INSTALL_DIR/lib:$AOMP_INSTALL_DIR/hcc/lib -DCMAKE_BUILD_TYPE=$BUILDTYPE -DCMAKE_INSTALL_PREFIX=$INSTALL_HIP -DHIP_PLATFORM=hcc -DHCC_HOME=$AOMP_INSTALL_DIR/hcc -DHSA_PATH=$AOMP_INSTALL_DIR/hsa -DHIP_INSTALL_ALL_SOURCE=OFF"
+  
+  if [ $INSTALL_HIP == "/opt/rocm/llvm" ] ; then 
+     hccloc="/opt/rocm/hcc"
+     hsahcc_locations="-DHSA_PATH=/opt/rocm/hsa -DHCC_HOME=/opt/rocm/hcc"
   else
-    MYCMAKEOPTS="-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON -DCMAKE_INSTALL_RPATH=$AOMP_INSTALL_DIR/lib:$AOMP_INSTALL_DIR/hcc/lib -DCMAKE_BUILD_TYPE=$BUILDTYPE -DCMAKE_INSTALL_PREFIX=$INSTALL_HIP -DHIP_INSTALL_INCLUDES_ONLY=ON"
+     hccloc="$INSTALL_HIP/hcc"
+     hsahcc_locations="-DHSA_PATH=$INSTALL_HIP/hsa -DHCC_HOME=$INSTALL_HIP/hcc"
   fi
+
+  MYCMAKEOPTS="-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON -DCMAKE_INSTALL_RPATH=$INSTALL_HIP/lib:$hccloc/lib -DCMAKE_BUILD_TYPE=$BUILDTYPE -DCMAKE_INSTALL_PREFIX=$INSTALL_HIP -DHIP_PLATFORM=hcc -DHIP_COMPILER=clang $hsahcc_locations"
 
   mkdir -p $BUILD_DIR/build/hip
   cd $BUILD_DIR/build/hip
@@ -160,12 +164,21 @@ fi
 
 #  ----------- Install only if asked  ----------------------------
 if [ "$1" == "install" ] ; then
-      cd $BUILD_DIR/build/hip
-      echo
-      echo " -----Installing to $INSTALL_HIP ----- "
-      $SUDO make install
-      if [ $? != 0 ] ; then
-         echo "ERROR make install failed "
-         exit 1
-      fi
+   cd $BUILD_DIR/build/hip
+   echo
+   echo " -----Installing to $INSTALL_HIP ----- "
+   $SUDO make install
+   if [ $? != 0 ] ; then
+      echo "ERROR make install failed "
+      exit 1
+   fi
+   # The hip perl scripts have /opt/rocm hardcoded, so fix them after then are installed
+   # but only if not installing to default location.
+   if [ $INSTALL_HIP != "/opt/rocm/llvm" ] ; then 
+      SED_INSTALL_DIR=`echo $INSTALL_HIP | sed -e 's/\//\\\\\//g' `
+      $SUDO sed -i -e "s/\/opt\/rocm\/llvm/$SED_INSTALL_DIR/" $INSTALL_HIP/bin/hipcc
+      $SUDO sed -i -e "s/\/opt\/rocm/$SED_INSTALL_DIR/" $INSTALL_HIP/bin/hipcc
+      $SUDO sed -i -e "s/\/opt\/rocm\/llvm/$SED_INSTALL_DIR/" $INSTALL_HIP/bin/hipconfig
+      $SUDO sed -i -e "s/\/opt\/rocm/$SED_INSTALL_DIR/" $INSTALL_HIP/bin/hipconfig
+   fi
 fi
