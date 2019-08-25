@@ -29,12 +29,7 @@
 
 __device__ long long int *stuff;
 
-__global__ void writeIndex(int *b) {
-  int i = hipBlockIdx_x;
-  if (i < N) {
-    b[i] = i;
-  }
-}
+__global__ void writeIndex(int *b, int n);
 
 void printArray(int *array) {
   printf("[");
@@ -104,7 +99,7 @@ int main() {
     return 0;
   }
 
-  hipLaunchKernelGGL((writeIndex), dim3(N), dim3(1), 0, 0, deviceArray);
+  hipLaunchKernelGGL((writeIndex), dim3(N), dim3(1), 0, 0, deviceArray, N);
 
   if (hipCallSuccessful(hipMemcpy(hostArray, deviceArray, N * sizeof(int),
                                   hipMemcpyDeviceToHost))) {
