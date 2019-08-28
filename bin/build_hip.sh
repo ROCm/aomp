@@ -181,4 +181,8 @@ if [ "$1" == "install" ] ; then
       $SUDO sed -i -e "s/\/opt\/rocm\/llvm/$SED_INSTALL_DIR/" $INSTALL_HIP/bin/hipconfig
       $SUDO sed -i -e "s/\/opt\/rocm/$SED_INSTALL_DIR/" $INSTALL_HIP/bin/hipconfig
    fi
+   # post install fix to hip headers to support hip+openmp
+   # FIXME: Remove when this patch is added to ROCm HIP
+   cd $INSTALL_HIP
+   patch -p1 < $thisdir/hip.patch
 fi
