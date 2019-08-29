@@ -30,7 +30,7 @@ osname=$(cat /etc/os-release | grep -e ^NAME=)
 rpmname="Not_Found"
 if [[ $osname =~ "Red Hat" ]]; then
   echo "Red Hat found!!!"
-  rpmname=${1:-aomp_REDHAT_7_prerelease}
+  rpmname=${1:-aomp_REDHAT_7}
 fi
 
 if [[ $osname =~ "SUSE" ]]; then
