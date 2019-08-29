@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#  build-rpm-sles15.sh: Build the rpm for SLES15 SP1
+#  build-rpm.sh: Build the rpm for SLES15 SP1 or RHEL 7
 #
 # --- Start standard header ----
 function getdname(){
@@ -26,7 +26,17 @@ thisdir=$(getdname $0)
 [ ! -L "$0" ] || thisdir=$(getdname `readlink "$0"`)
 . $thisdir/aomp_common_vars
 
-rpmname=${1:-aomp_SLES15_SP1}
+osname=$(cat /etc/os-release | grep -e ^NAME=)
+rpmname="Not_Found"
+if [[ $osname =~ "Red Hat" ]]; then
+  echo "Red Hat found!!!"
+  rpmname=${1:-aomp_REDHAT_7_prerelease}
+fi
+
+if [[ $osname =~ "SUSE" ]]; then
+  echo "SLES15_SP1 found!!!"
+  rpmname=${1:-aomp_SLES15_SP1}
+fi
 
 # Ensure the rpmbuild tool from rpm-build package is available
 rpmbuild_loc=`which rpmbuild 2>/dev/null`
