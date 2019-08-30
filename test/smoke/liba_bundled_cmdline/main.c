@@ -12,6 +12,12 @@ void func_2v(float*, float*, unsigned);
 void func_3v(float*, float*, unsigned);
 #pragma omp end declare target
 
+void hfunc0(float*, float*, unsigned);
+void hfunc1(float*, float*, unsigned);
+void hfunc2(float*, float*, unsigned);
+void hfunc3(float*, float*, unsigned);
+
+
 int main(){
   float a[N], t1[N], t2[N], s = 0;
   unsigned i;
@@ -48,6 +54,11 @@ int main(){
       printf("Check 2: error at %d: %e >= %e\n",i,fabs(a[i]-t2[i]),Eps);
     }
   }
+
+  hfunc0(a, t1, N);
+  hfunc1(a, t1, N);
+  hfunc3(a, t2, N);
+  hfunc2(t1, t2, N);
 
   if(!nErr) printf("Success\n");
 
