@@ -1,4 +1,4 @@
-# Source Install V 0.7-0 (DEV)
+# Source Install V 0.7-1 (DEV)
 
 Build and install from sources is possible.  However, the source build for AOMP is complex for several reasons.
 - Many repos are required.  The clone_aomp.sh script ensures you have all repos and the correct branch.
@@ -45,16 +45,16 @@ Please verify you have the proper software installed as AOMP needs certain suppo
 ```
 
 <b>Choose a Build Version (Development or Release)</b>
-The development version is the next version to be released.  It is possible that the development version is broken due to regressions that often occur during development.  If instead, you want to build from the sources of a previous release such as 0.7-0 that is possible as well.
+The development version is the next version to be released.  It is possible that the development version is broken due to regressions that often occur during development.  If instead, you want to build from the sources of a previous release such as 0.7-1 that is possible as well.
 
 <b>For the Development Branch:</b>
 ```
-   git checkout 0.7
+   git checkout master
 ```
 
 <b>For the Release Branch:</b>
 ```
-   git checkout rel_0.7-0
+   git checkout rel_0.7-1
    git pull
 ```
 <b>Clone and Build:</b>

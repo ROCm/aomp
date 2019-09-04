@@ -3,20 +3,20 @@
 ### RPM Install
 For rpm-based Linux distributions, use this rpm
 ```
-wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/r/aomp-0.7-0.x86_64.rpm
-sudo rpm -i aomp-0.7-0.x86_64.rpm
+wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_0.7-1/aomp_SLES15_SP1-0.7-1.x86_64.rpm
+sudo rpm -i aomp-0.7-1.x86_64.rpm
 ```
 -->
 ### No root RPM install
 
-By default, the packages install their content to the release directory /opt/rocm/aomp_0.X-Y and then a  symbolic link is created at /opt/rocm/aomp to the release directory. This requires root access.
+By default, the packages install their content to the release directory /usr/lib/aomp_0.X-Y and then a  symbolic link is created at /usr/lib/aomp to the release directory. This requires root access.
 
 To install the rpm package without root access into your home directory, you can run these commands.
 ```
    mkdir /tmp/temproot ; cd /tmp/temproot 
-   wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_0.7-0/aomp-1604-0.7-0.x86_64.rpm
-   rpm2cpio aomp-1604-0.7-0.x86_64.rpm | cpio -idmv
-   mv /tmp/temproot/opt/rocm $HOME
+   wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_0.7-1/aomp_SLES15_SP1-0.7-1.x86_64.rpm
+   rpm2cpio aomp_SLES15_SP1-0.7-1.x86_64.rpm | cpio -idmv
+   mv /tmp/temproot/usr/lib $HOME
    export PATH=$PATH:$HOME/rocm/aomp/bin
    export AOMP=$HOME/rocm/aomp
 ```

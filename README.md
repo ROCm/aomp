@@ -1,11 +1,11 @@
-AOMP - V 0.7-0
+AOMP - V 0.7-1
 ==============
 
 AOMP:  AMD OpenMP Compiler
 
 This is README.md for https://github.com/ROCM-Developer-Tools/aomp .  This is the base repository for AOMP. Use this for issues, documentation, packaging, examples, and building.
 
-The last release of AOMP is version 0.7-0.  Currently version 0.7-1 is under development.
+The last release of AOMP is version 0.7-1.  Currently version 0.7-2 is under development.
 
 AOMP is an experimental compiler that is intended to support multiple programming models including OpenMP,
 HIP, device OpenCL, and cuda clang.  It supports offloading to multiple GPU acceleration targets(multi-target).
