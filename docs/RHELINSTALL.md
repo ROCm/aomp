@@ -11,7 +11,7 @@ sudo rpm -i aomp_REDHAT_7-0.7-1.x86_64.rpm
 ```
 If CUDA is not installed the installation may cancel, to bypass this:
 ```
-sudo rpm -i --nodeps aomp_REDHAT_7-0.7-1.x86_64.rpm.
+sudo rpm -i --nodeps aomp_REDHAT_7-0.7-1.x86_64.rpm
 ```
 Confirm AOMP environment variable is set:
 ```
