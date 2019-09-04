@@ -1,4 +1,4 @@
-aomp (0.7-0) UNRELEASED; urgency=medium
+aomp (0.7-1) UNRELEASED; urgency=medium
 
   * Initial release of aomp is 0.3-2
   *   Please see example in /usr/lib/aomp/examples/vmuldemo 
@@ -221,6 +221,27 @@ aomp (0.7-0) UNRELEASED; urgency=medium
   *   hcc now build with rocm 2.6.x
   *   roct and rocr are now build from rocm 2.6.x sources
   *   fixes for a number of new test cases
-  *   (FIXME: More details on this release will be provided later) 
+  *
+  * 0.7-1
+  *   move to rocm 2.7.x sources
+  *   fix hip issues and add hipcc and other hip scripts
+  *   Added rocminfo utils to support hipcc and hipconfig
+  *   Improvements to the amdgcn deviceRTLs to support common GPU deviceRTL
+  *   Added logic to use the FileID and LineNum of parent file (the includer)
+  *      instead of the include file where the target region is located.
+  *      This avoids creating symbols with the same name when including a
+  *      header file that has a c++ template with a target region.
+  *   For OpenMP+HIP, hip will be on when processing host bc, so clang must
+  *      be told this is IR and not HIP input.
+  *   Fixed the HIP toolchain so that the custom linker tool build-select
+  *      is not called for hip applications. It is only called for openmp.
+  *      This fixes problem where kernels are not seen when multiple source
+  *      files are specified.
+  *   Cleaned up some things to lessen the patch from upstream HIP.cpp
+  *   Added the hip header hip_host_runtime_api.h to clang/lib/Headers to
+  *      avoid modifications to the hip repository.
+  *   Check if an archive contains device code for AMDGCN.
+  *   Cleanup deviceRTL for amdgcn to prepare for common GPU deviceRTL
+  *   Defer issue with reductions till 0.7-2.
 
- -- Greg Rodgers <Gregory.Rodgers@amd.com>  Fri, 02 Aug 2019 07:39:37 -0500
+ -- Greg Rodgers <Gregory.Rodgers@amd.com>  Wed, 04 Sep 2019 14:24:40 -0500
