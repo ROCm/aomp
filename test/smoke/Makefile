@@ -43,6 +43,7 @@ TESTS_DIR = \
     thread_limit\
     threads \
     Threads1xxx \
+    unique-kernel-name \
     veccopy \
     vmuldemo \
     vmulsum
