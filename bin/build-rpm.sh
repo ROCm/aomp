@@ -33,7 +33,7 @@ if [[ $osname =~ "Red Hat" ]]; then
   rpmname=${1:-aomp_REDHAT_7}
 fi
 
-if [[ $osname =~ "SUSE" ]]; then
+if [[ $osname =~ "SLES" ]]; then
   echo "SLES15_SP1 found!!!"
   rpmname=${1:-aomp_SLES15_SP1}
 fi
