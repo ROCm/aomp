@@ -9,19 +9,23 @@ The AOMP compiler supports OpenMP, clang-hip, clang-cuda, device OpenCL, and the
 
 This bin directory contains scripts to build AOMP from source.
 ```
-clone_aomp.sh      -  A script to make sure the necessary repos are up to date.
-                      See below for a list of these source repositories.
-build_aomp.sh      -  Run all build and install scripts in the correct order.
-build_roct.sh      -  Build the hsa thunk library
-build_rocr.sh      -  Built the ROCm runtime
-build_project.sh   -  Build llvm, lld, and clang components
-build_libdevice.sh -  Builds the rocdl device bc libraries from rocm-device-libs
-build_comgr.sh     -  Builds the code object manager (needs rocm-device-libs)
-build_hcc.sh       -  Builds the hcc compiler needed by hip
-build_hip.sh       -  Builds the hip host runtimes needed by aomp.
-build_extras.sh    -  Builds hostcall, libm, and utils all stored in the aomp-extras repo
-build_atmi.sh      -  Builds early release of ATMI for aomp.
-build_openmp.sh    -  Builds the OpenMP libraries for aomp.
+clone_aomp.sh            -  A script to make sure the necessary repos are up to date.
+                            See below for a list of these source repositories.
+build_aomp.sh            -  Run all build and install scripts in the correct order.
+build_roct.sh            -  Builds the hsa thunk library.
+build_rocr.sh            -  Builds the ROCm runtime.
+build_project.sh         -  Builds llvm, lld, and clang components.
+build_libdevice.sh       -  Builds the rocdl device bc libraries from rocm-device-libs.
+build_comgr.sh           -  Builds the code object manager (needs rocm-device-libs).
+build_rocminfo.sh        -  Builds the rocminfo utilities to support hip.
+build_hcc.sh             -  Builds the hcc compiler needed by hip.
+build_hip.sh             -  Builds the hip host runtimes needed by aomp.
+build_extras.sh          -  Builds hostcall, libm, and utils all stored in the aomp-extras repo
+build_atmi.sh            -  Builds early release of ATMI for aomp.
+build_openmp.sh          -  Builds the OpenMP libraries for aomp.
+build_pgmath.sh          -  Builds the pgmath support for flang.
+build_flang.sh           -  Builds the flang for aomp.
+build_flang_runtime.sh   -  Builds the flang runtime for aomp.
 ```
 
 These scripts install into $HOME/rocm/aomp (or $AOMP if set).
@@ -43,6 +47,8 @@ The first column is the AOMP component that uses the repositories.
 | atmi      | $HOME/git/aomp/atmi                   | [atmi](https://github.com/radeonopencompute/atmi)
 | openmp    | $HOME/git/aomp/llvm-project/openmp    | [llvm-project/openmp](https://github.com/ROCm-Developer-Tools/llvm-project)
 | libdevice | $HOME/git/aomp/rocm-device-libs       | [rocm-device-libs](https://github.com/radeonopencompute/rocm-device-libs)
+| flang     | $HOME/git/aomp/flang                  | [flang](https://github.com/ROCm-Developer-Tools/flang)
+| rocminfo  | $HOME/git/aomp/rocminfo               | [rocminfo](https://github.com/radeonopencompute/rocminfo)
 |           | $HOME/git/aomp/openmpapps             | [openmpapps](https://github.com/AMDComputeLibraries/openmpapps)
 
 The scripts and example makefiles use these environment variables and these
@@ -95,6 +101,10 @@ WANRING: The script clone_aomp.sh does not pull updates for the aomp repository.
 
 The Nvidia CUDA SDK is NOT required for a package install of AOMP. However, to build AOMP from source, you SHOULD have the Nvidia CUDA SDK version 10 installed because AOMP may be used to build applications for NVIDIA GPUs.  The current default build list of Nvidia subarchs is "30,35,50,60,61,70".  For example, the default list will support application builds with --offload-arch=sm_30 and --offload-arch=sm_60 etc.  This build list can be changed with the NVPTXGPUS environment variable. Set this before running build_aomp.sh.
 
+```
+export AOMP_BUILD_CUDA=1 //build AOMP with nvptx support
+```
+
 After you have all the source repositories and you have CUDA and all the dependencies installed,
 run this script to build aomp.
 ```
@@ -121,6 +131,9 @@ Developers may update a component and then run these  scripts in the folowing or
    ./build_comgr.sh
    ./build_comgr.sh install
 
+   ./build_rocminfo.sh
+   ./build_rocminfo.sh install
+
    ./build_hcc.sh
    ./build_hcc.sh install
 
@@ -135,6 +148,15 @@ Developers may update a component and then run these  scripts in the folowing or
 
    ./build_openmp.sh
    ./build_openmp.sh install
+
+   ./build_pgmath.sh
+   ./build_pgmath.sh install
+
+   ./build_flang.sh
+   ./build_flang.sh install
+
+   ./build_flang_runtime.sh
+   ./build_flang_runtime.sh install
 ```
 
 For now, run this command for some minor fixups to the install.

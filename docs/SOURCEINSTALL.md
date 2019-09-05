@@ -40,8 +40,6 @@ Please verify you have the proper software installed as AOMP needs certain suppo
    cd $HOME ; mkdir -p git/aomp ; cd git/aomp
    git clone https://github.com/rocm-developer-tools/aomp
    cd $HOME/git/aomp/aomp/bin
-   git checkout 0.7
-   git pull
 ```
 
 <b>Choose a Build Version (Development or Release)</b>
@@ -50,6 +48,7 @@ The development version is the next version to be released.  It is possible that
 <b>For the Development Branch:</b>
 ```
    git checkout master
+   git pull
 ```
 
 <b>For the Release Branch:</b>
