@@ -7,10 +7,15 @@ This is README.md for https://github.com/ROCM-Developer-Tools/aomp .  This is th
 
 The last release of AOMP is version 0.7-1.  Currently version 0.7-2 is under development.
 
-AOMP is an experimental compiler that is intended to support multiple programming models including OpenMP,
-HIP, device OpenCL, and cuda clang.  It supports offloading to multiple GPU acceleration targets(multi-target).
+AOMP is a scripted build of clang/llvm.  It has support for OpenMP target offload on amdgcn GPUs.
+Some source to support OpenMP target offload on amdgcn GPUs has not yet been merged
+into the upstream clang/llvm trunk.
+But all of the source used by AOMP is available in AOMP repositories as a set of commits on top of the clang/llvm github mono-repo.
+Since AOMP is a clang/llvm compiler, it supports GPU offloading with HIP, CUDA, OpenCL, and OpenMP.
 
-The bin directory of this repository contains a README.md and build scripts needed to build and install AOMP. However, we recommend that you install from the debian or rpm packages described in the [install page](docs/INSTALL.md).
+The bin directory of this repository contains a README.md and build scripts needed to download, build, and install AOMP from source.
+In addition to the  mirrored and modified llvm repository (llvm-project), AOMP uses a number of open-source ROCm components. The build scripts will download, build, and install all components needed for AOMP.
+However, we recommend that you install the latest release of the debian or rpm package for AOMP described in the [install page](docs/INSTALL.md).
 
 Attention Users!  Please use this repository for issues. Do not put issues in the source code repositories.
 
