@@ -116,6 +116,9 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 
   mkdir -p $BUILD_DIR/build/extras
   cd $BUILD_DIR/build/extras
+
+  SED_INSTALL_DIR=`echo $INSTALL_EXTRAS | sed -e 's/\//\\\\\//g' `
+  export SED_INSTALL_DIR
   echo
   echo " -----Running cmake ---- "
   echo cmake $MYCMAKEOPTS $EXTRAS_REPO_DIR
