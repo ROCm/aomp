@@ -24,7 +24,7 @@ $(TEST_NAME): $(OBJ_FILES) $(COMMON_OBJ_FILES)
 	$(CXX) $(OBJ_FILES) $(LFLAGS) -o $(TEST_NAME)
 
 $(CL_FILE).hsaco :
-	$(AOMP)/bin/cloc.sh -mcpu $(MYGPU) $(CL_FILE).cl
+	$(AOMP)/bin/cloc.sh -cl12 -mcpu $(MYGPU) $(CL_FILE).cl
 
 clean:
 	rm -rf obj/*o *.hsaco $(TEST_NAME)
