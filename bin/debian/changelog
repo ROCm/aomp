@@ -1,4 +1,4 @@
-aomp (0.7-1) UNRELEASED; urgency=medium
+aomp (0.7-2) UNRELEASED; urgency=medium
 
   * Initial release of aomp is 0.3-2
   *   Please see example in /usr/lib/aomp/examples/vmuldemo 
@@ -243,5 +243,12 @@ aomp (0.7-1) UNRELEASED; urgency=medium
   *   Check if an archive contains device code for AMDGCN.
   *   Cleanup deviceRTL for amdgcn to prepare for common GPU deviceRTL
   *   Defer issue with reductions till 0.7-2.
+  *
+  * 0.7-2
+  *   Fixed reduction not showing correct value on device. This was due to a full
+  *      work group/block barrier being called by the worker threads which threw off
+  *      synchronization between master warp and worker warps.
+  *   Fixed compilation errors on AOMP cloc examples
+  *
 
- -- Greg Rodgers <Gregory.Rodgers@amd.com>  Wed, 04 Sep 2019 14:24:40 -0500
+ -- Greg Rodgers <Gregory.Rodgers@amd.com>  Mon, 09 Sep 2019 08:59:31 -0500
