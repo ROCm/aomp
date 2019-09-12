@@ -33,6 +33,8 @@ TESTS_DIR = \
     reduce \
     reduction \
     reduction_issue_16 \
+    reduction_team \
+    reduction_teams \
     schedule \
     simd \
     stream \
