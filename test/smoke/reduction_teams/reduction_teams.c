@@ -18,7 +18,7 @@ void checkHost(int gpu_error, int* errors, long long a){
    }
 }
 
-int reduction(int num_teams, int num_threads, int* errors){
+void reduction(int num_teams, int num_threads, int* errors){
   long long result = 0;
   int gpu_error = 0;
   #pragma omp target teams num_teams(num_teams) thread_limit(num_threads) map(tofrom: result)
@@ -37,7 +37,6 @@ int reduction(int num_teams, int num_threads, int* errors){
   } //end of target
  
   checkHost(gpu_error, errors, result);
-  return gpu_error;
 }
 
 
@@ -48,22 +47,22 @@ int main (void)
  
   printf("\n---------- Multiple Teams ----------\n");
   printf("\nRunning 2 Teams with 64 thread per team\n");
-  gpu_error = reduction(2, 64, &errors);
+  reduction(2, 64, &errors);
 
   printf("\nRunning 2 Teams with 128 threads per team\n");
-  gpu_error = reduction(2, 128, &errors);
+  reduction(2, 128, &errors);
 
   printf("\nRunning 2 Teams with 256 threads per team\n");
-  gpu_error = reduction(2, 256, &errors);
+  reduction(2, 256, &errors);
   
   printf("\nRunning 256 Teams with 256 threads per team (Limited to print first 50 teams)\n");
-  gpu_error = reduction(256, 256, &errors);
+  reduction(256, 256, &errors);
  
   printf("\nRunning 4096 Teams with 64 threads per team (Limited to print first 50 teams)\n");
-  gpu_error = reduction(4096, 64, &errors);
+  reduction(4096, 64, &errors);
   
   printf("\nRunning 4096 Teams with 256 threads per team (Limited to print first 50 teams)\n");
-  gpu_error = reduction(4096, 256, &errors);
+  reduction(4096, 256, &errors);
   
   if(!errors){
     printf("\nRESULT: ALL RUNS SUCCESSFUL!\n");

@@ -18,7 +18,7 @@ void checkHost(int gpu_error, int* errors, long long a){
    }
 }
 
-int reduction(int num_teams, const int num_threads, int* errors){
+void reduction(int num_teams, const int num_threads, int* errors){
   long long a = 0;
   int gpu_error = 0;
   #pragma omp target teams num_teams(num_teams) thread_limit(num_threads) map(tofrom: a)
@@ -35,11 +35,10 @@ int reduction(int num_teams, const int num_threads, int* errors){
       } 
   }
   checkHost(gpu_error, errors, a);
-  return gpu_error;
 }
 
 
-int reduction_256(int num_teams, const int num_threads, int* errors){
+void reduction_256(int num_teams, const int num_threads, int* errors){
   long long a = 0;
   int gpu_error = 0;
   #pragma omp target teams num_teams(num_teams) thread_limit(256) map(tofrom: a)
@@ -56,10 +55,9 @@ int reduction_256(int num_teams, const int num_threads, int* errors){
       } 
   }
   checkHost(gpu_error, errors, a);
-  return gpu_error;
 }
 
-int reduction_512(int num_teams, const int num_threads, int* errors){
+void reduction_512(int num_teams, const int num_threads, int* errors){
   long long a = 0;
   int gpu_error = 0;
   #pragma omp target teams num_teams(num_teams) thread_limit(512) map(tofrom: a)
@@ -76,11 +74,10 @@ int reduction_512(int num_teams, const int num_threads, int* errors){
       } 
   }
   checkHost(gpu_error, errors, a);
-  return gpu_error;
 }
 
 
-int reduction_1024(int num_teams, const int num_threads, int* errors){
+void reduction_1024(int num_teams, const int num_threads, int* errors){
   long long a = 0;
   int gpu_error = 0;
   #pragma omp target teams num_teams(num_teams) thread_limit(1024) map(tofrom: a)
@@ -97,7 +94,6 @@ int reduction_1024(int num_teams, const int num_threads, int* errors){
       } 
   }
   checkHost(gpu_error, errors, a);
-  return gpu_error;
 }
 
 int main (void)
@@ -106,24 +102,24 @@ int main (void)
   int gpu_error = 0;
   printf("\n---------- 1 Team with Variable Threads ----------\n");
   printf("\nRunning 1 Team with 64 threads per team\n");
-  gpu_error = reduction(1, 64, &errors);
+  reduction(1, 64, &errors);
   
   printf("\nRunning 1 Team with 128 threads per team\n");
-  gpu_error = reduction(1, 128, &errors);
+  reduction(1, 128, &errors);
  
  //Have to call a different function to use a constant for num_threads because
  //a variable will not allow the num_threads to go above 256 
   printf("\nRunning 1 Team with 256 threads per team\n");
-  gpu_error = reduction_256(1, 256, &errors);
+  reduction_256(1, 256, &errors);
   
   printf("\nRunning 1 Team with 512 threads per team\n");
-  gpu_error = reduction_512(1, 512, &errors);
+  reduction_512(1, 512, &errors);
   
   printf("\nRunning 1 Team with 1024 threads per team\n");
-  gpu_error = reduction_1024(1, 1024, &errors);
+  reduction_1024(1, 1024, &errors);
  
   if(!errors){
-    printf("\nRESULT: ALL RUNS SUCCESSFUL\n");
+    printf("\nRESULT: ALL RUNS SUCCESSFUL!\n");
     return 0;
   } else{
     printf("\nRESULT: FAILURES OCCURED!\n");
