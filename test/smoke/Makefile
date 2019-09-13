@@ -35,6 +35,7 @@ TESTS_DIR = \
     reduction_issue_16 \
     reduction_team \
     reduction_teams \
+    reduction_teams_distribute_parallel \
     schedule \
     simd \
     stream \
