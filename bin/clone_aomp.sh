@@ -28,6 +28,19 @@ thisdir=$(getdname $0)
 . $thisdir/aomp_common_vars
 # --- end standard header ----
 
+if [ "$thisdir" != "$AOMP_REPOS/$AOMP_REPO_NAME/bin" ] ; then
+   echo
+   echo "ERROR:  This clone_aomp.sh script is found in directory $thisdir "
+   echo "        But it should be found at $AOMP_REPOS/$AOMP_REPO_NAME/bin because the value"
+   echo "        of AOMP_REPOS is $AOMP_REPOS. Either the environment variable AOMP_REPOS"
+   echo "        is wrong or the $AOMP_REPO_NAME repository was cloned to the wrong directory. Consider"
+   echo "        moving this $AOMP_REPO_NAME repository to $AOMP_REPOS/$AOMP_REPO_NAME (prefered)  OR"
+   echo "        set the environment variable AOMP_REPOS to the parent directory of the $AOMP_REPO_NAME"
+   echo "        repository before running $0"
+   echo
+   exit 1
+fi
+
 function clone_or_pull(){
 repodirname=$AOMP_REPOS/$reponame
 echo
