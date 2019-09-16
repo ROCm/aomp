@@ -28,6 +28,7 @@ TESTS_DIR = \
     nativetests \
     nested_loop \
     omp_num_teams_SPMD \
+    omp_num_teams_generic \
     pfspecifier \
     pfspecifier_str \
     reduce \
