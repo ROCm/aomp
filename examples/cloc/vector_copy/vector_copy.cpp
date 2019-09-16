@@ -120,6 +120,7 @@ static hsa_status_t get_device_memory_region(hsa_region_t region, void* data) {
 }
 
 int main() {
+  int errors = 0;
   // Initialize hsa runtime.
   hsa_status_t hsa_status = hsa_init();
   assert(HSA_STATUS_SUCCESS == hsa_status);
@@ -326,6 +327,7 @@ int main() {
   if (valid) {
     printf("passed validation\n");
   } else {
+    errors = 1;
     printf("VALIDATION FAILED!\nBad index: %d, ref(in):%d, computed(out):%d\n", failIndex, in[failIndex], out[failIndex]);
   }
 
@@ -347,6 +349,9 @@ int main() {
 
   free(in);
   free(out);
+
+  if(errors)
+    return EXIT_FAILURE;
 
   return EXIT_SUCCESS;
 }

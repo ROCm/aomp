@@ -14,7 +14,8 @@ program main
 
   write(6,*)"a(1)=", a(1), "    a(2)=", a(2)
   if (a(1).ne.11 .or. a(2).ne.22) then
-    stop "ERROR: wrong answers"
+    write(6,*)"ERROR: wrong answers"
+    stop 2
   endif
   write(6,*)"Success: if a diagnostic line starting with DEVID was output"
   return

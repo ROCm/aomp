@@ -118,7 +118,8 @@ int main() {
         std::cout << "PASSED!\n";
     } else {
         std::cout << "FAILED!\n";
+        return EXIT_FAILURE;
     };
 
-    return 0;
+    return EXIT_SUCCESS;
 }
