@@ -28,7 +28,7 @@ while read -r line; do
     fi
 
     #If NVIDIA system, add nvptx targets, cuda, and remove amdgcn targets. This is done for testing purpose to avoid rewriting original amd command.
-    if [[ "$AOMP_GPU" == *"sm"* ]]; then
+    if [[ "$mygpu" == *"sm"* ]]; then
       target_regex="(-fopenmp-[a-z]*=[a-z,-]*).*(-Xopenmp-[a-z]*=[a-z,-]*)"
       if [[ "$line" =~ $target_regex ]]; then
         target_match="${BASH_REMATCH[1]} ${BASH_REMATCH[2]}"
