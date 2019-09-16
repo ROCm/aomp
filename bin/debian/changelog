@@ -1,4 +1,4 @@
-aomp (0.7-2) UNRELEASED; urgency=medium
+aomp (0.7-3) UNRELEASED; urgency=medium
 
   * Initial release of aomp is 0.3-2
   *   Please see example in /usr/lib/aomp/examples/vmuldemo 
@@ -250,5 +250,8 @@ aomp (0.7-2) UNRELEASED; urgency=medium
   *      synchronization between master warp and worker warps.
   *   Fixed compilation errors on AOMP cloc examples
   *
+  * 0.7-3
+  *   Fix issue with user barrier in code causing master wavefront to unintentionally wake up and continue
+  *   Removed amdgcn_wave_barrier from named_sync and replace with amdgcn_s_barrier
 
- -- Greg Rodgers <Gregory.Rodgers@amd.com>  Mon, 09 Sep 2019 08:59:31 -0500
+ -- Greg Rodgers <Gregory.Rodgers@amd.com>  Mon, 16 Sep 2019 09:48:03 -0500

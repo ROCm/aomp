@@ -6,12 +6,12 @@ sudo yum install perl-Digest-MD5
 ```
 ### Download and Install
 ```
-wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_0.7-2/aomp_REDHAT_7-0.7-2.x86_64.rpm
-sudo rpm -i aomp_REDHAT_7-0.7-2.x86_64.rpm
+wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_0.7-3/aomp_REDHAT_7-0.7-3.x86_64.rpm
+sudo rpm -i aomp_REDHAT_7-0.7-3.x86_64.rpm
 ```
 If CUDA is not installed the installation may cancel, to bypass this:
 ```
-sudo rpm -i --nodeps aomp_REDHAT_7-0.7-2.x86_64.rpm
+sudo rpm -i --nodeps aomp_REDHAT_7-0.7-3.x86_64.rpm
 ```
 Confirm AOMP environment variable is set:
 ```
