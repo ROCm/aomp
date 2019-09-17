@@ -30,9 +30,9 @@ The build scripts use cmake, so we need to link cmake --> cmake3 in /usr/bin
   sudo ln -s /usr/bin/cmake3 /usr/bin/cmake
 ```
 
-## AOMP Verify and Install Linux Support
+## AOMP Verify and Install Linux® Support
 
-Please verify you have the proper software installed as AOMP needs certain support for Linux to function properly, such as the KFD driver for AMD GPUs and CUDA for nvptx. Click [LINUXSUPPORT](LINUXSUPPORT.md) for more information.
+Please verify you have the proper software installed as AOMP needs certain support for Linux® to function properly, such as the KFD driver for AMD GPUs and CUDA for nvptx. Click [AOMPSUPPORT](AOMPSUPPORT.md) for more information.
 
 ## Clone and Build AOMP
 
