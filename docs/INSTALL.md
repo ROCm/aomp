@@ -1,10 +1,10 @@
 # AOMP Install 
 
 
-## Verify and Install Linux Support for AOMP
+## Verify and Install Linux® Support for AOMP
 
-AOMP needs certain support for Linux to function properly, such as the KFD driver for AMD GPUs,
-Click [LINUXSUPPORT](LINUXSUPPORT.md) for more information.
+AOMP needs certain support for Linux® to function properly, such as the KFD driver for AMD GPUs,
+Click [AOMPSUPPORT](AOMPSUPPORT.md) for more information.
 
 ## AOMP Install
 

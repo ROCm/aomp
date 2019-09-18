@@ -1,6 +1,6 @@
-# Verify and Install Linux Support 
+# Verify and Install Linux® Support
 The ROCm kernel driver is required for AMD GPU support.
-Also, to control access to the ROCm device, a linux user group "video" must be created and users added to this group.
+Also, to control access to the ROCm device, a user group "video" must be created and users need to be added to this group.
 
 # Debian or Ubuntu Support
 ### AMD KFD Driver
@@ -21,8 +21,8 @@ Note these instructions reference the install for Ubuntu 16.04.
 
 <b>Download Instructions for CUDA (Ubuntu 16.04)</b>
 1. Go to https://developer.nvidia.com/cuda-10.0-download-archive
-2. For Ubuntu 16.04, select Linux, x86_64, Ubuntu, 16.04, deb(local) and then click Download. Note you can change these options for your specific distribution type.
-3. Navigate to the debian in your Linux directory and run the following commands:
+2. For Ubuntu 16.04, select Linux®, x86_64, Ubuntu, 16.04, deb(local) and then click Download. Note you can change these options for your specific distribution type.
+3. Navigate to the debian in your Linux® directory and run the following commands:
 ```
    sudo dpkg -i cuda-repo-ubuntu1604-10-0-local-10.0.130-410.48_1.0-1_amd64.deb
    sudo apt-key add /var/cuda-repo-10-0-local-10.0.130-410.48/7fa2af80.pub
@@ -54,8 +54,8 @@ If you build AOMP with support for nvptx GPUs, you must first install CUDA 10.
 
 <b>Download Instructions for CUDA (SLES15)</b>
 1. Go to https://developer.nvidia.com/cuda-10.0-download-archive
-2. For SLES-15, select Linux, x86_64, SLES, 15.0, rpm(local) and then click Download.
-3. Navigate to the rpm in your Linux directory and run the following commands:
+2. For SLES-15, select Linux®, x86_64, SLES, 15.0, rpm(local) and then click Download.
+3. Navigate to the rpm in your Linux® directory and run the following commands:
 ```
   sudo rpm -i cuda-repo-sles15-10-0-local-10.0.130-410.48-1.0-1.x86_64.rpm
   sudo zypper refresh
@@ -110,8 +110,8 @@ To build AOMP with support for nvptx GPUs, you must first install CUDA 10.  We r
 
 <b>Download Instructions for CUDA (CentOS/RHEL 7)</b>
 1. Go to https://developer.nvidia.com/cuda-10.0-download-archive
-2. For SLES-15, select Linux, x86_64, RHEL or CentOS, 7, rpm(local) and then click Download.
-3. Navigate to the rpm in your Linux directory and run the following commands:
+2. For SLES-15, select Linux®, x86_64, RHEL or CentOS, 7, rpm(local) and then click Download.
+3. Navigate to the rpm in your Linux® directory and run the following commands:
 ```
   sudo rpm -i cuda-repo-rhel7-10-0-local-10.0.130-410.48-1.0-1.x86_64.rpm
   sudo yum clean all

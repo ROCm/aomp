@@ -4,6 +4,7 @@
 #                This script will install in location defined by AOMP env variable
 #
 # --- Start standard header ----
+
 function getdname(){
    local __DIRN=`dirname "$1"`
    if [ "$__DIRN" = "." ] ; then
@@ -128,7 +129,8 @@ if [ "$AOMP_BUILD_CUDA" == 1 ] ; then
 -DLIBOMPTARGET_NVPTX_CUDA_COMPILER=$AOMP/bin/clang++
 -DLIBOMPTARGET_NVPTX_ALTERNATE_HOST_COMPILER=$GCCLOC
 -DLIBOMPTARGET_NVPTX_BC_LINKER=$AOMP/bin/llvm-link
--DLIBOMPTARGET_NVPTX_COMPUTE_CAPABILITIES=$NVPTXGPUS"
+-DLIBOMPTARGET_NVPTX_COMPUTE_CAPABILITIES=$NVPTXGPUS
+-DCMAKE_BUILD_CUDA=1"
 fi
 
 export HSA_RUNTIME_PATH=$INSTALL_OPENMP/hsa
