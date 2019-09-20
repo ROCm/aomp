@@ -41,7 +41,7 @@ ifeq ("$(wildcard $(AOMP))","")
   AOMP = $(HOME)/rocm/aomp
   ifeq ("$(wildcard $(AOMP))","")
     $(warning AOMP not found at $(AOMP))
-    AOMP = /opt/rocm/aomp
+    AOMP = /usr/lib/aomp
     ifeq ("$(wildcard $(AOMP))","")
       $(warning AOMP not found at $(AOMP))
       $(error Please install AOMP or correctly set env-var AOMP)

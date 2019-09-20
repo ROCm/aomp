@@ -10,11 +10,10 @@ int main()
 
   int i;
 
-  for (i=0; i<N; i++)
+  for (i=0; i<N; i++){
     a[i]=0;
-
-  for (i=0; i<N; i++)
     b[i]=i;
+  }
 
 #pragma omp target parallel for map(from: a[0:N]) map(to: b[0:N])
   {
@@ -26,12 +25,15 @@ int main()
   for (i=0; i<N; i++)
     if (a[i] != b[i] ) {
       rc++;
-      printf ("Wrong varlue: a[%d]=%d\n", i, a[i]);
+      printf ("Wrong value: a[%d]=%d\n", i, a[i]);
     }
 
-  if (!rc)
+  if (!rc){
     printf("Success\n");
-
-  return rc;
+    return EXIT_SUCCESS;
+  } else{
+    printf("Failure\n");
+    return EXIT_FAILURE;
+  }
 }
 

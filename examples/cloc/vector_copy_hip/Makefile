@@ -3,7 +3,7 @@ TEST_NAME=vector_copy
 HIP_FILE=vector_copy
 
 ifeq ($(AOMP),)
-  AOMP = /opt/rocm/aomp
+  AOMP = /usr/lib/aomp
 endif
 
 CFLAGS = -c -std=c++11 -D__HIP_PLATFORM_HCC__
