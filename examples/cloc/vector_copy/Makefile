@@ -3,7 +3,7 @@ TEST_NAME=vector_copy
 CL_FILE=vector_copy
 
 ifeq ($(AOMP),)
-  AOMP = /opt/rocm/aomp
+  AOMP = /usr/lib/aomp
 endif
 
 CFLAGS = -std=c++11 -I$(AOMP)/include

@@ -3,7 +3,7 @@ TEST_NAME=vector_copy
 CU_FILE=vector_copy
 
 ifeq ($(AOMP),)
-  AOMP = /opt/rocm/aomp
+  AOMP = /usr/lib/aomp
 else
   $(info AOMP environment variable using $(AOMP))
 endif
