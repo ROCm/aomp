@@ -253,5 +253,9 @@ aomp (0.7-3) UNRELEASED; urgency=medium
   * 0.7-3
   *   Fix issue with user barrier in code causing master wavefront to unintentionally wake up and continue
   *   Removed amdgcn_wave_barrier from named_sync and replace with amdgcn_s_barrier
+  * 0.7-4
+  *   lld linkstep producing hsaco will emit errors if undefined symbols are detected in the final image.
+  *   Removed hip automatic mode which removes need for clang/lib/Headers/cuda-open.
+  *   Added aompExtractRegion script which will disassemble the amd gpu kernel.
 
  -- Greg Rodgers <Gregory.Rodgers@amd.com>  Mon, 16 Sep 2019 09:48:03 -0500
