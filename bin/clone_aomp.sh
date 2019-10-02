@@ -79,6 +79,7 @@ else
      git checkout $COBRANCH
    fi
 fi
+cd $repodirname
 echo git status
 git status
 }
@@ -162,7 +163,7 @@ clone_or_pull
 # ---------------------------------------
 # The following repo is internal to AMD
 # ---------------------------------------
-ping -c 1 $AOMP_INTERNAL_IP
+ping -c 1 $AOMP_INTERNAL_IP 2>/dev/null
 if [ $? == 0 ] ; then
    echo
    echo " +---------------------------------------------------------------"
