@@ -102,6 +102,29 @@ fi
 
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 
+   patchfile=$thisdir/rocminfo_cmake.patch
+   cd $RINFO_REPO_DIR
+   echo "Testing rocminfo cmake patch $patchfile"
+   applypatch="yes"
+   patch -p1 -t -N --dry-run <$patchfile >/dev/null
+   if [ $? != 0 ] ; then
+      applypatch="no"
+      patch -p1 -R --dry-run -t <$patchfile >/dev/null
+      if [ $? != 0 ] ; then
+         echo
+         echo "ERROR: rocminfo patch $patchfile will not apply cleanly"
+         echo "       Check if it was already applied"
+         echo
+         exit 1
+      else
+         echo "patch $patchfile already applied"
+      fi
+   fi
+   if [ "$applypatch" == "yes" ] ; then
+      patch -p1 <$patchfile
+   fi
+
+
   if [ -d "$BUILD_DIR/build/rocminfo" ] ; then
      echo
      echo "FRESH START , CLEANING UP FROM PREVIOUS BUILD"
@@ -109,7 +132,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
      rm -rf $BUILD_DIR/build/rocminfo
   fi
 
-  MYCMAKEOPTS="-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON -DCMAKE_INSTALL_RPATH=$AOMP_INSTALL_DIR/lib:$AOMP_INSTALL_DIR/hcc/lib -DCMAKE_BUILD_TYPE=$BUILDTYPE -DCMAKE_INSTALL_PREFIX=$INSTALL_RINFO -DROCM_DIR=$AOMP_INSTALL_DIR -DROCRTST_BLD_TYPE=$BUILDTYPE"
+  MYCMAKEOPTS="-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON -DCMAKE_INSTALL_RPATH=$AOMP_INSTALL_DIR/hsa/lib -DCMAKE_BUILD_TYPE=$BUILDTYPE -DCMAKE_INSTALL_PREFIX=$INSTALL_RINFO -DROCM_DIR=$AOMP_INSTALL_DIR -DROCRTST_BLD_TYPE=$BUILDTYPE"
 
   mkdir -p $BUILD_DIR/build/rocminfo
   cd $BUILD_DIR/build/rocminfo
@@ -125,8 +148,6 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 
 fi
 
-# we need the build to find hsa correctly
-export LD_LIBRARY_PATH=$AOMP_INSTALL_DIR/hsa/lib
 cd $BUILD_DIR/build/rocminfo
 echo
 echo " -----Running make for rocminfo ---- "

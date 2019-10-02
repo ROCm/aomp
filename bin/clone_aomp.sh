@@ -50,11 +50,24 @@ if [ -d $repodirname  ] ; then
    # FIXME look in $repodir/.git/config to be sure 
    cd $repodirname
    #   undo the patch to hip before pulling more updates
-   if [ "$reponame" == "$HIP_REPO_NAME" ] ; then
+   if [ "$reponame" == "$AOMP_HIP_REPO_NAME" ] ; then
       git checkout src
       if [ -f src/hip_module.cpp.orig ] ; then
          rm src/hip_module.cpp.orig
       fi
+   fi
+   #   undo the patch to rocr runtime before pulling more updates
+   if [ "$reponame" == "$AOMP_ROCR_REPO_NAME" ] ; then
+      git checkout src
+      if [ -f src/CMakeLists.txt.orig ] ; then
+         rm src/CMakeLists.txt.orig
+      fi
+   fi
+   #   undo the patch to rocminfo cmake before pulling more updates
+   if [ "$reponame" == "$AOMP_RINFO_REPO_NAME" ] ; then
+      echo $PWD
+      echo git checkout CMakeLists.txt
+      git checkout CMakeLists.txt
    fi
    if [ "$STASH_BEFORE_PULL" == "YES" ] ; then
       if [ "$reponame" != "$AOMP_HCC_REPO_NAME" ] && [ "$reponame" != "$AOMP_RAJA_REPO_NAME" ] ; then
