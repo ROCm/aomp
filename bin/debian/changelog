@@ -266,5 +266,9 @@ aomp (0.7-3) UNRELEASED; urgency=medium
   *      nvptx uses a partial hardware barrier not availale in amdgcn.
   *      Ultimately, named_sync should never be called by amdgcn.
   *   Fix for reduction across teams.
+  *   Fix for hip detecting wrong version of code object, done with patch
+  *      before build
+  *   Fix so rocminfo command finds the correct version of libhsa-runtime64.so
+  *
 
  -- Greg Rodgers <Gregory.Rodgers@amd.com>  Mon, 16 Sep 2019 09:48:03 -0500
