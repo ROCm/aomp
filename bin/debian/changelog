@@ -253,9 +253,18 @@ aomp (0.7-3) UNRELEASED; urgency=medium
   * 0.7-3
   *   Fix issue with user barrier in code causing master wavefront to unintentionally wake up and continue
   *   Removed amdgcn_wave_barrier from named_sync and replace with amdgcn_s_barrier
+  *
   * 0.7-4
-  *   lld linkstep producing hsaco will emit errors if undefined symbols are detected in the final image.
-  *   Removed hip automatic mode which removes need for clang/lib/Headers/cuda-open.
+  *   lld linkstep producing hsaco will emit errors if undefined symbols are
+  *       detected in the final image.
+  *   Removed hip automatic mode. Removes need for lib/Headers/cuda-open.
   *   Added aompExtractRegion script which will disassemble the amd gpu kernel.
+  *   Fixes for having a barrier in sequential part of code region which is
+  *      handled by the master warp. The fix extends the "barrier handshaking"
+  *      between the master warp and worker warps. These 5 new deviceRTL
+  *      functinos begin with __kmpc_amd_*. Only amdgcn uses these because
+  *      nvptx uses a partial hardware barrier not availale in amdgcn.
+  *      Ultimately, named_sync should never be called by amdgcn.
+  *   Fix for reduction across teams.
 
  -- Greg Rodgers <Gregory.Rodgers@amd.com>  Mon, 16 Sep 2019 09:48:03 -0500
