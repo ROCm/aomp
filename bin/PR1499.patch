@@ -1,0 +1,36 @@
+From b146c6c462f62d2b33dffac6e5e79511b4819ca6 Mon Sep 17 00:00:00 2001
+From: Siu Chi Chan <siuchi.chan@amd.com>
+Date: Tue, 1 Oct 2019 17:13:07 -0400
+Subject: [PATCH] fix kernel descriptor bug with code object v3
+
+Change-Id: I9306b2baf36d338e36c5ab1226f74373a61a5ae0
+---
+ src/hip_module.cpp | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/src/hip_module.cpp b/src/hip_module.cpp
+index 5fe6ce199..d98b98a37 100644
+--- a/src/hip_module.cpp
++++ b/src/hip_module.cpp
+@@ -932,10 +932,10 @@ hipError_t ihipModuleGetFunction(TlsData *tls, hipFunction_t* func, hipModule_t
+ 
+     if (!*func) return hipErrorInvalidValue;
+ 
+-    auto kernel = find_kernel_by_name(hmod->executable, name, agent);
++    std::string name_str(name);
++    auto kernel = find_kernel_by_name(hmod->executable, name_str.c_str(), agent);
+ 
+     if (kernel.handle == 0u) {
+-        std::string name_str(name);
+         name_str.append(".kd");
+         kernel = find_kernel_by_name(hmod->executable, name_str.c_str(), agent);
+     }
+@@ -945,7 +945,7 @@ hipError_t ihipModuleGetFunction(TlsData *tls, hipFunction_t* func, hipModule_t
+     // TODO: refactor the whole ihipThisThat, which is a mess and yields the
+     //       below, due to hipFunction_t being a pointer to ihipModuleSymbol_t.
+     func[0][0] = *static_cast<hipFunction_t>(
+-        Kernel_descriptor{kernel_object(kernel), name, hmod->kernargs[name]});
++        Kernel_descriptor{kernel_object(kernel), name_str, hmod->kernargs[name_str]});
+ 
+     return hipSuccess;
+ }
