@@ -109,7 +109,30 @@ if [ "$1" == "install" ] ; then
    $SUDO rm $INSTALL_HIP/testfile
 fi
 
+patchfile=$thisdir/PR1499.patch
+
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
+
+   cd $HIP_REPO_DIR
+   echo "Testing hip patch $patchfile"
+   applypatch="yes"
+   patch -p1 -t -N --dry-run <$patchfile >/dev/null
+   if [ $? != 0 ] ; then
+      applypatch="no"
+      patch -p1 -R --dry-run -t <$patchfile >/dev/null
+      if [ $? != 0 ] ; then
+         echo
+         echo "ERROR: hip patch $patchfile will not apply cleanly"
+         echo "       Check if it was already applied"
+         echo
+         exit 1
+      else
+         echo "patch $patchfile already applied"
+      fi
+   fi
+   if [ "$applypatch" == "yes" ] ; then
+      patch -p1 <$patchfile
+   fi
 
   if [ -d "$BUILD_DIR/build/hip" ] ; then
      echo

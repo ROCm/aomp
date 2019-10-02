@@ -49,6 +49,13 @@ if [ -d $repodirname  ] ; then
    echo "    We assume this came from an earlier clone of $repo_web_location/$reponame"
    # FIXME look in $repodir/.git/config to be sure 
    cd $repodirname
+   #   undo the patch to hip before pulling more updates
+   if [ "$reponame" == "$HIP_REPO_NAME" ] ; then
+      git checkout src
+      if [ -f src/hip_module.cpp.orig ] ; then
+         rm src/hip_module.cpp.orig
+      fi
+   fi
    if [ "$STASH_BEFORE_PULL" == "YES" ] ; then
       if [ "$reponame" != "$AOMP_HCC_REPO_NAME" ] && [ "$reponame" != "$AOMP_RAJA_REPO_NAME" ] ; then
          git stash -u
