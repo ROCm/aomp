@@ -1,0 +1,13 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index ce08409..f731d6a 100755
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -55,7 +55,7 @@ include(utils)
+ set(ROCRTST_BLD_BITS CACHE "64" STRING "Either 32 or 64")
+ set(ROCM_DIR CACHE PATH "Root for RocM install")
+ set(ROCR_INC_DIR ${ROCM_DIR}/include CACHE PATH "Path for RocM includes")
+-set(ROCR_LIB_DIR ${ROCM_DIR}/lib CACHE PATH "Path for RocM libraries")
++set(ROCR_LIB_DIR ${ROCM_DIR}/hsa/lib CACHE PATH "Path for RocM libraries")
+ #
+ # Determine ROCR Header files are present
+ #
