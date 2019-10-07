@@ -89,6 +89,36 @@ else
    # if AOMP_BUILD_HIP is off, then hcc is not built
    components="roct rocr project libdevice comgr rocminfo hip extras atmi openmp pgmath flang flang_runtime"
 fi
+
+#Start build from given one component (./build_aomp.sh continue openmp)
+if [ $1 == 'continue' ] ; then
+  for COMPONENT in $components ; do
+    if [ $COMPONENT == $2 ] ; then
+      found=1
+    fi
+    if [[ $found -eq 1 ]] ; then
+      list+="$COMPONENT "
+    fi
+  done
+  components=$list
+  if [ $components == ""] ; then
+    echo "$2 was not found in the build list!!!"
+  fi
+  #Remove arguments so they are not passed to build_aomp_component
+  set --
+
+#Select which components to build(./build_aomp.sh select libdevice extras)
+elif [ $1 == 'select' ] ; then
+  for ARGUMENT in $@ ; do
+    if [ $ARGUMENT != $1 ] ; then
+      list+="$ARGUMENT "
+    fi
+  done
+  components=$list
+  #Remove arguments so they are not passed to build_aomp_component
+  set --
+fi
+
 for COMPONENT in $components ; do 
    echo 
    echo " =================  BUILDING COMPONENT $COMPONENT ==================="   
