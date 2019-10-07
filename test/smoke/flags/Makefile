@@ -20,7 +20,7 @@ compile:
 ifdef nvidia_targets
 	$(CC) $(make_options) $(nvidia_targets) $(march) $(cuda) -o $(TESTNAME)
 else ifdef march
-	$(CC) $(make_options) $(march) -o $(TESTNAME)
+	$(SETENV) $(CC) $(make_options) $(march) -o $(TESTNAME)
 else ifdef make_options
 	$(CC) $(make_options) -o $(TESTNAME)
 else
