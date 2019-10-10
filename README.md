@@ -1,9 +1,9 @@
-AOMP - V 0.7-3
+AOMP - V 0.7-4
 ==============
 
 This is README.md for https://github.com/ROCM-Developer-Tools/aomp .  This is the base repository for AOMP. Use this for issues, documentation, packaging, examples, and building.
 
-The last release of AOMP is version 0.7-3.  Currently version 0.7-4 is under development.
+The last release of AOMP is version 0.7-4.  Currently version 0.7-5 is under development.
 
 AOMP is a scripted build of clang/llvm.  It has support for OpenMP target offload on amdgcn GPUs.
 Some source to support OpenMP target offload on amdgcn GPUs has not yet been merged
