@@ -17,6 +17,7 @@ TESTS_DIR = \
     function_overload \
     function_template \
     helloworld \
+    hip_device_compile \
     issue_flang_libomp \
     issue_001 \
     issue_002 \
