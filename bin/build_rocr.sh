@@ -74,6 +74,8 @@ fi
 cd $AOMP_REPOS/$AOMP_ROCR_REPO_NAME
 echo patch -p1 $thisdir/rocr-runtime.patch
 patch -p1 < $thisdir/rocr-runtime.patch
+echo patch -p1 $thisdir/rocr-runtime-pr72.patch
+patch -p1 < $thisdir/rocr-runtime-pr72.patch
 
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then 
 
@@ -96,6 +98,8 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
       cd $AOMP_REPOS/$AOMP_ROCR_REPO_NAME
       echo patch -p1 -R  $thisdir/rocr-runtime.patch
       patch -p1 -R < $thisdir/rocr-runtime.patch
+      echo patch -p1 -R  $thisdir/rocr-runtime-pr72.patch
+      patch -p1 -R < $thisdir/rocr-runtime-pr72.patch
       exit 1
    fi
 
@@ -115,6 +119,8 @@ if [ $? != 0 ] ; then
       cd $AOMP_REPOS/$AOMP_ROCR_REPO_NAME
       echo patch -p1 -R $thisdir/rocr-runtime.patch
       patch -p1 -R < $thisdir/rocr-runtime.patch
+      echo patch -p1 -R  $thisdir/rocr-runtime-pr72.patch
+      patch -p1 -R < $thisdir/rocr-runtime-pr72.patch
       exit 1
 fi
 
@@ -129,6 +135,8 @@ if [ "$1" == "install" ] ; then
          cd $AOMP_REPOS/$AOMP_ROCR_REPO_NAME
          echo patch -p1 -R  $thisdir/rocr-runtime.patch
          patch -p1 -R < $thisdir/rocr-runtime.patch
+         echo patch -p1 -R  $thisdir/rocr-runtime-pr72.patch
+         patch -p1 -R < $thisdir/rocr-runtime-pr72.patch
          exit 1
       fi
 fi
@@ -136,3 +144,5 @@ fi
 cd $AOMP_REPOS/$AOMP_ROCR_REPO_NAME
 echo patch -p1 -R $thisdir/rocr-runtime.patch
 patch -p1 -R < $thisdir/rocr-runtime.patch
+echo patch -p1 -R  $thisdir/rocr-runtime-pr72.patch
+patch -p1 -R < $thisdir/rocr-runtime-pr72.patch
