@@ -71,11 +71,11 @@ if [ "$1" == "install" ] ; then
    $SUDO rm $INSTALL_ROCM/testfile
 fi
 
-cd $AOMP_REPOS/$AOMP_ROCR_REPO_NAME
-echo patch -p1 $thisdir/rocr-runtime.patch
-patch -p1 < $thisdir/rocr-runtime.patch
-echo patch -p1 $thisdir/rocr-runtime-pr72.patch
-patch -p1 < $thisdir/rocr-runtime-pr72.patch
+patchfile=$thisdir/patches/rocr-runtime.patch
+patchdir=$AOMP_REPOS/$AOMP_ROCR_REPO_NAME
+patchrepo
+patchfile=$thisdir/patches/rocr-runtime-pr72.patch
+patchrepo
 
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then 
 
@@ -95,11 +95,6 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    if [ $? != 0 ] ; then 
       echo "ERROR rocr cmake failed. cmake flags"
       echo "      $MYCMAKEOPTS"
-      cd $AOMP_REPOS/$AOMP_ROCR_REPO_NAME
-      echo patch -p1 -R  $thisdir/rocr-runtime.patch
-      patch -p1 -R < $thisdir/rocr-runtime.patch
-      echo patch -p1 -R  $thisdir/rocr-runtime-pr72.patch
-      patch -p1 -R < $thisdir/rocr-runtime-pr72.patch
       exit 1
    fi
 
@@ -116,11 +111,6 @@ if [ $? != 0 ] ; then
       echo "To restart:" 
       echo "  cd $BUILD_AOMP/build/rocr"
       echo "  make"
-      cd $AOMP_REPOS/$AOMP_ROCR_REPO_NAME
-      echo patch -p1 -R $thisdir/rocr-runtime.patch
-      patch -p1 -R < $thisdir/rocr-runtime.patch
-      echo patch -p1 -R  $thisdir/rocr-runtime-pr72.patch
-      patch -p1 -R < $thisdir/rocr-runtime-pr72.patch
       exit 1
 fi
 
@@ -132,17 +122,6 @@ if [ "$1" == "install" ] ; then
       $SUDO make install 
       if [ $? != 0 ] ; then 
          echo "ERROR make install failed "
-         cd $AOMP_REPOS/$AOMP_ROCR_REPO_NAME
-         echo patch -p1 -R  $thisdir/rocr-runtime.patch
-         patch -p1 -R < $thisdir/rocr-runtime.patch
-         echo patch -p1 -R  $thisdir/rocr-runtime-pr72.patch
-         patch -p1 -R < $thisdir/rocr-runtime-pr72.patch
          exit 1
       fi
 fi
-
-cd $AOMP_REPOS/$AOMP_ROCR_REPO_NAME
-echo patch -p1 -R $thisdir/rocr-runtime.patch
-patch -p1 -R < $thisdir/rocr-runtime.patch
-echo patch -p1 -R  $thisdir/rocr-runtime-pr72.patch
-patch -p1 -R < $thisdir/rocr-runtime-pr72.patch

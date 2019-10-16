@@ -19,19 +19,3 @@ index c4ef1d82..bab217f6 100644
  template <typename... All>
  static inline __device__ void printf(const char* format, All... all) {}
  #endif
-@@ -452,6 +451,7 @@ hc_get_workitem_absolute_id(int dim)
- #endif
- 
- // Support std::complex.
-+#ifndef _OPENMP
- #pragma push_macro("__CUDA__")
- #define __CUDA__
- #include <__clang_cuda_math_forward_declares.h>
-@@ -461,6 +461,7 @@ hc_get_workitem_absolute_id(int dim)
- #include <cuda_wrappers/new>
- #undef __CUDA__
- #pragma pop_macro("__CUDA__")
-+#endif
- 
- hipError_t hipExtModuleLaunchKernel(hipFunction_t f, uint32_t globalWorkSizeX,
-                                     uint32_t globalWorkSizeY, uint32_t globalWorkSizeZ,

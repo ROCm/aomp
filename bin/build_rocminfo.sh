@@ -102,28 +102,9 @@ fi
 
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 
-   patchfile=$thisdir/rocminfo_cmake.patch
-   cd $RINFO_REPO_DIR
-   echo "Testing rocminfo cmake patch $patchfile"
-   applypatch="yes"
-   patch -p1 -t -N --dry-run <$patchfile >/dev/null
-   if [ $? != 0 ] ; then
-      applypatch="no"
-      patch -p1 -R --dry-run -t <$patchfile >/dev/null
-      if [ $? != 0 ] ; then
-         echo
-         echo "ERROR: rocminfo patch $patchfile will not apply cleanly"
-         echo "       Check if it was already applied"
-         echo
-         exit 1
-      else
-         echo "patch $patchfile already applied"
-      fi
-   fi
-   if [ "$applypatch" == "yes" ] ; then
-      patch -p1 <$patchfile
-   fi
-
+  patchfile=$thisdir/patches/rocminfo_cmake.patch
+  patchdir=$RINFO_REPO_DIR
+  patchrepo
 
   if [ -d "$BUILD_DIR/build/rocminfo" ] ; then
      echo

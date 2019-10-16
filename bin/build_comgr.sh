@@ -67,6 +67,11 @@ fi
 
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then 
 
+   # FIXME: Remove this comgr patch when aomp gets to llvm-10
+   patchfile=$thisdir/patches/useOldSectionNameMethod.patch
+   patchdir=$REPO_DIR
+   patchrepo
+
    echo " " 
    echo "This is a FRESH START. ERASING any previous builds in $BUILD_AOMP/build_comgr"
    echo "Use ""$0 nocmake"" or ""$0 install"" to avoid FRESH START."

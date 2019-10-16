@@ -109,30 +109,12 @@ if [ "$1" == "install" ] ; then
    $SUDO rm $INSTALL_HIP/testfile
 fi
 
-patchfile=$thisdir/PR1499.patch
 
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 
-   cd $HIP_REPO_DIR
-   echo "Testing hip patch $patchfile"
-   applypatch="yes"
-   patch -p1 -t -N --dry-run <$patchfile >/dev/null
-   if [ $? != 0 ] ; then
-      applypatch="no"
-      patch -p1 -R --dry-run -t <$patchfile >/dev/null
-      if [ $? != 0 ] ; then
-         echo
-         echo "ERROR: hip patch $patchfile will not apply cleanly"
-         echo "       Check if it was already applied"
-         echo
-         exit 1
-      else
-         echo "patch $patchfile already applied"
-      fi
-   fi
-   if [ "$applypatch" == "yes" ] ; then
-      patch -p1 <$patchfile
-   fi
+  patchfile=$thisdir/patches/PR1499.patch
+  patchdir=$HIP_REPO_DIR
+  patchrepo
 
   if [ -d "$BUILD_DIR/build/hip" ] ; then
      echo
@@ -206,6 +188,7 @@ if [ "$1" == "install" ] ; then
    fi
    # post install fix to hip headers to support hip+openmp
    # FIXME: Remove when this patch is added to ROCm HIP
-   cd $INSTALL_HIP
-   patch -p1 < $thisdir/hip.patch
+   patchfile=$thisdir/patches/hip.patch
+   patchdir=$INSTALL_HIP
+   patchrepo
 fi

@@ -69,6 +69,13 @@ if [ -d $repodirname  ] ; then
       echo git checkout CMakeLists.txt
       git checkout CMakeLists.txt
    fi
+   #   undo the comgr patch to rocm-compilersupport before pulling more updates
+   if [ "$reponame" == "$AOMP_COMGR_REPO_NAME" ] ; then
+      git checkout lib/comgr/src
+      if [ -f lib/comgr/src/comgr-objdump.cpp.orig ] ; then
+         rm lib/comgr/src/comgr-objdump.cpp.orig
+      fi
+   fi
    if [ "$STASH_BEFORE_PULL" == "YES" ] ; then
       if [ "$reponame" != "$AOMP_HCC_REPO_NAME" ] && [ "$reponame" != "$AOMP_RAJA_REPO_NAME" ] ; then
          git stash -u
