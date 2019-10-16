@@ -6,8 +6,8 @@
 #
 #  Run "make help" to see other options for this Makefile
 
-TESTNAME = raja_vecadd
-TESTSRC  = raja_vecadd.cpp
+TESTNAME = vecadd
+TESTSRC  = vecadd.cpp
 
 # --- Standard Makefile check for AOMP installation ---
 ifeq ("$(wildcard $(AOMP))","")
@@ -31,9 +31,11 @@ AOMP_CPUTARGET ?= x86_64-pc-linux-gnu
 CC              = $(AOMP)/bin/clang++
 AOMP_GPUTARGET = amdgcn-amd-amdhsa
 export PATH := $(AOMP)/bin:$(PATH)
+RAJA_INSTALL = $(HOME)/raja_build.$(AOMP_GPU)
+RAJA_SRC = $(HOME)/git/aomp/raja
 
 # Sorry, clang openmp requires these complex options
-CPPFLAGS = -w -O3 -target $(AOMP_CPUTARGET) -fopenmp -fopenmp-targets=$(AOMP_GPUTARGET) -Xopenmp-target=$(AOMP_GPUTARGET) -march=$(AOMP_GPU) -I../../../raja/include -I./raja_build/include
+CPPFLAGS = -w -O3 -target $(AOMP_CPUTARGET) -fopenmp -fopenmp-targets=$(AOMP_GPUTARGET) -Xopenmp-target=$(AOMP_GPUTARGET) -march=$(AOMP_GPU) -I$(RAJA_SRC)/include  -I$(RAJA_INSTALL)/include
 
 ifeq ($(OFFLOAD_DEBUG),1)
   $(info    DEBUG Mode ON)
@@ -55,41 +57,17 @@ CPPFLAGS += $(EXTRA_CPPFLAGS)
 
 # ----- Demo compile and link in one step, no object code saved
 
-$(TESTNAME): raja_build $(TESTSRC)
+$(TESTNAME): $(RAJA_INSTALL) $(TESTSRC)
 	$(CCENV) $(CC) $(CPPFLAGS) $(LFLAGS) $(TESTSRC) -o $@
 
 run: $(TESTNAME) 
 	$(RUNENV) ./$(TESTNAME)
 
-raja_build:
-	patch -p1 -s -d ../../../raja < raja.patch; \
-	patch -p1 -s -d ../../../raja/blt < blt.patch; \
-	mkdir -p raja_build; cd raja_build; \
-	cmake  -DOpenMP_C_FLAGS="-w;--target=x86_64-pc-linux-gnu;-fopenmp;-fopenmp-targets=amdgcn-amd-amdhsa;-Xopenmp-target=amdgcn-amd-amdhsa;-march=gfx906" \
-	-DOpenMP_CXX_FLAGS="-w;--target=x86_64-pc-linux-gnu;-fopenmp;-fopenmp-targets=amdgcn-amd-amdhsa;-Xopenmp-target=amdgcn-amd-amdhsa;-march=gfx906" \
-	-DENABLE_TARGET_OPENMP=On \
-        -DENABLE_CUDA=Off \
-        -DENABLE_CLANG_CUDA=Off \
-        -DCMAKE_EXE_LINKER_FLAGS="" \
-        -DCMAKE_BUILD_TYPE=Release \
-        -DCMAKE_C_COMPILER=clang \
-        -DCMAKE_CXX_COMPILER=clang++ \
-        -DCMAKE_POSITION_INDEPENDENT_CODE=FALSE \
-        -Wno-dev \
-	-DRAJA_ENABLE_OPENMP=On \
-        ../../../../raja; \
-	make -j8; \
-	cd ..
+$(RAJA_INSTALL): $(RAJA_SRC)
+	$(AOMP)/bin/raja_build.sh
 
-#  ----   Demo compile and link in two steps, object saved
-$(TESTNAME).o: biuld_$(TESTSRC)
-	$(CCENV) $(CC) -c $(CPPFLAGS) $^ -o $@
-
-obin:	$(TESTNAME).o
-	$(CCENV) $(CC) $(CPPFLAGS) $(LFLAGS) $^ -o $@
-
-run_obin: obin
-	$(RUNENV) ./obin
+$(RAJA_SRC): 
+	$(AOMP)/bin/raja_build.sh
 
 help:
 	@echo
