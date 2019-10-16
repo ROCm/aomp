@@ -1,0 +1,14 @@
+diff --git a/cmake/SetupCompilerOptions.cmake b/cmake/SetupCompilerOptions.cmake
+index a9e0743..d5f9da8 100644
+--- a/cmake/SetupCompilerOptions.cmake
++++ b/cmake/SetupCompilerOptions.cmake
+@@ -135,8 +135,7 @@ message(STATUS "Adding optional BLT definitions and compiler flags")
+ ####################################################
+ # create relocatable static libs by default
+ ####################################################
+-set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
+-
++set(CMAKE_POSITION_INDEPENDENT_CODE TRUE CACHE BOOL "SET IF FPIC NEEDED")
+ ##############################################
+ # Support extra definitions for all targets
+ ##############################################
