@@ -1,4 +1,4 @@
-aomp (0.7-3) UNRELEASED; urgency=medium
+aomp (0.7-4) UNRELEASED; urgency=medium
 
   * Initial release of aomp is 0.3-2
   *   Please see example in /usr/lib/aomp/examples/vmuldemo 
@@ -269,6 +269,8 @@ aomp (0.7-3) UNRELEASED; urgency=medium
   *   Fix for hip detecting wrong version of code object, done with patch
   *      before build
   *   Fix so rocminfo command finds the correct version of libhsa-runtime64.so
+  *   Fix to device math library in aomp extras
+  *   Fix cloc.sh to support .cu files without hip automatic mode
   *
 
- -- Greg Rodgers <Gregory.Rodgers@amd.com>  Mon, 16 Sep 2019 09:48:03 -0500
+ -- Greg Rodgers <Gregory.Rodgers@amd.com>  Thu, 10 Oct 2019 13:35:52 -0500
