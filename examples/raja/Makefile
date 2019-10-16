@@ -30,9 +30,10 @@ AOMP_GPU       ?= $(INSTALLED_GPU)
 AOMP_CPUTARGET ?= x86_64-pc-linux-gnu
 CC              = $(AOMP)/bin/clang++
 AOMP_GPUTARGET = amdgcn-amd-amdhsa
+export PATH := $(AOMP)/bin:$(PATH)
 
 # Sorry, clang openmp requires these complex options
-CPPFLAGS = -O3 -target $(AOMP_CPUTARGET) -fopenmp -fopenmp-targets=$(AOMP_GPUTARGET) -Xopenmp-target=$(AOMP_GPUTARGET) -march=$(AOMP_GPU) -I../../../raja/include -I./raja_build/include
+CPPFLAGS = -w -O3 -target $(AOMP_CPUTARGET) -fopenmp -fopenmp-targets=$(AOMP_GPUTARGET) -Xopenmp-target=$(AOMP_GPUTARGET) -march=$(AOMP_GPU) -I../../../raja/include -I./raja_build/include
 
 ifeq ($(OFFLOAD_DEBUG),1)
   $(info    DEBUG Mode ON)
@@ -64,8 +65,8 @@ raja_build:
 	patch -p1 -s -d ../../../raja < raja.patch; \
 	patch -p1 -s -d ../../../raja/blt < blt.patch; \
 	mkdir -p raja_build; cd raja_build; \
-	cmake  -DOpenMP_C_FLAGS="--target=x86_64-pc-linux-gnu;-fopenmp;-fopenmp-targets=amdgcn-amd-amdhsa;-Xopenmp-target=amdgcn-amd-amdhsa;-march=gfx906" \
-	-DOpenMP_CXX_FLAGS="--target=x86_64-pc-linux-gnu;-fopenmp;-fopenmp-targets=amdgcn-amd-amdhsa;-Xopenmp-target=amdgcn-amd-amdhsa;-march=gfx906" \
+	cmake  -DOpenMP_C_FLAGS="-w;--target=x86_64-pc-linux-gnu;-fopenmp;-fopenmp-targets=amdgcn-amd-amdhsa;-Xopenmp-target=amdgcn-amd-amdhsa;-march=gfx906" \
+	-DOpenMP_CXX_FLAGS="-w;--target=x86_64-pc-linux-gnu;-fopenmp;-fopenmp-targets=amdgcn-amd-amdhsa;-Xopenmp-target=amdgcn-amd-amdhsa;-march=gfx906" \
 	-DENABLE_TARGET_OPENMP=On \
         -DENABLE_CUDA=Off \
         -DENABLE_CLANG_CUDA=Off \
