@@ -40,6 +40,7 @@ TESTS_DIR = \
     reduction_teams_distribute_parallel \
     schedule \
     simd \
+    snap_red \
     stream \
     target-in-other-source \
     target_teams_reduction \
