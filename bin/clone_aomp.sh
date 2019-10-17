@@ -69,6 +69,13 @@ if [ -d $repodirname  ] ; then
       echo git checkout CMakeLists.txt
       git checkout CMakeLists.txt
    fi
+   #   undo the patches to RAJA
+   if [ "$reponame" == "$AOMP_RAJA_REPO_NAME" ] ; then
+      git checkout include/RAJA/policy/atomic_auto.hpp
+      cd blt
+      git checkout cmake/SetupCompilerOptions.cmake
+      cd $repodirname
+   fi
    #   undo the comgr patch to rocm-compilersupport before pulling more updates
    if [ "$reponame" == "$AOMP_COMGR_REPO_NAME" ] ; then
       git checkout lib/comgr/src
