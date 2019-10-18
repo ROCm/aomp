@@ -3,14 +3,13 @@ AOMP - V 0.7-4
 
 This is README.md for https://github.com/ROCM-Developer-Tools/aomp.
 This is the base repository for AOMP. Use this github repository for
-[packaged releases] (https://github.com/ROCm-Developer-Tools/aomp/releases),
+[packaged releases](https://github.com/ROCm-Developer-Tools/aomp/releases),
 [issues](https://github.com/ROCm-Developer-Tools/aomp/issues),
 documentation, and
 [examples](https://github.com/ROCm-Developer-Tools/aomp/tree/master/examples).
 
-The last [release is AOMP 0.7-4]
-(https://github.com/ROCm-Developer-Tools/aomp/releases)
-. Currently AOMP 0.7-5 is under development.
+The last [release is AOMP 0.7-4](https://github.com/ROCm-Developer-Tools/aomp/releases).
+Currently AOMP 0.7-5 is under development.
 
 
 Attention Users!  Please use this repository for [issues](https://github.com/ROCm-Developer-Tools/aomp/issues).
@@ -34,18 +33,18 @@ Table of contents
 
 <A NAME="Overview">
 
-AOMP is a scripted build of LLVM and supporting software. It has support for OpenMP target offload on amdgcn GPUs.
-Some sources to support OpenMP target offload on amdgcn GPUs have not yet been merged into the upstream LLVM trunk.
+AOMP is a scripted build of LLVM and supporting software. It has support for OpenMP target offload on AMD GPUs.
+Since AOMP is a clang/llvm compiler, it also supports GPU offloading with HIP, CUDA, and OpenCL.
+
+Some sources to support OpenMP target offload on AMD GPUs have not yet been merged into the upstream LLVM trunk.
 However all sources used by AOMP are available in [AOMP repositories](https://github.com/ROCm-Developer-Tools/aomp/blob/master/bin/README.md#repositories).
 One of those repositories is a
 [mirror of the LLVM monorepo llvm-project](https://github.com/ROCm-Developer-Tools/llvm-project)
 with a set of commits applied to a stable LLVM release branch.
 
-Since AOMP is a clang/llvm compiler, it supports GPU offloading with HIP, CUDA, OpenCL, and OpenMP.
-
 The bin directory of this repository contains a README.md and build scripts needed to download, build, and install AOMP from source.
-In addition to the  mirrored [LLVM project repository](https://github.com/ROCm-Developer-Tools/llvm-project)
-(llvm-project), AOMP uses a number of open-source ROCm components. The build scripts will download, build, and install all components needed for AOMP.
+In addition to the  mirrored [LLVM project repository](https://github.com/ROCm-Developer-Tools/llvm-project),
+AOMP uses a number of open-source ROCm components. The build scripts will download, build, and install all components needed for AOMP.
 However, we recommend that you install the latest release of the [debian or rpm package](https://github.com/ROCm-Developer-Tools/aomp/releases) for AOMP described in the [install page](docs/INSTALL.md).
 
 ## Copyright and Disclaimer
