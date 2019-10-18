@@ -1,12 +1,20 @@
 AOMP - V 0.7-4
 ==============
 
-This is README.md for https://github.com/ROCM-Developer-Tools/aomp .  This is the base repository for AOMP. Use this for releases, issues, documentation, packaging, and examples, and optional source build.
+This is README.md for https://github.com/ROCM-Developer-Tools/aomp.
+This is the base repository for AOMP. Use this github repository for
+[packaged releases] (https://github.com/ROCm-Developer-Tools/aomp/releases),
+[issues](https://github.com/ROCm-Developer-Tools/aomp/issues),
+documentation, and
+[examples](https://github.com/ROCm-Developer-Tools/aomp/tree/master/examples).
 
-The last [release is AOMP 0.7-4](https://github.com/ROCm-Developer-Tools/aomp/releases). Currently AOMP 0.7-5 is under development.
+The last [release is AOMP 0.7-4]
+(https://github.com/ROCm-Developer-Tools/aomp/releases)
+. Currently AOMP 0.7-5 is under development.
 
 
-Attention Users!  Please use this repository for issues. Do not put issues in any of the source code repositories.
+Attention Users!  Please use this repository for [issues](https://github.com/ROCm-Developer-Tools/aomp/issues).
+Do not put issues in any of the source code repositories.
 
 Table of contents
 -----------------
@@ -17,7 +25,8 @@ Table of contents
 - [Install](docs/INSTALL.md)
 - [Release Packages](https://github.com/ROCm-Developer-Tools/aomp/releases)
 - [Test Install](docs/TESTINSTALL.md)
-- [Examples](examples)
+- [Examples](https://github.com/ROCm-Developer-Tools/aomp/examples)
+- [Issues](https://github.com/ROCm-Developer-Tools/aomp/issues)
 - [Developers Readme](bin/README.md)
 - [Limitations](#Limitations)
 
