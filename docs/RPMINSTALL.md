@@ -1,4 +1,4 @@
-# AOMP RPM Install 
+# No root RPM Install
 <!--
 ### RPM Install
 For rpm-based Linux distributions, use this rpm
@@ -7,7 +7,6 @@ wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_0.7-4/ao
 sudo rpm -i aomp-0.7-4.x86_64.rpm
 ```
 -->
-### No root RPM install
 
 By default, the packages install their content to the release directory /usr/lib/aomp_0.X-Y and then a  symbolic link is created at /usr/lib/aomp to the release directory. This requires root access.
 
