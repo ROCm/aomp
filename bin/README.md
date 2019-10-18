@@ -10,7 +10,7 @@ The AOMP compiler supports OpenMP, clang-hip, clang-cuda, device OpenCL, and the
 This bin directory contains scripts to build AOMP from source.
 ```
 clone_aomp.sh            -  A script to make sure the necessary repos are up to date.
-                            See below for a list of these source repositories.
+                            See [below](#Repositories) for a list of these source repositories.
 build_aomp.sh            -  Run all build and install scripts in the correct order.
 build_roct.sh            -  Builds the hsa thunk library.
 build_rocr.sh            -  Builds the ROCm runtime.
@@ -30,6 +30,8 @@ build_flang_runtime.sh   -  Builds the flang runtime for aomp.
 
 These scripts install into $HOME/rocm/aomp (or $AOMP if set).
 
+## Repositories
+<A NAME="Repositories">
 The clone_aomp.sh script clones the necessary repositories and the correct
 branches into subdirectories of $HOME/git/aomp (or $AOMP_REPOS if set)
 The repositories needed by AOMP are shown in the following table.
