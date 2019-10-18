@@ -20,7 +20,11 @@ AOMP_INSTALL_DIR=${AOMP}_${AOMP_VERSION_STRING}
 # For exampe the aomp main repo is typically stored in $HOME/git/aomp/aomp
 # Clang repo is $HOME/aomp/clang
 AOMP_REPOS=${AOMP_REPOS:-$HOME/git/aomp}
+
+# To build aomp from the release source taball, set these to 0
+# See build_from_release_tarball.sh
 AOMP_CHECK_GIT_BRANCH=${AOMP_CHECK_GIT_BRANCH:-1}
+AOMP_APPLY_ROCM_PATCHES=${AOMP_APPLY_ROCM_PATCHES:-1}
 
 CUDA=${CUDA:-/usr/local/cuda}
 CUDAT=${CUDAT:-$CUDA/targets}
@@ -175,6 +179,7 @@ function checkrepo(){
 
 #  TO use this function set variables patchdir and patchfile
 function patchrepo(){
+if [ "$AOMP_APPLY_ROCM_PATCHES" == 1 ] ; then
    cd $patchdir
    echo "Testing patch $patchfile to $patchdir"
    applypatch="yes"
@@ -198,6 +203,7 @@ function patchrepo(){
       echo "Applying patch $patchfile to $patchdir"
       patch -p1 <$patchfile
    fi
+fi
 }
 
 function help_build_aomp(){
