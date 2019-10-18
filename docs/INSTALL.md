@@ -1,16 +1,7 @@
 # AOMP Install 
-
-
-## Verify and Install Linux® Support for AOMP
-
-AOMP needs certain support for Linux® to function properly, such as the KFD driver for AMD GPUs,
-Click [AOMPSUPPORT](AOMPSUPPORT.md) for more information.
-
-## AOMP Install
-
 Platform Install Options:
 - [Ubuntu or Debian](UBUNTUINSTALL.md)
 - [SUSE SLES-15-SP1](SLES15INSTALL.md)
 - [RHEL 7](RHELINSTALL.md)
-- [Install RPM without root](RPMINSTALL.md)
+- [Install Without Root](NOROOTINSTALL.md)
 - [Source Install](SOURCEINSTALL.md)
