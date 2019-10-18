@@ -20,6 +20,7 @@ AOMP_INSTALL_DIR=${AOMP}_${AOMP_VERSION_STRING}
 # For exampe the aomp main repo is typically stored in $HOME/git/aomp/aomp
 # Clang repo is $HOME/aomp/clang
 AOMP_REPOS=${AOMP_REPOS:-$HOME/git/aomp}
+AOMP_REPOS_TEST=${AOMP_REPOS_TEST:-$HOME/git/aomp-test}
 
 # To build aomp from the release source taball, set these to 0
 # See build_from_release_tarball.sh

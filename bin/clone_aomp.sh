@@ -69,13 +69,6 @@ if [ -d $repodirname  ] ; then
       echo git checkout CMakeLists.txt
       git checkout CMakeLists.txt
    fi
-   #   undo the patches to RAJA
-   if [ "$reponame" == "$AOMP_RAJA_REPO_NAME" ] ; then
-      git checkout include/RAJA/policy/atomic_auto.hpp
-      cd blt
-      git checkout cmake/SetupCompilerOptions.cmake
-      cd $repodirname
-   fi
    #   undo the comgr patch to rocm-compilersupport before pulling more updates
    if [ "$reponame" == "$AOMP_COMGR_REPO_NAME" ] ; then
       git checkout lib/comgr/src
@@ -84,7 +77,7 @@ if [ -d $repodirname  ] ; then
       fi
    fi
    if [ "$STASH_BEFORE_PULL" == "YES" ] ; then
-      if [ "$reponame" != "$AOMP_HCC_REPO_NAME" ] && [ "$reponame" != "$AOMP_RAJA_REPO_NAME" ] ; then
+      if [ "$reponame" != "$AOMP_HCC_REPO_NAME" ] ; then
          git stash -u
       fi
    fi
@@ -94,7 +87,7 @@ if [ -d $repodirname  ] ; then
    git checkout $COBRANCH
    #echo "git pull "
    #git pull 
-   if [ "$reponame" == "$AOMP_HCC_REPO_NAME" ] || [ "$reponame" == "$AOMP_RAJA_REPO_NAME" ] ; then
+   if [ "$reponame" == "$AOMP_HCC_REPO_NAME" ] ; then
      echo "git submodule update"
      git submodule update
      echo "git pull"
@@ -103,7 +96,7 @@ if [ -d $repodirname  ] ; then
 else 
    echo --- NEW CLONE of repo $reponame to $repodirname ----
    cd $AOMP_REPOS
-   if [ "$reponame" == "$AOMP_HCC_REPO_NAME" ] || [ "$reponame" == "$AOMP_RAJA_REPO_NAME" ] ; then
+   if [ "$reponame" == "$AOMP_HCC_REPO_NAME" ] ; then
      git clone --recursive -b $COBRANCH $repo_web_location/$reponame $reponame
    else
      echo git clone $repo_web_location/$reponame
@@ -177,35 +170,3 @@ clone_or_pull
 reponame=$AOMP_RINFO_REPO_NAME
 COBRANCH=$AOMP_RINFO_REPO_BRANCH
 clone_or_pull
-
-# ---------------------------------------
-# The following repos is in AMDComputeLibraries
-# ---------------------------------------
-repo_web_location=$GITROCLIB
-reponame=$AOMP_APPS_REPO_NAME
-COBRANCH=$AOMP_APPS_REPO_BRANCH
-clone_or_pull
-
-# ---------------------------------------
-# The following repo is for testing raja from LLNL
-# ---------------------------------------
-repo_web_location=$GITLLNL
-reponame=$AOMP_RAJA_REPO_NAME
-COBRANCH=$AOMP_RAJA_REPO_BRANCH
-clone_or_pull
-
-# ---------------------------------------
-# The following repo is internal to AMD
-# ---------------------------------------
-ping -c 1 $AOMP_INTERNAL_IP 2>/dev/null
-if [ $? == 0 ] ; then
-   echo
-   echo " +---------------------------------------------------------------"
-   echo " |  WARNING: USE YOUR AMD USERID AND PASSWORD TO CLONE FROM $GITINTERNAL"
-   echo " +---------------------------------------------------------------"
-   echo
-   repo_web_location=$GITINTERNAL
-   reponame=$AOMP_IAPPS_REPO_NAME
-   COBRANCH=$AOMP_IAPPS_REPO_BRANCH
-   clone_or_pull
-fi
