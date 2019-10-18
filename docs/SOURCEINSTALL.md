@@ -109,7 +109,7 @@ The development version is the next version to be released.  It is possible that
 
 <b>For the Release Branch:</b>
 ```
-   git checkout rel_0.7-4_corrected
+   git checkout rel_0.7-4-corrected
    git pull
 ```
 <b>Clone and Build:</b>
