@@ -20,6 +20,7 @@ AOMP_INSTALL_DIR=${AOMP}_${AOMP_VERSION_STRING}
 # For exampe the aomp main repo is typically stored in $HOME/git/aomp/aomp
 # Clang repo is $HOME/aomp/clang
 AOMP_REPOS=${AOMP_REPOS:-$HOME/git/aomp}
+AOMP_CHECK_GIT_BRANCH=${AOMP_CHECK_GIT_BRANCH:-1}
 
 CUDA=${CUDA:-/usr/local/cuda}
 CUDAT=${CUDAT:-$CUDA/targets}
@@ -152,21 +153,23 @@ fi
 
 #  Check the repositories exist and are on the correct branch
 function checkrepo(){
-   cd $REPO_DIR
-   COBRANCH=`git branch --list | grep "\*" | cut -d" " -f2`
-   if [ "$COBRANCH" != "$REPO_BRANCH" ] ; then
-      if [ "$COBRANCH" == "master" ] ; then 
-        echo "EXIT:  Repository $REPO_DIR is on development branch: master"
-        exit 1
-      else 
-        echo "ERROR:  The repository at $REPO_DIR is not on branch $REPO_BRANCH"
-        echo "          It is on branch $COBRANCH"
-        exit 1
-     fi
-   fi
    if [ ! -d $REPO_DIR ] ; then
       echo "ERROR:  Missing repository directory $REPO_DIR"
       exit 1
+   fi
+   if [ "$AOMP_CHECK_GIT_BRANCH" == 1 ] ; then
+      cd $REPO_DIR
+      COBRANCH=`git branch --list | grep "\*" | cut -d" " -f2`
+      if [ "$COBRANCH" != "$REPO_BRANCH" ] ; then
+         if [ "$COBRANCH" == "master" ] ; then
+           echo "EXIT:  Repository $REPO_DIR is on development branch: master"
+           exit 1
+         else
+           echo "ERROR:  The repository at $REPO_DIR is not on branch $REPO_BRANCH"
+           echo "          It is on branch $COBRANCH"
+           exit 1
+        fi
+      fi
    fi
 }
 
