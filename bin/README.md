@@ -1,7 +1,8 @@
 AOMP Developer README.md
 ========================
 
-AOMP is the AMD OpenMP Compiler. This is the AOMP developer README stored at:
+AOMP is a scripted build of LLVM and supporting software. It has support for OpenMP target offload on amdgcn GPUs.
+This is the AOMP developer README stored at:
 ```
 https://github.com/ROCm-Developer-Tools/aomp/blob/master/bin/README.md
 ```
@@ -10,7 +11,7 @@ The AOMP compiler supports OpenMP, clang-hip, clang-cuda, device OpenCL, and the
 This bin directory contains scripts to build AOMP from source.
 ```
 clone_aomp.sh            -  A script to make sure the necessary repos are up to date.
-                            See [below](#Repositories) for a list of these source repositories.
+                            See below for a list of these source repositories.
 build_aomp.sh            -  Run all build and install scripts in the correct order.
 build_roct.sh            -  Builds the hsa thunk library.
 build_rocr.sh            -  Builds the ROCm runtime.
