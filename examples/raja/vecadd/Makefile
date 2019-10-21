@@ -31,11 +31,13 @@ AOMP_CPUTARGET ?= x86_64-pc-linux-gnu
 CC              = $(AOMP)/bin/clang++
 AOMP_GPUTARGET = amdgcn-amd-amdhsa
 export PATH := $(AOMP)/bin:$(PATH)
-RAJA_INSTALL = $(HOME)/raja_build.$(AOMP_GPU)
+RAJA_BUILD_PREFIX ?= $(HOME)
+RAJA_BUILD_DIR ?= $(RAJA_BUILD_PREFIX)/raja_build.$(AOMP_GPU)
+
 RAJA_SRC = $(HOME)/git/aomp/raja
 
 # Sorry, clang openmp requires these complex options
-CPPFLAGS = -w -O3 -target $(AOMP_CPUTARGET) -fopenmp -fopenmp-targets=$(AOMP_GPUTARGET) -Xopenmp-target=$(AOMP_GPUTARGET) -march=$(AOMP_GPU) -I$(RAJA_SRC)/include  -I$(RAJA_INSTALL)/include
+CPPFLAGS = -w -O3 -target $(AOMP_CPUTARGET) -fopenmp -fopenmp-targets=$(AOMP_GPUTARGET) -Xopenmp-target=$(AOMP_GPUTARGET) -march=$(AOMP_GPU) -I$(RAJA_SRC)/include  -I$(RAJA_BUILD_DIR)/include
 
 ifeq ($(OFFLOAD_DEBUG),1)
   $(info    DEBUG Mode ON)
@@ -57,13 +59,13 @@ CPPFLAGS += $(EXTRA_CPPFLAGS)
 
 # ----- Demo compile and link in one step, no object code saved
 
-$(TESTNAME): $(RAJA_INSTALL) $(TESTSRC)
+$(TESTNAME): $(RAJA_BUILD_DIR) $(TESTSRC)
 	$(CCENV) $(CC) $(CPPFLAGS) $(LFLAGS) $(TESTSRC) -o $@
 
 run: $(TESTNAME) 
 	$(RUNENV) ./$(TESTNAME)
 
-$(RAJA_INSTALL): $(RAJA_SRC)
+$(RAJA_BUILD_DIR): $(RAJA_SRC)
 	$(AOMP)/bin/raja_build.sh
 
 $(RAJA_SRC): 
@@ -77,6 +79,7 @@ help:
 	@echo "Target triple:		$(AOMP_GPUTARGET)"
 	@echo "AOMP compiler: 		$(CC)"
 	@echo "Compile flags:		$(CFLAGS)"
+	@echo "RAJA build prefix:	$(RAJA_BUILD_PREFIX)"
 ifeq (sm_,$(findstring sm_,$(AOMP_GPU)))
 	@echo "CUDA installation:	$(CUDA)"
 endif
@@ -86,7 +89,8 @@ endif
 	@echo " make			// Builds $(TESTNAME) and RAJA "
 	@echo " make run		// Executes $(TESTNAME) "
 	@echo
-	@echo " make clean              // Deletes test build and RAJA build "
+	@echo " make clean              // Deletes test build  "
+	@echo " make clean_raja         // Deletes RAJA build "
 	@echo " make help"
 	@echo
 	@echo "Environment variables used by this Makefile:"
@@ -104,4 +108,7 @@ endif
 
 # Cleanup anything this makefile can create
 clean:
-	rm -rf $(TESTNAME) obin *.i *.ii *.bc *.lk a.out-* *.ll *.s *.o *.cubin raja_build
+	rm -rf $(TESTNAME) obin *.i *.ii *.bc *.lk a.out-* *.ll *.s *.o *.cubin
+
+clean_raja:
+	rm -rf $(RAJA_BUILD_DIR)
