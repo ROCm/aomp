@@ -32,11 +32,10 @@ env OFFLOAD_DEBUG=1 make run
 This demonstration shows the commands and output for the vecadd example:
 
 ```
-:/opt/rocm/aomp/examples/raja/vecadd$ make
-/opt/rocm/aomp/bin/clang++ -w -O3 -target x86_64-pc-linux-gnu -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=gfx906 -I/home/alit/git/aomp/raja/include  -I/home/alit/raja_build.gfx906/include   vecadd.cpp -o vecadd
+:/usr/lib/aomp/examples/raja/vecadd$ make
+/usr/lib/aomp/bin/clang++ -w -O3 -target x86_64-pc-linux-gnu -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=gfx906 -I/home/alit/git/aomp/raja/include  -I/home/alit/raja_build.gfx906/include   vecadd.cpp -o vecadd
 
-:/opt/rocm/aomp/examples/openmp/reduction$ make run
-./reduction
+:/usr/lib/aomp/examples/raja/vecadd$ make run
 ./vecadd
 Success
 
