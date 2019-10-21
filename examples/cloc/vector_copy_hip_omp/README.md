@@ -19,12 +19,12 @@ To compile and run this example, execute these commands:
 The Makefile will execute these commands to build the vector_copy binary:
 
 ```
-/opt/rocm/aomp/bin/clang++ -I/opt/rocm/include -c -std=c++11 -D__HIP_PLATFORM_HCC__ -O3 -target x86_64-pc-linux-gnu -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=gfx803     -o obj/vector_copy.o vector_copy.cpp
-/opt/rocm/aomp/bin/clang++  obj/vector_copy.o -std=c++11 -D__HIP_PLATFORM_HCC__ -O3 -target x86_64-pc-linux-gnu -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=gfx803     -L/opt/rocm/lib -lhip_hcc -o vector_copy
+/usr/lib/aomp/bin/clang++ -I/usr/lib/include -c -std=c++11 -D__HIP_PLATFORM_HCC__ -O3 -target x86_64-pc-linux-gnu -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=gfx803     -o obj/vector_copy.o vector_copy.cpp
+/usr/lib/aomp/bin/clang++  obj/vector_copy.o -std=c++11 -D__HIP_PLATFORM_HCC__ -O3 -target x86_64-pc-linux-gnu -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=gfx803     -L/usr/lib/lib -lhip_hcc -o vector_copy
 ```
 The vectory_copy program will look for the file vector_copy.hsaco.
 To create the hsaco with cloc.sh the Makefile will run the cloc.sh utility as follows:
 
 ```
-/opt/rocm/aomp/bin/cloc.sh vector_copy.cu
+/usr/lib/aomp/bin/cloc.sh vector_copy.cu
 ```

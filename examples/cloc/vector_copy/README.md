@@ -16,9 +16,9 @@ The Makefile will execute these commands to build the vector_copy binary:
 
 
 ```
-g++ -c -std=c++11 -I/opt/rocm/aomp/include -o obj/vector_copy.o vector_copy.cpp
-g++ obj/vector_copy.o -L/opt/rocm/aomp/lib -lhsa-runtime64 -Wl,-rpath=/opt/rocm/aomp/lib -o vector_copy
-/opt/rocm/aomp/bin/cloc.sh -mcpu gfx803 vector_copy.cl
+g++ -c -std=c++11 -I/usr/lib/aomp/include -o obj/vector_copy.o vector_copy.cpp
+g++ obj/vector_copy.o -L/usr/lib/aomp/lib -lhsa-runtime64 -Wl,-rpath=/usr/lib/aomp/lib -o vector_copy
+/usr/lib/aomp/bin/cloc.sh -mcpu gfx803 vector_copy.cl
 
 ```
 The vectory_copy program will load the GPU binary in the file vector_copy.hsaco.
