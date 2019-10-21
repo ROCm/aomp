@@ -116,7 +116,7 @@ endif
 	@echo "Environment variables used by this Makefile:"
 	@echo "  AOMP_GPU=<GPU>       Target GPU, e.g sm_30, default=gfx900. To build for"
 	@echo "                       Nvidia GPUs, set AOMP_GPU=sm_60 or appropriate sm_"
-	@echo "  AOMP=<dir>           AOMP install dir, default=/opt/rocm/aomp"
+	@echo "  AOMP=<dir>           AOMP install dir, default=/usr/lib/aomp"
 	@echo "  EXTRA_CFLAGS=<args>  extra arguments for compiler"
 	@echo "  OFFLOAD_DEBUG=n      if n=1, compile and run in Debug mode"
 	@echo "  VERBOSE=n            if n=1, add verbose output"

@@ -18,9 +18,9 @@ The Makefile will generate and execute three commands to build the vector_copy b
 and the vector_copy.hsaco file.
 Depending on your environment, the generated commands will be similar to these:
 ```
-/opt/rocm/aomp/bin/clang++ -c -std=c++11 -D__HIP_PLATFORM_HCC__ -o obj/vector_copy.o vector_copy.cpp
-/opt/rocm/aomp/bin/clang++ obj/vector_copy.o -L/opt/rocm/aomp/lib -lhip_hcc -Wl,-rpath,/opt/rocm/aomp/lib -o vector_copy
-/opt/rocm/aomp/bin/cloc.sh -mcpu gfx900 vector_copy.cu
+/usr/lib/aomp/bin/clang++ -c -std=c++11 -D__HIP_PLATFORM_HCC__ -o obj/vector_copy.o vector_copy.cpp
+/usr/lib/aomp/bin/clang++ obj/vector_copy.o -L/usr/lib/aomp/lib -lhip_hcc -Wl,-rpath,/usr/lib/aomp/lib -o vector_copy
+/usr/lib/aomp/bin/cloc.sh -mcpu gfx900 vector_copy.cu
 
 ```
 The first two commands compile and link the application source in vector_copy.cpp
