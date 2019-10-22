@@ -3,7 +3,7 @@
 Build and install from sources is possible with spack.  Source build requires build dependencies.  These dependencies are not yet provided with the spack configuration file.  So if you are using spack to build aomp, you must install the
  prerequisites listed below.
 
-##Source Build Prerequisites:<br>
+##Source Build Prerequisites:
 
 ###Required Distribution Packages
 
