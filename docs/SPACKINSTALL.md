@@ -1,21 +1,23 @@
 # Spack Source Install V 0.7-5 (DEV)
 
-Build and install from sources is possible with spack.  Source build requires build dependencies.  These dependencies are not yet provided with the spack configuration file.  So if you are using spack to build aomp, you should install the
- source build prerequisites.
+Build and install from sources is possible with spack.  Source build requires build dependencies.  These dependencies are not yet provided with the spack configuration file.  So if you are using spack to build aomp, you must install the
+ prerequisites listed below.
 
 ##Source Build Prerequisites:<br>
+
 ###Required Distribution Packages
-<b>Ubuntu</b>
+
+#### Debian or Ubuntu Packages
 
 ```
    sudo apt-get install cmake g++-5 g++ pkg-config libpci-dev libnuma-dev libelf-dev libffi-dev git python libopenmpi-dev gawk
 ```
-<b>SLES-15-SP1</b>
+#### SLES-15-SP1 Packages
 
 ```
   sudo zypper install -y git pciutils-devel cmake python-base libffi-devel gcc gcc-c++ libnuma-devel libelf-devel patchutils openmpi2-devel
 ```
-<b>RHEL 7</b><br>
+#### RHEL 7  Packages
 Building from source requires a newer gcc. Devtoolset-7 is recommended, follow instructions 1-3 here:<br>
 Note that devtoolset-7 is a Software Collections package, and it is not supported by AMD.
 https://www.softwarecollections.org/en/scls/rhscl/devtoolset-7/<br>
@@ -32,7 +34,7 @@ The build scripts use cmake, so we need to link cmake --> cmake3 in /usr/bin
 
 Please verify you have the proper software installed as AOMP needs certain support to function properly, such as the KFD driver for AMD GPUs.
 
-### Debian or Ubuntu Support
+#### Debian or Ubuntu Support
 These commands are for supported Debian-based systems and target only the rock_dkms core component. More information can be found [HERE](https://rocm.github.io/ROCmInstall.html#ubuntu-support---installing-from-a-debian-repository).
 ```
 wget -qO - http://repo.radeon.com/rocm/apt/debian/rocm.gpg.key | sudo apt-key add -
@@ -41,7 +43,7 @@ sudo apt update
 sudo apt install rock-dkms
 ```
 
-### SUSE SLES-15-SP1 Support
+#### SUSE SLES-15-SP1 Support
 <b>Important Note:</b>
 There is a conflict with the KFD when simultaneously running the GUI on SLES-15-SP1, which leads to unpredicatable behavior when offloading to the GPU. We recommend using SLES-15-SP1 in text mode to avoid running both the KFD and GUI at the same time.
 
@@ -81,7 +83,7 @@ Create a /etc/yum.repos.d/rocm.repo file with the following contents:
   sudo yum install rock-dkms
 ```
 
-### Create video group
+### Create the Unix Video Group
 Regardless of Linux distribution, you must create a video group to contain the users authorized to use the GPU. 
 ```
   echo 'SUBSYSTEM=="kfd", KERNEL=="kfd", TAG+="uaccess", GROUP="video"' | sudo tee /etc/udev/rules.d/70-kfd.rules
@@ -89,18 +91,16 @@ Regardless of Linux distribution, you must create a video group to contain the u
   sudo usermod -a -G video $USER
 ```
 ### Install spack
-```
-```
+If you do not have spack installed already, please refer to
+[these install instructions](https://spack.readthedocs.io/en/latest/getting_started.html#installation).
 
 ## Build AOMP from released source with spack
 
-Assuming your have installed all the prerequisites, use these commands to fetch the source and build aomp. 
+Assuming your have installed the prerequisites listed above, use these commands to fetch the source and build aomp. 
 Currently the aomp configuration is not yet in the spack git hub.
-These command will only work after a release of aomp and the source tarball for the aomp release has been uploaded to git hub release. 
 
 ```
    spack create -n aomp -t makefile --force https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_0.7-3/aomp-0.7-4.tar.gz
    spack install aomp
 ```
-
-Depending on your system, these  commands could take a very long time.
+These commands will only work after a release of aomp and the source tarball for the aomp release has been uploaded to git hub release.  Depending on your system, these commands could take a very long time.
