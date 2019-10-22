@@ -1,0 +1,17 @@
+llvm-project/clang-tools-extra/test 
+llvm-project/compiler-rt/test 
+llvm-project/libclc/test 
+llvm-project/libcxxabi/test 
+llvm-project/libcxx/test 
+llvm-project/libunwind/test 
+llvm-project/lldb/test 
+llvm-project/llgo/test 
+llvm-project/llvm/test 
+llvm-project/polly/test 
+llvm-project/pstl/test
+hcc/clang/test 
+hcc/compiler/test 
+hcc/lld/test
+.git
+llgo
+lldb
