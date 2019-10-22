@@ -1,8 +1,10 @@
 # Spack Source Install V 0.7-5 (DEV)
 
-Build and install from sources is possible with spack.  Source build requires build dependencies.  These dependencies are not yet provided with the spack configuration file.  So if you are using spack to build aomp, you should install the correct OS dependencies before you spack build. 
+Build and install from sources is possible with spack.  Source build requires build dependencies.  These dependencies are not yet provided with the spack configuration file.  So if you are using spack to build aomp, you should install the
+ source build prerequisites.
 
-## Building AOMP from source requires these dependencies:<br>
+##Source Build Prerequisites:<br>
+###Required Distribution Packages
 <b>Ubuntu</b>
 
 ```
@@ -26,7 +28,7 @@ The build scripts use cmake, so we need to link cmake --> cmake3 in /usr/bin
   sudo ln -s /usr/bin/cmake3 /usr/bin/cmake
 ```
 
-## Verify KFD Driver
+### Verify KFD Driver
 
 Please verify you have the proper software installed as AOMP needs certain support to function properly, such as the KFD driver for AMD GPUs.
 
@@ -79,18 +81,22 @@ Create a /etc/yum.repos.d/rocm.repo file with the following contents:
   sudo yum install rock-dkms
 ```
 
-## Set Group Access
+### Create video group
+Regardless of Linux distribution, you must create a video group to contain the users authorized to use the GPU. 
 ```
   echo 'SUBSYSTEM=="kfd", KERNEL=="kfd", TAG+="uaccess", GROUP="video"' | sudo tee /etc/udev/rules.d/70-kfd.rules
   sudo reboot
   sudo usermod -a -G video $USER
 ```
+### Install spack
+```
+```
 
 ## Build AOMP from released source with spack
 
-Currently the aomp configuration is not yet in the spack git hub. 
-Assuming you have already installed spack, use these commands to fetch the source and build. 
-These command will only work after a release of aomp. 
+Assuming your have installed all the prerequisites, use these commands to fetch the source and build aomp. 
+Currently the aomp configuration is not yet in the spack git hub.
+These command will only work after a release of aomp and the source tarball for the aomp release has been uploaded to git hub release. 
 
 ```
    spack create -n aomp -t makefile --force https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_0.7-3/aomp-0.7-4.tar.gz
