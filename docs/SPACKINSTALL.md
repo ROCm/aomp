@@ -3,9 +3,9 @@
 Build and install from sources is possible with spack.  Source build requires build dependencies.  These dependencies are not yet provided with the spack configuration file.  So if you are using spack to build aomp, you must install the
  prerequisites listed below.
 
-##Source Build Prerequisites:
+## Source Build Prerequisites
 
-###Required Distribution Packages
+### Required Distribution Packages
 
 #### Debian or Ubuntu Packages
 
@@ -82,7 +82,6 @@ Create a /etc/yum.repos.d/rocm.repo file with the following contents:
 ```
   sudo yum install rock-dkms
 ```
-
 ### Create the Unix Video Group
 Regardless of Linux distribution, you must create a video group to contain the users authorized to use the GPU. 
 ```
