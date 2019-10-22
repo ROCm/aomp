@@ -188,7 +188,11 @@ if [ "$1" == "install" ] ; then
    fi
    # post install fix to hip headers to support hip+openmp
    # FIXME: Remove when this patch is added to ROCm HIP
+   save_patch_state=$AOMP_APPLY_ROCM_PATCHES
+   AOMP_APPLY_ROCM_PATCHES=1
    patchfile=$thisdir/patches/hip.patch
    patchdir=$INSTALL_HIP
    patchrepo
+   AOMP_APPLY_ROCM_PATCHES=$save_patch_state
+   export AOMP_APPLY_ROCM_PATCHES
 fi
