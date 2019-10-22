@@ -101,7 +101,14 @@ Assuming your have installed the prerequisites listed above, use these commands 
 Currently the aomp configuration is not yet in the spack git hub so you must create the spack package first. 
 
 ```
+   cd /tmp
+   wget https://github.com/ROCm-Developer-Tools/aomp/blob/master/bin/package.py
    spack create -n aomp -t makefile --force https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_0.7-5/aomp-0.7-5.tar.gz
-   spack install aomp
+   # The above spack create command will download and start an editor of the spack config file.
+   # With the exception of the sha256 value, copy the contents of the downloaded package.py
+   # into the spack configuration file. You may restart this editor with the following command
+   speck edit aomp
+   sudo spack install aomp
 ```
 These commands will only work after a release of aomp and the source tarball for the aomp release has been uploaded to git hub release.  Depending on your system, these commands could take a very long time.
+AOMP will be installed in /usr/local/aomp_<RELEASE> with a symbolic link from /usr/local/aomp to /usr/local/aomp_<RELEASE>
