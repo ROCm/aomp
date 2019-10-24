@@ -26,6 +26,8 @@ Building from source requires a newer gcc. Devtoolset-7 is recommended, follow i
 Note that devtoolset-7 is a Software Collections package, and it is not supported by AMD.
 https://www.softwarecollections.org/en/scls/rhscl/devtoolset-7/<br>
 
+<b>The build_aomp.sh script will automatically enable devtoolset-7 if found in /opt/rh/devtoolset-7/enable. If you want to build an individual component you will need to manually start devtoolset-7 from the instructions above.</b><br>
+
 ```
   sudo yum install cmake3 pciutils-devel numactl-devel libffi-devel
 ```
@@ -64,11 +66,6 @@ SUSE SLES-15-SP1 comes with kfd support installed. To verify this:
   sudo subscription-manager repos --enable rhel-7-server-extras-rpms
   sudo rpm -ivh https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
 ```
-<b>Install and setup Devtoolset-7</b></br>
-Devtoolset-7 is recommended, follow instructions 1-3 here:<br>
-Note that devtoolset-7 is a Software Collections package, and it is not supported by AMD.
-https://www.softwarecollections.org/en/scls/rhscl/devtoolset-7/<br>
-
 <b>Install dkms tool</b>
 ```
   sudo yum install -y epel-release
