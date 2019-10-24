@@ -4,5 +4,5 @@ Platform Install Options:
 - [SUSE SLES-15-SP1](SLES15INSTALL.md)
 - [RHEL 7](RHELINSTALL.md)
 - [Install Without Root](NOROOTINSTALL.md)
-- [Source Install with spack](SPACKINSTALL.md)
-- [Source Install](SOURCEINSTALL.md)
+- [Build and Install from release source tarball](RELEASESOURCEINSTALL.md)
+- [Development Source Build and Install](SOURCEINSTALL.md)
