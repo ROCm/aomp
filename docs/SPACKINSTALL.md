@@ -1,11 +1,13 @@
-# Spack Source Install V 0.7-5 (DEV)
+# Build and Install From Release Source Tarball
 
-Build and install from sources is possible with spack.  Source build requires build dependencies.  These dependencies are not yet provided with the spack configuration file.  So if you are using spack to build aomp, you must install the
- prerequisites listed below.
+The AOMP build and install from the release source tarball can be done manually or with spack.
+Building from source requires a number of platform dependencies.
+These dependencies are not yet provided with the spack configuration file.
+So if you are building from source either manually or building with spack, you must install the prerequisites for the platforms listed below.
 
 ## Source Build Prerequisites
 
-To build AOMP from source with spack you must: 1. install certain distribution packages, 2. ensure the KFD kernel module is installed and operating, 3. create the Unix video group, and 4. install spack.  
+To build AOMP from source you must: 1. install certain distribution packages, 2. ensure the KFD kernel module is installed and operating, 3. create the Unix video group, and 4. install spack if required.
 
 ### 1. Required Distribution Packages
 
@@ -92,8 +94,35 @@ Regardless of Linux distribution, you must create a video group to contain the u
   sudo usermod -a -G video $USER
 ```
 ### 4. Install spack
-If you do not have spack installed already, please refer to
-[these install instructions](https://spack.readthedocs.io/en/latest/getting_started.html#installation).
+To use spack to build and install from the release source tarball, you must install spack first.
+Please refer to
+[these install instructions](https://spack.readthedocs.io/en/latest/getting_started.html#installation) for instructions on installing spack.
+Remember,the aomp spack configuration file is currently missing dependencies, so be sure to install the packages listed above before proceeding.
+
+## Build AOMP manually from release source tarball
+
+To build and install aomp from the release source tarball run these commands:
+
+```
+   wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_0.7-5/aomp-0.7-5.tar.gz
+   tar -xzf aomp-0.7-5.tar.gz
+   cd aomp
+   nohup make &
+```
+Depending on your system, the last command could take a very long time.  So it is recommended to use nohup and background the process.  The simple Makefile that make will use runs build script "build_aomp.sh" and sets some flags to avoid git checks and applying ROCm patches. Here is that Makefile:
+```
+AOMP ?= /usr/local/aomp
+AOMP_REPOS = $(shell pwd)
+all:
+        AOMP=$(AOMP) AOMP_REPOS=$(AOMP_REPOS) AOMP_CHECK_GIT_BRANCH=0 AOMP_APPLY_ROCM_PATCHES=0 $(AOMP_REPOS)/aomp/bin/build_aomp.sh
+```
+If you set the environment variable AOMP, the Makefile will install to that directory.
+Otherwise, the Makefile will install into /usr/local.
+So you must have authorization to write into /usr/local if you do not set the environment variable AOMP.
+Let's assume you set the environment variable AOMP to "$HOME/rocm/aomp" in .bash_profile.
+The build_aomp.sh script will install into $HOME/rocm/aomp_0.7-5 and create a symbolic link from $HOME/rocm/aomp to $HOME/rocm/aomp_0.7-5.
+This feature allows multiple versions of AOMP to be installed concurrently.
+To enable a backlevel version of AOMP, simply set AOMP to $HOME/rocm/aomp_0.7-4.
 
 ## Build AOMP with spack
 
@@ -101,14 +130,15 @@ Assuming your have installed the prerequisites listed above, use these commands 
 Currently the aomp configuration is not yet in the spack git hub so you must create the spack package first. 
 
 ```
-   cd /tmp
    wget https://github.com/ROCm-Developer-Tools/aomp/blob/master/bin/package.py
    spack create -n aomp -t makefile --force https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_0.7-5/aomp-0.7-5.tar.gz
-   # The above spack create command will download and start an editor of the spack config file.
-   # With the exception of the sha256 value, copy the contents of the downloaded package.py
-   # into the spack configuration file. You may restart this editor with the following command
-   speck edit aomp
-   sudo spack install aomp
+   spack edit aomp
+   spack install aomp
 ```
-These commands will only work after a release of aomp and the source tarball for the aomp release has been uploaded to git hub release.  Depending on your system, these commands could take a very long time.
-AOMP will be installed in /usr/local/aomp_<RELEASE> with a symbolic link from /usr/local/aomp to /usr/local/aomp_<RELEASE>
+The "spack create" command will download and start an editor of a newly created spack config file.
+With the exception of the sha256 value, copy the contents of the downloaded package.py file into
+into the spack configuration file. You may restart this editor with the command "spack edit aomp"
+
+Depending on your system, the "spack install aomp" command could take a very long time.
+Unless you set the AOMP environment variable, AOMP will be installed in /usr/local/aomp_<RELEASE> with a symbolic link from /usr/local/aomp to /usr/local/aomp_<RELEASE>.
+Be sure you have write access to /usr/local or set AOMP to a location where you have write access.
