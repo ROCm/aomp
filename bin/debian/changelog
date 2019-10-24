@@ -1,4 +1,4 @@
-aomp (0.7-4) UNRELEASED; urgency=medium
+aomp (0.7-5) UNRELEASED; urgency=medium
 
   * Initial release of aomp is 0.3-2
   *   Please see example in /usr/lib/aomp/examples/vmuldemo 
@@ -272,5 +272,28 @@ aomp (0.7-4) UNRELEASED; urgency=medium
   *   Fix to device math library in aomp extras
   *   Fix cloc.sh to support .cu files without hip automatic mode
   *
+  * 0.7-5
+  *   Move to ROCm 2.9 sources
+  *   Updates to source build scripts to allow consistent patching to pristine ROCm source repositories.
+  *   The comgr is now patched to use the old method of getting section name for llvm-9.  The current
+  *      comgr code assumes llvm-10 so it needed this patch until aomp moves to llvm-10.
+  *   Backported clang support for f16 in builtins. This was needed to build ROCM 2.9 rocm-device-libs.
+  *   Simplify hostcall detection
+  *   Import non functional changes to deviceRTL from llvm master
+  *   libm SDL now added automatically by default
+  *   Added libm to the do not search for SDL list when linking user specified libraries during the
+  *      clang-build-select-link step. This prevents a double linking of the device libm when -lm is used.
+  *   Split aomp test repositories to a separate directory.
+  *   Starting with this release, we will create an artifact tarball of the entire source tree.
+  *      This tree includes a Makefile in the root directory used to build aomp from the release tarball.
+  *      You can use spack to build AOMP from this source tarball.
+  *   Instructions on the use of spack to build AOMP have been added to the install documentation.
+  *   Fixed HIP_DEVICE_COMPILE being active during host pass
+  *   Added RAJA example
+  *   Added initial -g (debug) support for target code. Can be used with the soon to be released rocm-gdb.
+  *   The upstream flang source code as of Oct 23, 2019 has been merged into this build. Some minor fixes
+  *      were required.  See the commits in AOMP-191023.
+  *   Added sollve_vv to the aomp-test repositories and a script called run_sollve.sh that patches
+  *      the Makefile to skip fortran tests and patches bad tests that have map clauses for reduction variables.
 
- -- Greg Rodgers <Gregory.Rodgers@amd.com>  Thu, 10 Oct 2019 13:35:52 -0500
+ -- Greg Rodgers <Gregory.Rodgers@amd.com>  Wed, 23 Oct 2019 09:07:31 -0500
