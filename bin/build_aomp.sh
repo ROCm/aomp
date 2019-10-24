@@ -28,6 +28,7 @@ thisdir=$(getdname $0)
 # --- end standard header ----
 
 function build_aomp_component() {
+   [ -f /opt/rh/devtoolset-7/enable ] &&  . /opt/rh/devtoolset-7/enable
    $AOMP_REPOS/$AOMP_REPO_NAME/bin/build_$COMPONENT.sh "$@"
    rc=$?
    if [ $rc != 0 ] ; then 
