@@ -1,0 +1,38 @@
+diff --git a/Makefile b/Makefile
+index 5f17a25..8538a66 100644
+--- a/Makefile
++++ b/Makefile
+@@ -79,7 +79,7 @@ ifneq "$(SOURCES)" ""
+ # Obtain all the possible source files for C, CPP and Fortran
+ SOURCES_C := $(shell find $(CURDIR)/tests/$(OMP_VERSION) -path "*$(SOURCES)" | grep "\.c$$")
+ SOURCES_CPP := $(shell find $(CURDIR)/tests/$(OMP_VERSION) -path "*$(SOURCES)" | grep "\.cpp$$")
+-SOURCES_F := $(shell find $(CURDIR)/tests/$(OMP_VERSION) -path "*$(SOURCES)" | grep "\(\.F90\|\.F95\|\.F03\|\.F\|\.FOR\)$$")
++SOURCES_F := " "
+ $(info SOURCES = $(notdir $(SOURCES_C) $(SOURCES_CPP) $(SOURCES_F)))
+ 
+ # Obtain the list of files that were previously
+@@ -108,6 +108,7 @@ OBJS_F := $(OBJS_F:.F95=.F95.FOR.o)
+ OBJS_F := $(OBJS_F:.F03=.F03.FOR.o)
+ OBJS_F := $(OBJS_F:.F=.F.FOR.o)
+ endif
++OBJS_F := " "
+ 
+ # Build list of compilation dependencies
+ COMP_DEP = $(OBJS_C) $(OBJS_CPP) $(OBJS_F)
+@@ -134,7 +135,7 @@ ifeq "$(SOURCES)" ""
+ # Getting all the source files in the project
+ SOURCES_C := $(shell find $(CURDIR)/tests/$(OMP_VERSION) -name *.c)
+ SOURCES_CPP := $(shell find $(CURDIR)/tests/$(OMP_VERSION) -name *.cpp)
+-SOURCES_F := $(shell find $(CURDIR)/tests/$(OMP_VERSION) -name "*.F90" -o -name "*.F95" -o -name "*.F03" -o -name "*.F" -o -name "*.FOR" | grep -v "ompvv.F90")
++SOURCES_F := " "
+ 
+ # Find all the binary files that have been previously compiled
+ TESTS_TO_RUN := $(shell test -d $(BINDIR) && \
+@@ -166,6 +167,7 @@ OBJS_F := $(OBJS_F:.F03=.F03.FOR.o)
+ OBJS_F := $(OBJS_F:.F=.F.FOR.o)
+ OBJS_F := $(OBJS_F:.FOR=.FOR.FOR.o)
+ endif
++OBJS_F := " "
+ COMP_DEP := $(OBJS_C) $(OBJS_CPP) $(OBJS_F)
+ 
+ # Get all the dependencies for all rule

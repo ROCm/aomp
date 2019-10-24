@@ -96,6 +96,11 @@ reponame=$AOMP_RAJA_REPO_NAME
 COBRANCH=$AOMP_RAJA_REPO_BRANCH
 clone_or_pull
 
+repo_web_location=$GITSOLVV
+reponame=$AOMP_SOLVV_REPO_NAME
+COBRANCH=$AOMP_SOLVV_REPO_BRANCH
+clone_or_pull
+
 # ---------------------------------------
 # The following repo is internal to AMD
 # ---------------------------------------
