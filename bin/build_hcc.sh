@@ -171,8 +171,13 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    # run cmake on fresh starts only, that is no args
    echo
    echo " -----Running cmake ---- " 
-   echo cmake $MYCMAKEOPTS  $BUILD_DIR/$AOMP_HCC_REPO_NAME
-   cmake $MYCMAKEOPTS  $BUILD_DIR/$AOMP_HCC_REPO_NAME 2>&1
+   if [ $COPYSOURCE ] ; then
+      echo cmake $MYCMAKEOPTS  $BUILD_DIR/$AOMP_HCC_REPO_NAME
+      cmake $MYCMAKEOPTS  $BUILD_DIR/$AOMP_HCC_REPO_NAME 2>&1
+   else
+      echo cmake $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_HCC_REPO_NAME
+      cmake $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_HCC_REPO_NAME 2>&1
+   fi
    if [ $? != 0 ] ; then 
       echo "ERROR cmake failed. Cmake flags"
       echo "      $MYCMAKEOPTS"

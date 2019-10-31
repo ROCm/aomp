@@ -127,8 +127,14 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
      hccloc="/opt/rocm/hcc"
      hsahcc_locations="-DHSA_PATH=/opt/rocm/hsa -DHCC_HOME=/opt/rocm/hcc"
   else
-     hccloc="$INSTALL_HIP/hcc"
-     hsahcc_locations="-DHSA_PATH=$INSTALL_HIP/hsa -DHCC_HOME=$INSTALL_HIP/hcc"
+     if [ $AOMP_STANDALONE_BUILD == 1 ] ; then
+        hccloc="$INSTALL_HIP/hcc"
+        hsahcc_locations="-DHSA_PATH=$INSTALL_HIP/hsa -DHCC_HOME=$INSTALL_HIP/hcc"
+     else
+        ROCM_INSTALL_PATH=${ROCM_INSTALL_PATH:-/opt/rocm}
+        hccloc="$ROCM_INSTALL_PATH/hcc"
+        hsahcc_locations="-DHSA_PATH=$ROCM_INSTALL_PATH/hsa -DHCC_HOME=$ROCM_INSTALL_PATH/hcc"
+     fi
   fi
 
   MYCMAKEOPTS="-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON -DCMAKE_INSTALL_RPATH=$INSTALL_HIP/lib:$hccloc/lib -DCMAKE_BUILD_TYPE=$BUILDTYPE -DCMAKE_INSTALL_PREFIX=$INSTALL_HIP -DHIP_PLATFORM=hcc -DHIP_COMPILER=clang $hsahcc_locations"

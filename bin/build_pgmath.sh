@@ -98,8 +98,13 @@ export PATH=$AOMP_INSTALL_DIR/bin:$PATH
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    echo
    echo " -----Running cmake ---- " 
-   echo cmake $MYCMAKEOPTS  $BUILD_DIR/$AOMP_FLANG_REPO_NAME/runtime/libpgmath
-   cmake $MYCMAKEOPTS  $BUILD_DIR/$AOMP_FLANG_REPO_NAME/runtime/libpgmath  2>&1
+   if [ $COPYSOURCE ] ; then
+      echo cmake $MYCMAKEOPTS  $BUILD_DIR/$AOMP_FLANG_REPO_NAME/runtime/libpgmath
+      cmake $MYCMAKEOPTS  $BUILD_DIR/$AOMP_FLANG_REPO_NAME/runtime/libpgmath  2>&1
+   else
+      echo cmake $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_FLANG_REPO_NAME/runtime/libpgmath
+      cmake $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_FLANG_REPO_NAME/runtime/libpgmath  2>&1
+   fi
    if [ $? != 0 ] ; then 
       echo "ERROR cmake failed. Cmake flags"
       echo "      $MYCMAKEOPTS"

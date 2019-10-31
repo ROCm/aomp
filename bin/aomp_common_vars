@@ -162,6 +162,9 @@ BUILD_DIR=$BUILD_AOMP
 if [ "$BUILD_DIR" != "$AOMP_REPOS" ] ; then
    COPYSOURCE=true
 fi
+if [ $AOMP_STANDALONE_BUILD != 1 ] ; then
+   unset COPYSOURCE
+fi
 
 #  Check the repositories exist and are on the correct branch
 function checkrepo(){
