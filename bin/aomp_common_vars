@@ -173,7 +173,7 @@ else
    ROCM_DIR=${ROCM_DIR:-/opt/rocm}
    # Jenkins builds may not use the current development branches.
    # So we turn off git branch checking.
-   AOMP_CHECK_GIT_BRANCHES=0
+   AOMP_CHECK_GIT_BRANCH=0
    # Jenkins build will set the build directory BUILD_DIR to its own work area.
    # And since that is not $AOMP_REPOS/build COPYSOURCE will be turned on above.
    # We don't want that.  So for now, turn it off for ROCm integrated builds.
