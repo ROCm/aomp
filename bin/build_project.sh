@@ -64,12 +64,14 @@ if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   help_build_aomp
 fi
 
-if [ ! -L $AOMP ] ; then 
-  if [ -d $AOMP ] ; then 
-     echo "ERROR: Directory $AOMP is a physical directory."
-     echo "       It must be a symbolic link or not exist"
-     exit 1
-  fi
+if [ $AOMP_STANDALONE_BUILD == 1 ] ; then 
+   if [ ! -L $AOMP ] ; then 
+     if [ -d $AOMP ] ; then 
+        echo "ERROR: Directory $AOMP is a physical directory."
+        echo "       It must be a symbolic link or not exist"
+        exit 1
+     fi
+   fi
 fi
 
 REPO_BRANCH=$AOMP_PROJECT_REPO_BRANCH
@@ -194,12 +196,14 @@ if [ "$1" == "install" ] ; then
       echo "ERROR make install/local failed "
       exit 1
    fi
-   echo " "
-   echo "------ Linking $INSTALL_PROJECT to $AOMP -------"
-   if [ -L $AOMP ] ; then 
-      $SUDO rm $AOMP   
+   if [ $AOMP_STANDALONE_BUILD == 1 ] ; then 
+      echo " "
+      echo "------ Linking $INSTALL_PROJECT to $AOMP -------"
+      if [ -L $AOMP ] ; then 
+         $SUDO rm $AOMP   
+      fi
+      $SUDO ln -sf $INSTALL_PROJECT $AOMP   
    fi
-   $SUDO ln -sf $INSTALL_PROJECT $AOMP   
    # add executables forgot by make install but needed for testing
    echo add executables forgot by make install but needed for testing
    $SUDO cp -p $BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME/bin/llvm-lit $AOMP/bin/llvm-lit

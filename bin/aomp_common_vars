@@ -178,6 +178,10 @@ else
    # We don't want that.  So for now, turn it off for ROCm integrated builds.
    unset COPYSOURCE
 
+   # For Integrated ROCm build we do not install to versioned dir and create 
+   # a symbolic link.  Instead we install directly to /opt/rocm/aomp
+   AOMP_INSTALL_DIR=${AOMP}
+
    # Find the ROCM_VERSION 
    vfile=$ROCM_DIR/.info/version-dev
    if [ -f $vfile ] ; then 
