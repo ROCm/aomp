@@ -90,8 +90,8 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    mkdir -p $BUILD_AOMP/build/rocr
    cd $BUILD_AOMP/build/rocr
    echo " -----Running rocr cmake ---- " 
-   echo cmake $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_ROCR_REPO_NAME/src
-   cmake $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_ROCR_REPO_NAME/src
+   echo ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_ROCR_REPO_NAME/src
+   ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_ROCR_REPO_NAME/src
    if [ $? != 0 ] ; then 
       echo "ERROR rocr cmake failed. cmake flags"
       echo "      $MYCMAKEOPTS"

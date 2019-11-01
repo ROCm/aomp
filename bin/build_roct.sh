@@ -78,8 +78,8 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    mkdir -p $BUILD_AOMP/build/roct
    cd $BUILD_AOMP/build/roct
    echo " -----Running roct cmake ---- " 
-   echo cmake $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_ROCT_REPO_NAME
-   cmake $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_ROCT_REPO_NAME
+   echo ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_ROCT_REPO_NAME
+   ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_ROCT_REPO_NAME
    if [ $? != 0 ] ; then 
       echo "ERROR roct cmake failed. cmake flags"
       echo "      $MYCMAKEOPTS"

@@ -121,8 +121,8 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
   export SED_INSTALL_DIR
   echo
   echo " -----Running cmake ---- "
-  echo cmake $MYCMAKEOPTS $EXTRAS_REPO_DIR
-  cmake $MYCMAKEOPTS $EXTRAS_REPO_DIR
+  echo ${AOMP_CMAKE} $MYCMAKEOPTS $EXTRAS_REPO_DIR
+  ${AOMP_CMAKE} $MYCMAKEOPTS $EXTRAS_REPO_DIR
   if [ $? != 0 ] ; then
       echo "ERROR extras cmake failed. Cmake flags"
       echo "      $MYCMAKEOPTS"

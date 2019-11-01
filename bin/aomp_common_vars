@@ -31,6 +31,7 @@ CUDAT=${CUDAT:-$CUDA/targets}
 CUDAINCLUDE=${CUDAINCLUDE:-$CUDA/include}
 CUDABIN=${CUDABIN:-$CUDA/bin}
 
+AOMP_CMAKE=${AOMP_CMAKE:-cmake}
 AOMP_BUILD_HIP=${AOMP_BUILD_HIP:-1}
 AOMP_PROC=`uname -p`
 if [ "$AOMP_PROC" == "aarch64" ] ; then

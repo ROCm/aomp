@@ -115,8 +115,8 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
   cd $BUILD_DIR/build/rocminfo
   echo
   echo " -----Running rocminfo cmake ---- "
-  echo cmake $MYCMAKEOPTS $RINFO_REPO_DIR
-  cmake $MYCMAKEOPTS $RINFO_REPO_DIR
+  echo ${AOMP_CMAKE} $MYCMAKEOPTS $RINFO_REPO_DIR
+  ${AOMP_CMAKE} $MYCMAKEOPTS $RINFO_REPO_DIR
   if [ $? != 0 ] ; then
       echo "ERROR rocminfo cmake failed. Cmake flags"
       echo "      $MYCMAKEOPTS"

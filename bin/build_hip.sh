@@ -136,8 +136,8 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
   cd $BUILD_DIR/build/hip
   echo
   echo " -----Running hip cmake ---- "
-  echo cmake $MYCMAKEOPTS $HIP_REPO_DIR
-  cmake $MYCMAKEOPTS $HIP_REPO_DIR
+  echo ${AOMP_CMAKE} $MYCMAKEOPTS $HIP_REPO_DIR
+  ${AOMP_CMAKE} $MYCMAKEOPTS $HIP_REPO_DIR
   if [ $? != 0 ] ; then
       echo "ERROR hip cmake failed. Cmake flags"
       echo "      $MYCMAKEOPTS"

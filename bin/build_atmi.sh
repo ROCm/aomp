@@ -81,8 +81,8 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    cd $BUILD_AOMP/build/atmi
    echo
    echo " -----Running atmi cmake ---- " 
-   echo cmake $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_ATMI_REPO_NAME/src
-   cmake $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_ATMI_REPO_NAME/src
+   echo ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_ATMI_REPO_NAME/src
+   ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_ATMI_REPO_NAME/src
    if [ $? != 0 ] ; then 
       echo "ERROR atmi cmake failed. cmake flags"
       echo "      $MYCMAKEOPTS"
@@ -98,8 +98,8 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    cd $BUILD_AOMP/build/atmi_debug
    echo
    echo " -----Running atmi cmake for debug ---- " 
-   echo cmake $MYCMAKEOPTS $AOMP_REPOS/$AOMP_ATMI_REPO_NAME/src
-   cmake $MYCMAKEOPTS $AOMP_REPOS/$AOMP_ATMI_REPO_NAME/src
+   echo ${AOMP_CMAKE} $MYCMAKEOPTS $AOMP_REPOS/$AOMP_ATMI_REPO_NAME/src
+   ${AOMP_CMAKE} $MYCMAKEOPTS $AOMP_REPOS/$AOMP_ATMI_REPO_NAME/src
    if [ $? != 0 ] ; then 
       echo "ERROR atmi debug cmake failed. cmake flags"
       echo "      $MYCMAKEOPTS"

@@ -85,8 +85,8 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    mkdir -p $BUILD_AOMP/build/comgr
    cd $BUILD_AOMP/build/comgr
    echo " -----Running comgr cmake ---- " 
-   echo cmake $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_COMGR_REPO_NAME/lib/comgr
-   cmake $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_COMGR_REPO_NAME/lib/comgr
+   echo ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_COMGR_REPO_NAME/lib/comgr
+   ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_COMGR_REPO_NAME/lib/comgr
    if [ $? != 0 ] ; then 
       echo "ERROR comgr cmake failed. cmake flags"
       echo "      $MYCMAKEOPTS"
