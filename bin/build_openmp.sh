@@ -133,7 +133,8 @@ if [ "$AOMP_BUILD_CUDA" == 1 ] ; then
 -DCMAKE_BUILD_CUDA=1"
 fi
 
-export HSA_RUNTIME_PATH=$INSTALL_OPENMP/hsa
+# This is how we tell the hsa plugin where to find hsa
+export HSA_RUNTIME_PATH=$ROCM_DIR/hsa
 
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then 
 

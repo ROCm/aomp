@@ -102,10 +102,6 @@ fi
 
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 
-  patchfile=$thisdir/patches/rocminfo_cmake.patch
-  patchdir=$RINFO_REPO_DIR
-  patchrepo
-
   if [ -d "$BUILD_DIR/build/rocminfo" ] ; then
      echo
      echo "FRESH START , CLEANING UP FROM PREVIOUS BUILD"
@@ -113,7 +109,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
      rm -rf $BUILD_DIR/build/rocminfo
   fi
 
-  MYCMAKEOPTS="-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON -DCMAKE_INSTALL_RPATH=$AOMP_INSTALL_DIR/hsa/lib -DCMAKE_BUILD_TYPE=$BUILDTYPE -DCMAKE_INSTALL_PREFIX=$INSTALL_RINFO -DROCM_DIR=$AOMP_INSTALL_DIR -DROCRTST_BLD_TYPE=$BUILDTYPE"
+  MYCMAKEOPTS="-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON -DCMAKE_INSTALL_RPATH=$AOMP_INSTALL_DIR/hsa/lib -DCMAKE_BUILD_TYPE=$BUILDTYPE -DCMAKE_INSTALL_PREFIX=$INSTALL_RINFO -DROCM_DIR=$ROCM_DIR -DROCRTST_BLD_TYPE=$BUILDTYPE"
 
   mkdir -p $BUILD_DIR/build/rocminfo
   cd $BUILD_DIR/build/rocminfo

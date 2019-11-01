@@ -122,22 +122,15 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
      echo rm -rf $BUILD_DIR/build/hip
      rm -rf $BUILD_DIR/build/hip
   fi
-  
-  if [ $INSTALL_HIP == "/opt/rocm/llvm" ] ; then 
-     hccloc="/opt/rocm/hcc"
-     hsahcc_locations="-DHSA_PATH=/opt/rocm/hsa -DHCC_HOME=/opt/rocm/hcc"
+ 
+  if [ $AOMP_STANDALONE_BUILD == 1 ] ; then 
+     this_rpath="$INSTALL_HIP/lib:$INSTALL_HIP/hcc/lib"
   else
-     if [ $AOMP_STANDALONE_BUILD == 1 ] ; then
-        hccloc="$INSTALL_HIP/hcc"
-        hsahcc_locations="-DHSA_PATH=$INSTALL_HIP/hsa -DHCC_HOME=$INSTALL_HIP/hcc"
-     else
-        ROCM_INSTALL_PATH=${ROCM_INSTALL_PATH:-/opt/rocm}
-        hccloc="$ROCM_INSTALL_PATH/hcc"
-        hsahcc_locations="-DHSA_PATH=$ROCM_INSTALL_PATH/hsa -DHCC_HOME=$ROCM_INSTALL_PATH/hcc"
-     fi
+     # in jenkins build for ROCm integrated build, we must pickup hcc/lib and rocm/lib
+     this_rpath="$INSTALL_HIP/lib:$ROCM_DIR/hcc/lib:$ROCM_DIR/lib"
   fi
 
-  MYCMAKEOPTS="-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON -DCMAKE_INSTALL_RPATH=$INSTALL_HIP/lib:$hccloc/lib -DCMAKE_BUILD_TYPE=$BUILDTYPE -DCMAKE_INSTALL_PREFIX=$INSTALL_HIP -DHIP_PLATFORM=hcc -DHIP_COMPILER=clang $hsahcc_locations"
+  MYCMAKEOPTS="-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON -DCMAKE_INSTALL_RPATH=$this_rpath -DCMAKE_BUILD_TYPE=$BUILDTYPE -DCMAKE_INSTALL_PREFIX=$INSTALL_HIP -DHIP_PLATFORM=hcc -DHIP_COMPILER=clang -DHSA_PATH=$ROCM_DIR/hsa -DHCC_HOME=$ROCM_DIR/hcc"
 
   mkdir -p $BUILD_DIR/build/hip
   cd $BUILD_DIR/build/hip
