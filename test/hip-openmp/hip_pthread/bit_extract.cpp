@@ -77,11 +77,16 @@ void* wrapper(void * start) {
         }
     }
     printf("PASSED %d!\n",mytid);
+// See: http://ontrack-internal.amd.com/browse/SWDEV-210802
+#ifdef HIP_FREE_THREADSAFE
+    hipFree(A_d);
+    hipFree(C_d);
+#endif
     return NULL;
 }
 
 int main(int argc, char* argv[]) {
-  int nThreads = 2;
+  int nThreads = 100;
   if (argc > 1) nThreads = atoi(argv[1]);
   fprintf(stderr, "using %d threads\n",nThreads);
   pthread_t tID[nThreads];

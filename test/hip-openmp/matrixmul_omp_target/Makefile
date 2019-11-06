@@ -82,7 +82,7 @@ $(TESTNAME): $(TESTNAME).$(FILETYPE)
 	$(CC) $(CFLAGS) $(LFLAGS) $^ -o $@
 
 run: $(TESTNAME)
-	./$(TESTNAME)
+	timeout 10 ./$(TESTNAME)
 
 #  ----   Demo compile and link in two steps, object saved
 $(TESTNAME).o: $(TESTNAME).$(FILETYPE)

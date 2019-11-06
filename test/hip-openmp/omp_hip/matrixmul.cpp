@@ -32,9 +32,14 @@
 
 __global__ void matrixMul(int *matrixA, int *matrixB, int *matrixC, int ARows,
                           int ACols, int BCols) {
+#if 0
   int i = hipBlockIdx_x;
   int j = hipBlockIdx_y;
+#else
+  int i = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
+  int j = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
 
+#endif
   if (i < ARows && j < BCols) {
     int value = 0;
     for (int k = 0; k < ACols; ++k) {
@@ -121,14 +126,13 @@ bool haveComputeDevice() {
   return deviceIsAvailable(&deviceID) && deviceCanCompute(deviceID);
 }
 
-int main() {
+int matmulmain(int i) {
   int N_errors = 0;
   if (!haveComputeDevice()) {
     printf("No compute device available\n");
     return 0;
   }
-#pragma omp parallel for schedule(static,1)
-  for(int i=0; i<Z; ++i) {
+  {
     printf("Interation: %d started <<<<\n",i);
     int hostSrcMatA[N * M];
     int hostSrcMatB[M * P];
@@ -157,15 +161,12 @@ int main() {
 
     if (matrixAAllocated && matrixBAllocated && matrixCAllocated) {
       bool copiedSrcMatA=false, copiedSrcMatB=false;
-//#pragma omp task shared(copiedSrcMatA)
       copiedSrcMatA = hipCallSuccessful(hipMemcpy(deviceSrcMatA, hostSrcMatA,
                                                      N * M * sizeof(int),
                                                      hipMemcpyHostToDevice));
-//#pragma omp task shared(copiedSrcMatB)
       copiedSrcMatB = hipCallSuccessful(hipMemcpy(deviceSrcMatB, hostSrcMatB,
                                                      M * P * sizeof(int),
                                                      hipMemcpyHostToDevice));
-//#pragma omp taskwait
       if (copiedSrcMatA && copiedSrcMatB) {
         dim3 dimGrid(N, P);
         matrixMul<<<dimGrid, 1, 0, 0>>>(deviceSrcMatA, deviceSrcMatB,
@@ -194,17 +195,13 @@ int main() {
     }
 // See: http://ontrack-internal.amd.com/browse/SWDEV-210802
 #ifdef HIP_FREE_THREADSAFE
-//#pragma omp task shared(matrixAAllocated, deviceSrcMatA)
     if (matrixAAllocated)
       hipFree(deviceSrcMatA);
-//#pragma omp task shared(matrixBAllocated, deviceSrcMatB)
     if (matrixBAllocated)
       hipFree(deviceSrcMatB);
-//#pragma omp task shared(matrixCAllocated, deviceDstMat)
     if (matrixCAllocated)
       hipFree(deviceDstMat);
 #endif
-//#pragma omp taskwait
     printf("Interation: %d finished >>>\n",i);
   }
   if(!N_errors)
@@ -214,3 +211,14 @@ int main() {
   
   return N_errors;
 }
+
+int main() {
+
+#pragma omp parallel for schedule(static,1)
+  for(int i=0; i<Z; ++i) {
+     int err = matmulmain(i);
+     if (err) abort();
+  }
+  return 0;
+}
+
