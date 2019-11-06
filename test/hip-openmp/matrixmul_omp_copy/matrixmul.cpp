@@ -181,14 +181,14 @@ int main() {
       }
     } else printf("Unable to make initial copy\n");
   }
-
+#ifdef HIPBUGFIXED
   if (matrixAAllocated)
     hipFree(deviceSrcMatA);
   if (matrixBAllocated)
     hipFree(deviceSrcMatB);
   if (matrixCAllocated)
     hipFree(deviceDstMat);
-  
+#endif
   if (error == 0){
     printf("%s", "Success\n");
     return error;	
