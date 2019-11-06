@@ -3,7 +3,7 @@
 #
 #  setup a directory $BUILD_TEST_DIR  to simulate jenkins enviornment for building 
 #  a ROCm integrated aomp.  After you run this script, you should be able to 
-#  run these 4 commands from directory $BUILD_TEST_DIR to simulate a jenkins build. 
+#  run these 5 commands from directory $BUILD_TEST_DIR to simulate a jenkins build.
 #  1. Source the environment script before running build_aomp.sh
 #     . ./build/envsetup.sh
 #  2. Set install location, otherwise you need root to install in /opt/rocm/aomp:
@@ -12,6 +12,8 @@
 #     ./build/build_aomp.sh
 #  4. Build the aomp package:
 #     ./build/build_aomp.sh -p
+#  5. Build the aomp package:
+#     ./build/run_aomp.sh
 #
 
 GERRIT_USER=${GERRIT_USER:-$USER}
