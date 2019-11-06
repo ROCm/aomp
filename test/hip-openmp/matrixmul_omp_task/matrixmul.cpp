@@ -194,6 +194,7 @@ int main() {
         }
       } else printf("Unable to make initial copy\n");
     }
+#ifdef HIP_FREE_THREADSAFE
 //#pragma omp task shared(matrixAAllocated, deviceSrcMatA)
     if (matrixAAllocated)
       hipFree(deviceSrcMatA);
@@ -203,6 +204,7 @@ int main() {
 //#pragma omp task shared(matrixCAllocated, deviceDstMat)
     if (matrixCAllocated)
       hipFree(deviceDstMat);
+#endif
 //#pragma omp taskwait
     printf("Interation: %d finished >>>\n",i);
    }

@@ -193,7 +193,8 @@ int matmulmain(int i) {
         }
       } else printf("Unable to make initial copy\n");
     }
-#ifdef HIPBUGFIXED
+// See: http://ontrack-internal.amd.com/browse/SWDEV-210802
+#ifdef HIP_FREE_THREADSAFE
     if (matrixAAllocated)
       hipFree(deviceSrcMatA);
     if (matrixBAllocated)

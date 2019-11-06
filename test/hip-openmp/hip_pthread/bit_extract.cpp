@@ -77,7 +77,8 @@ void* wrapper(void * start) {
         }
     }
     printf("PASSED %d!\n",mytid);
-#ifndef HIPBUG
+// See: http://ontrack-internal.amd.com/browse/SWDEV-210802
+#ifdef HIP_FREE_THREADSAFE
     hipFree(A_d);
     hipFree(C_d);
 #endif
