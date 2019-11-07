@@ -81,6 +81,9 @@ if [ ! -z `which "getconf"` ]; then
    fi
 fi
 
+#ROCM_VERSION may be set by Jenkins, if not guess a good number 
+ROCM_VERSION=${ROCM_VERSION:-2.9.22}
+
 # These are the web sites where the AOMP git repos are pulled from
 GITROC="https://github.com/radeonopencompute"
 GITROCDEV="https://github.com/ROCm-Developer-Tools"
@@ -167,7 +170,6 @@ if [ $AOMP_STANDALONE_BUILD == 1 ] ; then
    # As a result their is an order to component builds.
    ROCM_DIR=${ROCM_DIR:-$AOMP_INSTALL_DIR}
    # We hardcode the ROCM_VERSION here for standalone builds
-   ROCM_VERSION="2.9.22"
 else
    # ROCm integrated build gets ROCm pieces from installed ROCm
    ROCM_DIR=${ROCM_DIR:-/opt/rocm}
@@ -182,16 +184,6 @@ else
    # For Integrated ROCm build we do not install to versioned dir and create 
    # a symbolic link.  Instead we install directly to /opt/rocm/aomp
    AOMP_INSTALL_DIR=${AOMP}
-
-   # Find the ROCM_VERSION 
-   vfile=$ROCM_DIR/.info/version-dev
-   if [ -f $vfile ] ; then 
-      ROCM_VERSION=`cat $vfile | cut -d" " -f1`
-      echo ROCM_VERSION=$ROCM_VERSION
-   else 
-      echo "ERROR: ROCM_DIR is missing version file $vfile"
-      exit 1
-   fi
 fi
 
 #  Check the repositories exist and are on the correct branch
