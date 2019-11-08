@@ -44,7 +44,7 @@ for directory in ./*/; do
      for test in $skiptests ; do
        if [ $test == $base ] ; then 
          skip=1
-         continue
+         break
        fi
      done
     if [ $skip -ne 0 ] ; then
