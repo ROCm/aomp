@@ -46,6 +46,7 @@ TESTS_DIR = \
     target-in-other-source \
     target_teams_reduction \
     teams \
+    teams512-info \
     test \
     thread_limit\
     threads \
