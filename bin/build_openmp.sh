@@ -149,7 +149,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 
       echo rm -rf $BUILD_DIR/build/openmp
       rm -rf $BUILD_DIR/build/openmp
-      MYCMAKEOPTS="$COMMON_CMAKE_OPTS -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_RPATH=$AOMP_INSTALL_DIR/lib"
+      MYCMAKEOPTS="$COMMON_CMAKE_OPTS -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_RPATH=$AOMP_INSTALL_DIR/lib -DROCM_DIR=$ROCM_DIR"
       mkdir -p $BUILD_DIR/build/openmp
       cd $BUILD_DIR/build/openmp
       echo " -----Running openmp cmake ---- " 
@@ -168,7 +168,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 
       echo rm -rf $BUILD_DIR/build/openmp_debug
       rm -rf $BUILD_DIR/build/openmp_debug
-      MYCMAKEOPTS="$COMMON_CMAKE_OPTS -DLIBOMPTARGET_NVPTX_DEBUG=ON -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_RPATH=$AOMP_INSTALL_DIR/lib-debug"
+      MYCMAKEOPTS="$COMMON_CMAKE_OPTS -DLIBOMPTARGET_NVPTX_DEBUG=ON -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_RPATH=$AOMP_INSTALL_DIR/lib-debug -DROCM_DIR=$ROCM_DIR"
       mkdir -p $BUILD_DIR/build/openmp_debug
       cd $BUILD_DIR/build/openmp_debug
       echo
