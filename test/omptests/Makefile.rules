@@ -83,7 +83,7 @@ run: prepare_folder_to_run
 	@export LIBRARY_PATH
 	@export LD_LIBRARY_PATH
 	@echo "$(cmd) -o $(results_folder)/a.out" >> $(compile_cmd)
-	@$(results_folder)/a.out 1>$(results_folder)/stdout 2>$(results_folder)/stderr ; true
+	@timeout 60 $(results_folder)/a.out 1>$(results_folder)/stdout 2>$(results_folder)/stderr ; true
 	@diff $(results_folder)/stdout expected > /dev/null || \
 	(if [ $$? ] ; then \
 		echo "#### Error #### Result mismatch for $(main_folder)" | tee -a $(error_log); \
