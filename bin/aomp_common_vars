@@ -12,7 +12,7 @@ export AOMP_VERSION_STRING AOMP_VERSION AOMP_VERSION_MOD ROCM_VERSION
 
 # set install directory and the link directory
 # AOMP will be a symbolic link AOMP_INSTALL_DIR is the versioned dir name
-export AOMP=${AOMP:-$HOME/rocm/aomp}
+AOMP=${AOMP:-$HOME/rocm/aomp}
 AOMP_INSTALL_DIR=${AOMP}_${AOMP_VERSION_STRING}
 
 # Set the directory location where all local AOMP git repos are stored 
