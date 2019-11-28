@@ -30,6 +30,7 @@ TESTS_DIR = \
     nested_loop \
     omp_num_teams_SPMD \
     omp_num_teams_generic \
+    OmpHipMallocManaged \
     pfspecifier \
     pfspecifier_str \
     reduce \
