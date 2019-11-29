@@ -4,13 +4,20 @@
 
 // Additional notes:
 // Modified to use malloc if compiled with -DUSE_MALLOC
-//    USE_MALLOC=1 make run
+//    make run USE_MALLOC=-DUSE_MALLOC=1
 // Reduced the size so it fits on my GFX900 which has 8GB
 // compile with -DLARGE to increase memory to  16x 256,000,000
-//    LARGE=1 make run
+//    make run LARGE=-DLARGE=1
+// Added iterations control, deafults to 1
+//    make run ITERS=-DITERS=3
 // Managed memory appears to allow aapping larger memory than what
 // is available on the GPU.
-//    LARGE=1 USE_MALLOC=1 will fail to allocate enough memory on GFX900 8GB
+//    make run USE_MALLOC=-DUSE_MALLOC=1 LARGE=-DLARGE=1
+//    will fail to allocate enough memory on GFX900 8GB
+// Increaseing iteration allows comparing cost of comm vs comp.
+//    make run USE_MALLOC=-DUSE_MALLOC=1  ITERS=-DITERS=50
+//    make run ITERS=-DITERS=50
+
 // Added additional timer steps, to see cost of memory allocation, movement.
 
 #if USE_MALLOC
@@ -24,6 +31,10 @@
 #define SIZE    (4 * 8000000l * 128)
 #else
 #define SIZE    ( 8000000l * 32 )
+#endif
+
+#ifndef ITERS
+#define ITERS 1
 #endif
 
 static double ttos(struct timespec* ts) {
@@ -85,7 +96,9 @@ int main(void)
 #endif
     for (size_t i = 0; i < SIZE; i++)
     {
+      for (int j=0; j < ITERS; j++) {
         C[i] = A[i] + B[i];
+      }
     }
 
     clock_gettime(CLOCK_MONOTONIC, &t3);
