@@ -21,7 +21,7 @@
 // Added additional timer steps, to see cost of memory allocation, movement.
 
 #if USE_MALLOC
-#include <malloc.h>
+#include <stdlib.h>
 #endif
 #define __HIP_PLATFORM_HCC__ 1
 #include <hip/hip_runtime.h>
