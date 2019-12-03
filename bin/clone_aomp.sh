@@ -41,7 +41,18 @@ if [ "$thisdir" != "$AOMP_REPOS/$AOMP_REPO_NAME/bin" ] ; then
    exit 1
 fi
 
+function list_repo(){
+repodirname=$AOMP_REPOS/$reponame
+cd $repodirname
+echo `git config --get remote.origin.url` "  " $COBRANCH "  " `git log --numstat --format="%h" |head -1`
+}
+
 function clone_or_pull(){
+if [ "$LISTONLY" == 'list' ]; then
+list_repo
+return
+fi
+
 repodirname=$AOMP_REPOS/$reponame
 echo
 if [ -d $repodirname  ] ; then 
@@ -120,7 +131,11 @@ repo_web_location=$GITROCDEV
 
 reponame=$AOMP_REPO_NAME
 COBRANCH=$AOMP_REPO_BRANCH
+LISTONLY=$1
+if [ "$LISTONLY" == 'list' ]; then
+list_repo
 #clone_or_pull
+fi
 
 reponame=$AOMP_EXTRAS_REPO_NAME
 COBRANCH=$AOMP_EXTRAS_REPO_BRANCH
