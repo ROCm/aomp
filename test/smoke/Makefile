@@ -26,6 +26,7 @@ TESTS_DIR = \
     liba_bundled_cmdline \
     math_modff \
     math_sqrt_float \
+    MaxNumThrds \
     nativetests \
     nested_loop \
     omp_num_teams_SPMD \

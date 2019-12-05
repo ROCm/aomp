@@ -23,7 +23,6 @@
 // SOFTWARE.
 
 #include "hip/hip_runtime.h"
-#include <omp.h>
 #include <stdio.h>
 #include "matsup.h"
 #define N 3
