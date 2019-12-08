@@ -99,10 +99,11 @@ fi
 
 #Partial build options. Check if argument was given.
 if [ -n "$1" ] ; then
+  found=0
 #Start build from given component (./build_aomp.sh continue openmp)
-  if [ $1 == 'continue' ] ; then
+  if [ "$1" == 'continue' ] ; then
     for COMPONENT in $components ; do
-      if [ $COMPONENT == $2 ] ; then
+      if [ $COMPONENT == "$2" ] ; then
         found=1
       fi
       if [[ $found -eq 1 ]] ; then
@@ -110,16 +111,16 @@ if [ -n "$1" ] ; then
       fi
     done
     components=$list
-    if [ $components == ""] ; then
+    if [[ $found -eq 0 ]] ; then
       echo "$2 was not found in the build list!!!"
     fi
     #Remove arguments so they are not passed to build_aomp_component
     set --
 
   #Select which components to build(./build_aomp.sh select libdevice extras)
-  elif [ $1 == 'select' ] ; then
+  elif [ "$1" == 'select' ] ; then
     for ARGUMENT in $@ ; do
-      if [ $ARGUMENT != $1 ] ; then
+      if [ $ARGUMENT != "$1" ] ; then
         list+="$ARGUMENT "
       fi
     done
