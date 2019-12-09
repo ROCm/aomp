@@ -34,6 +34,7 @@ TESTS_DIR = \
     OmpHipMallocManaged \
     pfspecifier \
     pfspecifier_str \
+    red_bug_51 \
     reduce \
     reduction \
     reduction_issue_16 \
