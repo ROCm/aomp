@@ -1,13 +1,16 @@
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index ce08409..f731d6a 100755
+index ce08409..a118b48 100755
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -55,7 +55,7 @@ include(utils)
- set(ROCRTST_BLD_BITS CACHE "64" STRING "Either 32 or 64")
- set(ROCM_DIR CACHE PATH "Root for RocM install")
- set(ROCR_INC_DIR ${ROCM_DIR}/include CACHE PATH "Path for RocM includes")
--set(ROCR_LIB_DIR ${ROCM_DIR}/lib CACHE PATH "Path for RocM libraries")
-+set(ROCR_LIB_DIR ${ROCM_DIR}/hsa/lib CACHE PATH "Path for RocM libraries")
+@@ -181,7 +181,10 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
+ # Extend the compiler flags for 64-bit builds
  #
- # Determine ROCR Header files are present
- #
+ if (IS64BIT)
+-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m64  -msse -msse2")
++  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m64")
++  if(${CMAKE_HOST_SYSTEM_PROCESSOR} STREQUAL "x86_64")
++    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse -msse2")
++  endif()
+ else()
+   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m32")
+ endif()
