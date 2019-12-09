@@ -33,5 +33,10 @@ int main()
     std::cout << " wrong counts1 = " << counts1 << " should be 4!" << std::endl;
   if (counts2 != 4)
     std::cout << " wrong counts2 = " << counts2 << " should be 4!" << std::endl;
+  if (counts1 !=4 || counts2 != 4) {
+    std::cout << "Failed" << std::endl;
+    return 1;
+  }
+  return 0;
 }
 
