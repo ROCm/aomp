@@ -34,7 +34,7 @@ echo "                   A non-zero exit code means a failure occured." >> check
 echo "Tests that need to be visually inspected: devices, pfspecify, pfspecify_str, stream" >> check-smoke.txt
 echo "***********************************************************************************" >> check-smoke.txt
 
-skiptests="devices pfspecifier pfspecifier_str snap_red target_teams_reduction hip_device_compile issue_flang_libomp"
+skiptests="devices pfspecifier pfspecifier_str snap_red target_teams_reduction hip_device_compile"
 
 #Loop over all directories and make run / make check depending on directory name
 for directory in ./*/; do
