@@ -99,6 +99,9 @@ if [ -d $repodirname  ] ; then
    #echo "git pull "
    #git pull 
    if [ "$reponame" == "$AOMP_HCC_REPO_NAME" ] ; then
+     #  undo the hcc_ppc_fp16.patch before pulling more updates
+     echo git checkout include/kalmar_math.h
+     git checkout include/kalmar_math.h
      echo "git submodule update"
      git submodule update
      echo "git pull"

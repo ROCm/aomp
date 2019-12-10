@@ -32,14 +32,9 @@ CUDAINCLUDE=${CUDAINCLUDE:-$CUDA/include}
 CUDABIN=${CUDABIN:-$CUDA/bin}
 
 AOMP_CMAKE=${AOMP_CMAKE:-cmake}
-AOMP_BUILD_HIP=${AOMP_BUILD_HIP:-1}
 AOMP_PROC=`uname -p`
 if [ "$AOMP_PROC" == "aarch64" ] ; then
    AOMP_BUILD_CUDA=0
-   AOMP_BUILD_HIP=0
-fi
-if [ "$AOMP_PROC" == "ppc64le" ] ; then
-   AOMP_BUILD_HIP=0
 fi
 # Default is to NOT build for nvptx
 # Set AOMP_BUILD_CUDA to 1 to override default
