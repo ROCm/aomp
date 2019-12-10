@@ -24,8 +24,12 @@ function getdname(){
    echo $__DIRN
 }
 thisdir=$(getdname $0)
-[ ! -L "$0" ] || thisdir=$(getdname `readlink "$0"`)
-. $thisdir/aomp_common_vars
+if [ -n $AOMP_STANDALONE_BUILD ] ; then
+  . $AOMP_REPOS/aomp/bin/aomp_common_vars
+else
+  [ ! -L "$0" ] || thisdir=$(getdname `readlink "$0"`)
+  . $thisdir/aomp_common_vars
+fi
 # --- end standard header ----
 
 # Copy examples 
