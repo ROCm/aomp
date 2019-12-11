@@ -33,14 +33,23 @@ CUDABIN=${CUDABIN:-$CUDA/bin}
 
 AOMP_CMAKE=${AOMP_CMAKE:-cmake}
 AOMP_PROC=`uname -p`
-if [ "$AOMP_PROC" == "aarch64" ] ; then
+
+AOMP_STANDALONE_BUILD=${AOMP_STANDALONE_BUILD:-1}
+
+#  The logic for turning on CUDA build is here
+if [ $AOMP_STANDALONE_BUILD == 1 ] ; then
+   # Default is to build nvptx for STANDALONE build
+   AOMP_BUILD_CUDA=${AOMP_BUILD_CUDA:-1}
+else
+   # Default is to NOT build nvptx for ROCm integrated build
+   AOMP_BUILD_CUDA=${AOMP_BUILD_CUDA:-0}
+fi
+# Regardless, turn off AOMP_BUILD_CUDA if CUDA not available
+if [ ! -d "$CUDABIN" ] ; then
    AOMP_BUILD_CUDA=0
 fi
-# Default is to NOT build for nvptx
-# Set AOMP_BUILD_CUDA to 1 to override default
-AOMP_BUILD_CUDA=${AOMP_BUILD_CUDA:-0}
-# When default is changed to 1, still turn it off if no cuda installed
-if [ ! -d "$CUDABIN" ] ; then
+# Regardless, turn off AOMP_BUILD_CUDA for arm
+if [ "$AOMP_PROC" == "aarch64" ] ; then
    AOMP_BUILD_CUDA=0
 fi
 
@@ -156,7 +165,6 @@ fi
 
 # Here is where we define different behaviors for STANDALONE build
 # and the new ROCm integrated build. The default is STANDALONE build.
-AOMP_STANDALONE_BUILD=${AOMP_STANDALONE_BUILD:-1}
 if [ $AOMP_STANDALONE_BUILD == 1 ] ; then
    # Standalone build gets ROCm components from the AOMP Installation.
    # As a result their is an order to component builds.
