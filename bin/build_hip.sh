@@ -176,6 +176,9 @@ if [ "$1" == "install" ] ; then
       echo "ERROR make install failed "
       exit 1
    fi
+   patchdir=$HIP_REPO_DIR
+   patchfile=$thisdir/patches/PR1499.patch
+   removepatch
    # The hip perl scripts have /opt/rocm hardcoded, so fix them after then are installed
    # but only if not installing to default location.
    if [ $INSTALL_HIP != "/opt/rocm/llvm" ] ; then 

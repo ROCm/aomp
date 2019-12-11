@@ -237,6 +237,24 @@ if [ "$AOMP_APPLY_ROCM_PATCHES" == 1 ] ; then
 fi
 }
 
+function removepatch(){
+if [ "$AOMP_APPLY_ROCM_PATCHES" == 1 ] && [ "AOMP_STANDALONE_BUILD != 1" ] ; then
+   cd $patchdir
+   echo "Testing reverse patch $patchfile to $patchdir"
+   reversepatch="yes"
+   # Check to see if reverse patch applies cleanly
+   patch -p1 -R --dry-run -t <$patchfile >/dev/null
+   if [ $? != 0 ] ; then
+      echo "patch $patchfile was NOT applied $patchdir, no patch to reverse"
+      reversepatch="no"
+   fi
+   if [ "$reversepatch" == "yes" ] ; then
+      echo "Reversing patch $patchfile to $patchdir"
+      patch -p1 -R -t <$patchfile
+   fi
+fi
+}
+
 function help_build_aomp(){
    /bin/cat 2>&1 <<"EOF"
 

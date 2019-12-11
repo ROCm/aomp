@@ -88,28 +88,29 @@ if [ "$1" == "install" ] ; then
    fi
    $SUDO rm $INSTALL_PROJECT/testfile
 fi
-if [ "$AOMP_PROJECT_REPO_BRANCH" != "master" ] ; then
-# Fix the banner to print the AOMP version string. 
-cd $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME
-if [ "$AOMP_CHECK_GIT_BRANCH" == 1 ] ; then
-   MONO_REPO_ID=`git log | grep -m1 commit | cut -d" " -f2`
-else
-   MONO_REPO_ID="build_from_release_source"
-fi
-SOURCEID="Source ID:$AOMP_VERSION_STRING-$MONO_REPO_ID"
-TEMPCLFILE="/tmp/clfile$$.cpp"
-ORIGCLFILE="$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/llvm/lib/Support/CommandLine.cpp"
-if [ $COPYSOURCE ] ; then
-   BUILDCLFILE="$BUILD_DIR/$AOMP_PROJECT_REPO_NAME/llvm/lib/Support/CommandLine.cpp"
-else
-   BUILDCLFILE=$ORIGCLFILE
-fi
 
-sed "s/LLVM (http:\/\/llvm\.org\/):/AOMP-${AOMP_VERSION_STRING} ($WEBSITE):\\\n $SOURCEID/" $ORIGCLFILE > $TEMPCLFILE
-if [ $? != 0 ] ; then 
-   echo "ERROR sed command to fix CommandLine.cpp failed."
-   exit 1
-fi
+# Fix the banner to print the AOMP version string. 
+if [ $AOMP_STANDALONE_BUILD == 1 ] && [ "$AOMP_PROJECT_REPO_BRANCH" != "master" ] ; then
+   cd $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME
+   if [ "$AOMP_CHECK_GIT_BRANCH" == 1 ] ; then
+      MONO_REPO_ID=`git log | grep -m1 commit | cut -d" " -f2`
+   else
+      MONO_REPO_ID="build_from_release_source"
+   fi
+   SOURCEID="Source ID:$AOMP_VERSION_STRING-$MONO_REPO_ID"
+   TEMPCLFILE="/tmp/clfile$$.cpp"
+   ORIGCLFILE="$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/llvm/lib/Support/CommandLine.cpp"
+   if [ $COPYSOURCE ] ; then
+      BUILDCLFILE="$BUILD_DIR/$AOMP_PROJECT_REPO_NAME/llvm/lib/Support/CommandLine.cpp"
+   else
+      BUILDCLFILE=$ORIGCLFILE
+   fi
+
+   sed "s/LLVM (http:\/\/llvm\.org\/):/AOMP-${AOMP_VERSION_STRING} ($WEBSITE):\\\n $SOURCEID/" $ORIGCLFILE > $TEMPCLFILE
+   if [ $? != 0 ] ; then
+      echo "ERROR sed command to fix CommandLine.cpp failed."
+      exit 1
+   fi
 fi
 
 # Skip synchronization from git repos if nocmake or install are specified
@@ -139,22 +140,23 @@ else
    fi
 fi
 
-cd $BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME
-
-if [ -f $BUILDCLFILE ] ; then 
-   # only copy if there has been a change to the source.  
-   diff $TEMPCLFILE $BUILDCLFILE >/dev/null
-   if [ $? != 0 ] ; then 
-      echo "Updating $BUILDCLFILE with corrected $SOURCEID"
+if [ $AOMP_STANDALONE_BUILD == 1 ] && [ "$AOMP_PROJECT_REPO_BRANCH" != "master" ] ; then
+   cd $BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME
+   if [ -f $BUILDCLFILE ] ; then
+      # only copy if there has been a change to the source.
+      diff $TEMPCLFILE $BUILDCLFILE >/dev/null
+      if [ $? != 0 ] ; then
+         echo "Updating $BUILDCLFILE with corrected $SOURCEID"
+         cp $TEMPCLFILE $BUILDCLFILE
+      else
+         echo "File $BUILDCLFILE already has correct $SOURCEID"
+      fi
+   else
+      echo "Updating $BUILDCLFILE with $SOURCEID"
       cp $TEMPCLFILE $BUILDCLFILE
-   else 
-      echo "File $BUILDCLFILE already has correct $SOURCEID"
    fi
-else
-   echo "Updating $BUILDCLFILE with $SOURCEID"
-   cp $TEMPCLFILE $BUILDCLFILE
+   rm $TEMPCLFILE
 fi
-rm $TEMPCLFILE
 
 cd $BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME
 
