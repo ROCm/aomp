@@ -99,13 +99,8 @@ function getgxx7orless(){
    echo $_loc
 }
 
-if [ "$AOMP_PROC" == "ppc64le" ] ; then
-   GCCLOC=`which gcc-8`
-   GXXLOC=`which g++-8`
-else
-   GCCLOC=$(getgcc7orless)
-   GXXLOC=$(getgxx7orless)
-fi
+GCCLOC=$(getgcc7orless)
+GXXLOC=$(getgxx7orless)
 if [ "$GCCLOC" == "" ] ; then
    echo "ERROR: NO ADEQUATE gcc"
    echo "       Please install gcc-5 or gcc-7"
