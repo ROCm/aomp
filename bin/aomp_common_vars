@@ -33,6 +33,9 @@ CUDABIN=${CUDABIN:-$CUDA/bin}
 
 AOMP_CMAKE=${AOMP_CMAKE:-cmake}
 AOMP_PROC=`uname -p`
+if [ "$AOMP_PROC" == "unknown" ] ; then
+   AOMP_PROC=`uname -a | awk '{print $(NF-1)}'`
+fi
 
 AOMP_STANDALONE_BUILD=${AOMP_STANDALONE_BUILD:-1}
 
@@ -80,7 +83,10 @@ export GFXLIST
 NUM_THREADS=
 if [ ! -z `which "getconf"` ]; then
    NUM_THREADS=$(`which "getconf"` _NPROCESSORS_ONLN)
-   if [ "$AOMP_PROC" == "ppc64le" ] || [ "$AOMP_PROC" == "aarch64" ] ; then
+   if [ "$AOMP_PROC" == "ppc64le" ] ; then
+      NUM_THREADS=8
+   fi
+   if [ "$AOMP_PROC" == "aarch64" ] ; then
       NUM_THREADS=$(( NUM_THREADS / 4))
    fi
 fi
