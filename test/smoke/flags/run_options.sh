@@ -13,6 +13,12 @@ debug_regex="(OFFLOAD_DEBUG=([0-9]))"
 #Regex to search for Nvidia cards
 target_regex="(-fopenmp-[a-z]*=[a-z,-]*).*(-Xopenmp-[a-z]*=[a-z,-]*)"
 
+UNAMEP=`uname -p`
+AOMP_CPUTARGET=${UNAMEP}-pc-linux-gnu
+if [[ $UNAMEP == "ppc64le" ]] ; then
+   AOMP_CPUTARGET=ppc64le-linux-gnu
+fi
+
 path=$(pwd) && base=$(basename $path)
 #Read file, replace march with correct GPU, add Nvidia options if necessary and keep track of execution number
 test_num=0;
@@ -47,7 +53,7 @@ while read -r line; do
         target_match="${BASH_REMATCH[1]} ${BASH_REMATCH[2]}"
         line=${line/"$target_match"}
         nvidia_args="-fopenmp-targets=nvptx64-nvidia-cuda -Xopenmp-target=nvptx64-nvidia-cuda"
-        cuda_args="-L/usr/local/cuda/targets/x86_64-linux/lib -lcudart"
+        cuda_args="-L/usr/local/cuda/targets/${UNAMEP}-linux/lib -lcudart"
       fi
     fi
     #GPU compilation or run, send variables to make
