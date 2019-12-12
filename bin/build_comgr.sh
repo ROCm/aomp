@@ -117,4 +117,7 @@ if [ "$1" == "install" ] ; then
          echo "ERROR make install failed "
          exit 1
       fi
+      patchfile=$thisdir/patches/useOldSectionNameMethod.patch
+      patchdir=$REPO_DIR
+      removepatch
 fi

@@ -93,6 +93,8 @@ cd $BUILD_DIR/build/flang_runtime
 
 #  Need llvm-config to come from previous LLVM build
 export PATH=$AOMP_INSTALL_DIR/bin:$PATH
+# Old CMAKE uses FC env variable to find fortran compiler
+export FC=$AOMP_INSTALL_DIR/bin/flang
 
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    echo
@@ -101,6 +103,8 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
       echo ${AOMP_CMAKE} $MYCMAKEOPTS  $BUILD_DIR/$AOMP_FLANG_REPO_NAME
       ${AOMP_CMAKE} $MYCMAKEOPTS  $BUILD_DIR/$AOMP_FLANG_REPO_NAME 2>&1
    else
+      echo ls -l $AOMP_INSTALL_DIR/bin
+      ls -l $AOMP_INSTALL_DIR/bin
       echo ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_FLANG_REPO_NAME
       ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_FLANG_REPO_NAME 2>&1
    fi
