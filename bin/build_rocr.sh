@@ -76,6 +76,8 @@ patchdir=$AOMP_REPOS/$AOMP_ROCR_REPO_NAME
 patchrepo
 patchfile=$thisdir/patches/rocr-runtime-pr72.patch
 patchrepo
+patchfile=$thisdir/patches/rocr-runtime-ppcpages.patch
+patchrepo
 
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then 
 
