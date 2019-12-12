@@ -100,8 +100,8 @@ function getgxx7orless(){
 }
 
 if [ "$AOMP_PROC" == "ppc64le" ] ; then
-   GCCLOC=`which gcc`
-   GXXLOC=`which g++`
+   GCCLOC=`which gcc-8`
+   GXXLOC=`which g++-8`
 else
    GCCLOC=$(getgcc7orless)
    GXXLOC=$(getgxx7orless)
