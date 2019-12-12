@@ -89,11 +89,7 @@ elif [ "$AOMP_STANDALONE_BUILD" != 1 ] ; then
    components="project libdevice comgr rocminfo hip extras atmi openmp pgmath flang flang_runtime"
 else
    # The standalone build builds all rocm components and installs in the compiler installation.
-   if [ "$AOMP_PROC" == "ppc64le" ] ; then
-      components="roct rocr project libdevice comgr rocminfo hcc hip extras atmi openmp"
-   else
-      components="roct rocr project libdevice comgr rocminfo hcc hip extras atmi openmp pgmath flang flang_runtime"
-   fi
+   components="roct rocr project libdevice comgr rocminfo hcc hip extras atmi openmp pgmath flang flang_runtime"
 fi
 
 #Partial build options. Check if argument was given.
