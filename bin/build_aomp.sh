@@ -82,9 +82,10 @@ echo
 date
 echo " =================  START build_aomp.sh ==================="   
 echo 
-
-if [ "$AOMP_STANDALONE_BUILD" != 1 ] ; then
-   # Over time we will reduce the list of components and get aomp to use preinstalled components
+if [ -n "$AOMP_JENKINS_BUILD_LIST" ] ; then
+   components=$AOMP_JENKINS_BUILD_LIST
+elif [ "$AOMP_STANDALONE_BUILD" != 1 ] ; then
+    # Over time we will reduce the list of components and get aomp to use preinstalled components
    components="project libdevice comgr rocminfo hip extras atmi openmp pgmath flang flang_runtime"
 else
    # The standalone build builds all rocm components and installs in the compiler installation.
