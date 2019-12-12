@@ -238,7 +238,7 @@ fi
 }
 
 function removepatch(){
-if [ "$AOMP_APPLY_ROCM_PATCHES" == 1 ] && [ "$AOMP_STANDALONE_BUILD != 1" ] ; then
+if [ "$AOMP_APPLY_ROCM_PATCHES" == 1 ] && [ "$AOMP_STANDALONE_BUILD" != 1 ] ; then
    cd $patchdir
    echo "Testing reverse patch $patchfile to $patchdir"
    reversepatch="yes"
