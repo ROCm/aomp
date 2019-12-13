@@ -155,16 +155,14 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
          git clone -b $AOMP_HCC_REPO_BRANCH --recursive $GITROC/$AOMP_HCC_REPO_NAME.git
          cd hcc
       fi
-      if [ "$AOMP_PROC" == "ppc64le" ] ; then
-         patchfile=$thisdir/patches/hcc_ppc_fp16.patch
-         patchdir=$BUILD_DIR/hcc
-         patchrepo
-      fi
 
       echo "   git status"
       git status
       echo
    fi
+   patchfile=$thisdir/patches/hcc_ppc_fp16.patch
+   patchdir=$BUILD_DIR/$AOMP_HCC_REPO_NAME
+   patchrepo
 
 else
 # Skip synchronization from git repos if nocmake or install are specified
@@ -214,6 +212,9 @@ if [ "$1" == "install" ] ; then
       echo "ERROR make install failed "
       exit 1
    fi
+   patchfile=$thisdir/patches/hcc_ppc_fp16.patch
+   patchdir=$BUILD_DIR/$AOMP_HCC_REPO_NAME
+   removepatch
    echo
    echo "SUCCESSFUL INSTALL to $INSTALL_HCC to $AOMP_INSTALL_DIR/hcc"
    echo
