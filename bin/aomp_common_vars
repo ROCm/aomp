@@ -241,7 +241,7 @@ if [ "$AOMP_APPLY_ROCM_PATCHES" == 1 ] ; then
    fi
    if [ "$applypatch" == "yes" ] ; then
       echo "Applying patch $patchfile to $patchdir"
-      patch -p1 <$patchfile
+      patch -p1 --no-backup-if-mismatch <$patchfile
    fi
 fi
 }
@@ -259,7 +259,7 @@ if [ "$AOMP_APPLY_ROCM_PATCHES" == 1 ] ; then
    fi
    if [ "$reversepatch" == "yes" ] ; then
       echo "Reversing patch $patchfile to $patchdir"
-      patch -p1 -R -t <$patchfile
+      patch -p1 -R -t --no-backup-if-mismatch <$patchfile
    fi
 fi
 }
