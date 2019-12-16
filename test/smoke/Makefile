@@ -49,6 +49,7 @@ TESTS_DIR = \
     stream \
     target-in-other-source \
     target_teams_reduction \
+    tasks \
     teams \
     teams512-info \
     test \
