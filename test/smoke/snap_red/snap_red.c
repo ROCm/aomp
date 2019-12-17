@@ -11,7 +11,7 @@ int main (void)
   int cmom = 14;
   int nxyz = 5000;
 // fails for 149 and above: nxyz=149;
-nxyz = 10;
+// for testing: nxyz = 10;
   #pragma omp target teams distribute num_teams(nxyz) thread_limit(5) map(tofrom:aa)
   //#pragma omp target teams distribute num_teams(nxyz) thread_limit(ng*(cmom-1)) map(tofrom:aa)
   for (int gid = 0; gid < nxyz; gid++) {
