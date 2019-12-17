@@ -101,11 +101,6 @@ if [ "$1" == "install" ] ; then
 fi
 
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
-
-  patchfile=$thisdir/patches/rocminfo_cmake.patch	
-  patchdir=$RINFO_REPO_DIR	
-  patchrepo	
-
   if [ -d "$BUILD_DIR/build/rocminfo" ] ; then
      echo
      echo "FRESH START , CLEANING UP FROM PREVIOUS BUILD"
