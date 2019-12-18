@@ -65,12 +65,11 @@ if [ "$1" == "install" ] ; then
    $SUDO rm $INSTALL_ROCT/testfile
 fi
 
+patchfile=$thisdir/patches/roct_ppc.patch
+patchdir=$AOMP_REPOS/$AOMP_ROCT_REPO_NAME
+patchrepo
 
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then 
-
-   patchfile=$thisdir/patches/roct_ppc.patch
-   patchdir=$AOMP_REPOS/$AOMP_ROCT_REPO_NAME
-   patchrepo
 
    echo " " 
    echo "This is a FRESH START. ERASING any previous builds in $BUILD_AOMP/build_roct"
