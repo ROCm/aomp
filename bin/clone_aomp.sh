@@ -60,33 +60,6 @@ if [ -d $repodirname  ] ; then
    echo "    We assume this came from an earlier clone of $repo_web_location/$reponame"
    # FIXME look in $repodir/.git/config to be sure 
    cd $repodirname
-   #   undo the patch to hip before pulling more updates
-   if [ "$reponame" == "$AOMP_HIP_REPO_NAME" ] ; then
-      git checkout src
-      if [ -f src/hip_module.cpp.orig ] ; then
-         rm src/hip_module.cpp.orig
-      fi
-   fi
-   #   undo the patch to rocr runtime before pulling more updates
-   if [ "$reponame" == "$AOMP_ROCR_REPO_NAME" ] ; then
-      git checkout src
-      if [ -f src/CMakeLists.txt.orig ] ; then
-         rm src/CMakeLists.txt.orig
-      fi
-   fi
-   #   undo the patch to rocminfo cmake before pulling more updates
-   if [ "$reponame" == "$AOMP_RINFO_REPO_NAME" ] ; then
-      echo $PWD
-      echo git checkout CMakeLists.txt
-      git checkout CMakeLists.txt
-   fi
-   #   undo the comgr patch to rocm-compilersupport before pulling more updates
-   if [ "$reponame" == "$AOMP_COMGR_REPO_NAME" ] ; then
-      git checkout lib/comgr/src
-      if [ -f lib/comgr/src/comgr-objdump.cpp.orig ] ; then
-         rm lib/comgr/src/comgr-objdump.cpp.orig
-      fi
-   fi
    if [ "$STASH_BEFORE_PULL" == "YES" ] ; then
       if [ "$reponame" != "$AOMP_HCC_REPO_NAME" ] ; then
          git stash -u
@@ -100,8 +73,6 @@ if [ -d $repodirname  ] ; then
    #git pull 
    if [ "$reponame" == "$AOMP_HCC_REPO_NAME" ] ; then
      #  undo the hcc_ppc_fp16.patch before pulling more updates
-     echo git checkout include/kalmar_math.h
-     git checkout include/kalmar_math.h
      echo "git submodule update"
      git submodule update
      echo "git pull"

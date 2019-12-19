@@ -71,12 +71,8 @@ if [ "$1" == "install" ] ; then
    $SUDO rm $INSTALL_ROCM/testfile
 fi
 
-patchfile=$thisdir/patches/rocr-runtime.patch
+patchloc=$thisdir/patches
 patchdir=$AOMP_REPOS/$AOMP_ROCR_REPO_NAME
-patchrepo
-patchfile=$thisdir/patches/rocr-runtime-pr72.patch
-patchrepo
-patchfile=$thisdir/patches/rocr-runtime-ppcpages.patch
 patchrepo
 
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then 
@@ -126,4 +122,7 @@ if [ "$1" == "install" ] ; then
          echo "ERROR make install failed "
          exit 1
       fi
+      patchloc=$thisdir/patches
+      patchdir=$AOMP_REPOS/$AOMP_ROCR_REPO_NAME
+      removepatch
 fi

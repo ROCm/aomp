@@ -106,6 +106,9 @@ REPO_BRANCH=$AOMP_HCC_REPO_BRANCH
 REPO_DIR=$AOMP_REPOS/$AOMP_HCC_REPO_NAME
 checkrepo
 
+patchloc=$thisdir/patches
+patchdir=$BUILD_DIR/$AOMP_HCC_REPO_NAME
+patchrepo
 # Make sure we can update the install directory
 if [ "$1" == "install" ] ; then 
    $SUDO mkdir -p $INSTALL_HCC
@@ -160,9 +163,6 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
       git status
       echo
    fi
-   patchfile=$thisdir/patches/hcc_ppc_fp16.patch
-   patchdir=$BUILD_DIR/$AOMP_HCC_REPO_NAME
-   patchrepo
 
 else
 # Skip synchronization from git repos if nocmake or install are specified
@@ -212,7 +212,7 @@ if [ "$1" == "install" ] ; then
       echo "ERROR make install failed "
       exit 1
    fi
-   patchfile=$thisdir/patches/hcc_ppc_fp16.patch
+   patchloc=$thisdir/patches
    patchdir=$BUILD_DIR/$AOMP_HCC_REPO_NAME
    removepatch
    echo
