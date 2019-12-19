@@ -65,12 +65,12 @@ if [ "$1" == "install" ] ; then
    $SUDO rm $INSTALL_COMGR/testfile
 fi
 
-if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then 
-
    # FIXME: Remove this comgr patch when aomp gets to llvm-10
-   patchfile=$thisdir/patches/useOldSectionNameMethod.patch
+   patchloc=$thisdir/patches
    patchdir=$REPO_DIR
    patchrepo
+
+if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 
    echo " " 
    echo "This is a FRESH START. ERASING any previous builds in $BUILD_AOMP/build_comgr"
@@ -117,7 +117,8 @@ if [ "$1" == "install" ] ; then
          echo "ERROR make install failed "
          exit 1
       fi
-      patchfile=$thisdir/patches/useOldSectionNameMethod.patch
+      # FIXME: Remove this comgr patch when aomp gets to llvm-10
+      patchloc=$thisdir/patches
       patchdir=$REPO_DIR
       removepatch
 fi
