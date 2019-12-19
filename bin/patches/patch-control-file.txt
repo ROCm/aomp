@@ -1,6 +1,7 @@
 roct-thunk-interface: roct_ppc.patch
 rocr-runtime: rocr-runtime.patch rocr-runtime-ppcpages.patch rocr-hsa-runtime-symlink.patch
-rocm-compilersupport: useOldSectionNameMethod.patch 
+rocm-device-libs: devicelibs_2-10_revert_1d2127c.patch
+rocm-compilersupport: useOldSectionNameMethod.patch comgr_2-10_revert_15854f1_2d67c80_8f6fd6a.patch
 hcc: hcc_ppc_fp16.patch
 hip: PR1499.patch 
 hip-postinstall: hip.patch 

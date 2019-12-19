@@ -1,0 +1,36 @@
+diff --git a/lib/comgr/src/comgr-compiler.cpp b/lib/comgr/src/comgr-compiler.cpp
+index 60fb918..802873d 100644
+--- a/lib/comgr/src/comgr-compiler.cpp
++++ b/lib/comgr/src/comgr-compiler.cpp
+@@ -186,11 +186,11 @@ bool AssemblerInvocation::CreateFromArgs(AssemblerInvocation &Opts,
+   bool Success = true;
+ 
+   // Parse the arguments.
+-  const OptTable &OptTbl = getDriverOptTable();
++  std::unique_ptr<OptTable> OptTbl(createDriverOptTable());
+ 
+   const unsigned IncludedFlagsBitmask = options::CC1AsOption;
+   unsigned MissingArgIndex, MissingArgCount;
+-  InputArgList Args = OptTbl.ParseArgs(Argv, MissingArgIndex, MissingArgCount,
++  InputArgList Args = OptTbl->ParseArgs(Argv, MissingArgIndex, MissingArgCount,
+                                         IncludedFlagsBitmask);
+ 
+   // Check for missing argument error.
+@@ -204,7 +204,7 @@ bool AssemblerInvocation::CreateFromArgs(AssemblerInvocation &Opts,
+   for (const Arg *A : Args.filtered(OPT_UNKNOWN)) {
+     auto ArgString = A->getAsString(Args);
+     std::string Nearest;
+-    if (OptTbl.findNearest(ArgString, Nearest, IncludedFlagsBitmask) > 1)
++    if (OptTbl->findNearest(ArgString, Nearest, IncludedFlagsBitmask) > 1)
+       Diags.Report(diag::err_drv_unknown_argument) << ArgString;
+     else
+       Diags.Report(diag::err_drv_unknown_argument_with_suggestion)
+@@ -613,7 +613,7 @@ amd_comgr_status_t InProcessDriver::execute(ArrayRef<const char *> Args) {
+       if (!Clang->hasDiagnostics())
+         return AMD_COMGR_STATUS_ERROR;
+       if (!CompilerInvocation::CreateFromArgs(
+-              Clang->getInvocation(), Argv,
++              Clang->getInvocation(), Argv.data(), Argv.data() + Argv.size(),
+               Clang->getDiagnostics()))
+         return AMD_COMGR_STATUS_ERROR;
+       if (!ExecuteCompilerInvocation(Clang.get()))
