@@ -1,0 +1,6 @@
+roct-thunk-interface: roct_ppc.patch
+rocr-runtime: rocr-runtime.patch rocr-runtime-ppcpages.patch
+rocm-compilersupport: useOldSectionNameMethod.patch 
+hcc: hcc_ppc_fp16.patch
+hip: PR1499.patch 
+hip-postinstall: hip.patch 

@@ -110,11 +110,11 @@ if [ "$1" == "install" ] ; then
 fi
 
 
-if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
-
-  patchfile=$thisdir/patches/PR1499.patch
+  patchloc=$thisdir/patches
   patchdir=$HIP_REPO_DIR
   patchrepo
+
+if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 
   if [ -d "$BUILD_DIR/build/hip" ] ; then
      echo
@@ -177,7 +177,7 @@ if [ "$1" == "install" ] ; then
       exit 1
    fi
    patchdir=$HIP_REPO_DIR
-   patchfile=$thisdir/patches/PR1499.patch
+   patchloc=$thisdir/patches
    removepatch
    # The hip perl scripts have /opt/rocm hardcoded, so fix them after then are installed
    # but only if not installing to default location.
@@ -192,9 +192,8 @@ if [ "$1" == "install" ] ; then
    # FIXME: Remove when this patch is added to ROCm HIP
    save_patch_state=$AOMP_APPLY_ROCM_PATCHES
    AOMP_APPLY_ROCM_PATCHES=1
-   patchfile=$thisdir/patches/hip.patch
    patchdir=$INSTALL_HIP
-   patchrepo
+   patchrepo hip-postinstall
    AOMP_APPLY_ROCM_PATCHES=$save_patch_state
    export AOMP_APPLY_ROCM_PATCHES
 fi

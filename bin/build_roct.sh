@@ -65,7 +65,7 @@ if [ "$1" == "install" ] ; then
    $SUDO rm $INSTALL_ROCT/testfile
 fi
 
-patchfile=$thisdir/patches/roct_ppc.patch
+patchloc=$thisdir/patches
 patchdir=$AOMP_REPOS/$AOMP_ROCT_REPO_NAME
 patchrepo
 
@@ -115,7 +115,7 @@ if [ "$1" == "install" ] ; then
          echo "ERROR make install failed "
          exit 1
       fi
-      patchfile=$thisdir/patches/roct_ppc.patch
+      patchloc=$thisdir/patches
       patchdir=$AOMP_REPOS/$AOMP_ROCT_REPO_NAME
       removepatch
 fi
