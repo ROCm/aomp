@@ -30,6 +30,7 @@ TESTS_DIR = \
     MaxNumThrds \
     nativetests \
     nested_loop \
+    nested_par3 \
     omp_num_teams_SPMD \
     omp_num_teams_generic \
     OmpHipMallocManaged \
