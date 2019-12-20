@@ -80,7 +80,7 @@ HIPFLAGS = -x hip $(PLATFORM) -O2 --offload-arch=$(AOMP_GPU) -target $(AOMP_CPUT
 #  These OMP_TARGET_FLAGS added to HIPFLAGS provide HIP+OpenMP with GPU target offload
 OMP_TARGET_FLAGS = -fopenmp-targets=$(TRIPLE) -Xopenmp-target=$(TRIPLE) -march=$(AOMP_GPU)
 
-CFLAGS = $(HIPFLAGS) $(OMP_TARGET_FLAGS)
+CFLAGS = $(HIPFLAGS) $(OMP_TARGET_FLAGS) -U_OPENMP
 
 # ----- Demo compile and link in one step, no object code saved
 $(TESTNAME): $(TESTNAME).$(FILETYPE)
