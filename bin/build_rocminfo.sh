@@ -100,6 +100,10 @@ if [ "$1" == "install" ] ; then
    $SUDO rm $INSTALL_RINFO/testfile
 fi
 
+patchloc=$thisdir/patches
+patchdir=$AOMP_REPOS/$AOMP_ROCT_REPO_NAME
+patchrepo
+
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
   if [ -d "$BUILD_DIR/build/rocminfo" ] ; then
      echo
@@ -154,4 +158,7 @@ if [ "$1" == "install" ] ; then
          echo "ERROR make install failed "
          exit 1
       fi
+      patchloc=$thisdir/patches
+      patchdir=$AOMP_REPOS/$AOMP_ROCT_REPO_NAME
+      removepatch
 fi
