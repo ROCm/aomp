@@ -185,6 +185,8 @@ if [ "$1" == "install" ] ; then
       SED_INSTALL_DIR=`echo $INSTALL_HIP | sed -e 's/\//\\\\\//g' `
       $SUDO sed -i -e "s/\/opt\/rocm\/llvm/$SED_INSTALL_DIR/" $INSTALL_HIP/bin/hipcc
       $SUDO sed -i -e "s/\/opt\/rocm/$SED_INSTALL_DIR/" $INSTALL_HIP/bin/hipcc
+      $SUDO sed -i -e "s/\$HIP_CLANG_PATH=\$ENV{'HIP_CLANG_PATH'}/\$HIP_CLANG_PATH=\"$SED_INSTALL_DIR\/bin\"/" $INSTALL_HIP/bin/hipcc
+      $SUDO sed -i -e "s/ -D_OPENMP //" $INSTALL_HIP/bin/hipcc
       $SUDO sed -i -e "s/\/opt\/rocm\/llvm/$SED_INSTALL_DIR/" $INSTALL_HIP/bin/hipconfig
       $SUDO sed -i -e "s/\/opt\/rocm/$SED_INSTALL_DIR/" $INSTALL_HIP/bin/hipconfig
    fi
