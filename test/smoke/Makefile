@@ -31,6 +31,7 @@ TESTS_DIR = \
     nativetests \
     nested_loop \
     nested_par3 \
+    nest_call_par2 \
     omp_num_teams_SPMD \
     omp_num_teams_generic \
     OmpHipMallocManaged \
