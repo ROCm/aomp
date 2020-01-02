@@ -101,7 +101,7 @@ if [ "$1" == "install" ] ; then
 fi
 
 patchloc=$thisdir/patches
-patchdir=$AOMP_REPOS/$AOMP_ROCT_REPO_NAME
+patchdir=$AOMP_REPOS/$AOMP_RINFO_REPO_NAME
 patchrepo
 
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
@@ -158,7 +158,5 @@ if [ "$1" == "install" ] ; then
          echo "ERROR make install failed "
          exit 1
       fi
-      patchloc=$thisdir/patches
-      patchdir=$AOMP_REPOS/$AOMP_ROCT_REPO_NAME
       removepatch
 fi
