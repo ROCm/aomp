@@ -41,7 +41,7 @@ RAJA_BUILD_DIR ?= $(RAJA_BUILD_PREFIX)/raja_build.$(AOMP_GPU)
 RAJA_SRC = $(HOME)/git/aomp/raja
 
 # Sorry, clang openmp requires these complex options
-CPPFLAGS = -w -O3 -target $(AOMP_CPUTARGET) -fopenmp -fopenmp-targets=$(AOMP_GPUTARGET) -Xopenmp-target=$(AOMP_GPUTARGET) -march=$(AOMP_GPU) -I$(RAJA_SRC)/include  -I$(RAJA_BUILD_DIR)/include
+CPPFLAGS = -w -O3 -target $(AOMP_CPUTARGET) -fopenmp -fopenmp-targets=$(AOMP_GPUTARGET) -Xopenmp-target=$(AOMP_GPUTARGET) -march=$(AOMP_GPU) -I$(RAJA_SRC)/include  -I$(RAJA_BUILD_DIR)/include -I$(RAJA_SRC)/tpl/camp/include
 
 ifeq ($(OFFLOAD_DEBUG),1)
   $(info    DEBUG Mode ON)
@@ -69,10 +69,7 @@ $(TESTNAME): $(RAJA_BUILD_DIR) $(TESTSRC)
 run: $(TESTNAME) 
 	$(RUNENV) ./$(TESTNAME)
 
-$(RAJA_BUILD_DIR): $(RAJA_SRC)
-	$(AOMP)/bin/raja_build.sh
-
-$(RAJA_SRC): 
+$(RAJA_BUILD_DIR):
 	$(AOMP)/bin/raja_build.sh
 
 help:
