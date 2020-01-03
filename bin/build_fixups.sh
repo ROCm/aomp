@@ -24,7 +24,7 @@ function getdname(){
    echo $__DIRN
 }
 thisdir=$(getdname $0)
-if [ -n $AOMP_STANDALONE_BUILD ] ; then
+if [[ "$AOMP_STANDALONE_BUILD" == 0 ]] ; then
   . $AOMP_REPOS/aomp/bin/aomp_common_vars
 else
   [ ! -L "$0" ] || thisdir=$(getdname `readlink "$0"`)
