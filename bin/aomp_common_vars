@@ -219,7 +219,7 @@ function checkrepo(){
 
 #  TO use this function set variables patchdir and patchfile
 function patchrepo(){
-if [ "$AOMP_APPLY_ROCM_PATCHES" == 1 ] ; then
+if [ "$AOMP_APPLY_ROCM_PATCHES" == 1 ] && [ -d "$patchdir" ] ; then
    cd $patchdir
    if [[ "$1" =~ "postinstall" ]]; then
      getpatchlist $1
