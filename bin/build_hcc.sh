@@ -106,9 +106,6 @@ REPO_BRANCH=$AOMP_HCC_REPO_BRANCH
 REPO_DIR=$AOMP_REPOS/$AOMP_HCC_REPO_NAME
 checkrepo
 
-patchloc=$thisdir/patches
-patchdir=$BUILD_DIR/$AOMP_HCC_REPO_NAME
-patchrepo
 # Make sure we can update the install directory
 if [ "$1" == "install" ] ; then 
    $SUDO mkdir -p $INSTALL_HCC
@@ -173,6 +170,10 @@ else
       exit 1
    fi
 fi
+
+patchloc=$thisdir/patches
+patchdir=$BUILD_DIR/$AOMP_HCC_REPO_NAME
+patchrepo
 
 cd $BUILD_DIR/build/$AOMP_HCC_REPO_NAME
 
