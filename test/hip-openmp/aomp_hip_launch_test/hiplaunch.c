@@ -93,18 +93,22 @@ void* wrapper(void * start) {
     return NULL;
 }
 
-const char *device_image_filename="a.out-openmp-amdgcn-amd-amdhsa-gfx900";
+const char *device_image_filename="a.out-openmp-amdgcn-amd-amdhsa-";
 
 #define N 100
 int A[N];
 int B[N];
 int main(int argc, char *argv[])
 {
-    if (argc < 2) {
-	printf("Usage: %s <kernel_name>\n", argv[0]);
+    if (argc < 3) {
+	printf("Usage: %s <kernel_name> <gpu>\n", argv[0]);
 	return -1;
     }
     const char *kernel_name = argv[1];
+    char ImageName[1000];
+    strcpy(ImageName, device_image_filename);
+    strcat(ImageName, argv[2]);
+    printf("Image is %s\n", ImageName);
     hipError_t hipres;
     hipModule_t hipmod;
     hipDevice_t  cudev;
@@ -133,7 +137,7 @@ int main(int argc, char *argv[])
     hipres = hipDeviceGet( &cudev, 0 );
     CHECKRES(hipDeviceGet);
 
-    hipres = hipModuleLoad( &hipmod, device_image_filename );
+    hipres = hipModuleLoad( &hipmod, ImageName );
     CHECKRES(hipModuleLoad);
     hipres = hipModuleGetFunction( &hipkern, hipmod, kernel_name );
     CHECKRES(hipModuleGetFunction);

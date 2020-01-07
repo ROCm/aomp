@@ -91,8 +91,9 @@ $(TESTNAME).exe: $(TESTNAME).$(FILETYPE)
 run: $(TESTNAME).exe
 	$(eval KERNEL_NAME=$(shell nm test_omp-host-x86_64-unknown-linux-gnu.o | grep ' __omp_offloading' | sed 's/[0-9a-f]\+ t //'))
 	echo KERNEL_NAME=$(KERNEL_NAME)
+	echo AOMP_GPU=$(AOMP_GPU)
 	LIBOMPTARGET_KERNEL_TRACE=1 ./test_omp.exe
-	./$(TESTNAME).exe $(KERNEL_NAME)
+	./$(TESTNAME).exe $(KERNEL_NAME) $(AOMP_GPU)
 
 # Cleanup anything this makefile can create
 clean:
