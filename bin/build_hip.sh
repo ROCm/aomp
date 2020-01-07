@@ -124,10 +124,10 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
   fi
  
   if [ $AOMP_STANDALONE_BUILD == 1 ] ; then 
-     this_rpath="$INSTALL_HIP/lib:$INSTALL_HIP/hcc/lib"
+     this_rpath=$AOMP_ORIGIN_RPATH
   else
      # in jenkins build for ROCm integrated build, we must pickup hcc/lib and rocm/lib
-     this_rpath="$INSTALL_HIP/lib:$ROCM_DIR/hcc/lib:$ROCM_DIR/lib"
+     this_rpath="\$ORIGIN:$INSTALL_HIP/lib:$ROCM_DIR/hcc/lib:$ROCM_DIR/lib"
   fi
 
   MYCMAKEOPTS="-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON -DCMAKE_INSTALL_RPATH=$this_rpath -DCMAKE_BUILD_TYPE=$BUILDTYPE -DCMAKE_INSTALL_PREFIX=$INSTALL_HIP -DHIP_PLATFORM=hcc -DHIP_COMPILER=clang -DHSA_PATH=$ROCM_DIR/hsa -DHCC_HOME=$ROCM_DIR/hcc"
