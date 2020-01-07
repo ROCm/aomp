@@ -32,10 +32,10 @@ thisdir=$(getdname $0)
 INSTALL_HCC=${INSTALL_HCC:-$AOMP_INSTALL_DIR/hcc}
 
 if [ "$AOMP_PROC" == "ppc64le" ] ; then 
-   GCCMIN=7
+   GCCMIN=8
    TARGETS_TO_BUILD="AMDGPU;PowerPC"
 else
-   GCCMIN=7
+   GCCMIN=5
    if [ "$AOMP_PROC" == "aarch64" ] ; then 
       TARGETS_TO_BUILD="AMDGPU;AArch64"
    else
@@ -43,31 +43,31 @@ else
    fi
 fi
 
-function getgcc7orless(){
+function getgccmin(){
    _loc=`which gcc`
    [ "$_loc" == "" ] && return
    gccver=`$_loc --version | grep gcc | cut -d")" -f2 | cut -d"." -f1`
-   [ $gccver -gt $GCCMIN ] && _loc=`which gcc-$GCCMIN`
+   [ $gccver -lt $GCCMIN ] && _loc=`which gcc-$GCCMIN`
    echo $_loc
 }
-function getgxx7orless(){
+function getgxxmin(){
    _loc=`which g++`
    [ "$_loc" == "" ] && return
    gxxver=`$_loc --version | grep g++ | cut -d")" -f2 | cut -d"." -f1`
-   [ $gxxver -gt $GCCMIN ] && _loc=`which g++-$GCCMIN`
+   [ $gxxver -lt $GCCMIN ] && _loc=`which g++-$GCCMIN`
    echo $_loc
 }
-GCCLOC=$(getgcc7orless)
-GXXLOC=$(getgxx7orless)
+GCCLOC=$(getgccmin)
+GXXLOC=$(getgxxmin)
 
 if [ "$GCCLOC" == "" ] ; then
    echo "ERROR: NO ADEQUATE gcc"
-   echo "       Please install gcc-5 or gcc-7"
+   echo "       Please install at least gcc-$GCCMIN"
    exit 1
 fi
 if [ "$GXXLOC" == "" ] ; then
    echo "ERROR: NO ADEQUATE g++"
-   echo "       Please install g++-5 or g++-7"
+   echo "       Please install at least g++-$GCCMIN"
    exit 1
 fi
 COMPILERS="-DCMAKE_C_COMPILER=$GCCLOC -DCMAKE_CXX_COMPILER=$GXXLOC"
@@ -81,7 +81,7 @@ fi
 
 
 GFXSEMICOLONS=`echo $GFXLIST | tr ' ' ';' `
-MYCMAKEOPTS="-DROCM_ROOT=$AOMP_INSTALL_DIR -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON -DCMAKE_INSTALL_RPATH=$AOMP_INSTALL_DIR/lib:$AOMP_INSTALL_DIR/hcc/lib -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX=$INSTALL_HCC -DHSA_AMDGPU_GPU_TARGET=$GFXSEMICOLONS -DHSA_HEADER_DIR=$AOMP_INSTALL_DIR/hsa/include -DHSA_LIBRARY_DIR=$AOMP_INSTALL_DIR/hsa/lib -DCLANG_ANALYZER_ENABLE_Z3_SOLVER=OFF -DLLVM_INCLUDE_BENCHMARKS=OFF -DCMAKE_INSTALL_LIBDIR=$AOMP_INSTALL_DIR/hcc/lib $DO_TESTS"
+MYCMAKEOPTS="-DROCM_ROOT=$AOMP_INSTALL_DIR $AOMP_ORIGIN_RPATH -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX=$INSTALL_HCC $COMPILERS -DHSA_AMDGPU_GPU_TARGET=$GFXSEMICOLONS -DHSA_HEADER_DIR=$AOMP_INSTALL_DIR/hsa/include -DHSA_LIBRARY_DIR=$AOMP_INSTALL_DIR/hsa/lib -DCLANG_ANALYZER_ENABLE_Z3_SOLVER=OFF -DLLVM_INCLUDE_BENCHMARKS=OFF -DCMAKE_INSTALL_LIBDIR=$AOMP_INSTALL_DIR/hcc/lib $DO_TESTS"
 
 # -DLLVM_TARGETS_TO_BUILD=$TARGETS_TO_BUILD 
 #  For now build hcc with ROCDL. because using the AOMP libdevice 
@@ -142,6 +142,11 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
          git checkout $AOMP_HCC_REPO_BRANCH
          echo "   git submodule update"
          git submodule update
+         if [ $? != 0 ] ; then
+            echo "ERROR: 'git submodule update' failed. Consider deleting the $AOMP_HCC_REPO_NAME repo"
+            echo "       at $BUILD_DIR/hcc and letting this build script clone it"
+            exit 1
+         fi
       else
          echo "   Cloning repo $AOMP_HCC_REPO_NAME branch $AOMP_HCC_REPO_BRANCH"
          echo "   cd $BUILD_DIR"
@@ -150,6 +155,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
          git clone -b $AOMP_HCC_REPO_BRANCH --recursive $GITROC/$AOMP_HCC_REPO_NAME.git
          cd hcc
       fi
+
       echo "   git status"
       git status
       echo
@@ -164,6 +170,10 @@ else
       exit 1
    fi
 fi
+
+patchloc=$thisdir/patches
+patchdir=$BUILD_DIR/$AOMP_HCC_REPO_NAME
+patchrepo
 
 cd $BUILD_DIR/build/$AOMP_HCC_REPO_NAME
 
@@ -203,6 +213,9 @@ if [ "$1" == "install" ] ; then
       echo "ERROR make install failed "
       exit 1
    fi
+   patchloc=$thisdir/patches
+   patchdir=$BUILD_DIR/$AOMP_HCC_REPO_NAME
+   removepatch
    echo
    echo "SUCCESSFUL INSTALL to $INSTALL_HCC to $AOMP_INSTALL_DIR/hcc"
    echo

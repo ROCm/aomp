@@ -99,13 +99,8 @@ function getgxx7orless(){
    echo $_loc
 }
 
-if [ "$AOMP_PROC" == "ppc64le" ] ; then
-   GCCLOC=`which gcc`
-   GXXLOC=`which g++`
-else
-   GCCLOC=$(getgcc7orless)
-   GXXLOC=$(getgxx7orless)
-fi
+GCCLOC=$(getgcc7orless)
+GXXLOC=$(getgxx7orless)
 if [ "$GCCLOC" == "" ] ; then
    echo "ERROR: NO ADEQUATE gcc"
    echo "       Please install gcc-5 or gcc-7"
@@ -120,8 +115,7 @@ fi
 COMMON_CMAKE_OPTS="-DOPENMP_ENABLE_LIBOMPTARGET=1
 -DCMAKE_INSTALL_PREFIX=$INSTALL_OPENMP
 -DOPENMP_TEST_C_COMPILER=$AOMP/bin/clang
--DOPENMP_TEST_CXX_COMPILER=$AOMP/bin/clang++
--DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON "
+-DOPENMP_TEST_CXX_COMPILER=$AOMP/bin/clang++ "
 
 if [ "$AOMP_BUILD_CUDA" == 1 ] ; then
    COMMON_CMAKE_OPTS="$COMMON_CMAKE_OPTS
@@ -149,7 +143,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 
       echo rm -rf $BUILD_DIR/build/openmp
       rm -rf $BUILD_DIR/build/openmp
-      MYCMAKEOPTS="$COMMON_CMAKE_OPTS -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_RPATH=$AOMP_INSTALL_DIR/lib -DROCM_DIR=$ROCM_DIR"
+      MYCMAKEOPTS="$COMMON_CMAKE_OPTS -DCMAKE_BUILD_TYPE=Release $AOMP_ORIGIN_RPATH -DROCM_DIR=$ROCM_DIR"
       mkdir -p $BUILD_DIR/build/openmp
       cd $BUILD_DIR/build/openmp
       echo " -----Running openmp cmake ---- " 
@@ -168,7 +162,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 
       echo rm -rf $BUILD_DIR/build/openmp_debug
       rm -rf $BUILD_DIR/build/openmp_debug
-      MYCMAKEOPTS="$COMMON_CMAKE_OPTS -DLIBOMPTARGET_NVPTX_DEBUG=ON -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_RPATH=$AOMP_INSTALL_DIR/lib-debug -DROCM_DIR=$ROCM_DIR"
+      MYCMAKEOPTS="$COMMON_CMAKE_OPTS -DLIBOMPTARGET_NVPTX_DEBUG=ON -DCMAKE_BUILD_TYPE=Debug $AOMP_ORIGIN_RPATH -DROCM_DIR=$ROCM_DIR"
       mkdir -p $BUILD_DIR/build/openmp_debug
       cd $BUILD_DIR/build/openmp_debug
       echo

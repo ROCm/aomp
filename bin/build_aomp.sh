@@ -89,21 +89,16 @@ elif [ "$AOMP_STANDALONE_BUILD" != 1 ] ; then
    components="project libdevice comgr rocminfo hip extras atmi openmp pgmath flang flang_runtime"
 else
    # The standalone build builds all rocm components and installs in the compiler installation.
-   if [ "$AOMP_BUILD_HIP" == 1 ] ; then
-      components="roct rocr project libdevice comgr rocminfo hcc hip extras atmi openmp pgmath flang flang_runtime"
-   else
-      # The hip build will only install headers if AOMP_BUILD_HIP is off
-      # if AOMP_BUILD_HIP is off, then hcc is not built
-      components="roct rocr project libdevice comgr rocminfo hip extras atmi openmp pgmath flang flang_runtime"
-   fi
+   components="roct rocr project libdevice comgr rocminfo hcc hip extras atmi openmp pgmath flang flang_runtime"
 fi
 
 #Partial build options. Check if argument was given.
 if [ -n "$1" ] ; then
+  found=0
 #Start build from given component (./build_aomp.sh continue openmp)
-  if [ $1 == 'continue' ] ; then
+  if [ "$1" == 'continue' ] ; then
     for COMPONENT in $components ; do
-      if [ $COMPONENT == $2 ] ; then
+      if [ $COMPONENT == "$2" ] ; then
         found=1
       fi
       if [[ $found -eq 1 ]] ; then
@@ -111,16 +106,16 @@ if [ -n "$1" ] ; then
       fi
     done
     components=$list
-    if [ $components == ""] ; then
+    if [[ $found -eq 0 ]] ; then
       echo "$2 was not found in the build list!!!"
     fi
     #Remove arguments so they are not passed to build_aomp_component
     set --
 
   #Select which components to build(./build_aomp.sh select libdevice extras)
-  elif [ $1 == 'select' ] ; then
+  elif [ "$1" == 'select' ] ; then
     for ARGUMENT in $@ ; do
-      if [ $ARGUMENT != $1 ] ; then
+      if [ $ARGUMENT != "$1" ] ; then
         list+="$ARGUMENT "
       fi
     done

@@ -41,7 +41,18 @@ if [ "$thisdir" != "$AOMP_REPOS/$AOMP_REPO_NAME/bin" ] ; then
    exit 1
 fi
 
+function list_repo(){
+repodirname=$AOMP_REPOS/$reponame
+cd $repodirname
+echo `git config --get remote.origin.url` "  " $COBRANCH "  " `git log --numstat --format="%h" |head -1`
+}
+
 function clone_or_pull(){
+if [ "$LISTONLY" == 'list' ]; then
+list_repo
+return
+fi
+
 repodirname=$AOMP_REPOS/$reponame
 echo
 if [ -d $repodirname  ] ; then 
@@ -49,33 +60,6 @@ if [ -d $repodirname  ] ; then
    echo "    We assume this came from an earlier clone of $repo_web_location/$reponame"
    # FIXME look in $repodir/.git/config to be sure 
    cd $repodirname
-   #   undo the patch to hip before pulling more updates
-   if [ "$reponame" == "$AOMP_HIP_REPO_NAME" ] ; then
-      git checkout src
-      if [ -f src/hip_module.cpp.orig ] ; then
-         rm src/hip_module.cpp.orig
-      fi
-   fi
-   #   undo the patch to rocr runtime before pulling more updates
-   if [ "$reponame" == "$AOMP_ROCR_REPO_NAME" ] ; then
-      git checkout src
-      if [ -f src/CMakeLists.txt.orig ] ; then
-         rm src/CMakeLists.txt.orig
-      fi
-   fi
-   #   undo the patch to rocminfo cmake before pulling more updates
-   if [ "$reponame" == "$AOMP_RINFO_REPO_NAME" ] ; then
-      echo $PWD
-      echo git checkout CMakeLists.txt
-      git checkout CMakeLists.txt
-   fi
-   #   undo the comgr patch to rocm-compilersupport before pulling more updates
-   if [ "$reponame" == "$AOMP_COMGR_REPO_NAME" ] ; then
-      git checkout lib/comgr/src
-      if [ -f lib/comgr/src/comgr-objdump.cpp.orig ] ; then
-         rm lib/comgr/src/comgr-objdump.cpp.orig
-      fi
-   fi
    if [ "$STASH_BEFORE_PULL" == "YES" ] ; then
       if [ "$reponame" != "$AOMP_HCC_REPO_NAME" ] ; then
          git stash -u
@@ -88,6 +72,7 @@ if [ -d $repodirname  ] ; then
    #echo "git pull "
    #git pull 
    if [ "$reponame" == "$AOMP_HCC_REPO_NAME" ] ; then
+     #  undo the hcc_ppc_fp16.patch before pulling more updates
      echo "git submodule update"
      git submodule update
      echo "git pull"
@@ -120,7 +105,11 @@ repo_web_location=$GITROCDEV
 
 reponame=$AOMP_REPO_NAME
 COBRANCH=$AOMP_REPO_BRANCH
+LISTONLY=$1
+if [ "$LISTONLY" == 'list' ]; then
+list_repo
 #clone_or_pull
+fi
 
 reponame=$AOMP_EXTRAS_REPO_NAME
 COBRANCH=$AOMP_EXTRAS_REPO_BRANCH

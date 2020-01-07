@@ -9,6 +9,11 @@
 TESTNAME = vecadd
 TESTSRC  = vecadd.cpp
 
+UNAMEP = $(shell uname -p)
+AOMP_CPUTARGET = $(UNAMEP)-pc-linux-gnu
+ifeq ($(UNAMEP),ppc64le)
+  AOMP_CPUTARGET = ppc64le-linux-gnu
+endif
 # --- Standard Makefile check for AOMP installation ---
 ifeq ("$(wildcard $(AOMP))","")
   ifneq ($(AOMP),)
@@ -27,7 +32,6 @@ endif
 # --- End Standard Makefile check for AOMP installation ---
 INSTALLED_GPU  = $(shell $(AOMP)/bin/mygpu -d gfx900)# Default AOMP_GPU is gfx900 which is vega
 AOMP_GPU       ?= $(INSTALLED_GPU)
-AOMP_CPUTARGET ?= x86_64-pc-linux-gnu
 CC              = $(AOMP)/bin/clang++
 AOMP_GPUTARGET = amdgcn-amd-amdhsa
 export PATH := $(AOMP)/bin:$(PATH)
@@ -37,7 +41,7 @@ RAJA_BUILD_DIR ?= $(RAJA_BUILD_PREFIX)/raja_build.$(AOMP_GPU)
 RAJA_SRC = $(HOME)/git/aomp/raja
 
 # Sorry, clang openmp requires these complex options
-CPPFLAGS = -w -O3 -target $(AOMP_CPUTARGET) -fopenmp -fopenmp-targets=$(AOMP_GPUTARGET) -Xopenmp-target=$(AOMP_GPUTARGET) -march=$(AOMP_GPU) -I$(RAJA_SRC)/include  -I$(RAJA_BUILD_DIR)/include
+CPPFLAGS = -w -O3 -target $(AOMP_CPUTARGET) -fopenmp -fopenmp-targets=$(AOMP_GPUTARGET) -Xopenmp-target=$(AOMP_GPUTARGET) -march=$(AOMP_GPU) -I$(RAJA_SRC)/include  -I$(RAJA_BUILD_DIR)/include -I$(RAJA_SRC)/tpl/camp/include
 
 ifeq ($(OFFLOAD_DEBUG),1)
   $(info    DEBUG Mode ON)
@@ -65,10 +69,7 @@ $(TESTNAME): $(RAJA_BUILD_DIR) $(TESTSRC)
 run: $(TESTNAME) 
 	$(RUNENV) ./$(TESTNAME)
 
-$(RAJA_BUILD_DIR): $(RAJA_SRC)
-	$(AOMP)/bin/raja_build.sh
-
-$(RAJA_SRC): 
+$(RAJA_BUILD_DIR):
 	$(AOMP)/bin/raja_build.sh
 
 help:

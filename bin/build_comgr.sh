@@ -65,12 +65,12 @@ if [ "$1" == "install" ] ; then
    $SUDO rm $INSTALL_COMGR/testfile
 fi
 
-if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then 
-
    # FIXME: Remove this comgr patch when aomp gets to llvm-10
-   patchfile=$thisdir/patches/useOldSectionNameMethod.patch
+   patchloc=$thisdir/patches
    patchdir=$REPO_DIR
    patchrepo
+
+if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 
    echo " " 
    echo "This is a FRESH START. ERASING any previous builds in $BUILD_AOMP/build_comgr"
@@ -81,7 +81,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    $SUDO rm -rf $BUILD_AOMP/build/comgr
    export LLVM_DIR=$AOMP_INSTALL_DIR
    export Clang_DIR=$AOMP_INSTALL_DIR
-   MYCMAKEOPTS="-DCMAKE_INSTALL_PREFIX=$INSTALL_COMGR -DCMAKE_BUILD_TYPE=$BUILDTYPE -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON -DCMAKE_INSTALL_RPATH=$AOMP_INSTALL_DIR/lib -DLLVM_BUILD_MAIN_SRC_DIR=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/llvm -DLLVM_DIR=$AOMP_INSTALL_DIR -DClang_DIR=$AOMP_INSTALL_DIR"
+   MYCMAKEOPTS="-DCMAKE_INSTALL_PREFIX=$INSTALL_COMGR -DCMAKE_BUILD_TYPE=$BUILDTYPE $AOMP_ORIGIN_RPATH -DLLVM_BUILD_MAIN_SRC_DIR=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/llvm -DLLVM_DIR=$AOMP_INSTALL_DIR -DClang_DIR=$AOMP_INSTALL_DIR"
    mkdir -p $BUILD_AOMP/build/comgr
    cd $BUILD_AOMP/build/comgr
    echo " -----Running comgr cmake ---- " 
@@ -117,7 +117,8 @@ if [ "$1" == "install" ] ; then
          echo "ERROR make install failed "
          exit 1
       fi
-      patchfile=$thisdir/patches/useOldSectionNameMethod.patch
+      # FIXME: Remove this comgr patch when aomp gets to llvm-10
+      patchloc=$thisdir/patches
       patchdir=$REPO_DIR
       removepatch
 fi

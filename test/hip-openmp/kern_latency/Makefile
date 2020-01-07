@@ -32,6 +32,11 @@
 TESTNAME =kern_latency
 FILETYPE =cpp
 
+UNAMEP = $(shell uname -p)
+AOMP_CPUTARGET = $(UNAMEP)-pc-linux-gnu
+ifeq ($(UNAMEP),ppc64le)
+  AOMP_CPUTARGET = ppc64le-linux-gnu
+endif
 ifeq ($(AOMP),)
 # --- Standard Makefile check for AOMP installation ---
 ifeq ("$(wildcard $(AOMP))","")
@@ -63,14 +68,14 @@ TARGETS =--offload-arch=$(AOMP_GPU)
 endif
 
 CC       =$(AOMP)/bin/clang++
-#CFLAGS   =-O3 --target=x86_64-pc-linux-gnu -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target amdgcn-amd-amdhsa #--offload-arch=$(AOMP_GPU)
-#CFLAGS   =-x hip -O3 -target x86_64-pc-linux-gnu -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=gfx900
-CFLAGS   =-x hip -O3 -target x86_64-pc-linux-gnu -fopenmp
-#CFLAGS   =-O3 -fopenmp -target x86_64-pc-linux-gnu
+#CFLAGS   =-O3 --target=$(AOMP_CPUTARGET) -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target amdgcn-amd-amdhsa #--offload-arch=$(AOMP_GPU)
+#CFLAGS   =-x hip -O3 -target $(AOMP_CPUTARGET) -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=gfx900
+CFLAGS   =-x hip -O3 -target $(AOMP_CPUTARGET) -fopenmp
+#CFLAGS   =-O3 -fopenmp -target $(AOMP_CPUTARGET)
 
 # Add cudart only if we have an Nvidia sm_ target
 ifeq (sm_,$(findstring sm_,$(TARGETS)))
-  LFLAGS +=-L$(CUDA)/targets/x86_64-linux/lib -lcudart -Wl,-rpath,$(CUDA)/targets/x86_64-linux/lib
+  LFLAGS +=-L$(CUDA)/targets/$(UNAMEP)-linux/lib -lcudart -Wl,-rpath,$(CUDA)/targets/$(UNAMEP)-linux/lib
   CFLAGS +=-x cuda -I$(CUDA)/include
 else
   CFLAGS += -x hip

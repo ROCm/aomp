@@ -26,26 +26,36 @@ AOMP_REPOS_TEST=${AOMP_REPOS_TEST:-$HOME/git/aomp-test}
 AOMP_CHECK_GIT_BRANCH=${AOMP_CHECK_GIT_BRANCH:-1}
 AOMP_APPLY_ROCM_PATCHES=${AOMP_APPLY_ROCM_PATCHES:-1}
 
+#Set common rpath for build scripts
+AOMP_ORIGIN_RPATH="-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON -DCMAKE_INSTALL_RPATH=\$ORIGIN:\$ORIGIN/../hcc/lib:\$ORIGIN/../hsa/lib:$AOMP_INSTALL_DIR/lib:$AOMP_INSTALL_DIR/hcc/lib:$AOMP_INSTALL_DIR/hsa/lib"
+
 CUDA=${CUDA:-/usr/local/cuda}
 CUDAT=${CUDAT:-$CUDA/targets}
 CUDAINCLUDE=${CUDAINCLUDE:-$CUDA/include}
 CUDABIN=${CUDABIN:-$CUDA/bin}
 
 AOMP_CMAKE=${AOMP_CMAKE:-cmake}
-AOMP_BUILD_HIP=${AOMP_BUILD_HIP:-1}
 AOMP_PROC=`uname -p`
-if [ "$AOMP_PROC" == "aarch64" ] ; then
-   AOMP_BUILD_CUDA=0
-   AOMP_BUILD_HIP=0
+if [ "$AOMP_PROC" == "unknown" ] ; then
+   AOMP_PROC=`uname -a | awk '{print $(NF-1)}'`
 fi
-if [ "$AOMP_PROC" == "ppc64le" ] ; then
-   AOMP_BUILD_HIP=0
+
+AOMP_STANDALONE_BUILD=${AOMP_STANDALONE_BUILD:-1}
+
+#  The logic for turning on CUDA build is here
+if [ $AOMP_STANDALONE_BUILD == 1 ] ; then
+   # Default is to build nvptx for STANDALONE build
+   AOMP_BUILD_CUDA=${AOMP_BUILD_CUDA:-1}
+else
+   # Default is to NOT build nvptx for ROCm integrated build
+   AOMP_BUILD_CUDA=${AOMP_BUILD_CUDA:-0}
 fi
-# Default is to NOT build for nvptx
-# Set AOMP_BUILD_CUDA to 1 to override default
-AOMP_BUILD_CUDA=${AOMP_BUILD_CUDA:-0}
-# When default is changed to 1, still turn it off if no cuda installed
+# Regardless, turn off AOMP_BUILD_CUDA if CUDA not available
 if [ ! -d "$CUDABIN" ] ; then
+   AOMP_BUILD_CUDA=0
+fi
+# Regardless, turn off AOMP_BUILD_CUDA for arm
+if [ "$AOMP_PROC" == "aarch64" ] ; then
    AOMP_BUILD_CUDA=0
 fi
 
@@ -69,14 +79,17 @@ fi
 
 # Set list of default amdgcn subarchitectures to build
 #  Developers should override GFXLIST to shorten build time.
-GFXLIST=${GFXLIST:-"gfx700 gfx701 gfx801 gfx803 gfx900 gfx902 gfx906"}
+GFXLIST=${GFXLIST:-"gfx700 gfx701 gfx801 gfx803 gfx900 gfx902 gfx906 gfx908"}
 export GFXLIST
 
 # Calculate the number of threads to use for make
 NUM_THREADS=
 if [ ! -z `which "getconf"` ]; then
    NUM_THREADS=$(`which "getconf"` _NPROCESSORS_ONLN)
-   if [ "$AOMP_PROC" == "ppc64le" ] || [ "$AOMP_PROC" == "aarch64" ] ; then
+   if [ "$AOMP_PROC" == "ppc64le" ] ; then
+      NUM_THREADS=8
+   fi
+   if [ "$AOMP_PROC" == "aarch64" ] ; then
       NUM_THREADS=$(( NUM_THREADS / 4))
    fi
 fi
@@ -105,29 +118,29 @@ AOMP_REPO_BRANCH=${AOMP_REPO_BRANCH:-master}
 AOMP_PROJECT_REPO_NAME=${AOMP_PROJECT_REPO_NAME:-llvm-project}
 AOMP_PROJECT_REPO_BRANCH=${AOMP_PROJECT_REPO_BRANCH:-AOMP-191029}
 AOMP_LIBDEVICE_REPO_NAME=${AOMP_LIBDEVICE_REPO_NAME:-rocm-device-libs}
-AOMP_LIBDEVICE_REPO_BRANCH=${AOMP_LIBDEVICE_REPO_BRANCH:-roc-ocl-2.9.x}
+AOMP_LIBDEVICE_REPO_BRANCH=${AOMP_LIBDEVICE_REPO_BRANCH:-roc-ocl-3.0.x}
 AOMP_HCC_REPO_NAME=${AOMP_HCC_REPO_NAME:-hcc}
-AOMP_HCC_REPO_BRANCH=${AOMP_HCC_REPO_BRANCH:-roc-2.9.x}
+AOMP_HCC_REPO_BRANCH=${AOMP_HCC_REPO_BRANCH:-roc-3.0.x}
 AOMP_HIP_REPO_NAME=${AOMP_HIP_REPO_NAME:-hip}
-AOMP_HIP_REPO_BRANCH=${AOMP_HIP_REPO_BRANCH:-roc-2.9.x}
+AOMP_HIP_REPO_BRANCH=${AOMP_HIP_REPO_BRANCH:-roc-3.0.x}
 AOMP_RINFO_REPO_NAME=${AOMP_RINFO_REPO_NAME:-rocminfo}
 AOMP_RINFO_REPO_BRANCH=${AOMP_RINFO_REPO_BRANCH:-master}
 AOMP_ROCT_REPO_NAME=${AOMP_ROCT_REPO_NAME:-roct-thunk-interface}
-AOMP_ROCT_REPO_BRANCH=${AOMP_ROCT_REPO_BRANCH:-roc-2.9.x}
+AOMP_ROCT_REPO_BRANCH=${AOMP_ROCT_REPO_BRANCH:-roc-3.0.x}
 AOMP_ROCR_REPO_NAME=${AOMP_ROCR_REPO_NAME:-rocr-runtime}
-AOMP_ROCR_REPO_BRANCH=${AOMP_ROCR_REPO_BRANCH:-roc-2.9.x}
+AOMP_ROCR_REPO_BRANCH=${AOMP_ROCR_REPO_BRANCH:-roc-3.0.x}
 AOMP_ATMI_REPO_NAME=${AOMP_ATMI_REPO_NAME:-atmi}
-AOMP_ATMI_REPO_BRANCH=${AOMP_ATMI_REPO_BRANCH:-aomp-0.7}
+AOMP_ATMI_REPO_BRANCH=${AOMP_ATMI_REPO_BRANCH:-aomp-0.7-6}
 AOMP_EXTRAS_REPO_NAME=${AOMP_EXTRAS_REPO_NAME:-aomp-extras}
 AOMP_EXTRAS_REPO_BRANCH=${AOMP_EXTRAS_REPO_BRANCH:-0.7-6}
 AOMP_APPS_REPO_NAME=${AOMP_APPS_REPO_NAME:-openmpapps}
 AOMP_APPS_REPO_BRANCH=${AOMP_APPS_REPO_BRANCH:-AOMP-0.5}
 AOMP_COMGR_REPO_NAME=${AOMP_COMGR_REPO_NAME:-rocm-compilersupport}
-AOMP_COMGR_REPO_BRANCH=${AOMP_COMGR_REPO_BRANCH:-roc-2.9.x}
+AOMP_COMGR_REPO_BRANCH=${AOMP_COMGR_REPO_BRANCH:-roc-3.0.x}
 AOMP_F18_REPO_NAME=${AOMP_F18_REPO_NAME:-f18}
 AOMP_F18_REPO_BRANCH=${AOMP_F18_REPO_BRANCH:-master}
 AOMP_FLANG_REPO_NAME=${AOMP_FLANG_REPO_NAME:-flang}
-AOMP_FLANG_REPO_BRANCH=${AOMP_FLANG_REPO_BRANCH:-AOMP-191025}
+AOMP_FLANG_REPO_BRANCH=${AOMP_FLANG_REPO_BRANCH:-AOMP-200107}
 GITSOLVV="https://github.com/SOLLVE"
 AOMP_SOLVV_REPO_NAME=${AOMP_SOLVV_REPO_NAME:-sollve_vv}
 AOMP_SOLVV_REPO_BRANCH=${AOMP_SOLVV_REPO_BRANCH:-master}
@@ -164,7 +177,6 @@ fi
 
 # Here is where we define different behaviors for STANDALONE build
 # and the new ROCm integrated build. The default is STANDALONE build.
-AOMP_STANDALONE_BUILD=${AOMP_STANDALONE_BUILD:-1}
 if [ $AOMP_STANDALONE_BUILD == 1 ] ; then
    # Standalone build gets ROCm components from the AOMP Installation.
    # As a result their is an order to component builds.
@@ -210,49 +222,87 @@ function checkrepo(){
 
 #  TO use this function set variables patchdir and patchfile
 function patchrepo(){
-if [ "$AOMP_APPLY_ROCM_PATCHES" == 1 ] ; then
+if [ "$AOMP_APPLY_ROCM_PATCHES" == 1 ] && [ -d "$patchdir" ] ; then
    cd $patchdir
-   echo "Testing patch $patchfile to $patchdir"
-   applypatch="yes"
-   patch -p1 -t -N --dry-run <$patchfile >/dev/null
-   if [ $? != 0 ] ; then
-      applypatch="no"
-      # Check to see if reverse patch applies cleanly
-      patch -p1 -R --dry-run -t <$patchfile >/dev/null
-      if [ $? == 0 ] ; then
-         echo "patch $patchfile was already applied to $patchdir"
-      else
-         echo
-         echo "ERROR: Patch $patchfile will not apply"
-         echo "       cleanly to directory $patchdir"
-         echo "       Check if it was already applied."
-         echo
-         exit 1
-      fi
+   if [[ "$1" =~ "postinstall" ]]; then
+     getpatchlist $1
+   else
+     getpatchlist
    fi
-   if [ "$applypatch" == "yes" ] ; then
-      echo "Applying patch $patchfile to $patchdir"
-      patch -p1 --no-backup-if-mismatch <$patchfile
-   fi
+
+   #loop through list of patches to apply
+   for patch in $patches; do
+     patchfile=$patchloc/$patch
+     echo "Testing patch $patchfile to $patchdir"
+
+     applypatch="yes"
+     patch -p1 -t -N --dry-run <$patchfile >/dev/null
+     if [ $? != 0 ] ; then
+        applypatch="no"
+        # Check to see if reverse patch applies cleanly
+        patch -p1 -R --dry-run -t <$patchfile >/dev/null
+        if [ $? == 0 ] ; then
+           echo "patch $patchfile was already applied to $patchdir"
+        else
+           echo
+           echo "ERROR: Patch $patchfile will not apply"
+           echo "       cleanly to directory $patchdir"
+           echo "       Check if it was already applied."
+           echo
+           exit 1
+        fi
+     fi
+     if [ "$applypatch" == "yes" ] ; then
+        echo "Applying patch $patchfile to $patchdir"
+        patch -p1 --no-backup-if-mismatch <$patchfile
+     fi
+   done
 fi
+
 }
 
 function removepatch(){
-if [ "$AOMP_APPLY_ROCM_PATCHES" == 1 ] && [ "$AOMP_STANDALONE_BUILD" != 1 ] ; then
+if [ "$AOMP_APPLY_ROCM_PATCHES" == 1 ] ; then
+   echo "Patchdir $patchdir"
    cd $patchdir
-   echo "Testing reverse patch $patchfile to $patchdir"
-   reversepatch="yes"
-   # Check to see if reverse patch applies cleanly
-   patch -p1 -R --dry-run -t <$patchfile >/dev/null
-   if [ $? != 0 ] ; then
-      echo "patch $patchfile was NOT applied $patchdir, no patch to reverse"
-      reversepatch="no"
-   fi
-   if [ "$reversepatch" == "yes" ] ; then
-      echo "Reversing patch $patchfile to $patchdir"
-      patch -p1 -R -t --no-backup-if-mismatch <$patchfile
-   fi
+   getpatchlist
+   echo "PATCHES TO REMOVE: $patches"
+   for patch in $patches; do
+     patchfile=$patchloc/$patch
+     echo "Testing reverse patch $patchfile to $patchdir"
+     reversepatch="yes"
+     # Check to see if reverse patch applies cleanly
+     patch -p1 -R --dry-run -f <$patchfile  >/dev/null
+     if [ $? != 0 ] ; then
+        echo "patch $patchfile was NOT applied $patchdir, no patch to reverse"
+        reversepatch="no"
+     fi
+     if [ "$reversepatch" == "yes" ] ; then
+        echo "Reversing patch $patchfile to $patchdir"
+        patch -p1 -R -f --no-backup-if-mismatch <$patchfile
+     fi
+   done
 fi
+}
+
+function getpatchlist(){
+   currdir=$(pwd)
+   basedir=$(basename $currdir)
+   if [[ "$1" =~ "postinstall" ]]; then
+     reporegex="(^$1:\s)"
+   else
+     reporegex="(^$basedir:\s)"
+   fi
+   controlfile=$patchloc/patch-control-file.txt
+   #read patch control file and look for correct patches
+   while read -r line; do
+   if [[ "$line" =~ $reporegex ]]; then
+     #remove basename from list of patches
+     patches=${line/"${BASH_REMATCH[1]}"}
+     echo "patches: $patches"
+     break
+   fi
+   done < "$controlfile"
 }
 
 function help_build_aomp(){

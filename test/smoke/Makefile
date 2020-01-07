@@ -9,6 +9,7 @@ TESTS_DIR = \
     class \
     collapse \
     data_enter_issue01 \
+    data_issue_59 \
     devices \
     firstprivate \
     firstprivate2 \
@@ -26,25 +27,33 @@ TESTS_DIR = \
     liba_bundled_cmdline \
     math_modff \
     math_sqrt_float \
+    MaxNumThrds \
     nativetests \
     nested_loop \
+    nested_par3 \
+    nest_call_par2 \
     omp_num_teams_SPMD \
     omp_num_teams_generic \
+    OmpHipMallocManaged \
     pfspecifier \
     pfspecifier_str \
+    red_bug_51 \
     reduce \
     reduction \
     reduction_issue_16 \
     reduction_team \
     reduction_teams \
     reduction_teams_distribute_parallel \
+    reduc_map_prob \
     schedule \
     simd \
     snap_red \
     stream \
     target-in-other-source \
     target_teams_reduction \
+    tasks \
     teams \
+    teams512-info \
     test \
     thread_limit\
     threads \

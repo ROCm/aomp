@@ -2,6 +2,11 @@
 TEST_NAME=vector_copy
 CU_FILE=vector_copy
 
+UNAMEP = $(shell uname -p)
+AOMP_CPUTARGET = $(UNAMEP)-pc-linux-gnu
+ifeq ($(UNAMEP),ppc64le)
+  AOMP_CPUTARGET = ppc64le-linux-gnu
+endif
 ifeq ($(AOMP),)
   AOMP = /usr/lib/aomp
 else
@@ -9,7 +14,6 @@ else
 endif
 # find the current gpu, default to vega10 if unknown
 AOMP_GPU       ?= $(shell $(AOMP)/bin/mygpu -d gfx900)
-AOMP_CPUTARGET ?= x86_64-pc-linux-gnu
 
 ifeq (sm_,$(findstring sm_,$(AOMP_GPU)))
   AOMP_GPUTARGET = nvptx64-nvidia-cuda
@@ -41,7 +45,6 @@ endif
 
 ifeq (sm_,$(findstring sm_,$(AOMP_GPU)))
   CUDA   ?= /usr/local/cuda
-  UNAMEP = $(shell uname -p)
   LFLAGS += -L$(CUDA)/targets/$(UNAMEP)-linux/lib -lcudart
 endif
 

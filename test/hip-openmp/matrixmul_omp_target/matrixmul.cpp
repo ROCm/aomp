@@ -41,7 +41,11 @@ void targetMatrixMul(int *pA, int *pB, int *pC, int ARows,
    for(i=0;i<ARows;i++) {
       for(j=0;j<BCols;j++) {
          for(k=0;k<ACols;k++) {
-             pC[i*BCols +j] += pA[i * ACols + k] * pB[k * BCols + j] * (int) omp_is_initial_device();
+             // Multiplying by omp_is_initial_device() causes result to be
+             // zero if run on target. omp_is_initial_device() returnis
+             // 1 on host, zero on target. Removing for eventual target runs.
+             //pC[i*BCols +j] += pA[i * ACols + k] * pB[k * BCols + j] * (int) omp_is_initial_device();
+             pC[i*BCols +j] += pA[i * ACols + k] * pB[k * BCols + j];
          }
       }
    }

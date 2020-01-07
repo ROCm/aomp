@@ -71,10 +71,8 @@ if [ "$1" == "install" ] ; then
    $SUDO rm $INSTALL_ROCM/testfile
 fi
 
-patchfile=$thisdir/patches/rocr-runtime.patch
+patchloc=$thisdir/patches
 patchdir=$AOMP_REPOS/$AOMP_ROCR_REPO_NAME
-patchrepo
-patchfile=$thisdir/patches/rocr-runtime-pr72.patch
 patchrepo
 
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then 
@@ -86,7 +84,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    BUILDTYPE="Release"
    echo rm -rf $BUILD_AOMP/build/rocr
    rm -rf $BUILD_AOMP/build/rocr
-   MYCMAKEOPTS="-DCMAKE_INSTALL_PREFIX=$INSTALL_ROCM -DCMAKE_BUILD_TYPE=$BUILDTYPE -DHSAKMT_INC_PATH=$ROCT_DIR/include -DHSAKMT_LIB_PATH=$ROCT_DIR/lib -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON -DCMAKE_INSTALL_RPATH=$AOMP_INSTALL_DIR/lib"
+   MYCMAKEOPTS="-DCMAKE_INSTALL_PREFIX=$INSTALL_ROCM -DCMAKE_BUILD_TYPE=$BUILDTYPE -DHSAKMT_INC_PATH=$ROCT_DIR/include -DHSAKMT_LIB_PATH=$ROCT_DIR/lib $AOMP_ORIGIN_RPATH"
    mkdir -p $BUILD_AOMP/build/rocr
    cd $BUILD_AOMP/build/rocr
    echo " -----Running rocr cmake ---- " 
@@ -124,4 +122,7 @@ if [ "$1" == "install" ] ; then
          echo "ERROR make install failed "
          exit 1
       fi
+      patchloc=$thisdir/patches
+      patchdir=$AOMP_REPOS/$AOMP_ROCR_REPO_NAME
+      removepatch
 fi

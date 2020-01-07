@@ -8,6 +8,9 @@ License: NCSA
 Group: System/Base
 Vendor: AMD
 
+%define __os_install_post %{nil}
+%define __requires_exclude ^libcuda\\.so\\..*
+
 %description
  The AMD OpenMP Compiler (AOMP) is an experimental LLVM compiler
  suite for offloading to either Radeon GPUs or Nvidia GPUs.

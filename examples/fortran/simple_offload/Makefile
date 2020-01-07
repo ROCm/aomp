@@ -58,9 +58,15 @@ ifeq ($(TARGETS),)
 TARGETS =-march=$(AOMP_GPU)
 endif
 
+ifeq (sm_,$(findstring sm_,$(AOMP_GPU)))
+  AOMP_GPUTARGET = nvptx64-nvidia-cuda
+else
+  AOMP_GPUTARGET = amdgcn-amd-amdhsa
+endif
+
 FORT   =$(AOMP)/bin/flang
 LFLAGS = 
-FFLAGS = -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa
+FFLAGS = -fopenmp -fopenmp-targets=$(AOMP_GPUTARGET) -Xopenmp-target=$(AOMP_GPUTARGET)
 
 # ----- Demo compile and link in one step, no object code saved
 $(TESTNAME): $(TESTNAME).$(FILETYPE)

@@ -12,6 +12,12 @@
 TESTNAME = vmulsum
 TESTSRC  = main.c vsum.c vmul.c
 
+UNAMEP = $(shell uname -p)
+AOMP_CPUTARGET = $(UNAMEP)-pc-linux-gnu
+ifeq ($(UNAMEP),ppc64le)
+  AOMP_CPUTARGET = ppc64le-linux-gnu
+endif
+
 # --- Standard Makefile check for AOMP installation ---
 ifeq ("$(wildcard $(AOMP))","")
   ifneq ($(AOMP),)
@@ -31,7 +37,6 @@ endif
 
 INSTALLED_GPU  = $(shell $(AOMP)/bin/mygpu -d gfx900)# Default AOMP_GPU is gfx900 which is vega
 AOMP_GPU       ?= $(INSTALLED_GPU)
-AOMP_CPUTARGET ?= x86_64-pc-linux-gnu
 CC              = $(AOMP)/bin/clang
 
 ifeq (sm_,$(findstring sm_,$(AOMP_GPU)))
@@ -61,7 +66,6 @@ endif
 
 ifeq (sm_,$(findstring sm_,$(AOMP_GPU)))
   CUDA   ?= /usr/local/cuda
-  UNAMEP = $(shell uname -p)
   LFLAGS += -L$(CUDA)/targets/$(UNAMEP)-linux/lib -lcudart
 endif
 

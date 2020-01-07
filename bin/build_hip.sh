@@ -110,11 +110,11 @@ if [ "$1" == "install" ] ; then
 fi
 
 
-if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
-
-  patchfile=$thisdir/patches/PR1499.patch
+  patchloc=$thisdir/patches
   patchdir=$HIP_REPO_DIR
   patchrepo
+
+if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 
   if [ -d "$BUILD_DIR/build/hip" ] ; then
      echo
@@ -124,10 +124,10 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
   fi
  
   if [ $AOMP_STANDALONE_BUILD == 1 ] ; then 
-     this_rpath="$INSTALL_HIP/lib:$INSTALL_HIP/hcc/lib"
+     this_rpath=$AOMP_ORIGIN_RPATH
   else
      # in jenkins build for ROCm integrated build, we must pickup hcc/lib and rocm/lib
-     this_rpath="$INSTALL_HIP/lib:$ROCM_DIR/hcc/lib:$ROCM_DIR/lib"
+     this_rpath="\$ORIGIN:$INSTALL_HIP/lib:$ROCM_DIR/hcc/lib:$ROCM_DIR/lib"
   fi
 
   MYCMAKEOPTS="-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON -DCMAKE_INSTALL_RPATH=$this_rpath -DCMAKE_BUILD_TYPE=$BUILDTYPE -DCMAKE_INSTALL_PREFIX=$INSTALL_HIP -DHIP_PLATFORM=hcc -DHIP_COMPILER=clang -DHSA_PATH=$ROCM_DIR/hsa -DHCC_HOME=$ROCM_DIR/hcc"
@@ -177,7 +177,7 @@ if [ "$1" == "install" ] ; then
       exit 1
    fi
    patchdir=$HIP_REPO_DIR
-   patchfile=$thisdir/patches/PR1499.patch
+   patchloc=$thisdir/patches
    removepatch
    # The hip perl scripts have /opt/rocm hardcoded, so fix them after then are installed
    # but only if not installing to default location.
@@ -185,6 +185,8 @@ if [ "$1" == "install" ] ; then
       SED_INSTALL_DIR=`echo $INSTALL_HIP | sed -e 's/\//\\\\\//g' `
       $SUDO sed -i -e "s/\/opt\/rocm\/llvm/$SED_INSTALL_DIR/" $INSTALL_HIP/bin/hipcc
       $SUDO sed -i -e "s/\/opt\/rocm/$SED_INSTALL_DIR/" $INSTALL_HIP/bin/hipcc
+      $SUDO sed -i -e "s/\$HIP_CLANG_PATH=\$ENV{'HIP_CLANG_PATH'}/\$HIP_CLANG_PATH=\"$SED_INSTALL_DIR\/bin\"/" $INSTALL_HIP/bin/hipcc
+      $SUDO sed -i -e "s/ -D_OPENMP //" $INSTALL_HIP/bin/hipcc
       $SUDO sed -i -e "s/\/opt\/rocm\/llvm/$SED_INSTALL_DIR/" $INSTALL_HIP/bin/hipconfig
       $SUDO sed -i -e "s/\/opt\/rocm/$SED_INSTALL_DIR/" $INSTALL_HIP/bin/hipconfig
    fi
@@ -192,9 +194,8 @@ if [ "$1" == "install" ] ; then
    # FIXME: Remove when this patch is added to ROCm HIP
    save_patch_state=$AOMP_APPLY_ROCM_PATCHES
    AOMP_APPLY_ROCM_PATCHES=1
-   patchfile=$thisdir/patches/hip.patch
    patchdir=$INSTALL_HIP
-   patchrepo
+   patchrepo hip-postinstall
    AOMP_APPLY_ROCM_PATCHES=$save_patch_state
    export AOMP_APPLY_ROCM_PATCHES
 fi

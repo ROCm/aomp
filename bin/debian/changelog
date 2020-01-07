@@ -1,4 +1,4 @@
-aomp (0.7-5) UNRELEASED; urgency=medium
+aomp (0.7-6) UNRELEASED; urgency=medium
 
   * Initial release of aomp is 0.3-2
   *   Please see example in /usr/lib/aomp/examples/vmuldemo 
@@ -295,5 +295,9 @@ aomp (0.7-5) UNRELEASED; urgency=medium
   *      were required.  See the commits in AOMP-191023.
   *   Added sollve_vv to the aomp-test repositories and a script called run_sollve.sh that patches
   *      the Makefile to skip fortran tests and patches bad tests that have map clauses for reduction variables.
+  * 
+  * 0.7-6
+  *   Support for ppc64le
+  *   compiler-rt runtime now included in build
 
- -- Greg Rodgers <Gregory.Rodgers@amd.com>  Wed, 23 Oct 2019 09:07:31 -0500
+ -- Greg Rodgers <Gregory.Rodgers@amd.com>  Tue, 10 Dec 2019 15:11:09 -0600

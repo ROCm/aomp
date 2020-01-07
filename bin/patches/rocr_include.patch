@@ -1,0 +1,30 @@
+diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
+index f292182..0d23956 100644
+--- a/src/CMakeLists.txt
++++ b/src/CMakeLists.txt
+@@ -89,6 +89,13 @@ set (SO_PATCH 9)
+ set ( SO_VERSION_STRING "${SO_MAJOR}.${SO_MINOR}.${SO_PATCH}" )
+ set ( PACKAGE_VERSION_STRING "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}.${VERSION_COMMIT_COUNT}-${VERSION_JOB}-${VERSION_HASH}" )
+ 
++
++## Set include directories for ROCr runtime
++include_directories ( ${CMAKE_CURRENT_SOURCE_DIR} )
++include_directories ( ${CMAKE_CURRENT_SOURCE_DIR}/inc )
++include_directories ( ${CMAKE_CURRENT_SOURCE_DIR}/core/inc )
++include_directories ( ${CMAKE_CURRENT_SOURCE_DIR}/libamdhsacode )
++
+ ## Find the hsakmt library and include files, use directory hint from cache
+ ## Search relative to build directory, relative to source directory, and finally the rocm install default (/opt/rocm)
+ get_include_path( HSAKMT_INC_PATH "libhsakmt include path" NAMES "hsakmt.h" "libhsakmt/hsakmt.h" HINTS "${CMAKE_BINARY_DIR}/../../include" "${CMAKE_CURRENT_SOURCE_DIR}/../../../../libhsakmt/include" PATHS "/opt/rocm/include")
+@@ -96,11 +103,6 @@ get_library_path( HSAKMT_LIB_PATH "libhsakmt library path" NAMES "libhsakmt.so"
+ include_directories ( ${HSAKMT_INC_PATH} )
+ link_directories ( ${HSAKMT_LIB_PATH} )
+ 
+-## Set include directories for ROCr runtime
+-include_directories ( ${CMAKE_CURRENT_SOURCE_DIR} )
+-include_directories ( ${CMAKE_CURRENT_SOURCE_DIR}/inc )
+-include_directories ( ${CMAKE_CURRENT_SOURCE_DIR}/core/inc )
+-include_directories ( ${CMAKE_CURRENT_SOURCE_DIR}/libamdhsacode )
+ 
+ ## ROCr build internal versioning
+ add_definitions ( -DROCR_BUILD_ID=${PACKAGE_VERSION_STRING} )

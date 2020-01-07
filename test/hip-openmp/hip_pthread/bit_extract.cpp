@@ -26,7 +26,6 @@ __global__ void bit_extract_kernel(uint32_t* C_d, const uint32_t* A_d, size_t N)
     }
 }
 
-
 void* wrapper(void * start) {
     uint32_t *A_d, *C_d;
     uint32_t *A_h, *C_h;
@@ -34,15 +33,10 @@ void* wrapper(void * start) {
     size_t Nbytes = N * sizeof(uint32_t);
 
     int mytid = (long)start;
+    fprintf(stderr, "info: %d synchronize\n", mytid);
+    CHECK(hipDeviceSynchronize());
 
-    int deviceId;
-    CHECK(hipGetDevice(&deviceId));
-    hipDeviceProp_t props;
-    CHECK(hipGetDeviceProperties(&props, deviceId));
-    printf("info: running on device #%d %s\n", deviceId, props.name);
-
-
-    printf("info: allocate host mem (%6.2f MB)\n", 2 * Nbytes / 1024.0 / 1024.0);
+    fprintf(stderr, "info: %d  allocate host mem (%6.2f MB)\n", mytid, 2 * Nbytes / 1024.0 / 1024.0);
     A_h = (uint32_t*)malloc(Nbytes);
     CHECK(A_h == 0 ? hipErrorMemoryAllocation : hipSuccess);
     C_h = (uint32_t*)malloc(Nbytes);
@@ -52,22 +46,24 @@ void* wrapper(void * start) {
         A_h[i] = i;
     }
 
-    printf("info: allocate device mem (%6.2f MB)\n", 2 * Nbytes / 1024.0 / 1024.0);
+    fprintf(stderr, "info: %d  allocate device mem (%6.2f MB)\n", mytid, 2 * Nbytes / 1024.0 / 1024.0);
     CHECK(hipMalloc(&A_d, Nbytes));
     CHECK(hipMalloc(&C_d, Nbytes));
 
-    printf("info: copy Host2Device\n");
+    fprintf(stderr, "info: %d  allocate A:%lx C:%lx\n", mytid, (long)A_d, (long)C_d);
+
+    fprintf(stderr, "info: %d  copy Host2Device\n", mytid);
     CHECK(hipMemcpy(A_d, A_h, Nbytes, hipMemcpyHostToDevice));
 
-    printf("info: launch 'bit_extract_kernel' \n");
+    fprintf(stderr, "info: %d  launch 'bit_extract_kernel' \n", mytid);
     const unsigned blocks = 512;
     const unsigned threadsPerBlock = 256;
     hipLaunchKernelGGL(bit_extract_kernel, dim3(blocks), dim3(threadsPerBlock), 0, 0, C_d, A_d, N);
 
-    printf("info: copy Device2Host\n");
+    fprintf(stderr, "info: %d  copy Device2Host %lx\n", mytid, (long)C_d);
     CHECK(hipMemcpy(C_h, C_d, Nbytes, hipMemcpyDeviceToHost));
 
-    printf("info: check result\n");
+    fprintf(stderr, "info: %d  check result\n", mytid);
     for (size_t i = 0; i < N; i++) {
         unsigned Agold = ((A_h[i] & 0xf00) >> 8);
         if (C_h[i] != Agold) {
@@ -76,16 +72,27 @@ void* wrapper(void * start) {
             CHECK(hipErrorUnknown);
         }
     }
-    printf("PASSED %d!\n",mytid);
+    fprintf(stderr, "PASSED %d!\n", mytid);
 // See: http://ontrack-internal.amd.com/browse/SWDEV-210802
 #ifdef HIP_FREE_THREADSAFE
-    hipFree(A_d);
-    hipFree(C_d);
+    // mutexing the frees did not help. Conclusion: Not a thread safety issue on hipFree.
+    fprintf(stderr, "info: %d  free A:%lx C:%lx\n", mytid, (long)A_d, (long)C_d);
+    CHECK(hipFree(A_d));
+    CHECK(hipFree(C_d));
 #endif
+    free(A_h);
+    free(C_h);
     return NULL;
 }
 
 int main(int argc, char* argv[]) {
+  CHECK(hipInit( 0 ));
+  int deviceId;
+  CHECK(hipGetDevice(&deviceId));
+  hipDeviceProp_t props;
+  CHECK(hipGetDeviceProperties(&props, deviceId));
+  fprintf(stderr, "running on device #%d %s\n", deviceId, props.name);
+
   int nThreads = 100;
   if (argc > 1) nThreads = atoi(argv[1]);
   fprintf(stderr, "using %d threads\n",nThreads);

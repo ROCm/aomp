@@ -32,6 +32,11 @@
 TESTNAME =matrixmul
 FILETYPE =cpp
 
+UNAMEP = $(shell uname -p)
+AOMP_CPUTARGET = $(UNAMEP)-pc-linux-gnu
+ifeq ($(UNAMEP),ppc64le)
+  AOMP_CPUTARGET = ppc64le-linux-gnu
+endif
 ifeq ($(AOMP),)
 # --- Standard Makefile check for AOMP installation ---
 ifeq ("$(wildcard $(AOMP))","")
@@ -62,7 +67,7 @@ CC = $(AOMP)/bin/clang++
 # Add cudart only if we have an Nvidia sm_ target
 # We have not tested CUDA+OpenMP target offload
 ifeq (sm_,$(findstring sm_,$(AOMP_GPU)))
-  LFLAGS = -L$(CUDA)/targets/x86_64-linux/lib -lcudart -Wl,-rpath,$(CUDA)/targets/x86_64-linux/lib
+  LFLAGS = -L$(CUDA)/targets/$(UNAMEP)-linux/lib -lcudart -Wl,-rpath,$(CUDA)/targets/$(UNAMEP)-linux/lib
   TRIPLE = nvptx64-nvidia-cuda
   PLATFORM = -D__HIP_PLATFORM_NVCC__=1
 else
@@ -71,11 +76,11 @@ else
 endif
 
 #  These HIPFLAGS provide HIP+OpenMP for CPU only. No target offload
-HIPFLAGS = -x hip $(PLATFORM) -O2 --offload-arch=$(AOMP_GPU) -target x86_64-pc-linux-gnu -fopenmp 
+HIPFLAGS = -x hip $(PLATFORM) -O2 --offload-arch=$(AOMP_GPU) -target $(AOMP_CPUTARGET) -fopenmp 
 #  These OMP_TARGET_FLAGS added to HIPFLAGS provide HIP+OpenMP with GPU target offload
 OMP_TARGET_FLAGS = -fopenmp-targets=$(TRIPLE) -Xopenmp-target=$(TRIPLE) -march=$(AOMP_GPU)
 
-CFLAGS = $(HIPFLAGS) $(OMP_TARGET_FLAGS)
+CFLAGS = $(HIPFLAGS) $(OMP_TARGET_FLAGS) -U_OPENMP
 
 # ----- Demo compile and link in one step, no object code saved
 $(TESTNAME): $(TESTNAME).$(FILETYPE)

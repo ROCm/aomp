@@ -25,7 +25,8 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
-#include <hip/hip_hcc.h>
+#include <hip/hcc_detail/functional_grid_launch.hpp>
+#include <hip/hip_ext.h>
 
 //#define GLOBAL_SIZE 1024*1024
 #define GLOBAL_SIZE 1024*1024

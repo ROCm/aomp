@@ -65,6 +65,10 @@ if [ "$1" == "install" ] ; then
    $SUDO rm $INSTALL_ROCT/testfile
 fi
 
+patchloc=$thisdir/patches
+patchdir=$AOMP_REPOS/$AOMP_ROCT_REPO_NAME
+patchrepo
+
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then 
 
    echo " " 
@@ -74,7 +78,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    BUILDTYPE="Release"
    echo $SUDO rm -rf $BUILD_AOMP/build/roct
    $SUDO rm -rf $BUILD_AOMP/build/roct
-   MYCMAKEOPTS="-DCMAKE_INSTALL_PREFIX=$INSTALL_ROCT -DCMAKE_BUILD_TYPE=$BUILDTYPE -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON -DCMAKE_INSTALL_RPATH=$AOMP_INSTALL_DIR/lib -DCMAKE_INSTALL_LIBDIR=$AOMP_INSTALL_DIR/lib"
+   MYCMAKEOPTS="-DCMAKE_INSTALL_PREFIX=$INSTALL_ROCT -DCMAKE_BUILD_TYPE=$BUILDTYPE $AOMP_ORIGIN_RPATH -DCMAKE_INSTALL_LIBDIR=$AOMP_INSTALL_DIR/lib"
    mkdir -p $BUILD_AOMP/build/roct
    cd $BUILD_AOMP/build/roct
    echo " -----Running roct cmake ---- " 
@@ -111,4 +115,7 @@ if [ "$1" == "install" ] ; then
          echo "ERROR make install failed "
          exit 1
       fi
+      patchloc=$thisdir/patches
+      patchdir=$AOMP_REPOS/$AOMP_ROCT_REPO_NAME
+      removepatch
 fi
