@@ -223,6 +223,7 @@ function checkrepo(){
 #  TO use this function set variables patchdir and patchfile
 function patchrepo(){
 if [ "$AOMP_APPLY_ROCM_PATCHES" == 1 ] && [ -d "$patchdir" ] ; then
+   patches=""
    cd $patchdir
    if [[ "$1" =~ "postinstall" ]]; then
      getpatchlist $1
@@ -231,6 +232,7 @@ if [ "$AOMP_APPLY_ROCM_PATCHES" == 1 ] && [ -d "$patchdir" ] ; then
    fi
 
    #loop through list of patches to apply
+   if [ "$patches" != "" ] ; then
    for patch in $patches; do
      patchfile=$patchloc/$patch
      echo "Testing patch $patchfile to $patchdir"
@@ -257,16 +259,19 @@ if [ "$AOMP_APPLY_ROCM_PATCHES" == 1 ] && [ -d "$patchdir" ] ; then
         patch -p1 --no-backup-if-mismatch <$patchfile
      fi
    done
+   fi
 fi
 
 }
 
 function removepatch(){
-if [ "$AOMP_APPLY_ROCM_PATCHES" == 1 ] ; then
+if [ "$AOMP_APPLY_ROCM_PATCHES" == 1 ] && [ -d "$patchdir" ] ; then
    echo "Patchdir $patchdir"
+   patches=""
    cd $patchdir
    getpatchlist
    echo "PATCHES TO REMOVE: $patches"
+   if [ "$patches" != "" ] ; then
    for patch in $patches; do
      patchfile=$patchloc/$patch
      echo "Testing reverse patch $patchfile to $patchdir"
@@ -282,6 +287,7 @@ if [ "$AOMP_APPLY_ROCM_PATCHES" == 1 ] ; then
         patch -p1 -R -f --no-backup-if-mismatch <$patchfile
      fi
    done
+   fi
 fi
 }
 
