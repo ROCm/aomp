@@ -132,11 +132,6 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 
 fi
 
-#for rocm 3.1 extras needs hip repo to stay patched
-patchloc=$thisdir/patches
-patchdir=$AOMP_REPOS/$AOMP_HIP_REPO_NAME
-patchrepo
-
 cd $BUILD_DIR/build/extras
 echo
 echo " -----Running make for extras ---- "
@@ -167,7 +162,4 @@ if [ "$1" == "install" ] ; then
          echo "ERROR make install failed "
          exit 1
       fi
-      patchdir=$AOMP_REPOS/$AOMP_HIP_REPO_NAME
-      patchloc=$thisdir/patches
-      removepatch
 fi
