@@ -1,0 +1,23 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 1bf4e8c..77de2c0 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -46,6 +46,10 @@ endif() # if (ROCM_CCACHE_BUILD)
+ ## Set default module path if not already set
+ if ( NOT DEFINED CMAKE_MODULE_PATH )
+     set ( CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules/" )
++else()
++    set(saved_cmake_module_path ${CMAKE_MODULE_PATH})
++    message("-- Temporarily settng CMAKE_MODULE_PATH to ${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules/" )
++    set ( CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules/" )
+ endif ()
+ 
+ ## Include common cmake modules
+@@ -197,3 +201,7 @@ set ( CPACK_RPM_POST_UNINSTALL_SCRIPT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/RPM/rpm_
+ configure_file ( libhsakmt.pc.in ${DEV_BUILD_DIR}/libhsakmt.pc @ONLY )
+ 
+ include ( CPack )
++if ( DEFINED saved_cmake_module_path )
++    message("-- Returning CMAKE_MODULE_PATH to ${saved_cmake_module_path}")
++    set(CMAKE_MODULE_PATH ${saved_cmake_module_path})
++endif()
