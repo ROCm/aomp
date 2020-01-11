@@ -10,6 +10,9 @@ AOMP_VERSION_MOD=${AOMP_VERSION_MOD:-"0"}
 AOMP_VERSION_STRING=${AOMP_VERSION_STRING:-"$AOMP_VERSION-$AOMP_VERSION_MOD"}
 export AOMP_VERSION_STRING AOMP_VERSION AOMP_VERSION_MOD ROCM_VERSION
 
+# The AOMP_COMPILER_NAME is used whenever version is queried
+AOMP_COMPILER_NAME=${AOMP_COMPILER_NAME:-AOMP}
+
 # set install directory and the link directory
 # AOMP will be a symbolic link AOMP_INSTALL_DIR is the versioned dir name
 AOMP=${AOMP:-$HOME/rocm/aomp}
@@ -112,12 +115,20 @@ GITLLNL="https://github.com/llnl"
 AOMP_RAJA_REPO_NAME=${AOMP_RAJA_REPO_NAME:-raja}
 AOMP_RAJA_REPO_BRANCH=${AOMP_RAJA_REPO_BRANCH:-master}
 
-# The  git repos and branches that the AOMP build scripts will use
+# FIXME: In the near future, we will remove the _BRANCH variables and use a
+#        manifest file to determine which branch to build each component.
+
+# External component names for LLVM_EXTERNAL_PROJECTS may have no special
+# characters in them.  Therefore, AOMP_xxx_REPO_NAME is different than
+# AOMP_xxx_COMPONENT NAME for some components. Recommend that component
+# names be short lowercase names.
+
 AOMP_REPO_NAME=${AOMP_REPO_NAME:-aomp}
 AOMP_REPO_BRANCH=${AOMP_REPO_BRANCH:-master}
 AOMP_PROJECT_REPO_NAME=${AOMP_PROJECT_REPO_NAME:-llvm-project}
 AOMP_PROJECT_REPO_BRANCH=${AOMP_PROJECT_REPO_BRANCH:-AOMP-200107}
 AOMP_LIBDEVICE_REPO_NAME=${AOMP_LIBDEVICE_REPO_NAME:-rocm-device-libs}
+AOMP_LIBDEVICE_COMPONENT_NAME=${AOMP_LIBDEVICE_COMPONENT_NAME:-rocdl}
 AOMP_LIBDEVICE_REPO_BRANCH=${AOMP_LIBDEVICE_REPO_BRANCH:-roc-ocl-3.0.x}
 AOMP_HCC_REPO_NAME=${AOMP_HCC_REPO_NAME:-hcc}
 AOMP_HCC_REPO_BRANCH=${AOMP_HCC_REPO_BRANCH:-roc-3.0.x}
@@ -127,8 +138,10 @@ AOMP_RINFO_REPO_NAME=${AOMP_RINFO_REPO_NAME:-rocminfo}
 AOMP_RINFO_REPO_BRANCH=${AOMP_RINFO_REPO_BRANCH:-master}
 AOMP_ROCT_REPO_NAME=${AOMP_ROCT_REPO_NAME:-roct-thunk-interface}
 AOMP_ROCT_REPO_BRANCH=${AOMP_ROCT_REPO_BRANCH:-roc-3.0.x}
+AOMP_ROCT_COMPONENT_NAME=${AOMP_ROCT_COMPONENT_NAME:-roct}
 AOMP_ROCR_REPO_NAME=${AOMP_ROCR_REPO_NAME:-rocr-runtime}
 AOMP_ROCR_REPO_BRANCH=${AOMP_ROCR_REPO_BRANCH:-roc-3.0.x}
+AOMP_ROCR_COMPONENT_NAME=${AOMP_ROCR_COMPONENT_NAME:-rocr}
 AOMP_ATMI_REPO_NAME=${AOMP_ATMI_REPO_NAME:-atmi}
 AOMP_ATMI_REPO_BRANCH=${AOMP_ATMI_REPO_BRANCH:-aomp-1.0-0}
 AOMP_EXTRAS_REPO_NAME=${AOMP_EXTRAS_REPO_NAME:-aomp-extras}
