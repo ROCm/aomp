@@ -142,10 +142,15 @@ repogitname=$AOMP_LIBDEVICE_REPO_NAME
 COBRANCH=$AOMP_LIBDEVICE_REPO_BRANCH
 clone_or_pull
 
+# Override this one to clone from my area
+JCGITROC="https://github.com/JonChesterfield"
+repo_web_location=$JCGITROC
 reponame=$AOMP_ROCT_REPO_NAME
 repogitname=$AOMP_ROCT_REPO_NAME
 COBRANCH=$AOMP_ROCT_REPO_BRANCH
 clone_or_pull
+# put it back for the others
+repo_web_location=$GITROC
 
 reponame=$AOMP_ROCR_REPO_NAME
 repogitname=$AOMP_ROCR_REPO_NAME
