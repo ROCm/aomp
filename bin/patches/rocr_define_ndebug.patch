@@ -1,0 +1,12 @@
+diff --git a/src/core/util/utils.h b/src/core/util/utils.h
+index f7f09e9..a68caa6 100755
+--- a/src/core/util/utils.h
++++ b/src/core/util/utils.h
+@@ -49,6 +49,7 @@
+ #include "stddef.h"
+ #include "stdlib.h"
+ #include <assert.h>
++#define NDEBUG
+ 
+ typedef unsigned int uint;
+ typedef uint64_t uint64;
