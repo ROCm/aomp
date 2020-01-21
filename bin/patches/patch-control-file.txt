@@ -6,3 +6,4 @@ hcc: hcc_ppc_fp16.patch
 hip:
 hip-postinstall: hip.patch 
 rocminfo: rocminfo_ppc_cmake.patch
+vdi: vdi_cmake.patch

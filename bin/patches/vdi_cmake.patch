@@ -1,0 +1,21 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index d6610c1..d3b6d0d 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -147,6 +147,7 @@ if (UNIX)
+ endif()
+ #comment out as it's not available in cmake 3.5
+ #if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
++if(NOT CMAKE_INSTALL_PREFIX)
+     if(CMAKE_BUILD_TYPE MATCHES Debug)
+         set(CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_SOURCE_DIR} CACHE PATH "Installation path for vdi" FORCE)
+     #elseif(CMAKE_BUILD_TYPE MATCHES Release)
+@@ -154,7 +155,7 @@ endif()
+         set(CMAKE_INSTALL_PREFIX ${VDI_DEFAULT_INSTALL_PREFIX} CACHE PATH "Installation path for vdi" FORCE)
+    #    message(FATAL_ERROR "Invalid CMAKE_BUILD_TYPE specified. Valid values are Debug and Release")
+    endif()
+-#endif()
++endif()
+ message("cmake install path  ${CMAKE_INSTALL_PREFIX}")
+ 
+ install( TARGETS amdvdi_static ARCHIVE DESTINATION lib LIBRARY DESTINATION lib COMPONENT applications)
