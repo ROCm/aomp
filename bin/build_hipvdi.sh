@@ -159,4 +159,7 @@ if [ "$1" == "install" ] ; then
       echo "ERROR make install failed "
       exit 1
    fi
+   patchloc=$thisdir/patches
+   patchdir=$AOMP_INSTALL_DIR
+   patchrepo hipvdi-postinstall
 fi
