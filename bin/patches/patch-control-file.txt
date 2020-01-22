@@ -7,4 +7,4 @@ hip:
 hip-postinstall: hip.patch 
 hipvdi-postinstall: hip.patch 
 rocminfo: rocminfo_ppc_cmake.patch
-vdi: vdi_cmake.patch
+vdi:
