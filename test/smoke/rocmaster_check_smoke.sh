@@ -5,6 +5,8 @@
 #
 #
 
+export AOMP=/opt/rocm/aomp
+
 cleanup(){
   if [ -e check-smoke.txt ]; then
     rm check-smoke.txt
