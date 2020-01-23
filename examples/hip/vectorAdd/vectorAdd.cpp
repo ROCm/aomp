@@ -27,10 +27,12 @@
 
 #define N 10
 
+__device__ int foo(int i) { return i + 1; }
+
 __global__ void addVector(int *vectorA, int *vectorB, int *vectorC) {
   int i = hipBlockIdx_x;
   if (i < N) {
-    vectorC[i] = vectorA[i] + vectorB[i];
+    vectorC[i] = vectorA[i] + vectorB[i] + foo(i);
   }
 }
 
