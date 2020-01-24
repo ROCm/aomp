@@ -1,44 +1,67 @@
 #!/bin/bash
 #
-#  aomp_common_vars: FIle sourced by all AOMP build scripts.
-#     This script is stored in aomp/ bin directory of aomp repo
+#  aomp_common_vars: This file is sourced by all AOMP build scripts.
 #
-# Set the AOMP VERSION STRING. 
-# After a release, this is changed to the next release under development
+#     This file is stored in aomp/bin directory of the aomp repo.
+#     You don't need to change this file unless you want to change
+#     default values for all AOMP developers. To customize your build,
+#     set environment variables defined in this file.
+#
+#     The bash syntax ENVNAME=${ENVNAME:-value} checks if ENVNAME is
+#     already set. If not, it assigns it the value following the :-
+
+# The AOMP_COMPILER_NAME is used whenever version is queried.
+# FIXME: More work is needed to propogate the use of AOMP_COMPILER_NAME.
+AOMP_COMPILER_NAME=${AOMP_COMPILER_NAME:-AOMP}
+
+# AOMP_BUILD_TRUNK=1 will build the master branch of llvm-project.
 AOMP_BUILD_TRUNK=${AOMP_BUILD_TRUNK:-0}
+
+# ROCM_VERSION may be set by Jenkins, if not guess a good number
+ROCM_VERSION=${ROCM_VERSION:-2.9.22}
+
+# Set the AOMP VERSION STRING and AOMP_PROJECT_REPO_BRANCH.
 if [ "$AOMP_BUILD_TRUNK" == 0 ] ; then
    AOMP_VERSION=${AOMP_VERSION:-"0.7"}
    AOMP_VERSION_MOD=${AOMP_VERSION_MOD:-"7"}
+   AOMP_PROJECT_REPO_BRANCH=${AOMP_PROJECT_REPO_BRANCH:-AOMP-200107}
+   AOMP_COMGR_REPO_BRANCH=${AOMP_COMGR_REPO_BRANCH:-roc-3.0.x}
 else
+#  These default values change if this is a trunk build.
    AOMP_VERSION=${AOMP_VERSION:-"11.0"}
    AOMP_VERSION_MOD=${AOMP_VERSION_MOD:-"T"}
+   AOMP_PROJECT_REPO_BRANCH=${AOMP_PROJECT_REPO_BRANCH:-master}
+   AOMP_COMGR_REPO_BRANCH=${AOMP_COMGR_REPO_BRANCH:-amd-stg-open}
 fi
 AOMP_VERSION_STRING=${AOMP_VERSION_STRING:-"$AOMP_VERSION-$AOMP_VERSION_MOD"}
 export AOMP_VERSION_STRING AOMP_VERSION AOMP_VERSION_MOD ROCM_VERSION
 
-# The AOMP_COMPILER_NAME is used whenever version is queried
-AOMP_COMPILER_NAME=${AOMP_COMPILER_NAME:-AOMP}
-
-# set install directory and the link directory
+# Set install directory and the link directory.
 # AOMP will be a symbolic link AOMP_INSTALL_DIR is the versioned dir name
 AOMP=${AOMP:-$HOME/rocm/aomp}
 AOMP_INSTALL_DIR=${AOMP}_${AOMP_VERSION_STRING}
 
-# Set the directory location where all local AOMP git repos are stored 
-# For exampe the aomp main repo is typically stored in $HOME/git/aomp/aomp
-# Clang repo is $HOME/aomp/clang
+# Set the directory location where all local AOMP git repos are stored.
+# For example, if AOMP_REPOS=$HOME/git/aomp, then the primary aomp repo
+# is stored in $HOME/git/aomp/aomp and the mono repo is stored in
+# $HOME/aomp/llvm-project.
 AOMP_REPOS=${AOMP_REPOS:-$HOME/git/aomp}
+
+# Because the source for all repos are tarred for release, we store
+# all the test repositories in a different directory.
 AOMP_REPOS_TEST=${AOMP_REPOS_TEST:-$HOME/git/aomp-test}
 
-# To build aomp from the release source taball, set these to 0
-# See build_from_release_tarball.sh
+# To build aomp from the release source taball, set these values to 0
 AOMP_CHECK_GIT_BRANCH=${AOMP_CHECK_GIT_BRANCH:-1}
 AOMP_APPLY_ROCM_PATCHES=${AOMP_APPLY_ROCM_PATCHES:-1}
 
+# When AOMP_USE_HIPVDI==1, a different set of components is used. This will
+# be the default in the future and builds with hcc will be deprecated.
 AOMP_USE_HIPVDI=${AOMP_USE_HIPVDI:-0}
 if [ "$AOMP_BUILD_TRUNK" != 0 ] ; then
   AOMP_USE_HIPVDI=1
 fi
+
 #Set common rpath for build scripts
 if [ $AOMP_USE_HIPVDI == 0 ] ; then
    AOMP_ORIGIN_RPATH="-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON -DCMAKE_INSTALL_RPATH=\$ORIGIN:\$ORIGIN/../hcc/lib:\$ORIGIN/../hsa/lib:$AOMP_INSTALL_DIR/lib:$AOMP_INSTALL_DIR/hcc/lib:$AOMP_INSTALL_DIR/hsa/lib"
@@ -57,6 +80,7 @@ if [ "$AOMP_PROC" == "unknown" ] ; then
    AOMP_PROC=`uname -a | awk '{print $(NF-1)}'`
 fi
 
+# Non standalone builds are done with ROCm builds.
 AOMP_STANDALONE_BUILD=${AOMP_STANDALONE_BUILD:-1}
 
 #  The logic for turning on CUDA build is here
@@ -95,7 +119,7 @@ else
 fi
 
 # Set list of default amdgcn subarchitectures to build
-#  Developers should override GFXLIST to shorten build time.
+# Developers may override GFXLIST to shorten build time.
 GFXLIST=${GFXLIST:-"gfx700 gfx701 gfx801 gfx803 gfx900 gfx902 gfx906 gfx908"}
 export GFXLIST
 
@@ -111,8 +135,6 @@ if [ ! -z `which "getconf"` ]; then
    fi
 fi
 
-#ROCM_VERSION may be set by Jenkins, if not guess a good number 
-ROCM_VERSION=${ROCM_VERSION:-2.9.22}
 
 # These are the web sites where the AOMP git repos are pulled from
 GITROC="https://github.com/radeonopencompute"
@@ -132,6 +154,12 @@ AOMP_RAJA_REPO_BRANCH=${AOMP_RAJA_REPO_BRANCH:-master}
 
 # FIXME: In the near future, we will remove the _BRANCH variables and use a
 #        manifest file to determine which branch to build each component.
+#
+# The difference between a _REPO_NAME and _REPO_GITNAME is that the
+# _REPO_NAME is the directory name following $AOMP_REPOS.  The GITNAME
+# Is the name of the git repository used in the clone_aomp script.
+# The _REPO_GITNAME variables will also be removed with the conversion to
+# the use of the repo tool.
 
 # External component names for LLVM_EXTERNAL_PROJECTS may have no special
 # characters in them.  Therefore, AOMP_xxx_REPO_NAME is different than
@@ -141,11 +169,6 @@ AOMP_RAJA_REPO_BRANCH=${AOMP_RAJA_REPO_BRANCH:-master}
 AOMP_REPO_NAME=${AOMP_REPO_NAME:-aomp}
 AOMP_REPO_BRANCH=${AOMP_REPO_BRANCH:-master}
 AOMP_PROJECT_REPO_NAME=${AOMP_PROJECT_REPO_NAME:-llvm-project}
-if [ "$AOMP_BUILD_TRUNK" == 0 ] ; then
-   AOMP_PROJECT_REPO_BRANCH=${AOMP_PROJECT_REPO_BRANCH:-AOMP-200107}
-else
-   AOMP_PROJECT_REPO_BRANCH=${AOMP_PROJECT_REPO_BRANCH:-master}
-fi
 AOMP_LIBDEVICE_REPO_NAME=${AOMP_LIBDEVICE_REPO_NAME:-rocm-device-libs}
 AOMP_LIBDEVICE_COMPONENT_NAME=${AOMP_LIBDEVICE_COMPONENT_NAME:-rocdl}
 AOMP_LIBDEVICE_REPO_BRANCH=${AOMP_LIBDEVICE_REPO_BRANCH:-roc-ocl-3.0.x}
@@ -176,11 +199,6 @@ AOMP_EXTRAS_REPO_BRANCH=${AOMP_EXTRAS_REPO_BRANCH:-0.7-7}
 AOMP_APPS_REPO_NAME=${AOMP_APPS_REPO_NAME:-openmpapps}
 AOMP_APPS_REPO_BRANCH=${AOMP_APPS_REPO_BRANCH:-AOMP-0.5}
 AOMP_COMGR_REPO_NAME=${AOMP_COMGR_REPO_NAME:-rocm-compilersupport}
-if [ "$AOMP_BUILD_TRUNK" == 0 ] ; then
-   AOMP_COMGR_REPO_BRANCH=${AOMP_COMGR_REPO_BRANCH:-roc-3.0.x}
-else
-   AOMP_COMGR_REPO_BRANCH=${AOMP_COMGR_REPO_BRANCH:-amd-stg-open}
-fi
 AOMP_F18_REPO_NAME=${AOMP_F18_REPO_NAME:-f18}
 AOMP_F18_REPO_BRANCH=${AOMP_F18_REPO_BRANCH:-master}
 AOMP_FLANG_REPO_NAME=${AOMP_FLANG_REPO_NAME:-flang}
