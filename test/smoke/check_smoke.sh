@@ -97,7 +97,11 @@ fi
 echo ""
 
 #Gather Test Data
-((total_tests=$(wc -l <  passing-tests.txt)))
+passing_tests=0
+if [ -e passing-tests.txt ]; then
+  ((passing_tests=$(wc -l <  passing-tests.txt)))
+  total_tests=$passing_tests
+fi
 if [ -e make-fail.txt ]; then
   ((total_tests+=$(wc -l <  make-fail.txt)))
 fi
@@ -109,7 +113,7 @@ fi
 echo -e "$BLU"-------------------- Results --------------------"$BLK"
 echo -e "$BLU"Number of tests: $total_tests"$BLK"
 echo ""
-echo -e "$GRN"Passing tests: `wc -l <  passing-tests.txt`/$total_tests"$BLK"
+echo -e "$GRN"Passing tests: $passing_tests/$total_tests"$BLK"
 echo ""
 
 #Print failed tests
