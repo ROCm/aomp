@@ -16,10 +16,10 @@ path=$(pwd)
 
 #Clean all testing directories
 make clean
-rm passing-tests.txt
-rm failing-tests.txt
-rm check-smoke.txt
-rm make-fail.txt
+rm -f passing-tests.txt
+rm -f failing-tests.txt
+rm -f check-smoke.txt
+rm -f make-fail.txt
 
 echo ""
 echo -e "$ORG"RUNNING ALL TESTS IN: $path"$BLK"
@@ -32,7 +32,15 @@ echo "**************************************************************************
 
 #Loop over all directories and make run / make check depending on directory name
 for directory in ./*/; do
-  (cd "$directory" && path=$(pwd) && base=$(basename $path)
+    (cd "$directory" && path=$(pwd) && base=$(basename $path)
+    if [ $base == 'hip_rocblas' ] ; then
+      ls /opt/rocm/rocblas > /dev/null 2>&1
+      if [ $? -ne 0 ]; then
+        echo -e "$RED"$base - needs rocblas installed at /opt/rocm/rocblas:"$BLK"
+        echo -e "$RED"$base - ROCBLAS NOT FOUND!!! SKIPPING TEST!"$BLK"
+        continue
+      fi
+    fi
     if [ $base == 'devices' ] || [ $base == 'pfspecifier' ] || [ $base == 'pfspecifier_str' ] || [ $base == 'stream' ] ; then
       make
       if [ $? -ne 0 ]; then
@@ -57,7 +65,7 @@ for directory in ./*/; do
       fi
     fi
     echo ""
-    )
+   )
 	
 done
 
@@ -68,7 +76,9 @@ for directory in ./*/; do
       echo ""
       echo -e "$ORG"$base - Run Log:"$BLK"
       echo "--------------------------"
-      cat run.log
+      if [ -e run.log ]; then
+        cat run.log
+      fi
       echo ""
       echo ""
     fi
@@ -78,8 +88,12 @@ done
 #Replace false positive return codes with 'Check the run.log' so that user knows to visually inspect those.
 sed -i '/pfspecifier/ {s/0/Check the run.log above/}; /devices/ {s/0/Check the run.log above/}; /stream/ {s/0/Check the run.log above/}' check-smoke.txt
 echo ""
-cat check-smoke.txt
-cat make-fail.txt
+if [ -e check-smoke.txt ]; then
+  cat check-smoke.txt
+fi
+if [ -e make-fail.txt ]; then
+  cat make-fail.txt
+fi
 echo ""
 
 #Gather Test Data
@@ -125,11 +139,7 @@ echo "stream"
 echo -e "$BLK"
 
 #Clean up, hide output
-rm check-smoke.txt
-rm passing-tests.txt
-if [ -e failing-tests.txt ]; then
-  rm failing-tests.txt
-fi
-if [ -e make-fail.txt ]; then
-  rm make-fail.txt
-fi
+rm -f check-smoke.txt
+rm -f passing-tests.txt
+rm -f failing-tests.txt
+rm -f make-fail.txt
