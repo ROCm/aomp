@@ -6,7 +6,7 @@
 # Set the AOMP VERSION STRING. 
 # After a release, this is changed to the next release under development
 AOMP_BUILD_TRUNK=${AOMP_BUILD_TRUNK:-0}
-if [ "$AOMP_BUILD_TRUNK" != 0 ] ; then
+if [ "$AOMP_BUILD_TRUNK" == 0 ] ; then
    AOMP_VERSION=${AOMP_VERSION:-"0.7"}
    AOMP_VERSION_MOD=${AOMP_VERSION_MOD:-"7"}
 else
