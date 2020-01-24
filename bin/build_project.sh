@@ -90,7 +90,7 @@ if [ "$1" == "install" ] ; then
 fi
 
 # Fix the banner to print the AOMP version string. 
-if [ $AOMP_STANDALONE_BUILD == 1 ] && [ "$AOMP_PROJECT_REPO_BRANCH" != "master" ] ; then
+if [ $AOMP_STANDALONE_BUILD == 1 ] && [ "$AOMP_BUILD_TRUNK" == 1 ] ; then
    cd $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME
    if [ "$AOMP_CHECK_GIT_BRANCH" == 1 ] ; then
       MONO_REPO_ID=`git log | grep -m1 commit | cut -d" " -f2`
@@ -111,6 +111,9 @@ if [ $AOMP_STANDALONE_BUILD == 1 ] && [ "$AOMP_PROJECT_REPO_BRANCH" != "master" 
       echo "ERROR sed command to fix CommandLine.cpp failed."
       exit 1
    fi
+   exclude_cmdline="--exclude CommandLine.cpp"
+else
+   exclude_cmdline=""
 fi
 
 # Skip synchronization from git repos if nocmake or install are specified
@@ -128,8 +131,8 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
       echo "WARNING!  BUILD_DIR($BUILD_DIR) != AOMP_REPOS($AOMP_REPOS)"
       echo "SO REPLICATING AOMP_REPOS/$AOMP_PROJECT_REPO_NAME  TO: $BUILD_DIR"
       echo
-      echo rsync -a --exclude ".git" --exclude "CommandLine.cpp" --delete $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME $BUILD_DIR 2>&1 
-      rsync -a --exclude ".git" --exclude "CommandLine.cpp" --delete $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME $BUILD_DIR 2>&1 
+      echo rsync -a --exclude ".git" $exclude_cmdline --delete $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME $BUILD_DIR 2>&1
+      rsync -a --exclude ".git" $exclude_cmdline --delete $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME $BUILD_DIR 2>&1
    fi
 
 else
@@ -140,7 +143,7 @@ else
    fi
 fi
 
-if [ $AOMP_STANDALONE_BUILD == 1 ] && [ "$AOMP_PROJECT_REPO_BRANCH" != "master" ] ; then
+if [ $AOMP_STANDALONE_BUILD == 1 ] && [ "$AOMP_BUILD_TRUNK" == 1 ] ; then
    cd $BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME
    if [ -f $BUILDCLFILE ] ; then
       # only copy if there has been a change to the source.

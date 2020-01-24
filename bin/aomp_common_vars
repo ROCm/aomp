@@ -5,8 +5,14 @@
 #
 # Set the AOMP VERSION STRING. 
 # After a release, this is changed to the next release under development
-AOMP_VERSION=${AOMP_VERSION:-"0.7"}
-AOMP_VERSION_MOD=${AOMP_VERSION_MOD:-"7"}
+AOMP_BUILD_TRUNK=${AOMP_BUILD_TRUNK:-0}
+if [ "$AOMP_BUILD_TRUNK" != 0 ] ; then
+   AOMP_VERSION=${AOMP_VERSION:-"0.7"}
+   AOMP_VERSION_MOD=${AOMP_VERSION_MOD:-"7"}
+else
+   AOMP_VERSION=${AOMP_VERSION:-"11.0"}
+   AOMP_VERSION_MOD=${AOMP_VERSION_MOD:-"T"}
+fi
 AOMP_VERSION_STRING=${AOMP_VERSION_STRING:-"$AOMP_VERSION-$AOMP_VERSION_MOD"}
 export AOMP_VERSION_STRING AOMP_VERSION AOMP_VERSION_MOD ROCM_VERSION
 
@@ -30,6 +36,9 @@ AOMP_CHECK_GIT_BRANCH=${AOMP_CHECK_GIT_BRANCH:-1}
 AOMP_APPLY_ROCM_PATCHES=${AOMP_APPLY_ROCM_PATCHES:-1}
 
 AOMP_USE_HIPVDI=${AOMP_USE_HIPVDI:-0}
+if [ "$AOMP_BUILD_TRUNK" != 0 ] ; then
+  AOMP_USE_HIPVDI=1
+fi
 #Set common rpath for build scripts
 if [ $AOMP_USE_HIPVDI == 0 ] ; then
    AOMP_ORIGIN_RPATH="-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON -DCMAKE_INSTALL_RPATH=\$ORIGIN:\$ORIGIN/../hcc/lib:\$ORIGIN/../hsa/lib:$AOMP_INSTALL_DIR/lib:$AOMP_INSTALL_DIR/hcc/lib:$AOMP_INSTALL_DIR/hsa/lib"
@@ -132,7 +141,11 @@ AOMP_RAJA_REPO_BRANCH=${AOMP_RAJA_REPO_BRANCH:-master}
 AOMP_REPO_NAME=${AOMP_REPO_NAME:-aomp}
 AOMP_REPO_BRANCH=${AOMP_REPO_BRANCH:-master}
 AOMP_PROJECT_REPO_NAME=${AOMP_PROJECT_REPO_NAME:-llvm-project}
-AOMP_PROJECT_REPO_BRANCH=${AOMP_PROJECT_REPO_BRANCH:-AOMP-200107}
+if [ "$AOMP_BUILD_TRUNK" == 0 ] ; then
+   AOMP_PROJECT_REPO_BRANCH=${AOMP_PROJECT_REPO_BRANCH:-AOMP-200107}
+else
+   AOMP_PROJECT_REPO_BRANCH=${AOMP_PROJECT_REPO_BRANCH:-master}
+fi
 AOMP_LIBDEVICE_REPO_NAME=${AOMP_LIBDEVICE_REPO_NAME:-rocm-device-libs}
 AOMP_LIBDEVICE_COMPONENT_NAME=${AOMP_LIBDEVICE_COMPONENT_NAME:-rocdl}
 AOMP_LIBDEVICE_REPO_BRANCH=${AOMP_LIBDEVICE_REPO_BRANCH:-roc-ocl-3.0.x}
@@ -163,7 +176,11 @@ AOMP_EXTRAS_REPO_BRANCH=${AOMP_EXTRAS_REPO_BRANCH:-0.7-7}
 AOMP_APPS_REPO_NAME=${AOMP_APPS_REPO_NAME:-openmpapps}
 AOMP_APPS_REPO_BRANCH=${AOMP_APPS_REPO_BRANCH:-AOMP-0.5}
 AOMP_COMGR_REPO_NAME=${AOMP_COMGR_REPO_NAME:-rocm-compilersupport}
-AOMP_COMGR_REPO_BRANCH=${AOMP_COMGR_REPO_BRANCH:-roc-3.0.x}
+if [ "$AOMP_BUILD_TRUNK" == 0 ] ; then
+   AOMP_COMGR_REPO_BRANCH=${AOMP_COMGR_REPO_BRANCH:-roc-3.0.x}
+else
+   AOMP_COMGR_REPO_BRANCH=${AOMP_COMGR_REPO_BRANCH:-amd-stg-open}
+fi
 AOMP_F18_REPO_NAME=${AOMP_F18_REPO_NAME:-f18}
 AOMP_F18_REPO_BRANCH=${AOMP_F18_REPO_BRANCH:-master}
 AOMP_FLANG_REPO_NAME=${AOMP_FLANG_REPO_NAME:-flang}
@@ -217,7 +234,7 @@ else
    AOMP_CHECK_GIT_BRANCH=0
    # Jenkins build will set the build directory BUILD_DIR to its own work area.
    # And since that is not $AOMP_REPOS/build COPYSOURCE will be turned on above.
-   # We don't want that.  So for now, turn it off for ROCm integrated builds.
+   # We dont want that.  So for now, turn it off for ROCm integrated builds.
    unset COPYSOURCE
 
    # For Integrated ROCm build we do not install to versioned dir and create 
@@ -326,7 +343,11 @@ function getpatchlist(){
    else
      reporegex="(^$basedir:\s)"
    fi
-   controlfile=$patchloc/patch-control-file.txt
+   if [ "$AOMP_BUILD_TRUNK" == 0 ] ; then
+      controlfile=$patchloc/patch-control-file.txt
+   else
+      controlfile=$patchloc/patch-control-file-trunk.txt
+   fi
    #read patch control file and look for correct patches
    while read -r line; do
    if [[ "$line" =~ $reporegex ]]; then

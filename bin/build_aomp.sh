@@ -85,7 +85,12 @@ echo
 if [ -n "$AOMP_JENKINS_BUILD_LIST" ] ; then
    components=$AOMP_JENKINS_BUILD_LIST
 elif [ "$AOMP_USE_HIPVDI" != 0 ] ; then
-   components="roct rocr project libdevice comgr rocminfo vdi ocl hipvdi extras atmi openmp pgmath flang flang_runtime"
+   if [ "$AOMP_BUILD_TRUNK" ==  0 ] ; then
+      components="roct rocr project libdevice comgr rocminfo vdi ocl hipvdi extras atmi openmp pgmath flang flang_runtime"
+   else
+       # dont build extras, atmi, or flang  when building the trunk
+      components="roct rocr project libdevice comgr rocminfo vdi ocl hipvdi openmp"
+   fi
 elif [ "$AOMP_STANDALONE_BUILD" != 1 ] ; then
     # Over time we will reduce the list of components and get aomp to use preinstalled components
    components="project libdevice comgr rocminfo hip extras atmi openmp pgmath flang flang_runtime"
