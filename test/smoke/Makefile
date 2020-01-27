@@ -19,6 +19,7 @@ TESTS_DIR = \
     function_template \
     helloworld \
     hip_device_compile \
+    hip_rocblas \
     issue_flang_libomp \
     issue_001 \
     issue_002 \
