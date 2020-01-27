@@ -129,6 +129,8 @@ fi
 
 # This is how we tell the hsa plugin where to find hsa
 export HSA_RUNTIME_PATH=$ROCM_DIR/hsa
+# Trunk does not yet use standard library search for HIP device libs
+# So tell HIP where to find rocm-device-libs with HIP_DEVICE_LIB_PATH
 if [ "$AOMP_BUILD_TRUNK" != 0 ] ; then
    export HIP_DEVICE_LIB_PATH=$ROCM_DIR/lib
 fi
@@ -139,9 +141,10 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    echo "This is a FRESH START. ERASING any previous builds in $BUILD_DIR/openmp "
    echo "Use ""$0 nocmake"" or ""$0 install"" to avoid FRESH START."
 
-   if [ $COPYSOURCE ] ; then 
-      echo rsync -av --exclude ".git" --delete $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/  $BUILD_DIR/$AOMP_PROJECT_REPO_NAME/openmp/
-      rsync -av --exclude ".git" --delete $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/  $BUILD_DIR/$AOMP_PROJECT_REPO_NAME/openmp/
+   if [ $COPYSOURCE ] ; then
+      mkdir -p $BUILD_DIR/$AOMP_PROJECT_REPO_NAME
+      echo rsync -av --delete $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp  $BUILD_DIR/$AOMP_PROJECT_REPO_NAME
+      rsync -av --delete $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp  $BUILD_DIR/$AOMP_PROJECT_REPO_NAME
    fi
 
       echo rm -rf $BUILD_DIR/build/openmp
@@ -164,7 +167,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
       fi
 
    # We cannot build debug libs with hip till hip has support for robust posix printf
-   if [ "$AOMP_BUILD_TRUNK" != 0 ] ; then
+   if [ "$AOMP_BUILD_TRUNK" == 0 ] ; then
       echo rm -rf $BUILD_DIR/build/openmp_debug
       rm -rf $BUILD_DIR/build/openmp_debug
       MYCMAKEOPTS="$COMMON_CMAKE_OPTS -DLIBOMPTARGET_NVPTX_DEBUG=ON -DCMAKE_BUILD_TYPE=Debug $AOMP_ORIGIN_RPATH -DROCM_DIR=$ROCM_DIR"
@@ -200,7 +203,7 @@ if [ $? != 0 ] ; then
       exit 1
 fi
 
-if [ "$AOMP_BUILD_TRUNK" != 0 ] ; then
+if [ "$AOMP_BUILD_TRUNK" == 0 ] ; then
 cd $BUILD_DIR/build/openmp_debug
 echo
 echo
@@ -231,7 +234,7 @@ if [ "$1" == "install" ] ; then
          exit 1
       fi
 
-      if [ "$AOMP_BUILD_TRUNK" != 0 ] ; then
+      if [ "$AOMP_BUILD_TRUNK" == 0 ] ; then
       cd $BUILD_DIR/build/openmp_debug
       echo
       echo " -----Installing to $INSTALL_OPENMP/lib-debug ---- " 
