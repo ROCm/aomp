@@ -41,6 +41,7 @@ TESTS_DIR = \
     red_bug_51 \
     reduce \
     reduction \
+    reduction_array_section \
     reduction_issue_16 \
     reduction_team \
     reduction_teams \
