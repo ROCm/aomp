@@ -249,7 +249,9 @@ if [ "$AOMP_APPLY_ROCM_PATCHES" == 1 ] && [ -d "$patchdir" ] ; then
            echo "       cleanly to directory $patchdir"
            echo "       Check if it was already applied."
            echo
-           exit 1
+           if [ "$AOMP_STANDALONE_BUILD" == 1 ]; then
+             exit 1
+           fi
         fi
      fi
      if [ "$applypatch" == "yes" ] ; then
