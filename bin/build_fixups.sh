@@ -50,6 +50,8 @@ $SUDO rm -f $AOMP/examples/cloc/*.sh
 $SUDO rm -f $AOMP/examples/fortran/*.txt
 $SUDO rm -f $AOMP/examples/fortran/*.sh
 $SUDO rm -f $AOMP/examples/*.sh
+$SUDO rm -f $AOMP/examples/raja/*.txt
+$SUDO rm -f $AOMP/examples/raja/*.sh
 
 #Clean libexec, share
 $SUDO rm -rf $AOMP/libexec

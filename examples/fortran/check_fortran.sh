@@ -13,6 +13,7 @@ echo ""
 
 echo "" > check-fortran.txt
 echo "" >> check-fortran.txt
+echo "Fortran Results:" >> check-fortran.txt
 echo "*******A non-zero exit code means a failure occured.*******" >> check-fortran.txt
 echo "*******Tests that need visual inspection: helloworld********" >> check-fortran.txt
 echo "***********************************************************" >> check-fortran.txt
@@ -36,4 +37,3 @@ for directory in ./*/; do
 	)
 done
 cat check-fortran.txt
-rm check-fortran.txt
