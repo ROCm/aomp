@@ -63,6 +63,15 @@ void clearVector(int *vector) {
   for (int i = 0; i < N; ++i)
     vector[i] = 0;
 }
+
+int checkVector(int *vectorA, int *vectorB, int *vectorC){
+  int errors = 0;
+  for (int i = 0; i < N; ++i){
+    if(vectorC[i] != (vectorA[i] + vectorB[i] + i + 1))
+       errors++;
+  }
+  return errors;
+}
 bool hipCallSuccessful(hipError_t error) {
   if (error != hipSuccess)
     printHipError(error);
@@ -150,5 +159,12 @@ int main() {
   if (vectorCAllocated)
     hipFree(deviceDstVec);
 
+  //Check final vector
+  int errors = checkVector(hostSrcVecA, hostSrcVecB, hostDstVec);
+  if (errors){
+    printf("Fail!\n");
+    return 1;
+  }
+  printf ("Success!\n");
   return 0;
 }
