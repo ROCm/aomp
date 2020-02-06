@@ -13,6 +13,7 @@ echo ""
 
 echo "" > check-openmp.txt
 echo "" >> check-openmp.txt
+echo "Openmp Results:" >> check-openmp.txt
 echo "*******A non-zero exit code means a failure occured.*******" >> check-openmp.txt
 echo "*******Tests that need visual inspection: reduction********" >> check-openmp.txt
 echo "***********************************************************" >> check-openmp.txt
@@ -35,5 +36,4 @@ for directory in ./*/; do
 	(cd "$directory" && path=$(pwd) && base=$(basename $path)
 	)
 done
-sed -i '/reduction/ {s/0/Check the output for success message./}' check-openmp.txt
 cat check-openmp.txt
