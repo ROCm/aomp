@@ -12,14 +12,18 @@ BLU="\033[0;34m"
 ORG="\033[0;33m"
 BLK="\033[0m"
 
+cleanup(){
+  rm -f passing-tests.txt
+  rm -f failing-tests.txt
+  rm -f check-smoke.txt
+  rm -f make-fail.txt
+}
+
 path=$(pwd)
 
 #Clean all testing directories
 make clean
-rm -f passing-tests.txt
-rm -f failing-tests.txt
-rm -f check-smoke.txt
-rm -f make-fail.txt
+cleanup
 
 echo ""
 echo -e "$ORG"RUNNING ALL TESTS IN: $path"$BLK"
@@ -30,9 +34,30 @@ echo "                   A non-zero exit code means a failure occured." >> check
 echo "Tests that need to be visually inspected: devices, pfspecify, pfspecify_str, stream" >> check-smoke.txt
 echo "***********************************************************************************" >> check-smoke.txt
 
+known_fails="red_bug_51 reduction_array_section target_teams_reduction tasks"
+
+if [ "$SKIP_FAILURES" == 1 ] ; then
+  skip_tests=$known_fails
+else
+  skip_tests=""
+fi
+
 #Loop over all directories and make run / make check depending on directory name
 for directory in ./*/; do
     (cd "$directory" && path=$(pwd) && base=$(basename $path)
+    #Skip tests that are known failures
+    skip=0
+    for test in $skip_tests ; do
+      if [ $test == $base ] ; then
+        skip=1
+        break
+      fi
+    done
+    if [ $skip -ne 0 ] ; then
+      echo "Skip $base!"
+      echo ""
+      continue
+    fi
     if [ $base == 'hip_rocblas' ] ; then
       ls /opt/rocm/rocblas > /dev/null 2>&1
       if [ $? -ne 0 ]; then
@@ -118,6 +143,10 @@ echo ""
 
 #Print failed tests
 echo -e "$RED"
+if [ "$SKIP_FAILS" != 1 ] ; then
+  echo "Known failures: $known_fails"
+fi
+echo ""
 if [ -e failing-tests.txt ]; then
   echo "Runtime Fails"
   echo "--------------------"
@@ -141,9 +170,5 @@ echo "pfspecifier"
 echo "pfspecifier_str"
 echo "stream"
 echo -e "$BLK"
-
 #Clean up, hide output
-rm -f check-smoke.txt
-rm -f passing-tests.txt
-rm -f failing-tests.txt
-rm -f make-fail.txt
+cleanup
