@@ -151,6 +151,9 @@ repogitname=$AOMP_ROCT_REPO_NAME
 COBRANCH=$AOMP_ROCT_REPO_BRANCH
 clone_or_pull
 
+# put it back for the others
+repo_web_location=$GITROC
+
 reponame=$AOMP_ROCR_REPO_NAME
 repogitname=$AOMP_ROCR_REPO_NAME
 COBRANCH=$AOMP_ROCR_REPO_BRANCH
@@ -160,9 +163,6 @@ reponame=$AOMP_ATMI_REPO_NAME
 repogitname=$AOMP_ATMI_REPO_NAME
 COBRANCH=$AOMP_ATMI_REPO_BRANCH
 clone_or_pull
-
-# put it back for the others, only roct and rocr pulled from local
-repo_web_location=$GITROC
 
 reponame=$AOMP_HCC_REPO_NAME
 repogitname=$AOMP_HCC_REPO_NAME
