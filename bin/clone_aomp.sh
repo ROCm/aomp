@@ -57,7 +57,7 @@ repodirname=$AOMP_REPOS/$reponame
 echo
 if [ -d $repodirname  ] ; then 
    echo "--- Pulling updates to existing dir $repodirname ----"
-   echo "    We assume this came from an earlier clone of $repo_web_location/$reponame"
+   echo "    We assume this came from an earlier clone of $repo_web_location/$repogitname"
    # FIXME look in $repodir/.git/config to be sure 
    cd $repodirname
    if [ "$STASH_BEFORE_PULL" == "YES" ] ; then
@@ -79,13 +79,13 @@ if [ -d $repodirname  ] ; then
      git pull
    fi
 else 
-   echo --- NEW CLONE of repo $reponame to $repodirname ----
+   echo --- NEW CLONE of repo $repogitname to $repodirname ----
    cd $AOMP_REPOS
    if [ "$reponame" == "$AOMP_HCC_REPO_NAME" ] ; then
      git clone --recursive -b $COBRANCH $repo_web_location/$reponame $reponame
    else
-     echo git clone $repo_web_location/$reponame
-     git clone $repo_web_location/$reponame $reponame
+     echo git clone -b $COBRANCH $repo_web_location/$repogitname $reponame
+     git clone -b $COBRANCH $repo_web_location/$repogitname $reponame
      echo "cd $repodirname ; git checkout $COBRANCH"
      cd $repodirname
      git checkout $COBRANCH
@@ -104,6 +104,7 @@ mkdir -p $AOMP_REPOS
 repo_web_location=$GITROCDEV
 
 reponame=$AOMP_REPO_NAME
+repogitname=$AOMP_REPO_NAME
 COBRANCH=$AOMP_REPO_BRANCH
 LISTONLY=$1
 if [ "$LISTONLY" == 'list' ]; then
@@ -112,18 +113,22 @@ list_repo
 fi
 
 reponame=$AOMP_EXTRAS_REPO_NAME
+repogitname=$AOMP_EXTRAS_REPO_NAME
 COBRANCH=$AOMP_EXTRAS_REPO_BRANCH
 clone_or_pull
 
 reponame=$AOMP_PROJECT_REPO_NAME
+repogitname=$AOMP_PROJECT_REPO_NAME
 COBRANCH=$AOMP_PROJECT_REPO_BRANCH
 clone_or_pull
 
 reponame=$AOMP_FLANG_REPO_NAME
+repogitname=$AOMP_FLANG_REPO_NAME
 COBRANCH=$AOMP_FLANG_REPO_BRANCH
 clone_or_pull
 
 reponame=$AOMP_HIP_REPO_NAME
+repogitname=$AOMP_HIP_REPO_NAME
 COBRANCH=$AOMP_HIP_REPO_BRANCH
 clone_or_pull
 
@@ -133,29 +138,56 @@ clone_or_pull
 repo_web_location=$GITROC
 
 reponame=$AOMP_LIBDEVICE_REPO_NAME
+repogitname=$AOMP_LIBDEVICE_REPO_NAME
 COBRANCH=$AOMP_LIBDEVICE_REPO_BRANCH
 clone_or_pull
 
 reponame=$AOMP_ROCT_REPO_NAME
+repogitname=$AOMP_ROCT_REPO_NAME
 COBRANCH=$AOMP_ROCT_REPO_BRANCH
 clone_or_pull
 
 reponame=$AOMP_ROCR_REPO_NAME
+repogitname=$AOMP_ROCR_REPO_NAME
 COBRANCH=$AOMP_ROCR_REPO_BRANCH
 clone_or_pull
 
 reponame=$AOMP_ATMI_REPO_NAME
+repogitname=$AOMP_ATMI_REPO_NAME
 COBRANCH=$AOMP_ATMI_REPO_BRANCH
 clone_or_pull
 
 reponame=$AOMP_HCC_REPO_NAME
+repogitname=$AOMP_HCC_REPO_NAME
 COBRANCH=$AOMP_HCC_REPO_BRANCH
 clone_or_pull
 
 reponame=$AOMP_COMGR_REPO_NAME
+repogitname=$AOMP_COMGR_REPO_NAME
 COBRANCH=$AOMP_COMGR_REPO_BRANCH
 clone_or_pull
 
 reponame=$AOMP_RINFO_REPO_NAME
+repogitname=$AOMP_RINFO_REPO_NAME
 COBRANCH=$AOMP_RINFO_REPO_BRANCH
 clone_or_pull
+
+ping -c 1 $AOMP_INTERNAL_IP 2>/dev/null
+if [ $? == 0 ] ; then
+   # ---------------------------------------
+   # The following repos are internal to AMD
+   # ---------------------------------------
+   repo_web_location=$GITAMDINTERNAL
+   reponame=$AOMP_VDI_REPO_NAME
+   repogitname=$AOMP_VDI_REPO_NAME
+   COBRANCH=$AOMP_VDI_REPO_BRANCH
+   clone_or_pull
+   reponame=$AOMP_OCL_REPO_NAME
+   repogitname=$AOMP_OCL_REPO_GITNAME
+   COBRANCH=$AOMP_OCL_REPO_BRANCH
+   clone_or_pull
+   reponame=$AOMP_HIPVDI_REPO_NAME
+   repogitname=$AOMP_HIPVDI_REPO_GITNAME
+   COBRANCH=$AOMP_HIPVDI_REPO_BRANCH
+   clone_or_pull
+fi

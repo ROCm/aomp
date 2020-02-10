@@ -12,6 +12,7 @@ echo ""
 
 echo "" > check-cloc.txt
 echo "" >> check-cloc.txt
+echo "Cloc Results:" >> check-cloc.txt
 echo "*******A non-zero exit code means a failure occured.*******" >> check-cloc.txt
 echo "***********************************************************" >> check-cloc.txt
 
@@ -34,4 +35,3 @@ for directory in ./*/; do
 	)
 done
 cat check-cloc.txt
-rm check-cloc.txt

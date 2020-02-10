@@ -45,6 +45,15 @@ void printArray(int *array) {
   printf("]");
 }
 
+int checkArray(int *array){
+  int errors = 0;
+  for(int i = 0; i < N; ++i){
+    if(array[i] != i)
+      errors++;
+  }
+  return errors;
+}
+
 void printHipError(hipError_t error) {
   printf("Hip Error: %s\n", hipGetErrorString(error));
 }
@@ -111,5 +120,13 @@ int main() {
   }
 
   hipFree(deviceArray);
+
+  int errors = checkArray(hostArray);
+
+  if(errors){
+    printf("Fail!\n");
+    return 1;
+  }
+  printf("Success!\n");
   return 0;
 }

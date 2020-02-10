@@ -299,5 +299,21 @@ aomp (0.7-6) UNRELEASED; urgency=medium
   * 0.7-6
   *   Support for ppc64le
   *   compiler-rt runtime now included in build
+  *   Switch to ROCm source for ROCM 3.0.
+  *   Build and install llvm component compiler-rt.
+  *   Created ppc64le debian package for ubuntu 1804
+  *   Fixed examples and tests to work for any CPU type by using "uname -p" command.
+  *   Added verification enhancements for openmpapps
+  *   Added changes from rocmaster into master branch
+  *   Increased default number of loaded kernels to 32 from 8, before needing env-var ATMI_MAX_KERNEL_TYPES=nnn
+  *       to increase
+  *   Allow map on reduction if -fopenmp-version=50
+  *   Fortran target compiles add AOMP/include dir for module searches
+  *   Modified nested parallel to not use SafeMalloc and instead preallocate loop context memory.
+  *   Minor header changes in cloc.sh
+  *   Adjusted raja_build.sh to avoid use of indirect function calls
+  *   Added \$ORIGIN to cmake rpath install in build scripts
+  *   Added new patch system to allow for unmodified repos after build is complete
+  *   Added support for gfx908
 
- -- Greg Rodgers <Gregory.Rodgers@amd.com>  Tue, 10 Dec 2019 15:11:09 -0600
+ -- Greg Rodgers <Gregory.Rodgers@amd.com>  Tue, 07 Jan 2020 12:51:24 -0600

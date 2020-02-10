@@ -59,6 +59,24 @@ void printMatrix(int *matrix, int Rows, int Cols) {
   }
 }
 
+int checkMatrix(int *finalMatrix, int ARows, int ACols, int BCols, int *matrixA, int *matrixB) {
+  int checkIndex = 0;
+  int errors = 0;
+  for (int i = 0; i < ARows; i++) {
+    for (int j=0; j < BCols; j++){
+      int value =0;
+      for(int k = 0; k < ACols; k++) {
+         value += matrixA[i * ACols + k] * matrixB[k * BCols + j];
+      }
+       if(finalMatrix[checkIndex] != value){
+           errors++;
+       }
+       checkIndex++;
+    }
+  }
+  return errors;
+}
+
 void printHipError(hipError_t error) {
   printf("Hip Error: %s\n", hipGetErrorString(error));
 }
@@ -162,6 +180,14 @@ int main() {
     hipFree(deviceSrcMatB);
   if (matrixCAllocated)
     hipFree(deviceDstMat);
+
+//Verify Final Matrix
+  int errors = checkMatrix(hostDstMat, N, M, P, hostSrcMatA, hostSrcMatB);
+  if (errors){
+    printf("Fail!\n");
+    return errors;
+  }
+  printf("Success!\n");
 
   return 0;
 }

@@ -34,6 +34,15 @@ thisdir=$(getdname $0)
 cp -p $AOMP_REPOS/aomp/Makefile $AOMP_REPOS/Makefile
 
 
+REPO_NAMES="$AOMP_PROJECT_REPO_NAME $AOMP_LIBDEVICE_REPO_NAME $AOMP_HCC_REPO_NAME $AOMP_HIP_REPO_NAME $AOMP_RINFO_REPO_NAME $AOMP_ROCT_REPO_NAME $AOMP_ROCR_REPO_NAME $AOMP_ATMI_REPO_NAME $AOMP_EXTRAS_REPO_NAME $AOMP_COMGR_REPO_NAME $AOMP_FLANG_REPO_NAME"
+patchloc=$thisdir/patches
+export IFS=" "
+for repo_name in $REPO_NAMES
+do
+   patchdir=$AOMP_REPOS/$repo_name
+   patchrepo
+done
+
 # Make the tarball from the parent of the aomp directory that contains all the git
 # repositories and the Makefile used by spack
 cd $AOMP_REPOS/..
@@ -49,5 +58,10 @@ echo
 echo done creating $PWD/$tarball
 echo
 
+for repo_name in $REPO_NAMES
+do
+   patchdir=$AOMP_REPOS/$repo_name
+   removepatch
+done
 
 

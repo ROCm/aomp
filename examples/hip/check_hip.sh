@@ -12,6 +12,7 @@ echo ""
 
 echo "" > check-hip.txt
 echo "" >> check-hip.txt
+echo "Hip Results:" >> check-hip.txt
 echo "*******A non-zero exit code means a failure occured.*******" >> check-hip.txt
 echo "***********************************************************" >> check-hip.txt
 
@@ -33,5 +34,4 @@ for directory in ./*/; do
 	(cd "$directory" && path=$(pwd) && base=$(basename $path)
 	)
 done
-sed -i '/matrixmul/ {s/0/Check the output./}; /vectorAdd/ {s/0/Check the output./}; /writeIndex/ {s/0/Check the output./}; /writeIndex_amode/ {s/0/Check the output./}' check-hip.txt
 cat check-hip.txt

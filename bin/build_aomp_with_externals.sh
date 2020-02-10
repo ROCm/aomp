@@ -1,6 +1,6 @@
 #!/bin/bash
 # 
-#   build_aomp.sh : Build all AOMP components 
+#   build_aomp_with_externals.sh : Build all AOMP components 
 #
 # --- Start standard header ----
 function getdname(){
@@ -71,6 +71,8 @@ $TOPSUDO rm $AOMP_INSTALL_DIR/testfile
 GAWK=$(gawk --version | grep "^GNU Awk")
 OS=$(cat /etc/os-release | grep "^NAME=")
 
+#FIXME: please add gawk to the build dependencies in the README file or move the 
+#       following if block to a check_dependencies.sh script. 
 if [[ -z $GAWK ]] && [[ "$OS" == *"Ubuntu"* ]] ; then
    echo
    echo "Build Error: gawk was not found and is required for building flang! Please run 'sudo apt-get install gawk' and run build_aomp.sh again."
@@ -84,19 +86,15 @@ echo " =================  START build_aomp.sh ==================="
 echo 
 if [ -n "$AOMP_JENKINS_BUILD_LIST" ] ; then
    components=$AOMP_JENKINS_BUILD_LIST
-elif [ "$AOMP_USE_HIPVDI" != 0 ] ; then
-   if [ "$AOMP_BUILD_TRUNK" ==  0 ] ; then
-      components="roct rocr project libdevice comgr rocminfo vdi ocl hipvdi atmi extras openmp pgmath flang flang_runtime"
-   else
-       # dont build extras, atmi, or flang  when building the trunk
-      components="roct rocr project libdevice comgr rocminfo vdi ocl hipvdi openmp"
-   fi
 elif [ "$AOMP_STANDALONE_BUILD" != 1 ] ; then
-    # Over time we will reduce the list of components and get aomp to use preinstalled components
-   components="project libdevice comgr rocminfo hip atmi extras openmp pgmath flang flang_runtime"
+   echo "$0 only supports STANDALONE BUILD.  Please set AOMP_STANDALONE_BUILD to 1"
+   exit 1
 else
    # The standalone build builds all rocm components and installs in the compiler installation.
-   components="roct rocr project libdevice comgr rocminfo hcc hip atmi extras openmp pgmath flang flang_runtime"
+   # over time we will get all components to build with a single script build_project_with_externals
+   # This will obsolete this build_aomp_with_externals.sh script because only build_project_with_externals.sh 
+   # will be needed. 
+   components="project_with_externals libdevice comgr rocminfo hcc hip extras atmi openmp pgmath flang flang_runtime"
 fi
 
 #Partial build options. Check if argument was given.
