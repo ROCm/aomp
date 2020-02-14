@@ -5,6 +5,6 @@ rocm-compilersupport: useOldSectionNameMethod.patch comgr_2-10_revert_15854f1_2d
 hcc: hcc_ppc_fp16.patch
 hip:
 hip-postinstall: hip.patch 
-hipvdi-postinstall: hip.patch 
+hipvdi-postinstall:
 rocminfo: rocminfo_ppc_cmake.patch
 vdi:

@@ -98,20 +98,19 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
      rm -rf $BUILD_DIR/build/hipvdi
   fi
  
-  OPENCL_ON_VDI_ROOT=$AOMP_REPOS/$AOMP_OCL_REPO_NAME
   VDI_ROOT=$AOMP_REPOS/$AOMP_VDI_REPO_NAME
-  OPENCL_ON_VDI_BUILD_DIR=$BUILD_DIR/build/ocl
-
   MYCMAKEOPTS="$AOMP_ORIGIN_RPATH -DCMAKE_BUILD_TYPE=$BUILDTYPE \
--DCMAKE_INSTALL_PREFIX=$AOMP_INSTALL_DIR -DUSE_COMGR_LIBRARY=yes \
--DOPENCL_DIR=$OPENCL_ON_VDI_ROOT -DVDI_DIR=$VDI_ROOT -DLLVM_INCLUDES=$AOMP/include \
--DLIBVDI_STATIC_DIR=$BUILD_DIR/build/vdi \
--DHIP_COMPILER=clang \
--DHIP_PLATFORM=vdi \
--DHSA_PATH=$AOMP_INSTALL_DIR/hsa \
--DLIBOCL_STATIC_DIR=$OPENCL_ON_VDI_BUILD_DIR/amdocl \
--DCMAKE_MODULE_PATH=$VDI_ROOT/cmake/modules \
--DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR;$AOMP_INSTALL_DIR/include"
+ -DCMAKE_INSTALL_PREFIX=$AOMP_INSTALL_DIR \
+ -DLIBVDI_STATIC_DIR=$BUILD_DIR/build/vdi \
+ -DHIP_COMPILER=clang \
+ -DHIP_PLATFORM=vdi \
+ -DVDI_DIR=$VDI_ROOT \
+ -DROCM_PATH=$ROCM_DIR \
+ -DHSA_PATH=$ROCM_DIR/hsa \
+ -DCMAKE_MODULE_PATH=$ROCM_DIR/cmake \
+ -DCMAKE_PREFIX_PATH=$ROCM_DIR/include \
+ -DCMAKE_CXX_FLAGS=-Wno-ignored-attributes "
+ # -DLLVM_INCLUDES=$ROCM_DIR/include "
 
   echo mkdir -p $BUILD_DIR/build/hipvdi
   mkdir -p $BUILD_DIR/build/hipvdi
@@ -159,7 +158,4 @@ if [ "$1" == "install" ] ; then
       echo "ERROR make install failed "
       exit 1
    fi
-   patchloc=$thisdir/patches
-   patchdir=$AOMP_INSTALL_DIR
-   patchrepo hipvdi-postinstall
 fi
