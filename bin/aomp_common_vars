@@ -146,7 +146,7 @@ GITAMDINTERNAL="ssh://$USER@git.amd.com:29418/compute/ec"
 AOMP_INTERNAL_IP="gitlab1.amd.com"
 GITINTERNAL="http://${AOMP_INTERNAL_IP}/dmcdouga"  # This will change soon
 AOMP_IAPPS_REPO_NAME=${AOMP_IAPPS_REPO_NAME:-Nekbone}  #  This will change soon
-AOMP_IAPPS_REPO_BRANCH=${AOMP_IAPPS_REPO_BRANCH:-openmp_amd}
+AOMP_IAPPS_REPO_BRANCH=${AOMP_IAPPS_REPO_BRANCH:-aomp_openmp_amd}
 
 GITLLNL="https://github.com/llnl"
 AOMP_RAJA_REPO_NAME=${AOMP_RAJA_REPO_NAME:-raja}
