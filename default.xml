@@ -5,28 +5,20 @@
     <remote name="roc"         fetch="https://github.com/RadeonOpenCompute/" />
     <remote name="roclib"      fetch="https://github.com/AMDComputeLibraries/" />
     <default revision="master" remote="roctools" sync-j="4" sync-c="true" />
-    <!-- ========================================================== - -->
-    <!-- AOMP -->
-    <!-- project path="external/aomp/llvm-project"  name="lightning/ec/llvm-project" revision="aditylad/ocl-rocm-rel-3.1" groups="aomp"  -->
-    <!--
-    <project path="external/aomp/rocm-device-libs"     name="lightning/ec/device-libs" revision="aditylad/aomp-rocm-rel-3.1" groups="aomp" />
-    <project path="external/aomp/rocr-runtime"         name="compute/ec/atmi"          revision="aditylad/aomp-rocm-rel-3.1" groups="aomp" />
-    <project path="external/aomp/roct"                 name="compute/ec/libhsakmt"     revision="aditylad/aomp-rocm-rel-3.1" groups="aomp" />
-    <project path="external/aomp/rocr-runtime"         name="hsa/ec/hsa-runtime"       revision="aditylad/aomp-rocm-rel-3.1" groups="aomp" />
-    <project path="external/aomp/rocm-compilersupport" name="lightning/ec/support"     revision="aditylad/aomp-rocm-rel-3.1" groups="aomp" />
-    <project path="external/aomp/atmi"                 name="compute/ec/atmi"          revision="aditylad/aomp-rocm-rel-3.1" groups="aomp" />
-    <project path="external/aomp/rocminfo"             name="compute/ec/rocminfo"      revision="aditylad/aomp-rocm-rel-3.1" groups="aomp" />
-   
-    <project path="external/aomp/llvm-project"         name="compute/ec/llvm-project"  revision="aditylad/aomp-rocm-rel-3.1" groups="aomp" />
-    <project path="external/aomp/aomp"                 name="compute/ec/aomp"          revision="master"  groups="aomp" />
-    <project path="external/aomp/aomp-extras"          name="compute/ec/aomp-extras"   revision="0.7-7" groups="aomp" />
-    <project path="external/aomp/flang"                name="compute/ec/flang"         revision="master" groups="aomp" />
-    <project path="external/aompclang-ocl"             name="compute/ec/clang-ocl"     revision="master"  groups="aomp" />
-    -->
-    <project remote="roctools"    path="aomp"                 name="aomp"                 revision="master"          groups="aomp" />
-    <project remote="roctools"    path="aomp-extras"          name="aomp-extras"          revision="0.7-7"           groups="aomp" />
-    <project remote="roc"         path="rocm-compilersupport" name="rocm-compilersupport" revision="roc-3.0.x"       groups="aomp" />
-    <project remote="amdinternal" path="vdi"                  name="compute/ec/vdi"       revision="amd-master"      groups="aomp" />
-    <project remote="amdinternal" path="opencl-on-vdi"        name="compute/ec/opencl"    revision="amd-master-next" groups="aomp" />
-    <project remote="amdinternal" path="hip-on-vdi"           name="compute/ec/hip"       revision="amd-master-next" groups="aomp" />
+
+    <project remote="roctools"    path="llvm-project"  name="llvm-project"         revision="AOMP-200107"     groups="aomp" />
+    <project remote="roctools"    path="flang"         name="flang"                revision="AOMP-200108"     groups="aomp" />
+    <project remote="roctools"    path="aomp"          name="aomp"                 revision="master"          groups="aomp" />
+    <project remote="roctools"    path="aomp-extras"   name="aomp-extras"          revision="0.7-7"           groups="aomp" />
+
+    <project remote="roc"  path="atmi"                 name="atmi"                 revision="aomp-0.7-7"      groups="aomp" />
+    <project remote="roc"  path="rocm-compilersupport" name="rocm-compilersupport" revision="roc-3.0.x"       groups="aomp" />
+    <project remote="roc"  path="rocr-runtime"         name="rocr-runtime"         revision="roc-3.0.x"       groups="aomp" />
+    <project remote="roc"  path="roct-thunk-interface" name="roct-thunk-interface" revision="roc-3.0.x"       groups="aomp" />
+    <project remote="roc"  path="rocm-device-lib"      name="rocm-device-lib"      revision="roc-3.0.x"       groups="aomp" />
+    <project remote="roc"  path="rocminfo"             name="rocminfo"             revision="master"          groups="aomp" />
+
+    <project remote="amdinternal" path="vdi"           name="compute/ec/vdi"       revision="amd-master"      groups="aomp" />
+    <project remote="amdinternal" path="opencl-on-vdi" name="compute/ec/opencl"    revision="amd-master-next" groups="aomp" />
+    <project remote="amdinternal" path="hip-on-vdi"    name="compute/ec/hip"       revision="amd-master-next" groups="aomp" />
 </manifest>
