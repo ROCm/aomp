@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <manifest>
-    <remote name="amd_internal_git" fetch="ssh://grodgers@git.amd.com:29418/" />
-    <default revision="master" remote="amd_internal_git" sync-j="4" sync-c="true" />
+    <remote name="amdinternal" fetch="ssh://grodgers@git.amd.com:29418/" />
+    <remote name="roctools"    fetch="https://github.com/ROCm-Developer-Tools/" />
+    <remote name="roc"         fetch="https://github.com/RadeonOpenCompute/" />
+    <remote name="roclib"      fetch="https://github.com/AMDComputeLibraries/" />
+    <default revision="master" remote="roctools" sync-j="4" sync-c="true" />
     <!-- ========================================================== - -->
     <!-- AOMP -->
     <!-- project path="external/aomp/llvm-project"  name="lightning/ec/llvm-project" revision="aditylad/ocl-rocm-rel-3.1" groups="aomp"  -->
@@ -20,7 +23,9 @@
     <project path="external/aomp/flang"                name="compute/ec/flang"         revision="master" groups="aomp" />
     <project path="external/aompclang-ocl"             name="compute/ec/clang-ocl"     revision="master"  groups="aomp" />
     -->
-    <project path="external/aomp/vdi"                  name="compute/ec/vdi"           revision="amd-master" groups="aomp" />
-    <project path="external/aomp/opencl-on-vdi"        name="compute/ec/opencl"        revision="amd-master-next" groups="aomp" />
-    <project path="external/aomp/hip-on-vdi"           name="compute/ec/hip"           revision="amd-master-next" groups="aomp" />
+    <project remote="roctools"    path="aomp-extras"          name="aomp-extras"          revision="0.7-7"           groups="aomp" />
+    <project remote="roc"         path="rocm-compilersupport" name="rocm-compilersupport" revision="roc-3.0.x"       groups="aomp" />
+    <project remote="amdinternal" path="vdi"                  name="compute/ec/vdi"       revision="amd-master"      groups="aomp" />
+    <project remote="amdinternal" path="opencl-on-vdi"        name="compute/ec/opencl"    revision="amd-master-next" groups="aomp" />
+    <project remote="amdinternal" path="hip-on-vdi"           name="compute/ec/hip"       revision="amd-master-next" groups="aomp" />
 </manifest>
