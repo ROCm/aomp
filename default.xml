@@ -23,6 +23,7 @@
     <project path="external/aomp/flang"                name="compute/ec/flang"         revision="master" groups="aomp" />
     <project path="external/aompclang-ocl"             name="compute/ec/clang-ocl"     revision="master"  groups="aomp" />
     -->
+    <project remote="roctools"    path="aomp"                 name="aomp"                 revision="master"          groups="aomp" />
     <project remote="roctools"    path="aomp-extras"          name="aomp-extras"          revision="0.7-7"           groups="aomp" />
     <project remote="roc"         path="rocm-compilersupport" name="rocm-compilersupport" revision="roc-3.0.x"       groups="aomp" />
     <project remote="amdinternal" path="vdi"                  name="compute/ec/vdi"       revision="amd-master"      groups="aomp" />
