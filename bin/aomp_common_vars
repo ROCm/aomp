@@ -348,7 +348,23 @@ if [ "$AOMP_APPLY_ROCM_PATCHES" == 1 ] && [ -d "$patchdir" ] ; then
      fi
      if [ "$reversepatch" == "yes" ] ; then
         echo "Reversing patch $patchfile to $patchdir"
+        #Save status of insertions/deletions before reversing patch
+        before=$(git diff HEAD --shortstat | awk '{print $4 + $6}')
         patch -p1 -R -f --no-backup-if-mismatch <$patchfile
+        #Check to make sure the diff size is lower after patch is reversed. There are some cases where the reverse patch applies additional changes instead of reverting them.
+        #Save status of insertions/deletions after reversing patch
+        after=$(git diff HEAD --shortstat | awk '{print $4 + $6}')
+        if [ -z $before ]; then
+          before=0
+        fi
+        if [ -z $after ]; then
+          after=0
+        fi
+        #If number of changes after is higher or equal to before, undo the reversal.
+        if [ "$before" -le "$after" ]; then
+          echo "Reapplying patch as it created more changes instead of reverting them."
+          patch -p1 --no-backup-if-mismatch <$patchfile
+        fi
      fi
    done
    fi
