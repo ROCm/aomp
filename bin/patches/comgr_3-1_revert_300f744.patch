@@ -12,23 +12,22 @@ index 4ddca10..57cf639 100644
      return AMD_COMGR_STATUS_ERROR;
  
 diff --git a/lib/comgr/src/comgr-objdump.cpp b/lib/comgr/src/comgr-objdump.cpp
-index 12f31aa..886b761 100644
+index a28ebe1..228f088 100644
 --- a/lib/comgr/src/comgr-objdump.cpp
 +++ b/lib/comgr/src/comgr-objdump.cpp
-@@ -1473,6 +1473,12 @@ void llvm::DisassemHelper::DisassembleObject(const ObjectFile *Obj,
- 
+@@ -1472,6 +1472,11 @@ void llvm::DisassemHelper::DisassembleObject(const ObjectFile *Obj,
        // COMGR TBD: Get rid of ".text:"??
-       OutS << '\n' << std::get<1>(Symbols[si]) << ":\n";
+       OutS << '\n' << Symbols[si].Name << ":\n";
+ 
 +#ifndef NDEBUG
 +      raw_ostream &DebugOut = DebugFlag ? dbgs() : nulls();
 +#else
 +      raw_ostream &DebugOut = nulls();
 +#endif
-+
- 
        for (Index = Start; Index < End; Index += Size) {
          MCInst Inst;
-@@ -1595,7 +1601,7 @@ void llvm::DisassemHelper::DisassembleObject(const ObjectFile *Obj,
+ 
+@@ -1593,7 +1598,7 @@ void llvm::DisassemHelper::DisassembleObject(const ObjectFile *Obj,
          // Disassemble a real instruction or a data when disassemble all is
          // provided
          bool Disassembled = DisAsm->getInstruction(
