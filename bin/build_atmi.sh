@@ -135,7 +135,6 @@ fi
 #  ----------- Install only if asked  ----------------------------
 if [ "$1" == "install" ] ; then 
       cd $BUILD_AOMP/build/atmi
-p
       echo " -----Installing to $INSTALL_ATMI/lib ----- " 
       $SUDO make install 
       if [ $? != 0 ] ; then 
