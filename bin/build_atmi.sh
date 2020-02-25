@@ -67,6 +67,9 @@ if [ "$1" == "install" ] ; then
 fi
 
 export LLVM_DIR=$AOMP_INSTALL_DIR
+patchloc=$thisdir/patches
+patchdir=$REPO_DIR
+patchrepo
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then 
 
    echo " " 
@@ -132,6 +135,7 @@ fi
 #  ----------- Install only if asked  ----------------------------
 if [ "$1" == "install" ] ; then 
       cd $BUILD_AOMP/build/atmi
+p
       echo " -----Installing to $INSTALL_ATMI/lib ----- " 
       $SUDO make install 
       if [ $? != 0 ] ; then 
@@ -145,4 +149,5 @@ if [ "$1" == "install" ] ; then
          echo "ERROR make install failed "
          exit 1
       fi
+      removepatch
 fi

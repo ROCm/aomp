@@ -8,4 +8,4 @@ hip-postinstall: hip.patch
 hipvdi-postinstall: hip.patch 
 rocminfo: rocminfo_ppc_cmake.patch
 vdi:
-atmi: atmi_revert_old_hostcall.patch atmi_hostcall_opt.patch
+atmi: atmi_hostcall_opt.patch atmi_revert_old_hostcall.patch
