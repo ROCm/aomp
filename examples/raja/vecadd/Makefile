@@ -36,7 +36,15 @@ CC              = $(AOMP)/bin/clang++
 AOMP_GPUTARGET = amdgcn-amd-amdhsa
 export PATH := $(AOMP)/bin:$(PATH)
 RAJA_BUILD_PREFIX ?= $(HOME)
-RAJA_BUILD_DIR ?= $(RAJA_BUILD_PREFIX)/raja_build.$(AOMP_GPU)
+RAJA_BUILD_OMP_DIR ?= $(RAJA_BUILD_PREFIX)/raja_build_omp.$(AOMP_GPU)
+RAJA_BUILD_HIP_DIR ?= $(RAJA_BUILD_PREFIX)/raja_build_hip.$(AOMP_GPU)
+
+ifeq ($(RAJA_USE_HIP),1)
+  RAJA_BUILD_DIR = $(RAJA_BUILD_HIP_DIR)
+else
+# This is the default
+  RAJA_BUILD_DIR = $(RAJA_BUILD_OMP_DIR)
+endif
 
 RAJA_SRC = $(HOME)/git/aomp/raja
 
@@ -69,8 +77,12 @@ $(TESTNAME): $(RAJA_BUILD_DIR) $(TESTSRC)
 run: $(TESTNAME) 
 	$(RUNENV) ./$(TESTNAME)
 
-$(RAJA_BUILD_DIR):
+#  This is default build
+$(RAJA_BUILD_OMP_DIR):
 	$(AOMP)/bin/raja_build.sh
+
+$(RAJA_BUILD_HIP_DIR):
+	$(AOMP)/bin/raja_build.sh hip $(RAJA_BUILD_HIP_DIR)
 
 help:
 	@echo

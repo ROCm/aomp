@@ -1,0 +1,31 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 75a05afc..19d7484b 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -205,7 +205,7 @@ message (STATUS "ROCM Installation path(ROCM_PATH): ${ROCM_PATH}")
+ set(CPACK_SET_DESTDIR ON CACHE BOOL "Installer package will install hip to CMAKE_INSTALL_PREFIX instead of CPACK_PACKAGING_INSTALL_PREFIX")
+ if (NOT CPACK_SET_DESTDIR)
+   set(CPACK_PACKAGING_INSTALL_PREFIX "/opt/rocm/hip" CACHE PATH "Default installation path of hcc installer package")
+-endif (CPACK_SET_DESTDIR)
++endif (NOT CPACK_SET_DESTDIR)
+ 
+ # Check if we need to enable ATP marker
+ if(NOT DEFINED COMPILE_HIP_ATP_MARKER)
+diff --git a/vdi/hip_platform.cpp b/vdi/hip_platform.cpp
+index 11a5c043..32782e13 100644
+--- a/vdi/hip_platform.cpp
++++ b/vdi/hip_platform.cpp
+@@ -20,12 +20,12 @@
+ 
+ #include <hip/hip_runtime.h>
+ 
++#include "elfio.hpp"
+ #include "hip_internal.hpp"
+ #include "platform/program.hpp"
+ #include "platform/runtime.hpp"
+ 
+ #include <unordered_map>
+-#include "elfio.hpp"
+ 
+ constexpr unsigned __hipFatMAGIC2 = 0x48495046; // "HIPF"
+ 

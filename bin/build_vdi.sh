@@ -104,7 +104,11 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
  # The vdi cmake file hardcodes finding opencl headers in /opt/rocm/opencl but We don't want
  # to find them there for standalone builds that may not install rocm opencl.
  # We set OPENCL_INCLUDE_DIR to find the headers from the AOMP opencl repository.
-  MYCMAKEOPTS="$AOMP_ORIGIN_RPATH -DCMAKE_BUILD_TYPE=$BUILDTYPE -DCMAKE_INSTALL_PREFIX=$AOMP_INSTALL_DIR -DUSE_COMGR_LIBRARY=yes -DOPENCL_DIR=$AOMP_REPOS/$AOMP_OCL_REPO_NAME -DLLVM_INCLUDES=$AOMP_INSTALL_DIR/include -DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR;$AOMP_INSTALL_DIR/include -DOPENCL_INCLUDE_DIR=$AOMP_REPOS/$AOMP_OCL_REPO_NAME/khronos/headers/opencl2.2 "
+
+  MYCMAKEOPTS="$AOMP_ORIGIN_RPATH -DCMAKE_BUILD_TYPE=$BUILDTYPE -DCMAKE_INSTALL_PREFIX=$AOMP_INSTALL_DIR \
+  -DOPENCL_DIR=$AOMP_REPOS/$AOMP_OCL_REPO_NAME \
+  -DCMAKE_MODULE_PATH=$ROCM_DIR/cmake \
+  -DCMAKE_PREFIX_PATH=$ROCM_DIR/include "
 
   mkdir -p $BUILD_DIR/build/vdi
   cd $BUILD_DIR/build/vdi
@@ -150,7 +154,4 @@ if [ "$1" == "install" ] ; then
       echo "ERROR make install failed for vdi "
       exit 1
    fi
-   patchloc=$thisdir/patches
-   patchdir=$AOMP_REPOS/$AOMP_VDI_REPO_NAME
-   removepatch
 fi
