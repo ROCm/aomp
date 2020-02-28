@@ -43,9 +43,6 @@ RAJA_BUILD_PREFIX ?= $(HOME)
 RAJA_BUILD_OMP_DIR ?= $(RAJA_BUILD_PREFIX)/raja_build_omp.$(AOMP_GPU)
 RAJA_BUILD_HIP_DIR ?= $(RAJA_BUILD_PREFIX)/raja_build_hip.$(AOMP_GPU)
 
-ROCPRIM_BUILD_PREFIX ?= $(HOME)
-ROCPRIM_BUILD_DIR=${ROCPRIM_BUILD_DIR:-$ROCPRIM_BUILD_PREFIX/rocprim_build}
-
 ifeq ($(RAJA_USE_HIP),1)
   RAJA_BUILD_DIR = $(RAJA_BUILD_HIP_DIR)
 else
@@ -57,7 +54,7 @@ RAJA_SRC = $(HOME)/git/aomp/raja
 
 # Sorry, clang openmp requires these complex options
 ifeq ($(RAJA_USE_HIP),1)
-CPPFLAGS = -DRAJA_USE_HIP -c -O2 -I$(RAJA_SRC)/include  -I$(RAJA_BUILD_DIR)/include -I$(RAJA_SRC)/tpl/camp/include
+CPPFLAGS = -DRAJA_USE_HIP -c -O2 -I$(RAJA_SRC)/include  -I$(RAJA_BUILD_DIR)/include -I$(RAJA_SRC)/tpl/camp/include -I$(RAJA_SRC)/tpl/rocPRIM/rocprim/include
 else
 CPPFLAGS = -w -O3 -target $(AOMP_CPUTARGET) -fopenmp -fopenmp-targets=$(AOMP_GPUTARGET) -Xopenmp-target=$(AOMP_GPUTARGET) -march=$(AOMP_GPU) -I$(RAJA_SRC)/include  -I$(RAJA_BUILD_DIR)/include -I$(RAJA_SRC)/tpl/camp/include
 endif
@@ -94,7 +91,7 @@ $(TESTNAME): $(RAJA_BUILD_DIR) $(TESTSRC)
 	$(CCENV) $(CC) $(CPPFLAGS) $(LFLAGS) $(TESTSRC) $(LIBS) -o $@
 endif
 
-$(TESTNAME).o: $(RAJA_BUILD_DIR) $(AOMP)/rocprim $(TESTSRC)
+$(TESTNAME).o: $(RAJA_BUILD_DIR) $(TESTSRC)
 	$(CCENV) $(CC) $(CPPFLAGS)  $(TESTSRC) -o $@
 
 run: $(TESTNAME) 
@@ -106,9 +103,6 @@ $(RAJA_BUILD_OMP_DIR):
 
 $(RAJA_BUILD_HIP_DIR):
 	$(AOMP)/bin/raja_build.sh hip $(RAJA_BUILD_HIP_DIR)
-
-$(AOMP)/rocprim:
-	$(AOMP)/bin/build_rocprim.sh
 
 help:
 	@echo
