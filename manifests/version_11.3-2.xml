@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+
+    version_11.3-2.xml 
+
+-->
+<manifest>
+    <!-- <remote name="gerrit" fetch="ssh://git.amd.com:29418/" /> -->
+    <remote name="gerrit" fetch="ssh://gerritgit/" />
+    <remote name="roctools"    fetch="https://github.com/ROCm-Developer-Tools/" />
+    <remote name="roc"         fetch="https://github.com/RadeonOpenCompute/" />
+    <remote name="roclib"      fetch="https://github.com/AMDComputeLibraries/" />
+    <default revision="master" remote="roctools" sync-j="4" sync-c="true" />
+
+    <project remote="roctools"  path="aomp" name="aomp"  revision="master" groups="hipclang,hipclangdev,aomp,aompdev" />
+
+    <project remote="gerrit" path="llvm-project"  name="lightning/ec/llvm-project" revision="aditylad/ocl-rocm-rel-3.1" groups="hipclang" />
+    <project remote="gerrit" path="vdi"           name="compute/ec/vdi"            revision="amd-master"            groups="hipclang" />
+    <project remote="gerrit" path="opencl-on-vdi" name="compute/ec/opencl"         revision="amd-master-next"       groups="hipclang" />
+    <project remote="gerrit" path="hip-on-vdi"    name="compute/ec/hip"            revision="amd-master-next"       groups="hipclang" />
+
+    <project remote="gerrit" path="llvm-project"         name="lightning/ec/llvm-project" revision="aditylad/ocl-rocm-rel-3.1" groups="hipclangdev" />
+    <project remote="gerrit" path="rocm-compilersupport" name="lightning/ec/support"      revision="aditylad/rocm-rel-3.1" groups="hipclangdev" />
+    <project remote="gerrit" path="rocm-device-libs"     name="lightning/ec/device-libs"  revision="aditylad/rocm-rel-3.1" groups="hipclangdev" />
+    <project remote="gerrit" path="rocminfo"             name="compute/ec/rocminfo"       revision="amd-master"            groups="hipclangdev" />
+    <project remote="gerrit" path="roct-thunk-interface" name="compute/ec/libhsakmt"      revision="amd-staging"           groups="hipclangdev" />
+    <project remote="gerrit" path="rocr-runtime"         name="hsa/ec/hsa-runtime"        revision="amd-master"            groups="hipclangdev" />
+    <project remote="gerrit" path="vdi"                  name="compute/ec/vdi"            revision="amd-master"            groups="hipclangdev" />
+    <project remote="gerrit" path="opencl-on-vdi"        name="compute/ec/opencl"         revision="amd-master-next"       groups="hipclangdev" />
+    <project remote="gerrit" path="hip-on-vdi"           name="compute/ec/hip"            revision="amd-master-next"       groups="hipclangdev" />
+
+
+    <project remote="roctools" path="external/aomp/llvm-project"         name="llvm-project"         revision="rocmaster"       groups="aomp" />
+    <project remote="roctools" path="external/aomp/flang"                name="flang"                revision="rocmaster"       groups="aomp" />
+    <project remote="roctools" path="external/aomp/aomp-extras"          name="aomp-extras"          revision="rocmaster"       groups="aomp" />
+    <project remote="roc"      path="external/aomp/atmi"                 name="atmi"                 revision="rocmaster"       groups="aomp" />
+    <project remote="roc"      path="external/aomp/rocm-compilersupport" name="rocm-compilersupport" revision="roc-3.0.x"       groups="aomp" />
+    <project remote="roc"      path="external/aomp/rocm-device-libs"     name="rocm-device-libs"     revision="roc-ocl-3.1.x"   groups="aomp" />
+    <project remote="roc"      path="external/aomp/rocminfo"             name="rocminfo"             revision="master"          groups="aomp" />
+    <project remote="gerrit"   path="external/aomp/vdi"                  name="compute/ec/vdi"       revision="amd-master"      groups="aomp" />
+    <project remote="gerrit"   path="external/aomp/opencl-on-vdi"        name="compute/ec/opencl"    revision="amd-master-next" groups="aomp" />
+    <project remote="gerrit"   path="external/aomp/hip-on-vdi"           name="compute/ec/hip"       revision="amd-master-next" groups="aomp" />
+
+
+    <project remote="roc"      path="external/aomp/roct-thunk-interface" name="ROCT-Thunk-Interface" revision="roc-3.1.x"       groups="aompdev" />
+    <project remote="roc"      path="external/aomp/rocr-runtime"         name="ROCR-Runtime"         revision="roc-3.0.x"       groups="aompdev" />
+    <project remote="roc"      path="external/aomp/rocminfo"             name="compute/ec/rocminfo"  revision="master"          groups="aompdev" />
+    <project remote="roctools" path="external/aomp/llvm-project"         name="llvm-project"         revision="rocmaster"       groups="aompdev" />
+    <project remote="roctools" path="external/aomp/flang"                name="flang"                revision="rocmaster"       groups="aompdev" />
+    <project remote="roctools" path="external/aomp/aomp-extras"          name="aomp-extras"          revision="rocmaster"       groups="aompdev" />
+    <project remote="roc"      path="external/aomp/atmi"                 name="atmi"                 revision="aomp-0.7-7"      groups="aompdev" />
+    <project remote="roc"      path="external/aomp/rocm-compilersupport" name="ROCm-CompilerSupport" revision="roc-3.1.x"       groups="aompdev" />
+    <project remote="roc"      path="external/aomp/rocm-device-libs"     name="ROCm-Device-Libs"     revision="roc-ocl-3.1.x"   groups="aompdev" />
+    <project remote="gerrit"   path="external/aomp/vdi"                  name="compute/ec/vdi"       revision="amd-master"      groups="aompdev" />
+    <project remote="gerrit"   path="external/aomp/opencl-on-vdi"        name="compute/ec/opencl"    revision="amd-master-next" groups="aompdev" />
+    <project remote="gerrit"   path="external/aomp/hip-on-vdi"           name="compute/ec/hip"       revision="amd-master-next" groups="aompdev" />
+
+
+</manifest>
+
+</manifest>
