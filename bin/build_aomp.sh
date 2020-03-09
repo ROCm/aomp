@@ -88,10 +88,12 @@ elif [ "$AOMP_USE_HIPVDI" != 0 ] ; then
    components="roct rocr project libdevice comgr rocminfo vdi ocl hipvdi atmi extras openmp pgmath flang flang_runtime"
 elif [ "$AOMP_STANDALONE_BUILD" != 1 ] ; then
     # Over time we will reduce the list of components and get aomp to use preinstalled components
-   components="project libdevice comgr rocminfo hip atmi extras openmp pgmath flang flang_runtime"
+   # components="project libdevice comgr rocminfo hip atmi extras openmp pgmath flang flang_runtime"
+   components="project libdevice comgr rocminfo hip atmi extras openmp"
 else
    # The standalone build builds all rocm components and installs in the compiler installation.
-   components="roct rocr project libdevice comgr rocminfo hcc hip atmi extras openmp pgmath flang flang_runtime"
+   # components="roct rocr project libdevice comgr rocminfo hcc hip atmi extras openmp pgmath flang flang_runtime"
+   components="roct rocr project libdevice comgr rocminfo hcc hip atmi extras openmp"
 fi
 
 #Partial build options. Check if argument was given.
