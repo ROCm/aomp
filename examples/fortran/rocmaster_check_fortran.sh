@@ -3,6 +3,8 @@
 # Checks all tests in examples/fortran directory using make check. Programs return 0 for success or a number > 0 for failure.
 #
 
+export AOMP=/opt/rocm/aomp
+
 #Cleanup
 rm -f check-fortran.txt
 rm -f make-fail.txt

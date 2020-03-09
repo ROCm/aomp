@@ -1,0 +1,38 @@
+diff --git a/lib/comgr/src/comgr-disassembly.cpp b/lib/comgr/src/comgr-disassembly.cpp
+index 4ddca10..57cf639 100644
+--- a/lib/comgr/src/comgr-disassembly.cpp
++++ b/lib/comgr/src/comgr-disassembly.cpp
+@@ -138,7 +138,7 @@ amd_comgr_status_t DisassemblyInfo::disassembleInstruction(uint64_t Address,
+   MCInst Inst;
+   std::string Annotations;
+   raw_string_ostream AnnotationsStream(Annotations);
+-  if (DisAsm->getInstruction(Inst, Size, Buffer, Address,
++  if (DisAsm->getInstruction(Inst, Size, Buffer, Address, nulls(),
+                              AnnotationsStream) != MCDisassembler::Success)
+     return AMD_COMGR_STATUS_ERROR;
+ 
+diff --git a/lib/comgr/src/comgr-objdump.cpp b/lib/comgr/src/comgr-objdump.cpp
+index a28ebe1..228f088 100644
+--- a/lib/comgr/src/comgr-objdump.cpp
++++ b/lib/comgr/src/comgr-objdump.cpp
+@@ -1472,6 +1472,11 @@ void llvm::DisassemHelper::DisassembleObject(const ObjectFile *Obj,
+       // COMGR TBD: Get rid of ".text:"??
+       OutS << '\n' << Symbols[si].Name << ":\n";
+ 
++#ifndef NDEBUG
++      raw_ostream &DebugOut = DebugFlag ? dbgs() : nulls();
++#else
++      raw_ostream &DebugOut = nulls();
++#endif
+       for (Index = Start; Index < End; Index += Size) {
+         MCInst Inst;
+ 
+@@ -1593,7 +1598,7 @@ void llvm::DisassemHelper::DisassembleObject(const ObjectFile *Obj,
+         // Disassemble a real instruction or a data when disassemble all is
+         // provided
+         bool Disassembled = DisAsm->getInstruction(
+-            Inst, Size, Bytes.slice(Index), SectionAddr + Index, CommentStream);
++            Inst, Size, Bytes.slice(Index), SectionAddr + Index, DebugOut, CommentStream);
+         if (Size == 0)
+           Size = 1;
+ 
