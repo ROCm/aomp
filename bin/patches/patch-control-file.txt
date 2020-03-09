@@ -1,7 +1,7 @@
 roct-thunk-interface: roct_ppc.patch roct_cmake.patch roct_ppc_fmm.patch
 rocr-runtime: rocr-runtime.patch rocr-runtime-ppcpages.patch rocr_include.patch rocr_define_ndebug.patch
 rocm-device-libs: devicelibs_2-10_revert_1d2127c.patch
-rocm-compilersupport: useOldSectionNameMethod.patch comgr_2-10_revert_15854f1_2d67c80_8f6fd6a.patch comgr_3-0_revert_db46b9b_cb9d7cd_7665c20.patch comgr_fix_dym.patch 
+rocm-compilersupport: useOldSectionNameMethod.patch comgr_2-10_revert_15854f1_2d67c80_8f6fd6a.patch comgr_3-0_revert_db46b9b_cb9d7cd_7665c20.patch comgr-3-1_revert_733ad09.patch comgr_3-1_revert_300f744.patch comgr_fix_dym.patch
 hcc: hcc_ppc_fp16.patch
 hip:
 hip-on-vdi: hip-on-vdi.patch

@@ -6,7 +6,7 @@ ifeq ($(AOMP),)
   AOMP = /usr/lib/aomp
 endif
 
-CFLAGS = -c -std=c++11 -D__HIP_PLATFORM_HCC__
+CFLAGS = -c -std=c++11 -D__HIP_PLATFORM_HCC__ -I$(AOMP)/../include
 # Set the rpath to pick up AOMP libs in case rocm was installed.
 LFLAGS = -L$(AOMP)/lib -lhip_hcc -Wl,-rpath,$(AOMP)/lib
 # find the current gpu, default to vega10 if unknown
