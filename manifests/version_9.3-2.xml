@@ -10,28 +10,28 @@
     <remote name="roc"         fetch="https://github.com/RadeonOpenCompute/" />
     <remote name="roclib"      fetch="https://github.com/AMDComputeLibraries/" />
 
-    <project remote="roctools" path="aomp"                 name="aomp"                 revision="master"         groups="roccdev" />
-    <project remote="roctools" path="llvm-project"         name="llvm-project"         revision="rocmaster-stg"  groups="roccdev" />
-    <project remote="roctools" path="flang"                name="flang"                revision="rocmaster-stg"  groups="roccdev" />
-    <project remote="roctools" path="aomp-extras"          name="aomp-extras"          revision="rocmaster-stg"  groups="roccdev" />
-    <project remote="roc"      path="roct-thunk-interface" name="ROCT-Thunk-Interface" revision="roc-3.1.x"      groups="roccdev" />
-    <project remote="roc"      path="rocr-runtime"         name="ROCR-Runtime"         revision="roc-3.0.x"      groups="roccdev" />
-    <project remote="roc"      path="rocminfo"             name="rocminfo"             revision="master"         groups="roccdev" />
-    <project remote="roc"      path="atmi"                 name="atmi"                 revision="aomp-0.7-6"     groups="roccdev" />
-    <project remote="roc"      path="rocm-compilersupport" name="ROCm-CompilerSupport" revision="roc-3.1.x"      groups="roccdev" />
-    <project remote="roc"      path="rocm-device-libs"     name="ROCm-Device-Libs"     revision="roc-ocl-3.1.x"  groups="roccdev" />
-    <project remote="roc"      path="hcc"                  name="hcc"                  revision="roc-3.1.x"      groups="roccdev" />
-    <project remote="roctools" path="hip"                  name="HIP"                  revision="roc-3.0.x"      groups="roccdev" />
+    <project remote="roctools" path="aomp"                 name="aomp"                 revision="master"         groups="aompdev" />
+    <project remote="roctools" path="llvm-project"         name="llvm-project"         revision="rocmaster-stg"  groups="aompdev" />
+    <project remote="roctools" path="flang"                name="flang"                revision="rocmaster-stg"  groups="aompdev" />
+    <project remote="roctools" path="aomp-extras"          name="aomp-extras"          revision="rocmaster-stg"  groups="aompdev" />
+    <project remote="roc"      path="roct-thunk-interface" name="ROCT-Thunk-Interface" revision="roc-3.1.x"      groups="aompdev" />
+    <project remote="roc"      path="rocr-runtime"         name="ROCR-Runtime"         revision="roc-3.0.x"      groups="aompdev" />
+    <project remote="roc"      path="rocminfo"             name="rocminfo"             revision="master"         groups="aompdev" />
+    <project remote="roc"      path="atmi"                 name="atmi"                 revision="aomp-0.7-6"     groups="aompdev" />
+    <project remote="roc"      path="rocm-compilersupport" name="ROCm-CompilerSupport" revision="roc-3.1.x"      groups="aompdev" />
+    <project remote="roc"      path="rocm-device-libs"     name="ROCm-Device-Libs"     revision="roc-ocl-3.1.x"  groups="aompdev" />
+    <project remote="roc"      path="hcc"                  name="hcc"                  revision="roc-3.1.x"      groups="aompdev" />
+    <project remote="roctools" path="hip"                  name="HIP"                  revision="roc-3.0.x"      groups="aompdev" />
 
-    <project remote="roctools" path="external/rocc/aomp"                 name="aomp"                 revision="master"         groups="rocc" />
-    <project remote="roctools" path="external/rocc/llvm-project"         name="llvm-project"         revision="rocmaster-stg"  groups="rocc" />
-    <project remote="roctools" path="external/rocc/flang"                name="flang"                revision="rocmaster-stg"  groups="rocc" />
-    <project remote="roctools" path="external/rocc/aomp-extras"          name="aomp-extras"          revision="rocmaster-stg"  groups="rocc" />
-    <project remote="roc"      path="external/rocc/rocminfo"             name="rocminfo"             revision="master"         groups="rocc" />
-    <project remote="roc"      path="external/rocc/atmi"                 name="atmi"                 revision="aomp-0.7-6"     groups="rocc" />
-    <project remote="roc"      path="external/rocc/rocm-compilersupport" name="ROCm-CompilerSupport" revision="roc-3.1.x"      groups="rocc" />
-    <project remote="roc"      path="external/rocc/rocm-device-libs"     name="ROCm-Device-Libs"     revision="roc-ocl-3.1.x"  groups="rocc" />
-    <project remote="roctools" path="external/rocc/hip"                  name="HIP"                  revision="roc-3.0.x"      groups="rocc" />
+    <project remote="roctools" path="external/aomp/aomp"                 name="aomp"                 revision="master"         groups="aomp" />
+    <project remote="roctools" path="external/aomp/llvm-project"         name="llvm-project"         revision="rocmaster-stg"  groups="aomp" />
+    <project remote="roctools" path="external/aomp/flang"                name="flang"                revision="rocmaster-stg"  groups="aomp" />
+    <project remote="roctools" path="external/aomp/aomp-extras"          name="aomp-extras"          revision="rocmaster-stg"  groups="aomp" />
+    <project remote="roc"      path="external/aomp/rocminfo"             name="rocminfo"             revision="master"         groups="aomp" />
+    <project remote="roc"      path="external/aomp/atmi"                 name="atmi"                 revision="aomp-0.7-6"     groups="aomp" />
+    <project remote="roc"      path="external/aomp/rocm-compilersupport" name="ROCm-CompilerSupport" revision="roc-3.1.x"      groups="aomp" />
+    <project remote="roc"      path="external/aomp/rocm-device-libs"     name="ROCm-Device-Libs"     revision="roc-ocl-3.1.x"  groups="aomp" />
+    <project remote="roctools" path="external/aomp/hip"                  name="HIP"                  revision="roc-3.0.x"      groups="aomp" />
 
 </manifest>
 
