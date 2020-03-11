@@ -32,11 +32,7 @@ endif
 # --- End Standard Makefile check for AOMP installation ---
 INSTALLED_GPU  = $(shell $(AOMP)/bin/mygpu -d gfx900)# Default AOMP_GPU is gfx900 which is vega
 AOMP_GPU       ?= $(INSTALLED_GPU)
-ifeq ($(RAJA_USE_HIP),1)
-CC 		= $(AOMP)/bin/hipcc
-else
 CC              = $(AOMP)/bin/clang++
-endif
 AOMP_GPUTARGET = amdgcn-amd-amdhsa
 export PATH := $(AOMP)/bin:$(PATH)
 RAJA_BUILD_PREFIX ?= $(HOME)
@@ -53,11 +49,7 @@ endif
 RAJA_SRC = $(HOME)/git/aomp/raja
 
 # Sorry, clang openmp requires these complex options
-ifeq ($(RAJA_USE_HIP),1)
-CPPFLAGS = -DRAJA_USE_HIP -c -O2 -I$(RAJA_SRC)/include  -I$(RAJA_BUILD_DIR)/include -I$(RAJA_SRC)/tpl/camp/include -I$(RAJA_SRC)/tpl/rocPRIM/rocprim/include
-else
 CPPFLAGS = -w -O3 -target $(AOMP_CPUTARGET) -fopenmp -fopenmp-targets=$(AOMP_GPUTARGET) -Xopenmp-target=$(AOMP_GPUTARGET) -march=$(AOMP_GPU) -I$(RAJA_SRC)/include  -I$(RAJA_BUILD_DIR)/include -I$(RAJA_SRC)/tpl/camp/include
-endif
 
 ifeq ($(OFFLOAD_DEBUG),1)
   $(info    DEBUG Mode ON)
@@ -76,23 +68,11 @@ ifeq ($(TEMPS),1)
 endif
 
 CPPFLAGS += $(EXTRA_CPPFLAGS)
-LDHELPER	= $(AOMP)/bin/hipcc_cmake_linker_helper
-LIBS = $(RAJA_BUILD_DIR)/lib/libRAJA.a
-LLD 		= $(AOMP)/bin/clang++
-LFLAGS          =
 
 # ----- Demo compile and link in one step, no object code saved
 
-ifeq ($(RAJA_USE_HIP),1)
-$(TESTNAME): $(TESTNAME).o
-	$(LDHELPER) $(LLD) $(TESTNAME).o $(LIBS) -o $@
-else
 $(TESTNAME): $(RAJA_BUILD_DIR) $(TESTSRC)
-	$(CCENV) $(CC) $(CPPFLAGS) $(LFLAGS) $(TESTSRC) $(LIBS) -o $@
-endif
-
-$(TESTNAME).o: $(RAJA_BUILD_DIR) $(TESTSRC)
-	$(CCENV) $(CC) $(CPPFLAGS)  $(TESTSRC) -o $@
+	$(CCENV) $(CC) $(CPPFLAGS) $(LFLAGS) $(TESTSRC) -o $@
 
 run: $(TESTNAME) 
 	$(RUNENV) ./$(TESTNAME)
