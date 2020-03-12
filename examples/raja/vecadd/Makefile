@@ -68,11 +68,14 @@ ifeq ($(TEMPS),1)
 endif
 
 CPPFLAGS += $(EXTRA_CPPFLAGS)
+LIBS = $(RAJA_BUILD_DIR)/lib/libRAJA.a
+LLD     = $(AOMP)/bin/clang++
+LFLAGS          =
 
 # ----- Demo compile and link in one step, no object code saved
 
 $(TESTNAME): $(RAJA_BUILD_DIR) $(TESTSRC)
-	$(CCENV) $(CC) $(CPPFLAGS) $(LFLAGS) $(TESTSRC) -o $@
+	$(CCENV) $(CC) $(CPPFLAGS) $(LFLAGS) $(TESTSRC) $(LIBS) -o $@
 
 run: $(TESTNAME) 
 	$(RUNENV) ./$(TESTNAME)
