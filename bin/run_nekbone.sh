@@ -27,7 +27,8 @@ thisdir=$(getdname $0)
 . $thisdir/aomp_common_vars
 # --- end standard header ----
 
-AOMP_GPU=`$AOMP/bin/mygpu`
+export AOMP_GPU=`$AOMP/bin/mygpu`
+echo AOMP_GPU = $AOMP_GPU
 #patchloc=$thisdir/patches
 #patchdir=$AOMP_REPOS_TEST/$AOMP_IAPPS_REPO_NAME
 #patchrepo
