@@ -8,18 +8,10 @@
 export AOMP=/opt/rocm/aomp
 
 cleanup(){
-  if [ -e check-smoke.txt ]; then
-    rm check-smoke.txt
-  fi
-  if [ -e passing-tests.txt ]; then
-    rm passing-tests.txt
-  fi
-  if [ -e failing-tests.txt ]; then
-    rm failing-tests.txt
-  fi
-  if [ -e make-fail.txt ]; then
-    rm make-fail.txt
-  fi
+  rm -rf check-smoke.txt
+  rm -rf passing-tests.txt
+  rm -rf failing-tests.txt
+  rm -rf make-fail.txt
 }
 
 #Clean all testing directories
@@ -33,10 +25,9 @@ echo ""
 
 echo "************************************************************************************" > check-smoke.txt
 echo "                   A non-zero exit code means a failure occured." >> check-smoke.txt
-echo "Tests that need to be visually inspected: devices, pfspecify, pfspecify_str, stream" >> check-smoke.txt
 echo "***********************************************************************************" >> check-smoke.txt
 
-skiptests="devices pfspecifier pfspecifier_str target_teams_reduction hip_device_compile red_bug_51 OmpHipMallocManaged tasks"
+skiptests="devices pfspecifier pfspecifier_str target_teams_reduction hip_rocblas red_bug_51 tasks omp_lock reduction_array_section"
 
 #Loop over all directories and make run / make check depending on directory name
 for directory in ./*/; do
