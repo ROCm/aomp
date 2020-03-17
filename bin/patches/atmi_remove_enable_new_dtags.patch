@@ -1,0 +1,24 @@
+diff --git a/src/compiler/CMakeLists.txt b/src/compiler/CMakeLists.txt
+index ab80a46..c3a0950 100644
+--- a/src/compiler/CMakeLists.txt
++++ b/src/compiler/CMakeLists.txt
+@@ -87,7 +87,6 @@ if(ROCM_FOUND)
+                 atmi_cplugin
+                 ${ROCM_LIBRARIES}
+                 -L${ROCM_LIBRARIES_DIR}/../hsa/lib -L${ROCM_LIBRARIES_DIR}
+-                -Wl,--enable-new-dtags
+                 -Wl,-rpath,\$ORIGIN
+                 -Wl,-rpath,\$ORIGIN/../../hsa/lib -Wl,-rpath,\$ORIGIN/../../lib
+             )
+diff --git a/src/runtime/core/CMakeLists.txt b/src/runtime/core/CMakeLists.txt
+index 29abffb..4b6468f 100644
+--- a/src/runtime/core/CMakeLists.txt
++++ b/src/runtime/core/CMakeLists.txt
+@@ -111,7 +111,6 @@ target_link_libraries(
+   ${ROCM_LIBRARIES}
+   -L${ROCM_LIBRARIES_DIR}/../hsa/lib
+   -L${ROCM_LIBRARIES_DIR}
+-  -Wl,--enable-new-dtags
+   -Wl,-rpath,\$ORIGIN
+   -Wl,-rpath,\$ORIGIN/../../hsa/lib
+   -Wl,-rpath,\$ORIGIN/../../lib
