@@ -67,6 +67,9 @@ if [ "$1" == "install" ] ; then
 fi
 
 export LLVM_DIR=$AOMP_INSTALL_DIR
+patchloc=$thisdir/patches
+patchdir=$AOMP_REPOS/$AOMP_ATMI_REPO_NAME
+patchrepo
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then 
 
    echo " " 
@@ -145,4 +148,5 @@ if [ "$1" == "install" ] ; then
          echo "ERROR make install failed "
          exit 1
       fi
+      removepatch
 fi
