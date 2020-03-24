@@ -93,7 +93,7 @@ else
       else
          # With AOMP 11, ROCM integrated build will not need roct rocr libdevice comgr and rocminfo
          #               In the future, when ROCm build vdi and hipvdi we can remove them
-         components="project rocminfo vdi hipvdi atmi extras openmp pgmath flang flang_runtime"
+         components="project vdi hipvdi atmi extras openmp pgmath flang flang_runtime"
       fi
    else
       if [ "$AOMP_STANDALONE_BUILD" == 1 ] ; then
