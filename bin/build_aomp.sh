@@ -84,17 +84,26 @@ echo " =================  START build_aomp.sh ==================="
 echo 
 if [ -n "$AOMP_JENKINS_BUILD_LIST" ] ; then
    components=$AOMP_JENKINS_BUILD_LIST
-elif [ "$AOMP_USE_HIPVDI" != 0 ] ; then
-   components="roct rocr project libdevice comgr rocminfo vdi ocl hipvdi atmi extras openmp pgmath flang flang_runtime"
-elif [ "$AOMP_STANDALONE_BUILD" != 1 ] ; then
-    # Over time we will reduce the list of components and get aomp to use preinstalled components
-   # components="project libdevice comgr rocminfo hip atmi extras openmp pgmath flang flang_runtime"
-   components="project libdevice comgr rocminfo hip atmi extras openmp"
 else
-   # The standalone build builds all rocm components and installs in the compiler installation.
-   components="roct rocr project libdevice comgr rocminfo hcc hip atmi extras openmp pgmath flang flang_runtime"
-   #components="roct rocr project libdevice comgr rocminfo hcc hip atmi extras openmp"
+   if [ "$AOMP_USE_HIPVDI" == 1 ] ; then
+      if [ "$AOMP_STANDALONE_BUILD" == 1 ] ; then
+         # There is no good external repo for the opencl runtime but we only need the headers for build_vdi.sh
+	 # So build_ocl.sh is currently not called.
+         components="roct rocr project libdevice comgr rocminfo vdi hipvdi atmi extras openmp pgmath flang flang_runtime"
+      else
+         # With AOMP 11, ROCM integrated build will not need roct rocr libdevice comgr and rocminfo
+         #               In the future, when ROCm build vdi and hipvdi we can remove them
+         components="project rocminfo vdi hipvdi atmi extras openmp pgmath flang flang_runtime"
+      fi
+   else
+      if [ "$AOMP_STANDALONE_BUILD" == 1 ] ; then
+         components="roct rocr project libdevice comgr rocminfo hcc hip atmi extras openmp pgmath flang flang_runtime"
+      else
+         components="project rocminfo hip atmi extras openmp pgmath flang flang_runtime"
+      fi
+   fi
 fi
+echo "COMPONENS:$components"
 
 #Partial build options. Check if argument was given.
 if [ -n "$1" ] ; then

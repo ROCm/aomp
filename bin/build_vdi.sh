@@ -106,7 +106,8 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
  # We set OPENCL_INCLUDE_DIR to find the headers from the AOMP opencl repository.
 
   MYCMAKEOPTS="$AOMP_ORIGIN_RPATH -DCMAKE_BUILD_TYPE=$BUILDTYPE -DCMAKE_INSTALL_PREFIX=$AOMP_INSTALL_DIR \
-  -DOPENCL_DIR=$AOMP_REPOS/$AOMP_OCL_REPO_NAME \
+  -DUSE_COMGR_LIBRARY=yes \
+  -DOPENCL_DIR=$AOMP_REPOS/$AOMP_OCL_REPO_NAME/api/opencl \
   -DCMAKE_MODULE_PATH=$ROCM_DIR/cmake \
   -DCMAKE_PREFIX_PATH=$ROCM_DIR/include "
 

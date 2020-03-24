@@ -138,7 +138,6 @@ fi
 # The following repos are in RadeonOpenCompute
 # ---------------------------------------
 repo_web_location=$GITROC
-
 reponame=$AOMP_LIBDEVICE_REPO_NAME
 repogitname=$AOMP_LIBDEVICE_REPO_NAME
 COBRANCH=$AOMP_LIBDEVICE_REPO_BRANCH
@@ -159,13 +158,6 @@ repogitname=$AOMP_ATMI_REPO_NAME
 COBRANCH=$AOMP_ATMI_REPO_BRANCH
 clone_or_pull
 
-if [ "$AOMP_USE_HIPVDI" == 0 ] ; then
-reponame=$AOMP_HCC_REPO_NAME
-repogitname=$AOMP_HCC_REPO_NAME
-COBRANCH=$AOMP_HCC_REPO_BRANCH
-clone_or_pull
-fi
-
 reponame=$AOMP_COMGR_REPO_NAME
 repogitname=$AOMP_COMGR_REPO_NAME
 COBRANCH=$AOMP_COMGR_REPO_BRANCH
@@ -176,24 +168,26 @@ repogitname=$AOMP_RINFO_REPO_NAME
 COBRANCH=$AOMP_RINFO_REPO_BRANCH
 clone_or_pull
 
-if [ "$AOMP_USE_HIPVDI" == 1 ] ; then
-ping -c 1 $AOMP_INTERNAL_IP 2>/dev/null
-if [ $? == 0 ] ; then
-   # ---------------------------------------
-   # The following repos are internal to AMD
-   # ---------------------------------------
-   repo_web_location=$GITAMDINTERNAL
+if [ "$AOMP_USE_HIPVDI" == 0 ] ; then
+   repo_web_location=$GITROC
+   reponame=$AOMP_HCC_REPO_NAME
+   repogitname=$AOMP_HCC_REPO_NAME
+   COBRANCH=$AOMP_HCC_REPO_BRANCH
+   clone_or_pull
+else
+   repo_web_location=$GITROCDEV
    reponame=$AOMP_VDI_REPO_NAME
-   repogitname=$AOMP_VDI_REPO_NAME
+   repogitname=$AOMP_VDI_REPO_GITNAME
    COBRANCH=$AOMP_VDI_REPO_BRANCH
    clone_or_pull
-   reponame=$AOMP_OCL_REPO_NAME
-   repogitname=$AOMP_OCL_REPO_GITNAME
-   COBRANCH=$AOMP_OCL_REPO_BRANCH
-   clone_or_pull
+   repo_web_location=$GITROCDEV
    reponame=$AOMP_HIPVDI_REPO_NAME
    repogitname=$AOMP_HIPVDI_REPO_GITNAME
    COBRANCH=$AOMP_HIPVDI_REPO_BRANCH
    clone_or_pull
-fi
+   repo_web_location=$GITROC
+   reponame=$AOMP_OCL_REPO_NAME
+   repogitname=$AOMP_OCL_REPO_GITNAME
+   COBRANCH=$AOMP_OCL_REPO_BRANCH
+   clone_or_pull
 fi
