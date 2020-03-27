@@ -1,6 +1,6 @@
 // MIT License
 //
-// Copyright (c) 2017 Advanced Micro Devices, Inc. All Rights Reserved.
+// Copyright (c) 2020 Advanced Micro Devices, Inc. All Rights Reserved.
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -27,17 +27,18 @@
 
 #define N 10
 
-extern "C" __device__ void inc_arrayval(int i, int *array) ;
+// Get headers for demo library _mylib
+#include "_mylib.h"
 
+//  HIP kernel that uses functions in the _mylib SDL
 __global__ void writeIndex(int *b, int n) {
   int i = hipBlockIdx_x;
   if (i < n) {
     b[i] = i;
     inc_arrayval(i, b ) ;
+    dec_arrayval(i, b ) ;
   }
 }
-
-__global__ void writeIndex(int *b, int n);
 
 void printArray(int *array) {
   printf("[");
