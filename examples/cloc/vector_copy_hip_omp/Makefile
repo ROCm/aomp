@@ -40,7 +40,7 @@ endif
 
 ifeq ($(TEMPS),1)
   $(info    Compilation and linking save-temp Mode ON)
-  CFLAGS += -save-temps -fopenmp-dump-offload-linker-script
+  CFLAGS += -save-temps
 endif
 
 ifeq (sm_,$(findstring sm_,$(AOMP_GPU)))
