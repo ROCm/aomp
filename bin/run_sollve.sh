@@ -46,5 +46,5 @@ make CC=$AOMP/bin/clang CXX=$AOMP/bin/clang++ FC=$AOMP/bin/flang CFLAGS="-lm $MY
 
 
 make report_html
-
+make report_summary
 removepatch
