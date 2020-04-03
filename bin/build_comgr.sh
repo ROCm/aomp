@@ -65,10 +65,7 @@ if [ "$1" == "install" ] ; then
    $SUDO rm $INSTALL_COMGR/testfile
 fi
 
-   # FIXME: Remove this comgr patch when aomp gets to llvm-10
-   patchloc=$thisdir/patches
-   patchdir=$REPO_DIR
-   patchrepo
+patchrepo $REPO_DIR
 
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 
@@ -117,8 +114,5 @@ if [ "$1" == "install" ] ; then
          echo "ERROR make install failed "
          exit 1
       fi
-      # FIXME: Remove this comgr patch when aomp gets to llvm-10
-      patchloc=$thisdir/patches
-      patchdir=$REPO_DIR
-      removepatch
+      removepatch $REPO_DIR
 fi

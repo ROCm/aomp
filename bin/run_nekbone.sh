@@ -28,9 +28,6 @@ thisdir=$(getdname $0)
 # --- end standard header ----
 
 AOMP_GPU=`$AOMP/bin/mygpu`
-#patchloc=$thisdir/patches
-#patchdir=$AOMP_REPOS_TEST/$AOMP_IAPPS_REPO_NAME
-#patchrepo
 
 cd $AOMP_REPOS_TEST/openmpapps/Nekbone
 cd test/example3
@@ -38,4 +35,3 @@ make clean
 PATH=$AOMP/bin/:$PATH ./mymakenek
 LIBOMPTARGET_KERNEL_TRACE=1 ./nekbone
 
-#removepatch

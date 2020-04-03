@@ -89,9 +89,7 @@ if [ "$1" == "install" ] ; then
    $SUDO rm $AOMP_INSTALL_DIR/testfile
 fi
 
-patchloc=$thisdir/patches
-patchdir=$AOMP_REPOS/$AOMP_HIPVDI_REPO_NAME
-patchrepo
+patchrepo $AOMP_REPOS/$AOMP_HIPVDI_REPO_NAME
 
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 
@@ -163,7 +161,5 @@ if [ "$1" == "install" ] ; then
       exit 1
    fi
 
-   patchloc=$thisdir/patches
-   patchdir=$AOMP_REPOS/$AOMP_HIPVDI_REPO_NAME
-   removepatch
+   removepatch $AOMP_REPOS/$AOMP_HIPVDI_REPO_NAME
 fi

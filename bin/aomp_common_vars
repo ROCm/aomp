@@ -15,7 +15,7 @@
 AOMP_COMPILER_NAME=${AOMP_COMPILER_NAME:-AOMP}
 
 # ROCM_VERSION may be set by Jenkins, if not guess a good number
-ROCM_VERSION=${ROCM_VERSION:-3.1.0}
+ROCM_VERSION=${ROCM_VERSION:-3.4.0}
 
 # Set the AOMP VERSION STRING and AOMP_PROJECT_REPO_BRANCH.
 AOMP_VERSION=${AOMP_VERSION:-"11.0"}
@@ -150,10 +150,10 @@ AOMP_FLANG_REPO_BRANCH=${AOMP_FLANG_REPO_BRANCH:-amd-stg-openmp}
 
 #  These extra repositories are needed but we cannot update them
 AOMP_ROCT_REPO_NAME=${AOMP_ROCT_REPO_NAME:-roct-thunk-interface}
-AOMP_ROCT_REPO_BRANCH=${AOMP_ROCT_REPO_BRANCH:-roc-3.1.x}
+AOMP_ROCT_REPO_BRANCH=${AOMP_ROCT_REPO_BRANCH:-roc-3.3.x}
 AOMP_ROCT_COMPONENT_NAME=${AOMP_ROCT_COMPONENT_NAME:-roct}
 AOMP_ROCR_REPO_NAME=${AOMP_ROCR_REPO_NAME:-rocr-runtime}
-AOMP_ROCR_REPO_BRANCH=${AOMP_ROCR_REPO_BRANCH:-roc-3.1.x}
+AOMP_ROCR_REPO_BRANCH=${AOMP_ROCR_REPO_BRANCH:-rocm-3.3.x}
 AOMP_ROCR_COMPONENT_NAME=${AOMP_ROCR_COMPONENT_NAME:-rocr}
 AOMP_LIBDEVICE_REPO_NAME=${AOMP_LIBDEVICE_REPO_NAME:-rocm-device-libs}
 AOMP_LIBDEVICE_COMPONENT_NAME=${AOMP_LIBDEVICE_COMPONENT_NAME:-rocdl}
@@ -196,7 +196,7 @@ GITINTERNAL="http://${AOMP_INTERNAL_IP}/dmcdouga"  # This will change soon
 AOMP_F18_REPO_NAME=${AOMP_F18_REPO_NAME:-f18}
 AOMP_F18_REPO_BRANCH=${AOMP_F18_REPO_BRANCH:-master}
 
-AOMP_PATCH_CONTROL_FILE=${AOMP_PATCH_CONTROL_FILE:-${AOMP_REPOS}/${AOMP_REPO_NAME}/bin/patches/patch-control-file-trunk.txt}
+AOMP_PATCH_CONTROL_FILE=${AOMP_PATCH_CONTROL_FILE:-${AOMP_REPOS}/${AOMP_REPO_NAME}/bin/patches/patch-control-file.txt}
 
 STASH_BEFORE_PULL=${STASH_BEFORE_PULL:-YES}
 
@@ -275,11 +275,12 @@ function checkrepo(){
 
 #  TO use this function set variables patchdir and patchfile
 function patchrepo(){
+patchdir=$1
 if [ "$AOMP_APPLY_ROCM_PATCHES" == 1 ] && [ -d "$patchdir" ] ; then
    patches=""
    cd $patchdir
-   if [[ "$1" =~ "postinstall" ]]; then
-     getpatchlist $1
+   if [[ "$2" =~ "postinstall" ]]; then
+     getpatchlist $2
    else
      getpatchlist
    fi
@@ -320,12 +321,15 @@ fi
 }
 
 function removepatch(){
+patchdir=$1
 if [ "$AOMP_APPLY_ROCM_PATCHES" == 1 ] && [ -d "$patchdir" ] ; then
-   echo "Patchdir $patchdir"
    patches=""
    cd $patchdir
    getpatchlist
-   echo "PATCHES TO REMOVE: $patches"
+   if [ "$patches" != "" ] ; then
+      echo "Patchdir $patchdir"
+      echo "PATCHES TO REMOVE: $patches"
+   fi
    patchloc=${AOMP_PATCH_CONTROL_FILE%/*}
    if [ "$patches" != "" ] ; then
    for patch in $patches; do

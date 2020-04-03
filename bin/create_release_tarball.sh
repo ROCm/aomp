@@ -39,8 +39,7 @@ patchloc=$thisdir/patches
 export IFS=" "
 for repo_name in $REPO_NAMES
 do
-   patchdir=$AOMP_REPOS/$repo_name
-   patchrepo
+   patchrepo $AOMP_REPOS/$repo_name
 done
 
 # Make the tarball from the parent of the aomp directory that contains all the git
@@ -60,8 +59,7 @@ echo
 
 for repo_name in $REPO_NAMES
 do
-   patchdir=$AOMP_REPOS/$repo_name
-   removepatch
+   removepatch $AOMP_REPOS/$repo_name
 done
 
 

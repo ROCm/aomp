@@ -29,9 +29,7 @@ thisdir=$(getdname $0)
 
 AOMP_GPU=`$AOMP/bin/mygpu`
 export MY_SOLLVE_FLAGS="-fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$AOMP_GPU"
-patchloc=$thisdir/patches
-patchdir=$AOMP_REPOS_TEST/$AOMP_SOLVV_REPO_NAME
-patchrepo
+patchrepo $AOMP_REPOS_TEST/$AOMP_SOLVV_REPO_NAME
 
 cd $AOMP_REPOS_TEST/$AOMP_SOLVV_REPO_NAME
 
@@ -47,4 +45,4 @@ make CC=$AOMP/bin/clang CXX=$AOMP/bin/clang++ FC=$AOMP/bin/flang CFLAGS="-lm $MY
 
 make report_html
 make report_summary
-removepatch
+removepatch $AOMP_REPOS_TEST/$AOMP_SOLVV_REPO_NAME
