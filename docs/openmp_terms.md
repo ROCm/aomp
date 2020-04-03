@@ -2,9 +2,9 @@
 
 |Term|OpenMP|CUDA|HIP|HC|C++AMP|OpenCL|
 |---|---|---|---|---|---|---|
-|Device|device<br>clause|`int deviceId`|`int deviceId`|`hc::accelerator`|`concurrency::`<br>`accelerator`|`cl_device`
+|Device|[device<br>directives](https://www.openmp.org/spec-html/5.0/openmpse20.html#x81-2520002.12)|`int deviceId`|`int deviceId`|`hc::accelerator`|`concurrency::`<br>`accelerator`|`cl_device`
 |Queue|NA|`cudaStream_t`|`hipStream_t`|`hc::`<br>`accelerator_view`|`concurrency::`<br>`accelerator_view`|`cl_command_queue`
-|Event|depends<br>clause|`cudaEvent_t`|`hipEvent_t`|`hc::`<br>`completion_future`|`concurrency::`<br>`completion_future`|`cl_event`
+|Event|[depend<br>clause](https://www.openmp.org/spec-html/5.0/openmpsu99.html#x130-5160002.17.11)|`cudaEvent_t`|`hipEvent_t`|`hc::`<br>`completion_future`|`concurrency::`<br>`completion_future`|`cl_event`
 |Memory| |`void *`|`void *`|`void *`; `hc::array`; `hc::array_view`|`concurrency::array`;<br>`concurrency::array_view`|`cl_mem`
 |||||
 | |NA | grid|grid|extent|extent|NDRange
@@ -12,26 +12,26 @@
 | |thread |thread|thread|thread|thread|work-item
 | |team |warp|warp|wavefront|N/A|sub-group
 |||||
-|Thread-<br>index |omp_get_thread_num() |  threadIdx.x | hipThreadIdx_x | t_idx.local[0] | t_idx.local[0] | get_local_id(0) |
-|Block-<br>index  |omp_get_team_num() | blockIdx.x  | hipBlockIdx_x  | t_idx.tile[0]  | t_idx.tile[0]  | get_group_id(0) |
+|Thread-<br>index |[omp_get_thread_num()](https://www.openmp.org/spec-html/5.0/openmpsu113.html#x150-6570003.2.4)|  threadIdx.x | hipThreadIdx_x | t_idx.local[0] | t_idx.local[0] | get_local_id(0) |
+|Block-<br>index  |[omp_get_team_num()](https://www.openmp.org/spec-html/5.0/openmpsu148.html#x185-8700003.2.39)| blockIdx.x  | hipBlockIdx_x  | t_idx.tile[0]  | t_idx.tile[0]  | get_group_id(0) |
 |Block-<br>dim    |NA | blockDim.x  | hipBlockDim_x  | t_ext.tile_dim[0]| t_idx.tile_dim0 | get_local_size(0) |
-|Grid-dim     |omp_get_num_teams()<br>*omp_get_num_threads() | gridDim.x   | hipGridDim_x   | t_ext[0]| t_ext[0] | get_global_size(0) |
+|Grid-dim     |FIXME|<br>*omp_get_num_threads() | gridDim.x   | hipGridDim_x   | t_ext[0]| t_ext[0] | get_global_size(0) |
 |||||
-|Device Kernel| target region| `__global__`|`__global__`|lambda inside `hc::`<br>`parallel_for_each` or [[hc]]|`restrict(amp)`|`__kernel`
-|Device Function| declare target | `__device__`|`__device__`|`[[hc]]` (detected automatically in many case)|`restrict(amp)`|Implied in device compilation
+|Device Kernel|[target<br>construct](https://www.openmp.org/spec-html/5.0/openmpsu60.html#x86-2820002.12.5)| `__global__`|`__global__`|lambda inside `hc::`<br>`parallel_for_each` or [[hc]]|`restrict(amp)`|`__kernel`
+|Device Function|[declare<br>target](https://www.openmp.org/spec-html/5.0/openmpsu62.html#x88-2980002.12.7)| `__device__`|`__device__`|`[[hc]]` (detected automatically in many case)|`restrict(amp)`|Implied in device compilation
 |Host Function| | `__host_` (default)|`__host_` (default)|`[[cpu]]`  (default)|`restrict(cpu)` (default)|Implied in host compilation.
 |Host + Device Function| |`__host__` `__device__`|`__host__` `__device__`|  `[[hc]]` `[[cpu]]`|`restrict(amp,cpu)`|No equivalent
 |Kernel Launch| target construct |`<<< >>>`| `hipLaunchKernel`|`hc::`<br>`parallel_for_each`|`concurrency::`<br>`parallel_for_each`|`clEnqueueNDRangeKernel`
 ||||||
-|Global Memory|FIXME | `__global__`|`__global__`|Unnecessary / Implied|Unnecessary / Implied|`__global`
-|Group Memory| FIXME | `__shared__`|`__shared__`|`tile_static`|`tile_static`|`__local`
+|Global Memory|FIXME| `__global__`|`__global__`|Unnecessary / Implied|Unnecessary / Implied|`__global`
+|Group Memory|FIXME| `__shared__`|`__shared__`|`tile_static`|`tile_static`|`__local`
 |Constant|FIXME| `__constant__`|`__constant__`|Unnecessary / Implied|Unnecessary / Implied|`__constant`
 ||||||
-Thread sync|[barrier<br>construct] (https://www.openmp.org/spec-html/5.0/openmpsu90.html#x121-4550002.17.2)|`__syncthreads`|`__syncthreads`|`tile_static.barrier()`|`t_idx.barrier()`|`barrier(CLK_LOCAL_MEMFENCE)`
+Thread sync|[barrier<br>construct](https://www.openmp.org/spec-html/5.0/openmpsu90.html#x121-4550002.17.2)|`__syncthreads`|`__syncthreads`|`tile_static.barrier()`|`t_idx.barrier()`|`barrier(CLK_LOCAL_MEMFENCE)`
 |Atomic Builtins|[atomic<br>construct](https://www.openmp.org/spec-html/5.0/openmpsu95.html#x126-4840002.17.7) | `atomicAdd`|`atomicAdd`|`hc::atomic_fetch_add`|`concurrency::`<br>`atomic_fetch_add`|`atomic_add`
-|Precise Math| FIXME | `cos(f)`| `cos(f)`|`hc::`<br>`precise_math::cos(f)`|`concurrency::`<br>`precise_math::cos(f)`|`cos(f)`
-|Fast Math| FIXME | `__cos(f)`|`__cos(f)`|`hc::`<br>`fast_math::cos(f)`|`concurrency::`<br>`fast_math::cos(f)`|`native_cos(f)`
-|Vector| FIXME | `float4`|`float4`|`hc::`<br>`short_vector::float4`|`concurrency::`<br>`graphics::float_4`|`float4`
+|Precise Math|FIXME| `cos(f)`| `cos(f)`|`hc::`<br>`precise_math::cos(f)`|`concurrency::`<br>`precise_math::cos(f)`|`cos(f)`
+|Fast Math|FIXME| `__cos(f)`|`__cos(f)`|`hc::`<br>`fast_math::cos(f)`|`concurrency::`<br>`fast_math::cos(f)`|`native_cos(f)`
+|Vector|FIXME| `float4`|`float4`|`hc::`<br>`short_vector::float4`|`concurrency::`<br>`graphics::float_4`|`float4`
 
 ### Notes
 1. For HC and C++AMP, assume a captured _tiled_ext_ named "t_ext" and captured _extent_ named "ext".  These languages use captured variables to pass information to the kernel rather than using special built-in functions so the exact variable name may vary.
