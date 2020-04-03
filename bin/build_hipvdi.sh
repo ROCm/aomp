@@ -110,7 +110,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
  -DROCM_PATH=$ROCM_DIR \
  -DHSA_PATH=$ROCM_DIR/hsa \
  -DCMAKE_MODULE_PATH=$ROCM_DIR/cmake \
- -DCMAKE_PREFIX_PATH=$ROCM_DIR/include \
+ -DCMAKE_PREFIX_PATH=$ROCM_DIR/include;$ROCM_DIR \
  -DCMAKE_CXX_FLAGS=-Wno-ignored-attributes "
  # -DLLVM_INCLUDES=$ROCM_DIR/include "
 
