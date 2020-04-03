@@ -1,5 +1,6 @@
 roct-thunk-interface: roct-thunk-interface.patch
 rocr-runtime: rocr-runtime.patch
 hip-on-vdi: hip-on-vdi.patch 
+atmi: atmi_remove_enable_new_dtags.patch
 rocminfo: rocminfo_ppc_cmake.patch
 rocm-compilersupport: rocm-compilersupport.patch

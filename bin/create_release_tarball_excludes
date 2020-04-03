@@ -9,6 +9,7 @@ llvm-project/llgo/test
 llvm-project/llvm/test 
 llvm-project/polly/test 
 llvm-project/pstl/test
+flang/test
 hcc/clang/test 
 hcc/compiler/test 
 hcc/lld/test

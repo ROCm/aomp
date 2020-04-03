@@ -18,7 +18,7 @@ echo "*******A non-zero exit code means a failure occured.*******" >> check-fort
 echo "*******Tests that need visual inspection: helloworld********" >> check-fortran.txt
 echo "***********************************************************" >> check-fortran.txt
 
-#skiptests="bigloop"
+skiptests=""
 
 #Loop over all directories and make run / make check depending on directory name
 for directory in ./*/; do 
