@@ -44,7 +44,7 @@ REPO_BRANCH=$AOMP_LIBDEVICE_REPO_BRANCH
 REPO_DIR=$AOMP_REPOS/$AOMP_LIBDEVICE_REPO_NAME
 checkrepo
 
-MYCMAKEOPTS="-DLLVM_DIR=$LLVM_DIR -DBUILD_HC_LIB=ON -DROCM_DEVICELIB_INCLUDE_TESTS=OFF"
+MYCMAKEOPTS="-DLLVM_DIR=$LLVM_DIR -DBUILD_HC_LIB=ON"
 
 if [ ! -d $AOMP_INSTALL_DIR/lib ] ; then 
   echo "ERROR: Directory $AOMP/lib is missing"
@@ -55,10 +55,7 @@ fi
 export LLVM_BUILD HSA_DIR
 export PATH=$LLVM_BUILD/bin:$PATH
 
-# FIXME: Remove this rocm-device-libs patch when aomp gets to llvm-10
-   patchloc=$thisdir/patches
-   patchdir=$REPO_DIR
-   patchrepo
+patchrepo $REPO_DIR
 
 if [ "$1" != "install" ] ; then 
     
@@ -154,8 +151,5 @@ if [ "$1" == "install" ] ; then
    echo 
    echo " $0 Installation complete into $INSTALL_DIR"
    echo 
-   # FIXME: Remove this rocm-device-libs patch when aomp gets to llvm-10
-   patchloc=$thisdir/patches
-   patchdir=$REPO_DIR
-      removepatch
+   removepatch $REPO_DIR
 fi

@@ -65,10 +65,7 @@ if [ "$1" == "install" ] ; then
    $SUDO rm $INSTALL_COMGR/testfile
 fi
 
-   # FIXME: Remove this comgr patch when aomp gets to llvm-10
-   patchloc=$thisdir/patches
-   patchdir=$REPO_DIR
-   patchrepo
+patchrepo $REPO_DIR
 
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 
@@ -81,7 +78,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    $SUDO rm -rf $BUILD_AOMP/build/comgr
    export LLVM_DIR=$AOMP_INSTALL_DIR
    export Clang_DIR=$AOMP_INSTALL_DIR
-   MYCMAKEOPTS="-DCMAKE_INSTALL_PREFIX=$INSTALL_COMGR -DCMAKE_BUILD_TYPE=$BUILDTYPE $AOMP_ORIGIN_RPATH -DLLVM_BUILD_MAIN_SRC_DIR=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/llvm -DLLVM_DIR=$AOMP_INSTALL_DIR -DClang_DIR=$AOMP_INSTALL_DIR -DROCM_DIR=$ROCM_DIR"
+   MYCMAKEOPTS="-DCMAKE_INSTALL_PREFIX=$INSTALL_COMGR -DCMAKE_BUILD_TYPE=$BUILDTYPE $AOMP_ORIGIN_RPATH -DLLVM_BUILD_MAIN_SRC_DIR=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/llvm -DLLVM_DIR=$AOMP_INSTALL_DIR -DClang_DIR=$AOMP_INSTALL_DIR -DAMD_COMGR_BUILD_NO_ROCM=ON"
    mkdir -p $BUILD_AOMP/build/comgr
    cd $BUILD_AOMP/build/comgr
    echo " -----Running comgr cmake ---- " 
@@ -117,8 +114,5 @@ if [ "$1" == "install" ] ; then
          echo "ERROR make install failed "
          exit 1
       fi
-      # FIXME: Remove this comgr patch when aomp gets to llvm-10
-      patchloc=$thisdir/patches
-      patchdir=$REPO_DIR
-      removepatch
+      removepatch $REPO_DIR
 fi

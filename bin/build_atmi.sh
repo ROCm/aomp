@@ -67,9 +67,7 @@ if [ "$1" == "install" ] ; then
 fi
 
 export LLVM_DIR=$AOMP_INSTALL_DIR
-patchloc=$thisdir/patches
-patchdir=$AOMP_REPOS/$AOMP_ATMI_REPO_NAME
-patchrepo
+patchrepo $AOMP_REPOS/$AOMP_ATMI_REPO_NAME
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then 
 
    echo " " 
@@ -79,7 +77,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    BUILDTYPE="Release"
    echo rm -rf $BUILD_AOMP/build/atmi
    rm -rf $BUILD_AOMP/build/atmi
-   MYCMAKEOPTS="$AOMP_ORIGIN_RPATH -DCMAKE_BUILD_TYPE=$BUILDTYPE -DATMI_HSA_INTEROP=on -DATMI_WITH_AOMP=on -DCMAKE_INSTALL_PREFIX=$INSTALL_ATMI -DROCM_DIR=$ROCM_DIR -DROCM_VERSION=$ROCM_VERSION -DLLVM_DIR=$LLVM_DIR"
+   MYCMAKEOPTS="$AOMP_ORIGIN_RPATH -DCMAKE_BUILD_TYPE=$BUILDTYPE -DATMI_HSA_INTEROP=on -DATMI_WITH_AOMP=on -DCMAKE_INSTALL_PREFIX=$INSTALL_ATMI -DROCM_DIR=$ROCM_DIR -DROCM_VERSION=$ROCM_VERSION -DLLVM_DIR=$LLVM_DIR -DCMAKE_PREFIX_PATH=$ROCM_DIR/include"
    mkdir -p $BUILD_AOMP/build/atmi
    cd $BUILD_AOMP/build/atmi
    echo
@@ -95,7 +93,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    BUILDTYPE="Debug"
    echo rm -rf $BUILD_AOMP/build/atmi_debug
    rm -rf $BUILD_AOMP/build/atmi_debug
-   MYCMAKEOPTS="-DCMAKE_FIND_DEBUG_MODE=ON $AOMP_ORIGIN_RPATH -DCMAKE_BUILD_TYPE=$BUILDTYPE -DATMI_HSA_INTEROP=on -DATMI_WITH_AOMP=on -DCMAKE_INSTALL_PREFIX=$INSTALL_ATMI -DROCM_DIR=$ROCM_DIR -DROCM_VERSION=$ROCM_VERSION -DLLVM_DIR=$LLVM_DIR"
+   MYCMAKEOPTS="-DCMAKE_FIND_DEBUG_MODE=ON $AOMP_ORIGIN_RPATH -DCMAKE_BUILD_TYPE=$BUILDTYPE -DATMI_HSA_INTEROP=on -DATMI_WITH_AOMP=on -DCMAKE_INSTALL_PREFIX=$INSTALL_ATMI -DROCM_DIR=$ROCM_DIR -DROCM_VERSION=$ROCM_VERSION -DLLVM_DIR=$LLVM_DIR -DCMAKE_PREFIX_PATH=$ROCM_DIR/include"
 
    mkdir -p $BUILD_AOMP/build/atmi_debug
    cd $BUILD_AOMP/build/atmi_debug
@@ -148,5 +146,5 @@ if [ "$1" == "install" ] ; then
          echo "ERROR make install failed "
          exit 1
       fi
-      removepatch
+      removepatch $AOMP_REPOS/$AOMP_ATMI_REPO_NAME
 fi
