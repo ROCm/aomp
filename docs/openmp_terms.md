@@ -27,8 +27,8 @@
 |Group Memory| FIXME | `__shared__`|`__shared__`|`tile_static`|`tile_static`|`__local`
 |Constant|FIXME| `__constant__`|`__constant__`|Unnecessary / Implied|Unnecessary / Implied|`__constant`
 ||||||
-Thread sync| FIXME |`__syncthreads`|`__syncthreads`|`tile_static.barrier()`|`t_idx.barrier()`|`barrier(CLK_LOCAL_MEMFENCE)`
-|Atomic Builtins| FIXME | `atomicAdd`|`atomicAdd`|`hc::atomic_fetch_add`|`concurrency::`<br>`atomic_fetch_add`|`atomic_add`
+Thread sync|[barrier<br>construct] (https://www.openmp.org/spec-html/5.0/openmpsu90.html#x121-4550002.17.2)|`__syncthreads`|`__syncthreads`|`tile_static.barrier()`|`t_idx.barrier()`|`barrier(CLK_LOCAL_MEMFENCE)`
+|Atomic Builtins|[atomic<br>construct](https://www.openmp.org/spec-html/5.0/openmpsu95.html#x126-4840002.17.7) | `atomicAdd`|`atomicAdd`|`hc::atomic_fetch_add`|`concurrency::`<br>`atomic_fetch_add`|`atomic_add`
 |Precise Math| FIXME | `cos(f)`| `cos(f)`|`hc::`<br>`precise_math::cos(f)`|`concurrency::`<br>`precise_math::cos(f)`|`cos(f)`
 |Fast Math| FIXME | `__cos(f)`|`__cos(f)`|`hc::`<br>`fast_math::cos(f)`|`concurrency::`<br>`fast_math::cos(f)`|`native_cos(f)`
 |Vector| FIXME | `float4`|`float4`|`hc::`<br>`short_vector::float4`|`concurrency::`<br>`graphics::float_4`|`float4`
