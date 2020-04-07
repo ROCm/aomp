@@ -1,4 +1,4 @@
-aomp (0.7-6) UNRELEASED; urgency=medium
+aomp (11.0-1) UNRELEASED; urgency=medium
 
   * Initial release of aomp is 0.3-2
   *   Please see example in /usr/lib/aomp/examples/vmuldemo 
@@ -315,5 +315,18 @@ aomp (0.7-6) UNRELEASED; urgency=medium
   *   Added \$ORIGIN to cmake rpath install in build scripts
   *   Added new patch system to allow for unmodified repos after build is complete
   *   Added support for gfx908
-
- -- Greg Rodgers <Gregory.Rodgers@amd.com>  Tue, 07 Jan 2020 12:51:24 -0600
+  * 
+  * 11.0-1
+  *   These are the major changes in this release
+  *
+  *   Rebase to LLVM 11 development trunk as the code base.
+  *   Switch from hip runtime built with hcc to new hip runtime built on top of ROCMclr.
+  *   
+  *   Known issues
+  *
+  *   aompExtractRegion is not able to process executables built with this release due to the change
+  *       in how offloaded images are embedded in the executable. Should be fixed in next release.
+  *   Issue #89 Linker error (The file was not recognized as a valid object file) when trying to
+  *       link archive file on command line
+  *   Issue #92 hipcc fails when AOMP is not installed in /usr/lib/aomp
+ -- Greg Rodgers <Gregory.Rodgers@amd.com>  Tue, 07 Apr 2020 10:48:19 -0500
