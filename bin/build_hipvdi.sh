@@ -169,14 +169,14 @@ if [ "$1" == "install" ] ; then
       if [[ "$AOMP_STANDALONE_BUILD" == 0 ]]; then
         SED_INSTALL_DIR=`echo /opt/rocm/aomp | sed -e 's/\//\\\\\//g' `
       else
-        SED_INSTALL_DIR=`echo $INSTALL_HIP | sed -e 's/\//\\\\\//g' `
+        SED_INSTALL_DIR=`echo '$ENV{\"AOMP\"}' | sed -e 's/\//\\\\\//g' `
       fi
-      $SUDO sed -i -e "s/\/opt\/rocm\/llvm/$SED_INSTALL_DIR/" $INSTALL_HIP/bin/hipcc
-      $SUDO sed -i -e "s/\/opt\/rocm/$SED_INSTALL_DIR/" $INSTALL_HIP/bin/hipcc
-      $SUDO sed -i -e "s/\$HIP_CLANG_PATH=\$ENV{'HIP_CLANG_PATH'}/\$HIP_CLANG_PATH=\"$SED_INSTALL_DIR\/bin\"/" $INSTALL_HIP/bin/hipcc
+      $SUDO sed -i -e "s/\"\/opt\/rocm\"\/llvm/$SED_INSTALL_DIR/" $INSTALL_HIP/bin/hipcc
+      $SUDO sed -i -e "s/\"\/opt\/rocm\"/$SED_INSTALL_DIR/" $INSTALL_HIP/bin/hipcc
+      $SUDO sed -i -e "s/\$HIP_CLANG_PATH=\$ENV{'HIP_CLANG_PATH'}/\$HIP_CLANG_PATH=$SED_INSTALL_DIR \. \'\/bin\'/" $INSTALL_HIP/bin/hipcc
       $SUDO sed -i -e "s/ -D_OPENMP //" $INSTALL_HIP/bin/hipcc
-      $SUDO sed -i -e "s/\/opt\/rocm\/llvm/$SED_INSTALL_DIR/" $INSTALL_HIP/bin/hipconfig
-      $SUDO sed -i -e "s/\/opt\/rocm/$SED_INSTALL_DIR/" $INSTALL_HIP/bin/hipconfig
+      $SUDO sed -i -e "s/\"\/opt\/rocm\"\/llvm/$SED_INSTALL_DIR/" $INSTALL_HIP/bin/hipconfig
+      $SUDO sed -i -e "s/\"\/opt\/rocm\"/$SED_INSTALL_DIR/" $INSTALL_HIP/bin/hipconfig
    fi
 
 fi
