@@ -26,14 +26,19 @@
 
 AOMP ?= /usr/lib/aomp
 HIPCC = $(AOMP)/bin/hipcc
+OCLCC = $(AOMP)/bin/clang
 CLANG = $(AOMP)/bin/clang
 FLANG = $(AOMP)/bin/flang
 LINKLL = $(AOMP)/bin/llvm-link
 
-writeIndex: writeIndex.cpp lib_mylib.a lib_mylib-amdgcn.bc
+AMDTARGET = -target amdgcn-amd-amdhsa
+OCLFLAGS  = -I$(PWD) -fcolor-diagnostics -Werror -Wno-error=atomic-alignment -x cl -Xclang -cl-std=CL2.0 $(AMDTARGET) -fvisibility=protected -fomit-frame-pointer -Xclang -finclude-default-header -nogpulib 
+OMPFLAGS = -O3 -target x86_64-pc-linux-gnu -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=gfx803 
+
+writeIndex: writeIndex.hip lib_mylib.a lib_myomplib.a lib_mylib-amdgcn.bc
 	@echo
-	@echo " 4. Compile HIP application that uses the _mylib SDL"
-	$(HIPCC) -L$(PWD) -l_mylib writeIndex.cpp -o $@
+	@echo " 4. Compile HIP application that uses both the _mylib and _myomplib  SDLs"
+	$(HIPCC) -L$(PWD) -l_myomplib -l_mylib writeIndex.hip -o $@
 
 #  Build Host Static Library 
 inc_arrayval.o: inc_arrayval.c
@@ -50,20 +55,35 @@ lib_mylib.a: inc_arrayval.o dec_arrayval.o
 	ar rcs $@ $^ 
 
 #  Build amdgcn Static Device library (SDL)
-AMDTARGET = -target amdgcn-amd-amdhsa
 #AMDTARGET = -target nvptx64-nvidia-cuda
 inc_arrayval-amdgcn.bc: inc_arrayval.c
 	@echo
-	@echo " 2.1 Compile c library source again to create device bitcode"
+	@echo " 3.1 Compile c library source again to create device bitcode"
 	$(CLANG) -c -emit-llvm $(AMDTARGET) $^ -o $@
-dec_arrayval-amdgcn.bc: dec_arrayval.f95
+dec_arrayval-amdgcn.bc: dec_arrayval.cl
 	@echo
-	@echo " 2.2 Link bitcode files to create static device library (SDL)"
-	$(FLANG) -c -emit-llvm $(AMDTARGET) -I$(AOMP)/include $^ -o $@
+	@echo " 3.2 Compile OpenCL library source again to create device bitcode"
+	$(OCLCC) $(OCLFLAGS) -c -emit-llvm $^ -o $@
+# FORTRAN device only compile not working yet so just use OpenCL for now
+#dec_arrayval-amdgcn.bc: dec_arrayval.f95
+#	@echo
+#	@echo " 2.2 Link bitcode files to create static device library (SDL)"
+#	$(FLANG) -c -emit-llvm $(AMDTARGET) -I$(AOMP)/include $^ -o $@
 lib_mylib-amdgcn.bc: inc_arrayval-amdgcn.bc dec_arrayval-amdgcn.bc
 	@echo
-	@echo " 2.3 Link bitcode files to create static device library (SDL)"
+	@echo " 3.3 Link bitcode files to create static device library (SDL)"
 	$(LINKLL) $^ -o $@
+
+
+lib_myomplib.a:  openmp_target_lib.o
+	@echo
+	@echo " 2.2 Create heterogeneous archive, a truly special capability"
+	ar rcs $@ $^ 
+
+openmp_target_lib.o:  openmp_target_lib.c
+	@echo
+	@echo " 2.1 Use OpenMP to compile heterogenous functions"
+	$(CLANG) $(OMPFLAGS) -c $^ -o $@
 
 run: writeIndex
 	./writeIndex
@@ -74,5 +94,7 @@ clean:
 	@[ -f ./dec_arrayval.o ] && rm dec_arrayval.o ; true
 	@[ -f ./lib_mylib.a ] && rm lib_mylib.a ; true
 	@[ -f ./lib_mylib-amdgcn.bc ] && rm lib_mylib-amdgcn.bc ; true
+	@[ -f ./lib_myomplib.a ] && rm lib_myomplib.a ; true
 	@[ -f ./inc_arrayval-amdgcn.bc ] && rm inc_arrayval-amdgcn.bc ; true
 	@[ -f ./dec_arrayval-amdgcn.bc ] && rm dec_arrayval-amdgcn.bc ; true
+	@[ -f ./openmp_target_lib.o ] && rm openmp_target_lib.o ; true

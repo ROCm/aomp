@@ -36,7 +36,9 @@ __global__ void writeIndex(int *b, int n) {
   if (i < n) {
     b[i] = i;
     inc_arrayval(i, b ) ;
-    dec_arrayval(i, b ) ;
+    dec_arrayval(b, i ) ; // OpenCL arg alignment ?
+    inc_omp(i, b ) ;
+    dec_omp(i, b ) ;
   }
 }
 
@@ -57,7 +59,7 @@ void printArray(int *array) {
 int checkArray(int *array){
   int errors = 0;
   for(int i = 0; i < N; ++i){
-    if(array[i] != (i+1))
+    if(array[i] != i)
       errors++;
   }
   return errors;
