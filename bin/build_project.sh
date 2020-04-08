@@ -90,7 +90,7 @@ if [ "$1" == "install" ] ; then
 fi
 
 # Fix the banner to print the AOMP version string. 
-if [ $AOMP_STANDALONE_BUILD == 1 ] && [ "$AOMP_BUILD_TRUNK" == 1 ] ; then
+if [ $AOMP_STANDALONE_BUILD == 1 ] ; then
    cd $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME
    if [ "$AOMP_CHECK_GIT_BRANCH" == 1 ] ; then
       MONO_REPO_ID=`git log | grep -m1 commit | cut -d" " -f2`
@@ -131,8 +131,8 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
       echo "WARNING!  BUILD_DIR($BUILD_DIR) != AOMP_REPOS($AOMP_REPOS)"
       echo "SO REPLICATING AOMP_REPOS/$AOMP_PROJECT_REPO_NAME  TO: $BUILD_DIR"
       echo
-      echo rsync -a --exclude ".git" $exclude_cmdline --delete $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME $BUILD_DIR 2>&1
-      rsync -a --exclude ".git" $exclude_cmdline --delete $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME $BUILD_DIR 2>&1
+      echo "rsync -a $exclude_cmdline --delete $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME $BUILD_DIR"
+      rsync -a $exclude_cmdline --delete $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME $BUILD_DIR 2>&1
    fi
 
 else
@@ -143,7 +143,7 @@ else
    fi
 fi
 
-if [ $AOMP_STANDALONE_BUILD == 1 ] && [ "$AOMP_BUILD_TRUNK" == 1 ] ; then
+if [ $AOMP_STANDALONE_BUILD == 1 ] ; then
    cd $BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME
    if [ -f $BUILDCLFILE ] ; then
       # only copy if there has been a change to the source.

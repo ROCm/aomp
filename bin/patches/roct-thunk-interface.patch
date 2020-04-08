@@ -1,5 +1,45 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 5a3e969..6f22658 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -46,6 +46,10 @@ endif() # if (ROCM_CCACHE_BUILD)
+ ## Set default module path if not already set
+ if ( NOT DEFINED CMAKE_MODULE_PATH )
+     set ( CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules/" )
++else()
++    set(saved_cmake_module_path ${CMAKE_MODULE_PATH})
++    message("-- Temporarily settng CMAKE_MODULE_PATH to ${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules/" )
++    set ( CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules/" )
+ endif ()
+ 
+ ## Include common cmake modules
+@@ -203,3 +207,7 @@ set ( CPACK_RPM_POST_UNINSTALL_SCRIPT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/RPM/rpm_
+ configure_file ( libhsakmt.pc.in ${DEV_BUILD_DIR}/libhsakmt.pc @ONLY )
+ 
+ include ( CPack )
++if ( DEFINED saved_cmake_module_path )
++    message("-- Returning CMAKE_MODULE_PATH to ${saved_cmake_module_path}")
++    set(CMAKE_MODULE_PATH ${saved_cmake_module_path})
++endif()
+diff --git a/src/fmm.c b/src/fmm.c
+index 4442876..0f34c25 100644
+--- a/src/fmm.c
++++ b/src/fmm.c
+@@ -1485,8 +1485,11 @@ static int bind_mem_to_numa(uint32_t node_id, void *mem,
+ 	node_mask = numa_bitmask_alloc(num_node);
+ 	if (!node_mask)
+ 		return -ENOMEM;
+-
++#ifdef __PPC64__
++	numa_bitmask_setbit(node_mask, node_id * 8);
++#else
+ 	numa_bitmask_setbit(node_mask, node_id);
++#endif
+ 	mode |= flags.ui32.NoSubstitute ? MPOL_BIND : MPOL_PREFERRED;
+ 	r = mbind(mem, SizeInBytes, mode, node_mask->maskp, num_node + 1, 0);
+ 	numa_bitmask_free(node_mask);
 diff --git a/src/topology.c b/src/topology.c
-index 6aab632..7c07db7 100644
+index b4266ad..5331994 100644
 --- a/src/topology.c
 +++ b/src/topology.c
 @@ -1,5 +1,6 @@
@@ -153,7 +193,7 @@ index 6aab632..7c07db7 100644
  
  	if (processor_vendor < 0) {
  		pr_err("Failed to get Processor Vendor. Setting to %s",
-@@ -1199,7 +1271,13 @@ static int topology_create_temp_cpu_cache_list(int node,
+@@ -1203,7 +1275,13 @@ static int topology_create_temp_cpu_cache_list(int node,
  	*temp_cpu_ci_list = NULL;
  
  	/* Get info from /sys/devices/system/node/nodeX/cpuY/cache */
@@ -168,8 +208,8 @@ index 6aab632..7c07db7 100644
  	/* Other than cpuY folders, this dir also has cpulist and cpumap */
  	max_cpus = num_subdirs(node_dir, "cpu");
  	if (max_cpus <= 0) {
-@@ -1233,7 +1311,7 @@ static int topology_create_temp_cpu_cache_list(int node,
-			continue;
+@@ -1237,7 +1315,7 @@ static int topology_create_temp_cpu_cache_list(int node,
+ 			continue;
  		if (!isdigit(dir->d_name[3])) /* ignore files like cpulist */
  			continue;
 -		snprintf(path, MAXPATHSIZE, "%s/%s/cache", node_dir, dir->d_name);

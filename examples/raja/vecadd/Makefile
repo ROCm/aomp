@@ -64,7 +64,7 @@ endif
 
 ifeq ($(TEMPS),1)
   $(info    Compilation and linking save-temp Mode ON)
-  CPPFLAGS += -save-temps -fopenmp-dump-offload-linker-script
+  CPPFLAGS += -save-temps 
 endif
 
 CPPFLAGS += $(EXTRA_CPPFLAGS)

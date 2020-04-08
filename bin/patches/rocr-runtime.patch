@@ -1,8 +1,8 @@
 diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
-index ffe180f..580c626 100644
+index 642bd09..d8c1666 100644
 --- a/src/CMakeLists.txt
 +++ b/src/CMakeLists.txt
-@@ -171,6 +171,7 @@ set_property ( TARGET ${CORE_RUNTIME_TARGET} PROPERTY SOVERSION "${BUILD_VERSION
+@@ -167,6 +167,7 @@ add_library( ${CORE_RUNTIME_TARGET} SHARED ${SRCS} )
  
  target_link_libraries ( ${CORE_RUNTIME_TARGET}
    PRIVATE hsakmt
@@ -10,8 +10,38 @@ index ffe180f..580c626 100644
    elf dl pthread rt
  )
  
+diff --git a/src/core/inc/amd_memory_region.h b/src/core/inc/amd_memory_region.h
+index 8be4644..1fa7f1b 100644
+--- a/src/core/inc/amd_memory_region.h
++++ b/src/core/inc/amd_memory_region.h
+@@ -182,7 +182,11 @@ class MemoryRegion : public core::MemoryRegion {
+ 
+   mutable KernelMutex access_lock_;
+ 
++#ifdef __PPC64__
++  static const size_t kPageSize_ = 65536;
++#else
+   static const size_t kPageSize_ = 4096;
++#endif
+ 
+   // Determine access type allowed to requesting device
+   hsa_amd_memory_pool_access_t GetAccessInfo(const core::Agent& agent,
+diff --git a/src/core/util/utils.h b/src/core/util/utils.h
+index f7f09e9..8016979 100755
+--- a/src/core/util/utils.h
++++ b/src/core/util/utils.h
+@@ -49,6 +49,9 @@
+ #include "stddef.h"
+ #include "stdlib.h"
+ #include <assert.h>
++#ifndef NDEBUG
++#define NDEBUG
++#endif
+ 
+ typedef unsigned int uint;
+ typedef uint64_t uint64;
 diff --git a/src/inc/hsa.h b/src/inc/hsa.h
-index 3979219..7dd6ed3 100644
+index 54dc784..1396f51 100644
 --- a/src/inc/hsa.h
 +++ b/src/inc/hsa.h
 @@ -80,7 +80,7 @@

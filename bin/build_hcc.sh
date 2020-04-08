@@ -171,9 +171,7 @@ else
    fi
 fi
 
-patchloc=$thisdir/patches
-patchdir=$BUILD_DIR/$AOMP_HCC_REPO_NAME
-patchrepo
+patchrepo $BUILD_DIR/$AOMP_HCC_REPO_NAME
 
 cd $BUILD_DIR/build/$AOMP_HCC_REPO_NAME
 
@@ -213,9 +211,7 @@ if [ "$1" == "install" ] ; then
       echo "ERROR make install failed "
       exit 1
    fi
-   patchloc=$thisdir/patches
-   patchdir=$BUILD_DIR/$AOMP_HCC_REPO_NAME
-   removepatch
+   removepatch $BUILD_DIR/$AOMP_HCC_REPO_NAME
    echo
    echo "SUCCESSFUL INSTALL to $INSTALL_HCC to $AOMP_INSTALL_DIR/hcc"
    echo

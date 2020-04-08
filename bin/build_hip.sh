@@ -109,10 +109,7 @@ if [ "$1" == "install" ] ; then
    $SUDO rm $INSTALL_HIP/testfile
 fi
 
-
-  patchloc=$thisdir/patches
-  patchdir=$HIP_REPO_DIR
-  patchrepo
+patchrepo $HIP_REPO_DIR
 
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 
@@ -130,7 +127,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
      this_rpath="\$ORIGIN:$INSTALL_HIP/lib:$ROCM_DIR/hcc/lib:$ROCM_DIR/lib"
   fi
 
-  MYCMAKEOPTS="-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON -DCMAKE_INSTALL_RPATH=$this_rpath -DCMAKE_BUILD_TYPE=$BUILDTYPE -DCMAKE_INSTALL_PREFIX=$INSTALL_HIP -DHIP_PLATFORM=hcc -DHIP_COMPILER=clang -DHSA_PATH=$ROCM_DIR/hsa -DHCC_HOME=$ROCM_DIR/hcc"
+  MYCMAKEOPTS="-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON -DCMAKE_INSTALL_RPATH=$this_rpath -DCMAKE_BUILD_TYPE=$BUILDTYPE -DCMAKE_INSTALL_PREFIX=$INSTALL_HIP -DHIP_PLATFORM=hcc -DHIP_COMPILER=clang -DHSA_PATH=$ROCM_DIR/hsa -DHCC_HOME=$ROCM_DIR/hcc -DCMAKE_PREFIX_PATH=$ROCM_DIR"
 
   mkdir -p $BUILD_DIR/build/hip
   cd $BUILD_DIR/build/hip
@@ -176,9 +173,7 @@ if [ "$1" == "install" ] ; then
       echo "ERROR make install failed "
       exit 1
    fi
-   patchdir=$HIP_REPO_DIR
-   patchloc=$thisdir/patches
-   removepatch
+   removepatch $HIP_REPO_DIR
    # The hip perl scripts have /opt/rocm hardcoded, so fix them after then are installed
    # but only if not installing to default location.
    if [ $INSTALL_HIP != "/opt/rocm/llvm" ] ; then
@@ -198,8 +193,7 @@ if [ "$1" == "install" ] ; then
    # FIXME: Remove when this patch is added to ROCm HIP
    save_patch_state=$AOMP_APPLY_ROCM_PATCHES
    AOMP_APPLY_ROCM_PATCHES=1
-   patchdir=$INSTALL_HIP
-   patchrepo hip-postinstall
+   patchrepo $INSTALL_HIP hip-postinstall
    AOMP_APPLY_ROCM_PATCHES=$save_patch_state
    export AOMP_APPLY_ROCM_PATCHES
 fi

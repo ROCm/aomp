@@ -89,9 +89,7 @@ if [ "$1" == "install" ] ; then
    $SUDO rm $AOMP_INSTALL_DIR/testfile
 fi
 
-patchloc=$thisdir/patches
-patchdir=$AOMP_REPOS/$AOMP_HIPVDI_REPO_NAME
-patchrepo
+patchrepo $AOMP_REPOS/$AOMP_HIPVDI_REPO_NAME
 
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 
@@ -112,7 +110,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
  -DROCM_PATH=$ROCM_DIR \
  -DHSA_PATH=$ROCM_DIR/hsa \
  -DCMAKE_MODULE_PATH=$ROCM_DIR/cmake \
- -DCMAKE_PREFIX_PATH=$ROCM_DIR/include \
+ -DCMAKE_PREFIX_PATH=$ROCM_DIR/include;$ROCM_DIR \
  -DCMAKE_CXX_FLAGS=-Wno-ignored-attributes "
  # -DLLVM_INCLUDES=$ROCM_DIR/include "
 
@@ -163,7 +161,5 @@ if [ "$1" == "install" ] ; then
       exit 1
    fi
 
-   patchloc=$thisdir/patches
-   patchdir=$AOMP_REPOS/$AOMP_HIPVDI_REPO_NAME
-   removepatch
+   removepatch $AOMP_REPOS/$AOMP_HIPVDI_REPO_NAME
 fi

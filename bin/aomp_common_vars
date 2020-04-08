@@ -14,25 +14,12 @@
 # FIXME: More work is needed to propogate the use of AOMP_COMPILER_NAME.
 AOMP_COMPILER_NAME=${AOMP_COMPILER_NAME:-AOMP}
 
-# AOMP_BUILD_TRUNK=1 will build the master branch of llvm-project.
-AOMP_BUILD_TRUNK=${AOMP_BUILD_TRUNK:-0}
-
 # ROCM_VERSION may be set by Jenkins, if not guess a good number
-ROCM_VERSION=${ROCM_VERSION:-3.1.0}
+ROCM_VERSION=${ROCM_VERSION:-3.4.0}
 
 # Set the AOMP VERSION STRING and AOMP_PROJECT_REPO_BRANCH.
-if [ "$AOMP_BUILD_TRUNK" == 0 ] ; then
-   AOMP_VERSION=${AOMP_VERSION:-"0.7"}
-   AOMP_VERSION_MOD=${AOMP_VERSION_MOD:-"7"}
-   AOMP_PROJECT_REPO_BRANCH=${AOMP_PROJECT_REPO_BRANCH:-AOMP-200107}
-   AOMP_COMGR_REPO_BRANCH=${AOMP_COMGR_REPO_BRANCH:-roc-3.1.x}
-else
-#  These default values change if this is a trunk build.
-   AOMP_VERSION=${AOMP_VERSION:-"11.0"}
-   AOMP_VERSION_MOD=${AOMP_VERSION_MOD:-"T"}
-   AOMP_PROJECT_REPO_BRANCH=${AOMP_PROJECT_REPO_BRANCH:-AOMP-200127}
-   AOMP_COMGR_REPO_BRANCH=${AOMP_COMGR_REPO_BRANCH:-amd-stg-open}
-fi
+AOMP_VERSION=${AOMP_VERSION:-"11.0"}
+AOMP_VERSION_MOD=${AOMP_VERSION_MOD:-"1"}
 AOMP_VERSION_STRING=${AOMP_VERSION_STRING:-"$AOMP_VERSION-$AOMP_VERSION_MOD"}
 export AOMP_VERSION_STRING AOMP_VERSION AOMP_VERSION_MOD ROCM_VERSION
 
@@ -45,7 +32,7 @@ AOMP_INSTALL_DIR=${AOMP}_${AOMP_VERSION_STRING}
 # For example, if AOMP_REPOS=$HOME/git/aomp, then the primary aomp repo
 # is stored in $HOME/git/aomp/aomp and the mono repo is stored in
 # $HOME/aomp/llvm-project.
-AOMP_REPOS=${AOMP_REPOS:-$HOME/git/aomp}
+AOMP_REPOS=${AOMP_REPOS:-$HOME/git/aomp11}
 
 # Because the source for all repos are tarred for release, we store
 # all the test repositories in a different directory.
@@ -55,18 +42,13 @@ AOMP_REPOS_TEST=${AOMP_REPOS_TEST:-$HOME/git/aomp-test}
 AOMP_CHECK_GIT_BRANCH=${AOMP_CHECK_GIT_BRANCH:-1}
 AOMP_APPLY_ROCM_PATCHES=${AOMP_APPLY_ROCM_PATCHES:-1}
 
-# When AOMP_USE_HIPVDI==1, a different set of components is used. This will
-# be the default in the future and builds with hcc will be deprecated.
-AOMP_USE_HIPVDI=${AOMP_USE_HIPVDI:-0}
-if [ "$AOMP_BUILD_TRUNK" != 0 ] ; then
-  AOMP_USE_HIPVDI=1
-fi
+AOMP_USE_HIPVDI=${AOMP_USE_HIPVDI:-1}
 
 #Set common rpath for build scripts
 if [ $AOMP_USE_HIPVDI == 0 ] ; then
    AOMP_ORIGIN_RPATH="-DCMAKE_SHARED_LINKER_FLAGS='-Wl,--disable-new-dtags' -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON -DCMAKE_INSTALL_RPATH=\$ORIGIN:\$ORIGIN/../lib:\$ORIGIN/../hcc/lib:\$ORIGIN/../hsa/lib:\$ORIGIN/../../hcc/lib:\$ORIGIN/../../lib64:\$ORIGIN/../../hsa/lib:$AOMP_INSTALL_DIR/lib:$AOMP_INSTALL_DIR/hcc/lib:$AOMP_INSTALL_DIR/hsa/lib"
 else
-   AOMP_ORIGIN_RPATH="-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON -DCMAKE_INSTALL_RPATH=\$ORIGIN:\$ORIGIN/../hsa/lib:$AOMP_INSTALL_DIR/lib:$AOMP_INSTALL_DIR/hsa/lib"
+   AOMP_ORIGIN_RPATH="-DCMAKE_SHARED_LINKER_FLAGS='-Wl,--disable-new-dtags' -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON -DCMAKE_INSTALL_RPATH=\$ORIGIN:\$ORIGIN/../lib:\$ORIGIN/../hsa/lib:\$ORIGIN/../../lib64:\$ORIGIN/../../hsa/lib:$AOMP_INSTALL_DIR/lib:$AOMP_INSTALL_DIR/hsa/lib"
 fi
 
 CUDA=${CUDA:-/usr/local/cuda}
@@ -103,7 +85,8 @@ fi
 # Set list of default nvptx subarchitectures to build
 # Only Cuda 9 and above supports sm_70
 if [ "$AOMP_BUILD_CUDA" == 1 ] ; then
-   NVPTXGPUS_DEFAULT="30,32,35,50,60,61"
+   #NVPTXGPUS_DEFAULT="30,32,35,50,60,61"
+   NVPTXGPUS_DEFAULT="50,60,61"
    if [ -f $CUDA/version.txt ] ; then
       if [ `head -1 /usr/local/cuda/version.txt | cut -d " " -f 3 | cut -d "." -f 1` -ge 9 ] ; then
          NVPTXGPUS_DEFAULT+=",70"
@@ -135,20 +118,11 @@ if [ ! -z `which "getconf"` ]; then
    fi
 fi
 
-
 # These are the web sites where the AOMP git repos are pulled from
 GITROC="https://github.com/radeonopencompute"
 GITROCDEV="https://github.com/ROCm-Developer-Tools"
 GITROCLIB="https://github.com/AMDComputeLibraries"
 GITKHRONOS="https://github.com/KhronosGroup"
-GITAMDINTERNAL="ssh://$USER@git.amd.com:29418/compute/ec"
-
-AOMP_INTERNAL_IP="gitlab1.amd.com"
-GITINTERNAL="http://${AOMP_INTERNAL_IP}/dmcdouga"  # This will change soon
-
-GITLLNL="https://github.com/llnl"
-AOMP_RAJA_REPO_NAME=${AOMP_RAJA_REPO_NAME:-raja}
-AOMP_RAJA_REPO_BRANCH=${AOMP_RAJA_REPO_BRANCH:-master}
 
 # FIXME: In the near future, we will remove the _BRANCH variables and use a
 #        manifest file to determine which branch to build each component.
@@ -164,46 +138,65 @@ AOMP_RAJA_REPO_BRANCH=${AOMP_RAJA_REPO_BRANCH:-master}
 # AOMP_xxx_COMPONENT NAME for some components. Recommend that component
 # names be short lowercase names.
 
+#  These aomp development repositories
 AOMP_REPO_NAME=${AOMP_REPO_NAME:-aomp}
-AOMP_REPO_BRANCH=${AOMP_REPO_BRANCH:-master}
-AOMP_PROJECT_REPO_NAME=${AOMP_PROJECT_REPO_NAME:-llvm-project}
+AOMP_REPO_BRANCH=${AOMP_REPO_BRANCH:-rel_11.0-1}
+AOMP_PROJECT_REPO_NAME=${AOMP_PROJECT_REPO_NAME:-amd-llvm-project}
+AOMP_PROJECT_REPO_BRANCH=${AOMP_PROJECT_REPO_BRANCH:-aomp-11.0-1}
+AOMP_EXTRAS_REPO_NAME=${AOMP_EXTRAS_REPO_NAME:-aomp-extras}
+AOMP_EXTRAS_REPO_BRANCH=${AOMP_EXTRAS_REPO_BRANCH:-aomp-11.0-1}
+AOMP_FLANG_REPO_NAME=${AOMP_FLANG_REPO_NAME:-flang}
+AOMP_FLANG_REPO_BRANCH=${AOMP_FLANG_REPO_BRANCH:-aomp-11.0-1}
+
+#  These extra repositories are needed but we cannot update them
+AOMP_ROCT_REPO_NAME=${AOMP_ROCT_REPO_NAME:-roct-thunk-interface}
+AOMP_ROCT_REPO_BRANCH=${AOMP_ROCT_REPO_BRANCH:-roc-3.3.x}
+AOMP_ROCT_COMPONENT_NAME=${AOMP_ROCT_COMPONENT_NAME:-roct}
+AOMP_ROCR_REPO_NAME=${AOMP_ROCR_REPO_NAME:-rocr-runtime}
+AOMP_ROCR_REPO_BRANCH=${AOMP_ROCR_REPO_BRANCH:-rocm-3.3.x}
+AOMP_ROCR_COMPONENT_NAME=${AOMP_ROCR_COMPONENT_NAME:-rocr}
 AOMP_LIBDEVICE_REPO_NAME=${AOMP_LIBDEVICE_REPO_NAME:-rocm-device-libs}
 AOMP_LIBDEVICE_COMPONENT_NAME=${AOMP_LIBDEVICE_COMPONENT_NAME:-rocdl}
-AOMP_LIBDEVICE_REPO_BRANCH=${AOMP_LIBDEVICE_REPO_BRANCH:-roc-ocl-3.1.x}
+AOMP_LIBDEVICE_REPO_BRANCH=${AOMP_LIBDEVICE_REPO_BRANCH:-amd-stg-open}
+AOMP_COMGR_REPO_NAME=${AOMP_COMGR_REPO_NAME:-rocm-compilersupport}
+AOMP_COMGR_REPO_BRANCH=${AOMP_COMGR_REPO_BRANCH:-amd-stg-open}
+AOMP_RINFO_REPO_NAME=${AOMP_RINFO_REPO_NAME:-rocminfo}
+AOMP_RINFO_REPO_BRANCH=${AOMP_RINFO_REPO_BRANCH:-master}
+AOMP_ATMI_REPO_NAME=${AOMP_ATMI_REPO_NAME:-atmi}
+AOMP_ATMI_REPO_BRANCH=${AOMP_ATMI_REPO_BRANCH:-aomp-0.7-7}
 AOMP_HCC_REPO_NAME=${AOMP_HCC_REPO_NAME:-hcc}
 AOMP_HCC_REPO_BRANCH=${AOMP_HCC_REPO_BRANCH:-roc-3.1.x}
 AOMP_HIP_REPO_NAME=${AOMP_HIP_REPO_NAME:-hip}
 AOMP_HIP_REPO_BRANCH=${AOMP_HIP_REPO_BRANCH:-roc-3.1.x}
+
+# These are repos we will use when we switch to HIP VDI
 AOMP_VDI_REPO_NAME=${AOMP_VDI_REPO_NAME:-vdi}
-AOMP_VDI_REPO_BRANCH=${AOMP_VDI_REPO_BRANCH:-amd-master}
+AOMP_VDI_REPO_BRANCH=${AOMP_VDI_REPO_BRANCH:-master}
+AOMP_VDI_REPO_GITNAME=${AOMP_VDI_REPO_GITNAME:-ROCclr}
 AOMP_OCL_REPO_NAME=${AOMP_OCL_REPO_NAME:-opencl-on-vdi}
-AOMP_OCL_REPO_GITNAME=${AOMP_OCL_REPO_GITNAME:-opencl}
-AOMP_OCL_REPO_BRANCH=${AOMP_OCL_REPO_BRANCH:-amd-master-next}
+AOMP_OCL_REPO_GITNAME=${AOMP_OCL_REPO_GITNAME:-ROCm-OpenCL-Runtime}
+AOMP_OCL_REPO_BRANCH=${AOMP_OCL_REPO_BRANCH:-master}
 AOMP_HIPVDI_REPO_NAME=${AOMP_HIPVDI_REPO_NAME:-hip-on-vdi}
 AOMP_HIPVDI_REPO_GITNAME=${AOMP_HIPVDI_REPO_GITNAME:-hip}
-AOMP_HIPVDI_REPO_BRANCH=${AOMP_HIPVDI_REPO_BRANCH:-amd-master-next}
-AOMP_RINFO_REPO_NAME=${AOMP_RINFO_REPO_NAME:-rocminfo}
-AOMP_RINFO_REPO_BRANCH=${AOMP_RINFO_REPO_BRANCH:-master}
-AOMP_ROCT_REPO_NAME=${AOMP_ROCT_REPO_NAME:-roct-thunk-interface}
-AOMP_ROCT_REPO_BRANCH=${AOMP_ROCT_REPO_BRANCH:-roc-3.1.x}
-AOMP_ROCT_COMPONENT_NAME=${AOMP_ROCT_COMPONENT_NAME:-roct}
-AOMP_ROCR_REPO_NAME=${AOMP_ROCR_REPO_NAME:-rocr-runtime}
-AOMP_ROCR_REPO_BRANCH=${AOMP_ROCR_REPO_BRANCH:-roc-3.1.x}
-AOMP_ROCR_COMPONENT_NAME=${AOMP_ROCR_COMPONENT_NAME:-rocr}
-AOMP_ATMI_REPO_NAME=${AOMP_ATMI_REPO_NAME:-atmi}
-AOMP_ATMI_REPO_BRANCH=${AOMP_ATMI_REPO_BRANCH:-aomp-0.7-7}
-AOMP_EXTRAS_REPO_NAME=${AOMP_EXTRAS_REPO_NAME:-aomp-extras}
-AOMP_EXTRAS_REPO_BRANCH=${AOMP_EXTRAS_REPO_BRANCH:-0.7-7}
-AOMP_APPS_REPO_NAME=${AOMP_APPS_REPO_NAME:-openmpapps}
-AOMP_APPS_REPO_BRANCH=${AOMP_APPS_REPO_BRANCH:-AOMP-0.5}
-AOMP_COMGR_REPO_NAME=${AOMP_COMGR_REPO_NAME:-rocm-compilersupport}
-AOMP_F18_REPO_NAME=${AOMP_F18_REPO_NAME:-f18}
-AOMP_F18_REPO_BRANCH=${AOMP_F18_REPO_BRANCH:-master}
-AOMP_FLANG_REPO_NAME=${AOMP_FLANG_REPO_NAME:-flang}
-AOMP_FLANG_REPO_BRANCH=${AOMP_FLANG_REPO_BRANCH:-AOMP-200108}
+AOMP_HIPVDI_REPO_BRANCH=${AOMP_HIPVDI_REPO_BRANCH:-master-next}
+
+# These are test repositories
 GITSOLVV="https://github.com/SOLLVE"
 AOMP_SOLVV_REPO_NAME=${AOMP_SOLVV_REPO_NAME:-sollve_vv}
 AOMP_SOLVV_REPO_BRANCH=${AOMP_SOLVV_REPO_BRANCH:-master}
+AOMP_APPS_REPO_NAME=${AOMP_APPS_REPO_NAME:-openmpapps}
+AOMP_APPS_REPO_BRANCH=${AOMP_APPS_REPO_BRANCH:-AOMP-0.5}
+GITLLNL="https://github.com/llnl"
+AOMP_RAJA_REPO_NAME=${AOMP_RAJA_REPO_NAME:-raja}
+AOMP_RAJA_REPO_BRANCH=${AOMP_RAJA_REPO_BRANCH:-master}
+AOMP_INTERNAL_IP="gitlab1.amd.com"
+GITINTERNAL="http://${AOMP_INTERNAL_IP}/dmcdouga"  # This will change soon
+
+#  We dont use this yet, waiting for trunk merge
+AOMP_F18_REPO_NAME=${AOMP_F18_REPO_NAME:-f18}
+AOMP_F18_REPO_BRANCH=${AOMP_F18_REPO_BRANCH:-master}
+
+AOMP_PATCH_CONTROL_FILE=${AOMP_PATCH_CONTROL_FILE:-${AOMP_REPOS}/${AOMP_REPO_NAME}/bin/patches/patch-control-file.txt}
 
 STASH_BEFORE_PULL=${STASH_BEFORE_PULL:-YES}
 
@@ -282,17 +275,20 @@ function checkrepo(){
 
 #  TO use this function set variables patchdir and patchfile
 function patchrepo(){
+patchdir=$1
 if [ "$AOMP_APPLY_ROCM_PATCHES" == 1 ] && [ -d "$patchdir" ] ; then
    patches=""
    cd $patchdir
-   if [[ "$1" =~ "postinstall" ]]; then
-     getpatchlist $1
+   if [[ "$2" =~ "postinstall" ]]; then
+     getpatchlist $2
    else
      getpatchlist
    fi
 
    #loop through list of patches to apply
    if [ "$patches" != "" ] ; then
+   patchloc=${AOMP_PATCH_CONTROL_FILE%/*}
+   echo patchloc=$patchloc
    for patch in $patches; do
      patchfile=$patchloc/$patch
      echo "Testing patch $patchfile to $patchdir"
@@ -311,9 +307,7 @@ if [ "$AOMP_APPLY_ROCM_PATCHES" == 1 ] && [ -d "$patchdir" ] ; then
            echo "       cleanly to directory $patchdir"
            echo "       Check if it was already applied."
            echo
-           if [ "$AOMP_STANDALONE_BUILD" == 1 ]; then
-             exit 1
-           fi
+           exit 1
         fi
      fi
      if [ "$applypatch" == "yes" ] ; then
@@ -327,12 +321,16 @@ fi
 }
 
 function removepatch(){
+patchdir=$1
 if [ "$AOMP_APPLY_ROCM_PATCHES" == 1 ] && [ -d "$patchdir" ] ; then
-   echo "Patchdir $patchdir"
    patches=""
    cd $patchdir
    getpatchlist
-   echo "PATCHES TO REMOVE: $patches"
+   if [ "$patches" != "" ] ; then
+      echo "Patchdir $patchdir"
+      echo "PATCHES TO REMOVE: $patches"
+   fi
+   patchloc=${AOMP_PATCH_CONTROL_FILE%/*}
    if [ "$patches" != "" ] ; then
    for patch in $patches; do
      patchfile=$patchloc/$patch
@@ -346,23 +344,7 @@ if [ "$AOMP_APPLY_ROCM_PATCHES" == 1 ] && [ -d "$patchdir" ] ; then
      fi
      if [ "$reversepatch" == "yes" ] ; then
         echo "Reversing patch $patchfile to $patchdir"
-        #Save status of insertions/deletions before reversing patch
-        before=$(git diff HEAD --shortstat | awk '{print $4 + $6}')
         patch -p1 -R -f --no-backup-if-mismatch <$patchfile
-        #Check to make sure the diff size is lower after patch is reversed. There are some cases where the reverse patch applies additional changes instead of reverting them.
-        #Save status of insertions/deletions after reversing patch
-        after=$(git diff HEAD --shortstat | awk '{print $4 + $6}')
-        if [ -z $before ]; then
-          before=0
-        fi
-        if [ -z $after ]; then
-          after=0
-        fi
-        #If number of changes after is higher or equal to before, undo the reversal.
-        if [ "$before" -le "$after" ]; then
-          echo "Reapplying patch as it created more changes instead of reverting them."
-          patch -p1 --no-backup-if-mismatch <$patchfile
-        fi
      fi
    done
    fi
@@ -377,11 +359,6 @@ function getpatchlist(){
    else
      reporegex="(^$basedir:\s)"
    fi
-   if [ "$AOMP_BUILD_TRUNK" == 0 ] ; then
-      controlfile=$patchloc/patch-control-file.txt
-   else
-      controlfile=$patchloc/patch-control-file-trunk.txt
-   fi
    #read patch control file and look for correct patches
    while read -r line; do
    if [[ "$line" =~ $reporegex ]]; then
@@ -390,7 +367,7 @@ function getpatchlist(){
      echo "patches: $patches"
      break
    fi
-   done < "$controlfile"
+   done < "$AOMP_PATCH_CONTROL_FILE"
 }
 
 function help_build_aomp(){
