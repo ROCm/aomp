@@ -75,33 +75,31 @@ BUILD_TYPE=Debug
 NVPTXGPUS=30,35,50,60,61,70
 export AOMP NVPTXGPUS BUILD_TYPE
 ```
+To build all components using the latest development sources, first clone aomp repo and checkout the amd-stg-openmp branch as follows:
 
-To build all components, first clone aomp repo and checkout the master branch
-to build our development repository.
-
-``
+```
    mkdir $HOME/git
    cd git
    git clone https://github.com/ROCm-Developer-Tools/aomp.git aomp11
    cd aomp11
    git checkout amd-stg-openmp
 ```
-	
 To be sure you have the latest sources from the git repositories, run command.
 
 ```
    ./clone_aomp.sh
 ```
+The first time you do this, It could take a long time to clone the repositories. Subsequent calls will pull the latest updates so you can run clone_aomp.sh anytime to be sure you are on the latest development sources.
 
-The first time you do this, It could take a long time to clone the repositories.  Subsequent calls will pull the latest updates so you can run clone_aomp.sh anytime to be sure you are on the latest development sources.
-
-WANRING: The script clone_aomp.sh does not pull updates for the aomp repository. You must pull aomp repository manually. So please run "clone_aomp.sh" and "cd $HOME/git/aomp11/aomp; git pull" frequently to stay current with aomp development.
-
-The Nvidia CUDA SDK is NOT required for a package install of AOMP. However, to build AOMP from source, you SHOULD have the Nvidia CUDA SDK version 10 installed because AOMP may be used to build applications for NVIDIA GPUs.  The current default build list of Nvidia subarchs is "30,35,50,60,61,70".  For example, the default list will support application builds with --offload-arch=sm_30 and --offload-arch=sm_60 etc.  This build list can be changed with the NVPTXGPUS environment variable. Set this before running build_aomp.sh.
+WARNING: The script clone_aomp.sh does not pull updates for the aomp repository. You must pull aomp repository manually.
+So please run this frequently to stay current with the aomp development team.
 
 ```
-export AOMP_BUILD_CUDA=1 //build AOMP with nvptx support
+cd $HOME/git/aomp11/aomp 
+git pull
+.clone_aomp.sh
 ```
+The Nvidia CUDA SDK is NOT required for a package install of AOMP. However, to build AOMP from source, you SHOULD have the Nvidia CUDA SDK version 10 installed because AOMP may be used to build applications for NVIDIA GPUs. The current default build list of Nvidia subarchs is "30,35,50,60,61,70".  For example, the default list will support application builds with --offload-arch=sm_30 and --offload-arch=sm_60 etc.  This build list can be changed with the NVPTXGPUS environment variable as shown above. 
 
 After you have all the source repositories and you have CUDA and all the dependencies installed,
 run this script to build aomp.
