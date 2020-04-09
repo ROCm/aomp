@@ -27,8 +27,9 @@
 
 #define N 10
 
-// Get headers for demo library _mylib
+// Get headers for different demo libraries _mylib
 #include "_mylib.h"
+#include "_myomplib.h"
 
 //  HIP kernel that uses functions in the _mylib SDL
 __global__ void writeIndex(int *b, int n) {
