@@ -65,20 +65,16 @@ for other environment variables that you may override including repo names.
    BUILD_TYPE        Release
 ```
 
-Many other environment variables can be set. See the file [aomp_common_vars](aomp_common_vars) that is sourced by all build scripts. This file has the names of the branches that make up the release that is in development.  You can override the appropriate environment variable if you want to test your source build with a different release.
-
+Many other environment variables can be set. See the file [aomp_common_vars](aomp_common_vars) that is sourced by all build scripts. This file sets default values for branch names and repo directory name.
 
 You can override the above by setting by setting values in your .bashrc or .bash_profile.
-Here is a sample for your .bash_profile
+Here is a sample of commands you might want to put into your .bash_profile:
 ```
-SUDO="disable"
 AOMP=$HOME/rocm/aomp
 BUILD_TYPE=Debug
 NVPTXGPUS=30,35,50,60,61,70
-export SUDO AOMP NVPTXGPUS BUILD_TYPE
+export AOMP NVPTXGPUS BUILD_TYPE
 ```
-The build scripts will build from the source directories identified by the
-environment variable AOMP_REPOS. THe install location is
 
 To build all components, first clone aomp repo and checkout the master branch
 to build our development repository.
@@ -165,6 +161,18 @@ Once you have a successful development build, individual components can be incre
 ```
    ./build_project.sh install
 ```
+The build scripts will build from the source directories identified by the environment variable AOMP_REPOS.
 The default out-of-source build directory for each component is $HOME/git/aomp11/build/<component>.
 
 WARNING: When the build scripts are run with NO arguments (that is, you do not specify "install" or "nocmake"), the build scripts will rebuild the entire component by DELETING THE BUILD DIRECTORY before running cmake and make. 
+
+The install location is defined by the $AOMP environment variable. The value of AOMP needs to be reserved as a symbolic link.
+That is, the physical installation will be in directory $AOMP concatonated with the version string.
+The install script will make a symbolic link from the physical directory to the symbolic directory $AOMP.
+For example, when building AOMP version 11.0-1 with the default value for AOMP=$HOME/rocm/aomp,
+the install scripts will put all files and directories in $HOME/rocm/aomp_11.0-1 and create a symbolic link as follows.
+
+```
+ln -sf ${AOMP}_11.0-1 ${AOMP}
+```
+This symbolic link makes it easy to switch between versions of AOMP for testing.
