@@ -78,6 +78,40 @@ if [ ! -d $AOMP_REPOS/$AOMP_OCL_REPO_NAME ] ; then
    exit 1
 fi
 
+GCCMIN=8
+function getgcc8orless(){
+   _loc=`which gcc`
+   [ "$_loc" == "" ] && return
+   gccver=`$_loc --version | grep gcc | cut -d")" -f2 | cut -d"." -f1`
+   [ $gccver -gt $GCCMIN ] && _loc=`which gcc-$GCCMIN`
+   echo $_loc
+}
+function getgxx8orless(){
+   _loc=`which g++`
+   [ "$_loc" == "" ] && return
+   gxxver=`$_loc --version | grep g++ | cut -d")" -f2 | cut -d"." -f1`
+   [ $gxxver -gt $GCCMIN ] && _loc=`which g++-$GCCMIN`
+   echo $_loc
+}
+
+if [ "$AOMP_PROC" == "ppc64le" ] ; then
+   GCCLOC=$(getgcc8orless)
+   GXXLOC=$(getgxx8orless)
+   if [ "$GCCLOC" == "" ] ; then
+      echo "ERROR: NO ADEQUATE gcc"
+      echo "       Please install gcc-8"
+      exit 1
+   fi
+   if [ "$GXXLOC" == "" ] ; then
+      echo "ERROR: NO ADEQUATE g++"
+      echo "       Please install g++-8"
+      exit 1
+   fi
+   COMPILERS="-DCMAKE_C_COMPILER=/usr/bin/gcc-8 -DCMAKE_CXX_COMPILER=/usr/bin/g++-8 -DCMAKE_CXX_FLAGS='-DNO_WARN_X86_INTRINSICS' -DCMAKE_C_FLAGS='-DNO_WARN_X86_INTRINSICS' "
+else
+   COMPILERS=""
+fi
+
 # Make sure we can update the install directory
 if [ "$1" == "install" ] ; then
    $SUDO mkdir -p $AOMP_INSTALL_DIR
@@ -104,11 +138,12 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
  # We set OPENCL_INCLUDE_DIR to find the headers from the AOMP opencl repository.
 
   if [ $AOMP_STANDALONE_BUILD == 1 ] ; then
+    echo lib_includes:$lib_includes
     MYCMAKEOPTS="$AOMP_ORIGIN_RPATH -DCMAKE_BUILD_TYPE=$BUILDTYPE -DCMAKE_INSTALL_PREFIX=$AOMP_INSTALL_DIR \
     -DUSE_COMGR_LIBRARY=yes \
     -DOPENCL_DIR=$AOMP_REPOS/$AOMP_OCL_REPO_NAME/api/opencl \
     -DCMAKE_MODULE_PATH=$ROCM_DIR/cmake \
-    -DCMAKE_PREFIX_PATH=$ROCM_DIR/include "
+    -DCMAKE_PREFIX_PATH=$ROCM_DIR/include $COMPILERS"
   else
     MYCMAKEOPTS="$AOMP_ORIGIN_RPATH -DCMAKE_BUILD_TYPE=$BUILDTYPE -DCMAKE_INSTALL_PREFIX=$AOMP_INSTALL_DIR \
     -DUSE_COMGR_LIBRARY=yes \
