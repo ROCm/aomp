@@ -36,7 +36,7 @@ echo "                   A non-zero exit code means a failure occured." >> check
 echo "Tests that need to be visually inspected: devices, pfspecify, pfspecify_str, stream" >> check-omp5.txt
 echo "***********************************************************************************" >> check-omp5.txt
 
-skiptests="devices pfspecifier pfspecifier_str target_teams_reduction hip_device_compile red_bug_51 OmpHipMallocManaged tasks"
+skiptests="red_bug_51 declare_variant"
 
 #Loop over all directories and make run / make check depending on directory name
 for directory in ./*/; do

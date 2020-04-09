@@ -34,7 +34,7 @@ echo "                   A non-zero exit code means a failure occured." >> check
 echo "Tests that need to be visually inspected: devices, pfspecify, pfspecify_str, stream" >> check-omp5.txt
 echo "***********************************************************************************" >> check-omp5.txt
 
-known_fails="red_bug_51 reduction_array_section target_teams_reduction tasks"
+known_fails="red_bug_51 declare_variant"
 
 if [ "$SKIP_FAILURES" == 1 ] ; then
   skip_tests=$known_fails
@@ -162,13 +162,10 @@ fi
 echo -e "$BLK"
 
 #Tests that need visual inspection
-echo ""
-echo -e "$ORG"
-echo "---------- Please inspect the output above to verify the following tests ----------"
-echo "devices"
-echo "pfspecifier"
-echo "pfspecifier_str"
-echo "stream"
-echo -e "$BLK"
+#echo ""
+#echo -e "$ORG"
+#echo "---------- Please inspect the output above to verify the following tests ----------"
+#echo "stream"
+#echo -e "$BLK"
 #Clean up, hide output
 cleanup
