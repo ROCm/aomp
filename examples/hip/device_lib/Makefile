@@ -33,7 +33,7 @@ LINKLL = $(AOMP)/bin/llvm-link
 
 AMDTARGET = -target amdgcn-amd-amdhsa
 OCLFLAGS  = -I$(PWD) -fcolor-diagnostics -Werror -Wno-error=atomic-alignment -x cl -Xclang -cl-std=CL2.0 $(AMDTARGET) -fvisibility=protected -fomit-frame-pointer -Xclang -finclude-default-header -nogpulib 
-OMPFLAGS = -O3 -target x86_64-pc-linux-gnu -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=gfx803 
+OMPFLAGS = -O3 -target x86_64-pc-linux-gnu -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=`$(AOMP)/bin/mygpu`
 
 writeIndex: writeIndex.hip lib_mylib.a lib_myomplib.a lib_mylib-amdgcn.bc
 	@echo
