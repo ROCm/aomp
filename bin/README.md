@@ -6,7 +6,7 @@ This is the AOMP developer README stored at:
 ```
 https://github.com/ROCm-Developer-Tools/aomp/blob/master/bin/README.md
 ```
-The AOMP compiler supports OpenMP, clang-hip, clang-cuda, device OpenCL, and the offline kernel compilatino tool called cloc.  It contains a recent version of the AMD Lightning compiler (llvm amdgcn backend) and the llvm nvptx backend.  Except for clang-cuda, this compiler works for both Nvidia and AMD Radeon GPUs.
+The AOMP compiler supports OpenMP, clang-hip, clang-cuda, device OpenCL, and the offline kernel compilation tool called cloc.  It contains a recent version of the AMD Lightning compiler (llvm amdgcn backend) and the llvm nvptx backend.  Except for clang-cuda, this compiler works for both Nvidia and AMD Radeon GPUs.
 
 This bin directory contains scripts to build AOMP from source.
 ```
@@ -105,9 +105,9 @@ run this script to build aomp.
 ```
 The AOMP source build is a standalone build of all components needed for compilation and execution with the exception of the Linux kernel module. Through extensive use of RPATH, all dynamic runtime libraries that are built by any component of AOMP and referenced by another AOMP component will resolve the absolute location within the AOMP source installation (default is $HOME/rocm/aomp). This strategy significantly simplifies the AOMP test matrix. Libraries that may have been installed by a previous ROCm installation including roct and rocr, will not be used by the source build of AOMP. Nor will the AOMP installation for the source build affect any ROCm component. 
 
-Starting with ROCM 3.0 there is a version of AOMP distributed with ROCm. Unlike the AOMP source build, ROCm aomp is integrated into ROCm.  That version depends on existing ROCm components. The ROCm aomp package installs into /opt/rocm/aomp. The default source build installs into $HOME/rocm/aomp. 
+Starting with ROCM 3.0 there is a version of AOMP distributed with ROCm. Unlike the AOMP source build, ROCm AOMP is integrated into ROCm.  That version depends on existing ROCm components. The ROCm AOMP package installs into /opt/rocm/aomp. The default source build installs into $HOME/rocm/aomp.
 
-Developers may update a component and then run these scripts in the folowing order:
+Developers may update a component and then run these scripts in the following order:
 
 ```
    ./build_roct.sh
@@ -134,11 +134,11 @@ Developers may update a component and then run these scripts in the folowing ord
    ./build_hipvdi.sh
    ./build_hipvdi.sh install
 
-   ./build_extras.sh
-   ./build_extras.sh install
-
    ./build_atmi.sh
    ./build_atmi.sh install
+
+   ./build_extras.sh
+   ./build_extras.sh install
 
    ./build_openmp.sh
    ./build_openmp.sh install
