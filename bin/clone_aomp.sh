@@ -69,8 +69,8 @@ if [ -d $repodirname  ] ; then
    git pull 
    echo "cd $repodirname ; git checkout $COBRANCH"
    git checkout $COBRANCH
-   #echo "git pull "
-   #git pull 
+   echo "git pull "
+   git pull
    if [ "$reponame" == "$AOMP_HCC_REPO_NAME" ] ; then
      #  undo the hcc_ppc_fp16.patch before pulling more updates
      echo "git submodule update"
