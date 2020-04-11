@@ -52,6 +52,7 @@ TESTS_DIR = \
     simd \
     snap_red \
     stream \
+    targ_static \
     target-in-other-source \
     target_teams_reduction \
     tasks \
