@@ -26,6 +26,7 @@ TESTS_DIR = \
     launch_latency \
     liba_bundled \
     liba_bundled_cmdline \
+    map_zero_bug \
     math_modff \
     math_sqrt_float \
     MaxNumThrds \
