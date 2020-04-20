@@ -6,8 +6,8 @@
 extern "C" {
 #endif
 
-__device__ void inc_omp(int i, int *array) ;
-__device__ void dec_omp(int i, int *array) ;
+__device__ __host__ void inc_omp(int i, int *array) ;
+__device__ __host__ void dec_omp(int i, int *array) ;
 
 #if defined(__cplusplus)
 }

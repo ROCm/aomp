@@ -36,8 +36,8 @@ __global__ void writeIndex(int *b, int n) {
   int i = hipBlockIdx_x;
   if (i < n) {
     b[i] = i;
-    inc_arrayval(i, b ) ;
-    dec_arrayval(b, i ) ; // OpenCL arg alignment ?
+    inc_arrayval(i, b ) ; // c
+    dec_arrayval(i, b ) ; // FORTRAN
     inc_omp(i, b ) ;
     dec_omp(i, b ) ;
   }
@@ -60,6 +60,13 @@ void printArray(int *array) {
 int checkArray(int *array){
   int errors = 0;
   for(int i = 0; i < N; ++i){
+    // Call library functions from the host 
+/*  Fixme: Make this work
+    inc_arrayval(i, array ) ; // c
+    dec_arrayval(i, array ) ; // FORTRAN
+    inc_omp(i, array ) ;  // openmp 
+    dec_omp(i, array ) ;  // openmp
+*/
     if(array[i] != i)
       errors++;
   }
