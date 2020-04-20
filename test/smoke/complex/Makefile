@@ -1,4 +1,4 @@
 include ../Makefile.defs
 all: 	
-	$(AOMP)/bin/rocmcc -v complex.cpp
+	$(AOMP)/bin/aompcc -v complex.cpp
 include ../Makefile.rules
