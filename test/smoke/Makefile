@@ -10,6 +10,7 @@ TESTS_DIR = \
     collapse \
     data_enter_issue01 \
     data_issue_59 \
+    decl_targ \
     devices \
     firstprivate \
     firstprivate2 \
