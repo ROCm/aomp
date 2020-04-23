@@ -148,7 +148,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 
       echo rm -rf $BUILD_DIR/build/openmp
       rm -rf $BUILD_DIR/build/openmp
-      MYCMAKEOPTS="$COMMON_CMAKE_OPTS -DCMAKE_BUILD_TYPE=Release $AOMP_ORIGIN_RPATH -DROCM_DIR=$ROCM_DIR -DAOMP_STANDALONE_BUILD=$AOMP_STANDALONE_BUILD"
+      MYCMAKEOPTS="$COMMON_CMAKE_OPTS -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS=-g =DCMAKE_C_FLAGS=-g $AOMP_ORIGIN_RPATH -DROCM_DIR=$ROCM_DIR -DAOMP_STANDALONE_BUILD=$AOMP_STANDALONE_BUILD"
       mkdir -p $BUILD_DIR/build/openmp
       cd $BUILD_DIR/build/openmp
       echo " -----Running openmp cmake ---- " 
