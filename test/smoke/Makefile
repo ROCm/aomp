@@ -18,6 +18,7 @@ TESTS_DIR = \
     function \
     function_overload \
     function_template \
+    gdb_teams \
     helloworld \
     hip_device_compile \
     hip_rocblas \
