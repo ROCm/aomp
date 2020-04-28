@@ -27,16 +27,19 @@
 
 #define N 10
 
-// Get headers for demo library _mylib
+// Get headers for different demo libraries _mylib
 #include "_mylib.h"
+#include "_myomplib.h"
 
 //  HIP kernel that uses functions in the _mylib SDL
 __global__ void writeIndex(int *b, int n) {
   int i = hipBlockIdx_x;
   if (i < n) {
     b[i] = i;
-    inc_arrayval(i, b ) ;
-    dec_arrayval(i, b ) ;
+    inc_arrayval(i, b ) ; // c
+    dec_arrayval(i, b ) ; // FORTRAN
+    inc_omp(i, b ) ;
+    dec_omp(i, b ) ;
   }
 }
 
@@ -57,7 +60,14 @@ void printArray(int *array) {
 int checkArray(int *array){
   int errors = 0;
   for(int i = 0; i < N; ++i){
-    if(array[i] != (i+1))
+    // Call library functions from the host 
+/*  Fixme: Make this work
+    inc_arrayval(i, array ) ; // c
+    dec_arrayval(i, array ) ; // FORTRAN
+    inc_omp(i, array ) ;  // openmp 
+    dec_omp(i, array ) ;  // openmp
+*/
+    if(array[i] != i)
       errors++;
   }
   return errors;

@@ -1,4 +1,5 @@
 !  interface
+!omp declare target
 subroutine dec_arrayval(i, beta) bind(C)
         use ISO_C_BINDING
         integer (C_LONG), dimension(*), intent(out) :: beta

@@ -69,8 +69,8 @@ if [ -d $repodirname  ] ; then
    git pull 
    echo "cd $repodirname ; git checkout $COBRANCH"
    git checkout $COBRANCH
-   #echo "git pull "
-   #git pull 
+   echo "git pull "
+   git pull
    if [ "$reponame" == "$AOMP_HCC_REPO_NAME" ] ; then
      #  undo the hcc_ppc_fp16.patch before pulling more updates
      echo "git submodule update"
@@ -153,10 +153,11 @@ repogitname=$AOMP_ROCR_REPO_NAME
 COBRANCH=$AOMP_ROCR_REPO_BRANCH
 clone_or_pull
 
-reponame=$AOMP_ATMI_REPO_NAME
-repogitname=$AOMP_ATMI_REPO_NAME
-COBRANCH=$AOMP_ATMI_REPO_BRANCH
-clone_or_pull
+## ATMI was removed in aomp 11.5-0
+#reponame=$AOMP_ATMI_REPO_NAME
+#repogitname=$AOMP_ATMI_REPO_NAME
+#COBRANCH=$AOMP_ATMI_REPO_BRANCH
+#clone_or_pull
 
 reponame=$AOMP_COMGR_REPO_NAME
 repogitname=$AOMP_COMGR_REPO_NAME
