@@ -30,9 +30,10 @@ thisdir=$(getdname $0)
 export AOMP_GPU=`$AOMP/bin/mygpu`
 echo AOMP_GPU = $AOMP_GPU
 
-cd $AOMP_REPOS_TEST/openmpapps/Nekbone
-cd test/example3
-make clean
-PATH=$AOMP/bin/:$PATH ./mymakenek
+cd $AOMP_REPOS_TEST/Nekbone
+cd test/nek_gpu1
+make -f makefile.aomp clean
+PATH=$AOMP/bin/:$PATH make -f makefile.aomp
+ulimit -s unlimited
 LIBOMPTARGET_KERNEL_TRACE=1 ./nekbone
 

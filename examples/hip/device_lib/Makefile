@@ -28,42 +28,59 @@ AOMP ?= /usr/lib/aomp
 HIPCC = $(AOMP)/bin/hipcc
 CLANG = $(AOMP)/bin/clang
 FLANG = $(AOMP)/bin/flang
-LINKLL = $(AOMP)/bin/llvm-link
+UNBUNDLE = $(AOMP)/bin/clang-offload-bundler
 
-writeIndex: writeIndex.cpp lib_mylib.a lib_mylib-amdgcn.bc
+MYGPU = $(shell $(AOMP)/bin/mygpu -d gfx900)
+TRIPLE = amdgcn-amd-amdhsa
+#OMPFLAGS = -O3 -target x86_64-pc-linux-gnu -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$(MYGPU)
+OMPFLAGS = -O3 -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$(MYGPU)
+
+writeIndex: writeIndex.hip lib_mylib.a libbc-_mylib-amdgcn.a   lib_myomplib.a 
 	@echo
-	@echo " 4. Compile HIP application that uses the _mylib SDL"
-	$(HIPCC) -L$(PWD) -l_mylib writeIndex.cpp -o $@
+	@echo " ----------  3 Build HIP application using both SDLs ----------------" 
+	@echo
+	@echo " 3. Create HIP app using both _mylib and _myomplib SDLs. 		$@"
+	$(HIPCC) -L$(PWD) -l_myomplib -l_mylib writeIndex.hip -o $@
 
-#  Build Host Static Library 
 inc_arrayval.o: inc_arrayval.c
 	@echo
-	@echo " 1.1 Compile C library function source to create host object $@"
+	@echo " ----------  1 Build _mylib SDL (two files) ------------------------"
+	@echo
+	@echo " 1.1 Compile C library function source to create host-only object 	$@"
 	$(CLANG) -c $^ -o $@
 dec_arrayval.o: dec_arrayval.f95
 	@echo
-	@echo " 1.2 Compile f95 library function source to create host object $@"
+	@echo " 1.2 Compile FORTRAN function to create 2nd host-only object.		$@"
 	$(FLANG) -c $^ -o $@
 lib_mylib.a: inc_arrayval.o dec_arrayval.o
 	@echo
-	@echo " 1.3 Use Linux ar command to create the host static library $@"
+	@echo " 1.3 Use Linux ar command to create the host-only archive file.		$@"
 	ar rcs $@ $^ 
-
-#  Build amdgcn Static Device library (SDL)
-AMDTARGET = -target amdgcn-amd-amdhsa
-#AMDTARGET = -target nvptx64-nvidia-cuda
 inc_arrayval-amdgcn.bc: inc_arrayval.c
 	@echo
-	@echo " 2.1 Compile c library source again to create device bitcode"
-	$(CLANG) -c -emit-llvm $(AMDTARGET) $^ -o $@
-dec_arrayval-amdgcn.bc: dec_arrayval.f95
+	@echo " 1.4 Re-Compile c library source to create a device bitcode.		$@"
+	$(CLANG) -c -emit-llvm -target $(TRIPLE) -nogpulib $^ -o $@
+
+dec_arrayval-amdgcn.bc: dec_arrayval.c
 	@echo
-	@echo " 2.2 Link bitcode files to create static device library (SDL)"
-	$(FLANG) -c -emit-llvm $(AMDTARGET) -I$(AOMP)/include $^ -o $@
-lib_mylib-amdgcn.bc: inc_arrayval-amdgcn.bc dec_arrayval-amdgcn.bc
+	@echo " 1.5 Re-Compile c Code to create a 2nd device bitcode file.		$@"
+	$(CLANG) -c -emit-llvm -target $(TRIPLE) -nogpulib $^ -o $@
+
+libbc-_mylib-amdgcn.a: inc_arrayval-amdgcn.bc dec_arrayval-amdgcn.bc
 	@echo
-	@echo " 2.3 Link bitcode files to create static device library (SDL)"
-	$(LINKLL) $^ -o $@
+	@echo " 1.6 Use Linux ar command to create device-specific archive. 		$@"
+	ar rcs $@ $^ 
+
+_myomplib.o:  _myomplib.c
+	@echo
+	@echo " ----------  2 Build _myomplib SDL (single fat archive file) --------"
+	@echo
+	@echo " 2.1 Compile heterogenous functions into a bundled object. 		$@"
+	$(CLANG) $(OMPFLAGS) -c $^ -o $@
+lib_myomplib.a:  _myomplib.o
+	@echo
+	@echo " 2.2 Create heterogeneous archive from bundled objects.			$@"
+	ar rcs $@ $^ 
 
 run: writeIndex
 	./writeIndex
@@ -73,6 +90,8 @@ clean:
 	@[ -f ./inc_arrayval.o ] && rm inc_arrayval.o ; true
 	@[ -f ./dec_arrayval.o ] && rm dec_arrayval.o ; true
 	@[ -f ./lib_mylib.a ] && rm lib_mylib.a ; true
-	@[ -f ./lib_mylib-amdgcn.bc ] && rm lib_mylib-amdgcn.bc ; true
+	@[ -f ./libbc-_mylib-amdgcn.a ] && rm libbc-_mylib-amdgcn.a ; true
+	@[ -f ./lib_myomplib.a ] && rm lib_myomplib.a ; true
 	@[ -f ./inc_arrayval-amdgcn.bc ] && rm inc_arrayval-amdgcn.bc ; true
 	@[ -f ./dec_arrayval-amdgcn.bc ] && rm dec_arrayval-amdgcn.bc ; true
+	@[ -f ./_myomplib.o ] && rm _myomplib.o ; true

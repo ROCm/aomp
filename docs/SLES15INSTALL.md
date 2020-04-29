@@ -1,9 +1,9 @@
 # AOMP SUSE SLES-15-SP1 Install 
-<b>The SLES package for AOMP 11.0-1, is pending due to limited office access.</b>
+<b>The SLES package for AOMP 11.5-0, is pending due to limited office access.</b>
 AOMP will install to /usr/lib/aomp. The AOMP environment variable will automatically be set to the install location. This may require a new terminal to be launched to see the change.
 ```
-wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_11.0-1/aomp_SLES15_SP1-11.0-1.x86_64.rpm
-sudo rpm -i aomp_SLES15_SP1-11.0-1.x86_64.rpm
+wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_11.5-0/aomp_SLES15_SP1-11.5-0.x86_64.rpm
+sudo rpm -i aomp_SLES15_SP1-11.5-0.x86_64.rpm
 ```
 Confirm AOMP environment variable is set:
 ```

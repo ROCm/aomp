@@ -126,7 +126,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
   echo
   echo " -----Running cmake ---- "
   echo ${AOMP_CMAKE} $MYCMAKEOPTS $EXTRAS_REPO_DIR
-  ${AOMP_CMAKE} $MYCMAKEOPTS $EXTRAS_REPO_DIR
+  ${AOMP_CMAKE} $MYCMAKEOPTS $EXTRAS_REPO_DIR 
   if [ $? != 0 ] ; then
       echo "ERROR extras cmake failed. Cmake flags"
       echo "      $MYCMAKEOPTS"

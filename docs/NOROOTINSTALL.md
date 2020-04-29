@@ -7,13 +7,13 @@ Once installed go to [TESTINSTALL](TESTINSTALL.md) for instructions on getting s
 To install the debian package without root access into your home directory, you can run these commands.<br>
 On Ubuntu 18.04 LTS (bionic beaver):
 ```
-   wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_11.0-1/aomp_Ubuntu1804_11.0-1_amd64.deb
-   dpkg -x aomp_Ubuntu1804_11.0-1_amd64.deb /tmp/temproot
+   wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_11.5-0/aomp_Ubuntu1804_11.5-0_amd64.deb
+   dpkg -x aomp_Ubuntu1804_11.5-0_amd64.deb /tmp/temproot
 ```
 On Ubuntu 16.04:
 ```
-   wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_11.0-1/aomp_Ubuntu1604_11.0-1_amd64.deb
-   dpkg -x aomp_Ubuntu1604_11.0-1_amd64.deb /tmp/temproot
+   wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_11.5-0/aomp_Ubuntu1604_11.5-0_amd64.deb
+   dpkg -x aomp_Ubuntu1604_11.5-0_amd64.deb /tmp/temproot
 ```
 Move to $HOME and set variables:
 ```
@@ -26,12 +26,23 @@ The last two commands could be put into your .bash_profile file so you can alway
 ### RPM
 To install the rpm package without root access into your home directory, you can run these commands.
 ```
-   mkdir /tmp/temproot ; cd /tmp/temproot
+   mkdir /tmp/temproot ; cd /tmp/temproot 
 ```
 For Red Hat:
 ```
-   wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_11.0-1/aomp_REDHAT_7-11.0-1.x86_64.rpm
-   rpm2cpio aomp_REDHAT_7-11.0-1.x86_64.rpm | cpio -idmv
+   wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_11.5-0/aomp_REDHAT_7-11.5-0.x86_64.rpm
+   rpm2cpio aomp_REDHAT_7-11.5-0.x86_64.rpm | cpio -idmv
+```
+For SLES15-SP1:
+```
+   wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_11.5-0/aomp_SLES15_SP1-11.5-0.x86_64.rpm
+   rpm2cpio aomp_SLES15_SP1-11.5-0.x86_64.rpm | cpio -idmv
+```
+Move to $HOME and set variables:
+```
+   mv /tmp/temproot/usr $HOME
+   export PATH=$PATH:$HOME/usr/lib/aomp/bin
+   export AOMP=$HOME/usr/lib/aomp
 ```
 For SLES15-SP1:
 ```

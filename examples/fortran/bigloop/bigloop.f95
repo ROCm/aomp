@@ -27,7 +27,7 @@ subroutine foo(a,b,c)
   PARAMETER (nsize=10000)
   real a(nsize,nsize), b(nsize,nsize), c(nsize,nsize)
   integer i,j,k,omp_get_num_threads,omp_get_thread_num,omp_get_max_threads
-!$omp target teams distribute parallel do map(from:a) map(to:b,c) private(i,j,k)
+!$omp target teams distribute parallel do simd map(from:a) map(to:b,c) private(i,j,k)
   do k=1,20
    do i=1,nsize-1
     do j=1,nsize-1
