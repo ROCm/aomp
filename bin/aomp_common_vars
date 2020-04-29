@@ -19,17 +19,9 @@ ROCM_VERSION=${ROCM_VERSION:-3.5.0}
 
 # Set the AOMP VERSION STRING and AOMP_PROJECT_REPO_BRANCH.
 AOMP_VERSION=${AOMP_VERSION:-"11.5"}
-AOMP_VERSION_MOD=${AOMP_VERSION_MOD:-"0"}
+AOMP_VERSION_MOD=${AOMP_VERSION_MOD:-"1"}
 AOMP_VERSION_STRING=${AOMP_VERSION_STRING:-"$AOMP_VERSION-$AOMP_VERSION_MOD"}
 export AOMP_VERSION_STRING AOMP_VERSION AOMP_VERSION_MOD ROCM_VERSION
-
-# Hash values for repos on dev branches. To recreate build of 11.5-0, verify these repos are on the correct commit.
-# rocm-device-libs     dc34b35
-# rocm-compilersupport 3ebf0a
-# rocminfo             1a81ee3
-# ROCclr (vdi)         928f8b06
-# hip (hip-on-vdi)     ffcbd7e6
-# ROCm-OpenCL-Runtime  a66edda
 
 # Set install directory and the link directory.
 # AOMP will be a symbolic link AOMP_INSTALL_DIR is the versioned dir name
@@ -147,13 +139,13 @@ GITKHRONOS="https://github.com/KhronosGroup"
 
 #  These aomp development repositories
 AOMP_REPO_NAME=${AOMP_REPO_NAME:-aomp}
-AOMP_REPO_BRANCH=${AOMP_REPO_BRANCH:-rel_11.5-0}
+AOMP_REPO_BRANCH=${AOMP_REPO_BRANCH:-amd-stg-openmp}
 AOMP_PROJECT_REPO_NAME=${AOMP_PROJECT_REPO_NAME:-amd-llvm-project}
-AOMP_PROJECT_REPO_BRANCH=${AOMP_PROJECT_REPO_BRANCH:-aomp-11.5-0}
+AOMP_PROJECT_REPO_BRANCH=${AOMP_PROJECT_REPO_BRANCH:-amd-stg-openmp}
 AOMP_EXTRAS_REPO_NAME=${AOMP_EXTRAS_REPO_NAME:-aomp-extras}
-AOMP_EXTRAS_REPO_BRANCH=${AOMP_EXTRAS_REPO_BRANCH:-aomp-11.5-0}
+AOMP_EXTRAS_REPO_BRANCH=${AOMP_EXTRAS_REPO_BRANCH:-amd-stg-openmp}
 AOMP_FLANG_REPO_NAME=${AOMP_FLANG_REPO_NAME:-flang}
-AOMP_FLANG_REPO_BRANCH=${AOMP_FLANG_REPO_BRANCH:-aomp-11.5-0}
+AOMP_FLANG_REPO_BRANCH=${AOMP_FLANG_REPO_BRANCH:-amd-stg-openmp}
 
 #  These extra repositories are needed but we cannot update them
 AOMP_ROCT_REPO_NAME=${AOMP_ROCT_REPO_NAME:-roct-thunk-interface}
