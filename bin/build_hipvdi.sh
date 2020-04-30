@@ -58,6 +58,7 @@ HIPVDI_REPO_DIR=$AOMP_REPOS/$AOMP_HIPVDI_REPO_NAME
 BUILD_DIR=${BUILD_AOMP}
 
 BUILDTYPE="Release"
+INSTALL_HIP=${INSTALL_HIP:-$AOMP_INSTALL_DIR}
 
 REPO_BRANCH=$AOMP_HIPVDI_REPO_BRANCH
 REPO_DIR=$AOMP_REPOS/$AOMP_HIPVDI_REPO_NAME
@@ -89,9 +90,7 @@ if [ "$1" == "install" ] ; then
    $SUDO rm $AOMP_INSTALL_DIR/testfile
 fi
 
-patchloc=$thisdir/patches
-patchdir=$AOMP_REPOS/$AOMP_HIPVDI_REPO_NAME
-patchrepo
+patchrepo $AOMP_REPOS/$AOMP_HIPVDI_REPO_NAME
 
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 
@@ -112,7 +111,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
  -DROCM_PATH=$ROCM_DIR \
  -DHSA_PATH=$ROCM_DIR/hsa \
  -DCMAKE_MODULE_PATH=$ROCM_DIR/cmake \
- -DCMAKE_PREFIX_PATH=$ROCM_DIR/include \
+ -DCMAKE_PREFIX_PATH=$ROCM_DIR/include;$ROCM_DIR \
  -DCMAKE_CXX_FLAGS=-Wno-ignored-attributes "
  # -DLLVM_INCLUDES=$ROCM_DIR/include "
 
@@ -163,7 +162,21 @@ if [ "$1" == "install" ] ; then
       exit 1
    fi
 
-   patchloc=$thisdir/patches
-   patchdir=$AOMP_REPOS/$AOMP_HIPVDI_REPO_NAME
-   removepatch
+   removepatch $AOMP_REPOS/$AOMP_HIPVDI_REPO_NAME
+   # The hip perl scripts have /opt/rocm hardcoded, so fix them after then are installed
+   # but only if not installing to default location.
+   if [ $INSTALL_HIP != "/opt/rocm/llvm" ] ; then
+      if [[ "$AOMP_STANDALONE_BUILD" == 0 ]]; then
+        SED_INSTALL_DIR=`echo /opt/rocm/aomp | sed -e 's/\//\\\\\//g' `
+      else
+        SED_INSTALL_DIR=`echo '$ENV{\"AOMP\"}' | sed -e 's/\//\\\\\//g' `
+      fi
+      $SUDO sed -i -e "s/\"\/opt\/rocm\"\/llvm/$SED_INSTALL_DIR/" $INSTALL_HIP/bin/hipcc
+      $SUDO sed -i -e "s/\"\/opt\/rocm\"/$SED_INSTALL_DIR/" $INSTALL_HIP/bin/hipcc
+      $SUDO sed -i -e "s/\$HIP_CLANG_PATH=\$ENV{'HIP_CLANG_PATH'}/\$HIP_CLANG_PATH=$SED_INSTALL_DIR \. \'\/bin\'/" $INSTALL_HIP/bin/hipcc
+      $SUDO sed -i -e "s/ -D_OPENMP //" $INSTALL_HIP/bin/hipcc
+      $SUDO sed -i -e "s/\"\/opt\/rocm\"\/llvm/$SED_INSTALL_DIR/" $INSTALL_HIP/bin/hipconfig
+      $SUDO sed -i -e "s/\"\/opt\/rocm\"/$SED_INSTALL_DIR/" $INSTALL_HIP/bin/hipconfig
+   fi
+
 fi

@@ -100,9 +100,7 @@ if [ "$1" == "install" ] ; then
    $SUDO rm $INSTALL_RINFO/testfile
 fi
 
-patchloc=$thisdir/patches
-patchdir=$AOMP_REPOS/$AOMP_RINFO_REPO_NAME
-patchrepo
+patchrepo $AOMP_REPOS/$AOMP_RINFO_REPO_NAME
 
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
   if [ -d "$BUILD_DIR/build/rocminfo" ] ; then
@@ -112,7 +110,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
      rm -rf $BUILD_DIR/build/rocminfo
   fi
 
-  MYCMAKEOPTS="$AOMP_ORIGIN_RPATH -DCMAKE_BUILD_TYPE=$BUILDTYPE -DCMAKE_INSTALL_PREFIX=$INSTALL_RINFO -DROCM_DIR=$ROCM_DIR -DROCRTST_BLD_TYPE=$BUILDTYPE"
+  MYCMAKEOPTS="$AOMP_ORIGIN_RPATH -DCMAKE_BUILD_TYPE=$BUILDTYPE -DCMAKE_INSTALL_PREFIX=$INSTALL_RINFO -DROCM_DIR=$ROCM_DIR -DROCRTST_BLD_TYPE=$BUILDTYPE -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON -DCMAKE_INSTALL_RPATH='\$ORIGIN/../lib' -DCMAKE_EXE_LINKER_FLAGS='-Wl,--disable-new-dtags'"
 
   mkdir -p $BUILD_DIR/build/rocminfo
   cd $BUILD_DIR/build/rocminfo
@@ -158,5 +156,5 @@ if [ "$1" == "install" ] ; then
          echo "ERROR make install failed "
          exit 1
       fi
-      removepatch
+      removepatch $AOMP_REPOS/$AOMP_RINFO_REPO_NAME
 fi

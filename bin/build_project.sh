@@ -58,6 +58,7 @@ if [ "$AOMP_CHECK_GIT_BRANCH" == 1 ] ; then
 else
    DO_TESTS="-DLLVM_BUILD_TESTS=OFF -DLLVM_INCLUDE_TESTS=OFF -DCLANG_INCLUDE_TESTS=OFF"
 fi
+   DO_TESTS=""
 MYCMAKEOPTS="-DLLVM_ENABLE_PROJECTS=clang;lld;compiler-rt -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX=$INSTALL_PROJECT -DLLVM_ENABLE_ASSERTIONS=ON -DLLVM_TARGETS_TO_BUILD=$TARGETS_TO_BUILD $COMPILERS -DLLVM_VERSION_SUFFIX=_AOMP_Version_$AOMP_VERSION_STRING -DBUG_REPORT_URL='https://github.com/ROCm-Developer-Tools/aomp' -DLLVM_ENABLE_BINDINGS=OFF -DLLVM_INCLUDE_BENCHMARKS=OFF $DO_TESTS $AOMP_ORIGIN_RPATH"
 
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then 
@@ -90,7 +91,7 @@ if [ "$1" == "install" ] ; then
 fi
 
 # Fix the banner to print the AOMP version string. 
-if [ $AOMP_STANDALONE_BUILD == 1 ] && [ "$AOMP_BUILD_TRUNK" == 1 ] ; then
+if [ $AOMP_STANDALONE_BUILD == 1 ] ; then
    cd $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME
    if [ "$AOMP_CHECK_GIT_BRANCH" == 1 ] ; then
       MONO_REPO_ID=`git log | grep -m1 commit | cut -d" " -f2`
@@ -131,8 +132,8 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
       echo "WARNING!  BUILD_DIR($BUILD_DIR) != AOMP_REPOS($AOMP_REPOS)"
       echo "SO REPLICATING AOMP_REPOS/$AOMP_PROJECT_REPO_NAME  TO: $BUILD_DIR"
       echo
-      echo rsync -a --exclude ".git" $exclude_cmdline --delete $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME $BUILD_DIR 2>&1
-      rsync -a --exclude ".git" $exclude_cmdline --delete $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME $BUILD_DIR 2>&1
+      echo "rsync -a $exclude_cmdline --delete $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME $BUILD_DIR"
+      rsync -a $exclude_cmdline --delete $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME $BUILD_DIR 2>&1
    fi
 
 else
@@ -143,7 +144,7 @@ else
    fi
 fi
 
-if [ $AOMP_STANDALONE_BUILD == 1 ] && [ "$AOMP_BUILD_TRUNK" == 1 ] ; then
+if [ $AOMP_STANDALONE_BUILD == 1 ] ; then
    cd $BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME
    if [ -f $BUILDCLFILE ] ; then
       # only copy if there has been a change to the source.

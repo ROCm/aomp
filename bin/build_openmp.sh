@@ -112,10 +112,14 @@ if [ "$GXXLOC" == "" ] ; then
    exit 1
 fi
 
+GFXSEMICOLONS=`echo $GFXLIST | tr ' ' ';' `
 COMMON_CMAKE_OPTS="-DOPENMP_ENABLE_LIBOMPTARGET=1
 -DCMAKE_INSTALL_PREFIX=$INSTALL_OPENMP
 -DOPENMP_TEST_C_COMPILER=$AOMP/bin/clang
--DOPENMP_TEST_CXX_COMPILER=$AOMP/bin/clang++ "
+-DOPENMP_TEST_CXX_COMPILER=$AOMP/bin/clang++
+-DLIBOMPTARGET_AMDGCN_GFXLIST=$GFXSEMICOLONS
+-DDEVICELIBS_ROOT=$DEVICELIBS_ROOT
+-DLIBOMP_COPY_EXPORTS=OFF "
 
 if [ "$AOMP_BUILD_CUDA" == 1 ] ; then
    COMMON_CMAKE_OPTS="$COMMON_CMAKE_OPTS
@@ -123,17 +127,13 @@ if [ "$AOMP_BUILD_CUDA" == 1 ] ; then
 -DLIBOMPTARGET_NVPTX_CUDA_COMPILER=$AOMP/bin/clang++
 -DLIBOMPTARGET_NVPTX_ALTERNATE_HOST_COMPILER=$GCCLOC
 -DLIBOMPTARGET_NVPTX_BC_LINKER=$AOMP/bin/llvm-link
--DLIBOMPTARGET_NVPTX_COMPUTE_CAPABILITIES=$NVPTXGPUS
--DCMAKE_BUILD_CUDA=1"
+-DLIBOMPTARGET_NVPTX_COMPUTE_CAPABILITIES=$NVPTXGPUS"
 fi
 
 # This is how we tell the hsa plugin where to find hsa
 export HSA_RUNTIME_PATH=$ROCM_DIR/hsa
-# Trunk does not yet use standard library search for HIP device libs
-# So tell HIP where to find rocm-device-libs with HIP_DEVICE_LIB_PATH
-if [ "$AOMP_BUILD_TRUNK" != 0 ] ; then
-   export HIP_DEVICE_LIB_PATH=$ROCM_DIR/lib
-fi
+
+export HIP_DEVICE_LIB_PATH=$ROCM_DIR/lib
 
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then 
 
@@ -149,7 +149,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 
       echo rm -rf $BUILD_DIR/build/openmp
       rm -rf $BUILD_DIR/build/openmp
-      MYCMAKEOPTS="$COMMON_CMAKE_OPTS -DCMAKE_BUILD_TYPE=Release $AOMP_ORIGIN_RPATH -DROCM_DIR=$ROCM_DIR"
+      MYCMAKEOPTS="$COMMON_CMAKE_OPTS -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS=-g =DCMAKE_C_FLAGS=-g $AOMP_ORIGIN_RPATH -DROCM_DIR=$ROCM_DIR -DAOMP_STANDALONE_BUILD=$AOMP_STANDALONE_BUILD"
       mkdir -p $BUILD_DIR/build/openmp
       cd $BUILD_DIR/build/openmp
       echo " -----Running openmp cmake ---- " 
@@ -166,11 +166,9 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
          exit 1
       fi
 
-   # We cannot build debug libs with hip till hip has support for robust posix printf
-   if [ "$AOMP_BUILD_TRUNK" == 0 ] ; then
       echo rm -rf $BUILD_DIR/build/openmp_debug
       rm -rf $BUILD_DIR/build/openmp_debug
-      MYCMAKEOPTS="$COMMON_CMAKE_OPTS -DLIBOMPTARGET_NVPTX_DEBUG=ON -DCMAKE_BUILD_TYPE=Debug $AOMP_ORIGIN_RPATH -DROCM_DIR=$ROCM_DIR"
+      MYCMAKEOPTS="$COMMON_CMAKE_OPTS -DLIBOMPTARGET_NVPTX_DEBUG=ON -DCMAKE_BUILD_TYPE=Debug $AOMP_ORIGIN_RPATH -DROCM_DIR=$ROCM_DIR -DAOMP_STANDALONE_BUILD=$AOMP_STANDALONE_BUILD"
       mkdir -p $BUILD_DIR/build/openmp_debug
       cd $BUILD_DIR/build/openmp_debug
       echo
@@ -187,7 +185,6 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
          echo "      $MYCMAKEOPTS"
          exit 1
       fi
-   fi
 fi
 
 cd $BUILD_DIR/build/openmp
@@ -203,7 +200,6 @@ if [ $? != 0 ] ; then
       exit 1
 fi
 
-if [ "$AOMP_BUILD_TRUNK" == 0 ] ; then
 cd $BUILD_DIR/build/openmp_debug
 echo
 echo
@@ -221,7 +217,6 @@ else
       echo
   fi
 fi
-fi
 
 #  ----------- Install only if asked  ----------------------------
 if [ "$1" == "install" ] ; then 
@@ -234,7 +229,6 @@ if [ "$1" == "install" ] ; then
          exit 1
       fi
 
-      if [ "$AOMP_BUILD_TRUNK" == 0 ] ; then
       cd $BUILD_DIR/build/openmp_debug
       echo
       echo " -----Installing to $INSTALL_OPENMP/lib-debug ---- " 
@@ -242,6 +236,5 @@ if [ "$1" == "install" ] ; then
       if [ $? != 0 ] ; then 
          echo "ERROR make install failed "
          exit 1
-      fi
       fi
 fi

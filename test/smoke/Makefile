@@ -10,6 +10,7 @@ TESTS_DIR = \
     collapse \
     data_enter_issue01 \
     data_issue_59 \
+    decl_targ \
     devices \
     firstprivate \
     firstprivate2 \
@@ -26,6 +27,7 @@ TESTS_DIR = \
     launch_latency \
     liba_bundled \
     liba_bundled_cmdline \
+    map_zero_bug \
     math_modff \
     math_sqrt_float \
     MaxNumThrds \
@@ -51,6 +53,8 @@ TESTS_DIR = \
     simd \
     snap_red \
     stream \
+    targ_declare \
+    targ_static \
     target-in-other-source \
     target_teams_reduction \
     tasks \
