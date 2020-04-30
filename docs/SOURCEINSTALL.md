@@ -93,9 +93,9 @@ Create a /etc/yum.repos.d/rocm.repo file with the following contents:
 ## Clone and Build AOMP
 
 ```
-   cd $HOME ; mkdir -p git/aomp ; cd git/aomp
+   cd $HOME ; mkdir -p git/aomp11 ; cd git/aomp11
    git clone https://github.com/rocm-developer-tools/aomp
-   cd $HOME/git/aomp/aomp/bin
+   cd $HOME/git/aomp11/aomp/bin
 ```
 
 <b>Choose a Build Version (Development or Release)</b>

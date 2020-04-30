@@ -29,8 +29,8 @@ AOMP=${AOMP:-$HOME/rocm/aomp}
 AOMP_INSTALL_DIR=${AOMP}_${AOMP_VERSION_STRING}
 
 # Set the directory location where all local AOMP git repos are stored.
-# For example, if AOMP_REPOS=$HOME/git/aomp, then the primary aomp repo
-# is stored in $HOME/git/aomp/aomp and the mono repo is stored in
+# For example, if AOMP_REPOS=$HOME/git/aomp11, then the primary aomp repo
+# is stored in $HOME/git/aomp11/aomp and the mono repo is stored in
 # $HOME/aomp/llvm-project.
 AOMP_REPOS=${AOMP_REPOS:-$HOME/git/aomp11}
 
@@ -172,7 +172,7 @@ AOMP_VDI_REPO_BRANCH=${AOMP_VDI_REPO_BRANCH:-master}
 AOMP_VDI_REPO_GITNAME=${AOMP_VDI_REPO_GITNAME:-ROCclr}
 AOMP_OCL_REPO_NAME=${AOMP_OCL_REPO_NAME:-opencl-on-vdi}
 AOMP_OCL_REPO_GITNAME=${AOMP_OCL_REPO_GITNAME:-ROCm-OpenCL-Runtime}
-AOMP_OCL_REPO_BRANCH=${AOMP_OCL_REPO_BRANCH:-master}
+AOMP_OCL_REPO_BRANCH=${AOMP_OCL_REPO_BRANCH:-master-next}
 AOMP_HIPVDI_REPO_NAME=${AOMP_HIPVDI_REPO_NAME:-hip-on-vdi}
 AOMP_HIPVDI_REPO_GITNAME=${AOMP_HIPVDI_REPO_GITNAME:-hip}
 AOMP_HIPVDI_REPO_BRANCH=${AOMP_HIPVDI_REPO_BRANCH:-master-next}
@@ -379,7 +379,7 @@ function help_build_aomp(){
   Repositories:
      Many repositories are used to build AOMP.  The script clone_aomp.sh will
      clone all the necessary repositories as subdirectories of the directory
-     $HOME/git/aomp . The web repository locations and the required branches
+     $HOME/git/aomp11. The web repository locations and the required branches
      are set with the file aomp_common_vars
   
   Build all components:
@@ -412,7 +412,7 @@ function help_build_aomp(){
      NAME             DEFAULT             DESCRIPTION
      ----             -------             -----------
      AOMP             $HOME/rocm/aomp     Where the compiler will be installed
-     AOMP_REPOS       $HOME/git/aomp      Location of all aomp repos
+     AOMP_REPOS       $HOME/git/aomp11    Location of all aomp repos
      BUILD_TYPE       Release             The CMAKE build type
      BUILD_AOMP       same as AOMP_REPOS  Set a different build location than AOMP_REPOS
   
