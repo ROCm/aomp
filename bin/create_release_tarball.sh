@@ -82,7 +82,7 @@ cd $AOMP_REPOS/..
 
 # This file will be uploaded to the release directory
 tarball="aomp-${AOMP_VERSION_STRING}.tar.gz"
-cmd="tar --exclude-from $thisdir/create_release_tarball_excludes -czf $tarball aomp"
+cmd="tar --exclude-from $thisdir/create_release_tarball_excludes -czf $tarball aomp11"
 echo "----------------- START tar COMMAND -----------------"
 echo time $cmd
 time $cmd
