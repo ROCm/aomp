@@ -28,6 +28,7 @@ TESTS_DIR = \
     launch_latency \
     liba_bundled \
     liba_bundled_cmdline \
+    lto_teams \
     map_zero_bug \
     math_modff \
     math_sqrt_float \
