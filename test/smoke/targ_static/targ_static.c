@@ -21,6 +21,6 @@ int main(){
   fprintf(stderr, "BEFORE colstat[0..2] %d %d %d \n", colstat[0], colstat[1], colstat[2]);
 #pragma omp target update from(colstat)
   fprintf(stderr, "AFTER colstat[0..2] %d %d %d \n", colstat[0], colstat[1], colstat[2]);
-  return 0;  // RON FIXME:
+  return (colstat[1] == 1111 && colstat[2] == 2222) ? 0 : 1 ;
 }
 
