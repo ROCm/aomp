@@ -27,7 +27,7 @@ echo "**************************************************************************
 echo "                   A non-zero exit code means a failure occured." >> check-smoke.txt
 echo "***********************************************************************************" >> check-smoke.txt
 
-skiptests="devices pfspecifier pfspecifier_str target_teams_reduction hip_rocblas red_bug_51 tasks omp_lock reduction_array_section"
+skiptests="devices pfspecifier pfspecifier_str target_teams_reduction hip_rocblas tasks reduction_array_section map_zero_bug targ_static complex"
 
 #Loop over all directories and make run / make check depending on directory name
 for directory in ./*/; do
