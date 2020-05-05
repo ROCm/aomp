@@ -89,21 +89,21 @@ else
       if [ "$AOMP_STANDALONE_BUILD" == 1 ] ; then
          # There is no good external repo for the opencl runtime but we only need the headers for build_vdi.sh
 	 # So build_ocl.sh is currently not called.
-         components="roct rocr project libdevice comgr rocminfo vdi hipvdi extras openmp pgmath flang flang_runtime"
+         components="roct rocr project libdevice extras openmp pgmath flang flang_runtime comgr rocminfo vdi hipvdi "
       else
          # With AOMP 11, ROCM integrated build will not need roct rocr libdevice comgr and rocminfo
          #               In the future, when ROCm build vdi and hipvdi we can remove them
-         components="project vdi hipvdi extras openmp pgmath flang flang_runtime"
+         components="project extras openmp pgmath flang flang_runtime vdi hipvdi"
       fi
    else
       if [ "$AOMP_STANDALONE_BUILD" == 1 ] ; then
-         components="roct rocr project libdevice comgr rocminfo hcc hip extras openmp pgmath flang flang_runtime"
+         components="roct rocr project libdevice extras openmp pgmath flang flang_runtime comgr rocminfo hcc hip"
       else
-         components="project rocminfo hip extras openmp pgmath flang flang_runtime"
+         components="project extras openmp pgmath flang flang_runtime rocminfo hip"
       fi
    fi
 fi
-echo "COMPONENS:$components"
+echo "COMPONENTS:$components"
 
 #Partial build options. Check if argument was given.
 if [ -n "$1" ] ; then
