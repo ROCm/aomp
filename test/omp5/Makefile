@@ -1,8 +1,12 @@
 include Makefile.defs
 
 TESTS_DIR = \
+    declare_variant \
+    nestedSIMD \
     reduc_map_prob \
-    declare_variant
+    red_bug_51 \
+    shape_noncontig \
+    reduc_map_prob
 
 all:
 	@for test_dir in $(TESTS_DIR); do \
@@ -37,12 +41,12 @@ check:
 	done
 
 help:
-	@echo 
+	@echo
 	@echo "LLVM Tool Chain:	$(AOMP)/bin"
 	@echo "Offload Targets:	$(TARGET)"
 	@echo "Host Target:		$(AOMP_CPUTARGET)"
 	@echo "Application Dirs:	$(TESTS_DIR)"
-	@echo 
+	@echo
 	@echo "This Makefile supports the following flags:"
 	@echo 
 	@echo "	make llbin      // Link pass only"
