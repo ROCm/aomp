@@ -13,7 +13,7 @@ compile_regex='Compiler result": "(.*)"'
 runtime_regex='Runtime result": "(.*)"'
 
 #skip known failures for now
-skip_tests='gemv_target.cpp gemv_target_reduction.cpp reduction_separated_directives.cpp test_target_enter_data_classes_inheritance.cpp test_target_enter_exit_data_classes.cpp reduction_separated_directives.c test_target_data_map_array_sections.c test_target_teams_distribute_thread_limit.c declare_target_module.F90 target/test_target_firstprivate.F90 test_target_private.F90 test_target_data_map_to_array_sections.F90 test_target_teams_distribute_defaultmap.F90 test_target_teams_distribute_firstprivate.F90 test_target_teams_distribute_reduction_min.F90'
+skip_tests='test_target_enter_data_classes_inheritance.cpp test_target_enter_exit_data_classes.cpp declare_target_module.F90 test_target_firstprivate.F90 test_target_private.F90 test_target_teams_distribute_firstprivate.F90 test_target_teams_distribute_reduction_min.F90 test_target_teams_distribute_default_firstprivate.F90'
 
 total_fails=0
 while read -r line; do
