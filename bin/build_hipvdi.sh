@@ -166,11 +166,7 @@ if [ "$1" == "install" ] ; then
    # The hip perl scripts have /opt/rocm hardcoded, so fix them after then are installed
    # but only if not installing to default location.
    if [ $INSTALL_HIP != "/opt/rocm/llvm" ] ; then
-      if [[ "$AOMP_STANDALONE_BUILD" == 0 ]]; then
-        SED_INSTALL_DIR=`echo /opt/rocm/aomp | sed -e 's/\//\\\\\//g' `
-      else
         SED_INSTALL_DIR=`echo '$ENV{\"AOMP\"}' | sed -e 's/\//\\\\\//g' `
-      fi
       $SUDO sed -i -e "s/\"\/opt\/rocm\"\/llvm/$SED_INSTALL_DIR/" $INSTALL_HIP/bin/hipcc
       $SUDO sed -i -e "s/\"\/opt\/rocm\"/$SED_INSTALL_DIR/" $INSTALL_HIP/bin/hipcc
       $SUDO sed -i -e "s/\$HIP_CLANG_PATH=\$ENV{'HIP_CLANG_PATH'}/\$HIP_CLANG_PATH=$SED_INSTALL_DIR \. \'\/bin\'/" $INSTALL_HIP/bin/hipcc
