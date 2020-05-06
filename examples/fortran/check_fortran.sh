@@ -5,8 +5,11 @@
 #
 echo ""
 echo ""
+
+script_dir=$(dirname "$0")
+pushd $script_dir
 path=$(pwd)
-base=$(basename $path)
+
 echo ""
 echo "RUNNING ALL TESTS IN: $path "
 echo ""
@@ -49,3 +52,4 @@ for directory in ./*/; do
 	)
 done
 cat check-fortran.txt
+popd

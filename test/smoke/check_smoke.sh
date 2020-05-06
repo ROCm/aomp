@@ -19,6 +19,8 @@ cleanup(){
   rm -f make-fail.txt
 }
 
+script_dir=$(dirname "$0")
+pushd $script_dir
 path=$(pwd)
 
 #Clean all testing directories
@@ -172,3 +174,4 @@ echo "stream"
 echo -e "$BLK"
 #Clean up, hide output
 cleanup
+popd
