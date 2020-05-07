@@ -12,6 +12,7 @@ TESTS_DIR = \
     data_issue_59 \
     decl_targ \
     devices \
+    extern_init \
     firstprivate \
     firstprivate2 \
     flags \
