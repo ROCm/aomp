@@ -183,8 +183,8 @@ fi
 
 echo
 echo " -----Running make ---- " 
-echo make -j $NUM_THREADS 
-make -j $NUM_THREADS 
+echo make -j 32
+make -j 32
 if [ $? != 0 ] ; then 
    echo "ERROR make -j $NUM_THREADS failed"
    exit 1
