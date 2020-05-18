@@ -62,6 +62,11 @@ if [ "$AOMP_PROC" == "unknown" ] ; then
    AOMP_PROC=`uname -a | awk '{print $(NF-1)}'`
 fi
 
+GCC=`which gcc`
+GCCXX=`which g++`
+AOMP_CC_COMPILER=${AOMP_CC_COMPILER:-$GCC}
+AOMP_CXX_COMPILER=${AOMP_CXX_COMPILER:-$GCCXX}
+
 # Non standalone builds are done with ROCm builds.
 AOMP_STANDALONE_BUILD=${AOMP_STANDALONE_BUILD:-1}
 
