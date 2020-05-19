@@ -139,12 +139,6 @@ repogitname=$AOMP_ROCR_REPO_NAME
 COBRANCH=$AOMP_ROCR_REPO_BRANCH
 clone_or_pull
 
-## ATMI was removed in aomp 11.5-0
-#reponame=$AOMP_ATMI_REPO_NAME
-#repogitname=$AOMP_ATMI_REPO_NAME
-#COBRANCH=$AOMP_ATMI_REPO_BRANCH
-#clone_or_pull
-
 reponame=$AOMP_COMGR_REPO_NAME
 repogitname=$AOMP_COMGR_REPO_NAME
 COBRANCH=$AOMP_COMGR_REPO_BRANCH
