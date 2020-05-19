@@ -78,6 +78,10 @@ else
    cd $repodirname
    git checkout $COBRANCH
 fi
+if [ "$AOMP_LIBDEVICE_REPO_SHA" != "" ] ; then
+  git checkout $AOMP_LIBDEVICE_REPO_SHA
+fi
+
 cd $repodirname
 echo git status
 git status
@@ -121,7 +125,9 @@ repo_web_location=$GITROC
 reponame=$AOMP_LIBDEVICE_REPO_NAME
 repogitname=$AOMP_LIBDEVICE_REPO_NAME
 COBRANCH=$AOMP_LIBDEVICE_REPO_BRANCH
+COSHAKEY=$AOMP_LIBDEVICE_REPO_SHA
 clone_or_pull
+COSHAKEY=""
 
 reponame=$AOMP_ROCT_REPO_NAME
 repogitname=$AOMP_ROCT_REPO_NAME
