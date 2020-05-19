@@ -63,8 +63,6 @@ if [ -d $repodirname  ] ; then
    if [ "$STASH_BEFORE_PULL" == "YES" ] ; then
      git stash -u
    fi
-   echo "git pull "
-   git pull 
    echo "cd $repodirname ; git checkout $COBRANCH"
    git checkout $COBRANCH
    echo "git pull "
@@ -78,8 +76,8 @@ else
    cd $repodirname
    git checkout $COBRANCH
 fi
-if [ "$AOMP_LIBDEVICE_REPO_SHA" != "" ] ; then
-  git checkout $AOMP_LIBDEVICE_REPO_SHA
+if [ "$COSHAKEY" != "" ] ; then
+  git checkout $COSHAKEY
 fi
 
 cd $repodirname
