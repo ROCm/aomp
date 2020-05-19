@@ -31,6 +31,7 @@ TESTS_DIR = \
     liba_bundled_cmdline \
     lto_teams \
     map_zero_bug \
+    math_flog \
     math_modff \
     math_sqrt_float \
     MaxNumThrds \
