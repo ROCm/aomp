@@ -1,0 +1,56 @@
+diff --git a/include/hip/hcc_detail/elfio/elf_types.hpp b/include/hip/hcc_detail/elfio/elf_types.hpp
+index a17b7004..e893ca6d 100644
+--- a/include/hip/hcc_detail/elfio/elf_types.hpp
++++ b/include/hip/hcc_detail/elfio/elf_types.hpp
+@@ -45,6 +45,17 @@ typedef signed long long int64_t;
+ #endif  // ELFIO_NO_CSTDINT
+ #endif  // ELFIO_NO_OWN_TYPES
+ 
++// Do not use the vdi definitions
++// Avoid the warnings from redefinitions
++#undef EM_ARC_A5
++#undef ELFOSABI_LINUX
++#undef ELF32_R_SYM
++#undef ELF32_R_TYPE
++#undef ELF32_R_INFO
++#undef ELF64_R_SYM
++#undef ELF64_R_TYPE
++#undef ELF64_R_INFO
++
+ namespace ELFIO {
+ 
+ // Attention! Platform depended definitions.
+diff --git a/include/hip/hcc_detail/hip_runtime.h b/include/hip/hcc_detail/hip_runtime.h
+index e86611b2..a1f7a7d1 100644
+--- a/include/hip/hcc_detail/hip_runtime.h
++++ b/include/hip/hcc_detail/hip_runtime.h
+@@ -67,7 +67,6 @@ THE SOFTWARE.
+ // Remainder of this file only compiles with HCC
+ #if defined __HCC__
+ #include "grid_launch.h"
+-#include "hc_printf.hpp"
+ // TODO-HCC-GL - change this to typedef.
+ // typedef grid_launch_parm hipLaunchParm ;
+ 
+@@ -316,7 +315,7 @@ template <typename... All>
+ static inline __device__ void printf(const char* format, All... all) {
+     hc::printf(format, all...);
+ }
+-#elif defined(__HCC_ACCELERATOR__) || __HIP__
++#elif defined(__HCC_ACCELERATOR__)
+ template <typename... All>
+ static inline __device__ void printf(const char* format, All... all) {}
+ #endif
+diff --git a/lpl_ca/clara/clara.hpp b/lpl_ca/clara/clara.hpp
+index 10b70da6..470b10a0 100644
+--- a/lpl_ca/clara/clara.hpp
++++ b/lpl_ca/clara/clara.hpp
+@@ -637,7 +637,7 @@ struct BoundFlagRefBase : BoundRefBase {
+     auto isFlag() const -> bool override { return true; }
+ 
+     auto setValue(std::string const& arg) -> ParserResult override {
+-        bool flag;
++        bool flag=false;
+         auto result = convertInto(arg, flag);
+         if (result) setFlag(flag);
+         return result;
