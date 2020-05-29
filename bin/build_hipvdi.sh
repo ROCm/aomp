@@ -90,7 +90,6 @@ if [ "$1" == "install" ] ; then
    $SUDO rm $AOMP_INSTALL_DIR/testfile
 fi
 
-patchrepo $AOMP_REPOS/$AOMP_HIPVDI_REPO_NAME
 
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 
@@ -162,7 +161,6 @@ if [ "$1" == "install" ] ; then
       exit 1
    fi
 
-   removepatch $AOMP_REPOS/$AOMP_HIPVDI_REPO_NAME
    # The hip perl scripts have /opt/rocm hardcoded, so fix them after then are installed
    # but only if not installing to default location.
    if [ $INSTALL_HIP != "/opt/rocm/llvm" ] ; then
