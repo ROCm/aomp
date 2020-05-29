@@ -1,4 +1,3 @@
 roct-thunk-interface: roct-thunk-interface.patch
 rocr-runtime: rocr-runtime.patch
-hip-on-vdi: hip-on-vdi.patch 
 rocminfo: rocminfo_ppc_cmake.patch
