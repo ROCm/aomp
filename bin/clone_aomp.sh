@@ -91,6 +91,11 @@ else
      git checkout $COBRANCH
    fi
 fi
+
+if [ "$COSHAKEY" != "" ] ; then
+  git checkout $COSHAKEY
+fi
+
 cd $repodirname
 echo git status
 git status
@@ -141,7 +146,9 @@ repo_web_location=$GITROC
 reponame=$AOMP_LIBDEVICE_REPO_NAME
 repogitname=$AOMP_LIBDEVICE_REPO_NAME
 COBRANCH=$AOMP_LIBDEVICE_REPO_BRANCH
+COSHAKEY=$AOMP_LIBDEVICE_REPO_SHA
 clone_or_pull
+COSHAKEY=""
 
 reponame=$AOMP_ROCT_REPO_NAME
 repogitname=$AOMP_ROCT_REPO_NAME
@@ -162,12 +169,16 @@ clone_or_pull
 reponame=$AOMP_COMGR_REPO_NAME
 repogitname=$AOMP_COMGR_REPO_NAME
 COBRANCH=$AOMP_COMGR_REPO_BRANCH
+COSHAKEY=$AOMP_COMGR_REPO_SHA
 clone_or_pull
+COSHAKEY=""
 
 reponame=$AOMP_RINFO_REPO_NAME
 repogitname=$AOMP_RINFO_REPO_NAME
 COBRANCH=$AOMP_RINFO_REPO_BRANCH
+COSHAKEY=$AOMP_RINFO_REPO_SHA
 clone_or_pull
+COSHAKEY=""
 
 if [ "$AOMP_USE_HIPVDI" == 0 ] ; then
    repo_web_location=$GITROC
@@ -180,15 +191,23 @@ else
    reponame=$AOMP_VDI_REPO_NAME
    repogitname=$AOMP_VDI_REPO_GITNAME
    COBRANCH=$AOMP_VDI_REPO_BRANCH
+   COSHAKEY=$AOMP_VDI_REPO_SHA
    clone_or_pull
+   COSHAKEY=""
+
    repo_web_location=$GITROCDEV
    reponame=$AOMP_HIPVDI_REPO_NAME
    repogitname=$AOMP_HIPVDI_REPO_GITNAME
    COBRANCH=$AOMP_HIPVDI_REPO_BRANCH
+   COSHAKEY=$AOMP_HIPVDI_REPO_SHA
    clone_or_pull
+   COSHAKEY=""
+
    repo_web_location=$GITROC
    reponame=$AOMP_OCL_REPO_NAME
    repogitname=$AOMP_OCL_REPO_GITNAME
    COBRANCH=$AOMP_OCL_REPO_BRANCH
+   COSHAKEY=$AOMP_OCL_REPO_SHA
    clone_or_pull
+   COSHAKEY=""
 fi
