@@ -67,7 +67,7 @@ ifeq ($(TARGETS),)
 TARGETS =--offload-arch=$(AOMP_GPU)
 endif
 
-CC       =$(AOMP)/bin/clang++
+CC       =$(AOMP)/bin/clang++ -std=c++11
 #CFLAGS   =-O3 --target=$(AOMP_CPUTARGET) -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target amdgcn-amd-amdhsa #--offload-arch=$(AOMP_GPU)
 #CFLAGS   =-x hip -O3 -target $(AOMP_CPUTARGET) -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=gfx900
 CFLAGS   =-x hip -O3 -target $(AOMP_CPUTARGET) -fopenmp

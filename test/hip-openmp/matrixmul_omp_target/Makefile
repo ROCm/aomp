@@ -62,7 +62,7 @@ ifeq ($(AOMP_GPU),)
 AOMP_GPU = $(shell $(AOMP)/bin/mygpu -d gfx900) #get installed card, if unknown return gfx900
 endif
 
-CC = $(AOMP)/bin/clang++
+CC = $(AOMP)/bin/clang++ -std=c++11
 
 # Add cudart only if we have an Nvidia sm_ target
 # We have not tested CUDA+OpenMP target offload
