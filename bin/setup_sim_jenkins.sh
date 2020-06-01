@@ -87,11 +87,6 @@ if [ ! -d llvm-project ] ; then
    git clone -b rocmaster $COMPUTE/llvm-project
 fi
 cd $BUILD_TEST_DIR/external/aomp
-if [ ! -d atmi ] ; then 
-   echo git clone -b rocmaster $COMPUTE/atmi 
-   git clone -b rocmaster $COMPUTE/atmi 
-fi
-cd $BUILD_TEST_DIR/external/aomp
 if [ ! -d hip ] ; then 
    echo git clone -b roc-2.9.x $COMPUTE/hip
    git clone -b roc-2.9.x $COMPUTE/hip

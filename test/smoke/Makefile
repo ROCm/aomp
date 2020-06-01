@@ -12,12 +12,14 @@ TESTS_DIR = \
     data_issue_59 \
     decl_targ \
     devices \
+    extern_init \
     firstprivate \
     firstprivate2 \
     flags \
     function \
     function_overload \
     function_template \
+    gdb_teams \
     helloworld \
     hip_device_compile \
     hip_rocblas \
@@ -27,7 +29,9 @@ TESTS_DIR = \
     launch_latency \
     liba_bundled \
     liba_bundled_cmdline \
+    lto_teams \
     map_zero_bug \
+    math_flog \
     math_modff \
     math_sqrt_float \
     MaxNumThrds \
@@ -59,12 +63,14 @@ TESTS_DIR = \
     target_teams_reduction \
     tasks \
     teams \
+    teams_nest \
     teams512-info \
     test \
     thread_limit\
     threads \
     Threads1xxx \
     unique-kernel-name \
+    use_device_ptr \
     veccopy \
     vmuldemo \
     vmulsum

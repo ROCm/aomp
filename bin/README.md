@@ -22,7 +22,6 @@ build_rocminfo.sh        -  Builds the rocminfo utilities to support hip.
 build_vdi.sh             -  Builds the hip interoperability layer ROCclr.
 build_hipvdi.sh          -  Builds the hip host runtime using ROCclr.
 build_extras.sh          -  Builds hostcall, libm, and utils all in aomp-extras repo.
-build_atmi.sh            -  Builds ATMI for aomp.
 build_openmp.sh          -  Builds the OpenMP libraries and device RTL.
 build_pgmath.sh          -  Builds the pgmath support for flang.
 build_flang.sh           -  Builds flang for aomp.
@@ -48,7 +47,6 @@ The first column is the AOMP component that uses the repositories.
 | comgr     | $HOME/git/aomp11/rocm-compilersupport  | [comgr](https://github.com/radeonopencompute/rocm-compilersupport)
 | hipvdi    | $HOME/git/aomp11/hip-on-vdi            | [hipvdi](https://github.com/ROCm-Developer-Tools/hip)
 | ocl       | $HOME/git/aomp11/opencl-on-vdi         | [ocl](https://github.com/radeonopencompute/ROCm-OpenCL-Runtime)
-| atmi      | $HOME/git/aomp11/atmi                  | [atmi](https://github.com/radeonopencompute/atmi)
 | openmp    | $HOME/git/aomp11/llvm-project/openmp   | [llvm-project/openmp](https://github.com/ROCm-Developer-Tools/llvm-project)
 | libdevice | $HOME/git/aomp11/rocm-device-libs      | [rocm-device-libs](https://github.com/radeonopencompute/rocm-device-libs)
 | flang     | $HOME/git/aomp11/flang                 | [flang](https://github.com/ROCm-Developer-Tools/flang)
@@ -134,9 +132,6 @@ Developers may update a component and then run these scripts in the following or
    ./build_hipvdi.sh
    ./build_hipvdi.sh install
 
-   ./build_atmi.sh
-   ./build_atmi.sh install
-
    ./build_extras.sh
    ./build_extras.sh install
 
@@ -164,10 +159,10 @@ WARNING: When the build scripts are run with NO arguments (that is, you do not s
 The install location is defined by the $AOMP environment variable. The value of AOMP needs to be reserved as a symbolic link.
 That is, the physical installation will be in directory $AOMP concatonated with the version string.
 The install script will make a symbolic link from the physical directory to the symbolic directory $AOMP.
-For example, when building AOMP version 11.0-1 with the default value for AOMP=$HOME/rocm/aomp,
-the install scripts will put all files and directories in $HOME/rocm/aomp_11.0-1 and create a symbolic link as follows.
+For example, when building AOMP version 11.5-0 with the default value for AOMP=$HOME/rocm/aomp,
+the install scripts will put all files and directories in $HOME/rocm/aomp_11.5-0 and create a symbolic link as follows.
 
 ```
-ln -sf ${AOMP}_11.0-1 ${AOMP}
+ln -sf ${AOMP}_11.5-0 ${AOMP}
 ```
 This symbolic link makes it easy to switch between versions of AOMP for testing.
