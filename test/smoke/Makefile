@@ -63,6 +63,7 @@ TESTS_DIR = \
     target_teams_reduction \
     tasks \
     teams \
+    teams_nest \
     teams512-info \
     test \
     thread_limit\
