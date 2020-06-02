@@ -24,8 +24,12 @@ for directory in ./*/; do
 	(cd "$directory" && path=$(pwd) && base=$(basename $path) 
 		make clean
 		make
+		if [ $? -ne 0 ]; then
+			echo "$base: Make Failed" >> ../check-hip.txt
+		else
 		make run
-		echo " Return Code for $base: $?" >> ../check-hip.txt
+			echo " Return Code for $base: $?" >> ../check-hip.txt
+		fi
 		make clean	
 		
 	)

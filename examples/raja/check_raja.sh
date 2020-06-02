@@ -23,12 +23,16 @@ echo "***********************************************************" >> check-raja
 for directory in ./*/; do 
 	(cd "$directory" && path=$(pwd) && base=$(basename $path) 
 		make clean
-    make clean_raja
+		make clean_raja
 		make
-		make run
-		echo " Return Code for $base: $?" >> ../check-raja.txt	
+		if [ $? -ne 0 ]; then
+			echo "$base: Make Failed" >> ../check-raja.txt
+		else
+			make run
+			echo " Return Code for $base: $?" >> ../check-raja.txt
+		fi
 		make clean
-    make clean_raja
+		make clean_raja
 	)
 	
 done
