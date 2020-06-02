@@ -55,7 +55,7 @@ int matrixMul_check(int *matrixA, int *matrixB, int *matrixC, int ARows,
       }
       if(matrixC[i * BCols + j] != value) {
         ++n_errors;
-        printf("\tError: Matrices miscompare devC[%d,%d]-hostC: %d\n", i, j,
+        fprintf(stderr,"\tError: Matrices miscompare devC[%d,%d]-hostC: %d\n", i, j,
                matrixC[i * BCols + j] - value);
       }
     }
@@ -65,22 +65,22 @@ int matrixMul_check(int *matrixA, int *matrixB, int *matrixC, int ARows,
 
 void printMatrix(int *matrix, int Rows, int Cols) {
   for (int i = 0; i < Rows; ++i) {
-    printf("\n[");
+    fprintf(stderr,"\n[");
     bool first = true;
     for (int j = 0; j < Cols; ++j) {
       if (first) {
-        printf("%d", matrix[i * Cols + j]);
+        fprintf(stderr,"%d", matrix[i * Cols + j]);
         first = false;
       } else {
-        printf(", %d", matrix[i * Cols + j]);
+        fprintf(stderr,", %d", matrix[i * Cols + j]);
       }
     }
-    printf("]");
+    fprintf(stderr,"]");
   }
 }
 
 void printHipError(hipError_t error) {
-  printf("Hip Error: %s\n", hipGetErrorString(error));
+  fprintf(stderr,"Hip Error: %s\n", hipGetErrorString(error));
 }
 
 void randomizeMatrix(int *matrix, int Rows, int Cols) {
@@ -106,7 +106,7 @@ bool deviceCanCompute(int deviceID) {
   if (devicePropIsAvailable) {
     canCompute = deviceProp.computeMode != hipComputeModeProhibited;
     if (!canCompute)
-      printf("Compute mode is prohibited\n");
+      fprintf(stderr,"Compute mode is prohibited\n");
   }
   return canCompute;
 }
@@ -124,14 +124,14 @@ bool haveComputeDevice() {
 int main() {
   int N_errors = 0;
   if (!haveComputeDevice()) {
-    printf("No compute device available\n");
+    fprintf(stderr,"No compute device available\n");
     return 0;
   }
 #pragma omp parallel for schedule(static,1)
   for(int i=0; i<Z; ++i) {
 #pragma omp task
    {
-    printf("Interation: %d started <<<<\n",i);
+    fprintf(stderr,"Interation: %d started <<<<\n",i);
     int hostSrcMatA[N * M];
     int hostSrcMatB[M * P];
     int hostDstMat[N * P];
@@ -140,11 +140,11 @@ int main() {
     randomizeMatrix(hostSrcMatB, M, P);
     clearMatrix(hostDstMat, N, P);
 
-//    printf("A: ");
+//    fprintf(stderr,"A: ");
 //    printMatrix(hostSrcMatA, N, M);
-//    printf("\nB: ");
+//    fprintf(stderr,"\nB: ");
 //    printMatrix(hostSrcMatB, M, P);
-//    printf("\n");
+//    fprintf(stderr,"\n");
 
     int *deviceSrcMatA = NULL;
     int *deviceSrcMatB = NULL;
@@ -179,20 +179,20 @@ int main() {
           N_errors = matrixMul_check(hostSrcMatA, hostSrcMatB, hostDstMat,
                                          N, M, P);
           if (N_errors != 0) {
-            printf("Interation: %d \t\t FAILED: %d Errors >>>\n", i, N_errors);
-            printf("A: ");
+            fprintf(stderr,"Interation: %d \t\t FAILED: %d Errors >>>\n", i, N_errors);
+            fprintf(stderr,"A: ");
             printMatrix(hostSrcMatA, N, M);
-            printf("\nB: ");
+            fprintf(stderr,"\nB: ");
             printMatrix(hostSrcMatB, M, P);
-            printf("\n");
-            printf("Mul: ");
+            fprintf(stderr,"\n");
+            fprintf(stderr,"Mul: ");
             printMatrix(hostDstMat, N, P);
-            printf("\n");
-          } else printf("Interation: %d \t\t SUCCESSFUL >>>\n", i);
+            fprintf(stderr,"\n");
+          } else fprintf(stderr,"Interation: %d \t\t SUCCESSFUL >>>\n", i);
         } else {
-          printf("Unable to copy memory from device to host\n");
+          fprintf(stderr,"Unable to copy memory from device to host\n");
         }
-      } else printf("Unable to make initial copy\n");
+      } else fprintf(stderr,"Unable to make initial copy\n");
     }
 // See: http://ontrack-internal.amd.com/browse/SWDEV-210802
 #ifdef HIP_FREE_THREADSAFE
@@ -207,13 +207,13 @@ int main() {
       hipFree(deviceDstMat);
 #endif
 //#pragma omp taskwait
-    printf("Interation: %d finished >>>\n",i);
+    fprintf(stderr,"Interation: %d finished >>>\n",i);
    }
   }
   if(!N_errors)
-    printf("%s" , "Success");
+    fprintf(stderr,"%s" , "Success");
   else
-    printf("%s", "Failed\n");
+    fprintf(stderr,"%s", "Failed\n");
 
   return N_errors;
 }
