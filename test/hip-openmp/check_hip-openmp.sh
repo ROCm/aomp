@@ -21,6 +21,7 @@ echo "*************************************************************" >> hip-open
 #Loop over all directories and make run / make check depending on directory name
 for directory in ./*/; do 
 	(cd "$directory" && path=$(pwd) && base=$(basename $path) 
+		echo "=== $base "
 		make clean
 		make	
 		make run
