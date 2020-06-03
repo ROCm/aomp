@@ -24,8 +24,12 @@ for directory in ./*/; do
 	(cd "$directory" && path=$(pwd) && base=$(basename $path) 
 		make clean
 		make
-		make run
-		echo " Return Code for $base: $?" >> ../check-cloc.txt
+		if [ $? -ne 0 ]; then
+			echo "$base: Make Failed" >> ../check-cloc.txt
+		else
+		  make run
+		  echo " Return Code for $base: $?" >> ../check-cloc.txt
+		fi
 		make clean	
 		
 	)

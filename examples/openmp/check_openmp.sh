@@ -26,8 +26,12 @@ for directory in ./*/; do
 	(cd "$directory" && path=$(pwd) && base=$(basename $path) 
 		make clean
 		make
-		make run
-		echo " Return Code for $base: $?" >> ../check-openmp.txt
+		if [ $? -ne 0 ]; then
+			echo "$base: Make Failed" >> ../check-openmp.txt
+		else
+			make run
+			echo " Return Code for $base: $?" >> ../check-openmp.txt
+		fi
 		make clean	
 		
 	)

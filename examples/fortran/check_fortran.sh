@@ -25,23 +25,27 @@ skiptests=""
 
 #Loop over all directories and make run / make check depending on directory name
 for directory in ./*/; do 
-  (cd "$directory" && path=$(pwd) && base=$(basename $path)
-    skip=0
-    for test in $skiptests ; do
-      if [ $test == $base ] ; then
-        skip=1
-        break
-      fi
-    done
-    if [ $skip -ne 0 ] ; then
-      echo "Skip $base!"
-      continue
-    fi
-    make clean
-    make
-    make run
-    echo " Return Code for $base: $?" >> ../check-fortran.txt
-    make clean
+	(cd "$directory" && path=$(pwd) && base=$(basename $path)
+		skip=0
+		for test in $skiptests ; do
+			if [ $test == $base ] ; then
+			skip=1
+				break
+			fi
+		done
+		if [ $skip -ne 0 ] ; then
+			echo "Skip $base!"
+			continue
+		fi
+		make clean
+		make
+		if [ $? -ne 0 ]; then
+			echo "$base: Make Failed" >> ../check-fortran.txt
+		else
+			make run
+			echo " Return Code for $base: $?" >> ../check-fortran.txt
+		fi
+		make clean
   )
 	
 done
