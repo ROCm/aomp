@@ -89,8 +89,7 @@ else
   $SUDO sed -i -e "s/ -D_OPENMP //" $AOMP/bin/hipcc
   $SUDO sed -i -e "s/\"\/opt\/rocm\"\/llvm/$SED_INSTALL_DIR/" $AOMP/bin/hipconfig
   $SUDO sed -i -e "s/\$HIP_CLANG_PATH=\$ENV{'HIP_CLANG_PATH'}/\$HIP_CLANG_PATH=$SED_INSTALL_DIR \. \'\/bin\'/" $AOMP/bin/hipconfig
-  $SUDO sed -i -e "s/\"\/opt\/rocm\"/$SED_INSTALL_DIR/" $AOMP/bin/hipconfig
-  $SUDO sed -i -e "s/\"\$0\/\.\.\//\"\$0\/\.\.\/\.\.\//" $AOMP/bin/hipconfig
+  $SUDO sed -i -e "s/\$HIP_PATH\/lib\/\.hipInfo/\$HIP_PATH\/\.\.\/lib\/\.hipInfo/" $AOMP/bin/hipconfig
 fi
 
 echo "Done with $0"
