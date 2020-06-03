@@ -1,56 +1,63 @@
-/*
-* @@name: declare_variant.2c
-* @@type: C
-* @@compilable: yes, omp_5.0
-* @@linkable: no
-* @@expect: success
-*/
-#include <omp.h>
-
-void   base_saxpy(int, float, float *, float *);
-void avx512_saxpy(int, float, float *, float *);
-
-#pragma omp declare variant( avx512_saxpy ) \
-                      match( device={isa(core-avx512, mic-avx512)} )
-void base_saxpy(int n, float s, float *x, float *y)    // base function
-{
-   #pragma omp parallel for
-   for(int i=0; i<n; i++) y[i] = s*x[i] + y[i];
-}
-
-void avx512_saxpy(int n, float s, float *x, float *y)    //function variant
-{
-   #pragma omp parallel for simd simdlen(16) aligned(x,y:64) //AVX512 aligned
-   for(int i=0; i<n; i++) y[i] = s*x[i] + y[i];
-}
-
-// Above may be in another file scope.                  
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
-#define N 1000
+#include <omp.h>
 
-int main()
+//  --- start of saxpy header with variants ---
+int saxpy(int, float, float *, float *);
+int amdgcn_saxpy(int, float, float *, float *);
+int nvptx_saxpy(int, float, float *, float *);
+
+#pragma omp declare variant(nvptx_saxpy) \
+  match(device = {arch(nvptx, nvptx64)}, implementation = {extension(match_any)})
+#pragma omp declare variant( amdgcn_saxpy )  \
+  match(device = {arch(amdgcn)}, implementation = {extension(match_any)})
+int saxpy(int n, float s, float *x, float *y)    // base function
 {
+   printf("saxpy: Running on host . IsHost:%d\n", omp_is_initial_device());
+   #pragma omp parallel for
+   for(int i=0; i<n; i++) y[i] = s*x[i] + y[i];
+   return 1;
+}
+int amdgcn_saxpy(int n, float s, float *x, float *y)    //function variant
+{
+   printf("amdgcn_saxpY: Running on amdgcn device. IsHost:%d\n", omp_is_initial_device());
+   #pragma omp teams distribute parallel for
+   for(int i=0; i<n; i++) { y[i] = s*x[i] + y[i]; }
+   return 0;
+}
+int nvptx_saxpy(int n, float s, float *x, float *y)    //function variant
+{
+   printf("nvptx_saxpy: Running on nvptx device. IsHost:%d\n",omp_is_initial_device());
+   #pragma omp teams distribute parallel for
+   for(int i=0; i<n; i++) y[i] = s*x[i] + y[i];
+   return 0;
+}
+//  --- end of saxpy header with variants ----
+
+#define N 128
+#define THRESHOLD  127
+int main() {
    static float x[N],y[N] __attribute__ ((aligned(64)));
    float s=2.0;
-
-   allocate(x(N),y(N));  // Assumes allocation is 64-byte aligned
-                         // (using compiler options, or another
-                         // allocation method).
-
-   if( ((intptr_t)(y))%64 != 0 || ((intptr_t)(x))%64 != 0 )
-   { printf("ERROR: x|y not 64-Byte aligned\n"); exit(1); }
+   int return_code = 0 ;
 
    for(int i=0; i<N; i++){ x[i]=i+1; y[i]=i+1; } // initialize
 
-   base_saxpy(N,s,x,y);
+   printf("Calling saxpy with high threshold for device execution\n");
+   #pragma omp target if (N>(THRESHOLD*2))
+   return_code = saxpy(N,s,x,y);
 
-   printf("y[0],y[N-1]: %5.0f %5.0f\n",y[0],y[N-1]); //output: y...   5  5000
+   printf("Calling saxpy with low threshold for device execution\n");
+   #pragma omp target if (N>THRESHOLD)
+   return_code = saxpy(N,s,x,y);
 
-   omp_free(x, xy_alloc);
-   omp_free(y, xy_alloc);
-   omp_destroy_allocator(xy_alloc);
-   return 0;
+   printf("y[0],y[N-1]: %5.0f %5.0f\n",y[0],y[N-1]); //output: y...   5 640
+
+   if (return_code)
+     printf("Fail!\n");
+   else
+     printf("Success!\n");
+
+   return return_code;
 }

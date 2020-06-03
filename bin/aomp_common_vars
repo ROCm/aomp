@@ -15,11 +15,11 @@
 AOMP_COMPILER_NAME=${AOMP_COMPILER_NAME:-AOMP}
 
 # ROCM_VERSION may be set by Jenkins, if not guess a good number
-ROCM_VERSION=${ROCM_VERSION:-3.4.0}
+ROCM_VERSION=${ROCM_VERSION:-3.5.0}
 
 # Set the AOMP VERSION STRING and AOMP_PROJECT_REPO_BRANCH.
 AOMP_VERSION=${AOMP_VERSION:-"11.5"}
-AOMP_VERSION_MOD=${AOMP_VERSION_MOD:-"0"}
+AOMP_VERSION_MOD=${AOMP_VERSION_MOD:-"1"}
 AOMP_VERSION_STRING=${AOMP_VERSION_STRING:-"$AOMP_VERSION-$AOMP_VERSION_MOD"}
 export AOMP_VERSION_STRING AOMP_VERSION AOMP_VERSION_MOD ROCM_VERSION
 
@@ -29,8 +29,8 @@ AOMP=${AOMP:-$HOME/rocm/aomp}
 AOMP_INSTALL_DIR=${AOMP}_${AOMP_VERSION_STRING}
 
 # Set the directory location where all local AOMP git repos are stored.
-# For example, if AOMP_REPOS=$HOME/git/aomp, then the primary aomp repo
-# is stored in $HOME/git/aomp/aomp and the mono repo is stored in
+# For example, if AOMP_REPOS=$HOME/git/aomp11, then the primary aomp repo
+# is stored in $HOME/git/aomp11/aomp and the mono repo is stored in
 # $HOME/aomp/llvm-project.
 AOMP_REPOS=${AOMP_REPOS:-$HOME/git/aomp11}
 
@@ -42,14 +42,8 @@ AOMP_REPOS_TEST=${AOMP_REPOS_TEST:-$HOME/git/aomp-test}
 AOMP_CHECK_GIT_BRANCH=${AOMP_CHECK_GIT_BRANCH:-1}
 AOMP_APPLY_ROCM_PATCHES=${AOMP_APPLY_ROCM_PATCHES:-1}
 
-AOMP_USE_HIPVDI=${AOMP_USE_HIPVDI:-1}
-
 #Set common rpath for build scripts
-if [ $AOMP_USE_HIPVDI == 0 ] ; then
-   AOMP_ORIGIN_RPATH="-DCMAKE_SHARED_LINKER_FLAGS='-Wl,--disable-new-dtags' -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON -DCMAKE_INSTALL_RPATH=\$ORIGIN:\$ORIGIN/../lib:\$ORIGIN/../hcc/lib:\$ORIGIN/../hsa/lib:\$ORIGIN/../../hcc/lib:\$ORIGIN/../../lib64:\$ORIGIN/../../hsa/lib:$AOMP_INSTALL_DIR/lib:$AOMP_INSTALL_DIR/hcc/lib:$AOMP_INSTALL_DIR/hsa/lib"
-else
-   AOMP_ORIGIN_RPATH="-DCMAKE_SHARED_LINKER_FLAGS='-Wl,--disable-new-dtags' -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON -DCMAKE_INSTALL_RPATH=\$ORIGIN:\$ORIGIN/../lib:\$ORIGIN/../hsa/lib:\$ORIGIN/../../lib64:\$ORIGIN/../../hsa/lib:$AOMP_INSTALL_DIR/lib:$AOMP_INSTALL_DIR/hsa/lib"
-fi
+AOMP_ORIGIN_RPATH="-DCMAKE_SHARED_LINKER_FLAGS='-Wl,--disable-new-dtags' -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON -DCMAKE_INSTALL_RPATH=\$ORIGIN:\$ORIGIN/../lib:\$ORIGIN/../hsa/lib:\$ORIGIN/../../lib64:\$ORIGIN/../../hsa/lib:$AOMP_INSTALL_DIR/lib:$AOMP_INSTALL_DIR/hsa/lib"
 
 CUDA=${CUDA:-/usr/local/cuda}
 CUDAT=${CUDAT:-$CUDA/targets}
@@ -162,16 +156,13 @@ AOMP_ROCR_COMPONENT_NAME=${AOMP_ROCR_COMPONENT_NAME:-rocr}
 AOMP_LIBDEVICE_REPO_NAME=${AOMP_LIBDEVICE_REPO_NAME:-rocm-device-libs}
 AOMP_LIBDEVICE_COMPONENT_NAME=${AOMP_LIBDEVICE_COMPONENT_NAME:-rocdl}
 AOMP_LIBDEVICE_REPO_BRANCH=${AOMP_LIBDEVICE_REPO_BRANCH:-amd-stg-open}
+AOMP_LIBDEVICE_REPO_SHA=${AOMP_LIBDEVICE_REPO_SHA:-168cbba7c}
 AOMP_COMGR_REPO_NAME=${AOMP_COMGR_REPO_NAME:-rocm-compilersupport}
 AOMP_COMGR_REPO_BRANCH=${AOMP_COMGR_REPO_BRANCH:-amd-stg-open}
+AOMP_COMGR_REPO_SHA=${AOMP_COMGR_REPO_SHA:-9b0cdb6}
 AOMP_RINFO_REPO_NAME=${AOMP_RINFO_REPO_NAME:-rocminfo}
 AOMP_RINFO_REPO_BRANCH=${AOMP_RINFO_REPO_BRANCH:-master}
-AOMP_ATMI_REPO_NAME=${AOMP_ATMI_REPO_NAME:-atmi}
-AOMP_ATMI_REPO_BRANCH=${AOMP_ATMI_REPO_BRANCH:-aomp-0.7-7}
-AOMP_HCC_REPO_NAME=${AOMP_HCC_REPO_NAME:-hcc}
-AOMP_HCC_REPO_BRANCH=${AOMP_HCC_REPO_BRANCH:-roc-3.1.x}
-AOMP_HIP_REPO_NAME=${AOMP_HIP_REPO_NAME:-hip}
-AOMP_HIP_REPO_BRANCH=${AOMP_HIP_REPO_BRANCH:-roc-3.1.x}
+AOMP_RINFO_REPO_SHA=${AOMP_RINFO_REPO_SHA:-1a81ee3}
 
 # These are repos we will use when we switch to HIP VDI
 AOMP_VDI_REPO_NAME=${AOMP_VDI_REPO_NAME:-vdi}
@@ -179,7 +170,7 @@ AOMP_VDI_REPO_BRANCH=${AOMP_VDI_REPO_BRANCH:-master}
 AOMP_VDI_REPO_GITNAME=${AOMP_VDI_REPO_GITNAME:-ROCclr}
 AOMP_OCL_REPO_NAME=${AOMP_OCL_REPO_NAME:-opencl-on-vdi}
 AOMP_OCL_REPO_GITNAME=${AOMP_OCL_REPO_GITNAME:-ROCm-OpenCL-Runtime}
-AOMP_OCL_REPO_BRANCH=${AOMP_OCL_REPO_BRANCH:-master}
+AOMP_OCL_REPO_BRANCH=${AOMP_OCL_REPO_BRANCH:-master-next}
 AOMP_HIPVDI_REPO_NAME=${AOMP_HIPVDI_REPO_NAME:-hip-on-vdi}
 AOMP_HIPVDI_REPO_GITNAME=${AOMP_HIPVDI_REPO_GITNAME:-hip}
 AOMP_HIPVDI_REPO_BRANCH=${AOMP_HIPVDI_REPO_BRANCH:-master-next}
@@ -272,6 +263,8 @@ function checkrepo(){
          if [ "$COBRANCH" == "master" ] ; then
            echo "EXIT:  Repository $REPO_DIR is on development branch: master"
            exit 1
+	 elif [ "$COBRANCH" == "(HEAD" ] ; then
+           echo "we have an override $REPO_DIR"
          else
            echo "ERROR:  The repository at $REPO_DIR is not on branch $REPO_BRANCH"
            echo "          It is on branch $COBRANCH"
@@ -386,7 +379,7 @@ function help_build_aomp(){
   Repositories:
      Many repositories are used to build AOMP.  The script clone_aomp.sh will
      clone all the necessary repositories as subdirectories of the directory
-     $HOME/git/aomp . The web repository locations and the required branches
+     $HOME/git/aomp11. The web repository locations and the required branches
      are set with the file aomp_common_vars
   
   Build all components:
@@ -419,7 +412,7 @@ function help_build_aomp(){
      NAME             DEFAULT             DESCRIPTION
      ----             -------             -----------
      AOMP             $HOME/rocm/aomp     Where the compiler will be installed
-     AOMP_REPOS       $HOME/git/aomp      Location of all aomp repos
+     AOMP_REPOS       $HOME/git/aomp11    Location of all aomp repos
      BUILD_TYPE       Release             The CMAKE build type
      BUILD_AOMP       same as AOMP_REPOS  Set a different build location than AOMP_REPOS
   

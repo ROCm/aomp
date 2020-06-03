@@ -5,8 +5,11 @@
 #
 echo ""
 echo ""
+
+script_dir=$(dirname "$0")
+pushd $script_dir
 path=$(pwd)
-base=$(basename $path)
+
 echo ""
 echo "RUNNING ALL TESTS IN: $path "
 echo ""
@@ -23,8 +26,12 @@ for directory in ./*/; do
 	(cd "$directory" && path=$(pwd) && base=$(basename $path) 
 		make clean
 		make
-		make run
-		echo " Return Code for $base: $?" >> ../check-openmp.txt
+		if [ $? -ne 0 ]; then
+			echo "$base: Make Failed" >> ../check-openmp.txt
+		else
+			make run
+			echo " Return Code for $base: $?" >> ../check-openmp.txt
+		fi
 		make clean	
 		
 	)
@@ -37,3 +44,4 @@ for directory in ./*/; do
 	)
 done
 cat check-openmp.txt
+popd

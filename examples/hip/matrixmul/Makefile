@@ -71,9 +71,9 @@ CC       =$(AOMP)/bin/clang++
 # Add cudart only if we have an Nvidia sm_ target
 ifeq (sm_,$(findstring sm_,$(TARGETS)))
   LFLAGS +=-L$(CUDA)/targets/$(UNAMEP)-linux/lib -lcudart -Wl,-rpath,$(CUDA)/targets/$(UNAMEP)-linux/lib
-  CFLAGS +=-x cuda -I$(CUDA)/include
+  CFLAGS +=-x cuda -I$(CUDA)/include -std=c++11
 else
-  CFLAGS = -x hip
+  CFLAGS = -x hip -std=c++11
 endif
 
 # ----- Demo compile and link in one step, no object code saved
