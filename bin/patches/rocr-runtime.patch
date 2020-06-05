@@ -1,8 +1,8 @@
 diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
-index 642bd09..d8c1666 100644
+index 7174044..1d1feba 100644
 --- a/src/CMakeLists.txt
 +++ b/src/CMakeLists.txt
-@@ -167,6 +167,7 @@ add_library( ${CORE_RUNTIME_TARGET} SHARED ${SRCS} )
+@@ -173,6 +173,7 @@ add_library( ${CORE_RUNTIME_TARGET} ${SRCS} )
  
  target_link_libraries ( ${CORE_RUNTIME_TARGET}
    PRIVATE hsakmt
@@ -27,13 +27,13 @@ index 8be4644..1fa7f1b 100644
    // Determine access type allowed to requesting device
    hsa_amd_memory_pool_access_t GetAccessInfo(const core::Agent& agent,
 diff --git a/src/core/util/utils.h b/src/core/util/utils.h
-index f7f09e9..8016979 100755
+index fbe7e47..5a9a7d5 100644
 --- a/src/core/util/utils.h
 +++ b/src/core/util/utils.h
-@@ -49,6 +49,9 @@
- #include "stddef.h"
- #include "stdlib.h"
- #include <assert.h>
+@@ -52,6 +52,9 @@
+ #include <iostream>
+ #include <string>
+ #include <algorithm>
 +#ifndef NDEBUG
 +#define NDEBUG
 +#endif
@@ -41,7 +41,7 @@ index f7f09e9..8016979 100755
  typedef unsigned int uint;
  typedef uint64_t uint64;
 diff --git a/src/inc/hsa.h b/src/inc/hsa.h
-index 54dc784..1396f51 100644
+index 0e59368..4430a28 100644
 --- a/src/inc/hsa.h
 +++ b/src/inc/hsa.h
 @@ -80,7 +80,7 @@

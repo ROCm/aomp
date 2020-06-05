@@ -99,18 +99,20 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
      echo rm -rf $BUILD_DIR/build/hipvdi
      rm -rf $BUILD_DIR/build/hipvdi
   fi
- 
+  ROCclr_BUILD_DIR=$AOMP_REPOS/build/vdi
   VDI_ROOT=$AOMP_REPOS/$AOMP_VDI_REPO_NAME
   MYCMAKEOPTS="$AOMP_ORIGIN_RPATH -DCMAKE_BUILD_TYPE=$BUILDTYPE \
  -DCMAKE_INSTALL_PREFIX=$AOMP_INSTALL_DIR \
  -DLIBVDI_STATIC_DIR=$BUILD_DIR/build/vdi \
  -DHIP_COMPILER=clang \
- -DHIP_PLATFORM=vdi \
+ -DHIP_PLATFORM=rocclr \
  -DVDI_DIR=$VDI_ROOT \
  -DROCM_PATH=$ROCM_DIR \
  -DHSA_PATH=$ROCM_DIR/hsa \
  -DCMAKE_MODULE_PATH=$ROCM_DIR/cmake \
- -DCMAKE_PREFIX_PATH=$ROCM_DIR/include;$ROCM_DIR \
+ -DROCclr_DIR=$VDI_ROOT \
+ -DLIBROCclr_STATIC_DIR="$ROCclr_BUILD_DIR" \
+ -DCMAKE_PREFIX_PATH=$ROCclr_BUILD_DIR;$ROCM_DIR/include;$ROCM_DIR;$ROCM_DIR/lib \
  -DCMAKE_CXX_FLAGS=-Wno-ignored-attributes "
  # -DLLVM_INCLUDES=$ROCM_DIR/include "
 
@@ -170,7 +172,7 @@ if [ "$1" == "install" ] ; then
       $SUDO sed -i -e "s/\$HIP_CLANG_PATH=\$ENV{'HIP_CLANG_PATH'}/\$HIP_CLANG_PATH=$SED_INSTALL_DIR \. \'\/bin\'/" $INSTALL_HIP/bin/hipcc
       $SUDO sed -i -e "s/ -D_OPENMP //" $INSTALL_HIP/bin/hipcc
       $SUDO sed -i -e "s/\"\/opt\/rocm\"\/llvm/$SED_INSTALL_DIR/" $INSTALL_HIP/bin/hipconfig
-      $SUDO sed -i -e "s/\"\/opt\/rocm\"/$SED_INSTALL_DIR/" $INSTALL_HIP/bin/hipconfig
+      $SUDO sed -i -e "s/\$HIP_CLANG_PATH=\$ENV{'HIP_CLANG_PATH'}/\$HIP_CLANG_PATH=$SED_INSTALL_DIR \. \'\/bin\'/" $AOMP/bin/hipconfig
    fi
 
 fi
