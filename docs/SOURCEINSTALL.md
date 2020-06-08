@@ -111,6 +111,7 @@ The development version is the next version to be released.  It is possible that
 ```
    git checkout rel_11.5-0
    git pull
+   export AOMP_CHECK_GIT_BRANCH=0 //Tags will be used to checkout various repos. This will ignore the detached head state to avoid build errors.
 ```
 <b>Clone and Build:</b>
 ```
