@@ -15,3 +15,7 @@ set +x
 
 cd ../test/smoke
 EPSDB=1 ./check_smoke.sh 
+
+cd ./helloworld
+make clean
+EPSDB=1 VERBOSE=1 make run
