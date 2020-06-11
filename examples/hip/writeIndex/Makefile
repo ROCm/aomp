@@ -30,7 +30,7 @@ CC   =$(AOMP)/bin/hipcc
 
 # --- Demo compile and link in one step, no object code saved
 writeIndex: writeIndex.cpp kernel.cpp
-	$(CC) $^ -o $@
+	  $(CC) $^ -o $@ -std=c++11
 run: writeIndex
 	LD_LIBRARY_PATH=$(AOMP)/lib ./writeIndex
 

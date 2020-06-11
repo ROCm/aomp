@@ -129,7 +129,7 @@ int main() {
   }
 #pragma omp parallel for schedule(static,1)
   for(int i=0; i<Z; ++i) {
-    printf("Interation: %d started <<<<\n",i);
+    fprintf(stderr,"Interation: %d started <<<<\n",i);
     int hostSrcMatA[N * M];
     int hostSrcMatB[M * P];
     int hostDstMat[N * P];
@@ -177,23 +177,22 @@ int main() {
           N_errors = matrixMul_check(hostSrcMatA, hostSrcMatB, hostDstMat,
                                          N, M, P);
 	  if (N_errors != 0) {
-            printf("Interation: %d \t\t FAILED: %d Errors >>>\n", i, N_errors);
-            printf("A: ");
+            fprintf(stderr,"Interation: %d \t\t FAILED: %d Errors >>>\n", i, N_errors);
+            fprintf(stderr,"A: ");
             printMatrix(hostSrcMatA, N, M);
-            printf("\nB: ");
+            fprintf(stderr,"\nB: ");
             printMatrix(hostSrcMatB, M, P);
-            printf("\n");
+            fprintf(stderr,"\n");
             printf("Mul: ");
             printMatrix(hostDstMat, N, P);
-            printf("\n");
-          } else printf("Interation: %d \t\t SUCCESSFUL >>>\n", i);
+            fprintf(stderr,"\n");
+          } else fprintf(stderr,"Interation: %d \t\t SUCCESSFUL >>>\n", i);
         } else {
-          printf("Unable to copy memory from device to host\n");
+          fprintf(stderr,"Unable to copy memory from device to host\n");
         }
-      } else printf("Unable to make initial copy\n");
+      } else fprintf(stderr,"Unable to make initial copy\n");
     }
 // See: http://ontrack-internal.amd.com/browse/SWDEV-210802
-#ifdef HIP_FREE_THREADSAFE
 //#pragma omp task shared(matrixAAllocated, deviceSrcMatA)
     if (matrixAAllocated)
       hipFree(deviceSrcMatA);
@@ -203,9 +202,8 @@ int main() {
 //#pragma omp task shared(matrixCAllocated, deviceDstMat)
     if (matrixCAllocated)
       hipFree(deviceDstMat);
-#endif
 //#pragma omp taskwait
-    printf("Interation: %d finished >>>\n",i);
+    fprintf(stderr,"Interation: %d finished >>>\n",i);
   }
   if(!N_errors)
     printf("%s", "Success\n");

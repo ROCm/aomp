@@ -62,7 +62,7 @@ ifeq ($(AOMP_GPU),)
 AOMP_GPU = $(shell $(AOMP)/bin/mygpu -d gfx900) #get installed card, if unknown return gfx900
 endif
 
-CC = $(AOMP)/bin/clang++
+CC = $(AOMP)/bin/clang++ -std=c++11
 
 # Add cudart only if we have an Nvidia sm_ target
 # We have not tested CUDA+OpenMP target offload
@@ -76,7 +76,7 @@ else
 endif
 
 #  These HIPFLAGS provide HIP+OpenMP for CPU only. No target offload
-HIPFLAGS = -x hip $(PLATFORM) -O2 --offload-arch=$(AOMP_GPU) -lpthread
+HIPFLAGS = -x hip $(PLATFORM) -O2 --offload-arch=$(AOMP_GPU) -lpthread 
 #  These OMP_TARGET_FLAGS added to HIPFLAGS provide HIP+OpenMP with GPU target offload
 OMP_TARGET_FLAGS = 
 

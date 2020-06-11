@@ -39,6 +39,8 @@ rm -rf %{_topdir}/BUILD/%{name}
 echo "POST INSTALL SCRIPT FROM spec file RUNNING IN $PWD"
 if [ -L /usr/lib/aomp ] ; then rm /usr/lib/aomp ; fi
 ln -sf /usr/lib/aomp___VERSION2_STRING /usr/lib/aomp
+if [ -L /usr/bin/aompcc ] ; then rm /usr/bin/aompcc ; fi
+ln -sf /usr/lib/aomp/bin/aompcc /usr/bin/aompcc
 if [ -L /usr/bin/aompversion ] ; then rm /usr/bin/aompversion ; fi
 ln -sf /usr/lib/aomp/bin/aompversion /usr/bin/aompversion 
 if [ -L /usr/bin/mymcpu ] ; then rm /usr/bin/mymcpu ; fi

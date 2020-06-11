@@ -1,4 +1,5 @@
 #include <omp.h>
+#include <stdio.h>
 
 int main()
 {
@@ -11,5 +12,9 @@ int main()
   }
 
    double delta = time1 - time0;
+   if(delta)
+     printf("Success!\n");
+   else
+     printf("Failure\n");
    return delta == 0.; // success if they differ
 }

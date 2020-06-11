@@ -19,6 +19,8 @@ cleanup(){
   rm -f make-fail.txt
 }
 
+script_dir=$(dirname "$0")
+pushd $script_dir
 path=$(pwd)
 
 #Clean all testing directories
@@ -34,7 +36,7 @@ echo "                   A non-zero exit code means a failure occured." >> check
 echo "Tests that need to be visually inspected: devices, pfspecify, pfspecify_str, stream" >> check-smoke.txt
 echo "***********************************************************************************" >> check-smoke.txt
 
-known_fails="reduction_array_section target_teams_reduction tasks map_zero_bug targ_static complex"
+known_fails="complex extern_init reduction_array_section targ_static target_teams_reduction tasks"
 
 if [ "$SKIP_FAILURES" == 1 ] ; then
   skip_tests=$known_fails
@@ -172,3 +174,4 @@ echo "stream"
 echo -e "$BLK"
 #Clean up, hide output
 cleanup
+popd

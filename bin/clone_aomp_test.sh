@@ -44,7 +44,7 @@ if [ -d $repodirname  ] ; then
       cd $repodirname
    fi
    if [ "$STASH_BEFORE_PULL" == "YES" ] ; then
-      if [ "$reponame" != "$AOMP_HCC_REPO_NAME" ] && [ "$reponame" != "$AOMP_RAJA_REPO_NAME" ] ; then
+      if [ "$reponame" != "$AOMP_RAJA_REPO_NAME" ] ; then
          git stash -u
       fi
    fi
@@ -54,7 +54,7 @@ if [ -d $repodirname  ] ; then
    git checkout $COBRANCH
    #echo "git pull "
    #git pull 
-   if [ "$reponame" == "$AOMP_HCC_REPO_NAME" ] || [ "$reponame" == "$AOMP_RAJA_REPO_NAME" ] ; then
+   if [ "$reponame" == "$AOMP_RAJA_REPO_NAME" ] ; then
      echo "git submodule update"
      git submodule update
      echo "git pull"
@@ -63,7 +63,7 @@ if [ -d $repodirname  ] ; then
 else 
    echo --- NEW CLONE of repo $reponame to $repodirname ----
    cd $AOMP_REPOS_TEST
-   if [ "$reponame" == "$AOMP_HCC_REPO_NAME" ] || [ "$reponame" == "$AOMP_RAJA_REPO_NAME" ] ; then
+   if [ "$reponame" == "$AOMP_RAJA_REPO_NAME" ] ; then
      git clone --recursive -b $COBRANCH $repo_web_location/$reponame $reponame
    else
      echo git clone $repo_web_location/$reponame

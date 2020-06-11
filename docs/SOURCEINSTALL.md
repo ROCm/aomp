@@ -1,4 +1,4 @@
-# Source Install V 11.5-1 (DEV)
+# Source Install V 11.6-2 (DEV)
 
 Build and install from sources is possible.  However, the source build for AOMP is complex for several reasons.
 - Many repos are required.  The clone_aomp.sh script ensures you have all repos and the correct branch.
@@ -93,13 +93,13 @@ Create a /etc/yum.repos.d/rocm.repo file with the following contents:
 ## Clone and Build AOMP
 
 ```
-   cd $HOME ; mkdir -p git/aomp ; cd git/aomp
+   cd $HOME ; mkdir -p git/aomp11 ; cd git/aomp11
    git clone https://github.com/rocm-developer-tools/aomp
-   cd $HOME/git/aomp/aomp/bin
+   cd $HOME/git/aomp11/aomp/bin
 ```
 
 <b>Choose a Build Version (Development or Release)</b>
-The development version is the next version to be released.  It is possible that the development version is broken due to regressions that often occur during development.  If instead, you want to build from the sources of a previous release such as 11.5-0 that is possible as well.
+The development version is the next version to be released.  It is possible that the development version is broken due to regressions that often occur during development.  If instead, you want to build from the sources of a previous release such as 11.6-1 that is possible as well.
 
 <b>For the Development Branch:</b>
 ```
@@ -109,8 +109,9 @@ The development version is the next version to be released.  It is possible that
 
 <b>For the Release Branch:</b>
 ```
-   git checkout rel_11.5-0
+   git checkout rel_11.6-1
    git pull
+   export AOMP_CHECK_GIT_BRANCH=0 //Tags will be used to checkout various repos. This will ignore the detached head state to avoid build errors.
 ```
 <b>Clone and Build:</b>
 ```

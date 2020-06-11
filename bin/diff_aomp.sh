@@ -36,13 +36,13 @@ if [ -d $repodirname  ] ; then
    # FIXME look in $repodir/.git/config to be sure 
    cd $repodirname
    git diff 
-   if [ "$reponame" == "$AOMP_HCC_REPO_NAME" ] || [ "$reponame" == "$AOMP_RAJA_REPO_NAME" ] ; then
+   if [ "$reponame" == "$AOMP_RAJA_REPO_NAME" ] ; then
      git diff
    fi
 else 
    echo --- Diff of repo $reponame to $repodirname ----
    cd $AOMP_REPOS
-   if [ "$reponame" == "$AOMP_HCC_REPO_NAME" ] || [ "$reponame" == "$AOMP_RAJA_REPO_NAME" ] ; then
+   if [ "$reponame" == "$AOMP_RAJA_REPO_NAME" ] ; then
     echo Recursive diff needed - fixme
      git diff  -b $COBRANCH $repo_web_location/$reponame $reponame
    else
@@ -76,8 +76,8 @@ reponame=$AOMP_FLANG_REPO_NAME
 COBRANCH=$AOMP_FLANG_REPO_BRANCH
 just_diff
 
-reponame=$AOMP_HIP_REPO_NAME
-COBRANCH=$AOMP_HIP_REPO_BRANCH
+reponame=$AOMP_HIPVDI_REPO_NAME
+COBRANCH=$AOMP_HIPVDI_REPO_BRANCH
 just_diff
 
 # ---------------------------------------
@@ -95,14 +95,6 @@ just_diff
 
 reponame=$AOMP_ROCR_REPO_NAME
 COBRANCH=$AOMP_ROCR_REPO_BRANCH
-just_diff
-
-reponame=$AOMP_ATMI_REPO_NAME
-COBRANCH=$AOMP_ATMI_REPO_BRANCH
-just_diff
-
-reponame=$AOMP_HCC_REPO_NAME
-COBRANCH=$AOMP_HCC_REPO_BRANCH
 just_diff
 
 reponame=$AOMP_COMGR_REPO_NAME

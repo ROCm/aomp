@@ -61,36 +61,27 @@ if [ -d $repodirname  ] ; then
    # FIXME look in $repodir/.git/config to be sure 
    cd $repodirname
    if [ "$STASH_BEFORE_PULL" == "YES" ] ; then
-      if [ "$reponame" != "$AOMP_HCC_REPO_NAME" ] ; then
-         git stash -u
-      fi
+     git stash -u
    fi
    echo "git pull "
-   git pull 
+   git pull
    echo "cd $repodirname ; git checkout $COBRANCH"
    git checkout $COBRANCH
    echo "git pull "
    git pull
-   if [ "$reponame" == "$AOMP_HCC_REPO_NAME" ] ; then
-     #  undo the hcc_ppc_fp16.patch before pulling more updates
-     echo "git submodule update"
-     git submodule update
-     echo "git pull"
-     git pull
-   fi
 else 
    echo --- NEW CLONE of repo $repogitname to $repodirname ----
    cd $AOMP_REPOS
-   if [ "$reponame" == "$AOMP_HCC_REPO_NAME" ] ; then
-     git clone --recursive -b $COBRANCH $repo_web_location/$reponame $reponame
-   else
-     echo git clone -b $COBRANCH $repo_web_location/$repogitname $reponame
-     git clone -b $COBRANCH $repo_web_location/$repogitname $reponame
-     echo "cd $repodirname ; git checkout $COBRANCH"
-     cd $repodirname
-     git checkout $COBRANCH
-   fi
+   echo git clone -b $COBRANCH $repo_web_location/$repogitname $reponame
+   git clone -b $COBRANCH $repo_web_location/$repogitname $reponame
+   echo "cd $repodirname ; git checkout $COBRANCH"
+   cd $repodirname
+   git checkout $COBRANCH
 fi
+if [ "$COSHAKEY" != "" ] ; then
+  git checkout $COSHAKEY
+fi
+
 cd $repodirname
 echo git status
 git status
@@ -127,13 +118,6 @@ repogitname=$AOMP_FLANG_REPO_NAME
 COBRANCH=$AOMP_FLANG_REPO_BRANCH
 clone_or_pull
 
-if [ "$AOMP_USE_HIPVDI" == 0 ] ; then
-reponame=$AOMP_HIP_REPO_NAME
-repogitname=$AOMP_HIP_REPO_NAME
-COBRANCH=$AOMP_HIP_REPO_BRANCH
-clone_or_pull
-fi
-
 # ---------------------------------------
 # The following repos are in RadeonOpenCompute
 # ---------------------------------------
@@ -141,7 +125,9 @@ repo_web_location=$GITROC
 reponame=$AOMP_LIBDEVICE_REPO_NAME
 repogitname=$AOMP_LIBDEVICE_REPO_NAME
 COBRANCH=$AOMP_LIBDEVICE_REPO_BRANCH
+COSHAKEY=$AOMP_LIBDEVICE_REPO_SHA
 clone_or_pull
+COSHAKEY=""
 
 reponame=$AOMP_ROCT_REPO_NAME
 repogitname=$AOMP_ROCT_REPO_NAME
@@ -153,42 +139,32 @@ repogitname=$AOMP_ROCR_REPO_NAME
 COBRANCH=$AOMP_ROCR_REPO_BRANCH
 clone_or_pull
 
-## ATMI was removed in aomp 11.5-0
-#reponame=$AOMP_ATMI_REPO_NAME
-#repogitname=$AOMP_ATMI_REPO_NAME
-#COBRANCH=$AOMP_ATMI_REPO_BRANCH
-#clone_or_pull
-
 reponame=$AOMP_COMGR_REPO_NAME
 repogitname=$AOMP_COMGR_REPO_NAME
 COBRANCH=$AOMP_COMGR_REPO_BRANCH
+COSHAKEY=$AOMP_COMGR_REPO_SHA
 clone_or_pull
+COSHAKEY=""
 
 reponame=$AOMP_RINFO_REPO_NAME
 repogitname=$AOMP_RINFO_REPO_NAME
 COBRANCH=$AOMP_RINFO_REPO_BRANCH
+COSHAKEY=$AOMP_RINFO_REPO_SHA
 clone_or_pull
+COSHAKEY=""
 
-if [ "$AOMP_USE_HIPVDI" == 0 ] ; then
-   repo_web_location=$GITROC
-   reponame=$AOMP_HCC_REPO_NAME
-   repogitname=$AOMP_HCC_REPO_NAME
-   COBRANCH=$AOMP_HCC_REPO_BRANCH
-   clone_or_pull
-else
-   repo_web_location=$GITROCDEV
-   reponame=$AOMP_VDI_REPO_NAME
-   repogitname=$AOMP_VDI_REPO_GITNAME
-   COBRANCH=$AOMP_VDI_REPO_BRANCH
-   clone_or_pull
-   repo_web_location=$GITROCDEV
-   reponame=$AOMP_HIPVDI_REPO_NAME
-   repogitname=$AOMP_HIPVDI_REPO_GITNAME
-   COBRANCH=$AOMP_HIPVDI_REPO_BRANCH
-   clone_or_pull
-   repo_web_location=$GITROC
-   reponame=$AOMP_OCL_REPO_NAME
-   repogitname=$AOMP_OCL_REPO_GITNAME
-   COBRANCH=$AOMP_OCL_REPO_BRANCH
-   clone_or_pull
-fi
+repo_web_location=$GITROCDEV
+reponame=$AOMP_VDI_REPO_NAME
+repogitname=$AOMP_VDI_REPO_GITNAME
+COBRANCH=$AOMP_VDI_REPO_BRANCH
+clone_or_pull
+repo_web_location=$GITROCDEV
+reponame=$AOMP_HIPVDI_REPO_NAME
+repogitname=$AOMP_HIPVDI_REPO_GITNAME
+COBRANCH=$AOMP_HIPVDI_REPO_BRANCH
+clone_or_pull
+repo_web_location=$GITROC
+reponame=$AOMP_OCL_REPO_NAME
+repogitname=$AOMP_OCL_REPO_GITNAME
+COBRANCH=$AOMP_OCL_REPO_BRANCH
+clone_or_pull

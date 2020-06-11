@@ -10,6 +10,8 @@ BLU="\033[0;34m"
 ORG="\033[0;33m"
 BLK="\033[0m"
 
+script_dir=$(dirname "$0")
+pushd $script_dir
 path=$(pwd)
 
 echo ""
@@ -34,4 +36,4 @@ for directory in ./*/; do
     cat check-$base.txt
   )
 done
-
+popd
