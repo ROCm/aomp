@@ -159,10 +159,10 @@ WARNING: When the build scripts are run with NO arguments (that is, you do not s
 The install location is defined by the $AOMP environment variable. The value of AOMP needs to be reserved as a symbolic link.
 That is, the physical installation will be in directory $AOMP concatonated with the version string.
 The install script will make a symbolic link from the physical directory to the symbolic directory $AOMP.
-For example, when building AOMP version 11.5-0 with the default value for AOMP=$HOME/rocm/aomp,
-the install scripts will put all files and directories in $HOME/rocm/aomp_11.5-0 and create a symbolic link as follows.
+For example, when building AOMP version 11.6-1 with the default value for AOMP=$HOME/rocm/aomp,
+the install scripts will put all files and directories in $HOME/rocm/aomp_11.6-1 and create a symbolic link as follows.
 
 ```
-ln -sf ${AOMP}_11.5-0 ${AOMP}
+ln -sf ${AOMP}_11.6-1 ${AOMP}
 ```
 This symbolic link makes it easy to switch between versions of AOMP for testing.
