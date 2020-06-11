@@ -29,6 +29,7 @@ HIPCC = $(AOMP)/bin/hipcc
 CLANG = $(AOMP)/bin/clang
 FLANG = $(AOMP)/bin/flang
 UNBUNDLE = $(AOMP)/bin/clang-offload-bundler
+DEVICE_LIB_PATH = $(AOMP)/amdgcn/bitcode
 
 MYGPU = $(shell $(AOMP)/bin/mygpu -d gfx900)
 TRIPLE = amdgcn-amd-amdhsa
@@ -40,7 +41,7 @@ writeIndex: writeIndex.hip lib_mylib.a libbc-_mylib-amdgcn.a   lib_myomplib.a
 	@echo " ----------  3 Build HIP application using both SDLs ----------------" 
 	@echo
 	@echo " 3. Create HIP app using both _mylib and _myomplib SDLs. 		$@"
-	$(HIPCC) -L$(PWD) -l_myomplib -l_mylib writeIndex.hip -o $@ -std=c++11
+	DEVICE_LIB_PATH=$(DEVICE_LIB_PATH) $(HIPCC) -L$(PWD) -l_myomplib -l_mylib writeIndex.hip -o $@ -std=c++11
 
 inc_arrayval.o: inc_arrayval.c
 	@echo
