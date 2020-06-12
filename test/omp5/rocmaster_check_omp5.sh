@@ -8,18 +8,10 @@
 export AOMP=/opt/rocm/aomp
 
 cleanup(){
-  if [ -e check-omp5.txt ]; then
-    rm check-omp5.txt
-  fi
-  if [ -e passing-tests.txt ]; then
-    rm passing-tests.txt
-  fi
-  if [ -e failing-tests.txt ]; then
-    rm failing-tests.txt
-  fi
-  if [ -e make-fail.txt ]; then
-    rm make-fail.txt
-  fi
+  rm -f passing-tests.txt
+  rm -f failing-tests.txt
+  rm -f check-omp5.txt
+  rm -f make-fail.txt
 }
 
 #Clean all testing directories
@@ -36,7 +28,7 @@ echo "                   A non-zero exit code means a failure occured." >> check
 echo "Tests that need to be visually inspected: devices, pfspecify, pfspecify_str, stream" >> check-omp5.txt
 echo "***********************************************************************************" >> check-omp5.txt
 
-skiptests="red_bug_51 declare_variant"
+skiptests="red_bug_51 shape_noncontig metadirective"
 
 #Loop over all directories and make run / make check depending on directory name
 for directory in ./*/; do
@@ -51,21 +43,12 @@ for directory in ./*/; do
      done
     if [ $skip -ne 0 ] ; then
       echo "Skip $base!"
-    
-    #flags has multiple runs
-    elif [ $base == 'flags' ] ; then
-      make
-      make run > /dev/null 2>&1
     else
       make
       if [ $? -ne 0 ]; then
         echo "$base: Make Failed" >> ../make-fail.txt
       fi
       make check > /dev/null 2>&1
-      #liba_bundled has an additional Makefile, that may fail on the make check
-      if [ $? -ne 0 ] && ( [ $base == 'liba_bundled' ] || [ $base == 'liba_bundled_cmdline' ] ) ; then
-        echo "$base: Make Failed" >> ../make-fail.txt
-      fi
     fi
     echo ""
     )
