@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <omp.h>
-#include <hostcall_stubs.h>
+#include <hostrpc.h>
 
 // This user variable function returns a uint so declare function 
 // as hostrpc_varfn_uint_t . 
