@@ -1,0 +1,4 @@
+roct-thunk-interface: roct-thunk-interface.patch
+rocr-runtime: rocr-runtime.patch
+rocminfo: rocminfo_ppc_cmake.patch
+rocm-compilersupport: rocm-compilersupport.patch
