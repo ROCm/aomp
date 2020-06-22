@@ -36,7 +36,8 @@ function build_aomp_component() {
       exit $rc
    fi  
    if [ $# -eq 0 ] ; then
-       $AOMP_REPOS/$AOMP_REPO_NAME/bin/build_$COMPONENT.sh install
+   #    $AOMP_REPOS/$AOMP_REPO_NAME/bin/build_$COMPONENT.sh install
+       echo ""
        rc=$?
        if [ $rc != 0 ] ; then 
            echo " !!!  build_aomp.sh: INSTALL FAILED FOR COMPONENT $COMPONENT !!!"

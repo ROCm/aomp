@@ -35,9 +35,10 @@ if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   help_build_aomp
 fi
 
+AOMP_PROJECT_REPO_NAME="llvm-project"
 REPO_BRANCH=$AOMP_PROJECT_REPO_BRANCH
 REPO_DIR=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME
-checkrepo
+#checkrepo
 
 if [ "$AOMP_BUILD_CUDA" == 1 ] ; then
    CUDAH=`find $CUDAT -type f -name "cuda.h" 2>/dev/null`
@@ -56,11 +57,11 @@ if [ "$AOMP_BUILD_CUDA" == 1 ] ; then
    export CUDAFE_FLAGS="-w"
 fi
 
-if [ ! -d $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME ] ; then 
-   echo "ERROR:  Missing repository $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME "
-   echo "        Consider setting env variables AOMP_REPOS and/or AOMP_PROJECT_REPO_NAME "
-   exit 1
-fi
+#if [ ! -d $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME ] ; then
+#   echo "ERROR:  Missing repository $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME "
+#   echo "        Consider setting env variables AOMP_REPOS and/or AOMP_PROJECT_REPO_NAME "
+#   exit 1
+#fi
 
 # Make sure we can update the install directory
 if [ "$1" == "install" ] ; then 
@@ -149,7 +150,18 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 
       echo rm -rf $BUILD_DIR/build/openmp
       rm -rf $BUILD_DIR/build/openmp
-      MYCMAKEOPTS="$COMMON_CMAKE_OPTS -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS=-g =DCMAKE_C_FLAGS=-g $AOMP_ORIGIN_RPATH -DROCM_DIR=$ROCM_DIR -DAOMP_STANDALONE_BUILD=$AOMP_STANDALONE_BUILD"
+      #MYCMAKEOPTS="$COMMON_CMAKE_OPTS -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS=-g =DCMAKE_C_FLAGS=-g $AOMP_ORIGIN_RPATH -DROCM_DIR=$ROCM_DIR -DAOMP_STANDALONE_BUILD=$AOMP_STANDALONE_BUILD"
+      MYCMAKEOPTS="-DDEVICELIBS_ROOT=$DEVICELIBS_ROOT \
+  -DOPENMP_ENABLE_LIBOMPTARGET=1 \
+  -DOPENMP_ENABLE_LIBOMPTARGET_HSA=1 \
+  -DLIBOMPTARGET_AMDGCN_GFXLIST=$GFXSEMICOLONS \
+  -DLIBOMP_COPY_EXPORTS=OFF \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DAOMP_STANDALONE_BUILD=$AOMP_STANDALONE_BUILD \
+  -DROCM_DIR=/opt/rocm"
+  # Turn on when ready to install to $OUT_DIR
+  #-DCMAKE_INSTALL_PREFIX=$INSTALL_OPENMP"
+
       mkdir -p $BUILD_DIR/build/openmp
       cd $BUILD_DIR/build/openmp
       echo " -----Running openmp cmake ---- " 
@@ -158,7 +170,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
          ${AOMP_CMAKE} $MYCMAKEOPTS  $BUILD_DIR/$AOMP_PROJECT_REPO_NAME/openmp
       else
          echo ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
-         ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
+         ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/../$AOMP_PROJECT_REPO_NAME/openmp
       fi
       if [ $? != 0 ] ; then 
          echo "ERROR openmp cmake failed. Cmake flags"
@@ -168,7 +180,18 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 
       echo rm -rf $BUILD_DIR/build/openmp_debug
       rm -rf $BUILD_DIR/build/openmp_debug
-      MYCMAKEOPTS="$COMMON_CMAKE_OPTS -DLIBOMPTARGET_NVPTX_DEBUG=ON -DCMAKE_BUILD_TYPE=Debug $AOMP_ORIGIN_RPATH -DROCM_DIR=$ROCM_DIR -DAOMP_STANDALONE_BUILD=$AOMP_STANDALONE_BUILD"
+      #MYCMAKEOPTS="$COMMON_CMAKE_OPTS -DLIBOMPTARGET_NVPTX_DEBUG=ON -DCMAKE_BUILD_TYPE=Debug $AOMP_ORIGIN_RPATH -DROCM_DIR=$ROCM_DIR -DAOMP_STANDALONE_BUILD=$AOMP_STANDALONE_BUILD"
+      MYCMAKEOPTS="-DDEVICELIBS_ROOT=$DEVICELIBS_ROOT \
+      -DOPENMP_ENABLE_LIBOMPTARGET=1 \
+      -DOPENMP_ENABLE_LIBOMPTARGET_HSA=1 \
+      -DLIBOMPTARGET_AMDGCN_GFXLIST=$GFXSEMICOLONS \
+      -DLIBOMP_COPY_EXPORTS=OFF \
+      -DCMAKE_BUILD_TYPE=Debug \
+      -DAOMP_STANDALONE_BUILD=$AOMP_STANDALONE_BUILD \
+      -DROCM_DIR=/opt/rocm"
+      # Turn on when ready to install to $OUT_DIR
+      #-DCMAKE_INSTALL_PREFIX=$INSTALL_OPENMP"
+
       mkdir -p $BUILD_DIR/build/openmp_debug
       cd $BUILD_DIR/build/openmp_debug
       echo
@@ -178,7 +201,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
          ${AOMP_CMAKE} $MYCMAKEOPTS  $BUILD_DIR/$AOMP_PROJECT_REPO_NAME/openmp
       else
          echo ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
-         ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
+         ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/../$AOMP_PROJECT_REPO_NAME/openmp
       fi
       if [ $? != 0 ] ; then 
          echo "ERROR openmp debug cmake failed. Cmake flags"
