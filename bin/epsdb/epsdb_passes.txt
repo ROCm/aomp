@@ -1,0 +1,51 @@
+aomp_mappings
+atomic
+atomic_double
+class
+collapse
+data_enter_issue01
+data_issue_59
+DeclareSharedMemory
+firstprivate
+firstprivate2
+flags 1
+flags 2
+flags 3
+flags 4
+flags 6
+flags 8
+function_overload
+function_template
+gdb_teams
+helloworld
+issue_001
+issue_002
+launch_latency
+ManyKernels
+map_zero_bug
+MasterBarrier
+math_flog
+math_modff
+math_sqrt_float
+MaxNumThrds
+nativetests
+nest_call_par2
+nested_loop
+nested_par3
+OmpHipMallocManaged
+omp_wtime
+red_bug_51
+reduce
+reduc_map_prob
+reduction_teams_distribute_parallel
+simd
+snap_red
+stream
+target-in-other-source
+teams
+test
+thread_limit
+Threads1xxx
+veccopy
+vmuldemo
+vmulsum

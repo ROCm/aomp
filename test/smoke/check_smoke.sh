@@ -173,5 +173,8 @@ echo "pfspecifier_str"
 echo "stream"
 echo -e "$BLK"
 #Clean up, hide output
-cleanup
+if [ "$EPSDB" != 1 ] ; then
+  cleanup
+fi
+
 popd
