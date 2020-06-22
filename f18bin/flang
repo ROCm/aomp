@@ -50,29 +50,29 @@ for i in $* ; do
          echo "    unknown suffix, $i"
        fi
 # the bbc phase includes parsing, semantic analysis, producing FIR, and lastly # MLIR
-       echo "    $bindir/bbc $i"
+       echo "    bbc $i           -o $strippedname.mlir"
        $bindir/bbc $i
        if [ $? -ne 0 ] ; then 
 	 echo bbc failed
          exit 1
        fi
 # the tco phase takes in MLIR and lowers it to llvm IR
-       echo "    $bindir/tco (input $strippedname.mlir) (creates $strippedname.ll)"
+       echo "    tco (input $strippedname.mlir)  -o $strippedname.ll"
        $bindir/tco <$strippedname.mlir >$strippedname.ll
        if [ $? -ne 0 ] ; then 
 	 echo tco failed
          exit 1
        fi
 # convert LLVM IR to assembly
-       echo "    $bindir/llc $strippedname.ll -o $strippedname.s"
+       echo "    llc $strippedname.ll            -o $strippedname.s"
        $bindir/llc $strippedname.ll -o $strippedname.s
        if [ $? -ne 0 ] ; then 
 	 echo llc failed
          exit 1
        fi
 # convert assembly to .o
-       echo "    cc -c $strippedname.s -o $strippedname.o"
-       cc -c $strippedname.s -o $strippedname.o
+       echo "    $CC -c $strippedname.s          -o $strippedname.o"
+       $CC -c $strippedname.s -o $strippedname.o
        if [ $? -ne 0 ] ; then 
 	 echo "ERROR: compile asm failed"
          exit 1
@@ -94,14 +94,13 @@ cat >$mymainc <<EOF
 #include <stdio.h> 
 extern void _FortranAStopStatement(int, char, char);
 extern void _FortranAProgramStart(int argc, const char *argv[], const char *envp[]);
+void _QQmain();
 int main(int argc, const char *argv[], const char *envp[]){
-   printf("Calling _QQmain()\n");
-   void _QQmain();
-   printf("Calling _FortranAProgramStart()\n");
+   printf("cmain calling _FortranAProgramStart()\n");
    _FortranAProgramStart(argc, argv, envp);
-   printf("Calling _QQmain again\n");
+   printf("cmain calling _QQmain\n");
    _QQmain();
-   printf("Calling _FortranAStopStatement\n");
+   printf("cmain calling _FortranAStopStatement\n");
    _FortranAStopStatement(0, (char) 0, (char) 1); 
 } 
 EOF
