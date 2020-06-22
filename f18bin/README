@@ -4,6 +4,8 @@ To get started with f18 development using the amd-fir-dev branch run these comma
 mkdir -p $HOME/git/f18
 cd $HOME/git/f18
 git clone https://github.com/rocm-developer-tools/aomp
+cd $HOME/git/f18/aomp
+git checkout amd-stg-openmp
 cd $HOME/git/f18/aomp/f18bin
 ./clone_f18.sh
 ./build_f18.sh
