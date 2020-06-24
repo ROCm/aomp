@@ -282,6 +282,7 @@ rc=0
 # Set extra libs that may be needed
 EXTRA_LIBS="-L /usr/local/lib -lpgmath"
 EXTRA_LIBS=""
+BBC_ARGS="-module-suffix .f18.mod -intrinsic-module-directory $F18/include/flang"
 
 # For firdev developers only
 # Set F18_USE_BUILD_BIN if you dont want run out of install binaries
@@ -320,7 +321,7 @@ for __input_file in `echo $INPUTFILES` ; do
       # the bbc phase includes parsing, semantic analysis, producing FIR, and lastly MLIR
       [ $VV ] && echo 
       [ $VERBOSE ] && echo "#Step:  bbc - Parse and create mlir for $__input_file"
-      runcmd "$F18BIN/bbc $__input_file -o $TMPDIR/$strippedname.mlir"
+      runcmd "$F18BIN/bbc $BBC_ARGS $__input_file -o $TMPDIR/$strippedname.mlir"
       # the tco phase takes in MLIR and lowers it to llvm IR
       [ $VV ] && echo 
       [ $VERBOSE ] && echo "#Step:  tco - Convert mlir to LLVM IR"
