@@ -45,7 +45,7 @@ else
    TARGETS_TO_BUILD="AMDGPU;${F18_NVPTX_TARGET}X86"
 fi
 
- When building from release source (no git), turn off test items that are not distributed
+#When building from release source (no git), turn off test items that are not distributed
 if [ "$F18_CHECK_GIT_BRANCH" == 1 ] ; then
    DO_TESTS=""
 else
@@ -221,6 +221,7 @@ if [ "$1" == "install" ] ; then
    $SUDO cp -p $BUILD_DIR/build/$F18_PROJECT_REPO_NAME/bin/count $F18/bin/count
    $SUDO cp -p $BUILD_DIR/build/$F18_PROJECT_REPO_NAME/bin/not $F18/bin/not
    $SUDO cp -p $BUILD_DIR/build/$F18_PROJECT_REPO_NAME/bin/yaml-bench $F18/bin/yaml-bench
+   $SUDO cp -p $thisdir/f18.sh $F18/bin/f18.sh
    echo
    echo "SUCCESSFUL INSTALL to $INSTALL_PROJECT with link to $F18"
    echo
