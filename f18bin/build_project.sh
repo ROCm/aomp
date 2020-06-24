@@ -1,12 +1,8 @@
 #!/bin/bash
 # 
-#  build_project.sh:  Script to build the llvm, clang , and lld components of the F18 compiler. 
-#                  This clang 9.0 compiler supports clang hip, OpenMP, and clang cuda
-#                  offloading languages for BOTH nvidia and Radeon accelerator cards.
-#                  This compiler has both the NVPTX and AMDGPU LLVM backends.
-#                  The AMDGPU LLVM backend is referred to as the Lightning Compiler.
+#  build_project.sh:  Script to build the llvm, clang , mlir, flang, lld, and openmp  components of the F18 compiler. 
+#                  of the f18 compiler. 
 #
-# See the help text below, run 'build_project.sh -h' for more information. 
 #
 BUILD_TYPE=${BUILD_TYPE:-Release}
 
@@ -39,25 +35,27 @@ INSTALL_PROJECT=${INSTALL_PROJECT:-$F18_INSTALL_DIR}
 WEBSITE="http\:\/\/github.com\/ROCm-Developer-Tools\/aomp"
 
 if [ "$F18_PROC" == "ppc64le" ] ; then
-   COMPILERS="-DCMAKE_C_COMPILER=/usr/bin/gcc-7 -DCMAKE_CXX_COMPILER=/usr/bin/g++-7"
+   echo "ERROR: ppc64le not supported yet"
+   exit 1
    TARGETS_TO_BUILD="AMDGPU;${F18_NVPTX_TARGET}PowerPC"
+fi
+if [ "$F18_PROC" == "aarch64" ] ; then
+   TARGETS_TO_BUILD="AMDGPU;${F18_NVPTX_TARGET}AArch64"
 else
-   COMPILERS="-DCMAKE_C_COMPILER=$F18_CC_COMPILER -DCMAKE_CXX_COMPILER=$F18_CXX_COMPILER"
-   if [ "$F18_PROC" == "aarch64" ] ; then
-      TARGETS_TO_BUILD="AMDGPU;${F18_NVPTX_TARGET}AArch64"
-   else
-      TARGETS_TO_BUILD="AMDGPU;${F18_NVPTX_TARGET}X86"
-   fi
+   TARGETS_TO_BUILD="AMDGPU;${F18_NVPTX_TARGET}X86"
 fi
 
-# When building from release source (no git), turn off test items that are not distributed
+ When building from release source (no git), turn off test items that are not distributed
 if [ "$F18_CHECK_GIT_BRANCH" == 1 ] ; then
    DO_TESTS=""
 else
    DO_TESTS="-DLLVM_BUILD_TESTS=OFF -DLLVM_INCLUDE_TESTS=OFF -DCLANG_INCLUDE_TESTS=OFF"
 fi
-   DO_TESTS=""
 
+# FOr now do no tests
+DO_TESTS=""
+
+#  No rocm components yet needed but tag the release name just for future 
 if [ $F18_STANDALONE_BUILD == 1 ] ; then
    standalone_word="_STANDALONE"
 else

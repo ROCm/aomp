@@ -1,6 +1,7 @@
 #!/bin/bash
 # 
-#   build_f18.sh : Build all F18 components 
+#   build_f18.sh : Build all F18 components.
+#      For now, only build project component from firdev-llvm-project repo.
 #
 # --- Start standard header ----
 function getdname(){
@@ -86,11 +87,11 @@ echo
       # There is no good external repo for the opencl runtime but we only need the headers for build_vdi.sh
       # So build_ocl.sh is currently not called.
       #components="roct rocr project libdevice extras openmp pgmath flang flang_runtime comgr rocminfo vdi hipvdi ocl "
-      components="project openmp"
+      components="project"
    else
       # With AOMP 11, ROCM integrated build will not need roct rocr libdevice comgr and rocminfo
       #               In the future, when ROCm build vdi and hipvdi we can remove them
-      components="project openmp"
+      components="project"
    fi
 echo "COMPONENTS:$components"
 
