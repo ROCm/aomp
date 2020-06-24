@@ -341,9 +341,7 @@ for __input_file in `echo $INPUTFILES` ; do
    fi
 done
 
-if [ $GEN_OBJECT_ONLY ] ; then
-	echo "  Everything is already done" 
-else
+if [ ! $GEN_OBJECT_ONLY ] ; then
    # Create c Main program
    mymainc=$TMPDIR/mymain.c
    mymaino=$TMPDIR/mymain.o

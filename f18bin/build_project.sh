@@ -222,6 +222,11 @@ if [ "$1" == "install" ] ; then
    $SUDO cp -p $BUILD_DIR/build/$F18_PROJECT_REPO_NAME/bin/not $F18/bin/not
    $SUDO cp -p $BUILD_DIR/build/$F18_PROJECT_REPO_NAME/bin/yaml-bench $F18/bin/yaml-bench
    $SUDO cp -p $thisdir/f18.sh $F18/bin/f18.sh
+   # get the mygpu utility for makefiles 
+   echo  cp -p $F18_REPOS/$F18_EXTRAS_REPO_NAME/utils/bin/mygpu $F18/bin/mygpu 
+   $SUDO cp -p $F18_REPOS/$F18_EXTRAS_REPO_NAME/utils/bin/mygpu $F18/bin/mygpu 
+   $echo cp -p $F18_REPOS/$F18_EXTRAS_REPO_NAME/utils/bin/gputable.txt $F18/bin/gputable.txt
+   $SUDO cp -p $F18_REPOS/$F18_EXTRAS_REPO_NAME/utils/bin/gputable.txt $F18/bin/gputable.txt
    echo
    echo "SUCCESSFUL INSTALL to $INSTALL_PROJECT with link to $F18"
    echo
