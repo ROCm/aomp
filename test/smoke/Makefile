@@ -65,6 +65,7 @@ TESTS_DIR = \
     tasks \
     teams \
     teams_nest \
+    team_prob \
     teams512-info \
     test \
     thread_limit\
