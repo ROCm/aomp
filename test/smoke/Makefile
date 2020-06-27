@@ -8,6 +8,7 @@ TESTS_DIR = \
     atomic_double \
     class \
     collapse \
+    concur_update \
     data_enter_issue01 \
     data_issue_59 \
     decl_targ \
