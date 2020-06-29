@@ -92,7 +92,7 @@ else
    else
       # With AOMP 11, ROCM integrated build will not need roct rocr libdevice comgr and rocminfo
       #               In the future, when ROCm build vdi and hipvdi we can remove them
-      components="project extras openmp pgmath flang flang_runtime vdi hipvdi"
+      components="project extras openmp pgmath flang flang_runtime"
    fi
 fi
 echo "COMPONENTS:$components"
