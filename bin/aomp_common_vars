@@ -260,11 +260,12 @@ function checkrepo(){
    if [ "$AOMP_CHECK_GIT_BRANCH" == 1 ] ; then
       cd $REPO_DIR
       COBRANCH=`git branch --list | grep "\*" | cut -d" " -f2`
+      BRANCH_REGEX="detached"
       if [ "$COBRANCH" != "$REPO_BRANCH" ] ; then
          if [ "$COBRANCH" == "master" ] ; then
            echo "EXIT:  Repository $REPO_DIR is on development branch: master"
            exit 1
-	 elif [ "$COBRANCH" == "(HEAD" ] ; then
+	 elif [[ "$COBRANCH" =~ $BRANCH_REEGEX ]] ; then
            echo "we have an override $REPO_DIR"
          else
            echo "ERROR:  The repository at $REPO_DIR is not on branch $REPO_BRANCH"
