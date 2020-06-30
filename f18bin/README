@@ -1,0 +1,56 @@
+
+To get started with f18 development using the amd-fir-dev branch run these commands
+
+mkdir -p $HOME/git/f18
+cd $HOME/git/f18
+git clone https://github.com/rocm-developer-tools/aomp
+cd $HOME/git/f18/aomp
+git checkout amd-stg-openmp
+cd $HOME/git/f18/aomp/f18bin
+./clone_f18.sh
+./build_f18.sh
+
+
+The repos needed for f18 will be in $HOME/git/f18
+The build for f18 will be installed into $HOME/rocm/f18
+
+To use f18 with AOMP fortran examples/tests, set these environment variables
+   export AOMP=$HOME/rocm/f18
+   export F18_FC=$AOMP/bin/f18.sh
+
+-----------------------------------------------------------
+
+             The f18 Driver Chain
+
+Currently, there are three "drivers" for compiling with f18.
+The first is the flang bash script located here:
+
+   $HOME/git/f18/firdev-llvm-project/flang/tools/f18/flang.sh.in
+
+This shell is installed in the compiler bin directory here:
+
+   $HOME/rocm/f18/bin/flang
+
+The flang shell script calls the 2nd driver, the f18 binary.
+The f18 binary is compiled from:
+
+   $HOME/git/f18/firdev-llvm-project/flang/tools/f18/f18.cpp
+
+The f18 binary is compiled and installed here:
+
+   $HOME/rocm/f18/bin/f18
+
+In its current state, f18 executes the file pointed to by the
+F18_FC environment variable. When you set F18_FC as described above,
+the shell f18.sh will be called by the f18 binary. If not set,
+the default value of F18_FC will attempt to call pgfortran.
+
+The f18.sh script walks through the various phases of compilation.
+It is a placeholder till a clang-style driver is completed
+and added to f18.cpp.
+
+The f18 driver train is:
+"flang" shell calls "f18" binary calls "f18.sh".
+If desired, one could avoid this chain of drivers
+by calling f18.sh directly instead of flang.
+There is help for f18.sh with "f18.sh -h".

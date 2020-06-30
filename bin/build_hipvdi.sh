@@ -121,6 +121,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
   echo
   echo " -----Running hipvdi cmake ---- "
   echo ${AOMP_CMAKE} $MYCMAKEOPTS $HIPVDI_REPO_DIR
+  export HIP_PLATFORM=ROCclr
   ${AOMP_CMAKE} $MYCMAKEOPTS $HIPVDI_REPO_DIR
   if [ $? != 0 ] ; then
       echo "ERROR hipvdi cmake failed. Cmake flags"

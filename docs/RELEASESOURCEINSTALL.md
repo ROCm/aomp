@@ -101,8 +101,8 @@ Remember,the aomp spack configuration file is currently missing dependencies, so
 To build and install aomp from the release source tarball run these commands:
 
 ```
-   wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_11.6-1/aomp-11.6-1.tar.gz
-   tar -xzf aomp-11.6-1.tar.gz
+   wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_11.6-2/aomp-11.6-2.tar.gz
+   tar -xzf aomp-11.6-2.tar.gz
    cd aomp
    nohup make &
 ```
@@ -117,9 +117,9 @@ If you set the environment variable AOMP, the Makefile will install to that dire
 Otherwise, the Makefile will install into /usr/local.
 So you must have authorization to write into /usr/local if you do not set the environment variable AOMP.
 Let's assume you set the environment variable AOMP to "$HOME/rocm/aomp" in .bash_profile.
-The build_aomp.sh script will install into $HOME/rocm/aomp_11.6-1 and create a symbolic link from $HOME/rocm/aomp to $HOME/rocm/aomp_11.6-1.
+The build_aomp.sh script will install into $HOME/rocm/aomp_11.6-2 and create a symbolic link from $HOME/rocm/aomp to $HOME/rocm/aomp_11.6-2.
 This feature allows multiple versions of AOMP to be installed concurrently.
-To enable a backlevel version of AOMP, simply set AOMP to $HOME/rocm/aomp_11.5-0.
+To enable a backlevel version of AOMP, simply set AOMP to $HOME/rocm/aomp_11.6-1.
 
 ## Build AOMP with spack
 
@@ -128,7 +128,7 @@ Currently the aomp configuration is not yet in the spack git hub so you must cre
 
 ```
    wget https://github.com/ROCm-Developer-Tools/aomp/blob/master/bin/package.py
-   spack create -n aomp -t makefile --force https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_11.6-1/aomp-11.6-1.tar.gz
+   spack create -n aomp -t makefile --force https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_11.6-2/aomp-11.6-2.tar.gz
    spack edit aomp
    spack install aomp
 ```
