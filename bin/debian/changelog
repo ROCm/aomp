@@ -1,4 +1,4 @@
-aomp (11.0-1) UNRELEASED; urgency=medium
+aomp (11.6-2) UNRELEASED; urgency=medium
 
   * Initial release of aomp is 0.3-2
   *   Please see example in /usr/lib/aomp/examples/vmuldemo 
@@ -329,4 +329,42 @@ aomp (11.0-1) UNRELEASED; urgency=medium
   *   Issue #89 Linker error (The file was not recognized as a valid object file) when trying to
   *       link archive file on command line
   *   Issue #92 hipcc fails when AOMP is not installed in /usr/lib/aomp
- -- Greg Rodgers <Gregory.Rodgers@amd.com>  Tue, 07 Apr 2020 10:48:19 -0500
+  *
+  * 11.5-0
+  *  Start using month in the release number consistent with ROCM numbering.
+  *        However the version will continue to use the LLVM version number.
+  *  Merge a fork of atmi and hostcall into the libomptarget hsa plugin. This removes
+  *        dependencies on these two external components and allows us to streamline the code
+  *        for the openmp device plugin. Merging this code caused the trunk delta to go up significantly
+  *        as we prepare to submit this plugin upstream.
+  *  Improved solvv coverage 9/201 fails, 95% passing rate on amdgcn
+  *  AOMP supports -g compilation of C/C++ codes and will allow on target debugging. This is initial functionality.
+  *  Hipcc now uses AOMP env variable to support installs not located in /usr/lib/aomp
+  *
+  * 11.6-1
+  *   Upgraded to ROCm 3.5 HIP/ROCclr
+  *   Upgraded ROCt ROCr to 3.5 sources
+  *
+  * 11.6-2
+  *   Enabled OpenMP 5.0 by default, use -fopenmp-version=45 to enable OpenMP 4.5 compliance.
+  *   Restructuring to prepare for upstream and inclusion to ROCm compiler.
+  *   Fix issue #114 fix bitcode search path using hip policy HIP_DEVICE_LIB_PATH and hip-device-lib
+  *        command line option.
+  *   Turn on global_free for kmpc_impl_free.
+  *   Significant cleanup and restructuring of hostrpc including:
+  *        -Get rid of hostcall register functions. Replace with handlePayload(service, payload).
+  *          handlPayload has a simple switch to call the correct service handler function.
+  *        -Get rid of WITH_HSA macro. It is always on.
+  *        -Move the hostrpc stubs and host fallback functions into a single library and include file.
+  *        -It also makes the stubs openmp cpp source instead of hip and reorganizes everything in the directory
+  *         openmp/libomptarget/hostrpc.
+  *        -Move hostrpc_invoke.cl into DeviceRTLs/amdgcn because it is arch specific.
+  *        -Generalize the vargs processing in printf to work for any vargs function that we want
+  *         to execute on the host, including a vargs function that uses a function pointer.
+  *        -Reorganize files, add global_allocate and global_free, and fix some compile warnings.
+  *        -Fix llvm TypeID enum to match current upstream llvm TypeID.
+  *   Moved strlen_max function inside the declare target #ifdef _DEVICE_GPU in hostrpc.cpp to resolve linker
+  *         failure seen in pfspecifier_str smoke test.
+  *   Fixed AOMP_GIT_CHECK_BRANCH in aomp_common_vars to not block builds in Red Hat if repo is on a specific commit hash.
+
+ -- Greg Rodgers <Gregory.Rodgers@amd.com>  Tue, 30 Jun 2020 10:40:48 -0500

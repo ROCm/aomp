@@ -133,7 +133,8 @@ fi
 # This is how we tell the hsa plugin where to find hsa
 export HSA_RUNTIME_PATH=$ROCM_DIR/hsa
 
-export HIP_DEVICE_LIB_PATH=$ROCM_DIR/lib
+#breaks build as it cant find rocm-path
+#export HIP_DEVICE_LIB_PATH=$ROCM_DIR/lib
 
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then 
 

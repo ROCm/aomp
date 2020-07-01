@@ -1,0 +1,26 @@
+diff --git a/lib/comgr/CMakeLists.txt b/lib/comgr/CMakeLists.txt
+index e047053..de3ce5a 100644
+--- a/lib/comgr/CMakeLists.txt
++++ b/lib/comgr/CMakeLists.txt
+@@ -16,7 +16,10 @@ endif() # if (ROCM_CCACHE_BUILD)
+ 
+ project(amd_comgr VERSION "1.6.0" LANGUAGES C CXX)
+ 
++if(NOT AMD_COMGR_BUILD_NO_ROCM)
+ find_package(ROCM PATHS "/opt/rocm")
++endif()
++
+ if (ROCM_FOUND)
+   include(ROCMSetupVersion)
+   rocm_setup_version(VERSION "${amd_comgr_VERSION}")
+@@ -268,8 +271,10 @@ if (NOT UNIX)
+     PRIVATE version)
+ endif()
+ 
++if(NOT AMD_COMGR_BUILD_NO_ROCM)
+ enable_testing()
+ add_subdirectory(test)
++endif()
+ 
+ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+   # Add packaging directives for amd_comgr

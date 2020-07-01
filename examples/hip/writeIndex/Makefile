@@ -26,7 +26,8 @@
 # SOFTWARE.
 
 AOMP ?= /usr/lib/aomp
-CC   =$(AOMP)/bin/hipcc
+DEVICE_LIB_PATH = $(AOMP)/amdgcn/bitcode
+CC   =  DEVICE_LIB_PATH=$(DEVICE_LIB_PATH) $(AOMP)/bin/hipcc
 
 # --- Demo compile and link in one step, no object code saved
 writeIndex: writeIndex.cpp kernel.cpp

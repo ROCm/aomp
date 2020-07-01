@@ -18,14 +18,14 @@ OBJ_FILES := $(addprefix obj/, $(notdir $(CXX_FILES:.cpp=.o)))
 all: $(TEST_NAME) $(HIP_FILE).hsaco
 
 $(TEST_NAME): $(OBJ_FILES) $(COMMON_OBJ_FILES)
-	$(AOMP)/bin/clang++ $(OBJ_FILES) $(LFLAGS) -o $(TEST_NAME) -std=c++11
+	$(AOMP)/bin/clang++ $(OBJ_FILES) $(LFLAGS) -o $(TEST_NAME)
 
 $(HIP_FILE).hsaco:
-	$(AOMP)/bin/cloc.sh -mcpu $(MYGPU) $(HIP_FILE).cu -std=c++11
+	$(AOMP)/bin/cloc.sh -mcpu $(MYGPU) $(HIP_FILE).cu
 
 obj/%.o: %.cpp
 	mkdir -p obj
-	$(AOMP)/bin/clang++ $(CFLAGS) -o $@ $< -std=c++11
+	$(AOMP)/bin/clang++ $(CFLAGS) -o $@ $<
 
 clean:
 	rm -rf obj/*o *.hsaco *.ll $(TEST_NAME)
