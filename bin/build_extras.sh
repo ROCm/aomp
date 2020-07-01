@@ -32,6 +32,27 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+# ROCm 3.7 will most likely not have devicelibs at /opt/rocm/amdgcn. AOMP has newer logic in clang
+# to look for the newer lib names/amdgcn directory. Until ROCm makes this change, copy the bitcode directory
+# to aomp/amdgcn
+if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
+  mkdir -p $AOMP/amdgcn
+  if [ -d $ROCM_DIR/lib/bitcode ]; then
+    cp -r $ROCM_DIR/lib/bitcode $AOMP/amdgcn
+  elif [ -d $ROCM_DIR/amdgcn/bitcode ]; then
+    cp -r $ROCM_DIR/amdgcn/bitcode $AOMP/amdgcn
+  else
+    echo "Devicelibs bitcode not found!"
+    exit 1
+  fi
+  pushd $AOMP/amdgcn/bitcode
+  for bc in *; do
+    newname=${bc/".amdgcn"}
+    mv $bc $newname
+    done
+  popd
+fi
+
 # --- Start standard header ----
 function getdname(){
    local __DIRN=`dirname "$1"`
@@ -115,7 +136,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
   if [ $AOMP_STANDALONE_BUILD == 1 ] ; then
     MYCMAKEOPTS="-DLLVM_DIR=$LLVM_DIR $AOMP_ORIGIN_RPATH -DCMAKE_BUILD_TYPE=$BUILDTYPE -DCMAKE_INSTALL_PREFIX=$INSTALL_EXTRAS -DROCM_DIR=$ROCM_DIR -DAOMP_STANDALONE_BUILD=$AOMP_STANDALONE_BUILD"
   else
-    MYCMAKEOPTS="-DLLVM_DIR=$LLVM_DIR $AOMP_ORIGIN_RPATH -DCMAKE_BUILD_TYPE=$BUILDTYPE -DCMAKE_INSTALL_PREFIX=$INSTALL_EXTRAS -DROCM_DIR=$ROCM_DIR -DAOMP_STANDALONE_BUILD=$AOMP_STANDALONE_BUILD -DDEVICELIBS_ROOT=$DEVICELIBS_ROOT"
+    MYCMAKEOPTS="-DLLVM_DIR=$LLVM_DIR $AOMP_ORIGIN_RPATH -DCMAKE_BUILD_TYPE=$BUILDTYPE -DCMAKE_INSTALL_PREFIX=$INSTALL_EXTRAS -DROCM_DIR=$ROCM_DIR -DAOMP_STANDALONE_BUILD=$AOMP_STANDALONE_BUILD -DDEVICELIBS_ROOT=$DEVICELIBS_ROOT -DNEW_BC_PATH=1"
   fi
 
   mkdir -p $BUILD_DIR/build/extras
