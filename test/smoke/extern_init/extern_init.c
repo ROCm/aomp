@@ -15,6 +15,10 @@ int main(){
 fprintf(stderr, "BEFORE colstat[0..2] %d %d %d \n", colstat[0], colstat[1], colstat[2]);
 #pragma omp target update from(colstat)
   fprintf(stderr, "AFTER colstat[0..2] %d %d %d \n", colstat[0], colstat[1], colstat[2]);
-  return (colstat[0] == 1 && colstat[1] == 1111 && colstat[2] == 2) ? 0 : 1 ;
+  if (colstat[0] == 1 && colstat[1] == 1111 && colstat[2] == 3)
+    printf("Success\n");
+  else
+    printf("Fail!\n");
+  return (colstat[0] == 1 && colstat[1] == 1111 && colstat[2] == 3) ? 0 : 1 ;
 }
 

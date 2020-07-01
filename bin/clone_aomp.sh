@@ -63,6 +63,8 @@ if [ -d $repodirname  ] ; then
    if [ "$STASH_BEFORE_PULL" == "YES" ] ; then
      git stash -u
    fi
+   echo "git pull "
+   git pull
    echo "cd $repodirname ; git checkout $COBRANCH"
    git checkout $COBRANCH
    echo "git pull "

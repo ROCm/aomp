@@ -35,6 +35,7 @@ TESTS_DIR = \
     math_modff \
     math_sqrt_float \
     MaxNumThrds \
+    mem_foot_print \
     nativetests \
     nested_loop \
     nested_par3 \
@@ -64,6 +65,7 @@ TESTS_DIR = \
     tasks \
     teams \
     teams_nest \
+    team_prob \
     teams512-info \
     test \
     thread_limit\

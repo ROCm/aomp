@@ -26,6 +26,7 @@ build_openmp.sh          -  Builds the OpenMP libraries and device RTL.
 build_pgmath.sh          -  Builds the pgmath support for flang.
 build_flang.sh           -  Builds flang for aomp.
 build_flang_runtime.sh   -  Builds the flang runtime for aomp.
+build_ocl.sh             -  Builds OpenCL.
 ```
 
 These scripts install into $HOME/rocm/aomp (or $AOMP if set).
@@ -146,6 +147,9 @@ Developers may update a component and then run these scripts in the following or
 
    ./build_flang_runtime.sh
    ./build_flang_runtime.sh install
+   
+   ./build_ocl.sh
+   ./build_ocl.sh install
 ```
 Once you have a successful development build, individual components can be incrementally rebuilt without rebuilding the entire system or the entire component. For example, if you change a file in the llvm-project repository. Run this command to incrementally build llvm, clang, and lld and update your installation.
 ```
@@ -159,10 +163,10 @@ WARNING: When the build scripts are run with NO arguments (that is, you do not s
 The install location is defined by the $AOMP environment variable. The value of AOMP needs to be reserved as a symbolic link.
 That is, the physical installation will be in directory $AOMP concatonated with the version string.
 The install script will make a symbolic link from the physical directory to the symbolic directory $AOMP.
-For example, when building AOMP version 11.5-0 with the default value for AOMP=$HOME/rocm/aomp,
-the install scripts will put all files and directories in $HOME/rocm/aomp_11.5-0 and create a symbolic link as follows.
+For example, when building AOMP version 11.6-2 with the default value for AOMP=$HOME/rocm/aomp,
+the install scripts will put all files and directories in $HOME/rocm/aomp_11.6-2 and create a symbolic link as follows.
 
 ```
-ln -sf ${AOMP}_11.5-0 ${AOMP}
+ln -sf ${AOMP}_11.6-2 ${AOMP}
 ```
 This symbolic link makes it easy to switch between versions of AOMP for testing.
