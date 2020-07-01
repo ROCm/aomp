@@ -49,7 +49,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
   for bc in *; do
     newname=${bc/".amdgcn"}
     mv $bc $newname
-    done
+  done
   popd
 fi
 
