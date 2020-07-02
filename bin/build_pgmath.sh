@@ -31,7 +31,6 @@ thisdir=$(getdname $0)
 
 INSTALL_FLANG=${INSTALL_FLANG:-$AOMP_INSTALL_DIR}
 
-
 if [ "$AOMP_PROC" == "ppc64le" ] ; then
    TARGETS_TO_BUILD="AMDGPU;${AOMP_NVPTX_TARGET}PowerPC"
 else
@@ -53,7 +52,8 @@ else
     -DCMAKE_CXX_COMPILER=$OUT_DIR/llvm/bin/clang++ \
     -DCMAKE_C_COMPILER=$OUT_DIR/llvm/bin/clang \
     -DCMAKE_Fortran_COMPILER=$OUT_DIR/llvm/bin/flang \
-    -DLLVM_TARGETS_TO_BUILD=$TARGETS_TO_BUILD"
+    -DLLVM_TARGETS_TO_BUILD=$TARGETS_TO_BUILD \
+    -DCMAKE_INSTALL_PREFIX=$INSTALL_FLANG"
 fi
 
 

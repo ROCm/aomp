@@ -4,7 +4,6 @@
 #                This script will install in location defined by AOMP env variable
 #
 # --- Start standard header ----
-
 function getdname(){
    local __DIRN=`dirname "$1"`
    if [ "$__DIRN" = "." ] ; then
@@ -30,11 +29,9 @@ thisdir=$(getdname $0)
 # --- end standard header ----
 
 INSTALL_OPENMP=${INSTALL_OPENMP:-$AOMP_INSTALL_DIR}
-
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then 
   help_build_aomp
 fi
-
 AOMP_PROJECT_REPO_NAME="llvm-project"
 REPO_BRANCH=$AOMP_PROJECT_REPO_BRANCH
 REPO_DIR=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME
@@ -158,9 +155,9 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
   -DLIBOMP_COPY_EXPORTS=OFF \
   -DCMAKE_BUILD_TYPE=Release \
   -DAOMP_STANDALONE_BUILD=$AOMP_STANDALONE_BUILD \
-  -DROCM_DIR=/opt/rocm"
-  # Turn on when ready to install to $OUT_DIR
-  #-DCMAKE_INSTALL_PREFIX=$INSTALL_OPENMP"
+  -DROCM_DIR=/opt/rocm \
+  -DCMAKE_INSTALL_PREFIX=$INSTALL_OPENMP \
+  -DLLVM_INSTALL_PREFIX=$OUT_DIR/llvm"
 
       mkdir -p $BUILD_DIR/build/openmp
       cd $BUILD_DIR/build/openmp
@@ -188,9 +185,9 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
       -DLIBOMP_COPY_EXPORTS=OFF \
       -DCMAKE_BUILD_TYPE=Debug \
       -DAOMP_STANDALONE_BUILD=$AOMP_STANDALONE_BUILD \
-      -DROCM_DIR=/opt/rocm"
-      # Turn on when ready to install to $OUT_DIR
-      #-DCMAKE_INSTALL_PREFIX=$INSTALL_OPENMP"
+      -DROCM_DIR=/opt/rocm \
+      -DCMAKE_INSTALL_PREFIX=$INSTALL_OPENMP \
+      -DLLVM_INSTALL_PREFIX=$OUT_DIR/llvm"
 
       mkdir -p $BUILD_DIR/build/openmp_debug
       cd $BUILD_DIR/build/openmp_debug
