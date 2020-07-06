@@ -71,7 +71,7 @@ CFLAGS += $(EXTRA_CFLAGS)
 
 # ----- Demo compile and link in one step, no object code saved
 $(TESTNAME): $(TESTSRC)
-	$(CCENV) $(CC) $(CFLAGS) -DGPUINFO $(LFLAGS) $^ -o $@ -v 2>&1 | egrep '.vgpr_count|.max_flat_workgroup_size'
+	$(CCENV) $(CC) $(CFLAGS) -DGPUINFO $(LFLAGS) $^ -o $@ -mllvm -amdgpu-dump-hsa-metadata 2>&1 | egrep '.vgpr_count|.max_flat_workgroup_size'
 	$(CCENV) $(CC) $(CFLAGS) -DGPUINFO $(LFLAGS) $^ -o $@
 
 run: $(TESTNAME)
