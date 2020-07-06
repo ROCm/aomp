@@ -32,6 +32,10 @@ export MY_SOLLVE_FLAGS="-fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-tar
 
 cd $AOMP_REPOS_TEST/$AOMP_SOLVV_REPO_NAME
 
+if [[ "$ROCMASTER" == "1" ]]; then
+  git reset --hard 0fbdbb9
+fi
+
 rm -rf results_report45
 rm -rf results_report50
 rm -rf combined-results.txt
