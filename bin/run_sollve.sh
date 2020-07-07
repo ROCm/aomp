@@ -3,6 +3,7 @@
 #  run_sollve.sh: 
 #
 # --- Start standard header to set build environment variables ----
+
 function getdname(){
    local __DIRN=`dirname "$1"`
    if [ "$__DIRN" = "." ] ; then
@@ -27,14 +28,19 @@ thisdir=$(getdname $0)
 . $thisdir/aomp_common_vars
 # --- end standard header ----
 
+if [[ "$ROCMASTER" == "1" ]]; then
+  pushd $AOMP_REPOS_TEST/$AOMP_SOLVV_REPO_NAME
+    # Lock at specific hash for consistency
+    git reset --hard 0fbdbb9f7d3b708eb0b5458884cfbab25103d387
+  popd
+  export AOMP=/opt/rocm/aomp
+  ./clone_aomp_test.sh
+fi
+
 AOMP_GPU=`$AOMP/bin/mygpu`
 export MY_SOLLVE_FLAGS="-fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$AOMP_GPU"
 
-cd $AOMP_REPOS_TEST/$AOMP_SOLVV_REPO_NAME
-
-if [[ "$ROCMASTER" == "1" ]]; then
-  git reset --hard 0fbdbb9
-fi
+pushd $AOMP_REPOS_TEST/$AOMP_SOLVV_REPO_NAME
 
 rm -rf results_report45
 rm -rf results_report50
@@ -61,3 +67,8 @@ make report_html
 make report_summary >> combined-results.txt
 mv results_report results_report50
 cat combined-results.txt
+popd
+
+if [[ "$ROCMASTER" == "1" ]]; then
+  ./check_sollve.sh
+fi
