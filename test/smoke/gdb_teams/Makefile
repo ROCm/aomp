@@ -5,7 +5,7 @@ TESTSRC_MAIN = gdb_teams.c
 TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 
-CFLAGS	     = -g
+CFLAGS	     = -ggdb
 CLANG        = clang
 OMP_BIN      = $(AOMP)/bin/$(CLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
