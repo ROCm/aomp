@@ -7,7 +7,7 @@ TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 OMP_FLAGS    =  --offload-arch=${AOMP_GPU}
 CFLAGS       = -x hip -I /opt/rocm/rocblas/include/ --offload-arch=${AOMP_GPU} -std=c++11
-LINK_FLAGS =  -L /opt/rocm/rocblas/lib -lrocblas -Wl,-rpath,/opt/rocm/rocblas/lib
+LINK_FLAGS =  -L /opt/rocm/rocblas/lib -lrocblas -Wl,-rpath,/opt/rocm/rocblas/lib -lhip_hcc
 
 CLANG        = clang++
 OMP_BIN      = $(AOMP)/bin/$(CLANG)

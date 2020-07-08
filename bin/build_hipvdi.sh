@@ -94,6 +94,7 @@ fi
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 
   if [ -d "$BUILD_DIR/build/hipvdi" ] ; then
+     patchrepo $AOMP_REPOS/$AOMP_HIPVDI_REPO_NAME
      echo
      echo "FRESH START , CLEANING UP FROM PREVIOUS BUILD"
      echo rm -rf $BUILD_DIR/build/hipvdi
@@ -161,6 +162,7 @@ if [ "$1" == "install" ] ; then
       echo "ERROR make install failed "
       exit 1
    fi
+   removepatch $AOMP_REPOS/$AOMP_HIPVDI_REPO_NAME
 
    # The hip perl scripts have /opt/rocm hardcoded, so fix them after then are installed
    # but only if not installing to default location.
