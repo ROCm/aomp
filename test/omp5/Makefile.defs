@@ -78,7 +78,7 @@ ifeq ($(OMP_FLAGS),)
       OMP_FLAGS = -target $(AOMP_CPUTARGET) -fopenmp
     endif
 endif
-OMP_FLAGS += -fopenmp-version=50 $(EXTRA_OMP_FLAGS) 
+OMP_FLAGS += $(EXTRA_OMP_FLAGS)
 
 ifeq ($(VERBOSE),1)
   $(info    Compilation and linking VERBOSE Mode ON)

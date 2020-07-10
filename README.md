@@ -1,4 +1,4 @@
-AOMP - V 11.6-2
+AOMP - V 11.7-0
 ==============
 
 This is README.md for https://github.com/ROCM-Developer-Tools/aomp.
@@ -8,8 +8,8 @@ This is the base repository for AOMP. Use this github repository for
 documentation, and
 [examples](https://github.com/ROCm-Developer-Tools/aomp/tree/master/examples).
 
-The last [release is AOMP 11.6-2](https://github.com/ROCm-Developer-Tools/aomp/releases).
-Currently AOMP 11.7-0 is under development.
+The last [release is AOMP 11.7-0](https://github.com/ROCm-Developer-Tools/aomp/releases).
+Currently AOMP 11.7-1 is under development.
 
 
 Attention Users!  Please use this repository for [issues](https://github.com/ROCm-Developer-Tools/aomp/issues).
@@ -96,5 +96,6 @@ Software License Agreement.
 See the [release notes](https://github.com/ROCm-Developer-Tools/aomp/releases) in github.  Here are some limitations.
 
 ```
- - Some simd constructs fail to vectorize on both host and GPUs.  
+ - Some simd constructs fail to vectorize on both host and GPUs.
+ - Hip example device_lib is failing to compile.
 ```
