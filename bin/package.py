@@ -20,6 +20,9 @@ class Aomp(MakefilePackage):
 
     def edit(self, spec, prefix):
         makefile = FileFilter('Makefile')
+        filter_file('add_subdirectory(test)', '#add_subdirectory(test)','amd-llvm-project/compiler-rt/CMakeLists.txt', string=True)
+        filter_file('add_subdirectory(test)', '#add_subdirectory(test)','amd-llvm-project/llvm/CMakeLists.txt', string=True)
+        filter_file('add_subdirectory(test)', '#add_subdirectory(test)','flang/CMakeLists.txt', string=True)
 
     def install(self, spec, prefix):
         make()
