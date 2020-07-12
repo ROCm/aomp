@@ -9,7 +9,13 @@ aompdir="$(dirname "$parentdir")"
 
 set -x
 
-export AOMP_GPU=`$AOMP/bin/mygpu`
+# mygpu will eventually relocate to /opt/rocm/bin, support both cases for now.
+if [ -a $AOMP/bin/mygpu ]; then
+  export AOMP_GPU=`$AOMP/bin/mygpu`
+else
+  export AOMP_GPU=`$AOMP/../bin/mygpu`
+fi
+
 echo AOMP_GPU = $AOMP_GPU
 export EXTRA_OMP_FLAGS=--rocm-path=$AOMP/
 $AOMP/bin/clang --version
