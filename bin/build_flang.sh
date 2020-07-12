@@ -150,6 +150,10 @@ if [ "$1" == "install" ] ; then
    fi
    echo "SUCCESSFUL INSTALL to $INSTALL_FLANG "
    echo
+   if [ -d $OUT_DIR/openmp-extras ]; then
+     echo "Add flang symbolic link."
+     ln -s clang $OUT_DIR/openmp-extras/bin/flang
+   fi
 else 
    echo 
    echo "SUCCESSFUL BUILD, please run:  $0 install"
