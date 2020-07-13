@@ -19,19 +19,31 @@ echo "Hip Results:" >> check-hip.txt
 echo "*******A non-zero exit code means a failure occured.*******" >> check-hip.txt
 echo "***********************************************************" >> check-hip.txt
 
+skiptests="device_lib"
+
 #Loop over all directories and make run / make check depending on directory name
 for directory in ./*/; do 
 	(cd "$directory" && path=$(pwd) && base=$(basename $path) 
-		make clean
-		make
-		if [ $? -ne 0 ]; then
-			echo "$base: Make Failed" >> ../check-hip.txt
+		skip=0
+		for test in $skiptests ; do
+			if [ $test == $base ] ; then
+				skip=1
+				break
+			fi
+		done
+		if [ $skip -ne 0 ] ; then
+			echo "Skip $base!"
 		else
-		make run
-			echo " Return Code for $base: $?" >> ../check-hip.txt
+			make clean
+			make
+		  if [ $? -ne 0 ]; then
+			  echo "$base: Make Failed" >> ../check-hip.txt
+		  else
+		    make run
+			  echo " Return Code for $base: $?" >> ../check-hip.txt
+		  fi
+		  make clean
 		fi
-		make clean	
-		
 	)
 	
 done
