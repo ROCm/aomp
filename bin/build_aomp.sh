@@ -89,6 +89,9 @@ else
       # There is no good external repo for the opencl runtime but we only need the headers for build_vdi.sh
       # So build_ocl.sh is currently not called.
       components="roct rocr project libdevice extras openmp pgmath flang flang_runtime comgr rocminfo vdi hipvdi ocl "
+      if [ "$AOMP_BUILD_DEBUG" == "1" ] ; then
+	  components="gdb $components"
+      fi
    else
       # With AOMP 11, ROCM integrated build will not need roct rocr libdevice comgr and rocminfo
       #               In the future, when ROCm build vdi and hipvdi we can remove them

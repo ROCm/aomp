@@ -112,6 +112,7 @@ if [ "$GXXLOC" == "" ] ; then
    exit 1
 fi
 
+export LLVM_DIR=$AOMP_INSTALL_DIR
 GFXSEMICOLONS=`echo $GFXLIST | tr ' ' ';' `
 COMMON_CMAKE_OPTS="-DOPENMP_ENABLE_LIBOMPTARGET=1
 -DOPENMP_ENABLE_LIBOMPTARGET_HSA=1
@@ -119,9 +120,12 @@ COMMON_CMAKE_OPTS="-DOPENMP_ENABLE_LIBOMPTARGET=1
 -DOPENMP_TEST_C_COMPILER=$AOMP/bin/clang
 -DOPENMP_TEST_CXX_COMPILER=$AOMP/bin/clang++
 -DLIBOMPTARGET_AMDGCN_GFXLIST=$GFXSEMICOLONS
--DROCDL=$AOMP_REPOS/rocm-device-libs
+-DROCDL=$AOMP_REPOS/$AOMP_LIBDEVICE_REPO_NAME
 -DDEVICELIBS_ROOT=$DEVICELIBS_ROOT
--DLIBOMP_COPY_EXPORTS=OFF "
+-DLIBOMP_COPY_EXPORTS=OFF
+-DAOMP_STANDALONE_BUILD=$AOMP_STANDALONE_BUILD
+-DLLVM_DIR=$LLVM_DIR"
+
 
 if [ "$AOMP_BUILD_CUDA" == 1 ] ; then
    COMMON_CMAKE_OPTS="$COMMON_CMAKE_OPTS
@@ -152,7 +156,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 
       echo rm -rf $BUILD_DIR/build/openmp
       rm -rf $BUILD_DIR/build/openmp
-      MYCMAKEOPTS="$COMMON_CMAKE_OPTS -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS=-g -DCMAKE_C_FLAGS=-g $AOMP_ORIGIN_RPATH -DROCM_DIR=$ROCM_DIR -DAOMP_STANDALONE_BUILD=$AOMP_STANDALONE_BUILD"
+      MYCMAKEOPTS="$COMMON_CMAKE_OPTS -DCMAKE_BUILD_TYPE=Release $AOMP_ORIGIN_RPATH -DROCM_DIR=$ROCM_DIR"
       mkdir -p $BUILD_DIR/build/openmp
       cd $BUILD_DIR/build/openmp
       echo " -----Running openmp cmake ---- " 
@@ -169,9 +173,12 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
          exit 1
       fi
 
+   if [ "$AOMP_BUILD_DEBUG" == "1" ] ; then
       echo rm -rf $BUILD_DIR/build/openmp_debug
       rm -rf $BUILD_DIR/build/openmp_debug
-      MYCMAKEOPTS="$COMMON_CMAKE_OPTS -DLIBOMPTARGET_NVPTX_DEBUG=ON -DCMAKE_BUILD_TYPE=Debug $AOMP_ORIGIN_RPATH -DROCM_DIR=$ROCM_DIR -DAOMP_STANDALONE_BUILD=$AOMP_STANDALONE_BUILD"
+      
+      MYCMAKEOPTS="$COMMON_CMAKE_OPTS -DLIBOMPTARGET_NVPTX_DEBUG=ON -DCMAKE_BUILD_TYPE=Debug $AOMP_ORIGIN_RPATH -DROCM_DIR=$ROCM_DIR -DLIBOMP_ARCH=x86_64 -DLIBOMP_OMP_VERSION=50 -DLIBOMP_OMPT_SUPPORT=ON -DLIBOMP_USE_DEBUGGER=ON -DLIBOMP_CFLAGS='-O0' -DLIBOMP_CPPFLAGS='-O0' -DLIBOMP_OMPD_ENABLED=ON -DLIBOMP_OMPD_SUPPORT=ON -DLIBOMP_OMPT_DEBUG=ON -DCMAKE_CXX_FLAGS=-g -DCMAKE_C_FLAGS=-g "
+
       mkdir -p $BUILD_DIR/build/openmp_debug
       cd $BUILD_DIR/build/openmp_debug
       echo
@@ -188,10 +195,10 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
          echo "      $MYCMAKEOPTS"
          exit 1
       fi
+   fi
 fi
 
 cd $BUILD_DIR/build/openmp
-echo
 echo " -----Running make for $BUILD_DIR/build/openmp ---- "
 make -j $NUM_THREADS
 if [ $? != 0 ] ; then 
@@ -203,35 +210,37 @@ if [ $? != 0 ] ; then
       exit 1
 fi
 
-cd $BUILD_DIR/build/openmp_debug
-echo
-echo
-echo " -----Running make for $BUILD_DIR/build/openmp_debug ---- "
-make -j $NUM_THREADS
-if [ $? != 0 ] ; then 
-      echo "ERROR make -j $NUM_THREADS failed"
-      exit 1
-else
-   if [ "$1" != "install" ] ; then 
-      echo
-      echo "Successful build of ./build_openmp.sh .  Please run:"
-      echo "  ./build_openmp.sh install "
-      echo "to install into directory $INSTALL_OPENMP/lib and $INSTALL_OPENMP/lib-debug"
-      echo
-  fi
+if [ "$AOMP_BUILD_DEBUG" == "1" ] ; then
+   cd $BUILD_DIR/build/openmp_debug
+   echo
+   echo
+   echo " -----Running make for $BUILD_DIR/build/openmp_debug ---- "
+   make -j $NUM_THREADS
+   if [ $? != 0 ] ; then 
+         echo "ERROR make -j $NUM_THREADS failed"
+         exit 1
+   fi
+fi
+
+if [ "$1" != "install" ] ; then
+   echo
+   echo "Successful build of ./build_openmp.sh .  Please run:"
+   echo "  ./build_openmp.sh install "
+   echo
 fi
 
 #  ----------- Install only if asked  ----------------------------
 if [ "$1" == "install" ] ; then 
-      cd $BUILD_DIR/build/openmp
-      echo
-      echo " -----Installing to $INSTALL_OPENMP/lib ----- " 
-      $SUDO make install 
-      if [ $? != 0 ] ; then 
-         echo "ERROR make install failed "
-         exit 1
-      fi
+   cd $BUILD_DIR/build/openmp
+   echo
+   echo " -----Installing to $INSTALL_OPENMP/lib ----- "
+   $SUDO make install
+   if [ $? != 0 ] ; then
+      echo "ERROR make install failed "
+      exit 1
+   fi
 
+   if [ "$AOMP_BUILD_DEBUG" == "1" ] ; then
       cd $BUILD_DIR/build/openmp_debug
       echo
       echo " -----Installing to $INSTALL_OPENMP/lib-debug ---- " 
@@ -240,4 +249,5 @@ if [ "$1" == "install" ] ; then
          echo "ERROR make install failed "
          exit 1
       fi
+   fi
 fi
