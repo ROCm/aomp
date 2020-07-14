@@ -1,6 +1,9 @@
 #!/bin/bash
 #
-#  build_gdb.sh:  Script to build gdb
+#  build_rocgdb.sh:  Script to build ROCgdb for aomp standalone build
+#                 This will be called by build_aomp.sh when
+#                 AOMP_STANDALONE_BUILD=1 && AOMP_BUILD_DEBUG==1
+#                 This depends on rocdbgapi to be built and installed.
 #
 # --- Start standard header ----
 function getdname(){
@@ -33,14 +36,14 @@ checkrepo
 
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then 
   echo " "
-  echo " This script builds GDB"
+  echo " This script builds ROCgdb for AOMP standalone build"
   echo " It gets the source from:  $AOMP_REPOS/$AOMP_GDB_REPO_NAME"
-  echo " It builds libraries in:   $BUILD_AOMP/build/gdb"
+  echo " It builds libraries in:   $BUILD_AOMP/build/rocgdb"
   echo " "
   echo "Example commands and actions: "
-  echo "  ./build_gdb.sh                   configure, make , NO Install "
-  echo "  ./build_gdb.sh noconfigure       NO configure, make, NO install "
-  echo "  ./build_gdb.sh install           NO configure, make , INSTALL"
+  echo "  ./build_rocgdb.sh                   configure, make , NO Install "
+  echo "  ./build_rocgdb.sh noconfigure       NO configure, make, NO install "
+  echo "  ./build_rocgdb.sh install           NO configure, make , INSTALL"
   echo " "
   echo "To build aomp, see the README file in this directory"
   echo " "
@@ -64,18 +67,28 @@ if [ "$1" == "install" ] ; then
    $SUDO rm $AOMP_INSTALL_DIR/testfile
 fi
 
+BUG_URL="https://github.com/ROCm-Developer-Tools/ROCgdb/issues"
+export CXXFLAGS_FOR_BUILD="-O2"
+export CFLAGS_FOR_BUILD="-O2"
 #patchrepo $AOMP_REPOS/$AOMP_GDB_REPO_NAME
 if [ "$1" != "noconfigure" ] && [ "$1" != "install" ] ; then 
    echo " " 
-   echo "This is a FRESH START. ERASING any previous builds in $BUILD_AOMP/build_gdb"
+   echo "This is a FRESH START. ERASING any previous builds in $BUILD_AOMP/build_rocgdb"
    echo "Use ""$0 noconfigure"" or ""$0 install"" to avoid FRESH START."
    BUILDTYPE="Release"
-   echo rm -rf $BUILD_AOMP/build/gdb
-   rm -rf $BUILD_AOMP/build/gdb
-   MYCONFIGOPTS="--prefix=$AOMP_INSTALL_DIR/gdb  --srcdir=$AOMP_REPOS/$AOMP_GDB_REPO_NAME"
-   mkdir -p $BUILD_AOMP/build/gdb
-   cd $BUILD_AOMP/build/gdb
+   echo rm -rf $BUILD_AOMP/build/rocgdb
+   rm -rf $BUILD_AOMP/build/rocgdb
+   MYCONFIGOPTS="--prefix=$AOMP_INSTALL_DIR --srcdir=$AOMP_REPOS/$AOMP_GDB_REPO_NAME --program-prefix=roc \
+     --with-bugurl="$BUG_URL" --with-pkgversion="${AOMP_COMPILER_NAME}_${AOMP_VERSION_STRING}" \
+     --enable-targets="x86_64-linux-gnu,amdgcn-amd-amdhsa" \
+     --disable-ld --disable-gas --disable-gdbserver --disable-sim --enable-tui \
+     --disable-gdbtk --disable-shared  \
+     --with-expat --with-system-zlib --without-guile --with-babeltrace --with-lzma \
+     --with-python --with-rocm-dbgapi=$AOMP_INSTALL_DIR"
+   mkdir -p $BUILD_AOMP/build/rocgdb
+   cd $BUILD_AOMP/build/rocgdb
    echo " -----Running gdb configure ---- " 
+   echo "$AOMP_REPOS/$AOMP_GDB_REPO_NAME/configure $MYCONFIGOPTS"
    $AOMP_REPOS/$AOMP_GDB_REPO_NAME/configure $MYCONFIGOPTS
    if [ $? != 0 ] ; then 
       echo "ERROR gdb configure failed."
@@ -83,7 +96,7 @@ if [ "$1" != "noconfigure" ] && [ "$1" != "install" ] ; then
    fi
 fi
 
-cd $BUILD_AOMP/build/gdb
+cd $BUILD_AOMP/build/rocgdb
 echo
 echo " -----Running make for gdb ---- " 
 echo make -j $NUM_THREADS all-gdb
@@ -92,25 +105,25 @@ if [ $? != 0 ] ; then
       echo " "
       echo "ERROR: make -j $NUM_THREADS  FAILED"
       echo "To restart:" 
-      echo "  cd $BUILD_AOMP/build/gdb"
-      echo "  make"
+      echo "  cd $BUILD_AOMP/build/rocgdb"
+      echo "  make all-gdb"
       exit 1
 else
    if [ "$1" != "install" ] ; then
       echo
-      echo "Successful build of ./build_gdb.sh .  Please run:"
-      echo "  ./build_gdb.sh install "
-      echo "to install into directory $AOMP_INSTALL_DIR/gdb"
+      echo "Successful build of ./build_rocgdb.sh .  Please run:"
+      echo "  ./build_rocgdb.sh install "
+      echo "to install into directory $AOMP_INSTALL_DIR"
       echo
    fi
 fi
 
 #  ----------- Install only if asked  ----------------------------
 if [ "$1" == "install" ] ; then 
-      cd $BUILD_AOMP/build/gdb
-      echo " -----Installing to $AOMP_INSTALL_DIR/gdb ----- " 
-      echo $SUDO make install-gdb
-      $SUDO make install-gdb
+      cd $BUILD_AOMP/build/rocgdb
+      echo " -----Installing to $AOMP_INSTALL_DIR ----- " 
+      echo $SUDO make install-strip-gdb
+      $SUDO make install-strip-gdb
       if [ $? != 0 ] ; then 
          echo "ERROR make install failed "
          exit 1

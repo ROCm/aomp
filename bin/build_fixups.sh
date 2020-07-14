@@ -55,7 +55,6 @@ $SUDO rm -f $AOMP/examples/raja/*.sh
 
 #Clean libexec, share
 $SUDO rm -rf $AOMP/libexec
-$SUDO rm -rf $AOMP/share
 #Clean hcc
 $SUDO rm -rf $AOMP/hcc/bin
 $SUDO rm -rf $AOMP/hcc/include

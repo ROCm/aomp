@@ -90,7 +90,7 @@ else
       # So build_ocl.sh is currently not called.
       components="roct rocr project libdevice extras openmp pgmath flang flang_runtime comgr rocminfo vdi hipvdi ocl "
       if [ "$AOMP_BUILD_DEBUG" == "1" ] ; then
-	  components="gdb $components"
+	  components="$components rocdbgapi rocgdb"
       fi
    else
       # With AOMP 11, ROCM integrated build will not need roct rocr libdevice comgr and rocminfo
