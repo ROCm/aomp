@@ -69,8 +69,7 @@ AOMP_STANDALONE_BUILD=${AOMP_STANDALONE_BUILD:-1}
 if [ $AOMP_STANDALONE_BUILD == 1 ] ; then
    # Default is to build nvptx for STANDALONE build
    AOMP_BUILD_CUDA=${AOMP_BUILD_CUDA:-1}
-   # FIXME: change BUILD_DEGUG on for STANDALONE BUILD
-   AOMP_BUILD_DEBUG=${AOMP_BUILD_DEBUG:-0}
+   AOMP_BUILD_DEBUG=${AOMP_BUILD_DEBUG:-1}
 else
    # Default is to NOT build nvptx for ROCm integrated build
    AOMP_BUILD_CUDA=${AOMP_BUILD_CUDA:-0}
