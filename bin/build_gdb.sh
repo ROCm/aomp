@@ -86,8 +86,8 @@ fi
 cd $BUILD_AOMP/build/gdb
 echo
 echo " -----Running make for gdb ---- " 
-echo make -j $NUM_THREADS all-gdbsupport all-gdb
-make -j $NUM_THREADS all-gdbsupport all-gdb
+echo make -j $NUM_THREADS all-gdb
+make -j $NUM_THREADS all-gdb
 if [ $? != 0 ] ; then 
       echo " "
       echo "ERROR: make -j $NUM_THREADS  FAILED"
