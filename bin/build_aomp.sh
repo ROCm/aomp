@@ -34,8 +34,10 @@ function build_aomp_component() {
    if [ $rc != 0 ] ; then 
       echo " !!!  build_aomp.sh: BUILD FAILED FOR COMPONENT $COMPONENT !!!"
       exit $rc
-   fi  
+   fi
+   echo "Number of Arguments: $#"
    if [ $# -eq 0 ] ; then
+       echo "Installing $@"
        $AOMP_REPOS/$AOMP_REPO_NAME/bin/build_$COMPONENT.sh install
        echo ""
        rc=$?
