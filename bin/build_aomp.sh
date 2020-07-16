@@ -147,8 +147,8 @@ echo
 date
 echo " =================  END build_aomp.sh ==================="   
 echo 
-echo "Debian Base:"
-ls $OUT_DIR/build/openmp-extras/package/deb
+echo "Debian Base/openmp-extras:"
+ls $OUT_DIR/build/openmp-extras/package/deb/openmp-extras
 echo "Debian Dir:"
 ls $OUT_DIR/build/openmp-extras/package/deb/openmp-extras$ROCM_INSTALL_PATH
 echo "Debian Bin Dir:"
