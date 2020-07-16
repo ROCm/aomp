@@ -147,4 +147,18 @@ echo
 date
 echo " =================  END build_aomp.sh ==================="   
 echo 
+echo "Debian Dir:"
+ls $OUT_DIR/build/openmp-extras/package/deb/openmp-extras$ROCM_INSTALL_PATH
+echo "Debian Bin Dir:"
+ls $OUT_DIR/build/openmp-extras/package/deb/openmp-extras$ROCM_INSTALL_PATH/bin
+echo "Debian LLVM Dir:"
+ls $OUT_DIR/build/openmp-extras/package/deb/openmp-extras$ROCM_INSTALL_PATH/llvm
+echo "Debian LLVM/bin Dir:"
+ls $OUT_DIR/build/openmp-extras/package/deb/openmp-extras$ROCM_INSTALL_PATH/llvm/bin
+echo "Debian LLVM/include Dir:"
+ls $OUT_DIR/build/openmp-extras/package/deb/openmp-extras$ROCM_INSTALL_PATH/llvm/include
+echo "Debian LLVM/lib Dir:"
+ls $OUT_DIR/build/openmp-extras/package/deb/openmp-extras$ROCM_INSTALL_PATH/llvm/lib
+echo "Debian LLVM/lib/libdevice Dir:"
+ls $OUT_DIR/build/openmp-extras/package/deb/openmp-extras$ROCM_INSTALL_PATH/llvm/lib/libdevice
 exit 0
