@@ -173,7 +173,8 @@ if [ "$1" == "install" ] ; then
       $SUDO sed -i -e "s/\$HIP_CLANG_PATH=\$ENV{'HIP_CLANG_PATH'}/\$HIP_CLANG_PATH=$SED_INSTALL_DIR \. \'\/bin\'/" $INSTALL_HIP/bin/hipcc
       $SUDO sed -i -e "s/ -D_OPENMP //" $INSTALL_HIP/bin/hipcc
       $SUDO sed -i -e "s/\"\/opt\/rocm\"\/llvm/$SED_INSTALL_DIR/" $INSTALL_HIP/bin/hipconfig
-      $SUDO sed -i -e "s/\$HIP_CLANG_PATH=\$ENV{'HIP_CLANG_PATH'}/\$HIP_CLANG_PATH=$SED_INSTALL_DIR \. \'\/bin\'/" $AOMP/bin/hipconfig
+      $SUDO sed -i -e "s/\$HIP_CLANG_PATH=\$ENV{'HIP_CLANG_PATH'}/\$HIP_CLANG_PATH=$SED_INSTALL_DIR \. \'\/bin\'/" $INSTALL_HIP/bin/hipconfig
+      $SUDO sed -i -e "s/\$DEVICE_LIB_PATH = \"\$ROCM_PATH\/lib\"/\$DEVICE_LIB_PATH = \"\$ROCM_PATH\/amdgcn\/bitcode\"/" $INSTALL_HIP/bin/hipcc
    fi
 
 fi
