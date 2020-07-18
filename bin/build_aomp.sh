@@ -2,6 +2,11 @@
 # 
 #   build_aomp.sh : Build all AOMP components 
 #
+if [ "$1" == "clean" ]
+  echo "Exiting build, clean argument unknown. Try '--clean'."
+  exit 1
+fi
+
 # --- Start standard header ----
 function getdname(){
    local __DIRN=`dirname "$1"`
@@ -146,21 +151,49 @@ done
 echo 
 date
 echo " =================  END build_aomp.sh ==================="   
-echo 
-echo "Debian Base/openmp-extras:"
+echo
+
+echo "ls $OUT_DIR/openmp-extras:"
+ls $OUT_DIR/openmp-extras
+echo
+
+echo "ls $OUT_DIR/openmp-extras/bin:"
+ls $OUT_DIR/openmp-extras/bin
+echo
+
+echo "ls $OUT_DIR/openmp-extras/rocm-bin:"
+ls $OUT_DIR/openmp-extras/rocm-bin
+echo
+
+echo "ls $OUT_DIR/build/openmp-extras/package/deb/openmp-extras:"
 ls $OUT_DIR/build/openmp-extras/package/deb/openmp-extras
-echo "Debian Dir:"
+echo
+
+echo "ls $OUT_DIR/build/openmp-extras/package/deb/openmp-extras$ROCM_INSTALL_PATH:"
 ls $OUT_DIR/build/openmp-extras/package/deb/openmp-extras$ROCM_INSTALL_PATH
-echo "Debian Bin Dir:"
+echo
+
+echo "ls $OUT_DIR/build/openmp-extras/package/deb/openmp-extras$ROCM_INSTALL_PATH/bin:"
 ls $OUT_DIR/build/openmp-extras/package/deb/openmp-extras$ROCM_INSTALL_PATH/bin
-echo "Debian LLVM Dir:"
+echo
+
+echo "ls $OUT_DIR/build/openmp-extras/package/deb/openmp-extras$ROCM_INSTALL_PATH/llvm:"
 ls $OUT_DIR/build/openmp-extras/package/deb/openmp-extras$ROCM_INSTALL_PATH/llvm
-echo "Debian LLVM/bin Dir:"
+echo
+
+echo "ls $OUT_DIR/build/openmp-extras/package/deb/openmp-extras$ROCM_INSTALL_PATH/llvm/bin:"
 ls $OUT_DIR/build/openmp-extras/package/deb/openmp-extras$ROCM_INSTALL_PATH/llvm/bin
-echo "Debian LLVM/include Dir:"
+echo
+
+echo "ls $OUT_DIR/build/openmp-extras/package/deb/openmp-extras$ROCM_INSTALL_PATH/llvm/include:"
 ls $OUT_DIR/build/openmp-extras/package/deb/openmp-extras$ROCM_INSTALL_PATH/llvm/include
-echo "Debian LLVM/lib Dir:"
+echo
+
+echo "ls $OUT_DIR/build/openmp-extras/package/deb/openmp-extras$ROCM_INSTALL_PATH/llvm/lib:"
 ls $OUT_DIR/build/openmp-extras/package/deb/openmp-extras$ROCM_INSTALL_PATH/llvm/lib
-echo "Debian LLVM/lib/libdevice Dir:"
+echo
+
+echo "ls $OUT_DIR/build/openmp-extras/package/deb/openmp-extras$ROCM_INSTALL_PATH/llvm/lib/libdevice:"
 ls $OUT_DIR/build/openmp-extras/package/deb/openmp-extras$ROCM_INSTALL_PATH/llvm/lib/libdevice
+echo
 exit 0

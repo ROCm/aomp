@@ -162,6 +162,8 @@ else
       echo "  $0 install"
       echo
   fi
+  echo "ls $OUT_DIR/openmp-extras/bin"
+  ls $OUT_DIR/openmp-extras/bin
 fi
 
 #  ----------- Install only if asked  ----------------------------

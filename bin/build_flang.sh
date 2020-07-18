@@ -130,10 +130,6 @@ make -j $NUM_THREADS
 if [ $? != 0 ] ; then 
    echo "ERROR make -j $NUM_THREADS failed"
    exit 1
-else
-   # FIXME This is Temporary until we start installing
-   cp $OUT_DIR/build/openmp-extras/build/flang/bin/flang1 $OUT_DIR/llvm/bin
-   cp $OUT_DIR/build/aomp/openmp-extras/flang/bin/flang2 $OUT_DIR/llvm/bin
 fi
 
 if [ "$1" == "install" ] ; then
