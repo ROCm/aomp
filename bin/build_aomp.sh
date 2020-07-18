@@ -2,7 +2,7 @@
 # 
 #   build_aomp.sh : Build all AOMP components 
 #
-if [ "$1" == "clean" ]
+if [ "$1" == "clean" ]; then
   echo "Exiting build, clean argument unknown. Try '--clean'."
   exit 1
 fi
