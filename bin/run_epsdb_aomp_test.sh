@@ -20,6 +20,7 @@ fi
 echo AOMP_GPU = $AOMP_GPU
 $AOMP/bin/clang --version
 ls /opt/rocm/amdgcn/bitcode
+ls $AOMP/amdgcn/bitcode
 
 set +x
 
