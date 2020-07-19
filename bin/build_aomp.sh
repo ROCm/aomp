@@ -7,6 +7,16 @@ if [ "$1" == "clean" ]; then
   exit 1
 fi
 
+# Force clean because --clean is not being called correctly
+if [ "$AOMP_STANDALONE_BUILD" == 0 ] ; then
+  echo "Clean install directory:"
+  echo "rm -rf $OUT_DIR/openmp-extras"
+  rm -rf $OUT_DIR/openmp-extras
+  echo "Clean build directory:"
+  echo "rm -rf $OUT_DIR/build/openmp-extras"
+  rm -rf "$OUT_DIR/build/openmp-extras"
+fi
+
 # --- Start standard header ----
 function getdname(){
    local __DIRN=`dirname "$1"`
@@ -142,14 +152,6 @@ for COMPONENT in $components ; do
    echo 
    echo " =================  BUILDING COMPONENT $COMPONENT ==================="   
    echo 
-   if [ "$AOMP_STANDALONE_BUILD" == 0 ] ; then
-     echo "Clean install directory:"
-     echo "rm -rf $OUT_DIR/openmp-extras"
-     rm -rf $OUT_DIR/openmp-extras
-     echo "Clean build directory:"
-     echo "rm -rf $OUT_DIR/build/openmp-extras"
-     rm -rf "$OUT_DIR/build/openmp-extras"
-   fi
    build_aomp_component "$@"
    date
    echo " =================  DONE INSTALLING COMPONENT $COMPONENT ==================="   
