@@ -35,20 +35,22 @@ EPSDB=1 ./check_smoke.sh
 echo $aompdir
 echo
 
-set -x
-cat $aompdir/bin/epsdb/epsdb_passes.txt
-cat $aompdir/test/smoke/passing-tests.txt
-set +x
+#set -x
+#cat $aompdir/bin/epsdb/epsdb_passes.txt
+#cat $aompdir/test/smoke/passing-tests.txt
+#set +x
 
-epasses=`diff $aompdir/bin/epsdb/epsdb_passes.txt $aompdir/test/smoke/passing-tests.txt | grep '>' | wc -l`
+sort $aompdir/test/smoke/passing-tests.txt > $$ptests
+epasses=`diff $aompdir/bin/epsdb/epsdb_passes.txt $$ptests | grep '>' | wc -l`
 echo Unexpected Passes $epasses
 echo "====================="
-diff $aompdir/bin/epsdb/epsdb_passes.txt $aompdir/test/smoke/passing-tests.txt | grep '>' | sed 's/> //'
+diff $aompdir/bin/epsdb/epsdb_passes.txt $$ptests | grep '>' | sed 's/> //'
 echo
 
-efails=`diff $aompdir/bin/epsdb/epsdb_passes.txt $aompdir/test/smoke/passing-tests.txt | grep '<' | wc -l`
+efails=`diff $aompdir/bin/epsdb/epsdb_passes.txt $$ptests | grep '<' | wc -l`
 echo Unexpected Fails $efails
 echo "===================="
-diff $aompdir/bin/epsdb/epsdb_passes.txt $aompdir/test/smoke/passing-tests.txt | grep '<' | sed s'/< //'
+diff $aompdir/bin/epsdb/epsdb_passes.txt $$ptests | grep '<' | sed s'/< //'
 echo
+rm -f $$ptests
 echo Done
