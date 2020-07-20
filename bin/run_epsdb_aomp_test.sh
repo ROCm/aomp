@@ -21,10 +21,9 @@ echo AOMP_GPU = $AOMP_GPU
 $AOMP/bin/clang --version
 ls /opt/rocm/amdgcn/bitcode
 ls $AOMP/amdgcn/bitcode
+rm -f  $aompdir/test/smoke/passing-tests.txt
 
 set +x
-
-rm -f  $aompdir/test/smoke/passing-tests.txt
 
 cd $aompdir/test/smoke/helloworld
 make clean
@@ -35,6 +34,11 @@ EPSDB=1 ./check_smoke.sh
 
 echo $aompdir
 echo
+
+set -x
+cat $aompdir/bin/epsdb/epsdb_passes.txt
+cat $aompdir/test/smoke/passing-tests.txt
+set +x
 
 epasses=`diff $aompdir/bin/epsdb/epsdb_passes.txt $aompdir/test/smoke/passing-tests.txt | grep '>' | wc -l`
 echo Unexpected Passes $epasses
