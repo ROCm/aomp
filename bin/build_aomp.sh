@@ -7,14 +7,34 @@ if [ "$1" == "clean" ]; then
   exit 1
 fi
 
+echo "ls $OUT_DIR/llvm/bin"
+ls $OUT_DIR/llvm/bin
+
 # Force clean because --clean is not being called correctly
 if [ "$AOMP_STANDALONE_BUILD" == 0 ] ; then
+  echo "ls $OUT_DIR/build/"
+  ls $OUT_DIR/build/
+
   echo "Clean install directory:"
   echo "rm -rf $OUT_DIR/openmp-extras/*"
   rm -rf $OUT_DIR/openmp-extras/*
+
   echo "Clean build directory:"
   echo "rm -rf $OUT_DIR/build/openmp-extras/*"
   rm -rf "$OUT_DIR/build/openmp-extras/*"
+
+  echo "ls $OUT_DIR/openmp-extras"
+  ls $OUT_DIR/openmp-extras
+
+  echo "ls $OUT_DIR/build/"
+  ls $OUT_DIR/build/
+
+  if [ -d $OUT_DIR/build/openmp-extras ]; then
+    echo "ls $OUT_DIR/build/openmp-extras"
+    ls "$OUT_DIR/build/openmp-extras"
+  else
+    echo "$OUT_DIR/build/openmp-extras has been removed"
+  fi
 fi
 
 # --- Start standard header ----
