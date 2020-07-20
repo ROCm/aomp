@@ -24,6 +24,8 @@ ls $AOMP/amdgcn/bitcode
 
 set +x
 
+rm -f  $aompdir/test/smoke/passing-tests.txt
+
 cd $aompdir/test/smoke/helloworld
 make clean
 VERBOSE=1 make run
