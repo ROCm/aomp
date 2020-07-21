@@ -35,12 +35,12 @@ EPSDB=1 ./check_smoke.sh
 echo $aompdir
 echo
 
-#set -x
-#cat $aompdir/bin/epsdb/epsdb_passes.txt
-#cat $aompdir/test/smoke/passing-tests.txt
-#set +x
-
+set -x
 sort $aompdir/test/smoke/passing-tests.txt > $$ptests
+cat $aompdir/bin/epsdb/epsdb_passes.txt
+cat $$ptests
+set +x
+
 epasses=`diff $aompdir/bin/epsdb/epsdb_passes.txt $$ptests | grep '>' | wc -l`
 echo Unexpected Passes $epasses
 echo "====================="
