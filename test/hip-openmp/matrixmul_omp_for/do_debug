@@ -1,7 +1,11 @@
 #!/bin/bash
-bldcmd="$AOMP/bin/hipcc -g -O2 -fopenmp matrixmul.cpp -o matrixmul"
-gdbcmd="$AOMP/bin/rocgdb --data-directory=$AOMP/share/gdb -x $AOMP/lib-debug/ompd/__init__.py -- ./matrixmul "
-cgdb=`which cgdb` && [ "$cgdb" != "" ] && gdbcmd="$cgdb -d $gdbcmd"
+bldcmd="$AOMP/bin/hipcc -O0 -g -ggdb  -fopenmp matrixmul.cpp -o matrixmul"
+gdbcmd="$AOMP/bin/rocgdb -x $AOMP/lib-debug/ompd/__init__.py ./matrixmul -ex \"ompd init\" -ex \"set confirm off\" \
+	-ex \"set breakpoint pending on\" -ex \"b matrixMul\" -ex \"c\" -ex \"bt\" -ex \"thr\" -ex \"show architecture\" \
+	-ex \"x/10i \$pc\" -ex \"i share\" \
+	-ex \"ompd threads\" -ex \"thr 1\" -ex \"bt\" -ex \"ompd bt on continued\" -ex \"bt\" \
+	-ex \"thr 4\" -ex \"bt\" -ex \"q\""
+#cgdb=`which cgdb` && [ "$cgdb" != "" ] && gdbcmd="$cgdb -d $gdbcmd"
 
 export LD_LIBRARY_PATH=$AOMP/lib-debug:$AOMP/lib
 export OMP_DEBUG=enabled
@@ -12,6 +16,11 @@ $bldcmd
 echo
 echo $gdbcmd
 echo
-$gdbcmd
+#$gdbcmd
+$AOMP/bin/rocgdb -x $AOMP/lib-debug/ompd/__init__.py ./matrixmul -ex "ompd init" -ex "set confirm off" \
+	-ex "set breakpoint pending on" -ex "b matrixMul" -ex "c" -ex "bt" -ex "thr" -ex "show architecture" \
+	-ex "x/10i \$pc" -ex "i share" \
+	-ex "ompd threads" -ex "thr 1" -ex "bt" -ex "ompd bt on continued" -ex "bt" \
+	-ex "thr 4" -ex "bt" -ex "q"
 
 
