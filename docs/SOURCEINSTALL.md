@@ -17,7 +17,7 @@ Build and install from sources is possible.  However, the source build for AOMP 
    
    # Additional packages used by rocgdb
    sudo apt-get install texinfo libbison-dev bison flex libbabeltrace-dev python-pip libncurses5-dev liblzma-dev
-   sudo python -m pip install CppHeaderParser argparse
+   python -m pip install CppHeaderParser argparse
    
 ```
 #### SLES-15-SP1 Packages
