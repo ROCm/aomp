@@ -36,21 +36,22 @@ echo $aompdir
 echo
 
 set -x
-sort -f $aompdir/test/smoke/passing-tests.txt > $$ptests
-cat $aompdir/bin/epsdb/epsdb_passes.txt
+sort -f -d $aompdir/test/smoke/passing-tests.txt > $$ptests
+sort -f -d $aompdir/bin/epsdb/epsdb_passes.txt > $$etests
+cat $$etests
 cat $$ptests
 set +x
 
-epasses=`diff $aompdir/bin/epsdb/epsdb_passes.txt $$ptests | grep '>' | wc -l`
+epasses=`diff $$etests $$ptests | grep '>' | wc -l`
 echo Unexpected Passes $epasses
 echo "====================="
-diff $aompdir/bin/epsdb/epsdb_passes.txt $$ptests | grep '>' | sed 's/> //'
+diff $$etests $$ptests | grep '>' | sed 's/> //'
 echo
 
-efails=`diff $aompdir/bin/epsdb/epsdb_passes.txt $$ptests | grep '<' | wc -l`
+efails=`diff $$etests $$ptests | grep '<' | wc -l`
 echo Unexpected Fails $efails
 echo "===================="
-diff $aompdir/bin/epsdb/epsdb_passes.txt $$ptests | grep '<' | sed s'/< //'
+diff $$etests $$ptests | grep '<' | sed s'/< //'
 echo
-rm -f $$ptests
+rm -f $$ptests $$etests
 echo Done
