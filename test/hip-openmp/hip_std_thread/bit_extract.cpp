@@ -73,7 +73,6 @@ void* wrapper(void * start) {
         }
     }
     fprintf(stderr, "PASSED %d!\n", mytid);
-// See: http://ontrack-internal.amd.com/browse/SWDEV-210802
     fprintf(stderr, "info: %d  free A:%lx C:%lx\n", mytid, (long)A_d, (long)C_d);
     CHECK(hipFree(A_d));
     CHECK(hipFree(C_d));
