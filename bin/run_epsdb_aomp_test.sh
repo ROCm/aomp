@@ -36,7 +36,7 @@ echo $aompdir
 echo
 
 set -x
-sort $aompdir/test/smoke/passing-tests.txt > $$ptests
+sort -f $aompdir/test/smoke/passing-tests.txt > $$ptests
 cat $aompdir/bin/epsdb/epsdb_passes.txt
 cat $$ptests
 set +x
