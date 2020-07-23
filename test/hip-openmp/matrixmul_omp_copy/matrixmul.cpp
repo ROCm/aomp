@@ -181,6 +181,7 @@ int main() {
       }
     } else printf("Unable to make initial copy\n");
   }
+// See: http://ontrack-internal.amd.com/browse/SWDEV-210802
   if (matrixAAllocated)
     hipFree(deviceSrcMatA);
   if (matrixBAllocated)

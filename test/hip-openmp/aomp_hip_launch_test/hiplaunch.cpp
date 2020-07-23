@@ -83,6 +83,7 @@ void* wrapper(void * start) {
         }
     }
     printf("PASSED %d!\n",mytid);
+// See: http://ontrack-internal.amd.com/browse/SWDEV-210802
     printf("calling hipFree %d!\n",mytid);
     hipFree(A_d);
     hipFree(C_d);

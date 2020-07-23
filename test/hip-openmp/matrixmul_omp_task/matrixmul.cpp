@@ -194,6 +194,7 @@ int main() {
         }
       } else fprintf(stderr,"Unable to make initial copy\n");
     }
+// See: http://ontrack-internal.amd.com/browse/SWDEV-210802
 //#pragma omp task shared(matrixAAllocated, deviceSrcMatA)
     if (matrixAAllocated)
       hipFree(deviceSrcMatA);
