@@ -195,35 +195,4 @@ echo "ls $OUT_DIR/openmp-extras/rocm-bin:"
 ls $OUT_DIR/openmp-extras/rocm-bin
 echo
 
-echo "ls $OUT_DIR/build/openmp-extras/package/deb/openmp-extras:"
-ls $OUT_DIR/build/openmp-extras/package/deb/openmp-extras
-echo
-
-echo "ls $OUT_DIR/build/openmp-extras/package/deb/openmp-extras$ROCM_INSTALL_PATH:"
-ls $OUT_DIR/build/openmp-extras/package/deb/openmp-extras$ROCM_INSTALL_PATH
-echo
-
-echo "ls $OUT_DIR/build/openmp-extras/package/deb/openmp-extras$ROCM_INSTALL_PATH/bin:"
-ls $OUT_DIR/build/openmp-extras/package/deb/openmp-extras$ROCM_INSTALL_PATH/bin
-echo
-
-echo "ls $OUT_DIR/build/openmp-extras/package/deb/openmp-extras$ROCM_INSTALL_PATH/llvm:"
-ls $OUT_DIR/build/openmp-extras/package/deb/openmp-extras$ROCM_INSTALL_PATH/llvm
-echo
-
-echo "ls $OUT_DIR/build/openmp-extras/package/deb/openmp-extras$ROCM_INSTALL_PATH/llvm/bin:"
-ls $OUT_DIR/build/openmp-extras/package/deb/openmp-extras$ROCM_INSTALL_PATH/llvm/bin
-echo
-
-echo "ls $OUT_DIR/build/openmp-extras/package/deb/openmp-extras$ROCM_INSTALL_PATH/llvm/include:"
-ls $OUT_DIR/build/openmp-extras/package/deb/openmp-extras$ROCM_INSTALL_PATH/llvm/include
-echo
-
-echo "ls $OUT_DIR/build/openmp-extras/package/deb/openmp-extras$ROCM_INSTALL_PATH/llvm/lib:"
-ls $OUT_DIR/build/openmp-extras/package/deb/openmp-extras$ROCM_INSTALL_PATH/llvm/lib
-echo
-
-echo "ls $OUT_DIR/build/openmp-extras/package/deb/openmp-extras$ROCM_INSTALL_PATH/llvm/lib/libdevice:"
-ls $OUT_DIR/build/openmp-extras/package/deb/openmp-extras$ROCM_INSTALL_PATH/llvm/lib/libdevice
-echo
 exit 0
