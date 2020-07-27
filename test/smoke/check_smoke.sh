@@ -172,6 +172,25 @@ echo "pfspecifier"
 echo "pfspecifier_str"
 echo "stream"
 echo -e "$BLK"
+
+# Print run logs for runtime fails, EPSDB only
+if [ "$EPSDB" == 1 ] ; then
+  file='failing-tests.txt'
+  if [ -e $file ]; then
+    echo ----------Printing Runtime Fail Logs---------
+    while read -r line; do
+      echo
+      pushd $line > /dev/null
+      echo
+      make run > /dev/null
+      echo Test: $line run log:
+      cat run.log
+      popd > /dev/null
+    done < "$file"
+    echo
+  fi
+fi
+
 #Clean up, hide output
 if [ "$EPSDB" != 1 ] ; then
   cleanup
