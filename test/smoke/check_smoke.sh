@@ -176,16 +176,32 @@ echo -e "$BLK"
 # Print run logs for runtime fails, EPSDB only
 if [ "$EPSDB" == 1 ] ; then
   file='failing-tests.txt'
+  flags_test_done=0
   if [ -e $file ]; then
     echo ----------Printing Runtime Fail Logs---------
     while read -r line; do
-      echo
-      pushd $line > /dev/null
-      echo
-      make run > /dev/null
-      echo Test: $line run log:
-      cat run.log
-      popd > /dev/null
+      # The flags test has multiple numbered runs. We cannot pushd flags 1 because only the flags dir exists.
+      # We must re-run the entire flags test to get run.log. If more than one flags subtest fails only run once.
+      if [[ "$line" =~ "flags" ]]; then
+        if [[ "$flags_test_done" == 0 ]]; then
+          echo
+          pushd flags > /dev/null
+          echo Test: flags run log:
+          echo The flags test must run all iterations if one subtest fails.
+          make run
+          cat run.log
+          flags_test_done=1
+          popd > /dev/null
+        fi
+      else
+        echo
+        pushd $line > /dev/null
+        echo
+        make run > /dev/null
+        echo Test: $line run log:
+        cat run.log
+        popd > /dev/null
+      fi
     done < "$file"
     echo
   fi
