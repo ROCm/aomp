@@ -1,4 +1,5 @@
 aomp_mappings
+assertok_error
 atomic
 atomic_double
 class
@@ -6,21 +7,30 @@ collapse
 data_enter_issue01
 data_issue_59
 DeclareSharedMemory
+decl_targ
+devices
+extern_init
 firstprivate
 firstprivate2
 flags 1
 flags 2
 flags 3
 flags 4
+flags 5
 flags 6
+flags 7
 flags 8
+function
 function_overload
 function_template
 gdb_teams
 helloworld
+hip_device_compile
 issue_001
 issue_002
+issue_flang_libomp
 launch_latency
+liba_bundled
 ManyKernels
 map_zero_bug
 MasterBarrier
@@ -28,24 +38,43 @@ math_flog
 math_modff
 math_sqrt_float
 MaxNumThrds
+mem_foot_print
 nativetests
 nest_call_par2
 nested_loop
 nested_par3
 OmpHipMallocManaged
+omp_lock
+omp_num_teams_generic
+omp_num_teams_SPMD
 omp_wtime
+pfspecifier
+pfspecifier_str
 red_bug_51
 reduce
 reduc_map_prob
+reduction
+reduction_issue_16
+reduction_team
+reduction_teams
 reduction_teams_distribute_parallel
+schedule
 simd
 snap_red
 stream
+targ_declare
 target-in-other-source
+targets_in_loop
+team_prob
 teams
+teams_nest
 test
+test_offload_macros
 thread_limit
+threads
 Threads1xxx
+unique-kernel-name
+use_device_ptr
 veccopy
 vmuldemo
 vmulsum

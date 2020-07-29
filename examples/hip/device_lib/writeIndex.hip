@@ -129,6 +129,11 @@ int main() {
 
   hipLaunchKernelGGL((writeIndex), dim3(N), dim3(1), 0, 0, deviceArray, N);
 
+  auto Err = hipGetLastError();
+  if(Err != hipSuccess) {
+    printf("Error launching kernel: %s\n", hipGetErrorString(Err));
+  }
+
   if (hipCallSuccessful(hipMemcpy(hostArray, deviceArray, N * sizeof(int),
                                   hipMemcpyDeviceToHost))) {
     printf("Array content after kernel:\n");

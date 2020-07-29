@@ -12,8 +12,12 @@ CFLAGS = -x hip --offload-arch=${AOMP_GPU} -std=c++11 -lhip_hcc
 endif
 OMP_FLAGS    =
 
+ifeq ($(EPSDB),1)
+OMP_BIN      = /opt/rocm/bin/hipcc
+else
 CLANG        = clang++
 OMP_BIN      = $(AOMP)/bin/$(CLANG)
+endif
 CC           = $(OMP_BIN) $(VERBOSE)
 
 #-ccc-print-phases
