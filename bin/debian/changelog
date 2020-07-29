@@ -1,4 +1,4 @@
-aomp (11.7-0) UNRELEASED; urgency=medium
+aomp (11.7-1) UNRELEASED; urgency=medium
 
   * Initial release of aomp is 0.3-2
   *   Please see example in /usr/lib/aomp/examples/vmuldemo 
@@ -372,6 +372,18 @@ aomp (11.7-0) UNRELEASED; urgency=medium
   * Dropped support for 16.04.
   *
   * Known Issues:
-  *        -Hip example device_lib fails to compile 
+  *        -Hip example device_lib fails to compile   *
+  *
+  * 11.7-1
+  *   Inclusion of OMPD support which is not yet upstream
+  *   Build of ROCgdb
+  *   Host runtime optimisation. GPU image information is now mostly read on the
+  *         host instead of from the GPU.
+  *   Fixed the source build scripts so that building from the source tarball does not fail
+  *         because of missing test directories. This fixes issue #116.
+  *
+  * Known Issues:
+  *        -Hip example device_lib fails to compile
+  *
 
- -- Greg Rodgers <Gregory.Rodgers@amd.com>  Thu, 09 Jul 2020 15:17:59 -0500
+ -- Greg Rodgers <Gregory.Rodgers@amd.com>  Wed, 29 Jul 2020 00:11:34 -0500
