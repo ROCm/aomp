@@ -9,8 +9,8 @@ sudo dpkg -i aomp_Ubuntu1804_11.7-1_amd64.deb
 
 On Ubuntu 16.04,  run these commands:
 ```
-wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_11.6-2/aomp_Ubuntu1604_11.6-2_amd64.deb
-sudo dpkg -i aomp_Ubuntu1604_11.6-2_amd64.deb
+wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_11.7-1/aomp_Ubuntu1604_11.7-1_amd64.deb
+sudo dpkg -i aomp_Ubuntu1604_11.7-1_amd64.deb
 ```
 
 The AOMP bin directory (which includes the standard clang and llvm binaries) is not intended to be in your PATH for typical operation.
