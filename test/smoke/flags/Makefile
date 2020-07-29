@@ -33,7 +33,7 @@ run:
 check: compile
 	@path=`pwd`; \
 	base=`basename $$path`; \
-	if   (./$(TESTNAME)> /dev/null 2>&1); then \
+	if   (./$(TESTNAME)); then \
 		echo $$base $$test_num return code: $$? >> ../check-smoke.txt; \
 		echo "" >> ../check-smoke.txt; \
 		echo $$base $$test_num  >> ../passing-tests.txt; \
