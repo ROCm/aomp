@@ -10,6 +10,8 @@ TESTS_DIR = \
     collapse \
     data_enter_issue01 \
     data_issue_59 \
+    data_share1 \
+    data_share2 \
     decl_targ \
     devices \
     extern_init \

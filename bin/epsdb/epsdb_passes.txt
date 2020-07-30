@@ -6,6 +6,7 @@ class
 collapse
 data_enter_issue01
 data_issue_59
+data_share1
 DeclareSharedMemory
 decl_targ
 devices
@@ -20,6 +21,7 @@ flags 5
 flags 6
 flags 7
 flags 8
+flang_tgt_alloc_ptr
 function
 function_overload
 function_template
