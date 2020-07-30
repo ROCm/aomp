@@ -8,8 +8,12 @@
  * but in other case the the local variable will be allocated to local addrspace.
  */
 int Print(int num) {
-  int arr[256];
   int c = num * 2;
+#ifdef FIT_IN_DS_SLOT
+  int arr[60];
+#else
+  int arr[256];
+#endif
   int tid = omp_get_thread_num();
   printf("[%d]> num * 2 = %d, %p, %p\n", tid,c, &arr[1], &c);
   return c;
