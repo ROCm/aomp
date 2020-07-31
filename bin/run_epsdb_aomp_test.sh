@@ -54,4 +54,18 @@ echo "===================="
 diff $$etests $$ptests | grep '<' | sed s'/< //'
 echo
 rm -f $$ptests $$etests
+
+echo "====== hip-openmp ==="
+cd $aompdir/test/hip-openmp
+./check_hip-openmp.sh 
+echo "======= omp5 ==="
+cd $aompdir/test/omp5
+./check_omp5.sh  
+echo "====== examples ==="
+cd $aompdir/examples
+./check_examples.sh 
+
+
 echo Done
+
+
