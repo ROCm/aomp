@@ -34,7 +34,7 @@ echo "                   A non-zero exit code means a failure occured." >> check
 echo "Tests that need to be visually inspected: devices, pfspecify, pfspecify_str, stream" >> check-omp5.txt
 echo "***********************************************************************************" >> check-omp5.txt
 
-known_fails="red_bug_51 declare_variant shape_noncontig concur_update mapper_prob"
+known_fails="red_bug_51 declare_variant shape_noncontig concur_update"
 
 if [ "$SKIP_FAILURES" == 1 ] ; then
   skip_tests=$known_fails
