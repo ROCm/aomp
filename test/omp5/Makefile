@@ -7,8 +7,9 @@ TESTS_DIR = \
     nestedSIMD \
     reduc_map_prob \
     red_bug_51 \
+    reduc_map_prob \
     shape_noncontig \
-    reduc_map_prob
+    task_prob
 
 all:
 	@for test_dir in $(TESTS_DIR); do \
