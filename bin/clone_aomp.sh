@@ -168,3 +168,23 @@ reponame=$AOMP_OCL_REPO_NAME
 repogitname=$AOMP_OCL_REPO_GITNAME
 COBRANCH=$AOMP_OCL_REPO_BRANCH
 clone_or_pull
+if [ "$AOMP_BUILD_DEBUG" == "1" ] ; then
+#   repo_web_location="git://sourceware.org/git"
+   repo_web_location=$GITROCDEV
+   reponame=$AOMP_GDB_REPO_NAME
+   repogitname=$AOMP_GDB_REPO_NAME
+   COBRANCH=$AOMP_GDB_REPO_BRANCH
+   clone_or_pull
+   reponame=$AOMP_DBGAPI_REPO_NAME
+   repogitname=$AOMP_DBGAPI_REPO_NAME
+   COBRANCH=$AOMP_DBGAPI_REPO_BRANCH
+   clone_or_pull
+   reponame=$AOMP_TRACE_REPO_NAME
+   repogitname=$AOMP_TRACE_REPO_NAME
+   COBRANCH=$AOMP_TRACE_REPO_BRANCH
+   clone_or_pull
+   reponame=$AOMP_PROF_REPO_NAME
+   repogitname=$AOMP_PROF_REPO_NAME
+   COBRANCH=$AOMP_PROF_REPO_BRANCH
+   clone_or_pull
+fi

@@ -16,6 +16,7 @@ TESTS_DIR = \
     firstprivate \
     firstprivate2 \
     flags \
+    flang_tgt_alloc_ptr \
     function \
     function_overload \
     function_template \

@@ -1,0 +1,18 @@
+#!/bin/bash
+bldcmd="$AOMP/bin/hipcc -O0 -g -ggdb  -fopenmp matrixmul.cpp -o matrixmul"
+#cgdb=`which cgdb` && [ "$cgdb" != "" ] && gdbcmd="$cgdb -d $gdbcmd"
+
+export LD_LIBRARY_PATH=$AOMP/lib-debug:$AOMP/lib
+export OMP_DEBUG=enabled
+export OMP_NUM_THREADS=3
+
+echo
+echo $bldcmd
+$bldcmd
+echo
+echo $gdbcmd
+echo
+#$gdbcmd
+$AOMP/bin/rocgdb -x  "$AOMP/lib-debug/ompd/__init__.py" ./matrixmul -ex "source do_debug_command_file"
+
+

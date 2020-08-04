@@ -7,13 +7,13 @@ Once installed go to [TESTINSTALL](TESTINSTALL.md) for instructions on getting s
 To install the debian package without root access into your home directory, you can run these commands.<br>
 On Ubuntu 18.04 LTS (bionic beaver):
 ```
-   wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_11.6-2/aomp_Ubuntu1804_11.6-2_amd64.deb
-   dpkg -x aomp_Ubuntu1804_11.6-2_amd64.deb /tmp/temproot
+   wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_11.7-1/aomp_Ubuntu1804_11.7-1_amd64.deb
+   dpkg -x aomp_Ubuntu1804_11.7-1_amd64.deb /tmp/temproot
 ```
 On Ubuntu 16.04:
 ```
-   wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_11.6-2/aomp_Ubuntu1604_11.6-2_amd64.deb
-   dpkg -x aomp_Ubuntu1604_11.6-2_amd64.deb /tmp/temproot
+   wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_11.7-1/aomp_Ubuntu1604_11.7-1_amd64.deb
+   dpkg -x aomp_Ubuntu1604_11.7-1_amd64.deb /tmp/temproot
 ```
 Move to $HOME and set variables:
 ```
@@ -30,13 +30,13 @@ To install the rpm package without root access into your home directory, you can
 ```
 For Red Hat:
 ```
-   wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_11.6-2/aomp_REDHAT_7-11.6-2.x86_64.rpm
-   rpm2cpio aomp_REDHAT_7-11.6-2.x86_64.rpm | cpio -idmv
+   wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_11.7-1/aomp_REDHAT_7-11.7-1.x86_64.rpm
+   rpm2cpio aomp_REDHAT_7-11.7-1.x86_64.rpm | cpio -idmv
 ```
 For SLES15-SP1:
 ```
-   wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_11.6-2/aomp_SLES15_SP1-11.6-2.x86_64.rpm
-   rpm2cpio aomp_SLES15_SP1-11.6-2.x86_64.rpm | cpio -idmv
+   wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_11.7-1/aomp_SLES15_SP1-11.7-1.x86_64.rpm
+   rpm2cpio aomp_SLES15_SP1-11.7-1.x86_64.rpm | cpio -idmv
 ```
 Move to $HOME and set variables:
 ```

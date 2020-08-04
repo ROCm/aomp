@@ -1,4 +1,4 @@
-aomp (11.6-2) UNRELEASED; urgency=medium
+aomp (11.7-1) UNRELEASED; urgency=medium
 
   * Initial release of aomp is 0.3-2
   *   Please see example in /usr/lib/aomp/examples/vmuldemo 
@@ -366,5 +366,24 @@ aomp (11.6-2) UNRELEASED; urgency=medium
   *   Moved strlen_max function inside the declare target #ifdef _DEVICE_GPU in hostrpc.cpp to resolve linker
   *         failure seen in pfspecifier_str smoke test.
   *   Fixed AOMP_GIT_CHECK_BRANCH in aomp_common_vars to not block builds in Red Hat if repo is on a specific commit hash.
+  *
+  * 11.7-0
+  * Merge of trunk as of July 2nd.
+  * Dropped support for 16.04.
+  *
+  * Known Issues:
+  *        -Hip example device_lib fails to compile   *
+  *
+  * 11.7-1
+  *   Inclusion of OMPD support which is not yet upstream
+  *   Build of ROCgdb
+  *   Host runtime optimisation. GPU image information is now mostly read on the
+  *         host instead of from the GPU.
+  *   Fixed the source build scripts so that building from the source tarball does not fail
+  *         because of missing test directories. This fixes issue #116.
+  *
+  * Known Issues:
+  *        -Hip example device_lib fails to compile
+  *
 
- -- Greg Rodgers <Gregory.Rodgers@amd.com>  Tue, 30 Jun 2020 10:40:48 -0500
+ -- Greg Rodgers <Gregory.Rodgers@amd.com>  Wed, 29 Jul 2020 00:11:34 -0500

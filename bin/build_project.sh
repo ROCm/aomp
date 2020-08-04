@@ -54,9 +54,8 @@ fi
 if [ "$AOMP_CHECK_GIT_BRANCH" == 1 ] ; then
    DO_TESTS=""
 else
-   DO_TESTS="-DLLVM_BUILD_TESTS=OFF -DLLVM_INCLUDE_TESTS=OFF -DCLANG_INCLUDE_TESTS=OFF"
+   DO_TESTS="-DLLVM_BUILD_TESTS=OFF -DLLVM_INCLUDE_TESTS=OFF -DCLANG_INCLUDE_TESTS=OFF -DCOMPILER_RT_INCLUDE_TESTS=OFF"
 fi
-   DO_TESTS=""
 
 if [ $AOMP_STANDALONE_BUILD == 1 ] ; then
    standalone_word="_STANDALONE"
@@ -223,6 +222,8 @@ if [ "$1" == "install" ] ; then
    $SUDO cp -p $BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME/bin/count $AOMP/bin/count
    $SUDO cp -p $BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME/bin/not $AOMP/bin/not
    $SUDO cp -p $BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME/bin/yaml-bench $AOMP/bin/yaml-bench
+   cd $REPO_DIR
+   git checkout llvm/lib/Support/CommandLine.cpp
    echo
    echo "SUCCESSFUL INSTALL to $INSTALL_PROJECT with link to $AOMP"
    echo
