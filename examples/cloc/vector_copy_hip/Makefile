@@ -8,7 +8,7 @@ endif
 
 CFLAGS = -c -std=c++11 -D__HIP_PLATFORM_HCC__ -I$(AOMP)/../include -I$(AOMP)/include
 # Set the rpath to pick up AOMP libs in case rocm was installed. Also support looking in /opt/rocm/lib as AOMP in ROCm no longer builds hip.
-LFLAGS = -L$(AOMP)/lib -L$(AOMP)/../lib -lhip_hcc -Wl,-rpath,$(AOMP)/lib -Wl,-rpath,$(AOMP)/../lib
+LFLAGS = -L$(AOMP)/lib -L$(AOMP)/../lib -lamdhip64 -Wl,-rpath,$(AOMP)/lib -Wl,-rpath,$(AOMP)/../lib
 # find the current gpu, default to vega10 if unknown
 MYGPU = $(shell $(AOMP)/bin/mygpu -d gfx900)
 

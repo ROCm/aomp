@@ -76,7 +76,7 @@ else
 endif
 
 #  These HIPFLAGS provide HIP+OpenMP for CPU only. No target offload
-HIPFLAGS = -x hip $(PLATFORM) -O2 --offload-arch=$(AOMP_GPU) -target $(AOMP_CPUTARGET) -lhip_hcc
+HIPFLAGS = -x hip $(PLATFORM) -O2 --offload-arch=$(AOMP_GPU) -target $(AOMP_CPUTARGET) -lamdhip64
 #  These OMP_TARGET_FLAGS added to HIPFLAGS provide HIP+OpenMP with GPU target offload
 OMP_TARGET_FLAGS = -fopenmp-targets=$(TRIPLE) -Xopenmp-target=$(TRIPLE) -march=$(AOMP_GPU) -target $(AOMP_CPUTARGET)
 
@@ -84,7 +84,7 @@ CFLAGS = -fopenmp -O2
 
 # ----- Demo compile and link in one step, no object code saved
 $(TESTNAME): matsup.o hiptarg.o omptarg.o $(TESTNAME).$(FILETYPE)
-	$(CC) $(CFLAGS) $(LFLAGS) $^ -o $@ $(HIPFLAGS) $(OMP_TARGET_FLAGS) -lhip_hcc
+	$(CC) $(CFLAGS) $(LFLAGS) $^ -o $@ $(HIPFLAGS) $(OMP_TARGET_FLAGS) -lamdhip64
 
 run: $(TESTNAME)
 	timeout 10 ./$(TESTNAME)

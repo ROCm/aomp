@@ -56,7 +56,7 @@ OBJ_FILES := $(addprefix obj/, $(notdir $(CXX_FILES:.cpp=.o)))
 all: $(TEST_NAME) $(CU_FILE).hsaco
 
 $(TEST_NAME): $(OBJ_FILES) $(COMMON_OBJ_FILES)
-	$(AOMP)/bin/clang++  $(OBJ_FILES) $(CFLAGS) -L$(AOMP)/lib -lhip_hcc -o $(TEST_NAME) $(LFLAGS)
+	$(AOMP)/bin/clang++  $(OBJ_FILES) $(CFLAGS) -L$(AOMP)/lib -lamdhip64 -o $(TEST_NAME) $(LFLAGS)
 
 $(CU_FILE).hsaco :
 	$(AOMP)/bin/cloc.sh $(FUNOPTS)  $(CU_FILE).cu

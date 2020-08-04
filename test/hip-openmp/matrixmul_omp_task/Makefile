@@ -76,7 +76,7 @@ ifeq (sm_,$(findstring sm_,$(TARGETS)))
   LFLAGS +=-L$(CUDA)/targets/$(UNAMEP)-linux/lib -lcudart -Wl,-rpath,$(CUDA)/targets/$(UNAMEP)-linux/lib
   CFLAGS +=-x cuda -I$(CUDA)/include
 else
-  CFLAGS += -x hip -lhip_hcc
+  CFLAGS += -x hip -lamdhip64
 endif
 
 # ----- Demo compile and link in one step, no object code saved
