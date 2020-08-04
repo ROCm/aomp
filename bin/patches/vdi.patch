@@ -1,0 +1,13 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 65c3c189..825e225d 100755
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -25,7 +25,7 @@ find_package(amd_comgr REQUIRED CONFIG
+ message(STATUS "Code Object Manager found at ${amd_comgr_DIR}.")
+
+ # FIXME: Use find_package(OpenCL)
+-find_library( OpenCL REQUIRED CONFIG
++find_library( OpenCL QUIET CONFIG
+    PATHS
+       /opt/rocm
+ )

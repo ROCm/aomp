@@ -9,8 +9,12 @@ OMP_FLAGS    =  --offload-arch=${AOMP_GPU}
 CFLAGS       = -x hip -I /opt/rocm/rocblas/include/ --offload-arch=${AOMP_GPU} -std=c++11
 LINK_FLAGS =  -L /opt/rocm/rocblas/lib -lrocblas -Wl,-rpath,/opt/rocm/rocblas/lib -lhip_hcc
 
+ifeq ($(EPSDB),1)
+OMP_BIN      = /opt/rocm/bin/hipcc
+else
 CLANG        = clang++
 OMP_BIN      = $(AOMP)/bin/$(CLANG)
+endif
 CC           = $(OMP_BIN) $(VERBOSE)
 
 #-ccc-print-phases

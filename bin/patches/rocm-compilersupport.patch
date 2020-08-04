@@ -1,10 +1,10 @@
 diff --git a/lib/comgr/CMakeLists.txt b/lib/comgr/CMakeLists.txt
-index e047053..de3ce5a 100644
+index 56293eb..7eba7b2 100644
 --- a/lib/comgr/CMakeLists.txt
 +++ b/lib/comgr/CMakeLists.txt
 @@ -16,7 +16,10 @@ endif() # if (ROCM_CCACHE_BUILD)
  
- project(amd_comgr VERSION "1.6.0" LANGUAGES C CXX)
+ project(amd_comgr VERSION "1.7.0" LANGUAGES C CXX)
  
 +if(NOT AMD_COMGR_BUILD_NO_ROCM)
  find_package(ROCM PATHS "/opt/rocm")
@@ -13,7 +13,7 @@ index e047053..de3ce5a 100644
  if (ROCM_FOUND)
    include(ROCMSetupVersion)
    rocm_setup_version(VERSION "${amd_comgr_VERSION}")
-@@ -268,8 +271,10 @@ if (NOT UNIX)
+@@ -285,8 +288,10 @@ if (NOT UNIX)
      PRIVATE version)
  endif()
  
@@ -24,3 +24,20 @@ index e047053..de3ce5a 100644
  
  if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
    # Add packaging directives for amd_comgr
+diff --git a/lib/comgr/cmake/DeviceLibs.cmake b/lib/comgr/cmake/DeviceLibs.cmake
+index 27e9546..29cc2b9 100644
+--- a/lib/comgr/cmake/DeviceLibs.cmake
++++ b/lib/comgr/cmake/DeviceLibs.cmake
+@@ -115,10 +115,10 @@ endforeach()
+ file(APPEND ${GEN_LIBRARY_INC_FILE} "\n#include \"llvm/ADT/ArrayRef.h\"\n")
+ file(APPEND ${GEN_LIBRARY_INC_FILE}
+   "llvm::ArrayRef<std::tuple<llvm::StringRef, llvm::StringRef>> COMGR::getDeviceLibraries() { \
+-   static std::tuple<llvm::StringRef, llvm::StringRef> DeviceLibs[] = {")
++llvm::ArrayRef<std::tuple<llvm::StringRef, llvm::StringRef>> DeviceLibs = {")
+ foreach(AMDGCN_LIB_TARGET ${AMD_DEVICE_LIBS_TARGETS})
+   file(APPEND ${GEN_LIBRARY_INC_FILE}
+-    "{\"${AMDGCN_LIB_TARGET}.bc\", llvm::StringRef(reinterpret_cast<const char *>(${AMDGCN_LIB_TARGET}_lib), ${AMDGCN_LIB_TARGET}_lib_size)},")
++    " std::tuple<llvm::StringRef, llvm::StringRef> (\"${AMDGCN_LIB_TARGET}.bc\", llvm::StringRef(reinterpret_cast<const char *>(${AMDGCN_LIB_TARGET}_lib), ${AMDGCN_LIB_TARGET}_lib_size)),")
+ endforeach()
+ file(APPEND ${GEN_LIBRARY_INC_FILE}
+   "}; \

@@ -26,7 +26,10 @@ build_openmp.sh          -  Builds the OpenMP libraries and device RTL.
 build_pgmath.sh          -  Builds the pgmath support for flang.
 build_flang.sh           -  Builds flang for aomp.
 build_flang_runtime.sh   -  Builds the flang runtime for aomp.
-build_ocl.sh             -  Builds OpenCL.
+build_ocl.sh             -  Builds OpenCL runtime.
+build_rocdbgapi.sh       -  Builds ROCm Debugger API.
+build_gdb.sh             -  Builds ROC gdb.
+build_roctracer.sh       -  Builds ROC gdb. UNDER DEVELOPMENT
 ```
 
 These scripts install into $HOME/rocm/aomp (or $AOMP if set).
@@ -52,6 +55,10 @@ The first column is the AOMP component that uses the repositories.
 | libdevice | $HOME/git/aomp11/rocm-device-libs      | [rocm-device-libs](https://github.com/radeonopencompute/rocm-device-libs)
 | flang     | $HOME/git/aomp11/flang                 | [flang](https://github.com/ROCm-Developer-Tools/flang)
 | rocminfo  | $HOME/git/aomp11/rocminfo              | [rocminfo](https://github.com/radeonopencompute/rocminfo)
+| rocdbgapi | $HOME/git/aomp11/ROCdbgapi             | [rocdbgapi](https://github.com/ROCm-Developer-Tools/ROCdbgapi)
+| rocgdb    | $HOME/git/aomp11/ROCgdb                | [rocgdb](https://github.com/ROCm-Developer-Tools/ROCgdb)
+| roctrace  | $HOME/git/aomp11/roctracer             | [roctracer](https://github.com/ROCm-Developer-Tools/roctracer)
+| rocprofiler | $HOME/git/aomp11/rocprofiler         | [rocprofiler](https://github.com/ROCm-Developer-Tools/rocprofiler)
 
 The scripts and example makefiles use these environment variables and these
 defaults if they are not set. This is not a complete list.  See the script headers

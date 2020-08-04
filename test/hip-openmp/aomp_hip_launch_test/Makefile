@@ -76,7 +76,7 @@ else
   PLATFORM = -D__HIP_PLATFORM_HCC__=1
 endif
 
-HIPFLAGS = -x hip $(PLATFORM) -O2 --offload-arch=$(AOMP_GPU) -lpthread -std=c++11 -lhip_hcc
+HIPFLAGS = -x hip $(PLATFORM) -O2 --offload-arch=$(AOMP_GPU) -lpthread -std=c++11 -lamdhip64
 OMP_TARGET_FLAGS = -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$(AOMP_GPU) --save-temps 
 CC=$(AOMP)/bin/clang
 

@@ -90,11 +90,11 @@ if [ "$1" == "install" ] ; then
    $SUDO rm $AOMP_INSTALL_DIR/testfile
 fi
 
+patchrepo $AOMP_REPOS/$AOMP_HIPVDI_REPO_NAME
 
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 
   if [ -d "$BUILD_DIR/build/hipvdi" ] ; then
-     patchrepo $AOMP_REPOS/$AOMP_HIPVDI_REPO_NAME
      echo
      echo "FRESH START , CLEANING UP FROM PREVIOUS BUILD"
      echo rm -rf $BUILD_DIR/build/hipvdi
@@ -173,7 +173,8 @@ if [ "$1" == "install" ] ; then
       $SUDO sed -i -e "s/\$HIP_CLANG_PATH=\$ENV{'HIP_CLANG_PATH'}/\$HIP_CLANG_PATH=$SED_INSTALL_DIR \. \'\/bin\'/" $INSTALL_HIP/bin/hipcc
       $SUDO sed -i -e "s/ -D_OPENMP //" $INSTALL_HIP/bin/hipcc
       $SUDO sed -i -e "s/\"\/opt\/rocm\"\/llvm/$SED_INSTALL_DIR/" $INSTALL_HIP/bin/hipconfig
-      $SUDO sed -i -e "s/\$HIP_CLANG_PATH=\$ENV{'HIP_CLANG_PATH'}/\$HIP_CLANG_PATH=$SED_INSTALL_DIR \. \'\/bin\'/" $AOMP/bin/hipconfig
+      $SUDO sed -i -e "s/\$HIP_CLANG_PATH=\$ENV{'HIP_CLANG_PATH'}/\$HIP_CLANG_PATH=$SED_INSTALL_DIR \. \'\/bin\'/" $INSTALL_HIP/bin/hipconfig
+      $SUDO sed -i -e "s/\$DEVICE_LIB_PATH = \"\$ROCM_PATH\/lib\"/\$DEVICE_LIB_PATH = \"\$ROCM_PATH\/amdgcn\/bitcode\"/" $INSTALL_HIP/bin/hipcc
    fi
 
 fi
