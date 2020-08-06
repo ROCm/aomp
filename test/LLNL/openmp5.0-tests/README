@@ -1,0 +1,43 @@
+All tests can be run on LLNL's CORAL1 machine via  ./test.py
+The compiler is set around line 77 of test.py:
+    CC="clang++ -march=sm_70 -fopenmp -fopenmp-targets=nvptx64-nvidia-cuda  -fopenmp-version=50 -I /usr/tce/packages/cuda/cuda-10.1.243/include -Werror=extra-tokens -Werror=ignored-pragmas -O3"
+
+On RZANSEL (CORAL1 Power9), with a clang 9.0.0 trunk snapshot from 2019.10.03,
+gives this output (since only a subset of OpenMP 5 supported):
+
+rzansel61{gyllen}31: ./test.py
+Compilation of  test_acquire_release.cxx  failed
+Compiling  test_allocate_directive
+Compiling  test_concurrent_map
+Compiling  test_implicit_declare_target
+Compilation of  test_declare_variant.cxx  failed
+Compilation of  test_imperfect_loop.cxx  failed
+Compilation of  test_loop.cxx  failed
+Compilation of  test_lvalue_map_motion.cxx  failed
+Compiling  test_non_rectangular
+Compilation of  test_noncontiguous_update.cxx  failed
+Compiling  test_omp_pause_resources
+Compilation of  test_order_concurrent.cxx  failed
+Compilation of  test_pointer_attach.cxx  failed
+Compiling  test_requires_unified_shared_memory
+Compilation of  test_scan.cxx  failed
+Compilation of  test_use_device_addr.cxx  failed
+
+Runnable tests are:
+test_allocate_directive
+test_concurrent_map
+test_implicit_declare_target
+test_non_rectangular
+test_omp_pause_resources
+test_requires_unified_shared_memory
+
+Running  test_allocate_directive ... Passed
+Running  test_concurrent_map ... Passed
+Running  test_implicit_declare_target ... Passed
+Running  test_non_rectangular ... Failed
+Running  test_omp_pause_resources ... Failed
+Running  test_requires_unified_shared_memory ... Failed
+There are  16  tests
+6  tests compiled successfully
+3  tests ran successfully
+
