@@ -105,3 +105,8 @@ repo_web_location=$GITNEKBONE
 reponame=$AOMP_NEKBONE_REPO_NAME
 COBRANCH=$AOMP_NEKBONE_REPO_BRANCH
 clone_or_pull
+
+repo_web_location=$GITOVO
+reponame=$AOMP_OVO_REPO_NAME
+COBRANCH=$AOMP_OVO_REPO_BRANCH
+clone_or_pull
