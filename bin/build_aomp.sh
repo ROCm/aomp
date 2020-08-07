@@ -28,7 +28,11 @@ thisdir=$(getdname $0)
 # --- end standard header ----
 
 function build_aomp_component() {
-   [ -f /opt/rh/devtoolset-7/enable ] &&  . /opt/rh/devtoolset-7/enable
+   osversion=$(cat /etc/os-release | grep -e ^VERSION_ID)
+   if [[ $osversion =~ "7." ]]; then
+     [ -f /opt/rh/devtoolset-7/enable ] &&  . /opt/rh/devtoolset-7/enable
+   fi
+
    $AOMP_REPOS/$AOMP_REPO_NAME/bin/build_$COMPONENT.sh "$@"
    rc=$?
    if [ $rc != 0 ] ; then 
