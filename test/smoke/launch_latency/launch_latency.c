@@ -19,7 +19,10 @@ int n =1024;
 
 int main(void) {
 
-  // cost in kernel time per object
+  // cost in kernel time per object, milliseconds
+  // 2048k costs 13ms, not a typo
+  // 1536k costs 1.2, occasional segfault
+  // 1024k costs 0.8  
   // 512k costs 0.42
   // 256k 0.30
   // 128k 0.23
@@ -30,7 +33,7 @@ int main(void) {
   // 8byte costs 0.15ms
   struct payload_t
   {
-    double x[1024*64];
+    double x[1024 * 256*2];
   };
   struct payload_t d0,d1,d2,d3,d4,d5,d6,d7;
   struct timespec t0,t1,t2;
