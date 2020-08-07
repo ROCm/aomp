@@ -64,7 +64,22 @@ cd $aompdir/test/omp5
 echo "====== examples ==="
 cd $aompdir/examples
 ./check_examples.sh 
+echo "======================"
 
+set -x
+mkdir -p ~/git/
+cd $aompdir/bin
+set +x
+echo "======================"
+./clone_aomp_test.sh
+echo "======================"
+./run_nekbone.sh
+echo "======================"
+./run_sollve.sh
+echo "======================"
+cd ~/git/aomp-test/openmpapps
+echo "======================"
+./check_openmpapps.sh
 
 echo Done
 
