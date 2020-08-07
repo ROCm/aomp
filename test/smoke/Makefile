@@ -62,6 +62,7 @@ TESTS_DIR = \
     reduc_map_prob \
     schedule \
     simd \
+    slices \
     snap_red \
     stream \
     targ_declare \
