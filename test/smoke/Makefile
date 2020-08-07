@@ -8,6 +8,8 @@ TESTS_DIR = \
     atomic_double \
     class \
     collapse \
+    complex \
+    complex2 \
     data_enter_issue01 \
     data_issue_59 \
     data_share1 \
