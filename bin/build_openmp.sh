@@ -73,7 +73,7 @@ if [ "$1" == "install" ] ; then
    $SUDO rm $INSTALL_OPENMP/testfile
 fi
 
-GCCMIN=7
+GCCMIN=8
 if [ "$AOMP_BUILD_CUDA" == 1 ] ; then
    if [ -f $CUDABIN/nvcc ] ; then
       CUDAVER=`$CUDABIN/nvcc --version | grep compilation | cut -d" " -f5 | cut -d"." -f1 `
@@ -84,14 +84,14 @@ if [ "$AOMP_BUILD_CUDA" == 1 ] ; then
    fi
 fi
 
-function getgcc7orless(){
+function getgcc8orless(){
    _loc=`which gcc`
    [ "$_loc" == "" ] && return
    gccver=`$_loc --version | grep gcc | cut -d")" -f2 | cut -d"." -f1`
    [ $gccver -gt $GCCMIN ] && _loc=`which gcc-$GCCMIN`
    echo $_loc
 }
-function getgxx7orless(){
+function getgxx8orless(){
    _loc=`which g++`
    [ "$_loc" == "" ] && return
    gxxver=`$_loc --version | grep g++ | cut -d")" -f2 | cut -d"." -f1`
@@ -99,8 +99,8 @@ function getgxx7orless(){
    echo $_loc
 }
 
-GCCLOC=$(getgcc7orless)
-GXXLOC=$(getgxx7orless)
+GCCLOC=$(getgcc8orless)
+GXXLOC=$(getgxx8orless)
 if [ "$GCCLOC" == "" ] ; then
    echo "ERROR: NO ADEQUATE gcc"
    echo "       Please install gcc-5 or gcc-7"
@@ -177,7 +177,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
       echo rm -rf $BUILD_DIR/build/openmp_debug
       rm -rf $BUILD_DIR/build/openmp_debug
       
-      MYCMAKEOPTS="$COMMON_CMAKE_OPTS -DLIBOMPTARGET_NVPTX_DEBUG=ON -DCMAKE_BUILD_TYPE=Debug $AOMP_ORIGIN_RPATH -DROCM_DIR=$ROCM_DIR -DLIBOMP_ARCH=x86_64 -DLIBOMP_OMP_VERSION=50 -DLIBOMP_OMPT_SUPPORT=ON -DLIBOMP_USE_DEBUGGER=ON -DLIBOMP_CFLAGS='-O0' -DLIBOMP_CPPFLAGS='-O0' -DLIBOMP_OMPT_DEBUG=ON -DCMAKE_CXX_FLAGS=-g -DCMAKE_C_FLAGS=-g "
+      MYCMAKEOPTS="$COMMON_CMAKE_OPTS -DLIBOMPTARGET_NVPTX_DEBUG=ON -DCMAKE_BUILD_TYPE=Debug $AOMP_ORIGIN_RPATH -DROCM_DIR=$ROCM_DIR -DLIBOMP_ARCH=x86_64 -DLIBOMP_OMP_VERSION=50 -DLIBOMP_OMPT_SUPPORT=ON -DLIBOMP_USE_DEBUGGER=ON -DLIBOMP_CFLAGS='-O0' -DLIBOMP_CPPFLAGS='-O0' -DLIBOMP_OMPD_ENABLED=ON -DLIBOMP_OMPD_SUPPORT=ON -DLIBOMP_OMPT_DEBUG=ON -DCMAKE_CXX_FLAGS=-g -DCMAKE_C_FLAGS=-g "
 
       mkdir -p $BUILD_DIR/build/openmp_debug
       cd $BUILD_DIR/build/openmp_debug
