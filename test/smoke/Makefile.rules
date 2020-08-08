@@ -165,6 +165,7 @@ run_sbin: sbin
 
 # Cleanup anything this makefile can create
 clean::
-	rm -f $(TESTNAME) $(TESTNAME).a llbin sbin obin *.i *.ii *.bc *.lk a.out-* *.ll *.s *.o
+	rm -f $(TESTNAME) $(TESTNAME).a llbin sbin obin *.i *.ii *.bc *.lk a.out-* *.ll *.s *.o *.log
 
 clean_log:
+	rm -f *.log
