@@ -38,8 +38,8 @@ echo
 set -x
 sort -f -d $aompdir/test/smoke/passing-tests.txt > $$ptests
 sort -f -d $aompdir/bin/epsdb/epsdb_passes.txt > $$etests
-cat $$etests
-cat $$ptests
+#cat $$etests
+#cat $$ptests
 set +x
 
 epasses=`diff $$etests $$ptests | grep '>' | wc -l`
@@ -57,7 +57,7 @@ rm -f $$ptests $$etests
 
 echo "====== hip-openmp ==="
 cd $aompdir/test/hip-openmp
-./check_hip-openmp.sh 
+AOMPHIP=$AOMP/.. ./check_hip-openmp.sh
 echo "======= omp5 ==="
 cd $aompdir/test/omp5
 ./check_omp5.sh  
