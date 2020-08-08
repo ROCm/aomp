@@ -5,6 +5,11 @@
 echo ""
 echo ""
 
+if [ "$EPSDB" == "1" ] ; then
+  echo Skipping cloc tests for now in EPSDB
+  exit
+fi
+
 script_dir=$(dirname "$0")
 pushd $script_dir
 path=$(pwd)
