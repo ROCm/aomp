@@ -69,6 +69,7 @@ cd $aompdir/examples
 EPSDB=1 AOMPHIP=$AOMP/.. ./check_examples.sh 
 
 echo "======================"
+cd $aompdir/bin
 ./run_nekbone.sh
 echo "======================"
 cd ~/git/aomp-test/openmpapps
@@ -76,8 +77,8 @@ echo "======================"
 ./check_openmpapps.sh
 # sollve take about 16 minutes
 echo "======================"
+cd $aompdir/bin
 ./run_sollve.sh
 
 echo Done
-
 
