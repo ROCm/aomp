@@ -80,7 +80,7 @@ ifeq (sm_,$(findstring sm_,$(TARGETS)))
 else
   AOMPHIP ?= $(AOMP)
   HIPLIBS = -L $(AOMPHIP)/hip -L $(AOMPHIP)/lib
-  CFLAGS += -x hip $(HIPLIBS) -lhip_hcc
+  CFLAGS += -x hip $(HIPLIBS) -lamdhip64
 endif
 
 # ----- Demo compile and link in one step, no object code saved

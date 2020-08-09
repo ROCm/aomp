@@ -19,7 +19,7 @@ and the vector_copy.hsaco file.
 Depending on your environment, the generated commands will be similar to these:
 ```
 /usr/lib/aomp/bin/clang++ -c -std=c++11 -D__HIP_PLATFORM_HCC__ -o obj/vector_copy.o vector_copy.cpp
-/usr/lib/aomp/bin/clang++ obj/vector_copy.o -L/usr/lib/aomp/lib -lhip_hcc -Wl,-rpath,/usr/lib/aomp/lib -o vector_copy
+/usr/lib/aomp/bin/clang++ obj/vector_copy.o -L/usr/lib/aomp/lib -lamdhip64 -Wl,-rpath,/usr/lib/aomp/lib -o vector_copy
 /usr/lib/aomp/bin/cloc.sh -mcpu gfx900 vector_copy.cu
 
 ```
