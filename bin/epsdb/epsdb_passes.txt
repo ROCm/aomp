@@ -28,11 +28,13 @@ function_template
 gdb_teams
 helloworld
 hip_device_compile
+hip_rocblas
 issue_001
 issue_002
 issue_flang_libomp
 launch_latency
 liba_bundled
+liba_bundled_cmdline
 ManyKernels
 map_zero_bug
 MasterBarrier
@@ -62,6 +64,7 @@ reduction_teams
 reduction_teams_distribute_parallel
 schedule
 simd
+slices
 snap_red
 stream
 targ_declare

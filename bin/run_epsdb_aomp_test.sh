@@ -22,8 +22,11 @@ $AOMP/bin/clang --version
 ls /opt/rocm/amdgcn/bitcode
 ls $AOMP/amdgcn/bitcode
 rm -f  $aompdir/test/smoke/passing-tests.txt
-
+mkdir -p ~/git/
+cd $aompdir/bin
 set +x
+echo "======================"
+./clone_aomp_test.sh
 
 cd $aompdir/test/smoke/helloworld
 make clean
@@ -63,23 +66,17 @@ cd $aompdir/test/omp5
 ./check_omp5.sh  
 echo "====== examples ==="
 cd $aompdir/examples
-./check_examples.sh 
-echo "======================"
+EPSDB=1 AOMPHIP=$AOMP/.. ./check_examples.sh 
 
-set -x
-mkdir -p ~/git/
-cd $aompdir/bin
-set +x
-echo "======================"
-./clone_aomp_test.sh
 echo "======================"
 ./run_nekbone.sh
-echo "======================"
-./run_sollve.sh
 echo "======================"
 cd ~/git/aomp-test/openmpapps
 echo "======================"
 ./check_openmpapps.sh
+# sollve take about 16 minutes
+echo "======================"
+./run_sollve.sh
 
 echo Done
 
