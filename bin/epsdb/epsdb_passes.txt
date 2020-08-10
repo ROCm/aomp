@@ -4,6 +4,7 @@ atomic
 atomic_double
 class
 collapse
+complex
 data_enter_issue01
 data_issue_59
 data_share1
@@ -51,7 +52,6 @@ OmpHipMallocManaged
 omp_lock
 omp_num_teams_generic
 omp_num_teams_SPMD
-omp_wtime
 pfspecifier
 pfspecifier_str
 red_bug_51
