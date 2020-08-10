@@ -8,6 +8,8 @@ TESTS_DIR = \
     atomic_double \
     class \
     collapse \
+    complex \
+    complex2 \
     data_enter_issue01 \
     data_issue_59 \
     data_share1 \
@@ -18,6 +20,7 @@ TESTS_DIR = \
     firstprivate \
     firstprivate2 \
     flags \
+    flang_omp_map \
     flang_tgt_alloc_ptr \
     function \
     function_overload \
@@ -44,6 +47,7 @@ TESTS_DIR = \
     nested_loop \
     nested_par3 \
     nest_call_par2 \
+    omp_get_initial \
     omp_num_teams_SPMD \
     omp_num_teams_generic \
     OmpHipMallocManaged \
@@ -60,6 +64,7 @@ TESTS_DIR = \
     reduc_map_prob \
     schedule \
     simd \
+    slices \
     snap_red \
     stream \
     targ_declare \

@@ -22,8 +22,11 @@ $AOMP/bin/clang --version
 ls /opt/rocm/amdgcn/bitcode
 ls $AOMP/amdgcn/bitcode
 rm -f  $aompdir/test/smoke/passing-tests.txt
-
+mkdir -p ~/git/
+cd $aompdir/bin
 set +x
+echo "======================"
+./clone_aomp_test.sh
 
 cd $aompdir/test/smoke/helloworld
 make clean
@@ -38,8 +41,8 @@ echo
 set -x
 sort -f -d $aompdir/test/smoke/passing-tests.txt > $$ptests
 sort -f -d $aompdir/bin/epsdb/epsdb_passes.txt > $$etests
-cat $$etests
-cat $$ptests
+#cat $$etests
+#cat $$ptests
 set +x
 
 epasses=`diff $$etests $$ptests | grep '>' | wc -l`
@@ -57,30 +60,25 @@ rm -f $$ptests $$etests
 
 echo "====== hip-openmp ==="
 cd $aompdir/test/hip-openmp
-./check_hip-openmp.sh 
+AOMPHIP=$AOMP/.. ./check_hip-openmp.sh
 echo "======= omp5 ==="
 cd $aompdir/test/omp5
 ./check_omp5.sh  
 echo "====== examples ==="
 cd $aompdir/examples
-./check_examples.sh 
-echo "======================"
+EPSDB=1 AOMPHIP=$AOMP/.. ./check_examples.sh 
 
-set -x
-mkdir -p ~/git/
+echo "======================"
 cd $aompdir/bin
-set +x
-echo "======================"
-./clone_aomp_test.sh
-echo "======================"
 ./run_nekbone.sh
-echo "======================"
-./run_sollve.sh
 echo "======================"
 cd ~/git/aomp-test/openmpapps
 echo "======================"
 ./check_openmpapps.sh
+# sollve take about 16 minutes
+echo "======================"
+cd $aompdir/bin
+./run_sollve.sh
 
 echo Done
-
 
