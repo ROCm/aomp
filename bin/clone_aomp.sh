@@ -92,6 +92,15 @@ mkdir -p $AOMP_REPOS
 # ---------------------------------------
 #  The following REPOS are in ROCm-Development
 # ---------------------------------------
+
+# LLVM handled for 11 vs 12
+repo_web_location=$GITPROJECT
+reponame=$AOMP_PROJECT_REPO_NAME
+repogitname=$AOMP_PROJECT_REPO_NAME
+COBRANCH=$AOMP_PROJECT_REPO_BRANCH
+clone_or_pull
+
+
 repo_web_location=$GITROCDEV
 
 reponame=$AOMP_REPO_NAME
@@ -106,11 +115,6 @@ fi
 reponame=$AOMP_EXTRAS_REPO_NAME
 repogitname=$AOMP_EXTRAS_REPO_NAME
 COBRANCH=$AOMP_EXTRAS_REPO_BRANCH
-clone_or_pull
-
-reponame=$AOMP_PROJECT_REPO_NAME
-repogitname=$AOMP_PROJECT_REPO_NAME
-COBRANCH=$AOMP_PROJECT_REPO_BRANCH
 clone_or_pull
 
 reponame=$AOMP_FLANG_REPO_NAME
