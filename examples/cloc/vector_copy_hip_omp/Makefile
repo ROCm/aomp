@@ -12,8 +12,10 @@ ifeq ($(AOMP),)
 else
   $(info AOMP environment variable using $(AOMP))
 endif
+AOMPHIP ?= $(AOMP)
+
 # find the current gpu, default to vega10 if unknown
-AOMP_GPU       ?= $(shell $(AOMP)/bin/mygpu -d gfx900)
+AOMP_GPU       ?= $(shell $(AOMPHIP)/bin/mygpu -d gfx900)
 
 ifeq (sm_,$(findstring sm_,$(AOMP_GPU)))
   AOMP_GPUTARGET = nvptx64-nvidia-cuda
@@ -56,10 +58,10 @@ OBJ_FILES := $(addprefix obj/, $(notdir $(CXX_FILES:.cpp=.o)))
 all: $(TEST_NAME) $(CU_FILE).hsaco
 
 $(TEST_NAME): $(OBJ_FILES) $(COMMON_OBJ_FILES)
-	$(AOMP)/bin/clang++  $(OBJ_FILES) $(CFLAGS) -L$(AOMP)/lib -lamdhip64 -o $(TEST_NAME) $(LFLAGS)
+	$(AOMP)/bin/clang++  $(OBJ_FILES) $(CFLAGS) -L$(AOMPHIP)/lib -lamdhip64 -o $(TEST_NAME) $(LFLAGS)
 
 $(CU_FILE).hsaco :
-	$(AOMP)/bin/cloc.sh $(FUNOPTS)  $(CU_FILE).cu
+	$(AOMPHIP)/bin/cloc.sh $(FUNOPTS)  $(CU_FILE).cu
 
 obj/%.o: %.cpp
 	mkdir -p obj
