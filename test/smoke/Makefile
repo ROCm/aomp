@@ -47,6 +47,7 @@ TESTS_DIR = \
     nested_loop \
     nested_par3 \
     nest_call_par2 \
+    omp_get_initial \
     omp_num_teams_SPMD \
     omp_num_teams_generic \
     OmpHipMallocManaged \
