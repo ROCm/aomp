@@ -38,5 +38,9 @@ export CXXFLAGS="-O2  -target x86_64-pc-linux-gnu -fopenmp -fopenmp-targets=amdg
 export OMP_TARGET_OFFLOAD=mandatory
 
 cd $AOMP_REPOS_TEST/$AOMP_OVO_REPO_NAME
-./ovo.sh --no_long --no_loop run
+HALF_THREADS=$(( NUM_THREADS/2 ))
+echo "Using $HALF_THREADS threads for make."
+export MAKEFLAGS=-j$HALF_THREADS
+
+./ovo.sh run
 ./ovo.sh report --summary

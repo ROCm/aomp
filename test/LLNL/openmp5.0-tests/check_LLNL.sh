@@ -10,8 +10,8 @@ function clean(){
   rm -f test_non_rectangular
   rm -f test_requires_unified_shared_memory
   rm -f test_use_device_addr
-  rm *.o
-  rm *.ERR
+  rm -f *.o
+  rm -f *.ERR
 }
 
 clean
