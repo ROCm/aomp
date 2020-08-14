@@ -82,5 +82,7 @@ make -j$NUM_THREADS
 
 cd $save_current_dir
 echo 
-echo "DONE!  Build is in $build_folder"
+echo "DONE!  Build is in $build_folder. To test:"
+echo "       cd $build_folder"
+echo "       ctest -R deterministic"
 echo 
