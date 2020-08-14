@@ -25,12 +25,12 @@
 # SOFTWARE.
 
 AOMP ?= /usr/lib/aomp
-HIPCC = $(AOMP)/bin/hipcc
 CLANG = $(AOMP)/bin/clang
 FLANG = $(AOMP)/bin/flang
 UNBUNDLE = $(AOMP)/bin/clang-offload-bundler
 
 AOMPHIP ?= $(AOMP)
+HIPCC = $(AOMPHIP)/bin/hipcc
 DEVICE_LIB_PATH = $(AOMPHIP)/amdgcn/bitcode
 
 MYGPU = $(shell $(AOMPHIP)/bin/mygpu -d gfx900)
