@@ -110,3 +110,13 @@ repo_web_location=$GITOVO
 reponame=$AOMP_OVO_REPO_NAME
 COBRANCH=$AOMP_OVO_REPO_BRANCH
 clone_or_pull
+
+repo_web_location=$GITOMPTESTS
+reponame=$AOMP_OMPTESTS_REPO_NAME
+COBRANCH=$AOMP_OMPTESTS_REPO_BRANCH
+clone_or_pull
+
+repo_web_location=$GITQMCPACK
+reponame=$AOMP_QMCPACK_REPO_NAME
+COBRANCH=$AOMP_QMCPACK_REPO_BRANCH
+clone_or_pull
