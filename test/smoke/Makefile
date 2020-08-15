@@ -21,6 +21,7 @@ TESTS_DIR = \
     firstprivate2 \
     flags \
     flang_omp_map \
+    flang_real16_prob \
     flang_tgt_alloc_ptr \
     function \
     function_overload \
