@@ -49,7 +49,7 @@ env TARGET="-fopenmp-targets=$DEVICE_TARGET -fopenmp -Xopenmp-target=$DEVICE_TAR
 # Get Results
 compile_fails=0
 runtime_fails=0
-total_tests=$(ls | grep "^t-*" | wc -l)
+total_tests=$(ls | grep "^t\-*" | wc -l)
 # Increment total tests, t-critical is skipped
 ((total_tests+=1))
 if [ -e compile-fails.txt ]; then
