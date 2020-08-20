@@ -30,8 +30,6 @@ thisdir=$(getdname $0)
 . $thisdir/aomp_common_vars
 # --- end standard header ----
 
-#  We need to copy or create a makefile in the root directory before tar
-cp -p $AOMP_REPOS/aomp/Makefile $AOMP_REPOS/Makefile
 
 REPO_NAMES="$AOMP_PROJECT_REPO_NAME $AOMP_LIBDEVICE_REPO_NAME $AOMP_VDI_REPO_NAME $AOMP_HIPVDI_REPO_NAME $AOMP_RINFO_REPO_NAME $AOMP_ROCT_REPO_NAME $AOMP_ROCR_REPO_NAME $AOMP_EXTRAS_REPO_NAME $AOMP_COMGR_REPO_NAME $AOMP_FLANG_REPO_NAME $AOMP_OCL_REPO_NAME $AOMP_DBGAPI_REPO_NAME $AOMP_GDB_REPO_NAME"
 ALL_NAMES="$REPO_NAMES Makefile build aomp"
@@ -45,8 +43,10 @@ for dir_name in `ls $AOMP_REPOS` ; do
    done
    if [ $found == 0 ] ; then 
       echo
-      echo "WARNING:  FILE OR DIRECTORY '$dir_name' IS NOT IN LIST OF REPOS."
-      echo "          HOWEVER IT WILL BE ADDED TO THE SOURCE TARBALL."
+      echo "WARNING:  FILE OR DIRECTORY '$dir_name' IS NOT IN LIST OF REPOS TO tar"
+      echo "          $REPO_NAMES"
+      echo
+      echo "          $dir_name WILL NOT BE ADDED TO SOURCE TARBALL."
       echo "          CHECK DIRECTORY $AOMP_REPOS ."
       echo "          HIT ENTER TO CONTINUE or CTRL-C TO CANCEL"
       read
@@ -76,19 +76,42 @@ for repo_name in $REPO_NAMES ; do
    git status
 done
 
-# Make the tarball from the parent of the aomp directory that contains all the git
-# repositories and the Makefile used by spack
-cd $AOMP_REPOS/..
-
 # This file will be uploaded to the release directory
-tarball="aomp-${AOMP_VERSION_STRING}.tar.gz"
-cmd="tar --exclude-from $thisdir/create_release_tarball_excludes -czf $tarball aomp11"
+tarball="$AOMP_REPOS/../aomp-${AOMP_VERSION_STRING}.tar.gz"
+tmpdir=/tmp/create_tarball$$
+majorver=${AOMP_VERSION%%.*}
+tardir=$tmpdir/aomp$majorver
+echo "----- Building symbolic temp dir $tardir------------"
+echo mkdir -p $tardir
+mkdir -p $tardir
+cd $tardir
+#  Copy makefile to $tardir
+echo cp -p $AOMP_REPOS/$AOMP_REPO_NAME/Makefile $tardir/Makefile
+cp -p $AOMP_REPOS/aomp/Makefile $tardir/Makefile
+for repo_name in $REPO_NAMES ; do
+   echo ln -sf $AOMP_REPOS/$repo_name $repo_name
+   ln -sf $AOMP_REPOS/$repo_name $repo_name
+done
+echo ln -sf $AOMP_REPOS/$AOMP_REPO_NAME $AOMP_REPO_NAME
+ln -sf $AOMP_REPOS/$AOMP_REPO_NAME $AOMP_REPO_NAME
+cd $tmpdir
+cmd="tar --exclude-from $thisdir/create_release_tarball_excludes -h -czf $tarball aomp$majorver "
 echo "----------------- START tar COMMAND -----------------"
 echo time $cmd
 time $cmd
 echo 
 echo done creating $PWD/$tarball
 echo
+echo "----- Cleanup symbolic temp dir $tardir------------"
+echo cd $tardir
+cd $tardir
+echo "rm *"
+rm *
+echo rmdir $tardir
+rmdir $tardir
+cd /tmp
+echo rmdir $tmpdir
+rmdir $tmpdir
 
 echo "----------------- REVERSE PATCHING -----------------"
 for repo_name in $REPO_NAMES ; do
