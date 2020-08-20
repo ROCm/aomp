@@ -1,0 +1,17 @@
+include ../Makefile.defs
+
+TESTNAME     = flang_isystem_prob
+TESTSRC_MAIN = flang_isystem_prob.f90
+TESTSRC_AUX  =
+TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
+
+TARGET       = -isystem $(MPI_ROOT)/include -isystem $(MPI_ROOT)/lib
+OMP_FLAGS    =
+
+FLANG        = flang
+OMP_BIN      = $(AOMP)/bin/$(FLANG) $(TARGET)
+CC           = $(OMP_BIN) $(VERBOSE)
+#-ccc-print-phases
+#"-\#\#\#"
+
+include ../Makefile.rules

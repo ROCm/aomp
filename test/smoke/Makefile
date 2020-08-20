@@ -20,6 +20,8 @@ TESTS_DIR = \
     firstprivate \
     firstprivate2 \
     flags \
+    flang_char_kind \
+    flang_isystem_prob \
     flang_omp_map \
     flang_real16_prob \
     flang_tgt_alloc_ptr \
