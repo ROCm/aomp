@@ -4,8 +4,10 @@ atomic
 atomic_double
 class
 collapse
+complex
 data_enter_issue01
 data_issue_59
+data_share1
 DeclareSharedMemory
 decl_targ
 devices
@@ -20,17 +22,20 @@ flags 5
 flags 6
 flags 7
 flags 8
+flang_tgt_alloc_ptr
 function
 function_overload
 function_template
 gdb_teams
 helloworld
 hip_device_compile
+hip_rocblas
 issue_001
 issue_002
 issue_flang_libomp
 launch_latency
 liba_bundled
+liba_bundled_cmdline
 ManyKernels
 map_zero_bug
 MasterBarrier
@@ -47,7 +52,6 @@ OmpHipMallocManaged
 omp_lock
 omp_num_teams_generic
 omp_num_teams_SPMD
-omp_wtime
 pfspecifier
 pfspecifier_str
 red_bug_51
@@ -60,6 +64,7 @@ reduction_teams
 reduction_teams_distribute_parallel
 schedule
 simd
+slices
 snap_red
 stream
 targ_declare
