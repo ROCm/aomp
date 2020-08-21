@@ -40,7 +40,9 @@ TESTS_DIR = \
     liba_bundled \
     liba_bundled_cmdline \
     lto_teams \
+    ManyKernels \
     map_zero_bug \
+    MasterBarrier \
     math_flog \
     math_modff \
     math_sqrt_float \
@@ -51,8 +53,10 @@ TESTS_DIR = \
     nested_par3 \
     nest_call_par2 \
     omp_get_initial \
+    omp_lock \
     omp_num_teams_SPMD \
     omp_num_teams_generic \
+    omp_wtime \
     OmpHipMallocManaged \
     pfspecifier \
     pfspecifier_str \
@@ -74,12 +78,14 @@ TESTS_DIR = \
     targ_static \
     target-in-other-source \
     target_teams_reduction \
+    targets_in_loop \
     tasks \
     teams \
     teams_nest \
     team_prob \
     teams512-info \
     test \
+    test_offload_macros \
     thread_limit\
     threads \
     Threads1xxx \
