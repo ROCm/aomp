@@ -5,6 +5,8 @@ TESTSRC_MAIN = flang_isystem_prob.f90
 TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 
+MPI_ROOT ?= minimpi
+
 TARGET       = -isystem $(MPI_ROOT)/include -isystem $(MPI_ROOT)/lib
 OMP_FLAGS    =
 
