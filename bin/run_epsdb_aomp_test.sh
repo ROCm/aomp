@@ -9,6 +9,11 @@ aompdir="$(dirname "$parentdir")"
 
 set -x
 
+# we have a new Target memory manager appearing soon in aomp 12
+# it seems to either cause or reveal double  free or corruption
+# in lots of tests. This set to 0, disables the new TMM.
+export LIBOMPTARGET_MEMORY_MANAGER_THRESHOLD=0
+
 # mygpu will eventually relocate to /opt/rocm/bin, support both cases for now.
 if [ -a $AOMP/bin/mygpu ]; then
   export AOMP_GPU=`$AOMP/bin/mygpu`
