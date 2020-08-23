@@ -80,6 +80,7 @@ TESTS_DIR = \
     target_teams_reduction \
     targets_in_loop \
     tasks \
+    taskwait_prob \
     teams \
     teams_nest \
     team_prob \
