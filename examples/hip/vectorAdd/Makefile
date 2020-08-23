@@ -77,7 +77,7 @@ ifeq (sm_,$(findstring sm_,$(TARGETS)))
   CFLAGS +=-x cuda -I$(CUDA)/include
 else
   AOMPHIP ?= $(AOMP)
-  HIPLIBS = -L $(AOMPHIP)/hip -L $(AOMPHIP)/lib
+  HIPLIBS = -L $(AOMPHIP)/hip -L $(AOMPHIP)/lib  -Wl,-rpath,$(AOMPHIP)/lib
   CFLAGS = -x hip -std=c++11 $(HIPLIBS) -lamdhip64
 endif
 
