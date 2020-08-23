@@ -66,6 +66,8 @@ diff $$etests $$ptests | grep '<' | sed s'/< //'
 echo
 rm -f $$ptests $$etests
 
+echo
+
 echo "====== hip-openmp ==="
 cd $aompdir/test/hip-openmp
 AOMPHIP=$AOMP/.. ./check_hip-openmp.sh > hip-openmp.log 2>&1
@@ -98,4 +100,18 @@ cd $aompdir/bin
 tail -60 sollve.log
 
 echo Done
+echo
+set -x
+# return pass, condpass, fial status  (count)
+if [ "$efails" -gt "30" ]; then
+  echo "EPSDB smoke fails"
+  epsdb_status="red"
+elif [ "$efails" -gt "0" ]; then
+  echo "EPSDB smoke conditional passes"
+  epsdb_status="yellow"
+else
+  echo "EPSDB smoke passes"
+  epsdb_status="green"
+fi
+exit $efails
 
