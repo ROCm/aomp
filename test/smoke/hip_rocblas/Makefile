@@ -7,7 +7,8 @@ TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 OMP_FLAGS    =  --offload-arch=${AOMP_GPU}
 CFLAGS       = -x hip -I /opt/rocm/rocblas/include/ --offload-arch=${AOMP_GPU} -std=c++11
-LINK_FLAGS =  -L /opt/rocm/rocblas/lib -lrocblas -Wl,-rpath,/opt/rocm/rocblas/lib -lamdhip64
+OMPHIP ?= $(AOMP)
+LINK_FLAGS =  -L /opt/rocm/rocblas/lib -lrocblas -Wl,-rpath,/opt/rocm/rocblas/lib -lamdhip64  -Wl,-rpath,$(AOMPHIP)/lib
 
 ifeq ($(EPSDB),1)
 OMP_BIN      = /opt/rocm/bin/hipcc

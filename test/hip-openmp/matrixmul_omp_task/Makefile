@@ -78,7 +78,11 @@ ifeq (sm_,$(findstring sm_,$(TARGETS)))
 else
   AOMPHIP ?= $(AOMP)
   HIPLIBS = -L $(AOMPHIP)/hip -L $(AOMPHIP)/lib
-  CFLAGS += -x hip $(HIPLIBS) -lamdhip64
+  VERS = $(shell $(AOMP)/bin/aompversion)
+  ifeq ($(shell expr $(VERS) \>= 11.9999), 1)
+    RPTH = -Wl,-rpath,$(AOMPHIP)/lib
+  endif
+  CFLAGS += -x hip $(HIPLIBS) -lamdhip64 $(RPTH)
 endif
 
 # ----- Demo compile and link in one step, no object code saved
