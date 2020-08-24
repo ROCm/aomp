@@ -88,7 +88,7 @@ else
    if [ "$AOMP_STANDALONE_BUILD" == 1 ] ; then
       # There is no good external repo for the opencl runtime but we only need the headers for build_vdi.sh
       # So build_ocl.sh is currently not called.
-      components="roct project libdevice rocr extras openmp pgmath flang flang_runtime comgr rocminfo vdi hipvdi ocl "
+      components="roct rocr project libdevice extras openmp pgmath flang flang_runtime comgr rocminfo vdi hipvdi ocl "
       if [ "$AOMP_BUILD_DEBUG" == "1" ] ; then
 	  components="$components rocdbgapi rocgdb"
       fi
