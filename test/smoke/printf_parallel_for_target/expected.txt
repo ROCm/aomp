@@ -1,0 +1,14 @@
+CPU Parallel: Hello.
+CPU Parallel: Hello.
+Target Master Thread: Hello from 0
+Target Master Thread: Hello from 0
+First Target Parallel: Hello.
+First Target Parallel: Hello.
+First Target Parallel: Hello.
+First Target Parallel: Hello.
+End Parallel Master Thread: Hello from 0
+End Parallel Master Thread: Hello from 0
+Second Target Parallel: Hello.
+Second Target Parallel: Hello.
+Second Target Parallel: Hello.
+Second Target Parallel: Hello.

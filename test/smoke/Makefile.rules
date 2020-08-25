@@ -29,6 +29,10 @@ endif
 run: $(TESTNAME)
 	$(RUNENV) $(RUNPROF) ./$(TESTNAME) 2>&1 | tee $@.log
 
+verify: run
+	$(CC) verify_output.c -o verify_output
+	./verify_output
+
 check: $(TESTNAME)
 	path=`pwd`; \
 	base=`basename $$path`; \
@@ -165,7 +169,7 @@ run_sbin: sbin
 
 # Cleanup anything this makefile can create
 clean::
-	rm -f $(TESTNAME) $(TESTNAME).a llbin sbin obin *.i *.ii *.bc *.lk a.out-* *.ll *.s *.o *.log
+	rm -f $(TESTNAME) $(TESTNAME).a llbin sbin obin *.i *.ii *.bc *.lk a.out-* *.ll *.s *.o *.log verify_output
 
 clean_log:
 	rm -f *.log

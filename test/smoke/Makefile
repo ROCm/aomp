@@ -60,6 +60,7 @@ TESTS_DIR = \
     OmpHipMallocManaged \
     pfspecifier \
     pfspecifier_str \
+    printf_parallel_for_target \
     red_bug_51 \
     reduce \
     reduction \
