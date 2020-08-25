@@ -28,9 +28,6 @@ thisdir=$(getdname $0)
 . $thisdir/aomp_common_vars
 # --- end standard header ----
 
-set -e
-set -o pipefail
-
 if [ "$thisdir" != "$AOMP_REPOS/$AOMP_REPO_NAME/bin" ] ; then
    echo
    echo "ERROR:  This clone_aomp.sh script is found in directory $thisdir "
