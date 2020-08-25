@@ -1,15 +1,3 @@
-diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
-index 9de7842..139ec52 100644
---- a/src/CMakeLists.txt
-+++ b/src/CMakeLists.txt
-@@ -268,7 +268,7 @@ if(${IMAGE_SUPPORT})
- endif()
- 
- ## Link dependencies.
--target_link_libraries ( ${CORE_RUNTIME_TARGET} PRIVATE hsakmt::hsakmt )
-+target_link_libraries ( ${CORE_RUNTIME_TARGET} PRIVATE hsakmt::hsakmt -L${HSAKMT_LIB_PATH} -lhsakmt -Wl,-rpath,${HSAKMT_LIB_PATH} )
- target_link_libraries ( ${CORE_RUNTIME_TARGET} PRIVATE elf::elf dl pthread rt )
- 
  ## Set the VERSION and SOVERSION values
 diff --git a/src/core/inc/amd_memory_region.h b/src/core/inc/amd_memory_region.h
 index f534261..1db6a98 100644
