@@ -3,5 +3,4 @@ rocr-runtime: rocr-runtime.patch
 rocminfo: rocminfo_ppc_cmake.patch
 rocm-compilersupport: rocm-compilersupport.patch
 hip-on-vdi: hip-on-vdi.patch
-vdi: vdi.patch
 omptests: omptests.patch
