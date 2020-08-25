@@ -81,7 +81,7 @@ else
   AOMPHIP ?= $(AOMP)
   HIPLIBS = -L $(AOMPHIP)/hip -L $(AOMPHIP)/lib
   VERS = $(shell $(AOMP)/bin/aompversion)
-  ifeq ($(shell expr $(VERS) \>= 11.9999), 1)
+  ifeq ($(shell expr $(VERS) \>= 12.0), 1)
     RPTH = -Wl,-rpath,$(AOMPHIP)/lib
   endif
   CFLAGS += -x hip $(HIPLIBS) -lamdhip64 $(RPTH)

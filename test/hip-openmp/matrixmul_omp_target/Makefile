@@ -78,7 +78,7 @@ endif
 #  These HIPFLAGS provide HIP+OpenMP for CPU only. No target offload
 AOMPHIP ?= $(AOMP)
 VERS = $(shell $(AOMP)/bin/aompversion)
-ifeq ($(shell expr $(VERS) \>= 11.9999), 1)
+ifeq ($(shell expr $(VERS) \>= 12.0), 1)
   RPTH = -Wl,-rpath,$(AOMPHIP)/lib
 endif
 HIPFLAGS = -x hip $(PLATFORM) -O2 --offload-arch=$(AOMP_GPU) -target $(AOMP_CPUTARGET) -fopenmp -lamdhip64  $(RPTH) -I $(AOMPHIP)/include

@@ -10,7 +10,7 @@ LARGE ?= -DLARGE=0
 USE_MALLOC ?= -DUSE_MALLOC=0
 AOMPHIP ?= $(AOMP)
 VERS = $(shell $(AOMP)/bin/aompversion)
-ifeq ($(shell expr $(VERS) \>= 11.9999), 1)
+ifeq ($(shell expr $(VERS) \>= 12.0), 1)
   RPTH = -Wl,-rpath,$(AOMPHIP)/lib
 endif
 CLANG        = clang++ -lamdhip64 $(RPTH) $(USE_MALLOC) $(LARGE) $(ITERS)

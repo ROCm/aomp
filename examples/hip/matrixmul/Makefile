@@ -75,7 +75,7 @@ ifeq (sm_,$(findstring sm_,$(TARGETS)))
 else
   AOMPHIP ?= $(AOMP)
   VERS = $(shell $(AOMP)/bin/aompversion)
-  ifeq ($(shell expr $(VERS) \>= 11.9999), 1)
+  ifeq ($(shell expr $(VERS) \>= 12.0), 1)
     RPTH = -Wl,-rpath,$(AOMPHIP)/lib
   endif
   HIPLIBS = -L $(AOMPHIP)/hip -L $(AOMPHIP)/lib $(RPTH)

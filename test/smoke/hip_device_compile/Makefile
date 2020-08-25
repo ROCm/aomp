@@ -10,7 +10,7 @@ LINK_FLAGS =  -L$(CUDA)/targets/$(UNAMEP)-linux/lib -lcudart -Wl,-rpath,/usr/loc
 else
 AOMPHIP ?= $(AOMP)
 VERS = $(shell $(AOMP)/bin/aompversion)
-ifeq ($(shell expr $(VERS) \>= 11.9999), 1)
+ifeq ($(shell expr $(VERS) \>= 12.0), 1)
   RPTH = -Wl,-rpath,$(AOMPHIP)/lib
 endif
 CFLAGS = -x hip --offload-arch=${AOMP_GPU} -std=c++11 -lamdhip64 $(RPTH)
