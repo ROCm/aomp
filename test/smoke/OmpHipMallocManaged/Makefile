@@ -8,8 +8,12 @@ TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 ITERS ?= -DITERS=1
 LARGE ?= -DLARGE=0
 USE_MALLOC ?= -DUSE_MALLOC=0
-
-CLANG        = clang++ -lamdhip64 $(USE_MALLOC) $(LARGE) $(ITERS)
+AOMPHIP ?= $(AOMP)
+VERS = $(shell $(AOMP)/bin/aompversion)
+ifeq ($(shell expr $(VERS) \>= 12.0), 1)
+  RPTH = -Wl,-rpath,$(AOMPHIP)/lib
+endif
+CLANG        = clang++ -lamdhip64 $(RPTH) $(USE_MALLOC) $(LARGE) $(ITERS)
 OMP_BIN      = $(AOMP)/bin/$(CLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
 ifeq ($(EPSDB),1)
