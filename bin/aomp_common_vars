@@ -255,18 +255,6 @@ fi
 BUILD_AOMP=${BUILD_AOMP:-$AOMP_REPOS}
 BUILD_DIR=$BUILD_AOMP
 
-# If you override BUILD_AOMP to something other than AOMP_REPOS
-# then the scripts will copy the repository sources from AOMP_REPOS
-# to the directory BUILD_AOMP. A developer would do this for a
-# couple of reasons.  1) access to git repos is slow and 
-# access to BUILD_AOMP is fast or 2) lots of updates and test code
-# is planned that are not desired in his git repository. 
-# This COPYSOURCE flag is used by build scripts to conditianlly rsync
-# source code to the BUILD_AOMP/build/<component>  directory.
-if [ "$BUILD_DIR" != "$AOMP_REPOS" ] ; then
-   COPYSOURCE=true
-fi
-
 # Here is where we define different behaviors for STANDALONE build
 # and the new ROCm integrated build. The default is STANDALONE build.
 if [ $AOMP_STANDALONE_BUILD == 1 ] ; then
@@ -280,10 +268,6 @@ else
    # Jenkins builds may not use the current development branches.
    # So we turn off git branch checking.
    AOMP_CHECK_GIT_BRANCH=0
-   # Jenkins build will set the build directory BUILD_DIR to its own work area.
-   # And since that is not $AOMP_REPOS/build COPYSOURCE will be turned on above.
-   # We dont want that.  So for now, turn it off for ROCm integrated builds.
-   unset COPYSOURCE
 
    # For Integrated ROCm build we do not install to versioned dir and create 
    # a symbolic link.  Instead we install directly to /opt/rocm/aomp
