@@ -44,7 +44,8 @@ fi
 function list_repo(){
 repodirname=$AOMP_REPOS/$reponame
 cd $repodirname
-echo `git config --get remote.origin.url` "  " $COBRANCH "  " `git log --numstat --format="%h" |head -1`
+abranch=`git branch | awk '/\*/ { print $2; }'`
+echo `git config --get remote.origin.url` " desired: " $COBRANCH " actual: " $abranch "  " `git log --numstat --format="%h" |head -1`
 }
 
 function clone_or_pull(){
