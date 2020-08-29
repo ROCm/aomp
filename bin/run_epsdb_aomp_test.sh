@@ -41,7 +41,7 @@ tail -10 hello.log
 
 echo "====== smoke ======="
 cd $aompdir/test/smoke
-EPSDB=1 ./check_smoke.sh > smoke .log 2>&1
+EPSDB=1 ./check_smoke.sh > smoke.log 2>&1
 
 echo $aompdir
 echo
