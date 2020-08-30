@@ -26,3 +26,6 @@ SUBROUTINE start
 !$omp end target data
 
 END SUBROUTINE start
+program foobar
+
+end program
