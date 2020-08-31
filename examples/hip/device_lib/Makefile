@@ -25,13 +25,15 @@
 # SOFTWARE.
 
 AOMP ?= /usr/lib/aomp
-HIPCC = $(AOMP)/bin/hipcc
 CLANG = $(AOMP)/bin/clang
 FLANG = $(AOMP)/bin/flang
 UNBUNDLE = $(AOMP)/bin/clang-offload-bundler
-DEVICE_LIB_PATH = $(AOMP)/amdgcn/bitcode
 
-MYGPU = $(shell $(AOMP)/bin/mygpu -d gfx900)
+AOMPHIP ?= $(AOMP)
+HIPCC = $(AOMPHIP)/bin/hipcc
+DEVICE_LIB_PATH = $(AOMPHIP)/amdgcn/bitcode
+
+MYGPU = $(shell $(AOMPHIP)/bin/mygpu -d gfx900)
 TRIPLE = amdgcn-amd-amdhsa
 #OMPFLAGS = -O3 -target x86_64-pc-linux-gnu -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$(MYGPU)
 OMPFLAGS = -O3 -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$(MYGPU)

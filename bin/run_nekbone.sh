@@ -27,7 +27,12 @@ thisdir=$(getdname $0)
 . $thisdir/aomp_common_vars
 # --- end standard header ----
 
-export AOMP_GPU=`$AOMP/bin/mygpu`
+if [ -a $AOMP/bin/mygpu ]; then
+  export AOMP_GPU=`$AOMP/bin/mygpu`
+else
+  export AOMP_GPU=`$AOMP/../bin/mygpu`
+fi
+
 echo AOMP_GPU = $AOMP_GPU
 
 cd $AOMP_REPOS_TEST/Nekbone

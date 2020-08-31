@@ -123,9 +123,10 @@ if [ "$1" == "install" ] ; then
    $SUDO rm $AOMP_INSTALL_DIR/testfile
 fi
 
+patchrepo $AOMP_REPOS/$AOMP_VDI_REPO_NAME
+
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
   if [ -d "$BUILD_DIR/build/vdi" ] ; then
-     patchrepo $AOMP_REPOS/$AOMP_VDI_REPO_NAME
      echo
      echo "FRESH START , CLEANING UP FROM PREVIOUS BUILD"
      echo rm -rf $BUILD_DIR/build/vdi

@@ -37,7 +37,12 @@ if [[ "$ROCMASTER" == "1" ]]; then
   ./clone_aomp_test.sh
 fi
 
-AOMP_GPU=`$AOMP/bin/mygpu`
+if [ -a $AOMP/bin/mygpu ]; then
+  export AOMP_GPU=`$AOMP/bin/mygpu`
+else
+  export AOMP_GPU=`$AOMP/../bin/mygpu`
+fi
+
 export MY_SOLLVE_FLAGS="-fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$AOMP_GPU"
 
 pushd $AOMP_REPOS_TEST/$AOMP_SOLVV_REPO_NAME
