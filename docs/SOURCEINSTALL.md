@@ -17,7 +17,7 @@ Build and install from sources is possible.  However, the source build for AOMP 
 
    # Additional packages used by rocgdb
    sudo apt-get install texinfo libbison-dev bison flex libbabeltrace-dev python-pip libncurses5-dev liblzma-dev
-   python -m pip install CppHeaderParser argparse
+   python -m pip install CppHeaderParser argparse lit
 ```
 #### SLES-15-SP1 Packages
 
@@ -28,7 +28,7 @@ Build and install from sources is possible.  However, the source build for AOMP 
   SUSEConnect --product sle-module-python2/15.1/x86_64
   sudo zypper install -y texinfo bison flex babeltrace-devel python-pip python-devel makeinfo ncurses-devel libexpat-devel xz-devel
 
-  python -m pip install wheel CppHeaderParser argparse
+  python -m pip install wheel CppHeaderParser argparse lit
 ```
 #### RHEL 7  Packages
 Building from source requires a newer gcc. Devtoolset-7 is recommended, follow instructions 1-3 here:<br>
@@ -43,7 +43,7 @@ https://www.softwarecollections.org/en/scls/rhscl/devtoolset-7/<br>
   # Additional packages used by rocgdb
   sudo yum install texinfo bison flex python-pip python-devel ncurses-devel.x86_64 expat-devel.x86_64 xz-devel.x86_64 libbabeltrace-devel.x86_64
 
-  python -m pip install wheel CppHeaderParser argparse
+  python -m pip install wheel CppHeaderParser argparse lit
 ```
 The build scripts use cmake, so we need to link cmake --> cmake3 in /usr/bin
 ```
