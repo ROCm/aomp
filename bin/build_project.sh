@@ -197,6 +197,10 @@ if [ "$1" == "install" ] ; then
    # add executables forgot by make install but needed for testing
    echo add executables forgot by make install but needed for testing
    $SUDO cp -p $BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME/bin/llvm-lit $AOMP/bin/llvm-lit
+   
+   # update map_config and llvm_source_root paths in the copied llvm-lit file
+   sed 's/..\/..\/..\//$AOMP\//g' $AOMP/bin/llvm-lit
+   
    $SUDO cp -p $BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME/bin/FileCheck $AOMP/bin/FileCheck
    $SUDO cp -p $BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME/bin/count $AOMP/bin/count
    $SUDO cp -p $BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME/bin/not $AOMP/bin/not
