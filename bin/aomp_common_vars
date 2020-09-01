@@ -15,11 +15,11 @@
 AOMP_COMPILER_NAME=${AOMP_COMPILER_NAME:-AOMP}
 
 # ROCM_VERSION may be set by Jenkins, if not guess a good number
-ROCM_VERSION=${ROCM_VERSION:-3.7.0}
+ROCM_VERSION=${ROCM_VERSION:-3.8.0}
 
 # Set the AOMP VERSION STRING and AOMP_PROJECT_REPO_BRANCH.
-AOMP_VERSION=${AOMP_VERSION:-"11.7"}
-AOMP_VERSION_MOD=${AOMP_VERSION_MOD:-"1"}
+AOMP_VERSION=${AOMP_VERSION:-"11.8"}
+AOMP_VERSION_MOD=${AOMP_VERSION_MOD:-"0"}
 AOMP_VERSION_STRING=${AOMP_VERSION_STRING:-"$AOMP_VERSION-$AOMP_VERSION_MOD"}
 export AOMP_VERSION_STRING AOMP_VERSION AOMP_VERSION_MOD ROCM_VERSION
 
@@ -32,7 +32,11 @@ AOMP_INSTALL_DIR=${AOMP}_${AOMP_VERSION_STRING}
 # For example, if AOMP_REPOS=$HOME/git/aomp11, then the primary aomp repo
 # is stored in $HOME/git/aomp11/aomp and the mono repo is stored in
 # $HOME/aomp/llvm-project.
-AOMP_REPOS=${AOMP_REPOS:-$HOME/git/aomp11}
+if [ "$AOMP_VERSION" == "12.0" ] ; then
+  AOMP_REPOS=${AOMP_REPOS:-$HOME/git/aomp12}
+else
+  AOMP_REPOS=${AOMP_REPOS:-$HOME/git/aomp11}
+fi
 
 # Because the source for all repos are tarred for release, we store
 # all the test repositories in a different directory.
@@ -121,10 +125,25 @@ fi
 
 # These are the web sites where the AOMP git repos are pulled from
 GITROC="https://github.com/radeonopencompute"
+GITROCINTERNAL="ssh://$USER@gerrit-git.amd.com:29418/lightning/ec/"
 GITROCDEV="https://github.com/ROCm-Developer-Tools"
 GITROCLIB="https://github.com/AMDComputeLibraries"
 GITKHRONOS="https://github.com/KhronosGroup"
-
+AOMP_GIT_INTERNAL_IP="gerrit-git.amd.com"
+if [ "$AOMP_VERSION" == "12.0" ] ; then
+  ping -c 1 $AOMP_GIT_INTERNAL_IP 2> /dev/null
+  if [ $? != 0 ]; then
+	  echo error: you must be internal to develop on 12.0
+	  exit 1
+  fi
+  GITPROJECT=$GITROCINTERNAL
+  AOMP_PROJECT_REPO_NAME=${AOMP_PROJECT_REPO_NAME:-llvm-project}
+  AOMP_PROJECT_REPO_BRANCH=${AOMP_PROJECT_REPO_BRANCH:-amd-stg-open}
+else
+  GITPROJECT=$GITROCDEV
+  AOMP_PROJECT_REPO_NAME=${AOMP_PROJECT_REPO_NAME:-amd-llvm-project}
+  AOMP_PROJECT_REPO_BRANCH=${AOMP_PROJECT_REPO_BRANCH:-aomp-11.8-0}
+fi
 # FIXME: In the near future, we will remove the _BRANCH variables and use a
 #        manifest file to determine which branch to build each component.
 #
@@ -141,13 +160,11 @@ GITKHRONOS="https://github.com/KhronosGroup"
 
 #  These aomp development repositories
 AOMP_REPO_NAME=${AOMP_REPO_NAME:-aomp}
-AOMP_REPO_BRANCH=${AOMP_REPO_BRANCH:-rel_11.7-1}
-AOMP_PROJECT_REPO_NAME=${AOMP_PROJECT_REPO_NAME:-amd-llvm-project}
-AOMP_PROJECT_REPO_BRANCH=${AOMP_PROJECT_REPO_BRANCH:-aomp-11.7-1}
+AOMP_REPO_BRANCH=${AOMP_REPO_BRANCH:-rel_11.8-0}
 AOMP_EXTRAS_REPO_NAME=${AOMP_EXTRAS_REPO_NAME:-aomp-extras}
-AOMP_EXTRAS_REPO_BRANCH=${AOMP_EXTRAS_REPO_BRANCH:-aomp-11.7-1}
+AOMP_EXTRAS_REPO_BRANCH=${AOMP_EXTRAS_REPO_BRANCH:-aomp-11.8-0}
 AOMP_FLANG_REPO_NAME=${AOMP_FLANG_REPO_NAME:-flang}
-AOMP_FLANG_REPO_BRANCH=${AOMP_FLANG_REPO_BRANCH:-aomp-11.7-1}
+AOMP_FLANG_REPO_BRANCH=${AOMP_FLANG_REPO_BRANCH:-aomp-11.8-0}
 
 #  These extra repositories are needed but we cannot update them
 AOMP_ROCT_REPO_NAME=${AOMP_ROCT_REPO_NAME:-roct-thunk-interface}
@@ -160,10 +177,10 @@ AOMP_LIBDEVICE_REPO_NAME=${AOMP_LIBDEVICE_REPO_NAME:-rocm-device-libs}
 AOMP_LIBDEVICE_COMPONENT_NAME=${AOMP_LIBDEVICE_COMPONENT_NAME:-rocdl}
 AOMP_LIBDEVICE_REPO_BRANCH=${AOMP_LIBDEVICE_REPO_BRANCH:-amd-stg-open}
 DEVICELIBS_ROOT=${DEVICELIBS_ROOT:-$AOMP_REPOS/$AOMP_LIBDEVICE_REPO_NAME}
-AOMP_LIBDEVICE_REPO_SHA=${AOMP_LIBDEVICE_REPO_SHA:-1a66b15}
+AOMP_LIBDEVICE_REPO_SHA=${AOMP_LIBDEVICE_REPO_SHA:-41b390c}
 AOMP_COMGR_REPO_NAME=${AOMP_COMGR_REPO_NAME:-rocm-compilersupport}
 AOMP_COMGR_REPO_BRANCH=${AOMP_COMGR_REPO_BRANCH:-amd-stg-open}
-AOMP_COMGR_REPO_SHA=${AOMP_COMGR_REPO_SHA:-cf76e40}
+AOMP_COMGR_REPO_SHA=${AOMP_COMGR_REPO_SHA:-821b509}
 AOMP_RINFO_REPO_NAME=${AOMP_RINFO_REPO_NAME:-rocminfo}
 AOMP_RINFO_REPO_BRANCH=${AOMP_RINFO_REPO_BRANCH:-master}
 AOMP_RINFO_REPO_SHA=${AOMP_RINFO_REPO_SHA:-5d6be5b}
@@ -204,6 +221,15 @@ AOMP_RAJA_REPO_NAME=${AOMP_RAJA_REPO_NAME:-raja}
 AOMP_RAJA_REPO_BRANCH=${AOMP_RAJA_REPO_BRANCH:-master}
 AOMP_INTERNAL_IP="gitlab1.amd.com"
 GITINTERNAL="http://${AOMP_INTERNAL_IP}/dmcdouga"  # This will change soon
+GITOVO="https://github.com/TApplencourt"
+AOMP_OVO_REPO_NAME=${AOMP_OVO_REPO_NAME:-OvO}
+AOMP_OVO_REPO_BRANCH=${AOMP_OVO_REPO_BRANCH:-master}
+GITOMPTESTS="https://github.com/clang-ykt"
+AOMP_OMPTESTS_REPO_NAME=${AOMP_OMPTESTS_REPO_NAME:-omptests}
+AOMP_OMPTESTS_REPO_BRANCH=${AOMP_OMPTESTS_REPO_BRANCH:-master}
+GITQMCPACK="https://github.com/QMCPACK"
+AOMP_QMCPACK_REPO_NAME=${AOMP_QMCPACK_REPO_NAME:-qmcpack}
+AOMP_QMCPACK_REPO_BRANCH=${AOMP_QMCPACK_REPO_BRANCH:-develop}
 
 #  We dont use this yet, waiting for trunk merge
 AOMP_F18_REPO_NAME=${AOMP_F18_REPO_NAME:-f18}

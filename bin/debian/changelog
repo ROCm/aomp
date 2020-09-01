@@ -1,4 +1,4 @@
-aomp (11.7-1) UNRELEASED; urgency=medium
+aomp (11.8-0) UNRELEASED; urgency=medium
 
   * Initial release of aomp is 0.3-2
   *   Please see example in /usr/lib/aomp/examples/vmuldemo 
@@ -385,5 +385,18 @@ aomp (11.7-1) UNRELEASED; urgency=medium
   * Known Issues:
   *        -Hip example device_lib fails to compile
   *
-
- -- Greg Rodgers <Gregory.Rodgers@amd.com>  Wed, 29 Jul 2020 00:11:34 -0500
+  *
+  * 11.8-0
+  *   Switch to the LLVM 11.x stable code base.
+  *   OMPD updates for flang.
+  *   To support debugging OpenMP, selected OpenMP runtime sources are included in
+  *         lib-debug/src/openmp.  The ROCgdb debugger will find these automatically.
+  *   Threadsafe hsa plugin for libomptarget.
+  *   Updates to support device libraries.
+  *   Openmpi configure issue with real16 resolved.
+  *   DeviceRTL memory use is now independent of number of openmp binaries.
+  *   Startup latency on first kernel launch reduced by order of magnitude. 
+  *
+  *   These are the known issues with this release:
+  *   Further reductions in memory use by DeviceRTL required
+ -- Greg Rodgers <Gregory.Rodgers@amd.com>  Wed, 19 Aug 2020 22:29:37 -0500

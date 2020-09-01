@@ -76,7 +76,10 @@ else
 endif
 
 #  These HIPFLAGS provide HIP+OpenMP for CPU only. No target offload
-HIPFLAGS = -x hip $(PLATFORM) -O2 --offload-arch=$(AOMP_GPU) -lpthread -std=c++11 -lamdhip64
+AOMPHIP ?= $(AOMP)
+HIPLIBS = -L $(AOMPHIP)/hip -L $(AOMPHIP)/lib -L $(AOMPHIP)/../lib
+HIPFLAGS = -x hip $(PLATFORM) -O2 --offload-arch=$(AOMP_GPU) -lpthread -std=c++11  $(HIPLIBS) -lamdhip64
+
 #  These OMP_TARGET_FLAGS added to HIPFLAGS provide HIP+OpenMP with GPU target offload
 OMP_TARGET_FLAGS = 
 

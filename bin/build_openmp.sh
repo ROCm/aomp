@@ -121,11 +121,14 @@ COMMON_CMAKE_OPTS="-DOPENMP_ENABLE_LIBOMPTARGET=1
 -DOPENMP_TEST_CXX_COMPILER=$AOMP/bin/clang++
 -DLIBOMPTARGET_AMDGCN_GFXLIST=$GFXSEMICOLONS
 -DROCDL=$AOMP_REPOS/$AOMP_LIBDEVICE_REPO_NAME
--DDEVICELIBS_ROOT=$DEVICELIBS_ROOT
 -DLIBOMP_COPY_EXPORTS=OFF
 -DAOMP_STANDALONE_BUILD=$AOMP_STANDALONE_BUILD
 -DLLVM_DIR=$LLVM_DIR"
 
+if [ "$AOMP_STANDALONE_BUILD" == 0 ]; then
+  COMMON_CMAKE_OPTS="$COMMON_CMAKE_OPTS
+  -DDEVICELIBS_ROOT=$DEVICELIBS_ROOT"
+fi
 
 if [ "$AOMP_BUILD_CUDA" == 1 ] ; then
    COMMON_CMAKE_OPTS="$COMMON_CMAKE_OPTS
@@ -177,7 +180,19 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
       echo rm -rf $BUILD_DIR/build/openmp_debug
       rm -rf $BUILD_DIR/build/openmp_debug
       
-      MYCMAKEOPTS="$COMMON_CMAKE_OPTS -DLIBOMPTARGET_NVPTX_DEBUG=ON -DCMAKE_BUILD_TYPE=Debug $AOMP_ORIGIN_RPATH -DROCM_DIR=$ROCM_DIR -DLIBOMP_ARCH=x86_64 -DLIBOMP_OMP_VERSION=50 -DLIBOMP_OMPT_SUPPORT=ON -DLIBOMP_USE_DEBUGGER=ON -DLIBOMP_CFLAGS='-O0' -DLIBOMP_CPPFLAGS='-O0' -DLIBOMP_OMPD_ENABLED=ON -DLIBOMP_OMPD_SUPPORT=ON -DLIBOMP_OMPT_DEBUG=ON -DCMAKE_CXX_FLAGS=-g -DCMAKE_C_FLAGS=-g "
+      MYCMAKEOPTS="$COMMON_CMAKE_OPTS \
+-DLIBOMPTARGET_NVPTX_DEBUG=ON \
+-DCMAKE_BUILD_TYPE=Debug \
+$AOMP_ORIGIN_RPATH \
+-DROCM_DIR=$ROCM_DIR \
+-DLIBOMP_ARCH=x86_64 \
+-DLIBOMP_OMPT_SUPPORT=ON \
+-DLIBOMP_USE_DEBUGGER=ON \
+-DLIBOMP_CPPFLAGS='-O0' \
+-DLIBOMP_OMPD_SUPPORT=ON \
+-DLIBOMP_OMPT_DEBUG=ON \
+-DCMAKE_CXX_FLAGS=-g -DCMAKE_C_FLAGS=-g \
+-DOPENMP_SOURCE_DEBUG_MAP="\""-fdebug-prefix-map=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp=$AOMP_INSTALL_DIR/lib-debug/src/openmp"\"" "
 
       mkdir -p $BUILD_DIR/build/openmp_debug
       cd $BUILD_DIR/build/openmp_debug
@@ -249,5 +264,17 @@ if [ "$1" == "install" ] ; then
          echo "ERROR make install failed "
          exit 1
       fi
+      # Copy selected debugable runtime sources into the installation lib-debug/src directory
+      # to satisfy the above -fdebug-prefix-map.
+      $SUDO mkdir -p $AOMP_INSTALL_DIR/lib-debug/src/openmp/runtime/src
+      echo cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/runtime/src $AOMP_INSTALL_DIR/lib-debug/src/openmp/runtime
+      $SUDO cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/runtime/src $AOMP_INSTALL_DIR/lib-debug/src/openmp/runtime
+      $SUDO mkdir -p $AOMP_INSTALL_DIR/lib-debug/src/openmp/libomptarget/src
+      echo cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/libomptarget/src $AOMP_INSTALL_DIR/lib-debug/src/openmp/libomptarget
+      $SUDO cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/libomptarget/src $AOMP_INSTALL_DIR/lib-debug/src/openmp/libomptarget
+      echo cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/libomptarget/plugins $AOMP_INSTALL_DIR/lib-debug/src/openmp/libomptarget
+      $SUDO cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/libomptarget/plugins $AOMP_INSTALL_DIR/lib-debug/src/openmp/libomptarget
+      $SUDO mkdir -p $AOMP_INSTALL_DIR/lib-debug/src/openmp/libompd/src
+      $SUDO cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/libompd/src $AOMP_INSTALL_DIR/lib-debug/src/openmp/libompd
    fi
 fi

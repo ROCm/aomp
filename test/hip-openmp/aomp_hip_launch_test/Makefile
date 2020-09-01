@@ -63,7 +63,8 @@ AOMP_GPU = $(shell $(AOMP)/bin/mygpu -d gfx900) #get installed card, if unknown 
 endif
 
 CC = $(AOMP)/bin/clang
-DEVICE_LIB_PATH=$(AOMP)/amdgcn/bitcode/
+AOMPHIP ?= $(AOMP)
+DEVICE_LIB_PATH=$(AOMPHIP)/amdgcn/bitcode/
 
 # Add cudart only if we have an Nvidia sm_ target
 # We have not tested CUDA+OpenMP target offload
@@ -85,7 +86,7 @@ $(TESTNAME).exe: $(TESTNAME).$(FILETYPE)
 	$(CC) $(OMP_TARGET_FLAGS) test_omp.c -o test_omp.exe
 	test -f test_omp-host-x86_64-unknown-linux-gnu.o
 	test -f a.out-openmp-amdgcn-amd-amdhsa-$(AOMP_GPU)
-	DEVICE_LIB_PATH=$(DEVICE_LIB_PATH) $(AOMP)/bin/hipcc -o hiplaunch.exe hiplaunch.cpp -fopenmp
+	DEVICE_LIB_PATH=$(DEVICE_LIB_PATH) $(AOMPHIP)/bin/hipcc -o hiplaunch.exe hiplaunch.cpp -fopenmp
 	#/opt/rocm/bin/hipcc -o hiplaunch.exe hiplaunch.c -fopenmp # this needs code-obj-v3 fix , ROCm 3.0 ???
 #	/work/hip-clang-bld/HIP/bin/hipcc -o hiplaunch.exe hiplaunch.c -fopenmp # this needs code-obj-v3 fix , ROCm 3.0 ???
 
