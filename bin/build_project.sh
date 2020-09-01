@@ -201,6 +201,10 @@ if [ "$1" == "install" ] ; then
    $SUDO cp -p $BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME/bin/count $AOMP/bin/count
    $SUDO cp -p $BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME/bin/not $AOMP/bin/not
    $SUDO cp -p $BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME/bin/yaml-bench $AOMP/bin/yaml-bench
+   
+   # install llvm-lit to be used for check-openmp and check-ompt
+   python $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/llvm/utils/lit/setup.py install
+   
    cd $REPO_DIR
    git checkout llvm/lib/Support/CommandLine.cpp
    echo
