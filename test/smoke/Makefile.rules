@@ -29,9 +29,24 @@ endif
 run: $(TESTNAME)
 	$(RUNENV) $(RUNPROF) ./$(TESTNAME) 2>&1 | tee $@.log
 
+# Just verify output
 verify: run
 	$(CC) verify_output.c -o verify_output
 	./verify_output
+
+# Verify output and log results, used for check_smoke.sh
+verify-log: run
+	$(CC) verify_output.c -o verify_output
+	path=`pwd`; \
+	base=`basename $$path`; \
+	if   (./verify_output); then \
+		echo $$base $$test_num return code: $$? >> ../check-smoke.txt; \
+		echo  "" >> ../check-smoke.txt; \
+		echo $$base $$test_num  >> ../passing-tests.txt; \
+	else  echo $$base $$test_num return code: $$? >> ../check-smoke.txt; \
+		echo  "" >> ../check-smoke.txt; \
+		echo $$base $$test_num  >> ../failing-tests.txt; \
+	fi
 
 check: $(TESTNAME)
 	path=`pwd`; \
