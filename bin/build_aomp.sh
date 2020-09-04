@@ -63,7 +63,19 @@ thisdir=$(getdname $0)
 # --- end standard header ----
 
 function build_aomp_component() {
-   [ -f /opt/rh/devtoolset-7/enable ] &&  . /opt/rh/devtoolset-7/enable
+   osversion=$(cat /etc/os-release | grep -e ^VERSION_ID)
+
+   if [[ $osversion =~ '"7.' ]]; then
+     echo "OS version 7 found `cat /etc/os-release`"
+     [ -f /opt/rh/devtoolset-7/enable ] &&  . /opt/rh/devtoolset-7/enable
+   elif [[ $osversion =~ '"8' ]]; then
+     echo "OS version 8 found `cat /etc/os-release`"
+     echo
+     echo "Get updated gcc 8: export PATH=/usr/bin:\$PATH"
+     export PATH=/usr/bin:$PATH
+     gcc --version
+   fi
+
    $AOMP_REPOS/$AOMP_REPO_NAME/bin/build_$COMPONENT.sh "$@"
    rc=$?
    if [ $rc != 0 ] ; then 
