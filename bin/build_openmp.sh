@@ -73,7 +73,7 @@ if [ "$1" == "install" ] ; then
    $SUDO rm $INSTALL_OPENMP/testfile
 fi
 
-GCCMIN=7
+GCCMIN=8
 if [ "$AOMP_BUILD_CUDA" == 1 ] ; then
    if [ -f $CUDABIN/nvcc ] ; then
       CUDAVER=`$CUDABIN/nvcc --version | grep compilation | cut -d" " -f5 | cut -d"." -f1 `
@@ -84,14 +84,14 @@ if [ "$AOMP_BUILD_CUDA" == 1 ] ; then
    fi
 fi
 
-function getgcc7orless(){
+function getgcc8orless(){
    _loc=`which gcc`
    [ "$_loc" == "" ] && return
    gccver=`$_loc --version | grep gcc | cut -d")" -f2 | cut -d"." -f1`
    [ $gccver -gt $GCCMIN ] && _loc=`which gcc-$GCCMIN`
    echo $_loc
 }
-function getgxx7orless(){
+function getgxx8orless(){
    _loc=`which g++`
    [ "$_loc" == "" ] && return
    gxxver=`$_loc --version | grep g++ | cut -d")" -f2 | cut -d"." -f1`
@@ -99,16 +99,16 @@ function getgxx7orless(){
    echo $_loc
 }
 
-GCCLOC=$(getgcc7orless)
-GXXLOC=$(getgxx7orless)
+GCCLOC=$(getgcc8orless)
+GXXLOC=$(getgxx8orless)
 if [ "$GCCLOC" == "" ] ; then
    echo "ERROR: NO ADEQUATE gcc"
-   echo "       Please install gcc-5 or gcc-7"
+   echo "       Please install gcc-5, gcc-7, or gcc-8"
    exit 1
 fi
 if [ "$GXXLOC" == "" ] ; then
    echo "ERROR: NO ADEQUATE g++"
-   echo "       Please install g++-5 or g++-7"
+   echo "       Please install g++-5, g++-7, or g++-8"
    exit 1
 fi
 
