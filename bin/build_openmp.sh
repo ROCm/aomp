@@ -155,7 +155,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
   -DLIBOMP_COPY_EXPORTS=OFF \
   -DCMAKE_BUILD_TYPE=Release \
   -DAOMP_STANDALONE_BUILD=$AOMP_STANDALONE_BUILD \
-  -DROCM_DIR=/opt/rocm \
+  -DROCM_DIR=$ROCM_DIR \
   -DCMAKE_INSTALL_PREFIX=$INSTALL_OPENMP \
   -DLLVM_INSTALL_PREFIX=$OUT_DIR/llvm"
 
@@ -186,7 +186,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
       -DCMAKE_BUILD_TYPE=Debug \
       -DLIBOMPTARGET_NVPTX_DEBUG=ON \
       -DAOMP_STANDALONE_BUILD=$AOMP_STANDALONE_BUILD \
-      -DROCM_DIR=/opt/rocm \
+      -DROCM_DIR=$ROCM_DIR \
       -DCMAKE_INSTALL_PREFIX=$INSTALL_OPENMP \
       -DLLVM_INSTALL_PREFIX=$OUT_DIR/llvm"
 
