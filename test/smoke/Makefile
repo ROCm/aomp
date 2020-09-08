@@ -41,6 +41,7 @@ TESTS_DIR = \
     liba_bundled_cmdline \
     lto_teams \
     ManyKernels \
+    map_to_from_prob \
     map_zero_bug \
     MasterBarrier \
     math_flog \
