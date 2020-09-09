@@ -84,7 +84,7 @@ if [ "$1" != "noconfigure" ] && [ "$1" != "install" ] ; then
      --disable-ld --disable-gas --disable-gdbserver --disable-sim --enable-tui \
      --disable-gdbtk --disable-shared  \
      --with-expat --with-system-zlib --without-guile --with-babeltrace --with-lzma \
-     --with-python --with-rocm-dbgapi=$AOMP_INSTALL_DIR"
+     --with-python=python3 --with-rocm-dbgapi=$AOMP_INSTALL_DIR"
    mkdir -p $BUILD_AOMP/build/rocgdb
    cd $BUILD_AOMP/build/rocgdb
    echo " -----Running gdb configure ---- " 
