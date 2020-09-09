@@ -30,6 +30,12 @@ thisdir=$(getdname $0)
 . $thisdir/aomp_common_vars
 # --- end standard header ----
 
+# Point to the right python3.6 on Red Hat 7.6
+if [ -f /opt/rh/rh-python36/enable ]; then
+  export PATH=/opt/rh/rh-python36/root/usr/bin:$PATH
+  export LIBRARY_PATH=/opt/rh/rh-python36/root/lib64:$LIBRARY_PATH
+fi
+
 REPO_DIR=$AOMP_REPOS/$AOMP_GDB_REPO_NAME
 REPO_BRANCH=$AOMP_GDB_REPO_BRANCH
 checkrepo
