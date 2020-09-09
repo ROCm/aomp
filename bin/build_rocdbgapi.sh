@@ -81,7 +81,6 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    echo rm -rf $BUILD_AOMP/build/rocdbgapi
    rm -rf $BUILD_AOMP/build/rocdbgapi
    MYCMAKEOPTS="-DCMAKE_BUILD_TYPE=$BUILD_TYPE \
-        -DCMAKE_VERBOSE_MAKEFILE=1 \
         -DCMAKE_INSTALL_PREFIX=$INSTALL_ROCDBGAPI \
 	-DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR;$INSTALL_ROCDBGAPI/include \
          $AOMP_ORIGIN_RPATH"
@@ -109,6 +108,15 @@ if [ $? != 0 ] ; then
       echo "  cd $BUILD_AOMP/build/rocdbgapi"
       echo "  make"
       exit 1
+fi
+
+doxygen=`which doxygen`
+if [ ! -z $doxygen ] ; then
+   # the ROCdbgapi CMakeLists.txt will prepare docs install if doxygen found.
+   # However, the make doc has issues.  But if you dont make doc, the install
+   # fails.  This 'make doc' will do enough so install does not fail.
+   echo make -j $NUM_THREADS doc
+   make -j $NUM_THREADS doc 2>/dev/null >/dev/null
 fi
 
 #  ----------- Install only if asked  ----------------------------

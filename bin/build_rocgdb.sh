@@ -30,6 +30,12 @@ thisdir=$(getdname $0)
 . $thisdir/aomp_common_vars
 # --- end standard header ----
 
+# Point to the right python3.6 on Red Hat 7.6
+if [ -f /opt/rh/rh-python36/enable ]; then
+  export PATH=/opt/rh/rh-python36/root/usr/bin:$PATH
+  export LIBRARY_PATH=/opt/rh/rh-python36/root/lib64:$LIBRARY_PATH
+fi
+
 REPO_DIR=$AOMP_REPOS/$AOMP_GDB_REPO_NAME
 REPO_BRANCH=$AOMP_GDB_REPO_BRANCH
 checkrepo
@@ -84,7 +90,7 @@ if [ "$1" != "noconfigure" ] && [ "$1" != "install" ] ; then
      --disable-ld --disable-gas --disable-gdbserver --disable-sim --enable-tui \
      --disable-gdbtk --disable-shared  \
      --with-expat --with-system-zlib --without-guile --with-babeltrace --with-lzma \
-     --with-python --with-rocm-dbgapi=$AOMP_INSTALL_DIR"
+     --with-python=python3 --with-rocm-dbgapi=$AOMP_INSTALL_DIR"
    mkdir -p $BUILD_AOMP/build/rocgdb
    cd $BUILD_AOMP/build/rocgdb
    echo " -----Running gdb configure ---- " 

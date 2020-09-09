@@ -36,7 +36,7 @@ echo "                   A non-zero exit code means a failure occured." >> check
 echo "Tests that need to be visually inspected: devices, pfspecify, pfspecify_str, stream" >> check-smoke.txt
 echo "***********************************************************************************" >> check-smoke.txt
 
-known_fails="reduction_array_section targ_static target_teams_reduction tasks data_share2 global_allocate complex2 flang_omp_map omp_get_initial slices"
+known_fails="reduction_array_section targ_static target_teams_reduction tasks data_share2 global_allocate complex2 flang_omp_map omp_get_initial slices slices printf_parallel_for_target"
 
 if [ "$SKIP_FAILURES" == 1 ] ; then
   skip_tests=$known_fails
@@ -80,6 +80,8 @@ for directory in ./*/; do
     elif [ $base == 'flags' ] ; then
       make
       make run > /dev/null 2>&1
+    elif [ $base == 'printf_parallel_for_target' ] ; then
+      make verify-log
     else
       make
       if [ $? -ne 0 ]; then

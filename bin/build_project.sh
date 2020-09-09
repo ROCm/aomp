@@ -106,11 +106,7 @@ if [ $AOMP_STANDALONE_BUILD == 1 ] ; then
    SOURCEID="Source ID:$AOMP_VERSION_STRING-$MONO_REPO_ID"
    TEMPCLFILE="/tmp/clfile$$.cpp"
    ORIGCLFILE="$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/llvm/lib/Support/CommandLine.cpp"
-   if [ $COPYSOURCE ] ; then
-      BUILDCLFILE="$BUILD_DIR/$AOMP_PROJECT_REPO_NAME/llvm/lib/Support/CommandLine.cpp"
-   else
-      BUILDCLFILE=$ORIGCLFILE
-   fi
+   BUILDCLFILE=$ORIGCLFILE
 
    sed "s/LLVM (http:\/\/llvm\.org\/):/AOMP-${AOMP_VERSION_STRING} ($WEBSITE):\\\n $SOURCEID/" $ORIGCLFILE > $TEMPCLFILE
    if [ $? != 0 ] ; then
@@ -129,18 +125,6 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    echo "Use ""$0 nocmake"" or ""$0 install"" to avoid FRESH START."
    rm -rf $BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME
    mkdir -p $BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME
-
-   if [ $COPYSOURCE ] ; then 
-      #  Copy/rsync the git repos into /tmp for faster compilation
-      mkdir -p $BUILD_DIR
-      echo
-      echo "WARNING!  BUILD_DIR($BUILD_DIR) != AOMP_REPOS($AOMP_REPOS)"
-      echo "SO REPLICATING AOMP_REPOS/$AOMP_PROJECT_REPO_NAME  TO: $BUILD_DIR"
-      echo
-      echo "rsync -a $exclude_cmdline --delete $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME $BUILD_DIR"
-      rsync -a $exclude_cmdline --delete $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME $BUILD_DIR 2>&1
-   fi
-
 else
    if [ ! -d $BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME ] ; then 
       echo "ERROR: The build directory $BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME does not exist"
@@ -172,13 +156,8 @@ cd $BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    echo
    echo " -----Running cmake ---- " 
-   if [ $COPYSOURCE ] ; then
-       echo ${AOMP_CMAKE} $MYCMAKEOPTS  $BUILD_DIR/$AOMP_PROJECT_REPO_NAME/llvm
-       ${AOMP_CMAKE} $MYCMAKEOPTS  $BUILD_DIR/$AOMP_PROJECT_REPO_NAME/llvm 2>&1
-    else
-       echo ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/llvm
-       ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/llvm 2>&1
-   fi
+   echo ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/llvm
+   ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/llvm 2>&1
    if [ $? != 0 ] ; then 
       echo "ERROR cmake failed. Cmake flags"
       echo "      $MYCMAKEOPTS"

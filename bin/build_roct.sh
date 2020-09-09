@@ -108,7 +108,6 @@ if [ "$1" == "install" ] ; then
       cd $BUILD_AOMP/build/roct
       echo " -----Installing to $INSTALL_ROCT/lib ----- " 
       $SUDO make install 
-      $SUDO make install-dev
       if [ $? != 0 ] ; then 
          echo "ERROR make install failed "
          exit 1

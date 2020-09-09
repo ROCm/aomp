@@ -103,12 +103,12 @@ GCCLOC=$(getgcc8orless)
 GXXLOC=$(getgxx8orless)
 if [ "$GCCLOC" == "" ] ; then
    echo "ERROR: NO ADEQUATE gcc"
-   echo "       Please install gcc-5 or gcc-7"
+   echo "       Please install gcc-5, gcc-7, or gcc-8"
    exit 1
 fi
 if [ "$GXXLOC" == "" ] ; then
    echo "ERROR: NO ADEQUATE g++"
-   echo "       Please install g++-5 or g++-7"
+   echo "       Please install g++-5, g++-7, or g++-8"
    exit 1
 fi
 
@@ -150,26 +150,14 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    echo " " 
    echo "This is a FRESH START. ERASING any previous builds in $BUILD_DIR/openmp "
    echo "Use ""$0 nocmake"" or ""$0 install"" to avoid FRESH START."
-
-   if [ $COPYSOURCE ] ; then
-      mkdir -p $BUILD_DIR/$AOMP_PROJECT_REPO_NAME
-      echo rsync -av --delete $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp  $BUILD_DIR/$AOMP_PROJECT_REPO_NAME
-      rsync -av --delete $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp  $BUILD_DIR/$AOMP_PROJECT_REPO_NAME
-   fi
-
       echo rm -rf $BUILD_DIR/build/openmp
       rm -rf $BUILD_DIR/build/openmp
       MYCMAKEOPTS="$COMMON_CMAKE_OPTS -DCMAKE_BUILD_TYPE=Release $AOMP_ORIGIN_RPATH -DROCM_DIR=$ROCM_DIR"
       mkdir -p $BUILD_DIR/build/openmp
       cd $BUILD_DIR/build/openmp
       echo " -----Running openmp cmake ---- " 
-      if [ $COPYSOURCE ] ; then
-         echo ${AOMP_CMAKE} $MYCMAKEOPTS  $BUILD_DIR/$AOMP_PROJECT_REPO_NAME/openmp
-         ${AOMP_CMAKE} $MYCMAKEOPTS  $BUILD_DIR/$AOMP_PROJECT_REPO_NAME/openmp
-      else
-         echo ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
-         ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
-      fi
+      echo ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
+      ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
       if [ $? != 0 ] ; then 
          echo "ERROR openmp cmake failed. Cmake flags"
          echo "      $MYCMAKEOPTS"
@@ -194,17 +182,26 @@ $AOMP_ORIGIN_RPATH \
 -DCMAKE_CXX_FLAGS=-g -DCMAKE_C_FLAGS=-g \
 -DOPENMP_SOURCE_DEBUG_MAP="\""-fdebug-prefix-map=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp=$AOMP_INSTALL_DIR/lib-debug/src/openmp"\"" "
 
+      # The 'pip install --system' command is not supported on non-debian systems. This will disable
+      # the system option if the debian_version file is not present.
+      if [ ! -f /etc/deb_version ]; then
+         echo "==> Non-Debian OS, disabling use of pip install --system"
+         MYCMAKEOPTS="$MYCMAKEOPTS -DDISABLE_SYSTEM_NON_DEBIAN=1"
+      fi
+
+      # Redhat 7.6 does not have python36-devel package, which is needed for ompd compilation.
+      # This is acquired through RH Software Collections.
+      if [ -f /opt/rh/rh-python36/enable ]; then
+         echo "==> Using python3.6 out of rh tools."
+         MYCMAKEOPTS="$MYCMAKEOPTS -DPython3_ROOT_DIR=/opt/rh/rh-python36/root/bin -DPYTHON_HEADERS=/opt/rh/rh-python36/root/usr/include/python3.6m"
+      fi
+
       mkdir -p $BUILD_DIR/build/openmp_debug
       cd $BUILD_DIR/build/openmp_debug
       echo
       echo " -----Running openmp cmake for debug ---- " 
-      if [ $COPYSOURCE ] ; then
-         echo ${AOMP_CMAKE} $MYCMAKEOPTS  $BUILD_DIR/$AOMP_PROJECT_REPO_NAME/openmp
-         ${AOMP_CMAKE} $MYCMAKEOPTS  $BUILD_DIR/$AOMP_PROJECT_REPO_NAME/openmp
-      else
-         echo ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
-         ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
-      fi
+      echo ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
+      ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
       if [ $? != 0 ] ; then 
          echo "ERROR openmp debug cmake failed. Cmake flags"
          echo "      $MYCMAKEOPTS"
@@ -264,17 +261,20 @@ if [ "$1" == "install" ] ; then
          echo "ERROR make install failed "
          exit 1
       fi
-      # Copy selected debugable runtime sources into the installation lib-debug/src directory
-      # to satisfy the above -fdebug-prefix-map.
-      $SUDO mkdir -p $AOMP_INSTALL_DIR/lib-debug/src/openmp/runtime/src
-      echo cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/runtime/src $AOMP_INSTALL_DIR/lib-debug/src/openmp/runtime
-      $SUDO cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/runtime/src $AOMP_INSTALL_DIR/lib-debug/src/openmp/runtime
-      $SUDO mkdir -p $AOMP_INSTALL_DIR/lib-debug/src/openmp/libomptarget/src
-      echo cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/libomptarget/src $AOMP_INSTALL_DIR/lib-debug/src/openmp/libomptarget
-      $SUDO cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/libomptarget/src $AOMP_INSTALL_DIR/lib-debug/src/openmp/libomptarget
-      echo cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/libomptarget/plugins $AOMP_INSTALL_DIR/lib-debug/src/openmp/libomptarget
-      $SUDO cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/libomptarget/plugins $AOMP_INSTALL_DIR/lib-debug/src/openmp/libomptarget
-      $SUDO mkdir -p $AOMP_INSTALL_DIR/lib-debug/src/openmp/libompd/src
-      $SUDO cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/libompd/src $AOMP_INSTALL_DIR/lib-debug/src/openmp/libompd
+      # we do not yet have OMPD in llvm 12, disable this for now.
+      if [ "$AOMP_VERSION" != "12.0" ] ; then
+        # Copy selected debugable runtime sources into the installation lib-debug/src directory
+        # to satisfy the above -fdebug-prefix-map.
+        $SUDO mkdir -p $AOMP_INSTALL_DIR/lib-debug/src/openmp/runtime/src
+        echo cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/runtime/src $AOMP_INSTALL_DIR/lib-debug/src/openmp/runtime
+        $SUDO cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/runtime/src $AOMP_INSTALL_DIR/lib-debug/src/openmp/runtime
+        $SUDO mkdir -p $AOMP_INSTALL_DIR/lib-debug/src/openmp/libomptarget/src
+        echo cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/libomptarget/src $AOMP_INSTALL_DIR/lib-debug/src/openmp/libomptarget
+        $SUDO cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/libomptarget/src $AOMP_INSTALL_DIR/lib-debug/src/openmp/libomptarget
+        echo cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/libomptarget/plugins $AOMP_INSTALL_DIR/lib-debug/src/openmp/libomptarget
+        $SUDO cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/libomptarget/plugins $AOMP_INSTALL_DIR/lib-debug/src/openmp/libomptarget
+        $SUDO mkdir -p $AOMP_INSTALL_DIR/lib-debug/src/openmp/libompd/src
+        $SUDO cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/libompd/src $AOMP_INSTALL_DIR/lib-debug/src/openmp/libompd
+      fi
    fi
 fi

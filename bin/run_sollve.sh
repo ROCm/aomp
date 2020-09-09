@@ -71,6 +71,7 @@ echo "--------------------------- OMP 5.0 Results ---------------------------" >
 make report_html
 make report_summary >> combined-results.txt
 mv results_report results_report50
+pwd
 cat combined-results.txt
 popd
 
