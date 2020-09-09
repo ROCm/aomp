@@ -182,6 +182,20 @@ $AOMP_ORIGIN_RPATH \
 -DCMAKE_CXX_FLAGS=-g -DCMAKE_C_FLAGS=-g \
 -DOPENMP_SOURCE_DEBUG_MAP="\""-fdebug-prefix-map=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp=$AOMP_INSTALL_DIR/lib-debug/src/openmp"\"" "
 
+      # The 'pip install --system' command is not supported on non-debian systems. This will disable
+      # the system option if the debian_version file is not present.
+      if [ ! -f /etc/deb_version ]; then
+         echo "==> Non-Debian OS, disabling use of pip install --system"
+         MYCMAKEOPTS="$MYCMAKEOPTS -DDISABLE_SYSTEM_NON_DEBIAN=1"
+      fi
+
+      # Redhat 7.6 does not have python36-devel package, which is needed for ompd compilation.
+      # This is acquired through RH Software Collections.
+      if [ -f /opt/rh/rh-python36/enable ]; then
+         echo "==> Using python3.6 out of rh tools."
+         MYCMAKEOPTS="$MYCMAKEOPTS -DPython3_ROOT_DIR=/opt/rh/rh-python36/root/bin -DPYTHON_HEADERS=/opt/rh/rh-python36/root/usr/include/python3.6m"
+      fi
+
       mkdir -p $BUILD_DIR/build/openmp_debug
       cd $BUILD_DIR/build/openmp_debug
       echo
