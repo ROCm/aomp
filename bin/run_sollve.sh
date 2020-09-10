@@ -36,10 +36,10 @@ if [ "$ROCMASTER" == "1" ] || [ "$EPSDB" == "1" ]; then
   popd
 fi
 
-if [ "$EPSDB" == "1" ]; then
-  export AOMP=/opt/rocm/llvm
-else
+if [ "$ROCMASTER" == "1" ]; then
   export AOMP=/opt/rocm/aomp
+elif [ "$EPSDB" == "1" ]; then
+  export AOMP=/opt/rocm/llvm
 fi
 
 if [ -a $AOMP/bin/mygpu ]; then
