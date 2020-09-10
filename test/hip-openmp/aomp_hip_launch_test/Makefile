@@ -76,7 +76,7 @@ else
   TRIPLE = amdgcn-amd-amdhsa
   PLATFORM = -D__HIP_PLATFORM_HCC__=1
 endif
-VERS = $(shell $(AOMP)/bin/clang --version | grep -oP '(?<=clang version )[a-z0-9.]+')
+VERS = $(shell $(AOMP)/bin/clang --version | grep -oP '(?<=clang version )[0-9.]+')
 ifeq ($(shell expr $(VERS) \>= 12.0), 1)
   RPTH = -Wl,-rpath,$(AOMPHIP)/lib
 endif

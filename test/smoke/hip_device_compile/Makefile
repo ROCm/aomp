@@ -9,7 +9,7 @@ CFLAGS = -x cuda -I/usr/local/cuda/include --offload-arch=${AOMP_GPU} -std=c++11
 LINK_FLAGS =  -L$(CUDA)/targets/$(UNAMEP)-linux/lib -lcudart -Wl,-rpath,/usr/local/cuda/targets/x86_64-linux/lib
 else
 AOMPHIP ?= $(AOMP)
-VERS = $(shell $(AOMP)/bin/clang --version | grep -oP '(?<=clang version )[a-z0-9.]+')
+VERS = $(shell $(AOMP)/bin/clang --version | grep -oP '(?<=clang version )[0-9.]+')
 ifeq ($(shell expr $(VERS) \>= 12.0), 1)
   RPTH = -Wl,-rpath,$(AOMPHIP)/lib
 endif

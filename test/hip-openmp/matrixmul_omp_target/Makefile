@@ -77,7 +77,7 @@ endif
 
 #  These HIPFLAGS provide HIP+OpenMP for CPU only. No target offload
 AOMPHIP ?= $(AOMP)
-VERS = $(shell $(AOMP)/bin/clang --version | grep -oP '(?<=clang version )[a-z0-9.]+')
+VERS = $(shell $(AOMP)/bin/clang --version | grep -oP '(?<=clang version )[0-9.]+')
 ifeq ($(shell expr $(VERS) \>= 12.0), 1)
   RPTH = -Wl,-rpath,$(AOMPHIP)/lib
 endif
