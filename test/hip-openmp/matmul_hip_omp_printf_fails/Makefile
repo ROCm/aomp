@@ -80,7 +80,7 @@ ifeq (sm_,$(findstring sm_,$(TARGETS)))
 else
   AOMPHIP ?= $(AOMP)
   HIPLIBS = -L $(AOMPHIP)/hip -L $(AOMPHIP)/lib
-  VERS = $(shell $(AOMP)/bin/aompversion)
+  VERS = $(shell $(AOMP)/bin/clang --version | grep -oP '(?<=clang version )[0-9.]+')
   ifeq ($(shell expr $(VERS) \>= 12.0), 1)
     RPTH = -Wl,-rpath,$(AOMPHIP)/lib
   endif
