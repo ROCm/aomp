@@ -59,20 +59,6 @@ patchrepo $REPO_DIR
 
 if [ "$1" != "install" ] ; then 
     
-   if [ $COPYSOURCE ] ; then 
-      if [ -d $BUILD_DIR/$AOMP_LIBDEVICE_REPO_NAME ] ; then 
-         echo rm -rf $BUILD_DIR/$AOMP_LIBDEVICE_REPO_NAME
-         $SUDO rm -rf $BUILD_DIR/$AOMP_LIBDEVICE_REPO_NAME
-      fi
-      mkdir -p $BUILD_DIR/$AOMP_LIBDEVICE_REPO_NAME
-      echo rsync -a $SOURCEDIR/ $BUILD_DIR/$AOMP_LIBDEVICE_REPO_NAME/
-      rsync -a $SOURCEDIR/ $BUILD_DIR/$AOMP_LIBDEVICE_REPO_NAME/
-      # Fixup ll files to avoid link warnings
-      for llfile in `find $BUILD_DIR/$AOMP_LIBDEVICE_REPO_NAME -type f | grep "\.ll" ` ; do 
-        sed -i -e"s/:64-A5/:64-S32-A5/" $llfile
-      done
-   fi
-
       builddir_libdevice=$BUILD_DIR/build/libdevice
       if [ -d $builddir_libdevice ] ; then 
          echo rm -rf $builddir_libdevice
@@ -87,13 +73,8 @@ if [ "$1" != "install" ] ; then
 
       CC="$LLVM_BUILD/bin/clang"
       export CC
-      if [ $COPYSOURCE ] ; then 
-         echo "${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR $BUILD_DIR/$AOMP_LIBDEVICE_REPO_NAME"
-         ${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR $BUILD_DIR/$AOMP_LIBDEVICE_REPO_NAME
-      else 
-         echo "${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR $AOMP_REPOS/$AOMP_LIBDEVICE_REPO_NAME"
-         ${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR $AOMP_REPOS/$AOMP_LIBDEVICE_REPO_NAME
-      fi
+      echo "${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR $AOMP_REPOS/$AOMP_LIBDEVICE_REPO_NAME"
+      ${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR $AOMP_REPOS/$AOMP_LIBDEVICE_REPO_NAME
       if [ $? != 0 ] ; then 
          echo "ERROR cmake failed  command was \n"
          echo "      ${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR $BUILD_DIR/$AOMP_LIBDEVICE_REPO_NAME"

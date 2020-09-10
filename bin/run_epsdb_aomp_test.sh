@@ -9,6 +9,11 @@ aompdir="$(dirname "$parentdir")"
 
 set -x
 
+# we have a new Target memory manager appearing soon in aomp 12
+# it seems to either cause or reveal double  free or corruption
+# in lots of tests. This set to 0, disables the new TMM.
+export LIBOMPTARGET_MEMORY_MANAGER_THRESHOLD=0
+
 # mygpu will eventually relocate to /opt/rocm/bin, support both cases for now.
 if [ -a $AOMP/bin/mygpu ]; then
   export AOMP_GPU=`$AOMP/bin/mygpu`
@@ -19,21 +24,24 @@ fi
 
 echo AOMP_GPU = $AOMP_GPU
 $AOMP/bin/clang --version
-ls /opt/rocm/amdgcn/bitcode
-ls $AOMP/amdgcn/bitcode
+#ls /opt/rocm/amdgcn/bitcode
+#ls $AOMP/amdgcn/bitcode
 rm -f  $aompdir/test/smoke/passing-tests.txt
 mkdir -p ~/git/
 cd $aompdir/bin
 set +x
-echo "======================"
-./clone_aomp_test.sh
+echo "=========== clone aomp_test ==========="
+./clone_aomp_test.sh > clone.log 2>&1
 
+echo "====== helloworld ======="
 cd $aompdir/test/smoke/helloworld
 make clean
-VERBOSE=1 make run
+VERBOSE=1 make run > hello.log 2>&1
+tail -10 hello.log
 
+echo "====== smoke ======="
 cd $aompdir/test/smoke
-EPSDB=1 ./check_smoke.sh
+EPSDB=1 ./check_smoke.sh > smoke.log 2>&1
 
 echo $aompdir
 echo
@@ -58,27 +66,52 @@ diff $$etests $$ptests | grep '<' | sed s'/< //'
 echo
 rm -f $$ptests $$etests
 
+echo
+
 echo "====== hip-openmp ==="
 cd $aompdir/test/hip-openmp
-AOMPHIP=$AOMP/.. ./check_hip-openmp.sh
+AOMPHIP=$AOMP/.. ./check_hip-openmp.sh > hip-openmp.log 2>&1
+tail -16 hip-openmp.log
+
 echo "======= omp5 ==="
 cd $aompdir/test/omp5
-./check_omp5.sh  
+./check_omp5.sh  > omp5.log 2>&1
+tail -20 omp5.log
+
 echo "====== examples ==="
 cd $aompdir/examples
-EPSDB=1 AOMPHIP=$AOMP/.. ./check_examples.sh 
+EPSDB=1 AOMPHIP=$AOMP/.. ./check_examples.sh > examples.log 2>&1
+tail -50 examples.log
 
-echo "======================"
+echo "======= nekbone ======"
 cd $aompdir/bin
-./run_nekbone.sh
-echo "======================"
+./run_nekbone.sh > nekbone.log 2>&1
+tail -7 nekbone.log
+
+echo "======= openmpapps ==="
 cd ~/git/aomp-test/openmpapps
-echo "======================"
-./check_openmpapps.sh
+./check_openmpapps.sh > openmpapps.log 2>&1
+tail -12 openmpapps.log
+
 # sollve take about 16 minutes
-echo "======================"
+echo "======= sollve ======="
 cd $aompdir/bin
-./run_sollve.sh
+./run_sollve.sh > sollve.log 2>&1
+tail -60 sollve.log
 
 echo Done
+echo
+set -x
+# return pass, condpass, fial status  (count)
+if [ "$efails" -gt "30" ]; then
+  echo "EPSDB smoke fails"
+  epsdb_status="red"
+elif [ "$efails" -gt "0" ]; then
+  echo "EPSDB smoke conditional passes"
+  epsdb_status="yellow"
+else
+  echo "EPSDB smoke passes"
+  epsdb_status="green"
+fi
+exit $efails
 

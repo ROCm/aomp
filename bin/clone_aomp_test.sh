@@ -63,7 +63,7 @@ if [ -d $repodirname  ] ; then
 else 
    echo --- NEW CLONE of repo $reponame to $repodirname ----
    cd $AOMP_REPOS_TEST
-   if [ "$reponame" == "$AOMP_RAJA_REPO_NAME" ] ; then
+   if [[ "$reponame" == "$AOMP_RAJA_REPO_NAME" || "$reponame" == "$AOMP_RAJAPERF_REPO_NAME" ]]; then
      git clone --recursive -b $COBRANCH $repo_web_location/$reponame $reponame
    else
      echo git clone $repo_web_location/$reponame
@@ -94,6 +94,11 @@ clone_or_pull
 repo_web_location=$GITLLNL
 reponame=$AOMP_RAJA_REPO_NAME
 COBRANCH=$AOMP_RAJA_REPO_BRANCH
+clone_or_pull
+
+repo_web_location=$GITLLNL
+reponame=$AOMP_RAJAPERF_REPO_NAME
+COBRANCH=$AOMP_RAJAPERF_REPO_BRANCH
 clone_or_pull
 
 repo_web_location=$GITSOLVV
