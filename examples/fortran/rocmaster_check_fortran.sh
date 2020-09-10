@@ -3,7 +3,12 @@
 # Checks all tests in examples/fortran directory using make check. Programs return 0 for success or a number > 0 for failure.
 #
 
-export AOMP=/opt/rocm/aomp
+if [ "$EPSDB" == "1" ]; then
+  export AOMP=/opt/rocm/llvm
+  export AOMP_GPU=`$AOMP/../bin/mygpu`
+else
+  export AOMP=/opt/rocm/aomp
+fi
 
 #Cleanup
 rm -f check-fortran.txt

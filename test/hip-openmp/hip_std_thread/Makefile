@@ -78,7 +78,12 @@ endif
 #  These HIPFLAGS provide HIP+OpenMP for CPU only. No target offload
 AOMPHIP ?= $(AOMP)
 HIPLIBS = -L $(AOMPHIP)/hip -L $(AOMPHIP)/lib -L $(AOMPHIP)/../lib
-HIPFLAGS = -x hip $(PLATFORM) -O2 --offload-arch=$(AOMP_GPU) -lpthread $(HIPLIBS) -lamdhip64
+VERS = $(shell $(AOMP)/bin/clang --version | grep -oP '(?<=clang version )[0-9.]+')
+ifeq ($(shell expr $(VERS) \>= 12.0), 1)
+  RPTH = -Wl,-rpath,$(AOMPHIP)/lib
+endif
+
+HIPFLAGS = -x hip $(PLATFORM) -O2 --offload-arch=$(AOMP_GPU) -lpthread $(HIPLIBS) -lamdhip64  $(RPTH)
 
 #  These OMP_TARGET_FLAGS added to HIPFLAGS provide HIP+OpenMP with GPU target offload
 OMP_TARGET_FLAGS = 
