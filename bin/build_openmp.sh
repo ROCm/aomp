@@ -262,6 +262,18 @@ if [ "$1" == "install" ] ; then
          echo "ERROR make install failed "
          exit 1
       fi
+
+      # Rename ompd module library. This was introduced with the Python3 build. The include
+      # of ompdModule would fail otherwise.
+      if [ -f "$AOMP_INSTALL_DIR/lib-debug/ompd/ompdModule.cpython-36m-x86_64-linux-gnu.so" ]; then
+        if [ -f "$AOMP_INSTALL_DIR/lib-debug/ompd/ompdModule.so" ]; then
+          echo "==> Removing old ompdModule.so"
+          rm "$AOMP_INSTALL_DIR/lib-debug/ompd/ompdModule.so"
+        fi
+        echo "==> Renaming ompdModule.cpython-36m-x86_64-linux-gnu.so to ompdModule.so"
+        mv $AOMP_INSTALL_DIR/lib-debug/ompd/ompdModule.cpython-36m-x86_64-linux-gnu.so $AOMP_INSTALL_DIR/lib-debug/ompd/ompdModule.so
+      fi
+
       # we do not yet have OMPD in llvm 12, disable this for now.
       if [ "$AOMP_VERSION" != "12.0" ] ; then
         # Copy selected debugable runtime sources into the installation lib-debug/src directory
