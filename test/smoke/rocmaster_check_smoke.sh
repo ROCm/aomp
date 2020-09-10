@@ -5,7 +5,13 @@
 #
 #
 
-export AOMP=/opt/rocm/aomp
+
+if [ "$EPSDB" == "1" ]; then
+  export AOMP=/opt/rocm/llvm
+  export AOMP_GPU=`$AOMP/../bin/mygpu`
+else
+  export AOMP=/opt/rocm/aomp
+fi
 
 cleanup(){
   rm -rf check-smoke.txt
@@ -28,6 +34,10 @@ echo "                   A non-zero exit code means a failure occured." >> check
 echo "***********************************************************************************" >> check-smoke.txt
 
 skiptests="devices pfspecifier pfspecifier_str target_teams_reduction hip_rocblas tasks reduction_array_section targ_static omp_wtime data_share2 global_allocate complex2 flang_omp_map omp_get_initial slices printf_parallel_for_target"
+
+if [ "$EPSDB" == "1" ]; then
+  skiptests+=" taskwait_prob flang_isystem_prob flang_real16_prob"
+fi
 
 #Loop over all directories and make run / make check depending on directory name
 for directory in ./*/; do

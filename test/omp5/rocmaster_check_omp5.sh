@@ -5,7 +5,12 @@
 #
 #
 
-export AOMP=/opt/rocm/aomp
+if [ "$EPSDB == 1" ]; then
+  export AOMP=/opt/rocm/llvm
+  export AOMP_GPU=`$AOMP/../bin/mygpu`
+else
+  export AOMP=/opt/rocm/aomp
+fi
 
 cleanup(){
   rm -f passing-tests.txt
@@ -29,6 +34,10 @@ echo "Tests that need to be visually inspected: devices, pfspecify, pfspecify_st
 echo "***********************************************************************************" >> check-omp5.txt
 
 skiptests="red_bug_51 shape_noncontig metadirective concur_update mapper_prob"
+
+if [ "$EPSDB" == "1" ]; then
+  skiptests+=" task_dep_prob"
+fi
 
 #Loop over all directories and make run / make check depending on directory name
 for directory in ./*/; do

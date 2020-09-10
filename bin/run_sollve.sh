@@ -28,13 +28,18 @@ thisdir=$(getdname $0)
 . $thisdir/aomp_common_vars
 # --- end standard header ----
 
-if [[ "$ROCMASTER" == "1" ]]; then
+if [ "$ROCMASTER" == "1" ] || [ "$EPSDB" == "1" ]; then
+  ./clone_aomp_test.sh
   pushd $AOMP_REPOS_TEST/$AOMP_SOLVV_REPO_NAME
     # Lock at specific hash for consistency
     git reset --hard 0fbdbb9f7d3b708eb0b5458884cfbab25103d387
   popd
+fi
+
+if [ "$EPSDB" == "1" ]; then
+  export AOMP=/opt/rocm/llvm
+else
   export AOMP=/opt/rocm/aomp
-  ./clone_aomp_test.sh
 fi
 
 if [ -a $AOMP/bin/mygpu ]; then
@@ -75,6 +80,8 @@ pwd
 cat combined-results.txt
 popd
 
-if [[ "$ROCMASTER" == "1" ]]; then
+if [ "$ROCMASTER" == "1" ]; then
   ./check_sollve.sh
+elif [ "$EPSDB" == "1" ]; then
+  EPSDB=1 ./check_sollve.sh
 fi
