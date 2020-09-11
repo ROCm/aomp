@@ -15,6 +15,7 @@ Build and install from sources is possible.  However, the source build for AOMP 
 ```
    sudo apt-get install cmake g++-5 g++-7 pkg-config libpci-dev libnuma-dev libelf-dev libffi-dev git python libopenmpi-dev gawk
 
+   # Additional packages used by rocgdb
    sudo apt-get install python3 texinfo libbison-dev bison flex libbabeltrace-dev python3-pip libncurses5-dev liblzma-dev python3-setuptools python3-dev
    python3 -m pip install CppHeaderParser argparse wheel
 
