@@ -184,7 +184,7 @@ $AOMP_ORIGIN_RPATH \
 
       # The 'pip install --system' command is not supported on non-debian systems. This will disable
       # the system option if the debian_version file is not present.
-      if [ ! -f /etc/deb_version ]; then
+      if [ ! -f /etc/debian_version ]; then
          echo "==> Non-Debian OS, disabling use of pip install --system"
          MYCMAKEOPTS="$MYCMAKEOPTS -DDISABLE_SYSTEM_NON_DEBIAN=1"
       fi
