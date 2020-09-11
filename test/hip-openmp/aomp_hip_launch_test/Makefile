@@ -76,8 +76,11 @@ else
   TRIPLE = amdgcn-amd-amdhsa
   PLATFORM = -D__HIP_PLATFORM_HCC__=1
 endif
-
-HIPFLAGS = -x hip $(PLATFORM) -O2 --offload-arch=$(AOMP_GPU) -lpthread -std=c++11 -lamdhip64
+VERS = $(shell $(AOMP)/bin/clang --version | grep -oP '(?<=clang version )[0-9.]+')
+ifeq ($(shell expr $(VERS) \>= 12.0), 1)
+  RPTH = -Wl,-rpath,$(AOMPHIP)/lib
+endif
+HIPFLAGS = -x hip $(PLATFORM) -O2 --offload-arch=$(AOMP_GPU) -lpthread -std=c++11 -lamdhip64  $(RPTH)
 OMP_TARGET_FLAGS = -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$(AOMP_GPU) --save-temps 
 CC=$(AOMP)/bin/clang
 

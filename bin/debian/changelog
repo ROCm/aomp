@@ -1,4 +1,4 @@
-aomp (11.8-0) UNRELEASED; urgency=medium
+aomp (11.9-0) UNRELEASED; urgency=medium
 
   * Initial release of aomp is 0.3-2
   *   Please see example in /usr/lib/aomp/examples/vmuldemo 
@@ -399,4 +399,25 @@ aomp (11.8-0) UNRELEASED; urgency=medium
   *
   *   These are the known issues with this release:
   *   Further reductions in memory use by DeviceRTL required
+  *
+  * 11.9-0
+  *   Fix compiler warnings for build_project.sh and build_openmp.sh
+  *   Fix: [AOMP] [flang] The AOMP 11.7-1 Fortran compiler claims to support
+  *         the -isystem flag, but ignores it.
+  *   Fix: [AOMP] [flang] producing internal compiler error when character
+  *         is used with KIND
+  *   Fixes [flang] openmp map clause on complex allocatable expressions !$omp
+  *         target data map( chunk%tiles(1)%field%density0)
+  *   DeviceRTL memory footprint has been reduced from ~2.3GB to ~770MB for
+  *   AMDGCN target.
+  *   Switch sources to ROCm 3.7.x branches
+  *   Fixed hash for raja to avoid build error in example
+  *   Workaround for red_bug_51 failing on gfx908.
+  *   Switch to python3 for ompd and rocgdb.
+  *   ROCdbgapi requires g++7 as a minimum
+  *   Ubuntu 16.04 build does not have the rocgdb debugger as the system only supports g++5.
+  *
+  * Known Issues
+  *   -ROCgdb does not work on gfx803
+  *   -Barrier issue on gfx803 for generic kernels.
  -- Greg Rodgers <Gregory.Rodgers@amd.com>  Wed, 19 Aug 2020 22:29:37 -0500

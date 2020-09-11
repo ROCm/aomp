@@ -75,17 +75,6 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    echo "Use ""$0 nocmake"" or ""$0 install"" to avoid FRESH START."
    rm -rf $BUILD_DIR/build/pgmath
    mkdir -p $BUILD_DIR/build/pgmath
-
-   if [ $COPYSOURCE ] ; then 
-      #  Copy/rsync the git repos into /tmp for faster compilation
-      mkdir -p $BUILD_DIR
-      echo
-      echo "WARNING!  BUILD_DIR($BUILD_DIR) != AOMP_REPOS($AOMP_REPOS)"
-      echo "SO RSYNCING AOMP_REPOS TO: $BUILD_DIR"
-      echo
-      echo rsync -a --exclude ".git" --delete $AOMP_REPOS/$AOMP_FLANG_REPO_NAME $BUILD_DIR
-      rsync -a --exclude ".git" --delete $AOMP_REPOS/$AOMP_FLANG_REPO_NAME $BUILD_DIR 2>&1
-   fi
 else
    if [ ! -d $BUILD_DIR/build/pgmath ] ; then 
       echo "ERROR: The build directory $BUILD_DIR/build/pgmath does not exist"
@@ -102,13 +91,8 @@ export PATH=$AOMP_INSTALL_DIR/bin:$PATH
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    echo
    echo " -----Running cmake ---- " 
-   if [ $COPYSOURCE ] ; then
-      echo ${AOMP_CMAKE} $MYCMAKEOPTS  $BUILD_DIR/$AOMP_FLANG_REPO_NAME/runtime/libpgmath
-      ${AOMP_CMAKE} $MYCMAKEOPTS  $BUILD_DIR/$AOMP_FLANG_REPO_NAME/runtime/libpgmath  2>&1
-   else
-      echo ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_FLANG_REPO_NAME/runtime/libpgmath
-      ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_FLANG_REPO_NAME/runtime/libpgmath  2>&1
-   fi
+   echo ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_FLANG_REPO_NAME/runtime/libpgmath
+   ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_FLANG_REPO_NAME/runtime/libpgmath  2>&1
    if [ $? != 0 ] ; then 
       echo "ERROR cmake failed. Cmake flags"
       echo "      $MYCMAKEOPTS"

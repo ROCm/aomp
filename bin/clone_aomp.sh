@@ -44,7 +44,8 @@ fi
 function list_repo(){
 repodirname=$AOMP_REPOS/$reponame
 cd $repodirname
-echo `git config --get remote.origin.url` "  " $COBRANCH "  " `git log --numstat --format="%h" |head -1`
+abranch=`git branch | awk '/\*/ { print $2; }'`
+echo `git config --get remote.origin.url` " desired: " $COBRANCH " actual: " $abranch "  " `git log --numstat --format="%h" |head -1`
 }
 
 function clone_or_pull(){
@@ -94,6 +95,8 @@ mkdir -p $AOMP_REPOS
 # ---------------------------------------
 
 # LLVM handled for 11 vs 12
+LISTONLY=$1
+
 repo_web_location=$GITPROJECT
 reponame=$AOMP_PROJECT_REPO_NAME
 repogitname=$AOMP_PROJECT_REPO_NAME
@@ -106,7 +109,6 @@ repo_web_location=$GITROCDEV
 reponame=$AOMP_REPO_NAME
 repogitname=$AOMP_REPO_NAME
 COBRANCH=$AOMP_REPO_BRANCH
-LISTONLY=$1
 if [ "$LISTONLY" == 'list' ]; then
 list_repo
 #clone_or_pull

@@ -28,7 +28,19 @@ thisdir=$(getdname $0)
 # --- end standard header ----
 
 function build_aomp_component() {
-   [ -f /opt/rh/devtoolset-7/enable ] &&  . /opt/rh/devtoolset-7/enable
+   osversion=$(cat /etc/os-release | grep -e ^VERSION_ID)
+
+   if [[ $osversion =~ '"7.' ]]; then
+     echo "OS version 7 found `cat /etc/os-release`"
+     [ -f /opt/rh/devtoolset-7/enable ] &&  . /opt/rh/devtoolset-7/enable
+   elif [[ $osversion =~ '"8' ]]; then
+     echo "OS version 8 found `cat /etc/os-release`"
+     echo
+     echo "Get updated gcc 8: export PATH=/usr/bin:\$PATH"
+     export PATH=/usr/bin:$PATH
+     gcc --version
+   fi
+
    $AOMP_REPOS/$AOMP_REPO_NAME/bin/build_$COMPONENT.sh "$@"
    rc=$?
    if [ $rc != 0 ] ; then 
@@ -82,21 +94,20 @@ echo
 date
 echo " =================  START build_aomp.sh ==================="   
 echo 
-if [ -n "$AOMP_JENKINS_BUILD_LIST" ] ; then
-   components=$AOMP_JENKINS_BUILD_LIST
+if [ "$AOMP_STANDALONE_BUILD" == 1 ] ; then
+  # There is no good external repo for the opencl runtime but we only need the headers for build_vdi.sh
+  # So build_ocl.sh is currently not called.
+  components="roct rocr project libdevice extras openmp pgmath flang flang_runtime comgr rocminfo vdi hipvdi ocl "
+
+  # ROCdbgapi requires atleast g++ 7
+  GPPVERS=`g++ --version | grep g++ | cut -d")" -f2 | cut -d"." -f1`
+  if [ "$AOMP_BUILD_DEBUG" == "1" ] && [ "$GPPVERS" -ge 7 ]; then
+    components="$components rocdbgapi rocgdb"
+  fi
 else
-   if [ "$AOMP_STANDALONE_BUILD" == 1 ] ; then
-      # There is no good external repo for the opencl runtime but we only need the headers for build_vdi.sh
-      # So build_ocl.sh is currently not called.
-      components="roct rocr project libdevice extras openmp pgmath flang flang_runtime comgr rocminfo vdi hipvdi ocl "
-      if [ "$AOMP_BUILD_DEBUG" == "1" ] ; then
-	  components="$components rocdbgapi rocgdb"
-      fi
-   else
-      # With AOMP 11, ROCM integrated build will not need roct rocr libdevice comgr and rocminfo
-      #               In the future, when ROCm build vdi and hipvdi we can remove them
-      components="project extras openmp pgmath flang flang_runtime"
-   fi
+  # With AOMP 11, ROCM integrated build will not need roct rocr libdevice comgr and rocminfo
+  #               In the future, when ROCm build vdi and hipvdi we can remove them
+  components="project extras openmp pgmath flang flang_runtime"
 fi
 echo "COMPONENTS:$components"
 

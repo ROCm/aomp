@@ -1,0 +1,14 @@
+diff --git a/src/common/Executor.cpp b/src/common/Executor.cpp
+index 15c0b1f..f81541e 100644
+--- a/src/common/Executor.cpp
++++ b/src/common/Executor.cpp
+@@ -370,6 +370,9 @@ void Executor::runSuite()
+     }
+ 
+     for (size_t ik = 0; ik < kernels.size(); ++ik) {
++      // Skip Basic_REDUCE3_INT, Basic_TRAP_IN, Lcals_FIRST_MIN, Stream_DOT
++      if(ik == 8 || ik == 9 || ik == 13 || ik == 36)
++        continue;
+       KernelBase* kernel = kernels[ik];
+       if ( run_params.showProgress() ) {
+         std::cout << "\n   Running kernel -- " << kernel->getName() << "\n"; 

@@ -14,11 +14,11 @@ To build AOMP from source you must: 1. install certain distribution packages, 2.
 #### Debian or Ubuntu Packages
 
 ```
-   sudo apt-get install cmake g++-5 g++ pkg-config libpci-dev libnuma-dev libelf-dev libffi-dev git python libopenmpi-dev gawk
+   sudo apt-get install cmake g++-5 g++-7 pkg-config libpci-dev libnuma-dev libelf-dev libffi-dev git python libopenmpi-dev gawk
 
    # Additional packages used by rocgdb
-   sudo apt-get install texinfo libbison-dev bison flex libbabeltrace-dev python-pip libncurses5-dev liblzma-dev
-   python -m pip install CppHeaderParser argparse
+   sudo apt-get install python3 texinfo libbison-dev bison flex libbabeltrace-dev python3-pip libncurses5-dev liblzma-dev python3-setuptools python3-dev
+   python3 -m pip install CppHeaderParser argparse wheel
 
 ```
 #### SLES-15-SP1 Packages
@@ -27,10 +27,9 @@ To build AOMP from source you must: 1. install certain distribution packages, 2.
   sudo zypper install -y git pciutils-devel cmake python-base libffi-devel gcc gcc-c++ libnuma-devel libelf-devel patchutils openmpi2-devel
 
   # Additional packages used by rocgdb
-  SUSEConnect --product sle-module-python2/15.1/x86_64
-  sudo zypper install -y texinfo bison flex babeltrace-devel python-pip python-devel makeinfo ncurses-devel libexpat-devel xz-devel
+  sudo zypper install -y texinfo bison flex babeltrace-devel python3 python3-pip python3-devel python3-setuptools makeinfo ncurses-devel libexpat-devel xz-devel
 
-  python -m pip install wheel CppHeaderParser argparse
+  python3 -m pip install CppHeaderParser argparse wheel
 
 ```
 #### RHEL 7  Packages
@@ -44,11 +43,23 @@ https://www.softwarecollections.org/en/scls/rhscl/devtoolset-7/<br>
   sudo yum install cmake3 pciutils-devel numactl-devel libffi-devel
 
   # Additional packages used by rocgdb
-  sudo yum install texinfo bison flex python-pip python-devel ncurses-devel.x86_64 expat-devel.x86_64 xz-devel.x86_64 libbabeltrace-devel.x86_64
-
-  python -m pip install wheel CppHeaderParser argparse
-
+  sudo yum install texinfo bison flex ncurses-devel.x86_64 expat-devel.x86_64 xz-devel.x86_64 libbabeltrace-devel.x86_64
 ```
+
+ RHEL 7.6 and earlier RHEL 7 versions do not have the python36-devel package, which requires a software collection installation.
+```
+  sudo subscription-manager repos --enable rhel-7-server-optional-rpms --enable rhel-server-rhscl-7-rpms
+  sudo yum -y install rh-python36 rh-python36-python-tools
+  scl enable rh-python36 bash
+  python3 -m pip install CppHeaderParser argparse wheel
+```
+
+RHEL 7.7 and later RHEL 7 versions
+```
+  sudo yum install python3 python3-pip python36-devel python36-setuptools
+  python3 -m pip install CppHeaderParser argparse wheel
+```
+
 The build scripts use cmake, so we need to link cmake --> cmake3 in /usr/bin
 ```
   sudo ln -s /usr/bin/cmake3 /usr/bin/cmake
@@ -119,8 +130,8 @@ Remember,the aomp spack configuration file is currently missing dependencies, so
 To build and install aomp from the release source tarball run these commands:
 
 ```
-   wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_11.8-0/aomp-11.8-0.tar.gz
-   tar -xzf aomp-11.8-0.tar.gz
+   wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_11.9-0/aomp-11.9-0.tar.gz
+   tar -xzf aomp-11.9-0.tar.gz
    cd aomp
    nohup make &
 ```
@@ -135,9 +146,9 @@ If you set the environment variable AOMP, the Makefile will install to that dire
 Otherwise, the Makefile will install into /usr/local.
 So you must have authorization to write into /usr/local if you do not set the environment variable AOMP.
 Let's assume you set the environment variable AOMP to "$HOME/rocm/aomp" in .bash_profile.
-The build_aomp.sh script will install into $HOME/rocm/aomp_11.8-0 and create a symbolic link from $HOME/rocm/aomp to $HOME/rocm/aomp_11.8-0.
+The build_aomp.sh script will install into $HOME/rocm/aomp_11.9-0 and create a symbolic link from $HOME/rocm/aomp to $HOME/rocm/aomp_11.9-0.
 This feature allows multiple versions of AOMP to be installed concurrently.
-To enable a backlevel version of AOMP, simply set AOMP to $HOME/rocm/aomp_11.7-1.
+To enable a backlevel version of AOMP, simply set AOMP to $HOME/rocm/aomp_11.8-0.
 
 ## Build AOMP with spack
 
@@ -146,7 +157,7 @@ Currently the aomp configuration is not yet in the spack git hub so you must cre
 
 ```
    wget https://github.com/ROCm-Developer-Tools/aomp/blob/master/bin/package.py
-   spack create -n aomp -t makefile --force https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_11.8-0/aomp-11.8-0.tar.gz
+   spack create -n aomp -t makefile --force https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_11.9-0/aomp-11.9-0.tar.gz
    spack edit aomp
    spack install aomp
 ```

@@ -77,7 +77,11 @@ ifeq (sm_,$(findstring sm_,$(TARGETS)))
   CFLAGS +=-x cuda -I$(CUDA)/include
 else
   AOMPHIP ?= $(AOMP)
-  HIPLIBS = -L $(AOMPHIP)/hip -L $(AOMPHIP)/lib
+  VERS = $(shell $(AOMP)/bin/clang --version | grep -oP '(?<=clang version )[0-9.]+')
+  ifeq ($(shell expr $(VERS) \>= 12.0), 1)
+    RPTH = -Wl,-rpath,$(AOMPHIP)/lib
+  endif
+  HIPLIBS = -L $(AOMPHIP)/hip -L $(AOMPHIP)/lib  $(RPTH)
   CFLAGS = -x hip -std=c++11 $(HIPLIBS) -lamdhip64
 endif
 
