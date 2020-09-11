@@ -39,6 +39,11 @@ if [ "$EPSDB" == "1" ]; then
   skiptests+=" taskwait_prob flang_isystem_prob flang_real16_prob"
 fi
 
+# amd-stg-open only has commits up to 08/11/20, which does not include these fixes for gfx908
+if [ "$EPSDB" == "1" ] && [ "$AOMP_GPU" == "gfx908" ];then
+  skiptests+=" red_bug_51 test_offload_macros"
+fi
+
 #Loop over all directories and make run / make check depending on directory name
 for directory in ./*/; do
   (cd "$directory" && path=$(pwd) && base=$(basename $path)
