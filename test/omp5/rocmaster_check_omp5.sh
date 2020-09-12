@@ -5,7 +5,7 @@
 #
 #
 
-if [ "$EPSDB == 1" ]; then
+if [ "$EPSDB" == "1" ]; then
   export AOMP=/opt/rocm/llvm
   export AOMP_GPU=`$AOMP/../bin/mygpu`
 else
