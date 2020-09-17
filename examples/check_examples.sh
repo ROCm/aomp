@@ -23,7 +23,7 @@ echo "                   A non-zero exit code means a failure occured."
 echo "************************************************************************************"
 
 #Loop over all directories and run the check script
-for directory in ./*/; do
+for directory in ./fortran  hip  openmp/; do
   (cd "$directory" && path=$(pwd) && base=$(basename $path)
     script=check_$base.sh
     ./$script
