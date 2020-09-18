@@ -157,7 +157,8 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
   -DAOMP_STANDALONE_BUILD=$AOMP_STANDALONE_BUILD \
   -DROCM_DIR=$ROCM_DIR \
   -DCMAKE_INSTALL_PREFIX=$INSTALL_OPENMP \
-  -DLLVM_INSTALL_PREFIX=$OUT_DIR/llvm"
+  -DLLVM_INSTALL_PREFIX=$OUT_DIR/llvm \
+  -DLLVM_MAIN_INCLUDE_DIR=$LLVM_PROJECT_ROOT/llvm/include"
 
       mkdir -p $BUILD_DIR/build/openmp
       cd $BUILD_DIR/build/openmp
@@ -188,7 +189,10 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
       -DAOMP_STANDALONE_BUILD=$AOMP_STANDALONE_BUILD \
       -DROCM_DIR=$ROCM_DIR \
       -DCMAKE_INSTALL_PREFIX=$INSTALL_OPENMP \
-      -DLLVM_INSTALL_PREFIX=$OUT_DIR/llvm"
+      -DLLVM_INSTALL_PREFIX=$OUT_DIR/llvm \
+      -DCMAKE_CXX_FLAGS=-g \
+      -DCMAKE_C_FLAGS=-g \
+      -DLLVM_MAIN_INCLUDE_DIR=$LLVM_PROJECT_ROOT/llvm/include"
 
       mkdir -p $BUILD_DIR/build/openmp_debug
       cd $BUILD_DIR/build/openmp_debug
