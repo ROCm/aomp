@@ -27,6 +27,9 @@ path=$(pwd)
 make clean
 cleanup
 
+export OMP_TARGET_OFFLOAD=${OMP_TARGET_OFFLOAD:-MANDATORY}
+echo OMP_TARGET_OFFLOAD=$OMP_TARGET_OFFLOAD
+
 echo ""
 echo -e "$ORG"RUNNING ALL TESTS IN: $path"$BLK"
 echo ""
