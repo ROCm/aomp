@@ -1,4 +1,4 @@
-flags.c -isystem/home/estewart/rocm/aomp/include  -O2  -target ${AOMP_CPUTARGET} -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=${AOMP_GPU}
+-OFFLOAD_DEBUG=1 flags.c -isystem/home/estewart/rocm/aomp/include  -O2  -target ${AOMP_CPUTARGET} -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=${AOMP_GPU}
 flags.c -isystem/home/estewart/rocm/aomp/include  -O2  -target ${AOMP_CPUTARGET} -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=${AOMP_GPU}
 flags.c -target ${AOMP_CPUTARGET} -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=${AOMP_GPU}
 flags.c -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=${AOMP_GPU}
