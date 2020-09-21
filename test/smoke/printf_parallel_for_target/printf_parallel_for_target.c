@@ -1,40 +1,27 @@
 #include <omp.h>
 #include <stdio.h>
 int main() {
-  int verbose = 0;
-  if(getenv("VERBOSE_PRINT")){
-    // Note: verbose mode does not verify output as printf thread output and addresses will differ each run.
-    verbose = 1;
-    printf("Using verbose print...printing pointer addresses.\n");
-  }
-    
-  #pragma omp parallel for                                                                                                                                                
+  #pragma omp parallel for
   for (int j = 0; j < 2; j++) {
-    if(verbose)
-      printf("CPU Parallel: Hello from %d\n", omp_get_thread_num());
-    else
-      printf("CPU Parallel: Hello.\n");
-  #pragma omp target
+    int host_thread= omp_get_thread_num();
+    printf("%d - 1. On Host: CPU Parallel\n", host_thread);
+  #pragma omp target map(host_thread)
   {
     int p = 20;
-    printf("Target Master Thread: Hello from %d\n", omp_get_thread_num());
+    printf("%d - 2. On Target: Begin Target\n", host_thread);
     #pragma omp parallel for
     for (int i = 0; i < 2; i++) {
       int d = 0;
-      if(verbose)
-        printf("First Target Parallel: Hello from %d %p %p\n", omp_get_thread_num(), &d, &p);
-      else
-        printf("First Target Parallel: Hello.\n");
+        printf("%d - 3. On Target: First Parallel Section\n", host_thread);
     }
-    if(verbose)
-      printf("End Parallel Master Thread: Hello from %d %p\n", omp_get_thread_num(), &p);
-    else
-      printf("End Parallel Master Thread: Hello from %d\n", omp_get_thread_num());
+    printf("%d - 4. On Target: End First Parallel Section. Master Thread ID: %d\n", host_thread, omp_get_thread_num());
     #pragma omp parallel for
     for (int i = 0; i < 2; i++) {
-      printf("Second Target Parallel: Hello.\n");
+      printf("%d - 5. On Target: Second Parallel Section\n", host_thread);
     }
+    printf("%d - 6. On Target: End Second Parallel Section. Master Thread ID: %d\n", host_thread, omp_get_thread_num());
   }
+    printf("%d - 7. On Host: End Target\n", host_thread);
   }
   return 0;
 }
