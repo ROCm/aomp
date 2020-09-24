@@ -70,6 +70,7 @@ TESTS_DIR = \
     reduction_team \
     reduction_teams \
     reduction_teams_distribute_parallel \
+    reduction_shared_array \
     reduc_map_prob \
     schedule \
     simd \
