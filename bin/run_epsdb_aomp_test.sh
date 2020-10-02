@@ -103,7 +103,7 @@ echo Done
 echo
 set -x
 # return pass, condpass, fial status  (count)
-if [ "$efails" -gt "30" ]; then
+if [ "$efails" -ge "7" ]; then
   echo "EPSDB smoke fails"
   epsdb_status="red"
 elif [ "$efails" -gt "0" ]; then
