@@ -23,7 +23,14 @@ echo "                   A non-zero exit code means a failure occured."
 echo "************************************************************************************"
 
 #Loop over all directories and run the check script
-for directory in ./*/; do
+cloc=""
+if [ "$EPSDB" != "1" ]; then
+  LIST="fortran hip openmp cloc"
+else
+  LIST="fortran hip openmp"
+fi
+
+for directory in ./$LIST/; do
   (cd "$directory" && path=$(pwd) && base=$(basename $path)
     script=check_$base.sh
     ./$script
@@ -31,7 +38,7 @@ for directory in ./*/; do
     )
 done
 echo -e "$ORG"FINAL RESULTS:"$BLK"
-for directory in ./*/; do
+for directory in $LIST ; do
   (cd "$directory" && path=$(pwd) && base=$(basename $path)
     cat check-$base.txt
   )

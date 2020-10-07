@@ -27,6 +27,9 @@ path=$(pwd)
 make clean
 cleanup
 
+export OMP_TARGET_OFFLOAD=${OMP_TARGET_OFFLOAD:-MANDATORY}
+echo OMP_TARGET_OFFLOAD=$OMP_TARGET_OFFLOAD
+
 echo ""
 echo -e "$ORG"RUNNING ALL TESTS IN: $path"$BLK"
 echo ""
@@ -36,7 +39,7 @@ echo "                   A non-zero exit code means a failure occured." >> check
 echo "Tests that need to be visually inspected: devices, pfspecify, pfspecify_str, stream" >> check-smoke.txt
 echo "***********************************************************************************" >> check-smoke.txt
 
-known_fails="reduction_array_section targ_static target_teams_reduction tasks data_share2 global_allocate complex2 flang_omp_map omp_get_initial slices slices printf_parallel_for_target"
+known_fails="reduction_array_section targ_static target_teams_reduction tasks data_share2 global_allocate complex2 flang_omp_map omp_get_initial slices slices printf_parallel_for_target reduction_shared_array"
 
 if [ "$SKIP_FAILURES" == 1 ] ; then
   skip_tests=$known_fails

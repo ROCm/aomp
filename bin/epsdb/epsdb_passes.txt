@@ -8,6 +8,7 @@ complex
 data_enter_issue01
 data_issue_59
 data_share1
+data_share2
 DeclareSharedMemory
 decl_targ
 devices
@@ -24,6 +25,8 @@ flags 7
 flags 8
 flang_char_kind
 flang_isystem_prob
+flang_math
+flang_omp_map
 flang_real16_prob
 flang_tgt_alloc_ptr
 function
@@ -41,6 +44,7 @@ liba_bundled
 liba_bundled_cmdline
 lto_teams
 ManyKernels
+map_to_from_prob
 map_zero_bug
 MasterBarrier
 math_flog
@@ -74,6 +78,7 @@ stream
 targ_declare
 target-in-other-source
 targets_in_loop
+taskwait_prob
 team_prob
 teams
 teams_nest
