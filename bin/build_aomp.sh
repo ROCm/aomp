@@ -98,7 +98,10 @@ if [ "$AOMP_STANDALONE_BUILD" == 1 ] ; then
   # There is no good external repo for the opencl runtime but we only need the headers for build_vdi.sh
   # So build_ocl.sh is currently not called.
   components="roct rocr project libdevice extras openmp pgmath flang flang_runtime comgr rocminfo vdi hipvdi ocl "
-  if [ "$AOMP_BUILD_DEBUG" == "1" ] ; then
+
+  # ROCdbgapi requires atleast g++ 7
+  GPPVERS=`g++ --version | grep g++ | cut -d")" -f2 | cut -d"." -f1`
+  if [ "$AOMP_BUILD_DEBUG" == "1" ] && [ "$GPPVERS" -ge 7 ]; then
     components="$components rocdbgapi rocgdb"
   fi
 else

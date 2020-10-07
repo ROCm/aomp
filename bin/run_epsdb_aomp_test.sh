@@ -36,12 +36,12 @@ echo "=========== clone aomp_test ==========="
 echo "====== helloworld ======="
 cd $aompdir/test/smoke/helloworld
 make clean
-VERBOSE=1 make run > hello.log 2>&1
+OMP_TARGET_OFFLOAD=MANDATORY VERBOSE=1 make run > hello.log 2>&1
 tail -10 hello.log
 
 echo "====== smoke ======="
 cd $aompdir/test/smoke
-EPSDB=1 ./check_smoke.sh > smoke.log 2>&1
+EPSDB=1 OMP_TARGET_OFFLOAD=MANDATORY ./check_smoke.sh > smoke.log 2>&1
 
 echo $aompdir
 echo
@@ -103,7 +103,7 @@ echo Done
 echo
 set -x
 # return pass, condpass, fial status  (count)
-if [ "$efails" -gt "30" ]; then
+if [ "$efails" -ge "7" ]; then
   echo "EPSDB smoke fails"
   epsdb_status="red"
 elif [ "$efails" -gt "0" ]; then
