@@ -33,7 +33,7 @@ echo "                   A non-zero exit code means a failure occured." >> check
 echo "Tests that need to be visually inspected: devices, pfspecify, pfspecify_str, stream" >> check-omp5.txt
 echo "***********************************************************************************" >> check-omp5.txt
 
-skiptests="red_bug_51 shape_noncontig metadirective concur_update mapper_prob"
+skiptests="red_bug_51 shape_noncontig metadirective concur_update mapper_prob loop"
 
 if [ "$EPSDB" == "1" ]; then
   skiptests+=" task_dep_prob"
