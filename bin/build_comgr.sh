@@ -65,7 +65,9 @@ if [ "$1" == "install" ] ; then
    $SUDO rm $INSTALL_COMGR/testfile
 fi
 
-patchrepo $REPO_DIR
+if [ "$AOMP_VERSION" != "12.0" ] ; then
+  patchrepo $REPO_DIR
+fi
 
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 
@@ -114,5 +116,7 @@ if [ "$1" == "install" ] ; then
          echo "ERROR make install failed "
          exit 1
       fi
-      removepatch $REPO_DIR
+      if [ "$AOMP_VERSION" != "12.0" ] ; then
+        removepatch $REPO_DIR
+      fi
 fi
