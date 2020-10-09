@@ -22,6 +22,7 @@ TESTS_DIR = \
     flags \
     flang_char_kind \
     flang_isystem_prob \
+    flang_math \
     flang_omp_map \
     flang_real16_prob \
     flang_tgt_alloc_ptr \
@@ -70,6 +71,7 @@ TESTS_DIR = \
     reduction_team \
     reduction_teams \
     reduction_teams_distribute_parallel \
+    reduction_shared_array \
     reduc_map_prob \
     schedule \
     simd \

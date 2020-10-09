@@ -73,7 +73,7 @@ if [ "$1" == "install" ] ; then
    $SUDO rm $INSTALL_OPENMP/testfile
 fi
 
-GCCMIN=8
+GCCMIN=9
 if [ "$AOMP_BUILD_CUDA" == 1 ] ; then
    if [ -f $CUDABIN/nvcc ] ; then
       CUDAVER=`$CUDABIN/nvcc --version | grep compilation | cut -d" " -f5 | cut -d"." -f1 `
@@ -84,14 +84,14 @@ if [ "$AOMP_BUILD_CUDA" == 1 ] ; then
    fi
 fi
 
-function getgcc8orless(){
+function getgcc9orless(){
    _loc=`which gcc`
    [ "$_loc" == "" ] && return
    gccver=`$_loc --version | grep gcc | cut -d")" -f2 | cut -d"." -f1`
    [ $gccver -gt $GCCMIN ] && _loc=`which gcc-$GCCMIN`
    echo $_loc
 }
-function getgxx8orless(){
+function getgxx9orless(){
    _loc=`which g++`
    [ "$_loc" == "" ] && return
    gxxver=`$_loc --version | grep g++ | cut -d")" -f2 | cut -d"." -f1`
@@ -99,16 +99,16 @@ function getgxx8orless(){
    echo $_loc
 }
 
-GCCLOC=$(getgcc8orless)
-GXXLOC=$(getgxx8orless)
+GCCLOC=$(getgcc9orless)
+GXXLOC=$(getgxx9orless)
 if [ "$GCCLOC" == "" ] ; then
    echo "ERROR: NO ADEQUATE gcc"
-   echo "       Please install gcc-5, gcc-7, or gcc-8"
+   echo "       Please install gcc-5, gcc-7, gcc-8 or gcc-9"
    exit 1
 fi
 if [ "$GXXLOC" == "" ] ; then
    echo "ERROR: NO ADEQUATE g++"
-   echo "       Please install g++-5, g++-7, or g++-8"
+   echo "       Please install g++-5, g++-7, g++-8 or g++-9"
    exit 1
 fi
 
@@ -127,7 +127,11 @@ COMMON_CMAKE_OPTS="-DOPENMP_ENABLE_LIBOMPTARGET=1
 
 if [ "$AOMP_STANDALONE_BUILD" == 0 ]; then
   COMMON_CMAKE_OPTS="$COMMON_CMAKE_OPTS
+  -DLLVM_MAIN_INCLUDE_DIR=$LLVM_PROJECT_ROOT/llvm/include
   -DDEVICELIBS_ROOT=$DEVICELIBS_ROOT"
+else
+  COMMON_CMAKE_OPTS="$COMMON_CMAKE_OPTS
+  -DLLVM_MAIN_INCLUDE_DIR=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/llvm/include"
 fi
 
 if [ "$AOMP_BUILD_CUDA" == 1 ] ; then

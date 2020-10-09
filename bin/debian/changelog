@@ -1,4 +1,4 @@
-aomp (11.9-0) UNRELEASED; urgency=medium
+aomp (11.9-1) UNRELEASED; urgency=medium
 
   * Initial release of aomp is 0.3-2
   *   Please see example in /usr/lib/aomp/examples/vmuldemo 
@@ -420,4 +420,16 @@ aomp (11.9-0) UNRELEASED; urgency=medium
   * Known Issues
   *   -ROCgdb does not work on gfx803
   *   -Barrier issue on gfx803 for generic kernels.
- -- Greg Rodgers <Gregory.Rodgers@amd.com>  Wed, 19 Aug 2020 22:29:37 -0500
+  *
+  * 11.9-1
+  *   Merge with stable LLVM 11
+  *   Switch sources to ROCm 3.8.x branches, ROCr remained on 3.7.x as there
+  *         were no source updates put in 3.8.
+  *   Fixes for ompt lit tests  * 
+  *
+  * Known Issues
+  *   Race condition in the build of hostrpc in openmp, which may result in an 
+  *         empty libhostrpc.a. Rerun build_openmp.sh.
+  *   ROCgdb does not work on gfx803.
+  *   Barrier issue on gfx803 for generic kernels.
+ -- Greg Rodgers <Gregory.Rodgers@amd.com>  Thu, 08 Oct 2020 16:08:53 -0500

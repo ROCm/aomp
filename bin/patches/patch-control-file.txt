@@ -2,7 +2,6 @@ roct-thunk-interface: roct-thunk-interface.patch
 rocr-runtime: rocr-runtime.patch
 rocminfo: rocminfo_ppc_cmake.patch
 rocm-compilersupport: rocm-compilersupport.patch
-hip-on-vdi: hip-on-vdi.patch
 omptests: omptests.patch
 RAJA: raja.patch
 RAJAPerf: rajaperf.patch
