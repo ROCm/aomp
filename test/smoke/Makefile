@@ -10,6 +10,7 @@ TESTS_DIR = \
     collapse \
     complex \
     complex2 \
+    d2h_slow_copy \
     data_enter_issue01 \
     data_issue_59 \
     data_share1 \
