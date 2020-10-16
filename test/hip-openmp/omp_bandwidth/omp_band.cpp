@@ -20,7 +20,7 @@ int main(int argc, char **argv) {
    clock_gettime(CLOCK_REALTIME, &t2);
    m = (t2.tv_sec - t1.tv_sec) + (t2.tv_nsec - t1.tv_nsec)/1e9;
    fprintf(stdout, "Time %f for copy host to device\n", m);
-   fprintf(stderr, "%f GBytes/sec\n",  M*4/m/(1024*1024*1024));
+   fprintf(stderr, "%f GBytes/sec\n",  M*4/m/(1000*1000*1000));
    #pragma omp target teams
      #pragma omp distribute parallel for
      for (uint64_t sample=0; sample <100; sample++) {
@@ -32,7 +32,7 @@ int main(int argc, char **argv) {
   for (int i=0;i<M;i++)
     W[i]+=2;
   fprintf(stdout, "Time %f for copy device to host\n", m);
-  fprintf(stderr, "%f GBytes/sec\n",  M*4/m/(1024*1024*1024));
+  fprintf(stderr, "%f GBytes/sec\n",  M*4/m/(1000*1000*1000));
   // Check results here...
   delete[] W;
   fprintf(stdout, "\nPassed\n");
