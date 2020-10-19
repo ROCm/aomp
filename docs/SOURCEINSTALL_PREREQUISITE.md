@@ -125,3 +125,8 @@ Create a /etc/yum.repos.d/rocm.repo file with the following contents:
   sudo reboot
   sudo usermod -a -G video $USER
 ```
+
+### 5. Optional Install of Spack
+
+If you expect to install AOMP sources using the release source tarball with spack, you must install Spack. Refer to [these install instructions](https://spack.readthedocs.io/en/latest/getting_started.html#installation) for instructions on installing spack.
+The AOMP spack configuration file is currently missing proper dependencies, so be sure to install the packages listed above before proceeding with source install via spack.
