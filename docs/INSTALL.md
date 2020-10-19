@@ -5,6 +5,6 @@ Platform Install Options:
 - [RHEL 7](RHELINSTALL.md)
 - [Install Without Root](NOROOTINSTALL.md)
 - Build AOMP from source:
-   * [Prerequisites to install from source (SOURCEINSTALL_PREREQUISITES.md)
+   * [Prerequisites to install from source](SOURCEINSTALL_PREREQUISITE.md)
    * [Build and install from release source tarball](RELEASESOURCEINSTALL.md)
    * [Build and install development sources](SOURCEINSTALL.md)
