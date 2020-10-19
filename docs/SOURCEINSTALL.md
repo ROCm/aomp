@@ -62,8 +62,24 @@ The build scripts use cmake, so we need to link cmake --> cmake3 in /usr/bin
 ```
   sudo ln -s /usr/bin/cmake3 /usr/bin/cmake
 ```
+### 2.  Build CMake 3.18 in /usr/local/cmake
+There is a bug in cmake 3.18.2 and cmake 3.18.3 that causes the AOMP source build to fail.
+We recommend installing 3.18.1.
+The default for the AOMP_CMAKE variable is /usr/local/cmake/bin/cmake.
+Use these commands to install cmake 3.18.1 from source into /usr/local/cmake.
 
-### 2. Verify KFD Driver
+```
+  $ sudo apt-get install libssl-dev
+  $ mkdir /tmp/cmake
+  $ cd /tmp/cmake
+  $ wget https://github.com/Kitware/CMake/releases/download/v3.18.1/cmake-3.18.1.tar.gz
+  $ tar -xvzf cmake-3.18.1.tar.gz
+  $ ./bootstrap --prefix=/usr/local/cmake
+  $ make
+  $ sudo make install
+```
+
+### 3. Verify KFD Driver
 
 Please verify you have the proper software installed as AOMP needs certain support to function properly, such as the KFD driver for AMD GPUs.
 
@@ -111,7 +127,7 @@ Create a /etc/yum.repos.d/rocm.repo file with the following contents:
   sudo yum install rock-dkms
 ```
 
-### 3. Create the Unix Video Group
+### 4. Create the Unix Video Group
 ```
   echo 'SUBSYSTEM=="kfd", KERNEL=="kfd", TAG+="uaccess", GROUP="video"' | sudo tee /etc/udev/rules.d/70-kfd.rules
   sudo reboot
