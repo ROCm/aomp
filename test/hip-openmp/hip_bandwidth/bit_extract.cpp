@@ -30,8 +30,6 @@ __global__ void bit_extract_kernel(uint32_t* C_d, const uint32_t* A_d, size_t N)
 int main(int argc, char* argv[]) {
     uint32_t *A_d, *C_d;
     uint32_t *A_h, *C_h;
-    size_t N = 1000000000;
-    size_t Nbytes = N * sizeof(uint32_t);
     struct timespec t0,t1,t2,t3,t4,t5;
 
     CHECK(hipInit( 0 ));
@@ -40,6 +38,12 @@ int main(int argc, char* argv[]) {
     hipDeviceProp_t props;
     CHECK(hipGetDeviceProperties(&props, deviceId));
     fprintf(stderr, "running on device #%d %s\n", deviceId, props.name);
+    fprintf(stderr, "Device num %d\n", props.gcnArch);
+    size_t N = 1000000000;
+    // if we are a dinky memory us 2GB max.
+    if (props.gcnArch < 906)
+      N = N /2;
+    size_t Nbytes = N * sizeof(uint32_t);
 
     CHECK(hipDeviceSynchronize());
 

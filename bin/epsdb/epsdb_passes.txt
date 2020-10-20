@@ -57,7 +57,6 @@ nativetests
 nest_call_par2
 nested_loop
 nested_par3
-OmpHipMallocManaged
 omp_lock
 omp_num_teams_generic
 omp_num_teams_SPMD
