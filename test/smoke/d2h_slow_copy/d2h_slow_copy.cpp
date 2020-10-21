@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <chrono>
+#include <memory>
 
 #define N 30000
 
@@ -42,7 +43,7 @@ struct timer {
 };
 
 int main() {
-  float *arr = (float*)malloc(sizeof(float) * N * N);
+  int *arr = new int[N*N];
   timer stopwatch("main()");
 
   #pragma omp target
@@ -59,7 +60,7 @@ int main() {
     for (int i = 0; i < N; i++) {
       #pragma omp parallel for
       for (int j = 0; j < N; j++) {
-        arr[i*N + j] = sqrt((i * j) & 0xfffff);
+        arr[i*N + j] = i + j;
       }
     }
 
@@ -69,16 +70,15 @@ int main() {
   stopwatch.checkpoint("Device to host");
   for (int i = 0; i < N; i++)
     for (int j = 0; j < N; j++) {
-      float expected = (i * j) & 0xfffff;
-      float val = arr[i *N + j];
-      if (round(val * val) != (float)expected) {
-        printf("ERROR at (%d, %d) = %f != %f\n", i, j, val * val, (float)(expected));
-        exit(1);
+      if (arr[i*N + j] != i+j) {
+        fprintf(stderr, "arr[%d*%d + %d] != %d+%d (%d != %d)\n", i, N, j, i, j, arr[i*N+j], i+j);
+        delete[] arr;
+        return 1;
       }
     }
 
   stopwatch.checkpoint("Results verified");
   printf("Done\n");
-  free(arr);
+  delete[] arr;
   return 0;
 }
