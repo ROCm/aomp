@@ -8,7 +8,7 @@ Build and install from sources is possible.  However, the source build for AOMP 
 
 ## Source Build Prerequisites
 
-To build AOMP from source you must: 1. Install certain distribution packages, 2. Build CMake 3.18 from source 3. ensure the KFD kernel module is installed and operating, 4. create the Unix video group, and 5. install spack if required. [This link](SOURCEINSTALL_PREREQUISITE.md) provides instructions to satisfy all the AOMP source build dependencies.
+To build AOMP from source you must: 1. Install certain distribution packages, 2. Build CMake 3.13.4 from source 3. ensure the KFD kernel module is installed and operating, 4. create the Unix video group, and 5. install spack if required. [This link](SOURCEINSTALL_PREREQUISITE.md) provides instructions to satisfy all the AOMP source build dependencies.
 
 ## Clone and Build AOMP
 

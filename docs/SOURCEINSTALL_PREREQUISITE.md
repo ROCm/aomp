@@ -54,18 +54,17 @@ The build scripts use cmake, so we need to link cmake --> cmake3 in /usr/bin
 ```
   sudo ln -s /usr/bin/cmake3 /usr/bin/cmake
 ```
-### 2.  Build CMake 3.18 in /usr/local/cmake
-There is a bug in cmake 3.18.2 and cmake 3.18.3 that causes the AOMP source build to fail.
-We recommend installing 3.18.1.
+2.  Build CMake 3.13.4 in /usr/local/cmake
 The default for the AOMP_CMAKE variable is /usr/local/cmake/bin/cmake.
-Use these commands to install cmake 3.18.1 from source into /usr/local/cmake.
+Use these commands to install cmake 3.13.4 from source into /usr/local/cmake.
 
 ```
   $ sudo apt-get install libssl-dev
   $ mkdir /tmp/cmake
   $ cd /tmp/cmake
-  $ wget https://github.com/Kitware/CMake/releases/download/v3.18.1/cmake-3.18.1.tar.gz
-  $ tar -xvzf cmake-3.18.1.tar.gz
+  $ wget https://github.com/Kitware/CMake/releases/download/v3.13.4/cmake-3.13.4.tar.gz
+  $ tar -xvzf cmake-3.13.4.tar.gz
+  $ cd cmake-3.13.4
   $ ./bootstrap --prefix=/usr/local/cmake
   $ make
   $ sudo make install
