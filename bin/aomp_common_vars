@@ -55,7 +55,11 @@ CUDAT=${CUDAT:-$CUDA/targets}
 CUDAINCLUDE=${CUDAINCLUDE:-$CUDA/include}
 CUDABIN=${CUDABIN:-$CUDA/bin}
 
-AOMP_CMAKE=${AOMP_CMAKE:-cmake}
+if [ -f /usr/local/cmake/bin/cmake ] ; then
+  AOMP_CMAKE=${AOMP_CMAKE:-/usr/local/cmake/bin/cmake}
+else
+  AOMP_CMAKE=${AOMP_CMAKE:-cmake}
+fi
 AOMP_PROC=`uname -p`
 if [ "$AOMP_PROC" == "unknown" ] ; then
    AOMP_PROC=`uname -a | awk '{print $(NF-1)}'`
