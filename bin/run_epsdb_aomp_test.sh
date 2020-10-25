@@ -112,6 +112,8 @@ if [ "$efails" -ge "3" ]; then
 elif [ "$efails" -gt "0" ]; then
   echo "EPSDB smoke conditional passes"
   epsdb_status="yellow"
+else
+  echo "EPSDB smoke passes"
 fi
 if [ "$appfails" -ge "1" ]; then
   echo "EPSDB openmpapps fails"
