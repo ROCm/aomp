@@ -38,7 +38,8 @@ echo AOMP_GPU = $AOMP_GPU
 cd $AOMP_REPOS_TEST/Nekbone
 cd test/nek_gpu1
 make -f makefile.aomp clean
-PATH=$AOMP/bin/:$PATH make -f makefile.aomp
 ulimit -s unlimited
-LIBOMPTARGET_KERNEL_TRACE=1 ./nekbone
-
+PATH=$AOMP/bin/:$PATH make -f makefile.aomp
+LIBOMPTARGET_KERNEL_TRACE=1 ./nekbone 2>&1 | tee nek.log
+grep -s Exitting nek.log
+exit $?
