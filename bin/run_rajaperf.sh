@@ -39,7 +39,7 @@ AOMP_GPU=${AOMP_GPU:-$DETECTED_GPU}
 
 # Check cmake version
 cmake_regex="(([0-9])+\.([0-9]+)\.[0-9]+)"
-cmake_ver_str=$(cmake --version)
+cmake_ver_str=$($AOMP_CMAKE  --version)
 if [[ "$cmake_ver_str" =~ $cmake_regex ]]; then
   cmake_ver=${BASH_REMATCH[1]}
   cmake_major_ver=${BASH_REMATCH[2]}
@@ -68,7 +68,7 @@ rm -rf build_${BUILD_SUFFIX} >/dev/null
 mkdir build_${BUILD_SUFFIX}
 pushd build_${BUILD_SUFFIX}
 
-cmake \
+$AOMP_CMAKE \
   -DCMAKE_BUILD_TYPE=Release \
   -DCMAKE_CXX_COMPILER=${AOMP}/bin/clang++ \
   -DENABLE_CUDA=Off \
