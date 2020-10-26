@@ -12,7 +12,7 @@
 TESTNAME = vmulsum
 TESTSRC  = main.c vsum.c vmul.c
 
-UNAMEP = $(shell uname -p)
+UNAMEP = $(shell uname -m)
 AOMP_CPUTARGET = $(UNAMEP)-pc-linux-gnu
 ifeq ($(UNAMEP),ppc64le)
   AOMP_CPUTARGET = ppc64le-linux-gnu

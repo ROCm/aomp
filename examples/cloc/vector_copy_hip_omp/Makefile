@@ -2,7 +2,7 @@
 TEST_NAME=vector_copy
 CU_FILE=vector_copy
 
-UNAMEP = $(shell uname -p)
+UNAMEP = $(shell uname -m)
 AOMP_CPUTARGET = $(UNAMEP)-pc-linux-gnu
 ifeq ($(UNAMEP),ppc64le)
   AOMP_CPUTARGET = ppc64le-linux-gnu
