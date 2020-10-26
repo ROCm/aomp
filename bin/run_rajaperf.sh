@@ -79,6 +79,13 @@ $AOMP_CMAKE \
   ..
 
 make -j $NUM_THREADS
+
+# Do not continue if build fails
+if [ $? != 0 ]; then
+  echo "ERROR: Make returned non-zero, exiting..."
+  exit 1
+fi
+
 popd
 popd
 
