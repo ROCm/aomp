@@ -14,7 +14,7 @@ debug_regex="(OFFLOAD_DEBUG=([0-9]))"
 # Regex to search for Nvidia cards
 target_regex="(-fopenmp-[a-z]*=[a-z,-]*).*(-Xopenmp-[a-z]*=[a-z,-]*)"
 
-UNAMEP=`uname -p`
+UNAMEP=`uname -m`
 AOMP_CPUTARGET=${UNAMEP}-pc-linux-gnu
 if [[ $UNAMEP == "ppc64le" ]] ; then
    AOMP_CPUTARGET=ppc64le-linux-gnu

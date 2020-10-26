@@ -34,7 +34,7 @@ endif
 # --- End Standard Makefile check for AOMP installation ---
 AOMP_GPU ?= gfx900
 CC        = $(AOMP)/bin/clang
-UNAMEP    = $(shell uname -p)
+UNAMEP    = $(shell uname -m)
 HOST_TARGET = $(UNAMEP)-pc-linux-gnu
 
 ifeq (sm_,$(findstring sm_,$(AOMP_GPU)))
