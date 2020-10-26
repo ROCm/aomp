@@ -57,9 +57,7 @@ fi
 
 # Apply patches
 patchrepo $AOMP_REPOS_TEST/RAJAPerf/tpl/RAJA
-if [ "$AOMP_GPU" == "gfx908" ]; then
-  patchrepo $AOMP_REPOS_TEST/RAJAPerf
-fi
+patchrepo $AOMP_REPOS_TEST/RAJAPerf
 
 # Begin configuration
 pushd $AOMP_REPOS_TEST/RAJAPerf
@@ -90,7 +88,5 @@ popd
 
 # Remove patches
 removepatch $AOMP_REPOS_TEST/RAJAPerf/tpl/RAJA
-if [ "$AOMP_GPU" == "gfx908" ]; then
-  removepatch $AOMP_REPOS_TEST/RAJAPerf
-fi
+removepatch $AOMP_REPOS_TEST/RAJAPerf
 
