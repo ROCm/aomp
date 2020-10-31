@@ -1,4 +1,4 @@
-aomp (11.9-1) UNRELEASED; urgency=medium
+aomp (11.11-0) UNRELEASED; urgency=medium
 
   * Initial release of aomp is 0.3-2
   *   Please see example in /usr/lib/aomp/examples/vmuldemo 
@@ -432,4 +432,52 @@ aomp (11.9-1) UNRELEASED; urgency=medium
   *         empty libhostrpc.a. Rerun build_openmp.sh.
   *   ROCgdb does not work on gfx803.
   *   Barrier issue on gfx803 for generic kernels.
- -- Greg Rodgers <Gregory.Rodgers@amd.com>  Thu, 08 Oct 2020 16:08:53 -0500
+  *
+  * 11.11-0
+  * Major fixes to internal clang math headers:
+  *   This set of changes applies to clang internal headers to support OpenMP C, C++,
+  *         and FORTRAN and for HIP C.  This establishes consistency between NVPTX and AMDGCN
+  *         offloading and between OpenMP, HIP, and CUDA.  OpenMP uses function variants and header
+  *         overlays to define device versions of functions.  This causes clang LLVM IR codegen to
+  *         mangled names of variants in both the definition and callsites of functions defined in
+  *         the internal clang headers.  These changes apply to headers found in the installation
+  *         subdirectory lib/clang/11.0.0/include.
+  *   These changes temporarily eliminates the use of the libm bitcode libraries for C and C++.
+  *         Although math functions are now defined with internal clang  headers, a bitcode library
+  *         of the C functions defined in the headers is still built for FORTRAN toolchain linking
+  *         because FORTRAN cannot use c math headers.  This bitcode library is installed in
+  *         lib/libdevice/libm-<device arch>.bc.  The source build of this bitcode library is done
+  *         with the aomp-extras repository and the component built script build_extras.sh.
+  *         In the future, we will introduce across the board changes to eliminate massive header files
+  *         for math libraries and replace it with linking to bitcode libraries.
+  * Usability updates:
+  *   Add support for -gpubnames in Flang Driver
+  * Performance updates:
+  *   Runtime performance improvements for synchronous memory copy between host and device.
+  *   Added a performant  "integer to integer" pow function for c++ that does not convert to float.
+  * Bug fixes:
+  *   Fixed hostrpc cmake race condition in the build of openmp
+  *   Add a fatal error if missing -Xopenmp-target or -march options when -fopenmp-targets is specified.
+  *         However, we do forgive this requirement for offloading to host when there is only a single
+  *         target and that target is the host.
+  *   Fix a bug in InstructionSimplify pass where a compare of two constants of different sizes found
+  *         in the optimization pass.  This fixes issue  #182 which was causing kokkos build failure.
+  *   Fix openmp error message output for no_rocm_device_lib, was asserting.
+  * New Feature:
+  *   Added an example category for Kokkos.  The Kokkos example makefile detects if Kokkos is installed
+  *       and builds Kokkos from the web if not. See the script kokkos_build.sh in the bin directory
+  *       for how we build Kokkos.  Kokkos now builds cleanly with the OpenMP backend.  However,
+  *       only simple test cases are working.
+  * Development changes:
+  *   Switch branch naming scheme to aomp11.  It was amd-stg-openmp.  This change applies to repos
+  *       amd-llvm-project, aomp-extras, and flang.
+  *   Add environment variables ROCM_LLD_ARGS ROCM_LINK_ARGS ROCM_SELECT_ARGS to test driver options
+  *       without compiler rebuild. This is not an upstream change.
+  *   Code reorganization in preparation for upstream:
+  *   Rename libomptarget plugin from hsa to amdgpu following upstream.
+  *   Merge hostrpc host and device library with libomptarget.
+  *   Remove some memory management overhead in libomptarget plugin.
+  *   Eliminate need for -lhostrpc during application link by merging with libomptarget.
+  *   Remove multiple inessential differences from upstream across the toolchain.
+
+ -- Greg Rodgers <Gregory.Rodgers@amd.com>  Fri, 30 Oct 2020 15:42:27 -0500
