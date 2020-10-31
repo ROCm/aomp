@@ -86,11 +86,13 @@ tail -50 examples.log
 echo "======= nekbone ======"
 cd $aompdir/bin
 ./run_nekbone.sh > nekbone.log 2>&1
+nekfails=$?
 tail -7 nekbone.log
 
 echo "======= openmpapps ==="
 cd ~/git/aomp-test/openmpapps
 ./check_openmpapps.sh > openmpapps.log 2>&1
+appfails=$?
 tail -12 openmpapps.log
 
 # sollve take about 16 minutes
@@ -102,8 +104,9 @@ tail -60 sollve.log
 echo Done
 echo
 set -x
+epsdb_status="green"
 # return pass, condpass, fial status  (count)
-if [ "$efails" -ge "7" ]; then
+if [ "$efails" -ge "3" ]; then
   echo "EPSDB smoke fails"
   epsdb_status="red"
 elif [ "$efails" -gt "0" ]; then
@@ -111,7 +114,16 @@ elif [ "$efails" -gt "0" ]; then
   epsdb_status="yellow"
 else
   echo "EPSDB smoke passes"
-  epsdb_status="green"
 fi
-exit $efails
+if [ "$appfails" -ge "1" ]; then
+  echo "EPSDB openmpapps fails"
+  epsdb_status="red"
+fi
+if [ "$nekfails" -ge "1" ]; then
+  echo "EPSDB nekbone fails"
+  epsdb_status="red"
+fi
+echo "EPSDB Status: " $epsdb_status
+Ret=$(($efails + $appfails + $nekfails))
+exit $Ret
 

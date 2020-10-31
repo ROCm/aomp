@@ -39,7 +39,7 @@ AOMP_GPU=${AOMP_GPU:-$DETECTED_GPU}
 
 # Check cmake version
 cmake_regex="(([0-9])+\.([0-9]+)\.[0-9]+)"
-cmake_ver_str=$(cmake --version)
+cmake_ver_str=$($AOMP_CMAKE  --version)
 if [[ "$cmake_ver_str" =~ $cmake_regex ]]; then
   cmake_ver=${BASH_REMATCH[1]}
   cmake_major_ver=${BASH_REMATCH[2]}
@@ -57,9 +57,7 @@ fi
 
 # Apply patches
 patchrepo $AOMP_REPOS_TEST/RAJAPerf/tpl/RAJA
-if [ "$AOMP_GPU" == "gfx908" ]; then
-  patchrepo $AOMP_REPOS_TEST/RAJAPerf
-fi
+patchrepo $AOMP_REPOS_TEST/RAJAPerf
 
 # Begin configuration
 pushd $AOMP_REPOS_TEST/RAJAPerf
@@ -68,7 +66,7 @@ rm -rf build_${BUILD_SUFFIX} >/dev/null
 mkdir build_${BUILD_SUFFIX}
 pushd build_${BUILD_SUFFIX}
 
-cmake \
+$AOMP_CMAKE \
   -DCMAKE_BUILD_TYPE=Release \
   -DCMAKE_CXX_COMPILER=${AOMP}/bin/clang++ \
   -DENABLE_CUDA=Off \
@@ -81,6 +79,13 @@ cmake \
   ..
 
 make -j $NUM_THREADS
+
+# Do not continue if build fails
+if [ $? != 0 ]; then
+  echo "ERROR: Make returned non-zero, exiting..."
+  exit 1
+fi
+
 popd
 popd
 
@@ -90,7 +95,5 @@ popd
 
 # Remove patches
 removepatch $AOMP_REPOS_TEST/RAJAPerf/tpl/RAJA
-if [ "$AOMP_GPU" == "gfx908" ]; then
-  removepatch $AOMP_REPOS_TEST/RAJAPerf
-fi
+removepatch $AOMP_REPOS_TEST/RAJAPerf
 

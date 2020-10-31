@@ -52,7 +52,7 @@ CUDAINCLUDE=${CUDAINCLUDE:-$CUDA/include}
 CUDABIN=${CUDABIN:-$CUDA/bin}
 
 F18_CMAKE=${F18_CMAKE:-cmake}
-F18_PROC=`uname -p`
+F18_PROC=`uname -m`
 if [ "$F18_PROC" == "unknown" ] ; then
    F18_PROC=`uname -a | awk '{print $(NF-1)}'`
 fi

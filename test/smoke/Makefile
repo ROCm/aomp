@@ -10,6 +10,7 @@ TESTS_DIR = \
     collapse \
     complex \
     complex2 \
+    d2h_slow_copy \
     data_enter_issue01 \
     data_issue_59 \
     data_share1 \
@@ -21,6 +22,7 @@ TESTS_DIR = \
     firstprivate2 \
     flags \
     flang_char_kind \
+    flang_gen_sptr_prob \
     flang_isystem_prob \
     flang_math \
     flang_omp_map \
@@ -34,6 +36,7 @@ TESTS_DIR = \
     helloworld \
     hip_device_compile \
     hip_rocblas \
+    host_targ \
     issue_flang_libomp \
     issue_001 \
     issue_002 \

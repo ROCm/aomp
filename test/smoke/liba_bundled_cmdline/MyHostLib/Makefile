@@ -33,7 +33,7 @@ ifeq ("$(wildcard $(AOMP))","")
 endif
 # --- End Standard Makefile check for AOMP installation ---
 CC        = $(AOMP)/bin/clang
-UNAMEP    = $(shell uname -p)
+UNAMEP    = $(shell uname -m)
 HOST_TARGET = $(UNAMEP)-pc-linux-gnu
 
 TMPDIR   ?= ./build

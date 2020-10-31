@@ -44,7 +44,7 @@ DEBFULLNAME="Greg Rodgers"
 DEBEMAIL="Gregory.Rodgers@amd.com"
 export DEBFULLNAME DEBEMAIL
 
-DEBARCH=`uname -p`
+DEBARCH=`uname -m`
 RPMARCH=$DEBARCH
 if [ "$DEBARCH" == "x86_64" ] ; then 
    DEBARCH="amd64"

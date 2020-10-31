@@ -8,6 +8,10 @@ int main()
   {
     // calls to wtime should not be folded together
    time0 = omp_get_wtime();
+#if defined(__AMDGCN__)
+   // nvptx has a nanosleep, but only for >= sm_70
+   __builtin_amdgcn_s_sleep(1000);
+#endif
    time1 = omp_get_wtime();
   }
 
