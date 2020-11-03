@@ -48,8 +48,14 @@ endif
 INCLUDES     = -I$(KOKKOS_ROOT)/include
 TARGET_FLAGS = -fopenmp -fopenmp-targets=$(AOMP_GPUTARGET) -Xopenmp-target=$(AOMP_GPUTARGET) -march=$(AOMP_GPU) 
 CPPFLAGS     = $(INCLUDES) -Wall -Wextra -O3 -DNDEBUG  -w $(TARGET_FLAGS) -std=c++17 -DGTEST_HAS_PTHREAD=0 -DGTEST_HAS_TR1_TUPLE=0 -DKOKKOS_DEPENDENCE -DKOKKOS_WORKAROUND_OPENMPTARGET_CLANG
-LINKFLAGS    = $(enableopt) -Wall -Wextra -O3 -DNDEBUG -w $(TARGET_FLAGS) 
-KOKKOS_LIB   = $(KOKKOS_ROOT)/lib/libkokkoscore.a
+LINKFLAGS    = $(enableopt) -Wall -Wextra -O3 -DNDEBUG -w $(TARGET_FLAGS)
+
+# Archive may be at lib64 for non-debian systems
+ifneq (,$(wildcard $(KOKKOS_ROOT)/lib64/libkokkoscore.a))
+  KOKKOS_LIB   = $(KOKKOS_ROOT)/lib64/libkokkoscore.a
+else
+  KOKKOS_LIB   = $(KOKKOS_ROOT)/lib/libkokkoscore.a
+endif
 
 ifeq ($(OFFLOAD_DEBUG),1)
   $(info    DEBUG Mode ON)
@@ -119,4 +125,4 @@ clean:
 	rm -rf $(TESTNAME) obin *.i *.ii *.bc *.lk a.out-* *.ll *.s *.o *.cubin
 
 clean_kokkos:
-	rm -rf $(KOKKOS_ROOT)
+	$(AOMP)/bin/kokkos_build.sh clean
