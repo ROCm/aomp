@@ -51,7 +51,7 @@ CPPFLAGS     = $(INCLUDES) -Wall -Wextra -O3 -DNDEBUG  -w $(TARGET_FLAGS) -std=c
 LINKFLAGS    = $(enableopt) -Wall -Wextra -O3 -DNDEBUG -w $(TARGET_FLAGS)
 
 # Archive may be at lib64 for non-debian systems
-ifneq (,$(wildcard $(KOKKOS_ROOT)/lib64/libkokkoscore.a))
+ifneq (,$(wildcard /usr/lib64))
   KOKKOS_LIB   = $(KOKKOS_ROOT)/lib64/libkokkoscore.a
 else
   KOKKOS_LIB   = $(KOKKOS_ROOT)/lib/libkokkoscore.a
