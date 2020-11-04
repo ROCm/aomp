@@ -1,7 +1,7 @@
 #include <cmath>
 #include <omp.h>
 #include <stdio.h>
-#define RES_SIZE 12
+#define RES_SIZE 14
 
 int main(int argc, char **argv)
 {
@@ -10,11 +10,13 @@ int main(int argc, char **argv)
   double base = 2.0 ;
   double exp  = 3.0 ;
   float fbase = 2.0 ;
-  float fexp  = 3.0; ;
+  float fexp  = 3.0 ;
+  unsigned long ulval = 2;
   double res[RES_SIZE];
   float  fres[RES_SIZE];
   int ires[RES_SIZE];
-  #pragma omp target map(from:res[0:RES_SIZE],fres[0:RES_SIZE],ires[0:RES_SIZE])
+  unsigned long ulres[RES_SIZE];
+  #pragma omp target map(from:res[0:RES_SIZE],fres[0:RES_SIZE],ires[0:RES_SIZE],ulres[0:RES_SIZE])
   {
 	  // Double results 
     res[0] = pow(base, exp);
@@ -44,6 +46,9 @@ int main(int argc, char **argv)
 	  // integer results 
     ires[0] = pow(ibase, iexp);
     ires[1] = std::pow(ibase, iexp);
+
+	  // unsigned long results
+    res[12] = sqrt(ulval);
   }
 
   printf(" Double = Double**Double    result = %f\n", res[0]);
@@ -74,6 +79,7 @@ int main(int argc, char **argv)
   printf(" Integer = Integer**Integer result = %d\n",ires[0]);
   printf(" With std::\n");
   printf(" Integer = Integer**Integer result = %d\n",ires[1]);
+  printf(" Double = sqrt(ulong 2)     result = %f\n", res[12]);
 
   return 0;
 }
