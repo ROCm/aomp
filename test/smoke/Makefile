@@ -26,6 +26,7 @@ TESTS_DIR = \
     flang_isystem_prob \
     flang_math \
     flang_omp_map \
+    flang_omp_red_3d \
     flang_real16_prob \
     flang_tgt_alloc_ptr \
     function \
@@ -43,6 +44,7 @@ TESTS_DIR = \
     launch_latency \
     liba_bundled \
     liba_bundled_cmdline \
+    longDouble \
     lto_teams \
     ManyKernels \
     map_to_from_prob \

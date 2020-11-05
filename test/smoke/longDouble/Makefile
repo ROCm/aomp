@@ -1,7 +1,7 @@
 include ../Makefile.defs
 
-TESTNAME     = team_prob
-TESTSRC_MAIN = team_prob.cpp
+TESTNAME     = longDouble
+TESTSRC_MAIN = longDouble.cpp
 TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 

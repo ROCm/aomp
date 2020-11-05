@@ -1,4 +1,4 @@
-aomp (11.11-0) UNRELEASED; urgency=medium
+aomp (11.11-1) UNRELEASED; urgency=medium
 
   * Initial release of aomp is 0.3-2
   *   Please see example in /usr/lib/aomp/examples/vmuldemo 
@@ -479,5 +479,18 @@ aomp (11.11-0) UNRELEASED; urgency=medium
   *   Remove some memory management overhead in libomptarget plugin.
   *   Eliminate need for -lhostrpc during application link by merging with libomptarget.
   *   Remove multiple inessential differences from upstream across the toolchain.
+  *
+  *  11.11-1
+  *
+  *  Fix problems with device math functions being ambiguous, especially the
+  *       pow function.
+  *  Added smoke test called math_pow for checking all variants of pow and doing a
+  *       sqrt(integer).
+  *  New Makefile for KOKKOS example to properly clean up KOKKOS install
+  *  Fix the slices.cpp and math_modf.cpp Makefile so they call clang++. Using
+  *       clang on a cpp file causes the c++ personality not to be defined which results
+  *       in an resolved reference at link time.
+  *  Update shared variable linkage which further reduces differences between nvptx
+  *       and amdgcn LLVM IR codegen.
 
- -- Greg Rodgers <Gregory.Rodgers@amd.com>  Fri, 30 Oct 2020 15:42:27 -0500
+ -- Greg Rodgers <Gregory.Rodgers@amd.com>  Thu, 05 Nov 2020 10:21:43 -0600
