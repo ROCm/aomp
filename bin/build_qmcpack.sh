@@ -41,16 +41,16 @@ thisdir=$(getdname $0)
 # --- end standard header ----
 AOMP=${AOMP:-~/usr/lib/aomp}
 
-where_module=`which module`
-if [ $? == 0 ] ; then 
+if [ -e /etc/profile.d/modules.sh ] ; then
+   source /etc/profile.d/modules.sh
    # This script assumes modules setup on poplar cluster
    module load cmake
    module load gcc
    module load hdf5/1.10.1
    module load openblas
    module load rocm-alt
-   BOOST_ROOT=${BOOST_ROOT:-/cm/shared/apps/fftw/openmpi/gcc/64/3.3.8}
-   FFTW_HOME=${FFTW_HOME:-/cm/shared/opt/boost/1.72.0}
+   BOOST_ROOT=${BOOST_ROOT:-/cm/shared/opt/boost/1.72.0}
+   FFTW_HOME=${FFTW_HOME:-/cm/shared/apps/fftw/openmpi/gcc/64/3.3.8}
    OPENMPI_INSTALL=${OPENMPI_INSTALL:-~/openmpi-4.0.3-install}
    export BOOST_ROOT FFTW_HOME
 else
