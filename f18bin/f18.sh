@@ -144,6 +144,8 @@ function getdname(){
 INCLUDES=""
 PASSTHRUARGS=""
 INPUTFILES=""
+EXTRA_BBC_ARGS=""
+CPP=0
 #  Argument processing
 while [ $# -gt 0 ] ; do
    case "$1" in
@@ -162,6 +164,10 @@ while [ $# -gt 0 ] ; do
       -O1)              LLVMOPT=1 ;;
       -O0)              LLVMOPT=0 ;;
       -o)               OUTFILE=$2; shift ;;
+      -r8)		EXTRA_BBC_ARGS="$EXTRA_BBC_ARGS -r8";;
+      -i8)		EXTRA_BBC_ARGS="$EXTRA_BBC_ARGS -i8";;
+      -cpp)		CPP=1 ;;
+      -D*)		CPP_ARGS="$CPP_ARGS $1" ;;
       -t)               TMPDIR=$2; shift ;;
       -h)               usage ;;
       -help)            usage ;;
@@ -282,7 +288,7 @@ rc=0
 # Set extra libs that may be needed
 EXTRA_LIBS="-L /usr/local/lib -lpgmath"
 EXTRA_LIBS=""
-BBC_ARGS="-module-suffix .f18.mod -intrinsic-module-directory $F18/include/flang"
+BBC_ARGS="-module-suffix .f18.mod -intrinsic-module-directory $F18/include/flang $EXTRA_BBC_ARGS"
 
 # For firdev developers only
 # Set F18_USE_BUILD_BIN if you dont want run out of install binaries
@@ -321,7 +327,13 @@ for __input_file in `echo $INPUTFILES` ; do
       # the bbc phase includes parsing, semantic analysis, producing FIR, and lastly MLIR
       [ $VV ] && echo 
       [ $VERBOSE ] && echo "#Step:  bbc - Parse and create mlir for $__input_file"
-      runcmd "$F18BIN/bbc $BBC_ARGS $__input_file -o $TMPDIR/$strippedname.mlir"
+      if [ $CPP -eq 0 ] ; then
+        runcmd "$F18BIN/bbc $BBC_ARGS $__input_file -o $TMPDIR/$strippedname.mlir"
+      else
+        runcmd "cpp -traditional-cpp $CPP_ARGS $__input_file -o $TMPDIR/$strippedname.cpp.$filetype"
+        runcmd "$F18BIN/bbc $BBC_ARGS $TMPDIR/$strippedname.cpp.$filetype -o $TMPDIR/$strippedname.mlir"
+      fi
+
       # the tco phase takes in MLIR and lowers it to llvm IR
       [ $VV ] && echo 
       [ $VERBOSE ] && echo "#Step:  tco - Convert mlir to LLVM IR"
