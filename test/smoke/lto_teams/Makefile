@@ -10,7 +10,11 @@ TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 #    export AOMP_GPU=`/opt/rocm/aomp/bin/mygpu`
 
 # FIXME: Change this to the correct location of AOCC llvm linker when released and installed
-AOCC ?= /opt/AMD/AOCC23-REL-BUILD-83
+_aocc_default = /opt/AMD/AOCC23-REL-BUILD-83
+ifeq ($(shell ls $(_aocc_default)/bin/ld.lld 2>/dev/null),)
+  _aocc_default=$(AOMP)
+endif
+AOCC ?= $(_aocc_default)
 _aocc_lld = $(shell ls $(AOCC)/bin/ld.lld 2>/dev/null)
 ifeq ($(_aocc_lld),)
   $(info  )
@@ -41,10 +45,10 @@ endif
 #  This option uses AOCC as the alternative linker called by AOMP driver
 ALT_LINKER = $(_ldflag)$(_aocc_lld)
 
-CFLAGS	     = -O3 -flto=thin $(ALT_LINKER)
-CLANG        = clang
-OMP_BIN      = $(AOMP)/bin/$(CLANG)
-CC           = $(OMP_BIN) $(VERBOSE)
+CFLAGS	   = -O3 -flto=thin $(ALT_LINKER)
+CLANG      = clang
+OMP_BIN    = $(AOMP)/bin/$(CLANG)
+CC         = $(OMP_BIN) $(VERBOSE)
 
 include ../Makefile.rules
 
