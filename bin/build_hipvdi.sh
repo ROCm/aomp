@@ -107,7 +107,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
  -DHIP_COMPILER=clang \
  -DHIP_PLATFORM=rocclr \
  -DROCM_PATH=$ROCM_DIR \
- -DHSA_PATH=$ROCM_DIR/hsa \
+ -DHSA_PATH=$ROCM_DIR \
  -DCMAKE_MODULE_PATH=$ROCM_DIR/cmake \
  -DROCclr_DIR=$ROCclr_ROOT \
  -DLIBROCclr_STATIC_DIR=$ROCclr_BUILD_DIR \

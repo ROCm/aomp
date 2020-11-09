@@ -46,10 +46,6 @@ AOMP_REPOS_TEST=${AOMP_REPOS_TEST:-$HOME/git/aomp-test}
 AOMP_CHECK_GIT_BRANCH=${AOMP_CHECK_GIT_BRANCH:-1}
 AOMP_APPLY_ROCM_PATCHES=${AOMP_APPLY_ROCM_PATCHES:-1}
 
-#Set common rpath for build scripts
-AOMP_ORIGIN_RPATH_NO_DTAGS="-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON -DCMAKE_INSTALL_RPATH=\$ORIGIN:\$ORIGIN/../lib:\$ORIGIN/../hsa/lib:\$ORIGIN/../../lib64:\$ORIGIN/../../hsa/lib:$AOMP_INSTALL_DIR/lib:$AOMP_INSTALL_DIR/hsa/lib"
-AOMP_ORIGIN_RPATH="-DCMAKE_SHARED_LINKER_FLAGS='-Wl,--disable-new-dtags' $AOMP_ORIGIN_RPATH_NO_DTAGS"
-
 CUDA=${CUDA:-/usr/local/cuda}
 CUDAT=${CUDAT:-$CUDA/targets}
 CUDAINCLUDE=${CUDAINCLUDE:-$CUDA/include}
@@ -78,11 +74,25 @@ if [ $AOMP_STANDALONE_BUILD == 1 ] ; then
    # Default is to build nvptx for STANDALONE build
    AOMP_BUILD_CUDA=${AOMP_BUILD_CUDA:-1}
    AOMP_BUILD_DEBUG=${AOMP_BUILD_DEBUG:-1}
+   AOMP_ORIGIN_RPATH_NO_DTAGS="-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON -DCMAKE_INSTALL_RPATH=\$ORIGIN:\$ORIGIN/../lib:$AOMP_INSTALL_DIR/lib"
 else
    # Default is to NOT build nvptx for ROCm integrated build
    AOMP_BUILD_CUDA=${AOMP_BUILD_CUDA:-0}
    AOMP_BUILD_DEBUG=${AOMP_BUILD_DEBUG:-0}
+   AOMP_ORIGIN_RPATH_NO_DTAGS="-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON -DCMAKE_INSTALL_RPATH=\$ORIGIN:\$ORIGIN/../lib:\$ORIGIN/../../lib64:$AOMP_INSTALL_DIR/lib"
 fi
+
+# AOMP uses RPATH (not) RUNPATH because LD_LIBRARY_PATH is a user feature for
+# user lib development. We do not want the compiler runtime to search user paths
+# first because we want assurance to recreate reported compiler runtime fails.
+# While it may appear to hamper users and developers from testing experimental
+# compiler runtimes, this policy enforces replacement of installed compiler
+# runtime for testing instead of path manipulation. AOMP uses $ORIGIN in the
+# RPATH to allow relocation of the installation.
+# Most build scripts use $AOMP_ORIGIN_RPATH, some components (build_ocl.sh) need to split
+# the CMAKE arguments so
+AOMP_ORIGIN_RPATH="-DCMAKE_SHARED_LINKER_FLAGS='-Wl,--disable-new-dtags' $AOMP_ORIGIN_RPATH_NO_DTAGS"
+
 # Regardless, turn off AOMP_BUILD_CUDA if CUDA not available
 if [ ! -d "$CUDABIN" ] ; then
    AOMP_BUILD_CUDA=0
@@ -176,11 +186,11 @@ AOMP_REPO_BRANCH=${AOMP_REPO_BRANCH:-amd-stg-openmp}
 
 #  These extra repositories are needed but we cannot update them
 AOMP_ROCT_REPO_NAME=${AOMP_ROCT_REPO_NAME:-roct-thunk-interface}
-AOMP_ROCT_REPO_BRANCH=${AOMP_ROCT_REPO_BRANCH:-roc-3.8.x}
+AOMP_ROCT_REPO_BRANCH=${AOMP_ROCT_REPO_BRANCH:-roc-3.9.x}
 AOMP_ROCT_COMPONENT_NAME=${AOMP_ROCT_COMPONENT_NAME:-roct}
 AOMP_ROCR_REPO_NAME=${AOMP_ROCR_REPO_NAME:-rocr-runtime}
 # ROCR did not release a 3.8.x branch due to no changes from 3.7.x
-AOMP_ROCR_REPO_BRANCH=${AOMP_ROCR_REPO_BRANCH:-rocm-3.7.x}
+AOMP_ROCR_REPO_BRANCH=${AOMP_ROCR_REPO_BRANCH:-rocm-3.9.x}
 AOMP_ROCR_COMPONENT_NAME=${AOMP_ROCR_COMPONENT_NAME:-rocr}
 AOMP_LIBDEVICE_REPO_NAME=${AOMP_LIBDEVICE_REPO_NAME:-rocm-device-libs}
 AOMP_LIBDEVICE_COMPONENT_NAME=${AOMP_LIBDEVICE_COMPONENT_NAME:-rocdl}
@@ -200,24 +210,24 @@ AOMP_RINFO_REPO_BRANCH=${AOMP_RINFO_REPO_BRANCH:-master}
 
 # These are repos we will use when we switch to HIP VDI
 AOMP_VDI_REPO_NAME=${AOMP_VDI_REPO_NAME:-vdi}
-AOMP_VDI_REPO_BRANCH=${AOMP_VDI_REPO_BRANCH:-rocm-3.8.x}
+AOMP_VDI_REPO_BRANCH=${AOMP_VDI_REPO_BRANCH:-rocm-3.9.x}
 AOMP_VDI_REPO_GITNAME=${AOMP_VDI_REPO_GITNAME:-ROCclr}
 AOMP_OCL_REPO_NAME=${AOMP_OCL_REPO_NAME:-opencl-on-vdi}
 AOMP_OCL_REPO_GITNAME=${AOMP_OCL_REPO_GITNAME:-ROCm-OpenCL-Runtime}
-AOMP_OCL_REPO_BRANCH=${AOMP_OCL_REPO_BRANCH:-rocm-3.8.x}
+AOMP_OCL_REPO_BRANCH=${AOMP_OCL_REPO_BRANCH:-rocm-3.9.x}
 AOMP_HIPVDI_REPO_NAME=${AOMP_HIPVDI_REPO_NAME:-hip-on-vdi}
 AOMP_HIPVDI_REPO_GITNAME=${AOMP_HIPVDI_REPO_GITNAME:-hip}
-AOMP_HIPVDI_REPO_BRANCH=${AOMP_HIPVDI_REPO_BRANCH:-rocm-3.8.x}
+AOMP_HIPVDI_REPO_BRANCH=${AOMP_HIPVDI_REPO_BRANCH:-rocm-3.9.x}
 
 # These are needed when AOMP_BUILD_DEBUG=1
 AOMP_GDB_REPO_NAME=${AOMP_GDB_REPO_NAME:-ROCgdb}
-AOMP_GDB_REPO_BRANCH=${AOMP_GDB_REPO_BRANCH:-rocm-3.8.x}
+AOMP_GDB_REPO_BRANCH=${AOMP_GDB_REPO_BRANCH:-rocm-3.9.x}
 AOMP_DBGAPI_REPO_NAME=${AOMP_DBGAPI_REPO_NAME:-ROCdbgapi}
-AOMP_DBGAPI_REPO_BRANCH=${AOMP_DBGAPI_REPO_BRANCH:-rocm-3.8.x}
+AOMP_DBGAPI_REPO_BRANCH=${AOMP_DBGAPI_REPO_BRANCH:-rocm-3.9.x}
 AOMP_PROF_REPO_NAME=${AOMP_PROF_REPO_NAME:-rocprofiler}
-AOMP_PROF_REPO_BRANCH=${AOMP_PROF_REPO_BRANCH:-rocm-3.8.x}
+AOMP_PROF_REPO_BRANCH=${AOMP_PROF_REPO_BRANCH:-rocm-3.9.x}
 AOMP_TRACE_REPO_NAME=${AOMP_TRACE_REPO_NAME:-roctracer}
-AOMP_TRACE_REPO_BRANCH=${AOMP_TRACE_REPO_BRANCH:-rocm-3.8.x}
+AOMP_TRACE_REPO_BRANCH=${AOMP_TRACE_REPO_BRANCH:-rocm-3.9.x}
 
 # These are test repositories
 GITNEKBONE="https://github.com/AMDComputeLibraries"

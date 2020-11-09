@@ -31,8 +31,6 @@ thisdir=$(getdname $0)
 
 INSTALL_ROCM=${INSTALL_ROCM:-$AOMP_INSTALL_DIR}
 
-ROCT_DIR=${ROCT_DIR:-"${INSTALL_ROCM}"}
-
 REPO_DIR=$AOMP_REPOS/$AOMP_ROCR_REPO_NAME
 REPO_BRANCH=$AOMP_ROCR_REPO_BRANCH
 checkrepo
@@ -82,7 +80,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    BUILDTYPE="Release"
    echo rm -rf $BUILD_AOMP/build/rocr
    rm -rf $BUILD_AOMP/build/rocr
-   MYCMAKEOPTS="-DCMAKE_INSTALL_PREFIX=$INSTALL_ROCM -DCMAKE_BUILD_TYPE=$BUILDTYPE -DCMAKE_PREFIX_PATH=$ROCM_DIR -DIMAGE_SUPPORT=OFF -DHSAKMT_LIB_PATH=$ROCT_DIR/lib $AOMP_ORIGIN_RPATH"
+   MYCMAKEOPTS="-DCMAKE_INSTALL_PREFIX=$INSTALL_ROCM -DCMAKE_BUILD_TYPE=$BUILDTYPE -DCMAKE_PREFIX_PATH=$ROCM_DIR -DIMAGE_SUPPORT=OFF $AOMP_ORIGIN_RPATH"
    mkdir -p $BUILD_AOMP/build/rocr
    cd $BUILD_AOMP/build/rocr
    echo " -----Running rocr cmake ---- " 
@@ -121,4 +119,9 @@ if [ "$1" == "install" ] ; then
          exit 1
       fi
       removepatch $AOMP_REPOS/$AOMP_ROCR_REPO_NAME
+      # Remove hsa directory from install to ensure it is not used
+      if [ -d $INSTALL_ROCM/hsa ] ; then
+         echo rm -rf $INSTALL_ROCM/hsa
+         rm -rf $INSTALL_ROCM/hsa
+      fi
 fi
