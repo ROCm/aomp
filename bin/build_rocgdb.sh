@@ -128,6 +128,8 @@ fi
 if [ "$1" == "install" ] ; then 
       cd $BUILD_AOMP/build/rocgdb
       echo " -----Installing to $AOMP_INSTALL_DIR ----- " 
+      echo $SUDO make install-info-gdb
+      $SUDO make install-info-gdb
       echo $SUDO make install-strip-gdb
       $SUDO make install-strip-gdb
       if [ $? != 0 ] ; then 
