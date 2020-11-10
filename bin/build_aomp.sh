@@ -97,7 +97,14 @@ echo
 if [ "$AOMP_STANDALONE_BUILD" == 1 ] ; then
   # There is no good external repo for the opencl runtime but we only need the headers for build_vdi.sh
   # So build_ocl.sh is currently not called.
-  components="roct rocr project libdevice extras openmp pgmath flang flang_runtime comgr rocminfo vdi hipvdi ocl "
+  components="roct rocr project libdevice extras openmp pgmath flang flang_runtime comgr rocminfo"
+  _hostarch=`uname -m`
+  # The VDI (rocclr) architecture is very x86 centric so it will not build on ppc64. Without
+  # rocclr, we have no HIP or OpenCL for ppc64 :-( However, rocr works for ppc64 so AOMP works.
+  if [ "$_hostarch" == "x86_64" ] ; then
+    # These components build on x86_64, so add them to components list
+    components="$components vdi hipvdi ocl "
+  fi
 
   # ROCdbgapi requires atleast g++ 7
   GPPVERS=`g++ --version | grep g++ | cut -d")" -f2 | cut -d"." -f1`
