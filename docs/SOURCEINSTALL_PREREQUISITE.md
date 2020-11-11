@@ -5,7 +5,7 @@
 #### Debian or Ubuntu Packages
 
 ```
-   sudo apt-get install cmake g++-5 g++-7 pkg-config libpci-dev libnuma-dev libelf-dev libffi-dev git python libopenmpi-dev gawk
+   sudo apt-get install g++-5 g++-7 pkg-config libpci-dev libnuma-dev libelf-dev libffi-dev git python libopenmpi-dev gawk mesa-common-dev
 
    # Additional packages used by rocgdb
    sudo apt-get install python3 texinfo libbison-dev bison flex libbabeltrace-dev python3-pip libncurses5-dev liblzma-dev python3-setuptools python3-dev
@@ -15,7 +15,7 @@
 
 #### SLES-15-SP1 Packages
 ```
-  sudo zypper install -y git pciutils-devel cmake python-base libffi-devel gcc gcc-c++ libnuma-devel libelf-devel patchutils openmpi2-devel
+  sudo zypper install -y git pciutils-devel python-base libffi-devel gcc gcc-c++ libnuma-devel libelf-devel patchutils openmpi2-devel mesa-libGL-devel
 
   # Additional packages used by rocgdb
   sudo zypper install -y texinfo bison flex babeltrace-devel python3 python3-pip python3-devel python3-setuptools makeinfo ncurses-devel libexpat-devel xz-devel
@@ -31,7 +31,7 @@ https://www.softwarecollections.org/en/scls/rhscl/devtoolset-7/<br>
 <b>The build_aomp.sh script will automatically enable devtoolset-7 if found in /opt/rh/devtoolset-7/enable. If you want to build an individual component you will need to manually start devtoolset-7 from the instructions above.</b><br>
 
 ```
-  sudo yum install cmake3 pciutils-devel numactl-devel libffi-devel
+  sudo yum install pciutils-devel numactl-devel libffi-devel mesa-libGL-devel
 
   # Additional packages used by rocgdb
   sudo yum install texinfo bison flex ncurses-devel.x86_64 expat-devel.x86_64 xz-devel.x86_64 libbabeltrace-devel.x86_64
@@ -50,13 +50,10 @@ RHEL 7.7 and later RHEL 7 versions
   python3 -m pip install CppHeaderParser argparse wheel
 ```
 
-The build scripts use cmake, so we need to link cmake --> cmake3 in /usr/bin
-```
-  sudo ln -s /usr/bin/cmake3 /usr/bin/cmake
-```
-2.  Build CMake 3.13.4 in /usr/local/cmake
-The default for the AOMP_CMAKE variable is /usr/local/cmake/bin/cmake.
-Use these commands to install cmake 3.13.4 from source into /usr/local/cmake.
+
+### 2.  Build CMake 3.13.4 in /usr/local/cmake
+
+We have seen problems with newer versions of cmake. We have only verified version 3.13.4 for the various component builds necessary for aomp. All invocations of cmake in the build scripts use $AOMP_CMAKE.  The default for the AOMP_CMAKE variable is /usr/local/cmake/bin/cmake.  Use these commands to install cmake 3.13.4 from source into /usr/local/cmake.
 
 ```
   $ sudo apt-get install libssl-dev
