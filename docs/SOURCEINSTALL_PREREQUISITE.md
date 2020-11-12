@@ -9,9 +9,9 @@
 
    # Additional packages used by rocgdb
    sudo apt-get install python3 texinfo libbison-dev bison flex libbabeltrace-dev python3-pip libncurses5-dev liblzma-dev python3-setuptools python3-dev
-   python3 -m pip install CppHeaderParser argparse wheel
 
 ```
+
 
 #### SLES-15-SP1 Packages
 ```
@@ -20,7 +20,6 @@
   # Additional packages used by rocgdb
   sudo zypper install -y texinfo bison flex babeltrace-devel python3 python3-pip python3-devel python3-setuptools makeinfo ncurses-devel libexpat-devel xz-devel
 
-  python3 -m pip install CppHeaderParser argparse wheel
 
 ```
 #### RHEL 7  Packages
@@ -41,17 +40,22 @@ https://www.softwarecollections.org/en/scls/rhscl/devtoolset-7/<br>
   sudo subscription-manager repos --enable rhel-7-server-optional-rpms --enable rhel-server-rhscl-7-rpms
   sudo yum -y install rh-python36 rh-python36-python-tools
   scl enable rh-python36 bash
-  python3 -m pip install CppHeaderParser argparse wheel
 ```
 
 RHEL 7.7 and later RHEL 7 versions
 ```
   sudo yum install python3 python3-pip python36-devel python36-setuptools
-  python3 -m pip install CppHeaderParser argparse wheel
 ```
 
+### 2. User-installed Python Components
 
-### 2.  Build CMake 3.13.4 in /usr/local/cmake
+After all the required system package from section 1 are installed, there are some python packages that must be locally installed by the user building AOMP. Use this command to install these.  Do not install these as root.
+
+```
+  python3 -m pip install CppHeaderParser argparse wheel lit
+```
+
+### 3.  Build CMake 3.13.4 in /usr/local/cmake
 
 We have seen problems with newer versions of cmake. We have only verified version 3.13.4 for the various component builds necessary for aomp. All invocations of cmake in the build scripts use $AOMP_CMAKE.  The default for the AOMP_CMAKE variable is /usr/local/cmake/bin/cmake.  Use these commands to install cmake 3.13.4 from source into /usr/local/cmake.
 
@@ -66,8 +70,9 @@ We have seen problems with newer versions of cmake. We have only verified versio
   $ make
   $ sudo make install
 ```
+Alternatively, you could change the --prefix option to install cmake 3.13.4 somewhere else. Then be sure to change the value of he environment variable AOMP_CMAKE to be the cmake binary.
 
-### 3. Verify KFD Driver
+### 4. Verify KFD Driver
 
 Please verify you have the proper software installed as AOMP needs certain support to function properly, such as the KFD driver for AMD GPUs.
 
@@ -115,14 +120,20 @@ Create a /etc/yum.repos.d/rocm.repo file with the following contents:
   sudo yum install rock-dkms
 ```
 
-### 4. Create the Unix Video Group
+### 5. Create the Unix Video Group
 ```
   echo 'SUBSYSTEM=="kfd", KERNEL=="kfd", TAG+="uaccess", GROUP="video"' | sudo tee /etc/udev/rules.d/70-kfd.rules
   sudo reboot
   sudo usermod -a -G video $USER
 ```
 
-### 5. Optional Install of Spack
+### 6. Optional Install CUDA
+
+The Nvidia CUDA SDK is NOT required to build AOMP or install the AOMP package. 
+However, to build AOMP from source, you SHOULD have the Nvidia CUDA SDK version 10 installed because AOMP may be used to build applications for NVIDIA GPUs. The current default build list of Nvidia subarchs is "30,35,50,60,61,70".  For example, the default list will support application builds with --offload-arch=sm_30 and --offload-arch=sm_60 etc.  This build list can be changed with the NVPTXGPUS environment variable as shown above.
+
+
+### 7. Optional Install of Spack
 
 If you expect to install AOMP sources using the release source tarball with spack, you must install Spack. Refer to [these install instructions](https://spack.readthedocs.io/en/latest/getting_started.html#installation) for instructions on installing spack.
 The AOMP spack configuration file is currently missing proper dependencies, so be sure to install the packages listed above before proceeding with source install via spack.

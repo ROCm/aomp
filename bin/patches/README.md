@@ -15,18 +15,19 @@ The components that AOMP developers have direct control over are:
 All other components are non-AOMP components that often require patching to
 work with AOMP. The AOMP build scripts for non-AOMP components use this patching process:
 
- * Specifice component patches are applied automatically BEFORE the cmake command runs for a fresh build.
+ * Component patches are applied automatically BEFORE the cmake command runs for a fresh build. This allows patches to fix cmake files.
  * The build script then runs cmake and make commands.
- * The developer or the master script (build_aomp.sh) then runs the component build script with the install option.
- * The build script with "install" then reverses the patch after successful installation of the component. 
+ * The developer or the master script (build_aomp.sh) then runs the component build script with the "install" option.
+ * The build script with "install" reverses the patch after successful installation of the component. 
 
-The two supporting bash functions, patchrepo and removepatch, are defined in aomp_common_vars.
+The two supporting bash functions used by the build scripts for the above process are patchrepo and removepatch.
+These functions are defined in aomp_common_vars.
 These functions take a single argument which is the directory to be patched.
-This is root directory of the component to patch. If the control file has no patches for the component
+This argument is root directory of the component to patch. If the control file has no patches for the component,
 nothing will be applied.
 
 The environment variable AOMP_PATCH_CONTROL_FILE defines the patch control file.
-The default name is patch-control-file.txt.
+The default value is "patch-control-file.txt".
 The patches that this control file points to must be in the same directory as the control file.
 The function patchrepo first checks to see if patch was already applied.
 If so, it continues without applying the patch.
@@ -41,8 +42,13 @@ However, multiple patch files are supported.
 ## Why do we remove patches after installation?
 
 This allows developers to pull updates for non-AOMP components.
-This is often done with the clone_aomp.sh script.
+This is typically done with the execution of the clone_aomp.sh script.
 If we left the component patched, pull operations could fail.
+
+## What about the composite source tarball?  Is this patched?
+
+Yes, it is patched.  The script create_release_tarball.sh uses aomp_common_vars and applies 
+each patch then reverses the patch when complete. 
 
 ## Updating an Existing Patch
 
