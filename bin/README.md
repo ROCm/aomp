@@ -209,13 +209,13 @@ Once you have a successful development build, individual components can be incre
 ```
 WARNING: When the build scripts are run with NO arguments (that is, you do not specify "install" or "nocmake"), the build scripts will rebuild the entire component by DELETING THE BUILD DIRECTORY before running cmake and make. This is called a fresh start.
 
-## Controling the AOMP Install Location
+## The AOMP Install Location
 The build scripts will build from the source directories identified by the environment variable AOMP_REPOS.
 The AOMP_REPOS default value is $HOME/git/aomp11.
-The default out-of-source build directory for each component is $AOMP_REPOS/build/\<component\>.
+The out-of-source build directory for each component is $AOMP_REPOS/build/\<component_name\>.
 
 The install location is defined by the $AOMP environment variable. The value of AOMP MUST be reserved as a symbolic link.
-That is, the physical installation will be in directory name formed by concatonating the version string with the value of $AOMP.
+That is, the physical installation will be in directory name formed by concatonating the version string to the value of $AOMP.
 The "build_project.sh install" script will make a symbolic link from the physical directory to the symbolic directory $AOMP.
 The default value for AOMP is $HOME/rocm/aomp.
 For example, when building AOMP version 11.9-0 the install scripts will put all files and directories
@@ -231,7 +231,7 @@ For example, if the aomp symbolic link currently points to aomp_11.11-2 and you 
 export AOMP=$HOME/rocm/aomp_11.8-0
 ```
 
-The aomp package installs in /usr/lib/aomp\<version_string\> and symlinks /usr/lib/aomp to this directory. To test the installed package, you can set AOMP to /usr/lib/aomp or /usr/lib/aomp/\version_string\>.
+The aomp package installs in /usr/lib/aomp_\<version_string\> and symlinks /usr/lib/aomp to this directory. To test the installed package, you can set AOMP to /usr/lib/aomp or /usr/lib/aomp_\<version_string\>.
 
 It is also possible to test the ROCm compiler with AOMP tests by setting AOMP as follows:
 
