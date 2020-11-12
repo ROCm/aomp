@@ -16,12 +16,9 @@ function clean(){
 
 clean
 
-if [ "$AOMP" == "" ]; then
-  echo "Error: Please set AOMP env variable and rerun."
-  exit 1
-fi
-
-export AOMP_GPU=`$AOMP/bin/mygpu`
+AOMP=${AOMP:-/usr/lib/aomp}
+AOMP_GPU=${AOMP_GPU:-`$AOMP/bin/mygpu`}
+export AOMP AOMP_GPU
 echo AOMP_GPU = $AOMP_GPU
 echo AOMP = $AOMP
 

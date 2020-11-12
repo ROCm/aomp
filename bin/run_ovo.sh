@@ -24,18 +24,16 @@ thisdir=$(getdname $0)
 . $thisdir/aomp_common_vars
 # --- end standard header ----
 
-if [ "$AOMP" == "" ]; then
-  echo "Error: Please set AOMP env variable and rerun."
-  exit 1
-fi
+AOMP=${AOMP:-/usr/lib/aomp}
+AOMP_GPU=${AOMP_GPU:-`$AOMP/bin/mygpu`}
+PATH=$AOMP/bin:$PATH
+CXX=clang++
+FC=flang
+FFLAGS="-O2  -target x86_64-pc-linux-gnu -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$AOMP_GPU"
+CXXFLAGS="-O2  -target x86_64-pc-linux-gnu -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$AOMP_GPU"
+OMP_TARGET_OFFLOAD=mandatory
 
-export AOMP_GPU=`$AOMP/bin/mygpu`
-export PATH=$AOMP/bin:$PATH
-export CXX=clang++
-export FC=flang
-export FFLAGS="-O2  -target x86_64-pc-linux-gnu -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$AOMP_GPU"
-export CXXFLAGS="-O2  -target x86_64-pc-linux-gnu -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$AOMP_GPU"
-export OMP_TARGET_OFFLOAD=mandatory
+export AOMP AOMP_GPU PATH CXX FC FFLAGS CXXFLAGS OMP_TARGET_OFFLOAD
 
 cd $AOMP_REPOS_TEST/$AOMP_OVO_REPO_NAME
 HALF_THREADS=$(( NUM_THREADS/2 ))
