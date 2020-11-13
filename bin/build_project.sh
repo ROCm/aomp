@@ -195,12 +195,13 @@ if [ "$1" == "install" ] ; then
       $SUDO ln -sf $INSTALL_PROJECT $AOMP   
    fi
    # add executables forgot by make install but needed for testing
-   echo add executables forgot by make install but needed for testing
-   $SUDO cp -p $BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME/bin/llvm-lit $AOMP/bin/llvm-lit
-   
-   # update map_config and llvm_source_root paths in the copied llvm-lit file
-   sed 's/..\/..\/..\//$AOMP\//g' $AOMP/bin/llvm-lit
-   
+   # Only do this if this is not a production build
+   if [ $AOMP != "/usr/lib/aomp" ] || [ $AOMP != "/opt/rocm" ] || [ $AOMP != "/opt/rocm/aomp" ] ; then
+      $SUDO cp -p $BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME/bin/llvm-lit $AOMP/bin/llvm-lit
+      # update map_config and llvm_source_root paths in the copied llvm-lit file
+      SED_AOMP_REPOS=`echo $AOMP_REPOS | sed -e 's/\//\\\\\//g' `
+      sed -ie "s/..\/..\/..\//$SED_AOMP_REPOS\//g" $AOMP/bin/llvm-lit
+   fi
    $SUDO cp -p $BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME/bin/FileCheck $AOMP/bin/FileCheck
    $SUDO cp -p $BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME/bin/count $AOMP/bin/count
    $SUDO cp -p $BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME/bin/not $AOMP/bin/not
