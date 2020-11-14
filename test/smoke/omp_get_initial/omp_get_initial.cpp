@@ -14,10 +14,13 @@ bool testAssoc(int idev)
 	omp_target_associate_ptr(host, dev, N*sizeof(int), 0, idev);
 
 	int** pdev = &dev; // implicit mapping of dev yields nullptr on target (at least clang)
+	// SMOKE TEST CORRECTION: Explicit mapping of pdev array just creates copy
+	// SMOKE TEST CORRECTION: Use var from omp_target_associate_ptr in target region
 #pragma omp target teams distribute parallel for device(idev) map(to:pdev[0:1])
 	for(int a = 0; a < N; ++a)
 	{
-		(*pdev)[a] = VAL;
+		// (*pdev)[a] = VAL; SMOKE TEST CORRECTION: undefined behavior
+		host[a] = VAL;
 	}
 
 #pragma omp target update from(host) device(idev)
@@ -41,5 +44,6 @@ int main()
 	const int numDev = omp_get_num_devices();
 	for(int d = 0; d < numDev; ++d)
 		testAssoc(d);
-	testAssoc(omp_get_initial_device());
+	// SOMKE TEST CORRECTION: Cannot offload to host with mandatory offloading
+	// SMOKE TEST CORRECTION: testAssoc(omp_get_initial_device());
 }

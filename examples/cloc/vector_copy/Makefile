@@ -9,7 +9,7 @@ endif
 AOMPHIP ?= $(AOMP)
 
 CFLAGS = -std=c++11 -I$(AOMP)/include -I$(AOMP)/../include
-LFLAGS = -L$(AOMP)/lib -L$(AOMP)/../hsa/lib -lhsa-runtime64 -Wl,-rpath=$(AOMP)/hsa/lib
+LFLAGS = -L$(AOMP)/lib -L$(AOMP)/lib -lhsa-runtime64 -Wl,-rpath=$(AOMP)/lib
 # find the current gpu, default to vega10 if unknown
 MYGPU = $(shell $(AOMPHIP)/bin/mygpu -d gfx900)
 

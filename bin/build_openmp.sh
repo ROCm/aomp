@@ -144,7 +144,7 @@ if [ "$AOMP_BUILD_CUDA" == 1 ] ; then
 fi
 
 # This is how we tell the hsa plugin where to find hsa
-export HSA_RUNTIME_PATH=$ROCM_DIR/hsa
+export HSA_RUNTIME_PATH=$ROCM_DIR
 
 #breaks build as it cant find rocm-path
 #export HIP_DEVICE_LIB_PATH=$ROCM_DIR/lib

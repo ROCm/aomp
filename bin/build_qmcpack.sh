@@ -61,8 +61,7 @@ else
    export BOOST_ROOT FFTW_HOME
 fi
 
-thisgpu=`$AOMP/bin/mygpu`
-AOMP_GPU=${AOMP_GPU:-$thisgpu}
+AOMP_GPU=${AOMP_GPU:-`$AOMP/bin/mygpu`}
 build_folder=build_AOMP_offload_real_MP_$AOMP_GPU
 QMCPACK_REPO=${QMCPACK_REPO:-$AOMP_REPOS_TEST/$AOMP_QMCPACK_REPO_NAME}
 export PATH=$OPENMPI_INSTALL/bin:$AOMP/bin:$PATH

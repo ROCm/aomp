@@ -53,42 +53,14 @@ $SUDO rm -f $AOMP/examples/*.sh
 $SUDO rm -f $AOMP/examples/raja/*.txt
 $SUDO rm -f $AOMP/examples/raja/*.sh
 
-#Clean libexec, share
+# Clean libexec
 $SUDO rm -rf $AOMP/libexec
-#Clean hcc
-$SUDO rm -rf $AOMP/hcc/bin
-$SUDO rm -rf $AOMP/hcc/include
-$SUDO rm -rf $AOMP/hcc/libexec
-$SUDO rm -rf $AOMP/hcc/rocdl
-$SUDO rm -rf $AOMP/hcc/share
-#Clean hcc/lib
-$SUDO rm -rf $AOMP/hcc/lib/clang
-$SUDO rm -rf $AOMP/hcc/lib/cmake
-$SUDO rm -rf $AOMP/hcc/lib/*.bc
-$SUDO rm -rf $AOMP/hcc/lib/LLVM*
-$SUDO rm -rf $AOMP/hcc/lib/libclang*
-$SUDO rm -rf $AOMP/hcc/lib/libLLVM*
-$SUDO rm -rf $AOMP/hcc/lib/libLTO*
-$SUDO rm -rf $AOMP/hcc/lib/libRemarks*
 
-#Clean src
+# Clean src
 $SUDO rm -rf $AOMP/src
+$SUDO rm -rf $AOMP/rocclr
 
-#copy in hipcc for non-standalone build
-if [ -a $AOMP/bin/hipcc ]; then
-  echo "hipcc already found in AOMP/bin"
-else
-  echo "Copying hipcc and hipconfig from HIP dir for non-standalone build..."
-  cp $ROCM_DIR/hip/bin/hipcc $AOMP/bin
-  cp $ROCM_DIR/hip/bin/hipconfig $AOMP/bin
-  echo "Modify hipcc to support AOMP..."
-  SED_INSTALL_DIR=`echo '$ENV{\"AOMP\"}' | sed -e 's/\//\\\\\//g' `
-  $SUDO sed -i -e "s/\"\/opt\/rocm\"\/llvm/$SED_INSTALL_DIR/" $AOMP/bin/hipcc
-  $SUDO sed -i -e "s/\$HIP_CLANG_PATH=\$ENV{'HIP_CLANG_PATH'}/\$HIP_CLANG_PATH=$SED_INSTALL_DIR \. \'\/bin\'/" $AOMP/bin/hipcc
-  $SUDO sed -i -e "s/ -D_OPENMP //" $AOMP/bin/hipcc
-  $SUDO sed -i -e "s/\"\/opt\/rocm\"\/llvm/$SED_INSTALL_DIR/" $AOMP/bin/hipconfig
-  $SUDO sed -i -e "s/\$HIP_CLANG_PATH=\$ENV{'HIP_CLANG_PATH'}/\$HIP_CLANG_PATH=$SED_INSTALL_DIR \. \'\/bin\'/" $AOMP/bin/hipconfig
-  $SUDO sed -i -e "s/\$HIP_PATH\/lib\/\.hipInfo/\$HIP_PATH\/\.\.\/lib\/\.hipInfo/" $AOMP/bin/hipconfig
-fi
+# Clean llvm-lit
+$SUDO rm -f $AOMP/bin/llvm-lit
 
 echo "Done with $0"

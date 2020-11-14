@@ -30,7 +30,7 @@ thisdir=$(getdname $0)
 
 # We now pickup HSA from the AOMP install directory because it is built
 # with build_roct.sh and build_rocr.sh . 
-HSA_DIR=${HSA_DIR:-$AOMP/hsa}
+HSA_DIR=${HSA_DIR:-$AOMP}
 SKIPTEST=${SKIPTEST:-"YES"}
 
 INSTALL_ROOT_DIR=${INSTALL_LIBDEVICE:-$AOMP_INSTALL_DIR}

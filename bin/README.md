@@ -8,11 +8,12 @@ https://github.com/ROCm-Developer-Tools/aomp/blob/master/bin/README.md
 ```
 The AOMP compiler supports OpenMP, clang-hip, clang-cuda, device OpenCL, and the offline kernel compilation tool called cloc.  It contains a recent version of the AMD Lightning compiler (llvm amdgcn backend) and the llvm nvptx backend.  Except for clang-cuda, this compiler works for both Nvidia and AMD Radeon GPUs.
 
-This bin directory contains scripts to build AOMP from source.
+This bin directory contains scripts to build and install AOMP from source.
 ```
 clone_aomp.sh            -  A script to make sure the necessary repos are up to date.
                             See below for a list of these source repositories.
-build_aomp.sh            -  Run all build and install scripts in the correct order.
+build_aomp.sh            -  This is the master build script. It runs all the
+                            component build scripts in the correct order.
 build_roct.sh            -  Builds the hsa thunk library.
 build_rocr.sh            -  Builds the ROCm runtime.
 build_project.sh         -  Builds llvm, lld, and clang components.
@@ -30,6 +31,9 @@ build_ocl.sh             -  Builds OpenCL runtime.
 build_rocdbgapi.sh       -  Builds ROCm Debugger API.
 build_gdb.sh             -  Builds ROC gdb.
 build_roctracer.sh       -  Builds ROC gdb. UNDER DEVELOPMENT
+
+create_release_tarball.sh - This builds an important release artifact
+                            containing all sources.
 ```
 
 These scripts install into $HOME/rocm/aomp (or $AOMP if set).
@@ -60,27 +64,35 @@ The first column is the AOMP component that uses the repositories.
 | roctrace  | $HOME/git/aomp11/roctracer             | [roctracer](https://github.com/ROCm-Developer-Tools/roctracer)
 | rocprofiler | $HOME/git/aomp11/rocprofiler         | [rocprofiler](https://github.com/ROCm-Developer-Tools/rocprofiler)
 
-The scripts and example makefiles use these environment variables and these
-defaults if they are not set. This is not a complete list.  See the script headers
-for other environment variables that you may override including repo names.
+## AOMP Environment Variables
+The AOMP build scripts use many environment variables to control how AMOP is built.
+The file [aomp_common_vars](aomp_common_vars) is sourced by all build scripts to provide consistent values
+and default values for all environment variables.
+There are generous comments in aomp_common_vars that provide information about the variables.
+Developers should take some time to read comments in the [aomp_common_vars file](aomp_common_vars).
 
+These are some important environment variables and their default values.
 ```
-   AOMP              $HOME/rocm/aomp
-   CUDA              /usr/local/cuda
-   AOMP_REPOS        $HOME/git/aomp11
-   BUILD_TYPE        Release
+   AOMP                  $HOME/rocm/aomp
+   CUDA                  /usr/local/cuda
+   AOMP_REPOS            $HOME/git/aomp11
+   AOMP_STANDALONE_BUILD 1
+   AOMP_VERSION          11.11
+   NVPTXGPUS             30,35,50,60,61,70
+   GFXLIST               gfx700 gfx701 gfx801 gfx803 gfx900 gfx902 gfx906 gfx908
+   BUILD_TYPE            Release
 ```
-
-Many other environment variables can be set. See the file [aomp_common_vars](aomp_common_vars) that is sourced by all build scripts. This file sets default values for branch names and repo directory name.
-
-You can override the above by setting by setting values in your .bashrc or .bash_profile.
+You can override any environment variable by setting values in your .bashrc or .bash_profile.
 Here is a sample of commands you might want to put into your .bash_profile:
 ```
-AOMP=$HOME/rocm/aomp
+AOMP=/tmp/$USER/git/aomp
 BUILD_TYPE=Debug
-NVPTXGPUS=30,35,50,60,61,70
-export AOMP NVPTXGPUS BUILD_TYPE
+NVPTXGPUS=30,35,70
+GFXLIST="gfx803 gfx906"
+AOMP_VERSION="12.0"
+export AOMP BUILD_TYPE NVPTXGPUS GFXLIST
 ```
+## Quick Start to AOMP Development
 To build and clone all components using the latest development sources, first clone aomp repo and checkout the amd-stg-openmp branch as follows:
 
 ```
@@ -102,78 +114,138 @@ cd $HOME/git/aomp11/aomp
 git pull
 ./clone_aomp.sh
 ```
-The Nvidia CUDA SDK is NOT required for a package install of AOMP. However, to build AOMP from source, you SHOULD have the Nvidia CUDA SDK version 10 installed because AOMP may be used to build applications for NVIDIA GPUs. The current default build list of Nvidia subarchs is "30,35,50,60,61,70".  For example, the default list will support application builds with --offload-arch=sm_30 and --offload-arch=sm_60 etc.  This build list can be changed with the NVPTXGPUS environment variable as shown above. 
 
-After you have all the source repositories and you have CUDA and all the dependencies installed,
-run this script to build aomp.
+Building from source requires many prerequisites. Follow all the instructions [here](../docs/SOURCEINSTALL_PREREQUISITE.md)
+to satisfy the many build-from-source prerequisites.
+If you are on a system that another user has verified all the build-from-source requirements,
+you still must install individual python components identified in section "2. User-installed Python Components".
+
+After you have all the source repositories from running clone_aomp.sh and you have all the prerequisites installed,
+run the master build script that steps through the build of all aomp components:
 ```
    ./build_aomp.sh
 ```
-The AOMP source build is a standalone build of all components needed for compilation and execution with the exception of the Linux kernel module. Through extensive use of RPATH, all dynamic runtime libraries that are built by any component of AOMP and referenced by another AOMP component will resolve the absolute location within the AOMP source installation (default is $HOME/rocm/aomp). This strategy significantly simplifies the AOMP test matrix. Libraries that may have been installed by a previous ROCm installation including roct and rocr, will not be used by the source build of AOMP. Nor will the AOMP installation for the source build affect any ROCm component. 
+The default AOMP source build is a standalone build of all components needed for compilation and execution with the exception of the kfd Linux kernel module for AMD GPUs or the CUDA SDK for Nvidia GPUs.
 
-Starting with ROCM 3.0 there is a version of AOMP distributed with ROCm. Unlike the AOMP source build, ROCm AOMP is integrated into ROCm.  That version depends on existing ROCm components. The ROCm AOMP package installs into /opt/rocm/aomp. The default source build installs into $HOME/rocm/aomp.
+## AOMP and the ROCM Compiler
+Starting with ROCM 3.0 there is a version of AOMP distributed with ROCm with the package name aomp-amdgpu.
+The ROCm aomp-amdgpu package installs into /opt/rocm/aomp with the command 'apt-get install aomp-amdgpu'.
+Unlike the AOMP standalone build, ROCm aomp-amdgpu is integrated into ROCm.
+It depends and uses existing ROCm components.  It was build with AOMP_STANDALONE_BUILD=0.
 
-Developers may update a component and then run these scripts in the following order:
+Eventually, the ROCm production compiler will have complete OpenMP support and the ROCm aomp-amdgpu package will be deprecated.
+That ROCm production compiler has the package name llvm-amdgp and installs in /opt/rocm/llvm.
+
+Starting with ROCM 4.0, AOMP will continue as a research and development compiler released into github with the package name aomp. 
+This will often be used to validate code going into the ROCm production compiler including quick fixes for issues identified in
+[AOMP issues] (https://github.com/ROCm-Developer-Tools/aomp/issues).
+To ensure complete isolation from the ROCm installation and to make AOMP work in the absense of ROCm,
+all necessary ROCm components are built from source.
+Furthermore, through comprehensive use of RPATH by AOMP, all AOMP libraries and references to AOMP libraries will resolve the absolute location
+within the AOMP installation.
+AOMP never requires the use of LD_LIBRARY_PATH. It is reserved for user library development.
+This strategy prevents any interference with a ROCm installation.
+Libraries that may have been installed by a ROCm installation including roct and rocr, will not be used by AOMP.
+Nor will the AOMP installation affect any ROCm component.
+
+The only ROCm common component required by AOMP is the kernel kfd.
+
+
+## Individual Component Builds
+To build aomp, run the master build script build_aomp.sh or run these individual scripts in this order:
 
 ```
+   # Start with these components if building AOMP standalone
+   # AOMP_STANDALONE_BUILD==1 is the default.
+   # If you turn this off, you must have a compatible ROCm installed.
    ./build_roct.sh
    ./build_roct.sh install
-
    ./build_rocr.sh
    ./build_rocr.sh install
 
+   # These 6 core components are always built and depend on a
+   # ROCm installation. These are the only components built with
+   # AOMP_STANDALONE_BUILD==0.
    ./build_project.sh
    ./build_project.sh install
+   ./build_extras.sh
+   ./build_extras.sh install
+   ./build_openmp.sh
+   ./build_openmp.sh install
+   ./build_pgmath.sh
+   ./build_pgmath.sh install
+   ./build_flang.sh
+   ./build_flang.sh install
+   ./build_flang_runtime.sh
+   ./build_flang_runtime.sh install
 
    ./build_libdevice.sh
    ./build_libdevice.sh install
-
    ./build_comgr.sh
    ./build_comgr.sh install
-
    ./build_rocminfo.sh
    ./build_rocminfo.sh install
 
+   # These only build on x86_64
    ./build_vdi.sh
    ./build_vdi.sh install
-
    ./build_hipvdi.sh
    ./build_hipvdi.sh install
-
-   ./build_extras.sh
-   ./build_extras.sh install
-
-   ./build_openmp.sh
-   ./build_openmp.sh install
-
-   ./build_pgmath.sh
-   ./build_pgmath.sh install
-
-   ./build_flang.sh
-   ./build_flang.sh install
-
-   ./build_flang_runtime.sh
-   ./build_flang_runtime.sh install
-   
    ./build_ocl.sh
    ./build_ocl.sh install
+
+   # These two components build only when
+   # AOMP_BUILD_STANDALONE==1 && AOMP_BUILD_DEBUG==1
+   # which are the default values.
+   ./build_rocdbgapi.sh
+   ./build_rocdbgapi.sh install
+   ./build_rocgdb.sh
+   ./build_rocgdb.sh install
 ```
+
 Once you have a successful development build, individual components can be incrementally rebuilt without rebuilding the entire system or the entire component. For example, if you change a file in the llvm-project repository. Run this command to incrementally build llvm, clang, and lld and update your installation.
 ```
    ./build_project.sh install
 ```
+WARNING: When the build scripts are run with NO arguments (that is, you do not specify "install" or "nocmake"), the build scripts will rebuild the entire component by DELETING THE BUILD DIRECTORY before running cmake and make. This is called a fresh start.
+
+## The AOMP Install Location
 The build scripts will build from the source directories identified by the environment variable AOMP_REPOS.
-The default out-of-source build directory for each component is $HOME/git/aomp11/build/<component>.
+The AOMP_REPOS default value is $HOME/git/aomp11.
+The out-of-source build directory for each component is $AOMP_REPOS/build/\<component_name\>.
 
-WARNING: When the build scripts are run with NO arguments (that is, you do not specify "install" or "nocmake"), the build scripts will rebuild the entire component by DELETING THE BUILD DIRECTORY before running cmake and make. 
-
-The install location is defined by the $AOMP environment variable. The value of AOMP needs to be reserved as a symbolic link.
-That is, the physical installation will be in directory $AOMP concatonated with the version string.
-The install script will make a symbolic link from the physical directory to the symbolic directory $AOMP.
-For example, when building AOMP version 11.9-0 with the default value for AOMP=$HOME/rocm/aomp,
-the install scripts will put all files and directories in $HOME/rocm/aomp_11.9-0 and create a symbolic link as follows.
+The install location is defined by the $AOMP environment variable. The value of AOMP MUST be reserved as a symbolic link.
+That is, the physical installation will be in directory name formed by concatonating the version string to the value of $AOMP.
+The "build_project.sh install" script will make a symbolic link from the physical directory to the symbolic directory $AOMP.
+The default value for AOMP is $HOME/rocm/aomp.
+For example, when building AOMP version 11.9-0 the install scripts will put all files and directories
+in $HOME/rocm/aomp_11.9-0 and create a symbolic link as follows:
 
 ```
 ln -sf ${AOMP}_11.9-0 ${AOMP}
 ```
-This symbolic link makes it easy to switch between versions of AOMP for testing.
+All testing for AOMP uses the environment variable AOMP to locate the installation. This makes it easy to switch between versions of AOMP for testing by simply changing the environment variable AOMP. You do NOT need to change the symbolic link.
+For example, if the aomp symbolic link currently points to aomp_11.11-2 and you want to test aomp_11.8-0, do this:
+
+```
+export AOMP=$HOME/rocm/aomp_11.8-0
+```
+
+The aomp package installs in /usr/lib/aomp_\<version_string\> and symlinks /usr/lib/aomp to this directory. To test the installed package, you can set AOMP to /usr/lib/aomp or /usr/lib/aomp_\<version_string\>.
+
+It is also possible to test the ROCm compiler with AOMP tests by setting AOMP as follows:
+
+```
+export AOMP=/opt/rocm/llvm
+```
+
+Many tests must determine the type of GPU available with the mygpu script.  The location of mygpu is expected in $AOMP/bin/mygpu. ROCm puts this utility in a different location.  But this script is only used if the environment variable AOMP_GPU is not set which is the default. So, to use AOMP tests with the ROCM compiler set the value of AOMP_GPU as follows:
+
+```
+export AOMP_GPU=`/opt/rocm/bin/mygpu`
+```
+
+## The AOMP developer patch subsystem
+
+Of the many repos identified above, AOMP developers may only change amd-llvm-project, aomp, aomp-extras, and flang.  AOMP required changes to other non-AOMP components must be patched. The [patches/README.md](patches/README.md)  escribes the AOMP patch mechanism in detail.
+

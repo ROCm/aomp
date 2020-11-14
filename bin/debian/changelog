@@ -1,4 +1,4 @@
-aomp (11.11-1) UNRELEASED; urgency=medium
+aomp (11.11-2) UNRELEASED; urgency=medium
 
   * Initial release of aomp is 0.3-2
   *   Please see example in /usr/lib/aomp/examples/vmuldemo 
@@ -492,5 +492,29 @@ aomp (11.11-1) UNRELEASED; urgency=medium
   *       in an resolved reference at link time.
   *  Update shared variable linkage which further reduces differences between nvptx
   *       and amdgcn LLVM IR codegen.
+  *
+  * 11.11-2
+  *  Move to ROCm 3.9 sources.
+  *  Removal of hsa install directory. This required minor changes to build scripts
+  *       of components that referenced hsa/include and hsa/lib.
+  *  Minor build script updates including fix for lit checking on non-production builds.
+  *  Support multiple devices with malloc and hostrpc.
+  *  Tested A+A (AOMP11 and AOCC2.3) with smoke test lto_teams. This test case shows how to
+  *       plugin the AOCC linker to the AOMP compiler which provides proprietary CPU link
+  *       time optimizations only available in AOCC. It relies on a clang driver option to
+  *       specify an alternative linker. The Makefile in this test case was updated to check
+  *       for LLVM 12 compiler and use the correct clang option for the alternative linker.
+  *       In LLVM 11 and before the alternative linker option was -fuse-ld=. In LLVM 12 and
+  *       later it will be --ld-path=
+  *  Improve hostrpc version check
+  *  Added max reduction offload feature to flang
+  *  Developer documentation updates including some cleanup of the source-build prerequisites.
+  *  We now require a specific version of cmake built from source.
+  *  We also require the mesa-common-dev package needed by rocclr (vdi).
+  *  This release has packages for ppc64le. These packages have not been tested.
+  *       Some fixes were applied to flang to support build on ppc64le. The rocclr (vdi)
+  *       component is very x86_64 specific. So it would not build on ppc64le. Since HIP
+  *       and OpenCL depend on rocclr, these components were not build for the ppc64le
+  *       build. Only OpenMP should work on ppc64le.
 
- -- Greg Rodgers <Gregory.Rodgers@amd.com>  Thu, 05 Nov 2020 10:21:43 -0600
+ -- Greg Rodgers <Gregory.Rodgers@amd.com>  Fri, 13 Nov 2020 16:35:41 -0600

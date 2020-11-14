@@ -26,12 +26,10 @@ thisdir=$(getdname $0)
 
 patchrepo $AOMP_REPOS_TEST/$AOMP_OMPTESTS_REPO_NAME
 
-
 AOMP=${AOMP:-/usr/lib/aomp}
-AOMP_GPU=`$AOMP/bin/mygpu`
+AOMP_GPU=${AOMP_GPU:-`$AOMP/bin/mygpu`}
 DEVICE_ARCH=${DEVICE_ARCH:-$AOMP_GPU}
 DEVICE_TARGET=${DEVICE_TARGET:-amdgcn-amd-amdhsa}
-
 
 pushd $AOMP_REPOS_TEST/$AOMP_OMPTESTS_REPO_NAME
 rm -f runtime-fails.txt

@@ -107,9 +107,10 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
  -DHIP_COMPILER=clang \
  -DHIP_PLATFORM=rocclr \
  -DROCM_PATH=$ROCM_DIR \
- -DHSA_PATH=$ROCM_DIR/hsa \
+ -DHSA_PATH=$ROCM_DIR \
  -DCMAKE_MODULE_PATH=$ROCM_DIR/cmake \
  -DROCclr_DIR=$ROCclr_ROOT \
+ -D__HIP_ENABLE_PCH=OFF \
  -DLIBROCclr_STATIC_DIR=$ROCclr_BUILD_DIR \
  -DCMAKE_PREFIX_PATH=$ROCclr_BUILD_DIR;$ROCM_DIR/include;$ROCM_DIR;$ROCM_DIR/lib \
  -DCMAKE_CXX_FLAGS=-Wno-ignored-attributes "
