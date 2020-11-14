@@ -39,7 +39,7 @@ echo "                   A non-zero exit code means a failure occured." >> check
 echo "Tests that need to be visually inspected: devices, pfspecify, pfspecify_str, stream" >> check-smoke.txt
 echo "***********************************************************************************" >> check-smoke.txt
 
-known_fails="targ_static target_teams_reduction tasks omp_get_initial flang_gen_sptr_prob flang_omp_red_3d"
+known_fails="targ_static target_teams_reduction tasks omp_get_initial flang_gen_sptr_prob flang_omp_red_3d hip_host_register"
 
 if [ "$SKIP_FAILURES" == 1 ] ; then
   skip_tests=$known_fails
