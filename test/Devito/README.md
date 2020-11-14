@@ -12,7 +12,7 @@ pip3 install -e .
 cd benchmarks/user/
 ```
 
-<b>Set up environment.</b>
+<b>Set AOMP.</b>
 If AOMP was installed via debian or rpm:
 ```
 export AOMP=/usr/lib/aomp 
@@ -21,7 +21,7 @@ Otherwise:
 ```
 export AOMP=/path/to/aomp 
 ```
-<b>Set up environment variables.</b>
+<b>Set up other environment variables.</b>
 ```
 export DEVITO_PLATFORM=amdgpuX DEVITO_ARCH=aomp DEVITO_LANGUAGE=openmp
 export PATH=$AOMP/bin:$PATH
