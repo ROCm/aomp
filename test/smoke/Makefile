@@ -36,6 +36,7 @@ TESTS_DIR = \
     global_allocate \
     helloworld \
     hip_device_compile \
+    hip_host_register \
     hip_rocblas \
     host_targ \
     issue_flang_libomp \
