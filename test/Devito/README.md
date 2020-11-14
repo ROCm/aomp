@@ -21,13 +21,10 @@ Otherwise:
 ```
 export AOMP=/path/to/aomp 
 ```
+<b>Set up environment variables.</b>
 ```
 export DEVITO_PLATFORM=amdgpuX DEVITO_ARCH=aomp DEVITO_LANGUAGE=openmp
 export PATH=$AOMP/bin:$PATH
-```
-<b>Fix aompcc issue seen with AOMP 11.7-1 and older AOMP versions, may require sudo. This will be fixed in 11.8-0.</b>
-```
-sed -i "s/readlink \"\$cdir/readlink -f \"\$cdir/g" $AOMP/bin/aompcc
 ```
 <b>Run acoustic benchmark with 256 grid size:</b>
 ```

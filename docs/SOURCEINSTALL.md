@@ -1,4 +1,4 @@
-# Source Install V 11.11-2 (DEV)
+# Source Install V 11.12-2 (DEV)
 
 Build and install from sources is possible.  However, the source build for AOMP is complex for several reasons.
 - Many repos are required.  The clone_aomp.sh script ensures you have all repos and the correct branch.
@@ -19,7 +19,7 @@ To build AOMP from source you must: 1. Install certain distribution packages, 2.
 ```
 
 <b>Choose a Build Version (Development or Release)</b>
-The development version is the next version to be released.  It is possible that the development version is broken due to regressions that often occur during development.  If instead, you want to build from the sources of a previous release such as 11.11-1 that is possible as well.
+The development version is the next version to be released.  It is possible that the development version is broken due to regressions that often occur during development.  If instead, you want to build from the sources of a previous release such as 11.11-2 that is possible as well.
 
 <b>For the Development Branch:</b>
 ```
@@ -29,7 +29,7 @@ The development version is the next version to be released.  It is possible that
 
 <b>For the Release Branch:</b>
 ```
-   git checkout rel_11.11-1
+   git checkout rel_11.11-2
    git pull
    export AOMP_CHECK_GIT_BRANCH=0 //Tags will be used to checkout various repos. This will ignore the detached head state to avoid build errors.
 ```
