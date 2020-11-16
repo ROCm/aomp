@@ -4,5 +4,6 @@ rocminfo: rocminfo_ppc_cmake.patch
 hip-on-vdi: hip-on-vdi.patch
 rocm-compilersupport: rocm-compilersupport.patch
 omptests: omptests.patch
+openlibm: openlibm.patch
 RAJA: raja.patch
 RAJAPerf: rajaperf.patch

@@ -1,0 +1,547 @@
+diff -Naur -x .git openlibm.0.7.2/test/define_wrapper_functions.c openlibm/test/define_wrapper_functions.c
+--- openlibm.0.7.2/test/define_wrapper_functions.c	1969-12-31 18:00:00.000000000 -0600
++++ openlibm/test/define_wrapper_functions.c	2020-11-13 17:12:59.887177263 -0600
+@@ -0,0 +1,202 @@
++
++#define __TARG_FUNff(__func)                                                   \
++float __func ## f_target(float _x) {                                           \
++float _r;                                                                      \
++_Pragma("omp target map(to:_x) map(from:_r)")                                  \
++_r = __func ##f(_x);                                                           \
++return _r;}
++
++#define __TARG_FUNfff(__func)                                                  \
++float __func ## f_target(float _x, float _y) {                                 \
++float _r;                                                                      \
++_Pragma("omp target map(to:_x,_y) map(from:_r)")                               \
++_r = __func ##f(_x, _y);                                                       \
++return _r;}
++
++#define __TARG_FUNlf(__func)                                                   \
++long __func ## f_target(float _x) {                                            \
++long _r;                                                                       \
++_Pragma("omp target map(to:_x) map(from:_r)")                                  \
++_r = __func ##f(_x);                                                           \
++return _r;}
++
++#define __TARG_FUNfl(__func)                                                   \
++float __func ## f_target(long _x) {                                            \
++float _r;                                                                      \
++_Pragma("omp target map(to:_x) map(from:_r)")                                  \
++_r = __func ##f(_x);                                                           \
++return _r;}
++
++#define __TARG_FUNff2(__func)                                                  \
++float __func ## f_target(float _x) {                                           \
++float _r;                                                                      \
++_Pragma("omp target map(to:_x) map(from:_r)")                                  \
++_r = l ## __func ## f(_x);                                                     \
++return _r;}
++
++#define __TARG_FUNll(__func)                                                   \
++long long __func ## f_target(float _x) {                                       \
++long long _r;                                                                  \
++_Pragma("omp target map(to:_x) map(from:_r)")                                  \
++_r = __func ##f(_x);                                                           \
++return _r;}
++
++#define __TARG_FUNffff(__func)                                                 \
++float __func ## f_target(float _x,float _y,float _z) {                         \
++float _r;                                                                      \
++_Pragma("omp target map(to:_x,_y,_z) map(from:_r)")                            \
++_r=__func ##f(_x,_y,_z);                                                       \
++return _r;}
++
++#define __TARG_FUNffi(__func)                                                  \
++float __func ## f_target(float _x, int _y) {                                   \
++float _r;                                                                      \
++_Pragma("omp target map(to:_x) map(from:_r)")                                  \
++_r = __func ##f(_x,_y);                                                        \
++return _r;}
++
++#define __TARG_FUNffl(__func)                                                  \
++float __func ## f_target(float _x, long _y) {                                  \
++float _r;                                                                      \
++_Pragma("omp target map(to:_x) map(from:_r)")                                  \
++_r = __func ##f(_x,_y);                                                        \
++return _r;}
++
++#define __TARG_FUNiii(__func)                                                  \
++int __func ## f_target(int _x, int _y) {                                       \
++int _r;                                                                        \
++_Pragma("omp target map(to:_x,_y) map(from:_r)")                               \
++_r = __func (_x,_y);                                                           \
++return _r;}
++
++#define __TARG_FUNii(__func)                                                   \
++int __func ## f_target(int _x) {                                               \
++int _r;                                                                        \
++_Pragma("omp target map(to:_x) map(from:_r)")                                  \
++_r = __func (_x);                                                              \
++return _r;}
++
++#define __TARG_FUNif(__func)                                                   \
++int __func ## f_target(float _x) {                                             \
++int _r;                                                                        \
++_Pragma("omp target map(to:_x) map(from:_r)")                                  \
++_r = __func ## f (_x);                                                         \
++return _r;}
++
++#define __TARG_FUNfif(__func)                                                  \
++float __func ## f_target(int _x, float _y) {                                   \
++float _r;                                                                      \
++_Pragma("omp target map(to:_x,_y) map(from:_r)")                               \
++_r = __func ##f(_x,_y);                                                        \
++return _r;}
++
++#define __TARG_FUN(__func)                                                     \
++double__func ## f_target(double_x) {                                           \
++double _r;                                                                     \
++_Pragma("omp target map(to:_x) map(from:_r)")                                  \
++_r = __func ##f(_x);                                                           \
++return _r;}
++
++__TARG_FUNff(cos)
++__TARG_FUNff(fabs)
++__TARG_FUNif(ilogb)
++__TARG_FUNffi(ldexp)
++__TARG_FUNfif(yn)
++__TARG_FUNff(y1)
++__TARG_FUNff(y0)
++__TARG_FUNfif(jn)
++__TARG_FUNff(j1)
++__TARG_FUNlf(lround)
++__TARG_FUNff(round)
++__TARG_FUNlf(lrint)
++__TARG_FUNll(llround)
++__TARG_FUNll(llrint)
++__TARG_FUNffff(fma)
++__TARG_FUNfff(fmin)
++__TARG_FUNfff(fmax)
++__TARG_FUNfff(fdim)
++__TARG_FUNfff(nextafter)
++__TARG_FUNfff(copysign)
++__TARG_FUNfff(remainder)
++__TARG_FUNfff(fmod)
++__TARG_FUNff(trunc)
++__TARG_FUNff(rint)
++__TARG_FUNff(tgamma)
++__TARG_FUNff(lgamma)
++__TARG_FUNff2(gamma)
++__TARG_FUNff(erfc)
++__TARG_FUNff(erf)
++__TARG_FUNff(sqrt)
++__TARG_FUNfff(pow)
++__TARG_FUNfff(hypot)
++__TARG_FUNff(cbrt)
++__TARG_FUNff(log2)
++__TARG_FUNff(log10)
++__TARG_FUNff(log)
++__TARG_FUNff(exp2)
++__TARG_FUNff(exp)
++__TARG_FUNff(tanh)
++__TARG_FUNff(sin)
++__TARG_FUNfff(atan2)
++__TARG_FUNff(asin)
++__TARG_FUNff(acos)
++__TARG_FUNff(j0)
++__TARG_FUNff(atan)
++__TARG_FUNff(tan)
++__TARG_FUNff(acosh)
++__TARG_FUNff(asinh)
++__TARG_FUNff(atanh)
++__TARG_FUNff(cosh)
++__TARG_FUNff(sinh)
++__TARG_FUNff(expm1)
++__TARG_FUNff(log1p)
++__TARG_FUNff(logb)
++__TARG_FUNffi(scalbn)
++__TARG_FUNffl(scalbln)
++__TARG_FUNff(ceil)
++__TARG_FUNff(floor)
++__TARG_FUNff(nearbyint)
++
++void sincosf_target(float x, float * s, float * c) {
++  *s = sinf_target(x);
++  *c = cosf_target(x);
++}
++
++float frexpf_target(float _x,int *_y) {
++  float _r;
++  int yh;
++  _Pragma("omp target map(to:_x) map(from:_r,yh)")
++  {
++    int yd;
++    _r=frexpf(_x,&yd);
++    yh = yd;
++  }
++  *_y = yh;
++return _r;
++}
++
++float modff_target(float _x,float *_y) {
++  float _r;
++  float yh;
++  _Pragma("omp target map(to:_x) map(from:_r,yh)")
++  {
++    float yd;
++    _r=modff(_x,&yd);
++    yh = yd;
++  }
++  *_y = yh;
++return _r;
++}
++
++float remquof_target(float _x,float _y, int *_q) {
++  float _r ;
++  int _qh;
++  _Pragma("omp target map(to:_x,_y) map(from:_r,_qh)")
++  {
++    int _qd;
++    _r=remquof(_x,_y,&_qd);
++    _qh = _qd;
++  }
++  *_q = _qh;
++return _r;
++}
+diff -Naur -x .git openlibm.0.7.2/test/double_wrapper_functions.c openlibm/test/double_wrapper_functions.c
+--- openlibm.0.7.2/test/double_wrapper_functions.c	1969-12-31 18:00:00.000000000 -0600
++++ openlibm/test/double_wrapper_functions.c	2020-11-13 18:08:05.992096088 -0600
+@@ -0,0 +1,202 @@
++
++#define __TARG_FUNdd(__func)                                                   \
++double __func ## _target(double _x) {                                          \
++double _r;                                                                     \
++_Pragma("omp target map(to:_x) map(from:_r)")                                  \
++_r = __func (_x);                                                              \
++return _r;}
++
++#define __TARG_FUNddd(__func)                                                  \
++double __func ## _target(double _x, double _y) {                               \
++double _r;                                                                     \
++_Pragma("omp target map(to:_x,_y) map(from:_r)")                               \
++_r = __func (_x, _y);                                                          \
++return _r;}
++
++#define __TARG_FUNl(__func)                                                    \
++long __func ## _target(double _x) {                                            \
++long _r;                                                                       \
++_Pragma("omp target map(to:_x) map(from:_r)")                                  \
++_r = __func (_x);                                                              \
++return _r;}
++
++#define __TARG_FUNfl(__func)                                                   \
++double __func ## _target(long _x) {                                            \
++double _r;                                                                     \
++_Pragma("omp target map(to:_x) map(from:_r)")                                  \
++_r = __func (_x);                                                              \
++return _r;}
++
++#define __TARG_FUNdd2(__func)                                                  \
++double __func ## _target(double _x) {                                          \
++double _r;                                                                     \
++_Pragma("omp target map(to:_x) map(from:_r)")                                  \
++_r = l ## __func (_x);                                                         \
++return _r;}
++
++#define __TARG_FUNll(__func)                                                   \
++long long __func ## _target(double _x) {                                       \
++long long _r;                                                                  \
++_Pragma("omp target map(to:_x) map(from:_r)")                                  \
++_r = __func (_x);                                                              \
++return _r;}
++
++#define __TARG_FUNdddd(__func)                                                 \
++double __func ## _target(double _x,double _y,double _z) {                      \
++double _r;                                                                     \
++_Pragma("omp target map(to:_x,_y,_z) map(from:_r)")                            \
++_r=__func (_x,_y,_z);                                                          \
++return _r;}
++
++#define __TARG_FUNddi(__func)                                                  \
++double __func ## _target(double _x, int _y) {                                  \
++double _r;                                                                     \
++_Pragma("omp target map(to:_x) map(from:_r)")                                  \
++_r = __func (_x,_y);                                                           \
++return _r;}
++
++#define __TARG_FUNddl(__func)                                                  \
++double __func ## _target(double _x, long _y) {                                 \
++double _r;                                                                     \
++_Pragma("omp target map(to:_x) map(from:_r)")                                  \
++_r = __func (_x,_y);                                                           \
++return _r;}
++
++#define __TARG_FUNiii(__func)                                                  \
++int __func ## _target(int _x, int _y) {                                        \
++int _r;                                                                        \
++_Pragma("omp target map(to:_x,_y) map(from:_r)")                               \
++_r = __func (_x,_y);                                                           \
++return _r;}
++
++#define __TARG_FUNii(__func)                                                   \
++int __func ## _target(int _x) {                                                \
++int _r;                                                                        \
++_Pragma("omp target map(to:_x) map(from:_r)")                                  \
++_r = __func (_x);                                                              \
++return _r;}
++
++#define __TARG_FUNif(__func)                                                   \
++int __func ## _target(double _x) {                                             \
++int _r;                                                                        \
++_Pragma("omp target map(to:_x) map(from:_r)")                                  \
++_r = __func (_x);                                                              \
++return _r;}
++
++#define __TARG_FUNdid(__func)                                                  \
++double __func ## _target(int _x, double _y) {                                  \
++double _r;                                                                     \
++_Pragma("omp target map(to:_x,_y) map(from:_r)")                               \
++_r = __func (_x,_y);                                                           \
++return _r;}
++
++#define __TARG_FUN(__func)                                                     \
++double__func ## _target(double_x) {                                            \
++double _r;                                                                     \
++_Pragma("omp target map(to:_x) map(from:_r)")                                  \
++_r = __func (_x);                                                              \
++return _r;}
++
++__TARG_FUNdd(cos)
++__TARG_FUNdd(fabs)
++__TARG_FUNif(ilogb)
++__TARG_FUNddi(ldexp)
++__TARG_FUNdid(yn)
++__TARG_FUNdd(y1)
++__TARG_FUNdd(y0)
++__TARG_FUNdid(jn)
++__TARG_FUNdd(j1)
++__TARG_FUNl(lround)
++__TARG_FUNdd(round)
++__TARG_FUNl(lrint)
++__TARG_FUNll(llround)
++__TARG_FUNll(llrint)
++__TARG_FUNdddd(fma)
++__TARG_FUNddd(fmin)
++__TARG_FUNddd(fmax)
++__TARG_FUNddd(fdim)
++__TARG_FUNddd(nextafter)
++__TARG_FUNddd(copysign)
++__TARG_FUNddd(remainder)
++__TARG_FUNddd(fmod)
++__TARG_FUNdd(trunc)
++__TARG_FUNdd(rint)
++__TARG_FUNdd(tgamma)
++__TARG_FUNdd(lgamma)
++__TARG_FUNdd2(gamma)
++__TARG_FUNdd(erfc)
++__TARG_FUNdd(erf)
++__TARG_FUNdd(sqrt)
++__TARG_FUNddd(pow)
++__TARG_FUNddd(hypot)
++__TARG_FUNdd(cbrt)
++__TARG_FUNdd(log2)
++__TARG_FUNdd(log10)
++__TARG_FUNdd(log)
++__TARG_FUNdd(exp2)
++__TARG_FUNdd(exp)
++__TARG_FUNdd(tanh)
++__TARG_FUNdd(sin)
++__TARG_FUNddd(atan2)
++__TARG_FUNdd(asin)
++__TARG_FUNdd(acos)
++__TARG_FUNdd(j0)
++__TARG_FUNdd(atan)
++__TARG_FUNdd(tan)
++__TARG_FUNdd(acosh)
++__TARG_FUNdd(asinh)
++__TARG_FUNdd(atanh)
++__TARG_FUNdd(cosh)
++__TARG_FUNdd(sinh)
++__TARG_FUNdd(expm1)
++__TARG_FUNdd(log1p)
++__TARG_FUNdd(logb)
++__TARG_FUNddi(scalbn)
++__TARG_FUNddl(scalbln)
++__TARG_FUNdd(ceil)
++__TARG_FUNdd(floor)
++__TARG_FUNdd(nearbyint)
++
++void sincos_target(double x, double * s, double * c) {
++  *s = sin_target(x);
++  *c = cos_target(x);
++}
++
++double frexp_target(double _x,int *_y) {
++  double _r;
++  int yh;
++  _Pragma("omp target map(to:_x) map(from:_r,yh)")
++  {
++    int yd;
++    _r=frexp(_x,&yd);
++    yh = yd;
++  }
++  *_y = yh;
++return _r;
++}
++
++double mod_target(double _x,double *_y) {
++  double _r;
++  double yh;
++  _Pragma("omp target map(to:_x) map(from:_r,yh)")
++  {
++    double yd;
++    _r=modf(_x,&yd);
++    yh = yd;
++  }
++  *_y = yh;
++return _r;
++}
++
++double remquo_target(double _x,double _y, int *_q) {
++  double _r ;
++  int _qh;
++  _Pragma("omp target map(to:_x,_y) map(from:_r,_qh)")
++  {
++    int _qd;
++    _r=remquo(_x,_y,&_qd);
++    _qh = _qd;
++  }
++  *_q = _qh;
++return _r;
++}
+diff -Naur -x .git openlibm.0.7.2/test/libm-test.c openlibm/test/libm-test.c
+--- openlibm.0.7.2/test/libm-test.c	2020-10-29 16:10:39.861620238 -0500
++++ openlibm/test/libm-test.c	2020-11-13 18:05:29.762171503 -0600
+@@ -118,12 +118,20 @@
+ #include "libm-test-ulps.h"
+ #include <float.h>
+ #ifdef SYS_MATH_H
++#define __USE_GNU
+ #include <math.h>
+ #include <fenv.h>
+ #else
+ #include <openlibm.h>
+ #endif
+ 
++#ifdef _USE_WRAPPERS
++#include "define_wrapper_functions.c"
++#endif
++#ifdef _USE_DOUBLE_WRAPPERS
++#include "double_wrapper_functions.c"
++#endif
++
+ #if 0 /* XXX scp XXX */
+ #define FE_INEXACT FE_INEXACT
+ #define FE_DIVBYZERO FE_DIVBYZERO
+@@ -147,6 +155,7 @@
+ 
+ #ifdef __APPLE__
+ #ifdef SYS_MATH_H
++#warning defining sincos with potential doubles
+ void sincos(FLOAT x, FLOAT * s, FLOAT * c)
+ {
+     *s = sin(x);
+@@ -180,7 +189,7 @@
+ #define M_PI4_LOG10El		M_PI_4l * M_LOG10El
+ #define M_PI_LOG10El		M_PIl * M_LOG10El
+ 
+-#if 1 /* XXX scp XXX */
++#ifndef SYS_MATH_H
+ # define M_El		2.7182818284590452353602874713526625L  /* e */
+ # define M_LOG2El	1.4426950408889634073599246810018922L  /* log_2 e */
+ # define M_LOG10El	0.4342944819032518276511289189166051L  /* log_10 e */
+diff -Naur -x .git openlibm.0.7.2/test/Makefile openlibm/test/Makefile
+--- openlibm.0.7.2/test/Makefile	2020-10-29 16:10:39.603625314 -0500
++++ openlibm/test/Makefile	2020-11-13 17:31:49.239945784 -0600
+@@ -31,5 +31,34 @@
+ bench-syslibm: libm-bench.cpp
+ 	$(CC) $(CPPFLAGS) $(CFLAGS) $(CFLAGS_add) $(LDFLAGS) $(LDFLAGS_arch) $< -lm -o $@
+ 
++#  test-float-wrappers:
++#    Same as test-float but  using wrappers
++test-float-wrappers: test-float.c libm-test.c libm-test-ulps.h define_wrapper_functions.c
++	$(CC) -Wno-unknown-pragmas -D_USE_WRAPPERS $(CPPFLAGS) $(CFLAGS) $(CFLAGS_add) $(LDFLAGS) $(LDFLAGS_arch) test-float.c -D__BSD_VISIBLE -I ../include -I../src $(OPENLIBM_LIB) -o $@
++
++#  test-float-wrappers-system:
++#    Same as test-float-system using wrappers
++test-float-wrappers-system: test-float.c libm-test.c libm-test-ulps.h define_wrapper_functions.c
++	$(CC) -Wno-unknown-pragmas -D_USE_WRAPPERS $(CPPFLAGS) $(CFLAGS) $(CFLAGS_add) $(LDFLAGS) $(LDFLAGS_arch) $< -DSYS_MATH_H -lm -o $@
++
++#  test-float-offload:
++#    Same as test-float-wrappers-system but with clang OpenMP target offload.
++#    OpenMP target offload recognizes the omp target pragma in each wrappers.
++#    Clang offloading has header overlays for math.h to define device variants of math functions.
++#    It does not have an overlay for openlibm headers, so we must use system defines.
++AOMP ?= /usr/lib/aomp
++_gpu  = $(shell $(AOMP)/bin/mygpu -d gfx900)
++ifeq (sm_,$(findstring sm_,$(_gpu)))
++  _gputriple = nvptx64-nvidia-cuda
++else
++  _gputriple = amdgcn-amd-amdhsa
++endif
++OMP_FLAGS = -O3 -fopenmp -fopenmp-targets=$(_gputriple) -Xopenmp-target=$(_gputriple) -march=$(_gpu)
++CLANG     = $(AOMP)/bin/clang
++test-float-offload: test-float.c libm-test.c libm-test-ulps.h define_wrapper_functions.c
++	$(CLANG) -D_USE_WRAPPERS $(OMP_FLAGS) $(CPPFLAGS) $(CFLAGS) $(CFLAGS_add) $(LDFLAGS) $(LDFLAGS_arch) $< -DSYS_MATH_H -lm -o $@
++test-double-offload: test-double.c libm-test.c libm-test-ulps.h double_wrapper_functions.c
++	$(CLANG) -D_USE_DOUBLE_WRAPPERS $(OMP_FLAGS) $(CPPFLAGS) $(CFLAGS) $(CFLAGS_add) $(LDFLAGS) $(LDFLAGS_arch) $< -DSYS_MATH_H -lm -o $@
++
+ clean:
+-	rm -fr test-double test-float test-double-system test-float-system bench-openlibm bench-syslibm *.dSYM
++	rm -fr test-double test-float test-double-system test-float-system bench-openlibm bench-syslibm *.dSYM test-float-wrappers test-float-wrappers-system test-float-offload test-double-offload
+diff -Naur -x .git openlibm.0.7.2/test/test-double.c openlibm/test/test-double.c
+--- openlibm.0.7.2/test/test-double.c	2020-10-29 16:10:39.973618033 -0500
++++ openlibm/test/test-double.c	2020-11-13 17:25:20.965589023 -0600
+@@ -17,7 +17,11 @@
+    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+    02111-1307 USA.  */
+ 
++#ifdef _USE_WRAPPERS
++#define FUNC(function) function ## _target
++#else
+ #define FUNC(function) function
++#endif
+ #define FLOAT double
+ #define TEST_MSG "testing double (without inline functions)\n"
+ #define MATHCONST(x) x
+@@ -31,4 +35,11 @@
+ # define __NO_MATH_INLINES
+ #endif
+ 
++// FIXME: Clang OpenMP device pass should define signgam
++#if defined(_OPENMP)
++  #if defined(__AMDGCN__) || defined(__NVPTX__)
++extern int signgam;
++  #endif
++#endif
++
+ #include "libm-test.c"
+diff -Naur -x .git openlibm.0.7.2/test/test-float.c openlibm/test/test-float.c
+--- openlibm.0.7.2/test/test-float.c	2020-10-29 16:10:40.031616891 -0500
++++ openlibm/test/test-float.c	2020-11-13 17:13:00.110172871 -0600
+@@ -17,7 +17,11 @@
+    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+    02111-1307 USA.  */
+ 
++#ifdef _USE_WRAPPERS
++#define FUNC(function) function ## f_target
++#else
+ #define FUNC(function) function ## f
++#endif
+ #define FLOAT float
+ #define TEST_MSG "testing float (without inline functions)\n"
+ #define MATHCONST(x) x
+@@ -31,4 +35,12 @@
+ # define __NO_MATH_INLINES
+ #endif
+ 
++// FIXME: Clang OpenMP device pass should define signgam
++#if defined(_OPENMP)
++  #if defined(__AMDGCN__) || defined(__NVPTX__)
++extern int signgam;
++  #endif
++#endif
++
++
+ #include "libm-test.c"
