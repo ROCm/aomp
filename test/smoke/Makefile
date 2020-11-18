@@ -21,6 +21,7 @@ TESTS_DIR = \
     firstprivate \
     firstprivate2 \
     flags \
+    flang_blkdata-g \
     flang_char_kind \
     flang_gen_sptr_prob \
     flang_isystem_prob \
