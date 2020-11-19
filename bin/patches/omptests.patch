@@ -37,28 +37,3 @@ index 941704e..0846f05 100644
  results_folder := $(main_folder)/results
  error_log := $(results_folder)/error.log
  compile_log := $(results_folder)/compile.log
-diff --git a/Makefile.rules b/Makefile.rules
-index 5a37204..085670e 100644
---- a/Makefile.rules
-+++ b/Makefile.rules
-@@ -48,6 +48,7 @@ static: $(results_folder)/a.out
- 		echo "#### Error #### Binary not generated for $(main_folder)" | tee -a $(error_log); \
- 		echo "#### Error #### Command to reproduce"; \
- 		cat $(compile_cmd)                                             | tee -a $(error_log); \
-+		echo $(program) >> $(main_folder)/../compile-fails.txt; \
- 		false; \
- 	fi
- 	@echo " ---> Binary built successfully: $(main_folder)"
-@@ -85,10 +86,11 @@ run: prepare_folder_to_run
- 	@echo "$(cmd) -o $(results_folder)/a.out" >> $(compile_cmd)
- 	@$(results_folder)/a.out 1>$(results_folder)/stdout 2>$(results_folder)/stderr ; true
- 	@diff $(results_folder)/stdout expected > /dev/null || \
--	(if [ $$? ] ; then \
-+	(if [ $$? ] && [ -e $(results_folder)/a.out ]; then \
- 		echo "#### Error #### Result mismatch for $(main_folder)" | tee -a $(error_log); \
- 		echo "#### Error #### Command to reproduce"; \
- 		cat $(compile_cmd)                                        | tee -a $(error_log); \
-+		echo $(program) >> $(main_folder)/../runtime-fails.txt; \
- 		false; \
- 	fi)
- 	@echo " ---> Binary runs successfully: $(main_folder)"
