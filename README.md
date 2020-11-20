@@ -97,3 +97,4 @@ See the [release notes](https://github.com/ROCm-Developer-Tools/aomp/releases) i
 ```
  - Some simd constructs fail to vectorize on both host and GPUs.
 ```
+# test access to github
