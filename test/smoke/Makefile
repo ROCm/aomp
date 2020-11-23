@@ -17,6 +17,7 @@ TESTS_DIR = \
     data_share2 \
     decl_targ \
     devices \
+    devito_prob1 \
     extern_init \
     firstprivate \
     firstprivate2 \
