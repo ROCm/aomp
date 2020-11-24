@@ -1,7 +1,7 @@
 include ../Makefile.defs
 
 TESTNAME     = devito_prob1
-TESTSRC_MAIN = devito_prob1
+TESTSRC_MAIN = devito_prob1.c
 TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 
