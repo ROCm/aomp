@@ -17,6 +17,7 @@ TESTS_DIR = \
     data_share2 \
     decl_targ \
     devices \
+    devito_prob1 \
     extern_init \
     firstprivate \
     firstprivate2 \
@@ -62,6 +63,7 @@ TESTS_DIR = \
     nested_loop \
     nested_par3 \
     nest_call_par2 \
+    omp_get_device_num \
     omp_get_initial \
     omp_lock \
     omp_num_teams_SPMD \
