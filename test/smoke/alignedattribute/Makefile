@@ -1,6 +1,6 @@
 include ../Makefile.defs
 
-TESTNAME     = alignedattribute 
+TESTNAME     = alignedattribute
 TESTSRC_MAIN = alignedattribute.c
 TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
