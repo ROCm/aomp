@@ -1,6 +1,0 @@
-#!/bin/bash
-# Use this short script for now  because Makefile is broken for some reason
-mygpu=`$AOMP/bin/mygpu`
-cmd="$AOMP/bin/clang  -O2 -target x86_64-pc-linux-gnu -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$mygpu alignedattribute.c -o alignedattribute"
-echo $cmd
-$cmd

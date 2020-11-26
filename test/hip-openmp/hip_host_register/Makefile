@@ -1,6 +1,6 @@
 #-----------------------------------------------------------------------
-#  Makefile: expected fail "variable length arrays not supported.
-#            "make run" returns 0 if string is found in stderr.
+#  Makefile: Demo simple makefile for hip with the AOMP compiler
+#            This makefile uses hipcc. 
 #-----------------------------------------------------------------------
 # MIT License
 # Copyright (c) 2019 Advanced Micro Devices, Inc. All Rights Reserved.
@@ -26,12 +26,15 @@
 # SOFTWARE.
 
 AOMP ?= /usr/lib/aomp
+AOMPHIP ?= $(AOMP)
+DEVICE_LIB_PATH=$(AOMPHIP)/amdgcn/bitcode/
 
-compile.stderr: target_teams_reduction.cpp
-	$(AOMP)/bin/aompcc $^ -o $@ 2>compile.stderr >compile.stdout ; true
+CC   =  DEVICE_LIB_PATH=$(DEVICE_LIB_PATH) $(AOMPHIP)/bin/hipcc -I$(AOMP)/include/hip
 
-run: compile.stderr
-	grep -q "variable length arrays are not supported" $^
+hip_host_register: hip_host_register.hip
+	$(CC) $^ -o $@ -std=c++11
+run: hip_host_register
+	LD_LIBRARY_PATH=$(AOMP)/lib ./hip_host_register
+
 clean:
-	@[ -f ./compile.stderr ] && rm ./compile.stderr ; true
-	@[ -f ./compile.stdout ] && rm ./compile.stdout ; true
+	@[ -f ./hip_host_register ] && rm ./hip_host_register ; true
