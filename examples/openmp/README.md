@@ -32,56 +32,9 @@ The result is correct = 499999500000!
 
 ```
 
-## Bundling
+## Using is_device_ptr() with Host Pointers.
 
-This demonstration shows how intermediate .o object files are actually bundles of multiple files. A .o bundle contains a host object file and an object file for each offload architecture. The unbundle.sh bash script provided with AOMP examines the bundled .o file to create the proper call to the clang-offload-bundler tool.
+The clause is_device_ptr() on OpenMP target constructs is intended to tell OpenMP that the variable is already a device pointer so do not map it. A variable that is mapped uses a device copy of that variable.  There are at least two scenarios where you may not want a host pointer to be mapped to a device pointer.  The first is if you are using fprintf in a target region.  The fprintf function is implemented as a host service using the AOMP hostrpc services infrastructure.  In this case you do NOT want the file pointer to be mapped.  You want the host rpc services to get the actual file pointer.  So ironically, you must use the is_device_ptr(fileptr) to tell OpenMP not to map fileptr.  In other words, just leave that pointer alone in the target region.  The other scenario is when you are using any of the host functions that take a pointer to the host function.  Again, use is_device_ptr() clause to tell OpenMP not to do anything with that variable.  The examples host_function and host_varfn_function show how host functions are called from the GPU.  In both of these examples, you see the use of is_device_ptr to protect the host pointers from getting mapped.
 
-The makefiles provided in the openmp examples demonstrate two build schemes. The default make creates the executable with a single command as shown above.  The make target "make obin" compiles each source into .o files and then links these into the executable "obin".  In this demonstration, we create the intermediate .o files and the obin executable. Then we use the unbundle.sh script to show the contents of just one of the .o files. Then we rebuild that .o file for Nvidia sm_30 GPUs to show how the .o bundle is different. 
-
-```
-:/usr/lib/aomp/examples/openmp/vmulsum$ ls
-main.c  Makefile  README  vmul.c  vsum.c
-
-# Compile each source into .o and then link .o files to create a binary
-:/usr/lib/aomp/examples/openmp/vmulsum$ make obin
-/usr/lib/aomp/bin/clang -c -O3 -target x86_64-pc-linux-gnu -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=gfx900     main.c -o main.o
-/usr/lib/aomp/bin/clang -c -O3 -target x86_64-pc-linux-gnu -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=gfx900     vsum.c -o vsum.o
-/usr/lib/aomp/bin/clang -c -O3 -target x86_64-pc-linux-gnu -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=gfx900     vmul.c -o vmul.o
-/usr/lib/aomp/bin/clang -O3 -target x86_64-pc-linux-gnu -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=gfx900      main.o vsum.o vmul.o -o obin
-
-# Notice how the above commands create three .o files and the executable "obin"
-:/usr/lib/aomp/examples/openmp/vmulsum$ ls
-main.c  main.o  Makefile  obin  README  vmul.c  vmul.o  vsum.c  vsum.o
-
-# Now lets unbundle just one of the three .o files
-:/usr/lib/aomp/examples/openmp/vmulsum$ $AOMP/bin/unbundle.sh vmul.o
-/usr/lib/aomp/bin/clang-offload-bundler -unbundle -type=bc -inputs=vmul.o -targets=openmp-amdgcn-amd-amdhsa,host-x86_64-pc-linux-gnu -outputs=vmul.o.openmp-amdgcn-amd-amdhsa,vmul.o.host-x86_64-pc-linux-gnu
-
-# Two more files appear from the bundle
-:/usr/lib/aomp/examples/openmp/vmulsum$ ls
-main.c    obin    vmul.o                           vsum.c
-main.o    README  vmul.o.host-x86_64-pc-linux-gnu  vsum.o
-Makefile  vmul.c  vmul.o.openmp-amdgcn-amd-amdhsa
-
-# For amdgcn, the .o bundle contains a host ELF object and an LLVM bc 
-:/usr/lib/aomp/examples/openmp/vmulsum$ file vmul.o*
-vmul.o:                          data
-vmul.o.host-x86_64-pc-linux-gnu: ELF 64-bit LSB relocatable, x86-64, version 1 (SYSV), not stripped
-vmul.o.openmp-amdgcn-amd-amdhsa: LLVM IR bitcode
-
-# Lets switch to building for cuda sm_30 GPUs
-:/usr/lib/aomp/examples/openmp/vmulsum$ rm vmul.o*
-:/usr/lib/aomp/examples/openmp/vmulsum$ export AOMP_GPU=sm_30
-:/usr/lib/aomp/examples/openmp/vmulsum$ make vmul.o
-/usr/lib/aomp/bin/clang -c -O3 -target x86_64-pc-linux-gnu -fopenmp -fopenmp-targets=nvptx64-nvidia-cuda -Xopenmp-target=nvptx64-nvidia-cuda -march=sm_30  vmul.c -o vmul.o
-
-# Notice that the .o bundle now contains host ELF object and a cuda cubin
-:/usr/lib/aomp/examples/openmp/vmulsum$ $AOMP/bin/unbundle.sh vmul.o
-/usr/lib/aomp/bin/clang-offload-bundler -unbundle -type=o -inputs=vmul.o -targets=openmp-nvptx64-nvidia-cuda,host-x86_64-pc-linux-gnu -outputs=vmul.o.openmp-nvptx64-nvidia-cuda,vmul.o.host-x86_64-pc-linux-gnu
-
-:/usr/lib/aomp/examples/openmp/vmulsum$ file vmul.o*
-vmul.o:                            ELF 64-bit LSB relocatable, x86-64, version 1 (SYSV), not stripped
-vmul.o.host-x86_64-pc-linux-gnu:   ELF 64-bit LSB relocatable, x86-64, version 1 (SYSV), not stripped
-vmul.o.openmp-nvptx64-nvidia-cuda: ELF 64-bit LSB relocatable, NVIDIA CUDA architecture,, not stripped
 
 ```
