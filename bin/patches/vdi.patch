@@ -1,0 +1,15 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 93955582..d10980d5 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -269,10 +269,6 @@ install (
+    DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/utils"
+    DESTINATION include
+    FILES_MATCHING PATTERN "*.h*")
+-install (
+-   DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/platform"
+-   DESTINATION include
+-   FILES_MATCHING PATTERN "*.h*")
+ install (
+    DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/thread"
+    DESTINATION include
