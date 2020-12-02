@@ -7,7 +7,8 @@ TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 OMP_FLAGS    =  --offload-arch=${AOMP_GPU}
 CFLAGS       = -x hip -I /opt/rocm/rocblas/include/ --offload-arch=${AOMP_GPU} -std=c++11
-OMPHIP ?= $(AOMP)
+AOMPHIP ?= $(AOMP)
+VERS = $(shell $(AOMP)/bin/aompversion)
 ifeq ($(shell expr $(VERS) \>= 12.0), 1)
   RPTH = -Wl,-rpath,$(AOMPHIP)/lib
 endif
