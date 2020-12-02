@@ -111,6 +111,7 @@ if [ "$AOMP_STANDALONE_BUILD" == 1 ] ; then
   if [ "$AOMP_BUILD_DEBUG" == "1" ] && [ "$GPPVERS" -ge 7 ]; then
     components="$components rocdbgapi rocgdb"
   fi
+  components="$components roctracer rocprofiler"
 else
   # With AOMP 11, ROCM integrated build will not need roct rocr libdevice comgr and rocminfo
   #               In the future, when ROCm build vdi and hipvdi we can remove them
