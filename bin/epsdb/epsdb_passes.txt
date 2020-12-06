@@ -34,8 +34,6 @@ function_overload
 function_template
 gdb_teams
 helloworld
-hip_device_compile
-hip_rocblas
 issue_001
 issue_002
 issue_flang_libomp
