@@ -22,9 +22,11 @@ int main(int argc, char **argv){
   
 
   if (ptr1==ptr2){
-	  printf("use_device_addr test :: Pass \n");
-		return 0;
-  else{
-	  printf("use_device_addr test :: FAIL \n Addresses are :: %p and %p \n",ptr1, ptr2);
-		return 1;
+    printf("use_device_addr test :: Pass \n");
+    return 0;
   }
+  else{
+    printf("use_device_addr test :: FAIL \n Addresses are :: %p and %p \n",ptr1, ptr2);
+    return 1;
+  }
+}
