@@ -17,9 +17,9 @@ endif
 CFLAGS = -x hip --offload-arch=${AOMP_GPU} -std=c++11 $(LLIB) -lamdhip64 $(RPTH)
 endif
 OMP_FLAGS    =
-
+AOMPROCM ?= /opt/rocm
 ifeq ($(EPSDB),1)
-OMP_BIN      = /opt/rocm/bin/hipcc
+OMP_BIN      = $(AOMPROCM)/bin/hipcc
 else
 CLANG        = clang++
 OMP_BIN      = $(AOMP)/bin/$(CLANG)

@@ -63,10 +63,11 @@ for directory in ./*/; do
       echo ""
       continue
     fi
+    AOMPROCM ?= /opt/rocm
     if [ $base == 'hip_rocblas' ] ; then
-      ls /opt/rocm/rocblas > /dev/null 2>&1
+      ls $AOMPROCM/rocblas > /dev/null 2>&1
       if [ $? -ne 0 ]; then
-        echo -e "$RED"$base - needs rocblas installed at /opt/rocm/rocblas:"$BLK"
+             echo -e "$RED"$base - needs rocblas installed at $AOMPROCM/rocblas:"$BLK"
         echo -e "$RED"$base - ROCBLAS NOT FOUND!!! SKIPPING TEST!"$BLK"
         continue
       fi
