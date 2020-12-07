@@ -106,6 +106,7 @@ TESTS_DIR = \
     Threads1xxx \
     unique-kernel-name \
     use_device_ptr \
+    use_device_addr \
     veccopy \
     vmuldemo \
     vmulsum
