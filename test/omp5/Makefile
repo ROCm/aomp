@@ -7,6 +7,7 @@ TESTS_DIR = \
     mapper_prob \
     nestedSIMD \
     noncontig \
+    prag_error \
     reduc_map_prob \
     red_bug_51 \
     reduc_map_prob \
