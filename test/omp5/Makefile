@@ -11,6 +11,7 @@ TESTS_DIR = \
     reduc_map_prob \
     red_bug_51 \
     reduc_map_prob \
+    rush_larsen \
     shape_noncontig \
     task_prob
 
