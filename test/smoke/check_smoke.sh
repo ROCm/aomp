@@ -63,7 +63,7 @@ for directory in ./*/; do
       echo ""
       continue
     fi
-    AOMPROCM ?= /opt/rocm
+    AOMPROCM=${AOMPROCM:-/opt/rocm}
     if [ $base == 'hip_rocblas' ] ; then
       ls $AOMPROCM/rocblas > /dev/null 2>&1
       if [ $? -ne 0 ]; then
