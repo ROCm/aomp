@@ -67,7 +67,7 @@ for directory in ./*/; do
     if [ $base == 'hip_rocblas' ] ; then
       ls $AOMPROCM/rocblas > /dev/null 2>&1
       if [ $? -ne 0 ]; then
-             echo -e "$RED"$base - needs rocblas installed at $AOMPROCM/rocblas:"$BLK"
+        echo -e "$RED"$base - needs rocblas installed at $AOMPROCM/rocblas:"$BLK"
         echo -e "$RED"$base - ROCBLAS NOT FOUND!!! SKIPPING TEST!"$BLK"
         continue
       fi
@@ -214,7 +214,7 @@ if [ "$EPSDB" == 1 ] ; then
 fi
 
 #Clean up, hide output
-if [ "$EPSDB" != 1 ] ; then
+if [ "$EPSDB" != 1 ] && [ "$CLEANUP" != 0 ]; then
   cleanup
 fi
 
