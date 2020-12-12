@@ -170,11 +170,11 @@ elif [ "$AOMP_VERSION" == "13.0" ] ; then
 else
   GITPROJECT=$GITROCDEV
   AOMP_PROJECT_REPO_NAME=${AOMP_PROJECT_REPO_NAME:-amd-llvm-project}
-  AOMP_PROJECT_REPO_BRANCH=${AOMP_PROJECT_REPO_BRANCH:-aomp11}
+  AOMP_PROJECT_REPO_BRANCH=${AOMP_PROJECT_REPO_BRANCH:-aomp_11.12-0}
   AOMP_EXTRAS_REPO_NAME=${AOMP_EXTRAS_REPO_NAME:-aomp-extras}
-  AOMP_EXTRAS_REPO_BRANCH=${AOMP_EXTRAS_REPO_BRANCH:-aomp11}
+  AOMP_EXTRAS_REPO_BRANCH=${AOMP_EXTRAS_REPO_BRANCH:-aomp_11.12-0}
   AOMP_FLANG_REPO_NAME=${AOMP_FLANG_REPO_NAME:-flang}
-  AOMP_FLANG_REPO_BRANCH=${AOMP_FLANG_REPO_BRANCH:-aomp11}
+  AOMP_FLANG_REPO_BRANCH=${AOMP_FLANG_REPO_BRANCH:-aomp_11.12-0}
 fi
 # FIXME: In the near future, we will remove the _BRANCH variables and use a
 #        manifest file to determine which branch to build each component.
@@ -192,7 +192,7 @@ fi
 
 #  These aomp development repositories
 AOMP_REPO_NAME=${AOMP_REPO_NAME:-aomp}
-AOMP_REPO_BRANCH=${AOMP_REPO_BRANCH:-amd-stg-openmp}
+AOMP_REPO_BRANCH=${AOMP_REPO_BRANCH:-rel_11.12-0}
 
 #  These extra repositories are needed but we cannot update them
 AOMP_ROCT_REPO_NAME=${AOMP_ROCT_REPO_NAME:-roct-thunk-interface}
@@ -219,7 +219,7 @@ AOMP_COMGR_REPO_SHA=${AOMP_COMGR_REPO_SHA:-4b689d6}
 fi
 AOMP_RINFO_REPO_NAME=${AOMP_RINFO_REPO_NAME:-rocminfo}
 AOMP_RINFO_REPO_BRANCH=${AOMP_RINFO_REPO_BRANCH:-master}
-#AOMP_RINFO_REPO_SHA=${AOMP_RINFO_REPO_SHA:-605b3a5}
+AOMP_RINFO_REPO_SHA=${AOMP_RINFO_REPO_SHA:-605b3a5}
 
 # These are repos we will use when we switch to HIP VDI
 AOMP_VDI_REPO_NAME=${AOMP_VDI_REPO_NAME:-vdi}
