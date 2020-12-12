@@ -61,7 +61,7 @@ int main()
   printf("Return values are %d  and %f \n",sim2,sim2d);
 
   printf("\nTesting call to hostrpc_varfn_uint in target region:%p\n",my_host_fn_ptr);
-  #pragma omp target parallel for map(from: a[0:N]) map(to: b[0:N]) map(to: my_host_fn_ptr,my_host_fn_double)
+  #pragma omp target parallel for map(from: a[0:N]) map(to: b[0:N]) is_device_ptr(my_host_fn_ptr,my_host_fn_double)
   for (int j = 0; j< N; j++) {
     a[j]=b[j];
     uint    rc=hostrpc_varfn_uint(my_host_fn_ptr, &a, j, a[j]);

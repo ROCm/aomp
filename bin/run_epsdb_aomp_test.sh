@@ -14,6 +14,8 @@ set -x
 # in lots of tests. This set to 0, disables the new TMM.
 export LIBOMPTARGET_MEMORY_MANAGER_THRESHOLD=0
 
+export AOMPROCM=$AOMP/..
+
 # mygpu will eventually relocate to /opt/rocm/bin, support both cases for now.
 if [ -a $AOMP/bin/mygpu ]; then
   export AOMP_GPU=`$AOMP/bin/mygpu`

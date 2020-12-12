@@ -50,9 +50,16 @@ TARGET_FLAGS = -fopenmp -fopenmp-targets=$(AOMP_GPUTARGET) -Xopenmp-target=$(AOM
 CPPFLAGS     = $(INCLUDES) -Wall -Wextra -O3 -DNDEBUG  -w $(TARGET_FLAGS) -std=c++17 -DGTEST_HAS_PTHREAD=0 -DGTEST_HAS_TR1_TUPLE=0 -DKOKKOS_DEPENDENCE -DKOKKOS_WORKAROUND_OPENMPTARGET_CLANG
 LINKFLAGS    = $(enableopt) -Wall -Wextra -O3 -DNDEBUG -w $(TARGET_FLAGS)
 
-# Archive may be at lib64 for non-debian systems
+# Archive may be at lib64 for non-debian systems.
+# Ubuntu 20.04 has a /usr/lib64 but Kokkos does not use the lib64 directory.
+# Add a check for debian on os-release.
+DEBIAN := $(shell cat /etc/os-release | grep debian)
 ifneq (,$(wildcard /usr/lib64))
-  KOKKOS_LIB   = $(KOKKOS_ROOT)/lib64/libkokkoscore.a
+  ifeq (,$(DEBIAN))
+    KOKKOS_LIB   = $(KOKKOS_ROOT)/lib64/libkokkoscore.a
+  else
+    KOKKOS_LIB   = $(KOKKOS_ROOT)/lib/libkokkoscore.a
+  endif
 else
   KOKKOS_LIB   = $(KOKKOS_ROOT)/lib/libkokkoscore.a
 endif

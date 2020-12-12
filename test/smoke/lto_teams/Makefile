@@ -10,7 +10,7 @@ TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 #    export AOMP_GPU=`/opt/rocm/aomp/bin/mygpu`
 
 # FIXME: Change this to the correct location of AOCC llvm linker when released and installed
-_aocc_default = /opt/AMD/AOCC23-REL-BUILD-83
+_aocc_default = /opt/AMD/aocc-compiler-2.3.0
 ifeq ($(shell ls $(_aocc_default)/bin/ld.lld 2>/dev/null),)
   _aocc_default=$(AOMP)
 endif

@@ -12,13 +12,14 @@ AOMPHIP ?= $(AOMP)
 VERS = $(shell $(AOMP)/bin/clang --version | grep -oP '(?<=clang version )[0-9.]+')
 ifeq ($(shell expr $(VERS) \>= 12.0), 1)
   RPTH = -Wl,-rpath,$(AOMPHIP)/lib
+  LLIB = -L$(AOMPHIP)/lib
 endif
-CFLAGS = -x hip --offload-arch=${AOMP_GPU} -std=c++11 -lamdhip64 $(RPTH)
+CFLAGS = -x hip --offload-arch=${AOMP_GPU} -std=c++11 $(LLIB) -lamdhip64 $(RPTH)
 endif
 OMP_FLAGS    =
-
+AOMPROCM ?= /opt/rocm
 ifeq ($(EPSDB),1)
-OMP_BIN      = /opt/rocm/bin/hipcc
+OMP_BIN      = $(AOMPROCM)/bin/hipcc
 else
 CLANG        = clang++
 OMP_BIN      = $(AOMP)/bin/$(CLANG)

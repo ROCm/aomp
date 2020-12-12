@@ -17,10 +17,12 @@ TESTS_DIR = \
     data_share2 \
     decl_targ \
     devices \
+    devito_prob1 \
     extern_init \
     firstprivate \
     firstprivate2 \
     flags \
+    flang_blkdata-g \
     flang_char_kind \
     flang_gen_sptr_prob \
     flang_isystem_prob \
@@ -37,6 +39,7 @@ TESTS_DIR = \
     global_allocate \
     helloworld \
     hip_device_compile \
+    hip_host_register \
     hip_rocblas \
     host_targ \
     issue_flang_libomp \
@@ -60,6 +63,7 @@ TESTS_DIR = \
     nested_loop \
     nested_par3 \
     nest_call_par2 \
+    omp_get_device_num \
     omp_get_initial \
     omp_lock \
     omp_num_teams_SPMD \
@@ -102,6 +106,7 @@ TESTS_DIR = \
     Threads1xxx \
     unique-kernel-name \
     use_device_ptr \
+    use_device_addr \
     veccopy \
     vmuldemo \
     vmulsum

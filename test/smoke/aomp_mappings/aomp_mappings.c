@@ -32,6 +32,13 @@ int main()
   if(aomp_gpu && strstr(aomp_gpu, nvidia) != NULL)
     isAMDGPU = 0;
 
+  // a hacky way to know the default number of teams
+  #pragma omp target teams map(tofrom:MAX_TEAMS)
+  {
+    if (omp_get_team_num() == 0)
+      MAX_TEAMS = omp_get_num_teams();
+  }
+  fprintf(stderr, "MAX_TEAMS: %d\n", MAX_TEAMS);
   //Logic for correct shared variables - AMD vs NVIDIA GPU
   if(!isAMDGPU){
     printf("%s\n", getenv("AOMP_GPU"));

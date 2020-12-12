@@ -130,3 +130,8 @@ repo_web_location=$GITQMCPACK
 reponame=$AOMP_QMCPACK_REPO_NAME
 COBRANCH=$AOMP_QMCPACK_REPO_BRANCH
 clone_or_pull
+
+repo_web_location=$GITOPENLIBM
+reponame=$AOMP_OPENLIBM_REPO_NAME
+COBRANCH=$AOMP_OPENLIBM_REPO_BRANCH
+clone_or_pull

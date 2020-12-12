@@ -1,21 +1,8 @@
-diff --git a/bin/hip_embed_pch.sh b/bin/hip_embed_pch.sh
-index 0f2cbabd..38e89723 100755
---- a/bin/hip_embed_pch.sh
-+++ b/bin/hip_embed_pch.sh
-@@ -46,7 +46,7 @@ __hip_pch_size:
-   .long __hip_pch_size - __hip_pch
- EOF
- 
--$LLVM_DIR/bin/clang -O3 -c -std=c++17 -isystem $LLVM_DIR/lib/clang/11.0.0/include/.. -isystem /opt/rocm/include -nogpulib --cuda-device-only -x hip $tmp/hip_pch.h -E >$tmp/pch.cui
-+$LLVM_DIR/bin/clang -O3 -std=c++17 -isystem $LLVM_DIR/lib/clang/11.0.0/include/.. -nogpulib --cuda-device-only -x hip $tmp/hip_pch.h -E >$tmp/pch.cui
- 
- cat $tmp/hip_macros.h >> $tmp/pch.cui
- 
 diff --git a/include/hip/hcc_detail/device_functions.h b/include/hip/hcc_detail/device_functions.h
-index fb06e88a..a8f7b436 100644
+index e2ffacca..bd6a86f4 100644
 --- a/include/hip/hcc_detail/device_functions.h
 +++ b/include/hip/hcc_detail/device_functions.h
-@@ -820,15 +820,7 @@ __device__ static inline float __ull2float_rn(unsigned long long int x) { return
+@@ -964,15 +964,7 @@ __device__ static inline float __ull2float_rn(unsigned long long int x) { return
  __device__ static inline float __ull2float_ru(unsigned long long int x) { return (float)x; }
  __device__ static inline float __ull2float_rz(unsigned long long int x) { return (float)x; }
  
@@ -32,7 +19,7 @@ index fb06e88a..a8f7b436 100644
  
  // Clock functions
  __device__ long long int __clock64();
-@@ -1219,6 +1211,7 @@ unsigned __smid(void)
+@@ -1359,6 +1351,7 @@ unsigned __smid(void)
  
  #endif //defined(__clang__) && defined(__HIP__)
  
@@ -40,7 +27,7 @@ index fb06e88a..a8f7b436 100644
  
  // loop unrolling
  static inline __device__ void* __hip_hc_memcpy(void* dst, const void* src, size_t size) {
-@@ -1280,3 +1273,5 @@ static inline __device__ void* memset(void* ptr, int val, size_t size) {
+@@ -1420,3 +1413,5 @@ static inline __device__ void* memset(void* ptr, int val, size_t size) {
  }
  
  #endif

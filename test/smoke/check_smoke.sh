@@ -39,7 +39,7 @@ echo "                   A non-zero exit code means a failure occured." >> check
 echo "Tests that need to be visually inspected: devices, pfspecify, pfspecify_str, stream" >> check-smoke.txt
 echo "***********************************************************************************" >> check-smoke.txt
 
-known_fails="targ_static target_teams_reduction tasks omp_get_initial flang_gen_sptr_prob flang_omp_red_3d"
+known_fails="targ_static target_teams_reduction tasks"
 
 if [ "$SKIP_FAILURES" == 1 ] ; then
   skip_tests=$known_fails
@@ -63,10 +63,11 @@ for directory in ./*/; do
       echo ""
       continue
     fi
+    AOMPROCM=${AOMPROCM:-/opt/rocm}
     if [ $base == 'hip_rocblas' ] ; then
-      ls /opt/rocm/rocblas > /dev/null 2>&1
+      ls $AOMPROCM/rocblas > /dev/null 2>&1
       if [ $? -ne 0 ]; then
-        echo -e "$RED"$base - needs rocblas installed at /opt/rocm/rocblas:"$BLK"
+        echo -e "$RED"$base - needs rocblas installed at $AOMPROCM/rocblas:"$BLK"
         echo -e "$RED"$base - ROCBLAS NOT FOUND!!! SKIPPING TEST!"$BLK"
         continue
       fi
@@ -213,7 +214,7 @@ if [ "$EPSDB" == 1 ] ; then
 fi
 
 #Clean up, hide output
-if [ "$EPSDB" != 1 ] ; then
+if [ "$EPSDB" != 1 ] && [ "$CLEANUP" != 0 ]; then
   cleanup
 fi
 
