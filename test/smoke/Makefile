@@ -85,6 +85,7 @@ TESTS_DIR = \
     reduc_map_prob \
     schedule \
     simd \
+    simple_ctor \
     slices \
     snap_red \
     stream \
