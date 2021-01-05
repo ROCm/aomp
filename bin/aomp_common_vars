@@ -41,7 +41,7 @@ elif [ "$AOMP_MAJOR_VERSION" == "13" ] ; then
 elif [ "$AOMP_MAJOR_VERSION" == "11" ] ; then
   AOMP_REPOS=${AOMP_REPOS:-$HOME/git/aomp11}
 else
-  echo "ERROR:  Invalid AOMP_MAJOR_VERSIOn:$AOMP_MAJOR_VERSION"
+  echo "ERROR:  Invalid AOMP_MAJOR_VERSION: $AOMP_MAJOR_VERSION"
   exit 1
 fi
 
