@@ -281,7 +281,7 @@ if [ "$1" == "install" ] ; then
       fi
 
       # we do not yet have OMPD in llvm 12, disable this for now.
-      if [ "$AOMP_VERSION" != "13.0" ] ; then
+      if [ "$AOMP_MAJOR_VERSION" != "13" ] ; then
         # Copy selected debugable runtime sources into the installation lib-debug/src directory
         # to satisfy the above -fdebug-prefix-map.
         $SUDO mkdir -p $AOMP_INSTALL_DIR/lib-debug/src/openmp/runtime/src

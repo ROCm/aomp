@@ -32,12 +32,17 @@ AOMP_INSTALL_DIR=${AOMP}_${AOMP_VERSION_STRING}
 # For example, if AOMP_REPOS=$HOME/git/aomp11, then the primary aomp repo
 # is stored in $HOME/git/aomp11/aomp and the mono repo is stored in
 # $HOME/aomp/llvm-project.
-if [ "$AOMP_VERSION" == "12.0" ] ; then
+AOMP_MAJOR_VERSION=${AOMP_VERSION%.*}
+export AOMP_MAJOR_VERSION
+if [ "$AOMP_MAJOR_VERSION" == "12" ] ; then
   AOMP_REPOS=${AOMP_REPOS:-$HOME/git/aomp12}
-elif [ "$AOMP_VERSION" == "13.0" ] ; then
+elif [ "$AOMP_MAJOR_VERSION" == "13" ] ; then
   AOMP_REPOS=${AOMP_REPOS:-$HOME/git/aomp13}
-else
+elif [ "$AOMP_MAJOR_VERSION" == "11" ] ; then
   AOMP_REPOS=${AOMP_REPOS:-$HOME/git/aomp11}
+else
+  echo "ERROR:  Invalid AOMP_MAJOR_VERSIOn:$AOMP_MAJOR_VERSION"
+  exit 1
 fi
 
 # Because the source for all repos are tarred for release, we store
@@ -146,7 +151,7 @@ GITROCDEV="https://github.com/ROCm-Developer-Tools"
 GITROCLIB="https://github.com/AMDComputeLibraries"
 GITKHRONOS="https://github.com/KhronosGroup"
 AOMP_GIT_INTERNAL_IP="gerrit-git.amd.com"
-if [ "$AOMP_VERSION" == "12.0" ] ; then
+if [ "$AOMP_MAJOR_VERSION" == "12" ] ; then
   ping -c 1 $AOMP_GIT_INTERNAL_IP 2> /dev/null
   if [ $? != 0 ]; then
 	  echo error: you must be internal to develop on 12.0
@@ -159,7 +164,7 @@ if [ "$AOMP_VERSION" == "12.0" ] ; then
   AOMP_EXTRAS_REPO_BRANCH=${AOMP_EXTRAS_REPO_BRANCH:-amd-stg-openmp}
   AOMP_FLANG_REPO_NAME=${AOMP_FLANG_REPO_NAME:-flang}
   AOMP_FLANG_REPO_BRANCH=${AOMP_FLANG_REPO_BRANCH:-amd-stg-openmp}
-elif [ "$AOMP_VERSION" == "13.0" ] ; then
+elif [ "$AOMP_MAJOR_VERSION" == "13" ] ; then
   GITPROJECT=$GITROCDEV
   AOMP_PROJECT_REPO_NAME=${AOMP_PROJECT_REPO_NAME:-llvm-project}
   AOMP_PROJECT_REPO_BRANCH=${AOMP_PROJECT_REPO_BRANCH:-aomp13}
@@ -203,9 +208,9 @@ AOMP_ROCR_REPO_BRANCH=${AOMP_ROCR_REPO_BRANCH:-rocm-4.0.x}
 AOMP_ROCR_COMPONENT_NAME=${AOMP_ROCR_COMPONENT_NAME:-rocr}
 AOMP_LIBDEVICE_REPO_NAME=${AOMP_LIBDEVICE_REPO_NAME:-rocm-device-libs}
 AOMP_LIBDEVICE_COMPONENT_NAME=${AOMP_LIBDEVICE_COMPONENT_NAME:-rocdl}
-if [ "$AOMP_VERSION" == "12.0" ] ; then
+if [ "$AOMP_MAJOR_VERSION" == "12" ] ; then
 AOMP_LIBDEVICE_REPO_BRANCH=${AOMP_LIBDEVICE_REPO_BRANCH:-amd-stg-open}
-elif [ "$AOMP_VERSION" == "13.0" ] ; then
+elif [ "$AOMP_MAJOR_VERSION" == "13" ] ; then
 AOMP_LIBDEVICE_REPO_BRANCH=${AOMP_LIBDEVICE_REPO_BRANCH:-amd-stg-open}
 else
 AOMP_LIBDEVICE_REPO_BRANCH=${AOMP_LIBDEVICE_REPO_BRANCH:-rocm-3.10.x}
@@ -214,7 +219,7 @@ DEVICELIBS_ROOT=${DEVICELIBS_ROOT:-$AOMP_REPOS/$AOMP_LIBDEVICE_REPO_NAME}
 AOMP_COMGR_REPO_NAME=${AOMP_COMGR_REPO_NAME:-rocm-compilersupport}
 AOMP_COMGR_REPO_BRANCH=${AOMP_COMGR_REPO_BRANCH:-amd-stg-open}
 # Only set COMGR_REPO_SHA for aomp11
-if [ "$AOMP_VERSION" != "12.0" ] && [ "$AOMP_VERSION" != "13.0" ] ; then
+if [ "$AOMP_MAJOR_VERSION" != "12" ] && [ "$AOMP_MAJOR_VERSION" != "13" ] ; then
 AOMP_COMGR_REPO_SHA=${AOMP_COMGR_REPO_SHA:-4b689d6}
 fi
 AOMP_RINFO_REPO_NAME=${AOMP_RINFO_REPO_NAME:-rocminfo}

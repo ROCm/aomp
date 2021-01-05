@@ -65,7 +65,7 @@ if [ "$1" == "install" ] ; then
    $SUDO rm $INSTALL_COMGR/testfile
 fi
 
-if [ "$AOMP_VERSION" != "12.0" ] ; then
+if [ "$AOMP_MAJOR_VERSION" != "12" ] ; then
   patchrepo $REPO_DIR
 fi
 
@@ -116,7 +116,7 @@ if [ "$1" == "install" ] ; then
          echo "ERROR make install failed "
          exit 1
       fi
-      if [ "$AOMP_VERSION" != "12.0" ] ; then
+      if [ "$AOMP_MAJOR_VERSION" != "12" ] ; then
         removepatch $REPO_DIR
       fi
 fi
