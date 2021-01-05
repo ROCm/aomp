@@ -114,13 +114,14 @@ fi
 
 export LLVM_DIR=$AOMP_INSTALL_DIR
 GFXSEMICOLONS=`echo $GFXLIST | tr ' ' ';' `
+ALTAOMP=${ALTAOMP:-$AOMP}
 COMMON_CMAKE_OPTS="-DOPENMP_ENABLE_LIBOMPTARGET=1
 -DOPENMP_ENABLE_LIBOMPTARGET_HSA=1
 -DCMAKE_INSTALL_PREFIX=$INSTALL_OPENMP
 -DOPENMP_TEST_C_COMPILER=$AOMP/bin/clang
 -DOPENMP_TEST_CXX_COMPILER=$AOMP/bin/clang++
--DCMAKE_C_COMPILER=$AOMP/bin/clang
--DCMAKE_CXX_COMPILER=$AOMP/bin/clang++
+-DCMAKE_C_COMPILER=$ALTAOMP/bin/clang
+-DCMAKE_CXX_COMPILER=$ALTAOMP/bin/clang++
 -DLIBOMPTARGET_AMDGCN_GFXLIST=$GFXSEMICOLONS
 -DROCDL=$AOMP_REPOS/$AOMP_LIBDEVICE_REPO_NAME
 -DLIBOMP_COPY_EXPORTS=OFF
@@ -280,7 +281,7 @@ if [ "$1" == "install" ] ; then
       fi
 
       # we do not yet have OMPD in llvm 12, disable this for now.
-      if [ "$AOMP_VERSION" != "12.0" ] ; then
+      if [ "$AOMP_VERSION" != "13.0" ] ; then
         # Copy selected debugable runtime sources into the installation lib-debug/src directory
         # to satisfy the above -fdebug-prefix-map.
         $SUDO mkdir -p $AOMP_INSTALL_DIR/lib-debug/src/openmp/runtime/src
