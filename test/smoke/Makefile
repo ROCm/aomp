@@ -12,6 +12,7 @@ TESTS_DIR = \
     data_issue_59 \
     decl_targ \
     devices \
+    dotprod_prob \
     extern_init \
     firstprivate \
     firstprivate2 \
