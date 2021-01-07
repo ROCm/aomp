@@ -3,6 +3,7 @@ include Makefile.defs
 TESTS_DIR = \
     concur_update \
     declare_variant \
+    declare_target_nested \
     loop \
     mapper_prob \
     nestedSIMD \
