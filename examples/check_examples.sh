@@ -27,7 +27,7 @@ cloc=""
 if [ "$EPSDB" != "1" ]; then
   LIST="fortran hip openmp cloc"
 else
-  LIST="fortran hip openmp"
+  LIST="fortran openmp"
 fi
 
 for directory in ./$LIST/; do
