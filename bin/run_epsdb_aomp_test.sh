@@ -19,7 +19,7 @@ export AOMPROCM=$AOMP/..
 # mygpu will eventually relocate to /opt/rocm/bin, support both cases for now.
 if [ -a $AOMP/bin/mygpu ]; then
   export AOMP_GPU=`$AOMP/bin/mygpu`
-  export EXTRA_OMP_FLAGS=--rocm-path=$AOMP/
+#  export EXTRA_OMP_FLAGS=--rocm-path=$AOMP/
 else
   export AOMP_GPU=`$AOMP/../bin/mygpu`
 fi
