@@ -3,6 +3,18 @@
 # Runs all check scripts in examples
 #
 
+if [ "$EPSDB" == "1" ]; then
+  export AOMP=/opt/rocm/llvm
+else
+  export AOMP=/opt/rocm/aomp
+fi
+
+if [ -a $AOMP/bin/mygpu ]; then
+  export AOMP_GPU=`$AOMP/bin/mygpu`
+else
+  export AOMP_GPU=`$AOMP/../bin/mygpu`
+fi
+
 #Text Colors
 RED="\033[0;31m"
 GRN="\033[0;32m"
