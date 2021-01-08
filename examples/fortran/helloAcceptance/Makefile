@@ -54,8 +54,7 @@ ifeq ($(CUDA),)
 CUDA = /usr/local/cuda
 endif
 ifeq ($(AOMP_GPU),)
-ROCM_DIR       = $(AOMP)/../
-INSTALLED_GPU  = $(shell $(ROCM_DIR)/bin/mygpu -d gfx900) # Default AOMP_GPU is gfx900 which is vega
+INSTALLED_GPU  = $(shell $(AOMP)/bin/mygpu -d gfx900) # Default AOMP_GPU is gfx900 which is vega
 AOMP_GPU       ?= $(INSTALLED_GPU)
 endif
 ifeq ($(TARGETS),)
