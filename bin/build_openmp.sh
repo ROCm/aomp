@@ -181,12 +181,19 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
       -DCMAKE_BUILD_TYPE=Debug \
       -DLIBOMPTARGET_NVPTX_DEBUG=ON \
       -DCMAKE_CXX_FLAGS=-g \
-      -DCMAKE_C_FLAGS=-g"
+      -DCMAKE_C_FLAGS=-g \
+      -DLIBOMP_ARCH=x86_64 \
+      -DLIBOMP_OMPT_SUPPORT=ON \
+      -DLIBOMP_USE_DEBUGGER=ON \
+      -DLIBOMP_CPPFLAGS='-O0' \
+      -DLIBOMP_OMPD_SUPPORT=ON \
+      -DLIBOMP_OMPT_DEBUG=ON \
+      -DOPENMP_SOURCE_DEBUG_MAP="\""-fdebug-prefix-map=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp=$ROCM_INSTALL_PATH/llvm/lib-debug/src/openmp"\"""
 
       mkdir -p $BUILD_DIR/build/openmp_debug
       cd $BUILD_DIR/build/openmp_debug
       echo
-      echo " -----Running openmp cmake for debug ---- " 
+      echo " -----Running openmp cmake for debug ---- "
       if [ $COPYSOURCE ] ; then
          echo ${AOMP_CMAKE} $MYCMAKEOPTS  $BUILD_DIR/$AOMP_PROJECT_REPO_NAME/openmp
          ${AOMP_CMAKE} $MYCMAKEOPTS  $BUILD_DIR/$AOMP_PROJECT_REPO_NAME/openmp
@@ -245,10 +252,22 @@ if [ "$1" == "install" ] ; then
 
       cd $BUILD_DIR/build/openmp_debug
       echo
-      echo " -----Installing to $INSTALL_OPENMP/lib-debug ---- " 
-      $SUDO make install 
-      if [ $? != 0 ] ; then 
+      echo " -----Installing to $INSTALL_OPENMP/lib-debug ---- "
+      $SUDO make install
+      if [ $? != 0 ] ; then
          echo "ERROR make install failed "
          exit 1
       fi
+      # Copy selected debugable runtime sources into the installation lib-debug/src directory
+      # to satisfy the above -fdebug-prefix-map.
+      $SUDO mkdir -p $AOMP_INSTALL_DIR/lib-debug/src/openmp/runtime/src
+      echo cp -rp $LLVM_PROJECT_ROOT/openmp/runtime/src $AOMP_INSTALL_DIR/lib-debug/src/openmp/runtime
+      $SUDO cp -rp $LLVM_PROJECT_ROOT/openmp/runtime/src $AOMP_INSTALL_DIR/lib-debug/src/openmp/runtime
+      $SUDO mkdir -p $AOMP_INSTALL_DIR/lib-debug/src/openmp/libomptarget/src
+      echo cp -rp $LLVM_PROJECT_ROOT/openmp/libomptarget/src $AOMP_INSTALL_DIR/lib-debug/src/openmp/libomptarget
+      $SUDO cp -rp $LLVM_PROJECT_ROOT/openmp/libomptarget/src $AOMP_INSTALL_DIR/lib-debug/src/openmp/libomptarget
+      echo cp -rp $LLVM_PROJECT_ROOT/openmp/libomptarget/plugins $AOMP_INSTALL_DIR/lib-debug/src/openmp/libomptarget
+      $SUDO cp -rp $LLVM_PROJECT_ROOT/openmp/libomptarget/plugins $AOMP_INSTALL_DIR/lib-debug/src/openmp/libomptarget
+      $SUDO mkdir -p $AOMP_INSTALL_DIR/lib-debug/src/openmp/libompd/src
+      $SUDO cp -rp $LLVM_PROJECT_ROOT/openmp/libompd/src $AOMP_INSTALL_DIR/lib-debug/src/openmp/libompd
 fi
