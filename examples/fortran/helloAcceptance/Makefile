@@ -1,9 +1,11 @@
 #-----------------------------------------------------------------------
+#  ROCM_PATH:       Defaults to /opt/rocm/llvm
+#  ROCM_GPU:        Auto detected via rocm_agent_enumerator
+#  ROCM_GPUTARGET:  Defaults to amdgcn-amd-amdhsa
 #
-#  Makefile: Cuda clang demo Makefile for both amdgcn and nvptx targets.
-#            amdgcn targets begin with gfx. nvptx targets begin with sm_
+#  make run
 #
-#  Run "make help" to see how to use this Makefile
+#  Run "make help" to see other options for this Makefile
 #
 #-----------------------------------------------------------------------
 # MIT License
@@ -32,38 +34,20 @@
 TESTNAME =hello
 FILETYPE =f90
 
-ifeq ($(AOMP),)
-# --- Standard Makefile check for AOMP installation ---
-ifeq ("$(wildcard $(AOMP))","")
-  ifneq ($(AOMP),)
-    $(warning AOMP not found at $(AOMP))
-  endif
-  AOMP = $(HOME)/rocm/aomp
-  ifeq ("$(wildcard $(AOMP))","")
-    $(warning AOMP not found at $(AOMP))
-    AOMP = /usr/lib/aomp
-    ifeq ("$(wildcard $(AOMP))","")
-      $(warning AOMP not found at $(AOMP))
-      $(error Please install AOMP or correctly set env-var AOMP)
-    endif
-  endif
-endif
-# --- End Standard Makefile check for AOMP installation ---
-endif
-ifeq ($(CUDA),)
-CUDA = /usr/local/cuda
-endif
-ifeq ($(AOMP_GPU),)
-INSTALLED_GPU  = $(shell $(AOMP)/bin/mygpu -d gfx900) # Default AOMP_GPU is gfx900 which is vega
-AOMP_GPU       ?= $(INSTALLED_GPU)
-endif
+ROCM_PATH ?= /opt/rocm/llvm
+ROCM_GPUTARGET ?= amdgcn-amd-amdhsa
+
+INSTALLED_GPU  = $(shell $(ROCM_PATH)/../bin/rocm_agent_enumerator | grep -m 1 -E gfx[^0]{1})
+ROCM_GPU       ?= $(INSTALLED_GPU)
+CC              = $(ROCM_PATH)/bin/clang
+
 ifeq ($(TARGETS),)
-TARGETS =-fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$(AOMP_GPU)
+TARGETS =-march=$(ROCM_GPU)
 endif
 
-FORT   =$(AOMP)/bin/flang
+FORT   =$(ROCM_PATH)/bin/flang
 LFLAGS = 
-FFLAGS =
+FFLAGS =-fopenmp -fopenmp-targets=$(ROCM_GPUTARGET) -Xopenmp-target=$(ROCM_GPUTARGET)
 
 # ----- Demo compile and link in one step, no object code saved
 $(TESTNAME): $(TESTNAME).$(FILETYPE)
@@ -108,10 +92,9 @@ help:
 	@echo "  make help 		// this help"
 	@echo
 	@echo "Environment Variables:"
-	@echo "  AOMP      default: $(HOME)/rocm/aomp     value: $(AOMP)"
-	@echo "  AOMP_GPU  default: gfx900                value: $(AOMP_GPU)"
-	@echo "  CUDA      default: /usr/local/cuda       value: $(CUDA)"
-	@echo "  TARGETS   default: --offload-arch=$(AOMP_GPU)"
+	@echo "  ROCM_PATH default: /opt/rocm/llvm                            value: $(ROCM_PATH)"
+	@echo "  ROCM_GPU  default: auto detected by rocm_agent_enumerator    value: $(ROCM_GPU)"
+	@echo "  TARGETS   default: --offload-arch=$(ROCM_GPU)"
 	@echo "              value: $(TARGETS)"
 	@echo
 	@echo "Link Flags:"
