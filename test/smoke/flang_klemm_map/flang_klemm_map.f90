@@ -22,11 +22,11 @@ subroutine proc(arr, n)
 
     integer :: i
 
-! $omp target map(tofrom:arr(1:n))
+!$omp target map(tofrom:arr(1:n))
     do i = 1,n
         arr(i) = 42.0
     end do
-! $omp end target
+!$omp end target
 
 end subroutine
 
