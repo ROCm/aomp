@@ -26,6 +26,7 @@ TESTS_DIR = \
     flang_char_kind \
     flang_gen_sptr_prob \
     flang_isystem_prob \
+    flang_klemm_map \
     flang_math \
     flang_omp_map \
     flang_omp_red_3d \
