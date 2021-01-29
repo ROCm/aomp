@@ -5,6 +5,8 @@ atomic_double
 class
 collapse
 complex
+complex2
+d2h_slow_copy
 data_enter_issue01
 data_issue_59
 data_share1
@@ -23,23 +25,34 @@ flags 5
 flags 6
 flags 7
 flags 8
+flang_blkdata-g
 flang_char_kind
+flang_gen_sptr_prob
 flang_isystem_prob
 flang_math
 flang_omp_map
+flang_omp_red_3d
 flang_real16_prob
+flang_reduction_offload
+flang_teams
 flang_tgt_alloc_ptr
+fprintf
 function
 function_overload
 function_template
 gdb_teams
+global_allocate
 helloworld
+hip_device_compile
+hip_rocblas
+host_targ
 issue_001
 issue_002
 issue_flang_libomp
 launch_latency
 liba_bundled
 liba_bundled_cmdline
+longDouble
 lto_teams
 ManyKernels
 map_to_from_prob
@@ -47,6 +60,7 @@ map_zero_bug
 MasterBarrier
 math_flog
 math_modff
+math_pow
 math_sqrt_float
 MaxNumThrds
 mem_foot_print
@@ -54,11 +68,15 @@ nativetests
 nest_call_par2
 nested_loop
 nested_par3
+omp_get_device_num
+omp_get_initial
 omp_lock
 omp_num_teams_generic
 omp_num_teams_SPMD
+omp_wtime
 pfspecifier
 pfspecifier_str
+printf_parallel_for_target
 red_bug_51
 reduce
 reduc_map_prob
@@ -85,6 +103,7 @@ thread_limit
 threads
 Threads1xxx
 unique-kernel-name
+use_device_addr
 use_device_ptr
 veccopy
 vmuldemo
