@@ -12,19 +12,21 @@
 ! 42.00000000000000         42.00000000000000         42.00000000000000
 ! 42.00000000000000
 
-subroutine proc(arr, n)
+subroutine proc(arr, brr, n)
     use iso_fortran_env
 
     implicit none
 
     integer                         :: n
-    real(kind=real64), dimension(*) :: arr
+    real(kind=real64), dimension(n) :: arr
+    real(kind=real64), dimension(*) :: brr
 
     integer :: i
 
-!$omp target map(tofrom:arr(1:n))
+!$omp target map(tofrom:arr(:n), brr(:n))
     do i = 1,n
         arr(i) = 42.0
+        brr(i) = 43.0
     end do
 !$omp end target
 
@@ -39,12 +41,16 @@ program map
     integer            :: i
 
     real(kind=real64), dimension(N) :: array
+    real(kind=real64), dimension(N) :: array1
 
     array(:) = 0.0
+    array1(:) = 0.0
 
     write (*,*) array(1:N/100)
+    write (*,*) array1(1:N/100)
     write (*,*)
-    call proc(array, N)
+    call proc(array, array1, N)
     write (*,*) array(1:N/100)
-
+    write (*,*) array1(1:N/100)
+    if (array1(2) .ne. 43.0) write (*,*)'Failed assumed dim'
 end program
