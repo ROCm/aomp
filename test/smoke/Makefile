@@ -109,6 +109,7 @@ TESTS_DIR = \
     unique-kernel-name \
     use_device_ptr \
     use_device_addr \
+    vasp1 \
     veccopy \
     vmuldemo \
     vmulsum
