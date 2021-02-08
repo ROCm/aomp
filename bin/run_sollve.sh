@@ -62,8 +62,10 @@ make tidy
 make CC=$AOMP/bin/clang CXX=$AOMP/bin/clang++ FC=$AOMP/bin/flang CFLAGS="-lm $MY_SOLLVE_FLAGS" CXXFLAGS="$MY_SOLLVE_FLAGS" FFLAGS="$MY_SOLLVE_FLAGS" LOG=1 LOG_ALL=1 VERBOSE_TESTS=1 VERBOSE=1 all
 
 echo "--------------------------- OMP 4.5 Results ---------------------------" >> combined-results.txt
+echo "--------------------------- OMP 4.5 Results ---------------------------" > abrev.combined-results.txt
 make report_html
 make report_summary >> combined-results.txt
+make report_summary  | tail -5 >> abrev.combined-results.txt
 
 mv results_report results_report45
 
@@ -73,11 +75,14 @@ make tidy
 make CC=$AOMP/bin/clang CXX=$AOMP/bin/clang++ FC=$AOMP/bin/flang CFLAGS="-lm $MY_SOLLVE_FLAGS" CXXFLAGS="$MY_SOLLVE_FLAGS" FFLAGS="$MY_SOLLVE_FLAGS"  OMP_VERSION=5.0 LOG=1 LOG_ALL=1 VERBOSE_TESTS=1 VERBOSE=1 all
 
 echo "--------------------------- OMP 5.0 Results ---------------------------" >> combined-results.txt
+echo "--------------------------- OMP 5.0 Results ---------------------------" >> abrev.combined-results.txt
 make report_html
 make report_summary >> combined-results.txt
+make report_summary  | tail -5 >> abrev.combined-results.txt
 mv results_report results_report50
-pwd
 cat combined-results.txt
+pwd
+cat abrev.combined-results.txt
 popd
 
 if [ "$ROCMASTER" == "1" ]; then

@@ -101,19 +101,19 @@ tail -12 openmpapps.log
 echo "======= sollve ======="
 cd $aompdir/bin
 ./run_sollve.sh > sollve.log 2>&1
-tail -60 sollve.log
+tail -12 sollve.log
 
 echo Done
 echo
 set -x
 epsdb_status="green"
 # return pass, condpass, fial status  (count)
-if [ "$efails" -ge "5" ]; then
+if [ "$efails" -ge "1" ]; then
   echo "EPSDB smoke fails"
   epsdb_status="red"
-elif [ "$efails" -gt "0" ]; then
-  echo "EPSDB smoke conditional passes"
-  epsdb_status="yellow"
+#elif [ "$efails" -gt "0" ]; then
+#  echo "EPSDB smoke conditional passes"
+#  epsdb_status="yellow"
 else
   echo "EPSDB smoke passes"
 fi

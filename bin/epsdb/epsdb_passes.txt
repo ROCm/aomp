@@ -77,13 +77,9 @@ omp_wtime
 pfspecifier
 pfspecifier_str
 printf_parallel_for_target
-red_bug_51
 reduce
 reduc_map_prob
 reduction
-reduction_issue_16
-reduction_team
-reduction_teams
 reduction_teams_distribute_parallel
 schedule
 simd
