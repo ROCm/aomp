@@ -77,9 +77,13 @@ omp_wtime
 pfspecifier
 pfspecifier_str
 printf_parallel_for_target
+red_bug_51
 reduce
 reduc_map_prob
 reduction
+reduction_issue_16
+reduction_team
+reduction_teams
 reduction_teams_distribute_parallel
 schedule
 simd
@@ -101,6 +105,7 @@ Threads1xxx
 unique-kernel-name
 use_device_addr
 use_device_ptr
+vasp1
 veccopy
 vmuldemo
 vmulsum
