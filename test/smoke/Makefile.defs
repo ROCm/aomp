@@ -106,4 +106,8 @@ LINK_FLAGS += $(EXTRA_LDFLAGS)
 RUNPROF =  $(CUDA)/bin/nvprof 
 RUNPROF =
 
-RUNENV   = env $(SET_DEVICE_DEBUG) $(TKILL)
+ifeq ($(SET_DEVICE_DEBUG),)
+   RUNENV = $(TKILL)
+else
+   RUNENV = env $(SET_DEVICE_DEBUG) $(TKILL)
+endif
