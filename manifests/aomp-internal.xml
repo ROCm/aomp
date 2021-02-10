@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest>
+
+    <remote name="gerritgit"
+        review="git.amd.com:8080"
+        fetch="ssh://gerritgit/" />
+    <default revision="amd-mainline"
+        remote="gerritgit"
+        sync-j="4"
+        sync-c="true" />
+
+    <project path="internal/roct-thunk-interface" name="compute/ec/libhsakmt" revision="amd-staging" />
+    <project path="internal/hsa-runtime" name="hsa/ec/hsa-runtime" revision="amd-master" />
+    <project path="internal/rocminfo" name="compute/ec/rocminfo" revision="amd-master" />
+    <project path="internal/clang-ocl" name="compute/ec/clang-ocl" revision="amd-master" />
+    <project path="internal/rocprofiler" name="compute/ec/rocprofiler" revision="amd-master" />
+    <project path="internal/roctracer" name="compute/ec/roctracer" revision="amd-master" />
+    <project path="internal/ROCgdb" name="compute/ec/rocm-gdb" revision="amd-mainline-rocgdb-10" />
+    <project path="internal/ROCdbgapi" name="compute/ec/rocm-dbgapi" revision="amd-mainline" />
+    <project path="internal/rocm-compilersupport" name="lightning/ec/support" revision="fbee16fe44e4112097b5c127120f7fc5cd3c7227" upstream="amd-mainline-open" />
+    <project path="internal/rocm-device-libs" name="lightning/ec/device-libs" revision="d3a24a3912a7431449b17e7cb9e9d8dd08812325" upstream="amd-mainline-open" groups="llvmdeps" />
+    <project path="internal/vdi" name="compute/ec/vdi" revision="amd-master"/>
+    <project path="internal/opencl-on-vdi" name="compute/ec/opencl" revision="amd-master-next"/>
+    <project path="internal/hip-on-vdi" name="compute/ec/hip" revision="amd-master-next"/>
+
+</manifest>
