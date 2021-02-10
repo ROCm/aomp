@@ -12,7 +12,6 @@
     <project path="roct-thunk-interface" name="compute/ec/libhsakmt" revision="amd-staging" />
     <project path="hsa-runtime" name="hsa/ec/hsa-runtime" revision="amd-master" />
     <project path="rocminfo" name="compute/ec/rocminfo" revision="amd-master" />
-    <project path="clang-ocl" name="compute/ec/clang-ocl" revision="amd-master" />
     <project path="rocprofiler" name="compute/ec/rocprofiler" revision="amd-master" />
     <project path="roctracer" name="compute/ec/roctracer" revision="amd-master" />
     <project path="ROCgdb" name="compute/ec/rocm-gdb" revision="amd-mainline-rocgdb-10" />
