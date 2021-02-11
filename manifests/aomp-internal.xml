@@ -11,7 +11,7 @@
 
 <project path="roct-thunk-interface" name="compute/ec/libhsakmt" />
 <project path="hsa-runtime" name="hsa/ec/hsa-runtime" />
-<project path="rocminfo" name="compute/ec/rocminfo" / >
+<project path="rocminfo" name="compute/ec/rocminfo" />
 <project path="rocprofiler" name="compute/ec/rocprofiler" />
 <project path="roctracer" name="compute/ec/roctracer" />
 <project path="ROCgdb" name="compute/ec/rocm-gdb" />
