@@ -4,22 +4,23 @@
     <remote name="gerritgit"
         review="git.amd.com:8080"
         fetch="ssh://gerritgit/" />
-    <default revision="amd-mainline"
+	<default revision="release/rocm-rel-4.1"
         remote="gerritgit"
         sync-j="4"
         sync-c="true" />
 
-    <project path="roct-thunk-interface" name="compute/ec/libhsakmt" revision="amd-staging" />
-    <project path="hsa-runtime" name="hsa/ec/hsa-runtime" revision="amd-master" />
-    <project path="rocminfo" name="compute/ec/rocminfo" revision="amd-master" />
-    <project path="rocprofiler" name="compute/ec/rocprofiler" revision="amd-master" />
-    <project path="roctracer" name="compute/ec/roctracer" revision="amd-master" />
-    <project path="ROCgdb" name="compute/ec/rocm-gdb" revision="amd-mainline-rocgdb-10" />
-    <project path="ROCdbgapi" name="compute/ec/rocm-dbgapi" revision="amd-mainline" />
-    <project path="rocm-compilersupport" name="lightning/ec/support" revision="fbee16fe44e4112097b5c127120f7fc5cd3c7227" upstream="amd-mainline-open" />
-    <project path="rocm-device-libs" name="lightning/ec/device-libs" revision="d3a24a3912a7431449b17e7cb9e9d8dd08812325" upstream="amd-mainline-open" groups="llvmdeps" />
-    <project path="vdi" name="compute/ec/vdi" revision="amd-master"/>
-    <project path="opencl-on-vdi" name="compute/ec/opencl" revision="amd-master-next"/>
-    <project path="hip-on-vdi" name="compute/ec/hip" revision="amd-master-next"/>
+<project path="roct-thunk-interface" name="compute/ec/libhsakmt" />
+<project path="hsa-runtime" name="hsa/ec/hsa-runtime" />
+<project path="rocminfo" name="compute/ec/rocminfo" / >
+<project path="rocprofiler" name="compute/ec/rocprofiler" />
+<project path="roctracer" name="compute/ec/roctracer" />
+<project path="ROCgdb" name="compute/ec/rocm-gdb" />
+<project path="ROCdbgapi" name="compute/ec/rocm-dbgapi" />
+<project path="rocm-compilersupport" name="lightning/ec/support" />
+<project path="rocm-device-libs" name="lightning/ec/device-libs" />
+<project path="vdi" name="compute/ec/vdi" />
+<project path="opencl-on-vdi" name="compute/ec/opencl" />
+<project path="hip-on-vdi" name="compute/ec/hip" />
+<project path="rocm-cmake" name="compute/ec/packaging/rocm-cmake" />
 
 </manifest>
