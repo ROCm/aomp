@@ -41,6 +41,66 @@ if [ $? != 0 ]; then
    echo ERROR: you must be internal AMD network to get internal repos
    exit 1
 fi
+if [ "$1" == "-undo" ] ; then
+   if [ ! -d $AOMP_REPOS/INTERNAL ] ; then
+      echo "ERROR: No $AOMP_REPOS/INTERNAL directory needed for -undo"
+      exit 1
+   fi
+   if [ ! -d $AOMP_REPOS/EXTERNAL ] ; then
+      echo "ERROR: No $AOMP_REPOS/EXTERNAL directory needed for -undo"
+      exit 1
+   fi
+   echo
+   echo "=====  UNDOING INTERNAL LINKS MADE BY $0  ====="
+   for reponame in `ls $AOMP_REPOS/INTERNAL` ; do
+      echo
+      if [ -L $AOMP_REPOS/$reponame ] ; then
+         echo Found link to INTERNAL/$reponame
+	 if [ ! -d $AOMP_REPOS/EXTERNAL/$reponame ] ; then
+            echo "ERROR: No $AOMP_REPOS/EXTERNAL/$reponame directory needed for -undo"
+	    exit 1
+         fi
+	 echo rm $AOMP_REPOS/$reponame
+	 rm $AOMP_REPOS/$reponame
+	 echo mv $AOMP_REPOS/EXTERNAL/$reponame $AOMP_REPOS/$reponame
+	 mv $AOMP_REPOS/EXTERNAL/$reponame $AOMP_REPOS/$reponame
+      else
+         if [ -d $AOMP_REPOS/$reponame ] ; then
+            echo Directory already found at $AOMP_REPOS/$reponame , SKIPPING
+         else
+            if [ $reponame == "hsa-runtime" ] ; then
+               if [ -L $AOMP_REPOS/rocr-runtime/src ] ; then
+                  echo Link found from rocr-runtime to INTERNAL/hsa-runtime/opensrc/hsa-runtime/src
+	          if [ ! -d $AOMP_REPOS/EXTERNAL/rocr-runtime ] ; then
+		     echo "ERROR: Missing $AOMP_REPOSE/EXTERNAL/rocr-runtime to undo"
+	          else
+	             echo rm $AOMP_REPOS/rocr-runtime/src
+	             rm $AOMP_REPOS/rocr-runtime/src
+		     echo rm -rf $AOMP_REPOS/rocr-runtime
+		     rm -rf $AOMP_REPOS/rocr-runtime
+	             echo mv $AOMP_REPOS/EXTERNAL/rocr-runtime $AOMP_REPOS/rocr-runtime
+	             mv $AOMP_REPOS/EXTERNAL/rocr-runtime $AOMP_REPOS/rocr-runtime
+		  fi
+	       else
+	          echo No link found at $AOMP_REPOS/rocr-runtime/src , SKIPPING
+               fi
+            else
+	       echo No link or directory found at $AOMP_REPOS/$reponame , SKIPPING
+            fi
+         fi
+      fi
+   done
+   if [ -d $AOMP_REPOS/EXTERNAL ] ; then
+      echo rmdir $AOMP_REPOS/EXTERNAL
+      rmdir $AOMP_REPOS/EXTERNAL
+      if [ $? != 0 ] ; then
+         echo "WARNING: Could not rmdir $AOMP_REPOS/EXTERNAL , it should be empty after -undo"
+      fi
+   fi
+   echo "===== $0 -undo IS COMPLETE  ====="
+   ls -l $AOMP_REPOS
+   exit 0
+fi
 which python3  >/dev/null
 if [ $? != 0 ] ; then 
    echo "ERROR:  No python found in path"
@@ -82,36 +142,48 @@ fi
 echo
 echo "Done repo sync"
 echo "The internal repositories can be found at $repodir"
-echo 
-echo "==============  STARTING REPLACING EXTERNAL WITH INTERNAL ==============="
+echo
+echo "=========  REPLACING REPOS WITH LINKS TO INTERNAL repos =========="
 
 mkdir -p $AOMP_REPOS/EXTERNAL
 for reponame in `ls $repodir` ; do 
    echo
    echo $reponame
    if [ -L $AOMP_REPOS/$reponame ] ; then 
-      echo already linked
+      echo Already linked to INTERNAL
    else
       if [ -d $AOMP_REPOS/$reponame ] ; then 
-         echo Directory found $AOMP_REPOS/$reponame
+         echo Directory found $AOMP_REPOS/$reponame ,moving to EXTERNAL
          mv $AOMP_REPOS/$reponame $AOMP_REPOS/EXTERNAL/.
+         echo Linking to $repodir/$reponame
+         echo ln -sf $repodir/$reponame $AOMP_REPOS/$reponame
          ln -sf $repodir/$reponame $AOMP_REPOS/$reponame 
       else
          if [ $reponame == "hsa-runtime" ] ; then 
-            if [ -L $AOMP_REPOS/rocr-runtime ] ; then 
-                echo already linked
+            if [ -L $AOMP_REPOS/rocr-runtime/src ] ; then
+               echo Already linked rocr-runtime to INTERNAL hsa-runtime/opensrc/hsa-runtime/src
             else
-	       echo "fixing hsa-runtime"
+	       echo "Fixing rocr-runtime with correct link to hsa-runtime/opensrc/hsa-runtime src"
                mv $AOMP_REPOS/rocr-runtime $AOMP_REPOS/EXTERNAL/.
 	       mkdir -p $AOMP_REPOS/rocr-runtime
-	       echo ln -sf $repodir/hsa-runtime/opensrc/hsa-runtime $AOMP_REPOS/rocr-runtime/src
-	       ln -sf $repodir/hsa-runtime/opensrc/hsa-runtime $AOMP_REPOS/rocr-runtime/src
+	       cd $AOMP_REPOS/rocr-runtime
+	       echo ln -sf $repodir/hsa-runtime/opensrc/hsa-runtime src
+	       ln -sf $repodir/hsa-runtime/opensrc/hsa-runtime src
             fi
          else 
-	    echo "ERROR: dont know what to do with INTERNAL/$reponame"
+	    echo "WARNING: Don't know what to do with INTERNAL/$reponame"
+	    echo "         No corresponding repo name or link in $AOMP_REPOS"
+	    echo "         It Could be unnecessary repo or directory in manifest"
          fi
       fi
    fi
 done
 
-
+echo
+echo "==============  INSTALLING new python3 packages needed by internal roctracer repo ============"
+python3 -m pip install CppHeaderParser argparse wheel lit
+echo
+echo "========== $0 IS COMPLETE =========="
+echo ls -l $AOMP_REPOS
+ls -l $AOMP_REPOS
+exit 0
