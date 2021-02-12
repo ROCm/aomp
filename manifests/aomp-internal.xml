@@ -16,7 +16,7 @@
 <project path="roctracer" name="compute/ec/roctracer" />
 <project path="ROCgdb" name="compute/ec/rocm-gdb" />
 <project path="ROCdbgapi" name="compute/ec/rocm-dbgapi" />
-<project path="rocm-compilersupport" name="lightning/ec/support" />
+<!--  <project path="rocm-compilersupport" name="lightning/ec/support" /> -->
 <project path="rocm-device-libs" name="lightning/ec/device-libs" />
 <project path="vdi" name="compute/ec/vdi" />
 <project path="opencl-on-vdi" name="compute/ec/opencl" />
