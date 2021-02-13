@@ -58,7 +58,6 @@ HIPVDI_REPO_DIR=$AOMP_REPOS/$AOMP_HIPVDI_REPO_NAME
 BUILD_DIR=${BUILD_AOMP}
 
 BUILDTYPE="Release"
-INSTALL_HIP=${INSTALL_HIP:-$AOMP_INSTALL_DIR}
 
 REPO_BRANCH=$AOMP_HIPVDI_REPO_BRANCH
 REPO_DIR=$AOMP_REPOS/$AOMP_HIPVDI_REPO_NAME
@@ -153,6 +152,19 @@ else
   fi
 fi
 
+function edit_installed_hip_file(){
+   if [ -f $installed_hip_file_to_edit ] ; then
+      # must replace usages of /opt/rocm/llvm/ before /opt/rocm
+      $SUDO sed -i -e "s/\"\/opt\/rocm\"\/llvm/\"$SED_INSTALL_DIR\"/" $installed_file_to_edit
+      $SUDO sed -i -e "s/\"\/opt\/rocm\"/\"$SED_INSTALL_DIR\"/" $installed_file_to_edit
+      $SUDO sed -i -e "s/\$HIP_CLANG_PATH=\$ENV{'HIP_CLANG_PATH'}/\$HIP_CLANG_PATH=\"$SED_INSTALL_DIR\/bin\" /" $installed_file_to_edit
+      $SUDO sed -i -e "s/\$ROCM_PATH=\$ENV{'ROCM_PATH'}/\$ROCM_PATH=\"$SED_INSTALL_DIR\" /" $installed_file_to_edit
+      # May not need these anymore
+      $SUDO sed -i -e "s/ -D_OPENMP //" $installed_file_to_edit
+      $SUDO sed -i -e "s/\$DEVICE_LIB_PATH = \"\$ROCM_PATH\/lib\"/\$DEVICE_LIB_PATH = \"\$ROCM_PATH\/amdgcn\/bitcode\"/" $installed_file_to_edit
+    fi
+}
+
 #  ----------- Install only if asked  ----------------------------
 if [ "$1" == "install" ] ; then
    cd $BUILD_DIR/build/hipvdi
@@ -166,16 +178,16 @@ if [ "$1" == "install" ] ; then
    removepatch $AOMP_REPOS/$AOMP_HIPVDI_REPO_NAME
 
    # The hip perl scripts have /opt/rocm hardcoded, so fix them after then are installed
-   # but only if not installing to default location.
-   if [ $INSTALL_HIP != "/opt/rocm/llvm" ] ; then
-        SED_INSTALL_DIR=`echo '$ENV{\"AOMP\"}' | sed -e 's/\//\\\\\//g' `
-      $SUDO sed -i -e "s/\"\/opt\/rocm\"\/llvm/$SED_INSTALL_DIR/" $INSTALL_HIP/bin/hipcc
-      $SUDO sed -i -e "s/\"\/opt\/rocm\"/$SED_INSTALL_DIR/" $INSTALL_HIP/bin/hipcc
-      $SUDO sed -i -e "s/\$HIP_CLANG_PATH=\$ENV{'HIP_CLANG_PATH'}/\$HIP_CLANG_PATH=$SED_INSTALL_DIR \. \'\/bin\'/" $INSTALL_HIP/bin/hipcc
-      $SUDO sed -i -e "s/ -D_OPENMP //" $INSTALL_HIP/bin/hipcc
-      $SUDO sed -i -e "s/\"\/opt\/rocm\"\/llvm/$SED_INSTALL_DIR/" $INSTALL_HIP/bin/hipconfig
-      $SUDO sed -i -e "s/\$HIP_CLANG_PATH=\$ENV{'HIP_CLANG_PATH'}/\$HIP_CLANG_PATH=$SED_INSTALL_DIR \. \'\/bin\'/" $INSTALL_HIP/bin/hipconfig
-      $SUDO sed -i -e "s/\$DEVICE_LIB_PATH = \"\$ROCM_PATH\/lib\"/\$DEVICE_LIB_PATH = \"\$ROCM_PATH\/amdgcn\/bitcode\"/" $INSTALL_HIP/bin/hipcc
+   # but only if not installing to rocm.
+   if [ $AOMP_INSTALL_DIR != "/opt/rocm/llvm" ] ; then
+      SED_INSTALL_DIR=`echo $AOMP_INSTALL_DIR | sed -e 's/\//\\\\\//g' `
+      installed_file_to_edit=$AOMP_INSTALL_DIR/bin/hipcc
+      $(edit_installed_hip_file)
+      installed_file_to_edit=$AOMP_INSTALL_DIR/bin/hipvars.pm
+      $(edit_installed_hip_file)
+      # nothing to change in hipconfig but in case something is added in future, try to fix it
+      installed_file_to_edit=$AOMP_INSTALL_DIR/bin/hipconfig
+      $(edit_installed_hip_file)
    fi
 
 fi
