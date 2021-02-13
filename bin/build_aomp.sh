@@ -95,8 +95,6 @@ date
 echo " =================  START build_aomp.sh ==================="   
 echo 
 if [ "$AOMP_STANDALONE_BUILD" == 1 ] ; then
-  # There is no good external repo for the opencl runtime but we only need the headers for build_vdi.sh
-  # So build_ocl.sh is currently not called.
   components="roct rocr project libdevice extras openmp pgmath flang flang_runtime comgr rocminfo"
   _hostarch=`uname -m`
   # The VDI (rocclr) architecture is very x86 centric so it will not build on ppc64. Without
@@ -113,8 +111,10 @@ if [ "$AOMP_STANDALONE_BUILD" == 1 ] ; then
   fi
   components="$components roctracer rocprofiler"
 else
-  # With AOMP 11, ROCM integrated build will not need roct rocr libdevice comgr and rocminfo
-  #               In the future, when ROCm build vdi and hipvdi we can remove them
+  # For ROCM build (AOMP_STANDALONE_BUILD=0) the components roct, rocr,
+  # libdevice, comgr, rocminfo, vdi, hipvdi, ocl, rocdbgapi rocgdb,
+  # roctracer, and rocprofiler should be found in ROCM in /opt/rocm.
+  # The ROCM build only needs these components:
   components="project extras openmp pgmath flang flang_runtime"
 fi
 echo "COMPONENTS:$components"
