@@ -17,10 +17,9 @@
 <project path="ROCgdb" name="compute/ec/rocm-gdb" />
 <project path="ROCdbgapi" name="compute/ec/rocm-dbgapi" />
 <!--  <project path="rocm-compilersupport" name="lightning/ec/support" /> -->
-<project path="rocm-device-libs" name="lightning/ec/device-libs" />
+<!--  <project path="rocm-device-libs" name="lightning/ec/device-libs" /> -->
 <project path="vdi" name="compute/ec/vdi" />
 <project path="opencl-on-vdi" name="compute/ec/opencl" />
 <project path="hip-on-vdi" name="compute/ec/hip" />
-<project path="rocm-cmake" name="compute/ec/packaging/rocm-cmake" />
 
 </manifest>
