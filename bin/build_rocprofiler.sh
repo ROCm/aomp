@@ -86,18 +86,17 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    fi
    BUILD_TYPE="release"
    export CMAKE_BUILD_TYPE=$BUILD_TYPE
-   CMAKE_PREFIX_PATH="$ROCM_DIR/include/platform;$ROCM_DIR/include;$ROCM_DIR/lib;$ROCM_DIR"
+   CMAKE_PREFIX_PATH="$ROCM_DIR/roctracer/include/ext;$ROCM_DIR/include/platform;$ROCM_DIR/include;$ROCM_DIR/lib;$ROCM_DIR"
    export CMAKE_PREFIX_PATH
    #export HSA_RUNTIME_INC=$ROCM_DIR/include
    #export HSA_RUNTIME_LIB=$ROCM_DIR/include/lib
    #export HSA_KMT_LIB=$ROCM_DIR/lib 
    #export HSA_KMT_LIB_PATH=$ROCM_DIR/lib 
-   export HIP_PATH=$ROCM_DIR
    GFXSEMICOLONS=`echo $GFXLIST | tr ' ' ';' `
    mkdir -p $BUILD_AOMP/build/rocprofiler
    cd $BUILD_AOMP/build/rocprofiler
    echo " -----Running rocprofiler cmake ---- " 
-   ${AOMP_CMAKE} -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX=$INSTALL_ROCPROF -DCMAKE_PREFIX_PATH="""$CMAKE_PREFIX_PATH""" -DHIP_VDI=1 -DHIP_PATH=$ROCM_DIR $CMAKE_WITH_EXPERIMENTAL $AOMP_ORIGIN_RPATH -DGPU_TARGETS="""$GFXSEMICOLONS""" -DPROF_API_HEADER_PATH=$INSTALL_ROCPROF/include/roctracer/ext  $AOMP_REPOS/$AOMP_PROF_REPO_NAME
+   ${AOMP_CMAKE} -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX=$INSTALL_ROCPROF -DCMAKE_PREFIX_PATH="""$CMAKE_PREFIX_PATH""" $CMAKE_WITH_EXPERIMENTAL $AOMP_ORIGIN_RPATH -DGPU_TARGETS="""$GFXSEMICOLONS""" -DPROF_API_HEADER_PATH=$INSTALL_ROCPROF/include/roctracer/ext  $AOMP_REPOS/$AOMP_PROF_REPO_NAME
    if [ $? != 0 ] ; then 
       echo "ERROR rocprofiler cmake failed. cmake flags"
       echo "      $MYCMAKEOPTS"
