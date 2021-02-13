@@ -80,15 +80,25 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    $SUDO rm -rf $BUILD_AOMP/build/comgr
    export LLVM_DIR=$AOMP_INSTALL_DIR
    export Clang_DIR=$AOMP_INSTALL_DIR
-   MYCMAKEOPTS="-DCMAKE_INSTALL_PREFIX=$INSTALL_COMGR -DCMAKE_BUILD_TYPE=$BUILDTYPE $AOMP_ORIGIN_RPATH -DLLVM_BUILD_MAIN_SRC_DIR=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/llvm -DLLVM_DIR=$AOMP_INSTALL_DIR -DClang_DIR=$AOMP_INSTALL_DIR -DAMD_COMGR_BUILD_NO_ROCM=ON -DCMAKE_PREFIX_PATH=$AOMP/lib/cmake"
+
    mkdir -p $BUILD_AOMP/build/comgr
    cd $BUILD_AOMP/build/comgr
    echo " -----Running comgr cmake ---- " 
-   echo ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_COMGR_REPO_NAME/lib/comgr
-   ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_COMGR_REPO_NAME/lib/comgr
+
+   DEVICELIBS_BUILD_PATH=$AOMP_REPOS/build/AOMP_LIBDEVICE_REPO_NAME
+   PACKAGE_ROOT=$AOMP_REPOS/$AOMP_COMGR_REPO_NAME/lib/comgr
+   ${AOMP_CMAKE} \
+      -DCMAKE_PREFIX_PATH="$AOMP/include;$AOMP/lib/cmake;$DEVICELIBS_BUILD_PATH;$PACKAGE_ROOT" \
+      -DCMAKE_INSTALL_PREFIX=$INSTALL_COMGR \
+      -DCMAKE_BUILD_TYPE=$BUILDTYPE \
+      $AOMP_ORIGIN_RPATH \
+      -DROCM_DIR=$AOMP_INSTALL_DIR  \
+      -DLLVM_DIR=$AOMP_INSTALL_DIR \
+      -DClang_DIR=$AOMP_INSTALL_DIR \
+      $AOMP_REPOS/$AOMP_COMGR_REPO_NAME/lib/comgr
+
    if [ $? != 0 ] ; then 
       echo "ERROR comgr cmake failed. cmake flags"
-      echo "      $MYCMAKEOPTS"
       exit 1
    fi
 
