@@ -33,6 +33,7 @@ TESTS_DIR = \
     flang_omp_red_3d \
     flang_real16_prob \
     flang_reduction_offload \
+    flang_red_swdev-273281 \
     flang_tgt_alloc_ptr \
     function \
     function_overload \
