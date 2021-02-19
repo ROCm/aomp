@@ -122,12 +122,12 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    echo " -----Running cmake ---- " 
    if [ $COPYSOURCE ] ; then
       echo ${AOMP_CMAKE} $MYCMAKEOPTS  $BUILD_DIR/$AOMP_FLANG_REPO_NAME
-      ${AOMP_CMAKE} $MYCMAKEOPTS  $BUILD_DIR/$AOMP_FLANG_REPO_NAME 2>&1
+      env "$@" ${AOMP_CMAKE} $MYCMAKEOPTS  $BUILD_DIR/$AOMP_FLANG_REPO_NAME 2>&1
    else
       echo ls -l $AOMP_INSTALL_DIR/bin
       ls -l $AOMP_INSTALL_DIR/bin
       echo ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_FLANG_REPO_NAME
-      ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_FLANG_REPO_NAME 2>&1
+      env "$@" ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_FLANG_REPO_NAME 2>&1
    fi
 
    if [ $? != 0 ] ; then 

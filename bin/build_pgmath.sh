@@ -112,10 +112,10 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    echo " -----Running cmake ---- " 
    if [ $COPYSOURCE ] ; then
       echo ${AOMP_CMAKE} $MYCMAKEOPTS  $BUILD_DIR/$AOMP_FLANG_REPO_NAME/runtime/libpgmath
-      ${AOMP_CMAKE} $MYCMAKEOPTS  $BUILD_DIR/$AOMP_FLANG_REPO_NAME/runtime/libpgmath  2>&1
+      env "$@" ${AOMP_CMAKE} $MYCMAKEOPTS  $BUILD_DIR/$AOMP_FLANG_REPO_NAME/runtime/libpgmath  2>&1
    else
       echo ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_FLANG_REPO_NAME/runtime/libpgmath
-      ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_FLANG_REPO_NAME/runtime/libpgmath  2>&1
+      env "$@" ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_FLANG_REPO_NAME/runtime/libpgmath  2>&1
    fi
    if [ $? != 0 ] ; then 
       echo "ERROR cmake failed. Cmake flags"
