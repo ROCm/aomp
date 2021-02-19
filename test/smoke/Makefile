@@ -58,6 +58,7 @@ TESTS_DIR = \
     map_to_from_prob \
     map_zero_bug \
     MasterBarrier \
+    math_exp \
     math_flog \
     math_modff \
     math_sqrt_float \
