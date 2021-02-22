@@ -83,7 +83,7 @@ function build_aomp_component() {
       exit $rc
    fi
    echo "Number of Arguments: $#"
-   if [ $# -eq 0 ] ; then
+   if [ $# -eq 0 ] || [ "$SANITIZER" == "1" ]; then
        echo "Installing $@"
        $AOMP_REPOS/$AOMP_REPO_NAME/bin/build_$COMPONENT.sh install
        echo ""
