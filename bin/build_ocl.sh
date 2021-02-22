@@ -87,6 +87,8 @@ if [ "$1" == "install" ] ; then
    $SUDO rm $AOMP_INSTALL_DIR/testfile
 fi
 
+patchrepo $AOMP_REPOS/$AOMP_OCL_REPO_NAME
+
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
   if [ -d "$BUILD_DIR/build/ocl" ] ; then
      echo
@@ -143,4 +145,5 @@ if [ "$1" == "install" ] ; then
       echo "ERROR make install failed "
       exit 1
    fi
+   removepatch $AOMP_REPOS/$AOMP_OCL_REPO_NAME
 fi

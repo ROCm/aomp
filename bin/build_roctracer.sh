@@ -67,6 +67,8 @@ if [ "$1" == "install" ] ; then
    $SUDO rm $INSTALL_ROCTRACE/testfile
 fi
 
+patchrepo $AOMP_REPOS/$AOMP_TRACE_REPO_NAME
+
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then 
    echo " " 
    echo "This is a FRESH START. ERASING any previous builds in $BUILD_AOMP/build_roctracer"
@@ -93,6 +95,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    mkdir -p $BUILD_AOMP/build/roctracer
    cd $BUILD_AOMP/build/roctracer
    echo " -----Running roctracer cmake ---- " 
+   echo "${AOMP_CMAKE} -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX=$INSTALL_ROCTRACE -DCMAKE_PREFIX_PATH="""$CMAKE_PREFIX_PATH""" -DHIP_VDI=1 -DHIP_PATH=$ROCM_DIR $CMAKE_WITH_EXPERIMENTAL $AOMP_ORIGIN_RPATH -DGPU_TARGETS="""$GFXSEMICOLONS""" $AOMP_REPOS/$AOMP_TRACE_REPO_NAME"
    ${AOMP_CMAKE} -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX=$INSTALL_ROCTRACE -DCMAKE_PREFIX_PATH="""$CMAKE_PREFIX_PATH""" -DHIP_VDI=1 -DHIP_PATH=$ROCM_DIR $CMAKE_WITH_EXPERIMENTAL $AOMP_ORIGIN_RPATH -DGPU_TARGETS="""$GFXSEMICOLONS""" $AOMP_REPOS/$AOMP_TRACE_REPO_NAME
    if [ $? != 0 ] ; then 
       echo "ERROR roctracer cmake failed. cmake flags"
@@ -134,7 +137,7 @@ if [ "$1" == "install" ] ; then
          echo "ERROR make install failed "
          exit 1
       fi
-        echo
+      removepatch $AOMP_REPOS/$AOMP_TRACE_REPO_NAME
 else
    echo
    echo "SUCCESSFUL BUILD, please run:  $0 install"

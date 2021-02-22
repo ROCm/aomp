@@ -286,6 +286,13 @@ AOMP_OPENLIBM_REPO_BRANCH=${AOMP_OPENLIBM_REPO_BRANCH:-v0.7.2}
 AOMP_F18_REPO_NAME=${AOMP_F18_REPO_NAME:-f18}
 AOMP_F18_REPO_BRANCH=${AOMP_F18_REPO_BRANCH:-master}
 
+if [ -d $AOMP_REPOS/$AOMP_TRACE_REPO_NAME ] ; then
+   cd $AOMP_REPOS/$AOMP_TRACE_REPO_NAME
+   roctracer_branch=`git branch --list | grep "\*" | cut -d" " -f2`
+   if [ "$roctracer_branch" == "rocm-4.0.x" ] ; then
+      AOMP_PATCH_CONTROL_FILE="${AOMP_REPOS}/${AOMP_REPO_NAME}/bin/patches/patch-control-file_4.0.txt"
+   fi
+fi
 AOMP_PATCH_CONTROL_FILE=${AOMP_PATCH_CONTROL_FILE:-${AOMP_REPOS}/${AOMP_REPO_NAME}/bin/patches/patch-control-file.txt}
 
 STASH_BEFORE_PULL=${STASH_BEFORE_PULL:-YES}
@@ -368,6 +375,13 @@ if [ "$AOMP_APPLY_ROCM_PATCHES" == 1 ] && [ -d "$patchdir" ] ; then
    echo patchloc=$patchloc
    for patch in $patches; do
      patchfile=$patchloc/$patch
+     if [ ! -f $patchfile ] ; then
+       echo
+       echo "ERROR: Patch $patchfile does not exist"
+       echo "       It is referenced in ${AOMP_PATCH_CONTROL_FILE}"
+       exit 1
+     fi
+
      echo "Testing patch $patchfile to $patchdir"
 
      applypatch="yes"
