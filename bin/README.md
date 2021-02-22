@@ -249,3 +249,21 @@ export AOMP_GPU=`/opt/rocm/bin/mygpu`
 
 Of the many repos identified above, AOMP developers may only change amd-llvm-project, aomp, aomp-extras, and flang.  AOMP required changes to other non-AOMP components must be patched. The [patches/README.md](patches/README.md)  escribes the AOMP patch mechanism in detail.
 
+## Building debuggable compiler
+
+Two methods of building a debug (gdb) compiler
+1) full build using export BUILD_TYPE=Debug when building llvm-project
+   BUILD_TYPE=Debug ./build_aomp.sh select project
+
+2) Selective build of files within llvm-project by using CMake option
+  set_source_files_properties(ToolChains/CommonArgs.cpp PROPERTIES COMPILE_FLAGS "-O0 -g")
+
+A full debug build is very expensive time wise, the link steps are much bigger memory footprints. I you have 64 GB of memory typically make -j16 will succeed.
+Otherwise consider limiting the number of concurrent link steps. too many can exceed available system memory.
+
+-DLLVM_PARALLEL_LINK_JOBS:2
+
+
+A selective build using 'set_source_files...' will compile and link very quickly, and if combined with ./build_project.sh nocmake ; ./build_project.sh install
+will be a more pleasant user experience.
+
