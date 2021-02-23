@@ -35,6 +35,7 @@ TESTS_DIR = \
     flang_reduction_offload \
     flang_red_swdev-273281 \
     flang_red_swdev-273281-spmd \
+    flang-272730-complex \
     flang_tgt_alloc_ptr \
     function \
     function_overload \
