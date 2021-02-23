@@ -49,10 +49,10 @@ else
     -DCMAKE_INSTALL_PREFIX=$INSTALL_FLANG \
     -DLLVM_ENABLE_ASSERTIONS=ON \
     -DLLVM_CONFIG=$INSTALL_FLANG/bin/llvm-config \
-    -DCMAKE_CXX_COMPILER=$OUT_DIR/llvm/bin/clang++ \
-    -DCMAKE_C_COMPILER=$OUT_DIR/llvm/bin/clang \
-    -DCMAKE_Fortran_COMPILER=$OUT_DIR/llvm/bin/flang \
+    -DCMAKE_CXX_COMPILER=g++-7 -DCMAKE_C_COMPILER=gcc-7 \
     -DLLVM_TARGETS_TO_BUILD=$TARGETS_TO_BUILD \
+    -DCMAKE_C_FLAGS=-I/usr/lib/gcc/x86_64-linux-gnu/7/include \
+    -DCMAKE_CXX_FLAGS=-I/usr/lib/gcc/x86_64-linux-gnu/7/include \
     -DCMAKE_INSTALL_PREFIX=$INSTALL_FLANG"
 fi
 
