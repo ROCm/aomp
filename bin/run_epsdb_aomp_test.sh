@@ -16,12 +16,20 @@ export LIBOMPTARGET_MEMORY_MANAGER_THRESHOLD=0
 
 export AOMPROCM=$AOMP/..
 
+# Try using rocm_agent_enumerator for device id.
+# Regex skips first result 'gfx000' and selects second id.
+export AOMP_GPU=$($AOMPROCM/bin/rocm_agent_enumerator | grep -m 1 -E gfx[^0]{1}.{2})
+
 # mygpu will eventually relocate to /opt/rocm/bin, support both cases for now.
-if [ -a $AOMP/bin/mygpu ]; then
-  export AOMP_GPU=`$AOMP/bin/mygpu`
-#  export EXTRA_OMP_FLAGS=--rocm-path=$AOMP/
+if [ "$AOMP_GPU" != "" ]; then
+  echo "AOMP_GPU set with rocm_agent_enumerator."
 else
-  export AOMP_GPU=`$AOMP/../bin/mygpu`
+  echo "AOMP_GPU is empty, use mygpu."
+  if [ -a $AOMP/bin/mygpu ]; then
+    export AOMP_GPU=$($AOMP/bin/mygpu)
+  else
+    export AOMP_GPU=$($AOMP/../bin/mygpu)
+  fi
 fi
 
 echo AOMP_GPU = $AOMP_GPU
