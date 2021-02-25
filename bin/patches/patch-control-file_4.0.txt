@@ -5,4 +5,3 @@ opencl-on-vdi: ocl.patch
 roctracer: roctracer_4.0.patch
 RAJA: raja.patch
 RAJAPerf: rajaperf.patch
-rocr-runtime: cu_mask.patch

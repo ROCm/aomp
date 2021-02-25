@@ -2,6 +2,5 @@ rocminfo: rocminfo_ppc_cmake.patch
 omptests: omptests.patch
 openlibm: openlibm.patch
 opencl-on-vdi: ocl.patch
-rocr-runtime: cu_mask.patch
 RAJA: raja.patch
 RAJAPerf: rajaperf.patch
