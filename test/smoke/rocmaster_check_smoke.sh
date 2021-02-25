@@ -36,7 +36,7 @@ echo "**************************************************************************
 skiptests="devices pfspecifier pfspecifier_str target_teams_reduction hip_rocblas tasks reduction_array_section targ_static omp_wtime data_share2 global_allocate complex2 flang_omp_map omp_get_initial slices printf_parallel_for_target reduction_shared_array"
 
 if [ "$EPSDB" == "1" ]; then
-  skiptests+=" taskwait_prob flang_isystem_prob flang_real16_prob"
+  skiptests+=" taskwait_prob flang_isystem_prob flang_real16_prob red_bug_51 reduction_issue_16 reduction_team reduction_teams"
 fi
 
 # amd-stg-open only has commits up to 08/11/20, which does not include these fixes for gfx908
