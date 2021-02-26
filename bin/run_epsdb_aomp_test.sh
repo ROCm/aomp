@@ -16,7 +16,14 @@ export LIBOMPTARGET_MEMORY_MANAGER_THRESHOLD=0
 
 export AOMPROCM=$AOMP/..
 
+
 # Try using rocm_agent_enumerator for device id.
+# Use bogus path to avoid using target.lst, a user-defined target list
+# used by rocm_agent_enumerator.
+export ROCM_TARGET_LST=/opt/nowhere
+echo "RAE devices:"
+$AOMPROCM/bin/rocm_agent_enumerator
+
 # Regex skips first result 'gfx000' and selects second id.
 export AOMP_GPU=$($AOMPROCM/bin/rocm_agent_enumerator | grep -m 1 -E gfx[^0]{1}.{2})
 
