@@ -22,6 +22,7 @@ TESTS_DIR = \
     firstprivate \
     firstprivate2 \
     flags \
+    flang-274775 \
     flang_2regions \
     flang_blkdata-g \
     flang_char_kind \
