@@ -1,5 +1,7 @@
 program test
       integer :: i,j
+      ! change to complex(4) and it will pass.
+      !l ikely complex8 atomic issue
       complex(8) :: M,N
       complex(8),pointer :: A(:)
 
