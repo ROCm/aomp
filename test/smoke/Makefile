@@ -22,6 +22,7 @@ TESTS_DIR = \
     firstprivate \
     firstprivate2 \
     flags \
+    flang-272285 \
     flang-272343 \
     flang-272521 \
     flang-272534 \    
