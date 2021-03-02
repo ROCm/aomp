@@ -42,8 +42,6 @@ else
    fi
 fi
 
-COMP_INC_DIR=$(ls -d $AOMP_INSTALL_DIR/lib/clang/*/include )
-
 REPO_BRANCH=$AOMP_FLANG_REPO_BRANCH
 REPO_DIR=$AOMP_REPOS/$AOMP_FLANG_REPO_NAME
 COMP_INC_DIR=$REPO_DIR/runtime/libpgmath/lib/common
