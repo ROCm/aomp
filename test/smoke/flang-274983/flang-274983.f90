@@ -16,6 +16,10 @@ program test
          x(i)=2
       enddo
 
+      !$omp target data is_device_ptr(x)
+         write(*, *) "In tagret data=", x(1)
+      !$omp end target data
+
       !$omp target
         if (omp_get_thread_num() .eq. 0) then
           call f90printf("In tagret data=", x(1))
