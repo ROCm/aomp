@@ -15,8 +15,8 @@ int main (){
 
   x_vec.data = (double*) omp_target_alloc(N*sizeof(double), omp_get_initial_device() );
   y_vec.data = (double*) omp_target_alloc(N*sizeof(double), omp_get_initial_device() );
-  printf("CPU: x_vec.data = %p\n",x_vec.data);
-  printf("CPU: y_vec.data = %p\n",y_vec.data);
+  fprintf(stderr, "CPU: x_vec.data = %p\n",x_vec.data);
+  fprintf(stderr, "CPU: y_vec.data = %p\n",y_vec.data);
 
   #pragma omp target map(to:x_vec,y_vec)
   {
