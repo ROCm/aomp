@@ -106,6 +106,7 @@ TESTS_DIR = \
     snap_red \
     stream \
     targ-273742 \
+    targc-273738 \
     targc-273739 \
     targc-274983 \
     targ_declare \
