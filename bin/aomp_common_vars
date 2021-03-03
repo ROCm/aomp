@@ -461,6 +461,28 @@ function getpatchlist(){
    done < "$AOMP_PATCH_CONTROL_FILE"
 }
 
+function setaompgpu (){
+  if [[ "$AOMP" =~ "opt" ]]; then
+    echo Set AOMP_GPU with rocm_agent_enumerator.
+    export AOMP_GPU=$($AOMP/../bin/rocm_agent_enumerator | grep -m 1 -E gfx[^0]{1}.{2})
+  else
+    echo Set AOMP_GPU with mygpu.
+    if [ -a $AOMP/bin/mygpu ]; then
+      export AOMP_GPU=$($AOMP/bin/mygpu)
+    else
+      export AOMP_GPU=$($AOMP/../bin/mygpu)
+    fi
+  fi
+
+  echo AOMP_GPU = $AOMP_GPU
+  echo AOMP     = $AOMP
+
+  if [ "$AOMP_GPU" == "" ] || [ "$AOMP_GPU" == "unknown" ]; then
+    echo Error: AOMP_GPU not properly set...exiting.
+    exit 1
+  fi
+}
+
 function help_build_aomp(){
    /bin/cat 2>&1 <<"EOF"
 
