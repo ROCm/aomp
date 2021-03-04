@@ -51,6 +51,7 @@ TESTS_DIR = \
     flang_red_swdev-273281-spmd \
     flang-272730-complex \
     flang_tgt_alloc_ptr \
+    flang-tracekernel \
     function \
     function_overload \
     function_template \
