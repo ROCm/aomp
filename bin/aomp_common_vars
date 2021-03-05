@@ -76,9 +76,13 @@ AOMP_CXX_COMPILER=${AOMP_CXX_COMPILER:-$GCCXX}
 # Non standalone builds are done with ROCm builds.
 AOMP_STANDALONE_BUILD=${AOMP_STANDALONE_BUILD:-1}
 
-#  The logic for turning on CUDA build is here
-# temporarily turn off all cuda builds
-AOMP_BUILD_CUDA=0
+#  The logic for turning on AOMP_BUILD_CUDA build is here
+if [ "$AOMP_PROC" == "ppc64le" ] ; then
+   AOMP_BUILD_CUDA=1
+   AOMP_STANDALONE_BUILD=1
+else
+   AOMP_BUILD_CUDA=0
+fi
 if [ $AOMP_STANDALONE_BUILD == 1 ] ; then
    # Default is to build nvptx for STANDALONE build
    AOMP_BUILD_CUDA=${AOMP_BUILD_CUDA:-1}
@@ -139,7 +143,7 @@ NUM_THREADS=
 if [ ! -z `which "getconf"` ]; then
    NUM_THREADS=$(`which "getconf"` _NPROCESSORS_ONLN)
    if [ "$AOMP_PROC" == "ppc64le" ] ; then
-      NUM_THREADS=8
+      NUM_THREADS=$(( NUM_THREADS / 6))
    fi
    if [ "$AOMP_PROC" == "aarch64" ] ; then
       NUM_THREADS=$(( NUM_THREADS / 4))
