@@ -34,6 +34,7 @@ TESTS_DIR = \
     flang-274773 \
     flang-274775 \
     flang-274983 \
+    flang-275472 \
     flang_2regions \
     flang_blkdata-g \
     flang_char_kind \
