@@ -18,3 +18,7 @@ CONTAINS
     DEALLOCATE(outer1)
   END SUBROUTINE
 END module test7_m
+program foob
+  use test7_m
+  call test7
+end program foob
