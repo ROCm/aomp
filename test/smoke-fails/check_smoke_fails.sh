@@ -1,6 +1,7 @@
 #!/bin/bash
 #
-# Checks all tests in smoke directory using make check. Programs return 0 for success or a number > 0 for failure.
+# Checks all tests in smoke-fails directory using make check. 
+# Programs return 0 for success or a number > 0 for failure.
 # Tests that need to be visually inspected: devices, pfspecify, pfspecify_str, stream
 #
 #
@@ -24,7 +25,6 @@ pushd $script_dir
 path=$(pwd)
 
 #Clean all testing directories
-make clean
 cleanup
 
 export OMP_TARGET_OFFLOAD=${OMP_TARGET_OFFLOAD:-MANDATORY}
@@ -36,20 +36,12 @@ echo ""
 
 echo "************************************************************************************" > check-smoke.txt
 echo "                   A non-zero exit code means a failure occured." >> check-smoke.txt
-echo "Tests that need to be visually inspected: devices, pfspecify, pfspecify_str, stream" >> check-smoke.txt
 echo "***********************************************************************************" >> check-smoke.txt
-
-known_fails=""
-
-if [ "$SKIP_FAILURES" == 1 ] ; then
-  skip_tests=$known_fails
-else
-  skip_tests=""
-fi
 
 #Loop over all directories and make run / make check depending on directory name
 for directory in ./*/; do
     (cd "$directory" && path=$(pwd) && base=$(basename $path)
+    make clean
     #Skip tests that are known failures
     skip=0
     for test in $skip_tests ; do
@@ -146,14 +138,16 @@ fi
 echo -e "$BLU"-------------------- Results --------------------"$BLK"
 echo -e "$BLU"Number of tests: $total_tests"$BLK"
 echo ""
-echo -e "$GRN"Passing tests: $passing_tests/$total_tests"$BLK"
-echo ""
+echo -e "$GRN"Passing tests: $passing_tests/$total_tests""
+
+#Print passing tests, if any
+if [ -e passing-tests.txt ]; then
+  echo "--------------------"
+  cat passing-tests.txt
+fi
 
 #Print failed tests
 echo -e "$RED"
-if [ "$SKIP_FAILS" != 1 ] ; then
-  echo "Known failures: $known_fails"
-fi
 echo ""
 if [ -e failing-tests.txt ]; then
   echo "Runtime Fails"
@@ -167,16 +161,6 @@ if [ -e make-fail.txt ]; then
   echo "--------------------"
   cat make-fail.txt
 fi
-echo -e "$BLK"
-
-#Tests that need visual inspection
-echo ""
-echo -e "$ORG"
-echo "---------- Please inspect the output above to verify the following tests ----------"
-echo "devices"
-echo "pfspecifier"
-echo "pfspecifier_str"
-echo "stream"
 echo -e "$BLK"
 
 # Print run logs for runtime fails, EPSDB only
@@ -211,11 +195,6 @@ if [ "$EPSDB" == 1 ] ; then
     done < "$file"
     echo
   fi
-fi
-
-#Clean up, hide output
-if [ "$EPSDB" != 1 ] && [ "$CLEANUP" != 0 ]; then
-  cleanup
 fi
 
 popd
