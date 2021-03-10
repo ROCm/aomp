@@ -9,6 +9,7 @@ TESTS_DIR = \
     flang-273807 \
     flang-273990-1 \
     flang-273990-2 \
+    flang-273759 \
     flang_dev_write \
     requires_directive \
     targ-273742 \
