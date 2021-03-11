@@ -23,23 +23,18 @@ TESTS_DIR = \
     firstprivate2 \
     flags \
     flang-272285 \
-    flang-272328 \
-    flang-272343 \
     flang-272521 \
     flang-272534 \
     flang-272878 \
     flang-273281 \
     flang-273284 \
     flang-274768 \
-    flang-274773 \
     flang-274775 \
     flang-274983 \
     flang-275472 \
-    flang-275490 \
     flang_2regions \
     flang_blkdata-g \
     flang_char_kind \
-    flang_dev_write \
     flang_deviceio \
     flang_gen_sptr_prob \
     flang_isystem_prob \
@@ -51,7 +46,6 @@ TESTS_DIR = \
     flang_reduction_offload \
     flang_red_swdev-273281 \
     flang_red_swdev-273281-spmd \
-    flang-272730-complex \
     flang_tgt_alloc_ptr \
     flang-tracekernel \
     function \
@@ -61,7 +55,6 @@ TESTS_DIR = \
     global_allocate \
     helloworld \
     hip_device_compile \
-    hip_host_register \
     hip_rocblas \
     host_targ \
     issue_flang_libomp \
@@ -112,16 +105,10 @@ TESTS_DIR = \
     slices \
     snap_red \
     stream \
-    targ-273742 \
     targc-273738 \
-    targc-273739 \
-    targc-274983 \
     targ_declare \
-    targ_static \
     target-in-other-source \
-    target_teams_reduction \
     targets_in_loop \
-    tasks \
     taskwait_prob \
     teams \
     teams_nest \
