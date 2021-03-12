@@ -6,6 +6,7 @@ TESTS_DIR = \
     assertok_error \
     atomic \
     atomic_double \
+    clang-tracekernel \
     class \
     collapse \
     complex \
