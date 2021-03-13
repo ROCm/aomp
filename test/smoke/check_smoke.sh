@@ -66,7 +66,8 @@ for directory in ./*/; do
     popd > /dev/null
     continue
   fi
-  AOMPROCM=${AOMPROCM:-/opt/rocm}
+  newest_rocm=$(ls /opt | grep -e "rocm-[0-9].[0-9].[0-9]" | tail -1)
+  AOMPROCM=${AOMPROCM:-/opt/"$newest_rocm"}
   if [ $base == 'hip_rocblas' ] ; then
     ls $AOMPROCM/rocblas > /dev/null 2>&1
     if [ $? -ne 0 ]; then
