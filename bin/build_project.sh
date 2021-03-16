@@ -176,14 +176,9 @@ fi
 
 if [ "$1" == "install" ] ; then
    echo " -----Installing to $INSTALL_PROJECT ---- " 
-   $SUDO make install 
+   $SUDO make -j $NUM_THREADS install 
    if [ $? != 0 ] ; then 
       echo "ERROR make install failed "
-      exit 1
-   fi
-   $SUDO make install/local
-   if [ $? != 0 ] ; then 
-      echo "ERROR make install/local failed "
       exit 1
    fi
    if [ $AOMP_STANDALONE_BUILD == 1 ] ; then 
