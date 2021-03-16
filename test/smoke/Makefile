@@ -72,6 +72,7 @@ TESTS_DIR = \
     MasterBarrier \
     math_exp \
     math_flog \
+    math_max \
     math_modff \
     math_sqrt_float \
     MaxNumThrds \
