@@ -1,5 +1,6 @@
 program t273959
 ! testing presence of NOWAIT clause on an omp target update directive
+! NOTE: test may fail at runtime once NOWAIT is supported and working
   integer, parameter :: nsize=100
   real p(nsize), v1(nsize), v2(nsize)
   call vec_mult(p, v1, v2, nsize)
