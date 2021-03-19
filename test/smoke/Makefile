@@ -111,6 +111,7 @@ TESTS_DIR = \
     targ_declare \
     target-in-other-source \
     targets_in_loop \
+    task-helper \
     taskwait_prob \
     teams \
     teams_nest \
