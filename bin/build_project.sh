@@ -167,6 +167,12 @@ fi
 
 echo
 echo " -----Running make ---- " 
+
+# Workaround for race condition in the build of compiler-rt
+for prebuild in $(make help | sed -n '/-version-list/s/^... //p') ; do
+  make -j$NUM_THREADS $prebuild
+done
+
 echo make -j $NUM_THREADS 
 make -j $NUM_THREADS 
 if [ $? != 0 ] ; then 
