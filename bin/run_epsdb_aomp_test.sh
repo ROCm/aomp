@@ -12,7 +12,7 @@ set -x
 # we have a new Target memory manager appearing soon in aomp 12
 # it seems to either cause or reveal double  free or corruption
 # in lots of tests. This set to 0, disables the new TMM.
-export LIBOMPTARGET_MEMORY_MANAGER_THRESHOLD=0
+#export LIBOMPTARGET_MEMORY_MANAGER_THRESHOLD=0
 
 export AOMPROCM=$AOMP/..
 
@@ -55,6 +55,11 @@ cd $aompdir/test/smoke/helloworld
 make clean
 OMP_TARGET_OFFLOAD=MANDATORY VERBOSE=1 make run > hello.log 2>&1
 tail -10 hello.log
+
+echo "====== smoke-fails ======="
+cd $aompdir/test/smoke-fails
+OMP_TARGET_OFFLOAD=MANDATORY ./check_smoke_fails.sh > smoke-fails.log 2>&1
+tail -34 smoke-fails.log
 
 echo "====== smoke ======="
 cd $aompdir/test/smoke
