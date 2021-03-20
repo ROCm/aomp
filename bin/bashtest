@@ -1,0 +1,48 @@
+#!/bin/bash
+
+cat << EOF > lto_clang.c
+
+#include <stdio.h>
+#include <omp.h>
+
+int main(void) {
+  int isHost = 1;
+
+#pragma omp target map(tofrom: isHost)
+  {
+    isHost = omp_is_initial_device();
+    printf("Hello world. %d\n", 100);
+    for (int i =0; i<5; i++) {
+      printf("Hello world. iteration %d\n", i);
+    }
+  }
+
+  printf("Target region executed on the %s\n", isHost ? "host" : "device");
+
+  return isHost;
+}
+
+EOF
+
+export PATH=/opt/rocm/llvm/bin:$PATH
+export MYGPU=${MYGPU-gfx906}
+
+clang -famd-opt -mcode-object-version=3 -###  -O2  -target x86_64-pc-linux-gnu -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$MYGPU  lto_clang.c -o lto_clang 2>&1 | grep -q '../alt/bin/ld.lld'
+if [ $? ] ; then
+  echo Found alt/bin/ll.lld
+else
+  echo failed to invoke alt ld.lld
+fi
+clang -famd-opt -mcode-object-version=3 -###  -O2  -target x86_64-pc-linux-gnu -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$MYGPU   lto_clang.c -o lto_clang 2>&1 | grep -q '../alt/bin/clang-13' 
+if [ $? ] ; then
+  echo Found alt/bin/clang-13
+else
+  echo failed to invoke alt clang-13
+fi
+
+set -x
+clang -famd-opt -mcode-object-version=3 -O2  -target x86_64-pc-linux-gnu -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$MYGPU   lto_clang.c -o lto_clang
+set -x
+ls -l lto_clang
+#./lto_clang
+#rm -f lto_clang.c lto_clang

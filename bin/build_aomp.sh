@@ -207,4 +207,6 @@ echo "ls $OUT_DIR/openmp-extras/rocm-bin:"
 ls $OUT_DIR/openmp-extras/rocm-bin
 echo
 
+PATH=$INTSALL_DIR/bin:$PATH ./bashtest
+PATH=$INTSALL_DIR/bin:$PATH ./bashtestf90
 exit 0
