@@ -1,0 +1,57 @@
+#!/bin/bash
+
+cat << EOF > lto_flang.f90
+program TargetReduction_3D
+
+    implicit none
+
+    integer, dimension ( 3,3,3 ) ::  iV
+    integer i,j,k
+
+!   !$OMP  target enter data map ( from : iV)
+
+     print*,'Starting'
+    !$OMP  target MAP(from:iV)
+    !$OMP  teams
+    !$OMP  distribute private (i)
+    do i = 1, 3
+      !$omp parallel  private ( j, k )
+      do j = 1, 3
+        !$omp do
+        do k = 1, 3
+            iV(i,j,k) = i+j+k
+        end do
+        !$omp end do
+      end do
+      !$omp end parallel
+    end do
+    !$OMP  end distribute
+    !$OMP END TEAMS
+    !$OMP END TARGET
+    print*, 'MaxSpeed'
+    print*, iV
+end program TargetReduction_3D
+EOF
+
+export PATH=/opt/rocm/llvm/bin:$PATH
+export MYGPU=${MYGPU-gfx906}
+
+flang -famd-opt -mcode-object-version=3 -###  -O2  -target x86_64-pc-linux-gnu -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$MYGPU  lto_flang.f90 -o lto_flang 2>&1 | grep -q '../alt/bin/ld.lld'
+if [ $? ] ; then
+  echo Found alt/bin/ll.lld
+else
+  echo failed to invoke alt ld.lld
+fi
+flang -famd-opt -mcode-object-version=3 -###  -O2  -target x86_64-pc-linux-gnu -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$MYGPU   lto_flang.f90 -o lto_flang 2>&1 | grep -q '../alt/bin/clang-13' 
+if [ $? ] ; then
+  echo Found alt/bin/clang-13
+else
+  echo failed to invoke alt clang-13
+fi
+
+set -x
+flang -famd-opt -mcode-object-version=3 -O2  -target x86_64-pc-linux-gnu -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$MYGPU   lto_flang.f90 -o lto_flang
+set -x
+ls -l lto_flang
+#./lto_flang
+#rm -f lto_clang.c lto_clang
