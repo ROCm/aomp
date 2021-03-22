@@ -33,7 +33,7 @@ program TargetReduction_3D
 end program TargetReduction_3D
 EOF
 
-export PATH=/opt/rocm/llvm/bin:$PATH
+export PATH=$PATH:/opt/rocm/llvm/bin
 export MYGPU=${MYGPU-gfx906}
 
 flang -famd-opt -mcode-object-version=3 -###  -O2  -target x86_64-pc-linux-gnu -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$MYGPU  lto_flang.f90 -o lto_flang 2>&1 | grep -q '../alt/bin/ld.lld'
