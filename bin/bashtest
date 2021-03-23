@@ -41,7 +41,8 @@ else
 fi
 
 set -x
-clang -famd-opt -mcode-object-version=3 -O2  -target x86_64-pc-linux-gnu -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$MYGPU   lto_clang.c -o lto_clang
+clang -print-rocm-search-dirs -famd-opt -mcode-object-version=3 -O2  -target x86_64-pc-linux-gnu -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$MYGPU   lto_clang.c -o lto_clang
+clang -print-rocm-search-dirs -mcode-object-version=3 -O2  -target x86_64-pc-linux-gnu -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$MYGPU   lto_clang.c -o lto_clang
 set -x
 ls -l lto_clang
 #./lto_clang

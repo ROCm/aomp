@@ -50,7 +50,8 @@ else
 fi
 
 set -x
-flang -famd-opt -mcode-object-version=3 -O2  -target x86_64-pc-linux-gnu -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$MYGPU   lto_flang.f90 -o lto_flang
+flang -print-rocm-search-dirs -famd-opt -mcode-object-version=3 -O2  -target x86_64-pc-linux-gnu -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$MYGPU   lto_flang.f90 -o lto_flang
+flang -print-rocm-search-dirs -mcode-object-version=3 -O2  -target x86_64-pc-linux-gnu -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$MYGPU   lto_flang.f90 -o lto_flang
 set -x
 ls -l lto_flang
 #./lto_flang
