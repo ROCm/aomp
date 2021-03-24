@@ -23,10 +23,10 @@ int main(void) {
 }
 
 EOF
-
 #export PATH=$PATH:/opt/rocm/llvm/bin
 export PATH=$ROCM_INSTALL_PATH/bin:$PATH
 export MYGPU=${MYGPU-gfx906}
+set -x
 which clang
 ls $ROCM_INSTALL_PATH/amdgcn/bitcode
 ls $ROCM_INSTALL_PATH/llvm/lib/libdevice
@@ -44,10 +44,9 @@ else
   echo failed to invoke alt clang-13
 fi
 
-set -x
 clang --rocm-device-lib-path=$ROCM_INSTALL_PATH/amdgcn/bitcode  -print-rocm-search-dirs -famd-opt -mcode-object-version=3 -O2  -target x86_64-pc-linux-gnu -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$MYGPU   lto_clang.c -o lto_clang
 clang --rocm-device-lib-path=$ROCM_INSTALL_PATH/amdgcn/bitcode  -print-rocm-search-dirs -mcode-object-version=3 -O2  -target x86_64-pc-linux-gnu -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$MYGPU   lto_clang.c -o lto_clang
-set -x
+clang -print-rocm-search-dirs -mcode-object-version=3 -O2  -target x86_64-pc-linux-gnu -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$MYGPU   lto_clang.c -o lto_clang
 ls -l lto_clang
 #./lto_clang
 #rm -f lto_clang.c lto_clang
