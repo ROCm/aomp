@@ -27,13 +27,13 @@ EOF
 export PATH=$PATH:/opt/rocm/llvm/bin
 export MYGPU=${MYGPU-gfx906}
 
-clang -famd-opt -mcode-object-version=3 -###  -O2  -target x86_64-pc-linux-gnu -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$MYGPU  lto_clang.c -o lto_clang 2>&1 | grep -q '../alt/bin/ld.lld'
+clang -famd-opt -mcode-object-version=3 --rocm-device-lib-path=$ROCM_INSTALL_PATH/amdgcn/bitcode -###  -O2  -target x86_64-pc-linux-gnu -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$MYGPU  lto_clang.c -o lto_clang 2>&1 | grep -q '../alt/bin/ld.lld'
 if [ $? ] ; then
   echo Found alt/bin/ll.lld
 else
   echo failed to invoke alt ld.lld
 fi
-clang -famd-opt -mcode-object-version=3 -###  -O2  -target x86_64-pc-linux-gnu -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$MYGPU   lto_clang.c -o lto_clang 2>&1 | grep -q '../alt/bin/clang-13' 
+clang -famd-opt --rocm-device-lib-path=$ROCM_INSTALL_PATH/amdgcn/bitcode -mcode-object-version=3 -###  -O2  -target x86_64-pc-linux-gnu -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$MYGPU   lto_clang.c -o lto_clang 2>&1 | grep -q '../alt/bin/clang-13' 
 if [ $? ] ; then
   echo Found alt/bin/clang-13
 else
@@ -41,8 +41,8 @@ else
 fi
 
 set -x
-clang -print-rocm-search-dirs -famd-opt -mcode-object-version=3 -O2  -target x86_64-pc-linux-gnu -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$MYGPU   lto_clang.c -o lto_clang
-clang -print-rocm-search-dirs -mcode-object-version=3 -O2  -target x86_64-pc-linux-gnu -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$MYGPU   lto_clang.c -o lto_clang
+clang --rocm-device-lib-path=$ROCM_INSTALL_PATH/amdgcn/bitcode  -print-rocm-search-dirs -famd-opt -mcode-object-version=3 -O2  -target x86_64-pc-linux-gnu -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$MYGPU   lto_clang.c -o lto_clang
+clang --rocm-device-lib-path=$ROCM_INSTALL_PATH/amdgcn/bitcode  -print-rocm-search-dirs -mcode-object-version=3 -O2  -target x86_64-pc-linux-gnu -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$MYGPU   lto_clang.c -o lto_clang
 set -x
 ls -l lto_clang
 #./lto_clang
