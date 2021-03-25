@@ -1,4 +1,4 @@
-# Source Install V 11.12-1 (DEV)
+# Source Install V 13.0-2 (DEV)
 
 Build and install from sources is possible.  However, the source build for AOMP is complex for several reasons.
 - Many repos are required.  The clone_aomp.sh script ensures you have all repos and the correct branch.
@@ -23,7 +23,7 @@ The development version is the next version to be released.  It is possible that
 
 <b>For the Development Branch:</b>
 ```
-   git checkout amd-stg-openmp
+   git checkout aomp-dev
    git pull
 ```
 
