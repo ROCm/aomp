@@ -28,8 +28,12 @@ export PATH=$ROCM_INSTALL_PATH/bin:$PATH
 export MYGPU=${MYGPU-gfx906}
 set -x
 which clang
+ls $ROCM_INSTALL_PATH/bin
 ls $ROCM_INSTALL_PATH/amdgcn/bitcode
 ls $ROCM_INSTALL_PATH/llvm/lib/libdevice
+ls $OUT_DIR/bin
+ls $OUT_DIR/amdgcn/bitcode
+ls $OUT_DIR/llvm/lib/libdevice
 
 clang -famd-opt -mcode-object-version=3 --rocm-device-lib-path=$ROCM_INSTALL_PATH/amdgcn/bitcode -###  -O2  -target x86_64-pc-linux-gnu -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$MYGPU  lto_clang.c -o lto_clang 2>&1 | grep -q '../alt/bin/ld.lld'
 if [ $? ] ; then
