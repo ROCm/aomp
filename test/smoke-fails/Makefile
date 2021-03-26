@@ -14,6 +14,7 @@ TESTS_DIR = \
     requires_directive \
     targ-273742 \
     targ_static \
+    targc-272328 \
     targc-273739 \
     targc-274983 \
     target_teams_reduction \
