@@ -3,6 +3,7 @@ include Makefile.defs
 TESTS_DIR = \
     aomp_mappings \
     DeclareSharedMemory \
+    ancestorC \
     assertok_error \
     atomic \
     atomic_double \
