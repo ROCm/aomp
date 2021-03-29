@@ -80,6 +80,7 @@ TESTS_DIR = \
     nativetests \
     nested_loop \
     nested_par3 \
+    nested_targ \
     nest_call_par2 \
     omp_get_device_num \
     omp_get_initial \
