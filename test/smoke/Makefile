@@ -11,6 +11,7 @@ TESTS_DIR = \
     clang-tracekernel \
     class \
     collapse \
+    collapse-nonrectangle \
     complex \
     complex2 \
     d2h_slow_copy \
