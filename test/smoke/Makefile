@@ -59,6 +59,7 @@ TESTS_DIR = \
     hip_device_compile \
     hip_rocblas \
     host_targ \
+    icvars-nest \
     issue_flang_libomp \
     issue_001 \
     issue_002 \
