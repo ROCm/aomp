@@ -2,6 +2,7 @@ include Makefile.defs
 
 TESTS_DIR = \
     ancestorF \
+    flang-collapseNR \
     flang-272328 \
     flang-272343 \
     flang-272730-complex \
