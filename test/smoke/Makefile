@@ -60,6 +60,7 @@ TESTS_DIR = \
     hip_rocblas \
     host_targ \
     icvars-nest \
+    icvars-nestF \
     issue_flang_libomp \
     issue_001 \
     issue_002 \
