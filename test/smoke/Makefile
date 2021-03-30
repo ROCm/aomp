@@ -7,6 +7,7 @@ TESTS_DIR = \
     assertok_error \
     atomic \
     atomic_double \
+    CanonNE \
     clang-tracekernel \
     class \
     collapse \
