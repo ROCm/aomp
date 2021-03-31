@@ -14,6 +14,7 @@ TESTS_DIR = \
     flang-273759 \
     flang_dev_write \
     loop_order \
+    omp_loop \
     requires_directive \
     targ-273742 \
     targ_static \
