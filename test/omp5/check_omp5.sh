@@ -167,5 +167,3 @@ echo -e "$BLK"
 #echo "---------- Please inspect the output above to verify the following tests ----------"
 #echo "stream"
 #echo -e "$BLK"
-#Clean up, hide output
-cleanup
