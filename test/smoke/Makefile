@@ -20,6 +20,7 @@ TESTS_DIR = \
     data_share1 \
     data_share2 \
     decl_targ \
+    declare_target_pointer \
     devices \
     devito_prob1 \
     extern_init \
