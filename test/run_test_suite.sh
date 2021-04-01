@@ -14,7 +14,7 @@
 DISABLED_LIST="raja omptests"
 
 # Available Suites - Qmcpack will timeout at 20 minutes
-SUITE_LIST=${SUITE_LIST:-"examples smoke hipopenmp omp5 openmpapps nekbone sollve kokkos llnl ovo openlibm qmcpack"}
+SUITE_LIST=${SUITE_LIST:-"examples smoke smokefails hipopenmp omp5 openmpapps nekbone sollve kokkos llnl ovo openlibm qmcpack"}
 
 #Groups
 GROUP_LIST="epsdb"
@@ -143,10 +143,18 @@ function smoke(){
   # -----Run Smoke-----
   header SMOKE
   cd $AOMP_SRC/test/smoke > /dev/null
-  #EPSDB=1 ./check_smoke.sh > /dev/null 2>&1
   echo "Log file at: $log_dir/smoke.log"
   CLEANUP=0 ./check_smoke.sh > $log_dir/smoke.log 2>&1
-  update_logs log $log_dir/smoke.log 30
+  update_logs bin check_smoke.sh gatherdata
+}
+
+function smokefails(){
+  # -----Run Smoke-----
+  header SMOKEFAILS
+  cd $AOMP_SRC/test/smoke-fails > /dev/null
+  echo "Log file at: $log_dir/smoke-fails.log"
+  ./check_smoke_fails.sh > $log_dir/smoke-fails.log 2>&1
+  update_logs bin check_smoke_fails.sh gatherdata
 }
 
 function hipopenmp(){
@@ -164,7 +172,7 @@ function omp5(){
   cd $AOMP_SRC/test/omp5 > /dev/null
   echo "Log file at: $log_dir/omp5.log"
   ./check_omp5.sh > $log_dir/omp5.log 2>&1
-  update_logs log check-omp5.txt
+  update_logs bin check_omp5.sh gatherdata
 }
 
 function openmpapps(){
@@ -286,7 +294,7 @@ function qmcpack(){
   header QMCPACK
   cd $AOMP_SRC/bin
   echo "Log file at: $log_dir/qmcpack.log"
-  timeout -k 20m 20m ./build_qmcpack.sh >> $log_dir/qmcpack.log 2>&1
+  timeout --foreground -k 20m 20m ./build_qmcpack.sh >> $log_dir/qmcpack.log 2>&1
   build_dir=$AOMP_TEST/qmcpack/build_AOMP_offload_real_MP_$AOMP_GPU
   set +e
   if [ $? -eq 0 ]; then
