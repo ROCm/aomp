@@ -33,12 +33,11 @@ echo "AOMP_TEST:  $AOMP_TEST"
 echo "AOMP set:   $AOMP"
 echo ""
 
-export AOMP
-export NUM_THREADS
-
 # Source common vars, set AOMP_GPU
 cd $AOMP_BIN
 . aomp_common_vars
+export NUM_THREADS
+export AOMP
 setaompgpu
 
 # Log directories/files
