@@ -42,7 +42,7 @@ setaompgpu
 
 # Log directories/files
 function create_logs(){
-  log_dir=$AOMP_SRC/test/test-suite-results/$(date '+%b-%e-%Y')/$(date '+%H-%M-%S')
+  log_dir=$AOMP_SRC/test/test-suite-results/$(date '+%b-%d-%Y')/$(date '+%H-%M-%S')
   mkdir -p $log_dir
   results_file=results-report.log
   echo Final Log: $log_dir/$results_file
