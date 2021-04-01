@@ -25,7 +25,7 @@ AOMP_REPOS=${AOMP_REPOS:-~/git/aomp13}
 AOMP_SRC=${AOMP_SRC:-$AOMP_REPOS/aomp}
 AOMP_BIN=${AOMP_BIN:-$AOMP_SRC/bin}
 AOMP_TEST=${AOMP_TEST:-~/git/aomp-test}
-AOMP=${AOMP:-/home/estewart/rocm/aomp}
+AOMP=${AOMP:-/home/$USER/rocm/aomp}
 
 echo "AOMP_REPOS: $AOMP_REPOS"
 echo "AOMP_SRC:   $AOMP_SRC"
