@@ -75,11 +75,13 @@ if [ "$mygpu" == "unknown" ] ; then
    exit 1
 fi
 
-pushd $AOMP_REPOS_TEST/$AOMP_QMCPACK_REPO_NAME
-if [ -d $build_folder ] ; then
-   echo "FRESH START"
-   echo rm -rf $build_folder
-   rm -rf $build_folder
+pushd $QMCPACK_REPO
+if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
+   if [ -d $build_folder ] ; then
+      echo "FRESH START"
+      echo rm -rf $build_folder
+      rm -rf $build_folder
+   fi
 fi
 
 # Both versions should show AOMP's clang
@@ -92,6 +94,7 @@ echo AOMP_GPU: $AOMP_GPU
 echo OPENMPI_INSTALL: $OPENMPI_INSTALL
 echo BOOST_ROOT: $BOOST_ROOT
 echo FFTW_HOME: $FFTW_HOME
+echo QMCPACK_REPO: $QMCPACK_REPO
 echo
 
 if [[ ! -e $OPENMPI_INSTALL/bin/mpicc ]]; then
@@ -105,15 +108,18 @@ echo "###################################"
 
 mkdir -p $build_folder
 pushd $build_folder
- 
-$AOMP_CMAKE -DCMAKE_C_COMPILER=mpicc -DCMAKE_CXX_COMPILER=mpicxx \
--DOMPI_CC=clang -DOMPI_CXX=clang++ \
+
+if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
+$AOMP_CMAKE -DCMAKE_C_COMPILER=$OPENMPI_INSTALL/bin/mpicc \
+-DCMAKE_CXX_COMPILER=$OPENMPI_INSTALL/bin/mpicxx \
+-DOMPI_CC=$AOMP/bin/clang -DOMPI_CXX=$AOMP/bin/clang++ \
 -DQMC_MPI=1 \
 -DCMAKE_C_FLAGS="-march=native" \
 -DCMAKE_CXX_FLAGS="-march=native -Xopenmp-target=amdgcn-amd-amdhsa -march=$AOMP_GPU" \
 -DQMC_MIXED_PRECISION=1 -DENABLE_OFFLOAD=ON -DOFFLOAD_TARGET="amdgcn-amd-amdhsa" \
 -DENABLE_TIMERS=1 \
 ..
+fi
 
 echo
 echo make -j$NUM_THREADS
