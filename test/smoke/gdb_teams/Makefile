@@ -15,5 +15,5 @@ CC           = $(OMP_BIN) $(VERBOSE)
 include ../Makefile.rules
 
 run:
-	/opt/rocm/bin/rocgdb ./gdb_teams -x cmd_script -q
+	$(AOMP)/bin/rocgdb ./gdb_teams -x cmd_script -q
 
