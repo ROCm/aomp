@@ -3,22 +3,22 @@
 # run_test_suite.sh
 #  Available Options:
 #  --Groups--
-#  ./run_test_suite.sh                   -run all tests (default): $suite_list
-#  ./run_test_suite.sh epsdb             -run epsdb focused subset of tests: $epsdb_list
+#  ./run_test_suite.sh                   -run all tests (default): $SUITE_LIST
+#  ./run_test_suite.sh epsdb             -run epsdb focused subset of tests: $EPSDB_LIST
 #
 #  --Individual Suites--"
 #  ./run_test_suite.sh smoke             -run single suite (smoke) only
 #  ./run_test_suite.sh smoke examples    -run user specifed multiple suites
 
 # Disabled Suites
-disabled_list="raja omptests"
+DISABLED_LIST="raja omptests"
 
 # Available Suites - Qmcpack will timeout at 20 minutes
-suite_list="examples smoke hipopenmp omp5 openmpapps nekbone sollve kokkos llnl ovo openlibm qmcpack"
+SUITE_LIST=${SUITE_LIST:-"examples smoke smokefails hipopenmp omp5 openmpapps nekbone sollve kokkos llnl ovo openlibm qmcpack"}
 
 #Groups
-group_list="epsdb"
-epsdb_list="examples smoke hipopenmp omp5 openmpapps nekbone sollve"
+GROUP_LIST="epsdb"
+EPSDB_LIST=${EPSDB_LIST:-"examples smoke hipopenmp omp5 openmpapps nekbone sollve"}
 
 # Set up variables
 AOMP_REPOS=${AOMP_REPOS:-~/git/aomp13}
@@ -143,10 +143,18 @@ function smoke(){
   # -----Run Smoke-----
   header SMOKE
   cd $AOMP_SRC/test/smoke > /dev/null
-  #EPSDB=1 ./check_smoke.sh > /dev/null 2>&1
   echo "Log file at: $log_dir/smoke.log"
   CLEANUP=0 ./check_smoke.sh > $log_dir/smoke.log 2>&1
-  update_logs log $log_dir/smoke.log 30
+  update_logs bin check_smoke.sh gatherdata
+}
+
+function smokefails(){
+  # -----Run Smoke-----
+  header SMOKEFAILS
+  cd $AOMP_SRC/test/smoke-fails > /dev/null
+  echo "Log file at: $log_dir/smoke-fails.log"
+  ./check_smoke_fails.sh > $log_dir/smoke-fails.log 2>&1
+  update_logs bin check_smoke_fails.sh gatherdata
 }
 
 function hipopenmp(){
@@ -164,7 +172,7 @@ function omp5(){
   cd $AOMP_SRC/test/omp5 > /dev/null
   echo "Log file at: $log_dir/omp5.log"
   ./check_omp5.sh > $log_dir/omp5.log 2>&1
-  update_logs log check-omp5.txt
+  update_logs bin check_omp5.sh gatherdata
 }
 
 function openmpapps(){
@@ -286,7 +294,7 @@ function qmcpack(){
   header QMCPACK
   cd $AOMP_SRC/bin
   echo "Log file at: $log_dir/qmcpack.log"
-  timeout -k 20m 20m ./build_qmcpack.sh >> $log_dir/qmcpack.log 2>&1
+  timeout --foreground -k 20m 20m ./build_qmcpack.sh >> $log_dir/qmcpack.log 2>&1
   build_dir=$AOMP_TEST/qmcpack/build_AOMP_offload_real_MP_$AOMP_GPU
   set +e
   if [ $? -eq 0 ]; then
@@ -313,13 +321,13 @@ function omptests(){
 function print_help(){
   echo ""
   echo "--------Run Test Suite Help-------"
-  echo "All Test Suites:   $suite_list"
-  echo "EPSDB Test Suites: $epsdb_list"
+  echo "All Test Suites:   $SUITE_LIST"
+  echo "EPSDB Test Suites: $EPSDB_LIST"
   echo ""
   echo "Available Options:"
   echo "  --Groups--"
-  echo "  ./run_test_suite.sh                   -run all tests (default): $suite_list"
-  echo "  ./run_test_suite.sh epsdb             -run epsdb focused subset of tests: $epsdb_list"
+  echo "  ./run_test_suite.sh                   -run all tests (default): $SUITE_LIST"
+  echo "  ./run_test_suite.sh epsdb             -run epsdb focused subset of tests: $EPSDB_LIST"
   echo ""
   echo "  --Individual Suites--"
   echo "  ./run_test_suite.sh smoke             -run single suite (smoke) only"
@@ -331,7 +339,7 @@ function print_help(){
 
 # Subsets
 function epsdb(){
-  for suite in $epsdb_list; do
+  for suite in $EPSDB_LIST; do
     $suite
   done
 }
@@ -343,7 +351,7 @@ function check_args(){
     fi
     arg_regex="(^$arg| $arg$|$arg | $arg )"
     #Parse individual suites and groups
-    if [[ ! "$suite_list" =~ $arg_regex ]] && [[ ! "$group_list" =~ $arg_regex ]]; then
+    if [[ ! "$SUITE_LIST" =~ $arg_regex ]] && [[ ! "$GROUP_LIST" =~ $arg_regex ]]; then
       echo "Invalid argument: \"$arg\", printing help..."
       print_help
       exit 1
@@ -365,10 +373,10 @@ function run_tests(){
       fi
       echo "" >> $log_dir/$results_file
     done
-  # Default suite_list
+  # Default SUITE_LIST
   else
-    echo Running List: $suite_list
-    for suite in $suite_list; do
+    echo Running List: $SUITE_LIST
+    for suite in $SUITE_LIST; do
       $suite
       echo "" >> $log_dir/$results_file
     done

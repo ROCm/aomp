@@ -13,6 +13,55 @@ BLU="\033[0;34m"
 ORG="\033[0;33m"
 BLK="\033[0m"
 
+function gatherdata(){
+  #Gather Test Data
+  passing_tests=0
+  if [ -e passing-tests.txt ]; then
+    ((passing_tests=$(wc -l <  passing-tests.txt)))
+    total_tests=$passing_tests
+  fi
+  if [ -e make-fail.txt ]; then
+    ((total_tests+=$(wc -l <  make-fail.txt)))
+  fi
+  if [ -e failing-tests.txt ]; then
+    ((total_tests+=$(wc -l <  failing-tests.txt)))
+  fi
+
+  #Print Results
+  echo -e "$BLU"-------------------- Results --------------------"$BLK"
+  echo -e "$BLU"Number of tests: $total_tests"$BLK"
+  echo ""
+  echo -e "$GRN"Passing tests: $passing_tests/$total_tests""
+
+  #Print passing tests, if any
+  if [ -e passing-tests.txt ]; then
+    echo "--------------------"
+    cat passing-tests.txt
+  fi
+
+  #Print failed tests
+  echo -e "$RED"
+  echo ""
+  if [ -e failing-tests.txt ]; then
+    echo "Runtime Fails"
+    echo "--------------------"
+    cat failing-tests.txt
+    echo ""
+  fi
+
+  if [ -e make-fail.txt ]; then
+    echo "Compile Fails"
+    echo "--------------------"
+    cat make-fail.txt
+  fi
+  echo -e "$BLK"
+}
+
+if [ "$1" == "gatherdata" ]; then
+  gatherdata
+  exit 0
+fi
+
 cleanup(){
   rm -f passing-tests.txt
   rm -f failing-tests.txt
@@ -121,47 +170,7 @@ if [ -e make-fail.txt ]; then
 fi
 echo ""
 
-#Gather Test Data
-passing_tests=0
-if [ -e passing-tests.txt ]; then
-  ((passing_tests=$(wc -l <  passing-tests.txt)))
-  total_tests=$passing_tests
-fi
-if [ -e make-fail.txt ]; then
-  ((total_tests+=$(wc -l <  make-fail.txt)))
-fi
-if [ -e failing-tests.txt ]; then
-  ((total_tests+=$(wc -l <  failing-tests.txt)))
-fi
-
-#Print Results
-echo -e "$BLU"-------------------- Results --------------------"$BLK"
-echo -e "$BLU"Number of tests: $total_tests"$BLK"
-echo ""
-echo -e "$GRN"Passing tests: $passing_tests/$total_tests""
-
-#Print passing tests, if any
-if [ -e passing-tests.txt ]; then
-  echo "--------------------"
-  cat passing-tests.txt
-fi
-
-#Print failed tests
-echo -e "$RED"
-echo ""
-if [ -e failing-tests.txt ]; then
-  echo "Runtime Fails"
-  echo "--------------------"
-  cat failing-tests.txt
-  echo ""
-fi
-
-if [ -e make-fail.txt ]; then
-  echo "Compile Fails"
-  echo "--------------------"
-  cat make-fail.txt
-fi
-echo -e "$BLK"
+gatherdata
 
 # Print run logs for runtime fails, EPSDB only
 if [ "$EPSDB" == 1 ] ; then
