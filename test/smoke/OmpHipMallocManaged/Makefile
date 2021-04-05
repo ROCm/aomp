@@ -16,8 +16,9 @@ endif
 CLANG        = clang++ -lamdhip64 $(RPTH) $(USE_MALLOC) $(LARGE) $(ITERS)
 OMP_BIN      = $(AOMP)/bin/$(CLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
+AOMPROCM ?= $(AOMP)
 ifeq ($(EPSDB),1)
-EXTRA_LDFLAGS       = -L/opt/rocm/lib
+EXTRA_LDFLAGS       = -L$(AOMPROCM)/lib
 endif
 #-ccc-print-phases
 #"-\#\#\#"
