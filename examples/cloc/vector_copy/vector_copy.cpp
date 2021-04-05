@@ -191,7 +191,7 @@ int main() {
 
   // Get symbol handle.
   hsa_executable_symbol_t kernelSymbol;
-  hsa_status = hsa_executable_get_symbol(hsaExecutable, NULL, "vector_copy", device, 0, &kernelSymbol);
+  hsa_status = hsa_executable_get_symbol(hsaExecutable, NULL, "vector_copy.kd", device, 0, &kernelSymbol);
   assert(HSA_STATUS_SUCCESS == hsa_status);
 
   // Get code handle.
