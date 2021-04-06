@@ -132,7 +132,7 @@ implicit none
             if( error .gt. error_max ) then
                write(*,*) "Accuracy Verification FAILED! Error bigger than max! Error = ", error, " i = ", i, " j = ", j," io_data_dir = ",&
                io_data_dir(i,j,k), " y = ", io_data(i,j,k)
-               call exit
+               call exit(1)
             endif
          end do
       end do

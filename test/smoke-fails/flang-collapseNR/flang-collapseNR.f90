@@ -29,7 +29,7 @@ program test
          do j=1, N1  -i
          if ( C(i*N1+j) .ne. A(j)+B(j)) then
             write(*, *), "wrong result", c(i*N1+j), A(j), b(j)
-            stop
+            call exit(1)
          endif
         enddo
       enddo

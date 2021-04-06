@@ -32,7 +32,7 @@ program main
   do i=1,nsize
       if (a(i).ne.a_cpu(i)) then
           print *, "[Error] : a(", i ,") <> a_cpu(", i, ") ==> ", a(i), " <> ", a_cpu(i)
-          exit
+          call exit(1)
       endif
   end do
   return
