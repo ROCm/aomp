@@ -14,6 +14,7 @@ TESTS_DIR = \
     collapse-nonrectangle \
     complex \
     complex2 \
+    complex-debug \
     d2h_slow_copy \
     data_enter_issue01 \
     data_issue_59 \
