@@ -11,15 +11,17 @@ The AOMP compiler supports OpenMP, clang-hip, clang-cuda, device OpenCL, and the
 
 ## Repositories
 <A NAME="Repositories">
-The clone_aomp.sh script clones the necessary repositories and the correct
+The clone_aomp.sh script clones the necessary github repositories and the correct
 branches into subdirectories of $HOME/git/aomp13 (or $AOMP_REPOS if AOMP_REPOS is set).
 The repositories and components needed by AOMP are shown in the following table.
 The first column is the AOMP component name.  The build_aomp.sh script invokes
-eacho component build script with the name build_<component>.sh .
+each component build script with the name build_\<component name\>.sh .
 
-| COMPONENT | DEV BRANCH | DEFAULT DIRECTORY LOCATION           | REPOSITORY LINKS
-| --------- | ---------- | --------------------------           | ----------------
-| (aomp)    | aomp-dev   | $HOME/git/aomp13/aomp                | [aomp](https://github.com/ROCm-Developer-Tools/aomp)
+
+| COMPONENT | DEVELOPMENT|                                      | REPOSITORY
+| NAME      | BRANCH     | DEFAULT DIRECTORY LOCATION           | LINKS
+| --------- | ---------- | --------------------------           | ---------
+| (aomp)    | aomp-dev   | $HOME/git/aomp13/aomp                | [aomp](https://github.com/ROCm-Developer-Tools/aomp) This repo!
 | project   | aomp-dev   | $HOME/git/aomp13/llvm-project        | [llvm-project](https://github.com/ROCm-Developer-Tools/llvm-project)
 | openmp    | aomp-dev   | $HOME/git/aomp13/llvm-project/openmp | [llvm-project/openmp](https://github.com/ROCm-Developer-Tools/llvm-project)
 | extras    | aomp-dev   | $HOME/git/aomp13/aomp-extras         | [aomp-extras](https://github.com/ROCm-Developer-Tools/aomp-extras)
@@ -40,7 +42,7 @@ eacho component build script with the name build_<component>.sh .
 | roctrace   |Latest ROCm| $HOME/git/aomp13/roctracer           | [roctracer](https://github.com/ROCm-Developer-Tools/roctracer)
 | rocprofiler|Latest ROCm| $HOME/git/aomp13/rocprofiler         | [rocprofiler](https://github.com/ROCm-Developer-Tools/rocprofiler)
 
-If the component is a core aomp component, then the branch name in the corresponding repository is aomp-dev.
+If the component is a core aomp component, then the development branch name is aomp-dev.
 The default branch name for other non-core components is set in the aomp_common_vars file.
 It is typically the name of the latest ROCm release in the external source repository.
 
@@ -52,22 +54,28 @@ There are generous comments in aomp_common_vars that provide information about t
 Developers should take some time to read comments in the [aomp_common_vars file](aomp_common_vars).
 
 These are some important environment variables and their default values.
-```
-   AOMP                  $HOME/rocm/aomp   Where AOMP will be installed and tested
-   CUDA                  /usr/local/cuda   Where cuda is installed 
-   AOMP_REPOS            $HOME/git/aomp13  The base directory for all AOMP build repositories
-   AOMP_STANDALONE_BUILD 1                 Build all components, do not use installed ROCm
-   AOMP_VERSION          13.0              Will change to 13.1 when LLVM 13 stablizes.
-   AOMP_VERSION_MOD      2                 This imples the next release will be 13.0-2.
-   AOMP_VERSION_STRING   $AOMP_VERSION-$AOMP_VERSION_MOD 
-   NVPTXGPUS             30,35,50,60,61,70
-   GFXLIST               gfx700 gfx701 gfx801 gfx803 gfx900 gfx902 gfx906 gfx908
-```
+
+| ENVIRONMENT | DEFAULT             | 
+| VARIABLE    | VALUE               | DESCRIPTION
+| --------    | --------            | -----------
+| AOMP                  | $HOME/rocm/aomp    | Where AOMP is installed and tested
+| AOMP_REPOS            | $HOME/git/aomp13   | The base directory for all AOMP build repositories
+| AOMP_STANDALONE_BUILD | 1                  | Build all components, do NOT use installed ROCm
+| AOMP_VERSION          | 13.0               | Will change to 13.1 when LLVM 13 stablizes.
+| AOMP_VERSION_MOD      | 2                  | This imples the next release will be AOMP_13.0-2.
+| AOMP_VERSION_STRING   | $AOMP_VERSION-$AOMP_VERSION_MOD |
+| GFXLIST               | gfx700 gfx701 gfx801 gfx803     | List of AMDGPU gpus to build for
+|                       | gfx900 gfx902 gfx906 gfx908     |
+| NVPTXGPUS             | 30,35,50,60,61,70               | List of NVPTX gpus to build for
+| CUDA                  | /usr/local/cuda                 | Where cuda is installed 
+
+
 You can override any environment variable by setting values in your .bashrc or .bash_profile.
 Here is a sample of commands you might want to put into your .bash_profile:
+
 ```
-AOMP=/tmp/$USER/git/aomp
-BUILD_TYPE=Debug
+AOMP=/tmp/$USER/rocm/aomp
+AOMP_REPOS=/tmp/$USER/git/aomp13
 NVPTXGPUS=30,35,70
 GFXLIST="gfx803 gfx906"
 AOMP_VERSION="12.0"
