@@ -4,65 +4,45 @@ AOMP Developer README.md
 AOMP is a scripted build of LLVM and supporting software. It has support for OpenMP target offload on amdgcn GPUs.
 This is the AOMP developer README stored at:
 ```
-https://github.com/ROCm-Developer-Tools/aomp/blob/master/bin/README.md
+https://github.com/ROCm-Developer-Tools/aomp/blob/aomp-dev/bin/README.md
 ```
 The AOMP compiler supports OpenMP, clang-hip, clang-cuda, device OpenCL, and the offline kernel compilation tool called cloc.  It contains a recent version of the AMD Lightning compiler (llvm amdgcn backend) and the llvm nvptx backend.  Except for clang-cuda, this compiler works for both Nvidia and AMD Radeon GPUs.
 
-This bin directory contains scripts to build and install AOMP from source.
-```
-clone_aomp.sh            -  A script to make sure the necessary repos are up to date.
-                            See below for a list of these source repositories.
-build_aomp.sh            -  This is the master build script. It runs all the
-                            component build scripts in the correct order.
-build_roct.sh            -  Builds the hsa thunk library.
-build_rocr.sh            -  Builds the ROCm runtime.
-build_project.sh         -  Builds llvm, lld, and clang components.
-build_libdevice.sh       -  Builds the rocdl device bc libraries from rocm-device-libs.
-build_comgr.sh           -  Builds the code object manager (needs rocm-device-libs).
-build_rocminfo.sh        -  Builds the rocminfo utilities to support hip.
-build_vdi.sh             -  Builds the hip interoperability layer ROCclr.
-build_hipvdi.sh          -  Builds the hip host runtime using ROCclr.
-build_extras.sh          -  Builds hostcall, libm, and utils all in aomp-extras repo.
-build_openmp.sh          -  Builds the OpenMP libraries and device RTL.
-build_pgmath.sh          -  Builds the pgmath support for flang.
-build_flang.sh           -  Builds flang for aomp.
-build_flang_runtime.sh   -  Builds the flang runtime for aomp.
-build_ocl.sh             -  Builds OpenCL runtime.
-build_rocdbgapi.sh       -  Builds ROCm Debugger API.
-build_gdb.sh             -  Builds ROC gdb.
-build_roctracer.sh       -  Builds ROC gdb. UNDER DEVELOPMENT
-
-create_release_tarball.sh - This builds an important release artifact
-                            containing all sources.
-```
-
-These scripts install into $HOME/rocm/aomp (or $AOMP if set).
 
 ## Repositories
 <A NAME="Repositories">
 The clone_aomp.sh script clones the necessary repositories and the correct
-branches into subdirectories of $HOME/git/aomp13 (or $AOMP_REPOS if set)
-The repositories needed by AOMP are shown in the following table.
-The first column is the AOMP component that uses the repositories.
+branches into subdirectories of $HOME/git/aomp13 (or $AOMP_REPOS if AOMP_REPOS is set).
+The repositories and components needed by AOMP are shown in the following table.
+The first column is the AOMP component name.  The build_aomp.sh script invokes
+eacho component build script with the name build_<component>.sh .
 
-| Component | SUBDIRECTORY                           | REPOSITORY LINKS
-| --------- | ------------                           | ----------------
-| roct      | $HOME/git/aomp13/roct-thunk-interfaces | [roct-thunk-interfaces](https://github.com/radeonopencompute/roct-thunk-interface)
-| rocr      | $HOME/git/aomp13/rocr-runtime          | [rocr-runtime](https://github.com/radeonopencompute/rocr-runtime)
-| llvm-project | $HOME/git/aomp13/amd-llvm-project      | [llvm-project](https://github.com/ROCm-Developer-Tools/amd-llvm-project)
-| extras    | $HOME/git/aomp13/aomp-extras           | [aomp-extras](https://github.com/ROCm-Developer-Tools/aomp-extras)
-| vdi       | $HOME/git/aomp13/vdi                   | [vdi](https://github.com/ROCm-Developer-Tools/ROCclr)
-| comgr     | $HOME/git/aomp13/rocm-compilersupport  | [comgr](https://github.com/radeonopencompute/rocm-compilersupport)
-| hipvdi    | $HOME/git/aomp13/hip-on-vdi            | [hipvdi](https://github.com/ROCm-Developer-Tools/hip)
-| ocl       | $HOME/git/aomp13/opencl-on-vdi         | [ocl](https://github.com/radeonopencompute/ROCm-OpenCL-Runtime)
-| openmp    | $HOME/git/aomp13/llvm-project/openmp   | [llvm-project/openmp](https://github.com/ROCm-Developer-Tools/llvm-project)
-| libdevice | $HOME/git/aomp13/rocm-device-libs      | [rocm-device-libs](https://github.com/radeonopencompute/rocm-device-libs)
-| flang     | $HOME/git/aomp13/flang                 | [flang](https://github.com/ROCm-Developer-Tools/flang)
-| rocminfo  | $HOME/git/aomp13/rocminfo              | [rocminfo](https://github.com/radeonopencompute/rocminfo)
-| rocdbgapi | $HOME/git/aomp13/ROCdbgapi             | [rocdbgapi](https://github.com/ROCm-Developer-Tools/ROCdbgapi)
-| rocgdb    | $HOME/git/aomp13/ROCgdb                | [rocgdb](https://github.com/ROCm-Developer-Tools/ROCgdb)
-| roctrace  | $HOME/git/aomp13/roctracer             | [roctracer](https://github.com/ROCm-Developer-Tools/roctracer)
-| rocprofiler | $HOME/git/aomp13/rocprofiler         | [rocprofiler](https://github.com/ROCm-Developer-Tools/rocprofiler)
+| COMPONENT | DEV BRANCH | DEFAULT DIRECTORY LOCATION           | REPOSITORY LINKS
+| --------- | ---------- | --------------------------           | ----------------
+| (aomp)    | aomp-dev   | $HOME/git/aomp13/aomp                | [aomp](https://github.com/ROCm-Developer-Tools/aomp)
+| project   | aomp-dev   | $HOME/git/aomp13/llvm-project        | [llvm-project](https://github.com/ROCm-Developer-Tools/llvm-project)
+| openmp    | aomp-dev   | $HOME/git/aomp13/llvm-project/openmp | [llvm-project/openmp](https://github.com/ROCm-Developer-Tools/llvm-project)
+| extras    | aomp-dev   | $HOME/git/aomp13/aomp-extras         | [aomp-extras](https://github.com/ROCm-Developer-Tools/aomp-extras)
+| pgmath    | aomp-dev   | $HOME/git/aomp13/flang/runtime/libpgmath | [flang](https://github.com/ROCm-Developer-Tools/flang)
+| flang     | aomp-dev   | $HOME/git/aomp13/flang               | [flang](https://github.com/ROCm-Developer-Tools/flang)
+| flang_runtime | aomp-dev | $HOME/git/aomp13/flang             | [flang](https://github.com/ROCm-Developer-Tools/flang)
+|            |           |                                      |
+| roct       |Latest ROCm| $HOME/git/aomp13/roct-thunk-interfaces | [roct-thunk-interfaces](https://github.com/radeonopencompute/roct-thunk-interface)
+| rocr       |Latest ROCm| $HOME/git/aomp13/rocr-runtime        | [rocr-runtime](https://github.com/radeonopencompute/rocr-runtime)
+| vdi        |Latest ROCm| $HOME/git/aomp13/vdi                 | [ROCclr](https://github.com/ROCm-Developer-Tools/ROCclr)
+| comgr      |Latest ROCm| $HOME/git/aomp13/rocm-compilersupport| [comgr](https://github.com/radeonopencompute/rocm-compilersupport)
+| hipvdi     |Latest ROCm| $HOME/git/aomp13/hip-on-vdi          | [hipvdi](https://github.com/ROCm-Developer-Tools/hip)
+| ocl        |Latest ROCm| $HOME/git/aomp13/opencl-on-vdi       | [ocl](https://github.com/radeonopencompute/ROCm-OpenCL-Runtime)
+| libdevice  |Latest ROCm| $HOME/git/aomp13/rocm-device-libs    | [rocm-device-libs](https://github.com/radeonopencompute/rocm-device-libs)
+| rocminfo   |Latest ROCm| $HOME/git/aomp13/rocminfo            | [rocminfo](https://github.com/radeonopencompute/rocminfo)
+| rocdbgapi  |Latest ROCm| $HOME/git/aomp13/ROCdbgapi           | [rocdbgapi](https://github.com/ROCm-Developer-Tools/ROCdbgapi)
+| rocgdb     |Latest ROCm| $HOME/git/aomp13/ROCgdb              | [rocgdb](https://github.com/ROCm-Developer-Tools/ROCgdb)
+| roctrace   |Latest ROCm| $HOME/git/aomp13/roctracer           | [roctracer](https://github.com/ROCm-Developer-Tools/roctracer)
+| rocprofiler|Latest ROCm| $HOME/git/aomp13/rocprofiler         | [rocprofiler](https://github.com/ROCm-Developer-Tools/rocprofiler)
+
+If the component is a core aomp component, then the branch name in the corresponding repository is aomp-dev.
+The default branch name for other non-core components is set in the aomp_common_vars file.
+It is typically the name of the latest ROCm release in the external source repository.
 
 ## AOMP Environment Variables
 The AOMP build scripts use many environment variables to control how AOMP is built.
@@ -73,14 +53,15 @@ Developers should take some time to read comments in the [aomp_common_vars file]
 
 These are some important environment variables and their default values.
 ```
-   AOMP                  $HOME/rocm/aomp
-   CUDA                  /usr/local/cuda
-   AOMP_REPOS            $HOME/git/aomp13
-   AOMP_STANDALONE_BUILD 1
-   AOMP_VERSION          13.0
+   AOMP                  $HOME/rocm/aomp   Where AOMP will be installed and tested
+   CUDA                  /usr/local/cuda   Where cuda is installed 
+   AOMP_REPOS            $HOME/git/aomp13  The base directory for all AOMP build repositories
+   AOMP_STANDALONE_BUILD 1                 Build all components, do not use installed ROCm
+   AOMP_VERSION          13.0              Will change to 13.1 when LLVM 13 stablizes.
+   AOMP_VERSION_MOD      2                 This imples the next release will be 13.0-2.
+   AOMP_VERSION_STRING   $AOMP_VERSION-$AOMP_VERSION_MOD 
    NVPTXGPUS             30,35,50,60,61,70
    GFXLIST               gfx700 gfx701 gfx801 gfx803 gfx900 gfx902 gfx906 gfx908
-   BUILD_TYPE            Release
 ```
 You can override any environment variable by setting values in your .bashrc or .bash_profile.
 Here is a sample of commands you might want to put into your .bash_profile:
@@ -153,7 +134,41 @@ The only ROCm common component required by AOMP is the kernel kfd.
 
 
 ## Individual Component Builds
-To build aomp, run the master build script build_aomp.sh or run these individual scripts in this order:
+
+This bin directory ($HOME/git/aomp13/aomp/bin) contains many component scripts to build and install AOMP from source. 
+Here are some of the scripts contained in this direcotry
+```
+clone_aomp.sh            -  A script to make sure the necessary repos are up to date.
+                            See list source repositories above.
+build_aomp.sh            -  This is the master build script. It runs all the
+                            component build scripts in the correct order.
+build_roct.sh            -  Builds the hsa thunk library.
+build_rocr.sh            -  Builds the ROCm runtime.
+build_project.sh         -  Builds llvm, lld, and clang components.
+build_libdevice.sh       -  Builds the rocdl device bc libraries from rocm-device-libs.
+build_comgr.sh           -  Builds the code object manager (needs rocm-device-libs).
+build_rocminfo.sh        -  Builds the rocminfo utilities to support hip.
+build_vdi.sh             -  Builds the hip interoperability layer ROCclr.
+build_hipvdi.sh          -  Builds the hip host runtime using ROCclr.
+build_extras.sh          -  Builds hostcall, libm, and utils all in aomp-extras repo.
+build_openmp.sh          -  Builds the OpenMP libraries and device RTL.
+build_pgmath.sh          -  Builds the pgmath support for flang.
+build_flang.sh           -  Builds flang for aomp.
+build_flang_runtime.sh   -  Builds the flang runtime for aomp.
+build_ocl.sh             -  Builds OpenCL runtime.
+build_rocdbgapi.sh       -  Builds ROCm Debugger API.
+build_gdb.sh             -  Builds ROC gdb.
+build_roctracer.sh       -  Builds ROC gdb. UNDER DEVELOPMENT
+
+create_release_tarball.sh - This builds an important release artifact
+                            containing all sources.
+```
+To build aomp, run the master build script build_aomp.sh, or run the individual scripts in the order shown below. 
+The build scripts with no arguments will build the component in the build directory $HOME/git/aomp13/build/\<component name\>
+(or $AOMP_REPOS/build/\<component name\> if AOMP_REPOS is set). 
+The component build scripts take a single positional argument with the value "install" or "nocmake".
+The master build script build_aomp.sh will call the component build scripts in the following order and stop if
+any fails occur. 
 
 ```
    # Start with these components if building AOMP standalone
@@ -187,7 +202,7 @@ To build aomp, run the master build script build_aomp.sh or run these individual
    ./build_rocminfo.sh
    ./build_rocminfo.sh install
 
-   # These only build on x86_64
+   # These components only build on x86_64
    ./build_vdi.sh
    ./build_vdi.sh install
    ./build_hipvdi.sh
@@ -196,7 +211,7 @@ To build aomp, run the master build script build_aomp.sh or run these individual
    ./build_ocl.sh install
 
    # These two components build only when
-   # AOMP_BUILD_STANDALONE==1 && AOMP_BUILD_DEBUG==1
+   # AOMP_BUILD_STANDALONE=1 && AOMP_BUILD_DEBUG=1
    # which are the default values.
    ./build_rocdbgapi.sh
    ./build_rocdbgapi.sh install
@@ -208,11 +223,11 @@ Once you have a successful development build, individual components can be incre
 ```
    ./build_project.sh install
 ```
-WARNING: When the build scripts are run with NO arguments (that is, you do not specify "install" or "nocmake"), the build scripts will rebuild the entire component by DELETING THE BUILD DIRECTORY before running cmake and make. This is called a fresh start.
+WARNING: When the build scripts are run with NO arguments (that is, you do not specify "install" or "nocmake"), the build scripts will rebuild the entire component by DELETING THE BUILD DIRECTORY before running cmake and make. This is called a FRESH start.
 
 ## The AOMP Install Location
 The build scripts will build from the source directories identified by the environment variable AOMP_REPOS.
-The AOMP_REPOS default value is $HOME/git/aomp13.
+The AOMP_REPOS default value is currently $HOME/git/aomp13.
 The out-of-source build directory for each component is $AOMP_REPOS/build/\<component_name\>.
 
 The install location is defined by the $AOMP environment variable. The value of AOMP MUST be reserved as a symbolic link.
@@ -248,7 +263,7 @@ export AOMP_GPU=`/opt/rocm/bin/mygpu`
 
 ## The AOMP developer patch subsystem
 
-Of the many repos identified above, AOMP developers may only change amd-llvm-project, aomp, aomp-extras, and flang.  AOMP required changes to other non-AOMP components must be patched. The [patches/README.md](patches/README.md)  escribes the AOMP patch mechanism in detail.
+Of the many repos identified above, AOMP developers may only change core aomp repositories (llvm-project, aomp, aomp-extras, and flang).  AOMP required changes to other non-core components must be patched. The [patches/README.md](patches/README.md)  describes the AOMP patch mechanism in detail.
 
 ## Building debuggable compiler
 
