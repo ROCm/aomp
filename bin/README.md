@@ -18,9 +18,8 @@ The first column is the AOMP component name.  The build_aomp.sh script invokes
 each component build script with the name build_\<component name\>.sh .
 
 
-| COMPONENT | DEVELOPMENT|                                      | REPOSITORY
-| NAME      | BRANCH     | DEFAULT DIRECTORY LOCATION           | LINKS
-| --------- | ---------- | --------------------------           | ---------
+| COMPONENT | DEV BRANCH | DEFAULT DIRECTORY LOCATION           | REPOSITORY LINKS
+| --------- | ---------- | --------------------------           | ----------------
 | (aomp)    | aomp-dev   | $HOME/git/aomp13/aomp                | [aomp](https://github.com/ROCm-Developer-Tools/aomp) This repo!
 | project   | aomp-dev   | $HOME/git/aomp13/llvm-project        | [llvm-project](https://github.com/ROCm-Developer-Tools/llvm-project)
 | openmp    | aomp-dev   | $HOME/git/aomp13/llvm-project/openmp | [llvm-project/openmp](https://github.com/ROCm-Developer-Tools/llvm-project)
@@ -55,9 +54,8 @@ Developers should take some time to read comments in the [aomp_common_vars file]
 
 These are some important environment variables and their default values.
 
-| ENVIRONMENT | DEFAULT             | 
-| VARIABLE    | VALUE               | DESCRIPTION
-| --------    | --------            | -----------
+| ENV VARIABLE | DEFAULT VALUE               | DESCRIPTION
+| ------------ | -------------               | -----------
 | AOMP                  | $HOME/rocm/aomp    | Where AOMP is installed and tested
 | AOMP_REPOS            | $HOME/git/aomp13   | The base directory for all AOMP build repositories
 | AOMP_STANDALONE_BUILD | 1                  | Build all components, do NOT use installed ROCm
