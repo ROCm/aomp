@@ -14,6 +14,8 @@ CC           = $(OMP_BIN) $(VERBOSE)
 
 include ../Makefile.rules
 
+AOMPROCM ?= $(AOMP)
+
 run:
-	$(AOMP)/bin/rocgdb ./gdb_teams -x cmd_script -q
+	$(AOMPROCM)/bin/rocgdb ./gdb_teams -x cmd_script -q
 
