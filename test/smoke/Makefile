@@ -3,6 +3,7 @@ include Makefile.defs
 TESTS_DIR = \
     aomp_mappings \
     DeclareSharedMemory \
+    alignedattribute \
     ancestorC \
     assertok_error \
     atomic \
@@ -52,8 +53,10 @@ TESTS_DIR = \
     flang_reduction_offload \
     flang_red_swdev-273281 \
     flang_red_swdev-273281-spmd \
+    flang_teams \
     flang_tgt_alloc_ptr \
     flang-tracekernel \
+    fprintf \
     function \
     function_overload \
     function_template \
