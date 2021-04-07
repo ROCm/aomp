@@ -9,13 +9,15 @@ export OMP_NUM_THREADS=16
 
 rm -f ./stream_omp_a+a ./stream_omp_aocc
 
-export PATH=/opt/AMD/aocc-compiler-3.0.0/bin:$PATH
-clang -O3 -mcmodel=large -DSTREAM_TYPE=double -mavx2  -DSTREAM_ARRAY_SIZE=$SZ -DNTIMES=10 -ffp-contract=fast -march=znver2 -lomp -fopenmp -fnt-store stream.c -o stream_omp_aocc
-echo "Running Stream for 1 thread per CCD"
-./stream_omp_aocc
+# for reference purposes
+#export PATH=/opt/AMD/aocc-compiler-3.0.0/bin:$PATH
+#clang -O3 -mcmodel=large -DSTREAM_TYPE=double -mavx2  -DSTREAM_ARRAY_SIZE=$SZ -DNTIMES=10 -ffp-contract=fast -march=znver2 -lomp -fopenmp -fnt-store stream.c -o stream_omp_aocc
+#echo "Running Stream for 1 thread per CCD"
+#./stream_omp_aocc
 
+echo This will fail to compile if rocmcc is missing a+a alt directory
 export PATH=~/rocm/aomp_12.0-0/bin:$PATH
-clang -O3 -mcmodel=large -DSTREAM_TYPE=double -mavx2  -DSTREAM_ARRAY_SIZE=$SZ -DNTIMES=10 -ffp-contract=fast -march=znver2 -lomp -fopenmp -fnt-store stream.c -o stream_omp_a+a # -fno-amd-opt
+clang -O3 -mcmodel=large -DSTREAM_TYPE=double -mavx2  -DSTREAM_ARRAY_SIZE=$SZ -DNTIMES=10 -ffp-contract=fast -march=znver2 -lomp -fopenmp -fnt-store stream.c -o stream_omp_a+a
 echo "Running Stream for 1 thread per CCD"
 ./stream_omp_a+a
 
