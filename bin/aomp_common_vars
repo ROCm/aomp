@@ -379,7 +379,6 @@ if [ "$AOMP_APPLY_ROCM_PATCHES" == 1 ] && [ -d "$patchdir" ] ; then
      getpatchlist
    fi
 
-   echo !!!!!!!!!!!!!!!patches: $patches
    #loop through list of patches to apply
    if [ "$patches" != "" ] ; then
    patchloc=${AOMP_PATCH_CONTROL_FILE%/*}
@@ -465,7 +464,6 @@ function getpatchlist(){
    echo regex $reporegex
    #read patch control file and look for correct patches
    while read -r line; do
-   echo ------------$line
    if [[ "$line" =~ $reporegex ]]; then
      #remove basename from list of patches
      patches=${line/"${BASH_REMATCH[1]}"}
