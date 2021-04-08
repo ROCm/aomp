@@ -297,11 +297,12 @@ AOMP_F18_REPO_NAME=${AOMP_F18_REPO_NAME:-f18}
 AOMP_F18_REPO_BRANCH=${AOMP_F18_REPO_BRANCH:-master}
 
 if [ -d $AOMP_REPOS/$AOMP_TRACE_REPO_NAME ] ; then
-   cd $AOMP_REPOS/$AOMP_TRACE_REPO_NAME
+   pushd $AOMP_REPOS/$AOMP_TRACE_REPO_NAME > /dev/null
    roctracer_branch=`git branch --list | grep "\*" | cut -d" " -f2`
    if [ "$roctracer_branch" == "rocm-4.0.x" ] ; then
       AOMP_PATCH_CONTROL_FILE="${AOMP_REPOS}/${AOMP_REPO_NAME}/bin/patches/patch-control-file_4.0.txt"
    fi
+   popd > /dev/null
 fi
 AOMP_PATCH_CONTROL_FILE=${AOMP_PATCH_CONTROL_FILE:-${AOMP_REPOS}/${AOMP_REPO_NAME}/bin/patches/patch-control-file.txt}
 
