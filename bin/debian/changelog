@@ -1,4 +1,4 @@
-aomp (11.12-0) UNRELEASED; urgency=medium
+aomp (13.0-2) UNRELEASED; urgency=medium
 
   * Initial release of aomp is 0.3-2
   *   Please see example in /usr/lib/aomp/examples/vmuldemo 
@@ -537,5 +537,11 @@ aomp (11.12-0) UNRELEASED; urgency=medium
   *  Move to ROCm 3.10 sources
   *  AOMP is no longer part of ROCm release starting with ROCM 4.0. OpenMP support in ROCm is part of the
   *       unified compiler. The unified compiler in ROCm is in the llvm-amdgpu package as of ROCm 3.9.
+  *
+  * 13.0-2
+  *  Rebase all changes to the current LLVM development trunk which is the development of LLVM 13.
+  * Known Issues: 
+  *  Regression with QMCPACK deterministic tests
+  *  pow(double, int) is returning -inf
 
- -- Greg Rodgers <Gregory.Rodgers@amd.com>  Fri, 11 Dec 2020 12:53:34 -0600
+ -- Greg Rodgers <Gregory.Rodgers@amd.com>  Sat, 10 Apr 2021 16:26:11 -0500
