@@ -39,7 +39,7 @@ To enable a backlevel version of AOMP, simply set AOMP to $HOME/rocm/aomp_11.12-
 Assuming your have installed the [prerequisites](SOURCEINSTALL_PREREQUISITE.md), use these commands to fetch the source and build aomp. Currently the aomp configuration is not yet in the spack git hub so you must create the spack package first.
 
 ```
-   wget https://github.com/ROCm-Developer-Tools/aomp/blob/master/bin/package.py
+   wget https://github.com/ROCm-Developer-Tools/aomp/blob/aomp-13.0-2/bin/package.py
    spack create -n aomp -t makefile --force https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_13.0-2/aomp-13.0-2.tar.gz
    spack edit aomp
    spack install aomp
