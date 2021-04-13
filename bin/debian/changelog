@@ -540,8 +540,14 @@ aomp (13.0-2) UNRELEASED; urgency=medium
   *
   * 13.0-2
   *  Rebase all changes to the current LLVM development trunk which is the development of LLVM 13.
-  * Known Issues: 
-  *  Regression with QMCPACK deterministic tests
-  *  pow(double, int) is returning -inf
+  *  Set the default number of teams to 4 times the number of computation units for improving GPU occupancy.
+  *  Support for adjusting the number of threads in a team based on VGPR usage of a kernel
+  *  Enhanced the kernel trace (when LIBOMPTARGET_KERNEL_TRACE is set) with register usage information.
+          This already includes the requested and actual number of teams and threads used for a kernel.
+  *  Updated ROCm components to 4.1.x branches.
+  *  Default Code Object v4.
+  * Known Issues:
+  *  Regression with QMCPACK deterministic tests.
+  *  pow(double, int) is returning -inf.
 
- -- Greg Rodgers <Gregory.Rodgers@amd.com>  Sat, 10 Apr 2021 16:26:11 -0500
+ -- Greg Rodgers <Gregory.Rodgers@amd.com>  Sun, 11 Apr 2021 12:43:14 -0500

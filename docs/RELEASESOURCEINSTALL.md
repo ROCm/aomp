@@ -16,7 +16,7 @@ To build and install aomp from the release source tarball run these commands:
 ```
    wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_13.0-2/aomp-13.0-2.tar.gz
    tar -xzf aomp-13.0-2.tar.gz
-   cd aomp
+   cd aomp13
    nohup make &
 ```
 Depending on your system, the last command could take a very long time.  So it is recommended to use nohup and background the process.  The simple Makefile that make will use runs build script "build_aomp.sh" and sets some flags to avoid git checks and applying ROCm patches. Here is that Makefile:
