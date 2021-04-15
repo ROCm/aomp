@@ -10,7 +10,7 @@ If we created a mirror, we would not get maintenance unless we kept updating the
 
 The components that AOMP developers have direct control over are: 
   
-   amd-llvm-project, aomp-extras, flang, aomp
+   llvm-project, aomp-extras, flang, aomp
 
 All other components are non-AOMP components that often require patching to
 work with AOMP. The AOMP build scripts for non-AOMP components use this patching process:
@@ -79,22 +79,22 @@ to verify there are no changes to the non-AOMP component.
 Lets use build_roct.sh as an example to create a fresh patch for the roct component.
 Before starting,  be sure you are on the development branch of aomp repo
 which is currently amd-stg-openmp.  For this demo assume your aomp component repos
-are stored at $HOME/git/aomp11.  Run these commands:
+are stored at $HOME/git/aomp13.  Run these commands:
 
 ```
-$HOME/git/aomp11/bin/build_roct.sh
-$HOME/git/aomp11/aomp/bin/build_roct.sh
-cd $HOME/git/aomp11/roct-thunk-interface
+$HOME/git/aomp13/bin/build_roct.sh
+$HOME/git/aomp13/aomp/bin/build_roct.sh
+cd $HOME/git/aomp13/roct-thunk-interface
 git status
-git diff >$HOME/git/aomp11/aomp/bin/patches/roct-thunk-interface.patch
-$HOME/git/aomp11/aomp/bin/build_roct.sh install
+git diff >$HOME/git/aomp13/aomp/bin/patches/roct-thunk-interface.patch
+$HOME/git/aomp13/aomp/bin/build_roct.sh install
 git status
 ```
 Lastly, please push the updated patch into the aomp development branch
 for other developers to pick up with these commands:
 
 ```
-cd $HOME/git/aomp11/aomp
+cd $HOME/git/aomp13/aomp
 git add bin/patches/roct-thunk-interface.patch
 git commit -m "freshen patch for roct"
 git push

@@ -173,11 +173,11 @@ if [ "$AOMP_MAJOR_VERSION" == "12" ] ; then
 elif [ "$AOMP_MAJOR_VERSION" == "13" ] ; then
   GITPROJECT=$GITROCDEV
   AOMP_PROJECT_REPO_NAME=${AOMP_PROJECT_REPO_NAME:-llvm-project}
-  AOMP_PROJECT_REPO_BRANCH=${AOMP_PROJECT_REPO_BRANCH:-aomp-dev}
+  AOMP_PROJECT_REPO_BRANCH=${AOMP_PROJECT_REPO_BRANCH:-aomp-13.0-2}
   AOMP_EXTRAS_REPO_NAME=${AOMP_EXTRAS_REPO_NAME:-aomp-extras}
-  AOMP_EXTRAS_REPO_BRANCH=${AOMP_EXTRAS_REPO_BRANCH:-aomp-dev}
+  AOMP_EXTRAS_REPO_BRANCH=${AOMP_EXTRAS_REPO_BRANCH:-aomp-13.0-2}
   AOMP_FLANG_REPO_NAME=${AOMP_FLANG_REPO_NAME:-flang}
-  AOMP_FLANG_REPO_BRANCH=${AOMP_FLANG_REPO_BRANCH:-aomp-dev}
+  AOMP_FLANG_REPO_BRANCH=${AOMP_FLANG_REPO_BRANCH:-aomp-13.0-2}
 else
   GITPROJECT=$GITROCDEV
   AOMP_PROJECT_REPO_NAME=${AOMP_PROJECT_REPO_NAME:-amd-llvm-project}
@@ -203,7 +203,7 @@ fi
 
 #  These aomp development repositories
 AOMP_REPO_NAME=${AOMP_REPO_NAME:-aomp}
-AOMP_REPO_BRANCH=${AOMP_REPO_BRANCH:-aomp-dev}
+AOMP_REPO_BRANCH=${AOMP_REPO_BRANCH:-aomp-13.0-2}
 
 #  These extra repositories are needed but we cannot update them
 AOMP_ROCT_REPO_NAME=${AOMP_ROCT_REPO_NAME:-roct-thunk-interface}
@@ -292,11 +292,12 @@ AOMP_F18_REPO_NAME=${AOMP_F18_REPO_NAME:-f18}
 AOMP_F18_REPO_BRANCH=${AOMP_F18_REPO_BRANCH:-master}
 
 if [ -d $AOMP_REPOS/$AOMP_TRACE_REPO_NAME ] ; then
-   cd $AOMP_REPOS/$AOMP_TRACE_REPO_NAME
+   pushd $AOMP_REPOS/$AOMP_TRACE_REPO_NAME > /dev/null
    roctracer_branch=`git branch --list | grep "\*" | cut -d" " -f2`
    if [ "$roctracer_branch" == "rocm-4.0.x" ] ; then
       AOMP_PATCH_CONTROL_FILE="${AOMP_REPOS}/${AOMP_REPO_NAME}/bin/patches/patch-control-file_4.0.txt"
    fi
+   popd > /dev/null
 fi
 AOMP_PATCH_CONTROL_FILE=${AOMP_PATCH_CONTROL_FILE:-${AOMP_REPOS}/${AOMP_REPO_NAME}/bin/patches/patch-control-file.txt}
 
@@ -374,7 +375,6 @@ if [ "$AOMP_APPLY_ROCM_PATCHES" == 1 ] && [ -d "$patchdir" ] ; then
      getpatchlist
    fi
 
-   echo !!!!!!!!!!!!!!!patches: $patches
    #loop through list of patches to apply
    if [ "$patches" != "" ] ; then
    patchloc=${AOMP_PATCH_CONTROL_FILE%/*}
@@ -460,7 +460,6 @@ function getpatchlist(){
    echo regex $reporegex
    #read patch control file and look for correct patches
    while read -r line; do
-   echo ------------$line
    if [[ "$line" =~ $reporegex ]]; then
      #remove basename from list of patches
      patches=${line/"${BASH_REMATCH[1]}"}
