@@ -1,4 +1,4 @@
-AOMP - V 13.0-2
+AOMP - V 13.0-3
 ==============
 
 This is README.md for https://github.com/ROCM-Developer-Tools/aomp.
