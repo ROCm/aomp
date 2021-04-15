@@ -6,6 +6,6 @@
 AOMP ?= $(HOME)/rocm/aomp
 AOMP_REPOS = $(shell pwd)
 all: 
-	AOMP=$(AOMP) AOMP_REPOS=$(AOMP_REPOS) AOMP_CHECK_GIT_BRANCH=0 AOMP_APPLY_ROCM_PATCHES=0 $(AOMP_REPOS)/aomp/bin/build_aomp.sh
+	AOMP=$(AOMP) AOMP_REPOS=$(AOMP_REPOS) AOMP_CHECK_GIT_BRANCH=0 AOMP_APPLY_ROCM_PATCHES=0 TARBALL_INSTALL=1 $(AOMP_REPOS)/aomp/bin/build_aomp.sh
 install:
 	@echo "Installation complete to $(AOMP)"

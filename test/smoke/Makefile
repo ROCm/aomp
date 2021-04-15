@@ -84,6 +84,7 @@ TESTS_DIR = \
     math_flog \
     math_max \
     math_modff \
+    math_pow \
     math_sqrt_float \
     MaxNumThrds \
     mem_foot_print \

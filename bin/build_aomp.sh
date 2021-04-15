@@ -109,7 +109,10 @@ if [ "$AOMP_STANDALONE_BUILD" == 1 ] ; then
   if [ "$AOMP_BUILD_DEBUG" == "1" ] && [ "$GPPVERS" -ge 7 ]; then
     components="$components rocdbgapi rocgdb"
   fi
-  components="$components roctracer rocprofiler"
+  # Do not add roctracer/rocprofiler for tarball install
+  if [ "$TARBALL_INSTALL" != 1 ]; then
+    components="$components roctracer rocprofiler"
+  fi
 else
   # For ROCM build (AOMP_STANDALONE_BUILD=0) the components roct, rocr,
   # libdevice, comgr, rocminfo, vdi, hipvdi, ocl, rocdbgapi rocgdb,
