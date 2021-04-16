@@ -51,7 +51,10 @@ else
 fi
 
 # When building from release source (no git), turn off test items that are not distributed
-if [ "$AOMP_CHECK_GIT_BRANCH" == 1 ] ; then
+# also ubuntu 16.04 only has python 3.5 and lit testing needs 3.6 minimum, so turn off
+# testing with ubuntu 16.04 which goes EOL in April 2021.
+PN=$(cat /etc/os-release | grep "^PRETTY_NAME=" | cut -d= -f2)
+if [[ "$AOMP_CHECK_GIT_BRANCH" == 1 ]] && [[ $PN != "\"Ubuntu 16.04.6 LTS\"" ]] ; then
    DO_TESTS=""
 else
    DO_TESTS="-DLLVM_BUILD_TESTS=OFF -DLLVM_INCLUDE_TESTS=OFF -DCLANG_INCLUDE_TESTS=OFF -DCOMPILER_RT_INCLUDE_TESTS=OFF"
