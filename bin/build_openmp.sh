@@ -180,8 +180,6 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
       MYCMAKEOPTS="$COMMON_CMAKE_OPTS \
       -DCMAKE_BUILD_TYPE=Debug \
       -DLIBOMPTARGET_NVPTX_DEBUG=ON \
-      -DCMAKE_CXX_FLAGS=-g \
-      -DCMAKE_C_FLAGS=-g \
       -DLIBOMP_ARCH=x86_64 \
       -DLIBOMP_OMPT_SUPPORT=ON \
       -DLIBOMP_USE_DEBUGGER=ON \
@@ -189,6 +187,11 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
       -DLIBOMP_OMPD_SUPPORT=ON \
       -DLIBOMP_OMPT_DEBUG=ON \
       -DOPENMP_SOURCE_DEBUG_MAP="\""-fdebug-prefix-map=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp=$ROCM_INSTALL_PATH/llvm/lib-debug/src/openmp"\"""
+
+      # Only use CMAKE_CXX/C_FLAGS on non-asan builds as these will overwrite the asan flags
+      if [ "$SANITIZER" != 1 ]; then
+        MYCMAKEOPTS="$MYCMAKEOPTS -DCMAKE_CXX_FLAGS=-g -DCMAKE_C_FLAGS=-g"
+      fi
 
       mkdir -p $BUILD_DIR/build/openmp_debug
       cd $BUILD_DIR/build/openmp_debug
