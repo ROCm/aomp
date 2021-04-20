@@ -5,7 +5,6 @@ TESTS_DIR = \
     flang-collapseNR \
     flang-272328 \
     flang-272343 \
-    flang-272730-complex \
     flang-274773 \
     flang-275490 \
     flang-273807 \
