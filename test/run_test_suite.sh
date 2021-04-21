@@ -21,15 +21,15 @@ GROUP_LIST="epsdb"
 EPSDB_LIST=${EPSDB_LIST:-"examples smoke hipopenmp omp5 openmpapps nekbone sollve"}
 
 # Set up variables
-AOMP_REPOS=${AOMP_REPOS:-~/git/aomp13}
+AOMP_REPOS=${AOMP_REPOS:-"$HOME/git/aomp13"}
 AOMP_SRC=${AOMP_SRC:-$AOMP_REPOS/aomp}
 AOMP_BIN=${AOMP_BIN:-$AOMP_SRC/bin}
-AOMP_TEST=${AOMP_TEST:-~/git/aomp-test}
-AOMP=${AOMP:-/home/$USER/rocm/aomp}
+AOMP_REPOS_TEST=${AOMP_REPOS_TEST:-"$HOME/git/aomp-test"}
+AOMP=${AOMP:-"$HOME/rocm/aomp"}
 
 echo "AOMP_REPOS: $AOMP_REPOS"
 echo "AOMP_SRC:   $AOMP_SRC"
-echo "AOMP_TEST:  $AOMP_TEST"
+echo "AOMP_REPOS_TEST:  $AOMP_REPOS_TEST"
 echo "AOMP set:   $AOMP"
 echo ""
 
@@ -178,7 +178,7 @@ function omp5(){
 function openmpapps(){
   # -----Run Openmpapps-----
   header OPENMPAPPS
-  cd $AOMP_TEST/openmpapps
+  cd $AOMP_REPOS_TEST/openmpapps
   git pull
   echo "Log file at: $log_dir/openmpapps.log"
   ./check_openmpapps.sh > $log_dir/openmpapps.log 2>&1
@@ -193,7 +193,7 @@ function nekbone(){
   echo "Log file at: $log_dir/nekbone.log"
   ./run_nekbone.sh > $log_dir/nekbone.log 2>&1
 
-  cd $AOMP_TEST/Nekbone/test/nek_gpu1
+  cd $AOMP_REPOS_TEST/Nekbone/test/nek_gpu1
   ulimit -s unlimited
   update_logs bin nekbone
 }
@@ -201,14 +201,14 @@ function nekbone(){
 function sollve(){
   # -----Run Sollve-----
   header SOLLVE
-  cd $AOMP_TEST/sollve_vv
+  cd $AOMP_REPOS_TEST/sollve_vv
   git pull
 
   cd $AOMP_SRC/bin
   echo "Log file at: $log_dir/sollve.log"
   ./run_sollve.sh > $log_dir/sollve.log 2>&1
 
-  cd $AOMP_TEST/sollve_vv
+  cd $AOMP_REPOS_TEST/sollve_vv
   update_logs log combined-results.txt
 }
 
@@ -273,7 +273,7 @@ function ovo(){
   cd $AOMP_SRC/bin
   echo "Log file at: $log_dir/ovo.log"
   ./run_ovo.sh >> $log_dir/ovo.log 2>&1
-  cd $AOMP_TEST/OvO
+  cd $AOMP_REPOS_TEST/OvO
   update_logs bin ovo.sh report --summary
   # Report returns 1 due to test failures
   return 0
@@ -295,7 +295,7 @@ function qmcpack(){
   cd $AOMP_SRC/bin
   echo "Log file at: $log_dir/qmcpack.log"
   timeout --foreground -k 20m 20m ./build_qmcpack.sh >> $log_dir/qmcpack.log 2>&1
-  build_dir=$AOMP_TEST/qmcpack/build_AOMP_offload_real_MP_$AOMP_GPU
+  build_dir=$AOMP_REPOS_TEST/qmcpack/build_AOMP_offload_real_MP_$AOMP_GPU
   set +e
   if [ $? -eq 0 ]; then
     if [ -d $build_dir ];then
