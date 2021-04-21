@@ -28,7 +28,7 @@ curdir=$PWD
 # Get the directory where the example scripts and source are located
 # This can be read-only.  Nothing is wrtten to the examples directory
 _zero_dir=`dirname $0`
-cd _zero_dir
+cd $_zero_dir
 RO_SHELL_DIR=$PWD
 
 # This is the test run directory in /tmp
