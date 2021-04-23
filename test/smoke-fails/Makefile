@@ -2,6 +2,8 @@ include Makefile.defs
 
 TESTS_DIR = \
     ancestorF \
+    closed_bug1 \
+    closed_bug2 \
     flang-collapseNR \
     flang-272328 \
     flang-272343 \
