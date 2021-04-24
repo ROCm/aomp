@@ -22,6 +22,7 @@ int main() {
       fprintf(stderr, "hipHostMalloc: %d\n", *ipt);
       return 1;
     }
+    fprintf(stderr, "hipHostMalloc: success %d\n", *ipt);
   }
 
   if (use_hip_register) {
@@ -32,14 +33,16 @@ int main() {
       fprintf(stderr, "hipHostRegister ret %u\n", err);
       return 1;
     }
+    fprintf(stderr, "hipHostRegister success\n");
     int *ipt = (int *)pt;
     *ipt = 0;
     write_kernel<<<1, 1>>>(ipt);
     hipDeviceSynchronize();
     if (*ipt != expect) {
-      fprintf(stderr, "hipHostRegister: %d\n", *ipt);
+      fprintf(stderr, "hipHostRegister: usage %d\n", *ipt);
       return 1;
     }
+    fprintf(stderr, "hipHostRegister: usage success %d\n", *ipt);
   }
 
   return 0;
