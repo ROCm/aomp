@@ -28,7 +28,7 @@ int main() {
   if (use_hip_register) {
     void *pt = aligned_alloc(4096, size);
 
-    hipError_t err = hipHostRegister(pt, size, hipHostRegisterDefault);
+    hipError_t err = hipHostRegister(pt, size, 0);//hipHostRegisterDefault);
     if (err != hipSuccess) {
       fprintf(stderr, "hipHostRegister ret %u\n", err);
       return 1;
@@ -36,7 +36,10 @@ int main() {
     fprintf(stderr, "hipHostRegister success\n");
     int *ipt = (int *)pt;
     *ipt = 0;
-    write_kernel<<<1, 1>>>(ipt);
+    void *devPtr = NULL;
+    // get the associated device pointer
+    hipHostGetDevicePointer(&devPtr, pt, 0);
+    write_kernel<<<1, 1>>>((int*)devPtr);
     hipDeviceSynchronize();
     if (*ipt != expect) {
       fprintf(stderr, "hipHostRegister: usage %d\n", *ipt);
