@@ -7,14 +7,15 @@ struct simple_dvector {
 
 int main (){
   omp_set_default_device(0);
+  int Device = 0;
   //allocate memory on the device
   size_t N = 1024*1024*10;
   int use_device = 1;
   int chunk = 1;
   struct simple_dvector x_vec, y_vec;
 
-  x_vec.data = (double*) omp_target_alloc(N*sizeof(double), omp_get_initial_device() );
-  y_vec.data = (double*) omp_target_alloc(N*sizeof(double), omp_get_initial_device() );
+  x_vec.data = (double*) omp_target_alloc(N*sizeof(double), Device);
+  y_vec.data = (double*) omp_target_alloc(N*sizeof(double), Device);
   fprintf(stderr, "CPU: x_vec.data = %p\n",x_vec.data);
   fprintf(stderr, "CPU: y_vec.data = %p\n",y_vec.data);
 
@@ -28,7 +29,7 @@ int main (){
      x_vec.data[i] = 0.0001*i;  //fails
      y_vec.data[i] = 0.00003*i;
   }
-  omp_target_free( x_vec.data,omp_get_initial_device() );
-  omp_target_free( x_vec.data,omp_get_initial_device() );
+  omp_target_free( x_vec.data, Device);
+  omp_target_free( y_vec.data, Device);
   return 0;
 }
