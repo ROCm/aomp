@@ -1,5 +1,12 @@
 #include <stdio.h>
+#include <atomic>
 #include <omp.h>
+
+#define AMD_INTERNAL_BUILD
+
+#include <ext/hsa_rt_utils.hpp>
+#include "hsa.h"
+#include "src/core/trace_buffer.h"
 
 // roctx header file
 #include <roctx.h>
@@ -112,6 +119,29 @@ int main()
 static inline uint32_t GetTid() { return syscall(__NR_gettid); }
 static inline uint32_t GetPid() { return syscall(__NR_getpid); }
 
+typedef hsa_rt_utils::Timer::timestamp_t timestamp_t;
+hsa_rt_utils::Timer* timer = NULL;
+thread_local timestamp_t hsa_begin_timestamp = 0;
+thread_local timestamp_t hip_begin_timestamp = 0;
+thread_local timestamp_t kfd_begin_timestamp = 0;
+
+struct hsa_api_trace_entry_t {
+  std::atomic<uint32_t> valid;
+  roctracer::entry_type_t type;
+  uint32_t cid;
+  timestamp_t begin;
+  timestamp_t end;
+  uint32_t pid;
+  uint32_t tid;
+  hsa_api_data_t data;
+};
+
+void hsa_api_flush_cb(hsa_api_trace_entry_t* entry);
+constexpr roctracer::TraceBuffer<hsa_api_trace_entry_t>::flush_prm_t hsa_flush_prm = {roctracer::DFLT_ENTRY_TYPE, hsa_api_flush_cb};
+roctracer::TraceBuffer<hsa_api_trace_entry_t>* hsa_api_trace_buffer = NULL;
+
+TRACE_BUFFER_INSTANTIATE();
+
 // Runtime API callback function
 void api_callback(
     uint32_t domain,
@@ -221,6 +251,38 @@ void activity_callback(const char* begin, const char* end, void* arg) {
   }
 }
 
+void hsa_api_flush_cb(hsa_api_trace_entry_t* entry) {
+#if 0  
+  std::ostringstream os;
+  os << entry->begin << ":" << entry->end << " " << entry->pid << ":" << entry->tid << " " << hsa_api_data_pair_t(entry->cid, entry->data);
+  fprintf(std::cout, "%s\n", os.str().c_str()); fflush(std::cout);
+#endif  
+}
+
+// HSA API callback function
+void hsa_api_callback(
+    uint32_t domain,
+    uint32_t cid,
+    const void* callback_data,
+    void* arg)
+{
+  (void)arg;
+  const hsa_api_data_t* data = reinterpret_cast<const hsa_api_data_t*>(callback_data);
+  if (data->phase == ACTIVITY_API_PHASE_ENTER) {
+    hsa_begin_timestamp = timer->timestamp_fn_ns();
+  } else {
+    const timestamp_t end_timestamp = (cid == HSA_API_ID_hsa_shut_down) ? hsa_begin_timestamp : timer->timestamp_fn_ns();
+    hsa_api_trace_entry_t* entry = hsa_api_trace_buffer->GetEntry();
+    entry->cid = cid;
+    entry->begin = hsa_begin_timestamp;
+    entry->end = end_timestamp;
+    entry->pid = GetPid();
+    entry->tid = GetTid();
+    entry->data = *data;
+    entry->valid.store(roctracer::TRACE_ENTRY_COMPL, std::memory_order_release);
+  }
+}
+
 // Init tracing routine
 void init_tracing() {
   printf("# INIT #############################\n");
@@ -232,6 +294,9 @@ void init_tracing() {
   properties.buffer_size = 0x1000;
   properties.buffer_callback_fun = activity_callback;
   ROCTRACER_CALL(roctracer_open_pool(&properties));
+
+  hsa_api_trace_buffer = new roctracer::TraceBuffer<hsa_api_trace_entry_t>("HSA API", 0x200000, &hsa_flush_prm, 1);
+  
   // Enable HIP API callbacks
   // ROCTRACER_CALL(roctracer_enable_domain_callback(ACTIVITY_DOMAIN_HIP_API, api_callback, NULL));
   // Enable HIP activity tracing
@@ -239,6 +304,8 @@ void init_tracing() {
   ROCTRACER_CALL(roctracer_enable_domain_activity(ACTIVITY_DOMAIN_HIP_API));
 #endif
   ROCTRACER_CALL(roctracer_enable_domain_activity(ACTIVITY_DOMAIN_HCC_OPS));
+  // Enable HSA domain tracing
+  ROCTRACER_CALL(roctracer_enable_domain_callback(ACTIVITY_DOMAIN_HSA_API, hsa_api_callback, NULL));
   // Enable PC sampling
   ROCTRACER_CALL(roctracer_enable_op_activity(ACTIVITY_DOMAIN_HSA_OPS, HSA_OP_ID_RESERVED1));
   // Enable KFD API tracing
@@ -262,6 +329,7 @@ void stop_tracing() {
   ROCTRACER_CALL(roctracer_disable_domain_activity(ACTIVITY_DOMAIN_HIP_API));
 #endif
   ROCTRACER_CALL(roctracer_disable_domain_activity(ACTIVITY_DOMAIN_HCC_OPS));
+  ROCTRACER_CALL(roctracer_disable_domain_activity(ACTIVITY_DOMAIN_HSA_API));
   ROCTRACER_CALL(roctracer_disable_domain_activity(ACTIVITY_DOMAIN_HSA_OPS));
   ROCTRACER_CALL(roctracer_disable_domain_callback(ACTIVITY_DOMAIN_KFD_API));
   ROCTRACER_CALL(roctracer_disable_domain_callback(ACTIVITY_DOMAIN_ROCTX));
