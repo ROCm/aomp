@@ -56,12 +56,12 @@ echo "====== helloworld ======="
 cd $aompdir/test/smoke/helloworld
 make clean
 OMP_TARGET_OFFLOAD=MANDATORY VERBOSE=1 make run > hello.log 2>&1
-tail -10 hello.log
+tail -20 hello.log
 
 echo "====== smoke-fails ======="
 cd $aompdir/test/smoke-fails
 OMP_TARGET_OFFLOAD=MANDATORY ./check_smoke_fails.sh > smoke-fails.log 2>&1
-tail -34 smoke-fails.log
+tail -45 smoke-fails.log
 
 echo "====== smoke ======="
 cd $aompdir/test/smoke
