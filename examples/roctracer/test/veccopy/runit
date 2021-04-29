@@ -1,0 +1,2 @@
+LD_PRELOAD="$AOMP/roctracer/lib/libkfdwrapper64.so $AOMP/lib/librocprofiler64.so" ./veccopy 
+
