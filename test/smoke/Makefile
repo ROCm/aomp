@@ -9,6 +9,7 @@ TESTS_DIR = \
     atomic \
     atomic_double \
     CanonNE \
+    clang-274983 \
     clang-tracekernel \
     class \
     collapse \
