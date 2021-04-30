@@ -1,6 +1,8 @@
 include Makefile.defs
 
 TESTS_DIR = \
+    alt_clang \
+    alt_veclib \
     ancestorF \
     closed_bug1 \
     closed_bug2 \

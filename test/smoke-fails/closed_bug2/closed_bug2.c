@@ -5,7 +5,7 @@
 #define NZ 10
 #define NA 9
 #pragma omp declare target
-static int colstat[NZ];
+int colstat[NZ];
 #pragma omp end declare target
 
 int main(){
