@@ -6,7 +6,7 @@ TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 
 TARGET       = -fopenmp -O3 -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$(AOMP_GPU)
-TARGET       = -fopenmp
+#TARGET       = -fopenmp
 
 FLANG        = flang
 OMP_BIN      = $(AOMP)/bin/$(FLANG)
@@ -15,3 +15,6 @@ CC           = $(OMP_BIN) $(VERBOSE)
 #"-\#\#\#"
 
 include ../Makefile.rules
+run: $(TESTNAME)
+	ulimit -s unlimited ;\
+	./$(TESTNAME)

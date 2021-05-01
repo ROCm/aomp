@@ -20,7 +20,7 @@ subroutine foo(l1,l2,l3,l4,l5,l6,l7, u1,u2,u3,u4,u5,u6,u7)
 
  
 
-!$omp parallel do collapse(7)
+!$omp target teams distribute parallel do collapse(7)
   do i1 = l1, u1
    do i2 = l2, u2
     do i3 = l3, u3
@@ -36,7 +36,7 @@ subroutine foo(l1,l2,l3,l4,l5,l6,l7, u1,u2,u3,u4,u5,u6,u7)
     end do
    end do
   end do
-!$omp end parallel do
+!$omp end target teams distribute parallel do
   write(6,*) ((b(k,j,1,1,1,1,1),j=1,10),k=1,10)
   return
 end
