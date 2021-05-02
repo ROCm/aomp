@@ -1,14 +1,14 @@
 subroutine foo(M)
-complex :: M
-if (M .ne. (100,100)) then
-write(*,*) "Failed"
-endif
-end subroutine foo
+        double complex :: M
+        if (M .ne. (100,100)) then
+                write(*,*) "Failed"
+        endif
+        end subroutine foo
 
 program test
          integer :: i,j
-         complex :: M,N
-         complex,pointer :: A(:)
+         double complex :: M,N
+         double complex,pointer :: A(:)
   
         allocate(A(10))
         M=(0,0)
