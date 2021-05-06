@@ -66,8 +66,14 @@ else
    standalone_word=""
 fi
 
+if [ ! -z $AOMP_USE_NINJA ] ; then
+    AOMP_SET_NINJA_GEN="-G Ninja"
+else
+    AOMP_SET_NINJA_GEN=""
+fi
+
 MYCMAKEOPTS="-DLLVM_ENABLE_PROJECTS=clang;lld;compiler-rt -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX=$INSTALL_PROJECT -DLLVM_ENABLE_ASSERTIONS=ON -DLLVM_TARGETS_TO_BUILD=$TARGETS_TO_BUILD $COMPILERS -DLLVM_VERSION_SUFFIX=_AOMP${standalone_word}_$AOMP_VERSION_STRING -DCLANG_VENDOR=AOMP${standalone_word}_$AOMP_VERSION_STRING
--DBUG_REPORT_URL='https://github.com/ROCm-Developer-Tools/aomp' -DLLVM_ENABLE_BINDINGS=OFF -DLLVM_INCLUDE_BENCHMARKS=OFF $DO_TESTS $AOMP_ORIGIN_RPATH -DCLANG_DEFAULT_LINKER=lld"
+-DBUG_REPORT_URL='https://github.com/ROCm-Developer-Tools/aomp' -DLLVM_ENABLE_BINDINGS=OFF -DLLVM_INCLUDE_BENCHMARKS=OFF $DO_TESTS $AOMP_ORIGIN_RPATH -DCLANG_DEFAULT_LINKER=lld $AOMP_SET_NINJA_GEN"
 
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then 
   help_build_aomp
@@ -171,22 +177,26 @@ fi
 echo
 echo " -----Running make ---- " 
 
+BUILD_SYSTEM="make"
+if [ -z $AOMP_USE_NINJA ] ; then
+    BUILD_SYSTEM="ninja"
+fi
 # Workaround for race condition in the build of compiler-rt
-for prebuild in $(make help | sed -n '/-version-list/s/^... //p') ; do
-  make -j$NUM_THREADS $prebuild
+for prebuild in $(${BUILD_SYSTEM} --build . help | sed -n '/-version-list/s/^... //p') ; do
+  ${AOMP_CMAKE} --build . -j$NUM_THREADS $prebuild
 done
 
-echo make -j $NUM_THREADS 
-make -j $NUM_THREADS 
-if [ $? != 0 ] ; then 
+echo ${AOMP_CMAKE} --build . -j $NUM_THREADS
+${AOMP_CMAKE} --build . -j $NUM_THREADS
+if [ $? != 0 ] ; then
    echo "ERROR make -j $NUM_THREADS failed"
    exit 1
 fi
 
 if [ "$1" == "install" ] ; then
-   echo " -----Installing to $INSTALL_PROJECT ---- " 
-   $SUDO make -j $NUM_THREADS install 
-   if [ $? != 0 ] ; then 
+   echo " -----Installing to $INSTALL_PROJECT ---- "
+   $SUDO ${AOMP_CMAKE} --build . -j $NUM_THREADS install
+   if [ $? != 0 ] ; then
       echo "ERROR make install failed "
       exit 1
    fi
