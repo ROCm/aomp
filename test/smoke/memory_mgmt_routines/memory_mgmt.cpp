@@ -134,24 +134,50 @@ int main() {
   return 0;
 }
 
+void check_alloc(void *ptr, const char call_name[]) {
+  if(!ptr) {
+    printf("Error in %s, returned nullptr\n", call_name);
+    exit(1);
+  }
+}
+
+void target_region_init_and_check(int *a, int size) {
+  #pragma omp target teams distribute parallel for map(from:a[:size])
+  for(int i = 0 ; i < size; i++)
+    a[i] = i;
+
+  for(int i = 0; i < size; i++)
+    if(a[i] != i) {
+      printf("Error at %d: tgt value is %d, expected value is %d\n", i, a[i], i);
+      exit(1);
+    }
+}
+
 void test_allocation_routines(omp_allocator_handle_t allocator) {
   int *a = (int *)omp_alloc(N*sizeof(int), allocator);
+  check_alloc(a, "omp_alloc");
+  target_region_init_and_check(a, N);
   omp_free(a, allocator);
 
-  // OMP 5.1
+  // OMP 5.1 call not yet available in openmp runtime
   //int *a_align = (int *)omp_aligned_alloc(ALIGN, N*sizeof(int), allocator);
   //omp_free(a_align, allocator);
 
-  int *a_calloc = (int *)omp_calloc(N*sizeof(int), allocator);
+  int *a_calloc = (int *)omp_calloc(N, sizeof(int), allocator);
+  check_alloc(a_calloc, "omp_calloc");
+  target_region_init_and_check(a_calloc, N);
   omp_free(a_calloc, allocator);
 
-  // OMP 5.1
+  // OMP 5.1 call not yet available in openmp runtime
   //int *a_aligned_calloc = (int *)omp_aligned_calloc(ALIGN, N*sizeof(int), allocator);
   //omp_free(a_aligned_calloc, allocator);
 
-  // OMP 5.1
-  //int *a_realloc = (int *)omp_alloc(N*sizeof(int), allocator);
-  //auto reallocator = omp_init_allocator(omp_default_mem_space, 0, {});
-  //a_realloc = (int *)omp_realloc(N*sizeof(int), reallocator, allocator);
-  //omp_free(a_realloc, reallocator);
+  // OMP 5.1 call not yet available in openmp runtime
+  int *a_realloc = (int *)omp_alloc(N*sizeof(int), allocator);
+  check_alloc(a_realloc, "omp_alloc preceding omp_realloc");
+  auto reallocator = omp_init_allocator(omp_default_mem_space, 0, {});
+  a_realloc = (int *)omp_realloc(a_realloc, 2*N*sizeof(int), reallocator, allocator);
+  check_alloc(a, "omp_realloc");
+  target_region_init_and_check(a_realloc, N);
+  omp_free(a_realloc, reallocator);
 }

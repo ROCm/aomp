@@ -91,6 +91,7 @@ TESTS_DIR = \
     math_sqrt_float \
     MaxNumThrds \
     mem_foot_print \
+    memory_mgmt_routines \
     nativetests \
     nested_loop \
     nested_par3 \
