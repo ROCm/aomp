@@ -537,6 +537,7 @@ function help_build_aomp(){
      AOMP_REPOS       $HOME/git/aomp11    Location of all aomp repos
      BUILD_TYPE       Release             The CMAKE build type
      BUILD_AOMP       same as AOMP_REPOS  Set a different build location than AOMP_REPOS
+     AOMP_USE_NINJA   0                   Use ninja if possible
   
   To build a debug version of the compiler, run this command before the build:
      export BUILD_TYPE=debug
