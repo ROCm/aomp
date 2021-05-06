@@ -177,12 +177,8 @@ fi
 echo
 echo " -----Running make ---- " 
 
-BUILD_SYSTEM="make"
-if [ -z $AOMP_USE_NINJA ] ; then
-    BUILD_SYSTEM="ninja"
-fi
 # Workaround for race condition in the build of compiler-rt
-for prebuild in $(${BUILD_SYSTEM} --build . help | sed -n '/-version-list/s/^... //p') ; do
+for prebuild in $(${AOMP_CMAKE} --build . --target help | sed -n '/-version-list/s/^... //p') ; do
   ${AOMP_CMAKE} --build . -j$NUM_THREADS $prebuild
 done
 
@@ -195,7 +191,7 @@ fi
 
 if [ "$1" == "install" ] ; then
    echo " -----Installing to $INSTALL_PROJECT ---- "
-   $SUDO ${AOMP_CMAKE} --build . -j $NUM_THREADS install
+   $SUDO ${AOMP_CMAKE} --build . -j $NUM_THREADS --target install
    if [ $? != 0 ] ; then
       echo "ERROR make install failed "
       exit 1
