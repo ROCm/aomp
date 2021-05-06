@@ -19,6 +19,8 @@ TESTS_DIR = \
     flang-273759 \
     flang-274775-dcmplx \
     flang-275194 \
+    flang-275194-2 \
+    flang-275194-3 \
     flang-275472 \
     famd-opt-279975 \
     flang_atomic_hint \
