@@ -1,35 +1,37 @@
 include Makefile.defs
 
+closed_bug2
+famd-opt-279975
+flang-272328
+flang-272343
+flang-272343-2
+flang-273762
+flang-273990-2
+flang-274775-dcmplx
+flang-275194
+flang-275194-2
+flang-275194-3
+flang-275490
+targ-273742
+
 TESTS_DIR = \
     alt_clang \
     alt_veclib \
     ancestorF \
     closed_bug1 \
-    closed_bug2 \
     flang-collapseNR \
     clang-274983-2 \
-    flang-272328 \
-    flang-272343 \
-    flang-272343-2 \
     flang-274773 \
-    flang-275490 \
     flang-273807 \
     flang-273990-1 \
-    flang-273990-2 \
     flang-273759 \
-    flang-274775-dcmplx \
-    flang-275194 \
-    flang-275194-2 \
-    flang-275194-3 \
     flang-275472 \
-    famd-opt-279975 \
     flang_atomic_hint \
     flang_dev_write \
     loop_order \
     omp_loop \
     reduction_array \
     requires_directive \
-    targ-273742 \
     targ_static \
     targc-272328 \
     targc-273739 \

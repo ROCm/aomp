@@ -12,6 +12,7 @@ TESTS_DIR = \
     clang-274983 \
     clang-tracekernel \
     class \
+    closed_bug2 \
     collapse \
     collapse-nonrectangle \
     complex \
@@ -30,6 +31,17 @@ TESTS_DIR = \
     firstprivate \
     firstprivate2 \
     flags \
+    famd-opt-279975 \
+    flang-272328 \
+    flang-272343 \
+    flang-272343-2 \
+    flang-273762 \
+    flang-273990-2 \
+    flang-274775-dcmplx \
+    flang-275194 \
+    flang-275194-2 \
+    flang-275194-3 \
+    flang-275490 \
     flang-272285 \
     flang-272521 \
     flang-272534 \
@@ -122,6 +134,7 @@ TESTS_DIR = \
     slices \
     snap_red \
     stream \
+    targ-273742 |
     targc-273738 \
     targ_declare \
     target-in-other-source \
