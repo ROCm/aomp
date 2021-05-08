@@ -56,12 +56,12 @@ echo "====== helloworld ======="
 cd $aompdir/test/smoke/helloworld
 make clean
 OMP_TARGET_OFFLOAD=MANDATORY VERBOSE=1 make run > hello.log 2>&1
-tail -20 hello.log
+sed -n -e '/ld.lld/,$p' hello.log
 
 echo "====== smoke-fails ======="
 cd $aompdir/test/smoke-fails
 OMP_TARGET_OFFLOAD=MANDATORY ./check_smoke_fails.sh > smoke-fails.log 2>&1
-tail -45 smoke-fails.log
+sed -n -e '/---- Results ---/,$p' smoke-fails.log
 
 echo "====== smoke ======="
 cd $aompdir/test/smoke
