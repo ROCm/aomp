@@ -4,12 +4,12 @@ program t270386
 ! testing presence of both an IF and IN_REDUCTION clause on a target directive
   integer :: sum
   sum = 0
-!$omp parallel target in_reduction(+:sum) 
+!$omp target parallel in_reduction(+:sum) 
   sum = sum + 1
-!$omp end parallel target
-!$omp parallel target in_reduction(+:sum) if(sum<99)
+!$omp end target parallel
+!$omp target parallel in_reduction(+:sum) if(sum<99)
   sum = sum + 1
-!$omp end parallel target
+!$omp end target parallel
   print *, "sum = ", sum
 end program
  
