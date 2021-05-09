@@ -18,6 +18,7 @@ TESTS_DIR = \
     alt_clang \
     alt_veclib \
     ancestorF \
+    clang-284324 \
     closed_bug1 \
     flang-collapseNR \
     clang-274983-2 \
