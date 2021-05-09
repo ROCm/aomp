@@ -18,6 +18,7 @@ TESTS_DIR = \
     alt_clang \
     alt_veclib \
     ancestorF \
+    clang-273738 \
     clang-273739 \
     clang-284324 \
     closed_bug1 \
