@@ -1,16 +1,23 @@
+ancestorC
 aomp_mappings
 assertok_error
 atomic
 atomic_double
+CanonNE
+clang-274983
+clang-tracekernel
 class
 collapse
+collapse-nonrectangle
 complex
 complex2
+complex-debug
 d2h_slow_copy
 data_issue_59
 data_share1
 data_share2
 DeclareSharedMemory
+declare_target_pointer
 decl_targ
 devices
 extern_init
@@ -24,6 +31,10 @@ flags 5
 flags 6
 flags 7
 flags 8
+flang-272285
+flang-273281
+flang-274768
+flang-274775
 flang_blkdata-g
 flang_char_kind
 flang_gen_sptr_prob
@@ -33,6 +44,8 @@ flang_math
 flang_omp_map
 flang_omp_red_3d
 flang_real16_prob
+flang_red_swdev-273281
+flang_red_swdev-273281-spmd
 flang_reduction_offload
 flang_teams
 flang_tgt_alloc_ptr
@@ -45,6 +58,8 @@ global_allocate
 helloworld
 hip_device_compile
 host_targ
+icvars-nest
+icvars-nestF
 issue_001
 issue_002
 issue_flang_libomp
@@ -67,8 +82,10 @@ nativetests
 nest_call_par2
 nested_loop
 nested_par3
+nested_targ
 omp_get_device_num
 omp_get_initial
+omp_lock
 omp_num_teams_generic
 omp_num_teams_SPMD
 omp_wtime
@@ -87,9 +104,11 @@ simd
 slices
 snap_red
 stream
+targc-273738
 targ_declare
 target-in-other-source
 targets_in_loop
+task-helper
 taskwait_prob
 team_prob
 teams
