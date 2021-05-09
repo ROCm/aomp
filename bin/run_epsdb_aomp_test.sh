@@ -106,6 +106,10 @@ echo "====== examples ==="
 cd $aompdir/examples
 EPSDB=1 AOMPHIP=$AOMP/.. ./check_examples.sh > examples.log 2>&1
 tail -50 examples.log
+exafails=`grep "Return Code" examples.log  | grep -v ": 0" | wc -l`
+echo example: $exafails
+exaMfails=`grep "Make Failed" examples.log  | wc -l`
+echo example: $exafails $exaMfails
 
 echo "======= nekbone ======"
 cd $aompdir/bin
@@ -148,6 +152,8 @@ if [ "$nekfails" -ge "1" ]; then
   epsdb_status="red"
 fi
 echo "EPSDB Status: " $epsdb_status
+Ret=$(($efails + $appfails + $nekfails + $exafails + $exaMfails))
+echo "Experimental Ret " $Ret
 Ret=$(($efails + $appfails + $nekfails))
 exit $Ret
 
