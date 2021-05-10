@@ -1,19 +1,5 @@
 include Makefile.defs
 
-closed_bug2
-famd-opt-279975
-flang-272328
-flang-272343
-flang-272343-2
-flang-273762
-flang-273990-2
-flang-274775-dcmplx
-flang-275194
-flang-275194-2
-flang-275194-3
-flang-275490
-targ-273742
-
 TESTS_DIR = \
     alt_clang \
     alt_veclib \
@@ -30,6 +16,7 @@ TESTS_DIR = \
     flang-273759 \
     flang-275472 \
     flang-278342 \
+    flang-280342 \
     flang_atomic_hint \
     flang_dev_write \
     loop_order \
