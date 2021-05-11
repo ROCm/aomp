@@ -114,16 +114,16 @@ $AOMP_CMAKE -DCMAKE_C_COMPILER=$OPENMPI_INSTALL/bin/mpicc \
 -DCMAKE_CXX_COMPILER=$OPENMPI_INSTALL/bin/mpicxx \
 -DOMPI_CC=$AOMP/bin/clang -DOMPI_CXX=$AOMP/bin/clang++ \
 -DQMC_MPI=1 \
--DCMAKE_C_FLAGS="-march=native" \
--DCMAKE_CXX_FLAGS="-march=native -Xopenmp-target=amdgcn-amd-amdhsa -march=$AOMP_GPU" \
+-DCMAKE_C_FLAGS="-march=native -g -O0" \
+-DCMAKE_CXX_FLAGS="-march=native -Xopenmp-target=amdgcn-amd-amdhsa -march=$AOMP_GPU -g -O0" \
 -DQMC_MIXED_PRECISION=1 -DENABLE_OFFLOAD=ON -DOFFLOAD_TARGET="amdgcn-amd-amdhsa" \
 -DENABLE_TIMERS=1 \
 ..
 fi
 
 echo
-echo make -j$NUM_THREADS
-make -j$NUM_THREADS
+echo make VERBOSE=1 -j$NUM_THREADS
+make VERBOSE=1 -j$NUM_THREADS
 
 echo 
 echo "DONE!  Build is in $build_folder. To test:"
