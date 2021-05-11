@@ -153,7 +153,7 @@ if [ "$nekfails" -ge "1" ]; then
 fi
 echo "EPSDB Status: " $epsdb_status
 Ret=$(($efails + $appfails + $nekfails + $exafails + $exaMfails))
-echo "Experimental Ret " $Ret
-Ret=$(($efails + $appfails + $nekfails))
+#echo "Experimental Ret " $Ret
+#Ret=$(($efails + $appfails + $nekfails))
 exit $Ret
 
