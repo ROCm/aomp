@@ -106,6 +106,7 @@ TESTS_DIR = \
     math_modff \
     math_pow \
     math_sqrt_float \
+    matmul_fun \
     MaxNumThrds \
     mem_foot_print \
     memory_mgmt_routines \
