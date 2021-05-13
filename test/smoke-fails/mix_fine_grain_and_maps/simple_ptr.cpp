@@ -16,8 +16,10 @@ int main() {
       is_set = false;
   }
 
-  if (!is_set)
+  if (!is_set) {
     std::cout << "a not set\n";
+    return 1;
+  }
 
   return 0;
 }
