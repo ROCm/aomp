@@ -36,10 +36,10 @@ index 466afe2..a45fd75 100644
      ScopedAcquire<KernelMutex> _lock(&queue_lock_);
      queue_count_++;
 diff --git a/src/core/runtime/hsa_ext_amd.cpp b/src/core/runtime/hsa_ext_amd.cpp
-index d65d0dc..38beacc 100644
+index f4776eb..a1b5692 100644
 --- a/src/core/runtime/hsa_ext_amd.cpp
 +++ b/src/core/runtime/hsa_ext_amd.cpp
-@@ -521,6 +521,9 @@ hsa_status_t hsa_amd_async_function(void (*callback)(void* arg), void* arg) {
+@@ -538,6 +538,9 @@ hsa_status_t hsa_amd_async_function(void (*callback)(void* arg), void* arg) {
  hsa_status_t hsa_amd_queue_cu_set_mask(const hsa_queue_t* queue,
                                                 uint32_t num_cu_mask_count,
                                                 const uint32_t* cu_mask) {
