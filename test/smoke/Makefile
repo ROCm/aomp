@@ -135,7 +135,7 @@ TESTS_DIR = \
     slices \
     snap_red \
     stream \
-    targ-273742 |
+    targ-273742 \
     targc-273738 \
     targ_declare \
     target-in-other-source \
