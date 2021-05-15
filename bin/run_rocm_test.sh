@@ -235,7 +235,8 @@ copyresults sollve45
 cd "$HOME"/git/aomp-test/sollve_vv/results_report50
 copyresults sollve50
 
-cat $unexpresults
+cat $unexpresults >> $summary
+echo >> $summary
 echo Overall Unexpected fails: $totalunexpectedfails >> $summary
 echo Script Errors: $scriptfails >> $summary
 if [ "$totalunexpectedfails" -gt 0 ] || [ "$scriptfails" != 0 ]; then
