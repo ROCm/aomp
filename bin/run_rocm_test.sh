@@ -28,6 +28,10 @@ echo "AOMP = $AOMP"
 # Parent dir should be ROCm base dir.
 AOMPROCM=$AOMP/..
 
+# Use bogus path to avoid using target.lst, a user-defined target list
+# used by rocm_agent_enumerator.
+export ROCM_TARGET_LST=/opt/nowhere
+
 echo "RAE devices:"
 $AOMPROCM/bin/rocm_agent_enumerator
 
