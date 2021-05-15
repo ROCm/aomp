@@ -53,10 +53,10 @@ export AOMP_GPU
 # this version mismatch on release testing. We will choose the lower version so that
 # unsupported tests are not included.
 function getversion(){
-  supportedvers="4.1 4.2"
+  supportedvers="4.2 4.3"
   declare -A versions
-  versions[41]=4.1
   versions[42]=4.2
+  versions[43]=4.3
 
   # Determine ROCm version.
   rocm=$(ls /opt | grep -oP "rocm-[0-9].[0-9].[0-9]" | tail -1)
@@ -209,6 +209,13 @@ cd "$aompdir"/test/smoke
 CLEANUP=0 AOMPHIP=$AOMPROCM ./check_smoke.sh
 checkrc $?
 copyresults smoke
+
+# Smoke-fails
+mkdir -p "$resultsdir"/smoke-fails
+cd "$aompdir"/test/smoke-fails
+./check_smoke_fails.sh
+checkrc $?
+copyresults smoke-fails
 
 # Omp5
 mkdir -p "$resultsdir"/omp5
