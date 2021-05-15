@@ -11,6 +11,7 @@ aompdir="$(dirname "$parentdir")"
 resultsdir="$aompdir/bin/rocm-test/results"
 rocmtestdir="$aompdir"/bin/rocm-test
 summary="$resultsdir"/summary.txt
+unexpresults="$resultsdir"/unexpresults.txt
 testsuites="fortran"
 scriptfails=0
 
@@ -127,7 +128,7 @@ function copyresults(){
 
   # Begin logging info in summary.txt.
   cd $resultsdir/$1
-  echo ===== $1 ===== >> $summary
+  echo ===== $1 ===== | tee -a $summary $unexpresults
   if [ -e "$1"_passing_tests.txt ]; then
     # Sort test reported passes
     sort -f -d "$1"_passing_tests.txt > "$1"_sorted_passes
@@ -142,14 +143,14 @@ function copyresults(){
 
     # Unexpected passes
     unexpectedpasses=$(diff "$1"_sorted_exp_passes "$1"_sorted_passes | grep '>' | wc -l)
-    echo Unexpected Passes: $unexpectedpasses >> $summary
+    echo Unexpected Passes: $unexpectedpasses | tee -a $summary $unexpresults
     diff "$1"_sorted_exp_passes "$1"_sorted_passes | grep '>' | sed 's/> //' >> $summary
     echo >> $summary
 
     # Unexpected Fails
     unexpectedfails=$(diff "$1"_sorted_exp_passes "$1"_sorted_passes | grep '<' | wc -l)
     ((totalunexpectedfails+=$unexpectedfails))
-    echo "Unexpected Fails: $unexpectedfails" >> $summary
+    echo "Unexpected Fails: $unexpectedfails" | tee -a $summary $unexpresults
     diff "$1"_sorted_exp_passes "$1"_sorted_passes | grep '<' | sed 's/< //' >> $summary
     echo >> $summary
 
@@ -234,6 +235,7 @@ copyresults sollve45
 cd "$HOME"/git/aomp-test/sollve_vv/results_report50
 copyresults sollve50
 
+cat $unexpresults
 echo Overall Unexpected fails: $totalunexpectedfails >> $summary
 echo Script Errors: $scriptfails >> $summary
 if [ "$totalunexpectedfails" -gt 0 ] || [ "$scriptfails" != 0 ]; then
