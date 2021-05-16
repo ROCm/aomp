@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = flags
 TESTSRC_MAIN = flags.c

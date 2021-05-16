@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = longDouble
 TESTSRC_MAIN = longDouble.cpp

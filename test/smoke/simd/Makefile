@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = simd
 TESTSRC_MAIN = simd.c

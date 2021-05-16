@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = ancestorF
 TESTSRC_MAIN = ancestorF.f90

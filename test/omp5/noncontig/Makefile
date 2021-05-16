@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = noncontig
 TESTSRC_MAIN = noncontig.cpp

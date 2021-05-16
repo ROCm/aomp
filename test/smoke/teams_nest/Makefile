@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = teams_nest
 TESTSRC_MAIN = teams_nest.c

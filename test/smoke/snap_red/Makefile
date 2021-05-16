@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = snap_red
 TESTSRC_MAIN = snap_red.c

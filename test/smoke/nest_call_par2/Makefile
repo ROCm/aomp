@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = nest_call_par2
 TESTSRC_MAIN = nest_call_par2.c

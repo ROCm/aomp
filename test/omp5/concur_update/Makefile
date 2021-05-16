@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = concur_update
 TESTSRC_MAIN = concur_update.cpp

@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = flang_omp_red_3d
 TESTSRC_MAIN = flang_omp_red_3d.f90

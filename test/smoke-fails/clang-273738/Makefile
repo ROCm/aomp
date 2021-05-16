@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = clang-273738
 TESTSRC_MAIN = clang-273738.cpp

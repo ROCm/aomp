@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = nestedSIMD
 TESTSRC_MAIN = nestedSIMD.c

@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = flang_math
 TESTSRC_MAIN = flang_math.f90

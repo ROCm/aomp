@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = simple_ctor
 TESTSRC_MAIN = simple_ctor.cpp

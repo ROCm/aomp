@@ -29,39 +29,10 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+include ../../Makefile.defs
+
 TESTNAME =kern_latency
 FILETYPE =cpp
-
-UNAMEP = $(shell uname -m)
-AOMP_CPUTARGET = $(UNAMEP)-pc-linux-gnu
-ifeq ($(UNAMEP),ppc64le)
-  AOMP_CPUTARGET = ppc64le-linux-gnu
-endif
-ifeq ($(AOMP),)
-# --- Standard Makefile check for AOMP installation ---
-ifeq ("$(wildcard $(AOMP))","")
-  ifneq ($(AOMP),)
-    $(warning AOMP not found at $(AOMP))
-  endif
-  AOMP = $(HOME)/rocm/aomp
-  ifeq ("$(wildcard $(AOMP))","")
-    $(warning AOMP not found at $(AOMP))
-    AOMP = /usr/lib/aomp
-    ifeq ("$(wildcard $(AOMP))","")
-      $(warning AOMP not found at $(AOMP))
-      $(error Please install AOMP or correctly set env-var AOMP)
-    endif
-  endif
-endif
-# --- End Standard Makefile check for AOMP installation ---
-endif
-ifeq ($(CUDA),)
-CUDA = /usr/local/cuda
-endif
-
-ifeq ($(AOMP_GPU),) #if AOMP_GPU is not set
-AOMP_GPU = $(shell $(AOMP)/bin/mygpu -d gfx900) #get installed card, if unknown return gfx900
-endif
 
 ifeq ($(TARGETS),)
 TARGETS =--offload-arch=$(AOMP_GPU)
@@ -111,39 +82,4 @@ $(TESTNAME).ll: $(TESTNAME).$(FILETYPE)
 $(TESTNAME).s: $(TESTNAME).$(FILETYPE)
 	$(CC)  -c -S $(CFLAGS) $(TARGETS)  $^
 
-help: 
-	@echo
-	@echo "Makefile Help:"
-	@echo "  Source:		$(TESTNAME).$(FILETYPE)"
-	@echo "  Compiler: 		$(CC)"
-	@echo "  Compiler flags: 	$(CFLAGS)"
-	@echo
-	@echo "Avalable Targets:"
-	@echo "  make			// build binary $(TESTNAME)"
-	@echo "  make run		// run $(TESTNAME)"
-	@echo "  make $(TESTNAME).o	// compile, be, & assemble : -c"
-	@echo "  make obin         	// link step only"
-	@echo "  make run_obin     	// run obin "
-	@echo "  make $(TESTNAME).s	// compile & backend steps : -c -S"
-	@echo "  make $(TESTNAME).ll	// compile step only       : -c -S -emit-llvm"
-	@echo "  make clean		// cleanup files"
-	@echo "  make help 		// this help"
-	@echo
-	@echo "Environment Variables:"
-	@echo "  AOMP      default: $(HOME)/rocm/aomp     value: $(AOMP)"
-	@echo "  AOMP_GPU  default: gfx900                value: $(AOMP_GPU)"
-	@echo "  CUDA      default: /usr/local/cuda       value: $(CUDA)"
-	@echo "  TARGETS   default: --offload-arch=$(AOMP_GPU)"
-	@echo "              value: $(TARGETS)"
-	@echo
-	@echo "Link Flags:"
-	@echo "  Link flags: $(LFLAGS)"
-	@echo
-
-# Cleanup anything this makefile can create
-clean:
-	@[ -f ./$(TESTNAME) ] && rm ./$(TESTNAME) ; true
-	@[ -f ./obin ] && rm ./obin ; true
-	@[ -f ./$(TESTNAME).ll ] && rm *.ll ; true
-	@[ -f ./$(TESTNAME).o ] && rm $(TESTNAME).o ; true
-	@[ -f ./$(TESTNAME).s ] && rm *.s ; true
+include ../Makefile.HelpClean 

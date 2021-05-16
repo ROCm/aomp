@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = map_to_from_prob
 TESTSRC_MAIN = map_to_from_prob.c

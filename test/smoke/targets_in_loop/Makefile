@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = targets_in_loop
 TESTSRC_MAIN = targets_in_loop.c

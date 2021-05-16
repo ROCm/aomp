@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = host_targ
 TESTSRC_MAIN = host_targ.c

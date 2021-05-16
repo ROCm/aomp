@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = extern_init
 TESTSRC_MAIN = extern_init.c

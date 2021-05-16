@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = metadirective
 TESTSRC_MAIN = metadirective.c

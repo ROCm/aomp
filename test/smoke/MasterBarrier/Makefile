@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = MasterBarrier
 TESTSRC_MAIN = MasterBarrier.cpp

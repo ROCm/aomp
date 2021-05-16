@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME        = math_sqrt_float
 TESTSRC_MAIN    = math_sqrt_float.c

@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME        = math_max
 TESTSRC_MAIN    = math_max.cpp

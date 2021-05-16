@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME        = unique-kernel-name
 TESTSRC_MAIN    = b.cpp

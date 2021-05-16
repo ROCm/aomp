@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = aomp_mappings
 TESTSRC_MAIN = aomp_mappings.c

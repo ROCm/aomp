@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = closed_bug2
 TESTSRC_MAIN = closed_bug2.c

@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = reduction_array_section
 TESTSRC_MAIN = reduction_array_section.cpp

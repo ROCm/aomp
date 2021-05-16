@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = use_device_ptr
 TESTSRC_MAIN = use_device_ptr.f95

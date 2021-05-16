@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = hip_device_compile
 TESTSRC_MAIN = hip_device_compile.cpp

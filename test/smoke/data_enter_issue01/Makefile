@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = data_enter_issue01
 TESTSRC_MAIN = data_enter_issue01.cpp

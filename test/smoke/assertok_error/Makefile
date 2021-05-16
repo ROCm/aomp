@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = assertok_error
 TESTSRC_MAIN = assertok_error.c

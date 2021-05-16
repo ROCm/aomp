@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = flang_gen_sptr_prob
 TESTSRC_MAIN = flang_gen_sptr_prob.f90

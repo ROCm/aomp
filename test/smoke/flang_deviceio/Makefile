@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = flang_deviceio
 TESTSRC_MAIN = flang_deviceio.f90

@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME        = function_template
 TESTSRC_MAIN    = function_template.cpp
