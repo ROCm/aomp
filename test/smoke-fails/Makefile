@@ -10,6 +10,7 @@ TESTS_DIR = \
     closed_bug1 \
     flang-collapseNR \
     flang-272534-2 \
+    flang-272534-3 \
     clang-274983-2 \
     flang-274773 \
     flang-273807 \
