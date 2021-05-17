@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME        = liba_bundled
 TESTSRC_MAIN    = main.c

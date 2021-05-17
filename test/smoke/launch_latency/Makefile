@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = launch_latency
 TESTSRC_MAIN = launch_latency.c

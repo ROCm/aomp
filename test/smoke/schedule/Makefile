@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = schedule
 TESTSRC_MAIN = schedule.c

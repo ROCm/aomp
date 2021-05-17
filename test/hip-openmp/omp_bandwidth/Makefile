@@ -1,31 +1,9 @@
+include ../../Makefile.defs
+
 MP4BUILD = 1
 #host_debug_flag = -g
 host_debug_flag ?=
 
-# --- Standard Makefile check for AOMP installation ---
-ifeq ("$(wildcard $(AOMP))","")
-  ifneq ($(AOMP),)
-    $(warning AOMP not found at $(AOMP))
-  endif
-  AOMP = $(HOME)/rocm/aomp
-  ifeq ("$(wildcard $(AOMP))","")
-    $(warning AOMP not found at $(AOMP))
-    AOMP = /opt/rocm/aomp
-    ifeq ("$(wildcard $(AOMP))","")
-      $(warning AOMP not found at $(AOMP))
-      $(error Please install AOMP or correctly set env-var AOMP)
-    endif
-  endif
-endif
-# --- End Standard Makefile check for AOMP installation ---
-INSTALLED_GPU  = $(shell $(AOMP)/bin/mygpu -d gfx900)
-AOMP_GPU ?= $(INSTALLED_GPU)
-AOMP_GPUTARGET = amdgcn-amd-amdhsa
-# Default is Radeon vega/gfx900, for nvidia "export AOMP_GPU=sm_35"
-ifeq (sm_,$(findstring sm_,$(AOMP_GPU)))
-  AOMP_GPUTARGET = nvptx64-nvidia-cuda
-endif
-AOMP_CPUTARGET ?= x86_64-pc-linux-gnu
 DEBUG_LEVEL ?= 0
 
 ifeq ($(VERBOSE),1)

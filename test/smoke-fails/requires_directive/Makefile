@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = requires_directive
 TESTSRC_MAIN = requires_directive.c

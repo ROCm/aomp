@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = target-in-other-source
 TESTSRC_MAIN = vmul.c

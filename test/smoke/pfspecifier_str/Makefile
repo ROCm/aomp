@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME        = pfspecifier_str
 TESTSRC_MAIN    = pfspecifier_str.c

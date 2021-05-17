@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = omp_wtime
 TESTSRC_MAIN = omp_wtime.c

@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = veccopy
 TESTSRC_MAIN = veccopy.c

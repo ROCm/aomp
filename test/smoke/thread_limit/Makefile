@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = thread_limit
 TESTSRC_MAIN = thread_limit.c

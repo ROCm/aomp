@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 TESTNAME     = omp_get_device_num
 TESTSRC_MAIN = omp_get_device_num.c
 TESTSRC_AUX  =

@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME        = liba_bundled
 TESTSRC_MAIN    = main.c
@@ -11,7 +11,6 @@ CC              = $(OMP_BIN) $(VERBOSE)
 EXTRA_LDFLAGS   = -lMyDeviceLib -LMyDeviceLib
 EXTRA_OMP_FLAGS =
 
-# --- End Standard Makefile check for AOMP installation ---
 CC        = $(AOMP)/bin/clang
 UNAMEP    = $(shell uname -m)
 HOST_TARGET = $(UNAMEP)-pc-linux-gnu

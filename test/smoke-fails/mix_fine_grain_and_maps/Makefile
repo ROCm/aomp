@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = simple_ptr
 TESTSRC_MAIN = simple_ptr.cpp

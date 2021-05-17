@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = task_dep_prob
 TESTSRC_MAIN = task_dep_prob.c

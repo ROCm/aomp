@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 $(warning "Warning: This test requires rocBLAS(AMD Only) to be installed in /opt/rocm-X.Y.Z/rocblas.")
 
 TESTNAME     = hip_rocblas

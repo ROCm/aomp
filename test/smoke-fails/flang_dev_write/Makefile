@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = flang_dev_write
 TESTSRC_MAIN = flang_dev_write.f90

@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = firstprivate2
 TESTSRC_MAIN = firstprivate2.c

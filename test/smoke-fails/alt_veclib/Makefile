@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = alt_veclib
 TESTSRC_MAIN = alt_veclib.c

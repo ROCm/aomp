@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = OmpHipMallocManaged
 TESTSRC_MAIN = OmpHipMallocManaged.cpp

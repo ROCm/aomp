@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = issue_flang_libomp
 TESTSRC_MAIN = issue_flang_libomp.f90

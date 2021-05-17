@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = collapse
 TESTSRC_MAIN = collapse.c

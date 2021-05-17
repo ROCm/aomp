@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = printf_parallel_for_target
 TESTSRC_MAIN = printf_parallel_for_target.c

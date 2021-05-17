@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = devito_prob1
 TESTSRC_MAIN = devito_prob1.c

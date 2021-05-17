@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = taskwait_prob
 TESTSRC_MAIN = taskwait_prob.c

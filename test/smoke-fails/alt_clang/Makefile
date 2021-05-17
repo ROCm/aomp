@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = alt_clang
 TESTSRC_MAIN = alt_clang.c

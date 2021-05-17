@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = targc-274983
 TESTSRC_MAIN = targc-274983.cpp

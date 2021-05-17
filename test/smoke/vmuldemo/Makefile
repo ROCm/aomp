@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = vmul
 TESTSRC_MAIN = vmul.c

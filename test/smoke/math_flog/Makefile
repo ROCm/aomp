@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME        = math_flog
 TESTSRC_MAIN    = math_flog.c

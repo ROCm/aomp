@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = task-helper
 TESTSRC_MAIN = task-helper.cpp

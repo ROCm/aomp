@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = rush_larsen_openmp
 TESTSRC_MAIN = rush_larsen_openmp.cc

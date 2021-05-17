@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = nested_targ
 TESTSRC_MAIN = nested_targ.c

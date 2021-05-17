@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = declare_variant
 TESTSRC_MAIN = declare_variant.c

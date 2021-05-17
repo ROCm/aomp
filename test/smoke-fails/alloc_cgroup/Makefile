@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = alloc_cgroup
 TESTSRC_MAIN = alloc_cgroup.c
