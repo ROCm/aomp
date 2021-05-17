@@ -4,7 +4,7 @@ subroutine copy(A,B,N)
     !complex A(*),B(*)
     !real A(*),B(*)
     real A(*), B(*)
-    !$OMP TARGET PARALLEL DO map(tofrom: B) map(to: A)
+    !$omp target parallel do map(from:B(1:n)) map(to:A(1:n))
     do i=1,N
         B(i) = A(i)
     end do
