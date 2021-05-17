@@ -19,11 +19,18 @@ scriptfails=0
 if [ -L /opt/rocm ]; then
   AOMP=${AOMP:-"/opt/rocm/llvm"}
 else
-  newestrocm=$(ls /opt | grep -oP "rocm-[0-9].[0-9].[0-9]" | tail -1)
+  newestrocm=$(ls --sort=time /opt | grep -m 1 rocm)
   AOMP=${AOMP:-"/opt/$newestrocm/llvm"}
 fi
 export AOMP
 echo "AOMP = $AOMP"
+
+# Make sure clang is present.
+$AOMP/bin/clang --version
+if [ $? -ne 0 ]; then
+  echo "Error: Clang not found at "$AOMP"/bin/clang."
+  exit 1
+fi
 
 # Parent dir should be ROCm base dir.
 AOMPROCM=$AOMP/..
@@ -48,6 +55,10 @@ else
   else
     AOMP_GPU=$($AOMP/../bin/mygpu)
   fi
+fi
+if [ "$AOMP_GPU" == "" ]; then
+  echo "Error: AOMP_GPU was not able to be set with RAE or mygpu."
+  exit 1
 fi
 export AOMP_GPU
 
