@@ -36,7 +36,6 @@ flang-272285
 flang-272343-2
 flang-273281
 flang-273762
-flang-273990-2
 flang-274768
 flang-274775
 flang-274775-dcmplx
@@ -102,14 +101,11 @@ red_bug_51
 reduce
 reduc_map_prob
 reduction
-reduction_array_section
 reduction_issue_16
-reduction_shared_array
 reduction_teams
 reduction_teams_distribute_parallel
 schedule
 simd
-simple_ctor
 slices
 snap_red
 stream

@@ -4,7 +4,6 @@ gridmini_map_struct_float_mul.cpp
 gridmini_map_template_array.cpp
 gridmini_map_template.cpp
 gridmini_ptr.cpp
-test_allocate_allocator.c
 test_atomic_acquire_release.c
 test_declare_target_device_type_host.c
 test_declare_target_parallel_for.c
@@ -68,14 +67,6 @@ test_target_teams_distribute_reduction_neqv.F90
 test_target_teams_distribute_reduction_or.c
 test_target_teams_distribute_reduction_or.F90
 test_target_teams_distribute_reduction_subtract.c
-test_target_uses_allocators_cgroup.c
-test_target_uses_allocators_const.c
-test_target_uses_allocators_default.c
-test_target_uses_allocators_high_bw.c
-test_target_uses_allocators_large_cap.c
-test_target_uses_allocators_low_lat.c
-test_target_uses_allocators_pteam.c
-test_target_uses_allocators_thread.c
 test_task_detach.c
 test_taskgroup_task_reduction.c
 test_task_in_reduction.c
