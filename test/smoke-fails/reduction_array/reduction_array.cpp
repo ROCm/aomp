@@ -9,10 +9,10 @@ int main(){
   for(i=0; i<N; i++) a[i]=0.0e0;
   for(i=0; i<N; i++) b[i]=1.0e0+i;
 
-#pragma omp target teams dinstribute parallel for reduction(+:a[0:N]) private(j)
+#pragma omp target teams distribute parallel for reduction(+:a[0:N]) private(j)
   for(i=0; i<N; i++){
     for(j=0; j<N; j++){
-      a +=  b;
+      a[j] +=  b[j];
     }
   }
 
