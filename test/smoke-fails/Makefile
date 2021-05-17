@@ -1,6 +1,7 @@
 include Makefile.defs
 
 TESTS_DIR = \
+    alloc_cgroup \
     alt_clang \
     alt_veclib \
     ancestorF \

@@ -11,7 +11,6 @@
 #include <omp.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "ompvv.h"
 
 #define N 1024
 
@@ -36,19 +35,14 @@ int test_uses_allocators_cgroup() {
   }
   device_result = x;
 }
-  OMPVV_TEST_AND_SET_VERBOSE(errors, result != device_result);
+return result != device_result;
 
-  return errors;
 }
 
 int main() {
 
-  OMPVV_TEST_OFFLOADING;
-
-  int errors = 0;
-  
-  OMPVV_TEST_AND_SET_VERBOSE(errors, test_uses_allocators_cgroup() != 0);
-
-  OMPVV_REPORT_AND_RETURN(errors);
+  int errors = test_uses_allocators_cgroup();
+  if (errors) printf("Failed\n");
+  return errors;
 }
 
