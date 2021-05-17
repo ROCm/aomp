@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = map_zero_bug
 TESTSRC_MAIN = map_zero_bug.c

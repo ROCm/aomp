@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = manyKernels
 TESTSRC_MAIN = manyKernels.c

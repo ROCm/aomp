@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = atomic
 TESTSRC_MAIN = atomic.c

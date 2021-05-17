@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = icvars-nest
 TESTSRC_MAIN = icvars-nest.c

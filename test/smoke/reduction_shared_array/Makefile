@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 # test compiles fine with TEMPS=1
 TESTNAME     = reduction_shared_array

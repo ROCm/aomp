@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = loop_order
 TESTSRC_MAIN = loop_order.c

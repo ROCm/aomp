@@ -29,38 +29,10 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+include ../../Makefile.defs
 TESTNAME =hiplaunch
 FILETYPE =cpp
 
-UNAMEP = $(shell uname -m)
-AOMP_CPUTARGET = $(UNAMEP)-pc-linux-gnu
-ifeq ($(UNAMEP),ppc64le)
-  AOMP_CPUTARGET = ppc64le-linux-gnu
-endif
-ifeq ($(AOMP),)
-# --- Standard Makefile check for AOMP installation ---
-ifeq ("$(wildcard $(AOMP))","")
-  ifneq ($(AOMP),)
-    $(warning AOMP not found at $(AOMP))
-  endif
-  AOMP = $(HOME)/rocm/aomp
-  ifeq ("$(wildcard $(AOMP))","")
-    $(warning AOMP not found at $(AOMP))
-    AOMP = /usr/lib/aomp
-    ifeq ("$(wildcard $(AOMP))","")
-      $(warning AOMP not found at $(AOMP))
-      $(error Please install AOMP or correctly set env-var AOMP)
-    endif
-  endif
-endif
-# --- End Standard Makefile check for AOMP installation ---
-endif
-ifeq ($(CUDA),)
-CUDA = /usr/local/cuda
-endif
-ifeq ($(AOMP_GPU),)
-AOMP_GPU = $(shell $(AOMP)/bin/mygpu -d gfx900) #get installed card, if unknown return gfx900
-endif
 
 CC = $(AOMP)/bin/clang
 AOMPHIP ?= $(AOMP)

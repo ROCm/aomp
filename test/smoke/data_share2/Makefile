@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = data_share2
 TESTSRC_MAIN = data_share2.c

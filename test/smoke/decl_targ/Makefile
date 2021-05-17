@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = decl_targ
 TESTSRC_MAIN = decl_targ.f95

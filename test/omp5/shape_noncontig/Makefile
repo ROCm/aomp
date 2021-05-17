@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = shape_noncontig
 TESTSRC_MAIN = shape_noncontig.cpp

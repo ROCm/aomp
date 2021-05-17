@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = nested_loop
 TESTSRC_MAIN = nested_loop.c

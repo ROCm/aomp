@@ -60,7 +60,7 @@ function emitmakefile {
     TARGETFIELD="$6"
 
     cat << EOF > $MAKEFILENAME
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = ${NAME}
 TESTSRC_MAIN = ${NAME}${SUFFIX}

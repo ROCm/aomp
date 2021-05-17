@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME        = function_overload
 TESTSRC_MAIN    = function_overload.cpp

@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 TESTNAME     = omp_get_initial
 TESTSRC_MAIN = omp_get_initial.cpp
 TESTSRC_AUX  =

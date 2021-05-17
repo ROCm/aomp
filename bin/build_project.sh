@@ -179,7 +179,7 @@ echo " -----Running make ---- "
 
 # Workaround for race condition in the build of compiler-rt
 for prebuild in $(${AOMP_CMAKE} --build . --target help | sed -n '/-version-list/s/^... //p') ; do
-  ${AOMP_CMAKE} --build . -j$NUM_THREADS $prebuild
+  ${AOMP_CMAKE} --build . -j $NUM_THREADS --target $prebuild
 done
 
 echo ${AOMP_CMAKE} --build . -j $NUM_THREADS

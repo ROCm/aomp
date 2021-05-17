@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 ROCM         ?= $(AOMP)/
 TESTNAME     = flang-collapseNR

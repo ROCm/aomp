@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = slices
 TESTSRC_MAIN = slices.cpp

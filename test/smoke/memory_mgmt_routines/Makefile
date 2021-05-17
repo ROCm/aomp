@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = memory_mgmt
 TESTSRC_MAIN = memory_mgmt.cpp

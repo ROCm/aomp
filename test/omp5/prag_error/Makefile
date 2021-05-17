@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = prag_error
 TESTSRC_MAIN = prag_error.c

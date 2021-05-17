@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = targ_static
 TESTSRC_MAIN = targ_static.c

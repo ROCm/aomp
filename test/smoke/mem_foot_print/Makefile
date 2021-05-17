@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = mem_foot_print
 TESTSRC_MAIN = mem_foot_print.c

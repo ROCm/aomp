@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = omp_num_teams_SPMD
 TESTSRC_MAIN = omp_num_teams_SPMD.c

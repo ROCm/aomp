@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = flang_tgt_alloc_ptr
 TESTSRC_MAIN = flang_tgt_alloc_ptr.f90

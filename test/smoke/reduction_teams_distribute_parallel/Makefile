@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = reduction_teams_distribute_parallel
 TESTSRC_MAIN = reduction_teams_distribute_parallel.c

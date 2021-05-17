@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = flang_reduction_offload
 TESTSRC_MAIN = flang_reduction_offload.f90

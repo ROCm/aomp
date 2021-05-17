@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = clangtrace
 TESTSRC_MAIN = clangtrace.cpp

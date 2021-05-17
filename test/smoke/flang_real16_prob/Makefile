@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = flang_real16_prob
 TESTSRC_MAIN = flang_real16_prob.f90

@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = flang_atomic_hint
 TESTSRC_MAIN = flang_atomic_hint.f90

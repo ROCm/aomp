@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = reduction_issue_16
 TESTSRC_MAIN = reduction_issue_16.c

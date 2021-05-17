@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = fprintf
 TESTSRC_MAIN = fprintf.c

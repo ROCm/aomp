@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = omp_loop
 TESTSRC_MAIN = omp_loop.c

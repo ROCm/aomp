@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = helloworld
 TESTSRC_MAIN = helloworld.c

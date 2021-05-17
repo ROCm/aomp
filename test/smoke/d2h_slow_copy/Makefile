@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = d2h_slow_copy
 TESTSRC_MAIN = d2h_slow_copy.cpp

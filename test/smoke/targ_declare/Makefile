@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = targ_declare
 TESTSRC_MAIN = targ_declare.f95

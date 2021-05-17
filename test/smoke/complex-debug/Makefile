@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 TESTNAME     = complex-debug
 TESTSRC_MAIN = complex-debug.cpp
 TESTSRC_AUX  =

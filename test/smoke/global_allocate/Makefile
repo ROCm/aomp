@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = global_allocate
 TESTSRC_MAIN = global_allocate.c

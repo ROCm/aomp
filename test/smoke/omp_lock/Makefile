@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = omp_lock
 TESTSRC_MAIN = omp_lock.c

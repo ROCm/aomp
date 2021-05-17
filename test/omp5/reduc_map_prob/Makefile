@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = reduc_map_prob
 TESTSRC_MAIN = reduc_map_prob.c

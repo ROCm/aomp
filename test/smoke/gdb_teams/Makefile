@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = gdb_teams
 TESTSRC_MAIN = gdb_teams.c

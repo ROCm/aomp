@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = CanonNE
 TESTSRC_MAIN = CanonNE.c

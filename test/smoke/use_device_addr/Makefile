@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 TESTNAME     = use_device_addr
 TESTSRC_MAIN = use_device_addr.cpp
 TESTSRC_AUX  =

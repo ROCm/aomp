@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = flang_klemm_map
 TESTSRC_MAIN = flang_klemm_map.f90
