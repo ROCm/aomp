@@ -3,8 +3,6 @@
 #  run_rocm_test.sh
 #
 
-unset AOMP
-unset AOMP_GPU
 scriptdir=$(dirname "$0")
 parentdir=`eval "cd $scriptdir;pwd;cd - > /dev/null"`
 aompdir="$(dirname "$parentdir")"
@@ -68,17 +66,16 @@ export AOMP_GPU
 # this version mismatch on release testing. We will choose the lower version so that
 # unsupported tests are not included.
 function getversion(){
-  supportedvers="4.2 4.3"
+  supportedvers="4.3.0 4.4.0"
   declare -A versions
-  versions[42]=4.2
-  versions[43]=4.3
+  versions[430]=4.3.0
+  versions[440]=4.4.0
 
   # Determine ROCm version.
-  rocm=$(ls /opt | grep -oP "rocm-[0-9].[0-9].[0-9]" | tail -1)
-  rocmregex="rocm-([0-9]+\.[0-9]+)"
+  rocm=$(cat "$AOMPROCM"/.info/version-dev)
+  rocmregex="([0-9]+\.[0-9]+\.[0-9]+)"
   if [[ "$rocm" =~ $rocmregex ]]; then
-    rocmver=${BASH_REMATCH[1]}
-    rocmver=${rocmver/"."}
+    rocmver=$(echo ${BASH_REMATCH[1]} | sed "s/\.//g")
     echo rocmver: $rocmver
   else
     echo Unable to determine rocm version.
@@ -87,7 +84,7 @@ function getversion(){
 
   # Determine OS flavor to properly query openmp-extras version.
   osname=$(cat /etc/os-release | grep -e ^NAME=)
-  ompextrasregex="\s[0-9]+\.([0-9]+)\.[0-9]"
+  ompextrasregex="\s[0-9]+\.([0-9]+)\.([0-9]+)"
   echo $osname
   if [[ $osname =~ "Red Hat|CentOS|SLES" ]]; then
     echo "Red Hat/CentOS/SLES found"
@@ -97,7 +94,7 @@ function getversion(){
     ompextraspkg=$(dpkg --list | grep openmp-extras)
   fi
   if [[ "$ompextraspkg" =~ $ompextrasregex ]]; then
-    ompextrasver=${BASH_REMATCH[1]}
+    ompextrasver=${BASH_REMATCH[1]}${BASH_REMATCH[2]}
     echo ompextrasver: $ompextrasver
   else
     echo Unable to determine openmp-extras package version.
@@ -106,8 +103,8 @@ function getversion(){
 
   # Set the final version to use for expected passing lists. The expected passes
   # will include an aggregation of suported versions up to and including the chosen
-  # version.  Example: If 4.2 is selected then the final list will include expected passes
-  # from 4.1 and 4.2. Openmp-extras should not be a higher version than rocm.
+  # version.  Example: If 4.4 is selected then the final list will include expected passes
+  # from 4.3 and 4.4. Openmp-extras should not be a higher version than rocm.
   if [ "$rocmver" == "$ompextrasver" ] || [ "$rocmver" > "$ompextrasver" ]; then
     compilerver=${versions[$ompextrasver]}
   else
@@ -115,14 +112,12 @@ function getversion(){
   fi
   echo chosen version: $compilerver
   versionregex="(.*$compilerver)"
-  echo $verregex
   if [[ "$supportedvers" =~ $versionregex ]]; then
     finalvers=${BASH_REMATCH[1]}
   else
     echo "Unsupported Compiler build."
     exit 1
   fi
-  echo finalvers chosen: $finalvers
 }
 
 function copyresults(){
@@ -198,7 +193,7 @@ function checkrc(){
 
 # Get version of installed ROCm and compare against openmp-extras version.
 getversion
-echo finalvers: $finalvers
+echo "Included Versions: $finalvers"
 
 cd "$aompdir"/bin
 rm -rf $resultsdir
