@@ -22,13 +22,14 @@ echo "                   A non-zero exit code means a failure occured."
 echo "************************************************************************************"
 
 #Loop over all directories and run the check script
-if [ -n $1 ]; then
-  LIST="$1"
+if [ "$#" -ne 0 ]; then
+  LIST="$@"
 elif [ "$EPSDB" != "1" ]; then
   LIST="fortran hip openmp cloc"
 else
   LIST="fortran openmp"
 fi
+echo LIST: $LIST
 
 for directory in $LIST; do
   pushd $directory > /dev/null
