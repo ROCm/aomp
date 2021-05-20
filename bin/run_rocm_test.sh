@@ -10,7 +10,6 @@ resultsdir="$aompdir/bin/rocm-test/results"
 rocmtestdir="$aompdir"/bin/rocm-test
 summary="$resultsdir"/summary.txt
 unexpresults="$resultsdir"/unexpresults.txt
-testsuites="fortran"
 scriptfails=0
 
 # Set AOMP to point to rocm symlink or newest version.
@@ -110,12 +109,12 @@ function getversion(){
   else
     compilerver=${versions[$rocmver]}
   fi
-  echo chosen version: $compilerver
+  echo Chosen Version: $compilerver
   versionregex="(.*$compilerver)"
   if [[ "$supportedvers" =~ $versionregex ]]; then
     finalvers=${BASH_REMATCH[1]}
   else
-    echo "Unsupported Compiler build."
+    echo "Unsupported compiler build."
     exit 1
   fi
 }
@@ -201,6 +200,8 @@ mkdir -p $resultsdir
 
 # Fortran Examples
 mkdir -p "$resultsdir"/fortran
+echo "cp -rf "$AOMP"/examples/fortran "$aompdir"/examples"
+cp -rf "$AOMP"/examples/fortran "$aompdir"/examples
 cd "$aompdir"/examples/fortran
 EPSDB=1 ../check_examples.sh fortran
 checkrc $?
@@ -208,6 +209,8 @@ copyresults fortran
 
 # Openmp Examples
 mkdir -p "$resultsdir"/openmp
+echo "cp -rf "$AOMP"/examples/openmp "$aompdir"/examples"
+cp -rf "$AOMP"/examples/openmp "$aompdir"/examples
 cd "$aompdir"/examples/openmp
 EPSDB=1 ../check_examples.sh openmp
 checkrc $?
