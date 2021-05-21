@@ -8,11 +8,6 @@ ifeq (sm_,$(findstring sm_,$(AOMP_GPU)))
 CFLAGS = -x cuda -I/usr/local/cuda/include --offload-arch=${AOMP_GPU} -std=c++11
 LINK_FLAGS =  -L$(CUDA)/targets/$(UNAMEP)-linux/lib -lcudart -Wl,-rpath,/usr/local/cuda/targets/x86_64-linux/lib
 else
-ifeq ($(EPSDB),1)
-AOMPHIP ?= $(AOMP)/..
-else
-AOMPHIP ?= $(AOMP)
-endif
 VERS = $(shell $(AOMP)/bin/clang --version | grep -oP '(?<=clang version )[0-9.]+')
 ifeq ($(shell expr $(VERS) \>= 12.0), 1)
   RPTH = -Wl,-rpath,$(AOMPHIP)/lib

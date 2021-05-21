@@ -49,7 +49,6 @@ ifeq (sm_,$(findstring sm_,$(TARGETS)))
   LFLAGS +=-L$(CUDA)/targets/$(UNAMEP)-linux/lib -lcudart -Wl,-rpath,$(CUDA)/targets/$(UNAMEP)-linux/lib
   CFLAGS +=-x cuda -I$(CUDA)/include
 else
-  AOMPHIP ?= $(AOMP)
   HIPLIBS = -L $(AOMPHIP)/hip -L $(AOMPHIP)/lib
   VERS = $(shell $(AOMP)/bin/clang --version | grep -oP '(?<=clang version )[0-9.]+')
   ifeq ($(shell expr $(VERS) \>= 12.0), 1)
