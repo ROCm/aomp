@@ -31,6 +31,7 @@ fi
 
 # Parent dir should be ROCm base dir.
 AOMPROCM=$AOMP/..
+unset ROCM_PATH
 
 # Use bogus path to avoid using target.lst, a user-defined target list
 # used by rocm_agent_enumerator.
@@ -83,9 +84,10 @@ function getversion(){
 
   # Determine OS flavor to properly query openmp-extras version.
   osname=$(cat /etc/os-release | grep -e ^NAME=)
-  ompextrasregex="\s[0-9]+\.([0-9]+)\.([0-9]+)"
+  ompextrasregex="\s*[0-9]+\.([0-9]+)\.([0-9]+)"
+  rpmregex="Red Hat|CentOS|SLES"
   echo $osname
-  if [[ $osname =~ "Red Hat|CentOS|SLES" ]]; then
+  if [[ "$osname" =~ $rpmregex ]]; then
     echo "Red Hat/CentOS/SLES found"
     ompextraspkg=$(rpm -qa | grep openmp-extras)
   elif [[ $osname =~ "Ubuntu" ]]; then
@@ -99,7 +101,6 @@ function getversion(){
     echo Unable to determine openmp-extras package version.
     exit 1
   fi
-
   # Set the final version to use for expected passing lists. The expected passes
   # will include an aggregation of suported versions up to and including the chosen
   # version.  Example: If 4.4 is selected then the final list will include expected passes
