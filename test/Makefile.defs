@@ -27,6 +27,17 @@ ifeq ($(UNAMEP),ppc64le)
   AOMP_CPUTARGET = ppc64le-linux-gnu
 endif
 
+ifeq ($(EPSDB),1)
+AOMPHIP ?= $(AOMP)/..
+else
+ PFILE = $(AOMP)/lib/libamdhip64.so
+ ifneq ("$(wildcard $(PFILE))","")
+   AOMPHIP ?= $(AOMP)
+ else
+   AOMPHIP = $(AOMP)/..
+ endif
+endif
+
 # If AOMP env variable contains opt use rocm_agent_enumerator for device id.
 ifeq (opt,$(findstring opt,$(AOMP)))
   INSTALLED_GPU  = $(shell $(AOMP)/../bin/rocm_agent_enumerator | grep -m 1 -E gfx[^0]{1}.{2})
