@@ -1,4 +1,4 @@
-include Makefile.defs
+include ../Makefile.defs
 
 TESTS_DIR = \
     aomp_mappings \

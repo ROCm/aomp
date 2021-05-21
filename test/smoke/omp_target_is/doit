@@ -1,0 +1,10 @@
+
+
+
+
+cmd="/work/grodgers/rocm/aomp/bin/clang++ -O2 -mcode-object-version=3 -target x86_64-pc-linux-gnu -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=gfx803  omp_target_is.cpp -o omp_target_is"
+echo
+echo $cmd
+$cmd
+echo ./omp_target_is
+./omp_target_is
