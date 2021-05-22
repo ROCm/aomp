@@ -13,7 +13,6 @@ endif
 AOMPROCM ?= /opt/$(NEWEST_ROCM)
 $(warning "AOMPROCM = $(AOMPROCM)")
 CFLAGS       = -x hip -I $(AOMPROCM)/rocblas/include/ --offload-arch=${AOMP_GPU} -std=c++11
-AOMPHIP ?= $(AOMP)
 VERS = $(shell $(AOMP)/bin/clang --version | grep -oP '(?<=clang version )[0-9.]+')
 ifeq ($(shell expr $(VERS) \>= 12.0), 1)
   RPTH = -Wl,-rpath,$(AOMPHIP)/lib

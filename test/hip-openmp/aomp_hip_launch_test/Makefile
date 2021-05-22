@@ -35,7 +35,6 @@ FILETYPE =cpp
 
 
 CC = $(AOMP)/bin/clang
-AOMPHIP ?= $(AOMP)
 DEVICE_LIB_PATH=$(AOMPHIP)/amdgcn/bitcode/
 
 # Add cudart only if we have an Nvidia sm_ target

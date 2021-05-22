@@ -26,7 +26,6 @@
 # SOFTWARE.
 
 AOMP ?= /usr/lib/aomp
-AOMPHIP ?= $(AOMP)
 DEVICE_LIB_PATH=$(AOMPHIP)/amdgcn/bitcode/
 
 CC   =  DEVICE_LIB_PATH=$(DEVICE_LIB_PATH) $(AOMPHIP)/bin/hipcc -I$(AOMP)/include/hip
