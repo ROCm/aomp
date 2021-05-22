@@ -151,25 +151,3 @@ int main() {
 
   return 0;
 }
-
-#if 0
-  // xnack- will not enable access to is_set: there's no way to understand if target region was successful, except by printf and inspection of output
-#if IS_USM == 0
-  if (is_set)
-    std::cout << "Pointer a is set. Either USM mode or a is mapped\n";
-  else
-    std::cout << "Pointer a is NOT set. " ;
- if (IS_USM && is_set)
-   return 0;
- else if (!IS_USM && !is_set)
-   return 0;
- else if (!IS_USM && is_set)
-   return 1;
- else if (IS_USM && !is_set)
-   return 1;
-#else
- return 0;
-#endif
-}
-
-#endif
