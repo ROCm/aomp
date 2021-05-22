@@ -21,7 +21,7 @@ int main() {
   TT *t = new TT;
   int n = N;
   t->p = (int *) malloc(n*sizeof(int));
-  
+
 #if IS_USM >= 1
       printf("\n ---- THIS IS USM ----\n");
 #endif
@@ -77,7 +77,7 @@ int main() {
   success = success && !rc_a_1;
   success = success && !rc_b;
   success = success && !rc_c; // only &c[1] is mapped
-  success = success && rc_t; 
+  success = success && rc_t;
   success = success && rc_t_p;
 #endif
 
@@ -117,7 +117,7 @@ int main() {
   success = success && !rc_a_1;
   success = success && !rc_b;
   success = success && !rc_c; // only &c[1] is mapped
-  success = success && rc_t; 
+  success = success && rc_t;
   success = success && rc_t_p;
 #endif
 
@@ -142,7 +142,7 @@ int main() {
   success = success && !rc_a_1;
   success = success && !rc_b;
   success = success && !rc_c;
-  success = success && !rc_t; 
+  success = success && !rc_t;
   success = success && !rc_t_p;
 #endif
 
