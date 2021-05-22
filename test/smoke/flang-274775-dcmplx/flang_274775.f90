@@ -19,7 +19,7 @@ program test
  
 !$omp target teams distribute map(to:A) map(tofrom:M) reduction(+:M) 
        do i=1, 10
-!$omp parallel do
+!$omp parallel do reduction(+:M)
          do j=1, 10
            M=M+A(j)
          enddo
@@ -27,6 +27,6 @@ program test
       enddo
 !$omp end target teams distribute
 
-       write(*, *), "M=", M
+       write(*, *) "M=", M
        call foo(M)
 end program test
