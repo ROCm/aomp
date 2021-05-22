@@ -21,6 +21,7 @@ TESTS_DIR = \
     flang-274983-2 \
     flang-274773 \
     flang-274775-critDcmplx \
+    flang-274775-redDcmplx \
     flang-273807 \
     flang-273990-1 \
     flang-273759 \
