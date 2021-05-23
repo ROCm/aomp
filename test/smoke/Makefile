@@ -10,6 +10,8 @@ TESTS_DIR = \
     atomic_double \
     CanonNE \
     clang-274983 \
+    clang-red-SglComplex \
+    clang-red-DblComplex \
     clang-tracekernel \
     class \
     closed_bug2 \
