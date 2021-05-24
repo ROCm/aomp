@@ -1,14 +1,14 @@
 include ../../Makefile.defs
 
-TESTNAME     = clang-279673
-TESTSRC_MAIN = one.c
-TESTSRC_AUX  = two.c
+TESTNAME     = flang_274775
+TESTSRC_MAIN = flang_274775.f90
+TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 
 TARGET       = -fopenmp -O3 -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$(AOMP_GPU)
 
-CLANG        = clang
-OMP_BIN      = $(AOMP)/bin/$(CLANG)
+FLANG        = flang
+OMP_BIN      = $(AOMP)/bin/$(FLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
 #-ccc-print-phases
 #"-\#\#\#"

@@ -17,15 +17,13 @@ program test
           A(i)=(1,1)
         enddo
  
-!$omp target teams distribute map(to:A) map(tofrom:M) reduction(+:M) 
+!$omp target teams distribute parallel do collapse(2) map(to:A) map(tofrom:M) REDUCTION(M) private(j)
        do i=1, 10
-!$omp parallel do reduction(+:M)
          do j=1, 10
            M=M+A(j)
          enddo
-!$omp end parallel do
       enddo
-!$omp end target teams distribute
+!$omp end target teams distribute parallel do
 
        write(*, *) "M=", M
        call foo(M)

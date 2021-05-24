@@ -1,7 +1,7 @@
 #include <iostream>
 #include <omp.h>
 
-#define IS_USM 1
+#define IS_USM 0
 #if IS_USM >=1
 #pragma omp requires unified_shared_memory
 #endif
