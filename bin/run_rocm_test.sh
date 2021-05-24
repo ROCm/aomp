@@ -2,6 +2,12 @@
 #
 #  run_rocm_test.sh
 #
+#  WARNING: This is intended for verifying ROCm builds and is not meant for
+#  usage with AOMP standalone builds.
+#
+#  Please check with Ron or Ethan for script modifications.
+#
+#
 
 scriptdir=$(dirname "$0")
 parentdir=`eval "cd $scriptdir;pwd;cd - > /dev/null"`

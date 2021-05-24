@@ -133,8 +133,10 @@ function examples(){
     fi
     pushd $directory > /dev/null
     path=$(pwd) && base=$(basename $path)
-    update_logs log check-$base.txt
-    echo "" >> $log_dir/$results_file
+    if [ -f check-$base.txt ]; then
+      update_logs log check-$base.txt
+      echo "" >> $log_dir/$results_file
+    fi
     popd > /dev/null
   done
 }
@@ -319,20 +321,27 @@ function omptests(){
 # --------End Suites--------
 
 function print_help(){
-  echo ""
+  echo
   echo "--------Run Test Suite Help-------"
+  echo
+  echo "WARNING: Intended for developers to use with AOMP standalone Git Hub releases."
+  echo "NOTICE:  RAJA and IBM omptests disabled for now as they were locking up the GPU."
+  echo
   echo "All Test Suites:   $SUITE_LIST"
   echo "EPSDB Test Suites: $EPSDB_LIST"
-  echo ""
+  echo
+  echo "User can modify SUITE_LIST env variable to choose which suites to run:"
+  echo "SUITE_LIST=\"smoke smoke-fails\" ./run_test_suite.sh"
+  echo
   echo "Available Options:"
   echo "  --Groups--"
   echo "  ./run_test_suite.sh                   -run all tests (default): $SUITE_LIST"
   echo "  ./run_test_suite.sh epsdb             -run epsdb focused subset of tests: $EPSDB_LIST"
-  echo ""
+  echo
   echo "  --Individual Suites--"
   echo "  ./run_test_suite.sh smoke             -run single suite (smoke) only"
   echo "  ./run_test_suite.sh smoke examples    -run user specifed multiple suites"
-  echo ""
+  echo
   exit
 }
 
@@ -384,7 +393,7 @@ function run_tests(){
 }
 
 # Execute tests
-  if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
+  if [ "$1" == "-h" ] || [[ "$1" =~ "help" ]]; then
     print_help
   else
     check_args $@
