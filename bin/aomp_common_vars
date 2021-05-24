@@ -139,16 +139,17 @@ GFXLIST=${GFXLIST:-"gfx700 gfx701 gfx801 gfx803 gfx900 gfx902 gfx906 gfx908"}
 export GFXLIST
 
 # Calculate the number of threads to use for make
-NUM_THREADS=
+AOMP_THREADS=
 if [ ! -z `which "getconf"` ]; then
-   NUM_THREADS=$(`which "getconf"` _NPROCESSORS_ONLN)
+   AOMP_THREADS=$(`which "getconf"` _NPROCESSORS_ONLN)
    if [ "$AOMP_PROC" == "ppc64le" ] ; then
-      NUM_THREADS=$(( NUM_THREADS / 6))
+      AOMP_THREADS=$(( AOMP_THREADS / 6))
    fi
    if [ "$AOMP_PROC" == "aarch64" ] ; then
-      NUM_THREADS=$(( NUM_THREADS / 4))
+      AOMP_THREADS=$(( AOMP_THREADS / 4))
    fi
 fi
+NUM_THREADS=${NUM_THREADS:-$AOMP_THREADS}
 
 # These are the web sites where the AOMP git repos are pulled from
 GITROC="https://github.com/radeonopencompute"
