@@ -1,8 +1,8 @@
 #include <iostream>
 #include <omp.h>
 
-#pragma omp requires unified_shared_memory
-#define IS_USM 1
+//#pragma omp requires unified_shared_memory
+#define IS_USM 0
 
 int main() {
   int *a = (int *) malloc(2*sizeof(int));
