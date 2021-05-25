@@ -1,5 +1,7 @@
 #!/bin/bash
 #--------------------------------------
+# WARNING: Intended for developers to use with AOMP standalone Git Hub releases.
+#
 # run_test_suite.sh
 #  Available Options:
 #  --Groups--
@@ -296,7 +298,7 @@ function qmcpack(){
   header QMCPACK
   cd $AOMP_SRC/bin
   echo "Log file at: $log_dir/qmcpack.log"
-  timeout --foreground -k 20m 20m ./build_qmcpack.sh >> $log_dir/qmcpack.log 2>&1
+  timeout --foreground -k 35m 35m ./build_qmcpack.sh  >> $log_dir/qmcpack.log 2>&1
   build_dir=$AOMP_REPOS_TEST/qmcpack/build_AOMP_offload_real_MP_$AOMP_GPU
   set +e
   if [ $? -eq 0 ]; then
