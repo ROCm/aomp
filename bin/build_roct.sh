@@ -93,10 +93,10 @@ fi
 cd $BUILD_AOMP/build/roct
 echo
 echo " -----Running make for roct ---- " 
-make -j $NUM_THREADS
+make -j $AOMP_JOB_THREADS
 if [ $? != 0 ] ; then 
       echo " "
-      echo "ERROR: make -j $NUM_THREADS  FAILED"
+      echo "ERROR: make -j $AOMP_JOB_THREADS  FAILED"
       echo "To restart:" 
       echo "  cd $BUILD_AOMP/build/roct"
       echo "  make"

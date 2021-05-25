@@ -100,10 +100,10 @@ fi
 
 echo
 echo " -----Running make ---- " 
-echo make -j $NUM_THREADS 
-make -j $NUM_THREADS 
+echo make -j $AOMP_JOB_THREADS 
+make -j $AOMP_JOB_THREADS 
 if [ $? != 0 ] ; then 
-   echo "ERROR make -j $NUM_THREADS failed"
+   echo "ERROR make -j $AOMP_JOB_THREADS failed"
    exit 1
 fi
 

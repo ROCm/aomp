@@ -105,11 +105,11 @@ fi
 cd $BUILD_AOMP/build/rocgdb
 echo
 echo " -----Running make for gdb ---- " 
-echo make -j $NUM_THREADS all-gdb
-make -j $NUM_THREADS all-gdb
+echo make -j $AOMP_JOB_THREADS all-gdb
+make -j $AOMP_JOB_THREADS all-gdb
 if [ $? != 0 ] ; then 
       echo " "
-      echo "ERROR: make -j $NUM_THREADS  FAILED"
+      echo "ERROR: make -j $AOMP_JOB_THREADS  FAILED"
       echo "To restart:" 
       echo "  cd $BUILD_AOMP/build/rocgdb"
       echo "  make all-gdb"

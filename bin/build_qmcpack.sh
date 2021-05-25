@@ -122,8 +122,8 @@ $AOMP_CMAKE -DCMAKE_C_COMPILER=$OPENMPI_INSTALL/bin/mpicc \
 fi
 
 echo
-echo make -j$NUM_THREADS
-make -j$NUM_THREADS
+echo make -j$AOMP_JOB_THREADS
+make -j$AOMP_JOB_THREADS
 
 echo 
 echo "DONE!  Build is in $build_folder. To test:"
