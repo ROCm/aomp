@@ -25,6 +25,7 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+include ../../Makefile.defs
 AOMP ?= /usr/lib/aomp
 DEVICE_LIB_PATH=$(AOMPHIP)/amdgcn/bitcode/
 
