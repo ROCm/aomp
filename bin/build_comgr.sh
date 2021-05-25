@@ -108,10 +108,10 @@ fi
 cd $BUILD_AOMP/build/comgr
 echo
 echo " -----Running make for comgr ---- " 
-make -j $NUM_THREADS
+make -j $AOMP_JOB_THREADS
 if [ $? != 0 ] ; then 
       echo " "
-      echo "ERROR: make -j $NUM_THREADS  FAILED"
+      echo "ERROR: make -j $AOMP_JOB_THREADS  FAILED"
       echo "To restart:" 
       echo "  cd $BUILD_AOMP/build/comgr"
       echo "  make"

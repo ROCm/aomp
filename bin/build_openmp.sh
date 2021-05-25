@@ -219,10 +219,10 @@ fi
 
 cd $BUILD_DIR/build/openmp
 echo " -----Running make for $BUILD_DIR/build/openmp ---- "
-make -j $NUM_THREADS
+make -j $AOMP_JOB_THREADS
 if [ $? != 0 ] ; then 
       echo " "
-      echo "ERROR: make -j $NUM_THREADS  FAILED"
+      echo "ERROR: make -j $AOMP_JOB_THREADS  FAILED"
       echo "To restart:" 
       echo "  cd $BUILD_DIR/build/openmp"
       echo "  make"
@@ -234,9 +234,9 @@ if [ "$AOMP_BUILD_DEBUG" == "1" ] ; then
    echo
    echo
    echo " -----Running make for $BUILD_DIR/build/openmp_debug ---- "
-   make -j $NUM_THREADS
+   make -j $AOMP_JOB_THREADS
    if [ $? != 0 ] ; then 
-         echo "ERROR make -j $NUM_THREADS failed"
+         echo "ERROR make -j $AOMP_JOB_THREADS failed"
          exit 1
    fi
 fi

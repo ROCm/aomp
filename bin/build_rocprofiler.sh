@@ -107,11 +107,11 @@ fi
 cd $BUILD_AOMP/build/rocprofiler
 echo
 echo " -----Running make for rocprofiler ---- " 
-echo make -j $NUM_THREADS
-make -j $NUM_THREADS
+echo make -j $AOMP_JOB_THREADS
+make -j $AOMP_JOB_THREADS
 if [ $? != 0 ] ; then 
       echo " "
-      echo "ERROR: make -j $NUM_THREADS  FAILED"
+      echo "ERROR: make -j $AOMP_JOB_THREADS  FAILED"
       echo "To restart:" 
       echo "  cd $BUILD_AOMP/build/rocprofiler"
       echo "  make"
@@ -123,8 +123,8 @@ if [ ! -z $doxygen ] ; then
    # the rocprofiler CMakeLists.txt will prepare docs install if doxygen found.
    # However, the make doc has issues.  But if you dont make doc, the install
    # fails.  This 'make doc' will do enough so install does not fail.
-   echo make -j $NUM_THREADS doc
-   make -j $NUM_THREADS doc 2>/dev/null >/dev/null
+   echo make -j $AOMP_JOB_THREADS doc
+   make -j $AOMP_JOB_THREADS doc 2>/dev/null >/dev/null
 fi
 
 #  ----------- Install only if asked  ----------------------------
