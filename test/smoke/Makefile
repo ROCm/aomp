@@ -10,6 +10,7 @@ TESTS_DIR = \
     atomic_double \
     CanonNE \
     clang-274983 \
+    clang-host-targ \
     clang-red-SglComplex \
     clang-red-DblComplex \
     clang-tracekernel \
