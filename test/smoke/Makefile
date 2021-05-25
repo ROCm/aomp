@@ -61,6 +61,7 @@ TESTS_DIR = \
     flang_char_kind \
     flang_deviceio \
     flang_gen_sptr_prob \
+    flang-host-targ \
     flang_isystem_prob \
     flang_klemm_map \
     flang_math \
