@@ -81,13 +81,13 @@ int main() {
   success = success && rc_t_p;
 #endif
 
-#pragma omp target map(tofrom: is_set) is_device_ptr(stderr)
+#pragma omp target map(tofrom: is_set)
   {
 #if IS_USM >= 1
     // We use proprocessing macro, because cannot yet reference data in USM mode, even in an unused printf
-    fprintf(stderr,"DEVICE : a:%p &a[1]:%p No VALUES in USM MODE!\n", (void*) a,(void*) &a[1]);
+    printf("DEVICE : a:%p &a[1]:%p No VALUES in USM MODE!\n", (void*) a,(void*) &a[1]);
 #else
-    fprintf(stderr,"DEVICE : a:%p &a[1]:%p a[0]:%d  a[1]:%d\n", (void*) a, &a[1],a[0],a[1]);
+    printf("DEVICE : a:%p &a[1]:%p a[0]:%d  a[1]:%d\n", (void*) a, &a[1],a[0],a[1]);
     // is_set is a host pointer with xnack- and not accessible on the device
     if (a == nullptr)
       is_set = 0;
