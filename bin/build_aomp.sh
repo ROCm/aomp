@@ -95,13 +95,13 @@ date
 echo " =================  START build_aomp.sh ==================="   
 echo 
 if [ "$AOMP_STANDALONE_BUILD" == 1 ] ; then
-  components="roct rocr project libdevice openmp extras pgmath flang flang_runtime comgr rocminfo"
+  components="roct rocr project libdevice openmp extras comgr rocminfo"
   _hostarch=`uname -m`
   # The VDI (rocclr) architecture is very x86 centric so it will not build on ppc64. Without
   # rocclr, we have no HIP or OpenCL for ppc64 :-( However, rocr works for ppc64 so AOMP works.
   if [ "$_hostarch" == "x86_64" ] ; then
     # These components build on x86_64, so add them to components list
-    components="$components vdi hipvdi ocl "
+    components="$components pgmath flang flang_runtime vdi hipvdi ocl "
   fi
 
   # ROCdbgapi requires atleast g++ 7
@@ -110,7 +110,7 @@ if [ "$AOMP_STANDALONE_BUILD" == 1 ] ; then
     components="$components rocdbgapi rocgdb"
   fi
   # Do not add roctracer/rocprofiler for tarball install
-  if [ "$TARBALL_INSTALL" != 1 ]; then
+  if [ "$TARBALL_INSTALL" != 1 ] && [ "$_hostarch" == "x86_64" ] ; then
     components="$components roctracer rocprofiler"
   fi
 else
