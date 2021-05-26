@@ -80,8 +80,8 @@ if [ "$1" != "install" ] ; then
          echo "      ${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR $BUILD_DIR/$AOMP_LIBDEVICE_REPO_NAME"
          exit 1
       fi
-      echo "make -j $NUM_THREADS"
-      make -j $NUM_THREADS 
+      echo "make -j $AOMP_JOB_THREADS"
+      make -j $AOMP_JOB_THREADS 
       if [ $? != 0 ] ; then 
          echo "ERROR make failed "
          exit 1
@@ -113,8 +113,8 @@ if [ "$1" == "install" ] ; then
    builddir_libdevice=$BUILD_DIR/build/libdevice
    echo "running make install from $builddir_libdevice"
    cd $builddir_libdevice
-   echo $SUDO make -j $NUM_THREADS install
-   $SUDO make -j $NUM_THREADS install
+   echo $SUDO make -j $AOMP_JOB_THREADS install
+   $SUDO make -j $AOMP_JOB_THREADS install
 
    # rocm-device-lib cmake installs to lib dir, move all bc files up one level
    # and cleanup unused oclc_isa_version bc files and link correct one

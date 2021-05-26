@@ -179,19 +179,19 @@ echo " -----Running make ---- "
 
 # Workaround for race condition in the build of compiler-rt
 for prebuild in $(${AOMP_CMAKE} --build . --target help | sed -n '/-version-list/s/^... //p') ; do
-  ${AOMP_CMAKE} --build . -j $NUM_THREADS --target $prebuild
+  ${AOMP_CMAKE} --build . -j $AOMP_JOB_THREADS --target $prebuild
 done
 
-echo ${AOMP_CMAKE} --build . -j $NUM_THREADS
-${AOMP_CMAKE} --build . -j $NUM_THREADS
+echo ${AOMP_CMAKE} --build . -j $AOMP_JOB_THREADS
+${AOMP_CMAKE} --build . -j $AOMP_JOB_THREADS
 if [ $? != 0 ] ; then
-   echo "ERROR make -j $NUM_THREADS failed"
+   echo "ERROR make -j $AOMP_JOB_THREADS failed"
    exit 1
 fi
 
 if [ "$1" == "install" ] ; then
    echo " -----Installing to $INSTALL_PROJECT ---- "
-   $SUDO ${AOMP_CMAKE} --build . -j $NUM_THREADS --target install
+   $SUDO ${AOMP_CMAKE} --build . -j $AOMP_JOB_THREADS --target install
    if [ $? != 0 ] ; then
       echo "ERROR make install failed "
       exit 1

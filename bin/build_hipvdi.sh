@@ -135,10 +135,10 @@ fi
 cd $BUILD_DIR/build/hipvdi
 echo
 echo " -----Running make for hipvdi ---- "
-make -j $NUM_THREADS 
+make -j $AOMP_JOB_THREADS 
 if [ $? != 0 ] ; then
       echo " "
-      echo "ERROR: make -j $NUM_THREADS  FAILED"
+      echo "ERROR: make -j $AOMP_JOB_THREADS  FAILED"
       echo "To restart:"
       echo "  cd $BUILD_DIR/build/hipvdi"
       echo "  make "

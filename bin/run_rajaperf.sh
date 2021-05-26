@@ -79,7 +79,7 @@ $AOMP_CMAKE \
   "$@" \
   ..
 
-make -j $NUM_THREADS
+make -j $AOMP_JOB_THREADS
 
 # Do not continue if build fails
 if [ $? != 0 ]; then
