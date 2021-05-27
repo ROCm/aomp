@@ -11,6 +11,7 @@ TESTS_DIR = \
     CanonNE \
     clang-274983 \
     clang-host-targ \
+    clang-host-targ2 \
     clang-red-SglComplex \
     clang-red-DblComplex \
     clang-tracekernel \
