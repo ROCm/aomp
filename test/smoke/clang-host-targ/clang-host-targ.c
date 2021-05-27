@@ -18,8 +18,7 @@ int main() {
   int blockSize = tl;
 
   for (int t = 0 ; t < TRIALS ; t++) {
-    #pragma omp target
-    #pragma omp teams num_teams(nte) thread_limit(tl)
+    #pragma omp target teams
     {
       #pragma omp distribute
       for(int j = 0 ; j < 256 ; j += blockSize) {
