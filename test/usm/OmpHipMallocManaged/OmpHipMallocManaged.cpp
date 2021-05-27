@@ -37,6 +37,7 @@
 #define ITERS 1
 #endif
 
+#pragma omp requires unified_shared_memory
 static double ttos(struct timespec* ts) {
   return (double)ts->tv_sec + (double)ts->tv_nsec / 1000000000.0;
 }

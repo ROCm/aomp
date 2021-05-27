@@ -29,28 +29,40 @@ cat $tmpcfile
 echo "==== COMPILES ===="
 
 gpu=`$AOMP/bin/offload-arch`
-cmd="$AOMP/bin/clang -fopenmp -o $tdir/gpu-offload  $tmpcfile --offload-arch=$gpu"
+cmd="$AOMP/bin/clang -fopenmp -o $tdir/gpu-offload   $tmpcfile --offload-arch=$gpu"
 echo "$cmd" ; $cmd
-cmd="$AOMP/bin/clang -fopenmp -o $tdir/host-offload $tmpcfile -fopenmp-targets=x86_64-pc-linux-gnu -Xopenmp-target=x86_64-pc-linux-gnu -march=znver1"
+cmd="$AOMP/bin/clang -fopenmp -o $tdir/offload-xnack $tmpcfile --offload-arch=$gpu:xnack+"
 echo "$cmd" ; $cmd
-cmd="$AOMP/bin/clang -fopenmp -o $tdir/no-offload   $tmpcfile"
+cmd="$AOMP/bin/clang -fopenmp -o $tdir/host-offload  $tmpcfile --offload-arch=znver1"
+echo "$cmd" ; $cmd
+cmd="$AOMP/bin/clang -fopenmp -o $tdir/no-offload    $tmpcfile"
 echo "$cmd" ; $cmd
 
-# THIS CMDLINE SYNTAX DOES NOT WORK YET
-# cmd="$AOMP/bin/clang -fopenmp -o host-offload $tmpcfile --offload-arch=znver1"
-# echo $cmd ; $cmd
-
-echo  ==== gpu-offload ====
+echo ; echo  ==== gpu-offload ====
 $tdir/gpu-offload
-echo  ==== host-offload ====
+echo ; echo  ==== host-offload ====
 $tdir/host-offload
-echo  ==== no-offload ====
+echo ; echo  ==== no-offload ====
 $tdir/no-offload
+echo ; echo  ==== gpu-offload a missing requirement ======
+$tdir/offload-xnack
+echo ; echo  ==== gpu-offload with offload disabled appears as if no-offload ====
+echo export OMP_TARGET_OFFLOAD=DISABLED
+export OMP_TARGET_OFFLOAD=DISABLED
+$tdir/gpu-offload
+echo ; echo  ==== host-offload with offload disabled appears as if no-offload ====
+$tdir/host-offload
+echo ; echo  ==== host-offload with offload mandatory ======
+echo export OMP_TARGET_OFFLOAD=MANDATORY
+export OMP_TARGET_OFFLOAD=MANDATORY
+$tdir/host-offload
+echo ; echo  ==== gpu-offload with offload mandatory and missing requirement ======
+$tdir/offload-xnack
 echo
 
 # cleanup
 echo "====== CLEANUP ===="
-cmd="rm $tmpcfile $tdir/gpu-offload $tdir/host-offload $tdir/no-offload"
+cmd="rm $tmpcfile $tdir/gpu-offload $tdir/host-offload $tdir/no-offload $tdir/offload-xnack"
 echo "$cmd" ; $cmd
 echo 
 

@@ -120,7 +120,6 @@ TESTS_DIR = \
     omp_num_teams_SPMD \
     omp_num_teams_generic \
     omp_wtime \
-    OmpHipMallocManaged \
     pfspecifier \
     pfspecifier_str \
     printf_parallel_for_target \
