@@ -26,43 +26,76 @@ EOF
 echo
 echo "==== $tmpcfile ===="
 cat $tmpcfile
-echo "==== COMPILES ===="
+echo; echo "========== COMPILES ==========="
 
 gpu=`$AOMP/bin/offload-arch`
-cmd="$AOMP/bin/clang -fopenmp -o $tdir/gpu-offload   $tmpcfile --offload-arch=$gpu"
-echo "$cmd" ; $cmd
-cmd="$AOMP/bin/clang -fopenmp -o $tdir/offload-xnack $tmpcfile --offload-arch=$gpu:xnack+"
-echo "$cmd" ; $cmd
-cmd="$AOMP/bin/clang -fopenmp -o $tdir/host-offload  $tmpcfile --offload-arch=znver1"
-echo "$cmd" ; $cmd
-cmd="$AOMP/bin/clang -fopenmp -o $tdir/no-offload    $tmpcfile"
-echo "$cmd" ; $cmd
 
-echo ; echo  ==== gpu-offload ====
-$tdir/gpu-offload
-echo ; echo  ==== host-offload ====
-$tdir/host-offload
-echo ; echo  ==== no-offload ====
-$tdir/no-offload
-echo ; echo  ==== gpu-offload a missing requirement ======
-$tdir/offload-xnack
-echo ; echo  ==== gpu-offload with offload disabled appears as if no-offload ====
-echo export OMP_TARGET_OFFLOAD=DISABLED
+[[ -f $tdir/gpu-offload ]] && rm $tdir/gpu-offload
+[[ -f $tdir/offload-xnack ]] && rm $tdir/offload-xnack
+[[ -f $tdir/host-offload ]] && rm $tdir/host-offload
+[[ -f $tdir/no-offload ]] && rm $tdir/no-offload
+
+cmd="$AOMP/bin/clang -fopenmp -o $tdir/gpu-offload   $tmpcfile --offload-arch=$gpu"
+echo; echo "$cmd" ; $cmd
+
+if [[ "${gpu##*sm_}" == "${gpu}" ]] ; then 
+   echo AMD
+  cmd="$AOMP/bin/clang -fopenmp -o $tdir/offload-xnack $tmpcfile --offload-arch=$gpu:xnack+"
+  echo; echo "$cmd" ; $cmd
+fi
+
+cmd="$AOMP/bin/clang -fopenmp -o $tdir/host-offload  $tmpcfile --offload-arch=znver1"
+echo; echo "$cmd" ; $cmd
+
+cmd="$AOMP/bin/clang -fopenmp -o $tdir/no-offload    $tmpcfile"
+echo; echo "$cmd" ; $cmd
+
+
+
+echo; echo "========== EXECUTE==========="
+if [[ -f $tdir/gpu-offload ]] ; then 
+ echo ; echo  ==== gpu-offload ==== ; $tdir/gpu-offload
+fi
+ 
+if [[ -f $tdir/host-offload ]] ; then 
+  echo ; echo  ==== host-offload ==== ; $tdir/host-offload 
+fi
+
+if [[ -f $tdir/no-offload ]] ; then 
+  echo ; echo  ==== no-offload ==== ; $tdir/no-offload
+fi
+
+if [[ -f $tdir/offload-xnack ]] ; then 
+  echo ; echo  ==== gpu-offload a missing requirement ==== ; $tdir/offload-xnack
+fi
+
+echo; echo export OMP_TARGET_OFFLOAD=DISABLED
 export OMP_TARGET_OFFLOAD=DISABLED
-$tdir/gpu-offload
-echo ; echo  ==== host-offload with offload disabled appears as if no-offload ====
-$tdir/host-offload
-echo ; echo  ==== host-offload with offload mandatory ======
-echo export OMP_TARGET_OFFLOAD=MANDATORY
+
+if [[ -f $tdir/gpu-offload ]] ; then 
+  echo ; echo  ==== gpu-offload with offload disabled appears as if no-offload ==== ; $tdir/gpu-offload
+fi
+
+if [[ -f $tdir/host-offload ]] ; then 
+  echo ; echo  ==== host-offload with offload disabled appears as if no-offload ==== ; $tdir/host-offload
+fi
+
+echo; echo export OMP_TARGET_OFFLOAD=MANDATORY
 export OMP_TARGET_OFFLOAD=MANDATORY
-$tdir/host-offload
-echo ; echo  ==== gpu-offload with offload mandatory and missing requirement ======
-$tdir/offload-xnack
-echo
+
+if [[ -f $tdir/host-offload ]] ; then 
+  echo ; echo  ==== host-offload with offload mandatory === ; $tdir/host-offload
+fi
+
+if [[ -f $tdir/offload-xnack ]] ; then 
+  echo ; echo  ==== gpu-offload with offload mandatory and missing requirement === ; $tdir/offload-xnack
+fi
 
 # cleanup
-echo "====== CLEANUP ===="
-cmd="rm $tmpcfile $tdir/gpu-offload $tdir/host-offload $tdir/no-offload $tdir/offload-xnack"
-echo "$cmd" ; $cmd
-echo 
+rm $tmpcfile 
+[[ -f $tdir/gpu-offload ]] && rm $tdir/gpu-offload 
+[[ -f $tdir/host-offload ]] && rm $tdir/host-offload 
+[[ -f $tidir/no-offload ]] && rm $tdir/no-offload
+[[ -f $tdir/offload-xnack ]] && rm $tdir/offload-xnack
 
+echo
