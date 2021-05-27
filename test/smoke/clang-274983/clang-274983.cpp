@@ -1,6 +1,6 @@
 #include <omp.h>
 #include <stdio.h>
-
+//#pragma omp requires unified_shared_memory
 int main(){
     int N;
     double *x;
@@ -18,7 +18,10 @@ int main(){
     printf("after initialize to 2            : x[1] = %g addr:%p\n",x[1],(void*) &x[1]);
     #pragma omp target data use_device_ptr(x)
     {
-      printf("in target data w/use_device_ptr  : x[1] = %g addr:%p\n",x[1],(void*) &x[1]);
+      printf("in target data w/use_device_ptr  : x[1] = NA addr:%p\n",(void*) &x[1]);
+      #pragma omp target
+        printf("in target region w/use_device_ptr: x[1] = NA addr:%p\n",(void*) &x[1]);
+        printf("after  target region             : x[1] = NA addr:%p\n",(void*) &x[1]);
     }
     printf("outside target data              : x[1] = %g addr:%p\n",x[1],(void*) &x[1]);
     #pragma omp target exit data map(release:x[0:N])
