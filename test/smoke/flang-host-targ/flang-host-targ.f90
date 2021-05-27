@@ -18,6 +18,7 @@ program add_real
       DO i=1, np
          IF (A(i) .NE. 3) THEN
            WRITE(*, *) "ERROR AT INDEX ", i, "EXPECT 2 BUT RECEIVED", A(i)
+           call kill(0,4)
          ENDIF
       END DO
 
