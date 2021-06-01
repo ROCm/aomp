@@ -9,8 +9,9 @@ if [ ! -f $AOMP/bin/clang ] ; then
   echo please build or install AOMP
   exit 1
 fi
-tmpcfile=/tmp/test.c
-tdir=/tmp
+tdir=/tmp/s$$
+mkdir -p $tdir
+tmpcfile=$tdir/test.c
 /bin/cat >$tmpcfile <<"EOF"
 #include <stdio.h>
 #include <omp.h>
@@ -31,11 +32,6 @@ cat $tmpcfile
 echo; echo "========== COMPILES ==========="
 
 gpu=`$AOMP/bin/offload-arch`
-
-[[ -f $tdir/no-offload ]] && rm $tdir/no-offload
-[[ -f $tdir/host-offload ]] && rm $tdir/host-offload
-[[ -f $tdir/gpu-offload ]] && rm $tdir/gpu-offload
-[[ -f $tdir/qualed-offload ]] && rm $tdir/qualed-offload
 
 cmd="$AOMP/bin/clang $tmpcfile -fopenmp -o $tdir/no-offload     "
 echo "$cmd" ; $cmd
@@ -111,10 +107,5 @@ if [[ -f $tdir/qualed-offload ]] ; then
 fi
 
 # cleanup
-rm $tmpcfile
-[[ -f $tidir/no-offload ]] && rm $tdir/no-offload
-[[ -f $tdir/host-offload ]] && rm $tdir/host-offload
-[[ -f $tdir/gpu-offload ]] && rm $tdir/gpu-offload
-[[ -f $tdir/qualed-offload ]] && rm $tdir/qualed-offload
-
+rm -rf $tdir
 echo
