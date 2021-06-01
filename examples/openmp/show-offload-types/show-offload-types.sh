@@ -14,13 +14,15 @@ tdir=/tmp
 /bin/cat >$tmpcfile <<"EOF"
 #include <stdio.h>
 #include <omp.h>
-int main() { 
-printf("HOST: omp_get_initial_device :%d num_devices:%d\n", omp_get_initial_device(),omp_get_num_devices()); 
+int main() {
+printf("HOST:   initial_device:%d  default_device:%d   num_devices:%d\n",
+  omp_get_initial_device(),omp_get_default_device(),omp_get_num_devices());
 #pragma omp target teams
 #pragma omp parallel
 if((omp_get_thread_num()==0) && (omp_get_team_num()==0))
-  printf("TARGET: omp_get_device_num:%d num_devices:%d threads:%d teams:%d\n", 
-  omp_get_device_num(),omp_get_num_devices(),omp_get_num_threads(),omp_get_num_teams()); 
+  printf("TARGET: device_num:%d  num_devices:%d get_initial:%d  is_initial:%d \n        threads:%d  teams:%d\n",
+  omp_get_device_num(),omp_get_num_devices(),omp_get_initial_device(),omp_is_initial_device(),
+  omp_get_num_threads(),omp_get_num_teams());
 }
 EOF
 echo
@@ -57,7 +59,7 @@ if [[ -f $tdir/no-offload ]] ; then
 fi
 
 if [[ -f $tdir/host-offload ]] ; then
-  echo ; echo  ==== host-offload ==== ; $tdir/host-offload 
+  echo ; echo  X=== host-offload ==== ; $tdir/host-offload
 fi
 
 if [[ -f $tdir/gpu-offload ]] ; then
@@ -93,11 +95,11 @@ echo export OMP_TARGET_OFFLOAD=MANDATORY
 export OMP_TARGET_OFFLOAD=MANDATORY
 
 if [[ -f $tdir/no-offload ]] ; then
-  echo ; echo  ==== no-offload with offload mandatory === SHOULD THIS FAIL ?? ; $tdir/no-offload
+  echo ; echo  X=== no-offload with offload mandatory === SHOULD THIS FAIL ?? ; $tdir/no-offload
 fi
 
 if [[ -f $tdir/host-offload ]] ; then
-  echo ; echo  ==== host-offload with offload mandatory === ; $tdir/host-offload
+  echo ; echo  X=== host-offload with offload mandatory === ; $tdir/host-offload
 fi
 
 if [[ -f $tdir/gpu-offload ]] ; then
@@ -105,7 +107,7 @@ if [[ -f $tdir/gpu-offload ]] ; then
 fi
 
 if [[ -f $tdir/qualed-offload ]] ; then
-  echo ; echo  ==== qualed-offload with offload mandatory and no qualified devices === ; $tdir/qualed-offload
+  echo ; echo  X=== qualed-offload with offload mandatory and no qualified devices === ; $tdir/qualed-offload
 fi
 
 # cleanup
