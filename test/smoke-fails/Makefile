@@ -32,6 +32,13 @@ TESTS_DIR = \
     flang-280342 \
     flang-288160 \
     flang-288183 \
+    flang-288446 \
+    flang-288452 \
+    flang-288613 \
+    flang-288613-2 \
+    flang-288613-3 \
+    flang-288625 \
+    flang-288641 \
     flang_atomic_hint \
     flang_dev_write \
     loop_order \

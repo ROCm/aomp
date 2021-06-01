@@ -101,7 +101,6 @@ reduction_teams_distribute_parallel
 schedule
 simd
 slices
-snap_red
 stream
 targc-273738
 targ_declare
