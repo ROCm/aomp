@@ -60,6 +60,7 @@ TESTS_DIR = \
     flang-275194 \
     flang-275194-1 \
     flang_2regions \
+    flang-atomic \
     flang_blkdata-g \
     flang_char_kind \
     flang_deviceio \
