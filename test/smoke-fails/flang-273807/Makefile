@@ -4,7 +4,6 @@ TESTNAME     = flang-273807
 TESTSRC_MAIN = flang-273807.f90
 TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
-TARGET       = -fopenmp -O3 -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$(AOMP_GPU)
 
 FLANG        = flang
 OMP_BIN      = $(AOMP)/bin/$(FLANG)
