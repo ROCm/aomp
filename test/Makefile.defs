@@ -93,14 +93,10 @@ ifeq ($(OFFLOAD_DEBUG),5)
 endif
 
 ifeq ($(OMP_FLAGS),)
-   ifeq ($(USE_OFFLOAD_ARCH),1)
-      OMP_FLAGS = -fopenmp $(TARGET)
-   else
     ifeq ($(OMP_HOST),)
       OMP_FLAGS = -target $(AOMP_CPUTARGET) -fopenmp $(TARGET)
     else
       OMP_FLAGS = -target $(AOMP_CPUTARGET) -fopenmp
-    endif
     endif
 endif
 OMP_FLAGS += $(EXTRA_OMP_FLAGS)
