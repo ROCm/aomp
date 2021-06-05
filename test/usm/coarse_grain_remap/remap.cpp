@@ -17,19 +17,19 @@ int main() {
   #pragma omp target data map(to:a[:n])
   {
     // same region
-    //  err = err || !omp_is_coarse_grain_mem_region(a, n*sizeof(int));
+    err = err || !omp_is_coarse_grain_mem_region(a, n*sizeof(int));
 
     // shrinking already mapped memory, will result in no further
     // map action in rtl
     #pragma omp target data map(to:a[10:n/2])
     {
-      //      err = err || !omp_is_coarse_grain_mem_region(a+10, n/2*sizeof(int));
+      err = err || !omp_is_coarse_grain_mem_region(a+10, n/2*sizeof(int));
     }
 
     // partially intersecting region, results in no-op
     #pragma omp target data map(to:a[n/2:10*n])
     {
-      //      err = err || omp_is_coarse_grain_mem_region(&a[n/2], 10*n*sizeof(int));
+      err = err || omp_is_coarse_grain_mem_region(&a[n/2], 10*n*sizeof(int));
     }
   }
 
