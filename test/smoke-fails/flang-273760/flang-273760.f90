@@ -1,18 +1,20 @@
 ! example of simple Fortran AMD GPU offloading
 program main
+  use omp_lib, ONLY : omp_target_is_present
+  use iso_c_binding, ONLY: c_loc
   parameter (nsize=1000)
   real a(nsize), b(nsize), c(nsize)
   integer i
   logical cond
-  use omp_lib, ONLY : omp_target_is_present
 
   do i=1,nsize
     a(i)=0
     b(i) = i
     c(i) = 10
   end do
-  cond = omp_target_is_present(b,0) .and. omp_target_is_present(c,0)
-  !$omp target update to(b,c)
+  !$omp target enter data map(to:b,c)
+  cond = omp_target_is_present(c_loc(b),0) .and. omp_target_is_present(c_loc(c),0)
+  write(6,*)"Cond=",cond
   !$omp target teams distribute parallel do map(from:a) if(cond)
     do i=1,nsize
       a(i) = b(i) * c(i) + i
