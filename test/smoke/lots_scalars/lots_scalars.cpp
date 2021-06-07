@@ -13,7 +13,6 @@ int main() {
   int f = 3;
   int g = 3;
   int h = 3;
-  int i = 3;
   int j = 3;
   int k = 3;
   int l = 3;
