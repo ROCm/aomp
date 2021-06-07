@@ -54,5 +54,7 @@ int main() {
   for(int i = lb; i < ub; i++)
     if (X[i] != a) err = 1;
 
+  free(X);
+
   return err;
 }
