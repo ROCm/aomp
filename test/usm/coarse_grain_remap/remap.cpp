@@ -25,12 +25,6 @@ int main() {
     {
       err = err || !omp_is_coarse_grain_mem_region(a+10, n/2*sizeof(int));
     }
-
-    // partially intersecting region, results in no-op
-    #pragma omp target data map(to:a[n/2:10*n])
-    {
-      err = err || omp_is_coarse_grain_mem_region(&a[n/2], 10*n*sizeof(int));
-    }
   }
 
   // needed to make clang gen call to tgt_register_requires
