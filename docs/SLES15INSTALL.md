@@ -1,8 +1,8 @@
 # AOMP SUSE SLES-15-SP1 Install 
 AOMP will install to /usr/lib/aomp. The AOMP environment variable will automatically be set to the install location. This may require a new terminal to be launched to see the change.
 ```
-wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_13.0-2/aomp_SLES15_SP1-13.0-2.x86_64.rpm
-sudo rpm -i aomp_SLES15_SP1-13.0-2.x86_64.rpm
+wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_13.0-3/aomp_SLES15_SP1-13.0-3.x86_64.rpm
+sudo rpm -i aomp_SLES15_SP1-13.0-3.x86_64.rpm
 ```
 Confirm AOMP environment variable is set:
 ```
@@ -25,19 +25,13 @@ SUSE SLES-15-SP1 comes with kfd support installed. To verify this:
 
 ### Set Group Access
 ```
-  echo 'SUBSYSTEM=="kfd", KERNEL=="kfd", TAG+="uaccess", GROUP="video"' | sudo tee /etc/udev/rules.d/70-kfd.rules
-  sudo reboot
   sudo usermod -a -G video $USER
 ```
 
 ### NVIDIA CUDA Driver
-If you build AOMP with support for nvptx GPUs, you must first install CUDA 10.
-
-<b>Download Instructions for CUDA (SLES15)</b>
-1. Go to https://developer.nvidia.com/cuda-10.0-download-archive
-2. For SLES-15, select Linux®, x86_64, SLES, 15.0, rpm(local) and then click Download.
-3. Navigate to the rpm in your Linux® directory and run the following commands:
+The CUDA installation is optional.
 ```
+  wget https://developer.nvidia.com/compute/cuda/10.0/Prod/local_installers/cuda-repo-sles15-10-0-local-10.0.130-410.48-1.0-1.x86_64
   sudo rpm -i cuda-repo-sles15-10-0-local-10.0.130-410.48-1.0-1.x86_64.rpm
   sudo zypper refresh
   sudo zypper install cuda

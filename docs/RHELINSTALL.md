@@ -4,16 +4,16 @@ Currently, we support RHEL 7.4 and RHEL 7.6.
 AOMP will install to /usr/lib/aomp. The AOMP environment variable will automatically be set to the install location. This may require a new terminal to be launched to see the change.<br>
 <br><b>The installation may need the following dependency:</b>
 ```
-sudo yum install perl-Digest-MD5
+sudo yum install perl-Digest-MD5 perl-URI-Encode
 ```
 ### Download and Install
 ```
-wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_13.0-2/aomp_REDHAT_7-13.0-2.x86_64.rpm
-sudo rpm -i aomp_REDHAT_7-13.0-2.x86_64.rpm
+wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_13.0-3/aomp_REDHAT_7-13.0-3.x86_64.rpm
+sudo rpm -i aomp_REDHAT_7-13.0-3.x86_64.rpm
 ```
 If CUDA is not installed the installation may cancel, to bypass this:
 ```
-sudo rpm -i --nodeps aomp_REDHAT_7-13.0-2.x86_64.rpm
+sudo rpm -i --nodeps aomp_REDHAT_7-13.0-3.x86_64.rpm
 ```
 Confirm AOMP environment variable is set:
 ```
@@ -56,18 +56,13 @@ Create a /etc/yum.repos.d/rocm.repo file with the following contents:
 ```
 ### Set Group Access
 ```
-  echo 'SUBSYSTEM=="kfd", KERNEL=="kfd", TAG+="uaccess", GROUP="video"' | sudo tee /etc/udev/rules.d/70-kfd.rules
   sudo reboot
   sudo usermod -a -G video $USER
 ```
 ### NVIDIA CUDA Driver
-To build AOMP with support for nvptx GPUs, you must first install CUDA 10.  We recommend CUDA 10.0.  CUDA 10.1 will not work until AOMP moves to the trunk development of LLVM 9. The CUDA installation is now optional.
-
-<b>Download Instructions for CUDA (CentOS/RHEL 7)</b>
-1. Go to https://developer.nvidia.com/cuda-10.0-download-archive
-2. For SLES-15, select Linux®, x86_64, RHEL or CentOS, 7, rpm(local) and then click Download.
-3. Navigate to the rpm in your Linux® directory and run the following commands:
+The CUDA installation is optional.
 ```
+  wget https://developer.nvidia.com/compute/cuda/10.0/Prod/local_installers/cuda-repo-rhel7-10-0-local-10.0.130-410.48-1.0-1.x86_64
   sudo rpm -i cuda-repo-rhel7-10-0-local-10.0.130-410.48-1.0-1.x86_64.rpm
   sudo yum clean all
   sudo yum install cuda
