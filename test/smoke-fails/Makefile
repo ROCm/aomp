@@ -41,6 +41,7 @@ TESTS_DIR = \
     flang-288641 \
     flang-289039 \
     flang_atomic_hint \
+    flang-cmplx-fib \
     flang_dev_write \
     loop_order \
     omp_loop \
