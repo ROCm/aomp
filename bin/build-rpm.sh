@@ -31,11 +31,12 @@ rpmname="Not_Found"
 if [[ $osname =~ "Red Hat" ]]; then
   echo "Red Hat found!!!"
   rpmname=${1:-aomp_REDHAT_7}
-fi
-
-if [[ $osname =~ "SLES" ]]; then
+elif [[ $osname =~ "SLES" ]]; then
   echo "SLES15_SP1 found!!!"
   rpmname=${1:-aomp_SLES15_SP1}
+elif [[ $osname =~ "CentOS" ]]; then
+  echo "CENTOS found!!!"
+  rpmname=${1:-aomp_CENTOS_8}
 fi
 
 # Ensure the rpmbuild tool from rpm-build package is available
