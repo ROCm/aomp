@@ -21,12 +21,9 @@
  */
 
 #include "hip/hip_runtime.h"
-#include "hip/hip_runtime_api.h"
 #include <iostream>
 #include <fstream>
 #include <vector>
-#include <hip/hcc_detail/functional_grid_launch.hpp>
-#include <hip/hip_ext.h>
 
 //#define GLOBAL_SIZE 1024*1024
 #define GLOBAL_SIZE 1024*1024
@@ -72,7 +69,7 @@ int main() {
     HIP_CHECK(hipModuleLoad(&Module, fileName));
     HIP_CHECK(hipModuleGetFunction(&Function, Module, kernel_name));
 
-#ifdef __HIP_PLATFORM_HCC__
+#ifdef __HIP_PLATFORM_AMD__
     uint32_t len = GLOBAL_SIZE;
     uint32_t one = 1;
 
