@@ -91,6 +91,6 @@ int main() {
   }
 
   if(err) std::cout << "There was an error" << std::endl;
-  
+
   return err;
 }
