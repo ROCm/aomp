@@ -1,3 +1,4 @@
+#include <malloc.h>
 #include <iostream>
 #include <omp.h>
 
@@ -6,11 +7,16 @@
 
 #pragma omp requires unified_shared_memory
 
+// use memalign to make sure malloc'ed addresses are aligned to page size
+// this prevents two allocations to end up in the same page, making possible
+// to test. This is not a requirement for users
+#define PAGESIZE 4096
+
 int main() {
   int err = 0;
   int n = N;
-  int32_t *a = (int32_t *) malloc(n*sizeof(int));
-  int32_t *b = (int32_t *) malloc(n*sizeof(int));
+  int32_t *a = (int32_t *) memalign(PAGESIZE, n*sizeof(int));
+  int32_t *b = (int32_t *) memalign(PAGESIZE, n*sizeof(int));
 
   // 'a' is not yet mapped, then not yet memadvise'd to be coarse grain and registered as such
   err = err || omp_is_coarse_grain_mem_region(a, n*sizeof(int));
