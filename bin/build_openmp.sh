@@ -281,19 +281,17 @@ if [ "$1" == "install" ] ; then
       fi
 
       # we do not yet have OMPD in llvm 12, disable this for now.
-      if [ "$AOMP_MAJOR_VERSION" != "13" ] ; then
-        # Copy selected debugable runtime sources into the installation lib-debug/src directory
-        # to satisfy the above -fdebug-prefix-map.
-        $SUDO mkdir -p $AOMP_INSTALL_DIR/lib-debug/src/openmp/runtime/src
-        echo cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/runtime/src $AOMP_INSTALL_DIR/lib-debug/src/openmp/runtime
-        $SUDO cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/runtime/src $AOMP_INSTALL_DIR/lib-debug/src/openmp/runtime
-        $SUDO mkdir -p $AOMP_INSTALL_DIR/lib-debug/src/openmp/libomptarget/src
-        echo cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/libomptarget/src $AOMP_INSTALL_DIR/lib-debug/src/openmp/libomptarget
-        $SUDO cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/libomptarget/src $AOMP_INSTALL_DIR/lib-debug/src/openmp/libomptarget
-        echo cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/libomptarget/plugins $AOMP_INSTALL_DIR/lib-debug/src/openmp/libomptarget
-        $SUDO cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/libomptarget/plugins $AOMP_INSTALL_DIR/lib-debug/src/openmp/libomptarget
-        $SUDO mkdir -p $AOMP_INSTALL_DIR/lib-debug/src/openmp/libompd/src
-        $SUDO cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/libompd/src $AOMP_INSTALL_DIR/lib-debug/src/openmp/libompd
-      fi
+      # Copy selected debugable runtime sources into the installation lib-debug/src directory
+      # to satisfy the above -fdebug-prefix-map.
+      $SUDO mkdir -p $AOMP_INSTALL_DIR/lib-debug/src/openmp/runtime/src
+      echo cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/runtime/src $AOMP_INSTALL_DIR/lib-debug/src/openmp/runtime
+      $SUDO cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/runtime/src $AOMP_INSTALL_DIR/lib-debug/src/openmp/runtime
+      $SUDO mkdir -p $AOMP_INSTALL_DIR/lib-debug/src/openmp/libomptarget/src
+      echo cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/libomptarget/src $AOMP_INSTALL_DIR/lib-debug/src/openmp/libomptarget
+      $SUDO cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/libomptarget/src $AOMP_INSTALL_DIR/lib-debug/src/openmp/libomptarget
+      echo cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/libomptarget/plugins $AOMP_INSTALL_DIR/lib-debug/src/openmp/libomptarget
+      $SUDO cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/libomptarget/plugins $AOMP_INSTALL_DIR/lib-debug/src/openmp/libomptarget
+      $SUDO mkdir -p $AOMP_INSTALL_DIR/lib-debug/src/openmp/libompd/src
+      $SUDO cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/libompd/src $AOMP_INSTALL_DIR/lib-debug/src/openmp/libompd
    fi
 fi
