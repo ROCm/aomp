@@ -170,6 +170,15 @@ function hipopenmp(){
   update_logs log hip-openmp-check.txt
 }
 
+function usm(){
+ # -----Run usm-----
+  header usm
+  cd $AOMP_SRC/test/usm > /dev/null
+  echo "Log file at: $log_dir/usm.log"
+  ./check_usm.sh > $log_dir/usm.log 2>&1
+  update_logs bin check_usm.sh
+}
+
 function omp5(){
  # -----Run Omp5-----
   header OMP5
