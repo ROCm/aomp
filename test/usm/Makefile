@@ -1,7 +1,8 @@
 #include ../Makefile.defs
 
 TESTS_DIR = \
-    OmpHipMallocManaged 
+    OmpHipMallocManaged \
+    flang-off-arch-xnack
 
 all:
 	@for test_dir in $(TESTS_DIR); do \

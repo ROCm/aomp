@@ -42,7 +42,7 @@ endif
 ifeq (opt,$(findstring opt,$(AOMP)))
   INSTALLED_GPU  = $(shell $(AOMP)/../bin/rocm_agent_enumerator | grep -m 1 -E gfx[^0]{1}.{2})
 else
-  INSTALLED_GPU  = $(shell $(AOMP)/bin/mygpu -d gfx900) # Default AOMP_GPU is gfx900 which is vega
+  INSTALLED_GPU  = $(shell $(AOMP)/bin/mygpu -d gfx900)# Default AOMP_GPU is gfx900 which is vega
 endif
 
 AOMP_GPU       ?= $(INSTALLED_GPU)
@@ -58,7 +58,7 @@ endif
 ifeq ($(TARGET),)
   ifeq ($(OMP_HOST),)
    ifeq ($(USE_OFFLOAD_ARCH),1)
-    TARGET  =  --offload-arch=$(AOMP_GPU)
+    TARGET  =  --offload-arch=$(AOMP_GPU)$(AOMP_TARGET_FEATURES)
    else
     TARGET  =  -fopenmp-targets=$(AOMP_GPUTARGET) -Xopenmp-target=$(AOMP_GPUTARGET) -march=$(AOMP_GPU)
    endif
