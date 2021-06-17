@@ -154,14 +154,11 @@ fi
 
 function edit_installed_hip_file(){
    if [ -f $installed_hip_file_to_edit ] ; then
-      # must replace usages of /opt/rocm/llvm/ before /opt/rocm
-      $SUDO sed -i -e "s/\"\/opt\/rocm\"\/llvm/\"$SED_INSTALL_DIR\"/" $installed_file_to_edit
-      $SUDO sed -i -e "s/\"\/opt\/rocm\"/\"$SED_INSTALL_DIR\"/" $installed_file_to_edit
-      $SUDO sed -i -e "s/\$HIP_CLANG_PATH=\$ENV{'HIP_CLANG_PATH'}/\$HIP_CLANG_PATH=\"$SED_INSTALL_DIR\/bin\" /" $installed_file_to_edit
-      $SUDO sed -i -e "s/\$ROCM_PATH=\$ENV{'ROCM_PATH'}/\$ROCM_PATH=\"$SED_INSTALL_DIR\" /" $installed_file_to_edit
-      # May not need these anymore
-      $SUDO sed -i -e "s/ -D_OPENMP //" $installed_file_to_edit
-      $SUDO sed -i -e "s/\$DEVICE_LIB_PATH = \"\$ROCM_PATH\/lib\"/\$DEVICE_LIB_PATH = \"\$ROCM_PATH\/amdgcn\/bitcode\"/" $installed_file_to_edit
+      # In hipvars.pm HIP_PATH is determined by parent directory of hipcc location.
+      # Set ROCM_PATH using HIP_PATH
+      $SUDO sed -i -e "s/\"\/opt\/rocm\"/\"\$HIP_PATH\"/" $installed_file_to_edit
+      # Set HIP_CLANG_PATH using ROCM_PATH/bin
+      $SUDO sed -i -e "s/\"\$ROCM_PATH\/llvm\/bin\"/\"\$ROCM_PATH\/bin\"/" $installed_file_to_edit
     fi
 }
 
