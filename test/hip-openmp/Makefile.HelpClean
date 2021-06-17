@@ -24,5 +24,5 @@ clean:
 	@[ -f ./$(TESTNAME) ] && rm ./$(TESTNAME) ; true
 	@[ -f ./obin ] && rm ./obin ; true
 	@[ -f ./$(TESTNAME).ll ] && rm *.ll ; true
-	@[ -f ./$(TESTNAME).o ] && rm $(TESTNAME).o ; true
+	@[ -f ./$(TESTNAME).o ] && rm *.o ; true
 	@[ -f ./$(TESTNAME).s ] && rm *.s ; true
