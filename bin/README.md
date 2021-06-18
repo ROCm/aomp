@@ -60,7 +60,7 @@ These are some important environment variables and their default values.
 | AOMP_REPOS            | $HOME/git/aomp13   | The base directory for all AOMP build repositories
 | AOMP_STANDALONE_BUILD | 1                  | Build all components, do NOT use installed ROCm
 | AOMP_VERSION          | 13.0               | Will change to 13.1 when LLVM 13 stablizes.
-| AOMP_VERSION_MOD      | 3                  | This imples the next release will be AOMP_13.0-3.
+| AOMP_VERSION_MOD      | 4                  | This imples the next release will be AOMP_13.0-4.
 | AOMP_VERSION_STRING   | $AOMP_VERSION-$AOMP_VERSION_MOD |
 | GFXLIST               | gfx700 gfx701 gfx801 gfx803     | List of AMDGPU gpus to build for
 |                       | gfx900 gfx902 gfx906 gfx908     |
@@ -112,6 +112,15 @@ After you have all the source repositories from running clone_aomp.sh and you ha
 run the master build script that steps through the build of all aomp components:
 ```
    ./build_aomp.sh
+```
+There are options to select a subset of components to build and install.
+1) Start with openmp and continue to the end of the component list.
+```
+  ./build_aomp.sh continue openmp
+```
+2) Select a subset of components to build.
+```
+  ./build_aomp.sh select openmp flang flang_runtime
 ```
 The default AOMP source build is a standalone build of all components needed for compilation and execution with the exception of the kfd Linux kernel module for AMD GPUs or the CUDA SDK for Nvidia GPUs.
 
@@ -240,17 +249,17 @@ The install location is defined by the $AOMP environment variable. The value of 
 That is, the physical installation will be in directory name formed by concatonating the version string to the value of $AOMP.
 The "build_project.sh install" script will make a symbolic link from the physical directory to the symbolic directory $AOMP.
 The default value for AOMP is $HOME/rocm/aomp.
-For example, when building AOMP version 13.0-3 the install scripts will put all files and directories
-in $HOME/rocm/aomp_13.0-3 and create a symbolic link as follows:
+For example, when building AOMP version 13.0-4 the install scripts will put all files and directories
+in $HOME/rocm/aomp_13.0-4 and create a symbolic link as follows:
 
 ```
-ln -sf ${AOMP}_13.0-3 ${AOMP}
+ln -sf ${AOMP}_13.0-4 ${AOMP}
 ```
 All testing for AOMP uses the environment variable AOMP to locate the installation. This makes it easy to switch between versions of AOMP for testing by simply changing the environment variable AOMP. You do NOT need to change the symbolic link.
-For example, if the aomp symbolic link currently points to aomp_13.0-3 and you want to test aomp_13.0-2, do this:
+For example, if the aomp symbolic link currently points to aomp_13.0-4 and you want to test aomp_13.0-3, do this:
 
 ```
-export AOMP=$HOME/rocm/aomp_13.0-2
+export AOMP=$HOME/rocm/aomp_13.0-3
 ```
 
 The aomp package installs in /usr/lib/aomp_\<version_string\> and symlinks /usr/lib/aomp to the versioned directory. To test the installed package, set AOMP to /usr/lib/aomp or /usr/lib/aomp_\<version_string\>.
