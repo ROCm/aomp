@@ -19,6 +19,8 @@ program test
       write(0, *) "before device_ptr ", x(1)
       !$omp target data use_device_ptr(x)
          write(0, *) "in device_ptr", x(1)
+         if (x(1) .ne. 1) write (0,*) 'FAILED wrong def on x(1)', x(1)
+         stop
       !$omp end target data
 
      !$omp target 

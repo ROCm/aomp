@@ -31,6 +31,6 @@ program test
      !$omp target exit data map(from:x)
       nullify(x)
       if (xaddr1 .ne. xaddr) then
-        write(0,*) "Failed in_device_ptr"
+        write(0,*) "FAILED in_device_ptr", xaddr, xaddr1
       endif
 end program test
