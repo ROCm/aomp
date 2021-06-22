@@ -165,7 +165,8 @@ TESTS_DIR = \
     vasp1 \
     veccopy \
     vmuldemo \
-    vmulsum
+    vmulsum \
+    wgs64
 
 all:
 	@for test_dir in $(TESTS_DIR); do \
