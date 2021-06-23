@@ -11,8 +11,8 @@ int main(void) {
 {
    isHost = omp_is_initial_device();
 #ifdef _DEVICE_ARCH
-   printf("DEVICE ARCH:%s   GPU(STR):%s   GPU(INT):%d\n",
-         _STRVALUE(_DEVICE_ARCH), _STRVALUE(_DEVICE_GPU), _DEVICE_GPU );
+   printf("DEVICE ARCH:%s   GPU(STR):%s\n",
+         _STRVALUE(_DEVICE_ARCH), _STRVALUE(_DEVICE_GPU));
 #else
    printf("THIS IS AN UNEXPECTED HOST FALLBACK IN TARGET REGION!\n");
 #endif
