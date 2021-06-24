@@ -97,6 +97,7 @@ TESTS_DIR = \
     launch_latency \
     liba_bundled \
     liba_bundled_cmdline \
+    libgomp-292348 \
     longDouble \
     lto_teams \
     ManyKernels \
