@@ -123,6 +123,8 @@ TESTS_DIR = \
     omp_lock \
     omp_num_teams_SPMD \
     omp_num_teams_generic \
+    omp_target_is \
+    omp_targ_err1 \
     omp_wtime \
     pfspecifier \
     pfspecifier_str \
