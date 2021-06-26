@@ -6,10 +6,23 @@ TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 
 CLANG        = hipcc
-OMP_BIN      = $(AOMP)/bin/$(CLANG)
-CC           = $(OMP_BIN) $(VERBOSE)
 OMP_FLAGS    = -lgomp
 CFLAGS      = -g -O0 -m64 -fopenmp -lgomp -lstdc++
+
+ifeq ($(EPSDB),1)
+NEWEST_ROCM ?= $(shell ls --sort=time /opt | grep -m 1 rocm)
+ifeq ($(NEWEST_ROCM),)
+$(error "Error: No ROCm detected!")
+endif
+AOMPROCM ?=/opt/$(NEWEST_ROCM)
+$(warning "AOMPROCM = $(AOMPROCM)")
+OMP_BIN      = $(AOMPROCM)/bin/$(CLANG)
+else
+AOMP ?=$(AOMPROCM)
+OMP_BIN      = $(AOMP)/bin/$(CLANG)
+endif
+CC           = $(OMP_BIN) $(VERBOSE)
+
 #-ccc-print-phases
 #"-\#\#\#"
 
