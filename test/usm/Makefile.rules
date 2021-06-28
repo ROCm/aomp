@@ -27,7 +27,7 @@ else
 endif
 
 run: $(TESTNAME)
-	$(RUNENV) $(RUNPROF) ./$(TESTNAME) 2>&1 | tee $@.log
+	$(RUNT) $(RUNENV) $(RUNPROF) ./$(TESTNAME) 2>&1 | tee $@.log
 
 check: $(TESTNAME)
 	path=`pwd`; \

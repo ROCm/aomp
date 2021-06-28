@@ -63,7 +63,7 @@ endif
 
 FORT   =$(AOMP)/bin/flang
 LFLAGS = 
-FFLAGS =
+FFLAGS = -fopenmp
 
 # ----- Demo compile and link in one step, no object code saved
 $(TESTNAME): $(TESTNAME).$(FILETYPE)

@@ -11,6 +11,7 @@ TESTS_DIR = \
     clang-279673 \
     clang-273738 \
     clang-273739 \
+    clang-280954 \
     clang-284324 \
     closed_bug1 \
     flang-collapseNR \
@@ -41,7 +42,12 @@ TESTS_DIR = \
     flang-288641 \
     flang-289039 \
     flang_atomic_hint \
+    flang-cmplx-fib \
     flang_dev_write \
+    lds-prob1 \
+    lds-prob2 \
+    lds-prob3 \
+    lds-prob4 \
     loop_order \
     omp_loop \
     reduction_array \

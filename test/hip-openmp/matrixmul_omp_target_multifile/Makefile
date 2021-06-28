@@ -60,7 +60,7 @@ OMP_TARGET_FLAGS = -fopenmp-targets=$(TRIPLE) -Xopenmp-target=$(TRIPLE) -march=$
 CFLAGS = -fopenmp -O2 
 
 # ----- Demo compile and link in one step, no object code saved
-$(TESTNAME): matsup.o hiptarg.o omptarg.o $(TESTNAME).$(FILETYPE)
+$(TESTNAME): matsup.o hiptarg.o omptarg.o $(TESTNAME).o
 	$(CC) $(CFLAGS) $(LFLAGS) $^ -o $@ $(HIPFLAGS) $(OMP_TARGET_FLAGS) $(HIPLIBS) -lamdhip64
 
 run: $(TESTNAME)

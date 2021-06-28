@@ -25,7 +25,7 @@ endif
 
 #LFLAGS= -g  -Wl,--unresolved-symbols=ignore-in-shared-libs
 LFLAGS = 
-CFLAGS =  -std=c++11 -D__HIP_PLATFORM_HCC__ -O3 -target $(AOMP_CPUTARGET) -fopenmp -fopenmp-targets=$(AOMP_GPUTARGET) -Xopenmp-target=$(AOMP_GPUTARGET) -march=$(AOMP_GPU)
+CFLAGS =  -std=c++11 -D__HIP_PLATFORM_AMD__ -O3 -target $(AOMP_CPUTARGET) -fopenmp -fopenmp-targets=$(AOMP_GPUTARGET) -Xopenmp-target=$(AOMP_GPUTARGET) -march=$(AOMP_GPU)
 FUNOPTS = -vv -ll
 FUNOPTS = 
 

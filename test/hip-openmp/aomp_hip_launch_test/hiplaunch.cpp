@@ -89,7 +89,7 @@ void* wrapper(void * start) {
     return NULL;
 }
 
-const char *device_image_filename="a.out-openmp-amdgcn-amd-amdhsa-";
+const char *device_image_filename="a.out-openmp-amdgcn-amd-amdhsa";
 
 #define N 100
 int A[N];
@@ -103,7 +103,6 @@ int main(int argc, char *argv[])
     const char *kernel_name = argv[1];
     char ImageName[1000];
     strcpy(ImageName, device_image_filename);
-    strcat(ImageName, argv[2]);
     printf("Image is %s\n", ImageName);
     hipError_t hipres;
     hipModule_t hipmod;

@@ -24,7 +24,7 @@
 
 
 ```
-#### RHEL 7  Packages
+#### RHEL 7 Packages
 Building from source requires a newer gcc. Devtoolset-7 is recommended, follow instructions 1-3 here:<br>
 Note that devtoolset-7 is a Software Collections package, and it is not supported by AMD.
 https://www.softwarecollections.org/en/scls/rhscl/devtoolset-7/<br>
@@ -35,7 +35,7 @@ https://www.softwarecollections.org/en/scls/rhscl/devtoolset-7/<br>
   sudo yum install pciutils-devel numactl-devel libffi-devel mesa-libGL-devel
 
   # Additional packages used by rocgdb
-  sudo yum install texinfo bison flex ncurses-devel.x86_64 expat-devel.x86_64 xz-devel.x86_64 libbabeltrace-devel.x86_64
+  sudo yum install texinfo bison flex ncurses-devel expat-devel xz-devel libbabeltrace-devel
 ```
  RHEL 7.6 and earlier RHEL 7 versions do not have the python36-devel package, which requires a software collection installation.
 ```
@@ -47,6 +47,17 @@ https://www.softwarecollections.org/en/scls/rhscl/devtoolset-7/<br>
 RHEL 7.7 and later RHEL 7 versions
 ```
   sudo yum install python3 python3-pip python36-devel python36-setuptools
+```
+#### CentOS 8 Packages
+```
+  sudo yum install dnf-plugins-core
+  sudo yum config-manager --set-enabled powertools
+
+  sudo yum install gcc gcc-c++ git make pciutils-devel numactl-devel libffi-devel mesa-libGL-devel elfutils-libelf-devel libquadmath-devel python3 python3-pip python36-devel python3-setuptools python2
+
+  # Additional packages used by rocgdb
+  sudo yum install texinfo bison flex ncurses-devel expat-devel xz-devel libbabeltrace-devel
+  python3 -m pip install CppHeaderParser argparse wheel lit --user
 ```
 
 ### 2. User-installed Python Components

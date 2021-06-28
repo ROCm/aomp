@@ -8,18 +8,13 @@ To install the debian package without root access into your home directory, you 
 
 On Ubuntu 20.04:
 ```
-   wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_13.0-2/aomp_Ubuntu2004_13.0-2_amd64.deb
-   dpkg -x aomp_Ubuntu2004_13.0-2_amd64.deb /tmp/temproot
+   wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_13.0-4/aomp_Ubuntu2004_13.0-4_amd64.deb
+   dpkg -x aomp_Ubuntu2004_13.0-4_amd64.deb /tmp/temproot
 ```
 On Ubuntu 18.04 LTS (bionic beaver):
 ```
-   wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_13.0-2/aomp_Ubuntu1804_13.0-2_amd64.deb
-   dpkg -x aomp_Ubuntu1804_13.0-2_amd64.deb /tmp/temproot
-```
-On Ubuntu 16.04:
-```
-   wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_13.0-2/aomp_Ubuntu1604_13.0-2_amd64.deb
-   dpkg -x aomp_Ubuntu1604_13.0-2_amd64.deb /tmp/temproot
+   wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_13.0-4/aomp_Ubuntu1804_13.0-4_amd64.deb
+   dpkg -x aomp_Ubuntu1804_13.0-4_amd64.deb /tmp/temproot
 ```
 Move to $HOME and set variables:
 ```
@@ -36,13 +31,18 @@ To install the rpm package without root access into your home directory, you can
 ```
 For Red Hat:
 ```
-   wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_13.0-2/aomp_REDHAT_7-13.0-2.x86_64.rpm
-   rpm2cpio aomp_REDHAT_7-13.0-2.x86_64.rpm | cpio -idmv
+   wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_13.0-4/aomp_REDHAT_7-13.0-4.x86_64.rpm
+   rpm2cpio aomp_REDHAT_7-13.0-4.x86_64.rpm | cpio -idmv
 ```
 For SLES15-SP1:
 ```
-   wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_13.0-2/aomp_SLES15_SP1-13.0-2.x86_64.rpm
-   rpm2cpio aomp_SLES15_SP1-13.0-2.x86_64.rpm | cpio -idmv
+   wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_13.0-4/aomp_SLES15_SP1-13.0-4.x86_64.rpm
+   rpm2cpio aomp_SLES15_SP1-13.0-4.x86_64.rpm | cpio -idmv
+```
+For CentOS:
+```
+   wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_13.0-4/aomp_CENTOS_8-13.0-4.x86_64.rpm
+   rpm2cpio aomp_CENTOS_8-13.0-4.x86_64.rpm | cpio -idmv
 ```
 Move to $HOME and set variables:
 ```

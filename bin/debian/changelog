@@ -1,4 +1,4 @@
-aomp (13.0-2) UNRELEASED; urgency=medium
+aomp (13.0-4) UNRELEASED; urgency=medium
 
   * Initial release of aomp is 0.3-2
   *   Please see example in /usr/lib/aomp/examples/vmuldemo 
@@ -549,5 +549,77 @@ aomp (13.0-2) UNRELEASED; urgency=medium
   * Known Issues:
   *  Regression with QMCPACK deterministic tests.
   *  pow(double, int) is returning -inf.
-
- -- Greg Rodgers <Gregory.Rodgers@amd.com>  Sun, 11 Apr 2021 12:43:14 -0500
+  *
+  * 13.0-3
+  *  Features:
+  *  1. support for the --offload-arch option. Both cuda and hip offload kinds already support
+  *       --offload-arch flag. One could think if it as an alias for --fopenmp-targets=TRIPLE
+  *       -Xopenmp-target=TRIPLE -march=GPUNAME which greatly simplifies command line specification for
+  *       OpenMP offloading. One only needs to  specify --offload-arch=GPUNAME.
+  *  2. A new cross-architecture clang tool called 'offload-arch' will determine the current GPUNAME of an
+  *       active system with a supported GPU card. There are a number of options. However, with no options
+  *       it prints to stdout the GPUNAME. So this command could be used to compile foo.c for openmp offloading
+  *       "clang -fopenmp --offload-arch=`offload-arch`"  Assuming $AOMP/bin is in your $PATH environment variable.
+  *  3. New runtime checking now looks at available images and selects an image whose requirements are satisfied
+  *       with runtime capabilities. Requirements include the GPUNAME and special compilation features that
+  *       create an image that only works when a system is operating with the special capabilities. These special
+  *       requirements form what is known as target-id.
+  *  4. Archive files on the command line are now checked to see if they contain offloading code for the specified
+  *       offload target  which are subsequently used to link the GPU image.
+  *  Fixes:
+  *  [flang] Resolved: cannot compile modules with private allocatable structs.
+  *  Removed invalid header definition for log2 affecting Kokkos.
+  *  QMCPACK unit tests now at 100% pass rate.
+  *  Move hostcall required test to rtl, fix minor race.
+  *  Centos 7 system headers had math functions with various return types for isnan/isinf, which caused
+  *        conflicts with clang headers. Clang headers now use omp variants to resolve issue.
+  *
+  *  System Build
+  *  Moved the construction of offloading libm from aomp-extras to openmp/libomptarget/deviceRTLs/libm.
+  *       Currently the libm device library is only needed for FORTRAN because clang system headers have
+  *       architecture specific definitions for math functions for c and c++. The build of libm builds bc files
+  *       for GPU linking in  $AOMP/lib/libdevice/libm-<ARCH>-<GPUNAME>.bc. These are built using the clang system
+  *       headers by changing each static definition to external definitions by setting __BUILD_MATH_BUILTINS_LIB__
+  *
+  *  Known issues to be resolved in 13.0-4
+  *  aomp/examples failures:
+  *       cloc/vector_copy_hip
+  *       cloc/vector_copy_hip_omp
+  *       hip/device_lib
+  *       hip/writeIndex
+  *  hip-openmp failures:
+  *       aomp_hip_launch_test
+  *       hip_host_register
+  *  36 Clang lit tests failing
+  *  RAJA build failure
+  *
+  * 13.0-4
+  *   These are the release notes for AOMP_13.0-4. The source code base for this release is the upstream LLVM 13
+  *       monorepo  main branch as of April 1, 2021 with hash value 0889181625bb570e463362ab8f53f9a14c886b2e.
+  *       Updates from the aomp-stg-open repo were added as one commit per file difference as of April  6, 2021.
+  *   Features:
+  *   Support larger CU masks up to 128 bit or up to 128 CUs.
+  *   Provide warning when HIP tries to use OpenMP offloading that this is not supported and target constructs
+  *       will be ignored.
+  *
+  *   Fixes:
+  *   Fixed examples/cloc/vector_copy_hip and vector_copy_hip_omp to use __HIP_PLATFORM_AMD__ from depracated
+  *       __HIP_PLATFORM_HCC__.
+  *   Fixed examples/hip/device_lib.
+  *   Fixed examples/hip/writeIndex.
+  *   Fixed test/hip-openmp/aomp_hip_launch_test. Bug in driver.cpp and new name for a.out file.
+  *   Fixed test/hip-openmp/hip_host_register.
+  *   Fixed hipcc when using noroot installs.
+  *   Fixed host compilation picking up the wrong libomp.so on some systems.
+  *   Fixed RPATH to include lib64.
+  *   Fixed RAJA build issue.
+  *   Fixed issue where targetID was not handled properly with march/fopenmp-targets.
+  *
+  *   Build changes:
+  *   Turn on ROCT_ENABLE for openmp default build in addtion to openmp_debug build.
+  *   Update list of gfx names to include gfx90a.
+  *   Update list of NVPTX GPU names to : 30,35,37,50,52,53,60,61,62
+  *
+  *   Known Regressions:
+  *   9 Clang lit test failures
+ -- Greg Rodgers <Gregory.Rodgers@amd.com>  Thu, 17 Jun 2021 14:01:06 -0500

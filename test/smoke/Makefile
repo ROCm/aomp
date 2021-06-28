@@ -97,6 +97,7 @@ TESTS_DIR = \
     launch_latency \
     liba_bundled \
     liba_bundled_cmdline \
+    libgomp-292348 \
     longDouble \
     lto_teams \
     ManyKernels \
@@ -123,6 +124,8 @@ TESTS_DIR = \
     omp_lock \
     omp_num_teams_SPMD \
     omp_num_teams_generic \
+    omp_target_is \
+    omp_targ_err1 \
     omp_wtime \
     pfspecifier \
     pfspecifier_str \
@@ -165,7 +168,8 @@ TESTS_DIR = \
     vasp1 \
     veccopy \
     vmuldemo \
-    vmulsum
+    vmulsum \
+    wgs64
 
 all:
 	@for test_dir in $(TESTS_DIR); do \
