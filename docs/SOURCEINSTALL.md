@@ -1,4 +1,4 @@
-# Source Install V 13.0-3 (DEV)
+# Source Install V 13.0-4 (DEV)
 
 Build and install from sources is possible.  However, the source build for AOMP is complex for several reasons.
 - Many repos are required.  The clone_aomp.sh script ensures you have all repos and the correct branch.
@@ -29,7 +29,7 @@ The development version is the next version to be released.  It is possible that
 
 <b>For the Release Branch:</b>
 ```
-   git checkout aomp-13.0-3
+   git checkout aomp-13.0-4
    git pull
    export AOMP_CHECK_GIT_BRANCH=0 //Tags will be used to checkout various repos. This will ignore the detached head state to avoid build errors.
 ```

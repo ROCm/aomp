@@ -1,4 +1,4 @@
-aomp (13.0-3) UNRELEASED; urgency=medium
+aomp (13.0-4) UNRELEASED; urgency=medium
 
   * Initial release of aomp is 0.3-2
   *   Please see example in /usr/lib/aomp/examples/vmuldemo 
@@ -592,4 +592,34 @@ aomp (13.0-3) UNRELEASED; urgency=medium
   *       hip_host_register
   *  36 Clang lit tests failing
   *  RAJA build failure
- -- Greg Rodgers <Gregory.Rodgers@amd.com>  Mon, 07 Jun 2021 20:21:27 -0500
+  *
+  * 13.0-4
+  *   These are the release notes for AOMP_13.0-4. The source code base for this release is the upstream LLVM 13
+  *       monorepo  main branch as of April 1, 2021 with hash value 0889181625bb570e463362ab8f53f9a14c886b2e.
+  *       Updates from the aomp-stg-open repo were added as one commit per file difference as of April  6, 2021.
+  *   Features:
+  *   Support larger CU masks up to 128 bit or up to 128 CUs.
+  *   Provide warning when HIP tries to use OpenMP offloading that this is not supported and target constructs
+  *       will be ignored.
+  *
+  *   Fixes:
+  *   Fixed examples/cloc/vector_copy_hip and vector_copy_hip_omp to use __HIP_PLATFORM_AMD__ from depracated
+  *       __HIP_PLATFORM_HCC__.
+  *   Fixed examples/hip/device_lib.
+  *   Fixed examples/hip/writeIndex.
+  *   Fixed test/hip-openmp/aomp_hip_launch_test. Bug in driver.cpp and new name for a.out file.
+  *   Fixed test/hip-openmp/hip_host_register.
+  *   Fixed hipcc when using noroot installs.
+  *   Fixed host compilation picking up the wrong libomp.so on some systems.
+  *   Fixed RPATH to include lib64.
+  *   Fixed RAJA build issue.
+  *   Fixed issue where targetID was not handled properly with march/fopenmp-targets.
+  *
+  *   Build changes:
+  *   Turn on ROCT_ENABLE for openmp default build in addtion to openmp_debug build.
+  *   Update list of gfx names to include gfx90a.
+  *   Update list of NVPTX GPU names to : 30,35,37,50,52,53,60,61,62
+  *
+  *   Known Regressions:
+  *   9 Clang lit test failures
+ -- Greg Rodgers <Gregory.Rodgers@amd.com>  Thu, 17 Jun 2021 14:01:06 -0500

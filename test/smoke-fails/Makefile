@@ -44,6 +44,10 @@ TESTS_DIR = \
     flang_atomic_hint \
     flang-cmplx-fib \
     flang_dev_write \
+    lds-prob1 \
+    lds-prob2 \
+    lds-prob3 \
+    lds-prob4 \
     loop_order \
     omp_loop \
     reduction_array \

@@ -132,3 +132,7 @@ ifeq ($(SET_DEVICE_DEBUG),)
 else
    RUNENV = env $(SET_DEVICE_DEBUG) $(TKILL)
 endif
+
+ifeq ($(HSA_XNACK),1)
+  OMP_FLAGS += -offload-usm
+endif
