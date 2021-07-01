@@ -1,14 +1,26 @@
 diff --git a/include/RAJA/policy/atomic_auto.hpp b/include/RAJA/policy/atomic_auto.hpp
-index 34d7f50a..b323adae 100644
+index 934bfc68e..027895111 100644
 --- a/include/RAJA/policy/atomic_auto.hpp
 +++ b/include/RAJA/policy/atomic_auto.hpp
-@@ -36,7 +36,8 @@
+@@ -36,7 +36,7 @@
   * Finally, we fallback on the seq_atomic, which performs non-atomic operations
   * because we assume there is no thread safety issues (no parallel model)
   */
 -#if defined(__CUDA_ARCH__)
-+
 +#if defined(RAJA_ENABLE_CUDA) && defined(__CUDA_ARCH__)
  #define RAJA_AUTO_ATOMIC \
    RAJA::cuda_atomic {}
- #elif defined(RAJA_ENABLE_OPENMP)
+ #elif defined(__HIP_DEVICE_COMPILE__)
+diff --git a/test/unit/workgroup/CMakeLists.txt b/test/unit/workgroup/CMakeLists.txt
+index d3228a9a5..5d4d84eb0 100644
+--- a/test/unit/workgroup/CMakeLists.txt
++++ b/test/unit/workgroup/CMakeLists.txt
+@@ -72,7 +72,7 @@ if(RAJA_TEST_EXHAUSTIVE OR NOT RAJA_COMPILER MATCHES "RAJA_COMPILER_Intel")
+ endif()
+ 
+ set(Vtable_SUBTESTS Single)
+-buildunitworkgrouptest(Vtable      "${Vtable_SUBTESTS}"      "${Vtable_BACKENDS}")
++#buildunitworkgrouptest(Vtable      "${Vtable_SUBTESTS}"      "${Vtable_BACKENDS}")
+ 
+ set(WorkStorage_SUBTESTS Constructor Iterator InsertCall Multiple)
+ buildunitworkgrouptest(WorkStorage "${WorkStorage_SUBTESTS}" "${WorkStorage_BACKENDS}")

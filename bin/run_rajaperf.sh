@@ -62,6 +62,8 @@ patchrepo $AOMP_REPOS_TEST/RAJAPerf
 
 # Begin configuration
 pushd $AOMP_REPOS_TEST/RAJAPerf
+git reset --hard f446416
+git submodule update
 BUILD_SUFFIX=aomp_omptarget
 rm -rf build_${BUILD_SUFFIX} >/dev/null
 mkdir build_${BUILD_SUFFIX}
@@ -76,6 +78,7 @@ $AOMP_CMAKE \
   -DOpenMP_CXX_FLAGS="-fopenmp;-fopenmp-targets=amdgcn-amd-amdhsa;-Xopenmp-target=amdgcn-amd-amdhsa;-march=${AOMP_GPU}" \
   -DENABLE_ALL_WARNINGS=Off \
   -DCMAKE_INSTALL_PREFIX=../install_${BUILD_SUFFIX} \
+  -DENABLE_TESTS=On \
   "$@" \
   ..
 
@@ -84,6 +87,8 @@ make -j $AOMP_JOB_THREADS
 # Do not continue if build fails
 if [ $? != 0 ]; then
   echo "ERROR: Make returned non-zero, exiting..."
+  removepatch $AOMP_REPOS_TEST/RAJAPerf/tpl/RAJA
+  removepatch $AOMP_REPOS_TEST/RAJAPerf
   exit 1
 fi
 
@@ -91,7 +96,7 @@ popd
 popd
 
 pushd $AOMP_REPOS_TEST/RAJAPerf
-build_aomp_omptarget/bin/raja-perf-omptarget.exe --show-progress
+#build_aomp_omptarget/bin/raja-perf-omptarget.exe --show-progress --refvar Base_OMPTarget
 popd
 
 # Remove patches

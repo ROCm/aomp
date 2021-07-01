@@ -1,14 +1,42 @@
 diff --git a/src/common/Executor.cpp b/src/common/Executor.cpp
-index 15c0b1f..f81541e 100644
+index 8c4b4793..1383334b 100644
 --- a/src/common/Executor.cpp
 +++ b/src/common/Executor.cpp
-@@ -370,6 +370,9 @@ void Executor::runSuite()
+@@ -545,13 +545,13 @@ void Executor::writeCSVReport(const string& filename, CSVRepMode mode,
+ 
+     size_t kercol_width = kernel_col_name.size();
+     for (size_t ik = 0; ik < kernels.size(); ++ik) {
+-      kercol_width = max(kercol_width, kernels[ik]->getName().size());
++      kercol_width = std::max(kercol_width, kernels[ik]->getName().size());
+     }
+     kercol_width++;
+ 
+     vector<size_t> varcol_width(variant_ids.size());
+     for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
+-      varcol_width[iv] = max(prec+2, getVariantName(variant_ids[iv]).size());
++      varcol_width[iv] = std::max(prec+2, getVariantName(variant_ids[iv]).size());
      }
  
+     //
+@@ -632,7 +632,7 @@ void Executor::writeFOMReport(const string& filename)
+ 
+     size_t kercol_width = kernel_col_name.size();
      for (size_t ik = 0; ik < kernels.size(); ++ik) {
-+      // Skip Basic_REDUCE3_INT, Basic_TRAP_IN, Lcals_FIRST_MIN, Stream_DOT
-+      if(ik == 8 || ik == 9 || ik == 13 || ik == 36)
-+        continue;
-       KernelBase* kernel = kernels[ik];
-       if ( run_params.showProgress() ) {
-         std::cout << "\n   Running kernel -- " << kernel->getName() << "\n"; 
+-      kercol_width = max(kercol_width, kernels[ik]->getName().size());
++      kercol_width = std::max(kercol_width, kernels[ik]->getName().size());
+     }
+     kercol_width++;
+ 
+@@ -862,10 +862,10 @@ void Executor::writeChecksumReport(const string& filename)
+ 
+     size_t namecol_width = 0;
+     for (size_t ik = 0; ik < kernels.size(); ++ik) {
+-      namecol_width = max(namecol_width, kernels[ik]->getName().size());
++      namecol_width = std::max(namecol_width, kernels[ik]->getName().size());
+     }
+     for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
+-      namecol_width = max(namecol_width,
++      namecol_width = std::max(namecol_width,
+                           getVariantName(variant_ids[iv]).size());
+     }
+     namecol_width++;
