@@ -5,7 +5,7 @@ TESTSRC_MAIN = stream.c
 TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 
-OMP_FLAGS = -O3 -mcmodel=large -DSTREAM_TYPE=double -mavx2  -DSTREAM_ARRAY_SIZE=100000 -DNTIMES=10 -ffp-contract=fast -march=znver2 -fopenmp -fnt-store stream.c -v
+OMP_FLAGS = -O3 -mcmodel=large -DSTREAM_TYPE=double -mavx2  -DSTREAM_ARRAY_SIZE=100000 -DNTIMES=10 -ffp-contract=fast -march=znver2 -fopenmp -fnt-store
 
 CLANG        = clang
 OMP_BIN      = $(AOMP)/bin/$(CLANG)
