@@ -1,7 +1,7 @@
 include ../../Makefile.defs
 
 TESTNAME     = lds_prob4
-TESTSRC_MAIN = lds_prob4.ll
+TESTSRC_MAIN = lds_prob4.keep_ll
 TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 
