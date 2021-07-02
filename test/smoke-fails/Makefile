@@ -5,6 +5,7 @@ TESTS_DIR = \
     alt_clang \
     alt_veclib \
     ancestorF \
+    bugz-50968 \
     clang-282491-1 \
     clang-282491-2 \
     clang-282491-3 \
