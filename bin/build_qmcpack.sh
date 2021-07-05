@@ -49,7 +49,9 @@ if [ -e /etc/profile.d/modules.sh ] ; then
    module load gcc
    module load hdf5/1.10.1
    module load openblas
-   module load $ROCM_VER
+   if [ "$ROCM_VER" != "none" ]; then
+     module load $ROCM_VER
+   fi
    BOOST_ROOT=${BOOST_ROOT:-/cm/shared/opt/boost/1.72.0}
    FFTW_HOME=${FFTW_HOME:-/cm/shared/apps/fftw/openmpi/gcc/64/3.3.8}
    OPENMPI_INSTALL=${OPENMPI_INSTALL:-~/openmpi-4.0.3-install}
