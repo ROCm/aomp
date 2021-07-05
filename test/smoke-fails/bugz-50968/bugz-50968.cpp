@@ -23,8 +23,8 @@ void f()
 		for(int i = 0; i < 1; ++i)
 		{
 			A<N> a;
-			b = a.arr[0]; // (1) only this fails
-			b = a.b += sizeof(a); // (2)
+			b = a.arr[0]; // only this fails
+			b = a.b += sizeof(a);
 		}
 	}
 
@@ -34,8 +34,13 @@ void f()
 int main()
 {
 	//OK:
-	f<64>();
+	f<58>();
 
 	//[GPU Memory Error] Addr: 0x0 Reason: Page not present or supervisor privilege.:
+	// https://bugs.llvm.org/show_bug.cgi?id=50968
 	f<65>();
+
+	//[GPU Memory Error] Addr: 0x0 Reason: Page not present or supervisor privilege.:
+	// https://bugs.llvm.org/show_bug.cgi?id=50968
+	f<30<<10>();
 }
