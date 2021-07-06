@@ -56,50 +56,62 @@ else
   return 1
 fi
 
-# Apply patches
-patchrepo $AOMP_REPOS_TEST/RAJAPerf/tpl/RAJA
-patchrepo $AOMP_REPOS_TEST/RAJAPerf
 
-# Begin configuration
-pushd $AOMP_REPOS_TEST/RAJAPerf
-git reset --hard f446416
-git submodule update
 BUILD_SUFFIX=aomp_omptarget
-rm -rf build_${BUILD_SUFFIX} >/dev/null
-mkdir build_${BUILD_SUFFIX}
-pushd build_${BUILD_SUFFIX}
+if [ "$#" == 0 ]; then
+  # Begin configuration
+  pushd $AOMP_REPOS_TEST/RAJAPerf
+  git reset --hard f446416
+  git submodule update
+  # Apply patches
+  patchrepo $AOMP_REPOS_TEST/RAJAPerf/tpl/RAJA
+  patchrepo $AOMP_REPOS_TEST/RAJAPerf
+  rm -rf build_${BUILD_SUFFIX} >/dev/null
+  mkdir build_${BUILD_SUFFIX}
+  pushd build_${BUILD_SUFFIX}
 
-$AOMP_CMAKE \
-  -DCMAKE_BUILD_TYPE=Release \
-  -DCMAKE_CXX_COMPILER=${AOMP}/bin/clang++ \
-  -DENABLE_CUDA=Off \
-  -DENABLE_OPENMP=On \
-  -DENABLE_TARGET_OPENMP=On \
-  -DOpenMP_CXX_FLAGS="-fopenmp;-fopenmp-targets=amdgcn-amd-amdhsa;-Xopenmp-target=amdgcn-amd-amdhsa;-march=${AOMP_GPU}" \
-  -DENABLE_ALL_WARNINGS=Off \
-  -DCMAKE_INSTALL_PREFIX=../install_${BUILD_SUFFIX} \
-  -DENABLE_TESTS=On \
-  "$@" \
-  ..
+  $AOMP_CMAKE \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_CXX_COMPILER=${AOMP}/bin/clang++ \
+    -DENABLE_CUDA=Off \
+    -DENABLE_OPENMP=On \
+    -DENABLE_TARGET_OPENMP=On \
+    -DOpenMP_CXX_FLAGS="-fopenmp;-fopenmp-targets=amdgcn-amd-amdhsa;-Xopenmp-target=amdgcn-amd-amdhsa;-march=${AOMP_GPU}" \
+    -DENABLE_ALL_WARNINGS=Off \
+    -DCMAKE_INSTALL_PREFIX=../install_${BUILD_SUFFIX} \
+    -DENABLE_TESTS=On \
+    "$@" \
+    ..
 
-make -j $AOMP_JOB_THREADS
-
-# Do not continue if build fails
-if [ $? != 0 ]; then
-  echo "ERROR: Make returned non-zero, exiting..."
+  make -j $AOMP_JOB_THREADS
+  # Cleanup patches
   removepatch $AOMP_REPOS_TEST/RAJAPerf/tpl/RAJA
   removepatch $AOMP_REPOS_TEST/RAJAPerf
-  exit 1
+
+  # Do not continue if build fails
+  if [ $? != 0 ]; then
+    echo "ERROR: Make returned non-zero, exiting..."
+    exit 1
+  fi
+  popd
+  popd
+  exit
 fi
 
-popd
-popd
-
+# Run performance tests or unit tests
 pushd $AOMP_REPOS_TEST/RAJAPerf
-#build_aomp_omptarget/bin/raja-perf-omptarget.exe --show-progress --refvar Base_OMPTarget
+if [ "$1" == "perf" ]; then
+  build_aomp_omptarget/bin/raja-perf-omptarget.exe --show-progress --refvar Base_OMPTarget
+elif [ "$1" == "unit" ]; then
+  if [ -d build_${BUILD_SUFFIX} ]; then
+    cd build_${BUILD_SUFFIX}
+    make test
+  else
+    echo Error: No build directory found!
+    exit 1
+  fi
+else
+  echo Error: $@ not a recognized option.
+  exit 1
+fi
 popd
-
-# Remove patches
-removepatch $AOMP_REPOS_TEST/RAJAPerf/tpl/RAJA
-removepatch $AOMP_REPOS_TEST/RAJAPerf
-
