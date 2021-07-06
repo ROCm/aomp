@@ -2,8 +2,8 @@
 #include <omp.h>
 #include <hostrpc.h>
 
-// This user variable function returns a uint so declare function 
-// as hostrpc_varfn_uint_t . 
+// This user variable function returns a uint so declare function
+// as hostrpc_varfn_uint_t .
 hostrpc_varfn_uint_t my3argfn;
 hostrpc_varfn_double_t mydoublefn;
 
@@ -49,7 +49,7 @@ int main()
   my_host_fn_ptr = &my3argfn;
   hostrpc_varfn_double_t * my_host_fn_double;
   my_host_fn_double = &mydoublefn;
-  
+
   printf("Testing my3argfn execution as function pointer %p  &a:%p\n",(void *) my_host_fn_ptr, &a);
   uint sim1 = my_host_fn_ptr(NULL, &a, 2, 3);
   double sim1d = my_host_fn_double(NULL, &a, 2, 3);
@@ -63,12 +63,12 @@ int main()
   printf("\nTesting call to hostrpc_varfn_uint in target region:%p\n",my_host_fn_ptr);
   #pragma omp target parallel for map(from: a[0:N]) map(to: b[0:N]) is_device_ptr(my_host_fn_ptr,my_host_fn_double)
   for (int j = 0; j< N; j++) {
-    a[j]=b[j];
+    a[j]=b[j*2];
     uint    rc=hostrpc_varfn_uint(my_host_fn_ptr, &a, j, a[j]);
     double rcd=hostrpc_varfn_double(my_host_fn_double, &a, j, a[j]);
     printf("DEVICE: fnptr:%p dfnptr:%p &a:%p j:%d a[j]:%d  hostrpc_varfn_uint return vals are %d %f\n",
-      (void*) my_host_fn_ptr, 
-      (void*) my_host_fn_double, 
+      (void*) my_host_fn_ptr,
+      (void*) my_host_fn_double,
       (void*) &a, j, a[j],rc,rcd);
   }
 

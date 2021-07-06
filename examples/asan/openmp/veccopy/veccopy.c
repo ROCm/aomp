@@ -17,7 +17,7 @@ int main()
 
 #pragma omp target parallel for map(from: a[0:N]) map(to: b[0:N])
   {
-    for (int j = 0; j< N; j++)
+    for (int j = 0; j <= N; j++)
       a[j]=b[j];
   }
 

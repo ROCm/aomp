@@ -15,7 +15,7 @@ int main (void)
     #pragma omp barrier
 
     #pragma omp for reduction(+:a)
-    for (i = 0; i < N; i++) {
+    for (i = 0; i < N+1; i++) {
         a += i;
     }
 

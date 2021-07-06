@@ -30,7 +30,7 @@ int main()
   printf("Testing myfun execution from device using hostrpc_fptr0\n");
   #pragma omp target parallel for map(from: a[0:N]) map(to: b[0:N]) is_device_ptr(fun_ptr)
   for (int j = 0; j< N; j++) {
-    a[j]=b[j];
+    a[j+1]=b[j];
     hostrpc_fptr0(fun_ptr);
   }
 

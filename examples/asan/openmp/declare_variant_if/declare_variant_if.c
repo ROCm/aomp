@@ -23,7 +23,7 @@ int amdgcn_saxpy(int n, float s, float *x, float *y)    //function variant
 {
    printf("amdgcn_saxpY: Running on amdgcn device. IsHost:%d\n", omp_is_initial_device());
    #pragma omp teams distribute parallel for
-   for(int i=0; i<n; i++) { y[i] = s*x[i] + y[i]; }
+   for(int i=0; i<=n; i++) { y[i] = s*x[i] + y[i]; }
    return 0;
 }
 int nvptx_saxpy(int n, float s, float *x, float *y)    //function variant
