@@ -1,0 +1,37 @@
+; ModuleID = 'z.ll'
+source_filename = "llvm-link"
+target datalayout = "e-p:64:64-p1:64:64-p2:32:32-p3:32:32-p4:64:64-p5:32:32-p6:32:32-i64:64-v16:16-v24:32-v32:32-v48:64-v96:128-v192:256-v256:256-v512:512-v1024:1024-v2048:2048-n32:64-S32-A5-G1-ni:7"
+target triple = "amdgcn-amd-amdhsa"
+
+@usedSlotIdx = internal local_unnamed_addr addrspace(3) global i32 undef, align 4
+
+define weak amdgpu_kernel void @__omp_offloading_10302_1a22e53_main_l7() {
+entry:
+  %nvptx_num_threads = call i32 @__kmpc_amdgcn_gpu_num_threads()
+  ret void
+}
+
+; Function Attrs: nounwind readnone speculatable willreturn
+declare i32 @llvm.amdgcn.workitem.id.x() #0
+
+declare i32 @__kmpc_amdgcn_gpu_num_threads()
+
+define internal void @__kmpc_kernel_init() {
+entry:
+  store i32 undef, i32 addrspace(3)* @usedSlotIdx, align 4, !tbaa !0
+  ret void
+}
+
+; Function Attrs: argmemonly nofree nosync nounwind willreturn
+declare void @llvm.lifetime.start.p5i8(i64 immarg, i8 addrspace(5)* nocapture) #1
+
+; Function Attrs: argmemonly nofree nosync nounwind willreturn
+declare void @llvm.lifetime.end.p5i8(i64 immarg, i8 addrspace(5)* nocapture) #1
+
+attributes #0 = { nounwind readnone speculatable willreturn }
+attributes #1 = { argmemonly nofree nosync nounwind willreturn }
+
+!0 = !{!1, !1, i64 0}
+!1 = !{!"int", !2, i64 0}
+!2 = !{!"omnipotent char", !3, i64 0}
+!3 = !{!"Simple C++ TBAA"}

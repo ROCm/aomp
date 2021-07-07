@@ -50,6 +50,7 @@ TESTS_DIR = \
     lds-prob2 \
     lds-prob3 \
     lds-prob4 \
+    lds-prob5 \
     loop_order \
     omp_loop \
     reduction_array \
