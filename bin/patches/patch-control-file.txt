@@ -8,3 +8,4 @@ RAJAPerf: rajaperf.patch
 rocr-runtime: rocr-runtime.patch
 roct-thunk-interface: roct-thunk-interface.patch
 rocm-compilersupport: rocm-compilersupport.patch
+rocm-device-libs: rocm-device-libs.patch
