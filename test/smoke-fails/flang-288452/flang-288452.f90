@@ -51,8 +51,10 @@ program test
    touch_limit= .false.
    call compute_dev()
 
-   print *, "touch limit: ", touch_limit
-   if (.not. touch_limit) then
+   ! touch limit true if we have error
+
+   write(0,*) "touch limit: ", touch_limit
+   if (touch_limit) then
      call kill(0,4)
    endif
 end program test
