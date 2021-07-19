@@ -5,7 +5,7 @@ TESTSRC_MAIN = wgs64.c
 TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 
-CLANG        = clang -mllvm  -amdgpu-dump-hsa-metadata 
+CLANG        = clang -mllvm  -amdgpu-dump-hsa-metadata -save-temps
 OMP_BIN      = $(AOMP)/bin/$(CLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
 #-ccc-print-phases
@@ -14,3 +14,5 @@ CC           = $(OMP_BIN) $(VERBOSE)
 include ../Makefile.rules
 run:
 	LIBOMPTARGET_KERNEL_TRACE=1 ./$(TESTNAME)
+	fgrep -s '.max_flat_workgroup_size: 256' wgs64-openmp-amdgcn-amd-amdhsa-*.s
+

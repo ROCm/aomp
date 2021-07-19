@@ -122,3 +122,4 @@ vasp1
 veccopy
 vmuldemo
 vmulsum
+wgs64
