@@ -5,7 +5,7 @@ int main() {
 //  atomic_vs_reduction.c: This test shows how much faster reductions are than atomic operations 
 //
   int main_rc = 0;
-  int N       = 500001;
+  int N       = 5001;
   double expect = (double) (((double)N-1)*(double)N)/2.0;
 
   double a    = 0.0;
