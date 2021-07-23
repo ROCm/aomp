@@ -127,6 +127,14 @@ echo
 echo make -j$AOMP_JOB_THREADS
 make -j$AOMP_JOB_THREADS
 
+# Exit if build was not successful
+if [ $? != 0 ]; then
+  echo
+  echo ERROR: make command failed.
+  echo
+  exit 1
+fi
+
 echo 
 echo "DONE!  Build is in $build_folder. To test:"
 echo "       cd $build_folder"
