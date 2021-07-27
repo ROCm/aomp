@@ -4,7 +4,6 @@ assertok_error
 atomic
 atomic_double
 CanonNE
-clang-274983
 clang-tracekernel
 class
 collapse
@@ -15,7 +14,6 @@ complex-debug
 data_issue_59
 data_share1
 data_share2
-DeclareSharedMemory
 declare_target_pointer
 decl_targ
 devices
@@ -59,8 +57,6 @@ hip_device_compile
 host_targ
 icvars-nest
 icvars-nestF
-issue_001
-issue_002
 issue_flang_libomp
 launch_latency
 liba_bundled
@@ -78,9 +74,6 @@ math_sqrt_float
 MaxNumThrds
 mem_foot_print
 nativetests
-nest_call_par2
-nested_loop
-nested_par3
 nested_targ
 omp_get_device_num
 omp_get_initial
@@ -90,12 +83,10 @@ omp_num_teams_SPMD
 omp_wtime
 pfspecifier
 pfspecifier_str
-red_bug_51
 reduce
 reduc_map_prob
 reduction
 reduction_issue_16
-reduction_teams
 reduction_teams_distribute_parallel
 schedule
 simd
@@ -103,7 +94,6 @@ slices
 stream
 targc-273738
 targ_declare
-target-in-other-source
 targets_in_loop
 task-helper
 taskwait_prob
@@ -114,7 +104,6 @@ test
 test_offload_macros
 thread_limit
 threads
-Threads1xxx
 unique-kernel-name
 use_device_addr
 vasp1
