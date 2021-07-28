@@ -1,10 +1,11 @@
 #include <iostream>
+#include <omp.h>
 
 int main()
 {
   int counts1 = 0;
   int counts2 = 0;
-  #pragma omp target map(from:counts1)
+  #pragma omp target teams map(from:counts1)
   {
     int counts_team = 0;
     #pragma omp parallel
@@ -14,10 +15,11 @@ int main()
         #pragma omp atomic
         counts_team += 1;
     }
-    counts1 = counts_team;
+    if (omp_get_team_num() == 0)
+      counts1 = counts_team;
   }
 
-  #pragma omp target map(from:counts2)
+  #pragma omp target teams map(from:counts2)
   {
     int counts_team = 0;
     #pragma omp parallel
@@ -26,7 +28,8 @@ int main()
       for (int i=0; i<4; i++)
         counts_team += 1;
     }
-    counts2 = counts_team;
+    if (omp_get_team_num() == 0)
+      counts2 = counts_team;
   }
 
   if (counts1 != 4)
