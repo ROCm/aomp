@@ -1,4 +1,4 @@
-aomp (13.0-4) UNRELEASED; urgency=medium
+aomp (13.0-5) UNRELEASED; urgency=medium
 
   * Initial release of aomp is 0.3-2
   *   Please see example in /usr/lib/aomp/examples/vmuldemo 
@@ -622,4 +622,27 @@ aomp (13.0-4) UNRELEASED; urgency=medium
   *
   *   Known Regressions:
   *   9 Clang lit test failures
- -- Greg Rodgers <Gregory.Rodgers@amd.com>  Thu, 17 Jun 2021 14:01:06 -0500
+  *
+  *  13.0-5
+  *   This release includes a demo of a new LLVM library called libLLVMOffloadArch.cpp.
+  *       The clang tool offload-arch is now build with this library. The libomptarget runtime
+  *       no longer calls the binary "offload-arch -c" and traps its stdout. Instead a library
+  *       call is made to libLLVMOffloadArch.cpp to determine current capabilities. The tool
+  *       offload-arch is still create with the llvm build but its sources are in
+  *       llvm-project/llvm/lib/OffloadArch/offload-arch. Updates were made so offload-arch
+  *       returns the first VISIBLE gpu which could be the result of setting ROCM_VISIBLE_DEVICES
+  *       for amdgpus.
+  *   This release starts to deprecate the use of mygpu in favor of offload-arch. A new version
+  *   of mygpu calls offload-arch. The tables used to drive mygpu have been deleted. All pci-id
+  *   tables for offloading identification are now in llvm library OffloadArch.
+  *   Added a new command line option -offload-usm which turns on OpenMP pragma requires
+  *       unified_shared_memory and sets  toolchain flags appropriately. This saves having to
+  *       change every source file to turn on unified shared memory.
+  *  Build changes:
+  *  Update list of gfx names to include gfx1030 and gfx1031
+  *  Known Issues:
+  *  9 Clang lit test failures
+  *  Long build times when large numbers of archive libraries are needed because toolchain must
+  *       unbundle the archive for device linking.
+
+ -- Greg Rodgers <Gregory.Rodgers@amd.com>  Wed, 28 Jul 2021 11:27:13 -0500
