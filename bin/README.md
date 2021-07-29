@@ -38,7 +38,7 @@ each component build script with the name build_\<component name\>.sh .
 | rocminfo   |Latest ROCm| $HOME/git/aomp13/rocminfo            | [rocminfo](https://github.com/radeonopencompute/rocminfo)
 | rocdbgapi  |Latest ROCm| $HOME/git/aomp13/ROCdbgapi           | [rocdbgapi](https://github.com/ROCm-Developer-Tools/ROCdbgapi)
 | rocgdb     |Latest ROCm| $HOME/git/aomp13/ROCgdb              | [rocgdb](https://github.com/ROCm-Developer-Tools/ROCgdb)
-| roctrace   |Latest ROCm| $HOME/git/aomp13/roctracer           | [roctracer](https://github.com/ROCm-Developer-Tools/roctracer)
+| roctracer   |Latest ROCm| $HOME/git/aomp13/roctracer           | [roctracer](https://github.com/ROCm-Developer-Tools/roctracer)
 | rocprofiler|Latest ROCm| $HOME/git/aomp13/rocprofiler         | [rocprofiler](https://github.com/ROCm-Developer-Tools/rocprofiler)
 
 If the component is a core aomp component, then the development branch name is aomp-dev.
@@ -76,7 +76,7 @@ AOMP=/tmp/$USER/rocm/aomp
 AOMP_REPOS=/tmp/$USER/git/aomp13
 NVPTXGPUS=30,35,70
 GFXLIST="gfx803 gfx906"
-AOMP_VERSION="12.0"
+AOMP_VERSION="13.0"
 export AOMP BUILD_TYPE NVPTXGPUS GFXLIST
 ```
 ## Quick Start to AOMP Development
@@ -249,17 +249,17 @@ The install location is defined by the $AOMP environment variable. The value of 
 That is, the physical installation will be in directory name formed by concatonating the version string to the value of $AOMP.
 The "build_project.sh install" script will make a symbolic link from the physical directory to the symbolic directory $AOMP.
 The default value for AOMP is $HOME/rocm/aomp.
-For example, when building AOMP version 13.0-4 the install scripts will put all files and directories
-in $HOME/rocm/aomp_13.0-4 and create a symbolic link as follows:
+For example, when building AOMP version 13.0-5 the install scripts will put all files and directories
+in $HOME/rocm/aomp_13.0-5 and create a symbolic link as follows:
 
 ```
-ln -sf ${AOMP}_13.0-4 ${AOMP}
+ln -sf ${AOMP}_13.0-5 ${AOMP}
 ```
 All testing for AOMP uses the environment variable AOMP to locate the installation. This makes it easy to switch between versions of AOMP for testing by simply changing the environment variable AOMP. You do NOT need to change the symbolic link.
-For example, if the aomp symbolic link currently points to aomp_13.0-4 and you want to test aomp_13.0-3, do this:
+For example, if the aomp symbolic link currently points to aomp_13.0-5 and you want to test aomp_13.0-4, do this:
 
 ```
-export AOMP=$HOME/rocm/aomp_13.0-3
+export AOMP=$HOME/rocm/aomp_13.0-4
 ```
 
 The aomp package installs in /usr/lib/aomp_\<version_string\> and symlinks /usr/lib/aomp to the versioned directory. To test the installed package, set AOMP to /usr/lib/aomp or /usr/lib/aomp_\<version_string\>.
