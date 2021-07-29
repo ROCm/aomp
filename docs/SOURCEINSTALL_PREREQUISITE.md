@@ -5,7 +5,7 @@
 #### Debian or Ubuntu Packages
 
 ```
-   sudo apt-get install g++-5 g++-7 pkg-config libpci-dev libnuma-dev libelf-dev libffi-dev git python libopenmpi-dev gawk mesa-common-dev
+   sudo apt-get install g++-5 g++-7 pkg-config libpci-dev libnuma-dev libffi-dev git python libopenmpi-dev gawk mesa-common-dev
 
    # Additional packages used by rocgdb
    sudo apt-get install python3 texinfo libbison-dev bison flex libbabeltrace-dev python3-pip libncurses5-dev liblzma-dev python3-setuptools python3-dev
@@ -15,7 +15,7 @@
 
 #### SLES-15-SP1 Packages
 ```
-  sudo zypper install -y git pciutils-devel python-base libffi-devel gcc gcc-c++ libnuma-devel libelf-devel patchutils openmpi2-devel mesa-libGL-devel libquadmath0
+  sudo zypper install -y git pciutils-devel python-base libffi-devel gcc gcc-c++ libnuma-devel patchutils openmpi2-devel mesa-libGL-devel libquadmath0
 
   A symbolic link may be required at /usr/lib64: /usr/lib64/libquadmath.so -> /usr/lib64/libquadmath.so.0.
 
@@ -53,7 +53,7 @@ RHEL 7.7 and later RHEL 7 versions
   sudo yum install dnf-plugins-core
   sudo yum config-manager --set-enabled powertools
 
-  sudo yum install gcc gcc-c++ git make pciutils-devel numactl-devel libffi-devel mesa-libGL-devel elfutils-libelf-devel libquadmath-devel python3 python3-pip python36-devel python3-setuptools python2
+  sudo yum install gcc gcc-c++ git make pciutils-devel numactl-devel libffi-devel mesa-libGL-devel libquadmath-devel python3 python3-pip python36-devel python3-setuptools python2
 
   # Additional packages used by rocgdb
   sudo yum install texinfo bison flex ncurses-devel expat-devel xz-devel libbabeltrace-devel
