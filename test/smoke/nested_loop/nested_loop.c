@@ -26,7 +26,9 @@ int main() {
         #pragma omp parallel for
         for(int i = j ; i < j+blockSize; i++) {
           A[i] += B[i] + C[i];
+	  if (i < j+3) printf("inner %f %f %f\n", B[i], C[i], A[i]);
         }
+	printf("%f %f %f\n", B[5], C[5], A[5]);
       }
     }
   }
@@ -34,6 +36,7 @@ int main() {
     if (A[i] != TRIALS) {
       printf("Error at A[%d], h = %lf, d = %lf\n", i, (double)TRIALS, A[i]);
       fail = 1;
+      break;
     }
   }
 
