@@ -117,6 +117,7 @@ TESTS_DIR = \
     memory_mgmt_routines \
     nativetests \
     nested_loop \
+    nested_loop_trunk \
     nested_par3 \
     nested_targ \
     nest_call_par2 \
