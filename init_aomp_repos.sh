@@ -3,7 +3,8 @@
 #  init_aomp_repos.sh:  Standalong script to initialize aomp repos 
 #                       using google repo command.
 #   Usage:
-#      cd /tmp; wget https://github.com/ROCm-Developer-Tools/aomp/init_aomp_repos.sh
+#      cd /tmp
+#      wget  https://github.com/ROCm-Developer-Tools/aomp/raw/aomp-dev/init_aomp_repos.sh
 #      . init_aomp_repos.sh
 
 # FIXME: In the future, use version specific manifest_files
@@ -56,9 +57,9 @@ if [ $? != 0 ] ; then
       echo "       This causes a conflict between the repo command and git clone"
       echo "       Try these commands to initialize the aomp_repos:"
       echo "       "
-      echo " cd /tmp ; wget $GITROCDEV/aomp/init_aomp_repos.sh"
-      echo " chmod 755 init_aomp_repos.sh"
-      echo " ./init_aomp_repos.sh"
+      echo " cd /tmp "
+      echo " wget https://github.com/ROCm-Developer-Tools/aomp/raw/aomp-dev/init_aomp_repos.sh"
+      echo " . init_aomp_repos.sh"
       echo " $AOMP_REPOS/aomp/bin/clone_aomp.sh"
       exit 1
 fi
