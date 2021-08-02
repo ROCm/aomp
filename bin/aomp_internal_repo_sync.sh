@@ -39,6 +39,7 @@ function get_branch_name() {
 
 function list_repo(){
 for repodirname in `ls $AOMP_REPOS` ; do
+   rc=0
    if [[ "$repodirname" != "rocr-runtime"  && "$repodirname" != "build" ]] ; then
       fulldirname=$AOMP_REPOS/$repodirname
       cd $fulldirname
@@ -50,7 +51,10 @@ for repodirname in `ls $AOMP_REPOS` ; do
       if [ "$abranch" == "(HEAD" ] ; then
          is_hash=1
          abranch=`git branch | awk '/\*/ { print $5; }' | cut -d")" -f1`
-         [ "$abranch" != "$HASH" ] && flag="!HASH!	"
+         if [ "$abranch" != "$HASH" ] ; then
+	    flag="!HASH!	"
+	    rc=1
+	 fi
       fi
       url=`git config --get remote.origin.url`
       if [ "$url" == "" ] ; then
@@ -59,11 +63,14 @@ for repodirname in `ls $AOMP_REPOS` ; do
       if [ "$url" == "" ] ; then
          url=`git config --get remote.gerritgit.url`
       fi
-      [ "$branch_name" != "$abranch" ] && [ $is_hash == 0 ] && flag="!BRANCH!	"
+      if [ "$branch_name" != "$abranch" ] && [ $is_hash == 0 ] ; then
+         flag="!BRANCH!	"
+	 rc=1
+      fi
       echo "$flag$repodirname  url:$url  desired:$branch_name  actual:$abranch  hash:$HASH"
    fi
 done
-exit 0
+exit $rc
 }
 
 manifest_file="manifests/aomp-internal.xml"
