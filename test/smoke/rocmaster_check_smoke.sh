@@ -36,7 +36,12 @@ echo "**************************************************************************
 skiptests="devices pfspecifier pfspecifier_str target_teams_reduction hip_rocblas tasks reduction_array_section targ_static omp_wtime data_share2 global_allocate complex2 flang_omp_map omp_get_initial slices printf_parallel_for_target reduction_shared_array"
 
 if [ "$EPSDB" == "1" ]; then
-  skiptests+=" taskwait_prob flang_isystem_prob flang_real16_prob flang-272730-complex flang-273990-2 flang-tracekernel math_exp math_libmextras simple_ctor use_device_ptr"
+  skiptests+=" taskwait_prob flang_isystem_prob flang_real16_prob"
+  # additional for rocm 4.4
+  skiptests+=" flang-272730-complex flang-273990-2 flang-tracekernel math_exp math_libmextras simple_ctor use_device_ptr"
+  # additional for rocm 4.3
+  skiptests+=" alignedattribute devito_prob1 libgomp-292348 math_max"
+
 fi
 
 # amd-stg-open only has commits up to 08/11/20, which does not include these fixes for gfx908
