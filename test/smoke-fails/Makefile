@@ -16,6 +16,8 @@ TESTS_DIR = \
     clang-280954 \
     clang-284324 \
     clang-296953-ornla-38 \
+    clang_llnl-58 \
+    clang_llnl-58-1 \
     closed_bug1 \
     flang-collapseNR \
     flang-251450 \
