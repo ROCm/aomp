@@ -1,13 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <manifest>
+    <remote name="gerritgit" review="git.amd.com:8080" fetch="ssh://gerritgit/" />
+    <default revision="release/rocm-rel-4.3" remote="gerritgit" sync-j="4" sync-c="true" />
+    <remote name="roctools"  fetch="https://github.com/ROCm-Developer-Tools/" />
 
-    <remote name="gerritgit"
-        review="git.amd.com:8080"
-        fetch="ssh://gerritgit/" />
-	<default revision="release/rocm-rel-4.1"
-        remote="gerritgit"
-        sync-j="4"
-        sync-c="true" />
 
 <project path="roct-thunk-interface" name="compute/ec/libhsakmt" />
 <project path="hsa-runtime" name="hsa/ec/hsa-runtime" />
@@ -16,10 +12,14 @@
 <project path="roctracer" name="compute/ec/roctracer" />
 <project path="ROCgdb" name="compute/ec/rocm-gdb" />
 <project path="ROCdbgapi" name="compute/ec/rocm-dbgapi" />
-<!--  <project path="rocm-compilersupport" name="lightning/ec/support" /> -->
-<!--  <project path="rocm-device-libs" name="lightning/ec/device-libs" /> -->
+<project path="rocm-compilersupport" name="lightning/ec/support" />
+<project path="rocm-device-libs" name="lightning/ec/device-libs" />
 <project path="vdi" name="compute/ec/vdi" />
 <project path="opencl-on-vdi" name="compute/ec/opencl" />
 <project path="hip-on-vdi" name="compute/ec/hip" />
 
+<project remote="roctools" revision="aomp-dev" path="llvm-project" name="llvm-project" />
+<project remote="roctools" revision="aomp-dev" path="flang" name="flang" />
+<project remote="roctools" revision="aomp-dev" path="aomp-extras" name="aomp-extras" />
+<project remote="roctools" revision="aomp-dev" path="aomp" name="aomp" />
 </manifest>
