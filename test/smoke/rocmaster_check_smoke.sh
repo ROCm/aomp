@@ -5,6 +5,14 @@
 #
 #
 
+echo "This script is deprecated. Please run : cd aomp/bin; ./run_rocm_test.sh"
+
+if [ "$EPSDB_ROCMASTER_OVERRIDE" != "1" ]; then
+  exit 1
+fi
+
+#default to on for qa runs
+EPSDB=${EPSDB:-1}
 
 if [ "$EPSDB" == "1" ]; then
   export AOMP=/opt/rocm/llvm
@@ -33,7 +41,7 @@ echo "**************************************************************************
 echo "                   A non-zero exit code means a failure occured." >> check-smoke.txt
 echo "***********************************************************************************" >> check-smoke.txt
 
-skiptests="devices pfspecifier pfspecifier_str target_teams_reduction hip_rocblas tasks reduction_array_section targ_static omp_wtime data_share2 global_allocate complex2 flang_omp_map omp_get_initial slices printf_parallel_for_target reduction_shared_array"
+skiptests="devices pfspecifier pfspecifier_str target_teams_reduction hip_rocblas tasks reduction_array_section targ_static omp_wtime data_share2 global_allocate complex2 flang_omp_map omp_get_initial slices printf_parallel_for_target reduction_shared_array d2h_slow_copy"
 
 if [ "$EPSDB" == "1" ]; then
   skiptests+=" taskwait_prob flang_isystem_prob flang_real16_prob"
