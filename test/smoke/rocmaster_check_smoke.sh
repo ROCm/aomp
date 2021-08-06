@@ -6,7 +6,10 @@
 #
 
 echo "This script is deprecated. Please run : cd aomp/bin; ./run_rocm_test.sh"
-exit 1
+
+if [ "$EPSDB_ROCMASTER_OVERRIDE" != "1" ]; then
+  exit 1
+fi
 
 #default to on for qa runs
 EPSDB=${EPSDB:-1}
