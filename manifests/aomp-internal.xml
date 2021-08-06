@@ -1,25 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <manifest>
+<!-- Manifest for AOMP 13.1-x which uses internal repos for non-aomp components -->
     <remote name="gerritgit" review="git.amd.com:8080" fetch="ssh://gerritgit/" />
     <default revision="release/rocm-rel-4.3" remote="gerritgit" sync-j="4" sync-c="true" />
     <remote name="roctools"  fetch="https://github.com/ROCm-Developer-Tools/" />
 
 
-<project path="roct-thunk-interface" name="compute/ec/libhsakmt" />
-<project path="hsa-runtime" name="hsa/ec/hsa-runtime" />
-<project path="rocminfo" name="compute/ec/rocminfo" />
-<project path="rocprofiler" name="compute/ec/rocprofiler" />
-<project path="roctracer" name="compute/ec/roctracer" />
-<project path="ROCgdb" name="compute/ec/rocm-gdb" />
-<project path="ROCdbgapi" name="compute/ec/rocm-dbgapi" />
-<project path="rocm-compilersupport" name="lightning/ec/support" />
-<project path="rocm-device-libs" name="lightning/ec/device-libs" />
-<project path="vdi" name="compute/ec/vdi" />
-<project path="opencl-on-vdi" name="compute/ec/opencl" />
-<project path="hip-on-vdi" name="compute/ec/hip" />
+<project path="roct-thunk-interface" name="compute/ec/libhsakmt" revision="amd-staging"/>
+<project path="rocminfo" name="compute/ec/rocminfo"              revision="amd-staging"/>
+<project path="ROCgdb" name="compute/ec/rocm-gdb"                revision="amd-staging"/>
+<project path="ROCdbgapi" name="compute/ec/rocm-dbgapi"          revision="amd-staging"/>
 
-<project remote="roctools" revision="aomp-dev" path="llvm-project" name="llvm-project" />
-<project remote="roctools" revision="aomp-dev" path="flang" name="flang" />
-<project remote="roctools" revision="aomp-dev" path="aomp-extras" name="aomp-extras" />
-<project remote="roctools" revision="aomp-dev" path="aomp" name="aomp" />
+<project path="hsa-runtime" name="hsa/ec/hsa-runtime"            revision="amd-master"/>
+<project path="rocprofiler" name="compute/ec/rocprofiler"        revision="amd-master"/>
+<project path="roctracer" name="compute/ec/roctracer"            revision="amd-master"/>
+<project path="vdi" name="compute/ec/vdi"                        revision="amd-master"/>
+<project path="opencl-on-vdi" name="compute/ec/opencl"           revision="amd-master"/>
+<project path="hip-on-vdi" name="compute/ec/hip"                 revision="amd-master"/>
+
+<project path="rocm-compilersupport" name="lightning/ec/support" revision="amd-stg-open"/>
+<project path="rocm-device-libs" name="lightning/ec/device-libs" revision="amd-stg-open"/>
+
+<!-- EXTERNAL REPOS -->
+<project remote="roctools" path="llvm-project" name="llvm-project" revision="aomp-dev" />
+<project remote="roctools" path="flang" name="flang"               revision="aomp-dev" />
+<project remote="roctools" path="aomp-extras" name="aomp-extras"   revision="aomp-dev" />
+<project remote="roctools" path="aomp" name="aomp"                 revision="aomp-dev" />
 </manifest>
