@@ -51,7 +51,6 @@ test_target_enter_data_components_alloc.F90
 test_target_enter_data_components_to.F90
 test_target_enter_data_depend.c
 test_target_enter_data_devices.c
-test_target_enter_data_global_array.c
 test_target_enter_data_if.c
 test_target_enter_data_if.F90
 test_target_enter_data_malloced_array.c
