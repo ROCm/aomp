@@ -65,7 +65,8 @@ TESTS_DIR = \
     targc-273739 \
     targc-274983 \
     target_teams_reduction \
-    tasks
+    tasks \
+    virtfunc1
 
 all:
 	@for test_dir in $(TESTS_DIR); do \
