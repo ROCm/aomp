@@ -25,5 +25,6 @@
 <project remote="roctools" path="llvm-project" name="llvm-project" revision="aomp-dev" />
 <project remote="roctools" path="flang" name="flang"               revision="aomp-dev" />
 <project remote="roctools" path="aomp-extras" name="aomp-extras"   revision="aomp-dev" />
-<project remote="roctools" path="aomp" name="aomp"                 revision="aomp-dev" />
+<!-- Do not clone aomp repo because this is done by hand-->
+<!-- <project remote="roctools" path="aomp" name="aomp"            revision="aomp-dev" /> -->
 </manifest>
