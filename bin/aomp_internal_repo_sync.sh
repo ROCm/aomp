@@ -118,8 +118,8 @@ fi
 
    echo "================  STARTING INTERNAL REPO SYNC ================"
 
-   echo $repobindir/repo sync
-   $repobindir/repo sync
+   echo $repobindir/repo sync --force-sync aomp
+   $repobindir/repo sync --force-sync aomp
    if [ $? != 0 ] ; then
       echo "ERROR:  $repobindir/repo sync failed"
       exit 1
