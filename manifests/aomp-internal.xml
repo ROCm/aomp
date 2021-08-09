@@ -14,9 +14,10 @@
 <project path="hsa-runtime" name="hsa/ec/hsa-runtime"            revision="amd-master"/>
 <project path="rocprofiler" name="compute/ec/rocprofiler"        revision="amd-master"/>
 <project path="roctracer" name="compute/ec/roctracer"            revision="amd-master"/>
-<project path="vdi" name="compute/ec/vdi"                        revision="amd-master"/>
-<project path="opencl-on-vdi" name="compute/ec/opencl"           revision="amd-master"/>
-<project path="hip-on-vdi" name="compute/ec/hip"                 revision="amd-master"/>
+
+<project path="vdi" name="compute/ec/vdi"                        revision="rocm-4.3.x"/>
+<project path="opencl-on-vdi" name="compute/ec/opencl"           revision="rocm-4.3.x"/>
+<project path="hip-on-vdi" name="compute/ec/hip"                 revision="rocm-4.3.x"/>
 
 <project path="rocm-compilersupport" name="lightning/ec/support" revision="amd-stg-open"/>
 <project path="rocm-device-libs" name="lightning/ec/device-libs" revision="amd-stg-open"/>
