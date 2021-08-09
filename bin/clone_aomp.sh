@@ -88,6 +88,12 @@ echo git status
 git status
 }
 
+# Someday all new versions of AOMP will use repo command
+if [[ "$AOMP_VERSION" == "13.1" ]] ; then
+ $thisdir/aomp_internal_repo_sync.sh $*
+ exit $?
+fi
+
 mkdir -p $AOMP_REPOS
 
 # ---------------------------------------
@@ -113,6 +119,7 @@ if [ "$LISTONLY" == 'list' ]; then
 list_repo
 #clone_or_pull
 fi
+
 
 reponame=$AOMP_EXTRAS_REPO_NAME
 repogitname=$AOMP_EXTRAS_REPO_NAME

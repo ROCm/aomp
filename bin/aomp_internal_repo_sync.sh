@@ -3,7 +3,7 @@
 #  aomp_internal_repo_sync:  get and/or update internal repos
 # 
 #  This script uses the file manifests/aomp-internal.xml from the aomp github.
-#  This script requires you have internal access to AMD vpn.
+#  This script requires you have internal access.
 
 # --- Start standard header ----
 function getdname(){
@@ -30,6 +30,45 @@ thisdir=$(getdname $0)
 . $thisdir/aomp_common_vars
 # --- end standard header ----A
 
+function get_branch_name(){
+   branch_name="UNKNOWN"
+      [[ "$repodirname" == "aomp" ]] && branch_name=$AOMP_REPO_BRANCH
+      [[ "$repodirname" == "llvm-project" ]] && branch_name=$AOMP_PROJECT_REPO_BRANCH
+      [[ "$repodirname" == "aomp-extras" ]] && branch_name=$AOMP_EXTRAS_REPO_BRANCH
+      [[ "$repodirname" == "flang" ]] && branch_name=$AOMP_FLANG_REPO_BRANCH
+      [[ "$repodirname" == "roct-thunk-interface" ]] && branch_name=$AOMP_ROCT_REPO_BRANCH
+      [[ "$repodirname" == "hsa-runtime" ]] && branch_name=$AOMP_HSA_RUNTIME_BRANCH_NAME
+      [[ "$repodirname" == "rocminfo" ]] && branch_name=$AOMP_RINFO_REPO_BRANCH
+      [[ "$repodirname" == "ROCgdb" ]] && branch_name=$AOMP_GDB_REPO_BRANCH
+      [[ "$repodirname" == "ROCdbgapi" ]] && branch_name=$AOMP_DBGAPI_REPO_BRANCH
+      [[ "$repodirname" == "rocm-device-libs" ]] && branch_name=$AOMP_LIBDEVICE_REPO_BRANCH
+      [[ "$repodirname" == "rocprofiler" ]] && branch_name=$AOMP_PROF_REPO_BRANCH
+      [[ "$repodirname" == "roctracer" ]] && branch_name=$AOMP_TRACE_REPO_BRANCH
+      [[ "$repodirname" == "opencl-on-vdi" ]] && branch_name=$AOMP_OCL_REPO_BRANCH
+      [[ "$repodirname" == "hip-on-vdi" ]] && branch_name=$AOMP_HIPVDI_REPO_BRANCH
+      [[ "$repodirname" == "vdi" ]] && branch_name=$AOMP_VDI_REPO_BRANCH
+
+      [[ "$repodirname" == "rocm-compilersupport" ]] && branch_name=$AOMP_COMGR_REPO_SHA
+}
+
+function list_repo(){
+for repodirname in `ls $AOMP_REPOS` ; do
+   if [[ "$repodirname" != "rocr-runtime"  && "$repodirname" != "build" ]] ; then
+      fulldirname=$AOMP_REPOS/$repodirname
+      get_branch_name
+      cd $fulldirname
+      abranch=`git branch | awk '/\*/ { print $2; }'`
+      echo `git config --get remote.origin.url` "$repodirname  desired: " $branch_name" actual: " $abranch "  " `git log --numstat --format="%h" |head -1`
+   fi
+done
+exit 0
+}
+
+LISTONLY=$1
+if [ "$LISTONLY" == 'list' ]; then
+list_repo
+fi
+
 ping -c 1 $AOMP_GIT_INTERNAL_IP 2> /dev/null >/dev/null
 if [ $? != 0 ]; then
    echo ERROR: you must be internal AMD network to get internal repos
@@ -48,74 +87,80 @@ if [ $? != 0 ] ; then
    exit 1
 fi
 pyver=`python3 --version | cut -d" " -f2 | cut -d"." -f1`
-if [ "$pyver" != "3" ] ; then 
+if [ "$pyver" != "3" ] ; then
    echo "ERROR:  the 'python' executeable must be python3"
    echo "        Try alias python to python3"
    exit 1
 fi
-echo
-echo "==============  INSTALLING new python3 packages needed by internal roctracer repo ============"
-python3 -m pip install CppHeaderParser argparse wheel lit
-echo
 
 repobindir=$AOMP_REPOS/.bin
-
 mkdir -p $repobindir
-curl https://storage.googleapis.com/git-repo-downloads/repo > $repobindir/repo 2>/dev/null
-chmod a+x $repobindir/repo
+if [ ! -f $repobindir/repo ] ; then
 
-echo "================  STARTING INTERNAL REPO INIT ================"
-cd $AOMP_REPOS
-$repobindir/repo init -u $GITROCDEV/$AOMP_REPO_NAME -b aomp-dev -m manifests/aomp-internal.xml
-if [ $? != 0 ] ; then 
-   echo "ERROR:  $repobindir/repo init failed"
-   exit 1
-fi
-echo
-echo "================  STARTING INTERNAL REPO SYNC ================"
+   echo "================  GETTING repo COMMAND FROM GOOGLE ================"
+   mkdir -p $repobindir
+   curl https://storage.googleapis.com/git-repo-downloads/repo > $repobindir/repo 2>/dev/null
+   chmod a+x $repobindir/repo
 
-echo $repobindir/repo sync
-$repobindir/repo sync
-if [ $? != 0 ] ; then 
-   echo "ERROR:  $repobindir/repo sync failed"
-   exit 1
+   echo "==============  INSTALLING new python3 packages needed by internal roctracer repo ============"
+   python3 -m pip install CppHeaderParser argparse wheel lit
+   echo
+
 fi
-echo
-echo "Done repo sync"
-echo "The internal repositories can be found at $AOMP_REPOS"
-echo
+
+   echo "================  STARTING INTERNAL REPO INIT ================"
+   cd $AOMP_REPOS
+   $repobindir/repo init -u $GITROCDEV/$AOMP_REPO_NAME -b aomp-dev -m manifests/aomp-internal.xml
+   if [ $? != 0 ] ; then
+      echo "ERROR:  $repobindir/repo init failed"
+      exit 1
+   fi
+
+   echo "================  STARTING INTERNAL REPO SYNC ================"
+
+   echo $repobindir/repo sync
+   $repobindir/repo sync
+   if [ $? != 0 ] ; then
+      echo "ERROR:  $repobindir/repo sync failed"
+      exit 1
+   fi
+   echo
+   echo "Done repo sync"
+   echo "The internal repositories can be found at $AOMP_REPOS"
+
 
 echo
 echo "================  Get REPOS on correct internal branches ================"
-for reponame in `ls $AOMP_REPOS` ; do 
-   echo
-   if [ $reponame == "rocr-runtime" ] ; then
-      if [ -L $AOMP_REPOS/rocr-runtime/src ] ; then
-         echo Already linked rocr-runtime to hsa-runtime/opensrc/hsa-runtime/src
-      else
-         echo "Fixing rocr-runtime with correct link to hsa-runtime/opensrc/hsa-runtime src"
-         mkdir -p $AOMP_REPOS/rocr-runtime
-         cd $AOMP_REPOS/rocr-runtime
-         echo ln -sf $AOMP_REPOS/hsa-runtime/opensrc/hsa-runtime src
-         ln -sf $AOMP_REPOS/hsa-runtime/opensrc/hsa-runtime src
-      fi
-   else
-      if [[ "$reponame" == "aomp" || "$reponame" == "aomp-extras" || "$reponame" == "llvm-project" || "$reponame" == "flang" ]] ; then
-         branch_name="aomp-dev"
-      elif [[ "$reponame" == "roct-thunk-interface"  ||  "$reponame" == "rocminfo" ||  "$reponame" == "ROCgdb" ||  "$reponame" == "ROCdbgapi" ]] ; then
-         branch_name="amd-staging"
-      elif [[ "$reponame" == "rocm-device-libs" || "$reponame" == "rocm-compilersupport" ]] ; then
-         branch_name="amd-stg-open"
-      else
-         branch_name="amd-master"
-      fi
-      echo "cd $AOMP_REPOS/$reponame ; git checkout $branch_name"
-      cd $AOMP_REPOS/$reponame
+for repodirname in `ls $AOMP_REPOS` ; do
+   # The build and rocr-runtime are not git repos, skip them.
+   if [[ "$repodirname" != "rocr-runtime"  && "$repodirname" != "build" ]] ; then 
+      echo
+      get_branch_name
+      echo "cd $AOMP_REPOS/$repodirname  "
+      cd $AOMP_REPOS/$repodirname
+      echo "git checkout $branch_name  "
       git checkout $branch_name
-      git pull
+      if [[ "$repodirname" != "rocm-compilersupport" ]] ; then
+        echo "git pull"
+        git pull
+      fi
       cd ..
    fi
 done
+
+# build_aomp.sh expects a repo at the direoctory for rocr-runtime
+# Link in the open source hsa-runtime as "src" directory
+if [ ! -L $AOMP_REPOS/rocr-runtime/src ] ; then
+   echo "Fixing rocr-runtime with correct link to hsa-runtime/opensrc/hsa-runtime src"
+   mkdir -p $AOMP_REPOS/rocr-runtime
+   cd $AOMP_REPOS/rocr-runtime
+   echo ln -sf $AOMP_REPOS/hsa-runtime/opensrc/hsa-runtime src
+   ln -sf $AOMP_REPOS/hsa-runtime/opensrc/hsa-runtime src
+fi
+
+cd $AOMP_REPOS/hsa-runtime
+git checkout $AOMP_HSA_RUNTIME_BRANCH_NAME
+git pull
 
 echo
 echo "========== $0 IS COMPLETE in $AOMP_REPOS=========="

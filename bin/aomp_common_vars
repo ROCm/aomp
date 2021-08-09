@@ -38,17 +38,43 @@ export AOMP_MAJOR_VERSION
 if [ "$AOMP_MAJOR_VERSION" == "12" ] ; then
   AOMP_REPOS=${AOMP_REPOS:-$HOME/git/aomp12}
 elif [ "$AOMP_MAJOR_VERSION" == "13" ] ; then
-  AOMP_REPOS=${AOMP_REPOS:-$HOME/git/aomp13}
   # AOMP 13.1 will use repo command with interal repos
   if [[ "$AOMP_VERSION" == "13.1" ]] ; then
-    ping -c 1 $AOMP_GIT_INTERNAL_IP 2> /dev/null
+    #The default for internal repos will be $HOME/git/aomp13.1
+    AOMP_REPOS=${AOMP_REPOS:-${HOME}/git/aomp${AOMP_VERSION}}
+    # Check to be sure machine has internal access
+    ping -c 1 $AOMP_GIT_INTERNAL_IP 2> /dev/null >/dev/null
     if [ $? != 0 ]; then
 	  echo error: you must be internal to develop on aomp 13.1
 	  exit 1
     fi
-    #The default for internal repos will be $HOME/git/aomp13i
-    AOMP_REPOS=${AOMP_REPOS}i
-    AOMP_USE_REPO=1
+    # These are the branches that the manifest file should be on
+    AOMP_PROJECT_REPO_BRANCH="aomp-dev"
+    AOMP_EXTRAS_REPO_BRANCH="aomp-dev"
+    AOMP_FLANG_REPO_BRANCH="aomp-dev"
+    AOMP_REPO_BRANCH="aomp-dev"
+    AOMP_ROCT_REPO_BRANCH="amd-staging"
+    AOMP_GDB_REPO_BRANCH="amd-staging"
+    AOMP_DBGAPI_REPO_BRANCH="amd-staging"
+    AOMP_RINFO_REPO_BRANCH="amd-staging"
+    AOMP_ROCR_REPO_BRANCH="amd-master"
+    AOMP_HSA_RUNTIME_BRANCH_NAME="amd-master"
+    AOMP_PROF_REPO_BRANCH="amd-master"
+    AOMP_TRACE_REPO_BRANCH="amd-master"
+    AOMP_VDI_REPO_BRANCH="amd-master"
+    AOMP_OCL_REPO_BRANCH="amd-master"
+    AOMP_HIPVDI_REPO_BRANCH="amd-master"
+    AOMP_COMGR_REPO_BRANCH="amd-stg-open"
+    AOMP_COMGR_REPO_SHA="694f5a8"
+    AOMP_LIBDEVICE_REPO_BRANCH="amd-stg-open"
+    # Force build for 13.1 to 13.1-0, ignore AOMP_VERSION_MOD set above
+    AOMP_VERSION_MOD=0
+    AOMP_VERSION_STRING="13.1-0"
+    AOMP_INSTALL_DIR=${AOMP}_${AOMP_VERSION_STRING}
+    AOMP_PATCH_CONTROL_FILE="${AOMP_REPOS}/aomp/bin/patches/patch-control-file_13.1.txt"
+    export AOMP_VERSION_STRING AOMP_VERSION AOMP_VERSION_MOD
+  else
+     AOMP_REPOS=${AOMP_REPOS:-$HOME/git/aomp13}
   fi
 elif [ "$AOMP_MAJOR_VERSION" == "11" ] ; then
   AOMP_REPOS=${AOMP_REPOS:-$HOME/git/aomp11}
@@ -198,8 +224,6 @@ else
   AOMP_FLANG_REPO_NAME=${AOMP_FLANG_REPO_NAME:-flang}
   AOMP_FLANG_REPO_BRANCH=${AOMP_FLANG_REPO_BRANCH:-aomp11}
 fi
-# FIXME: In the near future, we will remove the _BRANCH variables and use a
-#        manifest file to determine which branch to build each component.
 #
 # The difference between a _REPO_NAME and _REPO_GITNAME is that the
 # _REPO_NAME is the directory name following $AOMP_REPOS.  The GITNAME
