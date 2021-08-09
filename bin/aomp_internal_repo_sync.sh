@@ -118,10 +118,19 @@ fi
 
    echo "================  STARTING INTERNAL REPO SYNC ================"
 
-   echo $repobindir/repo sync --force-sync aomp
-   $repobindir/repo sync --force-sync aomp
+   echo $repobindir/repo sync
+   $repobindir/repo sync
    if [ $? != 0 ] ; then
-      echo "ERROR:  $repobindir/repo sync failed"
+      echo
+      echo "ERROR: $repobindir/repo sync failed. This could be because you used"
+      echo "       git clone to fetch the original aomp master repository into "
+      echo "       directory $AOMP_REPOS"
+      echo "       You MUST git clone into a different directory for the initial"
+      echo "       copy of the aomp repository. Otherwise, the repo sync"
+      echo "       command will not be able to correctly fetch aomp repo.  Try:"
+      echo "       "
+      echo "       git clone http://github.com/rocm-developer-tools/aomp /tmp/aomp_temp"
+      echo "       /tmp/aomp_temp/bin/aomp_internal_repo_sync.sh"
       exit 1
    fi
    echo
