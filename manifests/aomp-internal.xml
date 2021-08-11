@@ -13,7 +13,7 @@
 
 <project path="hsa-runtime" name="hsa/ec/hsa-runtime"            revision="amd-master"/>
 <project path="rocprofiler" name="compute/ec/rocprofiler"        revision="amd-master"/>
-<project path="roctracer" name="compute/ec/roctracer"            revision="amd-master"/>
+<project path="roctracer" name="compute/ec/roctracer"            revision="release/rocm-rel-4.3"/>
 
 <project path="vdi" name="compute/ec/vdi"                        revision="rocm-4.3.x"/>
 <project path="opencl-on-vdi" name="compute/ec/opencl"           revision="rocm-4.3.x"/>
