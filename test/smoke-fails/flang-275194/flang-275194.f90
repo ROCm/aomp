@@ -14,5 +14,17 @@ program test
       !$omp end parallel do
      !$omp end target
      print *,x
-     if (x(1) .eq. 0) print *,"Failed" 
+     if (x(1) .ne. 0) print *,"Failed" 
+
+     k =0
+     !$omp target if(target: k > 0) map(from:x)
+      k=2
+      !$omp parallel do schedule (static,1)
+      do i=1, 10
+         x(i)=omp_get_thread_num()
+      enddo
+      !$omp end parallel do
+     !$omp end target
+     print *,x
+     if (x(1) .eq. 0) print *,"target: Failed" 
 end program test
