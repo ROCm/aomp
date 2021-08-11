@@ -152,10 +152,18 @@ for repodirname in `ls $AOMP_REPOS` ; do
       get_branch_name
       echo "cd $AOMP_REPOS/$repodirname  "
       cd $AOMP_REPOS/$repodirname
-      echo "git checkout $branch_name  "
-      git checkout $branch_name
-      if [[ "$repodirname" != "rocm-compilersupport" ]] ; then
-        echo "git pull"
+      if [[ "$repodirname" == "rocm-compilersupport" ]] ; then
+	# FIXME: handle hash checkouts better
+        echo git checkout amd-stg-open
+        git checkout amd-stg-open
+	echo git pull
+	git pull
+        echo git checkout $branch_name
+        git checkout $branch_name
+      else
+        echo git checkout $branch_name
+        git checkout $branch_name
+        echo git pull
         git pull
       fi
       cd ..
