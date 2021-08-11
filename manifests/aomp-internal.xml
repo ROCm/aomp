@@ -19,7 +19,7 @@
 <project path="opencl-on-vdi" name="compute/ec/opencl"           revision="rocm-4.3.x"/>
 <project path="hip-on-vdi" name="compute/ec/hip"                 revision="rocm-4.3.x"/>
 
-<project path="rocm-compilersupport" name="lightning/ec/support" revision="amd-stg-open"/>
+<project path="rocm-compilersupport" name="lightning/ec/support" revision="694f5a8"/>
 <project path="rocm-device-libs" name="lightning/ec/device-libs" revision="amd-stg-open"/>
 
 <!-- EXTERNAL REPOS -->

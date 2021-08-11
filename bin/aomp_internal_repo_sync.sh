@@ -2,9 +2,6 @@
 #
 #  aomp_internal_repo_sync:  get and/or update internal repos
 # 
-#  This script uses the file manifests/aomp-internal.xml from the aomp github.
-#  This script requires you have internal access.
-
 # --- Start standard header ----
 function getdname(){
    local __DIRN=`dirname "$1"`
@@ -30,39 +27,45 @@ thisdir=$(getdname $0)
 . $thisdir/aomp_common_vars
 # --- end standard header ----A
 
-function get_branch_name(){
-   branch_name="UNKNOWN"
-      [[ "$repodirname" == "aomp" ]] && branch_name=$AOMP_REPO_BRANCH
-      [[ "$repodirname" == "llvm-project" ]] && branch_name=$AOMP_PROJECT_REPO_BRANCH
-      [[ "$repodirname" == "aomp-extras" ]] && branch_name=$AOMP_EXTRAS_REPO_BRANCH
-      [[ "$repodirname" == "flang" ]] && branch_name=$AOMP_FLANG_REPO_BRANCH
-      [[ "$repodirname" == "roct-thunk-interface" ]] && branch_name=$AOMP_ROCT_REPO_BRANCH
-      [[ "$repodirname" == "hsa-runtime" ]] && branch_name=$AOMP_HSA_RUNTIME_BRANCH_NAME
-      [[ "$repodirname" == "rocminfo" ]] && branch_name=$AOMP_RINFO_REPO_BRANCH
-      [[ "$repodirname" == "ROCgdb" ]] && branch_name=$AOMP_GDB_REPO_BRANCH
-      [[ "$repodirname" == "ROCdbgapi" ]] && branch_name=$AOMP_DBGAPI_REPO_BRANCH
-      [[ "$repodirname" == "rocm-device-libs" ]] && branch_name=$AOMP_LIBDEVICE_REPO_BRANCH
-      [[ "$repodirname" == "rocprofiler" ]] && branch_name=$AOMP_PROF_REPO_BRANCH
-      [[ "$repodirname" == "roctracer" ]] && branch_name=$AOMP_TRACE_REPO_BRANCH
-      [[ "$repodirname" == "opencl-on-vdi" ]] && branch_name=$AOMP_OCL_REPO_BRANCH
-      [[ "$repodirname" == "hip-on-vdi" ]] && branch_name=$AOMP_HIPVDI_REPO_BRANCH
-      [[ "$repodirname" == "vdi" ]] && branch_name=$AOMP_VDI_REPO_BRANCH
-
-      [[ "$repodirname" == "rocm-compilersupport" ]] && branch_name=$AOMP_COMGR_REPO_SHA
+function get_branch_name() {
+ _lst=`grep "path=\"$repodirname\""  $local_manifest_file | awk '{print $1 " " $2 " " $3 " " $4 " " $5;}'`
+ for field in $_lst ; do
+    field_name=`echo $field | cut -d= -f1`
+    if [[ $field_name == "revision" ]] ; then
+       branch_name=`echo $field | cut -d= -f2 | cut -d\" -f2`
+    fi
+ done
 }
 
 function list_repo(){
 for repodirname in `ls $AOMP_REPOS` ; do
    if [[ "$repodirname" != "rocr-runtime"  && "$repodirname" != "build" ]] ; then
       fulldirname=$AOMP_REPOS/$repodirname
-      get_branch_name
       cd $fulldirname
+      HASH=`git log -1 --numstat --format="%h" |head -1`
+      flag=""
+      get_branch_name
       abranch=`git branch | awk '/\*/ { print $2; }'`
-      echo `git config --get remote.origin.url` "$repodirname  desired: " $branch_name" actual: " $abranch "  " `git log --numstat --format="%h" |head -1`
+      if [ "$abranch" == "(HEAD" ] ; then
+         abranch=`git branch | awk '/\*/ { print $5; }' | cut -d")" -f1`
+         [ "$abranch" != "$HASH" ] && flag="!HASH!	"
+      fi
+      url=`git config --get remote.origin.url`
+      if [ "$url" == "" ] ; then
+         url=`git config --get remote.roctools.url`
+      fi
+      if [ "$url" == "" ] ; then
+         url=`git config --get remote.gerritgit.url`
+      fi
+      [ "$branch_name" != "$abranch" ] && flag="!BRANCH!	"
+      echo "$flag$repodirname  url:$url  desired:$branch_name  actual:$abranch  hash:$HASH"
    fi
 done
 exit 0
 }
+
+manifest_file="manifests/aomp-internal.xml"
+local_manifest_file="$thisdir/../$manifest_file"
 
 LISTONLY=$1
 if [ "$LISTONLY" == 'list' ]; then
@@ -110,7 +113,7 @@ fi
 
    echo "================  STARTING INTERNAL REPO INIT ================"
    cd $AOMP_REPOS
-   $repobindir/repo init -u $GITROCDEV/$AOMP_REPO_NAME -b aomp-dev -m manifests/aomp-internal.xml
+   $repobindir/repo init -u $GITROCDEV/$AOMP_REPO_NAME -b aomp-dev -m $manifest_file
    if [ $? != 0 ] ; then
       echo "ERROR:  $repobindir/repo init failed"
       exit 1
