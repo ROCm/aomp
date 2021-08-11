@@ -44,9 +44,11 @@ for repodirname in `ls $AOMP_REPOS` ; do
       cd $fulldirname
       HASH=`git log -1 --numstat --format="%h" |head -1`
       flag=""
+      is_hash=0
       get_branch_name
       abranch=`git branch | awk '/\*/ { print $2; }'`
       if [ "$abranch" == "(HEAD" ] ; then
+         is_hash=1
          abranch=`git branch | awk '/\*/ { print $5; }' | cut -d")" -f1`
          [ "$abranch" != "$HASH" ] && flag="!HASH!	"
       fi
@@ -57,7 +59,7 @@ for repodirname in `ls $AOMP_REPOS` ; do
       if [ "$url" == "" ] ; then
          url=`git config --get remote.gerritgit.url`
       fi
-      [ "$branch_name" != "$abranch" ] && flag="!BRANCH!	"
+      [ "$branch_name" != "$abranch" ] && [ $is_hash == 0 ] && flag="!BRANCH!	"
       echo "$flag$repodirname  url:$url  desired:$branch_name  actual:$abranch  hash:$HASH"
    fi
 done
