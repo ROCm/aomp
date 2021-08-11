@@ -7,7 +7,7 @@ program test
 
      !$omp target if(k > 0) map(from:x)
       k=2
-      !$omp parallel do
+      !$omp parallel do schedule (static,1)
       do i=1, 10
          x(i)=omp_get_thread_num()
       enddo
