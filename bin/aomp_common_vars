@@ -48,26 +48,8 @@ elif [ "$AOMP_MAJOR_VERSION" == "13" ] ; then
 	  echo error: you must be internal to develop on aomp 13.1
 	  exit 1
     fi
-    # These are the branches that the manifest file should be on
-    AOMP_PROJECT_REPO_BRANCH="aomp-dev"
-    AOMP_EXTRAS_REPO_BRANCH="aomp-dev"
-    AOMP_FLANG_REPO_BRANCH="aomp-dev"
-    AOMP_REPO_BRANCH="aomp-dev"
-    AOMP_ROCT_REPO_BRANCH="amd-staging"
-    AOMP_GDB_REPO_BRANCH="amd-staging"
-    AOMP_DBGAPI_REPO_BRANCH="amd-staging"
-    AOMP_RINFO_REPO_BRANCH="amd-staging"
-    AOMP_ROCR_REPO_BRANCH="amd-master"
-    AOMP_HSA_RUNTIME_BRANCH_NAME="amd-master"
-    AOMP_PROF_REPO_BRANCH="amd-master"
-    AOMP_TRACE_REPO_BRANCH="amd-master"
-    AOMP_VDI_REPO_BRANCH="rocm-4.3.x"
-    AOMP_OCL_REPO_BRANCH="rocm-4.3.x"
-    AOMP_HIPVDI_REPO_BRANCH="rocm-4.3.x"
-    AOMP_COMGR_REPO_BRANCH="amd-stg-open"
-    AOMP_COMGR_REPO_SHA="694f5a8"
-    AOMP_LIBDEVICE_REPO_BRANCH="amd-stg-open"
     # Force build for 13.1 to 13.1-0, ignore AOMP_VERSION_MOD set above
+    AOMP_CHECK_GIT_BRANCH=0
     AOMP_VERSION_MOD=0
     AOMP_VERSION_STRING="13.1-0"
     AOMP_INSTALL_DIR=${AOMP}_${AOMP_VERSION_STRING}
