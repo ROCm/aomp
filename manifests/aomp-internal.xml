@@ -14,7 +14,7 @@
 
 <project path="hsa-runtime" name="hsa/ec/hsa-runtime"            revision="amd-master"/>
 <project path="rocprofiler" name="compute/ec/rocprofiler"        revision="amd-master"/>
-<project path="roctracer" name="compute/ec/roctracer"            revision="release/rocm-rel-4.3"/>
+<project path="roctracer" name="compute/ec/roctracer"            revision="amd-staging"/>
 
 <project remote="roctools" path="hipamd" name="hipamd" revision="develop" />
 <project remote="roctools" path="hip"    name="hip" revision="develop" />
