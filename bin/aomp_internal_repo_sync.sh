@@ -73,7 +73,7 @@ done
 exit $rc
 }
 
-manifest_file="manifests/aomp-internal.xml"
+manifest_file="manifests/aomp_$AOMP_VERSION.xml"
 local_manifest_file="$thisdir/../$manifest_file"
 
 LISTONLY=$1
