@@ -73,20 +73,19 @@ if [ $? != 0 ] ; then
    exit 1
 fi
 
-# rocm-compilersupport is special and needs a specific hash checked out. First checkout
-# the upstream branch and then checkout the revision hash.
-echo "$repobindir/repo forall lightning/ec/support -pc 'git checkout \$REPO_UPSTREAM; git checkout \$REPO_RREV'"
-$repobindir/repo forall lightning/ec/support -pc 'git checkout $REPO_UPSTREAM; git checkout $REPO_RREV'
+# Loop through project groups thare are revlocked and checkout specific hash.
+echo "$repobindir/repo forall -p -g revlocked -c 'git checkout \$REPO_UPSTREAM; git checkout \$REPO_RREV'"
+$repobindir/repo forall -p -g revlocked -c 'git checkout $REPO_UPSTREAM; git checkout $REPO_RREV'
 if [ $? != 0 ] ; then
-   echo "$repobindir/repo forall lightning/ec/support checkout failed."
+   echo "$repobindir/repo forall revlocked checkout failed."
    exit 1
 fi
 
-# Finally run git pull for all projects.
-echo $repobindir/repo forall -pc \'git pull\'
-$repobindir/repo forall -pc 'git pull'
+# Finally run git pull for all unlockded projects.
+echo $repobindir/repo forall -p -g unlocked -c \'git pull\'
+$repobindir/repo forall -p -g unlocked -c 'git pull'
 if [ $? != 0 ] ; then
-   echo "$repobindir/repo forall git pull."
+   echo "$repobindir/repo forall git pull failed."
    exit 1
 fi
 
