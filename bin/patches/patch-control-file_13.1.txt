@@ -1,5 +1,4 @@
 rocminfo: rocminfo_ppc_cmake.patch
-opencl-on-vdi: ocl.patch
 omptests: omptests.patch
 openlibm: openlibm.patch
 RAJA: raja.patch
