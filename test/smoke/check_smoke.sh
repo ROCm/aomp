@@ -84,8 +84,10 @@ pushd $script_dir
 path=$(pwd)
 
 #Clean all testing directories
-make clean
-cleanup
+if [ "$NO_CLEAN" != 1 ] ; then
+  make clean
+  cleanup
+fi
 
 export OMP_TARGET_OFFLOAD=${OMP_TARGET_OFFLOAD:-MANDATORY}
 echo OMP_TARGET_OFFLOAD=$OMP_TARGET_OFFLOAD
@@ -100,11 +102,16 @@ echo "Tests that need to be visually inspected: devices, pfspecify, pfspecify_st
 echo "***********************************************************************************" >> check-smoke.txt
 
 known_fails=""
+skip_tests=""
 
 if [ "$SKIP_FAILURES" == 1 ] ; then
   skip_tests=$known_fails
 else
   skip_tests=""
+fi
+if [ "$SKIP_FORTRAN" == 1 ] ; then
+  skip_tests+="`find .  -iname '*.f9[50]' | sed s^./^^ | awk -F/ '{print $1}'` "
+  echo $skip_tests
 fi
 
 #Loop over all directories and make run / make check depending on directory name
