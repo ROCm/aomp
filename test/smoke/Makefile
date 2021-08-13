@@ -84,6 +84,7 @@ TESTS_DIR = \
     function_template \
     gdb_teams \
     global_allocate \
+    gpus \
     helloworld \
     hip_device_compile \
     hip_rocblas \

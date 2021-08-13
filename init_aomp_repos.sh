@@ -7,12 +7,11 @@
 #      wget  https://github.com/ROCm-Developer-Tools/aomp/raw/aomp-dev/init_aomp_repos.sh
 #      . init_aomp_repos.sh
 
-# FIXME: In the future, use version specific manifest_files
-manifest_file="manifests/aomp-internal.xml"
 GITROCDEV="https://github.com/ROCm-Developer-Tools"
 AOMP_VERSION=${AOMP_VERSION:-13.1}
 AOMP_REPOS=${AOMP_REPOS:-${HOME}/git/aomp${AOMP_VERSION}}
 repobindir=$AOMP_REPOS/.bin
+manifest_file="manifests/aomp_$AOMP_VERSION.xml"
 mkdir -p $repobindir
 
 # Check Python before using repo command
