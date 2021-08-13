@@ -155,8 +155,14 @@ for directory in ./*/; do
     make
     if [ $? -ne 0 ]; then
       echo "$base: Make Failed" >> ../make-fail.txt
+      popd > /dev/null
+      continue
     fi
-    make check > /dev/null 2>&1
+    if [ $base == "gpus" ]; then # Compile and link only test
+      echo "$base" >> ../passing-tests.txt
+    else
+      make check > /dev/null 2>&1
+    fi
     #liba_bundled has an additional Makefile, that may fail on the make check
     if [ $? -ne 0 ] && ( [ $base == 'liba_bundled' ] || [ $base == 'liba_bundled_cmdline' ] ) ; then
       echo "$base: Make Failed" >> ../make-fail.txt
