@@ -6,25 +6,30 @@
     <remote name="roctools"  fetch="https://github.com/ROCm-Developer-Tools/" />
     <remote name="roc"  fetch="https://github.com/RadeonOpenCompute/" />
 
-
+<!-- INTERNAL REPOS -->
+<!-- ROCr ROCt -->
+<project path="hsa-runtime" name="hsa/ec/hsa-runtime"            revision="amd-master"/>
 <project path="roct-thunk-interface" name="compute/ec/libhsakmt" revision="amd-staging"/>
+
+<!-- Lightning -->
+<project path="rocm-compilersupport" name="lightning/ec/support" upstream="amd-stg-open" revision="694f5a8e52573c4c2a1223414643c6e98f05cd23"/>
+<project path="rocm-device-libs" name="lightning/ec/device-libs" revision="amd-stg-open"/>
+
+<!-- ROCm Utils -->
 <project path="rocminfo" name="compute/ec/rocminfo"              revision="amd-staging"/>
 <project path="ROCgdb" name="compute/ec/rocm-gdb"                revision="amd-staging"/>
 <project path="ROCdbgapi" name="compute/ec/rocm-dbgapi"          revision="amd-staging"/>
-
-<project path="hsa-runtime" name="hsa/ec/hsa-runtime"            revision="amd-master"/>
 <project path="rocprofiler" name="compute/ec/rocprofiler"        revision="amd-master"/>
 <project path="roctracer" name="compute/ec/roctracer"            revision="amd-staging"/>
 
+<!-- EXTERNAL REPOS -->
+<!-- HIP/ROCclr/OpenCL -->
 <project remote="roctools" path="hipamd" name="hipamd" revision="develop" />
 <project remote="roctools" path="hip"    name="hip" revision="develop" />
 <project remote="roctools" path="ROCclr" name="ROCclr" revision="develop" />
 <project remote="roc"      path="ROCm-OpenCL-Runtime" name="ROCm-OpenCL-Runtime" revision="develop" />
 
-<project path="rocm-compilersupport" name="lightning/ec/support" revision="694f5a8e52573c4c2a1223414643c6e98f05cd23"/>
-<project path="rocm-device-libs" name="lightning/ec/device-libs" revision="amd-stg-open"/>
-
-<!-- EXTERNAL REPOS -->
+<!-- AOMP -->
 <project remote="roctools" path="llvm-project" name="llvm-project" revision="aomp-dev" />
 <project remote="roctools" path="flang" name="flang"               revision="aomp-dev" />
 <project remote="roctools" path="aomp-extras" name="aomp-extras"   revision="aomp-dev" />

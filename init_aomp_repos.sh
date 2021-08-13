@@ -63,4 +63,31 @@ if [ $? != 0 ] ; then
       exit 1
 fi
 echo "repo sync Done! Repositories can be found at $AOMP_REPOS"
+
+echo "================  STARTING BRANCH CHECKOUT ================"
+# Loop through synced projects and checkout branch revision specified in manifest.
+echo "$repobindir/repo forall -pc 'git checkout \$REPO_RREV'"
+$repobindir/repo forall -pc 'git checkout $REPO_RREV'
+if [ $? != 0 ] ; then
+   echo "$repobindir/repo forall checkout failed."
+   exit 1
+fi
+
+# rocm-compilersupport is special and needs a specific hash checked out. First checkout
+# the upstream branch and then checkout the revision hash.
+echo "$repobindir/repo forall lightning/ec/support -pc 'git checkout \$REPO_UPSTREAM; git checkout \$REPO_RREV'"
+$repobindir/repo forall lightning/ec/support -pc 'git checkout $REPO_UPSTREAM; git checkout $REPO_RREV'
+if [ $? != 0 ] ; then
+   echo "$repobindir/repo forall lightning/ec/support checkout failed."
+   exit 1
+fi
+
+# Finally run git pull for all projects.
+echo $repobindir/repo forall -pc \'git pull\'
+$repobindir/repo forall -pc 'git pull'
+if [ $? != 0 ] ; then
+   echo "$repobindir/repo forall git pull."
+   exit 1
+fi
+
 exit 0
