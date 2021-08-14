@@ -87,23 +87,31 @@ echo "**************************************************************************
 echo "                   A non-zero exit code means a failure occured." >> check-smoke.txt
 echo "***********************************************************************************" >> check-smoke.txt
 
+skip_tests=""
+if [ "$SKIP_FORTRAN" == 1 ] ; then
+  skip_tests+="`find .  -iname '*.f9[50]' | sed s^./^^ | awk -F/ '{print $1}'` "
+  echo $skip_tests
+fi
+
 #Loop over all directories and make run / make check depending on directory name
 for directory in ./*/; do
-    (cd "$directory" && path=$(pwd) && base=$(basename $path)
+  (cd "$directory" && path=$(pwd) && base=$(basename $path)
+  if [ "$NO_CLEAN" != 1 ] ; then	
     make clean
-    #Skip tests that are known failures
-    skip=0
-    for test in $skip_tests ; do
-      if [ $test == $base ] ; then
-        skip=1
-        break
-      fi
-    done
-    if [ $skip -ne 0 ] ; then
-      echo "Skip $base!"
-      echo ""
-      continue
+  fi
+  #Skip tests that are known failures
+  skip=0
+  for test in $skip_tests ; do
+    if [ $test == $base ] ; then
+      skip=1
+      echo "$test $base"
+      break
     fi
+  done
+  if [ $skip -ne 0 ] ; then
+    echo "Skipping $base"
+    echo ""
+  else  
     AOMPROCM=${AOMPROCM:-/opt/rocm}
     if [ $base == 'hip_rocblas' ] ; then
       ls $AOMPROCM/rocblas > /dev/null 2>&1
@@ -138,8 +146,9 @@ for directory in ./*/; do
         echo "$base: Make Failed" >> ../make-fail.txt
       fi
     fi
-    echo ""
-   )
+  fi
+  echo ""
+ )
 	
 done
 

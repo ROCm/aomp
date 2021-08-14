@@ -42,12 +42,6 @@ elif [ "$AOMP_MAJOR_VERSION" == "13" ] ; then
   if [[ "$AOMP_VERSION" == "13.1" ]] ; then
     #The default for internal repos will be $HOME/git/aomp13.1
     AOMP_REPOS=${AOMP_REPOS:-${HOME}/git/aomp${AOMP_VERSION}}
-    # Check to be sure machine has internal access
-    ping -c 1 $AOMP_GIT_INTERNAL_IP 2> /dev/null >/dev/null
-    if [ $? != 0 ]; then
-	  echo error: you must be internal to develop on aomp 13.1
-	  exit 1
-    fi
     # Force build for 13.1 to 13.1-0, ignore AOMP_VERSION_MOD set above
     AOMP_CHECK_GIT_BRANCH=0
     AOMP_VERSION_MOD=0
