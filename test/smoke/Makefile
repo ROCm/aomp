@@ -119,6 +119,7 @@ TESTS_DIR = \
     nativetests \
     nested_loop \
     nested_loop_trunk \
+    nested_loop_trunk1 \
     nested_par3 \
     nested_targ \
     nest_call_par2 \

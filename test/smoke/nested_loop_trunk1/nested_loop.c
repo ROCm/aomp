@@ -23,8 +23,6 @@ int main() {
     #pragma omp target map(tofrom: Inner, Outer, wayout)
     #pragma omp teams num_teams(1  ) thread_limit(tl)
     {   wayout =1;
-//    #pragma omp distribute
-  //  for(int j = 0 ; j < 16 ; j += blockSize) {
         #pragma omp parallel for
         for(int i = 0 ; i < blockSize; i++) {
           A[i] += B[i] + C[i];
@@ -32,25 +30,15 @@ int main() {
 
         }
         Outer = 1;
-  //  }
     }
   }
   printf("Inner=%d Outer=%d wayout=%d\n", Inner, Outer, wayout);
-  for(int i = 0 ; i < 256 ; i++) {
-    if (A[i] != TRIALS) {
-      printf("Error at A[%d], h = %lf, d = %lf\n", i, (double)TRIALS, A[i]);
-      fail = 1;
-      break;
-    }
-  }
 
-  if(fail){
-	printf("Failed\n");
-	return 1;
-  }
-
-  else{
+  if(Inner==1 && Outer==1 && wayout==1){
 	printf("Succeeded\n");
 	return 0;
+  } else {
+	printf("Failed\n");
+	return 1;
   }
 }
