@@ -21,7 +21,8 @@ Here are the commands to do a source build of AOMP_13.1-x.
    export AOMP_VERSION=13.1
    export AOMP_REPOS=$HOME/git/aomp${AOMP_VERSION}
    wget https://github.com/ROCm-Developer-Tools/aomp/raw/aomp-dev/init_aomp_repos.sh
-   . init_aomp_repos.sh
+   chmod 755 init_aomp_repos.sh
+   ./init_aomp_repos.sh
    $AOMP_REPOS/aomp/bin/clone_aomp.sh
    nohup $AOMP_REPOS/aomp/bin/build_aomp.sh &
 ```
