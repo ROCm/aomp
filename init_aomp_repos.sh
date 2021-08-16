@@ -63,4 +63,30 @@ if [ $? != 0 ] ; then
       exit 1
 fi
 echo "repo sync Done! Repositories can be found at $AOMP_REPOS"
+
+echo "================  STARTING BRANCH CHECKOUT ================"
+# Loop through synced projects and checkout branch revision specified in manifest.
+echo "$repobindir/repo forall -pc 'git checkout \$REPO_RREV'"
+$repobindir/repo forall -pc 'git checkout $REPO_RREV'
+if [ $? != 0 ] ; then
+   echo "$repobindir/repo forall checkout failed."
+   exit 1
+fi
+
+# Loop through project groups thare are revlocked and checkout specific hash.
+echo "$repobindir/repo forall -p -g revlocked -c 'git checkout \$REPO_UPSTREAM; git checkout \$REPO_RREV'"
+$repobindir/repo forall -p -g revlocked -c 'git checkout $REPO_UPSTREAM; git checkout $REPO_RREV'
+if [ $? != 0 ] ; then
+   echo "$repobindir/repo forall revlocked checkout failed."
+   exit 1
+fi
+
+# Finally run git pull for all unlockded projects.
+echo $repobindir/repo forall -p -g unlocked -c \'git pull\'
+$repobindir/repo forall -p -g unlocked -c 'git pull'
+if [ $? != 0 ] ; then
+   echo "$repobindir/repo forall git pull failed."
+   exit 1
+fi
+
 exit 0

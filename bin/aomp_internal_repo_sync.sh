@@ -151,31 +151,31 @@ fi
 
 
 echo
-echo "================  Get REPOS on correct internal branches ================"
-for repodirname in `ls $AOMP_REPOS` ; do
-   # The build and rocr-runtime are not git repos, skip them.
-   if [[ "$repodirname" != "rocr-runtime"  && "$repodirname" != "build" ]] ; then 
-      echo
-      get_branch_name
-      echo "cd $AOMP_REPOS/$repodirname  "
-      cd $AOMP_REPOS/$repodirname
-      if [[ "$repodirname" == "rocm-compilersupport" ]] ; then
-	# FIXME: handle hash checkouts better
-        echo git checkout amd-stg-open
-        git checkout amd-stg-open
-	echo git pull
-	git pull
-        echo git checkout $branch_name
-        git checkout $branch_name
-      else
-        echo git checkout $branch_name
-        git checkout $branch_name
-        echo git pull
-        git pull
-      fi
-      cd ..
-   fi
-done
+
+echo "================  STARTING BRANCH CHECKOUT ================"
+# Loop through synced projects and checkout branch revision specified in manifest.
+echo "$repobindir/repo forall -pc 'git checkout \$REPO_RREV'"
+$repobindir/repo forall -pc 'git checkout $REPO_RREV'
+if [ $? != 0 ] ; then
+   echo "$repobindir/repo forall checkout failed."
+   exit 1
+fi
+
+# Loop through project groups thare are revlocked and checkout specific hash.
+echo "$repobindir/repo forall -p -g revlocked -c 'git checkout \$REPO_UPSTREAM; git checkout \$REPO_RREV'"
+$repobindir/repo forall -p -g revlocked -c 'git checkout $REPO_UPSTREAM; git checkout $REPO_RREV'
+if [ $? != 0 ] ; then
+   echo "$repobindir/repo forall revlocked checkout failed."
+   exit 1
+fi
+
+# Finally run git pull for all unlockded projects.
+echo $repobindir/repo forall -p -g unlocked -c \'git pull\'
+$repobindir/repo forall -p -g unlocked -c 'git pull'
+if [ $? != 0 ] ; then
+   echo "$repobindir/repo forall git pull failed."
+   exit 1
+fi
 
 # build_aomp.sh expects a repo at the direoctory for rocr-runtime
 # Link in the open source hsa-runtime as "src" directory
