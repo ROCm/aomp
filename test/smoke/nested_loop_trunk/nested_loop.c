@@ -20,7 +20,7 @@ int main() {
   int wayout=0;
 
   for (int t = 0 ; t < TRIALS ; t++) {
-    #pragma omp target map(tofrom: Inner, Outer, wayout)
+    #pragma omp target map(tofrom: Inner, Outer, wayout, A)
     #pragma omp teams num_teams(1  ) thread_limit(tl)
     {   wayout =1;
 //    #pragma omp distribute
@@ -36,7 +36,7 @@ int main() {
     }
   }
   printf("Inner=%d Outer=%d wayout=%d\n", Inner, Outer, wayout);
-  for(int i = 0 ; i < 256 ; i++) {
+  for(int i = 0 ; i < 5 ; i++) {
     if (A[i] != TRIALS) {
       printf("Error at A[%d], h = %lf, d = %lf\n", i, (double)TRIALS, A[i]);
       fail = 1;
