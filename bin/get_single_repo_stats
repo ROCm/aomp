@@ -1,0 +1,5 @@
+#!/bin/bash
+commit=`git log -1 | grep "^commit" | cut -d" " -f2 | xargs`
+date=`git log -1 | grep "^Date:" | cut -d":" -f2- | xargs`
+author=`git log -1 | grep "^Author:" | cut -d":" -f2- | cut -d"<" -f1 | xargs`
+printf "%20s %12s %36s %30s %20s\n" $REPO_PATH $REPO_RREV $commit "$date" "$author"
