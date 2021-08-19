@@ -31,4 +31,5 @@ curdir=$PWD
 echo "REPO DIRECTORY: $AOMP_REPOS"
 cd $AOMP_REPOS
 ./.bin/repo forall -g unlocked -c $PWD/aomp/bin/get_single_repo_stats | sort
+./.bin/repo forall -g revlocked -c $PWD/aomp/bin/get_single_repo_stats revlocked | sort
 cd $curdir
