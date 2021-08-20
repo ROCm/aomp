@@ -157,41 +157,40 @@ echo "================  STARTING BRANCH CHECKOUT ================"
 echo "$repobindir/repo forall -pc 'git checkout \$REPO_RREV'"
 $repobindir/repo forall -pc 'git checkout $REPO_RREV'
 if [ $? != 0 ] ; then
-   echo "$repobindir/repo forall checkout failed."
-   exit 1
+   echo "WARNING: $repobindir/repo forall checkout failed."
+   # exit 1
 fi
 
 # Loop through project groups thare are revlocked and checkout specific hash.
 echo "$repobindir/repo forall -p -g revlocked -c 'git checkout \$REPO_UPSTREAM; git checkout \$REPO_RREV'"
 $repobindir/repo forall -p -g revlocked -c 'git checkout $REPO_UPSTREAM; git checkout $REPO_RREV'
 if [ $? != 0 ] ; then
-   echo "$repobindir/repo forall revlocked checkout failed."
-   exit 1
+   echo "WARNING: $repobindir/repo forall revlocked checkout failed."
+   # exit 1
 fi
 
+echo "================  STARTING BRANCH PULL ================"
 # Finally run git pull for all unlockded projects.
 echo $repobindir/repo forall -p -g unlocked -c \'git pull\'
 $repobindir/repo forall -p -g unlocked -c 'git pull'
 if [ $? != 0 ] ; then
-   echo "$repobindir/repo forall git pull failed."
-   exit 1
+   echo "WARNING: $repobindir/repo forall git pull failed."
+   #exit 1
 fi
 
-# build_aomp.sh expects a repo at the direoctory for rocr-runtime
+# build_rocr.sh expects directory rocr-runtime which is a subdir of hsa-runtime
 # Link in the open source hsa-runtime as "src" directory
-if [ ! -L $AOMP_REPOS/rocr-runtime/src ] ; then
-   echo "Fixing rocr-runtime with correct link to hsa-runtime/opensrc/hsa-runtime src"
-   mkdir -p $AOMP_REPOS/rocr-runtime
-   cd $AOMP_REPOS/rocr-runtime
-   echo ln -sf $AOMP_REPOS/hsa-runtime/opensrc/hsa-runtime src
-   ln -sf $AOMP_REPOS/hsa-runtime/opensrc/hsa-runtime src
+if [ -d $AOMP_REPOS/hsa-runtime ] ; then
+   if [ ! -L $AOMP_REPOS/rocr-runtime/src ] ; then
+      echo "Fixing rocr-runtime with correct link to hsa-runtime/opensrc/hsa-runtime src"
+      mkdir -p $AOMP_REPOS/rocr-runtime
+      cd $AOMP_REPOS/rocr-runtime
+      echo ln -sf $AOMP_REPOS/hsa-runtime/opensrc/hsa-runtime src
+      ln -sf $AOMP_REPOS/hsa-runtime/opensrc/hsa-runtime src
+   fi
 fi
-
-cd $AOMP_REPOS/hsa-runtime
-git checkout $AOMP_HSA_RUNTIME_BRANCH_NAME
-git pull
 
 echo
-echo "========== $0 IS COMPLETE in $AOMP_REPOS=========="
+echo "========== $0 IS COMPLETE in $AOMP_REPOS =========="
 
 exit 0
