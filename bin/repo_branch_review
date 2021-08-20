@@ -1,0 +1,94 @@
+#!/bin/bash
+# 
+#   repo_branch_review: look for newer branches than current
+# 
+# --- Start standard header ----
+function getdname(){
+   local __DIRN=`dirname "$1"`
+   if [ "$__DIRN" = "." ] ; then
+      __DIRN=$PWD;
+   else
+      if [ ${__DIRN:0:1} != "/" ] ; then
+         if [ ${__DIRN:0:2} == ".." ] ; then
+               __DIRN=`dirname $PWD`/${__DIRN:3}
+         else
+            if [ ${__DIRN:0:1} = "." ] ; then
+               __DIRN=$PWD/${__DIRN:2}
+            else
+               __DIRN=$PWD/$__DIRN
+            fi
+         fi
+      fi
+   fi
+   echo $__DIRN
+}
+thisdir=$(getdname $0)
+[ ! -L "$0" ] || thisdir=$(getdname `readlink "$0"`)
+. $thisdir/aomp_common_vars
+# --- end standard header ----
+
+
+function get_monthnumber() {
+    case $(echo ${1:0:3} | tr '[a-z]' '[A-Z]') in
+        JAN) monthnumber="01" ;;
+        FEB) monthnumber="02" ;;
+        MAR) monthnumber="03" ;;
+        APR) monthnumber="04" ;;
+        MAY) monthnumber="05" ;;
+        JUN) monthnumber="06" ;;
+        JUL) monthnumber="07" ;;
+        AUG) monthnumber="08" ;;
+        SEP) monthnumber="09" ;;
+        OCT) monthnumber="10" ;;
+        NOV) monthnumber="11" ;;
+        DEC) monthnumber="12" ;;
+    esac
+}
+function find_newer_branches() {
+commit=`git log -1 | grep "^commit" | cut -d" " -f2 | xargs`
+thisdate=`git log -1 | grep "^Date:" | cut -d":" -f2- | xargs | cut -d" " -f2- | cut -d"-" -f1`
+thisauthor=`git log -1 | grep "^Author:" | cut -d":" -f2- | cut -d"<" -f1 | xargs`
+get_monthnumber $thisdate
+thisday=`echo $thisdate | cut -d" " -f2`
+thisyear=`echo $thisdate | cut -d" " -f4`
+thisbranch="${REPO_REMOTE}/$REPO_RREV"
+printf -v thisdatevar "%4u-%2s-%02u" $thisyear $monthnumber $thisday 
+echo
+echo "DIRNAME:$REPO_PATH  PROJECT:$REPO_PROJECT "
+echo "current:$thisdatevar commit:${commit:0:8}  branch:$thisbranch  author:$thisauthor"
+
+tmpfile=/tmp/xzf$$
+#git branch -r -v  | grep -i "\/amd\|\/roc\|\/aomp\|\/dev" >$tmpfile
+git branch -r -v >$tmpfile
+while read curline ; do 
+  branch=`echo $curline | cut -d" " -f1 | xargs`
+  shortcommit=`echo $curline | cut -d" " -f2`
+  if [[ "$shortcommit" != "->" ]] ; then 
+    author=`git show $shortcommit | grep "^Author:" | cut -d":" -f2- | cut -d"<" -f1 | xargs`
+    branchdate=`git show $shortcommit | grep "^Date:" | cut -d":" -f2- | xargs | cut -d" " -f2- | cut -d"-" -f1 `
+    get_monthnumber $branchdate
+    branchday=`echo $branchdate | cut -d" " -f2`
+    branchyear=`echo $branchdate | cut -d" " -f4`
+    printf -v datevar "%4u-%2s-%02u" $branchyear $monthnumber $branchday 
+    if [[ $datevar > $thisdatevar ]] ; then 
+       echo "  newer:$datevar commit:$shortcommit  branch:$branch  author:$author"
+    fi
+    if [[ $datevar == $thisdatevar ]] ; then 
+       if [[ $branch != $thisbranch ]] ; then 
+          echo "   same:$datevar commit:$shortcommit  branch:$branch  author:$author"
+       fi
+    fi
+  fi
+done < $tmpfile
+rm $tmpfile
+}
+
+if [[ "$1" == "find_newer_branches" ]] ; then
+   find_newer_branches
+else
+   curdir=$PWD
+   echo "REPO DIRECTORY: $AOMP_REPOS"
+   cd $AOMP_REPOS
+   ./.bin/repo forall -g unlocked -c $PWD/aomp/bin/repo_branch_review find_newer_branches
+   cd $curdir
+fi
