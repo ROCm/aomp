@@ -1,4 +1,4 @@
-aomp (13.0-5) UNRELEASED; urgency=medium
+aomp (13.0-6) UNRELEASED; urgency=medium
 
   * Initial release of aomp is 0.3-2
   *   Please see example in /usr/lib/aomp/examples/vmuldemo 
@@ -644,5 +644,9 @@ aomp (13.0-5) UNRELEASED; urgency=medium
   *  9 Clang lit test failures
   *  Long build times when large numbers of archive libraries are needed because toolchain must
   *       unbundle the archive for device linking.
+  *
+  *  13.0-6
+  *   Update to ROCm 4.3 sources.
+  *   Flang cmake race condition fixed.
 
  -- Greg Rodgers <Gregory.Rodgers@amd.com>  Wed, 28 Jul 2021 11:27:13 -0500
