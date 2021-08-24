@@ -1,20 +1,5 @@
 #include <stdio.h>
 #include <omp.h>
-#include <omp-tools.h>
-
-static ompt_start_trace_t ompt_start_trace;
-
-#if 0
-static void ompt_callback_buffer_request_on (
-  int device_num,
-  ompt_buffer_t **buffer,
-  size_t *bytes
-) {
-  *bytes = OMPT_BUFFER_REQUEST_SIZE;
-  *buffer = malloc(*bytes);
-  printf("Allocated %lu bytes at %p in buffer request callback\n", *bytes, *buffer);
-}
-#endif
 
 int main()
 {
@@ -51,8 +36,28 @@ int main()
 }
 
 // Tool related code below
+#include <omp-tools.h>
+
+#define OMPT_BUFFER_REQUEST_SIZE 256
+
+// OMPT entry point handles
+static ompt_start_trace_t ompt_start_trace;
 static ompt_set_callback_t ompt_set_callback;
 
+// OMPT callbacks
+
+// Trace record callbacks
+static void on_ompt_callback_buffer_request (
+  int device_num,
+  ompt_buffer_t **buffer,
+  size_t *bytes
+) {
+  *bytes = OMPT_BUFFER_REQUEST_SIZE;
+  *buffer = malloc(*bytes);
+  printf("Allocated %lu bytes at %p in buffer request callback\n", *bytes, *buffer);
+}
+
+// Synchronous callbacks
 static void on_ompt_callback_device_initialize
 (
   int device_num,
@@ -75,8 +80,8 @@ static void on_ompt_callback_device_initialize
   // TODO move the ompt_start_trace to the main program before any
   // target construct and ensure we error out gracefully. The program
   // should not assert or crash.
-  //  int status = ompt_start_trace(0, &ompt_callback_buffer_request_on, 0);
-  //  printf("Start trace status=%d\n", status);
+  int status = ompt_start_trace(0, &on_ompt_callback_buffer_request, 0);
+  printf("Start trace status=%d\n", status);
 }
 
 static void on_ompt_callback_device_load
@@ -135,6 +140,7 @@ static void on_ompt_callback_target_submit
      endpoint, target_id, host_op_id, requested_num_teams);
 }
 
+// Init functions
 int ompt_initialize(
   ompt_function_lookup_t lookup,
   int initial_device_num,
