@@ -89,7 +89,7 @@ git status
 }
 
 # Someday all new versions of AOMP will use repo command
-if [[ "$AOMP_VERSION" == "13.1" ]] ; then
+if [[ "$AOMP_VERSION" == "13.1" ]] || [[ $AOMP_MAJOR_VERSION -gt 13 ]] ; then
  $thisdir/aomp_internal_repo_sync.sh $*
  exit $?
 fi

@@ -3,6 +3,8 @@
 #  aomp_internal_repo_sync:  get and/or update internal repos
 # 
 # --- Start standard header ----
+if [ "$1" != "repocmd" ]; then
+
 function getdname(){
    local __DIRN=`dirname "$1"`
    if [ "$__DIRN" = "." ] ; then
@@ -27,58 +29,14 @@ thisdir=$(getdname $0)
 . $thisdir/aomp_common_vars
 # --- end standard header ----A
 
-function get_branch_name() {
- _lst=`grep "path=\"$repodirname\""  $local_manifest_file | awk '{print $1 " " $2 " " $3 " " $4 " " $5;}'`
- for field in $_lst ; do
-    field_name=`echo $field | cut -d= -f1`
-    if [[ $field_name == "revision" ]] ; then
-       branch_name=`echo $field | cut -d= -f2 | cut -d\" -f2`
-    fi
- done
-}
-
-function list_repo(){
-for repodirname in `ls $AOMP_REPOS` ; do
-   rc=0
-   if [[ "$repodirname" != "rocr-runtime"  && "$repodirname" != "build" ]] ; then
-      fulldirname=$AOMP_REPOS/$repodirname
-      cd $fulldirname
-      HASH=`git log -1 --numstat --format="%h" |head -1`
-      flag=""
-      is_hash=0
-      get_branch_name
-      abranch=`git branch | awk '/\*/ { print $2; }'`
-      if [ "$abranch" == "(HEAD" ] ; then
-         is_hash=1
-         abranch=`git branch | awk '/\*/ { print $5; }' | cut -d")" -f1`
-         if [ "$abranch" != "$HASH" ] ; then
-	    flag="!HASH!	"
-	    rc=1
-	 fi
-      fi
-      url=`git config --get remote.origin.url`
-      if [ "$url" == "" ] ; then
-         url=`git config --get remote.roctools.url`
-      fi
-      if [ "$url" == "" ] ; then
-         url=`git config --get remote.gerritgit.url`
-      fi
-      if [ "$branch_name" != "$abranch" ] && [ $is_hash == 0 ] ; then
-         flag="!BRANCH!	"
-	 rc=1
-      fi
-      echo "$flag$repodirname  url:$url  desired:$branch_name  actual:$abranch  hash:$HASH"
-   fi
-done
-exit $rc
-}
-
 manifest_file="manifests/aomp_$AOMP_VERSION.xml"
 local_manifest_file="$thisdir/../$manifest_file"
+repobindir=$AOMP_REPOS/.bin
 
-LISTONLY=$1
-if [ "$LISTONLY" == 'list' ]; then
-list_repo
+if [ "$1" == "list" ] ; then
+  $repobindir/repo forall -g unlocked -c $thisdir/aomp_internal_repo_sync.sh repocmd list
+  $repobindir/repo forall -g revlocked -c $thisdir/aomp_internal_repo_sync.sh repocmd list
+  exit
 fi
 
 ping -c 1 $AOMP_GIT_INTERNAL_IP 2> /dev/null >/dev/null
@@ -86,7 +44,7 @@ if [ $? != 0 ]; then
    echo ERROR: you must be internal AMD network to get internal repos
    exit 1
 fi
-if [[ "$AOMP_VERSION" != "13.1" ]] ; then
+if [[ "$AOMP_VERSION" != "13.1" ]] && [[ $AOMP_MAJOR_VERSION -lt 14 ]] ; then
   echo "ERROR: Currently $0 only works with development of 13.1"
   echo "       You have AOMP_VERSION set to $AOMP_VERSION"
   echo "       To use $0 set AOMP_VERSION to \"13.1\""
@@ -105,7 +63,6 @@ if [ "$pyver" != "3" ] ; then
    exit 1
 fi
 
-repobindir=$AOMP_REPOS/.bin
 mkdir -p $repobindir
 if [ ! -f $repobindir/repo ] ; then
 
@@ -162,8 +119,8 @@ if [ $? != 0 ] ; then
 fi
 
 # Loop through project groups thare are revlocked and checkout specific hash.
-echo "$repobindir/repo forall -p -g revlocked -c 'git checkout \$REPO_UPSTREAM; git checkout \$REPO_RREV'"
-$repobindir/repo forall -p -g revlocked -c 'git checkout $REPO_UPSTREAM; git checkout $REPO_RREV'
+$repobindir/repo forall -p -g revlocked -c $thisdir/aomp_internal_repo_sync.sh repocmd gitcheckout
+$repobindir/repo forall -p -g unlocked -c $thisdir/aomp_internal_repo_sync.sh repocmd gitcheckout
 if [ $? != 0 ] ; then
    echo "WARNING: $repobindir/repo forall revlocked checkout failed."
    # exit 1
@@ -171,8 +128,8 @@ fi
 
 echo "================  STARTING BRANCH PULL ================"
 # Finally run git pull for all unlockded projects.
-echo $repobindir/repo forall -p -g unlocked -c \'git pull\'
-$repobindir/repo forall -p -g unlocked -c 'git pull'
+echo $repobindir/repo forall -p -g unlocked -c $thisdir/aomp_internal_repo_sync.sh repocmd gitpull
+$repobindir/repo forall -p -g unlocked -c $thisdir/aomp_internal_repo_sync.sh repocmd gitpull
 if [ $? != 0 ] ; then
    echo "WARNING: $repobindir/repo forall git pull failed."
    #exit 1
@@ -192,5 +149,55 @@ fi
 
 echo
 echo "========== $0 IS COMPLETE in $AOMP_REPOS =========="
+
+else
+
+function list_repo(){
+   rc=0
+   repodirname=$REPO_PATH
+   thisbranch="${REPO_REMOTE}/${REPO_RREV:0:12}"
+      HASH=`git log -1 --numstat --format="%h" | head -1`
+      flag=""
+      is_hash=0
+      branch_name=${REPO_RREV}
+      # get the actual branch
+      abranch=`git branch | awk '/\*/ { print $2; }'`
+      if [ "$abranch" == "(no" ] ; then
+         is_hash=1
+         abranch=`git branch | awk '/\*/ { print $5; }' | cut -d")" -f1`
+         if [ "$abranch" != "$HASH" ] ; then
+	    flag="!HASH!	"
+	    rc=1
+	 fi
+      fi
+      url=`git config --get remote.origin.url`
+      if [ "$url" == "" ] ; then
+         url=`git config --get remote.roctools.url`
+      fi
+      if [ "$url" == "" ] ; then
+         url=`git config --get remote.gerritgit.url`
+      fi
+      if [ "$branch_name" != "$abranch" ] && [ $is_hash == 0 ] ; then
+         flag="!BRANCH!	"
+	 rc=1
+      fi
+      echo "$flag$repodirname  url:$url  desired:$branch_name  actual:$abranch  hash:$HASH"
+}
+
+  # first arg is not repocmd
+  if [[ "$2" == "gitpull" ]] ; then
+    echo calling git pull in directory $PWD
+    git pull
+  elif [[ "$2" == "gitcheckout" ]] ; then
+    echo git checkout $REPO_RREV
+    git checkout $REPO_RREV
+  elif [[ "$2" == "list" ]] ; then
+    list_repo
+  else
+    echo "ERROR: Bad subcommand for repocmd cmd:$2"
+    exit 1
+  fi
+
+fi
 
 exit 0
