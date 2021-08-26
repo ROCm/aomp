@@ -102,7 +102,7 @@ if [ "$AOMP_STANDALONE_BUILD" == 1 ] ; then
   if [ "$_hostarch" == "x86_64" ] ; then
     # These components build on x86_64, so add them to components list
     components="$components pgmath flang flang_runtime"
-    if [ "$AOMP_VERSION" == "13.1" ] ; then
+    if [ "$AOMP_VERSION" == "13.1" ] || [ $AOMP_MAJOR_VERSION -gt 13 ] ; then
        components="$components hipamd "
     else
        components="$components vdi hipvdi ocl "
