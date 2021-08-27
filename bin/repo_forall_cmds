@@ -111,10 +111,7 @@ if [ -Z $repocmd ] ; then
 fi
 
 rc=0
-if [[ "$repocmd" == "gitpull" ]] ; then
-    echo calling git pull in directory $PWD
-    git pull
-elif [[ "$repocmd" == "gitcheckout" ]] ; then
+if [[ "$repocmd" == "gitcheckout" ]] ; then
     echo git checkout $REPO_RREV
     git checkout $REPO_RREV
 elif [[ "$repocmd" == "find_newer_branches" ]] ; then

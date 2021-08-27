@@ -89,4 +89,16 @@ if [ $? != 0 ] ; then
    exit 1
 fi
 
+# build_rocr.sh expects directory rocr-runtime which is a subdir of hsa-runtime
+# Link in the open source hsa-runtime as "src" directory
+if [ -d $AOMP_REPOS/hsa-runtime ] ; then
+   if [ ! -L $AOMP_REPOS/rocr-runtime/src ] ; then
+      echo "Fixing rocr-runtime with correct link to hsa-runtime/opensrc/hsa-runtime src"
+      mkdir -p $AOMP_REPOS/rocr-runtime
+      cd $AOMP_REPOS/rocr-runtime
+      echo ln -sf $AOMP_REPOS/hsa-runtime/opensrc/hsa-runtime src
+      ln -sf $AOMP_REPOS/hsa-runtime/opensrc/hsa-runtime src
+   fi
+fi
+
 exit 0

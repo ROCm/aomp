@@ -102,8 +102,8 @@ if [[ "$AOMP_VERSION" == "13.1" ]] || [[ $AOMP_MAJOR_VERSION -gt 13 ]] ; then
       cat $tmpfile
       rm $tmpfile
    else
-      echo $repobindir/repo forall -p -g unlocked -c $thisdir/repo_forall_cmds gitpull
-      $repobindir/repo forall -p -g unlocked -c $thisdir/repo_forall_cmds gitpull
+      echo $repobindir/repo forall -p -g unlocked -c \'git pull\'
+      $repobindir/repo forall -p -g unlocked -c 'git pull'
    fi
    rc=$?
    exit $rc
