@@ -88,10 +88,25 @@ echo git status
 git status
 }
 
-# Someday all new versions of AOMP will use repo command
 if [[ "$AOMP_VERSION" == "13.1" ]] || [[ $AOMP_MAJOR_VERSION -gt 13 ]] ; then
- $thisdir/aomp_internal_repo_sync.sh $*
- exit $?
+   # For 13.1 and beyond, initialization requires init_aomp_repos.sh to be run
+   # once. Therefore a full repo sync is not necessary and it could get in the
+   # way of unstaged or uncommited work. So all we want to do here is to update
+   # each repo with a "git pull" in each repo directory even though the name
+   # of this script is clone_aomp.sh for historical reasons.
+   repobindir=$AOMP_REPOS/.bin
+   if [ "$1" == "list" ] ; then
+      tmpfile=/tmp/repostats$$
+      $repobindir/repo forall -g unlocked -c $thisdir/repo_forall_cmds list | sort >$tmpfile
+      $repobindir/repo forall -g revlocked -c $thisdir/repo_forall_cmds list >>$tmpfile
+      cat $tmpfile
+      rm $tmpfile
+   else
+      echo $repobindir/repo forall -p -g unlocked -c $thisdir/repo_forall_cmds gitpull
+      $repobindir/repo forall -p -g unlocked -c $thisdir/repo_forall_cmds gitpull
+   fi
+   rc=$?
+   exit $rc
 fi
 
 mkdir -p $AOMP_REPOS

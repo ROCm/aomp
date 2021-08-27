@@ -3,7 +3,6 @@
 #   get_repo_stats: show directory name, branch, last commit, date, and author
 # 
 # --- Start standard header ----
-if [[ "$1" != "get_single_repo_stats" ]] ; then
 function getdname(){
    local __DIRN=`dirname "$1"`
    if [ "$__DIRN" = "." ] ; then
@@ -28,52 +27,16 @@ thisdir=$(getdname $0)
 . $thisdir/aomp_common_vars
 # --- end standard header ----
 
-   repocmd="$AOMP_REPOS/.bin/repo"
-   if [ ! -f $repocmd ] ; then
-      echo "ERROR: The repo command was not found at $repocmd"
-      echo "       It is likely that directory $AOMP_REPOS does not "
-      echo "       contain a set of repos managed by repo command."
-      exit 1
-   fi
-   curdir=$PWD
-   echo "REPO DIRECTORY: $AOMP_REPOS"
-   cd $AOMP_REPOS
-   $repocmd forall -g unlocked -c $AOMP_REPOS/aomp/bin/get_repo_stats get_single_repo_stats | sort
-   $repocmd forall -g revlocked -c $AOMP_REPOS/aomp/bin/get_repo_stats get_single_repo_stats | sort
-   cd $curdir
-
-else
-
-# When $1 == get_single_repo_stats, invocation is from "repo forall -c"
-# command (above). That command is started within specific repo directory.
-# We don't need the AOMP environment variables. We only need REPO_ vars
-# created by the repo command above.
-
-function get_monthnumber() {
-    case $(echo ${1:0:3} | tr '[a-z]' '[A-Z]') in
-        JAN) monthnumber="01" ;;
-        FEB) monthnumber="02" ;;
-        MAR) monthnumber="03" ;;
-        APR) monthnumber="04" ;;
-        MAY) monthnumber="05" ;;
-        JUN) monthnumber="06" ;;
-        JUL) monthnumber="07" ;;
-        AUG) monthnumber="08" ;;
-        SEP) monthnumber="09" ;;
-        OCT) monthnumber="10" ;;
-        NOV) monthnumber="11" ;;
-        DEC) monthnumber="12" ;;
-    esac
-}
-   logcommit=`git log -1 | grep "^commit" | cut -d" " -f2 | xargs`
-   thiscommit=${logcommit:0:12}
-   thisdate=`git log -1 | grep "^Date:" | cut -d":" -f2- | xargs | cut -d" " -f2-`
-   get_monthnumber $thisdate
-   thisday=`echo $thisdate | cut -d" " -f2`
-   thisyear=`echo $thisdate | cut -d" " -f4`
-   printf -v thisdatevar "%4u-%2s-%02u" $thisyear $monthnumber $thisday
-   author=`git log -1 | grep "^Author:" | cut -d":" -f2- | cut -d"<" -f1 | xargs`
-   thisbranch="${REPO_REMOTE}/${REPO_RREV:0:12}"
-   printf "%24s %20s %12s %10s %26s %20s\n" $thisbranch $REPO_PATH $thiscommit $thisdatevar ${REPO_PROJECT} "$author"
-
+repocmd="$AOMP_REPOS/.bin/repo"
+if [ ! -f $repocmd ] ; then
+   echo "ERROR: The repo command was not found at $repocmd"
+   echo "       It is likely that directory $AOMP_REPOS does not "
+   echo "       contain a set of repos managed by repo command."
+   exit 1
 fi
+echo "REPO DIRECTORY: $AOMP_REPOS"
+tmpfile=/tmp/repostats$$
+$repocmd forall -g unlocked -c $thisdir/repo_forall_cmds list | sort >$tmpfile
+$repocmd  forall -g revlocked -c $thisdir/repo_forall_cmds list >>$tmpfile
+cat $tmpfile
+rm $tmpfile
