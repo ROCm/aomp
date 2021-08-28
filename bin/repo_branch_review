@@ -28,4 +28,7 @@ thisdir=$(getdname $0)
 # --- end standard header ----
 
 echo "REPO DIRECTORY: $AOMP_REPOS"
+curdir=$PWD
+cd $AOMP_REPOS
 $AOMP_REPOS/.bin/repo forall -g unlocked -c $AOMP_REPOS/aomp/bin/repo_forall_cmds find_newer_branches
+cd $curdir

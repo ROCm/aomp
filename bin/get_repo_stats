@@ -34,9 +34,12 @@ if [ ! -f $repocmd ] ; then
    echo "       contain a set of repos managed by repo command."
    exit 1
 fi
+curdir=$PWD
 echo "REPO DIRECTORY: $AOMP_REPOS"
 tmpfile=/tmp/repostats$$
+cd $AOMP_REPOS
 $repocmd forall -g unlocked -c $thisdir/repo_forall_cmds list | sort >$tmpfile
 $repocmd  forall -g revlocked -c $thisdir/repo_forall_cmds list >>$tmpfile
 cat $tmpfile
 rm $tmpfile
+cd $curdir
