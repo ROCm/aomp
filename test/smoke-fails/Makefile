@@ -52,6 +52,7 @@ TESTS_DIR = \
     flang-cmplx-fib \
     flang_dev_write \
     flang-teams-gdb \
+    helloworld%n \
     lds-prob1 \
     lds-prob2 \
     lds-prob3 \
