@@ -95,6 +95,8 @@ if [[ "$AOMP_VERSION" == "13.1" ]] || [[ $AOMP_MAJOR_VERSION -gt 13 ]] ; then
    # each repo with a "git pull" in each repo directory even though the name
    # of this script is clone_aomp.sh for historical reasons.
    repobindir=$AOMP_REPOS/.bin
+   curdir=$PWD
+   cd $AOMP_REPOS
    if [ "$1" == "list" ] ; then
       tmpfile=/tmp/repostats$$
       $repobindir/repo forall -g unlocked -c $thisdir/repo_forall_cmds list | sort >$tmpfile
@@ -106,6 +108,7 @@ if [[ "$AOMP_VERSION" == "13.1" ]] || [[ $AOMP_MAJOR_VERSION -gt 13 ]] ; then
       $repobindir/repo forall -p -g unlocked -c $thisdir/repo_forall_cmds gitpull
    fi
    rc=$?
+   cd $curdir
    exit $rc
 fi
 
