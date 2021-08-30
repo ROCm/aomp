@@ -51,6 +51,10 @@ ifeq ("$(wildcard $(AOMP))","")
 endif
 # --- End Standard Makefile check for AOMP installation ---
 endif
+
+AOMPHIP ?= $(AOMP)
+HIPCC ?= $(AOMPHIP)/bin/hipcc
+
 ifeq ($(AOMP_GPU),)
 INSTALLED_GPU  = $(shell $(AOMP)/bin/mygpu -d gfx900) # Default AOMP_GPU is gfx900 which is vega
 AOMP_GPU       ?= $(INSTALLED_GPU)
@@ -66,7 +70,7 @@ else
 endif
 
 FORT   =$(AOMP)/bin/flang
-LFLAGS = -lamdhip64 
+LFLAGS = -L$(AOMPHIP)/lib -lamdhip64 -Wl,-rpath,$(AOMPHIP)/lib
 FFLAGS = -fopenmp -fopenmp-targets=$(AOMP_GPUTARGET) -Xopenmp-target=$(AOMP_GPUTARGET)
 
 # ----- Demo compile and link in one step, no object code saved
@@ -74,7 +78,7 @@ $(TESTNAME): $(TESTNAME).$(FILETYPE) fortran_callable_init.o
 	$(FORT) $(FFLAGS) $(TARGETS) $(LFLAGS) $^ -o $@
 
 fortran_callable_init.o : fortran_callable_init.hip
-	$(AOMP)/bin/hipcc -c --offload-arch=$(AOMP_GPU) $^ -o $@
+	$(HIPCC) -c --offload-arch=$(AOMP_GPU) $^ -o $@
 
 run: .FORCE $(TESTNAME)
 	LIBOMPTARGET_KERNEL_TRACE=1 ./$(TESTNAME)
