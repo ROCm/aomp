@@ -46,8 +46,8 @@ function find_newer_branches() {
       branch=`echo $curline | cut -d" " -f1 | xargs`
       shortcommit=`echo $curline | cut -d" " -f2`
       if [[ "$shortcommit" != "->" ]] ; then
-        author=`git show $shortcommit | grep "^Author:" | cut -d":" -f2- | cut -d"<" -f1 | xargs`
-        branchdate=`git show $shortcommit | grep "^Date:" | cut -d":" -f2- | xargs | cut -d" " -f2- | cut -d"-" -f1 `
+        author=`git show $shortcommit --pretty=fuller | grep "^Commit:" | cut -d":" -f2- | cut -d"<" -f1 | xargs`
+        branchdate=`git show $shortcommit --pretty=fuller | grep "^CommitDate:" | cut -d":" -f2- | xargs | cut -d" " -f2- | cut -d"-" -f1 `
         get_monthnumber $branchdate
         branchday=`echo $branchdate | cut -d" " -f2`
         branchyear=`echo $branchdate | cut -d" " -f4`
