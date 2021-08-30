@@ -26,7 +26,7 @@ else
 endif
 
 TMPDIR   ?= ./build
-CFLAGS  = -c -target $(AOMP_CPUTARGET) -fopenmp -fopenmp-targets=$(TRIPLE) \
+CFLAGS  = -c $(AOMP_CPUTARGET) -fopenmp -fopenmp-targets=$(TRIPLE) \
             -Xopenmp-target=$(TRIPLE) \
             -march=$(AOMP_GPU) -O2
 

@@ -19,7 +19,9 @@ LIBSRC2   = hfunc2
 LIBSRC3   = hfunc3
 
 TMPDIR   ?= ./build
-CFLAGS  = -c -target $(AOMP_CPUTARGET) -O2
+UNAMEP    = $(shell uname -m)
+HOST_TARGET = $(UNAMEP)-pc-linux-gnu
+CFLAGS  = -c -target $(HOST_TARGET) -O2
 
 #   ---------------------  create bundle library -------------------
 #

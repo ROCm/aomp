@@ -19,9 +19,9 @@ endif
 ifdef MP4BUILD
 CLANG=$(AOMP)/bin/clang++
 
-CXXFLAGS = $(host_debug_flag) -O3 -I${OMPIDIR}/include -target $(AOMP_CPUTARGET) -fopenmp -fopenmp-targets=$(AOMP_GPUTARGET) -Xopenmp-target=$(AOMP_GPUTARGET) -march=$(AOMP_GPU) $(VERBOSE) $(CDEFS)
+CXXFLAGS = $(host_debug_flag) -O3 -I${OMPIDIR}/include $(AOMP_CPUTARGET) -fopenmp -fopenmp-targets=$(AOMP_GPUTARGET) -Xopenmp-target=$(AOMP_GPUTARGET) -march=$(AOMP_GPU) $(VERBOSE) $(CDEFS)
 CXX = $(AOMP)/bin/clang++
-LFLAGS = -fopenmp -fopenmp-targets=$(AOMP_GPUTARGET) -target $(AOMP_CPUTARGET)
+LFLAGS = -fopenmp -fopenmp-targets=$(AOMP_GPUTARGET) $(AOMP_CPUTARGET)
 ifeq (nvptx,$(findstring nvptx,$(AOMP_GPUTARGET)))
    CUDA ?= /usr/local/cuda
    LFLAGS += -L$(CUDA)/lib64 -lcuda -lcudart -lelf -lffi

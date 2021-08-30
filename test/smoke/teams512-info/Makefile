@@ -14,7 +14,7 @@ include ../../Makefile.defs
 TESTNAME = teams512-info
 TESTSRC  = teams512-info.c
 
-CFLAGS = -O3 -target $(AOMP_CPUTARGET) -fopenmp -fopenmp-targets=$(AOMP_GPUTARGET) -Xopenmp-target=$(AOMP_GPUTARGET) -march=$(AOMP_GPU)
+CFLAGS = -O3 $(AOMP_CPUTARGET) -fopenmp -fopenmp-targets=$(AOMP_GPUTARGET) -Xopenmp-target=$(AOMP_GPUTARGET) -march=$(AOMP_GPU)
 
 ifeq (sm_,$(findstring sm_,$(AOMP_GPU)))
   CUDA   ?= /usr/local/cuda

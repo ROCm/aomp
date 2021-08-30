@@ -39,10 +39,10 @@ TARGETS =--offload-arch=$(AOMP_GPU)
 endif
 
 CC       =$(AOMP)/bin/clang++ -std=c++11
-#CFLAGS   =-O3 --target=$(AOMP_CPUTARGET) -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target amdgcn-amd-amdhsa #--offload-arch=$(AOMP_GPU)
-#CFLAGS   =-x hip -O3 -target $(AOMP_CPUTARGET) -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=gfx900
-CFLAGS   = -O3 -target $(AOMP_CPUTARGET) -fopenmp
-#CFLAGS   =-O3 -fopenmp -target $(AOMP_CPUTARGET)
+#CFLAGS   =-O3 $(AOMP_CPUTARGET) -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target amdgcn-amd-amdhsa #--offload-arch=$(AOMP_GPU)
+#CFLAGS   =-x hip -O3 $(AOMP_CPUTARGET) -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=gfx900
+CFLAGS   = -O3 $(AOMP_CPUTARGET) -fopenmp
+#CFLAGS   =-O3 -fopenmp $(AOMP_CPUTARGET)
 
 # Add cudart only if we have an Nvidia sm_ target
 ifeq (sm_,$(findstring sm_,$(TARGETS)))

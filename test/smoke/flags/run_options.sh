@@ -15,9 +15,8 @@ debug_regex="(OFFLOAD_DEBUG=([0-9]))"
 target_regex="(-fopenmp-[a-z]*=[a-z,-]*).*(-Xopenmp-[a-z]*=[a-z,-]*)"
 
 UNAMEP=`uname -m`
-AOMP_CPUTARGET=${UNAMEP}-pc-linux-gnu
 if [[ $UNAMEP == "ppc64le" ]] ; then
-   AOMP_CPUTARGET=ppc64le-linux-gnu
+   AOMP_CPUTARGET=-target ppc64le-linux-gnu
 fi
 
 path=$(pwd) && base=$(basename $path)
