@@ -210,7 +210,7 @@ mkdir -p "$resultsdir"/fortran
 echo "cp -rf "$AOMP"/examples/fortran "$aompdir"/examples"
 cp -rf "$AOMP"/examples/fortran "$aompdir"/examples
 cd "$aompdir"/examples/fortran
-EPSDB=1 ../check_examples.sh fortran
+EPSDB=1 AOMPHIP=$AOMPROCM ../check_examples.sh fortran
 checkrc $?
 copyresults fortran
 
