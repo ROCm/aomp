@@ -22,9 +22,8 @@ ifneq ($(TIMEOUT),)
 endif
 
 UNAMEP = $(shell uname -m)
-AOMP_CPUTARGET = $(UNAMEP)-pc-linux-gnu
 ifeq ($(UNAMEP),ppc64le)
-  AOMP_CPUTARGET = ppc64le-linux-gnu
+  AOMP_CPUTARGET = -target ppc64le-linux-gnu GREG
 endif
 
 ifeq ($(EPSDB),1)
@@ -94,9 +93,9 @@ endif
 
 ifeq ($(OMP_FLAGS),)
     ifeq ($(OMP_HOST),)
-      OMP_FLAGS = -target $(AOMP_CPUTARGET) -fopenmp $(TARGET)
+      OMP_FLAGS = $(AOMP_CPUTARGET) -fopenmp $(TARGET)
     else
-      OMP_FLAGS = -target $(AOMP_CPUTARGET) -fopenmp
+      OMP_FLAGS = $(AOMP_CPUTARGET) -fopenmp
     endif
 endif
 OMP_FLAGS += $(EXTRA_OMP_FLAGS)
