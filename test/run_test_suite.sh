@@ -16,7 +16,7 @@
 DISABLED_LIST="raja omptests"
 
 # Available Suites - Qmcpack will timeout at 20 minutes
-SUITE_LIST=${SUITE_LIST:-"examples smoke smokefails hipopenmp omp5 openmpapps nekbone sollve kokkos llnl ovo openlibm qmcpack usm"}
+SUITE_LIST=${SUITE_LIST:-"ovo examples smoke smokefails hipopenmp omp5 openmpapps nekbone sollve kokkos llnl openlibm qmcpack usm"}
 
 #Groups
 GROUP_LIST="epsdb"
@@ -73,7 +73,7 @@ function update_logs(){
   elif [ "$1" == "cmd" ]; then
     shift
     echo $@
-    $@ >> $log_dir/$results_file
+    $@ >> $log_dir/$results_file 2>&1
   elif [ "$1" == "log" ]; then
     shift
     if [ -f $1 ]; then
@@ -312,6 +312,7 @@ function qmcpack(){
   set +e
   if [ $? -eq 0 ]; then
     if [ -d $build_dir ];then
+      echo "cd $build_dir"
       cd $build_dir
       update_logs cmd ctest -R deterministic
     else
