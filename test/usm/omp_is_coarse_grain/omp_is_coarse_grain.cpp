@@ -6,8 +6,9 @@
 
 #define N 10000
 
-#define PAGE_SIZE 4096
-
+// When running with HSA_XNACK=1, the following
+// is automatically inserted in the binary by
+// clang: avoid double require
 //#pragma omp requires unified_shared_memory
 
 int main() {
