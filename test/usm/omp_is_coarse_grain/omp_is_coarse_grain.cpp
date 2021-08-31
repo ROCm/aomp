@@ -12,10 +12,6 @@
 
 int main() {
   int n = N;
-#if 0
-  int *a = (int *) memalign(PAGE_SIZE, n*sizeof(int));
-  int *b = (int *) memalign(PAGE_SIZE, n*sizeof(int));
-#endif
   int *a = (int *) malloc(n*sizeof(int));
   int *b = (int *) malloc(n*sizeof(int));
 
