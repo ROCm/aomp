@@ -68,6 +68,7 @@ icvars-nestF
 issue_001
 issue_002
 issue_flang_libomp
+kokkos_log2
 launch_latency
 liba_bundled
 liba_bundled_cmdline
@@ -126,7 +127,6 @@ threads
 Threads1xxx
 unique-kernel-name
 use_device_addr
-use_device_ptr
 vasp1
 veccopy
 vmuldemo

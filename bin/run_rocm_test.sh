@@ -90,15 +90,15 @@ function getversion(){
 
   # Determine OS flavor to properly query openmp-extras version.
   osname=$(cat /etc/os-release | grep -e ^NAME=)
-  ompextrasregex="\s*[0-9]+\.([0-9]+)\.([0-9]+)"
+  ompextrasregex="\s+[0-9]+\.([0-9]+)\.([0-9]+)"
   rpmregex="Red Hat|CentOS|SLES"
   echo $osname
   if [[ "$osname" =~ $rpmregex ]]; then
     echo "Red Hat/CentOS/SLES found"
-    ompextraspkg=$(rpm -qa | grep openmp-extras)
+    ompextraspkg=$(rpm -qa | grep openmp-extras | tail -1)
   elif [[ $osname =~ "Ubuntu" ]]; then
     echo "Ubuntu found"
-    ompextraspkg=$(dpkg --list | grep openmp-extras)
+    ompextraspkg=$(dpkg --list | grep openmp-extras | tail -1)
   fi
   if [[ "$ompextraspkg" =~ $ompextrasregex ]]; then
     ompextrasver=${BASH_REMATCH[1]}${BASH_REMATCH[2]}
@@ -111,7 +111,7 @@ function getversion(){
   # will include an aggregation of suported versions up to and including the chosen
   # version.  Example: If 4.4 is selected then the final list will include expected passes
   # from 4.3 and 4.4. Openmp-extras should not be a higher version than rocm.
-  if [ "$rocmver" == "$ompextrasver" ] || [ "$rocmver" > "$ompextrasver" ]; then
+  if [ "$rocmver" == "$ompextrasver" ] || [ "$rocmver" -gt "$ompextrasver" ]; then
     compilerver=${versions[$ompextrasver]}
   else
     compilerver=${versions[$rocmver]}
