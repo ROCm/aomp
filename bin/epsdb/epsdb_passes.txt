@@ -51,7 +51,6 @@ function
 function_overload
 function_template
 gdb_teams
-global_allocate
 helloworld
 hip_device_compile
 host_targ
