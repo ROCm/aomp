@@ -96,6 +96,9 @@ echo " =================  START build_aomp.sh ==================="
 echo 
 if [ "$AOMP_STANDALONE_BUILD" == 1 ] ; then
   components="roct rocr project libdevice openmp extras comgr rocminfo"
+  if [ $AOMP_MAJOR_VERSION -gt 13 ] ; then
+     components="rocm-cmake $components"
+  fi
   _hostarch=`uname -m`
   # The VDI (rocclr) architecture is very x86 centric so it will not build on ppc64. Without
   # rocclr, we have no HIP or OpenCL for ppc64 :-( However, rocr works for ppc64 so AOMP works.
