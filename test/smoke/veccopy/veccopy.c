@@ -87,7 +87,7 @@ static void print_record_ompt(ompt_record_ompt_t *rec) {
   }
 }
 
-void delete_buffer_ompt(ompt_buffer_t *buffer) {
+static void delete_buffer_ompt(ompt_buffer_t *buffer) {
   free(buffer);
 }
 
