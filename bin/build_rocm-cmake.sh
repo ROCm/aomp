@@ -83,10 +83,6 @@ if [ "$1" == "install" ] ; then
    $SUDO rm $AOMP_INSTALL_DIR/testfile
 fi
 
-echo " Calling patchrepo"
-patchrepo $AOMP_REPOS/$AOMP_ROCMCMAKE_REPO_NAME
-echo " DONE Calling patchrepo"
-
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
   if [ -d "$BUILD_DIR/build/rocm-cmake" ] ; then
      echo
@@ -113,26 +109,9 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
   fi
 
 fi
-
 cd $BUILD_DIR/build/rocm-cmake
-echo
-echo " -----Running make for rocm-cmake ---- "
-make -j $AOMP_JOB_THREADS 
-if [ $? != 0 ] ; then
-      echo " "
-      echo "ERROR: make -j $AOMP_JOB_THREADS  FAILED"
-      echo "To restart:"
-      echo "  cd $BUILD_DIR/build/rocm-cmake"
-      echo "  make "
-      exit 1
-else
-  if [ "$1" != "install" ] ; then
-      echo
-      echo " BUILD COMPLETE! To install rocm-cmake component run this command:"
-      echo "  $0 install"
-      echo
-  fi
-fi
+
+#  ----------- no make for this component
 
 #  ----------- Install only if asked  ----------------------------
 if [ "$1" == "install" ] ; then
@@ -144,5 +123,4 @@ if [ "$1" == "install" ] ; then
       echo "ERROR make install failed "
       exit 1
    fi
-   removepatch $AOMP_REPOS/$AOMP_ROCMCMAKE_REPO_NAME
 fi
