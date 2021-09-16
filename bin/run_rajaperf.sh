@@ -63,6 +63,12 @@ if [ "$#" == 0 ]; then
   pushd $AOMP_REPOS_TEST/RAJAPerf
   git reset --hard f446416
   git submodule update
+  # Currently updates to camp caused build failures.
+  # Use last known good tag for now.
+  pushd tpl/RAJA/tpl/camp
+  git reset --hard v0.1.0
+  popd
+
   # Apply patches
   patchrepo $AOMP_REPOS_TEST/RAJAPerf/tpl/RAJA
   patchrepo $AOMP_REPOS_TEST/RAJAPerf
