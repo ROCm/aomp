@@ -2,6 +2,8 @@
 #include <assert.h>
 #include <omp.h>
 
+static int flush_trace();
+
 int main()
 {
   int N = 10;
@@ -23,6 +25,8 @@ int main()
       a[j]=b[j];
   }
 
+  flush_trace();
+  
   int rc = 0;
   for (i=0; i<N; i++)
     if (a[i] != b[i] ) {
@@ -94,8 +98,13 @@ static void delete_buffer_ompt(ompt_buffer_t *buffer) {
 // OMPT entry point handles
 static ompt_set_callback_t ompt_set_callback;
 static ompt_start_trace_t ompt_start_trace;
+static ompt_flush_trace_t ompt_flush_trace;
 static ompt_get_record_ompt_t ompt_get_record_ompt;
 static ompt_advance_buffer_cursor_t ompt_advance_buffer_cursor;
+
+static int flush_trace() {
+  return ompt_flush_trace(0);
+}
 
 // OMPT callbacks
 
@@ -155,6 +164,7 @@ static void on_ompt_callback_device_initialize
   // Add device_num -> device mapping to a map
   
   ompt_start_trace = (ompt_start_trace_t) lookup("ompt_start_trace");
+  ompt_flush_trace = (ompt_flush_trace_t) lookup("ompt_flush_trace");
   ompt_get_record_ompt = (ompt_get_record_ompt_t) lookup("ompt_get_record_ompt");
   ompt_advance_buffer_cursor = (ompt_advance_buffer_cursor_t) lookup("ompt_advance_buffer_cursor");
   
