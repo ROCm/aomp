@@ -41,6 +41,7 @@ thisdir=$(getdname $0)
 # --- end standard header ----
 AOMP=${AOMP:-~/usr/lib/aomp}
 ROCM_VER=${ROCM_VER:-rocm-alt}
+QMC_DATA=${QMC_DATA:/home/$USER/git/aomp-test/qmcpack/DATA}
 
 if [ -e /etc/profile.d/modules.sh ] ; then
    source /etc/profile.d/modules.sh
@@ -120,6 +121,7 @@ $AOMP_CMAKE -DCMAKE_C_COMPILER=$OPENMPI_INSTALL/bin/mpicc \
 -DCMAKE_CXX_FLAGS="-march=native -Xopenmp-target=amdgcn-amd-amdhsa -march=$AOMP_GPU" \
 -DENABLE_OFFLOAD=ON -DOFFLOAD_TARGET="amdgcn-amd-amdhsa" \
 -DENABLE_TIMERS=1 \
+-DQMC_DATA=${QMC_DATA} \
 ..
 fi
 
