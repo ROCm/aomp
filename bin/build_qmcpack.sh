@@ -41,7 +41,7 @@ thisdir=$(getdname $0)
 # --- end standard header ----
 AOMP=${AOMP:-~/usr/lib/aomp}
 ROCM_VER=${ROCM_VER:-rocm-alt}
-QMC_DATA=${QMC_DATA:/home/$USER/git/aomp-test/qmcpack/DATA}
+QMC_DATA=${QMC_DATA:-/home/$USER/git/aomp-test/qmcpack/DATA}
 
 if [ -e /etc/profile.d/modules.sh ] ; then
    source /etc/profile.d/modules.sh
