@@ -48,6 +48,7 @@ TESTS_DIR = \
     flang-288625 \
     flang-288641 \
     flang-289039 \
+    flang-302472 \
     flang_atomic_hint \
     flang-cmplx-fib \
     flang_dev_write \
