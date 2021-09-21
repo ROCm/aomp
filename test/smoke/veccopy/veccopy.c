@@ -2,8 +2,6 @@
 #include <assert.h>
 #include <omp.h>
 
-static int flush_trace();
-
 int main()
 {
   int N = 10;
@@ -25,8 +23,6 @@ int main()
       a[j]=b[j];
   }
 
-  flush_trace();
-  
   int rc = 0;
   for (i=0; i<N; i++)
     if (a[i] != b[i] ) {
@@ -43,107 +39,10 @@ int main()
 // Tool related code below
 #include <omp-tools.h>
 
-#define OMPT_BUFFER_REQUEST_SIZE 256
-
-// Utilities
-static void print_record_ompt(ompt_record_ompt_t *rec) {
-  printf("rec=%p type=%d time=%lu thread_id=%lu target_id=%lu\n",
-	 rec, rec->type, rec->time, rec->thread_id, rec->target_id);
-
-  switch (rec->type) {
-  case ompt_callback_target:
-  case ompt_callback_target_emi:
-    {
-      ompt_record_target_t target_rec = rec->record.target;
-      printf("\tTarget task: kind=%d endpoint=%d device=%d task_id=%lu target_id=%lu codeptr=%p\n",
-	     target_rec.kind, target_rec.endpoint, target_rec.device_num,
-	     target_rec.task_id, target_rec.target_id, target_rec.codeptr_ra);
-      break;
-    }
-  case ompt_callback_target_data_op:
-  case ompt_callback_target_data_op_emi:
-    {
-      ompt_record_target_data_op_t target_data_op_rec = rec->record.target_data_op;
-      printf("\tTarget data op: host_op_id=%lu optype=%d src_addr=%p src_device=%d "
-	     "dest_addr=%p dest_device=%d bytes=%lu end_time=%lu duration=%luus codeptr=%p\n",
-	     target_data_op_rec.host_op_id, target_data_op_rec.optype,
-	     target_data_op_rec.src_addr, target_data_op_rec.src_device_num,
-	     target_data_op_rec.dest_addr, target_data_op_rec.dest_device_num,
-	     target_data_op_rec.bytes, target_data_op_rec.end_time,
-	     target_data_op_rec.end_time - rec->time,
-	     target_data_op_rec.codeptr_ra);
-      break;
-    }
-  case ompt_callback_target_submit:
-  case ompt_callback_target_submit_emi:
-    {
-      ompt_record_target_kernel_t target_kernel_rec = rec->record.target_kernel;
-      printf("\tTarget kernel: host_op_id=%lu requested_num_teams=%u granted_num_teams=%u "
-	     "end_time=%lu duration=%luus\n",
-	     target_kernel_rec.host_op_id, target_kernel_rec.requested_num_teams,
-	     target_kernel_rec.granted_num_teams, target_kernel_rec.end_time,
-	     target_kernel_rec.end_time - rec->time);
-    break;
-    }
-  default:
-    assert(0);
-    break;
-  }
-}
-
-static void delete_buffer_ompt(ompt_buffer_t *buffer) {
-  free(buffer);
-}
-
 // OMPT entry point handles
 static ompt_set_callback_t ompt_set_callback;
-static ompt_start_trace_t ompt_start_trace;
-static ompt_flush_trace_t ompt_flush_trace;
-static ompt_get_record_ompt_t ompt_get_record_ompt;
-static ompt_advance_buffer_cursor_t ompt_advance_buffer_cursor;
-
-static int flush_trace() {
-  return ompt_flush_trace(0);
-}
 
 // OMPT callbacks
-
-// Trace record callbacks
-static void on_ompt_callback_buffer_request (
-  int device_num,
-  ompt_buffer_t **buffer,
-  size_t *bytes
-) {
-  *bytes = OMPT_BUFFER_REQUEST_SIZE;
-  *buffer = malloc(*bytes);
-  printf("Allocated %lu bytes at %p in buffer request callback\n", *bytes, *buffer);
-}
-
-static void on_ompt_callback_buffer_complete (
-  int device_num,
-  ompt_buffer_t *buffer,
-  size_t bytes,
-  ompt_buffer_cursor_t begin,
-  int buffer_owned
-) {
-  printf("Executing buffer complete callback: %d %p %lu %p %d\n",
-     device_num, buffer, bytes, (void*)begin, buffer_owned);
-
-  ompt_record_ompt_t *rec = ompt_get_record_ompt(buffer, begin);
-  while (rec) {
-    print_record_ompt(rec);
-    ompt_buffer_cursor_t next;
-    int status = ompt_advance_buffer_cursor(NULL, /* TODO */
-					    buffer,
-					    bytes,
-					    (ompt_buffer_cursor_t)rec,
-					    &next);
-    if (!status) break;
-    rec = (ompt_record_ompt_t*)next; // call ompt_get_record_ompt
-    assert(rec != NULL && "Buffer advanced to nullptr");
-  }
-  if (buffer_owned) delete_buffer_ompt(buffer);
-}
 
 // Synchronous callbacks
 static void on_ompt_callback_device_initialize
@@ -156,34 +55,6 @@ static void on_ompt_callback_device_initialize
  ) {
   printf("Invoked on_ompt_callback_device_initialize: %d %s %p %p %p\n",
 	 device_num, type, device, lookup, documentation);
-  // TODO
-  if (!lookup) {
-    printf("Trace collection disabled on device %d\n", device_num);
-    return;
-  }
-  // Add device_num -> device mapping to a map
-  
-  ompt_start_trace = (ompt_start_trace_t) lookup("ompt_start_trace");
-  ompt_flush_trace = (ompt_flush_trace_t) lookup("ompt_flush_trace");
-  ompt_get_record_ompt = (ompt_get_record_ompt_t) lookup("ompt_get_record_ompt");
-  ompt_advance_buffer_cursor = (ompt_advance_buffer_cursor_t) lookup("ompt_advance_buffer_cursor");
-  
-  printf("ompt_start_trace=%p\n", ompt_start_trace);
-  // In many scenarios, this will be a good place to start the
-  // trace. If start_trace is called from the main program, the
-  // programmer has to be careful to place the call after the first
-  // target construct, otherwise the program will fail. This is
-  // because this device_init callback is invoked during the first
-  // target construct implementation and any start_trace must come
-  // afterwards.
-
-  // TODO move the ompt_start_trace to the main program before any
-  // target construct and ensure we error out gracefully. The program
-  // should not assert or crash.
-  int status = ompt_start_trace(0, &on_ompt_callback_buffer_request,
-				&on_ompt_callback_buffer_complete);
-  // TODO handle error
-  assert(status && "ompt_start_trace returned 0");
 }
 
 static void on_ompt_callback_device_load
