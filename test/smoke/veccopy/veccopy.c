@@ -93,6 +93,7 @@ static void print_record_ompt(ompt_record_ompt_t *rec) {
 
 static void delete_buffer_ompt(ompt_buffer_t *buffer) {
   free(buffer);
+  printf("Deallocated %p\n", buffer);
 }
 
 // OMPT entry point handles
