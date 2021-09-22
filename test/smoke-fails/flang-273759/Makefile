@@ -12,3 +12,9 @@ CC           = $(OMP_BIN) $(VERBOSE)
 #"-\#\#\#"
 
 include ../Makefile.rules
+
+run: $(TESTNAME)
+	LIBOMPTARGET_KERNEL_TRACE=1 \
+	$(RUNENV) ./$(TESTNAME) 1
+
+
