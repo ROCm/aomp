@@ -2,11 +2,13 @@
 #include <assert.h>
 #include <omp.h>
 
+static int start_trace();
 static int flush_trace();
+static int stop_trace();
 
 int main()
 {
-  int N = 10;
+  int N = 100000;
 
   int a[N];
   int b[N];
@@ -19,6 +21,8 @@ int main()
   for (i=0; i<N; i++)
     b[i]=i;
 
+  // The trace will be optionally started as part of device init when
+  // the first kernel is encountered. 
 #pragma omp target parallel for
   {
     for (int j = 0; j< N; j++)
@@ -26,7 +30,19 @@ int main()
   }
 
   flush_trace();
+  stop_trace();
+
+  start_trace();
   
+#pragma omp target teams distribute parallel for
+  {
+    for (int j = 0; j< N; j++)
+      a[j]=b[j];
+  }
+
+  flush_trace();
+  stop_trace();
+
   int rc = 0;
   for (i=0; i<N; i++)
     if (a[i] != b[i] ) {
@@ -97,15 +113,12 @@ static void delete_buffer_ompt(ompt_buffer_t *buffer) {
 }
 
 // OMPT entry point handles
-static ompt_set_callback_t ompt_set_callback;
-static ompt_start_trace_t ompt_start_trace;
-static ompt_flush_trace_t ompt_flush_trace;
-static ompt_get_record_ompt_t ompt_get_record_ompt;
-static ompt_advance_buffer_cursor_t ompt_advance_buffer_cursor;
-
-static int flush_trace() {
-  return ompt_flush_trace(0);
-}
+static ompt_set_callback_t ompt_set_callback = 0;
+static ompt_start_trace_t ompt_start_trace = 0;
+static ompt_flush_trace_t ompt_flush_trace = 0;
+static ompt_stop_trace_t ompt_stop_trace = 0;
+static ompt_get_record_ompt_t ompt_get_record_ompt = 0;
+static ompt_advance_buffer_cursor_t ompt_advance_buffer_cursor = 0;
 
 // OMPT callbacks
 
@@ -146,6 +159,22 @@ static void on_ompt_callback_buffer_complete (
   if (buffer_owned) delete_buffer_ompt(buffer);
 }
 
+static int start_trace() {
+  assert(ompt_start_trace);
+  return ompt_start_trace(0, &on_ompt_callback_buffer_request,
+			  &on_ompt_callback_buffer_complete);
+}
+
+static int flush_trace() {
+  assert(ompt_flush_trace);
+  return ompt_flush_trace(0);
+}
+
+static int stop_trace() {
+  assert(ompt_stop_trace);
+  return ompt_stop_trace(0);
+}
+
 // Synchronous callbacks
 static void on_ompt_callback_device_initialize
 (
@@ -166,10 +195,10 @@ static void on_ompt_callback_device_initialize
   
   ompt_start_trace = (ompt_start_trace_t) lookup("ompt_start_trace");
   ompt_flush_trace = (ompt_flush_trace_t) lookup("ompt_flush_trace");
+  ompt_stop_trace = (ompt_stop_trace_t) lookup("ompt_stop_trace");
   ompt_get_record_ompt = (ompt_get_record_ompt_t) lookup("ompt_get_record_ompt");
   ompt_advance_buffer_cursor = (ompt_advance_buffer_cursor_t) lookup("ompt_advance_buffer_cursor");
   
-  printf("ompt_start_trace=%p\n", ompt_start_trace);
   // In many scenarios, this will be a good place to start the
   // trace. If start_trace is called from the main program, the
   // programmer has to be careful to place the call after the first
@@ -181,10 +210,7 @@ static void on_ompt_callback_device_initialize
   // TODO move the ompt_start_trace to the main program before any
   // target construct and ensure we error out gracefully. The program
   // should not assert or crash.
-  int status = ompt_start_trace(0, &on_ompt_callback_buffer_request,
-				&on_ompt_callback_buffer_complete);
-  // TODO handle error
-  assert(status && "ompt_start_trace returned 0");
+  start_trace();
 }
 
 static void on_ompt_callback_device_load
