@@ -1,9 +1,16 @@
 #include "omp.h"
 #include <stdio.h>
+#include <assert.h>
+
+#include "callbacks.h"
+
+static int start_trace();
+static int flush_trace();
+static int stop_trace();
 
 int main(int argc, char* argv[])
 {
-  int t_size = 1;
+  int t_size = 4;
   int x_size = 4;
   int y_size = 4;
   int z_size = 4;
@@ -47,6 +54,8 @@ int main(int argc, char* argv[])
   #pragma omp target update from(u[0:t_size][0:x_size][0:y_size][0:z_size])
   #pragma omp target exit data map(release: u[0:t_size][0:x_size][0:y_size][0:z_size])
 
+  stop_trace();
+  
   for (int t = time_m; t <= time_M; t++)
     for (int x = x_m; x <= x_M; x++)
       for (int y = y_m; y <= y_M; y++)
