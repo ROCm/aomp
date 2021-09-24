@@ -10,7 +10,7 @@ static int stop_trace();
 
 int main(int argc, char* argv[])
 {
-  int t_size = 4;
+  int t_size = 1;
   int x_size = 4;
   int y_size = 4;
   int z_size = 4;
