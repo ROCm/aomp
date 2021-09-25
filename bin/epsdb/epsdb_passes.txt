@@ -1,5 +1,4 @@
 ancestorC
-aomp_mappings
 assertok_error
 atomic
 atomic_double
