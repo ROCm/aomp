@@ -84,10 +84,8 @@ pushd $script_dir
 path=$(pwd)
 
 #Clean all testing directories
-if [ "$NO_CLEAN" != 1 ] ; then
   make clean
   cleanup
-fi
 
 export OMP_TARGET_OFFLOAD=${OMP_TARGET_OFFLOAD:-MANDATORY}
 echo OMP_TARGET_OFFLOAD=$OMP_TARGET_OFFLOAD
