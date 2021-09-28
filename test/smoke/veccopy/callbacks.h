@@ -1,4 +1,3 @@
-#include <assert.h>
 // Tool related code below
 #include <omp-tools.h>
 
@@ -6,7 +5,6 @@
 
 // Utilities
 static void print_record_ompt(ompt_record_ompt_t *rec) {
-#if 0  
   printf("rec=%p type=%d time=%lu thread_id=%lu target_id=%lu\n",
 	 rec, rec->type, rec->time, rec->thread_id, rec->target_id);
 
@@ -49,7 +47,6 @@ static void print_record_ompt(ompt_record_ompt_t *rec) {
     assert(0);
     break;
   }
-#endif  
 }
 
 static void delete_buffer_ompt(ompt_buffer_t *buffer) {
@@ -85,11 +82,9 @@ static void on_ompt_callback_buffer_complete (
   ompt_buffer_cursor_t begin,
   int buffer_owned
 ) {
-#if 0  
   printf("Executing buffer complete callback: %d %p %lu %p %d\n",
      device_num, buffer, bytes, (void*)begin, buffer_owned);
-#endif
-  
+
   ompt_record_ompt_t *rec = ompt_get_record_ompt(buffer, begin);
   while (rec) {
     print_record_ompt(rec);
@@ -131,11 +126,8 @@ static void on_ompt_callback_device_initialize
   ompt_function_lookup_t lookup,
   const char *documentation
  ) {
-#if 0  
   printf("Init: device_num=%d type=%s device=%p lookup=%p doc=%p\n",
 	 device_num, type, device, lookup, documentation);
-#endif
-  
   // TODO
   if (!lookup) {
     printf("Trace collection disabled on device %d\n", device_num);
@@ -174,10 +166,8 @@ static void on_ompt_callback_device_load
      void *device_addr,
      uint64_t module_id
      ) {
-#if 0  
   printf("Load: device_num:%d filename:%s host_adddr:%p device_addr:%p bytes:%lu\n",
 	 device_num, filename, host_addr, device_addr, bytes);
-#endif  
 }
 
 static void on_ompt_callback_target_data_op
@@ -193,12 +183,10 @@ static void on_ompt_callback_target_data_op
      size_t bytes,
      const void *codeptr_ra
      ) {
-#if 0  
   printf("DataOp: endpoint=%d host_op_id=%lu optype=%d src=%p src_device_num=%d "
 	 "dest=%p dest_device_num=%d bytes=%lu code=%p\n",
 	 endpoint, host_op_id, optype, src_addr, src_device_num,
 	 dest_addr, dest_device_num, bytes, codeptr_ra);
-#endif  
 }
 
 static void on_ompt_callback_target
@@ -210,10 +198,8 @@ static void on_ompt_callback_target
      ompt_id_t target_id,
      const void *codeptr_ra
      ) {
-#if 0  
   printf("Target: kind=%d endpoint=%d device_num=%d target_id=%lu code=%p\n",
 	 kind, endpoint, device_num, target_id, codeptr_ra);
-#endif  
 }
 
 static void on_ompt_callback_target_submit
@@ -223,10 +209,8 @@ static void on_ompt_callback_target_submit
      ompt_id_t host_op_id,
      unsigned int requested_num_teams
      ) {
-#if 0  
   printf("TargetSubmit: endpoint=%d target_id=%lu host_op_id=%lu req_num_teams=%d\n",
      endpoint, target_id, host_op_id, requested_num_teams);
-#endif  
 }
 
 // Init functions
@@ -236,6 +220,7 @@ int ompt_initialize(
   ompt_data_t *tool_data)
 {
   ompt_set_callback = (ompt_set_callback_t) lookup("ompt_set_callback");
+  printf("ompt_set_callback=%p\n", ompt_set_callback);
   
   ompt_set_callback(ompt_callback_device_initialize,
 		    (ompt_callback_t)&on_ompt_callback_device_initialize);
