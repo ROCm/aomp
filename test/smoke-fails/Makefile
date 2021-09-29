@@ -19,6 +19,7 @@ TESTS_DIR = \
     clang_llnl-58 \
     clang_llnl-58-1 \
     closed_bug1 \
+    decl_map_targ \
     flang-collapseNR \
     flang-251450 \
     flang-272343-3 \
