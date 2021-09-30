@@ -20,7 +20,7 @@ int main() {
 
   }
 
-  #pragma omp target teams distribute parallel for map(tofrom: c)
+#pragma omp target teams distribute parallel for map(tofrom: c[0:NUM])
 
   for (int i = 0; i < NUM; i++) {
 
