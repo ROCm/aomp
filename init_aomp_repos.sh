@@ -58,8 +58,8 @@ if [ $? != 0 ] ; then
       echo "       "
       echo " cd /tmp "
       echo " wget https://github.com/ROCm-Developer-Tools/aomp/raw/aomp-dev/init_aomp_repos.sh"
-      echo " . init_aomp_repos.sh"
-      echo " $AOMP_REPOS/aomp/bin/clone_aomp.sh"
+      echo " chmod 755 init_aomp_repos.sh"
+      echo " ./init_aomp_repos.sh"
       exit 1
 fi
 echo "repo sync Done! Repositories can be found at $AOMP_REPOS"
@@ -81,12 +81,24 @@ if [ $? != 0 ] ; then
    exit 1
 fi
 
-# Finally run git pull for all unlockded projects.
+# Finally run git pull for all unlocked projects.
 echo $repobindir/repo forall -p -g unlocked -c \'git pull\'
 $repobindir/repo forall -p -g unlocked -c 'git pull'
 if [ $? != 0 ] ; then
    echo "$repobindir/repo forall git pull failed."
    exit 1
+fi
+
+# build_rocr.sh expects directory rocr-runtime which is a subdir of hsa-runtime
+# Link in the open source hsa-runtime as "src" directory
+if [ -d $AOMP_REPOS/hsa-runtime ] ; then
+   if [ ! -L $AOMP_REPOS/rocr-runtime/src ] ; then
+      echo "Fixing rocr-runtime with correct link to hsa-runtime/opensrc/hsa-runtime src"
+      mkdir -p $AOMP_REPOS/rocr-runtime
+      cd $AOMP_REPOS/rocr-runtime
+      echo ln -sf $AOMP_REPOS/hsa-runtime/opensrc/hsa-runtime src
+      ln -sf $AOMP_REPOS/hsa-runtime/opensrc/hsa-runtime src
+   fi
 fi
 
 exit 0

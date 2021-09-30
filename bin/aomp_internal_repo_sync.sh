@@ -127,7 +127,7 @@ if [ $? != 0 ] ; then
 fi
 
 echo "================  STARTING BRANCH PULL ================"
-# Finally run git pull for all unlockded projects.
+# Finally run git pull for all unlocked projects.
 echo $repobindir/repo forall -p -g unlocked -c $thisdir/aomp_internal_repo_sync.sh repocmd gitpull
 $repobindir/repo forall -p -g unlocked -c $thisdir/aomp_internal_repo_sync.sh repocmd gitpull
 if [ $? != 0 ] ; then
