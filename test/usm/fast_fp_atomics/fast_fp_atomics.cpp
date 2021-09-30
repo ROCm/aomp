@@ -3,7 +3,7 @@
 
 int main() {
 //
-//  fast_fp_atomics: test functionality of fast FP atomics on MI200 and
+//  fast_fp_atomics: test functionality of fast FP atomics on gfx90a and
 //  shows performance comparison
 //
   int main_rc = 0;
@@ -106,7 +106,7 @@ int main() {
       main_rc=1;
     }
 
-    #if 0 // single precision reductions fail on mi200
+    #if 0 // single precision reductions fail on gfx90a
     float ra_single = 0.0f;
     double t_red_single_begin = omp_get_wtime();
     #pragma omp target teams distribute parallel for reduction(+:ra_single)
