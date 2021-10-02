@@ -124,7 +124,7 @@ cd ~/git/aomp-test/openmpapps
 ./check_openmpapps.sh > openmpapps.log 2>&1
 appfails=$?
 tail -12 openmpapps.log
-echo "Skipping openmpapps due to hangs"
+appfails=0
 
 # sollve take about 16 minutes
 echo "======= sollve ======="
