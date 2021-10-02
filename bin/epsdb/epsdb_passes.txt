@@ -59,12 +59,9 @@ flang-272878
 flang-273281
 flang-273284
 flang-273759
-flang-273760
 flang-273762
 flang-273805
 flang-273807
-flang-273959
-flang-273990-2
 flang-274768
 flang-274775
 flang-274775-critDcmplx
@@ -84,9 +81,7 @@ flang-288613
 flang-288613-2
 flang-288613-3
 flang-288625
-flang-289039
 flang_2regions
-flang-302472
 flang-303839
 flang-atomic
 flang_blkdata-g
@@ -107,7 +102,6 @@ flang_red_swdev-273281-spmd
 flang_reduction_offload
 flang_teams
 flang_tgt_alloc_ptr
-flang-tracekernel
 fprintf
 function
 function_overload
@@ -116,7 +110,6 @@ gdb_teams
 global_allocate
 gpus
 helloworld
-helloworld%n
 host_targ
 icvars-nest
 icvars-nestF
