@@ -112,26 +112,19 @@ exafails=`grep "Return Code" examples.log  | grep -v ": 0" | wc -l`
 echo example: $exafails
 exaMfails=`grep "Make Failed" examples.log  | wc -l`
 echo example: $exafails $exaMfails
-#merge fails
-exafails=0
-exaMfails=0
 
 echo "======= nekbone ======"
 cd $aompdir/bin
 ./run_nekbone.sh > nekbone.log 2>&1
 nekfails=$?
-# Merge fails
-nekfails=0
 tail -7 nekbone.log
 
 echo "======= openmpapps ==="
 cd ~/git/aomp-test/openmpapps
-# Merge fails
-#./check_openmpapps.sh > openmpapps.log 2>&1
+./check_openmpapps.sh > openmpapps.log 2>&1
 appfails=$?
-#tail -12 openmpapps.log
+tail -12 openmpapps.log
 echo "Skipping openmpapps due to hangs"
-appfails=0
 
 # sollve take about 16 minutes
 echo "======= sollve ======="
