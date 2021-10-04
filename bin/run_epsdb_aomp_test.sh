@@ -43,6 +43,7 @@ fi
 
 echo AOMP_GPU = $AOMP_GPU
 $AOMP/bin/clang --version
+$AOMP/bin/flang1 --version
 #ls /opt/rocm/amdgcn/bitcode
 #ls $AOMP/amdgcn/bitcode
 rm -f  $aompdir/test/smoke/passing-tests.txt
