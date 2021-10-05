@@ -137,7 +137,7 @@ fi
 # Set list of default nvptx subarchitectures to build
 # Only Cuda 9 and above supports sm_70
 if [ "$AOMP_BUILD_CUDA" == 1 ] ; then
-   NVPTXGPUS_DEFAULT="30,35,37,50,52,53,60,61,62"
+   NVPTXGPUS_DEFAULT="35,37,50,52,53,60,61,62"
    if [ -f $CUDA/version.txt ] ; then
       if [ `head -1 $CUDA/version.txt | cut -d " " -f 3 | cut -d "." -f 1` -ge 9 ] ; then
          NVPTXGPUS_DEFAULT+=",70"

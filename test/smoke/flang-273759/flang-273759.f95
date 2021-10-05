@@ -20,7 +20,7 @@ program main
   write(6,*)"Success: if a diagnostic line starting with DEVID was output"
   ! Always return 1 to show failure in check_smoke_fails.sh. Once
   ! the depend clause is supported on map this can be reverted.
-  call exit(1)
+! call exit(1)
 end
 subroutine foo(a,b,c)
   parameter (nsize=1000)

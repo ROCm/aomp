@@ -1,6 +1,7 @@
 #!/bin/bash
 #
-# Checks all tests in smoke directory using make check. Programs return 0 for success or a number > 0 for failure.
+# Checks all tests in smoke-fails directory using make check. 
+# Programs return 0 for success or a number > 0 for failure.
 # Tests that need to be visually inspected: devices, pfspecify, pfspecify_str, stream
 #
 #
@@ -11,9 +12,6 @@ GRN="\033[0;32m"
 BLU="\033[0;34m"
 ORG="\033[0;33m"
 BLK="\033[0m"
-
-# limit any step to 2 minutes
-ulimit -t 120
 
 function gatherdata(){
   #Gather Test Data
@@ -33,14 +31,16 @@ function gatherdata(){
   echo -e "$BLU"-------------------- Results --------------------"$BLK"
   echo -e "$BLU"Number of tests: $total_tests"$BLK"
   echo ""
-  echo -e "$GRN"Passing tests: $passing_tests/$total_tests"$BLK"
-  echo ""
+  echo -e "$GRN"Passing tests: $passing_tests/$total_tests""
+
+  #Print passing tests, if any
+  if [ -e passing-tests.txt ]; then
+    echo "--------------------"
+    cat passing-tests.txt
+  fi
 
   #Print failed tests
   echo -e "$RED"
-  if [ "$SKIP_FAILS" != 1 ] && [ "$known_fails" != "" ] ; then
-    echo "Known failures: $known_fails"
-  fi
   echo ""
   if [ -e failing-tests.txt ]; then
     echo "Runtime Fails"
@@ -54,16 +54,6 @@ function gatherdata(){
     echo "--------------------"
     cat make-fail.txt
   fi
-  echo -e "$BLK"
-
-  #Tests that need visual inspection
-  echo ""
-  echo -e "$ORG"
-  echo "---------- Please inspect the output above to verify the following tests ----------"
-  echo "devices"
-  echo "pfspecifier"
-  echo "pfspecifier_str"
-  echo "stream"
   echo -e "$BLK"
 }
 
@@ -84,8 +74,7 @@ pushd $script_dir
 path=$(pwd)
 
 #Clean all testing directories
-  make clean
-  cleanup
+cleanup
 
 export OMP_TARGET_OFFLOAD=${OMP_TARGET_OFFLOAD:-MANDATORY}
 echo OMP_TARGET_OFFLOAD=$OMP_TARGET_OFFLOAD
@@ -96,103 +85,88 @@ echo ""
 
 echo "************************************************************************************" > check-smoke.txt
 echo "                   A non-zero exit code means a failure occured." >> check-smoke.txt
-echo "Tests that need to be visually inspected: devices, pfspecify, pfspecify_str, stream" >> check-smoke.txt
 echo "***********************************************************************************" >> check-smoke.txt
 
-known_fails=""
-skip_tests=""
-
-if [ "$SKIP_FAILURES" == 1 ] ; then
-  skip_tests=$known_fails
-else
-  skip_tests=""
-fi
-if [ "$SKIP_FORTRAN" == 1 ] ; then
-  skip_tests+="`find .  -iname '*.f9[50]' | sed s^./^^ | awk -F/ '{print $1}'` "
-  echo $skip_tests
+RUNS_FORTRAN=1
+runs_tests=""
+if [ "$RUNS_FORTRAN" == 1 ] ; then
+  runs_tests+="`find .  -iname '*.f9[50]' | sed s^./^^ | awk -F/ '{print $1}'` "
+  echo $runs_tests
 fi
 
 #Loop over all directories and make run / make check depending on directory name
 for directory in ./*/; do
-  pushd $directory > /dev/null
-  path=$(pwd)
-  base=$(basename $path)
+  (cd "$directory" && path=$(pwd) && base=$(basename $path)
+  if [ "$NO_CLEAN" != 1 ] ; then	
+    make clean
+  fi
   #Skip tests that are known failures
-  skip=0
-  for test in $skip_tests ; do
+  skip=1
+  for test in $runs_tests ; do
     if [ $test == $base ] ; then
-      skip=1
+      skip=0
+      echo "$test $base"
       break
     fi
   done
   if [ $skip -ne 0 ] ; then
-    echo "Skip $base!"
+    echo "Skipping $base"
     echo ""
-    popd > /dev/null
-    continue
-  fi
-  newest_rocm=$(ls /opt | grep -e "rocm-[0-9].[0-9].[0-9]" | tail -1)
-  AOMPROCM=${AOMPROCM:-/opt/"$newest_rocm"}
-  if [ $base == 'hip_rocblas' ] ; then
-    ls $AOMPROCM/rocblas > /dev/null 2>&1
-    if [ $? -ne 0 ]; then
-      echo -e "$RED"$base - needs rocblas installed at $AOMPROCM/rocblas:"$BLK"
-      echo -e "$RED"$base - ROCBLAS NOT FOUND!!! SKIPPING TEST!"$BLK"
-      popd > /dev/null
-      continue
+  else  
+    AOMPROCM=${AOMPROCM:-/opt/rocm}
+    if [ $base == 'hip_rocblas' ] ; then
+      ls $AOMPROCM/rocblas > /dev/null 2>&1
+      if [ $? -ne 0 ]; then
+        echo -e "$RED"$base - needs rocblas installed at $AOMPROCM/rocblas:"$BLK"
+        echo -e "$RED"$base - ROCBLAS NOT FOUND!!! SKIPPING TEST!"$BLK"
+        continue
+      fi
     fi
-  fi
-  if [ $base == 'devices' ] || [ $base == 'pfspecifier' ] || [ $base == 'pfspecifier_str' ] || [ $base == 'stream' ] ; then
-    make
-    if [ $? -ne 0 ]; then
-      echo "$base: Make Failed" >> ../make-fail.txt
-    fi
-    make run > /dev/null 2>&1
-    make check > /dev/null 2>&1
-
-  #flags has multiple runs
-  elif [ $base == 'flags' ] ; then
-    make
-    make run > /dev/null 2>&1
-  elif [ $base == 'printf_parallel_for_target' ] ; then
-    make verify-log
-  else
-    make
-    if [ $? -ne 0 ]; then
-      echo "$base: Make Failed" >> ../make-fail.txt
-      popd > /dev/null
-      continue
-    fi
-    if [ $base == "gpus" ]; then # Compile and link only test
-      echo "$base" >> ../passing-tests.txt
-    else
+    if [ $base == 'devices' ] || [ $base == 'pfspecifier' ] || [ $base == 'pfspecifier_str' ] || [ $base == 'stream' ] ; then
+      make
+      if [ $? -ne 0 ]; then
+        echo "$base: Make Failed" >> ../make-fail.txt
+      fi
+      make run > /dev/null 2>&1
       make check > /dev/null 2>&1
-    fi
-    #liba_bundled has an additional Makefile, that may fail on the make check
-    if [ $? -ne 0 ] && ( [ $base == 'liba_bundled' ] || [ $base == 'liba_bundled_cmdline' ] ) ; then
-      echo "$base: Make Failed" >> ../make-fail.txt
+
+    #flags has multiple runs
+    elif [ $base == 'flags' ] ; then
+      make
+      make run > /dev/null 2>&1
+    elif [ $base == 'printf_parallel_for_target' ] ; then
+      make verify-log
+    else
+      make
+      if [ $? -ne 0 ]; then
+        echo "$base: Make Failed" >> ../make-fail.txt
+      fi
+      make check > /dev/null 2>&1
+      #liba_bundled has an additional Makefile, that may fail on the make check
+      if [ $? -ne 0 ] && ( [ $base == 'liba_bundled' ] || [ $base == 'liba_bundled_cmdline' ] ) ; then
+        echo "$base: Make Failed" >> ../make-fail.txt
+      fi
     fi
   fi
   echo ""
-  popd > /dev/null
+ )
+	
 done
 
 #Print run.log for all tests that need visual inspection
 for directory in ./*/; do
-  pushd $directory > /dev/null
-  path=$(pwd)
-  base=$(basename $path)
-  if [ $base == 'devices' ] || [ $base == 'pfspecifier' ] || [ $base == 'pfspecifier_str' ] || [ $base == 'stream' ] ; then
-    echo ""
-    echo -e "$ORG"$base - Run Log:"$BLK"
-    echo "--------------------------"
-    if [ -e run.log ]; then
-      cat run.log
+  (cd "$directory" && path=$(pwd) && base=$(basename $path)
+    if [ $base == 'devices' ] || [ $base == 'pfspecifier' ] || [ $base == 'pfspecifier_str' ] || [ $base == 'stream' ] ; then
+      echo ""
+      echo -e "$ORG"$base - Run Log:"$BLK"
+      echo "--------------------------"
+      if [ -e run.log ]; then
+        cat run.log
+      fi
+      echo ""
+      echo ""
     fi
-    echo ""
-    echo ""
-  fi
-  popd > /dev/null
+  )
 done
 
 #Replace false positive return codes with 'Check the run.log' so that user knows to visually inspect those.
@@ -240,11 +214,6 @@ if [ "$EPSDB" == 1 ] ; then
     done < "$file"
     echo
   fi
-fi
-
-#Clean up, hide output
-if [ "$EPSDB" != 1 ] && [ "$CLEANUP" != 0 ]; then
-  cleanup
 fi
 
 popd

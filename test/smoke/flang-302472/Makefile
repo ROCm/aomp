@@ -1,7 +1,7 @@
 include ../../Makefile.defs
 
-TESTNAME     = flang-273759
-TESTSRC_MAIN = flang-273759.f95
+TESTNAME     = flang-302472
+TESTSRC_MAIN = flang-302472.f95
 TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 

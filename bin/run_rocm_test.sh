@@ -90,7 +90,8 @@ function getversion(){
 
   # Determine OS flavor to properly query openmp-extras version.
   osname=$(cat /etc/os-release | grep -e ^NAME=)
-  ompextrasregex="\s+[0-9]+\.([0-9]+)\.([0-9]+)"
+  # Regex to cover single/multi version installs for deb/rpm.
+  ompextrasregex="openmp-extras[0-9]*\.*[0-9]*\.*[0-9]*-*\s*[0-9]+\.([0-9]+)\.([0-9]+)"
   rpmregex="Red Hat|CentOS|SLES"
   echo $osname
   if [[ "$osname" =~ $rpmregex ]]; then
