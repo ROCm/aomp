@@ -68,6 +68,7 @@ export LLVM_DIR=$AOMP_INSTALL_DIR
 REPO_BRANCH=$AOMP_EXTRAS_REPO_BRANCH
 REPO_DIR=$AOMP_REPOS/$AOMP_EXTRAS_REPO_NAME
 checkrepo
+patchrepo $REPO_DIR
 
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   echo " "
@@ -165,4 +166,5 @@ if [ "$1" == "install" ] ; then
          echo "ERROR make install failed "
          exit 1
       fi
+      removepatch $REPO_DIR
 fi
