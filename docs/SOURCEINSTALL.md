@@ -31,15 +31,19 @@ Here are the commands to do a source build of AOMP_14.0.
    nohup ./build_aomp.sh &
 ```
 
-Change the value of AOMP\_REPOS to the directory name where you want to store all the repositories needed for AOMP. It is recommended that name include the AOMP_VERSION.
-The init_aomp_repos.sh, clone_aomp.sh, and build_aomp.sh are expected to take a long time to execute.
+Change the value of AOMP\_REPOS to the directory name where you want to store all the repositories needed for AOMP. It is recommended that name include the AOMP\_VERSION.
+It is also recommended to put the values of AOMP\_VERSION and AOMP\_REPOS in a login profile (such as .bashrc) so incremental build scripts will correctly find your sources.
+
+Warning: the init_aomp_repos.sh, clone_aomp.sh, and build_aomp.sh are expected to take a long time to execute. As such we recommend the use of nohup to run build_aomp.sh. It is ok to run build_aomp.sh without nohup. 
 
 <b>To build a previous release of AOMP:</b>
-```
+
+Before AOMP 13.1, the init_aomp_repos.sh shell was not necessary.  These commands will build a previous release of AOMP such as aomop-13.0-6.
+``
    cd $AOMP_REPOS/aomp/bin
-   export AOMP_VERSION=13.1
+   export AOMP_VERSION=13.0
    export AOMP_REPOS=$HOME/git/aomp${AOMP_VERSION}
-   git checkout aomp-13.1-0
+   git checkout aomp-13.0-6
    git pull
    export AOMP_CHECK_GIT_BRANCH=0 //Tags will be used to checkout various repos. This will ignore the detached head state to avoid build errors.
    ./clone_aomp.sh
