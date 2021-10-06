@@ -71,9 +71,14 @@ if [ ! -z $AOMP_USE_NINJA ] ; then
 else
     AOMP_SET_NINJA_GEN=""
 fi
-
+#  If offload-arch tool exists do not build amdgpu-arch
+if [ -d $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/llvm/lib/OffloadArch ] ; then 
+  enable_amdgpu_arch=""
+else
+  enable_amdgpu_arch="-DENABLE_AMDGPU_ARCH_TOOL=ON"
+fi
 MYCMAKEOPTS="-DLLVM_ENABLE_PROJECTS=clang;lld;compiler-rt -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX=$INSTALL_PROJECT -DLLVM_ENABLE_ASSERTIONS=ON -DLLVM_TARGETS_TO_BUILD=$TARGETS_TO_BUILD $COMPILERS -DLLVM_VERSION_SUFFIX=_AOMP${standalone_word}_$AOMP_VERSION_STRING -DCLANG_VENDOR=AOMP${standalone_word}_$AOMP_VERSION_STRING
--DENABLE_AMDGPU_ARCH_TOOL=ON
+$enable_amdgpu_arch
 -DBUG_REPORT_URL='https://github.com/ROCm-Developer-Tools/aomp' -DLLVM_ENABLE_BINDINGS=OFF -DLLVM_INCLUDE_BENCHMARKS=OFF $DO_TESTS $AOMP_ORIGIN_RPATH -DCLANG_DEFAULT_LINKER=lld $AOMP_SET_NINJA_GEN"
 
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then 
