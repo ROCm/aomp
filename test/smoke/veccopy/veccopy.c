@@ -23,8 +23,8 @@ int main()
   for (i=0; i<N; i++)
     b[i]=i;
 
-  // The trace will be optionally started as part of device init when
-  // the first kernel is encountered. 
+  start_trace();
+  
 #pragma omp target parallel for
   {
     for (int j = 0; j< N; j++)
@@ -42,7 +42,6 @@ int main()
       a[j]=b[j];
   }
 
-  flush_trace();
   stop_trace();
 
   int rc = 0;

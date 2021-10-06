@@ -1,3 +1,5 @@
+#include <assert.h>
+
 // Tool related code below
 #include <omp-tools.h>
 
@@ -78,15 +80,16 @@ static void on_ompt_callback_buffer_request (
 static void on_ompt_callback_buffer_complete (
   int device_num,
   ompt_buffer_t *buffer,
-  size_t bytes,
+  size_t bytes, /* bytes returned in this callback */
   ompt_buffer_cursor_t begin,
   int buffer_owned
 ) {
-  printf("Executing buffer complete callback: %d %p %lu %p %d\n",
-     device_num, buffer, bytes, (void*)begin, buffer_owned);
+  char *end_data = (char*)begin + bytes;
+  printf("Executing buffer complete callback: %d %p %lu %p %p %d\n",
+	 device_num, buffer, bytes, (void*)begin, end_data, buffer_owned);
 
   ompt_record_ompt_t *rec = ompt_get_record_ompt(buffer, begin);
-  while (rec) {
+  while (rec && (char*)rec < end_data) {
     print_record_ompt(rec);
     ompt_buffer_cursor_t next;
     int status = ompt_advance_buffer_cursor(NULL, /* TODO */
@@ -102,18 +105,18 @@ static void on_ompt_callback_buffer_complete (
 }
 
 static int start_trace() {
-  assert(ompt_start_trace);
+  if (!ompt_start_trace) return 0;
   return ompt_start_trace(0, &on_ompt_callback_buffer_request,
 			  &on_ompt_callback_buffer_complete);
 }
 
 static int flush_trace() {
-  assert(ompt_flush_trace);
+  if (!ompt_flush_trace) return 0;
   return ompt_flush_trace(0);
 }
 
 static int stop_trace() {
-  assert(ompt_stop_trace);
+  if (!ompt_stop_trace) return 0;
   return ompt_stop_trace(0);
 }
 
@@ -128,13 +131,11 @@ static void on_ompt_callback_device_initialize
  ) {
   printf("Init: device_num=%d type=%s device=%p lookup=%p doc=%p\n",
 	 device_num, type, device, lookup, documentation);
-  // TODO
   if (!lookup) {
     printf("Trace collection disabled on device %d\n", device_num);
     return;
   }
-  // Add device_num -> device mapping to a map
-  
+
   ompt_start_trace = (ompt_start_trace_t) lookup("ompt_start_trace");
   ompt_flush_trace = (ompt_flush_trace_t) lookup("ompt_flush_trace");
   ompt_stop_trace = (ompt_stop_trace_t) lookup("ompt_stop_trace");
@@ -142,12 +143,10 @@ static void on_ompt_callback_device_initialize
   ompt_advance_buffer_cursor = (ompt_advance_buffer_cursor_t) lookup("ompt_advance_buffer_cursor");
   
   // In many scenarios, this will be a good place to start the
-  // trace. If start_trace is called from the main program, the
-  // programmer has to be careful to place the call after the first
-  // target construct, otherwise the program will fail. This is
-  // because this device_init callback is invoked during the first
-  // target construct implementation and any start_trace must come
-  // afterwards.
+  // trace. If start_trace is called from the main program before this
+  // callback is dispatched, the start_trace handle will be null. This
+  // is because this device_init callback is invoked during the first
+  // target construct implementation.
 
   // TODO move the ompt_start_trace to the main program before any
   // target construct and ensure we error out gracefully. The program
@@ -220,8 +219,7 @@ int ompt_initialize(
   ompt_data_t *tool_data)
 {
   ompt_set_callback = (ompt_set_callback_t) lookup("ompt_set_callback");
-  printf("ompt_set_callback=%p\n", ompt_set_callback);
-  
+
   ompt_set_callback(ompt_callback_device_initialize,
 		    (ompt_callback_t)&on_ompt_callback_device_initialize);
   ompt_set_callback(ompt_callback_device_load,
