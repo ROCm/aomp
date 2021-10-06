@@ -1,18 +1,3 @@
-diff --git a/lib/comgr/CMakeLists.txt b/lib/comgr/CMakeLists.txt
-index 412bd2e..32f1734 100644
---- a/lib/comgr/CMakeLists.txt
-+++ b/lib/comgr/CMakeLists.txt
-@@ -17,7 +17,10 @@ if (ROCM_CCACHE_BUILD)
-   endif() # if (CCACHE_PROGRAM)
- endif() # if (ROCM_CCACHE_BUILD)
- 
-+if(NOT AMD_COMGR_BUILD_NO_ROCM)
- find_package(ROCM PATHS "/opt/rocm")
-+endif()
-+
- if (ROCM_FOUND)
-   include(ROCMSetupVersion)
-   rocm_setup_version(VERSION "${amd_comgr_VERSION}")
 diff --git a/lib/comgr/cmake/DeviceLibs.cmake b/lib/comgr/cmake/DeviceLibs.cmake
 index 27e9546..29cc2b9 100644
 --- a/lib/comgr/cmake/DeviceLibs.cmake
