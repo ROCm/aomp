@@ -336,7 +336,8 @@ int main()
         recordError(&errors, "DEVICE NUMBER", i, default_dev, NULL);
 
       //check warp #
-      if (warp_id[i] != (MAX_THREADS_PER_TEAM - WARP_SIZE) / WARP_SIZE +1)
+      if ((warp_id[i] != (MAX_THREADS_PER_TEAM - WARP_SIZE) / WARP_SIZE) &&
+          (warp_id[i] != (MAX_THREADS_PER_TEAM - WARP_SIZE) / WARP_SIZE +1))
         recordError(&errors, "WARP NUMBER", i, warp_id, NULL);
 
       //check lane #
@@ -344,7 +345,8 @@ int main()
         recordError(&errors, "LANE NUMBER", i, lane_id, NULL);
 
       //check master thread #
-      if (master_thread_id[i] != MAX_THREADS_PER_TEAM)
+      if ((master_thread_id[i] != MAX_THREADS_PER_TEAM - WARP_SIZE) &&
+          (master_thread_id[i] != MAX_THREADS_PER_TEAM))
         recordError(&errors, "MASTER THREAD NUMBER", i, master_thread_id, NULL);
 
       //check SPMD mode #
