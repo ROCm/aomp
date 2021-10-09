@@ -12,7 +12,6 @@ clang-274983
 clang-274983-2
 clang-279673
 clang-282491-1
-clang-282491-2
 clang-282491-3
 clang-host-targ
 clang-host-targ2
@@ -54,7 +53,6 @@ flang-272343
 flang-272343-2
 flang-272521
 flang-272534
-flang-272730-complex
 flang-272878
 flang-273281
 flang-273284
@@ -133,7 +131,6 @@ map_zero_bug
 MasterBarrier
 math_exp
 math_flog
-math_libmextras
 math_max
 math_modff
 math_pow
@@ -168,11 +165,9 @@ reduction_shared_array
 reduction_teams_distribute_parallel
 schedule
 simd
-simple_ctor
 slices
 stream
 targ-273742
-targc-272328
 targc-273738
 targc-274983
 targ_declare
