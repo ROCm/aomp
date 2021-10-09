@@ -61,6 +61,8 @@ elif [ "$AOMP_MAJOR_VERSION" == "14" ] ; then
     AOMP_VERSION_STRING="14.0-0"
     AOMP_INSTALL_DIR=${AOMP}_${AOMP_VERSION_STRING}
     AOMP_PATCH_CONTROL_FILE="${AOMP_REPOS}/aomp/bin/patches/patch-control-file_14.0.txt"
+    # The openmp cuda build is broken in amd-stg-open so turn it off for now
+    AOMP_BUILD_CUDA=0
 else
   echo "ERROR:  Invalid AOMP_MAJOR_VERSION: $AOMP_MAJOR_VERSION"
   exit 1
