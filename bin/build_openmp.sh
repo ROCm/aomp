@@ -114,6 +114,10 @@ if [ "$AOMP_BUILD_CUDA" == 1 ] ; then
 -DLIBOMPTARGET_NVPTX_CUDA_COMPILER=$AOMP/bin/clang++
 -DLIBOMPTARGET_NVPTX_BC_LINKER=$AOMP/bin/llvm-link
 -DLIBOMPTARGET_NVPTX_COMPUTE_CAPABILITIES=$NVPTXGPUS"
+else
+#  Need to force CUDA off this way in case cuda is installed in this system
+   COMMON_CMAKE_OPTS="$COMMON_CMAKE_OPTS
+-DCUDA_TOOLKIT_ROOT_DIR=OFF"
 fi
 
 # This is how we tell the hsa plugin where to find hsa
