@@ -49,7 +49,7 @@ CC              = $(AOMP)/bin/clang
 CUDA           ?= /usr/local/cuda
 
 ifeq (sm_,$(findstring sm_,$(AOMP_GPU)))
-  AOMP_GPUTARGET = nvptx64-nvidia-cuda
+  AOMP_GPUTARGET = nvptx64
 else
   AOMP_GPUTARGET = amdgcn-amd-amdhsa
 endif
