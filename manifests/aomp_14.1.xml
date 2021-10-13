@@ -14,7 +14,7 @@
 <!-- Lightning -->
 <project remote="gerritgit" path="rocm-compilersupport" name="lightning/ec/support" revision="release/rocm-rel-4.5" groups="unlocked" />
 <project remote="gerritgit" path="rocm-device-libs" name="lightning/ec/device-libs" revision="release/rocm-rel-4.5" groups="unlocked" />
-<project remote="gerritgit" path="llvm-project" name="lightning/ec/llvm-project" revision="release/rocm-rel-4.5" groups="unlocked" />
+<project remote="gerritgit" path="llvm-project" name="lightning/ec/llvm-project"    revision="amd-stg-open" groups="unlocked" />
 
 <!-- ROCm compute -->
 <project remote="gerritgit" path="rocminfo" name="compute/ec/rocminfo"              revision="release/rocm-rel-4.5" groups="unlocked" />
