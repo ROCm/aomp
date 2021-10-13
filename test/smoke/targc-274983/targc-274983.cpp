@@ -15,7 +15,7 @@ int main(){
 
     #pragma omp target data  map(to:N) use_device_ptr(x)
     {
-      printf("in target data: x[1] = %g\n",x[1]);
+      printf("in target data: &x[1] = %p\n",&x[1]);
     }
     printf("outside target data: x[1] = %g\n",x[1]);
     #pragma omp target exit data map(release:x[0:N])
