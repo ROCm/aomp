@@ -20,31 +20,28 @@ To build and test AOMP from source you must:
 
 ## Clone and Build AOMP
 
-Starting with AOMP 13.1, AOMP uses the repo command to initialize all the repositories from a manifest file. A new script called init\_aomp\_repos.sh will do the initial fetch of the repositories with the repo command.
+Starting with AOMP 13.1, AOMP uses a manifest file to specify the git repositories to clone.
+We studied the use of the google repo command and found it was too compilicated for development
+as compared to manually cloning the repos specified in a manifest file.
+The script clone\_aomp.sh is still used to issue a sequence of "git clone" and "git pull" commands
+by parsing he information in the manifest file associated with a particular release.
 
-There is an additional one-time initialization script called aomp\_internal\_repo\_sync.sh required at this time. This is a temporary situation.  Its function will be merged into init\_aomop\_repos.sh in the future.
-
-The script clone\_aomp.sh is still used to issue a sequence of "git pull" commands to update all the repos with the latest development sources. We kept that name even though "clone\_aomp.sh no longer does 'git clone', because initial repository fetches are done with the repo command in init\_aomp\_repos.sh.
-
-Here are the commands to do a source build of AOMP 14.0.
+Here are the commands to do a source build of AOMP 13.1 and beyond.
 
 ```
-   cd /tmp
    export AOMP_VERSION=14.0
    export AOMP_REPOS=$HOME/git/aomp${AOMP_VERSION}
-   wget https://github.com/ROCm-Developer-Tools/aomp/raw/aomp-dev/init_aomp_repos.sh
-   chmod 755 init_aomp_repos.sh
-   ./init_aomp_repos.sh
-   cd $AOMP_REPOS/aomp/bin
-   ./aomp_internal_repo_sync.sh 
-   ./clone_aomp.sh
-   nohup ./build_aomp.sh &
+   mkdir -p $AOMP_REPOS
+   cd $AOMP_REOS
+   git clone -b aomp-dev https://github.com/ROCm-Developer-Tools/aomp
+   $AOMP_REPOS/aomp/bin/clone_aomp.sh
+   nohup $AOMP_REPOS/aomp/bin/build_aomp.sh &
 ```
 Change the value of AOMP\_REPOS to the directory name where you want to store all the repositories needed for AOMP. All the AOMP repositories will consume more than 12GB. Furthermore, each AOMP component will be built in a subdirectory of $AOMP\_REPOS/build which will consume an additional 6GB. So it is recommened that the directory $AOMP\_REPOS have more than 20GB of free space before beginning. It is recommended that $AOMP\_REPOS name include the value of AOMP\_VERSION as shown above. It is also recommended to put the values of AOMP\_VERSION and AOMP\_REPOS in a login profile (such as .bashrc) so future incremental build scripts will correctly find your sources.
 
 Warning: the init\_aomp\_repos.sh, clone\_aomp.sh, and build\_aomp.sh are expected to take a long time to execute. As such we recommend the use of nohup to run build\_aomp.sh. It is ok to run build\_aomp.sh without nohup. The clone and build time will be affected by the performance of the filesystem that contains $AOMP\_REPOS.
 
-There is a utility script called get\_repo\_stats that provides useful information about each AOMP repository.
+There is a "list" option on the clone\_aomp.sh that provides useful information about each AOMP repository.
 
 
 <b>To build a previous release of AOMP:</b>

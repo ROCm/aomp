@@ -8,19 +8,18 @@
 
 <!-- INTERNAL REPOS -->
 <!-- ROCr ROCt -->
-<project path="hsa-runtime" name="hsa/ec/hsa-runtime"            revision="amd-staging" groups="unlocked" />
-<project path="roct-thunk-interface" name="compute/ec/libhsakmt" revision="amd-staging" groups="unlocked" />
+<project remote="gerritgit" path="hsa-runtime" name="hsa/ec/hsa-runtime"            revision="amd-staging" groups="unlocked" />
+<project remote="gerritgit" path="roct-thunk-interface" name="compute/ec/libhsakmt" revision="amd-staging" groups="unlocked" />
 
 <!-- Lightning -->
-<project path="rocm-compilersupport" name="lightning/ec/support" revision="amd-stg-open" groups="unlocked" />
-<project path="rocm-device-libs" name="lightning/ec/device-libs" revision="amd-stg-open" groups="unlocked" />
-
+<project remote="gerritgit" path="rocm-compilersupport" name="lightning/ec/support" revision="amd-stg-open" groups="unlocked" />
+<project remote="gerritgit" path="rocm-device-libs" name="lightning/ec/device-libs" revision="amd-stg-open" groups="unlocked" />
 <!-- ROCm Utils -->
-<project path="rocminfo" name="compute/ec/rocminfo"              revision="amd-staging" groups="unlocked" />
-<project path="ROCgdb" name="compute/ec/rocm-gdb"                revision="amd-staging" groups="unlocked" />
-<project path="ROCdbgapi" name="compute/ec/rocm-dbgapi"          revision="amd-staging" groups="unlocked" />
-<project path="rocprofiler" name="compute/ec/rocprofiler"        revision="amd-staging" groups="unlocked" />
-<project path="roctracer" name="compute/ec/roctracer"            revision="amd-staging" groups="unlocked" />
+<project remote="gerritgit" path="rocminfo" name="compute/ec/rocminfo"              revision="amd-staging" groups="unlocked" />
+<project remote="gerritgit" path="ROCgdb" name="compute/ec/rocm-gdb"                revision="amd-staging" groups="unlocked" />
+<project remote="gerritgit" path="ROCdbgapi" name="compute/ec/rocm-dbgapi"          revision="amd-staging" groups="unlocked" />
+<project remote="gerritgit" path="rocprofiler" name="compute/ec/rocprofiler"        revision="amd-staging" groups="unlocked" />
+<project remote="gerritgit" path="roctracer" name="compute/ec/roctracer"            revision="amd-staging" groups="unlocked" />
 
 <!-- EXTERNAL REPOS -->
 <!-- HIP/ROCclr/OpenCL -->

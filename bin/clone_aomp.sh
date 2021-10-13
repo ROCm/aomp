@@ -75,43 +75,161 @@ else
    cd $AOMP_REPOS
    echo git clone -b $COBRANCH $repo_web_location/$repogitname $reponame
    git clone -b $COBRANCH $repo_web_location/$repogitname $reponame
-   echo "cd $repodirname ; git checkout $COBRANCH"
+   if [ $? == 0 ] ; then 
+      echo "cd $repodirname ; git checkout $COBRANCH"
+      cd $repodirname
+      git checkout $COBRANCH
+   fi
+fi 
+if [ -d $repodirname ] ; then 
+   echo cd $repodirname
    cd $repodirname
-   git checkout $COBRANCH
+   if [ "$COSHAKEY" != "" ] ; then
+     echo git checkout $COSHAKEY
+     git checkout $COSHAKEY
+   fi
+   echo git status
+   git status
 fi
-if [ "$COSHAKEY" != "" ] ; then
-  git checkout $COSHAKEY
-fi
+}
 
-cd $repodirname
-echo git status
-git status
+function list_repo(){
+   logcommit=`git log -1 | grep "^commit" | cut -d" " -f2 | xargs`
+   thiscommit=${logcommit:0:12}
+   thisdate=`git log -1 --pretty=fuller | grep "^CommitDate:" | cut -d":" -f2- | xargs | cut -d" " -f2-`
+   get_monthnumber $thisdate
+   thisday=`echo $thisdate | cut -d" " -f2`
+   thisyear=`echo $thisdate | cut -d" " -f4`
+   printf -v thisdatevar "%4u-%2s-%02u" $thisyear $monthnumber $thisday
+   author=`git log -1 --pretty=fuller | grep "^Commit:" | cut -d":" -f2- | cut -d"<" -f1 | xargs`
+   repodirname=$REPO_PATH
+   HASH=`git log -1 --numstat --format="%h" | head -1`
+   is_hash=0
+   branch_name=${REPO_RREV}
+   # get the actual branch
+   actual_branch=`git branch | awk '/\*/ { print $2; }'`
+   rc=0
+   if [ "$actual_branch" == "(no" ] || [ "$actual_branch" == "(HEAD" ] ; then
+      is_hash=1
+      actual_hash=`git branch | awk '/\*/ { print $5; }' | cut -d")" -f1`
+      if [ "$actual_hash" != "$HASH" ] ; then
+          rc=1
+      fi
+   fi
+   if [ "$branch_name" != "$actual_branch" ] && [ $is_hash == 0 ] ; then
+      rc=2
+   fi
+   if [ $rc == 1 ] ; then
+      printf "%24s %20s %12s %10s %26s %20s %8s\n" $actual_hash $REPO_PATH $thiscommit $thisdatevar ${REPO_PROJECT} "$author" "!BADHASH!"
+   elif [ $is_hash  == 1 ] ; then
+      printf "%24s %20s %12s %10s %26s %20s\n" $actual_hash $REPO_PATH $thiscommit $thisdatevar ${REPO_PROJECT} "$author"
+   elif [ $rc == 2 ] ; then
+      printf "%24s %20s %12s %10s %26s %20s %8s\n" $actual_branch $REPO_PATH $thiscommit $thisdatevar ${REPO_PROJECT} "$author" "!BRANCH!"
+   else
+      printbranch=${REPO_RREV##*release/}
+      printf "%10s %12s %20s %12s %10s %31s %18s \n" $REPO_REMOTE $printbranch $REPO_PATH $thiscommit $thisdatevar ${REPO_PROJECT} "$author"
+   fi
+}
+
+function get_monthnumber() {
+    case $(echo ${1:0:3} | tr '[a-z]' '[A-Z]') in
+        JAN) monthnumber="01" ;;
+        FEB) monthnumber="02" ;;
+        MAR) monthnumber="03" ;;
+        APR) monthnumber="04" ;;
+        MAY) monthnumber="05" ;;
+        JUN) monthnumber="06" ;;
+        JUL) monthnumber="07" ;;
+        AUG) monthnumber="08" ;;
+        SEP) monthnumber="09" ;;
+        OCT) monthnumber="10" ;;
+        NOV) monthnumber="11" ;;
+        DEC) monthnumber="12" ;;
+    esac
 }
 
 if [[ "$AOMP_VERSION" == "13.1" ]] || [[ $AOMP_MAJOR_VERSION -gt 13 ]] ; then
-   # For 13.1 and beyond, initialization requires init_aomp_repos.sh to be run
-   # once. Therefore a full repo sync is not necessary and it could get in the
-   # way of unstaged or uncommited work. So all we want to do here is to update
-   # each repo with a "git pull" in each repo directory even though the name
-   # of this script is clone_aomp.sh for historical reasons.
-   repobindir=$AOMP_REPOS/.bin
-   curdir=$PWD
-   cd $AOMP_REPOS
-   if [ "$1" == "list" ] ; then
-      tmpfile=/tmp/repostats$$
-      $repobindir/repo forall -g unlocked -c $thisdir/repo_forall_cmds list | sort >$tmpfile
-      $repobindir/repo forall -g revlocked -c $thisdir/repo_forall_cmds list >>$tmpfile
-      cat $tmpfile
-      rm $tmpfile
-   else
-      echo $repobindir/repo forall -p -g unlocked -c $thisdir/repo_forall_cmds gitpull
-      $repobindir/repo forall -p -g unlocked -c $thisdir/repo_forall_cmds gitpull
+   # For 13.1 and beyond, we use a manifest file to specify the repos to clone.
+   # However, we gave up on using the repo command to clone the repos. 
+   # That is all done here by parsing the manifest file. 
+   manifest_file=$thisdir/../manifests/aomp_${AOMP_VERSION}.xml
+   if [ ! -f $manifest_file ] ; then 
+      echo "ERROR manifest file missing: $manifest_file
+      exit 1
    fi
-   rc=$?
-   cd $curdir
+   tmpfile=/tmp/mlines$$
+   # Manifest file must be one project line per repo
+   cat $manifest_file | grep project > $tmpfile
+   if [ "$1" == "list" ] ; then
+      printf "%10s %12s %20s %12s %10s %31s %18s \n" "repo src" "branch" "path" "last hash" "updated" "repo name" "last author"
+      printf "%10s %12s %20s %12s %10s %31s %18s \n" "--------" "------" "----" "---------" "-------" "---------" "-----------"
+   fi
+   while read line ; do 
+      remote=`echo $line | grep remote | cut -d"=" -f2`
+      for field in `echo $line` ; do 
+         if [ -z "${field##*remote=*}" ]  ; then
+	    # strip off = and double quotes 
+	    remote=$(eval echo `echo $field | cut -d= -f2 `) 
+         fi
+         if [ -z "${field##*name=*}" ]  ; then
+	    name=$(eval echo `echo $field | cut -d= -f2 `) 
+         fi
+         if [ -z "${field##*path=*}" ]  ; then
+	    path=$(eval echo `echo $field | cut -d= -f2 `) 
+         fi
+         if [ -z "${field##*revision=*}" ]  ; then
+	    COBRANCH=$(eval echo `echo $field | cut -d= -f2 `) 
+         fi
+      done
+      reponame=$path
+      repogitname=$name
+      if [ $remote == "roc" ] ; then 
+         repo_web_location=$GITROC
+      elif [ $remote == "roctools" ] ; then 
+         repo_web_location=$GITROCDEV
+      elif [ $remote == "gerritgit" ] ; then 
+         repo_web_location=$GITGERRIT
+      else
+         echo sorry remote=$remote
+      fi
+      if [ "$1" == "list" ] ; then
+         repodirname=$AOMP_REPOS/$reponame
+	 if [ -d $repodirname ] ; then 
+            REPO_PROJECT=$name
+            REPO_PATH=$path
+            REPO_RREV=$COBRANCH
+	    REPO_REMOTE=$remote
+            cd $repodirname
+            list_repo 
+         fi
+      else
+	 if [ $reponame == "aomp" ] ; then 
+            echo
+            echo "Skipping pull of aomp repo "
+	    echo
+	 else
+            clone_or_pull
+         fi
+      fi
+   done <$tmpfile
+   rm $tmpfile
+
+   # build_rocr.sh expects directory rocr-runtime which is a subdir of hsa-runtime
+   # Link in the open source hsa-runtime as "src" directory
+   if [ -d $AOMP_REPOS/hsa-runtime ] ; then
+      if [ ! -L $AOMP_REPOS/rocr-runtime/src ] ; then
+         echo "Fixing rocr-runtime with correct link to hsa-runtime/opensrc/hsa-runtime src"
+         mkdir -p $AOMP_REPOS/rocr-runtime
+         cd $AOMP_REPOS/rocr-runtime
+         echo ln -sf $AOMP_REPOS/hsa-runtime/opensrc/hsa-runtime src
+         ln -sf $AOMP_REPOS/hsa-runtime/opensrc/hsa-runtime src
+      fi
+   fi
    exit $rc
 fi
 
+## Before 13.1 repos were specified with environment variablse in aomp_common_vars
+#  
 mkdir -p $AOMP_REPOS
 
 # ---------------------------------------
