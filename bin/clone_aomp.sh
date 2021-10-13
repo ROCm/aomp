@@ -154,7 +154,7 @@ if [[ "$AOMP_VERSION" == "13.1" ]] || [[ $AOMP_MAJOR_VERSION -gt 13 ]] ; then
    # That is all done here by parsing the manifest file. 
    manifest_file=$thisdir/../manifests/aomp_${AOMP_VERSION}.xml
    if [ ! -f $manifest_file ] ; then 
-      echo "ERROR manifest file missing: $manifest_file
+      echo "ERROR manifest file missing: $manifest_file"
       exit 1
    fi
    tmpfile=/tmp/mlines$$
