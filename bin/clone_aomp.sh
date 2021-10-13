@@ -93,7 +93,7 @@ if [ -d $repodirname ] ; then
 fi
 }
 
-function list_repo(){
+function list_repo_from_manifest(){
    logcommit=`git log -1 | grep "^commit" | cut -d" " -f2 | xargs`
    thiscommit=${logcommit:0:12}
    thisdate=`git log -1 --pretty=fuller | grep "^CommitDate:" | cut -d":" -f2- | xargs | cut -d" " -f2-`
@@ -200,7 +200,7 @@ if [[ "$AOMP_VERSION" == "13.1" ]] || [[ $AOMP_MAJOR_VERSION -gt 13 ]] ; then
             REPO_RREV=$COBRANCH
 	    REPO_REMOTE=$remote
             cd $repodirname
-            list_repo 
+            list_repo_from_manifest
          fi
       else
 	 if [ $reponame == "aomp" ] ; then 
