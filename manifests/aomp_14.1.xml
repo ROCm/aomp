@@ -28,7 +28,7 @@
 <project remote="gerritgit" path="rocm-cmake" name="compute/ec/packaging/rocm-cmake" revision="release/rocm-rel-4.5" groups="unlocked" />
 
 <!-- HIP/ROCclr/OpenCL -->
-<project remote="gerritgit" path="ROCm-OpenCL-Runtime" name="brahma/ec/packaging/rocm-opencl" revision="amd-staging" groups="unlocked" />
+<project remote="roc" path="ROCm-OpenCL-Runtime" name="ROCm-OpenCL-Runtime" revision="develop" groups="unlocked" />
 
 <!-- EXTERNAL REPOS -->
 <project remote="roctools" path="flang" name="flang"               revision="aomp-dev" groups="unlocked" />
