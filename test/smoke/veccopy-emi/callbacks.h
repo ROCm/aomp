@@ -1,13 +1,21 @@
 #include <assert.h>
 
+#define EMI 1
+
 // Tool related code below
 #include <omp-tools.h>
+
+#if 1
+ompt_id_t  next_op_id = 1;
+#else
+ompt_id_t  next_op_id = 1001;
+#endif
 
 #define OMPT_BUFFER_REQUEST_SIZE 256
 
 // Utilities
 static void print_record_ompt(ompt_record_ompt_t *rec) {
-  printf("rec=%p type=%d time=%lu thread_id=%lu target_id=%lu\n",
+  printf("rec=%p type=%2d time=%lu thread_id=%lu target_id=%lu\n",
 	 rec, rec->type, rec->time, rec->thread_id, rec->target_id);
 
   switch (rec->type) {
@@ -15,7 +23,7 @@ static void print_record_ompt(ompt_record_ompt_t *rec) {
   case ompt_callback_target_emi:
     {
       ompt_record_target_t target_rec = rec->record.target;
-      printf("\tRecord Target: kind=%d endpoint=%d device=%d task_id=%lu target_id=%lu codeptr=%p\n",
+      printf("\tRecord Target task: kind=%d endpoint=%d device=%d task_id=%lu target_id=%lu codeptr=%p\n",
 	     target_rec.kind, target_rec.endpoint, target_rec.device_num,
 	     target_rec.task_id, target_rec.target_id, target_rec.codeptr_ra);
       break;
@@ -24,7 +32,7 @@ static void print_record_ompt(ompt_record_ompt_t *rec) {
   case ompt_callback_target_data_op_emi:
     {
       ompt_record_target_data_op_t target_data_op_rec = rec->record.target_data_op;
-      printf("\t  Record DataOp: host_op_id=%lu optype=%d src_addr=%p src_device=%d "
+      printf("\t  Record Target data op: host_op_id=%lu optype=%d src_addr=%p src_device=%d "
 	     "dest_addr=%p dest_device=%d bytes=%lu end_time=%lu duration=%luus codeptr=%p\n",
 	     target_data_op_rec.host_op_id, target_data_op_rec.optype,
 	     target_data_op_rec.src_addr, target_data_op_rec.src_device_num,
@@ -38,7 +46,7 @@ static void print_record_ompt(ompt_record_ompt_t *rec) {
   case ompt_callback_target_submit_emi:
     {
       ompt_record_target_kernel_t target_kernel_rec = rec->record.target_kernel;
-      printf("\t  Record Submit: host_op_id=%lu requested_num_teams=%u granted_num_teams=%u "
+      printf("\t  Record Target kernel: host_op_id=%lu requested_num_teams=%u granted_num_teams=%u "
 	     "end_time=%lu duration=%luus\n",
 	     target_kernel_rec.host_op_id, target_kernel_rec.requested_num_teams,
 	     target_kernel_rec.granted_num_teams, target_kernel_rec.end_time,
@@ -169,6 +177,7 @@ static void on_ompt_callback_device_load
 	 device_num, filename, host_addr, device_addr, bytes);
 }
 
+
 static void on_ompt_callback_target_data_op
     (
      ompt_id_t target_id,
@@ -187,6 +196,33 @@ static void on_ompt_callback_target_data_op
 	 dest_addr, dest_device_num, bytes, codeptr_ra);
 }
 
+
+static void on_ompt_callback_target_data_op_emi
+    (
+     ompt_scope_endpoint_t endpoint,
+     ompt_data_t *target_task_data,
+     ompt_data_t *target_data,
+     ompt_id_t *host_op_id,
+     ompt_target_data_op_t optype,
+     void *src_addr,
+     int src_device_num,
+     void *dest_addr,
+     int dest_device_num,
+     size_t bytes,
+     const void *codeptr_ra
+     ) {
+     if (endpoint == ompt_scope_begin) *host_op_id = next_op_id++;
+  printf("  Callback DataOp EMI: endpoint=%d target_task_data=%p (%lu) target_data=%p (%lu) host_op_id=%p (%lu) optype=%d src=%p src_device_num=%d "
+	 "dest=%p dest_device_num=%d bytes=%lu code=%p\n",
+	 endpoint, 
+         target_task_data, target_task_data->value, 
+         target_data, target_data->value, 
+         host_op_id, *host_op_id, 
+         optype, src_addr, src_device_num,
+	 dest_addr, dest_device_num, bytes, codeptr_ra);
+}
+
+
 static void on_ompt_callback_target
     (
      ompt_target_t kind,
@@ -200,6 +236,26 @@ static void on_ompt_callback_target
 	 kind, endpoint, device_num, target_id, codeptr_ra);
 }
 
+
+static void on_ompt_callback_target_emi
+    (
+     ompt_target_t kind,
+     ompt_scope_endpoint_t endpoint,
+     int device_num,
+     ompt_data_t *task_data,
+     ompt_data_t *target_task_data,
+     ompt_data_t *target_data,
+     const void *codeptr_ra
+     ) {
+     if (endpoint == ompt_scope_begin) target_data->value = next_op_id++;
+  printf("Callback Target EMI: kind=%d endpoint=%d device_num=%d task_data=%p (%lu) target_task_data=%p (%lu) target_data=%p (%lu) code=%p\n",
+	 kind, endpoint, device_num, 
+         task_data, task_data->value, 
+         target_task_data, target_task_data->value, 
+         target_data, target_data->value, 
+         codeptr_ra);
+}
+
 static void on_ompt_callback_target_submit
     (
      ompt_id_t target_id,
@@ -208,6 +264,21 @@ static void on_ompt_callback_target_submit
      ) {
   printf("  Callback Submit: target_id=%lu host_op_id=%lu req_num_teams=%d\n",
      target_id, host_op_id, requested_num_teams);
+}
+
+
+static void on_ompt_callback_target_submit_emi
+    (
+     ompt_scope_endpoint_t endpoint,
+     ompt_data_t *target_data,
+     ompt_id_t *host_op_id,
+     unsigned int requested_num_teams
+     ) {
+  printf("  Callback Submit EMI: endpoint=%d target_data=%p (%lu) host_op_id=%p (%lu) req_num_teams=%d\n",
+     endpoint, 
+     target_data, target_data->value, 
+     host_op_id, *host_op_id, 
+     requested_num_teams);
 }
 
 // Init functions
@@ -222,12 +293,21 @@ int ompt_initialize(
 		    (ompt_callback_t)&on_ompt_callback_device_initialize);
   ompt_set_callback(ompt_callback_device_load,
 		    (ompt_callback_t)&on_ompt_callback_device_load);
+#if EMI
+  ompt_set_callback(ompt_callback_target_submit_emi,
+		    (ompt_callback_t)&on_ompt_callback_target_submit_emi);
+  ompt_set_callback(ompt_callback_target_data_op_emi,
+		    (ompt_callback_t)&on_ompt_callback_target_data_op_emi);
+  ompt_set_callback(ompt_callback_target_emi,
+		    (ompt_callback_t)&on_ompt_callback_target_emi);
+#else
+  ompt_set_callback(ompt_callback_target_submit,
+		    (ompt_callback_t)&on_ompt_callback_target_submit);
   ompt_set_callback(ompt_callback_target_data_op,
 		    (ompt_callback_t)&on_ompt_callback_target_data_op);
   ompt_set_callback(ompt_callback_target,
 		    (ompt_callback_t)&on_ompt_callback_target);
-  ompt_set_callback(ompt_callback_target_submit,
-		    (ompt_callback_t)&on_ompt_callback_target_submit);
+#endif
   return 1; //success
 }
 
