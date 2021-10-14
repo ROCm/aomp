@@ -217,13 +217,13 @@ if [[ "$AOMP_VERSION" == "13.1" ]] || [[ $AOMP_MAJOR_VERSION -gt 13 ]] ; then
    # build_rocr.sh expects directory rocr-runtime which is a subdir of hsa-runtime
    # Link in the open source hsa-runtime as "src" directory
    if [ -d $AOMP_REPOS/hsa-runtime ] ; then
-      if [ ! -L $AOMP_REPOS/rocr-runtime/src ] ; then
          echo "Fixing rocr-runtime with correct link to hsa-runtime/opensrc/hsa-runtime src"
+         echo mkdir -p $AOMP_REPOS/rocr-runtime
          mkdir -p $AOMP_REPOS/rocr-runtime
+         echo cd $AOMP_REPOS/rocr-runtime
          cd $AOMP_REPOS/rocr-runtime
-         echo ln -sf $AOMP_REPOS/hsa-runtime/opensrc/hsa-runtime src
-         ln -sf $AOMP_REPOS/hsa-runtime/opensrc/hsa-runtime src
-      fi
+         echo ln -sf ../hsa-runtime/opensrc/hsa-runtime src
+         ln -sf ../hsa-runtime/opensrc/hsa-runtime src
    fi
    exit $rc
 fi
