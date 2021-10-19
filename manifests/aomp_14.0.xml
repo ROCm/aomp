@@ -1,10 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <manifest>
-<!-- Manifest for AOMP 14.0-x which uses internal repos for non-aomp components -->
+<!-- Manifest for AOMP 14.0-x which uses AMD internal development repos  -->
     <remote name="gerritgit" review="git.amd.com:8080" fetch="ssh://gerritgit/" />
     <default revision="release/rocm-rel-4.3" remote="gerritgit" sync-j="4" sync-c="true" />
     <remote name="roctools"  fetch="https://github.com/ROCm-Developer-Tools/" />
     <remote name="roc"  fetch="https://github.com/RadeonOpenCompute/" />
+
+
+<!-- The llvm-project monorepo -->
+<project remote="gerritgit" path="llvm-project" name="lightning/ec/llvm-project"    revision="amd-stg-open" groups="unlocked" />
 
 <!-- INTERNAL REPOS -->
 <!-- ROCr ROCt -->
@@ -30,7 +34,6 @@
 <project remote="roc"      path="rocm-cmake" name="rocm-cmake" revision="master" groups="unlocked" />
 
 <!-- AOMP -->
-<project remote="roc" path="llvm-project" name="llvm-project" revision="amd-stg-open" groups="unlocked" />
 <project remote="roctools" path="flang" name="flang"               revision="aomp-dev" groups="unlocked" />
 <project remote="roctools" path="aomp-extras" name="aomp-extras"   revision="aomp-dev" groups="unlocked" />
 <project remote="roctools" path="aomp" name="aomp"                 revision="aomp-dev" groups="unlocked" />
