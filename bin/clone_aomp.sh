@@ -161,10 +161,12 @@ if [[ "$AOMP_VERSION" == "13.1" ]] || [[ $AOMP_MAJOR_VERSION -gt 13 ]] ; then
    # Manifest file must be one project line per repo
    cat $manifest_file | grep project > $tmpfile
    if [ "$1" == "list" ] ; then
+      printf "MANIFEST FILE: %40s\n" $manifest_file
       printf "%10s %12s %20s %12s %10s %31s %18s \n" "repo src" "branch" "path" "last hash" "updated" "repo name" "last author"
       printf "%10s %12s %20s %12s %10s %31s %18s \n" "--------" "------" "----" "---------" "-------" "---------" "-----------"
    fi
    while read line ; do 
+      line_is_good=1
       remote=`echo $line | grep remote | cut -d"=" -f2`
       for field in `echo $line` ; do 
          if [ -z "${field##*remote=*}" ]  ; then
@@ -183,34 +185,36 @@ if [[ "$AOMP_VERSION" == "13.1" ]] || [[ $AOMP_MAJOR_VERSION -gt 13 ]] ; then
       done
       reponame=$path
       repogitname=$name
-      if [ $remote == "roc" ] ; then 
+      if [ "$remote" == "roc" ] ; then
          repo_web_location=$GITROC
-      elif [ $remote == "roctools" ] ; then 
+      elif [ "$remote" == "roctools" ] ; then
          repo_web_location=$GITROCDEV
-      elif [ $remote == "gerritgit" ] ; then 
+      elif [ "$remote" == "gerritgit" ] ; then
          repo_web_location=$GITGERRIT
       else
-         echo sorry remote=$remote
+         line_is_good=0
       fi
-      if [ "$1" == "list" ] ; then
-         repodirname=$AOMP_REPOS/$reponame
-	 if [ -d $repodirname ] ; then 
-            REPO_PROJECT=$name
-            REPO_PATH=$path
-            REPO_RREV=$COBRANCH
-	    REPO_REMOTE=$remote
-            cd $repodirname
-            list_repo_from_manifest
+      if [ $line_is_good  == 1 ] ; then
+         if [ "$1" == "list" ] ; then
+            repodirname=$AOMP_REPOS/$reponame
+	    if [ -d $repodirname ] ; then
+               REPO_PROJECT=$name
+               REPO_PATH=$path
+               REPO_RREV=$COBRANCH
+	       REPO_REMOTE=$remote
+               cd $repodirname
+               list_repo_from_manifest
+            fi
+         else
+	    if [ $reponame == "aomp" ] ; then
+               echo
+               echo "Skipping pull of aomp repo "
+	       echo
+	    else
+               clone_or_pull
+            fi
          fi
-      else
-	 if [ $reponame == "aomp" ] ; then 
-            echo
-            echo "Skipping pull of aomp repo "
-	    echo
-	 else
-            clone_or_pull
-         fi
-      fi
+      fi  # end line_is_good
    done <$tmpfile
    rm $tmpfile
 
