@@ -19,7 +19,7 @@ ROCM_VERSION=${ROCM_VERSION:-4.0.0}
 
 # Set the AOMP VERSION STRING and AOMP_PROJECT_REPO_BRANCH.
 AOMP_GIT_INTERNAL_IP="gerrit-git.amd.com"
-ping -c 1 $AOMP_GIT_INTERNAL_IP 2> /dev/null
+ping -c 1 $AOMP_GIT_INTERNAL_IP 2> /dev/null >/dev/null
 if [ $? != 0 ]; then
    AOMP_VERSION=${AOMP_VERSION:-"13.0"}
    AOMP_VERSION_MOD=${AOMP_VERSION_MOD:-"7"}
