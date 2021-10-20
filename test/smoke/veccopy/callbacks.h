@@ -7,6 +7,8 @@
 
 // Utilities
 static void print_record_ompt(ompt_record_ompt_t *rec) {
+  if (rec == NULL) return;
+  
   printf("rec=%p type=%d time=%lu thread_id=%lu target_id=%lu\n",
 	 rec, rec->type, rec->time, rec->thread_id, rec->target_id);
 
@@ -77,6 +79,9 @@ static void on_ompt_callback_buffer_request (
   printf("Allocated %lu bytes at %p in buffer request callback\n", *bytes, *buffer);
 }
 
+// Note: This callback must handle a null begin cursor. Currently,
+// ompt_get_record_ompt, print_record_ompt, and
+// ompt_advance_buffer_cursor handle a null cursor.
 static void on_ompt_callback_buffer_complete (
   int device_num,
   ompt_buffer_t *buffer,
@@ -84,22 +89,19 @@ static void on_ompt_callback_buffer_complete (
   ompt_buffer_cursor_t begin,
   int buffer_owned
 ) {
-  char *end_data = (char*)begin + bytes;
-  printf("Executing buffer complete callback: %d %p %lu %p %p %d\n",
-	 device_num, buffer, bytes, (void*)begin, end_data, buffer_owned);
+  printf("Executing buffer complete callback: %d %p %lu %p %d\n",
+	 device_num, buffer, bytes, (void*)begin, buffer_owned);
 
-  ompt_record_ompt_t *rec = ompt_get_record_ompt(buffer, begin);
-  while (rec && (char*)rec < end_data) {
+  int status = 1;
+  ompt_buffer_cursor_t current = begin;
+  while (status) {
+    ompt_record_ompt_t *rec = ompt_get_record_ompt(buffer, current);
     print_record_ompt(rec);
-    ompt_buffer_cursor_t next;
-    int status = ompt_advance_buffer_cursor(NULL, /* TODO */
-					    buffer,
-					    bytes,
-					    (ompt_buffer_cursor_t)rec,
-					    &next);
-    if (!status) break;
-    rec = (ompt_record_ompt_t*)next; // call ompt_get_record_ompt
-    assert(rec != NULL && "Buffer advanced to nullptr");
+    status = ompt_advance_buffer_cursor(NULL, /* TODO device */
+					buffer,
+					bytes,
+					current,
+					&current);
   }
   if (buffer_owned) delete_buffer_ompt(buffer);
 }
