@@ -2,7 +2,11 @@
 #include <stdio.h>
 
 #define THREADS 512
-#define WARPSIZE 64
+#ifdef WAVE_SIZE 
+  #define WARPSIZE WAVE_SIZE
+#else
+  #define WARPSIZE 64
+#endif
 
 #pragma omp declare target
 omp_lock_t lock;
