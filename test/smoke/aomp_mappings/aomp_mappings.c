@@ -8,8 +8,12 @@ int MAX_TEAMS = 128;
 int GENERIC = 0;
 int SPMD = 1;
 int MAX_THREADS_PER_TEAM = 256;
-int WARP_SIZE = 64;
 
+#ifdef WAVE_SIZE
+  int WARP_SIZE = WAVE_SIZE;
+#else
+  int WARP_SIZE = 64;
+#endif
 /*
  * Function: recordError
  * Description: Updates error number and prints error messages
@@ -25,6 +29,8 @@ void recordError(int* error , char *message, int iteration, int * array, unsigne
 
 int main()
 {
+  printf("warpsize %d\n", WARP_SIZE);
+
   //Determine which GPU type (NVIDIA or AMD)
   char* nvidia= "sm";
   char* aomp_gpu= getenv("AOMP_GPU");
@@ -269,7 +275,7 @@ int main()
 
     //Set mask for warps with full (64) active threads
     if (i < N - remainder){
-      if(isAMDGPU)
+      if(WARP_SIZE == 64)
         mask = 0xffffffffffffffff;
       else
         mask = 0xffffffff;
