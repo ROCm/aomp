@@ -97,12 +97,12 @@ endif
 
 ifeq ($(OMP_FLAGS),)
     ifeq ($(OMP_HOST),)
-      OMP_FLAGS = $(AOMP_CPUTARGET) -fopenmp $(TARGET)
+      OMP_FLAGS = $(AOMP_CPUTARGET) $(AOMP_WSIZE) -fopenmp $(TARGET)
     else
-      OMP_FLAGS = $(AOMP_CPUTARGET) -fopenmp
+      OMP_FLAGS = $(AOMP_CPUTARGET) $(AOMP_WSIZE) -fopenmp
     endif
 endif
-OMP_FLAGS += $(EXTRA_OMP_FLAGS) $(AOMP_WSIZE)
+OMP_FLAGS += $(EXTRA_OMP_FLAGS)
 
 ifeq ($(VERBOSE),1)
   $(info    Compilation and linking VERBOSE Mode ON)
