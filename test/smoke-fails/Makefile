@@ -29,6 +29,8 @@ TESTS_DIR = \
     flang-289039 \
     flang-305550 \
     flang-305553 \
+    flang-307433 \
+    flang-307434 \
     flang_atomic_hint \
     flang_dev_write \
     flang-teams-gdb \
