@@ -14,6 +14,9 @@ omp_lock_t lock;
 
 int main() {
 
+  if (WARPSIZE == 32)
+    return 0;
+
   int error = 0;
   unsigned count = 0;          // incremented within target region
   unsigned expected_count = 0; // incremented on host
@@ -67,5 +70,6 @@ int main() {
     error = 1;
   }
 
+  fprintf(stderr, "ec %d c %d\n", expected_count, count);
   return error;
 }
