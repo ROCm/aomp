@@ -130,8 +130,8 @@ appfails=0
 # sollve take about 16 minutes
 echo "======= sollve ======="
 cd $aompdir/bin
-#./run_sollve.sh > sollve.log 2>&1
-#tail -12 sollve.log
+./run_sollve.sh > sollve.log 2>&1
+tail -12 sollve.log
 
 echo Done
 echo
