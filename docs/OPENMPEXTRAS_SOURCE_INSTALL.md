@@ -166,7 +166,7 @@ AOMP_CHECK_GIT_BRANCH=0 \
 AOMP_JENKINS_BUILD_LIST="extras openmp pgmath flang flang_runtime" \
 AOMP_REPOS=$SRC_DIR/openmp-extras \
 DEVICELIBS_ROOT=$SRC_DIR/ROCm-Device-Libs \
-CCC_OVERRIDE_OPTIONS=+--rocm-path=/home/estewart/ROCm/out \
+CCC_OVERRIDE_OPTIONS=+--rocm-path=$ROCM_DIR \
 BUILD_AOMP=$SRC_DIR \
 ./build_aomp.sh
 ```
