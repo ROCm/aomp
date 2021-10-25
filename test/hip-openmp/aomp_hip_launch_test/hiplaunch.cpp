@@ -104,7 +104,6 @@ uint16_t get_wg_size(const char *kernel_name, hipModule_t *hipmod) {
   CHECKRES(hipModuleGetGlobal);
   uint16_t wg_size;
   hipres = hipMemcpyDtoH(&wg_size, dev_wg_size_ptr, size_uint16);
-  CHECKRES(hipres);
   CHECKRES(hipMemcpyDtoH);
   return wg_size;
 }
@@ -120,7 +119,6 @@ unsigned int get_exec_mode(const char *kernel_name, hipModule_t *hipmod) {
   CHECKRES(hipModuleGetGlobal);
   uint8_t exec_mode;
   hipres = hipMemcpyDtoH(&exec_mode, dev_exec_mode_ptr, size_uint8);
-  CHECKRES(hipres);
   CHECKRES(hipMemcpyDtoH);
   return (unsigned int)exec_mode;
 }
