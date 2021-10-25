@@ -102,6 +102,8 @@ function list_repo_from_manifest(){
    thisyear=`echo $thisdate | cut -d" " -f4`
    printf -v thisdatevar "%4u-%2s-%02u" $thisyear $monthnumber $thisday
    author=`git log -1 --pretty=fuller | grep "^Commit:" | cut -d":" -f2- | cut -d"<" -f1 | xargs`
+   forauthor=`git log -1 --pretty=fuller | grep "^Author:" | cut -d":" -f2- | cut -d"<" -f1 | xargs`
+   url=`grep url .git/config | cut -d" " -f3`
    repodirname=$REPO_PATH
    HASH=`git log -1 --numstat --format="%h" | head -1`
    is_hash=0
@@ -127,8 +129,14 @@ function list_repo_from_manifest(){
       printf "%24s %20s %12s %10s %26s %20s %8s\n" $actual_branch $REPO_PATH $thiscommit $thisdatevar ${REPO_PROJECT} "$author" "!BRANCH!"
    else
       printbranch=${REPO_RREV##*release/}
-      printf "%10s %12s %20s %12s %10s %31s %18s \n" $REPO_REMOTE $printbranch $REPO_PATH $thiscommit $thisdatevar ${REPO_PROJECT} "$author"
+      printf "%10s %12s %20s %12s %10s %31s %18s %18s\n" $REPO_REMOTE $printbranch $REPO_PATH $thiscommit $thisdatevar ${REPO_PROJECT} "$author" "$forauthor"
    fi
+   actual_url=`echo ${url%/*} | tr '[:upper:]' '[:lower:]'`
+   repo_web_location_lc=`echo $repo_web_location | tr '[:upper:]' '[:lower:]'`
+   if [[ "$actual_url" != "$repo_web_location_lc" ]] ; then
+         echo "WARNING Actual repo location: $actual_url"
+	 echo "        Manifest expectation: $repo_web_location_lc"
+    fi
 }
 
 function get_monthnumber() {
@@ -162,8 +170,8 @@ if [[ "$AOMP_VERSION" == "13.1" ]] || [[ $AOMP_MAJOR_VERSION -gt 13 ]] ; then
    cat $manifest_file | grep project > $tmpfile
    if [ "$1" == "list" ] ; then
       printf "MANIFEST FILE: %40s\n" $manifest_file
-      printf "%10s %12s %20s %12s %10s %31s %18s \n" "repo src" "branch" "path" "last hash" "updated" "repo name" "last author"
-      printf "%10s %12s %20s %12s %10s %31s %18s \n" "--------" "------" "----" "---------" "-------" "---------" "-----------"
+      printf "%10s %12s %20s %12s %10s %31s %18s %18s\n" "repo src" "branch" "path" "last hash" "updated" "repo name" "commitor" "for author"
+      printf "%10s %12s %20s %12s %10s %31s %18s %18s\n" "--------" "------" "----" "---------" "-------" "---------" "--------" "----------"
    fi
    while read line ; do 
       line_is_good=1
