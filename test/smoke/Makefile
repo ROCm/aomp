@@ -159,6 +159,9 @@ TESTS_DIR = \
     taskwait_prob \
     teams \
     teams_nest \
+    teams_notarget \
+    teams_notarget_get_num_teams \
+    teams_notarget_get_team_num \
     team_prob \
     teams512-info \
     test \

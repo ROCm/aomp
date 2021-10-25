@@ -11,6 +11,7 @@ TESTS_DIR = \
     clang-296953-ornla-38 \
     clang_llnl-58 \
     clang_llnl-58-1 \
+    clang_udel_saxpy \
     closed_bug1 \
     flang-251450 \
     flang-272343-3 \
@@ -28,6 +29,9 @@ TESTS_DIR = \
     flang-289039 \
     flang-305550 \
     flang-305553 \
+    flang-307433 \
+    flang-307434 \
+    flang-308205 \
     flang_atomic_hint \
     flang_dev_write \
     flang-teams-gdb \
