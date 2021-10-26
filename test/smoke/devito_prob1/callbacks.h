@@ -7,6 +7,8 @@
 
 // Utilities
 static void print_record_ompt(ompt_record_ompt_t *rec) {
+  if (rec == NULL) return;
+  
   printf("rec=%p type=%d time=%lu thread_id=%lu target_id=%lu\n",
 	 rec, rec->type, rec->time, rec->thread_id, rec->target_id);
 
@@ -15,7 +17,7 @@ static void print_record_ompt(ompt_record_ompt_t *rec) {
   case ompt_callback_target_emi:
     {
       ompt_record_target_t target_rec = rec->record.target;
-      printf("\tTarget task: kind=%d endpoint=%d device=%d task_id=%lu target_id=%lu codeptr=%p\n",
+      printf("\tRecord Target: kind=%d endpoint=%d device=%d task_id=%lu target_id=%lu codeptr=%p\n",
 	     target_rec.kind, target_rec.endpoint, target_rec.device_num,
 	     target_rec.task_id, target_rec.target_id, target_rec.codeptr_ra);
       break;
@@ -24,7 +26,7 @@ static void print_record_ompt(ompt_record_ompt_t *rec) {
   case ompt_callback_target_data_op_emi:
     {
       ompt_record_target_data_op_t target_data_op_rec = rec->record.target_data_op;
-      printf("\tTarget data op: host_op_id=%lu optype=%d src_addr=%p src_device=%d "
+      printf("\t  Record DataOp: host_op_id=%lu optype=%d src_addr=%p src_device=%d "
 	     "dest_addr=%p dest_device=%d bytes=%lu end_time=%lu duration=%luus codeptr=%p\n",
 	     target_data_op_rec.host_op_id, target_data_op_rec.optype,
 	     target_data_op_rec.src_addr, target_data_op_rec.src_device_num,
@@ -38,7 +40,7 @@ static void print_record_ompt(ompt_record_ompt_t *rec) {
   case ompt_callback_target_submit_emi:
     {
       ompt_record_target_kernel_t target_kernel_rec = rec->record.target_kernel;
-      printf("\tTarget kernel: host_op_id=%lu requested_num_teams=%u granted_num_teams=%u "
+      printf("\t  Record Submit: host_op_id=%lu requested_num_teams=%u granted_num_teams=%u "
 	     "end_time=%lu duration=%luus\n",
 	     target_kernel_rec.host_op_id, target_kernel_rec.requested_num_teams,
 	     target_kernel_rec.granted_num_teams, target_kernel_rec.end_time,
@@ -58,6 +60,7 @@ static void delete_buffer_ompt(ompt_buffer_t *buffer) {
 
 // OMPT entry point handles
 static ompt_set_callback_t ompt_set_callback = 0;
+static ompt_set_trace_ompt_t ompt_set_trace_ompt = 0;
 static ompt_start_trace_t ompt_start_trace = 0;
 static ompt_flush_trace_t ompt_flush_trace = 0;
 static ompt_stop_trace_t ompt_stop_trace = 0;
@@ -77,6 +80,9 @@ static void on_ompt_callback_buffer_request (
   printf("Allocated %lu bytes at %p in buffer request callback\n", *bytes, *buffer);
 }
 
+// Note: This callback must handle a null begin cursor. Currently,
+// ompt_get_record_ompt, print_record_ompt, and
+// ompt_advance_buffer_cursor handle a null cursor.
 static void on_ompt_callback_buffer_complete (
   int device_num,
   ompt_buffer_t *buffer,
@@ -84,22 +90,19 @@ static void on_ompt_callback_buffer_complete (
   ompt_buffer_cursor_t begin,
   int buffer_owned
 ) {
-  char *end_data = (char*)begin + bytes;
-  printf("Executing buffer complete callback: %d %p %lu %p %p %d\n",
-	 device_num, buffer, bytes, (void*)begin, end_data, buffer_owned);
+  printf("Executing buffer complete callback: %d %p %lu %p %d\n",
+	 device_num, buffer, bytes, (void*)begin, buffer_owned);
 
-  ompt_record_ompt_t *rec = ompt_get_record_ompt(buffer, begin);
-  while (rec && (char*)rec < end_data) {
+  int status = 1;
+  ompt_buffer_cursor_t current = begin;
+  while (status) {
+    ompt_record_ompt_t *rec = ompt_get_record_ompt(buffer, current);
     print_record_ompt(rec);
-    ompt_buffer_cursor_t next;
-    int status = ompt_advance_buffer_cursor(NULL, /* TODO */
-					    buffer,
-					    bytes,
-					    (ompt_buffer_cursor_t)rec,
-					    &next);
-    if (!status) break;
-    rec = (ompt_record_ompt_t*)next; // call ompt_get_record_ompt
-    assert(rec != NULL && "Buffer advanced to nullptr");
+    status = ompt_advance_buffer_cursor(NULL, /* TODO device */
+					buffer,
+					bytes,
+					current,
+					&current);
   }
   if (buffer_owned) delete_buffer_ompt(buffer);
 }
@@ -136,6 +139,7 @@ static void on_ompt_callback_device_initialize
     return;
   }
 
+  ompt_set_trace_ompt = (ompt_set_trace_ompt_t) lookup("ompt_set_trace_ompt");
   ompt_start_trace = (ompt_start_trace_t) lookup("ompt_start_trace");
   ompt_flush_trace = (ompt_flush_trace_t) lookup("ompt_flush_trace");
   ompt_stop_trace = (ompt_stop_trace_t) lookup("ompt_stop_trace");
@@ -148,9 +152,10 @@ static void on_ompt_callback_device_initialize
   // is because this device_init callback is invoked during the first
   // target construct implementation.
 
-  // TODO move the ompt_start_trace to the main program before any
-  // target construct and ensure we error out gracefully. The program
-  // should not assert or crash.
+  ompt_set_trace_ompt(0, 1, ompt_callback_target);
+  ompt_set_trace_ompt(0, 1, ompt_callback_target_data_op);
+  ompt_set_trace_ompt(0, 1, ompt_callback_target_submit);
+
   start_trace();
 }
 
@@ -171,7 +176,6 @@ static void on_ompt_callback_device_load
 
 static void on_ompt_callback_target_data_op
     (
-     ompt_scope_endpoint_t endpoint,
      ompt_id_t target_id,
      ompt_id_t host_op_id,
      ompt_target_data_op_t optype,
@@ -182,9 +186,9 @@ static void on_ompt_callback_target_data_op
      size_t bytes,
      const void *codeptr_ra
      ) {
-  printf("DataOp: endpoint=%d host_op_id=%lu optype=%d src=%p src_device_num=%d "
+  printf("  Callback DataOp: host_op_id=%lu optype=%d src=%p src_device_num=%d "
 	 "dest=%p dest_device_num=%d bytes=%lu code=%p\n",
-	 endpoint, host_op_id, optype, src_addr, src_device_num,
+	 host_op_id, optype, src_addr, src_device_num,
 	 dest_addr, dest_device_num, bytes, codeptr_ra);
 }
 
@@ -197,19 +201,18 @@ static void on_ompt_callback_target
      ompt_id_t target_id,
      const void *codeptr_ra
      ) {
-  printf("Target: kind=%d endpoint=%d device_num=%d target_id=%lu code=%p\n",
+  printf("Callback Target: kind=%d endpoint=%d device_num=%d target_id=%lu code=%p\n",
 	 kind, endpoint, device_num, target_id, codeptr_ra);
 }
 
 static void on_ompt_callback_target_submit
     (
-     ompt_scope_endpoint_t endpoint,
      ompt_id_t target_id,
      ompt_id_t host_op_id,
      unsigned int requested_num_teams
      ) {
-  printf("TargetSubmit: endpoint=%d target_id=%lu host_op_id=%lu req_num_teams=%d\n",
-     endpoint, target_id, host_op_id, requested_num_teams);
+  printf("  Callback Submit: target_id=%lu host_op_id=%lu req_num_teams=%d\n",
+     target_id, host_op_id, requested_num_teams);
 }
 
 // Init functions
