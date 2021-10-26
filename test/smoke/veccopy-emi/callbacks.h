@@ -68,6 +68,7 @@ static void delete_buffer_ompt(ompt_buffer_t *buffer) {
 
 // OMPT entry point handles
 static ompt_set_callback_t ompt_set_callback = 0;
+static ompt_set_trace_ompt_t ompt_set_trace_ompt = 0;
 static ompt_start_trace_t ompt_start_trace = 0;
 static ompt_flush_trace_t ompt_flush_trace = 0;
 static ompt_stop_trace_t ompt_stop_trace = 0;
@@ -143,6 +144,7 @@ static void on_ompt_callback_device_initialize
     return;
   }
 
+  ompt_set_trace_ompt = (ompt_set_trace_ompt_t) lookup("ompt_set_trace_ompt");
   ompt_start_trace = (ompt_start_trace_t) lookup("ompt_start_trace");
   ompt_flush_trace = (ompt_flush_trace_t) lookup("ompt_flush_trace");
   ompt_stop_trace = (ompt_stop_trace_t) lookup("ompt_stop_trace");
@@ -155,9 +157,16 @@ static void on_ompt_callback_device_initialize
   // is because this device_init callback is invoked during the first
   // target construct implementation.
 
-  // TODO move the ompt_start_trace to the main program before any
-  // target construct and ensure we error out gracefully. The program
-  // should not assert or crash.
+#if EMI  
+  ompt_set_trace_ompt(0, 1, ompt_callback_target_emi);
+  ompt_set_trace_ompt(0, 1, ompt_callback_target_data_op_emi);
+  ompt_set_trace_ompt(0, 1, ompt_callback_target_submit_emi);
+#else
+  ompt_set_trace_ompt(0, 1, ompt_callback_target);
+  ompt_set_trace_ompt(0, 1, ompt_callback_target_data_op);
+  ompt_set_trace_ompt(0, 1, ompt_callback_target_submit);
+#endif
+  
   start_trace();
 }
 
