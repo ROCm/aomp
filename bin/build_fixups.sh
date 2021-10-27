@@ -14,6 +14,12 @@ thisdir=`dirname $realpath`
 if [ -d $AOMP/examples ] ; then 
   $SUDO rm -rf $AOMP/examples
 fi
+
+if [[ "$DEVEL_PACKAGE" =~ "devel" ]]; then
+  AOMP="$AOMP/""$DEVEL_PACKAGE/share/openmp"
+  echo "Request for devel package found."
+  mkdir -p $AOMP/share/openmp
+fi
 echo $SUDO cp -rp $AOMP_REPOS/$AOMP_REPO_NAME/examples $AOMP
 $SUDO cp -rp $AOMP_REPOS/$AOMP_REPO_NAME/examples $AOMP
 
@@ -45,6 +51,9 @@ $SUDO rm -f $AOMP/examples/raja/*.sh
 
 # Clean libexec
 $SUDO rm -rf $AOMP/libexec
+if [[ ! "$DEVEL_PACKAGE" =~ "devel" ]]; then
+  $SUDO rm -rf $AOMP/share
+fi
 
 # Clean src
 $SUDO rm -rf $AOMP/src
