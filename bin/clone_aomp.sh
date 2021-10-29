@@ -103,40 +103,47 @@ function list_repo_from_manifest(){
    printf -v thisdatevar "%4u-%2s-%02u" $thisyear $monthnumber $thisday
    author=`git log -1 --pretty=fuller | grep "^Commit:" | cut -d":" -f2- | cut -d"<" -f1 | xargs`
    forauthor=`git log -1 --pretty=fuller | grep "^Author:" | cut -d":" -f2- | cut -d"<" -f1 | xargs`
-   url=`grep url .git/config | cut -d" " -f3`
    repodirname=$REPO_PATH
    HASH=`git log -1 --numstat --format="%h" | head -1`
    is_hash=0
    branch_name=${REPO_RREV}
    # get the actual branch
    actual_branch=`git branch | awk '/\*/ { print $2; }'`
-   rc=0
+   WARNWORD=""
    if [ "$actual_branch" == "(no" ] || [ "$actual_branch" == "(HEAD" ] ; then
       is_hash=1
+      WARNWORD="hash"
       actual_hash=`git branch | awk '/\*/ { print $5; }' | cut -d")" -f1`
       if [ "$actual_hash" != "$HASH" ] ; then
-          rc=1
+          WARNWORD="!BADHASH"
       fi
+      thiscommit=$actual_hash
    fi
    if [ "$branch_name" != "$actual_branch" ] && [ $is_hash == 0 ] ; then
-      rc=2
-   fi
-   if [ $rc == 1 ] ; then
-      printf "%24s %20s %12s %10s %26s %20s %8s\n" $actual_hash $REPO_PATH $thiscommit $thisdatevar ${REPO_PROJECT} "$author" "!BADHASH!"
-   elif [ $is_hash  == 1 ] ; then
-      printf "%24s %20s %12s %10s %26s %20s\n" $actual_hash $REPO_PATH $thiscommit $thisdatevar ${REPO_PROJECT} "$author"
-   elif [ $rc == 2 ] ; then
-      printf "%24s %20s %12s %10s %26s %20s %8s\n" $actual_branch $REPO_PATH $thiscommit $thisdatevar ${REPO_PROJECT} "$author" "!BRANCH!"
+      WARNWORD="!BRANCH!"
+      printbranch=$actual_branch
    else
       printbranch=${REPO_RREV##*release/}
-      printf "%10s %12s %20s %12s %10s %31s %18s %18s\n" $REPO_REMOTE $printbranch $REPO_PATH $thiscommit $thisdatevar ${REPO_PROJECT} "$author" "$forauthor"
    fi
-   actual_url=`echo ${url%/*} | tr '[:upper:]' '[:lower:]'`
-   repo_web_location_lc=`echo $repo_web_location | tr '[:upper:]' '[:lower:]'`
-   if [[ "$actual_url" != "$repo_web_location_lc" ]] ; then
-         echo "WARNING Actual repo location: $actual_url"
-	 echo "        Manifest expectation: $repo_web_location_lc"
-    fi
+   url=`grep url .git/config | cut -d":" -f2- | cut -d"/" -f3-`
+   project_name=`echo $url | cut -d"/" -f2- | tr '[:upper:]' '[:lower:]'`
+   #website=`echo $url | cut -d"/" -f1`
+   if [[ "$REPO_REMOTE" == "roc" ]] ; then
+        manifest_project=`echo radeonopencompute/$REPO_PROJECT | tr '[:upper:]' '[:lower:]'`
+   elif [[ "$REPO_REMOTE" == "roctools" ]] ; then
+        manifest_project=`echo ROCM-Developer-Tools/$REPO_PROJECT | tr '[:upper:]' '[:lower:]'`
+   elif [[ "$REPO_REMOTE" == "gerritgit" ]] ; then
+        manifest_project=`echo $REPO_PROJECT | tr '[:upper:]' '[:lower:]'`
+   else
+        manifest_project=`echo $REPO_REMOTE/$REPO_PROJECT | tr '[:upper:]' '[:lower:]'`
+   fi
+   #tr '[:upper:]' '[:lower:]'`
+   if [[ "$manifest_project" != "$project_name" ]] ; then
+      echo "WARNING Actual project  : $project_name"
+      echo "        Manifest project: $manifest_project"
+      WARNWORD="!REPO!"
+   fi
+   printf "%10s %12s %20s %25s %12s %10s %18s %18s %8s\n" $REPO_REMOTE $printbranch $REPO_PATH ${REPO_PROJECT} $thiscommit $thisdatevar "$author" "$forauthor" "$WARNWORD"
 }
 
 function get_monthnumber() {
@@ -170,8 +177,8 @@ if [[ "$AOMP_VERSION" == "13.1" ]] || [[ $AOMP_MAJOR_VERSION -gt 13 ]] ; then
    cat $manifest_file | grep project > $tmpfile
    if [ "$1" == "list" ] ; then
       printf "MANIFEST FILE: %40s\n" $manifest_file
-      printf "%10s %12s %20s %12s %10s %31s %18s %18s\n" "repo src" "branch" "path" "last hash" "updated" "repo name" "commitor" "for author"
-      printf "%10s %12s %20s %12s %10s %31s %18s %18s\n" "--------" "------" "----" "---------" "-------" "---------" "--------" "----------"
+      printf "%10s %12s %20s %25s %12s %10s %18s %18s\n" "repo src" "branch" "path" "repo name" "last hash" "updated" "commitor" "for author"
+      printf "%10s %12s %20s %25s %12s %10s %18s %18s\n" "--------" "------" "----" "---------" "---------" "-------" "--------" "----------"
    fi
    while read line ; do 
       line_is_good=1
