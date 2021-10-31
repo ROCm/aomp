@@ -9,6 +9,7 @@ clang-262701
 clang-273738
 clang-273739
 clang-274983
+clang-274983-2
 clang-279673
 clang-282491-1
 clang-282491-3
@@ -38,6 +39,7 @@ extern_init
 famd-opt-279975
 firstprivate
 firstprivate2
+flags
 flags 2
 flags 3
 flags 4
@@ -106,6 +108,8 @@ gdb_teams
 global_allocate
 gpus
 helloworld
+hip_device_compile
+hip_rocblas
 host_targ
 icvars-nest
 icvars-nestF
@@ -138,9 +142,11 @@ MaxNumThrds
 mem_foot_print
 memory_mgmt_routines
 nativetests
+nest_call_par2
 nested_loop
 nested_loop_trunk
 nested_loop_trunk1
+nested_par3
 nested_targ
 omp_get_device_num
 omp_get_initial
@@ -153,6 +159,7 @@ omp_wtime
 pfspecifier
 pfspecifier_str
 printf_parallel_for_target
+red_bug_51
 reduce
 reduc_map_prob
 reduction
@@ -160,10 +167,12 @@ reduction_array
 reduction_array_section
 reduction_issue_16
 reduction_shared_array
+reduction_teams
 reduction_teams_distribute_parallel
 schedule
 simd
 slices
+snap_red
 stream
 targ-273742
 targc-273738
@@ -176,6 +185,9 @@ taskwait_prob
 team_prob
 teams
 teams_nest
+teams_notarget
+teams_notarget_get_num_teams
+teams_notarget_get_team_num
 test
 test_offload_macros
 thread_limit
@@ -183,6 +195,7 @@ threads
 Threads1xxx
 unique-kernel-name
 use_device_addr
+use_device_ptr
 vasp1
 veccopy
 virtfunc1
