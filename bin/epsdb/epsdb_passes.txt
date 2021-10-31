@@ -39,7 +39,7 @@ extern_init
 famd-opt-279975
 firstprivate
 firstprivate2
-flags
+flags 1
 flags 2
 flags 3
 flags 4
