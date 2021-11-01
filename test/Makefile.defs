@@ -137,5 +137,8 @@ else
 endif
 
 ifeq ($(HSA_XNACK),1)
-  OMP_FLAGS += -offload-usm
+# this causes issues on amd-stg-open, as the flag -offload-arch
+# does not exist. it incorrectly becomes -o ffload-arch
+#  OMP_FLAGS += -offload-usm
+echo not settting -offload-usm
 endif
