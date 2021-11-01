@@ -75,7 +75,7 @@ MANIFEST FILE: /work/grodgers/git/aomp14.0/aomp/bin/../manifests/aomp_14.0.xml
 
 The development version is the next version to be released.  It is possible that the development version is broken due to regressions that often occur during development.
 Before AOMP 13.1, the init\_aomp_repos.sh shell was not necessary.  These commands will build a previous release of AOMP such as aomop-13.0-6.
-``
+```
    cd $AOMP_REPOS/aomp/bin
    export AOMP_VERSION=13.0
    export AOMP_REPOS=$HOME/git/aomp${AOMP_VERSION}
