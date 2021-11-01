@@ -42,6 +42,33 @@ Change the value of AOMP\_REPOS to the directory name where you want to store al
 Warning: the clone\_aomp.sh, and build\_aomp.sh are expected to take a long time to execute. As such we recommend the use of nohup to run build\_aomp.sh. It is ok to run build\_aomp.sh without nohup. The clone and build time will be affected by the performance of the filesystem that contains $AOMP\_REPOS.
 
 There is a "list" option on the clone\_aomp.sh that provides useful information about each AOMP repository.
+```
+   $AOMP_REPOS/aomp/bin/clone_aomp.sh list
+```
+The above command will produce output like this showing you the location and branch of the repos in the AOMP\_REPOS directory and if there are any discrepencies with respect to the manifest file.
+```
+MANIFEST FILE: /work/grodgers/git/aomp14.0/aomp/bin/../manifests/aomp_14.0.xml
+  repo src       branch                 path                 repo name    last hash    updated           commitor         for author
+  --------       ------                 ----                 ---------    ---------    -------           --------         ----------
+ gerritgit amd-stg-open         llvm-project lightning/ec/llvm-project 11d5fa11d52c 2021-10-30      Ron Lieberman     Saiyedul Islam
+       roc amd-stg-open rocm-compilersupport      ROCm-CompilerSupport ef72f4edb3dd 2021-10-12      Jeremy Newton      Jeremy Newton
+       roc amd-stg-open     rocm-device-libs          ROCm-Device-Libs fc2eac750cb3 2021-10-26           pvellien           pvellien
+  roctools     aomp-dev                flang                     flang 4f1282c59a76 2021-09-22             GitHub            ronlieb
+  roctools     aomp-dev          aomp-extras               aomp-extras aefc0d6c7434 2021-10-18      Ron Lieberman      Ron Lieberman
+  roctools     aomp-dev                 aomp                      aomp a94d9f43f3b0 2021-11-01        gregrodgers        gregrodgers
+  roctools   rocm-4.5.x          rocprofiler               rocprofiler e140f47f3609 2021-10-08 Gerrit Code Review      Zhongyu Zhang
+  roctools   rocm-4.5.x            roctracer                 roctracer d8ecefda4efd 2021-10-09      Ammar Elwazir      Ammar ELWazir
+  roctools   rocm-4.5.x            ROCdbgapi                 ROCdbgapi 1040f1521831 2021-09-26 Laurent Morichetti Laurent Morichetti
+  roctools   rocm-4.5.x               ROCgdb                    ROCgdb a1f2a479f060 2021-09-24 Laurent Morichetti       Simon Marchi
+  roctools   rocm-4.5.x               hipamd                    hipamd bedc5f614221 2021-10-04  Pruthvi Madugundu            Sourabh
+  roctools   rocm-4.5.x                  hip                       hip 3413a164f458 2021-10-11      Maneesh Gupta      Maneesh Gupta
+  roctools   rocm-4.5.x               ROCclr                    ROCclr aba55f5c2775 2021-10-07      Zhongyu Zhang   German Andryeyev
+       roc   rocm-4.5.x  ROCm-OpenCL-Runtime       ROCm-OpenCL-Runtime bf77cab71234 2021-09-27        Freddy Paul        Freddy Paul
+       roc    roc-4.5.x             rocminfo                  rocminfo 1452f8fa24b2 2021-07-19      Icarus Sparry      Icarus Sparry
+       roc rocm-rel-4.5           rocm-cmake                rocm-cmake 8d82398d269d 2021-09-14            Jenkins            Jenkins
+       roc   rocm-4.5.x         rocr-runtime              ROCR-Runtime f32dfa887d02 2021-10-27         Sean Keely         Sean Keely
+       roc    roc-4.5.x roct-thunk-interface      ROCT-Thunk-Interface 5b152ed0f043 2021-09-30         Sean Keely         Sean Keely
+```
 
 
 <b>To build a previous release of AOMP:</b>
