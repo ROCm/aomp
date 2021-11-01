@@ -3,7 +3,6 @@
 #include <omp.h>
 
 #define N 10000
-#define MAX_TEAMS 64
 int main() {
   int n = N;
   int team_id, cur_teams;
@@ -26,12 +25,20 @@ int main() {
               if (err > 10) break;
           }
       }
-      // If we have bigger number than MAX_TEAMS in num_teams() clause we will
-      // get omp_get_num_teams() as MAX_TEAMS.
-      if ( ((cur_teams > MAX_TEAMS) && (cur_teams != MAX_TEAMS)) && (cur_teams != teams_sizes[j]) ) {
-          printf("omp_get_num_teams() : %d but we tried to set num_teams(%d)\n", cur_teams, teams_sizes[j]);
+      // omp_get_num_teams() will always return value less than or equal to
+      // value passed in num_teams() clause.
+      if ( cur_teams > teams_sizes[j] ) {
+          printf("Error : omp_get_num_teams() : %d but we tried to set"
+			  " num_teams(%d)\n", cur_teams, teams_sizes[j]);
 	  err++;
       }
+  }
+  cur_teams = omp_get_num_teams();
+  // omp_get_num_teams() value should be 1 when outside of teams region.
+  if ( cur_teams != 1 ) {
+      printf("Error : omp_get_num_teams() : %d but should return 1 when"
+		      " outside of teams region.\n", cur_teams);
+      err++;
   }
   return err;
 }
