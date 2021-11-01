@@ -39,6 +39,7 @@ TESTS_DIR = \
     lds-prob4 \
     lds-prob5 \
     loop_order \
+    nwchem-s1_1 \
     omp_loop \
     requires_directive \
     targ_static \
