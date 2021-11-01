@@ -5,11 +5,7 @@
 // Tool related code below
 #include <omp-tools.h>
 
-#if 1
-ompt_id_t  next_op_id = 1;
-#else
-ompt_id_t  next_op_id = 1001;
-#endif
+ompt_id_t  next_op_id = 0x8000000000000001;
 
 #define OMPT_BUFFER_REQUEST_SIZE 256
 
@@ -25,17 +21,19 @@ static void print_record_ompt(ompt_record_ompt_t *rec) {
   case ompt_callback_target_emi:
     {
       ompt_record_target_t target_rec = rec->record.target;
-      printf("\tRecord Target task: kind=%d endpoint=%d device=%d task_id=%lu target_id=%lu codeptr=%p\n",
+      printf("\tRecord Target task: target_id=0x%lx kind=%d endpoint=%d device=%d task_id=%lu codeptr=%p\n",
+	     target_rec.target_id, 
 	     target_rec.kind, target_rec.endpoint, target_rec.device_num,
-	     target_rec.task_id, target_rec.target_id, target_rec.codeptr_ra);
+	     target_rec.task_id, target_rec.codeptr_ra);
       break;
     }
   case ompt_callback_target_data_op:
   case ompt_callback_target_data_op_emi:
     {
       ompt_record_target_data_op_t target_data_op_rec = rec->record.target_data_op;
-      printf("\t  Record Target data op: host_op_id=%lu optype=%d src_addr=%p src_device=%d "
+      printf("\t  Record Target data op: target_id=0x%lx host_op_id=0x%lx optype=%d src_addr=%p src_device=%d "
 	     "dest_addr=%p dest_device=%d bytes=%lu end_time=%lu duration=%luus codeptr=%p\n",
+             rec->target_id,
 	     target_data_op_rec.host_op_id, target_data_op_rec.optype,
 	     target_data_op_rec.src_addr, target_data_op_rec.src_device_num,
 	     target_data_op_rec.dest_addr, target_data_op_rec.dest_device_num,
@@ -48,8 +46,9 @@ static void print_record_ompt(ompt_record_ompt_t *rec) {
   case ompt_callback_target_submit_emi:
     {
       ompt_record_target_kernel_t target_kernel_rec = rec->record.target_kernel;
-      printf("\t  Record Target kernel: host_op_id=%lu requested_num_teams=%u granted_num_teams=%u "
+      printf("\t  Record Target kernel:  target_id=0x%lx host_op_id=0x%lx requested_num_teams=%u granted_num_teams=%u "
 	     "end_time=%lu duration=%luus\n",
+             rec->target_id,
 	     target_kernel_rec.host_op_id, target_kernel_rec.requested_num_teams,
 	     target_kernel_rec.granted_num_teams, target_kernel_rec.end_time,
 	     target_kernel_rec.end_time - rec->time);
@@ -220,7 +219,7 @@ static void on_ompt_callback_target_data_op_emi
      const void *codeptr_ra
      ) {
      if (endpoint == ompt_scope_begin) *host_op_id = next_op_id++;
-  printf("  Callback DataOp EMI: endpoint=%d target_task_data=%p (%lu) target_data=%p (%lu) host_op_id=%p (%lu) optype=%d src=%p src_device_num=%d "
+  printf("  Callback DataOp EMI: endpoint=%d target_task_data=%p (0x%lx) target_data=%p (0x%lx) host_op_id=%p (0x%lx) optype=%d src=%p src_device_num=%d "
 	 "dest=%p dest_device_num=%d bytes=%lu code=%p\n",
 	 endpoint, 
          target_task_data, target_task_data->value, 
@@ -256,7 +255,7 @@ static void on_ompt_callback_target_emi
      const void *codeptr_ra
      ) {
      if (endpoint == ompt_scope_begin) target_data->value = next_op_id++;
-  printf("Callback Target EMI: kind=%d endpoint=%d device_num=%d task_data=%p (%lu) target_task_data=%p (%lu) target_data=%p (%lu) code=%p\n",
+  printf("Callback Target EMI: kind=%d endpoint=%d device_num=%d task_data=%p (0x%lx) target_task_data=%p (0x%lx) target_data=%p (0x%lx) code=%p\n",
 	 kind, endpoint, device_num, 
          task_data, task_data->value, 
          target_task_data, target_task_data->value, 
@@ -282,7 +281,7 @@ static void on_ompt_callback_target_submit_emi
      ompt_id_t *host_op_id,
      unsigned int requested_num_teams
      ) {
-  printf("  Callback Submit EMI: endpoint=%d target_data=%p (%lu) host_op_id=%p (%lu) req_num_teams=%d\n",
+  printf("  Callback Submit EMI: endpoint=%d target_data=%p (0x%lx) host_op_id=%p (0x%lx) req_num_teams=%d\n",
      endpoint, 
      target_data, target_data->value, 
      host_op_id, *host_op_id, 

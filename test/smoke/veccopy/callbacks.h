@@ -186,9 +186,9 @@ static void on_ompt_callback_target_data_op
      size_t bytes,
      const void *codeptr_ra
      ) {
-  printf("  Callback DataOp: host_op_id=%lu optype=%d src=%p src_device_num=%d "
+  printf("  Callback DataOp: target_id=%lu host_op_id=%lu optype=%d src=%p src_device_num=%d "
 	 "dest=%p dest_device_num=%d bytes=%lu code=%p\n",
-	 host_op_id, optype, src_addr, src_device_num,
+	 target_id, host_op_id, optype, src_addr, src_device_num,
 	 dest_addr, dest_device_num, bytes, codeptr_ra);
 }
 
@@ -201,8 +201,8 @@ static void on_ompt_callback_target
      ompt_id_t target_id,
      const void *codeptr_ra
      ) {
-  printf("Callback Target: kind=%d endpoint=%d device_num=%d target_id=%lu code=%p\n",
-	 kind, endpoint, device_num, target_id, codeptr_ra);
+  printf("Callback Target: target_id=%lu kind=%d endpoint=%d device_num=%d code=%p\n",
+	 target_id, kind, endpoint, device_num, codeptr_ra);
 }
 
 static void on_ompt_callback_target_submit
