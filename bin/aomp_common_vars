@@ -15,19 +15,11 @@
 AOMP_COMPILER_NAME=${AOMP_COMPILER_NAME:-AOMP}
 
 # ROCM_VERSION may be set by Jenkins, if not guess a good number
-ROCM_VERSION=${ROCM_VERSION:-4.0.0}
+ROCM_VERSION=${ROCM_VERSION:-4.5.0}
 
 # Set the AOMP VERSION STRING and AOMP_PROJECT_REPO_BRANCH.
-AOMP_GIT_INTERNAL_IP="gerrit-git.amd.com"
-ping -c 1 $AOMP_GIT_INTERNAL_IP 2> /dev/null >/dev/null
-if [ $? != 0 ]; then
-   AOMP_VERSION=${AOMP_VERSION:-"13.0"}
-   AOMP_VERSION_MOD=${AOMP_VERSION_MOD:-"7"}
-else
-   #  Build 14.0-0 if AMD
-   AOMP_VERSION=${AOMP_VERSION:-"14.0"}
-   AOMP_VERSION_MOD=${AOMP_VERSION_MOD:-"0"}
-fi
+AOMP_VERSION=${AOMP_VERSION:-"14.0"}
+AOMP_VERSION_MOD=${AOMP_VERSION_MOD:-"0"}
 AOMP_VERSION_STRING=${AOMP_VERSION_STRING:-"$AOMP_VERSION-$AOMP_VERSION_MOD"}
 export AOMP_VERSION_STRING AOMP_VERSION AOMP_VERSION_MOD ROCM_VERSION
 
@@ -186,6 +178,7 @@ GITGERRIT="ssh://$USER@gerrit-git.amd.com:29418"
 GITROCDEV="https://github.com/ROCm-Developer-Tools"
 GITROCLIB="https://github.com/AMDComputeLibraries"
 GITKHRONOS="https://github.com/KhronosGroup"
+AOMP_GIT_INTERNAL_IP="gerrit-git.amd.com"
 if [ "$AOMP_MAJOR_VERSION" == "12" ] ; then
   ping -c 1 $AOMP_GIT_INTERNAL_IP 2> /dev/null
   if [ $? != 0 ]; then
