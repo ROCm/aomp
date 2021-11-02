@@ -167,7 +167,14 @@ if [[ "$AOMP_VERSION" == "13.1" ]] || [[ $AOMP_MAJOR_VERSION -gt 13 ]] ; then
    # For 13.1 and beyond, we use a manifest file to specify the repos to clone.
    # However, we gave up on using the repo command to clone the repos. 
    # That is all done here by parsing the manifest file. 
-   manifest_file=$thisdir/../manifests/aomp_${AOMP_VERSION}.xml
+   ping -c 1 $AOMP_GIT_INTERNAL_IP 2> /dev/null >/dev/null
+   if [ $? == 0 ]; then
+      # AMD internal repo file
+      manifest_file=$thisdir/../manifests/aompi_${AOMP_VERSION}.xml
+   else
+      manifest_file=$thisdir/../manifests/aomp_${AOMP_VERSION}.xml
+   fi
+
    if [ ! -f $manifest_file ] ; then 
       echo "ERROR manifest file missing: $manifest_file"
       exit 1
