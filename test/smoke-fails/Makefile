@@ -11,6 +11,7 @@ TESTS_DIR = \
     clang-296953-ornla-38 \
     clang_llnl-58 \
     clang_llnl-58-1 \
+    clang-nwchem-s1_1 \
     clang_udel_saxpy \
     closed_bug1 \
     flang-251450 \
