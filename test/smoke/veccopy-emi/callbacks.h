@@ -111,6 +111,22 @@ static void on_ompt_callback_buffer_complete (
   if (buffer_owned) delete_buffer_ompt(buffer);
 }
 
+static ompt_set_result_t set_trace_ompt() {
+  if (!ompt_set_trace_ompt) return ompt_set_error;
+
+#if EMI  
+  ompt_set_trace_ompt(0, 1, ompt_callback_target_emi);
+  ompt_set_trace_ompt(0, 1, ompt_callback_target_data_op_emi);
+  ompt_set_trace_ompt(0, 1, ompt_callback_target_submit_emi);
+#else
+  ompt_set_trace_ompt(0, 1, ompt_callback_target);
+  ompt_set_trace_ompt(0, 1, ompt_callback_target_data_op);
+  ompt_set_trace_ompt(0, 1, ompt_callback_target_submit);
+#endif
+  
+  return ompt_set_always;
+}
+  
 static int start_trace() {
   if (!ompt_start_trace) return 0;
   return ompt_start_trace(0, &on_ompt_callback_buffer_request,
@@ -150,22 +166,14 @@ static void on_ompt_callback_device_initialize
   ompt_get_record_ompt = (ompt_get_record_ompt_t) lookup("ompt_get_record_ompt");
   ompt_advance_buffer_cursor = (ompt_advance_buffer_cursor_t) lookup("ompt_advance_buffer_cursor");
   
+  set_trace_ompt();
+
   // In many scenarios, this will be a good place to start the
   // trace. If start_trace is called from the main program before this
   // callback is dispatched, the start_trace handle will be null. This
   // is because this device_init callback is invoked during the first
   // target construct implementation.
 
-#if EMI  
-  ompt_set_trace_ompt(0, 1, ompt_callback_target_emi);
-  ompt_set_trace_ompt(0, 1, ompt_callback_target_data_op_emi);
-  ompt_set_trace_ompt(0, 1, ompt_callback_target_submit_emi);
-#else
-  ompt_set_trace_ompt(0, 1, ompt_callback_target);
-  ompt_set_trace_ompt(0, 1, ompt_callback_target_data_op);
-  ompt_set_trace_ompt(0, 1, ompt_callback_target_submit);
-#endif
-  
   start_trace();
 }
 
