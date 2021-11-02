@@ -20,13 +20,13 @@ To build and test AOMP from source you must:
 
 ## Clone and Build AOMP
 
-Starting with AOMP 13.1, AOMP uses a manifest file to specify the git repositories to clone.
+AOMP now uses a manifest file to specify the git repositories to clone.
 We studied the use of the google repo command and found it was too compilicated for development
 as compared to manually cloning the repos specified in a manifest file.
 The script clone\_aomp.sh issues a sequence of "git clone" and "git pull" commands
 by parsing information in the manifest file associated with a particular release.
 
-Here are the commands to do a source build of AOMP 13.1 and beyond.
+Here are the commands to do a source build of AOMP:
 
 ```
    export AOMP_VERSION=14.0
@@ -74,7 +74,7 @@ MANIFEST FILE: /work/grodgers/git/aomp14.0/aomp/bin/../manifests/aomp_14.0.xml
 <b>To build a previous release of AOMP:</b>
 
 The development version is the next version to be released.  It is possible that the development version is broken due to regressions that often occur during development.
-Before AOMP 13.1, the init\_aomp_repos.sh shell was not necessary.  These commands will build a previous release of AOMP such as aomop-13.0-6.
+These commands will build a previous release of AOMP such as aomop-13.0-6.
 ```
    cd $AOMP_REPOS/aomp/bin
    export AOMP_VERSION=13.0
