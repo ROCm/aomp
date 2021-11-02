@@ -187,7 +187,6 @@ teams
 teams_nest
 teams_notarget
 teams_notarget_get_num_teams
-teams_notarget_get_team_num
 test
 test_offload_macros
 thread_limit
