@@ -36,6 +36,7 @@ TESTS_DIR = \
     flang_atomic_hint \
     flang_dev_write \
     flang-teams-gdb \
+    flang-usm \
     helloworld%n \
     lds-prob4 \
     lds-prob5 \
