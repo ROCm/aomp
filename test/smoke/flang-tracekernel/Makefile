@@ -1,12 +1,12 @@
 include ../../Makefile.defs
 
-ROCM         ?= $(AOMP)/
+ROCM         ?= $(AOMP)
 TESTNAME     = flangtrace
 TESTSRC_MAIN = flangtrace.f90
 TESTSRC_AUX  = hiptrace.f90
 TESTSRC_ALL  = $(TESTSRC_AUX) $(TESTSRC_MAIN)
 
-TARGET       +=  -L$(ROCM)/lib/ -lroctx64 -lroctracer64
+TARGET       +=  -Wl,--rpath,$(ROCM)/lib/ -lroctx64 -lroctracer64 -lamdhip64
 
 FLANG        = flang
 OMP_BIN      = $(AOMP)/bin/$(FLANG)
