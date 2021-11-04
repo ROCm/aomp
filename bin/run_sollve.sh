@@ -4,6 +4,8 @@
 #
 # --- Start standard header to set build environment variables ----
 
+ulimit -t 120
+
 function getdname(){
    local __DIRN=`dirname "$1"`
    if [ "$__DIRN" = "." ] ; then
