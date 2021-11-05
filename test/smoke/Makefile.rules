@@ -51,7 +51,7 @@ verify-log: run
 check: $(TESTNAME)
 	path=`pwd`; \
 	base=`basename $$path`; \
-	if   ($(SMOKE_TIMEOUT) ./$(TESTNAME)> /dev/null 2>&1); then \
+	if   ($(RUNENV) $(SMOKE_TIMEOUT) $(RUNPROF) ./$(TESTNAME) $(ARGS) > /dev/null 2>&1); then \
 		echo $$base $$test_num return code: $$? >> ../check-smoke.txt; \
 		echo  "" >> ../check-smoke.txt; \
 		echo $$base $$test_num  >> ../passing-tests.txt; \

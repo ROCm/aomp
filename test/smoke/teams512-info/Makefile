@@ -13,6 +13,7 @@ include ../../Makefile.defs
 
 TESTNAME = teams512-info
 TESTSRC  = teams512-info.c
+RUNENV   += LIBOMPTARGET_KERNEL_TRACE=1
 
 CFLAGS = -O3 $(AOMP_CPUTARGET) -fopenmp -fopenmp-targets=$(AOMP_GPUTARGET) -Xopenmp-target=$(AOMP_GPUTARGET) -march=$(AOMP_GPU)
 
@@ -29,7 +30,6 @@ $(TESTNAME): $(TESTSRC)
 	$(CCENV) $(CC) $(CFLAGS) -DGPUINFO $(LFLAGS) $^ -o $@
 
 run: $(TESTNAME)
-	LIBOMPTARGET_KERNEL_TRACE=1 \
 	$(RUNENV) ./$(TESTNAME)
 
 #  ----   Demo compile and link in two steps, object saved
