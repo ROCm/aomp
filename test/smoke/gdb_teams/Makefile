@@ -15,7 +15,9 @@ CC           = $(OMP_BIN) $(VERBOSE)
 include ../Makefile.rules
 
 AOMPROCM ?= $(AOMP)
+RUNPROF   = $(AOMPROCM)/bin/rocgdb
+ARGS      = -x cmd_script -q
 
 run:
-	$(AOMPROCM)/bin/rocgdb ./gdb_teams -x cmd_script -q
+	$(RUNPROF) $(TESTNAME) $(ARGS)
 

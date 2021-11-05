@@ -1,6 +1,6 @@
 include ../../Makefile.defs
 
-ROCM         ?= $(AOMP)/
+ROCM         ?= $(AOMP)
 TESTNAME     = flangtrace
 TESTSRC_MAIN = flangtrace.f90
 TESTSRC_AUX  = hiptrace.f90
@@ -14,6 +14,9 @@ CC           = $(OMP_BIN) $(VERBOSE)
 #-ccc-print-phases
 #"-\#\#\#"
 
+RUNENV += PATH=$(ROCM)/bin:$(PATH) LIBOMPTARGET_KERNEL_TRACE=2
+RUNPROF = rocprof --roctx-trace --sys-trace
+
 include ../Makefile.rules
 run:
-	PATH=$(ROCM)/bin:$(PATH) LIBOMPTARGET_KERNEL_TRACE=2 rocprof --roctx-trace --sys-trace ./$(TESTNAME)
+	$(RUNENV) $(RUNPROF) ./$(TESTNAME)
