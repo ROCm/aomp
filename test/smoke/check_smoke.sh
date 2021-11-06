@@ -12,8 +12,8 @@ BLU="\033[0;34m"
 ORG="\033[0;33m"
 BLK="\033[0m"
 
-# limit any step to 2 minutes
-ulimit -t 120
+# limit any step to 6 minutes
+ulimit -t 150
 
 function gatherdata(){
   #Gather Test Data
