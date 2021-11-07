@@ -14,6 +14,7 @@ TESTS_DIR = \
     clang-nwchem-s1_1 \
     clang_udel_saxpy \
     closed_bug1 \
+    complex-debug \
     flang-251450 \
     flang-272343-3 \
     flang-272534-2 \
