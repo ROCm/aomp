@@ -61,7 +61,7 @@ $(TEST_NAME): $(OBJ_FILES) $(COMMON_OBJ_FILES)
 	$(AOMP)/bin/clang++  $(OBJ_FILES) $(CFLAGS) -L$(AOMPHIP)/lib -lamdhip64 -o $(TEST_NAME) $(LFLAGS)
 
 $(CU_FILE).hsaco :
-	$(AOMPHIP)/bin/cloc.sh $(FUNOPTS)  $(CU_FILE).cu
+	$(AOMPHIP)/bin/cloc.sh $(FUNOPTS) -mcpu $(AOMP_GPU) $(CU_FILE).cu
 
 obj/%.o: %.cpp
 	mkdir -p obj
