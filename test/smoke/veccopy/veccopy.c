@@ -16,11 +16,20 @@ int main()
   for (i=0; i<N; i++)
     b[i]=i;
 
+  //  #pragma omp target enter data map(to: a[:N], b[:N])
+
+  printf("After enter data\n");
+  fflush(stdout);
+
 #pragma omp target parallel for
   {
     for (int j = 0; j< N; j++)
       a[j]=b[j];
   }
+
+  printf("After target\n");
+
+  //  #pragma omp target exit data map(from: a[:N], b[:N])
 
   int rc = 0;
   for (i=0; i<N; i++)

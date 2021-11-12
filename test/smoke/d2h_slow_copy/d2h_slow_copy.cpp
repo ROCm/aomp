@@ -40,7 +40,10 @@ struct timer {
 };
 
 int main() {
-  int *arr = new int[N*N];
+  //int *arr = new int[N*N];
+  int *arr = (int *) aligned_alloc(1024, N*N*sizeof(int));
+  //int *arr2 = new int[N*N];
+
   timer stopwatch("main()");
 
   #pragma omp target
@@ -48,16 +51,24 @@ int main() {
     printf("Hello, world\n");
   }
 
+  for(int i = 0; i < N*N; i++)
+    arr[i] = 0;
+
+
+  printf("MAIN: host ptr = %p\n", arr);
+
   stopwatch.checkpoint("First kernel");
-  #pragma omp target data map(tofrom:arr[0:N*N])
+  #pragma omp target data map(tofrom:arr[0:N*N]) //map(to:arr2[0:N*N])
   {
     stopwatch.checkpoint("Host to device copy");
-    #pragma omp target teams
+    #pragma omp target teams num_teams(1)
     #pragma omp distribute
     for (int i = 0; i < N; i++) {
+      if (i==0) printf("Arr on dev = %p\n", arr);
       #pragma omp parallel for
       for (int j = 0; j < N; j++) {
         arr[i*N + j] = i + j;
+	//	arr2[i*N+j] = 0;
       }
     }
 
