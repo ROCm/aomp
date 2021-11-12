@@ -9,6 +9,10 @@
 #
 #
 
+# Use bogus path to avoid using target.lst, a user-defined target list
+# used by rocm_agent_enumerator.
+export ROCM_TARGET_LST=/opt/nowhere
+
 scriptdir=$(dirname "$0")
 parentdir=`eval "cd $scriptdir;pwd;cd - > /dev/null"`
 aompdir="$(dirname "$parentdir")"
