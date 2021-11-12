@@ -56,7 +56,6 @@ elif [ "$AOMP_MAJOR_VERSION" == "11" ] ; then
 elif [ "$AOMP_MAJOR_VERSION" == "14" ] ; then
     AOMP_REPOS=${AOMP_REPOS:-${HOME}/git/aomp${AOMP_VERSION}}
     AOMP_CHECK_GIT_BRANCH=0
-    AOMP_VERSION_MOD=0
     AOMP_PATCH_CONTROL_FILE="${AOMP_REPOS}/aomp/bin/patches/patch-control-file_$AOMP_VERSION.txt"
 else
   echo "ERROR:  Invalid AOMP_MAJOR_VERSION: $AOMP_MAJOR_VERSION"
