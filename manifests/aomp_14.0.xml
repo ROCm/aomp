@@ -12,9 +12,9 @@
 
 <project remote="roc" path="rocm-compilersupport" name="ROCm-CompilerSupport" upstream="amd-stg-open" revision="ef72f4edb3dd9efb40dd38bd9778fa6e53f1adbd" groups="revlocked" />
 <project remote="roc" path="rocm-device-libs" name="ROCm-Device-Libs"         upstream="amd-stg-open" revision="2011841dfe9e7f93e57cf8939c02aa45bfaa4dca" groups="revlocked" />
-<project remote="roctools" path="flang" name="flang"               revision="aomp-dev" groups="unlocked" />
-<project remote="roctools" path="aomp-extras" name="aomp-extras"   revision="aomp-dev" groups="unlocked" />
-<project remote="roctools" path="aomp" name="aomp"                 revision="aomp-dev" groups="unlocked" />
+<project remote="roctools" path="flang" name="flang"               revision="aomp-14.0-0" groups="unlocked" />
+<project remote="roctools" path="aomp-extras" name="aomp-extras"   revision="aomp-14.0-0" groups="unlocked" />
+<project remote="roctools" path="aomp" name="aomp"                 revision="aomp-14.0-0" groups="unlocked" />
 
 <project remote="roctools" path="rocprofiler" name="rocprofiler"              revision="rocm-4.5.x" groups="unlocked" />
 <project remote="roctools" path="roctracer" name="roctracer"                  revision="rocm-4.5.x" groups="unlocked" />
