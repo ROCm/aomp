@@ -168,13 +168,12 @@ if [[ "$AOMP_VERSION" == "13.1" ]] || [[ $AOMP_MAJOR_VERSION -gt 13 ]] ; then
    # However, we gave up on using the repo command to clone the repos. 
    # That is all done here by parsing the manifest file. 
    ping -c 1 $AOMP_GIT_INTERNAL_IP 2> /dev/null >/dev/null
-   if [ $? == 0 ]; then
+   if [ $? == 0 ] && [ "$EXTERNAL_MANIFEST" != 1 ]; then
       # AMD internal repo file
       manifest_file=$thisdir/../manifests/aompi_${AOMP_VERSION}.xml
    else
       manifest_file=$thisdir/../manifests/aomp_${AOMP_VERSION}.xml
    fi
-
    if [ ! -f $manifest_file ] ; then 
       echo "ERROR manifest file missing: $manifest_file"
       exit 1
@@ -190,19 +189,27 @@ if [[ "$AOMP_VERSION" == "13.1" ]] || [[ $AOMP_MAJOR_VERSION -gt 13 ]] ; then
    while read line ; do 
       line_is_good=1
       remote=`echo $line | grep remote | cut -d"=" -f2`
+      sha_key_used=0
+      COSHAKEY=""
       for field in `echo $line` ; do 
          if [ -z "${field##*remote=*}" ]  ; then
-	    # strip off = and double quotes 
-	    remote=$(eval echo `echo $field | cut -d= -f2 `) 
+           # strip off = and double quotes
+           remote=$(eval echo `echo $field | cut -d= -f2 `)
          fi
          if [ -z "${field##*name=*}" ]  ; then
-	    name=$(eval echo `echo $field | cut -d= -f2 `) 
+           name=$(eval echo `echo $field | cut -d= -f2 `)
          fi
          if [ -z "${field##*path=*}" ]  ; then
-	    path=$(eval echo `echo $field | cut -d= -f2 `) 
+           path=$(eval echo `echo $field | cut -d= -f2 `)
          fi
-         if [ -z "${field##*revision=*}" ]  ; then
-	    COBRANCH=$(eval echo `echo $field | cut -d= -f2 `) 
+         if [ -z "${field##*upstream=*}" ]  ; then
+           COBRANCH=$(eval echo `echo $field | cut -d= -f2 `)
+           sha_key_used=1
+         fi
+         if [ -z "${field##*revision=*}" ] && [ "$sha_key_used" == 1 ]  ; then
+           COSHAKEY=$(eval echo `echo $field | cut -d= -f2 `)
+         elif [ -z "${field##*revision=*}" ]; then
+           COBRANCH=$(eval echo `echo $field | cut -d= -f2 `)
          fi
       done
       reponame=$path
