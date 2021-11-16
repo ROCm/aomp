@@ -166,13 +166,20 @@ function get_monthnumber() {
 if [[ "$AOMP_VERSION" == "13.1" ]] || [[ $AOMP_MAJOR_VERSION -gt 13 ]] ; then
    # For 13.1 and beyond, we use a manifest file to specify the repos to clone.
    # However, we gave up on using the repo command to clone the repos. 
-   # That is all done here by parsing the manifest file. 
+   # That is all done here by parsing the manifest file.
    ping -c 1 $AOMP_GIT_INTERNAL_IP 2> /dev/null >/dev/null
-   if [ $? == 0 ] && [ "$EXTERNAL_MANIFEST" != 1 ]; then
+   if [ $? == 0 ] && [ "$AOMP_EXTERNAL_MANIFEST" != 1 ]; then
       # AMD internal repo file
       manifest_file=$thisdir/../manifests/aompi_${AOMP_VERSION}.xml
    else
-      manifest_file=$thisdir/../manifests/aomp_${AOMP_VERSION}.xml
+      abranch=`git branch | awk '/\*/ { print $2; }'`
+      # Use release manifest if on release branch
+      if [ "$abranch" == "aomp-${AOMP_VERSION_STRING}" ]; then
+         manifest_file=$thisdir/../manifests/aomp_${AOMP_VERSION_STRING}.xml
+      else
+         manifest_file=$thisdir/../manifests/aomp_${AOMP_VERSION}.xml
+      fi
+   fi
    fi
    if [ ! -f $manifest_file ] ; then 
       echo "ERROR manifest file missing: $manifest_file"
