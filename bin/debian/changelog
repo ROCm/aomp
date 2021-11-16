@@ -1,4 +1,4 @@
-aomp (13.0-6) UNRELEASED; urgency=medium
+aomp (14.0-0) UNRELEASED; urgency=medium
 
   * Initial release of aomp is 0.3-2
   *   Please see example in /usr/lib/aomp/examples/vmuldemo 
@@ -648,5 +648,24 @@ aomp (13.0-6) UNRELEASED; urgency=medium
   *  13.0-6
   *   Update to ROCm 4.3 sources.
   *   Flang cmake race condition fixed.
+  *
+  *  14.0-0
+  *   AOMP is now based on amd-stg-open branch.
+  *   Most components are build from ROCm release 4.5 sources.
+  *   Components are now cloned using a manifest file. The script clone_aomp.sh is still used to clone
+  *       and update repos.
+  *   New hip build method.
+  *   Support for unified shared memory on gfx90a.
+  *   Support for atomic hint clause to enable fast floating point atomics.
+  *   Support for LLVM IR code generation with updated device RTL (deviceRTLs).
+  *   Support for target ID with XNACK settings.
+  *   Support for cross-platform offload device identification LLVM library and tool (offload-arch).
+  *   Fixed many reduction problems and nested parallelism.
+  *
+  *  Known Issues:
+  *   Slow CPU device-to-host data transfer speeds.
+  *   Miniqmc, Kokkos, Raja fail to build.
+  *   Non-deterministic failures in qmcpack deterministic tests.
+  *   Possible incorrect linking of libclang-cpp.so in the build of libomptarget.so.
 
- -- Greg Rodgers <Gregory.Rodgers@amd.com>  Wed, 28 Jul 2021 11:27:13 -0500
+ -- Greg Rodgers <Gregory.Rodgers@amd.com>  Sun, 14 Nov 2021 21:58:08 -0600

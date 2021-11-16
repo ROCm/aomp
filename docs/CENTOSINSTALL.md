@@ -1,12 +1,17 @@
-# AOMP CentOS 8 Install
-Currently, we support CentOS 8.1
+# AOMP CentOS 7/8 Install
+Currently, we support CentOS 8.1. If CentOS 7 is being used, the RHEL 7 rpm is recommended at this time.
 
 AOMP will install to /usr/lib/aomp. The AOMP environment variable will automatically be set to the install location. This may require a new terminal to be launched to see the change.<br>
 
-### Download and Install
+### Download and Install (CentOS 8)
 ```
-wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_13.0-6/aomp_CENTOS_8-13.0-6.x86_64.rpm
-sudo rpm -i aomp_CENTOS_8-13.0-6.x86_64.rpm
+wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_14.0-0/aomp_CENTOS_8-14.0-0.x86_64.rpm
+sudo rpm -i aomp_CENTOS_8-14.0-0.x86_64.rpm
+```
+### Download and Install (CentOS 7)
+```
+wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_14.0-0/aomp_REDHAT_7-14.0-0.x86_64.rpm
+sudo rpm -i aomp_REDHAT_7-14.0-0.x86_64.rpm
 ```
 Confirm AOMP environment variable is set:
 ```
@@ -18,25 +23,30 @@ The ROCm kernel driver is required for AMD GPU support.
 Also, to control access to the ROCm device, a user group "video" must be created and users need to be added to this group.
 
 ### AMD KFD Driver
-<b>Install dkms tool</b>
+Install kernel headers:
 ```
   sudo yum install -y epel-release
   sudo yum install -y dkms kernel-headers-`uname -r` kernel-devel-`uname -r`
 ```
 Create a /etc/yum.repos.d/rocm.repo file with the following contents:
 ```
-  [ROCm]
-  name=ROCm
-  baseurl=http://repo.radeon.com/rocm/centos8/rpm
+  [amdgpu]
+  name=amdgpu
+  baseurl=https://repo.radeon.com/amdgpu/latest/rhel/8.4/main/x86_64
   enabled=1
   gpgcheck=1
   gpgkey=https://repo.radeon.com/rocm/rocm.gpg.key
 ```
-<b>Install rock-dkms</b>
+For CentOS 7 use:
 ```
-  sudo yum install rock-dkms
+  baseurl=https://repo.radeon.com/amdgpu/latest/rhel/7.9/main/x86_64
 ```
-### Set Group Access
+
+Install amdgpu-dkms:
+```
+  sudo yum install amdgpu-dkms
+```
+Set group access:
 ```
   sudo reboot
   sudo usermod -a -G video $USER

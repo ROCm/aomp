@@ -88,14 +88,25 @@ Alternatively, you could change the --prefix option to install cmake 3.13.4 some
 ### 4. Verify KFD Driver
 
 Please verify you have the proper software installed as AOMP needs certain support to function properly, such as the KFD driver for AMD GPUs.
+More information can be found [HERE](https://rocmdocs.amd.com/en/latest/Installation_Guide/Installation-Guide.html).
 
 #### Debian or Ubuntu Support
-These commands are for supported Debian-based systems and target only the rock_dkms core component. More information can be found [HERE](https://rocm.github.io/ROCmInstall.html#ubuntu-support---installing-from-a-debian-repository).
+These commands are for supported Debian-based systems and target only the amdgpu_dkms core component.
 ```
-wget -qO - http://repo.radeon.com/rocm/apt/debian/rocm.gpg.key | sudo apt-key add -
-echo 'deb [arch=amd64] http://repo.radeon.com/rocm/apt/debian/ xenial main' | sudo tee /etc/apt/sources.list.d/rocm.list
+wget -q -O - https://repo.radeon.com/rocm/rocm.gpg.key | sudo apt-key add -
+```
+Ubuntu 18.04:
+```
+echo 'deb [arch=amd64] http://repo.radeon.com/rocm/apt/latest/ bionic main' | sudo tee /etc/apt/sources.list.d/rocm.list
+```
+Ubuntu 20.04:
+```
+echo 'deb [arch=amd64] http://repo.radeon.com/rocm/apt/latest/ focal main' | sudo tee /etc/apt/sources.list.d/rocm.list
+```
+Update and Install:
+```
 sudo apt update
-sudo apt install rock-dkms
+sudo apt install amdgpu-dkms
 ```
 
 #### SUSE SLES-15-SP1 Support
@@ -115,22 +126,23 @@ SUSE SLES-15-SP1 comes with kfd support installed. To verify this:
   sudo subscription-manager repos --enable rhel-7-server-extras-rpms
   sudo rpm -ivh https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
 ```
-<b>Install dkms tool</b>
+Install kernel headers:
 ```
   sudo yum install -y epel-release
   sudo yum install -y dkms kernel-headers-`uname -r` kernel-devel-`uname -r`
 ```
 Create a /etc/yum.repos.d/rocm.repo file with the following contents:
 ```
-  [ROCm]
-  name=ROCm
-  baseurl=http://repo.radeon.com/rocm/yum/rpm
+  [amdgpu]
+  name=amdgpu
+  baseurl=https://repo.radeon.com/amdgpu/latest/rhel/7.9/main/x86_64
   enabled=1
-  gpgcheck=0
+  gpgcheck=1
+  gpgkey=https://repo.radeon.com/rocm/rocm.gpg.key
 ```
-<b>Install rock-dkms</b>
+Install amdgpu-dkms:
 ```
-  sudo yum install rock-dkms
+  sudo yum install amdgpu-dkms
 ```
 
 ### 5. Create the Unix Video Group
