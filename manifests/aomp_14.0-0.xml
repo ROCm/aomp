@@ -8,7 +8,7 @@
     <remote name="roc"  fetch="https://github.com/RadeonOpenCompute/" />
 
 <!-- These first 6 repos are NOT rocm4.5 because this build is for the ROCm 4.5 AFAR compiler -->
-<project remote="roc" path="llvm-project" name="llvm-project"    upstream="amd-stg-open" revision="aomp-14.0-0" groups="revlocked" />
+<project remote="roc" path="llvm-project" name="llvm-project"    revision="aomp-14.0-0" groups="unlocked" />
 
 <project remote="roc" path="rocm-compilersupport" name="ROCm-CompilerSupport" upstream="amd-stg-open" revision="ef72f4edb3dd9efb40dd38bd9778fa6e53f1adbd" groups="revlocked" />
 <project remote="roc" path="rocm-device-libs" name="ROCm-Device-Libs"         upstream="amd-stg-open" revision="2011841dfe9e7f93e57cf8939c02aa45bfaa4dca" groups="revlocked" />
