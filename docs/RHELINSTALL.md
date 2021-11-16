@@ -51,7 +51,7 @@ Create a /etc/yum.repos.d/rocm.repo file with the following contents:
   gpgcheck=1
   gpgkey=https://repo.radeon.com/rocm/rocm.gpg.key
 ```
-<b>Install rock-dkms</b>
+<b>Install amdgpu-dkms</b>
 ```
   sudo yum install amdgpu-dkms
 ```

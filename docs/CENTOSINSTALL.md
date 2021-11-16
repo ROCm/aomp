@@ -23,25 +23,30 @@ The ROCm kernel driver is required for AMD GPU support.
 Also, to control access to the ROCm device, a user group "video" must be created and users need to be added to this group.
 
 ### AMD KFD Driver
-<b>Install dkms tool</b>
+Install kernel headers:
 ```
   sudo yum install -y epel-release
   sudo yum install -y dkms kernel-headers-`uname -r` kernel-devel-`uname -r`
 ```
 Create a /etc/yum.repos.d/rocm.repo file with the following contents:
 ```
-  [ROCm]
-  name=ROCm
-  baseurl=http://repo.radeon.com/rocm/centos8/rpm
+  [amdgpu]
+  name=amdgpu
+  baseurl=https://repo.radeon.com/amdgpu/latest/rhel/8.4/main/x86_64
   enabled=1
   gpgcheck=1
   gpgkey=https://repo.radeon.com/rocm/rocm.gpg.key
 ```
-<b>Install rock-dkms</b>
+For CentOS 7 use:
 ```
-  sudo yum install rock-dkms
+  baseurl=https://repo.radeon.com/amdgpu/latest/rhel/7.9/main/x86_64
 ```
-### Set Group Access
+
+Install amdgpu-dkms:
+```
+  sudo yum install amdgpu-dkms
+```
+Set group access:
 ```
   sudo reboot
   sudo usermod -a -G video $USER
