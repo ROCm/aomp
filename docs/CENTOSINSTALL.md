@@ -1,4 +1,4 @@
-# AOMP CentOS 8 Install
+# AOMP CentOS 7/8 Install
 Currently, we support CentOS 8.1. If CentOS 7 is being used, the RHEL 7 rpm is recommended at this time.
 
 AOMP will install to /usr/lib/aomp. The AOMP environment variable will automatically be set to the install location. This may require a new terminal to be launched to see the change.<br>
