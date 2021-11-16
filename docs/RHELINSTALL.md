@@ -8,12 +8,12 @@ sudo yum install perl-Digest-MD5 perl-URI-Encode
 ```
 ### Download and Install
 ```
-wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_13.0-6/aomp_REDHAT_7-13.0-6.x86_64.rpm
-sudo rpm -i aomp_REDHAT_7-13.0-6.x86_64.rpm
+wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_14.0-0/aomp_REDHAT_7-14.0-0.x86_64.rpm
+sudo rpm -i aomp_REDHAT_7-14.0-0.x86_64.rpm
 ```
 If CUDA is not installed the installation may cancel, to bypass this:
 ```
-sudo rpm -i --nodeps aomp_REDHAT_7-13.0-6.x86_64.rpm
+sudo rpm -i --nodeps aomp_REDHAT_7-14.0-0.x86_64.rpm
 ```
 Confirm AOMP environment variable is set:
 ```
@@ -44,15 +44,16 @@ https://www.softwarecollections.org/en/scls/rhscl/devtoolset-7/<br>
 ```
 Create a /etc/yum.repos.d/rocm.repo file with the following contents:
 ```
-  [ROCm]
-  name=ROCm
-  baseurl=http://repo.radeon.com/rocm/yum/rpm
+  [amdgpu]
+  name=amdgpu
+  baseurl=https://repo.radeon.com/amdgpu/latest/rhel/7.9/main/x86_64
   enabled=1
-  gpgcheck=0
+  gpgcheck=1
+  gpgkey=https://repo.radeon.com/rocm/rocm.gpg.key
 ```
 <b>Install rock-dkms</b>
 ```
-  sudo yum install rock-dkms
+  sudo yum install amdgpu-dkms
 ```
 ### Set Group Access
 ```
