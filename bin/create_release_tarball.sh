@@ -30,8 +30,72 @@ thisdir=$(getdname $0)
 . $thisdir/aomp_common_vars
 # --- end standard header ----
 
+function getmanifest(){
+  if [[ "$AOMP_VERSION" == "13.1" ]] || [[ $AOMP_MAJOR_VERSION -gt 13 ]] ; then
+    # For 13.1 and beyond, we use a manifest file to specify the repos to clone.
+    # However, we gave up on using the repo command to clone the repos.
+    # That is all done here by parsing the manifest file.
+    if [ "$AOMP_MANIFEST_FILE"  != "" ]; then
+      manifest_file=$AOMP_MANIFEST_FILE
+    else
+      ping -c 1 $AOMP_GIT_INTERNAL_IP 2> /dev/null >/dev/null
+      if [ $? == 0 ] && [ "$AOMP_EXTERNAL_MANIFEST" != 1 ]; then
+        # AMD internal repo file
+        manifest_file=$thisdir/../manifests/aompi_${AOMP_VERSION}.xml
+      else
+        abranch=`git branch | awk '/\*/ { print $2; }'`
+        # Use release manifest if on release branch
+        if [ "$abranch" == "aomp-${AOMP_VERSION_STRING}" ]; then
+          manifest_file=$thisdir/../manifests/aomp_${AOMP_VERSION_STRING}.xml
+        else
+          manifest_file=$thisdir/../manifests/aomp_${AOMP_VERSION}.xml
+        fi
+      fi
+    fi
+    if [ ! -f $manifest_file ] ; then
+      echo "ERROR manifest file missing: $manifest_file"
+      exit 1
+    fi
+     echo Using: $manifest_file
+  else
+    echo Error: This AOMP version does not have a manifest file.
+  fi
+}
 
-REPO_NAMES="$AOMP_PROJECT_REPO_NAME $AOMP_LIBDEVICE_REPO_NAME $AOMP_VDI_REPO_NAME $AOMP_HIPVDI_REPO_NAME $AOMP_RINFO_REPO_NAME $AOMP_ROCT_REPO_NAME $AOMP_ROCR_REPO_NAME $AOMP_EXTRAS_REPO_NAME $AOMP_COMGR_REPO_NAME $AOMP_FLANG_REPO_NAME $AOMP_OCL_REPO_NAME $AOMP_DBGAPI_REPO_NAME $AOMP_GDB_REPO_NAME"
+function getreponame(){
+  getmanifest
+  tmpfile=/tmp/mlines$$
+  tarballremove="roctracer rocprofiler aomp build Makefile"
+  # Manifest file must be one project line per repo
+  #manifest_file=/home/release/git/aomp14/aomp/manifests/aomp_14.0-0.xml
+  cat $manifest_file | grep project > $tmpfile
+  while read line ; do
+    found=0
+    for field in `echo $line` ; do
+      if [ -z "${field##*path=*}" ]  ; then
+        path=$(eval echo `echo $field | cut -d= -f2 `)
+      fi
+    done
+  reponame=$path
+  for component in $tarballremove; do
+    if [ "$reponame" == "$component" ]; then
+      found=1
+      break
+    fi
+  done
+  if [ "$found" == 0 ]; then
+    repos="$repos $reponame"
+  fi
+  done <$tmpfile
+
+  echo $repos
+  rm $tmpfile
+}
+
+# Get repos from manifest
+getreponame
+
+REPO_NAMES=$repos
 ALL_NAMES="$REPO_NAMES Makefile build aomp"
 # Check for extra directories.  Note build is in the exclude list
 for dir_name in `ls $AOMP_REPOS` ; do
@@ -79,7 +143,7 @@ done
 # This file will be uploaded to the release directory
 tarball="$AOMP_REPOS/../aomp-${AOMP_VERSION_STRING}.tar.gz"
 tmpdir=/tmp/create_tarball$$
-majorver=${AOMP_VERSION%%.*}
+majorver=${AOMP_VERSION}
 tardir=$tmpdir/aomp$majorver
 echo "----- Building symbolic temp dir $tardir------------"
 echo mkdir -p $tardir
@@ -128,5 +192,5 @@ done
 
 echo 
 cd $AOMP_REPOS/..
-echo "------ DONE! CMD:$0  FILE:$PWD/$tarball ------"
+echo "------ DONE! CMD:$0  FILE:$tarball ------"
 ls -lh $tarball
