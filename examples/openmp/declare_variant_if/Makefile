@@ -1,5 +1,5 @@
 #-----------------------------------------------------------------------
-#  ROCM_PATH:       Defaults to /opt/rocm/llvm
+#  ROCM_PATH:       Defaults to /opt/rocm
 #  ROCM_GPU:        Auto detected via rocm_agent_enumerator
 #  ROCM_GPUTARGET:  Defaults to amdgcn-amd-amdhsa
 #
@@ -16,12 +16,12 @@ ifeq ($(UNAMEP),ppc64le)
   ROCM_CPUTARGET = ppc64le-linux-gnu
 endif
 
-ROCM_PATH ?= /opt/rocm/llvm
+ROCM_PATH ?= /opt/rocm
 ROCM_GPUTARGET ?= amdgcn-amd-amdhsa
 
-INSTALLED_GPU  = $(shell $(ROCM_PATH)/../bin/rocm_agent_enumerator | grep -m 1 -E gfx[^0]{1})
+INSTALLED_GPU  = $(shell $(ROCM_PATH)/bin/rocm_agent_enumerator | grep -m 1 -E gfx[^0]{1})
 ROCM_GPU       ?= $(INSTALLED_GPU)
-CC              = $(ROCM_PATH)/bin/clang
+CC              = $(ROCM_PATH)/llvm/bin/clang
 
 ROCM_GPUTARGET = amdgcn-amd-amdhsa
 
@@ -30,7 +30,7 @@ CFLAGS = -O3 -target $(ROCM_CPUTARGET) -fopenmp -fopenmp-targets=$(ROCM_GPUTARGE
 
 ifeq ($(OFFLOAD_DEBUG),1)
   $(info    DEBUG Mode ON)
-  CCENV  = env LIBRARY_PATH=$(ROCM_PATH)/lib-debug
+  CCENV  = env LIBRARY_PATH=$(ROCM_PATH)/llvm/lib-debug
   RUNENV = LIBOMPTARGET_DEBUG=1
 endif
 

@@ -142,9 +142,9 @@ if [ "$AOMP_BUILD_CUDA" == 1 ] ; then
 fi
 
 # This is how we tell the hsa plugin where to find hsa
-export HSA_RUNTIME_PATH=$ROCM_DIR/hsa
+export HSA_RUNTIME_PATH=$ROCM_DIR
 
-export HIP_DEVICE_LIB_PATH=$ROCM_DIR/lib
+export HIP_DEVICE_LIB_PATH=$ROCM_DIR/share
 
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then 
 

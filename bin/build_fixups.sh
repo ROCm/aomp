@@ -32,30 +32,32 @@ else
 fi
 # --- end standard header ----
 
+OPENMP_EXTRA_EXAMPLES=$AOMP/share/openmp-extras
 # Copy examples 
-if [ -d $AOMP/examples ] ; then 
-  $SUDO rm -rf $AOMP/examples
+if [ -d $OPENMP_EXTRA_EXAMPLES ] ; then 
+  $SUDO rm -rf ${OPENMP_EXTRA_EXAMPLES}/
+else
+  $SUDO mkdir -p $OPENMP_EXTRA_EXAMPLES
 fi
-echo $SUDO cp -rp $AOMP_REPOS/$AOMP_REPO_NAME/examples $AOMP
-$SUDO cp -rp $AOMP_REPOS/$AOMP_REPO_NAME/examples $AOMP
+echo $SUDO cp -rp $AOMP_REPOS/$AOMP_REPO_NAME/examples $OPENMP_EXTRA_EXAMPLES
+$SUDO cp -rp $AOMP_REPOS/$AOMP_REPO_NAME/examples $OPENMP_EXTRA_EXAMPLES
 
 echo Cleaning AOMP Directory...
 #examples
-$SUDO rm -f $AOMP/examples/hip/*.txt
-$SUDO rm -f $AOMP/examples/hip/*.sh
-$SUDO rm -f $AOMP/examples/openmp/*.txt
-$SUDO rm -f $AOMP/examples/openmp/*.sh
-$SUDO rm -f $AOMP/examples/cloc/*.txt
-$SUDO rm -f $AOMP/examples/cloc/*.sh
-$SUDO rm -f $AOMP/examples/fortran/*.txt
-$SUDO rm -f $AOMP/examples/fortran/*.sh
-$SUDO rm -f $AOMP/examples/*.sh
-$SUDO rm -f $AOMP/examples/raja/*.txt
-$SUDO rm -f $AOMP/examples/raja/*.sh
+$SUDO rm -f $OPENMP_EXTRA_EXAMPLES/examples/hip/*.txt
+$SUDO rm -f $OPENMP_EXTRA_EXAMPLES/examples/hip/*.sh
+$SUDO rm -f $OPENMP_EXTRA_EXAMPLES/examples/openmp/*.txt
+$SUDO rm -f $OPENMP_EXTRA_EXAMPLES/examples/openmp/*.sh
+$SUDO rm -f $OPENMP_EXTRA_EXAMPLES/examples/cloc/*.txt
+$SUDO rm -f $OPENMP_EXTRA_EXAMPLES/examples/cloc/*.sh
+$SUDO rm -f $OPENMP_EXTRA_EXAMPLES/examples/fortran/*.txt
+$SUDO rm -f $OPENMP_EXTRA_EXAMPLES/examples/fortran/*.sh
+$SUDO rm -f $OPENMP_EXTRA_EXAMPLES/examples/*.sh
+$SUDO rm -f $OPENMP_EXTRA_EXAMPLES/examples/raja/*.txt
+$SUDO rm -f $OPENMP_EXTRA_EXAMPLES/examples/raja/*.sh
 
 #Clean libexec, share
 $SUDO rm -rf $AOMP/libexec
-$SUDO rm -rf $AOMP/share
 #Clean hcc
 $SUDO rm -rf $AOMP/hcc/bin
 $SUDO rm -rf $AOMP/hcc/include
