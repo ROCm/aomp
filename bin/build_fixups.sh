@@ -32,29 +32,28 @@ else
 fi
 # --- end standard header ----
 
-OPENMP_EXTRA_EXAMPLES=$AOMP/share/openmp-extras
+OPENMP_EXTRAS_EXAMPLES=$AOMP/share/openmp-extras
 # Copy examples 
-if [ -d $OPENMP_EXTRA_EXAMPLES ] ; then 
-  $SUDO rm -rf ${OPENMP_EXTRA_EXAMPLES}/
-else
-  $SUDO mkdir -p $OPENMP_EXTRA_EXAMPLES
+if [ -d $OPENMP_EXTRAS_EXAMPLES ] ; then 
+  $SUDO rm -rf ${OPENMP_EXTRAS_EXAMPLES}/
 fi
-echo $SUDO cp -rp $AOMP_REPOS/$AOMP_REPO_NAME/examples $OPENMP_EXTRA_EXAMPLES
-$SUDO cp -rp $AOMP_REPOS/$AOMP_REPO_NAME/examples $OPENMP_EXTRA_EXAMPLES
+$SUDO mkdir -p $OPENMP_EXTRAS_EXAMPLES
+echo $SUDO cp -rp $AOMP_REPOS/$AOMP_REPO_NAME/examples $OPENMP_EXTRAS_EXAMPLES
+$SUDO cp -rp $AOMP_REPOS/$AOMP_REPO_NAME/examples $OPENMP_EXTRAS_EXAMPLES
 
 echo Cleaning AOMP Directory...
 #examples
-$SUDO rm -f $OPENMP_EXTRA_EXAMPLES/examples/hip/*.txt
-$SUDO rm -f $OPENMP_EXTRA_EXAMPLES/examples/hip/*.sh
-$SUDO rm -f $OPENMP_EXTRA_EXAMPLES/examples/openmp/*.txt
-$SUDO rm -f $OPENMP_EXTRA_EXAMPLES/examples/openmp/*.sh
-$SUDO rm -f $OPENMP_EXTRA_EXAMPLES/examples/cloc/*.txt
-$SUDO rm -f $OPENMP_EXTRA_EXAMPLES/examples/cloc/*.sh
-$SUDO rm -f $OPENMP_EXTRA_EXAMPLES/examples/fortran/*.txt
-$SUDO rm -f $OPENMP_EXTRA_EXAMPLES/examples/fortran/*.sh
-$SUDO rm -f $OPENMP_EXTRA_EXAMPLES/examples/*.sh
-$SUDO rm -f $OPENMP_EXTRA_EXAMPLES/examples/raja/*.txt
-$SUDO rm -f $OPENMP_EXTRA_EXAMPLES/examples/raja/*.sh
+$SUDO rm -f $OPENMP_EXTRAS_EXAMPLES/examples/hip/*.txt
+$SUDO rm -f $OPENMP_EXTRAS_EXAMPLES/examples/hip/*.sh
+$SUDO rm -f $OPENMP_EXTRAS_EXAMPLES/examples/openmp/*.txt
+$SUDO rm -f $OPENMP_EXTRAS_EXAMPLES/examples/openmp/*.sh
+$SUDO rm -f $OPENMP_EXTRAS_EXAMPLES/examples/cloc/*.txt
+$SUDO rm -f $OPENMP_EXTRAS_EXAMPLES/examples/cloc/*.sh
+$SUDO rm -f $OPENMP_EXTRAS_EXAMPLES/examples/fortran/*.txt
+$SUDO rm -f $OPENMP_EXTRAS_EXAMPLES/examples/fortran/*.sh
+$SUDO rm -f $OPENMP_EXTRAS_EXAMPLES/examples/*.sh
+$SUDO rm -f $OPENMP_EXTRAS_EXAMPLES/examples/raja/*.txt
+$SUDO rm -f $OPENMP_EXTRAS_EXAMPLES/examples/raja/*.sh
 
 #Clean libexec, share
 $SUDO rm -rf $AOMP/libexec
