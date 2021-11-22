@@ -41,6 +41,7 @@ fi
 
 # Parent dir should be ROCm base dir.
 AOMPROCM=$AOMP/..
+export AOMPROCM
 unset ROCM_PATH
 
 # Use bogus path to avoid using target.lst, a user-defined target list
