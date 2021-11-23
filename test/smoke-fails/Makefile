@@ -48,7 +48,8 @@ TESTS_DIR = \
     targ_static \
     targc-273739 \
     target_teams_reduction \
-    tasks 
+    tasks \
+    veccopy-ompt-target
 
 all:
 	@for test_dir in $(TESTS_DIR); do \
