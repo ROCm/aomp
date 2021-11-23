@@ -41,8 +41,13 @@ omp_src="main.cpp OMPStream.cpp"
 hip_src="main.cpp HIPStream.cpp"
 std="-std=c++11"
 
-cd $AOMP_REPOS_TEST/BabelStream
-rm -f results.txt
+if [ -d $AOMP_REPOS_TEST/BabelStream ]; then
+  cd $AOMP_REPOS_TEST/BabelStream
+  rm -f results.txt
+else
+  echo "ERROR: BabelStream not found in $AOMP_REPOS_TEST."
+  exit 1
+fi
 
 echo RUN_OPTIONS: $RUN_OPTIONS
 for option in $RUN_OPTIONS; do
