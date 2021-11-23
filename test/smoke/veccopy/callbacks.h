@@ -27,7 +27,7 @@ static void print_record_ompt(ompt_record_ompt_t *rec) {
     {
       ompt_record_target_data_op_t target_data_op_rec = rec->record.target_data_op;
       printf("\t  Record DataOp: host_op_id=%lu optype=%d src_addr=%p src_device=%d "
-	     "dest_addr=%p dest_device=%d bytes=%lu end_time=%lu duration=%luus codeptr=%p\n",
+	     "dest_addr=%p dest_device=%d bytes=%lu end_time=%lu duration=%lu ns codeptr=%p\n",
 	     target_data_op_rec.host_op_id, target_data_op_rec.optype,
 	     target_data_op_rec.src_addr, target_data_op_rec.src_device_num,
 	     target_data_op_rec.dest_addr, target_data_op_rec.dest_device_num,
@@ -41,7 +41,7 @@ static void print_record_ompt(ompt_record_ompt_t *rec) {
     {
       ompt_record_target_kernel_t target_kernel_rec = rec->record.target_kernel;
       printf("\t  Record Submit: host_op_id=%lu requested_num_teams=%u granted_num_teams=%u "
-	     "end_time=%lu duration=%luus\n",
+	     "end_time=%lu duration=%lu ns\n",
 	     target_kernel_rec.host_op_id, target_kernel_rec.requested_num_teams,
 	     target_kernel_rec.granted_num_teams, target_kernel_rec.end_time,
 	     target_kernel_rec.end_time - rec->time);
