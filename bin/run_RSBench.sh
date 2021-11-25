@@ -34,8 +34,6 @@ AOMPHIP=${AOMPHIP:-$AOMP}
 # Use function to set and test AOMP_GPU
 setaompgpu
 
-export ROCR_VISIBLE_DEVICES=3
-
 RUN_OPTIONS=${RUN_OPTIONS:-"openmp hip"}
 #omp_flags="-O3 -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$AOMP_GPU -DOMP -DOMP_TARGET_GPU"
 #hip_flags="-O3 --offload-arch=$AOMP_GPU -DHIP -x hip"
@@ -47,7 +45,7 @@ if [ -d $AOMP_REPOS_TEST/RSBench ]; then
   cd $AOMP_REPOS_TEST/RSBench
   rm -f results.txt
 else
-  echo "ERROR: BabelStream not found in $AOMP_REPOS_TEST."
+  echo "ERROR: RSBench not found in $AOMP_REPOS_TEST."
   exit 1
 fi
 

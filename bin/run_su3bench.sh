@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# run_XSBench.sh - runs XSBench in the $AOMP_REPOS_TEST dir.
+# run_SU3Bench.sh - runs SU3Bench in the $AOMP_REPOS_TEST dir.
 # User can set RUN_OPTIONS to control what variants(openmp, hip) are selected.
 
 # --- Start standard header to set build environment variables ----
@@ -34,39 +34,41 @@ AOMPHIP=${AOMPHIP:-$AOMP}
 # Use function to set and test AOMP_GPU
 setaompgpu
 
-RUN_OPTIONS=${RUN_OPTIONS:-"openmp hip"}
+# Need thrust to use HIP
+#RUN_OPTIONS=${RUN_OPTIONS:-"openmp hip"}
+RUN_OPTIONS=${RUN_OPTIONS:-"openmp"}
+
 #omp_flags="-O3 -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$AOMP_GPU -DOMP -DOMP_TARGET_GPU"
 #hip_flags="-O3 --offload-arch=$AOMP_GPU -DHIP -x hip"
 #omp_src="main.cpp OMPStream.cpp"
 #hip_src="main.cpp HIPStream.cpp"
 #std="-std=c++11"
 
-if [ -d $AOMP_REPOS_TEST/XSBench ]; then
-  cd $AOMP_REPOS_TEST/XSBench
+if [ -d $AOMP_REPOS_TEST/su3_bench ]; then
+  cd $AOMP_REPOS_TEST/su3_bench
   rm -f results.txt
 else
-  echo "ERROR: XSBench not found in $AOMP_REPOS_TEST."
+  echo "ERROR: su3bench found in $AOMP_REPOS_TEST."
   exit 1
 fi
 
 echo RUN_OPTIONS: $RUN_OPTIONS
 for option in $RUN_OPTIONS; do
   if [ "$option" == "openmp" ]; then
-    cd openmp-offload
-    make clean
+    make -f Makefile.openmp clean
     export PATH=$AOMP/bin:$PATH
-    make COMPILER=amd
+    make -f Makefile.openmp VENDOR=amd ARCH=MI200 all
     if [ $? -ne 1 ]; then
-      ./XSBench -m event 2>&1 | tee -a results.txt
+      ./bench_f32_openmp.exe 2>&1 | tee -a results.txt
+      ./bench_f64_openmp.exe 2>&1 | tee -a results.txt
     fi
-    cd ..
   elif [ "$option" == "hip" ]; then
-    cd hip
-    make clean
+    make -f Makefile.hip clean
     export PATH=$AOMP/bin:$PATH
-    make
+    make -f Makefile.hip VENDOR=amd ARCH=MI200 all
     if [ $? -ne 1 ]; then
-      ./XSBench -m event 2>&1 | tee -a results.txt
+      ./bench_f32_hip.exe 2>&1 | tee -a results.txt
+      ./bench_f64_hip.exe 2>&1 | tee -a results.txt
     fi
     cd ..
   else
