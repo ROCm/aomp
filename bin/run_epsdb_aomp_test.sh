@@ -119,8 +119,6 @@ cd $aompdir/bin
 ./run_nekbone.sh > nekbone.log 2>&1
 nekfails=$?
 tail -7 nekbone.log
-#disable checking of nekbone until repo access is fixe
-nekfails=0
 
 echo "======= openmpapps ==="
 cd ~/git/aomp-test/openmpapps
