@@ -97,11 +97,11 @@ wget -q -O - https://repo.radeon.com/rocm/rocm.gpg.key | sudo apt-key add -
 ```
 Ubuntu 18.04:
 ```
-echo 'deb [arch=amd64] http://repo.radeon.com/rocm/apt/latest/ bionic main' | sudo tee /etc/apt/sources.list.d/rocm.list
+echo 'deb [arch=amd64] http://repo.radeon.com/amdgpu/latest/ubuntu bionic main' | sudo tee /etc/apt/sources.list.d/amdgpu.list
 ```
 Ubuntu 20.04:
 ```
-echo 'deb [arch=amd64] http://repo.radeon.com/rocm/apt/latest/ focal main' | sudo tee /etc/apt/sources.list.d/rocm.list
+echo 'deb [arch=amd64] http://repo.radeon.com/amdgpu/latest/ubuntu focal main' | sudo tee /etc/apt/sources.list.d/amdgpu.list
 ```
 Update and Install:
 ```
@@ -131,7 +131,7 @@ Install kernel headers:
   sudo yum install -y epel-release
   sudo yum install -y dkms kernel-headers-`uname -r` kernel-devel-`uname -r`
 ```
-Create a /etc/yum.repos.d/rocm.repo file with the following contents:
+Create a /etc/yum.repos.d/amdgpu.repo file with the following contents:
 ```
   [amdgpu]
   name=amdgpu
