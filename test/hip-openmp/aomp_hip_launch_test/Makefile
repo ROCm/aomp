@@ -61,7 +61,8 @@ $(TESTNAME).exe: $(TESTNAME).$(FILETYPE)
 	test -f test_omp-host-x86_64-unknown-linux-gnu.o
 	test -f a.out-openmp-amdgcn-amd-amdhsa && \
 		cp a.out-openmp-amdgcn-amd-amdhsa a.out-openmp-amdgcn-amd-amdhsa-${AOMP_GPU} || \
-		cp a.out-openmp-amdgcn-amd-amdhsa-${AOMP_GPU} a.out-openmp-amdgcn-amd-amdhsa
+		cp a.out-openmp-amdgcn-amd-amdhsa-${AOMP_GPU} a.out-openmp-amdgcn-amd-amdhsa || \
+		cp a-${AOMP_GPU}.out-openmp-amdgcn-amd-amdhsa.out a.out-openmp-amdgcn-amd-amdhsa
 	DEVICE_LIB_PATH=$(DEVICE_LIB_PATH) $(AOMPHIP)/bin/hipcc -o hiplaunch.exe hiplaunch.cpp -fopenmp
 	#/opt/rocm/bin/hipcc -o hiplaunch.exe hiplaunch.c -fopenmp # this needs code-obj-v3 fix , ROCm 3.0 ???
 #	/work/hip-clang-bld/HIP/bin/hipcc -o hiplaunch.exe hiplaunch.c -fopenmp # this needs code-obj-v3 fix , ROCm 3.0 ???

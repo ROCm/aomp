@@ -28,7 +28,7 @@ Install kernel headers:
   sudo yum install -y epel-release
   sudo yum install -y dkms kernel-headers-`uname -r` kernel-devel-`uname -r`
 ```
-Create a /etc/yum.repos.d/rocm.repo file with the following contents:
+Create a /etc/yum.repos.d/amdgpu.repo file with the following contents:
 ```
   [amdgpu]
   name=amdgpu

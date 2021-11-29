@@ -23,11 +23,11 @@ wget -q -O - https://repo.radeon.com/rocm/rocm.gpg.key | sudo apt-key add -
 ```
 Ubuntu 18.04:
 ```
-echo 'deb [arch=amd64] http://repo.radeon.com/rocm/apt/latest/ bionic main' | sudo tee /etc/apt/sources.list.d/rocm.list
+echo 'deb [arch=amd64] http://repo.radeon.com/amdgpu/latest/ubuntu bionic main' | sudo tee /etc/apt/sources.list.d/admgpu.list
 ```
 Ubuntu 20.04:
 ```
-echo 'deb [arch=amd64] http://repo.radeon.com/rocm/apt/latest/ focal main' | sudo tee /etc/apt/sources.list.d/rocm.list
+echo 'deb [arch=amd64] http://repo.radeon.com/amdgpu/latest/ubuntu focal main' | sudo tee /etc/apt/sources.list.d/amdgpu.list
 ```
 Update and Install:
 ```
