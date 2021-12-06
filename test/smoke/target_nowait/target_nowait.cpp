@@ -68,8 +68,11 @@ int main(){
     printf("Thread %d continuing into for loop\n", omp_get_thread_num());
     fflush(stdout);
     
-    // on host: nowait is necessary to prevent an implicit barrier with the target region
-    #pragma omp for nowait schedule(dynamic)
+    // on host
+    // - nowait is necessary to prevent an implicit barrier with the target region
+    // - static schedule is necessary to ensure thread 0 has to execute some iterations of the for loop
+    //   and it does so before the target region above has completed execution
+    #pragma omp for nowait schedule(static)
     for(long long i = n1; i < n; i++) {
       printf("Tid = %d: doing iteration %lld\n", omp_get_thread_num(), i);
       vxv[i] = v1[i]*v2[i];
