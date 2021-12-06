@@ -41,7 +41,7 @@ int main(){
   fflush(stdout);
   #pragma omp parallel num_threads(10)
   {
-    #pragma omp masked // teams distribute
+    //    #pragma omp masked // teams distribute
     if (omp_get_thread_num() == 0) {
       printf("Thread 0 is going to launch a kernel\n");
       fflush(stdout);
