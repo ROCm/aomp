@@ -8,7 +8,7 @@
    sudo apt-get install g++-5 g++-7 pkg-config libpci-dev libnuma-dev libffi-dev git python libopenmpi-dev gawk mesa-common-dev
 
    # Additional packages used by rocgdb
-   sudo apt-get install python3 texinfo libbison-dev bison flex libbabeltrace-dev python3-pip libncurses5-dev liblzma-dev python3-setuptools python3-dev libpython3.8-dev libudev-dev
+   sudo apt-get install python3 texinfo libbison-dev bison flex libbabeltrace-dev python3-pip libncurses5-dev liblzma-dev python3-setuptools python3-dev libpython3.8-dev libudev-dev libgmp-dev
 
 ```
 
@@ -20,7 +20,7 @@
   A symbolic link may be required at /usr/lib64: /usr/lib64/libquadmath.so -> /usr/lib64/libquadmath.so.0.
 
   # Additional packages used by rocgdb
-  sudo zypper install -y texinfo bison flex babeltrace-devel python3 python3-pip python3-devel python3-setuptools makeinfo ncurses-devel libexpat-devel xz-devel
+  sudo zypper install -y texinfo bison flex babeltrace-devel python3 python3-pip python3-devel python3-setuptools makeinfo ncurses-devel libexpat-devel xz-devel libgmp-devel
 
 
 ```
@@ -56,7 +56,7 @@ RHEL 7.7 and later RHEL 7 versions
   sudo yum install gcc gcc-c++ git make pciutils-devel numactl-devel libffi-devel mesa-libGL-devel libquadmath-devel python3 python3-pip python36-devel python3-setuptools python2
 
   # Additional packages used by rocgdb
-  sudo yum install texinfo bison flex ncurses-devel expat-devel xz-devel libbabeltrace-devel
+  sudo yum install texinfo bison flex ncurses-devel expat-devel xz-devel libbabeltrace-devel libgmp-devel
   python3 -m pip install CppHeaderParser argparse wheel lit --user
 ```
 
