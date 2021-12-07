@@ -47,6 +47,7 @@ TESTS_DIR = \
     nwchem-s1_1 \
     omp_loop \
     requires_directive \
+    requires_usm \
     targ_static \
     targc-273739 \
     target_teams_reduction \
