@@ -1,36 +1,51 @@
---- OMPStream.cpp.orig	2021-12-08 10:46:57.904123238 -0600
-+++ OMPStream.cpp	2021-12-08 10:46:57.908123238 -0600
-@@ -12,6 +12,20 @@
+diff --git a/OMPStream.cpp.orig b/OMPStream.cpp
+index 0cd8035..cddfacb 100644
+--- a/OMPStream.cpp.orig
++++ b/OMPStream.cpp
+@@ -12,6 +12,29 @@
  #define ALIGNMENT (2*1024*1024) // 2MB
  #endif
  
 +#ifdef OMP_TARGET_GPU
++#ifdef _DEFAULTS_NOSIMD
++// If compiled with -D_DEFAULTS_NOSIMD, only remove simd in the pragma omp target
++#define simd
++#else
 +// vectorization inside target region is not possible, so define simd as a macro
 +// to define extra clauses such as schedule and grid sizes.
 +// Try 4 X number_of_cus or 2 X number_of_cus
++#ifndef NUM_TEAMS
 +#define NUM_TEAMS 240
++#endif
++#ifndef NUM_THREADS
 +#define NUM_THREADS 1024
++#endif
 +#define CHUNKSZ 1
 +//#define simd schedule(nonmonotonic:static,CHUNKSZ) num_teams(NUM_TEAMS) thread_limit(NUM_THREADS)
 +#define simd num_teams(NUM_TEAMS) thread_limit(NUM_THREADS)
 +#define XSTR(x) STRING_CLAUSE(x)
 +#define STRING_CLAUSE(x) #x
 +#endif
++#endif
 +static int didprint = 0;
 +
  template <class T>
  OMPStream<T>::OMPStream(const int ARRAY_SIZE, int device)
  {
-@@ -27,6 +41,14 @@
+@@ -27,6 +50,18 @@ OMPStream<T>::OMPStream(const int ARRAY_SIZE, int device)
    T *a = this->a;
    T *b = this->b;
    T *c = this->c;
 +  // Print diagnostic one time.
 +  if (!didprint) {
++#ifdef _DEFAULTS_NOSIMD
++     printf("#pragma omp target teams distribute parallel for\n");
++#else
 +     printf("#pragma omp target teams distribute parallel for %s\n",XSTR(simd));
 +     printf("arrays_size:%d nteams:%d teamsz:%d chunksz:%d iters/thread:%d iters/team:%d chunks/thread:%d\n",
 +                  array_size, NUM_TEAMS, NUM_THREADS , CHUNKSZ, (array_size/NUM_TEAMS)/NUM_THREADS,
 +                  array_size/NUM_TEAMS,  ((array_size/NUM_TEAMS)/NUM_THREADS)/CHUNKSZ);
++#endif
 +     didprint=1;
 +  }
    // Set up data region on device
