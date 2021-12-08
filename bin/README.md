@@ -89,6 +89,7 @@ To build and clone all components using the latest development sources, first cl
    cd aomp
    git checkout aomp-dev
    git pull
+   cd bin
    ./clone_aomp.sh
 ```
 The first time you run ./clone_aomp.sh, it could take a long time to clone the repositories.
