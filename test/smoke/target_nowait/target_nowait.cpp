@@ -36,7 +36,7 @@ int main(){
   double *z = new double[n]; // just to create some extra work
   double scalar = -1.0;
   int scalar_err = 0;
-  
+
   printf("Now going into parallel\n");
   fflush(stdout);
   #pragma omp parallel num_threads(10)
@@ -67,7 +67,7 @@ int main(){
 
     printf("Thread %d continuing into for loop\n", omp_get_thread_num());
     fflush(stdout);
-    
+
     // on host
     // - nowait is necessary to prevent an implicit barrier with the target region
     // - static schedule is necessary to ensure thread 0 has to execute some iterations of the for loop
@@ -83,8 +83,8 @@ int main(){
     // is actually implemented
     if (omp_get_thread_num() == 1 && scalar != -1.0) {
       scalar_err = 1;
-      printf("scalar was modified by target region: might indicate nowait isn't working properly\n");      
-      fflush(stdout);      
+      printf("scalar was modified by target region: might indicate nowait isn't working properly\n");
+      fflush(stdout);
     }
     printf("Thread %d done with host for loop\n", omp_get_thread_num());
     fflush(stdout);
