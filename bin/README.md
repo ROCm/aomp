@@ -59,13 +59,13 @@ These are some important environment variables and their default values.
 | AOMP                  | $HOME/rocm/aomp    | Where AOMP is installed and tested
 | AOMP_REPOS            | $HOME/git/aomp14.0   | The base directory for all AOMP build repositories
 | AOMP_STANDALONE_BUILD | 1                  | Build all components, do NOT use installed ROCm
-| AOMP_VERSION          | 14.0               | Will change to 13.1 when LLVM 13 stablizes.
-| AOMP_VERSION_MOD      | 0                  | This imples the next release will be AOMP_13.0-6.
+| AOMP_VERSION          | 14.0               | Will change to 14.1 when LLVM 14 stablizes.
+| AOMP_VERSION_MOD      | 1                  | This imples the next release will be AOMP_14.0-1.
 | AOMP_VERSION_STRING   | $AOMP_VERSION-$AOMP_VERSION_MOD |
 | GFXLIST               | gfx700 gfx701 gfx801 gfx803     | List of AMDGPU gpus to build for
 |                       | gfx900 gfx902 gfx906 gfx908     |
 | NVPTXGPUS             | 30,35,50,60,61,70               | List of NVPTX gpus to build for
-| CUDA                  | /usr/local/cuda                 | Where cuda is installed 
+| CUDA                  | /usr/local/cuda                 | Where cuda is installed
 
 
 You can override any environment variable by setting values in your .bashrc or .bash_profile.
@@ -101,6 +101,7 @@ So please run "git pull" frequently to stay current with the aomp development te
 ```
 cd $HOME/git/aomp14.0/aomp
 git pull
+cd bin
 ./clone_aomp.sh
 ```
 AOMP_EXTERNAL_MANIFEST=1 can be used to ensure clone_aomp.sh does not use an internal manifest. This is only useful of the internal ping succeeds, otherwise the external manifest us used by default.
@@ -126,7 +127,7 @@ There are options to select a subset of components to build and install.
 ```
 The default AOMP source build is a standalone build of all components needed for compilation and execution with the exception of the kfd Linux kernel module for AMD GPUs or the CUDA SDK for Nvidia GPUs.
 
-Starting with ROCM 4.0, AOMP will continue as a research and development compiler released into github with the package name aomp. 
+Starting with ROCM 4.0, AOMP will continue as a research and development compiler released into github with the package name aomp.
 This will often be used to validate code going into the ROCm production compiler including quick fixes for issues identified in
 [AOMP issues] (https://github.com/ROCm-Developer-Tools/aomp/issues).
 To ensure complete isolation from the ROCm installation and to make AOMP work in the absense of ROCm,
@@ -171,12 +172,12 @@ build_roctracer.sh       -  Builds ROC gdb. UNDER DEVELOPMENT
 create_release_tarball.sh - This builds an important release artifact
                             containing all sources.
 ```
-To build aomp, run the master build script build_aomp.sh, or run the individual scripts in the order shown below. 
+To build aomp, run the master build script build_aomp.sh, or run the individual scripts in the order shown below.
 The build scripts with no arguments will build the component in the build directory $HOME/git/aomp14.0/build/\<component name\>
-(or $AOMP_REPOS/build/\<component name\> if AOMP_REPOS is set). 
+(or $AOMP_REPOS/build/\<component name\> if AOMP_REPOS is set).
 The component build scripts take a single positional argument with the value "install" or "nocmake".
 The master build script build_aomp.sh will call the component build scripts in the following order and stop if
-any fails occur. 
+any fails occur.
 
 ```
    # Start with these components if building AOMP standalone
