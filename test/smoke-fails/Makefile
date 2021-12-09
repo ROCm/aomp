@@ -17,6 +17,7 @@ TESTS_DIR = \
     clang_udel_saxpy \
     closed_bug1 \
     complex-debug \
+    const_global_ctor \
     flang-251450 \
     flang-272343-3 \
     flang-272534-2 \
