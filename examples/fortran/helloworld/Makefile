@@ -1,5 +1,5 @@
 #-----------------------------------------------------------------------
-#  ROCM_PATH:       Defaults to /opt/rocm/llvm
+#  ROCM_PATH:       Defaults to /opt/rocm
 #  ROCM_GPU:        Auto detected via rocm_agent_enumerator
 #  ROCM_GPUTARGET:  Defaults to amdgcn-amd-amdhsa
 #
@@ -34,18 +34,18 @@
 TESTNAME =helloworld
 FILETYPE =f90
 
-ROCM_PATH ?= /opt/rocm/llvm
+ROCM_PATH ?= /opt/rocm
 ROCM_GPUTARGET ?= amdgcn-amd-amdhsa
 
-INSTALLED_GPU  = $(shell $(ROCM_PATH)/../bin/rocm_agent_enumerator | grep -m 1 -E gfx[^0]{1})
+INSTALLED_GPU  = $(shell $(ROCM_PATH)/bin/rocm_agent_enumerator | grep -m 1 -E gfx[^0]{1})
 ROCM_GPU       ?= $(INSTALLED_GPU)
-CC              = $(ROCM_PATH)/bin/clang
+CC              = $(ROCM_PATH)/llvm/bin/clang
 
 ifeq ($(TARGETS),)
 TARGETS =--offload-arch=$(ROCM_GPU)
 endif
 
-FORT   =$(ROCM_PATH)/bin/flang
+FORT   =$(ROCM_PATH)/llvm/bin/flang
 LFLAGS = 
 FFLAGS =
 
@@ -92,7 +92,7 @@ help:
 	@echo "  make help 		// this help"
 	@echo
 	@echo "Environment Variables:"
-	@echo "  ROCM_PATH default: /opt/rocm/llvm                            value: $(ROCM_PATH)"
+	@echo "  ROCM_PATH default: /opt/rocm                                 value: $(ROCM_PATH)"
 	@echo "  ROCM_GPU  default: auto detected by rocm_agent_enumerator    value: $(ROCM_GPU)"
 	@echo "  TARGETS   default: --offload-arch=$(ROCM_GPU)"
 	@echo "              value: $(TARGETS)"
