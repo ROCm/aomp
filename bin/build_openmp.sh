@@ -71,43 +71,11 @@ if [ "$1" == "install" ] ; then
    $SUDO rm $INSTALL_OPENMP/testfile
 fi
 
-GCCMIN=8
 if [ "$AOMP_BUILD_CUDA" == 1 ] ; then
    if [ -f $CUDABIN/nvcc ] ; then
       CUDAVER=`$CUDABIN/nvcc --version | grep compilation | cut -d" " -f5 | cut -d"." -f1 `
       echo "CUDA VERSION IS $CUDAVER"
-      if [ $CUDAVER -gt 8 ] ; then
-        GCCMIN=7
-      fi
    fi
-fi
-
-function getgcc8orless(){
-   _loc=`which gcc`
-   [ "$_loc" == "" ] && return
-   gccver=`$_loc --version | grep gcc | cut -d")" -f2 | cut -d"." -f1`
-   [ $gccver -gt $GCCMIN ] && _loc=`which gcc-$GCCMIN`
-   echo $_loc
-}
-function getgxx8orless(){
-   _loc=`which g++`
-   [ "$_loc" == "" ] && return
-   gxxver=`$_loc --version | grep g++ | cut -d")" -f2 | cut -d"." -f1`
-   [ $gxxver -gt $GCCMIN ] && _loc=`which g++-$GCCMIN`
-   echo $_loc
-}
-
-GCCLOC=$(getgcc8orless)
-GXXLOC=$(getgxx8orless)
-if [ "$GCCLOC" == "" ] ; then
-   echo "ERROR: NO ADEQUATE gcc"
-   echo "       Please install gcc-5, gcc-7, or gcc-8"
-   exit 1
-fi
-if [ "$GXXLOC" == "" ] ; then
-   echo "ERROR: NO ADEQUATE g++"
-   echo "       Please install g++-5, g++-7, or g++-8"
-   exit 1
 fi
 
 GFXSEMICOLONS=`echo $GFXLIST | tr ' ' ';' `
@@ -136,7 +104,6 @@ if [ "$AOMP_BUILD_CUDA" == 1 ] ; then
    COMMON_CMAKE_OPTS="$COMMON_CMAKE_OPTS
 -DLIBOMPTARGET_NVPTX_ENABLE_BCLIB=ON
 -DLIBOMPTARGET_NVPTX_CUDA_COMPILER=$AOMP/bin/clang++
--DLIBOMPTARGET_NVPTX_ALTERNATE_HOST_COMPILER=$GCCLOC
 -DLIBOMPTARGET_NVPTX_BC_LINKER=$AOMP/bin/llvm-link
 -DLIBOMPTARGET_NVPTX_COMPUTE_CAPABILITIES=$NVPTXGPUS"
 fi
