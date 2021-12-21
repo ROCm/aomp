@@ -27,9 +27,7 @@ flags 1
 flags 2
 flags 3
 flags 4
-flags 5
 flags 6
-flags 7
 flags 8
 flang-272285
 flang-272343-2
@@ -61,7 +59,6 @@ gdb_teams
 global_allocate
 helloworld
 hip_device_compile
-host_targ
 icvars-nest
 icvars-nestF
 issue_001

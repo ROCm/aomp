@@ -77,10 +77,13 @@ export AOMP_GPU
 # this version mismatch on release testing. We will choose the lower version so that
 # unsupported tests are not included.
 function getversion(){
-  supportedvers="4.3.0 4.4.0"
+  supportedvers="4.3.0 4.4.0 4.5.0 4.5.2 5.0.0"
   declare -A versions
   versions[430]=4.3.0
   versions[440]=4.4.0
+  versions[450]=4.5.0
+  versions[452]=4.5.2
+  versions[500]=5.0.0
 
   # Determine ROCm version.
   rocm=$(cat "$AOMPROCM"/.info/version-dev)
