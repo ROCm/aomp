@@ -43,6 +43,7 @@ fi
 AOMPROCM=$AOMP/..
 export AOMPROCM
 unset ROCM_PATH
+echo AOMPROCM= $AOMPROCM
 
 # Use bogus path to avoid using target.lst, a user-defined target list
 # used by rocm_agent_enumerator.
@@ -55,6 +56,8 @@ $AOMPROCM/bin/rocm_agent_enumerator
 # Regex skips first result 'gfx000' and selects second id.
 AOMP_GPU=$($AOMPROCM/bin/rocm_agent_enumerator | grep -m 1 -E gfx[^0]{1}.{2})
 # mygpu will eventually relocate to /opt/rocm/bin, support both cases for now.
+echo AOMP_GPU= $AOMP_GPU
+
 if [ "$AOMP_GPU" != "" ]; then
   echo "AOMP_GPU set with rocm_agent_enumerator."
 else
@@ -216,8 +219,8 @@ mkdir -p $resultsdir
 
 # Fortran Examples
 mkdir -p "$resultsdir"/fortran
-echo "cp -rf "$AOMP"/examples/fortran "$aompdir"/examples"
-cp -rf "$AOMP"/examples/fortran "$aompdir"/examples
+#echo "cp -rf "$AOMP"/examples/fortran "$aompdir"/examples"
+#cp -rf "$AOMP"/examples/fortran "$aompdir"/examples
 cd "$aompdir"/examples/fortran
 EPSDB=1 AOMPHIP=$AOMPROCM ../check_examples.sh fortran
 checkrc $?
@@ -225,8 +228,8 @@ copyresults fortran
 
 # Openmp Examples
 mkdir -p "$resultsdir"/openmp
-echo "cp -rf "$AOMP"/examples/openmp "$aompdir"/examples"
-cp -rf "$AOMP"/examples/openmp "$aompdir"/examples
+#echo "cp -rf "$AOMP"/examples/openmp "$aompdir"/examples"
+#cp -rf "$AOMP"/examples/openmp "$aompdir"/examples
 cd "$aompdir"/examples/openmp
 EPSDB=1 ../check_examples.sh openmp
 checkrc $?
