@@ -47,6 +47,7 @@ TESTS_DIR = \
     helloworld%n \
     lds-prob4 \
     lds-prob5 \
+    leopold-devicePtr \
     loop_order \
     nwchem-s1_1 \
     omp_loop \
