@@ -4,7 +4,7 @@ real,pointer :: x(:)
 logical ::FLAG
 allocate(x(10))
 k=0
-FLAG=TRUE
+FLAG=.TRUE.
 
 !$omp target parallel do if(target:FLAG)
 do i=1, 10
