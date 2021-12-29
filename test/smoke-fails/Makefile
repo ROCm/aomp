@@ -17,6 +17,7 @@ TESTS_DIR = \
     clang_udel_saxpy \
     closed_bug1 \
     complex-debug \
+    dominik-AD \
     flang-251450 \
     flang-272343-3 \
     flang-272534-2 \
@@ -38,6 +39,7 @@ TESTS_DIR = \
     flang-308205 \
     flang-312148 \
     flang-312594 \
+    flang-315455 \
     flang-315870 \
     flang-flags-308205 \
     flang_atomic_hint \
