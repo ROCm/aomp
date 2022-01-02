@@ -57,6 +57,8 @@ TESTS_DIR = \
     requires_usm \
     targ_static \
     targc-273739 \
+    targc-generic \
+    targc-spmd \
     target_teams_reduction \
     tasks \
     veccopy-ompt-target
