@@ -78,10 +78,9 @@ echo ""
 
 echo "************************************************************************************" > check-usm.txt
 echo "                   A non-zero exit code means a failure occured." >> check-usm.txt
-echo "Tests that need to be visually inspected: devices, pfspecify, pfspecify_str, stream" >> check-usm.txt
 echo "***********************************************************************************" >> check-usm.txt
 
-known_fails="red_bug_51 metadirective shape_noncontig concur_update mapper_prob loop prag_error declare_target_nested"
+known_fails=""
 
 if [ "$SKIP_FAILURES" == 1 ] ; then
   skip_tests=$known_fails
