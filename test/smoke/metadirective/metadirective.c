@@ -85,7 +85,7 @@ int check_implementation_vendor_selector() {
   #pragma omp target map(tofrom: threadCount)
   {
     #pragma omp metadirective          \
-      when(implementation = {vendor(llvm)}: parallel) \
+      when(implementation = {vendor(amd)}: parallel) \
       default(single)
 
     threadCount = omp_get_num_threads();
@@ -104,8 +104,8 @@ int check_scoring() {
   #pragma omp target map(tofrom: threadCount)
   {
     #pragma omp metadirective          \
-      when(implementation = {vendor(score(20): llvm)}: parallel num_threads(4))\
-      when(implementation = {vendor(score(100): llvm)}: parallel num_threads(8))\
+      when(implementation = {vendor(score(20): amd)}: parallel num_threads(4))\
+      when(implementation = {vendor(score(100): amd)}: parallel num_threads(8))\
       default(single)
 
     threadCount = omp_get_num_threads();
