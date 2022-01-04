@@ -4,8 +4,6 @@
 #include <cmath>
 #include <omp.h>
 
-
-
 // Timing infrastructure
 using namespace std;
 
@@ -41,29 +39,50 @@ struct timer {
   }
 };
 
-int vecadd(long size, std::string label) {    
+int vecadd(long size, std::string label) {
   timer stopwatch(label.c_str());
   printf("Size = %ld\n", size);
-  double *a = new double[size];
-  double *b = new double[size];
-  double *c = new double[size];
-  double *d = new double[size];
-  double *e = new double[size];
-  double *f = new double[size];
-  double *g = new double[size];
-  double *h = new double[size];
-  double *i = new double[size];
-  double *j = new double[size];
-  double *k = new double[size];
-  double *l = new double[size];
-  double *m = new double[size];
-  double *n = new double[size];
-  double *o = new double[size];
-  double *p = new double[size];
-  double *q = new double[size];
-  double *r = new double[size];
-  double *s = new double[size];
-  double *t = new double[size];
+  double *a;
+  double *b;
+  double *c;
+  double *d;
+  double *e;
+  double *f;
+  double *g;
+  double *h;
+  double *i;
+  double *j;
+  double *k;
+  double *l;
+  double *m;
+  double *n;
+  double *o;
+  double *p;
+  double *q;
+  double *r;
+  double *s;
+  double *t;
+
+  posix_memalign((void **)&a, 4096 ,size*sizeof(double));
+  posix_memalign((void **)&b, 4096 ,size*sizeof(double));
+  posix_memalign((void **)&c, 4096 ,size*sizeof(double));
+  posix_memalign((void **)&d, 4096 ,size*sizeof(double));
+  posix_memalign((void **)&e, 4096 ,size*sizeof(double));
+  posix_memalign((void **)&f, 4096 ,size*sizeof(double));
+  posix_memalign((void **)&g, 4096 ,size*sizeof(double));
+  posix_memalign((void **)&h, 4096 ,size*sizeof(double));
+  posix_memalign((void **)&i, 4096 ,size*sizeof(double));
+  posix_memalign((void **)&j, 4096 ,size*sizeof(double));
+  posix_memalign((void **)&k, 4096 ,size*sizeof(double));
+  posix_memalign((void **)&l, 4096 ,size*sizeof(double));
+  posix_memalign((void **)&m, 4096 ,size*sizeof(double));
+  posix_memalign((void **)&n, 4096 ,size*sizeof(double));
+  posix_memalign((void **)&o, 4096 ,size*sizeof(double));
+  posix_memalign((void **)&p, 4096 ,size*sizeof(double));
+  posix_memalign((void **)&q, 4096 ,size*sizeof(double));
+  posix_memalign((void **)&r, 4096 ,size*sizeof(double));
+  posix_memalign((void **)&s, 4096 ,size*sizeof(double));
+  posix_memalign((void **)&t, 4096 ,size*sizeof(double));
 
   for (long it = 0; it < size; it++) {
     a[it] = (double)0;
@@ -95,15 +114,20 @@ int vecadd(long size, std::string label) {
   string initLab = label+" Init and alloc";
   stopwatch.checkpoint(initLab.c_str());
 
-  #pragma omp target teams distribute parallel for	\
-    map(always, to:b[:size],c[:size],d[:size],e[:size],f[:size],g[:size],h[:size], \
-    i[:size],j[:size],k[:size],l[:size],m[:size],n[:size],o[:size],p[:size],	\
-	q[:size],r[:size],s[:size],t[:size]) map(always,from:a[:size])
-  for (long it = 0; it < size; it++)
-      a[it] = b[it]+c[it]+d[it]+e[it]+f[it]+g[it]+h[it]+
-	i[it]+j[it]+k[it]+l[it]+m[it]+n[it]+o[it]+p[it]+
-	q[it]+r[it]+s[it]+t[it];
-
+  for(int is = 0; is < 8; is++) {
+    if (is == 4) {
+      string warmupLab = label+" kernel warmup";
+      stopwatch.checkpoint(warmupLab.c_str());
+    }
+      #pragma omp target teams distribute parallel for			\
+	map(always, to:b[:size],c[:size],d[:size],e[:size],f[:size],g[:size],h[:size], \
+	    i[:size],j[:size],k[:size],l[:size],m[:size],n[:size],o[:size],p[:size], \
+	    q[:size],r[:size],s[:size],t[:size]) map(always, from:a[:size])
+      for (long it = 0; it < size; it++)
+	a[it] = b[it]+c[it]+d[it]+e[it]+f[it]+g[it]+h[it]+
+	  i[it]+j[it]+k[it]+l[it]+m[it]+n[it]+o[it]+p[it]+
+	  q[it]+r[it]+s[it]+t[it];
+  }
   string tgtLab = label+" Target";
   stopwatch.checkpoint(tgtLab.c_str());
   int rc = 0;
@@ -154,9 +178,9 @@ int main()
   long smallSize = pow(10,3);
   int rc = vecadd(smallSize, "small (10^3)");
   if (rc) return rc;
-  
+
   long largeSize = pow(10,8);
-  rc = vecadd(largeSize, "large (10^9)");
+  rc = vecadd(largeSize, "large (10^8)");
 
   return rc;
 }
