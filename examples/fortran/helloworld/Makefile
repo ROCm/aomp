@@ -1,7 +1,5 @@
 #-----------------------------------------------------------------------
 #  ROCM_LLVM:       Defaults to /opt/rocm/llvm
-#  ROCM_GPU:        Auto detected via rocm_agent_enumerator
-#  ROCM_GPUTARGET:  Defaults to amdgcn-amd-amdhsa
 #
 #  make run
 #
@@ -35,17 +33,8 @@ TESTNAME =helloworld
 FILETYPE =f90
 
 ROCM_LLVM ?= /opt/rocm/llvm
-ROCM_GPUTARGET ?= amdgcn-amd-amdhsa
 
-INSTALLED_GPU  = $(shell $(ROCM_LLVM)/../bin/rocm_agent_enumerator | grep -m 1 -E gfx[^0]{1})
-ROCM_GPU       ?= $(INSTALLED_GPU)
-CC              = $(ROCM_LLVM)/bin/clang
-
-ifeq ($(TARGETS),)
-TARGETS =--offload-arch=$(ROCM_GPU)
-endif
-
-FORT   =$(ROCM_LLVM)/bin/flang
+FORT   = $(ROCM_LLVM)/bin/flang
 LFLAGS = 
 FFLAGS =
 
@@ -93,9 +82,6 @@ help:
 	@echo
 	@echo "Environment Variables:"
 	@echo "  ROCM_LLVM default: /opt/rocm/llvm                            value: $(ROCM_LLVM)"
-	@echo "  ROCM_GPU  default: auto detected by rocm_agent_enumerator    value: $(ROCM_GPU)"
-	@echo "  TARGETS   default: --offload-arch=$(ROCM_GPU)"
-	@echo "              value: $(TARGETS)"
 	@echo
 	@echo "Link Flags:"
 	@echo "  Link flags: $(LFLAGS)"
