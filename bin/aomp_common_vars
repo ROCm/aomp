@@ -392,7 +392,7 @@ function checkrepo(){
          if [ "$COBRANCH" == "master" ] ; then
            echo "EXIT:  Repository $REPO_DIR is on development branch: master"
            exit 1
-	 elif [[ "$COBRANCH" =~ $BRANCH_REEGEX ]] ; then
+	 elif [[ "$COBRANCH" =~ $BRANCH_REGEX ]] ; then
            echo "we have an override $REPO_DIR"
          else
            echo "ERROR:  The repository at $REPO_DIR is not on branch $REPO_BRANCH"
