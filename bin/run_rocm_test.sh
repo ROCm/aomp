@@ -42,8 +42,12 @@ fi
 # Parent dir should be ROCm base dir.
 AOMPROCM=$AOMP/..
 export AOMPROCM
-unset ROCM_PATH
 echo AOMPROCM= $AOMPROCM
+
+# Set ROCM_LLVM for examples
+export ROCM_LLVM=$AOMP
+
+#unset ROCM_PATH
 
 # Use bogus path to avoid using target.lst, a user-defined target list
 # used by rocm_agent_enumerator.
