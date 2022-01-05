@@ -1,7 +1,6 @@
 alpaka_complex_template.cpp
 declare_target_module.F90
 gemv_target.cpp
-gemv_target_many_matrices.cpp
 gemv_target_teams_dist_par_for.cpp
 gridmini_map_struct_float_mul.cpp
 linked_list.c
@@ -10,6 +9,7 @@ mmm_target_parallel_for_simd.c
 offloading_success.c
 offloading_success.cpp
 offloading_success.F90
+omp_default_device.c
 qmcpack_target_math.c
 test_declare_target_end_declare_target.c
 test_declare_target_extended_list.c
@@ -37,6 +37,7 @@ test_target_data_map_tofrom.c
 test_target_data_pointer_swap.c
 test_target_data_use_device_ptr.c
 test_target_defaultmap.c
+test_target_defaultmap.F90
 test_target_depends.c
 test_target_device.c
 test_target_device.F90
@@ -48,10 +49,12 @@ test_target_enter_data_components_alloc.F90
 test_target_enter_data_components_to.F90
 test_target_enter_data_depend.c
 test_target_enter_data_devices.c
+test_target_enter_data_global_array.c
 test_target_enter_data_if.c
 test_target_enter_data_if.F90
 test_target_enter_data_malloced_array.c
 test_target_enter_data_module_array.F90
+test_target_enter_data_set_default_device.F90
 test_target_enter_data_struct.c
 test_target_enter_exit_data_allocate_array_alloc_delete.F90
 test_target_enter_exit_data_classes_complex.cpp
@@ -88,6 +91,7 @@ test_target_map_subroutines_arrays.F90
 test_target_map_zero_length_pointer.c
 test_target_parallel.c
 test_target_private.c
+test_target_private.F90
 test_target_simd.c
 test_target_simd_collapse.c
 test_target_simd.F90
@@ -124,14 +128,15 @@ test_target_teams_distribute_lastprivate.F90
 test_target_teams_distribute_map.c
 test_target_teams_distribute_nowait.c
 test_target_teams_distribute_num_teams.c
+test_target_teams_distribute_num_teams.F90
 test_target_teams_distribute_parallel_for_devices.c
 test_target_teams_distribute_parallel_for_firstprivate.c
-test_target_teams_distribute_parallel_for_if_no_modifier.c
 test_target_teams_distribute_parallel_for_if_parallel_modifier.c
 test_target_teams_distribute_parallel_for_if_target_modifier.c
 test_target_teams_distribute_parallel_for_map_from.c
+test_target_teams_distribute_parallel_for_map_from.F90
 test_target_teams_distribute_parallel_for_map_to.c
-test_target_teams_distribute_parallel_for_map_tofrom.c
+test_target_teams_distribute_parallel_for_map_to.F90
 test_target_teams_distribute_parallel_for_num_teams.c
 test_target_teams_distribute_parallel_for_num_threads.c
 test_target_teams_distribute_parallel_for_private.c
@@ -159,7 +164,10 @@ test_target_teams_distribute_thread_limit.c
 test_target_teams_distribute_thread_limit.F90
 test_target_update_depend.c
 test_target_update_devices.c
+test_target_update_devices.F90
 test_target_update_from.c
 test_target_update_if.c
+test_target_update_if.F90
 test_target_update_to.c
+test_target_update_to.F90
 test_task_target.c
