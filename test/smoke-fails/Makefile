@@ -61,6 +61,7 @@ TESTS_DIR = \
     targc-spmd \
     target_teams_reduction \
     tasks \
+    usm1 \
     veccopy-ompt-target
 
 all:
