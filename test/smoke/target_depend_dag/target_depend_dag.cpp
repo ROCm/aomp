@@ -56,7 +56,7 @@ int main() {
       err++;
       printf("%d: got %d, expected %d\n", i, c[i], 2*i+i);
       if (err > 10)
-  	break;
+	break;
     }
   }
 
