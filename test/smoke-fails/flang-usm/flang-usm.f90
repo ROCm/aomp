@@ -7,6 +7,6 @@ program test
      !$omp end target
       if (i .ne. 1) then
         print *,'failed'
-        call kill(0,4)
+        call exit(1)
       endif
 end program test
