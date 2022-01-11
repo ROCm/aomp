@@ -124,7 +124,7 @@ int main() {
   addVector<<<N, 1, 0, 0>>>(hostSrcVecA, hostSrcVecB, hostDstVec);
 
   hipDeviceSynchronize();
-  
+
   printf("Sum: ");
   printVector(hostDstVec);
   printf("\n");
