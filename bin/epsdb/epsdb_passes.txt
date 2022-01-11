@@ -146,7 +146,6 @@ nested_loop_trunk
 nested_loop_trunk1
 nested_par3
 nested_targ
-omp_get_device_num
 omp_get_initial
 omp_lock
 omp_num_teams_generic
