@@ -35,20 +35,16 @@ int main(){
   long long n1 = n-10;
   double *z = new double[n]; // just to create some extra work
   double scalar = -1.0;
-  int scalar_err = 0;
 
   printf("Now going into parallel\n");
   fflush(stdout);
   #pragma omp parallel num_threads(10)
   {
-    //    #pragma omp masked // teams distribute
     if (omp_get_thread_num() == 0) {
       printf("Thread 0 is going to launch a kernel\n");
       fflush(stdout);
-      // nowait means: create a target task
-      // Thread 0 will be stuck waiting for the target region to complete
-      // it does not mean it continues executing
-      #pragma omp target nowait map(tofrom:z[:n1], scalar) map(to: v1[0:n1]) map(to: v2[0:n1]) map(from: vxv[0:n1])
+  
+      #pragma omp target teams distribute parallel for nowait map(tofrom:z[:n1], scalar) map(to: v1[0:n1]) map(to: v2[0:n1]) map(from: vxv[0:n1])
       for(long long i = 0; i < n1; i++) {
 	z[i] = v1[i]*v2[i];
 	z[i] *= -1.0;
@@ -78,17 +74,9 @@ int main(){
       vxv[i] = v1[i]*v2[i];
     }
 
-    // ideally, scalar is not visible by thread 1 until the implicit barrier at the end of the parallel
-    // region, due to weak memory consistency. However, this depends on how asynchronous execution
-    // is actually implemented
-    if (omp_get_thread_num() == 1 && scalar != -1.0) {
-      scalar_err = 1;
-      printf("scalar was modified by target region: might indicate nowait isn't working properly\n");
-      fflush(stdout);
-    }
     printf("Thread %d done with host for loop\n", omp_get_thread_num());
     fflush(stdout);
   } // implicit barrier will wait for target region to complete
 
-  return scalar_err || check(n, vxv, v1, v2);
+  return check(n, vxv, v1, v2);
 }
