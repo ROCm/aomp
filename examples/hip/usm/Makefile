@@ -90,7 +90,7 @@ $(TESTNAME): $(TESTNAME).$(FILETYPE)
 	$(CC) $(CFLAGS) $(strip $(TARGETS)):xnack+ $(LFLAGS) $^ -o $@
 
 run: $(TESTNAME)
-	./$(TESTNAME)
+	HSA_XNACK=1 ./$(TESTNAME)
 
 #  ----   Demo compile and link in two steps, object saved
 $(TESTNAME).o: $(TESTNAME).$(FILETYPE)
