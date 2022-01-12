@@ -18,6 +18,7 @@ TESTS_DIR = \
     closed_bug1 \
     complex-debug \
     dominik-AD \
+    exp-303973 \
     flang-251450 \
     flang-272343-3 \
     flang-272534-2 \
