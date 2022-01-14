@@ -4,16 +4,19 @@
 #include <omp.h>
 #include <math.h>
 
+#ifndef DSIZE
 const uint64_t M = 1000000000;  // table size = 20 million
+#else
+const uint64_t M = DSIZE;
+#endif
 
-// tensors:
 
 int main(int argc, char **argv) {
   struct timespec t0,t1,t2,t3,t4,t5;
   float *W = new float[M];
   double m;
 
-  fprintf(stdout, "Starting omp_band\n");
+  fprintf(stderr, "Starting omp_band DIZE=%lu\n",M);
   clock_gettime(CLOCK_REALTIME, &t1);
   #pragma omp target data map(tofrom: W[:M])
   {

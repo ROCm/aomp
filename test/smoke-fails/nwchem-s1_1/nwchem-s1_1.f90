@@ -1,6 +1,6 @@
 ! mimic NWChem tgt_sd_t_s1_1 kernel
-
-#define simd schedule(static,1)
+! RL: do not redefine simd clause to be schedule(static, 1)
+! RL: make the schedule clause usage be explicit
 
   implicit integer (a-z)
   l1 = 1; l2 = 1; l3 = 1; l4 = 1; l5 = 1; l6 = 1;
@@ -20,7 +20,7 @@ subroutine tgt_sd_t_s1_1(l1,l2,l3,l4,l5,l6, u1,u2,u3,u4,u5,u6)
 
  
 
-!$omp target teams distribute parallel do simd collapse(6)
+!$omp target teams distribute parallel do schedule(static,1) collapse(6)
   do i1 = l1, u1
    do i2 = l2, u2
     do i3 = l3, u3

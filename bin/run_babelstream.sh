@@ -42,6 +42,7 @@ setaompgpu
 
 RUN_OPTIONS=${RUN_OPTIONS:-"omp_default openmp hip"}
 omp_flags="-O3 -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$AOMP_GPU -DOMP -DOMP_TARGET_GPU"
+omp_cpu_flags="-O3 -fopenmp -DOMP"
 hip_flags="-O3 --offload-arch=$AOMP_GPU -DHIP -x hip"
 omp_src="main.cpp OMPStream.cpp"
 hip_src="main.cpp HIPStream.cpp"
@@ -94,6 +95,14 @@ for option in $RUN_OPTIONS; do
     rm -f $EXEC
     echo $AOMP/bin/clang++ -D_DEFAULTS_NOSIMD $omp_flags $omp_src $std -o $EXEC
     $AOMP/bin/clang++ -D_DEFAULTS_NOSIMD $omp_flags $omp_src $std -o $EXEC
+    if [ $? -ne 1 ]; then
+      ./$EXEC 2>&1 | tee -a results.txt
+    fi
+  elif [ "$option" == "omp_cpu" ]; then
+    EXEC=omp-stream-cpu
+    rm -f $EXEC
+    echo $AOMP/bin/clang++ $omp_cpu_flags $omp_src $std -o $EXEC
+    $AOMP/bin/clang++ $omp_cpu_flags $omp_src $std -o $EXEC
     if [ $? -ne 1 ]; then
       ./$EXEC 2>&1 | tee -a results.txt
     fi

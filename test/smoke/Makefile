@@ -88,6 +88,7 @@ TESTS_DIR = \
     hip_device_compile \
     hip_rocblas \
     host_targ \
+    host_teams_numa_affinity \
     icvars-nest \
     icvars-nestF \
     issue_flang_libomp \

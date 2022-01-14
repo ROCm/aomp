@@ -1,0 +1,50 @@
+include ../../Makefile.defs
+
+TESTNAME     = flang-flags-308205
+TESTSRC_MAIN = flang-flags-308205.f90
+TESTSRC_AUX  =
+TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
+
+FLANG        = flang
+OMP_BIN      = $(AOMP)/bin/$(FLANG)
+CC           = $(OMP_BIN) $(VERBOSE)
+
+file="options.txt"
+TESTNAMES_ALL = $(basename $(TESTSRC_ALL))
+
+all: $(TESTNAME)
+
+.PRECIOUS: %.o %.ll %.ll.s %.s %.s.o
+
+$(TESTNAME): $(TESTSRC_ALL)
+	@./run_options.sh $(AOMP_GPU)
+
+
+compile:
+ifdef nvidia_targets
+	$(CC) $(make_options) $(nvidia_targets) $(march) $(cuda) -o $(TESTNAME)
+else ifdef march
+	$(SETENV) $(CC) $(make_options) $(march) -o $(TESTNAME)
+else ifdef make_options
+	$(CC) $(make_options) -o $(TESTNAME)
+else
+	$(SETENV) $(CC) $(CFLAGS) $(EXTRA_CFLAGS) $(OMP_FLAGS) $(LINK_FLAGS) $(wordlist 2,$(words $^),$^) -o $(TESTNAME)
+endif
+
+run:
+	@./run_options.sh run $(AOMP_GPU) 2>&1 | tee $@.log
+
+#check: compile
+#	@path=`pwd`; \
+#	base=`basename $$path`; \
+#	if   (./$(TESTNAME)); then \
+#		echo $$base $$test_num return code: $$? >> ../check-smoke.txt; \
+#		echo "" >> ../check-smoke.txt; \
+#		echo $$base $$test_num  >> ../passing-tests.txt; \
+#	else  echo $$base $$test_num return code: $$? >> ../check-smoke.txt; \
+#		echo "" >> ../check-smoke.txt; \
+#		echo $$base $$test_num  >> ../failing-tests.txt; \
+#	fi
+
+clean::
+	rm -f $(TESTNAME) $(TESTNAME).a llbin sbin obin *.i *.ii *.bc *.lk a.out-* *.ll *.s *.o *.log *.cmdx *.cmod *.ilm *.stb

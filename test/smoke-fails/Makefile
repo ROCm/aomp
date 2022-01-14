@@ -18,6 +18,8 @@ TESTS_DIR = \
     closed_bug1 \
     complex-debug \
     const_global_ctor \
+    dominik-AD \
+    exp-303973 \
     flang-251450 \
     flang-272343-3 \
     flang-272534-2 \
@@ -37,6 +39,11 @@ TESTS_DIR = \
     flang-307433 \
     flang-307434 \
     flang-308205 \
+    flang-312148 \
+    flang-312594 \
+    flang-315455 \
+    flang-315870 \
+    flang-flags-308205 \
     flang_atomic_hint \
     flang_dev_write \
     flang-teams-gdb \
@@ -44,6 +51,7 @@ TESTS_DIR = \
     helloworld%n \
     lds-prob4 \
     lds-prob5 \
+    leopold-devicePtr \
     loop_order \
     nwchem-s1_1 \
     omp_loop \
@@ -51,8 +59,11 @@ TESTS_DIR = \
     requires_usm \
     targ_static \
     targc-273739 \
+    targc-generic \
+    targc-spmd \
     target_teams_reduction \
     tasks \
+    usm1 \
     veccopy-ompt-target
 
 all:

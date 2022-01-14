@@ -52,17 +52,15 @@ ifeq ($(shell expr $(VERS) \>= 12.0), 1)
   RPTH = -Wl,-rpath,$(AOMPHIP)/lib
 endif
 HIPFLAGS = -x hip $(PLATFORM) -O2 --offload-arch=$(AOMP_GPU) -lpthread -std=c++11 -lamdhip64  $(RPTH)
-OMP_TARGET_FLAGS = -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$(AOMP_GPU) --save-temps 
+OMP_TARGET_FLAGS = -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$(AOMP_GPU) --save-temps
 CC=$(AOMP)/bin/clang
 
 # ----- Demo compile and link in one step, no object code saved
 $(TESTNAME).exe: $(TESTNAME).$(FILETYPE)
 	$(CC) $(OMP_TARGET_FLAGS) test_omp.c -o test_omp.exe
 	test -f test_omp-host-x86_64-unknown-linux-gnu.o
-	test -f a.out-openmp-amdgcn-amd-amdhsa && \
-		cp a.out-openmp-amdgcn-amd-amdhsa a.out-openmp-amdgcn-amd-amdhsa-${AOMP_GPU} || \
-		cp a.out-openmp-amdgcn-amd-amdhsa-${AOMP_GPU} a.out-openmp-amdgcn-amd-amdhsa || \
-		cp a-${AOMP_GPU}.out-openmp-amdgcn-amd-amdhsa.out a.out-openmp-amdgcn-amd-amdhsa
+	cp a-${AOMP_GPU}.out-openmp-amdgcn-amd-amdhsa.out a.out-openmp-amdgcn-amd-amdhsa
+	test -f a.out-openmp-amdgcn-amd-amdhsa
 	DEVICE_LIB_PATH=$(DEVICE_LIB_PATH) $(AOMPHIP)/bin/hipcc -o hiplaunch.exe hiplaunch.cpp -fopenmp
 	#/opt/rocm/bin/hipcc -o hiplaunch.exe hiplaunch.c -fopenmp # this needs code-obj-v3 fix , ROCm 3.0 ???
 #	/work/hip-clang-bld/HIP/bin/hipcc -o hiplaunch.exe hiplaunch.c -fopenmp # this needs code-obj-v3 fix , ROCm 3.0 ???
@@ -76,4 +74,4 @@ run: $(TESTNAME).exe
 
 # Cleanup anything this makefile can create
 clean:
-	rm -f *.bc *.i *.o *.s test_omp.lk test_omp.exe hiplaunch.exe a.out-*
+	rm -f *.bc *.i *.o *.s test_omp.lk test_omp.exe hiplaunch.exe a.out-* a-*.out

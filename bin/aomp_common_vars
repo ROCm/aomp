@@ -80,6 +80,19 @@ if [ -f /usr/local/cmake/bin/cmake ] ; then
 else
   AOMP_CMAKE=${AOMP_CMAKE:-cmake}
 fi
+
+AOMP_USE_NINJA=${AOMP_USE_NINJA:-0}
+if [ "$AOMP_USE_NINJA" == 0 ] ; then
+  AOMP_NINJA_BIN="make"
+else
+  AOMP_NINJA_BIN=`which ninja`
+  if [ AOMP_NINJA_BIN == "" ] ; then
+    echo "ERROR: AOMP_USE_NINJA is $AOMP_USE_NINJA but no ninja bin found in PATH"
+    echo "       Either install ninja in PATH or set AOMP_USE_NINJA=0"
+    echo
+    exit 1
+  fi
+fi
 AOMP_PROC=`uname -m`
 if [ "$AOMP_PROC" == "unknown" ] ; then
    AOMP_PROC=`uname -a | awk '{print $(NF-1)}'`
@@ -379,7 +392,7 @@ function checkrepo(){
          if [ "$COBRANCH" == "master" ] ; then
            echo "EXIT:  Repository $REPO_DIR is on development branch: master"
            exit 1
-	 elif [[ "$COBRANCH" =~ $BRANCH_REEGEX ]] ; then
+	 elif [[ "$COBRANCH" =~ $BRANCH_REGEX ]] ; then
            echo "we have an override $REPO_DIR"
          else
            echo "ERROR:  The repository at $REPO_DIR is not on branch $REPO_BRANCH"

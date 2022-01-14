@@ -66,10 +66,10 @@ else
    standalone_word=""
 fi
 
-if [ ! -z $AOMP_USE_NINJA ] ; then
-    AOMP_SET_NINJA_GEN="-G Ninja"
-else
+if [ "$AOMP_USE_NINJA" == 0 ] ; then
     AOMP_SET_NINJA_GEN=""
+else
+    AOMP_SET_NINJA_GEN="-G Ninja"
 fi
 #  If offload-arch tool exists do not build amdgpu-arch
 if [ -d $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/llvm/lib/OffloadArch ] ; then 
