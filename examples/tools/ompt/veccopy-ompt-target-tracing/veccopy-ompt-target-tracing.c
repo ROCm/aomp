@@ -4,6 +4,8 @@
 
 #include "callbacks.h"
 
+// Calls to start/stop/flush_trace to be injected by the tool
+
 int main()
 {
   int N = 100000;
