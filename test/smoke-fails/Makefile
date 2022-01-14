@@ -17,7 +17,7 @@ TESTS_DIR = \
     clang_udel_saxpy \
     closed_bug1 \
     complex-debug \
-    const_global_ctor \
+    const_global_ctor-308039 \
     dominik-AD \
     exp-303973 \
     flang-251450 \
