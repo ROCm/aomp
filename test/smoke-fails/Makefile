@@ -10,6 +10,7 @@ TESTS_DIR = \
     clang-280954 \
     clang-284324 \
     clang-296953-ornla-38 \
+    clang-310865 \
     clang-gdb1 \
     clang_llnl-58 \
     clang_llnl-58-1 \
