@@ -127,6 +127,18 @@ int vecadd(long size, std::string label) {
 	a[it] = b[it]+c[it]+d[it]+e[it]+f[it]+g[it]+h[it]+
 	  i[it]+j[it]+k[it]+l[it]+m[it]+n[it]+o[it]+p[it]+
 	  q[it]+r[it]+s[it]+t[it];
+      if(is >= 4)  {
+	string tgtLab = label+" target it = "+to_string(is);
+	stopwatch.checkpoint(tgtLab.c_str());
+      }
+      // check results after each kernel
+      int tmp_rc = 0;
+      for (long it = 0; it < size; it++)
+	if (a[it] != (double)(19*it)) {
+	  tmp_rc++;
+	  printf ("Wrong varlue: a[%ld]=%lf (exp: %lf)\n", it, a[it], (double)(19*it));
+	  if (tmp_rc > 10) return tmp_rc;
+	}
   }
   string tgtLab = label+" Target";
   stopwatch.checkpoint(tgtLab.c_str());

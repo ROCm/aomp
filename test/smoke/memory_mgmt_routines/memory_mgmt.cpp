@@ -159,9 +159,10 @@ void test_allocation_routines(omp_allocator_handle_t allocator) {
   target_region_init_and_check(a, N);
   omp_free(a, allocator);
 
-  // OMP 5.1 call not yet available in openmp runtime
-  //int *a_align = (int *)omp_aligned_alloc(ALIGN, N*sizeof(int), allocator);
-  //omp_free(a_align, allocator);
+  int *a_align = (int *)omp_aligned_alloc(ALIGN, N*sizeof(int), allocator);
+  check_alloc(a_align, "omp_aligned_alloc");
+  target_region_init_and_check(a_align, N);
+  omp_free(a_align, allocator);
 
   int *a_calloc = (int *)omp_calloc(N, sizeof(int), allocator);
   check_alloc(a_calloc, "omp_calloc");
@@ -169,8 +170,8 @@ void test_allocation_routines(omp_allocator_handle_t allocator) {
   omp_free(a_calloc, allocator);
 
   // OMP 5.1 call not yet available in openmp runtime
-  //int *a_aligned_calloc = (int *)omp_aligned_calloc(ALIGN, N*sizeof(int), allocator);
-  //omp_free(a_aligned_calloc, allocator);
+  // int *a_aligned_calloc = (int *)omp_aligned_calloc(ALIGN, N*sizeof(int), allocator);
+  // omp_free(a_aligned_calloc, allocator);
 
   // OMP 5.1 call not yet available in openmp runtime
   int *a_realloc = (int *)omp_alloc(N*sizeof(int), allocator);
