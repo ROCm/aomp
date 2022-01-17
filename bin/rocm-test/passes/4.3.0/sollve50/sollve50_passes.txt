@@ -115,7 +115,6 @@ test_taskloop_in_reduction.c
 test_taskloop_reduction.c
 test_taskloop_simd_in_reduction.c
 test_taskloop_simd_reduction.c
-test_taskwait_depend.c
 test_team_default_shared.c
 test_team_default_shared.F90
 test_teams.c
