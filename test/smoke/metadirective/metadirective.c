@@ -79,6 +79,25 @@ int check_device_arch_x86_64_selector() {
   return 1;
 }
 
+int check_device_isa_feature_selector() {
+  int threadCount = 0;
+
+  #pragma omp target map(tofrom: threadCount)
+  {
+    #pragma omp metadirective          \
+      when(device = {isa("flat-address-space")}: parallel) \
+      default(single)
+
+    threadCount = omp_get_num_threads();
+  }
+
+  if (threadCount != GPU_THREAD_COUNT) {
+    printf("Failed metadirective: device_isa_feature_selector\n");
+    return 0;
+  }
+  return 1;
+}
+
 int check_implementation_vendor_selector() {
   int threadCount = 0;
 
@@ -183,6 +202,7 @@ int main(void) {
       !check_device_kind_cpu_selector() ||
       !check_device_arch_amdgcn_selector() ||
       !check_device_arch_x86_64_selector() ||
+      !check_device_isa_feature_selector() ||
       !check_implementation_vendor_selector() ||
       !check_scoring() ||
       !check_extension_match_any() ||
