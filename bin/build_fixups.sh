@@ -39,6 +39,18 @@ fi
 echo $SUDO cp -rp $AOMP_REPOS/$AOMP_REPO_NAME/examples $AOMP
 $SUDO cp -rp $AOMP_REPOS/$AOMP_REPO_NAME/examples $AOMP
 
+if [ "$AOMP_STANDALONE_BUILD" == 1 ] ; then
+  # Licenses
+  echo mkdir -p $AOMP/share/doc/aomp
+  mkdir -p $AOMP/share/doc/aomp
+  echo $SUDO cp $AOMP_REPOS/$AOMP_REPO_NAME/LICENSE $AOMP/share/doc/aomp/LICENSE.apache2
+  $SUDO cp $AOMP_REPOS/$AOMP_REPO_NAME/LICENSE $AOMP/share/doc/aomp/LICENSE.apache2
+  echo $SUDO cp $AOMP_REPOS/$AOMP_EXTRAS_REPO_NAME/LICENSE $AOMP/share/doc/aomp/LICENSE.mit
+  $SUDO cp $AOMP_REPOS/$AOMP_EXTRAS_REPO_NAME/LICENSE $AOMP/share/doc/aomp/LICENSE.mit
+  echo $SUDO cp $AOMP_REPOS/$AOMP_FLANG_REPO_NAME/LICENSE.txt $AOMP/share/doc/aomp/LICENSE.flang
+  $SUDO cp $AOMP_REPOS/$AOMP_FLANG_REPO_NAME/LICENSE.txt $AOMP/share/doc/aomp/LICENSE.flang
+fi
+
 echo Cleaning AOMP Directory...
 #examples
 $SUDO rm -f $AOMP/examples/hip/*.txt

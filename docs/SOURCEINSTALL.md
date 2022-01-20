@@ -1,4 +1,4 @@
-# Source Install V 14.0-0
+# Source Install V 14.0-1
 
 Build and install from sources is possible.  However, the source build for AOMP is complex for several reasons.
 - Many repos are required.
@@ -43,7 +43,7 @@ Here are the commands to do a source build of AOMP:
 
 <b>Release Branch:</b>
 ```
-   git clone -b aomp-14.0-0 https://github.com/ROCm-Developer-Tools/aomp
+   git clone -b aomp-14.0-1 https://github.com/ROCm-Developer-Tools/aomp
 ```
 <b>Clone and build:</b>
 ```
@@ -88,12 +88,12 @@ MANIFEST FILE: /work/grodgers/git/aomp14.0/aomp/bin/../manifests/aomp_14.0.xml
 <b>To build a previous release of AOMP:</b>
 
 The development version is the next version to be released.  It is possible that the development version is broken due to regressions that often occur during development.
-These commands will build a previous release of AOMP such as aomop-13.0-6.
+These commands will build a previous release of AOMP such as aomop-14.0-0.
 ```
    cd $AOMP_REPOS/aomp/bin
-   export AOMP_VERSION=13.0
+   export AOMP_VERSION=14.0
    export AOMP_REPOS=$HOME/git/aomp${AOMP_VERSION}
-   git checkout aomp-13.0-6
+   git checkout aomp-14.0-0
    git pull
    export AOMP_CHECK_GIT_BRANCH=0 //Tags will be used to checkout various repos. This will ignore the detached head state to avoid build errors.
    ./clone_aomp.sh

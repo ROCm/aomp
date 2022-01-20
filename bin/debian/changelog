@@ -667,5 +667,7 @@ aomp (14.0-0) UNRELEASED; urgency=medium
   *   Miniqmc, Kokkos, Raja fail to build.
   *   Non-deterministic failures in qmcpack deterministic tests.
   *   Possible incorrect linking of libclang-cpp.so in the build of libomptarget.so.
+  *
+  *  14.0-1
 
  -- Greg Rodgers <Gregory.Rodgers@amd.com>  Sun, 14 Nov 2021 21:58:08 -0600

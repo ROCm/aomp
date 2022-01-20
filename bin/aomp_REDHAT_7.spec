@@ -4,7 +4,7 @@ Version: __VERSION1
 Release: __VERSION3_MOD 
 Source: ~/rpm/SOURCES/aomp_REDHAT_7.tar.gz
 URL: https://github.com/ROCm-Developer-Tools/aomp
-License: NCSA
+License: MIT and ASL 2.0
 Group: System/Base
 Vendor: AMD
 
