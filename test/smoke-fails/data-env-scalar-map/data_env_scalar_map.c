@@ -25,6 +25,7 @@ main(int argc, char *argv[], char **envp)
     printf("ON GPU: exit from = %d, tofrom = %d\n", from, tofrom); 
   }
 
+  // This should print ON HOST after: from = 5, tofrom = 5
   printf("ON HOST after: from = %d, tofrom = %d\n", from, tofrom);
 
   return 0;
