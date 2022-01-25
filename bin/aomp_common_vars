@@ -181,6 +181,7 @@ GITGERRIT="ssh://$USER@gerrit-git.amd.com:29418"
 GITROCDEV="https://github.com/ROCm-Developer-Tools"
 GITROCLIB="https://github.com/AMDComputeLibraries"
 GITKHRONOS="https://github.com/KhronosGroup"
+GITHWLOC="https://github.com/open-mpi"
 AOMP_GIT_INTERNAL_IP="gerrit-git.amd.com"
 if [ "$AOMP_MAJOR_VERSION" == "12" ] ; then
   ping -c 1 $AOMP_GIT_INTERNAL_IP 2> /dev/null
