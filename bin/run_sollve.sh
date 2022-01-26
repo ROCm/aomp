@@ -96,6 +96,13 @@ else
      echo "       rm $AOMP_REPOS_TEST/$AOMP_SOLVV_REPO_NAME/bin/${single_case}.o"
      rm $AOMP_REPOS_TEST/$AOMP_SOLVV_REPO_NAME/bin/${single_case}.o
   fi
+  if [ $this_omp_version == "5.0" ] ; then
+     export MY_SOLLVE_FLAGS="$MY_SOLLVE_FLAGS -fopenmp-version=50"
+  elif [ $this_omp_version == "5.1" ] ; then
+     export MY_SOLLVE_FLAGS="$MY_SOLLVE_FLAGS -fopenmp-version=51"
+  elif [ $this_omp_version == "4.5" ] ; then
+     export MY_SOLLVE_FLAGS="$MY_SOLLVE_FLAGS -fopenmp-version=45"
+  fi
   echo "       The full make command:"
   echo " make CC=$AOMP/bin/clang CXX=$AOMP/bin/clang++ FC=$AOMP/bin/flang CFLAGS="-lm $MY_SOLLVE_FLAGS" CXXFLAGS="$MY_SOLLVE_FLAGS" FFLAGS="$MY_SOLLVE_FLAGS" LOG=1 LOG_ALL=1 VERBOSE_TESTS=1 VERBOSE=1 OMP_VERSION=$this_omp_version SOURCES=$single_case all"
 make CC=$AOMP/bin/clang CXX=$AOMP/bin/clang++ FC=$AOMP/bin/flang CFLAGS="-lm $MY_SOLLVE_FLAGS" CXXFLAGS="$MY_SOLLVE_FLAGS" FFLAGS="$MY_SOLLVE_FLAGS" LOG=1 LOG_ALL=1 VERBOSE_TESTS=1 VERBOSE=1 OMP_VERSION=$this_omp_version SOURCES=$single_case all
