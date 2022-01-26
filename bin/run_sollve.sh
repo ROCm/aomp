@@ -29,6 +29,24 @@ thisdir=$(getdname $0)
 [ ! -L "$0" ] || thisdir=$(getdname `readlink "$0"`)
 . $thisdir/aomp_common_vars
 # --- end standard header ----
+single_case=$1
+if [ $single_case ] ;then
+  # escape periods for grep command
+  grep_filename=`echo $single_case | sed -e 's/\./\\\./g'`
+  count=`find $AOMP_REPOS_TEST/$AOMP_SOLVV_REPO_NAME/tests -type f | grep "$grep_filename" | wc -l`
+  if [ $count != 1 ] ; then
+    echo "ERROR: Trying to run a single SOLLVE_VV test case:'$single_case'"
+    echo "       A single unique file could not be found in $AOMP_REPOS_TEST/$AOMP_SOLVV_REPO_NAME/tests"
+    echo "       with the filename name $single_case"
+    echo "       For example, try this command:"
+    echo "         $0 test_target_teams_distribute_parallel_for.c"
+    exit 1
+  fi
+  # This will get a single valid filename for SOURCES= arg on make command below.
+  testsrc=`find	$AOMP_REPOS_TEST/$AOMP_SOLVV_REPO_NAME/tests -type f | grep "$grep_filename"`
+else
+  make_target="all"
+fi
 
 if [ "$ROCMASTER" == "1" ] || [ "$EPSDB" == "1" ]; then
   ./clone_aomp_test.sh
@@ -54,14 +72,43 @@ export MY_SOLLVE_FLAGS="-fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-tar
 
 pushd $AOMP_REPOS_TEST/$AOMP_SOLVV_REPO_NAME
 
+if [ "$make_target" == "all" ] ; then
 rm -rf results_report45
 rm -rf results_report50
 rm -rf combined-results.txt
 
 make tidy
+fi
 
 # Run OpenMP 4.5 Tests
+if [ "$make_target" == "all" ] ; then
 make CC=$AOMP/bin/clang CXX=$AOMP/bin/clang++ FC=$AOMP/bin/flang CFLAGS="-lm $MY_SOLLVE_FLAGS" CXXFLAGS="$MY_SOLLVE_FLAGS" FFLAGS="$MY_SOLLVE_FLAGS" LOG=1 LOG_ALL=1 VERBOSE_TESTS=1 VERBOSE=1 all
+else
+  echo
+  echo "START: Single SOLLVE_VV test case: $single_case"
+  if [ -f $AOMP_REPOS_TEST/$AOMP_SOLVV_REPO_NAME/bin/${single_case}.o ] ; then
+     echo "       rm $AOMP_REPOS_TEST/$AOMP_SOLVV_REPO_NAME/bin/${single_case}.o"
+     rm $AOMP_REPOS_TEST/$AOMP_SOLVV_REPO_NAME/bin/${single_case}.o
+  fi
+  echo "       The full make command:"
+  echo " make CC=$AOMP/bin/clang CXX=$AOMP/bin/clang++ FC=$AOMP/bin/flang CFLAGS="-lm $MY_SOLLVE_FLAGS" CXXFLAGS="$MY_SOLLVE_FLAGS" FFLAGS="$MY_SOLLVE_FLAGS" LOG=1 LOG_ALL=1 VERBOSE_TESTS=1 VERBOSE=1 SOURCES="$testsrc" all"
+  make CC=$AOMP/bin/clang CXX=$AOMP/bin/clang++ FC=$AOMP/bin/flang CFLAGS="-lm $MY_SOLLVE_FLAGS" CXXFLAGS="$MY_SOLLVE_FLAGS" FFLAGS="$MY_SOLLVE_FLAGS" LOG=1 LOG_ALL=1 VERBOSE_TESTS=1 VERBOSE=1 SOURCES="$testsrc" all
+  rc=$?
+  echo
+  echo "DONE:  Single SOLLVE_VV test case: $single_case"
+  echo "       Source file:  $testsrc"
+  echo "       make rc: $rc"
+  if [ -f $AOMP_REPOS_TEST/$AOMP_SOLVV_REPO_NAME/bin/${single_case}.o ] ; then
+     echo "       Binary $AOMP_REPOS_TEST/$AOMP_SOLVV_REPO_NAME/bin/${single_case}.o exists!"
+     echo "       If compile worked, you may rerun the binary with this command:"
+     echo " $AOMP_REPOS_TEST/$AOMP_SOLVV_REPO_NAME/bin/${single_case}.o"
+  else
+     echo "       Expected binary $AOMP_REPOS_TEST/$AOMP_SOLVV_REPO_NAME/bin/${single_case}.o does NOT exists!"
+  fi
+  echo
+  popd
+  exit $rc
+fi
 
 echo "--------------------------- OMP 4.5 Results ---------------------------" >> combined-results.txt
 echo "--------------------------- OMP 4.5 Results ---------------------------" > abrev.combined-results.txt
