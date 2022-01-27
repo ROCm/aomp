@@ -36,6 +36,7 @@ extern_init
 famd-opt-279975
 firstprivate
 firstprivate2
+flags 1
 flags 2
 flags 3
 flags 4
@@ -162,6 +163,7 @@ reduction_array
 reduction_array_section
 reduction_issue_16
 reduction_shared_array
+reduction_teams
 reduction_teams_distribute_parallel
 schedule
 simd
