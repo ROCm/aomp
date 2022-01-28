@@ -78,7 +78,7 @@ if [ "$1" != "noconfigure" ] && [ "$1" != "install" ] ; then
    echo "Use ""$0 noconfigure"" or ""$0 install"" to avoid FRESH START."
    echo rm -rf $BUILD_AOMP/build/hwloc
    rm -rf $BUILD_AOMP/build/hwloc
-   MYCONFIGOPTS="--prefix=$AOMP_INSTALL_DIR --srcdir=$AOMP_REPOS/hwloc"
+   MYCONFIGOPTS="--prefix=$AOMP_INSTALL_DIR --srcdir=$AOMP_REPOS/hwloc --with-pic=yes --enable-static=yes --enable-shared=no --disable-io --disable-libudev --disable-libxml2 --with-rocm=$AOMP_INSTALL_DIR"
    mkdir -p $BUILD_AOMP/build/hwloc
    cd $BUILD_AOMP/build/hwloc
    echo

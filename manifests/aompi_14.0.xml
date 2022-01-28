@@ -29,5 +29,6 @@
 <project remote="roc" path="rocm-cmake" name="rocm-cmake"                     revision="release/rocm-rel-4.5" groups="unlocked" />
 <project remote="roc" path="rocr-runtime" name="ROCR-Runtime"                 revision="rocm-4.5.x" groups="unlocked" />
 <project remote="roc" path="roct-thunk-interface" name="ROCT-Thunk-Interface" revision="roc-4.5.x" groups="unlocked" />
+<project remote="roc" path="rocm_smi_lib" name="rocm_smi_lib"                 revision="roc-4.5.x" groups="unlocked" />
 <project remote="hwloc" path="hwloc" name="hwloc" revision="v2.7" groups="unlocked" />
 </manifest>
