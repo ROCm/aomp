@@ -95,7 +95,7 @@ date
 echo " =================  START build_aomp.sh ==================="   
 echo 
 if [ "$AOMP_STANDALONE_BUILD" == 1 ] ; then
-  components="roct rocr project libdevice openmp extras comgr rocminfo"
+  components="roct rocr project libdevice rocm_smi_lib hwloc openmp extras comgr rocminfo"
   if [ $AOMP_MAJOR_VERSION -gt 13 ] ; then
      components="rocm-cmake $components"
   fi

@@ -134,6 +134,8 @@ function list_repo_from_manifest(){
         manifest_project=`echo ROCM-Developer-Tools/$REPO_PROJECT | tr '[:upper:]' '[:lower:]'`
    elif [[ "$REPO_REMOTE" == "gerritgit" ]] ; then
         manifest_project=`echo $REPO_PROJECT | tr '[:upper:]' '[:lower:]'`
+   elif [[ "$REPO_REMOTE" == "hwloc" ]] ; then
+        manifest_project=`echo open-mpi/$REPO_PROJECT | tr '[:upper:]' '[:lower:]'`
    else
         manifest_project=`echo $REPO_REMOTE/$REPO_PROJECT | tr '[:upper:]' '[:lower:]'`
    fi
@@ -227,6 +229,8 @@ if [[ "$AOMP_VERSION" == "13.1" ]] || [[ $AOMP_MAJOR_VERSION -gt 13 ]] ; then
          repo_web_location=$GITROCDEV
       elif [ "$remote" == "gerritgit" ] ; then
          repo_web_location=$GITGERRIT
+      elif [ "$remote" == "hwloc" ] ; then
+         repo_web_location=$GITHWLOC
       else
          line_is_good=0
       fi

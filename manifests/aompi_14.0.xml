@@ -6,6 +6,7 @@
     <default revision="release/rocm-rel-4.5" remote="gerritgit" sync-j="4" sync-c="true" />
     <remote name="roctools"  fetch="https://github.com/ROCm-Developer-Tools/" />
     <remote name="roc"  fetch="https://github.com/RadeonOpenCompute/" />
+    <remote name="hwloc" fetch="https://github.com/open-mpi/" />
 
 <!-- These first 6 repos are NOT rocm4.5 because this build is for the ROCm 4.5 AFAR compiler -->
 <project remote="gerritgit" path="llvm-project" name="lightning/ec/llvm-project"    revision="amd-stg-open" groups="unlocked" />
@@ -28,4 +29,6 @@
 <project remote="roc" path="rocm-cmake" name="rocm-cmake"                     revision="release/rocm-rel-4.5" groups="unlocked" />
 <project remote="roc" path="rocr-runtime" name="ROCR-Runtime"                 revision="rocm-4.5.x" groups="unlocked" />
 <project remote="roc" path="roct-thunk-interface" name="ROCT-Thunk-Interface" revision="roc-4.5.x" groups="unlocked" />
+<project remote="roc" path="rocm_smi_lib" name="rocm_smi_lib"                 revision="roc-4.5.x" groups="unlocked" />
+<project remote="hwloc" path="hwloc" name="hwloc" revision="v2.7" groups="unlocked" />
 </manifest>
