@@ -61,6 +61,7 @@ TESTS_DIR = \
     loop_order \
     nwchem-s1_1 \
     omp_loop \
+    omp_places \
     requires_directive \
     requires_usm \
     targ_static \
