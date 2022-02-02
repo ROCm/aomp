@@ -49,6 +49,8 @@ TESTS_DIR = \
     flang-315870 \
     flang-319356 \
     flang-320332 \
+    flang-321277 \
+    flang-321277-2 \
     flang-flags-308205 \
     flang_atomic_hint \
     flang_dev_write \
