@@ -16,7 +16,11 @@ set -x
 # in lots of tests. This set to 0, disables the new TMM.
 #export LIBOMPTARGET_MEMORY_MANAGER_THRESHOLD=0
 
-export AOMPROCM=$AOMP/..
+if [ -f $AOMP/bin/rocm_agent_enumerator ] ; then
+   export AOMPROCM=$AOMP
+else
+   export AOMPROCM=$AOMP/..
+fi
 
 
 # Try using rocm_agent_enumerator for device id.
