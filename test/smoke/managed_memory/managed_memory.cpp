@@ -24,7 +24,6 @@ int main() {
 
   omp_allocator_handle_t managed_allocator = omp_init_allocator(managed_memory, 0, {});
 
-  #if 0
   double *a = (double *)omp_alloc(n*sizeof(double), managed_allocator);
 
   #pragma omp target teams distribute parallel for map(to:a)
@@ -42,7 +41,6 @@ int main() {
     double b[100];
     #pragma omp allocate(b) allocator(managed_allocator)
     double *b_p = &(b[0]);
-    printf("b = %p\n", b);
     #pragma omp target teams distribute parallel for map(to:b_p)
     for(int i = 0; i < 100; i++) {
       b_p[i] = (double)i;
@@ -51,20 +49,19 @@ int main() {
     err = check_res(b, 100);
     if (err) return err;
   }
-  #endif
   
   // the following is stacktracing, taking it off for now
-  //#if 0
+  #if 0
   omp_alloctrait_t tt[] = {{omp_atk_alignment,16}};
   double c[100];
   //#pragma omp target teams distribute parallel for uses_allocators(managed_allocator(tt)) allocate(managed_allocator: c) firstprivate(c)
-  #pragma omp target teams distribute parallel for uses_allocators() allocate(managed_allocator: c) firstprivate(c)
+  #pragma omp target teams distribute parallel for uses_allocators(managed_allocator(tt)) allocate(managed_allocator: c) firstprivate(c)
   for(int i = 0; i < 100; i++) {
     c[i] = i;
   }
 
   err = check_res(c, n);
-  //#endif
+  #endif
 
   return err;
 }
