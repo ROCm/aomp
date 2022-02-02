@@ -66,6 +66,7 @@ sed -n -e '/---- Results ---/,$p' smoke-fails.log
 
 echo "====== smoke ======="
 cd $aompdir/test/smoke
+rm -rf flang-274983*
 EPSDB=1 OMP_TARGET_OFFLOAD=MANDATORY ./check_smoke.sh > smoke.log 2>&1
 
 echo "Temporary log dump"
