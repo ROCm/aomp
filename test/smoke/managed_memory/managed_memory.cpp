@@ -49,7 +49,7 @@ int main() {
     err = check_res(b, 100);
     if (err) return err;
   }
-  
+
   // the following is stacktracing, taking it off for now
   #if 0
   omp_alloctrait_t tt[] = {{omp_atk_alignment,16}};
