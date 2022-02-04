@@ -16,8 +16,8 @@ int check_res(double * v, int n) {
 }
 
 int main() {
-  int devnums = 2;
-  int devids[] = {0,1};
+  int devnums = 3;
+  int devids[] = {0,1, omp_get_initial_device()};
   int n = N;
   int err = 0;
   omp_memspace_handle_t managed_memory = omp_get_memory_space(devnums, devids, llvm_omp_target_shared_mem_space);
@@ -26,7 +26,13 @@ int main() {
 
   double *a = (double *)omp_alloc(n*sizeof(double), managed_allocator);
 
-  #pragma omp target teams distribute parallel for map(to:a)
+  if (!a) {
+    // managed memory not supported on current system
+    printf("Managed memory not supported on current system\n");
+    return 0;
+  }
+
+  #pragma omp target teams distribute parallel for map(to:a) device(1)
   for(int i = 0; i < N; i++) {
     a[i] = (double)i;
   }
@@ -54,8 +60,8 @@ int main() {
   #if 0
   omp_alloctrait_t tt[] = {{omp_atk_alignment,16}};
   double c[100];
-  //#pragma omp target teams distribute parallel for uses_allocators(managed_allocator(tt)) allocate(managed_allocator: c) firstprivate(c)
   #pragma omp target teams distribute parallel for uses_allocators(managed_allocator(tt)) allocate(managed_allocator: c) firstprivate(c)
+  //  #pragma omp target teams distribute parallel for uses_allocators() allocate(managed_allocator: c) firstprivate(c)
   for(int i = 0; i < 100; i++) {
     c[i] = i;
   }
