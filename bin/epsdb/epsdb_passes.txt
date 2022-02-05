@@ -159,7 +159,6 @@ reduction
 reduction_array
 reduction_array_section
 reduction_issue_16
-reduction_shared_array
 reduction_teams
 reduction_teams_distribute_parallel
 schedule
