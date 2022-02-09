@@ -75,7 +75,6 @@ test_target_device.c
 test_target_imperfect_loop.c
 test_target_map_classes_default.cpp
 test_target_mapping_before_alloc.c
-test_target_mapping_before_delete.F90
 test_target_map_with_close_modifier.c
 test_target_parallel_for_notequals.c
 test_target_simd_if.c
