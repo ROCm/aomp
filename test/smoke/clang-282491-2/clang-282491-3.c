@@ -13,7 +13,7 @@ int main(){
     myvec_t s;
     s.data = (double *)calloc(N,sizeof(double));
     s.len = N;
-    #pragma omp target map(s, s.data[:s.len])
+    #pragma omp target map(alloc:s) map(to:s.len) map(tofrom:s.data[:s.len])
     init(&s);
     
     printf("s.data[%d]=%lf\n",N-1,s.data[N-1]);

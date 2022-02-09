@@ -7,7 +7,7 @@ typedef struct myvec{
 } myvec_t;
 
 #pragma omp declare mapper(myvec_t v) \
-    map(v, v.data[0:v.len])
+  map(alloc:v) map(to:v.len) map(tofrom:v.data[0:v.len])
 void init(myvec_t *s);
 
 int main(){
