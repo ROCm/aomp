@@ -160,7 +160,7 @@ $AOMP_ORIGIN_RPATH \
 -DLIBOMP_CPPFLAGS='-O0' \
 -DLIBOMP_OMPD_SUPPORT=ON \
 -DLIBOMP_OMPT_DEBUG=ON \
--DCMAKE_CXX_FLAGS=-g -DCMAKE_C_FLAGS=-g \
+-DCMAKE_CXX_FLAGS="-g -I$AOMP_INSTALL_DIR/include" -DCMAKE_C_FLAGS=-g \
 -DOPENMP_SOURCE_DEBUG_MAP="\""-fdebug-prefix-map=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp=$AOMP_INSTALL_DIR/lib-debug/src/openmp"\"" "
 
       # The 'pip install --system' command is not supported on non-debian systems. This will disable
