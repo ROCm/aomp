@@ -110,10 +110,14 @@ function list_repo_from_manifest(){
    # get the actual branch
    actual_branch=`git branch | awk '/\*/ { print $2; }'`
    WARNWORD=""
-   if [ "$actual_branch" == "(no" ] || [ "$actual_branch" == "(HEAD" ] ; then
+   if [ "$actual_branch" == "(no" ] || [ "$actual_branch" == "(HEAD" ] || [ "$actual_branch" == "(detached" ] ; then
       is_hash=1
       WARNWORD="hash"
       actual_hash=`git branch | awk '/\*/ { print $5; }' | cut -d")" -f1`
+      # RHEL 7 'git branch' returns (detached from 123456), try to get hash again.
+      if [ "$actual_hash" == "" ] ; then
+        actual_hash=`git branch | awk '/\*/ { print $4; }' | cut -d")" -f1`
+      fi
       if [ "$actual_hash" != "$HASH" ] ; then
           WARNWORD="!BADHASH"
       fi

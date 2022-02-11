@@ -148,7 +148,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    if [ "$AOMP_BUILD_DEBUG" == "1" ] ; then
       echo rm -rf $BUILD_DIR/build/openmp_debug
       rm -rf $BUILD_DIR/build/openmp_debug
-      
+
       MYCMAKEOPTS="$COMMON_CMAKE_OPTS \
 -DLIBOMPTARGET_NVPTX_DEBUG=ON \
 -DCMAKE_BUILD_TYPE=Debug \
@@ -160,7 +160,7 @@ $AOMP_ORIGIN_RPATH \
 -DLIBOMP_CPPFLAGS='-O0' \
 -DLIBOMP_OMPD_SUPPORT=ON \
 -DLIBOMP_OMPT_DEBUG=ON \
--DCMAKE_CXX_FLAGS=-g -DCMAKE_C_FLAGS=-g \
+-DCMAKE_C_FLAGS=-g \
 -DOPENMP_SOURCE_DEBUG_MAP="\""-fdebug-prefix-map=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp=$AOMP_INSTALL_DIR/lib-debug/src/openmp"\"" "
 
       # The 'pip install --system' command is not supported on non-debian systems. This will disable
@@ -181,8 +181,8 @@ $AOMP_ORIGIN_RPATH \
       cd $BUILD_DIR/build/openmp_debug
       echo
       echo " -----Running openmp cmake for debug ---- " 
-      echo ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
-      ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
+      echo ${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_CXX_FLAGS="-g -I$AOMP_INSTALL_DIR/include" $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
+      ${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_CXX_FLAGS="-g -I$AOMP_INSTALL_DIR/include" $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
       if [ $? != 0 ] ; then 
          echo "ERROR openmp debug cmake failed. Cmake flags"
          echo "      $MYCMAKEOPTS"
