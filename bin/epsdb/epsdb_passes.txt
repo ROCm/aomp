@@ -1,5 +1,4 @@
 alignedattribute
-ancestorC
 atomic
 atomic_double
 atomic_vs_reduction
