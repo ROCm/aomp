@@ -2,8 +2,10 @@
 #include <omp.h>
 
 //  This smoke test has shows two problems.
-//  The first is compile fail when the subtype has a smaller size than
-//  the actual type.
+//  The first is compile fail when the subtype has a smaller size than 4 bytes
+//  That is both char and short fail. We need to generate compile fail
+//  for amdgcn when atomic type is char or short  OR use a temp 4 byte
+//  value,  which may not be atomic.
 //
 //  The 2nd problem is a runtime fail.  num_threads(64) has no control over
 //  actual number of threads when the default thread limit is 256.
