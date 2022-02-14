@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <manifest>
-  <!-- Manifest for AOMP 14.0-x which uses ROCM 5.0 release branches of external reositories -->
+  <!-- Manifest for AOMP 15.0-x which uses ROCM 5.0 release branches of external reositories -->
 
     <remote name="gerritgit" review="git.amd.com:8080" fetch="ssh://gerritgit/" />
     <default revision="release/rocm-rel-5.0" remote="gerritgit" sync-j="4" sync-c="true" />
@@ -8,10 +8,10 @@
     <remote name="roc"  fetch="https://github.com/RadeonOpenCompute/" />
 
 <!-- These first 6 repos are NOT rocm5.0 because this build is for the ROCm 5.0 AFAR compiler -->
-    <project remote="roc" path="llvm-project" name="llvm-project" revision="amd-stg-open" groups="unlocked" />
+    <project remote="gerritgit" path="llvm-project" name="llvm-project" revision="amd-stg-open" groups="unlocked" />
 
-    <project remote="roc" path="rocm-compilersupport" name="ROCm-CompilerSupport" upstream="amd-stg-open" revision="616915650763f5d49ae66b4c11556a47821b9204" groups="revlocked" />
-    <project remote="roc" path="rocm-device-libs" name="ROCm-Device-Libs"         upstream="amd-stg-open" revision="ff17b354e3c0c8182f85799f3d012077a59e7eef" groups="revlocked" />
+    <project remote="roc" path="rocm-compilersupport" name="ROCm-CompilerSupport" revision="amd-stg-open" groups="unlocked" />
+    <project remote="roc" path="rocm-device-libs" name="ROCm-Device-Libs"         revision="amd-stg-open" groups="unlocked" />
 
     <project remote="roctools" path="flang" name="flang"               revision="aomp-dev" groups="unlocked" />
     <project remote="roctools" path="aomp-extras" name="aomp-extras"   revision="aomp-dev" groups="unlocked" />
