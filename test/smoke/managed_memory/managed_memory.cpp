@@ -40,7 +40,7 @@ int main() {
     return 0;
   }
 
-  #pragma omp target teams distribute parallel for map(to:a) device(1)
+  #pragma omp target teams distribute parallel for is_device_ptr(a) device(1)
   for(int i = 0; i < N; i++) {
     a[i] = (double)i;
   }
@@ -55,7 +55,7 @@ int main() {
     double b[100];
     #pragma omp allocate(b) allocator(managed_allocator)
     double *b_p = &(b[0]);
-    #pragma omp target teams distribute parallel for map(to:b_p)
+    #pragma omp target teams distribute parallel for is_device_ptr(b_p)
     for(int i = 0; i < 100; i++) {
       b_p[i] = (double)i;
     }
