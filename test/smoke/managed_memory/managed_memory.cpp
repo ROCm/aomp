@@ -19,7 +19,10 @@ int main() {
   int max_devs = omp_get_num_devices();
 
   // not enough devices for testing?
-  if (max_devs < 2) return 0;
+  if (max_devs < 2) {
+    printf("Not enough devices: exiting with success, but not tested\n");
+    return 0;
+  }
 
   int devnums = 3;
   int devids[] = {0,1, omp_get_initial_device()};
