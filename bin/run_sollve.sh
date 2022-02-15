@@ -50,11 +50,19 @@ else
   make_target="all"
 fi
 
+export CXX_VERSION=""
+export C_VERSION=""
+export F_VERSION=""
+
 if [ "$ROCMASTER" == "1" ] || [ "$EPSDB" == "1" ]; then
   ./clone_aomp_test.sh
   pushd $AOMP_REPOS_TEST/$AOMP_SOLVV_REPO_NAME
     # Lock at specific hash for consistency
     git reset --hard 0fbdbb9f7d3b708eb0b5458884cfbab25103d387
+  popd
+else
+  pushd $AOMP_REPOS_TEST/$AOMP_SOLVV_REPO_NAME
+  git pull
   popd
 fi
 
@@ -69,22 +77,29 @@ AOMP=${AOMP:-/usr/lib/aomp}
 
 # Use function to set and test AOMP_GPU
 setaompgpu
+if [ "${AOMP_GPU:0:3}" == "sm_" ] ; then
+  triple="nvptx64"
+else
+  triple="amdgcn-amd-amdhsa"
+fi
 
-export MY_SOLLVE_FLAGS="-fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$AOMP_GPU"
+export MY_SOLLVE_FLAGS="-fopenmp -fopenmp-targets=$triple -Xopenmp-target=$triple -march=$AOMP_GPU"
 
 pushd $AOMP_REPOS_TEST/$AOMP_SOLVV_REPO_NAME
 
 if [ "$make_target" == "all" ] ; then
-rm -rf results_report45
-rm -rf results_report50
-rm -rf combined-results.txt
-
-make tidy
+   [ -f results_report45 ] && rm -rf results_report45
+   [ -f results_report50 ] && rm -rf results_report50
+   [ -f results_report51 ] && rm -rf results_report51
+   [ -f combined-results.txt ] && rm -rf combined-results.txt
+   make tidy
 fi
 
 # Run OpenMP 4.5 Tests
 if [ "$make_target" == "all" ] ; then
-make CC=$AOMP/bin/clang CXX=$AOMP/bin/clang++ FC=$AOMP/bin/flang CFLAGS="-lm $MY_SOLLVE_FLAGS" CXXFLAGS="$MY_SOLLVE_FLAGS" FFLAGS="$MY_SOLLVE_FLAGS" LOG=1 LOG_ALL=1 VERBOSE_TESTS=1 VERBOSE=1 all
+  echo "--------------------------- START OMP 4.5 TESTING ---------------------"
+  make CC=$AOMP/bin/clang CXX=$AOMP/bin/clang++ FC=$AOMP/bin/flang CFLAGS="-lm $MY_SOLLVE_FLAGS" CXXFLAGS="$MY_SOLLVE_FLAGS" FFLAGS="$MY_SOLLVE_FLAGS"  OMP_VERSION=4.5 LOG=1 LOG_ALL=1 VERBOSE_TESTS=1 VERBOSE=1 all
+  echo
 else
   echo
   pwd
@@ -123,7 +138,7 @@ make CC=$AOMP/bin/clang CXX=$AOMP/bin/clang++ FC=$AOMP/bin/flang CFLAGS="-lm $MY
   exit $rc
 fi
 
-echo "--------------------------- OMP 4.5 Results ---------------------------" >> combined-results.txt
+echo "--------------------------- OMP 4.5 Detailed Results ---------------------------" >> combined-results.txt
 echo "--------------------------- OMP 4.5 Results ---------------------------" > abrev.combined-results.txt
 make report_html
 make report_summary >> combined-results.txt
@@ -132,16 +147,36 @@ make report_summary  | tail -5 >> abrev.combined-results.txt
 mv results_report results_report45
 
 # Run OpenMP 5.0 Tests
+echo "--------------------------- START OMP 5.0 TESTING ---------------------"
 export MY_SOLLVE_FLAGS="$MY_SOLLVE_FLAGS -fopenmp-version=50"
 make tidy
 make CC=$AOMP/bin/clang CXX=$AOMP/bin/clang++ FC=$AOMP/bin/flang CFLAGS="-lm $MY_SOLLVE_FLAGS" CXXFLAGS="$MY_SOLLVE_FLAGS" FFLAGS="$MY_SOLLVE_FLAGS"  OMP_VERSION=5.0 LOG=1 LOG_ALL=1 VERBOSE_TESTS=1 VERBOSE=1 all
-
-echo "--------------------------- OMP 5.0 Results ---------------------------" >> combined-results.txt
+echo 
+echo "--------------------------- OMP 5.0 Detailed Results ---------------------------" >> combined-results.txt
 echo "--------------------------- OMP 5.0 Results ---------------------------" >> abrev.combined-results.txt
 make report_html
 make report_summary >> combined-results.txt
 make report_summary  | tail -5 >> abrev.combined-results.txt
 mv results_report results_report50
+
+if [ "$ROCMASTER" != "1" ] && [ "$EPSDB" != "1" ]; then
+echo "--------------------------- START OMP 5.1 TESTING ---------------------"
+# Run OpenMP 5.1 Tests
+export MY_SOLLVE_FLAGS="$MY_SOLLVE_FLAGS -fopenmp-version=51"
+make tidy
+make CC=$AOMP/bin/clang CXX=$AOMP/bin/clang++ FC=$AOMP/bin/flang CFLAGS="-lm $MY_SOLLVE_FLAGS" CXXFLAGS="$MY_SOLLVE_FLAGS" FFLAGS="$MY_SOLLVE_FLAGS"  OMP_VERSION=5.1 LOG=1 LOG_ALL=1 VERBOSE_TESTS=1 VERBOSE=1 all
+echo 
+echo "--------------------------- OMP 5.1 Detailed Results ---------------------------" >> combined-results.txt
+echo "--------------------------- OMP 5.1 Results ---------------------------" >> abrev.combined-results.txt
+make report_html
+make report_summary >> combined-results.txt
+make report_summary  | tail -5 >> abrev.combined-results.txt
+mv results_report results_report51
+fi
+
+echo "========================= ALL TESTING COMPLETE ! ====================="
+echo 
+
 cat combined-results.txt
 pwd
 cat abrev.combined-results.txt
