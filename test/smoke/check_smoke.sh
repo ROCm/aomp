@@ -154,7 +154,7 @@ for directory in ./*/; do
   elif [ $base == 'flags' ] ; then
     make
     make run > /dev/null 2>&1
-  elif [ $base == 'printf_parallel_for_target' ] ; then
+  elif [ $base == 'printf_parallel_for_target' ] || [ $base == 'omp_places' ] ; then
     make verify-log
   else
     make
