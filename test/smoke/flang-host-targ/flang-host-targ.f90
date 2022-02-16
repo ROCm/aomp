@@ -2,7 +2,7 @@ program add_real
       implicit none
       INTEGER, PARAMETER      :: np=10
       REAL, DIMENSION(np)   :: A, B
-      INTEGER:: i
+      INTEGER:: i, getpid
 
       DO i=1, np
          A(i)=-1
@@ -18,7 +18,7 @@ program add_real
       DO i=1, np
          IF (A(i) .NE. 3) THEN
            WRITE(*, *) "ERROR AT INDEX ", i, "EXPECT 2 BUT RECEIVED", A(i)
-           call kill(0,4)
+           call kill(getpid(),7)
          ENDIF
       END DO
 
