@@ -32,18 +32,18 @@ RUNENV14 += $(RUNENV) OMP_PLACES="numa_domains(7)"
 
 include ../Makefile.rules
 run:
-	$(RUNENV) ./$(TESTNAME)
-	$(RUNENV1) ./$(TESTNAME)
-	$(RUNENV2) ./$(TESTNAME)
-	$(RUNENV3) ./$(TESTNAME)
-	$(RUNENV4) ./$(TESTNAME)
-	$(RUNENV5) ./$(TESTNAME)
-	$(RUNENV6) ./$(TESTNAME)
-	$(RUNENV7) ./$(TESTNAME)
-	$(RUNENV8) ./$(TESTNAME)
-	$(RUNENV9) ./$(TESTNAME)
-	$(RUNENV10) ./$(TESTNAME)
-	$(RUNENV11) ./$(TESTNAME)
-	$(RUNENV12) ./$(TESTNAME)
-	$(RUNENV13) ./$(TESTNAME)
-	$(RUNENV14) ./$(TESTNAME)
+	$(RUNENV) ./$(TESTNAME) 2>&1 | tee run.log
+	$(RUNENV1) ./$(TESTNAME) 2>&1 | tee -a run.log
+	$(RUNENV2) ./$(TESTNAME) 2>&1 | tee -a run.log
+	$(RUNENV3) ./$(TESTNAME) 2>&1 | tee -a run.log
+	$(RUNENV4) ./$(TESTNAME) 2>&1 | tee -a run.log
+	$(RUNENV5) ./$(TESTNAME) 2>&1 | tee -a run.log
+	$(RUNENV6) ./$(TESTNAME) 2>&1 | tee -a run.log
+	$(RUNENV7) ./$(TESTNAME) 2>&1 | tee -a run.log
+	$(RUNENV8) ./$(TESTNAME) 2>&1 | tee -a run.log
+	$(RUNENV9) ./$(TESTNAME) 2>&1 | tee -a run.log
+	$(RUNENV10) ./$(TESTNAME) 2>&1 | tee -a run.log
+	$(RUNENV11) ./$(TESTNAME) 2>&1 | tee -a run.log
+	$(RUNENV12) ./$(TESTNAME) 2>&1 | tee -a run.log
+	$(RUNENV13) ./$(TESTNAME) 2>&1 | tee -a run.log
+	$(RUNENV14) ./$(TESTNAME) 2>&1 | tee -a run.log
