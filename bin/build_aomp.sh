@@ -123,10 +123,10 @@ if [ "$AOMP_STANDALONE_BUILD" == 1 ] ; then
   fi
 else
   # For ROCM build (AOMP_STANDALONE_BUILD=0) the components roct, rocr,
-  # libdevice, comgr, rocminfo, vdi, hipvdi, ocl, rocdbgapi rocgdb,
+  # libdevice, project, comgr, rocminfo, hipamd, ocl, rocdbgapi, rocgdb,
   # roctracer, and rocprofiler should be found in ROCM in /opt/rocm.
   # The ROCM build only needs these components:
-  components="project extras openmp pgmath flang flang_runtime"
+  components="extras openmp pgmath flang flang_runtime"
 fi
 echo "COMPONENTS:$components"
 

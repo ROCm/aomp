@@ -1,4 +1,4 @@
-# Source Install V 14.0-2
+# Source Install V 14.0-3
 
 Build and install from sources is possible.  However, the source build for AOMP is complex for several reasons.
 - Many repos are required.
@@ -31,19 +31,25 @@ by parsing information in the manifest file associated with a particular release
 Here are the commands to do a source build of AOMP:
 
 ```
+```
+<b>Development Branch:</b>
+```
+   export AOMP_VERSION=15.0
+   export AOMP_REPOS=$HOME/git/aomp${AOMP_VERSION}
+   mkdir -p $AOMP_REPOS
+   cd $AOMP_REPOS
+   git clone -b aomp-dev https://github.com/ROCm-Developer-Tools/aomp
+```
+
+The development version is the next version to be released.  It is possible that the development version is broken due to regressions that often occur during development.
+These commands will build a previous release of AOMP such as aomp-14.0-3.
+<b>Release Branch:</b>
+```
    export AOMP_VERSION=14.0
    export AOMP_REPOS=$HOME/git/aomp${AOMP_VERSION}
    mkdir -p $AOMP_REPOS
    cd $AOMP_REPOS
-```
-<b>Development Branch:</b>
-```
-   git clone -b aomp-dev https://github.com/ROCm-Developer-Tools/aomp
-```
-
-<b>Release Branch:</b>
-```
-   git clone -b aomp-14.0-2 https://github.com/ROCm-Developer-Tools/aomp
+   git clone -b aomp-14.0-3 https://github.com/ROCm-Developer-Tools/aomp
 ```
 <b>Clone and build:</b>
 ```
@@ -82,21 +88,5 @@ MANIFEST FILE: /work/grodgers/git/aomp14.0/aomp/bin/../manifests/aomp_14.0.xml
        roc rocm-rel-4.5           rocm-cmake                rocm-cmake 8d82398d269d 2021-09-14            Jenkins            Jenkins
        roc   rocm-4.5.x         rocr-runtime              ROCR-Runtime f32dfa887d02 2021-10-27         Sean Keely         Sean Keely
        roc    roc-4.5.x roct-thunk-interface      ROCT-Thunk-Interface 5b152ed0f043 2021-09-30         Sean Keely         Sean Keely
-```
-
-
-<b>To build a previous release of AOMP:</b>
-
-The development version is the next version to be released.  It is possible that the development version is broken due to regressions that often occur during development.
-These commands will build a previous release of AOMP such as aomp-14.0-1.
-```
-   cd $AOMP_REPOS/aomp/bin
-   export AOMP_VERSION=14.0
-   export AOMP_REPOS=$HOME/git/aomp${AOMP_VERSION}
-   git checkout aomp-14.0-1
-   git pull
-   export AOMP_CHECK_GIT_BRANCH=0 //Tags will be used to checkout various repos. This will ignore the detached head state to avoid build errors.
-   ./clone_aomp.sh
-   nohup ./build_aomp.sh &
 ```
 For more information, or if you are interested in joining the development of AOMP, please read the AOMP developers README file located here [README](../bin/README.md).
