@@ -14,6 +14,7 @@
 <remote name="qmcpack" fetch="https://github.com/QMCPACK/" />
 <remote name="sollve" fetch="https://github.com/SOLLVE/" />
 <remote name="uob-hpc" fetch="https://github.com/UoB-HPC/" />
+<remote name="GenASis" fetch="https://github.com/GenASis/" />
 
 <!-- --- List of test repos and the path they are cloned to --- -->
 
@@ -30,5 +31,6 @@
 <project remote="llnl"    path="RAJAPerf" name="RAJAPerf" revision="develop" groups="unlocked" />
 <project remote="llnl"    path="RAJAPerf/tpl/RAJA" name="RAJA" revision="master" groups="skip" />
 <project remote="llnl"    path="RAJAPerf/blt" name="blt" revision="" groups="skip" />
+<project remote="GenASis"  path="GenASis"  name="GenASis" revision="master" groups="unlocked" />
 
 </manifest>
