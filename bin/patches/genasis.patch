@@ -1,0 +1,915 @@
+diff -Naur -x .git GenASiS.orig/Build/Machines/Makefile_ROCm GenASiS.NOBUILD/Build/Machines/Makefile_ROCm
+--- GenASiS.orig/Build/Machines/Makefile_ROCm	1969-12-31 18:00:00.000000000 -0600
++++ GenASiS.NOBUILD/Build/Machines/Makefile_ROCm	2022-02-17 16:04:59.203999780 -0600
+@@ -0,0 +1,67 @@
++# Makefile for GENASIS_MACHNE=ROCm
++
++AOMP                ?= /opt/rocm/llvm
++FORTRAN_COMPILE      = $(AOMP)/bin/flang -c -D_use_includes=1 -I/opt/openmpi-4.0.3/include
++
++FORTRAN_FIXEDFORM    = -ffixed
++FORTRAN_BOUND_CHECK  = #-R bcp #-- FIXME: bound checking may cause issue with OpenMP
++FORTRAN_DEBUG        = -O2
++FORTRAN_OPTIMIZE     = #-Oipa2 #-- Default optimization (O2) but with lower ipa
++FORTRAN_PROFILE      = 
++
++CC_COMPILE           = $(AOMP)/bin/clang -c
++CC_DEBUG             = -g
++CC_OPTIMIZE          = $(FORTRAN_OPTIMIZE)
++
++LINK = $(AOMP)/bin/clang
++
++# Define default switches for this compiler. These can be overwritten at
++# build time with, e.g., 'make ENABLE_OMP_OFFLOAD=0 <target>'
++ENABLE_OMP          ?= 1
++ENABLE_OMP_OFFLOAD  ?= 1
++USE_ISO_10646       ?= 0
++
++ifneq ($(ENABLE_OMP), 0)
++  FORTRAN_COMPILE += -I$(AOMP)/include -fopenmp
++  CC_COMPILE += -I$(AOMP)/include -fopenmp
++endif
++
++ifneq ($(ENABLE_OMP_OFFLOAD), 0)
++  DEFINES         += -DENABLE_OMP_OFFLOAD
++  GPU              = $(shell $(AOMP)/bin/offload-arch)
++  TRIPLE           = $(shell $(AOMP)/bin/offload-arch -t | awk '{print $$2}')
++  ifeq (sm_,$(findstring sm_,$(GPU)))
++    DEVICE_CUDA    = 1
++  endif
++  FORTRAN_COMPILE += -fopenmp-targets=$(TRIPLE) -Xopenmp-target=$(TRIPLE) -march=$(GPU)
++endif
++
++#-- Silo library may be  automatically included & linked by 
++#-- "module load silo" if provided, otherwise, manually put include and 
++#-- link line flag &  location below
++SILO_DIR ?= /usr/local/silo/silo-4.10.2
++INCLUDE_SILO = -I${SILO_DIR}/include
++LIBRARY_SILO = -L${SILO_DIR}/lib -lsilo
++
++#-- HDF5 library may be  automatically included & linked by 
++#-- "module load hdf5" if provided, otherwise, manually put include and 
++#-- link line flag &  location below
++HDF5_DIR ?= /usr/include/hdf5/serial
++INCLUDE_HDF5 = -I$(HDF5_DIR)
++LIBRARY_HDF5 = -L /usr/lib/x86_64-linux-gnu/hdf5/serial -lhdf5_fortran -lhdf5
++
++#-- if empty, don't link to HDF5
++ifeq ($(strip $(HDF5_DIR)),)  
++  INCLUDE_HDF5 = 
++  LIBRARY_HDF5 = 
++endif
++
++INCLUDE_PREPROCESSOR = -I$(PATH_GENASIS)/Build
++
++DEVICE_HIP     = 1
++DEVICE_COMPILE = $(AOMP)/bin/hipcc -c -D__HIP_PLATFORM_HCC__
++INCLUDE_DEVICE = -I$(AOMP)/include
++LIBRARY_DEVICE = -L$(AOMP)}/lib -lamdhip64
++DEFINES       += -D__HIP_PLATFORM_HCC__
++
++DEFINES += -D$(GENASIS_MACHINE)
+diff -Naur -x .git GenASiS.orig/Modules/Basics/Display/Show_Command.f90 GenASiS.NOBUILD/Modules/Basics/Display/Show_Command.f90
+--- GenASiS.orig/Modules/Basics/Display/Show_Command.f90	2022-02-17 15:23:33.627999551 -0600
++++ GenASiS.NOBUILD/Modules/Basics/Display/Show_Command.f90	2022-02-17 15:30:33.967999465 -0600
+@@ -15,7 +15,7 @@
+     ShowCharacter_KBCH
+ 
+   interface Show
+-    module procedure ShowInteger
++    module procedure ShowInteger_0D
+     module procedure ShowInteger_1D
+     module procedure ShowInteger_2D
+     module procedure ShowBigInteger
+@@ -36,7 +36,7 @@
+     module procedure ShowComplex_3D
+     module procedure ShowLogical
+     module procedure ShowLogical_1D
+-    module procedure ShowCharacter
++    module procedure ShowCharacter_0D
+ !    module procedure ShowCharacter_KBCH
+     module procedure ShowCharacterNoDescription
+     module procedure ShowCharacter_1D
+@@ -55,7 +55,7 @@
+ contains
+ 
+ 
+-  subroutine ShowInteger &
++  subroutine ShowInteger_0D  &
+                ( Integer, Description, IgnorabilityOption, &
+                  DisplayRankOption, nLeadingLinesOption, &
+                  nTrailingLinesOption )
+@@ -86,7 +86,7 @@
+ 
+     call EndShow ( nTrailingLinesOption )
+ 
+-  end subroutine ShowInteger
++  end subroutine ShowInteger_0D
+ 
+ 
+   subroutine ShowInteger_1D &
+@@ -954,7 +954,7 @@
+   end subroutine ShowLogical_1D
+ 
+ 
+-  subroutine ShowCharacter &
++  subroutine ShowCharacter_0D &
+                ( Character, Description, IgnorabilityOption, &
+                  DisplayRankOption, nLeadingLinesOption, &
+                  nTrailingLinesOption )
+@@ -981,7 +981,7 @@
+ 
+     call EndShow ( nTrailingLinesOption )
+ 
+-  end subroutine ShowCharacter
++  end subroutine ShowCharacter_0D
+   
+   
+   subroutine ShowCharacter_KBCH &
+diff -Naur -x .git GenASiS.orig/Modules/Basics/MessagePassing/Collective/CollectiveOperation_BI__Form.f90 GenASiS.NOBUILD/Modules/Basics/MessagePassing/Collective/CollectiveOperation_BI__Form.f90
+--- GenASiS.orig/Modules/Basics/MessagePassing/Collective/CollectiveOperation_BI__Form.f90	2022-02-17 15:23:33.627999551 -0600
++++ GenASiS.NOBUILD/Modules/Basics/MessagePassing/Collective/CollectiveOperation_BI__Form.f90	2022-02-17 15:30:33.967999465 -0600
+@@ -1,14 +1,19 @@
+ module CollectiveOperation_BI__Form
+ 
+-  use MPI
+   use Specifiers
+   use DataManagement
+   use Display
+   use MessagePassingBasics
+   use PointToPoint
+   use CollectiveOperation_Template
+-
++#ifdef _use_includes
+   implicit none
++  include "mpif.h"
++#else
++  use MPI
++  implicit none
++#endif
++
+   private
+ 
+   type, public, extends ( CollectiveOperationTemplate ) :: &
+diff -Naur -x .git GenASiS.orig/Modules/Basics/MessagePassing/Collective/CollectiveOperation_C__Form.f90 GenASiS.NOBUILD/Modules/Basics/MessagePassing/Collective/CollectiveOperation_C__Form.f90
+--- GenASiS.orig/Modules/Basics/MessagePassing/Collective/CollectiveOperation_C__Form.f90	2022-02-17 15:23:33.627999551 -0600
++++ GenASiS.NOBUILD/Modules/Basics/MessagePassing/Collective/CollectiveOperation_C__Form.f90	2022-02-17 15:30:33.967999465 -0600
+@@ -4,15 +4,20 @@
+ 
+ module CollectiveOperation_C__Form
+ 
+-  use MPI
+   use Specifiers
+   use DataManagement
+   use Display
+   use MessagePassingBasics
+   use PointToPoint
+   use CollectiveOperation_Template
+-
++#ifdef _use_includes
+   implicit none
++  include "mpif.h"
++#else
++  use MPI
++  implicit none
++#endif
++
+   private
+ 
+   type, public, extends ( CollectiveOperationTemplate ) :: &
+diff -Naur -x .git GenASiS.orig/Modules/Basics/MessagePassing/Collective/CollectiveOperation_I__Form.f90 GenASiS.NOBUILD/Modules/Basics/MessagePassing/Collective/CollectiveOperation_I__Form.f90
+--- GenASiS.orig/Modules/Basics/MessagePassing/Collective/CollectiveOperation_I__Form.f90	2022-02-17 15:23:33.627999551 -0600
++++ GenASiS.NOBUILD/Modules/Basics/MessagePassing/Collective/CollectiveOperation_I__Form.f90	2022-02-17 15:30:33.967999465 -0600
+@@ -4,15 +4,20 @@
+ 
+ module CollectiveOperation_I__Form
+ 
+-  use MPI
+   use Specifiers
+   use DataManagement
+   use Display
+   use MessagePassingBasics
+   use PointToPoint
+   use CollectiveOperation_Template
+-
++#ifdef _use_includes
+   implicit none
++  include "mpif.h"
++#else
++  use MPI
++  implicit none
++#endif
++
+   private
+ 
+   type, public, extends ( CollectiveOperationTemplate ) :: &
+diff -Naur -x .git GenASiS.orig/Modules/Basics/MessagePassing/Collective/CollectiveOperation_R__Form.f90 GenASiS.NOBUILD/Modules/Basics/MessagePassing/Collective/CollectiveOperation_R__Form.f90
+--- GenASiS.orig/Modules/Basics/MessagePassing/Collective/CollectiveOperation_R__Form.f90	2022-02-17 15:23:33.627999551 -0600
++++ GenASiS.NOBUILD/Modules/Basics/MessagePassing/Collective/CollectiveOperation_R__Form.f90	2022-02-17 15:30:33.967999465 -0600
+@@ -4,7 +4,6 @@
+ 
+ module CollectiveOperation_R__Form
+ 
+-  use MPI
+   use iso_c_binding
+   use Specifiers
+   use DataManagement
+@@ -12,8 +11,14 @@
+   use MessagePassingBasics
+   use PointToPoint
+   use CollectiveOperation_Template
+-
++#ifdef _use_includes
+   implicit none
++  include "mpif.h"
++#else
++  use MPI
++  implicit none
++#endif
++
+   private
+ 
+   type, public, extends ( CollectiveOperationTemplate ) :: &
+diff -Naur -x .git GenASiS.orig/Modules/Basics/MessagePassing/Collective/CollectiveOperation_Template.f90 GenASiS.NOBUILD/Modules/Basics/MessagePassing/Collective/CollectiveOperation_Template.f90
+--- GenASiS.orig/Modules/Basics/MessagePassing/Collective/CollectiveOperation_Template.f90	2022-02-17 15:23:33.627999551 -0600
++++ GenASiS.NOBUILD/Modules/Basics/MessagePassing/Collective/CollectiveOperation_Template.f90	2022-02-17 15:30:33.967999465 -0600
+@@ -4,11 +4,16 @@
+ 
+ module CollectiveOperation_Template
+ 
+-  use MPI
+   use Specifiers
+   use MessagePassingBasics
+-
++#ifdef _use_includes
+   implicit none
++  include "mpif.h"
++#else
++  use MPI
++  implicit none
++#endif
++
+   private
+ 
+   integer ( KDI ), public, parameter :: &
+diff -Naur -x .git GenASiS.orig/Modules/Basics/MessagePassing/Collective/REDUCTION_Singleton.f90 GenASiS.NOBUILD/Modules/Basics/MessagePassing/Collective/REDUCTION_Singleton.f90
+--- GenASiS.orig/Modules/Basics/MessagePassing/Collective/REDUCTION_Singleton.f90	2022-02-17 15:23:33.627999551 -0600
++++ GenASiS.NOBUILD/Modules/Basics/MessagePassing/Collective/REDUCTION_Singleton.f90	2022-02-17 15:30:33.967999465 -0600
+@@ -3,10 +3,15 @@
+ 
+ module REDUCTION_Singleton
+ 
+-  use MPI
+   use Specifiers
+-
++#ifdef _use_includes
+   implicit none
++  include "mpif.h"
++#else
++  use MPI
++  implicit none
++#endif
++
+   private
+   
+   type, public :: ReductionSingleton
+diff -Naur -x .git GenASiS.orig/Modules/Basics/MessagePassing/MessagePassingBasics/Communicator_Form.f90 GenASiS.NOBUILD/Modules/Basics/MessagePassing/MessagePassingBasics/Communicator_Form.f90
+--- GenASiS.orig/Modules/Basics/MessagePassing/MessagePassingBasics/Communicator_Form.f90	2022-02-17 15:23:33.627999551 -0600
++++ GenASiS.NOBUILD/Modules/Basics/MessagePassing/MessagePassingBasics/Communicator_Form.f90	2022-02-17 15:30:33.967999465 -0600
+@@ -3,11 +3,16 @@
+ 
+ module Communicator_Form
+   
+-  use MPI
+   use Specifiers
+   use Display
+-
++#ifdef _use_includes
+   implicit none
++  include "mpif.h"
++#else
++  use MPI
++  implicit none
++#endif
++
+   private
+ 
+   type, public :: CommunicatorForm
+diff -Naur -x .git GenASiS.orig/Modules/Basics/MessagePassing/PointToPoint/Message_1D__Template.f90 GenASiS.NOBUILD/Modules/Basics/MessagePassing/PointToPoint/Message_1D__Template.f90
+--- GenASiS.orig/Modules/Basics/MessagePassing/PointToPoint/Message_1D__Template.f90	2022-02-17 15:23:33.631999551 -0600
++++ GenASiS.NOBUILD/Modules/Basics/MessagePassing/PointToPoint/Message_1D__Template.f90	2022-02-17 15:30:33.967999465 -0600
+@@ -4,12 +4,17 @@
+ 
+ module Message_1D__Template
+ 
+-  use MPI
+   use Specifiers
+   use Devices
+   use Message_Template
+- 
++#ifdef _use_includes
+   implicit none
++  include "mpif.h"
++#else
++  use MPI
++  implicit none
++#endif
++ 
+   private
+ 
+   type, public, abstract :: Message_1D_Template
+diff -Naur -x .git GenASiS.orig/Modules/Basics/MessagePassing/PointToPoint/Message_BI__Form.f90 GenASiS.NOBUILD/Modules/Basics/MessagePassing/PointToPoint/Message_BI__Form.f90
+--- GenASiS.orig/Modules/Basics/MessagePassing/PointToPoint/Message_BI__Form.f90	2022-02-17 15:23:33.631999551 -0600
++++ GenASiS.NOBUILD/Modules/Basics/MessagePassing/PointToPoint/Message_BI__Form.f90	2022-02-17 15:30:33.967999465 -0600
+@@ -3,12 +3,17 @@
+ 
+ module Message_BI__Form
+ 
+-  use MPI
+   use Specifiers
+   use MessagePassingBasics
+   use Message_Template
+-
++#ifdef _use_includes
+   implicit none
++  include "mpif.h"
++#else
++  use MPI
++  implicit none
++#endif
++
+   private
+ 
+   type, public, extends ( MessageTemplate ) :: Message_BI_Form 
+diff -Naur -x .git GenASiS.orig/Modules/Basics/MessagePassing/PointToPoint/Message_C__Form.f90 GenASiS.NOBUILD/Modules/Basics/MessagePassing/PointToPoint/Message_C__Form.f90
+--- GenASiS.orig/Modules/Basics/MessagePassing/PointToPoint/Message_C__Form.f90	2022-02-17 15:23:33.631999551 -0600
++++ GenASiS.NOBUILD/Modules/Basics/MessagePassing/PointToPoint/Message_C__Form.f90	2022-02-17 15:30:33.967999465 -0600
+@@ -3,12 +3,17 @@
+ 
+ module Message_C__Form
+ 
+-  use MPI
+   use Specifiers
+   use MessagePassingBasics
+   use Message_Template
+-
++#ifdef _use_includes
+   implicit none
++  include "mpif.h"
++#else
++  use MPI
++  implicit none
++#endif
++
+   private
+ 
+   type, public, extends ( MessageTemplate ) :: Message_C_Form 
+diff -Naur -x .git GenASiS.orig/Modules/Basics/MessagePassing/PointToPoint/Message_I__Form.f90 GenASiS.NOBUILD/Modules/Basics/MessagePassing/PointToPoint/Message_I__Form.f90
+--- GenASiS.orig/Modules/Basics/MessagePassing/PointToPoint/Message_I__Form.f90	2022-02-17 15:23:33.631999551 -0600
++++ GenASiS.NOBUILD/Modules/Basics/MessagePassing/PointToPoint/Message_I__Form.f90	2022-02-17 15:30:33.967999465 -0600
+@@ -3,12 +3,17 @@
+ 
+ module Message_I__Form
+ 
+-  use MPI
+   use Specifiers
+   use MessagePassingBasics
+   use Message_Template
+-
++#ifdef _use_includes
+   implicit none
++  include "mpif.h"
++#else
++  use MPI
++  implicit none
++#endif
++
+   private
+ 
+   type, public, extends ( MessageTemplate ) :: Message_I_Form 
+diff -Naur -x .git GenASiS.orig/Modules/Basics/MessagePassing/PointToPoint/MessageIncoming_1D_BI__Form.f90 GenASiS.NOBUILD/Modules/Basics/MessagePassing/PointToPoint/MessageIncoming_1D_BI__Form.f90
+--- GenASiS.orig/Modules/Basics/MessagePassing/PointToPoint/MessageIncoming_1D_BI__Form.f90	2022-02-17 15:23:33.627999551 -0600
++++ GenASiS.NOBUILD/Modules/Basics/MessagePassing/PointToPoint/MessageIncoming_1D_BI__Form.f90	2022-02-17 15:30:33.967999465 -0600
+@@ -4,14 +4,19 @@
+ 
+ module MessageIncoming_1D_BI__Form
+ 
+-  use MPI
+   use Specifiers
+   use MessagePassingBasics
+   use Message_Template
+   use MessageIncoming_BI__Form
+   use Message_1D__Template 
+- 
++#ifdef _use_includes
+   implicit none
++  include "mpif.h"
++#else
++  use MPI
++  implicit none
++#endif
++ 
+   private
+ 
+   type, public, extends ( Message_1D_Template ) :: MessageIncoming_1D_BI_Form
+diff -Naur -x .git GenASiS.orig/Modules/Basics/MessagePassing/PointToPoint/MessageIncoming_1D_C__Form.f90 GenASiS.NOBUILD/Modules/Basics/MessagePassing/PointToPoint/MessageIncoming_1D_C__Form.f90
+--- GenASiS.orig/Modules/Basics/MessagePassing/PointToPoint/MessageIncoming_1D_C__Form.f90	2022-02-17 15:23:33.627999551 -0600
++++ GenASiS.NOBUILD/Modules/Basics/MessagePassing/PointToPoint/MessageIncoming_1D_C__Form.f90	2022-02-17 15:30:33.967999465 -0600
+@@ -4,14 +4,19 @@
+ 
+ module MessageIncoming_1D_C__Form
+ 
+-  use MPI
+   use Specifiers
+   use MessagePassingBasics
+   use Message_Template
+   use MessageIncoming_C__Form
+   use Message_1D__Template 
+- 
++#ifdef _use_includes
+   implicit none
++  include "mpif.h"
++#else
++  use MPI
++  implicit none
++#endif
++ 
+   private
+ 
+   type, public, extends ( Message_1D_Template ) :: MessageIncoming_1D_C_Form
+diff -Naur -x .git GenASiS.orig/Modules/Basics/MessagePassing/PointToPoint/MessageIncoming_1D_I__Form.f90 GenASiS.NOBUILD/Modules/Basics/MessagePassing/PointToPoint/MessageIncoming_1D_I__Form.f90
+--- GenASiS.orig/Modules/Basics/MessagePassing/PointToPoint/MessageIncoming_1D_I__Form.f90	2022-02-17 15:23:33.627999551 -0600
++++ GenASiS.NOBUILD/Modules/Basics/MessagePassing/PointToPoint/MessageIncoming_1D_I__Form.f90	2022-02-17 15:30:33.967999465 -0600
+@@ -4,14 +4,19 @@
+ 
+ module MessageIncoming_1D_I__Form
+ 
+-  use MPI
+   use Specifiers
+   use MessagePassingBasics
+   use Message_Template
+   use MessageIncoming_I__Form
+   use Message_1D__Template 
+- 
++#ifdef _use_includes
+   implicit none
++  include "mpif.h"
++#else
++  use MPI
++  implicit none
++#endif
++ 
+   private
+ 
+   type, public, extends ( Message_1D_Template ) :: MessageIncoming_1D_I_Form
+diff -Naur -x .git GenASiS.orig/Modules/Basics/MessagePassing/PointToPoint/MessageIncoming_1D_R__Form.f90 GenASiS.NOBUILD/Modules/Basics/MessagePassing/PointToPoint/MessageIncoming_1D_R__Form.f90
+--- GenASiS.orig/Modules/Basics/MessagePassing/PointToPoint/MessageIncoming_1D_R__Form.f90	2022-02-17 15:23:33.627999551 -0600
++++ GenASiS.NOBUILD/Modules/Basics/MessagePassing/PointToPoint/MessageIncoming_1D_R__Form.f90	2022-02-17 15:30:33.967999465 -0600
+@@ -4,14 +4,19 @@
+ 
+ module MessageIncoming_1D_R__Form
+ 
+-  use MPI
+   use Specifiers
+   use MessagePassingBasics
+   use Message_Template
+   use MessageIncoming_R__Form
+   use Message_1D__Template 
+-
++#ifdef _use_includes
+   implicit none
++  include "mpif.h"
++#else
++  use MPI
++  implicit none
++#endif
++
+   private
+ 
+   type, public, extends ( Message_1D_Template ) :: MessageIncoming_1D_R_Form
+diff -Naur -x .git GenASiS.orig/Modules/Basics/MessagePassing/PointToPoint/MessageIncoming_BI__Form.f90 GenASiS.NOBUILD/Modules/Basics/MessagePassing/PointToPoint/MessageIncoming_BI__Form.f90
+--- GenASiS.orig/Modules/Basics/MessagePassing/PointToPoint/MessageIncoming_BI__Form.f90	2022-02-17 15:23:33.631999551 -0600
++++ GenASiS.NOBUILD/Modules/Basics/MessagePassing/PointToPoint/MessageIncoming_BI__Form.f90	2022-02-17 15:30:33.967999465 -0600
+@@ -3,11 +3,16 @@
+ 
+ module MessageIncoming_BI__Form
+ 
+-  use MPI
+   use Specifiers
+   use Message_BI__Form
+-
++#ifdef _use_includes
+   implicit none
++  include "mpif.h"
++#else
++  use MPI
++  implicit none
++#endif
++
+   private
+ 
+   type, public, extends ( Message_BI_Form ) :: MessageIncoming_BI_Form
+diff -Naur -x .git GenASiS.orig/Modules/Basics/MessagePassing/PointToPoint/MessageIncoming_C__Form.f90 GenASiS.NOBUILD/Modules/Basics/MessagePassing/PointToPoint/MessageIncoming_C__Form.f90
+--- GenASiS.orig/Modules/Basics/MessagePassing/PointToPoint/MessageIncoming_C__Form.f90	2022-02-17 15:23:33.631999551 -0600
++++ GenASiS.NOBUILD/Modules/Basics/MessagePassing/PointToPoint/MessageIncoming_C__Form.f90	2022-02-17 15:30:33.967999465 -0600
+@@ -3,11 +3,16 @@
+ 
+ module MessageIncoming_C__Form
+ 
+-  use MPI
+   use Specifiers
+   use Message_C__Form
+-
++#ifdef _use_includes
+   implicit none
++  include "mpif.h"
++#else
++  use MPI
++  implicit none
++#endif
++
+   private
+ 
+   type, public, extends ( Message_C_Form ) :: MessageIncoming_C_Form
+diff -Naur -x .git GenASiS.orig/Modules/Basics/MessagePassing/PointToPoint/MessageIncoming_I__Form.f90 GenASiS.NOBUILD/Modules/Basics/MessagePassing/PointToPoint/MessageIncoming_I__Form.f90
+--- GenASiS.orig/Modules/Basics/MessagePassing/PointToPoint/MessageIncoming_I__Form.f90	2022-02-17 15:23:33.631999551 -0600
++++ GenASiS.NOBUILD/Modules/Basics/MessagePassing/PointToPoint/MessageIncoming_I__Form.f90	2022-02-17 15:30:33.967999465 -0600
+@@ -3,11 +3,16 @@
+ 
+ module MessageIncoming_I__Form
+ 
+-  use MPI
+   use Specifiers
+   use Message_I__Form
+-
++#ifdef _use_includes
+   implicit none
++  include "mpif.h"
++#else
++  use MPI
++  implicit none
++#endif
++
+   private
+ 
+   type, public, extends ( Message_I_Form ) :: MessageIncoming_I_Form
+diff -Naur -x .git GenASiS.orig/Modules/Basics/MessagePassing/PointToPoint/MessageIncoming_R__Form.f90 GenASiS.NOBUILD/Modules/Basics/MessagePassing/PointToPoint/MessageIncoming_R__Form.f90
+--- GenASiS.orig/Modules/Basics/MessagePassing/PointToPoint/MessageIncoming_R__Form.f90	2022-02-17 15:23:33.631999551 -0600
++++ GenASiS.NOBUILD/Modules/Basics/MessagePassing/PointToPoint/MessageIncoming_R__Form.f90	2022-02-17 15:30:33.967999465 -0600
+@@ -4,11 +4,16 @@
+ module MessageIncoming_R__Form
+ 
+   use iso_c_binding
+-  use MPI
+   use Specifiers
+   use Message_R__Form
+-
++#ifdef _use_includes
+   implicit none
++  include "mpif.h"
++#else
++  use MPI
++  implicit none
++#endif
++
+   private
+ 
+   type, public, extends ( Message_R_Form ) :: MessageIncoming_R_Form
+diff -Naur -x .git GenASiS.orig/Modules/Basics/MessagePassing/PointToPoint/MessageOutgoing_1D_BI__Form.f90 GenASiS.NOBUILD/Modules/Basics/MessagePassing/PointToPoint/MessageOutgoing_1D_BI__Form.f90
+--- GenASiS.orig/Modules/Basics/MessagePassing/PointToPoint/MessageOutgoing_1D_BI__Form.f90	2022-02-17 15:23:33.631999551 -0600
++++ GenASiS.NOBUILD/Modules/Basics/MessagePassing/PointToPoint/MessageOutgoing_1D_BI__Form.f90	2022-02-17 15:30:33.967999465 -0600
+@@ -4,14 +4,19 @@
+ 
+ module MessageOutgoing_1D_BI__Form
+ 
+-  use MPI
+   use Specifiers
+   use MessagePassingBasics
+   use Message_Template
+   use MessageOutgoing_BI__Form
+   use Message_1D__Template 
+- 
++#ifdef _use_includes
+   implicit none
++  include "mpif.h"
++#else
++  use MPI
++  implicit none
++#endif
++ 
+   private
+ 
+   type, public, extends ( Message_1D_Template ) :: MessageOutgoing_1D_BI_Form
+diff -Naur -x .git GenASiS.orig/Modules/Basics/MessagePassing/PointToPoint/MessageOutgoing_1D_C__Form.f90 GenASiS.NOBUILD/Modules/Basics/MessagePassing/PointToPoint/MessageOutgoing_1D_C__Form.f90
+--- GenASiS.orig/Modules/Basics/MessagePassing/PointToPoint/MessageOutgoing_1D_C__Form.f90	2022-02-17 15:23:33.631999551 -0600
++++ GenASiS.NOBUILD/Modules/Basics/MessagePassing/PointToPoint/MessageOutgoing_1D_C__Form.f90	2022-02-17 15:30:33.967999465 -0600
+@@ -4,14 +4,19 @@
+ 
+ module MessageOutgoing_1D_C__Form
+ 
+-  use MPI
+   use Specifiers
+   use MessagePassingBasics
+   use Message_Template
+   use MessageOutgoing_C__Form
+   use Message_1D__Template 
+- 
++#ifdef _use_includes
+   implicit none
++  include "mpif.h"
++#else
++  use MPI
++  implicit none
++#endif
++ 
+   private
+ 
+   type, public, extends ( Message_1D_Template ) :: &
+diff -Naur -x .git GenASiS.orig/Modules/Basics/MessagePassing/PointToPoint/MessageOutgoing_1D_I__Form.f90 GenASiS.NOBUILD/Modules/Basics/MessagePassing/PointToPoint/MessageOutgoing_1D_I__Form.f90
+--- GenASiS.orig/Modules/Basics/MessagePassing/PointToPoint/MessageOutgoing_1D_I__Form.f90	2022-02-17 15:23:33.631999551 -0600
++++ GenASiS.NOBUILD/Modules/Basics/MessagePassing/PointToPoint/MessageOutgoing_1D_I__Form.f90	2022-02-17 15:30:33.967999465 -0600
+@@ -4,14 +4,19 @@
+ 
+ module MessageOutgoing_1D_I__Form
+ 
+-  use MPI
+   use Specifiers
+   use MessagePassingBasics
+   use Message_Template
+   use MessageOutgoing_I__Form
+   use Message_1D__Template 
+- 
++#ifdef _use_includes
+   implicit none
++  include "mpif.h"
++#else
++  use MPI
++  implicit none
++#endif
++ 
+   private
+ 
+   type, public, extends ( Message_1D_Template ) :: MessageOutgoing_1D_I_Form
+diff -Naur -x .git GenASiS.orig/Modules/Basics/MessagePassing/PointToPoint/MessageOutgoing_1D_R__Form.f90 GenASiS.NOBUILD/Modules/Basics/MessagePassing/PointToPoint/MessageOutgoing_1D_R__Form.f90
+--- GenASiS.orig/Modules/Basics/MessagePassing/PointToPoint/MessageOutgoing_1D_R__Form.f90	2022-02-17 15:23:33.631999551 -0600
++++ GenASiS.NOBUILD/Modules/Basics/MessagePassing/PointToPoint/MessageOutgoing_1D_R__Form.f90	2022-02-17 15:30:33.967999465 -0600
+@@ -4,14 +4,19 @@
+ 
+ module MessageOutgoing_1D_R__Form
+ 
+-  use MPI
+   use Specifiers
+   use MessagePassingBasics
+   use Message_Template
+   use MessageOutgoing_R__Form
+   use Message_1D__Template 
+- 
++#ifdef _use_includes
+   implicit none
++  include "mpif.h"
++#else
++  use MPI
++  implicit none
++#endif
++ 
+   private
+ 
+   type, public, extends ( Message_1D_Template ) :: MessageOutgoing_1D_R_Form
+diff -Naur -x .git GenASiS.orig/Modules/Basics/MessagePassing/PointToPoint/MessageOutgoing_BI__Form.f90 GenASiS.NOBUILD/Modules/Basics/MessagePassing/PointToPoint/MessageOutgoing_BI__Form.f90
+--- GenASiS.orig/Modules/Basics/MessagePassing/PointToPoint/MessageOutgoing_BI__Form.f90	2022-02-17 15:23:33.631999551 -0600
++++ GenASiS.NOBUILD/Modules/Basics/MessagePassing/PointToPoint/MessageOutgoing_BI__Form.f90	2022-02-17 15:30:33.967999465 -0600
+@@ -3,11 +3,16 @@
+ 
+ module MessageOutgoing_BI__Form
+ 
+-  use MPI
+   use Specifiers
+   use Message_BI__Form
+-
++#ifdef _use_includes
+   implicit none
++  include "mpif.h"
++#else
++  use MPI
++  implicit none
++#endif
++
+   private
+ 
+   type, public, extends ( Message_BI_Form ) :: MessageOutgoing_BI_Form
+diff -Naur -x .git GenASiS.orig/Modules/Basics/MessagePassing/PointToPoint/MessageOutgoing_C__Form.f90 GenASiS.NOBUILD/Modules/Basics/MessagePassing/PointToPoint/MessageOutgoing_C__Form.f90
+--- GenASiS.orig/Modules/Basics/MessagePassing/PointToPoint/MessageOutgoing_C__Form.f90	2022-02-17 15:23:33.631999551 -0600
++++ GenASiS.NOBUILD/Modules/Basics/MessagePassing/PointToPoint/MessageOutgoing_C__Form.f90	2022-02-17 15:30:33.967999465 -0600
+@@ -3,11 +3,16 @@
+ 
+ module MessageOutgoing_C__Form
+ 
+-  use MPI
+   use Specifiers
+   use Message_C__Form
+-
++#ifdef _use_includes
+   implicit none
++  include "mpif.h"
++#else
++  use MPI
++  implicit none
++#endif
++
+   private
+ 
+   type, public, extends ( Message_C_Form ) :: MessageOutgoing_C_Form
+diff -Naur -x .git GenASiS.orig/Modules/Basics/MessagePassing/PointToPoint/MessageOutgoing_I__Form.f90 GenASiS.NOBUILD/Modules/Basics/MessagePassing/PointToPoint/MessageOutgoing_I__Form.f90
+--- GenASiS.orig/Modules/Basics/MessagePassing/PointToPoint/MessageOutgoing_I__Form.f90	2022-02-17 15:23:33.631999551 -0600
++++ GenASiS.NOBUILD/Modules/Basics/MessagePassing/PointToPoint/MessageOutgoing_I__Form.f90	2022-02-17 15:30:33.967999465 -0600
+@@ -3,11 +3,16 @@
+ 
+ module MessageOutgoing_I__Form
+ 
+-  use MPI
+   use Specifiers
+   use Message_I__Form
+-
++#ifdef _use_includes
+   implicit none
++  include "mpif.h"
++#else
++  use MPI
++  implicit none
++#endif
++
+   private
+ 
+   type, public, extends ( Message_I_Form ) :: MessageOutgoing_I_Form
+diff -Naur -x .git GenASiS.orig/Modules/Basics/MessagePassing/PointToPoint/MessageOutgoing_R__Form.f90 GenASiS.NOBUILD/Modules/Basics/MessagePassing/PointToPoint/MessageOutgoing_R__Form.f90
+--- GenASiS.orig/Modules/Basics/MessagePassing/PointToPoint/MessageOutgoing_R__Form.f90	2022-02-17 15:23:33.631999551 -0600
++++ GenASiS.NOBUILD/Modules/Basics/MessagePassing/PointToPoint/MessageOutgoing_R__Form.f90	2022-02-17 15:30:33.967999465 -0600
+@@ -4,11 +4,16 @@
+ module MessageOutgoing_R__Form
+ 
+   use iso_c_binding
+-  use MPI
+   use Specifiers
+   use Message_R__Form
+-
++#ifdef _use_includes
+   implicit none
++  include "mpif.h"
++#else
++  use MPI
++  implicit none
++#endif
++
+   private
+ 
+   type, public, extends ( Message_R_Form ) :: MessageOutgoing_R_Form
+diff -Naur -x .git GenASiS.orig/Modules/Basics/MessagePassing/PointToPoint/Message_R__Form.f90 GenASiS.NOBUILD/Modules/Basics/MessagePassing/PointToPoint/Message_R__Form.f90
+--- GenASiS.orig/Modules/Basics/MessagePassing/PointToPoint/Message_R__Form.f90	2022-02-17 15:23:33.631999551 -0600
++++ GenASiS.NOBUILD/Modules/Basics/MessagePassing/PointToPoint/Message_R__Form.f90	2022-02-17 15:30:33.971999465 -0600
+@@ -4,13 +4,18 @@
+ module Message_R__Form
+ 
+   use iso_c_binding
+-  use MPI
+   use Specifiers
+   use Devices
+   use MessagePassingBasics
+   use Message_Template
+-
++#ifdef _use_includes
+   implicit none
++  include "mpif.h"
++#else
++  use MPI
++  implicit none
++#endif
++
+   private
+ 
+   type, public, extends ( MessageTemplate ) :: Message_R_Form 
+diff -Naur -x .git GenASiS.orig/Modules/Basics/MessagePassing/PointToPoint/Message_Template.f90 GenASiS.NOBUILD/Modules/Basics/MessagePassing/PointToPoint/Message_Template.f90
+--- GenASiS.orig/Modules/Basics/MessagePassing/PointToPoint/Message_Template.f90	2022-02-17 15:23:33.631999551 -0600
++++ GenASiS.NOBUILD/Modules/Basics/MessagePassing/PointToPoint/Message_Template.f90	2022-02-17 15:30:33.971999465 -0600
+@@ -4,12 +4,17 @@
+ module Message_Template
+ 
+   use iso_c_binding
+-  use MPI
+   use Specifiers
+   use Devices
+   use MessagePassingBasics
+-
++#ifdef _use_includes
+   implicit none
++  include "mpif.h"
++#else
++  use MPI
++  implicit none
++#endif
++
+   private
+ 
+   type, public, abstract :: MessageTemplate
+diff -Naur -x .git GenASiS.orig/Modules/Basics/Runtime/GetMemoryUsage_Command.f90 GenASiS.NOBUILD/Modules/Basics/Runtime/GetMemoryUsage_Command.f90
+--- GenASiS.orig/Modules/Basics/Runtime/GetMemoryUsage_Command.f90	2022-02-17 15:23:33.631999551 -0600
++++ GenASiS.NOBUILD/Modules/Basics/Runtime/GetMemoryUsage_Command.f90	2022-02-17 15:30:33.971999465 -0600
+@@ -3,13 +3,18 @@
+ 
+ module GetMemoryUsage_Command
+   
+-  use MPI
+   use Specifiers
+   use DataManagement
+   use Display
+   use MessagePassing
+-
++#ifdef _use_includes
+   implicit none
++  include "mpif.h"
++#else
++  use MPI
++  implicit none
++#endif
++
+   private
+   
+   public :: &
+diff -Naur -x .git GenASiS.orig/Modules/Basics/Runtime/WallTime_Function.f90 GenASiS.NOBUILD/Modules/Basics/Runtime/WallTime_Function.f90
+--- GenASiS.orig/Modules/Basics/Runtime/WallTime_Function.f90	2022-02-17 15:23:33.631999551 -0600
++++ GenASiS.NOBUILD/Modules/Basics/Runtime/WallTime_Function.f90	2022-02-17 15:30:33.971999465 -0600
+@@ -3,10 +3,15 @@
+ 
+ module WallTime_Function
+   
+-  use MPI
+   use Specifiers
+-
++#ifdef _use_includes
+   implicit none
++  include "mpif.h"
++#else
++  use MPI
++  implicit none
++#endif
++
+   private
+   
+   public :: &
+diff -Naur -x .git GenASiS.orig/Modules/Basics/Specifiers/UNIT_Singleton.f90 GenASiS.NOBUILD/Modules/Basics/Specifiers/UNIT_Singleton.f90
+--- GenASiS.orig/Modules/Basics/Specifiers/UNIT_Singleton.f90	2022-02-17 15:23:33.631999551 -0600
++++ GenASiS.NOBUILD/Modules/Basics/Specifiers/UNIT_Singleton.f90	2022-02-17 15:30:33.971999465 -0600
+@@ -99,8 +99,7 @@
+       MeV_Minus_1 = 'MeV^-1'
+     character ( 5, KBCH ) :: &
+       MeV_Minus_1_KBCH &
+-        = KBCH_'MeV' // char ( KB % SUPERSCRIPT_MINUS, KBCH ) &
+-                     // char ( KB % SUPERSCRIPT_1, KBCH )
++        = KBCH_'MeV' // '?' // '?'
+ 
+ contains
+ 
+diff -Naur -x .git GenASiS.orig/Programs/Examples/Basics/GPU_MPI_Direct/GPU_AllToAll.f90 GenASiS.NOBUILD/Programs/Examples/Basics/GPU_MPI_Direct/GPU_AllToAll.f90
+--- GenASiS.orig/Programs/Examples/Basics/GPU_MPI_Direct/GPU_AllToAll.f90	2022-02-17 15:23:33.647999551 -0600
++++ GenASiS.NOBUILD/Programs/Examples/Basics/GPU_MPI_Direct/GPU_AllToAll.f90	2022-02-17 15:30:33.971999465 -0600
+@@ -4,10 +4,14 @@
+   !   FIXME: Only works with CCE so far
+   !   RUNNING: export MPICH_RDMA_ENABLED_CUDA=1, use 1 MPI per device (node)
+ 
+-  use MPI
+   use Basics
+-  
++#ifdef _use_includes
++  implicit none
++  include "mpif.h"
++#else
++  use MPI
+   implicit none
++#endif
+   
+   integer ( KDI ) :: &
+     iV
+diff -Naur -x .git GenASiS.orig/Programs/UnitTests/Basics/MessagePassing/PointToPoint/MessageIncomingOutgoing_Forms_Test.f90 GenASiS.NOBUILD/Programs/UnitTests/Basics/MessagePassing/PointToPoint/MessageIncomingOutgoing_Forms_Test.f90
+--- GenASiS.orig/Programs/UnitTests/Basics/MessagePassing/PointToPoint/MessageIncomingOutgoing_Forms_Test.f90	2022-02-17 15:23:33.663999551 -0600
++++ GenASiS.NOBUILD/Programs/UnitTests/Basics/MessagePassing/PointToPoint/MessageIncomingOutgoing_Forms_Test.f90	2022-02-17 15:30:33.971999465 -0600
+@@ -1,6 +1,5 @@
+ program MessageIncomingOutgoing_Forms_Test
+ 
+-  use MPI
+   use Specifiers
+   use Display
+   use Devices
+@@ -13,8 +12,13 @@
+   use MessageOutgoing_BI__Form
+   use MessageOutgoing_R__Form
+   use MessageOutgoing_C__Form
+-
++#ifdef _use_includes
++  implicit none
++  include "mpif.h"
++#else
++  use MPI
+   implicit none
++#endif
+ 
+   integer ( KDI ), parameter :: &
+     nReceive = 8, &
