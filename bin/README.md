@@ -41,7 +41,7 @@ each component build script with the name build_\<component name\>.sh .
 | roctracer  |Latest ROCm| $HOME/git/aomp15.0/roctracer           | [roctracer](https://github.com/ROCm-Developer-Tools/roctracer)
 | rocm-cmake |Latest ROCm| $HOME/git/aomp15.0/rocm-cmake          | [rocm-cmake](https://github.com/RadeonOpenCompute/rocm-cmake)
 | rocm_smi_lib|Latest ROCm| $HOME/git/aomp15.0/rocm_smi_lib       | [rocm_smi_lib](https://github.com/RadeonOpenCompute/rocm_smi_lib)
-| hwloc      |Latest ROCm| $HOME/git/aomp15.0/hwloc               | [hwloc](https://github.com/open-mpi/hwloc)
+| hwloc      |  v2.7     | $HOME/git/aomp15.0/hwloc               | [hwloc](https://github.com/open-mpi/hwloc)
 
 If the component is a core aomp component, then the development branch name is aomp-dev.
 The default branch name for other non-core components is set in the aomp_common_vars file.

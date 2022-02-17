@@ -30,8 +30,6 @@ by parsing information in the manifest file associated with a particular release
 
 Here are the commands to do a source build of AOMP:
 
-```
-```
 <b>Development Branch:</b>
 ```
    export AOMP_VERSION=15.0
@@ -42,7 +40,7 @@ Here are the commands to do a source build of AOMP:
 ```
 
 The development version is the next version to be released.  It is possible that the development version is broken due to regressions that often occur during development.
-These commands will build a previous release of AOMP such as aomp-14.0-3.
+These commands will build a previous release of AOMP such as aomp-14.0-3.<br>
 <b>Release Branch:</b>
 ```
    export AOMP_VERSION=14.0
