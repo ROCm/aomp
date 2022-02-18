@@ -116,6 +116,7 @@ $AOMP_CMAKE -DCMAKE_C_COMPILER=$OPENMPI_INSTALL/bin/mpicc \
 -DCMAKE_CXX_COMPILER=$OPENMPI_INSTALL/bin/mpicxx \
 -DOMPI_CC=$AOMP/bin/clang -DOMPI_CXX=$AOMP/bin/clang++ \
 -DQMC_MPI=1 \
+-DOFFLOAD_ARCH=$AOMP_GPU \
 -DCMAKE_C_FLAGS="-march=native" \
 -DCMAKE_CXX_FLAGS="-march=native -Xopenmp-target=amdgcn-amd-amdhsa -march=$AOMP_GPU" \
 -DENABLE_OFFLOAD=ON -DOFFLOAD_TARGET="amdgcn-amd-amdhsa" \
