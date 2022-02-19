@@ -66,9 +66,9 @@ if [ "$1" == "install" ] ; then
 fi
 
 osversion=$(cat /etc/os-release)
-if [ "$AOMP_MAJOR_VERSION" != "12" ] && [[ "$osversion" =~ "Ubuntu 16" ]];  then
+#if [ "$AOMP_MAJOR_VERSION" != "12" ] && [[ "$osversion" =~ "Ubuntu 16" ]];  then
   patchrepo $REPO_DIR
-fi
+#fi
 
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 
