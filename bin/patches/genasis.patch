@@ -4,8 +4,9 @@ diff -Naur -x .git GenASiS.orig/Build/Machines/Makefile_ROCm GenASiS.NOBUILD/Bui
 @@ -0,0 +1,67 @@
 +# Makefile for GENASIS_MACHNE=ROCm
 +
-+AOMP                ?= /opt/rocm/llvm
++AOMP                ?= $(HOME)/rocm/aomp
 +FORTRAN_COMPILE      = $(AOMP)/bin/flang -c -D_use_includes=1 -I/opt/openmpi-4.0.3/include
++MPI                  = /opt/openmpi-4.0.3
 +
 +FORTRAN_FIXEDFORM    = -ffixed
 +FORTRAN_BOUND_CHECK  = #-R bcp #-- FIXME: bound checking may cause issue with OpenMP
@@ -22,7 +23,7 @@ diff -Naur -x .git GenASiS.orig/Build/Machines/Makefile_ROCm GenASiS.NOBUILD/Bui
 +# Define default switches for this compiler. These can be overwritten at
 +# build time with, e.g., 'make ENABLE_OMP_OFFLOAD=0 <target>'
 +ENABLE_OMP          ?= 1
-+ENABLE_OMP_OFFLOAD  ?= 1
++ENABLE_OMP_OFFLOAD  ?= 0
 +USE_ISO_10646       ?= 0
 +
 +ifneq ($(ENABLE_OMP), 0)
@@ -39,6 +40,7 @@ diff -Naur -x .git GenASiS.orig/Build/Machines/Makefile_ROCm GenASiS.NOBUILD/Bui
 +  endif
 +  FORTRAN_COMPILE += -fopenmp-targets=$(TRIPLE) -Xopenmp-target=$(TRIPLE) -march=$(GPU)
 +endif
++FORTRAN_COMPILE += -I$(MPI)/include
 +
 +#-- Silo library may be  automatically included & linked by 
 +#-- "module load silo" if provided, otherwise, manually put include and 
@@ -62,13 +64,30 @@ diff -Naur -x .git GenASiS.orig/Build/Machines/Makefile_ROCm GenASiS.NOBUILD/Bui
 +
 +INCLUDE_PREPROCESSOR = -I$(PATH_GENASIS)/Build
 +
++OTHER_LIBS = -lm -lflang -lflangrti -lpgmath -lomp -pthread -L${MPI}/lib -lmpi_usempif08 -lmpi_usempi_ignore_tkr -lmpi_mpifh -lmpi -lflangmain
++
 +DEVICE_HIP     = 1
 +DEVICE_COMPILE = $(AOMP)/bin/hipcc -c -D__HIP_PLATFORM_HCC__
 +INCLUDE_DEVICE = -I$(AOMP)/include
-+LIBRARY_DEVICE = -L$(AOMP)}/lib -lamdhip64
++LIBRARY_DEVICE = -L$(AOMP)/lib -lamdhip64
 +DEFINES       += -D__HIP_PLATFORM_HCC__
 +
 +DEFINES += -D$(GENASIS_MACHINE)
++
+
+diff --git a/Build/Makefile_Build b/Build/Makefile_Build
+index 23aa904f..68d55301 100644
+--- a/Build/Makefile_Build
++++ b/Build/Makefile_Build
+@@ -13,6 +13,6 @@ INCLUDE = \
+   $(INCLUDE_DEVICE) $(INCLUDE_PREPROCESSOR)
+ LIBRARIES = \
+   $(LIBRARY_SILO) $(LIBRARY_HDF5) $(LIBRARY_PETSC) $(LIBRARY_FFTW) \
+-  $(LIBRARY_LAPACK) $(LIBRARY_DEVICE)
++  $(LIBRARY_LAPACK) $(LIBRARY_DEVICE) $(OTHER_LIBS)
+
+ include $(PATH_BUILD)/Makefile_Patterns
+
 diff -Naur -x .git GenASiS.orig/Modules/Basics/Display/Show_Command.f90 GenASiS.NOBUILD/Modules/Basics/Display/Show_Command.f90
 --- GenASiS.orig/Modules/Basics/Display/Show_Command.f90	2022-02-17 15:23:33.627999551 -0600
 +++ GenASiS.NOBUILD/Modules/Basics/Display/Show_Command.f90	2022-02-17 15:30:33.967999465 -0600
