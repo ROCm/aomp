@@ -1,26 +1,13 @@
 program test
-    integer :: i, iter, use_gpu
-    real :: t_sum = 0, t_iter
-#ifdef LEN_1
-    character (len=1), dimension(:) :: array
-#endif
-#ifdef LEN_2
-    character (len=2), dimension(:) :: array
-#endif
-#ifdef LEN_32
-    character (len=32), dimension(:) :: array
-#endif
+    integer :: i, arr_size = 10
+    character (len=32), dimension(:), allocatable :: array
 
-#ifdef ENTER_DATA
+    allocate(array(arr_size))
+    array(:) = "test"
+
     !$omp target enter data map(to:array)
-#endif
-#ifdef TARGET_DATA
-    !$omp target data map(to:array)
-#endif
-    do i = 1,10
-        print *, i
+
+    do i = 1,arr_size
+        print *, array(i)
     end do
-#ifdef TARGET_DATA
-    !$omp end target data
-#endif
 end program test
