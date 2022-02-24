@@ -64,6 +64,7 @@ TESTS_DIR = \
     flang-321838-2 \
     flang-322945 \
     flang-322947 \
+    flang-324206 \
     flang-324387 \
     flang-324643 \
     flang-flags-308205 \
