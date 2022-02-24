@@ -1,5 +1,4 @@
-# Makefile for Cray (XT5, XE/XK, XC90) with Cray Compiling Environment (CCE)
-# If PrgEnv-cray is not the default, use "module swap" to PrgEnv-cray
+# Makefile for ROCm compiler
 
 FORTRAN_FIXEDFORM    = -ffixed
 FORTRAN_BOUND_CHECK  = #-R bcp #-- FIXME: bound checking causes issue with
@@ -48,22 +47,6 @@ ifeq ($(strip $(HDF5_DIR)),)
 endif
 
 INCLUDE_PREPROCESSOR = -I$(PATH_GENASIS)/Build
-
-#-- The following stanzas check whether we are building with CUDA or HIP
-ifeq ($(findstring nvidia,${CRAY_ACCEL_TARGET}), nvidia)
-  DEVICE_CUDA    = 1
-  DEVICE_COMPILE = nvcc -c
-  INCLUDE_DEVICE = -I${CUDA_ROOT}/include
-  LIBRARY_DEVICE = -L${CUDA_ROOT}/lib64 -lcudart
-endif
-
-ifeq ($(findstring amd,${CRAY_ACCEL_TARGET}), amd)
-  DEFINES       += -D__HIP_PLATFORM_HCC__
-  DEVICE_HIP     = 1
-  DEVICE_COMPILE ?= hipcc -c -D__HIP_PLATFORM_HCC__
-  INCLUDE_DEVICE = -I${ROCM_PATH}/include
-  LIBRARY_DEVICE = -L${ROCM_PATH}/lib -lamdhip64
-endif
 
 ifeq ($(ENABLE_OMP), 1)
   DEFINES += -fopenmp
