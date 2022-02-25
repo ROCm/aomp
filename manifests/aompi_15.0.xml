@@ -6,6 +6,7 @@
     <default revision="release/rocm-rel-5.0" remote="gerritgit" sync-j="4" sync-c="true" />
     <remote name="roctools"  fetch="https://github.com/ROCm-Developer-Tools/" />
     <remote name="roc"  fetch="https://github.com/RadeonOpenCompute/" />
+    <remote name="rocsw"  fetch="https://github.com/ROCmSoftwarePlatform/" />
 
 <!-- These first 6 repos are NOT rocm5.0 because this build is for the ROCm 5.0 AFAR compiler -->
     <project remote="gerritgit" path="llvm-project" name="lightning/ec/llvm-project" revision="amd-stg-open" groups="unlocked" />
@@ -30,5 +31,6 @@
     <project remote="roc" path="rocr-runtime" name="ROCR-Runtime"                 revision="rocm-5.0.x" groups="unlocked" />
     <project remote="roc" path="roct-thunk-interface" name="ROCT-Thunk-Interface" revision="roc-5.0.x" groups="unlocked" />
     <project remote="roc" path="rocm_smi_lib" name="rocm_smi_lib"                 revision="roc-5.0.x" groups="unlocked" />
+    <project remote="rocsw" path="hipfort" name="hipfort"                 revision="release/rocm-rel-5.0" groups="unlocked" />
     <project remote="hwloc" path="hwloc" name="hwloc" upstream="v2.7" revision="fd5b8655f0e2f203661037345fa4e82919005499" groups="revlocked" />
 </manifest>

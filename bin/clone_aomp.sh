@@ -136,6 +136,8 @@ function list_repo_from_manifest(){
         manifest_project=`echo radeonopencompute/$REPO_PROJECT | tr '[:upper:]' '[:lower:]'`
    elif [[ "$REPO_REMOTE" == "roctools" ]] ; then
         manifest_project=`echo ROCM-Developer-Tools/$REPO_PROJECT | tr '[:upper:]' '[:lower:]'`
+   elif [[ "$REPO_REMOTE" == "rocsw" ]] ; then
+        manifest_project=`echo ROCmSoftwarePlatform/$REPO_PROJECT | tr '[:upper:]' '[:lower:]'`
    elif [[ "$REPO_REMOTE" == "gerritgit" ]] ; then
         manifest_project=`echo $REPO_PROJECT | tr '[:upper:]' '[:lower:]'`
    elif [[ "$REPO_REMOTE" == "hwloc" ]] ; then
@@ -231,6 +233,8 @@ if [[ "$AOMP_VERSION" == "13.1" ]] || [[ $AOMP_MAJOR_VERSION -gt 13 ]] ; then
          repo_web_location=$GITROC
       elif [ "$remote" == "roctools" ] ; then
          repo_web_location=$GITROCDEV
+      elif [ "$remote" == "rocsw" ] ; then
+         repo_web_location=$GITROCSW
       elif [ "$remote" == "gerritgit" ] ; then
          repo_web_location=$GITGERRIT
       elif [ "$remote" == "hwloc" ] ; then
