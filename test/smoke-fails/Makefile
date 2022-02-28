@@ -77,6 +77,7 @@ TESTS_DIR = \
     lds-prob5 \
     leopold-devicePtr \
     loop_order \
+    memory_mgmt_pinned_predefined \
     nwchem-s1_1 \
     omp_loop \
     requires_directive \
