@@ -71,43 +71,11 @@ if [ "$1" == "install" ] ; then
    $SUDO rm $INSTALL_OPENMP/testfile
 fi
 
-GCCMIN=8
 if [ "$AOMP_BUILD_CUDA" == 1 ] ; then
    if [ -f $CUDABIN/nvcc ] ; then
       CUDAVER=`$CUDABIN/nvcc --version | grep compilation | cut -d" " -f5 | cut -d"." -f1 `
       echo "CUDA VERSION IS $CUDAVER"
-      if [ $CUDAVER -gt 8 ] ; then
-        GCCMIN=7
-      fi
    fi
-fi
-
-function getgcc8orless(){
-   _loc=`which gcc`
-   [ "$_loc" == "" ] && return
-   gccver=`$_loc --version | grep gcc | cut -d")" -f2 | cut -d"." -f1`
-   [ $gccver -gt $GCCMIN ] && _loc=`which gcc-$GCCMIN`
-   echo $_loc
-}
-function getgxx8orless(){
-   _loc=`which g++`
-   [ "$_loc" == "" ] && return
-   gxxver=`$_loc --version | grep g++ | cut -d")" -f2 | cut -d"." -f1`
-   [ $gxxver -gt $GCCMIN ] && _loc=`which g++-$GCCMIN`
-   echo $_loc
-}
-
-GCCLOC=$(getgcc8orless)
-GXXLOC=$(getgxx8orless)
-if [ "$GCCLOC" == "" ] ; then
-   echo "ERROR: NO ADEQUATE gcc"
-   echo "       Please install gcc-5, gcc-7, or gcc-8"
-   exit 1
-fi
-if [ "$GXXLOC" == "" ] ; then
-   echo "ERROR: NO ADEQUATE g++"
-   echo "       Please install g++-5, g++-7, or g++-8"
-   exit 1
 fi
 
 GFXSEMICOLONS=`echo $GFXLIST | tr ' ' ';' `
@@ -126,7 +94,7 @@ COMMON_CMAKE_OPTS="-DDEVICELIBS_ROOT=$DEVICELIBS_ROOT
 -DLLVM_INSTALL_PREFIX=$OUT_DIR/llvm
 -DLLVM_MAIN_INCLUDE_DIR=$LLVM_PROJECT_ROOT/llvm/include
 -DLIBOMPTARGET_LLVM_INCLUDE_DIRS=$LLVM_PROJECT_ROOT/llvm/include
--DCMAKE_PREFIX_PATH=$ROCM_DIR;$ROCM_DIR/include/hsa;$DEVICELIBS_BUILD_PATH;$OUT_DIR/build/devicelibs
+-DCMAKE_PREFIX_PATH=$OUT_DIR/build/devicelibs;$ROCM_DIR;$ROCM_DIR/include/hsa
 -DCMAKE_C_COMPILER=$OUT_DIR/llvm/bin/clang
 -DCMAKE_CXX_COMPILER=$OUT_DIR/llvm/bin/clang++
 -DOPENMP_TEST_C_COMPILER=$OUT_DIR/llvm/bin/clang
@@ -136,7 +104,6 @@ if [ "$AOMP_BUILD_CUDA" == 1 ] ; then
    COMMON_CMAKE_OPTS="$COMMON_CMAKE_OPTS
 -DLIBOMPTARGET_NVPTX_ENABLE_BCLIB=ON
 -DLIBOMPTARGET_NVPTX_CUDA_COMPILER=$AOMP/bin/clang++
--DLIBOMPTARGET_NVPTX_ALTERNATE_HOST_COMPILER=$GCCLOC
 -DLIBOMPTARGET_NVPTX_BC_LINKER=$AOMP/bin/llvm-link
 -DLIBOMPTARGET_NVPTX_COMPUTE_CAPABILITIES=$NVPTXGPUS"
 fi
