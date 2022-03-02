@@ -112,7 +112,7 @@ program test
 
    call get_command_argument(1, args)
    read(args,'(i)') use_gpu
-
+   use_gpu = 1
    call init()
    call compute_dev()
 end program test
