@@ -85,8 +85,10 @@ contains
         CALL _compute_dev_cpu()
         print *, "count CPU: ", count
         count_cpu = count
+        count = 0
         CALL _compute_dev_gpu()
         print *, "count GPU: ", count
+        count = 0
         CALL _compute_dev_gpu()
         count_gpu = count
         if (count_cpu == count_gpu) then
