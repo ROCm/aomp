@@ -88,10 +88,10 @@ export MY_SOLLVE_FLAGS="-fopenmp -fopenmp-targets=$triple -Xopenmp-target=$tripl
 pushd $AOMP_REPOS_TEST/$AOMP_SOLVV_REPO_NAME
 
 if [ "$make_target" == "all" ] ; then
-   [ -f results_report45 ] && rm -rf results_report45
-   [ -f results_report50 ] && rm -rf results_report50
-   [ -f results_report51 ] && rm -rf results_report51
-   [ -f combined-results.txt ] && rm -rf combined-results.txt
+   [ -d results_report45 ] && rm -rf results_report45
+   [ -d results_report50 ] && rm -rf results_report50
+   [ -d results_report51 ] && rm -rf results_report51
+   [ -f combined-results.txt ] && rm -f combined-results.txt
    make tidy
 fi
 
