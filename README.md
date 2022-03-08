@@ -8,7 +8,7 @@ This is the base repository for AOMP. Use this github repository for
 documentation, and
 [examples](https://github.com/ROCm-Developer-Tools/aomp/tree/master/examples).
 
-The last [release is AOMP 14.0-3](https://github.com/ROCm-Developer-Tools/aomp/releases.
+The last [release is AOMP 14.0-3](https://github.com/ROCm-Developer-Tools/aomp/releases).
 Currently AOMP 15.0-0 is under development.
 
 Attention Users!  Please use this repository for [issues](https://github.com/ROCm-Developer-Tools/aomp/issues).
