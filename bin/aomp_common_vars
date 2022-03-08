@@ -66,6 +66,33 @@ fi
 # all the test repositories in a different directory.
 AOMP_REPOS_TEST=${AOMP_REPOS_TEST:-$HOME/git/aomp-test}
 
+# AOMP_SUPP is for SUPPlemental software components needed for testing.
+# such as openmpi, hdf5, and silo. Applications that need supplemental
+# components can get the latest version with $AOMP_SUPP/<component name>
+# For example set OPENMPI_DIR=$AOMP_SUPP/openmpi in the run script.
+# Supplemental components are built with either the ROCm or AOMP
+# compiler using the build_supp.sh script. The build_supp.sh script
+# will use the AOMP environment variable to identify which LLVM to use
+# for building the supplemental component.
+# The directory structure for a supplemental component includes:
+#   1. a build directory for each component,
+#   2. an install directory for each version of a component,
+#   3. a link from AOMP_SUPP/<component name> to latest version.
+# For example: The openmpi component is built in directory
+# $AOMP_SUPP_BUILD/openmpi/ and installed in directory
+# $AOMP_SUPP_INSTALL/openmpi/openmpi-4.1.1/ with a symbolic link from
+# $AOMP_SUPP/openmpi to $AOMP_SUPP_INSTALL/openmpi/openmpi-4.1.1/
+#
+# The default AOMP_SUPP directory is $HOME/local but a sysadmin with root
+# root authority could set AOMP_SUPP=/usr/local
+AOMP_SUPP=${AOMP_SUPP:-$HOME/local}
+#
+# AOMP_SUPP_BUILD could be a temp directory but defaults to $AOMP_SUPP/build
+AOMP_SUPP_BUILD=${AOMP_SUPP_BUILD:-$AOMP_SUPP/build}
+#
+# AOMP_SUPP_INSTALL must be permanent directory.
+AOMP_SUPP_INSTALL=${AOMP_SUPP_INSTALL:-$AOMP_SUPP/install}
+
 # To build aomp from the release source taball, set these values to 0
 AOMP_CHECK_GIT_BRANCH=${AOMP_CHECK_GIT_BRANCH:-1}
 AOMP_APPLY_ROCM_PATCHES=${AOMP_APPLY_ROCM_PATCHES:-1}
