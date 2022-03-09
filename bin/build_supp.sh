@@ -205,6 +205,41 @@ function buildsilo(){
   echo "# $_linkfrom is now symbolic link to $_installdir " >>$CMDLOGFILE
 }
 
+function buildfftw(){
+  _cname="fftw"
+  _version=3.3.8
+  _installdir=$AOMP_SUPP_INSTALL/fftw-$_version
+  _linkfrom=$AOMP_SUPP/fftw
+  _builddir=$AOMP_SUPP_BUILD/fftw
+  SKIPBUILD="FALSE"
+  checkversion
+  if [ "$SKIPBUILD" == "TRUE"  ] ; then
+    return
+  fi
+
+  if [ -d $_builddir ] ; then
+    runcmd "rm -rf $_builddir"
+  fi
+  runcmd "mkdir -p $_builddir"
+  runcmd "cd $_builddir"
+  runcmd "wget http://www.fftw.org/fftw-$_version.tar.gz"
+  runcmd "tar -xzf fftw-$_version.tar.gz"
+  runcmd "cd fftw-$_version"
+  if [ -d $_installdir ] ; then
+    runcmd "rm -rf $_installdir"
+  fi
+  runcmd "mkdir -p $_installdir"
+  runcmd "./configure --prefix=$_installdir --enable-shared --enable-threads --enable-sse2 --enable-avx --enable-float"
+  runcmd "make -j8"
+  runcmd "make install"
+  if [ -L $_linkfrom ] ; then
+    runcmd "rm $_linkfrom"
+  fi
+  runcmd "ln -sf $_installdir $_linkfrom"
+  echo "# $_linkfrom is now symbolic link to $_installdir " >>$CMDLOGFILE
+}
+
+
 function buildcmake(){
   _cname="cmake"
   _version=3.16.8
@@ -352,7 +387,7 @@ for _component in $_components ; do
   elif [ $_component == "hdf5" ] ; then
     buildhdf5
   elif [ $_component == "fftw" ] ; then
-    echo "NO build process for fftw yet"
+    buildfftw
   elif [ $_component == "hwloc" ] ; then
     buildhwloc
   elif [ $_component == "cmake" ] ; then
