@@ -26,6 +26,12 @@ int main() {
     a[i] = b[i];
   }
   //  sleep(5);
+
+  #pragma omp target teams distribute parallel for map(to:b[:n]) map(from:a[:n])
+  for(int i = 0; i < n; i++) {
+    a[i] = b[i];
+  }
+
   for(int i = 0; i < n; i++)
     if (a[i] != b[i]) {
       err++;
