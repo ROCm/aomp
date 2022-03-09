@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # run_babelstream.sh - runs babelstream in the $BABELSTREAM_BUILD dir.
-# User can set RUN_OPTIONS to control what variants(omp_default, openmp, hip) are selected.
+# User can set RUN_OPTIONS to control what variants(omp_default, openmp, no_loop, hip) are selected.
 # User can also set BABELSTREAM_BUILD,  BABELSTREAM_REPO, and AOMP env vars.
 # The babelstream source OMPStream.cpp is patched to override number of teams
 # and threads.
@@ -40,7 +40,7 @@ BABELSTREAM_BUILD=${BABELSTREAM_BUILD:-/tmp/$USER/babelstream}
 # Use function to set and test AOMP_GPU
 setaompgpu
 
-RUN_OPTIONS=${RUN_OPTIONS:-"omp_default openmp hip"}
+RUN_OPTIONS=${RUN_OPTIONS:-"omp_default openmp no_loop hip"}
 omp_flags="-O3 -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$AOMP_GPU -DOMP -DOMP_TARGET_GPU"
 omp_cpu_flags="-O3 -fopenmp -DOMP"
 hip_flags="-O3 --offload-arch=$AOMP_GPU -DHIP -x hip"
@@ -92,6 +92,15 @@ for option in $RUN_OPTIONS; do
     fi
   elif [ "$option" == "omp_default" ]; then
     EXEC=omp-stream-default
+    rm -f $EXEC
+    echo $AOMP/bin/clang++ -D_DEFAULTS_NOSIMD $omp_flags $omp_src $std -o $EXEC
+    $AOMP/bin/clang++ -D_DEFAULTS_NOSIMD $omp_flags $omp_src $std -o $EXEC
+    if [ $? -ne 1 ]; then
+      ./$EXEC 2>&1 | tee -a results.txt
+    fi
+  elif [ "$option" == "no_loop" ]; then
+    omp_flags+=" -fopenmp-target-ignore-env-vars"
+    EXEC=omp-stream-no-loop
     rm -f $EXEC
     echo $AOMP/bin/clang++ -D_DEFAULTS_NOSIMD $omp_flags $omp_src $std -o $EXEC
     $AOMP/bin/clang++ -D_DEFAULTS_NOSIMD $omp_flags $omp_src $std -o $EXEC
