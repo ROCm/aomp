@@ -1,6 +1,6 @@
 # Makefile for ROCm compiler
 
-ROCM_DIR            ?= /opt/rocm
+HIP_DIR            ?= /opt/rocm
 #FORTRAN_COMPILE     ?= $(ROCM_DIR)/bin/flang
 #FC                  ?= $(ROCM_DIR)/bin/flang
 FORTRAN_FIXEDFORM    = -ffixed
@@ -59,8 +59,8 @@ ifeq ($(ENABLE_OMP_OFFLOAD), 1)
   DEFINES += -fopenmp-targets=$(OFFLOAD_TRIPLE) -Xopenmp-target=$(OFFLOAD_TRIPLE) -march=$(OFFLOAD_ARCH)
 endif
 ifeq ($(ENABLE_HIP), 1)
-  DEVICE_COMPILE ?= $(ROCM_DIR)/bin/hipcc -c -D__HIP_PLATFORM_HCC__
-  LIBRARY_DEVICE = -L$(ROCM_DIR)/lib -lamdhip64
+  DEVICE_COMPILE ?= $(HIP_DIR)/bin/hipcc -c -D__HIP_PLATFORM_HCC__
+  LIBRARY_DEVICE = -L$(HIP_DIR)/lib -lamdhip64
   Device_Interface = Device_HIP
 endif
 DEFINES += -D$(GENASIS_MACHINE)
@@ -71,7 +71,7 @@ ifeq ($(ENABLE_MPI), 1)
   #CC_COMPILE = $(OPENMPI_DIR)/bin/mpicc -v
   #CC_COMPILE = $(ROCM_DIR)/bin/clang -v
   FCFLAGS =  $(DEFINES) 
-  CC_COMPILE =  $(ROCM_DIR)/bin/hipcc -c -D__HIP_PLATFORM_HCC__
+  CC_COMPILE =  $(HIP_DIR)/bin/hipcc -c -D__HIP_PLATFORM_HCC__
   FCFLAGS += $(LIBRARY_OPENMPI)
   #LINK = $(OPENMPI_DIR)/bin/mpifort
   LINK = $(FORTRAN_LINK)

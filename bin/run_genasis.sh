@@ -28,12 +28,19 @@ thisdir=$(getdname $0)
 # --- end standard header ----
 
 # Setup AOMP variables
-AOMP?=${AOMP:-/usr/lib/aomp}
+AOMP=${AOMP:-/usr/lib/aomp}
+ROCM=${ROCM:-/opt/rocm}
 
 # Use function to set and test AOMP_GPU
 setaompgpu
 
 REPO_DIR=$AOMP_REPOS_TEST/GenASis
+if [ -d "$REPO_DIR" ] ; then
+    echo $REPO_DIR " exists."
+else
+    echo "$REPO_DIR does not exist. Please run ./clone_test.sh and re-run this script."
+    exit
+fi
 
 # Copy Makefile_ROCm to GenASis repository
 cp Makefile_ROCm $REPO_DIR/Build/Machines/
@@ -82,7 +89,7 @@ export CC_COMPILE="$AOMP/bin/clang"
 export OTHER_LIBS="-lm -L$AOMP/lib -L$OPENMPI_DIR/lib -lmpi_usempif08 -lmpi_mpifh -lmpi -lflang -lflangmain -lflangrti -lpgmath -lomp -lomptarget "
 export FORTRAN_LINK="$AOMP/bin/clang $OTHER_LIBS"
 export DEVICE_COMPILE="$AOMP/bin/hipcc -D__HIP_PLATFORM_HCC__"
-export ROCM_DIR=$AOMP
+export HIP_DIR=$ROCM
 cd $currdir
 if [ "$1" != "runonly" ] ; then
   cd $REPO_DIR/Programs/UnitTests/Basics/Runtime/Executables
