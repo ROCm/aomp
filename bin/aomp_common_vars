@@ -102,10 +102,27 @@ CUDAT=${CUDAT:-$CUDA/targets}
 CUDAINCLUDE=${CUDAINCLUDE:-$CUDA/include}
 CUDABIN=${CUDABIN:-$CUDA/bin}
 
-if [ -f /usr/local/cmake/bin/cmake ] ; then
-  AOMP_CMAKE=${AOMP_CMAKE:-/usr/local/cmake/bin/cmake}
-else
-  AOMP_CMAKE=${AOMP_CMAKE:-cmake}
+# unless overridden with AOMP_CMAKE, get CMAKE from the
+# prerequisite supplemental component cmake.
+AOMP_CMAKE=${AOMP_CMAKE:-$AOMP_SUPP/cmake/bin/cmake}
+if [ ! -f $AOMP_CMAKE ] ; then
+  AOMP_CMAKE=`which cmake`
+  if [ "$AOMP_CMAKE" == "" ] ; then
+    echo "ERROR: finding cmake in aomp_common_vars."
+    echo "       Missing prerequisite supplemental component cmake."
+    echo "       Please run: ./build_prereq.sh cmake"
+    echo "       OR set AOMP_CMAKE env variable to a valid cmake binary"
+    echo "       OR build ALL prerequisite components with: ./build_prereq.sh"
+    echo
+    echo "NOTE:  All supplemental components are built and retrieved from "
+    echo "       subdirectories of the directory defined by environment variable"
+    echo "       AOMP_SUPP whose current value is: $AOMP_SUPP"
+    exit 1
+  else
+    # FIXME: Add version check here for system cmake.
+    echo "WARNING: Using system cmake $AOMP_CMAKE "
+    echo "         consider building cmake with: ./build_prereq.sh cmake"
+  fi
 fi
 
 AOMP_USE_NINJA=${AOMP_USE_NINJA:-0}
