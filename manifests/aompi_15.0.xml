@@ -30,7 +30,5 @@
     <project remote="roc" path="rocm-cmake" name="rocm-cmake"                     revision="release/rocm-rel-5.0" groups="unlocked" />
     <project remote="roc" path="rocr-runtime" name="ROCR-Runtime"                 revision="rocm-5.0.x" groups="unlocked" />
     <project remote="roc" path="roct-thunk-interface" name="ROCT-Thunk-Interface" revision="roc-5.0.x" groups="unlocked" />
-    <project remote="roc" path="rocm_smi_lib" name="rocm_smi_lib"                 revision="roc-5.0.x" groups="unlocked" />
     <project remote="rocsw" path="hipfort" name="hipfort"                 revision="release/rocm-rel-5.0" groups="unlocked" />
-    <project remote="hwloc" path="hwloc" name="hwloc" upstream="v2.7" revision="fd5b8655f0e2f203661037345fa4e82919005499" groups="revlocked" />
 </manifest>
