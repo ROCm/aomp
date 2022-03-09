@@ -24,7 +24,7 @@ int main() {
     a[i] = b[i];
   }
  
-  #pragma omp target teams distribute parallel for map(to:b[:n]) map(from:a[:n])
+  #pragma omp target teams distribute parallel for map(to:b[:n]) map(tofrom:a[:n])
   for(int i = 0; i < n; i++) {
     a[i] += b[i];
   }
