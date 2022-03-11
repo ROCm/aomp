@@ -62,11 +62,11 @@ else
     exit
 fi
 currdir=$(pwd)
-export FFTW_DIR=$AOMP_SUPP_INSTALL/fftw3
+export FFTW_DIR=$AOMP_SUPP_INSTALL/fftw-3.3.8
 if [ -d "$FFTW_DIR" ] ; then
-    echo "FFTW3 exists."
+    echo "FFTW exists."
 else
-    echo "FFTW3 does not exist. Install FFTW3 using ./build_supp.sh fftw3 and try again."
+    echo "$FFTW_DIR does not exist. Install FFTW using ./build_supp.sh fftw and try again."
     exit
 fi
 export OPENMPI_DIR=$AOMP_SUPP_INSTALL/openmpi-4.1.1
@@ -77,7 +77,7 @@ else
     exit
 fi
 
-export LD_LIBRARY_PATH=$HOME/rocm/aomp/lib:$OPENMPI_DIR/lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$HOME/rocm/aomp/lib:$OPENMPI_DIR/lib:$FFTW_DIR/lib:$LD_LIBRARY_PATH
 export ROCM_DIR=$AOMP
 cd $REPO_DIR
 if [ "$1" != "runonly" ] ; then

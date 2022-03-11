@@ -229,6 +229,10 @@ function buildfftw(){
     runcmd "rm -rf $_installdir"
   fi
   runcmd "mkdir -p $_installdir"
+  runcmd "./configure --prefix=$_installdir --enable-shared --enable-threads --enable-sse2 --enable-avx"
+  runcmd "make -j8"
+  runcmd "make install"
+  runcmd "make clean"
   runcmd "./configure --prefix=$_installdir --enable-shared --enable-threads --enable-sse2 --enable-avx --enable-float"
   runcmd "make -j8"
   runcmd "make install"
