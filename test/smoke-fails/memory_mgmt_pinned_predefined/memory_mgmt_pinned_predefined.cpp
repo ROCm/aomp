@@ -8,7 +8,7 @@ int main() {
   int err = 0;
   int n = N;
 
-  // allocator for locked memory
+  // allocator for locked memory with predefined allocator
   double *a = (double *)omp_alloc(n*sizeof(double), ompx_pinned_mem_alloc);
   double *b = (double *)omp_alloc(n*sizeof(double), ompx_pinned_mem_alloc);
   //double *a = new double[n];
