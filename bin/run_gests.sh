@@ -31,7 +31,6 @@ thisdir=$(getdname $0)
 # Setup AOMP variables
 AOMP=${AOMP:-/usr/lib/aomp}
 AOMP_SUPP=${AOMP_SUPP:-$HOME/local}
-AOMP_SUPP_INSTALL=${AOMP_SUPP_INSTALL:-$AOMP_SUPP/install}
 HIPFORT=${HIPFORT:-$HOME/rocm/aomp/hipfort/}
 
 # Use function to set and test AOMP_GPU
@@ -62,18 +61,18 @@ else
     exit
 fi
 currdir=$(pwd)
-export FFTW_DIR=$AOMP_SUPP_INSTALL/fftw-3.3.8
+export FFTW_DIR=$AOMP_SUPP/fftw
 if [ -d "$FFTW_DIR" ] ; then
     echo "FFTW exists."
 else
     echo "$FFTW_DIR does not exist. Install FFTW using ./build_supp.sh fftw and try again."
     exit
 fi
-export OPENMPI_DIR=$AOMP_SUPP_INSTALL/openmpi-4.1.1
+export OPENMPI_DIR=$AOMP_SUPP/openmpi
 if [ -d "$OPENMPI_DIR" ] ; then
     echo "OpenMPI-4.1.1 exists."
 else
-    echo "OpenMPI does not exist. Install FFTW3 using ./build_supp.sh ompi and try again."
+    echo "$OPENMPI_DIR does not exist. Install openmpi using ./build_supp.sh ompi and try again."
     exit
 fi
 
@@ -96,8 +95,7 @@ if [ "$1" != "buildonly" ] ; then
   cd $REPO_DIR
   echo
   echo "=================  attempting mpirun  ========"
-  _cmd="$OPENMPI_DIR/bin/mpirun -np 1 ./PSDNS_fft.x"
-  #_cmd="gdb ./PSDNS_fft.x"
+  _cmd="$OPENMPI_DIR/bin/mpirun -np 1 $AOMP/bin/openmpi_set_cu_mask ./PSDNS_fft.x"
   echo $_cmd
   time $_cmd
   echo

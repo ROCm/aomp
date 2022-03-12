@@ -48,10 +48,9 @@ cp Makefile_ROCm $REPO_DIR/Build/Machines/
 cd $REPO_DIR
 
 AOMP_SUPP=${AOMP_SUPP:-$HOME/local}
-AOMP_SUPP_INSTALL=${AOMP_SUPP_INSTALL:-$AOMP_SUPP/install}
-export OPENMPI_DIR="$AOMP_SUPP_INSTALL/openmpi-4.1.1"
-export SILO_DIR="$AOMP_SUPP_INSTALL/silo-4.10.2"
-export HDF5_DIR="$AOMP_SUPP_INSTALL/hdf5-1.12.0"
+export OPENMPI_DIR="$AOMP_SUPP/openmpi"
+export SILO_DIR="$AOMP_SUPP/silo"
+export HDF5_DIR="$AOMP_SUPP/hdf5"
 export GENASIS_MACHINE=ROCm
 
 if [ -d "$AOMP" ] ; then
@@ -60,6 +59,8 @@ else
     echo "Install latest AOMP and try again!"
     exit
 fi
+
+export GPU_ID=$($AOMP/bin/rocm_agent_enumerator | grep -m 1 -E gfx[^0]{1}.{2})
 currdir=$(pwd)
 if [ -d "$SILO_DIR" ] ; then
     echo "SILO 4.10.2 exists."
@@ -138,7 +139,7 @@ if [ "$1" != "buildonly" ] ; then
   #echo ldd ./SineWaveAdvection_$GENASIS_MACHINE
   #ldd ./SineWaveAdvection_$GENASIS_MACHINE
   echo
-  _cmd="$OPENMPI_DIR/bin/mpirun -np 1 $REPO_DIR/Programs/Examples/Basics/FluidDynamics/Executables/SineWaveAdvection_$GENASIS_MACHINE nCells=128,128,128"
+  _cmd="$OPENMPI_DIR/bin/mpirun -np 1 $AOMP/bin/openmpi_set_cu_mask $REPO_DIR/Programs/Examples/Basics/FluidDynamics/Executables/SineWaveAdvection_$GENASIS_MACHINE nCells=128,128,128"
   echo $_cmd
   time $_cmd
   echo "=================  end mpirun  ========"

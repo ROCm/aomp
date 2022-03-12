@@ -54,7 +54,7 @@ ifeq ($(ENABLE_OMP), 1)
 endif
 ifeq ($(ENABLE_OMP_OFFLOAD), 1)
   OFFLOAD_TRIPLE = amdgcn-amd-amdhsa
-  OFFLOAD_ARCH = gfx906
+  OFFLOAD_ARCH = $(GPU_ID)
   DEFINES += -DENABLE_OMP_OFFLOAD
   DEFINES += -fopenmp-targets=$(OFFLOAD_TRIPLE) -Xopenmp-target=$(OFFLOAD_TRIPLE) -march=$(OFFLOAD_ARCH)
 endif
