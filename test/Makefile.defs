@@ -44,7 +44,12 @@ else
    # If AOMP not pointing to rocm, then assume neither offload-arch nor mygpu utilities exist.
    # So use lspci to search for volta and if not then use standalone rocm_agent_enumerator
    # to autodetect which GPU is active.
-   ISVOLTA = $(shell /usr/bin/lspci -n | grep 10de:1db4)
+   ifneq ("$(wildcard /usr/sbin/lspci)","")
+     lspci_loc = /usr/sbin/lspci
+   else
+     lspci_loc = /usr/bin/lspci
+   endif
+   ISVOLTA = $(shell $(lspci_loc) -n | grep 10de:1db4)
    ifeq (10de,$(findstring 10de,$(ISVOLTA)))
       INSTALLED_GPU = sm_70
    else
