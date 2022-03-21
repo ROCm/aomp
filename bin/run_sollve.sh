@@ -159,7 +159,7 @@ make report_summary >> combined-results.txt
 make report_summary  | tail -5 >> abrev.combined-results.txt
 mv results_report results_report50
 
-if [ "$ROCMASTER" != "1" ] && [ "$EPSDB" != "1" ]; then
+if [ "$ROCMASTER" != "1" ] && [ "$EPSDB" != "1" ] && [ "$SKIP_SOLLVE51" != 1 ]; then
 echo "--------------------------- START OMP 5.1 TESTING ---------------------"
 # Run OpenMP 5.1 Tests
 export MY_SOLLVE_FLAGS="$MY_SOLLVE_FLAGS -fopenmp-version=51"
