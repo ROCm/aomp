@@ -123,6 +123,7 @@ tail -7 nekbone.log
 
 echo "======= openmpapps ==="
 cd ~/git/aomp-test/openmpapps
+git checkout AOMP-0.5
 ./check_openmpapps.sh > openmpapps.log 2>&1
 appfails=$?
 tail -12 openmpapps.log
