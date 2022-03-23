@@ -28,8 +28,6 @@ thisdir=$(getdname $0)
 INSTALL_COMGR=${INSTALL_COMGR:-$AOMP_INSTALL_DIR}
 
 REPO_DIR=$AOMP_REPOS/$AOMP_COMGR_REPO_NAME
-REPO_BRANCH=$AOMP_COMGR_REPO_BRANCH
-checkrepo
 
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then 
   echo " "

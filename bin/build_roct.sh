@@ -27,10 +27,6 @@ thisdir=$(getdname $0)
 
 INSTALL_ROCT=${INSTALL_ROCT:-$AOMP_INSTALL_DIR}
 
-REPO_DIR=$AOMP_REPOS/$AOMP_ROCT_REPO_NAME
-REPO_BRANCH=$AOMP_ROCT_REPO_BRANCH
-checkrepo
-
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then 
   echo " "
   echo " This script builds the ROCt thunk libraries"

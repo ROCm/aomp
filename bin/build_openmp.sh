@@ -35,9 +35,7 @@ if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   help_build_aomp
 fi
 
-REPO_BRANCH=$AOMP_PROJECT_REPO_BRANCH
 REPO_DIR=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME
-checkrepo
 
 if [ "$AOMP_BUILD_CUDA" == 1 ] ; then
    CUDAH=`find $CUDAT -type f -name "cuda.h" 2>/dev/null`
