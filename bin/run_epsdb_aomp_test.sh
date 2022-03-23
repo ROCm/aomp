@@ -51,7 +51,7 @@ mkdir -p ~/git/
 cd $aompdir/bin
 set +x
 echo "=========== clone aomp_test ==========="
-./clone_aomp_test.sh > clone.log 2>&1
+./clone_epsdb_test.sh > clone.log 2>&1
 
 echo "====== helloworld ======="
 cd $aompdir/test/smoke/helloworld
