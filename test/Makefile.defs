@@ -55,7 +55,7 @@ endif
 AOMP_GPU       ?= $(INSTALLED_GPU)
 CC              = $(AOMP)/bin/clang
 OG11           ?= $(HOME)/git/og11/install
-OG11FLAGS      ?= -O3 -fopenmp -foffload=-march=$(AOMP_GPU) -I.
+OG11FLAGS      ?= -O3 -fopenmp -foffload=-march=$(AOMP_GPU) -I. -lgfortran -L $(OG11)/lib64
 OG11CC         ?= $(OG11)/bin/g++ $(OG11FLAGS) $(CFLAGS)
 OG11LIBPATH    ?= $(OG11)/lib64:$(AOMP)/lib
 ifeq ($(OFFLOAD_DEBUG),1)
