@@ -54,6 +54,16 @@ endif
 
 AOMP_GPU       ?= $(INSTALLED_GPU)
 CC              = $(AOMP)/bin/clang
+OG11           ?= $(HOME)/git/og11/install
+OG11FLAGS      ?= -O3 -fopenmp -foffload=-march=$(AOMP_GPU) -I.
+OG11CC         ?= $(OG11)/bin/g++ $(OG11FLAGS) $(CFLAGS)
+OG11LIBPATH    ?= $(OG11)/lib64:$(AOMP)/lib
+ifeq ($(OFFLOAD_DEBUG),1)
+  OG11ENV = LD_LIBRARY_PATH=$(OG11LIBPATH) GCN_DEBUG=1
+else
+  OG11ENV = LD_LIBRARY_PATH=$(OG11LIBPATH)
+endif
+
 CUDA           ?= /usr/local/cuda
 
 ifeq (sm_,$(findstring sm_,$(AOMP_GPU)))
