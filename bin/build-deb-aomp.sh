@@ -101,8 +101,13 @@ echo "    DONE BUILDING TARBALL"
 echo 
 echo "--- RUNNING dch TO MANANGE CHANGELOG "
 cd  $froot
+# Skip changelog editor for docker release builds.
 echo dch -v ${AOMP_VERSION_STRING} -e --package $pkgname
-dch -v ${AOMP_VERSION_STRING} --package $pkgname
+if [ "$DOCKER" -eq "1" ]; then
+  dch -v ${AOMP_VERSION_STRING} --package $pkgname ""
+else
+  dch -v ${AOMP_VERSION_STRING} --package $pkgname
+fi
 # Backup the debian changelog to git repo, be sure to commit this 
 cp -p $froot/debian/changelog $debdir/.
 
