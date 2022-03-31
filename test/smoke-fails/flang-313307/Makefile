@@ -10,3 +10,6 @@ OMP_BIN      = $(AOMP)/bin/$(FLANG)
 CC           = $(OMP_BIN) $(VERBOSE) 
 
 include ../Makefile.rules
+
+run:
+	LIBOMPTARGET_KERNEL_TRACE=1 ./$(TESTNAME) 2>&1 | grep -q  SGN:1
