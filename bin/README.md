@@ -62,7 +62,7 @@ These are some important environment variables and their default values.
 | AOMP_REPOS            | $HOME/git/aomp15.0   | The base directory for all AOMP build repositories
 | AOMP_STANDALONE_BUILD | 1                  | Build all components, do NOT use installed ROCm
 | AOMP_VERSION          | 15.0               | Clang version.
-| AOMP_VERSION_MOD      | 0                  | This implies the next release will be AOMP_15.0-0.
+| AOMP_VERSION_MOD      | 1                  | This implies the next release will be AOMP_15.0-1.
 | AOMP_VERSION_STRING   | $AOMP_VERSION-$AOMP_VERSION_MOD |
 | GFXLIST               | gfx700 gfx701 gfx801 gfx803     | List of AMDGPU gpus to build for
 |                       | gfx900 gfx902 gfx906 gfx908     |
@@ -172,7 +172,7 @@ build_gdb.sh             -  Builds ROC gdb.
 build_roctracer.sh       -  Builds ROC gdb. UNDER DEVELOPMENT
 build_rocm-cmake.sh      -  Builds rocm-cmake.
 build_rocm_smi_lib.sh    -  Builds rocm_smi_lib.
-build_hwloc.sh           -  Builds hwloc.
+build_prereq.sh          -  Builds prerequisites such as cmake, hwloc, rocmsmi.
 
 create_release_tarball.sh - This builds an important release artifact
                             containing all sources.
@@ -189,6 +189,7 @@ any fails occur.
    # If you turn this off, you must have a compatible ROCm installed.
    # AOMP_STANDALONE_BUILD==0 only installs openmp, extras, pgmath, flang, flang_runtime.
 
+   ./build_prereq.sh
    ./build_roct.sh
    ./build_roct.sh install
    ./build_rocr.sh
@@ -197,10 +198,6 @@ any fails occur.
    ./build_project.sh install
    ./build_libdevice.sh
    ./build_libdevice.sh install
-   ./build_rocm_smi_lib.sh
-   ./build_rocm_smi_lib.sh install
-   ./build_hwloc.sh
-   ./build_hwloc.sh install
    ./build_openmp.sh
    ./build_openmp.sh install
    ./build_extras.sh
@@ -259,10 +256,10 @@ in $HOME/rocm/aomp_15.0-0 and create a symbolic link as follows:
 ln -sf ${AOMP}_15.0-0 ${AOMP}
 ```
 All testing for AOMP uses the environment variable AOMP to locate the installation. This makes it easy to switch between versions of AOMP for testing by simply changing the environment variable AOMP. You do NOT need to change the symbolic link.
-For example, if the aomp symbolic link currently points to aomp_15.0-0 and you want to test aomp_14.0-3, do this:
+For example, if the aomp symbolic link currently points to aomp_15.0-0 and you want to test aomp_15.0-0, do this:
 
 ```
-export AOMP=$HOME/rocm/aomp_14.0-3
+export AOMP=$HOME/rocm/aomp_15.0-0
 ```
 
 The aomp package installs in /usr/lib/aomp_\<version_string\> and symlinks /usr/lib/aomp to the versioned directory. To test the installed package, set AOMP to /usr/lib/aomp or /usr/lib/aomp_\<version_string\>.
