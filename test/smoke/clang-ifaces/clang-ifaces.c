@@ -40,6 +40,7 @@ for (int i =0; i <256; i++)
 {
     f = 4;
 }
+if (f != 4) return 1;
 return 0;
 }
 

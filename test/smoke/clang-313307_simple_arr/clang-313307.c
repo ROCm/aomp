@@ -13,7 +13,7 @@ int main(){
 
     printf("hello %d %d\n", a1_a[0], nthreads_a[0]);
 
-  
+    if (a1_a[0] != 1 || nthreads_a[0] != 4) return 1; 
     return 0;
 }
 

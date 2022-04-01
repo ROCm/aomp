@@ -79,4 +79,6 @@ int main(int argc, char **argv) {
   cout << "Serial == OMP CPU: " << equalQ(x.data(), xcpu.data(), n) << endl;
   cout << "Serial == OMP GPU: " << equalQ(x.data(), xgpu.data(), n) << endl;
   cout << "Serial == OMP GPU loop: " << equalQ(x.data(), xloop.data(), n) << endl;
+  if (equalQ(x.data(), xloop.data(), n) != 1) return 1;
+   
 }

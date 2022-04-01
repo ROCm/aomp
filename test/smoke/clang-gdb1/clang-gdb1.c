@@ -99,14 +99,17 @@ int main(int argc, char* argv[]) {
     printf("PASS\n");
   } else if (!runningOnGPU) {
     printf("FAIL - not running on a GPU\n");
+    return 1;
   } else {
     printf("FAIL iters=%d checkDelta=%d\n", iters, checkVal-996321);
+    return 1;
   }
 
 #ifdef USE_MPI
     ierr = MPI_Finalize();
     if (ierr != MPI_SUCCESS) {
         fprintf(stderr, "Error: MPI_Finalize() failed: %d\n", ierr);
+	return 1;
     }
 #endif
 

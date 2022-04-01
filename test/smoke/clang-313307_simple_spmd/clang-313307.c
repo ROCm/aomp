@@ -12,7 +12,7 @@ int main(){
 
     printf("hello %d %d\n", nteams_a, nthreads_a);
 
-  
+    if (nteams_a != 1 || nthreads_a != 256) return 1; 
     return 0;
 }
 
