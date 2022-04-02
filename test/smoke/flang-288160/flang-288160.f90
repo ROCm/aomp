@@ -113,9 +113,9 @@ contains
         end do
         if (num_error > 0) then
             print *,"TEST FAILED"
+            stop 2
         else
             print *,"TEST PASS"
-            stop 2
         endif
     end subroutine compare_results
 
