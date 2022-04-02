@@ -90,6 +90,10 @@ if [[ -z $GAWK ]] && [[ "$OS" == *"Ubuntu"* ]] ; then
    exit 1
 fi
 
+if [ "$DISABLE_LLVM_TESTS" == "1" ]; then
+  export DO_TESTS="-DLLVM_INCLUDE_TESTS=OFF -DCLANG_INCLUDE_TESTS=OFF"
+fi
+
 echo 
 date
 echo " =================  START build_aomp.sh ==================="   
