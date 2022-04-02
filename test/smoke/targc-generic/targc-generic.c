@@ -17,5 +17,6 @@ int main (){
     x_d[1] = 1;
   }
   printf("x_d[1] = %f\n", x_d[1]);
+  if (x_d[1] != 1.0) {printf("Failed\n"); return 1;}
   return 0;
 }

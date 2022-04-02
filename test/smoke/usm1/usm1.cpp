@@ -52,9 +52,10 @@ int main(){
   printf("loop time (with  nowait) = %g\n",t2-t1);
    #pragma omp taskwait
 
-  for (size_t i = N-10; i < N; ++i)
+  for (size_t i = N-10; i < N; ++i) {
     printf("DATA[%zu] = %g\n",i,DATA[i]);
-
+    if (DATA[i] != 0.1) { printf("Failed\n"); return 1; }
+  }
   //delete[] DATA;
   
 

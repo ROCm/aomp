@@ -14,4 +14,5 @@ CC           = $(OMP_BIN) $(VERBOSE)
 
 include ../Makefile.rules
 run: $(TESTNAME)
+	$(RUNENV) ./$(TESTNAME)
 	$(RUNENV) ./$(TESTNAME) 2>&1 | $(AOMP)/bin/FileCheck $(TESTSRC_MAIN)
