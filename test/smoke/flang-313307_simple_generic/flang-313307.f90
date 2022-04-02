@@ -8,5 +8,8 @@ program main
     !$omp end target
 
     write(*,*) nteams, nthreads
-    if (nthreads .ne. 1) write (*,*) "Failed nthreads for gneric kernell"
+    if (nthreads .ne. 1) then
+      write (*,*) "Failed nthreads for gneric kernell"
+      stop 2
+    endif
 end program main

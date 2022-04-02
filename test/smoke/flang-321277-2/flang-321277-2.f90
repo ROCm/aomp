@@ -7,7 +7,7 @@ program test
     !$omp atomic
     A =  A + 1
     !$omp end target parallel
-
+    print *, threads, A
     if (A  .EQ. threads) then
         print *, "PASS"
     else

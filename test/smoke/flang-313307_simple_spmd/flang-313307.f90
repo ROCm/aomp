@@ -8,5 +8,8 @@ program main
     !$omp end target parallel
 
     write(*,*) nteams, nthreads
-    if (nthreads .eq. 1) write (*,*) "Failed nthreads for spmd kernell"
+    if (nthreads .eq. 1) then
+      write (*,*) "Failed nthreads for spmd kernell"
+      stop 2
+    endif
 end program main

@@ -4,7 +4,8 @@ PROGRAM test_target_teams_distribute_depend
   implicit none
   INTEGER :: errors
   INTEGER, parameter :: N = 1024
-  errors = 0
+  errors = depend_array_section()
+  if (errors .ne. 0) stop 2
 
 CONTAINS
   INTEGER FUNCTION depend_array_section()
@@ -34,8 +35,9 @@ CONTAINS
     !$omp end target data
 
     errors = 0
-
-
+    do x = 1,10
+    if (d(x) .eq. 0) errors = 1
+    end do
     depend_array_section = errors
   END FUNCTION depend_array_section
 END PROGRAM test_target_teams_distribute_depend 

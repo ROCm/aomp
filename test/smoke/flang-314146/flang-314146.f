@@ -15,6 +15,7 @@
             print *, 'Fortran is running on the GPU', onGPU
          else
             print *, 'Fortran is NOT running on the GPU', onGPU
+            stop 2
          end if
 
 

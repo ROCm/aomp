@@ -9,7 +9,7 @@ subroutine _compute_dev(sum_dev, a_dev, b_dev, c_dev)
 #define PDO
 #ifdef PDO
 !$omp parallel do
-#endif        
+#endif
     do i=1,nsize
         do j=1,nsize
             do k=1,nsize
@@ -20,9 +20,8 @@ subroutine _compute_dev(sum_dev, a_dev, b_dev, c_dev)
 end subroutine _compute_dev
 
 program main
-    integer :: nsize
     REAL(8) :: sum_dev = 0
-    REAL(8), dimension(100,100,100) :: a_dev, b_dev, c_dev
+    REAL(8), dimension(100,100,100) :: a_dev, b_dev, c_dev, E_dev
     integer :: nsize = 100
 !$omp declare target(_compute_dev)
     do i=1,nsize
@@ -40,10 +39,23 @@ program main
 !$omp end target
 !$omp target update from(a_dev,sum_dev)
 
+    print *,nsize
+    do i=1,nsize
+        do j=1,nsize
+            do k=1,nsize
+                E_dev(i,j,k) = b_dev(i,j,k) * c_dev(i,j,k) * i * nsize*nsize + j * nsize + k
+            end do
+        end do
+    end do
+
     do i=1,3
         do j=1,3
             do k=1,3
                 print *, a_dev(i,j,k)
+                if (a_dev(i,j,k) .ne. E_dev(i,j,k)) then
+                  print *, "Failed", E_dev(i,j,k)
+                  stop 2
+                endif
             end do
         end do
     end do

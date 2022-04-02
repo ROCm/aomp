@@ -11,5 +11,9 @@ program t270386
   sum = sum + 1
 !$omp end target parallel
   print *, "sum = ", sum
+  if (sum .ne. 257) then
+    print *, "wrong answers"
+    stop 2
+  endif
 end program
  

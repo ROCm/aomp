@@ -95,6 +95,7 @@ contains
             print *, "PASS"
         else
             print *, "FAIL"
+            stop 2
         end if
 !!$omp target update from(a_dev,count,touch_limit)
     end subroutine compute_dev

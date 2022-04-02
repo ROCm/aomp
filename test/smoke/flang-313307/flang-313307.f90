@@ -515,4 +515,5 @@ program test
         t_sum = t_sum + t_iter
     end do
     print *, "sc_k1: ", (t_sum / iter)
+    if (t_iter .ne. (t_sum / iter)) stop 2
 end program test

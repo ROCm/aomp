@@ -115,6 +115,7 @@ contains
             print *,"TEST FAILED"
         else
             print *,"TEST PASS"
+            stop 2
         endif
     end subroutine compare_results
 

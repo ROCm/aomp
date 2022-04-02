@@ -4,4 +4,5 @@ module array_mod
 end module array_mod
 
 program test
+        print *, "compilation prev aborted, passes"
 end program test

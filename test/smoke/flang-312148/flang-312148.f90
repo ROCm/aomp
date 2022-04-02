@@ -245,10 +245,11 @@
          write(*,*) 'Error encountered in allocating space'
          stop
       endif
-
+      write(*,*) "Passed"
       return
       end
 
 
       program repro
+         call alloc_lhs_space()
       end program repro

@@ -139,6 +139,7 @@
             print 9100, i1,i2,i3,c_ij, i1,i2,i3,ch_ij
  9100       format(' C(',i4,',',i4,',',i4,') = ',1pe14.4,                &
      &             ' Ch(',i4,',',i4,',',i4,') = ',1pe14.4 )
+            stop 2
            endif
           enddo
           enddo
@@ -206,5 +207,4 @@
  9050 format(' m,n,k,batchCount ', 4(1x,i6) )
       call test_gemm_nn_strided_batched(m,n,k,batchCount,use_gpu)
 
-      stop
       end program main_gemm_nn_strided_batched

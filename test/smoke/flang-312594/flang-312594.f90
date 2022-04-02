@@ -30,4 +30,6 @@ end module test
 
 program repro
    use test_mod
+   call test()
+   print *, "Compilation test"
 end program repro

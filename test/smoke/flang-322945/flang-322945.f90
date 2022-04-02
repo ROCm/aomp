@@ -59,4 +59,7 @@ program test
     do i=1,10
         print *, tail%array(i,i)
     end do    
+    do i=1,10
+       if ( head%array(i,i) .ne. tail%array(i,i)) stop 2
+    end do
 end program test

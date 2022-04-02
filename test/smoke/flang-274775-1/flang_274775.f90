@@ -23,5 +23,8 @@
  !$omp end target teams distribute
 
        write(*, *), "M=", M
-
+       if (M .ne. (100.0, 100.0)) then
+         print *, "wrong answers"
+         stop 2
+       endif
  end program test

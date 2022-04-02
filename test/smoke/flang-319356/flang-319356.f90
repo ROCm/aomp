@@ -30,4 +30,5 @@ contains
 end module trigger
 
 program main
+        print  *,"compilation error previously, so passes"
 end program main

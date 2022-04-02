@@ -35,5 +35,9 @@ program main
    !$omp target map(tofrom : f)
         f = 4
    !$omp end target
-
+   if (f .ne. 4 .or. e(256) .ne. 256) then
+     print *, "Failed"
+     stop 2
+   endif
+   print *,"passed"
 end program main
