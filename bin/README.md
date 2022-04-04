@@ -256,10 +256,10 @@ in $HOME/rocm/aomp_15.0-0 and create a symbolic link as follows:
 ln -sf ${AOMP}_15.0-0 ${AOMP}
 ```
 All testing for AOMP uses the environment variable AOMP to locate the installation. This makes it easy to switch between versions of AOMP for testing by simply changing the environment variable AOMP. You do NOT need to change the symbolic link.
-For example, if the aomp symbolic link currently points to aomp_15.0-0 and you want to test aomp_15.0-0, do this:
+For example, if the aomp symbolic link currently points to aomp_15.0-0 and you want to test aomp_14.0-3, do this:
 
 ```
-export AOMP=$HOME/rocm/aomp_15.0-0
+export AOMP=$HOME/rocm/aomp_14.0-3
 ```
 
 The aomp package installs in /usr/lib/aomp_\<version_string\> and symlinks /usr/lib/aomp to the versioned directory. To test the installed package, set AOMP to /usr/lib/aomp or /usr/lib/aomp_\<version_string\>.
