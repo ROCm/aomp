@@ -25,9 +25,9 @@ contains
     subroutine mpas_dmpar_exch_halo_3d_acc(field)
         implicit none
         type(field3DReal),pointer :: field
-        real, dimension(:,:,:), pointer :: array => null()
-        array => field % array
-        !$omp target enter data map(to:array)
+        real, dimension(:,:,:), pointer :: array1 => null()
+        array1 => field % array
+        !$omp target enter data map(to:array1)
     end subroutine mpas_dmpar_exch_halo_3d_acc
 
 end module mpas_dmpar
