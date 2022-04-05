@@ -2,6 +2,7 @@ subroutine foo(M)
         double complex :: M
         if (M .ne. (100,100)) then
                 write(*,*) "Failed"
+                stop 2
         endif
         end subroutine foo
 
