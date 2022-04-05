@@ -729,5 +729,8 @@ aomp (15.0-0) UNRELEASED; urgency=medium
   *  Reliability improvements
   *   Increase the maximum number of captured variables in a target region to 48 from 32. Future plans are
   *       to remove this maximum completely.
+  *
+  *  15.0-1
+  *   Update to ROCm 5.1 sources.
 
  -- Greg Rodgers <Gregory.Rodgers@amd.com>  Wed, 16 Feb 2022 16:35:21 -0600
