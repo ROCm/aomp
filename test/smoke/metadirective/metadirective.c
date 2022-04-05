@@ -130,7 +130,7 @@ int check_scoring() {
     threadCount = omp_get_num_threads();
   }
 
-  if (threadCount != 8) {
+  if (threadCount > 8) {
     printf("Failed metadirective: scoring\n");
     return 0;
   }
@@ -189,7 +189,7 @@ int check_static_condition_selector() {
     threadCount = omp_get_num_threads();
   }
 
-  if (threadCount != 4) {
+  if (threadCount > 4) {
     printf("Failed metadirective: static_condition_selector\n");
     return 0;
   }
