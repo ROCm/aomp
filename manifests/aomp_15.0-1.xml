@@ -17,8 +17,8 @@
     <project remote="roctools" path="aomp-extras" name="aomp-extras"   revision="aomp-15.0-1" groups="unlocked" />
     <project remote="roctools" path="aomp" name="aomp"                 revision="aomp-15.0-1" groups="unlocked" />
 
-    <project remote="roctools" path="rocprofiler" name="rocprofiler"              revision="rocm-5.1.0" groups="unlocked" />
-    <project remote="roctools" path="roctracer" name="roctracer"                  revision="rocm-5.1.0" groups="unlocked" />
+    <project remote="roctools" path="rocprofiler" name="rocprofiler"              revision="rocm-5.1.x" groups="unlocked" />
+    <project remote="roctools" path="roctracer" name="roctracer"                  revision="rocm-5.1.x" groups="unlocked" />
     <project remote="roctools" path="ROCdbgapi" name="ROCdbgapi"                  revision="rocm-5.1.x" groups="unlocked" />
     <project remote="roctools" path="ROCgdb" name="ROCgdb"                        revision="rocm-5.1.x" groups="unlocked" />
     <project remote="roctools" path="hipamd" name="hipamd"                        revision="rocm-5.1.x" groups="unlocked" />
