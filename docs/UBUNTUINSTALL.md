@@ -3,14 +3,14 @@ AOMP will install to /usr/lib/aomp. The AOMP environment variable will automatic
 
 On Ubuntu 20.04,  run these commands:
 ```
-wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_15.0-0/aomp_Ubuntu2004_15.0-0_amd64.deb
-sudo dpkg -i aomp_Ubuntu2004_15.0-0_amd64.deb
+wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_15.0-1/aomp_Ubuntu2004_15.0-1_amd64.deb
+sudo dpkg -i aomp_Ubuntu2004_15.0-1_amd64.deb
 ```
 
 On Ubuntu 18.04 LTS (bionic beaver), run these commands:
 ```
-wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_15.0-0/aomp_Ubuntu1804_15.0-0_amd64.deb
-sudo dpkg -i aomp_Ubuntu1804_15.0-0_amd64.deb
+wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_15.0-1/aomp_Ubuntu1804_15.0-1_amd64.deb
+sudo dpkg -i aomp_Ubuntu1804_15.0-1_amd64.deb
 ```
 
 The AOMP bin directory (which includes the standard clang and llvm binaries) is not intended to be in your PATH for typical operation.
