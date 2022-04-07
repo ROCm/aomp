@@ -22,7 +22,6 @@ TESTS_DIR = \
     collapse-nonrectangle \
     complex \
     complex2 \
-    complex-debug \
     d2h_slow_copy \
     data_enter_issue01 \
     data_issue_59 \
@@ -43,7 +42,6 @@ TESTS_DIR = \
     flang-273762 \
     flang-273990-2 \
     flang-274775-dcmplx \
-    flang-275194 \
     flang-275194-2 \
     flang-275194-3 \
     flang-275490 \
@@ -89,6 +87,7 @@ TESTS_DIR = \
     hip_device_compile \
     hip_rocblas \
     host_targ \
+    host_teams_numa_affinity \
     icvars-nest \
     icvars-nestF \
     issue_flang_libomp \
@@ -128,6 +127,7 @@ TESTS_DIR = \
     omp_lock \
     omp_num_teams_SPMD \
     omp_num_teams_generic \
+    omp_places \
     omp_target_is \
     omp_targ_err1 \
     omp_wtime \
@@ -159,6 +159,9 @@ TESTS_DIR = \
     taskwait_prob \
     teams \
     teams_nest \
+    teams_notarget \
+    teams_notarget_get_num_teams \
+    teams_notarget_get_team_num \
     team_prob \
     teams512-info \
     test \
@@ -173,7 +176,109 @@ TESTS_DIR = \
     veccopy \
     vmuldemo \
     vmulsum \
-    wgs64
+    wgs64 \
+ bugz-50968 \
+ clang-273738 \
+ clang-273739 \
+ clang-279673 \
+ clang-282491-1 \
+ clang-282491-3 \
+ decl_map_targ \
+ flang-273759 \
+ flang-273805 \
+ flang-273807 \
+ flang-274775-critDcmplx \
+ flang-274775-redDcmplx \
+ flang-274983-2 \
+ flang-278342 \
+ flang-280342 \
+ flang-288452 \
+ flang-288613-2 \
+ flang-288613-3 \
+ flang-288613 \
+ flang-288625 \
+ flang-303839 \
+ flang-cmplx-fib \
+ flang-collapseNR \
+ lds-prob1 \
+ lds-prob2 \
+ lds-prob3 \
+ reduction_array \
+ targc-274983 \
+ virtfunc1 \
+ clang-282491-2 \
+ flang-273760 \
+ flang-273959 \
+ flang-289039 \
+ flang-302472 \
+ helloworld%n \
+ targc-272328 \
+ alloc_cgroup \
+ clang-310865 \
+ clang-310866 \
+ clang-313307_simple_arr \
+ clang-313307_simple_spmd \
+ clang-323972 \
+ clang-gdb1 \
+ clang-gfx1030 \
+ clang-ifaces \
+ clang_udel_saxpy \
+ complex-debug \
+ complex_reduction \
+ const_global_ctor-308039 \
+ data-env-scalar-map \
+ dominik-AD \
+ flang-270386 \
+ flang-274775-1 \
+ flang-275194 \
+ flang-275194-4 \
+ flang-288160 \
+ flang-288446 \
+ flang-303839 \
+ flang-307433 \
+ flang-307434 \
+ flang-308205 \
+ flang-312148 \
+ flang-312594 \
+ flang-313307 \
+ flang-313307_simple_arr \
+ flang-313307_simple_generic \
+ flang-313307_simple_spmd \
+ flang-314146 \
+ flang-315421 \
+ flang-315870 \
+ flang-319356 \
+ flang-321277 \
+ flang-321277-2 \
+ flang-321412 \
+ flang-321847 \
+ flang-322945 \
+ flang-325322 \
+ flang-ifaces \
+ flang-teams1 \
+ flang-teams-gdb \
+ flang-usm \
+ func-ptr \
+ leopold-devicePtr \
+ loop_order \
+ MasterBarrierO0 \
+ omp_loop \
+ requires_usm \
+ targc-generic \
+ targc-spmd \
+ usm1 \
+ veccopy-ompt-target \
+ veccopy-ompt-target-disallow-both \
+ veccopy-ompt-target-emi \
+ veccopy-ompt-target-emi-map \
+ veccopy-ompt-target-emi-tracing \
+ veccopy-ompt-target-map \
+ veccopy-ompt-target-noinit \
+ veccopy-ompt-target-tracing \
+ veccopy-ompt-target-wrong-return \
+ vmulsum-hsa-stats \
+ workgroup_size
+
 
 all:
 	@for test_dir in $(TESTS_DIR); do \

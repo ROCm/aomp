@@ -2,13 +2,20 @@
 #include <stdio.h>
 
 #define THREADS 512
-#define WARPSIZE 64
+#ifdef WAVE_SIZE 
+  #define WARPSIZE WAVE_SIZE
+#else
+  #define WARPSIZE 64
+#endif
 
 #pragma omp declare target
 omp_lock_t lock;
 #pragma omp end declare target
 
 int main() {
+
+  if (WARPSIZE == 32)
+    return 0;
 
   int error = 0;
   unsigned count = 0;          // incremented within target region
@@ -63,5 +70,6 @@ int main() {
     error = 1;
   }
 
+  fprintf(stderr, "ec %d c %d\n", expected_count, count);
   return error;
 }

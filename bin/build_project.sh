@@ -54,11 +54,8 @@ fi
 # also ubuntu 16.04 only has python 3.5 and lit testing needs 3.6 minimum, so turn off
 # testing with ubuntu 16.04 which goes EOL in April 2021.
 PN=$(cat /etc/os-release | grep "^PRETTY_NAME=" | cut -d= -f2)
-if [[ "$AOMP_CHECK_GIT_BRANCH" == 1 ]] && [[ $PN != "\"Ubuntu 16.04.6 LTS\"" ]] ; then
-   DO_TESTS=""
-else
-   DO_TESTS="-DLLVM_BUILD_TESTS=OFF -DLLVM_INCLUDE_TESTS=OFF -DCLANG_INCLUDE_TESTS=OFF -DCOMPILER_RT_INCLUDE_TESTS=OFF"
-fi
+DO_TESTS=${DO_TESTS:-"-DLLVM_BUILD_TESTS=ON -DLLVM_INCLUDE_TESTS=ON -DCLANG_INCLUDE_TESTS=ON"}
+#-DCOMPILER_RT_INCLUDE_TESTS=OFF"
 
 if [ $AOMP_STANDALONE_BUILD == 1 ] ; then
    standalone_word="_STANDALONE"
@@ -66,13 +63,19 @@ else
    standalone_word=""
 fi
 
-if [ ! -z $AOMP_USE_NINJA ] ; then
-    AOMP_SET_NINJA_GEN="-G Ninja"
-else
+if [ "$AOMP_USE_NINJA" == 0 ] ; then
     AOMP_SET_NINJA_GEN=""
+else
+    AOMP_SET_NINJA_GEN="-G Ninja"
 fi
-
+#  If offload-arch tool exists do not build amdgpu-arch
+if [ -d $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/llvm/lib/OffloadArch ] ; then 
+  enable_amdgpu_arch=""
+else
+  enable_amdgpu_arch="-DENABLE_AMDGPU_ARCH_TOOL=ON"
+fi
 MYCMAKEOPTS="-DLLVM_ENABLE_PROJECTS=clang;lld;compiler-rt -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX=$INSTALL_PROJECT -DLLVM_ENABLE_ASSERTIONS=ON -DLLVM_TARGETS_TO_BUILD=$TARGETS_TO_BUILD $COMPILERS -DLLVM_VERSION_SUFFIX=_AOMP${standalone_word}_$AOMP_VERSION_STRING -DCLANG_VENDOR=AOMP${standalone_word}_$AOMP_VERSION_STRING
+$enable_amdgpu_arch
 -DBUG_REPORT_URL='https://github.com/ROCm-Developer-Tools/aomp' -DLLVM_ENABLE_BINDINGS=OFF -DLLVM_INCLUDE_BENCHMARKS=OFF $DO_TESTS $AOMP_ORIGIN_RPATH -DCLANG_DEFAULT_LINKER=lld $AOMP_SET_NINJA_GEN"
 
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then 
@@ -89,10 +92,6 @@ if [ $AOMP_STANDALONE_BUILD == 1 ] ; then
    fi
 fi
 
-REPO_BRANCH=$AOMP_PROJECT_REPO_BRANCH
-REPO_DIR=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME
-checkrepo
-
 # Make sure we can update the install directory
 if [ "$1" == "install" ] ; then 
    $SUDO mkdir -p $INSTALL_PROJECT
@@ -107,11 +106,7 @@ fi
 # Fix the banner to print the AOMP version string. 
 if [ $AOMP_STANDALONE_BUILD == 1 ] ; then
    cd $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME
-   if [ "$AOMP_CHECK_GIT_BRANCH" == 1 ] ; then
-      MONO_REPO_ID=`git log | grep -m1 commit | cut -d" " -f2`
-   else
-      MONO_REPO_ID="build_from_release_source"
-   fi
+   MONO_REPO_ID=`git log | grep -m1 commit | cut -d" " -f2`
    SOURCEID="Source ID:$AOMP_VERSION_STRING-$MONO_REPO_ID"
    TEMPCLFILE="/tmp/clfile$$.cpp"
    ORIGCLFILE="$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/llvm/lib/Support/CommandLine.cpp"
@@ -122,9 +117,6 @@ if [ $AOMP_STANDALONE_BUILD == 1 ] ; then
       echo "ERROR sed command to fix CommandLine.cpp failed."
       exit 1
    fi
-   exclude_cmdline="--exclude CommandLine.cpp"
-else
-   exclude_cmdline=""
 fi
 
 # Skip synchronization from git repos if nocmake or install are specified
@@ -215,7 +207,7 @@ if [ "$1" == "install" ] ; then
    $SUDO cp -p $BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME/bin/count $AOMP/bin/count
    $SUDO cp -p $BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME/bin/not $AOMP/bin/not
    $SUDO cp -p $BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME/bin/yaml-bench $AOMP/bin/yaml-bench
-   cd $REPO_DIR
+   cd $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME
    git checkout llvm/lib/Support/CommandLine.cpp
    echo
    echo "SUCCESSFUL INSTALL to $INSTALL_PROJECT with link to $AOMP"

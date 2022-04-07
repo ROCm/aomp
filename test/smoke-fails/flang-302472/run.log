@@ -1,3 +1,0 @@
-DEVID: 0 SGN:0 ConstWGSize:256  args: 3 teamsXthrds:(   1X 256) reqd:(   1X   0) lds_usage:48B sgpr_count:14 vgpr_count:11 sgpr_spill_count:0 vgpr_spill_count:0 tripcount:0 n:__nv_foo__TARGET_F1L29_1_
- a(1)=    11.00000         a(2)=    22.00000    
- Success: if a diagnostic line starting with DEVID was output

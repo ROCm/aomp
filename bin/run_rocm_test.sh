@@ -9,6 +9,10 @@
 #
 #
 
+# Use bogus path to avoid using target.lst, a user-defined target list
+# used by rocm_agent_enumerator.
+export ROCM_TARGET_LST=/opt/nowhere
+
 scriptdir=$(dirname "$0")
 parentdir=`eval "cd $scriptdir;pwd;cd - > /dev/null"`
 aompdir="$(dirname "$parentdir")"
@@ -37,7 +41,13 @@ fi
 
 # Parent dir should be ROCm base dir.
 AOMPROCM=$AOMP/..
-unset ROCM_PATH
+export AOMPROCM
+echo AOMPROCM= $AOMPROCM
+
+# Set ROCM_LLVM for examples
+export ROCM_LLVM=$AOMP
+
+#unset ROCM_PATH
 
 # Use bogus path to avoid using target.lst, a user-defined target list
 # used by rocm_agent_enumerator.
@@ -50,6 +60,8 @@ $AOMPROCM/bin/rocm_agent_enumerator
 # Regex skips first result 'gfx000' and selects second id.
 AOMP_GPU=$($AOMPROCM/bin/rocm_agent_enumerator | grep -m 1 -E gfx[^0]{1}.{2})
 # mygpu will eventually relocate to /opt/rocm/bin, support both cases for now.
+echo AOMP_GPU= $AOMP_GPU
+
 if [ "$AOMP_GPU" != "" ]; then
   echo "AOMP_GPU set with rocm_agent_enumerator."
 else
@@ -72,10 +84,13 @@ export AOMP_GPU
 # this version mismatch on release testing. We will choose the lower version so that
 # unsupported tests are not included.
 function getversion(){
-  supportedvers="4.3.0 4.4.0"
+  supportedvers="4.3.0 4.4.0 4.5.0 4.5.2 5.0.0"
   declare -A versions
   versions[430]=4.3.0
   versions[440]=4.4.0
+  versions[450]=4.5.0
+  versions[452]=4.5.2
+  versions[500]=5.0.0
 
   # Determine ROCm version.
   rocm=$(cat "$AOMPROCM"/.info/version-dev)
@@ -208,8 +223,8 @@ mkdir -p $resultsdir
 
 # Fortran Examples
 mkdir -p "$resultsdir"/fortran
-echo "cp -rf "$AOMP"/examples/fortran "$aompdir"/examples"
-cp -rf "$AOMP"/examples/fortran "$aompdir"/examples
+#echo "cp -rf "$AOMP"/examples/fortran "$aompdir"/examples"
+#cp -rf "$AOMP"/examples/fortran "$aompdir"/examples
 cd "$aompdir"/examples/fortran
 EPSDB=1 AOMPHIP=$AOMPROCM ../check_examples.sh fortran
 checkrc $?
@@ -217,8 +232,8 @@ copyresults fortran
 
 # Openmp Examples
 mkdir -p "$resultsdir"/openmp
-echo "cp -rf "$AOMP"/examples/openmp "$aompdir"/examples"
-cp -rf "$AOMP"/examples/openmp "$aompdir"/examples
+#echo "cp -rf "$AOMP"/examples/openmp "$aompdir"/examples"
+#cp -rf "$AOMP"/examples/openmp "$aompdir"/examples
 cd "$aompdir"/examples/openmp
 EPSDB=1 ../check_examples.sh openmp
 checkrc $?
@@ -251,7 +266,7 @@ mkdir -p "$resultsdir"/sollve45
 mkdir -p "$resultsdir"/sollve50
 cd "$aompdir"/bin
 ./clone_aomp_test.sh
-./run_sollve.sh
+SKIP_SOLLVE51=1 ./run_sollve.sh
 ./check_sollve.sh
 checkrc $?
 

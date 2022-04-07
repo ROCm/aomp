@@ -1,5 +1,5 @@
 #include <stdio.h>
-#define N   10
+#define N   5
 
 
 int main (void)
@@ -7,8 +7,8 @@ int main (void)
   long int aa=0;
   int res = 0;
 
-  int ng =12;
-  int cmom = 14;
+  int ng =6;
+  int cmom = 4;
   int nxyz = 5;
 #pragma omp target teams distribute num_teams(nxyz) thread_limit(4) map(tofrom:aa)
   for (int gid = 0; gid < nxyz; gid++) {

@@ -27,6 +27,14 @@ thisdir=$(getdname $0)
 . $thisdir/aomp_common_vars
 # --- end standard header ----
 
+if [ "$1" == "rerun" ]; then
+  cd $AOMP_REPOS_TEST/Nekbone
+  cd test/nek_gpu1
+  ulimit -s unlimited
+  LIBOMPTARGET_KERNEL_TRACE=1 ./nekbone
+  exit 0
+fi
+
 # Setup AOMP variables
 AOMP=${AOMP:-/usr/lib/aomp}
 

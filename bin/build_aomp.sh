@@ -90,6 +90,10 @@ if [[ -z $GAWK ]] && [[ "$OS" == *"Ubuntu"* ]] ; then
    exit 1
 fi
 
+if [ "$DISABLE_LLVM_TESTS" == "1" ]; then
+  export DO_TESTS="-DLLVM_INCLUDE_TESTS=OFF -DCLANG_INCLUDE_TESTS=OFF"
+fi
+
 echo 
 date
 echo " =================  START build_aomp.sh ==================="   
@@ -99,12 +103,14 @@ if [ "$AOMP_STANDALONE_BUILD" == 1 ] ; then
   if [ $AOMP_MAJOR_VERSION -gt 13 ] ; then
      components="rocm-cmake $components"
   fi
+  # allways build the supplemental prerequisites first"
+  components="prereq $components"
   _hostarch=`uname -m`
   # The VDI (rocclr) architecture is very x86 centric so it will not build on ppc64. Without
   # rocclr, we have no HIP or OpenCL for ppc64 :-( However, rocr works for ppc64 so AOMP works.
   if [ "$_hostarch" == "x86_64" ] ; then
     # These components build on x86_64, so add them to components list
-    components="$components pgmath flang flang_runtime"
+    components="$components pgmath flang flang_runtime hipfort"
     if [ "$AOMP_VERSION" == "13.1" ] || [ $AOMP_MAJOR_VERSION -gt 13 ] ; then
        components="$components hipamd "
     else
@@ -123,10 +129,10 @@ if [ "$AOMP_STANDALONE_BUILD" == 1 ] ; then
   fi
 else
   # For ROCM build (AOMP_STANDALONE_BUILD=0) the components roct, rocr,
-  # libdevice, comgr, rocminfo, vdi, hipvdi, ocl, rocdbgapi rocgdb,
+  # libdevice, project, comgr, rocminfo, hipamd, ocl, rocdbgapi, rocgdb,
   # roctracer, and rocprofiler should be found in ROCM in /opt/rocm.
   # The ROCM build only needs these components:
-  components="project extras openmp pgmath flang flang_runtime"
+  components="extras openmp pgmath flang flang_runtime"
 fi
 echo "COMPONENTS:$components"
 

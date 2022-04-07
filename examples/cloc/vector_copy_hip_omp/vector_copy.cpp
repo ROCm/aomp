@@ -37,7 +37,7 @@
 #define HIP_CHECK(status)                                                                          \
     if (status != hipSuccess) {                                                                    \
         std::cout << "Got Status: " << status << " at Line: " << __LINE__ << std::endl;            \
-        exit(0);                                                                                   \
+        exit(1);                                                                                   \
     }
 
 int main() {

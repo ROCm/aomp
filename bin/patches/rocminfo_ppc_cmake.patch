@@ -1,9 +1,9 @@
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 6dd3762..809a0c4 100755
+index 6d142bc..8309bd5 100755
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -148,6 +148,10 @@ if((${CMAKE_HOST_SYSTEM_PROCESSOR} STREQUAL "x86_64") OR (${CMAKE_HOST_SYSTEM_PR
-   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse -msse2")
+@@ -147,6 +147,10 @@ if((${CMAKE_HOST_SYSTEM_PROCESSOR} STREQUAL "x86_64") OR (${CMAKE_HOST_SYSTEM_PR
+   set(ROCMINFO_CXX_FLAGS ${ROCMINFO_CXX_FLAGS} -msse -msse2)
  endif()
  
 +if(${CMAKE_HOST_SYSTEM_PROCESSOR} STREQUAL "ppc64le")

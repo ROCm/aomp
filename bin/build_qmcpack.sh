@@ -99,11 +99,6 @@ echo FFTW_HOME: $FFTW_HOME
 echo QMCPACK_REPO: $QMCPACK_REPO
 echo
 
-if [[ ! -e $OPENMPI_INSTALL/bin/mpicc ]]; then
-  echo ERROR: mpicc not found. We recommend openmpi 4.0.3. Set OPENMPI_INSTALL if openmpi not found in ~/openmpi-4.0.3-install.
-  exit 1
-fi
-
 echo "###################################"
 echo Building AOMP_offload_real_MP_$AOMP_GPU
 echo "###################################"
@@ -111,15 +106,59 @@ echo "###################################"
 mkdir -p $build_folder
 pushd $build_folder
 
+complex="-DQMC_COMPLEX="
+mixed="-DQMC_MIXED_PRECISION="
+mpi="-DQMC_MPI="
+cc="-DCMAKE_C_COMPILER="
+cxx="-DCMAKE_CXX_COMPILER="
+
+declare -A opts_array
+# Default to:
+# -DQMC_COMPLEX=OFF -DQMC_MIXED_PRECISION=OFF -DQMC_MPI=OFF -DCMAKE_C_COMPILER=$AOMP/bin/clang -DCMAKE_CXX_COMPILER=$AOMP/bin/clang++
+opts_array[$complex]=OFF
+opts_array[$mixed]=OFF
+opts_array[$mpi]=OFF
+opts_array[$cc]=$AOMP/bin/clang
+opts_array[$cxx]=$AOMP/bin/clang++
+
+# Process args for cmake options
+while [ "$1" != "" ];
+do
+  case $1 in
+    -c | --complex | complex)
+      echo $1 turns QMC_COMPLEX=ON;
+      opts_array[$complex]=ON ;;
+    -m | --mixed | mixed)
+      echo $1 turns QMC_MIXED_PRECISION=ON;
+      opts_array[$mixed]=ON ;;
+    -mpi | --mpi | mpi)
+      echo $1 turns QMC_MPI=ON;
+      opts_array[$mpi]=ON;
+      mpi=1;
+      opts_array[$cc]=$OPENMPI_INSTALL/bin/mpicc;
+      opts_array[$cxx]=$OPENMPI_INSTALL/bin/mpicxx ;;
+    *)
+      echo $1 option not recognized ; exit 1 ;;
+  esac
+  shift 1
+done
+
+# Populate key/value into acceptable cmake option
+for option in "${!opts_array[@]}"; do
+  val=${opts_array[$option]}
+  custom_opts="$custom_opts $option$val"
+done
+
+if [[ ! -e $OPENMPI_INSTALL/bin/mpicc ]] && [ "$mpi" == "1" ]; then
+  echo ERROR: mpicc not found. We recommend openmpi 4.0.3. Set OPENMPI_INSTALL if openmpi not found in ~/openmpi-4.0.3-install.
+  exit 1
+fi
+
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
-$AOMP_CMAKE -DCMAKE_C_COMPILER=$OPENMPI_INSTALL/bin/mpicc \
--DCMAKE_CXX_COMPILER=$OPENMPI_INSTALL/bin/mpicxx \
--DOMPI_CC=$AOMP/bin/clang -DOMPI_CXX=$AOMP/bin/clang++ \
--DQMC_MPI=1 \
--DCMAKE_C_FLAGS="-march=native" \
--DCMAKE_CXX_FLAGS="-march=native -Xopenmp-target=amdgcn-amd-amdhsa -march=$AOMP_GPU" \
+$AOMP_CMAKE -DOFFLOAD_ARCH=$AOMP_GPU \
 -DENABLE_OFFLOAD=ON -DOFFLOAD_TARGET="amdgcn-amd-amdhsa" \
 -DENABLE_TIMERS=1 \
+$custom_opts \
 ..
 fi
 

@@ -59,9 +59,7 @@ BUILD_DIR=${BUILD_AOMP}
 
 BUILDTYPE="Release"
 
-REPO_BRANCH=$AOMP_HIPVDI_REPO_BRANCH
 REPO_DIR=$AOMP_REPOS/$AOMP_HIPVDI_REPO_NAME
-checkrepo
 
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   echo " "

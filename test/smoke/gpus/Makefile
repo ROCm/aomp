@@ -14,7 +14,7 @@ CC           = $(OMP_BIN) $(VERBOSE)
 
 include ../Makefile.rules
 LOCAL_OMP_FLAGS = $(filter-out -march=$(AOMP_GPU), $(OMP_FLAGS))
-GFXLIST = $(shell grep GFXLIST= ../../../bin/aomp_common_vars | grep -o "gfx.*" | sed -E "s|\"}||")
+GFXLIST = $(shell grep GFXLIST= ../../../bin/aomp_common_vars | grep -o "gfx.*" | sed -E "s|\"}||" | sed -E "s|gfx1010||")
 
 all: $(GFXLIST)
 

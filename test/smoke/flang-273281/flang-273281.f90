@@ -12,7 +12,7 @@ program my_fib
 
         sum2=0
 
-        !$OMP TARGET TEAMS DISTRIBUTE MAP(TO:array(1:10)) MAP(TOFROM:buffer(1:10)) PRIVATE(sum,sum2)
+        !$OMP TARGET TEAMS DISTRIBUTE MAP(TO:array(1:10)) MAP(TOFROM:buffer(1:10)) PRIVATE(sum)
         do i=1, 10
            sum2=0
            sum=1000

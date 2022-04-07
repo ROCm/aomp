@@ -1,0 +1,49 @@
+
+This directory contains various clang driver demonstrations of the Coral compiler.
+
+It shows how to compile multiple source files.
+The current IBM Coral Compiler only works with a single target specified at compile build time.
+
+This directory contains these files.
+
+	Makefile  - The Makefile with all the demos 
+	README    - This README file
+	setenv.sh - sourceable script to set environment variables, used in Makefile
+	main.c  - Main program that calls vmul and vsum. This has no target offloads.
+	vmul.c  - This has a target region.
+	vsum.c  - This also has a target region. 
+        onesrc.c - A single file that includes the above three sources files to 
+                   demonstrate compilation with a single source. 
+
+Run these commands to test. 
+
+make 
+make run
+
+There are many other make targets to show different ways to build the binary 
+Run "make help" to see all the possible demos as Makefile targets. 
+
+
+Bundling!
+
+Even though only a single offload target is currently supported, you can still see how 
+bundling works.  
+
+Except for the final binary, all intermediate objects are bundles.   
+For example, run the command:
+
+make ll
+
+This Will create one LLVM IR .ll file for each of the sources.  However each of these is 
+really a BUNDLE of 2 LLVM IR .ll files; one for host and one for the target offload .  
+You can see these by editing any of the files, or you can unbundle them with the 
+unbundle.sh utility script as follows:
+
+cd ll
+ls -l vmul.ll*
+/opt/ibm/coral/bin/unbundle.sh vmul.ll
+ls -l vmul.ll*
+
+The file vmul.ll became two files; a new vmul.ll (note the change in size change) 
+and vmul.ll.tgt-nvptx64-nvidia-cuda.  The file vmul.ll now just includes the host 
+version of ll. 

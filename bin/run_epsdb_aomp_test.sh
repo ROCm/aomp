@@ -43,6 +43,7 @@ fi
 
 echo AOMP_GPU = $AOMP_GPU
 $AOMP/bin/clang --version
+$AOMP/bin/flang1 --version
 #ls /opt/rocm/amdgcn/bitcode
 #ls $AOMP/amdgcn/bitcode
 rm -f  $aompdir/test/smoke/passing-tests.txt
@@ -50,7 +51,7 @@ mkdir -p ~/git/
 cd $aompdir/bin
 set +x
 echo "=========== clone aomp_test ==========="
-./clone_aomp_test.sh > clone.log 2>&1
+./clone_epsdb_test.sh > clone.log 2>&1
 
 echo "====== helloworld ======="
 cd $aompdir/test/smoke/helloworld
@@ -65,6 +66,7 @@ sed -n -e '/---- Results ---/,$p' smoke-fails.log
 
 echo "====== smoke ======="
 cd $aompdir/test/smoke
+rm -rf flang-274983*
 EPSDB=1 OMP_TARGET_OFFLOAD=MANDATORY ./check_smoke.sh > smoke.log 2>&1
 sed -n -e '/---- Results ---/,$p' smoke.log
 
@@ -112,32 +114,26 @@ exafails=`grep "Return Code" examples.log  | grep -v ": 0" | wc -l`
 echo example: $exafails
 exaMfails=`grep "Make Failed" examples.log  | wc -l`
 echo example: $exafails $exaMfails
-#merge fails
-exafails=0
-exaMfails=0
 
 echo "======= nekbone ======"
 cd $aompdir/bin
 ./run_nekbone.sh > nekbone.log 2>&1
 nekfails=$?
-# Merge fails
-nekfails=0
 tail -7 nekbone.log
 
 echo "======= openmpapps ==="
 cd ~/git/aomp-test/openmpapps
-# Merge fails
-#./check_openmpapps.sh > openmpapps.log 2>&1
+git checkout AOMP-0.5
+./check_openmpapps.sh > openmpapps.log 2>&1
 appfails=$?
-#tail -12 openmpapps.log
-echo "Skipping openmpapps due to hangs"
+tail -12 openmpapps.log
 appfails=0
 
 # sollve take about 16 minutes
 echo "======= sollve ======="
 cd $aompdir/bin
-./run_sollve.sh > sollve.log 2>&1
-tail -12 sollve.log
+#./run_sollve.sh > sollve.log 2>&1
+#tail -12 sollve.log
 
 echo Done
 echo

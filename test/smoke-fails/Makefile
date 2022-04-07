@@ -1,76 +1,61 @@
 include ../Makefile.defs
 
 TESTS_DIR = \
-    alloc_cgroup \
     alt_clang \
     alt_veclib \
     ancestorF \
     bugz-50967 \
-    bugz-50968 \
-    clang-282491-1 \
-    clang-282491-2 \
-    clang-282491-3 \
-    clang-279673 \
-    clang-273738 \
-    clang-273739 \
+    clang-274983-2 \
     clang-280954 \
     clang-284324 \
     clang-296953-ornla-38 \
+    clang-317896 \
+    clang-326105 \
     clang_llnl-58 \
     clang_llnl-58-1 \
+    clang-nwchem-s1_1 \
     closed_bug1 \
-    flang-collapseNR \
+    const_global_ctor-308039 \
+    exp-303973 \
     flang-251450 \
     flang-272343-3 \
     flang-272534-2 \
     flang-272534-3 \
-    clang-274983-2 \
-    flang-274983-2 \
     flang-274773 \
-    flang-274775-critDcmplx \
-    flang-274775-redDcmplx \
-    flang-273807 \
     flang-273990-1 \
-    flang-273759 \
-    flang-273760 \
-    flang-273805 \
     flang-275472 \
     flang-275472-O0 \
-    flang-278342 \
-    flang-280342 \
-    flang-288160 \
     flang-288183 \
-    flang-288446 \
-    flang-288452 \
-    flang-288613 \
-    flang-288613-2 \
-    flang-288613-3 \
-    flang-288625 \
     flang-288641 \
     flang-289039 \
-    flang-302472 \
-    flang-303839 \
+    flang-305550 \
+    flang-305553 \
+    flang-313435 \
+    flang-315455 \
+    flang-318074 \
+    flang-320332 \
+    flang-320332-2 \
+    flang-321838 \
+    flang-321838-2 \
+    flang-322947 \
+    flang-324206 \
+    flang-324387 \
+    flang-324643 \
+    flang-325095 \
+    flang-329920 \
+    flang-flags-308205 \
     flang_atomic_hint \
-    flang-cmplx-fib \
     flang_dev_write \
-    flang-teams-gdb \
     helloworld%n \
-    lds-prob1 \
-    lds-prob2 \
-    lds-prob3 \
     lds-prob4 \
     lds-prob5 \
-    loop_order \
-    omp_loop \
-    reduction_array \
+    memory_mgmt_pinned_predefined \
+    nwchem-s1_1 \
     requires_directive \
     targ_static \
-    targc-272328 \
     targc-273739 \
-    targc-274983 \
     target_teams_reduction \
-    tasks \
-    virtfunc1
+    tasks 
 
 all:
 	@for test_dir in $(TESTS_DIR); do \

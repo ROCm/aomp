@@ -28,8 +28,6 @@ thisdir=$(getdname $0)
 INSTALL_COMGR=${INSTALL_COMGR:-$AOMP_INSTALL_DIR}
 
 REPO_DIR=$AOMP_REPOS/$AOMP_COMGR_REPO_NAME
-REPO_BRANCH=$AOMP_COMGR_REPO_BRANCH
-checkrepo
 
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then 
   echo " "
@@ -66,9 +64,9 @@ if [ "$1" == "install" ] ; then
 fi
 
 osversion=$(cat /etc/os-release)
-if [ "$AOMP_MAJOR_VERSION" != "12" ] && [[ "$osversion" =~ "Ubuntu 16" ]];  then
+#if [ "$AOMP_MAJOR_VERSION" != "12" ] && [[ "$osversion" =~ "Ubuntu 16" ]];  then
   patchrepo $REPO_DIR
-fi
+#fi
 
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 

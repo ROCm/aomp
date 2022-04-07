@@ -111,6 +111,20 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
  -DROCCLR_PATH=$ROCclr_DIR \
  -DROCM_PATH=$ROCM_PATH"
 
+  # If this machine does not have an actvie amd GPU, tell hipamd
+  # to use first in GFXLIST or gfx90a if no GFXLIST
+  if [ -f $AOMP/bin/amdgpu-arch ] ; then
+     $AOMP/bin/amdgpu-arch >/dev/null
+     if [ $? != 0 ] ; then
+	if [ ! -z "$GFXLIST" ] ; then
+	   amdgpu=`echo $GFXLIST | cut -d" " -f1`
+        else
+           amdgpu=gfx90a
+	fi
+        MYCMAKEOPTS+=" -DOFFLOAD_ARCH_STR=$amdgpu"
+     fi
+  fi
+
   echo mkdir -p $BUILD_DIR/build/hipamd
   mkdir -p $BUILD_DIR/build/hipamd
   echo cd $BUILD_DIR/build/hipamd

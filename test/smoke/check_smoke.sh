@@ -12,8 +12,8 @@ BLU="\033[0;34m"
 ORG="\033[0;33m"
 BLK="\033[0m"
 
-# limit any step to 2 minutes
-ulimit -t 120
+# limit any step to 6 minutes
+ulimit -t 150
 
 function gatherdata(){
   #Gather Test Data
@@ -84,10 +84,8 @@ pushd $script_dir
 path=$(pwd)
 
 #Clean all testing directories
-if [ "$NO_CLEAN" != 1 ] ; then
   make clean
   cleanup
-fi
 
 export OMP_TARGET_OFFLOAD=${OMP_TARGET_OFFLOAD:-MANDATORY}
 echo OMP_TARGET_OFFLOAD=$OMP_TARGET_OFFLOAD
@@ -156,7 +154,7 @@ for directory in ./*/; do
   elif [ $base == 'flags' ] ; then
     make
     make run > /dev/null 2>&1
-  elif [ $base == 'printf_parallel_for_target' ] ; then
+  elif [ $base == 'printf_parallel_for_target' ] || [ $base == 'omp_places' ] ; then
     make verify-log
   else
     make

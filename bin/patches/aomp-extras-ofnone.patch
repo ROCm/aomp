@@ -1,0 +1,13 @@
+diff --git a/utils/src/prepare-builtins.cpp b/utils/src/prepare-builtins.cpp
+index d69519f..b766dce 100644
+--- a/utils/src/prepare-builtins.cpp
++++ b/utils/src/prepare-builtins.cpp
+@@ -112,7 +112,7 @@ int main(int argc, char **argv) {
+ 
+   std::error_code EC;
+   std::unique_ptr<ToolOutputFile> Out(
+-      new ToolOutputFile(OutputFilename, EC, sys::fs::OF_None));
++      new ToolOutputFile(OutputFilename, EC, sys::fs::F_None));
+   if (EC) {
+     errs() << EC.message() << '\n';
+     exit(1);

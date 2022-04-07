@@ -12,3 +12,6 @@ CC           = $(OMP_BIN) $(VERBOSE)
 #"-\#\#\#"
 
 include ../Makefile.rules
+
+run: $(TESTNAME)
+	$(RUNENV) $(RUNPROF) ./$(TESTNAME) >$@.log

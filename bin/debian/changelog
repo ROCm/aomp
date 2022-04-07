@@ -1,4 +1,4 @@
-aomp (13.0-6) UNRELEASED; urgency=medium
+aomp (15.0-1) UNRELEASED; urgency=medium
 
   * Initial release of aomp is 0.3-2
   *   Please see example in /usr/lib/aomp/examples/vmuldemo 
@@ -648,5 +648,89 @@ aomp (13.0-6) UNRELEASED; urgency=medium
   *  13.0-6
   *   Update to ROCm 4.3 sources.
   *   Flang cmake race condition fixed.
+  *
+  *  14.0-0
+  *   AOMP is now based on amd-stg-open branch.
+  *   Most components are build from ROCm release 4.5 sources.
+  *   Components are now cloned using a manifest file. The script clone_aomp.sh is still used to clone
+  *       and update repos.
+  *   New hip build method.
+  *   Support for unified shared memory on gfx90a.
+  *   Support for atomic hint clause to enable fast floating point atomics.
+  *   Support for LLVM IR code generation with updated device RTL (deviceRTLs).
+  *   Support for target ID with XNACK settings.
+  *   Support for cross-platform offload device identification LLVM library and tool (offload-arch).
+  *   Fixed many reduction problems and nested parallelism.
+  *
+  *  Known Issues:
+  *   Slow CPU device-to-host data transfer speeds.
+  *   Miniqmc, Kokkos, Raja fail to build.
+  *   Non-deterministic failures in qmcpack deterministic tests.
+  *   Possible incorrect linking of libclang-cpp.so in the build of libomptarget.so.
+  *
+  *  14.0-1
+  *   A restructuring of the clang driver to a) remove the clang-build-select-link tool b) remove all
+  *       "post" clang linking with mlink attributes on the clang -cc1 command.  All device library
+  *       linking is now done in the llvm-link step which follows clang -cc1.  Furthermore, libraries
+  *       including the critical libomptarget-..-.bc library are internalized by the llvm-link step to
+  *       avoid unnecessary bit code for the backend.
+  *   The construction of libomptarget-..-.bc library now includes rocm-device-lib functions, device
+  *       libm functions, hostrpc stubs, and lastly the OpenMP deviceRTLs. This all-inclusive library
+  *       simplifies the device toolchain and improves performance.
+  *   Elimination of the need for the aomp-extras library.
+  *
+  *   Known issues:
+  *   Compilation for nvidia GPUs is broken.  We will fix this in 14.0-2.
+  *
+  *  14.0-2
+  *   Device runtime performance improvements by overlapping multiple copies between host and device.
+  *   Inclusion of a static build of hwloc in libomp.so. This supports the use of PLACES for CPU affinity.
+  *   Fixes to support compilation for nvptx64.
+  *   Fix to support uninitialized integers for hostrpc support.
+  *   Support for managed memory allocations in OpenMP.
+  *   Fix to support optimization of constant indexes for shared memory arrays in a target region.
+  *   Fix to resolve an unresolved global found in certain rocm-device-lib bitcode files.
+  *
+  *   Known issues:
+  *   For badly formed custom mappers, host access to unmapped struct members causes segfault.
+  *   Usage of flang -g results in differing debug_info_version and dwarf_version.
+  *
+  *  14.0-3
+  *   Update to ROCm 5.0 components.
+  *   Fix to libompd cmake to support enabling HWLOC.
+  *
+  *  15.0-0
+  *   New development infrastructure support source build of supplemental components:
+  *       There are two types of supplemental components, prerequisite and post-build components.
+  *       All supplemental components are built and installed in subdirectories of a directory specified
+  *       with the AOMP_SUPP environment variable which gets a default value of $HOME/local. Supplemental
+  *       components are not included in the aomp installation package because they are for development,
+  *       build, and test only. Prerequisite components are cmake, hwloc, and rocmsmilib. These are created
+  *       with the build_prereq.sh script. Post-build components are for testing and require the AOMP or
+  *       ROCm compiler to be installed. The current list of post-build supplemental components is:
+  *       openmpi, hdf5, silo, and fftw. Post-build supplemental components are built with the
+  *       build_supp.sh script.  build_prereq.sh is a symbolic link to build_supp.sh. For each component,
+  *       the script fetches the source, builds the component, and then installs the components.
+  *   Enhanced support for CU masking in the openmp_set_cu_mask wedge script. This now supports multiple
+  *       devices and no longer requires that the number of CUs be a multiple of the number of ranks.
+  *       If the total number of CUs is not a multiple of ranks, appropriate controls ensure each rank
+  *       gets an equal set of CUs on some device.
+  *   The AOMP release is done in concert with a ROCm AFAR compiler release.  The primary difference is
+  *       that the AFAR compiler depends and works with an installed version of ROCm and installed as a
+  *       tarball. AOMP is a standalone build and only depends on the amdgpu Linux kernel module and is
+  *       installed with debian or rpm packages. The AFAR compiler for this release can be found at this
+  *       URL XXXXXXXXXXXXXXXXXXXX
+  *   Added new scripts to build and run GenASiS and GESTS applications which would scan the dependent
+  *       libraries coming from build_supp.sh and use them to build and run the applications.
+  *
+  *  Performance Improvements
+  *   A new type of GPU kernel called "no-loop" is created for simple target regions. Currently this is
+  *       an opt-in feature because it ignores runtime environment variables that require additional loop logic.
+  *  Reliability improvements
+  *   Increase the maximum number of captured variables in a target region to 48 from 32. Future plans are
+  *       to remove this maximum completely.
+  *
+  *  15.0-1
+  *   Update to ROCm 5.1 sources.
 
- -- Greg Rodgers <Gregory.Rodgers@amd.com>  Wed, 28 Jul 2021 11:27:13 -0500
+ -- Greg Rodgers <Gregory.Rodgers@amd.com>  Mon, 04 Apr 2022 23:34:44 -0500

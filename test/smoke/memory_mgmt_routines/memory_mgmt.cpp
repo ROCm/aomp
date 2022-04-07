@@ -93,20 +93,11 @@ int main() {
 	  omp_atv_default_mem_fb,
 	  omp_atv_null_fb,
 	  omp_atv_abort_fb,
-	  omp_atv_allocator_fb
+	  //omp_atv_allocator_fb // not tested
 	};
-	omp_alloctrait_t arr[2];
-	// test with default mem allocator as fallback
-	arr[0].key = trait;
-	arr[1].key = omp_atk_fb_data;
-	arr[1].value = omp_default_mem_alloc;
-	for(auto t : omp_fallback_vals) {
-	  arr[1].value = t;
-	  auto allocator = omp_init_allocator(mem, 2, arr);
-	  test_allocation_routines(allocator);
-	  omp_destroy_allocator(allocator);
+	trait_it<omp_alloctrait_value_t> itt(mem, trait, omp_fallback_vals);
+	itt.test_all();
 	break;
-	}
       }
       case omp_atk_pinned: {
 	std::vector<omp_alloctrait_value_t> omp_pinned_vals = {
@@ -159,9 +150,10 @@ void test_allocation_routines(omp_allocator_handle_t allocator) {
   target_region_init_and_check(a, N);
   omp_free(a, allocator);
 
-  // OMP 5.1 call not yet available in openmp runtime
-  //int *a_align = (int *)omp_aligned_alloc(ALIGN, N*sizeof(int), allocator);
-  //omp_free(a_align, allocator);
+  int *a_align = (int *)omp_aligned_alloc(ALIGN, N*sizeof(int), allocator);
+  check_alloc(a_align, "omp_aligned_alloc");
+  target_region_init_and_check(a_align, N);
+  omp_free(a_align, allocator);
 
   int *a_calloc = (int *)omp_calloc(N, sizeof(int), allocator);
   check_alloc(a_calloc, "omp_calloc");
@@ -169,8 +161,8 @@ void test_allocation_routines(omp_allocator_handle_t allocator) {
   omp_free(a_calloc, allocator);
 
   // OMP 5.1 call not yet available in openmp runtime
-  //int *a_aligned_calloc = (int *)omp_aligned_calloc(ALIGN, N*sizeof(int), allocator);
-  //omp_free(a_aligned_calloc, allocator);
+  // int *a_aligned_calloc = (int *)omp_aligned_calloc(ALIGN, N*sizeof(int), allocator);
+  // omp_free(a_aligned_calloc, allocator);
 
   // OMP 5.1 call not yet available in openmp runtime
   int *a_realloc = (int *)omp_alloc(N*sizeof(int), allocator);

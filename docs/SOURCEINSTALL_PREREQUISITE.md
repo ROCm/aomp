@@ -5,22 +5,22 @@
 #### Debian or Ubuntu Packages
 
 ```
-   sudo apt-get install g++-5 g++-7 pkg-config libpci-dev libnuma-dev libffi-dev git python libopenmpi-dev gawk mesa-common-dev
+   sudo apt-get install gcc g++ pkg-config libpci-dev libnuma-dev libffi-dev git python libopenmpi-dev gawk mesa-common-dev libtool
 
    # Additional packages used by rocgdb
-   sudo apt-get install python3 texinfo libbison-dev bison flex libbabeltrace-dev python3-pip libncurses5-dev liblzma-dev python3-setuptools python3-dev libpython3.8-dev libudev-dev
+   sudo apt-get install python3 texinfo libbison-dev bison flex libbabeltrace-dev python3-pip libncurses5-dev liblzma-dev python3-setuptools python3-dev libpython3.8-dev libudev-dev libgmp-dev
 
 ```
 
 
 #### SLES-15-SP1 Packages
 ```
-  sudo zypper install -y git pciutils-devel python-base libffi-devel gcc gcc-c++ libnuma-devel patchutils openmpi2-devel mesa-libGL-devel libquadmath0
+  sudo zypper install -y git pciutils-devel python-base libffi-devel gcc gcc-c++ libnuma-devel patchutils openmpi2-devel mesa-libGL-devel libquadmath0 libtool
 
   A symbolic link may be required at /usr/lib64: /usr/lib64/libquadmath.so -> /usr/lib64/libquadmath.so.0.
 
   # Additional packages used by rocgdb
-  sudo zypper install -y texinfo bison flex babeltrace-devel python3 python3-pip python3-devel python3-setuptools makeinfo ncurses-devel libexpat-devel xz-devel
+  sudo zypper install -y texinfo bison flex babeltrace-devel python3 python3-pip python3-devel python3-setuptools makeinfo ncurses-devel libexpat-devel xz-devel libgmp-devel
 
 
 ```
@@ -32,7 +32,7 @@ https://www.softwarecollections.org/en/scls/rhscl/devtoolset-7/<br>
 <b>The build_aomp.sh script will automatically enable devtoolset-7 if found in /opt/rh/devtoolset-7/enable. If you want to build an individual component you will need to manually start devtoolset-7 from the instructions above.</b><br>
 
 ```
-  sudo yum install pciutils-devel numactl-devel libffi-devel mesa-libGL-devel
+  sudo yum install pciutils-devel numactl-devel libffi-devel mesa-libGL-devel libtool
 
   # Additional packages used by rocgdb
   sudo yum install texinfo bison flex ncurses-devel expat-devel xz-devel libbabeltrace-devel
@@ -53,10 +53,10 @@ RHEL 7.7 and later RHEL 7 versions
   sudo yum install dnf-plugins-core
   sudo yum config-manager --set-enabled powertools
 
-  sudo yum install gcc gcc-c++ git make pciutils-devel numactl-devel libffi-devel mesa-libGL-devel libquadmath-devel python3 python3-pip python36-devel python3-setuptools python2
+  sudo yum install gcc gcc-c++ git make pciutils-devel numactl-devel libffi-devel mesa-libGL-devel libquadmath-devel python3 python3-pip python36-devel python3-setuptools python2 libtool
 
   # Additional packages used by rocgdb
-  sudo yum install texinfo bison flex ncurses-devel expat-devel xz-devel libbabeltrace-devel
+  sudo yum install texinfo bison flex ncurses-devel expat-devel xz-devel libbabeltrace-devel libgmp-devel
   python3 -m pip install CppHeaderParser argparse wheel lit --user
 ```
 
@@ -68,34 +68,46 @@ After all the required system package from section 1 are installed, there are so
   python3 -m pip install CppHeaderParser argparse wheel lit
 ```
 
-### 3.  Build CMake 3.13.4 in /usr/local/cmake
+### 3.  Build CMake 3.16.8 in /usr/local/cmake
 
-We have seen problems with newer versions of cmake. We have only verified version 3.13.4 for the various component builds necessary for aomp. All invocations of cmake in the build scripts use $AOMP_CMAKE.  The default for the AOMP_CMAKE variable is /usr/local/cmake/bin/cmake.  Use these commands to install cmake 3.13.4 from source into /usr/local/cmake.
+This can also be done with ./build_prereq.sh, which installs to $HOME/local/cmake.<br>
+We have seen problems with newer versions of cmake. We have only verified version 3.16.8 for the various component builds necessary for aomp. All invocations of cmake in the build scripts use $AOMP_CMAKE.  The default for the AOMP_CMAKE variable is /usr/local/cmake/bin/cmake.  Use these commands to install cmake 3.16.8 from source into /usr/local/cmake.
 
 ```
   $ sudo apt-get install libssl-dev
   $ mkdir /tmp/cmake
   $ cd /tmp/cmake
-  $ wget https://github.com/Kitware/CMake/releases/download/v3.13.4/cmake-3.13.4.tar.gz
-  $ tar -xvzf cmake-3.13.4.tar.gz
-  $ cd cmake-3.13.4
+  $ wget https://github.com/Kitware/CMake/releases/download/v3.16.8/cmake-3.16.8.tar.gz
+  $ tar -xvzf cmake-3.16.8.tar.gz
+  $ cd cmake-3.16.8
   $ ./bootstrap --prefix=/usr/local/cmake
   $ make
   $ sudo make install
 ```
-Alternatively, you could change the --prefix option to install cmake 3.13.4 somewhere else. Then be sure to change the value of he environment variable AOMP_CMAKE to be the cmake binary.
+Alternatively, you could change the --prefix option to install cmake 3.16.8 somewhere else. Then be sure to change the value of he environment variable AOMP_CMAKE to be the cmake binary.
 
 ### 4. Verify KFD Driver
 
 Please verify you have the proper software installed as AOMP needs certain support to function properly, such as the KFD driver for AMD GPUs.
+More information can be found [HERE](https://rocmdocs.amd.com/en/latest/Installation_Guide/Installation-Guide.html).
 
 #### Debian or Ubuntu Support
-These commands are for supported Debian-based systems and target only the rock_dkms core component. More information can be found [HERE](https://rocm.github.io/ROCmInstall.html#ubuntu-support---installing-from-a-debian-repository).
+These commands are for supported Debian-based systems and target only the amdgpu_dkms core component.
 ```
-wget -qO - http://repo.radeon.com/rocm/apt/debian/rocm.gpg.key | sudo apt-key add -
-echo 'deb [arch=amd64] http://repo.radeon.com/rocm/apt/debian/ xenial main' | sudo tee /etc/apt/sources.list.d/rocm.list
+wget -q -O - https://repo.radeon.com/rocm/rocm.gpg.key | sudo apt-key add -
+```
+Ubuntu 18.04:
+```
+echo 'deb [arch=amd64] http://repo.radeon.com/amdgpu/latest/ubuntu bionic main' | sudo tee /etc/apt/sources.list.d/amdgpu.list
+```
+Ubuntu 20.04:
+```
+echo 'deb [arch=amd64] http://repo.radeon.com/amdgpu/latest/ubuntu focal main' | sudo tee /etc/apt/sources.list.d/amdgpu.list
+```
+Update and Install:
+```
 sudo apt update
-sudo apt install rock-dkms
+sudo apt install amdgpu-dkms
 ```
 
 #### SUSE SLES-15-SP1 Support
@@ -115,22 +127,23 @@ SUSE SLES-15-SP1 comes with kfd support installed. To verify this:
   sudo subscription-manager repos --enable rhel-7-server-extras-rpms
   sudo rpm -ivh https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
 ```
-<b>Install dkms tool</b>
+Install kernel headers:
 ```
   sudo yum install -y epel-release
   sudo yum install -y dkms kernel-headers-`uname -r` kernel-devel-`uname -r`
 ```
-Create a /etc/yum.repos.d/rocm.repo file with the following contents:
+Create a /etc/yum.repos.d/amdgpu.repo file with the following contents:
 ```
-  [ROCm]
-  name=ROCm
-  baseurl=http://repo.radeon.com/rocm/yum/rpm
+  [amdgpu]
+  name=amdgpu
+  baseurl=https://repo.radeon.com/amdgpu/latest/rhel/7.9/main/x86_64
   enabled=1
-  gpgcheck=0
+  gpgcheck=1
+  gpgkey=https://repo.radeon.com/rocm/rocm.gpg.key
 ```
-<b>Install rock-dkms</b>
+Install amdgpu-dkms:
 ```
-  sudo yum install rock-dkms
+  sudo yum install amdgpu-dkms
 ```
 
 ### 5. Create the Unix Video Group

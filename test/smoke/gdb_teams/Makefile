@@ -15,7 +15,13 @@ CC           = $(OMP_BIN) $(VERBOSE)
 include ../Makefile.rules
 
 AOMPROCM ?= $(AOMP)
+ifneq (,$(wildcard $(AOMPROCM)/bin/rocgdb))
+RUNPROF   = $(AOMPROCM)/bin/rocgdb
+else
+RUNPROF   = $(AOMPROCM)/../bin/rocgdb
+endif
+ARGS      = -x cmd_script -q
 
 run:
-	$(AOMPROCM)/bin/rocgdb ./gdb_teams -x cmd_script -q
+	$(RUNPROF) $(TESTNAME) $(ARGS)
 
