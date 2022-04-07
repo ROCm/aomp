@@ -28,6 +28,8 @@ thisdir=$(getdname $0)
 INSTALL_COMGR=${INSTALL_COMGR:-$AOMP_INSTALL_DIR}
 
 REPO_DIR=$AOMP_REPOS/$AOMP_COMGR_REPO_NAME
+REPO_BRANCH=$AOMP_COMGR_REPO_BRANCH
+checkrepo
 
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then 
   echo " "
@@ -64,9 +66,9 @@ if [ "$1" == "install" ] ; then
 fi
 
 osversion=$(cat /etc/os-release)
-#if [ "$AOMP_MAJOR_VERSION" != "12" ] && [[ "$osversion" =~ "Ubuntu 16" ]];  then
+if [ "$AOMP_MAJOR_VERSION" != "12" ] && [[ "$osversion" =~ "Ubuntu 16" ]];  then
   patchrepo $REPO_DIR
-#fi
+fi
 
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 
@@ -90,7 +92,6 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
       -DCMAKE_PREFIX_PATH="$AOMP/include;$AOMP/lib/cmake;$DEVICELIBS_BUILD_PATH;$PACKAGE_ROOT" \
       -DCMAKE_INSTALL_PREFIX=$INSTALL_COMGR \
       -DCMAKE_BUILD_TYPE=$BUILDTYPE \
-      -DBUILD_TESTING=OFF \
       $AOMP_ORIGIN_RPATH \
       -DROCM_DIR=$AOMP_INSTALL_DIR  \
       -DLLVM_DIR=$AOMP_INSTALL_DIR \
@@ -107,10 +108,10 @@ fi
 cd $BUILD_AOMP/build/comgr
 echo
 echo " -----Running make for comgr ---- " 
-make -j $AOMP_JOB_THREADS
+make -j $NUM_THREADS
 if [ $? != 0 ] ; then 
       echo " "
-      echo "ERROR: make -j $AOMP_JOB_THREADS  FAILED"
+      echo "ERROR: make -j $NUM_THREADS  FAILED"
       echo "To restart:" 
       echo "  cd $BUILD_AOMP/build/comgr"
       echo "  make"
