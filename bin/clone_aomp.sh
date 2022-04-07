@@ -28,40 +28,16 @@ thisdir=$(getdname $0)
 . $thisdir/aomp_common_vars
 # --- end standard header ----
 
-if [ "$thisdir" != "$AOMP_REPOS/$AOMP_REPO_NAME/bin" ] ; then
-   echo
-   echo "ERROR:  This clone_aomp.sh script is found in directory $thisdir "
-   echo "        But it should be found at $AOMP_REPOS/$AOMP_REPO_NAME/bin because the value"
-   echo "        of AOMP_REPOS is $AOMP_REPOS. Either the environment variable AOMP_REPOS"
-   echo "        is wrong or the $AOMP_REPO_NAME repository was cloned to the wrong directory. Consider"
-   echo "        moving this $AOMP_REPO_NAME repository to $AOMP_REPOS/$AOMP_REPO_NAME (prefered)  OR"
-   echo "        set the environment variable AOMP_REPOS to the parent directory of the $AOMP_REPO_NAME"
-   echo "        repository before running $0"
-   echo
-   exit 1
-fi
-
-function list_repo(){
-repodirname=$AOMP_REPOS/$reponame
-cd $repodirname
-echo `git config --get remote.origin.url` "  " $COBRANCH "  " `git log --numstat --format="%h" |head -1`
-}
-
 function clone_or_pull(){
-if [ "$LISTONLY" == 'list' ]; then
-list_repo
-return
-fi
-
 repodirname=$AOMP_REPOS/$reponame
 echo
 if [ -d $repodirname  ] ; then 
    echo "--- Pulling updates to existing dir $repodirname ----"
-   echo "    We assume this came from an earlier clone of $repo_web_location/$repogitname"
+   echo "    We assume this came from an earlier clone of $repo_web_location/$reponame"
    # FIXME look in $repodir/.git/config to be sure 
    cd $repodirname
    if [ "$STASH_BEFORE_PULL" == "YES" ] ; then
-      if [ "$reponame" != "$AOMP_HCC_REPO_NAME" ] ; then
+      if [ "$reponame" != "$AOMP_HCC_REPO_NAME" ] && [ "$reponame" != "$AOMP_RAJA_REPO_NAME" ] ; then
          git stash -u
       fi
    fi
@@ -69,33 +45,27 @@ if [ -d $repodirname  ] ; then
    git pull 
    echo "cd $repodirname ; git checkout $COBRANCH"
    git checkout $COBRANCH
-   echo "git pull "
-   git pull
-   if [ "$reponame" == "$AOMP_HCC_REPO_NAME" ] ; then
-     #  undo the hcc_ppc_fp16.patch before pulling more updates
+   #echo "git pull "
+   #git pull 
+   if [ "$reponame" == "$AOMP_HCC_REPO_NAME" ] || [ "$reponame" == "$AOMP_RAJA_REPO_NAME" ] ; then
      echo "git submodule update"
      git submodule update
      echo "git pull"
      git pull
    fi
 else 
-   echo --- NEW CLONE of repo $repogitname to $repodirname ----
+   echo --- NEW CLONE of repo $reponame to $repodirname ----
    cd $AOMP_REPOS
-   if [ "$reponame" == "$AOMP_HCC_REPO_NAME" ] ; then
+   if [ "$reponame" == "$AOMP_HCC_REPO_NAME" ] || [ "$reponame" == "$AOMP_RAJA_REPO_NAME" ] ; then
      git clone --recursive -b $COBRANCH $repo_web_location/$reponame $reponame
    else
-     echo git clone -b $COBRANCH $repo_web_location/$repogitname $reponame
-     git clone -b $COBRANCH $repo_web_location/$repogitname $reponame
+     echo git clone $repo_web_location/$reponame
+     git clone $repo_web_location/$reponame $reponame
      echo "cd $repodirname ; git checkout $COBRANCH"
      cd $repodirname
      git checkout $COBRANCH
    fi
 fi
-
-if [ "$COSHAKEY" != "" ] ; then
-  git checkout $COSHAKEY
-fi
-
 cd $repodirname
 echo git status
 git status
@@ -109,105 +79,82 @@ mkdir -p $AOMP_REPOS
 repo_web_location=$GITROCDEV
 
 reponame=$AOMP_REPO_NAME
-repogitname=$AOMP_REPO_NAME
 COBRANCH=$AOMP_REPO_BRANCH
-LISTONLY=$1
-if [ "$LISTONLY" == 'list' ]; then
-list_repo
 #clone_or_pull
-fi
 
 reponame=$AOMP_EXTRAS_REPO_NAME
-repogitname=$AOMP_EXTRAS_REPO_NAME
 COBRANCH=$AOMP_EXTRAS_REPO_BRANCH
 clone_or_pull
 
 reponame=$AOMP_PROJECT_REPO_NAME
-repogitname=$AOMP_PROJECT_REPO_NAME
 COBRANCH=$AOMP_PROJECT_REPO_BRANCH
 clone_or_pull
 
 reponame=$AOMP_FLANG_REPO_NAME
-repogitname=$AOMP_FLANG_REPO_NAME
 COBRANCH=$AOMP_FLANG_REPO_BRANCH
 clone_or_pull
 
-if [ "$AOMP_USE_HIPVDI" == 0 ] ; then
 reponame=$AOMP_HIP_REPO_NAME
-repogitname=$AOMP_HIP_REPO_NAME
 COBRANCH=$AOMP_HIP_REPO_BRANCH
 clone_or_pull
-fi
 
 # ---------------------------------------
 # The following repos are in RadeonOpenCompute
 # ---------------------------------------
 repo_web_location=$GITROC
+
 reponame=$AOMP_LIBDEVICE_REPO_NAME
-repogitname=$AOMP_LIBDEVICE_REPO_NAME
 COBRANCH=$AOMP_LIBDEVICE_REPO_BRANCH
-COSHAKEY=$AOMP_LIBDEVICE_REPO_SHA
 clone_or_pull
-COSHAKEY=""
 
 reponame=$AOMP_ROCT_REPO_NAME
-repogitname=$AOMP_ROCT_REPO_NAME
 COBRANCH=$AOMP_ROCT_REPO_BRANCH
 clone_or_pull
 
 reponame=$AOMP_ROCR_REPO_NAME
-repogitname=$AOMP_ROCR_REPO_NAME
 COBRANCH=$AOMP_ROCR_REPO_BRANCH
 clone_or_pull
 
-## ATMI was removed in aomp 11.5-0
-#reponame=$AOMP_ATMI_REPO_NAME
-#repogitname=$AOMP_ATMI_REPO_NAME
-#COBRANCH=$AOMP_ATMI_REPO_BRANCH
-#clone_or_pull
+reponame=$AOMP_ATMI_REPO_NAME
+COBRANCH=$AOMP_ATMI_REPO_BRANCH
+clone_or_pull
+
+reponame=$AOMP_HCC_REPO_NAME
+COBRANCH=$AOMP_HCC_REPO_BRANCH
+clone_or_pull
 
 reponame=$AOMP_COMGR_REPO_NAME
-repogitname=$AOMP_COMGR_REPO_NAME
 COBRANCH=$AOMP_COMGR_REPO_BRANCH
-COSHAKEY=$AOMP_COMGR_REPO_SHA
 clone_or_pull
-COSHAKEY=""
 
-reponame=$AOMP_RINFO_REPO_NAME
-repogitname=$AOMP_RINFO_REPO_NAME
-COBRANCH=$AOMP_RINFO_REPO_BRANCH
-COSHAKEY=$AOMP_RINFO_REPO_SHA
+# ---------------------------------------
+# The following repos is in AMDComputeLibraries
+# ---------------------------------------
+repo_web_location=$GITROCLIB
+reponame=$AOMP_APPS_REPO_NAME
+COBRANCH=$AOMP_APPS_REPO_BRANCH
 clone_or_pull
-COSHAKEY=""
 
-if [ "$AOMP_USE_HIPVDI" == 0 ] ; then
-   repo_web_location=$GITROC
-   reponame=$AOMP_HCC_REPO_NAME
-   repogitname=$AOMP_HCC_REPO_NAME
-   COBRANCH=$AOMP_HCC_REPO_BRANCH
-   clone_or_pull
-else
-   repo_web_location=$GITROCDEV
-   reponame=$AOMP_VDI_REPO_NAME
-   repogitname=$AOMP_VDI_REPO_GITNAME
-   COBRANCH=$AOMP_VDI_REPO_BRANCH
-   COSHAKEY=$AOMP_VDI_REPO_SHA
-   clone_or_pull
-   COSHAKEY=""
+# ---------------------------------------
+# The following repo is for testing raja from LLNL
+# ---------------------------------------
+repo_web_location=$GITLLNL
+reponame=$AOMP_RAJA_REPO_NAME
+COBRANCH=$AOMP_RAJA_REPO_BRANCH
+clone_or_pull
 
-   repo_web_location=$GITROCDEV
-   reponame=$AOMP_HIPVDI_REPO_NAME
-   repogitname=$AOMP_HIPVDI_REPO_GITNAME
-   COBRANCH=$AOMP_HIPVDI_REPO_BRANCH
-   COSHAKEY=$AOMP_HIPVDI_REPO_SHA
+# ---------------------------------------
+# The following repo is internal to AMD
+# ---------------------------------------
+ping -c 1 $AOMP_INTERNAL_IP 2>/dev/null
+if [ $? == 0 ] ; then
+   echo
+   echo " +---------------------------------------------------------------"
+   echo " |  WARNING: USE YOUR AMD USERID AND PASSWORD TO CLONE FROM $GITINTERNAL"
+   echo " +---------------------------------------------------------------"
+   echo
+   repo_web_location=$GITINTERNAL
+   reponame=$AOMP_IAPPS_REPO_NAME
+   COBRANCH=$AOMP_IAPPS_REPO_BRANCH
    clone_or_pull
-   COSHAKEY=""
-
-   repo_web_location=$GITROC
-   reponame=$AOMP_OCL_REPO_NAME
-   repogitname=$AOMP_OCL_REPO_GITNAME
-   COBRANCH=$AOMP_OCL_REPO_BRANCH
-   COSHAKEY=$AOMP_OCL_REPO_SHA
-   clone_or_pull
-   COSHAKEY=""
 fi
