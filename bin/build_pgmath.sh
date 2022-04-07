@@ -31,7 +31,6 @@ thisdir=$(getdname $0)
 
 INSTALL_FLANG=${INSTALL_FLANG:-$AOMP_INSTALL_DIR}
 
-
 if [ "$AOMP_PROC" == "ppc64le" ] ; then
    TARGETS_TO_BUILD="AMDGPU;${AOMP_NVPTX_TARGET}PowerPC"
 else
@@ -42,19 +41,29 @@ else
    fi
 fi
 
-COMP_INC_DIR=$(ls -d $AOMP_INSTALL_DIR/lib/clang/*/include )
-
 if [ "$AOMP_PROC" == "ppc64le" ] ; then
-    MYCMAKEOPTS="-DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX=$INSTALL_FLANG -DLLVM_ENABLE_ASSERTIONS=ON $AOMP_ORIGIN_RPATH -DCMAKE_Fortran_COMPILER=$AOMP_INSTALL_DIR/bin/flang -DLLVM_TARGETS_TO_BUILD=$TARGETS_TO_BUILD -DCMAKE_C_FLAGS=-I$COMP_INC_DIR -DCMAKE_CXX_FLAGS=-I$COMP_INC_DIR"
+    MYCMAKEOPTS="-DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX=$INSTALL_FLANG -DLLVM_ENABLE_ASSERTIONS=ON $AOMP_ORIGIN_RPATH -DCMAKE_Fortran_COMPILER=$AOMP_INSTALL_DIR/bin/flang -DLLVM_TARGETS_TO_BUILD=$TARGETS_TO_BUILD"
 else
-    MYCMAKEOPTS="-DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX=$INSTALL_FLANG -DLLVM_ENABLE_ASSERTIONS=ON $AOMP_ORIGIN_RPATH -DLLVM_CONFIG=$INSTALL_FLANG/bin/llvm-config -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang  -DLLVM_TARGETS_TO_BUILD=$TARGETS_TO_BUILD -DCMAKE_C_FLAGS=-I$COMP_INC_DIR -DCMAKE_CXX_FLAGS=-I$COMP_INC_DIR"
+    #MYCMAKEOPTS="-DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX=$INSTALL_FLANG -DLLVM_ENABLE_ASSERTIONS=ON $AOMP_ORIGIN_RPATH -DLLVM_CONFIG=$INSTALL_FLANG/bin/llvm-config -DCMAKE_CXX_COMPILER=$AOMP_INSTALL_DIR/bin/clang++ -DCMAKE_C_COMPILER=$AOMP_INSTALL_DIR/bin/clang -DCMAKE_Fortran_COMPILER=$AOMP_INSTALL_DIR/bin/flang -DLLVM_TARGETS_TO_BUILD=$TARGETS_TO_BUILD"
+    MYCMAKEOPTS="-DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+    -DCMAKE_INSTALL_PREFIX=$INSTALL_FLANG \
+    -DLLVM_ENABLE_ASSERTIONS=ON \
+    -DLLVM_CONFIG=$INSTALL_FLANG/bin/llvm-config \
+    -DCMAKE_CXX_COMPILER=$OUT_DIR/llvm/bin/clang++ \
+    -DCMAKE_C_COMPILER=$OUT_DIR/llvm/bin/clang \
+    -DCMAKE_Fortran_COMPILER=$OUT_DIR/llvm/bin/flang \
+    -DLLVM_TARGETS_TO_BUILD=$TARGETS_TO_BUILD \
+    -DCMAKE_INSTALL_PREFIX=$INSTALL_FLANG"
 fi
+
 
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then 
   help_build_aomp
 fi
 
+REPO_BRANCH=$AOMP_FLANG_REPO_BRANCH
 REPO_DIR=$AOMP_REPOS/$AOMP_FLANG_REPO_NAME
+checkrepo
 
 # Make sure we can update the install directory
 if [ "$1" == "install" ] ; then 
@@ -74,6 +83,17 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    echo "Use ""$0 nocmake"" or ""$0 install"" to avoid FRESH START."
    rm -rf $BUILD_DIR/build/pgmath
    mkdir -p $BUILD_DIR/build/pgmath
+
+   if [ $COPYSOURCE ] ; then 
+      #  Copy/rsync the git repos into /tmp for faster compilation
+      mkdir -p $BUILD_DIR
+      echo
+      echo "WARNING!  BUILD_DIR($BUILD_DIR) != AOMP_REPOS($AOMP_REPOS)"
+      echo "SO RSYNCING AOMP_REPOS TO: $BUILD_DIR"
+      echo
+      echo rsync -a --exclude ".git" --delete $AOMP_REPOS/$AOMP_FLANG_REPO_NAME $BUILD_DIR
+      rsync -a --exclude ".git" --delete $AOMP_REPOS/$AOMP_FLANG_REPO_NAME $BUILD_DIR 2>&1
+   fi
 else
    if [ ! -d $BUILD_DIR/build/pgmath ] ; then 
       echo "ERROR: The build directory $BUILD_DIR/build/pgmath does not exist"
@@ -90,8 +110,13 @@ export PATH=$AOMP_INSTALL_DIR/bin:$PATH
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    echo
    echo " -----Running cmake ---- " 
-   echo ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_FLANG_REPO_NAME/runtime/libpgmath
-   ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_FLANG_REPO_NAME/runtime/libpgmath  2>&1
+   if [ $COPYSOURCE ] ; then
+      echo ${AOMP_CMAKE} $MYCMAKEOPTS  $BUILD_DIR/$AOMP_FLANG_REPO_NAME/runtime/libpgmath
+      ${AOMP_CMAKE} $MYCMAKEOPTS  $BUILD_DIR/$AOMP_FLANG_REPO_NAME/runtime/libpgmath  2>&1
+   else
+      echo ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_FLANG_REPO_NAME/runtime/libpgmath
+      ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_FLANG_REPO_NAME/runtime/libpgmath  2>&1
+   fi
    if [ $? != 0 ] ; then 
       echo "ERROR cmake failed. Cmake flags"
       echo "      $MYCMAKEOPTS"
@@ -101,10 +126,10 @@ fi
 
 echo
 echo " -----Running make ---- " 
-echo make -j $AOMP_JOB_THREADS 
-make -j $AOMP_JOB_THREADS 
+echo make -j $NUM_THREADS 
+make -j $NUM_THREADS 
 if [ $? != 0 ] ; then 
-   echo "ERROR make -j $AOMP_JOB_THREADS failed"
+   echo "ERROR make -j $NUM_THREADS failed"
    exit 1
 fi
 
