@@ -54,9 +54,7 @@ if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   help_build_aomp
 fi
 
-REPO_BRANCH=$AOMP_FLANG_REPO_BRANCH
 REPO_DIR=$AOMP_REPOS/$AOMP_FLANG_REPO_NAME
-checkrepo
 
 # Make sure we can update the install directory
 if [ "$1" == "install" ] ; then 

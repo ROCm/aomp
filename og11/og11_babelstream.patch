@@ -1,0 +1,99 @@
+--- OMPStream.orig.cpp	2022-03-24 15:21:34.494169261 +0000
++++ OMPStream.cpp	2022-03-24 16:22:44.970922052 +0000
+@@ -12,21 +12,80 @@
+ #define ALIGNMENT (2*1024*1024) // 2MB
+ #endif
+ 
++#ifdef OMP_TARGET_GPU
++#ifdef _DEFAULTS_NOSIMD
++// If compiled with -D_DEFAULTS_NOSIMD, just remove simd in the pragma omp target
++#define simd
++#else
++#ifdef _OG11_DEFAULTS
++#define simd simd
++#else
++// vectorization inside target region is not possible, so define simd as a macro
++// to define extra clauses such as schedule and grid sizes.
++// Try 4 X number_of_cus or 2 X number_of_cus
++#ifndef NUM_TEAMS
++#ifdef _OG11_OVERRIDE
++  #define NUM_TEAMS 120
++#else
++  #define NUM_TEAMS 240
++#endif
++#endif // NUM_TEAMS not defined
++#ifndef NUM_THREADS
++#ifdef _OG11_OVERRIDE
++  #define NUM_THREADS 4
++#else
++  #define NUM_THREADS 1024
++#endif
++#endif // NUM_THREADS not defined
++// Default schedule is  static CHUNKSZ=1 but we want CHUNKSZ for diag below
++#define CHUNKSZ 1
++//#define simd schedule(nonmonotonic:static,CHUNKSZ) num_teams(NUM_TEAMS) thread_limit(NUM_THREADS)
++#ifdef _OG11_OVERRIDE
++  #define simd simd num_teams(NUM_TEAMS) thread_limit(NUM_THREADS)
++#else
++  #define simd num_teams(NUM_TEAMS) thread_limit(NUM_THREADS)
++#endif
++#define XSTR(x) STRING_CLAUSE(x)
++#define STRING_CLAUSE(x) #x
++#endif // end else _DEFAULTS_NOSIMD
++#endif // end else _OG11_DEFAULTS
++#endif // end ifdef OMP_TARGET_GPU
++static int didprint = 0;
++
+ template <class T>
+ OMPStream<T>::OMPStream(const int ARRAY_SIZE, int device)
+ {
+   array_size = ARRAY_SIZE;
+ 
+   // Allocate on the host
+-  this->a = (T*)aligned_alloc(ALIGNMENT, sizeof(T)*array_size);
+-  this->b = (T*)aligned_alloc(ALIGNMENT, sizeof(T)*array_size);
+-  this->c = (T*)aligned_alloc(ALIGNMENT, sizeof(T)*array_size);
++  this->a = (T*)omp_aligned_alloc(ALIGNMENT, sizeof(T)*array_size, omp_default_mem_alloc);
++  this->b = (T*)omp_aligned_alloc(ALIGNMENT, sizeof(T)*array_size, omp_default_mem_alloc);
++  this->c = (T*)omp_aligned_alloc(ALIGNMENT, sizeof(T)*array_size, omp_default_mem_alloc);
+ 
+ #ifdef OMP_TARGET_GPU
+   omp_set_default_device(device);
+   T *a = this->a;
+   T *b = this->b;
+   T *c = this->c;
++  // Print diagnostic one time.
++  if (!didprint) {
++#ifdef _DEFAULTS_NOSIMD
++     printf("_DEFAULTS_NOSIMD set: simd clause removed from OpenMP target pragma \n");
++     printf("#pragma omp target teams distribute parallel for\n");
++#else
++#ifdef _OG11_DEFAULTS
++     printf("_OG11_DEFAULTS set: No change to OpenMP target pragma \n");
++     printf("#pragma omp target teams distribute parallel for simd\n");
++#else
++     printf("NOTE: simd clause replaced with overrides.\n");
++     printf("#pragma omp target teams distribute parallel for %s\n",XSTR(simd));
++     printf("arrays_size:%d nteams:%d teamsz:%d chunksz:%d iters/thread:%d iters/team:%d chunks/thread:%d\n",
++                  array_size, NUM_TEAMS, NUM_THREADS , CHUNKSZ, (array_size/NUM_TEAMS)/NUM_THREADS,
++                  array_size/NUM_TEAMS,  ((array_size/NUM_TEAMS)/NUM_THREADS)/CHUNKSZ);
++#endif
++#endif
++     didprint=1;
++  }
+   // Set up data region on device
+   #pragma omp target enter data map(alloc: a[0:array_size], b[0:array_size], c[0:array_size])
+   {}
+@@ -46,9 +105,9 @@
+   #pragma omp target exit data map(release: a[0:array_size], b[0:array_size], c[0:array_size])
+   {}
+ #endif
+-  free(a);
+-  free(b);
+-  free(c);
++  omp_free(a);
++  omp_free(b);
++  omp_free(c);
+ }
+ 
+ template <class T>

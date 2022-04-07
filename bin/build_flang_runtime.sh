@@ -31,7 +31,6 @@ thisdir=$(getdname $0)
 
 INSTALL_FLANG=${INSTALL_FLANG:-$AOMP_INSTALL_DIR}
 
-
 if [ "$AOMP_PROC" == "ppc64le" ] ; then
    TARGETS_TO_BUILD="AMDGPU;${AOMP_NVPTX_TARGET}PowerPC"
 else
@@ -44,7 +43,6 @@ fi
 
 COMP_INC_DIR=$(ls -d $AOMP_INSTALL_DIR/lib/clang/*/include )
 
-REPO_BRANCH=$AOMP_FLANG_REPO_BRANCH
 REPO_DIR=$AOMP_REPOS/$AOMP_FLANG_REPO_NAME
 COMP_INC_DIR=$REPO_DIR/runtime/libpgmath/lib/common
 
@@ -58,8 +56,6 @@ MYCMAKEOPTS="-DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX=$INSTALL_FLAN
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then 
   help_build_aomp
 fi
-
-checkrepo
 
 # Make sure we can update the install directory
 if [ "$1" == "install" ] ; then 

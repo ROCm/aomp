@@ -1,0 +1,90 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index c7d9e338..63a33167 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -19,15 +19,6 @@ ELSE()
+   # Make CMAKE_INSTALL_PREFIX be the same as HIPFORT_INSTALL_PREFIX
+   set(CMAKE_INSTALL_PREFIX ${HIPFORT_INSTALL_DIR})
+ ENDIF()
+-message("-- HIPFORT -------------  cmake START -------------------")
+-message("-- HIPFORT_COMPILER:       ${HIPFORT_COMPILER}")
+-message("-- HIPFORT_AR:             ${HIPFORT_AR}")
+-message("-- HIPFORT_RANLIB:         ${HIPFORT_RANLIB}")
+-message("-- HIPFORT_COMPILER_FLAGS: ${HIPFORT_COMPILER_FLAGS}")
+-message("-- HIPFORT_BUILD_TYPE:     ${HIPFORT_BUILD_TYPE}")
+-message("-- HIPFORT_INSTALL_DIR:    ${HIPFORT_INSTALL_DIR}")
+-message("-- HIPFORT_VERSION:        ${HIPFORT_VERSION}")
+-message("-- HIPFORT ----------------------------------------------")
+ 
+ set(CMAKE_Fortran_COMPILER_INIT ${HIPFORT_COMPILER})
+ PROJECT(hipfort Fortran C)
+@@ -52,7 +43,7 @@ ENDIF(NOT CMAKE_Fortran_COMPILER_SUPPORTS_F90)
+ 
+ # Test for Fortran 08 support by using an f08-specific construct.
+ IF(NOT DEFINED CMAKE_Fortran_COMPILER_SUPPORTS_F08)
+-  MESSAGE(CHECK_START "Checking whether ${CMAKE_Fortran_COMPILER} supports Fortran 08")
++  MESSAGE(CHECK_START " Checking whether ${CMAKE_Fortran_COMPILER} supports Fortran 08")
+   FILE(WRITE ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/testFortranCompilerF08.f90 "
+     module mod
+       interface foo
+@@ -79,7 +70,7 @@ IF(NOT DEFINED CMAKE_Fortran_COMPILER_SUPPORTS_F08)
+     ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/testFortranCompilerF08.f90
+     OUTPUT_VARIABLE OUTPUT)
+   IF(CMAKE_Fortran_COMPILER_SUPPORTS_F08)
+-    MESSAGE(CHECK_PASS "yes")
++    MESSAGE(CHECK_PASS " yes")
+     file(APPEND ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeOutput.log
+       "Determining if the Fortran compiler supports Fortran 08 passed with "
+       "the following output:\n${OUTPUT}\n\n")
+@@ -101,15 +92,18 @@ IF(CMAKE_Fortran_COMPILER_ID MATCHES "Cray")
+   set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${HIPFORT_COMPILER_FLAGS}")
+ ELSE(CMAKE_Fortran_COMPILER_ID MATCHES "Cray")
+ IF(CMAKE_Fortran_COMPILER_SUPPORTS_F08)
+-  set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${HIPFORT_COMPILER_FLAGS} -std=f2008")
++  set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${HIPFORT_COMPILER_FLAGS} -std=f2008 -cpp")
+ ELSE(CMAKE_Fortran_COMPILER_SUPPORTS_F08)
+-  set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${HIPFORT_COMPILER_FLAGS} -std=f2003")
++  set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${HIPFORT_COMPILER_FLAGS} -std=f2003 -cpp")
+ ENDIF(CMAKE_Fortran_COMPILER_SUPPORTS_F08)
+ ENDIF(CMAKE_Fortran_COMPILER_ID MATCHES "Cray")
++IF(CMAKE_Fortran_COMPILER_ID MATCHES "GNU")
++  # Remove gfortran -funderscoring warnings"
++  set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -fno-underscoring")
++ENDIF(CMAKE_Fortran_COMPILER_ID MATCHES "GNU")
+  
+ # Set compile flags for DEBUG, # RELEASE, or TESTING.  
+ INCLUDE(${CMAKE_MODULE_PATH}/SetFortranFlags.cmake) 
+-message("-- Done setting FortranFlags")
+ 
+ # There is an error in CMAKE with this flag for pgf90.  Unset it
+ GET_FILENAME_COMPONENT(FCNAME ${CMAKE_Fortran_COMPILER} NAME)
+@@ -141,4 +135,17 @@ rocm_create_package(
+   MAINTAINER "Gregory Rogers <Gregory.Rodgers@amd.com>"
+ )
+ 
++message("-- HIPFORT ----------------------------------------------")
++message("-- HIPFORT_COMPILER:       ${HIPFORT_COMPILER}")
++message("-- HIPFORT_AR:             ${HIPFORT_AR}")
++message("-- HIPFORT_RANLIB:         ${HIPFORT_RANLIB}")
++message("-- HIPFORT_COMPILER_FLAGS: ${HIPFORT_COMPILER_FLAGS}")
++message("-- HIPFORT_BUILD_TYPE:     ${HIPFORT_BUILD_TYPE}")
++message("-- HIPFORT_INSTALL_DIR:    ${HIPFORT_INSTALL_DIR}")
++message("-- HIPFORT_VERSION:        ${HIPFORT_VERSION}")
++message("-- FortranFlags:           ${CMAKE_Fortran_FLAGS}")
++message("-- FortranFlagsDebug:      ${CMAKE_Fortran_FLAGS_DEBUG}")
++message("-- FortranFlagsRelease:    ${CMAKE_Fortran_FLAGS_RELEASE}")
++message("-- Compiler ID:            ${CMAKE_Fortran_COMPILER_ID}")
++message("-- HIPFORT_VERSION:        ${HIPFORT_VERSION}")
+ message("-- HIPFORT -------------  cmake DONE --------------------")
+diff --git a/lib/CMakeLists.txt b/lib/CMakeLists.txt
+index 0473dc12..5c02e9dc 100644
+--- a/lib/CMakeLists.txt
++++ b/lib/CMakeLists.txt
+@@ -1,7 +1,4 @@
+ 
+-IF(NOT CMAKE_Fortran_COMPILER_ID MATCHES "Cray")
+-set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -fno-underscoring")
+-ENDIF(NOT CMAKE_Fortran_COMPILER_ID MATCHES "Cray")
+ file(GLOB HIPFORT_SRC_HIP     "${CMAKE_CURRENT_SOURCE_DIR}/hipfort/*.f*")
+ #file(GLOB HIPFORT_SRC_amdgcn  "${CMAKE_CURRENT_SOURCE_DIR}/modules-amdgcn/*.f*")
+ #file(GLOB HIPFORT_SRC_nvptx   "${CMAKE_CURRENT_SOURCE_DIR}/modules-nvptx/*.f*")

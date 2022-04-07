@@ -15,11 +15,11 @@
 AOMP_COMPILER_NAME=${AOMP_COMPILER_NAME:-AOMP}
 
 # ROCM_VERSION may be set by Jenkins, if not guess a good number
-ROCM_VERSION=${ROCM_VERSION:-4.5.0}
+ROCM_VERSION=${ROCM_VERSION:-5.0.0}
 
-# Set the AOMP VERSION STRING and AOMP_PROJECT_REPO_BRANCH.
+# Set the AOMP VERSION STRING
 AOMP_VERSION=${AOMP_VERSION:-"15.0"}
-AOMP_VERSION_MOD=${AOMP_VERSION_MOD:-"0"}
+AOMP_VERSION_MOD=${AOMP_VERSION_MOD:-"1"}
 AOMP_VERSION_STRING=${AOMP_VERSION_STRING:-"$AOMP_VERSION-$AOMP_VERSION_MOD"}
 export AOMP_VERSION_STRING AOMP_VERSION AOMP_VERSION_MOD ROCM_VERSION
 
@@ -42,7 +42,6 @@ elif [ "$AOMP_MAJOR_VERSION" == "13" ] ; then
     #The default for internal repos will be $HOME/git/aomp13.1
     AOMP_REPOS=${AOMP_REPOS:-${HOME}/git/aomp${AOMP_VERSION}}
     # Force build for 13.1 to 13.1-0, ignore AOMP_VERSION_MOD set above
-    AOMP_CHECK_GIT_BRANCH=0
     AOMP_VERSION_MOD=0
     AOMP_VERSION_STRING="13.1-0"
     AOMP_INSTALL_DIR=${AOMP}_${AOMP_VERSION_STRING}
@@ -55,7 +54,6 @@ elif [ "$AOMP_MAJOR_VERSION" == "11" ] ; then
   AOMP_REPOS=${AOMP_REPOS:-$HOME/git/aomp11}
 elif [ "$AOMP_MAJOR_VERSION" == "14" ] || [ "$AOMP_MAJOR_VERSION" == "15" ] ; then
     AOMP_REPOS=${AOMP_REPOS:-${HOME}/git/aomp${AOMP_VERSION}}
-    AOMP_CHECK_GIT_BRANCH=0
     AOMP_PATCH_CONTROL_FILE="${AOMP_REPOS}/aomp/bin/patches/patch-control-file_$AOMP_VERSION.txt"
 else
   echo "ERROR:  Invalid AOMP_MAJOR_VERSION: $AOMP_MAJOR_VERSION"
@@ -66,8 +64,34 @@ fi
 # all the test repositories in a different directory.
 AOMP_REPOS_TEST=${AOMP_REPOS_TEST:-$HOME/git/aomp-test}
 
+# AOMP_SUPP is for SUPPlemental software components needed for testing.
+# such as openmpi, hdf5, and silo. Applications that need supplemental
+# components can get the latest version with $AOMP_SUPP/<component name>
+# For example set OPENMPI_DIR=$AOMP_SUPP/openmpi in the run script.
+# Supplemental components are built with either the ROCm or AOMP
+# compiler using the build_supp.sh script. The build_supp.sh script
+# will use the AOMP environment variable to identify which LLVM to use
+# for building the supplemental component.
+# The directory structure for a supplemental component includes:
+#   1. a build directory for each component,
+#   2. an install directory for each version of a component,
+#   3. a link from AOMP_SUPP/<component name> to latest version.
+# For example: The openmpi component is built in directory
+# $AOMP_SUPP_BUILD/openmpi/ and installed in directory
+# $AOMP_SUPP_INSTALL/openmpi/openmpi-4.1.1/ with a symbolic link from
+# $AOMP_SUPP/openmpi to $AOMP_SUPP_INSTALL/openmpi/openmpi-4.1.1/
+#
+# The default AOMP_SUPP directory is $HOME/local but a sysadmin with root
+# root authority could set AOMP_SUPP=/usr/local
+AOMP_SUPP=${AOMP_SUPP:-$HOME/local}
+#
+# AOMP_SUPP_BUILD could be a temp directory but defaults to $AOMP_SUPP/build
+AOMP_SUPP_BUILD=${AOMP_SUPP_BUILD:-$AOMP_SUPP/build}
+#
+# AOMP_SUPP_INSTALL must be permanent directory.
+AOMP_SUPP_INSTALL=${AOMP_SUPP_INSTALL:-$AOMP_SUPP/install}
+
 # To build aomp from the release source taball, set these values to 0
-AOMP_CHECK_GIT_BRANCH=${AOMP_CHECK_GIT_BRANCH:-1}
 AOMP_APPLY_ROCM_PATCHES=${AOMP_APPLY_ROCM_PATCHES:-1}
 
 CUDA=${CUDA:-/usr/local/cuda}
@@ -75,10 +99,27 @@ CUDAT=${CUDAT:-$CUDA/targets}
 CUDAINCLUDE=${CUDAINCLUDE:-$CUDA/include}
 CUDABIN=${CUDABIN:-$CUDA/bin}
 
-if [ -f /usr/local/cmake/bin/cmake ] ; then
-  AOMP_CMAKE=${AOMP_CMAKE:-/usr/local/cmake/bin/cmake}
-else
-  AOMP_CMAKE=${AOMP_CMAKE:-cmake}
+# unless overridden with AOMP_CMAKE, get CMAKE from the
+# prerequisite supplemental component cmake.
+AOMP_CMAKE=${AOMP_CMAKE:-$AOMP_SUPP/cmake/bin/cmake}
+if [ ! -f $AOMP_CMAKE ] ; then
+  AOMP_CMAKE=`which cmake`
+  if [ "$AOMP_CMAKE" == "" ] ; then
+    echo "ERROR: finding cmake in aomp_common_vars."
+    echo "       Missing prerequisite supplemental component cmake."
+    echo "       Please run: ./build_prereq.sh cmake"
+    echo "       OR set AOMP_CMAKE env variable to a valid cmake binary"
+    echo "       OR build ALL prerequisite components with: ./build_prereq.sh"
+    echo
+    echo "NOTE:  All supplemental components are built and retrieved from "
+    echo "       subdirectories of the directory defined by environment variable"
+    echo "       AOMP_SUPP whose current value is: $AOMP_SUPP"
+    exit 1
+  else
+    # FIXME: Add version check here for system cmake.
+    echo "WARNING: Using system cmake $AOMP_CMAKE "
+    echo "         consider building cmake with: ./build_prereq.sh cmake"
+  fi
 fi
 
 AOMP_USE_NINJA=${AOMP_USE_NINJA:-0}
@@ -180,6 +221,7 @@ GITROCINTERNAL="ssh://$USER@gerrit-git.amd.com:29418/lightning/ec"
 GITGERRIT="ssh://$USER@gerrit-git.amd.com:29418"
 GITROCDEV="https://github.com/ROCm-Developer-Tools"
 GITROCLIB="https://github.com/AMDComputeLibraries"
+GITROCSW="https://github.com/ROCmSoftwarePlatform"
 GITKHRONOS="https://github.com/KhronosGroup"
 GITHWLOC="https://github.com/open-mpi"
 AOMP_GIT_INTERNAL_IP="gerrit-git.amd.com"
@@ -191,34 +233,23 @@ if [ "$AOMP_MAJOR_VERSION" == "12" ] ; then
   fi
   GITPROJECT=$GITROCINTERNAL
   AOMP_PROJECT_REPO_NAME=${AOMP_PROJECT_REPO_NAME:-llvm-project}
-  AOMP_PROJECT_REPO_BRANCH=${AOMP_PROJECT_REPO_BRANCH:-amd-stg-open}
   AOMP_EXTRAS_REPO_NAME=${AOMP_EXTRAS_REPO_NAME:-aomp-extras}
-  AOMP_EXTRAS_REPO_BRANCH=${AOMP_EXTRAS_REPO_BRANCH:-aomp-dev}
   AOMP_FLANG_REPO_NAME=${AOMP_FLANG_REPO_NAME:-flang}
-  AOMP_FLANG_REPO_BRANCH=${AOMP_FLANG_REPO_BRANCH:-aomp-dev}
 elif [ "$AOMP_MAJOR_VERSION" == "13" ] ; then
   GITPROJECT=$GITROCDEV
   AOMP_PROJECT_REPO_NAME=${AOMP_PROJECT_REPO_NAME:-llvm-project}
-  AOMP_PROJECT_REPO_BRANCH=${AOMP_PROJECT_REPO_BRANCH:-aomp-dev}
   AOMP_EXTRAS_REPO_NAME=${AOMP_EXTRAS_REPO_NAME:-aomp-extras}
-  AOMP_EXTRAS_REPO_BRANCH=${AOMP_EXTRAS_REPO_BRANCH:-aomp-dev}
   AOMP_FLANG_REPO_NAME=${AOMP_FLANG_REPO_NAME:-flang}
-  AOMP_FLANG_REPO_BRANCH=${AOMP_FLANG_REPO_BRANCH:-aomp-dev}
 elif [ "$AOMP_MAJOR_VERSION" == "14" ] || [ "$AOMP_MAJOR_VERSION" == "15" ] ; then
   GITPROJECT=$GITROCDEV
   AOMP_PROJECT_REPO_NAME=${AOMP_PROJECT_REPO_NAME:-llvm-project}
-  AOMP_PROJECT_REPO_BRANCH=${AOMP_PROJECT_REPO_BRANCH:-aomp14-dev}
   AOMP_EXTRAS_REPO_NAME=${AOMP_EXTRAS_REPO_NAME:-aomp-extras}
-  AOMP_EXTRAS_REPO_BRANCH=${AOMP_EXTRAS_REPO_BRANCH:-aomp-dev}
   AOMP_FLANG_REPO_NAME=${AOMP_FLANG_REPO_NAME:-flang}
 else
   GITPROJECT=$GITROCDEV
   AOMP_PROJECT_REPO_NAME=${AOMP_PROJECT_REPO_NAME:-amd-llvm-project}
-  AOMP_PROJECT_REPO_BRANCH=${AOMP_PROJECT_REPO_BRANCH:-aomp11}
   AOMP_EXTRAS_REPO_NAME=${AOMP_EXTRAS_REPO_NAME:-aomp-extras}
-  AOMP_EXTRAS_REPO_BRANCH=${AOMP_EXTRAS_REPO_BRANCH:-aomp11}
   AOMP_FLANG_REPO_NAME=${AOMP_FLANG_REPO_NAME:-flang}
-  AOMP_FLANG_REPO_BRANCH=${AOMP_FLANG_REPO_BRANCH:-aomp11}
 fi
 #
 # The difference between a _REPO_NAME and _REPO_GITNAME is that the
@@ -234,30 +265,16 @@ fi
 
 #  These aomp development repositories
 AOMP_REPO_NAME=${AOMP_REPO_NAME:-aomp}
-AOMP_REPO_BRANCH=${AOMP_REPO_BRANCH:-aomp-dev}
 
 #  These extra repositories are needed but we cannot update them
 AOMP_ROCT_REPO_NAME=${AOMP_ROCT_REPO_NAME:-roct-thunk-interface}
-AOMP_ROCT_REPO_BRANCH=${AOMP_ROCT_REPO_BRANCH:-roc-4.3.x}
 AOMP_ROCT_COMPONENT_NAME=${AOMP_ROCT_COMPONENT_NAME:-roct}
 AOMP_ROCR_REPO_NAME=${AOMP_ROCR_REPO_NAME:-rocr-runtime}
-AOMP_ROCR_REPO_BRANCH=${AOMP_ROCR_REPO_BRANCH:-rocm-4.3.x}
 AOMP_ROCR_COMPONENT_NAME=${AOMP_ROCR_COMPONENT_NAME:-rocr}
 AOMP_LIBDEVICE_REPO_NAME=${AOMP_LIBDEVICE_REPO_NAME:-rocm-device-libs}
 AOMP_LIBDEVICE_COMPONENT_NAME=${AOMP_LIBDEVICE_COMPONENT_NAME:-rocdl}
-if [ "$AOMP_MAJOR_VERSION" == "12" ] ; then
-  AOMP_LIBDEVICE_REPO_BRANCH=${AOMP_LIBDEVICE_REPO_BRANCH:-amd-stg-open}
-  #AOMP_LIBDEVICE_REPO_SHA="f16f5b1b90a21943306b87e160654b5738c8a884"
-elif [ "$AOMP_MAJOR_VERSION" == "13" ] ; then
-  AOMP_LIBDEVICE_REPO_BRANCH=${AOMP_LIBDEVICE_REPO_BRANCH:-amd-stg-open}
-elif [ "$AOMP_MAJOR_VERSION" == "14" ] || [ "$AOMP_MAJOR_VERSION" == "15" ] ; then
-  AOMP_LIBDEVICE_REPO_BRANCH=${AOMP_LIBDEVICE_REPO_BRANCH:-amd-stg-open}
-else
-  AOMP_LIBDEVICE_REPO_BRANCH=${AOMP_LIBDEVICE_REPO_BRANCH:-rocm-3.10.x}
-fi
 DEVICELIBS_ROOT=${DEVICELIBS_ROOT:-$AOMP_REPOS/$AOMP_LIBDEVICE_REPO_NAME}
 AOMP_COMGR_REPO_NAME=${AOMP_COMGR_REPO_NAME:-rocm-compilersupport}
-AOMP_COMGR_REPO_BRANCH=${AOMP_COMGR_REPO_BRANCH:-amd-stg-open}
 # Set COMGR_REPO_SHA for aomp11
 if [ $AOMP_MAJOR_VERSION -lt 12 ] ; then
   AOMP_COMGR_REPO_SHA=${AOMP_COMGR_REPO_SHA:-4b689d6}
@@ -266,71 +283,50 @@ if [ "$AOMP_MAJOR_VERSION" == "13" ] || [ "$AOMP_MAJOR_VERSION" == "14" ] || [ "
   AOMP_COMGR_REPO_SHA=${AOMP_COMGR_REPO_SHA:-694f5a8}
 fi
 AOMP_RINFO_REPO_NAME=${AOMP_RINFO_REPO_NAME:-rocminfo}
-AOMP_RINFO_REPO_BRANCH=${AOMP_RINFO_REPO_BRANCH:-master}
-#AOMP_RINFO_REPO_SHA=${AOMP_RINFO_REPO_SHA:-605b3a5}
 
 # These are repos we will use when we switch to HIP VDI
 AOMP_VDI_REPO_NAME=${AOMP_VDI_REPO_NAME:-vdi}
-AOMP_VDI_REPO_BRANCH=${AOMP_VDI_REPO_BRANCH:-rocm-4.3.x}
 AOMP_VDI_REPO_GITNAME=${AOMP_VDI_REPO_GITNAME:-ROCclr}
 AOMP_OCL_REPO_NAME=${AOMP_OCL_REPO_NAME:-opencl-on-vdi}
 AOMP_OCL_REPO_GITNAME=${AOMP_OCL_REPO_GITNAME:-ROCm-OpenCL-Runtime}
-AOMP_OCL_REPO_BRANCH=${AOMP_OCL_REPO_BRANCH:-rocm-4.3.x}
 AOMP_HIPVDI_REPO_NAME=${AOMP_HIPVDI_REPO_NAME:-hip-on-vdi}
 AOMP_HIPVDI_REPO_GITNAME=${AOMP_HIPVDI_REPO_GITNAME:-hip}
-AOMP_HIPVDI_REPO_BRANCH=${AOMP_HIPVDI_REPO_BRANCH:-rocm-4.3.x}
 
 AOMP_ROCMCMAKE_REPO_NAME=${AOMP_ROCMCMAKE_REPO_NAME:-rocm-cmake}
 
 # These are needed when AOMP_BUILD_DEBUG=1
 AOMP_GDB_REPO_NAME=${AOMP_GDB_REPO_NAME:-ROCgdb}
-AOMP_GDB_REPO_BRANCH=${AOMP_GDB_REPO_BRANCH:-rocm-4.3.x}
 AOMP_DBGAPI_REPO_NAME=${AOMP_DBGAPI_REPO_NAME:-ROCdbgapi}
-AOMP_DBGAPI_REPO_BRANCH=${AOMP_DBGAPI_REPO_BRANCH:-rocm-4.3.x}
 AOMP_PROF_REPO_NAME=${AOMP_PROF_REPO_NAME:-rocprofiler}
-AOMP_PROF_REPO_BRANCH=${AOMP_PROF_REPO_BRANCH:-rocm-4.3.x}
 AOMP_TRACE_REPO_NAME=${AOMP_TRACE_REPO_NAME:-roctracer}
-AOMP_TRACE_REPO_BRANCH=${AOMP_TRACE_REPO_BRANCH:-rocm-4.3.x}
 
 # These are test repositories
 GITNEKBONE="https://github.com/AMDComputeLibraries"
 AOMP_NEKBONE_REPO_NAME=${AOMP_NEKBONE_REPO_NAME:-Nekbone}
-AOMP_NEKBONE_REPO_BRANCH=${AOMP_NEKBONE_REPO_BRANCH:-amd-openmp}
 AOMP_APPS_REPO_NAME=${AOMP_APPS_REPO_NAME:-openmpapps}
 GITSOLVV="https://github.com/SOLLVE"
 AOMP_SOLVV_REPO_NAME=${AOMP_SOLVV_REPO_NAME:-sollve_vv}
-AOMP_SOLVV_REPO_BRANCH=${AOMP_SOLVV_REPO_BRANCH:-master}
 AOMP_APPS_REPO_NAME=${AOMP_APPS_REPO_NAME:-openmpapps}
-AOMP_APPS_REPO_BRANCH=${AOMP_APPS_REPO_BRANCH:-AOMP-0.5}
 GITLLNL="https://github.com/llnl"
 AOMP_RAJA_REPO_NAME=${AOMP_RAJA_REPO_NAME:-raja}
-AOMP_RAJA_REPO_BRANCH=${AOMP_RAJA_REPO_BRANCH:-master}
 AOMP_RAJAPERF_REPO_NAME=${AOMP_RAJAPERF_REPO_NAME:-RAJAPerf}
-AOMP_RAJAPERF_REPO_BRANCH=${AOMP_RAJAPERF_REPO_BRANCH:-develop}
 GITKOKKOS="https://github.com/kokkos"
 AOMP_KOKKOS_REPO_NAME=${AOMP_KOKKOS_REPO_NAME:-kokkos}
-AOMP_KOKKOS_REPO_BRANCH=${AOMP_KOKKOS_REPO_BRANCH:-develop}
 AOMP_INTERNAL_IP="gitlab1.amd.com"
 GITINTERNAL="http://${AOMP_INTERNAL_IP}/dmcdouga"  # This will change soon
 GITOVO="https://github.com/TApplencourt"
 AOMP_OVO_REPO_NAME=${AOMP_OVO_REPO_NAME:-OvO}
-AOMP_OVO_REPO_BRANCH=${AOMP_OVO_REPO_BRANCH:-master}
 GITOMPTESTS="https://github.com/clang-ykt"
 AOMP_OMPTESTS_REPO_NAME=${AOMP_OMPTESTS_REPO_NAME:-omptests}
-AOMP_OMPTESTS_REPO_BRANCH=${AOMP_OMPTESTS_REPO_BRANCH:-master}
 GITQMCPACK="https://github.com/QMCPACK"
 AOMP_QMCPACK_REPO_NAME=${AOMP_QMCPACK_REPO_NAME:-qmcpack}
-AOMP_QMCPACK_REPO_BRANCH=${AOMP_QMCPACK_REPO_BRANCH:-develop}
 GITOPENLIBM="https://github.com/JuliaMath"
 AOMP_OPENLIBM_REPO_NAME=${AOMP_OPENLIBM_REPO_NAME:-openlibm}
-AOMP_OPENLIBM_REPO_BRANCH=${AOMP_OPENLIBM_REPO_BRANCH:-v0.7.2}
 GITLLNLGOULASH="https://github.com/LLNL"
 AOMP_GOULASH_REPO_NAME=${AOMP_GOULASH_REPO_NAME:-goulash}
-AOMP_GOULASH_REPO_BRANCH=${AOMP_GOULASH_REPO_BRANCH:-master}
 
 #  We dont use this yet, waiting for trunk merge
 AOMP_F18_REPO_NAME=${AOMP_F18_REPO_NAME:-f18}
-AOMP_F18_REPO_BRANCH=${AOMP_F18_REPO_BRANCH:-master}
 
 if [ -d $AOMP_REPOS/$AOMP_TRACE_REPO_NAME ] ; then
    pushd $AOMP_REPOS/$AOMP_TRACE_REPO_NAME > /dev/null
@@ -370,39 +366,11 @@ if [ $AOMP_STANDALONE_BUILD == 1 ] ; then
 else
    # ROCm integrated build gets ROCm pieces from installed ROCm
    ROCM_DIR=${ROCM_DIR:-/opt/rocm}
-   # Jenkins builds may not use the current development branches.
-   # So we turn off git branch checking.
-   AOMP_CHECK_GIT_BRANCH=0
 
    # For Integrated ROCm build we do not install to versioned dir and create 
    # a symbolic link.  Instead we install directly to /opt/rocm/aomp
    AOMP_INSTALL_DIR=${AOMP}
 fi
-
-#  Check the repositories exist and are on the correct branch
-function checkrepo(){
-   if [ ! -d $REPO_DIR ] ; then
-      echo "ERROR:  Missing repository directory $REPO_DIR"
-      exit 1
-   fi
-   if [ "$AOMP_CHECK_GIT_BRANCH" == 1 ] ; then
-      cd $REPO_DIR
-      COBRANCH=`git branch --list | grep "\*" | cut -d" " -f2`
-      BRANCH_REGEX="detached"
-      if [ "$COBRANCH" != "$REPO_BRANCH" ] ; then
-         if [ "$COBRANCH" == "master" ] ; then
-           echo "EXIT:  Repository $REPO_DIR is on development branch: master"
-           exit 1
-	 elif [[ "$COBRANCH" =~ $BRANCH_REGEX ]] ; then
-           echo "we have an override $REPO_DIR"
-         else
-           echo "ERROR:  The repository at $REPO_DIR is not on branch $REPO_BRANCH"
-           echo "          It is on branch $COBRANCH"
-           exit 1
-        fi
-      fi
-   fi
-}
 
 #  TO use this function set variables patchdir and patchfile
 function patchrepo(){

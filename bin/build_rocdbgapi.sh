@@ -29,10 +29,6 @@ thisdir=$(getdname $0)
 
 INSTALL_ROCDBGAPI=${INSTALL_ROCDBGAPI:-$AOMP_INSTALL_DIR}
 
-REPO_DIR=$AOMP_REPOS/$AOMP_DBGAPI_REPO_NAME
-REPO_BRANCH=$AOMP_DBGAPI_REPO_BRANCH
-checkrepo
-
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then 
   echo " "
   echo " This script builds the ROCM runtime libraries"

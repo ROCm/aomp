@@ -14,9 +14,9 @@ To build AOMP from source you must: 1. Install certain distribution packages, 2.
 To build and install aomp from the release source tarball run these commands:
 
 ```
-   wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_14.0-2/aomp-14.0-2.tar.gz
-   tar -xzf aomp-14.0-2.tar.gz
-   cd aomp14.0
+   wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_15.0-1/aomp-15.0-1.tar.gz
+   tar -xzf aomp-15.0-1.tar.gz
+   cd aomp15.0
    nohup make &
 ```
 Depending on your system, the last command could take a very long time.  So it is recommended to use nohup and background the process.  The simple Makefile that make will use runs build script "build_aomp.sh" and sets some flags to avoid git checks and applying ROCm patches. Here is that Makefile:
@@ -30,17 +30,17 @@ If you set the environment variable AOMP, the Makefile will install to that dire
 Otherwise, the Makefile will install into /usr/local.
 So you must have authorization to write into /usr/local if you do not set the environment variable AOMP.
 Let's assume you set the environment variable AOMP to "$HOME/rocm/aomp" in .bash_profile.
-The build_aomp.sh script will install into $HOME/rocm/aomp_14.0-2 and create a symbolic link from $HOME/rocm/aomp to $HOME/rocm/aomp_14.0-2.
+The build_aomp.sh script will install into $HOME/rocm/aomp_15.0-1 and create a symbolic link from $HOME/rocm/aomp to $HOME/rocm/aomp_15.0-1.
 This feature allows multiple versions of AOMP to be installed concurrently.
-To enable a backlevel version of AOMP, simply set AOMP to $HOME/rocm/aomp_14.0-1.
+To enable a backlevel version of AOMP, simply set AOMP to $HOME/rocm/aomp_15.0-0.
 
 ## Build AOMP with spack
 
 Assuming your have installed the [prerequisites](SOURCEINSTALL_PREREQUISITE.md), use these commands to fetch the source and build aomp. Currently the aomp configuration is not yet in the spack git hub so you must create the spack package first.
 
 ```
-   wget https://github.com/ROCm-Developer-Tools/aomp/blob/aomp-14.0-2/bin/package.py
-   spack create -n aomp -t makefile --force https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_14.0-2/aomp-14.0-2.tar.gz
+   wget https://github.com/ROCm-Developer-Tools/aomp/blob/aomp-15.0-1/bin/package.py
+   spack create -n aomp -t makefile --force https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_15.0-1/aomp-15.0-1.tar.gz
    spack edit aomp
    spack install aomp
 ```

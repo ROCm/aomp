@@ -35,9 +35,7 @@ if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   help_build_aomp
 fi
 
-REPO_BRANCH=$AOMP_PROJECT_REPO_BRANCH
 REPO_DIR=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME
-checkrepo
 
 if [ "$AOMP_BUILD_CUDA" == 1 ] ; then
    CUDAH=`find $CUDAT -type f -name "cuda.h" 2>/dev/null`
@@ -105,7 +103,7 @@ else
   COMMON_CMAKE_OPTS="$COMMON_CMAKE_OPTS \
 -DLLVM_MAIN_INCLUDE_DIR=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/llvm/include \
 -DLIBOMPTARGET_LLVM_INCLUDE_DIRS=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/llvm/include \
--DLIBOMP_USE_HWLOC=ON -DLIBOMP_HWLOC_INSTALL_DIR=$AOMP_INSTALL_DIR"
+-DLIBOMP_USE_HWLOC=ON -DLIBOMP_HWLOC_INSTALL_DIR=$AOMP_SUPP/hwloc"
 fi
 
 if [ "$AOMP_BUILD_CUDA" == 1 ] ; then

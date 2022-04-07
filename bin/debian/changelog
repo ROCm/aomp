@@ -1,4 +1,4 @@
-aomp (14.0-2) UNRELEASED; urgency=medium
+aomp (15.0-1) UNRELEASED; urgency=medium
 
   * Initial release of aomp is 0.3-2
   *   Please see example in /usr/lib/aomp/examples/vmuldemo 
@@ -694,5 +694,43 @@ aomp (14.0-2) UNRELEASED; urgency=medium
   *   Known issues:
   *   For badly formed custom mappers, host access to unmapped struct members causes segfault.
   *   Usage of flang -g results in differing debug_info_version and dwarf_version.
+  *
+  *  14.0-3
+  *   Update to ROCm 5.0 components.
+  *   Fix to libompd cmake to support enabling HWLOC.
+  *
+  *  15.0-0
+  *   New development infrastructure support source build of supplemental components:
+  *       There are two types of supplemental components, prerequisite and post-build components.
+  *       All supplemental components are built and installed in subdirectories of a directory specified
+  *       with the AOMP_SUPP environment variable which gets a default value of $HOME/local. Supplemental
+  *       components are not included in the aomp installation package because they are for development,
+  *       build, and test only. Prerequisite components are cmake, hwloc, and rocmsmilib. These are created
+  *       with the build_prereq.sh script. Post-build components are for testing and require the AOMP or
+  *       ROCm compiler to be installed. The current list of post-build supplemental components is:
+  *       openmpi, hdf5, silo, and fftw. Post-build supplemental components are built with the
+  *       build_supp.sh script.  build_prereq.sh is a symbolic link to build_supp.sh. For each component,
+  *       the script fetches the source, builds the component, and then installs the components.
+  *   Enhanced support for CU masking in the openmp_set_cu_mask wedge script. This now supports multiple
+  *       devices and no longer requires that the number of CUs be a multiple of the number of ranks.
+  *       If the total number of CUs is not a multiple of ranks, appropriate controls ensure each rank
+  *       gets an equal set of CUs on some device.
+  *   The AOMP release is done in concert with a ROCm AFAR compiler release.  The primary difference is
+  *       that the AFAR compiler depends and works with an installed version of ROCm and installed as a
+  *       tarball. AOMP is a standalone build and only depends on the amdgpu Linux kernel module and is
+  *       installed with debian or rpm packages. The AFAR compiler for this release can be found at this
+  *       URL XXXXXXXXXXXXXXXXXXXX
+  *   Added new scripts to build and run GenASiS and GESTS applications which would scan the dependent
+  *       libraries coming from build_supp.sh and use them to build and run the applications.
+  *
+  *  Performance Improvements
+  *   A new type of GPU kernel called "no-loop" is created for simple target regions. Currently this is
+  *       an opt-in feature because it ignores runtime environment variables that require additional loop logic.
+  *  Reliability improvements
+  *   Increase the maximum number of captured variables in a target region to 48 from 32. Future plans are
+  *       to remove this maximum completely.
+  *
+  *  15.0-1
+  *   Update to ROCm 5.1 sources.
 
- -- Greg Rodgers <Gregory.Rodgers@amd.com>  Sun, 14 Nov 2021 21:58:08 -0600
+ -- Greg Rodgers <Gregory.Rodgers@amd.com>  Mon, 04 Apr 2022 23:34:44 -0500
