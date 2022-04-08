@@ -58,8 +58,6 @@ flang-273805
 flang-273807
 flang-274768
 flang-274775
-flang-274775-critDcmplx
-flang-274775-redDcmplx
 flang-275194-1
 flang-275194-2
 flang-275194-3
