@@ -5,8 +5,8 @@ AOMP will install to /usr/lib/aomp. The AOMP environment variable will automatic
 
 ### Download and Install
 ```
-wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_13.0-6/aomp_CENTOS_8-13.0-6.x86_64.rpm
-sudo rpm -i aomp_CENTOS_8-13.0-6.x86_64.rpm
+wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_13.0-4/aomp_CENTOS_8-13.0-4.x86_64.rpm
+sudo rpm -i aomp_CENTOS_8-13.0-4.x86_64.rpm
 ```
 Confirm AOMP environment variable is set:
 ```
