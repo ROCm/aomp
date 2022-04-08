@@ -57,10 +57,6 @@ BUILD_DIR=${BUILD_AOMP}
 
 BUILDTYPE="Release"
 
-REPO_BRANCH=$AOMP_VDI_REPO_BRANCH
-REPO_DIR=$AOMP_REPOS/$AOMP_VDI_REPO_NAME
-checkrepo
-
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   echo " "
   echo "Example commands and actions: "

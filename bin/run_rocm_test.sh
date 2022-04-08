@@ -266,7 +266,7 @@ mkdir -p "$resultsdir"/sollve45
 mkdir -p "$resultsdir"/sollve50
 cd "$aompdir"/bin
 ./clone_aomp_test.sh
-./run_sollve.sh
+SKIP_SOLLVE51=1 ./run_sollve.sh
 ./check_sollve.sh
 checkrc $?
 

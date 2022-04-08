@@ -1,4 +1,4 @@
-aomp (14.0-2) UNRELEASED; urgency=medium
+aomp (13.0-6) UNRELEASED; urgency=medium
 
   * Initial release of aomp is 0.3-2
   *   Please see example in /usr/lib/aomp/examples/vmuldemo 
@@ -648,51 +648,5 @@ aomp (14.0-2) UNRELEASED; urgency=medium
   *  13.0-6
   *   Update to ROCm 4.3 sources.
   *   Flang cmake race condition fixed.
-  *
-  *  14.0-0
-  *   AOMP is now based on amd-stg-open branch.
-  *   Most components are build from ROCm release 4.5 sources.
-  *   Components are now cloned using a manifest file. The script clone_aomp.sh is still used to clone
-  *       and update repos.
-  *   New hip build method.
-  *   Support for unified shared memory on gfx90a.
-  *   Support for atomic hint clause to enable fast floating point atomics.
-  *   Support for LLVM IR code generation with updated device RTL (deviceRTLs).
-  *   Support for target ID with XNACK settings.
-  *   Support for cross-platform offload device identification LLVM library and tool (offload-arch).
-  *   Fixed many reduction problems and nested parallelism.
-  *
-  *  Known Issues:
-  *   Slow CPU device-to-host data transfer speeds.
-  *   Miniqmc, Kokkos, Raja fail to build.
-  *   Non-deterministic failures in qmcpack deterministic tests.
-  *   Possible incorrect linking of libclang-cpp.so in the build of libomptarget.so.
-  *
-  *  14.0-1
-  *   A restructuring of the clang driver to a) remove the clang-build-select-link tool b) remove all
-  *       "post" clang linking with mlink attributes on the clang -cc1 command.  All device library
-  *       linking is now done in the llvm-link step which follows clang -cc1.  Furthermore, libraries
-  *       including the critical libomptarget-..-.bc library are internalized by the llvm-link step to
-  *       avoid unnecessary bit code for the backend.
-  *   The construction of libomptarget-..-.bc library now includes rocm-device-lib functions, device
-  *       libm functions, hostrpc stubs, and lastly the OpenMP deviceRTLs. This all-inclusive library
-  *       simplifies the device toolchain and improves performance.
-  *   Elimination of the need for the aomp-extras library.
-  *
-  *   Known issues:
-  *   Compilation for nvidia GPUs is broken.  We will fix this in 14.0-2.
-  *
-  *  14.0-2
-  *   Device runtime performance improvements by overlapping multiple copies between host and device.
-  *   Inclusion of a static build of hwloc in libomp.so. This supports the use of PLACES for CPU affinity.
-  *   Fixes to support compilation for nvptx64.
-  *   Fix to support uninitialized integers for hostrpc support.
-  *   Support for managed memory allocations in OpenMP.
-  *   Fix to support optimization of constant indexes for shared memory arrays in a target region.
-  *   Fix to resolve an unresolved global found in certain rocm-device-lib bitcode files.
-  *
-  *   Known issues:
-  *   For badly formed custom mappers, host access to unmapped struct members causes segfault.
-  *   Usage of flang -g results in differing debug_info_version and dwarf_version.
 
- -- Greg Rodgers <Gregory.Rodgers@amd.com>  Sun, 14 Nov 2021 21:58:08 -0600
+ -- Greg Rodgers <Gregory.Rodgers@amd.com>  Wed, 28 Jul 2021 11:27:13 -0500

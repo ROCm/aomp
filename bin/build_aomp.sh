@@ -2,6 +2,41 @@
 # 
 #   build_aomp.sh : Build all AOMP components 
 #
+if [ "$1" == "clean" ]; then
+  echo "Exiting build, clean argument unknown. Try '--clean'."
+  exit 1
+fi
+
+echo "ls $OUT_DIR/llvm/bin"
+ls $OUT_DIR/llvm/bin
+
+# Force clean because --clean is not being called correctly
+if [ "$AOMP_STANDALONE_BUILD" == 0 ] ; then
+  echo "ls $OUT_DIR/build/"
+  ls $OUT_DIR/build/
+
+  echo "Clean install directory:"
+  echo "rm -rf $OUT_DIR/openmp-extras/*"
+  rm -rf $OUT_DIR/openmp-extras/*
+
+  echo "Clean build directory:"
+  echo "rm -rf $OUT_DIR/build/openmp-extras/*"
+  rm -rf "$OUT_DIR/build/openmp-extras/*"
+
+  echo "ls $OUT_DIR/openmp-extras"
+  ls $OUT_DIR/openmp-extras
+
+  echo "ls $OUT_DIR/build/"
+  ls $OUT_DIR/build/
+
+  if [ -d $OUT_DIR/build/openmp-extras ]; then
+    echo "ls $OUT_DIR/build/openmp-extras"
+    ls "$OUT_DIR/build/openmp-extras"
+  else
+    echo "$OUT_DIR/build/openmp-extras has been removed"
+  fi
+fi
+
 # --- Start standard header ----
 function getdname(){
    local __DIRN=`dirname "$1"`
@@ -46,9 +81,12 @@ function build_aomp_component() {
    if [ $rc != 0 ] ; then 
       echo " !!!  build_aomp.sh: BUILD FAILED FOR COMPONENT $COMPONENT !!!"
       exit $rc
-   fi  
+   fi
+   echo "Number of Arguments: $#"
    if [ $# -eq 0 ] ; then
+       echo "Installing $@"
        $AOMP_REPOS/$AOMP_REPO_NAME/bin/build_$COMPONENT.sh install
+       echo ""
        rc=$?
        if [ $rc != 0 ] ; then 
            echo " !!!  build_aomp.sh: INSTALL FAILED FOR COMPONENT $COMPONENT !!!"
@@ -90,21 +128,27 @@ if [[ -z $GAWK ]] && [[ "$OS" == *"Ubuntu"* ]] ; then
    exit 1
 fi
 
+if [ "$DISABLE_LLVM_TESTS" == "1" ]; then
+  export DO_TESTS="-DLLVM_INCLUDE_TESTS=OFF -DCLANG_INCLUDE_TESTS=OFF"
+fi
+
 echo 
 date
 echo " =================  START build_aomp.sh ==================="   
 echo 
 if [ "$AOMP_STANDALONE_BUILD" == 1 ] ; then
-  components="roct rocr project libdevice rocm_smi_lib hwloc openmp extras comgr rocminfo"
+  components="roct rocr project libdevice openmp extras comgr rocminfo"
   if [ $AOMP_MAJOR_VERSION -gt 13 ] ; then
      components="rocm-cmake $components"
   fi
+  # allways build the supplemental prerequisites first"
+  components="prereq $components"
   _hostarch=`uname -m`
   # The VDI (rocclr) architecture is very x86 centric so it will not build on ppc64. Without
   # rocclr, we have no HIP or OpenCL for ppc64 :-( However, rocr works for ppc64 so AOMP works.
   if [ "$_hostarch" == "x86_64" ] ; then
     # These components build on x86_64, so add them to components list
-    components="$components pgmath flang flang_runtime"
+    components="$components pgmath flang flang_runtime hipfort"
     if [ "$AOMP_VERSION" == "13.1" ] || [ $AOMP_MAJOR_VERSION -gt 13 ] ; then
        components="$components hipamd "
     else
@@ -123,10 +167,10 @@ if [ "$AOMP_STANDALONE_BUILD" == 1 ] ; then
   fi
 else
   # For ROCM build (AOMP_STANDALONE_BUILD=0) the components roct, rocr,
-  # libdevice, comgr, rocminfo, vdi, hipvdi, ocl, rocdbgapi rocgdb,
+  # libdevice, project, comgr, rocminfo, hipamd, ocl, rocdbgapi, rocgdb,
   # roctracer, and rocprofiler should be found in ROCM in /opt/rocm.
   # The ROCM build only needs these components:
-  components="project extras openmp pgmath flang flang_runtime"
+  components="extras openmp pgmath flang flang_runtime"
 fi
 echo "COMPONENTS:$components"
 
@@ -176,5 +220,18 @@ done
 echo 
 date
 echo " =================  END build_aomp.sh ==================="   
-echo 
+echo
+
+echo "ls $OUT_DIR/openmp-extras:"
+ls $OUT_DIR/openmp-extras
+echo
+
+echo "ls $OUT_DIR/openmp-extras/bin:"
+ls $OUT_DIR/openmp-extras/bin
+echo
+
+echo "ls $OUT_DIR/openmp-extras/rocm-bin:"
+ls $OUT_DIR/openmp-extras/rocm-bin
+echo
+
 exit 0

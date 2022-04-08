@@ -5,7 +5,7 @@
 #### Debian or Ubuntu Packages
 
 ```
-   sudo apt-get install g++-5 g++-7 pkg-config libpci-dev libnuma-dev libffi-dev git python libopenmpi-dev gawk mesa-common-dev libtool
+   sudo apt-get install gcc g++ pkg-config libpci-dev libnuma-dev libffi-dev git python libopenmpi-dev gawk mesa-common-dev libtool
 
    # Additional packages used by rocgdb
    sudo apt-get install python3 texinfo libbison-dev bison flex libbabeltrace-dev python3-pip libncurses5-dev liblzma-dev python3-setuptools python3-dev libpython3.8-dev libudev-dev libgmp-dev
@@ -68,22 +68,23 @@ After all the required system package from section 1 are installed, there are so
   python3 -m pip install CppHeaderParser argparse wheel lit
 ```
 
-### 3.  Build CMake 3.13.4 in /usr/local/cmake
+### 3.  Build CMake 3.16.8 in /usr/local/cmake
 
-We have seen problems with newer versions of cmake. We have only verified version 3.13.4 for the various component builds necessary for aomp. All invocations of cmake in the build scripts use $AOMP_CMAKE.  The default for the AOMP_CMAKE variable is /usr/local/cmake/bin/cmake.  Use these commands to install cmake 3.13.4 from source into /usr/local/cmake.
+This can also be done with ./build_prereq.sh, which installs to $HOME/local/cmake.<br>
+We have seen problems with newer versions of cmake. We have only verified version 3.16.8 for the various component builds necessary for aomp. All invocations of cmake in the build scripts use $AOMP_CMAKE.  The default for the AOMP_CMAKE variable is /usr/local/cmake/bin/cmake.  Use these commands to install cmake 3.16.8 from source into /usr/local/cmake.
 
 ```
   $ sudo apt-get install libssl-dev
   $ mkdir /tmp/cmake
   $ cd /tmp/cmake
-  $ wget https://github.com/Kitware/CMake/releases/download/v3.13.4/cmake-3.13.4.tar.gz
-  $ tar -xvzf cmake-3.13.4.tar.gz
-  $ cd cmake-3.13.4
+  $ wget https://github.com/Kitware/CMake/releases/download/v3.16.8/cmake-3.16.8.tar.gz
+  $ tar -xvzf cmake-3.16.8.tar.gz
+  $ cd cmake-3.16.8
   $ ./bootstrap --prefix=/usr/local/cmake
   $ make
   $ sudo make install
 ```
-Alternatively, you could change the --prefix option to install cmake 3.13.4 somewhere else. Then be sure to change the value of he environment variable AOMP_CMAKE to be the cmake binary.
+Alternatively, you could change the --prefix option to install cmake 3.16.8 somewhere else. Then be sure to change the value of he environment variable AOMP_CMAKE to be the cmake binary.
 
 ### 4. Verify KFD Driver
 

@@ -3,36 +3,28 @@ AOMP will install to /usr/lib/aomp. The AOMP environment variable will automatic
 
 On Ubuntu 20.04,  run these commands:
 ```
-wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_14.0-2/aomp_Ubuntu2004_14.0-2_amd64.deb
-sudo dpkg -i aomp_Ubuntu2004_14.0-2_amd64.deb
+wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_13.0-6/aomp_Ubuntu2004_13.0-6_amd64.deb
+sudo dpkg -i aomp_Ubuntu2004_13.0-6_amd64.deb
 ```
 
 On Ubuntu 18.04 LTS (bionic beaver), run these commands:
 ```
-wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_14.0-2/aomp_Ubuntu1804_14.0-2_amd64.deb
-sudo dpkg -i aomp_Ubuntu1804_14.0-2_amd64.deb
+wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_13.0-6/aomp_Ubuntu1804_13.0-6_amd64.deb
+sudo dpkg -i aomp_Ubuntu1804_13.0-6_amd64.deb
 ```
 
 The AOMP bin directory (which includes the standard clang and llvm binaries) is not intended to be in your PATH for typical operation.
 
 ## Prerequisites
 ### AMD KFD Driver
-These commands are for supported Debian-based systems and target only the amdgpu_dkms core component.
+These commands are for supported Debian-based systems and target only the rock_dkms core component. More information can be found [HERE](https://rocm.github.io/ROCmInstall.html#ubuntu-support---installing-from-a-debian-repository).
 ```
+sudo apt install wget gnupg2
 wget -q -O - https://repo.radeon.com/rocm/rocm.gpg.key | sudo apt-key add -
-```
-Ubuntu 18.04:
-```
-echo 'deb [arch=amd64] http://repo.radeon.com/amdgpu/latest/ubuntu bionic main' | sudo tee /etc/apt/sources.list.d/admgpu.list
-```
-Ubuntu 20.04:
-```
-echo 'deb [arch=amd64] http://repo.radeon.com/amdgpu/latest/ubuntu focal main' | sudo tee /etc/apt/sources.list.d/amdgpu.list
-```
-Update and Install:
-```
+echo 'deb [arch=amd64] https://repo.radeon.com/rocm/apt/debian/ ubuntu main' | sudo tee /etc/apt/sources.list.d/rocm.list
 sudo apt update
-sudo apt install amdgpu-dkms
+sudo apt install rock-dkms
+
 sudo reboot
 sudo usermod -a -G video $USER
 ```

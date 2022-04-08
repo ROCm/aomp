@@ -36,10 +36,6 @@ if [ -f /opt/rh/rh-python36/enable ]; then
   export LIBRARY_PATH=/opt/rh/rh-python36/root/lib64:$LIBRARY_PATH
 fi
 
-REPO_DIR=$AOMP_REPOS/$AOMP_GDB_REPO_NAME
-REPO_BRANCH=$AOMP_GDB_REPO_BRANCH
-checkrepo
-
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then 
   echo " "
   echo " This script builds ROCgdb for AOMP standalone build"

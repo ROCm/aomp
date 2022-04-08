@@ -4,7 +4,6 @@
 #                This script will install in location defined by AOMP env variable
 #
 # --- Start standard header ----
-
 function getdname(){
    local __DIRN=`dirname "$1"`
    if [ "$__DIRN" = "." ] ; then
@@ -30,14 +29,13 @@ thisdir=$(getdname $0)
 # --- end standard header ----
 
 INSTALL_OPENMP=${INSTALL_OPENMP:-$AOMP_INSTALL_DIR}
-
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then 
   help_build_aomp
 fi
-
+AOMP_PROJECT_REPO_NAME="llvm-project"
 REPO_BRANCH=$AOMP_PROJECT_REPO_BRANCH
 REPO_DIR=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME
-checkrepo
+#checkrepo
 
 if [ "$AOMP_BUILD_CUDA" == 1 ] ; then
    CUDAH=`find $CUDAT -type f -name "cuda.h" 2>/dev/null`
@@ -56,11 +54,11 @@ if [ "$AOMP_BUILD_CUDA" == 1 ] ; then
    export CUDAFE_FLAGS="-w"
 fi
 
-if [ ! -d $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME ] ; then 
-   echo "ERROR:  Missing repository $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME "
-   echo "        Consider setting env variables AOMP_REPOS and/or AOMP_PROJECT_REPO_NAME "
-   exit 1
-fi
+#if [ ! -d $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME ] ; then
+#   echo "ERROR:  Missing repository $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME "
+#   echo "        Consider setting env variables AOMP_REPOS and/or AOMP_PROJECT_REPO_NAME "
+#   exit 1
+#fi
 
 # Make sure we can update the install directory
 if [ "$1" == "install" ] ; then 
@@ -73,167 +71,178 @@ if [ "$1" == "install" ] ; then
    $SUDO rm $INSTALL_OPENMP/testfile
 fi
 
+GCCMIN=8
 if [ "$AOMP_BUILD_CUDA" == 1 ] ; then
    if [ -f $CUDABIN/nvcc ] ; then
       CUDAVER=`$CUDABIN/nvcc --version | grep compilation | cut -d" " -f5 | cut -d"." -f1 `
       echo "CUDA VERSION IS $CUDAVER"
+      if [ $CUDAVER -gt 8 ] ; then
+        GCCMIN=7
+      fi
    fi
 fi
 
-export LLVM_DIR=$AOMP_INSTALL_DIR
-GFXSEMICOLONS=`echo $GFXLIST | tr ' ' ';' `
-ALTAOMP=${ALTAOMP:-$AOMP}
-COMMON_CMAKE_OPTS="-DOPENMP_ENABLE_LIBOMPTARGET=1
--DOPENMP_ENABLE_LIBOMPTARGET_HSA=1
--DCMAKE_INSTALL_PREFIX=$INSTALL_OPENMP
--DOPENMP_TEST_C_COMPILER=$AOMP/bin/clang
--DOPENMP_TEST_CXX_COMPILER=$AOMP/bin/clang++
--DCMAKE_C_COMPILER=$ALTAOMP/bin/clang
--DCMAKE_CXX_COMPILER=$ALTAOMP/bin/clang++
--DLIBOMPTARGET_AMDGCN_GFXLIST=$GFXSEMICOLONS
--DDEVICELIBS_ROOT=$DEVICELIBS_ROOT
--DLIBOMP_COPY_EXPORTS=OFF
--DLIBOMPTARGET_ENABLE_DEBUG=ON
--DAOMP_STANDALONE_BUILD=$AOMP_STANDALONE_BUILD
--DLLVM_DIR=$LLVM_DIR"
+function getgcc8orless(){
+   _loc=`which gcc`
+   [ "$_loc" == "" ] && return
+   gccver=`$_loc --version | grep gcc | cut -d")" -f2 | cut -d"." -f1`
+   [ $gccver -gt $GCCMIN ] && _loc=`which gcc-$GCCMIN`
+   echo $_loc
+}
+function getgxx8orless(){
+   _loc=`which g++`
+   [ "$_loc" == "" ] && return
+   gxxver=`$_loc --version | grep g++ | cut -d")" -f2 | cut -d"." -f1`
+   [ $gxxver -gt $GCCMIN ] && _loc=`which g++-$GCCMIN`
+   echo $_loc
+}
 
-if [ "$AOMP_STANDALONE_BUILD" == 0 ]; then
-  COMMON_CMAKE_OPTS="$COMMON_CMAKE_OPTS
-  -DLLVM_MAIN_INCLUDE_DIR=$LLVM_PROJECT_ROOT/llvm/include
-  -DLIBOMPTARGET_LLVM_INCLUDE_DIRS=$LLVM_PROJECT_ROOT/llvm/include"
-else
-  COMMON_CMAKE_OPTS="$COMMON_CMAKE_OPTS \
--DLLVM_MAIN_INCLUDE_DIR=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/llvm/include \
--DLIBOMPTARGET_LLVM_INCLUDE_DIRS=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/llvm/include \
--DLIBOMP_USE_HWLOC=ON -DLIBOMP_HWLOC_INSTALL_DIR=$AOMP_INSTALL_DIR"
+GCCLOC=$(getgcc8orless)
+GXXLOC=$(getgxx8orless)
+if [ "$GCCLOC" == "" ] ; then
+   echo "ERROR: NO ADEQUATE gcc"
+   echo "       Please install gcc-5, gcc-7, or gcc-8"
+   exit 1
 fi
+if [ "$GXXLOC" == "" ] ; then
+   echo "ERROR: NO ADEQUATE g++"
+   echo "       Please install g++-5, g++-7, or g++-8"
+   exit 1
+fi
+
+GFXSEMICOLONS=`echo $GFXLIST | tr ' ' ';' `
+#COMMON_CMAKE_OPTS="#-DOPENMP_TEST_C_COMPILER=$AOMP/bin/clang
+#-DOPENMP_TEST_CXX_COMPILER=$AOMP/bin/clang++
+
+COMMON_CMAKE_OPTS="-DDEVICELIBS_ROOT=$DEVICELIBS_ROOT
+-DOPENMP_ENABLE_LIBOMPTARGET=1
+-DOPENMP_ENABLE_LIBOMPTARGET_HSA=1
+-DLIBOMPTARGET_AMDGCN_GFXLIST=$GFXSEMICOLONS
+-DLIBOMP_COPY_EXPORTS=OFF
+-DAOMP_STANDALONE_BUILD=$AOMP_STANDALONE_BUILD
+-DROCM_DIR=$ROCM_DIR
+-DCMAKE_INSTALL_PREFIX=$INSTALL_OPENMP
+-DLLVM_INSTALL_PREFIX=$OUT_DIR/llvm
+-DLLVM_MAIN_INCLUDE_DIR=$LLVM_PROJECT_ROOT/llvm/include
+-DCMAKE_PREFIX_PATH=$ROCM_DIR;$ROCM_DIR/include/hsa"
 
 if [ "$AOMP_BUILD_CUDA" == 1 ] ; then
    COMMON_CMAKE_OPTS="$COMMON_CMAKE_OPTS
 -DLIBOMPTARGET_NVPTX_ENABLE_BCLIB=ON
 -DLIBOMPTARGET_NVPTX_CUDA_COMPILER=$AOMP/bin/clang++
+-DLIBOMPTARGET_NVPTX_ALTERNATE_HOST_COMPILER=$GCCLOC
 -DLIBOMPTARGET_NVPTX_BC_LINKER=$AOMP/bin/llvm-link
 -DLIBOMPTARGET_NVPTX_COMPUTE_CAPABILITIES=$NVPTXGPUS"
-else
-#  Need to force CUDA off this way in case cuda is installed in this system
-   COMMON_CMAKE_OPTS="$COMMON_CMAKE_OPTS
--DCUDA_TOOLKIT_ROOT_DIR=OFF"
 fi
 
 # This is how we tell the hsa plugin where to find hsa
-export HSA_RUNTIME_PATH=$ROCM_DIR
+export HSA_RUNTIME_PATH=$ROCM_DIR/hsa
 
-#breaks build as it cant find rocm-path
-#export HIP_DEVICE_LIB_PATH=$ROCM_DIR/lib
+export HIP_DEVICE_LIB_PATH=$ROCM_DIR/lib
 
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then 
 
    echo " " 
    echo "This is a FRESH START. ERASING any previous builds in $BUILD_DIR/openmp "
    echo "Use ""$0 nocmake"" or ""$0 install"" to avoid FRESH START."
+
+   if [ $COPYSOURCE ] ; then
+      mkdir -p $BUILD_DIR/$AOMP_PROJECT_REPO_NAME
+      echo rsync -av --delete $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp  $BUILD_DIR/$AOMP_PROJECT_REPO_NAME
+      rsync -av --delete $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp  $BUILD_DIR/$AOMP_PROJECT_REPO_NAME
+   fi
+
       echo rm -rf $BUILD_DIR/build/openmp
       rm -rf $BUILD_DIR/build/openmp
-      MYCMAKEOPTS="$COMMON_CMAKE_OPTS -DCMAKE_BUILD_TYPE=Release $AOMP_ORIGIN_RPATH -DROCM_DIR=$ROCM_DIR"
+      #MYCMAKEOPTS="$COMMON_CMAKE_OPTS -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS=-g =DCMAKE_C_FLAGS=-g $AOMP_ORIGIN_RPATH -DROCM_DIR=$ROCM_DIR -DAOMP_STANDALONE_BUILD=$AOMP_STANDALONE_BUILD"
+      MYCMAKEOPTS="$COMMON_CMAKE_OPTS \
+      -DCMAKE_BUILD_TYPE=Release"
+
       mkdir -p $BUILD_DIR/build/openmp
       cd $BUILD_DIR/build/openmp
       echo " -----Running openmp cmake ---- " 
-      echo ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
-      ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
+      if [ $COPYSOURCE ] ; then
+         echo ${AOMP_CMAKE} $MYCMAKEOPTS  $BUILD_DIR/$AOMP_PROJECT_REPO_NAME/openmp
+         ${AOMP_CMAKE} $MYCMAKEOPTS  $BUILD_DIR/$AOMP_PROJECT_REPO_NAME/openmp
+      else
+         echo ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
+         ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/../$AOMP_PROJECT_REPO_NAME/openmp
+      fi
       if [ $? != 0 ] ; then 
          echo "ERROR openmp cmake failed. Cmake flags"
          echo "      $MYCMAKEOPTS"
          exit 1
       fi
 
-   if [ "$AOMP_BUILD_DEBUG" == "1" ] ; then
       echo rm -rf $BUILD_DIR/build/openmp_debug
       rm -rf $BUILD_DIR/build/openmp_debug
-      
+      #MYCMAKEOPTS="$COMMON_CMAKE_OPTS -DLIBOMPTARGET_NVPTX_DEBUG=ON -DCMAKE_BUILD_TYPE=Debug $AOMP_ORIGIN_RPATH -DROCM_DIR=$ROCM_DIR -DAOMP_STANDALONE_BUILD=$AOMP_STANDALONE_BUILD"
       MYCMAKEOPTS="$COMMON_CMAKE_OPTS \
--DLIBOMPTARGET_NVPTX_DEBUG=ON \
--DCMAKE_BUILD_TYPE=Debug \
-$AOMP_ORIGIN_RPATH \
--DROCM_DIR=$ROCM_DIR \
--DLIBOMP_ARCH=x86_64 \
--DLIBOMP_OMPT_SUPPORT=ON \
--DLIBOMP_USE_DEBUGGER=ON \
--DLIBOMP_CPPFLAGS='-O0' \
--DLIBOMP_OMPD_SUPPORT=ON \
--DLIBOMP_OMPT_DEBUG=ON \
--DCMAKE_CXX_FLAGS=-g -DCMAKE_C_FLAGS=-g \
--DOPENMP_SOURCE_DEBUG_MAP="\""-fdebug-prefix-map=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp=$AOMP_INSTALL_DIR/lib-debug/src/openmp"\"" "
-
-      # The 'pip install --system' command is not supported on non-debian systems. This will disable
-      # the system option if the debian_version file is not present.
-      if [ ! -f /etc/debian_version ]; then
-         echo "==> Non-Debian OS, disabling use of pip install --system"
-         MYCMAKEOPTS="$MYCMAKEOPTS -DDISABLE_SYSTEM_NON_DEBIAN=1"
-      fi
-
-      # Redhat 7.6 does not have python36-devel package, which is needed for ompd compilation.
-      # This is acquired through RH Software Collections.
-      if [ -f /opt/rh/rh-python36/enable ]; then
-         echo "==> Using python3.6 out of rh tools."
-         MYCMAKEOPTS="$MYCMAKEOPTS -DPython3_ROOT_DIR=/opt/rh/rh-python36/root/bin -DPYTHON_HEADERS=/opt/rh/rh-python36/root/usr/include/python3.6m"
-      fi
+      -DCMAKE_BUILD_TYPE=Debug \
+      -DLIBOMPTARGET_NVPTX_DEBUG=ON \
+      -DCMAKE_CXX_FLAGS=-g \
+      -DCMAKE_C_FLAGS=-g"
 
       mkdir -p $BUILD_DIR/build/openmp_debug
       cd $BUILD_DIR/build/openmp_debug
       echo
       echo " -----Running openmp cmake for debug ---- " 
-      echo ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
-      ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
+      if [ $COPYSOURCE ] ; then
+         echo ${AOMP_CMAKE} $MYCMAKEOPTS  $BUILD_DIR/$AOMP_PROJECT_REPO_NAME/openmp
+         ${AOMP_CMAKE} $MYCMAKEOPTS  $BUILD_DIR/$AOMP_PROJECT_REPO_NAME/openmp
+      else
+         echo ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/../$AOMP_PROJECT_REPO_NAME/openmp
+         ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/../$AOMP_PROJECT_REPO_NAME/openmp
+      fi
       if [ $? != 0 ] ; then 
          echo "ERROR openmp debug cmake failed. Cmake flags"
          echo "      $MYCMAKEOPTS"
          exit 1
       fi
-   fi
 fi
 
 cd $BUILD_DIR/build/openmp
+echo
 echo " -----Running make for $BUILD_DIR/build/openmp ---- "
-make -j $AOMP_JOB_THREADS
+make -j $NUM_THREADS
 if [ $? != 0 ] ; then 
       echo " "
-      echo "ERROR: make -j $AOMP_JOB_THREADS  FAILED"
+      echo "ERROR: make -j $NUM_THREADS  FAILED"
       echo "To restart:" 
       echo "  cd $BUILD_DIR/build/openmp"
       echo "  make"
       exit 1
 fi
 
-if [ "$AOMP_BUILD_DEBUG" == "1" ] ; then
-   cd $BUILD_DIR/build/openmp_debug
-   echo
-   echo
-   echo " -----Running make for $BUILD_DIR/build/openmp_debug ---- "
-   make -j $AOMP_JOB_THREADS
-   if [ $? != 0 ] ; then 
-         echo "ERROR make -j $AOMP_JOB_THREADS failed"
-         exit 1
-   fi
-fi
-
-if [ "$1" != "install" ] ; then
-   echo
-   echo "Successful build of ./build_openmp.sh .  Please run:"
-   echo "  ./build_openmp.sh install "
-   echo
+cd $BUILD_DIR/build/openmp_debug
+echo
+echo
+echo " -----Running make for $BUILD_DIR/build/openmp_debug ---- "
+make -j $NUM_THREADS
+if [ $? != 0 ] ; then 
+      echo "ERROR make -j $NUM_THREADS failed"
+      exit 1
+else
+   if [ "$1" != "install" ] ; then 
+      echo
+      echo "Successful build of ./build_openmp.sh .  Please run:"
+      echo "  ./build_openmp.sh install "
+      echo "to install into directory $INSTALL_OPENMP/lib and $INSTALL_OPENMP/lib-debug"
+      echo
+  fi
 fi
 
 #  ----------- Install only if asked  ----------------------------
 if [ "$1" == "install" ] ; then 
-   cd $BUILD_DIR/build/openmp
-   echo
-   echo " -----Installing to $INSTALL_OPENMP/lib ----- "
-   $SUDO make install
-   if [ $? != 0 ] ; then
-      echo "ERROR make install failed "
-      exit 1
-   fi
+      cd $BUILD_DIR/build/openmp
+      echo
+      echo " -----Installing to $INSTALL_OPENMP/lib ----- " 
+      $SUDO make install 
+      if [ $? != 0 ] ; then 
+         echo "ERROR make install failed "
+         exit 1
+      fi
 
-   if [ "$AOMP_BUILD_DEBUG" == "1" ] ; then
       cd $BUILD_DIR/build/openmp_debug
       echo
       echo " -----Installing to $INSTALL_OPENMP/lib-debug ---- " 
@@ -242,30 +251,4 @@ if [ "$1" == "install" ] ; then
          echo "ERROR make install failed "
          exit 1
       fi
-
-      # Rename ompd module library. This was introduced with the Python3 build. The include
-      # of ompdModule would fail otherwise.
-      if [ -f "$AOMP_INSTALL_DIR/lib-debug/ompd/ompdModule.cpython-36m-x86_64-linux-gnu.so" ]; then
-        if [ -f "$AOMP_INSTALL_DIR/lib-debug/ompd/ompdModule.so" ]; then
-          echo "==> Removing old ompdModule.so"
-          rm "$AOMP_INSTALL_DIR/lib-debug/ompd/ompdModule.so"
-        fi
-        echo "==> Renaming ompdModule.cpython-36m-x86_64-linux-gnu.so to ompdModule.so"
-        mv $AOMP_INSTALL_DIR/lib-debug/ompd/ompdModule.cpython-36m-x86_64-linux-gnu.so $AOMP_INSTALL_DIR/lib-debug/ompd/ompdModule.so
-      fi
-
-      # we do not yet have OMPD in llvm 12, disable this for now.
-      # Copy selected debugable runtime sources into the installation lib-debug/src directory
-      # to satisfy the above -fdebug-prefix-map.
-      $SUDO mkdir -p $AOMP_INSTALL_DIR/lib-debug/src/openmp/runtime/src
-      echo cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/runtime/src $AOMP_INSTALL_DIR/lib-debug/src/openmp/runtime
-      $SUDO cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/runtime/src $AOMP_INSTALL_DIR/lib-debug/src/openmp/runtime
-      $SUDO mkdir -p $AOMP_INSTALL_DIR/lib-debug/src/openmp/libomptarget/src
-      echo cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/libomptarget/src $AOMP_INSTALL_DIR/lib-debug/src/openmp/libomptarget
-      $SUDO cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/libomptarget/src $AOMP_INSTALL_DIR/lib-debug/src/openmp/libomptarget
-      echo cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/libomptarget/plugins $AOMP_INSTALL_DIR/lib-debug/src/openmp/libomptarget
-      $SUDO cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/libomptarget/plugins $AOMP_INSTALL_DIR/lib-debug/src/openmp/libomptarget
-      $SUDO mkdir -p $AOMP_INSTALL_DIR/lib-debug/src/openmp/libompd/src
-      $SUDO cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/libompd/src $AOMP_INSTALL_DIR/lib-debug/src/openmp/libompd
-   fi
 fi

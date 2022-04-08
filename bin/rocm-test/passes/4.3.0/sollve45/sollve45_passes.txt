@@ -91,7 +91,6 @@ test_target_map_subroutines_arrays.F90
 test_target_map_zero_length_pointer.c
 test_target_parallel.c
 test_target_private.c
-test_target_private.F90
 test_target_simd.c
 test_target_simd_collapse.c
 test_target_simd.F90

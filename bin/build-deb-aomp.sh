@@ -81,14 +81,13 @@ fi
 
 # Make the install and links file version specific
 echo "usr/lib/$dirname usr/lib/aomp" > $froot/debian/$pkgname.links
-echo "usr/lib/$dirname/bin/bundle.sh  /usr/bin/bundle.sh" >> $froot/debian/$pkgname.links
-echo "usr/lib/$dirname/bin/unbundle.sh  /usr/bin/unbundle.sh" >> $froot/debian/$pkgname.links
 echo "usr/lib/$dirname/bin/aompExtractRegion /usr/bin/aompExtractRegion" >> $froot/debian/$pkgname.links
 echo "usr/lib/$dirname/bin/cloc.sh /usr/bin/cloc.sh" >> $froot/debian/$pkgname.links
 echo "usr/lib/$dirname/bin/mymcpu  /usr/bin/mymcpu" >> $froot/debian/$pkgname.links
 echo "usr/lib/$dirname/bin/mygpu  /usr/bin/mygpu" >> $froot/debian/$pkgname.links
 echo "usr/lib/$dirname/bin/aompversion /usr/bin/aompversion" >> $froot/debian/$pkgname.links
 echo "usr/lib/$dirname/bin/aompcc /usr/bin/aompcc" >> $froot/debian/$pkgname.links
+echo "usr/lib/$dirname/bin/gpurun /usr/bin/gpurun" >> $froot/debian/$pkgname.links
 echo "usr/lib/$dirname" > $froot/debian/$pkgname.install
 echo "usr/share/doc/$dirname" >> $froot/debian/$pkgname.install
 
@@ -102,8 +101,13 @@ echo "    DONE BUILDING TARBALL"
 echo 
 echo "--- RUNNING dch TO MANANGE CHANGELOG "
 cd  $froot
+# Skip changelog editor for docker release builds.
 echo dch -v ${AOMP_VERSION_STRING} -e --package $pkgname
-dch -v ${AOMP_VERSION_STRING} --package $pkgname
+if [ "$DOCKER" -eq "1" ]; then
+  dch -v ${AOMP_VERSION_STRING} --package $pkgname ""
+else
+  dch -v ${AOMP_VERSION_STRING} --package $pkgname
+fi
 # Backup the debian changelog to git repo, be sure to commit this 
 cp -p $froot/debian/changelog $debdir/.
 

@@ -6,7 +6,7 @@ TESTSRC_MAIN = flangtrace.f90
 TESTSRC_AUX  = hiptrace.f90
 TESTSRC_ALL  = $(TESTSRC_AUX) $(TESTSRC_MAIN)
 
-TARGET       += -Wl,--rpath,$(ROCM)/lib/ -lroctx64 -lroctracer64 -lamdhip64 -L$(ROCM)/lib
+TARGET       +=  -L$(ROCM)/lib/ -lroctx64 -lroctracer64
 
 FLANG        = flang
 OMP_BIN      = $(AOMP)/bin/$(FLANG)

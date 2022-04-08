@@ -212,8 +212,72 @@ TESTS_DIR = \
  flang-289039 \
  flang-302472 \
  helloworld%n \
- targc-272328
-
+ targc-272328 \
+ alloc_cgroup \
+ clang-310865 \
+ clang-310866 \
+ clang-313307_simple_arr \
+ clang-313307_simple_spmd \
+ clang-323972 \
+ clang-gdb1 \
+ clang-gfx1030 \
+ clang-ifaces \
+ clang_udel_saxpy \
+ complex-debug \
+ complex_reduction \
+ const_global_ctor-308039 \
+ data-env-scalar-map \
+ dominik-AD \
+ flang-270386 \
+ flang-274775-1 \
+ flang-275194 \
+ flang-275194-4 \
+ flang-288160 \
+ flang-288446 \
+ flang-303839 \
+ flang-307433 \
+ flang-307434 \
+ flang-308205 \
+ flang-312148 \
+ flang-312594 \
+ flang-313307 \
+ flang-313307_simple_arr \
+ flang-313307_simple_generic \
+ flang-313307_simple_spmd \
+ flang-314146 \
+ flang-315421 \
+ flang-315870 \
+ flang-319356 \
+ flang-321277 \
+ flang-321277-2 \
+ flang-321412 \
+ flang-321847 \
+ flang-322945 \
+ flang-325322 \
+ flang-ifaces \
+ flang-teams1 \
+ flang-teams-gdb \
+ flang-usm \
+ func-ptr \
+ leopold-devicePtr \
+ loop_order \
+ MasterBarrierO0 \
+ omp_loop \
+ requires_usm \
+ targc-generic \
+ targc-spmd \
+ usm1 \
+ veccopy-ompt-target \
+ veccopy-ompt-target-disallow-both \
+ veccopy-ompt-target-emi \
+ veccopy-ompt-target-emi-map \
+ veccopy-ompt-target-emi-tracing \
+ veccopy-ompt-target-map \
+ veccopy-ompt-target-noinit \
+ veccopy-ompt-target-tracing \
+ veccopy-ompt-target-wrong-return \
+ vmulsum-hsa-stats \
+ workgroup_size
 
 
 all:

@@ -12,10 +12,10 @@ class Aomp(MakefilePackage):
     """  llvm openmp compiler from AMD"""
 
     homepage = "https://github.com/ROCm-Developer-Tools/aomp"
-    url      = "https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_14.0-2/aomp-14.0-2.tar.gz"
+    url      = "https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_13.0-5/aomp-13.0-6.tar.gz"
 
     # Fixme: this will be adjusted when spack create is called. When copying over to your own package.py omit this line.
-    version('14.0-2', sha256='7ea4e218b171585441278f3562d97779006b12bc3b5dc201901f2d757226da84')
+    version('13.0-6', sha256='7ea4e218b171585441278f3562d97779006b12bc3b5dc201901f2d757226da84')
 
     family = 'compiler'
 

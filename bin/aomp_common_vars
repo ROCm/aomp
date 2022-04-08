@@ -15,11 +15,11 @@
 AOMP_COMPILER_NAME=${AOMP_COMPILER_NAME:-AOMP}
 
 # ROCM_VERSION may be set by Jenkins, if not guess a good number
-ROCM_VERSION=${ROCM_VERSION:-4.5.0}
+ROCM_VERSION=${ROCM_VERSION:-4.0.0}
 
 # Set the AOMP VERSION STRING and AOMP_PROJECT_REPO_BRANCH.
-AOMP_VERSION=${AOMP_VERSION:-"15.0"}
-AOMP_VERSION_MOD=${AOMP_VERSION_MOD:-"0"}
+AOMP_VERSION=${AOMP_VERSION:-"13.0"}
+AOMP_VERSION_MOD=${AOMP_VERSION_MOD:-"4"}
 AOMP_VERSION_STRING=${AOMP_VERSION_STRING:-"$AOMP_VERSION-$AOMP_VERSION_MOD"}
 export AOMP_VERSION_STRING AOMP_VERSION AOMP_VERSION_MOD ROCM_VERSION
 
@@ -37,26 +37,9 @@ export AOMP_MAJOR_VERSION
 if [ "$AOMP_MAJOR_VERSION" == "12" ] ; then
   AOMP_REPOS=${AOMP_REPOS:-$HOME/git/aomp12}
 elif [ "$AOMP_MAJOR_VERSION" == "13" ] ; then
-  # AOMP 13.1 will use repo command with interal repos
-  if [[ "$AOMP_VERSION" == "13.1" ]] ; then
-    #The default for internal repos will be $HOME/git/aomp13.1
-    AOMP_REPOS=${AOMP_REPOS:-${HOME}/git/aomp${AOMP_VERSION}}
-    # Force build for 13.1 to 13.1-0, ignore AOMP_VERSION_MOD set above
-    AOMP_CHECK_GIT_BRANCH=0
-    AOMP_VERSION_MOD=0
-    AOMP_VERSION_STRING="13.1-0"
-    AOMP_INSTALL_DIR=${AOMP}_${AOMP_VERSION_STRING}
-    AOMP_PATCH_CONTROL_FILE="${AOMP_REPOS}/aomp/bin/patches/patch-control-file_13.1.txt"
-    export AOMP_VERSION_STRING AOMP_VERSION AOMP_VERSION_MOD
-  else
-     AOMP_REPOS=${AOMP_REPOS:-$HOME/git/aomp13}
-  fi
+  AOMP_REPOS=${AOMP_REPOS:-$HOME/git/aomp13}
 elif [ "$AOMP_MAJOR_VERSION" == "11" ] ; then
   AOMP_REPOS=${AOMP_REPOS:-$HOME/git/aomp11}
-elif [ "$AOMP_MAJOR_VERSION" == "14" ] || [ "$AOMP_MAJOR_VERSION" == "15" ] ; then
-    AOMP_REPOS=${AOMP_REPOS:-${HOME}/git/aomp${AOMP_VERSION}}
-    AOMP_CHECK_GIT_BRANCH=0
-    AOMP_PATCH_CONTROL_FILE="${AOMP_REPOS}/aomp/bin/patches/patch-control-file_$AOMP_VERSION.txt"
 else
   echo "ERROR:  Invalid AOMP_MAJOR_VERSION: $AOMP_MAJOR_VERSION"
   exit 1
@@ -79,19 +62,6 @@ if [ -f /usr/local/cmake/bin/cmake ] ; then
   AOMP_CMAKE=${AOMP_CMAKE:-/usr/local/cmake/bin/cmake}
 else
   AOMP_CMAKE=${AOMP_CMAKE:-cmake}
-fi
-
-AOMP_USE_NINJA=${AOMP_USE_NINJA:-0}
-if [ "$AOMP_USE_NINJA" == 0 ] ; then
-  AOMP_NINJA_BIN="make"
-else
-  AOMP_NINJA_BIN=`which ninja`
-  if [ AOMP_NINJA_BIN == "" ] ; then
-    echo "ERROR: AOMP_USE_NINJA is $AOMP_USE_NINJA but no ninja bin found in PATH"
-    echo "       Either install ninja in PATH or set AOMP_USE_NINJA=0"
-    echo
-    exit 1
-  fi
 fi
 AOMP_PROC=`uname -m`
 if [ "$AOMP_PROC" == "unknown" ] ; then
@@ -146,7 +116,12 @@ fi
 # Set list of default nvptx subarchitectures to build
 # Only Cuda 9 and above supports sm_70
 if [ "$AOMP_BUILD_CUDA" == 1 ] ; then
-   NVPTXGPUS_DEFAULT="35,37,50,52,53,60,61,62,70,72,75,80,86"
+   NVPTXGPUS_DEFAULT="30,35,37,50,52,53,60,61,62"
+   if [ -f $CUDA/version.txt ] ; then
+      if [ `head -1 $CUDA/version.txt | cut -d " " -f 3 | cut -d "." -f 1` -ge 9 ] ; then
+         NVPTXGPUS_DEFAULT+=",70"
+      fi
+   fi
    #  Developers should override NVPTXGPUS to shorten build time.
    NVPTXGPUS=${NVPTXGPUS:-"${NVPTXGPUS_DEFAULT}"}
    AOMP_NVPTX_TARGET="NVPTX;"
@@ -158,7 +133,7 @@ fi
 
 # Set list of default amdgcn subarchitectures to build
 # Developers may override GFXLIST to shorten build time.
-GFXLIST=${GFXLIST:-"gfx700 gfx701 gfx801 gfx803 gfx900 gfx902 gfx906 gfx908 gfx90a gfx1030 gfx1031"}
+GFXLIST=${GFXLIST:-"gfx700 gfx701 gfx801 gfx803 gfx900 gfx902 gfx906 gfx908 gfx90a"}
 export GFXLIST
 
 # Calculate the number of threads to use for make
@@ -176,12 +151,10 @@ AOMP_JOB_THREADS=${AOMP_JOB_THREADS:-$COMP_THREADS}
 
 # These are the web sites where the AOMP git repos are pulled from
 GITROC="https://github.com/radeonopencompute"
-GITROCINTERNAL="ssh://$USER@gerrit-git.amd.com:29418/lightning/ec"
-GITGERRIT="ssh://$USER@gerrit-git.amd.com:29418"
+GITROCINTERNAL="ssh://$USER@gerrit-git.amd.com:29418/lightning/ec/"
 GITROCDEV="https://github.com/ROCm-Developer-Tools"
 GITROCLIB="https://github.com/AMDComputeLibraries"
 GITKHRONOS="https://github.com/KhronosGroup"
-GITHWLOC="https://github.com/open-mpi"
 AOMP_GIT_INTERNAL_IP="gerrit-git.amd.com"
 if [ "$AOMP_MAJOR_VERSION" == "12" ] ; then
   ping -c 1 $AOMP_GIT_INTERNAL_IP 2> /dev/null
@@ -199,18 +172,11 @@ if [ "$AOMP_MAJOR_VERSION" == "12" ] ; then
 elif [ "$AOMP_MAJOR_VERSION" == "13" ] ; then
   GITPROJECT=$GITROCDEV
   AOMP_PROJECT_REPO_NAME=${AOMP_PROJECT_REPO_NAME:-llvm-project}
-  AOMP_PROJECT_REPO_BRANCH=${AOMP_PROJECT_REPO_BRANCH:-aomp-dev}
+  AOMP_PROJECT_REPO_BRANCH=${AOMP_PROJECT_REPO_BRANCH:-aomp-13.0-4}
   AOMP_EXTRAS_REPO_NAME=${AOMP_EXTRAS_REPO_NAME:-aomp-extras}
-  AOMP_EXTRAS_REPO_BRANCH=${AOMP_EXTRAS_REPO_BRANCH:-aomp-dev}
+  AOMP_EXTRAS_REPO_BRANCH=${AOMP_EXTRAS_REPO_BRANCH:-aomp-13.0-4}
   AOMP_FLANG_REPO_NAME=${AOMP_FLANG_REPO_NAME:-flang}
-  AOMP_FLANG_REPO_BRANCH=${AOMP_FLANG_REPO_BRANCH:-aomp-dev}
-elif [ "$AOMP_MAJOR_VERSION" == "14" ] || [ "$AOMP_MAJOR_VERSION" == "15" ] ; then
-  GITPROJECT=$GITROCDEV
-  AOMP_PROJECT_REPO_NAME=${AOMP_PROJECT_REPO_NAME:-llvm-project}
-  AOMP_PROJECT_REPO_BRANCH=${AOMP_PROJECT_REPO_BRANCH:-aomp14-dev}
-  AOMP_EXTRAS_REPO_NAME=${AOMP_EXTRAS_REPO_NAME:-aomp-extras}
-  AOMP_EXTRAS_REPO_BRANCH=${AOMP_EXTRAS_REPO_BRANCH:-aomp-dev}
-  AOMP_FLANG_REPO_NAME=${AOMP_FLANG_REPO_NAME:-flang}
+  AOMP_FLANG_REPO_BRANCH=${AOMP_FLANG_REPO_BRANCH:-aomp-13.0-4}
 else
   GITPROJECT=$GITROCDEV
   AOMP_PROJECT_REPO_NAME=${AOMP_PROJECT_REPO_NAME:-amd-llvm-project}
@@ -220,6 +186,8 @@ else
   AOMP_FLANG_REPO_NAME=${AOMP_FLANG_REPO_NAME:-flang}
   AOMP_FLANG_REPO_BRANCH=${AOMP_FLANG_REPO_BRANCH:-aomp11}
 fi
+# FIXME: In the near future, we will remove the _BRANCH variables and use a
+#        manifest file to determine which branch to build each component.
 #
 # The difference between a _REPO_NAME and _REPO_GITNAME is that the
 # _REPO_NAME is the directory name following $AOMP_REPOS.  The GITNAME
@@ -234,14 +202,14 @@ fi
 
 #  These aomp development repositories
 AOMP_REPO_NAME=${AOMP_REPO_NAME:-aomp}
-AOMP_REPO_BRANCH=${AOMP_REPO_BRANCH:-aomp-dev}
+AOMP_REPO_BRANCH=${AOMP_REPO_BRANCH:-aomp-13.0-4}
 
 #  These extra repositories are needed but we cannot update them
 AOMP_ROCT_REPO_NAME=${AOMP_ROCT_REPO_NAME:-roct-thunk-interface}
-AOMP_ROCT_REPO_BRANCH=${AOMP_ROCT_REPO_BRANCH:-roc-4.3.x}
+AOMP_ROCT_REPO_BRANCH=${AOMP_ROCT_REPO_BRANCH:-roc-4.2.x}
 AOMP_ROCT_COMPONENT_NAME=${AOMP_ROCT_COMPONENT_NAME:-roct}
 AOMP_ROCR_REPO_NAME=${AOMP_ROCR_REPO_NAME:-rocr-runtime}
-AOMP_ROCR_REPO_BRANCH=${AOMP_ROCR_REPO_BRANCH:-rocm-4.3.x}
+AOMP_ROCR_REPO_BRANCH=${AOMP_ROCR_REPO_BRANCH:-rocm-4.2.x}
 AOMP_ROCR_COMPONENT_NAME=${AOMP_ROCR_COMPONENT_NAME:-rocr}
 AOMP_LIBDEVICE_REPO_NAME=${AOMP_LIBDEVICE_REPO_NAME:-rocm-device-libs}
 AOMP_LIBDEVICE_COMPONENT_NAME=${AOMP_LIBDEVICE_COMPONENT_NAME:-rocdl}
@@ -250,8 +218,7 @@ if [ "$AOMP_MAJOR_VERSION" == "12" ] ; then
   #AOMP_LIBDEVICE_REPO_SHA="f16f5b1b90a21943306b87e160654b5738c8a884"
 elif [ "$AOMP_MAJOR_VERSION" == "13" ] ; then
   AOMP_LIBDEVICE_REPO_BRANCH=${AOMP_LIBDEVICE_REPO_BRANCH:-amd-stg-open}
-elif [ "$AOMP_MAJOR_VERSION" == "14" ] || [ "$AOMP_MAJOR_VERSION" == "15" ] ; then
-  AOMP_LIBDEVICE_REPO_BRANCH=${AOMP_LIBDEVICE_REPO_BRANCH:-amd-stg-open}
+  AOMP_LIBDEVICE_REPO_SHA=${AOMP_LIBDEVICE_REPO_SHA:-94654b3}
 else
   AOMP_LIBDEVICE_REPO_BRANCH=${AOMP_LIBDEVICE_REPO_BRANCH:-rocm-3.10.x}
 fi
@@ -259,38 +226,36 @@ DEVICELIBS_ROOT=${DEVICELIBS_ROOT:-$AOMP_REPOS/$AOMP_LIBDEVICE_REPO_NAME}
 AOMP_COMGR_REPO_NAME=${AOMP_COMGR_REPO_NAME:-rocm-compilersupport}
 AOMP_COMGR_REPO_BRANCH=${AOMP_COMGR_REPO_BRANCH:-amd-stg-open}
 # Set COMGR_REPO_SHA for aomp11
-if [ $AOMP_MAJOR_VERSION -lt 12 ] ; then
+if [ "$AOMP_MAJOR_VERSION" != "12" ] && [ "$AOMP_MAJOR_VERSION" != "13" ] ; then
   AOMP_COMGR_REPO_SHA=${AOMP_COMGR_REPO_SHA:-4b689d6}
 fi
-if [ "$AOMP_MAJOR_VERSION" == "13" ] || [ "$AOMP_MAJOR_VERSION" == "14" ] || [ "$AOMP_MAJOR_VERSION" == "15" ] ; then
+if [ "$AOMP_MAJOR_VERSION" == "13" ] ; then
   AOMP_COMGR_REPO_SHA=${AOMP_COMGR_REPO_SHA:-694f5a8}
 fi
 AOMP_RINFO_REPO_NAME=${AOMP_RINFO_REPO_NAME:-rocminfo}
 AOMP_RINFO_REPO_BRANCH=${AOMP_RINFO_REPO_BRANCH:-master}
-#AOMP_RINFO_REPO_SHA=${AOMP_RINFO_REPO_SHA:-605b3a5}
+AOMP_RINFO_REPO_SHA=${AOMP_RINFO_REPO_SHA:-10da0a7}
 
 # These are repos we will use when we switch to HIP VDI
 AOMP_VDI_REPO_NAME=${AOMP_VDI_REPO_NAME:-vdi}
-AOMP_VDI_REPO_BRANCH=${AOMP_VDI_REPO_BRANCH:-rocm-4.3.x}
+AOMP_VDI_REPO_BRANCH=${AOMP_VDI_REPO_BRANCH:-rocm-4.2.x}
 AOMP_VDI_REPO_GITNAME=${AOMP_VDI_REPO_GITNAME:-ROCclr}
 AOMP_OCL_REPO_NAME=${AOMP_OCL_REPO_NAME:-opencl-on-vdi}
 AOMP_OCL_REPO_GITNAME=${AOMP_OCL_REPO_GITNAME:-ROCm-OpenCL-Runtime}
-AOMP_OCL_REPO_BRANCH=${AOMP_OCL_REPO_BRANCH:-rocm-4.3.x}
+AOMP_OCL_REPO_BRANCH=${AOMP_OCL_REPO_BRANCH:-rocm-4.2.x}
 AOMP_HIPVDI_REPO_NAME=${AOMP_HIPVDI_REPO_NAME:-hip-on-vdi}
 AOMP_HIPVDI_REPO_GITNAME=${AOMP_HIPVDI_REPO_GITNAME:-hip}
-AOMP_HIPVDI_REPO_BRANCH=${AOMP_HIPVDI_REPO_BRANCH:-rocm-4.3.x}
-
-AOMP_ROCMCMAKE_REPO_NAME=${AOMP_ROCMCMAKE_REPO_NAME:-rocm-cmake}
+AOMP_HIPVDI_REPO_BRANCH=${AOMP_HIPVDI_REPO_BRANCH:-rocm-4.2.x}
 
 # These are needed when AOMP_BUILD_DEBUG=1
 AOMP_GDB_REPO_NAME=${AOMP_GDB_REPO_NAME:-ROCgdb}
-AOMP_GDB_REPO_BRANCH=${AOMP_GDB_REPO_BRANCH:-rocm-4.3.x}
+AOMP_GDB_REPO_BRANCH=${AOMP_GDB_REPO_BRANCH:-rocm-4.2.x}
 AOMP_DBGAPI_REPO_NAME=${AOMP_DBGAPI_REPO_NAME:-ROCdbgapi}
-AOMP_DBGAPI_REPO_BRANCH=${AOMP_DBGAPI_REPO_BRANCH:-rocm-4.3.x}
+AOMP_DBGAPI_REPO_BRANCH=${AOMP_DBGAPI_REPO_BRANCH:-rocm-4.2.x}
 AOMP_PROF_REPO_NAME=${AOMP_PROF_REPO_NAME:-rocprofiler}
-AOMP_PROF_REPO_BRANCH=${AOMP_PROF_REPO_BRANCH:-rocm-4.3.x}
+AOMP_PROF_REPO_BRANCH=${AOMP_PROF_REPO_BRANCH:-rocm-4.2.x}
 AOMP_TRACE_REPO_NAME=${AOMP_TRACE_REPO_NAME:-roctracer}
-AOMP_TRACE_REPO_BRANCH=${AOMP_TRACE_REPO_BRANCH:-rocm-4.3.x}
+AOMP_TRACE_REPO_BRANCH=${AOMP_TRACE_REPO_BRANCH:-rocm-4.2.x}
 
 # These are test repositories
 GITNEKBONE="https://github.com/AMDComputeLibraries"
@@ -306,7 +271,7 @@ GITLLNL="https://github.com/llnl"
 AOMP_RAJA_REPO_NAME=${AOMP_RAJA_REPO_NAME:-raja}
 AOMP_RAJA_REPO_BRANCH=${AOMP_RAJA_REPO_BRANCH:-master}
 AOMP_RAJAPERF_REPO_NAME=${AOMP_RAJAPERF_REPO_NAME:-RAJAPerf}
-AOMP_RAJAPERF_REPO_BRANCH=${AOMP_RAJAPERF_REPO_BRANCH:-develop}
+AOMP_RAJAPERF_REPO_BRANCH=${AOMP_RAJAPERF_REPO_BRANCH:-v0.10.0}
 GITKOKKOS="https://github.com/kokkos"
 AOMP_KOKKOS_REPO_NAME=${AOMP_KOKKOS_REPO_NAME:-kokkos}
 AOMP_KOKKOS_REPO_BRANCH=${AOMP_KOKKOS_REPO_BRANCH:-develop}
@@ -324,9 +289,6 @@ AOMP_QMCPACK_REPO_BRANCH=${AOMP_QMCPACK_REPO_BRANCH:-develop}
 GITOPENLIBM="https://github.com/JuliaMath"
 AOMP_OPENLIBM_REPO_NAME=${AOMP_OPENLIBM_REPO_NAME:-openlibm}
 AOMP_OPENLIBM_REPO_BRANCH=${AOMP_OPENLIBM_REPO_BRANCH:-v0.7.2}
-GITLLNLGOULASH="https://github.com/LLNL"
-AOMP_GOULASH_REPO_NAME=${AOMP_GOULASH_REPO_NAME:-goulash}
-AOMP_GOULASH_REPO_BRANCH=${AOMP_GOULASH_REPO_BRANCH:-master}
 
 #  We dont use this yet, waiting for trunk merge
 AOMP_F18_REPO_NAME=${AOMP_F18_REPO_NAME:-f18}
@@ -393,7 +355,7 @@ function checkrepo(){
          if [ "$COBRANCH" == "master" ] ; then
            echo "EXIT:  Repository $REPO_DIR is on development branch: master"
            exit 1
-	 elif [[ "$COBRANCH" =~ $BRANCH_REGEX ]] ; then
+	 elif [[ "$COBRANCH" =~ $BRANCH_REEGEX ]] ; then
            echo "we have an override $REPO_DIR"
          else
            echo "ERROR:  The repository at $REPO_DIR is not on branch $REPO_BRANCH"

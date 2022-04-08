@@ -1,4 +1,4 @@
-AOMP - V 14.0-2
+AOMP - V 13.0-6
 ==============
 
 This is README.md for https://github.com/ROCM-Developer-Tools/aomp.
@@ -8,8 +8,8 @@ This is the base repository for AOMP. Use this github repository for
 documentation, and
 [examples](https://github.com/ROCm-Developer-Tools/aomp/tree/master/examples).
 
-The last [release is AOMP 14.0-2](https://github.com/ROCm-Developer-Tools/aomp/releases).
-Currently AOMP 14.0-3 is under development.
+The last [release is AOMP 13.0-6](https://github.com/ROCm-Developer-Tools/aomp/releases).
+Currently AOMP 13.1-0 is under development.
 
 Attention Users!  Please use this repository for [issues](https://github.com/ROCm-Developer-Tools/aomp/issues).
 Do not put issues in any of the source code repositories.

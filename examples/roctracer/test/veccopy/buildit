@@ -1,0 +1,1 @@
+clang++ -O2 -g -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=gfx906 veccopy.c -o veccopy -I$AOMP/roctracer/include -I$AOMP/include/hsa -I$HOME/git/aomp13/roctracer -I$HOME/git/aomp13/roctracer/inc -Wl,--rpath,$AOMP $AOMP/lib/libroctracer64.so $AOMP/lib/libroctx64.so

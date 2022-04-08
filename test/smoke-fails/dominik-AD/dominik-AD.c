@@ -26,5 +26,6 @@ for (i = 0; i < 10; ++i) {
 }
 printf("1st arg x should be equal to 3rd %p  %p  %p \n",x, x1, x_d);
 printf("x_d %lf should equal to %lf \n",x_d[0], x[0]);
+if (x_d[0] != x[0]) return 1;
 return 0;
 }

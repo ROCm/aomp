@@ -67,8 +67,7 @@ INSTALL_EXTRAS=${INSTALL_EXTRAS:-$AOMP_INSTALL_DIR}
 export LLVM_DIR=$AOMP_INSTALL_DIR 
 REPO_BRANCH=$AOMP_EXTRAS_REPO_BRANCH
 REPO_DIR=$AOMP_REPOS/$AOMP_EXTRAS_REPO_NAME
-checkrepo
-patchrepo $REPO_DIR
+#checkrepo
 
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   echo " "
@@ -85,13 +84,13 @@ if [ ! -d $EXTRAS_REPO_DIR ] ; then
    exit 1
 fi
 
-if [ ! -f $AOMP/bin/clang ] ; then
-   echo "ERROR:  Missing file $AOMP/bin/clang"
-   echo "        Build and install the AOMP clang compiler in $AOMP first"
-   echo "        This is needed to build extras "
-   echo " "
-   exit 1
-fi
+#if [ ! -f $AOMP/bin/clang ] ; then
+#   echo "ERROR:  Missing file $AOMP/bin/clang"
+#   echo "        Build and install the AOMP clang compiler in $AOMP first"
+#   echo "        This is needed to build extras "
+#   echo " "
+#   exit 1
+#fi
 
 # Make sure we can update the install directory
 if [ "$1" == "install" ] ; then
@@ -114,9 +113,18 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
   fi
 
   if [ $AOMP_STANDALONE_BUILD == 1 ] ; then
-    MYCMAKEOPTS="-DLLVM_DIR=$LLVM_DIR $AOMP_ORIGIN_RPATH -DCMAKE_BUILD_TYPE=$BUILDTYPE -DCMAKE_INSTALL_PREFIX=$INSTALL_EXTRAS -DROCM_DIR=$ROCM_DIR -DAOMP_STANDALONE_BUILD=$AOMP_STANDALONE_BUILD -DAOMP_VERSION_STRING=$AOMP_VERSION_STRING -DCMAKE_PREFIX_PATH=$BUILD_DIR/build/libdevice"
+    MYCMAKEOPTS="-DLLVM_DIR=$LLVM_DIR $AOMP_ORIGIN_RPATH -DCMAKE_BUILD_TYPE=$BUILDTYPE -DCMAKE_INSTALL_PREFIX=$INSTALL_EXTRAS -DROCM_DIR=$ROCM_DIR -DAOMP_STANDALONE_BUILD=$AOMP_STANDALONE_BUILD"
   else
-    MYCMAKEOPTS="-DLLVM_DIR=$LLVM_DIR $AOMP_ORIGIN_RPATH -DCMAKE_BUILD_TYPE=$BUILDTYPE -DCMAKE_INSTALL_PREFIX=$INSTALL_EXTRAS -DROCM_DIR=$ROCM_DIR -DAOMP_STANDALONE_BUILD=$AOMP_STANDALONE_BUILD -DDEVICELIBS_ROOT=$DEVICELIBS_ROOT -DAOMP_VERSION_STRING=$AOMP_VERSION_STRING"
+  export AOMP=$OUT_DIR/llvm
+#    MYCMAKEOPTS="-DLLVM_DIR=$LLVM_DIR $AOMP_ORIGIN_RPATH -DCMAKE_BUILD_TYPE=$BUILDTYPE -DCMAKE_INSTALL_PREFIX=$INSTALL_EXTRAS -DROCM_DIR=$ROCM_DIR -DAOMP_STANDALONE_BUILD=$AOMP_STANDALONE_BUILD -DDEVICELIBS_ROOT=$DEVICELIBS_ROOT"
+  MYCMAKEOPTS="-DLLVM_DIR=$OUT_DIR/llvm \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DROCM_DIR=$ROCM_DIR \
+  -DAOMP_STANDALONE_BUILD=0 \
+  -DDEVICELIBS_ROOT=$DEVICELIBS_ROOT \
+  -DNEW_BC_PATH=1 \
+  -DCMAKE_INSTALL_PREFIX=$INSTALL_EXTRAS"
+
   fi
 
   mkdir -p $BUILD_DIR/build/extras
@@ -139,10 +147,10 @@ fi
 cd $BUILD_DIR/build/extras
 echo
 echo " -----Running make for extras ---- "
-make -j $AOMP_JOB_THREADS 
+make -j $NUM_THREADS 
 if [ $? != 0 ] ; then
       echo " "
-      echo "ERROR: make -j $AOMP_JOB_THREADS  FAILED"
+      echo "ERROR: make -j $NUM_THREADS  FAILED"
       echo "To restart:"
       echo "  cd $BUILD_DIR/build/extras"
       echo "  make "
@@ -154,6 +162,8 @@ else
       echo "  $0 install"
       echo
   fi
+  echo "ls $OUT_DIR/openmp-extras/bin"
+  ls $OUT_DIR/openmp-extras/bin
 fi
 
 #  ----------- Install only if asked  ----------------------------
@@ -166,5 +176,4 @@ if [ "$1" == "install" ] ; then
          echo "ERROR make install failed "
          exit 1
       fi
-      removepatch $REPO_DIR
 fi

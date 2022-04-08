@@ -62,10 +62,6 @@ BUILDTYPE="Release"
 INSTALL_RINFO=${INSTALL_RINFO:-$AOMP_INSTALL_DIR}
 LLVM_BUILD=$AOMP
 
-REPO_BRANCH=$AOMP_RINFO_REPO_BRANCH
-REPO_DIR=$AOMP_REPOS/$AOMP_RINFO_REPO_NAME
-checkrepo
-
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   echo " "
   echo "Example commands and actions: "
