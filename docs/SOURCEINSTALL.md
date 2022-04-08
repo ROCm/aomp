@@ -19,7 +19,7 @@ To build AOMP from source you must: 1. Install certain distribution packages, 2.
 ```
 
 <b>Choose a Build Version (Development or Release)</b>
-The development version is the next version to be released.  It is possible that the development version is broken due to regressions that often occur during development.  If instead, you want to build from the sources of a previous release such as 11.12-0 that is possible as well.
+The development version is the next version to be released.  It is possible that the development version is broken due to regressions that often occur during development.  If instead, you want to build from the sources of a previous release such as 13.0-2 that is possible as well.
 
 <b>For the Development Branch:</b>
 ```
@@ -29,7 +29,7 @@ The development version is the next version to be released.  It is possible that
 
 <b>For the Release Branch:</b>
 ```
-   git checkout aomp-13.0-2
+   git checkout aomp-13.0-3
    git pull
    export AOMP_CHECK_GIT_BRANCH=0 //Tags will be used to checkout various repos. This will ignore the detached head state to avoid build errors.
 ```
