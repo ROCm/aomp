@@ -59,7 +59,6 @@ flang-272343
 flang-272343-2
 flang-272521
 flang-272534
-flang-272730-complex
 flang-272878
 flang-273281
 flang-273284
@@ -72,8 +71,6 @@ flang-273959
 flang-273990-2
 flang-274768
 flang-274775
-flang-274775-critDcmplx
-flang-274775-redDcmplx
 flang-274983
 flang-274983-2
 flang-275194-1
