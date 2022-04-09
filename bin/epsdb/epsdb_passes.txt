@@ -143,7 +143,6 @@ omp_lock
 omp_num_teams_generic
 omp_num_teams_SPMD
 omp_targ_err1
-omp_target_is
 omp_wtime
 pfspecifier
 pfspecifier_str
