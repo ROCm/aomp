@@ -1,0 +1,163 @@
+#!/bin/bash
+
+# f2s:  Utility that compiles fortran into device assembler and
+#       generates intermediate .ll files using the current ROCm
+#       flang compiler. The input fortran files must contain 
+#       OpenMP target offload pragmas. 
+#
+# This script requires that ROCM is installed.
+# 
+# MIT License
+#
+# Copyright (c) 2022 Advanced Micro Devices, Inc. All Rights Reserved.
+#
+# Permission is hereby granted, free of charge, to any person
+# obtaining a copy of this software and associated documentation
+# files (the "Software"), to deal in the Software without
+# restriction, including without limitation the rights to use, copy,
+# modify, merge, publish, distribute, sublicense, and/or sell copies
+# of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be
+# included in all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+# NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+# BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+# ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+# CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+# Set default locations of ROCM_ROOT and ROCM_LLVM
+# To test with AOMP, set ROCM_LLVM and ROCM_ROOT to $AOMP
+ROCM_LLVM=${ROCM_LLVM:-/opt/rocm/llvm}
+ROCM_ROOT=${ROCM_ROOT:-/opt/rocm}
+
+# write_demo_file when there are no inputs to f2s
+function write_demo_file(){
+echo "No input files provided, generating demo file: $demo_file"
+/bin/cat 2>&1 <<"EOF" >$demo_file 
+program main
+   integer :: a(256)
+   integer :: i
+   !$omp target teams distribute parallel do map(from: a)
+   DO i = 1, 256
+         a(i) = i
+   END DO 
+   !$omp end target teams distribute parallel do
+end program main
+EOF
+/bin/cat $demo_file
+}
+
+#  Check for existing flang compiler link
+if [ ! -L $ROCM_LLVM/bin/flang ] ; then 
+  echo "ERROR: $0 needs the flang compiler. $ROCM_LLVM/bin/flang does not exist"
+  exit 1
+fi
+
+#  Find the current GPU using rocm_agent_enumerator 
+_enumerator=$ROCM_ROOT/bin/rocm_agent_enumerator
+if [ ! -f "$_enumerator" ] ; then 
+   _enumerator=$ROCM_LLVM/bin/rocm_agent_enumerator
+fi
+ROCM_LLVM_GPU=`$_enumerator | grep -m 1 -E gfx[^0]{1}.{2}`
+
+INPUT_FILES=$*
+if [ "$INPUT_FILES" == "" ] ; then 
+  demo_file=/tmp/f2s_demo.f90
+  write_demo_file
+  INPUT_FILES=$demo_file
+fi
+
+_multi_output_bcs=""
+for input_file in $INPUT_FILES ; do 
+  if [ ! -f "$input_file" ] ; then 
+    echo "ERROR: Expecting a valid FORTRAN input file $input_file"
+    exit 1
+  fi
+  # find the filetype and filename
+  _ft=${input_file##*.}
+  _fname=${input_file%.*}
+  # FIXME: add a check that all input files are fortran type
+
+  # Call ROCm flang to only generate device llvm-ir.
+  $ROCM_LLVM/bin/flang  -O2 -S --cuda-device-only -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$ROCM_LLVM_GPU $input_file -o $_fname.flang.output.bc  
+  if [ $? != 0 ] ; then 
+     echo "ERROR: LLVM flang compilation of $input_file failed with rc=$?"
+     exit 1
+  fi
+  _multi_output_bcs="$_multi_output_bcs $_fname.flang.output.bc"
+done 
+
+if [ -f  $ROCM_ROOT/amdgcn/bitcode/oclc_abi_version_400.bc ] ; then 
+   _abi400=$ROCM_ROOT/amdgcn/bitcode/oclc_abi_version_400.bc
+else
+   _abi400=""
+fi
+
+if [ "$_multi_output_bcs" != " $_fname.flang.output.bc" ] ; then 
+  # Merge multiple bc from multiple input files into single bc for linking with --internalize 
+  _mergedbc=merged.flang.output.bc
+  $ROCM_LLVM/bin/llvm-link $_multi_output_bcs -o $_mergedbc 
+  if [ $? != 0 ] ; then 
+    echo "ERROR: merged link failed with rc=$?"
+    exit 1
+  fi 
+else
+  # only a single input so no merge link needed
+  _mergedbc=$_fname.flang.output.bc 
+fi
+
+# Link and internalize all the necessary libraries. 
+$ROCM_LLVM/bin/llvm-link $_mergedbc  --internalize --only-needed \
+ $ROCM_LLVM/lib/libomptarget-amdgcn-$ROCM_LLVM_GPU.bc \
+ $ROCM_ROOT/amdgcn/bitcode/ocml.bc \
+ $ROCM_ROOT/amdgcn/bitcode/oclc_daz_opt_off.bc \
+ $ROCM_ROOT/amdgcn/bitcode/oclc_unsafe_math_off.bc \
+ $ROCM_ROOT/amdgcn/bitcode/oclc_finite_only_off.bc \
+ $ROCM_ROOT/amdgcn/bitcode/oclc_correctly_rounded_sqrt_on.bc \
+ $ROCM_ROOT/amdgcn/bitcode/oclc_wavefrontsize64_on.bc \
+ $ROCM_ROOT/amdgcn/bitcode/oclc_isa_version_908.bc \
+ $_abi400 \
+ -o $_fname.link.output.bc
+if [ $? != 0 ] ; then 
+  echo "ERROR: Link step failed with rc=$?"
+  exit 1
+fi 
+
+$ROCM_LLVM/bin/opt $_fname.link.output.bc -O2 -mtriple=amdgcn-amd-amdhsa -mcpu=$ROCM_LLVM_GPU -o $_fname.llc.input.bc
+if [ $? != 0 ] ; then
+  echo "ERROR: Optimization step failed with rc=$?"
+  exit 1
+fi 
+
+#  Call the backend to generate assembler
+$ROCM_LLVM/bin/llc $_fname.llc.input.bc -O2 -mtriple=amdgcn-amd-amdhsa -mcpu=$ROCM_LLVM_GPU -filetype=asm --amdhsa-code-object-version=4 -o $_fname.llc.output.s
+if [ $? != 0 ] ; then
+  echo "ERROR: Backend step failed with rc=$?"
+  exit 1
+fi 
+
+#  Convert llvm bitcodes to llvm text (ll) files
+_multi_output_lls=""
+for input_file in $INPUT_FILES ; do 
+  _fname=${input_file%.*}
+  _multi_output_lls="$_multi_output_lls $_fname.flang.output.ll"
+  $ROCM_LLVM/bin/llvm-dis $_fname.flang.output.bc -o $_fname.flang.output.ll
+  rm $_fname.flang.output.bc
+done
+
+$ROCM_LLVM/bin/llvm-dis $_fname.link.output.bc -o $_fname.link.output.ll
+rm $_fname.link.output.bc
+$ROCM_LLVM/bin/llvm-dis $_fname.llc.input.bc  -o $_fname.llc.input.ll
+rm $_fname.llc.input.bc
+
+echo DONE. See output files: \
+$_multi_output_lls \
+$_fname.link.output.ll  \
+$_fname.llc.input.ll  \
+$_fname.llc.output.s  
