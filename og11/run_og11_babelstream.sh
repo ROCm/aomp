@@ -7,6 +7,7 @@ OG11GXX=${OG11GXX:-$OG11DIR/bin/g++}
 ROCMDIR=${ROCMDIR:-/opt/rocm}
 GPURUN=$HOME/rocm/aomp/bin/gpurun
 DO_CPU_RUNS=0
+DO_OVERRIDES=0
 
 AOMP_REPOS=${AOMP_REPOS:-$HOME/git/aomp15.0}
 AOMP_REPOS_TEST=${AOMP_REPOS_TEST:-$HOME/git/aomp-test}
@@ -54,7 +55,7 @@ echo | tee a results.txt
 echo "=========> RUNDATE:  $thisdate" | tee -a results.txt
 echo "=========> GPU:      $_offload_arch" || tee -a results.txt
 echo | tee -a results.txt
-echo "=========> NAME:     1.a og11 OFFLOAD DEFAULTS" | tee -a results.txt
+echo "=========> NAME:     1 og11 OFFLOAD DEFAULTS" | tee -a results.txt
 echo "=========> COMPILER: $OG11GXX" | tee -a results.txt
 og11_flags="-O3 -fopenmp -foffload=-march=$_offload_arch -D_OG11_DEFAULTS -DOMP -DOMP_TARGET_GPU"
    export LD_LIBRARY_PATH=$OG11DIR/lib64:$ROCMDIR/hsa/lib
@@ -74,10 +75,26 @@ og11_flags="-O3 -fopenmp -foffload=-march=$_offload_arch -D_OG11_DEFAULTS -DOMP 
      ./$EXEC 2>&1 | tee -a results.txt
    fi
    unset OMP_TARGET_OFFLOAD
+
 echo | tee -a results.txt
-echo "=========> NAME:     1.b og11 OVERRIDES" | tee -a results.txt
-echo "=========> COMPILER: $OG11GXX" | tee -a results.txt
-og11_flags="-O3 -fopenmp -foffload=-march=$_offload_arch -D_OG11_OVERRIDE -DNUM_THREADS=1024 -DNUM_TEAMS=240 -DOMP -DOMP_TARGET_GPU"
+echo "=========> NAME:     2. clang no simd" | tee -a results.txt
+_clangcc="$ROCMDIR/llvm/bin/clang++"
+_clang_omp_flags="-std=c++11 -O3 -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$_offload_arch -DOMP -DOMP_TARGET_GPU -D_DEFAULTS_NOSIMD"
+echo "=========> COMPILER: $_clangcc" | tee -a results.txt
+   export OMP_TARGET_OFFLOAD=MANDATORY
+   EXEC=omp-stream-clang
+   rm -f $EXEC
+   echo $_clangcc $_clang_omp_flags $omp_src -o $EXEC | tee -a results.txt
+   $_clangcc $_clang_omp_flags $omp_src -o $EXEC
+   if [ $? -ne 1 ]; then
+     ./$EXEC 2>&1 | tee -a results.txt
+   fi
+
+if [ $DO_OVERRIDES  == 1 ] ; then 
+   echo | tee -a results.txt
+   echo "=========> NAME:     3 og11 OVERRIDES" | tee -a results.txt
+   echo "=========> COMPILER: $OG11GXX" | tee -a results.txt
+   og11_flags="-O3 -fopenmp -foffload=-march=$_offload_arch -D_OG11_OVERRIDE -DNUM_THREADS=1024 -DNUM_TEAMS=240 -DOMP -DOMP_TARGET_GPU"
    export LD_LIBRARY_PATH=$OG11DIR/lib64:$ROCMDIR/hsa/lib
    export OMP_TARGET_OFFLOAD=MANDATORY
    unset GCN_DEBUG
@@ -90,12 +107,13 @@ og11_flags="-O3 -fopenmp -foffload=-march=$_offload_arch -D_OG11_OVERRIDE -DNUM_
      ./$EXEC 2>&1 | tee -a results.txt
    fi
    unset OMP_TARGET_OFFLOAD
+fi
 
 if [ $DO_CPU_RUNS == 1 ] ; then 
-echo | tee -a results.txt
-echo "=========> NAME:     2. og11 OPENMP CPU" | tee -a results.txt
-echo "=========> COMPILER: $OG11GXX" | tee -a results.txt
-omp_flags_cpu="-O3 -fopenmp -DOMP"
+   echo | tee -a results.txt
+   echo "=========> NAME:     4. og11 OPENMP CPU" | tee -a results.txt
+   echo "=========> COMPILER: $OG11GXX" | tee -a results.txt
+   omp_flags_cpu="-O3 -fopenmp -DOMP"
    unset OMP_TARGET_OFFLOAD
    export LD_LIBRARY_PATH=$OG11DIR/lib64:$ROCMDIR/hsa/lib
    EXEC=omp-stream-og11-cpu
@@ -106,11 +124,11 @@ omp_flags_cpu="-O3 -fopenmp -DOMP"
      ./$EXEC 2>&1 | tee -a results.txt
    fi
 
-echo | tee -a results.txt
-echo "=========> NAME:     3. gcc OPENMP CPU" | tee -a results.txt
-GXX_VERSION=`g++ --version | grep -m1 "g++" | awk '{print $4}'`
-echo "=========> COMPILER: g++ $GXX_VERSION" | tee -a results.txt
-omp_flags_cpu="-O3 -fopenmp -DOMP"
+   echo | tee -a results.txt
+   echo "=========> NAME:     5. gcc OPENMP CPU" | tee -a results.txt
+   GXX_VERSION=`g++ --version | grep -m1 "g++" | awk '{print $4}'`
+   echo "=========> COMPILER: g++ $GXX_VERSION" | tee -a results.txt
+   omp_flags_cpu="-O3 -fopenmp -DOMP"
    unset OMP_TARGET_OFFLOAD
    unset LD_LIBRARY_PATH
    EXEC=omp-stream-gxx-cpu
@@ -122,19 +140,6 @@ omp_flags_cpu="-O3 -fopenmp -DOMP"
    fi
 fi
 
-echo | tee -a results.txt
-echo "=========> NAME:     4. clang MANDATORY OFFLOAD" | tee -a results.txt
-_clangcc="$ROCMDIR/llvm/bin/clang++"
-_clang_omp_flags="-std=c++11 -O3 -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$_offload_arch -DOMP -DOMP_TARGET_GPU"
-echo "=========> COMPILER: $_clangcc" | tee -a results.txt
-   export OMP_TARGET_OFFLOAD=MANDATORY
-   EXEC=omp-stream-clang
-   rm -f $EXEC
-   echo $_clangcc $_clang_omp_flags $omp_src -o $EXEC | tee -a results.txt
-   $_clangcc $_clang_omp_flags $omp_src -o $EXEC
-   if [ $? -ne 1 ]; then
-     ./$EXEC 2>&1 | tee -a results.txt
-   fi
 echo
 echo "DONE. See results at end of file $BABELSTREAM_BUILD/results.txt"
 cd $curdir
