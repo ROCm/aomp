@@ -4,6 +4,8 @@
 #
 #  This runs a long time so run this script with nohup like this:
 #    nohup build_og11.sh
+#  or 
+#   ./build_og11.sh 2>&1 | tee build.out
 #
 #  Script follows some instruction given at https://gcc.gnu.org/wiki/Offloading
 #  Written by Greg Rodgers
@@ -96,7 +98,7 @@ rsync -av $ROCMLLVM/bin/llvm-ar $installdir/amdgcn-amdhsa/bin/ranlib
 rsync -av $ROCMLLVM/bin/llvm-mc $installdir/amdgcn-amdhsa/bin/as
 rsync -av $ROCMLLVM/bin/llvm-nm $installdir/amdgcn-amdhsa/bin/nm
 rsync -av $ROCMLLVM/bin/lld     $installdir/amdgcn-amdhsa/bin/ld
-echo " ============================ OG11BSTEP: Configure ================="
+echo " ============================ OG11BSTEP: Configure device ================="
 cd $MAINDIR
 #  Uncomment next line to start build from scratch
 [ -d ./build-amdgcn ] && rm -rf build-amdgcn
@@ -118,10 +120,12 @@ if [ $? != 0 ] ; then
 fi
 echo " ============================ OG11BSTEP: device make install ================="
 make install 
+echo "Removing symlink for newlib rm $gccmaindir/newlib"
+rm $gccmaindir/newlib
 
 cd $MAINDIR
 #  Uncomment next line to start build from scratch
-[ -d ./build-host] && rm -rf build-host
+[ -d ./build-host ] && rm -rf build-host
 echo " ============================ OG11BSTEP: host configure ================="
 mkdir -p build-host
 echo cd build-host
