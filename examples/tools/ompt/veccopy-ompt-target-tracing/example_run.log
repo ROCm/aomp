@@ -1,0 +1,113 @@
+Init: device_num=0 type=AMD gfx906 device=0x1b7c1b0 lookup=0x14e1227cf430 doc=(nil)
+Load: device_num:0 filename:(null) host_adddr:0x2012b0 device_addr:(nil) bytes:14504
+Callback Target: target_id=1 kind=1 endpoint=1 device_num=0 code=0x206900
+Allocated 256 bytes at 0x1bb4a90 in buffer request callback
+  Callback DataOp: target_id=1 host_op_id=2 optype=1 src=0x7fffde8f2f40 src_device_num=0 dest=(nil) dest_device_num=0 bytes=400000 code=0x14e12cbf9264
+  Callback DataOp: target_id=1 host_op_id=3 optype=2 src=0x7fffde8f2f40 src_device_num=0 dest=0x14e121404000 dest_device_num=0 bytes=400000 code=0x14e12cbf9142
+Allocated 256 bytes at 0x1bda3c0 in buffer request callback
+  Callback DataOp: target_id=1 host_op_id=4 optype=1 src=0x7fffde8914c0 src_device_num=0 dest=(nil) dest_device_num=0 bytes=400000 code=0x14e12cbf9264
+  Callback DataOp: target_id=1 host_op_id=5 optype=2 src=0x7fffde8914c0 src_device_num=0 dest=0x14e121466000 dest_device_num=0 bytes=400000 code=0x14e12cbf9142
+Executing buffer complete callback: 0 0x1bb4a90 208 0x1bb4a90 0
+rec=0x1bb4a90 type=8 time=1642116169956984774 thread_id=0 target_id=1
+	Record Target: kind=1 endpoint=1 device=0 task_id=0 target_id=1 codeptr=0x206900
+rec=0x1bb4af8 type=9 time=1642116169956994413 thread_id=0 target_id=1
+	  Record DataOp: host_op_id=2 optype=1 src_addr=0x14e121404000 src_device=0 dest_addr=0x7fffde8f2f40 dest_device=0 bytes=400000 end_time=1642116169956997278 duration=2865 ns codeptr=0x14e12cbf9264
+Executing buffer complete callback: 0 0x1bb4a90 0 (nil) 1
+Deallocated 0x1bb4a90
+Allocated 256 bytes at 0x1bda7c0 in buffer request callback
+  Callback Submit: target_id=1 host_op_id=6 req_num_teams=1
+Executing buffer complete callback: 0 0x1bda3c0 208 0x1bda3c0 0
+rec=0x1bda3c0 type=9 time=1642116169956998631 thread_id=0 target_id=1
+	  Record DataOp: host_op_id=3 optype=2 src_addr=0x7fffde8f2f40 src_device=0 dest_addr=0x14e121404000 dest_device=0 bytes=400000 end_time=1642116169958280777 duration=1282146 ns codeptr=0x14e12cbf9142
+rec=0x1bda428 type=9 time=1642116169958283763 thread_id=0 target_id=1
+	  Record DataOp: host_op_id=4 optype=1 src_addr=0x14e121466000 src_device=0 dest_addr=0x7fffde8914c0 dest_device=0 bytes=400000 end_time=1642116169958285566 duration=1803 ns codeptr=0x14e12cbf9264
+Executing buffer complete callback: 0 0x1bda3c0 0 (nil) 1
+Deallocated 0x1bda3c0
+  Callback DataOp: target_id=1 host_op_id=7 optype=3 src=0x14e121466000 src_device_num=0 dest=0x7fffde8914c0 dest_device_num=0 bytes=400000 code=0x14e12cc1641a
+Allocated 256 bytes at 0x1bdac10 in buffer request callback
+  Callback DataOp: target_id=1 host_op_id=8 optype=3 src=0x14e121404000 src_device_num=0 dest=0x7fffde8f2f40 dest_device_num=0 bytes=400000 code=0x14e12cc1641a
+Executing buffer complete callback: 0 0x1bda7c0 208 0x1bda7c0 0
+rec=0x1bda7c0 type=9 time=1642116169958287389 thread_id=0 target_id=1
+	  Record DataOp: host_op_id=5 optype=2 src_addr=0x7fffde8914c0 src_device=0 dest_addr=0x14e121466000 dest_device=0 bytes=400000 end_time=1642116169958678419 duration=391030 ns codeptr=0x14e12cbf9142
+rec=0x1bda828 type=10 time=1642116169958684641 thread_id=0 target_id=1
+	  Record Submit: host_op_id=6 requested_num_teams=1 granted_num_teams=1 end_time=1642116169958943992 duration=259351 ns
+Executing buffer complete callback: 0 0x1bda7c0 0 (nil) 1
+Deallocated 0x1bda7c0
+  Callback DataOp: target_id=1 host_op_id=9 optype=4 src=0x14e121466000 src_device_num=0 dest=(nil) dest_device_num=0 bytes=0 code=0x14e12cbfafe0
+Allocated 256 bytes at 0x1bdae50 in buffer request callback
+  Callback DataOp: target_id=1 host_op_id=10 optype=4 src=0x14e121404000 src_device_num=0 dest=(nil) dest_device_num=0 bytes=0 code=0x14e12cbfafe0
+Allocated 256 bytes at 0x1bdb0a0 in buffer request callback
+Callback Target: target_id=1 kind=1 endpoint=2 device_num=0 code=0x206900
+Executing buffer complete callback: 0 0x1bdac10 208 0x1bdac10 0
+rec=0x1bdac10 type=9 time=1642116169958946827 thread_id=0 target_id=1
+	  Record DataOp: host_op_id=7 optype=3 src_addr=0x14e121466000 src_device=0 dest_addr=0x7fffde8914c0 dest_device=0 bytes=400000 end_time=1642116169959299916 duration=353089 ns codeptr=0x14e12cc1641a
+Executing buffer complete callback: 0 0x1bdb0a0 104 0x1bdb0a0 0
+rec=0x1bdb0a0 type=8 time=1642116169959662812 thread_id=0 target_id=1
+	Record Target: kind=1 endpoint=2 device=0 task_id=0 target_id=1 codeptr=0x206900
+rec=0x1bdac78 type=9 time=1642116169959302000 thread_id=0 target_id=1
+	  Record DataOp: host_op_id=8 optype=3 src_addr=0x14e121404000 src_device=0 dest_addr=0x7fffde8f2f40 dest_device=0 bytes=400000 end_time=1642116169959647053 duration=345053 ns codeptr=0x14e12cc1641a
+Executing buffer complete callback: 0 0x1bdae50 208 0x1bdae50 0
+rec=0x1bdae50 type=9 time=1642116169959650148 thread_id=0 target_id=1
+	  Record DataOp: host_op_id=9 optype=4 src_addr=0x14e121466000 src_device=0 dest_addr=(nil) dest_device=0 bytes=0 end_time=1642116169959658645 duration=8497 ns codeptr=0x14e12cbfafe0
+rec=0x1bdaeb8 type=9 time=1642116169959660448 thread_id=0 target_id=1
+	  Record DataOp: host_op_id=10 optype=4 src_addr=0x14e121404000 src_device=0 dest_addr=(nil) dest_device=0 bytes=0 end_time=1642116169959661320 duration=872 ns codeptr=0x14e12cbfafe0
+Executing buffer complete callback: 0 0x1bdae50 0 (nil) 1
+Deallocated 0x1bdae50
+Executing buffer complete callback: 0 0x1bdac10 0 (nil) 1
+Deallocated 0x1bdac10
+Callback Target: target_id=11 kind=1 endpoint=1 device_num=0 code=0x206a42
+  Callback DataOp: target_id=11 host_op_id=12 optype=1 src=0x7fffde8f2f40 src_device_num=0 dest=(nil) dest_device_num=0 bytes=400000 code=0x14e12cbf9264
+Allocated 256 bytes at 0x1bda3c0 in buffer request callback
+  Callback DataOp: target_id=11 host_op_id=13 optype=2 src=0x7fffde8f2f40 src_device_num=0 dest=0x14e121404000 dest_device_num=0 bytes=400000 code=0x14e12cbf9142
+Executing buffer complete callback: 0 0x1bdb0a0 104 0x1bdb108 0
+rec=0x1bdb108 type=8 time=1642116169959999580 thread_id=0 target_id=11
+	Record Target: kind=1 endpoint=1 device=0 task_id=0 target_id=11 codeptr=0x206a42
+Executing buffer complete callback: 0 0x1bdb0a0 0 (nil) 1
+Deallocated 0x1bdb0a0
+  Callback DataOp: target_id=11 host_op_id=14 optype=1 src=0x7fffde8914c0 src_device_num=0 dest=(nil) dest_device_num=0 bytes=400000 code=0x14e12cbf9264
+Allocated 256 bytes at 0x1bdac10 in buffer request callback
+  Callback DataOp: target_id=11 host_op_id=15 optype=2 src=0x7fffde8914c0 src_device_num=0 dest=0x14e121466000 dest_device_num=0 bytes=400000 code=0x14e12cbf9142
+Executing buffer complete callback: 0 0x1bda3c0 208 0x1bda3c0 0
+rec=0x1bda3c0 type=9 time=1642116169960003487 thread_id=0 target_id=11
+	  Record DataOp: host_op_id=12 optype=1 src_addr=0x14e121404000 src_device=0 dest_addr=0x7fffde8f2f40 dest_device=0 bytes=400000 end_time=1642116169960016231 duration=12744 ns codeptr=0x14e12cbf9264
+rec=0x1bda428 type=9 time=1642116169960018335 thread_id=0 target_id=11
+	  Record DataOp: host_op_id=13 optype=2 src_addr=0x7fffde8f2f40 src_device=0 dest_addr=0x14e121404000 dest_device=0 bytes=400000 end_time=1642116169960375962 duration=357627 ns codeptr=0x14e12cbf9142
+Executing buffer complete callback: 0 0x1bda3c0 0 (nil) 1
+Deallocated 0x1bda3c0
+  Callback Submit: target_id=11 host_op_id=16 req_num_teams=0
+Allocated 256 bytes at 0x1bda7c0 in buffer request callback
+  Callback DataOp: target_id=11 host_op_id=17 optype=3 src=0x14e121466000 src_device_num=0 dest=0x7fffde8914c0 dest_device_num=0 bytes=400000 code=0x14e12cc1641a
+Executing buffer complete callback: 0 0x1bdac10 208 0x1bdac10 0
+rec=0x1bdac10 type=9 time=1642116169960378567 thread_id=0 target_id=11
+	  Record DataOp: host_op_id=14 optype=1 src_addr=0x14e121466000 src_device=0 dest_addr=0x7fffde8914c0 dest_device=0 bytes=400000 end_time=1642116169960384909 duration=6342 ns codeptr=0x14e12cbf9264
+rec=0x1bdac78 type=9 time=1642116169960386793 thread_id=0 target_id=11
+	  Record DataOp: host_op_id=15 optype=2 src_addr=0x7fffde8914c0 src_device=0 dest_addr=0x14e121466000 dest_device=0 bytes=400000 end_time=1642116169960725143 duration=338350 ns codeptr=0x14e12cbf9142
+Executing buffer complete callback: 0 0x1bdac10 0 (nil) 1
+Deallocated 0x1bdac10
+  Callback DataOp: target_id=11 host_op_id=18 optype=3 src=0x14e121404000 src_device_num=0 dest=0x7fffde8f2f40 dest_device_num=0 bytes=400000 code=0x14e12cc1641a
+Allocated 256 bytes at 0x1bb4a90 in buffer request callback
+  Callback DataOp: target_id=11 host_op_id=19 optype=4 src=0x14e121466000 src_device_num=0 dest=(nil) dest_device_num=0 bytes=0 code=0x14e12cbfafe0
+  Callback DataOp: target_id=11 host_op_id=20 optype=4 src=0x14e121404000 src_device_num=0 dest=(nil) dest_device_num=0 bytes=0 code=0x14e12cbfafe0
+Allocated 256 bytes at 0x1bdae50 in buffer request callback
+Callback Target: target_id=11 kind=1 endpoint=2 device_num=0 code=0x206a42
+Executing buffer complete callback: 0 0x1bda7c0 208 0x1bda7c0 0
+rec=0x1bda7c0 type=10 time=1642116169960728950 thread_id=0 target_id=11
+	  Record Submit: host_op_id=16 requested_num_teams=0 granted_num_teams=240 end_time=1642116169960762193 duration=33243 ns
+rec=0x1bda828 type=9 time=1642116169960764307 thread_id=0 target_id=11
+	  Record DataOp: host_op_id=17 optype=3 src_addr=0x14e121466000 src_device=0 dest_addr=0x7fffde8914c0 dest_device=0 bytes=400000 end_time=1642116169961102026 duration=337719 ns codeptr=0x14e12cc1641a
+Executing buffer complete callback: 0 0x1bda7c0 0 (nil) 1
+Deallocated 0x1bda7c0
+Executing buffer complete callback: 0 0x1bb4a90 208 0x1bb4a90 0
+rec=0x1bb4a90 type=9 time=1642116169961113187 thread_id=0 target_id=11
+	  Record DataOp: host_op_id=18 optype=3 src_addr=0x14e121404000 src_device=0 dest_addr=0x7fffde8f2f40 dest_device=0 bytes=400000 end_time=1642116169961464352 duration=351165 ns codeptr=0x14e12cc1641a
+rec=0x1bb4af8 type=9 time=1642116169961466776 thread_id=0 target_id=11
+	  Record DataOp: host_op_id=19 optype=4 src_addr=0x14e121466000 src_device=0 dest_addr=(nil) dest_device=0 bytes=0 end_time=1642116169961468550 duration=1774 ns codeptr=0x14e12cbfafe0
+Executing buffer complete callback: 0 0x1bb4a90 0 (nil) 1
+Deallocated 0x1bb4a90
+Executing buffer complete callback: 0 0x1bdae50 208 0x1bdae50 0
+rec=0x1bdae50 type=9 time=1642116169961470363 thread_id=0 target_id=11
+	  Record DataOp: host_op_id=20 optype=4 src_addr=0x14e121404000 src_device=0 dest_addr=(nil) dest_device=0 bytes=0 end_time=1642116169961475924 duration=5561 ns codeptr=0x14e12cbfafe0
+rec=0x1bdaeb8 type=8 time=1642116169961477016 thread_id=0 target_id=11
+	Record Target: kind=1 endpoint=2 device=0 task_id=0 target_id=11 codeptr=0x206a42
+Success
+Callback Fini: device_num=0

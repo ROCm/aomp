@@ -1,0 +1,10 @@
+An illustration of how a tool would use OMPT target support for a
+simple vector copy OpenMP program.
+
+To compile and run:
+make run
+
+For help:
+make help
+
+Example output is in example_run.log.
