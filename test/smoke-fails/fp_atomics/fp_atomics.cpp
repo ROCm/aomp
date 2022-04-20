@@ -88,14 +88,8 @@ template <typename T> int test_em() {
   }
 
   red = 0.0;
-  
-  // LDS, fast: this is not yet working as expected.
-  // The red_sh variable is passed to the parallel outlined function
-  // through a global variable. By the time it reaches the unsafeAtomicAdd
-  // we lost the information about the type. That said, unsafeAtomicAdd
-  // should choose at runtime what function to use, but the ds version
-  // of the ISA instruction does not show up in the assembly.
-  // Work more on this.
+
+  // LDS, fast
   #pragma omp target teams num_teams(1) map(to : a[:n]) map(tofrom : red)
   { // no distribute construct, this works with a single team only
     T red_sh;
@@ -117,7 +111,7 @@ template <typename T> int test_em() {
 
   red = 0.0;
 
-// LDS, safe
+  // LDS, safe
   #pragma omp target teams num_teams(1) map(to : a[:n]) map(tofrom : red)
   { // no distribute construct, this works with a single team only
     T red_sh;
@@ -143,7 +137,7 @@ template <typename T> int test_em() {
 int main() {
   int err = test_em<float>();
   if (err)
-    return err;
+  return err;
   err = test_em<double>();
   return err;
 }
