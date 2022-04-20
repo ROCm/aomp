@@ -3,7 +3,6 @@ omptests: omptests.patch
 openlibm: openlibm.patch
 RAJA: raja.patch
 RAJAPerf: rajaperf.patch
-rocm-compilersupport: rocm-compilersupport.patch
 rocm-device-libs: rocm-device-libs.patch
 hipamd: hipamd.patch
 GenASis: genasis.patch
