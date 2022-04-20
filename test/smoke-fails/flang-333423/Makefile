@@ -1,16 +1,12 @@
 include ../../Makefile.defs
 
-TESTNAME     = flang-teams1
-TESTSRC_MAIN = flang-teams1.f90
+TESTNAME     = flang-333423
+TESTSRC_MAIN = flang-333423.f90
 TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 
-CFLAGS      = -ggdb -O2
-
-FLANG        = flang
+FLANG        = flang -g
 OMP_BIN      = $(AOMP)/bin/$(FLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
-#-ccc-print-phases
-#"-\#\#\#"
 
 include ../Makefile.rules

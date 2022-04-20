@@ -21,6 +21,13 @@ void __kmpc_impl_syncthreads();
 int main() {
   int main_rc = 0;
   double expect = (double)(((double)N - 1) * (double)N) / 2.0;
+
+  // dry runs to initialize hsa_queue's
+  for(int i = 0; i < 4; i++) {
+    #pragma omp target
+    {}
+  }
+
   // Initialize GPUs with a simple kernel
   #pragma omp target
     printf("GPUs initialized NUM_TEAMS:%d NUM_THREADS:%d\n",
