@@ -87,7 +87,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    DEVICELIBS_BUILD_PATH=$AOMP_REPOS/build/AOMP_LIBDEVICE_REPO_NAME
    PACKAGE_ROOT=$AOMP_REPOS/$AOMP_COMGR_REPO_NAME/lib/comgr
    ${AOMP_CMAKE} \
-      -DCMAKE_PREFIX_PATH="$AOMP/include;$AOMP/lib/cmake;$DEVICELIBS_BUILD_PATH;$PACKAGE_ROOT" \
+      -DCMAKE_PREFIX_PATH="$AOMP/include/amd_comgr;$AOMP/lib/cmake;$DEVICELIBS_BUILD_PATH;$PACKAGE_ROOT" \
       -DCMAKE_INSTALL_PREFIX=$INSTALL_COMGR \
       -DCMAKE_BUILD_TYPE=$BUILDTYPE \
       -DBUILD_TESTING=OFF \
@@ -126,6 +126,8 @@ if [ "$1" == "install" ] ; then
          echo "ERROR make install failed "
          exit 1
       fi
+      # amd_comgr.h is now in amd_comgr/amd_comgr.h, so remove depracated file
+      [ -f $INSTALL_COMGR/include/amd_comgr.h ] && rm $INSTALL_COMGR/include/amd_comgr.h
       if [ "$AOMP_MAJOR_VERSION" != "12" ] && [[ "$osversion" =~ "Ubuntu 16" ]]; then
         removepatch $REPO_DIR
       fi
