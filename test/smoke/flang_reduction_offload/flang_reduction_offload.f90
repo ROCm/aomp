@@ -35,6 +35,7 @@ REAL(KIND=8), DIMENSION(x_min:x_max) :: energy
     print *, " PASS "
   else
     print *, " FAIL "
+    stop 2
   endif
 ! call __check_double(expected, res, 1)
 
