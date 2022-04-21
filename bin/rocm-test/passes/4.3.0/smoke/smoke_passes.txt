@@ -10,7 +10,6 @@ aomp_mappings
 assertok_error
 atomic
 atomic_double
-atomic_vs_reduction
 bugz-50968
 clang-262701
 clang-273738
