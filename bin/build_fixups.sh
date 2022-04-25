@@ -27,7 +27,7 @@ thisdir=$(getdname $0)
 if [[ "$AOMP_STANDALONE_BUILD" == 0 ]] ; then
   . $AOMP_REPOS/aomp/bin/aomp_common_vars
 else
-  [ ! -L "$0" ] || thisdir=$(getdname `readlink "$0"`)
+  [ ! -L "$0" ] || thisdir=$(getdname `readlink -f "$0"`)
   . $thisdir/aomp_common_vars
 fi
 # --- end standard header ----

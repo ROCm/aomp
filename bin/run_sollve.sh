@@ -26,7 +26,7 @@ function getdname(){
    echo $__DIRN
 }
 thisdir=$(getdname $0)
-[ ! -L "$0" ] || thisdir=$(getdname `readlink "$0"`)
+[ ! -L "$0" ] || thisdir=$(getdname `readlink -f "$0"`)
 . $thisdir/aomp_common_vars
 # --- end standard header ----
 single_case=$1
