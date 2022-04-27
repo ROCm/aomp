@@ -180,6 +180,11 @@ fi
 
 tmpfile=/tmp/mlines$$
 cat $manifest_file | grep project > $tmpfile
+
+if [ ! -d ~/git/aomp-test ]; then
+  mkdir -p ~/git/aomp-test
+fi
+
 while read line ; do 
       line_is_good=1
       remote=`echo $line | grep remote | cut -d"=" -f2`

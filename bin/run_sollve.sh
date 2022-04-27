@@ -55,7 +55,7 @@ export C_VERSION=""
 export F_VERSION=""
 
 if [ "$ROCMASTER" == "1" ] || [ "$EPSDB" == "1" ]; then
-  ./clone_aomp_test.sh
+  ./clone_test.sh
   pushd $AOMP_REPOS_TEST/$AOMP_SOLVV_REPO_NAME
     # Lock at specific hash for consistency
     git reset --hard 0fbdbb9f7d3b708eb0b5458884cfbab25103d387
