@@ -99,7 +99,6 @@ global_allocate
 gpus
 helloworld
 hip_device_compile
-hip_rocblas
 host_targ
 icvars-nest
 icvars-nestF
