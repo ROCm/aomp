@@ -83,6 +83,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
      rm -rf $BUILD_DIR/build/hipamd
   fi
 
+  export ROCM_RPATH="$AOMP_ORIGIN_RPATH_LIST"
   MYCMAKEOPTS="$AOMP_ORIGIN_RPATH -DCMAKE_BUILD_TYPE=$BUILDTYPE \
  -DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR \
  -DCMAKE_CXX_FLAGS=-I$AOMP/include/amd_comgr \
