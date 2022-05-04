@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <omp.h>
 
-#define N     10
+#define N     1024
 #define VALUE 123456
 
 int main(int argc, char *argv[]) {
@@ -18,6 +18,8 @@ int main(int argc, char *argv[]) {
 
       #pragma omp parallel num_threads(N)
       {
+	if (omp_get_thread_num() == 0)
+	  num_threads = omp_get_num_threads();
         //printf("%d\n",A);
         int i = omp_get_thread_num();
         host[i] = A;
