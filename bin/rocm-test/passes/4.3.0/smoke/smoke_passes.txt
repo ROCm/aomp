@@ -1,5 +1,4 @@
 CanonNE
-DeclareSharedMemory
 ManyKernels
 MasterBarrier
 MaxNumThrds
