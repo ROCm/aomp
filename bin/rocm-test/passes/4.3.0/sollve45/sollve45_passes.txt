@@ -37,7 +37,6 @@ test_target_data_map_tofrom.c
 test_target_data_pointer_swap.c
 test_target_data_use_device_ptr.c
 test_target_defaultmap.c
-test_target_defaultmap.F90
 test_target_depends.c
 test_target_device.c
 test_target_device.F90
