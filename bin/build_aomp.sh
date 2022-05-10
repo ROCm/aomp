@@ -207,6 +207,6 @@ echo "ls $OUT_DIR/openmp-extras/rocm-bin:"
 ls $OUT_DIR/openmp-extras/rocm-bin
 echo
 
-PATH=$OUT_DIR/llvm/bin:$PATH $AOMP_REPOS/$AOMP_REPO_NAME/bin/bashtest
-PATH=$OUT_DIR/llvm/bin:$PATH $AOMP_REPOS/$AOMP_REPO_NAME/bin/bashtestf90
+#PATH=$OUT_DIR/llvm/bin:$PATH $AOMP_REPOS/$AOMP_REPO_NAME/bin/bashtest
+#PATH=$OUT_DIR/llvm/bin:$PATH $AOMP_REPOS/$AOMP_REPO_NAME/bin/bashtestf90
 exit 0
