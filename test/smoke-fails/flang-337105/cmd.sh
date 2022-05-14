@@ -1,6 +1,6 @@
 #!/bin/bash
 set -x
-export PATH=$AOMP/../bin:$PATH
+export PATH=$AOMP/bin:$PATH
 
 echo $(pwd)
 pth="$(pwd)/tmp/1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890/1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890/1234567890/1234567890/" 
@@ -9,7 +9,7 @@ rm -rf $pth *.mod
 mkdir -p $pth
 cp testmod.F90 $pth
 pushd $pth
-amdflang -c testmod.F90 -o testmod.o
+flang -c testmod.F90 -o testmod.o
 popd
-amdflang -I $pth $pth/testmod.o test.F90 -o test.exe
+flang -I $pth $pth/testmod.o test.F90 -o test.exe
 echo ${#pth}
