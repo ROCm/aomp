@@ -12,3 +12,6 @@ CC           = $(OMP_BIN) $(VERBOSE)
 #"-\#\#\#"
 
 include ../Makefile.rules
+
+run:
+	HSA_XNACK=1 ./$(TESTNAME)
