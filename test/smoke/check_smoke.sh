@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # Checks all tests in smoke directory using make check. Programs return 0 for success or a number > 0 for failure.
-# Tests that need to be visually inspected: devices, pfspecify, pfspecify_str, stream
+# Tests that need to be visually inspected: devices, stream
 #
 #
 
@@ -16,6 +16,17 @@ BLK="\033[0m"
 ulimit -t 150
 
 function gatherdata(){
+  #Replace false positive return codes with 'Check the run.log' so that user knows to visually inspect those.
+  echo ""
+  if [ -e check-smoke.txt ]; then
+    sed -i '/devices/ {s/0/Check the run.log above/}; /stream/ {s/0/Check the run.log above/}' check-smoke.txt
+    cat check-smoke.txt
+  fi
+  if [ -e make-fail.txt ]; then
+    cat make-fail.txt
+  fi
+  echo ""
+
   #Gather Test Data
   passing_tests=0
   if [ -e passing-tests.txt ]; then
@@ -60,10 +71,7 @@ function gatherdata(){
   echo ""
   echo -e "$ORG"
   echo "---------- Please inspect the output above to verify the following tests ----------"
-  echo "devices"
-  echo "pfspecifier"
-  echo "pfspecifier_str"
-  echo "stream"
+  echo "devices, stream"
   echo -e "$BLK"
 }
 
@@ -83,9 +91,11 @@ script_dir=$(dirname "$0")
 pushd $script_dir
 path=$(pwd)
 
-#Clean all testing directories
+#Clean all testing directories, except in parallel build
+if [ "$AOMP_PARALLEL_SMOKE" != 1 ]; then
   make clean
-  cleanup
+fi
+cleanup
 
 export OMP_TARGET_OFFLOAD=${OMP_TARGET_OFFLOAD:-MANDATORY}
 echo OMP_TARGET_OFFLOAD=$OMP_TARGET_OFFLOAD
@@ -96,11 +106,13 @@ echo ""
 
 echo "************************************************************************************" > check-smoke.txt
 echo "                   A non-zero exit code means a failure occured." >> check-smoke.txt
-echo "Tests that need to be visually inspected: devices, pfspecify, pfspecify_str, stream" >> check-smoke.txt
+echo "Tests that need to be visually inspected: devices, stream" >> check-smoke.txt
 echo "***********************************************************************************" >> check-smoke.txt
 
 known_fails=""
 skip_tests=""
+newest_rocm=$(ls /opt | grep -e "rocm-[0-9].[0-9].[0-9]" | tail -1)
+AOMPROCM=${AOMPROCM:-/opt/"$newest_rocm"}
 
 if [ "$SKIP_FAILURES" == 1 ] ; then
   skip_tests=$known_fails
@@ -111,6 +123,84 @@ if [ "$SKIP_FORTRAN" == 1 ] ; then
   skip_tests+="`find .  -iname '*.f9[50]' | sed s^./^^ | awk -F/ '{print $1}'` "
   echo $skip_tests
 fi
+
+# ---------- Begin parallel logic ----------
+if [ "$AOMP_PARALLEL_SMOKE" == 1 ]; then
+  COMP_THREADS=1
+  MAX_THREADS=16
+  if [ ! -z `which "getconf"` ]; then
+     COMP_THREADS=$(`which "getconf"` _NPROCESSORS_ONLN)
+     if [ "$AOMP_PROC" == "ppc64le" ] ; then
+        COMP_THREADS=$(( COMP_THREADS / 6))
+     fi
+     if [ "$AOMP_PROC" == "aarch64" ] ; then
+        COMP_THREADS=$(( COMP_THREADS / 4))
+     fi
+  fi
+  AOMP_JOB_THREADS=${AOMP_JOB_THREADS:-$COMP_THREADS}
+  if [ $AOMP_JOB_THREADS -gt 16 ]; then
+    AOMP_JOB_THREADS=16
+  fi
+  echo THREADS: $AOMP_JOB_THREADS
+
+  # Parallel Make
+  for directory in ./*/; do
+    pushd $directory > /dev/null
+    base=$(basename `pwd`)
+    echo Make: $base
+    if [ $base == "gpus" ]; then # Compile and link only test
+      make clean > /dev/null
+      make &> make-log.txt
+      if [ $? -ne 0 ]; then
+        flock -e lockfile -c "echo $base: Make Failed >> ../make-fail.txt"
+      else
+        flock -e lockfile -c "echo $base  >> ../passing-tests.txt"
+      fi
+    else
+      sem --jobs $AOMP_JOB_THREADS  --id def_sem -u 'base=$(basename $(pwd)); make clean > /dev/null; make &> make-log.txt; if [ $? -ne 0 ]; then flock -e lockfile -c "echo $base: Make Failed >> ../make-fail.txt"; fi;'
+    fi
+    popd > /dev/null
+  done
+
+  # Wait for jobs to finish before execution
+  sem --wait --id def_sem
+
+  # Parallel execution, currently limited to 4 jobs
+  for directory in ./*/; do
+    pushd $directory > /dev/null
+    base=$(basename `pwd`)
+    echo RUN $base
+    if [ $base == 'hip_rocblas' ] ; then
+      ls $AOMPROCM/rocblas > /dev/null 2>&1
+      if [ $? -ne 0 ]; then
+        echo -e "$RED"$base - needs rocblas installed at $AOMPROCM/rocblas:"$BLK"
+        echo -e "$RED"$base - ROCBLAS NOT FOUND!!! SKIPPING TEST!"$BLK"
+        popd > /dev/nul -cl
+        continue
+      fi
+    elif [ $base == 'devices' ] || [ $base == 'stream' ] ; then
+      sem --jobs 4 --id def_sem -u 'make run > /dev/null 2>&1'
+      sem --jobs 4 --id def_sem -u 'make check > /dev/null 2>&1'
+    elif [ $base == 'printf_parallel_for_target' ] || [ $base == 'omp_places' ] || [ $base == 'pfspecifier' ] || [ $base == 'pfspecifier_str' ] ; then
+      sem --jobs 4 --id def_sem -u 'make verify-log > /dev/null'
+    elif [ $base == 'flags' ] ; then
+      make run
+    elif [ $base == 'liba_bundled' ] || [ $base == 'liba_bundled_cmdline' ]; then
+      sem --jobs 4 --id def_sem -u 'base=$(basename $(pwd)); make check > /dev/null; if [ $? -ne 0 ]; then flock -e lockfile -c "echo $base: Make Failed >> ../make-fail.txt"; fi;'
+    elif [ $base == "gpus" ]; then # Compile and link only test
+      echo gpus is compile only!
+    else
+      sem --jobs 4 --id def_sem -u 'make check > /dev/null 2>&1'
+    fi
+    popd > /dev/null
+done
+
+# Wait for jobs to finish executing
+sem --wait --id def_sem
+gatherdata
+exit
+fi
+# ---------- End parallel logic ----------
 
 #Loop over all directories and make run / make check depending on directory name
 for directory in ./*/; do
@@ -131,8 +221,6 @@ for directory in ./*/; do
     popd > /dev/null
     continue
   fi
-  newest_rocm=$(ls /opt | grep -e "rocm-[0-9].[0-9].[0-9]" | tail -1)
-  AOMPROCM=${AOMPROCM:-/opt/"$newest_rocm"}
   if [ $base == 'hip_rocblas' ] ; then
     ls $AOMPROCM/rocblas > /dev/null 2>&1
     if [ $? -ne 0 ]; then
@@ -142,32 +230,23 @@ for directory in ./*/; do
       continue
     fi
   fi
-  if [ $base == 'devices' ] || [ $base == 'pfspecifier' ] || [ $base == 'pfspecifier_str' ] || [ $base == 'stream' ] ; then
-    make
-    if [ $? -ne 0 ]; then
-      echo "$base: Make Failed" >> ../make-fail.txt
-    fi
+  make
+  if [ $? -ne 0 ]; then
+    echo "$base: Make Failed" >> ../make-fail.txt
+    popd > /dev/null
+    continue
+  fi
+  if [ $base == 'devices' ] || [ $base == 'stream' ] ; then
     make run > /dev/null 2>&1
     make check > /dev/null 2>&1
-
-  #flags has multiple runs
-  elif [ $base == 'flags' ] ; then
-    make
+  elif [ $base == 'flags' ] ; then # Flags has multiple runs
     make run > /dev/null 2>&1
-  elif [ $base == 'printf_parallel_for_target' ] || [ $base == 'omp_places' ] ; then
+  elif [ $base == "gpus" ]; then # Compile and link only test
+    echo "$base" >> ../passing-tests.txt
+  elif [ $base == 'printf_parallel_for_target' ] || [ $base == 'omp_places' ] || [ $base == 'pfspecifier' ] || [ $base == 'pfspecifier_str' ] ; then
     make verify-log
   else
-    make
-    if [ $? -ne 0 ]; then
-      echo "$base: Make Failed" >> ../make-fail.txt
-      popd > /dev/null
-      continue
-    fi
-    if [ $base == "gpus" ]; then # Compile and link only test
-      echo "$base" >> ../passing-tests.txt
-    else
-      make check > /dev/null 2>&1
-    fi
+    make check > /dev/null 2>&1
     #liba_bundled has an additional Makefile, that may fail on the make check
     if [ $? -ne 0 ] && ( [ $base == 'liba_bundled' ] || [ $base == 'liba_bundled_cmdline' ] ) ; then
       echo "$base: Make Failed" >> ../make-fail.txt
@@ -182,7 +261,7 @@ for directory in ./*/; do
   pushd $directory > /dev/null
   path=$(pwd)
   base=$(basename $path)
-  if [ $base == 'devices' ] || [ $base == 'pfspecifier' ] || [ $base == 'pfspecifier_str' ] || [ $base == 'stream' ] ; then
+  if [ $base == 'devices' ] || [ $base == 'stream' ] ; then
     echo ""
     echo -e "$ORG"$base - Run Log:"$BLK"
     echo "--------------------------"
@@ -195,16 +274,6 @@ for directory in ./*/; do
   popd > /dev/null
 done
 
-#Replace false positive return codes with 'Check the run.log' so that user knows to visually inspect those.
-sed -i '/pfspecifier/ {s/0/Check the run.log above/}; /devices/ {s/0/Check the run.log above/}; /stream/ {s/0/Check the run.log above/}' check-smoke.txt
-echo ""
-if [ -e check-smoke.txt ]; then
-  cat check-smoke.txt
-fi
-if [ -e make-fail.txt ]; then
-  cat make-fail.txt
-fi
-echo ""
 
 gatherdata
 

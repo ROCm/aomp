@@ -25,7 +25,7 @@ else
   ARCH    = amdgcn
 endif
 
-TMPDIR   ?= ./build
+TMPDIR    = ./build
 CFLAGS  = -c $(AOMP_CPUTARGET) -fopenmp -fopenmp-targets=$(TRIPLE) \
             -Xopenmp-target=$(TRIPLE) \
             -march=$(AOMP_GPU) -O2
