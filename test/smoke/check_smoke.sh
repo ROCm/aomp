@@ -12,11 +12,11 @@ BLU="\033[0;34m"
 ORG="\033[0;33m"
 BLK="\033[0m"
 
-# limit any step to 6 minutes
+# Limit any step to 6 minutes
 ulimit -t 150
 
 function gatherdata(){
-  #Replace false positive return codes with 'Check the run.log' so that user knows to visually inspect those.
+  # Replace false positive return codes with 'Check the run.log' so that user knows to visually inspect those.
   echo ""
   if [ -e check-smoke.txt ]; then
     sed -i '/devices/ {s/0/Check the run.log above/}; /stream/ {s/0/Check the run.log above/}' check-smoke.txt
@@ -27,7 +27,7 @@ function gatherdata(){
   fi
   echo ""
 
-  #Gather Test Data
+  # Gather Test Data
   passing_tests=0
   if [ -e passing-tests.txt ]; then
     ((passing_tests=$(wc -l <  passing-tests.txt)))
@@ -40,14 +40,14 @@ function gatherdata(){
     ((total_tests+=$(wc -l <  failing-tests.txt)))
   fi
 
-  #Print Results
+  # Print Results
   echo -e "$BLU"-------------------- Results --------------------"$BLK"
   echo -e "$BLU"Number of tests: $total_tests"$BLK"
   echo ""
   echo -e "$GRN"Passing tests: $passing_tests/$total_tests"$BLK"
   echo ""
 
-  #Print failed tests
+  # Print failed tests
   echo -e "$RED"
   if [ "$SKIP_FAILS" != 1 ] && [ "$known_fails" != "" ] ; then
     echo "Known failures: $known_fails"
@@ -67,7 +67,7 @@ function gatherdata(){
   fi
   echo -e "$BLK"
 
-  #Tests that need visual inspection
+  # Tests that need visual inspection
   echo ""
   echo -e "$ORG"
   echo "---------- Please inspect the output above to verify the following tests ----------"
@@ -91,7 +91,7 @@ script_dir=$(dirname "$0")
 pushd $script_dir
 path=$(pwd)
 
-#Clean all testing directories, except in parallel build
+# Clean all testing directories, except in parallel build
 if [ "$AOMP_PARALLEL_SMOKE" != 1 ]; then
   make clean
 fi
@@ -140,6 +140,7 @@ if [ "$AOMP_PARALLEL_SMOKE" == 1 ]; then
   AOMP_JOB_THREADS=${AOMP_JOB_THREADS:-$COMP_THREADS}
   if [ $AOMP_JOB_THREADS -gt 16 ]; then
     AOMP_JOB_THREADS=16
+    echo "Limiting job threads to $AOMP_JOB_THREADS."
   fi
   echo THREADS: $AOMP_JOB_THREADS
 
@@ -202,12 +203,12 @@ exit
 fi
 # ---------- End parallel logic ----------
 
-#Loop over all directories and make run / make check depending on directory name
+# Loop over all directories and make run / make check depending on directory name
 for directory in ./*/; do
   pushd $directory > /dev/null
   path=$(pwd)
   base=$(basename $path)
-  #Skip tests that are known failures
+  # Skip tests that are known failures
   skip=0
   for test in $skip_tests ; do
     if [ $test == $base ] ; then
@@ -247,7 +248,7 @@ for directory in ./*/; do
     make verify-log
   else
     make check > /dev/null 2>&1
-    #liba_bundled has an additional Makefile, that may fail on the make check
+    # liba_bundled has an additional Makefile, that may fail on the make check
     if [ $? -ne 0 ] && ( [ $base == 'liba_bundled' ] || [ $base == 'liba_bundled_cmdline' ] ) ; then
       echo "$base: Make Failed" >> ../make-fail.txt
     fi
@@ -256,7 +257,7 @@ for directory in ./*/; do
   popd > /dev/null
 done
 
-#Print run.log for all tests that need visual inspection
+# Print run.log for all tests that need visual inspection
 for directory in ./*/; do
   pushd $directory > /dev/null
   path=$(pwd)
@@ -311,7 +312,7 @@ if [ "$EPSDB" == 1 ] ; then
   fi
 fi
 
-#Clean up, hide output
+# Clean up, hide output
 if [ "$EPSDB" != 1 ] && [ "$CLEANUP" != 0 ]; then
   cleanup
 fi
