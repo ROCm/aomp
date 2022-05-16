@@ -58,7 +58,9 @@ $AOMPROCM/bin/rocm_agent_enumerator
 
 # Set AOMP_GPU.
 # Regex skips first result 'gfx000' and selects second id.
-AOMP_GPU=$($AOMPROCM/bin/rocm_agent_enumerator | grep -m 1 -E gfx[^0]{1}.{2})
+if [ "$AOMP_GPU" == "" ]; then
+  AOMP_GPU=$($AOMPROCM/bin/rocm_agent_enumerator | grep -m 1 -E gfx[^0]{1}.{2})
+fi
 # mygpu will eventually relocate to /opt/rocm/bin, support both cases for now.
 echo AOMP_GPU= $AOMP_GPU
 
