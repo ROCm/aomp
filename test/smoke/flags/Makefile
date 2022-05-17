@@ -33,6 +33,8 @@ run:
 check: compile
 	@path=`pwd`; \
 	base=`basename $$path`; \
+	( \
+	flock -e 9 && echo  "" >> ../check-smoke.txt; \
 	if   (./$(TESTNAME)); then \
 		echo $$base $$test_num return code: $$? >> ../check-smoke.txt; \
 		echo "" >> ../check-smoke.txt; \
@@ -40,7 +42,8 @@ check: compile
 	else  echo $$base $$test_num return code: $$? >> ../check-smoke.txt; \
 		echo "" >> ../check-smoke.txt; \
 		echo $$base $$test_num  >> ../failing-tests.txt; \
-	fi
+	fi; \
+	)9>../lockfile;
 
 clean::
 	rm -f $(TESTNAME) $(TESTNAME).a llbin sbin obin *.i *.ii *.bc *.lk a.out-* *.ll *.s *.o *.log

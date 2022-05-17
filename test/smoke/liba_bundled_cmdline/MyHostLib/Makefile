@@ -18,7 +18,7 @@ LIBSRC1   = hfunc1
 LIBSRC2   = hfunc2
 LIBSRC3   = hfunc3
 
-TMPDIR   ?= ./build
+TMPDIR    = ./build
 UNAMEP    = $(shell uname -m)
 HOST_TARGET = $(UNAMEP)-pc-linux-gnu
 CFLAGS  = -c -target $(HOST_TARGET) -O2
