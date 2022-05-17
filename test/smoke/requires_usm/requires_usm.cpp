@@ -4,13 +4,15 @@
 #include <omp.h>
 #include <stdio.h>
 
-
+#if defined(__OFFLOAD_ARCH_gfx90a__)
 #pragma omp requires unified_shared_memory
+#endif
 
 int main(){
 
 
 
+#if defined(__OFFLOAD_ARCH_gfx90a__)
   double * DATA;
   size_t N = 1024/sizeof(double);
   omp_set_default_device(0);
@@ -60,7 +62,7 @@ int main(){
     }
   }
   //delete[] DATA;
-
+#endif
 
   return 0;
 }
