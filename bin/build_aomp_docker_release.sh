@@ -56,7 +56,7 @@ prereq_array["centos7"]="yum install -y gcc-c++ git cmake wget vim openssl-devel
 
 prereq_array["centos8"]="yum install -y dnf-plugins-core && yum config-manager --set-enabled PowerTools && yum install -y gcc-c++ git cmake wget vim openssl-devel elfutils-libelf-devel pciutils-devel numactl-devel libffi-devel mesa-libGL-devel libtool texinfo bison flex ncurses-devel expat-devel xz-devel libbabeltrace-devel gmp-devel rpm-build rsync && $pip_install"
 
-prereq_array["sles15"]="zypper install -y libgmp10-6.2.0-3.1.x86_64 which cmake wget vim libopenssl-devel elfutils libelf-devel git pciutils-devel python-base libffi-devel gcc gcc-c++ libnuma-devel openmpi2-devel Mesa-libGL-devel libquadmath0 libtool texinfo bison flex babeltrace-devel python3 python3-pip python3-devel python3-setuptools makeinfo ncurses-devel libexpat-devel xz-devel gmp-devel rpm-build rsync; $pip_install"
+prereq_array["sles15"]="zypper install -y which cmake wget vim libopenssl-devel elfutils libelf-devel git pciutils-devel python-base libffi-devel gcc gcc-c++ libnuma-devel openmpi2-devel Mesa-libGL-devel libquadmath0 libtool texinfo bison flex babeltrace-devel python3 python3-pip python3-devel python3-setuptools makeinfo ncurses-devel libexpat-devel xz-devel gmp-devel rpm-build rsync; $pip_install"
 
 # Some prep
 default_os="ubuntu1804 ubuntu2004 centos7 centos8 sles15"
@@ -97,7 +97,8 @@ function setup(){
   # Install prerequisite system packages
   if [ "$system" == "sles15" ]; then
     set +e
-    docker exec -i $docker_name /bin/bash -c "$exports; DEBIAN_FRONTEND=noninteractive ${prereq_array[$system]} 2>&1 | tee $DOCKER_HOME/logs/$system-preq.out"
+    docker exec -i $docker_name /bin/bash -c "zypper refresh"
+    docker exec -i $docker_name /bin/bash -c "$exports; ${prereq_array[$system]} 2>&1 | tee $DOCKER_HOME/logs/$system-preq.out"
     set -e
   else
     docker exec -i $docker_name /bin/bash -c "$exports; DEBIAN_FRONTEND=noninteractive ${prereq_array[$system]} 2>&1 | tee $DOCKER_HOME/logs/$system-preq.out"
