@@ -80,7 +80,8 @@ COMMON_CMAKE_OPTS="-DOPENMP_ENABLE_LIBOMPTARGET=1
 if [ "$AOMP_STANDALONE_BUILD" == 0 ]; then
   COMMON_CMAKE_OPTS="$COMMON_CMAKE_OPTS
   -DLLVM_MAIN_INCLUDE_DIR=$LLVM_PROJECT_ROOT/llvm/include
-  -DLIBOMPTARGET_LLVM_INCLUDE_DIRS=$LLVM_PROJECT_ROOT/llvm/include"
+  -DLIBOMPTARGET_LLVM_INCLUDE_DIRS=$LLVM_PROJECT_ROOT/llvm/include
+  -DENABLE_DEVEL_PACKAGE=ON -DENABLE_RUN_PACKAGE=ON"
 else
   COMMON_CMAKE_OPTS="$COMMON_CMAKE_OPTS \
 -DLLVM_MAIN_INCLUDE_DIR=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/llvm/include \
@@ -232,6 +233,10 @@ if [ "$1" == "install" ] ; then
         fi
         echo "==> Renaming ompdModule.cpython-36m-x86_64-linux-gnu.so to ompdModule.so"
         mv $AOMP_INSTALL_DIR/lib-debug/ompd/ompdModule.cpython-36m-x86_64-linux-gnu.so $AOMP_INSTALL_DIR/lib-debug/ompd/ompdModule.so
+      fi
+      if [[ "$DEVEL_PACKAGE" =~ "devel" ]]; then
+        AOMP_INSTALL_DIR="$AOMP_INSTALL_DIR/""$DEVEL_PACKAGE"
+        echo "Request for devel package found."
       fi
 
       # we do not yet have OMPD in llvm 12, disable this for now.
