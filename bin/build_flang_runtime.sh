@@ -71,6 +71,11 @@ MYCMAKEOPTS="-DCMAKE_BUILD_TYPE=$BUILD_TYPE \
 -DOPENMP_BUILD_DIR=$OPENMP_BUILD_DIR \
 -DCMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH"
 
+if [ "$AOMP_STANDALONE_BUILD" == 0 ]; then
+  MYCMAKEOPTS="$MYCMAKEOPTS
+  -DENABLE_DEVEL_PACKAGE=ON -DENABLE_RUN_PACKAGE=ON"
+fi
+
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then 
   help_build_aomp
 fi
