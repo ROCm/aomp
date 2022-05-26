@@ -155,7 +155,12 @@ if [ "$1" == "install" ] ; then
    fi
    echo "SUCCESSFUL INSTALL to $INSTALL_FLANG "
    echo
-   if [ -d $OUT_DIR/openmp-extras ]; then
+   if [ -d $OUT_DIR/openmp-extras/devel ]; then
+     echo "Add flang symbolic link."
+     echo "Copy flang, flang1, flang2 into $OUT_DIR/llvm/bin"
+     cp $OUT_DIR/openmp-extras/devel/bin/flang1 $OUT_DIR/llvm/bin
+     cp $OUT_DIR/openmp-extras/devel/bin/flang2 $OUT_DIR/llvm/bin
+   elif [-d $OUT_DIR/openmp-extras ]; then
      echo "Add flang symbolic link."
      echo "Copy flang, flang1, flang2 into $OUT_DIR/llvm/bin"
      cp $OUT_DIR/openmp-extras/bin/flang1 $OUT_DIR/llvm/bin
