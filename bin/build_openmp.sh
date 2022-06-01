@@ -100,6 +100,10 @@ COMMON_CMAKE_OPTS="-DDEVICELIBS_ROOT=$DEVICELIBS_ROOT
 -DOPENMP_TEST_C_COMPILER=$OUT_DIR/llvm/bin/clang
 -DOPENMP_TEST_CXX_COMPILER=$OUT_DIR/llvm/bin/clang++"
 
+if [ "$AOMP_STANDALONE_BUILD" == 0 ]; then
+  COMMON_CMAKE_OPTS="$COMMON_CMAKE_OPTS -DENABLE_DEVEL_PACKAGE=ON -DENABLE_RUN_PACKAGE=ON"
+fi
+
 if [ "$AOMP_BUILD_CUDA" == 1 ] ; then
    COMMON_CMAKE_OPTS="$COMMON_CMAKE_OPTS
 -DLIBOMPTARGET_NVPTX_ENABLE_BCLIB=ON
@@ -234,6 +238,11 @@ if [ "$1" == "install" ] ; then
          echo "ERROR make install failed "
          exit 1
       fi
+      if [[ "$DEVEL_PACKAGE" =~ "devel" ]]; then
+        AOMP_INSTALL_DIR="$AOMP_INSTALL_DIR/""$DEVEL_PACKAGE"
+        echo "Request for devel package found."
+      fi
+
       # Copy selected debugable runtime sources into the installation lib-debug/src directory
       # to satisfy the above -fdebug-prefix-map.
       $SUDO mkdir -p $AOMP_INSTALL_DIR/lib-debug/src/openmp/runtime/src

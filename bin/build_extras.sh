@@ -124,8 +124,8 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
   -DDEVICELIBS_ROOT=$DEVICELIBS_ROOT \
   -DNEW_BC_PATH=1 \
   -DCMAKE_INSTALL_PREFIX=$INSTALL_EXTRAS \
-  -DCMAKE_PREFIX_PATH=$DEVICELIBS_BUILD_PATH;$OUT_DIR/build/devicelibs"
-
+  -DCMAKE_PREFIX_PATH=$DEVICELIBS_BUILD_PATH;$OUT_DIR/build/devicelibs \
+  -DENABLE_DEVEL_PACKAGE=ON"
   fi
 
   mkdir -p $BUILD_DIR/build/extras

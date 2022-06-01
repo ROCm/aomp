@@ -59,6 +59,10 @@ else
     -DCMAKE_INSTALL_PREFIX=$INSTALL_FLANG"
 fi
 
+if [ "$AOMP_STANDALONE_BUILD" == 0 ]; then
+  MYCMAKEOPTS="$MYCMAKEOPTS
+  -DENABLE_DEVEL_PACKAGE=ON -DENABLE_RUN_PACKAGE=ON"
+fi
 
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then 
   help_build_aomp
