@@ -7,3 +7,4 @@ rocm-device-libs: rocm-device-libs.patch
 hipamd: hipamd.patch
 GenASis: genasis.patch
 hipfort: hipfort.patch
+bolt: bolt.patch
