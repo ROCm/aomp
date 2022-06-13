@@ -8,6 +8,10 @@
 #  Please check with Ron or Ethan for script modifications.
 #
 #
+clangversion=`$AOMP/bin/clang --version`
+if [[ "$clangversion" =~ "AOMP_STANDALONE" ]]; then
+  aomp=1
+fi
 
 # Use bogus path to avoid using target.lst, a user-defined target list
 # used by rocm_agent_enumerator.
@@ -40,7 +44,11 @@ if [ $? -ne 0 ]; then
 fi
 
 # Parent dir should be ROCm base dir.
-AOMPROCM=$AOMP/..
+if [ "$aomp" -eq 1 ]; then
+  AOMPROCM=$AOMP
+else
+  AOMPROCM=$AOMP/..
+fi
 export AOMPROCM
 echo AOMPROCM= $AOMPROCM
 
@@ -93,54 +101,59 @@ function getversion(){
   versions[450]=4.5.0
   versions[452]=4.5.2
   versions[500]=5.0.0
+  if [ "$aomp" -eq 1 ]; then
+    echo "AOMP detected at $AOMP, skipping ROCm version detections"
+    finalvers=`echo $supportedvers | grep -o "[0-9].[0-9].[0-9]$" | sed -e 's/\.//g'`
+    echo "Selecting highest supported version: ${versions[$finalvers]}"
+  else
+    # Determine ROCm version.
+    rocm=$(cat "$AOMPROCM"/.info/version-dev)
+    rocmregex="([0-9]+\.[0-9]+\.[0-9]+)"
+    if [[ "$rocm" =~ $rocmregex ]]; then
+      rocmver=$(echo ${BASH_REMATCH[1]} | sed "s/\.//g")
+      echo rocmver: $rocmver
+    else
+      echo Unable to determine rocm version.
+      exit 1
+    fi
 
-  # Determine ROCm version.
-  rocm=$(cat "$AOMPROCM"/.info/version-dev)
-  rocmregex="([0-9]+\.[0-9]+\.[0-9]+)"
-  if [[ "$rocm" =~ $rocmregex ]]; then
-    rocmver=$(echo ${BASH_REMATCH[1]} | sed "s/\.//g")
-    echo rocmver: $rocmver
-  else
-    echo Unable to determine rocm version.
-    exit 1
-  fi
-
-  # Determine OS flavor to properly query openmp-extras version.
-  osname=$(cat /etc/os-release | grep -e ^NAME=)
-  # Regex to cover single/multi version installs for deb/rpm.
-  ompextrasregex="openmp-extras[0-9]*\.*[0-9]*\.*[0-9]*-*\s*[0-9]+\.([0-9]+)\.([0-9]+)"
-  rpmregex="Red Hat|CentOS|SLES"
-  echo $osname
-  if [[ "$osname" =~ $rpmregex ]]; then
-    echo "Red Hat/CentOS/SLES found"
-    ompextraspkg=$(rpm -qa | grep openmp-extras | tail -1)
-  elif [[ $osname =~ "Ubuntu" ]]; then
-    echo "Ubuntu found"
-    ompextraspkg=$(dpkg --list | grep openmp-extras | tail -1)
-  fi
-  if [[ "$ompextraspkg" =~ $ompextrasregex ]]; then
-    ompextrasver=${BASH_REMATCH[1]}${BASH_REMATCH[2]}
-    echo ompextrasver: $ompextrasver
-  else
-    echo Unable to determine openmp-extras package version.
-    exit 1
-  fi
-  # Set the final version to use for expected passing lists. The expected passes
-  # will include an aggregation of suported versions up to and including the chosen
-  # version.  Example: If 4.4 is selected then the final list will include expected passes
-  # from 4.3 and 4.4. Openmp-extras should not be a higher version than rocm.
-  if [ "$rocmver" == "$ompextrasver" ] || [ "$rocmver" -gt "$ompextrasver" ]; then
-    compilerver=${versions[$ompextrasver]}
-  else
-    compilerver=${versions[$rocmver]}
-  fi
-  echo Chosen Version: $compilerver
-  versionregex="(.*$compilerver)"
-  if [[ "$supportedvers" =~ $versionregex ]]; then
-    finalvers=${BASH_REMATCH[1]}
-  else
-    echo "Unsupported compiler build."
-    exit 1
+    # Determine OS flavor to properly query openmp-extras version.
+    osname=$(cat /etc/os-release | grep -e ^NAME=)
+    # Regex to cover single/multi version installs for deb/rpm.
+    ompextrasregex="openmp-extras[0-9]*\.*[0-9]*\.*[0-9]*-*\s*[0-9]+\.([0-9]+)\.([0-9]+)"
+    rpmregex="Red Hat|CentOS|SLES"
+    echo $osname
+    if [[ "$osname" =~ $rpmregex ]]; then
+      echo "Red Hat/CentOS/SLES found"
+      ompextraspkg=$(rpm -qa | grep openmp-extras | tail -1)
+    elif [[ $osname =~ "Ubuntu" ]]; then
+      echo "Ubuntu found"
+      ompextraspkg=$(dpkg --list | grep openmp-extras | tail -1)
+    fi
+    if [[ "$ompextraspkg" =~ $ompextrasregex ]]; then
+      ompextrasver=${BASH_REMATCH[1]}${BASH_REMATCH[2]}
+      echo ompextrasver: $ompextrasver
+    else
+      echo Unable to determine openmp-extras package version.
+      exit 1
+    fi
+    # Set the final version to use for expected passing lists. The expected passes
+    # will include an aggregation of suported versions up to and including the chosen
+    # version.  Example: If 4.4 is selected then the final list will include expected passes
+    # from 4.3 and 4.4. Openmp-extras should not be a higher version than rocm.
+    if [ "$rocmver" == "$ompextrasver" ] || [ "$rocmver" -gt "$ompextrasver" ]; then
+      compilerver=${versions[$ompextrasver]}
+    else
+      compilerver=${versions[$rocmver]}
+    fi
+    echo Chosen Version: $compilerver
+    versionregex="(.*$compilerver)"
+    if [[ "$supportedvers" =~ $versionregex ]]; then
+      finalvers=${BASH_REMATCH[1]}
+    else
+      echo "Unsupported compiler build."
+      exit 1
+    fi
   fi
 }
 
