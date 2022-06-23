@@ -9,6 +9,7 @@
 #
 #
 clangversion=`$AOMP/bin/clang --version`
+aomp=0
 if [[ "$clangversion" =~ "AOMP_STANDALONE" ]]; then
   aomp=1
 fi
@@ -44,7 +45,7 @@ if [ $? -ne 0 ]; then
 fi
 
 # Parent dir should be ROCm base dir.
-if [ "$aomp" -eq 1 ]; then
+if [ $aomp -eq 1 ]; then
   AOMPROCM=$AOMP
 else
   AOMPROCM=$AOMP/..
@@ -94,17 +95,28 @@ export AOMP_GPU
 # this version mismatch on release testing. We will choose the lower version so that
 # unsupported tests are not included.
 function getversion(){
-  supportedvers="4.3.0 4.4.0 4.5.0 4.5.2 5.0.0"
+  supportedvers="4.3.0 4.4.0 4.5.0 4.5.2 5.0.0 5.1.0 5.2.0 5.3.0"
   declare -A versions
   versions[430]=4.3.0
   versions[440]=4.4.0
   versions[450]=4.5.0
   versions[452]=4.5.2
   versions[500]=5.0.0
-  if [ "$aomp" -eq 1 ]; then
+  versions[510]=5.1.0
+  versions[520]=5.2.0
+  versions[530]=5.3.0
+
+  if [ $aomp -eq 1 ]; then
     echo "AOMP detected at $AOMP, skipping ROCm version detections"
-    finalvers=`echo $supportedvers | grep -o "[0-9].[0-9].[0-9]$" | sed -e 's/\.//g'`
-    echo "Selecting highest supported version: ${versions[$finalvers]}"
+    maxvers=`echo $supportedvers | grep -o "[0-9].[0-9].[0-9]$" | sed -e 's/\.//g'`
+    versionregex="(.*${versions[$maxvers]})"
+    if [[ "$supportedvers" =~ $versionregex ]]; then
+      finalvers=${BASH_REMATCH[1]}
+    else
+      echo "AOMP - Cannot select proper version list."
+      exit 1
+    fi
+    echo "Selecting highest supported version: ${versions[$maxvers]}"
   else
     # Determine ROCm version.
     rocm=$(cat "$AOMPROCM"/.info/version-dev)
@@ -120,7 +132,7 @@ function getversion(){
     # Determine OS flavor to properly query openmp-extras version.
     osname=$(cat /etc/os-release | grep -e ^NAME=)
     # Regex to cover single/multi version installs for deb/rpm.
-    ompextrasregex="openmp-extras[0-9]*\.*[0-9]*\.*[0-9]*-*\s*[0-9]+\.([0-9]+)\.([0-9]+)"
+    ompextrasregex="openmp-extras-?[a-z]*[0-9]*\.*[0-9]*\.*[0-9]*-*\s*[0-9]+\.([0-9]+)\.([0-9]+)"
     rpmregex="Red Hat|CentOS|SLES"
     echo $osname
     if [[ "$osname" =~ $rpmregex ]]; then
