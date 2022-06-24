@@ -487,6 +487,8 @@ function setaompgpu (){
     echo Set AOMP_GPU with mygpu.
     if [ -a $AOMP/bin/mygpu ]; then
       detected_gpu=$($AOMP/bin/mygpu)
+    elif [ -a $AOMP/bin/amdgpu-arch ]; then
+      detected_gpu=$($AOMP/bin/amdgpu-arch)
     else
       detected_gpu=$($AOMP/../bin/mygpu)
     fi
