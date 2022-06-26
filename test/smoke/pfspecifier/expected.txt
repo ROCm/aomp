@@ -12,7 +12,6 @@ floating point: 392.65
 Hexadecimal: 0x1.88a6666666666p+8
 Hexadecimal: 0X1.88A6666666666P+8
 Characters: A
-Pointer: 0x1000000000040
 Signed: 392
 Only percent sign %
 No specifier!
