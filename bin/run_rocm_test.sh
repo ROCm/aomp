@@ -119,7 +119,7 @@ function getversion(){
     echo "Selecting highest supported version: ${versions[$maxvers]}"
   else
     # Determine ROCm version.
-    rocm=$(cat "$AOMPROCM"/.info/version-dev)
+    rocm=$(cat "$AOMPROCM"/.info/version*|head -1)
     rocmregex="([0-9]+\.[0-9]+\.[0-9]+)"
     if [[ "$rocm" =~ $rocmregex ]]; then
       rocmver=$(echo ${BASH_REMATCH[1]} | sed "s/\.//g")
