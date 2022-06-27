@@ -23,16 +23,35 @@
 // SOFTWARE.
 
 #include "hip/hip_runtime.h"
-#include <cstdio>
-#include <cstdlib>
+#include <stdio.h>
 
-#define N 100
+#define N 10
 
-__global__ void vecadd(int n, int *A, int *B, int *C) {
-  size_t i = blockIdx.x * blockDim.x + threadIdx.x;
-  if (i < n) {
-    C[i] = A[i] + B[i];
+__device__ long long int *stuff;
+
+__global__ void writeIndex(int *b, int n);
+
+void printArray(int *array) {
+  printf("[");
+  bool first = true;
+  for (int i = 0; i < N; ++i) {
+    if (first) {
+      printf("%d", array[i]);
+      first = false;
+    } else {
+      printf(", %d", array[i]);
+    }
   }
+  printf("]");
+}
+
+int checkArray(int *array){
+  int errors = 0;
+  for(int i = 0; i < N; ++i){
+    if(array[i] != i)
+      errors++;
+  }
+  return errors;
 }
 
 void printHipError(hipError_t error) {
@@ -68,64 +87,46 @@ bool haveComputeDevice() {
   return deviceIsAvailable(&deviceID) && deviceCanCompute(deviceID);
 }
 
-void initialize(int n, int *arr) {
-  srand(time(0));
-  for (int i = 0; i < n; i++) {
-    arr[i] = rand() % N;
-  }
-}
-
-void checkResult(int n, int *C, int *A, int *B) {
-  bool flag = false;
-  for (int i = 0; i < n; i++) {
-    if (C[i] == A[i] + B[i])
-      continue;
-    flag = true;
-    break;
-  }
-  if (!flag)
-    printf("\nSuccess!!\n");
-  else
-    printf("\nError!!\n");
-}
-
-int main(int argc, char *argv[]) {
-
-  size_t NBytes = N * sizeof(int);
-
-  int *h_A = (int *)malloc(NBytes);
-  int *h_B = (int *)malloc(NBytes);
-  int *h_C = (int *)malloc(NBytes);
-
-  initialize(N, h_A);
-  initialize(N, h_B);
+int main() {
+  int hostArray[N];
 
   if (!haveComputeDevice()) {
     printf("No compute device available\n");
     return 0;
   }
 
-  int *d_A, *d_B, *d_C;
+  for (int i = 0; i < N; ++i)
+    hostArray[i] = 0;
 
-  hipCallSuccessful(hipMalloc(&d_A, NBytes));
-  hipCallSuccessful(hipMalloc(&d_B, NBytes));
-  hipCallSuccessful(hipMalloc(&d_C, NBytes));
+  printf("Array content before kernel:\n");
+  printArray(hostArray);
+  printf("\n");
 
-  hipCallSuccessful(hipMemcpy(d_A, h_A, NBytes, hipMemcpyHostToDevice));
-  hipCallSuccessful(hipMemcpy(d_B, h_A, NBytes, hipMemcpyHostToDevice));
+  int *deviceArray;
+  if (!hipCallSuccessful(hipMalloc((void **)&deviceArray, N * sizeof(int)))) {
+    printf("Unable to allocate device memory\n");
+    return 0;
+  }
 
-  hipLaunchKernelGGL(vecadd, dim3((N + 64 - 1) / 64, 1, 1), dim3(64, 1, 1), 0,
-                     0, N, d_A, d_B, d_C);
+  hipLaunchKernelGGL((writeIndex), dim3(N), dim3(1), 0, 0, deviceArray, N);
 
-  hipCallSuccessful(hipMemcpy(h_C, d_C, NBytes, hipMemcpyDeviceToHost));
+  if (hipCallSuccessful(hipMemcpy(hostArray, deviceArray, N * sizeof(int),
+                                  hipMemcpyDeviceToHost))) {
+    printf("Array content after kernel:\n");
+    printArray(hostArray);
+    printf("\n");
+  } else {
+    printf("Unable to copy memory from device to host\n");
+  }
 
-  checkResult(N, h_C, h_A, h_B);
-  hipFree(d_A);
-  hipFree(d_B);
-  hipFree(d_C);
-  free(h_A);
-  free(h_B);
-  free(h_C);
+  hipFree(deviceArray);
 
+  int errors = checkArray(hostArray);
+
+  if(errors){
+    printf("Fail!\n");
+    return 1;
+  }
+  printf("Success!\n");
   return 0;
 }

@@ -1,6 +1,7 @@
 #-----------------------------------------------------------------------
 #
-#  Makefile: Compile HIP test cases with ASAN Flags.
+#  Makefile: Cuda clang demo Makefile for both amdgcn and nvptx targets.
+#            amdgcn targets begin with gfx. nvptx targets begin with sm_
 #
 #  Run "make help" to see how to use this Makefile
 #
@@ -28,7 +29,7 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-TESTNAME =vectorAdd-GBO
+TESTNAME =vectorAdd
 FILETYPE =cpp
 
 UNAMEP = $(shell uname -m)
@@ -54,30 +55,36 @@ ifeq ("$(wildcard $(AOMP))","")
 endif
 # --- End Standard Makefile check for AOMP installation ---
 endif
-
+ifeq ($(CUDA),)
+CUDA = /usr/local/cuda
+endif
 ifeq ($(AOMP_GPU),)
 INSTALLED_GPU  = $(shell $(AOMP)/bin/mygpu -d gfx900) # Default AOMP_GPU is gfx900 which is vega
 AOMP_GPU       ?= $(INSTALLED_GPU)
 endif
-
 ifeq ($(TARGETS),)
-TARGETS =--offload-arch=$(AOMP_GPU):xnack+
+TARGETS =--offload-arch=$(AOMP_GPU)
 endif
 
 CC       =$(AOMP)/bin/clang++
 
 #  compiler automatically adds "libdevice/<target>/ to -L opts
 LFLAGS   =-L$(AOMP)/lib
-ASAN_FLAGS = -fsanitize=address -shared-libasan
+ASAN_FLAGS = -fsanitize=address -fgpu-sanitize -shared-libsan
 
-AOMPHIP ?= $(AOMP)
-VERS = $(shell $(AOMP)/bin/clang --version | grep -oP '(?<=clang version )[0-9.]+')
-ifeq ($(shell expr $(VERS) \>= 12.0), 1)
-	RPTH = -Wl,-rpath,$(AOMPHIP)/lib
+# Add cudart only if we have an Nvidia sm_ target
+ifeq (sm_,$(findstring sm_,$(TARGETS)))
+  LFLAGS +=-L$(CUDA)/targets/$(UNAMEP)-linux/lib -lcudart -Wl,-rpath,$(CUDA)/targets/$(UNAMEP)-linux/lib -std=c++11
+  CFLAGS +=-x cuda -I$(CUDA)/include
+else
+  AOMPHIP ?= $(AOMP)
+  VERS = $(shell $(AOMP)/bin/clang --version | grep -oP '(?<=clang version )[0-9.]+')
+  ifeq ($(shell expr $(VERS) \>= 12.0), 1)
+    RPTH = -Wl,-rpath,$(AOMPHIP)/lib
+  endif
+  HIPLIBS = -L $(AOMPHIP)/hip -L $(AOMPHIP)/lib  $(RPTH)
+  CFLAGS = -x hip -std=c++11 $(HIPLIBS) -lamdhip64
 endif
-
-HIPLIBS = -L $(AOMPHIP)/hip -L $(AOMPHIP)/lib  $(RPTH)
-CFLAGS = -O0 -g -x hip -std=c++11 $(HIPLIBS) -lamdhip64
 
 # ----- Demo compile and link in one step, no object code saved
 $(TESTNAME): $(TESTNAME).$(FILETYPE)
@@ -111,8 +118,8 @@ help:
 	@echo "  Compiler flags: 	$(CFLAGS)"
 	@echo
 	@echo "Avalable Targets:"
-	@echo "  make			// build binary $(TESTNAME) with ASan flags"
-	@echo "  make run		// run $(TESTNAME) with ASan flags"
+	@echo "  make			// build binary $(TESTNAME) with Asan flags"
+	@echo "  make run		// run $(TESTNAME) with Asan flags"
 	@echo "  make $(TESTNAME).o	// compile, be, & assemble : -c"
 	@echo "  make obin         	// link step only"
 	@echo "  make run_obin     	// run obin "
@@ -124,6 +131,7 @@ help:
 	@echo "Environment Variables:"
 	@echo "  AOMP      default: $(HOME)/rocm/aomp     value: $(AOMP)"
 	@echo "  AOMP_GPU  default: gfx900                value: $(AOMP_GPU)"
+	@echo "  CUDA      default: /usr/local/cuda       value: $(CUDA)"
 	@echo "  TARGETS   default: --offload-arch=$(AOMP_GPU)"
 	@echo "              value: $(TARGETS)"
 	@echo
