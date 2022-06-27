@@ -212,27 +212,10 @@ function checkrc(){
   fi
 }
 
-function setUnsetAsanEnv(){
-  set CLANG_VERSION=$($AOMP/bin/clang --version | head -n 1 | grep -om 1 "[0-9]\+\.[0-9]\.[0-9]")
-  flag="$1"
-  case $flag in
-          true)
-              export LD_PRELOAD="$AOMP/lib/clang/$CLANG_VERSION/lib/linux/libclang_rt.asan-x86_64.so"
-              export ASAN_OPTIONS="verbosity=2:symbolize=1:detect_leaks=0"
-              ;;
-          false)
-              unset LD_PRELOAD ASAN_OPTIONS
-              ;;
-  esac
-}
 
 # Get version of installed ROCm and compare against openmp-extras version.
 getversion
 echo "Included Versions: $finalvers"
-
-if [ ! -z "$1" ] && [ "$1" == "asan" ]; then
-        setUnsetAsanEnv true
-fi
 
 cd "$aompdir"/bin
 rm -rf $resultsdir
@@ -294,10 +277,6 @@ copyresults sollve45
 # 5.0 Results
 cd "$HOME"/git/aomp-test/sollve_vv/results_report50
 copyresults sollve50
-
-if [ ! -z "$1" ] && [ "$1" == "asan" ]; then
-        setUnsetAsanEnv false
-fi
 
 cat $unexpresults >> $summary
 echo >> $summary
