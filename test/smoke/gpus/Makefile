@@ -15,7 +15,6 @@ CC           = $(OMP_BIN) $(VERBOSE)
 include ../Makefile.rules
 LOCAL_OMP_FLAGS1 = $(filter-out -march=$(AOMP_GPU), $(OMP_FLAGS))
 LOCAL_OMP_FLAGS = $(filter-out -D__OFFLOAD_ARCH_$(INSTALLED_GPU)__, $(LOCAL_OMP_FLAGS1))
-GFXLIST = $(shell grep GFXLIST= ../../../bin/aomp_common_vars | grep -o "gfx.*" | sed -E "s|\"}||" | sed -E "s|gfx1010||")
 
 all: $(GFXLIST)
 

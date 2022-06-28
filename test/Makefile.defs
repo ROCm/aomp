@@ -38,9 +38,14 @@ else
 endif
 
 # If AOMP env variable contains opt use rocm_agent_enumerator for device id.
+# Set GFXLIST to available gfx numbers pulled from installed bc files.
 ifeq (opt,$(findstring opt,$(AOMP)))
   INSTALLED_GPU  = $(shell $(AOMP)/../bin/rocm_agent_enumerator | grep -m 1 -E gfx[^0]{1}.{2})
+  GFXLIST = $(shell ls $(AOMP)/lib | grep -oP 'amdgcn-\K\S+(?=.bc)')
 else
+   # Set GFXLIST from aomp_common_vars
+   GFXLIST = $(shell grep GFXLIST= ../../../bin/aomp_common_vars | grep -o "gfx.*" | sed -E "s|\"}||" | sed -E "s|gfx1010||")
+
    # If AOMP not pointing to rocm, then assume neither offload-arch nor mygpu utilities exist.
    # So use lspci to search for volta and if not then use standalone rocm_agent_enumerator
    # to autodetect which GPU is active.
