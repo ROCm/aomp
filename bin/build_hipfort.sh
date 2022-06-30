@@ -85,7 +85,6 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 -DCMAKE_INSTALL_PREFIX=$HIPFORT_INSTALL_DIR \
 -DCMAKE_BUILD_TYPE=Release \
 -DHIPFORT_COMPILER=$AOMP_INSTALL_DIR/bin/flang \
--DCMAKE_Fortran_FLAGS="-Mfree" \
 -DHIPFORT_COMPILER_FLAGS="-cpp" \
 -DCMAKE_Fortran_FLAGS_DEBUG="" \
 -DHIPFORT_AR=$AOMP_INSTALL_DIR/bin/llvm-ar \
@@ -96,7 +95,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
   echo
   echo " -----Running hipfort cmake ---- "
   echo ${AOMP_CMAKE} $MYCMAKEOPTS $REPO_DIR
-  ${AOMP_CMAKE} $MYCMAKEOPTS $REPO_DIR
+  ${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_Fortran_FLAGS="-Mfree -fPIC" $REPO_DIR
   if [ $? != 0 ] ; then
       echo "ERROR hipfort cmake failed. Cmake flags"
       echo "      $MYCMAKEOPTS"
