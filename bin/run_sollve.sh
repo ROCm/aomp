@@ -97,6 +97,8 @@ else
      export MY_SOLLVE_FLAGS="$MY_SOLLVE_FLAGS -fopenmp-version=50"
   elif [ $this_omp_version == "5.1" ] ; then
      export MY_SOLLVE_FLAGS="$MY_SOLLVE_FLAGS -fopenmp-version=51"
+  elif [ $this_omp_version == "5.2" ] ; then
+     export MY_SOLLVE_FLAGS="$MY_SOLLVE_FLAGS -fopenmp-version=52"
   elif [ $this_omp_version == "4.5" ] ; then
      export MY_SOLLVE_FLAGS="$MY_SOLLVE_FLAGS -fopenmp-version=45"
   fi
@@ -154,6 +156,21 @@ make report_html
 make report_summary >> combined-results.txt
 make report_summary  | tail -5 >> abrev.combined-results.txt
 mv results_report results_report51
+fi
+
+if [ "$ROCMASTER" != "1" ] && [ "$EPSDB" != "1" ] && [ "$SKIP_SOLLVE52" != 1 ]; then
+echo "--------------------------- START OMP 5.2 TESTING ---------------------"
+# Run OpenMP 5.2 Tests
+export MY_SOLLVE_FLAGS="$MY_SOLLVE_FLAGS -fopenmp-version=52"
+make tidy
+make CC=$AOMP/bin/clang CXX=$AOMP/bin/clang++ FC=$AOMP/bin/flang CFLAGS="-lm $MY_SOLLVE_FLAGS" CXXFLAGS="$MY_SOLLVE_FLAGS" FFLAGS="$MY_SOLLVE_FLAGS"  OMP_VERSION=5.2 LOG=1 LOG_ALL=1 VERBOSE_TESTS=1 VERBOSE=1 all
+echo 
+echo "--------------------------- OMP 5.2 Detailed Results ---------------------------" >> combined-results.txt
+echo "--------------------------- OMP 5.2 Results ---------------------------" >> abrev.combined-results.txt
+make report_html
+make report_summary >> combined-results.txt
+make report_summary  | tail -5 >> abrev.combined-results.txt
+mv results_report results_report52
 fi
 
 echo "========================= ALL TESTING COMPLETE ! ====================="
