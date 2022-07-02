@@ -73,6 +73,7 @@ if [ "$make_target" == "all" ] ; then
    [ -d results_report45 ] && rm -rf results_report45
    [ -d results_report50 ] && rm -rf results_report50
    [ -d results_report51 ] && rm -rf results_report51
+   [ -d results_report52 ] && rm -rf results_report52
    [ -f combined-results.txt ] && rm -f combined-results.txt
    make tidy
 fi
