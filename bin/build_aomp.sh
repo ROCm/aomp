@@ -92,7 +92,9 @@ if [ "$AOMP_STANDALONE_BUILD" == 1 ] ; then
   # rocclr, we have no HIP or OpenCL for ppc64 :-( However, rocr works for ppc64 so AOMP works.
   if [ "$_hostarch" == "x86_64" ] ; then
     # These components build on x86_64, so add them to components list
-    components="$components pgmath flang flang_runtime hipfort"
+    components="$components pgmath flang flang_runtime"
+    #components="$components hipfort"
+
     if [ "$AOMP_VERSION" == "13.1" ] || [ $AOMP_MAJOR_VERSION -gt 13 ] ; then
        components="$components hipamd "
     else

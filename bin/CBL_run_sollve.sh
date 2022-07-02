@@ -84,6 +84,7 @@ if [ "$make_target" == "all" ] ; then
    [ -d results_report45 ] && rm -rf results_report45
    [ -d results_report50 ] && rm -rf results_report50
    [ -d results_report51 ] && rm -rf results_report51
+   [ -d results_report52 ] && rm -rf results_report52
    [ -f combined-results.txt ] && rm -f combined-results.txt
    make tidy
 fi
@@ -165,6 +166,21 @@ make report_html
 make report_summary >> combined-results.txt
 make report_summary  | tail -5 >> abrev.combined-results.txt
 mv results_report results_report51
+fi
+
+if [ "$ROCMASTER" != "1" ] && [ "$EPSDB" != "1" ] && [ "$SKIP_SOLLVE51" != 1 ]; then
+echo "--------------------------- START OMP 5.2 TESTING ---------------------"
+# Run OpenMP 5.2 Tests
+#export MY_SOLLVE_FLAGS="$MY_SOLLVE_FLAGS -fopenmp-version=51"
+make tidy
+make CC=$CBLC CXX=$CBLCXX FC=$CBLF90 CFLAGS="-lm $MY_SOLLVE_FLAGS" CXXFLAGS="$MY_SOLLVE_FLAGS" FFLAGS="$EFFLAGS $MY_SOLLVE_FLAGS"  OMP_VERSION=5.2 LOG=1 LOG_ALL=1 VERBOSE_TESTS=1 VERBOSE=1 all
+echo 
+echo "--------------------------- OMP 5.2 Detailed Results ---------------------------" >> combined-results.txt
+echo "--------------------------- OMP 5.2 Results ---------------------------" >> abrev.combined-results.txt
+make report_html
+make report_summary >> combined-results.txt
+make report_summary  | tail -5 >> abrev.combined-results.txt
+mv results_report results_report52
 fi
 
 echo "========================= ALL TESTING COMPLETE ! ====================="
