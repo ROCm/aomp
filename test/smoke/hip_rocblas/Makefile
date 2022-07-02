@@ -23,7 +23,7 @@ LINK_FLAGS =  -L $(AOMPROCM)/rocblas/lib -lrocblas -Wl,-rpath,$(AOMPROCM)/rocbla
 ifeq ($(EPSDB),1)
 OMP_BIN      = $(AOMPROCM)/bin/hipcc
 else
-CLANG        = clang++
+CLANG        ?= clang++
 OMP_BIN      = $(AOMP)/bin/$(CLANG)
 endif
 CC           = $(OMP_BIN) $(VERBOSE)
