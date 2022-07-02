@@ -9,7 +9,7 @@ ifeq ($(shell expr $(VERS) \>= 12.0), 1)
   RPTH = -Wl,-rpath,$(AOMPHIP)/lib
   LLIB = -L$(AOMPHIP)/lib
 endif
-CLANG        = clang++ -D__HIP_PLATFORM_AMD__=1 $(LLIB) -lamdhip64 $(RPTH)
+CLANG        ?= clang++ -D__HIP_PLATFORM_AMD__=1 $(LLIB) -lamdhip64 $(RPTH)
 OMP_BIN      = $(AOMP)/bin/$(CLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
 #-ccc-print-phases
