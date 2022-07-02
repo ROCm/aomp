@@ -8,7 +8,7 @@ TESTSRC_ALL  = $(TESTSRC_AUX) $(TESTSRC_MAIN)
 
 TARGET       += -Wl,--rpath,$(ROCM)/lib/ -lroctx64 -lroctracer64 -lamdhip64 -L$(ROCM)/lib
 
-FLANG        = flang
+FLANG        ?= flang
 OMP_BIN      = $(AOMP)/bin/$(FLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
 #-ccc-print-phases
