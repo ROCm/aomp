@@ -7,7 +7,7 @@ TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 
 TARGET       =
 
-CLANG        = clang
+CLANG        ?= clang
 OMP_BIN      = $(AOMP)/bin/$(CLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
 #-ccc-print-phases
