@@ -58,7 +58,9 @@ else
    ifeq (10de,$(findstring 10de,$(ISVOLTA)))
       INSTALLED_GPU = sm_70
    else
-      INSTALLED_GPU = $(shell $(AOMP)/bin/rocm_agent_enumerator | grep -m 1 -E gfx[^0]{1}.{2})
+      ifneq ($(CBL),1)
+        INSTALLED_GPU = $(shell $(AOMP)/bin/rocm_agent_enumerator | grep -m 1 -E gfx[^0]{1}.{2})
+      endif
   endif
 endif
 
@@ -130,6 +132,23 @@ ifeq ($(OMP_FLAGS),)
       OMP_FLAGS = $(AOMP_CPUTARGET) $(AOMP_WSIZE) -fopenmp
     endif
 endif
+
+ifeq ($(CBL),1)
+  OMP_FLAGS = -foffload=-march=gfx90a -m64 -fopenmp
+  CBL_ENV = LD_LIBRARY_PATH=$(AOMP)/x86_64-none-linux-gnu/lib64:/opt/rocm/lib:$(LD_LIBRARY_PATH)
+  GFIND := $(shell grep 'clang++' Makefile)
+  ifeq ($(GFIND),)
+    CLANG = x86_64-none-linux-gnu-gcc
+  else
+    CLANG = x86_64-none-linux-gnu-g++
+  endif
+  FLANG= x86_64-none-linux-gnu-gfortran
+  GFIND := $(shell grep 'flang' Makefile)
+  ifneq ($(GFIND),)
+    OMP_FLAGS += -ffree-form -ffree-line-length-none
+  endif
+endif
+
 OMP_FLAGS += $(EXTRA_OMP_FLAGS)
 OMP_FLAGS += -D__OFFLOAD_ARCH_$(INSTALLED_GPU)__
 
@@ -160,8 +179,8 @@ RUNPROF =  $(CUDA)/bin/nvprof
 RUNPROF =
 
 ifeq ($(SET_DEVICE_DEBUG),)
-   RUNENV = $(TKILL)
+   RUNENV = $(TKILL) $(CBL_ENV)
 else
-   RUNENV = env $(SET_DEVICE_DEBUG) $(TKILL)
+   RUNENV = env $(SET_DEVICE_DEBUG) $(TKILL) $(CBL_ENV)
 endif
 
