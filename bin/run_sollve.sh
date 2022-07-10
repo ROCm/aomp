@@ -80,9 +80,11 @@ fi
 
 # Run OpenMP 4.5 Tests
 if [ "$make_target" == "all" ] ; then
+  if [ "$ROCMASTER" != "1" ] && [ "$EPSDB" != "1" ] && [ "$SKIP_SOLLVE45" != 1 ]; then
   echo "--------------------------- START OMP 4.5 TESTING ---------------------"
   make CC=$AOMP/bin/clang CXX=$AOMP/bin/clang++ FC=$AOMP/bin/flang CFLAGS="-lm $MY_SOLLVE_FLAGS" CXXFLAGS="$MY_SOLLVE_FLAGS" FFLAGS="$MY_SOLLVE_FLAGS"  OMP_VERSION=4.5 LOG=1 LOG_ALL=1 VERBOSE_TESTS=1 VERBOSE=1 all
   echo
+  fi
 else
   echo
   pwd
@@ -123,14 +125,16 @@ make CC=$AOMP/bin/clang CXX=$AOMP/bin/clang++ FC=$AOMP/bin/flang CFLAGS="-lm $MY
   exit $rc
 fi
 
+if [ "$ROCMASTER" != "1" ] && [ "$EPSDB" != "1" ] && [ "$SKIP_SOLLVE45" != 1 ]; then
 echo "--------------------------- OMP 4.5 Detailed Results ---------------------------" >> combined-results.txt
 echo "--------------------------- OMP 4.5 Results ---------------------------" > abrev.combined-results.txt
 make report_html
 make report_summary >> combined-results.txt
 make report_summary  | tail -5 >> abrev.combined-results.txt
-
 mv results_report results_report45
+fi
 
+if [ "$ROCMASTER" != "1" ] && [ "$EPSDB" != "1" ] && [ "$SKIP_SOLLVE50" != 1 ]; then
 # Run OpenMP 5.0 Tests
 echo "--------------------------- START OMP 5.0 TESTING ---------------------"
 export MY_SOLLVE_FLAGS="$MY_SOLLVE_FLAGS -fopenmp-version=50"
@@ -143,6 +147,7 @@ make report_html
 make report_summary >> combined-results.txt
 make report_summary  | tail -5 >> abrev.combined-results.txt
 mv results_report results_report50
+fi
 
 if [ "$ROCMASTER" != "1" ] && [ "$EPSDB" != "1" ] && [ "$SKIP_SOLLVE51" != 1 ]; then
 echo "--------------------------- START OMP 5.1 TESTING ---------------------"
