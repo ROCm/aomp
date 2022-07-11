@@ -1,10 +1,10 @@
 include ../Makefile.defs
 
 TESTS_DIR = \
-    aomp_mappings \
     DeclareSharedMemory \
     alignedattribute \
     ancestorC \
+    aomp_mappings_newrt \
     assertok_error \
     atomic \
     atomic_double \

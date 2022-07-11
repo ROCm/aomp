@@ -6,7 +6,6 @@ MaxNumThrds
 Threads1xxx
 alignedattribute
 ancestorC
-aomp_mappings
 assertok_error
 atomic
 atomic_double

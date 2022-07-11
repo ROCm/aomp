@@ -4,6 +4,7 @@ TESTS_DIR = \
     alt_clang \
     alt_veclib \
     ancestorF \
+    aomp_mappings \
     bugz-50967 \
     clang-274983-2 \
     clang-280954 \
