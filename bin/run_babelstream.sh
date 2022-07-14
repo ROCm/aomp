@@ -81,7 +81,12 @@ for option in $RUN_OPTIONS; do
       ./$EXEC 2>&1 | tee -a results.txt
     fi
   elif [ "$option" == "no_loop" ]; then
+    # FAST_DOT requires merge of http://gerrit-git.amd.com/c/lightning/ec/llvm-project/+/705744
+    $AOMP/bin/llvm-nm $AOMP/lib/libomptarget-new-amdgpu-gfx906.bc | grep kmpc_xteam_sum_d >/dev/null
+    [ $? == 0 ] && omp_flags+=" -DOMP_TARGET_FAST_DOT"
     omp_flags+=" -fopenmp-target-ignore-env-vars"
+    omp_flags+=" -fopenmp-assume-no-thread-state"
+    omp_flags+=" -fopenmp-target-new-runtime"
     EXEC=omp-stream-no-loop
     rm -f $EXEC
     echo $AOMP/bin/clang++ -D_DEFAULTS_NOSIMD $omp_flags $omp_src $std -o $EXEC
