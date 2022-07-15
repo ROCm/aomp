@@ -11,6 +11,28 @@ thisdir=`dirname $realpath`
 . $thisdir/aomp_common_vars
 # --- end standard header ----
 
+function make_sollve_reports(){
+  # Lines for report_summary tail
+  numlines=4
+  if [ "$1" == "52" ]; then
+    cpp_files=$(find $AOMP_REPOS_TEST/$AOMP_SOLVV_REPO_NAME/tests/5.2 -type f -name '*cpp')
+    if [ "$cpp_files" == "" ]; then
+      numlines=3
+    fi
+  fi
+
+  # Start reports
+  make report_html
+  make report_summary >> combined-results.txt
+  make report_summary  | tail -"$numlines" >> abrev.combined-results.txt
+  mv results_report results_report"$1"
+}
+
+# Skip unified_shared_memory and unified_address tests as they render gfx 906/900 unusable.
+if [ "$SKIP_USM" == "1" ]; then
+   custom_source="\" -type f ! \( -name *unified_shared_memory* -o -name *unified_address* \)\""
+fi
+
 single_case=$1
 if [ $single_case ] ;then
   # escape periods for grep command
@@ -69,12 +91,13 @@ export MY_SOLLVE_FLAGS="-O2 -fopenmp -fopenmp-targets=$triple -Xopenmp-target=$t
 
 pushd $AOMP_REPOS_TEST/$AOMP_SOLVV_REPO_NAME
 
-if [ "$make_target" == "all" ] ; then
+if [ "$make_target" == "all" ] || [ "$custom_source" != "" ] ; then
    [ -d results_report45 ] && rm -rf results_report45
    [ -d results_report50 ] && rm -rf results_report50
    [ -d results_report51 ] && rm -rf results_report51
    [ -d results_report52 ] && rm -rf results_report52
    [ -f combined-results.txt ] && rm -f combined-results.txt
+   [ -f abrev.combined-results.txt ] && rm -f abrev.combined-results.txt
    make tidy
 fi
 
@@ -126,57 +149,45 @@ make CC=$AOMP/bin/clang CXX=$AOMP/bin/clang++ FC=$AOMP/bin/flang CFLAGS="-lm $MY
 fi
 
 if [ "$ROCMASTER" != "1" ] && [ "$EPSDB" != "1" ] && [ "$SKIP_SOLLVE45" != 1 ]; then
-echo "--------------------------- OMP 4.5 Detailed Results ---------------------------" >> combined-results.txt
-echo "--------------------------- OMP 4.5 Results ---------------------------" > abrev.combined-results.txt
-make report_html
-make report_summary >> combined-results.txt
-make report_summary  | tail -5 >> abrev.combined-results.txt
-mv results_report results_report45
+  echo "--------------------------- OMP 4.5 Detailed Results ---------------------------" >> combined-results.txt
+  echo "--------------------------- OMP 4.5 Results ---------------------------" > abrev.combined-results.txt
+  make_sollve_reports 45
 fi
 
 if [ "$ROCMASTER" != "1" ] && [ "$EPSDB" != "1" ] && [ "$SKIP_SOLLVE50" != 1 ]; then
-# Run OpenMP 5.0 Tests
-echo "--------------------------- START OMP 5.0 TESTING ---------------------"
-export MY_SOLLVE_FLAGS="$MY_SOLLVE_FLAGS -fopenmp-version=50"
-make tidy
-make CC=$AOMP/bin/clang CXX=$AOMP/bin/clang++ FC=$AOMP/bin/flang CFLAGS="-lm $MY_SOLLVE_FLAGS" CXXFLAGS="$MY_SOLLVE_FLAGS" FFLAGS="$MY_SOLLVE_FLAGS"  OMP_VERSION=5.0 LOG=1 LOG_ALL=1 VERBOSE_TESTS=1 VERBOSE=1 all
-echo 
-echo "--------------------------- OMP 5.0 Detailed Results ---------------------------" >> combined-results.txt
-echo "--------------------------- OMP 5.0 Results ---------------------------" >> abrev.combined-results.txt
-make report_html
-make report_summary >> combined-results.txt
-make report_summary  | tail -5 >> abrev.combined-results.txt
-mv results_report results_report50
+  # Run OpenMP 5.0 Tests
+  echo "--------------------------- START OMP 5.0 TESTING ---------------------"
+  export MY_SOLLVE_FLAGS="$MY_SOLLVE_FLAGS -fopenmp-version=50"
+  make tidy
+  make CC=$AOMP/bin/clang CXX=$AOMP/bin/clang++ FC=$AOMP/bin/flang CFLAGS="-lm $MY_SOLLVE_FLAGS" CXXFLAGS="$MY_SOLLVE_FLAGS" FFLAGS="$MY_SOLLVE_FLAGS"  OMP_VERSION=5.0 LOG=1 LOG_ALL=1 VERBOSE_TESTS=1 VERBOSE=1 SOURCES="$custom_source" all
+  echo
+  echo "--------------------------- OMP 5.0 Detailed Results ---------------------------" >> combined-results.txt
+  echo "--------------------------- OMP 5.0 Results ---------------------------" >> abrev.combined-results.txt
+  make_sollve_reports 50
 fi
 
 if [ "$ROCMASTER" != "1" ] && [ "$EPSDB" != "1" ] && [ "$SKIP_SOLLVE51" != 1 ]; then
-echo "--------------------------- START OMP 5.1 TESTING ---------------------"
-# Run OpenMP 5.1 Tests
-export MY_SOLLVE_FLAGS="$MY_SOLLVE_FLAGS -fopenmp-version=51"
-make tidy
-make CC=$AOMP/bin/clang CXX=$AOMP/bin/clang++ FC=$AOMP/bin/flang CFLAGS="-lm $MY_SOLLVE_FLAGS" CXXFLAGS="$MY_SOLLVE_FLAGS" FFLAGS="$MY_SOLLVE_FLAGS"  OMP_VERSION=5.1 LOG=1 LOG_ALL=1 VERBOSE_TESTS=1 VERBOSE=1 all
-echo 
-echo "--------------------------- OMP 5.1 Detailed Results ---------------------------" >> combined-results.txt
-echo "--------------------------- OMP 5.1 Results ---------------------------" >> abrev.combined-results.txt
-make report_html
-make report_summary >> combined-results.txt
-make report_summary  | tail -5 >> abrev.combined-results.txt
-mv results_report results_report51
+  echo "--------------------------- START OMP 5.1 TESTING ---------------------"
+  # Run OpenMP 5.1 Tests
+  export MY_SOLLVE_FLAGS="$MY_SOLLVE_FLAGS -fopenmp-version=51"
+  make tidy
+  make CC=$AOMP/bin/clang CXX=$AOMP/bin/clang++ FC=$AOMP/bin/flang CFLAGS="-lm $MY_SOLLVE_FLAGS" CXXFLAGS="$MY_SOLLVE_FLAGS" FFLAGS="$MY_SOLLVE_FLAGS"  OMP_VERSION=5.1 LOG=1 LOG_ALL=1 VERBOSE_TESTS=1 VERBOSE=1 SOURCES="$custom_source" all
+  echo
+  echo "--------------------------- OMP 5.1 Detailed Results ---------------------------" >> combined-results.txt
+  echo "--------------------------- OMP 5.1 Results ---------------------------" >> abrev.combined-results.txt
+  make_sollve_reports 51
 fi
 
 if [ "$ROCMASTER" != "1" ] && [ "$EPSDB" != "1" ] && [ "$SKIP_SOLLVE52" != 1 ]; then
-echo "--------------------------- START OMP 5.2 TESTING ---------------------"
-# Run OpenMP 5.2 Tests
-export MY_SOLLVE_FLAGS="$MY_SOLLVE_FLAGS -fopenmp-version=52"
-make tidy
-make CC=$AOMP/bin/clang CXX=$AOMP/bin/clang++ FC=$AOMP/bin/flang CFLAGS="-lm $MY_SOLLVE_FLAGS" CXXFLAGS="$MY_SOLLVE_FLAGS" FFLAGS="$MY_SOLLVE_FLAGS"  OMP_VERSION=5.2 LOG=1 LOG_ALL=1 VERBOSE_TESTS=1 VERBOSE=1 all
-echo 
-echo "--------------------------- OMP 5.2 Detailed Results ---------------------------" >> combined-results.txt
-echo "--------------------------- OMP 5.2 Results ---------------------------" >> abrev.combined-results.txt
-make report_html
-make report_summary >> combined-results.txt
-make report_summary  | tail -5 >> abrev.combined-results.txt
-mv results_report results_report52
+  echo "--------------------------- START OMP 5.2 TESTING ---------------------"
+  # Run OpenMP 5.2 Tests
+  export MY_SOLLVE_FLAGS="$MY_SOLLVE_FLAGS -fopenmp-version=52"
+  make tidy
+  make CC=$AOMP/bin/clang CXX=$AOMP/bin/clang++ FC=$AOMP/bin/flang CFLAGS="-lm $MY_SOLLVE_FLAGS" CXXFLAGS="$MY_SOLLVE_FLAGS" FFLAGS="$MY_SOLLVE_FLAGS"  OMP_VERSION=5.2 LOG=1 LOG_ALL=1 VERBOSE_TESTS=1 VERBOSE=1 SOURCES="$custom_source" all
+  echo
+  echo "--------------------------- OMP 5.2 Detailed Results ---------------------------" >> combined-results.txt
+  echo "--------------------------- OMP 5.2 Results ---------------------------" >> abrev.combined-results.txt
+  make_sollve_reports 52
 fi
 
 echo "========================= ALL TESTING COMPLETE ! ====================="
@@ -184,8 +195,12 @@ echo
 
 cat combined-results.txt
 pwd
+echo
+echo
+echo
 cat abrev.combined-results.txt
-popd
+echo
+popd > /dev/null
 
 if [ "$ROCMASTER" == "1" ]; then
   ./check_sollve.sh
