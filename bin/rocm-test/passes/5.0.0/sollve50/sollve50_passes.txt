@@ -31,8 +31,6 @@ test_parallel_master_device.c
 test_parallel_master_taskloop_device.c
 test_parallel_master_taskloop_simd_device.c
 test_requires_reverse_offload.c
-test_requires_unified_shared_memory.F90
-test_requires_unified_shared_memory_heap.F90
 test_target_device.c
 test_target_task_depend_mutexinoutset.c
 test_target_teams_distribute_parallel_for_collapse.c
@@ -48,4 +46,3 @@ test_target_teams_distribute_reduction_sub.F90
 test_target_uses_allocators_cgroup.c
 test_target_uses_allocators_large_cap.c
 test_target_uses_allocators_pteam.c
-test_taskwait_depend.c
