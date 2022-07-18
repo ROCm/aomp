@@ -170,12 +170,17 @@ if [ "$ROCMASTER" != "1" ] && [ "$EPSDB" != "1" ] && [ "$SKIP_SOLLVE51" != 1 ]; 
   echo "--------------------------- START OMP 5.1 TESTING ---------------------"
   # Run OpenMP 5.1 Tests
   export MY_SOLLVE_FLAGS="$MY_SOLLVE_FLAGS -fopenmp-version=51"
+
+# FIXME: Tests listed here are skipped to prevent GPUs crashing. Remove the test once issue is fixed.
+  custom_source="\" -type f ! \( -name *test_target_has_device_addr.c* \)\""
+
   make tidy
   make CC=$AOMP/bin/clang CXX=$AOMP/bin/clang++ FC=$AOMP/bin/flang CFLAGS="-lm $MY_SOLLVE_FLAGS" CXXFLAGS="$MY_SOLLVE_FLAGS" FFLAGS="$MY_SOLLVE_FLAGS"  OMP_VERSION=5.1 LOG=1 LOG_ALL=1 VERBOSE_TESTS=1 VERBOSE=1 SOURCES="$custom_source" all
   echo
   echo "--------------------------- OMP 5.1 Detailed Results ---------------------------" >> combined-results.txt
   echo "--------------------------- OMP 5.1 Results ---------------------------" >> abrev.combined-results.txt
   make_sollve_reports 51
+  custom_source=""
 fi
 
 if [ "$ROCMASTER" != "1" ] && [ "$EPSDB" != "1" ] && [ "$SKIP_SOLLVE52" != 1 ]; then
