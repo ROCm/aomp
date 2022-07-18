@@ -55,8 +55,11 @@ else
      lspci_loc = /usr/bin/lspci
    endif
    ISVOLTA = $(shell $(lspci_loc) -n | grep 10de:1db4)
+   ISGTX750= $(shell $(lspci_loc) -n | grep 10de:1380)
    ifeq (10de,$(findstring 10de,$(ISVOLTA)))
       INSTALLED_GPU = sm_70
+   else ifeq (10de,$(findstring 10de,$(ISGTX750)))
+      INSTALLED_GPU = sm_50
    else
       ifneq ($(CBL),1)
         INSTALLED_GPU = $(shell $(AOMP)/bin/rocm_agent_enumerator | grep -m 1 -E gfx[^0]{1}.{2})

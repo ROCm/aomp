@@ -293,7 +293,15 @@ mkdir -p "$resultsdir"/sollve45
 mkdir -p "$resultsdir"/sollve50
 cd "$aompdir"/bin
 ./clone_epsdb_test.sh
-SKIP_SOLLVE51=1 ./run_sollve.sh
+
+no_usm_gpus="gfx900 gfx906"
+if [[ "$no_usm_gpus" =~ "$AOMP_GPU" ]]; then
+  echo "Skipping USM 5.0 tests."
+  SKIP_USM=1 SKIP_SOLLVE51=1 ./run_sollve.sh
+else
+  SKIP_SOLLVE51=1 ./run_sollve.sh
+fi
+
 ./check_sollve.sh
 checkrc $?
 
