@@ -21,14 +21,26 @@ BABELSTREAM_BUILD=${BABELSTREAM_BUILD:-/tmp/$USER/babelstream}
 
 # Use function to set and test AOMP_GPU
 setaompgpu
+if [ "${AOMP_GPU:0:3}" == "sm_" ] ; then
+   TRIPLE="nvptx64-nvidia-cuda"
+   RUN_OPTIONS=${RUN_OPTIONS:-"omp_default no_loop"}
+else
+   TRIPLE="amdgcn-amd-amdhsa"
+   RUN_OPTIONS=${RUN_OPTIONS:-"omp_default no_loop hip"}
+fi
 
-RUN_OPTIONS=${RUN_OPTIONS:-"omp_default openmp no_loop hip"}
-omp_flags="-O3 -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$AOMP_GPU -DOMP -DOMP_TARGET_GPU"
+omp_flags="-O3 -fopenmp -fopenmp-targets=$TRIPLE -Xopenmp-target=$TRIPLE -march=$AOMP_GPU -DOMP -DOMP_TARGET_GPU"
 omp_cpu_flags="-O3 -fopenmp -DOMP"
-hip_flags="-O3 --offload-arch=$AOMP_GPU -DHIP -x hip"
+hip_flags="-O3 --offload-arch=$AOMP_GPU -Wno-unused-result -DHIP -x hip"
 omp_src="main.cpp OMPStream.cpp"
 hip_src="main.cpp HIPStream.cpp"
-std="-std=c++11"
+gccver=`gcc --version | grep gcc | cut -d")" -f2 | cut -d"." -f1`
+# ubunutu 18.04 gcc7 requires -stdlib=libc++ gcc9 is ok
+if [ "$gccver" == " 7" ] ; then
+   std="-std=c++20 -stdlib=libc++"
+else
+   std="-std=c++20"
+fi
 
 if [ ! -d $BABELSTREAM_REPO ]; then
   echo "ERROR: BabelStream not found in $BABELSTREAM_REPO"
