@@ -22,12 +22,37 @@
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#include "hip/hip_runtime.h"
+#include <cstdio>
+#include <cstdlib>
+#include <omp.h>
 
-__global__ void writeIndex(int *b, int n) {
-  int i = hipBlockIdx_x;
-  if (i*2+1 < n) {
-    b[i] = i;
+#define N 100
+
+void Print(int arr[], int n) {
+  for (int i = 0; i < n; i++) {
+    printf("\n%d", arr[i]);
   }
 }
 
+int main(int argc, char *argv[]) {
+
+  int A[N], B[N], C[N];
+
+  for (int i = 0; i < N; i++) {
+    A[i] = 2 * (i + 1);
+    B[i] = 3 * (i + 1);
+  }
+
+#pragma omp target map(to : A [0:N], B [0:N]) map(from : C [0:N])
+  {
+#pragma omp parallel for
+    for (int i = 0; i < N; i++) {
+      C[i + 10] = A[i] + B[i];
+    }
+  }
+
+  Print(C, N);
+
+  printf("\n");
+  return 0;
+}
