@@ -8,11 +8,6 @@
 #  Please check with Ron or Ethan for script modifications.
 #
 #
-clangversion=`$AOMP/bin/clang --version`
-aomp=0
-if [[ "$clangversion" =~ "AOMP_STANDALONE" ]]; then
-  aomp=1
-fi
 
 # Use bogus path to avoid using target.lst, a user-defined target list
 # used by rocm_agent_enumerator.
@@ -42,6 +37,12 @@ $AOMP/bin/clang --version
 if [ $? -ne 0 ]; then
   echo "Error: Clang not found at "$AOMP"/bin/clang."
   exit 1
+fi
+
+clangversion=`$AOMP/bin/clang --version`
+aomp=0
+if [[ "$clangversion" =~ "AOMP_STANDALONE" ]]; then
+  aomp=1
 fi
 
 # Parent dir should be ROCm base dir.
@@ -132,7 +133,7 @@ function getversion(){
     # Determine OS flavor to properly query openmp-extras version.
     osname=$(cat /etc/os-release | grep -e ^NAME=)
     # Regex to cover single/multi version installs for deb/rpm.
-    ompextrasregex="openmp-extras-?[a-z]*[0-9]*\.*[0-9]*\.*[0-9]*-*\s*[0-9]+\.([0-9]+)\.([0-9]+)"
+    ompextrasregex="openmp-extras-?[a-z]*-?\s*[0-9]+\.([0-9]+)\.([0-9]+)"
     rpmregex="Red Hat|CentOS|SLES"
     echo $osname
     if [[ "$osname" =~ $rpmregex ]]; then
@@ -154,8 +155,10 @@ function getversion(){
     # version.  Example: If 4.4 is selected then the final list will include expected passes
     # from 4.3 and 4.4. Openmp-extras should not be a higher version than rocm.
     if [ "$rocmver" == "$ompextrasver" ] || [ "$rocmver" -gt "$ompextrasver" ]; then
+      echo "Using ompextrasver: $ompextrasver"
       compilerver=${versions[$ompextrasver]}
     else
+      echo "Using rocmver: $rocmver"
       compilerver=${versions[$rocmver]}
     fi
     echo Chosen Version: $compilerver
