@@ -3,30 +3,12 @@
 # run_rushlarsen.sh - runs rush_larsen microbenchmarks in the $AOMP_REPOS_TEST dir.
 # User can set RUN_OPTIONS to control what variants(openmp, hip) are selected.
 
-# --- Start standard header to set build environment variables ----
-function getdname(){
-   local __DIRN=`dirname "$1"`
-   if [ "$__DIRN" = "." ] ; then
-      __DIRN=$PWD;
-   else
-      if [ ${__DIRN:0:1} != "/" ] ; then
-         if [ ${__DIRN:0:2} == ".." ] ; then
-               __DIRN=`dirname $PWD`/${__DIRN:3}
-         else
-            if [ ${__DIRN:0:1} = "." ] ; then
-               __DIRN=$PWD/${__DIRN:2}
-            else
-               __DIRN=$PWD/$__DIRN
-            fi
-         fi
-      fi
-   fi
-   echo $__DIRN
-}
-thisdir=$(getdname $0)
-[ ! -L "$0" ] || thisdir=$(getdname `readlink "$0"`)
+# --- Start standard header to set AOMP environment variables ----
+realpath=`realpath $0`
+thisdir=`dirname $realpath`
 . $thisdir/aomp_common_vars
 # --- end standard header ----
+
 # Setup AOMP variables
 AOMP=${AOMP:-/usr/lib/aomp}
 AOMPHIP=${AOMPHIP:-$AOMP}
@@ -34,13 +16,18 @@ AOMPHIP=${AOMPHIP:-$AOMP}
 # Use function to set and test AOMP_GPU
 setaompgpu
 
-RUN_OPTIONS=${RUN_OPTIONS:-"openmp hip"}
+RUN_OPTIONS=${RUN_OPTIONS:-"openmp hip fomp"}
 
 # OMP options
 omp_cxx="$AOMP/bin/clang++"
-omp_flags="-O3 -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$AOMP_GPU -DOMP -DOMP_TARGET_GPU"
+omp_flags="-O3 -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$AOMP_GPU -DOMP -DOMP_TARGET_GPU -fopenmp-target-ignore-env-vars"
 omp_dir="tests/rush_larsen/rush_larsen_gpu_omp"
 omp_exec="rush_larsen_gpu_omp"
+
+fomp_f90="$AOMP/bin/flang"
+fomp_flags="-O3 -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$AOMP_GPU -DOMP -DOMP_TARGET_GPU -g"
+fomp_dir="tests/rush_larsen/rush_larsen_gpu_omp_fort"
+fomp_exec="rush_larsen_gpu_omp_fort"
 
 # HIP Options
 hip_cxx="$AOMPHIP/bin/hipcc"
@@ -72,6 +59,13 @@ for option in $RUN_OPTIONS; do
     make CXX="$hip_cxx" CXXFLAGS="$hip_flags" COMPILERID="-DCOMPILERID=amd"
     if [ $? -ne 1 ]; then
       ./$hip_exec 100 10 2>&1 | tee -a $goulash_home/results.txt
+    fi
+  elif [ "$option" == "fomp" ]; then
+    cd $goulash_home/$fomp_dir
+    make clean
+    make FC="$fomp_f90" FCFLAGS="$fomp_flags" COMPILERID='-DCOMPILERID=\"amd\"'
+    if [ $? -ne 1 ]; then
+      ./$fomp_exec 100 10 2>&1 | tee -a $goulash_home/results.txt
     fi
   else
     echo "ERROR: Option not recognized: $option."

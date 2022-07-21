@@ -6,11 +6,9 @@ MaxNumThrds
 Threads1xxx
 alignedattribute
 ancestorC
-aomp_mappings
 assertok_error
 atomic
 atomic_double
-atomic_vs_reduction
 bugz-50968
 clang-262701
 clang-273738
@@ -59,7 +57,6 @@ flang-272343
 flang-272343-2
 flang-272521
 flang-272534
-flang-272730-complex
 flang-272878
 flang-273281
 flang-273284
@@ -72,12 +69,8 @@ flang-273959
 flang-273990-2
 flang-274768
 flang-274775
-flang-274775-critDcmplx
-flang-274775-dcmplx
-flang-274775-redDcmplx
 flang-274983
 flang-274983-2
-flang-275194
 flang-275194-1
 flang-275194-2
 flang-275194-3
@@ -163,7 +156,6 @@ omp_lock
 omp_num_teams_SPMD
 omp_num_teams_generic
 omp_targ_err1
-omp_target_is
 omp_wtime
 pfspecifier
 pfspecifier_str

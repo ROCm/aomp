@@ -7,7 +7,7 @@ TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 
 TARGET       = -fopenmp -O0 -g -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$(AOMP_GPU)
 
-FLANG        = flang
+FLANG        ?= flang
 OMP_BIN      = $(AOMP)/bin/$(FLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
 #-ccc-print-phases

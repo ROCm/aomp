@@ -3,29 +3,10 @@
 #  build_openmp.sh:  Script to build the AOMP runtime libraries and debug libraries.  
 #                This script will install in location defined by AOMP env variable
 #
-# --- Start standard header ----
 
-function getdname(){
-   local __DIRN=`dirname "$1"`
-   if [ "$__DIRN" = "." ] ; then
-      __DIRN=$PWD;
-   else
-      if [ ${__DIRN:0:1} != "/" ] ; then
-         if [ ${__DIRN:0:2} == ".." ] ; then
-               __DIRN=`dirname $PWD`/${__DIRN:3}
-         else
-            if [ ${__DIRN:0:1} = "." ] ; then
-               __DIRN=$PWD/${__DIRN:2}
-            else
-               __DIRN=$PWD/$__DIRN
-            fi
-         fi
-      fi
-   fi
-   echo $__DIRN
-}
-thisdir=$(getdname $0)
-[ ! -L "$0" ] || thisdir=$(getdname `readlink "$0"`)
+# --- Start standard header to set AOMP environment variables ----
+realpath=`realpath $0`
+thisdir=`dirname $realpath`
 . $thisdir/aomp_common_vars
 # --- end standard header ----
 
@@ -35,9 +16,7 @@ if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   help_build_aomp
 fi
 
-REPO_BRANCH=$AOMP_PROJECT_REPO_BRANCH
 REPO_DIR=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME
-checkrepo
 
 if [ "$AOMP_BUILD_CUDA" == 1 ] ; then
    CUDAH=`find $CUDAT -type f -name "cuda.h" 2>/dev/null`
@@ -97,14 +76,17 @@ COMMON_CMAKE_OPTS="-DOPENMP_ENABLE_LIBOMPTARGET=1
 -DAOMP_STANDALONE_BUILD=$AOMP_STANDALONE_BUILD
 -DLLVM_DIR=$LLVM_DIR"
 
+
 if [ "$AOMP_STANDALONE_BUILD" == 0 ]; then
   COMMON_CMAKE_OPTS="$COMMON_CMAKE_OPTS
   -DLLVM_MAIN_INCLUDE_DIR=$LLVM_PROJECT_ROOT/llvm/include
-  -DLIBOMPTARGET_LLVM_INCLUDE_DIRS=$LLVM_PROJECT_ROOT/llvm/include"
+  -DLIBOMPTARGET_LLVM_INCLUDE_DIRS=$LLVM_PROJECT_ROOT/llvm/include
+  -DENABLE_DEVEL_PACKAGE=ON -DENABLE_RUN_PACKAGE=ON"
 else
-  COMMON_CMAKE_OPTS="$COMMON_CMAKE_OPTS
-  -DLLVM_MAIN_INCLUDE_DIR=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/llvm/include
-  -DLIBOMPTARGET_LLVM_INCLUDE_DIRS=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/llvm/include"
+  COMMON_CMAKE_OPTS="$COMMON_CMAKE_OPTS \
+-DLLVM_MAIN_INCLUDE_DIR=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/llvm/include \
+-DLIBOMPTARGET_LLVM_INCLUDE_DIRS=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/llvm/include \
+-DLIBOMP_USE_HWLOC=ON -DLIBOMP_HWLOC_INSTALL_DIR=$AOMP_SUPP/hwloc"
 fi
 
 if [ "$AOMP_BUILD_CUDA" == 1 ] ; then
@@ -251,6 +233,10 @@ if [ "$1" == "install" ] ; then
         fi
         echo "==> Renaming ompdModule.cpython-36m-x86_64-linux-gnu.so to ompdModule.so"
         mv $AOMP_INSTALL_DIR/lib-debug/ompd/ompdModule.cpython-36m-x86_64-linux-gnu.so $AOMP_INSTALL_DIR/lib-debug/ompd/ompdModule.so
+      fi
+      if [[ "$DEVEL_PACKAGE" =~ "devel" ]]; then
+        AOMP_INSTALL_DIR="$AOMP_INSTALL_DIR/""$DEVEL_PACKAGE"
+        echo "Request for devel package found."
       fi
 
       # we do not yet have OMPD in llvm 12, disable this for now.

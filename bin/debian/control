@@ -12,7 +12,7 @@ Architecture: amd64
 #Depends: ${shlibs:Depends},${misc:Depends}
 Depends: ${misc:Depends}
 Description: AOMP is an experimental OpenMP compiler 
- LLVM 9.0 for offloading to either Radeon GPUs or Nvidia GPUs. 
+ LLVM 15.0 for offloading to either Radeon GPUs or Nvidia GPUs.
  Nvidia GPUs are not supported on aarch64.
  AOMP requires either rocm, cuda, or both.
  Dependencies are not specified here for flexibility. 

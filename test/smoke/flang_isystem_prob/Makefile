@@ -10,7 +10,7 @@ MPI_ROOT ?= minimpi
 TARGET       = -isystem $(MPI_ROOT)/include -isystem $(MPI_ROOT)/lib
 OMP_FLAGS    =
 
-FLANG        = flang
+FLANG        ?= flang
 OMP_BIN      = $(AOMP)/bin/$(FLANG) $(TARGET)
 CC           = $(OMP_BIN) $(VERBOSE)
 #-ccc-print-phases

@@ -1,35 +1,17 @@
 #!/bin/bash
 
 # run_babelstream.sh - runs babelstream in the $BABELSTREAM_BUILD dir.
-# User can set RUN_OPTIONS to control what variants(omp_default, openmp, hip) are selected.
+# User can set RUN_OPTIONS to control what variants(omp_default, openmp, no_loop, hip) are selected.
 # User can also set BABELSTREAM_BUILD,  BABELSTREAM_REPO, and AOMP env vars.
 # The babelstream source OMPStream.cpp is patched to override number of teams
 # and threads.
 
-# --- Start standard header to set build environment variables ----
-function getdname(){
-   local __DIRN=`dirname "$1"`
-   if [ "$__DIRN" = "." ] ; then
-      __DIRN=$PWD;
-   else
-      if [ ${__DIRN:0:1} != "/" ] ; then
-         if [ ${__DIRN:0:2} == ".." ] ; then
-               __DIRN=`dirname $PWD`/${__DIRN:3}
-         else
-            if [ ${__DIRN:0:1} = "." ] ; then
-               __DIRN=$PWD/${__DIRN:2}
-            else
-               __DIRN=$PWD/$__DIRN
-            fi
-         fi
-      fi
-   fi
-   echo $__DIRN
-}
-thisdir=$(getdname $0)
-[ ! -L "$0" ] || thisdir=$(getdname `readlink "$0"`)
+# --- Start standard header to set AOMP environment variables ----
+realpath=`realpath $0`
+thisdir=`dirname $realpath`
 . $thisdir/aomp_common_vars
 # --- end standard header ----
+
 # Setup AOMP variables
 AOMP=${AOMP:-/usr/lib/aomp}
 AOMPHIP=${AOMPHIP:-$AOMP}
@@ -39,14 +21,26 @@ BABELSTREAM_BUILD=${BABELSTREAM_BUILD:-/tmp/$USER/babelstream}
 
 # Use function to set and test AOMP_GPU
 setaompgpu
+if [ "${AOMP_GPU:0:3}" == "sm_" ] ; then
+   TRIPLE="nvptx64-nvidia-cuda"
+   RUN_OPTIONS=${RUN_OPTIONS:-"omp_default no_loop"}
+else
+   TRIPLE="amdgcn-amd-amdhsa"
+   RUN_OPTIONS=${RUN_OPTIONS:-"omp_default no_loop hip"}
+fi
 
-RUN_OPTIONS=${RUN_OPTIONS:-"omp_default openmp hip"}
-omp_flags="-O3 -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$AOMP_GPU -DOMP -DOMP_TARGET_GPU"
+omp_flags="-O3 -fopenmp -fopenmp-targets=$TRIPLE -Xopenmp-target=$TRIPLE -march=$AOMP_GPU -DOMP -DOMP_TARGET_GPU"
 omp_cpu_flags="-O3 -fopenmp -DOMP"
-hip_flags="-O3 --offload-arch=$AOMP_GPU -DHIP -x hip"
+hip_flags="-O3 --offload-arch=$AOMP_GPU -Wno-unused-result -DHIP -x hip"
 omp_src="main.cpp OMPStream.cpp"
 hip_src="main.cpp HIPStream.cpp"
-std="-std=c++11"
+gccver=`gcc --version | grep gcc | cut -d")" -f2 | cut -d"." -f1`
+# ubunutu 18.04 gcc7 requires -stdlib=libc++ gcc9 is ok
+if [ "$gccver" == " 7" ] ; then
+   std="-std=c++20 -stdlib=libc++"
+else
+   std="-std=c++20"
+fi
 
 if [ ! -d $BABELSTREAM_REPO ]; then
   echo "ERROR: BabelStream not found in $BABELSTREAM_REPO"
@@ -92,6 +86,20 @@ for option in $RUN_OPTIONS; do
     fi
   elif [ "$option" == "omp_default" ]; then
     EXEC=omp-stream-default
+    rm -f $EXEC
+    echo $AOMP/bin/clang++ -D_DEFAULTS_NOSIMD $omp_flags $omp_src $std -o $EXEC
+    $AOMP/bin/clang++ -D_DEFAULTS_NOSIMD $omp_flags $omp_src $std -o $EXEC
+    if [ $? -ne 1 ]; then
+      ./$EXEC 2>&1 | tee -a results.txt
+    fi
+  elif [ "$option" == "no_loop" ]; then
+    # FAST_DOT requires merge of http://gerrit-git.amd.com/c/lightning/ec/llvm-project/+/705744
+    $AOMP/bin/llvm-nm $AOMP/lib/libomptarget-new-amdgpu-gfx906.bc | grep kmpc_xteam_sum_d >/dev/null
+    [ $? == 0 ] && omp_flags+=" -DOMP_TARGET_FAST_DOT"
+    omp_flags+=" -fopenmp-target-ignore-env-vars"
+    omp_flags+=" -fopenmp-assume-no-thread-state"
+    omp_flags+=" -fopenmp-target-new-runtime"
+    EXEC=omp-stream-no-loop
     rm -f $EXEC
     echo $AOMP/bin/clang++ -D_DEFAULTS_NOSIMD $omp_flags $omp_src $std -o $EXEC
     $AOMP/bin/clang++ -D_DEFAULTS_NOSIMD $omp_flags $omp_src $std -o $EXEC

@@ -51,7 +51,7 @@ mkdir -p ~/git/
 cd $aompdir/bin
 set +x
 echo "=========== clone aomp_test ==========="
-./clone_aomp_test.sh > clone.log 2>&1
+./clone_test.sh > clone.log 2>&1
 
 echo "====== helloworld ======="
 cd $aompdir/test/smoke/helloworld
@@ -66,6 +66,7 @@ sed -n -e '/---- Results ---/,$p' smoke-fails.log
 
 echo "====== smoke ======="
 cd $aompdir/test/smoke
+rm -rf flang-274983*
 EPSDB=1 OMP_TARGET_OFFLOAD=MANDATORY ./check_smoke.sh > smoke.log 2>&1
 sed -n -e '/---- Results ---/,$p' smoke.log
 
@@ -122,6 +123,7 @@ tail -7 nekbone.log
 
 echo "======= openmpapps ==="
 cd ~/git/aomp-test/openmpapps
+git checkout AOMP-0.5
 ./check_openmpapps.sh > openmpapps.log 2>&1
 appfails=$?
 tail -12 openmpapps.log

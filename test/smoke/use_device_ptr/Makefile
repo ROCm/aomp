@@ -8,7 +8,7 @@ AOMPHIP ?= $(AOMP)
 HIPCC ?= $(AOMPHIP)/bin/hipcc
 
 CFLAGS = -O3
-FLANG        = flang
+FLANG        ?= flang
 OMP_BIN      = $(AOMP)/bin/$(FLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
 EXTRA_CFLAGS = -L$(AOMPHIP)/lib -lamdhip64 -Wl,-rpath,$(AOMPHIP)/lib

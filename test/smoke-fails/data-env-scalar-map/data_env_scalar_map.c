@@ -27,7 +27,7 @@ main(int argc, char *argv[], char **envp)
 
   // This should print ON HOST after: from = 5, tofrom = 5
   printf("ON HOST after: from = %d, tofrom = %d\n", from, tofrom);
-
+  if (from != 5 || tofrom != 5) {printf("failed\n"); return -1;}
   return 0;
 }
 

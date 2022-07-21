@@ -5,7 +5,7 @@ TESTSRC_MAIN = libgomp-292348.c
 TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 
-CLANG        = hipcc
+CLANG        ?= hipcc
 OMP_FLAGS    = -lgomp
 CFLAGS      = -g -O0 -m64 -fopenmp -lgomp -lstdc++
 

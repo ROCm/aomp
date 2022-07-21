@@ -38,14 +38,47 @@ else
 endif
 
 # If AOMP env variable contains opt use rocm_agent_enumerator for device id.
+# Set GFXLIST to available gfx numbers pulled from installed bc files.
 ifeq (opt,$(findstring opt,$(AOMP)))
   INSTALLED_GPU  = $(shell $(AOMP)/../bin/rocm_agent_enumerator | grep -m 1 -E gfx[^0]{1}.{2})
+  GFXLIST = $(shell ls $(AOMP)/lib | grep -oP 'amdgcn-\K\S+(?=.bc)')
 else
-  INSTALLED_GPU  = $(shell $(AOMP)/bin/mygpu -d gfx900)# Default AOMP_GPU is gfx900 which is vega
+   # Set GFXLIST from aomp_common_vars
+   GFXLIST = $(shell grep GFXLIST= ../../../bin/aomp_common_vars | grep -o "gfx.*" | sed -E "s|\"}||" | sed -E "s|gfx1010||")
+
+   # If AOMP not pointing to rocm, then assume neither offload-arch nor mygpu utilities exist.
+   # So use lspci to search for volta and if not then use standalone rocm_agent_enumerator
+   # to autodetect which GPU is active.
+   ifneq ("$(wildcard /usr/sbin/lspci)","")
+     lspci_loc = /usr/sbin/lspci
+   else
+     lspci_loc = /usr/bin/lspci
+   endif
+   ISVOLTA = $(shell $(lspci_loc) -n | grep 10de:1db4)
+   ISGTX750= $(shell $(lspci_loc) -n | grep 10de:1380)
+   ifeq (10de,$(findstring 10de,$(ISVOLTA)))
+      INSTALLED_GPU = sm_70
+   else ifeq (10de,$(findstring 10de,$(ISGTX750)))
+      INSTALLED_GPU = sm_50
+   else
+      ifneq ($(CBL),1)
+        INSTALLED_GPU = $(shell $(AOMP)/bin/rocm_agent_enumerator | grep -m 1 -E gfx[^0]{1}.{2})
+      endif
+  endif
 endif
 
 AOMP_GPU       ?= $(INSTALLED_GPU)
 CC              = $(AOMP)/bin/clang
+OG11           ?= $(HOME)/git/og11/install
+OG11FLAGS      ?= -O3 -fopenmp -foffload=-march=$(AOMP_GPU) -I. -lgfortran -L $(OG11)/lib64
+OG11CC         ?= $(OG11)/bin/g++ $(OG11FLAGS) $(CFLAGS)
+OG11LIBPATH    ?= $(OG11)/lib64:$(AOMP)/lib
+ifeq ($(OFFLOAD_DEBUG),1)
+  OG11ENV = LD_LIBRARY_PATH=$(OG11LIBPATH) GCN_DEBUG=1
+else
+  OG11ENV = LD_LIBRARY_PATH=$(OG11LIBPATH)
+endif
+
 CUDA           ?= /usr/local/cuda
 
 ifeq (sm_,$(findstring sm_,$(AOMP_GPU)))
@@ -102,7 +135,25 @@ ifeq ($(OMP_FLAGS),)
       OMP_FLAGS = $(AOMP_CPUTARGET) $(AOMP_WSIZE) -fopenmp
     endif
 endif
+
+ifeq ($(CBL),1)
+  OMP_FLAGS = -foffload=-march=gfx90a -m64 -fopenmp
+  CBL_ENV = LD_LIBRARY_PATH=$(AOMP)/x86_64-none-linux-gnu/lib64:/opt/rocm/lib:$(LD_LIBRARY_PATH)
+  GFIND := $(shell grep 'clang++' Makefile)
+  ifeq ($(GFIND),)
+    CLANG = x86_64-none-linux-gnu-gcc
+  else
+    CLANG = x86_64-none-linux-gnu-g++
+  endif
+  FLANG= x86_64-none-linux-gnu-gfortran
+  GFIND := $(shell grep 'flang' Makefile)
+  ifneq ($(GFIND),)
+    OMP_FLAGS += -ffree-form -ffree-line-length-none
+  endif
+endif
+
 OMP_FLAGS += $(EXTRA_OMP_FLAGS)
+OMP_FLAGS += -D__OFFLOAD_ARCH_$(INSTALLED_GPU)__
 
 ifeq ($(VERBOSE),1)
   $(info    Compilation and linking VERBOSE Mode ON)
@@ -131,8 +182,8 @@ RUNPROF =  $(CUDA)/bin/nvprof
 RUNPROF =
 
 ifeq ($(SET_DEVICE_DEBUG),)
-   RUNENV = $(TKILL)
+   RUNENV = $(TKILL) $(CBL_ENV)
 else
-   RUNENV = env $(SET_DEVICE_DEBUG) $(TKILL)
+   RUNENV = env $(SET_DEVICE_DEBUG) $(TKILL) $(CBL_ENV)
 endif
 

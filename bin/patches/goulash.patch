@@ -1,0 +1,22 @@
+diff --git a/tests/rush_larsen/Generator/generate_source b/tests/rush_larsen/Generator/generate_source
+index 6e93dec..ed72d20 100755
+--- a/tests/rush_larsen/Generator/generate_source
++++ b/tests/rush_larsen/Generator/generate_source
+@@ -56,7 +56,7 @@ function patch_line()
+ 
+   FOUND_LINE=`grep "$TARGET_LINE" ${TARGET_FILE}`
+   if [[ "$FOUND_LINE" == "$TARGET_LINE" ]]; then
+-    /usr/bin/sed -i "s|${TARGET_LINE}|${NEW_LINE}|g" ${TARGET_FILE}
++    /bin/sed -i "s|${TARGET_LINE}|${NEW_LINE}|g" ${TARGET_FILE}
+   else
+     echo "ERROR: Did not find required '$TARGET_LINE' in ${TARGET_FILE}"
+     exit 1
+@@ -71,7 +71,7 @@ function patch_string()
+ 
+   FOUND_STRING=`grep "$TARGET_STRING" ${TARGET_FILE}`
+   if [[ "$FOUND_STRING" == ${TARGET_STRING}* ]]; then
+-    /usr/bin/sed -i "s|${TARGET_STRING}|${NEW_STRING}|g" ${TARGET_FILE}
++    /bin/sed -i "s|${TARGET_STRING}|${NEW_STRING}|g" ${TARGET_FILE}
+   else
+     echo "ERROR: Did not find required '$TARGET_STRING' in ${TARGET_FILE}"
+     exit 1

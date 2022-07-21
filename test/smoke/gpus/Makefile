@@ -6,15 +6,15 @@ TESTSRC_MAIN = gpus.c
 TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 
-CLANG        = clang
+CLANG        ?= clang
 OMP_BIN      = $(AOMP)/bin/$(CLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
 #-ccc-print-phases
 #"-\#\#\#"
 
 include ../Makefile.rules
-LOCAL_OMP_FLAGS = $(filter-out -march=$(AOMP_GPU), $(OMP_FLAGS))
-GFXLIST = $(shell grep GFXLIST= ../../../bin/aomp_common_vars | grep -o "gfx.*" | sed -E "s|\"}||" | sed -E "s|gfx1010||")
+LOCAL_OMP_FLAGS1 = $(filter-out -march=$(AOMP_GPU), $(OMP_FLAGS))
+LOCAL_OMP_FLAGS = $(filter-out -D__OFFLOAD_ARCH_$(INSTALLED_GPU)__, $(LOCAL_OMP_FLAGS1))
 
 all: $(GFXLIST)
 

@@ -1,7 +1,11 @@
 #include <iostream>
 #include <omp.h>
 
+#if defined(__OFFLOAD_ARCH_gfx90a__)
+#define IS_USM 1
+#else
 #define IS_USM 0
+#endif
 #if IS_USM >=1
 #pragma omp requires unified_shared_memory
 #endif

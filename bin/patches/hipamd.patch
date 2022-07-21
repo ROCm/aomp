@@ -1,17 +1,8 @@
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index b1ab39e7..2c54f6d1 100755
+index 3ce1fc10..c5b03fd1 100755
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -17,7 +17,7 @@
- # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- # THE SOFTWARE.
- 
--cmake_minimum_required(VERSION 3.16.8)
-+cmake_minimum_required(VERSION 3.13.4)
- project(hip)
- 
- # sample command for hip-rocclr runtime, you'll need to have rocclr built
-@@ -329,10 +329,6 @@ if(NOT ${INSTALL_SOURCE} EQUAL 0)
+@@ -353,10 +353,6 @@ if(NOT ${INSTALL_SOURCE} EQUAL 0)
                PATTERN *.bat EXCLUDE)
      endif()
  

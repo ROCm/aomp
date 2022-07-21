@@ -16,7 +16,7 @@ endif
 CFLAGS = -x hip --offload-arch=${AOMP_GPU} -std=c++11 $(LLIB) -lamdhip64 $(RPTH)
 endif
 OMP_FLAGS    =
-CLANG        = clang++
+CLANG        ?= clang++
 OMP_BIN      = $(AOMP)/bin/$(CLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
 

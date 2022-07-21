@@ -2,36 +2,14 @@
 #
 #  build_rocdbgapi.sh:  Script to build ROCdbgapi for AOMP standalone build
 #
-# --- Start standard header ----
-function getdname(){
-   local __DIRN=`dirname "$1"`
-   if [ "$__DIRN" = "." ] ; then
-      __DIRN=$PWD;
-   else
-      if [ ${__DIRN:0:1} != "/" ] ; then
-         if [ ${__DIRN:0:2} == ".." ] ; then
-               __DIRN=`dirname $PWD`/${__DIRN:3}
-         else
-            if [ ${__DIRN:0:1} = "." ] ; then
-               __DIRN=$PWD/${__DIRN:2}
-            else
-               __DIRN=$PWD/$__DIRN
-            fi
-         fi
-      fi
-   fi
-   echo $__DIRN
-}
 
-thisdir=$(getdname $0)
+# --- Start standard header to set AOMP environment variables ----
+realpath=`realpath $0`
+thisdir=`dirname $realpath`
 . $thisdir/aomp_common_vars
 # --- end standard header ----
 
 INSTALL_ROCDBGAPI=${INSTALL_ROCDBGAPI:-$AOMP_INSTALL_DIR}
-
-REPO_DIR=$AOMP_REPOS/$AOMP_DBGAPI_REPO_NAME
-REPO_BRANCH=$AOMP_DBGAPI_REPO_BRANCH
-checkrepo
 
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then 
   echo " "
@@ -80,20 +58,20 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    BUILDTYPE="Release"
    echo rm -rf $BUILD_AOMP/build/rocdbgapi
    rm -rf $BUILD_AOMP/build/rocdbgapi
-   CMAKE_WITH_EXPERIMENTAL=""
+   _cxx_flags="-DCMAKE_CXX_FLAGS=-I$AOMP_INSTALL_DIR/include/amd_comgr"
    if [ -d "/usr/include/c++/5/experimental" ] ; then
       _loc=`which gcc`
       if [ "$_loc" != "" ] ; then
          _gccver=`$_loc --version | grep gcc | cut -d")" -f2 | cut -d"." -f1`
 	 if [ "$_gccver" == "5" ] ; then
-            CMAKE_WITH_EXPERIMENTAL="-DCMAKE_CXX_FLAGS=-I/usr/include/c++/5/experimental"
+            _cxx_flags+="\;-I/usr/include/c++/5/experimental"
          fi
       fi
    fi
    MYCMAKEOPTS="-DCMAKE_BUILD_TYPE=$BUILD_TYPE \
         -DCMAKE_INSTALL_PREFIX=$INSTALL_ROCDBGAPI \
 	-DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR;$INSTALL_ROCDBGAPI/include \
-        $CMAKE_WITH_EXPERIMENTAL \
+        $_cxx_flags \
          $AOMP_ORIGIN_RPATH"
    mkdir -p $BUILD_AOMP/build/rocdbgapi
    cd $BUILD_AOMP/build/rocdbgapi

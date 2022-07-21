@@ -2,34 +2,16 @@
 #
 #  build_comgr.sh:  Script to build the code object manager for aomp
 #
-function getdname(){
-   local __DIRN=`dirname "$1"`
-   if [ "$__DIRN" = "." ] ; then
-      __DIRN=$PWD;
-   else
-      if [ ${__DIRN:0:1} != "/" ] ; then
-         if [ ${__DIRN:0:2} == ".." ] ; then
-               __DIRN=`dirname $PWD`/${__DIRN:3}
-         else
-            if [ ${__DIRN:0:1} = "." ] ; then
-               __DIRN=$PWD/${__DIRN:2}
-            else
-               __DIRN=$PWD/$__DIRN
-            fi
-         fi
-      fi
-   fi
-   echo $__DIRN
-}
 
-thisdir=$(getdname $0)
+# --- Start standard header to set AOMP environment variables ----
+realpath=`realpath $0`
+thisdir=`dirname $realpath`
 . $thisdir/aomp_common_vars
+# --- end standard header ----
 
 INSTALL_COMGR=${INSTALL_COMGR:-$AOMP_INSTALL_DIR}
 
 REPO_DIR=$AOMP_REPOS/$AOMP_COMGR_REPO_NAME
-REPO_BRANCH=$AOMP_COMGR_REPO_BRANCH
-checkrepo
 
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then 
   echo " "
@@ -66,9 +48,9 @@ if [ "$1" == "install" ] ; then
 fi
 
 osversion=$(cat /etc/os-release)
-if [ "$AOMP_MAJOR_VERSION" != "12" ] && [[ "$osversion" =~ "Ubuntu 16" ]];  then
+#if [ "$AOMP_MAJOR_VERSION" != "12" ] && [[ "$osversion" =~ "Ubuntu 16" ]];  then
   patchrepo $REPO_DIR
-fi
+#fi
 
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 
@@ -89,7 +71,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    DEVICELIBS_BUILD_PATH=$AOMP_REPOS/build/AOMP_LIBDEVICE_REPO_NAME
    PACKAGE_ROOT=$AOMP_REPOS/$AOMP_COMGR_REPO_NAME/lib/comgr
    ${AOMP_CMAKE} \
-      -DCMAKE_PREFIX_PATH="$AOMP/include;$AOMP/lib/cmake;$DEVICELIBS_BUILD_PATH;$PACKAGE_ROOT" \
+      -DCMAKE_PREFIX_PATH="$AOMP/include/amd_comgr;$AOMP/lib/cmake;$DEVICELIBS_BUILD_PATH;$PACKAGE_ROOT" \
       -DCMAKE_INSTALL_PREFIX=$INSTALL_COMGR \
       -DCMAKE_BUILD_TYPE=$BUILDTYPE \
       -DBUILD_TESTING=OFF \
@@ -128,6 +110,8 @@ if [ "$1" == "install" ] ; then
          echo "ERROR make install failed "
          exit 1
       fi
+      # amd_comgr.h is now in amd_comgr/amd_comgr.h, so remove depracated file
+      [ -f $INSTALL_COMGR/include/amd_comgr.h ] && rm $INSTALL_COMGR/include/amd_comgr.h
       if [ "$AOMP_MAJOR_VERSION" != "12" ] && [[ "$osversion" =~ "Ubuntu 16" ]]; then
         removepatch $REPO_DIR
       fi

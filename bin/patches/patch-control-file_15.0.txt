@@ -1,0 +1,10 @@
+rocminfo: rocminfo_ppc_cmake.patch
+omptests: omptests.patch
+openlibm: openlibm.patch
+RAJA: raja.patch
+RAJAPerf: rajaperf.patch
+rocm-device-libs: rocm-device-libs.patch
+hipamd: hipamd.patch
+GenASis: genasis.patch
+hipfort: hipfort.patch
+bolt: bolt.patch

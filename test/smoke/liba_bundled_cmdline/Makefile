@@ -5,7 +5,7 @@ TESTSRC_MAIN    = main.c
 TESTSRC_AUX     = MyDeviceLib/libMyDeviceLib.a MyHostLib/libMyHostLib.a hfunc0.o
 TESTSRC_ALL     = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 
-CLANG           = clang
+CLANG           ?= clang
 OMP_BIN         = $(AOMP)/bin/$(CLANG)
 CC              = $(OMP_BIN) $(VERBOSE)
 EXTRA_LDFLAGS   = -lMyDeviceLib -LMyDeviceLib

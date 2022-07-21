@@ -32,28 +32,9 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# --- Start standard header ----
-function getdname(){
-   local __DIRN=`dirname "$1"`
-   if [ "$__DIRN" = "." ] ; then
-      __DIRN=$PWD;
-   else
-      if [ ${__DIRN:0:1} != "/" ] ; then
-         if [ ${__DIRN:0:2} == ".." ] ; then
-               __DIRN=`dirname $PWD`/${__DIRN:3}
-         else
-            if [ ${__DIRN:0:1} = "." ] ; then
-               __DIRN=$PWD/${__DIRN:2}
-            else
-               __DIRN=$PWD/$__DIRN
-            fi
-         fi
-      fi
-   fi
-   echo $__DIRN
-}
-thisdir=$(getdname $0)
-[ ! -L "$0" ] || thisdir=$(getdname `readlink "$0"`)
+# --- Start standard header to set AOMP environment variables ----
+realpath=`realpath $0`
+thisdir=`dirname $realpath`
 . $thisdir/aomp_common_vars
 # --- end standard header ----
 
@@ -65,10 +46,6 @@ BUILDTYPE="Release"
 
 INSTALL_EXTRAS=${INSTALL_EXTRAS:-$AOMP_INSTALL_DIR}
 export LLVM_DIR=$AOMP_INSTALL_DIR 
-REPO_BRANCH=$AOMP_EXTRAS_REPO_BRANCH
-REPO_DIR=$AOMP_REPOS/$AOMP_EXTRAS_REPO_NAME
-checkrepo
-patchrepo $REPO_DIR
 
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   echo " "
@@ -114,9 +91,9 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
   fi
 
   if [ $AOMP_STANDALONE_BUILD == 1 ] ; then
-    MYCMAKEOPTS="-DLLVM_DIR=$LLVM_DIR $AOMP_ORIGIN_RPATH -DCMAKE_BUILD_TYPE=$BUILDTYPE -DCMAKE_INSTALL_PREFIX=$INSTALL_EXTRAS -DROCM_DIR=$ROCM_DIR -DAOMP_STANDALONE_BUILD=$AOMP_STANDALONE_BUILD -DAOMP_VERSION_STRING=$AOMP_VERSION_STRING -DCMAKE_PREFIX_PATH=$BUILD_DIR/build/libdevice"
+    MYCMAKEOPTS="-DLLVM_DIR=$LLVM_DIR -DCMAKE_BUILD_TYPE=$BUILDTYPE -DCMAKE_INSTALL_PREFIX=$INSTALL_EXTRAS -DAOMP_VERSION_STRING=$AOMP_VERSION_STRING -DCMAKE_PREFIX_PATH=$BUILD_DIR/build/libdevice"
   else
-    MYCMAKEOPTS="-DLLVM_DIR=$LLVM_DIR $AOMP_ORIGIN_RPATH -DCMAKE_BUILD_TYPE=$BUILDTYPE -DCMAKE_INSTALL_PREFIX=$INSTALL_EXTRAS -DROCM_DIR=$ROCM_DIR -DAOMP_STANDALONE_BUILD=$AOMP_STANDALONE_BUILD -DDEVICELIBS_ROOT=$DEVICELIBS_ROOT -DAOMP_VERSION_STRING=$AOMP_VERSION_STRING"
+    MYCMAKEOPTS="-DLLVM_DIR=$LLVM_DIR -DCMAKE_BUILD_TYPE=$BUILDTYPE -DCMAKE_INSTALL_PREFIX=$INSTALL_EXTRAS -DDEVICELIBS_ROOT=$DEVICELIBS_ROOT -DAOMP_VERSION_STRING=$AOMP_VERSION_STRING -DENABLE_DEVEL_PACKAGE=ON"
   fi
 
   mkdir -p $BUILD_DIR/build/extras
@@ -166,5 +143,4 @@ if [ "$1" == "install" ] ; then
          echo "ERROR make install failed "
          exit 1
       fi
-      removepatch $REPO_DIR
 fi

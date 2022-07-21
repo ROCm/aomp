@@ -58,7 +58,7 @@ INSTALLED_GPU  = $(shell $(AOMP)/bin/mygpu -d gfx900) # Default AOMP_GPU is gfx9
 AOMP_GPU       ?= $(INSTALLED_GPU)
 endif
 ifeq ($(TARGETS),)
-TARGETS =-fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$(AOMP_GPU)
+TARGETS =-fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$(AOMP_GPU) -O2
 endif
 
 FORT   =$(AOMP)/bin/flang

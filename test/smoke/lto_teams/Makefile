@@ -45,7 +45,7 @@ endif
 ALT_LINKER = $(_ldflag)$(_aocc_lld)
 
 CFLAGS	   = -O3 -flto=thin $(ALT_LINKER)
-CLANG      = clang
+CLANG      ?= clang
 OMP_BIN    = $(AOMP)/bin/$(CLANG)
 CC         = $(OMP_BIN) $(VERBOSE)
 

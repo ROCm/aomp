@@ -105,7 +105,7 @@ known_fails=""
 runs_tests=""
 RUNS_FORTRAN=1
 if [ "$RUNS_FORTRAN" == 1 ] ; then
-  runs_tests+="`find .  -iname '*.f9[50]' | sed s^./^^ | awk -F/ '{print $1}'` "
+  runs_tests+="`find .  -iname '*.f9[05]' -o -iname '*.f' | sed s^./^^ | awk -F/ '{print $1}'` "
   echo $runs_tests
 fi
 

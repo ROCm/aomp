@@ -8,6 +8,11 @@
 #  Please check with Ron or Ethan for script modifications.
 #
 #
+clangversion=`$AOMP/bin/clang --version`
+aomp=0
+if [[ "$clangversion" =~ "AOMP_STANDALONE" ]]; then
+  aomp=1
+fi
 
 # Use bogus path to avoid using target.lst, a user-defined target list
 # used by rocm_agent_enumerator.
@@ -40,7 +45,11 @@ if [ $? -ne 0 ]; then
 fi
 
 # Parent dir should be ROCm base dir.
-AOMPROCM=$AOMP/..
+if [ $aomp -eq 1 ]; then
+  AOMPROCM=$AOMP
+else
+  AOMPROCM=$AOMP/..
+fi
 export AOMPROCM
 echo AOMPROCM= $AOMPROCM
 
@@ -58,7 +67,9 @@ $AOMPROCM/bin/rocm_agent_enumerator
 
 # Set AOMP_GPU.
 # Regex skips first result 'gfx000' and selects second id.
-AOMP_GPU=$($AOMPROCM/bin/rocm_agent_enumerator | grep -m 1 -E gfx[^0]{1}.{2})
+if [ "$AOMP_GPU" == "" ]; then
+  AOMP_GPU=$($AOMPROCM/bin/rocm_agent_enumerator | grep -m 1 -E gfx[^0]{1}.{2})
+fi
 # mygpu will eventually relocate to /opt/rocm/bin, support both cases for now.
 echo AOMP_GPU= $AOMP_GPU
 
@@ -84,61 +95,77 @@ export AOMP_GPU
 # this version mismatch on release testing. We will choose the lower version so that
 # unsupported tests are not included.
 function getversion(){
-  supportedvers="4.3.0 4.4.0 4.5.0 4.5.2 5.0.0"
+  supportedvers="4.3.0 4.4.0 4.5.0 4.5.2 5.0.0 5.1.0 5.2.0 5.3.0"
   declare -A versions
   versions[430]=4.3.0
   versions[440]=4.4.0
   versions[450]=4.5.0
   versions[452]=4.5.2
   versions[500]=5.0.0
+  versions[510]=5.1.0
+  versions[520]=5.2.0
+  versions[530]=5.3.0
 
-  # Determine ROCm version.
-  rocm=$(cat "$AOMPROCM"/.info/version-dev)
-  rocmregex="([0-9]+\.[0-9]+\.[0-9]+)"
-  if [[ "$rocm" =~ $rocmregex ]]; then
-    rocmver=$(echo ${BASH_REMATCH[1]} | sed "s/\.//g")
-    echo rocmver: $rocmver
+  if [ $aomp -eq 1 ]; then
+    echo "AOMP detected at $AOMP, skipping ROCm version detections"
+    maxvers=`echo $supportedvers | grep -o "[0-9].[0-9].[0-9]$" | sed -e 's/\.//g'`
+    versionregex="(.*${versions[$maxvers]})"
+    if [[ "$supportedvers" =~ $versionregex ]]; then
+      finalvers=${BASH_REMATCH[1]}
+    else
+      echo "AOMP - Cannot select proper version list."
+      exit 1
+    fi
+    echo "Selecting highest supported version: ${versions[$maxvers]}"
   else
-    echo Unable to determine rocm version.
-    exit 1
-  fi
+    # Determine ROCm version.
+    rocm=$(cat "$AOMPROCM"/.info/version*|head -1)
+    rocmregex="([0-9]+\.[0-9]+\.[0-9]+)"
+    if [[ "$rocm" =~ $rocmregex ]]; then
+      rocmver=$(echo ${BASH_REMATCH[1]} | sed "s/\.//g")
+      echo rocmver: $rocmver
+    else
+      echo Unable to determine rocm version.
+      exit 1
+    fi
 
-  # Determine OS flavor to properly query openmp-extras version.
-  osname=$(cat /etc/os-release | grep -e ^NAME=)
-  # Regex to cover single/multi version installs for deb/rpm.
-  ompextrasregex="openmp-extras[0-9]*\.*[0-9]*\.*[0-9]*-*\s*[0-9]+\.([0-9]+)\.([0-9]+)"
-  rpmregex="Red Hat|CentOS|SLES"
-  echo $osname
-  if [[ "$osname" =~ $rpmregex ]]; then
-    echo "Red Hat/CentOS/SLES found"
-    ompextraspkg=$(rpm -qa | grep openmp-extras | tail -1)
-  elif [[ $osname =~ "Ubuntu" ]]; then
-    echo "Ubuntu found"
-    ompextraspkg=$(dpkg --list | grep openmp-extras | tail -1)
-  fi
-  if [[ "$ompextraspkg" =~ $ompextrasregex ]]; then
-    ompextrasver=${BASH_REMATCH[1]}${BASH_REMATCH[2]}
-    echo ompextrasver: $ompextrasver
-  else
-    echo Unable to determine openmp-extras package version.
-    exit 1
-  fi
-  # Set the final version to use for expected passing lists. The expected passes
-  # will include an aggregation of suported versions up to and including the chosen
-  # version.  Example: If 4.4 is selected then the final list will include expected passes
-  # from 4.3 and 4.4. Openmp-extras should not be a higher version than rocm.
-  if [ "$rocmver" == "$ompextrasver" ] || [ "$rocmver" -gt "$ompextrasver" ]; then
-    compilerver=${versions[$ompextrasver]}
-  else
-    compilerver=${versions[$rocmver]}
-  fi
-  echo Chosen Version: $compilerver
-  versionregex="(.*$compilerver)"
-  if [[ "$supportedvers" =~ $versionregex ]]; then
-    finalvers=${BASH_REMATCH[1]}
-  else
-    echo "Unsupported compiler build."
-    exit 1
+    # Determine OS flavor to properly query openmp-extras version.
+    osname=$(cat /etc/os-release | grep -e ^NAME=)
+    # Regex to cover single/multi version installs for deb/rpm.
+    ompextrasregex="openmp-extras-?[a-z]*[0-9]*\.*[0-9]*\.*[0-9]*-*\s*[0-9]+\.([0-9]+)\.([0-9]+)"
+    rpmregex="Red Hat|CentOS|SLES"
+    echo $osname
+    if [[ "$osname" =~ $rpmregex ]]; then
+      echo "Red Hat/CentOS/SLES found"
+      ompextraspkg=$(rpm -qa | grep openmp-extras | tail -1)
+    elif [[ $osname =~ "Ubuntu" ]]; then
+      echo "Ubuntu found"
+      ompextraspkg=$(dpkg --list | grep openmp-extras | tail -1)
+    fi
+    if [[ "$ompextraspkg" =~ $ompextrasregex ]]; then
+      ompextrasver=${BASH_REMATCH[1]}${BASH_REMATCH[2]}
+      echo ompextrasver: $ompextrasver
+    else
+      echo Unable to determine openmp-extras package version.
+      exit 1
+    fi
+    # Set the final version to use for expected passing lists. The expected passes
+    # will include an aggregation of suported versions up to and including the chosen
+    # version.  Example: If 4.4 is selected then the final list will include expected passes
+    # from 4.3 and 4.4. Openmp-extras should not be a higher version than rocm.
+    if [ "$rocmver" == "$ompextrasver" ] || [ "$rocmver" -gt "$ompextrasver" ]; then
+      compilerver=${versions[$ompextrasver]}
+    else
+      compilerver=${versions[$rocmver]}
+    fi
+    echo Chosen Version: $compilerver
+    versionregex="(.*$compilerver)"
+    if [[ "$supportedvers" =~ $versionregex ]]; then
+      finalvers=${BASH_REMATCH[1]}
+    else
+      echo "Unsupported compiler build."
+      exit 1
+    fi
   fi
 }
 
@@ -265,8 +292,16 @@ copyresults omp5
 mkdir -p "$resultsdir"/sollve45
 mkdir -p "$resultsdir"/sollve50
 cd "$aompdir"/bin
-./clone_aomp_test.sh
-./run_sollve.sh
+./clone_epsdb_test.sh
+
+no_usm_gpus="gfx900 gfx906"
+if [[ "$no_usm_gpus" =~ "$AOMP_GPU" ]]; then
+  echo "Skipping USM 5.0 tests."
+  SKIP_USM=1 SKIP_SOLLVE51=1 ./run_sollve.sh
+else
+  SKIP_SOLLVE51=1 ./run_sollve.sh
+fi
+
 ./check_sollve.sh
 checkrc $?
 

@@ -1,7 +1,6 @@
 module test_aomp
 
 implicit none
-
 integer, parameter :: rstd = 8
 integer :: nsize
 REAL(rstd), allocatable :: a_dev(:,:,:), b_dev(:,:,:), c_dev(:,:,:)
@@ -46,6 +45,7 @@ end module test_aomp
 
 program test
    use test_aomp
+   integer :: getpid
 
    limit= 10000
    touch_limit= .false.
@@ -55,6 +55,6 @@ program test
 
    write(0,*) "touch limit: ", touch_limit
    if (touch_limit) then
-     call kill(0,4)
+     call kill(getpid(),7)
    endif
 end program test

@@ -2,36 +2,14 @@
 #
 #  build_roctracer.sh:  Script to build roctracer for AOMP standalone build
 #
-# --- Start standard header ----
-function getdname(){
-   local __DIRN=`dirname "$1"`
-   if [ "$__DIRN" = "." ] ; then
-      __DIRN=$PWD;
-   else
-      if [ ${__DIRN:0:1} != "/" ] ; then
-         if [ ${__DIRN:0:2} == ".." ] ; then
-               __DIRN=`dirname $PWD`/${__DIRN:3}
-         else
-            if [ ${__DIRN:0:1} = "." ] ; then
-               __DIRN=$PWD/${__DIRN:2}
-            else
-               __DIRN=$PWD/$__DIRN
-            fi
-         fi
-      fi
-   fi
-   echo $__DIRN
-}
 
-thisdir=$(getdname $0)
+# --- Start standard header to set AOMP environment variables ----
+realpath=`realpath $0`
+thisdir=`dirname $realpath`
 . $thisdir/aomp_common_vars
 # --- end standard header ----
 
 INSTALL_ROCTRACE=${INSTALL_ROCTRACE:-$AOMP_INSTALL_DIR}
-
-REPO_DIR=$AOMP_REPOS/$AOMP_TRACE_REPO_NAME
-REPO_BRANCH=$AOMP_TRACE_REPO_BRANCH
-checkrepo
 
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then 
   echo " "
@@ -95,8 +73,8 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    mkdir -p $BUILD_AOMP/build/roctracer
    cd $BUILD_AOMP/build/roctracer
    echo " -----Running roctracer cmake ---- " 
-   echo ${AOMP_CMAKE} -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX=$INSTALL_ROCTRACE -DHSA_RUNTIME_LIB_PATH=$ROCM_DIR/lib -DCMAKE_PREFIX_PATH="""$CMAKE_PREFIX_PATH""" -DHIP_VDI=1 -DHIP_PATH=$ROCM_DIR $CMAKE_WITH_EXPERIMENTAL $AOMP_ORIGIN_RPATH -DGPU_TARGETS="""$GFXSEMICOLONS""" $AOMP_REPOS/$AOMP_TRACE_REPO_NAME
-   ${AOMP_CMAKE} -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX=$INSTALL_ROCTRACE -DHSA_RUNTIME_LIB_PATH=$ROCM_DIR/lib -DCMAKE_PREFIX_PATH="""$CMAKE_PREFIX_PATH""" -DHIP_VDI=1 -DHIP_PATH=$ROCM_DIR $CMAKE_WITH_EXPERIMENTAL $AOMP_ORIGIN_RPATH -DGPU_TARGETS="""$GFXSEMICOLONS""" $AOMP_REPOS/$AOMP_TRACE_REPO_NAME
+   echo ${AOMP_CMAKE} -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX=$INSTALL_ROCTRACE -DHSA_RUNTIME_LIB_PATH=$ROCM_DIR/lib -DCMAKE_PREFIX_PATH="""$CMAKE_PREFIX_PATH""" -DHIP_PATH=$ROCM_DIR $CMAKE_WITH_EXPERIMENTAL $AOMP_ORIGIN_RPATH -DGPU_TARGETS="""$GFXSEMICOLONS""" $AOMP_REPOS/$AOMP_TRACE_REPO_NAME
+   ${AOMP_CMAKE} -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX=$INSTALL_ROCTRACE -DHSA_RUNTIME_LIB_PATH=$ROCM_DIR/lib -DCMAKE_PREFIX_PATH="""$CMAKE_PREFIX_PATH""" -DHIP_PATH=$ROCM_DIR $CMAKE_WITH_EXPERIMENTAL $AOMP_ORIGIN_RPATH -DGPU_TARGETS="""$GFXSEMICOLONS""" $AOMP_REPOS/$AOMP_TRACE_REPO_NAME
    if [ $? != 0 ] ; then 
       echo "ERROR roctracer cmake failed. cmake flags"
       echo "      $MYCMAKEOPTS"

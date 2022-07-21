@@ -7,7 +7,9 @@
 
 #include "OMP45Stream.h"
 
+#ifdef __clang__
 #define simd
+#endif
 
 template <class T>
 OMP45Stream<T>::OMP45Stream(const unsigned int ARRAY_SIZE, T *a, T *b, T *c, int device)

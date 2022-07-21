@@ -93,20 +93,11 @@ int main() {
 	  omp_atv_default_mem_fb,
 	  omp_atv_null_fb,
 	  omp_atv_abort_fb,
-	  omp_atv_allocator_fb
+	  //omp_atv_allocator_fb // not tested
 	};
-	omp_alloctrait_t arr[2];
-	// test with default mem allocator as fallback
-	arr[0].key = trait;
-	arr[1].key = omp_atk_fb_data;
-	arr[1].value = omp_default_mem_alloc;
-	for(auto t : omp_fallback_vals) {
-	  arr[1].value = t;
-	  auto allocator = omp_init_allocator(mem, 2, arr);
-	  test_allocation_routines(allocator);
-	  omp_destroy_allocator(allocator);
+	trait_it<omp_alloctrait_value_t> itt(mem, trait, omp_fallback_vals);
+	itt.test_all();
 	break;
-	}
       }
       case omp_atk_pinned: {
 	std::vector<omp_alloctrait_value_t> omp_pinned_vals = {
