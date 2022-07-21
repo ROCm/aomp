@@ -11,10 +11,7 @@ test_loop_reduction_and.F90
 test_loop_reduction_bitand_device.F90
 test_loop_reduction_bitand.F90
 test_loop_reduction_bitor_device.F90
-test_loop_reduction_bitor.F90
-test_loop_reduction_bitxor.c
 test_loop_reduction_bitxor_device.F90
-test_loop_reduction_bitxor.F90
 test_loop_reduction_max_device.F90
 test_loop_reduction_max.F90
 test_loop_reduction_min_device.F90

@@ -5,7 +5,6 @@ reduction_separated_directives.cpp
 test_target_defaultmap.F90
 test_target_depends.F90
 test_target_map_scalar_default.F90
-test_target_private.F90
 test_target_teams_distribute_default_none.F90
 test_target_teams_distribute_default_shared.F90
 test_target_teams_distribute_depend_array_section.F90
