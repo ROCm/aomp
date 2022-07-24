@@ -31,7 +31,7 @@ int main() {
   for(k=0;k<nz;k++) {
     for(j=0;j<ny;j++) {
 #pragma omp metadirective when(user={condition(OMP_MODEL_TARGET_SIMD)}: simd)\
-#pragma omp metadirective when(user={condition(OMP_MODEL_TARGET)}: nothing)\
+                          when(user={condition(OMP_MODEL_TARGET)}: nothing)\
 	                  otherwise (loop)
       for(i=0;i<nx;i++) {
         printf("hello\n");
