@@ -1,0 +1,82 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 273335d..c7a4890 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -164,6 +164,10 @@ find_library(NUMA NAMES libnuma.so REQUIRED)
+ message(STATUS "LIBC:" ${LIBC})
+ message(STATUS "NUMA:" ${NUMA})
+ 
++set(HSAKMT_SKIP_DRM_REQUIREMENT OFF CACHE BOOL "Skip need for DRM by avoiding call to get_marketing_name")
++if(HSAKMT_SKIP_DRM_REQUIREMENT)
++  set(DRM_CFLAGS "-DHSAKMT_SKIP_DRM_REQUIREMENT")
++else()
+ ## If environment variable DRM_DIR is set, the script
+ ## will pick up the corresponding libraries from that path.
+ if( DEFINED ENV{DRM_DIR} )
+@@ -185,6 +189,7 @@ include_directories(${DRM_INCLUDE_DIRS})
+ target_link_libraries ( ${HSAKMT_TARGET}
+   PRIVATE ${DRM_LDFLAGS} ${DRM_AMDGPU_LDFLAGS} pthread rt ${LIBC} ${NUMA}
+ )
++endif()
+ 
+ target_compile_options(${HSAKMT_TARGET} PRIVATE ${DRM_CFLAGS} ${HSAKMT_C_FLAGS})
+ if(NOT DISTRO_ID MATCHES "ubuntu")
+@@ -363,6 +368,7 @@ set(CPACK_DEBIAN_PACKAGE_REPLACES "hsakmt-roct")
+ 
+ set(CPACK_RPM_PACKAGE_REQUIRES "libdrm-devel, rocm-core")
+ 
++if(NOT HSAKMT_SKIP_DRM_REQUIREMENT)
+ # NOTE: CentOS/RHEL <8 and SUSE <10 do not have support for rpm recommends,
+ # so HSAKMT_REQUIRES_LIBDRM should be defined when building EL7 to avoid
+ # producing binaries which do not install on CentOS7 or RHEL7
+@@ -371,6 +377,7 @@ if(HSAKMT_REQUIRES_LIBDRM)
+ else()
+   set(CPACK_RPM_PACKAGE_RECOMMENDS "libdrm-amdgpu" )
+ endif()
++endif()
+ 
+ # Set the names now using CPACK utility
+ set(CPACK_DEBIAN_FILE_NAME "DEB-DEFAULT")
+diff --git a/src/topology.c b/src/topology.c
+index 81ff62f..63b114a 100644
+--- a/src/topology.c
++++ b/src/topology.c
+@@ -35,9 +35,11 @@
+ 
+ #include <errno.h>
+ #include <sys/sysinfo.h>
++#ifndef HSAKMT_SKIP_DRM_REQUIREMENT
+ #include <xf86drm.h>
+ #include <amdgpu.h>
+ #include <amdgpu_drm.h>
++#endif
+ 
+ #include "libhsakmt.h"
+ #include "fmm.h"
+@@ -1005,6 +1007,7 @@ exit:
+ 	return ret;
+ }
+ 
++#ifndef HSAKMT_SKIP_DRM_REQUIREMENT
+ static int topology_get_marketing_name(int minor, uint16_t *marketing_name)
+ {
+ 	int drm_fd;
+@@ -1034,6 +1037,7 @@ static int topology_get_marketing_name(int minor, uint16_t *marketing_name)
+ 	drmClose(drm_fd);
+ 	return 0;
+ }
++#endif
+ 
+ HSAKMT_STATUS topology_sysfs_get_node_props(uint32_t node_id,
+ 					    HsaNodeProperties *props,
+@@ -1215,8 +1219,10 @@ HSAKMT_STATUS topology_sysfs_get_node_props(uint32_t node_id,
+ 			/* Is dGPU Node, not APU
+ 			 * Retrieve the marketing name of the node.
+ 			 */
++#ifndef HSAKMT_SKIP_DRM_REQUIREMENT
+ 			if (topology_get_marketing_name(props->DrmRenderMinor,
+ 					props->MarketingName) != 0)
++#endif
+ 				pr_info("failed to get marketing name for device ID 0x%x\n",
+ 						props->DeviceId);
+ 		}
