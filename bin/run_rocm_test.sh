@@ -277,11 +277,15 @@ checkrc $?
 copyresults smoke
 
 # Smoke-fails
-mkdir -p "$resultsdir"/smoke-fails
-cd "$aompdir"/test/smoke-fails
-./check_smoke_fails.sh
-checkrc $?
-copyresults smoke-fails
+if [ "$SMOKE_FAILS" == "1" ]; then
+  mkdir -p "$resultsdir"/smoke-fails
+  cd "$aompdir"/test/smoke-fails
+  ./check_smoke_fails.sh
+  checkrc $?
+  copyresults smoke-fails
+else
+  echo "Skipping smoke-fails."
+fi
 
 # Omp5
 mkdir -p "$resultsdir"/omp5
