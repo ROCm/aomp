@@ -10,7 +10,9 @@ thisdir=`dirname $realpath`
 . $thisdir/aomp_common_vars
 # --- end standard header ----
 
-if [ "$thisdir" != "$AOMP_REPOS/$AOMP_REPO_NAME/bin" ] ; then
+thischk="$AOMP_REPOS/$AOMP_REPO_NAME/bin"
+thischk=`realpath $thischk`
+if [ "$thisdir" != "$thischk" ] ; then
    echo
    echo "ERROR:  This clone_aomp.sh script is found in directory $thisdir "
    echo "        But it should be found at $AOMP_REPOS/$AOMP_REPO_NAME/bin because the value"
