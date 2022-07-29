@@ -1,12 +1,12 @@
 include ../../Makefile.defs
 
-TESTNAME     = aomp_mappings_newrt
-TESTSRC_MAIN = aomp_mappings_newrt.c
+TESTNAME     = unified_address
+TESTSRC_MAIN = unified_address.cpp
 TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 
-CLANG        = clang -O2
-OMP_BIN      = $(AOMP)/bin/$(CLANG) -isystem$(AOMP)/include
+CLANG        ?= clang++
+OMP_BIN      = $(AOMP)/bin/$(CLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
 #-ccc-print-phases
 #"-\#\#\#"

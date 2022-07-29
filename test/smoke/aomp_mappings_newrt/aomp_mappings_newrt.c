@@ -79,7 +79,7 @@ int main()
     active_mask[i] = 0;
   for (i=0; i<NN; i++)
     thread_num[i]=team_num[i]=default_dev[i]=warp_id[i]=lane_id[i]=master_thread_id[i]=smid[i]=is_spmd_mode[i]=num_threads[i]=num_teams[i] = -1;
-
+#if 0
   fprintf(stderr,"#pragma omp target teams distribute parallel for thread_limit(4)\n");
 #pragma omp target teams distribute parallel for thread_limit(4) map(from:actual_num_threads_in_parallel)
   {
@@ -297,7 +297,7 @@ int main()
       recordError(&errors, "ACTIVE MASK", i, NULL, active_mask);
     }
   }
-
+#endif
   //Reset Arrays
   for (i=0; i<NN; i++)
     active_mask[i] = 0;
@@ -356,11 +356,11 @@ int main()
         recordError(&errors, "LANE NUMBER", i, lane_id, NULL);
 
       //check master thread #
-      if (master_thread_id[i] != 0)
+      if (master_thread_id[i] != 256)
         recordError(&errors, "MASTER THREAD NUMBER", i, master_thread_id, NULL);
 
       //check SPMD mode #
-      if (is_spmd_mode[i] != 1 )
+      if (is_spmd_mode[i] != 0 )
         recordError(&errors, "SPMD NUMBER", i, is_spmd_mode, NULL);
 
       //check num threads
