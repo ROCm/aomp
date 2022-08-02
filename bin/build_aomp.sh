@@ -1,6 +1,6 @@
 #!/bin/bash
-# 
-#   build_aomp.sh : Build all AOMP components 
+#
+#   build_aomp.sh : Build all AOMP components
 #
 
 # --- Start standard header to set AOMP environment variables ----
@@ -25,14 +25,14 @@ function build_aomp_component() {
 
    $AOMP_REPOS/$AOMP_REPO_NAME/bin/build_$COMPONENT.sh "$@"
    rc=$?
-   if [ $rc != 0 ] ; then 
+   if [ $rc != 0 ] ; then
       echo " !!!  build_aomp.sh: BUILD FAILED FOR COMPONENT $COMPONENT !!!"
       exit $rc
-   fi  
-   if [ $# -eq 0 ] ; then
+   fi
+   if [ $# -eq 0 ] || [ "$1" == "asan" ] ; then
        $AOMP_REPOS/$AOMP_REPO_NAME/bin/build_$COMPONENT.sh install
        rc=$?
-       if [ $rc != 0 ] ; then 
+       if [ $rc != 0 ] ; then
            echo " !!!  build_aomp.sh: INSTALL FAILED FOR COMPONENT $COMPONENT !!!"
            exit $rc
        fi
@@ -76,10 +76,10 @@ if [ "$DISABLE_LLVM_TESTS" == "1" ]; then
   export DO_TESTS="-DLLVM_INCLUDE_TESTS=OFF -DCLANG_INCLUDE_TESTS=OFF"
 fi
 
-echo 
+echo
 date
-echo " =================  START build_aomp.sh ==================="   
-echo 
+echo " =================  START build_aomp.sh ==================="
+echo
 if [ "$AOMP_STANDALONE_BUILD" == 1 ] ; then
   components="roct rocr project libdevice openmp extras comgr rocminfo"
   if [ $AOMP_MAJOR_VERSION -gt 13 ] ; then
@@ -153,18 +153,18 @@ if [ -n "$1" ] ; then
   fi
 fi
 
-for COMPONENT in $components ; do 
-   echo 
-   echo " =================  BUILDING COMPONENT $COMPONENT ==================="   
-   echo 
+for COMPONENT in $components ; do
+   echo
+   echo " =================  BUILDING COMPONENT $COMPONENT ==================="
+   echo
    build_aomp_component "$@"
    date
-   echo " =================  DONE INSTALLING COMPONENT $COMPONENT ==================="   
+   echo " =================  DONE INSTALLING COMPONENT $COMPONENT ==================="
 done
 #Run build_fixups.sh to clean the AOMP directory before packaging
 #$AOMP_REPOS/$AOMP_REPO_NAME/bin/build_fixups.sh
-echo 
+echo
 date
-echo " =================  END build_aomp.sh ==================="   
-echo 
+echo " =================  END build_aomp.sh ==================="
+echo
 exit 0

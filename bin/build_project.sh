@@ -63,6 +63,11 @@ $enable_amdgpu_arch
 -DLLVM_LINK_LLVM_DYLIB=OFF
 -DCLANG_LINK_CLANG_DYLIB=OFF"
 
+# Enable Compiler-rt Sanitizer Build
+if [ "$AOMP_BUILD_SANITIZER" == 'ON' ]; then
+MYCMAKEOPTS+=" -DSANITIZER_AMDGPU=1 -DHSA_INCLUDE_PATH=$AOMP_REPOS/$AOMP_ROCR_REPO_NAME/src/inc -DCOMGR_INCLUDE_PATH=$AOMP_REPOS/$AOMP_COMGR_REPO_NAME/lib/comgr/include"
+fi
+
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then 
   help_build_aomp
 fi
