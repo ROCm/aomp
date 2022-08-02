@@ -82,7 +82,7 @@ endif
 
 #  compiler automatically adds "libdevice/<target>/ to -L opts
 LFLAGS   =-L$(AOMPHIP)/lib $(RPTH)
-ASAN_FLAGS = -fsanitize=address -shared-libsan
+ASAN_FLAGS = -fsanitize=address -shared-libasan
 CFLAGS = -O0 -g -std=c++11 -fopenmp
 
 # ----- Demo compile and link in one step, no object code saved
