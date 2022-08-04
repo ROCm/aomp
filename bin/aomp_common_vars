@@ -52,7 +52,7 @@ elif [ "$AOMP_MAJOR_VERSION" == "13" ] ; then
   fi
 elif [ "$AOMP_MAJOR_VERSION" == "11" ] ; then
   AOMP_REPOS=${AOMP_REPOS:-$HOME/git/aomp11}
-elif [ "$AOMP_MAJOR_VERSION" == "14" ] || [ "$AOMP_MAJOR_VERSION" == "15" ] ; then
+elif [ "$AOMP_MAJOR_VERSION" == "14" ] || [ "$AOMP_MAJOR_VERSION" == "15" ] || [ "$AOMP_MAJOR_VERSION" == "16" ]; then
     AOMP_REPOS=${AOMP_REPOS:-${HOME}/git/aomp${AOMP_VERSION}}
     AOMP_PATCH_CONTROL_FILE="${AOMP_REPOS}/aomp/bin/patches/patch-control-file_$AOMP_VERSION.txt"
 else
