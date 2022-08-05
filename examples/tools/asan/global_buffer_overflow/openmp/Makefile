@@ -56,7 +56,8 @@ endif
 endif
 
 ifeq ($(AOMP_GPU),)
-INSTALLED_GPU  = $(shell $(AOMP)/bin/mygpu -d gfx900) # Default AOMP_GPU is gfx900 which is vega
+# Default AOMP_GPU is gfx900 which is vega
+INSTALLED_GPU  = $(shell $(AOMP)/bin/mygpu -d gfx900)
 AOMP_GPU       ?= $(INSTALLED_GPU)
 endif
 
@@ -66,8 +67,21 @@ endif
 
 CC       =$(AOMP)/bin/clang++
 
+VERS = $(shell $(AOMP)/bin/clang --version | grep -oP '(?<=clang version )[0-9.]+')
+ROCM = $(shell $(AOMP)/bin/clang --version | grep -oP 'AMD clang')
+
+ifeq ($(ROCM),)
+  AOMPHIP ?= $(AOMP)
+else
+  AOMPHIP ?= $(AOMP)/..
+endif
+
+ifeq ($(shell expr $(VERS) \>= 12.0), 1)
+        RPTH = -Wl,-rpath,$(AOMPHIP)/lib -Wl,-rpath,$(AOMP)/lib/clang/$(VERS)/lib/linux
+endif
+
 #  compiler automatically adds "libdevice/<target>/ to -L opts
-LFLAGS   =-L$(AOMP)/lib
+LFLAGS   =-L$(AOMPHIP)/lib $(RPTH)
 ASAN_FLAGS = -fsanitize=address -shared-libasan
 CFLAGS = -O0 -g -std=c++11 -fopenmp
 
@@ -76,7 +90,7 @@ $(TESTNAME): $(TESTNAME).$(FILETYPE)
 	$(CC) $(CFLAGS) $(TARGETS) $(ASAN_FLAGS) $(LFLAGS) $^ -o $@
 
 run: $(TESTNAME)
-	./$(TESTNAME)
+	HSA_XNACK=1 ./$(TESTNAME)
 
 #  ----   Demo compile and link in two steps, object saved
 $(TESTNAME).o: $(TESTNAME).$(FILETYPE)
