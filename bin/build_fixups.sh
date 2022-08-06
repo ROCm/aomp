@@ -43,8 +43,10 @@ $SUDO rm -f $AOMP/examples/*.sh
 $SUDO rm -f $AOMP/examples/raja/*.txt
 $SUDO rm -f $AOMP/examples/raja/*.sh
 
-# Clean libexec
-$SUDO rm -rf $AOMP/libexec
+# Clean libexec, for now just delete files not directories
+# rocprofiler installs some needed python scripts in
+# libexec/rocprofiler.
+$SUDO find $AOMP/libexec -maxdepth 1 -type f -delete
 
 # Clean src
 $SUDO rm -rf $AOMP/src
