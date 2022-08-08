@@ -1,4 +1,4 @@
-# Source Install V 15.0-2
+# Source Install V 15.0-3
 
 Build and install from sources is possible.  However, the source build for AOMP is complex for several reasons.
 - Many repos are required.
@@ -32,7 +32,7 @@ Here are the commands to do a source build of AOMP:
 
 <b>Development Branch:</b>
 ```
-   export AOMP_VERSION=15.0
+   export AOMP_VERSION=16.0
    export AOMP_REPOS=$HOME/git/aomp${AOMP_VERSION}
    mkdir -p $AOMP_REPOS
    cd $AOMP_REPOS
@@ -40,14 +40,14 @@ Here are the commands to do a source build of AOMP:
 ```
 
 The development version is the next version to be released.  It is possible that the development version is broken due to regressions that often occur during development.
-These commands will build a previous release of AOMP such as aomp-15.0-2.<br>
+These commands will build a previous release of AOMP such as aomp-15.0-3.<br>
 <b>Release Branch:</b>
 ```
    export AOMP_VERSION=15.0
    export AOMP_REPOS=$HOME/git/aomp${AOMP_VERSION}
    mkdir -p $AOMP_REPOS
    cd $AOMP_REPOS
-   git clone -b aomp-15.0-2 https://github.com/ROCm-Developer-Tools/aomp
+   git clone -b aomp-15.0-3 https://github.com/ROCm-Developer-Tools/aomp
 ```
 <b>Clone and build:</b>
 ```
@@ -75,18 +75,18 @@ MANIFEST FILE: /work/grodgers/git/aomp15.0/aomp/bin/../manifests/aomp_15.0.xml
   roctools     aomp-dev                flang                     flang 4f1282c59a76 2021-09-22             GitHub            ronlieb
   roctools     aomp-dev          aomp-extras               aomp-extras aefc0d6c7434 2021-10-18      Ron Lieberman      Ron Lieberman
   roctools     aomp-dev                 aomp                      aomp a94d9f43f3b0 2021-11-01        gregrodgers        gregrodgers
-  roctools   rocm-5.0.x          rocprofiler               rocprofiler e140f47f3609 2021-10-08 Gerrit Code Review      Zhongyu Zhang
-  roctools   rocm-5.0.x            roctracer                 roctracer d8ecefda4efd 2021-10-09      Ammar Elwazir      Ammar ELWazir
-  roctools   rocm-5.0.x            ROCdbgapi                 ROCdbgapi 1040f1521831 2021-09-26 Laurent Morichetti Laurent Morichetti
-  roctools   rocm-5.0.x               ROCgdb                    ROCgdb a1f2a479f060 2021-09-24 Laurent Morichetti       Simon Marchi
-  roctools   rocm-5.0.x               hipamd                    hipamd bedc5f614221 2021-10-04  Pruthvi Madugundu            Sourabh
-  roctools   rocm-5.0.x                  hip                       hip 3413a164f458 2021-10-11      Maneesh Gupta      Maneesh Gupta
-  roctools   rocm-5.0.x               ROCclr                    ROCclr aba55f5c2775 2021-10-07      Zhongyu Zhang   German Andryeyev
-       roc   rocm-5.0.x  ROCm-OpenCL-Runtime       ROCm-OpenCL-Runtime bf77cab71234 2021-09-27        Freddy Paul        Freddy Paul
-       roc    roc-5.0.x             rocminfo                  rocminfo 1452f8fa24b2 2021-07-19      Icarus Sparry      Icarus Sparry
-       roc rocm-rel-5.0           rocm-cmake                rocm-cmake 8d82398d269d 2021-09-14            Jenkins            Jenkins
-       roc   rocm-5.0.x         rocr-runtime              ROCR-Runtime f32dfa887d02 2021-10-27         Sean Keely         Sean Keely
-       roc    roc-5.0.x roct-thunk-interface      ROCT-Thunk-Interface 5b152ed0f043 2021-09-30         Sean Keely         Sean Keely
-     rocsw rocm-rel-5.0              hipfort                   hipfort 96e9cb88281d 2021-11-16             GitHub   Dominic Charrier
+  roctools   rocm-5.2.x          rocprofiler               rocprofiler e140f47f3609 2021-10-08 Gerrit Code Review      Zhongyu Zhang
+  roctools   rocm-5.2.x            roctracer                 roctracer d8ecefda4efd 2021-10-09      Ammar Elwazir      Ammar ELWazir
+  roctools   rocm-5.2.x            ROCdbgapi                 ROCdbgapi 1040f1521831 2021-09-26 Laurent Morichetti Laurent Morichetti
+  roctools   rocm-5.2.x               ROCgdb                    ROCgdb a1f2a479f060 2021-09-24 Laurent Morichetti       Simon Marchi
+  roctools   rocm-5.2.x               hipamd                    hipamd bedc5f614221 2021-10-04  Pruthvi Madugundu            Sourabh
+  roctools   rocm-5.2.x                  hip                       hip 3413a164f458 2021-10-11      Maneesh Gupta      Maneesh Gupta
+  roctools   rocm-5.2.x               ROCclr                    ROCclr aba55f5c2775 2021-10-07      Zhongyu Zhang   German Andryeyev
+       roc   rocm-5.2.x  ROCm-OpenCL-Runtime       ROCm-OpenCL-Runtime bf77cab71234 2021-09-27        Freddy Paul        Freddy Paul
+       roc    roc-5.2.x             rocminfo                  rocminfo 1452f8fa24b2 2021-07-19      Icarus Sparry      Icarus Sparry
+       roc rocm-rel-5.2           rocm-cmake                rocm-cmake 8d82398d269d 2021-09-14            Jenkins            Jenkins
+       roc   rocm-5.2.x         rocr-runtime              ROCR-Runtime f32dfa887d02 2021-10-27         Sean Keely         Sean Keely
+       roc    roc-5.2.x roct-thunk-interface      ROCT-Thunk-Interface 5b152ed0f043 2021-09-30         Sean Keely         Sean Keely
+     rocsw rocm-rel-5.2              hipfort                   hipfort 96e9cb88281d 2021-11-16             GitHub   Dominic Charrier
 ```
 For more information, or if you are interested in joining the development of AOMP, please read the AOMP developers README file located here [README](../bin/README.md).
