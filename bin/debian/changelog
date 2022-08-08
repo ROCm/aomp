@@ -1,4 +1,4 @@
-aomp (15.0-2) UNRELEASED; urgency=medium
+aomp (15.0-3) UNRELEASED; urgency=medium
 
   * Initial release of aomp is 0.3-2
   *   Please see example in /usr/lib/aomp/examples/vmuldemo 
@@ -742,5 +742,15 @@ aomp (15.0-2) UNRELEASED; urgency=medium
   *       for thread parallelization. __kmpc_parallel_51 increases parallel level and it launches parallel code.
   *   Updated cloc.sh in aomp-extras to pass bitcode for abi version.
   *   Fixed timing accuracy for OMPT target data transfer and kernel dispatch trace records
+  *
+  *  15.0-3
+  *   Use the new openmp DeviceRTL by default.
+  *   New DeviceRTL APIs for optimized cross-team reduction.
+  *   Clang codegen changes to use the optimized cross-team reduction APIs for a reduction clause in a device construct.
+  *   Added support for classic flang to use the new DeviceRTL.
+  *
+  *  Known Issues:
+  *   Flang has issues at -O0 when using the new DeviceRTL on GPUs other than gfx90a.
+  *   Nekbone app currently has performance issues due to the rpc thread being turned on.
 
  -- Greg Rodgers <Gregory.Rodgers@amd.com>  Thu, 19 May 2022 23:34:44 -0500
