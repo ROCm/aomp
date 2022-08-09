@@ -31,57 +31,35 @@
 TESTNAME =vecadd-GBO
 FILETYPE =cpp
 
-UNAMEP = $(shell uname -m)
-AOMP_CPUTARGET = $(UNAMEP)-pc-linux-gnu
-ifeq ($(UNAMEP),ppc64le)
-  AOMP_CPUTARGET = ppc64le-linux-gnu
-endif
-ifeq ($(AOMP),)
-# --- Standard Makefile check for AOMP installation ---
-ifeq ("$(wildcard $(AOMP))","")
-  ifneq ($(AOMP),)
-    $(warning AOMP not found at $(AOMP))
-  endif
-  AOMP = $(HOME)/rocm/aomp
-  ifeq ("$(wildcard $(AOMP))","")
-    $(warning AOMP not found at $(AOMP))
-    AOMP = /usr/lib/aomp
-    ifeq ("$(wildcard $(AOMP))","")
-      $(warning AOMP not found at $(AOMP))
-      $(error Please install AOMP or correctly set env-var AOMP)
-    endif
-  endif
-endif
-# --- End Standard Makefile check for AOMP installation ---
-endif
+ROCM_LLVM ?= /opt/rocm/llvm
 
-ifeq ($(AOMP_GPU),)
-# Default AOMP_GPU is gfx900 which is vega
-INSTALLED_GPU  = $(shell $(AOMP)/bin/mygpu -d gfx900)
-AOMP_GPU       ?= $(INSTALLED_GPU)
+ifeq ($(LLVM_GPU),)
+# Default ROCM_GPU is gfx900 which is vega
+INSTALLED_GPU  = $(shell $(ROCM_LLVM)/bin/mygpu -d gfx900)
+ROCM_GPU       ?= $(INSTALLED_GPU)
 endif
 
 ifeq ($(TARGETS),)
-TARGETS =--offload-arch=$(AOMP_GPU):xnack+
+TARGETS =--offload-arch=$(ROCM_GPU):xnack+
 endif
 
-CC       =$(AOMP)/bin/clang++
+CC       =$(ROCM_LLVM)/bin/clang++
 
-VERS = $(shell $(AOMP)/bin/clang --version | grep -oP '(?<=clang version )[0-9.]+')
-ROCM = $(shell $(AOMP)/bin/clang --version | grep -oP 'AMD clang')
+VERS = $(shell $(ROCM_LLVM)/bin/clang --version | grep -oP '(?<=clang version )[0-9.]+')
+ROCM = $(shell $(ROCM_LLVM)/bin/clang --version | grep -oP 'AMD clang')
 
 ifeq ($(ROCM),)
-  AOMPHIP ?= $(AOMP)
+  ROCMHIP ?= $(ROCM_LLVM)
 else
-  AOMPHIP ?= $(AOMP)/..
+  ROCMHIP ?= $(ROCM_LLVM)/..
 endif
 
 ifeq ($(shell expr $(VERS) \>= 12.0), 1)
-        RPTH = -Wl,-rpath,$(AOMPHIP)/lib -Wl,-rpath,$(AOMP)/lib/clang/$(VERS)/lib/linux
+        RPTH = -Wl,-rpath,$(ROCMHIP)/lib -Wl,-rpath,$(ROCM_LLVM)/lib/clang/$(VERS)/lib/linux
 endif
 
 #  compiler automatically adds "libdevice/<target>/ to -L opts
-LFLAGS   =-L$(AOMPHIP)/lib $(RPTH)
+LFLAGS   =-L$(ROCMHIP)/lib $(RPTH)
 ASAN_FLAGS = -fsanitize=address -shared-libsan
 CFLAGS = -O0 -g -std=c++11 -fopenmp 
 
@@ -128,9 +106,9 @@ help:
 	@echo "  make help 		// this help"
 	@echo
 	@echo "Environment Variables:"
-	@echo "  AOMP      default: $(HOME)/rocm/aomp     value: $(AOMP)"
-	@echo "  AOMP_GPU  default: gfx900                value: $(AOMP_GPU)"
-	@echo "  TARGETS   default: --offload-arch=$(AOMP_GPU)"
+	@echo "  ROCM_LLVM  default: /opt/rocm/llvm     value: $(ROCM_LLVM)"
+	@echo "  ROCM_GPU   default: gfx900             value: $(ROCM_GPU)"
+	@echo "  TARGETS    default: --offload-arch=$(ROCM_GPU)"
 	@echo "              value: $(TARGETS)"
 	@echo
 	@echo "Link Flags:"
