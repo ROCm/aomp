@@ -34,8 +34,7 @@ FILETYPE =cpp
 ROCM_LLVM ?= /opt/rocm/llvm
 
 ifeq ($(LLVM_GPU),)
-# Default ROCM_GPU is gfx900 which is vega
-INSTALLED_GPU  = $(shell $(ROCM_LLVM)/bin/mygpu -d gfx900)
+INSTALLED_GPU  = $(shell $(ROCM_LLVM)/../bin/rocm_agent_enumerator | grep -m 1 -E gfx[^0]{1})
 ROCM_GPU       ?= $(INSTALLED_GPU)
 endif
 
@@ -107,7 +106,7 @@ help:
 	@echo
 	@echo "Environment Variables:"
 	@echo "  ROCM_LLVM  default: /opt/rocm/llvm     value: $(ROCM_LLVM)"
-	@echo "  ROCM_GPU   default: gfx900             value: $(ROCM_GPU)"
+	@echo "  ROCM_GPU   default: $(INSTALLED_GPU)             value: $(ROCM_GPU)"
 	@echo "  TARGETS    default: --offload-arch=$(ROCM_GPU)"
 	@echo "              value: $(TARGETS)"
 	@echo
