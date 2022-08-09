@@ -19,7 +19,7 @@ int main() {
   #pragma omp target teams distribute parallel for map(tofrom:a)
   for(int ii = 0; ii < N; ++ii) {
     #pragma omp atomic hint(AMD_fast_fp_atomics)
-    a+=(float)ii;;
+    a+=(float)ii;
   }
   double t1 = omp_get_wtime()-t0;
   if (a == expect) {
@@ -34,7 +34,7 @@ int main() {
   #pragma omp target teams distribute parallel for map(tofrom:casa)
   for(int ii = 0; ii < N; ++ii) {
     #pragma omp atomic
-    casa+=(float)ii;;
+    casa+=(float)ii;
   }
   double t_cas1 = omp_get_wtime()-t_cas0;
   if (casa == expect) {
@@ -49,7 +49,7 @@ int main() {
   double t2 = omp_get_wtime();
   #pragma omp target teams distribute parallel for reduction(+:ra) 
   for(int ii = 0; ii < N; ++ii) {
-    ra+=(float)ii;;
+    ra+=(float)ii;
   }
   double t3 = omp_get_wtime() - t2;
 
