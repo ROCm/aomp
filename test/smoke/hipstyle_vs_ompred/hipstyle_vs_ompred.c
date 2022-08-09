@@ -94,8 +94,8 @@ int main() {
 
   double ompred_sum = 0.0;
   double t2 = omp_get_wtime();
-  #pragma omp target teams distribute parallel for num_teams(NUM_TEAMS)        \
-    thread_limit(NUM_THREADS) map(tofrom: hipstyle_sum) reduction(+:ompred_sum)
+  #pragma omp target teams distribute parallel for       \
+    map(tofrom: ompred_sum) reduction(+:ompred_sum)
   for (int ii = 0; ii < N; ++ii)
     ompred_sum += (double)ii;
 
