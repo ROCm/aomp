@@ -23,3 +23,6 @@ contains
     end function buffer_get_type_id
  
 end module worker
+program main
+          print *,'hi'
+end
