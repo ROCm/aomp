@@ -6,6 +6,7 @@ TESTSRC_MAIN =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 
 FLANG        = flang -DUSE_GPU
+CFLAGS       =  -Mx,183,0x400000
 OMP_BIN      = $(AOMP)/bin/$(FLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
 
