@@ -131,7 +131,7 @@ if [ -d $repodirname  ] ; then
 else
    echo --- NEW CLONE of repo $reponame to $repodirname ----
    cd $AOMP_REPOS_TEST
-   if [[ "$reponame" == "raja" || "$reponame" == "RAJAperf" ]]; then
+   if [[ "$reponame" == "raja" || "$reponame" == "RAJAPerf" ]]; then
      git clone --recursive -b $COBRANCH $repo_web_location$reponame $reponame
    else
      echo git clone $repo_web_location$reponame

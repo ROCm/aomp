@@ -61,7 +61,7 @@ if [ "$2" == "build" ]; then
   # Begin configuration
   pushd $AOMP_REPOS_TEST/RAJAPerf
   git reset --hard 43b8ad43
-  git submodule update --recursive
+  git submodule update -f --recursive
   # Apply patches
   patchrepo $AOMP_REPOS_TEST/RAJAPerf/tpl/RAJA
   cd $AOMP_REPOS_TEST/RAJAPerf
