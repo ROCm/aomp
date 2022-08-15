@@ -64,11 +64,11 @@ There is a "list" option on the clone\_aomp.sh that provides useful information 
 ```
    $AOMP_REPOS/aomp/bin/clone_aomp.sh list
 ```
-The above command will produce output like this showing you the location and branch of the repos in the AOMP\_REPOS directory and if there are any discrepencies with respect to the manifest file.
-<b>Development Branch:</b>
+The above command will produce output like this showing you the location and branch of the repos in the AOMP\_REPOS directory and if there are any discrepencies with respect to the manifest file.<br>
+<b>Development Branch:</b><br>
 MANIFEST FILE: ~/git/aomp16.0/aomp/bin/../manifests/aomp_16.0.xml
 
-<b>Release Branch:</b>
+<b>Release Branch:</b><br>
 MANIFEST FILE: ~/git/aomp15.0/aomp/bin/../manifests/aomp_15.0.xml
 ```
   repo src       branch                 path                 repo name    last hash    updated           commitor         for author
