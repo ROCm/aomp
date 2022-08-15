@@ -1,4 +1,4 @@
-# Source Install V 15.0-3
+# Source Install V 16.0-0
 
 Build and install from sources is possible.  However, the source build for AOMP is complex for several reasons.
 - Many repos are required.
@@ -66,7 +66,13 @@ There is a "list" option on the clone\_aomp.sh that provides useful information 
 ```
 The above command will produce output like this showing you the location and branch of the repos in the AOMP\_REPOS directory and if there are any discrepencies with respect to the manifest file.
 ```
-MANIFEST FILE: /work/grodgers/git/aomp15.0/aomp/bin/../manifests/aomp_15.0.xml
+
+<b>Development Branch:</b>
+MANIFEST FILE: ~/git/aomp16.0/aomp/bin/../manifests/aomp_16.0.xml
+
+<b>Release Branch:</b>
+MANIFEST FILE: ~/git/aomp15.0/aomp/bin/../manifests/aomp_15.0.xml
+
   repo src       branch                 path                 repo name    last hash    updated           commitor         for author
   --------       ------                 ----                 ---------    ---------    -------           --------         ----------
  gerritgit amd-stg-open         llvm-project lightning/ec/llvm-project 11d5fa11d52c 2021-10-30      Ron Lieberman     Saiyedul Islam
