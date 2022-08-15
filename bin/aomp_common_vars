@@ -34,31 +34,8 @@ AOMP_INSTALL_DIR=${AOMP}_${AOMP_VERSION_STRING}
 # $HOME/aomp/llvm-project.
 AOMP_MAJOR_VERSION=${AOMP_VERSION%.*}
 export AOMP_MAJOR_VERSION
-if [ "$AOMP_MAJOR_VERSION" == "12" ] ; then
-  AOMP_REPOS=${AOMP_REPOS:-$HOME/git/aomp12}
-elif [ "$AOMP_MAJOR_VERSION" == "13" ] ; then
-  # AOMP 13.1 will use repo command with interal repos
-  if [[ "$AOMP_VERSION" == "13.1" ]] ; then
-    #The default for internal repos will be $HOME/git/aomp13.1
-    AOMP_REPOS=${AOMP_REPOS:-${HOME}/git/aomp${AOMP_VERSION}}
-    # Force build for 13.1 to 13.1-0, ignore AOMP_VERSION_MOD set above
-    AOMP_VERSION_MOD=0
-    AOMP_VERSION_STRING="13.1-0"
-    AOMP_INSTALL_DIR=${AOMP}_${AOMP_VERSION_STRING}
-    AOMP_PATCH_CONTROL_FILE="${AOMP_REPOS}/aomp/bin/patches/patch-control-file_13.1.txt"
-    export AOMP_VERSION_STRING AOMP_VERSION AOMP_VERSION_MOD
-  else
-     AOMP_REPOS=${AOMP_REPOS:-$HOME/git/aomp13}
-  fi
-elif [ "$AOMP_MAJOR_VERSION" == "11" ] ; then
-  AOMP_REPOS=${AOMP_REPOS:-$HOME/git/aomp11}
-elif [ "$AOMP_MAJOR_VERSION" == "14" ] || [ "$AOMP_MAJOR_VERSION" == "15" ] || [ "$AOMP_MAJOR_VERSION" == "16" ]; then
-    AOMP_REPOS=${AOMP_REPOS:-${HOME}/git/aomp${AOMP_VERSION}}
-    AOMP_PATCH_CONTROL_FILE="${AOMP_REPOS}/aomp/bin/patches/patch-control-file_$AOMP_VERSION.txt"
-else
-  echo "ERROR:  Invalid AOMP_MAJOR_VERSION: $AOMP_MAJOR_VERSION"
-  exit 1
-fi
+AOMP_REPOS=${AOMP_REPOS:-${HOME}/git/aomp${AOMP_VERSION}}
+AOMP_PATCH_CONTROL_FILE="${AOMP_REPOS}/aomp/bin/patches/patch-control-file_$AOMP_VERSION.txt"
 
 # Because the source for all repos are tarred for release, we store
 # all the test repositories in a different directory.
@@ -226,33 +203,11 @@ GITROCSW="https://github.com/ROCmSoftwarePlatform"
 GITKHRONOS="https://github.com/KhronosGroup"
 GITHWLOC="https://github.com/open-mpi"
 AOMP_GIT_INTERNAL_IP="gerrit-git.amd.com"
-if [ "$AOMP_MAJOR_VERSION" == "12" ] ; then
-  ping -c 1 $AOMP_GIT_INTERNAL_IP 2> /dev/null
-  if [ $? != 0 ]; then
-	  echo error: you must be internal to develop on 12.0
-	  exit 1
-  fi
-  GITPROJECT=$GITROCINTERNAL
-  AOMP_PROJECT_REPO_NAME=${AOMP_PROJECT_REPO_NAME:-llvm-project}
-  AOMP_EXTRAS_REPO_NAME=${AOMP_EXTRAS_REPO_NAME:-aomp-extras}
-  AOMP_FLANG_REPO_NAME=${AOMP_FLANG_REPO_NAME:-flang}
-elif [ "$AOMP_MAJOR_VERSION" == "13" ] ; then
-  GITPROJECT=$GITROCDEV
-  AOMP_PROJECT_REPO_NAME=${AOMP_PROJECT_REPO_NAME:-llvm-project}
-  AOMP_EXTRAS_REPO_NAME=${AOMP_EXTRAS_REPO_NAME:-aomp-extras}
-  AOMP_FLANG_REPO_NAME=${AOMP_FLANG_REPO_NAME:-flang}
-elif [ "$AOMP_MAJOR_VERSION" == "14" ] || [ "$AOMP_MAJOR_VERSION" == "15" ] || [ "$AOMP_MAJOR_VERSION" == "16" ] ; then
-  GITPROJECT=$GITROCDEV
-  AOMP_PROJECT_REPO_NAME=${AOMP_PROJECT_REPO_NAME:-llvm-project}
-  AOMP_EXTRAS_REPO_NAME=${AOMP_EXTRAS_REPO_NAME:-aomp-extras}
-  AOMP_FLANG_REPO_NAME=${AOMP_FLANG_REPO_NAME:-flang}
-else
-  GITPROJECT=$GITROCDEV
-  AOMP_PROJECT_REPO_NAME=${AOMP_PROJECT_REPO_NAME:-amd-llvm-project}
-  AOMP_EXTRAS_REPO_NAME=${AOMP_EXTRAS_REPO_NAME:-aomp-extras}
-  AOMP_FLANG_REPO_NAME=${AOMP_FLANG_REPO_NAME:-flang}
-fi
-#
+GITPROJECT=$GITROCDEV
+AOMP_PROJECT_REPO_NAME=${AOMP_PROJECT_REPO_NAME:-llvm-project}
+AOMP_EXTRAS_REPO_NAME=${AOMP_EXTRAS_REPO_NAME:-aomp-extras}
+AOMP_FLANG_REPO_NAME=${AOMP_FLANG_REPO_NAME:-flang}
+
 # The difference between a _REPO_NAME and _REPO_GITNAME is that the
 # _REPO_NAME is the directory name following $AOMP_REPOS.  The GITNAME
 # Is the name of the git repository used in the clone_aomp script.
@@ -276,13 +231,6 @@ AOMP_LIBDEVICE_REPO_NAME=${AOMP_LIBDEVICE_REPO_NAME:-rocm-device-libs}
 AOMP_LIBDEVICE_COMPONENT_NAME=${AOMP_LIBDEVICE_COMPONENT_NAME:-rocdl}
 DEVICELIBS_ROOT=${DEVICELIBS_ROOT:-$AOMP_REPOS/$AOMP_LIBDEVICE_REPO_NAME}
 AOMP_COMGR_REPO_NAME=${AOMP_COMGR_REPO_NAME:-rocm-compilersupport}
-# Set COMGR_REPO_SHA for aomp11
-if [ $AOMP_MAJOR_VERSION -lt 12 ] ; then
-  AOMP_COMGR_REPO_SHA=${AOMP_COMGR_REPO_SHA:-4b689d6}
-fi
-if [ "$AOMP_MAJOR_VERSION" == "13" ] || [ "$AOMP_MAJOR_VERSION" == "14" ] || [ "$AOMP_MAJOR_VERSION" == "15" ] ; then
-  AOMP_COMGR_REPO_SHA=${AOMP_COMGR_REPO_SHA:-694f5a8}
-fi
 AOMP_RINFO_REPO_NAME=${AOMP_RINFO_REPO_NAME:-rocminfo}
 
 # These are repos we will use when we switch to HIP VDI
