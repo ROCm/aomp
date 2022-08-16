@@ -155,6 +155,11 @@ endif
 OMP_FLAGS += $(EXTRA_OMP_FLAGS)
 OMP_FLAGS += -D__OFFLOAD_ARCH_$(INSTALLED_GPU)__
 
+GCCVER = $(shell gcc -dumpversion)
+ifeq (7,$(findstring 7,$(GCCVER)))
+  OMP_FLAGS += -stdlib=libc++
+endif
+
 ifeq ($(VERBOSE),1)
   $(info    Compilation and linking VERBOSE Mode ON)
   VERBOSE = -v
