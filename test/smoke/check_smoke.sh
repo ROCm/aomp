@@ -174,7 +174,7 @@ if [ "$AOMP_PARALLEL_SMOKE" == 1 ]; then
         if [ $? -ne 0 ]; then
           echo -e "$RED"$base - needs rocblas installed at $AOMPROCM/rocblas:"$BLK"
           echo -e "$RED"$base - ROCBLAS NOT FOUND!!! SKIPPING TEST!"$BLK"
-          popd > /dev/nul -cl
+          popd > /dev/null
           continue
         fi
       elif [ $base == 'devices' ] || [ $base == 'stream' ] ; then
