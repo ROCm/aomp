@@ -1,9 +1,10 @@
 include ../../Makefile.defs
 
-TESTNAME     = collapse
-TESTSRC_MAIN = collapse.c
+TESTNAME     = collapse1
+TESTSRC_MAIN = collapse1.c
 TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
+RUNENV      += LIBOMPTARGET_KERNEL_TRACE=1
 
 CFLAGS       += -O3
 CLANG        ?= clang
@@ -13,3 +14,5 @@ CC           = $(OMP_BIN) $(VERBOSE)
 #"-\#\#\#"
 
 include ../Makefile.rules
+run: $(TESTNAME)
+	$(RUNENV) ./$(TESTNAME) 2>&1 | $(AOMP)/bin/FileCheck $(TESTSRC_MAIN)
