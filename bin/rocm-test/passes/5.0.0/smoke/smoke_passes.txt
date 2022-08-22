@@ -18,7 +18,6 @@ flang-325322
 flang-ifaces
 flang_omp_red_3d
 gdb_teams
-hip_rocblas
 host_teams_numa_affinity
 leopold-devicePtr
 loop_order
