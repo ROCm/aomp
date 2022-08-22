@@ -46,7 +46,7 @@ program main
   WRITE(*,*) "Errors: ", errors
   IF(errors .ne. 0) then  
     WRITE(*,*) "Fail"
-   stop 2
+    stop 2
   ELSE
     WRITE(*,*) "PASS"
   ENDIF
