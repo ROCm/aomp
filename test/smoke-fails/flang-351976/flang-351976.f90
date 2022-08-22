@@ -43,7 +43,6 @@ program main
         END DO
     END DO
   END DO
-  target_teams_distribute_parallel_for_thread_limit = errors
   WRITE(*,*) "Errors: ", errors
   IF(errors .ne. 0) then  
     WRITE(*,*) "Fail"
