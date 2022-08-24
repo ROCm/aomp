@@ -164,23 +164,34 @@ class ReductionsTestClass : public Tc<T> {
  
     T sim_dot() {
       T sum = T(0);
+      T sum1 = T(0);
       T *a = this->a;
       T *b = this->b;
       T * pinned_sum = (T *)omp_alloc(sizeof(T), ompx_pinned_mem_alloc);
+      T * pinned_sum1 = (T *)omp_alloc(sizeof(T), ompx_pinned_mem_alloc);
       pinned_sum[0] = sum ;
+      pinned_sum1[0] = sum1 ;
       int team_procs = ompx_get_team_procs(0);
-      #pragma omp target teams distribute parallel for map(from:pinned_sum[0:1]) num_teams(team_procs) num_threads(_XTEAM_NUM_THREADS)
+#pragma omp target teams distribute parallel for map(from:pinned_sum[0:1], pinned_sum1[0:1] ) num_teams(team_procs) num_threads(_XTEAM_NUM_THREADS)
       for (unsigned int k=0; k<(team_procs*1024); k++) {
         T val;
+	T val1;
         #pragma omp allocate(val) allocator(omp_thread_mem_alloc)
         val = T(0);
-        for (unsigned int i = k; i < array_size ; i += team_procs*1024)
+        #pragma omp allocate(val1) allocator(omp_thread_mem_alloc)
+        val1 = T(0);
+        for (unsigned int i = k; i < array_size ; i += team_procs*1024) {
           val += a[i] * b[i];
-
+          val1 += a[i] * b[i];
+	}
         __kmpc_xteam_sum(val,&pinned_sum[0]);
+        __kmpc_xteam_sum(val1,&pinned_sum1[0]);
       }
       sum = pinned_sum[0];
+      sum1 = pinned_sum1[0];
+      printf("sum=%f sum1=%f\n", sum, sum1);
       omp_free(pinned_sum);
+      omp_free(pinned_sum1);
       return sum;
     }
 
