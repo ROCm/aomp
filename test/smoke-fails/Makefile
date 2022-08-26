@@ -15,6 +15,7 @@ TESTS_DIR = \
     clang_llnl-58 \
     clang_llnl-58-1 \
     clang-nwchem-s1_1 \
+    clang-reduction-and \
     closed_bug1 \
     const_global_ctor-308039 \
     exp-303973 \
