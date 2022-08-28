@@ -13,6 +13,9 @@ int MAX_THREADS_PER_TEAM = 256;
 #else
   int WARP_SIZE = 64;
 #endif
+
+// Set to 0 if verbose output desired
+int ExitEarly = 1;
 /*
  * Function: recordError
  * Description: Updates error number and prints error messages
@@ -24,6 +27,10 @@ void recordError(int* error , char *message, int iteration, int * array, unsigne
 
   else
     fprintf(stderr,"%s IS INCORRECT! Iteration: %d Value: %llx\n", message, iteration, mask[iteration]);
+  if (ExitEarly) {
+    fprintf(stderr, "Fail Exit Early\n");
+    exit(1);
+  }
 }
 
 int main()
@@ -321,10 +328,6 @@ int main()
        is_spmd_mode[j] = omp_ext_is_spmd_mode();
   }
 
-  fprintf(stderr,"    i thrd# team#  dev# warp# lane# MastThrd smid  SPMD num_threads num_teams ActiveMask\n");
-  for (i=0; i<N; i++)
-    fprintf(stderr," %4d  %4d  %4d  %4d  %4d  %4d  %4d  %4d  %4d %10d %10d  %16llx\n",
-    i,thread_num[i],team_num[i],default_dev[i],warp_id[i],lane_id[i],master_thread_id[i],smid[i],is_spmd_mode[i],num_threads[i],num_teams[i],active_mask[i]);
 
 //Verify Results - #pragma omp target teams
   correctTeamNum = -1;
@@ -389,6 +392,10 @@ int main()
       }
     }
   }
+  fprintf(stderr,"    i thrd# team#  dev# warp# lane# MastThrd smid  SPMD num_threads num_teams ActiveMask\n");
+  for (i=0; i<N; i++)
+    fprintf(stderr," %4d  %4d  %4d  %4d  %4d  %4d  %4d  %4d  %4d %10d %10d  %16llx\n",
+    i,thread_num[i],team_num[i],default_dev[i],warp_id[i],lane_id[i],master_thread_id[i],smid[i],is_spmd_mode[i],num_threads[i],num_teams[i],active_mask[i]);
 
  //Print results and return total errors
   if(!errors){

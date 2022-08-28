@@ -5,7 +5,7 @@ TESTSRC_MAIN = aomp_mappings_newrt.c
 TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 
-CLANG        = clang -O2
+CLANG        = clang -O2 -mllvm -openmp-opt-disable=true
 OMP_BIN      = $(AOMP)/bin/$(CLANG) -isystem$(AOMP)/include
 CC           = $(OMP_BIN) $(VERBOSE)
 #-ccc-print-phases
