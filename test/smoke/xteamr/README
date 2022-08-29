@@ -1,0 +1,72 @@
+
+This xteamr smoke test executes a simulated reductions directly using the 
+DeviceRTL xteam helper functions and compares to the existing OpenMP reduction.
+
+The simulated functions in the ReductionsTestClass show what clang codegen
+should generate when it encounters an omp target pragma with one or more sum reductions.
+i.e.
+
+#pragma omp target teams distribute parallel for reduction(+:redvar)
+
+The reduction variable redvar can be double, float, int, uint, long, ulong, float _Complex, or double _Complex. 
+
+or min or max reductions like these
+
+#pragma omp target teams distribute parallel for reduction(min:redvar)
+#pragma omp target teams distribute parallel for reduction(max:redvar)
+
+For min and max, the reduction variable redvar can be double, float, int, uint, long, or ulong
+because complex numbers do not suport comparison operators.
+
+These are the interfaces to the helper functions that clang codegen is expected to generate
+function calls for:
+
+void __kmpc_xteamr_sum_d(double, double *, double *, uint32_t *);
+void __kmpc_xteamr_sum_f(float, float *, float *, uint32_t *);
+void __kmpc_xteamr_sum_cd(double _Complex, double _Complex *, double _Complex *, uint32_t *);
+void __kmpc_xteamr_sum_cf(float _Complex, float _Complex *, float _Complex *, uint32_t *);
+void __kmpc_xteamr_sum_i(int, int *, int *, uint32_t *);
+void __kmpc_xteamr_sum_ui(unsigned int, unsigned int *, unsigned int *, uint32_t *);
+void __kmpc_xteamr_sum_l(long int, long int *, long int *, uint32_t *);
+void __kmpc_xteamr_sum_ul(unsigned long, unsigned long *, unsigned long *, uint32_t *);
+void __kmpc_xteamr_max_d(double, double *, double *, uint32_t *);
+void __kmpc_xteamr_max_f(float, float *, float *, uint32_t *);
+void __kmpc_xteamr_max_i(int, int *, int *, uint32_t *);
+void __kmpc_xteamr_max_ui(unsigned int, unsigned int *, unsigned int *, uint32_t *);
+void __kmpc_xteamr_max_l(long int, long int *, long int *, uint32_t *);
+void __kmpc_xteamr_max_ul(unsigned long, unsigned long *, unsigned long *, uint32_t *);
+void __kmpc_xteamr_min_d(double, double *, double *, uint32_t *);
+void __kmpc_xteamr_min_f(float, float *, float *, uint32_t *);
+void __kmpc_xteamr_min_i(int, int *, int *, uint32_t *);
+void __kmpc_xteamr_min_ui(unsigned int, unsigned int *, unsigned int *, uint32_t *);
+void __kmpc_xteamr_min_l(long int, long int *, long int *, uint32_t *);
+void __kmpc_xteamr_min_ul(unsigned long, unsigned long *, unsigned long *, uint32_t *);
+
+This xteamr helper functions require global allocation of a vector to store team results.
+and a global variable to used for atomic increment. 
+The arguments for all helper functions are as follows.
+
+    arg1: The thread local storage for the reduction value.
+    arg2: pointer to where result will be written.
+    arg3: global array of team values for this reduction instance.
+    arg4: atomic counter of completed teams for this reduction instance.
+
+The definitions of the above functions can be found in the new llvm DeviceRTL here: 
+llvm-project/openmp/libomptarget/DeviceRTL/src/Xteamr.cpp 
+
+The goal of this smoke test is to ensure that the DeviceRTL helper functions in Xteamr.cpp
+are correct and performant. This smoke test (xteamr) will fail (return a nonzero return code) 
+if either the openmp reduction or the simulated reduction get the wrong answer.  
+
+TODO: 
+  - Add a loop to test different vector lengths. 
+  - Add timings for host version of reduction. 
+  - Determine cutoff points (vector lengths) where it would be better to use host reduction
+  - Test for overflow.
+  - For complex functions use conjugates to test correctness of complex math
+      Make c = a*b 
+      set a[i] = (1 + 1i) and b[i] = (1 - 1i) 
+      then each c[i] should be (2 + 0i) and the sum reduction 
+      of vector c should be (ARRAY_SIZE*2 + 0i). 
+
+
