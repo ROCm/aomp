@@ -48,10 +48,12 @@ int main(int argc, char *argv[]) {
   run_kernels<unsigned long,true>(ARRAY_SIZE);
 
   // Problem with complex math but simulated matches actual reduction
+#if 0
   std::cout << std::endl << "TEST DOUBLE COMPLEX" << std::endl;
   run_complex_kernels<double _Complex, double>(ARRAY_SIZE);
   std::cout << std::endl << "TEST FLOAT COMPLEX" << std::endl;
   run_complex_kernels<float _Complex, float>(ARRAY_SIZE);
+#endif
   return smoke_rc;
 }
 
