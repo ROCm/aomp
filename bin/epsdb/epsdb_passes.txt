@@ -4,7 +4,6 @@ atomic_double
 atomic_vs_reduction
 bugz-50968
 CanonNE
-clang-262701
 clang-273738
 clang-273739
 clang-274983
