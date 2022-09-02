@@ -262,7 +262,7 @@ class ReductionsTestClass : public Tc<T> {
 
       #pragma omp target teams distribute parallel for \
          num_teams(team_procs) num_threads(_XTEAM_NUM_THREADS) \
-         map(from:pinned_sum0[0:1]) map(to:teams_done0) is_device_ptr(xteam_mem0)
+         map(tofrom:pinned_sum0[0:1]) map(to:teams_done0) is_device_ptr(xteam_mem0)
          // Repeat above 2 maps and is_device_ptr for each reduction
       for (unsigned int k=0; k<(team_procs*_XTEAM_NUM_THREADS); k++) {
 	// Repeat below for each reduction. 
@@ -294,7 +294,7 @@ class ReductionsTestClass : public Tc<T> {
       *pinned_max0 = minval;
       #pragma omp target teams distribute parallel for \
          num_teams(team_procs) num_threads(_XTEAM_NUM_THREADS) \
-         map(from:pinned_max0[0:1]) map(to:teams_done0) is_device_ptr(xteam_mem0)
+         map(tofrom:pinned_max0[0:1]) map(to:teams_done0) is_device_ptr(xteam_mem0)
       for (unsigned int k=0; k<(team_procs*_XTEAM_NUM_THREADS); k++) {
         T val0;
         #pragma omp allocate(val0) allocator(omp_thread_mem_alloc)
@@ -324,7 +324,7 @@ class ReductionsTestClass : public Tc<T> {
       *pinned_min0 = maxval;
       #pragma omp target teams distribute parallel for \
          num_teams(team_procs) num_threads(_XTEAM_NUM_THREADS) \
-         map(from:pinned_min0[0:1]) map(to:teams_done0) is_device_ptr(xteam_mem0)
+         map(tofrom:pinned_min0[0:1]) map(to:teams_done0) is_device_ptr(xteam_mem0)
       for (unsigned int k=0; k<(team_procs*_XTEAM_NUM_THREADS); k++) {
         T val0;
         #pragma omp allocate(val0) allocator(omp_thread_mem_alloc)

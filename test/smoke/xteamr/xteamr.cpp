@@ -146,7 +146,7 @@ void run_kernels(const int ARRAY_SIZE) {
          std::cerr
         << "sim_dot Validation failed on sum. Error " << simErrSum << " tol:" << ETOL
         << std::endl << std::setprecision(15)
-        << "Sum was " << omp_sum << " but should be " << goldSum
+        << "Sum was " << sim_sum << " but should be " << goldSum
         << std::endl;
          smoke_rc = 1;
       } 
@@ -181,7 +181,7 @@ void run_kernels(const int ARRAY_SIZE) {
     if (omp_min != goldMin) {
       std::cerr
       << "omp_min Validation failed . " << std::endl << std::setprecision(15)
-      << "min was " << omp_max << " but should be " << goldMin << std::endl;
+      << "min was " << omp_min << " but should be " << goldMin << std::endl;
       smoke_rc = 1;
     }
 

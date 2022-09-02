@@ -169,7 +169,7 @@ class ReductionsTestClass : public Tc<T> {
       T * pinned_sum = (T *)omp_alloc(sizeof(T), ompx_pinned_mem_alloc);
       pinned_sum[0] = sum ;
       int team_procs = ompx_get_team_procs(0);
-      #pragma omp target teams distribute parallel for map(from:pinned_sum[0:1]) num_teams(team_procs) num_threads(_XTEAM_NUM_THREADS)
+      #pragma omp target teams distribute parallel for map(tofrom:pinned_sum[0:1]) num_teams(team_procs) num_threads(_XTEAM_NUM_THREADS)
       for (unsigned int k=0; k<(team_procs*1024); k++) {
         T val;
         #pragma omp allocate(val) allocator(omp_thread_mem_alloc)
@@ -190,7 +190,7 @@ class ReductionsTestClass : public Tc<T> {
       T * pinned_max = (T *)omp_alloc(sizeof(T), ompx_pinned_mem_alloc);
       pinned_max[0] = maxval;
       int team_procs = ompx_get_team_procs(0);
-      #pragma omp target teams distribute parallel for map(from:pinned_max[0:1]) num_teams(team_procs) num_threads(_XTEAM_NUM_THREADS)
+      #pragma omp target teams distribute parallel for map(tofrom:pinned_max[0:1]) num_teams(team_procs) num_threads(_XTEAM_NUM_THREADS)
       for (unsigned int k=0; k<(team_procs*1024); k++) {
         T val;
         #pragma omp allocate(val) allocator(omp_thread_mem_alloc)
@@ -211,7 +211,7 @@ class ReductionsTestClass : public Tc<T> {
       T * pinned_min = (T *)omp_alloc(sizeof(T), ompx_pinned_mem_alloc);
       pinned_min[0] = minval;
       int team_procs = ompx_get_team_procs(0);
-      #pragma omp target teams distribute parallel for map(from:pinned_min[0:1]) num_teams(team_procs) num_threads(_XTEAM_NUM_THREADS)
+      #pragma omp target teams distribute parallel for map(tofrom:pinned_min[0:1]) num_teams(team_procs) num_threads(_XTEAM_NUM_THREADS)
       for (unsigned int k=0; k<(team_procs*1024); k++) {
         T val;
         #pragma omp allocate(val) allocator(omp_thread_mem_alloc)
