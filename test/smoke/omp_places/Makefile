@@ -32,19 +32,19 @@ RUNENV14 += $(RUNENV) OMP_PLACES="numa_domains(7)"
 
 include ../Makefile.rules
 run:
-	$(RUNENV) ./$(TESTNAME) > run.log 2>&1
-	$(RUNENV1) ./$(TESTNAME) >> run.log 2>&1
-	$(RUNENV2) ./$(TESTNAME) >> run.log 2>&1
-	$(RUNENV3) ./$(TESTNAME) >> run.log 2>&1
-	$(RUNENV4) ./$(TESTNAME) >> run.log 2>&1
-	$(RUNENV5) ./$(TESTNAME) >> run.log 2>&1
-	$(RUNENV6) ./$(TESTNAME) >> run.log 2>&1
-	$(RUNENV7) ./$(TESTNAME) >> run.log 2>&1
-	$(RUNENV8) ./$(TESTNAME) >> run.log 2>&1
-	$(RUNENV9) ./$(TESTNAME) >> run.log 2>&1
-	$(RUNENV10) ./$(TESTNAME) >> run.log 2>&1
-	$(RUNENV11) ./$(TESTNAME) >> run.log 2>&1
-	$(RUNENV12) ./$(TESTNAME) >> run.log 2>&1
-	$(RUNENV13) ./$(TESTNAME) >> run.log 2>&1
-	$(RUNENV14) ./$(TESTNAME) >> run.log 2>&1
-	tail -10 run.log
+	$(RUNENV) ./$(TESTNAME) > ron.log.full 2>&1
+	$(RUNENV1) ./$(TESTNAME) >> ron.log.full 2>&1
+	$(RUNENV2) ./$(TESTNAME) >> ron.log.full 2>&1
+	$(RUNENV3) ./$(TESTNAME) >> ron.log.full 2>&1
+	$(RUNENV4) ./$(TESTNAME) >> ron.log.full 2>&1
+	$(RUNENV5) ./$(TESTNAME) >> ron.log.full 2>&1
+	$(RUNENV6) ./$(TESTNAME) >> ron.log.full 2>&1
+	$(RUNENV7) ./$(TESTNAME) >> ron.log.full 2>&1
+	$(RUNENV8) ./$(TESTNAME) >> ron.log.full 2>&1
+	$(RUNENV9) ./$(TESTNAME) >> ron.log.full 2>&1
+	$(RUNENV10) ./$(TESTNAME) >> ron.log.full 2>&1
+	$(RUNENV11) ./$(TESTNAME) >> ron.log.full 2>&1
+	$(RUNENV12) ./$(TESTNAME) >> ron.log.full 2>&1
+	$(RUNENV13) ./$(TESTNAME) >> ron.log.full 2>&1
+	$(RUNENV14) ./$(TESTNAME) >> ron.log.full 2>&1
+	tail -10 ron.log.full | tee run.log
