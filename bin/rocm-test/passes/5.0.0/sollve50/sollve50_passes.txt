@@ -27,8 +27,6 @@ test_parallel_for_allocate.c
 test_parallel_master_device.c
 test_parallel_master_taskloop_device.c
 test_parallel_master_taskloop_simd_device.c
-test_requires_reverse_offload.c
-test_target_device.c
 test_target_task_depend_mutexinoutset.c
 test_target_teams_distribute_parallel_for_collapse.c
 test_target_teams_distribute_parallel_for_collapse.F90
