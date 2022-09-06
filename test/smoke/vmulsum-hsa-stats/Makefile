@@ -13,4 +13,4 @@ CC             = $(OMP_BIN) $(VERBOSE)
 
 include ../Makefile.rules
 run:
-	rocprof --hsa-trace ./$(TESTNAME)
+	$(AOMP)/bin/rocprof --hsa-trace ./$(TESTNAME)
