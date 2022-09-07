@@ -13,7 +13,7 @@ int main() {
   for (int i = 0; i < TOTAL_TEAMS; i++)
       team_counts[i] = 0;
 
-  #pragma omp teams distribute num_teams(TOTAL_TEAMS)
+  #pragma omp teams distribute num_teams(TOTAL_TEAMS) private(team_id)
   for(int i = 0; i < n; i++) {
     team_id = omp_get_team_num();
     a[i] = i;
