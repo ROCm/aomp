@@ -127,8 +127,13 @@ for option in $RUN_OPTIONS; do
   echo $compile_cmd | tee -a results.txt
   $compile_cmd
   if [ $? -ne 1 ]; then
-     echo ./$EXEC -n $BABELSTREAM_REPEATS | tee -a results.txt
-     ./$EXEC -n 10 2>&1 | tee -a results.txt
+     if [ -f $AOMP/bin/gpurun ] ; then
+        echo $AOMP/bin/gpurun -s ./$EXEC -n $BABELSTREAM_REPEATS | tee -a results.txt
+        $AOMP/bin/gpurun -s ./$EXEC -n $BABELSTREAM_REPEATS 2>&1 | tee -a results.txt
+     else
+        echo ./$EXEC -n $BABELSTREAM_REPEATS | tee -a results.txt
+        ./$EXEC -n $BABELSTREAM_REPEATS 2>&1 | tee -a results.txt
+     fi
   fi
 done
 cd $curdir
