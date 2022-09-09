@@ -1,5 +1,3 @@
-lsms_triangular_packing.cpp
-test_allocate_allocator.c
 test_allocate.c
 test_declare_target_parallel_for.c
 test_loop_lastprivate_device.F90
@@ -38,6 +36,4 @@ test_target_teams_distribute_reduction_eqv.F90
 test_target_teams_distribute_reduction_multiply.F90
 test_target_teams_distribute_reduction_neqv.F90
 test_target_teams_distribute_reduction_sub.F90
-test_target_uses_allocators_cgroup.c
-test_target_uses_allocators_large_cap.c
 test_target_uses_allocators_pteam.c
