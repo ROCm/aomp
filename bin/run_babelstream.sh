@@ -63,12 +63,7 @@ omp_src="main.cpp OMPStream.cpp"
 hip_src="main.cpp HIPStream.cpp"
 
 gccver=`gcc --version | grep gcc | cut -d")" -f2 | cut -d"." -f1`
-# ubunutu 18.04 gcc7 requires -stdlib=libc++ gcc9 is ok
-if [ "$gccver" == " 7" ] ; then
-   std="-std=c++20 -stdlib=libc++"
-else
-   std="-std=c++20"
-fi
+std="-std=c++20"
 
 if [ ! -d $BABELSTREAM_REPO ]; then
   echo "ERROR: BabelStream not found in $BABELSTREAM_REPO"
