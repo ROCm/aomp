@@ -86,7 +86,7 @@ int main()
     active_mask[i] = 0;
   for (i=0; i<NN; i++)
     thread_num[i]=team_num[i]=default_dev[i]=warp_id[i]=lane_id[i]=master_thread_id[i]=smid[i]=is_spmd_mode[i]=num_threads[i]=num_teams[i] = -1;
-#if 0
+#if 1
   fprintf(stderr,"#pragma omp target teams distribute parallel for thread_limit(4)\n");
 #pragma omp target teams distribute parallel for thread_limit(4) map(from:actual_num_threads_in_parallel)
   {
@@ -350,8 +350,8 @@ int main()
         recordError(&errors, "DEVICE NUMBER", i, default_dev, NULL);
 
       //check warp # (target teams region only execute by thread master in team,
-      // which in SPMD mode is thread ID 0, hence warp ID 0)
-      if (warp_id[i] != 0)
+      // which in Generic mode is thread ID 256, hence warp ID 4)
+      if (warp_id[i] != 4)
         recordError(&errors, "WARP NUMBER", i, warp_id, NULL);
 
       //check lane #
@@ -379,7 +379,7 @@ int main()
       //check active mask
       remainder = 0;
       // __builtin_amdgcn_read_exec returns all threads active
-      mask = 0xffffffffffffffff;
+      mask = 0x1;
 
       if (active_mask[i] != mask){
         recordError(&errors, "ACTIVE MASK", i, NULL, active_mask);
