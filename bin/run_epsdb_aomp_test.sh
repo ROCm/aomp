@@ -135,6 +135,7 @@ cd $aompdir/bin
 #./run_sollve.sh > sollve.log 2>&1
 #tail -12 sollve.log
 AOMPHIP=$AOMP/.. ./run_babelstream.sh
+AOMPHIP=$AOMP/.. ./run_rushlarsen.sh
 
 echo Done
 echo
