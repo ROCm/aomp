@@ -64,11 +64,13 @@ if [ "$1" != "noconfigure" ] && [ "$1" != "install" ] ; then
    rm -rf $BUILD_AOMP/build/rocgdb
    MYCONFIGOPTS="--prefix=$AOMP_INSTALL_DIR --srcdir=$AOMP_REPOS/$AOMP_GDB_REPO_NAME --program-prefix=roc \
      --with-bugurl="$BUG_URL" --with-pkgversion="${AOMP_COMPILER_NAME}_${AOMP_VERSION_STRING}" \
-     --enable-targets="x86_64-linux-gnu,amdgcn-amd-amdhsa" \
+     --enable-64-bit-bfd --enable-targets="x86_64-linux-gnu,amdgcn-amd-amdhsa" \
      --disable-ld --disable-gas --disable-gdbserver --disable-sim --enable-tui \
      --disable-gdbtk --disable-shared  \
-     --with-expat --with-system-zlib --without-guile --with-babeltrace --with-lzma \
+     --disable-gdbtk --disable-gprofng --disable-shared --with-expat \
+     --with-system-zlib --without-guile --with-babeltrace --with-lzma \
      --with-python=python3 --with-rocm-dbgapi=$AOMP_INSTALL_DIR"
+
    mkdir -p $BUILD_AOMP/build/rocgdb
    cd $BUILD_AOMP/build/rocgdb
    echo " -----Running gdb configure ---- " 
@@ -83,8 +85,10 @@ fi
 cd $BUILD_AOMP/build/rocgdb
 echo
 echo " -----Running make for gdb ---- " 
-echo make -j $AOMP_JOB_THREADS all-gdb
-make -j $AOMP_JOB_THREADS all-gdb
+#echo make -j $AOMP_JOB_THREADS all-gdb
+#make -j $AOMP_JOB_THREADS all-gdb
+echo make -j $AOMP_JOB_THREADS
+make -j $AOMP_JOB_THREADS
 if [ $? != 0 ] ; then 
       echo " "
       echo "ERROR: make -j $AOMP_JOB_THREADS  FAILED"
