@@ -9,11 +9,16 @@
 #
 #
 
+EPSDB_LIST=${EPSDB_LIST:-"examples smoke smokefails omp5 openmpapps nekbone sollve babelstream"}
+SUITE_LIST=${SUITE_LIST:-"examples smoke smokefails omp5 openmpapps nekbone sollve babelstream"}
+blockinglist="examples_fortran examples_openmp smoke nekbone"
+
 # Use bogus path to avoid using target.lst, a user-defined target list
 # used by rocm_agent_enumerator.
 export ROCM_TARGET_LST=/opt/nowhere
 
-scriptdir=$(dirname "$0")
+realpath=`realpath $0`
+scriptdir=`dirname $realpath`
 parentdir=`eval "cd $scriptdir;pwd;cd - > /dev/null"`
 aompdir="$(dirname "$parentdir")"
 resultsdir="$aompdir/bin/rocm-test/results"
@@ -21,6 +26,11 @@ rocmtestdir="$aompdir"/bin/rocm-test
 summary="$resultsdir"/summary.txt
 unexpresults="$resultsdir"/unexpresults.txt
 scriptfails=0
+totalunexpectedfails=0
+
+EPSDB=1 ./clone_test.sh > /dev/null
+AOMP_TEST_DIR=${AOMP_TEST_DIR:-"$HOME/git/aomp-test"}
+
 
 # Set AOMP to point to rocm symlink or newest version.
 if [ -L /opt/rocm ]; then
@@ -174,7 +184,6 @@ function getversion(){
 
 function copyresults(){
   # $1 name of test suite
-
   # Copy logs from suite to results folder
   if [ -e failing-tests.txt ]; then
     cp failing-tests.txt "$resultsdir/$1"/"$1"_failing_tests.txt
@@ -183,25 +192,29 @@ function copyresults(){
     cp make-fail.txt "$resultsdir/$1"/"$1"_make_fail.txt
   fi
   if [ -e passing-tests.txt ]; then
-    echo""
     cp passing-tests.txt "$resultsdir/$1"/"$1"_passing_tests.txt
   fi
 
-
   # Begin logging info in summary.txt.
   cd $resultsdir/$1
+  if [ ! -f $summary ]; then
+    echo "" > $summary
+    echo "************************************" >> $summary
+    echo "Detailed list of unexpected results:" >> $summary
+  fi
   echo ===== $1 ===== | tee -a $summary $unexpresults
+
+  # Sort expected passes
+  for ver in $finalvers; do
+    if [ -e "$rocmtestdir"/passes/$ver/$1/"$1"_passes.txt ]; then
+      cat "$rocmtestdir"/passes/$ver/$1/"$1"_passes.txt >> "$1"_combined_exp_passes
+    fi
+  done
+  sort -f -d "$1"_combined_exp_passes > "$1"_sorted_exp_passes
+
   if [ -e "$1"_passing_tests.txt ]; then
     # Sort test reported passes
     sort -f -d "$1"_passing_tests.txt > "$1"_sorted_passes
-
-    # Sort expected passes
-    for ver in $finalvers; do
-      if [ -e "$rocmtestdir"/passes/$ver/$1/"$1"_passes.txt ]; then
-        cat "$rocmtestdir"/passes/$ver/$1/"$1"_passes.txt >> "$1"_combined_exp_passes
-      fi
-    done
-    sort -f -d "$1"_combined_exp_passes > "$1"_sorted_exp_passes
 
     # Unexpected passes
     unexpectedpasses=$(diff "$1"_sorted_exp_passes "$1"_sorted_passes | grep '>' | wc -l)
@@ -211,7 +224,16 @@ function copyresults(){
 
     # Unexpected Fails
     unexpectedfails=$(diff "$1"_sorted_exp_passes "$1"_sorted_passes | grep '<' | wc -l)
-    ((totalunexpectedfails+=$unexpectedfails))
+    if [ "$EPSDB" == "1" ]; then
+      for suite in $blockinglist; do
+        if [ "$1" == "$suite" ]; then
+          ((totalunexpectedfails+=$unexpectedfails))
+          break
+        fi
+      done
+    else
+      ((totalunexpectedfails+=$unexpectedfails))
+    fi
     echo "Unexpected Fails: $unexpectedfails" | tee -a $summary $unexpresults
     diff "$1"_sorted_exp_passes "$1"_sorted_passes | grep '<' | sed 's/< //' >> $summary
     echo >> $summary
@@ -231,8 +253,20 @@ function copyresults(){
   else
     # No passing-tests.txt found, count expected passes as fails.
     # Does not count combined expected passes from previous rocm versions
-    numtests=$(cat "$rocmtestdir"/passes/"$compilerver"/"$1"/"$1"_passes.txt | wc -l)
-    ((totalunexpectedfails+=$numtests))
+    echo "Unexpected Passes: 0" | tee -a $summary $unexpresults
+    numtests=$(cat "$resultsdir"/"$1"/"$1"_sorted_exp_passes | wc -l)
+    echo "Unexpected Fails: $numtests" | tee -a $summary $unexpresults
+    diff "$1"_sorted_exp_passes "$1"_sorted_passes | grep '<' | sed 's/< //' >> $summary
+    if [ "$EPSDB" == "1" ]; then
+      for suite in $blockinglist; do
+        if [ "$1" == "$suite" ]; then
+          ((totalunexpectedfails+=$numtests))
+          break
+        fi
+      done
+    else
+      ((totalunexpectedfails+=$numtests))
+    fi
   fi
 }
 
@@ -247,80 +281,133 @@ function checkrc(){
 getversion
 echo "Included Versions: $finalvers"
 
+function examples(){
+  # Fortran Examples
+  mkdir -p "$resultsdir"/examples_fortran
+  #echo "cp -rf "$AOMP"/examples/fortran "$aompdir"/examples"
+  #cp -rf "$AOMP"/examples/fortran "$aompdir"/examples
+  cd "$aompdir"/examples/fortran
+  EPSDB=1 AOMPHIP=$AOMPROCM ../check_examples.sh fortran
+  checkrc $?
+  copyresults examples_fortran
+
+  # Openmp Examples
+  mkdir -p "$resultsdir"/examples_openmp
+  #echo "cp -rf "$AOMP"/examples/openmp "$aompdir"/examples"
+  #cp -rf "$AOMP"/examples/openmp "$aompdir"/examples
+  cd "$aompdir"/examples/openmp
+  EPSDB=1 ../check_examples.sh openmp
+  checkrc $?
+  copyresults examples_openmp
+}
+
+function smoke(){
+  # Smoke
+  mkdir -p "$resultsdir"/smoke
+  cd "$aompdir"/test/smoke
+  AOMP_PARALLEL_SMOKE=1 CLEANUP=0 AOMPHIP=$AOMPROCM ./check_smoke.sh
+  checkrc $?
+  copyresults smoke
+}
+
+SMOKE_FAILS=${SMOKE_FAILS:-1}
+function smokefails(){
+  # Smoke-fails
+  if [ "$SMOKE_FAILS" == "1" ]; then
+    mkdir -p "$resultsdir"/smoke-fails
+    cd "$aompdir"/test/smoke-fails
+    ./check_smoke_fails.sh
+    checkrc $?
+    copyresults smoke-fails
+  else
+    echo "Skipping smoke-fails."
+  fi
+}
+
+function omp5(){
+  # Omp5
+  mkdir -p "$resultsdir"/omp5
+  cd "$aompdir"/test/omp5
+  ./check_omp5.sh
+  checkrc $?
+  copyresults omp5
+}
+
+function openmpapps(){
+  # -----Run Openmpapps-----
+  mkdir -p "$resultsdir"/openmpapps
+  cd "$AOMP_TEST_DIR"/openmpapps
+  ./check_openmpapps.sh
+  copyresults openmpapps
+}
+
+function nekbone(){
+  # -----Run Nekbone-----
+  mkdir -p "$resultsdir"/nekbone
+  cd "$aompdir"/bin
+  VERBOSE=0 ./run_nekbone.sh
+  cd "$AOMP_TEST_DIR"/Nekbone/test/nek_gpu1
+  copyresults nekbone
+}
+
+function sollve(){
+  # Sollve
+  mkdir -p "$resultsdir"/sollve45
+  mkdir -p "$resultsdir"/sollve50
+  cd "$aompdir"/bin
+
+  no_usm_gpus="gfx900 gfx906"
+  if [[ "$no_usm_gpus" =~ "$AOMP_GPU" ]]; then
+    echo "Skipping USM 5.0 tests."
+    SKIP_USM=1 SKIP_SOLLVE51=1 ./run_sollve.sh
+  else
+    SKIP_SOLLVE51=1 ./run_sollve.sh
+  fi
+
+  ./check_sollve.sh
+  checkrc $?
+
+  # 4.5 Results
+  cd "$HOME"/git/aomp-test/sollve_vv/results_report45
+  copyresults sollve45
+
+  # 5.0 Results
+  cd "$HOME"/git/aomp-test/sollve_vv/results_report50
+  copyresults sollve50
+}
+
+function babelstream(){
+  mkdir -p "$resultsdir"/babelstream
+  cd "$aompdir"/bin
+  if [ $aomp -eq 0 ]; then
+    export ROCMINFO_BINARY=$AOMP/../bin/rocminfo
+  fi
+  ./run_babelstream.sh
+  cd "$AOMP_TEST_DIR"/babelstream
+  copyresults babelstream
+}
+
+# Clean Results
 cd "$aompdir"/bin
 rm -rf $resultsdir
 mkdir -p $resultsdir
 
-# Fortran Examples
-mkdir -p "$resultsdir"/fortran
-#echo "cp -rf "$AOMP"/examples/fortran "$aompdir"/examples"
-#cp -rf "$AOMP"/examples/fortran "$aompdir"/examples
-cd "$aompdir"/examples/fortran
-EPSDB=1 AOMPHIP=$AOMPROCM ../check_examples.sh fortran
-checkrc $?
-copyresults fortran
-
-# Openmp Examples
-mkdir -p "$resultsdir"/openmp
-#echo "cp -rf "$AOMP"/examples/openmp "$aompdir"/examples"
-#cp -rf "$AOMP"/examples/openmp "$aompdir"/examples
-cd "$aompdir"/examples/openmp
-EPSDB=1 ../check_examples.sh openmp
-checkrc $?
-copyresults openmp
-
-# Smoke
-mkdir -p "$resultsdir"/smoke
-cd "$aompdir"/test/smoke
-CLEANUP=0 AOMPHIP=$AOMPROCM ./check_smoke.sh
-checkrc $?
-copyresults smoke
-
-# Smoke-fails
-if [ "$SMOKE_FAILS" == "1" ]; then
-  mkdir -p "$resultsdir"/smoke-fails
-  cd "$aompdir"/test/smoke-fails
-  ./check_smoke_fails.sh
-  checkrc $?
-  copyresults smoke-fails
-else
-  echo "Skipping smoke-fails."
+# Run Tests
+if [ "$EPSDB" == "1" ]; then
+  SUITE_LIST="$EPSDB_LIST"
 fi
+echo Running List: $SUITE_LIST
 
-# Omp5
-mkdir -p "$resultsdir"/omp5
-cd "$aompdir"/test/omp5
-./check_omp5.sh
-checkrc $?
-copyresults omp5
+for suite in $SUITE_LIST; do
+  $suite
+done
 
-
-# Sollve
-mkdir -p "$resultsdir"/sollve45
-mkdir -p "$resultsdir"/sollve50
-cd "$aompdir"/bin
-./clone_epsdb_test.sh
-
-no_usm_gpus="gfx900 gfx906"
-if [[ "$no_usm_gpus" =~ "$AOMP_GPU" ]]; then
-  echo "Skipping USM 5.0 tests."
-  SKIP_USM=1 SKIP_SOLLVE51=1 ./run_sollve.sh
-else
-  SKIP_SOLLVE51=1 ./run_sollve.sh
+echo "************************************" >> $summary
+echo >> $summary
+echo "Condensed Summary:" >> $summary
+if [ -f $unexpresults ]; then
+  cat $unexpresults >> $summary
 fi
-
-./check_sollve.sh
-checkrc $?
-
-# 4.5 Results
-cd "$HOME"/git/aomp-test/sollve_vv/results_report45
-copyresults sollve45
-
-# 5.0 Results
-cd "$HOME"/git/aomp-test/sollve_vv/results_report50
-copyresults sollve50
-
-cat $unexpresults >> $summary
 echo >> $summary
 echo Overall Unexpected fails: $totalunexpectedfails >> $summary
 echo Script Errors: $scriptfails >> $summary

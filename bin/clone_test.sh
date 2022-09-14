@@ -10,6 +10,8 @@ thisdir=`dirname $realpath`
 . $thisdir/aomp_common_vars
 # --- end standard header ----
 
+EPSDB_LIST=${EPSDB_LIST:-"openmpapps sollve_vv Nekbone goulash BabelStream"}
+
 function list_repo_from_manifest(){
    logcommit=`git log -1 | grep "^commit" | cut -d" " -f2 | xargs`
    thiscommit=${logcommit:0:12}
@@ -205,8 +207,15 @@ while read line ; do
          fi
       else
          if [[ "$groups" != "skip" ]] ; then 
-            echo "clone_or_pull $repo_web_location PATH:$reponame $COBRANCH groups:$groups"
-            clone_or_pull
+           if [ "$EPSDB" == 1 ]; then
+             for suite in $EPSDB_LIST; do
+               if [ "$name" == "$suite" ]; then
+                 echo "clone_or_pull $repo_web_location PATH:$reponame $COBRANCH groups:$groups"
+                 clone_or_pull
+                 break
+               fi
+             done
+           fi
          fi
       fi
 done <$tmpfile

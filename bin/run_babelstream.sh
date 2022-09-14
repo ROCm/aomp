@@ -27,6 +27,9 @@ BABELSTREAM_REPO=${BABELSTREAM_REPO:-$AOMP_REPOS_TEST/babelstream}
 BABELSTREAM_BUILD=${BABELSTREAM_BUILD:-/tmp/$USER/babelstream}
 BABELSTREAM_REPEATS=${BABELSTREAM_REPEATS:-10}
 
+# Clean validation files
+rm -f "$BABELSTREAM_REPO"/passing-tests.txt "$BABELSTREAM_REPO"/failing-tests.txt "$BABELSTREAM_REPO"/make-fail.txt
+
 # Use function to set and test AOMP_GPU
 setaompgpu
 # skip hip if nvidida
@@ -96,6 +99,9 @@ echo "=========> RUNDATE:  $thisdate" >>results.txt
 COMPILER=`$AOMP/bin/llc --version  | grep version`
 echo "=========> COMPILER: $COMPILER" >>results.txt
 echo "=========> GPU:      $AOMP_GPU" >>results.txt
+compile_error=0
+runtime_error=0
+
 for option in $RUN_OPTIONS; do
   echo ; echo >>results.txt
   EXEC=stream-$option
@@ -121,16 +127,39 @@ for option in $RUN_OPTIONS; do
   fi
   echo $compile_cmd | tee -a results.txt
   $compile_cmd
-  if [ $? -ne 1 ]; then
-     if [ -f $AOMP/bin/gpurun ] ; then
-        echo $AOMP/bin/gpurun -s ./$EXEC -n $BABELSTREAM_REPEATS | tee -a results.txt
-        $AOMP/bin/gpurun -s ./$EXEC -n $BABELSTREAM_REPEATS 2>&1 | tee -a results.txt
-     else
-        echo ./$EXEC -n $BABELSTREAM_REPEATS | tee -a results.txt
-        ./$EXEC -n $BABELSTREAM_REPEATS 2>&1 | tee -a results.txt
-     fi
+  if [ $? -ne 0 ]; then
+    compile_error=1
+    echo "babelstream" >> "$BABELSTREAM_REPO"/make-fail.txt
+    break
+  else
+    if [ -f $AOMP/bin/gpurun ] ; then
+      echo $AOMP/bin/gpurun -s ./$EXEC -n $BABELSTREAM_REPEATS | tee -a results.txt
+      $AOMP/bin/gpurun -s ./$EXEC -n $BABELSTREAM_REPEATS 2>&1 | tee -a results.txt
+    else
+      echo ./$EXEC -n $BABELSTREAM_REPEATS | tee -a results.txt
+      ./$EXEC -n $BABELSTREAM_REPEATS 2>&1 | tee -a results.txt
+    fi
+    # For EPSDB, re-run so that we can check return code from executable. When piping to output file the return code is lost from the executable.
+    if [ "$EPSDB" == "1" ]; then
+      ./$EXEC -n $BABELSTREAM_REPEATS
+      if [ $? -ne 0 ]; then
+        runtime_error=1
+      fi
+    fi
   fi
 done
+
+# Check for errors
+if [ "$EPSDB" == "1" ]; then
+  if [ $compile_error -ne 0 ]; then
+    echo "babelstream" >> "$BABELSTREAM_REPO"/make-fail.txt
+  elif [ $runtime_error -ne 0 ]; then
+    echo "babelstream" >> "$BABELSTREAM_REPO"/failing-tests.txt
+  else
+    echo "babelstream" >> "$BABELSTREAM_REPO"/passing-tests.txt
+  fi
+fi
+
 cd $curdir
 echo
 echo "DONE. See results at end of file $BABELSTREAM_BUILD/results.txt"

@@ -1,4 +1,4 @@
-include Makefile.defs
+include ../Makefile.defs
 
 TESTS_DIR = \
     concur_update \
@@ -13,8 +13,7 @@ TESTS_DIR = \
     red_bug_51 \
     reduc_map_prob \
     rush_larsen \
-    shape_noncontig \
-    task_prob
+    shape_noncontig
 
 all:
 	@for test_dir in $(TESTS_DIR); do \
