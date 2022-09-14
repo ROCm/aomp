@@ -20,3 +20,21 @@ index 0eb5dea..1ec0edb 100644
  
    install ( TARGETS ${CORE_RUNTIME_NAME} EXPORT ${CORE_RUNTIME_NAME}Targets )
  endif()
+diff --git a/src/libamdhsacode/amd_elf_image.cpp b/src/libamdhsacode/amd_elf_image.cpp
+index bff3f46..ebe707a 100644
+--- a/src/libamdhsacode/amd_elf_image.cpp
++++ b/src/libamdhsacode/amd_elf_image.cpp
+@@ -1270,7 +1270,12 @@ namespace elf {
+ 
+     GElfImage::~GElfImage()
+     {
+-      elf_end(e);
++      // elf_end fails with an invalid free on libelf-0.170.so, ubuntu 18.
++      // hack way to tell we are on old libelf is the enum size.
++      if ( ELF_T_NUM == 26 )
++        free(e);
++      else
++        elf_end(e);
+     }
+ 
+     bool GElfImage::imgError()
