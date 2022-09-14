@@ -4,7 +4,6 @@ openlibm: openlibm.patch
 RAJA: raja.patch
 RAJAPerf: rajaperf.patch
 roct-thunk-interface: roct-thunk-interface-no-drm.patch
-hipamd: hipamd.patch
 GenASis: genasis.patch
 hipfort: hipfort.patch
 bolt: bolt.patch
