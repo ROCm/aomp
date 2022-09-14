@@ -58,7 +58,7 @@ export CXX_VERSION=""
 export C_VERSION=""
 export F_VERSION=""
 
-if [ "$ROCMASTER" == "1" ] || [ "$EPSDB" == "1" ]; then
+if [ "$ROCMASTER" == "1" ]; then
   ./clone_test.sh
   pushd $AOMP_REPOS_TEST/$AOMP_SOLVV_REPO_NAME
     # Lock at specific hash for consistency
@@ -68,12 +68,6 @@ else
   pushd $AOMP_REPOS_TEST/$AOMP_SOLVV_REPO_NAME
   git pull
   popd
-fi
-
-if [ "$ROCMASTER" == "1" ]; then
-  export AOMP=/opt/rocm/aomp
-elif [ "$EPSDB" == "1" ]; then
-  export AOMP=/opt/rocm/llvm
 fi
 
 # Setup AOMP variables
@@ -103,10 +97,10 @@ fi
 
 # Run OpenMP 4.5 Tests
 if [ "$make_target" == "all" ] ; then
-  if [ "$ROCMASTER" != "1" ] && [ "$EPSDB" != "1" ] && [ "$SKIP_SOLLVE45" != 1 ]; then
-  echo "--------------------------- START OMP 4.5 TESTING ---------------------"
-  make CC=$AOMP/bin/clang CXX=$AOMP/bin/clang++ FC=$AOMP/bin/flang CFLAGS="-lm $MY_SOLLVE_FLAGS" CXXFLAGS="$MY_SOLLVE_FLAGS" FFLAGS="$MY_SOLLVE_FLAGS"  OMP_VERSION=4.5 LOG=1 LOG_ALL=1 VERBOSE_TESTS=1 VERBOSE=1 all
-  echo
+  if [ "$SKIP_SOLLVE45" != 1 ]; then
+    echo "--------------------------- START OMP 4.5 TESTING ---------------------"
+    make CC=$AOMP/bin/clang CXX=$AOMP/bin/clang++ FC=$AOMP/bin/flang CFLAGS="-lm $MY_SOLLVE_FLAGS" CXXFLAGS="$MY_SOLLVE_FLAGS" FFLAGS="$MY_SOLLVE_FLAGS"  OMP_VERSION=4.5 LOG=1 LOG_ALL=1 VERBOSE_TESTS=1 VERBOSE=1 all
+    echo
   fi
 else
   echo
@@ -148,13 +142,13 @@ make CC=$AOMP/bin/clang CXX=$AOMP/bin/clang++ FC=$AOMP/bin/flang CFLAGS="-lm $MY
   exit $rc
 fi
 
-if [ "$ROCMASTER" != "1" ] && [ "$EPSDB" != "1" ] && [ "$SKIP_SOLLVE45" != 1 ]; then
+if [ "$SKIP_SOLLVE45" != 1 ]; then
   echo "--------------------------- OMP 4.5 Detailed Results ---------------------------" >> combined-results.txt
   echo "--------------------------- OMP 4.5 Results ---------------------------" > abrev.combined-results.txt
   make_sollve_reports 45
 fi
 
-if [ "$ROCMASTER" != "1" ] && [ "$EPSDB" != "1" ] && [ "$SKIP_SOLLVE50" != 1 ]; then
+if [ "$SKIP_SOLLVE50" != 1 ]; then
   # Run OpenMP 5.0 Tests
   echo "--------------------------- START OMP 5.0 TESTING ---------------------"
   export MY_SOLLVE_FLAGS="$MY_SOLLVE_FLAGS -fopenmp-version=50"
@@ -166,7 +160,7 @@ if [ "$ROCMASTER" != "1" ] && [ "$EPSDB" != "1" ] && [ "$SKIP_SOLLVE50" != 1 ]; 
   make_sollve_reports 50
 fi
 
-if [ "$ROCMASTER" != "1" ] && [ "$EPSDB" != "1" ] && [ "$SKIP_SOLLVE51" != 1 ]; then
+if [ "$SKIP_SOLLVE51" != 1 ]; then
   echo "--------------------------- START OMP 5.1 TESTING ---------------------"
   # Run OpenMP 5.1 Tests
   export MY_SOLLVE_FLAGS="$MY_SOLLVE_FLAGS -fopenmp-version=51"
@@ -183,7 +177,7 @@ if [ "$ROCMASTER" != "1" ] && [ "$EPSDB" != "1" ] && [ "$SKIP_SOLLVE51" != 1 ]; 
   custom_source=""
 fi
 
-if [ "$ROCMASTER" != "1" ] && [ "$EPSDB" != "1" ] && [ "$SKIP_SOLLVE52" != 1 ]; then
+if [ "$SKIP_SOLLVE52" != 1 ]; then
   echo "--------------------------- START OMP 5.2 TESTING ---------------------"
   # Run OpenMP 5.2 Tests
   export MY_SOLLVE_FLAGS="$MY_SOLLVE_FLAGS -fopenmp-version=52"
@@ -206,9 +200,3 @@ echo
 cat abrev.combined-results.txt
 echo
 popd > /dev/null
-
-if [ "$ROCMASTER" == "1" ]; then
-  ./check_sollve.sh
-elif [ "$EPSDB" == "1" ]; then
-  EPSDB=1 ./check_sollve.sh
-fi
