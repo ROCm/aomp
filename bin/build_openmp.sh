@@ -125,6 +125,9 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
       fi
 
    if [ "$AOMP_BUILD_DEBUG" == "1" ] ; then
+      _ompd_dir="$AOMP_INSTALL_DIR/lib-debug/ompd"
+      #  This is the new locationof the ompd directory
+      [[ ! -d $_ompd_dir ]] && _ompd_dir="$AOMP_INSTALL_DIR/share/gdb/python/ompd"
       echo rm -rf $BUILD_DIR/build/openmp_debug
       rm -rf $BUILD_DIR/build/openmp_debug
       
@@ -140,7 +143,7 @@ $AOMP_ORIGIN_RPATH \
 -DLIBOMP_OMPD_SUPPORT=ON \
 -DLIBOMP_OMPT_DEBUG=ON \
 -DCMAKE_CXX_FLAGS=-g -DCMAKE_C_FLAGS=-g \
--DOPENMP_SOURCE_DEBUG_MAP="\""-fdebug-prefix-map=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp=$AOMP_INSTALL_DIR/lib-debug/src/openmp"\"" "
+-DOPENMP_SOURCE_DEBUG_MAP="\""-fdebug-prefix-map=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp=$_ompd_dir/src/openmp"\"" "
 
       # The 'pip install --system' command is not supported on non-debian systems. This will disable
       # the system option if the debian_version file is not present.
@@ -214,6 +217,9 @@ if [ "$1" == "install" ] ; then
 
    if [ "$AOMP_BUILD_DEBUG" == "1" ] ; then
       cd $BUILD_DIR/build/openmp_debug
+      _ompd_dir="$AOMP_INSTALL_DIR/lib-debug/ompd"
+      #  This is the new locationof the ompd directory
+      [[ ! -d $_ompd_dir ]] && _ompd_dir="$AOMP_INSTALL_DIR/share/gdb/python/ompd"
       echo
       echo " -----Installing to $INSTALL_OPENMP/lib-debug ---- " 
       $SUDO make install 
@@ -224,13 +230,13 @@ if [ "$1" == "install" ] ; then
 
       # Rename ompd module library. This was introduced with the Python3 build. The include
       # of ompdModule would fail otherwise.
-      if [ -f "$AOMP_INSTALL_DIR/lib-debug/ompd/ompdModule.cpython-36m-x86_64-linux-gnu.so" ]; then
-        if [ -f "$AOMP_INSTALL_DIR/lib-debug/ompd/ompdModule.so" ]; then
-          echo "==> Removing old ompdModule.so"
-          rm "$AOMP_INSTALL_DIR/lib-debug/ompd/ompdModule.so"
+      if [ -f "$_ompd_dir/ompdModule.cpython-36m-x86_64-linux-gnu.so" ]; then
+        if [ -f "$_ompd_dir/ompdModule.so" ]; then
+          echo "==> Removing old $_ompd_dir/ompdModule.so"
+          rm "$_ompd_dir/ompdModule.so"
         fi
         echo "==> Renaming ompdModule.cpython-36m-x86_64-linux-gnu.so to ompdModule.so"
-        mv $AOMP_INSTALL_DIR/lib-debug/ompd/ompdModule.cpython-36m-x86_64-linux-gnu.so $AOMP_INSTALL_DIR/lib-debug/ompd/ompdModule.so
+        mv $_ompd_dir/ompdModule.cpython-36m-x86_64-linux-gnu.so $_ompd_dir/ompdModule.so
       fi
       if [[ "$DEVEL_PACKAGE" =~ "devel" ]]; then
         AOMP_INSTALL_DIR="$AOMP_INSTALL_DIR/""$DEVEL_PACKAGE"
@@ -238,17 +244,17 @@ if [ "$1" == "install" ] ; then
       fi
 
       # we do not yet have OMPD in llvm 12, disable this for now.
-      # Copy selected debugable runtime sources into the installation lib-debug/src directory
+      # Copy selected debugable runtime sources into the installation $ompd_dir/src directory
       # to satisfy the above -fdebug-prefix-map.
-      $SUDO mkdir -p $AOMP_INSTALL_DIR/lib-debug/src/openmp/runtime/src
-      echo cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/runtime/src $AOMP_INSTALL_DIR/lib-debug/src/openmp/runtime
-      $SUDO cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/runtime/src $AOMP_INSTALL_DIR/lib-debug/src/openmp/runtime
-      $SUDO mkdir -p $AOMP_INSTALL_DIR/lib-debug/src/openmp/libomptarget/src
-      echo cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/libomptarget/src $AOMP_INSTALL_DIR/lib-debug/src/openmp/libomptarget
-      $SUDO cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/libomptarget/src $AOMP_INSTALL_DIR/lib-debug/src/openmp/libomptarget
-      echo cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/libomptarget/plugins $AOMP_INSTALL_DIR/lib-debug/src/openmp/libomptarget
-      $SUDO cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/libomptarget/plugins $AOMP_INSTALL_DIR/lib-debug/src/openmp/libomptarget
-      $SUDO mkdir -p $AOMP_INSTALL_DIR/lib-debug/src/openmp/libompd/src
-      $SUDO cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/libompd/src $AOMP_INSTALL_DIR/lib-debug/src/openmp/libompd
+      $SUDO mkdir -p $_ompd_dir/src/openmp/runtime/src
+      echo cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/runtime/src $_ompd_dir/src/openmp/runtime
+      $SUDO cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/runtime/src $_ompd_dir/src/openmp/runtime
+      $SUDO mkdir -p $_ompd_dir/src/openmp/libomptarget/src
+      echo cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/libomptarget/src $_ompd_dir/src/openmp/libomptarget
+      $SUDO cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/libomptarget/src $_ompd_dir/src/openmp/libomptarget
+      echo cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/libomptarget/plugins $_ompd_dir/src/openmp/libomptarget
+      $SUDO cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/libomptarget/plugins $_ompd_dir/src/openmp/libomptarget
+      $SUDO mkdir -p $_ompd_dir/src/openmp/libompd/src
+      $SUDO cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/libompd/src $_ompd_dir/src/openmp/libompd
    fi
 fi
