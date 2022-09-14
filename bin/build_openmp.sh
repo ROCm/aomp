@@ -233,7 +233,7 @@ if [ "$1" == "install" ] ; then
       if [ -f "$_ompd_dir/ompdModule.cpython-36m-x86_64-linux-gnu.so" ]; then
         if [ -f "$_ompd_dir/ompdModule.so" ]; then
           echo "==> Removing old $_ompd_dir/ompdModule.so"
-          rm "$_ompd_dir/ompdModule.so"
+          rm -f "$_ompd_dir/ompdModule.so"
         fi
         echo "==> Renaming ompdModule.cpython-36m-x86_64-linux-gnu.so to ompdModule.so"
         mv $_ompd_dir/ompdModule.cpython-36m-x86_64-linux-gnu.so $_ompd_dir/ompdModule.so
