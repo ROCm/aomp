@@ -182,7 +182,8 @@ echo ""
 gatherdata
 
 # Print run logs for runtime fails, EPSDB only
-if [ "$EPSDB" == 1 ] ; then
+# Disable printing of runtime fails for smoke-fails
+if [ "$EPSDB" == 2 ] ; then
   file='failing-tests.txt'
   flags_test_done=0
   if [ -e $file ]; then
