@@ -132,16 +132,16 @@ for option in $RUN_OPTIONS; do
     echo "babelstream" >> "$BABELSTREAM_REPO"/make-fail.txt
     break
   else
+    set -o pipefail
     if [ -f $AOMP/bin/gpurun ] ; then
       echo $AOMP/bin/gpurun -s ./$EXEC -n $BABELSTREAM_REPEATS | tee -a results.txt
       $AOMP/bin/gpurun -s ./$EXEC -n $BABELSTREAM_REPEATS 2>&1 | tee -a results.txt
+      if [ $? -ne 0 ]; then
+        runtime_error=1
+      fi
     else
       echo ./$EXEC -n $BABELSTREAM_REPEATS | tee -a results.txt
       ./$EXEC -n $BABELSTREAM_REPEATS 2>&1 | tee -a results.txt
-    fi
-    # For EPSDB, re-run so that we can check return code from executable. When piping to output file the return code is lost from the executable.
-    if [ "$EPSDB" == "1" ]; then
-      ./$EXEC -n $BABELSTREAM_REPEATS
       if [ $? -ne 0 ]; then
         runtime_error=1
       fi
@@ -150,14 +150,12 @@ for option in $RUN_OPTIONS; do
 done
 
 # Check for errors
-if [ "$EPSDB" == "1" ]; then
-  if [ $compile_error -ne 0 ]; then
-    echo "babelstream" >> "$BABELSTREAM_REPO"/make-fail.txt
-  elif [ $runtime_error -ne 0 ]; then
-    echo "babelstream" >> "$BABELSTREAM_REPO"/failing-tests.txt
-  else
-    echo "babelstream" >> "$BABELSTREAM_REPO"/passing-tests.txt
-  fi
+if [ $compile_error -ne 0 ]; then
+  echo "babelstream" >> "$BABELSTREAM_REPO"/make-fail.txt
+elif [ $runtime_error -ne 0 ]; then
+  echo "babelstream" >> "$BABELSTREAM_REPO"/failing-tests.txt
+else
+  echo "babelstream" >> "$BABELSTREAM_REPO"/passing-tests.txt
 fi
 
 cd $curdir

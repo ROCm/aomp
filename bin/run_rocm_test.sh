@@ -10,7 +10,7 @@
 #
 
 EPSDB_LIST=${EPSDB_LIST:-"examples smoke smokefails omp5 openmpapps nekbone sollve babelstream"}
-SUITE_LIST=${SUITE_LIST:-"examples smoke smokefails omp5 openmpapps nekbone sollve babelstream"}
+SUITE_LIST=${SUITE_LIST:-"examples smoke smokefails omp5 openmpapps nekbone sollve"}
 blockinglist="examples_fortran examples_openmp smoke nekbone"
 
 # Use bogus path to avoid using target.lst, a user-defined target list
@@ -252,11 +252,10 @@ function copyresults(){
 
   else
     # No passing-tests.txt found, count expected passes as fails.
-    # Does not count combined expected passes from previous rocm versions
     echo "Unexpected Passes: 0" | tee -a $summary $unexpresults
     numtests=$(cat "$resultsdir"/"$1"/"$1"_sorted_exp_passes | wc -l)
     echo "Unexpected Fails: $numtests" | tee -a $summary $unexpresults
-    diff "$1"_sorted_exp_passes "$1"_sorted_passes | grep '<' | sed 's/< //' >> $summary
+    cat "$1"_sorted_exp_passes >> $summary
     if [ "$EPSDB" == "1" ]; then
       for suite in $blockinglist; do
         if [ "$1" == "$suite" ]; then
