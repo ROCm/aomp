@@ -215,6 +215,9 @@ while read line ; do
                  break
                fi
              done
+           else
+             echo "clone_or_pull $repo_web_location PATH:$reponame $COBRANCH groups:$groups"
+             clone_or_pull
            fi
          fi
       fi
