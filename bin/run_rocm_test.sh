@@ -412,8 +412,11 @@ echo Overall Unexpected fails: $totalunexpectedfails >> $summary
 echo Script Errors: $scriptfails >> $summary
 if [ "$totalunexpectedfails" -gt 0 ] || [ "$scriptfails" != 0 ]; then
   echo FAIL >> $summary
+  echo "EPSDB Status: red" >> $summary
 else
   echo PASS >> $summary
+  echo "EPSDB Status: green" >> $summary
 fi
 
 cat $summary
+exit $totalunexpectedfails
