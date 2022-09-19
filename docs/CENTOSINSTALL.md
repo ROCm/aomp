@@ -5,13 +5,13 @@ AOMP will install to /usr/lib/aomp. The AOMP environment variable will automatic
 
 ### Download and Install (CentOS 8)
 ```
-wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_15.0-3/aomp_CENTOS_8-15.0-3.x86_64.rpm
-sudo rpm -i aomp_CENTOS_8-15.0-3.x86_64.rpm
+wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_16.0-0/aomp_CENTOS_8-16.0-0.x86_64.rpm
+sudo rpm -i aomp_CENTOS_8-16.0-0.x86_64.rpm
 ```
 ### Download and Install (CentOS 7)
 ```
-wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_15.0-3/aomp_CENTOS_7-15.0-3.x86_64.rpm
-sudo rpm -i aomp_CENTOS_7-15.0-3.x86_64.rpm
+wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_16.0-0/aomp_CENTOS_7-16.0-0.x86_64.rpm
+sudo rpm -i aomp_CENTOS_7-16.0-0.x86_64.rpm
 ```
 Confirm AOMP environment variable is set:
 ```

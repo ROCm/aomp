@@ -752,5 +752,9 @@ aomp (15.0-3) UNRELEASED; urgency=medium
   *  Known Issues:
   *   Flang has issues at -O0 when using the new DeviceRTL on GPUs other than gfx90a.
   *   Nekbone app currently has performance issues due to the rpc thread being turned on.
+  *
+  *  16.0-0
+  *   Adds new flag -fopenmp-target-fast to group enable a set of OpenMP target optimizations.
+  *   Enhancements and bug fixes for No-Loop and cross-team reduction support.
 
  -- Greg Rodgers <Gregory.Rodgers@amd.com>  Thu, 19 May 2022 23:34:44 -0500
