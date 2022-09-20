@@ -3,17 +3,10 @@
 //
 // expected output:
 //    $ ./reproducer
-//    line 34: [host]   x: 0x273f60
-//    line 43: [device] x: 0x15554a400000
-//    line 49: [host]   x: 0x15554a400000
-//    line 55: [host]   x: 0x15554a400000
-//
-// actual output
-//    $ ./reproducer
-//    line 33: [host]   x: 0x273f60
-//    line 42: [device] x: 0x15554a400000
-//    line 48: [host]   x: 0x15554a400000
-//    [1]    3915739 segmentation fault (core dumped)  ./reproducer
+//    line 26: [host]   x: 0x273f60
+//    line 35: [device] x: 0x15554a400000
+//    line 41: [host]   x: 0x15554a400000
+//    line 47: [host]   x: 0x15554a400000
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -49,7 +42,7 @@ int main(int argc, char * argv[]) {
         }
 
         // use OpenMP pointer translation to get device address
-        #pragma omp target data use_device_addr(x)
+        #pragma omp target data use_device_addr(x[0:0])
         {
             fprintf(stderr, "line %d: [host]   x: %p\n", __LINE__, x);
         }
