@@ -31,7 +31,6 @@ totalunexpectedfails=0
 EPSDB=1 ./clone_test.sh > /dev/null
 AOMP_TEST_DIR=${AOMP_TEST_DIR:-"$HOME/git/aomp-test"}
 
-
 # Set AOMP to point to rocm symlink or newest version.
 if [ -L /opt/rocm ]; then
   AOMP=${AOMP:-"/opt/rocm/llvm"}
@@ -49,6 +48,8 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
+$AOMP/bin/flang1 --version
+
 clangversion=`$AOMP/bin/clang --version`
 aomp=0
 if [[ "$clangversion" =~ "AOMP_STANDALONE" ]]; then
@@ -62,7 +63,7 @@ else
   AOMPROCM=$AOMP/..
 fi
 export AOMPROCM
-echo AOMPROCM= $AOMPROCM
+echo AOMPROCM=$AOMPROCM
 
 # Set ROCM_LLVM for examples
 export ROCM_LLVM=$AOMP
@@ -81,9 +82,8 @@ $AOMPROCM/bin/rocm_agent_enumerator
 if [ "$AOMP_GPU" == "" ]; then
   AOMP_GPU=$($AOMPROCM/bin/rocm_agent_enumerator | grep -m 1 -E gfx[^0]{1}.{2})
 fi
-# mygpu will eventually relocate to /opt/rocm/bin, support both cases for now.
-echo AOMP_GPU= $AOMP_GPU
 
+# mygpu will eventually relocate to /opt/rocm/bin, support both cases for now.
 if [ "$AOMP_GPU" != "" ]; then
   echo "AOMP_GPU set with rocm_agent_enumerator."
 else
@@ -98,7 +98,16 @@ if [ "$AOMP_GPU" == "" ]; then
   echo "Error: AOMP_GPU was not able to be set with RAE or mygpu."
   exit 1
 fi
+echo AOMP_GPU=$AOMP_GPU
 export AOMP_GPU
+
+# Run quick sanity test
+echo
+echo "Helloworld sanity test:"
+cd "$aompdir"/test/smoke/helloworld
+make clean > /dev/null
+OMP_TARGET_OFFLOAD=MANDATORY VERBOSE=1 make run > hello.log 2>&1
+sed -n -e '/ld.lld/,$p' hello.log
 
 # Determines ROCm version and openmp-extras version to choose which set
 # of expected passes to use. Example ROCm 4.3 build installed but
