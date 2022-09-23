@@ -58,6 +58,7 @@ TESTS_DIR = \
     targ_static \
     targc-273739 \
     target_teams_reduction \
+    target-shared-variables \
     tasks 
 
 all:
