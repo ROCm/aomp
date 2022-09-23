@@ -17,7 +17,7 @@ void further_update_function(float x, float y, float z, float *px, float *py, fl
   *pz = local_z;
 }
 
-void update_function_no_LDS(float x, float y, float z, float *output) {
+void update_function_1_call(float x, float y, float z, float *output) {
   float local_x = 0.0;
   float local_y = 0.0;
   float local_z = 0.0;
@@ -28,7 +28,7 @@ void update_function_no_LDS(float x, float y, float z, float *output) {
   *output += local_z / (local_x + 1);
 }
 
-void update_function_uses_LDS(float x, float y, float z, float *output) {
+void update_function_2_calls(float x, float y, float z, float *output) {
   float local_x = 0.0;
   float local_y = 0.0;
   float local_z = 0.0;
@@ -58,7 +58,8 @@ int main () {
     float half = arr[i] * 0.5;
     float output = 0.0;
 
-    update_function_no_LDS(half - 1.0, half + 1.0, half, &output);
+    // LIBOMPTARGET_KERNEL_TRACE=1 does not report the shared memory used
+    update_function_1_call(half - 1.0, half + 1.0, half, &output);
 
     arr[i] = output;
   }
@@ -69,7 +70,8 @@ int main () {
     float half = arr[i] * 0.5;
     float output = 0.0;
 
-    update_function_uses_LDS(half - 1.0, half + 1.0, half, &output);
+    // LIBOMPTARGET_KERNEL_TRACE=1 reports the shared memory used
+    update_function_2_calls(half - 1.0, half + 1.0, half, &output);
 
     arr[i] = output;
   }
