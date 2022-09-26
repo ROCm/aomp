@@ -21,26 +21,205 @@ because complex numbers do not suport comparison operators.
 These are the interfaces to the helper functions that clang codegen is expected to generate
 function calls for:
 
-void __kmpc_xteamr_sum_d(double, double *, double *, uint32_t *);
-void __kmpc_xteamr_sum_f(float, float *, float *, uint32_t *);
-void __kmpc_xteamr_sum_cd(double _Complex, double _Complex *, double _Complex *, uint32_t *);
-void __kmpc_xteamr_sum_cf(float _Complex, float _Complex *, float _Complex *, uint32_t *);
-void __kmpc_xteamr_sum_i(int, int *, int *, uint32_t *);
-void __kmpc_xteamr_sum_ui(unsigned int, unsigned int *, unsigned int *, uint32_t *);
-void __kmpc_xteamr_sum_l(long int, long int *, long int *, uint32_t *);
-void __kmpc_xteamr_sum_ul(unsigned long, unsigned long *, unsigned long *, uint32_t *);
-void __kmpc_xteamr_max_d(double, double *, double *, uint32_t *);
-void __kmpc_xteamr_max_f(float, float *, float *, uint32_t *);
-void __kmpc_xteamr_max_i(int, int *, int *, uint32_t *);
-void __kmpc_xteamr_max_ui(unsigned int, unsigned int *, unsigned int *, uint32_t *);
-void __kmpc_xteamr_max_l(long int, long int *, long int *, uint32_t *);
-void __kmpc_xteamr_max_ul(unsigned long, unsigned long *, unsigned long *, uint32_t *);
-void __kmpc_xteamr_min_d(double, double *, double *, uint32_t *);
-void __kmpc_xteamr_min_f(float, float *, float *, uint32_t *);
-void __kmpc_xteamr_min_i(int, int *, int *, uint32_t *);
-void __kmpc_xteamr_min_ui(unsigned int, unsigned int *, unsigned int *, uint32_t *);
-void __kmpc_xteamr_min_l(long int, long int *, long int *, uint32_t *);
-void __kmpc_xteamr_min_ul(unsigned long, unsigned long *, unsigned long *, uint32_t *);
+void __kmpc_xteamr_sum_d_16x64(double, double *, double *, uint32_t *);
+void __kmpc_xteamr_sum_f_16x64(float, float *, float *, uint32_t *);
+void __kmpc_xteamr_sum_i_16x64(int, int *, int *, uint32_t *);
+void __kmpc_xteamr_sum_ui_16x64(unsigned int, unsigned int *, unsigned int *,
+                                uint32_t *);
+void __kmpc_xteamr_sum_l_16x64(long int, long int *, long int *, uint32_t *);
+void __kmpc_xteamr_sum_ul_16x64(unsigned long, unsigned long *, unsigned long *,
+                                uint32_t *);
+void __kmpc_xteamr_max_d_16x64(double, double *, double *, uint32_t *);
+void __kmpc_xteamr_max_f_16x64(float, float *, float *, uint32_t *);
+void __kmpc_xteamr_max_i_16x64(int, int *, int *, uint32_t *);
+void __kmpc_xteamr_max_ui_16x64(unsigned int, unsigned int *, unsigned int *,
+                                uint32_t *);
+void __kmpc_xteamr_max_l_16x64(long int, long int *, long int *, uint32_t *);
+void __kmpc_xteamr_max_ul_16x64(unsigned long, unsigned long *, unsigned long *,
+                                uint32_t *);
+void __kmpc_xteamr_min_d_16x64(double, double *, double *, uint32_t *);
+void __kmpc_xteamr_min_f_16x64(float, float *, float *, uint32_t *);
+void __kmpc_xteamr_min_i_16x64(int, int *, int *, uint32_t *);
+void __kmpc_xteamr_min_ui_16x64(unsigned int, unsigned int *, unsigned int *,
+                                uint32_t *);
+void __kmpc_xteamr_min_l_16x64(long int, long int *, long int *, uint32_t *);
+void __kmpc_xteamr_min_ul_16x64(unsigned long, unsigned long *, unsigned long *,
+                                uint32_t *);
+
+void __kmpc_xteamr_sum_d_8x64(double, double *, double *, uint32_t *);
+void __kmpc_xteamr_sum_f_8x64(float, float *, float *, uint32_t *);
+void __kmpc_xteamr_sum_i_8x64(int, int *, int *, uint32_t *);
+void __kmpc_xteamr_sum_ui_8x64(unsigned int, unsigned int *, unsigned int *,
+                               uint32_t *);
+void __kmpc_xteamr_sum_l_8x64(long int, long int *, long int *, uint32_t *);
+void __kmpc_xteamr_sum_ul_8x64(unsigned long, unsigned long *, unsigned long *,
+                               uint32_t *);
+void __kmpc_xteamr_max_d_8x64(double, double *, double *, uint32_t *);
+void __kmpc_xteamr_max_f_8x64(float, float *, float *, uint32_t *);
+void __kmpc_xteamr_max_i_8x64(int, int *, int *, uint32_t *);
+void __kmpc_xteamr_max_ui_8x64(unsigned int, unsigned int *, unsigned int *,
+                               uint32_t *);
+void __kmpc_xteamr_max_l_8x64(long int, long int *, long int *, uint32_t *);
+void __kmpc_xteamr_max_ul_8x64(unsigned long, unsigned long *, unsigned long *,
+                               uint32_t *);
+void __kmpc_xteamr_min_d_8x64(double, double *, double *, uint32_t *);
+void __kmpc_xteamr_min_f_8x64(float, float *, float *, uint32_t *);
+void __kmpc_xteamr_min_i_8x64(int, int *, int *, uint32_t *);
+void __kmpc_xteamr_min_ui_8x64(unsigned int, unsigned int *, unsigned int *,
+                               uint32_t *);
+void __kmpc_xteamr_min_l_8x64(long int, long int *, long int *, uint32_t *);
+void __kmpc_xteamr_min_ul_8x64(unsigned long, unsigned long *, unsigned long *,
+                               uint32_t *);
+
+void __kmpc_xteamr_sum_d_x4x64(double, double *, double *, uint32_t *);
+void __kmpc_xteamr_sum_f_x4x64(float, float *, float *, uint32_t *);
+void __kmpc_xteamr_sum_i_x4x64(int, int *, int *, uint32_t *);
+void __kmpc_xteamr_sum_ui_x4x64(unsigned int, unsigned int *, unsigned int *,
+                                uint32_t *);
+void __kmpc_xteamr_sum_l_x4x64(long int, long int *, long int *, uint32_t *);
+void __kmpc_xteamr_sum_ul_x4x64(unsigned long, unsigned long *, unsigned long *,
+                                uint32_t *);
+void __kmpc_xteamr_max_d_x4x64(double, double *, double *, uint32_t *);
+void __kmpc_xteamr_max_f_x4x64(float, float *, float *, uint32_t *);
+void __kmpc_xteamr_max_i_x4x64(int, int *, int *, uint32_t *);
+void __kmpc_xteamr_max_ui_x4x64(unsigned int, unsigned int *, unsigned int *,
+                                uint32_t *);
+void __kmpc_xteamr_max_l_x4x64(long int, long int *, long int *, uint32_t *);
+void __kmpc_xteamr_max_ul_x4x64(unsigned long, unsigned long *, unsigned long *,
+                                uint32_t *);
+void __kmpc_xteamr_min_d_x4x64(double, double *, double *, uint32_t *);
+void __kmpc_xteamr_min_f_x4x64(float, float *, float *, uint32_t *);
+void __kmpc_xteamr_min_i_x4x64(int, int *, int *, uint32_t *);
+void __kmpc_xteamr_min_ui_x4x64(unsigned int, unsigned int *, unsigned int *,
+                                uint32_t *);
+void __kmpc_xteamr_min_l_x4x64(long int, long int *, long int *, uint32_t *);
+void __kmpc_xteamr_min_ul_x4x64(unsigned long, unsigned long *, unsigned long *,
+                                uint32_t *);
+
+void __kmpc_xteamr_sum_d_2x64(double, double *, double *, uint32_t *);
+void __kmpc_xteamr_sum_f_2x64(float, float *, float *, uint32_t *);
+void __kmpc_xteamr_sum_i_2x64(int, int *, int *, uint32_t *);
+void __kmpc_xteamr_sum_ui_2x64(unsigned int, unsigned int *, unsigned int *,
+                               uint32_t *);
+void __kmpc_xteamr_sum_l_2x64(long int, long int *, long int *, uint32_t *);
+void __kmpc_xteamr_sum_ul_2x64(unsigned long, unsigned long *, unsigned long *,
+                               uint32_t *);
+void __kmpc_xteamr_max_d_2x64(double, double *, double *, uint32_t *);
+void __kmpc_xteamr_max_f_2x64(float, float *, float *, uint32_t *);
+void __kmpc_xteamr_max_i_2x64(int, int *, int *, uint32_t *);
+void __kmpc_xteamr_max_ui_2x64(unsigned int, unsigned int *, unsigned int *,
+                               uint32_t *);
+void __kmpc_xteamr_max_l_2x64(long int, long int *, long int *, uint32_t *);
+void __kmpc_xteamr_max_ul_2x64(unsigned long, unsigned long *, unsigned long *,
+                               uint32_t *);
+void __kmpc_xteamr_min_d_2x64(double, double *, double *, uint32_t *);
+void __kmpc_xteamr_min_f_2x64(float, float *, float *, uint32_t *);
+void __kmpc_xteamr_min_i_2x64(int, int *, int *, uint32_t *);
+void __kmpc_xteamr_min_ui_2x64(unsigned int, unsigned int *, unsigned int *,
+                               uint32_t *);
+void __kmpc_xteamr_min_l_2x64(long int, long int *, long int *, uint32_t *);
+void __kmpc_xteamr_min_ul_2x64(unsigned long, unsigned long *, unsigned long *,
+                               uint32_t *);
+
+void __kmpc_xteamr_sum_d_32x32(double, double *, double *, uint32_t *);
+void __kmpc_xteamr_sum_f_32x32(float, float *, float *, uint32_t *);
+void __kmpc_xteamr_sum_i_32x32(int, int *, int *, uint32_t *);
+void __kmpc_xteamr_sum_ui_32x32(unsigned int, unsigned int *, unsigned int *,
+                                uint32_t *);
+void __kmpc_xteamr_sum_l_32x32(long int, long int *, long int *, uint32_t *);
+void __kmpc_xteamr_sum_ul_32x32(unsigned long, unsigned long *, unsigned long *,
+                                uint32_t *);
+void __kmpc_xteamr_max_d_32x32(double, double *, double *, uint32_t *);
+void __kmpc_xteamr_max_f_32x32(float, float *, float *, uint32_t *);
+void __kmpc_xteamr_max_i_32x32(int, int *, int *, uint32_t *);
+void __kmpc_xteamr_max_ui_32x32(unsigned int, unsigned int *, unsigned int *,
+                                uint32_t *);
+void __kmpc_xteamr_max_l_32x32(long int, long int *, long int *, uint32_t *);
+void __kmpc_xteamr_max_ul_32x32(unsigned long, unsigned long *, unsigned long *,
+                                uint32_t *);
+void __kmpc_xteamr_min_d_32x32(double, double *, double *, uint32_t *);
+void __kmpc_xteamr_min_f_32x32(float, float *, float *, uint32_t *);
+void __kmpc_xteamr_min_i_32x32(int, int *, int *, uint32_t *);
+void __kmpc_xteamr_min_ui_32x32(unsigned int, unsigned int *, unsigned int *,
+                                uint32_t *);
+void __kmpc_xteamr_min_l_32x32(long int, long int *, long int *, uint32_t *);
+void __kmpc_xteamr_min_ul_32x32(unsigned long, unsigned long *, unsigned long *,
+                                uint32_t *);
+
+void __kmpc_xteamr_sum_d_16x32(double, double *, double *, uint32_t *);
+void __kmpc_xteamr_sum_f_16x32(float, float *, float *, uint32_t *);
+void __kmpc_xteamr_sum_i_16x32(int, int *, int *, uint32_t *);
+void __kmpc_xteamr_sum_ui_16x32(unsigned int, unsigned int *, unsigned int *,
+                                uint32_t *);
+void __kmpc_xteamr_sum_l_16x32(long int, long int *, long int *, uint32_t *);
+void __kmpc_xteamr_sum_ul_16x32(unsigned long, unsigned long *, unsigned long *,
+                                uint32_t *);
+void __kmpc_xteamr_max_d_16x32(double, double *, double *, uint32_t *);
+void __kmpc_xteamr_max_f_16x32(float, float *, float *, uint32_t *);
+void __kmpc_xteamr_max_i_16x32(int, int *, int *, uint32_t *);
+void __kmpc_xteamr_max_ui_16x32(unsigned int, unsigned int *, unsigned int *,
+                                uint32_t *);
+void __kmpc_xteamr_max_l_16x32(long int, long int *, long int *, uint32_t *);
+void __kmpc_xteamr_max_ul_16x32(unsigned long, unsigned long *, unsigned long *,
+                                uint32_t *);
+void __kmpc_xteamr_min_d_16x32(double, double *, double *, uint32_t *);
+void __kmpc_xteamr_min_f_16x32(float, float *, float *, uint32_t *);
+void __kmpc_xteamr_min_i_16x32(int, int *, int *, uint32_t *);
+void __kmpc_xteamr_min_ui_16x32(unsigned int, unsigned int *, unsigned int *,
+                                uint32_t *);
+void __kmpc_xteamr_min_l_16x32(long int, long int *, long int *, uint32_t *);
+void __kmpc_xteamr_min_ul_16x32(unsigned long, unsigned long *, unsigned long *,
+                                uint32_t *);
+
+void __kmpc_xteamr_sum_d_8x32(double, double *, double *, uint32_t *);
+void __kmpc_xteamr_sum_f_8x32(float, float *, float *, uint32_t *);
+void __kmpc_xteamr_sum_i_8x32(int, int *, int *, uint32_t *);
+void __kmpc_xteamr_sum_ui_8x32(unsigned int, unsigned int *, unsigned int *,
+                               uint32_t *);
+void __kmpc_xteamr_sum_l_8x32(long int, long int *, long int *, uint32_t *);
+void __kmpc_xteamr_sum_ul_8x32(unsigned long, unsigned long *, unsigned long *,
+                               uint32_t *);
+void __kmpc_xteamr_max_d_8x32(double, double *, double *, uint32_t *);
+void __kmpc_xteamr_max_f_8x32(float, float *, float *, uint32_t *);
+void __kmpc_xteamr_max_i_8x32(int, int *, int *, uint32_t *);
+void __kmpc_xteamr_max_ui_8x32(unsigned int, unsigned int *, unsigned int *,
+                               uint32_t *);
+void __kmpc_xteamr_max_l_8x32(long int, long int *, long int *, uint32_t *);
+void __kmpc_xteamr_max_ul_8x32(unsigned long, unsigned long *, unsigned long *,
+                               uint32_t *);
+void __kmpc_xteamr_min_d_8x32(double, double *, double *, uint32_t *);
+void __kmpc_xteamr_min_f_8x32(float, float *, float *, uint32_t *);
+void __kmpc_xteamr_min_i_8x32(int, int *, int *, uint32_t *);
+void __kmpc_xteamr_min_ui_8x32(unsigned int, unsigned int *, unsigned int *,
+                               uint32_t *);
+void __kmpc_xteamr_min_l_8x32(long int, long int *, long int *, uint32_t *);
+void __kmpc_xteamr_min_ul_8x32(unsigned long, unsigned long *, unsigned long *,
+                               uint32_t *);
+
+void __kmpc_xteamr_sum_d_x4x32(double, double *, double *, uint32_t *);
+void __kmpc_xteamr_sum_f_x4x32(float, float *, float *, uint32_t *);
+void __kmpc_xteamr_sum_i_x4x32(int, int *, int *, uint32_t *);
+void __kmpc_xteamr_sum_ui_x4x32(unsigned int, unsigned int *, unsigned int *,
+                                uint32_t *);
+void __kmpc_xteamr_sum_l_x4x32(long int, long int *, long int *, uint32_t *);
+void __kmpc_xteamr_sum_ul_x4x32(unsigned long, unsigned long *, unsigned long *,
+                                uint32_t *);
+void __kmpc_xteamr_max_d_x4x32(double, double *, double *, uint32_t *);
+void __kmpc_xteamr_max_f_x4x32(float, float *, float *, uint32_t *);
+void __kmpc_xteamr_max_i_x4x32(int, int *, int *, uint32_t *);
+void __kmpc_xteamr_max_ui_x4x32(unsigned int, unsigned int *, unsigned int *,
+                                uint32_t *);
+void __kmpc_xteamr_max_l_x4x32(long int, long int *, long int *, uint32_t *);
+void __kmpc_xteamr_max_ul_x4x32(unsigned long, unsigned long *, unsigned long *,
+                                uint32_t *);
+void __kmpc_xteamr_min_d_x4x32(double, double *, double *, uint32_t *);
+void __kmpc_xteamr_min_f_x4x32(float, float *, float *, uint32_t *);
+void __kmpc_xteamr_min_i_x4x32(int, int *, int *, uint32_t *);
+void __kmpc_xteamr_min_ui_x4x32(unsigned int, unsigned int *, unsigned int *,
+                                uint32_t *);
+void __kmpc_xteamr_min_l_x4x32(long int, long int *, long int *, uint32_t *);
+void __kmpc_xteamr_min_ul_x4x32(unsigned long, unsigned long *, unsigned long *,
+                                uint32_t *);
 
 This xteamr helper functions require global allocation of a vector to store team results.
 and a global variable to used for atomic increment. 

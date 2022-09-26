@@ -18,7 +18,7 @@
 #include <iomanip>
 #include <cstring>
 
-#include "ReductionsTestClass.h"
+#include "ReductionsTestClass_16x64.h"
 
 // Default size of 2^25
 const int ARRAY_SIZE = 33554432;
@@ -30,8 +30,11 @@ unsigned int smoke_rc = 0;
 template <typename T, bool >
 void run_kernels(const int ARRAY_SIZE);
 
+// Problem with complex math but simulated matches actual reduction
+#if 0
 template <typename T, typename TV>
 void run_complex_kernels(const int ARRAY_SIZE);
+#endif
 
 int main(int argc, char *argv[]) {
   std::cout << std::endl << "TEST DOUBLE" << std::endl;
@@ -47,7 +50,7 @@ int main(int argc, char *argv[]) {
   std::cout << std::endl << "TEST UNSIGNED LONG" << std::endl;
   run_kernels<unsigned long,true>(ARRAY_SIZE);
 
-  // Problem with complex math but simulated matches actual reduction
+// Problem with complex math but simulated matches actual reduction
 #if 0
   std::cout << std::endl << "TEST DOUBLE COMPLEX" << std::endl;
   run_complex_kernels<double _Complex, double>(ARRAY_SIZE);
@@ -128,6 +131,7 @@ void run_kernels(const int ARRAY_SIZE) {
 
     t1 = std::chrono::high_resolution_clock::now();
     T sim_sum = RTC->sim_dot();
+    // T sim_sum = goldSum;
     t2 = std::chrono::high_resolution_clock::now();
     timings[1].push_back(std::chrono::duration_cast<std::chrono::duration<double> >(t2 - t1).count());
 
@@ -165,6 +169,7 @@ void run_kernels(const int ARRAY_SIZE) {
 
     t1 = std::chrono::high_resolution_clock::now();
     T sim_max = RTC->sim_max();
+    //T sim_max = goldMax;
     t2 = std::chrono::high_resolution_clock::now();
     timings[3].push_back(std::chrono::duration_cast<std::chrono::duration<double> >(t2 - t1).count());
     if (sim_max != goldMax) {
@@ -188,6 +193,7 @@ void run_kernels(const int ARRAY_SIZE) {
 
     t1 = std::chrono::high_resolution_clock::now();
     T sim_min = RTC->sim_min();
+    // T sim_min = goldMin;
     t2 = std::chrono::high_resolution_clock::now();
     timings[5].push_back(std::chrono::duration_cast<std::chrono::duration<double> >(t2 - t1).count());
     if (sim_min != goldMin) {
@@ -248,7 +254,7 @@ void run_kernels(const int ARRAY_SIZE) {
   }
   delete RTC;
 }
-
+#if 0
 #include <complex>
 #include "ReductionsTestClass_complex.h"
 template <typename T, typename TV>
@@ -406,4 +412,4 @@ void run_complex_kernels(const int ARRAY_SIZE) {
   }
   delete RTC;
 }
-
+#endif
