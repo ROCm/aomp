@@ -19,6 +19,8 @@
 #include <cstring>
 
 #include "ReductionsTestClass_16x64.h"
+//#include "ReductionsTestClass_8x64.h"
+//#include "ReductionsTestClass_4x64.h"
 
 // Default size of 2^25
 const int ARRAY_SIZE = 33554432;

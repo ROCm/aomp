@@ -21,139 +21,293 @@ extern "C" {
 // Clang Codegen needs to generate these declares
 #if defined(__AMDGCN__) || defined(__NVPTX__)
   //  Headers for reduction helpers in DeviceRTLs/src/Reduction.cpp
-void __kmpc_xteamr_sum_d_16x64(double, double *, double *,  unsigned int *);
-void __kmpc_xteamr_sum_f_16x64(float, float *, float *,  unsigned int *);
-void __kmpc_xteamr_sum_i_16x64(int, int *, int *,  unsigned int *);
-void __kmpc_xteamr_sum_ui_16x64(unsigned int, unsigned int *, unsigned int *,  unsigned int *);
-void __kmpc_xteamr_sum_l_16x64(long int, long int *, long int *,  unsigned int *);
-void __kmpc_xteamr_sum_ul_16x64(unsigned long , unsigned long *, unsigned long *,  unsigned int *);
-void __kmpc_xteamr_max_d_16x64(double, double *, double *,  unsigned int *);
-void __kmpc_xteamr_max_f_16x64(float, float *, float *,  unsigned int *);
-void __kmpc_xteamr_max_i_16x64(int, int *, int *,  unsigned int *);
-void __kmpc_xteamr_max_ui_16x64(unsigned int, unsigned int *, unsigned int *,  unsigned int *);
-void __kmpc_xteamr_max_l_16x64(long int, long int *, long int *,  unsigned int *);
-void __kmpc_xteamr_max_ul_16x64(unsigned long , unsigned long *, unsigned long *,  unsigned int *);
-void __kmpc_xteamr_min_d_16x64(double, double *, double *,  unsigned int *);
-void __kmpc_xteamr_min_f_16x64(float, float *, float *,  unsigned int *);
-void __kmpc_xteamr_min_i_16x64(int, int *, int *,  unsigned int *);
-void __kmpc_xteamr_min_ui_16x64(unsigned int, unsigned int *, unsigned int *,  unsigned int *);
-void __kmpc_xteamr_min_l_16x64(long int, long int *, long int *,  unsigned int *);
-void __kmpc_xteamr_min_ul_16x64(unsigned long , unsigned long *, unsigned long *,  unsigned int *);
+#define _RF_LDS volatile __attribute__((address_space(3)))
+void __kmpc_rfun_sum_d(double * val, double otherval);
+void __kmpc_rfun_sum_lds_d(_RF_LDS double * val, _RF_LDS double * otherval);
+void __kmpc_rfun_sum_f(float * val, float otherval);
+void __kmpc_rfun_sum_lds_f(_RF_LDS float * val, _RF_LDS float * otherval);
+void __kmpc_rfun_sum_i(int * val, int otherval);
+void __kmpc_rfun_sum_lds_i(_RF_LDS int * val, _RF_LDS int * otherval);
+void __kmpc_rfun_sum_ui(unsigned int * val, unsigned int otherval);
+void __kmpc_rfun_sum_lds_ui(_RF_LDS unsigned int * val, _RF_LDS unsigned int * otherval);
+void __kmpc_rfun_sum_l(long * val, long otherval);
+void __kmpc_rfun_sum_lds_l(_RF_LDS long * val, _RF_LDS long * otherval);
+void __kmpc_rfun_sum_ul(unsigned long * val, unsigned long otherval);
+void __kmpc_rfun_sum_lds_ul(_RF_LDS unsigned long * val, _RF_LDS unsigned long * otherval);
+void __kmpc_rfun_min_d(double * val, double otherval);
+void __kmpc_rfun_min_lds_d(_RF_LDS double * val, _RF_LDS double * otherval);
+void __kmpc_rfun_min_f(float * val, float otherval);
+void __kmpc_rfun_min_lds_f(_RF_LDS float * val, _RF_LDS float * otherval);
+void __kmpc_rfun_min_i(int * val, int otherval);
+void __kmpc_rfun_min_lds_i(_RF_LDS int * val, _RF_LDS int * otherval);
+void __kmpc_rfun_min_ui(unsigned int * val, unsigned int otherval);
+void __kmpc_rfun_min_lds_ui(_RF_LDS unsigned int * val, _RF_LDS unsigned int * otherval);
+void __kmpc_rfun_min_l(long * val, long otherval);
+void __kmpc_rfun_min_lds_l(_RF_LDS long * val, _RF_LDS long * otherval);
+void __kmpc_rfun_min_ul(unsigned long * val, unsigned long otherval);
+void __kmpc_rfun_min_lds_ul(_RF_LDS unsigned long * val, _RF_LDS unsigned long * otherval);
+void __kmpc_rfun_max_d(double * val, double otherval);
+void __kmpc_rfun_max_lds_d(_RF_LDS double * val, _RF_LDS double * otherval);
+void __kmpc_rfun_max_f(float * val, float otherval);
+void __kmpc_rfun_max_lds_f(_RF_LDS float * val, _RF_LDS float * otherval);
+void __kmpc_rfun_max_i(int * val, int otherval);
+void __kmpc_rfun_max_lds_i(_RF_LDS int * val, _RF_LDS int * otherval);
+void __kmpc_rfun_max_ui(unsigned int * val, unsigned int otherval);
+void __kmpc_rfun_max_lds_ui(_RF_LDS unsigned int * val, _RF_LDS unsigned int * otherval);
+void __kmpc_rfun_max_l(long * val, long otherval);
+void __kmpc_rfun_max_lds_l(_RF_LDS long * val, _RF_LDS long * otherval);
+void __kmpc_rfun_max_ul(unsigned long * val, unsigned long otherval);
+void __kmpc_rfun_max_lds_ul(_RF_LDS unsigned long * val, _RF_LDS unsigned long * otherval);
+
+void __kmpc_xteamr_d_16x64(double v, double *r_ptr, double *tvals,
+                           uint32_t *td_ptr, void (*_rf)(double *, double),
+                           void (*_rf_lds)(_RF_LDS double *,
+                                           _RF_LDS double *),
+                           double iv);
+void __kmpc_xteamr_f_16x64(float v, float *r_ptr, float *tvals,
+                           uint32_t *td_ptr, void (*_rf)(float *, float),
+                           void (*_rf_lds)(_RF_LDS float *,
+                                           _RF_LDS float *),
+                           float iv);
+void __kmpc_xteamr_i_16x64(int v, int *r_ptr, int *tvals, uint32_t *td_ptr,
+                           void (*_rf)(int *, int),
+                           void (*_rf_lds)(_RF_LDS int *, _RF_LDS int *),
+                           int iv);
+void __kmpc_xteamr_ui_16x64(uint32_t v, uint32_t *r_ptr, uint32_t *tvals,
+                            uint32_t *td_ptr, void (*_rf)(uint32_t *, uint32_t),
+                            void (*_rf_lds)(_RF_LDS uint32_t *,
+                                            _RF_LDS uint32_t *),
+                            uint32_t iv);
+void __kmpc_xteamr_l_16x64(long v, long *r_ptr, long *tvals, uint32_t *td_ptr,
+                           void (*_rf)(long *, long),
+                           void (*_rf_lds)(_RF_LDS long *, _RF_LDS long *),
+                           long iv);
+void __kmpc_xteamr_ul_16x64(uint64_t v, uint64_t *r_ptr, uint64_t *tvals,
+                            uint32_t *td_ptr, void (*_rf)(uint64_t *, uint64_t),
+                            void (*_rf_lds)(_RF_LDS uint64_t *,
+                                            _RF_LDS uint64_t *),
+                            uint64_t iv);
+#undef _RF_LDS
+
 
 #else
   // host variants are needed only for host fallback of simulated codegen functions sim_*
   // Dont bother making these definitions correct
-void __kmpc_xteamr_sum_d_16x64(double val, double * pval, double * xteam_mem, unsigned int * ptr)
-  { *pval = val;}
-void __kmpc_xteamr_sum_f_16x64(float val, float * pval, float * xteam_mem, unsigned int * ptr)
-  { *pval = val;}
-void __kmpc_xteamr_sum_i_16x64(int val, int * pval, int * xteam_mem, unsigned int * ptr)
-  { *pval = val;}
-void __kmpc_xteamr_sum_ui_16x64(unsigned int val, unsigned int *pval, unsigned int * xteam_mem, unsigned int * ptr)
-  { *pval = val;}
-void __kmpc_xteamr_sum_l_16x64(long int val, long int * pval, long int * xteam_mem, unsigned int * ptr)
-  { *pval = val;}
-void __kmpc_xteamr_sum_ul_16x64(unsigned long val, unsigned long * pval, unsigned long * xteam_mem, unsigned int * ptr)
-  { *pval = val;}
-void __kmpc_xteamr_max_d_16x64(double val, double * pval , double * xteam_mem, unsigned int * ptr)
-  { *pval = val;}
-void __kmpc_xteamr_max_f_16x64(float val, float * pval, float * xteam_mem, unsigned int * ptr)
-  { *pval = val;}
-void __kmpc_xteamr_max_i_16x64(int val, int * pval, int * xteam_mem, unsigned int * ptr)
-  { *pval = val;}
-void __kmpc_xteamr_max_ui_16x64(unsigned int val, unsigned int * pval, unsigned int * xteam_mem, unsigned int * ptr)
-  { *pval = val;}
-void __kmpc_xteamr_max_l_16x64(long int val, long int * pval, long int * xteam_mem, unsigned int * ptr)
-  { *pval = val;}
-void __kmpc_xteamr_max_ul_16x64(unsigned long val, unsigned long * pval, unsigned long * xteam_mem, unsigned int * ptr)
-  { *pval = val;}
-void __kmpc_xteamr_min_d_16x64(double val, double * pval, double * xteam_mem, unsigned int * ptr)
-  { *pval = val;}
-void __kmpc_xteamr_min_f_16x64(float val, float * pval, float * xteam_mem, unsigned int * ptr)
-  { *pval = val;}
-void __kmpc_xteamr_min_i_16x64(int val, int * pval, int * xteam_mem, unsigned int * ptr)
-  { *pval = val;}
-void __kmpc_xteamr_min_ui_16x64(unsigned int val, unsigned int * pval, unsigned int * xteam_mem, unsigned int * ptr)
-  { *pval = val;}
-void __kmpc_xteamr_min_l_16x64(long int val, long int * pval, long int * xteam_mem, unsigned int * ptr)
-  { *pval = val;}
-void __kmpc_xteamr_min_ul_16x64(unsigned long val, unsigned long * pval, unsigned long int * xteam_mem, unsigned int * ptr)
-  { *pval = val;}
+
+#define _RF_LDS
+void __kmpc_rfun_sum_d(double * val, double otherval)
+{ *val += otherval; }
+void __kmpc_rfun_sum_lds_d(_RF_LDS double * val, _RF_LDS double * otherval)
+{ *val += *otherval; }
+void __kmpc_rfun_sum_f(float * val, float otherval)
+{ *val += otherval; }
+void __kmpc_rfun_sum_lds_f(_RF_LDS float * val, _RF_LDS float * otherval)
+{ *val += *otherval; }
+void __kmpc_rfun_sum_i(int * val, int otherval)
+{ *val += otherval; }
+void __kmpc_rfun_sum_lds_i(_RF_LDS int * val, _RF_LDS int * otherval)
+{ *val += *otherval; }
+void __kmpc_rfun_sum_ui(unsigned int * val, unsigned int otherval)
+{ *val += otherval; }
+void __kmpc_rfun_sum_lds_ui(_RF_LDS unsigned int * val, _RF_LDS unsigned int * otherval)
+{ *val += *otherval; }
+void __kmpc_rfun_sum_l(long * val, long otherval)
+{ *val += otherval; }
+void __kmpc_rfun_sum_lds_l(_RF_LDS long * val, _RF_LDS long * otherval)
+{ *val += *otherval; }
+void __kmpc_rfun_sum_ul(unsigned long * val, unsigned long otherval)
+{ *val += otherval; }
+void __kmpc_rfun_sum_lds_ul(_RF_LDS unsigned long * val, _RF_LDS unsigned long * otherval)
+{ *val += *otherval; }
+
+void __kmpc_rfun_min_d(double * val, double otherval)
+{ *val = (otherval < *val) ? otherval : *val ; }
+void __kmpc_rfun_min_lds_d(_RF_LDS double * val, _RF_LDS double * otherval)
+{ *val = (*otherval < *val) ? *otherval : *val ; }
+void __kmpc_rfun_min_f(float * val, float otherval)
+{ *val = (otherval < *val) ? otherval : *val ; }
+void __kmpc_rfun_min_lds_f(_RF_LDS float * val, _RF_LDS float * otherval)
+{ *val = (*otherval < *val) ? *otherval : *val ; }
+void __kmpc_rfun_min_i(int * val, int otherval)
+{ *val = (otherval < *val) ? otherval : *val ; }
+void __kmpc_rfun_min_lds_i(_RF_LDS int * val, _RF_LDS int * otherval)
+{ *val = (*otherval < *val) ? *otherval : *val ; }
+void __kmpc_rfun_min_ui(unsigned int * val, unsigned int otherval)
+{ *val = (otherval < *val) ? otherval : *val ; }
+void __kmpc_rfun_min_lds_ui(_RF_LDS unsigned int * val, _RF_LDS unsigned int * otherval)
+{ *val = (*otherval < *val) ? *otherval : *val ; }
+void __kmpc_rfun_min_l(long * val, long otherval)
+{ *val = (otherval < *val) ? otherval : *val ; }
+void __kmpc_rfun_min_lds_l(_RF_LDS long * val, _RF_LDS long * otherval)
+{ *val = (*otherval < *val) ? *otherval : *val ; }
+void __kmpc_rfun_min_ul(unsigned long * val, unsigned long otherval)
+{ *val = (otherval < *val) ? otherval : *val ; }
+void __kmpc_rfun_min_lds_ul(_RF_LDS unsigned long * val, _RF_LDS unsigned long * otherval)
+{ *val = (*otherval < *val) ? *otherval : *val ; }
+
+void __kmpc_rfun_max_d(double * val, double otherval)
+{ *val = (otherval > *val) ? otherval : *val ; }
+void __kmpc_rfun_max_lds_d(_RF_LDS double * val, _RF_LDS double * otherval)
+{ *val = (*otherval > *val) ? *otherval : *val ; }
+void __kmpc_rfun_max_f(float * val, float otherval)
+{ *val = (otherval > *val) ? otherval : *val ; }
+void __kmpc_rfun_max_lds_f(_RF_LDS float * val, _RF_LDS float * otherval)
+{ *val = (*otherval > *val) ? *otherval : *val ; }
+void __kmpc_rfun_max_i(int * val, int otherval)
+{ *val = (otherval > *val) ? otherval : *val ; }
+void __kmpc_rfun_max_lds_i(_RF_LDS int * val, _RF_LDS int * otherval)
+{ *val = (*otherval > *val) ? *otherval : *val ; }
+void __kmpc_rfun_max_ui(unsigned int * val, unsigned int otherval)
+{ *val = (otherval > *val) ? otherval : *val ; }
+void __kmpc_rfun_max_lds_ui(_RF_LDS unsigned int * val, _RF_LDS unsigned int * otherval)
+{ *val = (*otherval > *val) ? *otherval : *val ; }
+void __kmpc_rfun_max_l(long * val, long otherval)
+{ *val = (otherval > *val) ? otherval : *val ; }
+void __kmpc_rfun_max_lds_l(_RF_LDS long * val, _RF_LDS long * otherval)
+{ *val = (*otherval > *val) ? *otherval : *val ; }
+void __kmpc_rfun_max_ul(unsigned long * val, unsigned long otherval)
+{ *val = (otherval > *val) ? otherval : *val ; }
+void __kmpc_rfun_max_lds_ul(_RF_LDS unsigned long * val, _RF_LDS unsigned long * otherval)
+{ *val = (*otherval > *val) ? *otherval : *val ; }
+
+void __kmpc_xteamr_d_16x64(double v, double *r_ptr, double *tvals,
+                           uint32_t *td_ptr, void (*_rf)(double *, double),
+                           void (*_rf_lds)(_RF_LDS double *,
+                                           _RF_LDS double *),
+                           double iv)
+  { *r_ptr = v;}
+void __kmpc_xteamr_f_16x64(float v, float *r_ptr, float *tvals,
+                           uint32_t *td_ptr, void (*_rf)(float *, float),
+                           void (*_rf_lds)(_RF_LDS float *,
+                                           _RF_LDS float *),
+                           float iv)
+  { *r_ptr = v;}
+void __kmpc_xteamr_i_16x64(int v, int *r_ptr, int *tvals, uint32_t *td_ptr,
+                           void (*_rf)(int *, int),
+                           void (*_rf_lds)(_RF_LDS int *, _RF_LDS int *),
+                           int iv)
+  { *r_ptr = v;}
+void __kmpc_xteamr_ui_16x64(uint32_t v, uint32_t *r_ptr, uint32_t *tvals,
+                            uint32_t *td_ptr, void (*_rf)(uint32_t *, uint32_t),
+                            void (*_rf_lds)(_RF_LDS uint32_t *,
+                                            _RF_LDS uint32_t *),
+                            uint32_t iv)
+  { *r_ptr = v;}
+void __kmpc_xteamr_l_16x64(long v, long *r_ptr, long *tvals, uint32_t *td_ptr,
+                           void (*_rf)(long *, long),
+                           void (*_rf_lds)(_RF_LDS long *, _RF_LDS long *),
+                           long iv)
+  { *r_ptr = v;}
+void __kmpc_xteamr_ul_16x64(uint64_t v, uint64_t *r_ptr, uint64_t *tvals,
+                            uint32_t *td_ptr, void (*_rf)(uint64_t *, uint64_t),
+                            void (*_rf_lds)(_RF_LDS uint64_t *,
+                                            _RF_LDS uint64_t *),
+                            uint64_t iv)
+  { *r_ptr = v;}
+#undef _RF_LDS
 #endif
 }
 
 // Overloaded functions used in simulated reductions below
 void __attribute__((flatten, always_inline)) __kmpc_xteamr_sum(double val, double* rval,
 	       	double* xteam_mem,  unsigned int * td_ptr) {
-  __kmpc_xteamr_sum_d_16x64(val,rval,xteam_mem,td_ptr);
+  __kmpc_xteamr_d_16x64(val,rval,xteam_mem,td_ptr, __kmpc_rfun_sum_d,__kmpc_rfun_sum_lds_d, 0.0);
 }
 void __attribute__((flatten, always_inline)) __kmpc_xteamr_sum(float val, float* rval,
 	       	float* xteam_mem,  unsigned int * td_ptr) {
-  __kmpc_xteamr_sum_f_16x64(val,rval,xteam_mem,td_ptr);
+  __kmpc_xteamr_f_16x64(val,rval,xteam_mem,td_ptr, __kmpc_rfun_sum_f,__kmpc_rfun_sum_lds_f, 0.0);
 }
 void __attribute__((flatten, always_inline)) __kmpc_xteamr_sum(int val, int* rval,
 	       	int* xteam_mem,  unsigned int * td_ptr) {
-  __kmpc_xteamr_sum_i_16x64(val,rval,xteam_mem,td_ptr);
+  __kmpc_xteamr_i_16x64(val,rval,xteam_mem,td_ptr, __kmpc_rfun_sum_i,__kmpc_rfun_sum_lds_i, 0);
 }
 void __attribute__((flatten, always_inline)) __kmpc_xteamr_sum(unsigned int val, unsigned int* rval,
 	       	unsigned int * xteam_mem,  unsigned int * td_ptr) {
-  __kmpc_xteamr_sum_ui_16x64(val,rval,xteam_mem,td_ptr);
+  __kmpc_xteamr_ui_16x64(val,rval,xteam_mem,td_ptr, __kmpc_rfun_sum_ui,__kmpc_rfun_sum_lds_ui, 0);
 }
 void __attribute__((flatten, always_inline)) __kmpc_xteamr_sum(long val, long* rval,
 	       	long * xteam_mem,  unsigned int * td_ptr) {
-  __kmpc_xteamr_sum_l_16x64(val,rval, xteam_mem,td_ptr);
+  __kmpc_xteamr_l_16x64(val,rval, xteam_mem,td_ptr, __kmpc_rfun_sum_l,__kmpc_rfun_sum_lds_l, 0);
 }
 void __attribute__((flatten, always_inline)) __kmpc_xteamr_sum(unsigned long val, unsigned long * rval,
 	       	unsigned long * xteam_mem,  unsigned int * td_ptr) {
-  __kmpc_xteamr_sum_ul_16x64(val,rval, xteam_mem,td_ptr);
+  __kmpc_xteamr_ul_16x64(val,rval, xteam_mem,td_ptr, __kmpc_rfun_sum_ul,__kmpc_rfun_sum_lds_ul, 0);
 }
+
+#define __XTEAM_MAX_FLOAT (__builtin_inff())
+#define __XTEAM_LOW_FLOAT -__XTEAM_MAX_FLOAT
+#define __XTEAM_MAX_DOUBLE (__builtin_huge_val())
+#define __XTEAM_LOW_DOUBLE -__XTEAM_MAX_DOUBLE
+#define __XTEAM_MAX_INT32 2147483647
+#define __XTEAM_LOW_INT32 (-__XTEAM_MAX_INT32 - 1)
+#define __XTEAM_MAX_UINT32 4294967295
+#define __XTEAM_LOW_UINT32 0
+#define __XTEAM_MAX_INT64 9223372036854775807
+#define __XTEAM_LOW_INT64 (-__XTEAM_MAX_INT64 - 1)
+#define __XTEAM_MAX_UINT64 0xffffffffffffffff
+#define __XTEAM_LOW_UINT64 0
+
+
 void __attribute__((flatten, always_inline)) __kmpc_xteamr_max(double val, double* rval,
 	double * xteam_mem,  unsigned int * td_ptr) {
-  __kmpc_xteamr_max_d_16x64(val,rval,xteam_mem, td_ptr);
+  __kmpc_xteamr_d_16x64(val,rval,xteam_mem, td_ptr,
+		  __kmpc_rfun_max_d,__kmpc_rfun_max_lds_d, __XTEAM_LOW_DOUBLE);
 }
 void __attribute__((flatten, always_inline)) __kmpc_xteamr_max(float val, float* rval,
 	float * xteam_mem,  unsigned int * td_ptr) {
-  __kmpc_xteamr_max_f_16x64(val,rval,xteam_mem, td_ptr);
+  __kmpc_xteamr_f_16x64(val,rval,xteam_mem, td_ptr,
+		  __kmpc_rfun_max_f,__kmpc_rfun_max_lds_f, __XTEAM_LOW_FLOAT);
 }
 void __attribute__((flatten, always_inline)) __kmpc_xteamr_max(int val, int* rval,
 	int * xteam_mem,  unsigned int * td_ptr) {
-  __kmpc_xteamr_max_i_16x64(val,rval,xteam_mem, td_ptr);
+  __kmpc_xteamr_i_16x64(val,rval,xteam_mem, td_ptr,
+		  __kmpc_rfun_max_i,__kmpc_rfun_max_lds_i, __XTEAM_LOW_INT32);
 }
 void __attribute__((flatten, always_inline)) __kmpc_xteamr_max(unsigned int val, unsigned int * rval,
 	unsigned int * xteam_mem,  unsigned int * td_ptr) {
-  __kmpc_xteamr_max_ui_16x64(val,rval,xteam_mem, td_ptr);
+  __kmpc_xteamr_ui_16x64(val,rval,xteam_mem, td_ptr,
+		  __kmpc_rfun_max_ui,__kmpc_rfun_max_lds_ui, 0u);
 }
 void __attribute__((flatten, always_inline)) __kmpc_xteamr_max(long val, long * rval,
 	long * xteam_mem,  unsigned int * td_ptr) {
-  __kmpc_xteamr_max_l_16x64(val,rval,xteam_mem, td_ptr);
+  __kmpc_xteamr_l_16x64(val,rval,xteam_mem, td_ptr,
+		  __kmpc_rfun_max_l,__kmpc_rfun_max_lds_l, __XTEAM_LOW_INT64);
 }
 void __attribute__((flatten, always_inline)) __kmpc_xteamr_max(unsigned long val, unsigned long * rval,
 	unsigned long * xteam_mem,  unsigned int * td_ptr) {
-  __kmpc_xteamr_max_ul_16x64(val,rval,xteam_mem, td_ptr);
+  __kmpc_xteamr_ul_16x64(val,rval,xteam_mem, td_ptr,
+		  __kmpc_rfun_max_ul,__kmpc_rfun_max_lds_ul, 0ul);
 }
+
 void __attribute__((flatten, always_inline)) __kmpc_xteamr_min(double val, double* rval,
 	double * xteam_mem,  unsigned int * td_ptr) {
-  __kmpc_xteamr_min_d_16x64(val,rval,xteam_mem, td_ptr);
+  __kmpc_xteamr_d_16x64(val,rval,xteam_mem, td_ptr,
+		  __kmpc_rfun_min_d,__kmpc_rfun_min_lds_d, __XTEAM_MAX_DOUBLE);
 }
 void __attribute__((flatten, always_inline)) __kmpc_xteamr_min(float val, float* rval,
 	float * xteam_mem,  unsigned int * td_ptr) {
-  __kmpc_xteamr_min_f_16x64(val,rval,xteam_mem, td_ptr);
+  __kmpc_xteamr_f_16x64(val,rval,xteam_mem, td_ptr,
+		  __kmpc_rfun_min_f,__kmpc_rfun_min_lds_f, __XTEAM_MAX_FLOAT);
 }
 void __attribute__((flatten, always_inline)) __kmpc_xteamr_min(int val, int* rval,
 	int * xteam_mem,  unsigned int * td_ptr) {
-  __kmpc_xteamr_min_i_16x64(val,rval,xteam_mem, td_ptr);
+  __kmpc_xteamr_i_16x64(val,rval,xteam_mem, td_ptr,
+		  __kmpc_rfun_min_i,__kmpc_rfun_min_lds_i, __XTEAM_MAX_INT32);
 }
 void __attribute__((flatten, always_inline)) __kmpc_xteamr_min(unsigned int val, unsigned int * rval,
 	unsigned int * xteam_mem,  unsigned int * td_ptr) {
-  __kmpc_xteamr_min_ui_16x64(val,rval,xteam_mem, td_ptr);
+  __kmpc_xteamr_ui_16x64(val,rval,xteam_mem, td_ptr,
+		  __kmpc_rfun_min_ui,__kmpc_rfun_min_lds_ui, __XTEAM_MAX_UINT32);
 }
 void __attribute__((flatten, always_inline)) __kmpc_xteamr_min(long val, long * rval,
 	long * xteam_mem,  unsigned int * td_ptr) {
-  __kmpc_xteamr_min_l_16x64(val,rval,xteam_mem, td_ptr);
+  __kmpc_xteamr_l_16x64(val,rval,xteam_mem, td_ptr,
+		  __kmpc_rfun_min_l,__kmpc_rfun_min_lds_l, __XTEAM_MAX_INT64);
 }
 void __attribute__((flatten, always_inline)) __kmpc_xteamr_min(unsigned long val, unsigned long * rval,
 	 unsigned long * xteam_mem,  unsigned int * td_ptr) {
-  __kmpc_xteamr_min_ul_16x64(val,rval,xteam_mem, td_ptr);
+  __kmpc_xteamr_ul_16x64(val,rval,xteam_mem, td_ptr,
+		  __kmpc_rfun_min_ul,__kmpc_rfun_min_lds_ul, __XTEAM_MAX_UINT64);
 }
 
 template <class T>
