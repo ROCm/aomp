@@ -32,7 +32,7 @@ int main(){
       if(thread == 0) {
 	if (team == 0)
 	  actual_num_threads = omp_get_num_threads();
-        for(int i = 1; i < THREADS; i++)
+        for(int i = 1; i < omp_get_num_threads(); i++)
           dist[0] += dist[i];
         gpu_results[team] = dist[0];
       }
