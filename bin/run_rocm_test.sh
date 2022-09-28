@@ -28,6 +28,9 @@ unexpresults="$resultsdir"/unexpresults.txt
 scriptfails=0
 totalunexpectedfails=0
 
+# make sure we see latest aomp dir
+git pull
+git log -1
 EPSDB=1 ./clone_test.sh > /dev/null
 AOMP_TEST_DIR=${AOMP_TEST_DIR:-"$HOME/git/aomp-test"}
 
