@@ -43,8 +43,12 @@ int main(){
     correct_results[i] = actual_num_threads;
   int status = memcmp(correct_results, gpu_results, TEAMS * sizeof(int));
 
-  if (status != 0 || actual_num_threads > 2) {
-    printf("FAIL\n");
+  if (status != 0) {
+    printf("FAIL status %d\n",status);
+    return 1;
+  }
+  if (actual_num_threads > 2) {
+    printf("FAIL threads %d\n",actual_num_threads);
     return 1;
   }
   printf("PASS\n");
