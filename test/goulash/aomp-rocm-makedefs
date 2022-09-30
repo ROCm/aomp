@@ -56,14 +56,14 @@ DEFAULT_MPICXX           :=
 DEFAULT_MPIFC            :=
 DEFAULT_CPPFLAGS         :=
 DEFAULT_HIP_CPPFLAGS     := -D__HIP_PLATFORM_AMD__ -I$(BASE_PATH)/include
-DEFAULT_CXXFLAGS         := -O3 -g
+DEFAULT_CXXFLAGS         := -O3 -g -gno-heterogeneous-dwarf
 DEFAULT_CXXFLAGS_GPU_OMP := -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$(CXX_GPU_ARCH)
 DEFAULT_HIP_CXXFLAGS     := --offload-arch=$(CXX_GPU_ARCH) -std=c++11 --rocm-path=$(BASE_PATH) -x hip -mllvm -amdgpu-early-inline-all=true -mllvm -amdgpu-function-calls=false -fhip-new-launch-api --driver-mode=g++
 DEFAULT_CXX_LDFLAGS      :=
 DEFAULT_CXX_LDLIBS       :=
 DEFAULT_CXX_HIP_LDFLAGS  := -L$(BASE_PATH)/lib
 DEFAULT_CXX_HIP_LDLIBS   := -lamdhip64
-DEFAULT_FCFLAGS          := -O3 -g
+DEFAULT_FCFLAGS          := -O3 -g -gno-heterogeneous-dwarf
 DEFAULT_FCFLAGS_GPU_OMP  := -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$(CXX_GPU_ARCH)
 DEFAULT_FC_LDFLAGS       := -lflang -lflangrti
 DEFAULT_FC_LDLIBS        :=
