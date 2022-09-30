@@ -18,11 +18,11 @@
 #include <iomanip>
 #include <cstring>
 
-#include "ReductionsTestClass_16x64.h"
-//#include "ReductionsTestClass_8x64.h"
-//#include "ReductionsTestClass_4x64.h"
+#include "DeviceDeclares.h"
+#include "HostDefs.h"
 
-// Default size of 2^25
+#define _XTEAM_NUM_THREADS 1024
+
 const int ARRAY_SIZE = 33554432;
 //const int ARRAY_SIZE = 33;
 unsigned int num_times = 12;
@@ -31,12 +31,6 @@ unsigned int smoke_rc = 0;
 
 template <typename T, bool >
 void run_kernels(const int ARRAY_SIZE);
-
-// Problem with complex math but simulated matches actual reduction
-#if 0
-template <typename T, typename TV>
-void run_complex_kernels(const int ARRAY_SIZE);
-#endif
 
 int main(int argc, char *argv[]) {
   std::cout << std::endl << "TEST DOUBLE" << std::endl;
@@ -51,28 +45,294 @@ int main(int argc, char *argv[]) {
   run_kernels<long,true>(ARRAY_SIZE);
   std::cout << std::endl << "TEST UNSIGNED LONG" << std::endl;
   run_kernels<unsigned long,true>(ARRAY_SIZE);
-
-// Problem with complex math but simulated matches actual reduction
-#if 0
-  std::cout << std::endl << "TEST DOUBLE COMPLEX" << std::endl;
-  run_complex_kernels<double _Complex, double>(ARRAY_SIZE);
-  std::cout << std::endl << "TEST FLOAT COMPLEX" << std::endl;
-  run_complex_kernels<float _Complex, float>(ARRAY_SIZE);
-#endif
   return smoke_rc;
 }
 
-template <typename T, bool DO_INT_KERNELS>
+// ---- Local overloads for testing sum
+void __attribute__((flatten, always_inline)) sum_local_overload(double val, double* rval,
+	       	double* xteam_mem,  unsigned int * td_ptr) {
+  __kmpc_xteamr_d_16x64(val,rval,xteam_mem,td_ptr, __kmpc_rfun_sum_d,__kmpc_rfun_sum_lds_d, 0.0);
+}
+void __attribute__((flatten, always_inline)) sum_local_overload(float val, float* rval,
+	       	float* xteam_mem,  unsigned int * td_ptr) {
+  __kmpc_xteamr_f_16x64(val,rval,xteam_mem,td_ptr, __kmpc_rfun_sum_f,__kmpc_rfun_sum_lds_f, 0.0);
+}
+void __attribute__((flatten, always_inline)) sum_local_overload(int val, int* rval,
+	       	int* xteam_mem,  unsigned int * td_ptr) {
+  __kmpc_xteamr_i_16x64(val,rval,xteam_mem,td_ptr, __kmpc_rfun_sum_i,__kmpc_rfun_sum_lds_i, 0);
+}
+void __attribute__((flatten, always_inline)) sum_local_overload(unsigned int val, unsigned int* rval,
+	       	unsigned int * xteam_mem,  unsigned int * td_ptr) {
+  __kmpc_xteamr_ui_16x64(val,rval,xteam_mem,td_ptr, __kmpc_rfun_sum_ui,__kmpc_rfun_sum_lds_ui, 0);
+}
+void __attribute__((flatten, always_inline)) sum_local_overload(long val, long* rval,
+	       	long * xteam_mem,  unsigned int * td_ptr) {
+  __kmpc_xteamr_l_16x64(val,rval, xteam_mem,td_ptr, __kmpc_rfun_sum_l,__kmpc_rfun_sum_lds_l, 0);
+}
+void __attribute__((flatten, always_inline)) sum_local_overload(unsigned long val, unsigned long * rval,
+	       	unsigned long * xteam_mem,  unsigned int * td_ptr) {
+  __kmpc_xteamr_ul_16x64(val,rval, xteam_mem,td_ptr, __kmpc_rfun_sum_ul,__kmpc_rfun_sum_lds_ul, 0);
+}
+
+#define __XTEAM_MAX_FLOAT (__builtin_inff())
+#define __XTEAM_LOW_FLOAT -__XTEAM_MAX_FLOAT
+#define __XTEAM_MAX_DOUBLE (__builtin_huge_val())
+#define __XTEAM_LOW_DOUBLE -__XTEAM_MAX_DOUBLE
+#define __XTEAM_MAX_INT32 2147483647
+#define __XTEAM_LOW_INT32 (-__XTEAM_MAX_INT32 - 1)
+#define __XTEAM_MAX_UINT32 4294967295
+#define __XTEAM_LOW_UINT32 0
+#define __XTEAM_MAX_INT64 9223372036854775807
+#define __XTEAM_LOW_INT64 (-__XTEAM_MAX_INT64 - 1)
+#define __XTEAM_MAX_UINT64 0xffffffffffffffff
+#define __XTEAM_LOW_UINT64 0
+
+// ---- Local overloads for testing max
+void __attribute__((flatten, always_inline)) max_local_overload(double val, double* rval,
+	double * xteam_mem,  unsigned int * td_ptr) {
+  __kmpc_xteamr_d_16x64(val,rval,xteam_mem, td_ptr,
+		  __kmpc_rfun_max_d,__kmpc_rfun_max_lds_d, __XTEAM_LOW_DOUBLE);
+}
+void __attribute__((flatten, always_inline)) max_local_overload(float val, float* rval,
+	float * xteam_mem,  unsigned int * td_ptr) {
+  __kmpc_xteamr_f_16x64(val,rval,xteam_mem, td_ptr,
+		  __kmpc_rfun_max_f,__kmpc_rfun_max_lds_f, __XTEAM_LOW_FLOAT);
+}
+void __attribute__((flatten, always_inline)) max_local_overload(int val, int* rval,
+	int * xteam_mem,  unsigned int * td_ptr) {
+  __kmpc_xteamr_i_16x64(val,rval,xteam_mem, td_ptr,
+		  __kmpc_rfun_max_i,__kmpc_rfun_max_lds_i, __XTEAM_LOW_INT32);
+}
+void __attribute__((flatten, always_inline)) max_local_overload(unsigned int val, unsigned int * rval,
+	unsigned int * xteam_mem,  unsigned int * td_ptr) {
+  __kmpc_xteamr_ui_16x64(val,rval,xteam_mem, td_ptr,
+		  __kmpc_rfun_max_ui,__kmpc_rfun_max_lds_ui, 0u);
+}
+void __attribute__((flatten, always_inline)) max_local_overload(long val, long * rval,
+	long * xteam_mem,  unsigned int * td_ptr) {
+  __kmpc_xteamr_l_16x64(val,rval,xteam_mem, td_ptr,
+		  __kmpc_rfun_max_l,__kmpc_rfun_max_lds_l, __XTEAM_LOW_INT64);
+}
+void __attribute__((flatten, always_inline)) max_local_overload(unsigned long val, unsigned long * rval,
+	unsigned long * xteam_mem,  unsigned int * td_ptr) {
+  __kmpc_xteamr_ul_16x64(val,rval,xteam_mem, td_ptr,
+		  __kmpc_rfun_max_ul,__kmpc_rfun_max_lds_ul, 0ul);
+}
+
+// ---- Local overloads for testing min
+void __attribute__((flatten, always_inline)) min_local_overload(double val, double* rval,
+	double * xteam_mem,  unsigned int * td_ptr) {
+  __kmpc_xteamr_d_16x64(val,rval,xteam_mem, td_ptr,
+		  __kmpc_rfun_min_d,__kmpc_rfun_min_lds_d, __XTEAM_MAX_DOUBLE);
+}
+void __attribute__((flatten, always_inline)) min_local_overload(float val, float* rval,
+	float * xteam_mem,  unsigned int * td_ptr) {
+  __kmpc_xteamr_f_16x64(val,rval,xteam_mem, td_ptr,
+		  __kmpc_rfun_min_f,__kmpc_rfun_min_lds_f, __XTEAM_MAX_FLOAT);
+}
+void __attribute__((flatten, always_inline)) min_local_overload(int val, int* rval,
+	int * xteam_mem,  unsigned int * td_ptr) {
+  __kmpc_xteamr_i_16x64(val,rval,xteam_mem, td_ptr,
+		  __kmpc_rfun_min_i,__kmpc_rfun_min_lds_i, __XTEAM_MAX_INT32);
+}
+void __attribute__((flatten, always_inline)) min_local_overload(unsigned int val, unsigned int * rval,
+	unsigned int * xteam_mem,  unsigned int * td_ptr) {
+  __kmpc_xteamr_ui_16x64(val,rval,xteam_mem, td_ptr,
+		  __kmpc_rfun_min_ui,__kmpc_rfun_min_lds_ui, __XTEAM_MAX_UINT32);
+}
+void __attribute__((flatten, always_inline)) min_local_overload(long val, long * rval,
+	long * xteam_mem,  unsigned int * td_ptr) {
+  __kmpc_xteamr_l_16x64(val,rval,xteam_mem, td_ptr,
+		  __kmpc_rfun_min_l,__kmpc_rfun_min_lds_l, __XTEAM_MAX_INT64);
+}
+void __attribute__((flatten, always_inline)) min_local_overload(unsigned long val, unsigned long * rval,
+	 unsigned long * xteam_mem,  unsigned int * td_ptr) {
+  __kmpc_xteamr_ul_16x64(val,rval,xteam_mem, td_ptr,
+		  __kmpc_rfun_min_ul,__kmpc_rfun_min_lds_ul, __XTEAM_MAX_UINT64);
+}
+
+    template <typename T>
+    T omp_dot(T*a, T*b, int array_size) {
+      T sum = 0.0;
+      #pragma omp target teams distribute parallel for map(tofrom: sum) reduction(+:sum)
+      for (int i = 0; i < array_size; i++)
+        sum += a[i] * b[i];
+      return sum;
+    }
+
+    template <typename T>
+    T omp_max(T*c, int array_size) {
+      T maxval = std::numeric_limits<T>::lowest();
+      #pragma omp target teams distribute parallel for map(tofrom: maxval) reduction(max:maxval)
+      for (int i = 0; i < array_size; i++)
+	maxval = (c[i] > maxval) ? c[i] : maxval;
+      return maxval;
+    }
+
+    template <typename T>
+    T omp_min(T*c, int array_size) {
+      T minval = std::numeric_limits<T>::max();
+      #pragma omp target teams distribute parallel for map(tofrom: minval) reduction(min:minval)
+      for (int i = 0; i < array_size; i++) {
+	minval = (c[i] < minval) ? c[i] : minval;
+      }
+      return minval;
+    }
+
+    template <typename T>
+    T sim_dot(T*a, T*b, int array_size) {
+      T sum = T(0);
+      int devid =  0;
+      static uint32_t * teams_done_ptr0 = nullptr;
+      static uint32_t * d_teams_done_ptr0;
+      static T* d_team_vals0;
+      static uint32_t team_procs0;
+      if ( !teams_done_ptr0 ) {
+         // One-time alloc device array for each teams's reduction value.
+         team_procs0 = ompx_get_team_procs(devid);
+         d_team_vals0  = (T *) omp_target_alloc(sizeof(T) * team_procs0, devid);
+	 // Allocate and copy the zero-initialized teams_done counter one time
+	 // because it atomically resets when last team increments it.
+         teams_done_ptr0 = (uint32_t *)  malloc(sizeof(uint32_t));
+         *teams_done_ptr0 = 0;
+         d_teams_done_ptr0 = (uint32_t *) omp_target_alloc(sizeof(uint32_t),devid);
+         omp_target_memcpy(d_teams_done_ptr0, teams_done_ptr0, 
+	     sizeof(uint32_t), 0, 0, devid, omp_get_initial_device());
+      }
+      // Making the array_size 64 bits avoids a data_submit and data_retrieve 
+      const uint64_t team_procs = team_procs0;
+      const uint64_t as64 = (uint64_t) array_size;
+      #pragma omp target teams distribute parallel for \
+         num_teams(team_procs) num_threads(_XTEAM_NUM_THREADS) \
+         map(tofrom:sum) is_device_ptr(d_team_vals0,d_teams_done_ptr0)
+      for (unsigned int k=0; k<(team_procs*_XTEAM_NUM_THREADS); k++) {
+        T val0 = T(0);
+        for (unsigned int i = k; i < as64 ; i += team_procs*_XTEAM_NUM_THREADS) {
+          val0 += a[i] * b[i];
+	}
+        sum_local_overload(val0, &sum, d_team_vals0, d_teams_done_ptr0);
+      }
+      return sum;
+    }
+
+    template <typename T>
+    T sim_max(T*c, int array_size) {
+      int devid =  0;
+      T minval = std::numeric_limits<T>::lowest();
+      T retval = minval;
+      static uint32_t * teams_done_ptr1 = nullptr;
+      static uint32_t * d_teams_done_ptr1;
+      static T* d_team_vals1;
+      static uint32_t team_procs1;
+      if ( !teams_done_ptr1 ) {
+         // One-time alloc device array for each teams's reduction value.
+         team_procs1 = ompx_get_team_procs(devid);
+         d_team_vals1  = (T *) omp_target_alloc(sizeof(T) * team_procs1, devid);
+	 // Allocate and copy the zero-initialized teams_done counter one time
+	 // because it atomically resets when last team increments it.
+         teams_done_ptr1 = (uint32_t *)  malloc(sizeof(uint32_t));
+         *teams_done_ptr1 = 0;
+         d_teams_done_ptr1 = (uint32_t *) omp_target_alloc(sizeof(uint32_t),devid);
+         omp_target_memcpy(d_teams_done_ptr1, teams_done_ptr1, 
+	     sizeof(uint32_t), 0, 0, devid, omp_get_initial_device());
+      }
+      // Making the array_size 64 bits somehow avoids a data_submit and data_retrieve.?
+      const uint64_t team_procs = team_procs1;
+      const uint64_t as64 = (uint64_t) array_size;
+      #pragma omp target teams distribute parallel for \
+         num_teams(team_procs) num_threads(_XTEAM_NUM_THREADS) \
+         map(tofrom:retval) is_device_ptr(d_team_vals1,d_teams_done_ptr1)
+      for (unsigned int k=0; k<(team_procs*_XTEAM_NUM_THREADS); k++) {
+        T val1 = retval;
+        for (unsigned int i = k; i < as64 ; i += team_procs*_XTEAM_NUM_THREADS){
+	  val1 = (c[i] > val1) ? c[i] : val1;
+	}
+        max_local_overload(val1, &retval, d_team_vals1, d_teams_done_ptr1);
+      }
+      return retval;
+    }
+
+    template <typename T>
+    T sim_min(T*c, int array_size) {
+      int devid =  0;
+      T maxval = std::numeric_limits<T>::max();
+      T retval = maxval;
+      static uint32_t * teams_done_ptr2;
+      static uint32_t * d_teams_done_ptr2;
+      static T* d_team_vals2;
+      static uint32_t team_procs2;
+      if ( !teams_done_ptr2 ) {
+         // One-time alloc device array for each teams's reduction value.
+         team_procs2 = ompx_get_team_procs(devid);
+         d_team_vals2  = (T *) omp_target_alloc(sizeof(T) * team_procs2, devid);
+	 // Allocate and copy the zero-initialized teams_done counter one time
+	 // because it atomically resets when last team increments it.
+         teams_done_ptr2 = (uint32_t *)  malloc(sizeof(uint32_t));
+         *teams_done_ptr2 = 0;
+         d_teams_done_ptr2 = (uint32_t *) omp_target_alloc(sizeof(uint32_t),devid);
+         omp_target_memcpy(d_teams_done_ptr2, teams_done_ptr2, 
+	     sizeof(uint32_t), 0, 0, devid, omp_get_initial_device());
+      }
+      // Making the array_size 64 bits avoids a data_submit and data_retrieve.
+      const uint64_t team_procs = team_procs2;
+      const uint64_t as64 = (uint64_t) array_size;
+      #pragma omp target teams distribute parallel for \
+         num_teams(team_procs) num_threads(_XTEAM_NUM_THREADS) \
+         map(tofrom:retval) is_device_ptr(d_team_vals2,d_teams_done_ptr2)
+      for (unsigned int k=0; k<(team_procs*_XTEAM_NUM_THREADS); k++) {
+        T val2 = retval;
+        for (unsigned int i = k; i < as64 ; i += team_procs*_XTEAM_NUM_THREADS){
+	  val2 = (c[i] < val2) ? c[i] : val2;
+	}
+        min_local_overload(val2, &retval, d_team_vals2, d_teams_done_ptr2);
+      }
+      return retval;
+    }
+
+template <typename T, bool DATA_TYPE_IS_INT>
+void _check_val(T computed_val , T gold_val, const char*msg){
+    double ETOL = 0.0000001;
+    if (DATA_TYPE_IS_INT) {
+      if (computed_val != gold_val) {
+         std::cerr
+        << msg << " FAIL "
+        << "Integar Value was " << computed_val << " but should be " << gold_val
+        << std::endl;
+         smoke_rc = 1;
+      }
+    } else {
+      double dcomputed_val = (double) computed_val;
+      double dvalgold = (double) gold_val;
+      double ompErrSum = abs((dcomputed_val - dvalgold)/dvalgold);
+      if (ompErrSum > ETOL ) {
+         std::cerr
+        << msg << " FAIL " << ompErrSum << " tol:" << ETOL << std::endl << std::setprecision(15)
+        << "Value was " << computed_val << " but should be " << gold_val
+        << std::endl;
+         smoke_rc = 1;
+      }
+    }
+}
+
+template <typename T, bool DATA_TYPE_IS_INT>
 void run_kernels(const int ARRAY_SIZE) {
+  int array_size = ARRAY_SIZE;
+  T*a = (T*)aligned_alloc(ALIGNMENT, sizeof(T)*array_size);
+  T*b = (T*)aligned_alloc(ALIGNMENT, sizeof(T)*array_size);
+  T*c = (T*)aligned_alloc(ALIGNMENT, sizeof(T)*array_size);
+  #pragma omp target enter data map(alloc: a[0:array_size], b[0:array_size], c[0:array_size])
+  #pragma omp target teams distribute parallel for
+  for (int i = 0; i < array_size; i++) {
+    a[i] = 2;
+    b[i] = 3;
+    c[i] = (i+1);
+  }
+
   std::cout << "Running kernels " << num_times << " times" << std::endl;
   std::cout << "Ignoring timing of first "<< ignore_num_times << "  runs " << std::endl;
 
   double ETOL = 0.0000001;
-  T startA, startB, startC;
-  startA = 2;
-  startB = 3;
-  startC = 1;
-  if (DO_INT_KERNELS) { 
+  if (DATA_TYPE_IS_INT) { 
     std::cout << "Integer Size: " << sizeof(T)  << std::endl;
   } else {
     if (sizeof(T) == sizeof(float))
@@ -81,21 +341,14 @@ void run_kernels(const int ARRAY_SIZE) {
       std::cout << "Precision: double" << std::endl;
   }
 
-  // Create host vectors
-  std::vector<T> a(ARRAY_SIZE, startA);
-  std::vector<T> b(ARRAY_SIZE, startB);
-  std::vector<T> c(ARRAY_SIZE, startC);
-
   std::cout << "Array elements: " << ARRAY_SIZE << std::endl ;
   std::cout << "Array size:     " << ((ARRAY_SIZE*sizeof(T)) / 1024*1024) << " MB" << std::endl;
 
-  Tc<T> * RTC;
-  RTC = new ReductionsTestClass<T>(ARRAY_SIZE);
-  RTC->init_arrays(startA, startB, startC);
-  T goldSum = (T) (startA*startB) * (T) ARRAY_SIZE;
-  T goldMax = (T) startC * (T) ARRAY_SIZE; 
-  T goldMin = (T) startC ;
-  double goldSum_d = (double) goldSum;
+  T goldDot = (T) 6  * (T) ARRAY_SIZE;
+  T goldMax = (T) ARRAY_SIZE; 
+  T goldMin = (T) 1;
+
+  double goldDot_d = (double) goldDot;
   double goldMax_d = (double) goldMax;
   double goldMin_d = (double) goldMin;
 
@@ -103,111 +356,48 @@ void run_kernels(const int ARRAY_SIZE) {
   std::vector<std::vector<double>> timings(6);
 
   // Declare timers
-  std::chrono::high_resolution_clock::time_point t1, t2;
+  std::chrono::high_resolution_clock::time_point t0, t1, t2;
 
   // Main loop
   for (unsigned int k = 0; k < num_times; k++) {
     t1 = std::chrono::high_resolution_clock::now();
-    T omp_sum = RTC->omp_dot();
+    T omp_sum = omp_dot<T>(a,b,array_size);
     t2 = std::chrono::high_resolution_clock::now();
     timings[0].push_back(std::chrono::duration_cast<std::chrono::duration<double> >(t2 - t1).count());
-    if (DO_INT_KERNELS) {
-      if (omp_sum != goldSum) {
-         std::cerr
-        << "omp_dot Validation failed on sum. "
-        << "Sum was " << omp_sum << " but should be " << goldSum
-        << std::endl;
-         smoke_rc = 1;
-      }
-    } else {
-      double omp_sum_d = (double) omp_sum;
-      double ompErrSum = abs((omp_sum_d - goldSum_d)/goldSum_d);
-      if (ompErrSum > ETOL ) {
-         std::cerr
-        << "omp_dot Validation failed on sum. Error " << ompErrSum << " tol:" << ETOL << std::endl << std::setprecision(15)
-        << "Sum was " << omp_sum << " but should be " << goldSum
-        << std::endl;
-         smoke_rc = 1;
-      }
-    }
+    _check_val<T,DATA_TYPE_IS_INT>(omp_sum, goldDot, "omp_dot");
 
     t1 = std::chrono::high_resolution_clock::now();
-    T sim_sum = RTC->sim_dot();
-    // T sim_sum = goldSum;
+    T sim_sum =  sim_dot<T>(a,b,array_size);
     t2 = std::chrono::high_resolution_clock::now();
     timings[1].push_back(std::chrono::duration_cast<std::chrono::duration<double> >(t2 - t1).count());
-
-    if (DO_INT_KERNELS) {
-      if (sim_sum != goldSum) {
-         std::cerr
-        << "sim_dot Validation failed on sum. "
-        << "Sum was " << sim_sum << " but should be " << goldSum
-        << std::endl;
-         smoke_rc = 1;
-      }
-    } else {
-      double sim_sum_d = (double) sim_sum;
-      double simErrSum = abs((sim_sum_d - goldSum_d)/goldSum_d);
-      if (simErrSum > ETOL) {
-         std::cerr
-        << "sim_dot Validation failed on sum. Error " << simErrSum << " tol:" << ETOL
-        << std::endl << std::setprecision(15)
-        << "Sum was " << sim_sum << " but should be " << goldSum
-        << std::endl;
-         smoke_rc = 1;
-      } 
-    } 
+    _check_val<T,DATA_TYPE_IS_INT>(sim_sum, goldDot, "sim_dot");
 
     t1 = std::chrono::high_resolution_clock::now();
-    T omp_max = RTC->omp_max();
+    T omp_max_val = omp_max<T>(c,array_size);
     t2 = std::chrono::high_resolution_clock::now();
     timings[2].push_back(std::chrono::duration_cast<std::chrono::duration<double> >(t2 - t1).count());
-    if (omp_max != goldMax) {
-      std::cerr
-      << "omp_max Validation failed . " << std::endl << std::setprecision(15)
-      << "max was " << omp_max << " but should be " << goldMax << std::endl;
-      smoke_rc = 1;
-    }
+    _check_val<T,DATA_TYPE_IS_INT>(omp_max_val, goldMax, "sim_max");
 
     t1 = std::chrono::high_resolution_clock::now();
-    T sim_max = RTC->sim_max();
-    //T sim_max = goldMax;
+    T sim_max_val = sim_max<T>(c,array_size);
     t2 = std::chrono::high_resolution_clock::now();
     timings[3].push_back(std::chrono::duration_cast<std::chrono::duration<double> >(t2 - t1).count());
-    if (sim_max != goldMax) {
-      std::cerr
-      << "sim_max Validation failed . " << std::endl << std::setprecision(15)
-      << "max was " << sim_max << " but should be " << goldMax << std::endl;
-      smoke_rc = 1;
-    }
+    _check_val<T,DATA_TYPE_IS_INT>(sim_max_val, goldMax, "sim_max");
 
     t1 = std::chrono::high_resolution_clock::now();
-    T omp_min = RTC->omp_min();
+    T omp_min_val = omp_min<T>(c,array_size);
     t2 = std::chrono::high_resolution_clock::now();
     timings[4].push_back(std::chrono::duration_cast<std::chrono::duration<double> >(t2 - t1).count());
-    if (omp_min != goldMin) {
-      std::cerr
-      << "omp_min Validation failed . " << std::endl << std::setprecision(15)
-      << "min was " << omp_min << " but should be " << goldMin << std::endl;
-      smoke_rc = 1;
-    }
-
+    _check_val<T,DATA_TYPE_IS_INT>(omp_min_val, goldMin, "omp_min");
 
     t1 = std::chrono::high_resolution_clock::now();
-    T sim_min = RTC->sim_min();
-    // T sim_min = goldMin;
+    T sim_min_val = sim_min<T>(c,array_size);
     t2 = std::chrono::high_resolution_clock::now();
     timings[5].push_back(std::chrono::duration_cast<std::chrono::duration<double> >(t2 - t1).count());
-    if (sim_min != goldMin) {
-      std::cerr
-      << "sim_min Validation failed . " << std::endl << std::setprecision(15)
-      << "min was " << sim_min << " but should be " << goldMin << std::endl;
-      smoke_rc = 1;
-    }
+    _check_val<T,DATA_TYPE_IS_INT>(sim_min_val, goldMin, "sim_min");
      
   }  // end for (unsigned int k = 0; k < num_times; k++)
 
-  RTC->read_arrays(a, b, c);
 
   // Display timing results
   std::cout
@@ -254,164 +444,8 @@ void run_kernels(const int ARRAY_SIZE) {
       1.0E-6 * sizes[i] / (*minmax.first), (double) *minmax.first, (double) *minmax.second,
       (double) average, 1.0E-6 * sizes[i] / (average));
   }
-  delete RTC;
+  #pragma omp target exit data map(release: a[0:array_size], b[0:array_size], c[0:array_size])
+  free(a);
+  free(b);
+  free(c);
 }
-#if 0
-#include <complex>
-#include "ReductionsTestClass_complex.h"
-template <typename T, typename TV>
-void run_complex_kernels(const int ARRAY_SIZE) {
-  std::cout << "Running kernels " << num_times << " times" << std::endl;
-  std::cout << "Ignoring timing of first "<< ignore_num_times << "  runs " << std::endl;
-
-  double ETOL = 0.0000001;
-  // Use complex conjugate to get 0 imaginary part 
-  T startA; __real__(startA) = 1.0; __imag__(startA) = 1.0;
-  T startB; __real__(startB) = 1.0; __imag__(startB) = -1.0;
-  T startC; __real__(startC) = .4; __imag__(startC) = -4.0;
-  if (sizeof(T) == sizeof(float _Complex)) {
-    std::cout << "Complex Precision: float size "<< sizeof(float _Complex) << std::endl;
-  } else {
-    std::cout << "Complex Precision: double size "<< sizeof(double _Complex) << std::endl;
-  }
-
-  // Create host vectors
-  std::vector<T> a(ARRAY_SIZE, startA);
-  std::vector<T> b(ARRAY_SIZE, startB);
-  std::vector<T> c(ARRAY_SIZE, startC);
-
-  std::cout << "Array elements: " << ARRAY_SIZE << std::endl ;
-  std::cout << "Array size:     " << ((ARRAY_SIZE*sizeof(T)) / 1024*1024) << " MB" << std::endl;
-
-  Tc_complex<T> * RTC;
-  RTC = new ReductionsTestClass_complex<T>(ARRAY_SIZE);
-  RTC->init_arrays(startA, startB, startC);
-  RTC->read_arrays(a, b, c);
-  T goldSum;
-  __real__(goldSum) = 0.0;
-  __imag__(goldSum) = 0.0;
-  for (int i = 0; i < ARRAY_SIZE ; i++)
-    goldSum += (a[i] * b[i]);
-
-  TV goldSum_r =  __real__(goldSum);
-  TV goldSum_i =  __imag__(goldSum);
-  printf("Complex sum of products is (%f + %f i)\n",goldSum_r, goldSum_i);
-
-  // List of times
-  std::vector<std::vector<double>> timings(2);
-
-  // Declare timers
-  std::chrono::high_resolution_clock::time_point t1, t2;
-
-  // Main loop
-  for (unsigned int k = 0; k < num_times; k++) {
-    t1 = std::chrono::high_resolution_clock::now();
-    T omp_sum = RTC->omp_dot();
-#if 0
-    T omp_sum = 0;
-    RTC->read_arrays(a, b, c);
-    for (int i = 0; i < ARRAY_SIZE ; i++) {
-      T prod;
-      TV ar = __real__(a[i]);
-      TV ai = __imag__(a[i]);
-      TV br = __real__(b[i]);
-      TV bi = __imag__(b[i]);
-      TV arbr=ar*br;
-      TV arbi=ar*bi;
-      TV aibr=ai*br;
-      TV aibi=ai*bi;
-      TV abr = -aibi + arbr; 
-      TV abi = arbi + aibr; 
-      __real__(prod) = abr; 
-      __imag__(prod) = abi;
-       omp_sum += prod;
-    }
-#endif
-    t2 = std::chrono::high_resolution_clock::now();
-    timings[0].push_back(std::chrono::duration_cast<std::chrono::duration<double> >(t2 - t1).count());
-
-#if 0
-    TV omp_sum_r = __real__(omp_sum);
-    TV omp_sum_i = __imag__(omp_sum);
-    TV ompErrSum_r = abs((omp_sum_r - goldSum_r)/goldSum_r);
-    TV ompErrSum_i = abs((omp_sum_i - goldSum_i)/goldSum_i);
-    // if ((ompErrSum_r > ETOL ) || (ompErrSum_i > ETOL)) {
-    if (ompErrSum_r > ETOL ) {  // Imainary sum is 0
-      std::cerr 
-	<< " Iteration " << k << std::endl 
-        << "omp_dot Validation failed on sum. real Error " << ompErrSum_r << " tol:" << ETOL << std::endl 
-        << "omp_dot Validation failed on sum. Imag Error " << ompErrSum_i << " tol:" << ETOL << std::endl 
-        // << std::endl << std::setprecision(15)
-        << "Real Sum was " << omp_sum_r << " but should be " << goldSum_r << std::endl 
-        << "Imag Sum was " << omp_sum_i << " but should be " << goldSum_i << std::endl;
-      smoke_rc = 1;
-    }
-#endif
-    t1 = std::chrono::high_resolution_clock::now();
-    T sim_sum = RTC->sim_dot();
-    t2 = std::chrono::high_resolution_clock::now();
-    timings[1].push_back(std::chrono::duration_cast<std::chrono::duration<double> >(t2 - t1).count());
-    TV sim_sum_r = __real__(sim_sum);
-    TV sim_sum_i = __imag__(sim_sum);
-    TV simErrSum_r = abs((sim_sum_r - goldSum_r)/goldSum_r);
-    TV simErrSum_i = abs((sim_sum_i - goldSum_i)/goldSum_i);
-    if ((simErrSum_r > ETOL ) || (simErrSum_i > ETOL)) {
-    //if (simErrSum_r > ETOL) {
-      std::cerr
-	<< " Iteration " << k << std::endl 
-        << "sim_dot Validation failed on sum. real Error " << simErrSum_r << " tol:" << ETOL << std::endl 
-        << "sim_dot Validation failed on sum. Imag Error " << simErrSum_i << " tol:" << ETOL << std::endl 
-        // << std::endl << std::setprecision(15)
-        << "Real Sum was " << sim_sum_r << " but should be " << goldSum_r << std::endl 
-        << "Imag Sum was " << sim_sum_i << " but should be " << goldSum_i << std::endl;
-      smoke_rc = 1;
-    }
-
-  }  // end for (unsigned int k = 0; k < num_times; k++)
-
-  RTC->read_arrays(a, b, c);
-
-  // Display timing results
-  std::cout
-    << std::left << std::setw(12) << "Function"
-    << std::left << std::setw(12) << "Best-MB/sec"
-    << std::left << std::setw(12) << " Min (sec)"
-    << std::left << std::setw(12) << "   Max"
-    << std::left << std::setw(12) << "Average" 
-    << std::left << std::setw(12) << "Avg-MB/sec"
-    << std::endl;
-
-  std::cout << std::fixed;
-
-  std::string labels[2] = {"ompdot", "simdot"};
-  size_t sizes[2] = {
-    2 * sizeof(T) * ARRAY_SIZE,
-    2 * sizeof(T) * ARRAY_SIZE,
-  };
-
-  for (int i = 0; i < 2; i++) {
-    // Get min/max; ignore the first result
-    auto minmax = std::minmax_element(timings[i].begin()+ignore_num_times, timings[i].end());
-    int tcount = 0;
-    int tmaxiter = 0;
-    double tmax = 0.0;
-    for (auto tim : timings[i]) {
-      if ((tcount>=ignore_num_times) && (tim >= tmax)) { 
-        tmax = tim; 
-	tmaxiter = tcount;
-      }
-      tcount++;
-    }
-    // Display which iteration took the most time
-    //printf(" tmax :%f  tmaxiter:%d\n", tmax, tmaxiter);
-
-    // Calculate average; ignore ignore_num_times
-    double average = std::accumulate(timings[i].begin()+ignore_num_times, timings[i].end(), 0.0) / (double)(num_times - ignore_num_times);
-
-     printf("  %s       %8.0f   %8.6f  %8.6f   %8.6f    %8.0f\n", labels[i].c_str(),
-      1.0E-6 * sizes[i] / (*minmax.first), (double) *minmax.first, (double) *minmax.second,
-      (double) average, 1.0E-6 * sizes[i] / (average));
-  }
-  delete RTC;
-}
-#endif
