@@ -1,22 +1,18 @@
 
-This xteamr smoke test executes a simulated reductions directly using the 
-DeviceRTL xteam helper functions and compares to the existing OpenMP reduction.
+This xteamr test executes simulated reductions using the DeviceRTL xteam helper 
+functions and compares to the existing OpenMP reduction.
 
-The simulated functions in the ReductionsTestClass show what clang codegen
-should generate when it encounters an omp target pragma with one or more sum reductions.
-i.e.
+First apply DeviceRTL-xteamr.patch toyour llvm-project repo, then rebuild DeviceRTL.
+Then edit compile_run to indicate your trunk installation.  Then execute compile_run.
+. compile_run
 
-#pragma omp target teams distribute parallel for reduction(+:redvar)
+One example ouput from our v100 is in sm_70_output.txt
 
-The reduction variable redvar can be double, float, int, uint, long, ulong, float _Complex, or double _Complex. 
+The simulated functions sim_dot, sim_max, and sim_min show what clang would
+generate when it encounters an omp target pragma with one or more sum reductions.
+See example below. 
 
-or min or max reductions like these
-
-#pragma omp target teams distribute parallel for reduction(min:redvar)
-#pragma omp target teams distribute parallel for reduction(max:redvar)
-
-For min and max, the reduction variable redvar can be double, float, int, uint, long, or ulong
-because complex numbers do not suport comparison operators.
+The clang CodeGen changes are not yet complete. 
 
 The interfaces to the helper functions that clang codegen is expected to generate
 are in DeviceDeclares.h. This is a subset of the DeviceRTL interfaces found in 
@@ -52,11 +48,38 @@ This is the documentation found in Interface.h for these functions.
 
 The definitions of the above functions can be found in the new llvm DeviceRTL here: 
   llvm-project/openmp/libomptarget/DeviceRTL/src/Xteamr.cpp
+
+The builtin simple pair reducing functions can be found here:
   llvm-project/openmp/libomptarget/DeviceRTL/src/Rfuns.cpp
+
+EXAMPLE: Given this code:
+
+      double sum = 0.0;
+      #pragma omp target teams distribute parallel for map(tofrom: sum) reduction(+:sum)
+      for (int i = 0; i < array_size; i++)
+        sum += a[i] * b[i];
+
+Clang should generate code equivalent to this. 
+
+      devid = 0 ; // or default or whatever is on target construct
+      team_procs = ompx_get_team_procs(devid);
+      team_vals0  = (double *) omp_target_alloc(sizeof(double) * team_procs, devid);
+      teams_done_ptr0 = (uint32_t *) omp_target_alloc(sizeof(uint32_t),devid);
+      #pragma omp target teams distribute parallel for \
+         num_teams(team_procs) num_threads(1024) \
+         map(tofrom:sum) is_device_ptr(team_vals0,teams_done_ptr0)
+      for (unsigned int k=0; k<(team_procs*1024) ; k++) {
+        T val0 = 0.0;
+        for (unsigned int i = k; i < array_size; i += team_procs*1023) {
+          val0 += a[i] * b[i];
+        }
+        __kmpc_xteamr_d_16x64(val0, &sum, team_vals0, teams_done_ptr0, 
+             __kmpc_rfun_sum_d, __kmpc_rfun_sum_lds_d,0.0);
+      }
 
 
 The goal of this smoke test is to ensure that the DeviceRTL helper functions in Xteamr.cpp
-are correct and performant. This smoke test (xteamr) will fail (return a nonzero return code) 
+are correct and performant. This test (xteamr) will fail (return a nonzero return code) 
 if either the openmp reduction or the simulated reduction get the wrong answer.  
 
 TODO
