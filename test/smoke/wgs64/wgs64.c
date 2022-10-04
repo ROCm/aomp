@@ -23,6 +23,12 @@ int main(void) {
   {
     // nothing
   }
+  #pragma omp target teams distribute  parallel for num_threads(64)
+  for (int k =0; k < n; k++)
+  {
+    // nothing
+  }
+  printf("Succeeded\n");
   printf("Succeeded\n");
 
   return fail;
