@@ -30,6 +30,7 @@ unsigned int ignore_num_times = 2;
 unsigned int smoke_rc = 0;
 
 template <typename T, bool> void run_kernels(const int ARRAY_SIZE);
+template <typename TC, typename T> void run_kernels_complex(const int ARRAY_SIZE);
 
 int main(int argc, char *argv[]) {
   std::cout << std::endl << "TEST DOUBLE" << std::endl;
@@ -44,6 +45,10 @@ int main(int argc, char *argv[]) {
   run_kernels<long, true>(ARRAY_SIZE);
   std::cout << std::endl << "TEST UNSIGNED LONG" << std::endl;
   run_kernels<unsigned long, true>(ARRAY_SIZE);
+  std::cout << std::endl << "TEST FLOAT COMPLEX" << std::endl;
+  run_kernels_complex<float _Complex, float>(ARRAY_SIZE);
+  //std::cout << std::endl << "TEST DOUBLE COMPLEX" << std::endl;
+  //run_kernels_complex<double _Complex, double>(ARRAY_SIZE);
   return smoke_rc;
 }
 
@@ -59,6 +64,18 @@ sum_local_overload(float val, float *rval, float *xteam_mem,
                    unsigned int *td_ptr, const float initval) {
   __kmpc_xteamr_f_16x64(val, rval, xteam_mem, td_ptr, __kmpc_rfun_sum_f,
                         __kmpc_rfun_sum_lds_f, initval);
+}
+void __attribute__((flatten, always_inline))
+sum_local_overload(double _Complex val, double _Complex *rval, double _Complex *xteam_mem,
+                   unsigned int *td_ptr, const double _Complex initval) {
+  __kmpc_xteamr_cd_16x64(val, rval, xteam_mem, td_ptr, __kmpc_rfun_sum_cd,
+                        __kmpc_rfun_sum_lds_cd, initval);
+}
+void __attribute__((flatten, always_inline))
+sum_local_overload(float _Complex val, float _Complex *rval, float _Complex *xteam_mem,
+                   unsigned int *td_ptr, const float _Complex initval) {
+  __kmpc_xteamr_cf_16x64(val, rval, xteam_mem, td_ptr, __kmpc_rfun_sum_cf,
+                        __kmpc_rfun_sum_lds_cf, initval);
 }
 void __attribute__((flatten, always_inline))
 sum_local_overload(int val, int *rval, int *xteam_mem, unsigned int *td_ptr,
@@ -197,7 +214,7 @@ template <typename T> T omp_min(T *c, int array_size) {
 
 #define _INNER_LOOP                                                            \
   for (int i = ((k * LOOP_STRIDE) + LOOP_START); i < LOOP_SIZE;                \
-       i += (LOOP_TEAMS * _XTEAM_NUM_THREADS))
+       i += (LOOP_TEAMS * _XTEAM_NUM_THREADS * LOOP_STRIDE))
 
 template <typename T> T sim_dot(T *a, T *b, int array_size) {
   T sum = T(0);
@@ -208,8 +225,7 @@ template <typename T> T sim_dot(T *a, T *b, int array_size) {
   static uint32_t team_procs0;
   if (!teams_done_ptr0) {
     // One-time alloc device array for each teams's reduction value.
-    // team_procs0 = ompx_get_team_procs(devid);
-    team_procs0 = 160;
+    team_procs0 = ompx_get_team_procs(devid);
     d_team_vals0 = (T *)omp_target_alloc(sizeof(T) * team_procs0, devid);
     // Allocate and copy the zero-initialized teams_done counter one time
     // because it atomically resets when last team increments it.
@@ -229,7 +245,7 @@ template <typename T> T sim_dot(T *a, T *b, int array_size) {
     T val0 = T(0);
     constexpr int LOOP_START = 0;
     constexpr uint32_t LOOP_STRIDE = 1;
-    _INNER_LOOP { val0 += a[i] * b[i]; }
+    _INNER_LOOP  { val0 += a[i] * b[i]; }
     sum_local_overload(val0, &sum, d_team_vals0, d_teams_done_ptr0, T(0));
   }
   return sum;
@@ -245,8 +261,7 @@ template <typename T> T sim_max(T *c, int array_size) {
   static uint32_t team_procs1;
   if (!teams_done_ptr1) {
     // One-time alloc device array for each teams's reduction value.
-    // team_procs1 = ompx_get_team_procs(devid);
-    team_procs1 = 160;
+    team_procs1 = ompx_get_team_procs(devid);
     d_team_vals1 = (T *)omp_target_alloc(sizeof(T) * team_procs1, devid);
     // Allocate and copy the zero-initialized teams_done counter one time
     // because it atomically resets when last team increments it.
@@ -289,8 +304,7 @@ template <typename T> T sim_min(T *c, int array_size) {
   static uint32_t team_procs2;
   if (!teams_done_ptr2) {
     // One-time alloc device array for each teams's reduction value.
-    // team_procs2 = ompx_get_team_procs(devid);
-    team_procs2 = 160;
+    team_procs2 = ompx_get_team_procs(devid);
     d_team_vals2 = (T *)omp_target_alloc(sizeof(T) * team_procs2, devid);
     // Allocate and copy the zero-initialized teams_done counter one time
     // because it atomically resets when last team increments it.
@@ -388,7 +402,7 @@ void run_kernels(const int ARRAY_SIZE) {
   std::vector<std::vector<double>> timings(6);
 
   // Declare timers
-  std::chrono::high_resolution_clock::time_point t0, t1, t2;
+  std::chrono::high_resolution_clock::time_point  t1, t2;
 
   // Main loop
   for (unsigned int k = 0; k < num_times; k++) {
@@ -478,4 +492,168 @@ void run_kernels(const int ARRAY_SIZE) {
   free(a);
   free(b);
   free(c);
+}
+
+/// ======================== START COMPLEX ROUTINES ===========================
+//
+template <typename TC, typename T>
+void _check_val_complex(TC computed_val_complex, TC gold_val_complex, const char *msg) {
+  T  gold_val_r = __real__(gold_val_complex);
+  T  computed_val_r = __real__(computed_val_complex);
+  T  gold_val_i = __imag__(gold_val_complex);
+  T  computed_val_i = __imag__(computed_val_complex);
+  double ETOL = 0.0000001;
+  double computed_val_r_d = (double)computed_val_r;
+  double valgold_r_d = (double)gold_val_r;
+  double ompErrSum_r = abs((computed_val_r_d - valgold_r_d) / valgold_r_d);
+  double computed_val_i_d = (double)computed_val_i;
+  double valgold_i_d = (double)gold_val_i;
+  double ompErrSum_i = abs((computed_val_i_d - valgold_i_d) / valgold_i_d);
+    if ((ompErrSum_r > ETOL) || (ompErrSum_i > ETOL)) {
+      std::cerr << msg << " FAIL " << ompErrSum_r << " tol:" << ETOL << std::endl
+      << std::setprecision(15) << "Value was (" << computed_val_r << " + " << computed_val_i << " i )" << std::endl 
+      << " but should be (" << gold_val_r << " + " <<  gold_val_i  << "i) " << std::endl;
+      smoke_rc = 1;
+    }
+}
+
+template <typename TC>
+TC omp_dot_complex(TC *a, TC *b, int array_size) {
+  TC dot ; __real__(dot) = 0.0; __imag__(dot) = 0.0;
+#pragma omp target teams distribute parallel for map(tofrom: dot) reduction(+:dot)
+  for (int i = 0; i < array_size; i++)
+    dot += a[i] * b[i];
+  return dot;
+}
+
+template <typename TC>
+TC sim_dot_complex(TC *a, TC *b, int array_size) {
+  TC zero_c ; __real__(zero_c) = 0.0; __imag__(zero_c) = 0.0;
+  TC  sum = zero_c;
+  int devid = 0;
+  static uint32_t *teams_done_ptr00 = nullptr;
+  static uint32_t *d_teams_done_ptr00;
+  static TC *d_team_vals00;
+  static uint32_t team_procs00;
+  if (!teams_done_ptr00) {
+    // One-time alloc device array for each teams's reduction value.
+    team_procs00 = ompx_get_team_procs(devid);
+    d_team_vals00 = (TC *)omp_target_alloc(sizeof(TC) * team_procs00, devid);
+    // Allocate and copy the zero-initialized teams_done counter one time
+    // because it atomically resets when last team increments it.
+    teams_done_ptr00 = (uint32_t *)malloc(sizeof(uint32_t));
+    *teams_done_ptr00 = 0;
+    d_teams_done_ptr00 = (uint32_t *)omp_target_alloc(sizeof(uint32_t), devid);
+    omp_target_memcpy(d_teams_done_ptr00, teams_done_ptr00, sizeof(uint32_t), 0,
+                      0, devid, omp_get_initial_device());
+  }
+  // Making the array_size 64 bits avoids a data_submit and data_retrieve
+  const uint64_t LOOP_TEAMS = team_procs00;
+  const uint64_t LOOP_SIZE = (uint64_t)array_size;
+#pragma omp target teams distribute parallel for num_teams(LOOP_TEAMS)         \
+    num_threads(_XTEAM_NUM_THREADS) map(tofrom:sum)                            \
+        is_device_ptr(d_team_vals00, d_teams_done_ptr00)
+  for (unsigned int k = 0; k < (LOOP_TEAMS * _XTEAM_NUM_THREADS); k++) {
+    TC val00 = zero_c;
+    constexpr int LOOP_START = 0;
+    constexpr uint32_t LOOP_STRIDE = 1;
+    _INNER_LOOP { val00 += a[i] * b[i]; }
+    sum_local_overload(val00, &sum, d_team_vals00, d_teams_done_ptr00, zero_c);
+  }
+  return sum;
+}
+
+template <typename TC, typename T>
+void run_kernels_complex(const int array_size) {
+
+  TC *a = (TC *)aligned_alloc(ALIGNMENT, sizeof(TC) * array_size);
+  TC *b = (TC *)aligned_alloc(ALIGNMENT, sizeof(TC) * array_size);
+
+  #pragma omp target enter data map(alloc:a [0:array_size], b [0:array_size])
+  TC startA; __real__(startA) = 1.0; __imag__(startA) = 1.0;
+  TC startB; __real__(startB) = 1.0; __imag__(startB) = -1.0;
+
+#pragma omp target teams distribute parallel for
+  for (int i = 0; i < array_size; i++) {
+    a[i] = startA;
+    b[i] = startB;
+    // a[i] * b[i] = 2 + 0i
+  }
+
+  std::cout << "Running kernels " << num_times << " times" << std::endl;
+  std::cout << "Ignoring timing of first " << ignore_num_times << "  runs "
+            << std::endl;
+
+  double ETOL = 0.0000001;
+    if (sizeof(TC) == sizeof(float _Complex))
+      std::cout << "Precision: float _Complex" << std::endl;
+    else
+      std::cout << "Precision: double _Complex" << std::endl;
+
+  std::cout << "Array elements: " << array_size << std::endl;
+  std::cout << "Array size:     " << ((array_size* sizeof(TC)) / 1024 * 1024)
+            << " MB" << std::endl;
+
+  T goldDotr = T(2) * (T)array_size;
+  T goldDoti = T(0);
+
+  TC goldDot ; __real__(goldDot) = goldDotr; __imag__(goldDot) = goldDoti;
+
+  // List of times
+  std::vector<std::vector<double>> timings(2);
+
+  // Declare timers
+  std::chrono::high_resolution_clock::time_point t1, t2;
+
+  // Main loop
+  for (unsigned int k = 0; k < num_times; k++) {
+    t1 = std::chrono::high_resolution_clock::now();
+    TC omp_sum = omp_dot_complex<TC>(a, b, array_size);
+    t2 = std::chrono::high_resolution_clock::now();
+    timings[0].push_back(
+        std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1)
+            .count());
+    _check_val_complex<TC,T>(omp_sum, goldDot, "omp_dot");
+
+    t1 = std::chrono::high_resolution_clock::now();
+    TC sim_sum = sim_dot_complex<TC>(a, b, array_size);
+    t2 = std::chrono::high_resolution_clock::now();
+    timings[1].push_back(
+        std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1)
+            .count());
+    _check_val_complex<TC,T>(sim_sum, goldDot, "sim_dot");
+
+
+  } // end for (unsigned int k = 0; k < num_times; k++)
+
+  // Display timing results
+  std::cout << std::left << std::setw(12) << "Function" << std::left
+            << std::setw(12) << "Best-MB/sec" << std::left << std::setw(12)
+            << " Min (sec)" << std::left << std::setw(12) << "   Max"
+            << std::left << std::setw(12) << "Average" << std::left
+            << std::setw(12) << "Avg-MB/sec" << std::endl;
+
+  std::cout << std::fixed;
+
+  std::string labels[2] = {"ompdot", "simdot"};
+  size_t sizes[2] = {2 * sizeof(TC) * array_size, 2 * sizeof(TC) * array_size};
+
+  for (int i = 0; i < 2; i++) {
+    // Get min/max; ignore the first couple results
+    auto minmax = std::minmax_element(timings[i].begin() + ignore_num_times,
+                                      timings[i].end());
+
+    // Calculate average; ignore ignore_num_times
+    double average = std::accumulate(timings[i].begin() + ignore_num_times,
+                                     timings[i].end(), 0.0) /
+                     (double)(num_times - ignore_num_times);
+
+    printf("  %s       %8.0f   %8.6f  %8.6f   %8.6f    %8.0f\n",
+           labels[i].c_str(), 1.0E-6 * sizes[i] / (*minmax.first),
+           (double)*minmax.first, (double)*minmax.second, (double)average,
+           1.0E-6 * sizes[i] / (average));
+  }
+  #pragma omp target exit data map(release : a [0:array_size], b [0:array_size])
+  free(a);
+  free(b);
 }

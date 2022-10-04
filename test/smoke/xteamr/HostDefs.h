@@ -286,7 +286,7 @@ void __kmpc_rfun_sum_cd(double _Complex *val, double _Complex otherval)
 void __kmpc_rfun_sum_lds_cd(_RF_LDS double _Complex *val,
                            _RF_LDS double _Complex *otherval)
 {}
-void __kmpc_rfun_sum_cf(float _Complex *val, float _Complexotherval)
+void __kmpc_rfun_sum_cf(float _Complex *val, float _Complex otherval)
 {}
 void __kmpc_rfun_sum_lds_cf(_RF_LDS float _Complex *val,
                            _RF_LDS float _Complex *otherval)
