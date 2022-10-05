@@ -1,6 +1,6 @@
 include ../../Makefile.defs
 
-AOMP_GPU=gfx908
+AOMP_GPU?=gfx908
 
 TESTNAME     = OmpHipMallocManaged
 TESTSRC_MAIN = OmpHipMallocManaged.cpp
