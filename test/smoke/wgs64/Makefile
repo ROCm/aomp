@@ -15,5 +15,5 @@ CC           = $(OMP_BIN) $(VERBOSE)
 include ../Makefile.rules
 run:
 	./$(TESTNAME)
-	fgrep -s '.max_flat_workgroup_size: 256' wgs64-openmp-amdgcn-amd-amdhsa-*.s
+	fgrep -s '.max_flat_workgroup_size: 64' wgs64-openmp-amdgcn-amd-amdhsa-*.s
 
