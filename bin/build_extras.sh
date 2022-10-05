@@ -99,7 +99,12 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
   mkdir -p $BUILD_DIR/build/extras
   cd $BUILD_DIR/build/extras
 
-  SED_INSTALL_DIR=`echo $INSTALL_EXTRAS | sed -e 's/\//\\\\\//g' `
+  if [ $AOMP_STANDALONE_BUILD == 0 ] ; then
+    SED_INSTALL_DIR=`echo /opt/rocm/llvm | sed -e 's/\//\\\\\//g' `
+  else
+    SED_INSTALL_DIR=`echo $INSTALL_EXTRAS | sed -e 's/\//\\\\\//g' `
+  fi
+
   export SED_INSTALL_DIR
   echo
   echo " -----Running cmake ---- "
