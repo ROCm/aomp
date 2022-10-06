@@ -124,7 +124,6 @@ launch_latency
 lds-prob1
 lds-prob2
 lds-prob3
-liba_bundled
 liba_bundled_cmdline
 longDouble
 lto_teams
