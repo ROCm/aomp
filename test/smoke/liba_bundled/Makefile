@@ -8,7 +8,7 @@ TESTSRC_ALL     = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 CLANG           ?= clang
 OMP_BIN         = $(AOMP)/bin/$(CLANG)
 CC              = $(OMP_BIN) $(VERBOSE)
-EXTRA_LDFLAGS   = -L MyDeviceLib -l MyDeviceLib
+EXTRA_LDFLAGS   = -L MyDeviceLib -l:libMyDeviceLib.a
 EXTRA_OMP_FLAGS =
 
 ifeq (sm_,$(findstring sm_,$(AOMP_GPU)))
