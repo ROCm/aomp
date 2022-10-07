@@ -67,8 +67,8 @@ int main() {
 // Compiled with -fopenmp-gpu-threads-per-team=128
 // Option specified workgroup size < default of 256 not honored at this point
 
-/// CHECK: DEVID: 0 SGN:1 ConstWGSize:257  args: 1 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 257)
-/// CHECK: DEVID: 0 SGN:2 ConstWGSize:256  args: 5 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 256)
-/// CHECK: DEVID: 0 SGN:3 ConstWGSize:257  args: 7 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 256)
-/// CHECK: DEVID: 0 SGN:2 ConstWGSize:256  args: 5 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 256)
-/// CHECK: DEVID: 0 SGN:2 ConstWGSize:256  args: 5 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 64)
+/// CHECK: DEVID: 0 SGN:3 ConstWGSize:257  args: 1 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 256)
+/// CHECK: DEVID: 0 SGN:2 ConstWGSize:128  args: 5 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 128)
+/// CHECK: DEVID: 0 SGN:3 ConstWGSize:129  args: 7 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 129)
+/// CHECK: DEVID: 0 SGN:2 ConstWGSize:128  args: 5 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 128)
+/// CHECK: DEVID: 0 SGN:2 ConstWGSize:64  args: 5 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 64)
