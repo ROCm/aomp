@@ -47,7 +47,6 @@ test_omp_target_offload_env_MANDATORY.c
 test_parallel_for_notequals.c
 test_parallel_for_order_concurrent.c
 test_parallel_for_reduction_task.c
-test_parallel_for_reduction_task_device.c
 test_parallel_for_simd_atomic.c
 test_parallel_for_simd_atomic.F90
 test_parallel_master.c
