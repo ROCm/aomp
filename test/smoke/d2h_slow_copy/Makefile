@@ -10,5 +10,6 @@ OMP_BIN      = $(AOMP)/bin/$(CLANG)
 CC           = $(OMP_BIN) $(VERBOSE) -lm -lstdc++
 #-ccc-print-phases
 #"-\#\#\#"
+export TIMEOUT = 120s
 
 include ../Makefile.rules
