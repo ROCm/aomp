@@ -1,5 +1,6 @@
 TESTNAMES_ALL = $(basename $(TESTSRC_ALL))
-SMOKE_TIMEOUT=timeout --foreground 60s
+TIMEOUT ?= 60s
+SMOKE_TIMEOUT ?= timeout --foreground $(TIMEOUT)
 
 all: $(TESTNAME)
 
