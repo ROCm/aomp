@@ -45,6 +45,8 @@ if [ "$1" == "install" ] ; then
    $SUDO rm $INSTALL_ROCPROF/testfile
 fi
 
+patchrepo $AOMP_REPOS/$AOMP_PROF_REPO_NAME
+
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then 
    echo " " 
    echo "This is a FRESH START. ERASING any previous builds in $BUILD_AOMP/build_rocprofiler"
@@ -115,7 +117,7 @@ if [ "$1" == "install" ] ; then
          echo "ERROR make install failed "
          exit 1
       fi
-        echo
+      removepatch $AOMP_REPOS/$AOMP_PROF_REPO_NAME
 else
    echo
    echo "SUCCESSFUL BUILD, please run:  $0 install"

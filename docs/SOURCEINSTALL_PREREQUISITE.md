@@ -5,7 +5,7 @@
 #### Debian or Ubuntu Packages
 
 ```
-   sudo apt-get install gcc g++ pkg-config libpci-dev libnuma-dev libffi-dev git python libopenmpi-dev gawk mesa-common-dev libtool
+   sudo apt-get install gcc g++ pkg-config libpci-dev libnuma-dev libffi-dev git python libopenmpi-dev gawk mesa-common-dev libtool libdrm-amdgpu1 libdrm-dev
 
    # Additional packages used by rocgdb
    sudo apt-get install python3 texinfo libbison-dev bison flex libbabeltrace-dev python3-pip libncurses5-dev liblzma-dev python3-setuptools python3-dev libpython3.8-dev libudev-dev libgmp-dev
@@ -15,7 +15,7 @@
 
 #### SLES-15-SP1 Packages
 ```
-  sudo zypper install -y git pciutils-devel python-base libffi-devel gcc gcc-c++ libnuma-devel patchutils openmpi2-devel mesa-libGL-devel libquadmath0 libtool
+  sudo zypper install -y git pciutils-devel python-base libffi-devel gcc gcc-c++ libnuma-devel patchutils openmpi2-devel mesa-libGL-devel libquadmath0 libtool libdrm libdrm-devel
 
   A symbolic link may be required at /usr/lib64: /usr/lib64/libquadmath.so -> /usr/lib64/libquadmath.so.0.
 
@@ -32,7 +32,7 @@ https://www.softwarecollections.org/en/scls/rhscl/devtoolset-7/<br>
 <b>The build_aomp.sh script will automatically enable devtoolset-7 if found in /opt/rh/devtoolset-7/enable. If you want to build an individual component you will need to manually start devtoolset-7 from the instructions above.</b><br>
 
 ```
-  sudo yum install pciutils-devel numactl-devel libffi-devel mesa-libGL-devel libtool
+  sudo yum install pciutils-devel numactl-devel libffi-devel mesa-libGL-devel libtool libdrm libdrm-devel
 
   # Additional packages used by rocgdb
   sudo yum install texinfo bison flex ncurses-devel expat-devel xz-devel libbabeltrace-devel
@@ -53,7 +53,7 @@ RHEL 7.7 and later RHEL 7 versions
   sudo yum install dnf-plugins-core
   sudo yum config-manager --set-enabled powertools
 
-  sudo yum install gcc gcc-c++ git make pciutils-devel numactl-devel libffi-devel mesa-libGL-devel libquadmath-devel python3 python3-pip python36-devel python3-setuptools python2 libtool
+  sudo yum install gcc gcc-c++ git make pciutils-devel numactl-devel libffi-devel mesa-libGL-devel libquadmath-devel python3 python3-pip python36-devel python3-setuptools python2 libtool libdrm libdrm-devel
 
   # Additional packages used by rocgdb
   sudo yum install texinfo bison flex ncurses-devel expat-devel xz-devel libbabeltrace-devel libgmp-devel

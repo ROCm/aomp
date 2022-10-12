@@ -12,6 +12,7 @@
 #
 # Applications or AOMP build scripts that need supplemental components 
 # can locate the latest version with $AOMP_SUPP/<component name>
+# The default value for AOMP_SUPP is $HOME/local.
 # Supplemental components are built with either the ROCm or AOMP
 # compiler using this script. This script uses the AOMP environment
 # variable to identify which LLVM to use.
@@ -227,7 +228,7 @@ function buildfftw(){
 
 function buildcmake(){
   _cname="cmake"
-  _version=3.16.8
+  _version=3.18.5
   _installdir=$AOMP_SUPP_INSTALL/$_cname-$_version
   _linkfrom=$AOMP_SUPP/$_cname
   _builddir=$AOMP_SUPP_BUILD/$_cname 

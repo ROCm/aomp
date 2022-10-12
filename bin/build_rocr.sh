@@ -98,8 +98,8 @@ if [ "$1" == "install" ] ; then
       fi
       removepatch $AOMP_REPOS/$AOMP_ROCR_REPO_NAME
       # Remove hsa directory from install to ensure it is not used
-      if [ -d $INSTALL_ROCM/hsa ] ; then
-         echo rm -rf $INSTALL_ROCM/hsa
-         rm -rf $INSTALL_ROCM/hsa
-      fi
+#      if [ -d $INSTALL_ROCM/hsa ] ; then
+#         echo rm -rf $INSTALL_ROCM/hsa
+#         rm -rf $INSTALL_ROCM/hsa
+#      fi
 fi

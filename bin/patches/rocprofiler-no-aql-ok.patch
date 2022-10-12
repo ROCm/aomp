@@ -1,0 +1,11 @@
+diff --git a/cmake_modules/env.cmake b/cmake_modules/env.cmake
+index 2e9613b..57e6381 100644
+--- a/cmake_modules/env.cmake
++++ b/cmake_modules/env.cmake
+@@ -122,5 +122,5 @@ endif ()
+ 
+ find_library ( FIND_AQL_PROFILE_LIB "libhsa-amd-aqlprofile64.so" HINTS ${CMAKE_INSTALL_PREFIX} PATHS ${ROCM_ROOT_DIR})
+ if (  NOT FIND_AQL_PROFILE_LIB )
+-  message ( FATAL_ERROR "AQL_PROFILE not installed. Please install AQL_PROFILE" )
++  message (WARNING "AQL_PROFILE not installed. Please install AQL_PROFILE" )
+ endif()
