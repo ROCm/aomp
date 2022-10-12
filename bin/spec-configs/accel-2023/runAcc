@@ -1,0 +1,28 @@
+#!/bin/bash
+set -x
+export AOMP=~/rocm/aomp_16.0-42
+
+export ROCR_VISIBLE_DEVICES=1
+set +x
+. ./shrc
+set -x
+# for src.alt
+#   define altmodel={omp_target,omp_loop,omp_sinner_simd} or nothing
+
+# for regular src
+#   define model={omp_target,omp_loop,omp_sinner_simd} or nothing
+
+ulimit -s unlimited
+export OMP_TARGET_OFFLOAD=MANDATORY
+export LIBRARY_PATH=$AOMP/lib
+export LD_LIBRARY_PATH=$AOMP/lib:$LD_LIBRARY_PATH
+export PATH=$AOMP/bin:$PATH
+
+runaccel -c amd_aomp.cfg --define altmodel=omp_target     --define gputype=gfx90a -I -l -n 1 -T peak -i test openmp --rebuild
+runaccel -c amd_aomp.cfg --define altmodel=omp_loop       --define gputype=gfx90a -I -l -n 1 -T peak -i test openmp --rebuild
+runaccel -c amd_aomp.cfg --define altmodel=omp_inner_simd --define gputype=gfx90a -I -l -n 1 -T peak -i test openmp --rebuild
+runaccel -c amd_aomp.cfg --define model=omp_target     --define gputype=gfx90a -I -l -n 1 -T peak -i test openmp --rebuild 
+runaccel -c amd_aomp.cfg --define model=omp_loop       --define gputype=gfx90a -I -l -n 1 -T peak -i test openmp --rebuild 
+runaccel -c amd_aomp.cfg --define model=omp_inner_simd --define gputype=gfx90a -I -l -n 1 -T peak -i test openmp --rebuild 
+
+
