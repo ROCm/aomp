@@ -67,6 +67,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    BUILD_TYPE="release"
    export CMAKE_BUILD_TYPE=$BUILD_TYPE
    CMAKE_PREFIX_PATH="$ROCM_DIR/include/hsa;$ROCM_DIR/include;$ROCM_DIR/lib;$ROCM_DIR"
+   export HIP_PATH=$ROCM_DIR
    export CMAKE_PREFIX_PATH
    GFXSEMICOLONS=`echo $GFXLIST | tr ' ' ';' `
    mkdir -p $BUILD_AOMP/build/roctracer
