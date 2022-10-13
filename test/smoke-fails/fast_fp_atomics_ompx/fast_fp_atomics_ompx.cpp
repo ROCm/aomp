@@ -3,6 +3,7 @@
 
 int main() {
   double sum = 0.0;
+  double x = 107.0;
   int n = 10000;
 
   #pragma omp target teams distribute parallel for map(tofrom:sum)
@@ -47,7 +48,7 @@ int main() {
 
   #pragma omp target teams distribute parallel for map(tofrom:sum)
   for(int i = 0; i < n; i++) {
-    #pragma omp atomic  hint(ompx_fast_fp_atomics)
+    #pragma omp atomic hint(ompx_fast_fp_atomics)
     sum+=1.0;
   }
 
@@ -82,7 +83,121 @@ int main() {
     err = 1;
   }
 
+// If the compare clause is present then either statement is:
+// cond-expr-stmt, a conditional expression statement that has one of the following forms:
+//
+// x = expr ordop x ? expr : x;
+// x = x ordop expr ? expr : x;
+//
+// or cond-update-stmt, a conditional update statement that has one of the following forms:
+//
+// if(expr ordop x) { x = expr; }
+// if(x ordop expr) { x = expr; }
+//
 
+  x = 107.0;
+
+  #pragma omp target teams distribute parallel for map(tofrom:x)
+  for(int i = 0; i < n; i++) {
+    #pragma omp atomic compare hint(ompx_fast_fp_atomics)
+    x = i < x ? i : x; // MIN
+  }
+
+  if (x != 0) {
+    printf("Error with OMPX fast fp atomics, got %f, expected %d\n", x, 0);
+    err = 1;
+  }
+
+  x = 107.0;
+
+  #pragma omp target teams distribute parallel for map(tofrom:x)
+  for(int i = 0; i < n; i++) {
+    #pragma omp atomic compare hint(ompx_fast_fp_atomics)
+    x = i > x ? i : x; // MAX
+  }
+
+  if (x != n - 1) {
+    printf("Error with OMPX fast fp atomics, got %f, expected %d\n", x, n-1);
+    err = 1;
+  }
+
+  x = 107.0;
+
+  #pragma omp target teams distribute parallel for map(tofrom:x)
+  for(int i = 0; i < n; i++) {
+    #pragma omp atomic compare hint(ompx_fast_fp_atomics)
+    x = x > i ? i : x; // MIN
+  }
+
+  if (x != 0) {
+    printf("Error with OMPX fast fp atomics, got %f, expected %d\n", x, 0);
+    err = 1;
+  }
+
+  x = 107.0;
+
+  #pragma omp target teams distribute parallel for map(tofrom:x)
+  for(int i = 0; i < n; i++) {
+    #pragma omp atomic compare hint(ompx_fast_fp_atomics)
+    x = x < i ? i : x; // MAX
+  }
+
+  if (x != n - 1) {
+    printf("Error with OMPX fast fp atomics, got %f, expected %d\n", x, n-1);
+    err = 1;
+  }
+
+  x = 107.0;
+
+  #pragma omp target teams distribute parallel for map(tofrom:x)
+  for(int i = 0; i < n; i++) {
+    #pragma omp atomic compare hint(ompx_fast_fp_atomics)
+    if(i < x) { x = i; } // MIN
+  }
+
+  if (x != 0) {
+    printf("Error with OMPX fast fp atomics, got %f, expected %d\n", x, 0);
+    err = 1;
+  }
+
+  x = 107.0;
+
+  #pragma omp target teams distribute parallel for map(tofrom:x)
+  for(int i = 0; i < n; i++) {
+    #pragma omp atomic compare hint(ompx_fast_fp_atomics)
+    if(i > x) { x = i; } // MAX
+  }
+
+  if (x != n - 1) {
+    printf("Error with OMPX fast fp atomics, got %f, expected %d\n", x, n-1);
+    err = 1;
+  }
+
+  x = 107.0;
+
+  #pragma omp target teams distribute parallel for map(tofrom:x)
+  for(int i = 0; i < n; i++) {
+    #pragma omp atomic compare hint(ompx_fast_fp_atomics)
+    if(x > i) { x = i; } // MIN
+  }
+
+  if (x != 0) {
+    printf("Error with OMPX fast fp atomics, got %f, expected %d\n", x, 0);
+    err = 1;
+  }
+
+  x = 107.0;
+
+  #pragma omp target teams distribute parallel for map(tofrom:x)
+  for(int i = 0; i < n; i++) {
+    #pragma omp atomic compare hint(ompx_fast_fp_atomics)
+    if(x < i) { x = i; } // MAX
+  }
+
+  if (x != n - 1) {
+    printf("Error with OMPX fast fp atomics, got %f, expected %d\n", x, n-1);
+    err = 1;
+  }
 
   return err;
 }
