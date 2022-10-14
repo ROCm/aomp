@@ -3,8 +3,9 @@ omptests: omptests.patch
 openlibm: openlibm.patch
 RAJA: raja.patch
 RAJAPerf: rajaperf.patch
-roct-thunk-interface: roct-thunk-interface-no-drm.patch
 GenASis: genasis.patch
 hipfort: hipfort.patch
 bolt: bolt.patch
 rocr-runtime: rocr-runtime-numa.patch
+roctracer: roctracer-use-rocm-install.patch
+rocprofiler: rocprofiler-no-aql-ok.patch

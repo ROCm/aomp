@@ -1,25 +1,59 @@
 diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
-index 0eb5dea..1ec0edb 100644
+index 8d1937c..a2cf086 100644
 --- a/src/CMakeLists.txt
 +++ b/src/CMakeLists.txt
-@@ -260,7 +260,7 @@ endif()
+@@ -273,7 +273,7 @@ endif()
  
  ## Link dependencies.
- target_link_libraries ( ${CORE_RUNTIME_TARGET} PRIVATE hsakmt::hsakmt )
+ target_link_libraries ( ${CORE_RUNTIME_TARGET} PRIVATE hsakmt::hsakmt PkgConfig::drm)
 -target_link_libraries ( ${CORE_RUNTIME_TARGET} PRIVATE elf::elf dl pthread rt )
-+target_link_libraries ( ${CORE_RUNTIME_TARGET} PRIVATE elf::elf dl pthread rt numa)
++target_link_libraries ( ${CORE_RUNTIME_TARGET} PRIVATE elf::elf dl pthread rt numa drm_amdgpu drm )
  
  ## Set the VERSION and SOVERSION values
  set_property ( TARGET ${CORE_RUNTIME_TARGET} PROPERTY VERSION "${SO_VERSION_STRING}" )
-@@ -281,7 +281,7 @@ if( NOT ${BUILD_SHARED_LIBS} )
+@@ -294,7 +294,7 @@ if( NOT ${BUILD_SHARED_LIBS} )
  
    ## Add external link requirements.
    target_link_libraries ( ${CORE_RUNTIME_NAME} INTERFACE hsakmt::hsakmt )
 -  target_link_libraries ( ${CORE_RUNTIME_NAME} INTERFACE elf::elf dl pthread rt )
-+  target_link_libraries ( ${CORE_RUNTIME_NAME} INTERFACE elf::elf dl pthread rt numa)
++  target_link_libraries ( ${CORE_RUNTIME_NAME} INTERFACE elf::elf dl pthread rt numa drm_amdgpu drm)
  
    install ( TARGETS ${CORE_RUNTIME_NAME} EXPORT ${CORE_RUNTIME_NAME}Targets )
  endif()
+diff --git a/src/core/runtime/amd_gpu_agent.cpp b/src/core/runtime/amd_gpu_agent.cpp
+index 50a319e..dcb5dea 100644
+--- a/src/core/runtime/amd_gpu_agent.cpp
++++ b/src/core/runtime/amd_gpu_agent.cpp
+@@ -265,7 +265,9 @@ void GpuAgent::AssembleShader(const char* func_name, AssembleTarget assemble_tar
+            {kCodeTrapHandlerV2_9, sizeof(kCodeTrapHandlerV2_9), 2, 4},
+            {kCodeTrapHandlerV2_1010, sizeof(kCodeTrapHandlerV2_1010), 2, 4},
+            {kCodeTrapHandlerV2_10, sizeof(kCodeTrapHandlerV2_10), 2, 4},
++#if defined(__clang_major__) && ( __clang_major__ > 14 )
+            {kCodeTrapHandlerV2_11, sizeof(kCodeTrapHandlerV2_11), 2, 4},
++#endif
+        }},
+       {"CopyAligned",
+        {
+diff --git a/src/core/runtime/trap_handler/CMakeLists.txt b/src/core/runtime/trap_handler/CMakeLists.txt
+index c98e104..a79bebb 100644
+--- a/src/core/runtime/trap_handler/CMakeLists.txt
++++ b/src/core/runtime/trap_handler/CMakeLists.txt
+@@ -48,6 +48,15 @@ find_package(LLVM REQUIRED HINTS ${CMAKE_PREFIX_PATH}/llvm PATHS /opt/rocm/llvm
+ 
+ set (TARGET_DEVS "gfx900;gfx1010;gfx1030;gfx1100")
+ set (POSTFIX "9;1010;10;11")
++get_property(clang_path TARGET clang PROPERTY LOCATION)
++get_filename_component(clang_bin_fn ${clang_path} NAME)
++if (${clang_bin_fn} STREQUAL "clang-14")
++  message("-- WARNING: Compiler is ${clang_path}")
++  message("--          This Old ROCm compiler does not support gfx1100")
++  message("--          Please install ROCm 5.3 or greater for gfx110X support")
++  set (TARGET_DEVS "gfx900;gfx1010;gfx1030")
++  set (POSTFIX "9;1010;10")
++endif()
+ 
+ if(${CMAKE_VERBOSE_MAKEFILE})
+   get_property(clang_path TARGET clang PROPERTY LOCATION)
 diff --git a/src/libamdhsacode/amd_elf_image.cpp b/src/libamdhsacode/amd_elf_image.cpp
 index bff3f46..ebe707a 100644
 --- a/src/libamdhsacode/amd_elf_image.cpp
