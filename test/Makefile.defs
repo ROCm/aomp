@@ -91,6 +91,10 @@ ifeq (gfx10,$(findstring gfx10,$(AOMP_GPU)))
  AOMP_WSIZE = -DWAVE_SIZE=32
 endif
 
+ifeq (gfx11,$(findstring gfx11,$(AOMP_GPU)))
+ AOMP_WSIZE = -DWAVE_SIZE=32
+endif
+
 ifeq ($(TARGET),)
   ifeq ($(OMP_HOST),)
    ifeq ($(USE_OFFLOAD_ARCH),1)
