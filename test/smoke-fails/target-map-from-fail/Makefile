@@ -1,7 +1,7 @@
 include ../../Makefile.defs
 
-TESTNAME     = EnvVar-SyncAsync
-TESTSRC_MAIN = envvar-sync-async.c
+TESTNAME     = MapWritesIntoConstGlobal
+TESTSRC_MAIN = map-from-into-const-global.c
 TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 
@@ -15,11 +15,5 @@ CC           = $(OMP_BIN) $(VERBOSE)
 include ../Makefile.rules
 
 run:
-	echo "Running async (default)"
-	./$(TESTNAME)
-	echo ""
-	echo "Running sync"
-	OMPX_FORCE_SYNC_REGIONS=1 ./$(TESTNAME)
-	echo ""
-	echo "Runnincg forced async"
 	OMPX_FORCE_SYNC_REGIONS=0 ./$(TESTNAME)
+	OMPX_FORCE_SYNC_REGIONS=1 ./$(TESTNAME)
