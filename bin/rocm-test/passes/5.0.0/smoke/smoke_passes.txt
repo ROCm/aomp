@@ -5,7 +5,6 @@ clang_udel_saxpy
 complex-debug
 complex_reduction
 const_global_ctor-308039
-d2h_slow_copy
 flang-274775-1
 flang-307433
 flang-307434
