@@ -81,7 +81,7 @@ date
 echo " =================  START build_aomp.sh ==================="   
 echo 
 if [ "$AOMP_STANDALONE_BUILD" == 1 ] ; then
-  components="roct rocr project libdevice openmp extras comgr rocminfo"
+  components="project roct rocr libdevice openmp extras comgr rocminfo"
   if [ $AOMP_MAJOR_VERSION -gt 13 ] ; then
      components="rocm-cmake $components"
   fi
@@ -108,7 +108,9 @@ if [ "$AOMP_STANDALONE_BUILD" == 1 ] ; then
     components="$components rocdbgapi rocgdb"
   fi
   # Do not add roctracer/rocprofiler for tarball install
-  if [ "$TARBALL_INSTALL" != 1 ] && [ "$_hostarch" == "x86_64" ] ; then
+  # Also, as of ROCm 5.3 roctracer and rocprofiler require a rocm installation
+  # The preceeding AOMP installation is not sufficient to build them.
+  if [ "$TARBALL_INSTALL" != 1 ] && [ "$_hostarch" == "x86_64" ] && [ -d /opt/rocm ] ; then
     components="$components roctracer rocprofiler"
   fi
 else
