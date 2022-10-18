@@ -5,7 +5,7 @@ TESTSRC_MAIN = multi-image.c
 TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 
-CFLAGS       = -fopenmp --offload-arch=$(AOMP_GPU) --offload-arch=gfx803 --offload-arch=gfx1031 -o $(TESTNAME)
+OMP_FLAGS    = -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa,amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$(AOMP_GPU) -Xopenmp-target=amdgcn-amd-amdhsa -march=gfx803
 CLANG        = clang
 OMP_BIN      = $(AOMP)/bin/$(CLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
