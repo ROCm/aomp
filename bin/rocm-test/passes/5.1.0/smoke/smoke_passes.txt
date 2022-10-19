@@ -13,5 +13,4 @@ flang-321412
 flang-teams1
 flang-teams-gdb
 func-ptr
-many_arrays
 task_detach_and_target
