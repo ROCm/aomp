@@ -69,10 +69,11 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
       fi
    fi
    MYCMAKEOPTS="-DCMAKE_BUILD_TYPE=$BUILD_TYPE \
-        -DCMAKE_INSTALL_PREFIX=$INSTALL_ROCDBGAPI \
-	-DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR;$INSTALL_ROCDBGAPI/include \
-        $_cxx_flags \
-         $AOMP_ORIGIN_RPATH"
+     -DCMAKE_INSTALL_LIBDIR=lib \
+     -DCMAKE_INSTALL_PREFIX=$INSTALL_ROCDBGAPI \
+     -DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR;$INSTALL_ROCDBGAPI/include \
+     $_cxx_flags \
+     $AOMP_ORIGIN_RPATH"
    mkdir -p $BUILD_AOMP/build/rocdbgapi
    cd $BUILD_AOMP/build/rocdbgapi
    echo " -----Running rocdbgapi cmake ---- " 
