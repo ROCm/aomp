@@ -1,4 +1,4 @@
-aomp (15.0-3) UNRELEASED; urgency=medium
+aomp (16.0-1) UNRELEASED; urgency=medium
 
   * Initial release of aomp is 0.3-2
   *   Please see example in /usr/lib/aomp/examples/vmuldemo 
@@ -756,5 +756,20 @@ aomp (15.0-3) UNRELEASED; urgency=medium
   *  16.0-0
   *   Adds new flag -fopenmp-target-fast to group enable a set of OpenMP target optimizations.
   *   Enhancements and bug fixes for No-Loop and cross-team reduction support.
+  *
+  *  16.0-1
+  *   Enhanced xteam reductions, no codegen.
+  *   Optimized wait for signals (perf gain).
+  *   Fix aompcc and mark for deprecation.
+  *   Added switch for code object version 5. Version 4 is still default.
+  *   Support for gfx1100 - gfx1103.
+  *   Support for order(concurrent).
+  *   Build OpenMP warnings cleaned up.
+  *   Upstream comparison data:
+  *       Lines different: 63997
+  *       Files different: 467
+  *   Support atomic min/max on MI200.
+  *   Support for device new and delete.
+  *   Bumped cmake version to 3.18.5.
 
  -- Greg Rodgers <Gregory.Rodgers@amd.com>  Thu, 19 May 2022 23:34:44 -0500

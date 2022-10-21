@@ -9,7 +9,7 @@
 ###########################################################
 
 set -e
-AOMP_VERSION_STRING=${AOMP_VERSION_STRING:-16.0-0}
+AOMP_VERSION_STRING=${AOMP_VERSION_STRING:-16.0-1}
 AOMP_VERSION=${AOMP_VERSION:-16.0}
 #DOCKERX_HOST=${DOCKERX_HOST:-$HOME/dockerx}
 DOCKERX_HOST=$HOME/dockerx
