@@ -73,6 +73,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    ${AOMP_CMAKE} \
       -DCMAKE_PREFIX_PATH="$AOMP/include/amd_comgr;$AOMP/lib/cmake;$DEVICELIBS_BUILD_PATH;$PACKAGE_ROOT" \
       -DCMAKE_INSTALL_PREFIX=$INSTALL_COMGR \
+      -DCMAKE_INSTALL_LIBDIR=lib \
       -DCMAKE_BUILD_TYPE=$BUILDTYPE \
       -DBUILD_TESTING=OFF \
       $AOMP_ORIGIN_RPATH \

@@ -12,7 +12,7 @@ The AOMP compiler supports OpenMP, clang-hip, clang-cuda, device OpenCL, and the
 ## Repositories
 <A NAME="Repositories">
 The clone_aomp.sh script clones the necessary github repositories and the correct
-branches into subdirectories of $HOME/git/aomp15.0 (or $AOMP_REPOS if AOMP_REPOS is set).
+branches into subdirectories of $HOME/git/aomp16.0 (or $AOMP_REPOS if AOMP_REPOS is set).
 The repositories and components needed by AOMP are shown in the following table.
 The first column is the AOMP component name.  The build_aomp.sh script invokes
 each component build script with the name build_\<component name\>.sh .
@@ -60,7 +60,7 @@ These are some important environment variables and their default values.
 | AOMP_REPOS            | $HOME/git/aomp16.0   | The base directory for all AOMP build repositories
 | AOMP_STANDALONE_BUILD | 1                  | Build all components, do NOT use installed ROCm
 | AOMP_VERSION          | 16.0               | Clang version.
-| AOMP_VERSION_MOD      | 1                  | This implies the next release will be AOMP_16.0-1.
+| AOMP_VERSION_MOD      | 2                  | This implies the next release will be AOMP_16.0-2.
 | AOMP_VERSION_STRING   | $AOMP_VERSION-$AOMP_VERSION_MOD |
 | GFXLIST               | gfx700 gfx701 gfx801 gfx803     | List of AMDGPU gpus to build for
 |                       | gfx900 gfx902 gfx906 gfx908     |
@@ -99,7 +99,7 @@ WARNING: The script clone_aomp.sh does not pull updates for this aomp repository
 So please run "git pull" frequently to stay current with the aomp development team.
 
 ```
-cd $HOME/git/aomp15.0/aomp
+cd $HOME/git/aomp16.0/aomp
 git pull
 cd bin
 ./clone_aomp.sh
@@ -144,7 +144,7 @@ The only ROCm common component required by AOMP is the kernel kfd.
 
 ## Individual Component Builds
 
-This bin directory ($HOME/git/aomp15.0/aomp/bin) contains many component scripts to build and install AOMP from source.
+This bin directory ($HOME/git/aomp16.0/aomp/bin) contains many component scripts to build and install AOMP from source.
 Here are some of the scripts contained in this direcotry
 ```
 clone_aomp.sh            -  A script to make sure the necessary repos are up to date.
@@ -175,7 +175,7 @@ create_release_tarball.sh - This builds an important release artifact
                             containing all sources.
 ```
 To build aomp, run the master build script build_aomp.sh, or run the individual scripts in the order shown below.
-The build scripts with no arguments will build the component in the build directory $HOME/git/aomp15.0/build/\<component name\>
+The build scripts with no arguments will build the component in the build directory $HOME/git/aomp16.0/build/\<component name\>
 (or $AOMP_REPOS/build/\<component name\> if AOMP_REPOS is set).
 The component build scripts take a single positional argument with the value "install" or "nocmake".
 The master build script build_aomp.sh will call the component build scripts in the following order and stop if
@@ -246,17 +246,17 @@ The install location is defined by the $AOMP environment variable. The value of 
 That is, the physical installation will be in directory name formed by concatonating the version string to the value of $AOMP.
 The "build_project.sh install" script will make a symbolic link from the physical directory to the symbolic directory $AOMP.
 The default value for AOMP is $HOME/rocm/aomp.
-For example, when building AOMP version 16.0-0 the install scripts will put all files and directories
-in $HOME/rocm/aomp_16.0-0 and create a symbolic link as follows:
+For example, when building AOMP version 16.0-1 the install scripts will put all files and directories
+in $HOME/rocm/aomp_16.0-1 and create a symbolic link as follows:
 
 ```
-ln -sf ${AOMP}_16.0-0 ${AOMP}
+ln -sf ${AOMP}_16.0-1 ${AOMP}
 ```
 All testing for AOMP uses the environment variable AOMP to locate the installation. This makes it easy to switch between versions of AOMP for testing by simply changing the environment variable AOMP. You do NOT need to change the symbolic link.
-For example, if the aomp symbolic link currently points to aomp_16.0-0 and you want to test aomp_15.0-3, do this:
+For example, if the aomp symbolic link currently points to aomp_16.0-1 and you want to test aomp_16.0-0, do this:
 
 ```
-export AOMP=$HOME/rocm/aomp_15.0-3
+export AOMP=$HOME/rocm/aomp_16.0-0
 ```
 
 The aomp package installs in /usr/lib/aomp_\<version_string\> and symlinks /usr/lib/aomp to the versioned directory. To test the installed package, set AOMP to /usr/lib/aomp or /usr/lib/aomp_\<version_string\>.
