@@ -12,4 +12,6 @@ CC           = $(OMP_BIN) $(VERBOSE)
 #-ccc-print-phases
 #"-\#\#\#"
 
+export TIMEOUT = 120s
+
 include ../Makefile.rules
