@@ -11,7 +11,6 @@ flang-307434
 flang-308205
 flang-313307_simple_arr
 flang-313307_simple_spmd
-flang-315870
 flang-321277
 flang-325322
 flang-ifaces
