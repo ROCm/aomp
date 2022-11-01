@@ -1,14 +1,27 @@
 #!/bin/bash
+function build_supp_help(){
+/bin/cat 2>&1 <<"EOF"
+#
+#  Component system for AOMP developers and testers for both
+#  prerequisit and supplemental components.
+#  These are different that compiler build components such as libdevice
+#  in that artifacts from these components are not installed into the
+#  AOMP installation.  These components are not typically need by end
+#  users but are needed to build the compiler or to test the compiler.
 # 
 #  build_supp.sh : Script to build Supplemental components for compiler
 #                  testing such as openmpi, hdf5, and silo.
 #                  If used with no arg, all supplemental components
-#                  listed by SUPPLEMENTAL_COMPONENTS below will be built.
+#                  listed by SUPPLEMENTAL_COMPONENTS will be built.
+#                  If a single arg is given only that component will
+#                  be built.
 #
 #  build_prereq.sh: Script to build prerequisite components for building
 #                  the aomp compiler. This is symbolic link to build_supp.sh
 #                  If used with no arg, all prerequisiste components
-#                  listed by PREREQUISITE_COMPONENTS below will be built.
+#                  listed by PREREQUISITE_COMPONENTS will be built.
+#                  If a single arg is given only that component will
+#                  be built.
 #
 # Applications or AOMP build scripts that need supplemental components 
 # can locate the latest version with $AOMP_SUPP/<component name>
@@ -17,22 +30,26 @@
 # compiler using this script. This script uses the AOMP environment
 # variable to identify which LLVM to use.
 #
-# The directory structure for a supplemental component includes:
-#   1. a build directory for each component,
-#   2. an install directory for each version of a component,
-#   3. a link from AOMP_SUPP/<component name> to latest version.
-# For example: The openmpi component is built in directory
-# $AOMP_SUPP_BUILD/openmpi/ and installed in directory
-# $AOMP_SUPP_INSTALL/openmpi/openmpi-4.1.1/ with a symbolic link from
-# $AOMP_SUPP/openmpi to $AOMP_SUPP_INSTALL/openmpi/openmpi-4.1.1/
+# Directory structure for supplemental and prerequisite components:
 #
-# Applications or aomp scripts must use $AOMP_SUPP/openmpi to find
-# openmpi which will be a symbolic link to the current version. 
+# $AOMP_SUPP                           Base directory for all components
+# $AOMP_SUPP/install/<cname>-<version> Download directory for version <version>
+#                                      of component <cname>.
+# $AOMP_SUPP/build/<cname>             Build directory for component <cname>
+$ $AOMP_SUPP/build/cmdlog              File with log of all components built
+# $AOMP_SUPP/<cname>                   Symbolic link to last intall directory
+#                                      of component <cname>
 #
+# AOMP scripts that use component <cname> should find the installation
+# in directory $AOMP_SUPP/<cname>.  For example the openmpi lib directory
+# should be referenced as $AOMP_SUPP/<cname>/lib
+# 
 # Known issues:
 # - The _version name for each component must NOT have a "-" in it
 #   because that is used to parse the version from the symbolic link.
 #
+EOF
+}
 
 SUPPLEMENTAL_COMPONENTS="openmpi silo hdf5 fftw"
 PREREQUISITE_COMPONENTS="cmake rocmsmilib hwloc"
@@ -341,7 +358,7 @@ sname=${0##*/}
 CMDLOGFILE=$AOMP_SUPP_BUILD/cmdlog
 mkdir -p $AOMP_SUPP_BUILD
 if [ "$1" == "-h" ] ; then 
-  echo help for $0  not yet available
+  build_supp_help
   exit 0
 fi
 if [ "$1" == "install" ] ; then
