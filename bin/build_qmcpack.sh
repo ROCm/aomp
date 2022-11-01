@@ -3,7 +3,7 @@
 #  build_qmcpack.sh: 
 #
 #  Users can override the following variables:
-#  AOMP, AOMP_GPU, BOOST_ROOT, FFTW_HOME, OPENMPI_INSTALL, QMCPACK_REPO
+#  AOMP, AOMP_GPU, BOOST_ROOT, FFTW_HOME, OPENMPI_INSTALL, QMCPACK_REPO, HDF5_ROOT
 #
 #  This script assumes openmpi(4.0.3 recommended) is installed and built with clang, for example:
 #  export LD_LIBRARY_PATH=$AOMP/lib
@@ -42,9 +42,12 @@ if [ -e /etc/profile.d/modules.sh ] ; then
 else
    # Need the following packaages from ubuntu: libxml2-dev, libfftw3-dev, libboost-dev
    BOOST_ROOT=${BOOST_ROOT:-/usr/lib/x86_64-linux-gnu}
-   FFTW_HOME=${FFTW_HOME:-/usr/lib/x86_64-linux-gnu}
-   OPENMPI_INSTALL=${OPENMPI_INSTALL:-~/openmpi-4.0.3-install}
-   export BOOST_ROOT FFTW_HOME
+   #  We now get FFTW, OPENMPI, and HDF5 from AOMP supplemental component installs.
+   #  run build_supp.sh to install supplemental components into $HOME/local.
+   FFTW_HOME=${FFTW_HOME:-$HOME/local/fftw}
+   OPENMPI_INSTALL=${OPENMPI_INSTALL:-$HOME/local/openmpi}
+   HDF5_ROOT=${HDF5_ROOT:-$HOME/local/hdf5}
+   export BOOST_ROOT FFTW_HOME HDF5_ROOT
 fi
 
 # Use function to set and test AOMP_GPU
@@ -80,6 +83,7 @@ echo OPENMPI_INSTALL: $OPENMPI_INSTALL
 echo BOOST_ROOT: $BOOST_ROOT
 echo FFTW_HOME: $FFTW_HOME
 echo QMCPACK_REPO: $QMCPACK_REPO
+echo HDF5_ROOT: $HDF5_ROOT
 echo
 
 echo "###################################"
@@ -159,7 +163,7 @@ fi
 
 echo 
 echo "DONE!  Build is in $build_folder. To test:"
-echo "       cd $build_folder"
+echo "       cd $QMCPACK_REPO/$build_folder"
 echo "       ctest -R deterministic"
 echo 
 popd
