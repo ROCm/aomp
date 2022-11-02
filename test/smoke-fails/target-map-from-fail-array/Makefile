@@ -1,7 +1,7 @@
 include ../../Makefile.defs
 
 TESTNAME     = MapWritesIntoConstGlobalScalar
-TESTSRC_MAIN = map-from-into-const-global-scalar.c
+TESTSRC_MAIN = map-from-into-const-global-scalar-small.c
 TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 
