@@ -50,4 +50,15 @@ Move to $HOME and set variables:
    export PATH=$PATH:$HOME/usr/lib/aomp/bin
    export AOMP=$HOME/usr/lib/aomp
 ```
-The last two commands could be put into your .bash_profile file so you can always access the compiler.
+For SLES15-SP1:
+```
+   wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_11.0-1/aomp_SLES15_SP1-11.0-1.x86_64.rpm
+   rpm2cpio aomp_SLES15_SP1-11.0-1.x86_64.rpm | cpio -idmv
+```
+Move to $HOME and set variables:
+```
+   mv /tmp/temproot/usr $HOME
+   export PATH=$PATH:$HOME/usr/lib/aomp/bin
+   export AOMP=$HOME/usr/lib/aomp
+```
+The last two commands could be put into your .bash_profile file so you can always access the compiler
