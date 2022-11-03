@@ -18,6 +18,7 @@ thisdir=`dirname $realpath`
 
 # Setup AOMP variables
 AOMP=${AOMP:-/usr/lib/aomp}
+ROCM_DIR=${ROCM_DIR:-}
 
 # Use function to set and test AOMP_GPU
 setaompgpu
@@ -100,6 +101,7 @@ pushd build_${BUILD_SUFFIX}
   make
   make install
   popd
+  exit 0
 fi
   pwd
   if [ -d build_${BUILD_SUFFIX} ] && [ "$2" != "build" ]; then
@@ -128,4 +130,3 @@ fi
     usage
     exit 1
 fi
-popd
