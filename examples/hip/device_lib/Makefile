@@ -71,7 +71,7 @@ dec_arrayval-amdgcn.bc: dec_arrayval.c
 libbc-_mylib-amdgcn.a: inc_arrayval-amdgcn.bc dec_arrayval-amdgcn.bc
 	@echo
 	@echo " 1.6 Use Linux ar command to create device-specific archive (DAL). 		$@"
-	ar rcs $@ $^ 
+	$(AOMP)/bin/llvm-ar rcs $@ $^
 
 _myomplib.o:  _myomplib.c
 	@echo
@@ -82,7 +82,7 @@ _myomplib.o:  _myomplib.c
 lib_myomplib.a:  _myomplib.o
 	@echo
 	@echo " 2.2 Create heterogeneous archive from bundled objects.			$@"
-	ar rcs $@ $^ 
+	$(AOMP)/bin/llvm-ar rcs $@ $^
 
 libbc-_myomplib-amdgcn.a: lib_myomplib.a
 	@echo
@@ -90,7 +90,7 @@ libbc-_myomplib-amdgcn.a: lib_myomplib.a
 	@echo
 	@echo " 3.1 Extract(unbundle) DAL from openmp fat archive lib_myomplib.a        $@"
 	@echo "     Note: HIP can only auto-extract from HIP-created fat libraries"
-	$(AOMP)/bin/clang-offload-bundler -unbundle -type=a -inputs=$^ -targets=openmp-amdgcn-amd-amdhsa--$(MYGPU) -outputs=$@ -allow-missing-bundles
+	$(AOMP)/bin/clang-offload-bundler -unbundle -type=a -input=$^ -targets=openmp-amdgcn-amd-amdhsa--$(MYGPU) -output=$@ -allow-missing-bundles
 
 run: writeIndex
 	./writeIndex
