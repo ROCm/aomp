@@ -107,7 +107,7 @@ if [ "$AOMP_STANDALONE_BUILD" == 0 ]; then
 fi
 
 if [[ "$ROCM_DIR" =~ "/opt/rocm" ]]; then
-  COMMON_CMAKE_OPTS="$COMMON_CMAKE_OPTS -DCMAKE_PREFIX_PATH=$OUT_DIR/build/devicelibs;$OUT_DIR;$ROCM_DIR;$ROCM_DIR/include/hsa;$OUT_DIR"
+  COMMON_CMAKE_OPTS="$COMMON_CMAKE_OPTS -DCMAKE_PREFIX_PATH=$OUT_DIR/build/devicelibs;$OUT_DIR;$ROCM_DIR;$ROCM_DIR/include/hsa"
 else
   COMMON_CMAKE_OPTS="$COMMON_CMAKE_OPTS -DCMAKE_PREFIX_PATH=$OUT_DIR/build/devicelibs;$ROCM_DIR;$ROCM_DIR/include/hsa"
 fi
