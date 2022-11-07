@@ -153,18 +153,15 @@ eval_test() {
 
 # Standalone test
 # rocTrecer is used explicitely by test
-eval_test "standalone C test" "LD_PRELOAD=libkfdwrapper64.so ./bin/MatrixTranspose_ctest" MatrixTranspose_ctest_trace
-eval_test "standalone HIP test" "LD_PRELOAD=libkfdwrapper64.so ./bin/MatrixTranspose_test" MatrixTranspose_test_trace
-eval_test "standalone HIP hipaact test" "LD_PRELOAD=libkfdwrapper64.so ./bin/MatrixTranspose_hipaact_test" MatrixTranspose_hipaact_test_trace
-eval_test "standalone HIP MGPU test" "LD_PRELOAD=libkfdwrapper64.so ./bin/MatrixTranspose_mgpu" MatrixTranspose_mgpu_trace
+eval_test "standalone C test" "./bin/MatrixTranspose_ctest" MatrixTranspose_ctest_trace
+eval_test "standalone HIP test" "./bin/MatrixTranspose_test" MatrixTranspose_test_trace
+eval_test "standalone HIP hipaact test" "./bin/MatrixTranspose_hipaact_test" MatrixTranspose_hipaact_test_trace
+eval_test "standalone HIP MGPU test" "./bin/MatrixTranspose_mgpu" MatrixTranspose_mgpu_trace
 
 # Tool test
 # rocTracer/tool is loaded by HSA runtime
 export HSA_TOOLS_LIB="$AOMP/roctracer/lib/libtracer_tool.so"
 
-# KFD test
-export ROCTRACER_DOMAIN="kfd"
-eval_test "tool KFD test" "LD_PRELOAD=libkfdwrapper64.so ./bin/MatrixTranspose" MatrixTranspose_kfd_trace
 # SYS test
 export ROCTRACER_DOMAIN="sys:roctx"
 eval_test "tool SYS test" ./bin/MatrixTranspose MatrixTranspose_sys_trace
