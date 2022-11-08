@@ -4,8 +4,8 @@ openlibm: openlibm.patch
 RAJA: raja.patch
 RAJAPerf: rajaperf.patch
 GenASis: genasis.patch
+hipamd: hipamd-hip-clang-root.patch
 hipfort: hipfort.patch
 bolt: bolt.patch
 rocr-runtime: rocr-runtime-numa.patch
-roctracer: roctracer-use-rocm-install.patch
 rocprofiler: rocprofiler-no-aql-ok.patch

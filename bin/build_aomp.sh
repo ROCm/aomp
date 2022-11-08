@@ -110,7 +110,7 @@ if [ "$AOMP_STANDALONE_BUILD" == 1 ] ; then
   # Do not add roctracer/rocprofiler for tarball install
   # Also, as of ROCm 5.3 roctracer and rocprofiler require a rocm installation
   # The preceeding AOMP installation is not sufficient to build them.
-  if [ "$TARBALL_INSTALL" != 1 ] && [ "$_hostarch" == "x86_64" ] && [ -d /opt/rocm ] ; then
+  if [ "$TARBALL_INSTALL" != 1 ] && [ "$_hostarch" == "x86_64" ] ; then
     components="$components roctracer rocprofiler"
   fi
 else
