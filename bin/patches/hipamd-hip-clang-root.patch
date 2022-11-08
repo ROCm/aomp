@@ -1,0 +1,13 @@
+diff --git a/hip-config.cmake.in b/hip-config.cmake.in
+index 89d1224e..97ae0082 100755
+--- a/hip-config.cmake.in
++++ b/hip-config.cmake.in
+@@ -142,7 +142,7 @@ if(HIP_COMPILER STREQUAL "clang")
+       file(TO_CMAKE_PATH "${HIP_PATH}/../lc" HIP_CLANG_ROOT)
+     endif()
+   else()
+-    set(HIP_CLANG_ROOT "${ROCM_PATH}/llvm")
++    set(HIP_CLANG_ROOT "${ROCM_PATH}")
+   endif()
+   if(NOT HIP_CXX_COMPILER)
+     set(HIP_CXX_COMPILER ${CMAKE_CXX_COMPILER})
