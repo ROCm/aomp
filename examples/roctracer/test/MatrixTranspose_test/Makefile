@@ -11,7 +11,7 @@ HIPCC=$(HIP_PATH)/bin/hipcc
 
 EXECUTABLE=./MatrixTranspose
 OBJECTS = MatrixTranspose.o
-FLAGS =-g -fPIC $(INC_PATH:%=-I%) -I$(ROCM_PATH)/include/roctracer -I$(ROCM_PATH)/include/hip -I$(ROCM_PATH)/include -DLOCAL_BUILD=1 -DHIP_VDI=${HIP_VDI} -DITERATIONS=$(ITERS) -DAMD_INTERNAL_BUILD=1
+FLAGS =-g $(INC_PATH:%=-I%) -I$(ROCM_PATH)/include/roctracer -I$(ROCM_PATH)/include/hip -I$(ROCM_PATH)/include -DLOCAL_BUILD=1 -DHIP_VDI=${HIP_VDI} -DITERATIONS=$(ITERS) -DAMD_INTERNAL_BUILD=1
 
 ifeq ($(C_TEST), 1)
 	COMP=${CC}
