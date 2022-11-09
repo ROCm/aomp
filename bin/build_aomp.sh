@@ -7,8 +7,8 @@ if [ "$1" == "clean" ]; then
   exit 1
 fi
 
-echo "ls $OUT_DIR/llvm/bin"
-ls $OUT_DIR/llvm/bin
+echo "ls $INSTALL_PREFIX/llvm/bin"
+ls $INSTALL_PREFIX/llvm/bin
 
 # Force clean because --clean is not being called correctly
 if [ "$AOMP_STANDALONE_BUILD" == 0 ] ; then
@@ -16,15 +16,15 @@ if [ "$AOMP_STANDALONE_BUILD" == 0 ] ; then
   ls $OUT_DIR/build/
 
   echo "Clean install directory:"
-  echo "rm -rf $OUT_DIR/openmp-extras/*"
-  rm -rf $OUT_DIR/openmp-extras/*
+  echo "rm -rf $INSTALL_PREFIX/openmp-extras/*"
+  rm -rf $INSTALL_PREFIX/openmp-extras/*
 
   echo "Clean build directory:"
   echo "rm -rf $OUT_DIR/build/openmp-extras/*"
   rm -rf "$OUT_DIR/build/openmp-extras/*"
 
-  echo "ls $OUT_DIR/openmp-extras"
-  ls $OUT_DIR/openmp-extras
+  echo "ls $INSTALL_PREFIX/openmp-extras"
+  ls $INSTALL_PREFIX/openmp-extras
 
   echo "ls $OUT_DIR/build/"
   ls $OUT_DIR/build/
@@ -195,18 +195,18 @@ date
 echo " =================  END build_aomp.sh ==================="   
 echo
 
-echo "ls $OUT_DIR/openmp-extras:"
-ls $OUT_DIR/openmp-extras
+echo "ls $INSTALL_PREFIX/openmp-extras:"
+ls $INSTALL_PREFIX/openmp-extras
 echo
 
-echo "ls $OUT_DIR/openmp-extras/bin:"
-ls $OUT_DIR/openmp-extras/bin
+echo "ls $INSTALL_PREFIX/openmp-extras/bin:"
+ls $INSTALL_PREFIX/openmp-extras/bin
 echo
 
-echo "ls $OUT_DIR/openmp-extras/rocm-bin:"
-ls $OUT_DIR/openmp-extras/rocm-bin
+echo "ls $INSTALL_PREFIX/openmp-extras/rocm-bin:"
+ls $INSTALL_PREFIX/openmp-extras/rocm-bin
 echo
 
-#PATH=$OUT_DIR/llvm/bin:$PATH $AOMP_REPOS/$AOMP_REPO_NAME/bin/bashtest
-#PATH=$OUT_DIR/llvm/bin:$PATH $AOMP_REPOS/$AOMP_REPO_NAME/bin/bashtestf90
+#PATH=$INSTALL_PREFIX/llvm/bin:$PATH $AOMP_REPOS/$AOMP_REPO_NAME/bin/bashtest
+#PATH=$INSTALL_PREFIX/llvm/bin:$PATH $AOMP_REPOS/$AOMP_REPO_NAME/bin/bashtestf90
 exit 0
