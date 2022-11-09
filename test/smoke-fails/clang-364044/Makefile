@@ -1,5 +1,3 @@
-AOMP ?= /usr/lib/aomp_15.0-3
-
 include ../../Makefile.defs
 
 TESTNAME     = clang-364044
