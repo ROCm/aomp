@@ -1,0 +1,23 @@
+WARNING: Runtime capabilities do NOT meet any image offload_arch.
+	 So device offloading is now disabled.
+	Runtime capabilities :  HSAERROR-INITIALIZATION
+	  Image 0 offload_arch : gfx906
+Testing double _complex
+
+ copy without map(to:) worked
+     check value  :(0.2 + 1i)  &:0x7fff86184e90
+     correct value:(0.2 + 1i)  &:0x7fff86184ea0
+
+ copy WITH map(to:) worked
+   check value  :(0.2 + 1i)  &:0x7fff86184e90
+   correct value:(0.2 + 1i)  &:0x7fff86184ea0
+
+Testing float _complex
+
+ copy without map(to:) worked
+     check value  :(0.2 + 1i)  &:0x7fff86184eb0
+     correct value:(0.2 + 1i)  &:0x7fff86184ea8
+
+ copy WITH map(to:) worked
+   check value  :(0.2 + 1i)  &:0x7fff86184eb0
+   correct value:(0.2 + 1i)  &:0x7fff86184ea8
