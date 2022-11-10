@@ -11,26 +11,35 @@
                                            if (error) {\
                                              return error;\
                                            }
-struct Bound_t{
+class Bound_t{
+  public:
   int bound;
   int dummy[8192];
 };
 
-struct Val_t {
-  double dVal;
+class Val_t {
+  public:
+  mutable double dVal;
 };
 
-const struct Bound_t N = {.bound = 128, .dummy = {0}};
-const struct Val_t A[128] = {0};
-struct Val_t M;
+class Val_c {
+  public:
+  mutable double dVal;
+  double constMember;
+  Val_c() : dVal(0), constMember(0) {};
+};
+
+const Bound_t N = {.bound = 128, .dummy = {0}};
+const Val_t A[128] = {0};
 
 
 int main(int argc, char **argv) {
+  const Val_t M;
   int tmp = 0;
   int error = 0;
   M.dVal = 1;
 
-#pragma omp target teams distribute parallel for reduction(+:tmp) map(to:N) map(M)
+#pragma omp target teams distribute parallel for reduction(+:tmp) map(to:N) map(M.dVal)
   for (int i = 0; i < N.bound; i++) {
     tmp += 1;
     M.dVal = 42.0;
@@ -44,11 +53,35 @@ int main(int argc, char **argv) {
 #pragma omp target teams distribute parallel for reduction(+:tmp) map(to: N) map(A) map(M)
   for (int i = 0; i < N.bound; i++) {
     tmp += A[i].dVal + 1;
-    M.dVal = 42;
+    M.dVal = 21;
   }
 
   ERROR_CHECK(tmp, N.bound)
   ERROR_CHECK(M.dVal, 42)
+
+
+  const Val_c C;
+  tmp = 0;
+
+#pragma omp target teams distribute parallel for reduction(+:tmp) map(to:N) map(C.dVal)
+  for (int i = 0; i < N.bound; i++) {
+    tmp += 1;
+    C.dVal = 42.0;
+  }
+  
+  ERROR_CHECK(tmp, N.bound)
+  ERROR_CHECK(C.dVal, 42)
+
+  tmp = 0;
+
+#pragma omp target teams distribute parallel for reduction(+:tmp) map(to:N) map(C)
+  for (int i = 0; i < N.bound; i++) {
+    tmp += 1;
+    C.dVal = 21.0;
+  }
+  
+  ERROR_CHECK(tmp, N.bound)
+  ERROR_CHECK(C.dVal, 42)
 
   fprintf(stderr, "Passed\n");
 
