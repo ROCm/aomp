@@ -1,4 +1,4 @@
-# Source Install V 16.0-2
+# Source Install V 16.0-3
 
 Build and install from sources is possible.  However, the source build for AOMP is complex for several reasons.
 - Many repos are required.
@@ -12,6 +12,56 @@ To build AOMP from source you must: 1. Install certain distribution packages, 2.
 
 ## Clone and Build AOMP
 
+AOMP now uses a manifest file to specify the git repositories to clone.
+We studied the use of the google repo command and found it was too compilicated for development
+as compared to manually cloning the repos specified in a manifest file.
+The script clone\_aomp.sh issues a sequence of "git clone" and "git pull" commands
+by parsing information in the manifest file associated with a particular release.
+
+<b>Choose a Build Version (Development or Release)</b> The development version is the next version to be released. It is possible that the development version is broken due to regressions that often occur during development.
+
+Here are the commands to do a source build of AOMP:
+
+<b>Development Branch:</b>
+```
+   export AOMP_VERSION=16.0
+   export AOMP_REPOS=$HOME/git/aomp${AOMP_VERSION}
+   mkdir -p $AOMP_REPOS
+   cd $AOMP_REPOS
+   git clone -b aomp-dev https://github.com/ROCm-Developer-Tools/aomp
+```
+
+The development version is the next version to be released.  It is possible that the development version is broken due to regressions that often occur during development.
+These commands will build a previous release of AOMP such as aomp-16.0-2.<br>
+<b>Release Branch:</b>
+```
+   export AOMP_VERSION=16.0
+   export AOMP_REPOS=$HOME/git/aomp${AOMP_VERSION}
+   mkdir -p $AOMP_REPOS
+   cd $AOMP_REPOS
+   git clone -b aomp-16.0-2 https://github.com/ROCm-Developer-Tools/aomp
+```
+<b>Clone and build:</b>
+```
+   $AOMP_REPOS/aomp/bin/clone_aomp.sh
+   $AOMP_REPOS/aomp/bin/build_prereq.sh
+   nohup $AOMP_REPOS/aomp/bin/build_aomp.sh &
+```
+
+Change the value of AOMP\_REPOS to the directory name where you want to store all the repositories needed for AOMP. All the AOMP repositories will consume more than 12GB. Furthermore, each AOMP component will be built in a subdirectory of $AOMP\_REPOS/build which will consume an additional 6GB. So it is recommened that the directory $AOMP\_REPOS have more than 20GB of free space before beginning. It is recommended that $AOMP\_REPOS name include the value of AOMP\_VERSION as shown above. It is also recommended to put the values of AOMP\_VERSION and AOMP\_REPOS in a login profile (such as .bashrc) so future incremental build scripts will correctly find your sources.
+
+Warning: the clone\_aomp.sh, and build\_aomp.sh are expected to take a long time to execute. As such we recommend the use of nohup to run build\_aomp.sh. It is ok to run build\_aomp.sh without nohup. The clone and build time will be affected by the performance of the filesystem that contains $AOMP\_REPOS.
+
+There is a "list" option on the clone\_aomp.sh that provides useful information about each AOMP repository.
+```
+   $AOMP_REPOS/aomp/bin/clone_aomp.sh list
+```
+The above command will produce output like this showing you the location and branch of the repos in the AOMP\_REPOS directory and if there are any discrepencies with respect to the manifest file.<br>
+<b>Development Branch:</b><br>
+MANIFEST FILE: ~/git/aomp16.0/aomp/bin/../manifests/aomp_16.0.xml
+
+<b>Release Branch:</b><br>
+MANIFEST FILE: ~/git/aomp16.0/aomp/bin/../manifests/aomp_16.0-2.xml
 ```
   repo src       branch                 path                 repo name    last hash    updated           commitor         for author
   --------       ------                 ----                 ---------    ---------    -------           --------         ----------
