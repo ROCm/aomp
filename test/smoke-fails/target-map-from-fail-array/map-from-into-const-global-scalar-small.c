@@ -13,7 +13,7 @@ int main(int argc, char **argv) {
     tmp2 += A[i] + 1;
   }
 
-#pragma omp target teams distribute parallel for reduction(+:tmp) map(A, N, M) map(tofrom:M)
+#pragma omp target teams distribute parallel for reduction(+:tmp) map(to:N) map(tofrom:M) map(A)
   for (int i = 0; i < N; i++) {
     tmp += A[i] + 1;
     M = 42;
