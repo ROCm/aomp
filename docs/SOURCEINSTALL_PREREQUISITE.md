@@ -96,10 +96,6 @@ These commands are for supported Debian-based systems and target only the amdgpu
 ```
 wget -q -O - https://repo.radeon.com/rocm/rocm.gpg.key | sudo apt-key add -
 ```
-Ubuntu 18.04:
-```
-echo 'deb [arch=amd64] http://repo.radeon.com/amdgpu/latest/ubuntu bionic main' | sudo tee /etc/apt/sources.list.d/amdgpu.list
-```
 Ubuntu 20.04:
 ```
 echo 'deb [arch=amd64] http://repo.radeon.com/amdgpu/latest/ubuntu focal main' | sudo tee /etc/apt/sources.list.d/amdgpu.list
@@ -156,7 +152,7 @@ Install amdgpu-dkms:
 ### 6. Optional Install CUDA
 
 The Nvidia CUDA SDK is NOT required to build AOMP or install the AOMP package. 
-However, to build AOMP from source, you SHOULD have the Nvidia CUDA SDK version 10 installed because AOMP may be used to build applications for NVIDIA GPUs. The current default build list of Nvidia subarchs is "30,35,50,60,61,70".  For example, the default list will support application builds with --offload-arch=sm_30 and --offload-arch=sm_60 etc.  This build list can be changed with the NVPTXGPUS environment variable as shown above.
+However, to build AOMP from source, you SHOULD have the Nvidia CUDA SDK version 10/11 installed because AOMP may be used to build applications for NVIDIA GPUs. The current default build list of Nvidia subarchs is "30,35,50,60,61,70".  For example, the default list will support application builds with --offload-arch=sm_30 and --offload-arch=sm_60 etc.  This build list can be changed with the NVPTXGPUS environment variable as shown above.
 
 
 ### 7. Optional Install of Spack
