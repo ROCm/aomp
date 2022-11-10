@@ -38,7 +38,7 @@ int main() {
   double hipstyle_sum = 0.0;
   double t0 = omp_get_wtime();
   #pragma omp target teams distribute parallel for num_teams(NUM_TEAMS)        \
-    thread_limit(NUM_THREADS) map(tofrom: hipstyle_sum)
+    num_threads(NUM_THREADS) map(tofrom: hipstyle_sum)
   for (int kk = 0; kk < NUM_TEAMS * NUM_THREADS; kk++) {
     // A HIP or CUDA kernel will use builtin values with names like these
     // We get these values from the OpenMP target API;
