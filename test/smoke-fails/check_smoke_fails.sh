@@ -80,6 +80,10 @@ if [ "$1" == "-clean" ]; then
   for directory in ./*/; do
     pushd $directory > /dev/null
     make clean
+<<<<<<< HEAD
+=======
+    rm make-log.txt
+>>>>>>> Adds -clean option to check scripts to clean and remove build log
     popd > /dev/null
   done
   exit 0

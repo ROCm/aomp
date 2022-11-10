@@ -97,6 +97,7 @@ if [ "$1" == "-clean" ]; then
   for directory in ./*/; do
     pushd $directory > /dev/null
     make clean
+    rm make-log.txt
     popd > /dev/null
   done
   exit 0
