@@ -1,4 +1,4 @@
-aomp (16.0-1) UNRELEASED; urgency=medium
+aomp (16.0-2) UNRELEASED; urgency=medium
 
   * Initial release of aomp is 0.3-2
   *   Please see example in /usr/lib/aomp/examples/vmuldemo 
@@ -771,5 +771,15 @@ aomp (16.0-1) UNRELEASED; urgency=medium
   *   Support atomic min/max on MI200.
   *   Support for device new and delete.
   *   Bumped cmake version to 3.18.5.
+  *
+  * 16.0-2
+  *   Fix for early USM failure - openfoam does not hang.
+  *   Enhance xteam reductions (with codegen). Support for integer data types.
+  *   Fix for double _Complex scalars in target region,
+  *      test/smoke-fails/double_complex_scalar now works. This test will move to smoke in next release.
+  *   Support for target teams loop directive.
+  *   Force synchronous execution of regions controlled via OMPX_FORCE_SYNC_REGIONS.
+  *   New environment variable GPU_MAX_HW_QUEUES controls number of HSA queues created, default is 4.
+  *      This change actually occurred in 16.0-1 but was not listed in release notes.
 
  -- Greg Rodgers <Gregory.Rodgers@amd.com>  Thu, 19 May 2022 23:34:44 -0500
