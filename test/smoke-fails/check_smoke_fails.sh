@@ -81,9 +81,12 @@ if [ "$1" == "-clean" ]; then
     pushd $directory > /dev/null
     make clean
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     rm make-log.txt
 >>>>>>> Adds -clean option to check scripts to clean and remove build log
+=======
+>>>>>>> Relies on make clean rule
     popd > /dev/null
   done
   exit 0
