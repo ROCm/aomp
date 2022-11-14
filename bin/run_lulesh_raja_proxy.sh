@@ -98,7 +98,7 @@ pushd build_${BUILD_SUFFIX}
   fi
   pwd
   echo "calling make ...."
-  make
+  make -j $AOMP_JOB_THREADS
   make install
   popd
   exit 0
