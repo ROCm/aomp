@@ -22,11 +22,13 @@ function cmake_warning(){
   echo "Raja Performance Suite may fail to build otherwise."
   echo "HIT ENTER TO CONTINUE or CTRL-C TO CANCEL"
   echo "-----------------------------------------------------------------------------------------------------"
-  read
+#  read
 }
 
 # Setup AOMP variables
 AOMP=${AOMP:-/usr/lib/aomp}
+
+AOMP_CMAKE=cmake
 
 # Use function to set and test AOMP_GPU
 setaompgpu
@@ -60,10 +62,6 @@ build_targets="hip openmp"
 if [ "$2" == "build" ]; then
   # Begin configuration
   pushd $AOMP_REPOS_TEST/RAJAPerf
-  #git reset --hard 43b8ad43
-  #git submodule update -f --recursive
-  # Apply patches
-  #patchrepo $AOMP_REPOS_TEST/RAJAPerf/tpl/RAJA
   cd $AOMP_REPOS_TEST/RAJAPerf
   rm -rf build_${BUILD_SUFFIX}
   mkdir build_${BUILD_SUFFIX}
@@ -91,41 +89,30 @@ if [ "$2" == "build" ]; then
       ..
   elif [ "$1" == "openmp" ]; then
     $AOMP_CMAKE \
+      -DCMAKE_FIND_DEBUG_MODE=OFF \
       -DCMAKE_BUILD_TYPE=Release \
       -DCMAKE_CXX_COMPILER=${AOMP}/bin/clang++ \
-      -DENABLE_CUDA=Off \
-      -DENABLE_HIP=Off \
-      -DENABLE_OPENMP=On \
-      -DENABLE_TARGET_OPENMP=On \
-      -DCMAKE_CXX_FLAGS="-DENABLE_TARGET_OPENMP" \
+      -DENABLE_CUDA=OFF \
+      -DRAJA_ENABLE_CUDA=OFF \
+      -DENABLE_HIP=OFF \
+      -DRAJA_ENABLE_HIP=OFF \
+      -DENABLE_OPENMP=ON \
+      -DRAJA_ENABLE_OPENMP=ON \
+      -DENABLE_TARGET_OPENMP=ON \
+      -DRAJA_ENABLE_TARGET_OPENMP=ON \
+      -DCMAKE_CXX_FLAGS="-O3 -DENABLE_TARGET_OPENMP -fopenmp=libomp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$AOMP_GPU" \
       -DROCM_ARCH=gfx90a \
-      -DOpenMP_CXX_FLAGS="-fopenmp=libomp;-fopenmp-targets=amdgcn-amd-amdhsa;-Xopenmp-target=amdgcn-amd-amdhsa;-march=$AOMP_GPU" \
-      -DENABLE_ALL_WARNINGS=Off \
+      -DENABLE_ALL_WARNINGS=OFF \
       -DCMAKE_INSTALL_PREFIX=../install_${BUILD_SUFFIX} \
-      -DENABLE_TESTS=Off \
-      "$@" \
-      ..
-
-    $AOMP_CMAKE \
-      -DCMAKE_BUILD_TYPE=Release \
-      -DCMAKE_CXX_COMPILER=${AOMP}/bin/clang++ \
-      -DENABLE_CUDA=Off \
-      -DENABLE_HIP=Off \
-      -DENABLE_OPENMP=On \
-      -DENABLE_TARGET_OPENMP=On \
-      -DCMAKE_CXX_FLAGS="-DENABLE_TARGET_OPENMP" \
-      -DROCM_ARCH=gfx90a \
-      -DOpenMP_CXX_FLAGS="-fopenmp=libomp;-fopenmp-targets=amdgcn-amd-amdhsa;-Xopenmp-target=amdgcn-amd-amdhsa;-march=$AOMP_GPU" \
-      -DENABLE_ALL_WARNINGS=Off \
-      -DCMAKE_INSTALL_PREFIX=../install_${BUILD_SUFFIX} \
-      -DENABLE_TESTS=Off \
+      -DENABLE_TESTS=ON \
       "$@" \
       ..
   else
     echo "Option $2 not supported. Please choose from $build_targets"
     usage
   fi
-  make #-j $AOMP_JOB_THREADS
+  
+  make -j $AOMP_JOB_THREADS
   # Do not continue if build fails
   if [ $? != 0 ]; then
     echo "ERROR: Make returned non-zero, exiting..."
