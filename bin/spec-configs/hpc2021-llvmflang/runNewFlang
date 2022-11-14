@@ -1,0 +1,34 @@
+#!/bin/bash
+set -x
+export FLIB=/COD/LATEST/aomp_16.0-3
+export AOMP=/COD/LATEST/trunk
+export FAOMP=/COD/LATEST/trunk
+
+export MPI=/opt/openmpi-4.0.4-newflang
+
+set +x
+. ./shrc
+set -x
+
+
+export OMP_TARGET_OFFLOAD=MANDATORY
+export LIBRARY_PATH=$AOMP/lib
+export OMPI_FC=flang-new
+export OMPI_CC=clang
+export OMPI_CXX=clang++
+export C_INCLUDE_PATH=$AOMP//lib/clang/16.0.0/include
+export CPLUS_INCLUDE_PATH=$AOMP//lib/clang/16.0.0/include
+export LD_LIBRARY_PATH=$AOMP/lib:$MPI/lib/:$FAOMP/lib:$FLIB/lib
+export PATH=$FAOMP/bin:$AOMP/bin:$MPI/bin:$PATH   #:~/tmp/
+
+ulimit -s unlimited
+
+runhpc -c newflang.cfg -I -l -n 1 -T base --define model=omp --threads=28 --ranks=1  -i test 519 528 535 --rebuild
+#runhpc -c newflang.cfg -I -l -n 1 -T base --define gputype=gfx90a --define model=omp_target  --threads=1 --ranks=2  -i test 505 --rebuild
+exit
+#runhpc -c newflang.cfg -I -l -n 1 -T base --define model=mpi --threads=1 --ranks=4  -i test 519 528 535 --rebuild 
+#runhpc -c newflang.cfg -I -l -n 1 -T base --define model=mpi --threads=1 --ranks=56  -i test tiny --rebuild
+#runhpc -c newflang.cfg -I -l -n 1 -T base --define model=omp --threads=28 --ranks=1  -i test tiny --rebuild
+#exit
+runhpc -c newflang.cfg -I -l -n 1 -T base --define gputype=gfx90a --define model=omp_target  --threads=1 --ranks=2  -i test tiny --rebuild
+
