@@ -2,7 +2,7 @@
 
 set -x
 export AOMP=/usr/lib/aomp_16.0-2
-export MPI=/opt/openmpi-4.1.4
+export MPI=/opt/openmpi-4.0.4
 
 set +x
 . ./shrc
