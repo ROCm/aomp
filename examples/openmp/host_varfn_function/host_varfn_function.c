@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <omp.h>
 #include <hostrpc.h>
-
+#include <stdarg.h>
 // This user variable function returns a uint so declare function 
 // as hostrpc_varfn_uint_t . 
 hostrpc_varfn_uint_t my3argfn;
