@@ -115,9 +115,9 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
   if [ $AOMP_STANDALONE_BUILD == 1 ] ; then
     MYCMAKEOPTS="-DLLVM_DIR=$LLVM_DIR $AOMP_ORIGIN_RPATH -DCMAKE_BUILD_TYPE=$BUILDTYPE -DCMAKE_INSTALL_PREFIX=$INSTALL_EXTRAS -DROCM_DIR=$ROCM_DIR -DAOMP_STANDALONE_BUILD=$AOMP_STANDALONE_BUILD"
   else
-  export AOMP=$OUT_DIR/llvm
+  export AOMP=$INSTALL_PREFIX/llvm
 #    MYCMAKEOPTS="-DLLVM_DIR=$LLVM_DIR $AOMP_ORIGIN_RPATH -DCMAKE_BUILD_TYPE=$BUILDTYPE -DCMAKE_INSTALL_PREFIX=$INSTALL_EXTRAS -DROCM_DIR=$ROCM_DIR -DAOMP_STANDALONE_BUILD=$AOMP_STANDALONE_BUILD -DDEVICELIBS_ROOT=$DEVICELIBS_ROOT"
-  MYCMAKEOPTS="-DLLVM_DIR=$OUT_DIR/llvm \
+  MYCMAKEOPTS="-DLLVM_DIR=$INSTALL_PREFIX/llvm \
   -DCMAKE_BUILD_TYPE=Release \
   -DROCM_DIR=$ROCM_DIR \
   -DAOMP_STANDALONE_BUILD=0 \
@@ -125,6 +125,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
   -DNEW_BC_PATH=1 \
   -DCMAKE_INSTALL_PREFIX=$INSTALL_EXTRAS \
   -DCMAKE_PREFIX_PATH=$DEVICELIBS_BUILD_PATH;$OUT_DIR/build/devicelibs \
+  -DAOMP_VERSION_STRING=$ROCM_VERSION \
   -DENABLE_DEVEL_PACKAGE=ON"
   fi
 
@@ -168,8 +169,8 @@ else
       echo "  $0 install"
       echo
   fi
-  echo "ls $OUT_DIR/openmp-extras/bin"
-  ls $OUT_DIR/openmp-extras/bin
+  echo "ls $INSTALL_PREFIX/openmp-extras/bin"
+  ls $INSTALL_PREFIX/openmp-extras/bin
 fi
 
 #  ----------- Install only if asked  ----------------------------
