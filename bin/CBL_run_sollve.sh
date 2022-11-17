@@ -5,7 +5,17 @@
 
 ulimit -t 120
 
+# Codebenchlite related setting:
+export CBL=${CBL:-"/opt/mgc/embedded/codebench"}
+export PATH=$CBL/bin/:$PATH
+export LD_LIBRARY_PATH=$CBL/x86_64-none-linux-gnu/lib64:$CBL/lib:/opt/rocm/lib:$LD_LIBRARY_PATH
 
+export MY_SOLLVE_FLAGS="-g -foffload=-march=gfx90a -m64 -fopenmp -O2"
+export CBLC=x86_64-none-linux-gnu-gcc 
+export CBLCXX=x86_64-none-linux-gnu-g++
+export CBLF90=x86_64-none-linux-gnu-gfortran
+
+export EFFLAGS="-ffree-form -ffree-line-length-none"
 
 
 # --- Start standard header to set AOMP environment variables ----
@@ -68,15 +78,6 @@ else
   triple="amdgcn-amd-amdhsa"
 fi
 
-export PATH=/home/rlieberm/mgc/embedded/codebench/bin/:$PATH
-export LD_LIBRARY_PATH=/home/rlieberm/mgc/embedded/codebench/x86_64-none-linux-gnu/lib64:/home/rlieberm/mgc/embedded/codebench/lib:/opt/rocm/lib:$LD_LIBRARY_PATH
-
-export MY_SOLLVE_FLAGS="-g -foffload=-march=gfx90a -m64 -fopenmp -O2"
-export CBLC=x86_64-none-linux-gnu-gcc 
-export CBLCXX=x86_64-none-linux-gnu-g++
-export CBLF90=x86_64-none-linux-gnu-gfortran
-
-export EFFLAGS="-ffree-form -ffree-line-length-none"
 
 pushd $AOMP_REPOS_TEST/$AOMP_SOLVV_REPO_NAME
 
