@@ -1,0 +1,29 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index cbcf9d0..803d72c 100755
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -147,6 +147,10 @@ if((${CMAKE_HOST_SYSTEM_PROCESSOR} STREQUAL "x86_64") OR (${CMAKE_HOST_SYSTEM_PR
+   set(ROCMINFO_CXX_FLAGS ${ROCMINFO_CXX_FLAGS} -msse -msse2)
+ endif()
+ 
++if(${CMAKE_HOST_SYSTEM_PROCESSOR} STREQUAL "ppc64le")
++  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mcpu=power9")
++endif()
++
+ #
+ # Add compiler flags to include symbol information for debug builds
+ #
+diff --git a/rocm_agent_enumerator b/rocm_agent_enumerator
+index 6264a5f..c908de4 100755
+--- a/rocm_agent_enumerator
++++ b/rocm_agent_enumerator
+@@ -207,7 +207,8 @@ def readFromKFD():
+                   major_ver = int((device_id / 10000) % 100)
+                   minor_ver = int((device_id / 100) % 100)
+                   stepping_ver = int(device_id % 100)
+-                  target_list.append("gfx" + format(major_ver, 'd') + format(minor_ver, 'x') + format(stepping_ver, 'x'))
++                  if stepping_ver != 2 : # Cant tell Renoir from stepping, so skip and use PCIID
++                    target_list.append("gfx" + format(major_ver, 'd') + format(minor_ver, 'x') + format(stepping_ver, 'x'))
+               line = f.readline()
+ 
+   return target_list
