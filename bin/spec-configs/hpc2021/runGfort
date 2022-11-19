@@ -1,0 +1,29 @@
+#!/bin/bash
+
+set -x
+export MPI=~/rocm/openmpi-4.1.4-gfort
+export REV=/opt/mgc/embedded
+export PATH=$REV/codebench/bin/:$MPI/bin:$PATH
+
+export GCN_SUPPRESS_HOST_FALLBACK=1
+#export GCN_DEBUG=1
+
+export LD_LIBRARY_PATH=$REV/codebench/x86_64-none-linux-gnu/lib64:$MPI/lib/:/opt/rocm/lib:$LD_LIBRARY_PATH
+export LIBRARY_PATH=$LD_LIBRARY_PATH
+
+set +x
+. ./shrc
+set -x
+
+ulimit -s unlimited
+
+export OMPI_CC=x86_64-none-linux-gnu-gcc
+export OMPI_CXX=x86_64-none-linux-gnu-g++
+export OMPI_FC=x86_64-none-linux-gnu-gfortran
+
+runhpc -c gfort.cfg  --action scrub all
+runhpc -c gfort.cfg -I -l -n 1 -T base --define gputype=gfx90a --define model=omp_target --threads=1 --ranks=2  -i test 532 --rebuild  
+exit
+runhpc -c gfort.cfg -I -l -n 1 -T base --define gputype=gfx90a --define model=omp_target --threads=1 --ranks=2  -i test tiny --rebuild  
+runhpc -c gfort.cfg -I -l -n 1 -T base --define gputype=gfx90a --define model=omp_target --threads=1 --ranks=2  -i ref tiny 
+

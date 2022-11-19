@@ -206,12 +206,10 @@ if [ "$AOMP_PARALLEL_SMOKE" == 1 ]; then
 fi
 # ---------- End parallel logic ----------
 
-# Clean all testing directories
-make clean
-
 # Loop over all directories and make run / make check depending on directory name
 for directory in ./*/; do
   pushd $directory > /dev/null
+  make clean
   path=$(pwd)
   base=$(basename $path)
   # Skip tests that are known failures
