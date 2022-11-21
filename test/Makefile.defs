@@ -157,7 +157,7 @@ ifeq ($(CBL),1)
 endif
 
 OMP_FLAGS += $(EXTRA_OMP_FLAGS)
-OMP_FLAGS += -D__OFFLOAD_ARCH_$(INSTALLED_GPU)__
+OMP_FLAGS += -D__OFFLOAD_ARCH_$(AOMP_GPU)__
 
 ifeq ($(VERBOSE),1)
   $(info    Compilation and linking VERBOSE Mode ON)
