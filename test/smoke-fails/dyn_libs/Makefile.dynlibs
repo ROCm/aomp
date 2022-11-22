@@ -1,0 +1,40 @@
+#===--------- libm/Makefile -----------------------------------------------===
+#
+#                The LLVM Compiler Infrastructure
+#
+# This file is distributed under the University of Illinois Open Source
+# License. See LICENSE.TXT for details.
+#
+#===----------------------------------------------------------------------===
+#
+# Makefile:  Makefile to build static device library as archive of bc files
+#            written by Greg Rodgers
+#
+include ../../Makefile.defs
+
+LIBA      = A
+LIBA      = B
+LIBASRC   = libA
+LIBBSRC   = libB
+
+TMPDIR    = ./build
+CFLAGS  = $(AOMP_CPUTARGET) -fopenmp -fopenmp-targets=$(AOMP_GPUTARGET) \
+            -Xopenmp-target=$(AOMP_GPUTARGET) \
+            -march=$(AOMP_GPU) -O2
+
+#   ---------------------  create dyn libs -------------------
+#
+libA.so : $(LIBASRC).o
+	$(CC) $(CFLAGS) -shared $^ -o $@
+
+libB.so : $(LIBBSRC).o
+	$(CC) $(CFLAGS) -shared $^ -o $@
+
+$(LIBASRC).o: $(LIBASRC).cpp
+	$(CC) $(CFLAGS) -c $^ -o $@
+
+$(LIBBSRC).o: $(LIBBSRC).cpp
+	$(CC) $(CFLAGS) -c $^ -o $@
+
+clean:
+	rm -f *.bc *.ll *.o *.so
