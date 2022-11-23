@@ -32,7 +32,7 @@ AOMP_INSTALL_DIR=${AOMP}_${AOMP_VERSION_STRING}
 # For example, if AOMP_REPOS=$HOME/git/aomp11, then the primary aomp repo
 # is stored in $HOME/git/aomp11/aomp and the mono repo is stored in
 # $HOME/aomp/llvm-project.
-AOMP_REPOS=${AOMP_REPOS:-$HOME/git/aomp11}
+AOMP_REPOS=${AOMP_REPOS:-$HOME/git/aomp4.0}
 
 # Because the source for all repos are tarred for release, we store
 # all the test repositories in a different directory.
@@ -247,7 +247,7 @@ else
 
    # For Integrated ROCm build we do not install to versioned dir and create 
    # a symbolic link.  Instead we install directly to /opt/rocm/aomp
-   AOMP_INSTALL_DIR=${AOMP}
+   AOMP_INSTALL_DIR=${AOMP_INSTALL_DIR:-$HOME/rocm/aomp}
 fi
 
 #  Check the repositories exist and are on the correct branch
