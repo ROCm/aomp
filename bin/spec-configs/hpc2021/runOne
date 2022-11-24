@@ -1,14 +1,12 @@
 #!/bin/bash
 
 set -x
-export AOMP=~/rocm/aomp_16.0-1
-export MPI=/opt/openmpi-4.0.4-newflang
+export AOMP=/usr/lib/aomp_16.0-2
+export MPI=/opt/openmpi-4.1.4
 
 set +x
 . ./shrc
 set -x
-
-#export ROCR_VISIBLE_DEVICES=2
 
 ulimit -s unlimited
 
@@ -19,5 +17,5 @@ export OMPI_CC=clang
 export OMPI_CXX=clang++
 export LD_LIBRARY_PATH=$AOMP/lib:$MPI/lib/
 export PATH=$AOMP/bin:$MPI/bin:$PATH
-runhpc -c amdgpu_clang.cfg -I -l -n 1 -T base --define gputype=gfx90a --define model=omp_target --threads=1 --ranks=1  -i test tiny --rebuild  
+runhpc -c amdgpu_clang.cfg -I -l -n 1 -T base --define gputype=gfx90a --define model=omp_target --threads=1 --ranks=8  -i test,ref tiny --rebuild
 

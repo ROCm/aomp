@@ -19,7 +19,7 @@ ROCM_VERSION=${ROCM_VERSION:-5.3.0}
 
 # Set the AOMP VERSION STRING
 AOMP_VERSION=${AOMP_VERSION:-"16.0"}
-AOMP_VERSION_MOD=${AOMP_VERSION_MOD:-"2"}
+AOMP_VERSION_MOD=${AOMP_VERSION_MOD:-"3"}
 AOMP_VERSION_STRING=${AOMP_VERSION_STRING:-"$AOMP_VERSION-$AOMP_VERSION_MOD"}
 export AOMP_VERSION_STRING AOMP_VERSION AOMP_VERSION_MOD ROCM_VERSION
 
@@ -177,7 +177,7 @@ fi
 
 # Set list of default amdgcn subarchitectures to build
 # Developers may override GFXLIST to shorten build time.
-GFXLIST=${GFXLIST:-"gfx700 gfx701 gfx801 gfx803 gfx900 gfx902 gfx906 gfx908 gfx90a gfx1030 gfx1031 gfx1100 gfx1101 gfx1102 gfx1103"}
+GFXLIST=${GFXLIST:-"gfx700 gfx701 gfx801 gfx803 gfx900 gfx902 gfx906 gfx908 gfx90a gfx90c gfx1030 gfx1031 gfx1100 gfx1101 gfx1102 gfx1103"}
 export GFXLIST
 
 # Calculate the number of threads to use for make
