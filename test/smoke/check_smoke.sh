@@ -93,6 +93,15 @@ path=$(pwd)
 
 cleanup
 
+if [ "$1" == "-clean" ]; then
+  for directory in ./*/; do
+    pushd $directory > /dev/null
+    make clean
+    popd > /dev/null
+  done
+  exit 0
+fi
+
 export OMP_TARGET_OFFLOAD=${OMP_TARGET_OFFLOAD:-MANDATORY}
 echo OMP_TARGET_OFFLOAD=$OMP_TARGET_OFFLOAD
 
