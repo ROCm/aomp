@@ -2,15 +2,29 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define N 8
+#define N 64
 
-//int x;
 int main() {
+  int errors = 0;
+  int x = 0;
+  int device_result[N] = {0};
+  int result[N] = {0};
 
-#pragma omp target parallel for num_threads(8) //uses_allocators(omp_pteam_mem_alloc) allocate(omp_pteam_mem_alloc: x) private(x) 
   for (int i = 0; i < N; i++) {
-    printf("%d\n", omp_get_thread_num());
+    result[i] = 2 * i ;
   }
-  printf("should print 0-7\n");
-  return 0;
+
+#pragma omp target parallel for num_threads(N) uses_allocators(omp_pteam_mem_alloc) allocate(omp_pteam_mem_alloc: x) private(x) map(from: device_result)
+  for (int i = 0; i < N; i++) {
+    x = omp_get_thread_num();    
+    device_result[i] = i + x;
+  }
+
+  for (int i = 0; i < N; i++) {
+    if (result[i] != device_result[i])
+      errors++;
+  }
+  if (errors) fprintf(stderr, "failed\n");
+  return errors;
 }
+
