@@ -28,8 +28,6 @@ function cmake_warning(){
 # Setup AOMP variables
 AOMP=${AOMP:-/usr/lib/aomp}
 
-AOMP_CMAKE=cmake
-
 # Use function to set and test AOMP_GPU
 setaompgpu
 
