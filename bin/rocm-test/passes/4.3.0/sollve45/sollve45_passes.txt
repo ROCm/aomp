@@ -10,7 +10,6 @@ offloading_success.c
 offloading_success.cpp
 offloading_success.F90
 omp_default_device.c
-qmcpack_target_math.c
 test_declare_target_end_declare_target.c
 test_declare_target_extended_list.c
 test_declare_target_to_extended_list.c
