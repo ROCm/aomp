@@ -264,10 +264,10 @@ function kokkos(){
       cd $HOME/$kokkos_build_dir
       ARGS="--timeout 120" update_logs cmd make test
     else
-      echo "Error: Raja build directory not found." >> $log_dir/raja.log 2>&1
+      echo "Error: Kokkos build directory not found." >> $log_dir/kokkos.log 2>&1
     fi
   else
-    echo "Error: Raja make was not successful." >> $log_dir/raja.log 2>&1
+    echo "Error: Kokkos make was not successful." >> $log_dir/kokkos.log 2>&1
   fi
 }
 
