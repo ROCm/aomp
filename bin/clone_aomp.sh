@@ -98,11 +98,12 @@ function list_repo_from_manifest(){
       is_hash=1
       WARNWORD="hash"
       actual_hash=`git branch | awk '/\*/ { print $5; }' | cut -d")" -f1`
+      actual_tag=`git describe --tags --abbrev=0`
       # RHEL 7 'git branch' returns (detached from 123456), try to get hash again.
       if [ "$actual_hash" == "" ] ; then
         actual_hash=`git branch | awk '/\*/ { print $4; }' | cut -d")" -f1`
       fi
-      if [ "$actual_hash" == "$branch_name" ]; then
+      if [ "$actual_tag" == "$branch_name" ]; then
         WARNWORD="tag"
       elif [ "$actual_hash" != "$HASH" ] ; then
           WARNWORD="!BADHASH"
