@@ -102,7 +102,9 @@ function list_repo_from_manifest(){
       if [ "$actual_hash" == "" ] ; then
         actual_hash=`git branch | awk '/\*/ { print $4; }' | cut -d")" -f1`
       fi
-      if [ "$actual_hash" != "$HASH" ] ; then
+      if [ "$actual_hash" == "$branch_name" ]; then
+        WARNWORD="tag"
+      elif [ "$actual_hash" != "$HASH" ] ; then
           WARNWORD="!BADHASH"
       fi
       thiscommit=$actual_hash
