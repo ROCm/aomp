@@ -105,6 +105,7 @@ function list_repo_from_manifest(){
       fi
       if [ "$actual_tag" == "$branch_name" ]; then
         WARNWORD="tag"
+        actual_hash=$thiscommit
       elif [ "$actual_hash" != "$HASH" ] ; then
           WARNWORD="!BADHASH"
       fi
