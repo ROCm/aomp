@@ -781,5 +781,17 @@ aomp (16.0-2) UNRELEASED; urgency=medium
   *   Force synchronous execution of regions controlled via OMPX_FORCE_SYNC_REGIONS.
   *   New environment variable GPU_MAX_HW_QUEUES controls number of HSA queues created, default is 4.
   *      This change actually occurred in 16.0-1 but was not listed in release notes.
+  *
+  * 16.0-3
+  *   Build includes gfx90c, gfx1035, and gfx1036.
+  *   Fix to rocm_agent_enumerator to correctly identify gfx90c.
+  *   Fix issue #435 "abs undefined within device block #435".
+  *   More enhancements to xteam reductions .
+  *   Ignore map clause option with USM.
+  *   Additional support for OMPT functions "get_device_time" and "get_record_type".
+  *   NUM_QUEUES_PER_DEVICE default to 1.
+  *   Fixed clang-build-select-link to honor -fdisable-host-devmem.
+  *   Fixed openmp lib-debug build overwriting release libraries/plugins.
+  *   Updated cmake to 3.22.1.
 
  -- Greg Rodgers <Gregory.Rodgers@amd.com>  Thu, 19 May 2022 23:34:44 -0500

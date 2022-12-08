@@ -9,7 +9,7 @@
 ###########################################################
 
 set -e
-AOMP_VERSION_STRING=${AOMP_VERSION_STRING:-16.0-2}
+AOMP_VERSION_STRING=${AOMP_VERSION_STRING:-16.0-3}
 AOMP_VERSION=${AOMP_VERSION:-16.0}
 #DOCKERX_HOST=${DOCKERX_HOST:-$HOME/dockerx}
 DOCKERX_HOST=$HOME/dockerx
@@ -32,6 +32,8 @@ if [ -f $DOCKERX_HOST/docker-urls.txt ]; then
       url_array["ubuntu1804"]=$line
     elif [[ "$line" =~ "ubuntu20" ]]; then
       url_array["ubuntu2004"]=$line
+    elif [[ "$line" =~ "ubuntu:22" ]]; then
+      url_array["ubuntu2204"]=$line
     elif [[ "$line" =~ "centos7" ]]; then
       url_array["centos7"]=$line
     elif [[ "$line" =~ "centos8" ]]; then
@@ -52,6 +54,8 @@ prereq_array["ubuntu1804"]="apt-get -y update && apt-get install -y git cmake wg
 
 prereq_array["ubuntu2004"]="apt-get -y update && apt-get install -y git cmake wget vim openssl libssl-dev libelf-dev kmod pciutils gcc g++ pkg-config libpci-dev libnuma-dev libffi-dev git python libopenmpi-dev gawk mesa-common-dev libtool python3 texinfo libbison-dev bison flex libbabeltrace-dev python3-pip libncurses5-dev liblzma-dev python3-setuptools python3-dev libpython3.8-dev libudev-dev libgmp-dev debianutils devscripts cli-common-dev rsync sudo && $pip_install"
 
+prereq_array["ubuntu2204"]="apt-get -y update && apt-get install -y git cmake wget vim openssl libssl-dev libelf-dev kmod pciutils gcc g++ pkg-config libpci-dev libnuma-dev libffi-dev git libopenmpi-dev gawk mesa-common-dev libtool python3 texinfo libbison-dev bison flex libbabeltrace-dev python3-pip libncurses5-dev liblzma-dev python3-setuptools python3-dev libpython3.10-dev libudev-dev libgmp-dev debianutils devscripts cli-common-dev rsync sudo && $pip_install"
+
 prereq_array["centos7"]="yum install -y gcc-c++ git cmake wget vim openssl-devel elfutils-libelf-devel pciutils-devel numactl-devel libffi-devel mesa-libGL-devel libtool texinfo bison flex ncurses-devel expat-devel xz-devel libbabeltrace-devel gmp-devel python3 python3-pip python36-devel python36-setuptools rpm-build rsync && $pip_install"
 
 prereq_array["centos8"]="yum install -y dnf-plugins-core && yum config-manager --set-enabled PowerTools && yum install -y gcc-c++ git cmake wget vim openssl-devel elfutils-libelf-devel pciutils-devel numactl-devel libffi-devel mesa-libGL-devel libtool texinfo bison flex ncurses-devel expat-devel xz-devel libbabeltrace-devel gmp-devel rpm-build rsync && $pip_install"
@@ -59,10 +63,10 @@ prereq_array["centos8"]="yum install -y dnf-plugins-core && yum config-manager -
 prereq_array["sles15"]="zypper install -y which cmake wget vim libopenssl-devel elfutils libelf-devel git pciutils-devel python-base libffi-devel gcc gcc-c++ libnuma-devel openmpi2-devel Mesa-libGL-devel libquadmath0 libtool texinfo bison flex babeltrace-devel python3 python3-pip python3-devel python3-setuptools makeinfo ncurses-devel libexpat-devel xz-devel gmp-devel rpm-build rsync; $pip_install"
 
 # Some prep
-default_os="ubuntu1804 ubuntu2004 centos7 centos8 sles15"
+default_os="ubuntu1804 ubuntu2004 ubuntu2204 centos7 centos8 sles15"
 OS=${OS:-$default_os}
 export DOCKER_HOME=/home/release; export DOCKER_AOMP=/usr/lib/aomp; export DOCKER_AOMP_REPOS=/home/release/git/aomp$AOMP_VERSION
-exports="HOME=/home/release; export AOMP=/usr/lib/aomp; export AOMP_REPOS=/home/release/git/aomp$AOMP_VERSION; export AOMP_EXTERNAL_MANIFEST=1"
+exports="HOME=/home/release; export AOMP=/usr/lib/aomp; export AOMP_REPOS=/home/release/git/aomp$AOMP_VERSION; export AOMP_EXTERNAL_MANIFEST=1;"
 
 function getcontainer(){
   echo docker ps -aqf "name=$docker_name"
@@ -162,7 +166,7 @@ do
       echo ""
       echo "OS=<operating system/s> ./build_aomp_docker.sh [-option]"
       echo ""
-      echo "OS options: ubuntu1804, ubuntu2004, centos7, centos8, sles15"
+      echo "OS options: ubuntu1804, ubuntu2004, ubuntu2204, centos7, centos8, sles15"
       echo "  default:  all"
       echo
       echo "options(accepts one at a time): -s (setup), -b (build), -p (package), -h (help)"

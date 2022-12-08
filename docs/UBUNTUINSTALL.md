@@ -3,8 +3,13 @@ AOMP will install to /usr/lib/aomp. The AOMP environment variable will automatic
 
 On Ubuntu 20.04,  run these commands:
 ```
-wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_16.0-2/aomp_Ubuntu2004_16.0-2_amd64.deb
-sudo dpkg -i aomp_Ubuntu2004_16.0-2_amd64.deb
+wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_16.0-3/aomp_Ubuntu2004_16.0-3_amd64.deb
+sudo dpkg -i aomp_Ubuntu2004_16.0-3_amd64.deb
+```
+On Ubuntu 22.04,  run these commands:
+```
+wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_16.0-3/aomp_Ubuntu2204_16.0-3_amd64.deb
+sudo dpkg -i aomp_Ubuntu2204_16.0-3_amd64.deb
 ```
 
 The AOMP bin directory (which includes the standard clang and llvm binaries) is not intended to be in your PATH for typical operation.
@@ -24,7 +29,7 @@ Update and Install:
 sudo apt update
 sudo apt install amdgpu-dkms
 sudo reboot
-sudo usermod -a -G render $USER
+sudo usermod -a -G render video $USER
 ```
 ### NVIDIA CUDA Driver
 The CUDA installation is optional.
