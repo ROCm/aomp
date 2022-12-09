@@ -98,6 +98,7 @@ mixed="-DQMC_MIXED_PRECISION="
 mpi="-DQMC_MPI="
 cc="-DCMAKE_C_COMPILER="
 cxx="-DCMAKE_CXX_COMPILER="
+qmc_data="-DQMC_DATA="
 
 declare -A opts_array
 # Default to:
@@ -107,6 +108,13 @@ opts_array[$mixed]=OFF
 opts_array[$mpi]=OFF
 opts_array[$cc]=$AOMP/bin/clang
 opts_array[$cxx]=$AOMP/bin/clang++
+
+if [[ -z "${QMC_DATA}" ]]; then
+  echo "QMC_DATA not set: will not select performance tests"
+else
+  opts_array[$qmc_data]=$QMC_DATA
+fi
+
 
 # Process args for cmake options
 while [ "$1" != "" ];

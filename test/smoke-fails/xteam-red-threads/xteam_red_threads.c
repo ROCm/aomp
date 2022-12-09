@@ -110,16 +110,16 @@ int main()
 }
 
 /// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2 ConstWGSize:128  args: 4 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 128)
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2 ConstWGSize:256  args: 4 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 256)
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:8 ConstWGSize:512  args: 6 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 512)
 /// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2 ConstWGSize:128  args: 4 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 128)
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2 ConstWGSize:128  args: 4 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 128)
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:8 ConstWGSize:256  args: 6 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 256)
 
 /// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2 ConstWGSize:128  args: 4 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 128)
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2 ConstWGSize:256  args: 4 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 256)
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:8 ConstWGSize:512  args: 6 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 512)
 /// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2 ConstWGSize:128  args: 4 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 128)
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2 ConstWGSize:128  args: 4 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 128)
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:8 ConstWGSize:256  args: 6 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 256)
 
 /// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2 ConstWGSize:128  args: 5 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 128)
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2 ConstWGSize:256  args: 5 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 256)
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:8 ConstWGSize:512  args: 9 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 512)
 /// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2 ConstWGSize:128  args: 5 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 128)
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2 ConstWGSize:128  args: 5 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 128)
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:8 ConstWGSize:256  args: 9 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 256)

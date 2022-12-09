@@ -1,4 +1,4 @@
-# Source Install V 16.0-3
+# Source Install V 16.0-4
 
 Build and install from sources is possible.  However, the source build for AOMP is complex for several reasons.
 - Many repos are required.
@@ -8,7 +8,15 @@ Build and install from sources is possible.  However, the source build for AOMP 
 
 ## Source Build Prerequisites
 
-To build AOMP from source you must: 1. Install certain distribution packages, 2. Build CMake 3.13.4 from source 3. ensure the KFD kernel module is installed and operating, 4. create the Unix video group, and 5. install spack if required. [This link](SOURCEINSTALL_PREREQUISITE.md) provides instructions to satisfy all the AOMP source build dependencies.
+To build and test AOMP from source you must:
+```
+1. Install certain distribution packages,
+2. Build CMake 3.22.1 from source. This can be done with ./build_prereq.sh,
+3. Ensure the KFD kernel module is installed and operating,
+4. Create the Unix video group, and
+5. Install spack if required.
+```
+[This link](SOURCEINSTALL_PREREQUISITE.md) provides detailed instructions to satisfy all the AOMP source build requirements.
 
 ## Clone and Build AOMP
 
@@ -32,14 +40,14 @@ Here are the commands to do a source build of AOMP:
 ```
 
 The development version is the next version to be released.  It is possible that the development version is broken due to regressions that often occur during development.
-These commands will build a previous release of AOMP such as aomp-16.0-2.<br>
+These commands will build a previous release of AOMP such as aomp-16.0-3.<br>
 <b>Release Branch:</b>
 ```
    export AOMP_VERSION=16.0
    export AOMP_REPOS=$HOME/git/aomp${AOMP_VERSION}
    mkdir -p $AOMP_REPOS
    cd $AOMP_REPOS
-   git clone -b aomp-16.0-2 https://github.com/ROCm-Developer-Tools/aomp
+   git clone -b aomp-16.0-3 https://github.com/ROCm-Developer-Tools/aomp
 ```
 <b>Clone and build:</b>
 ```
@@ -61,7 +69,7 @@ The above command will produce output like this showing you the location and bra
 MANIFEST FILE: ~/git/aomp16.0/aomp/bin/../manifests/aomp_16.0.xml
 
 <b>Release Branch:</b><br>
-MANIFEST FILE: ~/git/aomp16.0/aomp/bin/../manifests/aomp_16.0-2.xml
+MANIFEST FILE: ~/git/aomp16.0/aomp/bin/../manifests/aomp_16.0-3.xml
 ```
   repo src       branch                 path                 repo name    last hash    updated           commitor         for author
   --------       ------                 ----                 ---------    ---------    -------           --------         ----------
