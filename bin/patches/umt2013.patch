@@ -1,0 +1,19 @@
+diff -ruN ./Teton/communication/DomainNeighborMapInst.cc ./UMT2013-20140204.patched/Teton/communication/DomainNeighborMapInst.cc
+--- ./Teton/communication/DomainNeighborMapInst.cc	2013-03-27 18:37:50.000000000 -0400
++++ ./UMT2013-20140204.patched/Teton/communication/DomainNeighborMapInst.cc	2022-12-05 05:36:14.210162097 -0500
+@@ -3,5 +3,5 @@
+ using namespace Communication;
+ using namespace Geometry;
+ 
+-template class DomainNeighborMap< FaceBase >;
++template class Communication::DomainNeighborMap< FaceBase >;
+  
+diff -ruN ./Teton/geom/Region/RegionInst.cc ./UMT2013-20140204.patched/Teton/geom/Region/RegionInst.cc
+--- ./Teton/geom/Region/RegionInst.cc	2013-03-27 18:37:50.000000000 -0400
++++ ./UMT2013-20140204.patched/Teton/geom/Region/RegionInst.cc	2022-12-05 05:36:25.149935713 -0500
+@@ -2,4 +2,4 @@
+ #include "Region.cc"
+ using namespace Geometry;
+ 
+-template class Region< MeshBase >;
++template class Geometry::Region< MeshBase >;
