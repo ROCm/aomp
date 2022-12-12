@@ -72,9 +72,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
      rm -rf $BUILD_DIR/build/rocm-cmake
   fi
  
-  VDI_ROOT=$AOMP_REPOS/$AOMP_VDI_REPO_NAME
   export CMAKE_PREFIX_PATH="""$AOMP_INSTALL_DIR"""
-  #MYCMAKEOPTS="-DCMAKE_INSTALL_PREFIX=$AOMP_INSTALL_DIR -DCMAKE_MODULE_PATH=$VDI_ROOT/cmake/modules -DCMAKE_PREFIX_PATH="$CMAKE_PREFIX_PATH" "
   MYCMAKEOPTS="-DCMAKE_INSTALL_PREFIX=$AOMP_INSTALL_DIR"
 
   mkdir -p $BUILD_DIR/build/rocm-cmake
