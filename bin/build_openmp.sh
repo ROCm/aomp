@@ -171,6 +171,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
       -DLIBOMP_CPPFLAGS='-O0' \
       -DLIBOMP_OMPD_SUPPORT=ON \
       -DLIBOMP_OMPT_DEBUG=ON \
+      -DLLVM_LIBDIR_SUFFIX=-debug \
       -DOPENMP_SOURCE_DEBUG_MAP="\""-fdebug-prefix-map=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp=$ROCM_INSTALL_PATH/llvm/lib-debug/src/openmp"\"""
 
       # Only use CMAKE_CXX/C_FLAGS on non-asan builds as these will overwrite the asan flags
