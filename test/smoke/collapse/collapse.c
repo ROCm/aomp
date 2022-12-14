@@ -3,6 +3,7 @@
 #include <unistd.h>
 
 void foobar(int *a, int *b, int *c, int N, int i) {
+#pragma omp parallel for
      for(int j=0;j<N;j++){
       c[i*N+j]=a[i]*b[j];
      }
