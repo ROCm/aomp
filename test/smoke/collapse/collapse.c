@@ -2,12 +2,17 @@
 #include "assert.h"
 #include <unistd.h>
 
-void vmul(int*a, int*b, int*c, int N){
-#pragma omp target map(to: a[0:N],b[0:N]) map(from:c[0:N*N])
-#pragma omp teams distribute parallel for collapse(2)
-   for(int i=0;i<N;i++)
+void foobar(int *a, int *b, int *c, int N, int i) {
      for(int j=0;j<N;j++){
       c[i*N+j]=a[i]*b[j];
+     }
+}
+
+void vmul(int*a, int*b, int*c, int N){
+#pragma omp target map(to: a[0:N],b[0:N]) map(from:c[0:N*N])
+#pragma omp teams distribute parallel for 
+   for(int i=0;i<N;i++) {
+	   foobar(a,b,c,N,i);
    }
 }
 
