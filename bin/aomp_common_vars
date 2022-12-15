@@ -425,6 +425,7 @@ function setaompgpu (){
       detected_gpu=$($AOMP/bin/mygpu)
     elif [ -a $AOMP/bin/amdgpu-arch ]; then
       detected_gpu=$($AOMP/bin/amdgpu-arch)
+      detected_gpu=$(echo $detected_gpu | awk '{print $1,$5}')
     else
       detected_gpu=$($AOMP/../bin/mygpu)
     fi

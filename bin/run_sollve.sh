@@ -123,7 +123,7 @@ else
      export MY_SOLLVE_FLAGS="$MY_SOLLVE_FLAGS -fopenmp-version=45"
   fi
   echo "       The full make command:"
-  echo " make CC=$AOMP/bin/clang CXX=$AOMP/bin/clang++ FC=$AOMP/bin/flang CFLAGS="-lm $MY_SOLLVE_FLAGS" CXXFLAGS="$MY_SOLLVE_FLAGS" FFLAGS="$MY_SOLLVE_FLAGS" LOG=1 LOG_ALL=1 VERBOSE_TESTS=1 VERBOSE=1 OMP_VERSION=$this_omp_version SOURCES=$single_case all"
+  echo " make CC=$AOMP/bin/clang CXX=$AOMP/bin/clang++ FC=$AOMP/bin/flang CFLAGS=\"-lm $MY_SOLLVE_FLAGS\" CXXFLAGS=\"$MY_SOLLVE_FLAGS\" FFLAGS=\"$MY_SOLLVE_FLAGS\" LOG=1 LOG_ALL=1 VERBOSE_TESTS=1 VERBOSE=1 OMP_VERSION=$this_omp_version SOURCES=$single_case all"
 make CC=$AOMP/bin/clang CXX=$AOMP/bin/clang++ FC=$AOMP/bin/flang CFLAGS="-lm $MY_SOLLVE_FLAGS" CXXFLAGS="$MY_SOLLVE_FLAGS" FFLAGS="$MY_SOLLVE_FLAGS" LOG=1 LOG_ALL=1 VERBOSE_TESTS=1 VERBOSE=1 OMP_VERSION=$this_omp_version SOURCES=$single_case all
   rc=$?
   echo
@@ -135,7 +135,7 @@ make CC=$AOMP/bin/clang CXX=$AOMP/bin/clang++ FC=$AOMP/bin/flang CFLAGS="-lm $MY
      echo "       If compile worked, you may rerun the binary with this command:"
      echo " $AOMP_REPOS_TEST/$AOMP_SOLVV_REPO_NAME/bin/${single_case}.o"
   else
-     echo "       Expected binary $AOMP_REPOS_TEST/$AOMP_SOLVV_REPO_NAME/bin/${single_case}.o does NOT exists!"
+     echo "       Expected binary $AOMP_REPOS_TEST/$AOMP_SOLVV_REPO_NAME/bin/${single_case}.o does NOT exist!"
   fi
   echo
   popd
