@@ -6,7 +6,7 @@ TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 RUNENV      += LIBOMPTARGET_KERNEL_TRACE=1
 
-CFLAGS       += -O3 -fno-openmp-target-ignore-env-vars
+CFLAGS       += -fopenmp-target-fast -fno-openmp-target-ignore-env-vars
 CLANG        = clang
 OMP_BIN      = $(AOMP)/bin/$(CLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
