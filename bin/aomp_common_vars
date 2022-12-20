@@ -422,9 +422,9 @@ function setaompgpu (){
     echo Set AOMP_GPU with rocm_agent_enumerator.
     detected_gpu=$($AOMP/../bin/rocm_agent_enumerator | grep -m 1 -E gfx[^0]{1}.{2})
   else
-    echo Set AOMP_GPU with mygpu.
-    if [ -a $AOMP/bin/mygpu ]; then
-      detected_gpu=$($AOMP/bin/mygpu)
+    echo Set AOMP_GPU with rocm_agent_enumerator.
+    if [ -a $AOMP/bin/rocm_agent_enumerator ]; then
+      detected_gpu=$($AOMP/bin/rocm_agent_enumerator | grep -m 1 -E gfx[^0]{1}.{2})
     elif [ -a $AOMP/bin/amdgpu-arch ]; then
       detected_gpu=$($AOMP/bin/amdgpu-arch)
       detected_gpu=$(echo $detected_gpu | awk '{print $1,$5}')
