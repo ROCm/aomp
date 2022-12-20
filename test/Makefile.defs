@@ -70,7 +70,12 @@ else
         INSTALLED_GPU = $(shell $(AOMP)/bin/offload-arch -c | grep -oP gfx.+?\(?=:\))
       # Default to rocm_agent_enumerator. Returns first GPU in list.
       else
-        INSTALLED_GPU = $(shell $(AOMP)/bin/rocm_agent_enumerator | grep -m 1 -E gfx[^0]{1}.{2})
+        ifneq ("$(wildcard $(AOMP)/bin/rocm_agent_enumerator)","")
+          INSTALLED_GPU = $(shell $(AOMP)/bin/rocm_agent_enumerator | grep -m 1 -E gfx[^0]{1}.{2})
+        else
+	  # in case AOMP is trunk build without rocm_agent_enumerator, try /opt/rocm/bin
+          INSTALLED_GPU = $(shell /opt/rocm/bin/rocm_agent_enumerator | grep -m 1 -E gfx[^0]{1}.{2})
+        endif
       endif
     endif
   endif
