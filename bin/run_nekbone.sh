@@ -9,6 +9,7 @@ thisdir=`dirname $realpath`
 . $thisdir/aomp_common_vars
 # --- end standard header ----
 
+export CCC_OVERRIDE_OPTIONS="+-O1" 
 if [ "$1" == "rerun" ]; then
   cd $AOMP_REPOS_TEST/Nekbone
   cd test/nek_gpu1
@@ -50,4 +51,5 @@ else
     tail -7 nek.log
   fi
 fi
+echo "running Nekbone at -O1, AAPointer issue"
 exit $ret
