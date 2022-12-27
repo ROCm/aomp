@@ -210,7 +210,7 @@ if [ "$1" == "install" ] ; then
    cd $BUILD_DIR/build/openmp
    echo
    echo " -----Installing to $INSTALL_OPENMP/lib ----- "
-   $SUDO make install
+   $SUDO make -j $AOMP_JOB_THREADS install
    if [ $? != 0 ] ; then
       echo "ERROR make install failed "
       exit 1
@@ -223,7 +223,7 @@ if [ "$1" == "install" ] ; then
       [[ ! -d $_ompd_dir ]] && _ompd_dir="$AOMP_INSTALL_DIR/share/gdb/python/ompd"
       echo
       echo " -----Installing to $INSTALL_OPENMP/lib-debug ---- " 
-      $SUDO make install 
+      $SUDO make -j $AOMP_JOB_THREADS install
       if [ $? != 0 ] ; then 
          echo "ERROR make install failed "
          exit 1
