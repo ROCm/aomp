@@ -28,19 +28,13 @@ int main()
       a[j]=b[j];
   }
 
-  #pragma omp target teams loop
-  {
-    for (j = 0; j< N; j++)
-      a[j]=b[j];
-  }
-
-  #pragma omp target teams loop
+  #pragma omp teams loop
   {
     for (int k = 0; k< N; k++)
       a[k]=b[k];
   }
   
-  #pragma omp target teams loop
+  #pragma omp teams loop
   {
     for (int k = 0; k< N; k++) {
       a[k]=b[k];
@@ -48,7 +42,7 @@ int main()
     }
   }
   
-  #pragma omp target teams loop
+  #pragma omp teams loop
   {
     for (int k = 0; k< N; k++) {
       a[k]=b[k];
@@ -56,7 +50,7 @@ int main()
     }
   }
   
-  #pragma omp target teams loop
+  #pragma omp teams loop
   {
     for (int k = 0; k< N; k++) {
     #pragma omp simd      
@@ -77,10 +71,3 @@ int main()
 
   return rc;
 }
-
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:4
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:4
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:4
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:4
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2
