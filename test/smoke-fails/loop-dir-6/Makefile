@@ -1,7 +1,7 @@
 include ../../Makefile.defs
 
-TESTNAME     = loop_dir_2
-TESTSRC_MAIN = loop_dir_2.c
+TESTNAME     = loop_dir_6
+TESTSRC_MAIN = loop_dir_6.c
 TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 # RUNENV      += LIBOMPTARGET_KERNEL_TRACE=1
@@ -14,5 +14,3 @@ CC           = $(OMP_BIN) $(VERBOSE)
 #"-\#\#\#"
 
 include ../Makefile.rules
-# run: $(TESTNAME)
-# 	$(RUNENV) ./$(TESTNAME) 2>&1 | $(AOMP)/bin/FileCheck $(TESTSRC_MAIN)
