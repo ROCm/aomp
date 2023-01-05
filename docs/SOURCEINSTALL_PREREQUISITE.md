@@ -7,6 +7,9 @@
 ```
    sudo apt-get install gcc g++ pkg-config libpci-dev libnuma-dev libffi-dev git python libopenmpi-dev gawk mesa-common-dev libtool libdrm-amdgpu1 libdrm-dev
 
+   # ubuntu 22 distributions seem to be missing libstdc++12
+   sudo apt-get install  libstdc++-12-dev
+   
    # Additional packages used by rocgdb
    sudo apt-get install python3 texinfo libbison-dev bison flex libbabeltrace-dev python3-pip libncurses5-dev liblzma-dev python3-setuptools python3-dev libpython3.8-dev libudev-dev libgmp-dev
 
