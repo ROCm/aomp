@@ -51,10 +51,10 @@ int main()
   return rc;
 }
 
-/// CHECK: Callback Target
-/// CHECK-SAME: device_num=0
 /// CHECK: Init: device_num=0
 /// CHECK: Load: device_num:0
+/// CHECK: Callback Target
+/// CHECK-SAME: device_num=0
 /// CHECK: Callback DataOp
 /// CHECK-SAME: optype=1
 /// CHECK-NOT: src_device_num=0
