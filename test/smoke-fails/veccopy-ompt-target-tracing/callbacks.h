@@ -66,7 +66,7 @@ static ompt_flush_trace_t ompt_flush_trace = 0;
 static ompt_stop_trace_t ompt_stop_trace = 0;
 static ompt_get_record_ompt_t ompt_get_record_ompt = 0;
 static ompt_advance_buffer_cursor_t ompt_advance_buffer_cursor = 0;
-
+static ompt_get_record_type_t ompt_get_record_type_fn = 0;
 // OMPT callbacks
 
 // Trace record callbacks
@@ -97,6 +97,10 @@ static void on_ompt_callback_buffer_complete (
   ompt_buffer_cursor_t current = begin;
   while (status) {
     ompt_record_ompt_t *rec = ompt_get_record_ompt(buffer, current);
+
+    if (ompt_get_record_type_fn(buffer, current) != ompt_record_ompt) {
+      printf("WARNING: received non-ompt type buffer object\n");
+    }
     print_record_ompt(rec);
     status = ompt_advance_buffer_cursor(NULL, /* TODO device */
 					buffer,
@@ -155,6 +159,11 @@ static void on_ompt_callback_device_initialize
   ompt_stop_trace = (ompt_stop_trace_t) lookup("ompt_stop_trace");
   ompt_get_record_ompt = (ompt_get_record_ompt_t) lookup("ompt_get_record_ompt");
   ompt_advance_buffer_cursor = (ompt_advance_buffer_cursor_t) lookup("ompt_advance_buffer_cursor");
+
+  ompt_get_record_type_fn = (ompt_get_record_type_t) lookup("ompt_get_record_type");
+  if (!ompt_get_record_type_fn) {
+    printf("WARNING: No function ompt_get_record_type found in device callbacks\n");
+  }
 
   set_trace_ompt();
   
