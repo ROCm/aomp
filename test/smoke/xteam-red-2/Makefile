@@ -6,6 +6,8 @@ TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 RUNENV      += LIBOMPTARGET_KERNEL_TRACE=1
 
+TESTCMD      = ./$(TESTNAME) 2>&1 | $(AOMP)/bin/FileCheck $(TESTSRC_MAIN)
+
 CFLAGS       += -fopenmp-target-fast
 CLANG        = clang
 OMP_BIN      = $(AOMP)/bin/$(CLANG)
