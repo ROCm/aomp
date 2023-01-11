@@ -30,10 +30,11 @@ each component build script with the name build_\<component name\>.sh .
 |            |           |                                        |
 | roct       |Latest ROCm| $HOME/git/aomp16.0/roct-thunk-interfaces | [roct-thunk-interfaces](https://github.com/radeonopencompute/roct-thunk-interface)
 | rocr       |Latest ROCm| $HOME/git/aomp16.0/rocr-runtime        | [rocr-runtime](https://github.com/radeonopencompute/rocr-runtime)
-| vdi        |Latest ROCm| $HOME/git/aomp16.0/vdi                 | [ROCclr](https://github.com/ROCm-Developer-Tools/ROCclr)
+| hipamd     |Latest ROCm| $HOME/git/aomp16.0/hipamd              | [hipamd](https://github.com/ROCm-Developer-Tools/hipamd)
+|            |Latest ROCm| $HOME/git/aomp16.0/hip                 | [hip](https://github.com/ROCm-Developer-Tools/hip)
+|            |Latest ROCm| $HOME/git/aomp16.0/ROCclr              | [ROCclr](https://github.com/ROCm-Developer-Tools/ROCclr)
+|            |Latest ROCm| $HOME/git/aomp16.0/ROCm-OpenCL-Runtime | [ocl](https://github.com/radeonopencompute/ROCm-OpenCL-Runtime)
 | comgr      |Latest ROCm| $HOME/git/aomp16.0/rocm-compilersupport| [comgr](https://github.com/radeonopencompute/rocm-compilersupport)
-| hipvdi     |Latest ROCm| $HOME/git/aomp16.0/hip-on-vdi          | [hipvdi](https://github.com/ROCm-Developer-Tools/hip)
-| ocl        |Latest ROCm| $HOME/git/aomp16.0/opencl-on-vdi       | [ocl](https://github.com/radeonopencompute/ROCm-OpenCL-Runtime)
 | libdevice  |Latest ROCm| $HOME/git/aomp16.0/rocm-device-libs    | [rocm-device-libs](https://github.com/radeonopencompute/rocm-device-libs)
 | rocminfo   |Latest ROCm| $HOME/git/aomp16.0/rocminfo            | [rocminfo](https://github.com/radeonopencompute/rocminfo)
 | rocdbgapi  |Latest ROCm| $HOME/git/aomp16.0/ROCdbgapi           | [rocdbgapi](https://github.com/ROCm-Developer-Tools/ROCdbgapi)
@@ -60,7 +61,7 @@ These are some important environment variables and their default values.
 | AOMP_REPOS            | $HOME/git/aomp16.0   | The base directory for all AOMP build repositories
 | AOMP_STANDALONE_BUILD | 1                  | Build all components, do NOT use installed ROCm
 | AOMP_VERSION          | 16.0               | Clang version.
-| AOMP_VERSION_MOD      | 3                  | This implies the next release will be AOMP_16.0-3.
+| AOMP_VERSION_MOD      | 4                  | This implies the next release will be AOMP_16.0-4.
 | AOMP_VERSION_STRING   | $AOMP_VERSION-$AOMP_VERSION_MOD |
 | GFXLIST               | gfx700 gfx701 gfx801 gfx803     | List of AMDGPU gpus to build for
 |                       | gfx900 gfx902 gfx906 gfx908     |
@@ -157,14 +158,11 @@ build_project.sh         -  Builds llvm, lld, and clang components.
 build_libdevice.sh       -  Builds the rocdl device bc libraries from rocm-device-libs.
 build_comgr.sh           -  Builds the code object manager (needs rocm-device-libs).
 build_rocminfo.sh        -  Builds the rocminfo utilities to support hip.
-build_vdi.sh             -  Builds the hip interoperability layer ROCclr.
-build_hipvdi.sh          -  Builds the hip host runtime using ROCclr.
 build_extras.sh          -  Builds hostcall, libm, and utils all in aomp-extras repo.
 build_openmp.sh          -  Builds the OpenMP libraries and device RTL.
 build_pgmath.sh          -  Builds the pgmath support for flang.
 build_flang.sh           -  Builds flang for aomp.
 build_flang_runtime.sh   -  Builds the flang runtime for aomp.
-build_ocl.sh             -  Builds OpenCL runtime.
 build_rocdbgapi.sh       -  Builds ROCm Debugger API.
 build_gdb.sh             -  Builds ROC gdb.
 build_roctracer.sh       -  Builds ROC gdb. UNDER DEVELOPMENT
@@ -187,12 +185,15 @@ any fails occur.
    # AOMP_STANDALONE_BUILD==0 only installs openmp, extras, pgmath, flang, flang_runtime.
 
    ./build_prereq.sh
+   ./build_prereq.sh install
+   ./build_rocm-cmake.sh
+   ./build_rocm-cmake.sh install
+   ./build_project.sh
+   ./build_project.sh install
    ./build_roct.sh
    ./build_roct.sh install
    ./build_rocr.sh
    ./build_rocr.sh install
-   ./build_project.sh
-   ./build_project.sh install
    ./build_libdevice.sh
    ./build_libdevice.sh install
    ./build_openmp.sh
@@ -203,8 +204,6 @@ any fails occur.
    ./build_comgr.sh install
    ./build_rocminfo.sh
    ./build_rocminfo.sh install
-   ./build_rocm-cmake.sh
-   ./build_rocm-cmake.sh install
 
    # The components pgmath, flang, and flang_runtime all use the flang repository.
    ./build_pgmath.sh
@@ -246,17 +245,17 @@ The install location is defined by the $AOMP environment variable. The value of 
 That is, the physical installation will be in directory name formed by concatonating the version string to the value of $AOMP.
 The "build_project.sh install" script will make a symbolic link from the physical directory to the symbolic directory $AOMP.
 The default value for AOMP is $HOME/rocm/aomp.
-For example, when building AOMP version 16.0-2 the install scripts will put all files and directories
-in $HOME/rocm/aomp_16.0-2 and create a symbolic link as follows:
+For example, when building AOMP version 16.0-3 the install scripts will put all files and directories
+in $HOME/rocm/aomp_16.0-3 and create a symbolic link as follows:
 
 ```
-ln -sf ${AOMP}_16.0-2 ${AOMP}
+ln -sf ${AOMP}_16.0-3 ${AOMP}
 ```
 All testing for AOMP uses the environment variable AOMP to locate the installation. This makes it easy to switch between versions of AOMP for testing by simply changing the environment variable AOMP. You do NOT need to change the symbolic link.
-For example, if the aomp symbolic link currently points to aomp_16.0-2 and you want to test aomp_16.0-1, do this:
+For example, if the aomp symbolic link currently points to aomp_16.0-3 and you want to test aomp_16.0-2, do this:
 
 ```
-export AOMP=$HOME/rocm/aomp_16.0-1
+export AOMP=$HOME/rocm/aomp_16.0-2
 ```
 
 The aomp package installs in /usr/lib/aomp_\<version_string\> and symlinks /usr/lib/aomp to the versioned directory. To test the installed package, set AOMP to /usr/lib/aomp or /usr/lib/aomp_\<version_string\>.

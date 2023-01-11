@@ -1,0 +1,9 @@
+#!/bin/sh
+make clean
+set PXM=omp_offloading
+export PXM=omp_offloading
+make clean
+make CLASS=A
+export OMP_TARGET_OFFLOAT=DEFAULT
+export LIBOMPTARGET_KERNEL_TRACE=2
+./mg.A.x >& out-mg-mi100-class${c}.txt

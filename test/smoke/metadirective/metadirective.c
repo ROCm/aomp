@@ -85,7 +85,7 @@ int check_device_isa_feature_selector() {
   #pragma omp target map(tofrom: threadCount)
   {
     #pragma omp metadirective          \
-      when(device = {isa("flat-address-space")}: parallel) \
+      when(device = {isa("dl-insts")}: parallel) \
       default(single)
 
     threadCount = omp_get_num_threads();

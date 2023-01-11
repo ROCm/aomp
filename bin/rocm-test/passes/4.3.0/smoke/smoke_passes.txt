@@ -31,7 +31,6 @@ complex2
 data_enter_issue01
 data_issue_59
 data_share1
-data_share2
 decl_map_targ
 decl_targ
 declare_target_pointer
@@ -158,7 +157,6 @@ omp_wtime
 pfspecifier
 pfspecifier_str
 printf_parallel_for_target
-red_bug_51
 reduc_map_prob
 reduce
 reduction

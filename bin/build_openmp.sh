@@ -142,6 +142,7 @@ $AOMP_ORIGIN_RPATH \
 -DLIBOMP_CPPFLAGS='-O0' \
 -DLIBOMP_OMPD_SUPPORT=ON \
 -DLIBOMP_OMPT_DEBUG=ON \
+-DLLVM_LIBDIR_SUFFIX=-debug \
 -DCMAKE_CXX_FLAGS=-g -DCMAKE_C_FLAGS=-g \
 -DOPENMP_SOURCE_DEBUG_MAP="\""-fdebug-prefix-map=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp=$_ompd_dir/src/openmp"\"" "
 
@@ -209,7 +210,7 @@ if [ "$1" == "install" ] ; then
    cd $BUILD_DIR/build/openmp
    echo
    echo " -----Installing to $INSTALL_OPENMP/lib ----- "
-   $SUDO make install
+   $SUDO make -j $AOMP_JOB_THREADS install
    if [ $? != 0 ] ; then
       echo "ERROR make install failed "
       exit 1
@@ -222,7 +223,7 @@ if [ "$1" == "install" ] ; then
       [[ ! -d $_ompd_dir ]] && _ompd_dir="$AOMP_INSTALL_DIR/share/gdb/python/ompd"
       echo
       echo " -----Installing to $INSTALL_OPENMP/lib-debug ---- " 
-      $SUDO make install 
+      $SUDO make -j $AOMP_JOB_THREADS install
       if [ $? != 0 ] ; then 
          echo "ERROR make install failed "
          exit 1

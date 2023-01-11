@@ -1,2 +1,1 @@
-test_target_data_map_to_array_sections.F90
 test_target_teams_distribute_parallel_for_devices.c

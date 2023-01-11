@@ -19,7 +19,7 @@ ROCM_VERSION=${ROCM_VERSION:-5.3.0}
 
 # Set the AOMP VERSION STRING
 AOMP_VERSION=${AOMP_VERSION:-"16.0"}
-AOMP_VERSION_MOD=${AOMP_VERSION_MOD:-"3"}
+AOMP_VERSION_MOD=${AOMP_VERSION_MOD:-"4"}
 AOMP_VERSION_STRING=${AOMP_VERSION_STRING:-"$AOMP_VERSION-$AOMP_VERSION_MOD"}
 export AOMP_VERSION_STRING AOMP_VERSION AOMP_VERSION_MOD ROCM_VERSION
 
@@ -177,7 +177,7 @@ fi
 
 # Set list of default amdgcn subarchitectures to build
 # Developers may override GFXLIST to shorten build time.
-GFXLIST=${GFXLIST:-"gfx700 gfx701 gfx801 gfx803 gfx900 gfx902 gfx906 gfx908 gfx90a gfx90c gfx1030 gfx1031 gfx1100 gfx1101 gfx1102 gfx1103"}
+GFXLIST=${GFXLIST:-"gfx700 gfx701 gfx801 gfx803 gfx900 gfx902 gfx906 gfx908 gfx90a gfx90c gfx1030 gfx1031 gfx1035 gfx1036 gfx1100 gfx1101 gfx1102 gfx1103"}
 export GFXLIST
 
 # Calculate the number of threads to use for make
@@ -208,11 +208,7 @@ AOMP_PROJECT_REPO_NAME=${AOMP_PROJECT_REPO_NAME:-llvm-project}
 AOMP_EXTRAS_REPO_NAME=${AOMP_EXTRAS_REPO_NAME:-aomp-extras}
 AOMP_FLANG_REPO_NAME=${AOMP_FLANG_REPO_NAME:-flang}
 
-# The difference between a _REPO_NAME and _REPO_GITNAME is that the
-# _REPO_NAME is the directory name following $AOMP_REPOS.  The GITNAME
-# Is the name of the git repository used in the clone_aomp script.
-# The _REPO_GITNAME variables will also be removed with the conversion to
-# the use of the repo tool.
+# The AOMP_XXX_REPO_NAME is the directory name following $AOMP_REPOS.
 
 # External component names for LLVM_EXTERNAL_PROJECTS may have no special
 # characters in them.  Therefore, AOMP_xxx_REPO_NAME is different than
@@ -232,14 +228,6 @@ AOMP_LIBDEVICE_COMPONENT_NAME=${AOMP_LIBDEVICE_COMPONENT_NAME:-rocdl}
 DEVICELIBS_ROOT=${DEVICELIBS_ROOT:-$AOMP_REPOS/$AOMP_LIBDEVICE_REPO_NAME}
 AOMP_COMGR_REPO_NAME=${AOMP_COMGR_REPO_NAME:-rocm-compilersupport}
 AOMP_RINFO_REPO_NAME=${AOMP_RINFO_REPO_NAME:-rocminfo}
-
-# These are repos we will use when we switch to HIP VDI
-AOMP_VDI_REPO_NAME=${AOMP_VDI_REPO_NAME:-vdi}
-AOMP_VDI_REPO_GITNAME=${AOMP_VDI_REPO_GITNAME:-ROCclr}
-AOMP_OCL_REPO_NAME=${AOMP_OCL_REPO_NAME:-opencl-on-vdi}
-AOMP_OCL_REPO_GITNAME=${AOMP_OCL_REPO_GITNAME:-ROCm-OpenCL-Runtime}
-AOMP_HIPVDI_REPO_NAME=${AOMP_HIPVDI_REPO_NAME:-hip-on-vdi}
-AOMP_HIPVDI_REPO_GITNAME=${AOMP_HIPVDI_REPO_GITNAME:-hip}
 
 AOMP_ROCMCMAKE_REPO_NAME=${AOMP_ROCMCMAKE_REPO_NAME:-rocm-cmake}
 
@@ -432,11 +420,12 @@ function setaompgpu (){
     echo Set AOMP_GPU with rocm_agent_enumerator.
     detected_gpu=$($AOMP/../bin/rocm_agent_enumerator | grep -m 1 -E gfx[^0]{1}.{2})
   else
-    echo Set AOMP_GPU with mygpu.
-    if [ -a $AOMP/bin/mygpu ]; then
-      detected_gpu=$($AOMP/bin/mygpu)
+    echo Set AOMP_GPU with rocm_agent_enumerator.
+    if [ -a $AOMP/bin/rocm_agent_enumerator ]; then
+      detected_gpu=$($AOMP/bin/rocm_agent_enumerator | grep -m 1 -E gfx[^0]{1}.{2})
     elif [ -a $AOMP/bin/amdgpu-arch ]; then
       detected_gpu=$($AOMP/bin/amdgpu-arch)
+      detected_gpu=$(echo $detected_gpu | awk '{print $1,$5}')
     else
       detected_gpu=$($AOMP/../bin/mygpu)
     fi

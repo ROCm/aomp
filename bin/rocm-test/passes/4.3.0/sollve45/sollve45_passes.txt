@@ -10,7 +10,6 @@ offloading_success.c
 offloading_success.cpp
 offloading_success.F90
 omp_default_device.c
-qmcpack_target_math.c
 test_declare_target_end_declare_target.c
 test_declare_target_extended_list.c
 test_declare_target_to_extended_list.c
@@ -23,7 +22,6 @@ test_target_data_map_alloc.c
 test_target_data_map_array_sections.c
 test_target_data_map_classes.cpp
 test_target_data_map_components_default.F90
-test_target_data_map_components_from.F90
 test_target_data_map_components_to.F90
 test_target_data_map_components_tofrom.F90
 test_target_data_map_devices.c
@@ -44,7 +42,6 @@ test_target_enter_data_allocate_array_alloc.F90
 test_target_enter_data_allocate_array_to.F90
 test_target_enter_data_classes_inheritance.cpp
 test_target_enter_data_classes_simple.cpp
-test_target_enter_data_components_alloc.F90
 test_target_enter_data_components_to.F90
 test_target_enter_data_depend.c
 test_target_enter_data_devices.c

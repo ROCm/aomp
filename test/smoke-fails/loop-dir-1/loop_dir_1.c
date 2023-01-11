@@ -21,6 +21,13 @@ int main()
     a[i]=0;
 
   int j;
+  #pragma omp target
+  #pragma omp teams loop
+  {
+    for (j = 0; j< N; j++)
+      a[j]=b[j];
+  }
+
   #pragma omp target teams loop
   {
     for (j = 0; j< N; j++)
@@ -71,6 +78,7 @@ int main()
   return rc;
 }
 
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:4
 /// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:4
 /// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:4
 /// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:4

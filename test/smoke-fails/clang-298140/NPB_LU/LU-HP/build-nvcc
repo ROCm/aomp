@@ -1,0 +1,26 @@
+#!/bin/bash
+#PBS -l select=1:ncpus=36:ngpus=1:model=sky_gpu
+#PBS -l walltime=1:00:00
+#PBS -j oe
+#PBS -q pbspl4@devel
+#PBS -N lu-clang
+
+. /usr/share/modules/init/sh
+
+module purge
+module load cuda/11.0
+
+set -e
+module load /nobackupp2/gjost/nvhpc_2021_213_Linux_x86_64_cuda_multi/modulefiles/nvhpc-nompi/21.3
+set -x
+
+
+pgcc --version
+
+for c in A 
+do
+	make clean
+	make CC=pgcc CLASS=$c PXM=omp_offloading
+        #./lu.${c}.x >& out-lu${c}-v100-nvcc.txt
+        ./lu.${c}.x 
+done
