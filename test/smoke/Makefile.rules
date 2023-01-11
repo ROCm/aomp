@@ -1,6 +1,7 @@
 TESTNAMES_ALL = $(basename $(TESTSRC_ALL))
 TIMEOUT ?= 60s
 SMOKE_TIMEOUT ?= timeout --foreground $(TIMEOUT)
+CHECK_COMMAND ?= $(or $(TESTCMD), ./$(TESTNAME) $(ARGS))
 
 all: $(TESTNAME)
 
@@ -63,7 +64,7 @@ check: $(TESTNAME)
 	base=`basename $$path`; \
 	( \
 	  flock -e 9 && echo  "" >> ../check-smoke.txt; \
-	  if   ($(RUNENV) $(SMOKE_TIMEOUT) $(RUNPROF) ./$(TESTNAME) $(ARGS) > /dev/null 2>&1); then \
+	  if   ($(RUNENV) $(SMOKE_TIMEOUT) $(RUNPROF) $(CHECK_COMMAND) > /dev/null 2>&1); then \
 		  echo $$base $$test_num return code: $$? >> ../check-smoke.txt; \
 		  echo  "" >> ../check-smoke.txt; \
 		  echo $$base $$test_num  >> ../passing-tests.txt; \
