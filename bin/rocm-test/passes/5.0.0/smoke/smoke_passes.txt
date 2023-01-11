@@ -35,7 +35,6 @@ veccopy-ompt-target-emi-map
 veccopy-ompt-target-emi-tracing
 veccopy-ompt-target-map
 veccopy-ompt-target-noinit
-veccopy-ompt-target-tracing
 veccopy-ompt-target-wrong-return
 virtfunc1
 vmulsum-hsa-stats
