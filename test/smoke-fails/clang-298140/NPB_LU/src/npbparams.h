@@ -15,7 +15,7 @@
 #define NTOTALP        8421376
 
 #define CONVERTDOUBLE  false
-#define COMPILETIME "05 Jan 2023"
+#define COMPILETIME "10 Jan 2023"
 #define NPBVERSION "3.3.1"
 #define CS1 "$(AOMP)/bin/clang"
 #define CS2 "$(CC)"
