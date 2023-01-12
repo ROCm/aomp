@@ -34,7 +34,7 @@ $cmd1
 [ -f dec_arrayval.o ] && rm dec_arrayval.o
 if [ "$USE_FLANG" == "NO" ] ; then
    echo "WARNING: NOT compiling dec_arrayval.f95, Compiling dec_arrayval.c insted to test execution"
-   echo "         Set USE_FLANG=NO to compile dec_arrayval.f95"
+   echo "         Set USE_FLANG=YES to compile/test flang-new on  dec_arrayval.f95"
    cmd2="$_llvm_bin_dir/clang $extra_args -c -fopenmp --offload-arch=$OARCH dec_arrayval.c -o dec_arrayval.o"
 else
    cmd2="$_llvm_bin_dir/flang-new $extra_args -c -fopenmp --offload-arch=$OARCH dec_arrayval.f95 -o dec_arrayval.o"
