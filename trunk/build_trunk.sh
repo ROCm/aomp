@@ -55,7 +55,11 @@ echo
 date
 echo " =================  START build_trunk.sh ==================="   
 echo 
-   components="project compiler-rt flang"
+# Ensure the prereq components in $HOME/local are up to date.
+# By default build_prereq.sh will build cmake rocmsmilib and hwloc
+# For trunk, we only need the current cmake.
+export PREREQUISITE_COMPONENTS="cmake"
+components="prereq project compiler-rt flang"
 echo "COMPONENTS:$components"
 
 #Partial build options. Check if argument was given.
