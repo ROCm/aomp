@@ -42,5 +42,5 @@ int main(){
     }
 }
 
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:4
+/// CHECK: [[DEVID: [0-9]+]] SGN:4
 
