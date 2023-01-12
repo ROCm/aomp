@@ -51,8 +51,8 @@ $ $AOMP_SUPP/build/cmdlog              File with log of all components built
 EOF
 }
 
-SUPPLEMENTAL_COMPONENTS="openmpi silo hdf5 fftw"
-PREREQUISITE_COMPONENTS="cmake rocmsmilib hwloc"
+SUPPLEMENTAL_COMPONENTS=${SUPPLEMENTAL_COMPONENTS:-openmpi silo hdf5 fftw}
+PREREQUISITE_COMPONENTS=${PREREQUISITE_COMPONENTS:-cmake rocmsmilib hwloc}
 
 # --- Start standard header to set AOMP environment variables ----
 realpath=`realpath $0`
