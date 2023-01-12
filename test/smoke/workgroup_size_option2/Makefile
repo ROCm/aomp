@@ -7,7 +7,7 @@ TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 EXTRA_CFLAGS += -fopenmp-gpu-threads-per-team=128
 RUNENV      += LIBOMPTARGET_KERNEL_TRACE=1
 
-TESTCMD      = ./$(TESTNAME) 2>&1 | $(AOMP)/bin/FileCheck $(TESTSRC_MAIN)
+RUNCMD      = ./$(TESTNAME) 2>&1 | $(AOMP)/bin/FileCheck $(TESTSRC_MAIN)
 
 CLANG        = clang
 OMP_BIN      = $(AOMP)/bin/$(CLANG)
@@ -17,4 +17,4 @@ CC           = $(OMP_BIN) $(VERBOSE)
 
 include ../Makefile.rules
 run: $(TESTNAME)
-	$(RUNENV) ./$(TESTNAME) 2>&1 | $(AOMP)/bin/FileCheck $(TESTSRC_MAIN)
+	$(RUNENV) $(RUNCMD)

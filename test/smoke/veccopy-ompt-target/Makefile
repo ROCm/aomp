@@ -5,7 +5,7 @@ TESTSRC_MAIN = veccopy-ompt-target.c
 TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 
-TESTCMD      = ./$(TESTNAME) | $(AOMP)/bin/FileCheck $(TESTSRC_MAIN)
+RUNCMD      = ./$(TESTNAME) | $(AOMP)/bin/FileCheck $(TESTSRC_MAIN)
 
 CLANG        ?= clang
 OMP_BIN      = $(AOMP)/bin/$(CLANG)
@@ -16,4 +16,4 @@ CC           = $(OMP_BIN) $(VERBOSE)
 include ../Makefile.rules
 run:
 	echo $(PATH)
-	./$(TESTNAME) | $(AOMP)/bin/FileCheck $(TESTSRC_MAIN)
+	$(RUNCMD)

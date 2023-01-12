@@ -1,7 +1,7 @@
 TESTNAMES_ALL = $(basename $(TESTSRC_ALL))
 TIMEOUT ?= 60s
 SMOKE_TIMEOUT ?= timeout --foreground $(TIMEOUT)
-CHECK_COMMAND ?= $(or $(TESTCMD), ./$(TESTNAME) $(ARGS))
+CHECK_COMMAND ?= $(or $(RUNCMD), ./$(TESTNAME) $(ARGS))
 
 all: $(TESTNAME)
 
