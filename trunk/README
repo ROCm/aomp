@@ -3,9 +3,8 @@
 Instructions to build the trunk17 compiler.
 
 Add the following to your environment in either .bash_profile or .bashrc 
-  export TRUNK_REPOS=$HOME/git/trunk17.0
-
-Then log in again
+export TRUNK_REPOS=$HOME/git/trunk17.0
+Then log in again.
 
 mkdir -p $TRUNK_REPOS
 cd $TRUNK_REPOS
@@ -13,26 +12,28 @@ git clone https://github.com/ROCm-Developer-Tools/aomp
 git clone https://github.com/llvm/llvm-project
 $TRUNK_REPOS/aomp/trunk/build_trunk.sh 
 
-To save time, instead of cloning a new trunk repo, you can move or
-copy your current trunk repo to $TRUNK_REPOS/llvm-project.
+The script build_trunk.sh will install trunk into $HOME/rocm/trunk_17.0-0
+Furthermore, it creates a symolic link from $HOME/rocm/trunk to the
+install directory.
+A various development check points we will qualify releases of trunk17
+and increment the development version in trunk_common_vars. For example,
+after the release of trunk_17.0-0, development will move to trunk_17.0-1.
+and the scripts will install into $HOME/rocm/trunk_17.0-0 and the 
+symbolic link from $HOME/rocm/trunk will changes.
 
 In the future, there will be a new clone_trunk.sh script that will 
 clone or pull updates on all the repos in $TRUNK_REPOS except aomp. 
-This will be similar to the clone_aomp.sh script.
-For now, there is only the trunk repo (llvm-project) needed to build_trunk.sh.
+This will be similar to the clone_aomp.sh script used for aomp.
+For now, other than the build scripts in the aomp repo, 
+there is only a single repo (llvm-project) needed to build_trunk.sh.
+To save time, instead of cloning a new trunk repo, you can move or
+copy your current trunk repo to $TRUNK_REPOS/llvm-project.
 
-The script build_trunk.sh will install trunk into $HOME/rocm/trunk_17.0-0
-Furthermore, there will be a symolic link from $HOME/rocm/trunk to the
-install directory.
-
-To use the various AOMP testing infrastructure in $TRUNK_REPOS/aomp/test 
+To use the various AOMP testing infrastructure in $TRUNK_REPOS/aomp/test
 export AOMP=$HOME/rocm/trunk
 
 Then for example,
 cd $TRUNK_REPOS/aomp/test/smoke/vmuldemo
 make run
 
-A various development points we will qualify releases of trunk17 
-and increment the development version.  For example, after the release
-of trunk_17.0-0, development will move to trunk_17.0-1. 
 
