@@ -38,4 +38,3 @@ veccopy-ompt-target-noinit
 veccopy-ompt-target-wrong-return
 virtfunc1
 vmulsum-hsa-stats
-workgroup_size
