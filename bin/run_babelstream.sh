@@ -44,10 +44,18 @@ fi
 omp_target_flags="-O3 -fopenmp -fopenmp-targets=$TRIPLE -Xopenmp-target=$TRIPLE -march=$AOMP_GPU -DOMP -DOMP_TARGET_GPU -Dsimd="
 #  So this script runs with old comilers, we only use -fopenmp-target-fast
 #  for LLVM 16 or higher
-LLVM_VERSION=`$AOMP/bin/clang++ --version | grep version | cut -d" " -f 4 | cut -d"." -f1`
+LLVM_VERSION=`$AOMP/bin/clang++ --version | grep version | cut -d" " -f 3 | cut -d"." -f1`
+if [ "$LLVM_VERSION" == "version" ]  ; then
+  # If 3rd  arg is version, must be vendor cmppiler, so get version from 4th field.
+  LLVM_VERSION=`$AOMP/bin/clang++ --version | grep version | cut -d" " -f 4 | cut -d"." -f1`
+  special_aso_flags="-fopenmp-gpu-threads-per-team=1024 -fopenmp-target-fast"
+else
+  # temp hack to detect trunk (not vendor compiler) (found version in 3 args)"
+  special_aso_flags=""
+fi
 echo "LLVM VERSION IS $LLVM_VERSION"
 if [[ $LLVM_VERSION -ge 16 ]] ; then
-  omp_fast_flags="-fopenmp-gpu-threads-per-team=1024 -fopenmp-target-fast $omp_target_flags"
+  omp_fast_flags="$special_aso_flags $omp_target_flags"
 else
   if [[ $LLVM_VERSION -ge 15 ]] ; then
     omp_fast_flags="-fopenmp-target-ignore-env-vars -fopenmp-assume-no-thread-state -fopenmp-target-new-runtime $omp_target_flags"
@@ -115,9 +123,14 @@ for option in $RUN_OPTIONS; do
   elif [ "$option" == "hip" ]; then
     if [ ! -f $AOMPHIP/bin/hipcc ] ; then 
       AOMPHIP="$AOMPHIP/.."
-      if [ ! -f $AOMPHIP/bin/hipcc ] ; then 
-        echo "ERROR: $AOMPHIP/bin/hipcc not found"
-        exit 1
+      if [ ! -f $AOMPHIP/bin/hipcc ] ; then
+        # if $AOMP is trunk, try to use hipcc from rocm
+        if [ -f /opt/rocm/bin/hipcc ] ; then
+          AOMPHIP=/opt/rocm
+        else
+          echo "ERROR: $AOMPHIP/bin/hipcc not found"
+          exit 1
+        fi
       fi
     fi
     compile_cmd="$AOMPHIP/bin/hipcc $std $hip_flags $hip_src -o $EXEC"
