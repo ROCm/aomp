@@ -15,7 +15,8 @@ $TRUNK_REPOS/aomp/trunk/build_trunk.sh
 The script build_trunk.sh will install trunk into $HOME/rocm/trunk_17.0-0
 Furthermore, it creates a symolic link from $HOME/rocm/trunk to the
 install directory.
-A various development check points we will qualify releases of trunk17
+
+At various development check points we will qualify releases of trunk17
 and increment the development version in trunk_common_vars. For example,
 after the release of trunk_17.0-0, development will move to trunk_17.0-1.
 and the scripts will install into $HOME/rocm/trunk_17.0-0 and the 
