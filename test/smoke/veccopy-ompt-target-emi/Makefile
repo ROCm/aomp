@@ -5,7 +5,7 @@ TESTSRC_MAIN = veccopy-ompt-target-emi.c
 TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 
-RUNCMD      = ./$(TESTNAME) | $(AOMP)/bin/FileCheck $(TESTSRC_MAIN)
+RUNCMD      = ./$(TESTNAME) | $(FILECHECK) $(TESTSRC_MAIN)
 
 CLANG        ?= clang
 OMP_BIN      = $(AOMP)/bin/$(CLANG)
