@@ -9,7 +9,9 @@ Then log in again.
 mkdir -p $TRUNK_REPOS
 cd $TRUNK_REPOS
 git clone https://github.com/ROCm-Developer-Tools/aomp
-git clone https://github.com/llvm/llvm-project
+git clone https://github.com/ROCm-Developer-Tools/llvm-project
+cd llvm-project
+git checkout trunk_17.0-0
 $TRUNK_REPOS/aomp/trunk/build_trunk.sh 
 
 The script build_trunk.sh will install trunk into $HOME/rocm/trunk_17.0-0
@@ -20,15 +22,15 @@ At various development check points we will qualify releases of trunk17
 and increment the development version in trunk_common_vars. For example,
 after the release of trunk_17.0-0, development will move to trunk_17.0-1.
 and the scripts will install into $HOME/rocm/trunk_17.0-0 and the 
-symbolic link from $HOME/rocm/trunk will changes.
+symbolic link from $HOME/rocm/trunk will changes.  At that time, 
+a new development branch will also be created to track the next
+qualified release. 
 
 In the future, there will be a new clone_trunk.sh script that will 
 clone or pull updates on all the repos in $TRUNK_REPOS except aomp. 
 This will be similar to the clone_aomp.sh script used for aomp.
 For now, other than the build scripts in the aomp repo, 
 there is only a single repo (llvm-project) needed to build_trunk.sh.
-To save time, instead of cloning a new trunk repo, you can move or
-copy your current trunk repo to $TRUNK_REPOS/llvm-project.
 
 To use the various AOMP testing infrastructure in $TRUNK_REPOS/aomp/test
 export AOMP=$HOME/rocm/trunk
