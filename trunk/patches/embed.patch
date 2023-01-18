@@ -1,0 +1,80 @@
+diff --git a/clang/include/clang/Driver/Options.td b/clang/include/clang/Driver/Options.td
+index 3fcf9ddc29ea..906fbb8acb5f 100644
+--- a/clang/include/clang/Driver/Options.td
++++ b/clang/include/clang/Driver/Options.td
+@@ -1224,7 +1224,7 @@ defm experimental_library : BoolFOption<"experimental-library",
+   NegFlag<SetFalse>>;
+ 
+ def fembed_offload_object_EQ : Joined<["-"], "fembed-offload-object=">,
+-  Group<f_Group>, Flags<[NoXarchOption, CC1Option]>,
++  Group<f_Group>, Flags<[NoXarchOption, CC1Option, FC1Option]>,
+   HelpText<"Embed Offloading device-side binary into host object file as a section.">,
+   MarshallingInfoStringVector<CodeGenOpts<"OffloadObjects">>;
+ def fembed_bitcode_EQ : Joined<["-"], "fembed-bitcode=">,
+diff --git a/clang/lib/CodeGen/BackendUtil.cpp b/clang/lib/CodeGen/BackendUtil.cpp
+index 16b48c6dc1d1..64c94a79271e 100644
+--- a/clang/lib/CodeGen/BackendUtil.cpp
++++ b/clang/lib/CodeGen/BackendUtil.cpp
+@@ -1305,6 +1305,7 @@ void clang::EmbedObject(llvm::Module *M, const CodeGenOptions &CGOpts,
+     return;
+ 
+   for (StringRef OffloadObject : CGOpts.OffloadObjects) {
++	  printf("===== clang::EmbedObject Embedding object %s\n",OffloadObject.str().c_str());
+     llvm::ErrorOr<std::unique_ptr<llvm::MemoryBuffer>> ObjectOrErr =
+         llvm::MemoryBuffer::getFileOrSTDIN(OffloadObject);
+     if (std::error_code EC = ObjectOrErr.getError()) {
+diff --git a/clang/lib/Driver/ToolChains/Flang.cpp b/clang/lib/Driver/ToolChains/Flang.cpp
+index 4ee046be9ea9..89511e9651b3 100644
+--- a/clang/lib/Driver/ToolChains/Flang.cpp
++++ b/clang/lib/Driver/ToolChains/Flang.cpp
+@@ -342,6 +342,19 @@ void Flang::ConstructJob(Compilation &C, const JobAction &JA,
+ 
+   assert(Input.isFilename() && "Invalid input.");
+ 
++  bool IsHostOffloadingAction =
++      JA.isHostOffloading(Action::OFK_OpenMP) ||
++      JA.isHostOffloading(C.getActiveOffloadKinds());
++  for (const InputInfo &I : Inputs) {
++    if (&I == &Input || I.getType() == types::TY_Nothing) {
++      // This is the primary input or contains nothing.
++    } else if (IsHostOffloadingAction) {
++      CmdArgs.push_back(Args.MakeArgString("-fembed-offload-object=" +
++                                             TC.getInputFilename(I)));
++    }
++  }
++
++
+   addDashXForInput(Args, Input, CmdArgs);
+ 
+   CmdArgs.push_back(Input.getFilename());
+diff --git a/flang/include/flang/Frontend/CodeGenOptions.h b/flang/include/flang/Frontend/CodeGenOptions.h
+index 7bb10d4b0f3c..8de150cdfb15 100644
+--- a/flang/include/flang/Frontend/CodeGenOptions.h
++++ b/flang/include/flang/Frontend/CodeGenOptions.h
+@@ -49,6 +49,10 @@ public:
+   /// The paths to the pass plugins that were registered using -fpass-plugin.
+   std::vector<std::string> LLVMPassPlugins;
+ 
++  /// List of filenames passed in using the -fembed-offload-object option. These
++  /// are offloading binaries containing device images and metadata.
++  std::vector<std::string> OffloadObjects;
++
+   // Define accessors/mutators for code generation options of enumeration type.
+ #define CODEGENOPT(Name, Bits, Default)
+ #define ENUM_CODEGENOPT(Name, Type, Bits, Default)                             \
+diff --git a/flang/lib/Frontend/FrontendActions.cpp b/flang/lib/Frontend/FrontendActions.cpp
+index 6c457857ce99..1878117cf873 100644
+--- a/flang/lib/Frontend/FrontendActions.cpp
++++ b/flang/lib/Frontend/FrontendActions.cpp
+@@ -611,6 +611,11 @@ void CodeGenAction::setUpTargetMachine() {
+       /*Reloc::Model=*/CGOpts.getRelocationModel(),
+       /*CodeModel::Model=*/std::nullopt, OptLevel));
+   assert(tm && "Failed to create TargetMachine");
++  // See line 1302 clang/lib/CodeGen/BackendUtil
++  // We need to call something like EmbedObject for OffloadObjects
++  for (llvm::StringRef OffloadObject : CGOpts.OffloadObjects) {
++     printf("----FFFFFFFFF--- Flang Needs to EmbedObject %s\n",OffloadObject.str().c_str());
++  }
+ }
+ 
+ static std::unique_ptr<llvm::raw_pwrite_stream>
