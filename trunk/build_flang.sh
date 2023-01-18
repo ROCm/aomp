@@ -57,8 +57,6 @@ else
    fi
 fi
 
-patchrepo $TRUNK_REPOS/llvm-project
-
 cd $BUILD_TRUNK/build/flang
 
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
@@ -89,7 +87,6 @@ if [ "$1" == "install" ] ; then
       echo "ERROR $AOMP_NINJA_BIN install failed "
       exit 1
    fi
-   removepatch $TRUNK_REPOS/llvm-project
    echo
    echo "SUCCESSFUL INSTALL to $TRUNK_INSTALL_DIR "
    echo

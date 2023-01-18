@@ -85,8 +85,6 @@ else
    fi
 fi
 
-patchrepo $TRUNK_REPOS/llvm-project
-
 cd $BUILD_TRUNK/build/llvm-project
 
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
@@ -124,7 +122,6 @@ if [ "$1" == "install" ] ; then
       rm $TRUNK_LINK
    fi
    ln -sf $TRUNK_INSTALL_DIR $TRUNK_LINK
-   removepatch $TRUNK_REPOS/llvm-project
    echo
    echo "SUCCESSFUL INSTALL to $TRUNK_INSTALL_DIR with link to $TRUNK"
    echo
