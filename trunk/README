@@ -1,42 +1,87 @@
 
-
-Instructions to build the trunk17 compiler.
+HOWTO BUILD THE trunk17 COMPILER
 
 Add the following to your environment in either .bash_profile or .bashrc 
+
 export TRUNK_REPOS=$HOME/git/trunk17.0
-Then log in again.
+
+or set TRUNK_REPOS to a location with a fast file system.
+Then log in again and execute these commands:
 
 mkdir -p $TRUNK_REPOS
 cd $TRUNK_REPOS
 git clone https://github.com/ROCm-Developer-Tools/aomp
 git clone https://github.com/ROCm-Developer-Tools/llvm-project
 cd llvm-project
-git checkout trunk_17.0-0
+git checkout amd-trunk-dev
 $TRUNK_REPOS/aomp/trunk/build_trunk.sh 
 
-The script build_trunk.sh will install trunk into $HOME/rocm/trunk_17.0-0
-Furthermore, it creates a symolic link from $HOME/rocm/trunk to the
-install directory.
+The default value for environment variable TRUNK_LINK is $HOME/rocm/trunk
+The build_trunk.sh script will install into directory ${TRUNK_LINK}_17.0-0
+Furthermore, it creates a symbolic link from $TRUNK_LINK to the install dir.
+So $TRUNK_LINK must not be a physical directory. This symbolic link
+makes it easy to switch between qualifed releases of trunk17.
+If you are on a system with slow filesystem for $HOME directory,set TRUNK_LINK
+to where you want the install directory to be. For example set the following
+in your .bash_profile or .bashrc then relogin:
+
+export TRUNK_LINK=/work/$USER/rocm/trunk
+
+Then the install scripts will install into /work/$USER/rocm/trunk_17.0-0
+and a symlink will be created from $TRUNK_LINK.
+
+
+RELEASES OF trunk17.
 
 At various development check points we will qualify releases of trunk17
 and increment the development version in trunk_common_vars. For example,
 after the release of trunk_17.0-0, development will move to trunk_17.0-1.
-and the scripts will install into $HOME/rocm/trunk_17.0-0 and the 
-symbolic link from $HOME/rocm/trunk will changes.  At that time, 
-a new development branch will also be created to track the next
-qualified release. 
+The build scripts will then install into directory $HOME/rocm/trunk_17.0-1.
+The symbolic link from $HOME/rocm/trunk will also change to the new
+install directory.
+
+After a trunk17 release, a static release branch will be created.
+such as trunk_17.0-0. This branch will be created by interactive
+rebasing all the local commits in amd-trunk-dev. Development will
+continue in the branch amd-trunk-dev.
+
+
+UPDATES FROM OTHER TEAM MEMBERS
 
 In the future, there will be a new clone_trunk.sh script that will 
 clone or pull updates on all the repos in $TRUNK_REPOS except aomp. 
 This will be similar to the clone_aomp.sh script used for aomp.
-For now, other than the build scripts in the aomp repo, 
-there is only a single repo (llvm-project) needed to build_trunk.sh.
+For now, simply run 'git pull' in the repository directory to
+get updates from other team members or merges from main.
 
+
+TESTING trunk17
+ 
 To use the various AOMP testing infrastructure in $TRUNK_REPOS/aomp/test
 export AOMP=$HOME/rocm/trunk
+or if you set TRUNK_LINK use this command
+export AOMP=$TRUNK_LINK
 
 Then for example,
 cd $TRUNK_REPOS/aomp/test/smoke/vmuldemo
 make run
 
 
+MERGE FROM MAIN PROCESS
+
+At any time during the development, the development branch amd-trunk-dev can
+be updated from main by any team member with the script merge_from_main.sh.
+This script carefully runs the git commands to merge from main.
+This script ensures that neither the main branch nor amd-trunk-dev branch has
+local changes. Save any of your local changes before using merge_from_main.sh.
+Note: the main branch of https://github.com/ROCm-Developer-Tools/llvm-project
+is automatically mirrored from llvm trunk (https://github.com/llvm/llvm-project)
+main branch every three hours.
+
+Before running merge_from_main.sh, ensure amd-trunk-dev is indeed behind main
+by looking at URL https://github.com/ROCm-Developer-Tools/llvm-project/branches
+or by running this command:
+
+git rev-list --left-right --count main...amd-trunk-dev
+
+The script terminates if it finds that amd-trunk-dev is 0 commits behind main.
