@@ -82,6 +82,7 @@ fi
 
 if [ "$1" == "install" ] ; then
    echo " -----Installing to $TRUNK_INSTALL_DIR ---- "
+   echo $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS install
    $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS install
    if [ $? != 0 ] ; then
       echo "ERROR $AOMP_NINJA_BIN install failed "
