@@ -28,15 +28,8 @@ fi
 
 #  -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
 #  -DFLANG_ENABLE_WERROR=ON \
-#  -DLLVM_LIT_ARGS=-v \
-#  -DLLVM_ENABLE_RUNTIMES='compiler-rt' \
 #  -DLLVM_VERSION_SUFFIX=_$TRUNK_VERSION_STRING \
 #  -DCLANG_VENDOR=AMD_TRUNK_$TRUNK_VERSION_STRING \
-
-#  These options taken from build bot cause build fails.
-#  So for now we are not using them.
-#-DCMAKE_C_COMPILER_LAUNCHER=ccache
-#-DCMAKE_CXX_COMPILER_LAUNCHER=ccache
 
 # CMAKE options after LLVM_ENABLE_PROJECTS are NOT on build bot.
 MYCMAKEOPTS="\
@@ -46,6 +39,7 @@ MYCMAKEOPTS="\
 $_targets_to_build \
 -DLLVM_ENABLE_ASSERTIONS=ON \
 -DLLVM_ENABLE_RUNTIMES='openmp;compiler-rt' \
+$AOMP_CCACHE_OPTS \
 -DLLVM_ENABLE_PROJECTS='clang;lld;mlir' \
 -DLLVM_INSTALL_UTILS=ON \
 -DBUILD_SHARED_LIBS=ON \
