@@ -28,23 +28,25 @@ fi
 
 #  -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
 #  -DFLANG_ENABLE_WERROR=ON \
-#  -DLLVM_LIT_ARGS=-v \
-#  -DLLVM_ENABLE_RUNTIMES='compiler-rt' \
 #  -DLLVM_VERSION_SUFFIX=_$TRUNK_VERSION_STRING \
 #  -DCLANG_VENDOR=AMD_TRUNK_$TRUNK_VERSION_STRING \
+
+# CMAKE options after LLVM_ENABLE_PROJECTS are NOT on build bot.
 MYCMAKEOPTS="\
-$_set_ninja_gan \
--DBUILD_SHARED_LIBS=ON \
--DLLVM_ENABLE_PROJECTS='lld;clang;mlir;openmp' \
--DCMAKE_BUILD_TYPE=$BUILD_TYPE \
 -DCMAKE_INSTALL_PREFIX=$TRUNK_INSTALL_DIR \
+-DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+-DCLANG_DEFAULT_LINKER=lld \
 $_targets_to_build \
 -DLLVM_ENABLE_ASSERTIONS=ON \
+-DLLVM_ENABLE_RUNTIMES='openmp;compiler-rt' \
+$AOMP_CCACHE_OPTS \
+-DLLVM_ENABLE_PROJECTS='clang;lld;mlir' \
 -DLLVM_INSTALL_UTILS=ON \
+-DBUILD_SHARED_LIBS=ON \
 -DCMAKE_CXX_STANDARD=17 \
 $_cuda_plugin \
 -DCLANG_DEFAULT_PIE_ON_LINUX=OFF \
-" 
+"
 
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then 
   help_build_trunk
@@ -90,8 +92,8 @@ cd $BUILD_TRUNK/build/llvm-project
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    echo
    echo " -----Running cmake ---- " 
-   echo ${AOMP_CMAKE} $MYCMAKEOPTS  $TRUNK_REPOS/llvm-project/llvm
-   ${AOMP_CMAKE} $MYCMAKEOPTS  $TRUNK_REPOS/llvm-project/llvm 2>&1
+   echo ${AOMP_CMAKE} $_set_ninja_gan $TRUNK_REPOS/llvm-project/llvm -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DLLVM_ENABLE_ASSERTIONS=ON '-DLLVM_LIT_ARGS=-vv --show-unsupported --show-xfail -j 32' $MYCMAKEOPTS
+   ${AOMP_CMAKE} $_set_ninja_gan $TRUNK_REPOS/llvm-project/llvm -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DLLVM_ENABLE_ASSERTIONS=ON '-DLLVM_LIT_ARGS=-vv --show-unsupported --show-xfail -j 32' $MYCMAKEOPTS 2>&1
    if [ $? != 0 ] ; then 
       echo "ERROR cmake failed. Cmake flags"
       echo "      $MYCMAKEOPTS"

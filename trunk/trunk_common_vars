@@ -48,17 +48,39 @@ CUDAT=${CUDAT:-$CUDA/targets}
 CUDAINCLUDE=${CUDAINCLUDE:-$CUDA/include}
 CUDABIN=${CUDABIN:-$CUDA/bin}
 
-AOMP_USE_NINJA=${AOMP_USE_NINJA:-0}
+AOMP_SUPP=${AOMP_SUPP:-$HOME/local}
+
+AOMP_USE_NINJA=${AOMP_USE_NINJA:-1}
 if [ "$AOMP_USE_NINJA" == 0 ] ; then
   AOMP_NINJA_BIN="make"
 else
   AOMP_NINJA_BIN=`which ninja`
-  if [ AOMP_NINJA_BIN == "" ] ; then
-    echo "ERROR: AOMP_USE_NINJA is $AOMP_USE_NINJA but no ninja bin found in PATH"
-    echo "       Either install ninja in PATH or set AOMP_USE_NINJA=0"
+  if [ "$AOMP_NINJA_BIN" == "" ] ; then
+    AOMP_NINJA_BIN="$AOMP_SUPP/ninja/bin/ninja"
+    if [ ! -f "$AOMP_NINJA_BIN" ] ; then
+       echo "ERROR: AOMP_USE_NINJA is $AOMP_USE_NINJA but no ninja bin found in PATH."
+       echo "       Either install ninja in PATH or set AOMP_USE_NINJA=0"
+       echo "       You may also install ninja as an AOMP supplemental component with"
+       echo "       ./build_supp.sh ninja"
+       echo
+       exit 1
+    fi
+    export PATH=$AOMP_SUPP/ninja/bin:$PATH
+  fi
+fi
+
+AOMP_USE_CCACHE=${AOMP_USE_CCACHE:-1}
+if [ "$AOMP_USE_CCACHE" == 0 ] ; then
+  AOMP_CCACHE_OPTS=""
+else
+  _ccache_bin=`which ccache`
+  if [ "$_ccache_bin" == "" ] ; then
+    echo "ERROR: AOMP_USE_CCACHE is $AOMP_USE_CCACHE but no ccache bin found in PATH"
+    echo "       Either install ccache or set AOMP_USE_CCACHE=0"
     echo
     exit 1
   fi
+  AOMP_CCACHE_OPTS="-DCMAKE_C_COMPILER_LAUNCHER=$_ccache_bin -DCMAKE_CXX_COMPILER_LAUNCHER=$_ccache_bin"
 fi
 
 # AOMP_SUPP is for SUPPlemental software components needed for testing.
@@ -80,7 +102,6 @@ fi
 #
 # The default AOMP_SUPP directory is $HOME/local but a sysadmin with root
 # root authority could set AOMP_SUPP=/usr/local
-AOMP_SUPP=${AOMP_SUPP:-$HOME/local}
 #
 # AOMP_SUPP_BUILD could be a temp directory but defaults to $AOMP_SUPP/build
 AOMP_SUPP_BUILD=${AOMP_SUPP_BUILD:-$AOMP_SUPP/build}

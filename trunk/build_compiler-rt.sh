@@ -27,6 +27,7 @@ $_set_ninja_gan \
 -DCMAKE_CXX_STANDARD=11 \
 -DCMAKE_C_FLAGS=-mlong-double-128 \
 -DCMAKE_CXX_FLAGS=-mlong-double-128 \
+$AOMP_CCACHE_OPTS \
 -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
 -DCOMPILER_RT_BUILD_ORC=OFF \
 -DCOMPILER_RT_BUILD_XRAY=OFF \
@@ -81,6 +82,7 @@ fi
 
 if [ "$1" == "install" ] ; then
    echo " -----Installing to $TRUNK_INSTALL_DIR ---- "
+   echo $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS install
    $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS install
    if [ $? != 0 ] ; then
       echo "ERROR $AOMP_NINJA_BIN install failed "

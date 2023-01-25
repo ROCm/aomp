@@ -26,6 +26,7 @@ $_set_ninja_gan \
 -DCMAKE_C_COMPILER=$TRUNK_INSTALL_DIR/bin/clang \
 -DCMAKE_CXX_COMPILER=$TRUNK_INSTALL_DIR/bin/clang++ \
 -DCMAKE_CXX_STANDARD=17 \
+$AOMP_CCACHE_OPTS \
 -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
 -DFLANG_ENABLE_WERROR=ON \
 -DLLVM_TARGETS_TO_BUILD=host \
@@ -82,6 +83,7 @@ fi
 
 if [ "$1" == "install" ] ; then
    echo " -----Installing to $TRUNK_INSTALL_DIR ---- "
+   echo $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS install
    $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS install
    if [ $? != 0 ] ; then
       echo "ERROR $AOMP_NINJA_BIN install failed "
