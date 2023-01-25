@@ -51,7 +51,7 @@ $ $AOMP_SUPP/build/cmdlog              File with log of all components built
 EOF
 }
 
-SUPPLEMENTAL_COMPONENTS=${SUPPLEMENTAL_COMPONENTS:-openmpi silo hdf5 fftw}
+SUPPLEMENTAL_COMPONENTS=${SUPPLEMENTAL_COMPONENTS:-openmpi silo hdf5 fftw ninja}
 PREREQUISITE_COMPONENTS=${PREREQUISITE_COMPONENTS:-cmake rocmsmilib hwloc}
 
 # --- Start standard header to set AOMP environment variables ----
@@ -128,6 +128,40 @@ function buildopenmpi(){
   runcmd "make -j8"
   runcmd "make install"
   if [ -L $_linkfrom ] ; then 
+    runcmd "rm $_linkfrom"
+  fi
+  runcmd "ln -sf $_installdir $_linkfrom"
+  echo "# $_linkfrom is now symbolic link to $_installdir " >>$CMDLOGFILE
+}
+
+function buildninja(){
+  _cname="ninja"
+  _version=1.11.1
+  _installdir=$AOMP_SUPP_INSTALL/$_cname-$_version
+  _linkfrom=$AOMP_SUPP/$_cname
+  _builddir=$AOMP_SUPP_BUILD/$_cname
+
+  SKIPBUILD="FALSE"
+  checkversion
+  if [ "$SKIPBUILD" == "TRUE"  ] ; then
+    return
+  fi
+  if [ -d $_builddir ] ; then
+    runcmd "rm -rf $_builddir"
+  fi
+  runcmd "mkdir -p $_builddir"
+  runcmd "cd $_builddir"
+  runcmd "wget https://github.com/ninja-build/ninja/archive/refs/tags/v${_version}.tar.gz"
+  runcmd "tar -xzf v${_version}.tar.gz"
+  runcmd "cd ninja-$_version"
+  if [ -d $_installdir ] ; then
+    runcmd "rm -rf $_installdir"
+  fi
+  runcmd "mkdir -p $_installdir/bin"
+  runcmd "$AOMP_SUPP/cmake/bin/cmake -Bbuild-cmake"
+  runcmd "$AOMP_SUPP/cmake/bin/cmake --build build-cmake"
+  runcmd "cp -p build-cmake/ninja $_installdir/bin/."
+  if [ -L $_linkfrom ] ; then
     runcmd "rm $_linkfrom"
   fi
   runcmd "ln -sf $_installdir $_linkfrom"
@@ -397,6 +431,8 @@ for _component in $_components ; do
     buildcmake
   elif [ $_component == "rocmsmilib" ] ; then
     buildrocmsmilib
+  elif [ $_component == "ninja" ] ; then
+    buildninja
   else
     echo "ERROR:  Invalid component name $_component" >>$CMDLOGFILE
     echo "ERROR:  Invalid component name $_component"
