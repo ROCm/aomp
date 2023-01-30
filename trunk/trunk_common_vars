@@ -128,26 +128,20 @@ if [ ! -d "$CUDABIN" ] ; then
    TRUNK_BUILD_CUDA=0
 fi
 
-# Set list of default nvptx subarchitectures to build
-# Only Cuda 9 and above supports sm_70
-if [ "$TRUNK_BUILD_CUDA" == 1 ] ; then
-   NVPTXGPUS_DEFAULT="30,32,35,50,60,61"
-   if [ -f $CUDA/version.txt ] ; then
-      if [ `head -1 /usr/local/cuda/version.txt | cut -d " " -f 3 | cut -d "." -f 1` -ge 9 ] ; then
-         NVPTXGPUS_DEFAULT+=",70"
-      fi
-   fi
-   #  Developers should override NVPTXGPUS to shorten build time.
-   NVPTXGPUS=${NVPTXGPUS:-"${NVPTXGPUS_DEFAULT}"}
+if [ -z $NVPTXGPUS ] ; then
+   AOMP_NVPTX_CAPS_OPT=""
 else
-   NVPTXGPUS_DEFAULT=""
-   NVPTXGPUS=""
+   AOMP_NVPTX_CAPS_OPT="-DLIBOMPTARGET_NVPTX_COMPUTE_CAPABILITIES='${NVPTXGPUS}'"
 fi
 
 # Set list of default amdgcn subarchitectures to build
 # Developers may override GFXLIST to shorten build time.
-GFXLIST=${GFXLIST:-"gfx700 gfx701 gfx801 gfx803 gfx900 gfx902 gfx906 gfx908 gfx90a gfx90c gfx1030 gfx1031 gfx1100 gfx1101 gfx1102 gfx1103"}
-export GFXLIST
+if [ -z "$GFXLIST"  ] ; then
+   AOMP_GFXLIST_OPT=""
+else
+   GFXSEMICOLONS=`echo $GFXLIST | tr ' ' ';' `
+   AOMP_GFXLIST_OPT="-DLIBOMPTARGET_AMDGCN_GFXLIST='${GFXSEMICOLONS}'"
+fi
 
 # Calculate the number of threads to use for make
 NUM_THREADS=

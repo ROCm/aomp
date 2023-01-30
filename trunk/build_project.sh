@@ -46,6 +46,8 @@ $AOMP_CCACHE_OPTS \
 -DCMAKE_CXX_STANDARD=17 \
 $_cuda_plugin \
 -DCLANG_DEFAULT_PIE_ON_LINUX=OFF \
+$AOMP_GFXLIST_OPT \
+$AOMP_NVPTX_CAPS_OPT \
 "
 
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then 
