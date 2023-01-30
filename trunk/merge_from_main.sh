@@ -5,6 +5,7 @@
 #       This script has no command line arguments. 
 #       However, it requires that the environment variable variable
 #       GIT_ADMIN is set to: <githubuserid>:<password>
+#       unless GITPUSH is set to NO
 #
 # --- Start standard header to set AOMP environment variables ----
 realpath=`realpath $0`
@@ -12,9 +13,13 @@ thisdir=`dirname $realpath`
 . $thisdir/trunk_common_vars
 # --- end standard header ----
 
-if [ -z $GIT_ADMIN ] ; then 
-   echo "ERROR: You must set environment variable GIT_ADMIN to <userid>:<password>"
-   exit 1
+GITPUSH=${GITPUSH:-YES}
+if [ "$GITPUSH" == "YES" ] ; then
+   if [ -z $GIT_ADMIN ] ; then
+      echo "ERROR: You must set environment variable GIT_ADMIN to <userid>:<password>"
+      echo "       or set GITPUSH=NO"
+      exit 1
+   fi
 fi
 REPO_MIRROR="https://github.com/ROCm-Developer-Tools/llvm-project"
 REPO="REPO_MIRROR"
@@ -27,7 +32,6 @@ if [ ! -f $logfile ] ; then
    echo "ERROR: logfile $logfile missing"
    exit 1
 fi
-
 
 echo " " >> $logfile
 echo "===============  START $0 ========================" | tee -a $logfile
@@ -113,18 +117,22 @@ echo "git merge main " | tee -a $logfile
 git merge main -m "Merge attempt by $0 into branch $_dev_branch " 2>&1 | tee -a $logfile
 _merge_rc=$?
 if [ $_merge_rc == 0 ] ; then 
-   echo "===============  Successful MERGE  ====================" | tee -a  $logfile
-   echo "git push ${!REPO} $_dev_branch" | tee -a $logfile
-   PUSH_LOG="$(git push ${!REPO/https:\/\//https:\/\/$GIT_ADMIN@} $_dev_branch 2>&1)"
-   _push_rc=$?
-   if [ $_push_rc == 0 ] ; then 
-      echo "===============  Successful push rc: $_push_rc =================" | tee -a  $logfile
-   else 
-      echo " " | tee -a $logfile
-      echo "ERROR: PUSH FAILED with rc $_push_rc  ====================" | tee -a  $logfile
-      echo "       CHECK YOUR PASSWORD IN GIT_ADMIN" | tee -a $logfile
-      echo "       GIT_ADMIN=$GIT_ADMIN"  # do not write a password to any log file
-      _fail=1
+   if [ "$GITPUSH" == "YES" ] ; then
+      echo "===============  Successful MERGE  ====================" | tee -a  $logfile
+      echo "git push ${!REPO} $_dev_branch" | tee -a $logfile
+      PUSH_LOG="$(git push ${!REPO/https:\/\//https:\/\/$GIT_ADMIN@} $_dev_branch 2>&1)"
+      _push_rc=$?
+      if [ $_push_rc == 0 ] ; then
+         echo "===============  Successful push rc: $_push_rc =================" | tee -a  $logfile
+      else
+         echo " " | tee -a $logfile
+         echo "ERROR: PUSH FAILED with rc $_push_rc  ====================" | tee -a  $logfile
+         echo "       CHECK YOUR PASSWORD IN GIT_ADMIN" | tee -a $logfile
+         echo "       GIT_ADMIN=$GIT_ADMIN"  # do not write a password to any log file
+         _fail=1
+      fi
+   else
+      echo "WARNING: SKIPPING git push because GITPUSH=$GITPUSH" | tee -a $logfile
    fi
 else
    echo " " >> $logfile
