@@ -62,6 +62,7 @@ if [ "$2" == "build" ]; then
       export HIP_PATH="$AOMP/../"
       export HIP_CLANG_PATH=$AOMP/bin
     fi
+    export ROCM_PATH=$HIP_PATH
     $AOMP_CMAKE \
       -DCMAKE_BUILD_TYPE=Release \
       -DCMAKE_CXX_COMPILER=${AOMP}/bin/clang++ \
@@ -70,6 +71,7 @@ if [ "$2" == "build" ]; then
       -DCMAKE_PREFIX_PATH="$AOMP;$AOMP/..;/opt/rocm" \
       -DENABLE_ALL_WARNINGS=Off \
       -DCMAKE_INSTALL_PREFIX=../install_${BUILD_SUFFIX} \
+      -DCMAKE_HIP_ARCHITECTURES=$AOMP_GPU \
       -DENABLE_TESTS=On \
       "$@" \
       ..
