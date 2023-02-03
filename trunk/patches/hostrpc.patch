@@ -1,0 +1,3997 @@
+diff -Naur -x .git llvm-project.amd-trunk-dev/clang/lib/CodeGen/CGBuiltin.cpp llvm-project/clang/lib/CodeGen/CGBuiltin.cpp
+--- llvm-project.amd-trunk-dev/clang/lib/CodeGen/CGBuiltin.cpp	2023-02-03 10:47:17.262767948 -0500
++++ llvm-project/clang/lib/CodeGen/CGBuiltin.cpp	2023-01-31 15:41:50.170149666 -0500
+@@ -5154,7 +5154,9 @@
+   case Builtin::BIprintf:
+     if (getTarget().getTriple().isNVPTX() ||
+         getTarget().getTriple().isAMDGCN()) {
+-      if (getLangOpts().OpenMPIsDevice)
++      if (getLangOpts().OpenMPIsDevice && getTarget().getTriple().isAMDGCN())
++	return EmitHostrpcVargsFn(E, "printf_allocate", "printf_execute");
++      if (getLangOpts().OpenMPIsDevice && getTarget().getTriple().isNVPTX())
+         return EmitOpenMPDevicePrintfCallExpr(E);
+       if (getTarget().getTriple().isNVPTX())
+         return EmitNVPTXDevicePrintfCallExpr(E);
+diff -Naur -x .git llvm-project.amd-trunk-dev/clang/lib/CodeGen/CGGPUBuiltin.cpp llvm-project/clang/lib/CodeGen/CGGPUBuiltin.cpp
+--- llvm-project.amd-trunk-dev/clang/lib/CodeGen/CGGPUBuiltin.cpp	2023-02-03 10:47:17.262767948 -0500
++++ llvm-project/clang/lib/CodeGen/CGGPUBuiltin.cpp	2023-01-31 15:41:50.170149666 -0500
+@@ -213,3 +213,359 @@
+   return EmitDevicePrintfCallExpr(E, this, GetOpenMPVprintfDeclaration(CGM),
+                                   true);
+ }
++
++// EmitHostrpcVargsFn:
++//
++// For printf in an OpenMP Target region on amdgn and for variable argument
++// functions that have a supporting host service function (hostrpc) a struct
++// is created to represent the vargs for each call site.
++// The struct contains the length, number of args, an array of 4-byte keys
++// that represent the type of of each arg, an array of aligned "data" values
++// for each arg, and finally the runtime string values. If an arg is a string
++// the data value is the runtime length of the string.  Each 4-byte key
++// contains the llvm type ID and the number of bits for the type.
++// encoded by the macro PACK_TY_BITLEN(x,y) ((uint32_t)x << 16) | ((uint32_t)y)
++// The llvm type ID of a string is pointer. To distinguish string pointers
++// from non-string pointers, the number of bitlen is set to 1.
++//
++// For example, here is a 4 arg printf function
++//
++// printf("format string %d %s %f \n", (int) 1, "string2", (double) 1.234);
++//
++// is represented by a struct with these 13 elements.
++//
++//  {81, 4, 983041, 720928, 983041, 196672, 25, int 1, 7, 0, double 1.234,
++//     "format string %d %s %ld\n", "string2" }
++//
++// 81 is the total length of the buffer that must be allocated.
++// 4 is the number of arguments.
++// The next 4 key values represent the data types of the 4 args.
++// The format string length is 25.
++// The integer field is next.
++// The string argument "string2" has length 7
++// The 4-byte dummy arg 0 is inserted so the next double arg is aligned.
++// The string arguments follows the header, keys, and data args.
++//
++// Before the struct is written, a hostrpc call is is emitted  to allocate
++// memory for the transfer. Then the struct is emitted.  Then a call
++// to the execute the GPU stub function that initiates the service
++// on the host.  The host runtime passes the buffer to the service routine
++// for processing.
++
++// These static helper functions support EmitHostrpcVargsFn.
++
++// For strings that vary in length at runtime this strlen_max
++// will stop at a provided maximum.
++static llvm::Function *GetOmpStrlenDeclaration(CodeGenModule &CGM) {
++  auto &M = CGM.getModule();
++  // Args are pointer to char and maxstringlen
++  llvm::Type *ArgTypes[] = {CGM.Int8PtrTy, CGM.Int32Ty};
++  llvm::FunctionType *OmpStrlenFTy =
++      llvm::FunctionType::get(CGM.Int32Ty, ArgTypes, false);
++  if (auto *F = M.getFunction("__strlen_max")) {
++    assert(F->getFunctionType() == OmpStrlenFTy);
++    return F;
++  }
++  llvm::Function *FN = llvm::Function::Create(
++      OmpStrlenFTy, llvm::GlobalVariable::ExternalLinkage, "__strlen_max", &M);
++  return FN;
++}
++
++// Deterimines if an expression is a string with variable lenth
++static bool isVarString(const clang::Expr *argX, const clang::Type *argXTy,
++                        const llvm::Value *Arg) {
++  if ((argXTy->isPointerType() || argXTy->isConstantArrayType()) &&
++      argXTy->getPointeeOrArrayElementType()->isCharType() && !argX->isLValue())
++    return true;
++  // Ensure the VarDecl has an inititalizer
++  if (const auto *DRE = dyn_cast<DeclRefExpr>(argX))
++    if (const auto *VD = dyn_cast<VarDecl>(DRE->getDecl()))
++      if (!VD->getInit() ||
++          !llvm::isa<StringLiteral>(VD->getInit()->IgnoreImplicit()))
++        return true;
++  return false;
++}
++
++// Deterimines if an argument is a string
++static bool isString(const clang::Type *argXTy) {
++  if ((argXTy->isPointerType() || argXTy->isConstantArrayType()) &&
++      argXTy->getPointeeOrArrayElementType()->isCharType())
++    return true;
++  else
++    return false;
++}
++
++// Gets a string literal to write into the transfer buffer
++static const StringLiteral *getSL(const clang::Expr *argX,
++                                  const clang::Type *argXTy) {
++  // String in argX has known constant length
++  if (!argXTy->isConstantArrayType()) {
++    // Allow constant string to be a declared variable,
++    // But it must be constant and initialized.
++    const DeclRefExpr *DRE = cast<DeclRefExpr>(argX);
++    const VarDecl *VarD = cast<VarDecl>(DRE->getDecl());
++    argX = VarD->getInit()->IgnoreImplicit();
++  }
++  const StringLiteral *SL = cast<StringLiteral>(argX);
++  return SL;
++}
++
++// Returns a function pointer to the memory allocation routine
++static llvm::Function *GetVargsFnAllocDeclaration(CodeGenModule &CGM,
++                                                  const char *GPUAllocateName) {
++  auto &M = CGM.getModule();
++  llvm::Type *ArgTypes[] = {CGM.Int32Ty};
++  llvm::Function *FN;
++  llvm::FunctionType *VargsFnAllocFuncType = llvm::FunctionType::get(
++      llvm::PointerType::getUnqual(CGM.Int8Ty), ArgTypes, false);
++
++  if (!(FN = M.getFunction(GPUAllocateName)))
++    FN = llvm::Function::Create(VargsFnAllocFuncType,
++                                llvm::GlobalVariable::ExternalLinkage,
++                                GPUAllocateName, &M);
++  assert(FN->getFunctionType() == VargsFnAllocFuncType);
++  return FN;
++}
++
++// Returns a function pointer to the GPU stub function
++static llvm::Function *
++hostrpcVargsReturnsFnDeclaration(CodeGenModule &CGM, QualType Ty,
++                                 const char *GPUStubFunctionName) {
++  auto &M = CGM.getModule();
++  llvm::Type *ArgTypes[] = {llvm::PointerType::getUnqual(CGM.Int8Ty),
++                            CGM.Int32Ty};
++  llvm::Function *FN;
++  llvm::FunctionType *VarfnFuncType =
++      llvm::FunctionType::get(CGM.getTypes().ConvertType(Ty), ArgTypes, false);
++  if (!(FN = M.getFunction(GPUStubFunctionName)))
++    FN = llvm::Function::Create(VarfnFuncType,
++                                llvm::GlobalVariable::ExternalLinkage,
++                                GPUStubFunctionName, &M);
++  assert(FN->getFunctionType() == VarfnFuncType);
++  return FN;
++}
++
++// The macro to pack the llvm type ID and numbits into 4-byte key
++#define PACK_TY_BITLEN(x, y) ((uint32_t)x << 16) | ((uint32_t)y)
++
++// Emit the code to support a host vargs function such as printf.
++RValue CodeGenFunction::EmitHostrpcVargsFn(const CallExpr *E,
++                                           const char *GPUAllocateName,
++                                           const char *GPUStubFunctionName) {
++  assert(getTarget().getTriple().isAMDGCN());
++  // assert(E->getBuiltinCallee() == Builtin::BIprintf);
++  assert(E->getNumArgs() >= 1); // rpc varfn always has at least one arg.
++
++  const llvm::DataLayout &DL = CGM.getDataLayout();
++
++  CallArgList Args;
++  EmitCallArgs(Args,
++               E->getDirectCallee()->getType()->getAs<FunctionProtoType>(),
++               E->arguments(), E->getDirectCallee(),
++               /* ParamsToSkip = */ 0);
++
++  // We don't know how to emit non-scalar varargs.
++  if (std::any_of(Args.begin() + 1, Args.end(), [&](const CallArg &A) {
++        return !A.getRValue(*this).isScalar();
++      })) {
++    CGM.ErrorUnsupported(E, "non-scalar arg in GPU vargs function");
++    return RValue::get(llvm::ConstantInt::get(IntTy, 0));
++  }
++
++  unsigned NumArgs = (unsigned)Args.size();
++  llvm::SmallVector<llvm::Type *, 32> ArgTypes;
++  llvm::SmallVector<llvm::Value *, 32> VarStrLengths;
++  llvm::Value *TotalVarStrsLength = llvm::ConstantInt::get(Int32Ty, 0);
++  bool hasVarStrings = false;
++  ArgTypes.push_back(Int32Ty); // First field in struct will be total DataLen
++  ArgTypes.push_back(Int32Ty); // 2nd field in struct will be num args
++  // An array of 4-byte keys that describe the arg type
++  for (unsigned I = 0; I < NumArgs; ++I)
++    ArgTypes.push_back(Int32Ty);
++
++  // Track the size of the numeric data length and string length
++  unsigned DataLen_CT =
++      (unsigned)(DL.getTypeAllocSize(Int32Ty)) * (NumArgs + 2);
++  unsigned AllStringsLen_CT = 0;
++
++  // ---  1st Pass over Args to create ArgTypes and count size ---
++
++  size_t structOffset = 4 * (NumArgs + 2);
++  for (unsigned I = 0; I < NumArgs; I++) {
++    llvm::Value *Arg = Args[I].getRValue(*this).getScalarVal();
++    llvm::Type *ArgType = Arg->getType();
++    const Expr *argX = E->getArg(I)->IgnoreParenCasts();
++    auto *argXTy = argX->getType().getTypePtr();
++    if (isString(argXTy)) {
++      if (isVarString(argX, argXTy, Arg)) {
++        hasVarStrings = true;
++        if (auto *PtrTy = dyn_cast<llvm::PointerType>(ArgType))
++          if (PtrTy->getPointerAddressSpace()) {
++            Arg = Builder.CreateAddrSpaceCast(Arg, CGM.Int8PtrTy);
++            ArgType = Arg->getType();
++          }
++        llvm::Value *VarStrLen =
++            Builder.CreateCall(GetOmpStrlenDeclaration(CGM),
++                               {Arg, llvm::ConstantInt::get(Int32Ty, 1024)});
++        VarStrLengths.push_back(VarStrLen);
++        TotalVarStrsLength = Builder.CreateAdd(TotalVarStrsLength, VarStrLen,
++                                               "sum_of_var_strings_length");
++        ArgType = Int32Ty;
++      } else {
++        const StringLiteral *SL = getSL(argX, argXTy);
++        StringRef ArgString = SL->getString();
++        AllStringsLen_CT += ((int)ArgString.size() + 1);
++        // change ArgType from char ptr to int to contain string length
++        ArgType = Int32Ty;
++      }
++    } // end of processing string argument
++    // if ArgTypeSize is >4 bytes we need to insert dummy align
++    // values in the struct so all stores can be aligned .
++    // These dummy fields must be inserted before the arg.
++    //
++    // In the pass below where the stores are generated careful
++    // tracking of the index into the struct is necessary.
++    size_t needsPadding = (structOffset % (size_t)DL.getTypeAllocSize(ArgType));
++    if (needsPadding) {
++      DataLen_CT += (unsigned)needsPadding;
++      structOffset += needsPadding;
++      ArgTypes.push_back(Int32Ty); // should assert that needsPadding == 4 here
++    }
++
++    ArgTypes.push_back(ArgType);
++    DataLen_CT += ((int)DL.getTypeAllocSize(ArgType));
++    structOffset += (size_t)DL.getTypeAllocSize(ArgType);
++  }
++
++  // ---  Generate call to printf_alloc to get pointer to data structure  ---
++  if (hasVarStrings)
++    TotalVarStrsLength = Builder.CreateAdd(
++        TotalVarStrsLength,
++        llvm::ConstantInt::get(Int32Ty, AllStringsLen_CT + DataLen_CT),
++        "total_buffer_size");
++  llvm::Value *BufferLen =
++      hasVarStrings
++          ? TotalVarStrsLength
++          : llvm::ConstantInt::get(Int32Ty, AllStringsLen_CT + DataLen_CT);
++
++  llvm::Value *DataStructPtr = Builder.CreateCall(
++      GetVargsFnAllocDeclaration(CGM, GPUAllocateName), {BufferLen});
++
++  // cast the generic return pointer to be a struct in device global memory
++  llvm::StructType *DataStructTy =
++      llvm::StructType::create(ArgTypes, "varfn_args_store");
++  unsigned AS = getContext().getTargetAddressSpace(LangAS::cuda_device);
++  llvm::Value *BufferPtr = Builder.CreatePointerCast(
++      DataStructPtr, llvm::PointerType::get(DataStructTy, AS),
++      "varfn_args_store_casted");
++
++  // ---  Header of struct contains length and NumArgs ---
++  llvm::Value *DataLenField = llvm::ConstantInt::get(Int32Ty, DataLen_CT);
++  llvm::Value *P = Builder.CreateStructGEP(DataStructTy, BufferPtr, 0);
++  Builder.CreateAlignedStore(
++      DataLenField, P, DL.getPrefTypeAlign(DataLenField->getType()));
++  llvm::Value *NumArgsField = llvm::ConstantInt::get(Int32Ty, NumArgs);
++  P = Builder.CreateStructGEP(DataStructTy, BufferPtr, 1);
++  Builder.CreateAlignedStore(
++      NumArgsField, P, DL.getPrefTypeAlign(NumArgsField->getType()));
++
++  // ---  2nd Pass: create array of 4-byte keys to describe each arg
++
++  for (unsigned I = 0; I < NumArgs; I++) {
++    llvm::Type *ty = Args[I].getRValue(*this).getScalarVal()->getType();
++    llvm::Type::TypeID argtypeid =
++        Args[I].getRValue(*this).getScalarVal()->getType()->getTypeID();
++
++    // Get type size in bits. Usually 64 or 32.
++    uint32_t numbits = 0;
++    if (isString(E->getArg(I)->IgnoreParenCasts()->getType().getTypePtr()))
++      // The llvm typeID for string is pointer.  Since pointer numbits is 0,
++      // we set numbits to 1 to distinguish pointer type ID as string pointer.
++      numbits = 1;
++    else
++      numbits = ty->getScalarSizeInBits();
++    // Create a key that combines llvm typeID and size
++    llvm::Value *Key =
++        llvm::ConstantInt::get(Int32Ty, PACK_TY_BITLEN(argtypeid, numbits));
++    P = Builder.CreateStructGEP(DataStructTy, BufferPtr, I + 2);
++    Builder.CreateAlignedStore(Key, P, DL.getPrefTypeAlign(Key->getType()));
++  }
++
++  // ---  3rd Pass: Store thread-specfic data values for each arg ---
++
++  unsigned varstring_index = 0;
++  unsigned structIndex = 2 + NumArgs;
++  structOffset = 4 * structIndex;
++  for (unsigned I = 0; I < NumArgs; I++) {
++    llvm::Value *Arg;
++    const Expr *argX = E->getArg(I)->IgnoreParenCasts();
++    auto *argXTy = argX->getType().getTypePtr();
++    if (isString(argXTy)) {
++      if (isVarString(argX, argXTy, Arg)) {
++        Arg = VarStrLengths[varstring_index];
++        varstring_index++;
++      } else {
++        const StringLiteral *SL = getSL(argX, argXTy);
++        StringRef ArgString = SL->getString();
++        int ArgStrLen = (int)ArgString.size() + 1;
++        // Change Arg from a char pointer to the integer string length
++        Arg = llvm::ConstantInt::get(Int32Ty, ArgStrLen);
++      }
++    } else {
++      Arg = Args[I].getKnownRValue().getScalarVal();
++    }
++    size_t structElementSize = (size_t)DL.getTypeAllocSize(Arg->getType());
++    size_t needsPadding = (structOffset % structElementSize);
++    if (needsPadding) {
++      // Skip over dummy fields in struct to align
++      structOffset += needsPadding; // should assert needsPadding == 4
++      structIndex++;
++    }
++    P = Builder.CreateStructGEP(DataStructTy, BufferPtr, structIndex);
++    Builder.CreateAlignedStore(Arg, P, DL.getPrefTypeAlign(Arg->getType()));
++    structOffset += structElementSize;
++    structIndex++;
++  }
++
++  // ---  4th Pass: memcpy all strings after the data values ---
++
++  // bitcast the struct in device global memory as a char buffer
++  Address BufferPtrByteAddr = Address(
++      Builder.CreatePointerCast(BufferPtr, llvm::PointerType::get(Int8Ty, AS)),
++      Int8Ty, CharUnits::fromQuantity(1));
++  // BufferPtrByteAddr is a pointer to where we want to write the next string
++  BufferPtrByteAddr = Builder.CreateConstInBoundsByteGEP(
++      BufferPtrByteAddr, CharUnits::fromQuantity(DataLen_CT));
++  varstring_index = 0;
++  for (unsigned I = 0; I < NumArgs; ++I) {
++    llvm::Value *Arg = Args[I].getKnownRValue().getScalarVal();
++    const Expr *argX = E->getArg(I)->IgnoreParenCasts();
++    auto *argXTy = argX->getType().getTypePtr();
++    if (isString(argXTy)) {
++      if (isVarString(argX, argXTy, Arg)) {
++        llvm::Value *varStrLength = VarStrLengths[varstring_index];
++        varstring_index++;
++        Address SrcAddr = Address(Arg, Int8Ty, CharUnits::fromQuantity(1));
++        Builder.CreateMemCpy(BufferPtrByteAddr, SrcAddr, varStrLength);
++        // update BufferPtrByteAddr for next string memcpy
++        llvm::Value *PtrAsInt = BufferPtrByteAddr.getPointer();
++        BufferPtrByteAddr = Address(
++            Builder.CreateGEP(Int8Ty,
++		    PtrAsInt, ArrayRef<llvm::Value*>(varStrLength)),
++            Int8Ty, CharUnits::fromQuantity(1));
++      } else {
++        const StringLiteral *SL = getSL(argX, argXTy);
++        StringRef ArgString = SL->getString();
++        int ArgStrLen = (int)ArgString.size() + 1;
++        Address SrcAddr = CGM.GetAddrOfConstantStringFromLiteral(SL);
++        Builder.CreateMemCpy(BufferPtrByteAddr, SrcAddr, ArgStrLen);
++        // update BufferPtrByteAddr for next memcpy
++        BufferPtrByteAddr = Builder.CreateConstInBoundsByteGEP(
++            BufferPtrByteAddr, CharUnits::fromQuantity(ArgStrLen));
++      }
++    }
++  }
++  return RValue::get(Builder.CreateCall(
++      hostrpcVargsReturnsFnDeclaration(CGM, E->getType(), GPUStubFunctionName),
++      {DataStructPtr, BufferLen}));
++}
+diff -Naur -x .git llvm-project.amd-trunk-dev/clang/lib/CodeGen/CodeGenFunction.h llvm-project/clang/lib/CodeGen/CodeGenFunction.h
+--- llvm-project.amd-trunk-dev/clang/lib/CodeGen/CodeGenFunction.h	2023-02-03 10:47:17.266767906 -0500
++++ llvm-project/clang/lib/CodeGen/CodeGenFunction.h	2023-01-31 15:41:50.170149666 -0500
+@@ -4125,6 +4125,8 @@
+   RValue EmitNVPTXDevicePrintfCallExpr(const CallExpr *E);
+   RValue EmitAMDGPUDevicePrintfCallExpr(const CallExpr *E);
+   RValue EmitOpenMPDevicePrintfCallExpr(const CallExpr *E);
++  RValue EmitHostrpcVargsFn(const CallExpr *E, const char *allocate_name,
++                            const char *execute_name);
+ 
+   RValue EmitBuiltinExpr(const GlobalDecl GD, unsigned BuiltinID,
+                          const CallExpr *E, ReturnValueSlot ReturnValue);
+diff -Naur -x .git llvm-project.amd-trunk-dev/clang/lib/Driver/ToolChains/Clang.cpp llvm-project/clang/lib/Driver/ToolChains/Clang.cpp
+--- llvm-project.amd-trunk-dev/clang/lib/Driver/ToolChains/Clang.cpp	2023-02-03 10:47:17.266767906 -0500
++++ llvm-project/clang/lib/Driver/ToolChains/Clang.cpp	2023-01-31 17:50:56.054528631 -0500
+@@ -8418,6 +8418,11 @@
+     }
+   }
+ 
++  // FIXME: only add this object if amdgcn until we get hostrpc working for nvptx.
++  // FIXME: change to v500 if amdgcn ABIVersion >= 500
++  // FIXME  ensure file exists before adding object file to linker wrapper
++  CmdArgs.push_back(Args.MakeArgString(D.Dir + "/../lib/hostrpc-stubs-v400-amdgcn.o"));
++
+   CmdArgs.push_back(
+       Args.MakeArgString("--host-triple=" + TheTriple.getTriple()));
+   if (Args.hasArg(options::OPT_v))
+diff -Naur -x .git llvm-project.amd-trunk-dev/openmp/libomptarget/CMakeLists.txt llvm-project/openmp/libomptarget/CMakeLists.txt
+--- llvm-project.amd-trunk-dev/openmp/libomptarget/CMakeLists.txt	2023-02-03 10:47:23.378704065 -0500
++++ llvm-project/openmp/libomptarget/CMakeLists.txt	2023-01-31 15:41:50.174149623 -0500
+@@ -108,6 +108,7 @@
+ add_subdirectory(plugins)
+ add_subdirectory(plugins-nextgen)
+ add_subdirectory(DeviceRTL)
++add_subdirectory(hostrpc)
+ add_subdirectory(tools)
+ 
+ # Add tests.
+diff -Naur -x .git llvm-project.amd-trunk-dev/openmp/libomptarget/hostrpc/CMakeLists.txt llvm-project/openmp/libomptarget/hostrpc/CMakeLists.txt
+--- llvm-project.amd-trunk-dev/openmp/libomptarget/hostrpc/CMakeLists.txt	1969-12-31 19:00:00.000000000 -0500
++++ llvm-project/openmp/libomptarget/hostrpc/CMakeLists.txt	2023-02-01 10:31:05.003534169 -0500
+@@ -0,0 +1,101 @@
++##===----------------------------------------------------------------------===##
++#
++# Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
++# See https://llvm.org/LICENSE.txt for license information.
++# SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
++#
++##===----------------------------------------------------------------------===##
++#
++# Build hostrpc support as part of libomptarget
++#
++##===----------------------------------------------------------------------===##
++
++cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
++
++if("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_CURRENT_SOURCE_DIR}")
++  message(FATAL_ERROR "Direct configuration not supported, please use parent directory!")
++endif()
++
++add_subdirectory(services)
++
++if (LLVM_DIR)
++  message("   -- Building hostrpc with LLVM ${LLVM_PACKAGE_VERSION} found with CLANG_TOOL ${CLANG_TOOL}")
++  find_program(CLANG_TOOL clang PATHS ${LLVM_TOOLS_BINARY_DIR} NO_DEFAULT_PATH)
++  find_program(PACKAGER_TOOL clang-offload-packager PATHS ${LLVM_TOOLS_BINARY_DIR} NO_DEFAULT_PATH)
++  find_program(LINK_TOOL llvm-link PATHS ${LLVM_TOOLS_BINARY_DIR} NO_DEFAULT_PATH)
++else()
++  message("   ERROR: NO LLVM FOUND! Not building hostrpc .")
++  return()
++endif()
++
++set(amdgpu_mcpus gfx700 gfx701 gfx801 gfx803 gfx900 gfx902 gfx906 gfx908 gfx90a gfx90c gfx940 gfx1010 gfx1030 gfx1031 gfx1032 gfx1033 gfx1034 gfx1035 gfx1036 gfx1100 gfx1101 gfx1102 gfx1103)
++if (DEFINED LIBOMPTARGET_AMDGCN_GFXLIST)
++  set(amdgpu_mcpus ${LIBOMPTARGET_AMDGCN_GFXLIST})
++endif()
++set(triple "amdgcn-amd-amdhsa")
++set(archname "amdgcn")
++
++set(cl_file_name     ${CMAKE_CURRENT_SOURCE_DIR}/src/hostrpc_invoke.cl)
++set(device_file_name ${CMAKE_CURRENT_SOURCE_DIR}/src/hostrpc_stubs.cpp)
++set(host_file_name   ${CMAKE_CURRENT_SOURCE_DIR}/src/hostrpc_fallback.cpp)
++set(h_file           ${CMAKE_CURRENT_SOURCE_DIR}/src/hostrpc.h)
++
++set(abi_versions 400 500)
++foreach(abi_version ${abi_versions})
++
++   set(bc_cl_filename "hostrpc_invoke-v${abi_version}-${archname}.bc")
++   set(opencl_cmd ${CLANG_TOOL}
++    -fvisibility=default
++    -c -emit-llvm
++    -DCL_VERSION_2_0=200 -D__OPENCL_C_VERSION__=200
++    -Dcl_khr_fp64 -Dcl_khr_fp16
++    -Dcl_khr_subgroups -Dcl_khr_int64_base_atomics -Dcl_khr_int64_extended_atomics
++    -x cl -Xclang -cl-std=CL2.0 -Xclang -finclude-default-header
++    -target ${triple} 
++    -D__oclc_ABI_version=${abi_version})
++   add_custom_target(${bc_cl_filename}
++      COMMAND ${opencl_cmd} ${cl_file_name} -o ${bc_cl_filename}
++      DEPENDS ${cl_file_name})
++
++   set(openmp_host_args
++    -fopenmp --offload-arch=${mcpu} -c -emit-llvm --offload-host-only )
++   set(host_bc_file_name host-v${abi_version}-${archname}.bc)
++   add_custom_target(${host_bc_file_name}
++      COMMAND ${CLANG_TOOL} ${openmp_host_args} ${host_file_name} -o ${host_bc_file_name}
++      DEPENDS ${host_file_name})
++
++   foreach(mcpu ${amdgpu_mcpus})
++      set(bc_filename "hostrpc-stubs_v${abi_version}-${mcpu}.bc")
++      set(openmp_device_args -fopenmp --offload-arch=${mcpu} -c -emit-llvm -nogpulib --offload-device-only)
++      add_custom_target(${bc_filename}
++         COMMAND ${CLANG_TOOL} ${openmp_device_args} ${device_file_name} -o ${bc_filename}
++         DEPENDS ${device_file_name} ${h_file}
++         COMMENT "Built file ${bc_filename}")
++
++      set(libhostrpc-bc "libhostrpc-v${abi_version}-${mcpu}.bc")
++      add_custom_target(${libhostrpc-bc}
++         COMMAND ${LINK_TOOL} ${bc_filename} --internalize --only-needed ${bc_cl_filename} -o ${libhostrpc-bc}
++         COMMENT "Built hostrpc file ${libhostrpc-bc}")
++      add_dependencies(${libhostrpc-bc} ${bc_filename} ${bc_cl_filename})
++      list(APPEND packager_args "--image=file=${libhostrpc-bc},triple=${triple},arch=${mcpu},kind=openmp")
++      list(APPEND libhostrpc-bcs ${libhostrpc-bc})
++   endforeach()
++
++   set(image_file_name ${archname}-v${abi_version}-image.out)
++   add_custom_target(${image_file_name}
++      COMMAND ${PACKAGER_TOOL} -o ${image_file_name} ${packager_args}
++      COMMENT "COMMENT: BUilding ${image_file_name}")
++   add_dependencies(${image_file_name} ${libhostrpc-bcs})
++
++   set(EMBEDDED_OBJECT_FILE "hostrpc-stubs-v${abi_version}-${archname}.o")
++   add_custom_target(${EMBEDDED_OBJECT_FILE}
++      COMMAND ${CLANG_TOOL} -cc1 -emit-obj -fopenmp -fembed-offload-object=${image_file_name} -o ${EMBEDDED_OBJECT_FILE} -x ir ${host_bc_file_name}
++      COMMENT "COMMENT: Building ${EMBEDDED_OBJECT_FILE}")
++   add_dependencies(${EMBEDDED_OBJECT_FILE} ${image_file_name} ${host_bc_file_name})
++   add_dependencies(hostrpc_services ${EMBEDDED_OBJECT_FILE})
++   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${EMBEDDED_OBJECT_FILE} DESTINATION ${DEVEL_PACKAGE}lib)
++
++endforeach() # end foeach abi_version
++
++install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/hostrpc.h" DESTINATION ${DEVEL_PACKAGE}include)
++install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/disable_dynamic_devmem.ll" DESTINATION ${DEVEL_PACKAGE}lib)
+diff -Naur -x .git llvm-project.amd-trunk-dev/openmp/libomptarget/hostrpc/services/CMakeLists.txt llvm-project/openmp/libomptarget/hostrpc/services/CMakeLists.txt
+--- llvm-project.amd-trunk-dev/openmp/libomptarget/hostrpc/services/CMakeLists.txt	1969-12-31 19:00:00.000000000 -0500
++++ llvm-project/openmp/libomptarget/hostrpc/services/CMakeLists.txt	2023-02-01 18:06:59.625550677 -0500
+@@ -0,0 +1,26 @@
++##===----------------------------------------------------------------------===##
++#
++# Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
++# See https://llvm.org/LICENSE.txt for license information.
++# SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
++#
++##===----------------------------------------------------------------------===##
++#
++# Build libhostrpc_services.a library for plugins to link to
++#
++##===----------------------------------------------------------------------===##
++find_package(hsa-runtime64 1.2.0 REQUIRED HINTS ${CMAKE_INSTALL_PREFIX} PATHS /opt/rocm)
++add_library(hostrpc_services STATIC libhostrpc_services.cpp hostrpc_execute_service.cpp urilocator.cpp )
++target_include_directories(
++  hostrpc_services
++  PRIVATE
++  ${LIBOMPTARGET_INCLUDE_DIR}
++)
++
++add_definitions(-DTARGET_NAME=AMDGPU)
++set_property(TARGET hostrpc_services PROPERTY POSITION_INDEPENDENT_CODE ON)
++if(SANITIZER_AMDGPU)
++   add_definitions(-DSANITIZER_AMDGPU=1)
++   set(ASAN_LIB ${LLVM_LIBRARY_DIR}/clang/${LLVM_VERSION_MAJOR}.${LLVM_VERSION_MINOR}.${LLVM_VERSION_PATCH}/lib/linux/libclang_rt.asan-x86_64.so)
++endif()
++target_link_libraries(hostrpc_services hsa-runtime64::hsa-runtime64 ${ASAN_LIB})
+diff -Naur -x .git llvm-project.amd-trunk-dev/openmp/libomptarget/hostrpc/services/hostrpc_execute_service.cpp llvm-project/openmp/libomptarget/hostrpc/services/hostrpc_execute_service.cpp
+--- llvm-project.amd-trunk-dev/openmp/libomptarget/hostrpc/services/hostrpc_execute_service.cpp	1969-12-31 19:00:00.000000000 -0500
++++ llvm-project/openmp/libomptarget/hostrpc/services/hostrpc_execute_service.cpp	2023-02-01 19:15:56.394706793 -0500
+@@ -0,0 +1,1375 @@
++
++/*
++ *   hostrpc_execute_service.c:  These are the host services for the hostrpc
++system
++ *
++ *   Written by Greg Rodgers
++
++MIT License
++
++Copyright © 2020 Advanced Micro Devices, Inc.
++
++Permission is hereby granted, free of charge, to any person obtaining a copy
++of this software and associated documentation files (the "Software"), to deal
++in the Software without restriction, including without limitation the rights
++to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
++copies of the Software, and to permit persons to whom the Software is furnished
++to do so, subject to the following conditions:
++
++The above copyright notice and this permission notice shall be included in all
++copies or substantial portions of the Software.
++
++THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
++AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
++OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++SOFTWARE.
++
++*/
++
++#include "../src/hostrpc.h"
++#include "hostrpc_execute_service.h"
++#include <ctype.h>
++#include <stdarg.h>
++#include <stdbool.h>
++#include <stddef.h>
++#include <stdint.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++
++// MAXVARGS applies to non-printf vargs functions only.
++#define MAXVARGS 32
++// NUMFPREGS and FPREGSZ are part of x86 vargs ABI
++#define NUMFPREGS 8
++#define FPREGSZ 16
++
++typedef int uint128_t __attribute__((mode(TI)));
++struct hostrpc_pfIntRegs {
++  uint64_t rdi, rsi, rdx, rcx, r8, r9;
++};
++typedef struct hostrpc_pfIntRegs hostrpc_pfIntRegs_t; // size = 48 bytes
++
++struct hostrpc_pfRegSaveArea {
++  hostrpc_pfIntRegs_t iregs;
++  uint128_t freg[NUMFPREGS];
++};
++typedef struct hostrpc_pfRegSaveArea
++    hostrpc_pfRegSaveArea_t; // size = 304 bytes
++
++struct hostrpc_ValistExt {
++  uint32_t gp_offset;      /* offset to next available gpr in reg_save_area */
++  uint32_t fp_offset;      /* offset to next available fpr in reg_save_area */
++  void *overflow_arg_area; /* args that are passed on the stack */
++  hostrpc_pfRegSaveArea_t *reg_save_area; /* int and fp registers */
++  size_t overflow_size;
++} __attribute__((packed));
++typedef struct hostrpc_ValistExt hostrpc_ValistExt_t;
++
++/// Prototype for host fallback functions
++typedef uint32_t hostrpc_varfn_uint_t(void *, ...);
++typedef uint64_t hostrpc_varfn_uint64_t(void *, ...);
++typedef double hostrpc_varfn_double_t(void *, ...);
++
++extern "C"  {
++static hostrpc_status_t hostrpc_printf(char *buf, size_t bufsz, uint32_t *rc);
++static hostrpc_status_t hostrpc_fprintf(char *buf, size_t bufsz, uint32_t *rc);
++static hostrpc_status_t hostrpc_varfn_uint_(char *buf, size_t bufsz,
++                                            uint32_t *rc);
++static hostrpc_status_t hostrpc_varfn_uint64_(char *buf, size_t bufsz,
++                                              uint64_t *rc);
++static hostrpc_status_t hostrpc_varfn_double_(char *buf, size_t bufsz,
++                                              double *rc);
++
++static void hostrpc_handler_SERVICE_PRINTF(uint32_t device_id,
++                                           uint64_t *payload) {
++  size_t bufsz = (size_t)payload[0];
++  char *device_buffer = (char *)payload[1];
++  uint uint_value;
++  hostrpc_status_t rc = hostrpc_printf(device_buffer, bufsz, &uint_value);
++  payload[0] = (uint64_t)uint_value; // what the printf returns
++  payload[1] = (uint64_t)rc;         // Any errors in the service function
++  hsa_status_t err = impl_free(device_buffer);
++  payload[2] = (uint64_t)err;
++}
++static void hostrpc_handler_SERVICE_FPRINTF(uint32_t device_id,
++                                            uint64_t *payload) {
++  size_t bufsz = (size_t)payload[0];
++  char *device_buffer = (char *)payload[1];
++  uint uint_value;
++  hostrpc_status_t rc = hostrpc_fprintf(device_buffer, bufsz, &uint_value);
++  payload[0] = (uint64_t)uint_value; // what the printf returns
++  payload[1] = (uint64_t)rc;         // Any errors in the service function
++  hsa_status_t err = impl_free(device_buffer);
++  payload[2] = (uint64_t)err;
++}
++
++static void hostrpc_handler_SERVICE_VARFNUINT(uint32_t device_id,
++                                              uint64_t *payload) {
++  size_t bufsz = (size_t)payload[0];
++  char *device_buffer = (char *)payload[1];
++  uint uint_value;
++  hostrpc_status_t rc = hostrpc_varfn_uint_(device_buffer, bufsz, &uint_value);
++  payload[0] = (uint64_t)uint_value; // What the vargs function pointer returns
++  payload[1] = (uint64_t)rc;         // any errors in the service function
++  hsa_status_t err = impl_free(device_buffer);
++  payload[2] = (uint64_t)err;
++}
++
++static void hostrpc_handler_SERVICE_VARFNUINT64(uint32_t device_id,
++                                                uint64_t *payload) {
++  size_t bufsz = (size_t)payload[0];
++  char *device_buffer = (char *)payload[1];
++  uint64_t uint64_value;
++  hostrpc_status_t rc =
++      hostrpc_varfn_uint64_(device_buffer, bufsz, &uint64_value);
++  payload[0] =
++      (uint64_t)uint64_value; // What the vargs function pointer returns
++  payload[1] = (uint64_t)rc;  // any errors in the service function
++  hsa_status_t err = impl_free(device_buffer);
++  payload[2] = (uint64_t)err;
++}
++
++static void hostrpc_handler_SERVICE_VARFNDOUBLE(uint32_t device_id,
++                                                uint64_t *payload) {
++  size_t bufsz = (size_t)payload[0];
++  char *device_buffer = (char *)payload[1];
++  double double_value;
++  hostrpc_status_t rc =
++      hostrpc_varfn_double_(device_buffer, bufsz, (double *)&double_value);
++  memcpy(&payload[0], &double_value, 8);
++  payload[1] = (uint64_t)rc; // any errors in the service function
++  hsa_status_t err = impl_free(device_buffer);
++  payload[2] = (uint64_t)err;
++}
++
++static void hostrpc_handler_SERVICE_MALLOC_PRINTF(uint32_t device_id,
++                 uint64_t *payload, hsa_amd_memory_pool_t MemoryPool,
++		 hsa_agent_t hsa_agent) {
++  void *ptr = NULL;
++  // CPU device ID 0 is the fine grain memory
++  size_t sz = (size_t)payload[0];
++  hsa_status_t err = host_malloc(&ptr, sz, MemoryPool,hsa_agent);
++  payload[0] = (uint64_t)err;
++  payload[1] = (uint64_t)ptr;
++}
++
++//  SERVICE_MALLOC & SERVICE_FREE are for allocating a heap of device memory 
++//  only used by the device to be used for device side malloc and free. 
++//  This is called by __ockl_devmem_request. For allocating memory visible 
++//  to both host and device user SERVICE_MALLOC_PRINTF. The corresponding
++//  vargs function will release this  
++static void hostrpc_handler_SERVICE_MALLOC(uint32_t device_id,
++              uint64_t *payload, hsa_amd_memory_pool_t DevMemoryPool) {
++  void *ptr = NULL;
++  hsa_status_t err = device_malloc(&ptr, payload[0], device_id, DevMemoryPool);
++  payload[0] = (uint64_t)err;
++  payload[1] = (uint64_t)ptr;
++}
++
++void fort_ptr_assign_i8(void *arg0, void *arg1, void *arg2, void *arg3, void *arg4) {
++  printf("\n\n ERROR: hostrpc service FTNASSIGN is not functional\n\n");
++};
++hsa_status_t FtnAssignWrapper(void *arg0, void *arg1, void *arg2, void *arg3, void *arg4) {
++  fort_ptr_assign_i8(arg0, arg1, arg2, arg3, arg4);
++  return HSA_STATUS_SUCCESS;
++}
++
++hsa_status_t ftn_assign_wrapper(void *arg0, void *arg1, void *arg2, void *arg3,
++                                void *arg4) {
++  return FtnAssignWrapper(arg0, arg1, arg2, arg3, arg4);
++}
++
++static void hostrpc_handler_SERVICE_FTNASSIGN(uint32_t device_id,
++                                              uint64_t *payload) {
++  void *ptr = NULL;
++  hsa_status_t err = ftn_assign_wrapper((void *)payload[0], (void *)payload[1],
++                                        (void *)payload[2], (void *)payload[3],
++                                        (void *)payload[4]);
++  payload[0] = (uint64_t)err;
++  payload[1] = (uint64_t)ptr;
++}
++
++
++static void hostrpc_handler_SERVICE_FREE(uint32_t device_id,
++                                         uint64_t *payload) {
++  char *device_buffer = (char *)payload[0];
++  hsa_status_t err = impl_free(device_buffer);
++  payload[0] = (uint64_t)err;
++}
++
++static void hostrpc_handler_SERVICE_FUNCTIONCALL(uint32_t device_id,
++                                                 void (*payload)())  {
++  void (*fptr)() = payload;
++  (*fptr)();
++}
++
++static hsa_amd_memory_pool_t static_host_memory_pool;
++static hsa_amd_memory_pool_t static_device_memory_pools[8];
++static hsa_agent_t static_hsa_agents[8];
++   
++void hostrpc_set_mempools_for_services(uint32_t device_id, 
++		hsa_amd_memory_pool_t HostMemoryPool, 
++		hsa_amd_memory_pool_t DevMemoryPool,
++		hsa_agent_t hsa_agent){
++  static_host_memory_pool = HostMemoryPool;
++  static_device_memory_pools[device_id] = DevMemoryPool;
++  static_hsa_agents[device_id] = hsa_agent;
++}
++
++// The architecture-specific implementation of hostrpc will
++// call this single external function for each service request.
++// Host service functions are architecturally independent.
++void hostrpc_execute_service(uint32_t service_id, uint32_t *device_ptr,
++                                    uint64_t *payload) {
++  uint32_t device_id = *device_ptr;
++  switch (service_id) {
++  case HOSTRPC_SERVICE_PRINTF:
++    hostrpc_handler_SERVICE_PRINTF(device_id, payload);
++    break;
++  case HOSTRPC_SERVICE_FPRINTF:
++    hostrpc_handler_SERVICE_FPRINTF(device_id, payload);
++    break;
++  case HOSTRPC_SERVICE_VARFNUINT:
++    hostrpc_handler_SERVICE_VARFNUINT(device_id, payload);
++    break;
++  case HOSTRPC_SERVICE_VARFNUINT64:
++    hostrpc_handler_SERVICE_VARFNUINT64(device_id, payload);
++    break;
++  case HOSTRPC_SERVICE_VARFNDOUBLE:
++    hostrpc_handler_SERVICE_VARFNDOUBLE(device_id, payload);
++    break;
++  case HOSTRPC_SERVICE_MALLOC_PRINTF:
++    hostrpc_handler_SERVICE_MALLOC_PRINTF(device_id, payload,
++		    static_host_memory_pool,static_hsa_agents[device_id]);
++    break;
++  case HOSTRPC_SERVICE_MALLOC:
++    hostrpc_handler_SERVICE_MALLOC(device_id, payload,
++		    static_device_memory_pools[device_id]);
++    break;
++  case HOSTRPC_SERVICE_FTNASSIGN:
++    hostrpc_handler_SERVICE_FTNASSIGN(device_id, payload);
++    break;
++  case HOSTRPC_SERVICE_FREE:
++    hostrpc_handler_SERVICE_FREE(device_id, payload);
++    break;
++  case HOSTRPC_SERVICE_FUNCTIONCALL:
++    {
++    void (*fptr)() = (void (*)()) payload[0];
++    hostrpc_handler_SERVICE_FUNCTIONCALL(device_id, fptr);
++    }
++    break;
++  default:
++    printf("ERROR: hostrpc got a bad service id:%d\n", service_id);
++    hostrpc_abort(HOSTRPC_INVALIDSERVICE_ERROR);
++  }
++}
++
++//---------------- Support for hostrpc_printf service ---------------------
++
++// Handle overflow when building the va_list for vprintf
++static hostrpc_status_t hostrpc_pfGetOverflow(hostrpc_ValistExt_t *valist,
++                                              size_t needsize) {
++  if (needsize < valist->overflow_size)
++    return HOSTRPC_SUCCESS;
++
++  // Make the overflow area bigger
++  size_t stacksize;
++  void *newstack;
++  if (valist->overflow_size == 0) {
++    // Make initial save area big to reduce mallocs
++    stacksize = (FPREGSZ * NUMFPREGS) * 2;
++    if (needsize > stacksize)
++      stacksize = needsize; // maybe a big string
++  } else {
++    // Initial save area not big enough, double it
++    stacksize = valist->overflow_size * 2;
++  }
++  if (!(newstack = malloc(stacksize))) {
++    return HOSTRPC_STATUS_ERROR;
++  }
++  memset(newstack, 0, stacksize);
++  if (valist->overflow_size) {
++    memcpy(newstack, valist->overflow_arg_area, valist->overflow_size);
++    free(valist->overflow_arg_area);
++  }
++  valist->overflow_arg_area = newstack;
++  valist->overflow_size = stacksize;
++  return HOSTRPC_SUCCESS;
++}
++
++// Add an integer to the va_list for vprintf
++static hostrpc_status_t hostrpc_pfAddInteger(hostrpc_ValistExt_t *valist,
++                                             char *val, size_t valsize,
++                                             size_t *stacksize) {
++  uint64_t ival;
++  switch (valsize) {
++  case 1:
++    ival = *(uint8_t *)val;
++    break;
++  case 2:
++    ival = *(uint32_t *)val;
++    break;
++  case 4:
++    ival = (*(uint32_t *)val);
++    break;
++  case 8:
++    ival = *(uint64_t *)val;
++    break;
++  default: {
++    return HOSTRPC_STATUS_ERROR;
++  }
++  }
++  //  Always copy 8 bytes, sizeof(ival)
++  if ((valist->gp_offset + sizeof(ival)) <= sizeof(hostrpc_pfIntRegs_t)) {
++    memcpy(((char *)valist->reg_save_area + valist->gp_offset), &ival,
++           sizeof(ival));
++    valist->gp_offset += sizeof(ival);
++    return HOSTRPC_SUCCESS;
++  }
++  // Ensure valist overflow area is big enough
++  size_t needsize = (size_t)*stacksize + sizeof(ival);
++  if (hostrpc_pfGetOverflow(valist, needsize) != HOSTRPC_SUCCESS)
++    return HOSTRPC_STATUS_ERROR;
++  // Copy to overflow
++  memcpy((char *)(valist->overflow_arg_area) + (size_t)*stacksize, &ival,
++         sizeof(ival));
++
++  *stacksize += sizeof(ival);
++  return HOSTRPC_SUCCESS;
++}
++
++// Add a String argument when building va_list for vprintf
++static hostrpc_status_t hostrpc_pfAddString(hostrpc_ValistExt_t *valist,
++                                            char *val, size_t strsz,
++                                            size_t *stacksize) {
++  size_t valsize =
++      sizeof(char *); // ABI captures pointer to string,  not string
++  if ((valist->gp_offset + valsize) <= sizeof(hostrpc_pfIntRegs_t)) {
++    memcpy(((char *)valist->reg_save_area + valist->gp_offset), val, valsize);
++    valist->gp_offset += valsize;
++    return HOSTRPC_SUCCESS;
++  }
++  size_t needsize = (size_t)*stacksize + valsize;
++  if (hostrpc_pfGetOverflow(valist, needsize) != HOSTRPC_SUCCESS)
++    return HOSTRPC_STATUS_ERROR;
++  memcpy((char *)(valist->overflow_arg_area) + (size_t)*stacksize, val,
++         valsize);
++  *stacksize += valsize;
++  return HOSTRPC_SUCCESS;
++}
++
++// Add a floating point value when building va_list for vprintf
++static hostrpc_status_t hostrpc_pfAddFloat(hostrpc_ValistExt_t *valist,
++                                           char *numdata, size_t valsize,
++                                           size_t *stacksize) {
++  // FIXME, we can used load because doubles are now aligned
++  double dval;
++  if (valsize == 4) {
++    float fval;
++    memcpy(&fval, numdata, 4);
++    dval = (double)fval; // Extend single to double per abi
++  } else if (valsize == 8) {
++    memcpy(&dval, numdata, 8);
++  } else {
++    return HOSTRPC_STATUS_ERROR;
++  }
++  if ((valist->fp_offset + FPREGSZ) <= sizeof(hostrpc_pfRegSaveArea_t)) {
++    memcpy(((char *)valist->reg_save_area + (size_t)(valist->fp_offset)), &dval,
++           sizeof(double));
++    valist->fp_offset += FPREGSZ;
++    return HOSTRPC_SUCCESS;
++  }
++  size_t needsize = (size_t)*stacksize + sizeof(double);
++  if (hostrpc_pfGetOverflow(valist, needsize) != HOSTRPC_SUCCESS)
++    return HOSTRPC_STATUS_ERROR;
++  memcpy((char *)(valist->overflow_arg_area) + (size_t)*stacksize, &dval,
++         sizeof(double));
++  // move only by the size of the double (8 bytes)
++  *stacksize += sizeof(double);
++  return HOSTRPC_SUCCESS;
++}
++
++// We would like to get llvm typeID enum from Type.h. e.g.
++// #include "../../../../../llvm/include/llvm/IR/Type.h"
++// But we cannot include LLVM headers in a runtime function.
++// So we a have a manual copy of llvm TypeID enum from Type.h
++enum TypeID {
++  // PrimitiveTypes
++  HalfTyID = 0,  ///< 16-bit floating point type
++  BFloatTyID,    ///< 16-bit floating point type (7-bit significand)
++  FloatTyID,     ///< 32-bit floating point type
++  DoubleTyID,    ///< 64-bit floating point type
++  X86_FP80TyID,  ///< 80-bit floating point type (X87)
++  FP128TyID,     ///< 128-bit floating point type (112-bit significand)
++  PPC_FP128TyID, ///< 128-bit floating point type (two 64-bits, PowerPC)
++  VoidTyID,      ///< type with no size
++  LabelTyID,     ///< Labels
++  MetadataTyID,  ///< Metadata
++  X86_MMXTyID,   ///< MMX vectors (64 bits, X86 specific)
++  X86_AMXTyID,   ///< AMX vectors (8192 bits, X86 specific)
++  TokenTyID,     ///< Tokens
++
++  // Derived types... see DerivedTypes.h file.
++  IntegerTyID,       ///< Arbitrary bit width integers
++  FunctionTyID,      ///< Functions
++  PointerTyID,       ///< Pointers
++  StructTyID,        ///< Structures
++  ArrayTyID,         ///< Arrays
++  FixedVectorTyID,   ///< Fixed width SIMD vector type
++  ScalableVectorTyID,///< Scalable SIMD vector type
++  TypedPointerTyID,   ///< Typed pointer used by some GPU targets
++  TargetExtTyID,      ///< Target extension type
++};
++
++// Build an extended va_list for vprintf by unpacking the buffer
++static hostrpc_status_t hostrpc_pfBuildValist(hostrpc_ValistExt_t *valist,
++                                              int NumArgs, char *keyptr,
++                                              char *dataptr, char *strptr,
++                                              size_t *data_not_used) {
++  hostrpc_pfRegSaveArea_t *regs;
++  size_t regs_size = sizeof(*regs);
++  regs = (hostrpc_pfRegSaveArea_t *)malloc(regs_size);
++  if (!regs)
++    return HOSTRPC_STATUS_ERROR;
++  memset(regs, 0, regs_size);
++  *valist = (hostrpc_ValistExt_t){
++      .gp_offset = 0,
++      .fp_offset = 0,
++      .overflow_arg_area = NULL,
++      .reg_save_area = regs,
++      .overflow_size = 0,
++  };
++
++  size_t num_bytes;
++  size_t bytes_consumed;
++  size_t strsz;
++  size_t fillerNeeded;
++
++  size_t stacksize = 0;
++
++  for (int argnum = 0; argnum < NumArgs; argnum++) {
++    num_bytes = 0;
++    strsz = 0;
++    unsigned int key = *(unsigned int *)keyptr;
++    unsigned int llvmID = key >> 16;
++    unsigned int numbits = (key << 16) >> 16;
++
++    switch (llvmID) {
++    case FloatTyID:  ///<  2: 32-bit floating point type
++    case DoubleTyID: ///<  3: 64-bit floating point type
++    case FP128TyID:  ///<  5: 128-bit floating point type (112-bit mantissa)
++      num_bytes = numbits / 8;
++      bytes_consumed = num_bytes;
++      fillerNeeded = ((size_t)dataptr) % num_bytes;
++      if (fillerNeeded) {
++        dataptr += fillerNeeded;
++        bytes_consumed += fillerNeeded;
++      }
++      if ((*data_not_used) < bytes_consumed)
++        return HOSTRPC_DATA_USED_ERROR;
++      if (valist->fp_offset == 0)
++        valist->fp_offset = sizeof(hostrpc_pfIntRegs_t);
++      if (hostrpc_pfAddFloat(valist, dataptr, num_bytes, &stacksize))
++        return HOSTRPC_ADDFLOAT_ERROR;
++      break;
++
++    case IntegerTyID: ///< 11: Arbitrary bit width integers
++      num_bytes = numbits / 8;
++      bytes_consumed = num_bytes;
++      fillerNeeded = ((size_t)dataptr) % num_bytes;
++      if (fillerNeeded) {
++        dataptr += fillerNeeded;
++        bytes_consumed += fillerNeeded;
++      }
++      if ((*data_not_used) < bytes_consumed)
++        return HOSTRPC_DATA_USED_ERROR;
++      if (hostrpc_pfAddInteger(valist, dataptr, num_bytes, &stacksize))
++        return HOSTRPC_ADDINT_ERROR;
++      break;
++
++    case PointerTyID:     ///< 15: Pointers
++      if (numbits == 1) { // This is a pointer to string
++        num_bytes = 4;
++        bytes_consumed = num_bytes;
++        strsz = (size_t) * (unsigned int *)dataptr;
++        if ((*data_not_used) < bytes_consumed)
++          return HOSTRPC_DATA_USED_ERROR;
++        if (hostrpc_pfAddString(valist, (char *)&strptr, strsz, &stacksize))
++          return HOSTRPC_ADDSTRING_ERROR;
++      } else {
++        num_bytes = 8;
++        bytes_consumed = num_bytes;
++        fillerNeeded = ((size_t)dataptr) % num_bytes;
++        if (fillerNeeded) {
++          dataptr += fillerNeeded; // dataptr is now aligned
++          bytes_consumed += fillerNeeded;
++        }
++        if ((*data_not_used) < bytes_consumed)
++          return HOSTRPC_DATA_USED_ERROR;
++        if (hostrpc_pfAddInteger(valist, dataptr, num_bytes, &stacksize))
++          return HOSTRPC_ADDINT_ERROR;
++      }
++      break;
++
++    case HalfTyID:           ///<  1: 16-bit floating point type
++    case ArrayTyID:          ///< 14: Arrays
++    case StructTyID:         ///< 13: Structures
++    case FunctionTyID:       ///< 12: Functions
++    case TokenTyID:          ///< 10: Tokens
++    case X86_MMXTyID:        ///<  9: MMX vectors (64 bits, X86 specific)
++    case MetadataTyID:       ///<  8: Metadata
++    case LabelTyID:          ///<  7: Labels
++    case PPC_FP128TyID:      ///<  6: 128-bit floating point type (two 64-bits,
++                             ///<  PowerPC)
++    case X86_FP80TyID:       ///<  4: 80-bit floating point type (X87)
++    case FixedVectorTyID:    ///< 16: Fixed width SIMD vector type
++    case ScalableVectorTyID: ///< 17: Scalable SIMD vector type
++    case TypedPointerTyID:   ///< Typed pointer used by some GPU targets
++    case TargetExtTyID:      ///< Target extension type
++    case VoidTyID:
++      return HOSTRPC_UNSUPPORTED_ID_ERROR;
++      break;
++    default:
++      return HOSTRPC_INVALID_ID_ERROR;
++    }
++
++    dataptr += num_bytes;
++    strptr += strsz;
++    *data_not_used -= bytes_consumed;
++    keyptr += 4;
++  }
++  return HOSTRPC_SUCCESS;
++} // end hostrpc_pfBuildValist
++
++/*
++ *  The buffer to pack arguments for all vargs functions has thes 4 sections:
++ *  1. Header        datalen 4 bytes
++ *                   numargs 4 bytes
++ *  2. Keys          A 4-byte key for each arg including string args
++ *                   Each 4-byte key contains llvmID and numbits to
++ *                   describe the datatype.
++ *  3. args_data     Ths data values for each argument.
++ *                   Each arg is aligned according to its size.
++ *                   If the field is a string
++ *                   the dataptr contains the string length.
++ *  4. strings_data  Exection time string values
++ */
++static hostrpc_status_t hostrpc_fprintf(char *buf, size_t bufsz, uint *rc) {
++
++  // FIXME: Put the collection of these 6 values in a function
++  //        All service routines that use vargs will need these values.
++  int *datalen = (int *)buf;
++  int NumArgs = *((int *)(buf + sizeof(int)));
++  size_t data_not_used =
++      (size_t)(*datalen) - ((size_t)(2 + NumArgs) * sizeof(int));
++  char *keyptr = buf + (2 * sizeof(int));
++  char *dataptr = keyptr + (NumArgs * sizeof(int));
++  char *strptr = buf + (size_t)*datalen;
++
++  // Skip past the file pointer and format string argument
++  size_t fillerNeeded = ((size_t)dataptr) % 8;
++  if (fillerNeeded)
++    dataptr += fillerNeeded; // dataptr is now aligned on 8 byte
++  // Cannot convert directly to FILE*, so convert to 8-byte size_t first
++  FILE *fileptr = (FILE *)*((size_t *)dataptr);
++  dataptr += sizeof(FILE *); // skip past file ptr
++  NumArgs = NumArgs - 2;
++  keyptr += 8; // All keys are 4 bytes
++  size_t strsz = (size_t) * (unsigned int *)dataptr;
++  dataptr += 4; //  for strings the data value is the size, not a key
++  char *fmtstr = strptr;
++  strptr += strsz;
++  data_not_used -= (sizeof(FILE *) + 4); // 12
++
++  hostrpc_ValistExt_t valist;
++  va_list *real_va_list;
++  real_va_list = (va_list *)&valist;
++
++  if (hostrpc_pfBuildValist(&valist, NumArgs, keyptr, dataptr, strptr,
++                            &data_not_used) != HOSTRPC_SUCCESS)
++    return HOSTRPC_ERROR_INVALID_REQUEST;
++
++  // Roll back offsets and save stack pointer for hostrpc_varfn_uint to consume
++  valist.gp_offset = 0;
++  valist.fp_offset = sizeof(hostrpc_pfIntRegs_t);
++  void *save_stack = valist.overflow_arg_area;
++
++  *rc = vfprintf(fileptr, fmtstr, *real_va_list);
++
++  if (valist.reg_save_area)
++    free(valist.reg_save_area);
++  if (save_stack)
++    free(save_stack);
++
++  return HOSTRPC_SUCCESS;
++}
++//  This the main service routine for printf
++static hostrpc_status_t hostrpc_printf(char *buf, size_t bufsz, uint *rc) {
++  if (bufsz == 0)
++    return HOSTRPC_SUCCESS;
++
++  // Get 6 values needed to unpack the buffer
++  int *datalen = (int *)buf;
++  int NumArgs = *((int *)(buf + sizeof(int)));
++  size_t data_not_used =
++      (size_t)(*datalen) - ((size_t)(2 + NumArgs) * sizeof(int));
++  char *keyptr = buf + (2 * sizeof(int));
++  char *dataptr = keyptr + (NumArgs * sizeof(int));
++  char *strptr = buf + (size_t)*datalen;
++
++  if (NumArgs <= 0)
++    return HOSTRPC_ERROR_INVALID_REQUEST;
++
++  // Skip past the format string argument
++  char *fmtstr = strptr;
++  NumArgs--;
++  keyptr += 4;
++  size_t strsz = (size_t) * (unsigned int *)dataptr;
++  dataptr += 4; // for strings the data value is the size, not a real pointer
++  strptr += strsz;
++  data_not_used -= 4;
++
++  hostrpc_ValistExt_t valist;
++  va_list *real_va_list;
++  real_va_list = (va_list *)&valist;
++
++  if (hostrpc_pfBuildValist(&valist, NumArgs, keyptr, dataptr, strptr,
++                            &data_not_used) != HOSTRPC_SUCCESS)
++    return HOSTRPC_ERROR_INVALID_REQUEST;
++
++  // Roll back offsets and save stack pointer for hostrpc_varfn_uint to consume
++  valist.gp_offset = 0;
++  valist.fp_offset = sizeof(hostrpc_pfIntRegs_t);
++  void *save_stack = valist.overflow_arg_area;
++
++  *rc = vprintf(fmtstr, *real_va_list);
++
++  if (valist.reg_save_area)
++    free(valist.reg_save_area);
++  if (save_stack)
++    free(save_stack);
++
++  return HOSTRPC_SUCCESS;
++}
++
++//---------------- Support for hostrpc_varfn_* service ---------------------
++//
++
++// These are the helper functions for hostrpc_varfn_uint_
++static uint64_t getuint32(char *val) {
++  uint32_t i32 = *(uint32_t *)val;
++  return (uint64_t)i32;
++}
++static uint64_t getuint64(char *val) { return *(uint64_t *)val; }
++
++static void *getfnptr(char *val) {
++  uint64_t ival = *(uint64_t *)val;
++  return (void *)ival;
++}
++
++// build argument array
++static hostrpc_status_t hostrpc_build_vargs_array(int NumArgs, char *keyptr,
++                                                  char *dataptr, char *strptr,
++                                                  size_t *data_not_used,
++                                                  uint64_t *a[MAXVARGS]) {
++  size_t num_bytes;
++  size_t bytes_consumed;
++  size_t strsz;
++  size_t fillerNeeded;
++
++  uint argcount = 0;
++
++  for (int argnum = 0; argnum < NumArgs; argnum++) {
++    num_bytes = 0;
++    strsz = 0;
++    unsigned int key = *(unsigned int *)keyptr;
++    unsigned int llvmID = key >> 16;
++    unsigned int numbits = (key << 16) >> 16;
++
++    switch (llvmID) {
++    case FloatTyID:  ///<  2: 32-bit floating point type
++    case DoubleTyID: ///<  3: 64-bit floating point type
++    case FP128TyID:  ///<  5: 128-bit floating point type (112-bit mantissa)
++      num_bytes = numbits / 8;
++      bytes_consumed = num_bytes;
++      fillerNeeded = ((size_t)dataptr) % num_bytes;
++      if (fillerNeeded) {
++        dataptr += fillerNeeded;
++        bytes_consumed += fillerNeeded;
++      }
++      if ((*data_not_used) < bytes_consumed)
++        return HOSTRPC_DATA_USED_ERROR;
++
++      if (num_bytes == 4)
++        a[argcount] = (uint64_t *)getuint32(dataptr);
++      else
++        a[argcount] = (uint64_t *)getuint64(dataptr);
++
++      break;
++
++    case IntegerTyID: ///< 11: Arbitrary bit width integers
++      num_bytes = numbits / 8;
++      bytes_consumed = num_bytes;
++      fillerNeeded = ((size_t)dataptr) % num_bytes;
++      if (fillerNeeded) {
++        dataptr += fillerNeeded;
++        bytes_consumed += fillerNeeded;
++      }
++      if ((*data_not_used) < bytes_consumed)
++        return HOSTRPC_DATA_USED_ERROR;
++
++      if (num_bytes == 4)
++        a[argcount] = (uint64_t *)getuint32(dataptr);
++      else
++        a[argcount] = (uint64_t *)getuint64(dataptr);
++
++      break;
++
++    case PointerTyID:     ///< 15: Pointers
++      if (numbits == 1) { // This is a pointer to string
++        num_bytes = 4;
++        bytes_consumed = num_bytes;
++        strsz = (size_t) * (unsigned int *)dataptr;
++        if ((*data_not_used) < bytes_consumed)
++          return HOSTRPC_DATA_USED_ERROR;
++        a[argcount] = (uint64_t *)((char *)strptr);
++
++      } else {
++        num_bytes = 8;
++        bytes_consumed = num_bytes;
++        fillerNeeded = ((size_t)dataptr) % num_bytes;
++        if (fillerNeeded) {
++          dataptr += fillerNeeded; // dataptr is now aligned
++          bytes_consumed += fillerNeeded;
++        }
++        if ((*data_not_used) < bytes_consumed)
++          return HOSTRPC_DATA_USED_ERROR;
++
++        a[argcount] = (uint64_t *)getuint64(dataptr);
++      }
++      break;
++
++    case HalfTyID:           ///<  1: 16-bit floating point type
++    case ArrayTyID:          ///< 14: Arrays
++    case StructTyID:         ///< 13: Structures
++    case FunctionTyID:       ///< 12: Functions
++    case TokenTyID:          ///< 10: Tokens
++    case X86_MMXTyID:        ///<  9: MMX vectors (64 bits, X86 specific)
++    case MetadataTyID:       ///<  8: Metadata
++    case LabelTyID:          ///<  7: Labels
++    case PPC_FP128TyID:      ///<  6: 128-bit floating point type (two 64-bits,
++                             ///<  PowerPC)
++    case X86_FP80TyID:       ///<  4: 80-bit floating point type (X87)
++    case FixedVectorTyID:    ///< 16: Fixed width SIMD vector type
++    case ScalableVectorTyID: ///< 17: Scalable SIMD vector type
++    case TypedPointerTyID:   ///< Typed pointer used by some GPU targets
++    case TargetExtTyID:      ///< Target extension type
++    case VoidTyID:
++      return HOSTRPC_UNSUPPORTED_ID_ERROR;
++      break;
++    default:
++      return HOSTRPC_INVALID_ID_ERROR;
++    }
++
++    // Move to next argument
++    dataptr += num_bytes;
++    strptr += strsz;
++    *data_not_used -= bytes_consumed;
++    keyptr += 4;
++    argcount++;
++  }
++  return HOSTRPC_SUCCESS;
++}
++
++// Make the vargs function call to the function pointer fnptr
++// by casting fnptr to vfnptr. Return uint32_t
++static hostrpc_status_t hostrpc_call_fnptr_uint(uint32_t NumArgs, void *fnptr,
++                                                uint64_t *a[MAXVARGS],
++                                                uint32_t *rc) {
++  //
++  // Users are instructed that their first arg must be a dummy
++  // so that device interface is same as host interface. To match device
++  // interface we make the first arg be the function pointer.
++  //
++  hostrpc_varfn_uint_t *vfnptr = (hostrpc_varfn_uint_t *)fnptr;
++
++  switch (NumArgs) {
++  case 1:
++    *rc = vfnptr(fnptr, a[0]);
++    break;
++  case 2:
++    *rc = vfnptr(fnptr, a[0], a[1]);
++    break;
++  case 3:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2]);
++    break;
++  case 4:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3]);
++    break;
++  case 5:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4]);
++    break;
++  case 6:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5]);
++    break;
++  case 7:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6]);
++    break;
++  case 8:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7]);
++    break;
++  case 9:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8]);
++    break;
++  case 10:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
++                 a[9]);
++    break;
++  case 11:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
++                 a[9], a[10]);
++    break;
++  case 12:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
++                 a[9], a[10], a[11]);
++    break;
++  case 13:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
++                 a[9], a[10], a[11], a[12]);
++    break;
++  case 14:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
++                 a[9], a[10], a[11], a[12], a[13]);
++    break;
++  case 15:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
++                 a[9], a[10], a[11], a[12], a[13], a[14]);
++    break;
++  case 16:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
++                 a[9], a[10], a[11], a[12], a[13], a[14], a[15]);
++    break;
++  case 17:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
++                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16]);
++    break;
++  case 18:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
++                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17]);
++    break;
++  case 19:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
++                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17],
++                 a[18]);
++    break;
++  case 20:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
++                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17],
++                 a[18], a[19]);
++    break;
++  case 21:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
++                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17],
++                 a[18], a[19], a[20]);
++    break;
++  case 22:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
++                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17],
++                 a[18], a[19], a[20], a[21]);
++    break;
++  case 23:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
++                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17],
++                 a[18], a[19], a[20], a[21], a[22]);
++    break;
++  case 24:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
++                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17],
++                 a[18], a[19], a[20], a[21], a[22], a[23]);
++    break;
++  case 25:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
++                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17],
++                 a[18], a[19], a[20], a[21], a[22], a[23], a[24]);
++    break;
++  case 26:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
++                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17],
++                 a[18], a[19], a[20], a[21], a[22], a[23], a[24], a[25]);
++    break;
++  case 27:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
++                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17],
++                 a[18], a[19], a[20], a[21], a[22], a[23], a[24], a[25], a[26]);
++    break;
++  case 28:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
++                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17],
++                 a[18], a[19], a[20], a[21], a[22], a[23], a[24], a[25], a[26],
++                 a[27]);
++    break;
++  case 29:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
++                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17],
++                 a[18], a[19], a[20], a[21], a[22], a[23], a[24], a[25], a[26],
++                 a[27], a[28]);
++    break;
++  case 30:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
++                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17],
++                 a[18], a[19], a[20], a[21], a[22], a[23], a[24], a[25], a[26],
++                 a[27], a[28], a[29]);
++    break;
++  case 31:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
++                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17],
++                 a[18], a[19], a[20], a[21], a[22], a[23], a[24], a[25], a[26],
++                 a[27], a[28], a[29], a[30]);
++    break;
++  case 32:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
++                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17],
++                 a[18], a[19], a[20], a[21], a[22], a[23], a[24], a[25], a[26],
++                 a[27], a[28], a[29], a[30], a[31]);
++    break;
++  default:
++    return HOSTRPC_EXCEED_MAXVARGS_ERROR;
++  }
++  return HOSTRPC_SUCCESS;
++}
++
++// Make the vargs function call to the function pointer fnptr
++// by casting fnptr to vfnptr. Return uint64
++static hostrpc_status_t hostrpc_call_fnptr_uint64(uint32_t NumArgs, void *fnptr,
++                                                  uint64_t *a[MAXVARGS],
++                                                  uint64_t *rc) {
++  //
++  // Users are instructed that their first arg must be a dummy
++  // so that device interface is same as host interface. To match device
++  // interface we make the first arg be the function pointer.
++  //
++  hostrpc_varfn_uint64_t *vfnptr = (hostrpc_varfn_uint64_t *)fnptr;
++
++  switch (NumArgs) {
++  case 1:
++    *rc = vfnptr(fnptr, a[0]);
++    break;
++  case 2:
++    *rc = vfnptr(fnptr, a[0], a[1]);
++    break;
++  case 3:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2]);
++    break;
++  case 4:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3]);
++    break;
++  case 5:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4]);
++    break;
++  case 6:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5]);
++    break;
++  case 7:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6]);
++    break;
++  case 8:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7]);
++    break;
++  case 9:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8]);
++    break;
++  case 10:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
++                 a[9]);
++    break;
++  case 11:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
++                 a[9], a[10]);
++    break;
++  case 12:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
++                 a[9], a[10], a[11]);
++    break;
++  case 13:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
++                 a[9], a[10], a[11], a[12]);
++    break;
++  case 14:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
++                 a[9], a[10], a[11], a[12], a[13]);
++    break;
++  case 15:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
++                 a[9], a[10], a[11], a[12], a[13], a[14]);
++    break;
++  case 16:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
++                 a[9], a[10], a[11], a[12], a[13], a[14], a[15]);
++    break;
++  case 17:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
++                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16]);
++    break;
++  case 18:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
++                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17]);
++    break;
++  case 19:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
++                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17],
++                 a[18]);
++    break;
++  case 20:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
++                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17],
++                 a[18], a[19]);
++    break;
++  case 21:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
++                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17],
++                 a[18], a[19], a[20]);
++    break;
++  case 22:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
++                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17],
++                 a[18], a[19], a[20], a[21]);
++    break;
++  case 23:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
++                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17],
++                 a[18], a[19], a[20], a[21], a[22]);
++    break;
++  case 24:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
++                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17],
++                 a[18], a[19], a[20], a[21], a[22], a[23]);
++    break;
++  case 25:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
++                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17],
++                 a[18], a[19], a[20], a[21], a[22], a[23], a[24]);
++    break;
++  case 26:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
++                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17],
++                 a[18], a[19], a[20], a[21], a[22], a[23], a[24], a[25]);
++    break;
++  case 27:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
++                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17],
++                 a[18], a[19], a[20], a[21], a[22], a[23], a[24], a[25], a[26]);
++    break;
++  case 28:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
++                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17],
++                 a[18], a[19], a[20], a[21], a[22], a[23], a[24], a[25], a[26],
++                 a[27]);
++    break;
++  case 29:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
++                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17],
++                 a[18], a[19], a[20], a[21], a[22], a[23], a[24], a[25], a[26],
++                 a[27], a[28]);
++    break;
++  case 30:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
++                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17],
++                 a[18], a[19], a[20], a[21], a[22], a[23], a[24], a[25], a[26],
++                 a[27], a[28], a[29]);
++    break;
++  case 31:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
++                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17],
++                 a[18], a[19], a[20], a[21], a[22], a[23], a[24], a[25], a[26],
++                 a[27], a[28], a[29], a[30]);
++    break;
++  case 32:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
++                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17],
++                 a[18], a[19], a[20], a[21], a[22], a[23], a[24], a[25], a[26],
++                 a[27], a[28], a[29], a[30], a[31]);
++    break;
++  default:
++    return HOSTRPC_EXCEED_MAXVARGS_ERROR;
++  }
++  return HOSTRPC_SUCCESS;
++}
++
++// Make the vargs function call to the function pointer fnptr
++// by casting fnptr to vfnptr. Return double
++static hostrpc_status_t hostrpc_call_fnptr_double(uint32_t NumArgs, void *fnptr,
++                                                  uint64_t *a[MAXVARGS],
++                                                  double *rc) {
++  //
++  // Users are instructed that their first arg must be a dummy
++  // so that device interface is same as host interface. To match device
++  // interface we make the first arg be the function pointer.
++  //
++  hostrpc_varfn_double_t *vfnptr = (hostrpc_varfn_double_t *)fnptr;
++
++  switch (NumArgs) {
++  case 1:
++    *rc = vfnptr(fnptr, a[0]);
++    break;
++  case 2:
++    *rc = vfnptr(fnptr, a[0], a[1]);
++    break;
++  case 3:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2]);
++    break;
++  case 4:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3]);
++    break;
++  case 5:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4]);
++    break;
++  case 6:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5]);
++    break;
++  case 7:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6]);
++    break;
++  case 8:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7]);
++    break;
++  case 9:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8]);
++    break;
++  case 10:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
++                 a[9]);
++    break;
++  case 11:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
++                 a[9], a[10]);
++    break;
++  case 12:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
++                 a[9], a[10], a[11]);
++    break;
++  case 13:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
++                 a[9], a[10], a[11], a[12]);
++    break;
++  case 14:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
++                 a[9], a[10], a[11], a[12], a[13]);
++    break;
++  case 15:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
++                 a[9], a[10], a[11], a[12], a[13], a[14]);
++    break;
++  case 16:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
++                 a[9], a[10], a[11], a[12], a[13], a[14], a[15]);
++    break;
++  case 17:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
++                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16]);
++    break;
++  case 18:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
++                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17]);
++    break;
++  case 19:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
++                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17],
++                 a[18]);
++    break;
++  case 20:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
++                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17],
++                 a[18], a[19]);
++    break;
++  case 21:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
++                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17],
++                 a[18], a[19], a[20]);
++    break;
++  case 22:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
++                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17],
++                 a[18], a[19], a[20], a[21]);
++    break;
++  case 23:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
++                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17],
++                 a[18], a[19], a[20], a[21], a[22]);
++    break;
++  case 24:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
++                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17],
++                 a[18], a[19], a[20], a[21], a[22], a[23]);
++    break;
++  case 25:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
++                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17],
++                 a[18], a[19], a[20], a[21], a[22], a[23], a[24]);
++    break;
++  case 26:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
++                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17],
++                 a[18], a[19], a[20], a[21], a[22], a[23], a[24], a[25]);
++    break;
++  case 27:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
++                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17],
++                 a[18], a[19], a[20], a[21], a[22], a[23], a[24], a[25], a[26]);
++    break;
++  case 28:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
++                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17],
++                 a[18], a[19], a[20], a[21], a[22], a[23], a[24], a[25], a[26],
++                 a[27]);
++    break;
++  case 29:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
++                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17],
++                 a[18], a[19], a[20], a[21], a[22], a[23], a[24], a[25], a[26],
++                 a[27], a[28]);
++    break;
++  case 30:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
++                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17],
++                 a[18], a[19], a[20], a[21], a[22], a[23], a[24], a[25], a[26],
++                 a[27], a[28], a[29]);
++    break;
++  case 31:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
++                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17],
++                 a[18], a[19], a[20], a[21], a[22], a[23], a[24], a[25], a[26],
++                 a[27], a[28], a[29], a[30]);
++    break;
++  case 32:
++    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
++                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17],
++                 a[18], a[19], a[20], a[21], a[22], a[23], a[24], a[25], a[26],
++                 a[27], a[28], a[29], a[30], a[31]);
++    break;
++  default:
++    return HOSTRPC_EXCEED_MAXVARGS_ERROR;
++  }
++  return HOSTRPC_SUCCESS;
++}
++//  This the main service routine for hostrpc_varfn_uint
++static hostrpc_status_t hostrpc_varfn_uint_(char *buf, size_t bufsz, uint *rc) {
++  if (bufsz == 0)
++    return HOSTRPC_SUCCESS;
++
++  // Get 6 values needed to unpack the buffer
++  int *datalen = (int *)buf;
++  int NumArgs = *((int *)(buf + sizeof(int)));
++  size_t data_not_used =
++      (size_t)(*datalen) - ((size_t)(2 + NumArgs) * sizeof(int));
++  char *keyptr = buf + (2 * sizeof(int));
++  char *dataptr = keyptr + (NumArgs * sizeof(int));
++  char *strptr = buf + (size_t)*datalen;
++
++  // skip the function pointer arg including any align buffer
++  if (((size_t)dataptr) % (size_t)8) {
++    dataptr += 4;
++    data_not_used -= 4;
++  }
++  void *fnptr = getfnptr(dataptr);
++  NumArgs--;
++  keyptr += 4;
++  dataptr += 8;
++  data_not_used -= 4;
++
++  if (NumArgs <= 0)
++    return HOSTRPC_ERROR_INVALID_REQUEST;
++
++  uint64_t *a[MAXVARGS];
++  if (hostrpc_build_vargs_array(NumArgs, keyptr, dataptr, strptr,
++                                &data_not_used, a) != HOSTRPC_SUCCESS)
++    return HOSTRPC_ERROR_INVALID_REQUEST;
++
++  if (hostrpc_call_fnptr_uint(NumArgs, fnptr, a, rc) != HOSTRPC_SUCCESS)
++    return HOSTRPC_ERROR_INVALID_REQUEST;
++
++  return HOSTRPC_SUCCESS;
++}
++
++//  This the main service routine for hostrpc_varfn_uint64
++static hostrpc_status_t hostrpc_varfn_uint64_(char *buf, size_t bufsz,
++                                              uint64_t *rc) {
++  if (bufsz == 0)
++    return HOSTRPC_SUCCESS;
++
++  // Get 6 tracking values needed to unpack the buffer
++  int *datalen = (int *)buf;
++  int NumArgs = *((int *)(buf + sizeof(int)));
++  size_t data_not_used =
++      (size_t)(*datalen) - ((size_t)(2 + NumArgs) * sizeof(int));
++  char *keyptr = buf + (2 * sizeof(int));
++  char *dataptr = keyptr + (NumArgs * sizeof(int));
++  char *strptr = buf + (size_t)*datalen;
++
++  if (NumArgs <= 0)
++    return HOSTRPC_ERROR_INVALID_REQUEST;
++
++  // skip the function pointer arg including any align buffer
++  if (((size_t)dataptr) % (size_t)8) {
++    dataptr += 4;
++    data_not_used -= 4;
++  }
++  void *fnptr = getfnptr(dataptr);
++  NumArgs--;
++  keyptr += 4;
++  dataptr += 8;
++  data_not_used -= 4;
++
++  uint64_t *a[MAXVARGS];
++  if (hostrpc_build_vargs_array(NumArgs, keyptr, dataptr, strptr,
++                                &data_not_used, a) != HOSTRPC_SUCCESS)
++    return HOSTRPC_ERROR_INVALID_REQUEST;
++
++  if (hostrpc_call_fnptr_uint64(NumArgs, fnptr, a, rc) != HOSTRPC_SUCCESS)
++    return HOSTRPC_ERROR_INVALID_REQUEST;
++
++  return HOSTRPC_SUCCESS;
++}
++
++//  This the main service routine for hostrpc_varfn_double
++static hostrpc_status_t hostrpc_varfn_double_(char *buf, size_t bufsz,
++                                              double *rc) {
++  if (bufsz == 0)
++    return HOSTRPC_SUCCESS;
++
++  // Get 6 tracking values needed to unpack the buffer
++  int *datalen = (int *)buf;
++  int NumArgs = *((int *)(buf + sizeof(int)));
++  size_t data_not_used =
++      (size_t)(*datalen) - ((size_t)(2 + NumArgs) * sizeof(int));
++  char *keyptr = buf + (2 * sizeof(int));
++  char *dataptr = keyptr + (NumArgs * sizeof(int));
++  char *strptr = buf + (size_t)*datalen;
++
++  if (NumArgs <= 0)
++    return HOSTRPC_ERROR_INVALID_REQUEST;
++
++  // skip the function pointer arg including any align buffer
++  if (((size_t)dataptr) % (size_t)8) {
++    dataptr += 4;
++    data_not_used -= 4;
++  }
++  void *fnptr = getfnptr(dataptr);
++  NumArgs--;
++  keyptr += 4;
++  dataptr += 8;
++  data_not_used -= 4;
++
++  uint64_t *a[MAXVARGS];
++  if (hostrpc_build_vargs_array(NumArgs, keyptr, dataptr, strptr,
++                                &data_not_used, a) != HOSTRPC_SUCCESS)
++    return HOSTRPC_ERROR_INVALID_REQUEST;
++
++  if (hostrpc_call_fnptr_double(NumArgs, fnptr, a, rc) != HOSTRPC_SUCCESS)
++    return HOSTRPC_ERROR_INVALID_REQUEST;
++
++  return HOSTRPC_SUCCESS;
++}
++} // end of extern "C" 
+diff -Naur -x .git llvm-project.amd-trunk-dev/openmp/libomptarget/hostrpc/services/hostrpc_execute_service.h llvm-project/openmp/libomptarget/hostrpc/services/hostrpc_execute_service.h
+--- llvm-project.amd-trunk-dev/openmp/libomptarget/hostrpc/services/hostrpc_execute_service.h	1969-12-31 19:00:00.000000000 -0500
++++ llvm-project/openmp/libomptarget/hostrpc/services/hostrpc_execute_service.h	2023-02-01 17:17:06.792815923 -0500
+@@ -0,0 +1,45 @@
++#ifndef HOSTRPC_EXECUTE_SERVICE_H
++#define HOSTRPC_EXECUTE_SERVICE_H
++
++#include <hsa/hsa.h>
++#include <hsa/hsa_ext_amd.h>
++#include <stddef.h>
++#include <stdint.h>
++
++#ifdef __cplusplus
++extern "C" {
++#endif
++
++// Error codes for service handler functions
++typedef enum hostrpc_status_t {
++  HOSTRPC_SUCCESS = 0,
++  HOSTRPC_STATUS_UNKNOWN = 1,
++  HOSTRPC_STATUS_ERROR = 2,
++  HOSTRPC_STATUS_TERMINATE = 3,
++  HOSTRPC_DATA_USED_ERROR = 4,
++  HOSTRPC_ADDINT_ERROR = 5,
++  HOSTRPC_ADDFLOAT_ERROR = 6,
++  HOSTRPC_ADDSTRING_ERROR = 7,
++  HOSTRPC_UNSUPPORTED_ID_ERROR = 8,
++  HOSTRPC_INVALID_ID_ERROR = 9,
++  HOSTRPC_ERROR_INVALID_REQUEST = 10,
++  HOSTRPC_EXCEED_MAXVARGS_ERROR = 11,
++  HOSTRPC_WRONGVERSION_ERROR = 12,
++  HOSTRPC_OLDHOSTVERSIONMOD_ERROR = 13,
++  HOSTRPC_INVALIDSERVICE_ERROR = 14,
++} hostrpc_status_t;
++
++hsa_status_t impl_free(void *mem);
++hsa_status_t host_malloc(void **mem, size_t size,
++		hsa_amd_memory_pool_t MemoryPool,
++		hsa_agent_t hsa_agent);
++hsa_status_t device_malloc(void **mem, size_t size, 
++		int DeviceId, hsa_amd_memory_pool_t MemoryPool);
++void hostrpc_set_mempools_for_services(uint32_t device_id,
++                hsa_amd_memory_pool_t HostMemoryPool,
++                hsa_amd_memory_pool_t DevMemoryPool,
++		hsa_agent_t hsa_agent);
++void hostrpc_abort(int);
++}
++
++#endif // HOSTRPC_EXECUTE_SERVICE_H
+diff -Naur -x .git llvm-project.amd-trunk-dev/openmp/libomptarget/hostrpc/services/libhostrpc_services.cpp llvm-project/openmp/libomptarget/hostrpc/services/libhostrpc_services.cpp
+--- llvm-project.amd-trunk-dev/openmp/libomptarget/hostrpc/services/libhostrpc_services.cpp	1969-12-31 19:00:00.000000000 -0500
++++ llvm-project/openmp/libomptarget/hostrpc/services/libhostrpc_services.cpp	2023-02-01 19:20:51.843605193 -0500
+@@ -0,0 +1,910 @@
++
++#include "hostrpc_execute_service.h"
++#include "urilocator.h"
++#include "../src/hostrpc.h"
++
++#include <hsa/hsa.h>
++#include <hsa/hsa_ext_amd.h>
++
++#include <stddef.h>
++#include <stdint.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <vector>
++
++#include <assert.h>
++#include <atomic>
++#include <cstring>
++#include <functional>
++#include <iostream>
++#include <mutex>
++#include <thread>
++#include <unordered_map>
++
++#include <algorithm>
++#include <inttypes.h> //to exp
++#include <string>
++#include <tuple>
++
++extern "C" {
++
++/** \file Support library for invoking host services from the device.
++ *
++ *  The hostcall consumer defined here is used by the language runtime
++ *  to serve requests originating from kernels running on GPU
++ *  devices. A typical flow is as follows:
++ *
++ *  - Create and launch one or more hostcall consumers.
++ *  - Create and initialize a hostcall buffer per command queue.
++ *  - Register these buffers with the appropriate consumer.
++ *  - When a buffer is no longer used, deregister and then free it.
++ *  - Destroy the consumer(s) when they are no longer required. Must be
++ *    done before exiting the application, so that the consumer
++ *    threads can join() correctly.
++ *
++ *  For a more information, see the accompanying README and the
++ *  comments associated with each of the API functions.
++ */
++
++// Error codes for service handler functions used in this file
++// Some error codes may be returned to device stub functions.
++typedef enum {
++  AMD_HOSTCALL_SUCCESS,
++  AMD_HOSTCALL_ERROR_CONSUMER_ACTIVE,
++  AMD_HOSTCALL_ERROR_CONSUMER_INACTIVE,
++  AMD_HOSTCALL_ERROR_CONSUMER_LAUNCH_FAILED,
++  AMD_HOSTCALL_ERROR_INVALID_REQUEST,
++  AMD_HOSTCALL_ERROR_SERVICE_UNKNOWN,
++  AMD_HOSTCALL_ERROR_INCORRECT_ALIGNMENT,
++  AMD_HOSTCALL_ERROR_NULLPTR
++} amd_hostcall_error_t;
++
++// const char *amd_hostcall_error_string(amd_hostcall_error_t error);
++
++/// Opaque struct that encapsulates a consumer thread.
++typedef struct amd_hostcall_consumer_t amd_hostcall_consumer_t;
++
++/** \brief Create a consumer instance that tracks a single consumer thread.
++ *
++ *  Each instance manages a unique consumer thread, along with a list
++ *  of hostcall buffers that this thread processes. The consumer does
++ *  not occupy any resources other than it's own memory footprint
++ *  until it is launched.
++ *
++ *  The corresponding consumer thread must be launched for the
++ *  consumer to perform any actual work. The consumer thread can be
++ *  launched even without any buffers registered with the
++ *  consumer. The API provides thread-safe methods to register buffers
++ *  with an active consumer.
++ *
++ *  A single consumer is sufficient to correctly handle all hostcall
++ *  buffers created in the application. The client may safely launch
++ *  multiple consumers based on factors external to this library.
++ */
++amd_hostcall_consumer_t *amd_hostcall_create_consumer(void);
++
++/** \brief Destroy a consumer instance.
++ *
++ *  If the consumer is active, the corresponding thread is terminated
++ *  and join()'ed to the current thread.
++ *
++ *  Behavious is undefined when called multiple times on the same
++ *  pointer, or using a pointer that was not previously created by
++ *  amd_hostcall_create_consumer().
++ */
++void amd_hostcall_destroy_consumer(amd_hostcall_consumer_t *consumer);
++
++/** \brief Determine the buffer size to be allocated for the given
++ *         number of packets.
++ *
++ *  The reported size includes any internal padding required for the
++ *  packets and their headers.
++ */
++size_t amd_hostcall_get_buffer_size(uint32_t num_packets);
++
++/** \brief Alignment required for the start of the buffer.
++ */
++uint32_t amd_hostcall_get_buffer_alignment(void);
++
++/** \brief Initialize the buffer data-structure.
++ *  \param buffer      Pointer to allocated buffer.
++ *  \param num_packets Number of packets to be created in the buffer.
++ *  \return Error code indicating success or specific failure.
++ *
++ *  The function assumes that the supplied buffer is sufficiently
++ *  large to accomodate the specified number of packets. The value
++ *  returned is one of:
++ *
++ *  \li \c AMD_HOSTCALL_SUCCESS on successful initialization.
++ *  \li \c AMD_HOSTCALL_ERROR_NULLPTR if the supplied pointer is NULL.
++ *  \li \c AMD_HOSTCALL_ERROR_INCORRECT_ALIGNMENT if the supplied
++ *      pointer is not aligned to the value returned by
++ *      amd_hostcall_get_buffer_alignment().
++ */
++amd_hostcall_error_t amd_hostcall_initialize_buffer(void *buffer,
++                                                    uint32_t num_packets);
++
++/** \brief Register a buffer with a consumer.
++ *
++ *  Behaviour is undefined if:
++ *  - amd_hostcall_initialize_buffer() was not invoked successfully on
++ *    the buffer prior to registration.
++ *  - The same buffer is registered with multiple consumers.
++ *
++ *  The function has no effect if the a buffer is registered multiple
++ *  times with the same consumer.
++ *
++ *  The client must register a buffer before launching any kernel that
++ *  accesses that buffer. The client must further ensure that each
++ *  buffer is associated with a unique command queue across all
++ *  devices.
++ */
++void amd_hostcall_register_buffer(amd_hostcall_consumer_t *consumer,
++                                  void *buffer);
++
++/** \brief Deregister a buffer that is no longer in use.
++ *
++ *  The client may free this buffer after deregistering it from the
++ *  corresponding consumer. Behaviour is undefined if the buffer is
++ *  freed without first deregistering it from the consumer.
++ *
++ *  The value returned is one of:
++ *  \li \c AMD_HOSTCALL_SUCCESS on success.
++ *  \li \c AMD_HOSTCALL_ERROR_INVALID_REQUEST if the buffer was
++ *      previously deregistered or not registered with this consumer.
++ */
++amd_hostcall_error_t
++amd_hostcall_deregister_buffer(amd_hostcall_consumer_t *consumer, void *buffer);
++
++/** \brief Launch the consumer in its own thread.
++ *
++ *  The value returned is one of:
++ *  \li \c AMD_HOSTCALL_SUCCESS on success.
++ *  \li \c AMD_HOSTCALL_ERROR_CONSUMER_ACTIVE if the thread is already
++ *      running. Such a call has no effect on the consumer thread.
++ *  \li \c AMD_HOSTCALL_ERROR_CONSUMER_LAUNCH_FAILED if the thread was
++ *      not already running and it failed to launch.
++ */
++amd_hostcall_error_t
++amd_hostcall_launch_consumer(amd_hostcall_consumer_t *consumer);
++
++/** Opaque wrapper for signal */
++typedef struct {
++  uint64_t handle;
++} signal_t;
++
++/** Field offsets in the packet control field */
++typedef enum {
++  CONTROL_OFFSET_READY_FLAG = 0,
++  CONTROL_OFFSET_RESERVED0 = 1,
++} control_offset_t;
++
++/** Field widths in the packet control field */
++typedef enum {
++  CONTROL_WIDTH_READY_FLAG = 1,
++  CONTROL_WIDTH_RESERVED0 = 31,
++} control_width_t;
++
++/** Packet header */
++typedef struct {
++  /** Tagged pointer to the next packet in an intrusive stack */
++  uint64_t next;
++  /** Bitmask that represents payload slots with valid data */
++  uint64_t activemask;
++  /** Service ID requested by the wave */
++  uint32_t service;
++  /** Control bits.
++   *  \li \c READY flag is bit 0. Indicates packet awaiting a host response.
++   */
++  uint32_t control;
++} header_t;
++
++/** \brief Packet payload
++ *
++ *  Contains 64 slots of 8 ulongs each, one for each workitem in the
++ *  wave. A slot with index \c i contains valid data if the
++ *  corresponding bit in header_t::activemask is set.
++ */
++typedef struct {
++  uint64_t slots[64][8];
++} payload_t;
++
++/** \brief Hostcall state.
++ *
++ *  Holds the state of hostcalls being requested by all kernels that
++ *  share the same hostcall state. There is usually one buffer per
++ *  device queue.
++ */
++typedef struct {
++  /** Array of 2^index_size packet headers */
++  header_t *headers;
++  /** Array of 2^index_size packet payloads */
++  payload_t *payloads;
++  /** Signal used by kernels to indicate new work */
++  signal_t doorbell;
++  /** Stack of free packets */
++  uint64_t free_stack;
++  /** Stack of ready packets */
++  uint64_t ready_stack;
++  /** Number of LSBs in the tagged pointer can index into the packet arrays */
++  uint32_t index_size;
++  /** Device ID */
++  uint32_t device_id;
++} buffer_t;
++
++} // extern "C"
++
++/*
++ *   hostrpc_externs.c: Definition of hostrpc externals
++ *
++
++MIT License
++
++Copyright © 2020 Advanced Micro Devices, Inc.
++
++Permission is hereby granted, free of charge, to any person obtaining a copy
++of this software and associated documentation files (the "Software"), to deal
++in the Software without restriction, including without limitation the rights
++to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
++copies of the Software, and to permit persons to whom the Software is furnished
++to do so, subject to the following conditions:
++
++The above copyright notice and this permission notice shall be included in all
++copies or substantial portions of the Software.
++
++THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
++AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
++OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++SOFTWARE.
++
++*/
++
++extern "C" {
++typedef struct hsaq_buf_entry_s hsaq_buf_entry_t;
++struct hsaq_buf_entry_s {
++  buffer_t *hcb;
++  hsa_queue_t *hsa_q;
++  uint32_t devid;
++  hsaq_buf_entry_t* this_mem;
++};
++
++static std::vector<hsaq_buf_entry_t*> hsaq_bufs;
++static amd_hostcall_consumer_t *hostrpc_consumer = NULL;
++
++static hsaq_buf_entry_t * add_hsaq_buf_entry(buffer_t *hcb, hsa_queue_t *hsa_q,
++                                       uint32_t devid) {
++  hsaq_buf_entry_t * new_hsaq_buf = (hsaq_buf_entry_t *) malloc(sizeof(hsaq_buf_entry_s));
++  new_hsaq_buf->hcb = hcb;
++  new_hsaq_buf->devid = devid;
++  new_hsaq_buf->hsa_q = hsa_q;
++  new_hsaq_buf->this_mem = new_hsaq_buf;
++  hsaq_bufs.push_back(new_hsaq_buf);
++  return new_hsaq_buf; 
++}
++
++static hsaq_buf_entry_t * find_hsaq_buf_entry(hsa_queue_t *hsa_q) {
++  for(hsaq_buf_entry_t * hsaq_buf : hsaq_bufs) {
++    if (hsaq_buf->hsa_q == hsa_q)
++      return hsaq_buf;
++  }
++  return NULL;
++}
++
++hsa_status_t impl_free(void *ptr) { 
++  hsa_status_t err = hsa_amd_memory_pool_free(ptr);
++  return err;
++}
++
++hsa_status_t host_malloc(void **ptr, size_t size,
++                        hsa_amd_memory_pool_t MemoryPool,
++			hsa_agent_t agent) {
++  hsa_status_t err = hsa_amd_memory_pool_allocate(MemoryPool, size, 0, ptr);
++  if (err == HSA_STATUS_SUCCESS) {
++    err = hsa_amd_agents_allow_access(1,&agent,NULL,*ptr);
++  } else {
++    printf("host_malloc failed with rc:%d for size %ld returned ptr:%p \n",
++			  (int) err,size, *ptr);
++    hostrpc_abort((int) err);
++  }
++  return err;
++}
++
++hsa_status_t device_malloc(void **mem, size_t size, int DeviceId, 
++		 hsa_amd_memory_pool_t MemoryPool) {
++  return hsa_amd_memory_pool_allocate(MemoryPool, size, 0, mem);
++}
++
++void hostrpc_abort(int rc) {
++  printf("hostrpc_abort called with code %d\n", rc);
++  abort();
++}
++
++static buffer_t *create_hsaq_buf(unsigned int num_packets,
++		 hsa_amd_memory_pool_t MemoryPool,
++		 hsa_agent_t hsa_agent) {
++  if (num_packets == 0) {
++    printf("num_packets cannot be zero \n");
++    abort();
++  }
++  size_t size = amd_hostcall_get_buffer_size(num_packets);
++  uint32_t align = amd_hostcall_get_buffer_alignment();
++  void *newbuffer = NULL;
++  hsa_status_t err = host_malloc(&newbuffer, size + align, MemoryPool,hsa_agent);
++  if (!newbuffer || (err != HSA_STATUS_SUCCESS)) {
++    printf("call to impl_malloc failed \n");
++    abort();
++  }
++  if (amd_hostcall_initialize_buffer(newbuffer, num_packets) !=
++      AMD_HOSTCALL_SUCCESS) {
++    printf("call to  amd_hostcall_initialize_buffer failed \n");
++    abort();
++  }
++  //printf("created hostcall buffer %p with %d packets \n", newbuffer, num_packets);
++  return (buffer_t *)newbuffer;
++}
++
++// This is the main hostrpc initialization called by the plugin
++// It is called for each hsa queue on each device
++// FIXME: we need to create one consumer per device
++unsigned long hostrpc_assign_buffer(hsa_agent_t agent, hsa_queue_t *this_Q,
++                   uint32_t device_id, hsa_amd_memory_pool_t HostMemoryPool,
++                   hsa_amd_memory_pool_t DevMemoryPool){
++  hsaq_buf_entry_t *hsaq_buf;
++  hostrpc_set_mempools_for_services(device_id, HostMemoryPool, DevMemoryPool, agent);
++  hsaq_buf = find_hsaq_buf_entry(this_Q);
++  if (!hsaq_buf) {
++    if (!hostrpc_consumer) {
++      hostrpc_consumer = amd_hostcall_create_consumer();
++      // Spawns a thread
++      amd_hostcall_launch_consumer(hostrpc_consumer);
++    }
++
++    uint32_t numCu;
++    // hsa_status_t err =
++    hsa_agent_get_info(
++        agent, (hsa_agent_info_t)HSA_AMD_AGENT_INFO_COMPUTE_UNIT_COUNT, &numCu);
++    // ErrorCheck(Could not get number of cus, err);
++    uint32_t waverPerCu;
++    // err =
++    hsa_agent_get_info(agent,
++                       (hsa_agent_info_t)HSA_AMD_AGENT_INFO_MAX_WAVES_PER_CU,
++                       &waverPerCu);
++    // ErrorCheck(Could not get number of waves per cu, err);
++    unsigned int minpackets = numCu * waverPerCu;
++    //  For now, we create one bufer and one consumer per IMPL hsa queue
++    buffer_t *hcb = create_hsaq_buf(minpackets,HostMemoryPool,agent);
++    hcb->device_id = device_id;
++    amd_hostcall_register_buffer(hostrpc_consumer, hcb);
++    hsaq_buf = add_hsaq_buf_entry(hcb, this_Q, device_id);
++  }
++
++  return (unsigned long)hsaq_buf->hcb;
++}
++
++hsa_status_t hostrpc_terminate() {
++  hsa_status_t err = HSA_STATUS_SUCCESS;
++  for(hsaq_buf_entry_t * hsaq_buf : hsaq_bufs) {
++    err = impl_free(hsaq_buf->hcb);
++    free(hsaq_buf->this_mem);
++  }
++  if (hostrpc_consumer) {
++    amd_hostcall_destroy_consumer(hostrpc_consumer);
++    hostrpc_consumer = NULL;
++  }
++  hsaq_bufs.clear();
++  return err;
++}
++} // end extern "C" 
++
++
++#ifndef NDEBUG
++bool debug_mode;
++#define WHEN_DEBUG(xxx)                                                        \
++  do {                                                                         \
++    if (debug_mode) {                                                          \
++      xxx;                                                                     \
++    }                                                                          \
++  } while (false)
++#else
++#define WHEN_DEBUG(xxx)
++#endif // NDEBUG
++
++enum { SIGNAL_INIT = UINT64_MAX, SIGNAL_DONE = UINT64_MAX - 1 };
++
++static uint32_t set_control_field(uint32_t control, uint8_t offset,
++                                  uint8_t width, uint32_t value) {
++  uint32_t mask = ~(((1 << width) - 1) << offset);
++  control &= mask;
++  return control | (value << offset);
++}
++
++static uint32_t reset_ready_flag(uint32_t control) {
++  return set_control_field(control, CONTROL_OFFSET_READY_FLAG,
++                           CONTROL_WIDTH_READY_FLAG, 0);
++}
++
++static uint64_t get_ptr_index(uint64_t ptr, uint32_t index_size) {
++  return ptr & ((1UL << index_size) - 1);
++}
++
++static uintptr_t align_to(uintptr_t value, uint32_t alignment) {
++  if (value % alignment == 0)
++    return value;
++  return value - (value % alignment) + alignment;
++}
++
++static uintptr_t get_header_start() {
++  return align_to(sizeof(buffer_t), alignof(header_t));
++}
++
++static uintptr_t get_payload_start(uint32_t num_packets) {
++  auto header_start = get_header_start();
++  auto header_end = header_start + sizeof(header_t) * num_packets;
++  return align_to(header_end, alignof(payload_t));
++}
++
++static signal_t create_signal() {
++  hsa_signal_t hs;
++  hsa_status_t status = hsa_signal_create(SIGNAL_INIT, 0, NULL, &hs);
++  if (status != HSA_STATUS_SUCCESS)
++    return {0};
++  return {hs.handle};
++}
++
++/** \brief Locked reference to critical data.
++ *
++ *         Simpler version of the LockedAccessor in HIP sources.
++ *
++ *         Protects access to the member _data with a lock acquired on
++ *         contruction/destruction. T must contain a _mutex field
++ *         which meets the BasicLockable requirements (lock/unlock)
++ */
++template <typename T> struct locked_accessor_t {
++  locked_accessor_t(T &criticalData) : _criticalData(&criticalData) {
++    _criticalData->_mutex.lock();
++  };
++
++  ~locked_accessor_t() { _criticalData->_mutex.unlock(); }
++
++  // Syntactic sugar so -> can be used to get the underlying type.
++  T *operator->() { return _criticalData; };
++
++private:
++  T *_criticalData;
++};
++
++struct record_t {
++  bool discarded;
++};
++
++struct critical_data_t {
++  std::unordered_map<buffer_t *, record_t> buffers;
++  std::mutex _mutex;
++};
++
++typedef locked_accessor_t<critical_data_t> locked_critical_data_t;
++
++/** \brief Encapsulates the entire consumer thread functionality.
++ *
++ *  The C API exposed in the header is a thin wrapper around this
++ *  class. This ensures that the C++ interface is easy to expose if
++ *  required.
++ */
++struct amd_hostcall_consumer_t {
++private:
++  signal_t doorbell;
++  std::thread thread;
++  critical_data_t critical_data;
++  UriLocator *urilocator;
++  amd_hostcall_consumer_t(signal_t _doorbell) : doorbell(_doorbell) {}
++
++public:
++  void register_buffer(void *buffer);
++  amd_hostcall_error_t deregister_buffer(void *buffer);
++
++  void process_packets(buffer_t *buffer, uint64_t F) const;
++  // FIXME: This cannot be const because it locks critical data. A
++  // lock-free implementaiton might make that possible.
++  void consume_packets();
++
++  amd_hostcall_error_t launch();
++  amd_hostcall_error_t terminate();
++
++  static amd_hostcall_consumer_t *create();
++  ~amd_hostcall_consumer_t();
++};
++
++static uint64_t grab_ready_stack(buffer_t *buffer) {
++  return __atomic_exchange_n(&buffer->ready_stack, 0,
++                             std::memory_order_acquire);
++}
++
++static header_t *get_header(buffer_t *buffer, ulong ptr) {
++  return buffer->headers + get_ptr_index(ptr, buffer->index_size);
++}
++
++static payload_t *get_payload(buffer_t *buffer, ulong ptr) {
++  return buffer->payloads + get_ptr_index(ptr, buffer->index_size);
++}
++
++extern "C" void hostrpc_handler_SERVICE_SANITIZER(payload_t *payload,
++                                                  uint64_t activemask,
++                                                  const uint32_t *dev_ptr,
++                                                  UriLocator *uri_locator);
++
++extern "C" void hostrpc_execute_service(uint32_t service_id,
++                                        uint32_t *device_ptr,
++                                        uint64_t *payload);
++
++// FIXME: Clean up this diagnostic and die properly
++static bool hostrpc_version_checked;
++
++static hostrpc_status_t hostrpc_version_check(unsigned int device_vrm) {
++  if (device_vrm == (unsigned int)HOSTRPC_VRM)
++    return HOSTRPC_SUCCESS;
++  uint device_version_release = device_vrm >> 6;
++  if (device_version_release != HOSTRPC_VERSION_RELEASE) {
++    printf("ERROR Incompatible device and host release\n      Device "
++           "release(%d)\n      Host release(%d)\n",
++           device_version_release, HOSTRPC_VERSION_RELEASE);
++    return HOSTRPC_WRONGVERSION_ERROR;
++  }
++  if (device_vrm > HOSTRPC_VRM) {
++    printf("ERROR Incompatible device and host version \n       Device "
++           "version(%d)\n      Host version(%d)\n",
++           device_vrm, HOSTRPC_VERSION_RELEASE);
++    printf("          Upgrade libomptarget runtime on your system.\n");
++    return HOSTRPC_OLDHOSTVERSIONMOD_ERROR;
++  }
++  if (device_vrm < HOSTRPC_VRM) {
++    unsigned int host_ver = ((unsigned int)HOSTRPC_VRM) >> 12;
++    unsigned int host_rel = (((unsigned int)HOSTRPC_VRM) << 20) >> 26;
++    unsigned int host_mod = (((unsigned int)HOSTRPC_VRM) << 26) >> 26;
++    unsigned int dev_ver = ((unsigned int)device_vrm) >> 12;
++    unsigned int dev_rel = (((unsigned int)device_vrm) << 20) >> 26;
++    unsigned int dev_mod = (((unsigned int)device_vrm) << 26) >> 26;
++    printf("WARNING:  Device mod version < host mod version \n          Device "
++           "version: %d.%d.%d\n          Host version:   %d.%d.%d\n",
++           dev_ver, dev_rel, dev_mod, host_ver, host_rel, host_mod);
++    printf("          Consider rebuild binary with more recent compiler.\n");
++  }
++  return HOSTRPC_SUCCESS;
++}
++
++void amd_hostcall_consumer_t::process_packets(buffer_t *buffer,
++                                              uint64_t ready_stack) const {
++  // This function is always called from consume_packets, which owns
++  // the lock for the critical data.
++
++  WHEN_DEBUG(std::cout << "process packets starting with " << ready_stack
++                       << std::endl);
++
++  // Each wave can submit at most one packet at a time, and all
++  // waves independently push ready packets. The stack of packets at
++  // this point cannot contain multiple packets from the same wave,
++  // so consuming ready packets in a latest-first order does not
++  // affect any wave.
++  for (decltype(ready_stack) iter = ready_stack, next = 0; iter; iter = next) {
++    WHEN_DEBUG(std::cout << "processing ptr: " << iter << std::endl);
++    WHEN_DEBUG(std::cout << "packet index: " << std::dec
++                         << get_ptr_index(iter, buffer->index_size)
++                         << std::endl);
++
++    // Remember the next packet pointer. The current packet will
++    // get reused from the free stack after we process it.
++    auto header = get_header(buffer, iter);
++    next = header->next;
++
++    WHEN_DEBUG(std::cout << "packet service: " << (uint32_t)header->service
++                         << std::endl);
++
++    auto payload = get_payload(buffer, iter);
++    uint64_t activemask = header->activemask;
++    WHEN_DEBUG(std::cout << "activemask: " << std::hex << activemask
++                         << std::endl);
++
++    // split the 32-bit service number into service_id and VRM to be checked
++    // if device hostrpc or stubs are ahead of this host runtime.
++    uint service_id = (header->service << 16) >> 16;
++    if (!hostrpc_version_checked) {
++      uint device_vrm = ((uint)(header->service) >> 16);
++      hostrpc_status_t err = hostrpc_version_check(device_vrm);
++      if (err != HOSTRPC_SUCCESS)
++        hostrpc_abort(err);
++      hostrpc_version_checked = true;
++    }
++
++    if (service_id == HOSTRPC_SERVICE_SANITIZER) {
++      hostrpc_handler_SERVICE_SANITIZER(payload, activemask,
++                                        &(buffer->device_id), urilocator);
++    } else {
++      // TODO: One could use ffs to skip inactive lanes faster.
++      for (uint32_t wi = 0; wi != 64; ++wi) {
++        uint64_t flag = activemask & ((uint64_t)1 << wi);
++        if (flag == 0)
++          continue;
++        uint64_t *slot = payload->slots[wi];
++        hostrpc_execute_service(service_id, &(buffer->device_id), slot);
++      }
++    }
++    __atomic_store_n(&header->control, reset_ready_flag(header->control),
++                     std::memory_order_release);
++  }
++}
++
++void amd_hostcall_consumer_t::consume_packets() {
++  /* TODO: The consumer iterates over all registered buffers in an
++     unspecified order, and for each buffer, processes packets also
++     in an unspecified order. This may need a more efficient
++     strategy based on the turnaround time for the services
++     requested by all these packets.
++   */
++  WHEN_DEBUG(std::cout << "launched consumer" << std::endl);
++  uint64_t signal_value = SIGNAL_INIT;
++  uint64_t timeout = 1024 * 1024;
++
++  while (true) {
++
++    hsa_signal_t hs{doorbell.handle};
++    signal_value =
++        hsa_signal_wait_scacquire(hs, HSA_SIGNAL_CONDITION_NE, signal_value,
++                                timeout, HSA_WAIT_STATE_BLOCKED);
++
++    if (signal_value == SIGNAL_DONE) {
++      return;
++    }
++
++    locked_critical_data_t data(critical_data);
++
++    for (auto ii = data->buffers.begin(), ie = data->buffers.end(); ii != ie;
++         /* don't increment here */) {
++      auto record = ii->second;
++      if (record.discarded) {
++        ii = data->buffers.erase(ii);
++        continue;
++      }
++
++      buffer_t *buffer = ii->first;
++      uint64_t F = grab_ready_stack(buffer);
++      WHEN_DEBUG(std::cout << "grabbed ready stack: " << F << std::endl);
++      if (F) {
++        process_packets(buffer, F);
++      }
++      ++ii;
++    }
++  }
++
++  return;
++}
++
++amd_hostcall_error_t amd_hostcall_consumer_t::launch() {
++  if (thread.joinable())
++    return AMD_HOSTCALL_ERROR_CONSUMER_ACTIVE;
++  thread = std::thread(&amd_hostcall_consumer_t::consume_packets, this);
++  if (!thread.joinable())
++    return AMD_HOSTCALL_ERROR_CONSUMER_LAUNCH_FAILED;
++
++  return AMD_HOSTCALL_SUCCESS;
++}
++
++amd_hostcall_error_t amd_hostcall_consumer_t::terminate() {
++  if (!thread.joinable())
++    return AMD_HOSTCALL_ERROR_CONSUMER_INACTIVE;
++  hsa_signal_t signal = {doorbell.handle};
++  hsa_signal_store_screlease(signal, SIGNAL_DONE);
++  thread.join();
++  return AMD_HOSTCALL_SUCCESS;
++}
++
++void amd_hostcall_consumer_t::register_buffer(void *b) {
++  locked_critical_data_t data(critical_data);
++  auto buffer = reinterpret_cast<buffer_t *>(b);
++  auto &record = data->buffers[buffer];
++  WHEN_DEBUG(std::cout << "registered buffer: " << std::hex << b << std::endl);
++  record.discarded = false;
++  buffer->doorbell = doorbell;
++  urilocator = new UriLocator();
++  WHEN_DEBUG(std::cout << "signal: " << buffer->doorbell.handle << std::endl);
++}
++
++amd_hostcall_error_t amd_hostcall_consumer_t::deregister_buffer(void *b) {
++  locked_critical_data_t data(critical_data);
++  auto buffer = reinterpret_cast<buffer_t *>(b);
++  if (data->buffers.count(buffer) == 0)
++    return AMD_HOSTCALL_ERROR_INVALID_REQUEST;
++  auto &record = data->buffers[buffer];
++  if (record.discarded)
++    return AMD_HOSTCALL_ERROR_INVALID_REQUEST;
++  record.discarded = true;
++  return AMD_HOSTCALL_SUCCESS;
++}
++
++amd_hostcall_consumer_t::~amd_hostcall_consumer_t() {
++  terminate();
++  delete urilocator;
++  critical_data.buffers.clear();
++  hsa_signal_t hs{doorbell.handle};
++  hsa_signal_destroy(hs);
++}
++
++amd_hostcall_consumer_t *amd_hostcall_consumer_t::create() {
++  signal_t doorbell = create_signal();
++  if (doorbell.handle == 0) {
++    return nullptr;
++  }
++  return new amd_hostcall_consumer_t(doorbell);
++}
++
++amd_hostcall_consumer_t *amd_hostcall_create_consumer() {
++  return amd_hostcall_consumer_t::create();
++}
++
++size_t amd_hostcall_get_buffer_size(uint32_t num_packets) {
++  WHEN_DEBUG(std::cout << "header start: " << get_header_start() << std::endl);
++  WHEN_DEBUG(std::cout << "payload start: " << get_payload_start(num_packets)
++                       << std::endl);
++  size_t buffer_size = get_payload_start(num_packets);
++  buffer_size += num_packets * sizeof(payload_t);
++  return buffer_size;
++}
++
++uint32_t amd_hostcall_get_buffer_alignment() { return alignof(payload_t); }
++
++amd_hostcall_error_t amd_hostcall_initialize_buffer(void *buffer,
++                                                    uint32_t num_packets) {
++  if (!buffer) {
++    return AMD_HOSTCALL_ERROR_NULLPTR;
++  }
++
++  if ((uintptr_t)buffer % amd_hostcall_get_buffer_alignment() != 0) {
++    return AMD_HOSTCALL_ERROR_INCORRECT_ALIGNMENT;
++  }
++
++  buffer_t *hb = (buffer_t *)buffer;
++
++  hb->headers = (header_t *)((uint8_t *)hb + get_header_start());
++  hb->payloads = (payload_t *)((uint8_t *)hb + get_payload_start(num_packets));
++
++  uint32_t index_size = 1;
++  if (num_packets > 2)
++    index_size = 32 - __builtin_clz(num_packets);
++  WHEN_DEBUG(std::cout << "index size: " << index_size << std::endl);
++  hb->index_size = index_size;
++  hb->headers[0].next = 0;
++
++  uint64_t next = 1UL << index_size;
++  for (uint32_t ii = 1; ii != num_packets; ++ii) {
++    hb->headers[ii].next = next;
++    next = ii;
++  }
++  hb->free_stack = next;
++  hb->ready_stack = 0;
++
++  return AMD_HOSTCALL_SUCCESS;
++}
++
++void amd_hostcall_register_buffer(amd_hostcall_consumer_t *consumer,
++                                  void *buffer) {
++  consumer->register_buffer(buffer);
++}
++
++amd_hostcall_error_t
++amd_hostcall_deregister_buffer(amd_hostcall_consumer_t *consumer,
++                               void *buffer) {
++  return consumer->deregister_buffer(buffer);
++}
++
++amd_hostcall_error_t
++amd_hostcall_launch_consumer(amd_hostcall_consumer_t *consumer) {
++  return consumer->launch();
++}
++
++void amd_hostcall_destroy_consumer(amd_hostcall_consumer_t *consumer) {
++  delete consumer;
++}
++
++void amd_hostcall_enable_debug() {
++#ifndef NDEBUG
++  debug_mode = true;
++#endif
++}
++
++/// === ASAN SUPPORT ===
++
++// Address sanitizer runtime entry-function to report the invalid device memory
++// access this will be defined in llvm-project/compiler-rt/lib/asan, and will
++// have effect only when compiler-rt is build for AMDGPU. Note: This API is
++// runtime interface of asan library and only defined for linux os.
++extern "C" void __asan_report_nonself_error(
++    uint64_t *callstack, uint32_t n_callstack, uint64_t *addr, uint32_t naddr,
++    uint64_t *entity_ids, uint32_t n_entities, bool is_write,
++    uint32_t access_size, bool is_abort, const char *name, int64_t vma_adjust,
++    int fd, uint64_t file_extent_size, uint64_t file_extent_start = 0);
++
++namespace {
++extern "C" void hostrpc_handler_SERVICE_SANITIZER(payload_t *packt_payload,
++                                                  uint64_t activemask,
++                                                  const uint32_t *gpu_device,
++                                                  UriLocator *uri_locator) {
++  // An address results in invalid access in each active lane
++  uint64_t device_failing_addresses[64];
++  // An array of identifications of entities requesting a report.
++  // index 0       - contains device id
++  // index 1,2,3   - contains wg_idx, wg_idy, wg_idz respectively.
++  // index 4 to 67 - contains reporting wave ids in a wave-front.
++  uint64_t entity_id[68], callstack[1];
++#if SANITIZER_AMDGPU && defined(__linux__)
++  uint32_t n_activelanes = __builtin_popcountl(activemask);
++  uint64_t access_info = 0, access_size = 0;
++  bool is_abort = true;
++#endif
++  entity_id[0] = *gpu_device;
++
++  assert(packt_payload != nullptr && "packet payload is null?");
++
++  int indx = 0, en_idx = 1;
++  bool first_workitem = false;
++  for (uint32_t wi = 0; wi != 64; ++wi) {
++    uint64_t flag = activemask & ((uint64_t)1 << wi);
++    if (flag == 0)
++      continue;
++
++    auto data_slot = packt_payload->slots[wi];
++    // encoding of packet payload arguments is
++    // defined in device-libs/asanrtl/src/report.cl
++    if (!first_workitem) {
++      device_failing_addresses[indx] = data_slot[0];
++      callstack[0] = data_slot[1];
++      entity_id[en_idx] = data_slot[2];
++      entity_id[++en_idx] = data_slot[3];
++      entity_id[++en_idx] = data_slot[4];
++      entity_id[++en_idx] = data_slot[5];
++#if SANITIZER_AMDGPU && defined(__linux__)
++      access_info = data_slot[6];
++      access_size = data_slot[7];
++#endif
++      first_workitem = true;
++    } else {
++      device_failing_addresses[indx] = data_slot[0];
++      entity_id[en_idx] = data_slot[5];
++    }
++    indx++;
++    en_idx++;
++  }
++
++#if SANITIZER_AMDGPU && defined(__linux__)
++  bool is_write = false;
++  if (access_info & 0xFFFFFFFF00000000)
++    is_abort = false;
++  if (access_info & 1)
++    is_write = true;
++#endif
++
++  std::string fileuri;
++  uint64_t size = 0, offset = 0;
++#if SANITIZER_AMDGPU && defined(__linux__)
++  int64_t loadAddrAdjust = 0;
++#endif
++  int uri_fd = -1;
++
++  if (uri_locator) {
++    UriLocator::UriInfo fileuri_info = uri_locator->lookUpUri(callstack[0]);
++    std::tie(offset, size) =
++        uri_locator->decodeUriAndGetFd(fileuri_info, &uri_fd);
++#if SANITIZER_AMDGPU && defined(__linux__)
++    loadAddrAdjust = fileuri_info.loadAddressDiff;
++#endif
++  }
++
++#if SANITIZER_AMDGPU && defined(__linux__)
++  __asan_report_nonself_error(
++      callstack, 1, device_failing_addresses, n_activelanes, entity_id,
++      n_activelanes + 4, is_write, access_size, is_abort,
++      /*thread key*/ "amdgpu", loadAddrAdjust, uri_fd, size, offset);
++#endif
++
++}
++} // end anonymous namespace
+diff -Naur -x .git llvm-project.amd-trunk-dev/openmp/libomptarget/hostrpc/services/urilocator.cpp llvm-project/openmp/libomptarget/hostrpc/services/urilocator.cpp
+--- llvm-project.amd-trunk-dev/openmp/libomptarget/hostrpc/services/urilocator.cpp	1969-12-31 19:00:00.000000000 -0500
++++ llvm-project/openmp/libomptarget/hostrpc/services/urilocator.cpp	2022-06-08 14:11:09.671432187 -0400
+@@ -0,0 +1,226 @@
++/*
++//===---- UriLocator.cpp: Extract URI path using vendor specific HSA-API
++calls.----------===//
++//
++// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
++// See https://llvm.org/LICENSE.txt for license information.
++// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
++//
++//===------------------------------------------------------------------------------------===//
++
++Copyright (c) 2021 - 2021 Advanced Micro Devices, Inc.
++
++ Permission is hereby granted, free of charge, to any person obtaining a copy
++ of this software and associated documentation files (the "Software"), to deal
++ in the Software without restriction, including without limitation the rights
++ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
++ copies of the Software, and to permit persons to whom the Software is
++ furnished to do so, subject to the following conditions:
++
++ The above copyright notice and this permission notice shall be included in
++ all copies or substantial portions of the Software.
++
++ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
++ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
++ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
++ THE SOFTWARE.
++ */
++
++#include "urilocator.h"
++#include <cstdlib>
++#include <fcntl.h>
++#include <sstream>
++#include <sys/stat.h>
++#include <unistd.h>
++
++bool GetFileHandle(const char *fname, int *fd_ptr, size_t *sz_ptr) {
++  if ((fd_ptr == nullptr) || (sz_ptr == nullptr)) {
++    return false;
++  }
++
++  // open system function call, return false on fail
++  struct stat stat_buf;
++  *fd_ptr = open(fname, O_RDONLY);
++  if (*fd_ptr < 0) {
++    return false;
++  }
++
++  // Retrieve stat info and size
++  if (fstat(*fd_ptr, &stat_buf) != 0) {
++    close(*fd_ptr);
++    return false;
++  }
++
++  *sz_ptr = stat_buf.st_size;
++
++  return true;
++}
++
++hsa_status_t UriLocator::createUriRangeTable() {
++
++  auto execCb = [](hsa_executable_t exec, void *data) -> hsa_status_t {
++    int execState = 0;
++    hsa_status_t status;
++    status =
++        hsa_executable_get_info(exec, HSA_EXECUTABLE_INFO_STATE, &execState);
++    if (status != HSA_STATUS_SUCCESS)
++      return status;
++    if (execState != HSA_EXECUTABLE_STATE_FROZEN)
++      return status;
++
++    auto loadedCodeObjectCb = [](hsa_executable_t exec,
++                                 hsa_loaded_code_object_t lcobj,
++                                 void *data) -> hsa_status_t {
++      hsa_status_t result;
++      uint64_t loadBAddr = 0, loadSize = 0;
++      uint32_t uriLen = 0;
++      int64_t delta = 0;
++      uint64_t *argsCb = static_cast<uint64_t *>(data);
++      hsa_ven_amd_loader_1_03_pfn_t *fnTab =
++          reinterpret_cast<hsa_ven_amd_loader_1_03_pfn_t *>(argsCb[0]);
++      std::vector<UriRange> *rangeTab =
++          reinterpret_cast<std::vector<UriRange> *>(argsCb[1]);
++
++      if (!fnTab->hsa_ven_amd_loader_loaded_code_object_get_info)
++        return HSA_STATUS_ERROR;
++
++      result = fnTab->hsa_ven_amd_loader_loaded_code_object_get_info(
++          lcobj, HSA_VEN_AMD_LOADER_LOADED_CODE_OBJECT_INFO_LOAD_BASE,
++          (void *)&loadBAddr);
++      if (result != HSA_STATUS_SUCCESS)
++        return result;
++
++      result = fnTab->hsa_ven_amd_loader_loaded_code_object_get_info(
++          lcobj, HSA_VEN_AMD_LOADER_LOADED_CODE_OBJECT_INFO_LOAD_SIZE,
++          (void *)&loadSize);
++      if (result != HSA_STATUS_SUCCESS)
++        return result;
++
++      result = fnTab->hsa_ven_amd_loader_loaded_code_object_get_info(
++          lcobj, HSA_VEN_AMD_LOADER_LOADED_CODE_OBJECT_INFO_URI_LENGTH,
++          (void *)&uriLen);
++      if (result != HSA_STATUS_SUCCESS)
++        return result;
++
++      result = fnTab->hsa_ven_amd_loader_loaded_code_object_get_info(
++          lcobj, HSA_VEN_AMD_LOADER_LOADED_CODE_OBJECT_INFO_LOAD_DELTA,
++          (void *)&delta);
++      if (result != HSA_STATUS_SUCCESS)
++        return result;
++
++      char *uri = new char[uriLen + 1];
++      uri[uriLen] = '\0';
++      result = fnTab->hsa_ven_amd_loader_loaded_code_object_get_info(
++          lcobj, HSA_VEN_AMD_LOADER_LOADED_CODE_OBJECT_INFO_URI, (void *)uri);
++      if (result != HSA_STATUS_SUCCESS)
++        return result;
++
++      rangeTab->push_back(UriRange{loadBAddr, loadBAddr + loadSize - 1, delta,
++                                   std::string{uri, uriLen + 1}});
++      delete[] uri;
++      return HSA_STATUS_SUCCESS;
++    };
++
++    uint64_t *args = static_cast<uint64_t *>(data);
++    hsa_ven_amd_loader_1_03_pfn_t *fnExtTab =
++        reinterpret_cast<hsa_ven_amd_loader_1_03_pfn_t *>(args[0]);
++    return fnExtTab->hsa_ven_amd_loader_executable_iterate_loaded_code_objects(
++        exec, loadedCodeObjectCb, data);
++  };
++
++  if (!fn_table_.hsa_ven_amd_loader_iterate_executables)
++    return HSA_STATUS_ERROR;
++
++  uint64_t callbackArgs[2] = {(uint64_t)&fn_table_, (uint64_t)&rangeTab_};
++  return fn_table_.hsa_ven_amd_loader_iterate_executables(execCb,
++                                                          (void *)callbackArgs);
++}
++
++// Encoding of uniform-resource-identifier(URI) is detailed in
++// https://llvm.org/docs/AMDGPUUsage.html#loaded-code-object-path-uniform-resource-identifier-uri
++// The below code currently extracts the uri of loaded code object using
++// file-uri.
++std::pair<uint64_t, uint64_t> UriLocator::decodeUriAndGetFd(UriInfo &uri,
++                                                            int *uri_fd) {
++
++  std::ostringstream ss;
++  char cur;
++  uint64_t offset = 0, size = 0;
++  if (uri.uriPath.size() == 0)
++    return {0, 0};
++  auto pos = uri.uriPath.find("//");
++  if (pos == std::string::npos || uri.uriPath.substr(0, pos) != "file:") {
++    uri.uriPath = "";
++    return {0, 0};
++  }
++  auto rspos = uri.uriPath.find('#');
++  if (rspos != std::string::npos) {
++    // parse range specifier
++    std::string offprefix = "offset=", sizeprefix = "size=";
++    auto sbeg = uri.uriPath.find('&', rspos);
++    auto offbeg = rspos + offprefix.size() + 1;
++    std::string offstr = uri.uriPath.substr(offbeg, sbeg - offbeg);
++    auto sizebeg = sbeg + sizeprefix.size() + 1;
++    std::string sizestr =
++        uri.uriPath.substr(sizebeg, uri.uriPath.size() - sizebeg);
++    offset = std::stoull(offstr, nullptr, 0);
++    size = std::stoull(sizestr, nullptr, 0);
++    rspos -= 1;
++  } else {
++    rspos = uri.uriPath.size() - 1;
++  }
++  pos += 2;
++  // decode filepath
++  for (auto i = pos; i <= rspos;) {
++    cur = uri.uriPath[i];
++    if (isalnum(cur) || cur == '/' || cur == '-' || cur == '_' || cur == '.' ||
++        cur == '~') {
++      ss << cur;
++      i++;
++    } else {
++      // characters prefix with '%' char
++      char tbits = uri.uriPath[i + 1], lbits = uri.uriPath[i + 2];
++      uint8_t t = (tbits < 58) ? (tbits - 48) : ((tbits - 65) + 10);
++      uint8_t l = (lbits < 58) ? (lbits - 48) : ((lbits - 65) + 10);
++      ss << (char)(((0b00000000 | t) << 4) | l);
++      i += 3;
++    }
++  }
++  uri.uriPath = ss.str();
++  size_t fd_size;
++  GetFileHandle(uri.uriPath.c_str(), uri_fd, &fd_size);
++  // As per URI locator syntax, range_specifier is optional
++  // if range_specifier is absent return total size of the file
++  // and set offset to begin at 0.
++  if (size == 0)
++    size = fd_size;
++  return {offset, size};
++}
++
++UriLocator::UriInfo UriLocator::lookUpUri(uint64_t device_pc) {
++  UriInfo errorstate{"", 0};
++
++  if (!init_) {
++
++    hsa_status_t result;
++    result = hsa_system_get_major_extension_table(
++        HSA_EXTENSION_AMD_LOADER, 1, sizeof(fn_table_), &fn_table_);
++    if (result != HSA_STATUS_SUCCESS)
++      return errorstate;
++    result = createUriRangeTable();
++    if (result != HSA_STATUS_SUCCESS) {
++      rangeTab_.clear();
++      return errorstate;
++    }
++    init_ = true;
++  }
++
++  for (auto &seg : rangeTab_)
++    if (seg.startAddr_ <= device_pc && device_pc <= seg.endAddr_)
++      return UriInfo{seg.Uri_.c_str(), seg.elfDelta_};
++
++  return errorstate;
++}
+diff -Naur -x .git llvm-project.amd-trunk-dev/openmp/libomptarget/hostrpc/services/urilocator.h llvm-project/openmp/libomptarget/hostrpc/services/urilocator.h
+--- llvm-project.amd-trunk-dev/openmp/libomptarget/hostrpc/services/urilocator.h	1969-12-31 19:00:00.000000000 -0500
++++ llvm-project/openmp/libomptarget/hostrpc/services/urilocator.h	2022-07-26 11:39:58.717221881 -0400
+@@ -0,0 +1,63 @@
++/*
++//===--- UriLocator.h: Schema of URI Locator  -----------------------------===//
++//
++// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
++// See https://llvm.org/LICENSE.txt for license information.
++// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
++//
++//===----------------------------------------------------------------------===//
++
++Copyright (c) 2021 - 2021 Advanced Micro Devices, Inc.
++
++ Permission is hereby granted, free of charge, to any person obtaining a copy
++ of this software and associated documentation files (the "Software"), to deal
++ in the Software without restriction, including without limitation the rights
++ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
++ copies of the Software, and to permit persons to whom the Software is
++ furnished to do so, subject to the following conditions:
++
++ The above copyright notice and this permission notice shall be included in
++ all copies or substantial portions of the Software.
++
++ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
++ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
++ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
++ THE SOFTWARE.
++*/
++
++#ifndef URILOCATOR_H
++#define URILOCATOR_H
++#include "hsa/hsa_ven_amd_loader.h"
++#include <string>
++#include <vector>
++
++class UriLocator {
++
++public:
++  struct UriInfo {
++    std::string uriPath;
++    int64_t loadAddressDiff;
++  };
++
++  struct UriRange {
++    uint64_t startAddr_, endAddr_;
++    int64_t elfDelta_;
++    std::string Uri_;
++  };
++
++  bool init_ = false;
++  std::vector<UriRange> rangeTab_;
++  hsa_ven_amd_loader_1_03_pfn_t fn_table_;
++
++  hsa_status_t createUriRangeTable();
++
++  ~UriLocator() {}
++
++  UriInfo lookUpUri(uint64_t device_pc);
++  std::pair<uint64_t, uint64_t> decodeUriAndGetFd(UriInfo &uri_path,
++                                                  int *uri_fd);
++};
++#endif
+\ No newline at end of file
+diff -Naur -x .git llvm-project.amd-trunk-dev/openmp/libomptarget/hostrpc/src/disable_dynamic_devmem.ll llvm-project/openmp/libomptarget/hostrpc/src/disable_dynamic_devmem.ll
+--- llvm-project.amd-trunk-dev/openmp/libomptarget/hostrpc/src/disable_dynamic_devmem.ll	1969-12-31 19:00:00.000000000 -0500
++++ llvm-project/openmp/libomptarget/hostrpc/src/disable_dynamic_devmem.ll	2022-06-12 14:45:12.634977080 -0400
+@@ -0,0 +1,25 @@
++; ModuleID = 'disable_dynamic_devmem.ll'
++
++; Adding this file first in the list of prelink files effectively 
++; disables the host services request for device malloc or free.  This only 
++; disables the "host-assisted" part dynamic memory management which
++; is only needed when the initial device memory heap is exhausted.
++; If -fenable-host-devmem ON, then do not add this disable file to list
++; of link files. This allows the actual hostrpc or hostcall device stub
++;  "__ockl_devmem_request" to make the host service request to allocate
++; more device memory to grow the heap.
++; Why disable this? Enabling host services requires additional host
++; threads to wait for requests which could impact overall performance.
++
++
++source_filename = "disable_devmem_request.ll"
++target datalayout = "e-p:64:64-p1:64:64-p2:32:32-p3:32:32-p4:64:64-p5:32:32-p6:32:32-i64:64-v16:16-v24:32-v32:32-v48:64-v96:128-v192:256-v256:256-v512:512-v1024:1024-v2048:2048-n32:64-S32-A5-G1-ni:7"
++target triple = "amdgcn-amd-amdhsa"
++
++; Function Attrs: convergent nounwind
++define external i64 @__ockl_devmem_request(i64 noundef %addr, i64 noundef %size) local_unnamed_addr #0 {
++entry:
++  ret i64 0
++}
++
++attributes #0 = { convergent nounwind "frame-pointer"="none" "min-legal-vector-width"="0" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-features"="+16-bit-insts,+ci-insts,+dl-insts,+dot1-insts,+dot2-insts,+dot3-insts,+dot4-insts,+dot5-insts,+dot6-insts,+dot7-insts,+dpp,+flat-address-space,+gfx8-insts,+gfx9-insts,+mai-insts,+s-memrealtime,+s-memtime-inst" "uniform-work-group-size"="true" }
+diff -Naur -x .git llvm-project.amd-trunk-dev/openmp/libomptarget/hostrpc/src/hostrpc_fallback.cpp llvm-project/openmp/libomptarget/hostrpc/src/hostrpc_fallback.cpp
+--- llvm-project.amd-trunk-dev/openmp/libomptarget/hostrpc/src/hostrpc_fallback.cpp	1969-12-31 19:00:00.000000000 -0500
++++ llvm-project/openmp/libomptarget/hostrpc/src/hostrpc_fallback.cpp	2023-02-01 11:25:50.201742291 -0500
+@@ -0,0 +1,86 @@
++///
++///  hostrpc_fallback.cpp: definitions of host fallback functions for stubs.
++///                        The vargs _allocate and _execute stubs are generated
++///                        by device clang codegen and so should never be called
++///                        from the host. 
++///
++
++#include <climits>
++#include <cstdlib>
++#include <cstring>
++#include <stdarg.h>
++#include <stdint.h>
++#include <stdio.h>
++
++extern "C" {
++
++void hostrpc_fptr0(void *fnptr) {
++  void (*fptr)() = (void (*)())fnptr;
++  (*fptr)();
++}
++
++typedef uint hostrpc_varfn_uint_t(void *, ...);
++typedef uint64_t hostrpc_varfn_uint64_t(void *, ...);
++typedef double hostrpc_varfn_double_t(void *, ...);
++
++uint hostrpc_varfn_uint(void *fnptr, ...) {
++  hostrpc_varfn_uint_t *local_fnptr = (hostrpc_varfn_uint_t *)fnptr;
++  uint rc = local_fnptr(fnptr);
++  return rc;
++}
++uint64_t hostrpc_varfn_uint64(void *fnptr, ...) {
++  hostrpc_varfn_uint64_t *local_fnptr = (hostrpc_varfn_uint64_t *)fnptr;
++  uint64_t rc = local_fnptr(fnptr);
++  return rc;
++}
++double hostrpc_varfn_double(void *fnptr, ...) {
++  hostrpc_varfn_double_t *local_fnptr = (hostrpc_varfn_double_t *)fnptr;
++  double rc = local_fnptr(fnptr);
++  return rc;
++}
++
++static void _error(const char *fname) {
++  printf("ERROR: Calls to function %s are for device only execution\n", fname);
++}
++char *printf_allocate(uint32_t bufsz) {
++  _error((const char *)"printf_allocate");
++  return NULL;
++}
++int printf_execute(char *bufptr, uint32_t bufsz) {
++  _error("printf_execute");
++  return 0;
++}
++char *hostrpc_varfn_uint_allocate(uint32_t bufsz) {
++  _error("hostrpc_varfn_uint_allocate");
++  return NULL;
++}
++char *hostrpc_varfn_uint64_allocate(uint32_t bufsz) {
++  _error("hostrpc_varfn_uint64_allocate");
++  return NULL;
++}
++char *hostrpc_varfn_double_allocate(uint32_t bufsz) {
++  _error("hostrpc_varfn_double_allocate");
++  return NULL;
++}
++uint32_t hostrpc_varfn_uint_execute(char *bufptr, uint32_t bufsz) {
++  _error("hostrpc_varfn_uint_execute");
++  return 0;
++}
++uint64_t hostrpc_varfn_uint64_execute(char *bufptr, uint32_t bufsz) {
++  _error("hostrpc_varfn_uint64_execute");
++  return 0;
++}
++double hostrpc_varfn_double_execute(char *bufptr, uint32_t bufsz) {
++  _error("hostrpc_varfn_double_execute");
++  return 0;
++}
++
++char *global_allocate(uint32_t bufsz) {
++  printf("HOST FALLBACK EXECUTION OF global_allocate not yet implemented\n");
++  return NULL;
++}
++int global_free(char *ptr) {
++  printf("HOST FALLBACK EXECUTION OF global_free not yet implemented\n");
++  return 0;
++}
++}
+diff -Naur -x .git llvm-project.amd-trunk-dev/openmp/libomptarget/hostrpc/src/hostrpc.h llvm-project/openmp/libomptarget/hostrpc/src/hostrpc.h
+--- llvm-project.amd-trunk-dev/openmp/libomptarget/hostrpc/src/hostrpc.h	1969-12-31 19:00:00.000000000 -0500
++++ llvm-project/openmp/libomptarget/hostrpc/src/hostrpc.h	2023-02-01 16:53:28.759735578 -0500
+@@ -0,0 +1,71 @@
++#ifndef __HOSTRPC_H__
++#define __HOSTRPC_H__
++
++/*
++ *  hostrpc.h:  This header contains the enum for all the
++ *              implemented services in hostrpc.  This header is
++ *              included by both device stubs and host routines.
++ *              It also includes the version, release, and patch
++ *              identification for hostrpc.
++
++MIT License
++
++Copyright © 2020 Advanced Micro Devices, Inc.
++
++Permission is hereby granted, free of charge, to any person obtaining a copy
++of this software and associated documentation files (the "Software"), to deal
++in the Software without restriction, including without limitation the rights
++to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
++copies of the Software, and to permit persons to whom the Software is furnished
++to do so, subject to the following conditions:
++
++The above copyright notice and this permission notice shall be included in all
++copies or substantial portions of the Software.
++
++THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
++AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
++OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++SOFTWARE.
++
++*/
++
++#include <stdint.h>
++
++// Please update at least the patch level when adding a new service.
++// This will ensure that applications that use a new device stub do not
++// try to use backlevel hostrpc host runtimes that do not have the
++// implmented host version of the service.
++//
++#define HOSTRPC_VERSION 0
++#define HOSTRPC_RELEASE 7
++#define HOSTRPC_PATCH 1
++// HOSTRPC_VRM fits in two bytes allowing for 64 patches, 64 releases, and 15
++// versions
++#define HOSTRPC_VRM                                                            \
++  ((HOSTRPC_VERSION * 4096) + (HOSTRPC_RELEASE * 64) + HOSTRPC_PATCH)
++#define HOSTRPC_VERSION_RELEASE ((HOSTRPC_VERSION * 64) + HOSTRPC_RELEASE)
++typedef short hostcall_version_t;
++
++#define PACK_VERS(x) ((uint32_t)HOSTRPC_VRM << 16) | ((uint32_t)x)
++
++enum hostcall_service_id {
++  HOSTRPC_SERVICE_UNUSED,
++  HOSTRPC_SERVICE_TERMINATE,
++  HOSTRPC_SERVICE_PRINTF,
++  HOSTRPC_SERVICE_MALLOC,
++  HOSTRPC_SERVICE_MALLOC_PRINTF,
++  HOSTRPC_SERVICE_FREE,
++  HOSTRPC_SERVICE_FUNCTIONCALL,
++  HOSTRPC_SERVICE_VARFNUINT,
++  HOSTRPC_SERVICE_VARFNUINT64,
++  HOSTRPC_SERVICE_VARFNDOUBLE,
++  HOSTRPC_SERVICE_FPRINTF,
++  HOSTRPC_SERVICE_FTNASSIGN,
++  HOSTRPC_SERVICE_SANITIZER
++};
++typedef enum hostcall_service_id hostcall_service_id_t;
++
++#endif // __HOSTRPC_H__
+diff -Naur -x .git llvm-project.amd-trunk-dev/openmp/libomptarget/hostrpc/src/hostrpc_invoke.cl llvm-project/openmp/libomptarget/hostrpc/src/hostrpc_invoke.cl
+--- llvm-project.amd-trunk-dev/openmp/libomptarget/hostrpc/src/hostrpc_invoke.cl	1969-12-31 19:00:00.000000000 -0500
++++ llvm-project/openmp/libomptarget/hostrpc/src/hostrpc_invoke.cl	2023-01-30 12:47:38.678333781 -0500
+@@ -0,0 +1,341 @@
++
++//  We dont have rocm-device-libs sources to include headers
++//  These values are needed to avoid need for oclc_hsa.h
++// #include "ockl_hsa.h"
++typedef unsigned long uint64_t ;
++typedef struct hsa_signal_s {
++  uint64_t handle;
++} hsa_signal_t;
++void  __ockl_hsa_signal_add(hsa_signal_t signal, uint64_t val, uint memorder);
++uint __ockl_lane_u32();
++#define __ockl_memory_order_release 3
++
++#pragma OPENCL EXTENSION cl_khr_int64_base_atomics : enable
++#pragma OPENCL EXTENSION cl_khr_int64_extended_atomics : enable
++
++#define AC(P, E, V, O, R, S)                                                   \
++    __opencl_atomic_compare_exchange_strong(P, E, V, O, R, S)
++#define AL(P, O, S) __opencl_atomic_load(P, O, S)
++#define AF(K, P, V, O, S) __opencl_atomic_fetch_##K(P, V, O, S)
++
++typedef enum { STATUS_SUCCESS, STATUS_BUSY } status_t;
++
++typedef enum {
++    CONTROL_OFFSET_READY_FLAG = 0,
++    CONTROL_OFFSET_RESERVED0 = 1,
++} control_offset_t;
++
++typedef enum {
++    CONTROL_WIDTH_READY_FLAG = 1,
++    CONTROL_WIDTH_RESERVED0 = 31,
++} control_width_t;
++
++typedef struct {
++    ulong next;
++    ulong activemask;
++    uint service;
++    uint control;
++} header_t;
++
++typedef struct {
++    // 64 slots of 8 ulongs each
++    ulong slots[64][8];
++} payload_t;
++
++typedef struct {
++    __global header_t *headers;
++    __global payload_t *payloads;
++    hsa_signal_t doorbell;
++    ulong free_stack;
++    ulong ready_stack;
++    uint index_size;
++    uint device_id;
++} buffer_t;
++
++static void
++send_signal(hsa_signal_t signal)
++{
++  __ockl_hsa_signal_add(signal, 1, __ockl_memory_order_release);
++}
++
++static ulong
++get_ptr_index(ulong ptr, uint index_size)
++{
++    return ptr & (((ulong)1 << index_size) - 1);
++}
++
++static __global header_t *
++get_header(__global buffer_t *buffer, ulong ptr)
++{
++    return buffer->headers + get_ptr_index(ptr, buffer->index_size);
++}
++
++static __global payload_t *
++get_payload(__global buffer_t *buffer, ulong ptr)
++{
++    return buffer->payloads + get_ptr_index(ptr, buffer->index_size);
++}
++
++static uint
++get_control_field(uint control, uint offset, uint width)
++{
++    return (control >> offset) & ((1 << width) - 1);
++}
++
++static uint
++get_ready_flag(uint control)
++{
++    return get_control_field(control, CONTROL_OFFSET_READY_FLAG,
++                             CONTROL_WIDTH_READY_FLAG);
++}
++
++static uint
++set_control_field(uint control, uint offset, uint width, uint value)
++{
++    uint mask = ~(((1 << width) - 1) << offset);
++    return (control & mask) | (value << offset);
++}
++
++static uint
++set_ready_flag(uint control)
++{
++    return set_control_field(control, CONTROL_OFFSET_READY_FLAG,
++                             CONTROL_WIDTH_READY_FLAG, 1);
++}
++
++static ulong
++pop(__global ulong *top, __global buffer_t *buffer)
++{
++    ulong F = AL((__global atomic_ulong *)top, memory_order_acquire,
++                 memory_scope_all_svm_devices);
++    // F is guaranteed to be non-zero, since there are at least as
++    // many packets as there are waves, and each wave can hold at most
++    // one packet.
++    while (true) {
++        __global header_t *P = get_header(buffer, F);
++        ulong N = AL((__global atomic_ulong *)&P->next, memory_order_relaxed,
++                     memory_scope_all_svm_devices);
++        if (AC((__global atomic_ulong *)top, &F, N, memory_order_acquire,
++               memory_order_relaxed, memory_scope_all_svm_devices)) {
++            break;
++        }
++        __builtin_amdgcn_s_sleep(1);
++    }
++
++    return F;
++}
++
++/** \brief Use the first active lane to get a free packet and
++ *         broadcast to the whole wave.
++ */
++static ulong
++pop_free_stack(__global buffer_t *buffer)
++{
++    uint me = __ockl_lane_u32();
++    uint low = __builtin_amdgcn_readfirstlane(me);
++
++    ulong packet_ptr = 0;
++    if (me == low) {
++        packet_ptr = pop(&buffer->free_stack, buffer);
++    }
++
++    uint ptr_lo = packet_ptr;
++    uint ptr_hi = packet_ptr >> 32;
++    ptr_lo = __builtin_amdgcn_readfirstlane(ptr_lo);
++    ptr_hi = __builtin_amdgcn_readfirstlane(ptr_hi);
++
++    return ((ulong)ptr_hi << 32) | ptr_lo;
++}
++
++static void
++push(__global ulong *top, ulong ptr, __global buffer_t *buffer)
++{
++    ulong F = AL((__global const atomic_ulong *)top, memory_order_relaxed,
++                 memory_scope_all_svm_devices);
++    __global header_t *P = get_header(buffer, ptr);
++
++    while (true) {
++        P->next = F;
++        if (AC((__global atomic_ulong *)top, &F, ptr, memory_order_release,
++               memory_order_relaxed, memory_scope_all_svm_devices))
++            break;
++        __builtin_amdgcn_s_sleep(1);
++    }
++}
++
++/** \brief Use the first active lane in a wave to submit a ready
++ *         packet and signal the host.
++ */
++static void
++push_ready_stack(__global buffer_t *buffer, ulong ptr)
++{
++    uint me = __ockl_lane_u32();
++    uint low = __builtin_amdgcn_readfirstlane(me);
++    if (me == low) {
++        push(&buffer->ready_stack, ptr, buffer);
++        send_signal(buffer->doorbell);
++    }
++}
++
++static ulong
++inc_ptr_tag(ulong ptr, uint index_size)
++{
++    // Unit step for the tag.
++    ulong inc = 1UL << index_size;
++    ptr += inc;
++    // When the tag for index 0 wraps, increment the tag.
++    return ptr == 0 ? inc : ptr;
++}
++
++/** \brief Return the packet after incrementing the ABA tag
++ */
++static void
++return_free_packet(__global buffer_t *buffer, ulong ptr)
++{
++    uint me = __ockl_lane_u32();
++    uint low = __builtin_amdgcn_readfirstlane(me);
++    if (me == low) {
++        ptr = inc_ptr_tag(ptr, buffer->index_size);
++        push(&buffer->free_stack, ptr, buffer);
++    }
++}
++
++static void
++fill_packet(__global header_t *header, __global payload_t *payload,
++            uint service_id, ulong arg0, ulong arg1, ulong arg2, ulong arg3,
++            ulong arg4, ulong arg5, ulong arg6, ulong arg7)
++{
++    uint me = __ockl_lane_u32();
++    uint low = __builtin_amdgcn_readfirstlane(me);
++    ulong active = __builtin_amdgcn_read_exec();
++    if (me == low) {
++        header->service = service_id;
++        header->activemask = active;
++        uint control = set_ready_flag(0);
++        header->control = control;
++    }
++
++    __global ulong *ptr = payload->slots[me];
++    ptr[0] = arg0;
++    ptr[1] = arg1;
++    ptr[2] = arg2;
++    ptr[3] = arg3;
++    ptr[4] = arg4;
++    ptr[5] = arg5;
++    ptr[6] = arg6;
++    ptr[7] = arg7;
++}
++
++typedef struct {
++    long arg0;
++    long arg1;
++    long arg2;
++    long arg3;
++    long arg4;
++    long arg5;
++    long arg6;
++    long arg7;
++} __ockl_hostrpc_result_t;
++
++/** \brief Wait for the host response and return the first two ulong
++ *         entries per workitem.
++ *
++ *  After the packet is submitted in READY state, the wave spins until
++ *  the host changes the state to DONE. Each workitem reads the first
++ *  two ulong elements in its slot and returns this.
++ */
++static __ockl_hostrpc_result_t
++get_return_value(__global header_t *header, __global payload_t *payload)
++{
++    uint me = __ockl_lane_u32();
++    uint low = __builtin_amdgcn_readfirstlane(me);
++
++    // The while loop needs to be executed by all active
++    // lanes. Otherwise, later reads from ptr are performed only by
++    // the first thread, while other threads reuse a value cached from
++    // previous operations. The use of readfirstlane in the while loop
++    // prevents this reordering.
++    //
++    // In the absence of the readfirstlane, only one thread has a
++    // sequenced-before relation from the atomic load on
++    // header->control to the ordinary loads on ptr. As a result, the
++    // compiler is free to reorder operations in such a way that the
++    // ordinary loads are performed only by the first thread. The use
++    // of readfirstlane provides a stronger code-motion barrier, and
++    // it effectively "spreads out" the sequenced-before relation to
++    // the ordinary stores in other threads too.
++    while (true) {
++        uint ready_flag = 1;
++        if (me == low) {
++            uint control =
++                AL((__global const atomic_uint *)&header->control,
++                   memory_order_acquire, memory_scope_all_svm_devices);
++            ready_flag = get_ready_flag(control);
++        }
++        ready_flag = __builtin_amdgcn_readfirstlane(ready_flag);
++        if (ready_flag == 0) break;
++        __builtin_amdgcn_s_sleep(1);
++    }
++
++    __global long *ptr = (__global long *)(payload->slots + me);
++    __ockl_hostrpc_result_t retval;
++    retval.arg0 = *ptr++;
++    retval.arg1 = *ptr++;
++    retval.arg2 = *ptr++;
++    retval.arg3 = *ptr++;
++    retval.arg4 = *ptr++;
++    retval.arg5 = *ptr++;
++    retval.arg6 = *ptr++;
++    retval.arg7 = *ptr;
++
++    return retval;
++}
++
++static uint get_hostcall_buffer_index(void) {
++    if (__oclc_ABI_version < 500) {
++        return 3;
++    } else {
++        return 10;
++  }
++}
++
++/** \brief The implementation that should be hidden behind an ABI
++ *
++ *  The transaction is a wave-wide operation, where the service_id
++ *  must be uniform, but the parameters are different for each
++ *  workitem. Parameters from all active lanes are written into a
++ *  hostcall packet. The hostcall blocks until the host processes the
++ *  request, and returns the response it receiveds.
++ *
++ *  TODO: This function and everything above it should eventually move
++ *  to a separate library that is loaded by the language runtime. The
++ *  function itself will be exposed as an orindary function symbol to
++ *  be linked into kernel objects that are loaded after this library.
++ */
++
++__attribute__((noinline)) __ockl_hostrpc_result_t
++hostrpc_invoke( uint service_id,
++                       ulong arg0, ulong arg1, ulong arg2, ulong arg3,
++                       ulong arg4, ulong arg5, ulong arg6, ulong arg7)
++{
++// The global variable needs hostcall_buffer is used to detect that
++// host services are required. If this function is not inlined, the symbol
++// will not be present and the runtime can avoid initialising said support.
++__asm__("; hostcall_invoke: record need for hostcall support\n\t"
++        ".type needs_hostcall_buffer,@object\n\t"
++        ".global needs_hostcall_buffer\n\t"
++        ".comm needs_hostcall_buffer,4":::);
++
++  __constant size_t* argptr = (__constant size_t *)__builtin_amdgcn_implicitarg_ptr();
++  const uint hostcall_buffer_index = get_hostcall_buffer_index();
++  __global buffer_t * buffer = (__global buffer_t *)argptr[hostcall_buffer_index];
++  ulong packet_ptr = pop_free_stack(buffer);
++  __global header_t *header = get_header(buffer, packet_ptr);
++  __global payload_t *payload = get_payload(buffer, packet_ptr);
++  fill_packet(header, payload, service_id, arg0, arg1, arg2, arg3, arg4,
++              arg5, arg6, arg7);
++  push_ready_stack(buffer, packet_ptr);
++  __ockl_hostrpc_result_t retval = get_return_value(header, payload);
++  return_free_packet(buffer, packet_ptr);
++  return retval;
++}
+diff -Naur -x .git llvm-project.amd-trunk-dev/openmp/libomptarget/hostrpc/src/hostrpc_stubs.cpp llvm-project/openmp/libomptarget/hostrpc/src/hostrpc_stubs.cpp
+--- llvm-project.amd-trunk-dev/openmp/libomptarget/hostrpc/src/hostrpc_stubs.cpp	1969-12-31 19:00:00.000000000 -0500
++++ llvm-project/openmp/libomptarget/hostrpc/src/hostrpc_stubs.cpp	2023-02-01 10:18:06.139480921 -0500
+@@ -0,0 +1,199 @@
++///
++///  hostrpc_stubs.cpp: definitions of device stubs
++///
++// GPUs typically do not support vargs style functions.  So to implement
++// printf or any vargs function as a hostrpc service requires the compiler
++// to generate code to allocate a buffer, fill the buffer with the value of
++// each argument, and then call a stub to execute the service with a pointer to
++// the buffer. The clang compiler does this in the CGGPUBuiltin.cpp source.
++// Here we define printf_allocate and printf_execute device functions that are
++// generated by the clang compiler when it encounters a printf statement.
++// printf_allocate is implemented as a hostrpc stub. We assume that the
++// host routine for printf_execute will free the buffer that was allocated
++// by printf_allocate.
++
++#include "hostrpc.h"
++#include <stdio.h>
++
++#pragma omp declare target
++
++// #pragma omp begin declare variant match(device = {kind(gpu)})
++
++typedef struct hostrpc_result_s {
++  uint64_t arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7;
++} hostrpc_result_t;
++
++// No hostrpc_invoke in header since all stubs are defined here.
++extern "C" hostrpc_result_t hostrpc_invoke(uint32_t id, uint64_t arg0,
++                                           uint64_t arg1, uint64_t arg2,
++                                           uint64_t arg3, uint64_t arg4,
++                                           uint64_t arg5, uint64_t arg6,
++                                           uint64_t arg7);
++
++static hostrpc_result_t
++hostrpc_invoke_zeros(uint32_t id, uint64_t arg0 = 0, uint64_t arg1 = 0,
++                     uint64_t arg2 = 0, uint64_t arg3 = 0, uint64_t arg4 = 0,
++                     uint64_t arg5 = 0, uint64_t arg6 = 0, uint64_t arg7 = 0) {
++  return hostrpc_invoke(id, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
++}
++
++extern "C" {
++// This definition of __ockl_devmem_request and __ockl_sanitizer_report needs to
++// override the weak symbol for __ockl_devmem_request and
++// __ockl_sanitizer_report in ockl.bc because by default ockl uses hostcall. But
++// OpenMP uses hostrpc.
++__attribute__((noinline)) uint64_t __ockl_devmem_request(uint64_t addr,
++                                                         uint64_t size) {
++  uint64_t arg0;
++  if (size) { // allocation request
++    arg0 = size;
++    hostrpc_result_t result =
++        hostrpc_invoke_zeros(PACK_VERS(HOSTRPC_SERVICE_MALLOC), arg0);
++    return result.arg1;
++  } else { // free request
++    arg0 = addr;
++    hostrpc_result_t result =
++        hostrpc_invoke_zeros(PACK_VERS(HOSTRPC_SERVICE_FREE), arg0);
++    return result.arg0;
++  }
++}
++
++void __ockl_sanitizer_report(uint64_t addr, uint64_t pc, uint64_t wgidx,
++                             uint64_t wgidy, uint64_t wgidz, uint64_t wave_id,
++                             uint64_t is_read, uint64_t access_size) {
++  hostrpc_result_t result =
++      hostrpc_invoke(PACK_VERS(HOSTRPC_SERVICE_SANITIZER), addr, pc, wgidx,
++                     wgidy, wgidz, wave_id, is_read, access_size);
++}
++void f90print_(char *s) { printf("%s\n", s); }
++void f90printi_(char *s, int *i) { printf("%s %d\n", s, *i); }
++void f90printl_(char *s, long *i) { printf("%s %ld\n", s, *i); }
++void f90printf_(char *s, float *f) { printf("%s %f\n", s, *f); }
++void f90printd_(char *s, double *d) { printf("%s %g\n", s, *d); }
++
++char *printf_allocate(uint32_t bufsz) {
++  uint64_t arg0 = (uint64_t)bufsz;
++  hostrpc_result_t result =
++      hostrpc_invoke_zeros(PACK_VERS(HOSTRPC_SERVICE_MALLOC_PRINTF), arg0);
++  return (char *)result.arg1;
++}
++int printf_execute(char *print_buffer, uint32_t bufsz) {
++  uint64_t arg0, arg1;
++  arg0 = (uint64_t)bufsz;
++  arg1 = (uint64_t)print_buffer;
++  hostrpc_result_t result =
++      hostrpc_invoke_zeros(PACK_VERS(HOSTRPC_SERVICE_PRINTF), arg0, arg1);
++  return (int)result.arg0;
++}
++char *hostrpc_varfn_uint_allocate(uint32_t bufsz) {
++  uint64_t arg0 = (uint64_t)bufsz;
++  hostrpc_result_t result =
++      hostrpc_invoke_zeros(PACK_VERS(HOSTRPC_SERVICE_MALLOC_PRINTF), arg0);
++  return (char *)result.arg1;
++}
++char *hostrpc_varfn_uint64_allocate(uint32_t bufsz) {
++  uint64_t arg0 = (uint64_t)bufsz;
++  hostrpc_result_t result =
++      hostrpc_invoke_zeros(PACK_VERS(HOSTRPC_SERVICE_MALLOC_PRINTF), arg0);
++  return (char *)result.arg1;
++}
++char *hostrpc_varfn_double_allocate(uint32_t bufsz) {
++  uint64_t arg0 = (uint64_t)bufsz;
++  hostrpc_result_t result =
++      hostrpc_invoke_zeros(PACK_VERS(HOSTRPC_SERVICE_MALLOC_PRINTF), arg0);
++  return (char *)result.arg1;
++}
++
++void hostrpc_fptr0(void *fptr) {
++  uint64_t arg0 = (uint64_t)fptr;
++  hostrpc_result_t result =
++      hostrpc_invoke_zeros(PACK_VERS(HOSTRPC_SERVICE_FUNCTIONCALL), arg0);
++}
++
++char *fprintf_allocate(uint32_t bufsz) {
++  uint64_t arg0 = (uint64_t)bufsz;
++  hostrpc_result_t result =
++      hostrpc_invoke_zeros(PACK_VERS(HOSTRPC_SERVICE_MALLOC_PRINTF), arg0);
++  return (char *)result.arg1;
++}
++int fprintf_execute(char *print_buffer, uint32_t bufsz) {
++  uint64_t arg0, arg1;
++  arg0 = (uint64_t)bufsz;
++  arg1 = (uint64_t)print_buffer;
++  hostrpc_result_t result =
++      hostrpc_invoke_zeros(PACK_VERS(HOSTRPC_SERVICE_FPRINTF), arg0, arg1);
++  return (int)result.arg0;
++}
++
++uint64_t __tgt_fort_ptr_assn_i8(void *varg0, void *varg1, void *varg2,
++                                void *varg3, void *varg4) {
++  uint64_t arg0, arg1, arg2, arg3, arg4;
++  arg0 = (uint64_t)varg0;
++  arg1 = (uint64_t)varg1;
++  arg2 = (uint64_t)varg2;
++  arg3 = (uint64_t)varg3;
++  arg4 = (uint64_t)varg4;
++  hostrpc_result_t result = hostrpc_invoke_zeros(
++      PACK_VERS(HOSTRPC_SERVICE_FTNASSIGN), arg0, arg1, arg2, arg3, arg4);
++  return (uint64_t)result.arg0;
++}
++
++uint32_t hostrpc_varfn_uint_execute(char *print_buffer, uint32_t bufsz) {
++  uint64_t arg0, arg1;
++  arg0 = (uint64_t)bufsz;
++  arg1 = (uint64_t)print_buffer;
++  hostrpc_result_t result =
++      hostrpc_invoke_zeros(PACK_VERS(HOSTRPC_SERVICE_VARFNUINT), arg0, arg1);
++  return (int)result.arg0;
++}
++uint64_t hostrpc_varfn_uint64_execute(char *print_buffer, uint32_t bufsz) {
++  uint64_t arg0, arg1;
++  arg0 = (uint64_t)bufsz;
++  arg1 = (uint64_t)print_buffer;
++  hostrpc_result_t result =
++      hostrpc_invoke_zeros(PACK_VERS(HOSTRPC_SERVICE_VARFNUINT64), arg0, arg1);
++  return (uint64_t)result.arg0;
++}
++double hostrpc_varfn_double_execute(char *print_buffer, uint32_t bufsz) {
++  uint64_t arg0, arg1;
++  arg0 = (uint64_t)bufsz;
++  arg1 = (uint64_t)print_buffer;
++  hostrpc_result_t result =
++      hostrpc_invoke_zeros(PACK_VERS(HOSTRPC_SERVICE_VARFNDOUBLE), arg0, arg1);
++  union {
++    uint64_t val;
++    double dval;
++  } unionarg;
++  unionarg.val = result.arg0;
++  return unionarg.dval;
++}
++
++#if 0
++//  Eventually the arch specific (amdgcn vs nvptx) variants of hostrpc_invoke will be 
++//  defined here.
++#pragma omp begin declare variant match(                                       \
++        device = {arch(amdgcn)}, implementation = {extension(match_any)})
++
++#pragma omp end declare variant
++
++#pragma omp begin declare variant match(                                       \
++        device = {arch(nvptx, nvptx64)},                                       \
++            implementation = {extension(match_any)})
++
++#pragma omp end declare variant
++
++#endif
++
++// This function is used for printf arguments that are variable length strings
++// The clang compiler will generate calls to this only when a string length is
++// not a compile time constant.
++uint32_t __strlen_max(char *instr, uint32_t maxstrlen) {
++  for (uint32_t i = 0; i < maxstrlen; i++)
++    if (instr[i] == (char)0)
++      return (uint32_t)(i + 1);
++  return maxstrlen;
++}
++
++} // end extern "C"
++
++#pragma omp end declare target
+diff -Naur -x .git llvm-project.amd-trunk-dev/openmp/libomptarget/plugins/amdgpu/CMakeLists.txt llvm-project/openmp/libomptarget/plugins/amdgpu/CMakeLists.txt
+--- llvm-project.amd-trunk-dev/openmp/libomptarget/plugins/amdgpu/CMakeLists.txt	2023-02-03 10:47:23.378704065 -0500
++++ llvm-project/openmp/libomptarget/plugins/amdgpu/CMakeLists.txt	2023-01-31 15:41:50.174149623 -0500
+@@ -85,12 +85,13 @@
+   elf_common
+   ${LIBOMPTARGET_DEP_LIBRARIES}
+   ${OPENMP_PTHREAD_LIB}
++  -Wl,--whole-archive hostrpc_services -Wl,--no-whole-archive
+   "-Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/../exports"
+   ${LDFLAGS_UNDEFINED}
+ 
+   NO_INSTALL_RPATH
+ )
+-add_dependencies(omptarget.rtl.amdgpu omptarget.devicertl.amdgpu)
++add_dependencies(omptarget.rtl.amdgpu omptarget.devicertl.amdgpu hostrpc_services)
+ 
+ target_include_directories(
+   omptarget.rtl.amdgpu
+diff -Naur -x .git llvm-project.amd-trunk-dev/openmp/libomptarget/plugins/amdgpu/src/rtl.cpp llvm-project/openmp/libomptarget/plugins/amdgpu/src/rtl.cpp
+--- llvm-project.amd-trunk-dev/openmp/libomptarget/plugins/amdgpu/src/rtl.cpp	2023-02-03 10:47:23.378704065 -0500
++++ llvm-project/openmp/libomptarget/plugins/amdgpu/src/rtl.cpp	2023-02-01 16:10:32.602436560 -0500
+@@ -53,16 +53,18 @@
+ // implement a fallback for toolchains that do not yet have a hostrpc library.
+ extern "C" {
+ uint64_t hostrpc_assign_buffer(hsa_agent_t Agent, hsa_queue_t *ThisQ,
+-                               uint32_t DeviceId);
+-hsa_status_t hostrpc_init();
++                               uint32_t DeviceId,
++                        hsa_amd_memory_pool_t HostMemoryPool,
++                        hsa_amd_memory_pool_t DevMemoryPool);
+ hsa_status_t hostrpc_terminate();
+ 
+-__attribute__((weak)) hsa_status_t hostrpc_init() { return HSA_STATUS_SUCCESS; }
+ __attribute__((weak)) hsa_status_t hostrpc_terminate() {
+   return HSA_STATUS_SUCCESS;
+ }
+ __attribute__((weak)) uint64_t hostrpc_assign_buffer(hsa_agent_t, hsa_queue_t *,
+-                                                     uint32_t DeviceId) {
++                                                     uint32_t DeviceId,
++                               hsa_amd_memory_pool_t HostMemoryPool,
++                               hsa_amd_memory_pool_t DevMemoryPool) {
+   DP("Warning: Attempting to assign hostrpc to device %u, but hostrpc library "
+      "missing\n",
+      DeviceId);
+@@ -998,9 +1000,6 @@
+       return;
+     }
+ 
+-    // Init hostcall soon after initializing hsa
+-    hostrpc_init();
+-
+     Err = findAgents([&](hsa_device_type_t DeviceType, hsa_agent_t Agent) {
+       if (DeviceType == HSA_DEVICE_TYPE_CPU) {
+         CPUAgents.push_back(Agent);
+@@ -1503,7 +1502,9 @@
+         static pthread_mutex_t HostcallInitLock = PTHREAD_MUTEX_INITIALIZER;
+         pthread_mutex_lock(&HostcallInitLock);
+         uint64_t Buffer = hostrpc_assign_buffer(
+-            DeviceInfo().HSAAgents[DeviceId], Queue, DeviceId);
++            DeviceInfo().HSAAgents[DeviceId], Queue, DeviceId,
++            DeviceInfo().HostFineGrainedMemoryPool,
++            DeviceInfo().getDeviceMemoryPool(DeviceId));
+         pthread_mutex_unlock(&HostcallInitLock);
+         if (!Buffer) {
+           DP("hostrpc_assign_buffer failed, gpu would dereference null and "
