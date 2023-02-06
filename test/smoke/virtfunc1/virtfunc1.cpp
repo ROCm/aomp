@@ -1,4 +1,5 @@
 #include <cstdio>
+#include <new>
 #include "hip/hip_runtime.h"
 
 struct b {
