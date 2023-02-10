@@ -48,6 +48,7 @@ $_cuda_plugin \
 -DCLANG_DEFAULT_PIE_ON_LINUX=OFF \
 $AOMP_GFXLIST_OPT \
 $AOMP_NVPTX_CAPS_OPT \
+$ENABLE_DEBUG_OPT \
 "
 
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then 

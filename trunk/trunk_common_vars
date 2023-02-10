@@ -143,6 +143,13 @@ else
    AOMP_GFXLIST_OPT="-DLIBOMPTARGET_AMDGCN_GFXLIST='${GFXSEMICOLONS}'"
 fi
 
+TRUNK_BUILD_DEBUG=${TRUNK_BUILD_DEBUG:-0}
+if [ "$TRUNK_BUILD_DEBUG" == 0 ] ; then
+  ENABLE_DEBUG_OPT=""
+else
+  ENABLE_DEBUG_OPT="-DLIBOMPTARGET_ENABLE_DEBUG=ON"
+fi
+
 # Calculate the number of threads to use for make
 NUM_THREADS=
 if [ ! -z `which "getconf"` ]; then

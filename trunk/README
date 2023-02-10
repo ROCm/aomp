@@ -16,12 +16,28 @@ cd llvm-project
 git checkout amd-trunk-dev
 $TRUNK_REPOS/aomp/trunk/build_trunk.sh 
 
-The default value for environment variable TRUNK_LINK is $HOME/rocm/trunk
+
+ENVIRONMENT VARIABLES TO CONTROL THE BUILD PROCESS
+
+Default environment variables can be found in the file
+TRUNK_REPOS/aomp/bin/trunk_common_vars.  Do not change this file
+unless you are going to commit your changes for everyone.
+trunk_common_vars is designed to allow you to change the variables
+in your environment with .bashrc or .bash_profile.
+Here are just a few of the variables you may want to override:
+
+TRUNK_REPOS
+
+See the discussion above for building trunk17 on the use of TRUNK_REPOS.
+
+TRUNK_LINK
+
+The default value for TRUNK_LINK is "$HOME/rocm/trunk".
 The build_trunk.sh script will install into directory ${TRUNK_LINK}_17.0-0
 Furthermore, it creates a symbolic link from $TRUNK_LINK to the install dir.
-So $TRUNK_LINK must not be a physical directory. This symbolic link
-makes it easy to switch between qualifed releases of trunk17.
-If you are on a system with slow filesystem for $HOME directory,set TRUNK_LINK
+So $TRUNK_LINK MUST NOT be a physical directory. This symbolic link
+makes it easy to switch between future qualifed releases of trunk17.
+If you are on a system where $HOME is in a slow filesystem, set TRUNK_LINK
 to where you want the install directory to be. For example set the following
 in your .bash_profile or .bashrc then relogin:
 
@@ -29,6 +45,39 @@ export TRUNK_LINK=/work/$USER/rocm/trunk
 
 Then the install scripts will install into /work/$USER/rocm/trunk_17.0-0
 and a symlink will be created from $TRUNK_LINK.
+
+NVPTXGPUS
+
+A comma seperated list of cuda compute capabilities. Use this
+reduce build times and artifacts in the install directories. For example:
+export NVPTXGPUS='50,70'
+will build only for sm_50 and sm_70.  Otherwise it will build for all nvidia
+GPUs set in llvm-project/openmp/libomptarget/DeviceRTL/CMakeLists.txt :
+set(all_capabilities 35 37 50 52 53 60 61 62 70 72 75 80 86 89 90)
+
+GFXLIST
+
+A space seperated list of AMD GPUs. For example, use this for most of the focus
+AMDGPUs. For example:
+export GFXLIST="gfx906 gfx908 gfx90a"
+Otherwise, see llvm-project/openmp/libomptarget/DeviceRTL/CMakeLists.txt :
+set(amdgpu_mcpus gfx700 gfx701 gfx801 gfx803 gfx900 gfx902 gfx906 gfx908 gfx90a gfx90c gfx940 gfx1010 gfx1030 gfx1031 gfx1032 gfx1033 gfx1034 gfx1035 gfx1036 gfx1100 gfx1101 gfx1102 gfx1103)
+
+AOMP_USE_CCACHE
+
+The default is 1 which creates these cmake vars.
+"-DCMAKE_C_COMPILER_LAUNCHER=$_ccache_bin -DCMAKE_CXX_COMPILER_LAUNCHER=$_ccache_bin"
+Change it to 0 to avoid ccache.
+
+TRUNK_BUILD_DEBUG
+
+The default is 0 (up for discussion). If you set TRUNK_BUILD_DEBUG to 1, then
+this cmake variable is added "-DLIBOMPTARGET_ENABLE_DEBUG=ON".
+
+BUILD_TYPE
+
+The default for BUILD_TYPE is "Release". This sets the value for CMAKE_BUILD_TYPE.
+See CMAKE documentation for different possible values.
 
 
 RELEASES OF trunk17.
