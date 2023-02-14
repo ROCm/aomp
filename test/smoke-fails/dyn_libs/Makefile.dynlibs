@@ -24,6 +24,8 @@ CFLAGS  = $(AOMP_CPUTARGET) -fopenmp -fopenmp-targets=$(AOMP_GPUTARGET) \
 
 #   ---------------------  create dyn libs -------------------
 #
+all: libA.so libB.so
+
 libA.so : $(LIBASRC).o
 	$(CXX) $(CFLAGS) -shared $^ -o $@ -fPIC
 
