@@ -27,9 +27,28 @@ int main()
       }
   }
 
+#pragma omp target teams thread_limit(64)
+#pragma omp distribute parallel for
+    {
+      for (int k = 0; k< N; k++) {
+	a[k]=b[k];
+      }
+  }
+
 #pragma omp target 
 #pragma omp teams
 #pragma omp distribute parallel for
+  {
+    {
+      for (int k = 0; k< N; k++) {
+	c[k]=b[k];
+      }
+    }
+  }
+
+#pragma omp target 
+#pragma omp teams
+#pragma omp distribute parallel for num_threads(128)
   {
     {
       for (int k = 0; k< N; k++) {
@@ -57,7 +76,7 @@ int main()
   }
   
 #pragma omp target 
-#pragma omp teams distribute parallel for
+#pragma omp teams distribute parallel for thread_limit(512) num_threads(128)
     for (int k = 0; k< N; k++)
       a[k]=b[k];
 
@@ -86,11 +105,13 @@ int main()
   return rc;
 }
 
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:5
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:5
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:5
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:3
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:5
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:5
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:5
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:5 ConstWGSize:256  args: 5 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 256)
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:5 ConstWGSize:64  args: 5 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X  64)
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:5 ConstWGSize:256  args: 5 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 256)
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:5 ConstWGSize:128  args: 5 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 128)
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:5 ConstWGSize:256  args: 5 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 256)
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:3 ConstWGSize:257  args: 7 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 256)
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:5 ConstWGSize:128  args: 5 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 128)
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:5 ConstWGSize:256  args: 5 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 256)
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:5 ConstWGSize:256  args: 5 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 256)
 

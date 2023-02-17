@@ -29,7 +29,7 @@ int main()
 
 #pragma omp target
 #pragma omp teams num_teams(20) 
-#pragma omp distribute parallel for num_threads(128)
+#pragma omp distribute parallel for num_threads(64)
   {
     {
       for (int k = 0; k< N; k++) {
@@ -39,7 +39,7 @@ int main()
   }
 
 #pragma omp target 
-#pragma omp teams num_teams(20) thread_limit(128)
+#pragma omp teams num_teams(20) thread_limit(768)
 #pragma omp distribute parallel for
   for (int k = 0; k< N; k++) {
     c[k]=b[k];
@@ -57,19 +57,19 @@ int main()
   }
   
 #pragma omp target 
-#pragma omp teams distribute parallel for num_teams(20) thread_limit(128)
+#pragma omp teams distribute parallel for num_teams(20) num_threads(512)
     for (int k = 0; k< N; k++)
       a[k]=b[k];
 
 #pragma omp target 
   {
-#pragma omp teams distribute parallel for num_teams(20) thread_limit(128)
+#pragma omp teams distribute parallel for num_teams(20) num_threads(1024)
     for (int k = 0; k< N; k++)
       a[k]=b[k];
   }
 
 #pragma omp target 
-#pragma omp teams distribute parallel for num_teams(20) thread_limit(128)
+#pragma omp teams distribute parallel for num_teams(20) thread_limit(64)
     for (int k = 0; k< N/2; k+=2)
       a[k]=b[k];
 
@@ -86,14 +86,11 @@ int main()
   return rc;
 }
 
-// TODO Check why the launch thread count is not correct, most likely
-// not picking it up from nested directives.
-
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:5
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:5
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:5
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:3
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:5
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:5
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:5
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:5 ConstWGSize:128  args: 5 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 128)
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:5 ConstWGSize:64  args: 5 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X  64)
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:5 ConstWGSize:256  args: 5 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 256)
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:3 ConstWGSize:257  args: 7 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 128)
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:5 ConstWGSize:512  args: 5 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 512)
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:5 ConstWGSize:1024  args: 5 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X1024)
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:5 ConstWGSize:64  args: 5 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X  64)
 
