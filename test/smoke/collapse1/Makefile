@@ -8,7 +8,7 @@ RUNENV      += LIBOMPTARGET_KERNEL_TRACE=1
 
 RUNCMD      = ./$(TESTNAME) 2>&1 | $(AOMP)/bin/FileCheck $(TESTSRC_MAIN)
 
-CFLAGS       += -O3
+CFLAGS       += -O3 -Ofast
 CLANG        ?= clang
 OMP_BIN      = $(AOMP)/bin/$(CLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
