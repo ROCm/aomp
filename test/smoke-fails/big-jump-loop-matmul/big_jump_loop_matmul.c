@@ -71,7 +71,6 @@ int main(int argc, char **argv) {
       }
     }
   }
-
   if (check(matC, matCGolden))
     return 1;
 
@@ -92,7 +91,6 @@ int main(int argc, char **argv) {
       }
     }
   }
-
   if (check(matC, matCGolden))
     return 1;
 
@@ -114,7 +112,6 @@ int main(int argc, char **argv) {
       }
     }
   }
-
   if (check(matC, matCGolden))
     return 1;
 
@@ -136,7 +133,6 @@ int main(int argc, char **argv) {
       }
     }
   }
-
   if (check(matC, matCGolden))
     return 1;
 
@@ -158,7 +154,6 @@ int main(int argc, char **argv) {
       }
     }
   }
-
   if (check(matC, matCGolden))
     return 1;
 
@@ -180,7 +175,6 @@ int main(int argc, char **argv) {
       }
     }
   }
-
   if (check(matC, matCGolden))
     return 1;
 
@@ -201,7 +195,6 @@ int main(int argc, char **argv) {
       }
     }
   }
-
   if (check(matC, matCGolden))
     return 1;
 
@@ -221,7 +214,6 @@ int main(int argc, char **argv) {
       }
     }
   }
-
   if (check(matC, matCGolden))
     return 1;
 
