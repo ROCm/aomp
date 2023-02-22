@@ -29,7 +29,7 @@ int main()
   printf("sum1 = %f\n", sum1);
   printf("%f\n", c[10][20]);
 
-  int rc = sum1 != 4950 || c[10][20] != 4950;
+  int rc = sum1 != 495000 || c[10][20] != 4950;
   
   if (!rc)
     printf("Success\n");
