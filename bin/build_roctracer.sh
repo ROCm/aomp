@@ -11,6 +11,10 @@ thisdir=`dirname $realpath`
 
 INSTALL_ROCTRACE=${INSTALL_ROCTRACE:-$AOMP_INSTALL_DIR}
 
+# Needed for systems that have both AMD and Nvidia cards installed.
+HIP_PLATFORM=${HIP_PLATFORM:-amd}
+export HIP_PLATFORM
+
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then 
   echo " "
   echo " This script builds the ROCM runtime libraries"
