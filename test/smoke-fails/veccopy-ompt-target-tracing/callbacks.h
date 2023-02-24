@@ -255,6 +255,7 @@ int ompt_initialize(
 
 void ompt_finalize(ompt_data_t *tool_data)
 {
+  stop_trace();
 }
 
 #ifdef __cplusplus
