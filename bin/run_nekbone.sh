@@ -9,11 +9,13 @@ thisdir=`dirname $realpath`
 . $thisdir/aomp_common_vars
 # --- end standard header ----
 
+export LIBOMPTARGET_KERNEL_TRACE=${LIBOMPTARGET_KERNEL_TRACE:-1}
+
 if [ "$1" == "rerun" ]; then
   cd $AOMP_REPOS_TEST/Nekbone
   cd test/nek_gpu1
   ulimit -s unlimited
-  LIBOMPTARGET_KERNEL_TRACE=1 ./nekbone
+  ./nekbone
   exit 0
 fi
 
@@ -36,9 +38,9 @@ ulimit -s unlimited
 PATH=$AOMP/bin/:$PATH make -f makefile.aomp
 VERBOSE=${VERBOSE:-"1"}
 if [ $VERBOSE -eq 0 ]; then
-  LIBOMPTARGET_KERNEL_TRACE=1 ./nekbone 2>&1 | tee nek.log > /dev/null
+  ./nekbone 2>&1 | tee nek.log > /dev/null
 else
-  LIBOMPTARGET_KERNEL_TRACE=1 ./nekbone 2>&1 | tee nek.log
+  ./nekbone 2>&1 | tee nek.log
 fi
 grep -s Exitting nek.log
 ret=$?
