@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <manifest>
-  <!-- Manifest for AOMP 16.0-x which uses ROCM 5.4 release branches of external repositories -->
+  <!-- Manifest for AOMP 17.0-x which uses ROCM 5.4 release branches of external repositories -->
 
     <remote name="gerritgit" review="git.amd.com:8080" fetch="ssh://gerritgit/" />
     <default revision="release/rocm-rel-5.4" remote="gerritgit" sync-j="4" sync-c="true" />
