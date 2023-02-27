@@ -42,7 +42,7 @@ else
     exit
 fi
 
-export GPU_ID=$($AOMP/bin/rocm_agent_enumerator | grep -m 1 -E gfx[^0]{1}.{2})
+export GPU_ID=$($ROCM/bin/rocm_agent_enumerator | grep -m 1 -E gfx[^0]{1}.{2})
 currdir=$(pwd)
 if [ -d "$SILO_DIR" ] ; then
     echo "SILO 4.10.2 exists."
@@ -69,7 +69,7 @@ fi
 export LD_LIBRARY_PATH=$HOME/rocm/aomp/lib:$OPENMPI_DIR/lib:$LD_LIBRARY_PATH
 export FORTRAN_COMPILE="$AOMP/bin/flang -c -I$OPENMPI_DIR/lib"
 export CC_COMPILE="$AOMP/bin/clang"
-export OTHER_LIBS="-lm -L$AOMP/lib -L$OPENMPI_DIR/lib -lmpi_usempif08 -lmpi_mpifh -lmpi -lflang -lflangmain -lflangrti -lpgmath -lomp -lomptarget "
+export OTHER_LIBS="-lm -L$AOMP/lib -lflang -lflangmain -lflangrti -lpgmath -lomp -lomptarget "
 export FORTRAN_LINK="$AOMP/bin/clang $OTHER_LIBS"
 export DEVICE_COMPILE="$AOMP/bin/hipcc -D__HIP_PLATFORM_HCC__"
 export HIP_DIR=$ROCM
@@ -77,6 +77,7 @@ cd $currdir
 if [ "$1" != "runonly" ] ; then
   cd $REPO_DIR/Programs/UnitTests/Basics/Runtime/Executables
   echo "=================  STARTING 1st MAKE in $PWD ========"
+  make clean
   make PURPOSE=OPTIMIZE all
   rc=$?
   if [ $rc != 0 ] ; then
@@ -86,6 +87,7 @@ if [ "$1" != "runonly" ] ; then
   echo
   cd $REPO_DIR/Programs/Examples/Basics/FluidDynamics/Executables
   echo "=================  STARTING 2nd  MAKE in $PWD ========"
+  make clean
   make PURPOSE=OPTIMIZE all
   rc=$?
   if [ $rc != 0 ] ; then
@@ -95,6 +97,7 @@ if [ "$1" != "runonly" ] ; then
   echo
   cd $REPO_DIR/Programs/UnitTests/Basics/Devices/Executables
   echo "=================  STARTING 3rd  MAKE in $PWD ========"
+  make clean
   make PURPOSE=OPTIMIZE all
   rc=$?
   if [ $rc != 0 ] ; then
