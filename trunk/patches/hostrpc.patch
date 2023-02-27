@@ -1,7 +1,7 @@
-diff -Naur -x .git -x __pycache__ llvm-project.amd-trunk-dev/clang/lib/CodeGen/CGBuiltin.cpp llvm-project/clang/lib/CodeGen/CGBuiltin.cpp
---- llvm-project.amd-trunk-dev/clang/lib/CodeGen/CGBuiltin.cpp	2023-02-03 10:47:17.262767948 -0500
-+++ llvm-project/clang/lib/CodeGen/CGBuiltin.cpp	2023-01-31 15:41:50.170149666 -0500
-@@ -5154,7 +5154,9 @@
+diff -Naur -x .git -x __pycache__ llvm-project.upstream/clang/lib/CodeGen/CGBuiltin.cpp llvm-project/clang/lib/CodeGen/CGBuiltin.cpp
+--- llvm-project.upstream/clang/lib/CodeGen/CGBuiltin.cpp	2023-02-27 09:21:58.339668818 -0500
++++ llvm-project/clang/lib/CodeGen/CGBuiltin.cpp	2023-02-27 10:53:30.697996900 -0500
+@@ -5174,7 +5174,9 @@
    case Builtin::BIprintf:
      if (getTarget().getTriple().isNVPTX() ||
          getTarget().getTriple().isAMDGCN()) {
@@ -12,30 +12,29 @@ diff -Naur -x .git -x __pycache__ llvm-project.amd-trunk-dev/clang/lib/CodeGen/C
          return EmitOpenMPDevicePrintfCallExpr(E);
        if (getTarget().getTriple().isNVPTX())
          return EmitNVPTXDevicePrintfCallExpr(E);
-diff -Naur -x .git -x __pycache__ llvm-project.amd-trunk-dev/clang/lib/CodeGen/CGExpr.cpp llvm-project/clang/lib/CodeGen/CGExpr.cpp
---- llvm-project.amd-trunk-dev/clang/lib/CodeGen/CGExpr.cpp	2023-01-18 16:23:52.512780684 -0500
-+++ llvm-project/clang/lib/CodeGen/CGExpr.cpp	2023-02-16 23:55:41.673139547 -0500
-@@ -5432,6 +5432,16 @@
+diff -Naur -x .git -x __pycache__ llvm-project.upstream/clang/lib/CodeGen/CGExpr.cpp llvm-project/clang/lib/CodeGen/CGExpr.cpp
+--- llvm-project.upstream/clang/lib/CodeGen/CGExpr.cpp	2023-02-27 09:21:58.347668787 -0500
++++ llvm-project/clang/lib/CodeGen/CGExpr.cpp	2023-02-27 10:53:30.701996892 -0500
+@@ -5462,6 +5462,15 @@
      }
    }
  
-+    // FIXME: Only call EmitHostrpcVargsFn for variadic functions that actually
-+  //        that have a hostrpc stub and service function.
-+  if ((CGM.getTriple().isAMDGCN()) && CGM.getLangOpts().OpenMP &&
-+      dyn_cast<FunctionProtoType>(FnType) &&
-+      dyn_cast<FunctionProtoType>(FnType)->isVariadic())
++  // FIXME: Only call EmitHostrpcVargsFn for variadic functions that actually
++  //        that have a hostrpc stubs
++  if ((CGM.getTriple().isAMDGCN() || CGM.getTriple().isNVPTX()) &&
++      CGM.getLangOpts().OpenMP && FnType && dyn_cast<FunctionProtoType>(FnType)
++      && dyn_cast<FunctionProtoType>(FnType)->isVariadic())
 +    return EmitHostrpcVargsFn(
 +        E, E->getDirectCallee()->getNameAsString().append("_allocate").c_str(),
 +        E->getDirectCallee()->getNameAsString().append("_execute").c_str());
 +
-+
    EmitCallArgs(Args, dyn_cast<FunctionProtoType>(FnType), E->arguments(),
                 E->getDirectCallee(), /*ParamsToSkip*/ 0, Order);
  
-diff -Naur -x .git -x __pycache__ llvm-project.amd-trunk-dev/clang/lib/CodeGen/CGGPUBuiltin.cpp llvm-project/clang/lib/CodeGen/CGGPUBuiltin.cpp
---- llvm-project.amd-trunk-dev/clang/lib/CodeGen/CGGPUBuiltin.cpp	2023-02-03 10:47:17.262767948 -0500
-+++ llvm-project/clang/lib/CodeGen/CGGPUBuiltin.cpp	2023-01-31 15:41:50.170149666 -0500
-@@ -213,3 +213,359 @@
+diff -Naur -x .git -x __pycache__ llvm-project.upstream/clang/lib/CodeGen/CGGPUBuiltin.cpp llvm-project/clang/lib/CodeGen/CGGPUBuiltin.cpp
+--- llvm-project.upstream/clang/lib/CodeGen/CGGPUBuiltin.cpp	2023-02-27 09:21:35.555757241 -0500
++++ llvm-project/clang/lib/CodeGen/CGGPUBuiltin.cpp	2023-02-27 10:53:30.701996892 -0500
+@@ -213,3 +213,360 @@
    return EmitDevicePrintfCallExpr(E, this, GetOpenMPVprintfDeclaration(CGM),
                                    true);
  }
@@ -178,7 +177,8 @@ diff -Naur -x .git -x __pycache__ llvm-project.amd-trunk-dev/clang/lib/CodeGen/C
 +RValue CodeGenFunction::EmitHostrpcVargsFn(const CallExpr *E,
 +                                           const char *GPUAllocateName,
 +                                           const char *GPUStubFunctionName) {
-+  assert(getTarget().getTriple().isAMDGCN());
++  assert(getTarget().getTriple().isAMDGCN() || 
++		  getTarget().getTriple().isNVPTX());
 +  // assert(E->getBuiltinCallee() == Builtin::BIprintf);
 +  assert(E->getNumArgs() >= 1); // rpc varfn always has at least one arg.
 +
@@ -395,10 +395,10 @@ diff -Naur -x .git -x __pycache__ llvm-project.amd-trunk-dev/clang/lib/CodeGen/C
 +      hostrpcVargsReturnsFnDeclaration(CGM, E->getType(), GPUStubFunctionName),
 +      {DataStructPtr, BufferLen}));
 +}
-diff -Naur -x .git -x __pycache__ llvm-project.amd-trunk-dev/clang/lib/CodeGen/CodeGenFunction.h llvm-project/clang/lib/CodeGen/CodeGenFunction.h
---- llvm-project.amd-trunk-dev/clang/lib/CodeGen/CodeGenFunction.h	2023-02-03 10:47:17.266767906 -0500
-+++ llvm-project/clang/lib/CodeGen/CodeGenFunction.h	2023-01-31 15:41:50.170149666 -0500
-@@ -4125,6 +4125,8 @@
+diff -Naur -x .git -x __pycache__ llvm-project.upstream/clang/lib/CodeGen/CodeGenFunction.h llvm-project/clang/lib/CodeGen/CodeGenFunction.h
+--- llvm-project.upstream/clang/lib/CodeGen/CodeGenFunction.h	2023-02-27 09:21:58.363668725 -0500
++++ llvm-project/clang/lib/CodeGen/CodeGenFunction.h	2023-02-27 10:53:30.701996892 -0500
+@@ -4131,6 +4131,8 @@
    RValue EmitNVPTXDevicePrintfCallExpr(const CallExpr *E);
    RValue EmitAMDGPUDevicePrintfCallExpr(const CallExpr *E);
    RValue EmitOpenMPDevicePrintfCallExpr(const CallExpr *E);
@@ -407,24 +407,49 @@ diff -Naur -x .git -x __pycache__ llvm-project.amd-trunk-dev/clang/lib/CodeGen/C
  
    RValue EmitBuiltinExpr(const GlobalDecl GD, unsigned BuiltinID,
                           const CallExpr *E, ReturnValueSlot ReturnValue);
-diff -Naur -x .git -x __pycache__ llvm-project.amd-trunk-dev/clang/lib/Driver/ToolChains/Clang.cpp llvm-project/clang/lib/Driver/ToolChains/Clang.cpp
---- llvm-project.amd-trunk-dev/clang/lib/Driver/ToolChains/Clang.cpp	2023-02-03 10:47:17.266767906 -0500
-+++ llvm-project/clang/lib/Driver/ToolChains/Clang.cpp	2023-01-31 17:50:56.054528631 -0500
-@@ -8418,6 +8418,11 @@
+diff -Naur -x .git -x __pycache__ llvm-project.upstream/clang/lib/Driver/ToolChains/Clang.cpp llvm-project/clang/lib/Driver/ToolChains/Clang.cpp
+--- llvm-project.upstream/clang/lib/Driver/ToolChains/Clang.cpp	2023-02-27 09:21:58.371668694 -0500
++++ llvm-project/clang/lib/Driver/ToolChains/Clang.cpp	2023-02-27 10:53:30.705996884 -0500
+@@ -8428,6 +8428,8 @@
+   const Driver &D = getToolChain().getDriver();
+   const llvm::Triple TheTriple = getToolChain().getTriple();
+   ArgStringList CmdArgs;
++  bool isNVPTX = false;
++  bool isAMDGCN = false;
+ 
+   // Pass the CUDA path to the linker wrapper tool.
+   for (Action::OffloadKind Kind : {Action::OFK_Cuda, Action::OFK_OpenMP}) {
+@@ -8435,12 +8437,15 @@
+     for (auto &I : llvm::make_range(TCRange.first, TCRange.second)) {
+       const ToolChain *TC = I.second;
+       if (TC->getTriple().isNVPTX()) {
++	isNVPTX = true;
+         CudaInstallationDetector CudaInstallation(D, TheTriple, Args);
+         if (CudaInstallation.isValid())
+           CmdArgs.push_back(Args.MakeArgString(
+               "--cuda-path=" + CudaInstallation.getInstallPath()));
+         break;
+       }
++      if (TC->getTriple().isAMDGCN())
++	isAMDGCN = true;
      }
    }
  
-+  // FIXME: only add this object if amdgcn until we get hostrpc working for nvptx.
-+  // FIXME: change to v500 if amdgcn ABIVersion >= 500
-+  // FIXME  ensure file exists before adding object file to linker wrapper
-+  CmdArgs.push_back(Args.MakeArgString(D.Dir + "/../lib/hostrpc-stubs-v400-amdgcn.o"));
+@@ -8464,6 +8469,11 @@
+     }
+   }
+ 
++  if (isNVPTX)
++    CmdArgs.push_back(Args.MakeArgString(D.Dir + "/../lib/hostrpc-stubs-nvptx.o"));
++  if (isAMDGCN)
++    CmdArgs.push_back(Args.MakeArgString(D.Dir + "/../lib/hostrpc-stubs-amdgcn.o"));
 +
    CmdArgs.push_back(
        Args.MakeArgString("--host-triple=" + TheTriple.getTriple()));
    if (Args.hasArg(options::OPT_v))
-diff -Naur -x .git -x __pycache__ llvm-project.amd-trunk-dev/openmp/libomptarget/CMakeLists.txt llvm-project/openmp/libomptarget/CMakeLists.txt
---- llvm-project.amd-trunk-dev/openmp/libomptarget/CMakeLists.txt	2023-02-03 10:47:23.378704065 -0500
-+++ llvm-project/openmp/libomptarget/CMakeLists.txt	2023-01-31 15:41:50.174149623 -0500
+diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/CMakeLists.txt llvm-project/openmp/libomptarget/CMakeLists.txt
+--- llvm-project.upstream/openmp/libomptarget/CMakeLists.txt	2023-02-27 09:21:39.107743468 -0500
++++ llvm-project/openmp/libomptarget/CMakeLists.txt	2023-02-27 10:53:30.705996884 -0500
 @@ -108,6 +108,7 @@
  add_subdirectory(plugins)
  add_subdirectory(plugins-nextgen)
@@ -433,10 +458,10 @@ diff -Naur -x .git -x __pycache__ llvm-project.amd-trunk-dev/openmp/libomptarget
  add_subdirectory(tools)
  
  # Add tests.
-diff -Naur -x .git -x __pycache__ llvm-project.amd-trunk-dev/openmp/libomptarget/hostrpc/CMakeLists.txt llvm-project/openmp/libomptarget/hostrpc/CMakeLists.txt
---- llvm-project.amd-trunk-dev/openmp/libomptarget/hostrpc/CMakeLists.txt	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/openmp/libomptarget/hostrpc/CMakeLists.txt	2023-02-20 13:21:49.613760535 -0500
-@@ -0,0 +1,131 @@
+diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/hostrpc/CMakeLists.txt llvm-project/openmp/libomptarget/hostrpc/CMakeLists.txt
+--- llvm-project.upstream/openmp/libomptarget/hostrpc/CMakeLists.txt	1969-12-31 19:00:00.000000000 -0500
++++ llvm-project/openmp/libomptarget/hostrpc/CMakeLists.txt	2023-02-24 09:10:21.414539807 -0500
+@@ -0,0 +1,191 @@
 +##===----------------------------------------------------------------------===##
 +#
 +# Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
@@ -455,7 +480,26 @@ diff -Naur -x .git -x __pycache__ llvm-project.amd-trunk-dev/openmp/libomptarget
 +  message(FATAL_ERROR "Direct configuration not supported, please use parent directory!")
 +endif()
 +
-+add_subdirectory(services)
++find_package(hsa-runtime64 1.2.0 QUIET HINTS ${CMAKE_INSTALL_PREFIX} PATHS /opt/rocm/hsa)
++if (hsa-runtime64_FOUND)
++   set(HOSTRPC_BUILD_AMD TRUE)
++   list(APPEND HOSTRPC_ARCHS "amdgcn")
++else()
++   libomptarget_say("Not building hostrpc for AMDGCN because hsa-runtime64 not found")
++endif()
++
++if (LIBOMPTARGET_DEP_CUDA_FOUND)
++   set(HOSTRPC_BUILD_NVPTX TRUE)
++   list(APPEND HOSTRPC_ARCHS "nvptx")
++else()
++   libomptarget_say("Not building hostrpc for NVPTX because cuda not found")
++endif()
++
++if(HOSTRPC_ARCHS)
++   add_subdirectory(services)
++else()
++   return()
++endif()
 +
 +if (LLVM_DIR)
 +  message("   -- Building hostrpc with LLVM ${LLVM_PACKAGE_VERSION} found with CLANG_TOOL ${CLANG_TOOL}")
@@ -467,79 +511,115 @@ diff -Naur -x .git -x __pycache__ llvm-project.amd-trunk-dev/openmp/libomptarget
 +  return()
 +endif()
 +
-+#             -nocudalib -nogpulib -nostdinc
-+set(bc_flags -c -emit-llvm -std=c++17 -fvisibility=hidden
-+   -O3 -mllvm -openmp-opt-disable
-+   --offload-device-only
-+   -fopenmp -fopenmp-cuda-mode
-+   -Wno-unknown-cuda-version
-+    -I${include_directory}
-+)
 +set(amdgpu_mcpus gfx700 gfx701 gfx801 gfx803 gfx900 gfx902 gfx906 gfx908 gfx90a gfx90c gfx940 gfx1010 gfx1030 gfx1031 gfx1032 gfx1033 gfx1034 gfx1035 gfx1036 gfx1100 gfx1101 gfx1102 gfx1103)
 +if (DEFINED LIBOMPTARGET_AMDGCN_GFXLIST)
 +  set(amdgpu_mcpus ${LIBOMPTARGET_AMDGCN_GFXLIST})
 +endif()
-+set(triple "amdgcn-amd-amdhsa")
-+set(archname "amdgcn")
 +
-+set(ocl_atomics_cl_filename ${CMAKE_CURRENT_SOURCE_DIR}/src/oclAtomics.cl)
-+set(invoke_cpp_file_name ${CMAKE_CURRENT_SOURCE_DIR}/src/hostrpc_invoke.cpp)
-+set(hostrpc_stubs_filename ${CMAKE_CURRENT_SOURCE_DIR}/src/hostrpc_stubs.cpp)
-+set(hostrpc_fallback_filename ${CMAKE_CURRENT_SOURCE_DIR}/src/hostrpc_fallback.cpp)
-+set(h_file           ${CMAKE_CURRENT_SOURCE_DIR}/src/hostrpc.h)
-+set(ocl_h_file       ${CMAKE_CURRENT_SOURCE_DIR}/src/oclAtomics.h)
++set(all_capabilities 35 37 50 52 53 60 61 62 70 72 75 80 86 89 90)
++set(LIBOMPTARGET_NVPTX_COMPUTE_CAPABILITIES ${all_capabilities} CACHE STRING
++  "List of CUDA Compute Capabilities to be used to compile the NVPTX DeviceRTL.")
++string(TOLOWER ${LIBOMPTARGET_NVPTX_COMPUTE_CAPABILITIES} LIBOMPTARGET_NVPTX_COMPUTE_CAPABILITIES)
++if (LIBOMPTARGET_NVPTX_COMPUTE_CAPABILITIES STREQUAL "all")
++  set(nvptx_sm_list ${all_capabilities})
++elseif(LIBOMPTARGET_NVPTX_COMPUTE_CAPABILITIES STREQUAL "auto")
++  if (NOT LIBOMPTARGET_DEP_CUDA_FOUND)
++    libomptarget_error_say("[NVPTX] Cannot auto detect compute capability as CUDA not found.")
++  endif()
++  set(nvptx_sm_list ${LIBOMPTARGET_DEP_CUDA_ARCH})
++else()
++  string(REPLACE "," ";" nvptx_sm_list "${LIBOMPTARGET_NVPTX_COMPUTE_CAPABILITIES}")
++endif()
++foreach(sm ${nvptx_sm_list})
++   list(APPEND nvptx_mcpus "sm_${sm}")
++endforeach()
 +
-+set(opencl_cmd ${CLANG_TOOL}
-+    -fvisibility=default
-+    -c -emit-llvm
-+    -DCL_VERSION_2_0=200 -D__OPENCL_C_VERSION__=200
-+    -Dcl_khr_fp64 -Dcl_khr_fp16
-+    -Dcl_khr_subgroups -Dcl_khr_int64_base_atomics -Dcl_khr_int64_extended_atomics
-+    -x cl -Xclang -cl-std=CL2.0 -Xclang -finclude-default-header
-+    -target ${triple} )
++foreach(archname ${HOSTRPC_ARCHS})
++   if (${archname} STREQUAL "amdgcn")
++      set(triple "amdgcn-amd-amdhsa")
++      set(mcpus ${amdgpu_mcpus})
++   endif()
++   if (${archname} STREQUAL "nvptx")
++      set(triple "nvptx64-nvidia-cuda")
++      set(mcpus ${nvptx_mcpus})
++   endif()
 +
-+set(ocl_atomics_cl_bc "ocl_atomics_${archname}.bc")
-+add_custom_target(${ocl_atomics_cl_bc}
-+   COMMAND ${opencl_cmd} ${ocl_atomics_cl_filename} -o ${ocl_atomics_cl_bc}
-+   DEPENDS ${ocl_atomics_cl_filename})
++   set(ocl_atomics_cl_filename ${CMAKE_CURRENT_SOURCE_DIR}/src/oclAtomics.cl)
++   set(invoke_cpp_file_name ${CMAKE_CURRENT_SOURCE_DIR}/src/hostrpc_invoke.cpp)
++   set(hostrpc_stubs_filename ${CMAKE_CURRENT_SOURCE_DIR}/src/hostrpc_stubs.cpp)
++   set(hostrpc_fallback_filename ${CMAKE_CURRENT_SOURCE_DIR}/src/hostrpc_fallback.cpp)
++   set(h_file           ${CMAKE_CURRENT_SOURCE_DIR}/src/hostrpc.h)
 +
-+set(abi_versions 400 500)
-+foreach(abi_version ${abi_versions})
++   if (${archname} STREQUAL "amdgcn")
++      set(opencl_cmd ${CLANG_TOOL}
++       -fvisibility=default
++       -c -emit-llvm
++       -DCL_VERSION_2_0=200 -D__OPENCL_C_VERSION__=200
++       -Dcl_khr_fp64 -Dcl_khr_fp16
++       -Dcl_khr_subgroups -Dcl_khr_int64_base_atomics -Dcl_khr_int64_extended_atomics
++       -x cl -Xclang -cl-std=CL2.0 -Xclang -finclude-default-header
++       -target amdgcn-amd-amdhsa )
++      set(ocl_atomics_cl_bc "ocl_atomics_${archname}.bc")
++      add_custom_target(${ocl_atomics_cl_bc}
++      COMMAND ${opencl_cmd} ${ocl_atomics_cl_filename} -o ${ocl_atomics_cl_bc}
++      DEPENDS ${ocl_atomics_cl_filename})
++   endif()
 +
 +   set(openmp_host_args
 +    -fopenmp --offload-arch=${mcpu} -c -emit-llvm --offload-host-only )
-+   set(host_bc_file_name host-v${abi_version}-${archname}.bc)
++   set(host_bc_file_name host-${archname}.bc)
 +   add_custom_target(${host_bc_file_name}
 +      COMMAND ${CLANG_TOOL} ${openmp_host_args} ${hostrpc_fallback_filename} -o ${host_bc_file_name}
 +      DEPENDS ${hostrpc_fallback_filename})
 +
-+   foreach(mcpu ${amdgpu_mcpus})
-+      set(bc_filename "hostrpc-stubs_v${abi_version}-${mcpu}.bc")
-+      set(openmp_device_args -fopenmp --offload-arch=${mcpu} -c -emit-llvm -nogpulib --offload-device-only)
++   foreach(mcpu ${mcpus})
++      if (${archname} STREQUAL "amdgcn")
++         set(openmp_device_args 
++	      -I../../runtime/src  # to pickup omp.h, we may need a dependency
++	      --offload-arch=${mcpu} 
++	      -fopenmp -fopenmp-cuda-mode -mllvm -openmp-opt-disable 
++	      -std=c++17 -fvisibility=hidden 
++	      -fopenmp-targets=${triple}
++	      -c -emit-llvm --offload-device-only )
++      #-c -emit-llvm --offload-device-only -nogpulib )
++      endif()
++      if (${archname} STREQUAL "nvptx")
++         set(openmp_device_args 
++	      -I../../runtime/src  # to pickup omp.h, we may need a dependency
++	      --offload-arch=${mcpu} 
++	      -fopenmp -fopenmp-cuda-mode -mllvm -openmp-opt-disable 
++	      -std=c++17 -fvisibility=hidden 
++	      -fopenmp-targets=${triple} --cuda-feature=+ptx61,+${mcpu}
++	      -c -emit-llvm --offload-device-only -nocudalib -nogpulib 
++	      -Wno-unknown-cuda-version)
++      endif()
++
++      set(bc_filename "hostrpc-stubs-${archname}-${mcpu}.bc")
 +      add_custom_target(${bc_filename}
 +         COMMAND ${CLANG_TOOL} ${openmp_device_args} ${hostrpc_stubs_filename} -o ${bc_filename}
 +         DEPENDS ${hostrpc_stubs_filename} ${h_file}
 +         COMMENT "Built file ${bc_filename}")
 +
-+      set(hostrpc_invoke_cpp_bc "hostrpc-invoke_v${abi_version}-${mcpu}.bc")
++      set(hostrpc_invoke_cpp_bc "hostrpc-invoke-${archname}-${mcpu}.bc")
 +      add_custom_target(${hostrpc_invoke_cpp_bc}
-+        COMMAND ${CLANG_TOOL} 
-+	  ${bc_flags} 
-+          -D__oclc_ABI_version=${abi_version}
-+	  --offload-arch=${mcpu}
-+	  ${invoke_cpp_file_name} -o ${hostrpc_invoke_cpp_bc}
-+	  DEPENDS ${invoke_cpp_file_name} ${ocl_h_file}
++         COMMAND ${CLANG_TOOL} ${openmp_device_args} ${invoke_cpp_file_name} -o ${hostrpc_invoke_cpp_bc}
++	 DEPENDS ${invoke_cpp_file_name}
 +         COMMENT "Building bc file for hostrpc_invoke: ${hostrpc_invoke_cpp_bc}")
 +
-+      set(libhostrpc-bc "libhostrpc-v${abi_version}-${mcpu}.bc")
++      #  amdgcn needs to compile and link in ocl_atomics
++      if (${archname} STREQUAL "amdgcn")
++         set(invoke_resolved_bc "invoked_resolved-${archname}-${mcpu}.bc")
++         add_custom_target(${invoke_resolved_bc}
++            COMMAND ${LINK_TOOL} ${hostrpc_invoke_cpp_bc} --internalize --only-needed ${ocl_atomics_cl_bc} -o ${invoke_resolved_bc}
++	    DEPENDS ${hostrpc_invoke_cpp_bc} ${ocl_atomics_cl_bc}
++            COMMENT "Building invoke resolved bc ${invoke_resolved_bc}")
++          add_dependencies(${invoke_resolved_bc} ${hostrpc_invoke_cpp_bc} ${ocl_atomics_cl_bc})
++      else()
++          # for nvptx we dont need ocl_atomics
++         set(invoke_resolved_bc ${hostrpc_invoke_cpp_bc})
++      endif()
 +
-+      set(invoke_resolved_bc "invoked_resolved-v${abi_version}-${mcpu}.bc")
-+      add_custom_target(${invoke_resolved_bc}
-+         COMMAND ${LINK_TOOL} ${hostrpc_invoke_cpp_bc} --internalize --only-needed ${ocl_atomics_cl_bc} -o ${invoke_resolved_bc}
-+	 DEPENDS ${hostrpc_invoke_cpp_bc} ${ocl_atomics_cl_bc}
-+         COMMENT "Building invoke resolved bc ${invoke_resolved_bc}")
-+       add_dependencies(${invoke_resolved_bc} ${hostrpc_invoke_cpp_bc} ${ocl_atomics_cl_bc})
-+
++      set(libhostrpc-bc "libhostrpc-${archname}-${mcpu}.bc")
 +      add_custom_target(${libhostrpc-bc}
 +         COMMAND ${LINK_TOOL} ${bc_filename} --internalize --only-needed ${invoke_resolved_bc} -o ${libhostrpc-bc}
 +	 DEPENDS ${invoke_resolved_bc} ${bc_filename} 
@@ -550,28 +630,820 @@ diff -Naur -x .git -x __pycache__ llvm-project.amd-trunk-dev/openmp/libomptarget
 +      list(APPEND libhostrpc-bcs ${libhostrpc-bc})
 +   endforeach()
 +
-+   set(image_file_name ${archname}-v${abi_version}-image.out)
++   set(image_file_name ${archname}-image.out)
 +   add_custom_target(${image_file_name}
 +      COMMAND ${PACKAGER_TOOL} -o ${image_file_name} ${packager_args}
 +      COMMENT "COMMENT: BUilding ${image_file_name}")
 +   add_dependencies(${image_file_name} ${libhostrpc-bcs})
 +
-+   set(EMBEDDED_OBJECT_FILE "hostrpc-stubs-v${abi_version}-${archname}.o")
++   set(EMBEDDED_OBJECT_FILE "hostrpc-stubs-${archname}.o")
 +   add_custom_target(${EMBEDDED_OBJECT_FILE}
 +      COMMAND ${CLANG_TOOL} -cc1 -emit-obj -fopenmp -fembed-offload-object=${image_file_name} -o ${EMBEDDED_OBJECT_FILE} -x ir ${host_bc_file_name}
 +      COMMENT "COMMENT: Building ${EMBEDDED_OBJECT_FILE}")
 +   add_dependencies(${EMBEDDED_OBJECT_FILE} ${image_file_name} ${host_bc_file_name})
-+   add_dependencies(hostrpc_services ${EMBEDDED_OBJECT_FILE})
++   if (${archname} STREQUAL "amdgcn")
++      add_dependencies(amdgcn_hostrpc_services ${EMBEDDED_OBJECT_FILE})
++   endif()
++   if (${archname} STREQUAL "nvptx")
++      add_dependencies(nvptx_hostrpc_services ${EMBEDDED_OBJECT_FILE})
++   endif()
 +   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${EMBEDDED_OBJECT_FILE} DESTINATION ${DEVEL_PACKAGE}lib)
 +
-+endforeach() # end foeach abi_version
++endforeach() # end foreach archs
 +set(CLANG_VERSION_MAJOR 17)
 +set(header_install_dir lib/clang/${CLANG_VERSION_MAJOR}/include)
 +install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/hostrpc_stubs.h" DESTINATION ${header_install_dir})
-diff -Naur -x .git -x __pycache__ llvm-project.amd-trunk-dev/openmp/libomptarget/hostrpc/services/CMakeLists.txt llvm-project/openmp/libomptarget/hostrpc/services/CMakeLists.txt
---- llvm-project.amd-trunk-dev/openmp/libomptarget/hostrpc/services/CMakeLists.txt	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/openmp/libomptarget/hostrpc/services/CMakeLists.txt	2023-02-16 14:29:04.674367309 -0500
-@@ -0,0 +1,32 @@
+diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/hostrpc/services/amdgcn_hostrpc.cpp llvm-project/openmp/libomptarget/hostrpc/services/amdgcn_hostrpc.cpp
+--- llvm-project.upstream/openmp/libomptarget/hostrpc/services/amdgcn_hostrpc.cpp	1969-12-31 19:00:00.000000000 -0500
++++ llvm-project/openmp/libomptarget/hostrpc/services/amdgcn_hostrpc.cpp	2023-02-24 09:58:23.759362084 -0500
+@@ -0,0 +1,553 @@
++
++#include <hsa/hsa.h>
++#include <hsa/hsa_ext_amd.h>
++#include "urilocator.h"
++#include "execute_service.h"
++#include "../src/hostrpc.h"
++#include <list>
++#include <atomic>
++#include <cstring>
++#include <functional>
++#include <iostream>
++#include <mutex>
++#include <thread>
++
++/*
++ *  A typical flow is as follows:
++ *  - Create and launch one or more hostcall consumers.
++ *  - Create and initialize a buffer per hsa queue.
++ *  - Register buffers with appropriate consumer.
++ *  - When a buffer is no longer used, deregister and then free it.
++ *  - Destroy the consumer(s) when they are no longer required. Must be
++ *    done before exiting the application, so that the consumer
++ *    threads can join() correctly.
++ */
++
++// Error codes for hostrpc consumer_t methods
++typedef enum {
++  CONSUMER_SUCCESS,
++  CONSUMER_ERROR_CONSUMER_ACTIVE,
++  CONSUMER_ERROR_CONSUMER_INACTIVE,
++  CONSUMER_ERROR_CONSUMER_LAUNCH_FAILED,
++  CONSUMER_ERROR_INVALID_REQUEST,
++  CONSUMER_ERROR_SERVICE_UNKNOWN,
++  CONSUMER_ERROR_INCORRECT_ALIGNMENT,
++  CONSUMER_ERROR_NULLPTR,
++  CONSUMER_ERROR_WRONGVERSION,
++  CONSUMER_ERROR_OLDHOSTVERSIONMOD,
++} consumer_error_t;
++
++/** Opaque wrapper for signal */
++typedef struct {
++  uint64_t handle;
++} signal_t;
++
++/** Field offsets in the packet control field */
++typedef enum {
++  CONTROL_OFFSET_READY_FLAG = 0,
++  CONTROL_OFFSET_RESERVED0 = 1,
++} control_offset_t;
++
++/** Field widths in the packet control field */
++typedef enum {
++  CONTROL_WIDTH_READY_FLAG = 1,
++  CONTROL_WIDTH_RESERVED0 = 31,
++} control_width_t;
++
++/** Packet header */
++typedef struct {
++  /** Tagged pointer to the next packet in an intrusive stack */
++  uint64_t next;
++  /** Bitmask that represents payload slots with valid data */
++  uint64_t activemask;
++  /** Service ID requested by the wave */
++  uint32_t service;
++  /** Control bits.
++   *  \li \c READY flag is bit 0. Indicates packet awaiting a host response.
++   */
++  uint32_t control;
++} header_t;
++
++/** \brief Hostcall state.
++ *
++ *  Holds the state of hostcalls being requested by all kernels that
++ *  share the same hostcall state. There is usually one buffer per
++ *  device queue.
++ */
++typedef struct {
++  /** Array of 2^index_size packet headers */
++  header_t *headers;
++  /** Array of 2^index_size packet payloads */
++  payload_t *payloads;
++  /** Signal used by kernels to indicate new work */
++  signal_t doorbell;
++  /** Stack of free packets */
++  uint64_t free_stack;
++  /** Stack of ready packets */
++  uint64_t ready_stack;
++  /** Number of LSBs in the tagged pointer can index into the packet arrays */
++  uint32_t index_size;
++  /** Device ID */
++  uint32_t device_id;
++} buffer_t;
++
++enum { SIGNAL_INIT = UINT64_MAX, SIGNAL_DONE = UINT64_MAX - 1 };
++
++static uint32_t get_buffer_alignment() { return alignof(payload_t); }
++
++static uint32_t set_control_field(uint32_t control, uint8_t offset,
++                                  uint8_t width, uint32_t value) {
++  uint32_t mask = ~(((1 << width) - 1) << offset);
++  control &= mask;
++  return control | (value << offset);
++}
++
++static uint32_t reset_ready_flag(uint32_t control) {
++  return set_control_field(control, CONTROL_OFFSET_READY_FLAG,
++                           CONTROL_WIDTH_READY_FLAG, 0);
++}
++
++static uint64_t get_ptr_index(uint64_t ptr, uint32_t index_size) {
++  return ptr & ((1UL << index_size) - 1);
++}
++
++static uintptr_t align_to(uintptr_t value, uint32_t alignment) {
++  if (value % alignment == 0)
++    return value;
++  return value - (value % alignment) + alignment;
++}
++
++static uintptr_t get_header_start() {
++  return align_to(sizeof(buffer_t), alignof(header_t));
++}
++
++static uintptr_t get_payload_start(uint32_t num_packets) {
++  auto header_start = get_header_start();
++  auto header_end = header_start + sizeof(header_t) * num_packets;
++  return align_to(header_end, alignof(payload_t));
++}
++
++static size_t get_buffer_size(uint32_t num_packets) {
++  size_t buffer_size = get_payload_start(num_packets);
++  buffer_size += num_packets * sizeof(payload_t);
++  return buffer_size;
++}
++static uint64_t grab_ready_stack(buffer_t *buffer) {
++  return __atomic_exchange_n(&buffer->ready_stack, 0,
++                             std::memory_order_acquire);
++}
++static header_t *get_header(buffer_t *buffer, ulong ptr) {
++  return buffer->headers + get_ptr_index(ptr, buffer->index_size);
++}
++static payload_t *get_payload(buffer_t *buffer, ulong ptr) {
++  return buffer->payloads + get_ptr_index(ptr, buffer->index_size);
++}
++
++static signal_t create_signal() {
++  hsa_signal_t hs;
++  hsa_status_t status = hsa_signal_create(SIGNAL_INIT, 0, NULL, &hs);
++  if (status != HSA_STATUS_SUCCESS)
++    return {0};
++  return {hs.handle};
++}
++
++static hsa_amd_memory_pool_t static_host_memory_pool;
++static hsa_amd_memory_pool_t static_device_memory_pools[8];
++static hsa_agent_t static_hsa_agents[8];
++
++void save_hsa_statics(uint32_t device_id,
++                hsa_amd_memory_pool_t HostMemoryPool,
++                hsa_amd_memory_pool_t DevMemoryPool,
++                hsa_agent_t hsa_agent){
++  static_host_memory_pool = HostMemoryPool;
++  static_device_memory_pools[device_id] = DevMemoryPool;
++  static_hsa_agents[device_id] = hsa_agent;
++}
++
++// ====== START of helper functions for execute_service ======
++service_rc host_device_mem_free(void *ptr) { 
++  hsa_status_t err = hsa_amd_memory_pool_free(ptr);
++  if( err == HSA_STATUS_SUCCESS ) 
++     return _RC_SUCCESS;
++  else 
++     return _RC_ERROR_MEMFREE;
++}
++
++service_rc host_malloc(void **ptr, size_t size, uint32_t devid) {
++  hsa_amd_memory_pool_t MemoryPool = static_host_memory_pool; 
++  hsa_agent_t agent = static_hsa_agents[devid];
++  hsa_status_t err = hsa_amd_memory_pool_allocate(MemoryPool, size, 0, ptr);
++  if(err == HSA_STATUS_SUCCESS)
++    err = hsa_amd_agents_allow_access(1, &agent, NULL, *ptr);
++  if(err != HSA_STATUS_SUCCESS ) 
++    thread_abort((int) err);
++  return _RC_SUCCESS;
++}
++
++service_rc device_malloc(void **mem, size_t size, uint32_t devid){
++  hsa_amd_memory_pool_t MemoryPool = static_device_memory_pools[devid];
++  hsa_status_t err = hsa_amd_memory_pool_allocate(MemoryPool, size, 0, mem);
++  if(err != HSA_STATUS_SUCCESS ) 
++    thread_abort((int) err);
++  return _RC_SUCCESS;
++}
++
++void thread_abort(int rc) {
++  printf("thread_abort called with code %d\n", rc);
++  abort();
++}
++// ====== END helper functions for execute_service ======
++
++
++/** \brief Locked reference to critical data.
++ *
++ *         Simpler version of the LockedAccessor in HIP sources.
++ *
++ *         Protects access to the member _data with a lock acquired on
++ *         contruction/destruction. T must contain a _mutex field
++ *         which meets the BasicLockable requirements (lock/unlock)
++ */
++template <typename T> struct locked_accessor_t {
++  locked_accessor_t(T &criticalData) : _criticalData(&criticalData) {
++    _criticalData->_mutex.lock();
++  };
++  ~locked_accessor_t() { _criticalData->_mutex.unlock(); }
++  // Syntactic sugar so -> can be used to get the underlying type.
++  T *operator->() { return _criticalData; };
++private:
++  T *_criticalData;
++};
++struct record_t {
++  bool discarded;
++};
++struct critical_data_t {
++  std::unordered_map<buffer_t *, record_t> buffers;
++  std::mutex _mutex;
++};
++typedef locked_accessor_t<critical_data_t> locked_critical_data_t;
++
++typedef struct {
++  hsa_queue_t *hsa_q;
++  buffer_t *hcb;
++  uint32_t devid;
++} hsaq_buf_entry_t;
++
++extern "C" void handler_SERVICE_SANITIZER(payload_t *packt_payload,
++  uint64_t activemask, uint32_t gpu_device, UriLocator *uri_locator);
++
++static bool static_version_was_checked = false;
++struct consumer_t {
++private:
++  signal_t doorbell;
++  std::thread thread;
++  critical_data_t critical_data;
++  UriLocator *urilocator;
++  consumer_t(signal_t _doorbell) : doorbell(_doorbell) {}
++  // Table of hsa_q's and their associated buffer_t's 
++  std::list<hsaq_buf_entry_t*> hsaq_bufs;
++public:
++  static consumer_t * create_consumer();
++
++hsaq_buf_entry_t * add_hsaq_buf_entry(buffer_t *hcb,
++	       	hsa_queue_t *hsa_q, uint32_t devid) {
++  hsaq_buf_entry_t * new_hsaq_buf = new hsaq_buf_entry_t;
++  new_hsaq_buf->hcb = hcb;
++  new_hsaq_buf->devid = devid;
++  new_hsaq_buf->hsa_q = hsa_q;
++  hsaq_bufs.push_back(new_hsaq_buf);
++  return new_hsaq_buf; 
++}
++
++hsaq_buf_entry_t * find_hsaq_buf_entry(hsa_queue_t *hsa_q) {
++  for(auto hsaq_buf : hsaq_bufs) {
++    if (hsaq_buf->hsa_q == hsa_q)
++      return hsaq_buf;
++  }
++  return NULL;
++}
++
++consumer_error_t check_version(uint device_vrm) const {
++  if (device_vrm == (unsigned int)HOSTRPC_VRM)
++    return CONSUMER_SUCCESS;
++  uint device_version_release = device_vrm >> 6;
++  if (device_version_release != HOSTRPC_VERSION_RELEASE) {
++    printf("ERROR Incompatible device and host release\n      Device "
++           "release(%d)\n      Host release(%d)\n",
++           device_version_release, HOSTRPC_VERSION_RELEASE);
++    return CONSUMER_ERROR_WRONGVERSION;
++  }
++  if (device_vrm > HOSTRPC_VRM) {
++    printf("ERROR Incompatible device and host version \n       Device "
++           "version(%d)\n      Host version(%d)\n",
++           device_vrm, HOSTRPC_VERSION_RELEASE);
++    printf("          Upgrade libomptarget runtime on your system.\n");
++    return CONSUMER_ERROR_OLDHOSTVERSIONMOD;
++  }
++  if (device_vrm < HOSTRPC_VRM) {
++    unsigned int host_ver = ((unsigned int)HOSTRPC_VRM) >> 12;
++    unsigned int host_rel = (((unsigned int)HOSTRPC_VRM) << 20) >> 26;
++    unsigned int host_mod = (((unsigned int)HOSTRPC_VRM) << 26) >> 26;
++    unsigned int dev_ver = ((unsigned int)device_vrm) >> 12;
++    unsigned int dev_rel = (((unsigned int)device_vrm) << 20) >> 26;
++    unsigned int dev_mod = (((unsigned int)device_vrm) << 26) >> 26;
++    printf("WARNING:  Device mod version < host mod version \n          Device "
++           "version: %d.%d.%d\n          Host version:   %d.%d.%d\n",
++           dev_ver, dev_rel, dev_mod, host_ver, host_rel, host_mod);
++    printf("          Consider rebuild binary with more recent compiler.\n");
++  }
++  return CONSUMER_SUCCESS;
++}
++
++void process_packets(buffer_t *buffer,
++                                              uint64_t ready_stack) const {
++  // This function is always called from consume_packets, which owns
++  // the lock for the critical data.
++
++  // Each wave can submit at most one packet at a time, and all
++  // waves independently push ready packets. The stack of packets at
++  // this point cannot contain multiple packets from the same wave,
++  // so consuming ready packets in a latest-first order does not
++  // affect any wave.
++  for (decltype(ready_stack) iter = ready_stack, next = 0; iter; iter = next) {
++
++    // Remember the next packet pointer. The current packet will
++    // get reused from the free stack after we process it.
++    auto header = get_header(buffer, iter);
++    next = header->next;
++
++    auto payload = get_payload(buffer, iter);
++    uint64_t activemask = header->activemask;
++
++    // split the 32-bit service number into service_id and VRM to be checked
++    // if device hostrpc or stubs are ahead of this host runtime.
++    uint service_id = (header->service << 16) >> 16;
++    if (!static_version_was_checked) {
++      uint device_vrm = ((uint)(header->service) >> 16);
++      consumer_error_t  err = check_version(device_vrm);
++      if (err != CONSUMER_SUCCESS)
++        thread_abort((int) err);
++      static_version_was_checked = true;
++    }
++
++    if (service_id == HOSTRPC_SERVICE_SANITIZER) {
++      handler_SERVICE_SANITIZER(payload, activemask, buffer->device_id, urilocator);
++    } else {
++      // Serialize calls to execute_service for each active lane
++      // TODO: One could use ffs to skip inactive lanes faster.
++      for (uint32_t wi = 0; wi != 64; ++wi) {
++        uint64_t flag = activemask & ((uint64_t)1 << wi);
++        if (flag == 0)
++          continue;
++        execute_service(service_id, buffer->device_id, payload->slots[wi]);
++      }
++    }
++    __atomic_store_n(&header->control, reset_ready_flag(header->control),
++                     std::memory_order_release);
++  }
++}
++
++// FIXME: This cannot be const because it locks critical data.
++// A lock-free implementaiton might make that possible.
++void consume_packets() {
++  /* TODO: The consumer iterates over all registered buffers in an
++     unspecified order, and for each buffer, processes packets also
++     in an unspecified order. This may need a more efficient
++     strategy based on the turnaround time for the services
++     requested by all these packets.
++   */
++  uint64_t signal_value = SIGNAL_INIT;
++  uint64_t timeout = 1024 * 1024;
++
++  while (true) {
++    hsa_signal_t hs{doorbell.handle};
++    signal_value =
++        hsa_signal_wait_scacquire(hs, HSA_SIGNAL_CONDITION_NE, signal_value,
++                                timeout, HSA_WAIT_STATE_BLOCKED);
++    if (signal_value == SIGNAL_DONE) {
++      return;
++    }
++
++    locked_critical_data_t data(critical_data);
++
++    for (auto ii = data->buffers.begin(), ie = data->buffers.end(); ii != ie;
++         /* don't increment here */) {
++      auto record = ii->second;
++      if (record.discarded) {
++        ii = data->buffers.erase(ii);
++        continue;
++      }
++
++      buffer_t *buffer = ii->first;
++      uint64_t F = grab_ready_stack(buffer);
++      if (F)
++        process_packets(buffer, F);
++      ++ii;
++    }
++  }
++  return;
++}
++
++consumer_error_t launch_service_thread() {
++  if (thread.joinable())
++    return CONSUMER_ERROR_CONSUMER_ACTIVE;
++  thread = std::thread(&consumer_t::consume_packets, this);
++  if (!thread.joinable())
++    return CONSUMER_ERROR_CONSUMER_LAUNCH_FAILED;
++  return CONSUMER_SUCCESS;
++}
++
++consumer_error_t terminate_service_thread() {
++  if (!thread.joinable())
++    return CONSUMER_ERROR_CONSUMER_INACTIVE;
++  hsa_signal_t signal = {doorbell.handle};
++  hsa_signal_store_screlease(signal, SIGNAL_DONE);
++  thread.join();
++  return CONSUMER_SUCCESS;
++}
++
++void register_buffer(void *b) {
++  locked_critical_data_t data(critical_data);
++  auto buffer = reinterpret_cast<buffer_t *>(b);
++  auto &record = data->buffers[buffer];
++  record.discarded = false;
++  buffer->doorbell = doorbell;
++  urilocator = new UriLocator();
++}
++
++consumer_error_t deregister_buffer(void *b) {
++  locked_critical_data_t data(critical_data);
++  auto buffer = reinterpret_cast<buffer_t *>(b);
++  if (data->buffers.count(buffer) == 0)
++    return CONSUMER_ERROR_INVALID_REQUEST;
++  auto &record = data->buffers[buffer];
++  if (record.discarded)
++    return CONSUMER_ERROR_INVALID_REQUEST;
++  record.discarded = true;
++  return CONSUMER_SUCCESS;
++}
++
++// destructor triggered by delete static_consumer_ptr in hostrpc_terminate().
++~consumer_t() {
++  for(auto hsaq_buf : hsaq_bufs) {
++    if (hsaq_buf) {
++      deregister_buffer(hsaq_buf->hcb);
++      delete hsaq_buf;
++    }
++  }
++  hsaq_bufs.clear();
++  terminate_service_thread();
++  delete urilocator;
++  critical_data.buffers.clear();
++  hsa_signal_t hs{doorbell.handle};
++  hsa_signal_destroy(hs);
++}
++
++buffer_t * create_buffer_t(uint32_t num_packets, uint32_t devid) {
++  if (num_packets == 0) {
++    printf("num_packets cannot be zero \n");
++    abort();
++  }
++  size_t size = get_buffer_size(num_packets);
++  uint32_t align = get_buffer_alignment();
++  void *newbuffer = NULL;
++  service_rc err = host_malloc(&newbuffer, size + align, devid);
++  if (!newbuffer || (err != _RC_SUCCESS )) {
++    printf("call to host_malloc failed \n");
++    abort();
++  }
++
++  if ((uintptr_t)newbuffer % get_buffer_alignment() != 0) {
++    printf("ERROR: incorrect alignment \n");
++    abort();
++  }
++
++  //  Initialize the buffer_t 
++  buffer_t *hb = (buffer_t *) newbuffer;
++
++  hb->headers = (header_t *)((uint8_t *)hb + get_header_start());
++  hb->payloads = (payload_t *)((uint8_t *)hb + get_payload_start(num_packets));
++
++  uint32_t index_size = 1;
++  if (num_packets > 2)
++    index_size = 32 - __builtin_clz(num_packets);
++  hb->index_size = index_size;
++  hb->headers[0].next = 0;
++
++  uint64_t next = 1UL << index_size;
++  for (uint32_t ii = 1; ii != num_packets; ++ii) {
++    hb->headers[ii].next = next;
++    next = ii;
++  }
++  hb->free_stack = next;
++  hb->ready_stack = 0;
++  hb->device_id = devid;
++  return hb;
++}
++
++}; // end of class/struct consumer_t
++
++consumer_t * consumer_t::create_consumer() {
++  signal_t doorbell = create_signal();
++  if (doorbell.handle == 0) {
++    return nullptr;
++  }
++  return new consumer_t(doorbell);
++}
++
++// Currently, a single instance of consumer_t is created and saved statically.
++// This instance starts a single service thread for ALL devices. 
++static consumer_t *static_consumer_ptr = NULL;
++
++// This is the main hostrpc function called by the amdgpu plugin when
++// launching a kernel on a designated hsa_queue_t. This function should only
++// be called if any kernel in the device image requires hostrpc services. 
++extern "C" unsigned long 
++hostrpc_assign_buffer(hsa_agent_t agent, hsa_queue_t *this_Q,
++                   uint32_t device_id, hsa_amd_memory_pool_t HostMemoryPool,
++                   hsa_amd_memory_pool_t DevMemoryPool){
++  // Create and launch the services thread
++  if (!static_consumer_ptr) {
++    static_consumer_ptr = consumer_t::create_consumer();
++    consumer_error_t err = static_consumer_ptr->launch_service_thread();
++    if( err != CONSUMER_SUCCESS)
++      thread_abort(err);
++  }
++
++  // quick return to kernel launch if this hsa q is being reused
++  hsaq_buf_entry_t *hsaq_buf = static_consumer_ptr->find_hsaq_buf_entry(this_Q);
++  if (hsaq_buf)
++    return (unsigned long) hsaq_buf->hcb;
++
++  // Helper functions for execute_service need these hsa values saved
++  save_hsa_statics(device_id, HostMemoryPool, DevMemoryPool, agent);
++
++  // Get values needed to determine buffer size 
++  uint32_t numCu;
++  hsa_agent_get_info(agent,
++      (hsa_agent_info_t)HSA_AMD_AGENT_INFO_COMPUTE_UNIT_COUNT, &numCu);
++  // ErrorCheck(Could not get number of cus, err);
++  uint32_t waverPerCu;
++  hsa_agent_get_info(agent,
++    (hsa_agent_info_t)HSA_AMD_AGENT_INFO_MAX_WAVES_PER_CU, &waverPerCu);
++  // ErrorCheck(Could not get number of waves per cu, err);
++  unsigned int minpackets = numCu * waverPerCu;
++
++  //  Create and initialize the new buffer to return to kernel launch
++  buffer_t *hcb = static_consumer_ptr->create_buffer_t(minpackets, device_id);
++
++  // Register the buffer for the consumer thread
++  static_consumer_ptr->register_buffer(hcb);
++
++  // Cache in hsaq_bufs for reuse 
++  hsaq_buf = static_consumer_ptr->add_hsaq_buf_entry(hcb, this_Q, device_id);
++  return (unsigned long) hcb;
++}
++
++extern "C" hsa_status_t hostrpc_terminate() {
++  if (static_consumer_ptr) {
++    // The consumer_t destructor takes care of all memory returns
++    delete static_consumer_ptr;
++    static_consumer_ptr = NULL;
++  }
++  return HSA_STATUS_SUCCESS;
++}
+diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/hostrpc/services/amdgcn_urilocator.cpp llvm-project/openmp/libomptarget/hostrpc/services/amdgcn_urilocator.cpp
+--- llvm-project.upstream/openmp/libomptarget/hostrpc/services/amdgcn_urilocator.cpp	1969-12-31 19:00:00.000000000 -0500
++++ llvm-project/openmp/libomptarget/hostrpc/services/amdgcn_urilocator.cpp	2023-02-21 10:45:18.000000000 -0500
+@@ -0,0 +1,226 @@
++/*
++//===---- UriLocator.cpp: Extract URI path using vendor specific HSA-API
++calls.----------===//
++//
++// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
++// See https://llvm.org/LICENSE.txt for license information.
++// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
++//
++//===------------------------------------------------------------------------------------===//
++
++Copyright (c) 2021 - 2021 Advanced Micro Devices, Inc.
++
++ Permission is hereby granted, free of charge, to any person obtaining a copy
++ of this software and associated documentation files (the "Software"), to deal
++ in the Software without restriction, including without limitation the rights
++ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
++ copies of the Software, and to permit persons to whom the Software is
++ furnished to do so, subject to the following conditions:
++
++ The above copyright notice and this permission notice shall be included in
++ all copies or substantial portions of the Software.
++
++ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
++ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
++ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
++ THE SOFTWARE.
++ */
++
++#include "urilocator.h"
++#include <cstdlib>
++#include <fcntl.h>
++#include <sstream>
++#include <sys/stat.h>
++#include <unistd.h>
++
++static bool GetFileHandle(const char *fname, int *fd_ptr, size_t *sz_ptr) {
++  if ((fd_ptr == nullptr) || (sz_ptr == nullptr)) {
++    return false;
++  }
++
++  // open system function call, return false on fail
++  struct stat stat_buf;
++  *fd_ptr = open(fname, O_RDONLY);
++  if (*fd_ptr < 0) {
++    return false;
++  }
++
++  // Retrieve stat info and size
++  if (fstat(*fd_ptr, &stat_buf) != 0) {
++    close(*fd_ptr);
++    return false;
++  }
++
++  *sz_ptr = stat_buf.st_size;
++
++  return true;
++}
++
++hsa_status_t UriLocator::createUriRangeTable() {
++
++  auto execCb = [](hsa_executable_t exec, void *data) -> hsa_status_t {
++    int execState = 0;
++    hsa_status_t status;
++    status =
++        hsa_executable_get_info(exec, HSA_EXECUTABLE_INFO_STATE, &execState);
++    if (status != HSA_STATUS_SUCCESS)
++      return status;
++    if (execState != HSA_EXECUTABLE_STATE_FROZEN)
++      return status;
++
++    auto loadedCodeObjectCb = [](hsa_executable_t exec,
++                                 hsa_loaded_code_object_t lcobj,
++                                 void *data) -> hsa_status_t {
++      hsa_status_t result;
++      uint64_t loadBAddr = 0, loadSize = 0;
++      uint32_t uriLen = 0;
++      int64_t delta = 0;
++      uint64_t *argsCb = static_cast<uint64_t *>(data);
++      hsa_ven_amd_loader_1_03_pfn_t *fnTab =
++          reinterpret_cast<hsa_ven_amd_loader_1_03_pfn_t *>(argsCb[0]);
++      std::vector<UriRange> *rangeTab =
++          reinterpret_cast<std::vector<UriRange> *>(argsCb[1]);
++
++      if (!fnTab->hsa_ven_amd_loader_loaded_code_object_get_info)
++        return HSA_STATUS_ERROR;
++
++      result = fnTab->hsa_ven_amd_loader_loaded_code_object_get_info(
++          lcobj, HSA_VEN_AMD_LOADER_LOADED_CODE_OBJECT_INFO_LOAD_BASE,
++          (void *)&loadBAddr);
++      if (result != HSA_STATUS_SUCCESS)
++        return result;
++
++      result = fnTab->hsa_ven_amd_loader_loaded_code_object_get_info(
++          lcobj, HSA_VEN_AMD_LOADER_LOADED_CODE_OBJECT_INFO_LOAD_SIZE,
++          (void *)&loadSize);
++      if (result != HSA_STATUS_SUCCESS)
++        return result;
++
++      result = fnTab->hsa_ven_amd_loader_loaded_code_object_get_info(
++          lcobj, HSA_VEN_AMD_LOADER_LOADED_CODE_OBJECT_INFO_URI_LENGTH,
++          (void *)&uriLen);
++      if (result != HSA_STATUS_SUCCESS)
++        return result;
++
++      result = fnTab->hsa_ven_amd_loader_loaded_code_object_get_info(
++          lcobj, HSA_VEN_AMD_LOADER_LOADED_CODE_OBJECT_INFO_LOAD_DELTA,
++          (void *)&delta);
++      if (result != HSA_STATUS_SUCCESS)
++        return result;
++
++      char *uri = new char[uriLen + 1];
++      uri[uriLen] = '\0';
++      result = fnTab->hsa_ven_amd_loader_loaded_code_object_get_info(
++          lcobj, HSA_VEN_AMD_LOADER_LOADED_CODE_OBJECT_INFO_URI, (void *)uri);
++      if (result != HSA_STATUS_SUCCESS)
++        return result;
++
++      rangeTab->push_back(UriRange{loadBAddr, loadBAddr + loadSize - 1, delta,
++                                   std::string{uri, uriLen + 1}});
++      delete[] uri;
++      return HSA_STATUS_SUCCESS;
++    };
++
++    uint64_t *args = static_cast<uint64_t *>(data);
++    hsa_ven_amd_loader_1_03_pfn_t *fnExtTab =
++        reinterpret_cast<hsa_ven_amd_loader_1_03_pfn_t *>(args[0]);
++    return fnExtTab->hsa_ven_amd_loader_executable_iterate_loaded_code_objects(
++        exec, loadedCodeObjectCb, data);
++  };
++
++  if (!fn_table_.hsa_ven_amd_loader_iterate_executables)
++    return HSA_STATUS_ERROR;
++
++  uint64_t callbackArgs[2] = {(uint64_t)&fn_table_, (uint64_t)&rangeTab_};
++  return fn_table_.hsa_ven_amd_loader_iterate_executables(execCb,
++                                                          (void *)callbackArgs);
++}
++
++// Encoding of uniform-resource-identifier(URI) is detailed in
++// https://llvm.org/docs/AMDGPUUsage.html#loaded-code-object-path-uniform-resource-identifier-uri
++// The below code currently extracts the uri of loaded code object using
++// file-uri.
++std::pair<uint64_t, uint64_t> UriLocator::decodeUriAndGetFd(UriInfo &uri,
++                                                            int *uri_fd) {
++
++  std::ostringstream ss;
++  char cur;
++  uint64_t offset = 0, size = 0;
++  if (uri.uriPath.size() == 0)
++    return {0, 0};
++  auto pos = uri.uriPath.find("//");
++  if (pos == std::string::npos || uri.uriPath.substr(0, pos) != "file:") {
++    uri.uriPath = "";
++    return {0, 0};
++  }
++  auto rspos = uri.uriPath.find('#');
++  if (rspos != std::string::npos) {
++    // parse range specifier
++    std::string offprefix = "offset=", sizeprefix = "size=";
++    auto sbeg = uri.uriPath.find('&', rspos);
++    auto offbeg = rspos + offprefix.size() + 1;
++    std::string offstr = uri.uriPath.substr(offbeg, sbeg - offbeg);
++    auto sizebeg = sbeg + sizeprefix.size() + 1;
++    std::string sizestr =
++        uri.uriPath.substr(sizebeg, uri.uriPath.size() - sizebeg);
++    offset = std::stoull(offstr, nullptr, 0);
++    size = std::stoull(sizestr, nullptr, 0);
++    rspos -= 1;
++  } else {
++    rspos = uri.uriPath.size() - 1;
++  }
++  pos += 2;
++  // decode filepath
++  for (auto i = pos; i <= rspos;) {
++    cur = uri.uriPath[i];
++    if (isalnum(cur) || cur == '/' || cur == '-' || cur == '_' || cur == '.' ||
++        cur == '~') {
++      ss << cur;
++      i++;
++    } else {
++      // characters prefix with '%' char
++      char tbits = uri.uriPath[i + 1], lbits = uri.uriPath[i + 2];
++      uint8_t t = (tbits < 58) ? (tbits - 48) : ((tbits - 65) + 10);
++      uint8_t l = (lbits < 58) ? (lbits - 48) : ((lbits - 65) + 10);
++      ss << (char)(((0b00000000 | t) << 4) | l);
++      i += 3;
++    }
++  }
++  uri.uriPath = ss.str();
++  size_t fd_size;
++  GetFileHandle(uri.uriPath.c_str(), uri_fd, &fd_size);
++  // As per URI locator syntax, range_specifier is optional
++  // if range_specifier is absent return total size of the file
++  // and set offset to begin at 0.
++  if (size == 0)
++    size = fd_size;
++  return {offset, size};
++}
++
++UriLocator::UriInfo UriLocator::lookUpUri(uint64_t device_pc) {
++  UriInfo errorstate{"", 0};
++
++  if (!init_) {
++
++    hsa_status_t result;
++    result = hsa_system_get_major_extension_table(
++        HSA_EXTENSION_AMD_LOADER, 1, sizeof(fn_table_), &fn_table_);
++    if (result != HSA_STATUS_SUCCESS)
++      return errorstate;
++    result = createUriRangeTable();
++    if (result != HSA_STATUS_SUCCESS) {
++      rangeTab_.clear();
++      return errorstate;
++    }
++    init_ = true;
++  }
++
++  for (auto &seg : rangeTab_)
++    if (seg.startAddr_ <= device_pc && device_pc <= seg.endAddr_)
++      return UriInfo{seg.Uri_.c_str(), seg.elfDelta_};
++
++  return errorstate;
++}
+diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/hostrpc/services/CMakeLists.txt llvm-project/openmp/libomptarget/hostrpc/services/CMakeLists.txt
+--- llvm-project.upstream/openmp/libomptarget/hostrpc/services/CMakeLists.txt	1969-12-31 19:00:00.000000000 -0500
++++ llvm-project/openmp/libomptarget/hostrpc/services/CMakeLists.txt	2023-02-21 15:57:25.000000000 -0500
+@@ -0,0 +1,44 @@
 +##===----------------------------------------------------------------------===##
 +#
 +# Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
@@ -583,30 +1455,42 @@ diff -Naur -x .git -x __pycache__ llvm-project.amd-trunk-dev/openmp/libomptarget
 +# Build libhostrpc_services.a library for plugins to link to
 +#
 +##===----------------------------------------------------------------------===##
-+find_package(hsa-runtime64 1.2.0 REQUIRED HINTS ${CMAKE_INSTALL_PREFIX} PATHS /opt/rocm/hsa)
-+add_library(hostrpc_services STATIC hostrpc.cpp execute_service.cpp devsanitizer.cpp urilocator.cpp )
-+target_include_directories(
-+  hostrpc_services
-+  PRIVATE
-+  ${LIBOMPTARGET_INCLUDE_DIR}
-+)
-+if(hsa-runtime64_FOUND) 
-+  target_include_directories(
-+    hostrpc_services
-+    PUBLIC
-+    ${hsa-runtime64_DIR}/../../../include)
++#find_package(hsa-runtime64 1.2.0 HINTS ${CMAKE_INSTALL_PREFIX} PATHS /opt/rocm/hsa)
++if(HOSTRPC_BUILD_AMD)
++   add_library(amdgcn_hostrpc_services STATIC amdgcn_hostrpc.cpp execute_service.cpp devsanitizer.cpp amdgcn_urilocator.cpp )
++   target_include_directories(
++      amdgcn_hostrpc_services
++      PRIVATE
++      ${LIBOMPTARGET_INCLUDE_DIR}
++   )
++   target_include_directories(
++      amdgcn_hostrpc_services
++      PUBLIC
++      ${hsa-runtime64_DIR}/../../../include)
++   target_link_libraries(amdgcn_hostrpc_services hsa-runtime64::hsa-runtime64)
++   if(SANITIZER_AMDGPU)
++      add_definitions(-DSANITIZER_AMDGPU=1)
++      set(ASAN_LIB ${LLVM_LIBRARY_DIR}/clang/${LLVM_VERSION_MAJOR}.${LLVM_VERSION_MINOR}.${LLVM_VERSION_PATCH}/lib/linux/libclang_rt.asan-x86_64.so)
++      target_link_libraries(amdgcn_hostrpc_services ${ASAN_LIB})
++   endif()
++   set_property(TARGET amdgcn_hostrpc_services PROPERTY POSITION_INDEPENDENT_CODE ON)
 +endif()
 +
-+add_definitions(-DTARGET_NAME=AMDGPU)
-+set_property(TARGET hostrpc_services PROPERTY POSITION_INDEPENDENT_CODE ON)
-+if(SANITIZER_AMDGPU)
-+   add_definitions(-DSANITIZER_AMDGPU=1)
-+   set(ASAN_LIB ${LLVM_LIBRARY_DIR}/clang/${LLVM_VERSION_MAJOR}.${LLVM_VERSION_MINOR}.${LLVM_VERSION_PATCH}/lib/linux/libclang_rt.asan-x86_64.so)
++if(HOSTRPC_BUILD_NVPTX)
++   add_library(nvptx_hostrpc_services STATIC execute_service.cpp)
++   target_include_directories(
++      nvptx_hostrpc_services
++      PRIVATE
++      ${LIBOMPTARGET_INCLUDE_DIR}
++   )
++   set_property(TARGET nvptx_hostrpc_services PROPERTY POSITION_INDEPENDENT_CODE ON)
 +endif()
-+target_link_libraries(hostrpc_services hsa-runtime64::hsa-runtime64 ${ASAN_LIB})
-diff -Naur -x .git -x __pycache__ llvm-project.amd-trunk-dev/openmp/libomptarget/hostrpc/services/devsanitizer.cpp llvm-project/openmp/libomptarget/hostrpc/services/devsanitizer.cpp
---- llvm-project.amd-trunk-dev/openmp/libomptarget/hostrpc/services/devsanitizer.cpp	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/openmp/libomptarget/hostrpc/services/devsanitizer.cpp	2023-02-16 08:40:14.502336204 -0500
++
++
++
+diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/hostrpc/services/devsanitizer.cpp llvm-project/openmp/libomptarget/hostrpc/services/devsanitizer.cpp
+--- llvm-project.upstream/openmp/libomptarget/hostrpc/services/devsanitizer.cpp	1969-12-31 19:00:00.000000000 -0500
++++ llvm-project/openmp/libomptarget/hostrpc/services/devsanitizer.cpp	2023-02-21 10:45:18.000000000 -0500
 @@ -0,0 +1,144 @@
 +/*
 +//===---- UriLocator.cpp: Definition of handler for Sanitizer Service. ----===//
@@ -752,9 +1636,9 @@ diff -Naur -x .git -x __pycache__ llvm-project.amd-trunk-dev/openmp/libomptarget
 +#endif
 +}
 +} // end anonymous namespace
-diff -Naur -x .git -x __pycache__ llvm-project.amd-trunk-dev/openmp/libomptarget/hostrpc/services/execute_service.cpp llvm-project/openmp/libomptarget/hostrpc/services/execute_service.cpp
---- llvm-project.amd-trunk-dev/openmp/libomptarget/hostrpc/services/execute_service.cpp	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/openmp/libomptarget/hostrpc/services/execute_service.cpp	2023-02-15 20:10:47.915307496 -0500
+diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/hostrpc/services/execute_service.cpp llvm-project/openmp/libomptarget/hostrpc/services/execute_service.cpp
+--- llvm-project.upstream/openmp/libomptarget/hostrpc/services/execute_service.cpp	1969-12-31 19:00:00.000000000 -0500
++++ llvm-project/openmp/libomptarget/hostrpc/services/execute_service.cpp	2023-02-21 10:45:18.000000000 -0500
 @@ -0,0 +1,1360 @@
 +
 +/*
@@ -2116,9 +3000,9 @@ diff -Naur -x .git -x __pycache__ llvm-project.amd-trunk-dev/openmp/libomptarget
 +
 +  return _RC_SUCCESS;
 +}
-diff -Naur -x .git -x __pycache__ llvm-project.amd-trunk-dev/openmp/libomptarget/hostrpc/services/execute_service.h llvm-project/openmp/libomptarget/hostrpc/services/execute_service.h
---- llvm-project.amd-trunk-dev/openmp/libomptarget/hostrpc/services/execute_service.h	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/openmp/libomptarget/hostrpc/services/execute_service.h	2023-02-15 22:50:01.006420572 -0500
+diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/hostrpc/services/execute_service.h llvm-project/openmp/libomptarget/hostrpc/services/execute_service.h
+--- llvm-project.upstream/openmp/libomptarget/hostrpc/services/execute_service.h	1969-12-31 19:00:00.000000000 -0500
++++ llvm-project/openmp/libomptarget/hostrpc/services/execute_service.h	2023-02-21 10:45:18.000000000 -0500
 @@ -0,0 +1,40 @@
 +#ifndef HOSTRPC_EXECUTE_SERVICE_H
 +#define HOSTRPC_EXECUTE_SERVICE_H
@@ -2160,797 +3044,9 @@ diff -Naur -x .git -x __pycache__ llvm-project.amd-trunk-dev/openmp/libomptarget
 +                                                  //const uint32_t devid,
 +                                                  //UriLocator *uri_locator);
 +#endif
-diff -Naur -x .git -x __pycache__ llvm-project.amd-trunk-dev/openmp/libomptarget/hostrpc/services/hostrpc.cpp llvm-project/openmp/libomptarget/hostrpc/services/hostrpc.cpp
---- llvm-project.amd-trunk-dev/openmp/libomptarget/hostrpc/services/hostrpc.cpp	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/openmp/libomptarget/hostrpc/services/hostrpc.cpp	2023-02-16 09:26:34.241154020 -0500
-@@ -0,0 +1,554 @@
-+
-+#include <hsa/hsa.h>
-+#include <hsa/hsa_ext_amd.h>
-+#include "urilocator.h"
-+#include "execute_service.h"
-+#include "../src/hostrpc.h"
-+#include <list>
-+#include <atomic>
-+#include <cstring>
-+#include <functional>
-+#include <iostream>
-+#include <mutex>
-+#include <thread>
-+
-+/*
-+ *  A typical flow is as follows:
-+ *  - Create and launch one or more hostcall consumers.
-+ *  - Create and initialize a buffer per hsa queue.
-+ *  - Register buffers with appropriate consumer.
-+ *  - When a buffer is no longer used, deregister and then free it.
-+ *  - Destroy the consumer(s) when they are no longer required. Must be
-+ *    done before exiting the application, so that the consumer
-+ *    threads can join() correctly.
-+ */
-+
-+// Error codes for hostrpc consumer_t methods
-+typedef enum {
-+  CONSUMER_SUCCESS,
-+  CONSUMER_ERROR_CONSUMER_ACTIVE,
-+  CONSUMER_ERROR_CONSUMER_INACTIVE,
-+  CONSUMER_ERROR_CONSUMER_LAUNCH_FAILED,
-+  CONSUMER_ERROR_INVALID_REQUEST,
-+  CONSUMER_ERROR_SERVICE_UNKNOWN,
-+  CONSUMER_ERROR_INCORRECT_ALIGNMENT,
-+  CONSUMER_ERROR_NULLPTR,
-+  CONSUMER_ERROR_WRONGVERSION,
-+  CONSUMER_ERROR_OLDHOSTVERSIONMOD,
-+} consumer_error_t;
-+
-+/** Opaque wrapper for signal */
-+typedef struct {
-+  uint64_t handle;
-+} signal_t;
-+
-+/** Field offsets in the packet control field */
-+typedef enum {
-+  CONTROL_OFFSET_READY_FLAG = 0,
-+  CONTROL_OFFSET_RESERVED0 = 1,
-+} control_offset_t;
-+
-+/** Field widths in the packet control field */
-+typedef enum {
-+  CONTROL_WIDTH_READY_FLAG = 1,
-+  CONTROL_WIDTH_RESERVED0 = 31,
-+} control_width_t;
-+
-+/** Packet header */
-+typedef struct {
-+  /** Tagged pointer to the next packet in an intrusive stack */
-+  uint64_t next;
-+  /** Bitmask that represents payload slots with valid data */
-+  uint64_t activemask;
-+  /** Service ID requested by the wave */
-+  uint32_t service;
-+  /** Control bits.
-+   *  \li \c READY flag is bit 0. Indicates packet awaiting a host response.
-+   */
-+  uint32_t control;
-+} header_t;
-+
-+/** \brief Hostcall state.
-+ *
-+ *  Holds the state of hostcalls being requested by all kernels that
-+ *  share the same hostcall state. There is usually one buffer per
-+ *  device queue.
-+ */
-+typedef struct {
-+  /** Array of 2^index_size packet headers */
-+  header_t *headers;
-+  /** Array of 2^index_size packet payloads */
-+  payload_t *payloads;
-+  /** Signal used by kernels to indicate new work */
-+  signal_t doorbell;
-+  /** Stack of free packets */
-+  uint64_t free_stack;
-+  /** Stack of ready packets */
-+  uint64_t ready_stack;
-+  /** Number of LSBs in the tagged pointer can index into the packet arrays */
-+  uint32_t index_size;
-+  /** Device ID */
-+  uint32_t device_id;
-+} buffer_t;
-+
-+enum { SIGNAL_INIT = UINT64_MAX, SIGNAL_DONE = UINT64_MAX - 1 };
-+
-+static uint32_t get_buffer_alignment() { return alignof(payload_t); }
-+
-+static uint32_t set_control_field(uint32_t control, uint8_t offset,
-+                                  uint8_t width, uint32_t value) {
-+  uint32_t mask = ~(((1 << width) - 1) << offset);
-+  control &= mask;
-+  return control | (value << offset);
-+}
-+
-+static uint32_t reset_ready_flag(uint32_t control) {
-+  return set_control_field(control, CONTROL_OFFSET_READY_FLAG,
-+                           CONTROL_WIDTH_READY_FLAG, 0);
-+}
-+
-+static uint64_t get_ptr_index(uint64_t ptr, uint32_t index_size) {
-+  return ptr & ((1UL << index_size) - 1);
-+}
-+
-+static uintptr_t align_to(uintptr_t value, uint32_t alignment) {
-+  if (value % alignment == 0)
-+    return value;
-+  return value - (value % alignment) + alignment;
-+}
-+
-+static uintptr_t get_header_start() {
-+  return align_to(sizeof(buffer_t), alignof(header_t));
-+}
-+
-+static uintptr_t get_payload_start(uint32_t num_packets) {
-+  auto header_start = get_header_start();
-+  auto header_end = header_start + sizeof(header_t) * num_packets;
-+  return align_to(header_end, alignof(payload_t));
-+}
-+
-+static size_t get_buffer_size(uint32_t num_packets) {
-+  size_t buffer_size = get_payload_start(num_packets);
-+  buffer_size += num_packets * sizeof(payload_t);
-+  return buffer_size;
-+}
-+static uint64_t grab_ready_stack(buffer_t *buffer) {
-+  return __atomic_exchange_n(&buffer->ready_stack, 0,
-+                             std::memory_order_acquire);
-+}
-+static header_t *get_header(buffer_t *buffer, ulong ptr) {
-+  return buffer->headers + get_ptr_index(ptr, buffer->index_size);
-+}
-+static payload_t *get_payload(buffer_t *buffer, ulong ptr) {
-+  return buffer->payloads + get_ptr_index(ptr, buffer->index_size);
-+}
-+
-+static signal_t create_signal() {
-+  hsa_signal_t hs;
-+  hsa_status_t status = hsa_signal_create(SIGNAL_INIT, 0, NULL, &hs);
-+  if (status != HSA_STATUS_SUCCESS)
-+    return {0};
-+  return {hs.handle};
-+}
-+
-+static hsa_amd_memory_pool_t static_host_memory_pool;
-+static hsa_amd_memory_pool_t static_device_memory_pools[8];
-+static hsa_agent_t static_hsa_agents[8];
-+
-+void save_hsa_statics(uint32_t device_id,
-+                hsa_amd_memory_pool_t HostMemoryPool,
-+                hsa_amd_memory_pool_t DevMemoryPool,
-+                hsa_agent_t hsa_agent){
-+  static_host_memory_pool = HostMemoryPool;
-+  static_device_memory_pools[device_id] = DevMemoryPool;
-+  static_hsa_agents[device_id] = hsa_agent;
-+}
-+
-+// ====== START of helper functions for execute_service ======
-+service_rc host_device_mem_free(void *ptr) { 
-+  hsa_status_t err = hsa_amd_memory_pool_free(ptr);
-+  if( err == HSA_STATUS_SUCCESS ) 
-+     return _RC_SUCCESS;
-+  else 
-+     return _RC_ERROR_MEMFREE;
-+}
-+
-+service_rc host_malloc(void **ptr, size_t size, uint32_t devid) {
-+  hsa_amd_memory_pool_t MemoryPool = static_host_memory_pool; 
-+  hsa_agent_t agent = static_hsa_agents[devid];
-+  hsa_status_t err = hsa_amd_memory_pool_allocate(MemoryPool, size, 0, ptr);
-+  if(err == HSA_STATUS_SUCCESS)
-+    err = hsa_amd_agents_allow_access(1, &agent, NULL, *ptr);
-+  if(err != HSA_STATUS_SUCCESS ) 
-+    thread_abort((int) err);
-+  return _RC_SUCCESS;
-+}
-+
-+service_rc device_malloc(void **mem, size_t size, uint32_t devid){
-+  hsa_amd_memory_pool_t MemoryPool = static_device_memory_pools[devid];
-+  hsa_status_t err = hsa_amd_memory_pool_allocate(MemoryPool, size, 0, mem);
-+  if(err != HSA_STATUS_SUCCESS ) 
-+    thread_abort((int) err);
-+  return _RC_SUCCESS;
-+}
-+
-+void thread_abort(int rc) {
-+  printf("thread_abort called with code %d\n", rc);
-+  abort();
-+}
-+// ====== END helper functions for execute_service ======
-+
-+
-+/** \brief Locked reference to critical data.
-+ *
-+ *         Simpler version of the LockedAccessor in HIP sources.
-+ *
-+ *         Protects access to the member _data with a lock acquired on
-+ *         contruction/destruction. T must contain a _mutex field
-+ *         which meets the BasicLockable requirements (lock/unlock)
-+ */
-+template <typename T> struct locked_accessor_t {
-+  locked_accessor_t(T &criticalData) : _criticalData(&criticalData) {
-+    _criticalData->_mutex.lock();
-+  };
-+  ~locked_accessor_t() { _criticalData->_mutex.unlock(); }
-+  // Syntactic sugar so -> can be used to get the underlying type.
-+  T *operator->() { return _criticalData; };
-+private:
-+  T *_criticalData;
-+};
-+struct record_t {
-+  bool discarded;
-+};
-+struct critical_data_t {
-+  std::unordered_map<buffer_t *, record_t> buffers;
-+  std::mutex _mutex;
-+};
-+typedef locked_accessor_t<critical_data_t> locked_critical_data_t;
-+
-+typedef struct {
-+  hsa_queue_t *hsa_q;
-+  buffer_t *hcb;
-+  uint32_t devid;
-+} hsaq_buf_entry_t;
-+
-+extern "C" void handler_SERVICE_SANITIZER(payload_t *packt_payload,
-+  uint64_t activemask, uint32_t gpu_device, UriLocator *uri_locator);
-+
-+static bool static_version_was_checked = false;
-+struct consumer_t {
-+private:
-+  signal_t doorbell;
-+  std::thread thread;
-+  critical_data_t critical_data;
-+  UriLocator *urilocator;
-+  consumer_t(signal_t _doorbell) : doorbell(_doorbell) {}
-+  // Table of hsa_q's and their associated buffer_t's 
-+  std::list<hsaq_buf_entry_t*> hsaq_bufs;
-+public:
-+  static consumer_t * create_consumer();
-+
-+hsaq_buf_entry_t * add_hsaq_buf_entry(buffer_t *hcb,
-+	       	hsa_queue_t *hsa_q, uint32_t devid) {
-+  hsaq_buf_entry_t * new_hsaq_buf = new hsaq_buf_entry_t;
-+  new_hsaq_buf->hcb = hcb;
-+  new_hsaq_buf->devid = devid;
-+  new_hsaq_buf->hsa_q = hsa_q;
-+  hsaq_bufs.push_back(new_hsaq_buf);
-+  return new_hsaq_buf; 
-+}
-+
-+hsaq_buf_entry_t * find_hsaq_buf_entry(hsa_queue_t *hsa_q) {
-+  for(auto hsaq_buf : hsaq_bufs) {
-+    if (hsaq_buf->hsa_q == hsa_q)
-+      return hsaq_buf;
-+  }
-+  return NULL;
-+}
-+
-+consumer_error_t check_version(uint device_vrm) const {
-+  if (device_vrm == (unsigned int)HOSTRPC_VRM)
-+    return CONSUMER_SUCCESS;
-+  uint device_version_release = device_vrm >> 6;
-+  if (device_version_release != HOSTRPC_VERSION_RELEASE) {
-+    printf("ERROR Incompatible device and host release\n      Device "
-+           "release(%d)\n      Host release(%d)\n",
-+           device_version_release, HOSTRPC_VERSION_RELEASE);
-+    return CONSUMER_ERROR_WRONGVERSION;
-+  }
-+  if (device_vrm > HOSTRPC_VRM) {
-+    printf("ERROR Incompatible device and host version \n       Device "
-+           "version(%d)\n      Host version(%d)\n",
-+           device_vrm, HOSTRPC_VERSION_RELEASE);
-+    printf("          Upgrade libomptarget runtime on your system.\n");
-+    return CONSUMER_ERROR_OLDHOSTVERSIONMOD;
-+  }
-+  if (device_vrm < HOSTRPC_VRM) {
-+    unsigned int host_ver = ((unsigned int)HOSTRPC_VRM) >> 12;
-+    unsigned int host_rel = (((unsigned int)HOSTRPC_VRM) << 20) >> 26;
-+    unsigned int host_mod = (((unsigned int)HOSTRPC_VRM) << 26) >> 26;
-+    unsigned int dev_ver = ((unsigned int)device_vrm) >> 12;
-+    unsigned int dev_rel = (((unsigned int)device_vrm) << 20) >> 26;
-+    unsigned int dev_mod = (((unsigned int)device_vrm) << 26) >> 26;
-+    printf("WARNING:  Device mod version < host mod version \n          Device "
-+           "version: %d.%d.%d\n          Host version:   %d.%d.%d\n",
-+           dev_ver, dev_rel, dev_mod, host_ver, host_rel, host_mod);
-+    printf("          Consider rebuild binary with more recent compiler.\n");
-+  }
-+  return CONSUMER_SUCCESS;
-+}
-+
-+void process_packets(buffer_t *buffer,
-+                                              uint64_t ready_stack) const {
-+  // This function is always called from consume_packets, which owns
-+  // the lock for the critical data.
-+
-+  // Each wave can submit at most one packet at a time, and all
-+  // waves independently push ready packets. The stack of packets at
-+  // this point cannot contain multiple packets from the same wave,
-+  // so consuming ready packets in a latest-first order does not
-+  // affect any wave.
-+  for (decltype(ready_stack) iter = ready_stack, next = 0; iter; iter = next) {
-+
-+    // Remember the next packet pointer. The current packet will
-+    // get reused from the free stack after we process it.
-+    auto header = get_header(buffer, iter);
-+    next = header->next;
-+
-+    auto payload = get_payload(buffer, iter);
-+    uint64_t activemask = header->activemask;
-+
-+    // split the 32-bit service number into service_id and VRM to be checked
-+    // if device hostrpc or stubs are ahead of this host runtime.
-+    uint service_id = (header->service << 16) >> 16;
-+    if (!static_version_was_checked) {
-+      uint device_vrm = ((uint)(header->service) >> 16);
-+      consumer_error_t  err = check_version(device_vrm);
-+      if (err != CONSUMER_SUCCESS)
-+        thread_abort((int) err);
-+      static_version_was_checked = true;
-+    }
-+
-+    if (service_id == HOSTRPC_SERVICE_SANITIZER) {
-+      handler_SERVICE_SANITIZER(payload, activemask, buffer->device_id, urilocator);
-+    } else {
-+      // Serialize calls to execute_service for each active lane
-+      // TODO: One could use ffs to skip inactive lanes faster.
-+      for (uint32_t wi = 0; wi != 64; ++wi) {
-+        uint64_t flag = activemask & ((uint64_t)1 << wi);
-+        if (flag == 0)
-+          continue;
-+        execute_service(service_id, buffer->device_id, payload->slots[wi]);
-+      }
-+    }
-+    __atomic_store_n(&header->control, reset_ready_flag(header->control),
-+                     std::memory_order_release);
-+  }
-+}
-+
-+// FIXME: This cannot be const because it locks critical data.
-+// A lock-free implementaiton might make that possible.
-+void consume_packets() {
-+  /* TODO: The consumer iterates over all registered buffers in an
-+     unspecified order, and for each buffer, processes packets also
-+     in an unspecified order. This may need a more efficient
-+     strategy based on the turnaround time for the services
-+     requested by all these packets.
-+   */
-+  uint64_t signal_value = SIGNAL_INIT;
-+  uint64_t timeout = 1024 * 1024;
-+
-+  while (true) {
-+    hsa_signal_t hs{doorbell.handle};
-+    signal_value =
-+        hsa_signal_wait_scacquire(hs, HSA_SIGNAL_CONDITION_NE, signal_value,
-+                                timeout, HSA_WAIT_STATE_BLOCKED);
-+    if (signal_value == SIGNAL_DONE) {
-+      return;
-+    }
-+
-+    locked_critical_data_t data(critical_data);
-+
-+    for (auto ii = data->buffers.begin(), ie = data->buffers.end(); ii != ie;
-+         /* don't increment here */) {
-+      auto record = ii->second;
-+      if (record.discarded) {
-+        ii = data->buffers.erase(ii);
-+        continue;
-+      }
-+
-+      buffer_t *buffer = ii->first;
-+      uint64_t F = grab_ready_stack(buffer);
-+      if (F)
-+        process_packets(buffer, F);
-+      ++ii;
-+    }
-+  }
-+  return;
-+}
-+
-+consumer_error_t launch_service_thread() {
-+  if (thread.joinable())
-+    return CONSUMER_ERROR_CONSUMER_ACTIVE;
-+  thread = std::thread(&consumer_t::consume_packets, this);
-+  if (!thread.joinable())
-+    return CONSUMER_ERROR_CONSUMER_LAUNCH_FAILED;
-+  return CONSUMER_SUCCESS;
-+}
-+
-+consumer_error_t terminate_service_thread() {
-+  if (!thread.joinable())
-+    return CONSUMER_ERROR_CONSUMER_INACTIVE;
-+  hsa_signal_t signal = {doorbell.handle};
-+  hsa_signal_store_screlease(signal, SIGNAL_DONE);
-+  thread.join();
-+  return CONSUMER_SUCCESS;
-+}
-+
-+void register_buffer(void *b) {
-+  locked_critical_data_t data(critical_data);
-+  auto buffer = reinterpret_cast<buffer_t *>(b);
-+  auto &record = data->buffers[buffer];
-+  record.discarded = false;
-+  buffer->doorbell = doorbell;
-+  urilocator = new UriLocator();
-+}
-+
-+consumer_error_t deregister_buffer(void *b) {
-+  locked_critical_data_t data(critical_data);
-+  auto buffer = reinterpret_cast<buffer_t *>(b);
-+  if (data->buffers.count(buffer) == 0)
-+    return CONSUMER_ERROR_INVALID_REQUEST;
-+  auto &record = data->buffers[buffer];
-+  if (record.discarded)
-+    return CONSUMER_ERROR_INVALID_REQUEST;
-+  record.discarded = true;
-+  return CONSUMER_SUCCESS;
-+}
-+
-+// destructor triggered by delete static_consumer_ptr in hostrpc_terminate().
-+~consumer_t() {
-+  for(auto hsaq_buf : hsaq_bufs) {
-+    if (hsaq_buf) {
-+      deregister_buffer(hsaq_buf->hcb);
-+      delete hsaq_buf;
-+    }
-+  }
-+  hsaq_bufs.clear();
-+  terminate_service_thread();
-+  delete urilocator;
-+  critical_data.buffers.clear();
-+  hsa_signal_t hs{doorbell.handle};
-+  hsa_signal_destroy(hs);
-+}
-+
-+buffer_t * create_buffer_t(uint32_t num_packets, uint32_t devid) {
-+  if (num_packets == 0) {
-+    printf("num_packets cannot be zero \n");
-+    abort();
-+  }
-+  size_t size = get_buffer_size(num_packets);
-+  uint32_t align = get_buffer_alignment();
-+  void *newbuffer = NULL;
-+  service_rc err = host_malloc(&newbuffer, size + align, devid);
-+  if (!newbuffer || (err != _RC_SUCCESS )) {
-+    printf("call to host_malloc failed \n");
-+    abort();
-+  }
-+
-+  if ((uintptr_t)newbuffer % get_buffer_alignment() != 0) {
-+    printf("ERROR: incorrect alignment \n");
-+    abort();
-+  }
-+
-+  //  Initialize the buffer_t 
-+  buffer_t *hb = (buffer_t *) newbuffer;
-+
-+  hb->headers = (header_t *)((uint8_t *)hb + get_header_start());
-+  hb->payloads = (payload_t *)((uint8_t *)hb + get_payload_start(num_packets));
-+
-+  uint32_t index_size = 1;
-+  if (num_packets > 2)
-+    index_size = 32 - __builtin_clz(num_packets);
-+  hb->index_size = index_size;
-+  hb->headers[0].next = 0;
-+
-+  uint64_t next = 1UL << index_size;
-+  for (uint32_t ii = 1; ii != num_packets; ++ii) {
-+    hb->headers[ii].next = next;
-+    next = ii;
-+  }
-+  hb->free_stack = next;
-+  hb->ready_stack = 0;
-+  hb->device_id = devid;
-+  return hb;
-+}
-+
-+}; // end of class/struct consumer_t
-+
-+consumer_t * consumer_t::create_consumer() {
-+  signal_t doorbell = create_signal();
-+  if (doorbell.handle == 0) {
-+    return nullptr;
-+  }
-+  return new consumer_t(doorbell);
-+}
-+
-+// Currently, a single instance of consumer_t is created and saved statically.
-+// This instance starts a single service thread for ALL devices. 
-+static consumer_t *static_consumer_ptr = NULL;
-+
-+// This is the main hostrpc function called by the amdgpu plugin when
-+// launching a kernel on a designated hsa_queue_t. This function should only
-+// be called if any kernel in the device image requires hostrpc services. 
-+extern "C" unsigned long 
-+hostrpc_assign_buffer(hsa_agent_t agent, hsa_queue_t *this_Q,
-+                   uint32_t device_id, hsa_amd_memory_pool_t HostMemoryPool,
-+                   hsa_amd_memory_pool_t DevMemoryPool){
-+
-+  // Create and launch the services thread
-+  if (!static_consumer_ptr) {
-+    static_consumer_ptr = consumer_t::create_consumer();
-+    consumer_error_t err = static_consumer_ptr->launch_service_thread();
-+    if( err != CONSUMER_SUCCESS)
-+      thread_abort(err);
-+  }
-+
-+  // quick return to kernel launch if this hsa q is being reused
-+  hsaq_buf_entry_t *hsaq_buf = static_consumer_ptr->find_hsaq_buf_entry(this_Q);
-+  if (hsaq_buf)
-+    return (unsigned long) hsaq_buf->hcb;
-+
-+  // Helper functions for execute_service need these hsa values saved
-+  save_hsa_statics(device_id, HostMemoryPool, DevMemoryPool, agent);
-+
-+  // Get values needed to determine buffer size 
-+  uint32_t numCu;
-+  hsa_agent_get_info(agent,
-+      (hsa_agent_info_t)HSA_AMD_AGENT_INFO_COMPUTE_UNIT_COUNT, &numCu);
-+  // ErrorCheck(Could not get number of cus, err);
-+  uint32_t waverPerCu;
-+  hsa_agent_get_info(agent,
-+    (hsa_agent_info_t)HSA_AMD_AGENT_INFO_MAX_WAVES_PER_CU, &waverPerCu);
-+  // ErrorCheck(Could not get number of waves per cu, err);
-+  unsigned int minpackets = numCu * waverPerCu;
-+
-+  //  Create and initialize the new buffer to return to kernel launch
-+  buffer_t *hcb = static_consumer_ptr->create_buffer_t(minpackets, device_id);
-+
-+  // Register the buffer for the consumer thread
-+  static_consumer_ptr->register_buffer(hcb);
-+
-+  // Cache in hsaq_bufs for reuse 
-+  hsaq_buf = static_consumer_ptr->add_hsaq_buf_entry(hcb, this_Q, device_id);
-+  return (unsigned long) hcb;
-+}
-+
-+extern "C" hsa_status_t hostrpc_terminate() {
-+  if (static_consumer_ptr) {
-+    // The consumer_t destructor takes care of all memory returns
-+    delete static_consumer_ptr;
-+    static_consumer_ptr = NULL;
-+  }
-+  return HSA_STATUS_SUCCESS;
-+}
-diff -Naur -x .git -x __pycache__ llvm-project.amd-trunk-dev/openmp/libomptarget/hostrpc/services/urilocator.cpp llvm-project/openmp/libomptarget/hostrpc/services/urilocator.cpp
---- llvm-project.amd-trunk-dev/openmp/libomptarget/hostrpc/services/urilocator.cpp	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/openmp/libomptarget/hostrpc/services/urilocator.cpp	2023-02-08 10:58:11.636266116 -0500
-@@ -0,0 +1,226 @@
-+/*
-+//===---- UriLocator.cpp: Extract URI path using vendor specific HSA-API
-+calls.----------===//
-+//
-+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
-+// See https://llvm.org/LICENSE.txt for license information.
-+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-+//
-+//===------------------------------------------------------------------------------------===//
-+
-+Copyright (c) 2021 - 2021 Advanced Micro Devices, Inc.
-+
-+ Permission is hereby granted, free of charge, to any person obtaining a copy
-+ of this software and associated documentation files (the "Software"), to deal
-+ in the Software without restriction, including without limitation the rights
-+ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-+ copies of the Software, and to permit persons to whom the Software is
-+ furnished to do so, subject to the following conditions:
-+
-+ The above copyright notice and this permission notice shall be included in
-+ all copies or substantial portions of the Software.
-+
-+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-+ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-+ THE SOFTWARE.
-+ */
-+
-+#include "urilocator.h"
-+#include <cstdlib>
-+#include <fcntl.h>
-+#include <sstream>
-+#include <sys/stat.h>
-+#include <unistd.h>
-+
-+static bool GetFileHandle(const char *fname, int *fd_ptr, size_t *sz_ptr) {
-+  if ((fd_ptr == nullptr) || (sz_ptr == nullptr)) {
-+    return false;
-+  }
-+
-+  // open system function call, return false on fail
-+  struct stat stat_buf;
-+  *fd_ptr = open(fname, O_RDONLY);
-+  if (*fd_ptr < 0) {
-+    return false;
-+  }
-+
-+  // Retrieve stat info and size
-+  if (fstat(*fd_ptr, &stat_buf) != 0) {
-+    close(*fd_ptr);
-+    return false;
-+  }
-+
-+  *sz_ptr = stat_buf.st_size;
-+
-+  return true;
-+}
-+
-+hsa_status_t UriLocator::createUriRangeTable() {
-+
-+  auto execCb = [](hsa_executable_t exec, void *data) -> hsa_status_t {
-+    int execState = 0;
-+    hsa_status_t status;
-+    status =
-+        hsa_executable_get_info(exec, HSA_EXECUTABLE_INFO_STATE, &execState);
-+    if (status != HSA_STATUS_SUCCESS)
-+      return status;
-+    if (execState != HSA_EXECUTABLE_STATE_FROZEN)
-+      return status;
-+
-+    auto loadedCodeObjectCb = [](hsa_executable_t exec,
-+                                 hsa_loaded_code_object_t lcobj,
-+                                 void *data) -> hsa_status_t {
-+      hsa_status_t result;
-+      uint64_t loadBAddr = 0, loadSize = 0;
-+      uint32_t uriLen = 0;
-+      int64_t delta = 0;
-+      uint64_t *argsCb = static_cast<uint64_t *>(data);
-+      hsa_ven_amd_loader_1_03_pfn_t *fnTab =
-+          reinterpret_cast<hsa_ven_amd_loader_1_03_pfn_t *>(argsCb[0]);
-+      std::vector<UriRange> *rangeTab =
-+          reinterpret_cast<std::vector<UriRange> *>(argsCb[1]);
-+
-+      if (!fnTab->hsa_ven_amd_loader_loaded_code_object_get_info)
-+        return HSA_STATUS_ERROR;
-+
-+      result = fnTab->hsa_ven_amd_loader_loaded_code_object_get_info(
-+          lcobj, HSA_VEN_AMD_LOADER_LOADED_CODE_OBJECT_INFO_LOAD_BASE,
-+          (void *)&loadBAddr);
-+      if (result != HSA_STATUS_SUCCESS)
-+        return result;
-+
-+      result = fnTab->hsa_ven_amd_loader_loaded_code_object_get_info(
-+          lcobj, HSA_VEN_AMD_LOADER_LOADED_CODE_OBJECT_INFO_LOAD_SIZE,
-+          (void *)&loadSize);
-+      if (result != HSA_STATUS_SUCCESS)
-+        return result;
-+
-+      result = fnTab->hsa_ven_amd_loader_loaded_code_object_get_info(
-+          lcobj, HSA_VEN_AMD_LOADER_LOADED_CODE_OBJECT_INFO_URI_LENGTH,
-+          (void *)&uriLen);
-+      if (result != HSA_STATUS_SUCCESS)
-+        return result;
-+
-+      result = fnTab->hsa_ven_amd_loader_loaded_code_object_get_info(
-+          lcobj, HSA_VEN_AMD_LOADER_LOADED_CODE_OBJECT_INFO_LOAD_DELTA,
-+          (void *)&delta);
-+      if (result != HSA_STATUS_SUCCESS)
-+        return result;
-+
-+      char *uri = new char[uriLen + 1];
-+      uri[uriLen] = '\0';
-+      result = fnTab->hsa_ven_amd_loader_loaded_code_object_get_info(
-+          lcobj, HSA_VEN_AMD_LOADER_LOADED_CODE_OBJECT_INFO_URI, (void *)uri);
-+      if (result != HSA_STATUS_SUCCESS)
-+        return result;
-+
-+      rangeTab->push_back(UriRange{loadBAddr, loadBAddr + loadSize - 1, delta,
-+                                   std::string{uri, uriLen + 1}});
-+      delete[] uri;
-+      return HSA_STATUS_SUCCESS;
-+    };
-+
-+    uint64_t *args = static_cast<uint64_t *>(data);
-+    hsa_ven_amd_loader_1_03_pfn_t *fnExtTab =
-+        reinterpret_cast<hsa_ven_amd_loader_1_03_pfn_t *>(args[0]);
-+    return fnExtTab->hsa_ven_amd_loader_executable_iterate_loaded_code_objects(
-+        exec, loadedCodeObjectCb, data);
-+  };
-+
-+  if (!fn_table_.hsa_ven_amd_loader_iterate_executables)
-+    return HSA_STATUS_ERROR;
-+
-+  uint64_t callbackArgs[2] = {(uint64_t)&fn_table_, (uint64_t)&rangeTab_};
-+  return fn_table_.hsa_ven_amd_loader_iterate_executables(execCb,
-+                                                          (void *)callbackArgs);
-+}
-+
-+// Encoding of uniform-resource-identifier(URI) is detailed in
-+// https://llvm.org/docs/AMDGPUUsage.html#loaded-code-object-path-uniform-resource-identifier-uri
-+// The below code currently extracts the uri of loaded code object using
-+// file-uri.
-+std::pair<uint64_t, uint64_t> UriLocator::decodeUriAndGetFd(UriInfo &uri,
-+                                                            int *uri_fd) {
-+
-+  std::ostringstream ss;
-+  char cur;
-+  uint64_t offset = 0, size = 0;
-+  if (uri.uriPath.size() == 0)
-+    return {0, 0};
-+  auto pos = uri.uriPath.find("//");
-+  if (pos == std::string::npos || uri.uriPath.substr(0, pos) != "file:") {
-+    uri.uriPath = "";
-+    return {0, 0};
-+  }
-+  auto rspos = uri.uriPath.find('#');
-+  if (rspos != std::string::npos) {
-+    // parse range specifier
-+    std::string offprefix = "offset=", sizeprefix = "size=";
-+    auto sbeg = uri.uriPath.find('&', rspos);
-+    auto offbeg = rspos + offprefix.size() + 1;
-+    std::string offstr = uri.uriPath.substr(offbeg, sbeg - offbeg);
-+    auto sizebeg = sbeg + sizeprefix.size() + 1;
-+    std::string sizestr =
-+        uri.uriPath.substr(sizebeg, uri.uriPath.size() - sizebeg);
-+    offset = std::stoull(offstr, nullptr, 0);
-+    size = std::stoull(sizestr, nullptr, 0);
-+    rspos -= 1;
-+  } else {
-+    rspos = uri.uriPath.size() - 1;
-+  }
-+  pos += 2;
-+  // decode filepath
-+  for (auto i = pos; i <= rspos;) {
-+    cur = uri.uriPath[i];
-+    if (isalnum(cur) || cur == '/' || cur == '-' || cur == '_' || cur == '.' ||
-+        cur == '~') {
-+      ss << cur;
-+      i++;
-+    } else {
-+      // characters prefix with '%' char
-+      char tbits = uri.uriPath[i + 1], lbits = uri.uriPath[i + 2];
-+      uint8_t t = (tbits < 58) ? (tbits - 48) : ((tbits - 65) + 10);
-+      uint8_t l = (lbits < 58) ? (lbits - 48) : ((lbits - 65) + 10);
-+      ss << (char)(((0b00000000 | t) << 4) | l);
-+      i += 3;
-+    }
-+  }
-+  uri.uriPath = ss.str();
-+  size_t fd_size;
-+  GetFileHandle(uri.uriPath.c_str(), uri_fd, &fd_size);
-+  // As per URI locator syntax, range_specifier is optional
-+  // if range_specifier is absent return total size of the file
-+  // and set offset to begin at 0.
-+  if (size == 0)
-+    size = fd_size;
-+  return {offset, size};
-+}
-+
-+UriLocator::UriInfo UriLocator::lookUpUri(uint64_t device_pc) {
-+  UriInfo errorstate{"", 0};
-+
-+  if (!init_) {
-+
-+    hsa_status_t result;
-+    result = hsa_system_get_major_extension_table(
-+        HSA_EXTENSION_AMD_LOADER, 1, sizeof(fn_table_), &fn_table_);
-+    if (result != HSA_STATUS_SUCCESS)
-+      return errorstate;
-+    result = createUriRangeTable();
-+    if (result != HSA_STATUS_SUCCESS) {
-+      rangeTab_.clear();
-+      return errorstate;
-+    }
-+    init_ = true;
-+  }
-+
-+  for (auto &seg : rangeTab_)
-+    if (seg.startAddr_ <= device_pc && device_pc <= seg.endAddr_)
-+      return UriInfo{seg.Uri_.c_str(), seg.elfDelta_};
-+
-+  return errorstate;
-+}
-diff -Naur -x .git -x __pycache__ llvm-project.amd-trunk-dev/openmp/libomptarget/hostrpc/services/urilocator.h llvm-project/openmp/libomptarget/hostrpc/services/urilocator.h
---- llvm-project.amd-trunk-dev/openmp/libomptarget/hostrpc/services/urilocator.h	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/openmp/libomptarget/hostrpc/services/urilocator.h	2023-02-15 22:56:15.011651741 -0500
+diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/hostrpc/services/urilocator.h llvm-project/openmp/libomptarget/hostrpc/services/urilocator.h
+--- llvm-project.upstream/openmp/libomptarget/hostrpc/services/urilocator.h	1969-12-31 19:00:00.000000000 -0500
++++ llvm-project/openmp/libomptarget/hostrpc/services/urilocator.h	2023-02-21 10:45:18.000000000 -0500
 @@ -0,0 +1,66 @@
 +/*
 +//===--- UriLocator.h: Schema of URI Locator  -----------------------------===//
@@ -3018,9 +3114,9 @@ diff -Naur -x .git -x __pycache__ llvm-project.amd-trunk-dev/openmp/libomptarget
 +};
 +
 +#endif
-diff -Naur -x .git -x __pycache__ llvm-project.amd-trunk-dev/openmp/libomptarget/hostrpc/src/hostrpc_fallback.cpp llvm-project/openmp/libomptarget/hostrpc/src/hostrpc_fallback.cpp
---- llvm-project.amd-trunk-dev/openmp/libomptarget/hostrpc/src/hostrpc_fallback.cpp	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/openmp/libomptarget/hostrpc/src/hostrpc_fallback.cpp	2023-02-20 13:33:31.394864427 -0500
+diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/hostrpc/src/hostrpc_fallback.cpp llvm-project/openmp/libomptarget/hostrpc/src/hostrpc_fallback.cpp
+--- llvm-project.upstream/openmp/libomptarget/hostrpc/src/hostrpc_fallback.cpp	1969-12-31 19:00:00.000000000 -0500
++++ llvm-project/openmp/libomptarget/hostrpc/src/hostrpc_fallback.cpp	2023-02-21 10:45:18.000000000 -0500
 @@ -0,0 +1,86 @@
 +///
 +///  hostrpc_fallback.cpp: definitions of host fallback functions for stubs.
@@ -3108,9 +3204,9 @@ diff -Naur -x .git -x __pycache__ llvm-project.amd-trunk-dev/openmp/libomptarget
 +  return 0;
 +}
 +}
-diff -Naur -x .git -x __pycache__ llvm-project.amd-trunk-dev/openmp/libomptarget/hostrpc/src/hostrpc.h llvm-project/openmp/libomptarget/hostrpc/src/hostrpc.h
---- llvm-project.amd-trunk-dev/openmp/libomptarget/hostrpc/src/hostrpc.h	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/openmp/libomptarget/hostrpc/src/hostrpc.h	2023-02-20 13:30:37.667570429 -0500
+diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/hostrpc/src/hostrpc.h llvm-project/openmp/libomptarget/hostrpc/src/hostrpc.h
+--- llvm-project.upstream/openmp/libomptarget/hostrpc/src/hostrpc.h	1969-12-31 19:00:00.000000000 -0500
++++ llvm-project/openmp/libomptarget/hostrpc/src/hostrpc.h	2023-02-21 10:45:18.000000000 -0500
 @@ -0,0 +1,106 @@
 +#ifndef __HOSTRPC_H__
 +#define __HOSTRPC_H__
@@ -3218,16 +3314,46 @@ diff -Naur -x .git -x __pycache__ llvm-project.amd-trunk-dev/openmp/libomptarget
 +typedef enum hostcall_service_id hostcall_service_id_t;
 +
 +#endif // __HOSTRPC_H__
-diff -Naur -x .git -x __pycache__ llvm-project.amd-trunk-dev/openmp/libomptarget/hostrpc/src/hostrpc_invoke.cpp llvm-project/openmp/libomptarget/hostrpc/src/hostrpc_invoke.cpp
---- llvm-project.amd-trunk-dev/openmp/libomptarget/hostrpc/src/hostrpc_invoke.cpp	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/openmp/libomptarget/hostrpc/src/hostrpc_invoke.cpp	2023-02-20 13:12:27.068185710 -0500
-@@ -0,0 +1,405 @@
+diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/hostrpc/src/hostrpc_invoke.cpp llvm-project/openmp/libomptarget/hostrpc/src/hostrpc_invoke.cpp
+--- llvm-project.upstream/openmp/libomptarget/hostrpc/src/hostrpc_invoke.cpp	1969-12-31 19:00:00.000000000 -0500
++++ llvm-project/openmp/libomptarget/hostrpc/src/hostrpc_invoke.cpp	2023-02-24 08:17:14.570021626 -0500
+@@ -0,0 +1,487 @@
 +
 +#include <stdint.h>
 +
 +#define GLOB_ATTR __attribute__((address_space(1)))
 +
-+#include "oclAtomics.h"
++// mem order codes: A=acquire, X=relaxed, R=release
++
++// headers for amdgcn opencl atomics
++extern "C"  
++uint64_t oclAtomic64Load_A(GLOB_ATTR uint64_t *Address);
++extern "C"  
++uint64_t oclAtomic64Load_X(GLOB_ATTR uint64_t *Address);
++extern "C"  
++uint32_t oclAtomic32Load_A(GLOB_ATTR const uint32_t *Address);
++extern "C"  
++bool oclAtomic64CAS_AX(GLOB_ATTR uint64_t *Address, uint64_t * e_Val, uint64_t new_ptr);
++extern "C"  
++bool oclAtomic64CAS_RX(GLOB_ATTR uint64_t *Address, uint64_t * e_Val, uint64_t new_ptr); 
++
++// headers for cuda nvptx atomics
++extern "C"  
++__attribute__((nothrow)) unsigned long long __ullAtomicAdd_system(
++		unsigned long long *address, unsigned long long val);
++extern "C" 
++__attribute__((nothrow)) unsigned long long __ullAtomicCAS_system(
++		unsigned long long int *address,
++                                         unsigned long long int compare,
++                                         unsigned long long int val);
++// headers for builtins
++int __builtin_popcountl(unsigned long);
++int __builtin_popcount(unsigned);
++int __builtin_amdgcn_readfirstlane(int);
++unsigned long __builtin_amdgcn_read_exec();
++unsigned int __builtin_amdgcn_mbcnt_hi(unsigned int, unsigned int);
++unsigned int __builtin_amdgcn_mbcnt_lo(unsigned int, unsigned int);
++int __nvvm_read_ptx_sreg_tid_x();
 +
 +// We need __ockl_hsa_signal_add and __ockl_lane_u32 from ockl
 +typedef  uint64_t hsa_signal_value_t;
@@ -3286,28 +3412,59 @@ diff -Naur -x .git -x __pycache__ llvm-project.amd-trunk-dev/openmp/libomptarget
 +
 +namespace impl{
 +
-+// These functions need arch-specific variants
++// These functions have arch-specific variants
 +void deviceSleepHostWait();
 +//  These still dont have nvptx variants
 +void send_signal(hsa_signal_t signal);
-+uint32_t readfirstlane(uint32_t val);
-+uint64_t read_exec();
++uint32_t first_lane_id(uint32_t val);
++uint32_t lane_id();
++uint64_t get_mask();
++uint64_t atomic64Load_A(GLOB_ATTR uint64_t *Address);
++uint64_t atomic64Load_X(GLOB_ATTR uint64_t *Address);
++uint32_t atomic32Load_A(GLOB_ATTR const uint32_t *Address);
++bool atomic64CAS_AX(GLOB_ATTR uint64_t *Address, uint64_t * e_Val, uint64_t new_ptr);
++bool atomic64CAS_RX(GLOB_ATTR uint64_t *Address, uint64_t * e_Val, uint64_t new_ptr);
++void write_needs_host_services_symbol();
 +
 +#pragma omp begin declare variant match(device = {arch(amdgcn)})
 +
-+inline uint32_t readfirstlane(uint32_t val) {
-+  return __builtin_amdgcn_readfirstlane(val);
++inline void write_needs_host_services_symbol() {
++// The global variable "__needs_host_services" is used to detect that
++// host services are required. If hostrpc_invoke is not called, the symbol
++// will not be present and the runtime can avoid allocating and initialising
++// service_thread_buf.
++__asm__("; hostcall_invoke: record need for hostcall support\n\t"
++        ".type __needs_host_services,@object\n\t"
++        ".global __needs_host_services\n\t"
++        ".comm __needs_host_services,4":::);
 +}
 +
-+inline uint64_t read_exec() {
-+  return __builtin_amdgcn_read_exec();
-+}
++inline uint32_t lane_id() { 
++return __builtin_amdgcn_mbcnt_hi(~0u, __builtin_amdgcn_mbcnt_lo(~0u, 0u));
++};
 +
++inline uint32_t first_lane_id(uint32_t me) { return __builtin_amdgcn_readfirstlane(me); }
++inline uint64_t get_mask() { return __builtin_amdgcn_read_exec(); }
 +inline void send_signal(hsa_signal_t signal) {
 +__ockl_hsa_signal_add(signal, 1, __ockl_memory_order_release);
 +}
 +inline void deviceSleepHostWait(){
 +  __builtin_amdgcn_s_sleep(1);
++}
++inline uint64_t atomic64Load_A(GLOB_ATTR uint64_t *Address) {
++  return oclAtomic64Load_A(Address); 
++}
++inline uint64_t atomic64Load_X(GLOB_ATTR uint64_t *Address) {
++  return oclAtomic64Load_X(Address); 
++}
++inline uint32_t atomic32Load_A(GLOB_ATTR const uint32_t *Address) {
++  return oclAtomic32Load_A(Address); 
++}
++inline bool atomic64CAS_AX(GLOB_ATTR uint64_t *Address, uint64_t * e_Val, uint64_t new_ptr) {
++  return oclAtomic64CAS_AX(Address, e_Val, new_ptr);
++}
++inline bool atomic64CAS_RX(GLOB_ATTR uint64_t *Address, uint64_t * e_Val, uint64_t new_ptr) {
++  return oclAtomic64CAS_RX(Address, e_Val, new_ptr);
 +}
 +
 +#pragma omp end declare variant
@@ -3315,8 +3472,15 @@ diff -Naur -x .git -x __pycache__ llvm-project.amd-trunk-dev/openmp/libomptarget
 +#pragma omp begin declare variant match(                                       \
 +    device = {arch(nvptx, nvptx64)}, implementation = {extension(match_any)})
 +
-+//  FIXME: build equivalent for nvptx
-+inline void send_signal(hsa_signal_t signal) { }
++inline void write_needs_host_services_symbol() {
++// The global variable "__needs_host_services" is used to detect that
++// host services are required. If hostrpc_invoke is not called, the symbol
++// will not be present and the runtime can avoid allocating and initialising
++// service_thread_buf.
++__asm__(".global .align 4 .u32 __needs_host_services = 1;");
++}
++inline void send_signal(hsa_signal_t signal) {
++   __ullAtomicAdd_system((unsigned long long *) signal, 1); }
 +
 +inline void deviceSleepHostWait(){
 +  int32_t start = __nvvm_read_ptx_sreg_clock();
@@ -3326,22 +3490,54 @@ diff -Naur -x .git -x __pycache__ llvm-project.amd-trunk-dev/openmp/libomptarget
 +  }
 +}
 +
-+//  FIXME: build equivalent for nvptx
-+inline uint32_t readfirstlane(uint32_t val) {
-+  //return __builtin_amdgcn_readfirstlane(val);
-+  return val ; 
++uint64_t get_mask() {
++  unsigned int Mask;
++  asm("activemask.b32 %0;" : "=r"(Mask));
++  uint64_t mask64 = (uint64_t) Mask;
++  return mask64;
 +}
-+//  FIXME: build equivalent for nvptx
-+inline uint64_t read_exec() {
-+  //return __builtin_amdgcn_readfirstlane(val);
-+  return (uint64_t) 0; 
++
++//  FIXME: nvptx needs to use lane_id somehow here
++inline uint32_t first_lane_id(unsigned int lane_id) {
++   unsigned int mask = (unsigned int) get_mask ()  ;
++   if (mask == 0)
++     return 0;
++   unsigned int pos = 0;
++   unsigned int m = 1;
++   while (!(mask & m)) {
++     m = m<< 1;
++     pos++;
++   }
++   return pos;
++};
++
++inline uint32_t lane_id() { return (uint32_t) (__nvvm_read_ptx_sreg_tid_x() & 31); };
++
++inline uint64_t atomic64Load_A(GLOB_ATTR uint64_t *Address) {
++  unsigned long long result = __ullAtomicAdd_system((unsigned long long *) Address, 0);
++  return (uint64_t) result;
++}
++inline uint64_t atomic64Load_X(GLOB_ATTR uint64_t *Address) {
++  unsigned long long result = __ullAtomicAdd_system((unsigned long long *) Address, 0);
++  return (uint64_t) result;
++}
++inline uint32_t atomic32Load_A(GLOB_ATTR const uint32_t *Address) {
++  return __uAtomicAdd((uint32_t *) Address, 0);
++}
++inline bool atomic64CAS_AX(GLOB_ATTR uint64_t *Address, uint64_t * e_Val, uint64_t new_ptr) {
++  unsigned long long result = __ullAtomicCAS_system((unsigned long long *) Address, 
++		 (unsigned long long) *e_Val, (unsigned long long) new_ptr);
++  return (bool) result;
++}
++inline bool atomic64CAS_RX(GLOB_ATTR uint64_t *Address, uint64_t * e_Val, uint64_t new_ptr) {
++  unsigned long long result = __ullAtomicCAS_system((unsigned long long *) Address, 
++		 (unsigned long long) *e_Val, (unsigned long long) new_ptr);
++  return (bool) result;
 +}
 +
 +#pragma omp end declare variant
 +
 +} // end namespace impl
-+
-+
 +
 +static uint64_t
 +get_ptr_index(uint64_t ptr, uint32_t index_size)
@@ -3395,14 +3591,14 @@ diff -Naur -x .git -x __pycache__ llvm-project.amd-trunk-dev/openmp/libomptarget
 +static uint64_t
 +pop(GLOB_ATTR uint64_t *top, GLOB_ATTR buffer_t *buffer)
 +{
-+    uint64_t F = oclAtomic64Load_A(top);
++    uint64_t F = impl::atomic64Load_A(top);
 +    // F is guaranteed to be non-zero, since there are at least as
 +    // many packets as there are waves, and each wave can hold at most
 +    // one packet.
 +    while (true) {
 +        GLOB_ATTR  header_t *P = get_header(buffer, F);
-+        uint64_t N = oclAtomic64Load_X(&P->next);
-+        if (oclAtomic64CAS_AX(top, &F, N))
++        uint64_t N = impl::atomic64Load_X(&P->next);
++        if (impl::atomic64CAS_AX(top, &F, N))
 +            break;
 +	impl::deviceSleepHostWait();
 +    }
@@ -3414,20 +3610,17 @@ diff -Naur -x .git -x __pycache__ llvm-project.amd-trunk-dev/openmp/libomptarget
 + *         broadcast to the whole wave.
 + */
 +static uint64_t
-+pop_free_stack(GLOB_ATTR buffer_t *buffer)
++pop_free_stack(GLOB_ATTR buffer_t *buffer, uint32_t me, uint32_t low)
 +{
-+    uint32_t me = __ockl_lane_u32();
-+    uint32_t low = impl::readfirstlane(me);
-+
 +    uint64_t packet_ptr = 0;
-+    if (me == low) {
++    if (me==low) {
 +        packet_ptr = pop(&buffer->free_stack, buffer);
 +    }
 +
 +    uint32_t ptr_lo = packet_ptr;
 +    uint32_t ptr_hi = packet_ptr >> 32;
-+    ptr_lo = impl::readfirstlane(ptr_lo);
-+    ptr_hi = impl::readfirstlane(ptr_hi);
++    ptr_lo = impl::first_lane_id(ptr_lo);
++    ptr_hi = impl::first_lane_id(ptr_hi);
 +
 +    return ((uint64_t)ptr_hi << 32) | ptr_lo;
 +}
@@ -3435,12 +3628,12 @@ diff -Naur -x .git -x __pycache__ llvm-project.amd-trunk-dev/openmp/libomptarget
 +static void
 +push(GLOB_ATTR uint64_t *top, uint64_t ptr, GLOB_ATTR buffer_t *buffer)
 +{
-+    uint64_t F = oclAtomic64Load_X(top);
++    uint64_t F = impl::atomic64Load_X(top);
 +    GLOB_ATTR header_t *P = get_header(buffer, ptr);
 +
 +    while (true) {
 +        P->next = F;
-+        if (oclAtomic64CAS_RX(top, &F, ptr))
++        if (impl::atomic64CAS_RX(top, &F, ptr))
 +            break;
 +	impl::deviceSleepHostWait();
 +    }
@@ -3450,11 +3643,9 @@ diff -Naur -x .git -x __pycache__ llvm-project.amd-trunk-dev/openmp/libomptarget
 + *         packet and signal the host.
 + */
 +static void
-+push_ready_stack(GLOB_ATTR buffer_t *buffer, uint64_t ptr)
++push_ready_stack(GLOB_ATTR buffer_t *buffer, uint64_t ptr, uint32_t me , uint32_t low)
 +{
-+    uint32_t me = __ockl_lane_u32();
-+    uint32_t low = impl::readfirstlane(me);
-+    if (me == low) {
++    if (me==low) {
 +        push(&buffer->ready_stack, ptr, buffer);
 +	impl::send_signal(buffer->doorbell);
 +    }
@@ -3473,11 +3664,9 @@ diff -Naur -x .git -x __pycache__ llvm-project.amd-trunk-dev/openmp/libomptarget
 +/** \brief Return the packet after incrementing the ABA tag
 + */
 +static void
-+return_free_packet(GLOB_ATTR buffer_t *buffer, uint64_t ptr)
++return_free_packet(GLOB_ATTR buffer_t *buffer, uint64_t ptr, uint32_t me, uint32_t low)
 +{
-+    uint32_t me = __ockl_lane_u32();
-+    uint32_t low = impl::readfirstlane(me);
-+    if (me == low) {
++    if (me==low) {
 +        ptr = inc_ptr_tag(ptr, buffer->index_size);
 +        push(&buffer->free_stack, ptr, buffer);
 +    }
@@ -3486,12 +3675,10 @@ diff -Naur -x .git -x __pycache__ llvm-project.amd-trunk-dev/openmp/libomptarget
 +void 
 +static fill_packet(GLOB_ATTR header_t *header, GLOB_ATTR payload_t *payload,
 +            uint32_t service_id, uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg3,
-+            uint64_t arg4, uint64_t arg5, uint64_t arg6, uint64_t arg7)
++            uint64_t arg4, uint64_t arg5, uint64_t arg6, uint64_t arg7, uint32_t me, uint32_t low)
 +{
-+    uint32_t me = __ockl_lane_u32();
-+    uint32_t low = impl::readfirstlane(me);
-+    uint64_t active = impl::read_exec();
-+    if (me == low) {
++    uint64_t active = impl::get_mask();
++    if (me==low) {
 +        header->service = service_id;
 +        header->activemask = active;
 +        uint32_t control = set_ready_flag(0);
@@ -3519,7 +3706,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.amd-trunk-dev/openmp/libomptarget
 +    uint64_t arg5;
 +    uint64_t arg6;
 +    uint64_t arg7;
-+} __ockl_hostrpc_result_t;
++} hostrpc_result_t;
 +
 +/** \brief Wait for the host response and return the first two uint64_t
 + *         entries per workitem.
@@ -3528,13 +3715,9 @@ diff -Naur -x .git -x __pycache__ llvm-project.amd-trunk-dev/openmp/libomptarget
 + *  the host changes the state to DONE. Each workitem reads the first
 + *  two uint64_t elements in its slot and returns this.
 + */
-+static __ockl_hostrpc_result_t
-+get_return_value(GLOB_ATTR header_t *header, GLOB_ATTR payload_t *payload)
++static hostrpc_result_t
++get_return_value(GLOB_ATTR header_t *header, GLOB_ATTR payload_t *payload, uint32_t me, uint32_t low)
 +{
-+    uint32_t me = __ockl_lane_u32();
-+    uint32_t low = impl::readfirstlane(me);
-+
-+
 +    // The while loop needs to be executed by all active
 +    // lanes. Otherwise, later reads from ptr are performed only by
 +    // the first thread, while other threads reuse a value cached from
@@ -3551,19 +3734,19 @@ diff -Naur -x .git -x __pycache__ llvm-project.amd-trunk-dev/openmp/libomptarget
 +    // the ordinary stores in other threads too.
 +    while (true) {
 +        uint32_t ready_flag = 1;
-+	if (me == low) {
-+            uint32_t control =  oclAtomic32Load_A(
++	if (me==low) {
++            uint32_t control =  impl::atomic32Load_A(
 +			    (GLOB_ATTR uint32_t *) &header->control);
 +            ready_flag = get_ready_flag(control);
 +        }
-+	ready_flag = impl::readfirstlane(ready_flag);
++	ready_flag = impl::first_lane_id(ready_flag);
 +        if (ready_flag == 0) 
 +          break;
 +	impl::deviceSleepHostWait();
 +    }
 +
 +    GLOB_ATTR uint64_t *ptr = (GLOB_ATTR uint64_t *)(payload->slots + me);
-+    __ockl_hostrpc_result_t retval;
++    hostrpc_result_t retval;
 +    retval.arg0 = *ptr++;
 +    retval.arg1 = *ptr++;
 +    retval.arg2 = *ptr++;
@@ -3600,36 +3783,31 @@ diff -Naur -x .git -x __pycache__ llvm-project.amd-trunk-dev/openmp/libomptarget
 +      [[clang::loader_uninitialized]] __attribute__((used, retain, weak,
 +      visibility("protected")));
 +
-+extern "C" __attribute__((noinline)) __ockl_hostrpc_result_t
++extern "C" __attribute__((noinline)) hostrpc_result_t
 +hostrpc_invoke( uint32_t service_id,
 +                       uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg3,
 +                       uint64_t arg4, uint64_t arg5, uint64_t arg6, uint64_t arg7)
 +{
-+// The global variable "__needs_host_services" is used to detect that
-+// host services are required. If hostrpc_invoke is not called, the symbol
-+// will not be present and the runtime can avoid allocating and initialising
-+// service_thread_buf.
-+__asm__("; hostcall_invoke: record need for hostcall support\n\t"
-+        ".type __needs_host_services,@object\n\t"
-+        ".global __needs_host_services\n\t"
-+        ".comm __needs_host_services,4":::);
++  impl::write_needs_host_services_symbol();
++  uint32_t me = impl::lane_id();
++  uint32_t low = impl::first_lane_id(me);
 +
 +  GLOB_ATTR buffer_t * buffer = (GLOB_ATTR buffer_t *) service_thread_buf;
-+  uint64_t packet_ptr = pop_free_stack(buffer);
++  uint64_t packet_ptr = pop_free_stack(buffer,me,low);
 +  GLOB_ATTR header_t *header = get_header(buffer, packet_ptr);
 +  GLOB_ATTR payload_t *payload = get_payload(buffer, packet_ptr);
 +  fill_packet(header, payload, service_id, arg0, arg1, arg2, arg3, arg4,
-+              arg5, arg6, arg7);
-+  push_ready_stack(buffer, packet_ptr);
-+  __ockl_hostrpc_result_t retval = get_return_value(header, payload);
-+  return_free_packet(buffer, packet_ptr);
++              arg5, arg6, arg7, me, low);
++  push_ready_stack(buffer, packet_ptr, me, low);
++  hostrpc_result_t retval = get_return_value(header, payload, me, low);
++  return_free_packet(buffer, packet_ptr, me, low);
 +  return retval;
 +}
 +
 +#pragma omp end declare target
-diff -Naur -x .git -x __pycache__ llvm-project.amd-trunk-dev/openmp/libomptarget/hostrpc/src/hostrpc_stubs.cpp llvm-project/openmp/libomptarget/hostrpc/src/hostrpc_stubs.cpp
---- llvm-project.amd-trunk-dev/openmp/libomptarget/hostrpc/src/hostrpc_stubs.cpp	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/openmp/libomptarget/hostrpc/src/hostrpc_stubs.cpp	2023-02-20 13:25:29.012839726 -0500
+diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/hostrpc/src/hostrpc_stubs.cpp llvm-project/openmp/libomptarget/hostrpc/src/hostrpc_stubs.cpp
+--- llvm-project.upstream/openmp/libomptarget/hostrpc/src/hostrpc_stubs.cpp	1969-12-31 19:00:00.000000000 -0500
++++ llvm-project/openmp/libomptarget/hostrpc/src/hostrpc_stubs.cpp	2023-02-23 10:01:28.000000000 -0500
 @@ -0,0 +1,199 @@
 +///
 +///  hostrpc_stubs.cpp: definitions of device stubs
@@ -3673,8 +3851,8 @@ diff -Naur -x .git -x __pycache__ llvm-project.amd-trunk-dev/openmp/libomptarget
 +extern "C" {
 +// This definition of __ockl_devmem_request and __ockl_sanitizer_report needs to
 +// override the weak symbol for __ockl_devmem_request and
-+// __ockl_sanitizer_report in ockl.bc because by default ockl uses hostcall. But
-+// OpenMP uses hostrpc.
++// __ockl_sanitizer_report in rocm device lib ockl.bc because ockl uses
++// hostcall but OpenMP uses hostrpc.
 +__attribute__((noinline)) uint64_t __ockl_devmem_request(uint64_t addr,
 +                                                         uint64_t size) {
 +  uint64_t arg0;
@@ -3830,9 +4008,9 @@ diff -Naur -x .git -x __pycache__ llvm-project.amd-trunk-dev/openmp/libomptarget
 +} // end extern "C"
 +
 +#pragma omp end declare target
-diff -Naur -x .git -x __pycache__ llvm-project.amd-trunk-dev/openmp/libomptarget/hostrpc/src/hostrpc_stubs.h llvm-project/openmp/libomptarget/hostrpc/src/hostrpc_stubs.h
---- llvm-project.amd-trunk-dev/openmp/libomptarget/hostrpc/src/hostrpc_stubs.h	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/openmp/libomptarget/hostrpc/src/hostrpc_stubs.h	2023-02-16 14:47:46.065890140 -0500
+diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/hostrpc/src/hostrpc_stubs.h llvm-project/openmp/libomptarget/hostrpc/src/hostrpc_stubs.h
+--- llvm-project.upstream/openmp/libomptarget/hostrpc/src/hostrpc_stubs.h	1969-12-31 19:00:00.000000000 -0500
++++ llvm-project/openmp/libomptarget/hostrpc/src/hostrpc_stubs.h	2023-02-21 10:45:18.000000000 -0500
 @@ -0,0 +1,28 @@
 +#ifndef __HOSTRPC_STUBS_H__
 +#define __HOSTRPC_STUBS_H__
@@ -3862,77 +4040,68 @@ diff -Naur -x .git -x __pycache__ llvm-project.amd-trunk-dev/openmp/libomptarget
 +EXTERN double hostrpc_varfn_double(void *fnptr, ...);
 +
 +#endif // __HOSTRPC_STUBS_H__
-diff -Naur -x .git -x __pycache__ llvm-project.amd-trunk-dev/openmp/libomptarget/hostrpc/src/oclAtomics.cl llvm-project/openmp/libomptarget/hostrpc/src/oclAtomics.cl
---- llvm-project.amd-trunk-dev/openmp/libomptarget/hostrpc/src/oclAtomics.cl	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/openmp/libomptarget/hostrpc/src/oclAtomics.cl	2023-02-16 09:32:35.723916013 -0500
-@@ -0,0 +1,20 @@
+diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/hostrpc/src/oclAtomics.cl llvm-project/openmp/libomptarget/hostrpc/src/oclAtomics.cl
+--- llvm-project.upstream/openmp/libomptarget/hostrpc/src/oclAtomics.cl	1969-12-31 19:00:00.000000000 -0500
++++ llvm-project/openmp/libomptarget/hostrpc/src/oclAtomics.cl	2023-02-21 13:40:07.000000000 -0500
+@@ -0,0 +1,25 @@
++
++#pragma OPENCL EXTENSION cl_khr_int64_base_atomics : enable
++#pragma OPENCL EXTENSION cl_khr_int64_extended_atomics : enable
++
++#define __atomic_ulong atomic_ulong
 +
 +// mem order codes: A=acquire, X=relaxed, R=release
-+
-+extern inline ulong oclAtomic64Load_A(__global atomic_ulong * Address){
++extern inline ulong oclAtomic64Load_A(__global __atomic_ulong * Address){
 +  return  __opencl_atomic_load(Address, memory_order_acquire, memory_scope_all_svm_devices);
 +}
-+extern inline ulong oclAtomic64Load_X(__global atomic_ulong * Address){
++extern inline ulong oclAtomic64Load_X(__global __atomic_ulong * Address){
 +  return  __opencl_atomic_load(Address, memory_order_relaxed, memory_scope_all_svm_devices);
 +}
 +extern inline uint oclAtomic32Load_A(__global const atomic_uint * Address){
 +  return  __opencl_atomic_load(Address, memory_order_acquire, memory_scope_all_svm_devices);
 +}
-+extern inline int oclAtomic64CAS_AX(__global atomic_ulong * Address,  ulong * e_val, ulong new_val) {
++extern inline int oclAtomic64CAS_AX(__global __atomic_ulong * Address,  ulong * e_val, ulong new_val) {
 +   return __opencl_atomic_compare_exchange_strong( Address, e_val, new_val,
 +     memory_order_acquire, memory_order_relaxed, memory_scope_all_svm_devices);
 +}
-+extern inline int oclAtomic64CAS_RX(__global atomic_ulong * Address,  ulong * e_val, ulong new_val) {
++extern inline int oclAtomic64CAS_RX(__global __atomic_ulong * Address,  ulong * e_val, ulong new_val) {
 +   return __opencl_atomic_compare_exchange_strong(Address, e_val, new_val,
 +     memory_order_release, memory_order_relaxed, memory_scope_all_svm_devices);
 +}
-diff -Naur -x .git -x __pycache__ llvm-project.amd-trunk-dev/openmp/libomptarget/hostrpc/src/oclAtomics.h llvm-project/openmp/libomptarget/hostrpc/src/oclAtomics.h
---- llvm-project.amd-trunk-dev/openmp/libomptarget/hostrpc/src/oclAtomics.h	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/openmp/libomptarget/hostrpc/src/oclAtomics.h	2023-02-16 09:46:11.412641686 -0500
-@@ -0,0 +1,22 @@
-+#ifndef __OCLATOMICS_H__
-+#define __OCLATOMICS_H__
-+
-+//  oclAtomics.h :  The OpenCL atomics needed for hostrpc
-+
-+#include <stdint.h> 
-+#if defined(__cplusplus)
-+#define __EXTERN extern "C"
-+#define __BOOL bool
-+#else
-+#define __EXTERN extern
-+#define __BOOL int
-+#endif
-+
-+// mem order codes: A=acquire, X=relaxed, R=release
-+__EXTERN uint64_t oclAtomic64Load_A(GLOB_ATTR uint64_t *Address);
-+__EXTERN uint64_t oclAtomic64Load_X(GLOB_ATTR uint64_t *Address);
-+__EXTERN uint32_t oclAtomic32Load_A(GLOB_ATTR const uint32_t *Address);
-+__EXTERN __BOOL oclAtomic64CAS_AX(GLOB_ATTR uint64_t *Address, uint64_t * e_Val, uint64_t new_ptr);
-+__EXTERN __BOOL oclAtomic64CAS_RX(GLOB_ATTR uint64_t *Address, uint64_t * e_Val, uint64_t new_ptr); 
-+
-+#endif
-diff -Naur -x .git -x __pycache__ llvm-project.amd-trunk-dev/openmp/libomptarget/plugins/amdgpu/CMakeLists.txt llvm-project/openmp/libomptarget/plugins/amdgpu/CMakeLists.txt
---- llvm-project.amd-trunk-dev/openmp/libomptarget/plugins/amdgpu/CMakeLists.txt	2023-02-03 10:47:23.378704065 -0500
-+++ llvm-project/openmp/libomptarget/plugins/amdgpu/CMakeLists.txt	2023-01-31 15:41:50.174149623 -0500
-@@ -85,12 +85,13 @@
++#undef __atomic_ulong
+diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/plugins/amdgpu/CMakeLists.txt llvm-project/openmp/libomptarget/plugins/amdgpu/CMakeLists.txt
+--- llvm-project.upstream/openmp/libomptarget/plugins/amdgpu/CMakeLists.txt	2023-02-27 09:21:59.251665276 -0500
++++ llvm-project/openmp/libomptarget/plugins/amdgpu/CMakeLists.txt	2023-02-27 10:53:30.705996884 -0500
+@@ -61,6 +61,9 @@
+   set(LDFLAGS_UNDEFINED "-Wl,-z,defs")
+ endif()
+ 
++if(HOSTRPC_BUILD_AMD)
++   set(hostrpc_link_opt "-Wl,--whole-archive amdgcn_hostrpc_services -Wl,--no-whole-archive")
++endif()
+ add_llvm_library(omptarget.rtl.amdgpu SHARED
+   impl/impl.cpp
+   impl/interop_hsa.cpp
+@@ -85,11 +88,16 @@
    elf_common
    ${LIBOMPTARGET_DEP_LIBRARIES}
    ${OPENMP_PTHREAD_LIB}
-+  -Wl,--whole-archive hostrpc_services -Wl,--no-whole-archive
++  ${hostrpc_link_opt}
    "-Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/../exports"
    ${LDFLAGS_UNDEFINED}
  
    NO_INSTALL_RPATH
  )
--add_dependencies(omptarget.rtl.amdgpu omptarget.devicertl.amdgpu)
-+add_dependencies(omptarget.rtl.amdgpu omptarget.devicertl.amdgpu hostrpc_services)
++add_dependencies(omptarget.rtl.amdgpu omptarget.devicertl.amdgpu )
++if(HOSTRPC_BUILD_AMD)
++   add_dependencies(omptarget.rtl.amdgpu amdgcn_hostrpc_services)
++endif()
  
  target_include_directories(
    omptarget.rtl.amdgpu
-diff -Naur -x .git -x __pycache__ llvm-project.amd-trunk-dev/openmp/libomptarget/plugins/amdgpu/src/rtl.cpp llvm-project/openmp/libomptarget/plugins/amdgpu/src/rtl.cpp
---- llvm-project.amd-trunk-dev/openmp/libomptarget/plugins/amdgpu/src/rtl.cpp	2023-02-03 10:47:23.378704065 -0500
-+++ llvm-project/openmp/libomptarget/plugins/amdgpu/src/rtl.cpp	2023-02-16 15:06:11.068578432 -0500
+diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/plugins/amdgpu/src/rtl.cpp llvm-project/openmp/libomptarget/plugins/amdgpu/src/rtl.cpp
+--- llvm-project.upstream/openmp/libomptarget/plugins/amdgpu/src/rtl.cpp	2023-02-27 09:21:39.111743452 -0500
++++ llvm-project/openmp/libomptarget/plugins/amdgpu/src/rtl.cpp	2023-02-27 10:53:30.705996884 -0500
 @@ -53,16 +53,18 @@
  // implement a fallback for toolchains that do not yet have a hostrpc library.
  extern "C" {
@@ -3995,28 +4164,54 @@ diff -Naur -x .git -x __pycache__ llvm-project.amd-trunk-dev/openmp/libomptarget
        }
  
        Packet->kernarg_address = KernArg;
-diff -Naur -x .git -x __pycache__ llvm-project.amd-trunk-dev/openmp/libomptarget/plugins-nextgen/amdgpu/CMakeLists.txt llvm-project/openmp/libomptarget/plugins-nextgen/amdgpu/CMakeLists.txt
---- llvm-project.amd-trunk-dev/openmp/libomptarget/plugins-nextgen/amdgpu/CMakeLists.txt	2023-01-18 16:24:00.052702842 -0500
-+++ llvm-project/openmp/libomptarget/plugins-nextgen/amdgpu/CMakeLists.txt	2023-02-16 16:57:15.847778786 -0500
-@@ -85,12 +85,13 @@
+diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/plugins-nextgen/amdgpu/CMakeLists.txt llvm-project/openmp/libomptarget/plugins-nextgen/amdgpu/CMakeLists.txt
+--- llvm-project.upstream/openmp/libomptarget/plugins-nextgen/amdgpu/CMakeLists.txt	2023-02-27 09:21:59.251665276 -0500
++++ llvm-project/openmp/libomptarget/plugins-nextgen/amdgpu/CMakeLists.txt	2023-02-27 10:53:30.705996884 -0500
+@@ -85,11 +85,14 @@
    PluginInterface
    ${LIBOMPTARGET_DEP_LIBRARIES}
    ${OPENMP_PTHREAD_LIB}
-+  -Wl,--whole-archive hostrpc_services -Wl,--no-whole-archive
++  -Wl,--whole-archive amdgcn_hostrpc_services -Wl,--no-whole-archive
    "-Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/../exports"
    ${LDFLAGS_UNDEFINED}
  
    NO_INSTALL_RPATH
  )
--add_dependencies(omptarget.rtl.amdgpu.nextgen omptarget.devicertl.amdgpu)
-+add_dependencies(omptarget.rtl.amdgpu.nextgen omptarget.devicertl.amdgpu hostrpc_services)
++message("====  Adding dependency for libamdgcn_hostrpc_services.a") 
++add_dependencies(omptarget.rtl.amdgpu.nextgen amdgcn_hostrpc_services)
  
  target_include_directories(
    omptarget.rtl.amdgpu.nextgen
-diff -Naur -x .git -x __pycache__ llvm-project.amd-trunk-dev/openmp/libomptarget/plugins-nextgen/amdgpu/src/rtl.cpp llvm-project/openmp/libomptarget/plugins-nextgen/amdgpu/src/rtl.cpp
---- llvm-project.amd-trunk-dev/openmp/libomptarget/plugins-nextgen/amdgpu/src/rtl.cpp	2023-01-30 16:19:49.170731250 -0500
-+++ llvm-project/openmp/libomptarget/plugins-nextgen/amdgpu/src/rtl.cpp	2023-02-20 16:09:39.514123741 -0500
-@@ -129,6 +129,10 @@
+diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/plugins-nextgen/amdgpu/src/rtl.cpp llvm-project/openmp/libomptarget/plugins-nextgen/amdgpu/src/rtl.cpp
+--- llvm-project.upstream/openmp/libomptarget/plugins-nextgen/amdgpu/src/rtl.cpp	2023-02-27 09:21:59.251665276 -0500
++++ llvm-project/openmp/libomptarget/plugins-nextgen/amdgpu/src/rtl.cpp	2023-02-27 10:53:30.705996884 -0500
+@@ -58,6 +58,25 @@
+ namespace target {
+ namespace plugin {
+ 
++extern "C" {
++uint64_t hostrpc_assign_buffer(hsa_agent_t Agent, hsa_queue_t *ThisQ,
++  uint32_t DeviceId, hsa_amd_memory_pool_t HostMemoryPool,
++                        hsa_amd_memory_pool_t DevMemoryPool);
++hsa_status_t hostrpc_terminate();
++__attribute__((weak)) hsa_status_t hostrpc_terminate() {
++  return HSA_STATUS_SUCCESS;
++}
++__attribute__((weak)) uint64_t hostrpc_assign_buffer(hsa_agent_t, hsa_queue_t *,
++  uint32_t DeviceId, hsa_amd_memory_pool_t HostMemoryPool,
++                               hsa_amd_memory_pool_t DevMemoryPool) {
++  // FIXME:THIS SHOULD BE HARD FAIL 
++  DP("Warning: Attempting to assign hostrpc to device %u, but hostrpc library "
++     "missing\n",
++     DeviceId);
++  return 0;
++}
++}
++
+ /// Forward declarations for all specialized data structures.
+ struct AMDGPUKernelTy;
+ struct AMDGPUDeviceTy;
+@@ -129,6 +148,10 @@
                         "Error in hsa_amd_agent_iterate_memory_pools: %s");
  }
  
@@ -4027,7 +4222,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.amd-trunk-dev/openmp/libomptarget
  } // namespace utils
  
  /// Utility class representing generic resource references to AMDGPU resources.
-@@ -373,6 +377,9 @@
+@@ -373,6 +396,9 @@
    Expected<hsa_executable_symbol_t>
    findDeviceSymbol(GenericDeviceTy &Device, StringRef SymbolName) const;
  
@@ -4037,7 +4232,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.amd-trunk-dev/openmp/libomptarget
  private:
    /// The exectuable loaded on the agent.
    hsa_executable_t Executable;
-@@ -385,6 +392,7 @@
+@@ -385,6 +411,7 @@
    /// Create an AMDGPU kernel with a name and an execution mode.
    AMDGPUKernelTy(const char *Name, OMPTgtExecModeFlags ExecutionMode)
        : GenericKernelTy(Name, ExecutionMode),
@@ -4045,7 +4240,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.amd-trunk-dev/openmp/libomptarget
          ImplicitArgsSize(sizeof(utils::AMDGPUImplicitArgsTy)) {}
  
    /// Initialize the AMDGPU kernel.
-@@ -426,8 +434,18 @@
+@@ -426,8 +453,18 @@
      // TODO: Read the kernel descriptor for the max threads per block. May be
      // read from the image.
  
@@ -4064,7 +4259,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.amd-trunk-dev/openmp/libomptarget
  
    /// Launch the AMDGPU kernel function.
    Error launchImpl(GenericDeviceTy &GenericDevice, uint32_t NumThreads,
-@@ -612,6 +630,7 @@
+@@ -611,6 +648,7 @@
      // Push the barrier with the lock acquired.
      return pushBarrierImpl(OutputSignal, InputSignal1, InputSignal2);
    }
@@ -4072,7 +4267,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.amd-trunk-dev/openmp/libomptarget
  
  private:
    /// Push a barrier packet that will wait up to two input signals. Assumes the
-@@ -732,6 +751,7 @@
+@@ -731,6 +769,7 @@
  /// devices. This class relies on signals to implement streams and define the
  /// dependencies between asynchronous operations.
  struct AMDGPUStreamTy {
@@ -4080,7 +4275,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.amd-trunk-dev/openmp/libomptarget
  private:
    /// Utility struct holding arguments for async H2H memory copies.
    struct MemcpyArgsTy {
-@@ -1399,6 +1419,9 @@
+@@ -1398,6 +1437,9 @@
  
      return Plugin::success();
    }
@@ -4090,16 +4285,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.amd-trunk-dev/openmp/libomptarget
  
    /// Retrieve and construct all memory pools from the device agent(s).
    virtual Error retrieveAllMemoryPools() = 0;
-@@ -2075,6 +2098,8 @@
-     static std::atomic<uint32_t> NextQueue(0);
- 
-     uint32_t Current = NextQueue.fetch_add(1, std::memory_order_relaxed);
-+    printf("AMDQueue:%p Current:%d index:%ld \n",
-+      &Queues[Current % Queues.size()], Current, Current % Queues.size());
-     return Queues[Current % Queues.size()];
-   }
- 
-@@ -2171,7 +2196,6 @@
+@@ -2206,7 +2248,6 @@
  Expected<hsa_executable_symbol_t>
  AMDGPUDeviceImageTy::findDeviceSymbol(GenericDeviceTy &Device,
                                        StringRef SymbolName) const {
@@ -4107,7 +4293,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.amd-trunk-dev/openmp/libomptarget
    AMDGPUDeviceTy &AMDGPUDevice = static_cast<AMDGPUDeviceTy &>(Device);
    hsa_agent_t Agent = AMDGPUDevice.getAgent();
  
-@@ -2186,6 +2210,16 @@
+@@ -2221,6 +2262,16 @@
    return Symbol;
  }
  
@@ -4124,7 +4310,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.amd-trunk-dev/openmp/libomptarget
  template <typename ResourceTy>
  Error AMDGPUResourceRef<ResourceTy>::create(GenericDeviceTy &Device) {
    if (Resource)
-@@ -2353,6 +2387,7 @@
+@@ -2388,6 +2439,7 @@
  
    /// Deinitialize the plugin.
    Error deinitImpl() override {
@@ -4132,13 +4318,13 @@ diff -Naur -x .git -x __pycache__ llvm-project.amd-trunk-dev/openmp/libomptarget
      // The HSA runtime was not initialized, so nothing from the plugin was
      // actually initialized.
      if (!Initialized)
-@@ -2528,6 +2563,27 @@
+@@ -2565,6 +2617,24 @@
  
    AMDGPUDeviceTy &AMDGPUDevice = static_cast<AMDGPUDeviceTy &>(GenericDevice);
    AMDGPUStreamTy &Stream = AMDGPUDevice.getStream(AsyncInfoWrapper);
 +  if (needs_host_services) {
 +    int32_t devid =  AMDGPUDevice.getDeviceId() ;
-+    hsa_amd_memory_pool_t host_mem_pool = HostDevice.getHostMemoryPool().get();
++    hsa_amd_memory_pool_t host_mem_pool = HostDevice.getFineGrainedMemoryPool().get();
 +    hsa_amd_memory_pool_t device_mem_pool = AMDGPUDevice.getCoarseGrainedMemoryPool()->get();
 +    hsa_queue_t * hsa_queue = Stream.getQueue()->getHsaQueue();
 +    uint64_t Buffer = utils::hostrpc_assign_buffer( AMDGPUDevice.getAgent(),
@@ -4151,79 +4337,38 @@ diff -Naur -x .git -x __pycache__ llvm-project.amd-trunk-dev/openmp/libomptarget
 +      consumeError(std::move(Err));
 +    }
 +    DP("Hostrpc buffer allocated at %p and service thread started\n",(void*) Buffer);
-+    printf("AMDQueue:%p devid:%d   hsaq:%p buffer:%p \n", (void*) Stream.getQueue(), 
-+       devid, (void*) hsa_queue, (void*) Buffer);
 +  } else {
 +    DP("No hostrpc buffer or service thread required\n");
-+    printf("No hostrpc buffer or service thread required\n");
 +  }
  
    // Push the kernel launch into the stream.
    return Stream.pushKernelLaunch(*this, AllArgs, NumThreads, NumBlocks,
-diff -Naur -x .git -x __pycache__ llvm-project.amd-trunk-dev/openmp/libomptarget/plugins-nextgen/common/PluginInterface/GlobalHandler.cpp llvm-project/openmp/libomptarget/plugins-nextgen/common/PluginInterface/GlobalHandler.cpp
---- llvm-project.amd-trunk-dev/openmp/libomptarget/plugins-nextgen/common/PluginInterface/GlobalHandler.cpp	2023-01-18 16:24:00.052702842 -0500
-+++ llvm-project/openmp/libomptarget/plugins-nextgen/common/PluginInterface/GlobalHandler.cpp	2023-02-20 11:36:32.122774668 -0500
-@@ -83,6 +83,16 @@
-     GenericDeviceTy &Device, DeviceImageTy &DeviceImage,
-     const GlobalTy &HostGlobal, const GlobalTy &DeviceGlobal,
-     bool Device2Host) {
-+  return moveGlobalBetweenDeviceAndHost(Device, HostGlobal, DeviceGlobal,
-+                                        Device2Host);
-+}
-+
-+/// Actually move memory between host and device. See readGlobalFromDevice and
-+/// writeGlobalToDevice for the interface description.
-+Error GenericGlobalHandlerTy::moveGlobalBetweenDeviceAndHost(
-+    GenericDeviceTy &Device, const GlobalTy &HostGlobal,
-+    const GlobalTy &DeviceGlobal,
-+    bool Device2Host) {
+diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/plugins-nextgen/cuda/CMakeLists.txt llvm-project/openmp/libomptarget/plugins-nextgen/cuda/CMakeLists.txt
+--- llvm-project.upstream/openmp/libomptarget/plugins-nextgen/cuda/CMakeLists.txt	2023-02-27 09:21:59.251665276 -0500
++++ llvm-project/openmp/libomptarget/plugins-nextgen/cuda/CMakeLists.txt	2023-02-27 10:53:30.705996884 -0500
+@@ -26,6 +26,10 @@
+ set(LIBOMPTARGET_DLOPEN_LIBCUDA OFF)
+ option(LIBOMPTARGET_FORCE_DLOPEN_LIBCUDA "Build with dlopened libcuda" ${LIBOMPTARGET_DLOPEN_LIBCUDA})
  
-   // Transfer the data from the source to the destination.
-   if (Device2Host) {
-diff -Naur -x .git -x __pycache__ llvm-project.amd-trunk-dev/openmp/libomptarget/plugins-nextgen/common/PluginInterface/GlobalHandler.h llvm-project/openmp/libomptarget/plugins-nextgen/common/PluginInterface/GlobalHandler.h
---- llvm-project.amd-trunk-dev/openmp/libomptarget/plugins-nextgen/common/PluginInterface/GlobalHandler.h	2023-01-18 16:24:00.052702842 -0500
-+++ llvm-project/openmp/libomptarget/plugins-nextgen/common/PluginInterface/GlobalHandler.h	2023-02-20 11:37:51.894424714 -0500
-@@ -112,6 +112,13 @@
-   /// Actually move memory between host and device. See readGlobalFromDevice and
-   /// writeGlobalToDevice for the interface description.
-   Error moveGlobalBetweenDeviceAndHost(GenericDeviceTy &Device,
-+                                       const GlobalTy &HostGlobal,
-+                                       const GlobalTy &DeviceGlobal,
-+                                       bool Device2Host);
-+
-+  /// Actually move memory between host and device. See readGlobalFromDevice and
-+  /// writeGlobalToDevice for the interface description.
-+  Error moveGlobalBetweenDeviceAndHost(GenericDeviceTy &Device,
-                                        DeviceImageTy &Image,
-                                        const GlobalTy &HostGlobal,
-                                        const GlobalTy &DeviceGlobal,
-@@ -176,6 +183,17 @@
-     return moveGlobalBetweenDeviceAndHost(Device, Image, HostGlobal,
-                                           /* D2H */ false);
-   }
-+
-+  /// Copy the memory associated with a global from the host to its counterpart
-+  /// on the device. The name, size, and origin are defined by \p HostGlobal.
-+  /// The destination is automatically resolved.
-+  Error writeGlobalToDevice(GenericDeviceTy &Device,
-+                            const GlobalTy &HostGlobal,
-+                            const GlobalTy &DeviceGlobal) {
-+    return moveGlobalBetweenDeviceAndHost(Device, HostGlobal,
-+                                          DeviceGlobal,
-+                                          /* D2H */ false);
-+  }
- };
++set(hostrpc_link_opt "")
++if(HOSTRPC_BUILD_NVPTX)
++   set(hostrpc_link_opt "-Wl,--whole-archive nvptx_hostrpc_services -Wl,--no-whole-archive")
++endif()
+ add_llvm_library(omptarget.rtl.cuda.nextgen SHARED
+   src/rtl.cpp
  
- } // namespace plugin
-diff -Naur -x .git -x __pycache__ llvm-project.amd-trunk-dev/openmp/libomptarget/src/rtl.cpp llvm-project/openmp/libomptarget/src/rtl.cpp
---- llvm-project.amd-trunk-dev/openmp/libomptarget/src/rtl.cpp	2023-01-31 15:41:50.174149623 -0500
-+++ llvm-project/openmp/libomptarget/src/rtl.cpp	2023-02-16 16:59:48.411195967 -0500
-@@ -92,7 +92,7 @@
+@@ -38,10 +42,14 @@
+   MemoryManager
+   PluginInterface
+   ${OPENMP_PTHREAD_LIB}
++  ${hostrpc_link_opt}
+   "-Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/../exports,-z,defs"
  
-   DP("Loading RTLs...\n");
+   NO_INSTALL_RPATH
+ )
++if(HOSTRPC_BUILD_AMD)
++   add_dependencies(omptarget.rtl.cuda.nextgen nvptx_hostrpc_services)
++endif()
  
--  BoolEnvar NextGenPlugins("LIBOMPTARGET_NEXTGEN_PLUGINS", false);
-+  BoolEnvar NextGenPlugins("LIBOMPTARGET_NEXTGEN_PLUGINS", true);
- 
-   // Attempt to open all the plugins and, if they exist, check if the interface
-   // is correct and if they are supporting any devices.
+ if(LIBOMPTARGET_DEP_CUDA_FOUND AND NOT LIBOMPTARGET_FORCE_DLOPEN_LIBCUDA)
+   libomptarget_say("Building CUDA plugin linked against libcuda")
