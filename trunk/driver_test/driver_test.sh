@@ -8,13 +8,20 @@
 #    OARCH:  Offload architecture, default is sm_70 
 #    USE_FLANG: Use flang-new, default is NO because flang offload driver still broken
 #
-# Example: To test flang-new with AMD gpu gfx908 run this command:
-#   OARCH=gfx908 USE_FLANG=YES ./driver_test.sh  
+# Example: To use clang to avoid flang-new lane function test , run:
+#   USE_FLANG=NO ./driver_test.sh
 
 # Set environment variable defaults here:
 TRUNK=${TRUNK:-$HOME/rocm/trunk}
-OARCH=${OARCH:-sm_70}
-USE_FLANG=${USE_FLANG:-NO}
+USE_FLANG=${USE_FLANG:-YES}
+
+if [ ! -f $TRUNK/bin/amdgpu-arch ] ; then
+  OARCH=${OARCH:-sm_70}
+  echo "WARNING, no amdgpu-arch utility in $TRUNK to get current offload-arch, using $OARCH"
+else
+  amdarch=`$TRUNK/bin/amdgpu-arch | head -n 1`
+  OARCH=${OARCH:-$amdarch}
+fi
 
 _llvm_bin_dir=$TRUNK/bin
 
