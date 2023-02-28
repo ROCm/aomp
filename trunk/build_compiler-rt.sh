@@ -62,8 +62,8 @@ cd $BUILD_TRUNK/build/compiler-rt
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    echo
    echo " -----Running cmake ---- " 
-   echo ${AOMP_CMAKE} $MYCMAKEOPTS $TRUNK_REPOS/llvm-project/compiler-rt
-   ${AOMP_CMAKE} $MYCMAKEOPTS $TRUNK_REPOS/llvm-project/compiler-rt 2>&1
+   echo ${AOMP_CMAKE} $MYCMAKEOPTS $TRUNK_REPOS/$LLVMPROJECT/compiler-rt
+   ${AOMP_CMAKE} $MYCMAKEOPTS $TRUNK_REPOS/$LLVMPROJECT/compiler-rt 2>&1
    if [ $? != 0 ] ; then 
       echo "ERROR cmake failed. Cmake flags"
       echo "      $MYCMAKEOPTS"

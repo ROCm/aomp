@@ -21,9 +21,11 @@ TRUNK_INSTALL_DIR=${TRUNK_LINK}_${TRUNK_VERSION_STRING}
 TRUNK_MAJOR_VERSION=${TRUNK_VERSION%.*}
 export TRUNK_MAJOR_VERSION
 
+# LLVMPROJECT names of the source directory to enable alternatve builds
+# such as a build of pure upstream sources without amd-trunk-dev
+LLVMPROJECT=${LLVMPROJECT:-llvm-project}
+
 # Set the directory location where all local TRUNK git repos are stored.
-# For example, if TRUNK_REPOS=$HOME/git/trunk17.0, then the upstream 
-# trunk repo should be cloned at $HOME/git/trunk17.0/llvm-project
 TRUNK_REPOS=${TRUNK_REPOS:-${HOME}/git/trunk${TRUNK_VERSION}}
 
 # The patch control file 
@@ -81,6 +83,15 @@ else
     exit 1
   fi
   AOMP_CCACHE_OPTS="-DCMAKE_C_COMPILER_LAUNCHER=$_ccache_bin -DCMAKE_CXX_COMPILER_LAUNCHER=$_ccache_bin"
+fi
+
+TRUNK_SKIP_FLANG=${TRUNK_SKIP_FLANG:-0}
+if [ "$TRUNK_SKIP_FLANG" == 1 ] ; then
+   TRUNK_PROJECTS_LIST=${TRUNK_PROJECTS_LIST:-"clang;lld"}
+   TRUNK_COMPONENT_LIST=${TRUNK_COMPONENT_LIST:-"prereq project compiler-rt"}
+else
+   TRUNK_PROJECTS_LIST=${TRUNK_PROJECTS_LIST:-"clang;lld;mlir"}
+   TRUNK_COMPONENT_LIST=${TRUNK_COMPONENT_LIST:-"prereq project compiler-rt flang"}
 fi
 
 # AOMP_SUPP is for SUPPlemental software components needed for testing.

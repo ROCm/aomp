@@ -31,12 +31,12 @@ $AOMP_CCACHE_OPTS \
 -DFLANG_ENABLE_WERROR=ON \
 -DLLVM_TARGETS_TO_BUILD=host \
 -DLLVM_ENABLE_ASSERTIONS=ON \
--DLLVM_BUILD_MAIN_SRC_DIR=$TRUNK_REPOS/build/llvm-project/lib/cmake/llvm \
--DLLVM_EXTERNAL_LIT=$TRUNK_REPOS/build/llvm-project/bin/llvm-lit \
+-DLLVM_BUILD_MAIN_SRC_DIR=$TRUNK_REPOS/build/$LLVMPROJECT/lib/cmake/llvm \
+-DLLVM_EXTERNAL_LIT=$TRUNK_REPOS/build/$LLVMPROJECT/bin/llvm-lit \
 -DLLVM_LIT_ARGS=-v \
--DLLVM_DIR=$TRUNK_REPOS/build/llvm-project/lib/cmake/llvm \
--DCLANG_DIR=$TRUNK_REPOS/build/llvm-project/lib/cmake/clang \
--DMLIR_DIR=$TRUNK_REPOS/build/llvm-project/lib/cmake/mlir \
+-DLLVM_DIR=$TRUNK_REPOS/build/$LLVMPROJECT/lib/cmake/llvm \
+-DCLANG_DIR=$TRUNK_REPOS/build/$LLVMPROJECT/lib/cmake/clang \
+-DMLIR_DIR=$TRUNK_REPOS/build/$LLVMPROJECT/lib/cmake/mlir \
 -DCMAKE_INSTALL_PREFIX=$TRUNK_INSTALL_DIR \
 "
 
@@ -63,8 +63,8 @@ cd $BUILD_TRUNK/build/flang
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    echo
    echo " -----Running cmake ---- " 
-   echo ${AOMP_CMAKE} $MYCMAKEOPTS $TRUNK_REPOS/llvm-project/flang
-   ${AOMP_CMAKE} $MYCMAKEOPTS $TRUNK_REPOS/llvm-project/flang 2>&1
+   echo ${AOMP_CMAKE} $MYCMAKEOPTS $TRUNK_REPOS/$LLVMPROJECT/flang
+   ${AOMP_CMAKE} $MYCMAKEOPTS $TRUNK_REPOS/$LLVMPROJECT/flang 2>&1
    if [ $? != 0 ] ; then 
       echo "ERROR cmake failed. Cmake flags"
       echo "      $MYCMAKEOPTS"

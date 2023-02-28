@@ -108,7 +108,40 @@ this CMake variable is added:
 ```
 -DLIBOMPTARGET_ENABLE_DEBUG=ON
 ```
+This is a nice thing to turn on for debugging libomptarget runtime.
+Maybe the default should be 1.
 
+
+## TRUNK_COMPONENTS_LIST
+
+This is a list of components to build.
+
+The default is "prereq project compiler-rt flang"
+
+The build_trunk.sh script will call build_<component_name>.sh twice for each component.
+The first time has no arguments and builds without installation. The 2nd time is with the
+install argument to install the component.
+
+## TRUNK_PROJECTS_LIST
+This is the list of LLVM projects that the build_project.sh script will attempt to build.
+
+The default is "clang;lld;mlir"
+
+Do not add compiler-rt or flang to this list because those parts of LLVM are built with
+build_compiler-rt.sh and build_flang.sh because they use the compiler installed by
+build_project.sh.
+
+## TRUNK_SKIP_FLANG
+
+The default for this variable is 0. Setting this to 1 will shorten build time by
+changing the defaults for TRUNK_COMPONENT_LIST and TRUNK_PROJECTS_LIST to
+
+```
+TRUNK_COMPONENT_LIST=" prereq project compiler-rt"
+TRUNK_PROJECTS_LIST="clang;lld"
+```
+
+The TRUNK_SKIP_FLANG variable is for developers working upstream but not on LLVM flang.
 
 ## BUILD_TYPE
 

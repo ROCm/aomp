@@ -59,7 +59,7 @@ echo
 # By default build_prereq.sh will build cmake rocmsmilib and hwloc
 # For trunk, we only need the current cmake.
 export PREREQUISITE_COMPONENTS="cmake"
-components="prereq project compiler-rt flang"
+components="$TRUNK_COMPONENT_LIST"
 echo "COMPONENTS:$components"
 
 #Partial build options. Check if argument was given.

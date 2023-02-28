@@ -10,6 +10,7 @@ thisdir=`dirname $realpath`
 . $thisdir/trunk_common_vars
 # --- end standard header ----
 
+echo "LLVM PROJECTS TO BUILD:$TRUNK_PROJECTS_LIST"
 DO_TESTS=${DO_TESTS:-"-DLLVM_BUILD_TESTS=ON -DLLVM_INCLUDE_TESTS=ON -DCLANG_INCLUDE_TESTS=ON"}
 DO_TESTS=""
 
@@ -40,7 +41,7 @@ $_targets_to_build \
 -DLLVM_ENABLE_ASSERTIONS=ON \
 -DLLVM_ENABLE_RUNTIMES='openmp;compiler-rt' \
 $AOMP_CCACHE_OPTS \
--DLLVM_ENABLE_PROJECTS='clang;lld;mlir' \
+-DLLVM_ENABLE_PROJECTS='$TRUNK_PROJECTS_LIST' \
 -DLLVM_INSTALL_UTILS=ON \
 -DBUILD_SHARED_LIBS=ON \
 -DCMAKE_CXX_STANDARD=17 \
@@ -78,25 +79,25 @@ fi
 
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    echo 
-   echo "This is a FRESH START. ERASING any previous builds in $BUILD_TRUNK/build/llvm-project"
+   echo "This is a FRESH START. ERASING any previous builds in $BUILD_TRUNK/build/$LLVMPROJECT"
    echo "Use ""$0 nocmake"" or ""$0 install"" to avoid FRESH START."
-   rm -rf $BUILD_TRUNK/build/llvm-project
-   mkdir -p $BUILD_TRUNK/build/llvm-project
+   rm -rf $BUILD_TRUNK/build/$LLVMPROJECT
+   mkdir -p $BUILD_TRUNK/build/$LLVMPROJECT
 else
-   if [ ! -d $BUILD_TRUNK/build/llvm-project ] ; then 
-      echo "ERROR: The build directory $BUILD_TRUNK/build/llvm-project does not exist"
+   if [ ! -d $BUILD_TRUNK/build/$LLVMPROJECT ] ; then
+      echo "ERROR: The build directory $BUILD_TRUNK/build/$LLVMPROJECT does not exist"
       echo "       run $0 without nocmake or install options. " 
       exit 1
    fi
 fi
 
-cd $BUILD_TRUNK/build/llvm-project
+cd $BUILD_TRUNK/build/$LLVMPROJECT
 
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    echo
    echo " -----Running cmake ---- " 
-   echo ${AOMP_CMAKE} $_set_ninja_gan $TRUNK_REPOS/llvm-project/llvm -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DLLVM_ENABLE_ASSERTIONS=ON '-DLLVM_LIT_ARGS=-vv --show-unsupported --show-xfail -j 32' $MYCMAKEOPTS
-   ${AOMP_CMAKE} $_set_ninja_gan $TRUNK_REPOS/llvm-project/llvm -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DLLVM_ENABLE_ASSERTIONS=ON '-DLLVM_LIT_ARGS=-vv --show-unsupported --show-xfail -j 32' $MYCMAKEOPTS 2>&1
+   echo ${AOMP_CMAKE} $_set_ninja_gan $TRUNK_REPOS/$LLVMPROJECT/llvm -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DLLVM_ENABLE_ASSERTIONS=ON '-DLLVM_LIT_ARGS=-vv --show-unsupported --show-xfail -j 32' $MYCMAKEOPTS
+   ${AOMP_CMAKE} $_set_ninja_gan $TRUNK_REPOS/$LLVMPROJECT/llvm -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DLLVM_ENABLE_ASSERTIONS=ON '-DLLVM_LIT_ARGS=-vv --show-unsupported --show-xfail -j 32' $MYCMAKEOPTS 2>&1
    if [ $? != 0 ] ; then 
       echo "ERROR cmake failed. Cmake flags"
       echo "      $MYCMAKEOPTS"
