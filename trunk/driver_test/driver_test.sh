@@ -26,7 +26,7 @@ fi
 _llvm_bin_dir=$TRUNK/bin
 
 #extra_args="-v -save-temps"
-extra_args=""
+extra_args="-save-temps"
 
 # Generate driver cmds for each of three steps
 $_llvm_bin_dir/flang-new -### $extra_args -c -fopenmp --offload-arch=$OARCH dec_arrayval.f95 -o dec_arrayval.o 2>flang-new.cmds
@@ -59,4 +59,9 @@ if [ $? == 0 ] ; then
    export OMP_TARGET_OFFLOAD=MANDATORY
    OMP_TARGET_OFFLOAD=MANDATORY ./main
 fi
-
+echo
+echo CONVERTING bc to ll. See files device_fortran.ll device_c.ll host_fortran.ll host_c.ll
+$TRUNK/bin/llvm-dis dec_arrayval-openmp-amdgcn-amd-amdhsa-gfx908.bc -o device_fortran.ll
+$TRUNK/bin/llvm-dis dec_arrayval-host-x86_64-unknown-linux-gnu.bc -o host_fortran.ll
+$TRUNK/bin/llvm-dis inc_arrayval-openmp-amdgcn-amd-amdhsa-gfx908.bc -o device_c.ll
+$TRUNK/bin/llvm-dis inc_arrayval-host-x86_64-unknown-linux-gnu.bc -o host_c.ll
