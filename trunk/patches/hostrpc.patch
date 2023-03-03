@@ -1,6 +1,6 @@
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/clang/lib/CodeGen/CGBuiltin.cpp llvm-project/clang/lib/CodeGen/CGBuiltin.cpp
 --- llvm-project.upstream/clang/lib/CodeGen/CGBuiltin.cpp	2023-02-27 09:21:58.339668818 -0500
-+++ llvm-project/clang/lib/CodeGen/CGBuiltin.cpp	2023-02-27 10:53:30.697996900 -0500
++++ llvm-project/clang/lib/CodeGen/CGBuiltin.cpp	2023-03-02 13:25:13.087430575 -0500
 @@ -5174,7 +5174,9 @@
    case Builtin::BIprintf:
      if (getTarget().getTriple().isNVPTX() ||
@@ -14,26 +14,27 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/clang/lib/CodeGen/CGBuil
          return EmitNVPTXDevicePrintfCallExpr(E);
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/clang/lib/CodeGen/CGExpr.cpp llvm-project/clang/lib/CodeGen/CGExpr.cpp
 --- llvm-project.upstream/clang/lib/CodeGen/CGExpr.cpp	2023-02-27 09:21:58.347668787 -0500
-+++ llvm-project/clang/lib/CodeGen/CGExpr.cpp	2023-02-27 10:53:30.701996892 -0500
-@@ -5462,6 +5462,15 @@
++++ llvm-project/clang/lib/CodeGen/CGExpr.cpp	2023-03-02 22:30:29.424789630 -0500
+@@ -5462,6 +5462,16 @@
      }
    }
  
-+  // FIXME: Only call EmitHostrpcVargsFn for variadic functions that actually
-+  //        that have a hostrpc stubs
++  // With Hostrpc, GPUs can execute certain variadic functions on the host
 +  if ((CGM.getTriple().isAMDGCN() || CGM.getTriple().isNVPTX()) &&
 +      CGM.getLangOpts().OpenMP && FnType && dyn_cast<FunctionProtoType>(FnType)
-+      && dyn_cast<FunctionProtoType>(FnType)->isVariadic())
++      && dyn_cast<FunctionProtoType>(FnType)->isVariadic() &&
++      (std::find( std::begin(HostrpcVargFns), std::end(HostrpcVargFns),
++      E->getDirectCallee()->getNameAsString()) != std::end(HostrpcVargFns)))
 +    return EmitHostrpcVargsFn(
-+        E, E->getDirectCallee()->getNameAsString().append("_allocate").c_str(),
-+        E->getDirectCallee()->getNameAsString().append("_execute").c_str());
++      E, E->getDirectCallee()->getNameAsString().append("_allocate").c_str(),
++      E->getDirectCallee()->getNameAsString().append("_execute").c_str());
 +
    EmitCallArgs(Args, dyn_cast<FunctionProtoType>(FnType), E->arguments(),
                 E->getDirectCallee(), /*ParamsToSkip*/ 0, Order);
  
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/clang/lib/CodeGen/CGGPUBuiltin.cpp llvm-project/clang/lib/CodeGen/CGGPUBuiltin.cpp
 --- llvm-project.upstream/clang/lib/CodeGen/CGGPUBuiltin.cpp	2023-02-27 09:21:35.555757241 -0500
-+++ llvm-project/clang/lib/CodeGen/CGGPUBuiltin.cpp	2023-02-27 10:53:30.701996892 -0500
++++ llvm-project/clang/lib/CodeGen/CGGPUBuiltin.cpp	2023-03-02 13:25:13.091430559 -0500
 @@ -213,3 +213,360 @@
    return EmitDevicePrintfCallExpr(E, this, GetOpenMPVprintfDeclaration(CGM),
                                    true);
@@ -397,11 +398,14 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/clang/lib/CodeGen/CGGPUB
 +}
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/clang/lib/CodeGen/CodeGenFunction.h llvm-project/clang/lib/CodeGen/CodeGenFunction.h
 --- llvm-project.upstream/clang/lib/CodeGen/CodeGenFunction.h	2023-02-27 09:21:58.363668725 -0500
-+++ llvm-project/clang/lib/CodeGen/CodeGenFunction.h	2023-02-27 10:53:30.701996892 -0500
-@@ -4131,6 +4131,8 @@
++++ llvm-project/clang/lib/CodeGen/CodeGenFunction.h	2023-03-02 22:25:08.330247204 -0500
+@@ -4131,6 +4131,11 @@
    RValue EmitNVPTXDevicePrintfCallExpr(const CallExpr *E);
    RValue EmitAMDGPUDevicePrintfCallExpr(const CallExpr *E);
    RValue EmitOpenMPDevicePrintfCallExpr(const CallExpr *E);
++  std::vector<std::string> HostrpcVargFns{"fprintf", "hostrpc_varfn_uint",
++    "hostrpc_varfn_uint64", "hostrpc_varfn_int", "hostrpc_varfn_long",
++    "hostrpc_varfn_float", "hostrpc_varfn_double", "printf"} ;
 +  RValue EmitHostrpcVargsFn(const CallExpr *E, const char *allocate_name,
 +                            const char *execute_name);
  
@@ -409,8 +413,20 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/clang/lib/CodeGen/CodeGe
                           const CallExpr *E, ReturnValueSlot ReturnValue);
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/clang/lib/Driver/ToolChains/Clang.cpp llvm-project/clang/lib/Driver/ToolChains/Clang.cpp
 --- llvm-project.upstream/clang/lib/Driver/ToolChains/Clang.cpp	2023-02-27 09:21:58.371668694 -0500
-+++ llvm-project/clang/lib/Driver/ToolChains/Clang.cpp	2023-02-27 10:53:30.705996884 -0500
-@@ -8428,6 +8428,8 @@
++++ llvm-project/clang/lib/Driver/ToolChains/Clang.cpp	2023-03-02 13:25:13.095430543 -0500
+@@ -8164,7 +8164,10 @@
+   assert(Input.isFilename() && "Invalid input.");
+   CmdArgs.push_back(Input.getFilename());
+ 
+-  const char *Exec = getToolChain().getDriver().getClangProgramPath();
++  // Get "clang" specifically, because the driver name might be set to flang-new
++  // instead, which does not support -cc1as but does also not require custom
++  // handling of this action
++  const char *Exec = Args.MakeArgString(getToolChain().GetProgramPath("clang"));
+   if (D.CC1Main && !D.CCGenDiagnostics) {
+     // Invoke cc1as directly in this process.
+     C.addCommand(std::make_unique<CC1Command>(
+@@ -8428,6 +8431,8 @@
    const Driver &D = getToolChain().getDriver();
    const llvm::Triple TheTriple = getToolChain().getTriple();
    ArgStringList CmdArgs;
@@ -419,7 +435,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/clang/lib/Driver/ToolCha
  
    // Pass the CUDA path to the linker wrapper tool.
    for (Action::OffloadKind Kind : {Action::OFK_Cuda, Action::OFK_OpenMP}) {
-@@ -8435,12 +8437,15 @@
+@@ -8435,12 +8440,15 @@
      for (auto &I : llvm::make_range(TCRange.first, TCRange.second)) {
        const ToolChain *TC = I.second;
        if (TC->getTriple().isNVPTX()) {
@@ -435,7 +451,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/clang/lib/Driver/ToolCha
      }
    }
  
-@@ -8464,6 +8469,11 @@
+@@ -8464,6 +8472,11 @@
      }
    }
  
@@ -447,9 +463,30 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/clang/lib/Driver/ToolCha
    CmdArgs.push_back(
        Args.MakeArgString("--host-triple=" + TheTriple.getTriple()));
    if (Args.hasArg(options::OPT_v))
+diff -Naur -x .git -x __pycache__ llvm-project.upstream/clang/lib/Driver/ToolChains/Flang.cpp llvm-project/clang/lib/Driver/ToolChains/Flang.cpp
+--- llvm-project.upstream/clang/lib/Driver/ToolChains/Flang.cpp	2023-02-27 09:21:58.371668694 -0500
++++ llvm-project/clang/lib/Driver/ToolChains/Flang.cpp	2023-02-28 09:28:13.208810525 -0500
+@@ -357,6 +357,17 @@
+ 
+   assert(Input.isFilename() && "Invalid input.");
+ 
++  bool IsHostOffloadingAction = JA.isHostOffloading(Action::OFK_OpenMP) ||
++                                JA.isHostOffloading(C.getActiveOffloadKinds());
++  for (const InputInfo &I : Inputs) {
++    if (&I == &Input || I.getType() == types::TY_Nothing) {
++      // This is the primary input or contains nothing.
++    } else if (IsHostOffloadingAction) {
++      CmdArgs.push_back(Args.MakeArgString("-fembed-offload-object=" +
++                                           TC.getInputFilename(I)));
++    }
++  }
++
+   addDashXForInput(Args, Input, CmdArgs);
+ 
+   CmdArgs.push_back(Input.getFilename());
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/CMakeLists.txt llvm-project/openmp/libomptarget/CMakeLists.txt
 --- llvm-project.upstream/openmp/libomptarget/CMakeLists.txt	2023-02-27 09:21:39.107743468 -0500
-+++ llvm-project/openmp/libomptarget/CMakeLists.txt	2023-02-27 10:53:30.705996884 -0500
++++ llvm-project/openmp/libomptarget/CMakeLists.txt	2023-03-02 13:25:13.095430543 -0500
 @@ -108,6 +108,7 @@
  add_subdirectory(plugins)
  add_subdirectory(plugins-nextgen)
@@ -460,7 +497,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/CMak
  # Add tests.
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/hostrpc/CMakeLists.txt llvm-project/openmp/libomptarget/hostrpc/CMakeLists.txt
 --- llvm-project.upstream/openmp/libomptarget/hostrpc/CMakeLists.txt	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/openmp/libomptarget/hostrpc/CMakeLists.txt	2023-02-24 09:10:21.414539807 -0500
++++ llvm-project/openmp/libomptarget/hostrpc/CMakeLists.txt	2023-03-02 21:10:27.352481297 -0500
 @@ -0,0 +1,191 @@
 +##===----------------------------------------------------------------------===##
 +#
@@ -652,17 +689,17 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +endforeach() # end foreach archs
 +set(CLANG_VERSION_MAJOR 17)
 +set(header_install_dir lib/clang/${CLANG_VERSION_MAJOR}/include)
-+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/hostrpc_stubs.h" DESTINATION ${header_install_dir})
++install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/hostrpc.h" DESTINATION ${header_install_dir})
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/hostrpc/services/amdgcn_hostrpc.cpp llvm-project/openmp/libomptarget/hostrpc/services/amdgcn_hostrpc.cpp
 --- llvm-project.upstream/openmp/libomptarget/hostrpc/services/amdgcn_hostrpc.cpp	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/openmp/libomptarget/hostrpc/services/amdgcn_hostrpc.cpp	2023-02-24 09:58:23.759362084 -0500
++++ llvm-project/openmp/libomptarget/hostrpc/services/amdgcn_hostrpc.cpp	2023-03-02 21:02:45.962239593 -0500
 @@ -0,0 +1,553 @@
 +
 +#include <hsa/hsa.h>
 +#include <hsa/hsa_ext_amd.h>
 +#include "urilocator.h"
 +#include "execute_service.h"
-+#include "../src/hostrpc.h"
++#include "../src/hostrpc_internal.h"
 +#include <list>
 +#include <atomic>
 +#include <cstring>
@@ -1212,7 +1249,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +}
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/hostrpc/services/amdgcn_urilocator.cpp llvm-project/openmp/libomptarget/hostrpc/services/amdgcn_urilocator.cpp
 --- llvm-project.upstream/openmp/libomptarget/hostrpc/services/amdgcn_urilocator.cpp	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/openmp/libomptarget/hostrpc/services/amdgcn_urilocator.cpp	2023-02-21 10:45:18.000000000 -0500
++++ llvm-project/openmp/libomptarget/hostrpc/services/amdgcn_urilocator.cpp	2023-03-02 13:25:13.095430543 -0500
 @@ -0,0 +1,226 @@
 +/*
 +//===---- UriLocator.cpp: Extract URI path using vendor specific HSA-API
@@ -1442,7 +1479,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +}
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/hostrpc/services/CMakeLists.txt llvm-project/openmp/libomptarget/hostrpc/services/CMakeLists.txt
 --- llvm-project.upstream/openmp/libomptarget/hostrpc/services/CMakeLists.txt	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/openmp/libomptarget/hostrpc/services/CMakeLists.txt	2023-02-21 15:57:25.000000000 -0500
++++ llvm-project/openmp/libomptarget/hostrpc/services/CMakeLists.txt	2023-03-02 13:25:13.095430543 -0500
 @@ -0,0 +1,44 @@
 +##===----------------------------------------------------------------------===##
 +#
@@ -1490,7 +1527,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/hostrpc/services/devsanitizer.cpp llvm-project/openmp/libomptarget/hostrpc/services/devsanitizer.cpp
 --- llvm-project.upstream/openmp/libomptarget/hostrpc/services/devsanitizer.cpp	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/openmp/libomptarget/hostrpc/services/devsanitizer.cpp	2023-02-21 10:45:18.000000000 -0500
++++ llvm-project/openmp/libomptarget/hostrpc/services/devsanitizer.cpp	2023-03-02 13:25:13.095430543 -0500
 @@ -0,0 +1,144 @@
 +/*
 +//===---- UriLocator.cpp: Definition of handler for Sanitizer Service. ----===//
@@ -1638,8 +1675,8 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +} // end anonymous namespace
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/hostrpc/services/execute_service.cpp llvm-project/openmp/libomptarget/hostrpc/services/execute_service.cpp
 --- llvm-project.upstream/openmp/libomptarget/hostrpc/services/execute_service.cpp	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/openmp/libomptarget/hostrpc/services/execute_service.cpp	2023-02-21 10:45:18.000000000 -0500
-@@ -0,0 +1,1360 @@
++++ llvm-project/openmp/libomptarget/hostrpc/services/execute_service.cpp	2023-03-02 21:21:30.261789776 -0500
+@@ -0,0 +1,947 @@
 +
 +/*
 + *  execute_service.cpp:  hostrpc services
@@ -1670,7 +1707,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +
 +// #include <hsa/hsa.h>
 +// #include <hsa/hsa_ext_amd.h>
-+#include "../src/hostrpc.h"
++#include "../src/hostrpc_internal.h"
 +#include "execute_service.h"
 +#include <ctype.h>
 +#include <stdarg.h>
@@ -1716,19 +1753,15 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +/// Prototype for host fallback functions
 +typedef uint32_t hostrpc_varfn_uint_t(void *, ...);
 +typedef uint64_t hostrpc_varfn_uint64_t(void *, ...);
-+typedef double hostrpc_varfn_double_t(void *, ...);
++typedef double   hostrpc_varfn_double_t(void *, ...);
 +
 +static service_rc hostrpc_printf(char *buf, size_t bufsz, uint32_t *rc);
 +static service_rc hostrpc_fprintf(char *buf, size_t bufsz, uint32_t *rc);
-+static service_rc hostrpc_varfn_uint_(char *buf, size_t bufsz,
-+                                            uint32_t *rc);
-+static service_rc hostrpc_varfn_uint64_(char *buf, size_t bufsz,
-+                                              uint64_t *rc);
-+static service_rc hostrpc_varfn_double_(char *buf, size_t bufsz,
-+                                              double *rc);
 +
-+static void handler_SERVICE_PRINTF(uint32_t device_id,
-+                                           uint64_t *payload) {
++template <typename T, typename FT>
++static service_rc hostrpc_varfn(char *buf, size_t bufsz, T *rc);
++
++static void handler_SERVICE_PRINTF(uint32_t device_id, uint64_t *payload) {
 +  size_t bufsz = (size_t)payload[0];
 +  char *device_buffer = (char *)payload[1];
 +  uint uint_value;
@@ -1750,41 +1783,15 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +  payload[2] = (uint64_t)err;
 +}
 +
-+static void handler_SERVICE_VARFNUINT(uint32_t device_id,
-+                                              uint64_t *payload) {
++template<typename T, typename TF>
++static void handler_SERVICE_VARFN(uint32_t device_id, uint64_t *payload) {
 +  size_t bufsz = (size_t)payload[0];
 +  char *device_buffer = (char *)payload[1];
-+  uint uint_value;
-+  service_rc rc = hostrpc_varfn_uint_(device_buffer, bufsz, &uint_value);
-+  payload[0] = (uint64_t)uint_value; // What the vargs function pointer returns
++  T return_value;
++  service_rc rc = hostrpc_varfn<T, TF>
++	  (device_buffer, bufsz, &return_value);
++  payload[0] = (uint64_t)return_value; // What the vargs function pointer returns
 +  payload[1] = (uint64_t)rc;         // any errors in the service function
-+  service_rc err = host_device_mem_free(device_buffer);
-+  payload[2] = (uint64_t)err;
-+}
-+
-+static void handler_SERVICE_VARFNUINT64(uint32_t device_id,
-+                                                uint64_t *payload) {
-+  size_t bufsz = (size_t)payload[0];
-+  char *device_buffer = (char *)payload[1];
-+  uint64_t uint64_value;
-+  service_rc rc =
-+      hostrpc_varfn_uint64_(device_buffer, bufsz, &uint64_value);
-+  payload[0] =
-+      (uint64_t)uint64_value; // What the vargs function pointer returns
-+  payload[1] = (uint64_t)rc;  // any errors in the service function
-+  service_rc err = host_device_mem_free(device_buffer);
-+  payload[2] = (uint64_t)err;
-+}
-+
-+static void handler_SERVICE_VARFNDOUBLE(uint32_t device_id,
-+                                                uint64_t *payload) {
-+  size_t bufsz = (size_t)payload[0];
-+  char *device_buffer = (char *)payload[1];
-+  double double_value;
-+  service_rc rc =
-+      hostrpc_varfn_double_(device_buffer, bufsz, (double *)&double_value);
-+  memcpy(&payload[0], &double_value, 8);
-+  payload[1] = (uint64_t)rc; // any errors in the service function
 +  service_rc err = host_device_mem_free(device_buffer);
 +  payload[2] = (uint64_t)err;
 +}
@@ -1863,13 +1870,22 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +    handler_SERVICE_FPRINTF(device_id, payload);
 +    break;
 +  case HOSTRPC_SERVICE_VARFNUINT:
-+    handler_SERVICE_VARFNUINT(device_id, payload);
++    handler_SERVICE_VARFN<uint, hostrpc_varfn_uint_t>(device_id, payload);
 +    break;
 +  case HOSTRPC_SERVICE_VARFNUINT64:
-+    handler_SERVICE_VARFNUINT64(device_id, payload);
++    handler_SERVICE_VARFN<uint64_t, hostrpc_varfn_uint64_t>(device_id, payload);
 +    break;
 +  case HOSTRPC_SERVICE_VARFNDOUBLE:
-+    handler_SERVICE_VARFNDOUBLE(device_id, payload);
++    handler_SERVICE_VARFN<double, hostrpc_varfn_double_t>(device_id, payload);
++    break;
++  case HOSTRPC_SERVICE_VARFNINT:
++    handler_SERVICE_VARFN<int, hostrpc_varfn_int_t>(device_id, payload);
++    break;
++  case HOSTRPC_SERVICE_VARFNLONG:
++    handler_SERVICE_VARFN<long, hostrpc_varfn_long_t>(device_id, payload);
++    break;
++  case HOSTRPC_SERVICE_VARFNFLOAT:
++    handler_SERVICE_VARFN<float, hostrpc_varfn_float_t>(device_id, payload);
 +    break;
 +  case HOSTRPC_SERVICE_MALLOC_PRINTF:
 +    handler_SERVICE_MALLOC_PRINTF(device_id, payload);
@@ -2220,7 +2236,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +                            &data_not_used) != _RC_SUCCESS)
 +    return _RC_ERROR_INVALID_REQUEST;
 +
-+  // Roll back offsets and save stack pointer for hostrpc_varfn_uint to consume
++  // Roll back offsets and save stack pointer
 +  valist.gp_offset = 0;
 +  valist.fp_offset = sizeof(hostrpc_pfIntRegs_t);
 +  void *save_stack = valist.overflow_arg_area;
@@ -2268,7 +2284,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +                            &data_not_used) != _RC_SUCCESS)
 +    return _RC_ERROR_INVALID_REQUEST;
 +
-+  // Roll back offsets and save stack pointer for hostrpc_varfn_uint to consume
++  // Roll back offsets and save stack pointer for
 +  valist.gp_offset = 0;
 +  valist.fp_offset = sizeof(hostrpc_pfIntRegs_t);
 +  void *save_stack = valist.overflow_arg_area;
@@ -2286,7 +2302,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +//---------------- Support for hostrpc_varfn_* service ---------------------
 +//
 +
-+// These are the helper functions for hostrpc_varfn_uint_
++// These are the helper functions for hostrpc_varfn_<TYPE>_ functions
 +static uint64_t getuint32(char *val) {
 +  uint32_t i32 = *(uint32_t *)val;
 +  return (uint64_t)i32;
@@ -2414,15 +2430,16 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +
 +// Make the vargs function call to the function pointer fnptr
 +// by casting fnptr to vfnptr. Return uint32_t
-+static service_rc hostrpc_call_fnptr_uint(uint32_t NumArgs, void *fnptr,
++template <typename T, typename FT>
++static service_rc hostrpc_call_fnptr(uint32_t NumArgs, void *fnptr,
 +                                                uint64_t *a[MAXVARGS],
-+                                                uint32_t *rc) {
++                                                T *rc) {
 +  //
 +  // Users are instructed that their first arg must be a dummy
 +  // so that device interface is same as host interface. To match device
 +  // interface we make the first arg be the function pointer.
 +  //
-+  hostrpc_varfn_uint_t *vfnptr = (hostrpc_varfn_uint_t *)fnptr;
++  FT * vfnptr = (FT *) fnptr;
 +
 +  switch (NumArgs) {
 +  case 1:
@@ -2569,321 +2586,8 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +  return _RC_SUCCESS;
 +}
 +
-+// Make the vargs function call to the function pointer fnptr
-+// by casting fnptr to vfnptr. Return uint64
-+static service_rc hostrpc_call_fnptr_uint64(uint32_t NumArgs, void *fnptr,
-+                                                  uint64_t *a[MAXVARGS],
-+                                                  uint64_t *rc) {
-+  //
-+  // Users are instructed that their first arg must be a dummy
-+  // so that device interface is same as host interface. To match device
-+  // interface we make the first arg be the function pointer.
-+  //
-+  hostrpc_varfn_uint64_t *vfnptr = (hostrpc_varfn_uint64_t *)fnptr;
-+
-+  switch (NumArgs) {
-+  case 1:
-+    *rc = vfnptr(fnptr, a[0]);
-+    break;
-+  case 2:
-+    *rc = vfnptr(fnptr, a[0], a[1]);
-+    break;
-+  case 3:
-+    *rc = vfnptr(fnptr, a[0], a[1], a[2]);
-+    break;
-+  case 4:
-+    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3]);
-+    break;
-+  case 5:
-+    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4]);
-+    break;
-+  case 6:
-+    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5]);
-+    break;
-+  case 7:
-+    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6]);
-+    break;
-+  case 8:
-+    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7]);
-+    break;
-+  case 9:
-+    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8]);
-+    break;
-+  case 10:
-+    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
-+                 a[9]);
-+    break;
-+  case 11:
-+    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
-+                 a[9], a[10]);
-+    break;
-+  case 12:
-+    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
-+                 a[9], a[10], a[11]);
-+    break;
-+  case 13:
-+    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
-+                 a[9], a[10], a[11], a[12]);
-+    break;
-+  case 14:
-+    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
-+                 a[9], a[10], a[11], a[12], a[13]);
-+    break;
-+  case 15:
-+    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
-+                 a[9], a[10], a[11], a[12], a[13], a[14]);
-+    break;
-+  case 16:
-+    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
-+                 a[9], a[10], a[11], a[12], a[13], a[14], a[15]);
-+    break;
-+  case 17:
-+    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
-+                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16]);
-+    break;
-+  case 18:
-+    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
-+                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17]);
-+    break;
-+  case 19:
-+    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
-+                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17],
-+                 a[18]);
-+    break;
-+  case 20:
-+    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
-+                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17],
-+                 a[18], a[19]);
-+    break;
-+  case 21:
-+    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
-+                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17],
-+                 a[18], a[19], a[20]);
-+    break;
-+  case 22:
-+    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
-+                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17],
-+                 a[18], a[19], a[20], a[21]);
-+    break;
-+  case 23:
-+    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
-+                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17],
-+                 a[18], a[19], a[20], a[21], a[22]);
-+    break;
-+  case 24:
-+    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
-+                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17],
-+                 a[18], a[19], a[20], a[21], a[22], a[23]);
-+    break;
-+  case 25:
-+    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
-+                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17],
-+                 a[18], a[19], a[20], a[21], a[22], a[23], a[24]);
-+    break;
-+  case 26:
-+    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
-+                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17],
-+                 a[18], a[19], a[20], a[21], a[22], a[23], a[24], a[25]);
-+    break;
-+  case 27:
-+    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
-+                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17],
-+                 a[18], a[19], a[20], a[21], a[22], a[23], a[24], a[25], a[26]);
-+    break;
-+  case 28:
-+    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
-+                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17],
-+                 a[18], a[19], a[20], a[21], a[22], a[23], a[24], a[25], a[26],
-+                 a[27]);
-+    break;
-+  case 29:
-+    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
-+                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17],
-+                 a[18], a[19], a[20], a[21], a[22], a[23], a[24], a[25], a[26],
-+                 a[27], a[28]);
-+    break;
-+  case 30:
-+    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
-+                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17],
-+                 a[18], a[19], a[20], a[21], a[22], a[23], a[24], a[25], a[26],
-+                 a[27], a[28], a[29]);
-+    break;
-+  case 31:
-+    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
-+                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17],
-+                 a[18], a[19], a[20], a[21], a[22], a[23], a[24], a[25], a[26],
-+                 a[27], a[28], a[29], a[30]);
-+    break;
-+  case 32:
-+    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
-+                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17],
-+                 a[18], a[19], a[20], a[21], a[22], a[23], a[24], a[25], a[26],
-+                 a[27], a[28], a[29], a[30], a[31]);
-+    break;
-+  default:
-+    return _RC_EXCEED_MAXVARGS_ERROR;
-+  }
-+  return _RC_SUCCESS;
-+}
-+
-+// Make the vargs function call to the function pointer fnptr
-+// by casting fnptr to vfnptr. Return double
-+static service_rc hostrpc_call_fnptr_double(uint32_t NumArgs, void *fnptr,
-+                                                  uint64_t *a[MAXVARGS],
-+                                                  double *rc) {
-+  //
-+  // Users are instructed that their first arg must be a dummy
-+  // so that device interface is same as host interface. To match device
-+  // interface we make the first arg be the function pointer.
-+  //
-+  hostrpc_varfn_double_t *vfnptr = (hostrpc_varfn_double_t *)fnptr;
-+
-+  switch (NumArgs) {
-+  case 1:
-+    *rc = vfnptr(fnptr, a[0]);
-+    break;
-+  case 2:
-+    *rc = vfnptr(fnptr, a[0], a[1]);
-+    break;
-+  case 3:
-+    *rc = vfnptr(fnptr, a[0], a[1], a[2]);
-+    break;
-+  case 4:
-+    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3]);
-+    break;
-+  case 5:
-+    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4]);
-+    break;
-+  case 6:
-+    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5]);
-+    break;
-+  case 7:
-+    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6]);
-+    break;
-+  case 8:
-+    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7]);
-+    break;
-+  case 9:
-+    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8]);
-+    break;
-+  case 10:
-+    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
-+                 a[9]);
-+    break;
-+  case 11:
-+    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
-+                 a[9], a[10]);
-+    break;
-+  case 12:
-+    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
-+                 a[9], a[10], a[11]);
-+    break;
-+  case 13:
-+    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
-+                 a[9], a[10], a[11], a[12]);
-+    break;
-+  case 14:
-+    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
-+                 a[9], a[10], a[11], a[12], a[13]);
-+    break;
-+  case 15:
-+    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
-+                 a[9], a[10], a[11], a[12], a[13], a[14]);
-+    break;
-+  case 16:
-+    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
-+                 a[9], a[10], a[11], a[12], a[13], a[14], a[15]);
-+    break;
-+  case 17:
-+    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
-+                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16]);
-+    break;
-+  case 18:
-+    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
-+                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17]);
-+    break;
-+  case 19:
-+    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
-+                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17],
-+                 a[18]);
-+    break;
-+  case 20:
-+    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
-+                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17],
-+                 a[18], a[19]);
-+    break;
-+  case 21:
-+    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
-+                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17],
-+                 a[18], a[19], a[20]);
-+    break;
-+  case 22:
-+    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
-+                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17],
-+                 a[18], a[19], a[20], a[21]);
-+    break;
-+  case 23:
-+    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
-+                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17],
-+                 a[18], a[19], a[20], a[21], a[22]);
-+    break;
-+  case 24:
-+    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
-+                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17],
-+                 a[18], a[19], a[20], a[21], a[22], a[23]);
-+    break;
-+  case 25:
-+    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
-+                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17],
-+                 a[18], a[19], a[20], a[21], a[22], a[23], a[24]);
-+    break;
-+  case 26:
-+    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
-+                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17],
-+                 a[18], a[19], a[20], a[21], a[22], a[23], a[24], a[25]);
-+    break;
-+  case 27:
-+    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
-+                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17],
-+                 a[18], a[19], a[20], a[21], a[22], a[23], a[24], a[25], a[26]);
-+    break;
-+  case 28:
-+    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
-+                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17],
-+                 a[18], a[19], a[20], a[21], a[22], a[23], a[24], a[25], a[26],
-+                 a[27]);
-+    break;
-+  case 29:
-+    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
-+                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17],
-+                 a[18], a[19], a[20], a[21], a[22], a[23], a[24], a[25], a[26],
-+                 a[27], a[28]);
-+    break;
-+  case 30:
-+    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
-+                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17],
-+                 a[18], a[19], a[20], a[21], a[22], a[23], a[24], a[25], a[26],
-+                 a[27], a[28], a[29]);
-+    break;
-+  case 31:
-+    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
-+                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17],
-+                 a[18], a[19], a[20], a[21], a[22], a[23], a[24], a[25], a[26],
-+                 a[27], a[28], a[29], a[30]);
-+    break;
-+  case 32:
-+    *rc = vfnptr(fnptr, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
-+                 a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17],
-+                 a[18], a[19], a[20], a[21], a[22], a[23], a[24], a[25], a[26],
-+                 a[27], a[28], a[29], a[30], a[31]);
-+    break;
-+  default:
-+    return _RC_EXCEED_MAXVARGS_ERROR;
-+  }
-+  return _RC_SUCCESS;
-+}
-+//  This the main service routine for hostrpc_varfn_uint
-+static service_rc hostrpc_varfn_uint_(char *buf, size_t bufsz, uint *rc) {
++template <typename T, typename FT>
++static service_rc hostrpc_varfn(char *buf, size_t bufsz, T *rc) {
 +  if (bufsz == 0)
 +    return _RC_SUCCESS;
 +
@@ -2915,94 +2619,14 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +                                &data_not_used, a) != _RC_SUCCESS)
 +    return _RC_ERROR_INVALID_REQUEST;
 +
-+  if (hostrpc_call_fnptr_uint(NumArgs, fnptr, a, rc) != _RC_SUCCESS)
-+    return _RC_ERROR_INVALID_REQUEST;
-+
-+  return _RC_SUCCESS;
-+}
-+
-+//  This the main service routine for hostrpc_varfn_uint64
-+static service_rc hostrpc_varfn_uint64_(char *buf, size_t bufsz,
-+                                              uint64_t *rc) {
-+  if (bufsz == 0)
-+    return _RC_SUCCESS;
-+
-+  // Get 6 tracking values needed to unpack the buffer
-+  int *datalen = (int *)buf;
-+  int NumArgs = *((int *)(buf + sizeof(int)));
-+  size_t data_not_used =
-+      (size_t)(*datalen) - ((size_t)(2 + NumArgs) * sizeof(int));
-+  char *keyptr = buf + (2 * sizeof(int));
-+  char *dataptr = keyptr + (NumArgs * sizeof(int));
-+  char *strptr = buf + (size_t)*datalen;
-+
-+  if (NumArgs <= 0)
-+    return _RC_ERROR_INVALID_REQUEST;
-+
-+  // skip the function pointer arg including any align buffer
-+  if (((size_t)dataptr) % (size_t)8) {
-+    dataptr += 4;
-+    data_not_used -= 4;
-+  }
-+  void *fnptr = getfnptr(dataptr);
-+  NumArgs--;
-+  keyptr += 4;
-+  dataptr += 8;
-+  data_not_used -= 4;
-+
-+  uint64_t *a[MAXVARGS];
-+  if (hostrpc_build_vargs_array(NumArgs, keyptr, dataptr, strptr,
-+                                &data_not_used, a) != _RC_SUCCESS)
-+    return _RC_ERROR_INVALID_REQUEST;
-+
-+  if (hostrpc_call_fnptr_uint64(NumArgs, fnptr, a, rc) != _RC_SUCCESS)
-+    return _RC_ERROR_INVALID_REQUEST;
-+
-+  return _RC_SUCCESS;
-+}
-+
-+//  This the main service routine for hostrpc_varfn_double
-+static service_rc hostrpc_varfn_double_(char *buf, size_t bufsz,
-+                                              double *rc) {
-+  if (bufsz == 0)
-+    return _RC_SUCCESS;
-+
-+  // Get 6 tracking values needed to unpack the buffer
-+  int *datalen = (int *)buf;
-+  int NumArgs = *((int *)(buf + sizeof(int)));
-+  size_t data_not_used =
-+      (size_t)(*datalen) - ((size_t)(2 + NumArgs) * sizeof(int));
-+  char *keyptr = buf + (2 * sizeof(int));
-+  char *dataptr = keyptr + (NumArgs * sizeof(int));
-+  char *strptr = buf + (size_t)*datalen;
-+
-+  if (NumArgs <= 0)
-+    return _RC_ERROR_INVALID_REQUEST;
-+
-+  // skip the function pointer arg including any align buffer
-+  if (((size_t)dataptr) % (size_t)8) {
-+    dataptr += 4;
-+    data_not_used -= 4;
-+  }
-+  void *fnptr = getfnptr(dataptr);
-+  NumArgs--;
-+  keyptr += 4;
-+  dataptr += 8;
-+  data_not_used -= 4;
-+
-+  uint64_t *a[MAXVARGS];
-+  if (hostrpc_build_vargs_array(NumArgs, keyptr, dataptr, strptr,
-+                                &data_not_used, a) != _RC_SUCCESS)
-+    return _RC_ERROR_INVALID_REQUEST;
-+
-+  if (hostrpc_call_fnptr_double(NumArgs, fnptr, a, rc) != _RC_SUCCESS)
++  if (hostrpc_call_fnptr<T,FT>(NumArgs, fnptr, a, rc) != _RC_SUCCESS)
 +    return _RC_ERROR_INVALID_REQUEST;
 +
 +  return _RC_SUCCESS;
 +}
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/hostrpc/services/execute_service.h llvm-project/openmp/libomptarget/hostrpc/services/execute_service.h
 --- llvm-project.upstream/openmp/libomptarget/hostrpc/services/execute_service.h	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/openmp/libomptarget/hostrpc/services/execute_service.h	2023-02-21 10:45:18.000000000 -0500
++++ llvm-project/openmp/libomptarget/hostrpc/services/execute_service.h	2023-03-02 13:25:13.099430527 -0500
 @@ -0,0 +1,40 @@
 +#ifndef HOSTRPC_EXECUTE_SERVICE_H
 +#define HOSTRPC_EXECUTE_SERVICE_H
@@ -3046,7 +2670,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +#endif
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/hostrpc/services/urilocator.h llvm-project/openmp/libomptarget/hostrpc/services/urilocator.h
 --- llvm-project.upstream/openmp/libomptarget/hostrpc/services/urilocator.h	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/openmp/libomptarget/hostrpc/services/urilocator.h	2023-02-21 10:45:18.000000000 -0500
++++ llvm-project/openmp/libomptarget/hostrpc/services/urilocator.h	2023-03-02 13:25:13.099430527 -0500
 @@ -0,0 +1,66 @@
 +/*
 +//===--- UriLocator.h: Schema of URI Locator  -----------------------------===//
@@ -3116,8 +2740,8 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +#endif
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/hostrpc/src/hostrpc_fallback.cpp llvm-project/openmp/libomptarget/hostrpc/src/hostrpc_fallback.cpp
 --- llvm-project.upstream/openmp/libomptarget/hostrpc/src/hostrpc_fallback.cpp	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/openmp/libomptarget/hostrpc/src/hostrpc_fallback.cpp	2023-02-21 10:45:18.000000000 -0500
-@@ -0,0 +1,86 @@
++++ llvm-project/openmp/libomptarget/hostrpc/src/hostrpc_fallback.cpp	2023-03-02 21:23:47.813235489 -0500
+@@ -0,0 +1,128 @@
 +///
 +///  hostrpc_fallback.cpp: definitions of host fallback functions for stubs.
 +///                        The vargs _allocate and _execute stubs are generated
@@ -3142,6 +2766,9 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +typedef uint hostrpc_varfn_uint_t(void *, ...);
 +typedef uint64_t hostrpc_varfn_uint64_t(void *, ...);
 +typedef double hostrpc_varfn_double_t(void *, ...);
++typedef int hostrpc_varfn_int_t(void *, ...);
++typedef long hostrpc_varfn_long_t(void *, ...);
++typedef float hostrpc_varfn_float_t(void *, ...);
 +
 +uint hostrpc_varfn_uint(void *fnptr, ...) {
 +  hostrpc_varfn_uint_t *local_fnptr = (hostrpc_varfn_uint_t *)fnptr;
@@ -3156,6 +2783,21 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +double hostrpc_varfn_double(void *fnptr, ...) {
 +  hostrpc_varfn_double_t *local_fnptr = (hostrpc_varfn_double_t *)fnptr;
 +  double rc = local_fnptr(fnptr);
++  return rc;
++}
++int hostrpc_varfn_int(void *fnptr, ...) {
++  hostrpc_varfn_int_t *local_fnptr = (hostrpc_varfn_int_t *)fnptr;
++  int rc = local_fnptr(fnptr);
++  return rc;
++}
++long hostrpc_varfn_long(void *fnptr, ...) {
++  hostrpc_varfn_long_t *local_fnptr = (hostrpc_varfn_long_t *)fnptr;
++  long rc = local_fnptr(fnptr);
++  return rc;
++}
++float hostrpc_varfn_float(void *fnptr, ...) {
++  hostrpc_varfn_float_t *local_fnptr = (hostrpc_varfn_float_t *)fnptr;
++  float rc = local_fnptr(fnptr);
 +  return rc;
 +}
 +
@@ -3182,6 +2824,18 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +  _error("hostrpc_varfn_double_allocate");
 +  return NULL;
 +}
++char *hostrpc_varfn_int_allocate(uint32_t bufsz) {
++  _error("hostrpc_varfn_int_allocate");
++  return NULL;
++}
++char *hostrpc_varfn_long_allocate(uint32_t bufsz) {
++  _error("hostrpc_varfn_long_allocate");
++  return NULL;
++}
++char *hostrpc_varfn_float_allocate(uint32_t bufsz) {
++  _error("hostrpc_varfn_float_allocate");
++  return NULL;
++}
 +uint32_t hostrpc_varfn_uint_execute(char *bufptr, uint32_t bufsz) {
 +  _error("hostrpc_varfn_uint_execute");
 +  return 0;
@@ -3192,6 +2846,18 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +}
 +double hostrpc_varfn_double_execute(char *bufptr, uint32_t bufsz) {
 +  _error("hostrpc_varfn_double_execute");
++  return 0;
++}
++uint32_t hostrpc_varfn_int_execute(char *bufptr, uint32_t bufsz) {
++  _error("hostrpc_varfn_int_execute");
++  return 0;
++}
++uint64_t hostrpc_varfn_long_execute(char *bufptr, uint32_t bufsz) {
++  _error("hostrpc_varfn_long_execute");
++  return 0;
++}
++double hostrpc_varfn_float_execute(char *bufptr, uint32_t bufsz) {
++  _error("hostrpc_varfn_float_execute");
 +  return 0;
 +}
 +
@@ -3206,17 +2872,55 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +}
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/hostrpc/src/hostrpc.h llvm-project/openmp/libomptarget/hostrpc/src/hostrpc.h
 --- llvm-project.upstream/openmp/libomptarget/hostrpc/src/hostrpc.h	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/openmp/libomptarget/hostrpc/src/hostrpc.h	2023-02-21 10:45:18.000000000 -0500
-@@ -0,0 +1,106 @@
++++ llvm-project/openmp/libomptarget/hostrpc/src/hostrpc.h	2023-03-02 20:58:15.591245394 -0500
+@@ -0,0 +1,38 @@
 +#ifndef __HOSTRPC_H__
 +#define __HOSTRPC_H__
 +
++//    hostrpc_stubs.h:
++
++#if defined(__cplusplus)
++#define EXTERN extern "C"
++#else
++#define EXTERN extern
++#endif
++
++//  TODO: Provide fortran interface via hipfort
++
++#include <stdint.h>
++#include <stdio.h>
++
++// Interfaces user-callable hostrpc functions
++EXTERN int fprintf(FILE *, const char *, ...);
++EXTERN int printf(const char *, ...);
++
++typedef uint32_t hostrpc_varfn_uint_t(void *, ...);
++typedef uint64_t hostrpc_varfn_uint64_t(void *, ...);
++typedef double   hostrpc_varfn_double_t(void *, ...);
++typedef float    hostrpc_varfn_float_t(void *, ...);
++typedef int      hostrpc_varfn_int_t(void *, ...);
++typedef long     hostrpc_varfn_long_t(void *, ...);
++
++EXTERN uint32_t hostrpc_varfn_uint(void *fnptr, ...);
++EXTERN uint64_t hostrpc_varfn_uint64(void *fnptr, ...);
++EXTERN double   hostrpc_varfn_double(void *fnptr, ...);
++EXTERN float    hostrpc_varfn_float(void *fnptr, ...);
++EXTERN int      hostrpc_varfn_int(void *fnptr, ...);
++EXTERN long     hostrpc_varfn_long(void *fnptr, ...);
++
++// This should be depricated for vargs functions.
++EXTERN void     hostrpc_fptr0(void *fptr);
++
++#endif // __HOSTRPC_H__
+diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/hostrpc/src/hostrpc_internal.h llvm-project/openmp/libomptarget/hostrpc/src/hostrpc_internal.h
+--- llvm-project.upstream/openmp/libomptarget/hostrpc/src/hostrpc_internal.h	1969-12-31 19:00:00.000000000 -0500
++++ llvm-project/openmp/libomptarget/hostrpc/src/hostrpc_internal.h	2023-03-02 21:08:43.256880988 -0500
+@@ -0,0 +1,117 @@
++#ifndef __HOSTRPC_INTERNAL_H__
++#define __HOSTRPC_INTERNAL_H__
++
 +/*
-+ *    hostrpc.h:  This header contains the enum for all the
-+ *                implemented services in hostrpc.  This header is
-+ *                included by both device stubs and host routines.
-+ *                It also includes the version, release, and patch
-+ *                identification for hostrpc.
++ *   hostrpc_internal.h:  
 +
 +MIT License
 +
@@ -3263,20 +2967,32 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +EXTERN char *hostrpc_varfn_uint_allocate(uint32_t bufsz);
 +EXTERN char *hostrpc_varfn_uint64_allocate(uint32_t bufsz);
 +EXTERN char *hostrpc_varfn_double_allocate(uint32_t bufsz);
++EXTERN char *hostrpc_varfn_int_allocate(uint32_t bufsz);
++EXTERN char *hostrpc_varfn_long_allocate(uint32_t bufsz);
++EXTERN char *hostrpc_varfn_float_allocate(uint32_t bufsz);
 +EXTERN uint32_t hostrpc_varfn_uint_execute(char *bufptr, uint32_t bufsz);
 +EXTERN uint64_t hostrpc_varfn_uint64_execute(char *bufptr, uint32_t bufsz);
 +EXTERN double hostrpc_varfn_double_execute(char *bufptr, uint32_t bufsz);
++EXTERN int  hostrpc_varfn_int_execute(char *bufptr, uint32_t bufsz);
++EXTERN long hostrpc_varfn_long_execute(char *bufptr, uint32_t bufsz);
++EXTERN float hostrpc_varfn_float_execute(char *bufptr, uint32_t bufsz);
 +
 +EXTERN uint32_t __strlen_max(char *instr, uint32_t maxstrlen);
 +
 +typedef uint32_t hostrpc_varfn_uint_t(void *, ...);
 +typedef uint64_t hostrpc_varfn_uint64_t(void *, ...);
 +typedef double hostrpc_varfn_double_t(void *, ...);
++typedef int hostrpc_varfn_int_t(void *, ...);
++typedef long hostrpc_varfn_long_t(void *, ...);
++typedef float hostrpc_varfn_float_t(void *, ...);
 +
 +EXTERN void hostrpc_fptr0(void *fptr);
 +EXTERN uint32_t hostrpc_varfn_uint(void *fnptr, ...);
 +EXTERN uint64_t hostrpc_varfn_uint64(void *fnptr, ...);
 +EXTERN double hostrpc_varfn_double(void *fnptr, ...);
++EXTERN int hostrpc_varfn_int(void *fnptr, ...);
++EXTERN long hostrpc_varfn_long(void *fnptr, ...);
++EXTERN float hostrpc_varfn_float(void *fnptr, ...);
 +
 +// Please update at least the patch level when adding a new service.
 +// This will ensure that applications that use a new device stub do not
@@ -3309,14 +3025,17 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +  HOSTRPC_SERVICE_VARFNDOUBLE,
 +  HOSTRPC_SERVICE_FPRINTF,
 +  HOSTRPC_SERVICE_FTNASSIGN,
-+  HOSTRPC_SERVICE_SANITIZER
++  HOSTRPC_SERVICE_SANITIZER,
++  HOSTRPC_SERVICE_VARFNINT,
++  HOSTRPC_SERVICE_VARFNLONG,
++  HOSTRPC_SERVICE_VARFNFLOAT,
 +};
 +typedef enum hostcall_service_id hostcall_service_id_t;
 +
-+#endif // __HOSTRPC_H__
++#endif // __HOSTRPC_INTERNAL_H__
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/hostrpc/src/hostrpc_invoke.cpp llvm-project/openmp/libomptarget/hostrpc/src/hostrpc_invoke.cpp
 --- llvm-project.upstream/openmp/libomptarget/hostrpc/src/hostrpc_invoke.cpp	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/openmp/libomptarget/hostrpc/src/hostrpc_invoke.cpp	2023-02-24 08:17:14.570021626 -0500
++++ llvm-project/openmp/libomptarget/hostrpc/src/hostrpc_invoke.cpp	2023-03-02 13:25:13.099430527 -0500
 @@ -0,0 +1,487 @@
 +
 +#include <stdint.h>
@@ -3807,8 +3526,8 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +#pragma omp end declare target
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/hostrpc/src/hostrpc_stubs.cpp llvm-project/openmp/libomptarget/hostrpc/src/hostrpc_stubs.cpp
 --- llvm-project.upstream/openmp/libomptarget/hostrpc/src/hostrpc_stubs.cpp	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/openmp/libomptarget/hostrpc/src/hostrpc_stubs.cpp	2023-02-23 10:01:28.000000000 -0500
-@@ -0,0 +1,199 @@
++++ llvm-project/openmp/libomptarget/hostrpc/src/hostrpc_stubs.cpp	2023-03-02 21:01:50.610447499 -0500
+@@ -0,0 +1,230 @@
 +///
 +///  hostrpc_stubs.cpp: definitions of device stubs
 +///
@@ -3823,7 +3542,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +// host routine for printf_execute will free the buffer that was allocated
 +// by printf_allocate.
 +
-+#include "hostrpc.h"
++#include "hostrpc_internal.h"
 +#include <stdint.h>
 +#include <stdio.h>
 +
@@ -3896,24 +3615,26 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +      hostrpc_invoke_zeros(PACK_VERS(HOSTRPC_SERVICE_PRINTF), arg0, arg1);
 +  return (int)result.arg0;
 +}
-+char *hostrpc_varfn_uint_allocate(uint32_t bufsz) {
++
++char *hostrpc_varfn_allocate(uint32_t bufsz) {
 +  uint64_t arg0 = (uint64_t)bufsz;
 +  hostrpc_result_t result =
 +      hostrpc_invoke_zeros(PACK_VERS(HOSTRPC_SERVICE_MALLOC_PRINTF), arg0);
 +  return (char *)result.arg1;
 +}
-+char *hostrpc_varfn_uint64_allocate(uint32_t bufsz) {
-+  uint64_t arg0 = (uint64_t)bufsz;
-+  hostrpc_result_t result =
-+      hostrpc_invoke_zeros(PACK_VERS(HOSTRPC_SERVICE_MALLOC_PRINTF), arg0);
-+  return (char *)result.arg1;
-+}
-+char *hostrpc_varfn_double_allocate(uint32_t bufsz) {
-+  uint64_t arg0 = (uint64_t)bufsz;
-+  hostrpc_result_t result =
-+      hostrpc_invoke_zeros(PACK_VERS(HOSTRPC_SERVICE_MALLOC_PRINTF), arg0);
-+  return (char *)result.arg1;
-+}
++
++char *hostrpc_varfn_uint_allocate(uint32_t bufsz) 
++  { return hostrpc_varfn_allocate(bufsz); }
++char *hostrpc_varfn_uint64_allocate(uint32_t bufsz) 
++  { return hostrpc_varfn_allocate(bufsz); }
++char *hostrpc_varfn_int_allocate(uint32_t bufsz) 
++  { return hostrpc_varfn_allocate(bufsz); }
++char *hostrpc_varfn_long_allocate(uint32_t bufsz) 
++  { return hostrpc_varfn_allocate(bufsz); }
++char *hostrpc_varfn_double_allocate(uint32_t bufsz) 
++  { return hostrpc_varfn_allocate(bufsz); }
++char *hostrpc_varfn_float_allocate(uint32_t bufsz) 
++  { return hostrpc_varfn_allocate(bufsz); }
 +
 +void hostrpc_fptr0(void *fptr) {
 +  uint64_t arg0 = (uint64_t)fptr;
@@ -3957,7 +3678,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +  arg1 = (uint64_t)print_buffer;
 +  hostrpc_result_t result =
 +      hostrpc_invoke_zeros(PACK_VERS(HOSTRPC_SERVICE_VARFNUINT), arg0, arg1);
-+  return (int)result.arg0;
++  return (uint32_t)result.arg0;
 +}
 +uint64_t hostrpc_varfn_uint64_execute(char *print_buffer, uint32_t bufsz) {
 +  uint64_t arg0, arg1;
@@ -3979,6 +3700,35 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +  } unionarg;
 +  unionarg.val = result.arg0;
 +  return unionarg.dval;
++}
++int hostrpc_varfn_int_execute(char *print_buffer, uint32_t bufsz) {
++  uint64_t arg0, arg1;
++  arg0 = (uint64_t)bufsz;
++  arg1 = (uint64_t)print_buffer;
++  hostrpc_result_t result =
++      hostrpc_invoke_zeros(PACK_VERS(HOSTRPC_SERVICE_VARFNINT), arg0, arg1);
++  return (int) result.arg0;
++}
++float hostrpc_varfn_float_execute(char *print_buffer, uint32_t bufsz) {
++  uint64_t arg0, arg1;
++  arg0 = (uint64_t)bufsz;
++  arg1 = (uint64_t)print_buffer;
++  hostrpc_result_t result =
++      hostrpc_invoke_zeros(PACK_VERS(HOSTRPC_SERVICE_VARFNFLOAT), arg0, arg1);
++  return (float) result.arg0;
++}
++long hostrpc_varfn_long_execute(char *print_buffer, uint32_t bufsz) {
++  uint64_t arg0, arg1;
++  arg0 = (uint64_t)bufsz;
++  arg1 = (uint64_t)print_buffer;
++  hostrpc_result_t result =
++      hostrpc_invoke_zeros(PACK_VERS(HOSTRPC_SERVICE_VARFNLONG), arg0, arg1);
++  union {
++    uint64_t val;
++    long lval;
++  } unionarg;
++  unionarg.val = result.arg0;
++  return unionarg.lval;
 +}
 +
 +#if 0
@@ -4008,41 +3758,9 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +} // end extern "C"
 +
 +#pragma omp end declare target
-diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/hostrpc/src/hostrpc_stubs.h llvm-project/openmp/libomptarget/hostrpc/src/hostrpc_stubs.h
---- llvm-project.upstream/openmp/libomptarget/hostrpc/src/hostrpc_stubs.h	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/openmp/libomptarget/hostrpc/src/hostrpc_stubs.h	2023-02-21 10:45:18.000000000 -0500
-@@ -0,0 +1,28 @@
-+#ifndef __HOSTRPC_STUBS_H__
-+#define __HOSTRPC_STUBS_H__
-+
-+//    hostrpc_stubs.h:
-+
-+#if defined(__cplusplus)
-+#define EXTERN extern "C"
-+#else
-+#define EXTERN extern
-+#endif
-+
-+#include <stdint.h>
-+#include <stdio.h>
-+
-+// Interfaces user-callable device stubs
-+EXTERN int fprintf(FILE *, const char *, ...);
-+EXTERN int printf(const char *, ...);
-+
-+typedef uint32_t hostrpc_varfn_uint_t(void *, ...);
-+typedef uint64_t hostrpc_varfn_uint64_t(void *, ...);
-+typedef double hostrpc_varfn_double_t(void *, ...);
-+
-+EXTERN void hostrpc_fptr0(void *fptr);
-+EXTERN uint32_t hostrpc_varfn_uint(void *fnptr, ...);
-+EXTERN uint64_t hostrpc_varfn_uint64(void *fnptr, ...);
-+EXTERN double hostrpc_varfn_double(void *fnptr, ...);
-+
-+#endif // __HOSTRPC_STUBS_H__
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/hostrpc/src/oclAtomics.cl llvm-project/openmp/libomptarget/hostrpc/src/oclAtomics.cl
 --- llvm-project.upstream/openmp/libomptarget/hostrpc/src/oclAtomics.cl	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/openmp/libomptarget/hostrpc/src/oclAtomics.cl	2023-02-21 13:40:07.000000000 -0500
++++ llvm-project/openmp/libomptarget/hostrpc/src/oclAtomics.cl	2023-03-02 13:25:13.099430527 -0500
 @@ -0,0 +1,25 @@
 +
 +#pragma OPENCL EXTENSION cl_khr_int64_base_atomics : enable
@@ -4071,7 +3789,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +#undef __atomic_ulong
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/plugins/amdgpu/CMakeLists.txt llvm-project/openmp/libomptarget/plugins/amdgpu/CMakeLists.txt
 --- llvm-project.upstream/openmp/libomptarget/plugins/amdgpu/CMakeLists.txt	2023-02-27 09:21:59.251665276 -0500
-+++ llvm-project/openmp/libomptarget/plugins/amdgpu/CMakeLists.txt	2023-02-27 10:53:30.705996884 -0500
++++ llvm-project/openmp/libomptarget/plugins/amdgpu/CMakeLists.txt	2023-03-02 13:25:13.099430527 -0500
 @@ -61,6 +61,9 @@
    set(LDFLAGS_UNDEFINED "-Wl,-z,defs")
  endif()
@@ -4101,7 +3819,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/plug
    omptarget.rtl.amdgpu
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/plugins/amdgpu/src/rtl.cpp llvm-project/openmp/libomptarget/plugins/amdgpu/src/rtl.cpp
 --- llvm-project.upstream/openmp/libomptarget/plugins/amdgpu/src/rtl.cpp	2023-02-27 09:21:39.111743452 -0500
-+++ llvm-project/openmp/libomptarget/plugins/amdgpu/src/rtl.cpp	2023-02-27 10:53:30.705996884 -0500
++++ llvm-project/openmp/libomptarget/plugins/amdgpu/src/rtl.cpp	2023-03-02 13:25:13.099430527 -0500
 @@ -53,16 +53,18 @@
  // implement a fallback for toolchains that do not yet have a hostrpc library.
  extern "C" {
@@ -4166,7 +3884,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/plug
        Packet->kernarg_address = KernArg;
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/plugins-nextgen/amdgpu/CMakeLists.txt llvm-project/openmp/libomptarget/plugins-nextgen/amdgpu/CMakeLists.txt
 --- llvm-project.upstream/openmp/libomptarget/plugins-nextgen/amdgpu/CMakeLists.txt	2023-02-27 09:21:59.251665276 -0500
-+++ llvm-project/openmp/libomptarget/plugins-nextgen/amdgpu/CMakeLists.txt	2023-02-27 10:53:30.705996884 -0500
++++ llvm-project/openmp/libomptarget/plugins-nextgen/amdgpu/CMakeLists.txt	2023-03-02 13:25:13.099430527 -0500
 @@ -85,11 +85,14 @@
    PluginInterface
    ${LIBOMPTARGET_DEP_LIBRARIES}
@@ -4183,8 +3901,8 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/plug
  target_include_directories(
    omptarget.rtl.amdgpu.nextgen
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/plugins-nextgen/amdgpu/src/rtl.cpp llvm-project/openmp/libomptarget/plugins-nextgen/amdgpu/src/rtl.cpp
---- llvm-project.upstream/openmp/libomptarget/plugins-nextgen/amdgpu/src/rtl.cpp	2023-02-27 09:21:59.251665276 -0500
-+++ llvm-project/openmp/libomptarget/plugins-nextgen/amdgpu/src/rtl.cpp	2023-02-27 10:53:30.705996884 -0500
+--- llvm-project.upstream/openmp/libomptarget/plugins-nextgen/amdgpu/src/rtl.cpp	2023-02-28 09:27:09.124959722 -0500
++++ llvm-project/openmp/libomptarget/plugins-nextgen/amdgpu/src/rtl.cpp	2023-03-02 13:25:13.099430527 -0500
 @@ -58,6 +58,25 @@
  namespace target {
  namespace plugin {
@@ -4222,9 +3940,9 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/plug
  } // namespace utils
  
  /// Utility class representing generic resource references to AMDGPU resources.
-@@ -373,6 +396,9 @@
-   Expected<hsa_executable_symbol_t>
-   findDeviceSymbol(GenericDeviceTy &Device, StringRef SymbolName) const;
+@@ -384,6 +407,9 @@
+     return It->second;
+   }
  
 +  /// Does device image contain Symbol
 +  bool hasDeviceSymbol(GenericDeviceTy &Device, StringRef SymbolName) const;
@@ -4232,7 +3950,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/plug
  private:
    /// The exectuable loaded on the agent.
    hsa_executable_t Executable;
-@@ -385,6 +411,7 @@
+@@ -397,6 +423,7 @@
    /// Create an AMDGPU kernel with a name and an execution mode.
    AMDGPUKernelTy(const char *Name, OMPTgtExecModeFlags ExecutionMode)
        : GenericKernelTy(Name, ExecutionMode),
@@ -4240,9 +3958,9 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/plug
          ImplicitArgsSize(sizeof(utils::AMDGPUImplicitArgsTy)) {}
  
    /// Initialize the AMDGPU kernel.
-@@ -426,8 +453,18 @@
-     // TODO: Read the kernel descriptor for the max threads per block. May be
-     // read from the image.
+@@ -444,8 +471,18 @@
+       INFO(OMP_INFOTYPE_PLUGIN_KERNEL, Device.getDeviceId(),
+            "Could not read extra information for kernel %s.", getName());
  
 +    needs_host_services = AMDImage.hasDeviceSymbol(Device, "__needs_host_services");
 +    if (needs_host_services) {
@@ -4259,7 +3977,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/plug
  
    /// Launch the AMDGPU kernel function.
    Error launchImpl(GenericDeviceTy &GenericDevice, uint32_t NumThreads,
-@@ -611,6 +648,7 @@
+@@ -637,6 +674,7 @@
      // Push the barrier with the lock acquired.
      return pushBarrierImpl(OutputSignal, InputSignal1, InputSignal2);
    }
@@ -4267,7 +3985,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/plug
  
  private:
    /// Push a barrier packet that will wait up to two input signals. Assumes the
-@@ -731,6 +769,7 @@
+@@ -757,6 +795,7 @@
  /// devices. This class relies on signals to implement streams and define the
  /// dependencies between asynchronous operations.
  struct AMDGPUStreamTy {
@@ -4275,7 +3993,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/plug
  private:
    /// Utility struct holding arguments for async H2H memory copies.
    struct MemcpyArgsTy {
-@@ -1398,6 +1437,9 @@
+@@ -1424,6 +1463,9 @@
  
      return Plugin::success();
    }
@@ -4285,7 +4003,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/plug
  
    /// Retrieve and construct all memory pools from the device agent(s).
    virtual Error retrieveAllMemoryPools() = 0;
-@@ -2206,7 +2248,6 @@
+@@ -2236,7 +2278,6 @@
  Expected<hsa_executable_symbol_t>
  AMDGPUDeviceImageTy::findDeviceSymbol(GenericDeviceTy &Device,
                                        StringRef SymbolName) const {
@@ -4293,7 +4011,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/plug
    AMDGPUDeviceTy &AMDGPUDevice = static_cast<AMDGPUDeviceTy &>(Device);
    hsa_agent_t Agent = AMDGPUDevice.getAgent();
  
-@@ -2221,6 +2262,16 @@
+@@ -2251,6 +2292,16 @@
    return Symbol;
  }
  
@@ -4310,7 +4028,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/plug
  template <typename ResourceTy>
  Error AMDGPUResourceRef<ResourceTy>::create(GenericDeviceTy &Device) {
    if (Resource)
-@@ -2388,6 +2439,7 @@
+@@ -2418,6 +2469,7 @@
  
    /// Deinitialize the plugin.
    Error deinitImpl() override {
@@ -4318,7 +4036,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/plug
      // The HSA runtime was not initialized, so nothing from the plugin was
      // actually initialized.
      if (!Initialized)
-@@ -2565,6 +2617,24 @@
+@@ -2595,6 +2647,24 @@
  
    AMDGPUDeviceTy &AMDGPUDevice = static_cast<AMDGPUDeviceTy &>(GenericDevice);
    AMDGPUStreamTy &Stream = AMDGPUDevice.getStream(AsyncInfoWrapper);
@@ -4345,7 +4063,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/plug
    return Stream.pushKernelLaunch(*this, AllArgs, NumThreads, NumBlocks,
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/plugins-nextgen/cuda/CMakeLists.txt llvm-project/openmp/libomptarget/plugins-nextgen/cuda/CMakeLists.txt
 --- llvm-project.upstream/openmp/libomptarget/plugins-nextgen/cuda/CMakeLists.txt	2023-02-27 09:21:59.251665276 -0500
-+++ llvm-project/openmp/libomptarget/plugins-nextgen/cuda/CMakeLists.txt	2023-02-27 10:53:30.705996884 -0500
++++ llvm-project/openmp/libomptarget/plugins-nextgen/cuda/CMakeLists.txt	2023-03-02 13:25:13.099430527 -0500
 @@ -26,6 +26,10 @@
  set(LIBOMPTARGET_DLOPEN_LIBCUDA OFF)
  option(LIBOMPTARGET_FORCE_DLOPEN_LIBCUDA "Build with dlopened libcuda" ${LIBOMPTARGET_DLOPEN_LIBCUDA})
