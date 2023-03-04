@@ -17,7 +17,7 @@ int main()
     a[i]=0;
 
   int j;
-#pragma omp target teams distribute parallel for num_teams(200)
+#pragma omp target teams distribute parallel for num_teams(200) thread_limit(64)
   {
     for (j = 0; j< N; j++)
       a[j]=b[j];
