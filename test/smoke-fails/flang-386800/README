@@ -1,0 +1,71 @@
+The contents of a test program named flangbug-data-location.f90:
+------------------------------cut-here------------------------------
+subroutine cstar_assumed_shape_arg_2d (string)
+  character(len=*) string (:,:)
+  integer i
+  i = 0
+end subroutine cstar_assumed_shape_arg_2d
+
+program flang_data_location_bug
+  interface
+     subroutine cstar_assumed_shape_arg_2d (string)
+       character(len=*) string (:,:)
+     end subroutine cstar_assumed_shape_arg_2d
+  end interface
+
+  character(len=3)  c3(4,5)
+  real*8, dimension (0:19),     target :: array1
+  real*8, pointer, dimension(:)   :: pa1
+
+  do i = 1,5
+     do j = 1,4
+        write (unit=c3(j,i),fmt='(I1,'','',I1)')j,i
+     end do
+  end do
+
+  do i = 0,19
+     array1(i) = i+1
+  end do
+  pa1 => array1(::2)
+
+  call cstar_assumed_shape_arg_2d (c3)
+
+end program flang_data_location_bug
+------------------------------cut-here------------------------------
+
+Compile using:
+------------------------------cut-here------------------------------
+amdflang -g ~/flangbug-data-location.f90 -o flangbug-data-location
+------------------------------cut-here------------------------------
+
+Dump the symbol table using:
+------------------------------cut-here------------------------------
+llvm-dwarfdump -v flangbug-data-location
+------------------------------cut-here------------------------------
+
+**********************************************************************
+
+Bug 1. "amdflang fails to emit low-bound attributes for some array types".
+
+The array named "array1" is declared with a lower bound of 0, but the
+compiler does not emit a DWARF lower bound attribute.
+
+Here is the llvm-dwarfdump output:
+------------------------------cut-here------------------------------
+0x0000003e:     DW_TAG_variable [3]   (0x00000027)
+                  DW_AT_name [DW_FORM_strx1]	(indexed (00000006) string = "array1")
+                  DW_AT_type [DW_FORM_ref4]	(cu + 0x00d9 => {0x000000d9} "double precision[]")
+                  DW_AT_decl_file [DW_FORM_data1]	("/nfs/homes/jdelsign/flangbug-data-location.f90")
+                  DW_AT_decl_line [DW_FORM_data1]	(15)
+                  DW_AT_location [DW_FORM_exprloc]	(DW_OP_addrx 0x0, DW_OP_plus_uconst 0x40)
+
+0x000000d9:   DW_TAG_array_type [8] * (0x0000000c)
+                DW_AT_type [DW_FORM_ref4]	(cu + 0x00e5 => {0x000000e5} "double precision")
+
+0x000000de:     DW_TAG_subrange_type [9]   (0x000000d9)
+                  DW_AT_type [DW_FORM_ref4]	(cu + 0x00d5 => {0x000000d5} "__ARRAY_SIZE_TYPE__")
+                  DW_AT_upper_bound [DW_FORM_sdata]	(19)
+------------------------------cut-here------------------------------
+
+The DW_TAG_subrange_type DIE should have a DW_AT_lower_bound attribute
+with a value of 0.
