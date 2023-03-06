@@ -21,5 +21,16 @@ AOMP_GPU=${AOMP_GPU:-`$AOMP/bin/mygpu`}
 export AOMP AOMP_GPU
 echo AOMP_GPU = $AOMP_GPU
 echo AOMP = $AOMP
-
-./test.py $AOMP $AOMP_GPU
+date=`date '+%Y-%m-%d'`
+if [ $1 == "log" ]; then
+  if [ "$2" != "" ]; then
+    prefix=$2
+    log="$prefix/LLNL.run.log.$date"
+  else
+    log="LLNL.run.log.$date"
+  fi
+  echo "Log enabled: $log"
+ ./test.py $AOMP $AOMP_GPU 2>&1 | tee $log
+else
+ ./test.py $AOMP $AOMP_GPU
+fi
