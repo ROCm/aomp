@@ -10,6 +10,7 @@ thisdir=`dirname $realpath`
 # --- end standard header ----
 
 osname=$(cat /etc/os-release | grep -e ^NAME=)
+version=$(cat /etc/os-release | grep -e ^VERSION=)
 rpmname="Not_Found"
 if [[ $osname =~ "Red Hat" ]]; then
   echo "Red Hat found!!!"
@@ -19,8 +20,16 @@ elif [[ $osname =~ "SLES" ]]; then
   rpmname=${1:-aomp_SLES15_SP1}
 elif [[ $osname =~ "CentOS" ]]; then
   echo "CENTOS found!!!"
-  rpmname=${1:-aomp_CENTOS_8}
+  if [[ $version =~ "9" ]]; then
+    rpmname=${1:-aomp_CENTOS_9}
+  elif [[ $version =~ "8" ]]; then
+    rpmname=${1:-aomp_CENTOS_8}
+  elif [[ $version =~ "7" ]]; then
+    rpmname=${1:-aomp_CENTOS_7}
+  fi
 fi
+
+echo "rpmname: $rpmname"
 
 # Ensure the rpmbuild tool from rpm-build package is available
 rpmbuild_loc=`which rpmbuild 2>/dev/null`
