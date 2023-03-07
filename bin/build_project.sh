@@ -56,12 +56,21 @@ if [ -d $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/llvm/lib/OffloadArch ] ; then
 else
   enable_amdgpu_arch="-DENABLE_AMDGPU_ARCH_TOOL=ON"
 fi
-MYCMAKEOPTS="-DLLVM_ENABLE_PROJECTS=clang;lld;compiler-rt -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX=$INSTALL_PROJECT -DLLVM_ENABLE_ASSERTIONS=ON -DLLVM_TARGETS_TO_BUILD=$TARGETS_TO_BUILD $COMPILERS -DLLVM_VERSION_SUFFIX=_AOMP${standalone_word}_$AOMP_VERSION_STRING -DCLANG_VENDOR=AOMP${standalone_word}_$AOMP_VERSION_STRING
+MYCMAKEOPTS="-DLLVM_ENABLE_PROJECTS=clang;lld;clang-tools-extra;compiler-rt -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX=$INSTALL_PROJECT -DLLVM_ENABLE_ASSERTIONS=ON -DLLVM_TARGETS_TO_BUILD=$TARGETS_TO_BUILD $COMPILERS -DLLVM_VERSION_SUFFIX=_AOMP${standalone_word}_$AOMP_VERSION_STRING -DCLANG_VENDOR=AOMP${standalone_word}_$AOMP_VERSION_STRING
 $enable_amdgpu_arch
 -DBUG_REPORT_URL='https://github.com/ROCm-Developer-Tools/aomp' -DLLVM_ENABLE_BINDINGS=OFF -DLLVM_INCLUDE_BENCHMARKS=OFF $DO_TESTS $AOMP_ORIGIN_RPATH -DCLANG_DEFAULT_LINKER=lld $AOMP_SET_NINJA_GEN
 -DLLVM_BUILD_LLVM_DYLIB=OFF
 -DLLVM_LINK_LLVM_DYLIB=OFF
 -DCLANG_LINK_CLANG_DYLIB=OFF"
+
+# Enable amdflang, amdclang, amdclang++, amdllvm.
+# clang-tools-extra added to LLVM_ENABLE_PROJECTS above.
+MYCMAKEOPTS="$MYCMAKEOPTS
+-DCLANG_ENABLE_AMDCLANG=ON
+-DLLVM_ENABLE_RUNTIMES=libcxx;libcxxabi
+-DLIBCXX_ENABLE_STATIC=ON
+-DLIBCXXABI_ENABLE_STATIC=ON
+"
 
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then 
   help_build_aomp
@@ -159,6 +168,15 @@ for prebuild in $(${AOMP_CMAKE} --build . --target help | sed -n '/-version-list
   ${AOMP_CMAKE} --build . -j $AOMP_JOB_THREADS --target $prebuild
 done
 
+# Required for amdllvm support
+echo ${AOMP_CMAKE} --build . -- -j $AOMP_JOB_THREADS clang lld compiler-rt
+${AOMP_CMAKE} --build . -- -j $AOMP_JOB_THREADS clang lld compiler-rt
+
+# Required for amdllvm support
+echo ${AOMP_CMAKE} --build . -- -j $AOMP_JOB_THREADS runtimes cxx
+${AOMP_CMAKE} --build . -- -j $AOMP_JOB_THREADS runtimes cxx
+
+# Finish building
 echo ${AOMP_CMAKE} --build . -j $AOMP_JOB_THREADS
 ${AOMP_CMAKE} --build . -j $AOMP_JOB_THREADS
 if [ $? != 0 ] ; then
