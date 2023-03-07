@@ -37,17 +37,6 @@ index 941704e..0846f05 100644
  results_folder := $(main_folder)/results
  error_log := $(results_folder)/error.log
  compile_log := $(results_folder)/compile.log
---- a/t-unified-array-of-ptr/Makefile
-+++ b/t-unified-array-of-ptr/Makefile
-@@ -2,6 +2,8 @@ include ../Makefile.defs
-
- EXTRAFLAGS := -O3
-
-+export HSA_XNACK=1
-+
- ################################################################################
- #
- # Include any special rule for this testcase here! Usually:
 diff --git a/t-unified-barrier/Makefile b/t-unified-barrier/Makefile
 index cf913e4..64c8957 100644
 --- a/t-unified-barrier/Makefile
@@ -61,36 +50,10 @@ index cf913e4..64c8957 100644
  ################################################################################
  #
  # Include any special rule for this testcase here! Usually:
-diff --git a/t-unified-class/Makefile b/t-unified-class/Makefile
-index 2de5960..89927d9 100644
---- a/t-unified-class/Makefile
-+++ b/t-unified-class/Makefile
-@@ -2,6 +2,8 @@ include ../Makefile.defs
-
- EXTRAFLAGS := -O3
-
-+export HSA_XNACK=1
-+
- ################################################################################
- #
- # Include any special rule for this testcase here! Usually:
 diff --git a/t-unified-concurrent-target/Makefile b/t-unified-concurrent-target/Makefile
 index 2de5960..89927d9 100644
 --- a/t-unified-concurrent-target/Makefile
 +++ b/t-unified-concurrent-target/Makefile
-@@ -2,6 +2,8 @@ include ../Makefile.defs
-
- EXTRAFLAGS := -O3
-
-+export HSA_XNACK=1
-+
- ################################################################################
- #
- # Include any special rule for this testcase here! Usually:
-diff --git a/t-unified-critical/Makefile b/t-unified-critical/Makefile
-index 2de5960..89927d9 100644
---- a/t-unified-critical/Makefile
-+++ b/t-unified-critical/Makefile
 @@ -2,6 +2,8 @@ include ../Makefile.defs
 
  EXTRAFLAGS := -O3
@@ -133,32 +96,6 @@ index 2de5960..89927d9 100644
 @@ -2,6 +2,8 @@ include ../Makefile.defs
 
  EXTRAFLAGS := -O3
-
-+export HSA_XNACK=1
-+
- ################################################################################
- #
- # Include any special rule for this testcase here! Usually:
-diff --git a/t-unified-declare-target-lists/Makefile b/t-unified-declare-target-lists/Makefile
-index 922bb69..90b1fb0 100644
---- a/t-unified-declare-target-lists/Makefile
-+++ b/t-unified-declare-target-lists/Makefile
-@@ -2,6 +2,8 @@ include ../Makefile.defs
-
- EXTRAFLAGS := -O3 -fopenmp-version=45
-
-+export HSA_XNACK=1
-+
- ################################################################################
- #
- # Include any special rule for this testcase here! Usually:
-diff --git a/t-unified-declare-target/Makefile b/t-unified-declare-target/Makefile
-index cbf782c..59929ed 100644
---- a/t-unified-declare-target/Makefile
-+++ b/t-unified-declare-target/Makefile
-@@ -2,6 +2,8 @@ include ../Makefile.defs
-
- EXTRAFLAGS := -O3 -fno-exceptions
 
 +export HSA_XNACK=1
 +
@@ -360,19 +297,6 @@ index 2de5960..89927d9 100644
  ################################################################################
  #
  # Include any special rule for this testcase here! Usually:
-diff --git a/t-unified-implicit-declare-target-no-dtor/Makefile b/t-unified-implicit-declare-target-no-dtor/Makefile
-index 2de5960..89927d9 100644
---- a/t-unified-implicit-declare-target-no-dtor/Makefile
-+++ b/t-unified-implicit-declare-target-no-dtor/Makefile
-@@ -2,6 +2,8 @@ include ../Makefile.defs
-
- EXTRAFLAGS := -O3
-
-+export HSA_XNACK=1
-+
- ################################################################################
- #
- # Include any special rule for this testcase here! Usually:
 diff --git a/t-unified-implicit-firstprivate/Makefile b/t-unified-implicit-firstprivate/Makefile
 index cbf782c..59929ed 100644
 --- a/t-unified-implicit-firstprivate/Makefile
@@ -503,19 +427,6 @@ index c9163fd..b46b9ab 100644
  ################################################################################
  #
  # Include any special rule for this testcase here! Usually:
-diff --git a/t-unified-parallel-target-nowait/Makefile b/t-unified-parallel-target-nowait/Makefile
-index 2de5960..89927d9 100644
---- a/t-unified-parallel-target-nowait/Makefile
-+++ b/t-unified-parallel-target-nowait/Makefile
-@@ -2,6 +2,8 @@ include ../Makefile.defs
-
- EXTRAFLAGS := -O3
-
-+export HSA_XNACK=1
-+
- ################################################################################
- #
- # Include any special rule for this testcase here! Usually:
 diff --git a/t-unified-parallel/Makefile b/t-unified-parallel/Makefile
 index 2de5960..89927d9 100644
 --- a/t-unified-parallel/Makefile
@@ -546,46 +457,6 @@ diff --git a/t-unified-partial-struct/Makefile b/t-unified-partial-struct/Makefi
 index 2de5960..89927d9 100644
 --- a/t-unified-partial-struct/Makefile
 +++ b/t-unified-partial-struct/Makefile
-@@ -2,6 +2,8 @@ include ../Makefile.defs
-
- EXTRAFLAGS := -O3
-
-+export HSA_XNACK=1
-+
- ################################################################################
- #
- # Include any special rule for this testcase here! Usually:
-diff --git a/t-unified-reduction-struct/Makefile b/t-unified-reduction-struct/Makefile
-index 3e59deb..0d31af5 100644
---- a/t-unified-reduction-struct/Makefile
-+++ b/t-unified-reduction-struct/Makefile
-@@ -4,6 +4,8 @@ EXTRAFLAGS := -O3
-
- # --cuda-noopt-device-debug
-
-+export HSA_XNACK=1
-+
- ################################################################################
- #
- # Include any special rule for this testcase here! Usually:
-
-diff --git a/t-unified-runtime-calls/Makefile b/t-unified-runtime-calls/Makefile
-index 2de5960..89927d9 100644
---- a/t-unified-runtime-calls/Makefile
-+++ b/t-unified-runtime-calls/Makefile
-@@ -2,6 +2,8 @@ include ../Makefile.defs
-
- EXTRAFLAGS := -O3
-
-+export HSA_XNACK=1
-+
- ################################################################################
- #
- # Include any special rule for this testcase here! Usually:
-diff --git a/t-unified-same-name-definitions/Makefile b/t-unified-same-name-definitions/Makefile
-index 2de5960..89927d9 100644
---- a/t-unified-same-name-definitions/Makefile
-+++ b/t-unified-same-name-definitions/Makefile
 @@ -2,6 +2,8 @@ include ../Makefile.defs
 
  EXTRAFLAGS := -O3
@@ -712,115 +583,10 @@ index 2de5960..89927d9 100644
  ################################################################################
  #
  # Include any special rule for this testcase here! Usually:
-diff --git a/t-unified-target-dep-2dev/Makefile b/t-unified-target-dep-2dev/Makefile
-index 2de5960..89927d9 100644
---- a/t-unified-target-dep-2dev/Makefile
-+++ b/t-unified-target-dep-2dev/Makefile
-@@ -2,6 +2,8 @@ include ../Makefile.defs
-
- EXTRAFLAGS := -O3
-
-+export HSA_XNACK=1
-+
- ################################################################################
- #
- # Include any special rule for this testcase here! Usually:
-diff --git a/t-unified-target-depend-host-device/Makefile b/t-unified-target-depend-host-device/Makefile
-index 2de5960..89927d9 100644
---- a/t-unified-target-depend-host-device/Makefile
-+++ b/t-unified-target-depend-host-device/Makefile
-@@ -2,6 +2,8 @@ include ../Makefile.defs
-
- EXTRAFLAGS := -O3
-
-+export HSA_XNACK=1
-+
- ################################################################################
- #
- # Include any special rule for this testcase here! Usually:
 diff --git a/t-unified-target-enter-nowait/Makefile b/t-unified-target-enter-nowait/Makefile
 index 2de5960..89927d9 100644
 --- a/t-unified-target-enter-nowait/Makefile
 +++ b/t-unified-target-enter-nowait/Makefile
-@@ -2,6 +2,8 @@ include ../Makefile.defs
-
- EXTRAFLAGS := -O3
-
-+export HSA_XNACK=1
-+
- ################################################################################
- #
- # Include any special rule for this testcase here! Usually:
-diff --git a/t-unified-target-large-array/Makefile b/t-unified-target-large-array/Makefile
-index 0596e02..e28480d 100644
---- a/t-unified-target-large-array/Makefile
-+++ b/t-unified-target-large-array/Makefile
-@@ -6,6 +6,8 @@ EXTRAFLAGS := -O3 -I/usr/local/cuda/include -L /usr/local/cuda/lib64/ -lcudart -
- # option if no nvidia avail
- #EXTRAFLAGS := -O3 -DUSE_PINNED=0
-
-+export HSA_XNACK=1
-+
- ################################################################################
- #
- # Include any special rule for this testcase here! Usually:
-diff --git a/t-unified-target-map-ptr/Makefile b/t-unified-target-map-ptr/Makefile
-index 1923c30..0a098d3 100644
---- a/t-unified-target-map-ptr/Makefile
-+++ b/t-unified-target-map-ptr/Makefile
-@@ -2,6 +2,8 @@ include ../Makefile.defs
-
- EXTRAFLAGS := -O3 -I/usr/local/cuda/include -lcudart
-
-+export HSA_XNACK=1
-+
- ################################################################################
- #
- # Include any special rule for this testcase here! Usually:
-diff --git a/t-unified-target-nowait-dep-implicit/Makefile b/t-unified-target-nowait-dep-implicit/Makefile
-index 2de5960..89927d9 100644
---- a/t-unified-target-nowait-dep-implicit/Makefile
-+++ b/t-unified-target-nowait-dep-implicit/Makefile
-@@ -2,6 +2,8 @@ include ../Makefile.defs
-
- EXTRAFLAGS := -O3
-
-+export HSA_XNACK=1
-+
- ################################################################################
- #
- # Include any special rule for this testcase here! Usually:
-diff --git a/t-unified-target-nowait-dep1/Makefile b/t-unified-target-nowait-dep1/Makefile
-index 2de5960..89927d9 100644
---- a/t-unified-target-nowait-dep1/Makefile
-+++ b/t-unified-target-nowait-dep1/Makefile
-@@ -2,6 +2,8 @@ include ../Makefile.defs
-
- EXTRAFLAGS := -O3
-
-+export HSA_XNACK=1
-+
- ################################################################################
- #
- # Include any special rule for this testcase here! Usually:
-diff --git a/t-unified-target-nowait-dep2/Makefile b/t-unified-target-nowait-dep2/Makefile
-index 2de5960..89927d9 100644
---- a/t-unified-target-nowait-dep2/Makefile
-+++ b/t-unified-target-nowait-dep2/Makefile
-@@ -2,6 +2,8 @@ include ../Makefile.defs
-
- EXTRAFLAGS := -O3
-
-+export HSA_XNACK=1
-+
- ################################################################################
- #
- # Include any special rule for this testcase here! Usually:
-
-diff --git a/t-unified-target-nowait/Makefile b/t-unified-target-nowait/Makefile
-index 2de5960..89927d9 100644
---- a/t-unified-target-nowait/Makefile
-+++ b/t-unified-target-nowait/Makefile
 @@ -2,6 +2,8 @@ include ../Makefile.defs
 
  EXTRAFLAGS := -O3
@@ -986,32 +752,6 @@ index 2de5960..89927d9 100644
  ################################################################################
  #
  # Include any special rule for this testcase here! Usually:
-diff --git a/t-unified-target-user-pinned/Makefile b/t-unified-target-user-pinned/Makefile
-index 0596e02..e28480d 100644
---- a/t-unified-target-user-pinned/Makefile
-+++ b/t-unified-target-user-pinned/Makefile
-@@ -6,6 +6,8 @@ EXTRAFLAGS := -O3 -I/usr/local/cuda/include -L /usr/local/cuda/lib64/ -lcudart -
- # option if no nvidia avail
- #EXTRAFLAGS := -O3 -DUSE_PINNED=0
-
-+export HSA_XNACK=1
-+
- ################################################################################
- #
- # Include any special rule for this testcase here! Usually:
-diff --git a/t-unified-task/Makefile b/t-unified-task/Makefile
-index 2de5960..89927d9 100644
---- a/t-unified-task/Makefile
-+++ b/t-unified-task/Makefile
-@@ -2,6 +2,8 @@ include ../Makefile.defs
-
- EXTRAFLAGS := -O3
-
-+export HSA_XNACK=1
-+
- ################################################################################
- #
- # Include any special rule for this testcase here! Usually:
 diff --git a/t-unified-teams-distribute-parallel-for-simd/Makefile b/t-unified-teams-distribute-parallel-for-simd/Makefile
 index cbf782c..59929ed 100644
 --- a/t-unified-teams-distribute-parallel-for-simd/Makefile
@@ -1045,45 +785,6 @@ index c9163fd..b46b9ab 100644
 @@ -6,6 +6,8 @@ endif
 
  EXTRAFLAGS += -O3
-
-+export HSA_XNACK=1
-+
- ################################################################################
- #
- # Include any special rule for this testcase here! Usually:
-diff --git a/t-unified-tp-nested-parallel/Makefile b/t-unified-tp-nested-parallel/Makefile
-index c9163fd..b46b9ab 100644
---- a/t-unified-tp-nested-parallel/Makefile
-+++ b/t-unified-tp-nested-parallel/Makefile
-@@ -6,6 +6,8 @@ endif
-
- EXTRAFLAGS += -O3
-
-+export HSA_XNACK=1
-+
- ################################################################################
- #
- # Include any special rule for this testcase here! Usually:
-diff --git a/t-unified-ttdpf-nested-parallel/Makefile b/t-unified-ttdpf-nested-parallel/Makefile
-index c9163fd..b46b9ab 100644
---- a/t-unified-ttdpf-nested-parallel/Makefile
-+++ b/t-unified-ttdpf-nested-parallel/Makefile
-@@ -6,6 +6,8 @@ endif
-
- EXTRAFLAGS += -O3
-
-+export HSA_XNACK=1
-+
- ################################################################################
- #
- # Include any special rule for this testcase here! Usually:
-diff --git a/t-unified-ttdpfs-nested-parallel/Makefile b/t-unified-ttdpfs-nested-parallel/Makefile
-index 2de5960..89927d9 100644
---- a/t-unified-ttdpfs-nested-parallel/Makefile
-+++ b/t-unified-ttdpfs-nested-parallel/Makefile
-@@ -2,6 +2,8 @@ include ../Makefile.defs
-
- EXTRAFLAGS := -O3
 
 +export HSA_XNACK=1
 +

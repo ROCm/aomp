@@ -1,14 +1,14 @@
 include ../../Makefile.defs
 
-TESTNAME     = clang-gdb1
-TESTSRC_MAIN = clang-gdb1.c
+TESTNAME     = no-offload-arch
+TESTSRC_MAIN = no-offload-arch.c
 TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 
-CLANG        = clang
-CFLAGS		 = -ggdb -O2 -mllvm -amdgpu-spill-cfi-saved-regs -gheterogeneous-dwarf -g -lm
+CLANG        ?= clang
 OMP_BIN      = $(AOMP)/bin/$(CLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
+CFLAGS =    -O2    -fopenmp --no-offload-arch=gfx90a
 #-ccc-print-phases
 #"-\#\#\#"
 

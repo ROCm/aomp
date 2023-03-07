@@ -751,7 +751,7 @@ setparams: File %s doesn't exist. To build the NAS benchmarks\n\
   (void) time(&t);
   tmp = localtime(&t);
   (void) strftime(compiletime, (size_t)LL, "%d %b %Y", tmp);
-
+  memcpy(compiletime, "no-time", 8);
 
   switch(type) {
       case FT:
