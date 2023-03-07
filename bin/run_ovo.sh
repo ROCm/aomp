@@ -29,3 +29,16 @@ export MAKEFLAGS=-j$HALF_THREADS
 
 ./ovo.sh run
 ./ovo.sh report --summary
+
+date=`date '+%Y-%m-%d'`
+if [ $1 == "log" ]; then
+  if [ "$2" != "" ]; then
+    prefix=$2
+    log="$prefix/ovo.run.log.$date"
+  else
+    log="ovo.run.log.$date"
+  fi
+  echo "Log enabled: $log"
+  ./ovo.sh report --failed 2>&1 | tee $log
+  ./ovo.sh report --passed 2>&1 | tee -a $log
+fi
