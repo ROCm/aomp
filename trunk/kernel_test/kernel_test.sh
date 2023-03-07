@@ -9,7 +9,7 @@
 #
 # Set environment variable defaults here:
 TRUNK=${TRUNK:-$HOME/rocm/trunk}
-OFFLOAD=${OFFLOAD:-MANDATORY} # Also use disabled
+OFFLOAD=${OFFLOAD:-DISABLED}
 
 if [ ! -f $TRUNK/bin/amdgpu-arch ] ; then
   OARCH=${OARCH:-sm_70}
