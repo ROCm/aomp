@@ -1,8 +1,8 @@
 Summary: AMD OpenMP Compiler Suite
-Name: aomp_CENTOS_8
+Name: aomp_CENTOS_9
 Version: __VERSION1
 Release: __VERSION3_MOD
-Source: ~/rpm/SOURCES/aomp_CENTOS_8.tar.gz
+Source: ~/rpm/SOURCES/aomp_CENTOS_9.tar.gz
 URL: https://github.com/ROCm-Developer-Tools/aomp
 License: MIT and ASL 2.0
 Group: System/Base
