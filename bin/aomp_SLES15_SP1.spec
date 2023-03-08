@@ -62,7 +62,9 @@ echo "DONE POST INSTALL SCRIPT FROM spec file RUNNING IN $PWD"
 
 %postun
 rm /usr/lib/aomp
+rm /usr/lib/aompcc
 rm /usr/bin/aompversion
+rm /usr/lib/gpurun
 rm /usr/bin/mymcpu
 rm /usr/bin/mygpu
 rm /usr/bin/cloc.sh
