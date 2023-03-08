@@ -3,17 +3,19 @@
 #  check_sollve.sh
 #  Assumes run_sollve.sh has been executed.
 #
+# --- Start standard header to set AOMP environment variables ----
+realpath=`realpath $0`
+thisdir=`dirname $realpath`
+. $thisdir/aomp_common_vars
+# --- end standard header ----
+
 set -e
 
-declare -A results45
-declare -A results50
-
-pushd $HOME/git/aomp-test/sollve_vv
+pushd $AOMP_REPOS_TEST/$AOMP_SOLVV_REPO_NAME
 testname_regex='Test\sname":\s"(.*)"'
 compiler_regex='Compiler\sresult":\s"([A-Z]+)'
 runtime_regex='Runtime\sresult":\s"([A-Z]+)'
 function parse(){
-
   local file=$2
   while read -r line; do
     local sollvetest=""
@@ -25,16 +27,8 @@ function parse(){
       runresult=${BASH_REMATCH[1]}
     fi
     if [ "$sollvetest" != "" ];then
-      if [ "$1" == 45 ]; then
-        results45[$sollvetest]="$compresult"
-        results45[$sollvetest]+="$runresult"
-      elif [ "$1" == 50 ]; then
-        results50[$sollvetest]="$compresult"
-        results50[$sollvetest]+="$runresult"
-      else
-        echo "Unsupported value: $1"
-        exit 1
-     fi
+      results[$sollvetest]="$compresult"
+      results[$sollvetest]+="$runresult"
       compresult=""
       runresult=""
     fi
@@ -64,20 +58,10 @@ function checkresult(){
 
   rm -f $tmppassfile $tmpcompfailfile $tmprunfailfile
 
-  if [ "$1" == 45 ]; then
-    for i in "${!results45[@]}"; do
-      local val=${results45[$i]}
-      checkstatus $1 $val
-    done
-  elif [ "$1" == 50 ]; then
-    for i in "${!results50[@]}"; do
-      local val=${results50[$i]}
-      checkstatus $1 $val
-    done
-    else
-      echo "Unsupported value: $1"
-      exit 1
-   fi
+  for i in "${!results[@]}"; do
+    local val=${results[$i]}
+    checkstatus $1 $val
+  done
 
   if [ -e "$tmppassfile" ]; then
     sort $tmppassfile > results_report$1/passing-tests.txt
@@ -90,11 +74,45 @@ function checkresult(){
   fi
   rm -f $tmppassfile $tmpcompfailfile $tmprunfailfile
 }
-vers="45 50"
+
+# Get all openmp versions in sollve from available reports
+vers=`ls $s | grep results_report | grep -Eo [0-9][0-9]`
+
+# Loop through results json for each openmp version and log pass/fails
 for ver in $vers; do
+  declare -A results
   parse $ver "results_report$ver/results.json"
   checkresult $ver
+  unset results
 done
+
+# This log combines all pass/fails from various openmp versions into one file.
+# Each test is prefixed with openmp version for clarity.
+if [ "$1" == "log" ]; then
+  date=`date '+%Y-%m-%d'`
+  base_dir=$AOMP_REPOS_TEST/$AOMP_SOLVV_REPO_NAME
+  cd $base_dir
+
+  if [ "$2" != "" ]; then
+    prefix=$2
+    log="$prefix/sollve.run.log.$date"
+  else
+    log="$base_dir/sollve.run.log.$date"
+  fi
+  rm -f $parent_dir$log
+  for ver in $vers; do
+    cd $base_dir/results_report$ver
+    files="make-fail.txt passing-tests.txt failing-tests.txt"
+    for file in $files; do
+      if [ -f $file ]; then
+        # Add version in front of test for clarity
+        sed -e "s/^/$ver-$file-/" $file > tmp$file
+        cat tmp$file >> "$log"
+        rm -f tmp$file
+      fi
+    done
+  done
+fi
 
 exit
 popd
