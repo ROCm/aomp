@@ -56,7 +56,7 @@ cd ..
 tmpf="tmpf"
 rm -rf $tmpf ; mkdir -p $tmpf ; cd $tmpf
 [ -f main_in_f ] && rm main_in_f
-compile_main_f_cmd="$_llvm_bin_dir/flang-new -save-temps -fopenmp --offload-arch=$OARCH ../main.f95 -o main_in_f"
+compile_main_f_cmd="$_llvm_bin_dir/flang-new -v -save-temps -flang-experimental-exec -fopenmp --offload-arch=$OARCH ../main.f95 -o main_in_f"
 #compile_main_f_cmd="$_llvm_bin_dir/flang-new -save-temps -fopenmp ../main.f95 -o main_in_f"
 echo
 echo $compile_main_f_cmd
@@ -86,7 +86,7 @@ if [ -f main-openmp-amdgcn-amd-amdhsa-gfx908.tmp.bc ] ; then
    echo "-----------------------------------------------------"
    echo "===> DEVICE function defs and calls in device_f.ll"
    echo
-   grep "define\|call" device_f.ll || tee device_calls.txt
+   grep "define\|call" device_f.ll
 fi
 echo "-----------------------------------------------------"
 cd ..
