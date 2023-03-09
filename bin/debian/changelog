@@ -1,4 +1,4 @@
-aomp (16.0-2) UNRELEASED; urgency=medium
+aomp (17.0-0) UNRELEASED; urgency=medium
 
   * Initial release of aomp is 0.3-2
   *   Please see example in /usr/lib/aomp/examples/vmuldemo 
@@ -793,5 +793,15 @@ aomp (16.0-2) UNRELEASED; urgency=medium
   *   Fixed clang-build-select-link to honor -fdisable-host-devmem.
   *   Fixed openmp lib-debug build overwriting release libraries/plugins.
   *   Updated cmake to 3.22.1.
+  *
+  * 17.0-0
+  *   Add support for amdclang, amdclang++, and amdflang.
+  *   Updated build scripts for Kokkos (and updated to Kokkos v 3.7.00).
+  *   Support for multiple blocksizes in Xteam reduction (1024 limit).
+  *   A new execution mode BigJumpLoop for SPMD non-reduction kernels.
+  *   Additional support for OMPT function "translate_time".
+  *   Fixed duplication of clang-offload-bundler commands for archives.
+  *   Added Centos-9 and SLES 15 SP4 rpms.
+  *   No longer support SLES15 SP1.
 
  -- Greg Rodgers <Gregory.Rodgers@amd.com>  Thu, 19 May 2022 23:34:44 -0500
