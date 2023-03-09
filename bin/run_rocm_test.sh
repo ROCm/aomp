@@ -118,7 +118,7 @@ sed -n -e '/ld.lld/,$p' hello.log
 # this version mismatch on release testing. We will choose the lower version so that
 # unsupported tests are not included.
 function getversion(){
-  supportedvers="4.3.0 4.4.0 4.5.0 4.5.2 5.0.0 5.1.0 5.2.0 5.3.0"
+  supportedvers="4.3.0 4.4.0 4.5.0 4.5.2 5.0.0 5.1.0 5.2.0 5.3.0 5.4.3"
   declare -A versions
   versions[430]=4.3.0
   versions[440]=4.4.0
@@ -128,6 +128,7 @@ function getversion(){
   versions[510]=5.1.0
   versions[520]=5.2.0
   versions[530]=5.3.0
+  versions[543]=5.4.3
 
   if [ $aomp -eq 1 ]; then
     echo "AOMP detected at $AOMP, skipping ROCm version detections"

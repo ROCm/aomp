@@ -39,7 +39,6 @@ flang-sollve-bug1
 flang-thread-limit
 flang-usm
 helloworld_cov5
-hipstyle_vs_ompred
 kmpc_alloc_cov5
 liba_bundled
 liba_bundled_cmdline_simplified
