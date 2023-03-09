@@ -17,7 +17,7 @@ if [[ $osname =~ "Red Hat" ]]; then
   rpmname=${1:-aomp_REDHAT_7}
 elif [[ $osname =~ "SLES" ]]; then
   echo "SLES15_SP1 found!!!"
-  rpmname=${1:-aomp_SLES15_SP1}
+  rpmname=${1:-aomp_SLES15_SP4}
 elif [[ $osname =~ "CentOS" ]]; then
   echo "CENTOS found!!!"
   if [[ $version =~ "9" ]]; then
