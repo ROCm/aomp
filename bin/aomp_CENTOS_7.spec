@@ -1,7 +1,7 @@
 Summary: AMD OpenMP Compiler Suite
 Name: aomp_CENTOS_7
 Version: __VERSION1
-Release: __VERSION3_MOD 
+Release: __VERSION3_MOD
 Source: ~/rpm/SOURCES/aomp_CENTOS_7.tar.gz
 URL: https://github.com/ROCm-Developer-Tools/aomp
 License: MIT and ASL 2.0
@@ -42,7 +42,7 @@ ln -sf /usr/lib/aomp___VERSION2_STRING /usr/lib/aomp
 if [ -L /usr/bin/aompcc ] ; then rm /usr/bin/aompcc ; fi
 ln -sf /usr/lib/aomp/bin/aompcc /usr/bin/aompcc
 if [ -L /usr/bin/aompversion ] ; then rm /usr/bin/aompversion ; fi
-ln -sf /usr/lib/aomp/bin/aompversion /usr/bin/aompversion 
+ln -sf /usr/lib/aomp/bin/aompversion /usr/bin/aompversion
 if [ -L /usr/bin/mymcpu ] ; then rm /usr/bin/mymcpu ; fi
 ln -sf /usr/lib/aomp/bin/mymcpu /usr/bin/mymcpu
 if [ -L /usr/bin/mygpu ] ; then rm /usr/bin/mygpu ; fi
