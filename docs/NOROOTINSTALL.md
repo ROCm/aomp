@@ -29,10 +29,10 @@ To install the rpm package without root access into your home directory, you can
 ```
    mkdir /tmp/temproot ; cd /tmp/temproot 
 ```
-For SLES15-SP1:
+For SLES15-SP4:
 ```
-   wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_17.0-0/aomp_SLES15_SP1-17.0-0.x86_64.rpm
-   rpm2cpio aomp_SLES15_SP1-17.0-0.x86_64.rpm | cpio -idmv
+   wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_17.0-0/aomp_SLES15_SP4-17.0-0.x86_64.rpm
+   rpm2cpio aomp_SLES15_SP4-17.0-0.x86_64.rpm | cpio -idmv
 ```
 For CentOS/RHEL 7:
 ```

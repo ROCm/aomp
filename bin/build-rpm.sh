@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#  build-rpm.sh: Build the rpm for SLES15 SP1 or RHEL 7
+#  build-rpm.sh: Build the rpm for SLES15 SP4 and Centos 7-9
 #
 
 # --- Start standard header to set AOMP environment variables ----
@@ -16,7 +16,7 @@ if [[ $osname =~ "Red Hat" ]]; then
   echo "Red Hat found!!!"
   rpmname=${1:-aomp_REDHAT_7}
 elif [[ $osname =~ "SLES" ]]; then
-  echo "SLES15_SP1 found!!!"
+  echo "SLES15_SP4 found!!!"
   rpmname=${1:-aomp_SLES15_SP4}
 elif [[ $osname =~ "CentOS" ]]; then
   echo "CENTOS found!!!"

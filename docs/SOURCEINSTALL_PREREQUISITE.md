@@ -16,7 +16,7 @@
 ```
 
 
-#### SLES-15-SP1 Packages
+#### SLES-15-SP4 Packages
 ```
   sudo zypper install -y git pciutils-devel python-base libffi-devel gcc gcc-c++ libnuma-devel patchutils openmpi2-devel mesa-libGL-devel libquadmath0 libtool libdrm libdrm-devel ccache
 
@@ -118,11 +118,11 @@ sudo apt update
 sudo apt install amdgpu-dkms
 ```
 
-#### SUSE SLES-15-SP1 Support
+#### SUSE SLES-15-SP4 Support
 <b>Important Note:</b>
-There is a conflict with the KFD when simultaneously running the GUI on SLES-15-SP1, which leads to unpredicatable behavior when offloading to the GPU. We recommend using SLES-15-SP1 in text mode to avoid running both the KFD and GUI at the same time.
+There is a conflict with the KFD when simultaneously running the GUI on SLES-15-SP4, which leads to unpredicatable behavior when offloading to the GPU. We recommend using SLES-15-SP4 in text mode to avoid running both the KFD and GUI at the same time.
 
-SUSE SLES-15-SP1 comes with kfd support installed. To verify this:
+SUSE SLES-15-SP4 comes with kfd support installed. To verify this:
 ```
   sudo dmesg | grep kfd
   sudo dmesg | grep amdgpu
