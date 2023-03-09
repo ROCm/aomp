@@ -4,7 +4,7 @@
 void writeIndex(int *int_array, int array_length) {
   // #pragma omp target teams distribute parallel for map(tofrom:int_array[0:N_CONSTANT])
   int new_len;
-  #pragma omp target 
+  #pragma omp target map(from:new_len)
 {
   new_len=10;
 }
