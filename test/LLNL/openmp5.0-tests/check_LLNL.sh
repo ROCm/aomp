@@ -22,7 +22,7 @@ export AOMP AOMP_GPU
 echo AOMP_GPU = $AOMP_GPU
 echo AOMP = $AOMP
 date=`date '+%Y-%m-%d'`
-if [ $1 == "log" ]; then
+if [ "$1" == "log" ]; then
   if [ "$2" != "" ]; then
     prefix=$2
     log="$prefix/LLNL.run.log.$date"
