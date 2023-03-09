@@ -53,11 +53,10 @@ if [ $? == 0 ] ; then
    compile_main_cmd="$_llvm_bin_dir/clang -fopenmp --offload-arch=$OARCH inc_arrayval.o dec_arrayval.o main.c -o main"
    echo $compile_main_cmd
    $compile_main_cmd
-   echo ./main
-   ./main
-   echo OMP_TARGET_OFFLOAD=MANDATORY ./main
-   export OMP_TARGET_OFFLOAD=MANDATORY
-   OMP_TARGET_OFFLOAD=MANDATORY ./main
+   if [ -f main ] ; then
+      echo LD_LIBRARY_PATH=$TRUNK/lib OMP_TARGET_OFFLOAD=MANDATORY ./main
+      LD_LIBRARY_PATH=$TRUNK/lib OMP_TARGET_OFFLOAD=MANDATORY ./main
+   fi
 fi
 echo
 echo CONVERTING bc to ll. See files device_fortran.ll device_c.ll host_fortran.ll host_c.ll

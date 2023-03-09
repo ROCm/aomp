@@ -31,8 +31,8 @@ compile_main_cmd="$_llvm_bin_dir/clang -save-temps -fopenmp --offload-arch=$OARC
 echo
 echo $compile_main_cmd
 $compile_main_cmd
-echo OMP_TARGET_OFFLOAD=$OFFLOAD ./main_in_c
-OMP_TARGET_OFFLOAD=$OFFLOAD ./main_in_c
+echo LD_LIBRARY_PATH=$TRUNK/lib OMP_TARGET_OFFLOAD=$OFFLOAD ./main_in_c
+LD_LIBRARY_PATH=$TRUNK/lib OMP_TARGET_OFFLOAD=$OFFLOAD ./main_in_c
 rc=$?
 echo "C RETURN CODE IS: $rc"
 
@@ -63,8 +63,8 @@ echo $compile_main_f_cmd
 $compile_main_f_cmd
 if [ -f main_in_f ] ; then 
    echo
-   echo OMP_TARGET_OFFLOAD=$OFFLOAD ./main_in_f
-   OMP_TARGET_OFFLOAD=$OFFLOAD ./main_in_f
+   echo LD_LIBRARY_PATH=$TRUNK/lib OMP_TARGET_OFFLOAD=$OFFLOAD ./main_in_f
+   LD_LIBRARY_PATH=$TRUNK/lib OMP_TARGET_OFFLOAD=$OFFLOAD ./main_in_f
    rc=$?
    echo "FORTRAN RETURN CODE IS: $rc"
 else
