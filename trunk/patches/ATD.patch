@@ -1,0 +1,472 @@
+diff -Naur -x .git -x __pycache__ llvm-project.upstream/clang/lib/Driver/ToolChains/Clang.cpp llvm-project/clang/lib/Driver/ToolChains/Clang.cpp
+--- llvm-project.upstream/clang/lib/Driver/ToolChains/Clang.cpp	2023-03-07 14:55:06.431746765 -0500
++++ llvm-project/clang/lib/Driver/ToolChains/Clang.cpp	2023-03-10 08:25:59.934379531 -0500
+@@ -8162,7 +8162,10 @@
+   assert(Input.isFilename() && "Invalid input.");
+   CmdArgs.push_back(Input.getFilename());
+ 
+-  const char *Exec = getToolChain().getDriver().getClangProgramPath();
++  // Get "clang" specifically, because the driver name might be set to flang-new
++  // instead, which does not support -cc1as but does also not require custom
++  // handling of this action
++  const char *Exec = Args.MakeArgString(getToolChain().GetProgramPath("clang"));
+   if (D.CC1Main && !D.CCGenDiagnostics) {
+     // Invoke cc1as directly in this process.
+     C.addCommand(std::make_unique<CC1Command>(
+diff -Naur -x .git -x __pycache__ llvm-project.upstream/clang/lib/Driver/ToolChains/Flang.cpp llvm-project/clang/lib/Driver/ToolChains/Flang.cpp
+--- llvm-project.upstream/clang/lib/Driver/ToolChains/Flang.cpp	2023-03-10 07:54:57.193325578 -0500
++++ llvm-project/clang/lib/Driver/ToolChains/Flang.cpp	2023-03-10 08:26:01.418374159 -0500
+@@ -370,6 +370,20 @@
+ 
+   assert(Input.isFilename() && "Invalid input.");
+ 
++  bool IsHostOffloadingAction = JA.isHostOffloading(Action::OFK_OpenMP) ||
++                                JA.isHostOffloading(C.getActiveOffloadKinds());
++  for (const InputInfo &I : Inputs) {
++    if (&I == &Input || I.getType() == types::TY_Nothing) {
++      // This is the primary input or contains nothing.
++    } else if (IsHostOffloadingAction) {
++      CmdArgs.push_back(Args.MakeArgString("-fembed-offload-object=" +
++                                           TC.getInputFilename(I)));
++    }
++  }
++
++  if (JA.isDeviceOffloading(Action::OFK_OpenMP))
++    CmdArgs.push_back("-fopenmp-is-device");
++
+   addDashXForInput(Args, Input, CmdArgs);
+ 
+   CmdArgs.push_back(Input.getFilename());
+diff -Naur -x .git -x __pycache__ llvm-project.upstream/flang/include/flang/Optimizer/Transforms/Passes.h llvm-project/flang/include/flang/Optimizer/Transforms/Passes.h
+--- llvm-project.upstream/flang/include/flang/Optimizer/Transforms/Passes.h	2023-03-07 14:55:06.511746488 -0500
++++ llvm-project/flang/include/flang/Optimizer/Transforms/Passes.h	2023-03-10 09:25:59.950368451 -0500
+@@ -20,6 +20,7 @@
+ class Operation;
+ class Pass;
+ class Region;
++class ModuleOp;
+ } // namespace mlir
+ 
+ namespace fir {
+@@ -70,6 +71,8 @@
+ std::unique_ptr<mlir::Pass>
+ createAlgebraicSimplificationPass(const mlir::GreedyRewriteConfig &config);
+ std::unique_ptr<mlir::Pass> createPolymorphicOpConversionPass();
++std::unique_ptr<mlir::OperationPass<mlir::func::FuncOp>>
++createCaptureImplicitlyDeclareTargetPass();
+ 
+ // declarative passes
+ #define GEN_PASS_REGISTRATION
+diff -Naur -x .git -x __pycache__ llvm-project.upstream/flang/include/flang/Optimizer/Transforms/Passes.td llvm-project/flang/include/flang/Optimizer/Transforms/Passes.td
+--- llvm-project.upstream/flang/include/flang/Optimizer/Transforms/Passes.td	2023-03-07 14:55:06.511746488 -0500
++++ llvm-project/flang/include/flang/Optimizer/Transforms/Passes.td	2023-03-10 08:42:55.884975925 -0500
+@@ -284,5 +284,11 @@
+   ];
+ }
+ 
+-  
++def CaptureImplicitlyDeclareTargetPass
++    : Pass<"capture-implicitly-declare-target", "mlir::func::FuncOp"> {
++  let summary = "Marks all functions referenced by a declare target function as declare target";
++  let constructor = "::fir::createCaptureImplicitlyDeclareTargetPass()";
++  let dependentDialects = ["mlir::omp::OpenMPDialect"];
++}
++
+ #endif // FLANG_OPTIMIZER_TRANSFORMS_PASSES
+diff -Naur -x .git -x __pycache__ llvm-project.upstream/flang/lib/Frontend/FrontendActions.cpp llvm-project/flang/lib/Frontend/FrontendActions.cpp
+--- llvm-project.upstream/flang/lib/Frontend/FrontendActions.cpp	2023-03-10 07:54:57.225325447 -0500
++++ llvm-project/flang/lib/Frontend/FrontendActions.cpp	2023-03-10 09:25:59.954368435 -0500
+@@ -22,6 +22,7 @@
+ #include "flang/Optimizer/Dialect/Support/KindMapping.h"
+ #include "flang/Optimizer/Support/InitFIR.h"
+ #include "flang/Optimizer/Support/Utils.h"
++#include "flang/Optimizer/Transforms/Passes.h"
+ #include "flang/Parser/dump-parse-tree.h"
+ #include "flang/Parser/parsing.h"
+ #include "flang/Parser/provenance.h"
+@@ -198,6 +199,13 @@
+   pm.enableVerifier(/*verifyPasses=*/true);
+   pm.addPass(std::make_unique<Fortran::lower::VerifierPass>());
+ 
++  // Add OpenMP-related passes
++  if (ci.getInvocation().getFrontendOpts().features.IsEnabled(
++          Fortran::common::LanguageFeature::OpenMP)) {
++    pm.addNestedPass<mlir::func::FuncOp>(
++        fir::createCaptureImplicitlyDeclareTargetPass());
++  }
++
+   if (mlir::failed(pm.run(*mlirModule))) {
+     unsigned diagID = ci.getDiagnostics().getCustomDiagID(
+         clang::DiagnosticsEngine::Error,
+@@ -563,6 +571,9 @@
+     ci.getDiagnostics().Report(diagID);
+   }
+ 
++  //  Add another save-temps here to write host|device-LLVMIR.mlir
++  //  The savetemps will occur after savetemps for host|device-FIR.mlir
++
+   // Translate to LLVM IR
+   std::optional<llvm::StringRef> moduleName = mlirModule->getName();
+   llvmModule = mlir::translateModuleToLLVMIR(
+diff -Naur -x .git -x __pycache__ llvm-project.upstream/flang/lib/Lower/OpenMP.cpp llvm-project/flang/lib/Lower/OpenMP.cpp
+--- llvm-project.upstream/flang/lib/Lower/OpenMP.cpp	2023-03-09 09:28:26.344506782 -0500
++++ llvm-project/flang/lib/Lower/OpenMP.cpp	2023-03-10 09:25:59.954368435 -0500
+@@ -1099,6 +1099,13 @@
+                    &opClauseList);
+   } else if (blockDirective.v == llvm::omp::OMPD_target_data) {
+     createTargetDataOp(converter, opClauseList, blockDirective.v, &eval);
++  } else if (blockDirective.v == llvm::omp::OMPD_target) {
++    // @@@Jan: Just testing to create a TargetOp
++    auto targetOp = firOpBuilder.create<mlir::omp::TargetOp>(
++        currentLocation, /*if_clause*/ mlir::Value(), /*device*/ mlir::Value(),
++        /*thread_limit*/ mlir::Value(),
++        /*nowait*/ nullptr);
++    createBodyOfOp(targetOp, converter, currentLocation, eval, &opClauseList);
+   } else {
+     TODO(converter.getCurrentLocation(), "Unhandled block directive");
+   }
+@@ -2066,6 +2073,139 @@
+   converter.bindSymbol(sym, symThreadprivateExv);
+ }
+ 
++void handleDeclareTarget(Fortran::lower::AbstractConverter &converter,
++                         Fortran::lower::pft::Evaluation &eval,
++                         const Fortran::parser::OpenMPDeclareTargetConstruct
++                             &declareTargetConstruct) {
++  std::vector<Fortran::semantics::Symbol> symbols;
++  auto findFuncAndVarSyms = [&](const Fortran::parser::OmpObjectList &objList) {
++    for (const auto &ompObject : objList.v) {
++      Fortran::common::visit(
++          Fortran::common::visitors{
++              [&](const Fortran::parser::Designator &designator) {
++                if (const Fortran::parser::Name *name =
++                        getDesignatorNameIfDataRef(designator)) {
++                  symbols.push_back(*name->symbol);
++                }
++              },
++              [&](const Fortran::parser::Name &name) {
++                symbols.push_back(*name.symbol);
++              }},
++          ompObject.u);
++    }
++  };
++
++  const auto &spec{std::get<Fortran::parser::OmpDeclareTargetSpecifier>(
++      declareTargetConstruct.t)};
++  auto mod = converter.getFirOpBuilder().getModule();
++  bool isOpenMPDevice = mlir::omp::OpenMPDialect::getIsDevice(mod);
++
++  // The default capture type
++  auto deviceType = Fortran::parser::OmpDeviceTypeClause::Type::Any;
++
++  if (const auto *objectList{
++          Fortran::parser::Unwrap<Fortran::parser::OmpObjectList>(spec.u)}) {
++    // Case: declare target(func, var1, var2)
++    findFuncAndVarSyms(*objectList);
++  } else if (const auto *clauseList{
++                 Fortran::parser::Unwrap<Fortran::parser::OmpClauseList>(
++                     spec.u)}) {
++    if (clauseList->v.empty()) {
++      // Case: declare target, implicit capture of function
++      symbols.push_back(eval.getOwningProcedure()->getSubprogramSymbol());
++    }
++
++    for (const auto &clause : clauseList->v) {
++      if (const auto *toClause{
++              std::get_if<Fortran::parser::OmpClause::To>(&clause.u)}) {
++        // Case: declare target to(func, var1, var2)...
++        findFuncAndVarSyms(toClause->v);
++      } else if (const auto *linkClause{
++                     std::get_if<Fortran::parser::OmpClause::Link>(
++                         &clause.u)}) {
++        // Case: declare target link(var1, var2)...
++        findFuncAndVarSyms(linkClause->v);
++      } else if (const auto *deviceClause{
++                     std::get_if<Fortran::parser::OmpClause::DeviceType>(
++                         &clause.u)}) {
++        // Case: declare target ... device_type(any | host | nohost)
++        deviceType = deviceClause->v.v;
++      }
++    }
++  }
++  // TODO for func:
++  // 1) handle link: done, can't use with function
++  // 2) handle to: done
++  // 3) the default case where neither are specified: done
++  // 4) nested implicit functions
++
++  // TODO for data:
++  // 1) lots... need to make test case first.
++
++  // might have to do the implicit capture further in during rewrite?
++  // Or if there is an end of module action
++  // or earlier during parsing...
++  // auto markAllFuncs = [&](mlir::func::FuncOp fOp) {
++  //   for (auto block = fOp.getBody().getBlocks().begin();
++  //        block != fOp.getBody().getBlocks().end(); ++block) {
++  //     llvm::errs() << "iterate on body \n";
++  //     for (auto op = block->begin(); op != block->end(); ++op) {
++  //       llvm::errs() << "iterate on op \n";
++  //       op->dump();
++  //       // probably needs to be a fir.CallOp, and then find the FuncOp
++  //       if (auto funcOp = mlir::dyn_cast<mlir::func::FuncOp>(op)) {
++  //         // markAllFuncs on func
++  //         // check if attr exists, if not apply it.
++  //         llvm::errs() << "markAllFuncs: " << funcOp->getName() << "\n";
++  //       }
++  //     }
++  //   }
++  // };
++
++  // mod.dump();
++
++  for (auto sym : symbols) {
++    auto *op = mod.lookupSymbol(converter.mangleName(sym));
++
++    // find any functions that are implicitly captured by this
++    // declare target and mark them with declare_target_type.
++    //
++    // This may be better to do at the parser/semantic level
++
++    // could be done inside of Bridge.cpp lowerFunc or lowerModule
++    // if (auto funcOp = mlir::dyn_cast<mlir::func::FuncOp>(op))
++    // markAllFuncs(funcOp);
++
++    // delete function early if we know it is going to be discared, if
++    // it is device_type any we keep it. This feels a little
++    // inconsistent as we can only remove things we know are unneeded
++    // at this stage, so we'll still end up with a module of mixed
++    // functions with some needing removal at a later stage in either
++    // case.
++    if ((deviceType == Fortran::parser::OmpDeviceTypeClause::Type::Nohost &&
++         !isOpenMPDevice) ||
++        (deviceType == Fortran::parser::OmpDeviceTypeClause::Type::Host &&
++         isOpenMPDevice)) {
++      op->dropAllUses();
++      op->dropAllReferences();
++      op->dropAllDefinedValueUses();
++      op->remove();
++    } else {
++      // Method 1: Remove function here if not desired and add adhoc
++      // attribute to the MLIR Funcs for special handling later
++      if (deviceType == Fortran::parser::OmpDeviceTypeClause::Type::Nohost) {
++        mlir::omp::OpenMPDialect::setDeclareTarget(op, "nohost");
++      } else if (deviceType ==
++                 Fortran::parser::OmpDeviceTypeClause::Type::Host) {
++        mlir::omp::OpenMPDialect::setDeclareTarget(op, "host");
++      } else if (deviceType ==
++                 Fortran::parser::OmpDeviceTypeClause::Type::Any) {
++        mlir::omp::OpenMPDialect::setDeclareTarget(op, "any");
++      }
++    }
++  }
++}
++
+ void Fortran::lower::genOpenMPDeclarativeConstruct(
+     Fortran::lower::AbstractConverter &converter,
+     Fortran::lower::pft::Evaluation &eval,
+@@ -2088,8 +2228,7 @@
+           },
+           [&](const Fortran::parser::OpenMPDeclareTargetConstruct
+                   &declareTargetConstruct) {
+-            TODO(converter.getCurrentLocation(),
+-                 "OpenMPDeclareTargetConstruct");
++            handleDeclareTarget(converter, eval, declareTargetConstruct);
+           },
+           [&](const Fortran::parser::OpenMPRequiresConstruct
+                   &requiresConstruct) {
+diff -Naur -x .git -x __pycache__ llvm-project.upstream/flang/lib/Optimizer/Transforms/CMakeLists.txt llvm-project/flang/lib/Optimizer/Transforms/CMakeLists.txt
+--- llvm-project.upstream/flang/lib/Optimizer/Transforms/CMakeLists.txt	2023-03-10 07:54:57.233325414 -0500
++++ llvm-project/flang/lib/Optimizer/Transforms/CMakeLists.txt	2023-03-10 08:42:55.884975925 -0500
+@@ -15,7 +15,8 @@
+   SimplifyIntrinsics.cpp
+   AddDebugFoundation.cpp
+   PolymorphicOpConversion.cpp
+-
++  OMPCaptureImplicitDeclTar.cpp
++  
+   DEPENDS
+   FIRDialect
+   FIROptTransformsPassIncGen
+diff -Naur -x .git -x __pycache__ llvm-project.upstream/flang/lib/Optimizer/Transforms/OMPCaptureImplicitDeclTar.cpp llvm-project/flang/lib/Optimizer/Transforms/OMPCaptureImplicitDeclTar.cpp
+--- llvm-project.upstream/flang/lib/Optimizer/Transforms/OMPCaptureImplicitDeclTar.cpp	1969-12-31 19:00:00.000000000 -0500
++++ llvm-project/flang/lib/Optimizer/Transforms/OMPCaptureImplicitDeclTar.cpp	2023-03-10 09:25:59.954368435 -0500
+@@ -0,0 +1,63 @@
++#include "flang/Optimizer/Dialect/FIRDialect.h"
++#include "flang/Optimizer/Dialect/FIROps.h"
++#include "flang/Optimizer/Dialect/FIRType.h"
++#include "flang/Optimizer/Transforms/Passes.h"
++#include "mlir/Dialect/Func/IR/FuncOps.h"
++#include "mlir/Dialect/LLVMIR/LLVMDialect.h"
++#include "mlir/Dialect/OpenMP/OpenMPDialect.h"
++#include "mlir/IR/BuiltinDialect.h"
++#include "mlir/IR/Operation.h"
++#include "mlir/Pass/Pass.h"
++#include <mlir/IR/BuiltinOps.h>
++#include <mlir/IR/SymbolTable.h>
++#include <mlir/Support/LLVM.h>
++
++namespace fir {
++#define GEN_PASS_DEF_CAPTUREIMPLICITLYDECLARETARGETPASS
++#include "flang/Optimizer/Transforms/Passes.h.inc"
++} // namespace fir
++
++namespace {
++// TODO: Handle case where a function is marked twice by declare target and it's
++// two different target types
++class CaptureImplicitlyDeclareTargetPass
++    : public fir::impl::CaptureImplicitlyDeclareTargetPassBase<
++          CaptureImplicitlyDeclareTargetPass> {
++
++  // TODO: deal with finding the same function twice, with different device_type
++  // should be combined into Any, or Any should supersede what was before
++  void markNestedFuncs(mlir::func::FuncOp functionOp,
++                       mlir::Operation *moduleOp) {
++    llvm::errs() << "CurrentFuncName: " << functionOp.getName() << "\n";
++    for (auto callOp : functionOp.getOps<fir::CallOp>()) {
++      auto currFOp = llvm::dyn_cast_or_null<mlir::func::FuncOp>(
++          mlir::SymbolTable::lookupSymbolIn(moduleOp,
++                                            callOp.getCallee().value()));
++      if (currFOp) {
++        mlir::omp::OpenMPDialect::setDeclareTarget(
++            currFOp,
++            mlir::omp::OpenMPDialect::getDeclareTargetDeviceType(functionOp));
++        markNestedFuncs(currFOp, moduleOp);
++      }
++    }
++  }
++
++  void runOnOperation() override {
++    mlir::func::FuncOp functionOp = getOperation();
++    if (mlir::omp::OpenMPDialect::isDeclareTarget(functionOp)) {
++      auto *moduleOp =
++          functionOp->getParentWithTrait<mlir::OpTrait::SymbolTable>();
++      assert(moduleOp && "Expected function to be inside a module");
++      markNestedFuncs(functionOp, moduleOp);
++    }
++  }
++};
++
++} // namespace
++
++namespace fir {
++std::unique_ptr<mlir::OperationPass<mlir::func::FuncOp>>
++createCaptureImplicitlyDeclareTargetPass() {
++  return std::make_unique<CaptureImplicitlyDeclareTargetPass>();
++}
++} // namespace fir
+diff -Naur -x .git -x __pycache__ llvm-project.upstream/mlir/include/mlir/Dialect/OpenMP/OpenMPOps.td llvm-project/mlir/include/mlir/Dialect/OpenMP/OpenMPOps.td
+--- llvm-project.upstream/mlir/include/mlir/Dialect/OpenMP/OpenMPOps.td	2023-03-07 14:55:06.811745448 -0500
++++ llvm-project/mlir/include/mlir/Dialect/OpenMP/OpenMPOps.td	2023-03-10 08:42:55.888975907 -0500
+@@ -36,6 +36,11 @@
+     // Return the value of the omp.is_device attribute stored in the module if it
+     // exists, otherwise return false by default
+     static bool getIsDevice(Operation* module);
++
++    // @@@AG: Make this into a well defined attribute if we maintain its use
++    static void setDeclareTarget(Operation *func, StringRef deviceType);
++    static bool isDeclareTarget(Operation *func);
++    static StringRef getDeclareTargetDeviceType(Operation *func);
+   }];
+ }
+ 
+diff -Naur -x .git -x __pycache__ llvm-project.upstream/mlir/lib/Dialect/OpenMP/IR/OpenMPDialect.cpp llvm-project/mlir/lib/Dialect/OpenMP/IR/OpenMPDialect.cpp
+--- llvm-project.upstream/mlir/lib/Dialect/OpenMP/IR/OpenMPDialect.cpp	2023-03-07 14:55:06.831745379 -0500
++++ llvm-project/mlir/lib/Dialect/OpenMP/IR/OpenMPDialect.cpp	2023-03-10 09:25:59.954368435 -0500
+@@ -1437,6 +1437,23 @@
+   return false;
+ }
+ 
++void OpenMPDialect::setDeclareTarget(Operation *func, StringRef deviceType) {
++  func->setAttr("omp.declare_target_type",
++                mlir::StringAttr::get(func->getContext(), deviceType));
++}
++
++bool OpenMPDialect::isDeclareTarget(Operation *func) {
++  return func->hasAttr("omp.declare_target_type");
++}
++
++StringRef OpenMPDialect::getDeclareTargetDeviceType(Operation *func) {
++  if (mlir::Attribute declTar = func->getAttr("omp.declare_target_type")) {
++    if (declTar.isa<mlir::StringAttr>())
++      return declTar.cast<mlir::StringAttr>().getValue();
++  }
++  return {};
++}
++
+ #define GET_ATTRDEF_CLASSES
+ #include "mlir/Dialect/OpenMP/OpenMPOpsAttributes.cpp.inc"
+ 
+diff -Naur -x .git -x __pycache__ llvm-project.upstream/mlir/lib/Target/LLVMIR/CMakeLists.txt llvm-project/mlir/lib/Target/LLVMIR/CMakeLists.txt
+--- llvm-project.upstream/mlir/lib/Target/LLVMIR/CMakeLists.txt	2023-02-10 14:55:58.436712535 -0500
++++ llvm-project/mlir/lib/Target/LLVMIR/CMakeLists.txt	2023-03-10 08:26:00.058379081 -0500
+@@ -37,6 +37,7 @@
+   MLIRLLVMDialect
+   MLIRLLVMIRTransforms
+   MLIRTranslateLib
++  MLIROpenMPDialect
+   )
+ 
+ add_mlir_translation_library(MLIRToLLVMIRTranslationRegistration
+@@ -52,6 +53,7 @@
+   MLIROpenACCToLLVMIRTranslation
+   MLIROpenMPToLLVMIRTranslation
+   MLIRROCDLToLLVMIRTranslation
++  MLIROpenMPDialect
+   )
+ 
+ add_mlir_translation_library(MLIRTargetLLVMIRImport
+@@ -78,4 +80,5 @@
+ 
+   LINK_LIBS PUBLIC
+   MLIRLLVMIRToLLVMTranslation
++  MLIROpenMPDialect
+   )
+diff -Naur -x .git -x __pycache__ llvm-project.upstream/mlir/lib/Target/LLVMIR/Dialect/OpenMP/OpenMPToLLVMIRTranslation.cpp llvm-project/mlir/lib/Target/LLVMIR/Dialect/OpenMP/OpenMPToLLVMIRTranslation.cpp
+--- llvm-project.upstream/mlir/lib/Target/LLVMIR/Dialect/OpenMP/OpenMPToLLVMIRTranslation.cpp	2023-02-27 09:21:59.211665431 -0500
++++ llvm-project/mlir/lib/Target/LLVMIR/Dialect/OpenMP/OpenMPToLLVMIRTranslation.cpp	2023-03-10 08:26:00.058379081 -0500
+@@ -1465,6 +1465,16 @@
+       .Case([&](omp::ThreadprivateOp) {
+         return convertOmpThreadprivate(*op, builder, moduleTranslation);
+       })
++      .Case([&](omp::TargetOp) {
++        bool isDevice = mlir::omp::OpenMPDialect::getIsDevice(
++            op->getParentOfType<mlir::ModuleOp>());
++        printf("======== TargetOp detected with isDevice=%d\n", isDevice);
++        op->dump();
++        // Placeholder for Jan's convertOmpTarget(*op, builder,
++        // moduleTranslation);
++        return success();
++      })
++
+       .Default([&](Operation *inst) {
+         return inst->emitError("unsupported OpenMP operation: ")
+                << inst->getName();
+diff -Naur -x .git -x __pycache__ llvm-project.upstream/mlir/lib/Target/LLVMIR/ModuleTranslation.cpp llvm-project/mlir/lib/Target/LLVMIR/ModuleTranslation.cpp
+--- llvm-project.upstream/mlir/lib/Target/LLVMIR/ModuleTranslation.cpp	2023-03-07 14:55:06.843745337 -0500
++++ llvm-project/mlir/lib/Target/LLVMIR/ModuleTranslation.cpp	2023-03-10 09:25:59.958368419 -0500
+@@ -982,11 +982,24 @@
+ 
+ LogicalResult ModuleTranslation::convertFunctions() {
+   // Convert functions.
++
++  bool isDevice = mlir::omp::OpenMPDialect::getIsDevice(mlirModule);
+   for (auto function : getModuleBody(mlirModule).getOps<LLVMFuncOp>()) {
+     // Ignore external functions.
+     if (function.isExternal())
+       continue;
+ 
++    // FIXME: Must convert declare target functions on device pass.
++    //        We need a way to identify that function was defined or
++    //        declared inside declare target.
++    //        For now, we assume no declare target functions.
++    //        Target regions will have there own kernels generated.
++    printf("  FFFF Function name %s\n", function.getName().str().c_str());
++    bool isDeclareTargetFunction =
++        mlir::omp::OpenMPDialect::isDeclareTarget(function);
++    if (isDevice && !isDeclareTargetFunction)
++      continue;
++
+     if (failed(convertOneFunction(function)))
+       return failure();
+   }
