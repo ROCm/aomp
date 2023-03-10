@@ -1,17 +1,22 @@
 # AOMP CentOS 7/8 Install
-Currently, we support CentOS 7/8.1. 
+Currently, we support CentOS 7/8.1/9.
 
 AOMP will install to /usr/lib/aomp. The AOMP environment variable will automatically be set to the install location. This may require a new terminal to be launched to see the change.<br>
 
+### Download and Install (CentOS 9)
+```
+wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_17.0-0/aomp_CENTOS_9-17.0-0.x86_64.rpm
+sudo rpm -i aomp_CENTOS_9-17.0-0.x86_64.rpm
+```
 ### Download and Install (CentOS 8)
 ```
-wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_16.0-3/aomp_CENTOS_8-16.0-3.x86_64.rpm
-sudo rpm -i aomp_CENTOS_8-16.0-3.x86_64.rpm
+wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_17.0-0/aomp_CENTOS_8-17.0-0.x86_64.rpm
+sudo rpm -i aomp_CENTOS_8-17.0-0.x86_64.rpm
 ```
 ### Download and Install (CentOS 7)
 ```
-wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_16.0-3/aomp_CENTOS_7-16.0-3.x86_64.rpm
-sudo rpm -i aomp_CENTOS_7-16.0-3.x86_64.rpm
+wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_17.0-0/aomp_CENTOS_7-17.0-0.x86_64.rpm
+sudo rpm -i aomp_CENTOS_7-17.0-0.x86_64.rpm
 ```
 Confirm AOMP environment variable is set:
 ```
@@ -32,10 +37,14 @@ Create a /etc/yum.repos.d/amdgpu.repo file with the following contents:
 ```
   [amdgpu]
   name=amdgpu
-  baseurl=https://repo.radeon.com/amdgpu/latest/rhel/8.4/main/x86_64
+  baseurl=https://repo.radeon.com/amdgpu/latest/rhel/9.1/main/x86_64
   enabled=1
   gpgcheck=1
   gpgkey=https://repo.radeon.com/rocm/rocm.gpg.key
+```
+For CentOS 8 use:
+```
+  baseurl=https://repo.radeon.com/amdgpu/latest/rhel/8.4/main/x86_64
 ```
 For CentOS 7 use:
 ```

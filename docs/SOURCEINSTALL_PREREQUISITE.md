@@ -16,7 +16,7 @@
 ```
 
 
-#### SLES-15-SP1 Packages
+#### SLES-15-SP4 Packages
 ```
   sudo zypper install -y git pciutils-devel python-base libffi-devel gcc gcc-c++ libnuma-devel patchutils openmpi2-devel mesa-libGL-devel libquadmath0 libtool libdrm libdrm-devel ccache
 
@@ -63,6 +63,15 @@ RHEL 7.7 and later RHEL 7 versions
   python3 -m pip install CppHeaderParser argparse wheel lit --user
 ```
 
+#### CentOS 9 Packages
+```
+  sudo yum install dnf-plugins-core gcc gcc-c++ git make pciutils-devel numactl-devel libffi-devel mesa-libGL-devel libquadmath-devel python3 python3-pip python36-devel python3-setuptools libtool libdrm libdrm-devel ccache
+
+  # Additional packages used by rocgdb
+  sudo yum install texinfo bison flex ncurses-devel expat-devel xz-devel libbabeltrace-devel gmp-devel
+  python3 -m pip install CppHeaderParser argparse wheel lit --user
+```
+
 ### 2. User-installed Python Components
 
 After all the required system package from section 1 are installed, there are some python packages that must be locally installed by the user building AOMP. Use this command to install these.  Do not install these as root.
@@ -71,23 +80,23 @@ After all the required system package from section 1 are installed, there are so
   python3 -m pip install CppHeaderParser argparse wheel lit
 ```
 
-### 3.  Build CMake 3.16.8 in /usr/local/cmake
+### 3.  Build CMake in /usr/local/cmake
 
 This can also be done with ./build_prereq.sh, which installs to $HOME/local/cmake.<br>
-We have seen problems with newer versions of cmake. We have only verified version 3.16.8 for the various component builds necessary for aomp. All invocations of cmake in the build scripts use $AOMP_CMAKE.  The default for the AOMP_CMAKE variable is /usr/local/cmake/bin/cmake.  Use these commands to install cmake 3.16.8 from source into /usr/local/cmake.
+All invocations of cmake in the build scripts use $AOMP_CMAKE.  The default for the AOMP_CMAKE variable is /usr/local/cmake/bin/cmake. You can also use these commands to install cmake 3.22.1 manually from source into /usr/local/cmake instead of using ./build_prereq.sh.
 
 ```
   $ sudo apt-get install libssl-dev
   $ mkdir /tmp/cmake
   $ cd /tmp/cmake
-  $ wget https://github.com/Kitware/CMake/releases/download/v3.16.8/cmake-3.16.8.tar.gz
-  $ tar -xvzf cmake-3.16.8.tar.gz
-  $ cd cmake-3.16.8
+  $ wget https://github.com/Kitware/CMake/releases/download/v3.22.1/cmake-3.22.1.tar.gz
+  $ tar -xvzf cmake-3.22.1.tar.gz
+  $ cd cmake-3.22.1
   $ ./bootstrap --prefix=/usr/local/cmake
   $ make
   $ sudo make install
 ```
-Alternatively, you could change the --prefix option to install cmake 3.16.8 somewhere else. Then be sure to change the value of he environment variable AOMP_CMAKE to be the cmake binary.
+Alternatively, you could change the --prefix option to install cmake somewhere else. Then be sure to change the value of he environment variable AOMP_CMAKE to be the cmake binary.
 
 ### 4. Verify KFD Driver
 
@@ -109,11 +118,11 @@ sudo apt update
 sudo apt install amdgpu-dkms
 ```
 
-#### SUSE SLES-15-SP1 Support
+#### SUSE SLES-15-SP4 Support
 <b>Important Note:</b>
-There is a conflict with the KFD when simultaneously running the GUI on SLES-15-SP1, which leads to unpredicatable behavior when offloading to the GPU. We recommend using SLES-15-SP1 in text mode to avoid running both the KFD and GUI at the same time.
+There is a conflict with the KFD when simultaneously running the GUI on SLES-15-SP4, which leads to unpredicatable behavior when offloading to the GPU. We recommend using SLES-15-SP4 in text mode to avoid running both the KFD and GUI at the same time.
 
-SUSE SLES-15-SP1 comes with kfd support installed. To verify this:
+SUSE SLES-15-SP4 comes with kfd support installed. To verify this:
 ```
   sudo dmesg | grep kfd
   sudo dmesg | grep amdgpu

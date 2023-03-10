@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#  build-rpm.sh: Build the rpm for SLES15 SP1 or RHEL 7
+#  build-rpm.sh: Build the rpm for SLES15 SP4 and Centos 7-9
 #
 
 # --- Start standard header to set AOMP environment variables ----
@@ -10,17 +10,26 @@ thisdir=`dirname $realpath`
 # --- end standard header ----
 
 osname=$(cat /etc/os-release | grep -e ^NAME=)
+version=$(cat /etc/os-release | grep -e ^VERSION=)
 rpmname="Not_Found"
 if [[ $osname =~ "Red Hat" ]]; then
   echo "Red Hat found!!!"
   rpmname=${1:-aomp_REDHAT_7}
 elif [[ $osname =~ "SLES" ]]; then
-  echo "SLES15_SP1 found!!!"
-  rpmname=${1:-aomp_SLES15_SP1}
+  echo "SLES15_SP4 found!!!"
+  rpmname=${1:-aomp_SLES15_SP4}
 elif [[ $osname =~ "CentOS" ]]; then
   echo "CENTOS found!!!"
-  rpmname=${1:-aomp_CENTOS_8}
+  if [[ $version =~ "9" ]]; then
+    rpmname=${1:-aomp_CENTOS_9}
+  elif [[ $version =~ "8" ]]; then
+    rpmname=${1:-aomp_CENTOS_8}
+  elif [[ $version =~ "7" ]]; then
+    rpmname=${1:-aomp_CENTOS_7}
+  fi
 fi
+
+echo "rpmname: $rpmname"
 
 # Ensure the rpmbuild tool from rpm-build package is available
 rpmbuild_loc=`which rpmbuild 2>/dev/null`

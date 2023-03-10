@@ -1,20 +1,21 @@
 Summary: AMD OpenMP Compiler Suite
-Name: aomp_SLES15_SP1
+Name: aomp_CENTOS_9
 Version: __VERSION1
-Release: __VERSION3_MOD 
-Source: ~/rpm/SOURCES/aomp_SLES15_SP1.tar.gz
+Release: __VERSION3_MOD
+Source: ~/rpm/SOURCES/aomp_CENTOS_9.tar.gz
 URL: https://github.com/ROCm-Developer-Tools/aomp
 License: MIT and ASL 2.0
 Group: System/Base
 Vendor: AMD
 
+%define debug_package %{nil}
 %define __os_install_post %{nil}
-%define __requires_exclude ^libcuda\\.so\\..*
+%define __requires_exclude (^perl)|(^lib(amdhip|hip).*$)|(^libcuda\\.so\\..*$)
 
 %description
  The AMD OpenMP Compiler (AOMP) is an experimental LLVM compiler
  suite for offloading to either Radeon GPUs or Nvidia GPUs.
- AOMP requires either rocm, cuda, or both.
+ AOMP requires the dkms module from ROCm, amdgpu-dkms.
 
 %prep
 %setup -n %{name}
@@ -41,7 +42,7 @@ ln -sf /usr/lib/aomp___VERSION2_STRING /usr/lib/aomp
 if [ -L /usr/bin/aompcc ] ; then rm /usr/bin/aompcc ; fi
 ln -sf /usr/lib/aomp/bin/aompcc /usr/bin/aompcc
 if [ -L /usr/bin/aompversion ] ; then rm /usr/bin/aompversion ; fi
-ln -sf /usr/lib/aomp/bin/aompversion /usr/bin/aompversion 
+ln -sf /usr/lib/aomp/bin/aompversion /usr/bin/aompversion
 if [ -L /usr/bin/mymcpu ] ; then rm /usr/bin/mymcpu ; fi
 ln -sf /usr/lib/aomp/bin/mymcpu /usr/bin/mymcpu
 if [ -L /usr/bin/mygpu ] ; then rm /usr/bin/mygpu ; fi
@@ -62,12 +63,14 @@ echo "DONE POST INSTALL SCRIPT FROM spec file RUNNING IN $PWD"
 
 %postun
 rm /usr/lib/aomp
+rm /usr/lib/aompcc
 rm /usr/bin/aompversion
 rm /usr/bin/mymcpu
 rm /usr/bin/mygpu
 rm /usr/bin/cloc.sh
+rm /usr/bin/gpurun
 rm /etc/profile.d/aomp.sh
 rm /etc/profile.d/aomp.csh
 
 %changelog
-* Thu Jun 13 2019 Greg Rodgers <gregory.rodgers@amd.com>
+* Thu Aug 2 2019 Greg Rodgers <gregory.rodgers@amd.com>
