@@ -39,7 +39,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/clang/lib/Driver/ToolCha
    CmdArgs.push_back(Input.getFilename());
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/flang/include/flang/Optimizer/Transforms/Passes.h llvm-project/flang/include/flang/Optimizer/Transforms/Passes.h
 --- llvm-project.upstream/flang/include/flang/Optimizer/Transforms/Passes.h	2023-03-07 14:55:06.511746488 -0500
-+++ llvm-project/flang/include/flang/Optimizer/Transforms/Passes.h	2023-03-10 09:25:59.950368451 -0500
++++ llvm-project/flang/include/flang/Optimizer/Transforms/Passes.h	2023-03-10 10:37:53.998804466 -0500
 @@ -20,6 +20,7 @@
  class Operation;
  class Pass;
@@ -52,21 +52,21 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/flang/include/flang/Opti
  std::unique_ptr<mlir::Pass>
  createAlgebraicSimplificationPass(const mlir::GreedyRewriteConfig &config);
  std::unique_ptr<mlir::Pass> createPolymorphicOpConversionPass();
-+std::unique_ptr<mlir::OperationPass<mlir::func::FuncOp>>
++std::unique_ptr<mlir::OperationPass<mlir::ModuleOp>>
 +createCaptureImplicitlyDeclareTargetPass();
  
  // declarative passes
  #define GEN_PASS_REGISTRATION
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/flang/include/flang/Optimizer/Transforms/Passes.td llvm-project/flang/include/flang/Optimizer/Transforms/Passes.td
 --- llvm-project.upstream/flang/include/flang/Optimizer/Transforms/Passes.td	2023-03-07 14:55:06.511746488 -0500
-+++ llvm-project/flang/include/flang/Optimizer/Transforms/Passes.td	2023-03-10 08:42:55.884975925 -0500
++++ llvm-project/flang/include/flang/Optimizer/Transforms/Passes.td	2023-03-10 10:37:53.998804466 -0500
 @@ -284,5 +284,11 @@
    ];
  }
  
 -  
 +def CaptureImplicitlyDeclareTargetPass
-+    : Pass<"capture-implicitly-declare-target", "mlir::func::FuncOp"> {
++    : Pass<"capture-implicitly-declare-target", "mlir::ModuleOp"> {
 +  let summary = "Marks all functions referenced by a declare target function as declare target";
 +  let constructor = "::fir::createCaptureImplicitlyDeclareTargetPass()";
 +  let dependentDialects = ["mlir::omp::OpenMPDialect"];
@@ -75,7 +75,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/flang/include/flang/Opti
  #endif // FLANG_OPTIMIZER_TRANSFORMS_PASSES
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/flang/lib/Frontend/FrontendActions.cpp llvm-project/flang/lib/Frontend/FrontendActions.cpp
 --- llvm-project.upstream/flang/lib/Frontend/FrontendActions.cpp	2023-03-10 07:54:57.225325447 -0500
-+++ llvm-project/flang/lib/Frontend/FrontendActions.cpp	2023-03-10 09:25:59.954368435 -0500
++++ llvm-project/flang/lib/Frontend/FrontendActions.cpp	2023-03-10 10:37:53.998804466 -0500
 @@ -22,6 +22,7 @@
  #include "flang/Optimizer/Dialect/Support/KindMapping.h"
  #include "flang/Optimizer/Support/InitFIR.h"
@@ -84,21 +84,20 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/flang/lib/Frontend/Front
  #include "flang/Parser/dump-parse-tree.h"
  #include "flang/Parser/parsing.h"
  #include "flang/Parser/provenance.h"
-@@ -198,6 +199,13 @@
+@@ -198,6 +199,12 @@
    pm.enableVerifier(/*verifyPasses=*/true);
    pm.addPass(std::make_unique<Fortran::lower::VerifierPass>());
  
 +  // Add OpenMP-related passes
 +  if (ci.getInvocation().getFrontendOpts().features.IsEnabled(
 +          Fortran::common::LanguageFeature::OpenMP)) {
-+    pm.addNestedPass<mlir::func::FuncOp>(
-+        fir::createCaptureImplicitlyDeclareTargetPass());
++    pm.addPass(fir::createCaptureImplicitlyDeclareTargetPass());
 +  }
 +
    if (mlir::failed(pm.run(*mlirModule))) {
      unsigned diagID = ci.getDiagnostics().getCustomDiagID(
          clang::DiagnosticsEngine::Error,
-@@ -563,6 +571,9 @@
+@@ -563,6 +570,9 @@
      ci.getDiagnostics().Report(diagID);
    }
  
@@ -290,8 +289,8 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/flang/lib/Optimizer/Tran
    FIROptTransformsPassIncGen
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/flang/lib/Optimizer/Transforms/OMPCaptureImplicitDeclTar.cpp llvm-project/flang/lib/Optimizer/Transforms/OMPCaptureImplicitDeclTar.cpp
 --- llvm-project.upstream/flang/lib/Optimizer/Transforms/OMPCaptureImplicitDeclTar.cpp	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/flang/lib/Optimizer/Transforms/OMPCaptureImplicitDeclTar.cpp	2023-03-10 09:25:59.954368435 -0500
-@@ -0,0 +1,63 @@
++++ llvm-project/flang/lib/Optimizer/Transforms/OMPCaptureImplicitDeclTar.cpp	2023-03-10 10:37:53.998804466 -0500
+@@ -0,0 +1,59 @@
 +#include "flang/Optimizer/Dialect/FIRDialect.h"
 +#include "flang/Optimizer/Dialect/FIROps.h"
 +#include "flang/Optimizer/Dialect/FIRType.h"
@@ -320,14 +319,11 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/flang/lib/Optimizer/Tran
 +
 +  // TODO: deal with finding the same function twice, with different device_type
 +  // should be combined into Any, or Any should supersede what was before
-+  void markNestedFuncs(mlir::func::FuncOp functionOp,
-+                       mlir::Operation *moduleOp) {
++  void markNestedFuncs(mlir::func::FuncOp functionOp, mlir::ModuleOp moduleOp) {
 +    llvm::errs() << "CurrentFuncName: " << functionOp.getName() << "\n";
 +    for (auto callOp : functionOp.getOps<fir::CallOp>()) {
-+      auto currFOp = llvm::dyn_cast_or_null<mlir::func::FuncOp>(
-+          mlir::SymbolTable::lookupSymbolIn(moduleOp,
-+                                            callOp.getCallee().value()));
-+      if (currFOp) {
++      if (auto currFOp = moduleOp.lookupSymbol<mlir::func::FuncOp>(
++              callOp.getCallee().value())) {
 +        mlir::omp::OpenMPDialect::setDeclareTarget(
 +            currFOp,
 +            mlir::omp::OpenMPDialect::getDeclareTargetDeviceType(functionOp));
@@ -337,12 +333,11 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/flang/lib/Optimizer/Tran
 +  }
 +
 +  void runOnOperation() override {
-+    mlir::func::FuncOp functionOp = getOperation();
-+    if (mlir::omp::OpenMPDialect::isDeclareTarget(functionOp)) {
-+      auto *moduleOp =
-+          functionOp->getParentWithTrait<mlir::OpTrait::SymbolTable>();
-+      assert(moduleOp && "Expected function to be inside a module");
-+      markNestedFuncs(functionOp, moduleOp);
++    mlir::ModuleOp moduleOp = getOperation();
++    for (auto functionOp : moduleOp.getOps<mlir::func::FuncOp>()) {
++      if (mlir::omp::OpenMPDialect::isDeclareTarget(functionOp)) {
++        markNestedFuncs(functionOp, moduleOp);
++      }
 +    }
 +  }
 +};
@@ -350,7 +345,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/flang/lib/Optimizer/Tran
 +} // namespace
 +
 +namespace fir {
-+std::unique_ptr<mlir::OperationPass<mlir::func::FuncOp>>
++std::unique_ptr<mlir::OperationPass<mlir::ModuleOp>>
 +createCaptureImplicitlyDeclareTargetPass() {
 +  return std::make_unique<CaptureImplicitlyDeclareTargetPass>();
 +}
