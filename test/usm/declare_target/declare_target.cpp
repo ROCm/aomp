@@ -14,7 +14,9 @@ int main() {
   #pragma omp target
   {
     printf("Device: x = %d, &x = %p\n", x, &x);
+    x = 2;
   }
 
+  if (x != 2) return 1;
   return 0;
 }
