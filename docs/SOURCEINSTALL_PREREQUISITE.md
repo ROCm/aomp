@@ -65,7 +65,7 @@ RHEL 7.7 and later RHEL 7 versions
 
 #### CentOS 9 Packages
 ```
-  sudo yum install dnf-plugins-core gcc gcc-c++ git make pciutils-devel numactl-devel libffi-devel mesa-libGL-devel libquadmath-devel python3 python3-pip python36-devel python3-setuptools libtool libdrm libdrm-devel ccache
+  sudo yum install dnf-plugins-core gcc gcc-c++ git make pciutils-devel numactl-devel libffi-devel mesa-libGL-devel libquadmath-devel python3 python3-pip python3-devel python3-setuptools libtool libdrm libdrm-devel ccache
 
   # Additional packages used by rocgdb
   sudo yum install texinfo bison flex ncurses-devel expat-devel xz-devel libbabeltrace-devel gmp-devel
