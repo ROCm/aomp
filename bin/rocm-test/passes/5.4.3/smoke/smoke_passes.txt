@@ -14,7 +14,6 @@ clang-nest-nothing
 clang-reduction-and
 collapse_parallel_spmd
 d2h_slow_copy
-data_share2
 flang-272343-3
 flang-288183
 flang-299043
