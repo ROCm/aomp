@@ -100,6 +100,10 @@ else
 -DCUDA_TOOLKIT_ROOT_DIR=OFF"
 fi
 
+if [ "$AOMP_BUILD_CUDA" != 1 ] && [ "$AOMP_BUILD_SANITIZER" == "ON" ]; then
+   COMMON_CMAKE_OPTS="$COMMON_CMAKE_OPTS -DSANITIZER_AMDGPU=1"
+fi
+
 # This is how we tell the hsa plugin where to find hsa
 export HSA_RUNTIME_PATH=$ROCM_DIR
 
