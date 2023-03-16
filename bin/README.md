@@ -45,18 +45,20 @@ each component build script with the name build_\<component name\>.sh .
 Notice that some components are built with different parts of the same repository.
 
 The [llvm-project](https://github.com/radeonopencompute/llvm-project) repository is a mirror of the gerrit-managed internal AMD repository.
-Actually, only of the amd-stg-open branch is mirrored. The mirror is updated daily.
+Actually, only the branch "amd-stg-open" is mirrored. The updates to the mirror are done at least daily.
 If you are internal to AMD you will pick up the llvm-project repository directly from the gerrit
  [llvm-project](ssh://git.amd.com:29418/lightning/ec/llvm-project) repository.
+
 In addition to the gerrit-managed llvm-project repository, the three repositories
 [aomp](https://github.com/ROCm-Developer-Tools/aomp) ,
 [aomp-extras](https://github.com/ROCm-Developer-Tools/aomp-extras) , and
 [flang](https://github.com/ROCm-Developer-Tools/flang) make up the core aomp development repositories.
-These last three use the branch aomp-dev and are managed completely on external github.
+These three use the branch "aomp-dev" and are managed completely on external github.
 The default branch name for other non-core components is typically the name of the latest ROCm release in the external source repository.
-The clone_aomp.sh script described in the "Quick Start" below uses a manfest file from the
-[manifests](https://github.com/ROCm-Developer-Tools/aomp/manifests) directory to find and clone
-all repositories used by aomp.
+
+The clone_aomp.sh script, described in the "Quick Start" below, uses a manfest file from the
+[manifests](https://github.com/ROCm-Developer-Tools/aomp/tree/aomp-dev/manifests)
+directory to find and clone all repositories used by aomp.
 
 ## AOMP Environment Variables
 The AOMP build scripts use many environment variables to control how AOMP is built.
@@ -69,11 +71,11 @@ These are some important environment variables and their default values.
 
 | ENV VARIABLE | DEFAULT VALUE               | DESCRIPTION
 | ------------ | -------------               | -----------
-| AOMP                  | $HOME/rocm/aomp    | Where AOMP is installed and tested
+| AOMP                  | $HOME/rocm/aomp    | Directory symbolic link to where AOMP is installed and tested
 | AOMP_REPOS            | $HOME/git/aomp17.0   | The base directory for all AOMP build repositories
 | AOMP_STANDALONE_BUILD | 1                  | Build all components, do NOT use installed ROCm
 | AOMP_VERSION          | 17.0               | Clang version.
-| AOMP_VERSION_MOD      | 1                  | This implies the next release will be AOMP_17.0-0.
+| AOMP_VERSION_MOD      | 1                  | This implies the next release will be AOMP_17.0-1.
 | AOMP_VERSION_STRING   | $AOMP_VERSION-$AOMP_VERSION_MOD |
 | AOMP_USE_NINJA        | 0                  | Use ninja instead of make to build certain components
 | GFXLIST               | gfx700 gfx701 gfx801 gfx803     | List of AMDGPU gpus to build for
@@ -82,21 +84,44 @@ These are some important environment variables and their default values.
 | CUDA                  | /usr/local/cuda                 | Where cuda is installed
 
 
+### Overriding AOMP Enviornment Variables
 You can override any environment variable by setting values in your .bashrc or .bash_profile.
-Here is a sample of commands you might want to put into your .bash_profile:
+We do not recommend overriding any AOMP_VERSION values as these defaults are updated by development
+leaders in the [aomp_common_vars](aomp_common_vars) file when development moves to the next release.
+
+Here is a sample of commands you might want to put into your .bashrc or .bash_profile:
 
 ```
-AOMP=/tmp/$USER/rocm/aomp
+AOMP=/work/$USER/rocm/aomp
 AOMP_REPOS=/work/$USER/git/aomp17.0
 NVPTXGPUS=30,35,70
 GFXLIST="gfx803 gfx906"
-AOMP_VERSION="17.0"
 AOMP_USE_NINJA=1
-export AOMP AOMP_REOS NVPTXGPUS GFXLIST AOMP_VERSION AOMP_USE_NINJA
+export AOMP AOMP_REPOS NVPTXGPUS GFXLIST AOMP_USE_NINJA
 ```
-This sample demonstrates how to store the repositories and build directory in a directory that
-may be on a faster filesystem than your HOME directory.
-It also shows how to tell the build scripts to use Ninja instead of make for faster build times.
+This sample demonstrates how to set AOMP_REPOS to store the repositories and build directory
+on a filesystem that may be faster than your HOME directory.
+We recommend that, if you override AOMP_REPOS as shown, set AOMP_REPOS to a directory name
+that contains the current default value AOMP_VERSION as set in the beginning
+of the [aomp_common_vars](aomp_common_vars) file.
+This sample also shows how to tell the build scripts to use Ninja instead of make for faster build times.
+
+### The "AOMP" Environment Variable
+The above sample sets AOMP to the location of the AOMP installation link.
+AOMP is the most important environment variable to set and understand.
+This environment variable is used by BOTH the build scripts and most test scripts.
+The build scripts REQUIRE that AOMP is either a symbolic link or initially does not exist.
+The build scripts will install to a physical directory with AOMP_VERSION_STRING
+appended to the value of AOMP. The build scripts will create the symbolic link from AOMP
+to the physical installation directory.
+
+Most test scripts use the environment variable AOMP to identify the compiler location.
+For testing purposes, you will often change the value of AOMP when not testing your latest
+AOMP build.  For example, to test the latest  packaged aomp release, set AOMP=/usr/lib/aomp.
+To test against the ROCM installed compiler, set AOMP=/opt/rocm/llvm. To test one of your
+previous AOMP source builds, set AOMP to an older physical installation directory, such as
+AOMP=$HOME/rocm/aomp_16.0-3.  Be careful that if you set AOMP for testing purposes that
+it is reset to the correct value when rebuilding aomp from source.
 
 ## Quick Start to AOMP Development
 To build and clone all components using the latest development sources, first clone aomp repo and checkout the aomp-dev branch as follows:
