@@ -2,7 +2,7 @@
 
 #define N 1024
 
-void foo(double *a, int n) {
+void foo(int *a, int n) {
   #pragma omp target teams distribute parallel for has_device_addr(a)
   for(int i = 0; i < n; i++)
     a[i] = i;
