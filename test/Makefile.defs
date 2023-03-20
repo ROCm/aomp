@@ -38,26 +38,38 @@ else
 endif
 
 # Look for FileCheck on the system in various places.
-# Check AOMP install first.
+# Check local AOMP install first.
 FILECHECK=$(AOMP)/bin/FileCheck
 FILECHECK_RT=$(shell ls $(FILECHECK) 2>/dev/null || echo error)
 ifeq ($(FILECHECK_RT),error)
-  # Check copy location for psdb.
-  FILECHECK=$(HOME)/git/aomp-test/FileCheck
+  # Check default AOMP release location.
+  FILECHECK=/usr/lib/aomp/bin/FileCheck
   FILECHECK_RT=$(shell ls $(FILECHECK) 2> /dev/null || echo error)
   ifeq ($(FILECHECK_RT),error)
-    # Check system llvm.
-    SYSLLVM=$(shell ls /usr/lib | grep -m1 -e "llvm-[0-9]\+")
-    FILECHECK=/usr/lib/$(SYSLLVM)/bin/FileCheck
-    FILECHECK_RT=$(shell ls $(FILECHECK) 2>/dev/null || echo error)
+    # Check copy location for psdb.
+    FILECHECK=$(HOME)/git/aomp-test/FileCheck
+    FILECHECK_RT=$(shell ls $(FILECHECK) 2> /dev/null || echo error)
     ifeq ($(FILECHECK_RT),error)
-      # Check system llvm-tools.
-      SYSFILECHECK=$(shell ls /usr/bin | grep -m1 -e "FileCheck")
-      FILECHECK=/usr/bin/$(SYSFILECHECK)
+      # Check system llvm.
+      SYSLLVM=$(shell ls /usr/lib | grep -m1 -e "llvm-[0-9]\+")
+      FILECHECK=/usr/lib/$(SYSLLVM)/bin/FileCheck
       FILECHECK_RT=$(shell ls $(FILECHECK) 2>/dev/null || echo error)
       ifeq ($(FILECHECK_RT),error)
-        $(warning ----Warning---- FileCheck was not found and is needed by smoke tests.)
-        FILECHECK=notfound
+        # Check system llvm-tools.
+        SYSFILECHECK=$(shell ls /usr/bin | grep -m1 -e "FileCheck")
+        ifneq ($(SYSFILECHECK),)
+          FILECHECK=/usr/bin/$(SYSFILECHECK)
+          FILECHECK_RT=$(shell ls $(FILECHECK) 2>/dev/null || echo error)
+          ifeq ($(FILECHECK_RT),error)
+            NOFILECHECK=1
+          endif
+        else
+          NOFILECHECK=1
+        endif
+        ifeq ($(NOFILECHECK),1)
+          $(warning ----Warning---- FileCheck was not found and is needed by smoke tests.)
+          FILECHECK="FileCheck notfound. May need to install llvm-XY-tools (where XY is llvm version)."
+        endif
       endif
     endif
   endif
