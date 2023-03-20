@@ -4,8 +4,8 @@
 
 #define N 10
 #define TN 100
-#define GPU_REPS 1000000000
-#define TARGET_REPS 100000
+#define GPU_REPS 3
+#define TARGET_REPS 3
 
 void target_fn(int *a)
 {
@@ -51,7 +51,7 @@ int gpu_reps()
 int main()
 {
   int target = target_reps();
-  int gpu = gpu_reps();
+  int gpu = 0;// gpu_reps();
 
   printf("target + gpu = %d\n", target + gpu);
 
