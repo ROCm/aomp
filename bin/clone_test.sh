@@ -10,7 +10,7 @@ thisdir=`dirname $realpath`
 . $thisdir/aomp_common_vars
 # --- end standard header ----
 
-EPSDB_LIST=${EPSDB_LIST:-"openmpapps sollve_vv Nekbone goulash BabelStream"}
+EPSDB_LIST=${EPSDB_LIST:-"openmpapps sollve_vv Nekbone goulash BabelStream OvO"}
 
 function list_repo_from_manifest(){
    logcommit=`git log -1 | grep "^commit" | cut -d" " -f2 | xargs`

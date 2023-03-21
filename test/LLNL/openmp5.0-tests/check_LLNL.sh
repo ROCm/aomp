@@ -12,6 +12,7 @@ function clean(){
   rm -f test_use_device_addr
   rm -f *.o
   rm -f *.ERR
+  rm -f LLNL.run.log*
 }
 
 clean
