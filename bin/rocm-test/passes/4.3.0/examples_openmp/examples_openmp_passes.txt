@@ -1,6 +1,4 @@
 declare_variant_if
-host_function
-host_varfn_function
 reduction
 veccopy
 vmulsum
