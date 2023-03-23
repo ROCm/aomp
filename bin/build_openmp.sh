@@ -59,10 +59,16 @@ if [ "$AOMP_BUILD_CUDA" == 1 ] ; then
    fi
 fi
 
+if [ "$AOMP_USE_NINJA" == 0 ] ; then
+    AOMP_SET_NINJA_GEN=""
+else
+    AOMP_SET_NINJA_GEN="-G Ninja"
+fi
+
 export LLVM_DIR=$AOMP_INSTALL_DIR
 GFXSEMICOLONS=`echo $GFXLIST | tr ' ' ';' `
 ALTAOMP=${ALTAOMP:-$AOMP}
-COMMON_CMAKE_OPTS="-DOPENMP_ENABLE_LIBOMPTARGET=1
+COMMON_CMAKE_OPTS="$AOMP_SET_NINJA_GEN -DOPENMP_ENABLE_LIBOMPTARGET=1
 -DCMAKE_INSTALL_PREFIX=$INSTALL_OPENMP
 -DCMAKE_PREFIX_PATH=$ROCM_CMAKECONFIG_PATH
 -DOPENMP_TEST_C_COMPILER=$AOMP/bin/clang
@@ -74,7 +80,6 @@ COMMON_CMAKE_OPTS="-DOPENMP_ENABLE_LIBOMPTARGET=1
 -DLIBOMP_COPY_EXPORTS=OFF
 -DLIBOMPTARGET_ENABLE_DEBUG=ON
 -DLLVM_DIR=$LLVM_DIR"
-
 
 if [ "$AOMP_STANDALONE_BUILD" == 0 ]; then
   COMMON_CMAKE_OPTS="$COMMON_CMAKE_OPTS
@@ -98,6 +103,10 @@ else
 #  Need to force CUDA off this way in case cuda is installed in this system
    COMMON_CMAKE_OPTS="$COMMON_CMAKE_OPTS
 -DCUDA_TOOLKIT_ROOT_DIR=OFF"
+fi
+
+if [ "$AOMP_BUILD_CUDA" != 1 ] && [ "$AOMP_BUILD_SANITIZER" == "ON" ]; then
+   COMMON_CMAKE_OPTS="$COMMON_CMAKE_OPTS -DSANITIZER_AMDGPU=1"
 fi
 
 # This is how we tell the hsa plugin where to find hsa
@@ -176,14 +185,14 @@ $AOMP_ORIGIN_RPATH \
 fi
 
 cd $BUILD_DIR/build/openmp
-echo " -----Running make for $BUILD_DIR/build/openmp ---- "
-make -j $AOMP_JOB_THREADS
+echo " -----Running $AOMP_NINJA_BIN for $BUILD_DIR/build/openmp ---- "
+$AOMP_NINJA_BIN -j $AOMP_JOB_THREADS
 if [ $? != 0 ] ; then 
       echo " "
-      echo "ERROR: make -j $AOMP_JOB_THREADS  FAILED"
+      echo "ERROR: $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS  FAILED"
       echo "To restart:" 
       echo "  cd $BUILD_DIR/build/openmp"
-      echo "  make"
+      echo "  $AOMP_NINJA_BIN"
       exit 1
 fi
 
@@ -191,10 +200,10 @@ if [ "$AOMP_BUILD_DEBUG" == "1" ] ; then
    cd $BUILD_DIR/build/openmp_debug
    echo
    echo
-   echo " -----Running make for $BUILD_DIR/build/openmp_debug ---- "
-   make -j $AOMP_JOB_THREADS
+   echo " -----Running $AOMP_NINJA_BIN for $BUILD_DIR/build/openmp_debug ---- "
+   $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS
    if [ $? != 0 ] ; then 
-         echo "ERROR make -j $AOMP_JOB_THREADS failed"
+         echo "ERROR $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS failed"
          exit 1
    fi
 fi
@@ -211,9 +220,9 @@ if [ "$1" == "install" ] ; then
    cd $BUILD_DIR/build/openmp
    echo
    echo " -----Installing to $INSTALL_OPENMP/lib ----- "
-   $SUDO make -j $AOMP_JOB_THREADS install
+   $SUDO $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS install
    if [ $? != 0 ] ; then
-      echo "ERROR make install failed "
+      echo "ERROR $AOMP_NINJA_BIN install failed "
       exit 1
    fi
 
@@ -224,9 +233,9 @@ if [ "$1" == "install" ] ; then
       [[ ! -d $_ompd_dir ]] && _ompd_dir="$AOMP_INSTALL_DIR/share/gdb/python/ompd"
       echo
       echo " -----Installing to $INSTALL_OPENMP/lib-debug ---- " 
-      $SUDO make -j $AOMP_JOB_THREADS install
+      $SUDO $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS install
       if [ $? != 0 ] ; then 
-         echo "ERROR make install failed "
+         echo "ERROR $AOMP_NINJA_BIN install failed "
          exit 1
       fi
 

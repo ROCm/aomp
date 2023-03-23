@@ -1,12 +1,12 @@
 include ../../Makefile.defs
 
-TESTNAME     = assume_no_openmp
-TESTSRC_MAIN = assume_no_openmp.cpp
+TESTNAME     = flang-295134
+TESTSRC_MAIN = flang-295134.f90
 TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 
-CLANG        ?= clang++ -fopenmp-version=52
-OMP_BIN      = $(AOMP)/bin/$(CLANG)
+FLANG        = flang
+OMP_BIN      = $(AOMP)/bin/$(FLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
 #-ccc-print-phases
 #"-\#\#\#"

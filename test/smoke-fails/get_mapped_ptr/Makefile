@@ -1,7 +1,7 @@
 include ../../Makefile.defs
 
-TESTNAME     = assume_no_openmp
-TESTSRC_MAIN = assume_no_openmp.cpp
+TESTNAME     = get_mapped_ptr
+TESTSRC_MAIN = get_mapped_ptr.cpp
 TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 

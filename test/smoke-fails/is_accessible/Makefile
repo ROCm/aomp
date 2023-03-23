@@ -1,7 +1,7 @@
 include ../../Makefile.defs
 
-TESTNAME     = assume_no_openmp
-TESTSRC_MAIN = assume_no_openmp.cpp
+TESTNAME     = is_accessible
+TESTSRC_MAIN = is_accessible.cpp
 TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 
@@ -12,3 +12,6 @@ CC           = $(OMP_BIN) $(VERBOSE)
 #"-\#\#\#"
 
 include ../Makefile.rules
+
+run:
+	HSA_XNACK=1 ./$(TESTNAME)

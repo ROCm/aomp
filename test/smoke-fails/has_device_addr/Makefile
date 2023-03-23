@@ -1,7 +1,7 @@
 include ../../Makefile.defs
 
-TESTNAME     = assume_no_openmp
-TESTSRC_MAIN = assume_no_openmp.cpp
+TESTNAME     = has_device_addr
+TESTSRC_MAIN = has_device_addr.cpp
 TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 

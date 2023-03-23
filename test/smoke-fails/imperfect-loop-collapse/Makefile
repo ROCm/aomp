@@ -1,14 +1,17 @@
 include ../../Makefile.defs
 
-TESTNAME     = assume_no_openmp
-TESTSRC_MAIN = assume_no_openmp.cpp
+TESTNAME     = imperfect_loop_collapse
+TESTSRC_MAIN = imperfect_loop_collapse.cpp
 TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 
-CLANG        ?= clang++ -fopenmp-version=52
+CLANG        ?= clang++
 OMP_BIN      = $(AOMP)/bin/$(CLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
 #-ccc-print-phases
 #"-\#\#\#"
 
 include ../Makefile.rules
+
+run:
+	HSA_XNACK=1 ./$(TESTNAME)

@@ -1,14 +1,19 @@
 include ../../Makefile.defs
 
-TESTNAME     = assume_no_openmp
-TESTSRC_MAIN = assume_no_openmp.cpp
+TESTNAME     = openmp-gpu-burn
+TESTSRC_MAIN = openmp-gpu-burn.c
 TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
+RUNENV      += ROCR_VISIBLE_DEVICES=0
+$(info $(AOMP))
 
-CLANG        ?= clang++ -fopenmp-version=52
+CLANG        = clang
 OMP_BIN      = $(AOMP)/bin/$(CLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
 #-ccc-print-phases
 #"-\#\#\#"
 
 include ../Makefile.rules
+run: $(TESTNAME)
+	$(RUNENV) ./$(TESTNAME)
+

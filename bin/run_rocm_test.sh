@@ -9,8 +9,8 @@
 #
 #
 
-EPSDB_LIST=${EPSDB_LIST:-"examples smoke omp5 openmpapps nekbone sollve babelstream"}
-SUITE_LIST=${SUITE_LIST:-"examples smoke omp5 openmpapps nekbone sollve"}
+EPSDB_LIST=${EPSDB_LIST:-"examples smoke omp5 openmpapps LLNL nekbone ovo sollve babelstream"}
+SUITE_LIST=${SUITE_LIST:-"examples smoke omp5 openmpapps LLNL nekbone ovo sollve"}
 blockinglist="examples_fortran examples_openmp smoke nekbone sollve45 sollve50"
 
 # Use bogus path to avoid using target.lst, a user-defined target list
@@ -22,6 +22,7 @@ scriptdir=`dirname $realpath`
 parentdir=`eval "cd $scriptdir;pwd;cd - > /dev/null"`
 aompdir="$(dirname "$parentdir")"
 resultsdir="$aompdir/bin/rocm-test/results"
+scriptsdir="$aompdir/bin/rocm-test/scripts"
 rocmtestdir="$aompdir"/bin/rocm-test
 summary="$resultsdir"/summary.txt
 unexpresults="$resultsdir"/unexpresults.txt
@@ -118,7 +119,7 @@ sed -n -e '/ld.lld/,$p' hello.log
 # this version mismatch on release testing. We will choose the lower version so that
 # unsupported tests are not included.
 function getversion(){
-  supportedvers="4.3.0 4.4.0 4.5.0 4.5.2 5.0.0 5.1.0 5.2.0 5.3.0 5.4.3"
+  supportedvers="4.3.0 4.4.0 4.5.0 4.5.2 5.0.0 5.1.0 5.2.0 5.3.0 5.4.3 5.5.0"
   declare -A versions
   versions[430]=4.3.0
   versions[440]=4.4.0
@@ -129,6 +130,7 @@ function getversion(){
   versions[520]=5.2.0
   versions[530]=5.3.0
   versions[543]=5.4.3
+  versions[550]=5.5.0
 
   if [ $aomp -eq 1 ]; then
     echo "AOMP detected at $AOMP, skipping ROCm version detections"
@@ -397,6 +399,23 @@ function babelstream(){
   ./run_babelstream.sh
   cd "$AOMP_TEST_DIR"/babelstream
   copyresults babelstream
+}
+
+function LLNL(){
+  mkdir -p "$resultsdir"/LLNL
+  cd "$aompdir"/test/LLNL/openmp5.0-tests
+  ./check_LLNL.sh log
+  "$scriptsdir"/parse_LLNL.sh
+  copyresults LLNL
+}
+
+function ovo(){
+  mkdir -p "$resultsdir"/ovo
+  cd "$aompdir"/bin
+  ./run_ovo.sh log "$HOME"/git/aomp-test/OvO
+  "$scriptsdir"/parse_OvO.sh
+  cd "$AOMP_TEST_DIR"/OvO
+  copyresults ovo
 }
 
 # Clean Results
