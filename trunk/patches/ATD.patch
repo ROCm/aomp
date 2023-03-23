@@ -1,7 +1,7 @@
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/clang/lib/Driver/ToolChains/Clang.cpp llvm-project/clang/lib/Driver/ToolChains/Clang.cpp
---- llvm-project.upstream/clang/lib/Driver/ToolChains/Clang.cpp	2023-03-07 14:55:06.431746765 -0500
-+++ llvm-project/clang/lib/Driver/ToolChains/Clang.cpp	2023-03-10 08:25:59.934379531 -0500
-@@ -8162,7 +8162,10 @@
+--- llvm-project.upstream/clang/lib/Driver/ToolChains/Clang.cpp	2023-03-23 09:58:44.281817156 -0400
++++ llvm-project/clang/lib/Driver/ToolChains/Clang.cpp	2023-03-23 12:10:28.803132187 -0400
+@@ -8156,7 +8156,10 @@
    assert(Input.isFilename() && "Invalid input.");
    CmdArgs.push_back(Input.getFilename());
  
@@ -13,33 +13,9 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/clang/lib/Driver/ToolCha
    if (D.CC1Main && !D.CCGenDiagnostics) {
      // Invoke cc1as directly in this process.
      C.addCommand(std::make_unique<CC1Command>(
-diff -Naur -x .git -x __pycache__ llvm-project.upstream/clang/lib/Driver/ToolChains/Flang.cpp llvm-project/clang/lib/Driver/ToolChains/Flang.cpp
---- llvm-project.upstream/clang/lib/Driver/ToolChains/Flang.cpp	2023-03-10 07:54:57.193325578 -0500
-+++ llvm-project/clang/lib/Driver/ToolChains/Flang.cpp	2023-03-10 08:26:01.418374159 -0500
-@@ -370,6 +370,20 @@
- 
-   assert(Input.isFilename() && "Invalid input.");
- 
-+  bool IsHostOffloadingAction = JA.isHostOffloading(Action::OFK_OpenMP) ||
-+                                JA.isHostOffloading(C.getActiveOffloadKinds());
-+  for (const InputInfo &I : Inputs) {
-+    if (&I == &Input || I.getType() == types::TY_Nothing) {
-+      // This is the primary input or contains nothing.
-+    } else if (IsHostOffloadingAction) {
-+      CmdArgs.push_back(Args.MakeArgString("-fembed-offload-object=" +
-+                                           TC.getInputFilename(I)));
-+    }
-+  }
-+
-+  if (JA.isDeviceOffloading(Action::OFK_OpenMP))
-+    CmdArgs.push_back("-fopenmp-is-device");
-+
-   addDashXForInput(Args, Input, CmdArgs);
- 
-   CmdArgs.push_back(Input.getFilename());
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/flang/include/flang/Optimizer/Transforms/Passes.h llvm-project/flang/include/flang/Optimizer/Transforms/Passes.h
 --- llvm-project.upstream/flang/include/flang/Optimizer/Transforms/Passes.h	2023-03-07 14:55:06.511746488 -0500
-+++ llvm-project/flang/include/flang/Optimizer/Transforms/Passes.h	2023-03-10 10:37:53.998804466 -0500
++++ llvm-project/flang/include/flang/Optimizer/Transforms/Passes.h	2023-03-23 12:10:28.839132041 -0400
 @@ -20,6 +20,7 @@
  class Operation;
  class Pass;
@@ -59,7 +35,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/flang/include/flang/Opti
  #define GEN_PASS_REGISTRATION
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/flang/include/flang/Optimizer/Transforms/Passes.td llvm-project/flang/include/flang/Optimizer/Transforms/Passes.td
 --- llvm-project.upstream/flang/include/flang/Optimizer/Transforms/Passes.td	2023-03-07 14:55:06.511746488 -0500
-+++ llvm-project/flang/include/flang/Optimizer/Transforms/Passes.td	2023-03-10 10:37:53.998804466 -0500
++++ llvm-project/flang/include/flang/Optimizer/Transforms/Passes.td	2023-03-23 12:10:28.839132041 -0400
 @@ -284,5 +284,11 @@
    ];
  }
@@ -74,8 +50,8 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/flang/include/flang/Opti
 +
  #endif // FLANG_OPTIMIZER_TRANSFORMS_PASSES
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/flang/lib/Frontend/FrontendActions.cpp llvm-project/flang/lib/Frontend/FrontendActions.cpp
---- llvm-project.upstream/flang/lib/Frontend/FrontendActions.cpp	2023-03-10 07:54:57.225325447 -0500
-+++ llvm-project/flang/lib/Frontend/FrontendActions.cpp	2023-03-10 10:37:53.998804466 -0500
+--- llvm-project.upstream/flang/lib/Frontend/FrontendActions.cpp	2023-03-23 09:58:44.649815005 -0400
++++ llvm-project/flang/lib/Frontend/FrontendActions.cpp	2023-03-23 12:10:28.839132041 -0400
 @@ -22,6 +22,7 @@
  #include "flang/Optimizer/Dialect/Support/KindMapping.h"
  #include "flang/Optimizer/Support/InitFIR.h"
@@ -84,7 +60,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/flang/lib/Frontend/Front
  #include "flang/Parser/dump-parse-tree.h"
  #include "flang/Parser/parsing.h"
  #include "flang/Parser/provenance.h"
-@@ -198,6 +199,12 @@
+@@ -200,6 +201,12 @@
    pm.enableVerifier(/*verifyPasses=*/true);
    pm.addPass(std::make_unique<Fortran::lower::VerifierPass>());
  
@@ -97,7 +73,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/flang/lib/Frontend/Front
    if (mlir::failed(pm.run(*mlirModule))) {
      unsigned diagID = ci.getDiagnostics().getCustomDiagID(
          clang::DiagnosticsEngine::Error,
-@@ -563,6 +570,9 @@
+@@ -565,6 +572,9 @@
      ci.getDiagnostics().Report(diagID);
    }
  
@@ -108,8 +84,8 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/flang/lib/Frontend/Front
    std::optional<llvm::StringRef> moduleName = mlirModule->getName();
    llvmModule = mlir::translateModuleToLLVMIR(
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/flang/lib/Lower/OpenMP.cpp llvm-project/flang/lib/Lower/OpenMP.cpp
---- llvm-project.upstream/flang/lib/Lower/OpenMP.cpp	2023-03-09 09:28:26.344506782 -0500
-+++ llvm-project/flang/lib/Lower/OpenMP.cpp	2023-03-10 09:25:59.954368435 -0500
+--- llvm-project.upstream/flang/lib/Lower/OpenMP.cpp	2023-03-23 09:58:44.657814959 -0400
++++ llvm-project/flang/lib/Lower/OpenMP.cpp	2023-03-23 12:10:28.839132041 -0400
 @@ -1099,6 +1099,13 @@
                     &opClauseList);
    } else if (blockDirective.v == llvm::omp::OMPD_target_data) {
@@ -124,7 +100,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/flang/lib/Lower/OpenMP.c
    } else {
      TODO(converter.getCurrentLocation(), "Unhandled block directive");
    }
-@@ -2066,6 +2073,139 @@
+@@ -2161,6 +2168,139 @@
    converter.bindSymbol(sym, symThreadprivateExv);
  }
  
@@ -264,7 +240,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/flang/lib/Lower/OpenMP.c
  void Fortran::lower::genOpenMPDeclarativeConstruct(
      Fortran::lower::AbstractConverter &converter,
      Fortran::lower::pft::Evaluation &eval,
-@@ -2088,8 +2228,7 @@
+@@ -2183,8 +2323,7 @@
            },
            [&](const Fortran::parser::OpenMPDeclareTargetConstruct
                    &declareTargetConstruct) {
@@ -276,7 +252,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/flang/lib/Lower/OpenMP.c
                    &requiresConstruct) {
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/flang/lib/Optimizer/Transforms/CMakeLists.txt llvm-project/flang/lib/Optimizer/Transforms/CMakeLists.txt
 --- llvm-project.upstream/flang/lib/Optimizer/Transforms/CMakeLists.txt	2023-03-10 07:54:57.233325414 -0500
-+++ llvm-project/flang/lib/Optimizer/Transforms/CMakeLists.txt	2023-03-10 08:42:55.884975925 -0500
++++ llvm-project/flang/lib/Optimizer/Transforms/CMakeLists.txt	2023-03-23 12:10:28.839132041 -0400
 @@ -15,7 +15,8 @@
    SimplifyIntrinsics.cpp
    AddDebugFoundation.cpp
@@ -289,7 +265,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/flang/lib/Optimizer/Tran
    FIROptTransformsPassIncGen
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/flang/lib/Optimizer/Transforms/OMPCaptureImplicitDeclTar.cpp llvm-project/flang/lib/Optimizer/Transforms/OMPCaptureImplicitDeclTar.cpp
 --- llvm-project.upstream/flang/lib/Optimizer/Transforms/OMPCaptureImplicitDeclTar.cpp	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/flang/lib/Optimizer/Transforms/OMPCaptureImplicitDeclTar.cpp	2023-03-10 10:37:53.998804466 -0500
++++ llvm-project/flang/lib/Optimizer/Transforms/OMPCaptureImplicitDeclTar.cpp	2023-03-23 12:10:28.839132041 -0400
 @@ -0,0 +1,59 @@
 +#include "flang/Optimizer/Dialect/FIRDialect.h"
 +#include "flang/Optimizer/Dialect/FIROps.h"
@@ -352,7 +328,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/flang/lib/Optimizer/Tran
 +} // namespace fir
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/mlir/include/mlir/Dialect/OpenMP/OpenMPOps.td llvm-project/mlir/include/mlir/Dialect/OpenMP/OpenMPOps.td
 --- llvm-project.upstream/mlir/include/mlir/Dialect/OpenMP/OpenMPOps.td	2023-03-07 14:55:06.811745448 -0500
-+++ llvm-project/mlir/include/mlir/Dialect/OpenMP/OpenMPOps.td	2023-03-10 08:42:55.888975907 -0500
++++ llvm-project/mlir/include/mlir/Dialect/OpenMP/OpenMPOps.td	2023-03-23 12:10:29.007131359 -0400
 @@ -36,6 +36,11 @@
      // Return the value of the omp.is_device attribute stored in the module if it
      // exists, otherwise return false by default
@@ -367,7 +343,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/mlir/include/mlir/Dialec
  
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/mlir/lib/Dialect/OpenMP/IR/OpenMPDialect.cpp llvm-project/mlir/lib/Dialect/OpenMP/IR/OpenMPDialect.cpp
 --- llvm-project.upstream/mlir/lib/Dialect/OpenMP/IR/OpenMPDialect.cpp	2023-03-07 14:55:06.831745379 -0500
-+++ llvm-project/mlir/lib/Dialect/OpenMP/IR/OpenMPDialect.cpp	2023-03-10 09:25:59.954368435 -0500
++++ llvm-project/mlir/lib/Dialect/OpenMP/IR/OpenMPDialect.cpp	2023-03-23 12:10:29.011131342 -0400
 @@ -1437,6 +1437,23 @@
    return false;
  }
@@ -393,9 +369,9 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/mlir/lib/Dialect/OpenMP/
  #include "mlir/Dialect/OpenMP/OpenMPOpsAttributes.cpp.inc"
  
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/mlir/lib/Target/LLVMIR/CMakeLists.txt llvm-project/mlir/lib/Target/LLVMIR/CMakeLists.txt
---- llvm-project.upstream/mlir/lib/Target/LLVMIR/CMakeLists.txt	2023-02-10 14:55:58.436712535 -0500
-+++ llvm-project/mlir/lib/Target/LLVMIR/CMakeLists.txt	2023-03-10 08:26:00.058379081 -0500
-@@ -37,6 +37,7 @@
+--- llvm-project.upstream/mlir/lib/Target/LLVMIR/CMakeLists.txt	2023-03-23 09:58:45.765808485 -0400
++++ llvm-project/mlir/lib/Target/LLVMIR/CMakeLists.txt	2023-03-23 12:10:29.019131310 -0400
+@@ -38,6 +38,7 @@
    MLIRLLVMDialect
    MLIRLLVMIRTransforms
    MLIRTranslateLib
@@ -403,7 +379,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/mlir/lib/Target/LLVMIR/C
    )
  
  add_mlir_translation_library(MLIRToLLVMIRTranslationRegistration
-@@ -52,6 +53,7 @@
+@@ -55,6 +56,7 @@
    MLIROpenACCToLLVMIRTranslation
    MLIROpenMPToLLVMIRTranslation
    MLIRROCDLToLLVMIRTranslation
@@ -411,18 +387,18 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/mlir/lib/Target/LLVMIR/C
    )
  
  add_mlir_translation_library(MLIRTargetLLVMIRImport
-@@ -78,4 +80,5 @@
+@@ -81,4 +83,5 @@
  
    LINK_LIBS PUBLIC
    MLIRLLVMIRToLLVMTranslation
 +  MLIROpenMPDialect
    )
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/mlir/lib/Target/LLVMIR/Dialect/OpenMP/OpenMPToLLVMIRTranslation.cpp llvm-project/mlir/lib/Target/LLVMIR/Dialect/OpenMP/OpenMPToLLVMIRTranslation.cpp
---- llvm-project.upstream/mlir/lib/Target/LLVMIR/Dialect/OpenMP/OpenMPToLLVMIRTranslation.cpp	2023-02-27 09:21:59.211665431 -0500
-+++ llvm-project/mlir/lib/Target/LLVMIR/Dialect/OpenMP/OpenMPToLLVMIRTranslation.cpp	2023-03-10 08:26:00.058379081 -0500
-@@ -1465,6 +1465,16 @@
-       .Case([&](omp::ThreadprivateOp) {
-         return convertOmpThreadprivate(*op, builder, moduleTranslation);
+--- llvm-project.upstream/mlir/lib/Target/LLVMIR/Dialect/OpenMP/OpenMPToLLVMIRTranslation.cpp	2023-03-23 09:58:45.769808461 -0400
++++ llvm-project/mlir/lib/Target/LLVMIR/Dialect/OpenMP/OpenMPToLLVMIRTranslation.cpp	2023-03-23 12:10:29.019131310 -0400
+@@ -1659,6 +1659,15 @@
+       .Case<omp::DataOp, omp::EnterDataOp, omp::ExitDataOp>([&](auto op) {
+         return convertOmpTargetData(op, builder, moduleTranslation);
        })
 +      .Case([&](omp::TargetOp) {
 +        bool isDevice = mlir::omp::OpenMPDialect::getIsDevice(
@@ -433,14 +409,13 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/mlir/lib/Target/LLVMIR/D
 +        // moduleTranslation);
 +        return success();
 +      })
-+
        .Default([&](Operation *inst) {
          return inst->emitError("unsupported OpenMP operation: ")
                 << inst->getName();
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/mlir/lib/Target/LLVMIR/ModuleTranslation.cpp llvm-project/mlir/lib/Target/LLVMIR/ModuleTranslation.cpp
---- llvm-project.upstream/mlir/lib/Target/LLVMIR/ModuleTranslation.cpp	2023-03-07 14:55:06.843745337 -0500
-+++ llvm-project/mlir/lib/Target/LLVMIR/ModuleTranslation.cpp	2023-03-10 09:25:59.958368419 -0500
-@@ -982,11 +982,24 @@
+--- llvm-project.upstream/mlir/lib/Target/LLVMIR/ModuleTranslation.cpp	2023-03-23 11:54:40.683236144 -0400
++++ llvm-project/mlir/lib/Target/LLVMIR/ModuleTranslation.cpp	2023-03-23 12:10:30.459125456 -0400
+@@ -994,11 +994,24 @@
  
  LogicalResult ModuleTranslation::convertFunctions() {
    // Convert functions.
