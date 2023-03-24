@@ -200,10 +200,12 @@ function getversion(){
       patchreleasever=`echo $supportedvers | sed -e 's|\.||g' | grep -m 2 -o "$majorminor[0-9]" | tail -1`
       compilerver=${versions[$patchreleasever]}
     fi
+
     if [ "$compilerver" == "" ]; then
-      echo "Error: Cannot detect compiler version or version is not supported in this script."
-      exit 1
+      echo "Warning: Cannot detect compiler version or version is not supported in this script."
+      echo "All expected passes were combined."
     fi
+
     echo Chosen Version: $compilerver
     versionregex="(.*$compilerver)"
     if [[ "$supportedvers" =~ $versionregex ]]; then
@@ -462,6 +464,12 @@ for suite in $SUITE_LIST; do
 done
 
 echo "************************************" >> $summary
+
+if [ "$compilerver" == "" ]; then
+  echo "Warning: Cannot detect compiler version or version is not supported in this script." >> $summary
+  echo "All expected passes were combined." >> $summary
+fi
+
 echo >> $summary
 echo "Condensed Summary:" >> $summary
 if [ -f $unexpresults ]; then
