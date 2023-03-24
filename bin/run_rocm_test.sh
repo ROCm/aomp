@@ -182,16 +182,36 @@ function getversion(){
     if [ "$rocmver" == "$ompextrasver" ] || [ "$rocmver" -gt "$ompextrasver" ]; then
       echo "Using ompextrasver: $ompextrasver"
       compilerver=${versions[$ompextrasver]}
+      initialver=$ompextrasver
     else
       echo "Using rocmver: $rocmver"
       compilerver=${versions[$rocmver]}
+      initialver=$rocmver
     fi
+
+    # There may be a patch release that is not in the supported list. To prevent
+    # aggregation of all passing tests, attempt to choose the last supported
+    # version with a major minor match. For example 5.4.4 may choose a passing list
+    # for 5.4.3.
+    if [ "$compilerver" == "" ]; then
+      initialregex="([0-9][0-9])"
+      [[ "$initialver" =~ $initialregex ]]
+      majorminor=${BASH_REMATCH[1]}
+      patchreleasever=`echo $supportedvers | sed -e 's|\.||g' | grep -m 2 -o "$majorminor[0-9]" | tail -1`
+      compilerver=${versions[$patchreleasever]}
+    fi
+
+    if [ "$compilerver" == "" ]; then
+      echo "Warning: Cannot detect compiler version or version is not supported in this script."
+      echo "All expected passes were combined."
+    fi
+
     echo Chosen Version: $compilerver
     versionregex="(.*$compilerver)"
     if [[ "$supportedvers" =~ $versionregex ]]; then
       finalvers=${BASH_REMATCH[1]}
     else
-      echo "Unsupported compiler build."
+      echo "Error: Unsupported compiler build: $compilerver."
       exit 1
     fi
   fi
@@ -226,19 +246,24 @@ function copyresults(){
     fi
   done
   sort -f -d "$1"_combined_exp_passes > "$1"_sorted_exp_passes
+  passlines=`cat "$1"_sorted_exp_passes | wc -l`
 
   if [ -e "$1"_passing_tests.txt ]; then
     # Sort test reported passes
     sort -f -d "$1"_passing_tests.txt > "$1"_sorted_passes
 
     # Unexpected passes
-    unexpectedpasses=$(diff "$1"_sorted_exp_passes "$1"_sorted_passes | grep '>' | wc -l)
+    unexpectedpasses=$(diff "$1"_sorted_exp_passes "$1"_sorted_passes | grep '^>' | wc -l)
     echo Unexpected Passes: $unexpectedpasses | tee -a $summary $unexpresults
-    diff "$1"_sorted_exp_passes "$1"_sorted_passes | grep '>' | sed 's/> //' >> $summary
+    diff "$1"_sorted_exp_passes "$1"_sorted_passes | grep '^>' | sed 's/> //' >> $summary
     echo >> $summary
 
     # Unexpected Fails
-    unexpectedfails=$(diff "$1"_sorted_exp_passes "$1"_sorted_passes | grep '<' | wc -l)
+    if [ "$passlines" != 0 ]; then
+      unexpectedfails=$(diff "$1"_sorted_exp_passes "$1"_sorted_passes | grep '^<' | wc -l)
+    else
+      unexpectedfails=0
+    fi
     if [ "$EPSDB" == "1" ]; then
       for suite in $blockinglist; do
         if [ "$1" == "$suite" ]; then
@@ -249,8 +274,9 @@ function copyresults(){
     else
       ((totalunexpectedfails+=$unexpectedfails))
     fi
+
     echo "Unexpected Fails: $unexpectedfails" | tee -a $summary $unexpresults
-    diff "$1"_sorted_exp_passes "$1"_sorted_passes | grep '<' | sed 's/< //' >> $summary
+    diff "$1"_sorted_exp_passes "$1"_sorted_passes | grep '^<' | sed 's/< //' >> $summary
     echo >> $summary
 
     # Failing Tests
@@ -268,7 +294,11 @@ function copyresults(){
   else
     # No passing-tests.txt found, count expected passes as fails.
     echo "Unexpected Passes: 0" | tee -a $summary $unexpresults
-    numtests=$(cat "$resultsdir"/"$1"/"$1"_sorted_exp_passes | wc -l)
+    if [ "$passlines" != 0 ]; then
+      numtests=$(cat "$resultsdir"/"$1"/"$1"_sorted_exp_passes | wc -l)
+    else
+      numtests=0
+    fi
     echo "Unexpected Fails: $numtests" | tee -a $summary $unexpresults
     cat "$1"_sorted_exp_passes >> $summary
     if [ "$EPSDB" == "1" ]; then
@@ -434,6 +464,12 @@ for suite in $SUITE_LIST; do
 done
 
 echo "************************************" >> $summary
+
+if [ "$compilerver" == "" ]; then
+  echo "Warning: Cannot detect compiler version or version is not supported in this script." >> $summary
+  echo "All expected passes were combined." >> $summary
+fi
+
 echo >> $summary
 echo "Condensed Summary:" >> $summary
 if [ -f $unexpresults ]; then
