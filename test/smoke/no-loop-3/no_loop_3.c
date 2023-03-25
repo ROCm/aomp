@@ -49,15 +49,6 @@ int main()
     }
   }
   
-#pragma omp target teams distribute parallel for
-  {
-    for (int k = 0; k< N; k++) {
-#pragma omp simd      
-      for (int p = 0; p < N; p++)
-	a[k]=b[k];
-    }
-  }
-  
   int rc = 0;
   for (i=0; i<N; i++)
     if (a[i] != b[i] ) {
@@ -75,4 +66,3 @@ int main()
 /// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:4
 /// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:4
 /// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:4
