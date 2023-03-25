@@ -1,65 +1,7 @@
 include ../Makefile.defs
 
 TESTS_DIR = \
-    alt_clang \
-    alt_veclib \
-    ancestorF \
-    aomp_mappings \
-    bugz-50967 \
-    clang-274983-2 \
-    clang-280954 \
-    clang-284324 \
-    clang-296953-ornla-38 \
-    clang-317896 \
-    clang-326105 \
-    clang_llnl-58 \
-    clang_llnl-58-1 \
-    clang-nwchem-s1_1 \
-    clang-reduction-and \
-    closed_bug1 \
-    const_global_ctor-308039 \
-    exp-303973 \
-    flang-251450 \
-    flang-272343-3 \
-    flang-272534-2 \
-    flang-272534-3 \
-    flang-274773 \
-    flang-273990-1 \
-    flang-275472 \
-    flang-275472-O0 \
-    flang-288183 \
-    flang-288641 \
-    flang-289039 \
-    flang-305550 \
-    flang-305553 \
-    flang-313435 \
-    flang-315455 \
-    flang-318074 \
-    flang-320332 \
-    flang-320332-2 \
-    flang-321838 \
-    flang-321838-2 \
-    flang-322947 \
-    flang-324206 \
-    flang-324387 \
-    flang-324643 \
-    flang-325095 \
-    flang-329920 \
-    flang-351976 \
-    flang-flags-308205 \
-    flang_atomic_hint \
-    flang_dev_write \
-    helloworld%n \
-    lds-prob4 \
-    lds-prob5 \
-    memory_mgmt_pinned_predefined \
-    nwchem-s1_1 \
-    requires_directive \
-    targ_static \
-    targc-273739 \
-    target_teams_reduction \
-    target-shared-variables \
-    tasks 
+    no-loop-6
 
 all:
 	@for test_dir in $(TESTS_DIR); do \
