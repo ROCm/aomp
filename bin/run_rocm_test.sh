@@ -9,8 +9,8 @@
 #
 #
 
-EPSDB_LIST=${EPSDB_LIST:-"examples smoke omp5 openmpapps LLNL nekbone ovo sollve babelstream"}
-SUITE_LIST=${SUITE_LIST:-"examples smoke omp5 openmpapps LLNL nekbone ovo sollve"}
+EPSDB_LIST=${EPSDB_LIST:-"examples smoke-limbo smoke omp5 openmpapps LLNL nekbone ovo sollve babelstream"}
+SUITE_LIST=${SUITE_LIST:-"examples smoke-limbo smoke omp5 openmpapps LLNL nekbone ovo sollve"}
 blockinglist="examples_fortran examples_openmp smoke nekbone sollve45 sollve50"
 
 # Use bogus path to avoid using target.lst, a user-defined target list
@@ -365,6 +365,20 @@ function smokefails(){
     copyresults smoke-fails
   else
     echo "Skipping smoke-fails."
+  fi
+}
+
+SMOKE_LIMBO=${SMOKE_LIMBO:-1}
+function smokelimbo(){
+  # Smoke-fails
+  if [ "$SMOKE_LIMBO" == "1" ]; then
+    mkdir -p "$resultsdir"/smoke-limbo
+    cd "$aompdir"/test/smoke-limbo
+    ./check_smoke_limbo.sh
+    checkrc $?
+    copyresults smoke-limbo
+  else
+    echo "Skipping smoke-limbo."
   fi
 }
 
