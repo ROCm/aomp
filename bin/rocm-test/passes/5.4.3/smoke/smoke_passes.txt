@@ -47,8 +47,12 @@ memory_mgmt_pinned_predefined
 metadirective
 multi-image
 multi-image3
+no-loop-1
+no-loop-2
+no-loop-3
 no-loop-4
 no-loop-5
+no-loop-6
 no-loop-7
 no-loop-8
 no-loop-split-1
