@@ -7,7 +7,9 @@ TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 RUNENV      += ROCR_VISIBLE_DEVICES=0
 $(info $(AOMP))
 
-CLANG        = clang
+BURN         = 0
+CLANG        = clang -DBURN=$(BURN)
+
 OMP_BIN      = $(AOMP)/bin/$(CLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
 #-ccc-print-phases

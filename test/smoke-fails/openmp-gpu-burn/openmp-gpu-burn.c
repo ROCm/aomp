@@ -5,8 +5,13 @@
 #define N 10
 #define TN 100
 #define GPU_REPS 3
-#define TARGET_REPS 3
+#ifndef BURN
+#define BURN 0
+#endif
 
+// to get a long burn run: #define TARGET_REPS 3000000
+// or make BURN=3000000 run
+#define TARGET_REPS 3 + BURN
 void target_fn(int *a)
 {
 #pragma omp target map(a[0:TN-1]) 
