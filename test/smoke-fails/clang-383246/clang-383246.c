@@ -6,6 +6,8 @@ amdclang -fopenmp -target x86_64-pc-linux-gnu -fopenmp-targets=amdgcn-amd-amdhsa
 
 */
 
+// CHECK: DEVID
+
 #include <math.h>
 #include <omp.h>
 #include <stdio.h>
