@@ -18,5 +18,5 @@ CC           = $(OMP_BIN) $(VERBOSE)
 
 include ../Makefile.rules
 run: $(TESTNAME)
-	mpirun -np 2 ./$(TESTNAME)
+	LD_LIBRARY_PATH=$(MPI)/lib:$(LD_LIBRARY_PATH) $(MPI)/bin/mpirun -np 2 ./$(TESTNAME)
 
