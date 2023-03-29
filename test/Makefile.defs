@@ -78,25 +78,18 @@ endif
 
 OMPIDIR ?= ~/local/openmpi
 ifeq "$(wildcard $(OMPIDIR))" ""
-  #$(warning openmpi not found at $(OMPIDIR))
   OMPIDIR = /opt/openmpi-4.1.5
   ifeq "$(wildcard $(OMPIDIR))" ""
-    #$(warning openmpi not found at $(OMPIDIR))
     OMPIDIR = /opt/openmpi-4.1.4
     ifeq "$(wildcard $(OMPIDIR))" ""
-      #$(warning openmpi not found at $(OMPIDIR))
       OMPIDIR = /usr/local/openmpi
       ifeq "$(wildcard $(OMPIDIR))" ""
-        #$(warning openmpi not found at $(OMPIDIR))
         OMPIDIR = /usr/lib/x86_64-linux-gnu/openmpi
         ifeq "$(wildcard $(OMPIDIR)/lib/libmpi*)" ""
-          #$(warning openmpi not found at $(OMPIDIR))
           OMPIDIR = /usr/lib/openmpi
           ifeq "$(wildcard $(OMPIDIR)/lib/libmpi*)" ""
-            #$(warning openmpi not found at $(OMPIDIR))
             OMPIDIR = /usr/local
             ifeq "$(wildcard $(OMPIDIR)/lib/libmpi*)" ""
-              #$(warning openmpi not found at $(OMPIDIR))
               $(error Openmpi not found on the system and is required. Set OMPIDIR to openmpi installation)
             endif
           endif
