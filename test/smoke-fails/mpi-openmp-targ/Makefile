@@ -9,14 +9,13 @@ $(info $(AOMP))
 
 CLANG        = clang
 MPICC        = mpicc
-MPI         ?= /opt/openmpi-4.1.4
 
-OMP_BIN      = OMPI_CC=$(AOMP)/bin/$(CLANG) $(MPI)/bin/$(MPICC)
+OMP_BIN      = OMPI_CC=$(AOMP)/bin/$(CLANG) $(OMPIDIR)/bin/$(MPICC)
 CC           = $(OMP_BIN) $(VERBOSE)
 #-ccc-print-phases
 #"-\#\#\#"
 
 include ../Makefile.rules
 run: $(TESTNAME)
-	LD_LIBRARY_PATH=$(MPI)/lib:$(LD_LIBRARY_PATH) $(MPI)/bin/mpirun -np 2 ./$(TESTNAME)
+	LD_LIBRARY_PATH=$(OMPIDIR)/lib:$(LD_LIBRARY_PATH) $(OMPIDIR)/bin/mpirun -np 2 ./$(TESTNAME)
 
