@@ -75,6 +75,35 @@ ifeq ($(FILECHECK_RT),error)
   endif
 endif
 
+
+OMPIDIR ?= ~/local/openmpi
+ifeq "$(wildcard $(OMPIDIR))" ""
+  OMPIDIR = /opt/openmpi-4.1.5
+  ifeq "$(wildcard $(OMPIDIR))" ""
+    OMPIDIR = /opt/openmpi-4.1.4
+    ifeq "$(wildcard $(OMPIDIR))" ""
+      OMPIDIR = /usr/local/openmpi
+      ifeq "$(wildcard $(OMPIDIR))" ""
+        OMPIDIR = /usr/lib/x86_64-linux-gnu/openmpi
+        ifeq "$(wildcard $(OMPIDIR)/lib/libmpi*)" ""
+          OMPIDIR = /usr/lib/openmpi
+          ifeq "$(wildcard $(OMPIDIR)/lib/libmpi*)" ""
+            OMPIDIR = /usr/local
+            ifeq "$(wildcard $(OMPIDIR)/lib/libmpi*)" ""
+              $(error Openmpi not found on the system and is required. Set OMPIDIR to openmpi installation)
+            endif
+          endif
+        endif
+      endif
+    endif
+  endif
+endif
+
+$(info -- openmpi found at $(OMPIDIR))
+MPILIBS ?= -L${OMPIDIR}/lib -lmpi
+
+
+
 # If AOMP env variable contains opt use rocm_agent_enumerator for device id.
 # Set GFXLIST to available gfx numbers pulled from installed bc files.
 ifeq (opt,$(findstring opt,$(AOMP)))
