@@ -1,12 +1,14 @@
 include ../../Makefile.defs
 
-TESTNAME     = opt_kerns_clauses
-TESTSRC_MAIN = opt_kerns_clauses.c
+TESTNAME     = opt_kernel_inner_pragma_1
+TESTSRC_MAIN = opt_kernel_inner_pragma_1.c
 TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 RUNENV      += LIBOMPTARGET_KERNEL_TRACE=1
 
-CFLAGS       += -fopenmp-target-ignore-env-vars
+RUNCMD      = ./$(TESTNAME) 2>&1 | $(FILECHECK) $(TESTSRC_MAIN)
+
+CFLAGS       += -fopenmp-target-ignore-env-vars -fopenmp-assume-no-nested-parallelism
 CLANG        = clang
 OMP_BIN      = $(AOMP)/bin/$(CLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
@@ -15,4 +17,4 @@ CC           = $(OMP_BIN) $(VERBOSE)
 
 include ../Makefile.rules
 run: $(TESTNAME)
-	$(RUNENV) ./$(TESTNAME) 2>&1 | $(AOMP)/bin/FileCheck $(TESTSRC_MAIN)
+	$(RUNENV) $(RUNCMD)

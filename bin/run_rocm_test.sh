@@ -369,7 +369,7 @@ function smokefails(){
 }
 
 SMOKE_LIMBO=${SMOKE_LIMBO:-1}
-function smokelimbo(){
+function smoke-limbo(){
   # Smoke-fails
   if [ "$SMOKE_LIMBO" == "1" ]; then
     mkdir -p "$resultsdir"/smoke-limbo
