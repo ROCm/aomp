@@ -50,16 +50,27 @@ if [ -d $repodirname  ] ; then
    fi
    echo "git pull "
    git pull
+   if [ $? != 0 ] ; then
+     echo "git pull failed for: $repodirname"
+     exit 1
+   fi
    echo "cd $repodirname ; git checkout $COBRANCH"
    git checkout $COBRANCH
    echo "git pull "
    git pull
+   if [ $? != 0 ] ; then
+     echo "git pull failed for: $repodirname"
+     exit 1
+   fi
 else 
    echo --- NEW CLONE of repo $repogitname to $repodirname ----
    cd $AOMP_REPOS
    echo git clone -b $COBRANCH $repo_web_location/$repogitname $reponame
    git clone -b $COBRANCH $repo_web_location/$repogitname $reponame
-   if [ $? == 0 ] ; then 
+   if [ $? != 0 ] ; then
+     echo "git clone failed for: $repodirname"
+     exit 1
+   else
       echo "cd $repodirname ; git checkout $COBRANCH"
       cd $repodirname
       git checkout $COBRANCH
