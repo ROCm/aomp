@@ -97,7 +97,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
   if [ "$AOMP_BUILD_SANITIZER" == 'ON' ]; then
     MYCMAKEOPTS="$MYCMAKEOPTS -DCMAKE_CXX_FLAGS=-I$SANITIZER_COMGR_INCLUDE_PATH ${SANITIZER_FLAGS} -DCMAKE_C_FLAGS=${SANITIZER_FLAGS}"
   else
-    MYCMAKEOPTS="$MYCMAKEOPTS -DCMAKE_CXX_FLAGS=-I$AOMP_include/amd_comgr"
+    MYCMAKEOPTS="$MYCMAKEOPTS -DCMAKE_CXX_FLAGS=-I$AOMP_include/amd_comgr -DCMAKE_CXX_FLAGS=-Wno-error=deprecated-declarations -DCMAKE_C_FLAGS=-Wno-error=deprecated-declarations"
   fi
 
   # If this machine does not have an actvie amd GPU, tell hipamd
