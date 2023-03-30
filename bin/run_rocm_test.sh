@@ -292,18 +292,17 @@ function copyresults(){
           done
           echo fails: $fails
         fi
-      elif [[ "$1" =~ sollve|ovo|LLNL ]]; then
+      elif [[ "$1" =~ sollve|ovo|LLNL|openmpapps ]]; then
         # Combine passing/failing tests, which shows all tests that tried to build/run.
         # If the unexpected failure is not on that list, warn the user that test may be missing
         # from suite.
-        pwd
         if [ -e "$1"_failing_tests.txt ]; then
           cat "$1"_failing_tests.txt | tee -a "$resultsdir"/"$1"/"$1"_all_tests.txt
         fi
-        if [ -e "$1"_make-fail.txt ]; then
+        if [ -e "$1"_make_fail.txt ]; then
           cat "$1"_make_fail.txt | tee -a "$resultsdir"/"$1"/"$1"_all_tests.txt
         fi
-        if [ -e "$1"_passing-tests.txt ]; then
+        if [ -e "$1"_passing_tests.txt ]; then
           cat "$1"_passing_tests.txt | tee -a "$resultsdir"/"$1"/"$1"_all_tests.txt
         fi
         if [ -e "$resultsdir"/"$1"/"$1"_all_tests.txt ]; then
