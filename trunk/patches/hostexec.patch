@@ -413,25 +413,6 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/clang/lib/CodeGen/CodeGe
  
    RValue EmitBuiltinExpr(const GlobalDecl GD, unsigned BuiltinID,
                           const CallExpr *E, ReturnValueSlot ReturnValue);
-diff -Naur -x .git -x __pycache__ llvm-project.upstream/clang/lib/CodeGen/CodeGenModule.cpp llvm-project/clang/lib/CodeGen/CodeGenModule.cpp
---- llvm-project.upstream/clang/lib/CodeGen/CodeGenModule.cpp	2023-03-28 09:58:57.818057179 -0400
-+++ llvm-project/clang/lib/CodeGen/CodeGenModule.cpp	2023-03-28 18:08:11.738296806 -0400
-@@ -2814,6 +2814,15 @@
-     if (LangOpts.OpenMP && OpenMPRuntime && OpenMPRuntime->emitTargetGlobal(D))
-       continue;
- 
-+    // Skip emit of defined variadic functions for OpenMP device pass
-+    // The host variant will be used when hostexec is used.
-+    if (auto GF = dyn_cast<llvm::Function>(GV)) { 
-+      if (GF->isVarArg() && getLangOpts().OpenMPIsDevice) {
-+        printf(" KKKKKKKKKKKKKKKKKK skipping %s\n", GV->getName().str().c_str());
-+        continue;
-+       }
-+    }
-+
-     // Otherwise, emit the definition and move on to the next one.
-     EmitGlobalDefinition(D, GV);
- 
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/clang/lib/Driver/ToolChains/AMDGPUOpenMP.cpp llvm-project/clang/lib/Driver/ToolChains/AMDGPUOpenMP.cpp
 --- llvm-project.upstream/clang/lib/Driver/ToolChains/AMDGPUOpenMP.cpp	2023-02-10 14:55:56.548718783 -0500
 +++ llvm-project/clang/lib/Driver/ToolChains/AMDGPUOpenMP.cpp	2023-03-28 15:19:22.762748013 -0400
@@ -4313,118 +4294,216 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +}
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/hostexec/test/mpi-in-target-region.cpp llvm-project/openmp/libomptarget/hostexec/test/mpi-in-target-region.cpp
 --- llvm-project.upstream/openmp/libomptarget/hostexec/test/mpi-in-target-region.cpp	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/openmp/libomptarget/hostexec/test/mpi-in-target-region.cpp	2023-03-29 17:54:56.276795839 -0400
-@@ -0,0 +1,36 @@
-+#include <mpi.h>
-+#include "omp.h"
-+#include <stdio.h>
++++ llvm-project/openmp/libomptarget/hostexec/test/mpi-in-target-region.cpp	2023-03-30 16:08:18.550748956 -0400
+@@ -0,0 +1,54 @@
 +#include "mpi_supplemental.h"
++#include "omp.h"
++#include <mpi.h>
++#include <stdio.h>
++// #define VSIZE 256 * 8
++#define VSIZE 256
 +
 +int main(int argc, char *argv[]) {
-+    _mpilib_set_device_globals();
-+    int numranks, rank;
-+    MPI_Init(&argc,&argv);
-+    MPI_Comm_size(MPI_COMM_WORLD,&numranks);
-+    MPI_Comm_rank(MPI_COMM_WORLD,&rank);
-+    printf("Number of Ranks= %d My rank= %d\n", numranks,rank);
-+    MPI_Comm _comm = MPI_COMM_WORLD;
-+    MPI_Datatype _mpi_int = MPI_INT;
-+    int send_recv_buffer[2];
-+    printf("buffer address is %p\n", send_recv_buffer);
++  _mpilib_set_device_globals();
++  int numranks, rank;
++  MPI_Init(&argc, &argv);
++  MPI_Comm_size(MPI_COMM_WORLD, &numranks);
++  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
++  printf("Number of Ranks= %d My rank= %d\n", numranks, rank);
++  MPI_Comm _mpi_comm = MPI_COMM_WORLD;
++  MPI_Datatype _mpi_int = MPI_INT;
++  int *send_recv_buffer = (int *)malloc(VSIZE * sizeof(int));
++  printf("buffer address is %p\n", send_recv_buffer);
 +
-+    #pragma omp target 
-+    {
-+       if (rank == 0) {
-+          send_recv_buffer[0]= -123;
-+          printf("\nProcess %d sending %d from dev address %p to process 1\n",
-+			  rank, send_recv_buffer[0], send_recv_buffer);
-+          MPI_Send(&send_recv_buffer[0], 1, _mpi_int  , 1, 0, _comm);
-+       } 
-+       if (rank == 1) {
-+          MPI_Recv(&send_recv_buffer[0], 1, _mpi_int , 0, 0, _comm , MPI_STATUS_IGNORE);
-+          printf("\nProcess %d recvd %d at dev address %p from process 0\n\n",
-+			  rank, send_recv_buffer[0], send_recv_buffer);
-+       }
++#pragma omp target teams distribute parallel for map(to                        \
++                                                     : send_recv_buffer        \
++                                                     [0:VSIZE])
++  for (int i = 0; i < VSIZE; i++) {
++    int rc = 0;
++    int TH = omp_get_thread_num();
++    int NTH = omp_get_num_threads();
++    int TM = omp_get_team_num();
++    int NTM = omp_get_num_teams();
++    int L = TH % 64;
++    if (rank == 0) {
++      send_recv_buffer[i] = -i;
++      if (L == 0 || L == 63) // Only print 1st and last lane
++        printf("P:%d TAG:%d sending %d with dev addr %p team:%d of %d  "
++               "thread:%d of %d  LANE:%d  WARP:%d \n",
++               rank, i, send_recv_buffer[i], &send_recv_buffer[i], TM, NTM, TH,
++               NTH, L, TH / 64);
++      MPI_Send(&send_recv_buffer[i], 1, _mpi_int, 1, i, _mpi_comm);
++    } else {
++      MPI_Recv(&send_recv_buffer[i], 1, _mpi_int, 0, i, _mpi_comm,
++               MPI_STATUS_IGNORE);
++      if (send_recv_buffer[i] != -i)
++        rc = 1;
++      if (rc != 0 || L == 0 || L == 63) // Only print 1st and last lane
++        printf("P:%d TAG:%d received %d with dev addr %p team:%d of %d  "
++               "thread:%d of %d  LANE:%d  WARP:%d rc:%d\n",
++               rank, i, send_recv_buffer[i], &send_recv_buffer[i], TM, NTM, TH,
++               NTH, L, TH / 64, rc);
 +    }
++  } // end for loop and target region
 +
-+    MPI_Finalize();
++  MPI_Finalize();
++  //  fprintf(stderr,"rc = %d\n",rc);
++  return 0;
++}
+diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/hostexec/test/mpi-simple.cpp llvm-project/openmp/libomptarget/hostexec/test/mpi-simple.cpp
+--- llvm-project.upstream/openmp/libomptarget/hostexec/test/mpi-simple.cpp	1969-12-31 19:00:00.000000000 -0500
++++ llvm-project/openmp/libomptarget/hostexec/test/mpi-simple.cpp	2023-03-30 13:22:05.968408550 -0400
+@@ -0,0 +1,37 @@
++#include "mpi_supplemental.h"
++#include "omp.h"
++#include <mpi.h>
++#include <stdio.h>
 +
-+    return 0;
++int main(int argc, char *argv[]) {
++  _mpilib_set_device_globals();
++  int numranks, rank;
++  MPI_Init(&argc, &argv);
++  MPI_Comm_size(MPI_COMM_WORLD, &numranks);
++  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
++  printf("Number of Ranks= %d My rank= %d\n", numranks, rank);
++  MPI_Comm _mpi_comm = MPI_COMM_WORLD;
++  MPI_Datatype _mpi_int = MPI_INT;
++  int send_recv_buffer[2];
++  printf("buffer address is %p\n", send_recv_buffer);
++
++#pragma omp target
++  {
++    if (rank == 0) {
++      send_recv_buffer[0] = -123;
++      printf("\nProcess %d sending  %d from dev address %p to process 1\n",
++             rank, send_recv_buffer[0], send_recv_buffer);
++      MPI_Send(&send_recv_buffer[0], 1, _mpi_int, 1, 0, _mpi_comm);
++    }
++    if (rank == 1) {
++      MPI_Recv(&send_recv_buffer[0], 1, _mpi_int, 0, 0, _mpi_comm,
++               MPI_STATUS_IGNORE);
++      printf("\nProcess %d received %d from dev address %p from process 0\n\n",
++             rank, send_recv_buffer[0], send_recv_buffer);
++    }
++  }
++
++  MPI_Finalize();
++
++  return 0;
 +}
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/hostexec/test/mpi_supplemental.h llvm-project/openmp/libomptarget/hostexec/test/mpi_supplemental.h
 --- llvm-project.upstream/openmp/libomptarget/hostexec/test/mpi_supplemental.h	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/openmp/libomptarget/hostexec/test/mpi_supplemental.h	2023-03-29 17:55:21.636654644 -0400
-@@ -0,0 +1,70 @@
-+//========== START MPI supplemental header ==========  
-+#include <hostexec.h>
-+#include <stdarg.h>
-+#if 0
-+int MPI_Send(const void *buf, int count, MPI_Datatype datatype, int dest, int tag, MPI_Comm comm){
-+  printf(" THis should not be called \n");
-+  return 0;
-+}
-+#endif
-+//int MPI_Send(const void *buf, int count, MPI_Datatype datatype, int dest, int tag, MPI_Comm comm);
-+//int MPI_Recv(void *buf, int count, MPI_Datatype datatype, int source, int tag, MPI_Comm comm, MPI_Status *status);
-+
++++ llvm-project/openmp/libomptarget/hostexec/test/mpi_supplemental.h	2023-03-30 13:11:14.330705619 -0400
+@@ -0,0 +1,79 @@
 +//
++// mpi_supplemental.h: Supplemental header to build device variants for specific
++//                     openmpi host function declarations using hostexec:
++//
++// int MPI_Send(const void *buf, int count, MPI_Datatype datatype, int dest,
++//              int tag, MPI_Comm comm);
++// int MPI_Recv(void *buf, int count, MPI_Datatype datatype, int source,
++//              int tag, MPI_Comm comm, MPI_Status *status);
++//
++// These functions can now be called from OpenMP target regions without
++// source code modifications.
++//
++#include <hostexec.h>
++#include <mpi.h>
++#include <stdarg.h>
++
++//  There are 4 parts to a supplemental header.
++
 +// 1. Create variadic proxy functions
-+extern int V_MPI_Send(void*fnptr, ...) {
++extern int V_MPI_Send(void *fnptr, ...) {
 +  va_list args;
 +  va_start(args, fnptr);
-+  void* v0 = va_arg(args, void* );
-+  int v1 = va_arg(args, int );
-+  MPI_Datatype v2 = va_arg(args, MPI_Datatype );
-+  int v3 = va_arg(args, int );
-+  int v4 = va_arg(args, int );
++  void *v0 = va_arg(args, void *);
++  int v1 = va_arg(args, int);
++  MPI_Datatype v2 = va_arg(args, MPI_Datatype);
++  int v3 = va_arg(args, int);
++  int v4 = va_arg(args, int);
 +  MPI_Comm v5 = va_arg(args, MPI_Comm);
 +  va_end(args);
-+  //printf("V_MPI_Send Calling send for address %p \n",(void*) v0);
-+  int rval = MPI_Send(v0,v1,v2,v3,v4,v5);
-+  return rval; 
++  int rval = MPI_Send(v0, v1, v2, v3, v4, v5);
++  return rval;
 +}
-+extern int V_MPI_Recv(void*fnptr, ...) {
++extern int V_MPI_Recv(void *fnptr, ...) {
 +  va_list args;
 +  va_start(args, fnptr);
-+  void* v0 = va_arg(args, void* );
-+  int v1 = va_arg(args, int );
-+  MPI_Datatype v2 = va_arg(args, MPI_Datatype );
-+  int v3 = va_arg(args, int );
-+  int v4 = va_arg(args, int );
++  void *v0 = va_arg(args, void *);
++  int v1 = va_arg(args, int);
++  MPI_Datatype v2 = va_arg(args, MPI_Datatype);
++  int v3 = va_arg(args, int);
++  int v4 = va_arg(args, int);
 +  MPI_Comm v5 = va_arg(args, MPI_Comm);
-+  MPI_Status* v6 = va_arg(args, MPI_Status*);
++  MPI_Status *v6 = va_arg(args, MPI_Status *);
 +  va_end(args);
-+  //printf("V_MPI_Recv Calling recv for address %p \n",(void*) v0);
-+  int rval = MPI_Recv(v0,v1,v2,v3,v4,v5,v6);
++  int rval = MPI_Recv(v0, v1, v2, v3, v4, v5, v6);
 +  return rval;
 +}
 +
 +#pragma omp begin declare target
 +
-+// 2. Create global variables to store pointers to variadic proxy functions
-+hostexec_int_t * V_MPI_Send_var;
-+hostexec_int_t * V_MPI_Recv_var;
++// 2. Create global variables to store pointers to variadic proxy functions.
++//    These must be inside a declare target.
++hostexec_int_t *V_MPI_Send_var;
++hostexec_int_t *V_MPI_Recv_var;
 +
-+// 3. Create the device variants that call hostexec. 
-+#pragma omp begin declare variant match(device = {arch(amdgcn, nvptx, nvptx64)},\
-+     implementation = {extension(match_any)})
-+int MPI_Send(const void *buf, int count, MPI_Datatype datatype, int dest, int tag, MPI_Comm comm){
-+  return hostexec_int((void*) V_MPI_Send_var,buf,count,datatype,dest,tag,comm);}
-+int MPI_Recv(void *buf, int count, MPI_Datatype datatype, int source , int tag, 
-+		MPI_Comm comm, MPI_Status* st){
-+  return hostexec_int((void*) V_MPI_Recv_var,buf,count,datatype,source,tag,comm,st);}
++// 3. Create the device variants that call hostexec.
++#pragma omp begin declare variant match(                                       \
++    device = {arch(amdgcn, nvptx, nvptx64)},                                   \
++    implementation = {extension(match_any)})
++int MPI_Send(const void *buf, int count, MPI_Datatype datatype, int dest,
++             int tag, MPI_Comm comm) {
++  return hostexec_int((void *)V_MPI_Send_var, buf, count, datatype, dest, tag,
++                      comm);
++}
++int MPI_Recv(void *buf, int count, MPI_Datatype datatype, int source, int tag,
++             MPI_Comm comm, MPI_Status *st) {
++  return hostexec_int((void *)V_MPI_Recv_var, buf, count, datatype, source, tag,
++                      comm, st);
++}
 +#pragma omp end declare variant
 +#pragma omp end declare target
 +
 +// 4.  Initialize pointers to host-only library functions on the device.
-+//     These are host pointers stored as device globals which are passed 
++//     These are host pointers stored as device globals which are passed
 +//     to hostexec in the device variants above.
-+void _mpilib_set_device_globals(){
-+  V_MPI_Send_var  = V_MPI_Send;
-+  V_MPI_Recv_var  = V_MPI_Recv;
-+  #pragma omp target update to(V_MPI_Send_var,V_MPI_Recv_var)
++void _mpilib_set_device_globals() {
++  V_MPI_Send_var = V_MPI_Send;
++  V_MPI_Recv_var = V_MPI_Recv;
++#pragma omp target update to(V_MPI_Send_var, V_MPI_Recv_var)
 +}
-+//========== End MPI supplemental header ==========  
+diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/hostexec/test/mpi_test llvm-project/openmp/libomptarget/hostexec/test/mpi_test
+--- llvm-project.upstream/openmp/libomptarget/hostexec/test/mpi_test	1969-12-31 19:00:00.000000000 -0500
++++ llvm-project/openmp/libomptarget/hostexec/test/mpi_test	2023-03-30 14:42:25.281486575 -0400
+@@ -0,0 +1,26 @@
++
++TRUNK=${TRUNK:-$HOME/rocm/trunk}
++GPU=${GPU:-gfx908}
++export LD_LIBRARY_PATH=$TRUNK/lib
++binary=mpi_in_target_region
++[ -f $binary ] && rm $binary
++
++# try to find openmpi
++MPI=~/local/openmpi
++[ ! -d $MPI ] && MPI=/opt/openmpi-4.1.5
++[ ! -d $MPI ] && MPI=/opt/openmpi-4.1.4
++[ ! -d $MPI ] && MPI=/usr/local/openmpi
++[ ! -d $MPI ] && MPI=/usr/lib/openmpi
++[ ! -d $MPI ] && MPI=/usr/lib/x86_64-linux-gnu/openmpi
++[ ! -d $MPI ] && exit 
++echo
++echo ===== Compiling mpi-in-target-region.cpp =====
++echo OMPI_CC=$TRUNK/bin/clang++ $MPI/bin/mpicc -O2 -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$GPU mpi-in-target-region.cpp -I. -o $binary
++OMPI_CC=$TRUNK/bin/clang++ $MPI/bin/mpicc -O2 -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$GPU mpi-in-target-region.cpp -I. -o $binary
++echo
++if [ -f $binary ] ; then 
++echo ===== Running ./$binary offloading =====
++echo
++LIBOMPTARGET_KERNEL_TRACE=1 LD_LIBRARY_PATH=$TRUNK/lib:$MPI/lib:/usr/lib/x86_64-linux-gnu $MPI/bin/mpirun -np 2 --mca btl_openib_warn_no_device_params_found 0 ./$binary
++fi
++
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/hostexec/test/variant.c llvm-project/openmp/libomptarget/hostexec/test/variant.c
 --- llvm-project.upstream/openmp/libomptarget/hostexec/test/variant.c	1969-12-31 19:00:00.000000000 -0500
 +++ llvm-project/openmp/libomptarget/hostexec/test/variant.c	2023-03-29 11:01:26.524277251 -0400
