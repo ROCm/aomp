@@ -264,6 +264,59 @@ function copyresults(){
     else
       unexpectedfails=0
     fi
+
+    # Check unexpected fails for false negatives, i.e. tests that may have been deleted.
+    if [ "$unexpectedfails" != 0 ]; then
+      fails=`diff $1_sorted_exp_passes $1_sorted_passes | grep '^<' | sed "s|< ||g"`
+      if [[ "$1" =~ examples|smoke|omp5 ]]; then
+        # For smoke, examples, and omp5 the missing test will have no directory or the directory is missing a Makefile.
+        # This can happen if there is a test binary that is not cleaned up, which keeps the test directory present.
+        if [ -e "$resultsdir/$1/$1_make_fail.txt" ]; then
+          for fail in $fails; do
+            notpresent=0
+            if [ ! -d "$2/$fail" ]; then
+              notpresent=1
+            else
+              pushd "$2/$fail" > /dev/null
+              # If no Makefile then assume this is a recently deleted test.
+              if [ ! -e Makefile ]; then
+                notpresent=1
+              fi
+              popd > /dev/null
+            fi
+            if [ "$notpresent" == 1 ]; then
+              warnings[$1]+="$fail, "
+              ((unexpectedfails--))
+              ((warningcount++))
+            fi
+          done
+        fi
+      elif [[ "$1" =~ sollve|ovo|LLNL|openmpapps ]]; then
+        # Combine passing/failing tests, which shows all tests that tried to build/run.
+        # If the unexpected failure is not on that list, warn the user that test may be missing
+        # from suite.
+        if [ -e "$1"_failing_tests.txt ]; then
+          cat "$1"_failing_tests.txt | tee -a "$resultsdir"/"$1"/"$1"_all_tests.txt
+        fi
+        if [ -e "$1"_make_fail.txt ]; then
+          cat "$1"_make_fail.txt | tee -a "$resultsdir"/"$1"/"$1"_all_tests.txt
+        fi
+        if [ -e "$1"_passing_tests.txt ]; then
+          cat "$1"_passing_tests.txt | tee -a "$resultsdir"/"$1"/"$1"_all_tests.txt
+        fi
+        if [ -e "$resultsdir"/"$1"/"$1"_all_tests.txt ]; then
+          for fail in $fails; do
+            match=`grep -e "^$fail$" "$resultsdir"/"$1"/"$1"_all_tests.txt`
+            # No match means test was possibly removed
+            if [ "$match" == "" ]; then
+              warnings[$1]+="$fail, "
+              ((unexpectedfails--))
+              ((warningcount++))
+            fi
+          done
+        fi
+      fi
+    fi # End unexpected fail parsing for missing tests
     if [ "$EPSDB" == "1" ]; then
       for suite in $blockinglist; do
         if [ "$1" == "$suite" ]; then
@@ -333,7 +386,7 @@ function examples(){
   cd "$aompdir"/examples/fortran
   EPSDB=1 AOMPHIP=$AOMPROCM ../check_examples.sh fortran
   checkrc $?
-  copyresults examples_fortran
+  copyresults examples_fortran "$aompdir"/examples/fortran
 
   # Openmp Examples
   mkdir -p "$resultsdir"/examples_openmp
@@ -342,7 +395,7 @@ function examples(){
   cd "$aompdir"/examples/openmp
   EPSDB=1 ../check_examples.sh openmp
   checkrc $?
-  copyresults examples_openmp
+  copyresults examples_openmp "$aompdir"/examples/openmp
 }
 
 function smoke(){
@@ -388,7 +441,7 @@ function omp5(){
   cd "$aompdir"/test/omp5
   ./check_omp5.sh
   checkrc $?
-  copyresults omp5
+  copyresults omp5 "$aompdir"/test/omp5
 }
 
 function openmpapps(){
@@ -473,6 +526,8 @@ if [ "$EPSDB" == "1" ]; then
 fi
 echo Running List: $SUITE_LIST
 
+declare -A warnings
+warningcount=0
 for suite in $SUITE_LIST; do
   $suite
 done
@@ -484,14 +539,29 @@ if [ "$compilerver" == "" ]; then
   echo "All expected passes were combined." >> $summary
 fi
 
-echo >> $summary
+echo "" >> $summary
 echo "Condensed Summary:" >> $summary
 if [ -f $unexpresults ]; then
   cat $unexpresults >> $summary
 fi
+
+# Print warnings for possible missing tests.
+if [ ${#warnings[@]} != 0 ]; then
+  echo "" >> $summary
+  echo "--------------------------- MISSING TEST WARNINGS ---------------------------" >> $summary
+  echo "These tests may no longer exist in their respective suite, but are still present in expected passes." >> $summary
+  for i in "${!warnings[@]}"; do
+    val=${warnings[$i]}
+    echo "$i: $val" >> $summary
+    echo "" >> $summary
+  done
+  echo "----------------------------------------------------------------" >> $summary
+fi
+
 echo >> $summary
 echo Overall Unexpected fails: $totalunexpectedfails >> $summary
 echo Script Errors: $scriptfails >> $summary
+echo Test Warnings: $warningcount >> $summary
 if [ "$totalunexpectedfails" -gt 0 ] || [ "$scriptfails" != 0 ]; then
   echo FAIL >> $summary
   echo "EPSDB Status:  red" >> $summary
@@ -500,5 +570,7 @@ else
   echo "EPSDB Status:  green" >> $summary
 fi
 
+echo ""
+echo >> $summary
 cat $summary
 exit $totalunexpectedfails
