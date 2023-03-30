@@ -290,7 +290,6 @@ function copyresults(){
               ((warningcount++))
             fi
           done
-          echo fails: $fails
         fi
       elif [[ "$1" =~ sollve|ovo|LLNL|openmpapps ]]; then
         # Combine passing/failing tests, which shows all tests that tried to build/run.
