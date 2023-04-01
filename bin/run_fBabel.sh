@@ -74,14 +74,13 @@ gccver=`gcc --version | grep gcc | cut -d")" -f2 | cut -d"." -f1`
 std=""
 
 if [ ! -d $FABELSTREAM_REPO ]; then
-  echo "ERROR: BabelStream not found in $FABELSTREAM_REPO"
-  echo "       Consider running these commands:"
+  echo "WARNING: BabelStream not found in $FABELSTREAM_REPO"
+  echo "       Running these commands:"
   echo
-  echo "mkdir -p $AOMP_REPOS_TEST"
-  echo "cd $AOMP_REPOS_TEST"
-  echo "git clone -b develop https://github.com/UoB-HPC/babelstream fortran.babelstream"
-  echo
-  exit 1
+  mkdir -p $AOMP_REPOS_TEST
+  pushd $AOMP_REPOS_TEST
+  git clone -b develop https://github.com/UoB-HPC/babelstream fortran.babelstream
+  popd
 fi
 curdir=$PWD
 mkdir -p $FABELSTREAM_BUILD
