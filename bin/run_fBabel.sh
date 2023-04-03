@@ -21,7 +21,7 @@ thisdir=`dirname $realpath`
 AOMP=${AOMP:-/usr/lib/aomp}
 
 # note: clone_test.sh puts babelstream in $AOMP_REPOS_TEST/babelstream
-FABELSTREAM_REPO=${FABELSTREAM_REPO:-$AOMP_REPOS_TEST/fortran.babelstream}
+FABELSTREAM_REPO=${FABELSTREAM_REPO:-$AOMP_REPOS_TEST/fortran-babelstream}
 FABELSTREAM_BUILD=${FABELSTREAM_BUILD:-/tmp/$USER/fbabelstream}
 FABELSTREAM_REPEATS=${FABELSTREAM_REPEATS:-10}
 
@@ -79,7 +79,7 @@ if [ ! -d $FABELSTREAM_REPO ]; then
   echo
   mkdir -p $AOMP_REPOS_TEST
   pushd $AOMP_REPOS_TEST
-  git clone -b develop https://github.com/UoB-HPC/babelstream fortran.babelstream
+  git clone -b develop https://github.com/UoB-HPC/BabelStream fortran-babelstream
   popd
 fi
 curdir=$PWD
