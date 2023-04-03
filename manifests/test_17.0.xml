@@ -28,6 +28,7 @@
 <project remote="qmcpack" path="qmcpack"    name="qmcpack" revision="develop" groups="unlocked" />
 <project remote="sollve"  path="sollve_vv"  name="sollve_vv" revision="master" groups="unlocked" />
 <project remote="uob-hpc" path="babelstream" name="BabelStream" revision="main" groups="unlocked" />
+<project remote="uob-hpc" path="fortran-babelstream" name="BabelStream" revision="develop" groups="unlocked" />
 <project remote="llnl"    path="RAJAPerf" name="RAJAPerf" revision="develop" groups="unlocked" />
 <project remote="llnl"    path="RAJAPerf/tpl/RAJA" name="RAJA" revision="master" groups="skip" />
 <project remote="llnl"    path="RAJAPerf/blt" name="blt" revision="" groups="skip" />
