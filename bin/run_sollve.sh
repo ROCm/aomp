@@ -153,6 +153,7 @@ if [ "$SKIP_SOLLVE50" != 1 ]; then
   if [ "$AOMP_GPU" == gfx90a ] && [ "$HSA_XNACK" == "" ]; then
     export HSA_XNACK=1
     enable_xnack=1
+    echo "Turning on HSA_XNACK=1 for 5.0 to allow USM tests to pass."
   fi
   # Run OpenMP 5.0 Tests
   echo "--------------------------- START OMP 5.0 TESTING ---------------------"
