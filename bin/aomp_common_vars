@@ -68,9 +68,15 @@ AOMP_STANDALONE_BUILD=${AOMP_STANDALONE_BUILD:-1}
 if [ $AOMP_STANDALONE_BUILD == 1 ] ; then
    # Default is to build nvptx for STANDALONE build
    AOMP_BUILD_CUDA=${AOMP_BUILD_CUDA:-1}
-else
+   AOMP_BUILD_SANITIZER=${AOMP_BUILD_SANITIZER:-0}
+   else
    # Default is to NOT build nvptx for ROCm integrated build
    AOMP_BUILD_CUDA=${AOMP_BUILD_CUDA:-0}
+   if [ "$SANITIZER" == 1 ]; then
+      AOMP_BUILD_SANITIZER=${AOMP_BUILD_SANITIZER:-1}
+   else
+      AOMP_BUILD_SANITIZER=${AOMP_BUILD_SANITIZER:-0}
+   fi
 fi
 
 # AOMP uses RPATH (not) RUNPATH because LD_LIBRARY_PATH is a user feature for
