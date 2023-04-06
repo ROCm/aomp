@@ -6,9 +6,9 @@ TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 
 CLANG        = hipcc
-
+OMP_FLAGS    = -fopenmp
 OMP_BIN      = $(AOMPHIP)/bin/$(CLANG)
-CC           = $(OMP_BIN) $(VERBOSE)
+CC           = HIPCC_VERBOSE=1 $(OMP_BIN) $(VERBOSE)
 #-ccc-print-phases
 #"-\#\#\#"
 
