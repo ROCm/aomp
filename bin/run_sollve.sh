@@ -149,6 +149,11 @@ if [ "$SKIP_SOLLVE45" != 1 ]; then
 fi
 
 if [ "$SKIP_SOLLVE50" != 1 ]; then
+  enable_xnack=0
+  if [ "$AOMP_GPU" == gfx90a ] && [ "$HSA_XNACK" == "" ]; then
+    export HSA_XNACK=1
+    enable_xnack=1
+  fi
   # Run OpenMP 5.0 Tests
   echo "--------------------------- START OMP 5.0 TESTING ---------------------"
   export MY_SOLLVE_FLAGS="$MY_SOLLVE_FLAGS -fopenmp-version=50"
@@ -158,6 +163,9 @@ if [ "$SKIP_SOLLVE50" != 1 ]; then
   echo "--------------------------- OMP 5.0 Detailed Results ---------------------------" >> combined-results.txt
   echo "--------------------------- OMP 5.0 Results ---------------------------" >> abrev.combined-results.txt
   make_sollve_reports 50
+  if [ "$enable_xnack" == 1 ]; then
+    unset HSA_XNACK
+  fi
 fi
 
 if [ "$SKIP_SOLLVE51" != 1 ]; then
