@@ -89,7 +89,7 @@ done
 # This log combines all pass/fails from various openmp versions into one file.
 # Each test is prefixed with openmp version for clarity.
 if [ "$1" == "log" ]; then
-  date=`date '+%Y-%m-%d'`
+  date=${BLOG_DATE:-`date '+%Y-%m-%d'`}
   base_dir=$AOMP_REPOS_TEST/$AOMP_SOLVV_REPO_NAME
   cd $base_dir
 

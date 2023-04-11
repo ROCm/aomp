@@ -22,7 +22,7 @@ AOMP_GPU=${AOMP_GPU:-`$AOMP/bin/mygpu`}
 export AOMP AOMP_GPU
 echo AOMP_GPU = $AOMP_GPU
 echo AOMP = $AOMP
-date=`date '+%Y-%m-%d'`
+date=${BLOG_DATE:-`date '+%Y-%m-%d'`}
 if [ "$1" == "log" ]; then
   if [ "$2" != "" ]; then
     prefix=$2

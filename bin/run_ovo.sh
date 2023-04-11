@@ -31,7 +31,7 @@ export MAKEFLAGS=-j$HALF_THREADS
 ./ovo.sh run
 ./ovo.sh report --summary
 
-date=`date '+%Y-%m-%d'`
+date=${BLOG_DATE:-`date '+%Y-%m-%d'`}
 if [ "$1" == "log" ]; then
   if [ "$2" != "" ]; then
     prefix=$2
