@@ -15,6 +15,13 @@ int check_res(double * v, int n) {
   return err;
 }
 
+#ifndef __OFFLOAD_ARCH_gfx90a__
+int main() {
+  printf("This test only works on multi-device MI200 systems (gfx90a).\n");
+  printf("Existing with pass.n");
+  return 0;
+}
+#else
 int main() {
   int max_devs = omp_get_num_devices();
 
@@ -79,3 +86,4 @@ int main() {
 
   return err;
 }
+#endif
