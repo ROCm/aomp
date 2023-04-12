@@ -178,14 +178,12 @@ To use the various AOMP testing infrastructure in `$TRUNK_REPOS/aomp/test`:
 
 ``` bash
 export AOMP=$HOME/rocm/trunk
-export LD_LIBRARY_PATH=$AOMP/lib:/opt/rocm/hsa/lib
 ```
 
 Or, if you set `TRUNK_LINK`, use this command:
 
 ``` bash
 export AOMP=$TRUNK_LINK
-export LD_LIBRARY_PATH=$AOMP/lib:/opt/rocm/hsa/lib
 ```
 
 Then, for example:
