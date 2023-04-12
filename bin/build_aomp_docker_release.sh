@@ -40,7 +40,7 @@ if [ -f $DOCKERX_HOST/docker-urls.txt ]; then
       url_array["centos8"]=$line
     elif [[ "$line" =~ "centos-9" ]]; then
       url_array["centos9"]=$line
-    elif [[ "$line" =~ "sles15" ]]; then
+    elif [[ "$line" =~ "suse" ]]; then
       url_array["sles15"]=$line
     fi
   done < $DOCKERX_HOST/docker-urls.txt
