@@ -133,6 +133,13 @@ if [ "$1" == "install" ] ; then
       rm $TRUNK_LINK
    fi
    ln -sf $TRUNK_INSTALL_DIR $TRUNK_LINK
+   # Create binary configs to avoid need to set LD_LIBRARY_PATH
+   echo "-Wl,-rpath=${TRUNK_INSTALL_DIR}/lib" > ${TRUNK_INSTALL_DIR}/bin/rpath.cfg
+   echo "-L${TRUNK_INSTALL_DIR}/lib" >> ${TRUNK_INSTALL_DIR}/bin/rpath.cfg
+   ln -sf rpath.cfg ${TRUNK_INSTALL_DIR}/bin/clang++.cfg
+   ln -sf rpath.cfg ${TRUNK_INSTALL_DIR}/bin/clang.cfg
+   ln -sf rpath.cfg ${TRUNK_INSTALL_DIR}/bin/flang.cfg
+   ln -sf rpath.cfg ${TRUNK_INSTALL_DIR}/bin/flang-new.cfg
    echo
    echo "SUCCESSFUL INSTALL to $TRUNK_INSTALL_DIR with link to $TRUNK"
    echo

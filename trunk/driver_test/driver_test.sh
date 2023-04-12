@@ -54,8 +54,8 @@ if [ $? == 0 ] ; then
    echo $compile_main_cmd
    $compile_main_cmd
    if [ -f main ] ; then
-      echo LD_LIBRARY_PATH=$TRUNK/lib OMP_TARGET_OFFLOAD=MANDATORY ./main
-      LD_LIBRARY_PATH=$TRUNK/lib OMP_TARGET_OFFLOAD=MANDATORY ./main
+     echo OMP_TARGET_OFFLOAD=MANDATORY ./main
+     OMP_TARGET_OFFLOAD=MANDATORY ./main
    fi
 fi
 echo
