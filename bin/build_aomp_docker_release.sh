@@ -9,7 +9,7 @@
 ###########################################################
 
 set -e
-AOMP_VERSION_STRING=${AOMP_VERSION_STRING:-17.0-0}
+AOMP_VERSION_STRING=${AOMP_VERSION_STRING:-17.0-1}
 AOMP_VERSION=${AOMP_VERSION:-17.0}
 #DOCKERX_HOST=${DOCKERX_HOST:-$HOME/dockerx}
 DOCKERX_HOST=$HOME/dockerx
@@ -40,7 +40,7 @@ if [ -f $DOCKERX_HOST/docker-urls.txt ]; then
       url_array["centos8"]=$line
     elif [[ "$line" =~ "centos-9" ]]; then
       url_array["centos9"]=$line
-    elif [[ "$line" =~ "sles15" ]]; then
+    elif [[ "$line" =~ "suse" ]]; then
       url_array["sles15"]=$line
     fi
   done < $DOCKERX_HOST/docker-urls.txt
