@@ -1,4 +1,4 @@
-aomp (17.0-0) UNRELEASED; urgency=medium
+aomp (17.0-1) UNRELEASED; urgency=medium
 
   * Initial release of aomp is 0.3-2
   *   Please see example in /usr/lib/aomp/examples/vmuldemo 
@@ -803,5 +803,34 @@ aomp (17.0-0) UNRELEASED; urgency=medium
   *   Fixed duplication of clang-offload-bundler commands for archives.
   *   Added Centos-9 and SLES 15 SP4 rpms.
   *   No longer support SLES15 SP1.
+  *
+  * 17.0-1
+  *   Switch to nextgen plugin as default.  This has shown significant
+  *      performance improvements. To revert to the old plugin set
+  *      LIBOMPTARGET_NEXTGEN_PLUGINS=OFF
+  *   Switch from hostrpc to hostexec. hostexec is a significant rewrite of
+  *      hostrpc. The device hostexec_invoke is now written in OpenMP for
+  *      portability to other platforms. The names of the wrapper (stub) to run a host
+  *      function has changed to hostexec() and hostexec_\<ReturnType\>(). hostexec
+  *      also uses a global variable to find the transfer payload buffer instead of AMD
+  *      implicit kernel args. This will support portability of hostexec, printf, and
+  *      fprintf to other platforms. The update to this device global is made with
+  *      global variable services in the nextgen plugin.
+  *   An example on the use of hostexec to run MPI_Send and MPI_Recv in a
+  *      target region is given.  This example demonstrates how library owners can
+  *      build a supplemental header file to enable transparent host execution of
+  *      selected library functions within an OpenMP target regions with the same host
+  *      interface. This eliminates the need for any source changes in the user code
+  *      when host execution from a target region is desired.  Before hostexec, users
+  *      would typically have to end their target region, execute a host-only function,
+  *      then start another target region.  This feature significantly increases
+  *      general purpose computing capabilities of OpenMP on GPGPU platforms.
+  *   OMPT target support is incomplete with the nextgen plugin. To use OMPT,
+  *      set the environment variable LIBOMPTARGET_NEXTGEN_PLUGINS=OFF
+  *   Set GPU_MAX_HW_QUEUES in gpurun.
+  *   Support for enhanced critical region.
+  *   Implement dynamic LDS accesses from non-kernel functions.
+  *   Insert alloca for kernel args at function entry block instead of the launch point.
+  *   Respect EnvVar for syncronous kernel launch in NextGen.
 
  -- Greg Rodgers <Gregory.Rodgers@amd.com>  Thu, 19 May 2022 23:34:44 -0500

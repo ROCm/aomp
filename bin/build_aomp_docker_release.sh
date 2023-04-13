@@ -70,7 +70,7 @@ prereq_array["sles15"]="zypper install -y which cmake wget vim libopenssl-devel 
 default_os="ubuntu1804 ubuntu2004 ubuntu2204 centos7 centos8 centos9 sles15"
 OS=${OS:-$default_os}
 export DOCKER_HOME=/home/release; export DOCKER_AOMP=/usr/lib/aomp; export DOCKER_AOMP_REPOS=/home/release/git/aomp$AOMP_VERSION
-exports="HOME=/home/release; export AOMP=/usr/lib/aomp; export AOMP_REPOS=/home/release/git/aomp$AOMP_VERSION; export AOMP_EXTERNAL_MANIFEST=1;"
+exports="HOME=/home/release; export AOMP=/usr/lib/aomp; export AOMP_REPOS=/home/release/git/aomp$AOMP_VERSION; export AOMP_EXTERNAL_MANIFEST=1"
 
 function getcontainer(){
   echo docker ps -aqf "name=$docker_name"
