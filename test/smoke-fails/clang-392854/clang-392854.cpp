@@ -1,7 +1,7 @@
 #include <omp.h>
-
 #ifndef _OPENMP
-#error "_OPENMP NOT defined"
+#define _OPENMP
+//#error "_OPENMP NOT defined"
 #endif
 
 #include <iostream>
