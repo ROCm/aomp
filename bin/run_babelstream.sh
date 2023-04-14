@@ -40,7 +40,11 @@ if [ "${AOMP_GPU:0:3}" == "sm_" ] ; then
    RUN_OPTIONS=${RUN_OPTIONS:-"omp-default omp-fast"}
 else
    TRIPLE="amdgcn-amd-amdhsa"
-   RUN_OPTIONS=${RUN_OPTIONS:-"omp-default omp-fast omp-usm hip hip-um"}
+   if [ "$ENABLE_USM" == 1 ]; then
+     RUN_OPTIONS=${RUN_OPTIONS:-"omp-default omp-fast omp-usm hip hip-um"}
+   else
+     RUN_OPTIONS=${RUN_OPTIONS:-"omp-default omp-fast hip"}
+   fi
 fi
 
 omp_target_flags="-O3 -fopenmp -fopenmp-targets=$TRIPLE -Xopenmp-target=$TRIPLE -march=$AOMP_GPU -DOMP -DOMP_TARGET_GPU -Dsimd="
