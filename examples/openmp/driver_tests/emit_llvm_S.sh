@@ -32,6 +32,12 @@ cat $tmpcfile
 echo; echo "========== COMPILES ==========="
 
 gpu=`$AOMP/bin/offload-arch`
+if [  -z $gpu ]; then
+  echo offload-arch fails, fixing
+  gpu=`rocminfo |grep amdgcn-amd-amdhsa--gfx | head -1|awk '{print $2}'|sed s/amdgcn-amd-amdhsa--//`
+  echo "$gpu"
+fi
+
 targetoptions="-fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$gpu"
 RC=0
 
