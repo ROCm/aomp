@@ -172,7 +172,6 @@ for option in $RUN_OPTIONS; do
       fi
     fi
   fi
-
 done
 
 # Check for errors
