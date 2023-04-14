@@ -1,8 +1,4 @@
-llvm-project/clang-tools-extra
-llvm-project/libc
 llvm-project/libclc
-llvm-project/libcxxabi
-llvm-project/libcxx
 llvm-project/lldb
 llvm-project/llgo
 llvm-project/llvm/test
