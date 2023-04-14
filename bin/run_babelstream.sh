@@ -18,6 +18,8 @@ thisdir=`dirname $realpath`
 . $thisdir/aomp_common_vars
 # --- end standard header ----
 
+patchrepo $AOMP_REPOS_TEST/$AOMP_BABELSTREAM_REPO_NAME
+
 # Set defaults for environment variables
 AOMP=${AOMP:-/usr/lib/aomp}
 AOMPHIP=${AOMPHIP:-$AOMP}
@@ -38,7 +40,7 @@ if [ "${AOMP_GPU:0:3}" == "sm_" ] ; then
    RUN_OPTIONS=${RUN_OPTIONS:-"omp-default omp-fast"}
 else
    TRIPLE="amdgcn-amd-amdhsa"
-   RUN_OPTIONS=${RUN_OPTIONS:-"omp-default omp-fast hip"}
+   RUN_OPTIONS=${RUN_OPTIONS:-"omp-default omp-fast omp-usm hip hip-um"}
 fi
 
 omp_target_flags="-O3 -fopenmp -fopenmp-targets=$TRIPLE -Xopenmp-target=$TRIPLE -march=$AOMP_GPU -DOMP -DOMP_TARGET_GPU -Dsimd="
@@ -120,7 +122,9 @@ for option in $RUN_OPTIONS; do
     compile_cmd="$AOMP/bin/clang++ $std $omp_fast_flags   $omp_src -o $EXEC"
   elif [ "$option" == "omp-cpu" ]; then
     compile_cmd="$AOMP/bin/clang++ $std $omp_cpu_flags    $omp_src -o $EXEC"
-  elif [ "$option" == "hip" ]; then
+  elif [ "$option" == "omp-usm" ]; then
+    compile_cmd="$AOMP/bin/clang++ -DOMP_USM $std $omp_fast_flags   $omp_src -o $EXEC"
+  elif [ "$option" == "hip" ] || [ "$option" == "hip-um" ]; then
     if [ ! -f $AOMPHIP/bin/hipcc ] ; then 
       AOMPHIP="$AOMPHIP/.."
       if [ ! -f $AOMPHIP/bin/hipcc ] ; then
@@ -147,8 +151,16 @@ for option in $RUN_OPTIONS; do
   else
     set -o pipefail
     if [ -f $AOMP/bin/gpurun ] ; then
-      echo $AOMP/bin/gpurun -s ./$EXEC -n $BABELSTREAM_REPEATS | tee -a results.txt
-      $AOMP/bin/gpurun -s ./$EXEC -n $BABELSTREAM_REPEATS 2>&1 | tee -a results.txt
+      if [ "$option" == "omp-usm" ]; then
+         echo HSA_XNACK=1 $AOMP/bin/gpurun -s ./$EXEC -n $BABELSTREAM_REPEATS | tee -a results.txt
+         HSA_XNACK=1 $AOMP/bin/gpurun -s ./$EXEC -n $BABELSTREAM_REPEATS 2>&1 | tee -a results.txt
+      elif [ "$option" == "hip-um" ]; then
+         echo HSA_XNACK=1 HIP_UM=1 $AOMP/bin/gpurun -s ./$EXEC -n $BABELSTREAM_REPEATS | tee -a results.txt
+         HSA_XNACK=1 HIP_UM=1 $AOMP/bin/gpurun -s ./$EXEC -n $BABELSTREAM_REPEATS 2>&1 | tee -a results.txt
+      else
+         echo $AOMP/bin/gpurun -s ./$EXEC -n $BABELSTREAM_REPEATS | tee -a results.txt
+         $AOMP/bin/gpurun -s ./$EXEC -n $BABELSTREAM_REPEATS 2>&1 | tee -a results.txt
+      fi
       if [ $? -ne 0 ]; then
         runtime_error=1
       fi
@@ -160,6 +172,7 @@ for option in $RUN_OPTIONS; do
       fi
     fi
   fi
+
 done
 
 # Check for errors
@@ -174,3 +187,4 @@ fi
 cd $curdir
 echo
 echo "DONE. See results at end of file $BABELSTREAM_BUILD/results.txt"
+removepatch $AOMP_REPOS_TEST/$AOMP_BABELSTREAM_REPO_NAME

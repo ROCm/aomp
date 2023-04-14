@@ -261,6 +261,7 @@ GITOPENLIBM="https://github.com/JuliaMath"
 AOMP_OPENLIBM_REPO_NAME=${AOMP_OPENLIBM_REPO_NAME:-openlibm}
 GITLLNLGOULASH="https://github.com/LLNL"
 AOMP_GOULASH_REPO_NAME=${AOMP_GOULASH_REPO_NAME:-goulash}
+AOMP_BABELSTREAM_REPO_NAME=${AOMP_BABELSTREAM_REPO_NAME:-babelstream}
 
 #  We dont use this yet, waiting for trunk merge
 AOMP_F18_REPO_NAME=${AOMP_F18_REPO_NAME:-f18}
