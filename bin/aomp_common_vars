@@ -10,6 +10,10 @@
 #     The bash syntax ENVNAME=${ENVNAME:-value} checks if ENVNAME is
 #     already set. If not, it assigns it the value following the :-
 
+# --- Start standard header to set AOMP environment variables ----
+realpath=`realpath $0`
+thisdir=`dirname $realpath`
+
 # The AOMP_COMPILER_NAME is used whenever version is queried.
 # FIXME: More work is needed to propogate the use of AOMP_COMPILER_NAME.
 AOMP_COMPILER_NAME=${AOMP_COMPILER_NAME:-AOMP}
@@ -35,7 +39,7 @@ AOMP_INSTALL_DIR=${AOMP}_${AOMP_VERSION_STRING}
 AOMP_MAJOR_VERSION=${AOMP_VERSION%.*}
 export AOMP_MAJOR_VERSION
 AOMP_REPOS=${AOMP_REPOS:-${HOME}/git/aomp${AOMP_VERSION}}
-AOMP_PATCH_CONTROL_FILE="${AOMP_REPOS}/aomp/bin/patches/patch-control-file_$AOMP_VERSION.txt"
+AOMP_PATCH_CONTROL_FILE="$thisdir/patches/patch-control-file_$AOMP_VERSION.txt"
 
 # Because the source for all repos are tarred for release, we store
 # all the test repositories in a different directory.
