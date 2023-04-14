@@ -9,7 +9,7 @@
 ###########################################################
 
 set -e
-AOMP_VERSION_STRING=${AOMP_VERSION_STRING:-17.0-0}
+AOMP_VERSION_STRING=${AOMP_VERSION_STRING:-17.0-1}
 AOMP_VERSION=${AOMP_VERSION:-17.0}
 #DOCKERX_HOST=${DOCKERX_HOST:-$HOME/dockerx}
 DOCKERX_HOST=$HOME/dockerx
@@ -40,7 +40,7 @@ if [ -f $DOCKERX_HOST/docker-urls.txt ]; then
       url_array["centos8"]=$line
     elif [[ "$line" =~ "centos-9" ]]; then
       url_array["centos9"]=$line
-    elif [[ "$line" =~ "sles15" ]]; then
+    elif [[ "$line" =~ "suse" ]]; then
       url_array["sles15"]=$line
     fi
   done < $DOCKERX_HOST/docker-urls.txt
@@ -67,10 +67,10 @@ prereq_array["centos9"]="yum install -y dnf-plugins-core gcc-c++ git cmake wget 
 prereq_array["sles15"]="zypper install -y which cmake wget vim libopenssl-devel elfutils libelf-devel git pciutils-devel libffi-devel gcc gcc-c++ libnuma-devel openmpi2-devel Mesa-libGL-devel libquadmath0 libtool texinfo bison flex babeltrace-devel python3 python3-pip python3-devel python3-setuptools makeinfo ncurses-devel libexpat-devel xz-devel gmp-devel rpm-build rsync libdrm-devel libX11-devel; $pip_install"
 
 # Some prep
-default_os="ubuntu1804 ubuntu2004 ubuntu2204 centos7 centos8 centos9 sles15"
+default_os="ubuntu2004 ubuntu2204 centos7 centos8 centos9 sles15"
 OS=${OS:-$default_os}
 export DOCKER_HOME=/home/release; export DOCKER_AOMP=/usr/lib/aomp; export DOCKER_AOMP_REPOS=/home/release/git/aomp$AOMP_VERSION
-exports="HOME=/home/release; export AOMP=/usr/lib/aomp; export AOMP_REPOS=/home/release/git/aomp$AOMP_VERSION; export AOMP_EXTERNAL_MANIFEST=1;"
+exports="HOME=/home/release; export AOMP=/usr/lib/aomp; export AOMP_REPOS=/home/release/git/aomp$AOMP_VERSION; export AOMP_EXTERNAL_MANIFEST=1"
 
 function getcontainer(){
   echo docker ps -aqf "name=$docker_name"
