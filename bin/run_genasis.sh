@@ -12,6 +12,7 @@ thisdir=`dirname $realpath`
 # Setup AOMP variables
 AOMP=${AOMP:-/usr/lib/aomp}
 ROCM=${ROCM:-/opt/rocm}
+FLANG=${FLANG:-flang}
 
 # Use function to set and test AOMP_GPU
 setaompgpu
@@ -67,7 +68,7 @@ else
 fi
 
 export LD_LIBRARY_PATH=$HOME/rocm/aomp/lib:$OPENMPI_DIR/lib:$LD_LIBRARY_PATH
-export FORTRAN_COMPILE="$AOMP/bin/flang -c -I$OPENMPI_DIR/lib"
+export FORTRAN_COMPILE="$AOMP/bin/$FLANG -c -I$OPENMPI_DIR/lib"
 export CC_COMPILE="$AOMP/bin/clang"
 export OTHER_LIBS="-lm -L$AOMP/lib -lflang -lflangmain -lflangrti -lpgmath -lomp -lomptarget "
 export FORTRAN_LINK="$AOMP/bin/clang $OTHER_LIBS"

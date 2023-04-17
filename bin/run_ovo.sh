@@ -8,6 +8,7 @@ thisdir=`dirname $realpath`
 
 # Setup AOMP variables
 AOMP=${AOMP:-/usr/lib/aomp}
+FLANG=${FLANG:-flang}
 
 # Use function to set and test AOMP_GPU
 setaompgpu
@@ -15,7 +16,7 @@ setaompgpu
 AOMP_GPU=${AOMP_GPU:-`$AOMP/bin/mygpu`}
 PATH=$AOMP/bin:$PATH
 CXX=clang++
-FC=flang
+FC=$FLANG
 FFLAGS="-O2  -target x86_64-pc-linux-gnu -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$AOMP_GPU"
 CXXFLAGS="-O2  -target x86_64-pc-linux-gnu -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$AOMP_GPU"
 OMP_TARGET_OFFLOAD=mandatory

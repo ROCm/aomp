@@ -12,6 +12,7 @@ thisdir=`dirname $realpath`
 # Setup AOMP variables
 AOMP=${AOMP:-/usr/lib/aomp}
 AOMPHIP=${AOMPHIP:-$AOMP}
+FLANG=${FLANG:-flang}
 
 # Use function to set and test AOMP_GPU
 setaompgpu
@@ -24,7 +25,7 @@ omp_flags="-O3 -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgc
 omp_dir="tests/rush_larsen/rush_larsen_gpu_omp"
 omp_exec="rush_larsen_gpu_omp"
 
-fomp_f90="$AOMP/bin/flang"
+fomp_f90="$AOMP/bin/$FLANG"
 fomp_flags="-O3 -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$AOMP_GPU -DOMP -DOMP_TARGET_GPU -g"
 fomp_dir="tests/rush_larsen/rush_larsen_gpu_omp_fort"
 fomp_exec="rush_larsen_gpu_omp_fort"
