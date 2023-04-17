@@ -66,7 +66,7 @@ endif
 
 FORT   =$(AOMP)/bin/flang
 LFLAGS = 
-FFLAGS = -g -O2 -fopenmp -fopenmp-targets=$(AOMP_GPUTARGET) -Xopenmp-target=$(AOMP_GPUTARGET)
+FFLAGS = -g -fopenmp -fopenmp-targets=$(AOMP_GPUTARGET) -Xopenmp-target=$(AOMP_GPUTARGET)
 
 # ----- Demo compile and link in one step, no object code saved
 $(TESTNAME): $(TESTNAME).$(FILETYPE)
