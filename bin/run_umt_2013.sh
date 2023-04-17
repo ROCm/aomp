@@ -3,6 +3,7 @@ export ROCM_PATH=/opt/rocm
 
 export AOMP=$HOME/rocm/aomp
 export UMT_PATCH=$HOME/git/aomp16.0/aomp/bin/patches
+FLANG=${FLANG:-flang}
 
 export UMT_PATH=$HOME/git/aomp-test/UMT2013-20140204
 
@@ -33,7 +34,7 @@ if [ "$1" == "build_mpi" ]; then
 
     pushd $OMPI_PATH
     ./autogen.pl
-    ./configure --prefix=$MPI_INSTALL_DIR CC=$AOMP/bin/clang CXX=$AOMP/bin/clang++ FC=$AOMP/bin/flang OMPI_CC=$AOMP/bin/clang OMPI_CXX=$AOMP/bin/clang++ OMPI_FC=$AOMP/bin/flang
+    ./configure --prefix=$MPI_INSTALL_DIR CC=$AOMP/bin/clang CXX=$AOMP/bin/clang++ FC=$AOMP/bin/$FLANG OMPI_CC=$AOMP/bin/clang OMPI_CXX=$AOMP/bin/clang++ OMPI_FC=$AOMP/bin/$FLANG
     make && make install
     popd
     exit 1

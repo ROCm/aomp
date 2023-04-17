@@ -19,6 +19,7 @@ thisdir=`dirname $realpath`
 
 # Set defaults for environment variables
 AOMP=${AOMP:-/usr/lib/aomp}
+FLANG=${FLANG:-flang}
 
 # note: clone_test.sh puts babelstream in $AOMP_REPOS_TEST/babelstream
 FABELSTREAM_REPO=${FABELSTREAM_REPO:-$AOMP_REPOS_TEST/fortran-babelstream}
@@ -42,10 +43,10 @@ fi
 omp_target_flags="-O3 -fopenmp -fopenmp-targets=$TRIPLE -Xopenmp-target=$TRIPLE -march=$AOMP_GPU -DOMP -DUSE_OPENMPTARGET=1 -DVERSION_STRING=4.0"
 #  So this script runs with old comilers, we only use -fopenmp-target-fast
 #  for LLVM 16 or higher
-LLVM_VERSION=`$AOMP/bin/flang --version | grep version | cut -d" " -f 3 | cut -d"." -f1`
+LLVM_VERSION=`$AOMP/bin/$FLANG --version | grep version | cut -d" " -f 3 | cut -d"." -f1`
 if [ "$LLVM_VERSION" == "version" ]  ; then
   # If 3rd  arg is version, must be vendor cmppiler, so get version from 4th field.
-  LLVM_VERSION=`$AOMP/bin/flang --version | grep version | cut -d" " -f 4 | cut -d"." -f1`
+  LLVM_VERSION=`$AOMP/bin/$FLANG --version | grep version | cut -d" " -f 4 | cut -d"." -f1`
   special_aso_flags="-O3 -fopenmp-target-fast"
   #special_aso_flags="-fopenmp-gpu-threads-per-team=256 -fopenmp-target-fast"
 else
@@ -109,11 +110,11 @@ for option in $RUN_OPTIONS; do
   EXEC=stream-$option
   rm -f $EXEC
   if [ "$option" == "omp-default" ]; then
-    compile_cmd="$AOMP/bin/flang $std $omp_target_flags $omp_src -o $EXEC"
+    compile_cmd="$AOMP/bin/$FLANG $std $omp_target_flags $omp_src -o $EXEC"
   elif [ "$option" == "omp-fast" ]; then
-    compile_cmd="$AOMP/bin/flang $std $omp_fast_flags   $omp_src -o $EXEC"
+    compile_cmd="$AOMP/bin/$FLANG $std $omp_fast_flags   $omp_src -o $EXEC"
   elif [ "$option" == "omp-cpu" ]; then
-    compile_cmd="$AOMP/bin/flang $std $omp_cpu_flags    $omp_src -o $EXEC"
+    compile_cmd="$AOMP/bin/$FLANG $std $omp_cpu_flags    $omp_src -o $EXEC"
   else
     echo "ERROR: Option not recognized: $option."
     exit 1
