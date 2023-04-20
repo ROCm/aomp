@@ -26,15 +26,16 @@ fi
 _llvm_bin_dir=$TRUNK/bin
 
 #extra_args="-v -fno-integrated-as -save-temps"
-extra_args="-fno-integrated-as -save-temps"
+clang_extra_args="-save-temps"
+flang_extra_args="-fno-integrated-as -save-temps"
 
 # Generate driver cmds for each of three steps
-$_llvm_bin_dir/flang-new -### $extra_args -c -fopenmp --offload-arch=$OARCH dec_arrayval.f95 -o dec_arrayval.o 2>flang-new.cmds
-$_llvm_bin_dir/clang -### $extra_args -c -fopenmp --offload-arch=$OARCH dec_arrayval.c -o dec_arrayval.o 2>clang.cmds
-$_llvm_bin_dir/clang -### $extra_args -fopenmp --offload-arch=$OARCH inc_arrayval.o dec_arrayval.o main.c -o main 2>main.cmds
+$_llvm_bin_dir/flang-new -### $flang_extra_args -c -fopenmp --offload-arch=$OARCH dec_arrayval.f95 -o dec_arrayval.o 2>flang-new.cmds
+$_llvm_bin_dir/clang -### $clang_extra_args -c -fopenmp --offload-arch=$OARCH dec_arrayval.c -o dec_arrayval.o 2>clang.cmds
+$_llvm_bin_dir/clang -### $clang_extra_args -fopenmp --offload-arch=$OARCH inc_arrayval.o dec_arrayval.o main.c -o main 2>main.cmds
 
 # The increment function shows steps to build heterogeneous object with c
-cmd1="$_llvm_bin_dir/clang $extra_args -c -fopenmp --offload-arch=$OARCH inc_arrayval.c -o inc_arrayval.o"
+cmd1="$_llvm_bin_dir/clang $clang_extra_args -c -fopenmp --offload-arch=$OARCH inc_arrayval.c -o inc_arrayval.o"
 echo $cmd1
 $cmd1
 
@@ -42,9 +43,9 @@ $cmd1
 if [ "$USE_FLANG" == "NO" ] ; then
    echo "WARNING: NOT compiling dec_arrayval.f95, Compiling dec_arrayval.c insted to test execution"
    echo "         Set USE_FLANG=YES to compile/test flang-new on  dec_arrayval.f95"
-   cmd2="$_llvm_bin_dir/clang $extra_args -c -fopenmp --offload-arch=$OARCH dec_arrayval.c -o dec_arrayval.o"
+   cmd2="$_llvm_bin_dir/clang $clang_extra_args -c -fopenmp --offload-arch=$OARCH dec_arrayval.c -o dec_arrayval.o"
 else
-   cmd2="$_llvm_bin_dir/flang-new $extra_args -c -fopenmp --offload-arch=$OARCH dec_arrayval.f95 -o dec_arrayval.o"
+   cmd2="$_llvm_bin_dir/flang-new $flang_extra_args -c -fopenmp --offload-arch=$OARCH dec_arrayval.f95 -o dec_arrayval.o"
 fi
 echo $cmd2
 $cmd2

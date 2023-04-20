@@ -22,12 +22,13 @@ fi
 _llvm_bin_dir=$TRUNK/bin
 
 #extra_args="-v -fno-integrated-as -save-temps"
-extra_args="-fno-integrated-as -save-temps"
+flang_extra_args="-fno-integrated-as -save-temps"
+clang_extra_args="-save-temps"
 
 tmpc="tmpc"
 rm -rf $tmpc ; mkdir -p $tmpc ; cd $tmpc
 [ -f main_in_c ] && rm main_in_c
-compile_main_cmd="$_llvm_bin_dir/clang $extra_args -fopenmp --offload-arch=$OARCH  ../main.c -o main_in_c"
+compile_main_cmd="$_llvm_bin_dir/clang $clang_extra_args -fopenmp --offload-arch=$OARCH  ../main.c -o main_in_c"
 echo
 echo $compile_main_cmd
 $compile_main_cmd
@@ -56,8 +57,8 @@ cd ..
 tmpf="tmpf"
 rm -rf $tmpf ; mkdir -p $tmpf ; cd $tmpf
 [ -f main_in_f ] && rm main_in_f
-compile_main_f_cmd="$_llvm_bin_dir/flang-new $extra_args -flang-experimental-exec -fopenmp --offload-arch=$OARCH ../main.f95 -o main_in_f"
-#compile_main_f_cmd="$_llvm_bin_dir/flang-new $extra_args -fopenmp ../main.f95 -o main_in_f"
+compile_main_f_cmd="$_llvm_bin_dir/flang-new $flang_extra_args -flang-experimental-exec -fopenmp --offload-arch=$OARCH ../main.f95 -o main_in_f"
+#compile_main_f_cmd="$_llvm_bin_dir/flang-new $flang_extra_args -fopenmp ../main.f95 -o main_in_f"
 echo
 echo $compile_main_f_cmd
 $compile_main_f_cmd
