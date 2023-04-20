@@ -1,21 +1,6 @@
-diff -Naur -x .git -x __pycache__ llvm-project.upstream/clang/lib/Driver/ToolChains/Clang.cpp llvm-project/clang/lib/Driver/ToolChains/Clang.cpp
---- llvm-project.upstream/clang/lib/Driver/ToolChains/Clang.cpp	2023-03-23 09:58:44.281817156 -0400
-+++ llvm-project/clang/lib/Driver/ToolChains/Clang.cpp	2023-03-28 13:24:57.267847685 -0400
-@@ -8156,7 +8156,10 @@
-   assert(Input.isFilename() && "Invalid input.");
-   CmdArgs.push_back(Input.getFilename());
- 
--  const char *Exec = getToolChain().getDriver().getClangProgramPath();
-+  // Get "clang" specifically, because the driver name might be set to flang-new
-+  // instead, which does not support -cc1as but does also not require custom
-+  // handling of this action
-+  const char *Exec = Args.MakeArgString(getToolChain().GetProgramPath("clang"));
-   if (D.CC1Main && !D.CCGenDiagnostics) {
-     // Invoke cc1as directly in this process.
-     C.addCommand(std::make_unique<CC1Command>(
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/flang/include/flang/Optimizer/Transforms/Passes.h llvm-project/flang/include/flang/Optimizer/Transforms/Passes.h
---- llvm-project.upstream/flang/include/flang/Optimizer/Transforms/Passes.h	2023-03-07 14:55:06.511746488 -0500
-+++ llvm-project/flang/include/flang/Optimizer/Transforms/Passes.h	2023-03-28 13:24:57.267847685 -0400
+--- llvm-project.upstream/flang/include/flang/Optimizer/Transforms/Passes.h	2023-04-20 08:24:26.847638591 -0400
++++ llvm-project/flang/include/flang/Optimizer/Transforms/Passes.h	2023-04-20 08:40:13.704055168 -0400
 @@ -20,6 +20,7 @@
  class Operation;
  class Pass;
@@ -24,34 +9,34 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/flang/include/flang/Opti
  } // namespace mlir
  
  namespace fir {
-@@ -70,6 +71,8 @@
+@@ -72,6 +73,8 @@
  std::unique_ptr<mlir::Pass>
  createAlgebraicSimplificationPass(const mlir::GreedyRewriteConfig &config);
  std::unique_ptr<mlir::Pass> createPolymorphicOpConversionPass();
 +std::unique_ptr<mlir::OperationPass<mlir::ModuleOp>>
 +createCaptureImplicitlyDeclareTargetPass();
+ std::unique_ptr<mlir::Pass> createOpenACCDataOperandConversionPass();
  
  // declarative passes
- #define GEN_PASS_REGISTRATION
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/flang/include/flang/Optimizer/Transforms/Passes.td llvm-project/flang/include/flang/Optimizer/Transforms/Passes.td
---- llvm-project.upstream/flang/include/flang/Optimizer/Transforms/Passes.td	2023-03-07 14:55:06.511746488 -0500
-+++ llvm-project/flang/include/flang/Optimizer/Transforms/Passes.td	2023-03-28 13:24:57.267847685 -0400
-@@ -284,5 +284,11 @@
+--- llvm-project.upstream/flang/include/flang/Optimizer/Transforms/Passes.td	2023-04-20 08:24:26.847638591 -0400
++++ llvm-project/flang/include/flang/Optimizer/Transforms/Passes.td	2023-04-20 08:42:04.823702881 -0400
+@@ -286,6 +286,12 @@
    ];
  }
  
--  
 +def CaptureImplicitlyDeclareTargetPass
 +    : Pass<"capture-implicitly-declare-target", "mlir::ModuleOp"> {
 +  let summary = "Marks all functions referenced by a declare target function as declare target";
 +  let constructor = "::fir::createCaptureImplicitlyDeclareTargetPass()";
 +  let dependentDialects = ["mlir::omp::OpenMPDialect"];
 +}
-+
- #endif // FLANG_OPTIMIZER_TRANSFORMS_PASSES
+ def OpenACCDataOperandConversion : Pass<"fir-openacc-data-operand-conversion", "::mlir::func::FuncOp"> {
+   let summary = "Convert the FIR operands in OpenACC ops to LLVM dialect";
+   let dependentDialects = ["mlir::LLVM::LLVMDialect"];
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/flang/lib/Frontend/FrontendActions.cpp llvm-project/flang/lib/Frontend/FrontendActions.cpp
---- llvm-project.upstream/flang/lib/Frontend/FrontendActions.cpp	2023-03-28 12:58:55.206855582 -0400
-+++ llvm-project/flang/lib/Frontend/FrontendActions.cpp	2023-03-28 13:24:58.519841656 -0400
+--- llvm-project.upstream/flang/lib/Frontend/FrontendActions.cpp	2023-04-20 08:24:26.851638575 -0400
++++ llvm-project/flang/lib/Frontend/FrontendActions.cpp	2023-04-20 08:33:07.457616105 -0400
 @@ -23,6 +23,7 @@
  #include "flang/Optimizer/Dialect/Support/KindMapping.h"
  #include "flang/Optimizer/Support/InitFIR.h"
@@ -60,7 +45,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/flang/lib/Frontend/Front
  #include "flang/Parser/dump-parse-tree.h"
  #include "flang/Parser/parsing.h"
  #include "flang/Parser/provenance.h"
-@@ -242,6 +243,12 @@
+@@ -300,6 +301,12 @@
    pm.enableVerifier(/*verifyPasses=*/true);
    pm.addPass(std::make_unique<Fortran::lower::VerifierPass>());
  
@@ -74,12 +59,13 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/flang/lib/Frontend/Front
      unsigned diagID = ci.getDiagnostics().getCustomDiagID(
          clang::DiagnosticsEngine::Error,
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/flang/lib/Lower/OpenMP.cpp llvm-project/flang/lib/Lower/OpenMP.cpp
---- llvm-project.upstream/flang/lib/Lower/OpenMP.cpp	2023-03-28 09:58:57.874056834 -0400
-+++ llvm-project/flang/lib/Lower/OpenMP.cpp	2023-03-28 14:13:05.951753159 -0400
-@@ -1122,6 +1122,13 @@
-                    &opClauseList);
+--- llvm-project.upstream/flang/lib/Lower/OpenMP.cpp	2023-04-20 08:24:26.855638559 -0400
++++ llvm-project/flang/lib/Lower/OpenMP.cpp	2023-04-20 08:57:44.776404128 -0400
+@@ -1136,6 +1136,14 @@
+   } else if (blockDirective.v == llvm::omp::OMPD_target) {
+     createTargetOp(converter, opClauseList, blockDirective.v, &eval);
    } else if (blockDirective.v == llvm::omp::OMPD_target_data) {
-     createTargetDataOp(converter, opClauseList, blockDirective.v, &eval);
++    createTargetDataOp(converter, opClauseList, blockDirective.v, &eval);
 +  } else if (blockDirective.v == llvm::omp::OMPD_target) {
 +    // @@@Jan: Just testing to create a TargetOp
 +    auto targetOp = firOpBuilder.create<mlir::omp::TargetOp>(
@@ -87,10 +73,10 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/flang/lib/Lower/OpenMP.c
 +        /*thread_limit*/ mlir::Value(),
 +        /*nowait*/ nullptr);
 +    createBodyOfOp(targetOp, converter, currentLocation, eval, &opClauseList);
+     createTargetOp(converter, opClauseList, blockDirective.v, &eval);
    } else {
      TODO(converter.getCurrentLocation(), "Unhandled block directive");
-   }
-@@ -2184,6 +2191,143 @@
+@@ -2239,6 +2247,143 @@
    converter.bindSymbol(sym, symThreadprivateExv);
  }
  
@@ -234,7 +220,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/flang/lib/Lower/OpenMP.c
  void Fortran::lower::genOpenMPDeclarativeConstruct(
      Fortran::lower::AbstractConverter &converter,
      Fortran::lower::pft::Evaluation &eval,
-@@ -2206,8 +2350,7 @@
+@@ -2261,8 +2406,7 @@
            },
            [&](const Fortran::parser::OpenMPDeclareTargetConstruct
                    &declareTargetConstruct) {
@@ -245,21 +231,22 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/flang/lib/Lower/OpenMP.c
            [&](const Fortran::parser::OpenMPRequiresConstruct
                    &requiresConstruct) {
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/flang/lib/Optimizer/Transforms/CMakeLists.txt llvm-project/flang/lib/Optimizer/Transforms/CMakeLists.txt
---- llvm-project.upstream/flang/lib/Optimizer/Transforms/CMakeLists.txt	2023-03-10 07:54:57.233325414 -0500
-+++ llvm-project/flang/lib/Optimizer/Transforms/CMakeLists.txt	2023-03-28 13:24:57.271847666 -0400
-@@ -15,7 +15,8 @@
+--- llvm-project.upstream/flang/lib/Optimizer/Transforms/CMakeLists.txt	2023-04-20 08:24:26.855638559 -0400
++++ llvm-project/flang/lib/Optimizer/Transforms/CMakeLists.txt	2023-04-20 08:46:11.046881324 -0400
+@@ -15,9 +15,9 @@
    SimplifyIntrinsics.cpp
    AddDebugFoundation.cpp
    PolymorphicOpConversion.cpp
--
 +  OMPCaptureImplicitDeclTar.cpp
-+  
+   OpenACC/OpenACCDataOperandConversion.cpp
+   LoopVersioning.cpp
+-
    DEPENDS
    FIRDialect
    FIROptTransformsPassIncGen
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/flang/lib/Optimizer/Transforms/OMPCaptureImplicitDeclTar.cpp llvm-project/flang/lib/Optimizer/Transforms/OMPCaptureImplicitDeclTar.cpp
 --- llvm-project.upstream/flang/lib/Optimizer/Transforms/OMPCaptureImplicitDeclTar.cpp	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/flang/lib/Optimizer/Transforms/OMPCaptureImplicitDeclTar.cpp	2023-03-28 13:24:57.271847666 -0400
++++ llvm-project/flang/lib/Optimizer/Transforms/OMPCaptureImplicitDeclTar.cpp	2023-04-20 08:33:03.149632763 -0400
 @@ -0,0 +1,59 @@
 +#include "flang/Optimizer/Dialect/FIRDialect.h"
 +#include "flang/Optimizer/Dialect/FIROps.h"
@@ -321,8 +308,8 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/flang/lib/Optimizer/Tran
 +}
 +} // namespace fir
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/mlir/include/mlir/Dialect/OpenMP/OpenMPOps.td llvm-project/mlir/include/mlir/Dialect/OpenMP/OpenMPOps.td
---- llvm-project.upstream/mlir/include/mlir/Dialect/OpenMP/OpenMPOps.td	2023-03-28 12:58:55.246855414 -0400
-+++ llvm-project/mlir/include/mlir/Dialect/OpenMP/OpenMPOps.td	2023-03-28 13:29:15.530627637 -0400
+--- llvm-project.upstream/mlir/include/mlir/Dialect/OpenMP/OpenMPOps.td	2023-04-20 08:24:14.179688133 -0400
++++ llvm-project/mlir/include/mlir/Dialect/OpenMP/OpenMPOps.td	2023-04-20 08:33:07.433616198 -0400
 @@ -28,6 +28,13 @@
    let cppNamespace = "::mlir::omp";
    let dependentDialects = ["::mlir::LLVM::LLVMDialect"];
@@ -338,9 +325,9 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/mlir/include/mlir/Dialec
  
  // OmpCommon requires definition of OpenACC_Dialect.
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/mlir/lib/Dialect/OpenMP/IR/OpenMPDialect.cpp llvm-project/mlir/lib/Dialect/OpenMP/IR/OpenMPDialect.cpp
---- llvm-project.upstream/mlir/lib/Dialect/OpenMP/IR/OpenMPDialect.cpp	2023-03-28 12:58:55.250855397 -0400
-+++ llvm-project/mlir/lib/Dialect/OpenMP/IR/OpenMPDialect.cpp	2023-03-28 13:31:33.677990348 -0400
-@@ -1421,6 +1421,27 @@
+--- llvm-project.upstream/mlir/lib/Dialect/OpenMP/IR/OpenMPDialect.cpp	2023-04-20 08:24:27.415636370 -0400
++++ llvm-project/mlir/lib/Dialect/OpenMP/IR/OpenMPDialect.cpp	2023-04-20 08:33:07.429616213 -0400
+@@ -1441,6 +1441,27 @@
    return success();
  }
  
@@ -369,9 +356,9 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/mlir/lib/Dialect/OpenMP/
  #include "mlir/Dialect/OpenMP/OpenMPOpsAttributes.cpp.inc"
  
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/mlir/lib/Target/LLVMIR/CMakeLists.txt llvm-project/mlir/lib/Target/LLVMIR/CMakeLists.txt
---- llvm-project.upstream/mlir/lib/Target/LLVMIR/CMakeLists.txt	2023-03-23 09:58:45.765808485 -0400
-+++ llvm-project/mlir/lib/Target/LLVMIR/CMakeLists.txt	2023-03-28 13:24:57.307847493 -0400
-@@ -38,6 +38,7 @@
+--- llvm-project.upstream/mlir/lib/Target/LLVMIR/CMakeLists.txt	2023-04-05 14:02:30.697955841 -0400
++++ llvm-project/mlir/lib/Target/LLVMIR/CMakeLists.txt	2023-04-20 08:33:03.729630520 -0400
+@@ -39,6 +39,7 @@
    MLIRLLVMDialect
    MLIRLLVMIRTransforms
    MLIRTranslateLib
@@ -379,7 +366,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/mlir/lib/Target/LLVMIR/C
    )
  
  add_mlir_translation_library(MLIRToLLVMIRTranslationRegistration
-@@ -55,6 +56,7 @@
+@@ -56,6 +57,7 @@
    MLIROpenACCToLLVMIRTranslation
    MLIROpenMPToLLVMIRTranslation
    MLIRROCDLToLLVMIRTranslation
@@ -387,16 +374,16 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/mlir/lib/Target/LLVMIR/C
    )
  
  add_mlir_translation_library(MLIRTargetLLVMIRImport
-@@ -81,4 +83,5 @@
+@@ -83,4 +85,5 @@
  
    LINK_LIBS PUBLIC
    MLIRLLVMIRToLLVMTranslation
 +  MLIROpenMPDialect
    )
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/mlir/lib/Target/LLVMIR/Dialect/OpenMP/OpenMPToLLVMIRTranslation.cpp llvm-project/mlir/lib/Target/LLVMIR/Dialect/OpenMP/OpenMPToLLVMIRTranslation.cpp
---- llvm-project.upstream/mlir/lib/Target/LLVMIR/Dialect/OpenMP/OpenMPToLLVMIRTranslation.cpp	2023-03-23 09:58:45.769808461 -0400
-+++ llvm-project/mlir/lib/Target/LLVMIR/Dialect/OpenMP/OpenMPToLLVMIRTranslation.cpp	2023-03-28 14:13:05.951753159 -0400
-@@ -1659,6 +1659,19 @@
+--- llvm-project.upstream/mlir/lib/Target/LLVMIR/Dialect/OpenMP/OpenMPToLLVMIRTranslation.cpp	2023-04-20 08:24:27.427636323 -0400
++++ llvm-project/mlir/lib/Target/LLVMIR/Dialect/OpenMP/OpenMPToLLVMIRTranslation.cpp	2023-04-20 08:33:07.425616228 -0400
+@@ -1714,6 +1714,19 @@
        .Case<omp::DataOp, omp::EnterDataOp, omp::ExitDataOp>([&](auto op) {
          return convertOmpTargetData(op, builder, moduleTranslation);
        })
@@ -417,9 +404,9 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/mlir/lib/Target/LLVMIR/D
          return inst->emitError("unsupported OpenMP operation: ")
                 << inst->getName();
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/mlir/lib/Target/LLVMIR/ModuleTranslation.cpp llvm-project/mlir/lib/Target/LLVMIR/ModuleTranslation.cpp
---- llvm-project.upstream/mlir/lib/Target/LLVMIR/ModuleTranslation.cpp	2023-03-23 11:54:40.683236144 -0400
-+++ llvm-project/mlir/lib/Target/LLVMIR/ModuleTranslation.cpp	2023-03-28 14:13:05.955753143 -0400
-@@ -994,11 +994,29 @@
+--- llvm-project.upstream/mlir/lib/Target/LLVMIR/ModuleTranslation.cpp	2023-04-05 14:02:30.701955824 -0400
++++ llvm-project/mlir/lib/Target/LLVMIR/ModuleTranslation.cpp	2023-04-20 08:33:03.733630505 -0400
+@@ -1005,11 +1005,29 @@
  
  LogicalResult ModuleTranslation::convertFunctions() {
    // Convert functions.
