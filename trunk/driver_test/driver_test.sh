@@ -25,8 +25,8 @@ fi
 
 _llvm_bin_dir=$TRUNK/bin
 
-#extra_args="-v -save-temps"
-extra_args="-save-temps"
+#extra_args="-v -fno-integrated-as -save-temps"
+extra_args="-fno-integrated-as -save-temps"
 
 # Generate driver cmds for each of three steps
 $_llvm_bin_dir/flang-new -### $extra_args -c -fopenmp --offload-arch=$OARCH dec_arrayval.f95 -o dec_arrayval.o 2>flang-new.cmds
