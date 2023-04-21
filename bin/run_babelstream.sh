@@ -77,6 +77,17 @@ else
     fi
   fi
 fi
+
+GPURUN_BINDIR=${GPURUN_BINDIR:-$AOMP/bin}
+if [ ! -f "$GPURUN_BINDIR/gpurun" ] || [ ! -f "$GPURUN_BINDIR/rocminfo" ] ; then
+    # When using trunk, try to find gpurun and rocminfo in ROCm
+    _SILENT=""
+    GPURUN_BINDIR=/opt/rocm/llvm/bin
+    export ROCMINFO_BINARY=/opt/rocm/bin/rocminfo
+else
+    export ROCMINFO_BINARY=$GPURUN_BINDIR/rocminfo
+fi
+
 omp_cpu_flags="-O3 -fopenmp -DOMP"
 hip_flags="-O3 --offload-arch=$AOMP_GPU -Wno-unused-result -DHIP -x hip"
 
@@ -158,21 +169,21 @@ for option in $RUN_OPTIONS; do
     break
   else
     set -o pipefail
-    if [ -f $AOMP/bin/gpurun ] ; then
+    if [ -f $GPURUN_BINDIR/gpurun ] ; then
       if [ "$option" == "omp-usm" ]; then
-         echo HSA_XNACK=1 $AOMP/bin/gpurun $_SILENT ./$EXEC -n $BABELSTREAM_REPEATS | tee -a results.txt
-         HSA_XNACK=1 $AOMP/bin/gpurun $_SILENT ./$EXEC -n $BABELSTREAM_REPEATS 2>&1 | tee -a results.txt
+         echo HSA_XNACK=1 $GPURUN_BINDIR/gpurun $_SILENT ./$EXEC -n $BABELSTREAM_REPEATS | tee -a results.txt
+         HSA_XNACK=1 $GPURUN_BINDIR/gpurun $_SILENT ./$EXEC -n $BABELSTREAM_REPEATS 2>&1 | tee -a results.txt
       elif [ "$option" == "hip-um" ]; then
-         echo HSA_XNACK=1 HIP_UM=1 $AOMP/bin/gpurun $_SILENT ./$EXEC -n $BABELSTREAM_REPEATS | tee -a results.txt
-         HSA_XNACK=1 HIP_UM=1 $AOMP/bin/gpurun $_SILENT ./$EXEC -n $BABELSTREAM_REPEATS 2>&1 | tee -a results.txt
+         echo HSA_XNACK=1 HIP_UM=1 $GPURUN_BINDIR/gpurun $_SILENT ./$EXEC -n $BABELSTREAM_REPEATS | tee -a results.txt
+         HSA_XNACK=1 HIP_UM=1 $GPURUN_BINDIR/gpurun $_SILENT ./$EXEC -n $BABELSTREAM_REPEATS 2>&1 | tee -a results.txt
       elif [ "$option" == "omp-fast" ]; then
          echo LIBOMPTARGET_AMDGPU_KERNEL_BUSYWAIT=1000000 LIBOMPTARGET_AMDGPU_DATA_BUSYWAIT=3000000 \
-                $AOMP/bin/gpurun $_SILENT ./$EXEC -n $BABELSTREAM_REPEATS 2>&1 | tee -a results.txt
+                $GPURUN_BINDIR/gpurun $_SILENT ./$EXEC -n $BABELSTREAM_REPEATS 2>&1 | tee -a results.txt
          LIBOMPTARGET_AMDGPU_KERNEL_BUSYWAIT=1000000 LIBOMPTARGET_AMDGPU_DATA_BUSYWAIT=3000000 \
-                $AOMP/bin/gpurun $_SILENT ./$EXEC -n $BABELSTREAM_REPEATS 2>&1 | tee -a results.txt
+                $GPURUN_BINDIR/gpurun $_SILENT ./$EXEC -n $BABELSTREAM_REPEATS 2>&1 | tee -a results.txt
       else
-         echo $AOMP/bin/gpurun $_SILENT ./$EXEC -n $BABELSTREAM_REPEATS | tee -a results.txt
-         $AOMP/bin/gpurun $_SILENT ./$EXEC -n $BABELSTREAM_REPEATS 2>&1 | tee -a results.txt
+         echo $GPURUN_BINDIR/gpurun $_SILENT ./$EXEC -n $BABELSTREAM_REPEATS | tee -a results.txt
+         $GPURUN_BINDIR/gpurun $_SILENT ./$EXEC -n $BABELSTREAM_REPEATS 2>&1 | tee -a results.txt
       fi
       if [ $? -ne 0 ]; then
         runtime_error=1
