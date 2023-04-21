@@ -161,6 +161,11 @@ for option in $RUN_OPTIONS; do
       elif [ "$option" == "hip-um" ]; then
          echo HSA_XNACK=1 HIP_UM=1 $AOMP/bin/gpurun -s ./$EXEC -n $BABELSTREAM_REPEATS | tee -a results.txt
          HSA_XNACK=1 HIP_UM=1 $AOMP/bin/gpurun -s ./$EXEC -n $BABELSTREAM_REPEATS 2>&1 | tee -a results.txt
+      elif [ "$option" == "omp-fast" ]; then
+         echo LIBOMPTARGET_AMDGPU_KERNEL_BUSYWAIT=1000000 LIBOMPTARGET_AMDGPU_DATA_BUSYWAIT=3000000 \
+                $AOMP/bin/gpurun -s ./$EXEC -n $BABELSTREAM_REPEATS 2>&1 | tee -a results.txt
+         LIBOMPTARGET_AMDGPU_KERNEL_BUSYWAIT=1000000 LIBOMPTARGET_AMDGPU_DATA_BUSYWAIT=3000000 \
+                $AOMP/bin/gpurun -s ./$EXEC -n $BABELSTREAM_REPEATS 2>&1 | tee -a results.txt
       else
          echo $AOMP/bin/gpurun -s ./$EXEC -n $BABELSTREAM_REPEATS | tee -a results.txt
          $AOMP/bin/gpurun -s ./$EXEC -n $BABELSTREAM_REPEATS 2>&1 | tee -a results.txt
