@@ -7,10 +7,10 @@ if [ ! -f $hipcc_loc ]; then
 fi
 
 ompd_dir="$AOMP/share/gdb/python/ompd"
-if [ ! -d $ompd_dir ] ; then
+if [ ! -f "$ompd_dir/__init__.py" ] ; then
   ompd_dir="$AOMP/lib-debug/ompd"
 fi
-if [ ! -d $ompd_dir ] ; then
+if [ ! -f "$ompd_dir/__init__.py" ] ; then
   echo "ERROR ompd directory not found in $AOMP/share/gdb/python/ompd"
   exit 1
 fi
