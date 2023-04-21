@@ -78,7 +78,7 @@ COMMON_CMAKE_OPTS="$AOMP_SET_NINJA_GEN -DOPENMP_ENABLE_LIBOMPTARGET=1
 -DLIBOMPTARGET_AMDGCN_GFXLIST=$GFXSEMICOLONS
 -DDEVICELIBS_ROOT=$DEVICELIBS_ROOT
 -DLIBOMP_COPY_EXPORTS=OFF
--DLIBOMPTARGET_ENABLE_DEBUG=OFF
+-DLIBOMPTARGET_ENABLE_DEBUG=ON
 -DLLVM_DIR=$LLVM_DIR"
 
 if [ "$AOMP_STANDALONE_BUILD" == 0 ]; then
@@ -142,13 +142,13 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
          exit 1
       fi
 
-  if [ "$AOMP_BUILD_DEVEL" == "1" ]; then
-    echo rm -rf $BUILD_DIR/build/openmp_devel
-    rm -rf $BUILD_DIR/build/openmp_devel
-    MYCMAKEOPTS="$COMMON_CMAKE_OPTS -DCMAKE_BUILD_TYPE=Release $AOMP_ORIGIN_RPATH -DLLVM_LIBDIR_SUFFIX=-devel"
-    mkdir -p $BUILD_DIR/build/openmp_devel
-    cd $BUILD_DIR/build/openmp_devel
-    echo " -----Running openmp cmake for devel ---- "
+  if [ "$AOMP_BUILD_PERF" == "1" ]; then
+    echo rm -rf $BUILD_DIR/build/openmp_perf
+    rm -rf $BUILD_DIR/build/openmp_perf
+    MYCMAKEOPTS="$COMMON_CMAKE_OPTS -DLIBOMPTARGET_ENABLE_DEBUG=OFF -DCMAKE_BUILD_TYPE=Release $AOMP_ORIGIN_RPATH -DLLVM_LIBDIR_SUFFIX=-perf"
+    mkdir -p $BUILD_DIR/build/openmp_perf
+    cd $BUILD_DIR/build/openmp_perf
+    echo " -----Running openmp cmake for perf ---- "
     echo ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
     ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
     if [ $? != 0 ] ; then
@@ -167,7 +167,6 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
       
       MYCMAKEOPTS="$COMMON_CMAKE_OPTS \
 -DLIBOMPTARGET_NVPTX_DEBUG=ON \
--DLIBOMPTARGET_ENABLE_DEBUG=ON
 -DCMAKE_BUILD_TYPE=Debug \
 $AOMP_ORIGIN_RPATH \
 -DROCM_DIR=$ROCM_DIR \
@@ -230,11 +229,11 @@ if [ $? != 0 ] ; then
       exit 1
 fi
 
-if [ "$AOMP_BUILD_DEVEL" == "1" ] ; then
-   cd $BUILD_DIR/build/openmp_devel
+if [ "$AOMP_BUILD_PERF" == "1" ] ; then
+   cd $BUILD_DIR/build/openmp_perf
    echo
    echo
-   echo " -----Running $AOMP_NINJA_BIN for $BUILD_DIR/build/openmp_devel ---- "
+   echo " -----Running $AOMP_NINJA_BIN for $BUILD_DIR/build/openmp_perf ---- "
    $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS
    if [ $? != 0 ] ; then 
          echo "ERROR $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS failed"
@@ -272,10 +271,10 @@ if [ "$1" == "install" ] ; then
       exit 1
    fi
 
-   if [ "$AOMP_BUILD_DEVEL" == "1" ]; then
-     cd $BUILD_DIR/build/openmp_devel
+   if [ "$AOMP_BUILD_PERF" == "1" ]; then
+     cd $BUILD_DIR/build/openmp_perf
      echo
-     echo " -----Installing to $INSTALL_OPENMP/lib-devel ----- "
+     echo " -----Installing to $INSTALL_OPENMP/lib-perf ----- "
      $SUDO $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS install
      if [ $? != 0 ] ; then
         echo "ERROR $AOMP_NINJA_BIN install failed "
