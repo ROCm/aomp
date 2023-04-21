@@ -57,7 +57,7 @@ if [ "$LLVM_VERSION" == "version" ]  ; then
   special_aso_flags="-fopenmp-gpu-threads-per-team=1024 -fopenmp-target-fast"
 else
   # temp hack to detect trunk (not vendor compiler) (found version in 3 args)"
-  special_aso_flags=""
+  special_aso_flags="-fopenmp-assume-no-thread-state -fopenmp-assume-no-nested-parallelism -fopenmp-cuda-mode -Rpass=openmp-opt -Rpass-missed=openmp-opt -Rpass-analysis=openmp-opt"
 fi
 echo "LLVM VERSION IS $LLVM_VERSION"
 if [[ $LLVM_VERSION -ge 16 ]] ; then
