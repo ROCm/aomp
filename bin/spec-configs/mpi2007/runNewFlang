@@ -22,11 +22,6 @@ export PATH=$FAOMP/bin:$AOMP/bin:$MPI/bin:$PATH
 
 ulimit -s unlimited
 
-rm -rf benchspec/MPI2007/*/build/*newflang*
-rm -rf benchspec/MPI2007/*/run/*newflang*
-
-#runspec -c newflang.cfg -I -l -n 1 -T base --ranks=16 -i mtest 107 --rebuild
-#exit
-runspec -c newflang.cfg -I -l -n 1 -T base --ranks=16 -i mtest medium --rebuild
+runspec -c newflang.cfg -I -l -n 1 -T base --ranks=16 -i mtest 107 113 115 121 127 128 129 130 132 137 --rebuild
 
 
