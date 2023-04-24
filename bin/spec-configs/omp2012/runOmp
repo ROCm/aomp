@@ -1,0 +1,22 @@
+#!/bin/bash
+set -x
+export AOMP=~/rocm/aomp_17.0-2
+
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/AMD/amd-libm/lib/:/opt/AMD/jemalloc-5.1.0/lib
+export LIBRARY_PATH=/opt/AMD/amd-libm/lib/
+export JEMALLOC_DIR=/opt/AMD/jemalloc-5.1.0
+
+cd /work/rlieberm/SPEC-WORK/omp2012-1.1/
+set +x
+. ./shrc
+set -x
+
+LIBRARY_PATH=$AOMP/lib LD_LIBRARY_PATH=$AOMP/lib:$LD_LIBRARY_PATH PATH=$AOMP/bin:$PATH runspec -c amd_aomp.cfg -I -l -n 1 -T base --threads=32 -i test 357 363 --rebuild 
+exit
+
+LIBRARY_PATH=$AOMP/lib LD_LIBRARY_PATH=$AOMP/lib:$LD_LIBRARY_PATH PATH=$AOMP/bin:$PATH runspec -c amd_aomp.cfg -I -l -n 1 -T base --threads=32 -i test all --rebuild 
+exit
+LIBRARY_PATH=$AOMP/lib LD_LIBRARY_PATH=$AOMP/lib:$LD_LIBRARY_PATH PATH=$AOMP/bin:$PATH runspec -c a+a_amd_aomp.cfg -I -l -n 1 -T base --threads=32 -i test all --rebuild 
+
+
+

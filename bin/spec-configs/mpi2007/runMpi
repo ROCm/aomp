@@ -1,0 +1,11 @@
+#!/bin/bash
+export AOMP=/COD/LATEST/aomp
+export MPI=/opt/openmpi-4.1.4
+
+ulimit -s unlimited
+
+echo mpi2007-2.0.1
+set +x
+. ./shrc
+set -x
+OMPI_FC=flang OMPI_CC=clang OMPI_CXX=clang++ LD_LIBRARY_PATH=$AOMP/lib:$MPI/lib/:/opt/AMD/amd-libm/lib:/opt/AMD/jemalloc-5.1.0/lib:$LD_LIBRARY_PATH PATH=$AOMP/bin:$MPI/bin:$PATH runspec -c amd_llvm.cfg -I -l -n 1 -T base --ranks=16 -i mtest medium --rebuild
