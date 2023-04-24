@@ -61,6 +61,9 @@ RHEL 7.7 and later RHEL 7 versions
   # Additional packages used by rocgdb
   sudo yum install texinfo bison flex ncurses-devel expat-devel xz-devel libbabeltrace-devel gmp-devel
   python3 -m pip install CppHeaderParser argparse wheel lit --user
+
+  # To build aomp with Ninja set AOMP_USE_NINJA=1 . You need this installed with dnf
+  dnf install ninja-build
 ```
 
 #### CentOS 9 Packages
