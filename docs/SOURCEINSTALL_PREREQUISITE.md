@@ -59,7 +59,7 @@ RHEL 7.7 and later RHEL 7 versions
   sudo yum install gcc gcc-c++ git make pciutils-devel numactl-devel libffi-devel mesa-libGL-devel libquadmath-devel python3 python3-pip python36-devel python3-setuptools python2 libtool libdrm libdrm-devel ccache
 
   # Additional packages used by rocgdb
-  sudo yum install texinfo bison flex ncurses-devel expat-devel xz-devel libbabeltrace-devel libgmp-devel
+  sudo yum install texinfo bison flex ncurses-devel expat-devel xz-devel libbabeltrace-devel gmp-devel
   python3 -m pip install CppHeaderParser argparse wheel lit --user
 ```
 
