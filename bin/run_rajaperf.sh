@@ -101,7 +101,11 @@ if [ "$2" == "build" ]; then
     usage
   fi
   
-  make -j $AOMP_JOB_THREADS
+  LESS_THREADS=$(( AOMP_JOB_THREADS/2 ))
+  LESS_THREADS=$(( $LESS_THREADS > 32 ? 32 : $LESS_THREADS ))
+  MAKE_THREADS=${MAKE_THREADS:-$LESS_THREADS}
+  echo "Using $MAKE_THREADS threads for make."
+  make -j $MAKE_THREADS
   # Do not continue if build fails
   if [ $? != 0 ]; then
     echo "ERROR: Make returned non-zero, exiting..."
