@@ -1,7 +1,0 @@
-commit 12572d985dff527e6ea7e6e07549c544f1fc2ce2
-Merge: 132e201 3c6fa68
-Author: Alexandre E. Eichenberger <alexe@us.ibm.com>
-Date:   Tue Oct 24 13:55:17 2017 -0400
-
-    Merge branch 'ibm-devel' of ibmgithub:/CORAL-LLVM-Compilers/openmp into ibm-devel
-
