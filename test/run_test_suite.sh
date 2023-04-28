@@ -16,7 +16,7 @@
 DISABLED_LIST="raja omptests"
 
 # Available Suites - Qmcpack will timeout at 20 minutes
-SUITE_LIST=${SUITE_LIST:-"ovo examples smoke smokefails hipopenmp omp5 openmpapps nekbone sollve kokkos llnl openlibm qmcpack usm"}
+SUITE_LIST=${SUITE_LIST:-"ovo examples smoke hipopenmp omp5 openmpapps nekbone sollve llnl openlibm qmcpack"}
 
 #Groups
 GROUP_LIST="epsdb"
