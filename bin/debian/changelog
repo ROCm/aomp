@@ -1,4 +1,4 @@
-aomp (17.0-1) UNRELEASED; urgency=medium
+aomp (17.0-2) UNRELEASED; urgency=medium
 
   * Initial release of aomp is 0.3-2
   *   Please see example in /usr/lib/aomp/examples/vmuldemo 
@@ -832,5 +832,24 @@ aomp (17.0-1) UNRELEASED; urgency=medium
   *   Implement dynamic LDS accesses from non-kernel functions.
   *   Insert alloca for kernel args at function entry block instead of the launch point.
   *   Respect EnvVar for syncronous kernel launch in NextGen.
+  *
+  * 17.0-2
+  *   Changed gpurun to set value of both GPU_MAX_HW_QUEUES and
+  *      LIBOMPTARGET_AMDGPU_NUM_HSA_QUEUES to 1 if there is shared use of GPU by
+  *      multiple mpi ranks. Also, it is set to 1 ONLY if it was not already set by
+  *      caller.
+  *   Added environment variables LIBOMPTARGET_AMDGPU_ KERNEL_BUSYWAIT and
+  *      LIBOMPTARGET_AMDGPU_DATA_BUSYWAIT to control how much time to wait in an
+  *      active state for kernel completion and data transfer completion respectively.
+  *      The default is 0 which means to wait indefinitely in blocked state. If set,
+  *      and the specified timeout expires, the waiting runtime jumps to waiting for
+  *      signal in blocked state.
+  *   Changed run_babelstream.sh to set LIBOMPTARGET_AMDGPU_KERNEL_BUSYWAIT and
+  *      LIBOMPTARGET_AMDGPU_DATA_BUSYWAIT to improve performance.
+  *   Fixed the amdgpu nextgen plugin to work for cov5 (code object version 5). The
+  *      default code object version is cov4.
+  *   Fixed the amdgpu nextgen plugin to work with OMPT (OpenMP Tools environment).
+  *   Fixed the amdgpu nextgen plugin to work for multiple architectures supported
+  *      in same image.
 
  -- Greg Rodgers <Gregory.Rodgers@amd.com>  Thu, 19 May 2022 23:34:44 -0500
