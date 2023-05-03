@@ -185,9 +185,15 @@ function buildflang-legacy-LFL(){
   fi
   runcmd "mkdir -p $_builddir"
   runcmd "cd $_builddir"
-  runcmd "wget https://repo.radeon.com/rocm/apt/5.5/pool/main/r/rocm-llvm5.5.0/rocm-llvm5.5.0_16.0.0.23144.50500-63~20.04_amd64.deb"
-  runcmd "dpkg -x rocm-llvm5.5.0_16.0.0.23144.50500-63~20.04_amd64.deb $_builddir"
-
+  which dpkg 2>/dev/null
+  if [ $? == 0 ] ; then
+    runcmd "wget https://repo.radeon.com/rocm/apt/5.5/pool/main/r/rocm-llvm5.5.0/rocm-llvm5.5.0_16.0.0.23144.50500-63~20.04_amd64.deb"
+    runcmd "dpkg -x rocm-llvm5.5.0_16.0.0.23144.50500-63~20.04_amd64.deb $_builddir"
+  else
+    runcmd "wget https://repo.radeon.com/rocm/yum/5.5/main/rocm-llvm5.5.0-16.0.0.23144.50500-63.el7.x86_64.rpm"
+    echo "rpm2cpio rocm-llvm5.5.0-16.0.0.23144.50500-63.el7.x86_64.rpm | cpio -idm"
+    rpm2cpio rocm-llvm5.5.0-16.0.0.23144.50500-63.el7.x86_64.rpm | cpio -idm
+  fi
   if [ -d $_installdir ] ; then
     runcmd "rm -rf $_installdir"
   fi

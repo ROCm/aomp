@@ -87,10 +87,7 @@ if [ "$AOMP_STANDALONE_BUILD" == 1 ] ; then
   # rocclr, we have no HIP or OpenCL for ppc64 :-( However, rocr works for ppc64 so AOMP works.
   if [ "$_hostarch" == "x86_64" ] ; then
     # These components build on x86_64, so add them to components list
-    if [ "$AOMP_BUILD_FLANG_LEGACY" == "1" ] ; then
-      components="$components flang-legacy"
-    fi
-    components="$components pgmath flang flang_runtime"
+    components="$components flang-legacy pgmath flang flang_runtime"
     #components="$components hipfort"
     components="$components hipamd "
   fi
@@ -111,11 +108,7 @@ else
   # libdevice, project, comgr, rocminfo, hipamd, rocdbgapi, rocgdb,
   # roctracer, and rocprofiler should be found in ROCM in /opt/rocm.
   # The ROCM build only needs these components:
-  if [ "$AOMP_BUILD_FLANG_LEGACY" == "1" ] ; then
-    components="extras openmp flang-legacy pgmath flang flang_runtime"
-  else 
-    components="extras openmp pgmath flang flang_runtime"
-  fi
+  components="extras openmp flang-legacy pgmath flang flang_runtime"
 fi
 echo "COMPONENTS:$components"
 
