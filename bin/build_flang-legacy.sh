@@ -34,6 +34,13 @@ if [ "$AOMP_USE_NINJA" == 0 ] ; then
 else
     AOMP_SET_NINJA_GEN="-G Ninja"
 fi
+osversion=$(cat /etc/os-release | grep -e ^VERSION_ID)
+if [[ $osversion =~ '"7.' ]] || [[ $osversion =~ '"8' ]]; then
+  _cxx_flag="-DCMAKE_CXX_FLAGS='-D_GLIBCXX_USE_CXX11_ABI=0'"
+else
+  _cxx_flag=""
+fi
+
 # We need a version of ROCM llvm that supports legacy flang 
 # via the link from flang to clang.  rocm 5.5 would be best. 
 # This will enable removal of legacy flang driver support 
@@ -44,6 +51,7 @@ MYCMAKEOPTS="\
 -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
 -DCMAKE_C_COMPILER=$AOMP_INSTALL_DIR/bin/clang \
 -DCMAKE_CXX_COMPILER=$AOMP_INSTALL_DIR/bin/clang++ \
+$_cxx_flag \
 -DCMAKE_CXX_STANDARD=17 \
 -DBUILD_SHARED_LIBS=OFF \
 -DCMAKE_INSTALL_PREFIX=$AOMP_INSTALL_DIR \
