@@ -13,6 +13,14 @@ thisdir=`dirname $realpath`
 . $thisdir/aomp_common_vars
 # --- end standard header ----
 
+if [ $AOMP_BUILD_FLANG_LEGACY == 0 ] ; then
+   if [ "$1" != "install" ] ; then
+      echo "WARNING:  ROCM install for $AOMP_FLANG_LEGACY_REL/llvm not found."
+      echo "          This build will skip build of flang-legacy."
+      echo "          The flang will link to the clang driver."
+   fi
+   exit
+fi
 TARGETS_TO_BUILD="AMDGPU;${AOMP_NVPTX_TARGET}X86"
 
 if [ $AOMP_STANDALONE_BUILD == 1 ] ; then
@@ -30,7 +38,7 @@ fi
 # via the link from flang to clang.  rocm 5.5 would be best. 
 # This will enable removal of legacy flang driver support 
 # from clang to make way for flang-new.  
-export LLVM_DIR=/opt/rocm-5.4.3/llvm
+export LLVM_DIR="$AOMP_FLANG_LEGACY_REL/llvm"
 MYCMAKEOPTS="\
 -DLLVM_DIR=$LLVM_DIR \
 -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
@@ -120,6 +128,14 @@ if [ "$1" == "install" ] ; then
    if [ $? != 0 ] ; then
       echo "ERROR make install failed "
       exit 1
+   fi
+   if [ $AOMP_BUILD_FLANG_LEGACY == 1 ] ; then
+      echo "------ Linking flang-legacy to flang -------"
+      if [ -L $AOMP_INSTALL_DIR/bin/flang ] ; then
+         $SUDO rm $AOMP_INSTALL_DIR/bin/flang
+      fi
+      cd $AOMP_INSTALL_DIR/bin
+      $SUDO ln -sf flang-legacy flang
    fi
    echo
    echo "SUCCESSFUL INSTALL to $AOMP_INSTALL_DIR"

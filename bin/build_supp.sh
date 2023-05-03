@@ -52,7 +52,7 @@ EOF
 }
 
 SUPPLEMENTAL_COMPONENTS=${SUPPLEMENTAL_COMPONENTS:-openmpi silo hdf5 fftw ninja}
-PREREQUISITE_COMPONENTS=${PREREQUISITE_COMPONENTS:-cmake rocmsmilib hwloc}
+PREREQUISITE_COMPONENTS=${PREREQUISITE_COMPONENTS:-cmake rocmsmilib hwloc flang-legacy-LFL}
 
 # --- Start standard header to set AOMP environment variables ----
 realpath=`realpath $0`
@@ -165,6 +165,44 @@ function buildninja(){
     runcmd "rm $_linkfrom"
   fi
   runcmd "ln -sf $_installdir $_linkfrom"
+  echo "# $_linkfrom is now symbolic link to $_installdir " >>$CMDLOGFILE
+}
+
+function buildflang-legacy-LFL(){
+  _cname="flang-legacy-LFL"
+  _version=5.5
+  _installdir=$AOMP_SUPP_INSTALL/$_cname-$_version
+  _linkfrom=$AOMP_SUPP/$_cname
+  _builddir=$AOMP_SUPP_BUILD/$_cname
+
+  SKIPBUILD="FALSE"
+  checkversion
+  if [ "$SKIPBUILD" == "TRUE"  ] ; then
+    return
+  fi
+  if [ -d $_builddir ] ; then
+    runcmd "rm -rf $_builddir"
+  fi
+  runcmd "mkdir -p $_builddir"
+  runcmd "cd $_builddir"
+  runcmd "wget https://repo.radeon.com/rocm/apt/5.5/pool/main/r/rocm-llvm5.5.0/rocm-llvm5.5.0_16.0.0.23144.50500-63~20.04_amd64.deb"
+  runcmd "dpkg -x rocm-llvm5.5.0_16.0.0.23144.50500-63~20.04_amd64.deb $_builddir"
+
+  if [ -d $_installdir ] ; then
+    runcmd "rm -rf $_installdir"
+  fi
+  runcmd "mkdir -p $_installdir/llvm/lib"
+  runcmd "cd $_installdir/llvm"
+  # we only need archive libs for libclang and libLLVM and include files to build flang-legacy.
+  runcmd "cp -rp $_builddir/opt/rocm-5.5.0/llvm/lib/libLLVM*.a  $_installdir/llvm/lib"
+  runcmd "cp -rp $_builddir/opt/rocm-5.5.0/llvm/lib/libclang*.a  $_installdir/llvm/lib"
+  runcmd "cp -rp $_builddir/opt/rocm-5.5.0/llvm/include $_installdir/llvm"
+
+  if [ -L $_linkfrom ] ; then
+    runcmd "rm $_linkfrom"
+  fi
+  runcmd "ln -sf $_installdir $_linkfrom"
+  runcmd "rm -rf $_builddir"
   echo "# $_linkfrom is now symbolic link to $_installdir " >>$CMDLOGFILE
 }
 
@@ -433,6 +471,8 @@ for _component in $_components ; do
     buildrocmsmilib
   elif [ $_component == "ninja" ] ; then
     buildninja
+  elif [ $_component == "flang-legacy-LFL" ] ; then
+    buildflang-legacy-LFL
   else
     echo "ERROR:  Invalid component name $_component" >>$CMDLOGFILE
     echo "ERROR:  Invalid component name $_component"

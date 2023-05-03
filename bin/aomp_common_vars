@@ -32,7 +32,6 @@ export AOMP_VERSION_STRING AOMP_VERSION AOMP_VERSION_MOD ROCM_VERSION
 AOMP=${AOMP:-$HOME/rocm/aomp}
 AOMP_INSTALL_DIR=${AOMP}_${AOMP_VERSION_STRING}
 
-# Set the directory location where all local AOMP git repos are stored.
 # For example, if AOMP_REPOS=$HOME/git/aomp11, then the primary aomp repo
 # is stored in $HOME/git/aomp11/aomp and the mono repo is stored in
 # $HOME/aomp/llvm-project.
@@ -71,6 +70,17 @@ AOMP_SUPP_BUILD=${AOMP_SUPP_BUILD:-$AOMP_SUPP/build}
 #
 # AOMP_SUPP_INSTALL must be permanent directory.
 AOMP_SUPP_INSTALL=${AOMP_SUPP_INSTALL:-$AOMP_SUPP/install}
+
+# last version of rocm that supports the legacy driver (command generation)
+# The archives and includes are installed as an AOMP supplemental component 
+AOMP_FLANG_LEGACY_REL=${AOMP_FLANG_LEGACY_REL:-$AOMP_SUPP/flang-legacy-LFL}
+if [ -d $AOMP_FLANG_LEGACY_REL/llvm ] ; then
+   AOMP_BUILD_FLANG_LEGACY=1
+else
+   AOMP_BUILD_FLANG_LEGACY=0
+fi
+
+# Set the directory location where all local AOMP git repos are stored.
 
 # To build aomp from the release source taball, set these values to 0
 AOMP_APPLY_ROCM_PATCHES=${AOMP_APPLY_ROCM_PATCHES:-1}

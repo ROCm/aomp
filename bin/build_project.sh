@@ -71,6 +71,10 @@ MYCMAKEOPTS="$MYCMAKEOPTS
 -DLIBCXX_ENABLE_STATIC=ON
 -DLIBCXXABI_ENABLE_STATIC=ON
 "
+if [ $AOMP_BUILD_FLANG_LEGACY == 1 ] ; then
+   # this prevents the install link from clang to flang
+   MYCMAKEOPTS="$MYCMAKEOPTS -DCLANG_LINK_FLANG=OFF"
+fi
 
 # Enable Compiler-rt Sanitizer Build
 if [ "$AOMP_BUILD_SANITIZER" == 'ON' ]; then
