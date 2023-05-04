@@ -42,10 +42,13 @@ export rocsolver_DIR=${ROCM_INSTALL_PATH}/lib/cmake/rocsolver/
 : ${MQMC_SOURCE_DIR:=$HOME/miniqmc_src}
 # how many threads should be used for building miniqmc
 : ${MQMC_NUM_BUILD_PROCS:=32}
+# We pin the version by default, so we have only AOMP as moving target
+: ${MQMC_GIT_TAG:=15edc605}
 
 
 if [ ! -d $MQMC_SOURCE_DIR ]; then
   git clone https://github.com/ye-luo/miniqmc $MQMC_SOURCE_DIR
+  git checkout ${MQMC_GIT_TAG}
 fi
 
 rm -rf ${MQMCPACK_BUILD_DIR}
