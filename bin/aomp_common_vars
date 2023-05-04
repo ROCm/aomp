@@ -325,9 +325,8 @@ else
 fi
 
 # Sanitizer Build environment flags
-if [ -n "$1" ] && [ "$1" == "asan" ]; then
+if [ -n "$1" ] && [ "$1" == "asan" ] && [ "$AOMP_BUILD_CUDA" != 1 ]; then
   AOMP_BUILD_SANITIZER=ON
-  SANITIZER_FLAGS="-fsanitize=address -shared-libasan"
 fi
 
 #  TO use this function set variables patchdir and patchfile

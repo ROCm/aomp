@@ -95,7 +95,8 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 
   # Enable HIPAMD Sanitizer Build
   if [ "$AOMP_BUILD_SANITIZER" == 'ON' ]; then
-    MYCMAKEOPTS="$MYCMAKEOPTS -DCMAKE_CXX_FLAGS=-I$SANITIZER_COMGR_INCLUDE_PATH ${SANITIZER_FLAGS} -DCMAKE_C_FLAGS=${SANITIZER_FLAGS}"
+    ASAN_LIB_PATH=$(${AOMP}/bin/clang --print-runtime-dir)
+    ASAN_FLAGS="-fsanitize=address -shared-libasan -Wl,-rpath=$ASAN_LIB_PATH -L$ASAN_LIB_PATH -I$SANITIZER_COMGR_INCLUDE_PATH -Wno-error=deprecated-declarations"
   else
     MYCMAKEOPTS="$MYCMAKEOPTS -DCMAKE_CXX_FLAGS=-I$AOMP_include/amd_comgr -DCMAKE_CXX_FLAGS=-Wno-error=deprecated-declarations -DCMAKE_C_FLAGS=-Wno-error=deprecated-declarations"
   fi
@@ -120,8 +121,13 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
   cd $BUILD_DIR/build/hipamd
   echo
   echo " -----Running hipamd cmake ---- "
-  echo ${AOMP_CMAKE} $MYCMAKEOPTS $HIPAMD_DIR
-  ${AOMP_CMAKE} $MYCMAKEOPTS $HIPAMD_DIR
+  if [ "$AOMP_BUILD_SANITIZER" == "ON" ]; then
+    echo ${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_CXX_FLAGS="$ASAN_FLAGS" -DCMAKE_CXX_FLAGS="$ASAN_FLAGS" $HIPAMD_DIR
+    ${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_CXX_FLAGS="$ASAN_FLAGS" -DCMAKE_CXX_FLAGS="$ASAN_FLAGS" $HIPAMD_DIR
+  else
+    echo ${AOMP_CMAKE} $MYCMAKEOPTS $HIPAMD_DIR
+    ${AOMP_CMAKE} $MYCMAKEOPTS $HIPAMD_DIR
+	fi
   if [ $? != 0 ] ; then
       echo "ERROR hipamd cmake failed. Cmake flags"
       echo "      $MYCMAKEOPTS"
