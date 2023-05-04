@@ -17,6 +17,8 @@ blockinglist="examples_fortran examples_openmp smoke nekbone sollve45 sollve50"
 # used by rocm_agent_enumerator.
 export ROCM_TARGET_LST=/opt/nowhere
 
+ulimit -t 1000
+
 realpath=`realpath $0`
 scriptdir=`dirname $realpath`
 parentdir=`eval "cd $scriptdir;pwd;cd - > /dev/null"`
