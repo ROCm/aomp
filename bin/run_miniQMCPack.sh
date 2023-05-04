@@ -6,7 +6,7 @@
 # MQMC_SOURCE_DIR         path to miniqmc sources (default: .)
 #
 # The user can set different variables to control execution.
-# MQMC_OMP_THREADS_TO_USE how many OpenMP threads should be used (default 64)
+# MQMC_OMP_NUM_THREADS    how many OpenMP threads should be used (default 64)
 # MQMC_NUM_BUILD_PROCS    how many processes to build miniqmc (default 32)
 # ROCM_INSTALL_PATH       top-level ROCm install directory (default: /opt/rocm-5.3.0)
 
@@ -20,7 +20,7 @@ thisdir=`dirname $realpath`
 : ${ROCM_INSTALL_PATH:=/opt/rocm-5.3.0}
 
 # Control how many OpenMP threads are used by MiniQMCPack
-: ${MQMC_OMP_THREADS_TO_USE:=64}
+: ${MQMC_OMP_NUM_THREADS:=64}
 
 export PATH=$AOMP/bin:$PATH
 #export PATH=/home/janplehr/rocm/trunk/bin:$PATH
@@ -49,18 +49,21 @@ if [ ! -d $MQMC_SOURCE_DIR ]; then
 fi
 
 rm -rf ${MQMCPACK_BUILD_DIR}
-CMAKE_PREFIX_PATH=${ROCM_INSTALL_PATH}/lib/cmake/ cmake -B ${MQMCPACK_BUILD_DIR} -S ${MQMC_SOURCE_DIR} -DCMAKE_CXX_COMPILER=clang++ -DENABLE_OFFLOAD=ON -DQMC_ENABLE_ROCM=ON -DCMAKE_CXX_FLAGS='-fopenmp-assume-no-thread-state' -DAMDGPU_DISABLE_HOST_DEVMEM=ON -DCMAKE_VERBOSE_MAKEFILE=ON
+# Note: We currently need the -fopenmp-assume-no-nested-parallelism to work around a call to malloc which probably should not be there.
+# In the case that we disable hostservices, the application crashes when trying to call malloc.
+CMAKE_PREFIX_PATH=${ROCM_INSTALL_PATH}/lib/cmake/ cmake -B ${MQMCPACK_BUILD_DIR} -S ${MQMC_SOURCE_DIR} -DCMAKE_CXX_COMPILER=clang++ -DENABLE_OFFLOAD=ON -DQMC_ENABLE_ROCM=ON -DCMAKE_CXX_FLAGS='-fopenmp-assume-no-nested-parallelism ' -DAMDGPU_DISABLE_HOST_DEVMEM=ON -DCMAKE_VERBOSE_MAKEFILE=ON
 
+# Build miniqmc binaries
 cmake --build ${MQMCPACK_BUILD_DIR}  --clean-first -j ${MQMC_NUM_BUILD_PROCS}
 
 echo "Running Tests"
-echo "OMP_NUM_THREADS=${MQMC_OMP_THREADS_TO_USE} ${MQMCPACK_BUILD_DIR}/bin/check_spo_batched_reduction -n 10"
-OMP_NUM_THREADS=${MQMC_OMP_THREADS_TO_USE} ${MQMCPACK_BUILD_DIR}/bin/check_spo_batched_reduction -n 10
+echo "OMP_NUM_THREADS=${MQMC_OMP_NUM_THREADS} ${MQMCPACK_BUILD_DIR}/bin/check_spo_batched_reduction -n 10"
+OMP_NUM_THREADS=${MQMC_OMP_NUM_THREADS} ${MQMCPACK_BUILD_DIR}/bin/check_spo_batched_reduction -n 10
 
 echo ""
-echo "OMP_NUM_THREADS=${MQMC_OMP_THREADS_TO_USE} ${MQMCPACK_BUILD_DIR}/bin/miniqmc"
-OMP_NUM_THREADS=${MQMC_OMP_THREADS_TO_USE} ${MQMCPACK_BUILD_DIR}/bin/miniqmc -v
+echo "OMP_NUM_THREADS=${MQMC_OMP_NUM_THREADS} ${MQMCPACK_BUILD_DIR}/bin/miniqmc"
+OMP_NUM_THREADS=${MQMC_OMP_NUM_THREADS} ${MQMCPACK_BUILD_DIR}/bin/miniqmc -v
 
 echo ""
-echo "OMP_NUM_THREADS=${MQMC_OMP_THREADS_TO_USE} ${MQMCPACK_BUILD_DIR}/bin/check_spo -n 10"
-OMP_NUM_THREADS=${MQMC_OMP_THREADS_TO_USE} ${MQMCPACK_BUILD_DIR}/bin/check_spo -n 10 -v
+echo "OMP_NUM_THREADS=${MQMC_OMP_NUM_THREADS} ${MQMCPACK_BUILD_DIR}/bin/check_spo -n 10"
+OMP_NUM_THREADS=${MQMC_OMP_NUM_THREADS} ${MQMCPACK_BUILD_DIR}/bin/check_spo -n 10 -v
