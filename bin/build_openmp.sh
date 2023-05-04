@@ -105,8 +105,10 @@ else
 -DCUDA_TOOLKIT_ROOT_DIR=OFF"
 fi
 
-if [ "$AOMP_BUILD_CUDA" != 1 ] && [ "$AOMP_BUILD_SANITIZER" == "ON" ]; then
-   COMMON_CMAKE_OPTS="$COMMON_CMAKE_OPTS -DSANITIZER_AMDGPU=1"
+if [ "$AOMP_BUILD_SANITIZER" == "ON" ]; then
+	ASAN_FLAGS="$SANITIZER_FLAGS"
+	LDFLAGS="-fuse-ld=lld $ASAN_FLAGS"
+	COMMON_CMAKE_OPTS="$COMMON_CMAKE_OPTS -DSANITIZER_AMDGPU=1"
 fi
 
 # This is how we tell the hsa plugin where to find hsa
@@ -125,9 +127,14 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
       MYCMAKEOPTS="$COMMON_CMAKE_OPTS -DCMAKE_BUILD_TYPE=Release $AOMP_ORIGIN_RPATH"
       mkdir -p $BUILD_DIR/build/openmp
       cd $BUILD_DIR/build/openmp
-      echo " -----Running openmp cmake ---- " 
-      echo ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
-      ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
+      echo " -----Running openmp cmake ---- "
+      if [ "$AOMP_BUILD_SANITIZER" == "ON" ]; then
+        echo ${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_C_FLAGS="'$ASAN_FLAGS'" -DCMAKE_CXX_FLAGS="'$ASAN_FLAGS'" -DLLVM_LIBDIR_SUFFIX="/asan" $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
+        ${AOMP_CMAKE} $MYCMAKEOPTS  -DCMAKE_C_FLAGS="'$ASAN_FLAGS'" -DCMAKE_CXX_FLAGS="'$ASAN_FLAGS'" -DLLVM_LIBDIR_SUFFIX="/asan" $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
+      else
+        echo ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
+        ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
+      fi
       if [ $? != 0 ] ; then 
          echo "ERROR openmp cmake failed. Cmake flags"
          echo "      $MYCMAKEOPTS"
@@ -152,9 +159,13 @@ $AOMP_ORIGIN_RPATH \
 -DLIBOMP_CPPFLAGS='-O0' \
 -DLIBOMP_OMPD_SUPPORT=ON \
 -DLIBOMP_OMPT_DEBUG=ON \
--DLLVM_LIBDIR_SUFFIX=-debug \
--DCMAKE_CXX_FLAGS=-g -DCMAKE_C_FLAGS=-g \
 -DOPENMP_SOURCE_DEBUG_MAP="\""-fdebug-prefix-map=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp=$_ompd_dir/src/openmp"\"" "
+
+     if [ "$AOMP_BUILD_SANITIZER" == "ON" ];then
+       MYCMAKEOPTS="$MYCMAKEOPTS -DLLVM_LIBDIR_SUFFIX=-debug/asan"
+     else
+       MYCMAKEOPTS="$MYCMAKEOPTS -DLLVM_LIBDIR_SUFFIX=-debug -DCMAKE_CXX_FLAGS=-g -DCMAKE_C_FLAGS=-g"
+     fi
 
       # The 'pip install --system' command is not supported on non-debian systems. This will disable
       # the system option if the debian_version file is not present.
@@ -174,8 +185,13 @@ $AOMP_ORIGIN_RPATH \
       cd $BUILD_DIR/build/openmp_debug
       echo
       echo " -----Running openmp cmake for debug ---- " 
-      echo ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
-      ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
+      if [ "$AOMP_BUILD_SANITIZER" == "ON" ]; then
+        echo ${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_C_FLAGS="'$ASAN_FLAGS -g'" -DCMAKE_CXX_FLAGS="'$ASAN_FLAGS -g'" $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
+        ${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_C_FLAGS="'$ASAN_FLAGS -g'" -DCMAKE_CXX_FLAGS="'$ASAN_FLAGS -g'" $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
+      else
+        echo ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
+        ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
+      fi
       if [ $? != 0 ] ; then 
          echo "ERROR openmp debug cmake failed. Cmake flags"
          echo "      $MYCMAKEOPTS"
