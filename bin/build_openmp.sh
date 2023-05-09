@@ -145,7 +145,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
   if [ "$AOMP_BUILD_PERF" == "1" ]; then
     echo rm -rf $BUILD_DIR/build/openmp_perf
     rm -rf $BUILD_DIR/build/openmp_perf
-    MYCMAKEOPTS="$COMMON_CMAKE_OPTS -DLIBOMPTARGET_ENABLE_DEBUG=OFF -DCMAKE_BUILD_TYPE=Release $AOMP_ORIGIN_RPATH -DLLVM_LIBDIR_SUFFIX=-perf"
+    MYCMAKEOPTS="$COMMON_CMAKE_OPTS -DLIBOMPTARGET_ENABLE_DEBUG=OFF -DCMAKE_BUILD_TYPE=Release -DLIBOMPTARGET_PERF=ON -DLLVM_LIBDIR_SUFFIX=-perf $AOMP_ORIGIN_RPATH"
     mkdir -p $BUILD_DIR/build/openmp_perf
     cd $BUILD_DIR/build/openmp_perf
     echo " -----Running openmp cmake for perf ---- "
