@@ -1,6 +1,6 @@
 #!/bin/bash
 set -x
-export AOMP=~/rocm/aomp_17.0-17
+export AOMP=/COD/LATEST/aomp
 
 set +x
 . ./shrc
