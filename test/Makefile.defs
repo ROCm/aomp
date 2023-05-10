@@ -90,7 +90,11 @@ ifeq "$(wildcard $(OMPIDIR))" ""
           ifeq "$(wildcard $(OMPIDIR)/lib/libmpi*)" ""
             OMPIDIR = /usr/local
             ifeq "$(wildcard $(OMPIDIR)/lib/libmpi*)" ""
-              $(error Openmpi not found on the system and is required. Set OMPIDIR to openmpi installation)
+              OMPIDIR = /usr/local
+	      MPI64 = 64
+              ifeq "$(wildcard $(OMPIDIR)/lib$(MPI64)/libmpi*)" ""
+                $(error Openmpi not found on the system and is required. Set OMPIDIR to openmpi installation)
+              endif
             endif
           endif
         endif
@@ -100,7 +104,7 @@ ifeq "$(wildcard $(OMPIDIR))" ""
 endif
 
 $(info -- openmpi found at $(OMPIDIR))
-MPILIBS ?= -L${OMPIDIR}/lib -lmpi
+MPILIBS ?= -L${OMPIDIR}/lib$(MPI64) -lmpi
 
 
 

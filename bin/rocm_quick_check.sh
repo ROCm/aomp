@@ -19,6 +19,31 @@ elif [ -e /usr/lib/openmpi/lib/libmpi.so ]; then
   echo "/usr/lib/openmpi/lib/libmpi.so OK"
 elif [ -e /usr/local/lib/libmpi.so ]; then
   echo "/usr/local/lib/libmpi.so OK"
+elif [ -e /usr/local/lib64/libmpi.so ]; then
+  echo "/usr/local/lib64/libmpi.so OK"
 else
   echo "No mpi found , not good. FAIL"
+fi
+
+set -x
+
+# Look for FileCheck on the system in various places.
+# Check local AOMP install first.
+SYSFILECHECK=`ls /usr/bin | grep -m1 -e "FileCheck"`
+AOMP=`ls -d /opt/rocm-*/llvm | head -1`
+echo $AOMP
+SYSLLVM=`ls /usr/lib | grep -m1 -e "llvm-[0-9]\+"`
+if [ -e "$AOMP/bin/FileCheck" ]; then
+  echo "$AOMP/bin/FileCheck OK"
+elif [ -e /usr/lib/aomp/bin/FileCheck ]; then
+  echo "/usr/lib/aomp/bin/FileCheck OK"
+elif [ -e $HOME/git/aomp-test/FileCheck ]; then
+  echo "$HOME/git/aomp-test/FileCheck OK"
+elif [ -e /usr/lib/$SYSLLVM/bin/FileCheck ]; then
+  echo "/usr/lib/$SYSLLVM/bin/FileCheck OK"
+elif [ -e /usr/bin/$SYSFILECHECK ]; then
+  echo "/usr/bin/$SYSFILECHECK OK"
+else
+  echo "Warning ----Warning---- FileCheck was not found and is needed by smoke tests."
+  echo "FileCheck notfound. May need to install llvm-XY-tools (where XY is llvm version)."
 fi
