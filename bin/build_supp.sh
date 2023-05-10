@@ -357,7 +357,7 @@ function buildcmake(){
 
 function buildrocmsmilib(){
   _cname="rocmsmilib"
-  _version=5.0.x
+  _version=5.5.x
   _installdir=$AOMP_SUPP_INSTALL/rocmsmilib-$_version
   _linkfrom=$AOMP_SUPP/rocmsmilib
   _builddir=$AOMP_SUPP_BUILD/rocmsmilib
@@ -372,7 +372,7 @@ function buildrocmsmilib(){
   fi
   runcmd "mkdir -p $_builddir"
   runcmd "cd $_builddir"
-  runcmd "git clone -b roc-$_version https://github.com/radeonopencompute/rocm_smi_lib rocmsmilib-$_version"
+  runcmd "git clone -b rocm-$_version https://github.com/radeonopencompute/rocm_smi_lib rocmsmilib-$_version"
   runcmd "cd rocmsmilib-$_version"
   runcmd "mkdir -p build"
   runcmd "cd build"
