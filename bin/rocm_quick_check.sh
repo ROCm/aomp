@@ -25,7 +25,6 @@ else
   echo "No mpi found , not good. FAIL"
 fi
 
-set -x
 
 # Look for FileCheck on the system in various places.
 # Check local AOMP install first.
