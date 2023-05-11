@@ -52,7 +52,7 @@ EOF
 }
 
 SUPPLEMENTAL_COMPONENTS=${SUPPLEMENTAL_COMPONENTS:-openmpi silo hdf5 fftw ninja}
-PREREQUISITE_COMPONENTS=${PREREQUISITE_COMPONENTS:-cmake rocmsmilib hwloc flang-legacy-LFL}
+PREREQUISITE_COMPONENTS=${PREREQUISITE_COMPONENTS:-cmake rocmsmilib hwloc flang-legacy-LFL aqlprofile}
 
 # --- Start standard header to set AOMP environment variables ----
 realpath=`realpath $0`
@@ -209,6 +209,47 @@ function buildflang-legacy-LFL(){
   fi
   runcmd "ln -sf $_installdir $_linkfrom"
   runcmd "rm -rf $_builddir"
+  echo "# $_linkfrom is now symbolic link to $_installdir " >>$CMDLOGFILE
+}
+
+function buildaqlprofile(){
+  _cname="aqlprofile"
+  _version=5.5
+  _installdir=$AOMP_SUPP_INSTALL/$_cname-$_version
+  _linkfrom=$AOMP_SUPP/$_cname
+  _builddir=$AOMP_SUPP_BUILD/$_cname
+
+  SKIPBUILD="FALSE"
+  checkversion
+  if [ "$SKIPBUILD" == "TRUE"  ] ; then
+    return
+  fi
+  if [ -d $_builddir ] ; then
+    runcmd "rm -rf $_builddir"
+  fi
+  runcmd "mkdir -p $_builddir"
+  runcmd "cd $_builddir"
+  which dpkg 2>/dev/null
+  if [ $? == 0 ] ; then
+    runcmd "wget https://repo.radeon.com/rocm/apt/5.5/pool/main/h/hsa-amd-aqlprofile5.5.0/hsa-amd-aqlprofile5.5.0_1.0.0.50500-63~20.04_amd64.deb"
+    runcmd "dpkg -x hsa-amd-aqlprofile5.5.0_1.0.0.50500-63~20.04_amd64.deb $_builddir"
+  else
+    runcmd "wget https://repo.radeon.com/rocm/yum/5.5/main/hsa-amd-aqlprofile5.5.0-1.0.0.50500-63.el7.x86_64.rpm"
+    echo "rpm2cpio hsa-amd-aqlprofile5.5.0-1.0.0.50500-63.el7.x86_64.rpm | cpio -idm"
+    rpm2cpio hsa-amd-aqlprofile5.5.0-1.0.0.50500-63.el7.x86_64.rpm | cpio -idm
+  fi
+  if [ -d $_installdir ] ; then
+    runcmd "rm -rf $_installdir"
+  fi
+  runcmd "mkdir -p $_installdir/lib"
+  runcmd "cd $_installdir"
+  runcmd "cp -rp $_builddir/opt/rocm-5.5.0/lib  $_installdir"
+
+  if [ -L $_linkfrom ] ; then
+    runcmd "rm $_linkfrom"
+  fi
+  runcmd "ln -sf $_installdir $_linkfrom"
+  #runcmd "rm -rf $_builddir"
   echo "# $_linkfrom is now symbolic link to $_installdir " >>$CMDLOGFILE
 }
 
@@ -479,6 +520,8 @@ for _component in $_components ; do
     buildninja
   elif [ $_component == "flang-legacy-LFL" ] ; then
     buildflang-legacy-LFL
+  elif [ $_component == "aqlprofile" ] ; then
+    buildaqlprofile
   else
     echo "ERROR:  Invalid component name $_component" >>$CMDLOGFILE
     echo "ERROR:  Invalid component name $_component"
