@@ -469,6 +469,8 @@ function sollve(){
   # Sollve
   mkdir -p "$resultsdir"/sollve45
   mkdir -p "$resultsdir"/sollve50
+  mkdir -p "$resultsdir"/sollve51
+  mkdir -p "$resultsdir"/sollve52
   cd "$aompdir"/bin
 
   no_usm_gpus="gfx900 gfx906"
@@ -489,6 +491,14 @@ function sollve(){
   # 5.0 Results
   cd "$HOME"/git/aomp-test/sollve_vv/results_report50
   copyresults sollve50
+
+  # 5.1 Results
+  cd "$HOME"/git/aomp-test/sollve_vv/results_report51
+  copyresults sollve51
+
+  # 5.2 Results
+  cd "$HOME"/git/aomp-test/sollve_vv/results_report52
+  copyresults sollve52
 }
 
 function babelstream(){
