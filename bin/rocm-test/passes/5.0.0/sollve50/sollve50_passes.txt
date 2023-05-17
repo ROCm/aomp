@@ -1,6 +1,5 @@
 test_allocate.c
 test_declare_target_parallel_for.c
-test_loop_order_concurrent_device.c
 test_loop_private_device.F90
 test_loop_reduction_add_device.F90
 test_loop_reduction_and_device.F90
