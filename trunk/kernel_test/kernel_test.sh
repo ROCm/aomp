@@ -41,18 +41,16 @@ echo "CONVERTING temp bc files to ll.  See files host_c.ll, device_c.ll"
 $TRUNK/bin/llvm-dis main-host-x86_64-unknown-linux-gnu.bc -o host_c.ll
 $TRUNK/bin/llvm-dis main-openmp-amdgcn-amd-amdhsa-gfx908.tmp.bc -o device_c.ll
 echo "-----------------------------------------------------"
-echo "===> HOST function defs and calls in host_c.ll"
-echo
-grep "define\|call" host_c.ll | grep -v requires | tee host_calls.txt
-echo
+echo "===> HOST function defs and calls in tmpc/host_c.ll"
+grep "define\|call" host_c.ll | grep -v requires | grep -v nocallback | tee host_calls.txt
 echo "-----------------------------------------------------"
-echo "===> DEVICE function defs and calls in device_c.ll"
-echo
-grep "define\|call" device_c.ll | tee device_calls.txt
-echo 
+echo "===> DEVICE function defs and calls in tmpc/device_c.ll"
+grep "define\|call" device_c.ll | grep -v nocallback | tee device_calls.txt
 echo "-----------------------------------------------------"
 echo
-
+echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+echo "+++++++++++++  END c demo, begin FORTRAN demo  +++++++++++++"
+echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
 cd ..
 tmpf="tmpf"
 rm -rf $tmpf ; mkdir -p $tmpf ; cd $tmpf
@@ -78,16 +76,14 @@ fi
 if [ -f main-host-x86_64-unknown-linux-gnu.bc ] ; then 
    $TRUNK/bin/llvm-dis main-host-x86_64-unknown-linux-gnu.bc -o host_f.ll
    echo "-----------------------------------------------------"
-   echo "===> HOST function defs and calls in host_f.ll"
-   echo
-   grep "define\|call" host_f.ll | grep -v requires | tee host_calls.txt
+   echo "===> HOST function defs and calls in tmpf/host_f.ll"
+   grep "define\|call" host_f.ll | grep -v requires | grep -v nocallback | tee host_calls.txt
 fi
 if [ -f main-openmp-amdgcn-amd-amdhsa-gfx908.tmp.bc ] ; then 
    $TRUNK/bin/llvm-dis main-openmp-amdgcn-amd-amdhsa-gfx908.tmp.bc -o device_f.ll
    echo "-----------------------------------------------------"
-   echo "===> DEVICE function defs and calls in device_f.ll"
-   echo
-   grep "define\|call" device_f.ll
+   echo "===> DEVICE function defs and calls in tmpf/device_f.ll"
+   grep "define\|call" device_f.ll | grep -v nocallback
 fi
 echo "-----------------------------------------------------"
 cd ..
