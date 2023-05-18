@@ -1,5 +1,11 @@
 #!/bin/bash
 
+if [ -e /usr/bin/cmake  ]; then
+  echo "/usr/bin/cmake OK"
+else
+  echo "/usr/bin/cmake is missing FAIL"
+fi
+
 if [ -e /usr/bin/python ]; then
   echo "/usr/bin/python OK"
 else
