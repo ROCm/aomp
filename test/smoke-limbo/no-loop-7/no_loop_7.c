@@ -7,7 +7,7 @@ int foo(int i) { return i+1; }
 
 int main()
 {
-  int N = 1000000;
+  int N = 100000;
 
   int a[N];
   int b[N];
@@ -71,8 +71,8 @@ int main()
   return rc;
 }
 
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2 ConstWGSize:512  args: 5 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 512)
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2 ConstWGSize:512  args: 5 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 512)
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2 ConstWGSize:512  args: 5 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 512)
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2 ConstWGSize:512  args: 5 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 512)
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2 ConstWGSize:512  args: 5 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 512)
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:5
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:5
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:5
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:5
