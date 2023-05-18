@@ -27,6 +27,8 @@ elif [ -e /usr/local/lib/libmpi.so ]; then
   echo "/usr/local/lib/libmpi.so OK"
 elif [ -e /usr/local/lib64/libmpi.so ]; then
   echo "/usr/local/lib64/libmpi.so OK"
+elif [ -e /usr/lib64/openmpi/lib/libmpi.so ]; then
+  echo "/usr/lib64/openmpi/lib/libmpi.so OK"
 else
   echo "No mpi found , not good. FAIL"
 fi
