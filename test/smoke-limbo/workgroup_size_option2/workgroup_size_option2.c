@@ -70,5 +70,5 @@ int main() {
 /// CHECK: DEVID: 0 SGN:3 ConstWGSize:257  args: 1 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 256)
 /// CHECK: DEVID: 0 SGN:2 ConstWGSize:128  args: 5 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 128)
 /// CHECK: DEVID: 0 SGN:3 ConstWGSize:129  args: 7 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 129)
-/// CHECK: DEVID: 0 SGN:2 ConstWGSize:128  args: 5 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 128)
-/// CHECK: DEVID: 0 SGN:2 ConstWGSize:64  args: 5 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 64)
+/// CHECK: DEVID: 0 SGN:5 ConstWGSize:128  args: 5 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 128)
+/// CHECK: DEVID: 0 SGN:5 ConstWGSize:128  args: 5 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 128)
