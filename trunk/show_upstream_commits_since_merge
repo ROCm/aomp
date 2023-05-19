@@ -1,0 +1,56 @@
+#!/bin/bash
+#
+# show_upstream_commits_since_merge 
+#
+UPSTREAM_REPO_DIR=${UPSTREAM_REPO_DIR:-$HOME/git/trunk17.0/llvm-project.upstream}
+ATD_REPO_DIR=${ATD_REPO_DIR:-$HOME/git/trunk17.0/llvm-project}
+if [ ! -d $UPSTREAM_REPO_DIR ] ; then 
+  echo "ERROR: Please provide the upstream repo directory"
+  echo "       Nothing found at $UPSTREAM_REPO_DIR"
+  echo "       or set environment var UPSTREAM_REPO_DIR"
+  exit 1
+fi
+if [ ! -d $ATD_REPO_DIR ] ; then 
+  echo "ERROR: Please provide the amd-trunk-dev repo directory"
+  echo "       Nothing found at $ATD_REPO_DIR"
+  echo "       or set environment var ATD_REPO_DIR"
+  exit 1
+fi
+
+echo "----------------------------------------------------"
+echo                  Start log for $0 
+echo "----------------------------------------------------"
+_curdir=$PWD
+tmpdir="/tmp/$USER/gitlogs"
+mkdir -p $tmpdir
+echo "% cd $UPSTREAM_REPO_DIR"
+cd $UPSTREAM_REPO_DIR
+echo "% git pull"
+git pull 2>/dev/null
+echo "% git log >$tmpdir/upstream.log"
+git log >$tmpdir/upstream.log
+
+echo "% cd $ATD_REPO_DIR"
+cd $ATD_REPO_DIR
+echo "% git log >$tmpdir/atd.log"
+git log >$tmpdir/atd.log
+
+for commitnum in  `cat $tmpdir/atd.log | grep "^commit" | cut -d" " -f2` ; do
+   grep $commitnum $tmpdir/upstream.log >/dev/null
+   if [ $? == 0 ] ; then 
+      linenum=`grep -n $commitnum $tmpdir/upstream.log | cut -d":" -f1`
+      echo "FOUND COMMIT $commitnum AT LINE $linenum in $tmpdir/upstream.log"
+      echo "% head -n $linenum $tmpdir/upstream.log > $tmpdir/recent_upstream.log"
+      head -n $linenum $tmpdir/upstream.log > $tmpdir/recent_upstream.log
+      echo "grep for tags: flang, openmp, hlfir or amdgpu ..."
+      echo 
+      grep -B4 -A3 -i "\[flang\]\|\[openmp\]\|\[hlfir\]\|\[amdgpu\]" $tmpdir/recent_upstream.log
+      echo
+      echo "----------------------------------------------------"
+      echo                  End log for $0 
+      echo "----------------------------------------------------"
+      cd $_curdir
+      exit 
+   fi
+done
+cd $_curdir
