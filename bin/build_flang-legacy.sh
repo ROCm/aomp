@@ -60,7 +60,7 @@ $AOMP_SET_NINJA_GEN \
 "
 
 # Compiler-rt Sanitizer Build not available for legacy flang
-if [ "$AOMP_BUILD_SANITIZER" == 'ON' ]; then
+if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
    echo "ERROR: legacy flang does not support ASAN"
    exit 1
 fi

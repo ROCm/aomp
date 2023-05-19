@@ -29,7 +29,7 @@ function build_aomp_component() {
       echo " !!!  build_aomp.sh: BUILD FAILED FOR COMPONENT $COMPONENT !!!"
       exit $rc
    fi  
-   if [ $# -eq 0 ] || [ "$1" == "asan" ] ; then
+   if [ $# -eq 0 ]; then
        $AOMP_REPOS/$AOMP_REPO_NAME/bin/build_$COMPONENT.sh install
        rc=$?
        if [ $rc != 0 ] ; then 
