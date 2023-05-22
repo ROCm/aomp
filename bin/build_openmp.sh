@@ -142,6 +142,23 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
          exit 1
       fi
 
+  # Build a dedicatd "performance" version of libomptarget
+  if [ "$AOMP_BUILD_PERF" == "1" ]; then
+    echo rm -rf $BUILD_DIR/build/openmp_perf
+    rm -rf $BUILD_DIR/build/openmp_perf
+    MYCMAKEOPTS="$COMMON_CMAKE_OPTS -DLIBOMPTARGET_ENABLE_DEBUG=OFF -DCMAKE_BUILD_TYPE=Release -DLIBOMPTARGET_PERF=ON -DLLVM_LIBDIR_SUFFIX=-perf $AOMP_ORIGIN_RPATH"
+    mkdir -p $BUILD_DIR/build/openmp_perf
+    cd $BUILD_DIR/build/openmp_perf
+    echo " -----Running openmp cmake for perf ---- "
+    echo ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
+    ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
+    if [ $? != 0 ] ; then
+       echo "error openmp cmake failed. cmake flags"
+       echo "      $mycmakeopts"
+       exit 1
+    fi
+  fi
+
    if [ "$AOMP_BUILD_DEBUG" == "1" ] ; then
       _ompd_dir="$AOMP_INSTALL_DIR/lib-debug/ompd"
       #  This is the new locationof the ompd directory
@@ -213,6 +230,18 @@ if [ $? != 0 ] ; then
       exit 1
 fi
 
+if [ "$AOMP_BUILD_PERF" == "1" ] ; then
+   cd $BUILD_DIR/build/openmp_perf
+   echo
+   echo
+   echo " -----Running $AOMP_NINJA_BIN for $BUILD_DIR/build/openmp_perf ---- "
+   $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS
+   if [ $? != 0 ] ; then 
+         echo "ERROR $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS failed"
+         exit 1
+   fi
+fi
+
 if [ "$AOMP_BUILD_DEBUG" == "1" ] ; then
    cd $BUILD_DIR/build/openmp_debug
    echo
@@ -241,6 +270,17 @@ if [ "$1" == "install" ] ; then
    if [ $? != 0 ] ; then
       echo "ERROR $AOMP_NINJA_BIN install failed "
       exit 1
+   fi
+
+   if [ "$AOMP_BUILD_PERF" == "1" ]; then
+     cd $BUILD_DIR/build/openmp_perf
+     echo
+     echo " -----Installing to $INSTALL_OPENMP/lib-perf ----- "
+     $SUDO $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS install
+     if [ $? != 0 ] ; then
+        echo "ERROR $AOMP_NINJA_BIN install failed "
+        exit 1
+     fi
    fi
 
    if [ "$AOMP_BUILD_DEBUG" == "1" ] ; then
