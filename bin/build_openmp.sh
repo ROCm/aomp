@@ -142,6 +142,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
          exit 1
       fi
 
+  # Build a dedicatd "performance" version of libomptarget
   if [ "$AOMP_BUILD_PERF" == "1" ]; then
     echo rm -rf $BUILD_DIR/build/openmp_perf
     rm -rf $BUILD_DIR/build/openmp_perf
