@@ -15,7 +15,9 @@ CC           = $(OMP_BIN) $(VERBOSE)
 include ../Makefile.rules
 
 AOMPROCM ?= $(AOMP)
-ifneq (,$(wildcard $(AOMPROCM)/bin/rocgdb))
+ifneq (,$(wildcard /opt/rocm/bin/rocgdb))
+RUNPROF   = /opt/rocm/bin/rocgdb
+else ifneq (,$(wildcard $(AOMPROCM)/bin/rocgdb))
 RUNPROF   = $(AOMPROCM)/bin/rocgdb
 else
 RUNPROF   = $(AOMPROCM)/../bin/rocgdb
