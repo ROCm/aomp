@@ -1,12 +1,11 @@
 include ../../Makefile.defs
 
-TESTNAME     = big_jump_loop_split_4
-TESTSRC_MAIN = big_jump_loop_split_4.c
+TESTNAME     = big_jump_loop_env_vars
+TESTSRC_MAIN = big_jump_loop_env_vars.c
 TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
-RUNENV      += LIBOMPTARGET_KERNEL_TRACE=1
+RUNENV      += LIBOMPTARGET_KERNEL_TRACE=1 OMP_NUM_TEAMS=50 OMP_TEAMS_THREAD_LIMIT=100
 
-CFLAGS       += -fopenmp-gpu-threads-per-team=1024
 CLANG        = clang
 OMP_BIN      = $(AOMP)/bin/$(CLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
