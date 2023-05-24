@@ -149,12 +149,14 @@ if [ $AOMP_STANDALONE_BUILD == 1 ] ; then
    AOMP_BUILD_CUDA=${AOMP_BUILD_CUDA:-1}
    AOMP_BUILD_DEBUG=${AOMP_BUILD_DEBUG:-1}
    AOMP_BUILD_PERF=${AOMP_BUILD_PERF:-0}
+   AOMP_BUILD_SANITIZER=${AOMP_BUILD_SANITIZER:-1}
    AOMP_ORIGIN_RPATH_NO_DTAGS="-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON -DCMAKE_INSTALL_RPATH=$AOMP_ORIGIN_RPATH_LIST"
 else
    # Default is to NOT build nvptx for ROCm integrated build
    AOMP_BUILD_CUDA=${AOMP_BUILD_CUDA:-0}
    AOMP_BUILD_DEBUG=${AOMP_BUILD_DEBUG:-0}
    AOMP_BUILD_PERF=${AOMP_BUILD_PERF:-0}
+   AOMP_BUILD_SANITIZER=${AOMP_BUILD_SANITIZER:-0}
    AOMP_ORIGIN_RPATH_NO_DTAGS="-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON -DCMAKE_INSTALL_RPATH=$AOMP_ORIGIN_RPATH_LIST"
 fi
 
@@ -324,11 +326,6 @@ else
    # For Integrated ROCm build we do not install to versioned dir and create 
    # a symbolic link.  Instead we install directly to /opt/rocm/aomp
    AOMP_INSTALL_DIR=${AOMP}
-fi
-
-# Sanitizer Build environment flags
-if [ -n "$1" ] && [ "$1" == "asan" ] && [ "$AOMP_BUILD_CUDA" != 1 ]; then
-  AOMP_BUILD_SANITIZER=ON
 fi
 
 #  TO use this function set variables patchdir and patchfile
