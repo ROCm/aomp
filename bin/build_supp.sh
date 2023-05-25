@@ -52,7 +52,7 @@ EOF
 }
 
 SUPPLEMENTAL_COMPONENTS=${SUPPLEMENTAL_COMPONENTS:-openmpi silo hdf5 fftw ninja}
-PREREQUISITE_COMPONENTS=${PREREQUISITE_COMPONENTS:-cmake rocmsmilib hwloc}
+PREREQUISITE_COMPONENTS=${PREREQUISITE_COMPONENTS:-cmake rocmsmilib hwloc flang-legacy-LFL aqlprofile}
 
 # --- Start standard header to set AOMP environment variables ----
 realpath=`realpath $0`
@@ -165,6 +165,91 @@ function buildninja(){
     runcmd "rm $_linkfrom"
   fi
   runcmd "ln -sf $_installdir $_linkfrom"
+  echo "# $_linkfrom is now symbolic link to $_installdir " >>$CMDLOGFILE
+}
+
+function buildflang-legacy-LFL(){
+  _cname="flang-legacy-LFL"
+  _version=5.5
+  _installdir=$AOMP_SUPP_INSTALL/$_cname-$_version
+  _linkfrom=$AOMP_SUPP/$_cname
+  _builddir=$AOMP_SUPP_BUILD/$_cname
+
+  SKIPBUILD="FALSE"
+  checkversion
+  if [ "$SKIPBUILD" == "TRUE"  ] ; then
+    return
+  fi
+  if [ -d $_builddir ] ; then
+    runcmd "rm -rf $_builddir"
+  fi
+  runcmd "mkdir -p $_builddir"
+  runcmd "cd $_builddir"
+  which dpkg 2>/dev/null
+  if [ $? == 0 ] ; then
+    runcmd "wget https://repo.radeon.com/rocm/apt/5.5/pool/main/r/rocm-llvm5.5.0/rocm-llvm5.5.0_16.0.0.23144.50500-63~20.04_amd64.deb"
+    runcmd "dpkg -x rocm-llvm5.5.0_16.0.0.23144.50500-63~20.04_amd64.deb $_builddir"
+  else
+    runcmd "wget https://repo.radeon.com/rocm/yum/5.5/main/rocm-llvm5.5.0-16.0.0.23144.50500-63.el7.x86_64.rpm"
+    echo "rpm2cpio rocm-llvm5.5.0-16.0.0.23144.50500-63.el7.x86_64.rpm | cpio -idm"
+    rpm2cpio rocm-llvm5.5.0-16.0.0.23144.50500-63.el7.x86_64.rpm | cpio -idm
+  fi
+  if [ -d $_installdir ] ; then
+    runcmd "rm -rf $_installdir"
+  fi
+  runcmd "mkdir -p $_installdir/llvm/lib"
+  runcmd "cd $_installdir/llvm"
+  # we only need archive libs for libclang and libLLVM and include files to build flang-legacy.
+  runcmd "cp -rp $_builddir/opt/rocm-5.5.0/llvm/lib/libLLVM*.a  $_installdir/llvm/lib"
+  runcmd "cp -rp $_builddir/opt/rocm-5.5.0/llvm/lib/libclang*.a  $_installdir/llvm/lib"
+  runcmd "cp -rp $_builddir/opt/rocm-5.5.0/llvm/include $_installdir/llvm"
+
+  if [ -L $_linkfrom ] ; then
+    runcmd "rm $_linkfrom"
+  fi
+  runcmd "ln -sf $_installdir $_linkfrom"
+  runcmd "rm -rf $_builddir"
+  echo "# $_linkfrom is now symbolic link to $_installdir " >>$CMDLOGFILE
+}
+
+function buildaqlprofile(){
+  _cname="aqlprofile"
+  _version=5.5
+  _installdir=$AOMP_SUPP_INSTALL/$_cname-$_version
+  _linkfrom=$AOMP_SUPP/$_cname
+  _builddir=$AOMP_SUPP_BUILD/$_cname
+
+  SKIPBUILD="FALSE"
+  checkversion
+  if [ "$SKIPBUILD" == "TRUE"  ] ; then
+    return
+  fi
+  if [ -d $_builddir ] ; then
+    runcmd "rm -rf $_builddir"
+  fi
+  runcmd "mkdir -p $_builddir"
+  runcmd "cd $_builddir"
+  which dpkg 2>/dev/null
+  if [ $? == 0 ] ; then
+    runcmd "wget https://repo.radeon.com/rocm/apt/5.5/pool/main/h/hsa-amd-aqlprofile5.5.0/hsa-amd-aqlprofile5.5.0_1.0.0.50500-63~20.04_amd64.deb"
+    runcmd "dpkg -x hsa-amd-aqlprofile5.5.0_1.0.0.50500-63~20.04_amd64.deb $_builddir"
+  else
+    runcmd "wget https://repo.radeon.com/rocm/yum/5.5/main/hsa-amd-aqlprofile5.5.0-1.0.0.50500-63.el7.x86_64.rpm"
+    echo "rpm2cpio hsa-amd-aqlprofile5.5.0-1.0.0.50500-63.el7.x86_64.rpm | cpio -idm"
+    rpm2cpio hsa-amd-aqlprofile5.5.0-1.0.0.50500-63.el7.x86_64.rpm | cpio -idm
+  fi
+  if [ -d $_installdir ] ; then
+    runcmd "rm -rf $_installdir"
+  fi
+  runcmd "mkdir -p $_installdir/lib"
+  runcmd "cd $_installdir"
+  runcmd "cp -rp $_builddir/opt/rocm-5.5.0/lib  $_installdir"
+
+  if [ -L $_linkfrom ] ; then
+    runcmd "rm $_linkfrom"
+  fi
+  runcmd "ln -sf $_installdir $_linkfrom"
+  #runcmd "rm -rf $_builddir"
   echo "# $_linkfrom is now symbolic link to $_installdir " >>$CMDLOGFILE
 }
 
@@ -313,7 +398,7 @@ function buildcmake(){
 
 function buildrocmsmilib(){
   _cname="rocmsmilib"
-  _version=5.0.x
+  _version=5.5.x
   _installdir=$AOMP_SUPP_INSTALL/rocmsmilib-$_version
   _linkfrom=$AOMP_SUPP/rocmsmilib
   _builddir=$AOMP_SUPP_BUILD/rocmsmilib
@@ -328,7 +413,7 @@ function buildrocmsmilib(){
   fi
   runcmd "mkdir -p $_builddir"
   runcmd "cd $_builddir"
-  runcmd "git clone -b roc-$_version https://github.com/radeonopencompute/rocm_smi_lib rocmsmilib-$_version"
+  runcmd "git clone -b rocm-$_version https://github.com/radeonopencompute/rocm_smi_lib rocmsmilib-$_version"
   runcmd "cd rocmsmilib-$_version"
   runcmd "mkdir -p build"
   runcmd "cd build"
@@ -433,6 +518,10 @@ for _component in $_components ; do
     buildrocmsmilib
   elif [ $_component == "ninja" ] ; then
     buildninja
+  elif [ $_component == "flang-legacy-LFL" ] ; then
+    buildflang-legacy-LFL
+  elif [ $_component == "aqlprofile" ] ; then
+    buildaqlprofile
   else
     echo "ERROR:  Invalid component name $_component" >>$CMDLOGFILE
     echo "ERROR:  Invalid component name $_component"

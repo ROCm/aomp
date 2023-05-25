@@ -71,6 +71,15 @@ MYCMAKEOPTS="$MYCMAKEOPTS
 -DLIBCXX_ENABLE_STATIC=ON
 -DLIBCXXABI_ENABLE_STATIC=ON
 "
+if [ $AOMP_BUILD_FLANG_LEGACY == 1 ] ; then
+   # this prevents the install link from clang to flang
+   MYCMAKEOPTS="$MYCMAKEOPTS -DCLANG_LINK_FLANG=OFF"
+fi
+
+# Enable Compiler-rt Sanitizer Build
+if [ "$AOMP_BUILD_SANITIZER" == 'ON' ]; then
+    MYCMAKEOPTS="$MYCMAKEOPTS -DSANITIZER_AMDGPU=1 -DSANITIZER_HSA_INCLUDE_PATH=$AOMP_REPOS/$AOMP_ROCR_REPO_NAME/src/inc -DSANITIZER_COMGR_INCLUDE_PATH=$AOMP_REPOS/$AOMP_COMGR_REPO_NAME/lib/comgr/include"
+fi
 
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then 
   help_build_aomp

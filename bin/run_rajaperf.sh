@@ -47,8 +47,9 @@ if [ "$2" == "build" ]; then
   # Begin configuration
   pushd $AOMP_REPOS_TEST/RAJAPerf
   #cd $AOMP_REPOS_TEST/RAJAPerf
-  git reset --hard 99e09dd8614aab46decd43323f7afdde83846bc7
-  git submodule update --recursive
+  # 14b:
+  #git reset --hard 99e09dd8614aab46decd43323f7afdde83846bc7
+  #git submodule update --recursive
   rm -rf build_${BUILD_SUFFIX}
   mkdir build_${BUILD_SUFFIX}
   pushd build_${BUILD_SUFFIX}
@@ -100,7 +101,11 @@ if [ "$2" == "build" ]; then
     usage
   fi
   
-  make -j $AOMP_JOB_THREADS
+  LESS_THREADS=$(( AOMP_JOB_THREADS/2 ))
+  LESS_THREADS=$(( $LESS_THREADS > 32 ? 32 : $LESS_THREADS ))
+  MAKE_THREADS=${MAKE_THREADS:-$LESS_THREADS}
+  echo "Using $MAKE_THREADS threads for make."
+  make -j $MAKE_THREADS
   # Do not continue if build fails
   if [ $? != 0 ]; then
     echo "ERROR: Make returned non-zero, exiting..."

@@ -50,16 +50,31 @@ if [ -d $repodirname  ] ; then
    fi
    echo "git pull "
    git pull
+   if [ $? != 0 ] && [ "$IGNORE_GIT_ERROR" != 1 ] ; then
+     echo "git pull failed for: $repodirname"
+     exit 1
+   fi
    echo "cd $repodirname ; git checkout $COBRANCH"
    git checkout $COBRANCH
+   if [ $? != 0 ] && [ "$IGNORE_GIT_ERROR" != 1 ] ; then
+     echo "git checkout failed for: $repodirname"
+     exit 1
+   fi
    echo "git pull "
    git pull
+   if [ $? != 0 ] && [ "$IGNORE_GIT_ERROR" != 1 ]; then
+     echo "git pull failed for: $repodirname"
+     exit 1
+   fi
 else 
    echo --- NEW CLONE of repo $repogitname to $repodirname ----
    cd $AOMP_REPOS
    echo git clone -b $COBRANCH $repo_web_location/$repogitname $reponame
    git clone -b $COBRANCH $repo_web_location/$repogitname $reponame
-   if [ $? == 0 ] ; then 
+   if [ $? != 0 ] ; then
+     echo "git clone failed for: $repodirname"
+     exit 1
+   else
       echo "cd $repodirname ; git checkout $COBRANCH"
       cd $repodirname
       git checkout $COBRANCH
@@ -97,19 +112,30 @@ function list_repo_from_manifest(){
    if [ "$actual_branch" == "(no" ] || [ "$actual_branch" == "(HEAD" ] || [ "$actual_branch" == "(detached" ] ; then
       is_hash=1
       WARNWORD="hash"
-      actual_hash=`git branch | awk '/\*/ { print $5; }' | cut -d")" -f1`
-      actual_tag=`git describe --tags --abbrev=0`
-      # RHEL 7 'git branch' returns (detached from 123456), try to get hash again.
-      if [ "$actual_hash" == "" ] ; then
-        actual_hash=`git branch | awk '/\*/ { print $4; }' | cut -d")" -f1`
-      fi
-      if [ "$actual_tag" == "$branch_name" ]; then
-        WARNWORD="tag"
-        actual_hash=$thiscommit
-      elif [ "$actual_hash" != "$HASH" ] ; then
+      git describe --exact-match --tags > /dev/null 2>&1
+      # Repo has a tag checked out
+      if [ $? -eq 0 ]; then
+        head_tags=`git tag --points-at HEAD`
+        # If tag is found in list of tags at HEAD, then it is correct.
+        if [[ "$head_tags" =~ "$branch_name" ]]; then
+          WARNWORD="tag"
+          thiscommit=$branch_name
+        else
+          WARNWORD="!BADTAG"
+          thiscommit=$HASH
+        fi
+      else # This is a hash not a tag
+        actual_hash=`git branch | awk '/\*/ { print $5; }' | cut -d")" -f1`
+        # RHEL 7 'git branch' returns (detached from 123456), try to get hash again.
+        if [ "$actual_hash" == "" ] ; then
+          actual_hash=`git branch | awk '/\*/ { print $4; }' | cut -d")" -f1`
+        fi
+        revision_regex="^$actual_hash"
+        if [[ ! "$COSHAKEY" =~ $revision_regex ]] ; then
           WARNWORD="!BADHASH"
+        fi
+        thiscommit=$actual_hash
       fi
-      thiscommit=$actual_hash
    fi
    if [ "$branch_name" != "$actual_branch" ] && [ $is_hash == 0 ] ; then
       WARNWORD="!BRANCH!"
@@ -175,7 +201,6 @@ if [[ "$AOMP_VERSION" == "13.1" ]] || [[ $AOMP_MAJOR_VERSION -gt 13 ]] ; then
       else
          manifest_file=$thisdir/../manifests/aomp_${AOMP_VERSION}.xml
       fi
-   fi
    fi
    if [ ! -f $manifest_file ] ; then 
       echo "ERROR manifest file missing: $manifest_file"

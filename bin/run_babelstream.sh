@@ -18,6 +18,8 @@ thisdir=`dirname $realpath`
 . $thisdir/aomp_common_vars
 # --- end standard header ----
 
+patchrepo $AOMP_REPOS_TEST/$AOMP_BABELSTREAM_REPO_NAME
+
 # Set defaults for environment variables
 AOMP=${AOMP:-/usr/lib/aomp}
 AOMPHIP=${AOMPHIP:-$AOMP}
@@ -38,7 +40,11 @@ if [ "${AOMP_GPU:0:3}" == "sm_" ] ; then
    RUN_OPTIONS=${RUN_OPTIONS:-"omp-default omp-fast"}
 else
    TRIPLE="amdgcn-amd-amdhsa"
-   RUN_OPTIONS=${RUN_OPTIONS:-"omp-default omp-fast hip"}
+   if [ "$ENABLE_USM" == 1 ]; then
+     RUN_OPTIONS=${RUN_OPTIONS:-"omp-default omp-fast omp-usm hip hip-um"}
+   else
+     RUN_OPTIONS=${RUN_OPTIONS:-"omp-default omp-fast hip"}
+   fi
 fi
 
 omp_target_flags="-O3 -fopenmp -fopenmp-targets=$TRIPLE -Xopenmp-target=$TRIPLE -march=$AOMP_GPU -DOMP -DOMP_TARGET_GPU -Dsimd="
@@ -46,16 +52,20 @@ omp_target_flags="-O3 -fopenmp -fopenmp-targets=$TRIPLE -Xopenmp-target=$TRIPLE 
 #  for LLVM 16 or higher
 LLVM_VERSION=`$AOMP/bin/clang++ --version | grep version | cut -d" " -f 3 | cut -d"." -f1`
 if [ "$LLVM_VERSION" == "version" ]  ; then
-  # If 3rd  arg is version, must be vendor cmppiler, so get version from 4th field.
+  # If 3rd  arg is version, must be aomp or rocm compiler, so get version from 4th field.
   LLVM_VERSION=`$AOMP/bin/clang++ --version | grep version | cut -d" " -f 4 | cut -d"." -f1`
   special_aso_flags="-fopenmp-gpu-threads-per-team=1024 -fopenmp-target-fast"
 else
   # temp hack to detect trunk (not vendor compiler) (found version in 3 args)"
-  special_aso_flags=""
+  special_aso_flags="-fopenmp-assume-no-thread-state -fopenmp-assume-no-nested-parallelism -fopenmp-cuda-mode -Rpass=openmp-opt -Rpass-missed=openmp-opt -Rpass-analysis=openmp-opt"
 fi
 echo "LLVM VERSION IS $LLVM_VERSION"
+_SILENT=""
+# for old versions of gpurun without -s flag, silence gpurun with GPURUN_VERBOSE
+export GPURUN_VERBOSE=0
 if [[ $LLVM_VERSION -ge 16 ]] ; then
   omp_fast_flags="$special_aso_flags $omp_target_flags"
+  _SILENT="-s"
 else
   if [[ $LLVM_VERSION -ge 15 ]] ; then
     omp_fast_flags="-fopenmp-target-ignore-env-vars -fopenmp-assume-no-thread-state -fopenmp-target-new-runtime $omp_target_flags"
@@ -67,6 +77,17 @@ else
     fi
   fi
 fi
+
+GPURUN_BINDIR=${GPURUN_BINDIR:-$AOMP/bin}
+if [ ! -f "$GPURUN_BINDIR/gpurun" ] || [ ! -f "$GPURUN_BINDIR/rocminfo" ] ; then
+    # When using trunk, try to find gpurun and rocminfo in ROCm
+    _SILENT=""
+    GPURUN_BINDIR=/opt/rocm/llvm/bin
+    export ROCMINFO_BINARY=/opt/rocm/bin/rocminfo
+else
+    export ROCMINFO_BINARY=$GPURUN_BINDIR/rocminfo
+fi
+
 omp_cpu_flags="-O3 -fopenmp -DOMP"
 hip_flags="-O3 --offload-arch=$AOMP_GPU -Wno-unused-result -DHIP -x hip"
 
@@ -120,7 +141,9 @@ for option in $RUN_OPTIONS; do
     compile_cmd="$AOMP/bin/clang++ $std $omp_fast_flags   $omp_src -o $EXEC"
   elif [ "$option" == "omp-cpu" ]; then
     compile_cmd="$AOMP/bin/clang++ $std $omp_cpu_flags    $omp_src -o $EXEC"
-  elif [ "$option" == "hip" ]; then
+  elif [ "$option" == "omp-usm" ]; then
+    compile_cmd="$AOMP/bin/clang++ -DOMP_USM $std $omp_fast_flags   $omp_src -o $EXEC"
+  elif [ "$option" == "hip" ] || [ "$option" == "hip-um" ]; then
     if [ ! -f $AOMPHIP/bin/hipcc ] ; then 
       AOMPHIP="$AOMPHIP/.."
       if [ ! -f $AOMPHIP/bin/hipcc ] ; then
@@ -146,9 +169,22 @@ for option in $RUN_OPTIONS; do
     break
   else
     set -o pipefail
-    if [ -f $AOMP/bin/gpurun ] ; then
-      echo $AOMP/bin/gpurun -s ./$EXEC -n $BABELSTREAM_REPEATS | tee -a results.txt
-      $AOMP/bin/gpurun -s ./$EXEC -n $BABELSTREAM_REPEATS 2>&1 | tee -a results.txt
+    if [ -f $GPURUN_BINDIR/gpurun ] ; then
+      if [ "$option" == "omp-usm" ]; then
+         echo HSA_XNACK=1 $GPURUN_BINDIR/gpurun $_SILENT ./$EXEC -n $BABELSTREAM_REPEATS | tee -a results.txt
+         HSA_XNACK=1 $GPURUN_BINDIR/gpurun $_SILENT ./$EXEC -n $BABELSTREAM_REPEATS 2>&1 | tee -a results.txt
+      elif [ "$option" == "hip-um" ]; then
+         echo HSA_XNACK=1 HIP_UM=1 $GPURUN_BINDIR/gpurun $_SILENT ./$EXEC -n $BABELSTREAM_REPEATS | tee -a results.txt
+         HSA_XNACK=1 HIP_UM=1 $GPURUN_BINDIR/gpurun $_SILENT ./$EXEC -n $BABELSTREAM_REPEATS 2>&1 | tee -a results.txt
+      elif [ "$option" == "omp-fast" ]; then
+         echo LIBOMPTARGET_AMDGPU_KERNEL_BUSYWAIT=1000000 LIBOMPTARGET_AMDGPU_DATA_BUSYWAIT=3000000 \
+                $GPURUN_BINDIR/gpurun $_SILENT ./$EXEC -n $BABELSTREAM_REPEATS 2>&1 | tee -a results.txt
+         LIBOMPTARGET_AMDGPU_KERNEL_BUSYWAIT=1000000 LIBOMPTARGET_AMDGPU_DATA_BUSYWAIT=3000000 \
+                $GPURUN_BINDIR/gpurun $_SILENT ./$EXEC -n $BABELSTREAM_REPEATS 2>&1 | tee -a results.txt
+      else
+         echo $GPURUN_BINDIR/gpurun $_SILENT ./$EXEC -n $BABELSTREAM_REPEATS | tee -a results.txt
+         $GPURUN_BINDIR/gpurun $_SILENT ./$EXEC -n $BABELSTREAM_REPEATS 2>&1 | tee -a results.txt
+      fi
       if [ $? -ne 0 ]; then
         runtime_error=1
       fi
@@ -174,3 +210,4 @@ fi
 cd $curdir
 echo
 echo "DONE. See results at end of file $BABELSTREAM_BUILD/results.txt"
+removepatch $AOMP_REPOS_TEST/$AOMP_BABELSTREAM_REPO_NAME

@@ -59,10 +59,16 @@ if [ "$AOMP_BUILD_CUDA" == 1 ] ; then
    fi
 fi
 
+if [ "$AOMP_USE_NINJA" == 0 ] ; then
+    AOMP_SET_NINJA_GEN=""
+else
+    AOMP_SET_NINJA_GEN="-G Ninja"
+fi
+
 export LLVM_DIR=$AOMP_INSTALL_DIR
 GFXSEMICOLONS=`echo $GFXLIST | tr ' ' ';' `
 ALTAOMP=${ALTAOMP:-$AOMP}
-COMMON_CMAKE_OPTS="-DOPENMP_ENABLE_LIBOMPTARGET=1
+COMMON_CMAKE_OPTS="$AOMP_SET_NINJA_GEN -DOPENMP_ENABLE_LIBOMPTARGET=1
 -DCMAKE_INSTALL_PREFIX=$INSTALL_OPENMP
 -DCMAKE_PREFIX_PATH=$ROCM_CMAKECONFIG_PATH
 -DOPENMP_TEST_C_COMPILER=$AOMP/bin/clang
@@ -74,7 +80,6 @@ COMMON_CMAKE_OPTS="-DOPENMP_ENABLE_LIBOMPTARGET=1
 -DLIBOMP_COPY_EXPORTS=OFF
 -DLIBOMPTARGET_ENABLE_DEBUG=ON
 -DLLVM_DIR=$LLVM_DIR"
-
 
 if [ "$AOMP_STANDALONE_BUILD" == 0 ]; then
   COMMON_CMAKE_OPTS="$COMMON_CMAKE_OPTS
@@ -100,6 +105,13 @@ else
 -DCUDA_TOOLKIT_ROOT_DIR=OFF"
 fi
 
+if [ "$AOMP_BUILD_SANITIZER" == "ON" ]; then
+   ASAN_LIB_PATH=$(${AOMP}/bin/clang --print-runtime-dir)
+   ASAN_FLAGS="-fsanitize=address -shared-libasan -Wl,-rpath=$ASAN_LIB_PATH -L$ASAN_LIB_PATH"
+   LDFLAGS="-fuse-ld=lld $ASAN_FLAGS"
+   COMMON_CMAKE_OPTS="$COMMON_CMAKE_OPTS -DLIBOMPTARGET_NEXTGEN_PLUGINS=OFF -DSANITIZER_AMDGPU=1"
+fi
+
 # This is how we tell the hsa plugin where to find hsa
 export HSA_RUNTIME_PATH=$ROCM_DIR
 
@@ -116,14 +128,36 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
       MYCMAKEOPTS="$COMMON_CMAKE_OPTS -DCMAKE_BUILD_TYPE=Release $AOMP_ORIGIN_RPATH"
       mkdir -p $BUILD_DIR/build/openmp
       cd $BUILD_DIR/build/openmp
-      echo " -----Running openmp cmake ---- " 
-      echo ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
-      ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
+      echo " -----Running openmp cmake ---- "
+      if [ "$AOMP_BUILD_SANITIZER" == "ON" ]; then
+        echo ${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_C_FLAGS="'$ASAN_FLAGS'" -DCMAKE_CXX_FLAGS="'$ASAN_FLAGS'" -DLLVM_LIBDIR_SUFFIX="/asan" $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
+        ${AOMP_CMAKE} $MYCMAKEOPTS  -DCMAKE_C_FLAGS="'$ASAN_FLAGS'" -DCMAKE_CXX_FLAGS="'$ASAN_FLAGS'" -DLLVM_LIBDIR_SUFFIX="/asan" $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
+      else
+        echo ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
+        ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
+      fi
       if [ $? != 0 ] ; then 
          echo "ERROR openmp cmake failed. Cmake flags"
          echo "      $MYCMAKEOPTS"
          exit 1
       fi
+
+  # Build a dedicatd "performance" version of libomptarget
+  if [ "$AOMP_BUILD_PERF" == "1" ]; then
+    echo rm -rf $BUILD_DIR/build/openmp_perf
+    rm -rf $BUILD_DIR/build/openmp_perf
+    MYCMAKEOPTS="$COMMON_CMAKE_OPTS -DLIBOMPTARGET_ENABLE_DEBUG=OFF -DCMAKE_BUILD_TYPE=Release -DLIBOMPTARGET_PERF=ON -DLLVM_LIBDIR_SUFFIX=-perf $AOMP_ORIGIN_RPATH"
+    mkdir -p $BUILD_DIR/build/openmp_perf
+    cd $BUILD_DIR/build/openmp_perf
+    echo " -----Running openmp cmake for perf ---- "
+    echo ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
+    ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
+    if [ $? != 0 ] ; then
+       echo "error openmp cmake failed. cmake flags"
+       echo "      $mycmakeopts"
+       exit 1
+    fi
+  fi
 
    if [ "$AOMP_BUILD_DEBUG" == "1" ] ; then
       _ompd_dir="$AOMP_INSTALL_DIR/lib-debug/ompd"
@@ -143,9 +177,13 @@ $AOMP_ORIGIN_RPATH \
 -DLIBOMP_CPPFLAGS='-O0' \
 -DLIBOMP_OMPD_SUPPORT=ON \
 -DLIBOMP_OMPT_DEBUG=ON \
--DLLVM_LIBDIR_SUFFIX=-debug \
--DCMAKE_CXX_FLAGS=-g -DCMAKE_C_FLAGS=-g \
 -DOPENMP_SOURCE_DEBUG_MAP="\""-fdebug-prefix-map=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp=$_ompd_dir/src/openmp"\"" "
+
+     if [ "$AOMP_BUILD_SANITIZER" == "ON" ];then
+       MYCMAKEOPTS="$MYCMAKEOPTS -DLLVM_LIBDIR_SUFFIX=-debug/asan"
+     else
+       MYCMAKEOPTS="$MYCMAKEOPTS -DLLVM_LIBDIR_SUFFIX=-debug -DCMAKE_CXX_FLAGS=-g -DCMAKE_C_FLAGS=-g"
+     fi
 
       # The 'pip install --system' command is not supported on non-debian systems. This will disable
       # the system option if the debian_version file is not present.
@@ -165,8 +203,13 @@ $AOMP_ORIGIN_RPATH \
       cd $BUILD_DIR/build/openmp_debug
       echo
       echo " -----Running openmp cmake for debug ---- " 
-      echo ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
-      ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
+      if [ "$AOMP_BUILD_SANITIZER" == "ON" ]; then
+        echo ${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_C_FLAGS="'$ASAN_FLAGS -g'" -DCMAKE_CXX_FLAGS="'$ASAN_FLAGS -g'" $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
+        ${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_C_FLAGS="'$ASAN_FLAGS -g'" -DCMAKE_CXX_FLAGS="'$ASAN_FLAGS -g'" $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
+      else
+        echo ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
+        ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
+      fi
       if [ $? != 0 ] ; then 
          echo "ERROR openmp debug cmake failed. Cmake flags"
          echo "      $MYCMAKEOPTS"
@@ -176,25 +219,37 @@ $AOMP_ORIGIN_RPATH \
 fi
 
 cd $BUILD_DIR/build/openmp
-echo " -----Running make for $BUILD_DIR/build/openmp ---- "
-make -j $AOMP_JOB_THREADS
+echo " -----Running $AOMP_NINJA_BIN for $BUILD_DIR/build/openmp ---- "
+$AOMP_NINJA_BIN -j $AOMP_JOB_THREADS
 if [ $? != 0 ] ; then 
       echo " "
-      echo "ERROR: make -j $AOMP_JOB_THREADS  FAILED"
+      echo "ERROR: $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS  FAILED"
       echo "To restart:" 
       echo "  cd $BUILD_DIR/build/openmp"
-      echo "  make"
+      echo "  $AOMP_NINJA_BIN"
       exit 1
+fi
+
+if [ "$AOMP_BUILD_PERF" == "1" ] ; then
+   cd $BUILD_DIR/build/openmp_perf
+   echo
+   echo
+   echo " -----Running $AOMP_NINJA_BIN for $BUILD_DIR/build/openmp_perf ---- "
+   $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS
+   if [ $? != 0 ] ; then 
+         echo "ERROR $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS failed"
+         exit 1
+   fi
 fi
 
 if [ "$AOMP_BUILD_DEBUG" == "1" ] ; then
    cd $BUILD_DIR/build/openmp_debug
    echo
    echo
-   echo " -----Running make for $BUILD_DIR/build/openmp_debug ---- "
-   make -j $AOMP_JOB_THREADS
+   echo " -----Running $AOMP_NINJA_BIN for $BUILD_DIR/build/openmp_debug ---- "
+   $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS
    if [ $? != 0 ] ; then 
-         echo "ERROR make -j $AOMP_JOB_THREADS failed"
+         echo "ERROR $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS failed"
          exit 1
    fi
 fi
@@ -211,10 +266,21 @@ if [ "$1" == "install" ] ; then
    cd $BUILD_DIR/build/openmp
    echo
    echo " -----Installing to $INSTALL_OPENMP/lib ----- "
-   $SUDO make -j $AOMP_JOB_THREADS install
+   $SUDO $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS install
    if [ $? != 0 ] ; then
-      echo "ERROR make install failed "
+      echo "ERROR $AOMP_NINJA_BIN install failed "
       exit 1
+   fi
+
+   if [ "$AOMP_BUILD_PERF" == "1" ]; then
+     cd $BUILD_DIR/build/openmp_perf
+     echo
+     echo " -----Installing to $INSTALL_OPENMP/lib-perf ----- "
+     $SUDO $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS install
+     if [ $? != 0 ] ; then
+        echo "ERROR $AOMP_NINJA_BIN install failed "
+        exit 1
+     fi
    fi
 
    if [ "$AOMP_BUILD_DEBUG" == "1" ] ; then
@@ -224,9 +290,9 @@ if [ "$1" == "install" ] ; then
       [[ ! -d $_ompd_dir ]] && _ompd_dir="$AOMP_INSTALL_DIR/share/gdb/python/ompd"
       echo
       echo " -----Installing to $INSTALL_OPENMP/lib-debug ---- " 
-      $SUDO make -j $AOMP_JOB_THREADS install
+      $SUDO $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS install
       if [ $? != 0 ] ; then 
-         echo "ERROR make install failed "
+         echo "ERROR $AOMP_NINJA_BIN install failed "
          exit 1
       fi
 

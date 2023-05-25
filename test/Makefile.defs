@@ -38,30 +38,78 @@ else
 endif
 
 # Look for FileCheck on the system in various places.
-# Check AOMP install first.
+# Check local AOMP install first.
 FILECHECK=$(AOMP)/bin/FileCheck
 FILECHECK_RT=$(shell ls $(FILECHECK) 2>/dev/null || echo error)
 ifeq ($(FILECHECK_RT),error)
-  # Check copy location for psdb.
-  FILECHECK=$(HOME)/git/aomp-test/FileCheck
+  # Check default AOMP release location.
+  FILECHECK=/usr/lib/aomp/bin/FileCheck
   FILECHECK_RT=$(shell ls $(FILECHECK) 2> /dev/null || echo error)
   ifeq ($(FILECHECK_RT),error)
-    # Check system llvm.
-    SYSLLVM=$(shell ls /usr/lib | grep -m1 -e "llvm-[0-9]\+")
-    FILECHECK=/usr/lib/$(SYSLLVM)/bin/FileCheck
-    FILECHECK_RT=$(shell ls $(FILECHECK) 2>/dev/null || echo error)
+    # Check copy location for psdb.
+    FILECHECK=$(HOME)/git/aomp-test/FileCheck
+    FILECHECK_RT=$(shell ls $(FILECHECK) 2> /dev/null || echo error)
     ifeq ($(FILECHECK_RT),error)
-      # Check system llvm-tools.
-      SYSFILECHECK=$(shell ls /usr/bin | grep -m1 -e "FileCheck")
-      FILECHECK=/usr/bin/$(SYSFILECHECK)
+      # Check system llvm.
+      SYSLLVM=$(shell ls /usr/lib | grep -m1 -e "llvm-[0-9]\+")
+      FILECHECK=/usr/lib/$(SYSLLVM)/bin/FileCheck
       FILECHECK_RT=$(shell ls $(FILECHECK) 2>/dev/null || echo error)
       ifeq ($(FILECHECK_RT),error)
-        $(warning ----Warning---- FileCheck was not found and is needed by smoke tests.)
-        FILECHECK=notfound
+        # Check system llvm-tools.
+        SYSFILECHECK=$(shell ls /usr/bin | grep -m1 -e "FileCheck")
+        ifneq ($(SYSFILECHECK),)
+          FILECHECK=/usr/bin/$(SYSFILECHECK)
+          FILECHECK_RT=$(shell ls $(FILECHECK) 2>/dev/null || echo error)
+          ifeq ($(FILECHECK_RT),error)
+            NOFILECHECK=1
+          endif
+        else
+          NOFILECHECK=1
+        endif
+        ifeq ($(NOFILECHECK),1)
+          $(warning ----Warning---- FileCheck was not found and is needed by smoke tests.)
+          FILECHECK="FileCheck notfound. May need to install llvm-XY-tools (where XY is llvm version)."
+        endif
       endif
     endif
   endif
 endif
+
+
+OMPIDIR ?= ~/local/openmpi
+ifeq "$(wildcard $(OMPIDIR))" ""
+  OMPIDIR = /opt/openmpi-4.1.5
+  ifeq "$(wildcard $(OMPIDIR))" ""
+    OMPIDIR = /opt/openmpi-4.1.4
+    ifeq "$(wildcard $(OMPIDIR))" ""
+      OMPIDIR = /usr/local/openmpi
+      ifeq "$(wildcard $(OMPIDIR))" ""
+        OMPIDIR = /usr/lib/x86_64-linux-gnu/openmpi
+        ifeq "$(wildcard $(OMPIDIR)/lib/libmpi*)" ""
+          OMPIDIR = /usr/lib/openmpi
+          ifeq "$(wildcard $(OMPIDIR)/lib/libmpi*)" ""
+            OMPIDIR = /usr/lib64/openmpi
+            ifeq "$(wildcard $(OMPIDIR)/lib/libmpi*)" ""
+              OMPIDIR = /usr/local
+              ifeq "$(wildcard $(OMPIDIR)/lib/libmpi*)" ""
+                OMPIDIR = /usr/local
+	        MPI64 = 64
+                ifeq "$(wildcard $(OMPIDIR)/lib$(MPI64)/libmpi*)" ""
+                  $(error Openmpi not found on the system and is required. Set OMPIDIR to openmpi installation)
+                endif
+              endif
+            endif
+          endif
+        endif
+      endif
+    endif
+  endif
+endif
+
+$(info -- openmpi found at $(OMPIDIR))
+MPILIBS ?= -L${OMPIDIR}/lib$(MPI64) -lmpi
+
+
 
 # If AOMP env variable contains opt use rocm_agent_enumerator for device id.
 # Set GFXLIST to available gfx numbers pulled from installed bc files.

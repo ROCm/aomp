@@ -84,7 +84,7 @@ export GFXLIST="gfx906 gfx908 gfx90a"
 Otherwise, see `llvm-project/openmp/libomptarget/DeviceRTL/CMakeLists.txt`:
 
 ```
-set(amdgpu_mcpus gfx700 gfx701 gfx801 gfx803 gfx900 gfx902 gfx906 gfx908 gfx90a gfx90c gfx940 gfx1010 gfx1030 gfx1031 gfx1032 gfx1033 gfx1034 gfx1035 gfx1036 gfx1100 gfx1101 gfx1102 gfx1103)
+set(amdgpu_mcpus gfx700 gfx701 gfx801 gfx803 gfx900 gfx902 gfx906 gfx908 gfx90a gfx90c gfx940 gfx941 gfx942 gfx1010 gfx1030 gfx1031 gfx1032 gfx1033 gfx1034 gfx1035 gfx1036 gfx1100 gfx1101 gfx1102 gfx1103)
 ```
 
 
@@ -178,14 +178,12 @@ To use the various AOMP testing infrastructure in `$TRUNK_REPOS/aomp/test`:
 
 ``` bash
 export AOMP=$HOME/rocm/trunk
-export LD_LIBRARY_PATH=$AOMP/lib:/opt/rocm/hsa/lib
 ```
 
 Or, if you set `TRUNK_LINK`, use this command:
 
 ``` bash
 export AOMP=$TRUNK_LINK
-export LD_LIBRARY_PATH=$AOMP/lib:/opt/rocm/hsa/lib
 ```
 
 Then, for example:

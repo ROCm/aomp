@@ -11,8 +11,7 @@ thisdir=`dirname $realpath`
 # --- end standard header ----
 
 echo "LLVM PROJECTS TO BUILD:$TRUNK_PROJECTS_LIST"
-DO_TESTS=${DO_TESTS:-"-DLLVM_BUILD_TESTS=ON -DLLVM_INCLUDE_TESTS=ON -DCLANG_INCLUDE_TESTS=ON"}
-DO_TESTS=""
+DO_TESTS=${DO_TESTS:-"-DLLVM_BUILD_TESTS=ON -DLLVM_INCLUDE_TESTS=ON -DCLANG_INCLUDE_TESTS=OFF"}
 
 if [ "$AOMP_USE_NINJA" == 0 ] ; then
     _set_ninja_gan=""
@@ -37,6 +36,7 @@ MYCMAKEOPTS="\
 -DCMAKE_INSTALL_PREFIX=$TRUNK_INSTALL_DIR \
 -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
 -DCLANG_DEFAULT_LINKER=lld \
+$DO_TESTS \
 $_targets_to_build \
 -DLLVM_ENABLE_ASSERTIONS=ON \
 -DLLVM_ENABLE_RUNTIMES='openmp;compiler-rt' \
@@ -133,6 +133,13 @@ if [ "$1" == "install" ] ; then
       rm $TRUNK_LINK
    fi
    ln -sf $TRUNK_INSTALL_DIR $TRUNK_LINK
+   # Create binary configs to avoid need to set LD_LIBRARY_PATH
+   echo "-Wl,-rpath=${TRUNK_INSTALL_DIR}/lib" > ${TRUNK_INSTALL_DIR}/bin/rpath.cfg
+   echo "-L${TRUNK_INSTALL_DIR}/lib" >> ${TRUNK_INSTALL_DIR}/bin/rpath.cfg
+   ln -sf rpath.cfg ${TRUNK_INSTALL_DIR}/bin/clang++.cfg
+   ln -sf rpath.cfg ${TRUNK_INSTALL_DIR}/bin/clang.cfg
+   ln -sf rpath.cfg ${TRUNK_INSTALL_DIR}/bin/flang.cfg
+   ln -sf rpath.cfg ${TRUNK_INSTALL_DIR}/bin/flang-new.cfg
    echo
    echo "SUCCESSFUL INSTALL to $TRUNK_INSTALL_DIR with link to $TRUNK"
    echo

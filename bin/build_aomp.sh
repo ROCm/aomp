@@ -29,7 +29,7 @@ function build_aomp_component() {
       echo " !!!  build_aomp.sh: BUILD FAILED FOR COMPONENT $COMPONENT !!!"
       exit $rc
    fi  
-   if [ $# -eq 0 ] ; then
+   if [ $# -eq 0 ] || [ "$1" == "asan" ] ; then
        $AOMP_REPOS/$AOMP_REPO_NAME/bin/build_$COMPONENT.sh install
        rc=$?
        if [ $rc != 0 ] ; then 
@@ -87,7 +87,7 @@ if [ "$AOMP_STANDALONE_BUILD" == 1 ] ; then
   # rocclr, we have no HIP or OpenCL for ppc64 :-( However, rocr works for ppc64 so AOMP works.
   if [ "$_hostarch" == "x86_64" ] ; then
     # These components build on x86_64, so add them to components list
-    components="$components pgmath flang flang_runtime"
+    components="$components flang-legacy pgmath flang flang_runtime"
     #components="$components hipfort"
     components="$components hipamd "
   fi
@@ -108,7 +108,7 @@ else
   # libdevice, project, comgr, rocminfo, hipamd, rocdbgapi, rocgdb,
   # roctracer, and rocprofiler should be found in ROCM in /opt/rocm.
   # The ROCM build only needs these components:
-  components="extras openmp pgmath flang flang_runtime"
+  components="extras openmp flang-legacy pgmath flang flang_runtime"
 fi
 echo "COMPONENTS:$components"
 

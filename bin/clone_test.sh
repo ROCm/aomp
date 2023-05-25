@@ -10,7 +10,7 @@ thisdir=`dirname $realpath`
 . $thisdir/aomp_common_vars
 # --- end standard header ----
 
-EPSDB_LIST=${EPSDB_LIST:-"openmpapps sollve_vv Nekbone goulash BabelStream"}
+EPSDB_LIST=${EPSDB_LIST:-"openmpapps sollve_vv Nekbone goulash fortran-babelstream babelstream OvO"}
 
 function list_repo_from_manifest(){
    logcommit=`git log -1 | grep "^commit" | cut -d" " -f2 | xargs`
@@ -103,7 +103,7 @@ repodirname=${AOMP_REPOS_TEST}/$reponame
 echo
 if [ -d $repodirname  ] ; then
    echo "--- Pulling updates to existing dir $repodirname ----"
-   echo "    We assume this came from an earlier clone of $repo_web_location$reponame"
+   echo "    We assume this came from an earlier clone of $repo_web_location$repogitname"
    # FIXME look in $repodir/.git/config to be sure
    cd $repodirname
    #   undo the patches to RAJA
@@ -134,10 +134,10 @@ else
    echo --- NEW CLONE of repo $reponame to $repodirname ----
    cd $AOMP_REPOS_TEST
    if [[ "$reponame" == "raja" || "$reponame" == "RAJAPerf" ]]; then
-     git clone --recursive -b $COBRANCH $repo_web_location$reponame $reponame
+     git clone --recursive -b $COBRANCH $repo_web_location$repogitname $reponame
    else
-     echo git clone $repo_web_location$reponame
-     git clone ${repo_web_location}${reponame} $reponame
+     echo git clone $repo_web_location$repogitname
+     git clone ${repo_web_location}${repogitname} $reponame
      echo "cd $repodirname ; git checkout $COBRANCH"
      cd $repodirname
      git checkout $COBRANCH
@@ -209,7 +209,7 @@ while read line ; do
          if [[ "$groups" != "skip" ]] ; then 
            if [ "$EPSDB" == 1 ]; then
              for suite in $EPSDB_LIST; do
-               if [ "$name" == "$suite" ]; then
+               if [ "$reponame" == "$suite" ]; then
                  echo "clone_or_pull $repo_web_location PATH:$reponame $COBRANCH groups:$groups"
                  clone_or_pull
                  break

@@ -5,7 +5,7 @@
 #### Debian or Ubuntu Packages
 
 ```
-   sudo apt-get install gcc g++ pkg-config libpci-dev libnuma-dev libffi-dev git python libopenmpi-dev gawk mesa-common-dev libtool libdrm-amdgpu1 libdrm-dev ccache
+   sudo apt-get install gcc g++ pkg-config libpci-dev libnuma-dev libffi-dev git python libopenmpi-dev gawk mesa-common-dev libtool libdrm-amdgpu1 libdrm-dev ccache libdw-dev libgtest-dev 
 
    # ubuntu 22 distributions seem to be missing libstdc++12
    sudo apt-get install  libstdc++-12-dev
@@ -18,7 +18,7 @@
 
 #### SLES-15-SP4 Packages
 ```
-  sudo zypper install -y git pciutils-devel python-base libffi-devel gcc gcc-c++ libnuma-devel patchutils openmpi2-devel mesa-libGL-devel libquadmath0 libtool libdrm libdrm-devel ccache
+  sudo zypper install -y git pciutils-devel python-base libffi-devel gcc gcc-c++ libnuma-devel patchutils openmpi2-devel mesa-libGL-devel libquadmath0 libtool libdrm libdrm-devel ccache gcc-gfortran libdw-dev libgtest-dev 
 
   A symbolic link may be required at /usr/lib64: /usr/lib64/libquadmath.so -> /usr/lib64/libquadmath.so.0.
 
@@ -35,7 +35,7 @@ https://www.softwarecollections.org/en/scls/rhscl/devtoolset-7/<br>
 <b>The build_aomp.sh script will automatically enable devtoolset-7 if found in /opt/rh/devtoolset-7/enable. If you want to build an individual component you will need to manually start devtoolset-7 from the instructions above.</b><br>
 
 ```
-  sudo yum install pciutils-devel numactl-devel libffi-devel mesa-libGL-devel libtool libdrm libdrm-devel ccache
+  sudo yum install pciutils-devel numactl-devel libffi-devel mesa-libGL-devel libtool libdrm libdrm-devel ccache gcc-gfortran libdw-dev libgtest-dev 
 
   # Additional packages used by rocgdb
   sudo yum install texinfo bison flex ncurses-devel expat-devel xz-devel libbabeltrace-devel
@@ -56,16 +56,19 @@ RHEL 7.7 and later RHEL 7 versions
   sudo yum install dnf-plugins-core
   sudo yum config-manager --set-enabled powertools
 
-  sudo yum install gcc gcc-c++ git make pciutils-devel numactl-devel libffi-devel mesa-libGL-devel libquadmath-devel python3 python3-pip python36-devel python3-setuptools python2 libtool libdrm libdrm-devel ccache
+  sudo yum install gcc gcc-c++ git make pciutils-devel numactl-devel libffi-devel mesa-libGL-devel libquadmath-devel python3 python3-pip python36-devel python3-setuptools python2 libtool libdrm libdrm-devel ccache gcc-gfortran libdw-dev libgtest-dev 
 
   # Additional packages used by rocgdb
-  sudo yum install texinfo bison flex ncurses-devel expat-devel xz-devel libbabeltrace-devel libgmp-devel
+  sudo yum install texinfo bison flex ncurses-devel expat-devel xz-devel libbabeltrace-devel gmp-devel
   python3 -m pip install CppHeaderParser argparse wheel lit --user
+
+  # To build aomp with Ninja set AOMP_USE_NINJA=1 . You need this installed with dnf
+  dnf install ninja-build
 ```
 
 #### CentOS 9 Packages
 ```
-  sudo yum install dnf-plugins-core gcc gcc-c++ git make pciutils-devel numactl-devel libffi-devel mesa-libGL-devel libquadmath-devel python3 python3-pip python36-devel python3-setuptools libtool libdrm libdrm-devel ccache
+  sudo yum install dnf-plugins-core gcc gcc-c++ git make pciutils-devel numactl-devel libffi-devel mesa-libGL-devel libquadmath-devel python3 python3-pip python3-devel python3-setuptools libtool libdrm libdrm-devel ccache gcc-gfortran libdw-dev libgtest-dev 
 
   # Additional packages used by rocgdb
   sudo yum install texinfo bison flex ncurses-devel expat-devel xz-devel libbabeltrace-devel gmp-devel
@@ -77,7 +80,7 @@ RHEL 7.7 and later RHEL 7 versions
 After all the required system package from section 1 are installed, there are some python packages that must be locally installed by the user building AOMP. Use this command to install these.  Do not install these as root.
 
 ```
-  python3 -m pip install CppHeaderParser argparse wheel lit
+  python3 -m pip install CppHeaderParser argparse wheel lit lxml barectf
 ```
 
 ### 3.  Build CMake in /usr/local/cmake

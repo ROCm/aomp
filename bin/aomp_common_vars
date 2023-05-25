@@ -10,6 +10,10 @@
 #     The bash syntax ENVNAME=${ENVNAME:-value} checks if ENVNAME is
 #     already set. If not, it assigns it the value following the :-
 
+# --- Start standard header to set AOMP environment variables ----
+realpath=`realpath $0`
+thisdir=`dirname $realpath`
+
 # The AOMP_COMPILER_NAME is used whenever version is queried.
 # FIXME: More work is needed to propogate the use of AOMP_COMPILER_NAME.
 AOMP_COMPILER_NAME=${AOMP_COMPILER_NAME:-AOMP}
@@ -19,7 +23,7 @@ ROCM_VERSION=${ROCM_VERSION:-5.3.0}
 
 # Set the AOMP VERSION STRING
 AOMP_VERSION=${AOMP_VERSION:-"17.0"}
-AOMP_VERSION_MOD=${AOMP_VERSION_MOD:-"1"}
+AOMP_VERSION_MOD=${AOMP_VERSION_MOD:-"3"}
 AOMP_VERSION_STRING=${AOMP_VERSION_STRING:-"$AOMP_VERSION-$AOMP_VERSION_MOD"}
 export AOMP_VERSION_STRING AOMP_VERSION AOMP_VERSION_MOD ROCM_VERSION
 
@@ -28,14 +32,13 @@ export AOMP_VERSION_STRING AOMP_VERSION AOMP_VERSION_MOD ROCM_VERSION
 AOMP=${AOMP:-$HOME/rocm/aomp}
 AOMP_INSTALL_DIR=${AOMP}_${AOMP_VERSION_STRING}
 
-# Set the directory location where all local AOMP git repos are stored.
 # For example, if AOMP_REPOS=$HOME/git/aomp11, then the primary aomp repo
 # is stored in $HOME/git/aomp11/aomp and the mono repo is stored in
 # $HOME/aomp/llvm-project.
 AOMP_MAJOR_VERSION=${AOMP_VERSION%.*}
 export AOMP_MAJOR_VERSION
 AOMP_REPOS=${AOMP_REPOS:-${HOME}/git/aomp${AOMP_VERSION}}
-AOMP_PATCH_CONTROL_FILE="${AOMP_REPOS}/aomp/bin/patches/patch-control-file_$AOMP_VERSION.txt"
+AOMP_PATCH_CONTROL_FILE="$thisdir/patches/patch-control-file_$AOMP_VERSION.txt"
 
 # Because the source for all repos are tarred for release, we store
 # all the test repositories in a different directory.
@@ -67,6 +70,17 @@ AOMP_SUPP_BUILD=${AOMP_SUPP_BUILD:-$AOMP_SUPP/build}
 #
 # AOMP_SUPP_INSTALL must be permanent directory.
 AOMP_SUPP_INSTALL=${AOMP_SUPP_INSTALL:-$AOMP_SUPP/install}
+
+# last version of rocm that supports the legacy driver (command generation)
+# The archives and includes are installed as an AOMP supplemental component 
+AOMP_FLANG_LEGACY_REL=${AOMP_FLANG_LEGACY_REL:-$AOMP_SUPP/flang-legacy-LFL}
+if [ -d $AOMP_FLANG_LEGACY_REL/llvm ] ; then
+   AOMP_BUILD_FLANG_LEGACY=1
+else
+   AOMP_BUILD_FLANG_LEGACY=0
+fi
+
+# Set the directory location where all local AOMP git repos are stored.
 
 # To build aomp from the release source taball, set these values to 0
 AOMP_APPLY_ROCM_PATCHES=${AOMP_APPLY_ROCM_PATCHES:-1}
@@ -134,11 +148,13 @@ if [ $AOMP_STANDALONE_BUILD == 1 ] ; then
    # Default is to build nvptx for STANDALONE build
    AOMP_BUILD_CUDA=${AOMP_BUILD_CUDA:-1}
    AOMP_BUILD_DEBUG=${AOMP_BUILD_DEBUG:-1}
+   AOMP_BUILD_PERF=${AOMP_BUILD_PERF:-1}
    AOMP_ORIGIN_RPATH_NO_DTAGS="-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON -DCMAKE_INSTALL_RPATH=$AOMP_ORIGIN_RPATH_LIST"
 else
    # Default is to NOT build nvptx for ROCm integrated build
    AOMP_BUILD_CUDA=${AOMP_BUILD_CUDA:-0}
    AOMP_BUILD_DEBUG=${AOMP_BUILD_DEBUG:-0}
+   AOMP_BUILD_PERF=${AOMP_BUILD_PERF:-0}
    AOMP_ORIGIN_RPATH_NO_DTAGS="-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON -DCMAKE_INSTALL_RPATH=$AOMP_ORIGIN_RPATH_LIST"
 fi
 
@@ -177,7 +193,7 @@ fi
 
 # Set list of default amdgcn subarchitectures to build
 # Developers may override GFXLIST to shorten build time.
-GFXLIST=${GFXLIST:-"gfx700 gfx701 gfx801 gfx803 gfx900 gfx902 gfx906 gfx908 gfx90a gfx90c gfx940 gfx1030 gfx1031 gfx1035 gfx1036 gfx1100 gfx1101 gfx1102 gfx1103"}
+GFXLIST=${GFXLIST:-"gfx700 gfx701 gfx801 gfx803 gfx900 gfx902 gfx906 gfx908 gfx90a gfx90c gfx940 gfx941 gfx942 gfx1030 gfx1031 gfx1035 gfx1036 gfx1100 gfx1101 gfx1102 gfx1103"}
 export GFXLIST
 
 # Calculate the number of threads to use for make
@@ -261,6 +277,7 @@ GITOPENLIBM="https://github.com/JuliaMath"
 AOMP_OPENLIBM_REPO_NAME=${AOMP_OPENLIBM_REPO_NAME:-openlibm}
 GITLLNLGOULASH="https://github.com/LLNL"
 AOMP_GOULASH_REPO_NAME=${AOMP_GOULASH_REPO_NAME:-goulash}
+AOMP_BABELSTREAM_REPO_NAME=${AOMP_BABELSTREAM_REPO_NAME:-babelstream}
 
 #  We dont use this yet, waiting for trunk merge
 AOMP_F18_REPO_NAME=${AOMP_F18_REPO_NAME:-f18}
@@ -307,6 +324,11 @@ else
    # For Integrated ROCm build we do not install to versioned dir and create 
    # a symbolic link.  Instead we install directly to /opt/rocm/aomp
    AOMP_INSTALL_DIR=${AOMP}
+fi
+
+# Sanitizer Build environment flags
+if [ -n "$1" ] && [ "$1" == "asan" ] && [ "$AOMP_BUILD_CUDA" != 1 ]; then
+  AOMP_BUILD_SANITIZER=ON
 fi
 
 #  TO use this function set variables patchdir and patchfile

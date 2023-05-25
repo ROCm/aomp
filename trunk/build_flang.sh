@@ -18,8 +18,6 @@ fi
 
 export LLVM_DIR=$TRUNK_INSTALL_DIR
 
-#  -DCMAKE_CXX_LINK_FLAGS='-Wl,-rpath,\$LD_LIBRARY_PATH' \
-
 MYCMAKEOPTS="\
 $_set_ninja_gan \
 -DCMAKE_BUILD_TYPE=$BUILD_TYPE \

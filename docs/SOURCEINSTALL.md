@@ -1,4 +1,4 @@
-# Source Install V 17.0-1
+# Source Install V 17.0-3
 
 Build and install from sources is possible.  However, the source build for AOMP is complex for several reasons.
 - Many repos are required.
@@ -40,14 +40,14 @@ Here are the commands to do a source build of AOMP:
 ```
 
 The development version is the next version to be released.  It is possible that the development version is broken due to regressions that often occur during development.
-These commands will build a previous release of AOMP such as aomp-17.0-0.<br>
+These commands will build a previous release of AOMP such as aomp-17.0-2.<br>
 <b>Release Branch:</b>
 ```
    export AOMP_VERSION=17.0
    export AOMP_REPOS=$HOME/git/aomp${AOMP_VERSION}
    mkdir -p $AOMP_REPOS
    cd $AOMP_REPOS
-   git clone -b aomp-17.0-0 https://github.com/ROCm-Developer-Tools/aomp
+   git clone -b aomp-17.0-2 https://github.com/ROCm-Developer-Tools/aomp
 ```
 <b>Clone and build:</b>
 ```
@@ -69,7 +69,7 @@ The above command will produce output like this showing you the location and bra
 MANIFEST FILE: ~/git/aomp17.0/aomp/bin/../manifests/aomp_17.0.xml
 
 <b>Release Branch:</b><br>
-MANIFEST FILE: ~/git/aomp17.0/aomp/bin/../manifests/aomp_17.0-0.xml
+MANIFEST FILE: ~/git/aomp17.0/aomp/bin/../manifests/aomp_17.0-2.xml
 ```
   repo src       branch                 path                 repo name    last hash    updated           commitor         for author
   --------       ------                 ----                 ---------    ---------    -------           --------         ----------

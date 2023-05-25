@@ -40,6 +40,9 @@ if [ "$AOMP_STANDALONE_BUILD" == 0 ]; then
   -DENABLE_DEVEL_PACKAGE=ON -DENABLE_RUN_PACKAGE=ON"
 fi
 
+if [ "$SANITIZER" == 1 ]; then
+  MYCMAKEOPTS="$MYCMAKEOPTS -DSANITIZER=$SANITIZER "
+fi
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then 
   help_build_aomp
 fi

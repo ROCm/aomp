@@ -72,6 +72,7 @@ fi
 
 # Setup AOMP variables
 AOMP=${AOMP:-/usr/lib/aomp}
+FLANG=${FLANG:-flang}
 
 # Use function to set and test AOMP_GPU
 setaompgpu
@@ -99,7 +100,7 @@ fi
 if [ "$make_target" == "all" ] ; then
   if [ "$SKIP_SOLLVE45" != 1 ]; then
     echo "--------------------------- START OMP 4.5 TESTING ---------------------"
-    make CC=$AOMP/bin/clang CXX=$AOMP/bin/clang++ FC=$AOMP/bin/flang CFLAGS="-lm $MY_SOLLVE_FLAGS" CXXFLAGS="$MY_SOLLVE_FLAGS" FFLAGS="$MY_SOLLVE_FLAGS"  OMP_VERSION=4.5 LOG=1 LOG_ALL=1 VERBOSE_TESTS=1 VERBOSE=1 all
+    make CC=$AOMP/bin/clang CXX=$AOMP/bin/clang++ FC=$AOMP/bin/$FLANG CFLAGS="-lm $MY_SOLLVE_FLAGS" CXXFLAGS="$MY_SOLLVE_FLAGS" FFLAGS="$MY_SOLLVE_FLAGS"  OMP_VERSION=4.5 LOG=1 LOG_ALL=1 VERBOSE_TESTS=1 VERBOSE=1 all
     echo
   fi
 else
@@ -123,8 +124,8 @@ else
      export MY_SOLLVE_FLAGS="$MY_SOLLVE_FLAGS -fopenmp-version=45"
   fi
   echo "       The full make command:"
-  echo " make CC=$AOMP/bin/clang CXX=$AOMP/bin/clang++ FC=$AOMP/bin/flang CFLAGS=\"-lm $MY_SOLLVE_FLAGS\" CXXFLAGS=\"$MY_SOLLVE_FLAGS\" FFLAGS=\"$MY_SOLLVE_FLAGS\" LOG=1 LOG_ALL=1 VERBOSE_TESTS=1 VERBOSE=1 OMP_VERSION=$this_omp_version SOURCES=$single_case all"
-make CC=$AOMP/bin/clang CXX=$AOMP/bin/clang++ FC=$AOMP/bin/flang CFLAGS="-lm $MY_SOLLVE_FLAGS" CXXFLAGS="$MY_SOLLVE_FLAGS" FFLAGS="$MY_SOLLVE_FLAGS" LOG=1 LOG_ALL=1 VERBOSE_TESTS=1 VERBOSE=1 OMP_VERSION=$this_omp_version SOURCES=$single_case all
+  echo " make CC=$AOMP/bin/clang CXX=$AOMP/bin/clang++ FC=$AOMP/bin/$FLANG CFLAGS=\"-lm $MY_SOLLVE_FLAGS\" CXXFLAGS=\"$MY_SOLLVE_FLAGS\" FFLAGS=\"$MY_SOLLVE_FLAGS\" LOG=1 LOG_ALL=1 VERBOSE_TESTS=1 VERBOSE=1 OMP_VERSION=$this_omp_version SOURCES=$single_case all"
+make CC=$AOMP/bin/clang CXX=$AOMP/bin/clang++ FC=$AOMP/bin/$FLANG CFLAGS="-lm $MY_SOLLVE_FLAGS" CXXFLAGS="$MY_SOLLVE_FLAGS" FFLAGS="$MY_SOLLVE_FLAGS" LOG=1 LOG_ALL=1 VERBOSE_TESTS=1 VERBOSE=1 OMP_VERSION=$this_omp_version SOURCES=$single_case all
   rc=$?
   echo
   echo "DONE:  Single SOLLVE_VV test case: $single_case"
@@ -149,15 +150,24 @@ if [ "$SKIP_SOLLVE45" != 1 ]; then
 fi
 
 if [ "$SKIP_SOLLVE50" != 1 ]; then
+  enable_xnack=0
+  if [ "$AOMP_GPU" == gfx90a ] && [ "$HSA_XNACK" == "" ]; then
+    export HSA_XNACK=1
+    enable_xnack=1
+    echo "Turning on HSA_XNACK=1 for 5.0 to allow USM tests to pass."
+  fi
   # Run OpenMP 5.0 Tests
   echo "--------------------------- START OMP 5.0 TESTING ---------------------"
   export MY_SOLLVE_FLAGS="$MY_SOLLVE_FLAGS -fopenmp-version=50"
   make tidy
-  make CC=$AOMP/bin/clang CXX=$AOMP/bin/clang++ FC=$AOMP/bin/flang CFLAGS="-lm $MY_SOLLVE_FLAGS" CXXFLAGS="$MY_SOLLVE_FLAGS" FFLAGS="$MY_SOLLVE_FLAGS"  OMP_VERSION=5.0 LOG=1 LOG_ALL=1 VERBOSE_TESTS=1 VERBOSE=1 SOURCES="$custom_source" all
+  make CC=$AOMP/bin/clang CXX=$AOMP/bin/clang++ FC=$AOMP/bin/$FLANG CFLAGS="-lm $MY_SOLLVE_FLAGS" CXXFLAGS="$MY_SOLLVE_FLAGS" FFLAGS="$MY_SOLLVE_FLAGS"  OMP_VERSION=5.0 LOG=1 LOG_ALL=1 VERBOSE_TESTS=1 VERBOSE=1 SOURCES="$custom_source" all
   echo
   echo "--------------------------- OMP 5.0 Detailed Results ---------------------------" >> combined-results.txt
   echo "--------------------------- OMP 5.0 Results ---------------------------" >> abrev.combined-results.txt
   make_sollve_reports 50
+  if [ "$enable_xnack" == 1 ]; then
+    unset HSA_XNACK
+  fi
 fi
 
 if [ "$SKIP_SOLLVE51" != 1 ]; then
@@ -169,7 +179,7 @@ if [ "$SKIP_SOLLVE51" != 1 ]; then
   custom_source="\" -type f ! \( -name *test_target_has_device_addr.c* \)\""
 
   make tidy
-  make CC=$AOMP/bin/clang CXX=$AOMP/bin/clang++ FC=$AOMP/bin/flang CFLAGS="-lm $MY_SOLLVE_FLAGS" CXXFLAGS="$MY_SOLLVE_FLAGS" FFLAGS="$MY_SOLLVE_FLAGS"  OMP_VERSION=5.1 LOG=1 LOG_ALL=1 VERBOSE_TESTS=1 VERBOSE=1 SOURCES="$custom_source" all
+  make CC=$AOMP/bin/clang CXX=$AOMP/bin/clang++ FC=$AOMP/bin/$FLANG CFLAGS="-lm $MY_SOLLVE_FLAGS" CXXFLAGS="$MY_SOLLVE_FLAGS" FFLAGS="$MY_SOLLVE_FLAGS"  OMP_VERSION=5.1 LOG=1 LOG_ALL=1 VERBOSE_TESTS=1 VERBOSE=1 SOURCES="$custom_source" all
   echo
   echo "--------------------------- OMP 5.1 Detailed Results ---------------------------" >> combined-results.txt
   echo "--------------------------- OMP 5.1 Results ---------------------------" >> abrev.combined-results.txt
@@ -182,7 +192,7 @@ if [ "$SKIP_SOLLVE52" != 1 ]; then
   # Run OpenMP 5.2 Tests
   export MY_SOLLVE_FLAGS="$MY_SOLLVE_FLAGS -fopenmp-version=52"
   make tidy
-  make CC=$AOMP/bin/clang CXX=$AOMP/bin/clang++ FC=$AOMP/bin/flang CFLAGS="-lm $MY_SOLLVE_FLAGS" CXXFLAGS="$MY_SOLLVE_FLAGS" FFLAGS="$MY_SOLLVE_FLAGS"  OMP_VERSION=5.2 LOG=1 LOG_ALL=1 VERBOSE_TESTS=1 VERBOSE=1 SOURCES="$custom_source" all
+  make CC=$AOMP/bin/clang CXX=$AOMP/bin/clang++ FC=$AOMP/bin/$FLANG CFLAGS="-lm $MY_SOLLVE_FLAGS" CXXFLAGS="$MY_SOLLVE_FLAGS" FFLAGS="$MY_SOLLVE_FLAGS"  OMP_VERSION=5.2 LOG=1 LOG_ALL=1 VERBOSE_TESTS=1 VERBOSE=1 SOURCES="$custom_source" all
   echo
   echo "--------------------------- OMP 5.2 Detailed Results ---------------------------" >> combined-results.txt
   echo "--------------------------- OMP 5.2 Results ---------------------------" >> abrev.combined-results.txt

@@ -14,13 +14,11 @@ clang-nest-nothing
 clang-reduction-and
 collapse_parallel_spmd
 d2h_slow_copy
-data_share2
 flang-272343-3
 flang-288183
 flang-299043
 flang-305550
 flang-313307
-flang-315870
 flang-320332
 flang-321277-2
 flang-321838
@@ -49,13 +47,6 @@ memory_mgmt_pinned_predefined
 metadirective
 multi-image
 multi-image3
-no-loop-1
-no-loop-2
-no-loop-3
-no-loop-4
-no-loop-5
-no-loop-6
-no-loop-7
 no-loop-8
 no-loop-split-1
 omp_places

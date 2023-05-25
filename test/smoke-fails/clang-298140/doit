@@ -8,4 +8,4 @@ make clean
 rm -f ft.A.x
 
 make AOMP=$AOMP AOMP_GPU=$AOMP_GPU CLASS=A
-./ft.A.x
+timeout -s 9 2m ./ft.A.x

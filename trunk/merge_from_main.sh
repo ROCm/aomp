@@ -13,7 +13,7 @@ thisdir=`dirname $realpath`
 . $thisdir/trunk_common_vars
 # --- end standard header ----
 
-GITPUSH=${GITPUSH:-YES}
+GITPUSH=${GITPUSH:-NO}
 if [ "$GITPUSH" == "YES" ] ; then
    if [ -z $GIT_ADMIN ] ; then
       echo "ERROR: You must set environment variable GIT_ADMIN to <userid>:<password>"

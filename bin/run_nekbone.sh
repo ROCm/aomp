@@ -21,6 +21,7 @@ fi
 
 # Setup AOMP variables
 AOMP=${AOMP:-/usr/lib/aomp}
+FLANG=${FLANG:-flang}
 
 # Use function to set and test AOMP_GPU
 setaompgpu
@@ -35,7 +36,7 @@ if [ $ret -ne 0 ]; then
   exit 1
 fi
 ulimit -s unlimited
-PATH=$AOMP/bin/:$PATH make -f makefile.aomp
+PATH=$AOMP/bin/:$PATH make F77=$FLANG -f makefile.aomp
 VERBOSE=${VERBOSE:-"1"}
 if [ $VERBOSE -eq 0 ]; then
   ./nekbone 2>&1 | tee nek.log > /dev/null
