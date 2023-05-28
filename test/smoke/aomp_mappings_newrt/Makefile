@@ -12,3 +12,5 @@ CC           = $(OMP_BIN) $(VERBOSE)
 #"-\#\#\#"
 
 include ../Makefile.rules
+run:
+	LIBOMPTARGET_AMDGPU_SMALL_BLOCKSIZE=256 ./$(TESTNAME)
