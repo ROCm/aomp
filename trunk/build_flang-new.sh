@@ -10,6 +10,9 @@ thisdir=`dirname $realpath`
 . $thisdir/trunk_common_vars
 # --- end standard header ----
 
+_component_name="flang-new"
+_llvm_project_name="flang"
+
 if [ "$AOMP_USE_NINJA" == 0 ] ; then
     _set_ninja_gan=""
 else
@@ -44,25 +47,25 @@ fi
 
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    echo 
-   echo "This is a FRESH START. ERASING any previous builds in $BUILD_TRUNK/build/flang"
+   echo "This is a FRESH START. ERASING any previous builds in $BUILD_TRUNK/build/$_component_name"
    echo "Use ""$0 nocmake"" or ""$0 install"" to avoid FRESH START."
-   rm -rf $BUILD_TRUNK/build/flang
-   mkdir -p $BUILD_TRUNK/build/flang
+   rm -rf $BUILD_TRUNK/build/$_component_name
+   mkdir -p $BUILD_TRUNK/build/$_component_name
 else
-   if [ ! -d $BUILD_TRUNK/build/flang ] ; then 
-      echo "ERROR: The build directory $BUILD_TRUNK/build/flang does not exist"
+   if [ ! -d $BUILD_TRUNK/build/$_component_name ] ; then 
+      echo "ERROR: The build directory $BUILD_TRUNK/build/$_component_name does not exist"
       echo "       run $0 without nocmake or install options. " 
       exit 1
    fi
 fi
 
-cd $BUILD_TRUNK/build/flang
+cd $BUILD_TRUNK/build/$_component_name
 
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    echo
    echo " -----Running cmake ---- " 
-   echo ${AOMP_CMAKE} $MYCMAKEOPTS $TRUNK_REPOS/$LLVMPROJECT/flang
-   ${AOMP_CMAKE} $MYCMAKEOPTS $TRUNK_REPOS/$LLVMPROJECT/flang 2>&1
+   echo ${AOMP_CMAKE} $MYCMAKEOPTS $TRUNK_REPOS/$LLVMPROJECT/$_llvm_project_name
+   ${AOMP_CMAKE} $MYCMAKEOPTS $TRUNK_REPOS/$LLVMPROJECT/$_llvm_project_name 2>&1
    if [ $? != 0 ] ; then 
       echo "ERROR cmake failed. Cmake flags"
       echo "      $MYCMAKEOPTS"
