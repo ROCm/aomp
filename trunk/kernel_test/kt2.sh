@@ -36,32 +36,34 @@ clang_extra_args="-v"
 
 tmpc="tmpc2"
 rm -rf $tmpc ; mkdir -p $tmpc ; cd $tmpc
+echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+echo "++++++++++++  START c demo in directory $tmpc  +++++++++++++"
+echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
 echo cd $tmpc
 [ -f main_in_c ] && rm main_in_c
 compile_main_cmd="$_llvm_bin_dir/clang $clang_extra_args -fopenmp --offload-arch=$OARCH  ../main.c -o main_in_c"
+$compile_main_cmd -ccc-print-phases 2>>nosave_phases
 echo
-echo $compile_main_cmd
-echo $compile_main_cmd >stderr_nosave.c
-$compile_main_cmd 2>>stderr_nosave.c
-$compile_main_cmd -ccc-print-phases 2>>stderr_nosave.c
+echo "$compile_main_cmd 2>stderr_nosave"
+$compile_main_cmd 2>>stderr_nosave
 echo "LIBOMPTARGET_DEBUG=1 OMP_TARGET_OFFLOAD=$OFFLOAD ./main_in_c 2>debug.out"
 LIBOMPTARGET_DEBUG=1 OMP_TARGET_OFFLOAD=$OFFLOAD ./main_in_c 2>debug.out
 rc=$?
 echo "C RETURN CODE IS: $rc"
+echo
+tmpf="tmpf2"
 echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-echo "+++++++++++++  END c demo, begin FORTRAN demo  +++++++++++++"
+echo "+++++++  END c demo, begin FORTRAN demo in dir $tmpf +++++++"
 echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
 cd ..
-tmpf="tmpf2"
 rm -rf $tmpf ; mkdir -p $tmpf ; cd $tmpf
 echo cd $tmpf
 [ -f main_in_f ] && rm main_in_f
 compile_main_f_cmd="$_llvm_bin_dir/flang-new $flang_extra_args -flang-experimental-exec -fopenmp --offload-arch=$OARCH ../main.f95 -o main_in_f"
+$compile_main_f_cmd -ccc-print-phases  2>>nosave_phases
 echo
-echo $compile_main_f_cmd
-echo $compile_main_f_cmd >stderr_nosave.f
-$compile_main_f_cmd 2>>stderr_nosave.f
-$compile_main_f_cmd -ccc-print-phases  2>>stderr_nosave.f
+echo "$compile_main_f_cmd 2>stderr_nosave"
+$compile_main_f_cmd 2>>stderr_nosave
 if [ -f main_in_f ] ; then 
    echo
    echo "LIBOMPTARGET_DEBUG=1 OMP_TARGET_OFFLOAD=$OFFLOAD ./main_in_f 2>debug.out"

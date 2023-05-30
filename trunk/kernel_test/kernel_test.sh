@@ -9,7 +9,7 @@
 #
 # Set environment variable defaults here:
 TRUNK=${TRUNK:-$HOME/rocm/trunk}
-OFFLOAD=${OFFLOAD:-DISABLED}
+OFFLOAD=${OFFLOAD:-MANDATORY}
 
 if [ ! -f $TRUNK/bin/amdgpu-arch ] ; then
   OARCH=${OARCH:-sm_70}
@@ -21,19 +21,22 @@ fi
 
 _llvm_bin_dir=$TRUNK/bin
 
-#extra_args="-v -fno-integrated-as -save-temps"
-flang_extra_args="-fno-integrated-as -save-temps"
-clang_extra_args="-save-temps"
+flang_extra_args="-v -save-temps"
+clang_extra_args="-v -save-temps"
 
 tmpc="tmpc"
+echo
+echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+echo "++++++++++  START c demo, in directory tmpc  +++++++++++++++"
+echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
 rm -rf $tmpc ; mkdir -p $tmpc ; cd $tmpc
 [ -f main_in_c ] && rm main_in_c
 compile_main_cmd="$_llvm_bin_dir/clang $clang_extra_args -fopenmp --offload-arch=$OARCH  ../main.c -o main_in_c"
 echo
-echo $compile_main_cmd
-$compile_main_cmd
-echo OMP_TARGET_OFFLOAD=$OFFLOAD ./main_in_c
-OMP_TARGET_OFFLOAD=$OFFLOAD ./main_in_c
+echo "$compile_main_cmd 2>stderr_save_temps"
+$compile_main_cmd 2>stderr_save_temps
+echo "LIBOMPTARGET_DEBUG=1 OMP_TARGET_OFFLOAD=$OFFLOAD ./main_in_c 2>debug.out"
+LIBOMPTARGET_DEBUG=1 OMP_TARGET_OFFLOAD=$OFFLOAD ./main_in_c 2>debug.out
 rc=$?
 echo "C RETURN CODE IS: $rc"
 
@@ -49,21 +52,20 @@ grep "define\|call" device_c.ll | grep -v nocallback | tee device_calls.txt
 echo "-----------------------------------------------------"
 echo
 echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-echo "+++++++++++++  END c demo, begin FORTRAN demo  +++++++++++++"
+echo "+++++  END c demo, begin FORTRAN demo in dir tmpf  +++++++++"
 echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
 cd ..
 tmpf="tmpf"
 rm -rf $tmpf ; mkdir -p $tmpf ; cd $tmpf
 [ -f main_in_f ] && rm main_in_f
 compile_main_f_cmd="$_llvm_bin_dir/flang-new $flang_extra_args -flang-experimental-exec -fopenmp --offload-arch=$OARCH ../main.f95 -o main_in_f"
-#compile_main_f_cmd="$_llvm_bin_dir/flang-new $flang_extra_args -fopenmp ../main.f95 -o main_in_f"
 echo
-echo $compile_main_f_cmd
-$compile_main_f_cmd
+echo "$compile_main_f_cmd 2>stderr_save_temps"
+$compile_main_f_cmd 2>stderr_save_temps
 if [ -f main_in_f ] ; then 
    echo
-   echo OMP_TARGET_OFFLOAD=$OFFLOAD ./main_in_f
-   OMP_TARGET_OFFLOAD=$OFFLOAD ./main_in_f
+   echo "LIBOMPTARGET_DEBUG=1 OMP_TARGET_OFFLOAD=$OFFLOAD ./main_in_f 2>debug.out"
+   LIBOMPTARGET_DEBUG=1 OMP_TARGET_OFFLOAD=$OFFLOAD ./main_in_f 2>debug.out
    rc=$?
    echo "FORTRAN RETURN CODE IS: $rc"
 else

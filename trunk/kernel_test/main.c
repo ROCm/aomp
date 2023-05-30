@@ -1,4 +1,4 @@
-
+#include <stdio.h>
 #define N_CONSTANT 10
 
 void writeIndex(int *int_array, int array_length) {
@@ -26,5 +26,6 @@ int main() {
 
   if(errors)
     return 1;
+  printf("=======  c Test passed! =======\n");
   return 0;
 }

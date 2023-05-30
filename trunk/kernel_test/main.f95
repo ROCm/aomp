@@ -12,7 +12,8 @@ program main
         if ( errors /= 0 ) then
                 stop 1  
         end if
-        stop 0
+        print*, "======= FORTRAN Test passed! ======="
+!       stop 0
 end program main
 subroutine writeIndex(int_array, array_length)
         integer :: int_array(*)
