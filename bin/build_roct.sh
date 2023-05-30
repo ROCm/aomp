@@ -47,6 +47,12 @@ fi
 
 patchrepo $AOMP_REPOS/$AOMP_ROCT_REPO_NAME
 
+if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
+   ASAN_LIB_PATH=$(/opt/rocm/llvm/bin/clang --print-runtime-dir)
+   ASAN_FLAGS="-g -fsanitize=address -shared-libasan -Wl,-rpath=$ASAN_LIB_PATH -L$ASAN_LIB_PATH"
+   LDFLAGS="-fuse-ld=lld $ASAN_FLAGS"
+fi
+
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then 
 
    echo " " 
@@ -68,6 +74,19 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
       exit 1
    fi
 
+   if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
+      mkdir -p $BUILD_AOMP/build/roct/asan
+      cd $BUILD_AOMP/build/roct/asan
+      ASAN_CMAKE_OPTS="-DCMAKE_C_COMPILER=/opt/rocm/llvm/bin/clang -DCMAKE_CXX_COMPILER=/opt/rocm/llvm/bin/clang++ -DCMAKE_INSTALL_PREFIX=$INSTALL_ROCT -DCMAKE_BUILD_TYPE=$BUILDTYPE $AOMP_ORIGIN_RPATH -DCMAKE_INSTALL_LIBDIR=$AOMP_INSTALL_DIR/lib/asan -DHSAKMT_SKIP_DRM_REQUIREMENT=ON"
+      echo " -----Running roct-asan cmake -----"
+      echo ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DCMAKE_C_FLAGS="'$ASAN_FLAGS'" -DCMAKE_CXX_FLAGS="'$ASAN_FLAGS'" $AOMP_REPOS/$AOMP_ROCT_REPO_NAME
+      ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DCMAKE_C_FLAGS="'$ASAN_FLAGS'" -DCMAKE_CXX_FLAGS="'$ASAN_FLAGS'" $AOMP_REPOS/$AOMP_ROCT_REPO_NAME
+      if [ $? != 0 ] ; then
+         echo "ERROR roct-asan cmake failed.cmake flags"
+         echo "      $ASAN_CMAKE_OPTS"
+         exit 1
+      fi
+   fi
 fi
 
 cd $BUILD_AOMP/build/roct
@@ -83,6 +102,20 @@ if [ $? != 0 ] ; then
       exit 1
 fi
 
+if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
+   echo
+   echo " ----- Running make for roct-asan ----- "
+   make -j $AOMP_JOB_THREADS
+   if [ $? != 0 ] ; then
+     echo " "
+     echo "ERROR: make -j $AOMP_JOB_THREADS FAILED"
+     echo "To restart:"
+     echo "  cd $BUILD_AOMP/build/roct/asan "
+     echo "  make"
+     exit 1
+   fi
+fi
+
 #  ----------- Install only if asked  ----------------------------
 if [ "$1" == "install" ] ; then 
       cd $BUILD_AOMP/build/roct
@@ -91,6 +124,16 @@ if [ "$1" == "install" ] ; then
       if [ $? != 0 ] ; then 
          echo "ERROR make install failed "
          exit 1
+      fi
+
+      if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
+         cd $BUILD_AOMP/build/roct/asan
+         echo " -----Installing to $INSTALL_ROCT/lib/asan ----- "
+         $SUDO make install
+         if [ $? != 0 ] ; then
+            echo "ERROR make install failed "
+            exit 1
+         fi
       fi
       removepatch $AOMP_REPOS/$AOMP_ROCT_REPO_NAME
 fi

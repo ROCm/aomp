@@ -52,6 +52,12 @@ osversion=$(cat /etc/os-release)
   patchrepo $REPO_DIR
 #fi
 
+if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
+   ASAN_LIB_PATH=$(${AOMP}/bin/clang --print-runtime-dir)
+   ASAN_FLAGS="-g -fsanitize=address -shared-libasan -Wl,-rpath=$ASAN_LIB_PATH -L$ASAN_LIB_PATH"
+   LDFLAGS="-fuse-ld=lld $ASAN_FLAGS"
+fi
+
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 
    echo " " 
@@ -70,23 +76,26 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 
    DEVICELIBS_BUILD_PATH=$AOMP_REPOS/build/AOMP_LIBDEVICE_REPO_NAME
    PACKAGE_ROOT=$AOMP_REPOS/$AOMP_COMGR_REPO_NAME/lib/comgr
-   ${AOMP_CMAKE} \
-      -DCMAKE_PREFIX_PATH="$AOMP/include/amd_comgr;$AOMP/lib/cmake;$DEVICELIBS_BUILD_PATH;$PACKAGE_ROOT" \
-      -DCMAKE_INSTALL_PREFIX=$INSTALL_COMGR \
-      -DCMAKE_INSTALL_LIBDIR=lib \
-      -DCMAKE_BUILD_TYPE=$BUILDTYPE \
-      -DBUILD_TESTING=OFF \
-      $AOMP_ORIGIN_RPATH \
-      -DROCM_DIR=$AOMP_INSTALL_DIR  \
-      -DLLVM_DIR=$AOMP_INSTALL_DIR \
-      -DClang_DIR=$AOMP_INSTALL_DIR \
-      $AOMP_REPOS/$AOMP_COMGR_REPO_NAME/lib/comgr
-
+	 MYCMAKEOPTS="-DCMAKE_PREFIX_PATH='$AOMP/include/amd_comgr;$AOMP/lib/cmake;$DEVICELIBS_BUILD_PATH;$PACKAGE_ROOT' -DCMAKE_INSTALL_PREFIX='$INSTALL_COMGR' -DCMAKE_BUILD_TYPE=$BUILDTYPE -DBUILD_TESTING=OFF $AOMP_ORIGIN_RPATH -DROCM_DIR=$AOMP_INSTALL_DIR -DLLVM_DIR=$AOMP_INSTALL_DIR -DClang_DIR=$AOMP_INSTALL_DIR"
+   echo ${AOMP_CMAKE} ${MYCMAKEOPTS} -DCMAKE_INSTALL_LIBDIR=lib $AOMP_REPOS/$AOMP_COMGR_REPO_NAME/lib/comgr
+	 ${AOMP_CMAKE} ${MYCMAKEOPTS} -DCMAKE_INSTALL_LIBDIR=lib $AOMP_REPOS/$AOMP_COMGR_REPO_NAME/lib/comgr
    if [ $? != 0 ] ; then 
       echo "ERROR comgr cmake failed. cmake flags"
       exit 1
    fi
 
+   if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
+      mkdir -p $BUILD_AOMP/build/comgr/asan
+      cd $BUILD_AOMP/build/comgr/asan
+      echo " -----Running comgr-asan cmake ----- "
+      ASAN_CMAKE_OPTS="$MYCMAKEOPTS -DCMAKE_C_COMPILER=$AOMP/bin/clang -DCMAKE_CXX_COMPILER=$AOMP/bin/clang++"
+      echo ${AOMP_CMAKE} ${ASAN_CMAKE_OPTS} -DCMAKE_INSTALL_LIBDIR=lib/asan -DCMAKE_C_FLAGS="'$ASAN_FLAGS'" -DCMAKE_CXX_FLAGS="'$ASAN_FLAGS' $AOMP_REPOS/$AOMP_COMGR_REPO_NAME/lib/comgr"
+      ${AOMP_CMAKE} ${ASAN_CMAKE_OPTS} -DCMAKE_INSTALL_LIBDIR=lib/asan -DCMAKE_C_FLAGS="'$ASAN_FLAGS'" -DCMAKE_CXX_FLAGS="'$ASAN_FLAGS'" $AOMP_REPOS/$AOMP_COMGR_REPO_NAME/lib/comgr
+      if [ $? != 0 ] ; then
+         echo "ERROR comgr-asan cmake failed. cmake flags"
+         exit 1
+      fi
+   fi
 fi
 
 cd $BUILD_AOMP/build/comgr
@@ -102,6 +111,20 @@ if [ $? != 0 ] ; then
       exit 1
 fi
 
+if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
+   cd $BUILD_AOMP/build/comgr/asan
+   echo " -----Running make for comgr-asan ---- "
+   make -j $AOMP_JOB_THREADS
+   if [ $? != 0 ] ; then
+      echo " "
+      echo "ERROR: make -j $AOMP_JOB_THREADS FAILED"
+      echo "To restart:"
+      echo "  cd $BUILD_AOMP/build/comgr/asan"
+      echo "  make"
+      exit 1
+   fi
+fi
+
 #  ----------- Install only if asked  ----------------------------
 if [ "$1" == "install" ] ; then 
       cd $BUILD_AOMP/build/comgr
@@ -110,6 +133,16 @@ if [ "$1" == "install" ] ; then
       if [ $? != 0 ] ; then 
          echo "ERROR make install failed "
          exit 1
+      fi
+
+      if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
+         cd $BUILD_AOMP/build/comgr/asan
+         echo " -----Installing to $INSTALL_COMGR/lib/asan ----"
+         $SUDO make install
+         if [ $? != 0 ] ; then
+            echo "ERROR make install failed"
+            exit 1
+         fi
       fi
       # amd_comgr.h is now in amd_comgr/amd_comgr.h, so remove depracated file
       [ -f $INSTALL_COMGR/include/amd_comgr.h ] && rm $INSTALL_COMGR/include/amd_comgr.h
