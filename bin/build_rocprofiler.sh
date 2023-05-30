@@ -66,7 +66,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    fi
    BUILD_TYPE="release"
    export CMAKE_BUILD_TYPE=$BUILD_TYPE
-   CMAKE_PREFIX_PATH="$ROCM_DIR/roctracer/include/ext;$ROCM_DIR/include/platform;$ROCM_DIR/include;$ROCM_DIR/lib;$ROCM_DIR"
+   CMAKE_PREFIX_PATH="$ROCM_DIR/roctracer/include/ext;$ROCM_DIR/include/platform;$ROCM_DIR/include;$ROCM_DIR/lib;$ROCM_DIR;$HOME/.local/bin"
    export CMAKE_PREFIX_PATH
    #export HSA_RUNTIME_INC=$ROCM_DIR/include
    #export HSA_RUNTIME_LIB=$ROCM_DIR/include/lib
