@@ -49,6 +49,12 @@ fi
 
 patchrepo $AOMP_REPOS/$AOMP_ROCR_REPO_NAME
 
+if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
+   ASAN_LIB_PATH=$(${AOMP}/bin/clang --print-runtime-dir)
+   ASAN_FLAGS="-g -fsanitize=address -shared-libasan -Wl,-rpath=$ASAN_LIB_PATH -L$ASAN_LIB_PATH"
+   LDFLAGS="-fuse-ld=lld $ASAN_FLAGS"
+fi
+
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then 
 
    echo " " 
@@ -71,6 +77,20 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
       exit 1
    fi
 
+   if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
+      ASAN_CMAKE_OPTS="-DCMAKE_C_COMPILER=${AOMP}/bin/clang -DCMAKE_CXX_COMPILER=${AOMP}/bin/clang++ -DCMAKE_INSTALL_PREFIX=$INSTALL_ROCM -DCMAKE_INSTALL_LIBDIR=$INSTALL_ROCM/lib/asan -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_PREFIX_PATH=$ROCM_DIR -DIMAGE_SUPPORT=OFF $AOMP_ORIGIN_RPATH"
+      mkdir -p $BUILD_AOMP/build/rocr/asan
+      cd $BUILD_AOMP/build/rocr/asan
+      echo " ----Running rocr-asan cmake ----- "
+      echo ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DCMAKE_C_FLAGS="'$ASAN_FLAGS'" -DCMAKE_CXX_FLAGS="'$ASAN_FLAGS'" $AOMP_REPOS/$AOMP_ROCR_REPO_NAME/src
+      ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DCMAKE_C_FLAGS="'$ASAN_FLAGS'" -DCMAKE_CXX_FLAGS="'$ASAN_FLAGS'" $AOMP_REPOS/$AOMP_ROCR_REPO_NAME/src
+      if [ $? != 0 ] ; then
+         echo "ERROR rocr-asan cmake failed. cmake flags"
+         echo "      $ASAN_CMAKE_OPTS"
+         exit 1
+      fi
+   fi
+
 fi
 
 cd $BUILD_AOMP/build/rocr
@@ -87,6 +107,23 @@ if [ $? != 0 ] ; then
       exit 1
 fi
 
+if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
+   cd $BUILD_AOMP/build/rocr/asan
+   echo
+   echo " -----Running make for rocr-asan ---- "
+   echo make -j $AOMP_JOB_THREADS
+   make -j $AOMP_JOB_THREADS
+   if [ $? != 0 ] ; then
+      echo " "
+      echo "ERROR: make -j $AOMP_JOB_THREADS FAILED"
+      echo "To restart:"
+      echo "  cd $BUILD_AOMP/build/rocr/asan"
+      echo "  make"
+      exit 1
+   fi
+fi
+
+
 #  ----------- Install only if asked  ----------------------------
 if [ "$1" == "install" ] ; then 
       cd $BUILD_AOMP/build/rocr
@@ -96,6 +133,17 @@ if [ "$1" == "install" ] ; then
       if [ $? != 0 ] ; then 
          echo "ERROR make install failed "
          exit 1
+      fi
+
+      if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
+         cd $BUILD_AOMP/build/rocr/asan
+         echo " ------Installing to $INSTALL_ROCM/lib/asan ------ "
+         echo $SUDO make install
+         $SUDO make install
+         if [ $? != 0 ] ; then
+            echo "ERROR make install failed "
+            exit 1
+         fi
       fi
       removepatch $AOMP_REPOS/$AOMP_ROCR_REPO_NAME
       # Remove hsa directory from install to ensure it is not used
