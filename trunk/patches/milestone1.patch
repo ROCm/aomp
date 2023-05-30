@@ -1,0 +1,3512 @@
+diff -Naur -x .git -x __pycache__ -x docs -x test llvm-project.upstream/clang/include/clang/Driver/Options.td llvm-project/clang/include/clang/Driver/Options.td
+--- llvm-project.upstream/clang/include/clang/Driver/Options.td	2023-05-24 07:23:17.255120513 -0400
++++ llvm-project/clang/include/clang/Driver/Options.td	2023-05-30 09:58:20.600301098 -0400
+@@ -6254,7 +6254,7 @@
+ 
+ def main_file_name : Separate<["-"], "main-file-name">,
+   HelpText<"Main file name to use for debug info and source if missing">,
+-  Flags<[CC1Option, CC1AsOption, NoDriverOption]>,
++  Flags<[CC1Option, CC1AsOption, NoDriverOption, FC1Option]>,
+   MarshallingInfoString<CodeGenOpts<"MainFileName">>;
+ def split_dwarf_output : Separate<["-"], "split-dwarf-output">,
+   HelpText<"File name to use for split dwarf debug info output">,
+diff -Naur -x .git -x __pycache__ -x docs -x test llvm-project.upstream/clang/lib/CodeGen/CGOpenMPRuntime.cpp llvm-project/clang/lib/CodeGen/CGOpenMPRuntime.cpp
+--- llvm-project.upstream/clang/lib/CodeGen/CGOpenMPRuntime.cpp	2023-05-16 13:15:57.366393531 -0400
++++ llvm-project/clang/lib/CodeGen/CGOpenMPRuntime.cpp	2023-05-29 12:35:45.267105157 -0400
+@@ -8947,74 +8947,6 @@
+ };
+ } // anonymous namespace
+ 
+-static void emitNonContiguousDescriptor(
+-    CodeGenFunction &CGF, MappableExprsHandler::MapCombinedInfoTy &CombinedInfo,
+-    CGOpenMPRuntime::TargetDataInfo &Info) {
+-  CodeGenModule &CGM = CGF.CGM;
+-  MappableExprsHandler::MapCombinedInfoTy::StructNonContiguousInfo
+-      &NonContigInfo = CombinedInfo.NonContigInfo;
+-
+-  // Build an array of struct descriptor_dim and then assign it to
+-  // offload_args.
+-  //
+-  // struct descriptor_dim {
+-  //  uint64_t offset;
+-  //  uint64_t count;
+-  //  uint64_t stride
+-  // };
+-  ASTContext &C = CGF.getContext();
+-  QualType Int64Ty = C.getIntTypeForBitwidth(/*DestWidth=*/64, /*Signed=*/0);
+-  RecordDecl *RD;
+-  RD = C.buildImplicitRecord("descriptor_dim");
+-  RD->startDefinition();
+-  addFieldToRecordDecl(C, RD, Int64Ty);
+-  addFieldToRecordDecl(C, RD, Int64Ty);
+-  addFieldToRecordDecl(C, RD, Int64Ty);
+-  RD->completeDefinition();
+-  QualType DimTy = C.getRecordType(RD);
+-
+-  enum { OffsetFD = 0, CountFD, StrideFD };
+-  // We need two index variable here since the size of "Dims" is the same as the
+-  // size of Components, however, the size of offset, count, and stride is equal
+-  // to the size of base declaration that is non-contiguous.
+-  for (unsigned I = 0, L = 0, E = NonContigInfo.Dims.size(); I < E; ++I) {
+-    // Skip emitting ir if dimension size is 1 since it cannot be
+-    // non-contiguous.
+-    if (NonContigInfo.Dims[I] == 1)
+-      continue;
+-    llvm::APInt Size(/*numBits=*/32, NonContigInfo.Dims[I]);
+-    QualType ArrayTy =
+-        C.getConstantArrayType(DimTy, Size, nullptr, ArrayType::Normal, 0);
+-    Address DimsAddr = CGF.CreateMemTemp(ArrayTy, "dims");
+-    for (unsigned II = 0, EE = NonContigInfo.Dims[I]; II < EE; ++II) {
+-      unsigned RevIdx = EE - II - 1;
+-      LValue DimsLVal = CGF.MakeAddrLValue(
+-          CGF.Builder.CreateConstArrayGEP(DimsAddr, II), DimTy);
+-      // Offset
+-      LValue OffsetLVal = CGF.EmitLValueForField(
+-          DimsLVal, *std::next(RD->field_begin(), OffsetFD));
+-      CGF.EmitStoreOfScalar(NonContigInfo.Offsets[L][RevIdx], OffsetLVal);
+-      // Count
+-      LValue CountLVal = CGF.EmitLValueForField(
+-          DimsLVal, *std::next(RD->field_begin(), CountFD));
+-      CGF.EmitStoreOfScalar(NonContigInfo.Counts[L][RevIdx], CountLVal);
+-      // Stride
+-      LValue StrideLVal = CGF.EmitLValueForField(
+-          DimsLVal, *std::next(RD->field_begin(), StrideFD));
+-      CGF.EmitStoreOfScalar(NonContigInfo.Strides[L][RevIdx], StrideLVal);
+-    }
+-    // args[I] = &dims
+-    Address DAddr = CGF.Builder.CreatePointerBitCastOrAddrSpaceCast(
+-        DimsAddr, CGM.Int8PtrTy, CGM.Int8Ty);
+-    llvm::Value *P = CGF.Builder.CreateConstInBoundsGEP2_32(
+-        llvm::ArrayType::get(CGM.VoidPtrTy, Info.NumberOfPtrs),
+-        Info.RTArgs.PointersArray, 0, I);
+-    Address PAddr(P, CGM.VoidPtrTy, CGF.getPointerAlign());
+-    CGF.Builder.CreateStore(DAddr.getPointer(), PAddr);
+-    ++L;
+-  }
+-}
+-
+ // Try to extract the base declaration from a `this->x` expression if possible.
+ static ValueDecl *getDeclFromThisExpr(const Expr *E) {
+   if (!E)
+@@ -9077,190 +9009,42 @@
+   Info.clearArrayInfo();
+   Info.NumberOfPtrs = CombinedInfo.BasePointers.size();
+ 
+-  if (Info.NumberOfPtrs) {
+-    // Detect if we have any capture size requiring runtime evaluation of the
+-    // size so that a constant array could be eventually used.
+-
+-    llvm::APInt PointerNumAP(32, Info.NumberOfPtrs, /*isSigned=*/true);
+-    QualType PointerArrayType = Ctx.getConstantArrayType(
+-        Ctx.VoidPtrTy, PointerNumAP, nullptr, ArrayType::Normal,
+-        /*IndexTypeQuals=*/0);
+-
+-    Info.RTArgs.BasePointersArray =
+-        CGF.CreateMemTemp(PointerArrayType, ".offload_baseptrs").getPointer();
+-    Info.RTArgs.PointersArray =
+-        CGF.CreateMemTemp(PointerArrayType, ".offload_ptrs").getPointer();
+-    Address MappersArray =
+-        CGF.CreateMemTemp(PointerArrayType, ".offload_mappers");
+-    Info.RTArgs.MappersArray = MappersArray.getPointer();
+-
+-    // If we don't have any VLA types or other types that require runtime
+-    // evaluation, we can use a constant array for the map sizes, otherwise we
+-    // need to fill up the arrays as we do for the pointers.
+-    QualType Int64Ty =
+-        Ctx.getIntTypeForBitwidth(/*DestWidth=*/64, /*Signed=*/1);
+-    SmallVector<llvm::Constant *> ConstSizes(
+-        CombinedInfo.Sizes.size(), llvm::ConstantInt::get(CGF.Int64Ty, 0));
+-    llvm::SmallBitVector RuntimeSizes(CombinedInfo.Sizes.size());
+-    for (unsigned I = 0, E = CombinedInfo.Sizes.size(); I < E; ++I) {
+-      if (auto *CI = dyn_cast<llvm::Constant>(CombinedInfo.Sizes[I])) {
+-        if (!isa<llvm::ConstantExpr>(CI) && !isa<llvm::GlobalValue>(CI)) {
+-          if (IsNonContiguous &&
+-              static_cast<std::underlying_type_t<OpenMPOffloadMappingFlags>>(
+-                  CombinedInfo.Types[I] &
+-                  OpenMPOffloadMappingFlags::OMP_MAP_NON_CONTIG))
+-            ConstSizes[I] = llvm::ConstantInt::get(
+-                CGF.Int64Ty, CombinedInfo.NonContigInfo.Dims[I]);
+-          else
+-            ConstSizes[I] = CI;
+-          continue;
+-        }
+-      }
+-      RuntimeSizes.set(I);
+-    }
+-
+-    if (RuntimeSizes.all()) {
+-      QualType SizeArrayType = Ctx.getConstantArrayType(
+-          Int64Ty, PointerNumAP, nullptr, ArrayType::Normal,
+-          /*IndexTypeQuals=*/0);
+-      Info.RTArgs.SizesArray =
+-          CGF.CreateMemTemp(SizeArrayType, ".offload_sizes").getPointer();
+-    } else {
+-      auto *SizesArrayInit = llvm::ConstantArray::get(
+-          llvm::ArrayType::get(CGM.Int64Ty, ConstSizes.size()), ConstSizes);
+-      std::string Name = CGM.getOpenMPRuntime().getName({"offload_sizes"});
+-      auto *SizesArrayGbl = new llvm::GlobalVariable(
+-          CGM.getModule(), SizesArrayInit->getType(), /*isConstant=*/true,
+-          llvm::GlobalValue::PrivateLinkage, SizesArrayInit, Name);
+-      SizesArrayGbl->setUnnamedAddr(llvm::GlobalValue::UnnamedAddr::Global);
+-      if (RuntimeSizes.any()) {
+-        QualType SizeArrayType = Ctx.getConstantArrayType(
+-            Int64Ty, PointerNumAP, nullptr, ArrayType::Normal,
+-            /*IndexTypeQuals=*/0);
+-        Address Buffer = CGF.CreateMemTemp(SizeArrayType, ".offload_sizes");
+-        llvm::Value *GblConstPtr =
+-            CGF.Builder.CreatePointerBitCastOrAddrSpaceCast(
+-                SizesArrayGbl, CGM.Int64Ty->getPointerTo());
+-        CGF.Builder.CreateMemCpy(
+-            Buffer,
+-            Address(GblConstPtr, CGM.Int64Ty,
+-                    CGM.getNaturalTypeAlignment(Ctx.getIntTypeForBitwidth(
+-                        /*DestWidth=*/64, /*Signed=*/false))),
+-            CGF.getTypeSize(SizeArrayType));
+-        Info.RTArgs.SizesArray = Buffer.getPointer();
+-      } else {
+-        Info.RTArgs.SizesArray = SizesArrayGbl;
+-      }
+-    }
+-
+-    // The map types are always constant so we don't need to generate code to
+-    // fill arrays. Instead, we create an array constant.
+-    SmallVector<uint64_t, 4> Mapping;
+-    for (auto mapFlag : CombinedInfo.Types)
+-      Mapping.push_back(
+-          static_cast<std::underlying_type_t<OpenMPOffloadMappingFlags>>(
+-              mapFlag));
+-    std::string MaptypesName =
+-        CGM.getOpenMPRuntime().getName({"offload_maptypes"});
+-    auto *MapTypesArrayGbl =
+-        OMPBuilder.createOffloadMaptypes(Mapping, MaptypesName);
+-    Info.RTArgs.MapTypesArray = MapTypesArrayGbl;
+-
+-    // The information types are only built if there is debug information
+-    // requested.
+-    if (CGM.getCodeGenOpts().getDebugInfo() ==
+-        llvm::codegenoptions::NoDebugInfo) {
+-      Info.RTArgs.MapNamesArray = llvm::Constant::getNullValue(
+-          llvm::Type::getInt8Ty(CGF.Builder.getContext())->getPointerTo());
+-    } else {
+-      auto fillInfoMap = [&](MappableExprsHandler::MappingExprInfo &MapExpr) {
+-        return emitMappingInformation(CGF, OMPBuilder, MapExpr);
+-      };
+-      SmallVector<llvm::Constant *, 4> InfoMap(CombinedInfo.Exprs.size());
+-      llvm::transform(CombinedInfo.Exprs, InfoMap.begin(), fillInfoMap);
+-      std::string MapnamesName =
+-          CGM.getOpenMPRuntime().getName({"offload_mapnames"});
+-      auto *MapNamesArrayGbl =
+-          OMPBuilder.createOffloadMapnames(InfoMap, MapnamesName);
+-      Info.RTArgs.MapNamesArray = MapNamesArrayGbl;
+-    }
++  using InsertPointTy = llvm::OpenMPIRBuilder::InsertPointTy;
++  InsertPointTy AllocaIP(CGF.AllocaInsertPt->getParent(),
++                         CGF.AllocaInsertPt->getIterator());
++  InsertPointTy CodeGenIP(CGF.Builder.GetInsertBlock(),
++                          CGF.Builder.GetInsertPoint());
+ 
+-    // If there's a present map type modifier, it must not be applied to the end
+-    // of a region, so generate a separate map type array in that case.
+-    if (Info.separateBeginEndCalls()) {
+-      bool EndMapTypesDiffer = false;
+-      for (uint64_t &Type : Mapping) {
+-        if (Type &
+-            static_cast<std::underlying_type_t<OpenMPOffloadMappingFlags>>(
+-                OpenMPOffloadMappingFlags::OMP_MAP_PRESENT)) {
+-          Type &=
+-              ~static_cast<std::underlying_type_t<OpenMPOffloadMappingFlags>>(
+-                  OpenMPOffloadMappingFlags::OMP_MAP_PRESENT);
+-          EndMapTypesDiffer = true;
+-        }
+-      }
+-      if (EndMapTypesDiffer) {
+-        MapTypesArrayGbl =
+-            OMPBuilder.createOffloadMaptypes(Mapping, MaptypesName);
+-        Info.RTArgs.MapTypesArrayEnd = MapTypesArrayGbl;
+-      }
+-    }
++  auto fillInfoMap = [&](MappableExprsHandler::MappingExprInfo &MapExpr) {
++    return emitMappingInformation(CGF, OMPBuilder, MapExpr);
++  };
++  if (CGM.getCodeGenOpts().getDebugInfo() !=
++      llvm::codegenoptions::NoDebugInfo) {
++    CombinedInfo.Names.resize(CombinedInfo.Exprs.size());
++    llvm::transform(CombinedInfo.Exprs, CombinedInfo.Names.begin(),
++                    fillInfoMap);
++  }
+ 
+-    for (unsigned I = 0; I < Info.NumberOfPtrs; ++I) {
+-      llvm::Value *BPVal = CombinedInfo.BasePointers[I];
+-      llvm::Value *BP = CGF.Builder.CreateConstInBoundsGEP2_32(
+-          llvm::ArrayType::get(CGM.VoidPtrTy, Info.NumberOfPtrs),
+-          Info.RTArgs.BasePointersArray, 0, I);
+-      BP = CGF.Builder.CreatePointerBitCastOrAddrSpaceCast(
+-          BP, BPVal->getType()->getPointerTo(/*AddrSpace=*/0));
++  auto DeviceAddrCB = [&](unsigned int I, llvm::Value *BP, llvm::Value *BPVal) {
++    if (const ValueDecl *DevVD = CombinedInfo.DevicePtrDecls[I]) {
+       Address BPAddr(BP, BPVal->getType(),
+                      Ctx.getTypeAlignInChars(Ctx.VoidPtrTy));
+-      CGF.Builder.CreateStore(BPVal, BPAddr);
+-
+-      if (Info.requiresDevicePointerInfo())
+-        if (const ValueDecl *DevVD = CombinedInfo.DevicePtrDecls[I])
+-          Info.CaptureDeviceAddrMap.try_emplace(DevVD, BPAddr);
+-
+-      llvm::Value *PVal = CombinedInfo.Pointers[I];
+-      llvm::Value *P = CGF.Builder.CreateConstInBoundsGEP2_32(
+-          llvm::ArrayType::get(CGM.VoidPtrTy, Info.NumberOfPtrs),
+-          Info.RTArgs.PointersArray, 0, I);
+-      P = CGF.Builder.CreatePointerBitCastOrAddrSpaceCast(
+-          P, PVal->getType()->getPointerTo(/*AddrSpace=*/0));
+-      Address PAddr(P, PVal->getType(), Ctx.getTypeAlignInChars(Ctx.VoidPtrTy));
+-      CGF.Builder.CreateStore(PVal, PAddr);
+-
+-      if (RuntimeSizes.test(I)) {
+-        llvm::Value *S = CGF.Builder.CreateConstInBoundsGEP2_32(
+-            llvm::ArrayType::get(CGM.Int64Ty, Info.NumberOfPtrs),
+-            Info.RTArgs.SizesArray,
+-            /*Idx0=*/0,
+-            /*Idx1=*/I);
+-        Address SAddr(S, CGM.Int64Ty, Ctx.getTypeAlignInChars(Int64Ty));
+-        CGF.Builder.CreateStore(CGF.Builder.CreateIntCast(CombinedInfo.Sizes[I],
+-                                                          CGM.Int64Ty,
+-                                                          /*isSigned=*/true),
+-                                SAddr);
+-      }
+-
+-      // Fill up the mapper array.
+-      llvm::Value *MFunc = llvm::ConstantPointerNull::get(CGM.VoidPtrTy);
+-      if (CombinedInfo.Mappers[I]) {
+-        MFunc = CGM.getOpenMPRuntime().getOrCreateUserDefinedMapperFunc(
+-            cast<OMPDeclareMapperDecl>(CombinedInfo.Mappers[I]));
+-        MFunc = CGF.Builder.CreatePointerCast(MFunc, CGM.VoidPtrTy);
+-        Info.HasMapper = true;
+-      }
+-      Address MAddr = CGF.Builder.CreateConstArrayGEP(MappersArray, I);
+-      CGF.Builder.CreateStore(MFunc, MAddr);
++      Info.CaptureDeviceAddrMap.try_emplace(DevVD, BPAddr);
+     }
+-  }
+-
+-  if (!IsNonContiguous || CombinedInfo.NonContigInfo.Offsets.empty() ||
+-      Info.NumberOfPtrs == 0)
+-    return;
++  };
+ 
+-  emitNonContiguousDescriptor(CGF, CombinedInfo, Info);
++  auto CustomMapperCB = [&](unsigned int I) {
++    llvm::Value *MFunc = nullptr;
++    if (CombinedInfo.Mappers[I]) {
++      Info.HasMapper = true;
++      MFunc = CGF.CGM.getOpenMPRuntime().getOrCreateUserDefinedMapperFunc(
++          cast<OMPDeclareMapperDecl>(CombinedInfo.Mappers[I]));
++    }
++    return MFunc;
++  };
++  OMPBuilder.emitOffloadingArrays(AllocaIP, CodeGenIP, CombinedInfo, Info,
++                                  /*IsNonContiguous=*/true, DeviceAddrCB,
++                                  CustomMapperCB);
+ }
+ 
+ /// Check for inner distribute directive.
+@@ -9772,6 +9556,247 @@
+   return llvm::ConstantInt::get(CGF.Int64Ty, 0);
+ }
+ 
++static void
++emitTargetCallFallback(CGOpenMPRuntime *OMPRuntime, llvm::Function *OutlinedFn,
++                       const OMPExecutableDirective &D,
++                       llvm::SmallVectorImpl<llvm::Value *> &CapturedVars,
++                       bool RequiresOuterTask, const CapturedStmt &CS,
++                       bool OffloadingMandatory, CodeGenFunction &CGF) {
++  if (OffloadingMandatory) {
++    CGF.Builder.CreateUnreachable();
++  } else {
++    if (RequiresOuterTask) {
++      CapturedVars.clear();
++      CGF.GenerateOpenMPCapturedVars(CS, CapturedVars);
++    }
++    OMPRuntime->emitOutlinedFunctionCall(CGF, D.getBeginLoc(), OutlinedFn,
++                                         CapturedVars);
++  }
++}
++
++static llvm::Value *emitDeviceID(
++    llvm::PointerIntPair<const Expr *, 2, OpenMPDeviceClauseModifier> Device,
++    CodeGenFunction &CGF) {
++  // Emit device ID if any.
++  llvm::Value *DeviceID;
++  if (Device.getPointer()) {
++    assert((Device.getInt() == OMPC_DEVICE_unknown ||
++            Device.getInt() == OMPC_DEVICE_device_num) &&
++           "Expected device_num modifier.");
++    llvm::Value *DevVal = CGF.EmitScalarExpr(Device.getPointer());
++    DeviceID =
++        CGF.Builder.CreateIntCast(DevVal, CGF.Int64Ty, /*isSigned=*/true);
++  } else {
++    DeviceID = CGF.Builder.getInt64(OMP_DEVICEID_UNDEF);
++  }
++  return DeviceID;
++}
++
++llvm::Value *emitDynCGGroupMem(const OMPExecutableDirective &D,
++                               CodeGenFunction &CGF) {
++  llvm::Value *DynCGroupMem = CGF.Builder.getInt32(0);
++
++  if (auto *DynMemClause = D.getSingleClause<OMPXDynCGroupMemClause>()) {
++    CodeGenFunction::RunCleanupsScope DynCGroupMemScope(CGF);
++    llvm::Value *DynCGroupMemVal = CGF.EmitScalarExpr(
++        DynMemClause->getSize(), /*IgnoreResultAssign=*/true);
++    DynCGroupMem = CGF.Builder.CreateIntCast(DynCGroupMemVal, CGF.Int32Ty,
++                                             /*isSigned=*/false);
++  }
++  return DynCGroupMem;
++}
++
++static void emitTargetCallKernelLaunch(
++    CGOpenMPRuntime *OMPRuntime, llvm::Function *OutlinedFn,
++    const OMPExecutableDirective &D,
++    llvm::SmallVectorImpl<llvm::Value *> &CapturedVars, bool RequiresOuterTask,
++    const CapturedStmt &CS, bool OffloadingMandatory,
++    llvm::PointerIntPair<const Expr *, 2, OpenMPDeviceClauseModifier> Device,
++    llvm::Value *OutlinedFnID, CodeGenFunction::OMPTargetDataInfo &InputInfo,
++    llvm::Value *&MapTypesArray, llvm::Value *&MapNamesArray,
++    llvm::function_ref<llvm::Value *(CodeGenFunction &CGF,
++                                     const OMPLoopDirective &D)>
++        SizeEmitter,
++    CodeGenFunction &CGF, CodeGenModule &CGM) {
++  llvm::OpenMPIRBuilder &OMPBuilder = OMPRuntime->getOMPBuilder();
++
++  // Fill up the arrays with all the captured variables.
++  MappableExprsHandler::MapCombinedInfoTy CombinedInfo;
++
++  // Get mappable expression information.
++  MappableExprsHandler MEHandler(D, CGF);
++  llvm::DenseMap<llvm::Value *, llvm::Value *> LambdaPointers;
++  llvm::DenseSet<CanonicalDeclPtr<const Decl>> MappedVarSet;
++
++  auto RI = CS.getCapturedRecordDecl()->field_begin();
++  auto *CV = CapturedVars.begin();
++  for (CapturedStmt::const_capture_iterator CI = CS.capture_begin(),
++                                            CE = CS.capture_end();
++       CI != CE; ++CI, ++RI, ++CV) {
++    MappableExprsHandler::MapCombinedInfoTy CurInfo;
++    MappableExprsHandler::StructRangeInfoTy PartialStruct;
++
++    // VLA sizes are passed to the outlined region by copy and do not have map
++    // information associated.
++    if (CI->capturesVariableArrayType()) {
++      CurInfo.Exprs.push_back(nullptr);
++      CurInfo.BasePointers.push_back(*CV);
++      CurInfo.DevicePtrDecls.push_back(nullptr);
++      CurInfo.Pointers.push_back(*CV);
++      CurInfo.Sizes.push_back(CGF.Builder.CreateIntCast(
++          CGF.getTypeSize(RI->getType()), CGF.Int64Ty, /*isSigned=*/true));
++      // Copy to the device as an argument. No need to retrieve it.
++      CurInfo.Types.push_back(OpenMPOffloadMappingFlags::OMP_MAP_LITERAL |
++                              OpenMPOffloadMappingFlags::OMP_MAP_TARGET_PARAM |
++                              OpenMPOffloadMappingFlags::OMP_MAP_IMPLICIT);
++      CurInfo.Mappers.push_back(nullptr);
++    } else {
++      // If we have any information in the map clause, we use it, otherwise we
++      // just do a default mapping.
++      MEHandler.generateInfoForCapture(CI, *CV, CurInfo, PartialStruct);
++      if (!CI->capturesThis())
++        MappedVarSet.insert(CI->getCapturedVar());
++      else
++        MappedVarSet.insert(nullptr);
++      if (CurInfo.BasePointers.empty() && !PartialStruct.Base.isValid())
++        MEHandler.generateDefaultMapInfo(*CI, **RI, *CV, CurInfo);
++      // Generate correct mapping for variables captured by reference in
++      // lambdas.
++      if (CI->capturesVariable())
++        MEHandler.generateInfoForLambdaCaptures(CI->getCapturedVar(), *CV,
++                                                CurInfo, LambdaPointers);
++    }
++    // We expect to have at least an element of information for this capture.
++    assert((!CurInfo.BasePointers.empty() || PartialStruct.Base.isValid()) &&
++           "Non-existing map pointer for capture!");
++    assert(CurInfo.BasePointers.size() == CurInfo.Pointers.size() &&
++           CurInfo.BasePointers.size() == CurInfo.Sizes.size() &&
++           CurInfo.BasePointers.size() == CurInfo.Types.size() &&
++           CurInfo.BasePointers.size() == CurInfo.Mappers.size() &&
++           "Inconsistent map information sizes!");
++
++    // If there is an entry in PartialStruct it means we have a struct with
++    // individual members mapped. Emit an extra combined entry.
++    if (PartialStruct.Base.isValid()) {
++      CombinedInfo.append(PartialStruct.PreliminaryMapData);
++      MEHandler.emitCombinedEntry(
++          CombinedInfo, CurInfo.Types, PartialStruct, CI->capturesThis(),
++          nullptr, !PartialStruct.PreliminaryMapData.BasePointers.empty());
++    }
++
++    // We need to append the results of this capture to what we already have.
++    CombinedInfo.append(CurInfo);
++  }
++  // Adjust MEMBER_OF flags for the lambdas captures.
++  MEHandler.adjustMemberOfForLambdaCaptures(
++      LambdaPointers, CombinedInfo.BasePointers, CombinedInfo.Pointers,
++      CombinedInfo.Types);
++  // Map any list items in a map clause that were not captures because they
++  // weren't referenced within the construct.
++  MEHandler.generateAllInfo(CombinedInfo, MappedVarSet);
++
++  CGOpenMPRuntime::TargetDataInfo Info;
++  // Fill up the arrays and create the arguments.
++  emitOffloadingArrays(CGF, CombinedInfo, Info, OMPBuilder);
++  bool EmitDebug = CGF.CGM.getCodeGenOpts().getDebugInfo() !=
++                   llvm::codegenoptions::NoDebugInfo;
++  OMPBuilder.emitOffloadingArraysArgument(CGF.Builder, Info.RTArgs, Info,
++                                          EmitDebug,
++                                          /*ForEndCall=*/false);
++
++  InputInfo.NumberOfTargetItems = Info.NumberOfPtrs;
++  InputInfo.BasePointersArray = Address(Info.RTArgs.BasePointersArray,
++                                        CGF.VoidPtrTy, CGM.getPointerAlign());
++  InputInfo.PointersArray =
++      Address(Info.RTArgs.PointersArray, CGF.VoidPtrTy, CGM.getPointerAlign());
++  InputInfo.SizesArray =
++      Address(Info.RTArgs.SizesArray, CGF.Int64Ty, CGM.getPointerAlign());
++  InputInfo.MappersArray =
++      Address(Info.RTArgs.MappersArray, CGF.VoidPtrTy, CGM.getPointerAlign());
++  MapTypesArray = Info.RTArgs.MapTypesArray;
++  MapNamesArray = Info.RTArgs.MapNamesArray;
++
++  auto &&ThenGen = [&OMPRuntime, OutlinedFn, &D, &CapturedVars,
++                    RequiresOuterTask, &CS, OffloadingMandatory, Device,
++                    OutlinedFnID, &InputInfo, &MapTypesArray, &MapNamesArray,
++                    SizeEmitter](CodeGenFunction &CGF, PrePostActionTy &) {
++    bool IsReverseOffloading = Device.getInt() == OMPC_DEVICE_ancestor;
++
++    if (IsReverseOffloading) {
++      // Reverse offloading is not supported, so just execute on the host.
++      emitTargetCallFallback(OMPRuntime, OutlinedFn, D, CapturedVars,
++                             RequiresOuterTask, CS, OffloadingMandatory, CGF);
++      return;
++    }
++
++    bool HasNoWait = D.hasClausesOfKind<OMPNowaitClause>();
++    unsigned numTargetItems = InputInfo.NumberOfTargetItems;
++
++    llvm::Value *basePointersArray = InputInfo.BasePointersArray.getPointer();
++    llvm::Value *pointersArray = InputInfo.PointersArray.getPointer();
++    llvm::Value *sizesArray = InputInfo.SizesArray.getPointer();
++    llvm::Value *mappersArray = InputInfo.MappersArray.getPointer();
++
++    auto &&emitTargetCallFallbackCB =
++        [&OMPRuntime, OutlinedFn, &D, &CapturedVars, RequiresOuterTask, &CS,
++         OffloadingMandatory, &CGF](llvm::OpenMPIRBuilder::InsertPointTy IP)
++        -> llvm::OpenMPIRBuilder::InsertPointTy {
++      CGF.Builder.restoreIP(IP);
++      emitTargetCallFallback(OMPRuntime, OutlinedFn, D, CapturedVars,
++                             RequiresOuterTask, CS, OffloadingMandatory, CGF);
++      return CGF.Builder.saveIP();
++    };
++
++    llvm::Value *DeviceID = emitDeviceID(Device, CGF);
++    llvm::Value *NumTeams = OMPRuntime->emitNumTeamsForTargetDirective(CGF, D);
++    llvm::Value *NumThreads =
++        OMPRuntime->emitNumThreadsForTargetDirective(CGF, D);
++    llvm::Value *RTLoc = OMPRuntime->emitUpdateLocation(CGF, D.getBeginLoc());
++    llvm::Value *NumIterations =
++        OMPRuntime->emitTargetNumIterationsCall(CGF, D, SizeEmitter);
++    llvm::Value *DynCGGroupMem = emitDynCGGroupMem(D, CGF);
++    llvm::OpenMPIRBuilder::InsertPointTy AllocaIP(
++        CGF.AllocaInsertPt->getParent(), CGF.AllocaInsertPt->getIterator());
++
++    llvm::TargetKernelArgs Args(numTargetItems, basePointersArray,
++                                pointersArray, sizesArray, MapTypesArray,
++                                MapNamesArray, mappersArray, NumIterations,
++                                NumTeams, NumThreads, DynCGGroupMem, HasNoWait);
++
++    CGF.Builder.restoreIP(OMPRuntime->getOMPBuilder().emitKernelLaunch(
++        CGF.Builder, OutlinedFn, OutlinedFnID, emitTargetCallFallbackCB, Args,
++        DeviceID, RTLoc, AllocaIP));
++  };
++
++  if (RequiresOuterTask)
++    CGF.EmitOMPTargetTaskBasedDirective(D, ThenGen, InputInfo);
++  else
++    OMPRuntime->emitInlinedDirective(CGF, D.getDirectiveKind(), ThenGen);
++}
++
++static void
++emitTargetCallElse(CGOpenMPRuntime *OMPRuntime, llvm::Function *OutlinedFn,
++                   const OMPExecutableDirective &D,
++                   llvm::SmallVectorImpl<llvm::Value *> &CapturedVars,
++                   bool RequiresOuterTask, const CapturedStmt &CS,
++                   bool OffloadingMandatory, CodeGenFunction &CGF) {
++
++  // Notify that the host version must be executed.
++  auto &&ElseGen =
++      [&OMPRuntime, OutlinedFn, &D, &CapturedVars, RequiresOuterTask, &CS,
++       OffloadingMandatory](CodeGenFunction &CGF, PrePostActionTy &) {
++        emitTargetCallFallback(OMPRuntime, OutlinedFn, D, CapturedVars,
++                               RequiresOuterTask, CS, OffloadingMandatory, CGF);
++      };
++
++  if (RequiresOuterTask) {
++    CodeGenFunction::OMPTargetDataInfo InputInfo;
++    CGF.EmitOMPTargetTaskBasedDirective(D, ElseGen, InputInfo);
++  } else {
++    OMPRuntime->emitInlinedDirective(CGF, D.getDirectiveKind(), ElseGen);
++  }
++}
++
+ void CGOpenMPRuntime::emitTargetCall(
+     CodeGenFunction &CGF, const OMPExecutableDirective &D,
+     llvm::Function *OutlinedFn, llvm::Value *OutlinedFnID, const Expr *IfCond,
+@@ -9801,263 +9826,24 @@
+   CodeGenFunction::OMPTargetDataInfo InputInfo;
+   llvm::Value *MapTypesArray = nullptr;
+   llvm::Value *MapNamesArray = nullptr;
+-  // Generate code for the host fallback function.
+-  auto &&FallbackGen = [this, OutlinedFn, &D, &CapturedVars, RequiresOuterTask,
+-                        &CS, OffloadingMandatory](CodeGenFunction &CGF) {
+-    if (OffloadingMandatory) {
+-      CGF.Builder.CreateUnreachable();
+-    } else {
+-      if (RequiresOuterTask) {
+-        CapturedVars.clear();
+-        CGF.GenerateOpenMPCapturedVars(CS, CapturedVars);
+-      }
+-      emitOutlinedFunctionCall(CGF, D.getBeginLoc(), OutlinedFn, CapturedVars);
+-    }
+-  };
+-  // Fill up the pointer arrays and transfer execution to the device.
+-  auto &&ThenGen = [this, Device, OutlinedFnID, &D, &InputInfo, &MapTypesArray,
+-                    &MapNamesArray, SizeEmitter,
+-                    FallbackGen](CodeGenFunction &CGF, PrePostActionTy &) {
+-    if (Device.getInt() == OMPC_DEVICE_ancestor) {
+-      // Reverse offloading is not supported, so just execute on the host.
+-      FallbackGen(CGF);
+-      return;
+-    }
+-
+-    // On top of the arrays that were filled up, the target offloading call
+-    // takes as arguments the device id as well as the host pointer. The host
+-    // pointer is used by the runtime library to identify the current target
+-    // region, so it only has to be unique and not necessarily point to
+-    // anything. It could be the pointer to the outlined function that
+-    // implements the target region, but we aren't using that so that the
+-    // compiler doesn't need to keep that, and could therefore inline the host
+-    // function if proven worthwhile during optimization.
+-
+-    // From this point on, we need to have an ID of the target region defined.
+-    assert(OutlinedFnID && "Invalid outlined function ID!");
+-    (void)OutlinedFnID;
+-
+-    // Emit device ID if any.
+-    llvm::Value *DeviceID;
+-    if (Device.getPointer()) {
+-      assert((Device.getInt() == OMPC_DEVICE_unknown ||
+-              Device.getInt() == OMPC_DEVICE_device_num) &&
+-             "Expected device_num modifier.");
+-      llvm::Value *DevVal = CGF.EmitScalarExpr(Device.getPointer());
+-      DeviceID =
+-          CGF.Builder.CreateIntCast(DevVal, CGF.Int64Ty, /*isSigned=*/true);
+-    } else {
+-      DeviceID = CGF.Builder.getInt64(OMP_DEVICEID_UNDEF);
+-    }
+-
+-    // Emit the number of elements in the offloading arrays.
+-    llvm::Value *PointerNum =
+-        CGF.Builder.getInt32(InputInfo.NumberOfTargetItems);
+-
+-    // Return value of the runtime offloading call.
+-    llvm::Value *Return;
+-
+-    llvm::Value *NumTeams = emitNumTeamsForTargetDirective(CGF, D);
+-    llvm::Value *NumThreads = emitNumThreadsForTargetDirective(CGF, D);
+ 
+-    // Source location for the ident struct
+-    llvm::Value *RTLoc = emitUpdateLocation(CGF, D.getBeginLoc());
+-
+-    // Get tripcount for the target loop-based directive.
+-    llvm::Value *NumIterations =
+-        emitTargetNumIterationsCall(CGF, D, SizeEmitter);
+-
+-    llvm::Value *DynCGroupMem = CGF.Builder.getInt32(0);
+-    if (auto *DynMemClause = D.getSingleClause<OMPXDynCGroupMemClause>()) {
+-      CodeGenFunction::RunCleanupsScope DynCGroupMemScope(CGF);
+-      llvm::Value *DynCGroupMemVal = CGF.EmitScalarExpr(
+-          DynMemClause->getSize(), /*IgnoreResultAssign=*/true);
+-      DynCGroupMem = CGF.Builder.CreateIntCast(DynCGroupMemVal, CGF.Int32Ty,
+-                                               /*isSigned=*/false);
+-    }
+-
+-    llvm::Value *ZeroArray =
+-        llvm::Constant::getNullValue(llvm::ArrayType::get(CGF.CGM.Int32Ty, 3));
+-
+-    bool HasNoWait = D.hasClausesOfKind<OMPNowaitClause>();
+-    llvm::Value *Flags = CGF.Builder.getInt64(HasNoWait);
+-
+-    llvm::Value *NumTeams3D =
+-        CGF.Builder.CreateInsertValue(ZeroArray, NumTeams, {0});
+-    llvm::Value *NumThreads3D =
+-        CGF.Builder.CreateInsertValue(ZeroArray, NumThreads, {0});
+-
+-    // Arguments for the target kernel.
+-    SmallVector<llvm::Value *> KernelArgs{
+-        CGF.Builder.getInt32(/* Version */ 2),
+-        PointerNum,
+-        InputInfo.BasePointersArray.getPointer(),
+-        InputInfo.PointersArray.getPointer(),
+-        InputInfo.SizesArray.getPointer(),
+-        MapTypesArray,
+-        MapNamesArray,
+-        InputInfo.MappersArray.getPointer(),
+-        NumIterations,
+-        Flags,
+-        NumTeams3D,
+-        NumThreads3D,
+-        DynCGroupMem,
+-    };
+-
+-    llvm::OpenMPIRBuilder::InsertPointTy AllocaIP(
+-        CGF.AllocaInsertPt->getParent(), CGF.AllocaInsertPt->getIterator());
+-
+-    // The target region is an outlined function launched by the runtime
+-    // via calls to __tgt_target_kernel().
+-    //
+-    // Note that on the host and CPU targets, the runtime implementation of
+-    // these calls simply call the outlined function without forking threads.
+-    // The outlined functions themselves have runtime calls to
+-    // __kmpc_fork_teams() and __kmpc_fork() for this purpose, codegen'd by
+-    // the compiler in emitTeamsCall() and emitParallelCall().
+-    //
+-    // In contrast, on the NVPTX target, the implementation of
+-    // __tgt_target_teams() launches a GPU kernel with the requested number
+-    // of teams and threads so no additional calls to the runtime are required.
+-    // Check the error code and execute the host version if required.
+-    CGF.Builder.restoreIP(OMPBuilder.emitTargetKernel(
+-        CGF.Builder, AllocaIP, Return, RTLoc, DeviceID, NumTeams, NumThreads,
+-        OutlinedFnID, KernelArgs));
+-
+-    llvm::BasicBlock *OffloadFailedBlock =
+-        CGF.createBasicBlock("omp_offload.failed");
+-    llvm::BasicBlock *OffloadContBlock =
+-        CGF.createBasicBlock("omp_offload.cont");
+-    llvm::Value *Failed = CGF.Builder.CreateIsNotNull(Return);
+-    CGF.Builder.CreateCondBr(Failed, OffloadFailedBlock, OffloadContBlock);
+-
+-    CGF.EmitBlock(OffloadFailedBlock);
+-    FallbackGen(CGF);
+-
+-    CGF.EmitBranch(OffloadContBlock);
+-
+-    CGF.EmitBlock(OffloadContBlock, /*IsFinished=*/true);
++  auto &&TargetThenGen = [this, OutlinedFn, &D, &CapturedVars,
++                          RequiresOuterTask, &CS, OffloadingMandatory, Device,
++                          OutlinedFnID, &InputInfo, &MapTypesArray,
++                          &MapNamesArray, SizeEmitter](CodeGenFunction &CGF,
++                                                       PrePostActionTy &) {
++    emitTargetCallKernelLaunch(this, OutlinedFn, D, CapturedVars,
++                               RequiresOuterTask, CS, OffloadingMandatory,
++                               Device, OutlinedFnID, InputInfo, MapTypesArray,
++                               MapNamesArray, SizeEmitter, CGF, CGM);
+   };
+ 
+-  // Notify that the host version must be executed.
+-  auto &&ElseGen = [FallbackGen](CodeGenFunction &CGF, PrePostActionTy &) {
+-    FallbackGen(CGF);
+-  };
+-
+-  auto &&TargetThenGen = [this, &ThenGen, &D, &InputInfo, &MapTypesArray,
+-                          &MapNamesArray, &CapturedVars, RequiresOuterTask,
+-                          &CS](CodeGenFunction &CGF, PrePostActionTy &) {
+-    // Fill up the arrays with all the captured variables.
+-    MappableExprsHandler::MapCombinedInfoTy CombinedInfo;
+-
+-    // Get mappable expression information.
+-    MappableExprsHandler MEHandler(D, CGF);
+-    llvm::DenseMap<llvm::Value *, llvm::Value *> LambdaPointers;
+-    llvm::DenseSet<CanonicalDeclPtr<const Decl>> MappedVarSet;
+-
+-    auto RI = CS.getCapturedRecordDecl()->field_begin();
+-    auto *CV = CapturedVars.begin();
+-    for (CapturedStmt::const_capture_iterator CI = CS.capture_begin(),
+-                                              CE = CS.capture_end();
+-         CI != CE; ++CI, ++RI, ++CV) {
+-      MappableExprsHandler::MapCombinedInfoTy CurInfo;
+-      MappableExprsHandler::StructRangeInfoTy PartialStruct;
+-
+-      // VLA sizes are passed to the outlined region by copy and do not have map
+-      // information associated.
+-      if (CI->capturesVariableArrayType()) {
+-        CurInfo.Exprs.push_back(nullptr);
+-        CurInfo.BasePointers.push_back(*CV);
+-        CurInfo.DevicePtrDecls.push_back(nullptr);
+-        CurInfo.Pointers.push_back(*CV);
+-        CurInfo.Sizes.push_back(CGF.Builder.CreateIntCast(
+-            CGF.getTypeSize(RI->getType()), CGF.Int64Ty, /*isSigned=*/true));
+-        // Copy to the device as an argument. No need to retrieve it.
+-        CurInfo.Types.push_back(
+-            OpenMPOffloadMappingFlags::OMP_MAP_LITERAL |
+-            OpenMPOffloadMappingFlags::OMP_MAP_TARGET_PARAM |
+-            OpenMPOffloadMappingFlags::OMP_MAP_IMPLICIT);
+-        CurInfo.Mappers.push_back(nullptr);
+-      } else {
+-        // If we have any information in the map clause, we use it, otherwise we
+-        // just do a default mapping.
+-        MEHandler.generateInfoForCapture(CI, *CV, CurInfo, PartialStruct);
+-        if (!CI->capturesThis())
+-          MappedVarSet.insert(CI->getCapturedVar());
+-        else
+-          MappedVarSet.insert(nullptr);
+-        if (CurInfo.BasePointers.empty() && !PartialStruct.Base.isValid())
+-          MEHandler.generateDefaultMapInfo(*CI, **RI, *CV, CurInfo);
+-        // Generate correct mapping for variables captured by reference in
+-        // lambdas.
+-        if (CI->capturesVariable())
+-          MEHandler.generateInfoForLambdaCaptures(CI->getCapturedVar(), *CV,
+-                                                  CurInfo, LambdaPointers);
+-      }
+-      // We expect to have at least an element of information for this capture.
+-      assert((!CurInfo.BasePointers.empty() || PartialStruct.Base.isValid()) &&
+-             "Non-existing map pointer for capture!");
+-      assert(CurInfo.BasePointers.size() == CurInfo.Pointers.size() &&
+-             CurInfo.BasePointers.size() == CurInfo.Sizes.size() &&
+-             CurInfo.BasePointers.size() == CurInfo.Types.size() &&
+-             CurInfo.BasePointers.size() == CurInfo.Mappers.size() &&
+-             "Inconsistent map information sizes!");
+-
+-      // If there is an entry in PartialStruct it means we have a struct with
+-      // individual members mapped. Emit an extra combined entry.
+-      if (PartialStruct.Base.isValid()) {
+-        CombinedInfo.append(PartialStruct.PreliminaryMapData);
+-        MEHandler.emitCombinedEntry(
+-            CombinedInfo, CurInfo.Types, PartialStruct, CI->capturesThis(),
+-            nullptr, !PartialStruct.PreliminaryMapData.BasePointers.empty());
+-      }
+-
+-      // We need to append the results of this capture to what we already have.
+-      CombinedInfo.append(CurInfo);
+-    }
+-    // Adjust MEMBER_OF flags for the lambdas captures.
+-    MEHandler.adjustMemberOfForLambdaCaptures(
+-        LambdaPointers, CombinedInfo.BasePointers, CombinedInfo.Pointers,
+-        CombinedInfo.Types);
+-    // Map any list items in a map clause that were not captures because they
+-    // weren't referenced within the construct.
+-    MEHandler.generateAllInfo(CombinedInfo, MappedVarSet);
+-
+-    CGOpenMPRuntime::TargetDataInfo Info;
+-    // Fill up the arrays and create the arguments.
+-    emitOffloadingArrays(CGF, CombinedInfo, Info, OMPBuilder);
+-    bool EmitDebug = CGF.CGM.getCodeGenOpts().getDebugInfo() !=
+-                     llvm::codegenoptions::NoDebugInfo;
+-    OMPBuilder.emitOffloadingArraysArgument(CGF.Builder, Info.RTArgs, Info,
+-                                            EmitDebug,
+-                                            /*ForEndCall=*/false);
+-
+-    InputInfo.NumberOfTargetItems = Info.NumberOfPtrs;
+-    InputInfo.BasePointersArray = Address(Info.RTArgs.BasePointersArray,
+-                                          CGF.VoidPtrTy, CGM.getPointerAlign());
+-    InputInfo.PointersArray = Address(Info.RTArgs.PointersArray, CGF.VoidPtrTy,
+-                                      CGM.getPointerAlign());
+-    InputInfo.SizesArray =
+-        Address(Info.RTArgs.SizesArray, CGF.Int64Ty, CGM.getPointerAlign());
+-    InputInfo.MappersArray =
+-        Address(Info.RTArgs.MappersArray, CGF.VoidPtrTy, CGM.getPointerAlign());
+-    MapTypesArray = Info.RTArgs.MapTypesArray;
+-    MapNamesArray = Info.RTArgs.MapNamesArray;
+-    if (RequiresOuterTask)
+-      CGF.EmitOMPTargetTaskBasedDirective(D, ThenGen, InputInfo);
+-    else
+-      emitInlinedDirective(CGF, D.getDirectiveKind(), ThenGen);
+-  };
+-
+-  auto &&TargetElseGen = [this, &ElseGen, &D, RequiresOuterTask](
+-                             CodeGenFunction &CGF, PrePostActionTy &) {
+-    if (RequiresOuterTask) {
+-      CodeGenFunction::OMPTargetDataInfo InputInfo;
+-      CGF.EmitOMPTargetTaskBasedDirective(D, ElseGen, InputInfo);
+-    } else {
+-      emitInlinedDirective(CGF, D.getDirectiveKind(), ElseGen);
+-    }
+-  };
++  auto &&TargetElseGen =
++      [this, OutlinedFn, &D, &CapturedVars, RequiresOuterTask, &CS,
++       OffloadingMandatory](CodeGenFunction &CGF, PrePostActionTy &) {
++        emitTargetCallElse(this, OutlinedFn, D, CapturedVars, RequiresOuterTask,
++                           CS, OffloadingMandatory, CGF);
++      };
+ 
+   // If we have a target function ID it means that we need to support
+   // offloading, otherwise, just execute on the host. We need to execute on host
+diff -Naur -x .git -x __pycache__ -x docs -x test llvm-project.upstream/clang/lib/CodeGen/CGOpenMPRuntime.h llvm-project/clang/lib/CodeGen/CGOpenMPRuntime.h
+--- llvm-project.upstream/clang/lib/CodeGen/CGOpenMPRuntime.h	2023-05-16 13:15:57.366393531 -0400
++++ llvm-project/clang/lib/CodeGen/CGOpenMPRuntime.h	2023-05-29 12:35:45.267105157 -0400
+@@ -327,42 +327,6 @@
+                                                 bool IsOffloadEntry,
+                                                 const RegionCodeGenTy &CodeGen);
+ 
+-  /// Emits object of ident_t type with info for source location.
+-  /// \param Flags Flags for OpenMP location.
+-  /// \param EmitLoc emit source location with debug-info is off.
+-  ///
+-  llvm::Value *emitUpdateLocation(CodeGenFunction &CGF, SourceLocation Loc,
+-                                  unsigned Flags = 0, bool EmitLoc = false);
+-
+-  /// Emit the number of teams for a target directive.  Inspect the num_teams
+-  /// clause associated with a teams construct combined or closely nested
+-  /// with the target directive.
+-  ///
+-  /// Emit a team of size one for directives such as 'target parallel' that
+-  /// have no associated teams construct.
+-  ///
+-  /// Otherwise, return nullptr.
+-  const Expr *getNumTeamsExprForTargetDirective(CodeGenFunction &CGF,
+-                                                const OMPExecutableDirective &D,
+-                                                int32_t &DefaultVal);
+-  llvm::Value *emitNumTeamsForTargetDirective(CodeGenFunction &CGF,
+-                                              const OMPExecutableDirective &D);
+-  /// Emit the number of threads for a target directive.  Inspect the
+-  /// thread_limit clause associated with a teams construct combined or closely
+-  /// nested with the target directive.
+-  ///
+-  /// Emit the num_threads clause for directives such as 'target parallel' that
+-  /// have no associated teams construct.
+-  ///
+-  /// Otherwise, return nullptr.
+-  const Expr *
+-  getNumThreadsExprForTargetDirective(CodeGenFunction &CGF,
+-                                      const OMPExecutableDirective &D,
+-                                      int32_t &DefaultVal);
+-  llvm::Value *
+-  emitNumThreadsForTargetDirective(CodeGenFunction &CGF,
+-                                   const OMPExecutableDirective &D);
+-
+   /// Returns pointer to ident_t type.
+   llvm::Type *getIdentTyPointerTy();
+ 
+@@ -652,15 +616,6 @@
+                             llvm::Function *TaskFunction, QualType SharedsTy,
+                             Address Shareds, const OMPTaskDataTy &Data);
+ 
+-  /// Return the trip count of loops associated with constructs / 'target teams
+-  /// distribute' and 'teams distribute parallel for'. \param SizeEmitter Emits
+-  /// the int64 value for the number of iterations of the associated loop.
+-  llvm::Value *emitTargetNumIterationsCall(
+-      CodeGenFunction &CGF, const OMPExecutableDirective &D,
+-      llvm::function_ref<llvm::Value *(CodeGenFunction &CGF,
+-                                       const OMPLoopDirective &D)>
+-          SizeEmitter);
+-
+   /// Emit update for lastprivate conditional data.
+   void emitLastprivateConditionalUpdate(CodeGenFunction &CGF, LValue IVLVal,
+                                         StringRef UniqueDeclName, LValue LVal,
+@@ -687,6 +642,51 @@
+   virtual ~CGOpenMPRuntime() {}
+   virtual void clear();
+ 
++  /// Emits object of ident_t type with info for source location.
++  /// \param Flags Flags for OpenMP location.
++  /// \param EmitLoc emit source location with debug-info is off.
++  ///
++  llvm::Value *emitUpdateLocation(CodeGenFunction &CGF, SourceLocation Loc,
++                                  unsigned Flags = 0, bool EmitLoc = false);
++
++  /// Emit the number of teams for a target directive.  Inspect the num_teams
++  /// clause associated with a teams construct combined or closely nested
++  /// with the target directive.
++  ///
++  /// Emit a team of size one for directives such as 'target parallel' that
++  /// have no associated teams construct.
++  ///
++  /// Otherwise, return nullptr.
++  const Expr *getNumTeamsExprForTargetDirective(CodeGenFunction &CGF,
++                                                const OMPExecutableDirective &D,
++                                                int32_t &DefaultVal);
++  llvm::Value *emitNumTeamsForTargetDirective(CodeGenFunction &CGF,
++                                              const OMPExecutableDirective &D);
++  /// Emit the number of threads for a target directive.  Inspect the
++  /// thread_limit clause associated with a teams construct combined or closely
++  /// nested with the target directive.
++  ///
++  /// Emit the num_threads clause for directives such as 'target parallel' that
++  /// have no associated teams construct.
++  ///
++  /// Otherwise, return nullptr.
++  const Expr *
++  getNumThreadsExprForTargetDirective(CodeGenFunction &CGF,
++                                      const OMPExecutableDirective &D,
++                                      int32_t &DefaultVal);
++  llvm::Value *
++  emitNumThreadsForTargetDirective(CodeGenFunction &CGF,
++                                   const OMPExecutableDirective &D);
++
++  /// Return the trip count of loops associated with constructs / 'target teams
++  /// distribute' and 'teams distribute parallel for'. \param SizeEmitter Emits
++  /// the int64 value for the number of iterations of the associated loop.
++  llvm::Value *emitTargetNumIterationsCall(
++      CodeGenFunction &CGF, const OMPExecutableDirective &D,
++      llvm::function_ref<llvm::Value *(CodeGenFunction &CGF,
++                                       const OMPLoopDirective &D)>
++          SizeEmitter);
++
+   /// Returns true if the current target is a GPU.
+   virtual bool isTargetCodegen() const { return false; }
+ 
+diff -Naur -x .git -x __pycache__ -x docs -x test llvm-project.upstream/clang/lib/Driver/ToolChains/Clang.cpp llvm-project/clang/lib/Driver/ToolChains/Clang.cpp
+--- llvm-project.upstream/clang/lib/Driver/ToolChains/Clang.cpp	2023-05-24 07:23:17.287120490 -0400
++++ llvm-project/clang/lib/Driver/ToolChains/Clang.cpp	2023-05-24 10:32:02.879250496 -0400
+@@ -8228,7 +8228,8 @@
+   assert(Input.isFilename() && "Invalid input.");
+   CmdArgs.push_back(Input.getFilename());
+ 
+-  const char *Exec = getToolChain().getDriver().getClangProgramPath();
++  // TODO This is a workaround to enable using -save-temps with flang-new
++  const char *Exec = Args.MakeArgString(getToolChain().GetProgramPath("clang"));
+   if (D.CC1Main && !D.CCGenDiagnostics) {
+     // Invoke cc1as directly in this process.
+     C.addCommand(std::make_unique<CC1Command>(
+diff -Naur -x .git -x __pycache__ -x docs -x test llvm-project.upstream/clang/lib/Driver/ToolChains/Flang.cpp llvm-project/clang/lib/Driver/ToolChains/Flang.cpp
+--- llvm-project.upstream/clang/lib/Driver/ToolChains/Flang.cpp	2023-05-19 11:39:33.505778457 -0400
++++ llvm-project/clang/lib/Driver/ToolChains/Flang.cpp	2023-05-30 09:58:20.600301098 -0400
+@@ -429,6 +429,10 @@
+   }
+ 
+   const InputInfo &Input = Inputs[0];
++  if (Input.isFilename()) {
++    CmdArgs.push_back("-main-file-name");
++    CmdArgs.push_back(Args.MakeArgString(Input.getBaseInput()));
++  }
+   types::ID InputType = Input.getType();
+ 
+   // Add preprocessing options like -I, -D, etc. if we are using the
+diff -Naur -x .git -x __pycache__ -x docs -x test llvm-project.upstream/clang/unittests/Serialization/CMakeLists.txt llvm-project/clang/unittests/Serialization/CMakeLists.txt
+--- llvm-project.upstream/clang/unittests/Serialization/CMakeLists.txt	2023-05-24 07:23:17.339120452 -0400
++++ llvm-project/clang/unittests/Serialization/CMakeLists.txt	2023-05-30 08:16:16.968245132 -0400
+@@ -1,6 +1,7 @@
+ set(LLVM_LINK_COMPONENTS
+   BitReader
+   BitstreamReader
++  FrontendOpenMP
+   Support
+   )
+ 
+@@ -20,4 +21,5 @@
+   clangSema
+   clangSerialization
+   clangTooling
++  clangASTMatchers
+   )
+diff -Naur -x .git -x __pycache__ -x docs -x test llvm-project.upstream/flang/include/flang/Frontend/FrontendOptions.h llvm-project/flang/include/flang/Frontend/FrontendOptions.h
+--- llvm-project.upstream/flang/include/flang/Frontend/FrontendOptions.h	2022-11-28 13:39:59.241654116 -0500
++++ llvm-project/flang/include/flang/Frontend/FrontendOptions.h	2023-05-30 09:58:20.600301098 -0400
+@@ -296,6 +296,8 @@
+   /// \return The input kind for the extension, or Language::Unknown if the
+   /// extension is not recognized.
+   static InputKind getInputKindForExtension(llvm::StringRef extension);
++
++  std::string mainFileName;
+ };
+ } // namespace Fortran::frontend
+ 
+diff -Naur -x .git -x __pycache__ -x docs -x test llvm-project.upstream/flang/lib/Frontend/CompilerInvocation.cpp llvm-project/flang/lib/Frontend/CompilerInvocation.cpp
+--- llvm-project.upstream/flang/lib/Frontend/CompilerInvocation.cpp	2023-05-19 11:39:33.533778417 -0400
++++ llvm-project/flang/lib/Frontend/CompilerInvocation.cpp	2023-05-30 09:58:20.600301098 -0400
+@@ -927,6 +927,9 @@
+   res.frontendOpts.mlirArgs =
+       args.getAllArgValues(clang::driver::options::OPT_mmlir);
+ 
++  res.frontendOpts.mainFileName = std::string(
++      args.getLastArgValue(clang::driver::options::OPT_main_file_name));
++
+   success &= parseFloatingPointArgs(res, args, diags);
+ 
+   return success;
+diff -Naur -x .git -x __pycache__ -x docs -x test llvm-project.upstream/flang/lib/Frontend/FrontendActions.cpp llvm-project/flang/lib/Frontend/FrontendActions.cpp
+--- llvm-project.upstream/flang/lib/Frontend/FrontendActions.cpp	2023-05-19 11:39:33.533778417 -0400
++++ llvm-project/flang/lib/Frontend/FrontendActions.cpp	2023-05-30 09:58:20.600301098 -0400
+@@ -23,6 +23,7 @@
+ #include "flang/Optimizer/Dialect/Support/KindMapping.h"
+ #include "flang/Optimizer/Support/InitFIR.h"
+ #include "flang/Optimizer/Support/Utils.h"
++#include "flang/Optimizer/Transforms/Passes.h"
+ #include "flang/Parser/dump-parse-tree.h"
+ #include "flang/Parser/parsing.h"
+ #include "flang/Parser/provenance.h"
+@@ -275,7 +276,10 @@
+ 
+   // Fetch module from lb, so we can set
+   mlirModule = std::make_unique<mlir::ModuleOp>(lb.getModule());
+-
++  llvm::StringRef mainFileName =
++      ci.getInvocation().getFrontendOpts().mainFileName;
++  if (!mainFileName.empty())
++    mlirModule->setName(ci.getInvocation().getFrontendOpts().mainFileName);
+   if (!setUpTargetMachine())
+     return false;
+ 
+diff -Naur -x .git -x __pycache__ -x docs -x test llvm-project.upstream/flang/lib/Lower/OpenMP.cpp llvm-project/flang/lib/Lower/OpenMP.cpp
+--- llvm-project.upstream/flang/lib/Lower/OpenMP.cpp	2023-05-19 11:39:33.533778417 -0400
++++ llvm-project/flang/lib/Lower/OpenMP.cpp	2023-05-29 12:35:45.271105154 -0400
+@@ -2494,6 +2494,112 @@
+   converter.bindSymbol(sym, symThreadprivateExv);
+ }
+ 
++void handleDeclareTarget(Fortran::lower::AbstractConverter &converter,
++                         Fortran::lower::pft::Evaluation &eval,
++                         const Fortran::parser::OpenMPDeclareTargetConstruct
++                             &declareTargetConstruct) {
++  llvm::SmallVector<std::pair<mlir::omp::DeclareTargetCaptureClause,
++                              Fortran::semantics::Symbol>,
++                    0>
++      symbolAndClause;
++  auto findFuncAndVarSyms = [&](const Fortran::parser::OmpObjectList &objList,
++                                mlir::omp::DeclareTargetCaptureClause clause) {
++    for (const auto &ompObject : objList.v) {
++      Fortran::common::visit(
++          Fortran::common::visitors{
++              [&](const Fortran::parser::Designator &designator) {
++                if (const Fortran::parser::Name *name =
++                        getDesignatorNameIfDataRef(designator)) {
++                  symbolAndClause.push_back(
++                      std::make_pair(clause, *name->symbol));
++                }
++              },
++              [&](const Fortran::parser::Name &name) {
++                symbolAndClause.push_back(std::make_pair(clause, *name.symbol));
++              }},
++          ompObject.u);
++    }
++  };
++
++  const auto &spec{std::get<Fortran::parser::OmpDeclareTargetSpecifier>(
++      declareTargetConstruct.t)};
++  auto mod = converter.getFirOpBuilder().getModule();
++
++  // The default capture type
++  auto deviceType = Fortran::parser::OmpDeviceTypeClause::Type::Any;
++  if (const auto *objectList{
++          Fortran::parser::Unwrap<Fortran::parser::OmpObjectList>(spec.u)}) {
++    // Case: declare target(func, var1, var2)
++    findFuncAndVarSyms(*objectList, mlir::omp::DeclareTargetCaptureClause::to);
++  } else if (const auto *clauseList{
++                 Fortran::parser::Unwrap<Fortran::parser::OmpClauseList>(
++                     spec.u)}) {
++    if (clauseList->v.empty()) {
++      // Case: declare target, implicit capture of function
++      symbolAndClause.push_back(
++          std::make_pair(mlir::omp::DeclareTargetCaptureClause::to,
++                         eval.getOwningProcedure()->getSubprogramSymbol()));
++    }
++
++    for (const auto &clause : clauseList->v) {
++      if (const auto *toClause{
++              std::get_if<Fortran::parser::OmpClause::To>(&clause.u)}) {
++        // Case: declare target to(func, var1, var2)...
++        findFuncAndVarSyms(toClause->v,
++                           mlir::omp::DeclareTargetCaptureClause::to);
++      } else if (const auto *linkClause{
++                     std::get_if<Fortran::parser::OmpClause::Link>(
++                         &clause.u)}) {
++        // Case: declare target link(var1, var2)...
++        findFuncAndVarSyms(linkClause->v,
++                           mlir::omp::DeclareTargetCaptureClause::link);
++      } else if (const auto *deviceClause{
++                     std::get_if<Fortran::parser::OmpClause::DeviceType>(
++                         &clause.u)}) {
++        // Case: declare target ... device_type(any | host | nohost)
++        deviceType = deviceClause->v.v;
++      }
++    }
++  }
++
++  for (auto sym : symbolAndClause) {
++    auto *op = mod.lookupSymbol(converter.mangleName(std::get<1>(sym)));
++
++    auto declareTargetOp = dyn_cast<mlir::omp::DeclareTargetInterface>(op);
++    if (!declareTargetOp)
++      fir::emitFatalError(
++          converter.getCurrentLocation(),
++          "Attempt to apply declare target on unsupproted operation");
++
++    mlir::omp::DeclareTargetDeviceType newDeviceType;
++    switch (deviceType) {
++    case Fortran::parser::OmpDeviceTypeClause::Type::Nohost:
++      newDeviceType = mlir::omp::DeclareTargetDeviceType::nohost;
++      break;
++    case Fortran::parser::OmpDeviceTypeClause::Type::Host:
++      newDeviceType = mlir::omp::DeclareTargetDeviceType::host;
++      break;
++    case Fortran::parser::OmpDeviceTypeClause::Type::Any:
++      newDeviceType = mlir::omp::DeclareTargetDeviceType::any;
++      break;
++    }
++
++    // The function or global already has a declare target applied to it,
++    // very likely through implicit capture (usage in another declare
++    // target function/subroutine). It should be marked as any if it has
++    // been assigned both host and nohost, else we skip, as there is no
++    // change
++    if (declareTargetOp.isDeclareTarget()) {
++      if (declareTargetOp.getDeclareTargetDeviceType() != newDeviceType)
++        declareTargetOp.setDeclareTarget(
++            mlir::omp::DeclareTargetDeviceType::any, std::get<0>(sym));
++      continue;
++    }
++
++    declareTargetOp.setDeclareTarget(newDeviceType, std::get<0>(sym));
++  }
++}
++
+ void Fortran::lower::genOpenMPDeclarativeConstruct(
+     Fortran::lower::AbstractConverter &converter,
+     Fortran::lower::pft::Evaluation &eval,
+@@ -2516,8 +2622,7 @@
+           },
+           [&](const Fortran::parser::OpenMPDeclareTargetConstruct
+                   &declareTargetConstruct) {
+-            TODO(converter.getCurrentLocation(),
+-                 "OpenMPDeclareTargetConstruct");
++            handleDeclareTarget(converter, eval, declareTargetConstruct);
+           },
+           [&](const Fortran::parser::OpenMPRequiresConstruct
+                   &requiresConstruct) {
+diff -Naur -x .git -x __pycache__ -x docs -x test llvm-project.upstream/flang/lib/Semantics/CMakeLists.txt llvm-project/flang/lib/Semantics/CMakeLists.txt
+--- llvm-project.upstream/flang/lib/Semantics/CMakeLists.txt	2023-02-27 09:21:58.579667886 -0500
++++ llvm-project/flang/lib/Semantics/CMakeLists.txt	2023-05-29 12:35:45.271105154 -0400
+@@ -28,6 +28,7 @@
+   data-to-inits.cpp
+   definable.cpp
+   expression.cpp
++  finalize-omp.cpp
+   mod-file.cpp
+   pointer-assignment.cpp
+   program-tree.cpp
+diff -Naur -x .git -x __pycache__ -x docs -x test llvm-project.upstream/flang/lib/Semantics/finalize-omp.cpp llvm-project/flang/lib/Semantics/finalize-omp.cpp
+--- llvm-project.upstream/flang/lib/Semantics/finalize-omp.cpp	1969-12-31 19:00:00.000000000 -0500
++++ llvm-project/flang/lib/Semantics/finalize-omp.cpp	2023-05-29 12:35:45.271105154 -0400
+@@ -0,0 +1,478 @@
++#include "finalize-omp.h"
++#include "flang/Parser/parse-tree-visitor.h"
++#include "flang/Semantics/tools.h"
++
++#include <map>
++#include <variant>
++
++namespace Fortran::semantics {
++
++using namespace parser::literals;
++
++namespace {
++using Subprograms =
++    std::variant<parser::SubroutineSubprogram *, parser::FunctionSubprogram *>;
++
++parser::Name *getNameFromVariant(Subprograms &x) {
++  if (std::holds_alternative<parser::FunctionSubprogram *>(x)) {
++    parser::FunctionStmt &Stmt =
++        std::get<0>(std::get<parser::FunctionSubprogram *>(x)->t).statement;
++    return &std::get<parser::Name>(Stmt.t);
++  }
++
++  if (std::holds_alternative<parser::SubroutineSubprogram *>(x)) {
++    parser::SubroutineStmt &Stmt =
++        std::get<0>(std::get<parser::SubroutineSubprogram *>(x)->t).statement;
++    return &std::get<parser::Name>(Stmt.t);
++  }
++
++  return nullptr;
++}
++
++class GatherCallRefs {
++public:
++  GatherCallRefs(std::map<std::string, Subprograms> &subprograms)
++      : subprograms(subprograms) {}
++
++  // Default action for a parse tree node is to visit children.
++  template <typename T> bool Pre(T &) { return true; }
++  template <typename T> void Post(T &) {}
++
++  void Post(parser::Call &call) {
++    if (std::holds_alternative<parser::Name>(std::get<0>(call.t).u))
++      callNames.push_back(std::get<parser::Name>(std::get<0>(call.t).u));
++  }
++
++  void Post(parser::CallStmt &call) {
++    if (call.typedCall) {
++      // find function in list of functions, get name from function
++      auto subprogram = subprograms.find(call.typedCall->proc().GetName());
++      if (subprogram != subprograms.end())
++        callNames.push_back(*getNameFromVariant(subprogram->second));
++    }
++  }
++
++  std::map<std::string, Subprograms> &subprograms;
++  llvm::SmallVector<parser::Name> callNames;
++};
++
++class GatherDeclareTargetConstruct {
++public:
++  GatherDeclareTargetConstruct() {}
++
++  // Default action for a parse tree node is to visit children.
++  template <typename T> bool Pre(T &) { return true; }
++  template <typename T> void Post(T &) {}
++
++  void Post(parser::OpenMPDeclareTargetConstruct &DeclTar) {
++    declTarCons.push_back(&DeclTar);
++  }
++
++  llvm::SmallVector<parser::OpenMPDeclareTargetConstruct *> declTarCons;
++};
++
++} // namespace
++
++// This pass works by passing over the modules PFT and collecting all of the
++// ProgramUnits(subroutines / functions) and InterfaceBlocks related to these
++// units as it passes through these nodes. When it meets a declare target
++// or target region node, it begins to parse through the region or function tied
++// to the declare target or target region. it reads through the extended-list of
++// the declare target directive's clause finding functions (the current function
++// should be referred to in this declare target if a list is specified), if no
++// list is specified the function the declare target is in, is considered the
++// only function in the declare target list. For target region's the functions
++// calls contained within the region are recursively processed.
++
++// The functions processed with the algorithm then have a declare target
++// construct generated within them, referencing themselves with the device_type
++// Any (as even if it's from a nohost region we cannot assume it's not used
++// elsewhere for the host without more information, we can only state it is
++// needed for device), only if they do not already have one already. If there
++// is one in existence, and the device_type is host then we switch the device
++// type to any, as it now exists on device. However, if the declare target has
++// more than just the function within the declare target's to list, then we
++// seperate it out into a new declare target and change the device_type of this
++// newly generated declare target, the original declare target remains the same
++// minus the removed function name. This is intended to avoid issues of
++// switching device_type of unrelated declare target items. Declare target's
++// with extended-lists or no list at all are ignored, as they already refer to
++// the function they are nested in by default.
++
++// Multiple declare targets referencing the same thing utilisng
++// To clauses are not illegal (only when it's a link clause, which cannot be
++// used in conjunction with functions), so on the off chance the pass generates
++// more than one declare target with differing device_types (perhaps another
++// declare target already refers to it and we did not find it as it's external)
++// we handle this apon lowering, simply ignoring it if we already have a declare
++// target with the same device_type, or changing it to any if we meet two of
++// differing types referencing the same function.
++class ImplicitDeclareTargetCapture {
++  Subprograms currentSubprogram_;
++  std::map<std::string, Subprograms> subPrograms_;
++  std::map<std::string, parser::InterfaceBody *> interfaces_;
++  bool insideOfInterfaceBody_ = false;
++
++  parser::Messages &messages_;
++
++  template <typename T>
++  parser::OpenMPDeclareTargetConstruct *getDeclTarConstruct(
++      T &body, parser::Name name) {
++
++    GatherDeclareTargetConstruct gatherer{};
++    parser::Walk(body, gatherer);
++    if (gatherer.declTarCons.size() > 0) {
++      // Find if there is a construct the function is already referenced in
++      for (auto *declTar : gatherer.declTarCons) {
++        if (existsInDeclareTargetOrClauseless(*declTar, name))
++          return declTar;
++      }
++    }
++
++    return nullptr;
++  }
++
++  std::list<parser::OpenMPDeclarativeConstruct> *getDeclarativeConstructList(
++      parser::InterfaceBody &body) {
++    if (auto *func{parser::Unwrap<parser::InterfaceBody::Function>(body.u)}) {
++      auto &spec{
++          std::get<common::Indirection<parser::SpecificationPart>>(func->t)};
++      return &std::get<std::list<parser::OpenMPDeclarativeConstruct>>(
++          spec.value().t);
++    }
++
++    if (auto *subr{parser::Unwrap<parser::InterfaceBody::Subroutine>(body.u)}) {
++      auto &spec{
++          std::get<common::Indirection<parser::SpecificationPart>>(subr->t)};
++      return &std::get<std::list<parser::OpenMPDeclarativeConstruct>>(
++          spec.value().t);
++    }
++
++    return nullptr;
++  }
++
++  void createOrModifyDeclareTargetTo(parser::OpenMPDeclareTargetConstruct *x,
++      std::list<parser::OpenMPDeclarativeConstruct> *conList, parser::Name name,
++      parser::OmpClause::DeviceType *parentsDeviceTypeClause) {
++    auto createDeclareTargetTo = [](parser::Name name) {
++      // Create the object list containing the functions name
++      std::list<parser::OmpObject> objects;
++      objects.push_back(parser::OmpObject{
++          parser::Designator{parser::DataRef{std::move(name)}}});
++      auto objList = parser::OmpObjectList{std::move(objects)};
++      // Create ClauseList of: to(FunctionName) device_type(Any)
++      std::list<parser::OmpClause> clauses;
++      clauses.push_back(parser::OmpClause::To{std::move(objList)});
++      clauses.push_back(parser::OmpClause::DeviceType{
++          Fortran::parser::OmpDeviceTypeClause::Type::Any});
++      auto newClauseList = parser::OmpClauseList{std::move(clauses)};
++      // Create the Declare Target construct adding our clauses: declare target
++      // to(FunctionName) device_type(Any)
++      auto declTarget =
++          parser::OmpDeclareTargetWithClause{std::move(newClauseList)};
++      auto specifier = parser::OmpDeclareTargetSpecifier{std::move(declTarget)};
++      return parser::OpenMPDeclareTargetConstruct{
++          parser::Verbatim{}, std::move(specifier)};
++    };
++
++    if (x) {
++      auto &spec{std::get<parser::OmpDeclareTargetSpecifier>(x->t)};
++      auto *clauseList{parser::Unwrap<parser::OmpClauseList>(spec.u)};
++      parser::OmpClause::DeviceType *deviceType = nullptr;
++
++      // clauseless and extended-list cases don't need to be considered here,
++      // they should just return with no alterations. This is because
++      // extended-lists cannot have device_types and are implicitly device_type
++      // any already, and declare target without any clauses or extended-lists
++      // are implicitly extended-lists.
++      if (clauseList && !clauseList->v.empty()) {
++        for (auto &clause : clauseList->v) {
++          if (auto *devType{
++                  std::get_if<parser::OmpClause::DeviceType>(&clause.u)}) {
++            deviceType = devType;
++          }
++        }
++
++        // We have a declare target already, however, it is marked host and the
++        // function is sharing it with other list-items, we do not want to
++        // change the markings on the existing declare target, so we wish to
++        // split our function from the rest of the list into a newly generated
++        // declare target.
++        for (auto &clause : clauseList->v) {
++          if (auto *toClause{std::get_if<parser::OmpClause::To>(&clause.u)}) {
++            if (toClause->v.v.size() > 1 &&
++                deviceType->v.v ==
++                    Fortran::parser::OmpDeviceTypeClause::Type::Host) {
++              // remove from existing declare target with multiple objects
++              for (auto ompObject = toClause->v.v.begin();
++                   ompObject != toClause->v.v.end(); ompObject++) {
++                if (auto *objName{parser::Unwrap<parser::Name>(ompObject->u)})
++                  if (objName->ToString() == name.ToString()) {
++                    toClause->v.v.erase(ompObject);
++                    break;
++                  }
++              }
++
++              // generate the new declare target
++              conList->push_back(createDeclareTargetTo(name));
++              return;
++            }
++          }
++        }
++
++        // This function, is required by a target function, we must swap
++        // it to a new device type.
++        if ((parentsDeviceTypeClause &&
++                parentsDeviceTypeClause->v.v != deviceType->v.v) ||
++            deviceType->v.v ==
++                Fortran::parser::OmpDeviceTypeClause::Type::Host) {
++          deviceType->v.v = Fortran::parser::OmpDeviceTypeClause::Type::Any;
++        }
++      }
++      return;
++    }
++
++    // There is no declare target referencing this function within the function
++    // yet, we must generate one.
++    conList->push_back(createDeclareTargetTo(name));
++  }
++
++  bool isTargetRegion(parser::OpenMPBlockConstruct &x) {
++    auto &blockDir{std::get<parser::OmpBlockDirective>(
++        std::get<parser::OmpBeginBlockDirective>(x.t).t)};
++    if (blockDir.v == llvm::omp::Directive::OMPD_target)
++      return true;
++    return false;
++  }
++
++  bool existsInDeclareTargetOrClauseless(
++      parser::OpenMPDeclareTargetConstruct &x, parser::Name name) {
++    auto existsInObjList = [](parser::OmpObjectList &objList,
++                               parser::Name name) {
++      for (auto &ompObject : objList.v)
++        if (auto *objName{parser::Unwrap<parser::Name>(ompObject)})
++          if (objName->ToString() == name.ToString())
++            return true;
++      return false;
++    };
++
++    auto &spec{std::get<parser::OmpDeclareTargetSpecifier>(x.t)};
++    if (parser::OmpObjectList *
++        objectList{parser::Unwrap<parser::OmpObjectList>(spec.u)}) {
++      return existsInObjList(*objectList, name);
++    }
++
++    if (auto *clauseList{parser::Unwrap<parser::OmpClauseList>(spec.u)}) {
++      // declare target with no clause case.
++      if (clauseList->v.empty())
++        return true;
++
++      for (auto &clause : clauseList->v) {
++        if (auto *toClause{std::get_if<parser::OmpClause::To>(&clause.u)}) {
++          return existsInObjList(toClause->v, name);
++        }
++
++        if (auto *linkClause{std::get_if<parser::OmpClause::Link>(&clause.u)}) {
++          return existsInObjList(linkClause->v, name);
++        }
++      }
++    }
++
++    return false;
++  }
++
++  void addDeclareTarget(Subprograms &x, parser::Name name,
++      parser::OmpClause::DeviceType *parentsDeviceTypeClause) {
++    std::list<parser::OpenMPDeclarativeConstruct> *conList = nullptr;
++    if (std::holds_alternative<parser::FunctionSubprogram *>(x)) {
++      conList = &std::get<std::list<parser::OpenMPDeclarativeConstruct>>(
++          std::get<parser::SpecificationPart>(
++              std::get<parser::FunctionSubprogram *>(x)->t)
++              .t);
++    } else if (std::holds_alternative<parser::SubroutineSubprogram *>(x)) {
++      conList = &std::get<std::list<parser::OpenMPDeclarativeConstruct>>(
++          std::get<parser::SpecificationPart>(
++              std::get<parser::SubroutineSubprogram *>(x)->t)
++              .t);
++    }
++
++    GatherDeclareTargetConstruct gatherer{};
++    parser::OpenMPDeclareTargetConstruct *declareTarget = nullptr;
++    if (std::holds_alternative<parser::SubroutineSubprogram *>(x))
++      declareTarget = getDeclTarConstruct(
++          *std::get<parser::SubroutineSubprogram *>(x), name);
++    else
++      declareTarget =
++          getDeclTarConstruct(*std::get<parser::FunctionSubprogram *>(x), name);
++
++    createOrModifyDeclareTargetTo(
++        declareTarget, conList, name, parentsDeviceTypeClause);
++
++    // If the declare targetted function has an interface we must make sure
++    // the changes are reflected in the interface, as they should be identical
++    // executing the same function on it, should result in the same set of
++    // changes, if they are not idenitcal, then this is already incorrect
++    // OpenMP.
++    auto interface = interfaces_.find(name.ToString());
++    if (interface != interfaces_.end()) {
++      createOrModifyDeclareTargetTo(
++          getDeclTarConstruct(*interface->second, name),
++          getDeclarativeConstructList(*interface->second), name,
++          parentsDeviceTypeClause);
++    }
++  }
++
++  void markDeclTarForEachProgramUnit(
++      std::map<std::string, Subprograms> subPrograms, parser::Name name,
++      parser::OmpClause::DeviceType *parentsDeviceTypeClause = nullptr,
++      bool isOriginalDeclTar = false) {
++
++    auto subProgram = subPrograms.extract(name.ToString());
++    if (subProgram.empty())
++      return;
++
++    // Add a declare target to the subprogram and its InterfaceBlock (if
++    // it has one) if one does not already exist
++    if (!isOriginalDeclTar)
++      addDeclareTarget(subProgram.mapped(), name, parentsDeviceTypeClause);
++
++    GatherCallRefs gatherer{subPrograms_};
++    if (std::holds_alternative<parser::SubroutineSubprogram *>(
++            subProgram.mapped()))
++      parser::Walk(
++          *std::get<parser::SubroutineSubprogram *>(subProgram.mapped()),
++          gatherer);
++    else
++      parser::Walk(*std::get<parser::FunctionSubprogram *>(subProgram.mapped()),
++          gatherer);
++
++    // Recurse on all calls found within the function, removing
++    // visited functions from the programUnits list as we go, if it
++    // is no longer in the list of units, then we have already
++    // processed it and made it declare target
++    for (auto v : gatherer.callNames) {
++      markDeclTarForEachProgramUnit(subPrograms, v, parentsDeviceTypeClause);
++    }
++  }
++
++public:
++  template <typename T> bool Pre(T &) { return true; }
++  template <typename T> void Post(T &) {}
++  ImplicitDeclareTargetCapture(SemanticsContext &context)
++      : messages_{context.messages()} {}
++
++  // The entry point for rewriting declare target regions which
++  // contain functions nested within to be declare target
++  // themselves.
++  void Post(parser::OpenMPBlockConstruct &x) {
++    if (isTargetRegion(x)) {
++      GatherCallRefs gatherer{subPrograms_};
++      parser::Walk(std::get<parser::Block>(x.t), gatherer);
++
++      auto deviceType = parser::OmpClause::DeviceType{
++          Fortran::parser::OmpDeviceTypeClause::Type::Nohost};
++      for (auto call : gatherer.callNames)
++        markDeclTarForEachProgramUnit(subPrograms_, call, &deviceType);
++    }
++  }
++
++  // The entry point for rewriting declare target specifiers which
++  // contain functions nested within to be declare target themselves.
++  void Post(parser::OpenMPDeclareTargetConstruct &x) {
++    // InterfaceBody specifications of functions are handled as we parse the
++    // functions, if we alter a function to add a declare target,
++    // we check if an interface body also exists for it, if it does we must
++    // keep them in synch. The OpenMP specification states that a user must
++    // define synchronized interface and functions definitions for declare
++    // target.
++    if (!insideOfInterfaceBody_) {
++      auto &spec{std::get<parser::OmpDeclareTargetSpecifier>(x.t)};
++      if (parser::OmpObjectList *
++          objectList{parser::Unwrap<parser::OmpObjectList>(spec.u)}) {
++        for (auto &ompObject : objectList->v)
++          if (auto *name{parser::Unwrap<parser::Name>(ompObject)})
++            markDeclTarForEachProgramUnit(subPrograms_, *name, nullptr, true);
++      } else if (auto *clauseList{
++                     parser::Unwrap<parser::OmpClauseList>(spec.u)}) {
++        parser::OmpClause::DeviceType *devType = nullptr;
++        for (auto &clause : clauseList->v) {
++          if (auto *deviceType{
++                  std::get_if<parser::OmpClause::DeviceType>(&clause.u)}) {
++            devType = deviceType;
++          }
++        }
++
++        // We do not process link clauses these are not allowed to have
++        // functions as list items. And we do not care about host specific
++        // declare targets, the specification states that the implicit marking
++        // only happens for nohost (and by extension any, one would assume).
++        // Every non-declare target function can be assumed to be "host".
++        if (!devType ||
++            devType->v.v != Fortran::parser::OmpDeviceTypeClause::Type::Host)
++          for (auto &clause : clauseList->v) {
++            if (auto *toClause{std::get_if<parser::OmpClause::To>(&clause.u)}) {
++              for (auto &ompObject : toClause->v.v)
++                if (auto *name{parser::Unwrap<parser::Name>(ompObject)})
++                  markDeclTarForEachProgramUnit(
++                      subPrograms_, *name, devType, true);
++            }
++          }
++
++        // The default "declare target" inside of a function case, we must
++        // process the functions called from within
++        if (clauseList->v.empty()) {
++          if (auto *name = getNameFromVariant(currentSubprogram_)) {
++            markDeclTarForEachProgramUnit(subPrograms_, *name, nullptr, true);
++          }
++        }
++      }
++    }
++  }
++
++  bool Pre(parser::FunctionSubprogram &x) {
++    insideOfInterfaceBody_ = false;
++    auto &stmt =
++        std::get<parser::Statement<parser::FunctionStmt>>(x.t).statement;
++    auto name = std::get<parser::Name>(stmt.t);
++    subPrograms_[name.ToString()] = &x;
++    currentSubprogram_ = &x;
++    return true;
++  }
++
++  bool Pre(parser::SubroutineSubprogram &x) {
++    insideOfInterfaceBody_ = false;
++    auto &stmt =
++        std::get<parser::Statement<parser::SubroutineStmt>>(x.t).statement;
++    auto name = std::get<parser::Name>(stmt.t);
++    subPrograms_[name.ToString()] = &x;
++    currentSubprogram_ = &x;
++    return true;
++  }
++
++  bool Pre(parser::InterfaceBody &x) {
++    insideOfInterfaceBody_ = true;
++    if (auto *func{parser::Unwrap<parser::InterfaceBody::Function>(x.u)}) {
++      const auto &stmt{
++          std::get<parser::Statement<parser::FunctionStmt>>(func->t)};
++      auto name = std::get<parser::Name>(stmt.statement.t);
++      interfaces_[name.ToString()] = &x;
++    }
++
++    if (auto *subr{parser::Unwrap<parser::InterfaceBody::Subroutine>(x.u)}) {
++      const auto &stmt{
++          std::get<parser::Statement<parser::SubroutineStmt>>(subr->t)};
++      auto name = std::get<parser::Name>(stmt.statement.t);
++      interfaces_[name.ToString()] = &x;
++    }
++
++    return true;
++  }
++};
++
++bool FinalizeOMP(SemanticsContext &context, parser::Program &program) {
++  ImplicitDeclareTargetCapture impCap{context};
++  Walk(program, impCap);
++  return !context.AnyFatalError();
++}
++
++} // namespace Fortran::semantics
+diff -Naur -x .git -x __pycache__ -x docs -x test llvm-project.upstream/flang/lib/Semantics/finalize-omp.h llvm-project/flang/lib/Semantics/finalize-omp.h
+--- llvm-project.upstream/flang/lib/Semantics/finalize-omp.h	1969-12-31 19:00:00.000000000 -0500
++++ llvm-project/flang/lib/Semantics/finalize-omp.h	2023-05-29 12:35:45.271105154 -0400
+@@ -0,0 +1,21 @@
++//===-- lib/Semantics/finalize-omp.h ------------------------*- C++ -*-===//
++//
++// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
++// See https://llvm.org/LICENSE.txt for license information.
++// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
++//
++//===----------------------------------------------------------------------===//
++
++#ifndef FORTRAN_SEMANTICS_FINALIZE_OMP_H_
++#define FORTRAN_SEMANTICS_FINALIZE_OMP_H_
++
++namespace Fortran::parser {
++struct Program;
++} // namespace Fortran::parser
++
++namespace Fortran::semantics {
++class SemanticsContext;
++bool FinalizeOMP(SemanticsContext &context, parser::Program &program);
++} // namespace Fortran::semantics
++
++#endif // FORTRAN_SEMANTICS_FINALIZE_OMP_H_
+diff -Naur -x .git -x __pycache__ -x docs -x test llvm-project.upstream/flang/lib/Semantics/semantics.cpp llvm-project/flang/lib/Semantics/semantics.cpp
+--- llvm-project.upstream/flang/lib/Semantics/semantics.cpp	2023-02-27 09:21:58.583667870 -0500
++++ llvm-project/flang/lib/Semantics/semantics.cpp	2023-05-29 12:35:45.271105154 -0400
+@@ -31,6 +31,7 @@
+ #include "check-select-type.h"
+ #include "check-stop.h"
+ #include "compute-offsets.h"
++#include "finalize-omp.h"
+ #include "mod-file.h"
+ #include "resolve-labels.h"
+ #include "resolve-names.h"
+@@ -172,6 +173,7 @@
+   ComputeOffsets(context, context.globalScope());
+   CheckDeclarations(context);
+   StatementSemanticsPass1{context}.Walk(program);
++  FinalizeOMP(context, program);
+   StatementSemanticsPass2 pass2{context};
+   pass2.Walk(program);
+   if (!context.AnyFatalError()) {
+diff -Naur -x .git -x __pycache__ -x docs -x test llvm-project.upstream/llvm/include/llvm/Frontend/OpenMP/OMPIRBuilder.h llvm-project/llvm/include/llvm/Frontend/OpenMP/OMPIRBuilder.h
+--- llvm-project.upstream/llvm/include/llvm/Frontend/OpenMP/OMPIRBuilder.h	2023-05-16 13:15:57.514393354 -0400
++++ llvm-project/llvm/include/llvm/Frontend/OpenMP/OMPIRBuilder.h	2023-05-29 12:35:45.271105154 -0400
+@@ -405,6 +405,35 @@
+   OffloadEntriesDeviceGlobalVarTy OffloadEntriesDeviceGlobalVar;
+ };
+ 
++struct TargetKernelArgs {
++  unsigned NumTargetItems;
++  Value *BasePointersArray;
++  Value *PointersArray;
++  Value *SizesArray;
++  Value *MapTypesArray;
++  Value *MapNamesArray;
++  Value *MappersArray;
++  Value *NumIterations;
++  Value *NumTeams;
++  Value *NumThreads;
++  Value *DynCGGroupMem;
++  bool HasNoWait;
++
++  SmallVector<Value *> getKernelArgsVector(IRBuilderBase &Builder);
++
++  TargetKernelArgs(unsigned NumTargetItems, Value *BasePointersArray,
++                   Value *PointersArray, Value *SizesArray,
++                   Value *MapTypesArray, Value *MapNamesArray,
++                   Value *MappersArray, Value *NumIterations, Value *NumTeams,
++                   Value *NumThreads, Value *DynCGGroupMem, bool HasNoWait)
++      : NumTargetItems(NumTargetItems), BasePointersArray(BasePointersArray),
++        PointersArray(PointersArray), SizesArray(SizesArray),
++        MapTypesArray(MapTypesArray), MapNamesArray(MapNamesArray),
++        MappersArray(MappersArray), NumIterations(NumIterations),
++        NumTeams(NumTeams), NumThreads(NumThreads),
++        DynCGGroupMem(DynCGGroupMem), HasNoWait(HasNoWait) {}
++};
++
+ /// An interface to create LLVM-IR for OpenMP directives.
+ ///
+ /// Each OpenMP directive has a corresponding public generator method.
+@@ -1254,6 +1283,24 @@
+                                  Value *NumThreads, Value *HostPtr,
+                                  ArrayRef<Value *> KernelArgs);
+ 
++  using EmitFallbackCallbackTy = function_ref<InsertPointTy(InsertPointTy)>;
++
++  /// Generate a target region entry call and host fallback call.
++  ///
++  /// \param Loc The location at which the request originated and is fulfilled.
++  /// \param OutlinedFn The outlined kernel function.
++  /// \param OutlinedFnID The ooulined function ID.
++  /// \param emitTargetCallFallbackCB Call back function to generate host
++  ///        fallback code.
++  /// \param Args Data structure holding information about the kernel arguments.
++  /// \param DeviceID Identifier for the device via the 'device' clause.
++  /// \param RTLoc Source location identifier
++  /// \param AllocaIP The insertion point to be used for alloca instructions.
++  InsertPointTy emitKernelLaunch(
++      const LocationDescription &Loc, Function *OutlinedFn, Value *OutlinedFnID,
++      EmitFallbackCallbackTy emitTargetCallFallbackCB, TargetKernelArgs &Args,
++      Value *DeviceID, Value *RTLoc, InsertPointTy AllocaIP);
++
+   /// Generate a barrier runtime call.
+   ///
+   /// \param Loc The location at which the request originated and is fulfilled.
+@@ -1355,6 +1402,25 @@
+   /// Computes the size of type in bytes.
+   Value *getSizeInBytes(Value *BasePtr);
+ 
++  // Emit a branch from the current block to the target one if this
++  // was a real block.  If this was just a fall-through block after a
++  // terminator, don't emit it.
++  void EmitBranch(BasicBlock *Target);
++
++  // Create a new Block and place the block after the current block, if
++  // possible, or else at the end of the function.
++  void EmitBlock(BasicBlock *BB, Function *CurFn, bool IsFinished = false);
++
++  /// Emits code for OpenMP 'if' clause using specified \a BodyGenCallbackTy
++  /// Here is the logic:
++  /// if (Cond) {
++  ///   ThenGen();
++  /// } else {
++  ///   ElseGen();
++  /// }
++  void emitIfClause(Value *Cond, BodyGenCallbackTy ThenGen,
++                    BodyGenCallbackTy ElseGen);
++
+   /// Create the global variable holding the offload mappings information.
+   GlobalVariable *createOffloadMaptypes(SmallVectorImpl<uint64_t> &Mappings,
+                                         std::string VarName);
+@@ -1368,6 +1434,7 @@
+     AllocaInst *ArgsBase = nullptr;
+     AllocaInst *Args = nullptr;
+     AllocaInst *ArgSizes = nullptr;
++    AllocaInst *Mappers = nullptr;
+   };
+ 
+   /// Create the allocas instruction used in call to mapper functions.
+@@ -1504,6 +1571,21 @@
+                                     bool EmitDebug = false,
+                                     bool ForEndCall = false);
+ 
++  /// Emit an array of struct descriptors to be assigned to the offload args.
++  void emitNonContiguousDescriptor(InsertPointTy AllocaIP,
++                                   InsertPointTy CodeGenIP,
++                                   MapInfosTy &CombinedInfo,
++                                   TargetDataInfo &Info);
++
++  /// Emit the arrays used to pass the captures and map information to the
++  /// offloading runtime library. If there is no map or capture information,
++  /// return nullptr by reference.
++  void emitOffloadingArrays(
++      InsertPointTy AllocaIP, InsertPointTy CodeGenIP, MapInfosTy &CombinedInfo,
++      TargetDataInfo &Info, bool IsNonContiguous = false,
++      function_ref<void(unsigned int, Value *, Value *)> DeviceAddrCB = nullptr,
++      function_ref<Value *(unsigned int)> CustomMapperCB = nullptr);
++
+   /// Creates offloading entry for the provided entry ID \a ID, address \a
+   /// Addr, size \a Size, and flags \a Flags.
+   void createOffloadEntry(Constant *ID, Constant *Addr, uint64_t Size,
+@@ -1850,28 +1932,29 @@
+                                          StringRef EntryFnIDName,
+                                          int32_t NumTeams, int32_t NumThreads);
+ 
++  using GenMapInfoCallbackTy =
++      function_ref<MapInfosTy &(InsertPointTy CodeGenIP)>;
++
+   /// Generator for '#omp target data'
+   ///
+   /// \param Loc The location where the target data construct was encountered.
++  /// \param AllocaIP The insertion points to be used for alloca instructions.
+   /// \param CodeGenIP The insertion point at which the target directive code
+   /// should be placed.
+-  /// \param MapTypeFlags BitVector storing the mapType flags for the
+-  /// mapOperands.
+-  /// \param MapNames Names for the mapOperands.
+-  /// \param MapperAllocas Pointers to the AllocInsts for the map clause.
+   /// \param IsBegin If true then emits begin mapper call otherwise emits
+   /// end mapper call.
+   /// \param DeviceID Stores the DeviceID from the device clause.
+   /// \param IfCond Value which corresponds to the if clause condition.
+-  /// \param ProcessMapOpCB Callback that generates code for the map clause.
+-  /// \param BodyGenCB Callback that will generate the region code.
++  /// \param Info Stores all information realted to the Target Data directive.
++  /// \param GenMapInfoCB Callback that populates the MapInfos and returns.
++  /// \param BodyGenCB Optional Callback to generate the region code.
+   OpenMPIRBuilder::InsertPointTy createTargetData(
+-      const LocationDescription &Loc, OpenMPIRBuilder::InsertPointTy CodeGenIP,
+-      SmallVectorImpl<uint64_t> &MapTypeFlags,
+-      SmallVectorImpl<Constant *> &MapNames,
+-      struct MapperAllocas &MapperAllocas, bool IsBegin, int64_t DeviceID,
+-      Value *IfCond, BodyGenCallbackTy ProcessMapOpCB,
+-      BodyGenCallbackTy BodyGenCB = {});
++      const LocationDescription &Loc, InsertPointTy AllocaIP,
++      InsertPointTy CodeGenIP, Value *DeviceID, Value *IfCond,
++      TargetDataInfo &Info, GenMapInfoCallbackTy GenMapInfoCB,
++      omp::RuntimeFunction *MapperFunc = nullptr,
++      function_ref<InsertPointTy(InsertPointTy CodeGenIP, int BodyGenType)>
++          BodyGenCB = nullptr);
+ 
+   using TargetBodyGenCallbackTy = function_ref<InsertPointTy(
+       InsertPointTy AllocaIP, InsertPointTy CodeGenIP)>;
+@@ -1888,10 +1971,12 @@
+   /// as arguments to the outlined function.
+   /// \param BodyGenCB Callback that will generate the region code.
+   InsertPointTy createTarget(const LocationDescription &Loc,
++                             OpenMPIRBuilder::InsertPointTy AllocaIP,
+                              OpenMPIRBuilder::InsertPointTy CodeGenIP,
+                              TargetRegionEntryInfo &EntryInfo, int32_t NumTeams,
+                              int32_t NumThreads,
+                              SmallVectorImpl<Value *> &Inputs,
++                             GenMapInfoCallbackTy GenMapInfoCB,
+                              TargetBodyGenCallbackTy BodyGenCB);
+ 
+   /// Declarations for LLVM-IR types (simple, array, function and structure) are
+diff -Naur -x .git -x __pycache__ -x docs -x test llvm-project.upstream/llvm/lib/Frontend/OpenMP/OMPIRBuilder.cpp llvm-project/llvm/lib/Frontend/OpenMP/OMPIRBuilder.cpp
+--- llvm-project.upstream/llvm/lib/Frontend/OpenMP/OMPIRBuilder.cpp	2023-05-18 12:00:47.917648531 -0400
++++ llvm-project/llvm/lib/Frontend/OpenMP/OMPIRBuilder.cpp	2023-05-30 09:58:20.604301084 -0400
+@@ -329,6 +329,24 @@
+   return splitBB(Builder, CreateBranch, Old->getName() + Suffix);
+ }
+ 
++SmallVector<Value *>
++TargetKernelArgs::getKernelArgsVector(IRBuilderBase &Builder) {
++  Value *Version = Builder.getInt32(/* Version */ 2);
++  Value *PointerNum = Builder.getInt32(NumTargetItems);
++  auto Int32Ty = Type::getInt32Ty(Builder.getContext());
++  Value *ZeroArray = Constant::getNullValue(ArrayType::get(Int32Ty, 3));
++  Value *Flags = Builder.getInt64(HasNoWait);
++
++  Value *NumTeams3D = Builder.CreateInsertValue(ZeroArray, NumTeams, {0});
++  Value *NumThreads3D = Builder.CreateInsertValue(ZeroArray, NumThreads, {0});
++
++  return SmallVector<Value *>{Version,       PointerNum,   BasePointersArray,
++                              PointersArray, SizesArray,   MapTypesArray,
++                              MapNamesArray, MappersArray, NumIterations,
++                              Flags,         NumTeams3D,   NumThreads3D,
++                              DynCGGroupMem};
++}
++
+ void OpenMPIRBuilder::addAttributes(omp::RuntimeFunction FnID, Function &Fn) {
+   LLVMContext &Ctx = Fn.getContext();
+   Triple T(M.getTargetTriple());
+@@ -878,6 +896,66 @@
+   return Builder.saveIP();
+ }
+ 
++OpenMPIRBuilder::InsertPointTy OpenMPIRBuilder::emitKernelLaunch(
++    const LocationDescription &Loc, Function *OutlinedFn, Value *OutlinedFnID,
++    EmitFallbackCallbackTy emitTargetCallFallbackCB, TargetKernelArgs &Args,
++    Value *DeviceID, Value *RTLoc, InsertPointTy AllocaIP) {
++
++  if (!updateToLocation(Loc))
++    return Loc.IP;
++
++  Builder.restoreIP(Loc.IP);
++  // On top of the arrays that were filled up, the target offloading call
++  // takes as arguments the device id as well as the host pointer. The host
++  // pointer is used by the runtime library to identify the current target
++  // region, so it only has to be unique and not necessarily point to
++  // anything. It could be the pointer to the outlined function that
++  // implements the target region, but we aren't using that so that the
++  // compiler doesn't need to keep that, and could therefore inline the host
++  // function if proven worthwhile during optimization.
++
++  // From this point on, we need to have an ID of the target region defined.
++  assert(OutlinedFnID && "Invalid outlined function ID!");
++  (void)OutlinedFnID;
++
++  // Return value of the runtime offloading call.
++  Value *Return;
++
++  // Arguments for the target kernel.
++  SmallVector<Value *> ArgsVector(Args.getKernelArgsVector(Builder));
++
++  // The target region is an outlined function launched by the runtime
++  // via calls to __tgt_target_kernel().
++  //
++  // Note that on the host and CPU targets, the runtime implementation of
++  // these calls simply call the outlined function without forking threads.
++  // The outlined functions themselves have runtime calls to
++  // __kmpc_fork_teams() and __kmpc_fork() for this purpose, codegen'd by
++  // the compiler in emitTeamsCall() and emitParallelCall().
++  //
++  // In contrast, on the NVPTX target, the implementation of
++  // __tgt_target_teams() launches a GPU kernel with the requested number
++  // of teams and threads so no additional calls to the runtime are required.
++  // Check the error code and execute the host version if required.
++  Builder.restoreIP(emitTargetKernel(Builder, AllocaIP, Return, RTLoc, DeviceID,
++                                     Args.NumTeams, Args.NumThreads,
++                                     OutlinedFnID, ArgsVector));
++
++  BasicBlock *OffloadFailedBlock =
++      BasicBlock::Create(Builder.getContext(), "omp_offload.failed");
++  BasicBlock *OffloadContBlock =
++      BasicBlock::Create(Builder.getContext(), "omp_offload.cont");
++  Value *Failed = Builder.CreateIsNotNull(Return);
++  Builder.CreateCondBr(Failed, OffloadFailedBlock, OffloadContBlock);
++
++  auto CurFn = Builder.GetInsertBlock()->getParent();
++  EmitBlock(OffloadFailedBlock, CurFn);
++  Builder.restoreIP(emitTargetCallFallbackCB(Builder.saveIP()));
++  EmitBranch(OffloadContBlock);
++  EmitBlock(OffloadContBlock, CurFn, /*IsFinished=*/true);
++  return Builder.saveIP();
++}
++
+ void OpenMPIRBuilder::emitCancelationCheckImpl(Value *CancelFlag,
+                                                omp::Directive CanceledDirective,
+                                                FinalizeCallbackTy ExitCB) {
+@@ -4077,89 +4155,204 @@
+ }
+ 
+ OpenMPIRBuilder::InsertPointTy OpenMPIRBuilder::createTargetData(
+-    const LocationDescription &Loc, OpenMPIRBuilder::InsertPointTy CodeGenIP,
+-    SmallVectorImpl<uint64_t> &MapTypeFlags,
+-    SmallVectorImpl<Constant *> &MapNames, struct MapperAllocas &MapperAllocas,
+-    bool IsBegin, int64_t DeviceID, Value *IfCond,
+-    BodyGenCallbackTy ProcessMapOpCB, BodyGenCallbackTy BodyGenCB) {
++    const LocationDescription &Loc, InsertPointTy AllocaIP,
++    InsertPointTy CodeGenIP, Value *DeviceID, Value *IfCond,
++    TargetDataInfo &Info, GenMapInfoCallbackTy GenMapInfoCB,
++    omp::RuntimeFunction *MapperFunc,
++    function_ref<InsertPointTy(InsertPointTy CodeGenIP, int BodyGenType)>
++        BodyGenCB) {
+   if (!updateToLocation(Loc))
+     return InsertPointTy();
+ 
+   Builder.restoreIP(CodeGenIP);
++  bool IsStandAlone = !BodyGenCB;
+ 
+-  // LLVM utilities like blocks with terminators.
+-  // The UI acts as a resume point for code insertion after the BodyGen
+-  auto *UI = Builder.CreateUnreachable();
+-  if (IfCond) {
+-    auto *ThenTI =
+-        SplitBlockAndInsertIfThen(IfCond, UI, /* Unreachable */ false);
+-    ThenTI->getParent()->setName("omp_if.then");
+-    Builder.SetInsertPoint(ThenTI);
+-  } else {
+-    Builder.SetInsertPoint(UI);
+-  }
++  // Generate the code for the opening of the data environment. Capture all the
++  // arguments of the runtime call by reference because they are used in the
++  // closing of the region.
++  auto BeginThenGen = [&](InsertPointTy UnusedIP, InsertPointTy CodeGenIP) {
++    emitOffloadingArrays(AllocaIP, Builder.saveIP(),
++                         GenMapInfoCB(Builder.saveIP()), Info,
++                         /*IsNonContiguous=*/true);
+ 
+-  ProcessMapOpCB(Builder.saveIP(), Builder.saveIP());
++    TargetDataRTArgs RTArgs;
++    emitOffloadingArraysArgument(Builder, RTArgs, Info);
+ 
+-  uint32_t SrcLocStrSize;
+-  Constant *SrcLocStr = getOrCreateSrcLocStr(Loc, SrcLocStrSize);
+-  Value *srcLocInfo = getOrCreateIdent(SrcLocStr, SrcLocStrSize);
++    // Emit the number of elements in the offloading arrays.
++    llvm::Value *PointerNum = Builder.getInt32(Info.NumberOfPtrs);
+ 
+-  GlobalVariable *MapTypesGV =
+-      createOffloadMaptypes(MapTypeFlags, ".offload_maptypes");
+-  Value *MapTypesArg = Builder.CreateConstInBoundsGEP2_32(
+-      ArrayType::get(Builder.getInt64Ty(), MapTypeFlags.size()), MapTypesGV,
+-      /*Idx0=*/0, /*Idx1=*/0);
++    // Source location for the ident struct
++    uint32_t SrcLocStrSize;
++    Constant *SrcLocStr = getOrCreateSrcLocStr(Loc, SrcLocStrSize);
++    Value *srcLocInfo = getOrCreateIdent(SrcLocStr, SrcLocStrSize);
+ 
+-  GlobalVariable *MapNamesGV =
+-      createOffloadMapnames(MapNames, ".offload_mapnames");
+-  Value *MapNamesArg = Builder.CreateConstInBoundsGEP2_32(
+-      ArrayType::get(Builder.getInt8PtrTy(), MapNames.size()), MapNamesGV,
+-      /*Idx0=*/0, /*Idx1=*/0);
++    llvm::Value *OffloadingArgs[] = {
++        srcLocInfo,           DeviceID,
++        PointerNum,           RTArgs.BasePointersArray,
++        RTArgs.PointersArray, RTArgs.SizesArray,
++        RTArgs.MapTypesArray, RTArgs.MapNamesArray,
++        RTArgs.MappersArray};
++
++    if (IsStandAlone) {
++      Builder.CreateCall(getOrCreateRuntimeFunctionPtr(*MapperFunc),
++                         OffloadingArgs);
++    } else {
++      Function *beginMapperFunc = getOrCreateRuntimeFunctionPtr(
++          omp::OMPRTL___tgt_target_data_begin_mapper);
++
++      Builder.CreateCall(beginMapperFunc, OffloadingArgs);
++
++      // If device pointer privatization is required, emit the body of the
++      // region here. It will have to be duplicated: with and without
++      // privatization.
++      Builder.restoreIP(BodyGenCB(Builder.saveIP(), 1));
++    }
++  };
++
++  // If we need device pointer privatization, we need to emit the body of the
++  // region with no privatization in the 'else' branch of the conditional.
++  // Otherwise, we don't have to do anything.
++  auto BeginElseGen = [&](InsertPointTy UnusedIP, InsertPointTy CodeGenIP) {
++    Builder.restoreIP(BodyGenCB(Builder.saveIP(), 2));
++  };
++
++  // Generate code for the closing of the data region.
++  auto EndThenGen = [&](InsertPointTy UnusedIP, InsertPointTy CodeGenIP) {
++    TargetDataRTArgs RTArgs;
++    emitOffloadingArraysArgument(Builder, RTArgs, Info, /*EmitDebug=*/false,
++                                 /*ForEndCall=*/true);
+ 
+-  Function *beginMapperFunc =
+-      getOrCreateRuntimeFunctionPtr(omp::OMPRTL___tgt_target_data_begin_mapper);
+-  Function *endMapperFunc =
+-      getOrCreateRuntimeFunctionPtr(omp::OMPRTL___tgt_target_data_end_mapper);
++    // Emit the number of elements in the offloading arrays.
++    llvm::Value *PointerNum = Builder.getInt32(Info.NumberOfPtrs);
++
++    // Source location for the ident struct
++    uint32_t SrcLocStrSize;
++    Constant *SrcLocStr = getOrCreateSrcLocStr(Loc, SrcLocStrSize);
++    Value *srcLocInfo = getOrCreateIdent(SrcLocStr, SrcLocStrSize);
++
++    llvm::Value *OffloadingArgs[] = {
++        srcLocInfo,           DeviceID,
++        PointerNum,           RTArgs.BasePointersArray,
++        RTArgs.PointersArray, RTArgs.SizesArray,
++        RTArgs.MapTypesArray, RTArgs.MapNamesArray,
++        RTArgs.MappersArray};
++    Function *endMapperFunc =
++        getOrCreateRuntimeFunctionPtr(omp::OMPRTL___tgt_target_data_end_mapper);
++
++    Builder.CreateCall(endMapperFunc, OffloadingArgs);
++  };
++
++  // We don't have to do anything to close the region if the if clause evaluates
++  // to false.
++  auto EndElseGen = [&](InsertPointTy UnusedIP, InsertPointTy CodeGenIP) {};
+ 
+   if (BodyGenCB) {
+-    // Create call to start the data region.
+-    emitMapperCall(Builder.saveIP(), beginMapperFunc, srcLocInfo, MapTypesArg,
+-                   MapNamesArg, MapperAllocas, DeviceID, MapTypeFlags.size());
+-
+-    BodyGenCB(Builder.saveIP(), Builder.saveIP());
+-
+-    Builder.SetInsertPoint(UI->getParent());
+-    // Create call to end the data region.
+-    emitMapperCall(Builder.saveIP(), endMapperFunc, srcLocInfo, MapTypesArg,
+-                   MapNamesArg, MapperAllocas, DeviceID, MapTypeFlags.size());
++    if (IfCond) {
++      emitIfClause(IfCond, BeginThenGen, BeginElseGen);
++    } else {
++      BeginThenGen(AllocaIP, Builder.saveIP());
++    }
++
++    // If we don't require privatization of device pointers, we emit the body in
++    // between the runtime calls. This avoids duplicating the body code.
++    Builder.restoreIP(BodyGenCB(Builder.saveIP(), 3));
++
++    if (IfCond) {
++      emitIfClause(IfCond, EndThenGen, EndElseGen);
++    } else {
++      EndThenGen(AllocaIP, Builder.saveIP());
++    }
+   } else {
+-    emitMapperCall(Builder.saveIP(), IsBegin ? beginMapperFunc : endMapperFunc,
+-                   srcLocInfo, MapTypesArg, MapNamesArg, MapperAllocas,
+-                   DeviceID, MapTypeFlags.size());
++    if (IfCond) {
++      emitIfClause(IfCond, BeginThenGen, EndElseGen);
++    } else {
++      BeginThenGen(AllocaIP, Builder.saveIP());
++    }
+   }
+ 
+-  // Update the insertion point and remove the terminator we introduced.
+-  Builder.SetInsertPoint(UI->getParent());
+-  if (IfCond)
+-    UI->getParent()->setName("omp_if.end");
+-  UI->eraseFromParent();
+   return Builder.saveIP();
+ }
+ 
++static Value *castInput(IRBuilderBase &Builder, unsigned AddrSpace,
++                        Value *Input, Argument &Arg) {
++  assert(Input->getType()->isPointerTy() &&
++         "Only handling pointer parameters for now");
++  auto Addr =
++      Builder.CreateAlloca(Type::getInt64Ty(Builder.getContext()), AddrSpace);
++  auto AddrAscast =
++      Builder.CreatePointerBitCastOrAddrSpaceCast(Addr, Input->getType());
++  Builder.CreateStore(&Arg, AddrAscast);
++  auto CastAddr =
++    Builder.CreateLoad(Type::getInt32Ty(Builder.getContext())->getPointerTo(), AddrAscast);
++
++  return CastAddr;
++}
++
++static void emitUsed(StringRef Name, std::vector<llvm::WeakTrackingVH> &List,
++                     Type *Int8PtrTy, Module &M) {
++  if (List.empty())
++    return;
++
++  // Convert List to what ConstantArray needs.
++  SmallVector<Constant *, 8> UsedArray;
++  UsedArray.resize(List.size());
++  for (unsigned i = 0, e = List.size(); i != e; ++i) {
++    UsedArray[i] = ConstantExpr::getPointerBitCastOrAddrSpaceCast(
++        cast<Constant>(&*List[i]), Int8PtrTy);
++  }
++
++  if (UsedArray.empty())
++    return;
++  ArrayType *ATy = ArrayType::get(Int8PtrTy, UsedArray.size());
++
++  auto *GV =
++      new GlobalVariable(M, ATy, false, llvm::GlobalValue::AppendingLinkage,
++                         llvm::ConstantArray::get(ATy, UsedArray), Name);
++
++  GV->setSection("llvm.metadata");
++}
++
++static void
++emitExecutionMode(OpenMPIRBuilder &OMPBuilder, IRBuilderBase &Builder,
++                  StringRef FunctionName, bool Mode,
++                  std::vector<llvm::WeakTrackingVH> &LLVMCompilerUsed) {
++  auto Int8Ty = Type::getInt8Ty(Builder.getContext());
++  auto *GVMode = new llvm::GlobalVariable(
++      OMPBuilder.M, Int8Ty, /*isConstant=*/true,
++      llvm::GlobalValue::WeakAnyLinkage,
++      llvm::ConstantInt::get(Int8Ty, Mode ? OMP_TGT_EXEC_MODE_SPMD
++                                          : OMP_TGT_EXEC_MODE_GENERIC),
++      Twine(FunctionName, "_exec_mode"));
++  GVMode->setVisibility(llvm::GlobalVariable::ProtectedVisibility);
++  LLVMCompilerUsed.emplace_back(GVMode);
++}
++
+ static Function *
+ createOutlinedFunction(OpenMPIRBuilder &OMPBuilder, IRBuilderBase &Builder,
+                        StringRef FuncName, SmallVectorImpl<Value *> &Inputs,
+-                       OpenMPIRBuilder::TargetBodyGenCallbackTy &CBFunc) {
++                       OpenMPIRBuilder::TargetBodyGenCallbackTy &CBFunc,
++                       OpenMPIRBuilder::InsertPointTy AllocaIP) {
+   SmallVector<Type *> ParameterTypes;
+-  for (auto &Arg : Inputs)
+-    ParameterTypes.push_back(Arg->getType());
++  if (OMPBuilder.Config.isEmbedded()) {
++    // All parameters are passed as i64
++    ParameterTypes.assign(Inputs.size(),
++                          Type::getInt64Ty(Builder.getContext()));
++  } else {
++    for (auto &Arg : Inputs)
++      ParameterTypes.push_back(Arg->getType());
++  }
+ 
+   auto FuncType = FunctionType::get(Builder.getVoidTy(), ParameterTypes,
+                                     /*isVarArg*/ false);
+   auto Func = Function::Create(FuncType, GlobalValue::InternalLinkage, FuncName,
+                                Builder.GetInsertBlock()->getModule());
+ 
++  if (OMPBuilder.Config.isEmbedded()) {
++    std::vector<llvm::WeakTrackingVH> LLVMCompilerUsed;
++    emitExecutionMode(OMPBuilder, Builder, FuncName, false, LLVMCompilerUsed);
++    Type *Int8PtrTy = Type::getInt8Ty(Builder.getContext())->getPointerTo();
++    emitUsed("llvm.compiler.used", LLVMCompilerUsed, Int8PtrTy, OMPBuilder.M);
++  }
+   // Save insert point.
+   auto OldInsertPoint = Builder.saveIP();
+ 
+@@ -4180,16 +4373,22 @@
+   // Insert return instruction.
+   Builder.CreateRetVoid();
+ 
++  Builder.SetInsertPoint(&Func->getEntryBlock(),
++                         Func->getEntryBlock().getFirstNonPHIOrDbgOrAlloca());
++
+   // Rewrite uses of input valus to parameters.
+   for (auto InArg : zip(Inputs, Func->args())) {
+     Value *Input = std::get<0>(InArg);
+     Argument &Arg = std::get<1>(InArg);
+-
++    Value *CastInput = OMPBuilder.Config.isEmbedded() ?
++      castInput(Builder, OMPBuilder.M.getDataLayout().getAllocaAddrSpace(),
++                Input, Arg) : &Arg;
+     // Collect all the instructions
++    assert(CastInput->getType()->isPointerTy() && "Not Pointer Type");
+     for (User *User : make_early_inc_range(Input->users()))
+       if (auto Instr = dyn_cast<Instruction>(User))
+         if (Instr->getFunction() == Func)
+-          Instr->replaceUsesOfWith(Input, &Arg);
++          Instr->replaceUsesOfWith(Input, CastInput);
+   }
+ 
+   // Restore insert point.
+@@ -4201,42 +4400,101 @@
+ static void
+ emitTargetOutlinedFunction(OpenMPIRBuilder &OMPBuilder, IRBuilderBase &Builder,
+                            TargetRegionEntryInfo &EntryInfo,
+-                           Function *&OutlinedFn, int32_t NumTeams,
+-                           int32_t NumThreads, SmallVectorImpl<Value *> &Inputs,
+-                           OpenMPIRBuilder::TargetBodyGenCallbackTy &CBFunc) {
++                           Function *&OutlinedFn, Constant *&OutlinedFnID,
++                           int32_t NumTeams, int32_t NumThreads,
++                           SmallVectorImpl<Value *> &Inputs,
++                           OpenMPIRBuilder::TargetBodyGenCallbackTy &CBFunc,
++                           OpenMPIRBuilder::InsertPointTy AllocaIP) {
+ 
+   OpenMPIRBuilder::FunctionGenCallback &&GenerateOutlinedFunction =
+-      [&OMPBuilder, &Builder, &Inputs, &CBFunc](StringRef EntryFnName) {
++      [&OMPBuilder, &Builder, &Inputs, &CBFunc,
++       &AllocaIP](StringRef EntryFnName) {
+         return createOutlinedFunction(OMPBuilder, Builder, EntryFnName, Inputs,
+-                                      CBFunc);
++                                      CBFunc, AllocaIP);
+       };
+ 
+-  Constant *OutlinedFnID;
+   OMPBuilder.emitTargetRegionFunction(EntryInfo, GenerateOutlinedFunction,
+                                       NumTeams, NumThreads, true, OutlinedFn,
+                                       OutlinedFnID);
+ }
+ 
+-static void emitTargetCall(IRBuilderBase &Builder, Function *OutlinedFn,
+-                           SmallVectorImpl<Value *> &Args) {
+-  // TODO: Add kernel launch call
+-  Builder.CreateCall(OutlinedFn, Args);
++static void emitTargetCall(OpenMPIRBuilder &OMPBuilder, IRBuilderBase &Builder,
++                           OpenMPIRBuilder::InsertPointTy AllocaIP,
++                           Function *OutlinedFn, Constant *OutlinedFnID,
++                           int32_t NumTeams, int32_t NumThreads,
++                           SmallVectorImpl<Value *> &Args,
++                           OpenMPIRBuilder::GenMapInfoCallbackTy GenMapInfoCB) {
++
++  // Call emitOffloadingArrays
++  llvm::OpenMPIRBuilder::TargetDataInfo Info(
++      /*RequiresDevicePointerInfo=*/false,
++      /*SeparateBeginEndCalls=*/true);
++
++  auto MapInfo = GenMapInfoCB(Builder.saveIP());
++  OMPBuilder.emitOffloadingArrays(AllocaIP, Builder.saveIP(), MapInfo, Info,
++                                  /*IsNonContiguous=*/true);
++
++  // 3. Call emitOffloadingArraysArgument
++  OpenMPIRBuilder::TargetDataRTArgs RTArgs;
++  OMPBuilder.emitOffloadingArraysArgument(Builder, RTArgs, Info);
++
++  // 4. Call emitKernelLaunch
++  llvm::Value *BasePointersArray = RTArgs.BasePointersArray;
++  llvm::Value *PointersArray = RTArgs.PointersArray;
++  llvm::Value *SizesArray = RTArgs.SizesArray;
++  llvm::Value *MappersArray = RTArgs.MappersArray;
++  llvm::Value *MapTypesArray = RTArgs.MapTypesArray;
++  llvm::Value *MapNamesArray = RTArgs.MapNamesArray;
++  auto &&emitTargetCallFallbackCB =
++      [&](OpenMPIRBuilder::InsertPointTy IP) -> OpenMPIRBuilder::InsertPointTy {
++    Builder.restoreIP(IP);
++    Builder.CreateCall(OutlinedFn, Args);
++    return Builder.saveIP();
++  };
++
++  unsigned NumTargetItems = MapInfo.BasePointers.size();
++  llvm::Value *DeviceID = Builder.getInt64(OMP_DEVICEID_UNDEF);
++  llvm::Value *NumTeamsVal = Builder.getInt32(NumTeams);
++  llvm::Value *NumThreadsVal = Builder.getInt32(NumThreads);
++  uint32_t SrcLocStrSize;
++  llvm::Constant *SrcLocStr =
++      OMPBuilder.getOrCreateDefaultSrcLocStr(SrcLocStrSize);
++  llvm::Value *RTLoc = OMPBuilder.getOrCreateIdent(SrcLocStr, SrcLocStrSize,
++                                                   llvm::omp::IdentFlag(0), 0);
++  llvm::Value *NumIterations = Builder.getInt64(0);
++  llvm::Value *DynCGGroupMem = Builder.getInt32(0);
++
++  bool HasNoWait = false;
++  TargetKernelArgs KArgs(NumTargetItems, BasePointersArray, PointersArray,
++                         SizesArray, MapTypesArray, MapNamesArray, MappersArray,
++                         NumIterations, NumTeamsVal, NumThreadsVal,
++                         DynCGGroupMem, HasNoWait);
++
++  Builder.restoreIP(OMPBuilder.emitKernelLaunch(
++      Builder, OutlinedFn, OutlinedFnID, emitTargetCallFallbackCB, KArgs,
++      DeviceID, RTLoc, AllocaIP));
+ }
+ 
+ OpenMPIRBuilder::InsertPointTy OpenMPIRBuilder::createTarget(
+-    const LocationDescription &Loc, OpenMPIRBuilder::InsertPointTy CodeGenIP,
+-    TargetRegionEntryInfo &EntryInfo, int32_t NumTeams, int32_t NumThreads,
+-    SmallVectorImpl<Value *> &Args, TargetBodyGenCallbackTy CBFunc) {
++    const LocationDescription &Loc, OpenMPIRBuilder::InsertPointTy AllocaIP,
++    OpenMPIRBuilder::InsertPointTy CodeGenIP, TargetRegionEntryInfo &EntryInfo,
++    int32_t NumTeams, int32_t NumThreads, SmallVectorImpl<Value *> &Args,
++    GenMapInfoCallbackTy GenMapInfoCB, TargetBodyGenCallbackTy CBFunc) {
+   if (!updateToLocation(Loc))
+     return InsertPointTy();
+ 
+   Builder.restoreIP(CodeGenIP);
+ 
+   Function *OutlinedFn;
+-  emitTargetOutlinedFunction(*this, Builder, EntryInfo, OutlinedFn, NumTeams,
+-                             NumThreads, Args, CBFunc);
++  Constant *OutlinedFnID;
++
++  emitTargetOutlinedFunction(*this, Builder, EntryInfo, OutlinedFn,
++                             OutlinedFnID, NumTeams, NumThreads, Args, CBFunc,
++                             AllocaIP);
+   if (!Config.isEmbedded())
+-    emitTargetCall(Builder, OutlinedFn, Args);
++    emitTargetCall(*this, Builder, AllocaIP, OutlinedFn, OutlinedFnID, NumTeams,
++                   NumThreads, Args, GenMapInfoCB);
++
+   return Builder.saveIP();
+ }
+ 
+@@ -4417,6 +4675,335 @@
+         Builder.CreatePointerCast(Info.RTArgs.MappersArray, VoidPtrPtrTy);
+ }
+ 
++void OpenMPIRBuilder::emitNonContiguousDescriptor(InsertPointTy AllocaIP,
++                                                  InsertPointTy CodeGenIP,
++                                                  MapInfosTy &CombinedInfo,
++                                                  TargetDataInfo &Info) {
++  MapInfosTy::StructNonContiguousInfo &NonContigInfo =
++      CombinedInfo.NonContigInfo;
++
++  // Build an array of struct descriptor_dim and then assign it to
++  // offload_args.
++  //
++  // struct descriptor_dim {
++  //  uint64_t offset;
++  //  uint64_t count;
++  //  uint64_t stride
++  // };
++  Type *Int64Ty = Builder.getInt64Ty();
++  StructType *DimTy = StructType::create(
++      M.getContext(), ArrayRef<Type *>({Int64Ty, Int64Ty, Int64Ty}),
++      "struct.descriptor_dim");
++
++  enum { OffsetFD = 0, CountFD, StrideFD };
++  // We need two index variable here since the size of "Dims" is the same as
++  // the size of Components, however, the size of offset, count, and stride is
++  // equal to the size of base declaration that is non-contiguous.
++  for (unsigned I = 0, L = 0, E = NonContigInfo.Dims.size(); I < E; ++I) {
++    // Skip emitting ir if dimension size is 1 since it cannot be
++    // non-contiguous.
++    if (NonContigInfo.Dims[I] == 1)
++      continue;
++    Builder.restoreIP(AllocaIP);
++    ArrayType *ArrayTy = ArrayType::get(DimTy, NonContigInfo.Dims[I]);
++    AllocaInst *DimsAddr =
++        Builder.CreateAlloca(ArrayTy, /* ArraySize = */ nullptr, "dims");
++    Builder.restoreIP(CodeGenIP);
++    for (unsigned II = 0, EE = NonContigInfo.Dims[I]; II < EE; ++II) {
++      unsigned RevIdx = EE - II - 1;
++      Value *DimsLVal = Builder.CreateInBoundsGEP(
++          DimsAddr->getAllocatedType(), DimsAddr,
++          {Builder.getInt64(0), Builder.getInt64(II)});
++      // Offset
++      Value *OffsetLVal = Builder.CreateStructGEP(DimTy, DimsLVal, OffsetFD);
++      Builder.CreateAlignedStore(
++          NonContigInfo.Offsets[L][RevIdx], OffsetLVal,
++          M.getDataLayout().getPrefTypeAlign(OffsetLVal->getType()));
++      // Count
++      Value *CountLVal = Builder.CreateStructGEP(DimTy, DimsLVal, CountFD);
++      Builder.CreateAlignedStore(
++          NonContigInfo.Counts[L][RevIdx], CountLVal,
++          M.getDataLayout().getPrefTypeAlign(CountLVal->getType()));
++      // Stride
++      Value *StrideLVal = Builder.CreateStructGEP(DimTy, DimsLVal, StrideFD);
++      Builder.CreateAlignedStore(
++          NonContigInfo.Strides[L][RevIdx], StrideLVal,
++          M.getDataLayout().getPrefTypeAlign(CountLVal->getType()));
++    }
++    // args[I] = &dims
++    Builder.restoreIP(CodeGenIP);
++    Value *DAddr = Builder.CreatePointerBitCastOrAddrSpaceCast(
++        DimsAddr, Builder.getInt8PtrTy());
++    Value *P = Builder.CreateConstInBoundsGEP2_32(
++        ArrayType::get(Builder.getInt8PtrTy(), Info.NumberOfPtrs),
++        Info.RTArgs.PointersArray, 0, I);
++    Builder.CreateAlignedStore(
++        DAddr, P, M.getDataLayout().getPrefTypeAlign(Builder.getInt8PtrTy()));
++    ++L;
++  }
++}
++
++void OpenMPIRBuilder::emitOffloadingArrays(
++    InsertPointTy AllocaIP, InsertPointTy CodeGenIP, MapInfosTy &CombinedInfo,
++    TargetDataInfo &Info, bool IsNonContiguous,
++    function_ref<void(unsigned int, Value *, Value *)> DeviceAddrCB,
++    function_ref<Value *(unsigned int)> CustomMapperCB) {
++
++  // Reset the array information.
++  Info.clearArrayInfo();
++  Info.NumberOfPtrs = CombinedInfo.BasePointers.size();
++
++  if (Info.NumberOfPtrs) {
++    Builder.restoreIP(AllocaIP);
++    // Detect if we have any capture size requiring runtime evaluation of the
++    // size so that a constant array could be eventually used.
++    ArrayType *PointerArrayType =
++        ArrayType::get(Builder.getInt8PtrTy(), Info.NumberOfPtrs);
++
++    Info.RTArgs.BasePointersArray = Builder.CreateAlloca(
++        PointerArrayType, /* ArraySize = */ nullptr, ".offload_baseptrs");
++
++    Info.RTArgs.PointersArray = Builder.CreateAlloca(
++        PointerArrayType, /* ArraySize = */ nullptr, ".offload_ptrs");
++    AllocaInst *MappersArray = Builder.CreateAlloca(
++        PointerArrayType, /* ArraySize = */ nullptr, ".offload_mappers");
++    Info.RTArgs.MappersArray = MappersArray;
++
++    // If we don't have any VLA types or other types that require runtime
++    // evaluation, we can use a constant array for the map sizes, otherwise we
++    // need to fill up the arrays as we do for the pointers.
++    Type *Int64Ty = Builder.getInt64Ty();
++    SmallVector<Constant *> ConstSizes(
++        CombinedInfo.Sizes.size(), ConstantInt::get(Builder.getInt64Ty(), 0));
++    SmallBitVector RuntimeSizes(CombinedInfo.Sizes.size());
++    for (unsigned I = 0, E = CombinedInfo.Sizes.size(); I < E; ++I) {
++      if (auto *CI = dyn_cast<Constant>(CombinedInfo.Sizes[I])) {
++        if (!isa<ConstantExpr>(CI) && !isa<GlobalValue>(CI)) {
++          if (IsNonContiguous &&
++              static_cast<std::underlying_type_t<OpenMPOffloadMappingFlags>>(
++                  CombinedInfo.Types[I] &
++                  OpenMPOffloadMappingFlags::OMP_MAP_NON_CONTIG))
++            ConstSizes[I] = ConstantInt::get(
++                Builder.getInt64Ty(), CombinedInfo.NonContigInfo.Dims[I]);
++          else
++            ConstSizes[I] = CI;
++          continue;
++        }
++      }
++      RuntimeSizes.set(I);
++    }
++
++    if (RuntimeSizes.all()) {
++      ArrayType *SizeArrayType = ArrayType::get(Int64Ty, Info.NumberOfPtrs);
++      Info.RTArgs.SizesArray = Builder.CreateAlloca(
++          SizeArrayType, /* ArraySize = */ nullptr, ".offload_sizes");
++      Builder.restoreIP(CodeGenIP);
++    } else {
++      auto *SizesArrayInit = ConstantArray::get(
++          ArrayType::get(Int64Ty, ConstSizes.size()), ConstSizes);
++      std::string Name = createPlatformSpecificName({"offload_sizes"});
++      auto *SizesArrayGbl =
++          new GlobalVariable(M, SizesArrayInit->getType(), /*isConstant=*/true,
++                             GlobalValue::PrivateLinkage, SizesArrayInit, Name);
++      SizesArrayGbl->setUnnamedAddr(GlobalValue::UnnamedAddr::Global);
++
++      if (RuntimeSizes.any()) {
++        unsigned IndexSize = M.getDataLayout().getIndexSizeInBits(0);
++        Align OffloadSizeAlign =
++            M.getDataLayout().getABIIntegerTypeAlignment(64);
++        ArrayType *SizeArrayType = ArrayType::get(Int64Ty, Info.NumberOfPtrs);
++        AllocaInst *Buffer = Builder.CreateAlloca(
++            SizeArrayType, /* ArraySize = */ nullptr, ".offload_sizes");
++        Buffer->setAlignment(OffloadSizeAlign);
++        Builder.restoreIP(CodeGenIP);
++        Value *GblConstPtr = Builder.CreatePointerBitCastOrAddrSpaceCast(
++            SizesArrayGbl, Int64Ty->getPointerTo());
++        Builder.CreateMemCpy(
++            Buffer, M.getDataLayout().getPrefTypeAlign(Buffer->getType()),
++            GblConstPtr, OffloadSizeAlign,
++            Builder.getIntN(
++                IndexSize,
++                Buffer->getAllocationSize(M.getDataLayout())->getFixedValue()));
++
++        Info.RTArgs.SizesArray = Buffer;
++      } else {
++        Info.RTArgs.SizesArray = SizesArrayGbl;
++      }
++      Builder.restoreIP(CodeGenIP);
++    }
++
++    // The map types are always constant so we don't need to generate code to
++    // fill arrays. Instead, we create an array constant.
++    SmallVector<uint64_t, 4> Mapping;
++    for (auto mapFlag : CombinedInfo.Types)
++      Mapping.push_back(
++          static_cast<std::underlying_type_t<OpenMPOffloadMappingFlags>>(
++              mapFlag));
++    std::string MaptypesName = createPlatformSpecificName({"offload_maptypes"});
++    auto *MapTypesArrayGbl = createOffloadMaptypes(Mapping, MaptypesName);
++    Info.RTArgs.MapTypesArray = MapTypesArrayGbl;
++
++    // The information types are only built if provided.
++    if (!CombinedInfo.Names.empty()) {
++      std::string MapnamesName =
++          createPlatformSpecificName({"offload_mapnames"});
++      auto *MapNamesArrayGbl =
++          createOffloadMapnames(CombinedInfo.Names, MapnamesName);
++      Info.RTArgs.MapNamesArray = MapNamesArrayGbl;
++    }
++
++    // If there's a present map type modifier, it must not be applied to the end
++    // of a region, so generate a separate map type array in that case.
++    if (Info.separateBeginEndCalls()) {
++      bool EndMapTypesDiffer = false;
++      for (uint64_t &Type : Mapping) {
++        if (Type &
++            static_cast<std::underlying_type_t<OpenMPOffloadMappingFlags>>(
++                OpenMPOffloadMappingFlags::OMP_MAP_PRESENT)) {
++          Type &=
++              ~static_cast<std::underlying_type_t<OpenMPOffloadMappingFlags>>(
++                  OpenMPOffloadMappingFlags::OMP_MAP_PRESENT);
++          EndMapTypesDiffer = true;
++        }
++      }
++      if (EndMapTypesDiffer) {
++        MapTypesArrayGbl = createOffloadMaptypes(Mapping, MaptypesName);
++        Info.RTArgs.MapTypesArrayEnd = MapTypesArrayGbl;
++      }
++    }
++
++    for (unsigned I = 0; I < Info.NumberOfPtrs; ++I) {
++      Value *BPVal = CombinedInfo.BasePointers[I];
++      Value *BP = Builder.CreateConstInBoundsGEP2_32(
++          ArrayType::get(Builder.getInt8PtrTy(), Info.NumberOfPtrs),
++          Info.RTArgs.BasePointersArray, 0, I);
++      BP = Builder.CreatePointerBitCastOrAddrSpaceCast(
++          BP, BPVal->getType()->getPointerTo(/*AddrSpace=*/0));
++      Builder.CreateAlignedStore(
++          BPVal, BP,
++          M.getDataLayout().getPrefTypeAlign(Builder.getInt8PtrTy()));
++
++      if (Info.requiresDevicePointerInfo()) {
++        assert(DeviceAddrCB);
++        DeviceAddrCB(I, BP, BPVal);
++      }
++
++      Value *PVal = CombinedInfo.Pointers[I];
++      Value *P = Builder.CreateConstInBoundsGEP2_32(
++          ArrayType::get(Builder.getInt8PtrTy(), Info.NumberOfPtrs),
++          Info.RTArgs.PointersArray, 0, I);
++      P = Builder.CreatePointerBitCastOrAddrSpaceCast(
++          P, PVal->getType()->getPointerTo(/*AddrSpace=*/0));
++      // TODO: Check alignment correct.
++      Builder.CreateAlignedStore(
++          PVal, P, M.getDataLayout().getPrefTypeAlign(Builder.getInt8PtrTy()));
++
++      if (RuntimeSizes.test(I)) {
++        Value *S = Builder.CreateConstInBoundsGEP2_32(
++            ArrayType::get(Int64Ty, Info.NumberOfPtrs), Info.RTArgs.SizesArray,
++            /*Idx0=*/0,
++            /*Idx1=*/I);
++        Builder.CreateAlignedStore(
++            Builder.CreateIntCast(CombinedInfo.Sizes[I], Int64Ty,
++                                  /*isSigned=*/true),
++            S, M.getDataLayout().getPrefTypeAlign(Builder.getInt8PtrTy()));
++      }
++      // Fill up the mapper array.
++      unsigned IndexSize = M.getDataLayout().getIndexSizeInBits(0);
++      Value *MFunc = ConstantPointerNull::get(Builder.getInt8PtrTy());
++      if (CustomMapperCB)
++        if (Value *CustomMFunc = CustomMapperCB(I))
++          MFunc =
++              Builder.CreatePointerCast(CustomMFunc, Builder.getInt8PtrTy());
++      Value *MAddr = Builder.CreateInBoundsGEP(
++          MappersArray->getAllocatedType(), MappersArray,
++          {Builder.getIntN(IndexSize, 0), Builder.getIntN(IndexSize, I)});
++      Builder.CreateAlignedStore(
++          MFunc, MAddr, M.getDataLayout().getPrefTypeAlign(MAddr->getType()));
++    }
++  }
++
++  if (!IsNonContiguous || CombinedInfo.NonContigInfo.Offsets.empty() ||
++      Info.NumberOfPtrs == 0)
++    return;
++  emitNonContiguousDescriptor(AllocaIP, CodeGenIP, CombinedInfo, Info);
++}
++
++void OpenMPIRBuilder::EmitBranch(BasicBlock *Target) {
++  // Emit a branch from the current block to the target one if this
++  // was a real block.  If this was just a fall-through block after a
++  // terminator, don't emit it.
++  BasicBlock *CurBB = Builder.GetInsertBlock();
++
++  if (!CurBB || CurBB->getTerminator()) {
++    // If there is no insert point or the previous block is already
++    // terminated, don't touch it.
++  } else {
++    // Otherwise, create a fall-through branch.
++    Builder.CreateBr(Target);
++  }
++
++  Builder.ClearInsertionPoint();
++}
++
++void OpenMPIRBuilder::EmitBlock(BasicBlock *BB, Function *CurFn,
++                                bool IsFinished) {
++  BasicBlock *CurBB = Builder.GetInsertBlock();
++
++  // Fall out of the current block (if necessary).
++  EmitBranch(BB);
++
++  if (IsFinished && BB->use_empty()) {
++    delete BB;
++    return;
++  }
++
++  // Place the block after the current block, if possible, or else at
++  // the end of the function.
++  if (CurBB && CurBB->getParent())
++    CurFn->insert(std::next(CurBB->getIterator()), BB);
++  else
++    CurFn->insert(CurFn->end(), BB);
++  Builder.SetInsertPoint(BB);
++}
++
++void OpenMPIRBuilder::emitIfClause(Value *Cond, BodyGenCallbackTy ThenGen,
++                                   BodyGenCallbackTy ElseGen) {
++  // If the condition constant folds and can be elided, try to avoid emitting
++  // the condition and the dead arm of the if/else.
++  if (isa<ConstantInt>(Cond)) {
++    bool CondConstant =
++        cast<ConstantInt>(Cond)->getUniqueInteger().getSExtValue();
++    if (CondConstant)
++      ThenGen(Builder.saveIP(), Builder.saveIP());
++    else
++      ElseGen(Builder.saveIP(), Builder.saveIP());
++    return;
++  }
++
++  Function *CurFn = Builder.GetInsertBlock()->getParent();
++
++  // Otherwise, the condition did not fold, or we couldn't elide it.  Just
++  // emit the conditional branch.
++  BasicBlock *ThenBlock = BasicBlock::Create(M.getContext(), "omp_if.then");
++  BasicBlock *ElseBlock = BasicBlock::Create(M.getContext(), "omp_if.else");
++  BasicBlock *ContBlock = BasicBlock::Create(M.getContext(), "omp_if.end");
++  Builder.CreateCondBr(Cond, ThenBlock, ElseBlock);
++
++  // Emit the 'then' code.
++  EmitBlock(ThenBlock, CurFn);
++  ThenGen(Builder.saveIP(), Builder.saveIP());
++  EmitBranch(ContBlock);
++  // Emit the 'else' code if present.
++  // There is no need to emit line number for unconditional branch.
++  EmitBlock(ElseBlock, CurFn);
++  ElseGen(Builder.saveIP(), Builder.saveIP());
++  // There is no need to emit line number for unconditional branch.
++  EmitBranch(ContBlock);
++  // Emit the continuation block for code after the if.
++  EmitBlock(ContBlock, CurFn, /*IsFinished=*/true);
++}
++
+ bool OpenMPIRBuilder::checkAndEmitFlushAfterAtomic(
+     const LocationDescription &Loc, llvm::AtomicOrdering AO, AtomicKind AK) {
+   assert(!(AO == AtomicOrdering::NotAtomic ||
+@@ -4999,7 +5586,9 @@
+ void OpenMPIRBuilder::createOffloadEntry(Constant *ID, Constant *Addr,
+                                          uint64_t Size, int32_t Flags,
+                                          GlobalValue::LinkageTypes) {
+-  if (!Config.isTargetCodegen()) {
++  // TODO Original check was 'if (!Config.isTargetCodegen())', which fails to
++  // produce nvvm.annotations for the device
++  if (!Config.isEmbedded()) {
+     emitOffloadingEntry(ID, Addr->getName(), Size, Flags);
+     return;
+   }
+diff -Naur -x .git -x __pycache__ -x docs -x test llvm-project.upstream/llvm/unittests/Frontend/OpenMPIRBuilderTest.cpp llvm-project/llvm/unittests/Frontend/OpenMPIRBuilderTest.cpp
+--- llvm-project.upstream/llvm/unittests/Frontend/OpenMPIRBuilderTest.cpp	2023-05-18 12:00:47.989648485 -0400
++++ llvm-project/llvm/unittests/Frontend/OpenMPIRBuilderTest.cpp	2023-05-29 14:42:55.999328093 -0400
+@@ -4886,18 +4886,9 @@
+   OMPBuilder.initialize();
+   F->setName("func");
+   IRBuilder<> Builder(BB);
+-
+   OpenMPIRBuilder::LocationDescription Loc({Builder.saveIP(), DL});
+ 
+-  unsigned NumDataOperands = 1;
+   int64_t DeviceID = 2;
+-  struct OpenMPIRBuilder::MapperAllocas MapperAllocas;
+-  SmallVector<uint64_t> MapTypeFlagsTo = {1};
+-  SmallVector<Constant *> MapNames;
+-  auto *I8PtrTy = Builder.getInt8PtrTy();
+-  auto *ArrI8PtrTy = ArrayType::get(I8PtrTy, NumDataOperands);
+-  auto *I64Ty = Builder.getInt64Ty();
+-  auto *ArrI64Ty = ArrayType::get(I64Ty, NumDataOperands);
+ 
+   AllocaInst *Val1 =
+       Builder.CreateAlloca(Builder.getInt32Ty(), Builder.getInt64(1));
+@@ -4905,44 +4896,34 @@
+ 
+   IRBuilder<>::InsertPoint AllocaIP(&F->getEntryBlock(),
+                                     F->getEntryBlock().getFirstInsertionPt());
+-  OMPBuilder.createMapperAllocas(Builder.saveIP(), AllocaIP, NumDataOperands,
+-                                 MapperAllocas);
+ 
++  llvm::OpenMPIRBuilder::MapInfosTy CombinedInfo;
+   using InsertPointTy = OpenMPIRBuilder::InsertPointTy;
+-  auto ProcessMapOpCB = [&](InsertPointTy AllocaIP, InsertPointTy CodeGenIP) {
+-    Value *DataValue = Val1;
+-    Value *DataPtrBase;
+-    Value *DataPtr;
+-    DataPtrBase = DataValue;
+-    DataPtr = DataValue;
+-    Builder.restoreIP(CodeGenIP);
++  auto GenMapInfoCB =
++      [&](InsertPointTy codeGenIP) -> llvm::OpenMPIRBuilder::MapInfosTy & {
++    // Get map clause information.
++    Builder.restoreIP(codeGenIP);
+ 
+-    Value *Null = Constant::getNullValue(DataValue->getType()->getPointerTo());
+-    Value *SizeGep =
+-        Builder.CreateGEP(DataValue->getType(), Null, Builder.getInt32(1));
+-    Value *SizePtrToInt = Builder.CreatePtrToInt(SizeGep, I64Ty);
+-
+-    Value *PtrBaseGEP =
+-        Builder.CreateInBoundsGEP(ArrI8PtrTy, MapperAllocas.ArgsBase,
+-                                  {Builder.getInt32(0), Builder.getInt32(0)});
+-    Value *PtrBaseCast = Builder.CreateBitCast(
+-        PtrBaseGEP, DataPtrBase->getType()->getPointerTo());
+-    Builder.CreateStore(DataPtrBase, PtrBaseCast);
+-    Value *PtrGEP =
+-        Builder.CreateInBoundsGEP(ArrI8PtrTy, MapperAllocas.Args,
+-                                  {Builder.getInt32(0), Builder.getInt32(0)});
+-    Value *PtrCast =
+-        Builder.CreateBitCast(PtrGEP, DataPtr->getType()->getPointerTo());
+-    Builder.CreateStore(DataPtr, PtrCast);
+-    Value *SizeGEP =
+-        Builder.CreateInBoundsGEP(ArrI64Ty, MapperAllocas.ArgSizes,
+-                                  {Builder.getInt32(0), Builder.getInt32(0)});
+-    Builder.CreateStore(SizePtrToInt, SizeGEP);
++    CombinedInfo.BasePointers.emplace_back(Val1);
++    CombinedInfo.Pointers.emplace_back(Val1);
++    CombinedInfo.Sizes.emplace_back(Builder.getInt64(4));
++    CombinedInfo.Types.emplace_back(llvm::omp::OpenMPOffloadMappingFlags(1));
++    uint32_t temp;
++    CombinedInfo.Names.emplace_back(
++        OMPBuilder.getOrCreateSrcLocStr("unknown", temp));
++    return CombinedInfo;
+   };
+ 
++  llvm::OpenMPIRBuilder::TargetDataInfo Info(
++      /*RequiresDevicePointerInfo=*/false,
++      /*SeparateBeginEndCalls=*/true);
++
++  OMPBuilder.Config.setIsTargetCodegen(true);
++
++  llvm::omp::RuntimeFunction RTLFunc = OMPRTL___tgt_target_data_begin_mapper;
+   Builder.restoreIP(OMPBuilder.createTargetData(
+-      Loc, Builder.saveIP(), MapTypeFlagsTo, MapNames, MapperAllocas,
+-      /* IsBegin= */ true, DeviceID, /* IfCond= */ nullptr, ProcessMapOpCB));
++      Loc, AllocaIP, Builder.saveIP(), Builder.getInt64(DeviceID),
++      /* IfCond= */ nullptr, Info, GenMapInfoCB, &RTLFunc));
+ 
+   CallInst *TargetDataCall = dyn_cast<CallInst>(&BB->back());
+   EXPECT_NE(TargetDataCall, nullptr);
+@@ -4962,18 +4943,9 @@
+   OMPBuilder.initialize();
+   F->setName("func");
+   IRBuilder<> Builder(BB);
+-
+   OpenMPIRBuilder::LocationDescription Loc({Builder.saveIP(), DL});
+ 
+-  unsigned NumDataOperands = 1;
+   int64_t DeviceID = 2;
+-  struct OpenMPIRBuilder::MapperAllocas MapperAllocas;
+-  SmallVector<uint64_t> MapTypeFlagsFrom = {2};
+-  SmallVector<Constant *> MapNames;
+-  auto *I8PtrTy = Builder.getInt8PtrTy();
+-  auto *ArrI8PtrTy = ArrayType::get(I8PtrTy, NumDataOperands);
+-  auto *I64Ty = Builder.getInt64Ty();
+-  auto *ArrI64Ty = ArrayType::get(I64Ty, NumDataOperands);
+ 
+   AllocaInst *Val1 =
+       Builder.CreateAlloca(Builder.getInt32Ty(), Builder.getInt64(1));
+@@ -4981,44 +4953,34 @@
+ 
+   IRBuilder<>::InsertPoint AllocaIP(&F->getEntryBlock(),
+                                     F->getEntryBlock().getFirstInsertionPt());
+-  OMPBuilder.createMapperAllocas(Builder.saveIP(), AllocaIP, NumDataOperands,
+-                                 MapperAllocas);
+ 
++  llvm::OpenMPIRBuilder::MapInfosTy CombinedInfo;
+   using InsertPointTy = OpenMPIRBuilder::InsertPointTy;
+-  auto ProcessMapOpCB = [&](InsertPointTy AllocaIP, InsertPointTy CodeGenIP) {
+-    Value *DataValue = Val1;
+-    Value *DataPtrBase;
+-    Value *DataPtr;
+-    DataPtrBase = DataValue;
+-    DataPtr = DataValue;
+-    Builder.restoreIP(CodeGenIP);
++  auto GenMapInfoCB =
++      [&](InsertPointTy codeGenIP) -> llvm::OpenMPIRBuilder::MapInfosTy & {
++    // Get map clause information.
++    Builder.restoreIP(codeGenIP);
+ 
+-    Value *Null = Constant::getNullValue(DataValue->getType()->getPointerTo());
+-    Value *SizeGep =
+-        Builder.CreateGEP(DataValue->getType(), Null, Builder.getInt32(1));
+-    Value *SizePtrToInt = Builder.CreatePtrToInt(SizeGep, I64Ty);
+-
+-    Value *PtrBaseGEP =
+-        Builder.CreateInBoundsGEP(ArrI8PtrTy, MapperAllocas.ArgsBase,
+-                                  {Builder.getInt32(0), Builder.getInt32(0)});
+-    Value *PtrBaseCast = Builder.CreateBitCast(
+-        PtrBaseGEP, DataPtrBase->getType()->getPointerTo());
+-    Builder.CreateStore(DataPtrBase, PtrBaseCast);
+-    Value *PtrGEP =
+-        Builder.CreateInBoundsGEP(ArrI8PtrTy, MapperAllocas.Args,
+-                                  {Builder.getInt32(0), Builder.getInt32(0)});
+-    Value *PtrCast =
+-        Builder.CreateBitCast(PtrGEP, DataPtr->getType()->getPointerTo());
+-    Builder.CreateStore(DataPtr, PtrCast);
+-    Value *SizeGEP =
+-        Builder.CreateInBoundsGEP(ArrI64Ty, MapperAllocas.ArgSizes,
+-                                  {Builder.getInt32(0), Builder.getInt32(0)});
+-    Builder.CreateStore(SizePtrToInt, SizeGEP);
++    CombinedInfo.BasePointers.emplace_back(Val1);
++    CombinedInfo.Pointers.emplace_back(Val1);
++    CombinedInfo.Sizes.emplace_back(Builder.getInt64(4));
++    CombinedInfo.Types.emplace_back(llvm::omp::OpenMPOffloadMappingFlags(2));
++    uint32_t temp;
++    CombinedInfo.Names.emplace_back(
++        OMPBuilder.getOrCreateSrcLocStr("unknown", temp));
++    return CombinedInfo;
+   };
+ 
++  llvm::OpenMPIRBuilder::TargetDataInfo Info(
++      /*RequiresDevicePointerInfo=*/false,
++      /*SeparateBeginEndCalls=*/true);
++
++  OMPBuilder.Config.setIsTargetCodegen(true);
++
++  llvm::omp::RuntimeFunction RTLFunc = OMPRTL___tgt_target_data_end_mapper;
+   Builder.restoreIP(OMPBuilder.createTargetData(
+-      Loc, Builder.saveIP(), MapTypeFlagsFrom, MapNames, MapperAllocas,
+-      /* IsBegin= */ false, DeviceID, /* IfCond= */ nullptr, ProcessMapOpCB));
++      Loc, AllocaIP, Builder.saveIP(), Builder.getInt64(DeviceID),
++      /* IfCond= */ nullptr, Info, GenMapInfoCB, &RTLFunc));
+ 
+   CallInst *TargetDataCall = dyn_cast<CallInst>(&BB->back());
+   EXPECT_NE(TargetDataCall, nullptr);
+@@ -5038,18 +5000,9 @@
+   OMPBuilder.initialize();
+   F->setName("func");
+   IRBuilder<> Builder(BB);
+-
+   OpenMPIRBuilder::LocationDescription Loc({Builder.saveIP(), DL});
+ 
+-  unsigned NumDataOperands = 1;
+   int64_t DeviceID = 2;
+-  struct OpenMPIRBuilder::MapperAllocas MapperAllocas;
+-  SmallVector<uint64_t> MapTypeFlagsToFrom = {3};
+-  SmallVector<Constant *> MapNames;
+-  auto *I8PtrTy = Builder.getInt8PtrTy();
+-  auto *ArrI8PtrTy = ArrayType::get(I8PtrTy, NumDataOperands);
+-  auto *I64Ty = Builder.getInt64Ty();
+-  auto *ArrI64Ty = ArrayType::get(I64Ty, NumDataOperands);
+ 
+   AllocaInst *Val1 =
+       Builder.CreateAlloca(Builder.getInt32Ty(), Builder.getInt64(1));
+@@ -5057,57 +5010,52 @@
+ 
+   IRBuilder<>::InsertPoint AllocaIP(&F->getEntryBlock(),
+                                     F->getEntryBlock().getFirstInsertionPt());
+-  OMPBuilder.createMapperAllocas(Builder.saveIP(), AllocaIP, NumDataOperands,
+-                                 MapperAllocas);
+ 
++  llvm::OpenMPIRBuilder::MapInfosTy CombinedInfo;
+   using InsertPointTy = OpenMPIRBuilder::InsertPointTy;
+-  auto ProcessMapOpCB = [&](InsertPointTy AllocaIP, InsertPointTy CodeGenIP) {
+-    Value *DataValue = Val1;
+-    Value *DataPtrBase;
+-    Value *DataPtr;
+-    DataPtrBase = DataValue;
+-    DataPtr = DataValue;
+-    Builder.restoreIP(CodeGenIP);
++  auto GenMapInfoCB =
++      [&](InsertPointTy codeGenIP) -> llvm::OpenMPIRBuilder::MapInfosTy & {
++    // Get map clause information.
++    Builder.restoreIP(codeGenIP);
+ 
+-    Value *Null = Constant::getNullValue(DataValue->getType()->getPointerTo());
+-    Value *SizeGep =
+-        Builder.CreateGEP(DataValue->getType(), Null, Builder.getInt32(1));
+-    Value *SizePtrToInt = Builder.CreatePtrToInt(SizeGep, I64Ty);
+-
+-    Value *PtrBaseGEP =
+-        Builder.CreateInBoundsGEP(ArrI8PtrTy, MapperAllocas.ArgsBase,
+-                                  {Builder.getInt32(0), Builder.getInt32(0)});
+-    Value *PtrBaseCast = Builder.CreateBitCast(
+-        PtrBaseGEP, DataPtrBase->getType()->getPointerTo());
+-    Builder.CreateStore(DataPtrBase, PtrBaseCast);
+-    Value *PtrGEP =
+-        Builder.CreateInBoundsGEP(ArrI8PtrTy, MapperAllocas.Args,
+-                                  {Builder.getInt32(0), Builder.getInt32(0)});
+-    Value *PtrCast =
+-        Builder.CreateBitCast(PtrGEP, DataPtr->getType()->getPointerTo());
+-    Builder.CreateStore(DataPtr, PtrCast);
+-    Value *SizeGEP =
+-        Builder.CreateInBoundsGEP(ArrI64Ty, MapperAllocas.ArgSizes,
+-                                  {Builder.getInt32(0), Builder.getInt32(0)});
+-    Builder.CreateStore(SizePtrToInt, SizeGEP);
++    CombinedInfo.BasePointers.emplace_back(Val1);
++    CombinedInfo.Pointers.emplace_back(Val1);
++    CombinedInfo.Sizes.emplace_back(Builder.getInt64(4));
++    CombinedInfo.Types.emplace_back(llvm::omp::OpenMPOffloadMappingFlags(3));
++    uint32_t temp;
++    CombinedInfo.Names.emplace_back(
++        OMPBuilder.getOrCreateSrcLocStr("unknown", temp));
++    return CombinedInfo;
+   };
+ 
+-  auto BodyCB = [&](InsertPointTy allocaIP, InsertPointTy codeGenIP) {
+-    Builder.restoreIP(codeGenIP);
+-    auto *SI = Builder.CreateStore(Builder.getInt32(99), Val1);
+-    auto *newBB = SplitBlock(Builder.GetInsertBlock(), SI);
+-    Builder.SetInsertPoint(newBB);
+-    auto *UI = &Builder.GetInsertBlock()->back();
+-    SplitBlock(Builder.GetInsertBlock(), UI);
++  llvm::OpenMPIRBuilder::TargetDataInfo Info(
++      /*RequiresDevicePointerInfo=*/false,
++      /*SeparateBeginEndCalls=*/true);
++
++  OMPBuilder.Config.setIsTargetCodegen(true);
++
++  auto BodyCB = [&](InsertPointTy CodeGenIP, int BodyGenType) {
++    if (BodyGenType == 3) {
++      Builder.restoreIP(CodeGenIP);
++      CallInst *TargetDataCall = dyn_cast<CallInst>(&BB->back());
++      EXPECT_NE(TargetDataCall, nullptr);
++      EXPECT_EQ(TargetDataCall->arg_size(), 9U);
++      EXPECT_EQ(TargetDataCall->getCalledFunction()->getName(),
++                "__tgt_target_data_begin_mapper");
++      EXPECT_TRUE(TargetDataCall->getOperand(1)->getType()->isIntegerTy(64));
++      EXPECT_TRUE(TargetDataCall->getOperand(2)->getType()->isIntegerTy(32));
++      EXPECT_TRUE(TargetDataCall->getOperand(8)->getType()->isPointerTy());
++      Builder.restoreIP(CodeGenIP);
++      Builder.CreateStore(Builder.getInt32(99), Val1);
++    }
++    return Builder.saveIP();
+   };
+ 
+   Builder.restoreIP(OMPBuilder.createTargetData(
+-      Loc, Builder.saveIP(), MapTypeFlagsToFrom, MapNames, MapperAllocas,
+-      /* IsBegin= */ false, DeviceID, /* IfCond= */ nullptr, ProcessMapOpCB,
+-      BodyCB));
++      Loc, AllocaIP, Builder.saveIP(), Builder.getInt64(DeviceID),
++      /* IfCond= */ nullptr, Info, GenMapInfoCB, nullptr, BodyCB));
+ 
+-  CallInst *TargetDataCall =
+-      dyn_cast<CallInst>(&Builder.GetInsertBlock()->back());
++  CallInst *TargetDataCall = dyn_cast<CallInst>(&BB->back());
+   EXPECT_NE(TargetDataCall, nullptr);
+   EXPECT_EQ(TargetDataCall->arg_size(), 9U);
+   EXPECT_EQ(TargetDataCall->getCalledFunction()->getName(),
+@@ -5120,6 +5068,36 @@
+   EXPECT_FALSE(verifyModule(*M, &errs()));
+ }
+ 
++namespace {
++
++// Some basic handling of argument mapping for the moment
++void CreateDefaultMapInfos(llvm::OpenMPIRBuilder &ompBuilder,
++                           llvm::SmallVectorImpl<llvm::Value *> &args,
++                           llvm::OpenMPIRBuilder::MapInfosTy &combinedInfo) {
++  for (auto arg : args) {
++    if (!arg->getType()->isPointerTy()) {
++      combinedInfo.BasePointers.clear();
++      combinedInfo.Pointers.clear();
++      combinedInfo.Sizes.clear();
++      combinedInfo.Types.clear();
++      combinedInfo.Names.clear();
++      return;
++    }
++    combinedInfo.BasePointers.emplace_back(arg);
++    combinedInfo.Pointers.emplace_back(arg);
++    uint32_t SrcLocStrSize;
++    combinedInfo.Names.emplace_back(ompBuilder.getOrCreateSrcLocStr(
++        "Unknown loc - stub implementation", SrcLocStrSize));
++    combinedInfo.Types.emplace_back(llvm::omp::OpenMPOffloadMappingFlags(
++        llvm::omp::OpenMPOffloadMappingFlags::OMP_MAP_FROM |
++        llvm::omp::OpenMPOffloadMappingFlags::OMP_MAP_TARGET_PARAM));
++    combinedInfo.Sizes.emplace_back(ompBuilder.Builder.getInt64(
++        ompBuilder.M.getDataLayout().getTypeAllocSize(arg->getType())));
++  }
++}
++
++} // namespace
++
+ TEST_F(OpenMPIRBuilderTest, TargetRegion) {
+   using InsertPointTy = OpenMPIRBuilder::InsertPointTy;
+   OpenMPIRBuilder OMPBuilder(*M);
+@@ -5151,10 +5129,18 @@
+   Inputs.push_back(BPtr);
+   Inputs.push_back(CPtr);
+ 
++  llvm::OpenMPIRBuilder::MapInfosTy CombinedInfos;
++  auto GenMapInfoCB = [&](llvm::OpenMPIRBuilder::InsertPointTy codeGenIP)
++      -> llvm::OpenMPIRBuilder::MapInfosTy & {
++    CreateDefaultMapInfos(OMPBuilder, Inputs, CombinedInfos);
++    return CombinedInfos;
++  };
++
+   TargetRegionEntryInfo EntryInfo("func", 42, 4711, 17);
+   OpenMPIRBuilder::LocationDescription OmpLoc({Builder.saveIP(), DL});
+-  Builder.restoreIP(OMPBuilder.createTarget(OmpLoc, Builder.saveIP(), EntryInfo,
+-                                            -1, -1, Inputs, BodyGenCB));
++  Builder.restoreIP(OMPBuilder.createTarget(OmpLoc, Builder.saveIP(),
++                                            Builder.saveIP(), EntryInfo, -1, -1,
++                                            Inputs, GenMapInfoCB, BodyGenCB));
+   OMPBuilder.finalize();
+   Builder.CreateRetVoid();
+ 
+@@ -5190,6 +5176,13 @@
+       Constant::getIntegerValue(Type::getInt32Ty(Ctx), APInt(32, 0)),
+       Constant::getNullValue(Type::getInt32PtrTy(Ctx))};
+ 
++  llvm::OpenMPIRBuilder::MapInfosTy CombinedInfos;
++  auto GenMapInfoCB = [&](llvm::OpenMPIRBuilder::InsertPointTy codeGenIP)
++      -> llvm::OpenMPIRBuilder::MapInfosTy & {
++    CreateDefaultMapInfos(OMPBuilder, CapturedArgs, CombinedInfos);
++    return CombinedInfos;
++  };
++
+   auto BodyGenCB = [&](OpenMPIRBuilder::InsertPointTy AllocaIP,
+                        OpenMPIRBuilder::InsertPointTy CodeGenIP)
+       -> OpenMPIRBuilder::InsertPointTy {
+@@ -5202,10 +5195,9 @@
+                                    F->getEntryBlock().getFirstInsertionPt());
+   TargetRegionEntryInfo EntryInfo("parent", /*DeviceID=*/1, /*FileID=*/2,
+                                   /*Line=*/3, /*Count=*/0);
+-
+-  Builder.restoreIP(
+-      OMPBuilder.createTarget(Loc, EntryIP, EntryInfo, /*NumTeams=*/-1,
+-                              /*NumThreads=*/-1, CapturedArgs, BodyGenCB));
++  Builder.restoreIP(OMPBuilder.createTarget(
++      Loc, EntryIP, EntryIP, EntryInfo, /*NumTeams=*/-1,
++      /*NumThreads=*/-1, CapturedArgs, GenMapInfoCB, BodyGenCB));
+   Builder.CreateRetVoid();
+   OMPBuilder.finalize();
+ 
+diff -Naur -x .git -x __pycache__ -x docs -x test llvm-project.upstream/mlir/include/mlir/Target/LLVMIR/ModuleTranslation.h llvm-project/mlir/include/mlir/Target/LLVMIR/ModuleTranslation.h
+--- llvm-project.upstream/mlir/include/mlir/Target/LLVMIR/ModuleTranslation.h	2023-05-16 13:15:57.706393125 -0400
++++ llvm-project/mlir/include/mlir/Target/LLVMIR/ModuleTranslation.h	2023-05-29 12:35:45.275105151 -0400
+@@ -345,6 +345,10 @@
+ 
+   /// A cache for the symbol tables constructed during symbols lookup.
+   SymbolTableCollection symbolTableCollection;
++
++  /// The set of functions that should be masked out from the output, due to not
++  /// corresponding to the target device being compiled for.
++  llvm::SmallVector<llvm::Function *> maskedFunctions;
+ };
+ 
+ namespace detail {
+diff -Naur -x .git -x __pycache__ -x docs -x test llvm-project.upstream/mlir/lib/Target/LLVMIR/CMakeLists.txt llvm-project/mlir/lib/Target/LLVMIR/CMakeLists.txt
+--- llvm-project.upstream/mlir/lib/Target/LLVMIR/CMakeLists.txt	2023-04-26 19:15:09.468963835 -0400
++++ llvm-project/mlir/lib/Target/LLVMIR/CMakeLists.txt	2023-05-24 10:32:02.911250496 -0400
+@@ -57,6 +57,7 @@
+   MLIROpenACCToLLVMIRTranslation
+   MLIROpenMPToLLVMIRTranslation
+   MLIRROCDLToLLVMIRTranslation
++  MLIROpenMPDialect
+   )
+ 
+ add_mlir_translation_library(MLIRTargetLLVMIRImport
+@@ -84,4 +85,5 @@
+ 
+   LINK_LIBS PUBLIC
+   MLIRLLVMIRToLLVMTranslation
++  MLIROpenMPDialect
+   )
+diff -Naur -x .git -x __pycache__ -x docs -x test llvm-project.upstream/mlir/lib/Target/LLVMIR/Dialect/OpenMP/OpenMPToLLVMIRTranslation.cpp llvm-project/mlir/lib/Target/LLVMIR/Dialect/OpenMP/OpenMPToLLVMIRTranslation.cpp
+--- llvm-project.upstream/mlir/lib/Target/LLVMIR/Dialect/OpenMP/OpenMPToLLVMIRTranslation.cpp	2023-05-22 08:28:24.225060923 -0400
++++ llvm-project/mlir/lib/Target/LLVMIR/Dialect/OpenMP/OpenMPToLLVMIRTranslation.cpp	2023-05-30 09:58:20.604301084 -0400
+@@ -1361,78 +1361,55 @@
+   return success();
+ }
+ 
+-/// Process MapOperands for Target Data directives.
+-static LogicalResult processMapOperand(
+-    llvm::IRBuilderBase &builder, LLVM::ModuleTranslation &moduleTranslation,
+-    const SmallVector<Value> &mapOperands, const ArrayAttr &mapTypes,
+-    SmallVector<uint64_t> &mapTypeFlags,
+-    SmallVectorImpl<llvm::Constant *> &mapNames,
+-    struct llvm::OpenMPIRBuilder::MapperAllocas &mapperAllocas) {
+-  auto numMapOperands = mapOperands.size();
+-  llvm::OpenMPIRBuilder *ompBuilder = moduleTranslation.getOpenMPBuilder();
+-  llvm::PointerType *i8PtrTy = builder.getInt8PtrTy();
+-  llvm::ArrayType *arrI8PtrTy = llvm::ArrayType::get(i8PtrTy, numMapOperands);
+-  llvm::IntegerType *i64Ty = builder.getInt64Ty();
+-  llvm::ArrayType *arrI64Ty = llvm::ArrayType::get(i64Ty, numMapOperands);
++int64_t getSizeInBytes(DataLayout &DL, const mlir::Type &type) {
++  if (isa<LLVM::LLVMPointerType>(type))
++    return DL.getTypeSize(cast<LLVM::LLVMPointerType>(type).getElementType());
++
++  return 0;
++}
+ 
++static void processMapOp(llvm::IRBuilderBase &builder,
++                         LLVM::ModuleTranslation &moduleTranslation,
++                         DataLayout &DL,
++                         llvm::OpenMPIRBuilder::MapInfosTy &combinedInfo,
++                         const SmallVector<Value> &mapOperands,
++                         const ArrayAttr &mapTypes) {
++  // Get map clause information.
++  llvm::OpenMPIRBuilder *ompBuilder = moduleTranslation.getOpenMPBuilder();
+   unsigned index = 0;
+   for (const auto &mapOp : mapOperands) {
+-    const auto &mapTypeOp = mapTypes[index];
+-
+-    llvm::Value *mapOpValue = moduleTranslation.lookupValue(mapOp);
+-    llvm::Value *mapOpPtrBase;
+-    llvm::Value *mapOpPtr;
+-    llvm::Value *mapOpSize;
+-
+-    if (isa<LLVM::LLVMPointerType>(mapOp.getType())) {
+-      mapOpPtrBase = mapOpValue;
+-      mapOpPtr = mapOpValue;
+-      mapOpSize = ompBuilder->getSizeInBytes(mapOpValue);
+-    } else {
+-      return failure();
++    if (!mapOp.getType().isa<LLVM::LLVMPointerType>()) {
++      // TODO: Only LLVMPointerTypes are handled.
++      combinedInfo.BasePointers.clear();
++      combinedInfo.Pointers.clear();
++      combinedInfo.Sizes.clear();
++      combinedInfo.Types.clear();
++      combinedInfo.Names.clear();
++      return;
+     }
+ 
+-    // Store base pointer extracted from operand into the i-th position of
+-    // argBase.
+-    llvm::Value *ptrBaseGEP = builder.CreateInBoundsGEP(
+-        arrI8PtrTy, mapperAllocas.ArgsBase,
+-        {builder.getInt32(0), builder.getInt32(index)});
+-    llvm::Value *ptrBaseCast = builder.CreateBitCast(
+-        ptrBaseGEP, mapOpPtrBase->getType()->getPointerTo());
+-    builder.CreateStore(mapOpPtrBase, ptrBaseCast);
+-
+-    // Store pointer extracted from operand into the i-th position of args.
+-    llvm::Value *ptrGEP = builder.CreateInBoundsGEP(
+-        arrI8PtrTy, mapperAllocas.Args,
+-        {builder.getInt32(0), builder.getInt32(index)});
+-    llvm::Value *ptrCast =
+-        builder.CreateBitCast(ptrGEP, mapOpPtr->getType()->getPointerTo());
+-    builder.CreateStore(mapOpPtr, ptrCast);
+-
+-    // Store size extracted from operand into the i-th position of argSizes.
+-    llvm::Value *sizeGEP = builder.CreateInBoundsGEP(
+-        arrI64Ty, mapperAllocas.ArgSizes,
+-        {builder.getInt32(0), builder.getInt32(index)});
+-    builder.CreateStore(mapOpSize, sizeGEP);
+-
+-    mapTypeFlags.push_back(dyn_cast<mlir::IntegerAttr>(mapTypeOp).getInt());
+-    llvm::Constant *mapName =
+-        mlir::LLVM::createMappingInformation(mapOp.getLoc(), *ompBuilder);
+-    mapNames.push_back(mapName);
+-    ++index;
++    llvm::Value *mapOpValue = moduleTranslation.lookupValue(mapOp);
++    combinedInfo.BasePointers.emplace_back(mapOpValue);
++    combinedInfo.Pointers.emplace_back(mapOpValue);
++    combinedInfo.Names.emplace_back(
++        mlir::LLVM::createMappingInformation(mapOp.getLoc(), *ompBuilder));
++    combinedInfo.Types.emplace_back(llvm::omp::OpenMPOffloadMappingFlags(
++        mapTypes[index].dyn_cast<mlir::IntegerAttr>().getInt()));
++    combinedInfo.Sizes.emplace_back(
++        builder.getInt64(getSizeInBytes(DL, mapOp.getType())));
++    index++;
+   }
+-
+-  return success();
+ }
+ 
+ static LogicalResult
+ convertOmpTargetData(Operation *op, llvm::IRBuilderBase &builder,
+                      LLVM::ModuleTranslation &moduleTranslation) {
+-  unsigned numMapOperands;
+   llvm::Value *ifCond = nullptr;
+   int64_t deviceID = llvm::omp::OMP_DEVICEID_UNDEF;
+   SmallVector<Value> mapOperands;
+   ArrayAttr mapTypes;
++  llvm::omp::RuntimeFunction RTLFn;
++  DataLayout DL = DataLayout(op->getParentOfType<ModuleOp>());
+ 
+   llvm::OpenMPIRBuilder *ompBuilder = moduleTranslation.getOpenMPBuilder();
+ 
+@@ -1453,7 +1430,6 @@
+                         dyn_cast<mlir::IntegerAttr>(constOp.getValue()))
+                   deviceID = intAttr.getInt();
+ 
+-            numMapOperands = dataOp.getMapOperands().size();
+             mapOperands = dataOp.getMapOperands();
+             mapTypes = dataOp.getMapTypes();
+             return success();
+@@ -1471,8 +1447,7 @@
+                 if (auto intAttr =
+                         dyn_cast<mlir::IntegerAttr>(constOp.getValue()))
+                   deviceID = intAttr.getInt();
+-
+-            numMapOperands = enterDataOp.getMapOperands().size();
++            RTLFn = llvm::omp::OMPRTL___tgt_target_data_begin_mapper;
+             mapOperands = enterDataOp.getMapOperands();
+             mapTypes = enterDataOp.getMapTypes();
+             return success();
+@@ -1491,7 +1466,7 @@
+                         dyn_cast<mlir::IntegerAttr>(constOp.getValue()))
+                   deviceID = intAttr.getInt();
+ 
+-            numMapOperands = exitDataOp.getMapOperands().size();
++            RTLFn = llvm::omp::OMPRTL___tgt_target_data_end_mapper;
+             mapOperands = exitDataOp.getMapOperands();
+             mapTypes = exitDataOp.getMapTypes();
+             return success();
+@@ -1504,46 +1479,48 @@
+   if (failed(result))
+     return failure();
+ 
+-  llvm::OpenMPIRBuilder::LocationDescription ompLoc(builder);
+-  llvm::OpenMPIRBuilder::InsertPointTy allocaIP =
+-      findAllocaInsertPoint(builder, moduleTranslation);
+-
+-  struct llvm::OpenMPIRBuilder::MapperAllocas mapperAllocas;
+-  SmallVector<uint64_t> mapTypeFlags;
+-  SmallVector<llvm::Constant *> mapNames;
+-  ompBuilder->createMapperAllocas(builder.saveIP(), allocaIP, numMapOperands,
+-                                  mapperAllocas);
+-
+   using InsertPointTy = llvm::OpenMPIRBuilder::InsertPointTy;
+-  LogicalResult processMapOpStatus = success();
+-  auto processMapOpCB = [&](InsertPointTy allocaIP, InsertPointTy codeGenIP) {
++
++  // Fill up the arrays with all the mapped variables.
++  llvm::OpenMPIRBuilder::MapInfosTy combinedInfo;
++  auto genMapInfoCB =
++      [&](InsertPointTy codeGenIP) -> llvm::OpenMPIRBuilder::MapInfosTy & {
+     builder.restoreIP(codeGenIP);
+-    processMapOpStatus =
+-        processMapOperand(builder, moduleTranslation, mapOperands, mapTypes,
+-                          mapTypeFlags, mapNames, mapperAllocas);
++    processMapOp(builder, moduleTranslation, DL, combinedInfo, mapOperands,
++                 mapTypes);
++    return combinedInfo;
+   };
+ 
+   LogicalResult bodyGenStatus = success();
+-  auto bodyCB = [&](InsertPointTy allocaIP, InsertPointTy codeGenIP) {
+-    // DataOp has only one region associated with it.
+-    auto &region = cast<omp::DataOp>(op).getRegion();
+-    builder.restoreIP(codeGenIP);
+-    bodyGenStatus = inlineConvertOmpRegions(region, "omp.data.region", builder,
+-                                            moduleTranslation);
++  auto bodyGenCB = [&](InsertPointTy codeGenIP, int bodyGenType) {
++    if (bodyGenType == 3) {
++      // DataOp has only one region associated with it.
++      auto &region = cast<omp::DataOp>(op).getRegion();
++      builder.restoreIP(codeGenIP);
++      bodyGenStatus = inlineConvertOmpRegions(region, "omp.data.region",
++                                              builder, moduleTranslation);
++    }
++    return builder.saveIP();
+   };
+ 
++  llvm::OpenMPIRBuilder::LocationDescription ompLoc(builder);
++  llvm::OpenMPIRBuilder::InsertPointTy allocaIP =
++      findAllocaInsertPoint(builder, moduleTranslation);
++
++  // TODO: Add support for DevicePointerInfo
++  llvm::OpenMPIRBuilder::TargetDataInfo info(
++      /*RequiresDevicePointerInfo=*/false,
++      /*SeparateBeginEndCalls=*/true);
+   if (isa<omp::DataOp>(op)) {
+     builder.restoreIP(ompBuilder->createTargetData(
+-        ompLoc, builder.saveIP(), mapTypeFlags, mapNames, mapperAllocas,
+-        /*IsBegin=*/false, deviceID, ifCond, processMapOpCB, bodyCB));
++        ompLoc, allocaIP, builder.saveIP(), builder.getInt64(deviceID), ifCond,
++        info, genMapInfoCB, nullptr, bodyGenCB));
+   } else {
+     builder.restoreIP(ompBuilder->createTargetData(
+-        ompLoc, builder.saveIP(), mapTypeFlags, mapNames, mapperAllocas,
+-        isa<omp::EnterDataOp>(op), deviceID, ifCond, processMapOpCB));
++        ompLoc, allocaIP, builder.saveIP(), builder.getInt64(deviceID), ifCond,
++        info, genMapInfoCB, &RTLFn));
+   }
+ 
+-  if (failed(processMapOpStatus))
+-    return processMapOpStatus;
+   return bodyGenStatus;
+ }
+ 
+@@ -1554,7 +1531,7 @@
+                                LLVM::ModuleTranslation &moduleTranslation) {
+   if (!cast<mlir::ModuleOp>(op))
+     return failure();
+-  
++
+   llvm::OpenMPIRBuilder *ompBuilder = moduleTranslation.getOpenMPBuilder();
+ 
+   ompBuilder->createGlobalFlag(
+@@ -1585,15 +1562,16 @@
+ 
+ static bool getTargetEntryUniqueInfo(llvm::TargetRegionEntryInfo &targetInfo,
+                                      omp::TargetOp targetOp,
+-                                     llvm::StringRef parentName = "") {
++                                     llvm::StringRef parentName = "",
++                                     llvm::StringRef hostFileName = "") {
+   auto fileLoc = targetOp.getLoc()->findInstanceOf<FileLineColLoc>();
+-
+   assert(fileLoc && "No file found from location");
+-  StringRef fileName = fileLoc.getFilename().getValue();
++  StringRef fileName =
++      (!hostFileName.empty()) ? hostFileName : fileLoc.getFilename().getValue();
+ 
+   llvm::sys::fs::UniqueID id;
+   if (auto ec = llvm::sys::fs::getUniqueID(fileName, id)) {
+-    targetOp.emitError("Unable to get unique ID for file");
++    targetOp.emitError("Unable to get unique ID for file: ") << fileName;
+     return false;
+   }
+ 
+@@ -1628,6 +1606,33 @@
+   return true;
+ }
+ 
++static void
++createDefaultMapInfos(llvm::OpenMPIRBuilder &ompBuilder,
++                      llvm::SmallVectorImpl<llvm::Value *> &args,
++                      llvm::OpenMPIRBuilder::MapInfosTy &combinedInfo) {
++  for (auto arg : args) {
++    if (!arg->getType()->isPointerTy()) {
++      // TODO: Only LLVMPointerTypes are handled.
++      combinedInfo.BasePointers.clear();
++      combinedInfo.Pointers.clear();
++      combinedInfo.Sizes.clear();
++      combinedInfo.Types.clear();
++      combinedInfo.Names.clear();
++      return;
++    }
++    combinedInfo.BasePointers.emplace_back(arg);
++    combinedInfo.Pointers.emplace_back(arg);
++    uint32_t SrcLocStrSize;
++    combinedInfo.Names.emplace_back(ompBuilder.getOrCreateSrcLocStr(
++        "Unknown loc - stub implementation", SrcLocStrSize));
++    combinedInfo.Types.emplace_back(llvm::omp::OpenMPOffloadMappingFlags(
++        llvm::omp::OpenMPOffloadMappingFlags::OMP_MAP_FROM |
++        llvm::omp::OpenMPOffloadMappingFlags::OMP_MAP_TARGET_PARAM));
++    combinedInfo.Sizes.emplace_back(ompBuilder.Builder.getInt64(
++        ompBuilder.M.getDataLayout().getTypeAllocSize(arg->getType())));
++  }
++}
++
+ static LogicalResult
+ convertOmpTarget(Operation &opInst, llvm::IRBuilderBase &builder,
+                  LLVM::ModuleTranslation &moduleTranslation) {
+@@ -1660,17 +1665,33 @@
+ 
+   llvm::OpenMPIRBuilder::LocationDescription ompLoc(builder);
+   StringRef parentName = opInst.getParentOfType<LLVM::LLVMFuncOp>().getName();
++  StringRef fileName = "";
+   llvm::TargetRegionEntryInfo entryInfo;
++  auto moduleOp = opInst.getParentOfType<mlir::ModuleOp>();
++  fileName = moduleOp.getName().value_or("");
+ 
+-  if (!getTargetEntryUniqueInfo(entryInfo, targetOp, parentName))
++  if (!getTargetEntryUniqueInfo(entryInfo, targetOp, parentName, fileName))
+     return failure();
+ 
+   int32_t defaultValTeams = -1;
+-  int32_t defaultValThreads = -1;
++  int32_t defaultValThreads = 0;
++
++  llvm::OpenMPIRBuilder::InsertPointTy allocaIP =
++    findAllocaInsertPoint(builder, moduleTranslation);
++
++  // TODO: Replace createDefaultMapInfo's with more complex map
++  // processing like createTargetData (also in this file) does.
++  llvm::OpenMPIRBuilder::MapInfosTy combinedInfos;
++  auto genMapInfoCB = [&](llvm::OpenMPIRBuilder::InsertPointTy codeGenIP)
++      -> llvm::OpenMPIRBuilder::MapInfosTy & {
++    createDefaultMapInfos(*moduleTranslation.getOpenMPBuilder(), inputs,
++                          combinedInfos);
++    return combinedInfos;
++  };
+ 
+   builder.restoreIP(moduleTranslation.getOpenMPBuilder()->createTarget(
+-      ompLoc, builder.saveIP(), entryInfo, defaultValTeams, defaultValThreads,
+-      inputs, bodyCB));
++      ompLoc, allocaIP, builder.saveIP(), entryInfo, defaultValTeams,
++      defaultValThreads, inputs, genMapInfoCB, bodyCB));
+ 
+   return bodyGenStatus;
+ }
+diff -Naur -x .git -x __pycache__ -x docs -x test llvm-project.upstream/mlir/lib/Target/LLVMIR/ModuleTranslation.cpp llvm-project/mlir/lib/Target/LLVMIR/ModuleTranslation.cpp
+--- llvm-project.upstream/mlir/lib/Target/LLVMIR/ModuleTranslation.cpp	2023-05-19 11:39:33.657778241 -0400
++++ llvm-project/mlir/lib/Target/LLVMIR/ModuleTranslation.cpp	2023-05-29 12:35:45.279105148 -0400
+@@ -903,7 +903,29 @@
+   detail::connectPHINodes(func.getBody(), *this);
+ 
+   // Finally, convert dialect attributes attached to the function.
+-  return convertDialectAttributes(func);
++  LogicalResult result = convertDialectAttributes(func);
++
++  // All functions are translated first to ensure target regions are always
++  // processed, so that they can be outlined. However, they must be deleted
++  // afterwards if the device they are intended for does not match the device we
++  // are currently generating code for.
++  if (auto offloadMod =
++          dyn_cast<mlir::omp::OffloadModuleInterface>(mlirModule)) {
++    bool isDevicePass = offloadMod.getIsDevice();
++    omp::DeclareTargetDeviceType declareType =
++        omp::DeclareTargetDeviceType::host;
++
++    auto declareTargetOp =
++        dyn_cast<mlir::omp::DeclareTargetInterface>(func.getOperation());
++    if (declareTargetOp && declareTargetOp.isDeclareTarget())
++      declareType = declareTargetOp.getDeclareTargetDeviceType();
++
++    if ((isDevicePass && declareType == omp::DeclareTargetDeviceType::host) ||
++        (!isDevicePass && declareType == omp::DeclareTargetDeviceType::nohost))
++      maskedFunctions.push_back(llvmFunc);
++  }
++
++  return result;
+ }
+ 
+ LogicalResult ModuleTranslation::convertDialectAttributes(Operation *op) {
+@@ -1009,6 +1031,8 @@
+ }
+ 
+ LogicalResult ModuleTranslation::convertFunctions() {
++  maskedFunctions.clear();
++  
+   // Convert functions.
+   for (auto function : getModuleBody(mlirModule).getOps<LLVMFuncOp>()) {
+     // Ignore external functions.
+@@ -1019,6 +1043,14 @@
+       return failure();
+   }
+ 
++  // Delete translated functions that are intended for a device we are currently
++  // not generating code for.
++  for (auto *llvmFunction : maskedFunctions)
++    llvmFunction->dropAllReferences();
++
++  for (auto *llvmFunction : maskedFunctions)
++    llvmFunction->eraseFromParent();
++  
+   return success();
+ }
+ 
