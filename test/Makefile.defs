@@ -106,7 +106,7 @@ ifeq "$(wildcard $(OMPIDIR))" ""
   endif
 endif
 
-$(info -- openmpi found at $(OMPIDIR))
+#$(info -- openmpi found at $(OMPIDIR))
 MPILIBS ?= -L${OMPIDIR}/lib$(MPI64) -lmpi
 
 
