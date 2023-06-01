@@ -46,9 +46,6 @@ export HSA_PATH=$AOMP_INSTALL_DIR
 export ROCM_PATH=$AOMP_INSTALL_DIR
 export HIP_CLANG_PATH=$AOMP_INSTALL_DIR/bin
 export DEVICE_LIB_PATH=$AOMP_INSTALL_DIR/lib
-## AOMP_BUILD_SANITIZER for hipamd build is experimental since we have yet
-## to figure out what will be the correct install path for asan instrumented hip libraries.
-export AOMP_BUILD_SANITIZER=0
 
 HIP_PATH=$AOMP_INSTALL_DIR
 BUILD_DIR=${BUILD_AOMP}
@@ -77,6 +74,12 @@ fi
 
 patchrepo $AOMP_REPOS/hipamd
 
+if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
+   ASAN_LIB_PATH=$(${AOMP}/bin/clang --print-runtime-dir)
+   ASAN_FLAGS="-g -fsanitize=address -shared-libasan -Wl,-rpath=$ASAN_LIB_PATH -L$ASAN_LIB_PATH"
+   LD_FLAGS="-fuse-ld=lld $ASAN_FLAGS"
+fi
+
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 
   if [ -d "$BUILD_DIR/build/hipamd" ] ; then
@@ -90,19 +93,17 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
   MYCMAKEOPTS="$AOMP_ORIGIN_RPATH -DCMAKE_BUILD_TYPE=$BUILDTYPE \
  -DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR \
  -DCMAKE_INSTALL_PREFIX=$AOMP_INSTALL_DIR \
- -DCMAKE_INSTALL_LIBDIR=lib \
  -DHIP_COMMON_DIR=$HIP_DIR \
  -DAMD_OPENCL_PATH=$OPENCL_DIR \
  -DROCCLR_PATH=$ROCclr_DIR \
  -DROCM_PATH=$ROCM_PATH"
 
-  # Enable HIPAMD Sanitizer Build
   if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
-    ASAN_LIB_PATH=$(${AOMP}/bin/clang --print-runtime-dir)
-    ASAN_FLAGS="-fsanitize=address -shared-libasan -Wl,-rpath=$ASAN_LIB_PATH -L$ASAN_LIB_PATH -I$SANITIZER_COMGR_INCLUDE_PATH -Wno-error=deprecated-declarations"
-  else
-    MYCMAKEOPTS="$MYCMAKEOPTS -DCMAKE_CXX_FLAGS=-I$AOMP_include/amd_comgr -DCMAKE_CXX_FLAGS=-Wno-error=deprecated-declarations -DCMAKE_C_FLAGS=-Wno-error=deprecated-declarations"
+     ASAN_FLAGS="$ASAN_FLAGS -I$SANITIZER_COMGR_INCLUDE_PATH -Wno-error=deprecated-declarations"
+     ASAN_CMAKE_OPTS="$MYCMAKEOPTS -DCMAKE_INSTALL_LIBDIR=lib/asan -DCMAKE_C_COMPILER=$AOMP/bin/clang -DCMAKE_CXX_COMPILER=$AOMP/bin/clang++"
   fi
+
+  MYCMAKEOPTS="$MYCMAKEOPTS -DCMAKE_INSTALL_LIBDIR=lib -DCMAKE_CXX_FLAGS=-I$AOMP_include/amd_comgr -DCMAKE_CXX_FLAGS=-Wno-error=deprecated-declarations -DCMAKE_C_FLAGS=-Wno-error=deprecated-declarations"
 
   # If this machine does not have an actvie amd GPU, tell hipamd
   # to use first in GFXLIST or gfx90a if no GFXLIST
@@ -124,19 +125,29 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
   cd $BUILD_DIR/build/hipamd
   echo
   echo " -----Running hipamd cmake ---- "
-  if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
-    echo ${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_CXX_FLAGS="$ASAN_FLAGS" -DCMAKE_CXX_FLAGS="$ASAN_FLAGS" $HIPAMD_DIR
-    ${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_CXX_FLAGS="$ASAN_FLAGS" -DCMAKE_CXX_FLAGS="$ASAN_FLAGS" $HIPAMD_DIR
-  else
-    echo ${AOMP_CMAKE} $MYCMAKEOPTS $HIPAMD_DIR
-    ${AOMP_CMAKE} $MYCMAKEOPTS $HIPAMD_DIR
-	fi
+  echo ${AOMP_CMAKE} $MYCMAKEOPTS $HIPAMD_DIR
+  ${AOMP_CMAKE} $MYCMAKEOPTS $HIPAMD_DIR
   if [ $? != 0 ] ; then
       echo "ERROR hipamd cmake failed. Cmake flags"
       echo "      $MYCMAKEOPTS"
       exit 1
   fi
 
+  if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
+     echo mkdir -p $BUILD_DIR/build/hipamd/asan
+     mkdir -p $BUILD_DIR/build/hipamd/asan
+     echo cd $BUILD_DIR/build/hipamd/asan
+     cd $BUILD_DIR/build/hipamd/asan
+     echo
+     echo " -----Running hipamd-asan cmake -----"
+     echo ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DOFFLOAD_ARCH_STR=$amdgpu -DCMAKE_CXX_FLAGS="$ASAN_FLAGS" -DCMAKE_CXX_FLAGS="$ASAN_FLAGS" $HIPAMD_DIR
+     ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DOFFLOAD_ARCH_STR="$amdgpu" -DCMAKE_CXX_FLAGS="$ASAN_FLAGS" -DCMAKE_CXX_FLAGS="$ASAN_FLAGS" $HIPAMD_DIR
+     if [ $? != 0 ] ; then
+        echo "ERROR hipamd-asan cmake failed. Cmake flags"
+        echo "      $ASAN_CMAKE_OPTS"
+        exit 1
+     fi
+  fi
 fi
 
 cd $BUILD_DIR/build/hipamd
@@ -160,6 +171,29 @@ else
   fi
 fi
 
+if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
+   cd $BUILD_DIR/build/hipamd/asan
+   echo
+   echo " -----Running make for hipamd-asan ----- "
+   make -j $AOMP_JOB_THREADS
+   if [ $? != 0 ] ; then
+      echo " "
+      echo "ERROR: make -j $AOMP_JOB_THREADS FAILED"
+      echo "To restart:"
+      echo "  cd restart:"
+      echo "  make "
+      exit 1
+   else
+      if [ "$1" != "install" ] ; then
+         echo
+         echo " BUILD COMPLETE! To install hipamd-asan component run this command:"
+         echo " $0 install"
+         echo
+      fi
+   fi
+fi
+
+
 function edit_installed_hip_file(){
    if [ -f $installed_hip_file_to_edit ] ; then
       # In hipvars.pm HIP_PATH is determined by parent directory of hipcc location.
@@ -179,6 +213,17 @@ if [ "$1" == "install" ] ; then
    if [ $? != 0 ] ; then
       echo "ERROR make install failed "
       exit 1
+   fi
+
+   if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
+      cd $BUILD_DIR/build/hipamd/asan
+      echo
+      echo " -----Installing to $AOMP_INSTALL_DIR/lib/asan"
+      $SUDO make install
+      if [ $? != 0 ] ; then
+         echo "ERROR make install failed "
+         exit 1
+      fi
    fi
    removepatch $AOMP_REPOS/hipamd
 
