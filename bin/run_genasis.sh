@@ -1,6 +1,6 @@
 #!/bin/bash
 # 
-#  run_nekbone.sh: 
+#  run_genasis.sh 
 #
 
 # --- Start standard header to set AOMP environment variables ----
@@ -18,6 +18,7 @@ FLANG=${FLANG:-flang}
 setaompgpu
 
 REPO_DIR=$AOMP_REPOS_TEST/GenASis
+#REPO_DIR=$AOMP_REPOS_TEST/GenASis_basics
 if [ -d "$REPO_DIR" ] ; then
     echo $REPO_DIR " exists."
 else
@@ -68,9 +69,9 @@ else
 fi
 
 export LD_LIBRARY_PATH=$HOME/rocm/aomp/lib:$OPENMPI_DIR/lib:$LD_LIBRARY_PATH
-export FORTRAN_COMPILE="$AOMP/bin/$FLANG -c -I$OPENMPI_DIR/lib"
-export CC_COMPILE="$AOMP/bin/clang"
-export OTHER_LIBS="-lm -L$AOMP/lib -lflang -lflangmain -lflangrti -lpgmath -lomp -lomptarget "
+export FORTRAN_COMPILE="$AOMP/bin/$FLANG -c -fPIC -I$OPENMPI_DIR/lib"
+export CC_COMPILE="$AOMP/bin/clang -fPIC"
+export OTHER_LIBS="-lm -L$AOMP/lib -lflang -lflangmain -lflangrti -lpgmath -lomp -lomptarget -z muldefs"
 export FORTRAN_LINK="$AOMP/bin/clang $OTHER_LIBS"
 export DEVICE_COMPILE="$AOMP/bin/hipcc -D__HIP_PLATFORM_HCC__"
 export HIP_DIR=$ROCM
