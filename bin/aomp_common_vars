@@ -72,6 +72,23 @@ else
    # Default is to NOT build nvptx for ROCm integrated build
    AOMP_BUILD_CUDA=${AOMP_BUILD_CUDA:-0}
 fi
+
+# AOMP uses RPATH (not) RUNPATH because LD_LIBRARY_PATH is a user feature for
+# user lib development. We do not want the compiler runtime to search user paths
+# first because we want assurance to recreate reported compiler runtime fails.
+# While it may appear to hamper users and developers from testing experimental
+# compiler runtimes, this policy enforces replacement of installed compiler
+# runtime for testing instead of path manipulation. AOMP uses $ORIGIN in the
+# RPATH to allow relocation of the installation.
+# Most build scripts use $AOMP_ORIGIN_RPATH, some components (build_ocl.sh) need to split
+# the CMAKE arguments so
+AOMP_ORIGIN_RPATH="-DCMAKE_SHARED_LINKER_FLAGS='-Wl,--disable-new-dtags' $AOMP_ORIGIN_RPATH_NO_DTAGS"
+
+# Libraries and Binaries need different RUNPATH as below
+# RUNPATH for Libraries: \$ORIGIN:\$ORIGIN/../../lib
+# RUNPATH for Binaries: \$ORIGIN/../lib:\$ORIGIN/../../lib
+OPENMP_EXTRAS_ORIGIN_RPATH="-DCMAKE_SKIP_BUILD_RPATH=TRUE -DCMAKE_SKIP_INSTALL_RPATH=TRUE -DCMAKE_SHARED_LINKER_FLAGS=-Wl,--enable-new-dtags,--rpath,\$ORIGIN:\$ORIGIN/../../lib -DCMAKE_EXE_LINKER_FLAGS=-Wl,--enable-new-dtags,--rpath,\$ORIGIN/../lib:\$ORIGIN/../../lib"
+
 # Regardless, turn off AOMP_BUILD_CUDA if CUDA not available
 if [ ! -d "$CUDABIN" ] ; then
    AOMP_BUILD_CUDA=0
