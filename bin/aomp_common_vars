@@ -73,8 +73,8 @@ AOMP_SUPP_INSTALL=${AOMP_SUPP_INSTALL:-$AOMP_SUPP/install}
 
 # last version of rocm that supports the legacy driver (command generation)
 # The archives and includes are installed as an AOMP supplemental component 
-AOMP_FLANG_LEGACY_REL=${AOMP_FLANG_LEGACY_REL:-$AOMP_SUPP/flang-legacy-LFL}
-if [ -d $AOMP_FLANG_LEGACY_REL/llvm ] ; then
+AOMP_FLANG_LEGACY_REL=${AOMP_FLANG_LEGACY_REL:-$AOMP_FLANG_LEGACY_REL/flang-legacy}
+if [ -d $AOMP_FLANG_LEGACY_REL/llvm-legacy ] ; then
    AOMP_BUILD_FLANG_LEGACY=1
 else
    AOMP_BUILD_FLANG_LEGACY=0
