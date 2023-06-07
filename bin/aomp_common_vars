@@ -71,15 +71,6 @@ AOMP_SUPP_BUILD=${AOMP_SUPP_BUILD:-$AOMP_SUPP/build}
 # AOMP_SUPP_INSTALL must be permanent directory.
 AOMP_SUPP_INSTALL=${AOMP_SUPP_INSTALL:-$AOMP_SUPP/install}
 
-# last version of rocm that supports the legacy driver (command generation)
-# The archives and includes are installed as an AOMP supplemental component 
-AOMP_FLANG_LEGACY_REL=${AOMP_FLANG_LEGACY_REL:-$AOMP_FLANG_LEGACY_REL/flang-legacy}
-if [ -d $AOMP_FLANG_LEGACY_REL/llvm-legacy ] ; then
-   AOMP_BUILD_FLANG_LEGACY=1
-else
-   AOMP_BUILD_FLANG_LEGACY=0
-fi
-
 # Set the directory location where all local AOMP git repos are stored.
 
 # To build aomp from the release source taball, set these values to 0
@@ -225,6 +216,16 @@ GITPROJECT=$GITROCDEV
 AOMP_PROJECT_REPO_NAME=${AOMP_PROJECT_REPO_NAME:-llvm-project}
 AOMP_EXTRAS_REPO_NAME=${AOMP_EXTRAS_REPO_NAME:-aomp-extras}
 AOMP_FLANG_REPO_NAME=${AOMP_FLANG_REPO_NAME:-flang}
+
+# Last version of rocm (5.5) that supports the legacy driver (command generation)
+# The archives are built during flang-legacy.
+AOMP_FLANG_LEGACY_REL=${AOMP_FLANG_LEGACY_REL:-${AOMP_REPOS}/${AOMP_FLANG_REPO_NAME}/flang-legacy}
+echo $AOMP_FLANG_LEGACY_REL
+if [ -d $AOMP_FLANG_LEGACY_REL/llvm-legacy ] ; then
+   AOMP_BUILD_FLANG_LEGACY=1
+else
+   AOMP_BUILD_FLANG_LEGACY=0
+fi
 
 # The AOMP_XXX_REPO_NAME is the directory name following $AOMP_REPOS.
 
