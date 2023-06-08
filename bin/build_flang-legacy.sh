@@ -3,7 +3,11 @@
 #  build_flang-legacy.sh:  Script to build the legacy flang binary driver
 #         This driver will never call flang -fc1, it only calls binaries 
 #             clang, flang1, flang2, build elsewhere
-#
+#  Instead of downloading the ROCm 5.5 llvm package we have to
+#  compile the 11vm/clang libs from source to support various
+#  operating systems and spack. This will be the llvm-legacy build step.
+#  These libs/headers are not installed and will picked up from the build
+#  tree for flang-legacy.
 #
 BUILD_TYPE=${BUILD_TYPE:-Release}
 
@@ -15,7 +19,7 @@ thisdir=`dirname $realpath`
 
 if [ $AOMP_BUILD_FLANG_LEGACY == 0 ] ; then
    if [ "$1" != "install" ] ; then
-      echo "WARNING:  ROCM install for $AOMP_FLANG_LEGACY_REL/llvm not found."
+      echo "WARNING:  ROCM install for $AOMP_FLANG_LEGACY_REL/llvm-legacy not found."
       echo "          This build will skip build of flang-legacy."
       echo "          The flang will link to the clang driver."
    fi
@@ -45,9 +49,23 @@ fi
 # via the link from flang to clang.  rocm 5.5 would be best. 
 # This will enable removal of legacy flang driver support 
 # from clang to make way for flang-new.  
-export LLVM_DIR="$AOMP_FLANG_LEGACY_REL/llvm"
+
+# Options for llvm-legacy cmake.
+TARGETS_TO_BUILD="AMDGPU;X86"
+LLVMCMAKEOPTS="\
+-DLLVM_ENABLE_PROJECTS=clang \
+-DCMAKE_BUILD_TYPE=Release \
+-DLLVM_ENABLE_ASSERTIONS=ON \
+-DLLVM_TARGETS_TO_BUILD=$TARGETS_TO_BUILD \
+-DCLANG_DEFAULT_LINKER=lld \
+-DLLVM_INCLUDE_BENCHMARKS=0 \
+-DLLVM_INCLUDE_RUNTIMES=0 \
+-DLLVM_INCLUDE_EXAMPLES=0 \
+-DLLVM_INCLUDE_TESTS=0 \
+-DLLVM_INCLUDE_DOCS=0 \
+-DLLVM_INCLUDE_UTILS=0 llvm-legacy/llvm"
+
 MYCMAKEOPTS="\
--DLLVM_DIR=$LLVM_DIR \
 -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
 -DCMAKE_C_COMPILER=$AOMP_INSTALL_DIR/bin/clang \
 -DCMAKE_CXX_COMPILER=$AOMP_INSTALL_DIR/bin/clang++ \
@@ -85,23 +103,51 @@ if [ "$1" == "install" ] ; then
 fi
 
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
-   echo 
+   echo
    echo "This is a FRESH START. ERASING any previous builds in $BUILD_DIR/build/flang-legacy"
    echo "Use ""$0 nocmake"" or ""$0 install"" to avoid FRESH START."
    rm -rf $BUILD_DIR/build/flang-legacy
    mkdir -p $BUILD_DIR/build/flang-legacy
+   mkdir -p $BUILD_DIR/build/flang-legacy/llvm-legacy
 else
-   if [ ! -d $BUILD_DIR/build/flang-legacy ] ; then 
+   if [ ! -d $BUILD_DIR/build/flang-legacy ] ; then
       echo "ERROR: The build directory $BUILD_DIR/build/flang-legacy does not exist"
-      echo "       run $0 without nocmake or install options. " 
+      echo "       run $0 without nocmake or install options. "
       exit 1
    fi
 fi
 
-cd $BUILD_DIR/build/flang-legacy 
-
+# Cmake for llvm legacy (ROCm 5.5).
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
+   cd $BUILD_DIR/build/flang-legacy/llvm-legacy
+   echo " -----Running cmake ---- "
+   echo ${AOMP_CMAKE} $LLVMCMAKEOPTS  $AOMP_REPOS/$AOMP_FLANG_REPO_NAME/flang-legacy/llvm-legacy/llvm
+   ${AOMP_CMAKE} $LLVMCMAKEOPTS  $AOMP_REPOS/$AOMP_FLANG_REPO_NAME/flang-legacy/llvm-legacy/llvm 2>&1
+   if [ $? != 0 ] ; then
+      echo "ERROR cmake failed. Cmake flags"
+      echo "      $LLVMCMAKEOPTS"
+      exit 1
+   fi
    echo
+fi
+
+# Build llvm legacy.
+echo " ---  Running $AOMP_NINJA_BIN for $BUILD_DIR/build/flang-legacy/llvm-legacy ---- "
+cd $BUILD_DIR/build/flang-legacy/llvm-legacy
+$AOMP_NINJA_BIN -j $AOMP_JOB_THREADS
+if [ $? != 0 ] ; then
+      echo " "
+      echo "ERROR: $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS  FAILED"
+      echo "To restart:"
+      echo "  cd $BUILD_DIR/build/flang-legacy/llvm-legacy"
+      echo "  $AOMP_NINJA_BIN"
+      exit 1
+fi
+
+echo
+# Cmake flang-legacy.
+if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
+   cd $BUILD_DIR/build/flang-legacy
    echo " -----Running cmake ---- " 
    echo ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_FLANG_REPO_NAME/flang-legacy
    ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_FLANG_REPO_NAME/flang-legacy 2>&1
@@ -113,7 +159,10 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 fi
 
 echo
+
+# Build flang-legacy.
 echo " ---  Running $AOMP_NINJA_BIN for $BUILD_DIR/build/flang-legacy ---- "
+cd $BUILD_DIR/build/flang-legacy
 $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS
 if [ $? != 0 ] ; then
       echo " "
