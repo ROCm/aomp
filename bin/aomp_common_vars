@@ -224,7 +224,6 @@ AOMP_FLANG_REPO_NAME=${AOMP_FLANG_REPO_NAME:-flang}
 # Last version of rocm (5.5) that supports the legacy driver (command generation)
 # The archives are built during flang-legacy.
 AOMP_FLANG_LEGACY_REL=${AOMP_FLANG_LEGACY_REL:-${AOMP_REPOS}/${AOMP_FLANG_REPO_NAME}/flang-legacy}
-echo $AOMP_FLANG_LEGACY_REL
 if [ -d $AOMP_FLANG_LEGACY_REL/llvm-legacy ] ; then
    AOMP_BUILD_FLANG_LEGACY=1
 else
