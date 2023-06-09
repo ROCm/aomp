@@ -118,7 +118,8 @@ ifeq (opt,$(findstring opt,$(AOMP)))
   GFXLIST = $(shell ls $(AOMP)/lib | grep -oP 'amdgcn-\K\S+(?=.bc)')
 else
   # Set GFXLIST from aomp_common_vars
-  GFXLIST = $(shell grep GFXLIST= ../../../bin/aomp_common_vars | grep -o "gfx.*" | sed -E "s|\"}||" | sed -E "s|gfx1010||")
+  ALLGFXLIST = $(shell grep GFXLIST= ../../../bin/aomp_common_vars | grep -o "gfx.*" | sed -E "s|\"}||" | sed -E "s|gfx1010||")
+  GFXLIST ?= $(ALLGFXLIST)
 
   # If AOMP not pointing to rocm, then assume neither offload-arch nor mygpu utilities exist.
   # So use lspci to search for volta and if not then use standalone rocm_agent_enumerator
