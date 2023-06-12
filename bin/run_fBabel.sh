@@ -44,7 +44,7 @@ omp_target_flags="-O3 -fopenmp -fopenmp-targets=$TRIPLE -Xopenmp-target=$TRIPLE 
 #  So this script runs with old comilers, we only use -fopenmp-target-fast
 #  for LLVM 16 or higher
 LLVM_VERSION_STR=`$AOMP/bin/$FLANG --version`
-LLVM_VERSION=`echo $LLVM_VERSION_STR | sed -e 's/^.*version//' | cut -d"." -f1`
+LLVM_VERSION=`echo $LLVM_VERSION_STR | sed -e 's/^.*version[ ]*//' | cut -d"." -f1`
 echo "LLVM_VERSION_STR=$LLVM_VERSION_STR"
 echo "LLVM_VERSION=$LLVM_VERSION"
 echo $LLVM_VERSION_STR | grep -q "ROCm-Developer-Tools"
