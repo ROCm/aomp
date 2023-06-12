@@ -43,16 +43,21 @@ fi
 omp_target_flags="-O3 -fopenmp -fopenmp-targets=$TRIPLE -Xopenmp-target=$TRIPLE -march=$AOMP_GPU -DOMP -DUSE_OPENMPTARGET=1 -DVERSION_STRING=4.0"
 #  So this script runs with old comilers, we only use -fopenmp-target-fast
 #  for LLVM 16 or higher
-LLVM_VERSION=`$AOMP/bin/$FLANG --version | grep version | cut -d" " -f 3 | cut -d"." -f1`
-if [ "$LLVM_VERSION" == "version" ]  ; then
-  # If 3rd  arg is version, must be vendor cmppiler, so get version from 4th field.
-  LLVM_VERSION=`$AOMP/bin/$FLANG --version | grep version | cut -d" " -f 4 | cut -d"." -f1`
+LLVM_VERSION_STR=`$AOMP/bin/$FLANG --version`
+LLVM_VERSION=`echo $LLVM_VERSION_STR | sed -e 's/^.*version//' | cut -d"." -f1`
+echo "LLVM_VERSION_STR=$LLVM_VERSION_STR"
+echo "LLVM_VERSION=$LLVM_VERSION"
+echo $LLVM_VERSION_STR | grep -q "ROCm-Developer-Tools"
+if [ $? -eq 0 ] ; then   # AMD build
+  echo "Detected: ROCm-Developer-Tools build"
   special_aso_flags="-O3 -fopenmp-target-fast"
   #special_aso_flags="-fopenmp-gpu-threads-per-team=256 -fopenmp-target-fast"
 else
+  echo "Detected: Non-ROCm build"
   # temp hack to detect trunk (not vendor compiler) (found version in 3 args)"
   special_aso_flags=""
 fi
+echo "special_aso_flags=$special_aso_flags"
 echo "LLVM VERSION IS $LLVM_VERSION"
 if [[ $LLVM_VERSION -ge 16 ]] ; then
   omp_fast_flags="$special_aso_flags $omp_target_flags"
