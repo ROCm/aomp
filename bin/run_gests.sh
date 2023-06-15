@@ -62,6 +62,7 @@ export ROCM_DIR=$AOMP
 cd $REPO_DIR
 if [ "$1" != "runonly" ] ; then
   echo "=================  STARTING MAKE in $PWD ========"
+  make clean
   make
   rc=$?
   if [ $rc != 0 ] ; then
