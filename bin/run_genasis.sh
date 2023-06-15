@@ -17,8 +17,10 @@ FLANG=${FLANG:-flang}
 # Use function to set and test AOMP_GPU
 setaompgpu
 
-REPO_DIR=$AOMP_REPOS_TEST/GenASis
-#REPO_DIR=$AOMP_REPOS_TEST/GenASis_basics
+SRC_DIR=${SRC_DIR:-GenASis}             # old source
+#SRC_DIR=${SRC_DIR:-GenASiS_Basics}      # new source - uses submodules
+
+REPO_DIR=$AOMP_REPOS_TEST/$SRC_DIR
 if [ -d "$REPO_DIR" ] ; then
     echo $REPO_DIR " exists."
 else
