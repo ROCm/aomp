@@ -192,16 +192,25 @@ if [[ "$AOMP_VERSION" == "13.1" ]] || [[ $AOMP_MAJOR_VERSION -gt 13 ]] ; then
    ping -c 1 $AOMP_GIT_INTERNAL_IP 2> /dev/null >/dev/null
    if [ $? == 0 ] && [ "$AOMP_EXTERNAL_MANIFEST" != 1 ]; then
       # AMD internal repo file
-      manifest_file=$thisdir/../manifests/aompi_${AOMP_VERSION}.xml
+      if [ "$AOMP_NEW" == "1" ]; then
+         manifest_file=$thisdir/../manifests/aompi_new_${AOMP_VERSION}.xml
+      else
+         manifest_file=$thisdir/../manifests/aompi_${AOMP_VERSION}.xml
+      fi
    else
       abranch=`git branch | awk '/\*/ { print $2; }'`
       # Use release manifest if on release branch
       if [ "$abranch" == "aomp-${AOMP_VERSION_STRING}" ]; then
          manifest_file=$thisdir/../manifests/aomp_${AOMP_VERSION_STRING}.xml
       else
-         manifest_file=$thisdir/../manifests/aomp_${AOMP_VERSION}.xml
+	 if [ "$AOMP_NEW" == "1" ]; then
+            manifest_file=$thisdir/../manifests/aomp_new_${AOMP_VERSION}.xml
+         else
+            manifest_file=$thisdir/../manifests/aomp_${AOMP_VERSION}.xml
+	 fi
       fi
    fi
+   echo "USED manifest file: $manifest_file"
    if [ ! -f $manifest_file ] ; then 
       echo "ERROR manifest file missing: $manifest_file"
       exit 1

@@ -47,7 +47,11 @@ if [ "$1" == "install" ] ; then
    $SUDO rm $INSTALL_ROCM/testfile
 fi
 
-patchrepo $AOMP_REPOS/$AOMP_ROCR_REPO_NAME
+if [ "$AOMP_NEW" == 1 ] ; then
+   patchrepo $AOMP_REPOS/hsa-runtime
+else
+   patchrepo $AOMP_REPOS/$AOMP_ROCR_REPO_NAME
+fi
 
 if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
    ASAN_LIB_PATH=$(${AOMP}/bin/clang --print-runtime-dir)
@@ -145,7 +149,11 @@ if [ "$1" == "install" ] ; then
             exit 1
          fi
       fi
-      removepatch $AOMP_REPOS/$AOMP_ROCR_REPO_NAME
+      if [ "$AOMP_NEW" == 1 ] ; then
+         removepatch $AOMP_REPOS/hsa-runtime
+      else
+         removepatch $AOMP_REPOS/$AOMP_ROCR_REPO_NAME
+      fi
       # Remove hsa directory from install to ensure it is not used
 #      if [ -d $INSTALL_ROCM/hsa ] ; then
 #         echo rm -rf $INSTALL_ROCM/hsa
