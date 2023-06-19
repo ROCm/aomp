@@ -188,6 +188,14 @@ In addition, this level enables more aggressive code hoisting and scalar replace
 ]]>
 </flag>
 
+<flag name="fno-openmp-assume-no-nested-parallelism" class="optimization"
+ compilers="mpicc, mpicxx, mpif90"
+ regexp="-fno-openmp-assume-no-nested-parallelism\b">
+<![CDATA[
+<p>Disable OpenMP assumption of no nested parallelism.</p>
+]]>
+</flag>
+
 <flag name="fno-openmp-target-ignore-env-vars" class="optimization"
  compilers="mpicc, mpicxx, mpif90"
  regexp="-fno-openmp-target-ignore-env-vars\b">
