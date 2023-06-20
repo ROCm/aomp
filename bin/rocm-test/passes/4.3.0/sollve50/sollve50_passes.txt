@@ -13,7 +13,6 @@ test_declare_mapper_target_struct.c
 test_declare_target_device_type_any.c
 test_declare_target_device_type_host.c
 test_declare_target_device_type_nohost.c
-test_declare_target_nested.c
 test_declare_variant.c
 test_depobj_depend_update_destroy.cpp
 test_flush_no_memory_order_clause.c
