@@ -55,7 +55,11 @@ rm -rf ${MQMC_BUILD_DIR}
 CMAKE_PREFIX_PATH=${ROCM}/lib/cmake/ cmake -B ${MQMC_BUILD_DIR} -S ${MQMC_SOURCE_DIR} -DCMAKE_CXX_COMPILER=clang++ -DENABLE_OFFLOAD=ON -DQMC_ENABLE_ROCM=ON -DCMAKE_CXX_FLAGS='-fopenmp-assume-no-nested-parallelism ' -DAMDGPU_DISABLE_HOST_DEVMEM=ON -DCMAKE_VERBOSE_MAKEFILE=ON
 
 # Build miniqmc binaries
-cmake --build ${MQMC_BUILD_DIR}  --clean-first -j ${MQMC_NUM_BUILD_PROCS}
+#cmake --build ${MQMC_BUILD_DIR}  --clean-first -j ${MQMC_NUM_BUILD_PROCS}
+pushd ${MQMC_BUILD_DIR}
+make clean
+make --output-sync -j ${MQMC_NUM_BUILD_PROCS}
+popd
 
 echo "Running Tests"
 echo "OMP_NUM_THREADS=${MQMC_OMP_NUM_THREADS} ${MQMC_BUILD_DIR}/bin/check_spo_batched_reduction -n 10"
