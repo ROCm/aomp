@@ -31,9 +31,7 @@ module LaunchLatencyUtils
 
         subroutine Empty()
             implicit none
-            integer(kind=4) :: A
             !$omp target
-               A=0
             !$omp end target
         end subroutine Empty
 
