@@ -32,20 +32,21 @@ module LaunchLatencyUtils
         subroutine Empty()
             implicit none
             integer(kind=4) :: A
-            !$omp target 
+            !$omp target
                A=0
             !$omp end target
         end subroutine Empty
 
 
-subroutine run_all(timings)
+subroutine run_all(timings, local_num_times)
             implicit none
             real(kind=REAL64), intent(inout) :: timings
+            integer, intent(in) :: local_num_times
             real(kind=REAL64) :: t1, t2
             integer(kind=INT64) :: i
 
             t1 = get_wtime()
-            do i=1,num_times
+            do i=1,local_num_times
                 call Empty()
 
             end do
@@ -57,7 +58,7 @@ end module LaunchLatencyUtils
 program LaunchLatency
     use LaunchLatencyUtils
     use, intrinsic :: ISO_Fortran_env, only: REAL64,INT64
-    real(kind=REAL64) :: timings       
+    real(kind=REAL64) :: timings, timings1
     integer :: argc, i
     character(len=64) :: argtmp
     integer :: arglen,err
@@ -70,7 +71,11 @@ program LaunchLatency
     write(*,*)  "Launch Latency Fortran", num_times
 
     timings = -1.0d0
-    call run_all(timings)
-    write(*,'(a, f14.9)') "Latncy per launch:", timings/ num_times
+    timings1 = -1.0d0
+    call run_all(timings1, 1)
+    call run_all(timings, num_times-1)
+    write(*,'(a, f14.9)') "   Latncy per 1st launch:", timings1
+    write(*,'(a, f14.9)') "   Latncy avg 2-N launch:", timings / (num_times-1)
+    write(*,'(a, f14.9)') "   Latncy avg 1-N launch:", (timings + timings1) / num_times
 
 end program LaunchLatency
