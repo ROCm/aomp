@@ -116,7 +116,10 @@ cd "$aompdir"/test/smoke/helloworld
 make clean > /dev/null
 OMP_TARGET_OFFLOAD=MANDATORY VERBOSE=1 make run > hello.log 2>&1
 sed -n -e '/ld.lld/,$p' hello.log
-
+echo
+echo "Checking plugin"
+LIBOMPTARGET_DEBUG=1 OMP_TARGET_OFFLOAD=MANDATORY make run 2>&1 | grep "libomptarget.rtl.amdgpu"
+echo
 # Determines ROCm version and openmp-extras version to choose which set
 # of expected passes to use. Example ROCm 4.3 build installed but
 # openmp-extras version is 4.2. This can happen in mainline builds. Do not expect
