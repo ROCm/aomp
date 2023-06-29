@@ -1,0 +1,226 @@
+Libomptarget --> Init target library!
+Libomptarget --> OMPT: Entering ompt_init
+Libomptarget --> OMPT: Trying to load library libomp.so
+Libomptarget --> OMPT: Trying to get address of connection routine libomp_ompt_connect
+Libomptarget --> OMPT: Library connection handle = 0x7f7e821e39e0
+Libomptarget --> OMPT: Exit ompt_init
+Libomptarget --> Loading RTLs...
+Libomptarget --> Loading RTLs...
+Libomptarget --> Loading library 'libomptarget.rtl.amdgpu.nextgen.so'...
+Libomptarget --> Successfully loaded library 'libomptarget.rtl.amdgpu.nextgen.so'!
+OMPT --> OMPT: Entering OmptCallbackInit
+OMPT --> OMPT: Trying to load library libomptarget.so
+OMPT --> OMPT: Trying to get address of connection routine libomptarget_ompt_connect
+OMPT --> OMPT: Library connection handle = 0x7f7e81fa6e20
+Libomptarget --> OMPT: Enter libomptarget_ompt_connect: OMPT enabled == 0
+Libomptarget --> OMPT: Leave libomptarget_ompt_connect
+OMPT --> OMPT: Exiting OmptCallbackInit
+Libomptarget --> Registering RTL libomptarget.rtl.amdgpu.nextgen.so supporting 1 devices!
+Libomptarget --> Loading library 'libomptarget.rtl.cuda.nextgen.so'...
+Libomptarget --> Successfully loaded library 'libomptarget.rtl.cuda.nextgen.so'!
+TARGET CUDA RTL --> Unable to load library 'libcuda.so': libcuda.so: cannot open shared object file: No such file or directory!
+TARGET CUDA RTL --> Failed to load CUDA shared library
+Libomptarget --> No devices supported in this RTL
+Libomptarget --> Falling back to original plugin...
+Libomptarget --> Loading library 'libomptarget.rtl.cuda.so'...
+Target CUDA RTL --> Start initializing CUDA
+Target CUDA RTL --> Unable to load library 'libcuda.so': libcuda.so: cannot open shared object file: No such file or directory!
+Target CUDA RTL --> Failed to load CUDA shared library
+Libomptarget --> Successfully loaded library 'libomptarget.rtl.cuda.so'!
+Libomptarget --> Invalid plugin as necessary interface is not found.
+Libomptarget --> Loading library 'libomptarget.rtl.x86_64.nextgen.so'...
+Libomptarget --> Successfully loaded library 'libomptarget.rtl.x86_64.nextgen.so'!
+Libomptarget --> Registering RTL libomptarget.rtl.x86_64.nextgen.so supporting 4 devices!
+Libomptarget --> Loading library 'libomptarget.rtl.ppc64.nextgen.so'...
+Libomptarget --> Unable to load library 'libomptarget.rtl.ppc64.nextgen.so': libomptarget.rtl.ppc64.nextgen.so: cannot open shared object file: No such file or directory!
+Libomptarget --> Falling back to original plugin...
+Libomptarget --> Loading library 'libomptarget.rtl.ppc64.so'...
+Libomptarget --> Unable to load library 'libomptarget.rtl.ppc64.so': libomptarget.rtl.ppc64.so: cannot open shared object file: No such file or directory!
+Libomptarget --> Loading library 'libomptarget.rtl.aarch64.nextgen.so'...
+Libomptarget --> Unable to load library 'libomptarget.rtl.aarch64.nextgen.so': libomptarget.rtl.aarch64.nextgen.so: cannot open shared object file: No such file or directory!
+Libomptarget --> Falling back to original plugin...
+Libomptarget --> Loading library 'libomptarget.rtl.aarch64.so'...
+Libomptarget --> Unable to load library 'libomptarget.rtl.aarch64.so': libomptarget.rtl.aarch64.so: cannot open shared object file: No such file or directory!
+Libomptarget --> Loading library 'libomptarget.rtl.ve.nextgen.so'...
+Libomptarget --> Unable to load library 'libomptarget.rtl.ve.nextgen.so': libomptarget.rtl.ve.nextgen.so: cannot open shared object file: No such file or directory!
+Libomptarget --> Falling back to original plugin...
+Libomptarget --> Loading library 'libomptarget.rtl.ve.so'...
+Libomptarget --> Unable to load library 'libomptarget.rtl.ve.so': libomptarget.rtl.ve.so: cannot open shared object file: No such file or directory!
+Libomptarget --> Loading library 'libomptarget.rtl.rpc.nextgen.so'...
+Libomptarget --> Unable to load library 'libomptarget.rtl.rpc.nextgen.so': libomptarget.rtl.rpc.nextgen.so: cannot open shared object file: No such file or directory!
+Libomptarget --> Falling back to original plugin...
+Libomptarget --> Loading library 'libomptarget.rtl.rpc.so'...
+Libomptarget --> Unable to load library 'libomptarget.rtl.rpc.so': libomptarget.rtl.rpc.so: cannot open shared object file: No such file or directory!
+Libomptarget --> RTLs loaded!
+TARGET AMDGPU RTL --> Compatible: Target IDs are compatible 	[Image: gfx90a]	:	[Env: gfx90a:sramecc+:xnack-]
+PluginInterface --> Image is compatible with current environment: gfx90a
+Libomptarget --> Image 0x000055a125562378 is compatible with RTL !
+Libomptarget --> RTL 0x000055a126248e80 has index 0!
+Libomptarget --> USM_SPECIAL: Marked 0 pointers for alloc handling
+Libomptarget --> Registering image 0x000055a125562378 with RTL !
+Libomptarget --> Done registering entries!
+Libomptarget --> Entering data begin region for device -1 with 4 mappings
+Libomptarget --> Call to omp_get_num_devices returning 1
+Libomptarget --> Default TARGET OFFLOAD policy is now mandatory (devices were found)
+Libomptarget --> Use default device id 0
+Libomptarget --> Call to omp_get_num_devices returning 1
+Libomptarget --> Call to omp_get_num_devices returning 1
+Libomptarget --> Call to omp_get_initial_device returning 1
+Libomptarget --> Checking whether device 0 is ready.
+Libomptarget --> Is the device 0 (local ID 0) initialized? 0
+TARGET AMDGPU RTL --> Using a maximum of 4 HSA queues
+Libomptarget --> Initialization returned 0
+Libomptarget --> Device 0 is ready to use.
+PluginInterface --> Load data from image 0x000055a125562378
+TARGET AMDGPU RTL --> ELFABIVERSION Version: 2
+TARGET AMDGPU RTL --> MemoryManagerTy::allocate: size 16 with host pointer 0x0000000000000000.
+TARGET AMDGPU RTL --> findBucket: Size 16 is floored to 16.
+TARGET AMDGPU RTL --> Cannot find a node in the FreeLists. Allocate on device.
+TARGET AMDGPU RTL --> Node address 0x000055a126426f20, target pointer 0x00007f7e7d44e000, size 16
+TARGET AMDGPU RTL --> MemoryManagerTy::free: target memory 0x00007f7e7d44e000.
+TARGET AMDGPU RTL --> findBucket: Size 16 is floored to 16.
+TARGET AMDGPU RTL --> Found its node 0x000055a126426f20. Insert it to bucket 3.
+PluginInterface --> Succesfully write 16 bytes associated with global symbol '__omp_rtl_device_environment' to the device (0x7f7e7d44c440 -> 0x7ffc1d4ce288).
+PluginInterface --> Global symbol '__nv_MAIN__TARGET_F1L6_1__exec_mode' was found in the ELF image and 1 bytes will copied from 0x55a125562ac0 to 0x7ffc1d4ce198.
+TARGET AMDGPU RTL --> Could not load __nv_MAIN__TARGET_F1L6_1__wg_size global from kernel image. Run with 256 1024
+TARGET AMDGPU RTL --> ELFABIVersion: 2
+PluginInterface --> Entry point 0x0000000000000000 maps to __nv_MAIN__TARGET_F1L6_1_ (0x000055a1262fc8f0)
+Libomptarget --> Entry  0: Base=0x000055a1263e0610, Begin=0x000055a1263e0610, Size=40, Type=0x21, Name=unknown
+Libomptarget --> Entry  1: Base=0x000055a125568880, Begin=0x000055a125568880, Size=128, Type=0x21, Name=unknown
+Libomptarget --> Entry  2: Base=0x000055a1263e1c60, Begin=0x000055a1263e1c60, Size=40, Type=0x21, Name=unknown
+Libomptarget --> Entry  3: Base=0x000055a1255687f0, Begin=0x000055a1255687f0, Size=128, Type=0x21, Name=unknown
+Libomptarget --> Looking up mapping(HstPtrBegin=0x000055a1263e0610, Size=40)...
+TARGET AMDGPU RTL --> MemoryManagerTy::allocate: size 40 with host pointer 0x000055a1263e0610.
+TARGET AMDGPU RTL --> findBucket: Size 40 is floored to 32.
+TARGET AMDGPU RTL --> Cannot find a node in the FreeLists. Allocate on device.
+TARGET AMDGPU RTL --> Node address 0x000055a126426ef0, target pointer 0x00007f7d7c820000, size 40
+Libomptarget --> Creating new map entry with HstPtrBase=0x000055a1263e0610, HstPtrBegin=0x000055a1263e0610, TgtPtrBegin=0x00007f7d7c820000, Size=40, DynRefCount=1, HoldRefCount=0, Name=unknown
+Libomptarget --> Notifying about new mapping: HstPtr=0x000055a1263e0610, Size=40
+Libomptarget --> Moving 40 bytes (hst:0x000055a1263e0610) -> (tgt:0x00007f7d7c820000)
+TARGET AMDGPU RTL --> MemoryManagerTy::allocate: size 40 with host pointer 0x0000000000000000.
+TARGET AMDGPU RTL --> findBucket: Size 40 is floored to 32.
+TARGET AMDGPU RTL --> Cannot find a node in the FreeLists. Allocate on device.
+TARGET AMDGPU RTL --> Node address 0x000055a126426ec0, target pointer 0x00007f7e7d43c000, size 40
+Libomptarget --> There are 40 bytes allocated at target address 0x00007f7d7c820000 - is new
+Libomptarget --> Looking up mapping(HstPtrBegin=0x000055a125568880, Size=128)...
+TARGET AMDGPU RTL --> MemoryManagerTy::allocate: size 128 with host pointer 0x000055a125568880.
+TARGET AMDGPU RTL --> findBucket: Size 128 is floored to 128.
+TARGET AMDGPU RTL --> Cannot find a node in the FreeLists. Allocate on device.
+TARGET AMDGPU RTL --> Node address 0x000055a1264276a0, target pointer 0x00007f7d7c821000, size 128
+Libomptarget --> Creating new map entry with HstPtrBase=0x000055a125568880, HstPtrBegin=0x000055a125568880, TgtPtrBegin=0x00007f7d7c821000, Size=128, DynRefCount=1, HoldRefCount=0, Name=unknown
+Libomptarget --> Notifying about new mapping: HstPtr=0x000055a125568880, Size=128
+Libomptarget --> Moving 128 bytes (hst:0x000055a125568880) -> (tgt:0x00007f7d7c821000)
+TARGET AMDGPU RTL --> MemoryManagerTy::allocate: size 128 with host pointer 0x0000000000000000.
+TARGET AMDGPU RTL --> findBucket: Size 128 is floored to 128.
+TARGET AMDGPU RTL --> Cannot find a node in the FreeLists. Allocate on device.
+TARGET AMDGPU RTL --> Node address 0x000055a126426020, target pointer 0x00007f7e7d43a000, size 128
+Libomptarget --> There are 128 bytes allocated at target address 0x00007f7d7c821000 - is new
+Libomptarget --> Looking up mapping(HstPtrBegin=0x000055a1263e1c60, Size=40)...
+TARGET AMDGPU RTL --> MemoryManagerTy::allocate: size 40 with host pointer 0x000055a1263e1c60.
+TARGET AMDGPU RTL --> findBucket: Size 40 is floored to 32.
+TARGET AMDGPU RTL --> Cannot find a node in the FreeLists. Allocate on device.
+TARGET AMDGPU RTL --> Node address 0x000055a126424c60, target pointer 0x00007f7d7c822000, size 40
+Libomptarget --> Creating new map entry with HstPtrBase=0x000055a1263e1c60, HstPtrBegin=0x000055a1263e1c60, TgtPtrBegin=0x00007f7d7c822000, Size=40, DynRefCount=1, HoldRefCount=0, Name=unknown
+Libomptarget --> Notifying about new mapping: HstPtr=0x000055a1263e1c60, Size=40
+Libomptarget --> Moving 40 bytes (hst:0x000055a1263e1c60) -> (tgt:0x00007f7d7c822000)
+TARGET AMDGPU RTL --> MemoryManagerTy::allocate: size 40 with host pointer 0x0000000000000000.
+TARGET AMDGPU RTL --> findBucket: Size 40 is floored to 32.
+TARGET AMDGPU RTL --> Cannot find a node in the FreeLists. Allocate on device.
+TARGET AMDGPU RTL --> Node address 0x000055a126424c90, target pointer 0x00007f7e7d438000, size 40
+Libomptarget --> There are 40 bytes allocated at target address 0x00007f7d7c822000 - is new
+Libomptarget --> Looking up mapping(HstPtrBegin=0x000055a1255687f0, Size=128)...
+TARGET AMDGPU RTL --> MemoryManagerTy::allocate: size 128 with host pointer 0x000055a1255687f0.
+TARGET AMDGPU RTL --> findBucket: Size 128 is floored to 128.
+TARGET AMDGPU RTL --> Cannot find a node in the FreeLists. Allocate on device.
+TARGET AMDGPU RTL --> Node address 0x000055a126424e60, target pointer 0x00007f7d7c823000, size 128
+Libomptarget --> Creating new map entry with HstPtrBase=0x000055a1255687f0, HstPtrBegin=0x000055a1255687f0, TgtPtrBegin=0x00007f7d7c823000, Size=128, DynRefCount=1, HoldRefCount=0, Name=unknown
+Libomptarget --> Notifying about new mapping: HstPtr=0x000055a1255687f0, Size=128
+Libomptarget --> Moving 128 bytes (hst:0x000055a1255687f0) -> (tgt:0x00007f7d7c823000)
+TARGET AMDGPU RTL --> MemoryManagerTy::allocate: size 128 with host pointer 0x0000000000000000.
+TARGET AMDGPU RTL --> findBucket: Size 128 is floored to 128.
+TARGET AMDGPU RTL --> Cannot find a node in the FreeLists. Allocate on device.
+TARGET AMDGPU RTL --> Node address 0x000055a126424ef0, target pointer 0x00007f7e7d436000, size 128
+Libomptarget --> There are 128 bytes allocated at target address 0x00007f7d7c823000 - is new
+TARGET AMDGPU RTL --> MemoryManagerTy::free: target memory 0x00007f7e7d43c000.
+TARGET AMDGPU RTL --> findBucket: Size 40 is floored to 32.
+TARGET AMDGPU RTL --> Found its node 0x000055a126426ec0. Insert it to bucket 4.
+TARGET AMDGPU RTL --> MemoryManagerTy::free: target memory 0x00007f7e7d43a000.
+TARGET AMDGPU RTL --> findBucket: Size 128 is floored to 128.
+TARGET AMDGPU RTL --> Found its node 0x000055a126426020. Insert it to bucket 6.
+TARGET AMDGPU RTL --> MemoryManagerTy::free: target memory 0x00007f7e7d438000.
+TARGET AMDGPU RTL --> findBucket: Size 40 is floored to 32.
+TARGET AMDGPU RTL --> Found its node 0x000055a126424c90. Insert it to bucket 4.
+TARGET AMDGPU RTL --> MemoryManagerTy::free: target memory 0x00007f7e7d436000.
+TARGET AMDGPU RTL --> findBucket: Size 128 is floored to 128.
+TARGET AMDGPU RTL --> Found its node 0x000055a126424ef0. Insert it to bucket 6.
+Libomptarget --> Entering target region for device -1 with entry point 0x000055a125564b4a
+Libomptarget --> Use default device id 0
+Libomptarget --> Call to omp_get_num_devices returning 1
+Libomptarget --> Call to omp_get_num_devices returning 1
+Libomptarget --> Call to omp_get_initial_device returning 1
+Libomptarget --> Checking whether device 0 is ready.
+Libomptarget --> Is the device 0 (local ID 0) initialized? 1
+Libomptarget --> Device 0 is ready to use.
+Libomptarget --> Entry  0: Base=0x000055a125568880, Begin=0x000055a125568880, Size=128, Type=0x21, Name=unknown
+Libomptarget --> Entry  1: Base=0x000055a1263e0610, Begin=0x000055a1263e0610, Size=40, Type=0x23, Name=unknown
+Libomptarget --> Entry  2: Base=0x000055a1255687f0, Begin=0x000055a1255687f0, Size=128, Type=0x21, Name=unknown
+Libomptarget --> Entry  3: Base=0x000055a1263e1c60, Begin=0x000055a1263e1c60, Size=40, Type=0x23, Name=unknown
+Libomptarget --> loop trip count is 0.
+Libomptarget --> Looking up mapping(HstPtrBegin=0x000055a125568880, Size=128)...
+Libomptarget --> Mapping exists with HstPtrBegin=0x000055a125568880, TgtPtrBegin=0x00007f7d7c821000, Size=128, DynRefCount=2 (incremented), HoldRefCount=0, Name=unknown
+Libomptarget --> There are 128 bytes allocated at target address 0x00007f7d7c821000 - is not new
+Libomptarget --> Looking up mapping(HstPtrBegin=0x000055a1263e0610, Size=40)...
+Libomptarget --> Mapping exists with HstPtrBegin=0x000055a1263e0610, TgtPtrBegin=0x00007f7d7c820000, Size=40, DynRefCount=2 (incremented), HoldRefCount=0, Name=unknown
+Libomptarget --> There are 40 bytes allocated at target address 0x00007f7d7c820000 - is not new
+Libomptarget --> Looking up mapping(HstPtrBegin=0x000055a1255687f0, Size=128)...
+Libomptarget --> Mapping exists with HstPtrBegin=0x000055a1255687f0, TgtPtrBegin=0x00007f7d7c823000, Size=128, DynRefCount=2 (incremented), HoldRefCount=0, Name=unknown
+Libomptarget --> There are 128 bytes allocated at target address 0x00007f7d7c823000 - is not new
+Libomptarget --> Looking up mapping(HstPtrBegin=0x000055a1263e1c60, Size=40)...
+Libomptarget --> Mapping exists with HstPtrBegin=0x000055a1263e1c60, TgtPtrBegin=0x00007f7d7c822000, Size=40, DynRefCount=2 (incremented), HoldRefCount=0, Name=unknown
+Libomptarget --> There are 40 bytes allocated at target address 0x00007f7d7c822000 - is not new
+Libomptarget --> Looking up mapping(HstPtrBegin=0x000055a125568880, Size=128)...
+Libomptarget --> Mapping exists with HstPtrBegin=0x000055a125568880, TgtPtrBegin=0x00007f7d7c821000, Size=128, DynRefCount=2 (update suppressed), HoldRefCount=0
+Libomptarget --> Obtained target argument 0x00007f7d7c821000 from host pointer 0x000055a125568880
+Libomptarget --> Looking up mapping(HstPtrBegin=0x000055a1263e0610, Size=40)...
+Libomptarget --> Mapping exists with HstPtrBegin=0x000055a1263e0610, TgtPtrBegin=0x00007f7d7c820000, Size=40, DynRefCount=2 (update suppressed), HoldRefCount=0
+Libomptarget --> Obtained target argument 0x00007f7d7c820000 from host pointer 0x000055a1263e0610
+Libomptarget --> Looking up mapping(HstPtrBegin=0x000055a1255687f0, Size=128)...
+Libomptarget --> Mapping exists with HstPtrBegin=0x000055a1255687f0, TgtPtrBegin=0x00007f7d7c823000, Size=128, DynRefCount=2 (update suppressed), HoldRefCount=0
+Libomptarget --> Obtained target argument 0x00007f7d7c823000 from host pointer 0x000055a1255687f0
+Libomptarget --> Looking up mapping(HstPtrBegin=0x000055a1263e1c60, Size=40)...
+Libomptarget --> Mapping exists with HstPtrBegin=0x000055a1263e1c60, TgtPtrBegin=0x00007f7d7c822000, Size=40, DynRefCount=2 (update suppressed), HoldRefCount=0
+Libomptarget --> Obtained target argument 0x00007f7d7c822000 from host pointer 0x000055a1263e1c60
+Libomptarget --> Launching target execution __nv_MAIN__TARGET_F1L6_1_ with pointer 0x000055a1262fc8f0 (index=0).
+PluginInterface --> Launching kernel __nv_MAIN__TARGET_F1L6_1_ with 624 blocks and 256 threads in SPMD mode
+TARGET AMDGPU RTL --> MemoryManagerTy::allocate: size 88 with host pointer 0x0000000000000000.
+TARGET AMDGPU RTL --> findBucket: Size 88 is floored to 64.
+TARGET AMDGPU RTL --> findBucket: Size 88 goes to bucket 4
+TARGET AMDGPU RTL --> Cannot find a node in the FreeLists. Allocate on device.
+TARGET AMDGPU RTL --> Node address 0x000055a1264250c0, target pointer 0x00007f7e7d434000, size 88
+TARGET AMDGPU RTL --> No hostrpc buffer or service thread required
+TARGET AMDGPU RTL --> Setting fields of ImplicitArgs for COV4
+TARGET AMDGPU RTL --> Using Queue: 0x55a1262fbe40 with HSA Queue: 0x7f7e7d468000
+Libomptarget --> Looking up mapping(HstPtrBegin=0x000055a1263e1c60, Size=40)...
+Libomptarget --> Mapping exists with HstPtrBegin=0x000055a1263e1c60, TgtPtrBegin=0x00007f7d7c822000, Size=40, DynRefCount=1 (decremented), HoldRefCount=0
+Libomptarget --> There are 40 bytes allocated at target address 0x00007f7d7c822000 - is not last
+Libomptarget --> Looking up mapping(HstPtrBegin=0x000055a1255687f0, Size=128)...
+Libomptarget --> Mapping exists with HstPtrBegin=0x000055a1255687f0, TgtPtrBegin=0x00007f7d7c823000, Size=128, DynRefCount=1 (decremented), HoldRefCount=0
+Libomptarget --> There are 128 bytes allocated at target address 0x00007f7d7c823000 - is not last
+Libomptarget --> Looking up mapping(HstPtrBegin=0x000055a1263e0610, Size=40)...
+Libomptarget --> Mapping exists with HstPtrBegin=0x000055a1263e0610, TgtPtrBegin=0x00007f7d7c820000, Size=40, DynRefCount=1 (decremented), HoldRefCount=0
+Libomptarget --> There are 40 bytes allocated at target address 0x00007f7d7c820000 - is not last
+Libomptarget --> Looking up mapping(HstPtrBegin=0x000055a125568880, Size=128)...
+Libomptarget --> Mapping exists with HstPtrBegin=0x000055a125568880, TgtPtrBegin=0x00007f7d7c821000, Size=128, DynRefCount=1 (decremented), HoldRefCount=0
+Libomptarget --> There are 128 bytes allocated at target address 0x00007f7d7c821000 - is not last
+TARGET AMDGPU RTL --> MemoryManagerTy::free: target memory 0x00007f7e7d434000.
+TARGET AMDGPU RTL --> findBucket: Size 88 is floored to 64.
+TARGET AMDGPU RTL --> findBucket: Size 88 goes to bucket 4
+TARGET AMDGPU RTL --> Found its node 0x000055a1264250c0. Insert it to bucket 4.
+Libomptarget --> Unloading target library!
+Libomptarget --> Unregistered image 0x000055a125562378 from RTL 0x000055a126248e80!
+Libomptarget --> Done unregistering images!
+Libomptarget --> Removing translation table for descriptor 0x000055a1255686f8
+Libomptarget --> Done unregistering library!
+ Work Done
+Libomptarget --> Deinit target library!
+TARGET AMDGPU RTL --> Missing 4 resources to be returned
