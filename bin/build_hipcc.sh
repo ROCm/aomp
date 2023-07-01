@@ -35,7 +35,7 @@ BUILD_DIR=${BUILD_AOMP}
 
 BUILDTYPE="Release"
 
-INSTALL_EXTRAS=${INSTALL_EXTRAS:-$AOMP_INSTALL_DIR}
+INSTALL_HIPCC=${INSTALL_HIPCC:-$AOMP_INSTALL_DIR}
 export LLVM_DIR=$AOMP_INSTALL_DIR 
 
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
@@ -63,13 +63,13 @@ fi
 
 # Make sure we can update the install directory
 if [ "$1" == "install" ] ; then
-   $SUDO mkdir -p $INSTALL_EXTRAS
-   $SUDO touch $INSTALL_EXTRAS/testfile
+   $SUDO mkdir -p $INSTALL_HIPCC
+   $SUDO touch $INSTALL_HIPCC/testfile
    if [ $? != 0 ] ; then
-      echo "ERROR: No update access to $INSTALL_EXTRAS"
+      echo "ERROR: No update access to $INSTALL_HIPCC"
       exit 1
    fi
-   $SUDO rm $INSTALL_EXTRAS/testfile
+   $SUDO rm $INSTALL_HIPCC/testfile
 fi
 
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
@@ -123,7 +123,7 @@ fi
 if [ "$1" == "install" ] ; then
       cd $BUILD_DIR/build/hipcc
       echo
-      echo " -----Installing to $INSTALL_EXTRAS ----- "
+      echo " -----Installing to $INSTALL_HIPCC ----- "
       $SUDO make install
       if [ $? != 0 ] ; then
          echo "ERROR make install failed "
