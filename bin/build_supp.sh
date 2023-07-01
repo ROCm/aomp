@@ -170,7 +170,7 @@ function buildninja(){
 
 function buildaqlprofile(){
   _cname="aqlprofile"
-  _version=5.5
+  _version=5.6
   _installdir=$AOMP_SUPP_INSTALL/$_cname-$_version
   _linkfrom=$AOMP_SUPP/$_cname
   _builddir=$AOMP_SUPP_BUILD/$_cname
@@ -187,19 +187,19 @@ function buildaqlprofile(){
   runcmd "cd $_builddir"
   which dpkg 2>/dev/null
   if [ $? == 0 ] ; then
-    runcmd "wget https://repo.radeon.com/rocm/apt/5.5/pool/main/h/hsa-amd-aqlprofile5.5.0/hsa-amd-aqlprofile5.5.0_1.0.0.50500-63~20.04_amd64.deb"
-    runcmd "dpkg -x hsa-amd-aqlprofile5.5.0_1.0.0.50500-63~20.04_amd64.deb $_builddir"
+    runcmd "wget https://repo.radeon.com/rocm/apt/5.6/pool/main/h/hsa-amd-aqlprofile/hsa-amd-aqlprofile_1.0.0.50600-67~20.04_amd64.deb"
+    runcmd "dpkg -x hsa-amd-aqlprofile_1.0.0.50600-67~20.04_amd64.deb $_builddir"
   else
-    runcmd "wget https://repo.radeon.com/rocm/yum/5.5/main/hsa-amd-aqlprofile5.5.0-1.0.0.50500-63.el7.x86_64.rpm"
-    echo "rpm2cpio hsa-amd-aqlprofile5.5.0-1.0.0.50500-63.el7.x86_64.rpm | cpio -idm"
-    rpm2cpio hsa-amd-aqlprofile5.5.0-1.0.0.50500-63.el7.x86_64.rpm | cpio -idm
+    runcmd "wget https://repo.radeon.com/rocm/yum/5.6/main/hsa-amd-aqlprofile-1.0.0.50600-67.el7.x86_64.rpm"
+    echo "hsa-amd-aqlprofile-1.0.0.50600-67.el7.x86_64.rpm | cpio -idm"
+    rpm2cpio hsa-amd-aqlprofile-1.0.0.50600-67.el7.x86_64.rpm | cpio -idm
   fi
   if [ -d $_installdir ] ; then
     runcmd "rm -rf $_installdir"
   fi
   runcmd "mkdir -p $_installdir/lib"
   runcmd "cd $_installdir"
-  runcmd "cp -rp $_builddir/opt/rocm-5.5.0/lib  $_installdir"
+  runcmd "cp -rp $_builddir/opt/rocm-5.6.0/lib  $_installdir"
 
   if [ -L $_linkfrom ] ; then
     runcmd "rm $_linkfrom"
@@ -354,7 +354,7 @@ function buildcmake(){
 
 function buildrocmsmilib(){
   _cname="rocmsmilib"
-  _version=5.5.x
+  _version=5.6.x
   _installdir=$AOMP_SUPP_INSTALL/rocmsmilib-$_version
   _linkfrom=$AOMP_SUPP/rocmsmilib
   _builddir=$AOMP_SUPP_BUILD/rocmsmilib

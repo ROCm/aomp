@@ -33,10 +33,10 @@ thisdir=`dirname $realpath`
 . $thisdir/aomp_common_vars
 # --- end standard header ----
 
-export HIPAMD_DIR=$AOMP_REPOS/hipamd
+export HIPAMD_DIR=$AOMP_REPOS/clr
 export HIP_DIR=$AOMP_REPOS/hip
-export ROCclr_DIR=$AOMP_REPOS/ROCclr
-export OPENCL_DIR=$AOMP_REPOS/ROCm-OpenCL-Runtime
+export ROCclr_DIR=$AOMP_REPOS/clr/rocclr
+export OPENCL_DIR=$AOMP_REPOS/clr/opencl
 [[ ! -d $HIPAMD_DIR ]] && echo "ERROR:  Missing $HIPAMD_DIR" && exit 1
 [[ ! -d $HIP_DIR ]]    && echo "ERROR:  Missing $HIP_DIR"    && exit 1
 [[ ! -d $ROCclr_DIR ]] && echo "ERROR:  Missing $ROCclr_DIR" && exit 1
@@ -94,8 +94,11 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
  -DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR \
  -DCMAKE_INSTALL_PREFIX=$AOMP_INSTALL_DIR \
  -DHIP_COMMON_DIR=$HIP_DIR \
- -DAMD_OPENCL_PATH=$OPENCL_DIR \
- -DROCCLR_PATH=$ROCclr_DIR \
+ -DHIP_PLATFORM=amd \
+ -DHIP_COMPILER=clang \
+ -DCMAKE_HIP_ARCHITECTURES=OFF \
+ -DCLR_BUILD_HIP=ON -DCLR_BUILD_OCL=ON \
+ -DHIPCC_BIN_DIR=$AOMP_REPOS/build/hipcc \
  -DROCM_PATH=$ROCM_PATH"
 
   if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
