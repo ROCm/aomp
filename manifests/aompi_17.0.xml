@@ -23,6 +23,7 @@
     <project remote="roctools" path="ROCdbgapi" name="ROCdbgapi"                  revision="rocm-5.6.x" groups="unlocked" />
     <project remote="roctools" path="ROCgdb" name="ROCgdb"                        revision="rocm-5.6.x" groups="unlocked" />
     <project remote="roctools" path="hip"    name="hip"                           revision="rocm-5.6.x" groups="unlocked" />
+    <project remote="roctools" path="hipcc"    name="hipcc"                           revision="rocm-5.6.x" groups="unlocked" />
     <project remote="roctools" path="clr" name="clr"                        revision="rocm-5.6.x" groups="unlocked" />
     <project remote="roc" path="ROCm-OpenCL-Runtime" name="ROCm-OpenCL-Runtime"   revision="rocm-5.6.x" groups="unlocked" />
     <project remote="roc" path="rocminfo" name="rocminfo"                         revision="rocm-5.6.x" groups="unlocked" />
