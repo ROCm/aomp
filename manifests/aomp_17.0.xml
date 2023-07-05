@@ -24,7 +24,6 @@
 <project remote="roctools" path="hip"    name="hip"                           revision="rocm-5.6.x" groups="unlocked" />
 <project remote="roctools" path="hipcc"    name="hipcc"                           revision="rocm-5.6.x" groups="unlocked" />
 <project remote="roctools" path="clr" name="clr"                        revision="rocm-5.6.x" groups="unlocked" />
-<project remote="roc" path="ROCm-OpenCL-Runtime" name="ROCm-OpenCL-Runtime"   revision="rocm-5.6.x" groups="unlocked" />
 <project remote="roc" path="rocminfo" name="rocminfo"                         revision="rocm-5.6.x" groups="unlocked" />
 <project remote="roc" path="rocm-cmake" name="rocm-cmake"                     revision="release/rocm-rel-5.6" groups="unlocked" />
 <project remote="roc" path="rocr-runtime" name="ROCR-Runtime"                 revision="rocm-5.6.x" groups="unlocked" />
