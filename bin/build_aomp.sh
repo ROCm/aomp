@@ -89,7 +89,7 @@ if [ "$AOMP_STANDALONE_BUILD" == 1 ] ; then
     # These components build on x86_64, so add them to components list
     components="$components flang-legacy pgmath flang flang_runtime"
     #components="$components hipfort"
-    components="$components hipamd "
+    components="$components hipcc hipamd "
   fi
 
   # ROCdbgapi requires atleast g++ 7
