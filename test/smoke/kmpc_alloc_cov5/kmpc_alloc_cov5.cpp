@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#pragma omp begin declare variant match(device={kind(host)})
 extern "C" {
 void *__kmpc_impl_malloc(size_t) {
   printf("Called malloc on host, error\n");
@@ -12,10 +13,11 @@ void __kmpc_impl_free(void *) {
   exit(1);
 }
 }
+#pragma omp end declare variant
 
 // Call the kmpc_impl malloc/free hooks from devicertl
 
-#pragma omp declare target
+#pragma omp begin declare target
 extern "C" {
 void *__kmpc_impl_malloc(size_t);
 void __kmpc_impl_free(void *);
