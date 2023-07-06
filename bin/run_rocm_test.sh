@@ -9,9 +9,9 @@
 #
 #
 
-EPSDB_LIST=${EPSDB_LIST:-"examples smoke-limbo smoke omp5 openmpapps LLNL nekbone ovo sollve babelstream"}
-SUITE_LIST=${SUITE_LIST:-"examples smoke-limbo smoke omp5 openmpapps LLNL nekbone ovo sollve"}
-blockinglist="examples_fortran examples_openmp smoke openmpapps nekbone sollve45 sollve50"
+EPSDB_LIST=${EPSDB_LIST:-"examples smoke-limbo smoke omp5 openmpapps LLNL nekbone ovo sollve babelstream fortran-babelstream"}
+SUITE_LIST=${SUITE_LIST:-"examples smoke-limbo smoke omp5 openmpapps LLNL nekbone ovo sollve babelstream fortran-babelstream"}
+blockinglist="examples_fortran examples_openmp smoke openmpapps nekbone sollve45 sollve50 babelstream"
 
 # Use bogus path to avoid using target.lst, a user-defined target list
 # used by rocm_agent_enumerator.
@@ -465,6 +465,7 @@ function nekbone(){
   cd "$aompdir"/bin
   VERBOSE=0 ./run_nekbone.sh
   cd "$AOMP_TEST_DIR"/Nekbone/test/nek_gpu1
+  checkrc $?
   copyresults nekbone
 }
 
@@ -512,7 +513,20 @@ function babelstream(){
   fi
   ./run_babelstream.sh
   cd "$AOMP_TEST_DIR"/babelstream
+  checkrc $?
   copyresults babelstream
+}
+
+function fortran-babelstream(){
+  mkdir -p "$resultsdir"/fortran-babelstream
+  cd "$aompdir"/bin
+  if [ $aomp -eq 0 ]; then
+    export ROCMINFO_BINARY=$AOMP/../bin/rocminfo
+  fi
+  ./run_fBabel.sh
+  checkrc $?
+  cd "$AOMP_TEST_DIR"/fortran-babelstream
+  copyresults fortran-bbabelstream
 }
 
 function LLNL(){
