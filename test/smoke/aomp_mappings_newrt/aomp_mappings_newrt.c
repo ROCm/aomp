@@ -225,11 +225,11 @@ int main()
   for (i = 0; i < N; i++){
 
     //check thread #
-    if (thread_num[i] != i % MAX_THREADS_PER_TEAM)
+    if (thread_num[i] != i % num_threads[i])
       recordError(&errors, "THREAD NUMBER", i, thread_num, NULL);
 
     //check team #
-    if (i % MAX_THREADS_PER_TEAM == 0){
+    if (i % num_threads[i] == 0){
       correctTeamNum++;
       correctTeamNum = correctTeamNum % MAX_TEAMS;
     }
@@ -242,7 +242,7 @@ int main()
       recordError(&errors, "DEVICE NUMBER", i, default_dev, NULL);
 
     //check warp #
-    if (i % WARP_SIZE == 0){
+    if (i % MAX_TEAMS * num_threads[i] == 0){
       correctWarpId++;
       correctWarpId = correctWarpId % (MAX_THREADS_PER_TEAM/WARP_SIZE);
     }
@@ -250,7 +250,7 @@ int main()
       recordError(&errors, "WARP NUMBER", i, warp_id, NULL);
 
     //check lane #
-    if (lane_id[i] != i % WARP_SIZE)
+    if (lane_id[i] != i % num_threads[i])
       recordError(&errors, "LANE NUMBER", i, lane_id, NULL);
 
     //check master thread # (SPMD mode, thread 0 is master)
@@ -268,7 +268,7 @@ int main()
     //check num teams
     //If number of iterations is not divisible by MAX_THREADS_PER_TEAM get the ceiling
     if(N % MAX_THREADS_PER_TEAM != 0)
-      correctNumTeams = ((N + num_threads[i]) / num_threads[i]);
+      correctNumTeams = ((N + num_threads[i] - 1) / num_threads[i]);
     else
       correctNumTeams = N / MAX_THREADS_PER_TEAM;
     if (num_teams[i] != correctNumTeams)
@@ -288,7 +288,7 @@ int main()
     //Set mask for warps with full (64) active threads
     if (i < N - remainder){
       if(WARP_SIZE == 64)
-        mask = 0xffffffffffffffff;
+        mask = 0xff;
       else
         mask = 0xffffffff;
     }
@@ -299,7 +299,6 @@ int main()
         mask = mask + 1;
       }
     }
-
     if (active_mask[i] != mask){
       recordError(&errors, "ACTIVE MASK", i, NULL, active_mask);
     }
