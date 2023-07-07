@@ -177,9 +177,9 @@ for option in $RUN_OPTIONS; do
          echo HSA_XNACK=1 HIP_UM=1 $GPURUN_BINDIR/gpurun $_SILENT ./$EXEC -n $BABELSTREAM_REPEATS | tee -a results.txt
          HSA_XNACK=1 HIP_UM=1 $GPURUN_BINDIR/gpurun $_SILENT ./$EXEC -n $BABELSTREAM_REPEATS 2>&1 | tee -a results.txt
       elif [ "$option" == "omp-fast" ]; then
-         echo echo LIBOMPTARGET_AMDGPU_STREAM_BUSYWAIT=2000000 \
+         echo echo OMPX_FORCE_SYNC_REGIONS=1 \
                 $GPURUN_BINDIR/gpurun $_SILENT ./$EXEC -n $BABELSTREAM_REPEATS 2>&1 | tee -a results.txt
-         LIBOMPTARGET_AMDGPU_KERNEL_BUSYWAIT=1000000 LIBOMPTARGET_AMDGPU_DATA_BUSYWAIT=3000000 \
+         OMPX_FORCE_SYNC_REGIONS=1 \
                 $GPURUN_BINDIR/gpurun $_SILENT ./$EXEC -n $BABELSTREAM_REPEATS 2>&1 | tee -a results.txt
       else
          echo $GPURUN_BINDIR/gpurun $_SILENT ./$EXEC -n $BABELSTREAM_REPEATS | tee -a results.txt
