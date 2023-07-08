@@ -3,5 +3,4 @@ comd-mp4
 lulesh-mp4
 matmul
 MI-Teams
-snap-mp4
 xsbench-mp4
