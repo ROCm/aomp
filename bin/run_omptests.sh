@@ -24,11 +24,12 @@ pushd $AOMP_REPOS_TEST/$AOMP_OMPTESTS_REPO_NAME
 rm -f runtime-fails.txt
 rm -f compile-fails.txt
 rm -f passing-tests.txt
+rm -f skipped-tests.txt
 skip_list="t-tdpf-nested-parallel t-reduction-struct t-reduction-team t-unified-reduction-team t-reduction t-unified-reduction t-critical t-unified-critical t-unified-target-nowait-dep3 t-unified-target-nowait-dep2 t-unified-target-dep-2dev t-unified-target-depend-host-device t-unified-target-nowait-dep-implicit t-unified-parallel-target-nowait t-unified-target-nowait t-unified-array-of-ptr t-unified-class t-unified-declare-target t-unified-declare-target-lists t-unified-implicit-declare-target-no-dtor t-unified-runtime-calls t-unified-same-name-definitions t-unified-target-large-array t-unified-target-map-ptr t-unified-target-user-pinned t-unified-task t-unified-tp-nested-parallel t-unified-target-nowait-dep1 t-target-dep-2dev t-target-nowait-dep-implicit t-target-nowait-dep2 t-unified-target-nowait-dep1 t-target-depend-host-device t-target-nowait-dep1 t-target-nowait-dep3 t-unified-tp-nested-parallel t-unified-ttdpf-nested-parallel t-unified-ttdpfs-nested-parallel"
 
 # Add skip_list tests to runtime fails
 for omp_test in $skip_list; do
-  echo $omp_test >> $AOMP_REPOS_TEST/$AOMP_OMPTESTS_REPO_NAME/skipped-tests.txt
+  echo $omp_test > $AOMP_REPOS_TEST/$AOMP_OMPTESTS_REPO_NAME/skipped-tests.txt
 done
 
 # Move tests to avoid soft hang
