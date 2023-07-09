@@ -20,6 +20,7 @@ test_target_data_if.c
 test_target_data_if.F90
 test_target_data_map_alloc.c
 test_target_data_map_array_sections.c
+test_target_data_map_classes.cpp
 test_target_data_map_components_default.F90
 test_target_data_map_components_to.F90
 test_target_data_map_components_tofrom.F90
@@ -38,6 +39,7 @@ test_target_device.c
 test_target_device.F90
 test_target_enter_data_allocate_array_alloc.F90
 test_target_enter_data_allocate_array_to.F90
+test_target_enter_data_classes_inheritance.cpp
 test_target_enter_data_classes_simple.cpp
 test_target_enter_data_components_to.F90
 test_target_enter_data_depend.c
@@ -49,6 +51,7 @@ test_target_enter_data_module_array.F90
 test_target_enter_data_set_default_device.F90
 test_target_enter_data_struct.c
 test_target_enter_exit_data_allocate_array_alloc_delete.F90
+test_target_enter_exit_data_classes_complex.cpp
 test_target_enter_exit_data_classes_simple.cpp
 test_target_enter_exit_data_depend.c
 test_target_enter_exit_data_devices.c
