@@ -37,10 +37,11 @@ if [ "${AOMP_GPU:0:3}" == "sm_" ] ; then
    RUN_OPTIONS=${RUN_OPTIONS:-"omp-default omp-fast"}
 else
    TRIPLE="amdgcn-amd-amdhsa"
-   RUN_OPTIONS=${RUN_OPTIONS:-"omp-default omp-fast"}
+   RUN_OPTIONS=${RUN_OPTIONS:-"omp-default omp-fast omp-loop omp-loop-fast"}
 fi
 
-omp_target_flags="-O3 -fopenmp -fopenmp-targets=$TRIPLE -Xopenmp-target=$TRIPLE -march=$AOMP_GPU -DOMP -DUSE_OPENMPTARGET=1 -DVERSION_STRING=4.0"
+omp_target_flags="-O3 -fopenmp -fopenmp-targets=$TRIPLE -Xopenmp-target=$TRIPLE -march=$AOMP_GPU -DOMP -DVERSION_STRING=4.0"
+
 #  So this script runs with old comilers, we only use -fopenmp-target-fast
 #  for LLVM 16 or higher
 LLVM_VERSION_STR=`$AOMP/bin/$FLANG --version`
@@ -74,7 +75,6 @@ else
 fi
 omp_cpu_flags="-O3 -fopenmp -DOMP"
 
-omp_src="BabelStreamTypes.F90 ArrayStream.F90 OpenMPTargetStream.F90 main.F90"
 
 gccver=`gcc --version | grep gcc | cut -d")" -f2 | cut -d"." -f1`
 std=""
@@ -115,11 +115,20 @@ for option in $RUN_OPTIONS; do
   EXEC=stream-$option
   rm -f $EXEC
   if [ "$option" == "omp-default" ]; then
-    compile_cmd="$AOMP/bin/$FLANG $std $omp_target_flags $omp_src -o $EXEC"
+    omp_src="BabelStreamTypes.F90 ArrayStream.F90 OpenMPTargetStream.F90 main.F90"
+    compile_cmd="$AOMP/bin/$FLANG $std $omp_target_flags $omp_src -o $EXEC -DUSE_OPENMPTARGET=1"
   elif [ "$option" == "omp-fast" ]; then
-    compile_cmd="$AOMP/bin/$FLANG $std $omp_fast_flags   $omp_src -o $EXEC"
+    omp_src="BabelStreamTypes.F90 ArrayStream.F90 OpenMPTargetStream.F90 main.F90"
+    compile_cmd="$AOMP/bin/$FLANG $std $omp_fast_flags   $omp_src -o $EXEC -DUSE_OPENMPTARGET=1"
   elif [ "$option" == "omp-cpu" ]; then
-    compile_cmd="$AOMP/bin/$FLANG $std $omp_cpu_flags    $omp_src -o $EXEC"
+    omp_src="BabelStreamTypes.F90 ArrayStream.F90 OpenMPTargetStream.F90 main.F90"
+    compile_cmd="$AOMP/bin/$FLANG $std $omp_cpu_flags    $omp_src -o $EXEC -DUSE_OPENMPTARGET=1"
+  elif [ "$option" == "omp-loop" ]; then
+    omp_src="BabelStreamTypes.F90 ArrayStream.F90 OpenMPTargetLoopStream.F90 main.F90"
+    compile_cmd="$AOMP/bin/$FLANG $std $omp_target_flags    $omp_src -o $EXEC -DUSE_OPENMPTARGETLOOP=1"
+  elif [ "$option" == "omp-loop-fast" ]; then
+    omp_src="BabelStreamTypes.F90 ArrayStream.F90 OpenMPTargetLoopStream.F90 main.F90"
+    compile_cmd="$AOMP/bin/$FLANG $std $omp_fast_flags    $omp_src -o $EXEC -DUSE_OPENMPTARGETLOOP=1"
   else
     echo "ERROR: Option not recognized: $option."
     exit 1
