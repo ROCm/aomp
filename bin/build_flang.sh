@@ -160,6 +160,7 @@ if [ "$1" == "install" ] ; then
      echo "Copy flang, flang1, flang2 into $INSTALL_PREFIX/llvm/bin"
      cp $INSTALL_PREFIX/openmp-extras/devel/bin/flang1 $INSTALL_PREFIX/llvm/bin
      cp $INSTALL_PREFIX/openmp-extras/devel/bin/flang2 $INSTALL_PREFIX/llvm/bin
+     cp $INSTALL_PREFIX/openmp-extras/devel/bin/flang-legacy $INSTALL_PREFIX/llvm/bin
    elif [ -d $INSTALL_PREFIX/openmp-extras ]; then
      echo "Add flang symbolic link."
      echo "Copy flang, flang1, flang2 into $INSTALL_PREFIX/llvm/bin"
