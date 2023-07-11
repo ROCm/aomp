@@ -38,7 +38,7 @@ if [  -z $gpu ]; then
   echo "$gpu"
 fi
 
-targetoptions="-fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$gpu"
+targetoptions="-fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$gpu --no-offload-new-driver"
 RC=0
 
 cmd="$AOMP/bin/clang $tmpcfile -fopenmp -emit-llvm -S"
