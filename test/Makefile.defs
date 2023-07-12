@@ -142,14 +142,24 @@ else
         INSTALLED_GPU = $(shell echo $(AOMP_GPU))
       # Honor ROCR_VISIBLE_DEVICES. Returns first GPU in list.
       else ifneq ("$(ROCR_VISIBLE_DEVICES)","")
-        INSTALLED_GPU = $(shell $(AOMP)/bin/offload-arch -c | grep -oP gfx.+?\(?=:\))
-      # Default to rocm_agent_enumerator. Returns first GPU in list.
+        INSTALLED_GPU = $(shell $(AOMP)/bin/amdgpu-arch | grep -m 1 -E gfx[^0]{1}.{2})
+      # Default to amdgpu-arch. Returns first GPU in list.
       else
-        ifneq ("$(wildcard $(AOMP)/bin/rocm_agent_enumerator)","")
-          INSTALLED_GPU = $(shell $(AOMP)/bin/rocm_agent_enumerator | grep -m 1 -E gfx[^0]{1}.{2})
-        else
-	  # in case AOMP is trunk build without rocm_agent_enumerator, try /opt/rocm/bin
-          INSTALLED_GPU = $(shell /opt/rocm/bin/rocm_agent_enumerator | grep -m 1 -E gfx[^0]{1}.{2})
+        INSTALLED_GPU = $(shell $(AOMP)/bin/amdgpu-arch | grep -m 1 -E gfx[^0]{1}.{2})
+        ifeq ("$(INSTALLED_GPU)","")
+          ifneq ("$(wildcard $(AOMP)/bin/rocm_agent_enumerator)","")
+            INSTALLED_GPU = $(shell $(AOMP)/bin/rocm_agent_enumerator | grep -m 1 -E gfx[^0]{1}.{2})
+          else
+            # in case AOMP is trunk build without rocm_agent_enumerator, try /opt/rocm/bin
+            INSTALLED_GPU = $(shell /opt/rocm/bin/rocm_agent_enumerator | grep -m 1 -E gfx[^0]{1}.{2})
+          endif
+          # Try nvptx-arch
+          ifeq ("$(INSTALLED_GPU)","")
+            INSTALLED_GPU = $(shell $(AOMP)/bin/nvptx-arch | grep -m 1 sm)
+          endif
+          ifeq ("$(INSTALLED_GPU)","")
+            $(error "AOMP_GPU cannot be set via detection tools.")
+          endif
         endif
       endif
     endif
