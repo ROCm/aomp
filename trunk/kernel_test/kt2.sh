@@ -8,13 +8,9 @@
 #    OARCH:  Offload architecture, sm_70, gfx908, etc
 # 
 # kt2.sh has the following differences from kernel_test.sh 
-#    use directories tmpc2 and tmpf2
-#    remove -save-temps but use -v to see toolchain commands in stderr_nosave
-#    remove -fno-integrated-as
-#    turn on LIBOMPTARGET_DEBUG to save trace in debug.out
-#    set OMP_TARGET_OFFLOAD to MANDATORY 
-#    Remove host and device IR disasssembly because we dont have --save-temps
-#    Add output from -ccc-print-phase 
+#    - remove -save-temps compile option
+#    - use directories tmpc2 and tmpf2 instead of tmpc and tmpf
+#    - Remove bc disassembly because no bc without --save-temps
 #
 # Set environment variable defaults here:
 TRUNK=${TRUNK:-$HOME/rocm/trunk}
@@ -30,19 +26,18 @@ fi
 
 _llvm_bin_dir=$TRUNK/bin
 
-#extra_args="-v -fno-integrated-as -save-temps"
 flang_extra_args="-v"
 clang_extra_args="-v"
 
 tmpc="tmpc2"
+echo
+echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+echo "++++++++++  START c demo, in directory $tmpc  ++++++++++++++"
+echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
 rm -rf $tmpc ; mkdir -p $tmpc ; cd $tmpc
-echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-echo "++++++++++++  START c demo in directory $tmpc  +++++++++++++"
-echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
 echo cd $tmpc
 [ -f main_in_c ] && rm main_in_c
 compile_main_cmd="$_llvm_bin_dir/clang $clang_extra_args -fopenmp --offload-arch=$OARCH  ../main.c -o main_in_c"
-$compile_main_cmd -ccc-print-phases 2>>nosave_phases
 echo
 echo "$compile_main_cmd 2>stderr_nosave"
 $compile_main_cmd 2>>stderr_nosave
@@ -59,8 +54,9 @@ cd ..
 rm -rf $tmpf ; mkdir -p $tmpf ; cd $tmpf
 echo cd $tmpf
 [ -f main_in_f ] && rm main_in_f
-compile_main_f_cmd="$_llvm_bin_dir/flang-new $flang_extra_args -flang-experimental-exec -fopenmp --offload-arch=$OARCH ../main.f95 -o main_in_f"
-$compile_main_f_cmd -ccc-print-phases  2>>nosave_phases
+#_experimental_arg="-flang-experimental-exec"
+_experimental_arg=""
+compile_main_f_cmd="$_llvm_bin_dir/flang-new $flang_extra_args $_experimental_arg -fopenmp --offload-arch=$OARCH ../main.f95 -o main_in_f"
 echo
 echo "$compile_main_f_cmd 2>stderr_nosave"
 $compile_main_f_cmd 2>>stderr_nosave

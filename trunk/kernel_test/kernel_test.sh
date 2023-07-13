@@ -27,9 +27,10 @@ clang_extra_args="-v -save-temps"
 tmpc="tmpc"
 echo
 echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-echo "++++++++++  START c demo, in directory tmpc  +++++++++++++++"
+echo "++++++++++  START c demo, in directory $tmpc  ++++++++++++++"
 echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
 rm -rf $tmpc ; mkdir -p $tmpc ; cd $tmpc
+echo cd $tmpc
 [ -f main_in_c ] && rm main_in_c
 compile_main_cmd="$_llvm_bin_dir/clang $clang_extra_args -fopenmp --offload-arch=$OARCH  ../main.c -o main_in_c"
 echo
@@ -51,14 +52,17 @@ echo "===> DEVICE function defs and calls in tmpc/device_c.ll"
 grep "define\|call" device_c.ll | grep -v nocallback | tee device_calls.txt
 echo "-----------------------------------------------------"
 echo
+tmpf="tmpf"
 echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-echo "+++++  END c demo, begin FORTRAN demo in dir tmpf  +++++++++"
+echo "+++++++  END c demo, begin FORTRAN demo in dir $tmpf +++++++"
 echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
 cd ..
-tmpf="tmpf"
 rm -rf $tmpf ; mkdir -p $tmpf ; cd $tmpf
+echo cd $tmpf
 [ -f main_in_f ] && rm main_in_f
-compile_main_f_cmd="$_llvm_bin_dir/flang-new $flang_extra_args -flang-experimental-exec -fopenmp --offload-arch=$OARCH ../main.f95 -o main_in_f"
+#_experimental_arg="-flang-experimental-exec"
+_experimental_arg=""
+compile_main_f_cmd="$_llvm_bin_dir/flang-new $flang_extra_args $_experimental_arg -fopenmp --offload-arch=$OARCH ../main.f95 -o main_in_f"
 echo
 echo "$compile_main_f_cmd 2>stderr_save_temps"
 $compile_main_f_cmd 2>stderr_save_temps
