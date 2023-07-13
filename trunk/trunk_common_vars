@@ -154,11 +154,17 @@ else
    AOMP_GFXLIST_OPT="-DLIBOMPTARGET_AMDGCN_GFXLIST='${GFXSEMICOLONS}'"
 fi
 
+# FIXME:
+# Default for LIBOMP_OMPT_SUPPORT is ON. Then, OMPT is supposed to only be
+# enabled when user defines function ompt_start_tool. But that is not the case
+# currently. So we are turning off LIBOMP_OMPT_SUPPORT for build_trunk.sh
+# till resolved by Michael and Dhurva. This eliminates OMPT banner diagnostics
+# from trace when ENABLE_DEBUG is on.
 TRUNK_BUILD_DEBUG=${TRUNK_BUILD_DEBUG:-0}
 if [ "$TRUNK_BUILD_DEBUG" == 0 ] ; then
-  ENABLE_DEBUG_OPT=""
+  ENABLE_DEBUG_OPT="-DLIBOMP_OMPT_SUPPORT=OFF"
 else
-  ENABLE_DEBUG_OPT="-DLIBOMPTARGET_ENABLE_DEBUG=ON"
+  ENABLE_DEBUG_OPT="-DLIBOMPTARGET_ENABLE_DEBUG=ON -DLIBOMP_OMPT_SUPPORT=OFF"
 fi
 
 # Calculate the number of threads to use for make
