@@ -54,7 +54,7 @@ cd ..
 rm -rf $tmpf ; mkdir -p $tmpf ; cd $tmpf
 echo cd $tmpf
 [ -f main_in_f ] && rm main_in_f
-compile_main_f_cmd="$_llvm_bin_dir/flang-new $flang_extra_args -flang-experimental-exec -fopenmp --offload-arch=$OARCH ../main.f95 -o main_in_f"
+compile_main_f_cmd="$_llvm_bin_dir/flang-new $flang_extra_args -fopenmp --offload-arch=$OARCH ../main.f95 -o main_in_f"
 $compile_main_f_cmd -ccc-print-phases  2>>nosave_phases
 echo
 echo "$compile_main_f_cmd 2>stderr_nosave"
