@@ -10,7 +10,7 @@
 
     <project remote="roc" path="llvm-project" name="llvm-project" revision="aomp-17.0-3" groups="unlocked" />
 
-    <project remote="roc" path="rocm-compilersupport" name="ROCm-CompilerSupport" upstream="amd-stg-open" revision="a936b6de9b1fa5c4bfb7b115914c0559ebfaae0b" groups="revlocked" />
+    <project remote="roc" path="rocm-compilersupport" name="ROCm-CompilerSupport" upstream="amd-stg-open" revision="446d142de276a8ca1039798726a2b81937ece952" groups="revlocked" />
     <project remote="roc" path="rocm-device-libs" name="ROCm-Device-Libs"         upstream="amd-stg-open" revision="c35e312c4ec45aad6e4a786d4d8f08a7bf96bcbe" groups="revlocked" />
 
     <project remote="roctools" path="flang" name="flang"               revision="aomp-17.0-3" groups="unlocked" />
