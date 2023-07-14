@@ -30,9 +30,9 @@ each component build script with the name build_\<component name\>.sh .
 |            |           |                                        |
 | roct       |Latest ROCm| $HOME/git/aomp17.0/roct-thunk-interfaces | [roct-thunk-interfaces](https://github.com/radeonopencompute/roct-thunk-interface)
 | rocr       |Latest ROCm| $HOME/git/aomp17.0/rocr-runtime        | [rocr-runtime](https://github.com/radeonopencompute/rocr-runtime)
-| hipamd     |Latest ROCm| $HOME/git/aomp17.0/hipamd              | [hipamd](https://github.com/ROCm-Developer-Tools/hipamd)
-|            |Latest ROCm| $HOME/git/aomp17.0/hip                 | [hip](https://github.com/ROCm-Developer-Tools/hip)
-|            |Latest ROCm| $HOME/git/aomp17.0/ROCclr              | [ROCclr](https://github.com/ROCm-Developer-Tools/ROCclr)
+| hip        |Latest ROCm| $HOME/git/aomp17.0/hip              | [hipamd](https://github.com/ROCm-Developer-Tools/hip)
+|            |Latest ROCm| $HOME/git/aomp17.0/hipcc                 | [hip](https://github.com/ROCm-Developer-Tools/hipcc)
+|            |Latest ROCm| $HOME/git/aomp17.0/clr              | [ROCclr](https://github.com/ROCm-Developer-Tools/clr)
 |            |Latest ROCm| $HOME/git/aomp17.0/ROCm-OpenCL-Runtime | [ocl](https://github.com/radeonopencompute/ROCm-OpenCL-Runtime)
 | comgr      |Latest ROCm| $HOME/git/aomp17.0/rocm-compilersupport| [comgr](https://github.com/radeonopencompute/rocm-compilersupport)
 | libdevice  |Latest ROCm| $HOME/git/aomp17.0/rocm-device-libs    | [rocm-device-libs](https://github.com/radeonopencompute/rocm-device-libs)
@@ -75,7 +75,7 @@ These are some important environment variables and their default values.
 | AOMP_REPOS            | $HOME/git/aomp17.0   | The base directory for all AOMP build repositories
 | AOMP_STANDALONE_BUILD | 1                  | Build all components, do NOT use installed ROCm
 | AOMP_VERSION          | 17.0               | Clang version.
-| AOMP_VERSION_MOD      | 3                  | This implies the next release will be AOMP_17.0-3.
+| AOMP_VERSION_MOD      | 4                  | This implies the next release will be AOMP_17.0-4.
 | AOMP_VERSION_STRING   | $AOMP_VERSION-$AOMP_VERSION_MOD |
 | AOMP_USE_NINJA        | 0                  | Use ninja instead of make to build certain components
 | GFXLIST               | gfx700 gfx701 gfx801 gfx803     | List of AMDGPU gpus to build for
@@ -120,7 +120,7 @@ For testing purposes, you will often change the value of AOMP when not testing y
 AOMP build.  For example, to test the latest  packaged aomp release, set AOMP=/usr/lib/aomp.
 To test against the ROCM installed compiler, set AOMP=/opt/rocm/llvm. To test one of your
 previous AOMP source builds, set AOMP to an older physical installation directory, such as
-AOMP=$HOME/rocm/aomp_17.0-1.  Be careful that if you set AOMP for testing purposes that
+AOMP=$HOME/rocm/aomp_17.0-2.  Be careful that if you set AOMP for testing purposes that
 it is reset to the correct value when rebuilding aomp from source.
 
 ## Quick Start to AOMP Development
@@ -257,6 +257,8 @@ any fails occur.
    ./build_flang_runtime.sh install
 
    # These components only build on x86_64
+   ./build_hipcc.sh
+   ./build_hipcc.sh install
    ./build_hipamd.sh
    ./build_hipamd.sh install
 
@@ -288,17 +290,17 @@ The install location is defined by the $AOMP environment variable. The value of 
 That is, the physical installation will be in directory name formed by concatonating the version string to the value of $AOMP.
 The "build_project.sh install" script will make a symbolic link from the physical directory to the symbolic directory $AOMP.
 The default value for AOMP is $HOME/rocm/aomp.
-For example, when building AOMP version 17.0-2 the install scripts will put all files and directories
-in $HOME/rocm/aomp_17.0-2 and create a symbolic link as follows:
+For example, when building AOMP version 17.0-3 the install scripts will put all files and directories
+in $HOME/rocm/aomp_17.0-3 and create a symbolic link as follows:
 
 ```
-ln -sf ${AOMP}_17.0-2 ${AOMP}
+ln -sf ${AOMP}_17.0-3 ${AOMP}
 ```
 All testing for AOMP uses the environment variable AOMP to locate the installation. This makes it easy to switch between versions of AOMP for testing by simply changing the environment variable AOMP. You do NOT need to change the symbolic link.
-For example, if the aomp symbolic link currently points to aomp_17.0-2 and you want to test aomp_17.0-1, do this:
+For example, if the aomp symbolic link currently points to aomp_17.0-3 and you want to test aomp_17.0-2, do this:
 
 ```
-export AOMP=$HOME/rocm/aomp_17.0-1
+export AOMP=$HOME/rocm/aomp_17.0-2
 ```
 
 The aomp package installs in /usr/lib/aomp_\<version_string\> and symlinks /usr/lib/aomp to the versioned directory. To test the installed package, set AOMP to /usr/lib/aomp or /usr/lib/aomp_\<version_string\>.
