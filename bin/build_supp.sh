@@ -399,7 +399,7 @@ function buildhwloc(){
     return
   fi
 
-  if [ ! -d $AOMP_SUPP/rocmsmilib/lib ] ; then 
+  if [ ! -d $AOMP_SUPP/rocmsmilib/lib ] && [ ! -d $AOMP_SUPP/rocmsmilib/lib64 ]; then
     echo "ERROR: Must build rocmsmilib before hwloc. Try:"
     echo "       $0 rocmsmilib"
     echo "#ERROR: You must build rocmsmilib before hwloc because static build of hwloc depends on rocsmilib">>$CMDLOGFILE
