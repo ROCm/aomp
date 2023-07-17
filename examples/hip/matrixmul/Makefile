@@ -79,7 +79,7 @@ else
     RPTH = -Wl,-rpath,$(AOMPHIP)/lib
   endif
   HIPLIBS = -L $(AOMPHIP)/hip -L $(AOMPHIP)/lib $(RPTH)
-  CFLAGS += -x hip  $(HIPLIBS) -lamdhip64 -std=c++11
+  CFLAGS += -x hip  $(HIPLIBS) -lamdhip64 -std=c++11 -mcode-object-version=4
 endif
 
 # ----- Demo compile and link in one step, no object code saved

@@ -11,7 +11,7 @@ CFLAGS = -O3
 FLANG        ?= flang
 OMP_BIN      = $(AOMP)/bin/$(FLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
-EXTRA_CFLAGS = -L$(AOMPHIP)/lib -lamdhip64 -Wl,-rpath,$(AOMPHIP)/lib
+EXTRA_CFLAGS = -L$(AOMPHIP)/lib -lamdhip64 -Wl,-rpath,$(AOMPHIP)/lib -fPIC
 #-ccc-print-phases
 #"-\#\#\#"
 
@@ -19,4 +19,4 @@ include ../Makefile.rules
 all: $(TESTNAME)
 
 fortran_callable_init.o : fortran_callable_init.hip
-	$(HIPCC) -c --offload-arch=$(AOMP_GPU) $^ -o $@
+	$(HIPCC) -c --offload-arch=$(AOMP_GPU) -fPIC $^ -o $@
