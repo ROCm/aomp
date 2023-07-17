@@ -10,7 +10,7 @@ Vendor: AMD
 
 %define debug_package %{nil}
 %define __os_install_post %{nil}
-%define __requires_exclude (^perl)|(^lib(amdhip|hip).*$)|(^libcuda\\.so\\..*$)
+%define __requires_exclude (^perl)|(^lib(amdhip|hip).*$)|(^libcuda\\.so\\..*$)|(^libhsa.*)|(^librocm_smi.*)
 
 %description
  The AMD OpenMP Compiler (AOMP) is an experimental LLVM compiler
