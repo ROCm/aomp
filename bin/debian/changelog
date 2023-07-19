@@ -1,4 +1,4 @@
-aomp (17.0-2) UNRELEASED; urgency=medium
+aomp (17.0-3) UNRELEASED; urgency=medium
 
   * Initial release of aomp is 0.3-2
   *   Please see example in /usr/lib/aomp/examples/vmuldemo 
@@ -851,5 +851,23 @@ aomp (17.0-2) UNRELEASED; urgency=medium
   *   Fixed the amdgpu nextgen plugin to work with OMPT (OpenMP Tools environment).
   *   Fixed the amdgpu nextgen plugin to work for multiple architectures supported
   *      in same image.
+  *
+  * 17.0-3
+  *   Non-compiler components are built with ROCm 5.6.0 sources
+  *   Support code object version 5 the libomptarget device library is now
+  *      generated for both code object version 4 and code object version 5.
+  *   New build components for flang-legacy, hipcc, clr.
+  *   Enabled Big Jump Loop by default.
+  *   Improved target teams loop transform.
+  *   Removed the link from flang to clang. Replace it with flang-legacy.
+  *   Implemented dynamic LDS accesses from non-kernel functions.
+  *   Performance improvements for small kernels via lazy HSA queue creation and
+  *      tracking of busy queues.
+  *   Restored GPU_MAX_HW_QUEUES in AMDGPU nextgen plugin.
+  *   Extended environment variable ompx_apu_maps to MI200.
+  *   Added --archive to the clang-offload-packager which repackages the extracted
+  *      files into a new static library. This allows a fat binary static library to
+  *      become a static library for a single architecture.
+  *   Disabled PIE as default in llvm.
 
  -- Greg Rodgers <Gregory.Rodgers@amd.com>  Thu, 19 May 2022 23:34:44 -0500

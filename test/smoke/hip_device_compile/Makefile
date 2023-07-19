@@ -13,7 +13,7 @@ ifeq ($(shell expr $(VERS) \>= 12.0), 1)
   RPTH = -Wl,-rpath,$(AOMPHIP)/lib
   LLIB = -L$(AOMPHIP)/lib
 endif
-CFLAGS = -x hip --offload-arch=${AOMP_GPU} -std=c++11 $(LLIB) -lamdhip64 $(RPTH)
+CFLAGS = -x hip --offload-arch=${AOMP_GPU} -std=c++11 $(LLIB) -lamdhip64 $(RPTH) -mcode-object-version=4
 endif
 OMP_FLAGS    =
 CLANG        ?= clang++

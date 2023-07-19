@@ -118,8 +118,8 @@ int main()
 }
 /// CHECK: DEVID:  0 SGN:5 ConstWGSize:256  args: 5 teamsXthrds:(  40X 256)
 /// CHECK: DEVID:  0 SGN:5 ConstWGSize:256  args: 5 teamsXthrds:(  40X 256)
-/// CHECK: DEVID:  0 SGN:5 ConstWGSize:256  args: 5 teamsXthrds:(  40X 256)
 /// CHECK: DEVID:  0 SGN:3 ConstWGSize:257  args: 5 teamsXthrds:( 624X 256)
+/// CHUCK: DEVID:  0 SGN:3 ConstWGSize:257  args: 5 teamsXthrds:( 624X 256)
 /// CHECK: DEVID:  0 SGN:3 ConstWGSize:257  args: 6 teamsXthrds:(  32X 256)
 /// CHECK: DEVID:  0 SGN:3 ConstWGSize:257  args: 6 teamsXthrds:(  32X 256)
 /// CHECK: Success

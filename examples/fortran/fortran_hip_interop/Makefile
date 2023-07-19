@@ -69,7 +69,7 @@ else
   AOMP_GPUTARGET = amdgcn-amd-amdhsa
 endif
 
-FORT   =$(AOMP)/bin/flang
+FORT   =$(AOMP)/bin/flang -fPIC
 LFLAGS = -L$(AOMPHIP)/lib -lamdhip64 -Wl,-rpath,$(AOMPHIP)/lib
 FFLAGS = -fopenmp -fopenmp-targets=$(AOMP_GPUTARGET) -Xopenmp-target=$(AOMP_GPUTARGET)
 
@@ -78,7 +78,7 @@ $(TESTNAME): $(TESTNAME).$(FILETYPE) fortran_callable_init.o
 	$(FORT) $(FFLAGS) $(TARGETS) $(LFLAGS) $^ -o $@
 
 fortran_callable_init.o : fortran_callable_init.hip
-	$(HIPCC) -c --offload-arch=$(AOMP_GPU) $^ -o $@
+	$(HIPCC) -c --offload-arch=$(AOMP_GPU) -fPIC $^ -o $@
 
 run: .FORCE $(TESTNAME)
 	LIBOMPTARGET_KERNEL_TRACE=1 ./$(TESTNAME)
