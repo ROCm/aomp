@@ -1,21 +1,24 @@
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/clang/lib/CodeGen/CGBuiltin.cpp llvm-project/clang/lib/CodeGen/CGBuiltin.cpp
---- llvm-project.upstream/clang/lib/CodeGen/CGBuiltin.cpp	2023-03-28 09:58:57.814057203 -0400
-+++ llvm-project/clang/lib/CodeGen/CGBuiltin.cpp	2023-03-28 15:19:22.754748049 -0400
-@@ -5230,6 +5230,10 @@
+--- llvm-project.upstream/clang/lib/CodeGen/CGBuiltin.cpp	2023-07-17 12:43:39.344382790 -0400
++++ llvm-project/clang/lib/CodeGen/CGBuiltin.cpp	2023-07-19 15:54:39.386314233 -0400
+@@ -5255,8 +5255,12 @@
    case Builtin::BIprintf:
      if (getTarget().getTriple().isNVPTX() ||
          getTarget().getTriple().isAMDGCN()) {
-+
-+      if (getLangOpts().OpenMPIsDevice && getTarget().getTriple().isAMDGCN())
-+        return EmitHostexecAllocAndExecFns(E,
-+          "printf_allocate", "printf_execute");
-       if (getLangOpts().OpenMPIsDevice)
+-      if (getLangOpts().OpenMPIsTargetDevice)
++      if (getLangOpts().OpenMPIsTargetDevice) {
++        if (getTarget().getTriple().isAMDGCN())
++          return EmitHostexecAllocAndExecFns(E, "printf_allocate",
++			  "printf_execute");
          return EmitOpenMPDevicePrintfCallExpr(E);
++      }
        if (getTarget().getTriple().isNVPTX())
+         return EmitNVPTXDevicePrintfCallExpr(E);
+       if (getTarget().getTriple().isAMDGCN() && getLangOpts().HIP)
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/clang/lib/CodeGen/CGExpr.cpp llvm-project/clang/lib/CodeGen/CGExpr.cpp
---- llvm-project.upstream/clang/lib/CodeGen/CGExpr.cpp	2023-03-23 09:58:44.257817296 -0400
-+++ llvm-project/clang/lib/CodeGen/CGExpr.cpp	2023-03-28 15:19:22.754748049 -0400
-@@ -5465,6 +5465,16 @@
+--- llvm-project.upstream/clang/lib/CodeGen/CGExpr.cpp	2023-07-17 12:43:39.348382785 -0400
++++ llvm-project/clang/lib/CodeGen/CGExpr.cpp	2023-07-19 15:54:39.390314225 -0400
+@@ -5459,6 +5459,16 @@
        }
      }
    }
@@ -33,9 +36,9 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/clang/lib/CodeGen/CGExpr
    EmitCallArgs(Args, dyn_cast<FunctionProtoType>(FnType), E->arguments(),
                 E->getDirectCallee(), /*ParamsToSkip*/ 0, Order);
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/clang/lib/CodeGen/CGGPUBuiltin.cpp llvm-project/clang/lib/CodeGen/CGGPUBuiltin.cpp
---- llvm-project.upstream/clang/lib/CodeGen/CGGPUBuiltin.cpp	2023-02-27 09:21:35.555757241 -0500
-+++ llvm-project/clang/lib/CodeGen/CGGPUBuiltin.cpp	2023-03-28 15:19:22.758748031 -0400
-@@ -213,3 +213,360 @@
+--- llvm-project.upstream/clang/lib/CodeGen/CGGPUBuiltin.cpp	2023-07-12 10:50:59.540798621 -0400
++++ llvm-project/clang/lib/CodeGen/CGGPUBuiltin.cpp	2023-07-19 15:54:39.390314225 -0400
+@@ -216,3 +216,360 @@
    return EmitDevicePrintfCallExpr(E, this, GetOpenMPVprintfDeclaration(CGM),
                                    true);
  }
@@ -397,9 +400,9 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/clang/lib/CodeGen/CGGPUB
 +      {DataStructPtr, BufferLen}));
 +}
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/clang/lib/CodeGen/CodeGenFunction.h llvm-project/clang/lib/CodeGen/CodeGenFunction.h
---- llvm-project.upstream/clang/lib/CodeGen/CodeGenFunction.h	2023-03-07 14:55:06.423746793 -0500
-+++ llvm-project/clang/lib/CodeGen/CodeGenFunction.h	2023-03-28 15:19:22.758748031 -0400
-@@ -4136,6 +4136,13 @@
+--- llvm-project.upstream/clang/lib/CodeGen/CodeGenFunction.h	2023-07-17 12:43:39.356382776 -0400
++++ llvm-project/clang/lib/CodeGen/CodeGenFunction.h	2023-07-19 15:54:39.390314225 -0400
+@@ -4153,6 +4153,13 @@
    RValue EmitNVPTXDevicePrintfCallExpr(const CallExpr *E);
    RValue EmitAMDGPUDevicePrintfCallExpr(const CallExpr *E);
    RValue EmitOpenMPDevicePrintfCallExpr(const CallExpr *E);
@@ -415,20 +418,14 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/clang/lib/CodeGen/CodeGe
                           const CallExpr *E, ReturnValueSlot ReturnValue);
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/clang/lib/Driver/ToolChains/AMDGPUOpenMP.cpp llvm-project/clang/lib/Driver/ToolChains/AMDGPUOpenMP.cpp
 --- llvm-project.upstream/clang/lib/Driver/ToolChains/AMDGPUOpenMP.cpp	2023-02-10 14:55:56.548718783 -0500
-+++ llvm-project/clang/lib/Driver/ToolChains/AMDGPUOpenMP.cpp	2023-03-28 15:19:22.762748013 -0400
-@@ -54,6 +54,20 @@
++++ llvm-project/clang/lib/Driver/ToolChains/AMDGPUOpenMP.cpp	2023-07-19 15:54:39.390314225 -0400
+@@ -54,6 +54,14 @@
    CC1Args.push_back(DriverArgs.MakeArgStringRef(GPUArch));
    CC1Args.push_back("-fcuda-is-device");
  
-+  auto ABIVer = DeviceLibABIVersion::fromCodeObjectVersion(
-+      getAMDGPUCodeObjectVersion(getDriver(), DriverArgs)).toString();
 +  // link hostexec support if available for this GPU
-+  StringRef libhostexec( ABIVer.compare("4")
-+    ? DriverArgs.MakeArgString( getDriver().Dir + 
-+      "/../lib/libdevice/libhostexec-amdgcn-" + GPUArch + ".bc")
-+    : DriverArgs.MakeArgString( getDriver().Dir + 
-+      "/../lib/libdevice/libhostexec400-amdgcn-" + GPUArch + ".bc")
-+  );
++  StringRef libhostexec(DriverArgs.MakeArgString(getDriver().Dir +
++      "/../lib/libdevice/libhostexec-amdgcn-" + GPUArch + ".bc"));
 +  if (llvm::sys::fs::exists(libhostexec)) {
 +    CC1Args.push_back("-mlink-builtin-bitcode");
 +    CC1Args.push_back(DriverArgs.MakeArgStringRef(libhostexec));
@@ -437,462 +434,11 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/clang/lib/Driver/ToolCha
    if (DriverArgs.hasArg(options::OPT_nogpulib))
      return;
  
-diff -Naur -x .git -x __pycache__ llvm-project.upstream/clang/lib/Driver/ToolChains/Clang.cpp llvm-project/clang/lib/Driver/ToolChains/Clang.cpp
---- llvm-project.upstream/clang/lib/Driver/ToolChains/Clang.cpp	2023-03-23 09:58:44.281817156 -0400
-+++ llvm-project/clang/lib/Driver/ToolChains/Clang.cpp	2023-03-28 13:24:57.267847685 -0400
-@@ -8156,7 +8156,10 @@
-   assert(Input.isFilename() && "Invalid input.");
-   CmdArgs.push_back(Input.getFilename());
- 
--  const char *Exec = getToolChain().getDriver().getClangProgramPath();
-+  // Get "clang" specifically, because the driver name might be set to flang-new
-+  // instead, which does not support -cc1as but does also not require custom
-+  // handling of this action
-+  const char *Exec = Args.MakeArgString(getToolChain().GetProgramPath("clang"));
-   if (D.CC1Main && !D.CCGenDiagnostics) {
-     // Invoke cc1as directly in this process.
-     C.addCommand(std::make_unique<CC1Command>(
-diff -Naur -x .git -x __pycache__ llvm-project.upstream/flang/include/flang/Optimizer/Transforms/Passes.h llvm-project/flang/include/flang/Optimizer/Transforms/Passes.h
---- llvm-project.upstream/flang/include/flang/Optimizer/Transforms/Passes.h	2023-03-07 14:55:06.511746488 -0500
-+++ llvm-project/flang/include/flang/Optimizer/Transforms/Passes.h	2023-03-28 13:24:57.267847685 -0400
-@@ -20,6 +20,7 @@
- class Operation;
- class Pass;
- class Region;
-+class ModuleOp;
- } // namespace mlir
- 
- namespace fir {
-@@ -70,6 +71,8 @@
- std::unique_ptr<mlir::Pass>
- createAlgebraicSimplificationPass(const mlir::GreedyRewriteConfig &config);
- std::unique_ptr<mlir::Pass> createPolymorphicOpConversionPass();
-+std::unique_ptr<mlir::OperationPass<mlir::ModuleOp>>
-+createCaptureImplicitlyDeclareTargetPass();
- 
- // declarative passes
- #define GEN_PASS_REGISTRATION
-diff -Naur -x .git -x __pycache__ llvm-project.upstream/flang/include/flang/Optimizer/Transforms/Passes.td llvm-project/flang/include/flang/Optimizer/Transforms/Passes.td
---- llvm-project.upstream/flang/include/flang/Optimizer/Transforms/Passes.td	2023-03-07 14:55:06.511746488 -0500
-+++ llvm-project/flang/include/flang/Optimizer/Transforms/Passes.td	2023-03-28 13:24:57.267847685 -0400
-@@ -284,5 +284,11 @@
-   ];
- }
- 
--  
-+def CaptureImplicitlyDeclareTargetPass
-+    : Pass<"capture-implicitly-declare-target", "mlir::ModuleOp"> {
-+  let summary = "Marks all functions referenced by a declare target function as declare target";
-+  let constructor = "::fir::createCaptureImplicitlyDeclareTargetPass()";
-+  let dependentDialects = ["mlir::omp::OpenMPDialect"];
-+}
-+
- #endif // FLANG_OPTIMIZER_TRANSFORMS_PASSES
-diff -Naur -x .git -x __pycache__ llvm-project.upstream/flang/lib/Frontend/FrontendActions.cpp llvm-project/flang/lib/Frontend/FrontendActions.cpp
---- llvm-project.upstream/flang/lib/Frontend/FrontendActions.cpp	2023-03-28 12:58:55.206855582 -0400
-+++ llvm-project/flang/lib/Frontend/FrontendActions.cpp	2023-03-28 13:24:58.519841656 -0400
-@@ -23,6 +23,7 @@
- #include "flang/Optimizer/Dialect/Support/KindMapping.h"
- #include "flang/Optimizer/Support/InitFIR.h"
- #include "flang/Optimizer/Support/Utils.h"
-+#include "flang/Optimizer/Transforms/Passes.h"
- #include "flang/Parser/dump-parse-tree.h"
- #include "flang/Parser/parsing.h"
- #include "flang/Parser/provenance.h"
-@@ -242,6 +243,12 @@
-   pm.enableVerifier(/*verifyPasses=*/true);
-   pm.addPass(std::make_unique<Fortran::lower::VerifierPass>());
- 
-+  // Add OpenMP-related passes
-+  if (ci.getInvocation().getFrontendOpts().features.IsEnabled(
-+          Fortran::common::LanguageFeature::OpenMP)) {
-+    pm.addPass(fir::createCaptureImplicitlyDeclareTargetPass());
-+  }
-+
-   if (mlir::failed(pm.run(*mlirModule))) {
-     unsigned diagID = ci.getDiagnostics().getCustomDiagID(
-         clang::DiagnosticsEngine::Error,
-diff -Naur -x .git -x __pycache__ llvm-project.upstream/flang/lib/Lower/OpenMP.cpp llvm-project/flang/lib/Lower/OpenMP.cpp
---- llvm-project.upstream/flang/lib/Lower/OpenMP.cpp	2023-03-28 09:58:57.874056834 -0400
-+++ llvm-project/flang/lib/Lower/OpenMP.cpp	2023-03-28 14:13:05.951753159 -0400
-@@ -1122,6 +1122,13 @@
-                    &opClauseList);
-   } else if (blockDirective.v == llvm::omp::OMPD_target_data) {
-     createTargetDataOp(converter, opClauseList, blockDirective.v, &eval);
-+  } else if (blockDirective.v == llvm::omp::OMPD_target) {
-+    // @@@Jan: Just testing to create a TargetOp
-+    auto targetOp = firOpBuilder.create<mlir::omp::TargetOp>(
-+        currentLocation, /*if_clause*/ mlir::Value(), /*device*/ mlir::Value(),
-+        /*thread_limit*/ mlir::Value(),
-+        /*nowait*/ nullptr);
-+    createBodyOfOp(targetOp, converter, currentLocation, eval, &opClauseList);
-   } else {
-     TODO(converter.getCurrentLocation(), "Unhandled block directive");
-   }
-@@ -2184,6 +2191,143 @@
-   converter.bindSymbol(sym, symThreadprivateExv);
- }
- 
-+void handleDeclareTarget(Fortran::lower::AbstractConverter &converter,
-+                         Fortran::lower::pft::Evaluation &eval,
-+                         const Fortran::parser::OpenMPDeclareTargetConstruct
-+                             &declareTargetConstruct) {
-+  std::vector<Fortran::semantics::Symbol> symbols;
-+  auto findFuncAndVarSyms = [&](const Fortran::parser::OmpObjectList &objList) {
-+    for (const auto &ompObject : objList.v) {
-+      Fortran::common::visit(
-+          Fortran::common::visitors{
-+              [&](const Fortran::parser::Designator &designator) {
-+                if (const Fortran::parser::Name *name =
-+                        getDesignatorNameIfDataRef(designator)) {
-+                  symbols.push_back(*name->symbol);
-+                }
-+              },
-+              [&](const Fortran::parser::Name &name) {
-+                symbols.push_back(*name.symbol);
-+              }},
-+          ompObject.u);
-+    }
-+  };
-+
-+  const auto &spec{std::get<Fortran::parser::OmpDeclareTargetSpecifier>(
-+      declareTargetConstruct.t)};
-+  auto mod = converter.getFirOpBuilder().getModule();
-+  bool isOpenMPDevice = false;
-+  if (auto offloadMod =
-+          dyn_cast<mlir::omp::OffloadModuleInterface>(mod.getOperation())) {
-+    isOpenMPDevice = offloadMod.getIsDevice();
-+  }
-+
-+  // The default capture type
-+  auto deviceType = Fortran::parser::OmpDeviceTypeClause::Type::Any;
-+
-+  if (const auto *objectList{
-+          Fortran::parser::Unwrap<Fortran::parser::OmpObjectList>(spec.u)}) {
-+    // Case: declare target(func, var1, var2)
-+    findFuncAndVarSyms(*objectList);
-+  } else if (const auto *clauseList{
-+                 Fortran::parser::Unwrap<Fortran::parser::OmpClauseList>(
-+                     spec.u)}) {
-+    if (clauseList->v.empty()) {
-+      // Case: declare target, implicit capture of function
-+      symbols.push_back(eval.getOwningProcedure()->getSubprogramSymbol());
-+    }
-+
-+    for (const auto &clause : clauseList->v) {
-+      if (const auto *toClause{
-+              std::get_if<Fortran::parser::OmpClause::To>(&clause.u)}) {
-+        // Case: declare target to(func, var1, var2)...
-+        findFuncAndVarSyms(toClause->v);
-+      } else if (const auto *linkClause{
-+                     std::get_if<Fortran::parser::OmpClause::Link>(
-+                         &clause.u)}) {
-+        // Case: declare target link(var1, var2)...
-+        findFuncAndVarSyms(linkClause->v);
-+      } else if (const auto *deviceClause{
-+                     std::get_if<Fortran::parser::OmpClause::DeviceType>(
-+                         &clause.u)}) {
-+        // Case: declare target ... device_type(any | host | nohost)
-+        deviceType = deviceClause->v.v;
-+      }
-+    }
-+  }
-+  // TODO for func:
-+  // 1) handle link: done, can't use with function
-+  // 2) handle to: done
-+  // 3) the default case where neither are specified: done
-+  // 4) nested implicit functions
-+
-+  // TODO for data:
-+  // 1) lots... need to make test case first.
-+
-+  // might have to do the implicit capture further in during rewrite?
-+  // Or if there is an end of module action
-+  // or earlier during parsing...
-+  // auto markAllFuncs = [&](mlir::func::FuncOp fOp) {
-+  //   for (auto block = fOp.getBody().getBlocks().begin();
-+  //        block != fOp.getBody().getBlocks().end(); ++block) {
-+  //     llvm::errs() << "iterate on body \n";
-+  //     for (auto op = block->begin(); op != block->end(); ++op) {
-+  //       llvm::errs() << "iterate on op \n";
-+  //       op->dump();
-+  //       // probably needs to be a fir.CallOp, and then find the FuncOp
-+  //       if (auto funcOp = mlir::dyn_cast<mlir::func::FuncOp>(op)) {
-+  //         // markAllFuncs on func
-+  //         // check if attr exists, if not apply it.
-+  //         llvm::errs() << "markAllFuncs: " << funcOp->getName() << "\n";
-+  //       }
-+  //     }
-+  //   }
-+  // };
-+
-+  // mod.dump();
-+
-+  for (auto sym : symbols) {
-+    auto *op = mod.lookupSymbol(converter.mangleName(sym));
-+
-+    // find any functions that are implicitly captured by this
-+    // declare target and mark them with declare_target_type.
-+    //
-+    // This may be better to do at the parser/semantic level
-+
-+    // could be done inside of Bridge.cpp lowerFunc or lowerModule
-+    // if (auto funcOp = mlir::dyn_cast<mlir::func::FuncOp>(op))
-+    // markAllFuncs(funcOp);
-+
-+    // delete function early if we know it is going to be discared, if
-+    // it is device_type any we keep it. This feels a little
-+    // inconsistent as we can only remove things we know are unneeded
-+    // at this stage, so we'll still end up with a module of mixed
-+    // functions with some needing removal at a later stage in either
-+    // case.
-+    if ((deviceType == Fortran::parser::OmpDeviceTypeClause::Type::Nohost &&
-+         !isOpenMPDevice) ||
-+        (deviceType == Fortran::parser::OmpDeviceTypeClause::Type::Host &&
-+         isOpenMPDevice)) {
-+      op->dropAllUses();
-+      op->dropAllReferences();
-+      op->dropAllDefinedValueUses();
-+      op->remove();
-+    } else {
-+      // Method 1: Remove function here if not desired and add adhoc
-+      // attribute to the MLIR Funcs for special handling later
-+      if (deviceType == Fortran::parser::OmpDeviceTypeClause::Type::Nohost) {
-+        mlir::omp::OpenMPDialect::setDeclareTarget(op, "nohost");
-+      } else if (deviceType ==
-+                 Fortran::parser::OmpDeviceTypeClause::Type::Host) {
-+        mlir::omp::OpenMPDialect::setDeclareTarget(op, "host");
-+      } else if (deviceType ==
-+                 Fortran::parser::OmpDeviceTypeClause::Type::Any) {
-+        mlir::omp::OpenMPDialect::setDeclareTarget(op, "any");
-+      }
-+    }
-+  }
-+}
-+
- void Fortran::lower::genOpenMPDeclarativeConstruct(
-     Fortran::lower::AbstractConverter &converter,
-     Fortran::lower::pft::Evaluation &eval,
-@@ -2206,8 +2350,7 @@
-           },
-           [&](const Fortran::parser::OpenMPDeclareTargetConstruct
-                   &declareTargetConstruct) {
--            TODO(converter.getCurrentLocation(),
--                 "OpenMPDeclareTargetConstruct");
-+            handleDeclareTarget(converter, eval, declareTargetConstruct);
-           },
-           [&](const Fortran::parser::OpenMPRequiresConstruct
-                   &requiresConstruct) {
-diff -Naur -x .git -x __pycache__ llvm-project.upstream/flang/lib/Optimizer/Transforms/CMakeLists.txt llvm-project/flang/lib/Optimizer/Transforms/CMakeLists.txt
---- llvm-project.upstream/flang/lib/Optimizer/Transforms/CMakeLists.txt	2023-03-10 07:54:57.233325414 -0500
-+++ llvm-project/flang/lib/Optimizer/Transforms/CMakeLists.txt	2023-03-28 13:24:57.271847666 -0400
-@@ -15,7 +15,8 @@
-   SimplifyIntrinsics.cpp
-   AddDebugFoundation.cpp
-   PolymorphicOpConversion.cpp
--
-+  OMPCaptureImplicitDeclTar.cpp
-+  
-   DEPENDS
-   FIRDialect
-   FIROptTransformsPassIncGen
-diff -Naur -x .git -x __pycache__ llvm-project.upstream/flang/lib/Optimizer/Transforms/OMPCaptureImplicitDeclTar.cpp llvm-project/flang/lib/Optimizer/Transforms/OMPCaptureImplicitDeclTar.cpp
---- llvm-project.upstream/flang/lib/Optimizer/Transforms/OMPCaptureImplicitDeclTar.cpp	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/flang/lib/Optimizer/Transforms/OMPCaptureImplicitDeclTar.cpp	2023-03-28 13:24:57.271847666 -0400
-@@ -0,0 +1,59 @@
-+#include "flang/Optimizer/Dialect/FIRDialect.h"
-+#include "flang/Optimizer/Dialect/FIROps.h"
-+#include "flang/Optimizer/Dialect/FIRType.h"
-+#include "flang/Optimizer/Transforms/Passes.h"
-+#include "mlir/Dialect/Func/IR/FuncOps.h"
-+#include "mlir/Dialect/LLVMIR/LLVMDialect.h"
-+#include "mlir/Dialect/OpenMP/OpenMPDialect.h"
-+#include "mlir/IR/BuiltinDialect.h"
-+#include "mlir/IR/Operation.h"
-+#include "mlir/Pass/Pass.h"
-+#include <mlir/IR/BuiltinOps.h>
-+#include <mlir/IR/SymbolTable.h>
-+#include <mlir/Support/LLVM.h>
-+
-+namespace fir {
-+#define GEN_PASS_DEF_CAPTUREIMPLICITLYDECLARETARGETPASS
-+#include "flang/Optimizer/Transforms/Passes.h.inc"
-+} // namespace fir
-+
-+namespace {
-+// TODO: Handle case where a function is marked twice by declare target and it's
-+// two different target types
-+class CaptureImplicitlyDeclareTargetPass
-+    : public fir::impl::CaptureImplicitlyDeclareTargetPassBase<
-+          CaptureImplicitlyDeclareTargetPass> {
-+
-+  // TODO: deal with finding the same function twice, with different device_type
-+  // should be combined into Any, or Any should supersede what was before
-+  void markNestedFuncs(mlir::func::FuncOp functionOp, mlir::ModuleOp moduleOp) {
-+    llvm::errs() << "CurrentFuncName: " << functionOp.getName() << "\n";
-+    for (auto callOp : functionOp.getOps<fir::CallOp>()) {
-+      if (auto currFOp = moduleOp.lookupSymbol<mlir::func::FuncOp>(
-+              callOp.getCallee().value())) {
-+        mlir::omp::OpenMPDialect::setDeclareTarget(
-+            currFOp,
-+            mlir::omp::OpenMPDialect::getDeclareTargetDeviceType(functionOp));
-+        markNestedFuncs(currFOp, moduleOp);
-+      }
-+    }
-+  }
-+
-+  void runOnOperation() override {
-+    mlir::ModuleOp moduleOp = getOperation();
-+    for (auto functionOp : moduleOp.getOps<mlir::func::FuncOp>()) {
-+      if (mlir::omp::OpenMPDialect::isDeclareTarget(functionOp)) {
-+        markNestedFuncs(functionOp, moduleOp);
-+      }
-+    }
-+  }
-+};
-+
-+} // namespace
-+
-+namespace fir {
-+std::unique_ptr<mlir::OperationPass<mlir::ModuleOp>>
-+createCaptureImplicitlyDeclareTargetPass() {
-+  return std::make_unique<CaptureImplicitlyDeclareTargetPass>();
-+}
-+} // namespace fir
-diff -Naur -x .git -x __pycache__ llvm-project.upstream/mlir/include/mlir/Dialect/OpenMP/OpenMPOps.td llvm-project/mlir/include/mlir/Dialect/OpenMP/OpenMPOps.td
---- llvm-project.upstream/mlir/include/mlir/Dialect/OpenMP/OpenMPOps.td	2023-03-28 12:58:55.246855414 -0400
-+++ llvm-project/mlir/include/mlir/Dialect/OpenMP/OpenMPOps.td	2023-03-28 13:29:15.530627637 -0400
-@@ -28,6 +28,13 @@
-   let cppNamespace = "::mlir::omp";
-   let dependentDialects = ["::mlir::LLVM::LLVMDialect"];
-   let useDefaultAttributePrinterParser = 1;
-+
-+  let extraClassDeclaration = [{
-+    // @@@AG: Make this into a well defined attribute if we maintain its use
-+    static void setDeclareTarget(Operation *func, StringRef deviceType);
-+    static bool isDeclareTarget(Operation *func);
-+    static StringRef getDeclareTargetDeviceType(Operation *func);
-+  }];
- }
- 
- // OmpCommon requires definition of OpenACC_Dialect.
-diff -Naur -x .git -x __pycache__ llvm-project.upstream/mlir/lib/Dialect/OpenMP/IR/OpenMPDialect.cpp llvm-project/mlir/lib/Dialect/OpenMP/IR/OpenMPDialect.cpp
---- llvm-project.upstream/mlir/lib/Dialect/OpenMP/IR/OpenMPDialect.cpp	2023-03-28 12:58:55.250855397 -0400
-+++ llvm-project/mlir/lib/Dialect/OpenMP/IR/OpenMPDialect.cpp	2023-03-28 13:31:33.677990348 -0400
-@@ -1421,6 +1421,27 @@
-   return success();
- }
- 
-+//===----------------------------------------------------------------------===//
-+// OpenMPDialect helper functions
-+//===----------------------------------------------------------------------===//
-+
-+void OpenMPDialect::setDeclareTarget(Operation *func, StringRef deviceType) {
-+  func->setAttr("omp.declare_target_type",
-+                mlir::StringAttr::get(func->getContext(), deviceType));
-+}
-+
-+bool OpenMPDialect::isDeclareTarget(Operation *func) {
-+  return func->hasAttr("omp.declare_target_type");
-+}
-+
-+StringRef OpenMPDialect::getDeclareTargetDeviceType(Operation *func) {
-+  if (mlir::Attribute declTar = func->getAttr("omp.declare_target_type")) {
-+    if (declTar.isa<mlir::StringAttr>())
-+      return declTar.cast<mlir::StringAttr>().getValue();
-+  }
-+  return {};
-+}
-+
- #define GET_ATTRDEF_CLASSES
- #include "mlir/Dialect/OpenMP/OpenMPOpsAttributes.cpp.inc"
- 
-diff -Naur -x .git -x __pycache__ llvm-project.upstream/mlir/lib/Target/LLVMIR/CMakeLists.txt llvm-project/mlir/lib/Target/LLVMIR/CMakeLists.txt
---- llvm-project.upstream/mlir/lib/Target/LLVMIR/CMakeLists.txt	2023-03-23 09:58:45.765808485 -0400
-+++ llvm-project/mlir/lib/Target/LLVMIR/CMakeLists.txt	2023-03-28 13:24:57.307847493 -0400
-@@ -38,6 +38,7 @@
-   MLIRLLVMDialect
-   MLIRLLVMIRTransforms
-   MLIRTranslateLib
-+  MLIROpenMPDialect
-   )
- 
- add_mlir_translation_library(MLIRToLLVMIRTranslationRegistration
-@@ -55,6 +56,7 @@
-   MLIROpenACCToLLVMIRTranslation
-   MLIROpenMPToLLVMIRTranslation
-   MLIRROCDLToLLVMIRTranslation
-+  MLIROpenMPDialect
-   )
- 
- add_mlir_translation_library(MLIRTargetLLVMIRImport
-@@ -81,4 +83,5 @@
- 
-   LINK_LIBS PUBLIC
-   MLIRLLVMIRToLLVMTranslation
-+  MLIROpenMPDialect
-   )
-diff -Naur -x .git -x __pycache__ llvm-project.upstream/mlir/lib/Target/LLVMIR/Dialect/OpenMP/OpenMPToLLVMIRTranslation.cpp llvm-project/mlir/lib/Target/LLVMIR/Dialect/OpenMP/OpenMPToLLVMIRTranslation.cpp
---- llvm-project.upstream/mlir/lib/Target/LLVMIR/Dialect/OpenMP/OpenMPToLLVMIRTranslation.cpp	2023-03-23 09:58:45.769808461 -0400
-+++ llvm-project/mlir/lib/Target/LLVMIR/Dialect/OpenMP/OpenMPToLLVMIRTranslation.cpp	2023-03-28 15:17:21.519296439 -0400
-@@ -1659,6 +1659,19 @@
-       .Case<omp::DataOp, omp::EnterDataOp, omp::ExitDataOp>([&](auto op) {
-         return convertOmpTargetData(op, builder, moduleTranslation);
-       })
-+      .Case([&](omp::TargetOp) {
-+        bool isDevice = false;
-+        if (auto offloadMod = dyn_cast<mlir::omp::OffloadModuleInterface>(
-+                op->getParentOfType<mlir::ModuleOp>().getOperation())) {
-+          isDevice = offloadMod.getIsDevice();
-+        }
-+
-+        printf("======== TargetOp detected with isDevice=%d\n", isDevice);
-+        op->dump();
-+        // Placeholder for Jan's convertOmpTarget(*op, builder,
-+        // moduleTranslation);
-+        return success();
-+      })
-       .Default([&](Operation *inst) {
-         return inst->emitError("unsupported OpenMP operation: ")
-                << inst->getName();
-diff -Naur -x .git -x __pycache__ llvm-project.upstream/mlir/lib/Target/LLVMIR/ModuleTranslation.cpp llvm-project/mlir/lib/Target/LLVMIR/ModuleTranslation.cpp
---- llvm-project.upstream/mlir/lib/Target/LLVMIR/ModuleTranslation.cpp	2023-03-23 11:54:40.683236144 -0400
-+++ llvm-project/mlir/lib/Target/LLVMIR/ModuleTranslation.cpp	2023-03-28 14:13:05.955753143 -0400
-@@ -994,11 +994,29 @@
- 
- LogicalResult ModuleTranslation::convertFunctions() {
-   // Convert functions.
-+
-+  bool isDevice = false;
-+  if (auto offloadMod =
-+          dyn_cast<mlir::omp::OffloadModuleInterface>(mlirModule)) {
-+    isDevice = offloadMod.getIsDevice();
-+  }
-+
-   for (auto function : getModuleBody(mlirModule).getOps<LLVMFuncOp>()) {
-     // Ignore external functions.
-     if (function.isExternal())
-       continue;
- 
-+    // FIXME: Must convert declare target functions on device pass.
-+    //        We need a way to identify that function was defined or
-+    //        declared inside declare target.
-+    //        For now, we assume no declare target functions.
-+    //        Target regions will have there own kernels generated.
-+    printf("  FFFF Function name %s\n", function.getName().str().c_str());
-+    bool isDeclareTargetFunction =
-+        mlir::omp::OpenMPDialect::isDeclareTarget(function);
-+    if (isDevice && !isDeclareTargetFunction)
-+      continue;
-+
-     if (failed(convertOneFunction(function)))
-       return failure();
-   }
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/CMakeLists.txt llvm-project/openmp/libomptarget/CMakeLists.txt
---- llvm-project.upstream/openmp/libomptarget/CMakeLists.txt	2023-02-27 09:21:39.107743468 -0500
-+++ llvm-project/openmp/libomptarget/CMakeLists.txt	2023-03-28 15:19:22.762748013 -0400
-@@ -108,6 +108,7 @@
- add_subdirectory(plugins)
+--- llvm-project.upstream/openmp/libomptarget/CMakeLists.txt	2023-07-12 10:51:02.388794579 -0400
++++ llvm-project/openmp/libomptarget/CMakeLists.txt	2023-07-19 15:54:39.390314225 -0400
+@@ -118,6 +118,7 @@
+ # Build offloading plugins and device RTLs if they are available.
  add_subdirectory(plugins-nextgen)
  add_subdirectory(DeviceRTL)
 +add_subdirectory(hostexec)
@@ -901,8 +447,8 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/CMak
  # Add tests.
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/hostexec/CMakeLists.txt llvm-project/openmp/libomptarget/hostexec/CMakeLists.txt
 --- llvm-project.upstream/openmp/libomptarget/hostexec/CMakeLists.txt	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/openmp/libomptarget/hostexec/CMakeLists.txt	2023-03-23 23:14:46.914316803 -0400
-@@ -0,0 +1,224 @@
++++ llvm-project/openmp/libomptarget/hostexec/CMakeLists.txt	2023-07-19 16:07:43.848964067 -0400
+@@ -0,0 +1,199 @@
 +##===----------------------------------------------------------------------===##
 +#
 +# Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
@@ -923,7 +469,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +
 +find_package(hsa-runtime64 1.2.0 QUIET HINTS ${CMAKE_INSTALL_PREFIX} PATHS /opt/rocm/hsa)
 +if (hsa-runtime64_FOUND)
-+   list(APPEND HOSTRPC_ARCHS "amdgcn")
++   list(APPEND HOSTEXEC_ARCHS "amdgcn")
 +   add_library(amdgcn_hostexec_services STATIC 
 +      services/amdgcn_hostexec.cpp 
 +      services/execute_service.cpp 
@@ -953,7 +499,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +endif()
 +
 +if (LIBOMPTARGET_DEP_CUDA_FOUND)
-+   list(APPEND HOSTRPC_ARCHS "nvptx")
++   list(APPEND HOSTEXEC_ARCHS "nvptx")
 +   add_library(nvptx_hostexec_services STATIC 
 +      services/execute_service.cpp
 +   )
@@ -969,7 +515,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +   libomptarget_say("Not building hostexec for NVPTX because cuda not found")
 +endif()
 +
-+if(NOT HOSTRPC_ARCHS)
++if(NOT HOSTEXEC_ARCHS)
 +   return()
 +endif()
 +
@@ -1012,7 +558,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +set(h_file           ${CMAKE_CURRENT_SOURCE_DIR}/src/hostexec.h)
 +set(internal_h_file  ${CMAKE_CURRENT_SOURCE_DIR}/src/hostexec_internal.h)
 +
-+foreach(archname ${HOSTRPC_ARCHS})
++foreach(archname ${HOSTEXEC_ARCHS})
 +   if (${archname} STREQUAL "amdgcn")
 +      set(triple "amdgcn-amd-amdhsa")
 +      set(mcpus ${amdgpu_mcpus})
@@ -1026,7 +572,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +   if (${archname} STREQUAL "amdgcn")
 +      set(opencl_cmd ${CLANG_TOOL}
 +       -fvisibility=default
-+       -c -emit-llvm
++       -c -emit-llvm -nogpulib
 +       -DCL_VERSION_2_0=200 -D__OPENCL_C_VERSION__=200
 +       -Dcl_khr_fp64 -Dcl_khr_fp16
 +       -Dcl_khr_subgroups -Dcl_khr_int64_base_atomics -Dcl_khr_int64_extended_atomics
@@ -1045,7 +591,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +	      -fopenmp -fopenmp-cuda-mode -mllvm -openmp-opt-disable 
 +	      -std=c++17 -fvisibility=hidden 
 +	      -fopenmp-targets=${triple} -Xopenmp-target=${triple} -march=${mcpu}
-+	      -c -emit-llvm --offload-device-only )
++	      -c -emit-llvm --offload-device-only -nogpulib)
 +      endif()
 +      if (${archname} STREQUAL "nvptx")
 +         set(openmp_device_args 
@@ -1079,26 +625,6 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +	    DEPENDS ${hostexec_invoke_cpp_bc} ${ocl_atomics_cl_bc}
 +            COMMENT "Building invoke resolved bc ${invoke_resolved_bc}")
 +          add_dependencies(${invoke_resolved_bc} ${hostexec_invoke_cpp_bc} ${ocl_atomics_cl_bc})
-+
-+         #  Construction of 400 files to support libhostexec400* is only needed for old plugin
-+         #  The new plugin does not use implicit kernel args which are different between amdgcn 4 and amdgcn 5 abis
-+         set(hostexec_invoke400_cpp_bc "hostexec-invoke400-${archname}-${mcpu}.bc")
-+         add_custom_target(${hostexec_invoke400_cpp_bc}
-+	      COMMAND ${CLANG_TOOL} ${openmp_device_args} -D__oclc_ABI_version=400 ${invoke_cpp_file_name} -o ${hostexec_invoke400_cpp_bc}
-+	 DEPENDS ${invoke_cpp_file_name}
-+         COMMENT "Building bc file for hostexec_invoke400: ${hostexec_invoke400_cpp_bc}")
-+         set(invoke_resolved400_bc "invoked_resolved400-${archname}-${mcpu}.bc")
-+         add_custom_target(${invoke_resolved400_bc}
-+            COMMAND ${LINK_TOOL} ${hostexec_invoke400_cpp_bc} --internalize --only-needed ${ocl_atomics_cl_bc} -o ${invoke_resolved400_bc}
-+	    DEPENDS ${hostexec_invoke400_cpp_bc} ${ocl_atomics_cl_bc}
-+            COMMENT "Building invoke resolved400 bc ${invoke_resolved400_bc}")
-+          add_dependencies(${invoke_resolved400_bc} ${hostexec_invoke400_cpp_bc} ${ocl_atomics_cl_bc})
-+         set(libhostexec400-bc "libhostexec400-${archname}-${mcpu}.bc")
-+         add_custom_target(${libhostexec400-bc}
-+            COMMAND ${LINK_TOOL} ${bc_filename} --internalize --only-needed ${invoke_resolved400_bc} -o ${libhostexec400-bc}
-+	    DEPENDS ${invoke_resolved400_bc} ${bc_filename} 
-+            COMMENT "Building hostexec400 file ${libhostexec400-bc}")
-+         add_dependencies(${libhostexec400-bc} ${bc_filename} ${invoke_resolved400_bc})
 +      else()
 +          # for nvptx we dont need ocl_atomics
 +         set(invoke_resolved_bc ${hostexec_invoke_cpp_bc})
@@ -1113,25 +639,20 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +
 +      if (${archname} STREQUAL "amdgcn")
 +         add_dependencies(amdgcn_hostexec_services ${libhostexec-bc})
-+         add_dependencies(amdgcn_hostexec_services ${libhostexec400-bc})
 +      endif()
 +      if (${archname} STREQUAL "nvptx")
 +         add_dependencies(nvptx_hostexec_services ${libhostexec-bc})
 +      endif()
 +      install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${libhostexec-bc} DESTINATION ${DEVEL_PACKAGE}lib/libdevice)
-+      if (${archname} STREQUAL "amdgcn")
-+         install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${libhostexec400-bc} DESTINATION ${DEVEL_PACKAGE}lib/libdevice)
-+      endif()
 +   endforeach() # end for each mcpu
 +
 +endforeach() # end foreach archs
-+set(CLANG_VERSION_MAJOR 17)
-+install(FILES ${h_file} DESTINATION lib/clang/${CLANG_VERSION_MAJOR}/include)
++install(FILES ${h_file} DESTINATION ${DEVEL_PACKAGE}lib/clang/${LLVM_VERSION_MAJOR}/include)
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/hostexec/services/amdgcn_hostexec.cpp llvm-project/openmp/libomptarget/hostexec/services/amdgcn_hostexec.cpp
 --- llvm-project.upstream/openmp/libomptarget/hostexec/services/amdgcn_hostexec.cpp	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/openmp/libomptarget/hostexec/services/amdgcn_hostexec.cpp	2023-03-24 08:11:25.385981562 -0400
++++ llvm-project/openmp/libomptarget/hostexec/services/amdgcn_hostexec.cpp	2023-07-19 15:40:07.528200400 -0400
 @@ -0,0 +1,547 @@
-+//===---- amdgcn_hostrpc.cpp - Services thread management  ----------------===//
++//===---- amdgcn_hostexec.cpp - Services thread management  ---------------===//
 +//
 +// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 +// See https://llvm.org/LICENSE.txt for license information.
@@ -1139,7 +660,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +//
 +//===----------------------------------------------------------------------===//
 +//
-+// This contains code for the services thread for the hostrpc system using
++// This contains code for the services thread for the hostexec system using
 +// amdgcn hsa. This nvptx cuda variant of this process is in development.
 +//
 +//===----------------------------------------------------------------------===//
@@ -1312,7 +833,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +}
 +
 +void thread_abort(service_rc rc) {
-+  fprintf(stderr,"hostrpc thread_abort called with code %d\n", rc);
++  fprintf(stderr,"hostexec thread_abort called with code %d\n", rc);
 +  abort();
 +}
 +// ====== END helper functions for execute_service ======
@@ -1443,7 +964,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +      uint64_t activemask = header->activemask;
 +
 +      // split the 32-bit service number into service_id and VRM to be checked
-+      // if device hostrpc or stubs are ahead of this host runtime.
++      // if device hostexec or stubs are ahead of this host runtime.
 +      uint service_id = (header->service << 16) >> 16;
 +      if (!static_version_was_checked) {
 +        uint device_vrm = ((uint)(header->service) >> 16);
@@ -1551,7 +1072,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +    return _RC_SUCCESS;
 +  }
 +
-+  // destructor triggered by delete static_consumer_ptr in hostrpc_terminate().
++  // destructor triggered by delete static_consumer_ptr in hostexec_terminate().
 +  ~consumer_t() {
 +    for (auto hsaq_buf : hsaq_bufs) {
 +      if (hsaq_buf) {
@@ -1569,7 +1090,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +
 +  buffer_t *create_buffer_t(uint32_t num_packets, uint32_t devid) {
 +    if (num_packets == 0) {
-+      fprintf(stderr,"hostrpc create_buffer-t num_packets cannot be zero.\n");
++      fprintf(stderr,"hostexec create_buffer-t num_packets cannot be zero.\n");
 +      thread_abort(_RC_ERROR_ZEROPACKETS);
 +    }
 +    size_t size = get_buffer_size(num_packets);
@@ -1577,7 +1098,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +    void *newbuffer = NULL;
 +    service_rc err = host_malloc(&newbuffer, size + align, devid);
 +    if (!newbuffer || (err != _RC_SUCCESS)) {
-+      fprintf(stderr,"hostrpc call to host_malloc failed \n");
++      fprintf(stderr,"hostexec call to host_malloc failed \n");
 +      thread_abort(err);
 +    }
 +
@@ -1624,11 +1145,11 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +// This instance starts a single service thread for ALL devices.
 +static consumer_t *static_consumer_ptr = NULL;
 +
-+// This is the main hostrpc function called by the amdgpu plugin when
++// This is the main hostexec function called by the amdgpu plugin when
 +// launching a kernel on a designated hsa_queue_t. This function should only
-+// be called if any kernel in the device image requires hostrpc services.
++// be called if any kernel in the device image requires hostexec services.
 +extern "C" unsigned long
-+hostrpc_assign_buffer(hsa_agent_t agent, hsa_queue_t *this_Q,
++hostexec_assign_buffer(hsa_agent_t agent, hsa_queue_t *this_Q,
 +                      uint32_t device_id, hsa_amd_memory_pool_t HostMemoryPool,
 +                      hsa_amd_memory_pool_t DevMemoryPool) {
 +  // Create and launch the services thread
@@ -1670,7 +1191,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +  return (unsigned long)hcb;
 +}
 +
-+extern "C" hsa_status_t hostrpc_terminate() {
++extern "C" hsa_status_t hostexec_terminate() {
 +  if (static_consumer_ptr) {
 +    // The consumer_t destructor takes care of all memory returns
 +    delete static_consumer_ptr;
@@ -1680,7 +1201,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +}
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/hostexec/services/amdgcn_urilocator.cpp llvm-project/openmp/libomptarget/hostexec/services/amdgcn_urilocator.cpp
 --- llvm-project.upstream/openmp/libomptarget/hostexec/services/amdgcn_urilocator.cpp	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/openmp/libomptarget/hostexec/services/amdgcn_urilocator.cpp	2023-03-15 22:36:45.000000000 -0400
++++ llvm-project/openmp/libomptarget/hostexec/services/amdgcn_urilocator.cpp	2023-07-19 15:40:37.944158612 -0400
 @@ -0,0 +1,228 @@
 +//===---- amdgcn_urilocator.cpp - services support for urilocator  --------===//
 +//
@@ -1690,7 +1211,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +//
 +//===----------------------------------------------------------------------===//
 +//
-+// This contains code to support hsa UriLocator in hostrpc.
++// This contains code to support hsa UriLocator in hostexec.
 +//
 +//===----------------------------------------------------------------------===//
 +
@@ -1912,7 +1433,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +}
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/hostexec/services/devsanitizer.cpp llvm-project/openmp/libomptarget/hostexec/services/devsanitizer.cpp
 --- llvm-project.upstream/openmp/libomptarget/hostexec/services/devsanitizer.cpp	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/openmp/libomptarget/hostexec/services/devsanitizer.cpp	2023-03-15 22:36:45.000000000 -0400
++++ llvm-project/openmp/libomptarget/hostexec/services/devsanitizer.cpp	2023-07-19 14:03:49.679688702 -0400
 @@ -0,0 +1,143 @@
 +//===---- devsanitizer.cpp: Definition of handler for Sanitizer Service ---===//
 +//
@@ -2059,9 +1580,9 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +} // end anonymous namespace
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/hostexec/services/execute_service.cpp llvm-project/openmp/libomptarget/hostexec/services/execute_service.cpp
 --- llvm-project.upstream/openmp/libomptarget/hostexec/services/execute_service.cpp	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/openmp/libomptarget/hostexec/services/execute_service.cpp	2023-03-28 17:56:16.618083145 -0400
++++ llvm-project/openmp/libomptarget/hostexec/services/execute_service.cpp	2023-07-19 15:39:25.968257542 -0400
 @@ -0,0 +1,953 @@
-+//===---- execute_service.cpp - support for hostrpc services --------------===//
++//===---- execute_service.cpp - support for hostexec services -------------===//
 +//
 +// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 +// See https://llvm.org/LICENSE.txt for license information.
@@ -2069,8 +1590,8 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +//
 +//===----------------------------------------------------------------------===//
 +//
-+// This file contains architecture independed host code for hostrpc services
-+// Calls to hostrpc_execute are serialized by the thread and packet manager.
++// This file contains architecture independed host code for hostexec services
++// Calls to hostexec_execute are serialized by the thread and packet manager.
 +// For printf and fprintf, this code reconstructs the host variable argument
 +// ABI to support alls to vprintf and vfprintf.  This is facilitated by
 +// a robust buffer packaging scheme defined in Clang codegen. The same buffer
@@ -2125,34 +1646,34 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +#define FPREGSZ 16
 +
 +typedef int uint128_t __attribute__((mode(TI)));
-+struct hostrpc_pfIntRegs {
++struct hostexec_pfIntRegs {
 +  uint64_t rdi, rsi, rdx, rcx, r8, r9;
 +};
-+typedef struct hostrpc_pfIntRegs hostrpc_pfIntRegs_t; // size = 48 bytes
++typedef struct hostexec_pfIntRegs hostexec_pfIntRegs_t; // size = 48 bytes
 +
-+struct hostrpc_pfRegSaveArea {
-+  hostrpc_pfIntRegs_t iregs;
++struct hostexec_pfRegSaveArea {
++  hostexec_pfIntRegs_t iregs;
 +  uint128_t freg[NUMFPREGS];
 +};
-+typedef struct hostrpc_pfRegSaveArea
-+    hostrpc_pfRegSaveArea_t; // size = 304 bytes
++typedef struct hostexec_pfRegSaveArea
++    hostexec_pfRegSaveArea_t; // size = 304 bytes
 +
-+struct hostrpc_ValistExt {
++struct hostexec_ValistExt {
 +  uint32_t gp_offset;      /* offset to next available gpr in reg_save_area */
 +  uint32_t fp_offset;      /* offset to next available fpr in reg_save_area */
 +  void *overflow_arg_area; /* args that are passed on the stack */
-+  hostrpc_pfRegSaveArea_t *reg_save_area; /* int and fp registers */
++  hostexec_pfRegSaveArea_t *reg_save_area; /* int and fp registers */
 +  size_t overflow_size;
 +} __attribute__((packed));
-+typedef struct hostrpc_ValistExt hostrpc_ValistExt_t;
++typedef struct hostexec_ValistExt hostexec_ValistExt_t;
 +
 +/// Prototype for host fallback functions
 +// typedef uint32_t hostexec_uint_t(void *, ...);
 +// typedef uint64_t hostexec_uint64_t(void *, ...);
 +// typedef double   hostexec_double_t(void *, ...);
 +
-+static service_rc hostrpc_printf(char *buf, size_t bufsz, uint32_t *rc);
-+static service_rc hostrpc_fprintf(char *buf, size_t bufsz, uint32_t *rc);
++static service_rc hostexec_printf(char *buf, size_t bufsz, uint32_t *rc);
++static service_rc hostexec_fprintf(char *buf, size_t bufsz, uint32_t *rc);
 +
 +template <typename T, typename FT>
 +static service_rc hostexec_service(char *buf, size_t bufsz, T *rc);
@@ -2161,7 +1682,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +  size_t bufsz = (size_t)payload[0];
 +  char *device_buffer = (char *)payload[1];
 +  uint uint_value;
-+  service_rc rc = hostrpc_printf(device_buffer, bufsz, &uint_value);
++  service_rc rc = hostexec_printf(device_buffer, bufsz, &uint_value);
 +  payload[0] = (uint64_t)uint_value; // what the printf returns
 +  payload[1] = (uint64_t)rc;         // Any errors in the service function
 +  service_rc rcmem = host_device_mem_free(device_buffer);
@@ -2171,7 +1692,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +  size_t bufsz = (size_t)payload[0];
 +  char *device_buffer = (char *)payload[1];
 +  uint uint_value;
-+  service_rc rc = hostrpc_fprintf(device_buffer, bufsz, &uint_value);
++  service_rc rc = hostexec_fprintf(device_buffer, bufsz, &uint_value);
 +  payload[0] = (uint64_t)uint_value; // what the printf returns
 +  payload[1] = (uint64_t)rc;         // Any errors in the service function
 +  service_rc err = host_device_mem_free(device_buffer);
@@ -2217,7 +1738,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +
 +#if 0
 +void fort_ptr_assign_i8(void *arg0, void *arg1, void *arg2, void *arg3, void *arg4) {
-+  printf("\n\n ERROR: hostrpc service FTNASSIGN is not functional\n\n");
++  printf("\n\n ERROR: hostexec service FTNASSIGN is not functional\n\n");
 +};
 +service_rc FtnAssignWrapper(void *arg0, void *arg1, void *arg2, void *arg3, void *arg4) {
 +  fort_ptr_assign_i8(arg0, arg1, arg2, arg3, arg4);
@@ -2293,15 +1814,15 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +    handler_SERVICE_FREE(device_id, payload);
 +    break;
 +  default:
-+    fprintf(stderr,"ERROR: hostrpc got a bad service id:%d\n", service_id);
++    fprintf(stderr,"ERROR: hostexec got a bad service id:%d\n", service_id);
 +    thread_abort(_RC_INVALIDSERVICE_ERROR);
 +  }
 +}
 +
-+// Support for hostrpc_printf service
++// Support for hostexec_printf service
 +
 +// Handle overflow when building the va_list for vprintf
-+static service_rc hostrpc_pfGetOverflow(hostrpc_ValistExt_t *valist,
++static service_rc hostexec_pfGetOverflow(hostexec_ValistExt_t *valist,
 +                                        size_t needsize) {
 +  if (needsize < valist->overflow_size)
 +    return _RC_SUCCESS;
@@ -2332,7 +1853,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +}
 +
 +// Add an integer to the va_list for vprintf
-+static service_rc hostrpc_pfAddInteger(hostrpc_ValistExt_t *valist, char *val,
++static service_rc hostexec_pfAddInteger(hostexec_ValistExt_t *valist, char *val,
 +                                       size_t valsize, size_t *stacksize) {
 +  uint64_t ival;
 +  switch (valsize) {
@@ -2353,7 +1874,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +  }
 +  }
 +  //  Always copy 8 bytes, sizeof(ival)
-+  if ((valist->gp_offset + sizeof(ival)) <= sizeof(hostrpc_pfIntRegs_t)) {
++  if ((valist->gp_offset + sizeof(ival)) <= sizeof(hostexec_pfIntRegs_t)) {
 +    memcpy(((char *)valist->reg_save_area + valist->gp_offset), &ival,
 +           sizeof(ival));
 +    valist->gp_offset += sizeof(ival);
@@ -2361,7 +1882,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +  }
 +  // Ensure valist overflow area is big enough
 +  size_t needsize = (size_t)*stacksize + sizeof(ival);
-+  if (hostrpc_pfGetOverflow(valist, needsize) != _RC_SUCCESS)
++  if (hostexec_pfGetOverflow(valist, needsize) != _RC_SUCCESS)
 +    return _RC_STATUS_ERROR;
 +  // Copy to overflow
 +  memcpy((char *)(valist->overflow_arg_area) + (size_t)*stacksize, &ival,
@@ -2372,17 +1893,17 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +}
 +
 +// Add a String argument when building va_list for vprintf
-+static service_rc hostrpc_pfAddString(hostrpc_ValistExt_t *valist, char *val,
++static service_rc hostexec_pfAddString(hostexec_ValistExt_t *valist, char *val,
 +                                      size_t strsz, size_t *stacksize) {
 +  size_t valsize =
 +      sizeof(char *); // ABI captures pointer to string,  not string
-+  if ((valist->gp_offset + valsize) <= sizeof(hostrpc_pfIntRegs_t)) {
++  if ((valist->gp_offset + valsize) <= sizeof(hostexec_pfIntRegs_t)) {
 +    memcpy(((char *)valist->reg_save_area + valist->gp_offset), val, valsize);
 +    valist->gp_offset += valsize;
 +    return _RC_SUCCESS;
 +  }
 +  size_t needsize = (size_t)*stacksize + valsize;
-+  if (hostrpc_pfGetOverflow(valist, needsize) != _RC_SUCCESS)
++  if (hostexec_pfGetOverflow(valist, needsize) != _RC_SUCCESS)
 +    return _RC_STATUS_ERROR;
 +  memcpy((char *)(valist->overflow_arg_area) + (size_t)*stacksize, val,
 +         valsize);
@@ -2391,7 +1912,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +}
 +
 +// Add a floating point value when building va_list for vprintf
-+static service_rc hostrpc_pfAddFloat(hostrpc_ValistExt_t *valist, char *numdata,
++static service_rc hostexec_pfAddFloat(hostexec_ValistExt_t *valist, char *numdata,
 +                                     size_t valsize, size_t *stacksize) {
 +  // FIXME, we can used load because doubles are now aligned
 +  double dval;
@@ -2404,14 +1925,14 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +  } else {
 +    return _RC_STATUS_ERROR;
 +  }
-+  if ((valist->fp_offset + FPREGSZ) <= sizeof(hostrpc_pfRegSaveArea_t)) {
++  if ((valist->fp_offset + FPREGSZ) <= sizeof(hostexec_pfRegSaveArea_t)) {
 +    memcpy(((char *)valist->reg_save_area + (size_t)(valist->fp_offset)), &dval,
 +           sizeof(double));
 +    valist->fp_offset += FPREGSZ;
 +    return _RC_SUCCESS;
 +  }
 +  size_t needsize = (size_t)*stacksize + sizeof(double);
-+  if (hostrpc_pfGetOverflow(valist, needsize) != _RC_SUCCESS)
++  if (hostexec_pfGetOverflow(valist, needsize) != _RC_SUCCESS)
 +    return _RC_STATUS_ERROR;
 +  memcpy((char *)(valist->overflow_arg_area) + (size_t)*stacksize, &dval,
 +         sizeof(double));
@@ -2453,17 +1974,17 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +};
 +
 +// Build an extended va_list for vprintf by unpacking the buffer
-+static service_rc hostrpc_pfBuildValist(hostrpc_ValistExt_t *valist,
++static service_rc hostexec_pfBuildValist(hostexec_ValistExt_t *valist,
 +                                        int NumArgs, char *keyptr,
 +                                        char *dataptr, char *strptr,
 +                                        size_t *data_not_used) {
-+  hostrpc_pfRegSaveArea_t *regs;
++  hostexec_pfRegSaveArea_t *regs;
 +  size_t regs_size = sizeof(*regs);
-+  regs = (hostrpc_pfRegSaveArea_t *)malloc(regs_size);
++  regs = (hostexec_pfRegSaveArea_t *)malloc(regs_size);
 +  if (!regs)
 +    return _RC_STATUS_ERROR;
 +  memset(regs, 0, regs_size);
-+  *valist = (hostrpc_ValistExt_t){
++  *valist = (hostexec_ValistExt_t){
 +      .gp_offset = 0,
 +      .fp_offset = 0,
 +      .overflow_arg_area = NULL,
@@ -2499,8 +2020,8 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +      if ((*data_not_used) < bytes_consumed)
 +        return _RC_DATA_USED_ERROR;
 +      if (valist->fp_offset == 0)
-+        valist->fp_offset = sizeof(hostrpc_pfIntRegs_t);
-+      if (hostrpc_pfAddFloat(valist, dataptr, num_bytes, &stacksize))
++        valist->fp_offset = sizeof(hostexec_pfIntRegs_t);
++      if (hostexec_pfAddFloat(valist, dataptr, num_bytes, &stacksize))
 +        return _RC_ADDFLOAT_ERROR;
 +      break;
 +
@@ -2514,7 +2035,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +      }
 +      if ((*data_not_used) < bytes_consumed)
 +        return _RC_DATA_USED_ERROR;
-+      if (hostrpc_pfAddInteger(valist, dataptr, num_bytes, &stacksize))
++      if (hostexec_pfAddInteger(valist, dataptr, num_bytes, &stacksize))
 +        return _RC_ADDINT_ERROR;
 +      break;
 +
@@ -2525,7 +2046,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +        strsz = (size_t) * (unsigned int *)dataptr;
 +        if ((*data_not_used) < bytes_consumed)
 +          return _RC_DATA_USED_ERROR;
-+        if (hostrpc_pfAddString(valist, (char *)&strptr, strsz, &stacksize))
++        if (hostexec_pfAddString(valist, (char *)&strptr, strsz, &stacksize))
 +          return _RC_ADDSTRING_ERROR;
 +      } else {
 +        num_bytes = 8;
@@ -2537,7 +2058,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +        }
 +        if ((*data_not_used) < bytes_consumed)
 +          return _RC_DATA_USED_ERROR;
-+        if (hostrpc_pfAddInteger(valist, dataptr, num_bytes, &stacksize))
++        if (hostexec_pfAddInteger(valist, dataptr, num_bytes, &stacksize))
 +          return _RC_ADDINT_ERROR;
 +      }
 +      break;
@@ -2570,7 +2091,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +    keyptr += 4;
 +  }
 +  return _RC_SUCCESS;
-+} // end hostrpc_pfBuildValist
++} // end hostexec_pfBuildValist
 +
 +/*
 + *  The buffer to pack arguments for all vargs functions has thes 4 sections:
@@ -2585,7 +2106,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 + *                   the dataptr contains the string length.
 + *  4. strings_data  Exection time string values
 + */
-+static service_rc hostrpc_fprintf(char *buf, size_t bufsz, uint *rc) {
++static service_rc hostexec_fprintf(char *buf, size_t bufsz, uint *rc) {
 +
 +  // FIXME: Put the collection of these 6 values in a function
 +  //        All service routines that use vargs will need these values.
@@ -2612,17 +2133,17 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +  strptr += strsz;
 +  data_not_used -= (sizeof(FILE *) + 4); // 12
 +
-+  hostrpc_ValistExt_t valist;
++  hostexec_ValistExt_t valist;
 +  va_list *real_va_list;
 +  real_va_list = (va_list *)&valist;
 +
-+  if (hostrpc_pfBuildValist(&valist, NumArgs, keyptr, dataptr, strptr,
++  if (hostexec_pfBuildValist(&valist, NumArgs, keyptr, dataptr, strptr,
 +                            &data_not_used) != _RC_SUCCESS)
 +    return _RC_ERROR_INVALID_REQUEST;
 +
 +  // Roll back offsets and save stack pointer
 +  valist.gp_offset = 0;
-+  valist.fp_offset = sizeof(hostrpc_pfIntRegs_t);
++  valist.fp_offset = sizeof(hostexec_pfIntRegs_t);
 +  void *save_stack = valist.overflow_arg_area;
 +
 +  *rc = vfprintf(fileptr, fmtstr, *real_va_list);
@@ -2635,7 +2156,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +  return _RC_SUCCESS;
 +}
 +//  This the main service routine for printf
-+static service_rc hostrpc_printf(char *buf, size_t bufsz, uint *rc) {
++static service_rc hostexec_printf(char *buf, size_t bufsz, uint *rc) {
 +  if (bufsz == 0)
 +    return _RC_SUCCESS;
 +
@@ -2660,17 +2181,17 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +  strptr += strsz;
 +  data_not_used -= 4;
 +
-+  hostrpc_ValistExt_t valist;
++  hostexec_ValistExt_t valist;
 +  va_list *real_va_list;
 +  real_va_list = (va_list *)&valist;
 +
-+  if (hostrpc_pfBuildValist(&valist, NumArgs, keyptr, dataptr, strptr,
++  if (hostexec_pfBuildValist(&valist, NumArgs, keyptr, dataptr, strptr,
 +                            &data_not_used) != _RC_SUCCESS)
 +    return _RC_ERROR_INVALID_REQUEST;
 +
 +  // Roll back offsets and save stack pointer for
 +  valist.gp_offset = 0;
-+  valist.fp_offset = sizeof(hostrpc_pfIntRegs_t);
++  valist.fp_offset = sizeof(hostexec_pfIntRegs_t);
 +  void *save_stack = valist.overflow_arg_area;
 +
 +  *rc = vprintf(fmtstr, *real_va_list);
@@ -2699,7 +2220,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +}
 +
 +// build argument array
-+static service_rc hostrpc_build_vargs_array(int NumArgs, char *keyptr,
++static service_rc hostexec_build_vargs_array(int NumArgs, char *keyptr,
 +                                            char *dataptr, char *strptr,
 +                                            size_t *data_not_used,
 +                                            uint64_t *a[MAXVARGS]) {
@@ -2815,7 +2336,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +// Make the vargs function call to the function pointer fnptr
 +// by casting fnptr to vfnptr. Return uint32_t
 +template <typename T, typename FT>
-+static service_rc hostrpc_call_fnptr(uint32_t NumArgs, void *fnptr,
++static service_rc hostexec_call_fnptr(uint32_t NumArgs, void *fnptr,
 +                                     uint64_t *a[MAXVARGS], T *rv) {
 +  //
 +  // Currently users are instructed that the first arg must be reserved
@@ -3005,18 +2526,18 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +    return _RC_ERROR_INVALID_REQUEST;
 +
 +  uint64_t *a[MAXVARGS];
-+  if (hostrpc_build_vargs_array(NumArgs, keyptr, dataptr, strptr,
++  if (hostexec_build_vargs_array(NumArgs, keyptr, dataptr, strptr,
 +                                &data_not_used, a) != _RC_SUCCESS)
 +    return _RC_ERROR_INVALID_REQUEST;
 +
-+  if (hostrpc_call_fnptr<T, FT>(NumArgs, fnptr, a, return_value) != _RC_SUCCESS)
++  if (hostexec_call_fnptr<T, FT>(NumArgs, fnptr, a, return_value) != _RC_SUCCESS)
 +    return _RC_ERROR_INVALID_REQUEST;
 +
 +  return _RC_SUCCESS;
 +}
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/hostexec/services/execute_service.h llvm-project/openmp/libomptarget/hostexec/services/execute_service.h
 --- llvm-project.upstream/openmp/libomptarget/hostexec/services/execute_service.h	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/openmp/libomptarget/hostexec/services/execute_service.h	2023-03-17 13:00:11.771248305 -0400
++++ llvm-project/openmp/libomptarget/hostexec/services/execute_service.h	2023-07-19 15:41:08.064114089 -0400
 @@ -0,0 +1,56 @@
 +//===---- execute_service.h - header file for execute_service -------------===//
 +//
@@ -3061,7 +2582,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +  _RC_ERROR_ALIGNMENT= 24,
 +} service_rc;
 +
-+// helper functions defined in <arch>-hostrpc.cpp used by execute_service
++// helper functions defined in <arch>-hostexec.cpp used by execute_service
 +service_rc host_malloc(void **mem, size_t size, uint32_t device_id);
 +service_rc device_malloc(void **mem, size_t size, uint32_t device_id);
 +service_rc host_device_mem_free(void *mem);
@@ -3076,7 +2597,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +#endif
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/hostexec/services/urilocator.h llvm-project/openmp/libomptarget/hostexec/services/urilocator.h
 --- llvm-project.upstream/openmp/libomptarget/hostexec/services/urilocator.h	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/openmp/libomptarget/hostexec/services/urilocator.h	2023-03-15 22:36:45.000000000 -0400
++++ llvm-project/openmp/libomptarget/hostexec/services/urilocator.h	2023-07-19 14:03:49.683688696 -0400
 @@ -0,0 +1,63 @@
 +//===--- UriLocator.h: Schema of URI Locator  -----------------------------===//
 +//
@@ -3143,7 +2664,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +#endif
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/hostexec/src/hostexec.h llvm-project/openmp/libomptarget/hostexec/src/hostexec.h
 --- llvm-project.upstream/openmp/libomptarget/hostexec/src/hostexec.h	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/openmp/libomptarget/hostexec/src/hostexec.h	2023-03-28 17:51:45.431849040 -0400
++++ llvm-project/openmp/libomptarget/hostexec/src/hostexec.h	2023-07-19 14:03:49.683688696 -0400
 @@ -0,0 +1,49 @@
 +//
 +// hostexec.h: Headers for hostexec device stubs
@@ -3196,7 +2717,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +#endif // __HOSTEXEC_H__
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/hostexec/src/hostexec_internal.h llvm-project/openmp/libomptarget/hostexec/src/hostexec_internal.h
 --- llvm-project.upstream/openmp/libomptarget/hostexec/src/hostexec_internal.h	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/openmp/libomptarget/hostexec/src/hostexec_internal.h	2023-03-24 09:09:06.936939660 -0400
++++ llvm-project/openmp/libomptarget/hostexec/src/hostexec_internal.h	2023-07-19 14:03:49.683688696 -0400
 @@ -0,0 +1,112 @@
 +#ifndef __HOSTEXEC_INTERNAL_H__
 +#define __HOSTEXEC_INTERNAL_H__
@@ -3312,7 +2833,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +#endif // __HOSTEXEC_INTERNAL_H__
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/hostexec/src/hostexec_invoke.cpp llvm-project/openmp/libomptarget/hostexec/src/hostexec_invoke.cpp
 --- llvm-project.upstream/openmp/libomptarget/hostexec/src/hostexec_invoke.cpp	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/openmp/libomptarget/hostexec/src/hostexec_invoke.cpp	2023-03-23 22:51:37.492730628 -0400
++++ llvm-project/openmp/libomptarget/hostexec/src/hostexec_invoke.cpp	2023-07-19 14:03:49.683688696 -0400
 @@ -0,0 +1,502 @@
 +
 +#include <stdint.h>
@@ -3818,7 +3339,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +#pragma omp end declare target
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/hostexec/src/hostexec_stubs.cpp llvm-project/openmp/libomptarget/hostexec/src/hostexec_stubs.cpp
 --- llvm-project.upstream/openmp/libomptarget/hostexec/src/hostexec_stubs.cpp	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/openmp/libomptarget/hostexec/src/hostexec_stubs.cpp	2023-03-24 09:09:23.872865374 -0400
++++ llvm-project/openmp/libomptarget/hostexec/src/hostexec_stubs.cpp	2023-07-19 14:03:49.683688696 -0400
 @@ -0,0 +1,224 @@
 +///
 +///  hostexec_stubs.cpp: definitions of device stubs
@@ -4046,7 +3567,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +#pragma omp end declare target
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/hostexec/src/oclAtomics.cl llvm-project/openmp/libomptarget/hostexec/src/oclAtomics.cl
 --- llvm-project.upstream/openmp/libomptarget/hostexec/src/oclAtomics.cl	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/openmp/libomptarget/hostexec/src/oclAtomics.cl	2023-03-23 21:30:25.855823718 -0400
++++ llvm-project/openmp/libomptarget/hostexec/src/oclAtomics.cl	2023-07-19 14:03:49.683688696 -0400
 @@ -0,0 +1,27 @@
 +
 +#pragma OPENCL EXTENSION cl_khr_int64_base_atomics : enable
@@ -4077,7 +3598,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +#undef __inl
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/hostexec/test/compile_execute_cmds llvm-project/openmp/libomptarget/hostexec/test/compile_execute_cmds
 --- llvm-project.upstream/openmp/libomptarget/hostexec/test/compile_execute_cmds	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/openmp/libomptarget/hostexec/test/compile_execute_cmds	2023-03-29 18:17:42.333220781 -0400
++++ llvm-project/openmp/libomptarget/hostexec/test/compile_execute_cmds	2023-07-19 14:03:49.683688696 -0400
 @@ -0,0 +1,50 @@
 +
 +AOMP=${AOMP:-/usr/lib/aomp}
@@ -4131,7 +3652,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +rm ./mpi-in-target-region
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/hostexec/test/hostexec_test.c llvm-project/openmp/libomptarget/hostexec/test/hostexec_test.c
 --- llvm-project.upstream/openmp/libomptarget/hostexec/test/hostexec_test.c	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/openmp/libomptarget/hostexec/test/hostexec_test.c	2023-03-27 20:49:29.770252359 -0400
++++ llvm-project/openmp/libomptarget/hostexec/test/hostexec_test.c	2023-07-19 14:03:49.683688696 -0400
 @@ -0,0 +1,159 @@
 +#include <hostexec.h>
 +#include <omp.h>
@@ -4294,7 +3815,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +}
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/hostexec/test/mpi-in-target-region.cpp llvm-project/openmp/libomptarget/hostexec/test/mpi-in-target-region.cpp
 --- llvm-project.upstream/openmp/libomptarget/hostexec/test/mpi-in-target-region.cpp	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/openmp/libomptarget/hostexec/test/mpi-in-target-region.cpp	2023-03-30 16:08:18.550748956 -0400
++++ llvm-project/openmp/libomptarget/hostexec/test/mpi-in-target-region.cpp	2023-07-19 14:03:49.683688696 -0400
 @@ -0,0 +1,54 @@
 +#include "mpi_supplemental.h"
 +#include "omp.h"
@@ -4352,7 +3873,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +}
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/hostexec/test/mpi-simple.cpp llvm-project/openmp/libomptarget/hostexec/test/mpi-simple.cpp
 --- llvm-project.upstream/openmp/libomptarget/hostexec/test/mpi-simple.cpp	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/openmp/libomptarget/hostexec/test/mpi-simple.cpp	2023-03-30 13:22:05.968408550 -0400
++++ llvm-project/openmp/libomptarget/hostexec/test/mpi-simple.cpp	2023-07-19 14:03:49.683688696 -0400
 @@ -0,0 +1,37 @@
 +#include "mpi_supplemental.h"
 +#include "omp.h"
@@ -4393,7 +3914,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +}
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/hostexec/test/mpi_supplemental.h llvm-project/openmp/libomptarget/hostexec/test/mpi_supplemental.h
 --- llvm-project.upstream/openmp/libomptarget/hostexec/test/mpi_supplemental.h	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/openmp/libomptarget/hostexec/test/mpi_supplemental.h	2023-03-30 13:11:14.330705619 -0400
++++ llvm-project/openmp/libomptarget/hostexec/test/mpi_supplemental.h	2023-07-19 14:03:49.683688696 -0400
 @@ -0,0 +1,79 @@
 +//
 +// mpi_supplemental.h: Supplemental header to build device variants for specific
@@ -4476,7 +3997,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +}
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/hostexec/test/mpi_test llvm-project/openmp/libomptarget/hostexec/test/mpi_test
 --- llvm-project.upstream/openmp/libomptarget/hostexec/test/mpi_test	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/openmp/libomptarget/hostexec/test/mpi_test	2023-03-30 14:42:25.281486575 -0400
++++ llvm-project/openmp/libomptarget/hostexec/test/mpi_test	2023-07-19 14:03:49.683688696 -0400
 @@ -0,0 +1,26 @@
 +
 +TRUNK=${TRUNK:-$HOME/rocm/trunk}
@@ -4506,7 +4027,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/hostexec/test/variant.c llvm-project/openmp/libomptarget/hostexec/test/variant.c
 --- llvm-project.upstream/openmp/libomptarget/hostexec/test/variant.c	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/openmp/libomptarget/hostexec/test/variant.c	2023-03-29 11:01:26.524277251 -0400
++++ llvm-project/openmp/libomptarget/hostexec/test/variant.c	2023-07-19 14:03:49.683688696 -0400
 @@ -0,0 +1,107 @@
 +#include <hostexec.h>
 +#include <omp.h>
@@ -4615,139 +4136,44 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/host
 +        return 1;
 +    }
 +}
-diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/plugins/amdgpu/CMakeLists.txt llvm-project/openmp/libomptarget/plugins/amdgpu/CMakeLists.txt
---- llvm-project.upstream/openmp/libomptarget/plugins/amdgpu/CMakeLists.txt	2023-03-28 09:58:58.126055281 -0400
-+++ llvm-project/openmp/libomptarget/plugins/amdgpu/CMakeLists.txt	2023-03-28 15:19:22.762748013 -0400
-@@ -85,11 +85,14 @@
-   elf_common
-   ${LIBOMPTARGET_DEP_LIBRARIES}
-   ${OPENMP_PTHREAD_LIB}
-+  -Wl,--whole-archive amdgcn_hostexec_services -Wl,--no-whole-archive
-   "-Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/../exports"
-   ${LDFLAGS_UNDEFINED}
- 
-   NO_INSTALL_RPATH
- )
-+add_dependencies(omptarget.rtl.amdgpu omptarget.devicertl.amdgpu )
-+add_dependencies(omptarget.rtl.amdgpu amdgcn_hostexec_services)
- 
- target_include_directories(
-   omptarget.rtl.amdgpu
-diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/plugins/amdgpu/src/rtl.cpp llvm-project/openmp/libomptarget/plugins/amdgpu/src/rtl.cpp
---- llvm-project.upstream/openmp/libomptarget/plugins/amdgpu/src/rtl.cpp	2023-02-27 09:21:39.111743452 -0500
-+++ llvm-project/openmp/libomptarget/plugins/amdgpu/src/rtl.cpp	2023-03-28 15:19:22.762748013 -0400
-@@ -53,16 +53,18 @@
- // implement a fallback for toolchains that do not yet have a hostrpc library.
- extern "C" {
- uint64_t hostrpc_assign_buffer(hsa_agent_t Agent, hsa_queue_t *ThisQ,
--                               uint32_t DeviceId);
--hsa_status_t hostrpc_init();
-+                               uint32_t DeviceId,
-+                               hsa_amd_memory_pool_t HostMemoryPool,
-+                               hsa_amd_memory_pool_t DevMemoryPool);
- hsa_status_t hostrpc_terminate();
- 
--__attribute__((weak)) hsa_status_t hostrpc_init() { return HSA_STATUS_SUCCESS; }
- __attribute__((weak)) hsa_status_t hostrpc_terminate() {
-   return HSA_STATUS_SUCCESS;
- }
--__attribute__((weak)) uint64_t hostrpc_assign_buffer(hsa_agent_t, hsa_queue_t *,
--                                                     uint32_t DeviceId) {
-+__attribute__((weak)) uint64_t
-+hostrpc_assign_buffer(hsa_agent_t, hsa_queue_t *, uint32_t DeviceId,
-+                      hsa_amd_memory_pool_t HostMemoryPool,
-+                      hsa_amd_memory_pool_t DevMemoryPool) {
-   DP("Warning: Attempting to assign hostrpc to device %u, but hostrpc library "
-      "missing\n",
-      DeviceId);
-@@ -998,9 +1000,6 @@
-       return;
-     }
- 
--    // Init hostcall soon after initializing hsa
--    hostrpc_init();
--
-     Err = findAgents([&](hsa_device_type_t DeviceType, hsa_agent_t Agent) {
-       if (DeviceType == HSA_DEVICE_TYPE_CPU) {
-         CPUAgents.push_back(Agent);
-@@ -1104,6 +1103,7 @@
-     DeviceStateStore.clear();
-     KernelArgPoolMap.clear();
-     // Terminate hostrpc before finalizing hsa
-+    DP("Terminating hostrpc service thread and buffer if allocated \n");
-     hostrpc_terminate();
- 
-     hsa_status_t Err;
-@@ -1503,7 +1503,9 @@
-         static pthread_mutex_t HostcallInitLock = PTHREAD_MUTEX_INITIALIZER;
-         pthread_mutex_lock(&HostcallInitLock);
-         uint64_t Buffer = hostrpc_assign_buffer(
--            DeviceInfo().HSAAgents[DeviceId], Queue, DeviceId);
-+            DeviceInfo().HSAAgents[DeviceId], Queue, DeviceId,
-+            DeviceInfo().HostFineGrainedMemoryPool,
-+            DeviceInfo().getDeviceMemoryPool(DeviceId));
-         pthread_mutex_unlock(&HostcallInitLock);
-         if (!Buffer) {
-           DP("hostrpc_assign_buffer failed, gpu would dereference null and "
-@@ -1531,6 +1533,10 @@
- 
-         // initialise pointer for implicit_argument_count == 0 ABI
-         ImplArgs->HostcallPtr = Buffer;
-+        DP("Hostrpc buffer allocated at %p and service thread started\n",
-+           (void *)Buffer);
-+      } else {
-+        DP("No hostrpc buffer or service thread required\n");
-       }
- 
-       Packet->kernarg_address = KernArg;
-@@ -2140,7 +2146,7 @@
-     hsa_status_t Err = moduleRegisterFromMemoryToPlace(
-         KernelInfo, SymbolInfo, (void *)Image->ImageStart, ImgSize, DeviceId,
-         [&](void *Data, size_t Size) {
--          if (imageContainsSymbol(Data, Size, "needs_hostcall_buffer")) {
-+          if (imageContainsSymbol(Data, Size, "__needs_host_services")) {
-             __atomic_store_n(&DeviceInfo().HostcallRequired, true,
-                              __ATOMIC_RELEASE);
-           }
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/plugins-nextgen/amdgpu/CMakeLists.txt llvm-project/openmp/libomptarget/plugins-nextgen/amdgpu/CMakeLists.txt
---- llvm-project.upstream/openmp/libomptarget/plugins-nextgen/amdgpu/CMakeLists.txt	2023-02-27 09:21:59.251665276 -0500
-+++ llvm-project/openmp/libomptarget/plugins-nextgen/amdgpu/CMakeLists.txt	2023-03-28 15:19:22.762748013 -0400
-@@ -85,11 +85,13 @@
+--- llvm-project.upstream/openmp/libomptarget/plugins-nextgen/amdgpu/CMakeLists.txt	2023-07-12 10:51:02.388794579 -0400
++++ llvm-project/openmp/libomptarget/plugins-nextgen/amdgpu/CMakeLists.txt	2023-07-19 15:54:39.394314218 -0400
+@@ -85,10 +85,12 @@
    PluginInterface
    ${LIBOMPTARGET_DEP_LIBRARIES}
    ${OPENMP_PTHREAD_LIB}
-+  -Wl,--whole-archive amdgcn_hostexec_services -Wl,--no-whole-archive
-   "-Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/../exports"
++   -Wl,--whole-archive amdgcn_hostexec_services -Wl,--no-whole-archive
    ${LDFLAGS_UNDEFINED}
  
    NO_INSTALL_RPATH
  )
-+add_dependencies(omptarget.rtl.amdgpu.nextgen amdgcn_hostexec_services)
++add_dependencies(omptarget.rtl.amdgpu amdgcn_hostexec_services)
  
- target_include_directories(
-   omptarget.rtl.amdgpu.nextgen
+ if ((OMPT_TARGET_DEFAULT) AND (LIBOMPTARGET_OMPT_SUPPORT))
+   target_link_libraries(omptarget.rtl.amdgpu PRIVATE OMPT)
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/plugins-nextgen/amdgpu/src/rtl.cpp llvm-project/openmp/libomptarget/plugins-nextgen/amdgpu/src/rtl.cpp
---- llvm-project.upstream/openmp/libomptarget/plugins-nextgen/amdgpu/src/rtl.cpp	2023-03-23 09:58:45.801808275 -0400
-+++ llvm-project/openmp/libomptarget/plugins-nextgen/amdgpu/src/rtl.cpp	2023-03-28 15:19:22.762748013 -0400
-@@ -58,6 +58,27 @@
+--- llvm-project.upstream/openmp/libomptarget/plugins-nextgen/amdgpu/src/rtl.cpp	2023-07-12 10:51:02.388794579 -0400
++++ llvm-project/openmp/libomptarget/plugins-nextgen/amdgpu/src/rtl.cpp	2023-07-19 18:22:16.190035671 -0400
+@@ -59,6 +59,27 @@
  namespace target {
  namespace plugin {
  
 +extern "C" {
-+uint64_t hostrpc_assign_buffer(hsa_agent_t Agent, hsa_queue_t *ThisQ,
++uint64_t hostexec_assign_buffer(hsa_agent_t Agent, hsa_queue_t *ThisQ,
 +                               uint32_t DeviceId,
 +                               hsa_amd_memory_pool_t HostMemoryPool,
 +                               hsa_amd_memory_pool_t DevMemoryPool);
-+hsa_status_t hostrpc_terminate();
-+__attribute__((weak)) hsa_status_t hostrpc_terminate() {
++hsa_status_t hostexec_terminate();
++__attribute__((weak)) hsa_status_t hostexec_terminate() {
 +  return HSA_STATUS_SUCCESS;
 +}
 +__attribute__((weak)) uint64_t
-+hostrpc_assign_buffer(hsa_agent_t, hsa_queue_t *, uint32_t DeviceId,
++hostexec_assign_buffer(hsa_agent_t, hsa_queue_t *, uint32_t DeviceId,
 +                      hsa_amd_memory_pool_t HostMemoryPool,
 +                      hsa_amd_memory_pool_t DevMemoryPool) {
 +  // FIXME:THIS SHOULD BE HARD FAIL
-+  DP("Warning: Attempting to assign hostrpc to device %u, but hostrpc library "
++  DP("Warning: Attempting to assign hostexec to device %u, but hostexec library "
 +     "missing\n",
 +     DeviceId);
 +  return 0;
@@ -4757,29 +4183,19 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/plug
  /// Forward declarations for all specialized data structures.
  struct AMDGPUKernelTy;
  struct AMDGPUDeviceTy;
-@@ -129,6 +150,11 @@
+@@ -130,6 +151,11 @@
                         "Error in hsa_amd_agent_iterate_memory_pools: %s");
  }
  
-+extern "C" uint64_t hostrpc_assign_buffer(hsa_agent_t Agent, hsa_queue_t *ThisQ,
++extern "C" uint64_t hostexec_assign_buffer(hsa_agent_t Agent, hsa_queue_t *ThisQ,
 +                                          uint32_t DeviceId,
 +                                          hsa_amd_memory_pool_t HostMemoryPool,
 +                                          hsa_amd_memory_pool_t DevMemoryPool);
-+extern "C" hsa_status_t hostrpc_terminate();
++extern "C" hsa_status_t hostexec_terminate();
  } // namespace utils
  
  /// Utility class representing generic resource references to AMDGPU resources.
-@@ -384,6 +410,9 @@
-     return It->second;
-   }
- 
-+  /// Does device image contain Symbol
-+  bool hasDeviceSymbol(GenericDeviceTy &Device, StringRef SymbolName) const;
-+
- private:
-   /// The exectuable loaded on the agent.
-   hsa_executable_t Executable;
-@@ -397,6 +426,7 @@
+@@ -406,6 +432,7 @@
    /// Create an AMDGPU kernel with a name and an execution mode.
    AMDGPUKernelTy(const char *Name, OMPTgtExecModeFlags ExecutionMode)
        : GenericKernelTy(Name, ExecutionMode),
@@ -4787,14 +4203,17 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/plug
          ImplicitArgsSize(sizeof(utils::AMDGPUImplicitArgsTy)) {}
  
    /// Initialize the AMDGPU kernel.
-@@ -444,8 +474,20 @@
+@@ -453,8 +480,23 @@
        INFO(OMP_INFOTYPE_PLUGIN_KERNEL, Device.getDeviceId(),
             "Could not read extra information for kernel %s.", getName());
  
-+    needs_host_services =
-+        AMDImage.hasDeviceSymbol(Device, "__needs_host_services");
++    needs_host_services = true;
++    auto sym = AMDImage.findDeviceSymbol(Device, "__needs_host_services");
++    if (!sym) {
++      LLVMConsumeError(llvm::wrap(sym.takeError()));
++      needs_host_services = false ;
++    }
 +    if (needs_host_services) {
-+      // GenericGlobalHandlerTy * GHandler = Plugin::createGlobalHandler();
 +      if (auto Err = rpc_buf_handler->getGlobalMetadataFromDevice(
 +              Device, AMDImage, GlobalTy_device_st_buf))
 +        return Err;
@@ -4808,7 +4227,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/plug
  
    /// Launch the AMDGPU kernel function.
    Error launchImpl(GenericDeviceTy &GenericDevice, uint32_t NumThreads,
-@@ -637,6 +679,7 @@
+@@ -660,6 +702,7 @@
      // Push the barrier with the lock acquired.
      return pushBarrierImpl(OutputSignal, InputSignal1, InputSignal2);
    }
@@ -4816,7 +4235,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/plug
  
  private:
    /// Push a barrier packet that will wait up to two input signals. Assumes the
-@@ -757,6 +800,8 @@
+@@ -780,6 +823,8 @@
  /// devices. This class relies on signals to implement streams and define the
  /// dependencies between asynchronous operations.
  struct AMDGPUStreamTy {
@@ -4825,7 +4244,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/plug
  private:
    /// Utility struct holding arguments for async H2H memory copies.
    struct MemcpyArgsTy {
-@@ -1424,6 +1469,9 @@
+@@ -1462,6 +1507,9 @@
  
      return Plugin::success();
    }
@@ -4835,40 +4254,15 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/plug
  
    /// Retrieve and construct all memory pools from the device agent(s).
    virtual Error retrieveAllMemoryPools() = 0;
-@@ -2236,7 +2284,6 @@
- Expected<hsa_executable_symbol_t>
- AMDGPUDeviceImageTy::findDeviceSymbol(GenericDeviceTy &Device,
-                                       StringRef SymbolName) const {
--
-   AMDGPUDeviceTy &AMDGPUDevice = static_cast<AMDGPUDeviceTy &>(Device);
-   hsa_agent_t Agent = AMDGPUDevice.getAgent();
- 
-@@ -2251,6 +2298,16 @@
-   return Symbol;
- }
- 
-+bool AMDGPUDeviceImageTy::hasDeviceSymbol(GenericDeviceTy &Device,
-+                                          StringRef SymbolName) const {
-+  AMDGPUDeviceTy &AMDGPUDevice = static_cast<AMDGPUDeviceTy &>(Device);
-+  hsa_agent_t Agent = AMDGPUDevice.getAgent();
-+  hsa_executable_symbol_t Symbol;
-+  hsa_status_t Status = hsa_executable_get_symbol_by_name(
-+      Executable, SymbolName.data(), &Agent, &Symbol);
-+  return (Status == HSA_STATUS_SUCCESS);
-+}
-+
- template <typename ResourceTy>
- Error AMDGPUResourceRef<ResourceTy>::create(GenericDeviceTy &Device) {
-   if (Resource)
-@@ -2418,6 +2475,7 @@
+@@ -2690,6 +2738,7 @@
  
    /// Deinitialize the plugin.
    Error deinitImpl() override {
-+    utils::hostrpc_terminate();
++    utils::hostexec_terminate();
      // The HSA runtime was not initialized, so nothing from the plugin was
      // actually initialized.
      if (!Initialized)
-@@ -2595,6 +2653,29 @@
+@@ -2867,6 +2916,29 @@
  
    AMDGPUDeviceTy &AMDGPUDevice = static_cast<AMDGPUDeviceTy &>(GenericDevice);
    AMDGPUStreamTy &Stream = AMDGPUDevice.getStream(AsyncInfoWrapper);
@@ -4880,7 +4274,7 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/plug
 +        AMDGPUDevice.getCoarseGrainedMemoryPool()->get();
 +    hsa_queue_t *hsa_queue = Stream.getQueue()->getHsaQueue();
 +    uint64_t Buffer =
-+        utils::hostrpc_assign_buffer(AMDGPUDevice.getAgent(), hsa_queue, devid,
++        utils::hostexec_assign_buffer(AMDGPUDevice.getAgent(), hsa_queue, devid,
 +                                     host_mem_pool, device_mem_pool);
 +    GlobalTy GlobalTy_host_st_buf("service_thread_buf", sizeof(uint64_t),
 +                                  &Buffer);
@@ -4890,27 +4284,26 @@ diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/plug
 +         GlobalTy_host_st_buf.getName().data());
 +      consumeError(std::move(Err));
 +    }
-+    DP("Hostrpc buffer allocated at %p and service thread started\n",
++    DP("hostexec buffer allocated at %p and service thread started\n",
 +       (void *)Buffer);
 +  } else {
-+    DP("No hostrpc buffer or service thread required\n");
++    DP("No hostexec buffer or service thread required\n");
 +  }
  
-   // Push the kernel launch into the stream.
-   return Stream.pushKernelLaunch(*this, AllArgs, NumThreads, NumBlocks,
+   // If this kernel requires an RPC server we attach its pointer to the stream.
+   if (GenericDevice.getRPCServer())
 diff -Naur -x .git -x __pycache__ llvm-project.upstream/openmp/libomptarget/plugins-nextgen/cuda/CMakeLists.txt llvm-project/openmp/libomptarget/plugins-nextgen/cuda/CMakeLists.txt
---- llvm-project.upstream/openmp/libomptarget/plugins-nextgen/cuda/CMakeLists.txt	2023-02-27 09:21:59.251665276 -0500
-+++ llvm-project/openmp/libomptarget/plugins-nextgen/cuda/CMakeLists.txt	2023-03-28 15:19:22.762748013 -0400
-@@ -38,10 +38,12 @@
+--- llvm-project.upstream/openmp/libomptarget/plugins-nextgen/cuda/CMakeLists.txt	2023-07-12 10:51:02.392794574 -0400
++++ llvm-project/openmp/libomptarget/plugins-nextgen/cuda/CMakeLists.txt	2023-07-19 15:54:39.394314218 -0400
+@@ -38,9 +38,10 @@
    MemoryManager
    PluginInterface
    ${OPENMP_PTHREAD_LIB}
+-
 +  "-Wl,--whole-archive nvptx_hostexec_services -Wl,--no-whole-archive"
-   "-Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/../exports,-z,defs"
- 
    NO_INSTALL_RPATH
  )
-+add_dependencies(omptarget.rtl.cuda.nextgen nvptx_hostexec_services)
++add_dependencies(omptarget.rtl.cuda nvptx_hostexec_services)
  
- if(LIBOMPTARGET_DEP_CUDA_FOUND AND NOT LIBOMPTARGET_FORCE_DLOPEN_LIBCUDA)
-   libomptarget_say("Building CUDA plugin linked against libcuda")
+ if ((OMPT_TARGET_DEFAULT) AND (LIBOMPTARGET_OMPT_SUPPORT))
+   target_link_libraries(omptarget.rtl.cuda PRIVATE OMPT)
