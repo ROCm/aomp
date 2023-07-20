@@ -16,12 +16,19 @@
 TRUNK=${TRUNK:-$HOME/rocm/trunk}
 OFFLOAD=${OFFLOAD:-MANDATORY}
 
-if [ ! -f $TRUNK/bin/amdgpu-arch ] ; then
-  OARCH=${OARCH:-sm_70}
-  echo "WARNING, no amdgpu-arch utility in $TRUNK to get current offload-arch, using $OARCH"
+_offload_arch=`$TRUNK/bin/amdgpu-arch 2>/dev/null | head -n 1`
+if [ -z "$_offload_arch" ] ; then
+  _offload_arch=`$TRUNK/bin/nvptx-arch 2>/dev/null | head -n 1`
+fi
+if [ -z "$_offload_arch" ] ; then
+   echo error no arch found
+   exit 1
+fi
+OARCH=${OARCH:-$_offload_arch}
+if [ ${OARCH:0:3} == "gfx" ] ; then
+   TRIPLE="amdgcn-amd-amdhsa"
 else
-  amdarch=`$TRUNK/bin/amdgpu-arch | head -n 1`
-  OARCH=${OARCH:-$amdarch}
+   TRIPLE="nvptx64-nvidia-cuda"
 fi
 
 _llvm_bin_dir=$TRUNK/bin
