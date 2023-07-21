@@ -30,4 +30,13 @@ program main
     
 call print_test(sp)
 
+do i = 1, 10
+    if (sp(i) /= i * 2) then
+        print*, "======= FORTRAN Test Failed! ======="     
+        stop 1    
+    end if  
+end do 
+
+print*, "======= FORTRAN Test passed! ======="
+
 end program

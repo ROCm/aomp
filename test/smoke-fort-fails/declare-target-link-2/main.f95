@@ -12,4 +12,11 @@ program main
 
 PRINT *, sp
 
+if (sp /= 1) then     
+    print*, "======= FORTRAN Test Failed! ======="
+    stop 1    
+end if  
+
+print*, "======= FORTRAN Test passed! ======="
+
 end program
