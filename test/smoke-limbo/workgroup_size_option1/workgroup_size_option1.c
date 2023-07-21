@@ -13,6 +13,12 @@ int main() {
 
 #pragma omp target map(from: num_threads)
   {
+    num_threads = 3;
+  }
+  printf("num_threads = %d\n", num_threads);
+
+#pragma omp target map(from: num_threads)
+  {
     num_threads = omp_get_num_threads();
   }
   printf("num_threads = %d\n", num_threads);
@@ -66,6 +72,7 @@ int main() {
 
 // Compiled with -fopenmp-gpu-threads-per-team=1024
 
+/// CHECK: DEVID: 0 SGN:3 ConstWGSize:257  args: 1 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 256)
 /// CHECK: DEVID: 0 SGN:3 ConstWGSize:257  args: 1 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 256)
 /// CHECK: DEVID: 0 SGN:2 ConstWGSize:1024  args: 5 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X1024)
 /// CHECK: DEVID: 0 SGN:3 ConstWGSize:961  args: 7 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 256)

@@ -13,6 +13,12 @@ int main() {
 
 #pragma omp target map(from: num_threads)
   {
+    num_threads = 3;
+  }
+  printf("num_threads = %d\n", num_threads);
+
+#pragma omp target map(from: num_threads)
+  {
     num_threads = omp_get_num_threads();
   }
   printf("num_threads = %d\n", num_threads);
@@ -67,6 +73,7 @@ int main() {
 // Compiled with -fopenmp-gpu-threads-per-team=128
 // Option specified workgroup size < default of 256 not honored at this point
 
+/// CHECK: DEVID: 0 SGN:3 ConstWGSize:257  args: 1 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 256)
 /// CHECK: DEVID: 0 SGN:3 ConstWGSize:257  args: 1 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 256)
 /// CHECK: DEVID: 0 SGN:2 ConstWGSize:128  args: 5 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 128)
 /// CHECK: DEVID: 0 SGN:3 ConstWGSize:129  args: 7 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 129)
