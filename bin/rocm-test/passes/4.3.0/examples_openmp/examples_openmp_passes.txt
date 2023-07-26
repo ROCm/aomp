@@ -1,5 +1,4 @@
 declare_variant_if
-reduction
 veccopy
 vmulsum
 vmul_template
