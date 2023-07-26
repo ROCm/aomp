@@ -17,7 +17,6 @@ CCFLAGS		= -c -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn
 LD_FLAGS	= -O3 -fdisable-host-devmem -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$(TARGET) -ffast-math -lm
 
 all: inc_arrayval.c.o main.c.o dec_arrayval.f95.o
-#	$(CLANG) $(LD_FLAGS) inc_arrayval.c.o main.c.o -o driver_test
 	$(FLANG) $(LD_FLAGS) inc_arrayval.c.o dec_arrayval.f95.o main.c.o -o driver_test
 
 inc_arrayval.c.o:
