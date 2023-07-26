@@ -59,7 +59,7 @@ TARGETS_TO_BUILD="AMDGPU;X86"
 # for flang.  Originally there was no subdirectory for LFL so setting
 # AOMP_LFL_DIR to "/" would build flang-legacy with the original
 # ROCm 5.6 sources.
-AOMP_LFL_DIR=${AOMP_LFL_DIR:-\/}
+AOMP_LFL_DIR=${AOMP_LFL_DIR:-"17.0-4"}
 # comment out above line and uncomment next line for new LFL
 #AOMP_LFL_DIR=${AOMP_LFL_DIR:-17.0-4}
 
