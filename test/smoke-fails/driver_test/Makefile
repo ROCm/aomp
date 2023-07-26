@@ -13,7 +13,7 @@ CLANG		= $(AOMP)/bin/clang
 TARGET     	= $(shell $(OLARCH))
 
 FFLAGS     	= -c -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$(TARGET) -ffast-math -O3 -r8 -i8 -cpp -DPTRSIZE8 -DLONGINT8 -DUNDERSCORE -DGLOBAL_LONG_LONG
-CCFLAGS		= -c -mllvm --amdhsa-code-object-version=4 -mcode-object-version=4 -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$(TARGET) -ffast-math -O3 -DPTRSIZE8 -DLONGINT8 -DUNDERSCORE -DGLOBAL_LONG_LONG -g -DPREFIX=jl_
+CCFLAGS		= -c -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$(TARGET) -ffast-math -O3 -DPTRSIZE8 -DLONGINT8 -DUNDERSCORE -DGLOBAL_LONG_LONG -g -DPREFIX=jl_
 LD_FLAGS	= -O3 -fdisable-host-devmem -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$(TARGET) -ffast-math -lm
 
 all: inc_arrayval.c.o main.c.o dec_arrayval.f95.o
