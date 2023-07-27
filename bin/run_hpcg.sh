@@ -1,7 +1,7 @@
 #! /usr/bin/env bash
 
 # HPCG_SOURCE_DIR           where to clone sources to. Default: AOMP_REPOS_TEST
-# HPCG_BUILD_NUM_THREADS    Number of parallel compile processes
+# HPCG_BUILD_NUM_THREADS    Number of parallel compile processes. Default: 32
 
 realpath=`realpath $0`
 thisdir=`dirname $realpath`
@@ -32,14 +32,18 @@ cd build || exit 1
 
 ../configure LLVM_OMP_TARGET
 
-make -j${HPCG_BUILD_NUM_THREADS}
+make --output-sync -j${HPCG_BUILD_NUM_THREADS}
 
 cd bin
-./xhpcg 104 104 104 600
+./xhpcg 104 104 104 600 >/dev/null 2>&1
 
+# If that is not found, the result is valid.
 cat *.txt | grep -e "INVALID"
-if [ $? -eq 1 ]; then
+if [ $? -ne 1 ]; then
   echo "Invalid result produced, exiting."
   exit 1
 fi
+
+# The script does full rebuilds every time, so only one .txt file here.
+cat HPCG-*.txt
 
