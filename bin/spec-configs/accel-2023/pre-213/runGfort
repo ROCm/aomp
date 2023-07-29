@@ -1,0 +1,34 @@
+#!/bin/bash
+
+# for src.alt
+#   define altmodel={omp_target,omp_loop,omp_sinner_simd} or nothing
+
+# for regular src
+#   define model={omp_target,omp_loop,omp_sinner_simd} or nothing
+
+export REV=/home/rlieberm/mgc/embedded
+export PATH=$REV/codebench/bin/:$PATH
+
+export GCN_SUPPRESS_HOST_FALLBACK=1
+#export GCN_DEBUG=1
+
+export LD_LIBRARY_PATH=$REV/codebench/x86_64-none-linux-gnu/lib64:/opt/rocm/lib:$LD_LIBRARY_PATH
+export LIBRARY_PATH=$LD_LIBRARY_PATH
+
+set +x
+. ./shrc
+set -x
+ulimit -s unlimited
+export OMP_TARGET_OFFLOAD=MANDATORY 
+
+#runaccel -c gfort.cfg --define altmodel=omp_target --define gputype=gfx90a -I -l -n 1 -T peak -i test 553 --rebuild 
+#runaccel -c gfort.cfg --define model=omp_target --define gputype=gfx90a -I -l -n 1 -T peak -i test 553 --rebuild 
+#exit
+runaccel -c gfort.cfg --define altmodel=omp_target     --define gputype=gfx90a -I -l -n 1 -T peak -i test openmp --rebuild 
+runaccel -c gfort.cfg --define altmodel=omp_inner_simd --define gputype=gfx90a -I -l -n 1 -T peak -i test openmp --rebuild 
+runaccel -c gfort.cfg --define altmodel=omp_loop       --define gputype=gfx90a -I -l -n 1 -T peak -i test openmp --rebuild 
+
+runaccel -c gfort.cfg --define model=omp_target     --define gputype=gfx90a -I -l -n 1 -T peak -i test openmp --rebuild 
+runaccel -c gfort.cfg --define model=omp_inner_simd --define gputype=gfx90a -I -l -n 1 -T peak -i test openmp --rebuild 
+runaccel -c gfort.cfg --define model=omp_loop       --define gputype=gfx90a -I -l -n 1 -T peak -i test openmp --rebuild 
+

@@ -1,0 +1,59 @@
+#!/bin/bash
+set -x
+#export AOMP=/COD/LATEST/aomp
+export AOMP=/COD/2023-07-20/aomp
+#export AOMP=~/rocm/aomp_17.0-25
+#export AOMP=~/rocm/rocm-5.7.0-12380-npsdb-3715/llvm
+
+set +x
+. ./shrc
+set -x
+
+ulimit -s unlimited
+
+export OMP_TARGET_OFFLOAD=MANDATORY
+export LIBRARY_PATH=$AOMP/lib
+export LD_LIBRARY_PATH=$AOMP/lib:$LD_LIBRARY_PATH
+export PATH=$AOMP/bin:$PATH
+
+#export DSET=test,train,ref
+export DSET=test
+#export DSET=train
+#export DSET=ref
+#export DSET=train,ref
+#export DSET=test,train
+export RBLD=--rebuild
+export TLIST="accel"
+#export TLIST="463"
+#export TLIST="openmp ^450 ^452 ^456 ^457"
+#AMOD='smd'
+#AMOD='smds'
+#AMOD='lop'
+#AMOD='lops'
+#AMOD='tgt'
+AMOD='tgts'
+
+# MODEL may be one of the following options:
+#   1. "lop" - Use OpenMP with "loop" construct
+#   2. "tgt" - Use OpenMP with "distribute" construct
+#   3. "smd" - Use OpenMP with "distribute" and inner "simd" construct
+#   4. "lops" - Use OpenMP with "loop" construct src.alt (no metadirectives)
+#   5. "tgts" - Use OpenMP with "distribute" construct src.alt (no metadirectives)
+#   6. "smds" - Use OpenMP with "distribute" and inner "simd" construct src.alt (no metadirectives)
+
+
+cd `realpath .`
+
+runaccel -c amd_aomp.cfg --define model=tgt    --define gputype=gfx90a -I -l -n 1 -T base -i $DSET $TLIST  $RBLD 
+runaccel -c amd_aomp.cfg --define model=tgts   --define gputype=gfx90a -I -l -n 1 -T base -i $DSET $TLIST  $RBLD 
+runaccel -c amd_aomp.cfg --define model=smd    --define gputype=gfx90a -I -l -n 1 -T base -i $DSET $TLIST  $RBLD 
+runaccel -c amd_aomp.cfg --define model=smds   --define gputype=gfx90a -I -l -n 1 -T base -i $DSET $TLIST  $RBLD 
+runaccel -c amd_aomp.cfg --define model=lop    --define gputype=gfx90a -I -l -n 1 -T base -i $DSET $TLIST  $RBLD 
+runaccel -c amd_aomp.cfg --define model=lops   --define gputype=gfx90a -I -l -n 1 -T base -i $DSET $TLIST  $RBLD 
+exit
+
+runaccel -c amd_aomp.cfg --define $AMOD --parallel_test=8 --parallel_test_workloads=test     --define gputype=gfx90a -I -l -n 1 -T base -i $DSET $TLIST  $RBLD 
+exit
+runaccel -c amd_aomp.cfg --define $AMOD --parallel_test=8 --parallel_test_workloads=test     --define gputype=gfx90a -I -l -n 1 -T base -i train $TLIST # $RBLD 
+exit
+runaccel -c amd_aomp.cfg --define $AMOD --parallel_test=8 --parallel_test_workloads=test    --define gputype=gfx90a -I -l -n 1 -T base -i ref   $TLIST  # $RBLD 
