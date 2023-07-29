@@ -24,14 +24,8 @@ export DSET=test
 #export DSET=test,train
 export RBLD=--rebuild
 export TLIST="accel"
-#export TLIST="463"
+#export TLIST="457"
 #export TLIST="openmp ^450 ^452 ^456 ^457"
-#AMOD='smd'
-#AMOD='smds'
-#AMOD='lop'
-#AMOD='lops'
-#AMOD='tgt'
-AMOD='tgts'
 
 # MODEL may be one of the following options:
 #   1. "lop" - Use OpenMP with "loop" construct
@@ -43,7 +37,8 @@ AMOD='tgts'
 
 
 cd `realpath .`
-
+runaccel -c amd_aomp.cfg --define model=tgts --reportable --fakereportable   --define gputype=gfx90a -l  -T base  accel  $RBLD 
+exit
 runaccel -c amd_aomp.cfg --define model=tgt    --define gputype=gfx90a -I -l -n 1 -T base -i $DSET $TLIST  $RBLD 
 runaccel -c amd_aomp.cfg --define model=tgts   --define gputype=gfx90a -I -l -n 1 -T base -i $DSET $TLIST  $RBLD 
 runaccel -c amd_aomp.cfg --define model=smd    --define gputype=gfx90a -I -l -n 1 -T base -i $DSET $TLIST  $RBLD 
@@ -52,8 +47,4 @@ runaccel -c amd_aomp.cfg --define model=lop    --define gputype=gfx90a -I -l -n 
 runaccel -c amd_aomp.cfg --define model=lops   --define gputype=gfx90a -I -l -n 1 -T base -i $DSET $TLIST  $RBLD 
 exit
 
-runaccel -c amd_aomp.cfg --define $AMOD --parallel_test=8 --parallel_test_workloads=test     --define gputype=gfx90a -I -l -n 1 -T base -i $DSET $TLIST  $RBLD 
-exit
-runaccel -c amd_aomp.cfg --define $AMOD --parallel_test=8 --parallel_test_workloads=test     --define gputype=gfx90a -I -l -n 1 -T base -i train $TLIST # $RBLD 
-exit
-runaccel -c amd_aomp.cfg --define $AMOD --parallel_test=8 --parallel_test_workloads=test    --define gputype=gfx90a -I -l -n 1 -T base -i ref   $TLIST  # $RBLD 
+runaccel -c amd_aomp.cfg --define model=tgts --parallel_test=8 --parallel_test_workloads=ref  --noreportable   --define gputype=gfx90a -I -l  -T base -i ref -n 1 403 463  $RBLD 
