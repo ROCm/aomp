@@ -142,10 +142,10 @@ fi
 # Build llvm legacy.
 echo " ---  Running make for $BUILD_DIR/build/flang-legacy/$AOMP_LFL_DIR/llvm-legacy ---- "
 cd $BUILD_DIR/build/flang-legacy/$AOMP_LFL_DIR/llvm-legacy
-make -j $AOMP_JOB_THREADS
+make -j $NUM_THREADS
 if [ $? != 0 ] ; then
       echo " "
-      echo "ERROR: make -j $AOMP_JOB_THREADS  FAILED"
+      echo "ERROR: make -j $NUM_THREADS  FAILED"
       echo "To restart:"
       echo "  cd $BUILD_DIR/build/flang-legacy/$AOMP_LFL_DIR/llvm-legacy"
       echo "  make"
@@ -171,10 +171,10 @@ echo
 # Build flang-legacy.
 echo " ---  Running make for $BUILD_DIR/build/flang-legacy/$AOMP_LFL_DIR ---- "
 cd $BUILD_DIR/build/flang-legacy/$AOMP_LFL_DIR
-make -j $AOMP_JOB_THREADS
+make -j $NUM_THREADS
 if [ $? != 0 ] ; then
       echo " "
-      echo "ERROR: make -j $AOMP_JOB_THREADS  FAILED"
+      echo "ERROR: make -j $NUM_THREADS  FAILED"
       echo "To restart:"
       echo "  cd $BUILD_DIR/build/flang-legacy/$AOMP_LFL_DIR"
       echo "  make"
@@ -183,7 +183,7 @@ fi
 
 if [ "$1" == "install" ] ; then
    echo " -----Installing to $AOMP_INSTALL_DIR ---- "
-   $SUDO ${AOMP_CMAKE} --build . -j $AOMP_JOB_THREADS --target install
+   $SUDO ${AOMP_CMAKE} --build . -j $NUM_THREADS --target install
    if [ $? != 0 ] ; then
       echo "ERROR make install failed "
       exit 1
