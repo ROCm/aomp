@@ -10,8 +10,6 @@
 #  tree for flang-legacy.
 #
 BUILD_TYPE=${BUILD_TYPE:-Release}
-AOMP_NINJA_BIN=make
-
 
 # --- Start standard header to set AOMP environment variables ----
 realpath=`realpath $0`
@@ -142,15 +140,15 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 fi
 
 # Build llvm legacy.
-echo " ---  Running $AOMP_NINJA_BIN for $BUILD_DIR/build/flang-legacy/$AOMP_LFL_DIR/llvm-legacy ---- "
+echo " ---  Running make for $BUILD_DIR/build/flang-legacy/$AOMP_LFL_DIR/llvm-legacy ---- "
 cd $BUILD_DIR/build/flang-legacy/$AOMP_LFL_DIR/llvm-legacy
-$AOMP_NINJA_BIN -j $AOMP_JOB_THREADS
+make -j $NUM_THREADS
 if [ $? != 0 ] ; then
       echo " "
       echo "ERROR: make -j $NUM_THREADS  FAILED"
       echo "To restart:"
       echo "  cd $BUILD_DIR/build/flang-legacy/$AOMP_LFL_DIR/llvm-legacy"
-      echo "  $AOMP_NINJA_BIN"
+      echo "  make"
       exit 1
 fi
 
@@ -171,15 +169,15 @@ fi
 echo
 
 # Build flang-legacy.
-echo " ---  Running $AOMP_NINJA_BIN for $BUILD_DIR/build/flang-legacy/$AOMP_LFL_DIR ---- "
+echo " ---  Running make for $BUILD_DIR/build/flang-legacy/$AOMP_LFL_DIR ---- "
 cd $BUILD_DIR/build/flang-legacy/$AOMP_LFL_DIR
-$AOMP_NINJA_BIN -j $AOMP_JOB_THREADS
+make -j $NUM_THREADS
 if [ $? != 0 ] ; then
       echo " "
       echo "ERROR: make -j $NUM_THREADS  FAILED"
       echo "To restart:"
       echo "  cd $BUILD_DIR/build/flang-legacy/$AOMP_LFL_DIR"
-      echo "  $AOMP_NINJA_BIN"
+      echo "  make"
       exit 1
 fi
 
