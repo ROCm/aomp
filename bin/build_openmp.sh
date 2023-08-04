@@ -184,6 +184,25 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
          fi
       fi
 
+      if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
+         ASAN_CMAKE_OPTS="$MYCMAKEOPTS -DSANITIZER_AMDGPU=1 -DLLVM_LIBDIR_SUFFIX=/asan"
+         mkdir -p $BUILD_DIR/build/openmp/asan
+         cd $BUILD_DIR/build/openmp/asan
+         echo " ------Running openmp-asan cmake ---- "
+         if [ $COPYSOURCE ] ; then
+            echo ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DCMAKE_C_FLAGS="'$CFLAGS'" -DCMAKE_CXX_FLAGS="'$CXXFLAGS'" $BUILD_DIR/$AOMP_PROJECT_REPO_NAME/openmp
+            env "$@" ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DCMAKE_C_FLAGS="'$CFLAGS'" -DCMAKE_CXX_FLAGS="'$CXXFLAGS'" $BUILD_DIR/$AOMP_PROJECT_REPO_NAME/openmp
+         else
+            echo ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DCMAKE_C_FLAGS="'$CFLAGS'" -DCMAKE_CXX_FLAGS="'$CXXFLAGS'" $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
+            env "$@" ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DCMAKE_C_FLAGS="'$CFLAGS'" -DCMAKE_CXX_FLAGS="'$CXXFLAGS'" $AOMP_REPOS/../$AOMP_PROJECT_REPO_NAME/openmp
+         fi
+         if [ $? != 0 ] ; then
+            echo "ERROR openmp-asan cmake failed. Cmake flags"
+            echo "      $ASAN_CMAKE_OPTS"
+            exit 1
+         fi
+      fi
+
       echo rm -rf $BUILD_DIR/build/openmp_debug
       rm -rf $BUILD_DIR/build/openmp_debug
       #MYCMAKEOPTS="$COMMON_CMAKE_OPTS -DLIBOMPTARGET_NVPTX_DEBUG=ON -DCMAKE_BUILD_TYPE=Debug $AOMP_ORIGIN_RPATH -DROCM_DIR=$ROCM_DIR -DAOMP_STANDALONE_BUILD=$AOMP_STANDALONE_BUILD"
@@ -224,6 +243,25 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
          fi
       fi
 
+      if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
+         mkdir -p $BUILD_DIR/build/openmp_debug/asan
+         cd $BUILD_DIR/build/openmp_debug/asan
+         echo
+         echo " -----Running openmp cmake for debug-asan ---- "
+         if [ $COPYSOURCE ] ; then
+            echo ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DCMAKE_C_FLAGS="'$CFLAGS -I$ROCM_DIR/include'" -DCMAKE_CXX_FLAGS="'$CXXFLAGS -I$ROCM_DIR/include'" $BUILD_DIR/$AOMP_PROJECT_REPO_NAME/openmp
+            env "$@" ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DCMAKE_C_FLAGS="'$CFLAGS -I$ROCM_DIR/include'" -DCMAKE_CXX_FLAGS="'$CXXFLAGS -I$ROCM_DIR/include'" $BUILD_DIR/$AOMP_PROJECT_REPO_NAME/openmp
+         else
+            # FIXME: Remove CMAKE_CXX_FLAGS and CMAKE_C_FLAGS when AFAR uses 5.3 ROCr.
+            echo ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DCMAKE_C_FLAGS="'$CFLAGS -I$ROCM_DIR/include'" -DCMAKE_CXX_FLAGS="'$CXXFLAGS -I$ROCM_DIR/include'" $AOMP_REPOS/../$AOMP_PROJECT_REPO_NAME/openmp
+            env "$@" ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DCMAKE_C_FLAGS="'$CFLAGS -I$ROCM_DIR/include'" -DCMAKE_CXX_FLAGS="'$CXXFLAGS -I$ROCM_DIR/include'" $AOMP_REPOS/../$AOMP_PROJECT_REPO_NAME/openmp
+         fi
+         if [ $? != 0 ] ; then
+            echo "ERROR openmp debug-asan cmake failed. Cmake flags"
+            echo "      $ASAN_CMAKE_OPTS"
+            exit 1
+         fi
+      fi
       if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
          mkdir -p $BUILD_DIR/build/openmp_debug/asan
          cd $BUILD_DIR/build/openmp_debug/asan
@@ -315,6 +353,26 @@ if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
    fi
 fi
 
+if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
+   cd $BUILD_DIR/build/openmp_debug/asan
+   echo
+   echo
+   echo " -----Running make for $BUILD_DIR/build/openmp_debug/asan ---- "
+   make -j $NUM_THREADS
+   if [ $? != 0 ] ; then
+      echo "ERROR make -j $NUM_THREADS failed"
+      exit 1
+   else
+      if [ "$1" != "install" ] ; then
+         echo
+         echo "Successful ASan build of ./build_openmp.sh .  Please run:"
+         echo "  ./build_openmp.sh install "
+         echo "to install into directory $INSTALL_OPENMP/lib/asan and $INSTALL_OPENMP/lib-debug/asan"
+         echo
+      fi
+   fi
+fi
+
 #  ----------- Install only if asked  ----------------------------
 if [ "$1" == "install" ] ; then
       if [ "$AOMP_BUILD_SANITIZER" != 1 ]; then
@@ -346,6 +404,17 @@ if [ "$1" == "install" ] ; then
          $SUDO make install
          if [ $? != 0 ] ; then
             echo "ERROR make install failed "
+            exit 1
+         fi
+      fi
+
+      if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
+         cd $BUILD_DIR/build/openmp_debug/asan
+         echo
+         echo " ----- Installing to $INSTALL_OPENMP/lib-debug/asan ------ "
+         $SUDO make install
+         if [ $? != 0 ]; then
+            echo "ERROR make install failed for openmp_debug/asan"
             exit 1
          fi
       fi

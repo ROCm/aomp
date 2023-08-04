@@ -1,0 +1,13 @@
+GPU-STREAM
+Version: 2.1
+Implementation: OpenMP 4.5
+Running kernels 10 times
+Precision: double
+Array size: 268.4 MB (=0.3 GB)
+Total size: 805.3 MB (=0.8 GB)
+Possible gpu arch mismatch: device:gfx908, image:gfx90a please check compiler flag: -march=<gpu>
+Libomptarget error: Unable to generate entries table for device id 0.
+Libomptarget error: Failed to init globals on device 0
+Libomptarget error: Consult https://openmp.llvm.org/design/Runtimes.html for debugging options.
+Libomptarget error: Source location information not present. Compile with -g or -gline-tables-only.
+Libomptarget fatal error 1: failure of target construct while offloading is mandatory
