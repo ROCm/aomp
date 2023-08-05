@@ -11,7 +11,9 @@ CC           = $(OMP_BIN) $(VERBOSE)
 #-ccc-print-phases
 #"-\#\#\#"
 
+HSA_XNACK ?= 1
+
 include ../Makefile.rules
 
 run:
-	HSA_XNACK=1 ./$(TESTNAME)
+	HSA_XNACK=${HSA_XNACK} ./$(TESTNAME)

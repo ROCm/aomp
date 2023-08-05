@@ -8,10 +8,12 @@ TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 CLANG        = clang++
 OMP_BIN      = $(AOMP)/bin/$(CLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
+HSA_XNACK ?= 1
+
 #-ccc-print-phases
 #"-\#\#\#"
 
 include ../Makefile.rules
 
 run:
-	HSA_XNACK=1 ./correct
+	HSA_XNACK=${HSA_XNACK} ./correct

@@ -9,10 +9,13 @@ CLANG        = clang++  --std=c++17  -fnew-alignment=256  -D__HIP_PLATFORM_AMD__
 
 OMP_BIN      = $(AOMP)/bin/$(CLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
+
+HSA_XNACK ?= 1
+
 #-ccc-print-phases
 #"-\#\#\#"
 
 include ../Makefile.rules
 run: $(TESTNAME)
-	        HSA_XNACK=1 ./$(TESTNAME)
+	        HSA_XNACK=${HSA_XNACK} ./$(TESTNAME)
 

@@ -85,12 +85,13 @@ else
   CFLAGS = -x hip -std=c++11 $(HIPLIBS) -lamdhip64 -mcode-object-version=4
 endif
 
+HSA_XNACK ?= 1
 # ----- Demo compile and link in one step, no object code saved
 $(TESTNAME): $(TESTNAME).$(FILETYPE)
 	$(CC) $(CFLAGS) $(strip $(TARGETS)):xnack+ $(LFLAGS) $^ -o $@
 
 run: $(TESTNAME)
-	HSA_XNACK=1 ./$(TESTNAME)
+	HSA_XNACK=${HSA_XNACK} ./$(TESTNAME)
 
 #  ----   Demo compile and link in two steps, object saved
 $(TESTNAME).o: $(TESTNAME).$(FILETYPE)

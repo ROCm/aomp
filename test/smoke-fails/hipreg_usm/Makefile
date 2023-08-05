@@ -12,6 +12,9 @@ CLANG        = clang++
 OMP_BIN      = $(AOMP)/bin/$(CLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
 EXTRA_CFLAGS = -L$(AOMPHIP)/lib -lamdhip64 -Wl,-rpath,$(AOMPHIP)/lib
+
+HSA_XNACK ?= 1
+
 #-ccc-print-phases
 #"-\#\#\#"
 
@@ -22,4 +25,4 @@ hip_hostreg.o : hip_hostreg.hip
 	$(HIPCC) -c --offload-arch=$(AOMP_GPU) $^ -o $@
 
 run:
-	HSA_XNACK=1 ./$(TESTNAME)
+	HSA_XNACK=${HSA_XNACK} ./$(TESTNAME)

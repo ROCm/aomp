@@ -11,10 +11,13 @@ OMP_FLAGS	+=  -DUSE_USM -march=znver3 -O3 -std=c++17 -D__HIP_PLATFORM_AMD__ -O3 
 
 OMP_BIN      = $(AOMP)/bin/$(CLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
+
+HSA_XNACK ?= 1
+
 #-ccc-print-phases
 #"-\#\#\#"
 
 include ../Makefile.rules
 
 run:
-	HSA_XNACK=1 ./${TESTNAME}
+	HSA_XNACK=${HSA_XNACK} ./${TESTNAME}

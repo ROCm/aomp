@@ -86,12 +86,14 @@ LFLAGS  =
 HIPLIBS = -L $(AOMPHIP)/lib  $(RPTH)
 CFLAGS  = -O0 -g -x hip -std=c++11 $(HIPLIBS) -lamdhip64
 
+HSA_XNACK ?= 1
+
 # ----- Demo compile and link in one step, no object code saved
 $(TESTNAME): $(TESTNAME).$(FILETYPE)
 	$(CC) $(CFLAGS) $(TARGETS) $(ASAN_FLAGS) $(LFLAGS) $^ -o $@
 
 run: $(TESTNAME)
-	HSA_XNACK=1 ./$(TESTNAME)
+	HSA_XNACK=${HSA_XNACK} ./$(TESTNAME)
 
 #  ----   Demo compile and link in two steps, object saved
 $(TESTNAME).o: $(TESTNAME).$(FILETYPE)
