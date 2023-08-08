@@ -17,6 +17,11 @@ function clean(){
 
 clean
 
+lspci | grep -s VMware
+if [ $? -ne 0 ] ; then
+  echo test_requires_unified_shared_memory.cxx >> test_list
+  echo test_requires_unified_shared_memory.cxx added
+fi
 AOMP=${AOMP:-/usr/lib/aomp}
 AOMP_GPU=${AOMP_GPU:-`$AOMP/bin/mygpu`}
 export AOMP AOMP_GPU
