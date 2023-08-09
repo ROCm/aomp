@@ -13,4 +13,12 @@ integer :: new_len
 
     PRINT *, new_len
     PRINT *, sp
+
+if (sp /= new_len) then     
+    print*, "======= FORTRAN Test Failed! ======="
+    stop 1    
+end if  
+
+print*, "======= FORTRAN Test passed! ======="
+
 end program
