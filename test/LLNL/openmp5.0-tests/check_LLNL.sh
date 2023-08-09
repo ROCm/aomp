@@ -39,7 +39,7 @@ if [ "$1" == "log" ]; then
     log="LLNL.run.log.$date"
   fi
   echo "Log enabled: $log"
- timeout -s 9 120 ./test.py $AOMP $AOMP_GPU 2>&1 | tee $log
+ timeout 120 ./test.py $AOMP $AOMP_GPU 2>&1 | tee $log
 else
- timeout -s 9 120 ./test.py $AOMP $AOMP_GPU
+ timeout 120 ./test.py $AOMP $AOMP_GPU
 fi
