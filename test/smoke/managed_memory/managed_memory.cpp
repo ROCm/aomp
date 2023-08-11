@@ -23,6 +23,12 @@ int main() {
 }
 #else
 int main() {
+  char* hsax = getenv("HSA_XNACK");
+  if (!hsax || atoi(hsax) == 0) {
+    printf("This test only works on HSA_XNACK enabled I200 systems (gfx90a).\n");
+    printf("Existing with pass\n");
+    return 0;
+  }
   int max_devs = omp_get_num_devices();
 
   // not enough devices for testing?
