@@ -172,7 +172,7 @@ In addition, this level enables more aggressive code hoisting and scalar replace
 ]]>
 </flag>
 
-<flag name="offload-mandatory" class="portability"
+<flag name="offload-mandatory" class="optimization"
  regexp="-offload-mandatory\b">
 <![CDATA[
 <p>Make offload mandatory.</p>
