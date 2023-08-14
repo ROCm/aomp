@@ -5,7 +5,14 @@ TESTSRC_MAIN = async-events.cpp
 TESTSRC_AUX  = empty-sink.c
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 
-RUNCMD      = OMP_NUM_THREADS=2 rocprof --hsa-trace ./$(TESTNAME) && python3 countQueueCreateEvents.py 2
+AOMPROCM ?= $(AOMP)
+ifneq (,$(wildcard $(AOMPROCM)/bin/rocprof))
+	RUNPROF   = $(AOMPROCM)/bin/rocprof
+else
+	RUNPROF   = $(AOMPROCM)/../bin/rocprof
+endif
+
+RUNCMD      = OMP_NUM_THREADS=2 $(RUNPROF) --hsa-trace ./$(TESTNAME) && python3 countQueueCreateEvents.py 2
 
 CLANG        ?= clang++
 OMP_BIN      = $(AOMP)/bin/$(CLANG)
