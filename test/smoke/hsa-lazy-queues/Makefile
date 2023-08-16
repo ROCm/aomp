@@ -13,7 +13,7 @@ else
 endif
 
 RUNCMD      = --hsa-trace ./$(TESTNAME) && python3 countQueueCreateEvents.py 2
-RUNENV      = OMP_NUM_THREADS=2
+RUNENV      = OMP_NUM_THREADS=2 LIBOMPTARGET_AMDGPU_HSA_QUEUE_BUSY_TRACKING=1
 
 CLANG        ?= clang++
 OMP_BIN      = $(AOMP)/bin/$(CLANG)
