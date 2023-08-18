@@ -58,7 +58,7 @@ echo
 # Ensure the prereq components in $HOME/local are up to date.
 # By default build_prereq.sh will build cmake rocmsmilib and hwloc
 # For trunk, we only need the current cmake.
-export PREREQUISITE_COMPONENTS="cmake"
+export PREREQUISITE_COMPONENTS=${PREREQUISITE_COMPONENTS:-cmake}
 components="$TRUNK_COMPONENT_LIST"
 echo "COMPONENTS:$components"
 

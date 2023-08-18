@@ -186,7 +186,7 @@ if [ "$AOMP_PARALLEL_SMOKE" == 1 ]; then
           popd > /dev/null
           continue
         fi
-      elif [ $base == 'devices' ] || [ $base == 'stream' ] ; then
+      elif [ $base == 'devices' ] || [ $base == 'stream' ]; then
         sem --jobs 4 --id def_sem -u 'make run > /dev/null 2>&1'
         sem --jobs 4 --id def_sem -u 'make check > /dev/null 2>&1'
       elif [ $base == 'printf_parallel_for_target' ] || [ $base == 'omp_places' ] || [ $base == 'pfspecifier' ] || [ $base == 'pfspecifier_str' ] ; then
@@ -250,7 +250,7 @@ for directory in ./*/; do
     popd > /dev/null
     continue
   fi
-  if [ $base == 'devices' ] || [ $base == 'stream' ] ; then
+  if [ $base == 'devices' ] || [ $base == 'stream' ]; then
     make run > /dev/null 2>&1
     make check > /dev/null 2>&1
   elif [ $base == 'flags' ] ; then # Flags has multiple runs

@@ -36,7 +36,7 @@ index 941704e..0846f05 100644
 +program := $(shell basename $(main_folder))
  results_folder := $(main_folder)/results
  error_log := $(results_folder)/error.log
- compile_log := $(results_folder)/compile.log
+ compile_log := $(results_folder)/compile.log   
 diff --git a/Makefile.rules b/Makefile.rules
 index 5a37204..525a9d2 100644
 --- a/Makefile.rules
@@ -65,8 +65,8 @@ index cf913e4..64c8957 100644
 @@ -2,6 +2,8 @@ include ../Makefile.defs
  
  EXTRAFLAGS := -O3 -Xclang -disable-llvm-optzns -fopenmp-version=45
- 
-+export HSA_XNACK=1
+
++export HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -78,8 +78,8 @@ index 2de5960..89927d9 100644
 @@ -2,6 +2,8 @@ include ../Makefile.defs
  
  EXTRAFLAGS := -O3
- 
-+export HSA_XNACK=1
+
++export HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -91,8 +91,8 @@ index 88732ac..6894ef9 100644
 @@ -6,6 +6,8 @@ endif
  
  EXTRAFLAGS += -O0 -fno-exceptions
- 
-+export HSA_XNACK=1
+
++export HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -104,8 +104,8 @@ index 88732ac..6894ef9 100644
 @@ -6,6 +6,8 @@ endif
  
  EXTRAFLAGS += -O0 -fno-exceptions
- 
-+export HSA_XNACK=1
+
++export HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -117,8 +117,8 @@ index 2de5960..89927d9 100644
 @@ -2,6 +2,8 @@ include ../Makefile.defs
  
  EXTRAFLAGS := -O3
- 
-+export HSA_XNACK=1
+
++export HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -130,8 +130,8 @@ index 2de5960..89927d9 100644
 @@ -2,6 +2,8 @@ include ../Makefile.defs
  
  EXTRAFLAGS := -O3
- 
-+export HSA_XNACK=1
+
++export HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -143,8 +143,8 @@ index f342ace..574a741 100644
 @@ -2,6 +2,8 @@ include ../Makefile.defs
  
  EXTRAFLAGS := -O3 --cuda-noopt-device-debug
- 
-+export HSA_XNACK=1
+
++export HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -156,8 +156,8 @@ index 2de5960..89927d9 100644
 @@ -2,6 +2,8 @@ include ../Makefile.defs
  
  EXTRAFLAGS := -O3
- 
-+export HSA_XNACK=1
+
++export HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -169,8 +169,8 @@ index bcdf6fd..d395f04 100644
 @@ -6,6 +6,8 @@ endif
  
  EXTRAFLAGS += -O3
- 
-+export HSA_XNACK=1
+
++export HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -182,8 +182,8 @@ index 2de5960..89927d9 100644
 @@ -2,6 +2,8 @@ include ../Makefile.defs
  
  EXTRAFLAGS := -O3
- 
-+export HSA_XNACK=1
+
++export HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -195,8 +195,8 @@ index c9163fd..b46b9ab 100644
 @@ -6,6 +6,8 @@ endif
  
  EXTRAFLAGS += -O3
- 
-+export HSA_XNACK=1
+
++export HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -208,8 +208,8 @@ index cbf782c..59929ed 100644
 @@ -2,6 +2,8 @@ include ../Makefile.defs
  
  EXTRAFLAGS := -O3 -fno-exceptions
- 
-+export HSA_XNACK=1
+
++export HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -221,8 +221,8 @@ index f1a0449..1029bc3 100644
 @@ -6,6 +6,8 @@ endif
  
  EXTRAFLAGS += -O1
- 
-+export HSA_XNACK=1
+
++export HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -234,8 +234,8 @@ index cbf782c..59929ed 100644
 @@ -2,6 +2,8 @@ include ../Makefile.defs
  
  EXTRAFLAGS := -O3 -fno-exceptions
- 
-+export HSA_XNACK=1
+
++export HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -247,8 +247,8 @@ index 2de5960..89927d9 100644
 @@ -2,6 +2,8 @@ include ../Makefile.defs
  
  EXTRAFLAGS := -O3
- 
-+export HSA_XNACK=1
+
++export HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -260,8 +260,8 @@ index 2de5960..89927d9 100644
 @@ -2,6 +2,8 @@ include ../Makefile.defs
  
  EXTRAFLAGS := -O3
- 
-+export HSA_XNACK=1
+
++export HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -273,8 +273,8 @@ index 2de5960..89927d9 100644
 @@ -2,6 +2,8 @@ include ../Makefile.defs
  
  EXTRAFLAGS := -O3
- 
-+export HSA_XNACK=1
+
++export HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -286,8 +286,8 @@ index 2de5960..89927d9 100644
 @@ -2,6 +2,8 @@ include ../Makefile.defs
  
  EXTRAFLAGS := -O3
- 
-+export HSA_XNACK=1
+
++export HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -299,8 +299,8 @@ index 3e1acbe..306d7a1 100644
 @@ -10,6 +10,8 @@ endif
  
  EXTRAFLAGS += -O3
- 
-+export HSA_XNACK=1
+
++export HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -312,8 +312,8 @@ index 2de5960..89927d9 100644
 @@ -2,6 +2,8 @@ include ../Makefile.defs
  
  EXTRAFLAGS := -O3
- 
-+export HSA_XNACK=1
+
++export HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -325,8 +325,8 @@ index cbf782c..59929ed 100644
 @@ -2,6 +2,8 @@ include ../Makefile.defs
  
  EXTRAFLAGS := -O3 -fno-exceptions
- 
-+export HSA_XNACK=1
+
++export HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -338,8 +338,8 @@ index 92e5999..b0d82fe 100644
 @@ -2,6 +2,8 @@ include ../Makefile.defs
  
  EXTRAFLAGS := -O3 -std=c++11
- 
-+export HSA_XNACK=1
+
++export HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -351,8 +351,8 @@ index 2de5960..89927d9 100644
 @@ -2,6 +2,8 @@ include ../Makefile.defs
  
  EXTRAFLAGS := -O3
- 
-+export HSA_XNACK=1
+
++export HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -364,8 +364,8 @@ index 2de5960..89927d9 100644
 @@ -2,6 +2,8 @@ include ../Makefile.defs
  
  EXTRAFLAGS := -O3
- 
-+export HSA_XNACK=1
+
++export HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -377,8 +377,8 @@ index 2de5960..89927d9 100644
 @@ -2,6 +2,8 @@ include ../Makefile.defs
  
  EXTRAFLAGS := -O3
- 
-+export HSA_XNACK=1
+
++export HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -390,8 +390,8 @@ index 2de5960..89927d9 100644
 @@ -2,6 +2,8 @@ include ../Makefile.defs
  
  EXTRAFLAGS := -O3
- 
-+export HSA_XNACK=1
+
++export HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -403,8 +403,8 @@ index 2de5960..89927d9 100644
 @@ -2,6 +2,8 @@ include ../Makefile.defs
  
  EXTRAFLAGS := -O3
- 
-+export HSA_XNACK=1
+
++export HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -416,8 +416,8 @@ index 2de5960..89927d9 100644
 @@ -2,6 +2,8 @@ include ../Makefile.defs
  
  EXTRAFLAGS := -O3
- 
-+export HSA_XNACK=1
+
++export HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -429,8 +429,8 @@ index 3e1acbe..306d7a1 100644
 @@ -10,6 +10,8 @@ endif
  
  EXTRAFLAGS += -O3
- 
-+export HSA_XNACK=1
+
++export HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -442,8 +442,8 @@ index c9163fd..b46b9ab 100644
 @@ -6,6 +6,8 @@ endif
  
  EXTRAFLAGS += -O3
- 
-+export HSA_XNACK=1
+
++export HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -455,8 +455,8 @@ index 2de5960..89927d9 100644
 @@ -2,6 +2,8 @@ include ../Makefile.defs
  
  EXTRAFLAGS := -O3
- 
-+export HSA_XNACK=1
+
++export HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -468,8 +468,8 @@ index 2de5960..89927d9 100644
 @@ -2,6 +2,8 @@ include ../Makefile.defs
  
  EXTRAFLAGS := -O3
- 
-+export HSA_XNACK=1
+
++export HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -481,8 +481,8 @@ index 2de5960..89927d9 100644
 @@ -2,6 +2,8 @@ include ../Makefile.defs
  
  EXTRAFLAGS := -O3
- 
-+export HSA_XNACK=1
+
++export HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -494,8 +494,8 @@ index 922bb69..90b1fb0 100644
 @@ -2,6 +2,8 @@ include ../Makefile.defs
  
  EXTRAFLAGS := -O3 -fopenmp-version=45
- 
-+export HSA_XNACK=1
+
++export HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -507,8 +507,8 @@ index 92e5999..b0d82fe 100644
 @@ -2,6 +2,8 @@ include ../Makefile.defs
  
  EXTRAFLAGS := -O3 -std=c++11
- 
-+export HSA_XNACK=1
+
++export HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -520,8 +520,8 @@ index cbf782c..59929ed 100644
 @@ -2,6 +2,8 @@ include ../Makefile.defs
  
  EXTRAFLAGS := -O3 -fno-exceptions
- 
-+export HSA_XNACK=1
+
++export HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -533,8 +533,8 @@ index 2de5960..89927d9 100644
 @@ -2,6 +2,8 @@ include ../Makefile.defs
  
  EXTRAFLAGS := -O3
- 
-+export HSA_XNACK=1
+
++export HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -546,8 +546,8 @@ index 2de5960..89927d9 100644
 @@ -2,6 +2,8 @@ include ../Makefile.defs
  
  EXTRAFLAGS := -O3
- 
-+export HSA_XNACK=1
+
++export HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -559,8 +559,8 @@ index 2de5960..89927d9 100644
 @@ -2,6 +2,8 @@ include ../Makefile.defs
  
  EXTRAFLAGS := -O3
- 
-+export HSA_XNACK=1
+
++export HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -572,8 +572,8 @@ index 2de5960..89927d9 100644
 @@ -2,6 +2,8 @@ include ../Makefile.defs
  
  EXTRAFLAGS := -O3
- 
-+export HSA_XNACK=1
+
++export HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -585,8 +585,8 @@ index 922bb69..90b1fb0 100644
 @@ -2,6 +2,8 @@ include ../Makefile.defs
  
  EXTRAFLAGS := -O3 -fopenmp-version=45
- 
-+export HSA_XNACK=1
+
++export HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -598,8 +598,8 @@ index 2de5960..89927d9 100644
 @@ -2,6 +2,8 @@ include ../Makefile.defs
  
  EXTRAFLAGS := -O3
- 
-+export HSA_XNACK=1
+
++export HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -611,8 +611,8 @@ index 2de5960..89927d9 100644
 @@ -2,6 +2,8 @@ include ../Makefile.defs
  
  EXTRAFLAGS := -O3
- 
-+export HSA_XNACK=1
+
++export HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -624,8 +624,8 @@ index 2de5960..89927d9 100644
 @@ -2,6 +2,8 @@ include ../Makefile.defs
  
  EXTRAFLAGS := -O3
- 
-+export HSA_XNACK=1
+
++export HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -637,8 +637,8 @@ index c9163fd..b46b9ab 100644
 @@ -6,6 +6,8 @@ endif
  
  EXTRAFLAGS += -O3
- 
-+export HSA_XNACK=1
+
++export HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -650,8 +650,8 @@ index c9163fd..b46b9ab 100644
 @@ -6,6 +6,8 @@ endif
  
  EXTRAFLAGS += -O3
- 
-+export HSA_XNACK=1
+
++export HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -663,8 +663,8 @@ index 922bb69..90b1fb0 100644
 @@ -2,6 +2,8 @@ include ../Makefile.defs
  
  EXTRAFLAGS := -O3 -fopenmp-version=45
- 
-+export HSA_XNACK=1
+
++export HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -676,8 +676,8 @@ index 2de5960..89927d9 100644
 @@ -2,6 +2,8 @@ include ../Makefile.defs
  
  EXTRAFLAGS := -O3
- 
-+export HSA_XNACK=1
+
++export HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -689,8 +689,8 @@ index 922bb69..90b1fb0 100644
 @@ -2,6 +2,8 @@ include ../Makefile.defs
  
  EXTRAFLAGS := -O3 -fopenmp-version=45
- 
-+export HSA_XNACK=1
+
++export HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -702,8 +702,8 @@ index 2de5960..89927d9 100644
 @@ -2,6 +2,8 @@ include ../Makefile.defs
  
  EXTRAFLAGS := -O3
- 
-+export HSA_XNACK=1
+
++export HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -715,8 +715,8 @@ index c9163fd..b46b9ab 100644
 @@ -6,6 +6,8 @@ endif
  
  EXTRAFLAGS += -O3
- 
-+export HSA_XNACK=1
+
++export HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -728,8 +728,8 @@ index 2de5960..89927d9 100644
 @@ -2,6 +2,8 @@ include ../Makefile.defs
  
  EXTRAFLAGS := -O3
- 
-+export HSA_XNACK=1
+
++export HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -741,8 +741,8 @@ index c9163fd..b46b9ab 100644
 @@ -6,6 +6,8 @@ endif
  
  EXTRAFLAGS += -O3
- 
-+export HSA_XNACK=1
+
++export HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -754,8 +754,8 @@ index 2de5960..89927d9 100644
 @@ -2,6 +2,8 @@ include ../Makefile.defs
  
  EXTRAFLAGS := -O3
- 
-+export HSA_XNACK=1
+
++export HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -767,8 +767,8 @@ index 2de5960..89927d9 100644
 @@ -2,6 +2,8 @@ include ../Makefile.defs
  
  EXTRAFLAGS := -O3
- 
-+export HSA_XNACK=1
+
++export HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -780,8 +780,8 @@ index cbf782c..59929ed 100644
 @@ -2,6 +2,8 @@ include ../Makefile.defs
  
  EXTRAFLAGS := -O3 -fno-exceptions
- 
-+export HSA_XNACK=1
+
++export HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -793,8 +793,8 @@ index cbf782c..59929ed 100644
 @@ -2,6 +2,8 @@ include ../Makefile.defs
  
  EXTRAFLAGS := -O3 -fno-exceptions
- 
-+export HSA_XNACK=1
+
++export HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -806,8 +806,8 @@ index c9163fd..b46b9ab 100644
 @@ -6,6 +6,8 @@ endif
  
  EXTRAFLAGS += -O3
- 
-+export HSA_XNACK=1
+
++export HSA_XNACK ?= 1
 +
  ################################################################################
  #

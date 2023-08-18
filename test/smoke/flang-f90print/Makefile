@@ -11,4 +11,8 @@ CC           = $(OMP_BIN) $(VERBOSE)
 #-ccc-print-phases
 #"-\#\#\#"
 
+RUNCMD       = ./$(TESTNAME) 2>&1 | grep -q 'f90print inside target region' && echo 'Success' || (echo 'Failure' && false)
+
 include ../Makefile.rules
+run: $(TESTNAME)
+	$(RUNCMD)

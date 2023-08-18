@@ -11,6 +11,5 @@ test_noncontiguous_update.cxx
 test_omp_pause_resources.cxx
 test_order_concurrent.cxx
 test_pointer_attach.cxx
-test_requires_unified_shared_memory.cxx
 test_scan.cxx
 test_use_device_addr.cxx

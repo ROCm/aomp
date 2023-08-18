@@ -6,7 +6,10 @@ int main() {
   int sum = 0;
   int fail = 0;
 
-  #pragma omp loop reduction(+:sum)
+  // If a loop construct is not nested inside another OpenMP construct then
+  // the bind clause must be present. The following 'loop' directive is
+  // equivalent to a 'for' (a worksharing-loop).
+  #pragma omp loop reduction(+:sum) bind(parallel)
   for(k=0; k<10; k++) {
     sum += k;
   }

@@ -17,6 +17,14 @@ function clean(){
 
 clean
 
+lspci | grep -s VMware
+if [ $? -ne 0 ] ; then
+  grep -s test_requires_unified_shared_memory.cxx test_list
+  if [ $? -ne 0 ] ; then
+    echo test_requires_unified_shared_memory.cxx >> test_list
+    echo test_requires_unified_shared_memory.cxx added
+  fi
+fi
 AOMP=${AOMP:-/usr/lib/aomp}
 AOMP_GPU=${AOMP_GPU:-`$AOMP/bin/mygpu`}
 export AOMP AOMP_GPU
@@ -31,7 +39,7 @@ if [ "$1" == "log" ]; then
     log="LLNL.run.log.$date"
   fi
   echo "Log enabled: $log"
- ./test.py $AOMP $AOMP_GPU 2>&1 | tee $log
+ timeout 120 ./test.py $AOMP $AOMP_GPU 2>&1 | tee $log
 else
- ./test.py $AOMP $AOMP_GPU
+ timeout 120 ./test.py $AOMP $AOMP_GPU
 fi
