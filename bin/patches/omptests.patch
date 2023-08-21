@@ -36,16 +36,37 @@ index 941704e..0846f05 100644
 +program := $(shell basename $(main_folder))
  results_folder := $(main_folder)/results
  error_log := $(results_folder)/error.log
- compile_log := $(results_folder)/compile.log
+ compile_log := $(results_folder)/compile.log   
+diff --git a/Makefile.rules b/Makefile.rules
+index 5a37204..525a9d2 100644
+--- a/Makefile.rules
++++ b/Makefile.rules
+@@ -83,7 +83,8 @@ run: prepare_folder_to_run
+ 	@export LIBRARY_PATH
+ 	@export LD_LIBRARY_PATH
+ 	@echo "$(cmd) -o $(results_folder)/a.out" >> $(compile_cmd)
+-	@$(results_folder)/a.out 1>$(results_folder)/stdout 2>$(results_folder)/stderr ; true
++	@echo "HSA_XNACK=$(HSA_XNACK)"
++	@HSA_XNACK=$(HSA_XNACK) $(results_folder)/a.out 1>$(results_folder)/stdout 2>$(results_folder)/stderr ; true
+ 	@diff $(results_folder)/stdout expected > /dev/null || \
+ 	(if [ $$? ] ; then \
+ 		echo "#### Error #### Result mismatch for $(main_folder)" | tee -a $(error_log); \
+@@ -107,4 +108,4 @@ prepare_folder_to_run:
+ 	@echo "export LIBRARY_PATH=\"$(LIBRARY_PATH)\"" >  $(compile_cmd)
+ 	@echo "export LD_LIBRARY_PATH=\"$(LD_LIBRARY_PATH)\"" >>  $(compile_cmd)
+ 	@echo "cd $(main_folder)" >>  $(compile_cmd)
+-  
+\ No newline at end of file
++
 diff --git a/t-unified-barrier/Makefile b/t-unified-barrier/Makefile
 index cf913e4..64c8957 100644
 --- a/t-unified-barrier/Makefile
 +++ b/t-unified-barrier/Makefile
 @@ -2,6 +2,8 @@ include ../Makefile.defs
-
+ 
  EXTRAFLAGS := -O3 -Xclang -disable-llvm-optzns -fopenmp-version=45
 
-+export HSA_XNACK ?= 1
++HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -55,10 +76,10 @@ index 2de5960..89927d9 100644
 --- a/t-unified-concurrent-target/Makefile
 +++ b/t-unified-concurrent-target/Makefile
 @@ -2,6 +2,8 @@ include ../Makefile.defs
-
+ 
  EXTRAFLAGS := -O3
 
-+export HSA_XNACK ?= 1
++HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -68,10 +89,10 @@ index 88732ac..6894ef9 100644
 --- a/t-unified-data-sharing-many-teams/Makefile
 +++ b/t-unified-data-sharing-many-teams/Makefile
 @@ -6,6 +6,8 @@ endif
-
+ 
  EXTRAFLAGS += -O0 -fno-exceptions
 
-+export HSA_XNACK ?= 1
++HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -81,10 +102,10 @@ index 88732ac..6894ef9 100644
 --- a/t-unified-data-sharing/Makefile
 +++ b/t-unified-data-sharing/Makefile
 @@ -6,6 +6,8 @@ endif
-
+ 
  EXTRAFLAGS += -O0 -fno-exceptions
 
-+export HSA_XNACK ?= 1
++HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -94,10 +115,10 @@ index 2de5960..89927d9 100644
 --- a/t-unified-declare-simd/Makefile
 +++ b/t-unified-declare-simd/Makefile
 @@ -2,6 +2,8 @@ include ../Makefile.defs
-
+ 
  EXTRAFLAGS := -O3
 
-+export HSA_XNACK ?= 1
++HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -107,10 +128,10 @@ index 2de5960..89927d9 100644
 --- a/t-unified-defaultmap/Makefile
 +++ b/t-unified-defaultmap/Makefile
 @@ -2,6 +2,8 @@ include ../Makefile.defs
-
+ 
  EXTRAFLAGS := -O3
 
-+export HSA_XNACK ?= 1
++HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -120,10 +141,10 @@ index f342ace..574a741 100644
 --- a/t-unified-distribute-parallel-for-back2back/Makefile
 +++ b/t-unified-distribute-parallel-for-back2back/Makefile
 @@ -2,6 +2,8 @@ include ../Makefile.defs
-
+ 
  EXTRAFLAGS := -O3 --cuda-noopt-device-debug
 
-+export HSA_XNACK ?= 1
++HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -133,10 +154,10 @@ index 2de5960..89927d9 100644
 --- a/t-unified-distribute-simd-clauses/Makefile
 +++ b/t-unified-distribute-simd-clauses/Makefile
 @@ -2,6 +2,8 @@ include ../Makefile.defs
-
+ 
  EXTRAFLAGS := -O3
 
-+export HSA_XNACK ?= 1
++HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -146,10 +167,10 @@ index bcdf6fd..d395f04 100644
 --- a/t-unified-distribute-simd-dist-clauses/Makefile
 +++ b/t-unified-distribute-simd-dist-clauses/Makefile
 @@ -6,6 +6,8 @@ endif
-
+ 
  EXTRAFLAGS += -O3
 
-+export HSA_XNACK ?= 1
++HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -159,10 +180,10 @@ index 2de5960..89927d9 100644
 --- a/t-unified-distribute-simd/Makefile
 +++ b/t-unified-distribute-simd/Makefile
 @@ -2,6 +2,8 @@ include ../Makefile.defs
-
+ 
  EXTRAFLAGS := -O3
 
-+export HSA_XNACK ?= 1
++HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -172,10 +193,10 @@ index c9163fd..b46b9ab 100644
 --- a/t-unified-distribute/Makefile
 +++ b/t-unified-distribute/Makefile
 @@ -6,6 +6,8 @@ endif
-
+ 
  EXTRAFLAGS += -O3
 
-+export HSA_XNACK ?= 1
++HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -185,10 +206,10 @@ index cbf782c..59929ed 100644
 --- a/t-unified-dpf/Makefile
 +++ b/t-unified-dpf/Makefile
 @@ -2,6 +2,8 @@ include ../Makefile.defs
-
+ 
  EXTRAFLAGS := -O3 -fno-exceptions
 
-+export HSA_XNACK ?= 1
++HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -198,10 +219,10 @@ index f1a0449..1029bc3 100644
 --- a/t-unified-dpfs-dist-clauses/Makefile
 +++ b/t-unified-dpfs-dist-clauses/Makefile
 @@ -6,6 +6,8 @@ endif
-
+ 
  EXTRAFLAGS += -O1
 
-+export HSA_XNACK ?= 1
++HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -211,10 +232,10 @@ index cbf782c..59929ed 100644
 --- a/t-unified-dpfs/Makefile
 +++ b/t-unified-dpfs/Makefile
 @@ -2,6 +2,8 @@ include ../Makefile.defs
-
+ 
  EXTRAFLAGS := -O3 -fno-exceptions
 
-+export HSA_XNACK ?= 1
++HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -224,10 +245,10 @@ index 2de5960..89927d9 100644
 --- a/t-unified-exceptions/Makefile
 +++ b/t-unified-exceptions/Makefile
 @@ -2,6 +2,8 @@ include ../Makefile.defs
-
+ 
  EXTRAFLAGS := -O3
 
-+export HSA_XNACK ?= 1
++HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -237,10 +258,10 @@ index 2de5960..89927d9 100644
 --- a/t-unified-firstprivate-of-reference/Makefile
 +++ b/t-unified-firstprivate-of-reference/Makefile
 @@ -2,6 +2,8 @@ include ../Makefile.defs
-
+ 
  EXTRAFLAGS := -O3
 
-+export HSA_XNACK ?= 1
++HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -250,10 +271,10 @@ index 2de5960..89927d9 100644
 --- a/t-unified-flush/Makefile
 +++ b/t-unified-flush/Makefile
 @@ -2,6 +2,8 @@ include ../Makefile.defs
-
+ 
  EXTRAFLAGS := -O3
 
-+export HSA_XNACK ?= 1
++HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -263,10 +284,10 @@ index 2de5960..89927d9 100644
 --- a/t-unified-for-simd/Makefile
 +++ b/t-unified-for-simd/Makefile
 @@ -2,6 +2,8 @@ include ../Makefile.defs
-
+ 
  EXTRAFLAGS := -O3
 
-+export HSA_XNACK ?= 1
++HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -276,10 +297,10 @@ index 3e1acbe..306d7a1 100644
 --- a/t-unified-for/Makefile
 +++ b/t-unified-for/Makefile
 @@ -10,6 +10,8 @@ endif
-
+ 
  EXTRAFLAGS += -O3
 
-+export HSA_XNACK ?= 1
++HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -289,10 +310,10 @@ index 2de5960..89927d9 100644
 --- a/t-unified-ignore-unmappable-types/Makefile
 +++ b/t-unified-ignore-unmappable-types/Makefile
 @@ -2,6 +2,8 @@ include ../Makefile.defs
-
+ 
  EXTRAFLAGS := -O3
 
-+export HSA_XNACK ?= 1
++HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -302,10 +323,10 @@ index cbf782c..59929ed 100644
 --- a/t-unified-implicit-firstprivate/Makefile
 +++ b/t-unified-implicit-firstprivate/Makefile
 @@ -2,6 +2,8 @@ include ../Makefile.defs
-
+ 
  EXTRAFLAGS := -O3 -fno-exceptions
 
-+export HSA_XNACK ?= 1
++HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -315,10 +336,10 @@ index 92e5999..b0d82fe 100644
 --- a/t-unified-is-device-ptr-all-directives/Makefile
 +++ b/t-unified-is-device-ptr-all-directives/Makefile
 @@ -2,6 +2,8 @@ include ../Makefile.defs
-
+ 
  EXTRAFLAGS := -O3 -std=c++11
 
-+export HSA_XNACK ?= 1
++HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -328,10 +349,10 @@ index 2de5960..89927d9 100644
 --- a/t-unified-l2-parallel/Makefile
 +++ b/t-unified-l2-parallel/Makefile
 @@ -2,6 +2,8 @@ include ../Makefile.defs
-
+ 
  EXTRAFLAGS := -O3
 
-+export HSA_XNACK ?= 1
++HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -341,10 +362,10 @@ index 2de5960..89927d9 100644
 --- a/t-unified-large-args/Makefile
 +++ b/t-unified-large-args/Makefile
 @@ -2,6 +2,8 @@ include ../Makefile.defs
-
+ 
  EXTRAFLAGS := -O3
 
-+export HSA_XNACK ?= 1
++HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -354,10 +375,10 @@ index 2de5960..89927d9 100644
 --- a/t-unified-map-more-than/Makefile
 +++ b/t-unified-map-more-than/Makefile
 @@ -2,6 +2,8 @@ include ../Makefile.defs
-
+ 
  EXTRAFLAGS := -O3
 
-+export HSA_XNACK ?= 1
++HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -367,10 +388,10 @@ index 2de5960..89927d9 100644
 --- a/t-unified-master/Makefile
 +++ b/t-unified-master/Makefile
 @@ -2,6 +2,8 @@ include ../Makefile.defs
-
+ 
  EXTRAFLAGS := -O3
 
-+export HSA_XNACK ?= 1
++HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -380,10 +401,10 @@ index 2de5960..89927d9 100644
 --- a/t-unified-multiple-compilation-units/Makefile
 +++ b/t-unified-multiple-compilation-units/Makefile
 @@ -2,6 +2,8 @@ include ../Makefile.defs
-
+ 
  EXTRAFLAGS := -O3
 
-+export HSA_XNACK ?= 1
++HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -393,10 +414,10 @@ index 2de5960..89927d9 100644
 --- a/t-unified-multiple-parallel/Makefile
 +++ b/t-unified-multiple-parallel/Makefile
 @@ -2,6 +2,8 @@ include ../Makefile.defs
-
+ 
  EXTRAFLAGS := -O3
 
-+export HSA_XNACK ?= 1
++HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -406,10 +427,10 @@ index 3e1acbe..306d7a1 100644
 --- a/t-unified-parallel-for-simd/Makefile
 +++ b/t-unified-parallel-for-simd/Makefile
 @@ -10,6 +10,8 @@ endif
-
+ 
  EXTRAFLAGS += -O3
 
-+export HSA_XNACK ?= 1
++HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -419,10 +440,10 @@ index c9163fd..b46b9ab 100644
 --- a/t-unified-parallel-for/Makefile
 +++ b/t-unified-parallel-for/Makefile
 @@ -6,6 +6,8 @@ endif
-
+ 
  EXTRAFLAGS += -O3
 
-+export HSA_XNACK ?= 1
++HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -432,10 +453,10 @@ index 2de5960..89927d9 100644
 --- a/t-unified-parallel/Makefile
 +++ b/t-unified-parallel/Makefile
 @@ -2,6 +2,8 @@ include ../Makefile.defs
-
+ 
  EXTRAFLAGS := -O3
 
-+export HSA_XNACK ?= 1
++HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -445,10 +466,10 @@ index 2de5960..89927d9 100644
 --- a/t-unified-parforsimd/Makefile
 +++ b/t-unified-parforsimd/Makefile
 @@ -2,6 +2,8 @@ include ../Makefile.defs
-
+ 
  EXTRAFLAGS := -O3
 
-+export HSA_XNACK ?= 1
++HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -458,10 +479,10 @@ index 2de5960..89927d9 100644
 --- a/t-unified-partial-struct/Makefile
 +++ b/t-unified-partial-struct/Makefile
 @@ -2,6 +2,8 @@ include ../Makefile.defs
-
+ 
  EXTRAFLAGS := -O3
 
-+export HSA_XNACK ?= 1
++HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -471,10 +492,10 @@ index 922bb69..90b1fb0 100644
 --- a/t-unified-sections/Makefile
 +++ b/t-unified-sections/Makefile
 @@ -2,6 +2,8 @@ include ../Makefile.defs
-
+ 
  EXTRAFLAGS := -O3 -fopenmp-version=45
 
-+export HSA_XNACK ?= 1
++HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -484,10 +505,10 @@ index 92e5999..b0d82fe 100644
 --- a/t-unified-sequence-distribute-parallel-for/Makefile
 +++ b/t-unified-sequence-distribute-parallel-for/Makefile
 @@ -2,6 +2,8 @@ include ../Makefile.defs
-
+ 
  EXTRAFLAGS := -O3 -std=c++11
 
-+export HSA_XNACK ?= 1
++HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -497,10 +518,10 @@ index cbf782c..59929ed 100644
 --- a/t-unified-share-reference-orphan-directive/Makefile
 +++ b/t-unified-share-reference-orphan-directive/Makefile
 @@ -2,6 +2,8 @@ include ../Makefile.defs
-
+ 
  EXTRAFLAGS := -O3 -fno-exceptions
 
-+export HSA_XNACK ?= 1
++HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -510,10 +531,10 @@ index 2de5960..89927d9 100644
 --- a/t-unified-shared-address-space/Makefile
 +++ b/t-unified-shared-address-space/Makefile
 @@ -2,6 +2,8 @@ include ../Makefile.defs
-
+ 
  EXTRAFLAGS := -O3
 
-+export HSA_XNACK ?= 1
++HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -523,10 +544,10 @@ index 2de5960..89927d9 100644
 --- a/t-unified-simd/Makefile
 +++ b/t-unified-simd/Makefile
 @@ -2,6 +2,8 @@ include ../Makefile.defs
-
+ 
  EXTRAFLAGS := -O3
 
-+export HSA_XNACK ?= 1
++HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -536,10 +557,10 @@ index 2de5960..89927d9 100644
 --- a/t-unified-single/Makefile
 +++ b/t-unified-single/Makefile
 @@ -2,6 +2,8 @@ include ../Makefile.defs
-
+ 
  EXTRAFLAGS := -O3
 
-+export HSA_XNACK ?= 1
++HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -549,10 +570,10 @@ index 2de5960..89927d9 100644
 --- a/t-unified-target-api/Makefile
 +++ b/t-unified-target-api/Makefile
 @@ -2,6 +2,8 @@ include ../Makefile.defs
-
+ 
  EXTRAFLAGS := -O3
 
-+export HSA_XNACK ?= 1
++HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -562,10 +583,10 @@ index 922bb69..90b1fb0 100644
 --- a/t-unified-target-basic/Makefile
 +++ b/t-unified-target-basic/Makefile
 @@ -2,6 +2,8 @@ include ../Makefile.defs
-
+ 
  EXTRAFLAGS := -O3 -fopenmp-version=45
 
-+export HSA_XNACK ?= 1
++HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -575,10 +596,10 @@ index 2de5960..89927d9 100644
 --- a/t-unified-target-data-2map-same-array/Makefile
 +++ b/t-unified-target-data-2map-same-array/Makefile
 @@ -2,6 +2,8 @@ include ../Makefile.defs
-
+ 
  EXTRAFLAGS := -O3
 
-+export HSA_XNACK ?= 1
++HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -588,10 +609,10 @@ index 2de5960..89927d9 100644
 --- a/t-unified-target-enter-nowait/Makefile
 +++ b/t-unified-target-enter-nowait/Makefile
 @@ -2,6 +2,8 @@ include ../Makefile.defs
-
+ 
  EXTRAFLAGS := -O3
 
-+export HSA_XNACK ?= 1
++HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -601,10 +622,10 @@ index 2de5960..89927d9 100644
 --- a/t-unified-target-parallel-for-simd-clauses/Makefile
 +++ b/t-unified-target-parallel-for-simd-clauses/Makefile
 @@ -2,6 +2,8 @@ include ../Makefile.defs
-
+ 
  EXTRAFLAGS := -O3
 
-+export HSA_XNACK ?= 1
++HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -614,10 +635,10 @@ index c9163fd..b46b9ab 100644
 --- a/t-unified-target-parallel-for-simd/Makefile
 +++ b/t-unified-target-parallel-for-simd/Makefile
 @@ -6,6 +6,8 @@ endif
-
+ 
  EXTRAFLAGS += -O3
 
-+export HSA_XNACK ?= 1
++HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -627,10 +648,10 @@ index c9163fd..b46b9ab 100644
 --- a/t-unified-target-parallel-for/Makefile
 +++ b/t-unified-target-parallel-for/Makefile
 @@ -6,6 +6,8 @@ endif
-
+ 
  EXTRAFLAGS += -O3
 
-+export HSA_XNACK ?= 1
++HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -640,10 +661,10 @@ index 922bb69..90b1fb0 100644
 --- a/t-unified-target-parallel/Makefile
 +++ b/t-unified-target-parallel/Makefile
 @@ -2,6 +2,8 @@ include ../Makefile.defs
-
+ 
  EXTRAFLAGS := -O3 -fopenmp-version=45
 
-+export HSA_XNACK ?= 1
++HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -653,10 +674,10 @@ index 2de5960..89927d9 100644
 --- a/t-unified-target-teams-distribute-parallel-for-simd/Makefile
 +++ b/t-unified-target-teams-distribute-parallel-for-simd/Makefile
 @@ -2,6 +2,8 @@ include ../Makefile.defs
-
+ 
  EXTRAFLAGS := -O3
 
-+export HSA_XNACK ?= 1
++HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -666,10 +687,10 @@ index 922bb69..90b1fb0 100644
 --- a/t-unified-target-teams-distribute-parallel-for/Makefile
 +++ b/t-unified-target-teams-distribute-parallel-for/Makefile
 @@ -2,6 +2,8 @@ include ../Makefile.defs
-
+ 
  EXTRAFLAGS := -O3 -fopenmp-version=45
 
-+export HSA_XNACK ?= 1
++HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -679,10 +700,10 @@ index 2de5960..89927d9 100644
 --- a/t-unified-target-teams-distribute-simd/Makefile
 +++ b/t-unified-target-teams-distribute-simd/Makefile
 @@ -2,6 +2,8 @@ include ../Makefile.defs
-
+ 
  EXTRAFLAGS := -O3
 
-+export HSA_XNACK ?= 1
++HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -692,10 +713,10 @@ index c9163fd..b46b9ab 100644
 --- a/t-unified-target-teams-distribute/Makefile
 +++ b/t-unified-target-teams-distribute/Makefile
 @@ -6,6 +6,8 @@ endif
-
+ 
  EXTRAFLAGS += -O3
 
-+export HSA_XNACK ?= 1
++HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -705,10 +726,10 @@ index 2de5960..89927d9 100644
 --- a/t-unified-target-teams/Makefile
 +++ b/t-unified-target-teams/Makefile
 @@ -2,6 +2,8 @@ include ../Makefile.defs
-
+ 
  EXTRAFLAGS := -O3
 
-+export HSA_XNACK ?= 1
++HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -718,10 +739,10 @@ index c9163fd..b46b9ab 100644
 --- a/t-unified-target-update-not-there/Makefile
 +++ b/t-unified-target-update-not-there/Makefile
 @@ -6,6 +6,8 @@ endif
-
+ 
  EXTRAFLAGS += -O3
 
-+export HSA_XNACK ?= 1
++HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -731,10 +752,10 @@ index 2de5960..89927d9 100644
 --- a/t-unified-target-update-nowait/Makefile
 +++ b/t-unified-target-update-nowait/Makefile
 @@ -2,6 +2,8 @@ include ../Makefile.defs
-
+ 
  EXTRAFLAGS := -O3
 
-+export HSA_XNACK ?= 1
++HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -744,10 +765,10 @@ index 2de5960..89927d9 100644
 --- a/t-unified-target-update/Makefile
 +++ b/t-unified-target-update/Makefile
 @@ -2,6 +2,8 @@ include ../Makefile.defs
-
+ 
  EXTRAFLAGS := -O3
 
-+export HSA_XNACK ?= 1
++HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -757,10 +778,10 @@ index cbf782c..59929ed 100644
 --- a/t-unified-teams-distribute-parallel-for-simd/Makefile
 +++ b/t-unified-teams-distribute-parallel-for-simd/Makefile
 @@ -2,6 +2,8 @@ include ../Makefile.defs
-
+ 
  EXTRAFLAGS := -O3 -fno-exceptions
 
-+export HSA_XNACK ?= 1
++HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -770,10 +791,10 @@ index cbf782c..59929ed 100644
 --- a/t-unified-teams-distribute-parallel-for/Makefile
 +++ b/t-unified-teams-distribute-parallel-for/Makefile
 @@ -2,6 +2,8 @@ include ../Makefile.defs
-
+ 
  EXTRAFLAGS := -O3 -fno-exceptions
 
-+export HSA_XNACK ?= 1
++HSA_XNACK ?= 1
 +
  ################################################################################
  #
@@ -783,10 +804,10 @@ index c9163fd..b46b9ab 100644
 --- a/t-unified-teams-distribute/Makefile
 +++ b/t-unified-teams-distribute/Makefile
 @@ -6,6 +6,8 @@ endif
-
+ 
  EXTRAFLAGS += -O3
 
-+export HSA_XNACK ?= 1
++HSA_XNACK ?= 1
 +
  ################################################################################
  #
