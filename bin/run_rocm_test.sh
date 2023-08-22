@@ -109,6 +109,12 @@ fi
 echo AOMP_GPU=$AOMP_GPU
 export AOMP_GPU
 
+# Disable HSA_XNACK if gfx1*
+if [[ $AOMP_GPU == gfx1* ]]; then
+  echo "its a gfx1* $AOMP_GPU"
+  HSA_XNACK=${HSA_XNACK:-0}
+  echo HSA_XNACK=$HSA_XNACK
+fi
 # Run quick sanity test
 echo
 echo "Helloworld sanity test:"
