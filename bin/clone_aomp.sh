@@ -303,6 +303,38 @@ if [[ "$AOMP_VERSION" == "13.1" ]] || [[ $AOMP_MAJOR_VERSION -gt 13 ]] ; then
          ln -sf hsa-runtime src
       fi
    fi
+
+if [ "$AOMP_MONO_CLONE" != "" ]; then
+   # comgr now lives in llvm-project/amd/comg
+   # And needs to be found in rocm-compilersupport/lib
+   if [ -d $AOMP_REPOS/rocm-compilersupport ] ; then
+      if [ ! -L $AOMP_REPOS/rocm-compilersupport/lib/comgr ] ; then
+         echo "Fixing rocm-compilersupport with correct link to ../../llvm-project/amd/comgr"
+         echo rm -rf $AOMP_REPOS/rocm-compilersupport/lib
+         rm -rf $AOMP_REPOS/rocm-compilersupport/lib
+         echo mkdir -p $AOMP_REPOS/rocm-compilersupport/lib
+         mkdir -p $AOMP_REPOS/rocm-compilersupport/lib
+         echo cd $AOMP_REPOS/rocm-compilersupport/lib
+         cd $AOMP_REPOS/rocm-compilersupport/lib
+         echo ln -sf  ../../llvm-project/amd/comgr .
+         ln -sf  ../../llvm-project/amd/comgr .
+      fi
+   fi
+
+   # comgr now lives in llvm-project/amd/comg
+   # And needs to be found in rocm-compilersupport/lib
+   if [ -d $AOMP_REPOS/rocm-device-libs ] ; then
+      if [ ! -L $AOMP_REPOS/rocm-device-libs ] ; then
+         echo "Fixing rocm-device-libs with correct link to ../../llvm-project/amd/cwdevice-libs"
+         echo rm -rf $AOMP_REPOS/rocm-device-libs
+         rm -rf $AOMP_REPOS/rocm-device-libs
+         echo cd $AOMP_REPOS/
+         cd $AOMP_REPOS
+         echo ln -sf  ./llvm-project/amd/device-libs rocm-device-libs
+         ln -sf  ./llvm-project/amd/device-libs rocm-device-libs
+      fi
+   fi
+fi
    exit $rc
 fi
 
