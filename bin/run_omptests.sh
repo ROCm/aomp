@@ -6,8 +6,6 @@ thisdir=`dirname $realpath`
 . $thisdir/aomp_common_vars
 # --- end standard header ----
 
-patchrepo $AOMP_REPOS_TEST/$AOMP_OMPTESTS_REPO_NAME
-
 # Setup AOMP variables
  AOMP=${AOMP:-/usr/lib/aomp}
 
@@ -43,10 +41,9 @@ fi
 
 log=$(date --iso-8601=minutes).log
 
-echo env TARGET="-fopenmp-targets=$DEVICE_TARGET -fopenmp -Xopenmp-target=$DEVICE_TARGET -march=$DEVICE_ARCH" HOSTRTL=$AOMP/lib/libdevice TARGETRTL=$AOMP/lib GLOMPRTL=$AOMP/lib LLVMBIN=$AOMP/bin make -i
+echo env DEVICE_TYPE=amd DEVICE_TARGET=$DEVICE_TARGET DEVICE_ARCH=$DEVICE_ARCH HOSTRTL=$AOMP/lib/libdevice TARGETRTL=$AOMP/lib GLOMPRTL=$AOMP/lib LLVMBIN=$AOMP/bin make -i
 
-env TARGET="-fopenmp-targets=$DEVICE_TARGET -fopenmp -Xopenmp-target=$DEVICE_TARGET -march=$DEVICE_ARCH" HOSTRTL=$AOMP/lib/libdevice TARGETRTL=$AOMP/lib GLOMPRTL=$AOMP/lib LLVMBIN=$AOMP/bin make -i 2>&1 | tee omptests_run_$log
+env DEVICE_TYPE=amd DEVICE_TARGET=$DEVICE_TARGET DEVICE_ARCH=$DEVICE_ARCH HOSTRTL=$AOMP/lib/libdevice TARGETRTL=$AOMP/lib GLOMPRTL=$AOMP/lib LLVMBIN=$AOMP/bin make -i 2>&1 | tee omptests_run_$log
 
 $thisdir/check_omptests.sh
 
-removepatch $AOMP_REPOS_TEST/$AOMP_OMPTESTS_REPO_NAME
