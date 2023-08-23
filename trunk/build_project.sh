@@ -138,9 +138,10 @@ if [ "$1" == "install" ] ; then
    echo "-L${TRUNK_INSTALL_DIR}/lib" >> ${TRUNK_INSTALL_DIR}/bin/rpath.cfg
    ln -sf rpath.cfg ${TRUNK_INSTALL_DIR}/bin/clang++.cfg
    ln -sf rpath.cfg ${TRUNK_INSTALL_DIR}/bin/clang.cfg
-   ln -sf rpath.cfg ${TRUNK_INSTALL_DIR}/bin/flang.cfg
    # Do not add -L option to flang-new because it's not currently allowed
-   echo "-Wl,-rpath=${TRUNK_INSTALL_DIR}/lib" > ${TRUNK_INSTALL_DIR}/bin/flang-new.cfg
+   # flang-new also appears to be reading flang.cfg
+   echo "-Wl,-rpath=${TRUNK_INSTALL_DIR}/lib" > ${TRUNK_INSTALL_DIR}/bin/flang.cfg
+   ln -sf flang.cfg ${TRUNK_INSTALL_DIR}/bin/flang-new.cfg
    echo
    echo "SUCCESSFUL INSTALL to $TRUNK_INSTALL_DIR with link to $TRUNK"
    echo
