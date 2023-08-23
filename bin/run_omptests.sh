@@ -40,6 +40,9 @@ done
 # Move tests to avoid soft hang
 if [ "$SKIP_TESTS" != 0 ]; then
   for omp_test in $skip_list; do
+    if [ -d test-$omp_test-fail ]; then
+      rm -rf test-$omp_test-fail
+    fi
     if [ -d $omp_test ]; then
       mv $omp_test test-$omp_test-fail
     fi
@@ -54,3 +57,14 @@ env DEVICE_TYPE=amd DEVICE_TARGET=$DEVICE_TARGET DEVICE_ARCH=$DEVICE_ARCH HOSTRT
 
 $thisdir/check_omptests.sh
 
+# Move tests back to avoid polluting the repo
+if [ "$SKIP_TESTS" != 0 ]; then
+  for omp_test in $skip_list; do
+    if [ -d $omp_test ]; then
+      rm -rf $omp_test
+    fi
+    if [ -d test-$omp_test-fail ]; then
+      mv test-$omp_test-fail $omp_test
+    fi
+  done
+fi
