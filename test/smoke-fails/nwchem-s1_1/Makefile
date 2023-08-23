@@ -15,5 +15,5 @@ CC           = $(OMP_BIN) $(VERBOSE)
 include ../Makefile.rules
 run: $(TESTNAME)
 	ulimit -s unlimited ; \
-	$(RUNENV) ./$(TESTNAME) > run.log 2>&1 ; \
-	grep -E 'target_team_region|__tgt_rtl_launch_kernel' run.log | awk '{print $$2, $$3}'
+	$(AOMP)/bin/rocprof --stats ./$(TESTNAME) > run.log 2>&1 ; \
+	python3 printTime.py
