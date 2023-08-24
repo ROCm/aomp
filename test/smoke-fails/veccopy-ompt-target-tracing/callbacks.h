@@ -5,6 +5,9 @@
 
 #define OMPT_BUFFER_REQUEST_SIZE 256
 
+// Using only 1 device
+static ompt_device_t *Device = NULL;
+
 // Utilities
 static void print_record_ompt(ompt_record_ompt_t *rec) {
   if (rec == NULL) return;
@@ -123,18 +126,18 @@ static ompt_set_result_t set_trace_ompt() {
   
 static int start_trace() {
   if (!ompt_start_trace) return 0;
-  return ompt_start_trace(0, &on_ompt_callback_buffer_request,
+  return ompt_start_trace(Device, &on_ompt_callback_buffer_request,
 			  &on_ompt_callback_buffer_complete);
 }
 
 static int flush_trace() {
   if (!ompt_flush_trace) return 0;
-  return ompt_flush_trace(0);
+  return ompt_flush_trace(Device);
 }
 
 static int stop_trace() {
   if (!ompt_stop_trace) return 0;
-  return ompt_stop_trace(0);
+  return ompt_stop_trace(Device);
 }
 
 // Synchronous callbacks
@@ -164,6 +167,8 @@ static void on_ompt_callback_device_initialize
   if (!ompt_get_record_type_fn) {
     printf("WARNING: No function ompt_get_record_type found in device callbacks\n");
   }
+
+  Device = device;
 
   set_trace_ompt();
   
