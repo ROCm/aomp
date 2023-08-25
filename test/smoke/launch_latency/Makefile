@@ -12,3 +12,7 @@ CC           = $(OMP_BIN) $(VERBOSE)
 #"-\#\#\#"
 
 include ../Makefile.rules
+run: $(TESTNAME)
+	ulimit -s unlimited ; \
+	$(AOMP)/bin/rocprof --stats ./$(TESTNAME) > run.log 2>&1 ; \
+	python3 printLatency.py
