@@ -7,9 +7,9 @@
 #
 
 f = open("results.stats.csv", "r")
-index = 0
 for line in f:
-    index = index + 1
+    if line.startswith("\"Name\""):
+        continue
     pList = line.split(",")
-    if index == 2:
-        print(pList[2])
+    TotalDurationNS = pList[2]
+    print("Runtime: ", TotalDurationNS, "nanoseconds")
