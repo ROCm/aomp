@@ -8,7 +8,6 @@ RUNENV      += LIBOMPTARGET_KERNEL_TRACE=1
 
 $(info $(AOMP))
 
-CFLAGS       += -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa
 CLANG        = clang
 OMP_BIN      = $(AOMP)/bin/$(CLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
