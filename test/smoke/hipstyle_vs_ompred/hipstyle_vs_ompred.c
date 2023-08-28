@@ -16,7 +16,7 @@
 #define NUM_THREADS 1024
 #endif
 
-void __kmpc_impl_syncthreads();
+void __kmpc_barrier(void *Loc, int TId);
 
 int main() {
   int main_rc = 0;
@@ -57,10 +57,10 @@ int main() {
     for (; i < N; i += BlockDim_x * GridDim_x)
       tb_sum[ThreadIdx_x] += (double)i;
 
-      // clang does not permit #pragma omp barrier here
-      // But we need one, so use the internal libomptarget barrier
-      #if defined(__AMDGCN__) || defined(__NVPTX__)
-    __kmpc_impl_syncthreads();
+    // clang does not permit #pragma omp barrier here
+    // But we need one, so use the internal libomptarget barrier
+    #if defined(__AMDGCN__) || defined(__NVPTX__)
+    __kmpc_barrier(NULL, ThreadIdx_x);
     #endif
 
     // Reduce each team into tb_sum[0]
@@ -68,7 +68,7 @@ int main() {
       if (ThreadIdx_x < offset)
         tb_sum[ThreadIdx_x] += tb_sum[ThreadIdx_x + offset];
       #if defined(__AMDGCN__) || defined(__NVPTX__)
-      __kmpc_impl_syncthreads();
+      __kmpc_barrier(NULL, ThreadIdx_x);
       #endif
     }
 
