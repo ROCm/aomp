@@ -17,7 +17,7 @@ for line in f:
     # print (line)
     pList = line.split(",")
     grd = pList[7]
-    if grd == "\"grd\"" or grd == "256": 
+    if grd == "\"grd\"": 
         continue
     durationNS = int(pList[-1])
     if grd in dict:
@@ -28,11 +28,16 @@ for line in f:
     else:
         dict[grd] = (1, durationNS)
 
+count,sum = dict["256"]
+latencyaverage = (float(sum) / count) * 1e-9
+print ("1st kernel Time", "{:11.9f} seconds".format(latencyaverage))
+dict.pop("256")
+
 j = 1
 for key in dict:
     count, sum = dict[key]
-    latencyaverage = float(sum) / count
+    latencyaverage = (float(sum) / count) * 1e-9
     # "avg kernel Time %12.8f TEAMS=%d\n"
-    print ("avg kernel Time ", "{:8.2f}".format(latencyaverage), " TEAMS= ", j)
+    print ("avg kernel Time", "{:11.9f} seconds".format(latencyaverage), "TEAMS=", j)
     j = j * 2
 
