@@ -29,14 +29,13 @@ thisdir=`dirname $realpath`
 . $thisdir/aomp_common_vars
 # --- end standard header ----
 
-HIPCC_REPO_DIR=$AOMP_REPOS/hipcc
+HIPCC_REPO_DIR=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/amd/hipcc
 
 BUILD_DIR=${BUILD_AOMP}
 
 BUILDTYPE="Release"
 
 INSTALL_HIPCC=${INSTALL_HIPCC:-$AOMP_INSTALL_DIR}
-export LLVM_DIR=$AOMP_INSTALL_DIR 
 
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   echo " "
@@ -81,7 +80,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
      rm -rf $BUILD_DIR/build/hipcc
   fi
 
-  MYCMAKEOPTS="-DLLVM_DIR=$LLVM_DIR -DCMAKE_BUILD_TYPE=$BUILDTYPE -DCMAKE_INSTALL_PREFIX=$AOMP_INSTALL_DIR"
+  MYCMAKEOPTS="-DCMAKE_BUILD_TYPE=$BUILDTYPE -DCMAKE_INSTALL_PREFIX=$AOMP_INSTALL_DIR"
 
   mkdir -p $BUILD_DIR/build/hipcc
   cd $BUILD_DIR/build/hipcc
@@ -89,7 +88,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
   export SED_INSTALL_DIR
   echo
   echo " -----Running cmake ---- "
-  echo ${AOMP_CMAKE} $MYCMAKEOPTS $EXTRAS_REPO_DIR
+  echo ${AOMP_CMAKE} $MYCMAKEOPTS $HIPCC_REPO_DIR
   ${AOMP_CMAKE} $MYCMAKEOPTS $HIPCC_REPO_DIR 
   if [ $? != 0 ] ; then
       echo "ERROR hipcc cmake failed. Cmake flags"
