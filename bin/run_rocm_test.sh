@@ -33,7 +33,7 @@ totalunexpectedfails=0
 
 # make sure we see latest aomp dir
 git pull
-git clean -f -d
+#git clean -f -d
 git log -1
 ./rocm_quick_check.sh
 
