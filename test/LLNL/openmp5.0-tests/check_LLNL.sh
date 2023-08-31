@@ -17,7 +17,18 @@ function clean(){
 
 clean
 
-lspci | grep -s VMware
+if [ -e /usr/sbin/lspci ]; then
+ lspci_loc=/usr/sbin/lspci
+else
+  if [ -e /sbin/lspci ]; then
+    lspci_loc=/sbin/lspci
+  else
+    lspci_loc=/usr/bin/lspci
+  fi
+fi
+echo $lspci_loc
+$lspci_loc 2>&1 | grep -s VMware
+
 if [ $? -ne 0 ] ; then
   grep -s test_requires_unified_shared_memory.cxx test_list
   if [ $? -ne 0 ] ; then
