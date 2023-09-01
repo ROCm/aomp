@@ -57,3 +57,5 @@ int main()
   return rc;
 }
 
+/// CHECK: Record Submit
+
