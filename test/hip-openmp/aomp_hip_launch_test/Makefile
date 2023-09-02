@@ -77,4 +77,4 @@ run: $(TESTNAME).exe
 
 # Cleanup anything this makefile can create
 clean:
-	rm -f *.bc *.i *.o *.s test_omp.lk test_omp.exe hiplaunch.exe a.out-* a-*.out
+	rm -f *.bc *.i *.o *.s test_omp.lk test_omp.exe hiplaunch.exe a.out-* a-*.out test*out

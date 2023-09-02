@@ -36,8 +36,6 @@ flang-347457
 flang-sollve-bug1
 flang-thread-limit
 flang-usm
-helloworld_cov5
-kmpc_alloc_cov5
 liba_bundled
 liba_bundled_cmdline_simplified
 liba_bundled_fullpath
