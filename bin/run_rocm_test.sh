@@ -11,7 +11,7 @@
 
 EPSDB_LIST=${EPSDB_LIST:-"examples smoke-limbo smoke omp5 openmpapps LLNL nekbone ovo sollve babelstream fortran-babelstream"}
 SUITE_LIST=${SUITE_LIST:-"examples smoke-limbo smoke omp5 openmpapps LLNL nekbone ovo sollve babelstream fortran-babelstream"}
-blockinglist="examples_fortran examples_openmp smoke smoke-limbo openmpapps nekbone sollve45 sollve50 babelstream"
+blockinglist="examples_fortran examples_openmp smoke openmpapps nekbone sollve45 sollve50 babelstream"
 
 # Use bogus path to avoid using target.lst, a user-defined target list
 # used by rocm_agent_enumerator.
