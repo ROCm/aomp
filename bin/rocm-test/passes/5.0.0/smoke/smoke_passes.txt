@@ -3,7 +3,6 @@ clang-313307_simple_spmd
 clang-gfx1030
 clang_udel_saxpy
 complex-debug
-complex_reduction
 const_global_ctor-308039
 flang-274775-1
 flang-307433
@@ -15,7 +14,6 @@ flang-321277
 flang-325322
 flang-ifaces
 flang_omp_red_3d
-gdb_teams
 host_teams_numa_affinity
 leopold-devicePtr
 loop_order

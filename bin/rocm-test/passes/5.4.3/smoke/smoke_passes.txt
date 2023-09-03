@@ -1,7 +1,6 @@
 already_locked
 aomp-issue376
 aomp-issue531
-aomp_mappings_newrt
 atomic_vs_reduction
 c-heatx
 clang-262701
@@ -39,7 +38,6 @@ flang-329920-1
 flang-334611
 flang-347457
 flang-device-api
-flang-f90print
 flang-sollve-bug1
 flang-thread-limit
 flang-usm
@@ -50,7 +48,6 @@ kmpc_alloc_cov4
 liba_bundled
 liba_bundled_cmdline_simplified
 liba_bundled_fullpath
-libgomp-292348
 managed_memory
 many_arrays
 matmul_parallel_spmd
