@@ -1,0 +1,16 @@
+no-loop-1
+no-loop-2
+no-loop-3
+no-loop-4
+no-loop-5
+no-loop-6
+no-loop-7
+no-loop-threads
+opt-kernel-global-iv
+opt-kernel-inner-pragma-1
+opt_kerns_clauses
+veccopy-ompt-target-tracing
+veccopy-ompt-target-type-device-time
+workgroup_size_option1
+workgroup_size_option2
+xteam-red-fast-1
