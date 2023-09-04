@@ -13,3 +13,4 @@ test_order_concurrent.cxx
 test_pointer_attach.cxx
 test_scan.cxx
 test_use_device_addr.cxx
+test_requires_unified_shared_memory.cxx
