@@ -9,9 +9,30 @@
 #
 #
 
-EPSDB_LIST=${EPSDB_LIST:-"examples smoke-limbo smoke omp5 openmpapps LLNL nekbone ovo sollve babelstream fortran-babelstream"}
+# look for presence of VMware (SRIOV)
+if [ -e /usr/sbin/lspci ]; then
+  lspci_loc=/usr/sbin/lspci
+else
+  if [ -e /sbin/lspci ]; then
+    lspci_loc=/sbin/lspci
+  else
+    lspci_loc=/usr/bin/lspci
+  fi
+fi
+echo $lspci_loc
+$lspci_loc 2>&1 | grep -q VMware
+
+if [ $? -eq 0 ] ; then
+SUITE_LIST=${SUITE_LIST:-"examples smoke-limbo smoke omp5 openmpapps ovo sollve babelstream fortran-babelstream"}
+blockinglist="examples_fortran examples_openmp smoke openmpapps sollve45 sollve50 babelstream"
+else
 SUITE_LIST=${SUITE_LIST:-"examples smoke-limbo smoke omp5 openmpapps LLNL nekbone ovo sollve babelstream fortran-babelstream"}
 blockinglist="examples_fortran examples_openmp smoke openmpapps nekbone sollve45 sollve50 babelstream"
+fi
+EPSDB_LIST=${EPSDB_LIST:-"examples smoke-limbo smoke omp5 openmpapps LLNL nekbone ovo sollve babelstream fortran-babelstream"}
+
+echo $SUITE_LIST
+echo $blockinglist
 
 # Use bogus path to avoid using target.lst, a user-defined target list
 # used by rocm_agent_enumerator.
