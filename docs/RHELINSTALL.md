@@ -8,12 +8,12 @@ sudo yum install perl-Digest-MD5 perl-URI-Encode
 ```
 ### Download and Install
 ```
-wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_17.0-3/aomp_CENTOS_7-17.0-3.x86_64.rpm
-sudo rpm -i aomp_CENTOS_7-17.0-3.x86_64.rpm
+wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_18.0-0/aomp_CENTOS_7-18.0-0.x86_64.rpm
+sudo rpm -i aomp_CENTOS_7-18.0-0.x86_64.rpm
 ```
 If CUDA is not installed the installation may cancel, to bypass this:
 ```
-sudo rpm -i --nodeps aomp_CENTOS_7-17.0-3.x86_64.rpm
+sudo rpm -i --nodeps aomp_CENTOS_7-18.0-0.x86_64.rpm
 ```
 Confirm AOMP environment variable is set:
 ```

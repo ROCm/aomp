@@ -18,7 +18,7 @@
 
 #### SLES-15-SP4 Packages
 ```
-  sudo zypper install -y git pciutils-devel python-base libffi-devel gcc gcc-c++ libnuma-devel patchutils openmpi2-devel mesa-libGL-devel libquadmath0 libtool libdrm libdrm-devel ccache gcc-gfortran libdw-devel libgtest-devel systemd-devel
+  sudo zypper install -y git pciutils-devel python-base libffi-devel gcc gcc-c++ libnuma-devel patchutils openmpi2-devel mesa-libGL-devel libquadmath0 libtool libdrm libdrm-devel ccache gcc-gfortran libdw-devel libgtest-devel systemd-devel libX-devel
 
   A symbolic link may be required at /usr/lib64: /usr/lib64/libquadmath.so -> /usr/lib64/libquadmath.so.0.
 
