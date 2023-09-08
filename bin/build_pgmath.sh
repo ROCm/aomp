@@ -34,7 +34,7 @@ fi
 
 if [ "$AOMP_STANDALONE_BUILD" == 0 ]; then
   MYCMAKEOPTS="$MYCMAKEOPTS
-  -DENABLE_DEVEL_PACKAGE=ON -DENABLE_RUN_PACKAGE=ON"
+  -DENABLE_DEVEL_PACKAGE=ON -DENABLE_RUN_PACKAGE=ON $OPENMP_EXTRAS_ORIGIN_RPATH"
 fi
 
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then 
