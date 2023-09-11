@@ -23,3 +23,5 @@ int main( void )
     }
     return 0;
 }
+
+/// CHECK-NOT: thread_id=0
