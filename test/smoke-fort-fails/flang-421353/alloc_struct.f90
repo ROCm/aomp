@@ -8,7 +8,7 @@ type, public :: indexer
 
 program struct_test
         use myindexer
-        character, parameter :: escape = "\", ignore_between = '"'
+        character, parameter :: escape = "\\", ignore_between = '"'
         type(indexer) index_
         index_ = indexer(escape, ignore_between)  
         end program
