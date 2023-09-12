@@ -125,11 +125,6 @@ if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
   CFLAGS="$CFLAGS $ASAN_RPATH_FLAGS -I$ROCM_DIR/include"
 fi
 
-# This is how we tell the hsa plugin where to find hsa
-export HSA_RUNTIME_PATH=$ROCM_DIR/hsa
-
-export HIP_DEVICE_LIB_PATH=$ROCM_DIR/lib
-
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then 
 
    echo " " 
