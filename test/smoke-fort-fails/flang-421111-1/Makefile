@@ -3,8 +3,8 @@ NOOMP        = 1
 OMP_FLAGS    = -DNO_OMP
 include ../../Makefile.defs
 
-TESTNAME     = alloc_struct
-TESTSRC_MAIN = alloc_struct.f90
+TESTNAME     = pointer_intent_1
+TESTSRC_MAIN = pointer_intent_1.f90
 TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 
