@@ -869,5 +869,23 @@ aomp (17.0-3) UNRELEASED; urgency=medium
   *      files into a new static library. This allows a fat binary static library to
   *      become a static library for a single architecture.
   *   Disabled PIE as default in llvm.
+  *
+  * 18.0-0
+  *   New driver default (opaque offload linker).
+  *      Fix support for multi-arch.
+  *      Optimizations to remove initial hostexec malloc.
+  *      This driver uses clang-offload-packager to build and extract heterogeneous objects.
+  *      For amdgpu, the final link phase of the new driver steps through a series of commands instead of using the clang-linker-wrapper binary.
+  *   Zero copy support for MI300A.
+  *   Fixed data_share2 smoke test regression.
+  *   Fix new DeviceRTL schedule clause intermittent fail.
+  *   Support HIP bundles.
+  *   Upstream convergence (3490  lines removed).
+  *      Remove old plugin code.
+  *      Remove the hostRPC code.
+  *   DeviceRTL cleanup - Synchronized threads.
+  *   Set default OpenMP to 5.1.
+  *   Restore safe buffer usage warnings for MIOpen GTest.
+  *   Fix build to use LLVM-project mono-repo components, ROCm devicelibs and comgr.
 
  -- Greg Rodgers <Gregory.Rodgers@amd.com>  Thu, 19 May 2022 23:34:44 -0500
