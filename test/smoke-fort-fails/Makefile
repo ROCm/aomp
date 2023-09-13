@@ -11,7 +11,6 @@ TESTS_DIR = \
     declare-target-link-3 \
     exp-real-map \
     f2018-select-rank \
-    flang-404247 \
     flang-420573 \
     flang-421111-1 \
     flang-421111-2 \

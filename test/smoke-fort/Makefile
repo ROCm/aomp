@@ -1,6 +1,7 @@
 include ../Makefile.defs
 
 TESTS_DIR = \
+    flang-404247 \
     LaunchLatency \
     milestone-1
 
