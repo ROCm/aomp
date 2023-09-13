@@ -1,7 +1,8 @@
 include ../Makefile.defs
 
 TESTS_DIR = \
-    no-loop-6
+    LaunchLatency \
+    milestone-1
 
 all:
 	@for test_dir in $(TESTS_DIR); do \
