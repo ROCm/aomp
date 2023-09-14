@@ -1,5 +1,11 @@
 #!/bin/bash
 
+if [ -e /usr/bin/patch  ]; then
+  echo "/usr/bin/patch OK"
+else
+  echo "/usr/bin/patch is missing FAIL"
+fi
+
 if [ -e /usr/bin/cmake  ]; then
   echo "/usr/bin/cmake OK"
 else
