@@ -13,7 +13,6 @@ TESTS_DIR = \
     f2018-select-rank \
     flang-420573 \
     flang-421111-1 \
-    flang-421111-2 \
     flang-421111-3 \
     flang-421353 \
     milestone-2 \
