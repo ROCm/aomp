@@ -67,7 +67,7 @@ LLVMCMAKEOPTS="\
 -DLLVM_INCLUDE_TESTS=0 \
 -DLLVM_INCLUDE_DOCS=0 \
 $_cxx_flag \
--DLLVM_INCLUDE_UTILS=0 \
+-DLLVM_INCLUDE_UTILS=0 llvm-legacy/llvm \
 -DCLANG_DEFAULT_PIE_ON_LINUX=0"
 
 MYCMAKEOPTS="\
@@ -187,6 +187,14 @@ if [ "$1" == "install" ] ; then
    if [ $? != 0 ] ; then
       echo "ERROR make install failed "
       exit 1
+   fi
+   if [ "$CLANG_LINK_FLANG_LEGACY" == "ON" ] ; then
+      echo "------ Linking flang-legacy to flang -------"
+      if [ -L $AOMP_INSTALL_DIR/bin/flang ] ; then
+         $SUDO rm $AOMP_INSTALL_DIR/bin/flang
+      fi
+      cd $AOMP_INSTALL_DIR/bin
+      $SUDO ln -sf flang-legacy flang
    fi
    echo
    echo "SUCCESSFUL INSTALL to $AOMP_INSTALL_DIR"
