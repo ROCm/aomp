@@ -81,7 +81,7 @@ date
 echo " =================  START build_aomp.sh ==================="   
 echo 
 if [ "$AOMP_STANDALONE_BUILD" == 1 ] ; then
-  components="prereq rocm-cmake project roct rocr libdevice openmp extras comgr rocminfo"
+  components="prereq rocm-cmake project  flang-new roct rocr libdevice openmp extras comgr rocminfo"
   _hostarch=`uname -m`
   # The rocclr architecture is very x86 centric so it will not build on ppc64. Without
   # rocclr, we have no HIP or OpenCL for ppc64 :-( However, rocr works for ppc64 so AOMP works.
