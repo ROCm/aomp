@@ -6,5 +6,4 @@ matmul_Mthreads
 matmul_usm
 matmul-weights
 MI-Teams
-snap-mp4
 xsbench-mp4
