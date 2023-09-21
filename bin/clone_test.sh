@@ -60,8 +60,8 @@ if [[ -f .git/config ]] ; then
         manifest_project=`echo ROCM-Developer-Tools/$REPO_PROJECT | tr '[:upper:]' '[:lower:]'`
    elif [[ "$REPO_REMOTE" == "amdlibs" ]] ; then
         manifest_project=`echo AMDComputeLibraries/$REPO_PROJECT | tr '[:upper:]' '[:lower:]'`
-   elif [[ "$REPO_REMOTE" == "ykt" ]] ; then
-        manifest_project=`echo clang-ykt/$REPO_PROJECT | tr '[:upper:]' '[:lower:]'`
+   elif [[ "$REPO_REMOTE" == "omphost" ]] ; then
+        manifest_project=`echo doru1004/$REPO_PROJECT | tr '[:upper:]' '[:lower:]'`
    elif [[ "$REPO_REMOTE" == "julia" ]] ; then
         manifest_project=`echo JuliaMath/$REPO_PROJECT | tr '[:upper:]' '[:lower:]'`
    elif [[ "$REPO_REMOTE" == "tapple" ]] ; then
