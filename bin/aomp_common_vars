@@ -48,6 +48,29 @@ fi
 # all the test repositories in a different directory.
 AOMP_REPOS_TEST=${AOMP_REPOS_TEST:-$HOME/git/aomp-test}
 
+AOMP_USE_CCACHE=${AOMP_USE_CCACHE:-1}
+if [ "$AOMP_USE_CCACHE" == 0 ] ; then
+  AOMP_CCACHE_OPTS=""
+else
+  _ccache_bin=`which ccache`
+  if [ "$_ccache_bin" == "" ] ; then
+    echo "ERROR: AOMP_USE_CCACHE is $AOMP_USE_CCACHE but no ccache bin found in PATH"
+    echo "       Either install ccache or set AOMP_USE_CCACHE=0"
+    echo
+    exit 1
+  fi
+  AOMP_CCACHE_OPTS="-DCMAKE_C_COMPILER_LAUNCHER=$_ccache_bin -DCMAKE_CXX_COMPILER_LAUNCHER=$_ccache_bin"
+fi
+
+AOMP_SKIP_FLANG=${AOMP_SKIP_FLANG:-0}
+if [ "$AOMP_SKIP_FLANG" == 1 ] ; then
+   AOMP_PROJECTS_LIST=${AOMP_PROJECTS_LIST:-"clang;lld"}
+   AOMP_COMPONENT_LIST=${AOMP_COMPONENT_LIST:-"prereq project"}
+else
+   AOMP_PROJECTS_LIST=${AOMP_PROJECTS_LIST:-"clang;lld;mlir"}
+   AOMP_COMPONENT_LIST=${AOMP_COMPONENT_LIST:-"prereq project flang-new"}
+fi
+
 # AOMP_SUPP is for SUPPlemental software components needed for testing.
 # such as openmpi, hdf5, and silo. Applications that need supplemental
 # components can get the latest version with $AOMP_SUPP/<component name>

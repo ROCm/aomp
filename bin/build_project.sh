@@ -16,6 +16,7 @@ thisdir=`dirname $realpath`
 . $thisdir/aomp_common_vars
 # --- end standard header ----
 
+echo "LLVM PROJECTS TO BUILD:$AOMP_PROJECTS_LIST"
 INSTALL_PROJECT=${INSTALL_PROJECT:-$AOMP_INSTALL_DIR}
 
 WEBSITE="http\:\/\/github.com\/ROCm-Developer-Tools\/aomp"
@@ -66,6 +67,8 @@ $enable_amdgpu_arch
 # Enable amdflang, amdclang, amdclang++, amdllvm.
 # clang-tools-extra added to LLVM_ENABLE_PROJECTS above.
 MYCMAKEOPTS="$MYCMAKEOPTS
+$AOMP_CCACHE_OPTS
+-DLLVM_ENABLE_PROJECTS='$AOMP_PROJECTS_LIST'
 -DCLANG_ENABLE_AMDCLANG=ON
 -DLLVM_ENABLE_RUNTIMES=libcxx;libcxxabi
 -DLIBCXX_ENABLE_STATIC=ON
