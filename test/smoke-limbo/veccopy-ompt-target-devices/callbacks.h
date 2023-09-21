@@ -1,12 +1,14 @@
-#include <assert.h>
+#include <cassert>
+#include <unordered_set>
 
 // Tool related code below
 #include <omp-tools.h>
 
 #define OMPT_BUFFER_REQUEST_SIZE 256
 
-// Using only 1 device
-static ompt_device_t *Device = NULL;
+// Map of devices traced
+typedef std::unordered_set<ompt_device_t*> DeviceMap_t;
+extern DeviceMap_t DeviceMap;
 
 // Utilities
 static void print_record_ompt(ompt_record_ompt_t *rec) {
@@ -73,6 +75,18 @@ static ompt_get_record_type_t ompt_get_record_type_fn = 0;
 // OMPT callbacks
 
 // Trace record callbacks
+static void on_ompt_callback_buffer_request_default_device (
+  int device_num,
+  ompt_buffer_t **buffer,
+  size_t *bytes
+) {
+  *bytes = OMPT_BUFFER_REQUEST_SIZE;
+  *buffer = malloc(*bytes);
+  printf("Allocated %lu bytes at %p in buffer request callback for default device %d\n",
+	 *bytes, *buffer, device_num);
+}
+
+// Trace record callbacks
 static void on_ompt_callback_buffer_request (
   int device_num,
   ompt_buffer_t **buffer,
@@ -80,20 +94,22 @@ static void on_ompt_callback_buffer_request (
 ) {
   *bytes = OMPT_BUFFER_REQUEST_SIZE;
   *buffer = malloc(*bytes);
-  printf("Allocated %lu bytes at %p in buffer request callback\n", *bytes, *buffer);
+  printf("Allocated %lu bytes at %p in buffer request callback for device %d\n",
+	 *bytes, *buffer, device_num);
 }
 
 // Note: This callback must handle a null begin cursor. Currently,
 // ompt_get_record_ompt, print_record_ompt, and
 // ompt_advance_buffer_cursor handle a null cursor.
-static void on_ompt_callback_buffer_complete (
+static void on_ompt_callback_buffer_complete_default_device (
   int device_num,
   ompt_buffer_t *buffer,
   size_t bytes, /* bytes returned in this callback */
   ompt_buffer_cursor_t begin,
   int buffer_owned
 ) {
-  printf("Executing buffer complete callback: %d %p %lu %p %d\n",
+  printf("Executing buffer complete callback for default device: \
+device_num=%d, buffer=%p, num_bytes=%lu, begin=%p, buffer_owned=%d\n",
 	 device_num, buffer, bytes, (void*)begin, buffer_owned);
 
   int status = 1;
@@ -114,28 +130,69 @@ static void on_ompt_callback_buffer_complete (
   if (buffer_owned) delete_buffer_ompt(buffer);
 }
 
-static ompt_set_result_t set_trace_ompt() {
+// Note: This callback must handle a null begin cursor. Currently,
+// ompt_get_record_ompt, print_record_ompt, and
+// ompt_advance_buffer_cursor handle a null cursor.
+static void on_ompt_callback_buffer_complete (
+  int device_num,
+  ompt_buffer_t *buffer,
+  size_t bytes, /* bytes returned in this callback */
+  ompt_buffer_cursor_t begin,
+  int buffer_owned
+) {
+  printf("Executing buffer complete callback: \
+device_num=%d, buffer=%p, num_bytes=%lu, begin=%p, buffer_owned=%d\n",
+	 device_num, buffer, bytes, (void*)begin, buffer_owned);
+
+  int status = 1;
+  ompt_buffer_cursor_t current = begin;
+  while (status) {
+    ompt_record_ompt_t *rec = ompt_get_record_ompt(buffer, current);
+
+    if (ompt_get_record_type_fn(buffer, current) != ompt_record_ompt) {
+      printf("WARNING: received non-ompt type buffer object\n");
+    }
+    print_record_ompt(rec);
+    status = ompt_advance_buffer_cursor(NULL, /* TODO device */
+					buffer,
+					bytes,
+					current,
+					&current);
+  }
+  if (buffer_owned) delete_buffer_ompt(buffer);
+}
+
+static ompt_set_result_t set_trace_ompt(ompt_device_t *Device) {
   if (!ompt_set_trace_ompt) return ompt_set_error;
 
-  ompt_set_trace_ompt(0, 1, ompt_callback_target);
-  ompt_set_trace_ompt(0, 1, ompt_callback_target_data_op);
-  ompt_set_trace_ompt(0, 1, ompt_callback_target_submit);
+  ompt_set_trace_ompt(Device, /*enable=*/1, ompt_callback_target);
+  ompt_set_trace_ompt(Device, /*enable=*/1, ompt_callback_target_data_op);
+  ompt_set_trace_ompt(Device, /*enable=*/1, ompt_callback_target_submit);
 
   return ompt_set_always;
 }
   
-static int start_trace() {
+static int start_trace(int device_num, ompt_device_t *Device) {
   if (!ompt_start_trace) return 0;
+
+  // This device will be traced.
+  assert(DeviceMap.find(Device) == DeviceMap.end() &&
+	 "Device already present in the map");
+  DeviceMap.insert(Device);
+  
+  if (device_num == omp_get_default_device())
+    return ompt_start_trace(Device, &on_ompt_callback_buffer_request_default_device,
+			    &on_ompt_callback_buffer_complete_default_device);
   return ompt_start_trace(Device, &on_ompt_callback_buffer_request,
 			  &on_ompt_callback_buffer_complete);
 }
 
-static int flush_trace() {
+static int flush_trace(ompt_device_t *Device) {
   if (!ompt_flush_trace) return 0;
   return ompt_flush_trace(Device);
 }
 
-static int stop_trace() {
+static int stop_trace(ompt_device_t *Device) {
   if (!ompt_stop_trace) return 0;
   return ompt_stop_trace(Device);
 }
@@ -168,17 +225,9 @@ static void on_ompt_callback_device_initialize
     printf("WARNING: No function ompt_get_record_type found in device callbacks\n");
   }
 
-  Device = device;
-
-  set_trace_ompt();
+  set_trace_ompt(device);
   
-  // In many scenarios, this will be a good place to start the
-  // trace. If start_trace is called from the main program before this
-  // callback is dispatched, the start_trace handle will be null. This
-  // is because this device_init callback is invoked during the first
-  // target construct implementation.
-
-  start_trace();
+  start_trace(device_num, device);
 }
 
 static void on_ompt_callback_device_load
