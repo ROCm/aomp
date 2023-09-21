@@ -7,8 +7,6 @@ int *k;     // 20 bytes
 #pragma omp end declare target
 
 int main() {
-
-#if defined(__OFFLOAD_ARCH_gfx90a__)
   x = 3;
   int y = -1;
   for(size_t t = 0; t < 10; t++)
@@ -48,14 +46,5 @@ int main() {
   printf("x = %d, y = %d, z[7] = %d\n", x, y, z[7]);
 
   delete [] k;
-#else
-  printf("Bogus output for non-gfx90a atchitectures to make the test not fail since CHECKs cannot be ifdef'd away:\n");
-  printf("__tgt_rtl_data_submit_async: {{.*}} 0 ({{.*}} 40, {{.*}})\n");
-  printf("__tgt_rtl_data_submit_async: {{.*}} 0 ({{.*}} 4, {{.*}})\n");
-  printf("__tgt_rtl_data_retrieve_async: {{.*}} 0 ({{.*}} 4, {{.*}})\n");
-  printf("__tgt_rtl_data_retrieve_async: {{.*}} 0 ({{.*}} 40, {{.*}})\n");
-  printf("Host pointer for k = 0x123456\n");
-  printf("Device pointer for k = 0x123456, k[3] = -3\n");
-#endif
   return 0;
 }
