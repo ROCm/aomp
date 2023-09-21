@@ -69,7 +69,7 @@ else
   AOMP_GPUTARGET = amdgcn-amd-amdhsa
 endif
 
-FORT   =$(AOMP)/bin/flang -fPIC
+FORT   =$(AOMP)/bin/flang -fPIC -O2
 LFLAGS = -L$(AOMPHIP)/lib -lamdhip64 -Wl,-rpath,$(AOMPHIP)/lib
 FFLAGS = -fopenmp -fopenmp-targets=$(AOMP_GPUTARGET) -Xopenmp-target=$(AOMP_GPUTARGET)
 
