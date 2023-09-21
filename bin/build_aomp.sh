@@ -80,14 +80,18 @@ echo
 date
 echo " =================  START build_aomp.sh ==================="   
 echo 
+components="$AOMP_COMPONENT_LIST"
+
 if [ "$AOMP_STANDALONE_BUILD" == 1 ] ; then
-  components="prereq rocm-cmake project  flang-new roct rocr libdevice openmp extras comgr rocminfo"
+  components="$components roct rocr libdevice openmp extras comgr rocminfo"
   _hostarch=`uname -m`
   # The rocclr architecture is very x86 centric so it will not build on ppc64. Without
   # rocclr, we have no HIP or OpenCL for ppc64 :-( However, rocr works for ppc64 so AOMP works.
   if [ "$_hostarch" == "x86_64" ] ; then
     # These components build on x86_64, so add them to components list
-    components="$components flang-legacy pgmath flang flang_runtime"
+    if [ "$AOMP_SKIP_FLANG" == 0 ] ; then
+      components="$components flang-legacy pgmath flang flang_runtime"
+    fi
     #components="$components hipfort"
     components="$components hipcc hipamd "
   fi
@@ -108,7 +112,7 @@ else
   # libdevice, project, comgr, rocminfo, hipamd, rocdbgapi, rocgdb,
   # roctracer, and rocprofiler should be found in ROCM in /opt/rocm.
   # The ROCM build only needs these components:
-  components="extras openmp flang-legacy pgmath flang flang_runtime"
+  components="flang-new extras openmp flang-legacy pgmath flang flang_runtime"
 fi
 echo "COMPONENTS:$components"
 
@@ -144,6 +148,7 @@ if [ -n "$1" ] ; then
     set --
   fi
 fi
+echo "components: $components"
 
 for COMPONENT in $components ; do 
    echo 
