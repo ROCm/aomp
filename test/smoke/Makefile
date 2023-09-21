@@ -267,6 +267,7 @@ TESTS_DIR = \
  targc-generic \
  targc-spmd \
  usm1 \
+ usm-globals \
  veccopy-ompt-target \
  veccopy-ompt-target-disallow-both \
  veccopy-ompt-target-emi \
