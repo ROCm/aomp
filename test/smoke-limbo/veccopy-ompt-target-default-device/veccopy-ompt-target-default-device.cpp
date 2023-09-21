@@ -2,6 +2,13 @@
 #include <cassert>
 #include <omp.h>
 
+// This test starts device tracing on the default device only (see
+// start_trace in callbacks.h). However, if more devices are
+// available, it calls flush and stop on the other devices as
+// well. The intention is to check correct runtime behavior if a tool
+// invokes flush or stop on a device that was not started. The runtime
+// should just return without doing anything.
+
 #include "callbacks.h"
 
 // Map of devices traced

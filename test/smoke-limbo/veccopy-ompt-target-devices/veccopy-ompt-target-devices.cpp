@@ -2,6 +2,10 @@
 #include <cassert>
 #include <omp.h>
 
+// This test starts device tracing on all available devices (see
+// start_trace in callbacks.h). It subsequently calls flush and stop
+// on all devices like a tool would normally do.
+
 #include "callbacks.h"
 
 // Map of devices traced
