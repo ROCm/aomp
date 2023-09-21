@@ -1,2 +1,1 @@
-fortran_hip_interop
 helloworld
