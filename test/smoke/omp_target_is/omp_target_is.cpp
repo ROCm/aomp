@@ -1,11 +1,14 @@
 #include <iostream>
 #include <omp.h>
 
+// The test is meant to run in both USM and non-USM mode.
+
 #if defined(__OFFLOAD_ARCH_gfx90a__)
 #define IS_USM 1
 #else
 #define IS_USM 0
 #endif
+
 #if IS_USM >=1
 #pragma omp requires unified_shared_memory
 #endif
@@ -27,7 +30,7 @@ int main() {
   t->p = (int *) malloc(n*sizeof(int));
 
 #if IS_USM >= 1
-      printf("\n ---- THIS IS USM ----\n");
+  printf("\n ---- THIS IS USM ----\n");
 #endif
   int is_set = 1;
   bool success = false;
