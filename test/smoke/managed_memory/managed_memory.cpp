@@ -15,13 +15,6 @@ int check_res(double * v, int n) {
   return err;
 }
 
-#ifndef __OFFLOAD_ARCH_gfx90a__
-int main() {
-  printf("This test only works on multi-device MI200 systems (gfx90a).\n");
-  printf("Existing with pass\n");
-  return 0;
-}
-#else
 int main() {
   char* hsax = getenv("HSA_XNACK");
   if (!hsax || atoi(hsax) == 0) {
@@ -92,4 +85,3 @@ int main() {
 
   return err;
 }
-#endif
