@@ -3,6 +3,11 @@ TIMEOUT ?= 60s
 SMOKE_TIMEOUT ?= timeout --foreground $(TIMEOUT)
 CHECK_COMMAND ?= $(or $(RUNCMD), ./$(TESTNAME) $(ARGS))
 
+SKIP_COMPILE_SUPPORTED   = Skipped compiling $(TESTNAME): supported only on $(SUPPORTED)
+SKIP_COMPILE_UNSUPPORTED = Skipped compiling $(TESTNAME): not supported on $(UNSUPPORTED)
+SKIP_RUN_SUPPORTED       = Skipped running $(TESTNAME): supported only on $(SUPPORTED)
+SKIP_RUN_UNSUPPORTED     = Skipped running $(TESTNAME): not supported on $(UNSUPPORTED)
+
 all: $(TESTNAME)
 
 .PRECIOUS: %.o %.ll %.ll.s %.s %.s.o
@@ -16,8 +21,17 @@ prerequisites:
 	@echo ">>> $(SCRIPT_INIT) >>>"
 endif
 
+# ----- If SUPPORTED is empty then it means that there is no
+# restriction for the test and the test can be compiled and run
+# on the current GPU architecture.
+ifeq ($(SUPPORTED),)
+SUPPORTED = $(AOMP_GPU)
+endif
+
 # ----- Demo compile and link in one step, no object code saved
 $(TESTNAME): prerequisites $(TESTSRC_ALL)
+ifneq (,$(findstring $(AOMP_GPU),$(SUPPORTED)))
+ifeq (,$(findstring $(AOMP_GPU),$(UNSUPPORTED)))
 ifdef nvidia_targets
 	$(CC) $(make_options) $(nvidia_targets) $(march) $(cuda) -o $@
 else ifdef march
@@ -27,9 +41,28 @@ else ifdef make_options
 else
 	$(SETENV) $(CC) $(CFLAGS) $(EXTRA_CFLAGS) $(OMP_FLAGS) $(wordlist 2,$(words $^),$^) -o $@ $(LINK_FLAGS)
 endif
+else
+	@echo "  $(SKIP_COMPILE_UNSUPPORTED)"
+endif
+else
+	@echo "  $(SKIP_COMPILE_SUPPORTED)"
+endif
 
 run: $(TESTNAME)
+ifneq (,$(findstring $(AOMP_GPU),$(SUPPORTED)))
+ifeq (,$(findstring $(AOMP_GPU),$(UNSUPPORTED)))
+ifeq ($(RUNCMD),)
 	$(RUNENV) $(RUNPROF) ./$(TESTNAME) 2>&1 | tee $@.log
+else
+	$(RUNENV) $(RUNCMD)
+endif
+else
+	@echo "  $(SKIP_RUN_UNSUPPORTED)"
+endif
+else
+	@echo "  $(SKIP_RUN_SUPPORTED)"
+endif
+
 $(TESTNAME)_og11: $(TESTSRC_ALL)
 	$(OG11CC) $^ -o $@
 og11run: $(TESTNAME)_og11
@@ -60,6 +93,8 @@ verify-log: run
 	)9>../lockfile;
 
 check: $(TESTNAME)
+ifneq (,$(findstring $(AOMP_GPU),$(SUPPORTED)))
+ifeq (,$(findstring $(AOMP_GPU),$(UNSUPPORTED)))
 	path=`pwd`; \
 	base=`basename $$path`; \
 	( \
@@ -73,6 +108,12 @@ check: $(TESTNAME)
 		  echo $$base $$test_num  >> ../failing-tests.txt; \
 	  fi; \
 	)9>../lockfile;
+else
+	@echo "  $(SKIP_RUN_UNSUPPORTED)"
+endif
+else
+	@echo "  $(SKIP_RUN_SUPPORTED)"
+endif
 
 
 # ----- Demo compile and link to object file
