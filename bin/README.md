@@ -339,3 +339,26 @@ Otherwise consider limiting the number of concurrent link steps. too many can ex
 A selective build using 'set_source_files...' will compile and link very quickly, and if combined with ./build_project.sh nocmake ; ./build_project.sh install
 will be a more pleasant user experience.
 
+## AOMP_USE_CCACHE
+
+The default is 1, which creates these CMake vars:
+
+```
+-DCMAKE_C_COMPILER_LAUNCHER=$_ccache_bin
+-DCMAKE_CXX_COMPILER_LAUNCHER=$_ccache_bin
+```
+
+Change it to 0 to avoid `ccache`.
+
+
+## AOMP_SKIP_FLANG
+
+The default for this variable is 0. Setting this to 1 will shorten build time by
+changing the defaults for AOMP_COMPONENT_LIST and AOMP_PROJECTS_LIST to
+
+```
+AOMP_COMPONENT_LIST=" prereq project"
+AOMP_PROJECTS_LIST="clang;lld"
+```
+
+The AOMP_SKIP_FLANG variable is for developers working upstream but not on LLVM flang.
