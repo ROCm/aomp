@@ -112,7 +112,7 @@ else
   # libdevice, project, comgr, rocminfo, hipamd, rocdbgapi, rocgdb,
   # roctracer, and rocprofiler should be found in ROCM in /opt/rocm.
   # The ROCM build only needs these components:
-  components="flang-new extras openmp flang-legacy pgmath flang flang_runtime"
+  components="extras openmp flang-legacy pgmath flang flang_runtime"
 fi
 echo "COMPONENTS:$components"
 

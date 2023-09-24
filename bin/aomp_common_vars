@@ -67,8 +67,8 @@ if [ "$AOMP_SKIP_FLANG" == 1 ] ; then
    AOMP_PROJECTS_LIST=${AOMP_PROJECTS_LIST:-"clang;lld;compiler-rt;clang-tools-extra"}
    AOMP_COMPONENT_LIST=${AOMP_COMPONENT_LIST:-"prereq project"}
 else
-   AOMP_PROJECTS_LIST=${AOMP_PROJECTS_LIST:-"clang;lld;compiler-rt;mlir;clang-tools-extra"}
-   AOMP_COMPONENT_LIST=${AOMP_COMPONENT_LIST:-"prereq project flang-new"}
+   AOMP_PROJECTS_LIST=${AOMP_PROJECTS_LIST:-"clang;lld;compiler-rt;clang-tools-extra;flang"}
+   AOMP_COMPONENT_LIST=${AOMP_COMPONENT_LIST:-"prereq project"}
 fi
 
 # AOMP_SUPP is for SUPPlemental software components needed for testing.
