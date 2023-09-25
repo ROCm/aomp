@@ -91,6 +91,7 @@ echo
 echo " -----Running make for rocprofiler ---- " 
 echo make -j $AOMP_JOB_THREADS
 make -j $AOMP_JOB_THREADS
+make -j $AOMP_JOB_THREADS mytest
 if [ $? != 0 ] ; then 
       echo " "
       echo "ERROR: make -j $AOMP_JOB_THREADS  FAILED"
