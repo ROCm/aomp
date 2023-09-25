@@ -6,6 +6,8 @@
 # --- Start standard header to set AOMP environment variables ----
 realpath=`realpath $0`
 thisdir=`dirname $realpath`
+export AOMP_USE_CCACHE=0
+
 . $thisdir/aomp_common_vars
 # --- end standard header ----
 
