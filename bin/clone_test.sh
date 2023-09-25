@@ -10,6 +10,8 @@ thisdir=`dirname $realpath`
 . $thisdir/aomp_common_vars
 # --- end standard header ----
 
+export AOMP_USE_CCACHE=${AOMP_USE_CCACHE:-0}
+
 EPSDB_LIST=${EPSDB_LIST:-"openmpapps sollve_vv Nekbone goulash fortran-babelstream babelstream OvO"}
 
 function list_repo_from_manifest(){
