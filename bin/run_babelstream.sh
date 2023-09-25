@@ -18,6 +18,8 @@ thisdir=`dirname $realpath`
 . $thisdir/aomp_common_vars
 # --- end standard header ----
 
+export AOMP_USE_CCACHE=0
+
 patchrepo $AOMP_REPOS_TEST/$AOMP_BABELSTREAM_REPO_NAME
 
 # Set defaults for environment variables
