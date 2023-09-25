@@ -1,0 +1,51 @@
+diff --git a/src/teton/CMakeLists.txt b/src/teton/CMakeLists.txt
+index c8875aa..576dd5c 100644
+--- a/src/teton/CMakeLists.txt
++++ b/src/teton/CMakeLists.txt
+@@ -123,7 +123,7 @@ if(ENABLE_TESTS)
+                   driver/test_driver.cc )
+ 
+   if (ENABLE_FIND_MPI)
+-    target_link_libraries( test_driver PUBLIC MPI::MPI_Fortran MPI::MPI_CXX )
++    target_link_libraries( test_driver PUBLIC MPI::MPI_Fortran MPI::MPI_CXX omptarget)
+   endif()
+ 
+   if( ENABLE_CUDA )
+@@ -196,7 +196,7 @@ if(ENABLE_TESTS)
+   endif()
+ 
+   if (ENABLE_UMPIRE)
+-    target_include_directories( test_driver PUBLIC ${UMPIRE_INCLUDE_DIR} 
++    target_include_directories( test_driver PUBLIC ${UMPIRE_INCLUDE_DIR}
+                                                     ${UMPIRE_FORTRAN_MODULES_DIR})
+     target_link_libraries( test_driver PUBLIC ${UMPIRE_LIBRARIES} )
+     if (ENABLE_CAMP)
+diff --git a/src/teton/gpu/OMPWrappers_mod.F90 b/src/teton/gpu/OMPWrappers_mod.F90
+index 5adbe9d..ba78f26 100644
+--- a/src/teton/gpu/OMPWrappers_mod.F90
++++ b/src/teton/gpu/OMPWrappers_mod.F90
+@@ -98,13 +98,13 @@ module OMPWrappers_mod
+         integer(C_INT), value :: device_num
+       end function omp_target_disassociate_ptr
+ 
+-      integer (C_INT) function omp_target_is_present( h_ptr, device_num) bind(c)
++      integer (C_INT) function omp_target_is_present_( h_ptr, device_num) bind(c)
+         use iso_c_binding
+         implicit none
+ 
+         type(C_PTR), value :: h_ptr
+         integer(C_INT), value :: device_num
+-      end function omp_target_is_present
++      end function omp_target_is_present_
+ 
+    end interface
+ 
+@@ -118,7 +118,7 @@ contains
+    ! The #defines do not need to be unset here, that occurs inside the
+    ! templates.
+    !--------------------------------------------------------------------------
+- 
++
+    ! ARRAYS OF DOUBLE PRECISION
+ #define FTM_TYPE real
+ #define FTM_KIND c_double
