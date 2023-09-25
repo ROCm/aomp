@@ -36,6 +36,7 @@ if [ "$1" == "clone_umt" ]; then
         git reset --hard a6e8898d34b9ea3ad6cd5603ddfd44e05c53b7ec
         popd
     fi
+    exit 1;
 fi
 
 
@@ -50,14 +51,6 @@ if [ "$1" == "build_umt" ]; then
         echo "UMT not found. Expecting the sources in $UMT_PATH". Call script with clone_umt first.
         echo "*************************************************************************************"
         exit 0;
-    fi
-
-    if [ ! -f "$UMT_PATH/patched" ]; then
-        pushd ${UMT_PATH}
-        git apply ${UMT_PATCH}/umt-git.patch
-        touch patched
-        popd
-        pwd
     fi
 
     pushd $UMT_PATH
@@ -94,6 +87,10 @@ if [ "$1" == "build_umt" ]; then
     make -j install
     popd
 
+    # apply patch
+    pushd ${UMT_PATH}
+    git apply ${UMT_PATCH}/umt-git.patch
+    popd
 
     # Build UMT
     mkdir build_umt
@@ -116,6 +113,12 @@ if [ "$1" == "build_umt" ]; then
                     -DCONDUIT_ROOT=${UMT_INSTALL_PATH} $1
     make -j install
     popd
+
+    # undo patch
+    pushd ${UMT_PATH}
+    git apply -R ${UMT_PATCH}/umt-git.patch
+    popd
+
 popd
 exit 1
 fi
