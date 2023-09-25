@@ -7,10 +7,10 @@
 # --- Start standard header to set AOMP environment variables ----
 realpath=`realpath $0`
 thisdir=`dirname $realpath`
+export AOMP_USE_CCACHE=${AOMP_USE_CCACHE:-0}
+
 . $thisdir/aomp_common_vars
 # --- end standard header ----
-
-export AOMP_USE_CCACHE=${AOMP_USE_CCACHE:-0}
 
 EPSDB_LIST=${EPSDB_LIST:-"openmpapps sollve_vv Nekbone goulash fortran-babelstream babelstream OvO"}
 
