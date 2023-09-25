@@ -80,7 +80,7 @@ if [ "$1" == "build_umt" ]; then
     make -j install
     popd
 
-    unzip UMT_TPLS/v4.4.zip
+    unzip -o UMT_TPLS/v4.4.zip
     mkdir build_mfem
     pushd build_mfem
     cmake ${PWD}/../mfem-4.4 -DCMAKE_INSTALL_PREFIX=${UMT_INSTALL_PATH} -DCMAKE_C_COMPILER=${CC} -DCMAKE_CXX_COMPILER=${CXX} -DMPI_CXX_COMPILER=${MPI_PATH}/bin/mpicxx -DMFEM_USE_MPI=TRUE -DMFEM_USE_CONDUIT=TRUE -DMFEM_USE_METIS_5=TRUE -DCMAKE_PREFIX_PATH=${INSTALL_PATH}}
