@@ -1,0 +1,315 @@
+diff -Naur -x .git -x test llvm-project.upstream/clang/docs/tools/clang-formatted-files.txt llvm-project/clang/docs/tools/clang-formatted-files.txt
+--- llvm-project.upstream/clang/docs/tools/clang-formatted-files.txt	2023-09-26 09:25:55.929802375 -0400
++++ llvm-project/clang/docs/tools/clang-formatted-files.txt	2023-09-26 14:53:03.011425392 -0400
+@@ -7766,6 +7766,7 @@
+ mlir/include/mlir/Interfaces/CastInterfaces.h
+ mlir/include/mlir/Interfaces/ControlFlowInterfaces.h
+ mlir/include/mlir/Interfaces/CopyOpInterface.h
++mlir/include/mlir/Interfaces/CSEInterfaces.h
+ mlir/include/mlir/Interfaces/DataLayoutInterfaces.h
+ mlir/include/mlir/Interfaces/DecodeAttributesInterfaces.h
+ mlir/include/mlir/Interfaces/DerivedAttributeOpInterface.h
+diff -Naur -x .git -x test llvm-project.upstream/clang/lib/Driver/ToolChains/Clang.cpp llvm-project/clang/lib/Driver/ToolChains/Clang.cpp
+--- llvm-project.upstream/clang/lib/Driver/ToolChains/Clang.cpp	2023-09-26 13:35:57.247749027 -0400
++++ llvm-project/clang/lib/Driver/ToolChains/Clang.cpp	2023-09-26 14:53:06.611423602 -0400
+@@ -8355,7 +8355,9 @@
+   assert(Input.isFilename() && "Invalid input.");
+   CmdArgs.push_back(Input.getFilename());
+ 
+-  const char *Exec = getToolChain().getDriver().getClangProgramPath();
++  // TODO This is a workaround to enable using -save-temps with flang-new
++  // const char *Exec = getToolChain().getDriver().getClangProgramPath();
++  const char *Exec = Args.MakeArgString(getToolChain().GetProgramPath("clang"));
+   if (D.CC1Main && !D.CCGenDiagnostics) {
+     // Invoke cc1as directly in this process.
+     C.addCommand(std::make_unique<CC1Command>(
+diff -Naur -x .git -x test llvm-project.upstream/flang/lib/Lower/OpenMP.cpp llvm-project/flang/lib/Lower/OpenMP.cpp
+--- llvm-project.upstream/flang/lib/Lower/OpenMP.cpp	2023-09-26 09:25:56.749801400 -0400
++++ llvm-project/flang/lib/Lower/OpenMP.cpp	2023-09-26 14:53:03.091425352 -0400
+@@ -2473,6 +2473,21 @@
+                                  reductionDeclSymbols));
+ }
+ 
++static mlir::omp::DistributeOp
++genDistributeOp(Fortran::lower::AbstractConverter &converter,
++                Fortran::lower::pft::Evaluation &eval,
++                mlir::Location currentLocation,
++                const Fortran::parser::OmpClauseList &clauseList,
++                bool outerCombined = false) {
++  // TODO Process clauses
++  // ClauseProcessor cp(converter, clauseList);
++  // cp.processAllocate(allocatorOperands, allocateOperands);
++  // ...
++
++  return genOpWithBody<mlir::omp::DistributeOp>(
++      converter, eval, currentLocation, outerCombined, &clauseList);
++}
++
+ /// Extract the list of function and variable symbols affected by the given
+ /// 'declare target' directive and return the intended device type for them.
+ static mlir::omp::DeclareTargetDeviceType getDeclareTargetInfo(
+@@ -2681,7 +2696,9 @@
+     }
+     if (llvm::omp::allDistributeSet.test(ompDirective)) {
+       validDirective = true;
+-      TODO(currentLocation, "Distribute construct");
++      bool outerCombined = llvm::omp::topDistributeSet.test(ompDirective);
++      genDistributeOp(converter, eval, currentLocation, loopOpClauseList,
++                      outerCombined);
+     }
+     if ((llvm::omp::allParallelSet & llvm::omp::loopConstructSet)
+             .test(ompDirective)) {
+diff -Naur -x .git -x test llvm-project.upstream/llvm/lib/Frontend/OpenMP/OMPIRBuilder.cpp llvm-project/llvm/lib/Frontend/OpenMP/OMPIRBuilder.cpp
+--- llvm-project.upstream/llvm/lib/Frontend/OpenMP/OMPIRBuilder.cpp	2023-09-26 09:25:57.777800179 -0400
++++ llvm-project/llvm/lib/Frontend/OpenMP/OMPIRBuilder.cpp	2023-09-26 14:53:06.595423610 -0400
+@@ -4558,6 +4558,45 @@
+   return Copy;
+ }
+ 
++static void emitUsed(StringRef Name, std::vector<llvm::WeakTrackingVH> &List,
++                     Type *Int8PtrTy, Module &M) {
++  if (List.empty())
++    return;
++
++  // Convert List to what ConstantArray needs.
++  SmallVector<Constant *, 8> UsedArray;
++  UsedArray.resize(List.size());
++  for (unsigned i = 0, e = List.size(); i != e; ++i) {
++    UsedArray[i] = ConstantExpr::getPointerBitCastOrAddrSpaceCast(
++        cast<Constant>(&*List[i]), Int8PtrTy);
++  }
++
++  if (UsedArray.empty())
++    return;
++  ArrayType *ATy = ArrayType::get(Int8PtrTy, UsedArray.size());
++
++  auto *GV =
++      new GlobalVariable(M, ATy, false, llvm::GlobalValue::AppendingLinkage,
++                         llvm::ConstantArray::get(ATy, UsedArray), Name);
++
++  GV->setSection("llvm.metadata");
++}
++
++static void
++emitExecutionMode(OpenMPIRBuilder &OMPBuilder, IRBuilderBase &Builder,
++                  StringRef FunctionName, bool Mode,
++                  std::vector<llvm::WeakTrackingVH> &LLVMCompilerUsed) {
++  auto Int8Ty = Type::getInt8Ty(Builder.getContext());
++  auto *GVMode = new llvm::GlobalVariable(
++      OMPBuilder.M, Int8Ty, /*isConstant=*/true,
++      llvm::GlobalValue::WeakAnyLinkage,
++      llvm::ConstantInt::get(Int8Ty, Mode ? OMP_TGT_EXEC_MODE_SPMD
++                                          : OMP_TGT_EXEC_MODE_GENERIC),
++      Twine(FunctionName, "_exec_mode"));
++  GVMode->setVisibility(llvm::GlobalVariable::ProtectedVisibility);
++  LLVMCompilerUsed.emplace_back(GVMode);
++}
++
+ static Function *
+ createOutlinedFunction(OpenMPIRBuilder &OMPBuilder, IRBuilderBase &Builder,
+                        StringRef FuncName, SmallVectorImpl<Value *> &Inputs,
+@@ -4580,6 +4619,12 @@
+   auto Func = Function::Create(FuncType, GlobalValue::InternalLinkage, FuncName,
+                                Builder.GetInsertBlock()->getModule());
+ 
++  if (OMPBuilder.Config.isTargetDevice()) {
++    std::vector<llvm::WeakTrackingVH> LLVMCompilerUsed;
++    emitExecutionMode(OMPBuilder, Builder, FuncName, false, LLVMCompilerUsed);
++    Type *Int8PtrTy = Type::getInt8Ty(Builder.getContext())->getPointerTo();
++    emitUsed("llvm.compiler.used", LLVMCompilerUsed, Int8PtrTy, OMPBuilder.M);
++  }
+   // Save insert point.
+   auto OldInsertPoint = Builder.saveIP();
+ 
+@@ -4601,6 +4646,9 @@
+   // Insert return instruction.
+   Builder.CreateRetVoid();
+ 
++  Builder.SetInsertPoint(&Func->getEntryBlock(),
++                         Func->getEntryBlock().getFirstNonPHIOrDbgOrAlloca());
++
+   // Rewrite uses of input valus to parameters.
+   Builder.SetInsertPoint(UserCodeEntryBB->getFirstNonPHIOrDbg());
+   for (auto InArg : zip(Inputs, Func->args())) {
+@@ -4615,6 +4663,7 @@
+             : &Arg;
+ 
+     // Collect all the instructions
++    assert(InputCopy->getType()->isPointerTy() && "Not Pointer Type");
+     for (User *User : make_early_inc_range(Input->users()))
+       if (auto Instr = dyn_cast<Instruction>(User))
+         if (Instr->getFunction() == Func)
+diff -Naur -x .git -x test llvm-project.upstream/mlir/include/mlir/Dialect/OpenMP/OpenMPOps.td llvm-project/mlir/include/mlir/Dialect/OpenMP/OpenMPOps.td
+--- llvm-project.upstream/mlir/include/mlir/Dialect/OpenMP/OpenMPOps.td	2023-09-26 09:26:00.029797502 -0400
++++ llvm-project/mlir/include/mlir/Dialect/OpenMP/OpenMPOps.td	2023-09-26 14:53:03.495425152 -0400
+@@ -637,6 +637,26 @@
+ }
+ 
+ //===----------------------------------------------------------------------===//
++// 2.9.4 distribute Construct
++//===----------------------------------------------------------------------===//
++def DistributeOp : OpenMP_Op<"distribute", [RecursiveMemoryEffects]> {
++  let summary = "distribute construct";
++  let description = [{
++    TODO Replace placeholder with upstream definition
++  }];
++
++  let arguments = (ins);
++
++  let regions = (region AnyRegion:$region);
++
++  let assemblyFormat = [{
++    $region attr-dict
++  }];
++
++  let hasVerifier = 0;
++}
++
++//===----------------------------------------------------------------------===//
+ // 2.10.1 task Construct
+ //===----------------------------------------------------------------------===//
+ 
+diff -Naur -x .git -x test llvm-project.upstream/mlir/include/mlir/Interfaces/CSEInterfaces.h llvm-project/mlir/include/mlir/Interfaces/CSEInterfaces.h
+--- llvm-project.upstream/mlir/include/mlir/Interfaces/CSEInterfaces.h	1969-12-31 19:00:00.000000000 -0500
++++ llvm-project/mlir/include/mlir/Interfaces/CSEInterfaces.h	2023-09-26 14:53:03.499425150 -0400
+@@ -0,0 +1,32 @@
++//===- CSEInterfaces.h ------------------------------------------*- C++ -*-===//
++//
++// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
++// See https://llvm.org/LICENSE.txt for license information.
++// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
++//
++//===----------------------------------------------------------------------===//
++#ifndef MLIR_INTERFACES_CSEINTERFACES_H_
++#define MLIR_INTERFACES_CSEINTERFACES_H_
++
++#include "mlir/IR/DialectInterface.h"
++
++namespace mlir {
++class Operation;
++
++/// Define an interface to allow for dialects to control specific aspects of
++/// common subexpression elimination behavior for operations they define.
++class DialectCSEInterface : public DialectInterface::Base<DialectCSEInterface> {
++public:
++  DialectCSEInterface(Dialect *dialect) : Base(dialect) {}
++
++  /// Registered hook to check if an operation that is *not* isolated from
++  /// above, should allow common subexpressions to be extracted out of its
++  /// regions.
++  virtual bool subexpressionExtractionAllowed(Operation *op) const {
++    return true;
++  }
++};
++
++} // namespace mlir
++
++#endif // MLIR_INTERFACES_CSEINTERFACES_H_
+diff -Naur -x .git -x test llvm-project.upstream/mlir/lib/Dialect/OpenMP/IR/OpenMPDialect.cpp llvm-project/mlir/lib/Dialect/OpenMP/IR/OpenMPDialect.cpp
+--- llvm-project.upstream/mlir/lib/Dialect/OpenMP/IR/OpenMPDialect.cpp	2023-09-26 09:26:00.109797407 -0400
++++ llvm-project/mlir/lib/Dialect/OpenMP/IR/OpenMPDialect.cpp	2023-09-26 14:53:03.519425140 -0400
+@@ -18,6 +18,7 @@
+ #include "mlir/IR/DialectImplementation.h"
+ #include "mlir/IR/OpImplementation.h"
+ #include "mlir/IR/OperationSupport.h"
++#include "mlir/Interfaces/CSEInterfaces.h"
+ #include "mlir/Interfaces/FoldInterfaces.h"
+ 
+ #include "llvm/ADT/BitVector.h"
+@@ -47,12 +48,22 @@
+   }
+ };
+ 
++struct OpenMPDialectCSEInterface : public DialectCSEInterface {
++  using DialectCSEInterface::DialectCSEInterface;
++
++  bool subexpressionExtractionAllowed(Operation *op) const final {
++    // Avoid extracting common subexpressions across op boundaries
++    return !isa<TargetOp, TeamsOp, DistributeOp, ParallelOp>(op);
++  }
++};
++
+ struct OpenMPDialectFoldInterface : public DialectFoldInterface {
+   using DialectFoldInterface::DialectFoldInterface;
+ 
+   bool shouldMaterializeInto(Region *region) const final {
+     // Avoid folding constants across target regions
+-    return isa<TargetOp>(region->getParentOp());
++    return isa<TargetOp, TeamsOp, DistributeOp, ParallelOp>(
++        region->getParentOp());
+   }
+ };
+ } // namespace
+@@ -71,6 +82,7 @@
+ #include "mlir/Dialect/OpenMP/OpenMPOpsTypes.cpp.inc"
+       >();
+ 
++  addInterface<OpenMPDialectCSEInterface>();
+   addInterface<OpenMPDialectFoldInterface>();
+   LLVM::LLVMPointerType::attachInterface<
+       PointerLikeModel<LLVM::LLVMPointerType>>(*getContext());
+diff -Naur -x .git -x test llvm-project.upstream/mlir/lib/Target/LLVMIR/Dialect/OpenMP/OpenMPToLLVMIRTranslation.cpp llvm-project/mlir/lib/Target/LLVMIR/Dialect/OpenMP/OpenMPToLLVMIRTranslation.cpp
+--- llvm-project.upstream/mlir/lib/Target/LLVMIR/Dialect/OpenMP/OpenMPToLLVMIRTranslation.cpp	2023-09-26 09:26:00.149797359 -0400
++++ llvm-project/mlir/lib/Target/LLVMIR/Dialect/OpenMP/OpenMPToLLVMIRTranslation.cpp	2023-09-26 14:53:03.527425136 -0400
+@@ -2433,6 +2433,16 @@
+       .Case([&](omp::TargetOp) {
+         return convertOmpTarget(*op, builder, moduleTranslation);
+       })
++      .Case([&](omp::TeamsOp) {
++        // TODO return convertOmpTeams(*op, builder, moduleTranslation);
++        op->emitError("'teams' translation to LLVM IR not supported");
++        return failure();
++      })
++      .Case([&](omp::DistributeOp) {
++        // TODO convertOmpDistribute(*op, builder, moduleTranslation);
++        op->emitError("'distribute' translation to LLVM IR not supported");
++        return failure();
++      })
+       .Case<omp::MapInfoOp, omp::DataBoundsOp>([&](auto op) {
+         // No-op, should be handled by relevant owning operations e.g.
+         // TargetOp, EnterDataOp, ExitDataOp, DataOp etc. and then
+diff -Naur -x .git -x test llvm-project.upstream/mlir/lib/Transforms/CSE.cpp llvm-project/mlir/lib/Transforms/CSE.cpp
+--- llvm-project.upstream/mlir/lib/Transforms/CSE.cpp	2023-08-21 13:28:50.509369796 -0400
++++ llvm-project/mlir/lib/Transforms/CSE.cpp	2023-09-26 14:53:03.527425136 -0400
+@@ -15,6 +15,7 @@
+ 
+ #include "mlir/IR/Dominance.h"
+ #include "mlir/IR/PatternMatch.h"
++#include "mlir/Interfaces/CSEInterfaces.h"
+ #include "mlir/Interfaces/SideEffectInterfaces.h"
+ #include "mlir/Pass/Pass.h"
+ #include "mlir/Transforms/Passes.h"
+@@ -61,7 +62,8 @@
+ class CSEDriver {
+ public:
+   CSEDriver(RewriterBase &rewriter, DominanceInfo *domInfo)
+-      : rewriter(rewriter), domInfo(domInfo) {}
++      : rewriter(rewriter), domInfo(domInfo),
++        interfaces(rewriter.getContext()) {}
+ 
+   /// Simplify all operations within the given op.
+   void simplify(Operation *op, bool *changed = nullptr);
+@@ -122,6 +124,9 @@
+   DominanceInfo *domInfo = nullptr;
+   MemEffectsCache memEffectsCache;
+ 
++  /// CSE interfaces in the present context that can modify CSE behavior.
++  DialectInterfaceCollection<DialectCSEInterface> interfaces;
++
+   // Various statistics.
+   int64_t numCSE = 0;
+   int64_t numDCE = 0;
+@@ -289,7 +294,12 @@
+       // If this operation is isolated above, we can't process nested regions
+       // with the given 'knownValues' map. This would cause the insertion of
+       // implicit captures in explicit capture only regions.
+-      if (op.mightHaveTrait<OpTrait::IsIsolatedFromAbove>()) {
++      // Also, avoid capturing known values from parent regions if this behavior
++      // is explicitly disabled for the given operation.
++      const DialectCSEInterface *cseInterface = interfaces.getInterfaceFor(&op);
++      if (op.mightHaveTrait<OpTrait::IsIsolatedFromAbove>() ||
++          LLVM_UNLIKELY(cseInterface &&
++                        !cseInterface->subexpressionExtractionAllowed(&op))) {
+         ScopedMapTy nestedKnownValues;
+         for (auto &region : op.getRegions())
+           simplifyRegion(nestedKnownValues, region);
