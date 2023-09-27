@@ -49,10 +49,14 @@ int main() {
     x[i] = i;
   }
 
+  // Map data to GPU:
+#pragma omp target enter data map(to:x[:INNER_LARGE])
+#pragma omp target enter data map(alloc:A[:OUTER * INNER_SMALL], B[:OUTER * INNER_LARGE])
+
   // Run original loop:
 
   double t0 = omp_get_wtime();
-  #pragma omp target teams distribute parallel for map(to:x[:INNER_LARGE]) map(from:A[:OUTER * INNER_SMALL], B[:OUTER * INNER_LARGE])
+  #pragma omp target teams distribute parallel for
   for(int k=0; k<OUTER; k++) {
     #pragma omp simd
     for(int i=0; i<INNER_SMALL; i++)
@@ -63,12 +67,14 @@ int main() {
   }
   double original = omp_get_wtime() - t0;
 
+#pragma omp target update from(A[:OUTER * INNER_SMALL], B[:OUTER * INNER_LARGE])
+
   error += check_results(A, B, x);
 
   // Run loop nest with loop directives:
 
   t0 = omp_get_wtime();
-  #pragma omp target teams loop map(to:x[:INNER_LARGE]) map(from:A[:OUTER * INNER_SMALL], B[:OUTER * INNER_LARGE])
+  #pragma omp target teams loop
   for(int k=0; k<OUTER; k++) {
     #pragma omp loop
     for(int i=0; i<INNER_SMALL; i++)
@@ -79,12 +85,14 @@ int main() {
   }
   double loop_nest_with_loops = omp_get_wtime() - t0;
 
+#pragma omp target update from(A[:OUTER * INNER_SMALL], B[:OUTER * INNER_LARGE])
+
   error += check_results(A, B, x);
 
   // Run collapsed split loops:
 
   t0 = omp_get_wtime();
-  #pragma omp target teams distribute parallel for map(from:A[:OUTER * INNER_SMALL]) collapse(2)
+  #pragma omp target teams distribute parallel for collapse(2)
   for(int k=0; k<OUTER; k++) {
     for(int i=0; i<INNER_SMALL; i++)
       A[k*INNER_SMALL + i] = 0.0;
@@ -92,18 +100,23 @@ int main() {
   double split_loop_1 = omp_get_wtime() - t0;
 
   t0 = omp_get_wtime();
-  #pragma omp target teams distribute parallel for map(to:x[:INNER_LARGE]) map(from:B[:OUTER * INNER_LARGE]) collapse(2)
+  #pragma omp target teams distribute parallel for collapse(2)
   for(int k=0; k<OUTER; k++) {
     for(int i=0; i<INNER_LARGE; i++)
       B[k*INNER_LARGE + i] = x[i];
   }
   double split_loop_2 = omp_get_wtime() - t0;
 
+#pragma omp target update from(A[:OUTER * INNER_SMALL], B[:OUTER * INNER_LARGE])
+
+  error += check_results(A, B, x);
+
+#pragma omp target exit data map(delete:x[:INNER_LARGE])
+#pragma omp target exit data map(delete:A[:OUTER * INNER_SMALL], B[:OUTER * INNER_LARGE])
+
   printf("Original loop nest runtime            = %f\n", original);
   printf("Loop nest with loop directives        = %f\n", loop_nest_with_loops);
   printf("Split and collapsed loop nest runtime = %f (%f + %f)\n", split_loop_1 + split_loop_2, split_loop_1, split_loop_2);
-
-  error += check_results(A, B, x);
 
   if (error == 0) {
     printf("Success\n");
