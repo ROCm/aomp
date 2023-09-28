@@ -16,9 +16,9 @@ program main
 !       stop 0
 end program main
 subroutine writeIndex(int_array, array_length)
-        integer :: int_array(*)
+        integer :: int_array(10)
         integer :: array_length
-!$omp target teams distribute parallel do map(tofrom:int_array(1:10))
+!$omp target teams distribute parallel do map(from:int_array)
         do index_ = 1, 10
           int_array(index_) = index_
         end do
