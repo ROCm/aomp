@@ -268,6 +268,17 @@ TESTS_DIR = \
  targc-spmd \
  usm1 \
  usm-globals \
+ usm-globals-with-pragma \
+ usm-locals-xnack-disabled-xnack-any \
+ usm-locals-xnack-disabled-xnack-minus \
+ usm-locals-xnack-disabled-xnack-plus \
+ usm-locals-xnack-enabled-xnack-any-apu \
+ usm-locals-xnack-enabled-xnack-any-apu-maps-non-apu \
+ usm-locals-xnack-enabled-xnack-any-non-apu \
+ usm-locals-xnack-enabled-xnack-minus \
+ usm-locals-xnack-enabled-xnack-plus-apu \
+ usm-locals-xnack-enabled-xnack-plus-apu-maps-non-apu \
+ usm-locals-xnack-enabled-xnack-plus-non-apu \
  veccopy-ompt-target \
  veccopy-ompt-target-disallow-both \
  veccopy-ompt-target-emi \
