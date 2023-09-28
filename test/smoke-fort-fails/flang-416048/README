@@ -1,0 +1,16 @@
+Description:
+When a continuation line is in a C preprocessor macro the parser fails 
+and does not expand the macro before checking for sematic correctness.
+If the file is preprocessed by cpp first, flang-new can compile it successfully.
+
+Command:
+flang-new -E swdev-416048.F90
+
+Error:
+error: Could not scan swdev-416048.F90
+./swdev-416048.F90:3:16: error: Unmatched '('
+    DECLARE_PARAM(a = &)
+                 ^
+files:
+swdev-416048.F90
+macro.h
