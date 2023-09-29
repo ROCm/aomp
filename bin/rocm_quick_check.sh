@@ -17,6 +17,15 @@ if [ -e /usr/bin/python ]; then
 else
   echo "/usr/bin/python is missing FAIL"
 fi
+
+echo "Checking for libnvida compute pieces "
+if [ -e /usr/bin/dpkg ]; then
+  dpkg -l | grep -i nvid
+else 
+	echo skipping dpkg check
+fi
+echo "Done checking for libnvidia"
+
 if [ -e ~/local/openmpi/lib/libmpi.so ]; then
   echo "~/local/openmpi/lib/libmpi.so OK"
 elif [ -e /opt/openmpi-4.1.5/lib/libmpi.so ]; then
