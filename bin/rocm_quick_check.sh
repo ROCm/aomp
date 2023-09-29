@@ -69,3 +69,12 @@ else
   echo "Warning ----Warning---- FileCheck was not found and is needed by smoke tests."
   echo "FileCheck notfound. May need to install llvm-XY-tools (where XY is llvm version)."
 fi
+
+
+echo "Checking for SRIOV "
+if [ -e /sbin/lspci ]; then
+  /sbin/lspci | grep VMware
+else
+  lspci | grep VMware
+fi
+echo "Done checking for SRIOV"
