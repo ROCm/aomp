@@ -154,7 +154,8 @@ module OpenMPTargetStream
             real(kind=REAL64) :: s
             integer(kind=StreamIntKind) :: i
             s = real(0,kind=REAL64)
-            !$omp target parallel do reduction(+:s)
+            ! temporarily avoid offload of reduction till we have that working
+            !!$omp target parallel do reduction(+:s)
             do i=1,N
                s = s + A(i) * B(i)
             end do
