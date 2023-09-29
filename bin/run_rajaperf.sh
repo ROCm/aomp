@@ -50,8 +50,8 @@ if [ "$2" == "build" ]; then
   pushd $AOMP_REPOS_TEST/RAJAPerf
   #cd $AOMP_REPOS_TEST/RAJAPerf
   # 14b:
-  #git reset --hard 99e09dd8614aab46decd43323f7afdde83846bc7
-  #git submodule update --recursive
+  git reset --hard 99e09dd8614aab46decd43323f7afdde83846bc7
+  git submodule update --recursive
   rm -rf build_${BUILD_SUFFIX}
   mkdir build_${BUILD_SUFFIX}
   pushd build_${BUILD_SUFFIX}
@@ -102,7 +102,7 @@ if [ "$2" == "build" ]; then
     echo "Option $2 not supported. Please choose from $build_targets"
     usage
   fi
-  
+
   LESS_THREADS=$(( AOMP_JOB_THREADS/2 ))
   LESS_THREADS=$(( $LESS_THREADS > 32 ? 32 : $LESS_THREADS ))
   MAKE_THREADS=${MAKE_THREADS:-$LESS_THREADS}
@@ -127,7 +127,7 @@ if [ -d build_${BUILD_SUFFIX} ] && [ "$2" != "build" ]; then
     if [ "$1" == "hip" ]; then
       build_${BUILD_SUFFIX}/bin/raja-perf.exe --show-progress --refvar Base_HIP
     elif [ "$1" == "openmp" ] ; then
-      if [ ! -f build_${BUILD_SUFFIX}/bin/raja-perf-omptarget.exe ] ; then 
+      if [ ! -f build_${BUILD_SUFFIX}/bin/raja-perf-omptarget.exe ] ; then
         echo "ERROR file build_${BUILD_SUFFIX}/bin/raja-perf-omptarget.exe not found"
         echo "      please build raja first"
 	exit 1
