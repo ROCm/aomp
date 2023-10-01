@@ -262,8 +262,10 @@ function buildsilo(){
   fi
   runcmd "mkdir -p $_builddir"
   runcmd "cd $_builddir"
-  runcmd "wget https://wci.llnl.gov/sites/wci/files/2021-01/silo-$_version.tgz"
-  runcmd "tar -xzf silo-$_version.tgz"
+  # runcmd "wget https://wci.llnl.gov/sites/wci/files/2021-01/silo-$_version.tgz"
+  # runcmd "tar -xzf silo-$_version.tgz"
+  runcmd "wget https://software.llnl.gov/Silo/ghpages/releases/silo-$_version.tar.xz"
+  runcmd "tar -x --xz -f silo-$_version.tar.xz"
   runcmd "cd silo-$_version"
   if [ -d $_installdir ] ; then 
     runcmd "rm -rf $_installdir"
