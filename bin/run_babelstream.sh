@@ -43,9 +43,9 @@ if [ "${AOMP_GPU:0:3}" == "sm_" ] ; then
 else
    TRIPLE="amdgcn-amd-amdhsa"
    if [ "$ENABLE_USM" == 1 ]; then
-     RUN_OPTIONS=${RUN_OPTIONS:-"omp-default omp-fast omp-usm hip hip-um"}
+     RUN_OPTIONS=${RUN_OPTIONS:-"omp-default omp-fast omp-mi300 omp-usm hip hip-um"}
    else
-     RUN_OPTIONS=${RUN_OPTIONS:-"omp-default omp-fast hip"}
+     RUN_OPTIONS=${RUN_OPTIONS:-"omp-default omp-fast omp-mi300 hip"}
    fi
 fi
 
@@ -57,6 +57,7 @@ if [ "$LLVM_VERSION" == "version" ]  ; then
   # If 3rd  arg is version, must be aomp or rocm compiler, so get version from 4th field.
   LLVM_VERSION=`$AOMP/bin/clang++ --version | grep version | cut -d" " -f 4 | cut -d"." -f1`
   special_aso_flags="-fopenmp-gpu-threads-per-team=1024 -fopenmp-target-fast"
+  special_mi300_flags="-fopenmp-target-fast -fopenmp-target-fast-reduction"
 else
   # temp hack to detect trunk (not vendor compiler) (found version in 3 args)"
   special_aso_flags="-fopenmp-assume-no-thread-state -fopenmp-assume-no-nested-parallelism -fopenmp-cuda-mode -Rpass=openmp-opt -Rpass-missed=openmp-opt -Rpass-analysis=openmp-opt"
@@ -67,6 +68,7 @@ _SILENT=""
 export GPURUN_VERBOSE=0
 if [[ $LLVM_VERSION -ge 16 ]] ; then
   omp_fast_flags="$special_aso_flags $omp_target_flags"
+  omp_mi300_flags="$special_mi300_flags $omp_target_flags"
   _SILENT="-s"
 else
   if [[ $LLVM_VERSION -ge 15 ]] ; then
@@ -141,6 +143,8 @@ for option in $RUN_OPTIONS; do
     compile_cmd="$AOMP/bin/clang++ $std $omp_target_flags $omp_src -o $EXEC"
   elif [ "$option" == "omp-fast" ]; then
     compile_cmd="$AOMP/bin/clang++ $std $omp_fast_flags   $omp_src -o $EXEC"
+  elif [ "$option" == "omp-mi300" ]; then
+    compile_cmd="$AOMP/bin/clang++ $std $omp_mi300_flags   $omp_src -o $EXEC"
   elif [ "$option" == "omp-cpu" ]; then
     compile_cmd="$AOMP/bin/clang++ $std $omp_cpu_flags    $omp_src -o $EXEC"
   elif [ "$option" == "omp-usm" ]; then
