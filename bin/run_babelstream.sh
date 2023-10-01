@@ -66,9 +66,13 @@ echo "LLVM VERSION IS $LLVM_VERSION"
 _SILENT=""
 # for old versions of gpurun without -s flag, silence gpurun with GPURUN_VERBOSE
 export GPURUN_VERBOSE=0
-if [[ $LLVM_VERSION -ge 16 ]] ; then
+if [[ $LLVM_VERSION -ge 18 ]] ; then
   omp_fast_flags="$special_aso_flags $omp_target_flags"
   omp_mi300_flags="$special_mi300_flags $omp_target_flags"
+  _SILENT="-s"
+else
+ if [[ $LLVM_VERSION -ge 16 ]] ; then
+  omp_fast_flags="$special_aso_flags $omp_target_flags"
   _SILENT="-s"
 else
   if [[ $LLVM_VERSION -ge 15 ]] ; then
@@ -80,6 +84,8 @@ else
       omp_fast_flags="$omp_target_flags"
     fi
   fi
+ fi
+ omp_mi300_flags="$omp_fast_flags"
 fi
 
 GPURUN_BINDIR=${GPURUN_BINDIR:-$AOMP/bin}
