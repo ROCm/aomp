@@ -49,8 +49,7 @@ if [ "$2" == "build" ]; then
   # Begin configuration
   pushd $AOMP_REPOS_TEST/RAJAPerf
   #cd $AOMP_REPOS_TEST/RAJAPerf
-  # 14b:
-  git reset --hard 99e09dd8614aab46decd43323f7afdde83846bc7
+  git reset --hard 13808861f5ce8348fbaa124e23fed535a2a1e1fb
   git submodule update --recursive
   rm -rf build_${BUILD_SUFFIX}
   mkdir build_${BUILD_SUFFIX}
