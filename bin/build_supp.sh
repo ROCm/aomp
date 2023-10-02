@@ -189,6 +189,8 @@ function buildaqlprofile(){
   if [ $? == 0 ] ; then
     # not sure if deb_version is 20 or 22
     deb_version="22"
+    os_version=`grep VERSION_ID /etc/os-release | cut -d"\"" -f2`
+    [ $os_version == "20.04" ] && deb_version="20"
     runcmd "wget https://repo.radeon.com/rocm/apt/5.7/pool/main/h/hsa-amd-aqlprofile5.7.0/hsa-amd-aqlprofile5.7.0_1.0.0.50700.50700-63~${deb_version}.04_amd64.deb"
     runcmd "dpkg -x hsa-amd-aqlprofile5.7.0_1.0.0.50700.50700-63~${deb_version}.04_amd64.deb $_builddir"
   else
