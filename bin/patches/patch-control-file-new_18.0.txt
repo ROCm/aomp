@@ -9,3 +9,4 @@ bolt: bolt.patch
 hsa-runtime: hsa-runtime-numa-new-17.0.patch
 rocprofiler: rocprofiler-no-aql-ok.patch
 babelstream: babelstream-usm.patch
+USM: umt.patch
