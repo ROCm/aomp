@@ -84,11 +84,9 @@ if [ "$1" == "build_umt" ]; then
     pushd ${UMT_PATH}
     git reset --hard a6e8898d34b9ea3ad6cd5603ddfd44e05c53b7ec
     patchrepo $AOMP_REPOS_TEST/UMT
-    popd
 
     # Build UMT
     mkdir build_umt
-    #pushd build_umt
 
     # Run CMake on UMT, compile, and install.
     cmake ${UMT_PATH}/src \
@@ -108,7 +106,6 @@ if [ "$1" == "build_umt" ]; then
     make -j install
 
     # undo patch
-    pushd ${UMT_PATH}
     removepatch $AOMP_REPOS_TEST/UMT
     popd
 
