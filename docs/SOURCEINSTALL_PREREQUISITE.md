@@ -78,7 +78,7 @@ RHEL 7.7 and later RHEL 7 versions
 After all the required system package from section 1 are installed, there are some python packages that must be locally installed by the user building AOMP. Use this command to install these.  Do not install these as root.
 
 ```
-  python3 -m pip install CppHeaderParser argparse wheel lit lxml barectf
+  python3 -m pip install CppHeaderParser argparse wheel lit lxml barectf termcolor
 ```
 
 ### 3.  Build CMake in /usr/local/cmake
