@@ -23,6 +23,12 @@ function build_aomp_component() {
      gcc --version
    fi
 
+   _stats_dir=$AOMP_INSTALL_DIR/.aomp_component_stats
+   mkdir -p $_stats_dir
+   touch $_stats_dir/.${COMPONENT}.ts
+   start_date=`date`
+   start_secs=`date +%s`
+
    $AOMP_REPOS/$AOMP_REPO_NAME/bin/build_$COMPONENT.sh "$@"
    rc=$?
    if [ $rc != 0 ] ; then 
@@ -36,6 +42,20 @@ function build_aomp_component() {
            echo " !!!  build_aomp.sh: INSTALL FAILED FOR COMPONENT $COMPONENT !!!"
            exit $rc
        fi
+       # gather stats on artifacts installed with this component build
+       end_date=`date`
+       end_secs=`date +%s`
+       find $AOMP_INSTALL_DIR -type f -newer $_stats_dir/.${COMPONENT}.ts | xargs wc -c >$_stats_dir/$COMPONENT.files
+       echo "COMPONENT $COMPONENT START : $start_date " >$_stats_dir/$COMPONENT.stats
+       echo "COMPONENT $COMPONENT END   : $end_date" >>$_stats_dir/$COMPONENT.stats
+       echo "COMPONENT $COMPONENT TIME  : $(( $end_secs - $start_secs )) seconds" >> $_stats_dir/$COMPONENT.stats
+       file_count=`wc -l $_stats_dir/$COMPONENT.files | cut -d" " -f1`
+       file_count=$(( file_count -1 ))
+       echo "COMPONENT $COMPONENT FILES : $file_count " >> $_stats_dir/$COMPONENT.stats
+       new_bytes=`grep " total" $_stats_dir/$COMPONENT.files | cut -d" " -f1`
+       k_bytes=$(( new_bytes / 1024 ))
+       m_bytes=$(( k_bytes / 1024 ))
+       echo "COMPONENT $COMPONENT SIZE  : $k_bytes KB  $m_bytes MB " >> $_stats_dir/$COMPONENT.stats
    fi
 }
 
