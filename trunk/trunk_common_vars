@@ -8,7 +8,7 @@
 #     set environment variables defined in this file.
 #
 # Set the TRUNK VERSION STRING and TRUNK_PROJECT_REPO_BRANCH.
-TRUNK_VERSION=${TRUNK_VERSION:-"17.0"}
+TRUNK_VERSION=${TRUNK_VERSION:-"18.0"}
 TRUNK_VERSION_MOD=${TRUNK_VERSION_MOD:-"0"}
 TRUNK_VERSION_STRING=${TRUNK_VERSION_STRING:-"$TRUNK_VERSION-$TRUNK_VERSION_MOD"}
 export TRUNK_VERSION_STRING TRUNK_VERSION TRUNK_VERSION_MOD 
@@ -87,12 +87,11 @@ fi
 
 TRUNK_SKIP_FLANG=${TRUNK_SKIP_FLANG:-0}
 if [ "$TRUNK_SKIP_FLANG" == 1 ] ; then
-   TRUNK_PROJECTS_LIST=${TRUNK_PROJECTS_LIST:-"clang;lld"}
-   TRUNK_COMPONENT_LIST=${TRUNK_COMPONENT_LIST:-"prereq project compiler-rt"}
+   TRUNK_PROJECTS_LIST=${TRUNK_PROJECTS_LIST:-"clang;lld;llvm"}
 else
-   TRUNK_PROJECTS_LIST=${TRUNK_PROJECTS_LIST:-"clang;lld;mlir"}
-   TRUNK_COMPONENT_LIST=${TRUNK_COMPONENT_LIST:-"prereq project compiler-rt flang-new"}
+   TRUNK_PROJECTS_LIST=${TRUNK_PROJECTS_LIST:-"clang;lld;llvm;flang"}
 fi
+TRUNK_COMPONENT_LIST=${TRUNK_COMPONENT_LIST:-"prereq project"}
 
 # AOMP_SUPP is for SUPPlemental software components needed for testing.
 # such as openmpi, hdf5, and silo. Applications that need supplemental
