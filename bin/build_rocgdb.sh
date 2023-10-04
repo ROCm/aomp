@@ -75,7 +75,7 @@ if [ "$1" != "noconfigure" ] && [ "$1" != "install" ] ; then
    cd $BUILD_AOMP/build/rocgdb
    echo " -----Running gdb configure ---- " 
    echo "$AOMP_REPOS/$AOMP_GDB_REPO_NAME/configure $MYCONFIGOPTS"
-   $AOMP_REPOS/$AOMP_GDB_REPO_NAME/configure $MYCONFIGOPTS
+   $AOMP_REPOS/$AOMP_GDB_REPO_NAME/configure $MYCONFIGOPTS LDFLAGS="${OPENMP_EXTRAS_EXE_LINKER_FLAGS}"
    if [ $? != 0 ] ; then 
       echo "ERROR gdb configure failed."
       exit 1
