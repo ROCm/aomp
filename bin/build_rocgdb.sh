@@ -72,6 +72,7 @@ if [ "$1" != "noconfigure" ] && [ "$1" != "install" ] ; then
      --with-python=python3 --with-rocm-dbgapi=$AOMP_INSTALL_DIR PKG_CONFIG_PATH=$AOMP_INSTALL_DIR/share/pkgconfig"
 
    mkdir -p $BUILD_AOMP/build/rocgdb
+   export LDFLAGS="-Wl,-rpath=$AOMP_INSTALL_DIR/lib"
    cd $BUILD_AOMP/build/rocgdb
    echo " -----Running gdb configure ---- " 
    echo "$AOMP_REPOS/$AOMP_GDB_REPO_NAME/configure $MYCONFIGOPTS"
