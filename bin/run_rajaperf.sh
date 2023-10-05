@@ -127,7 +127,6 @@ if [ "$2" == "build" ]; then
   pushd ${AOMP_REPOS_TEST}/RAJAPerf/tpl/RAJA
   git apply -R ${AOMP_PATCH_DIR}/raja.patch
   popd
-  pwd
   git apply -R ${AOMP_PATCH_DIR}/rajaperf.patch
   
   popd
