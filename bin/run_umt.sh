@@ -1,10 +1,15 @@
 #!/bin/bash
-export AOMP=$HOME/rocm/aomp
-export UMT_PATCH=$HOME/git/aomp18.0/aomp/bin/patches
 
+# --- Start standard header to set AOMP environment variables ----
+realpath=`realpath $0`
+thisdir=`dirname $realpath`
+. $thisdir/aomp_common_vars
+# --- end standard header ----
+
+export AOMP=${AOMP:-/usr/lib/aomp}
 export MPI_PATH=${HOME}/local/openmpi
 
-export UMT_PATH=$HOME/git/aomp-test/UMT-GIT
+export UMT_PATH=$HOME/git/aomp-test/UMT
 export UMT_INSTALL_PATH=$UMT_PATH/umt_workspace/install
 
 export LD_LIBRARY_PATH=${AOMP}/lib:${MPI_PATH}/lib:${LD_LIBRARY_PATH}
@@ -15,30 +20,18 @@ FC=${AOMP}/bin/flang
 
 export PATH=$AOMP/bin:$PATH
 
+#Queried by patchrepo
+export OMP_APPLY_ROCM_PATCHES=1
 
 function usage(){
   echo ""
   echo "------------ Usage ---------------------"
   echo "./run_umt_git.sh [backend] [option]"
-  echo "Backends: hip, openmp"
-  echo "Options:  clone_umt, build_umt, run_umt"
+  echo "Backends: openmp"
+  echo "Options: build_umt, run_umt"
   echo "---------------------------------------"
   echo ""
 }
-
-# clone_umt
-if [ "$1" == "clone_umt" ]; then
-
-    if [ ! -d "$UMT_PATH" ]; then
-        echo "$UMT_PATH does not exists. Cloning UMT."
-        git clone --recursive  https://github.com/LLNL/UMT.git $UMT_PATH
-        pushd ${UMT_PATH}
-        git reset --hard a6e8898d34b9ea3ad6cd5603ddfd44e05c53b7ec
-        popd
-    fi
-    exit 1;
-fi
-
 
 export PATH=$MPI_INSTALL_DIR/bin:$PATH
 export LD_LIBRARY_PATH=$MPI_INSTALL_DIR/lib:$LD_LIBRARY_PATH
@@ -89,12 +82,11 @@ if [ "$1" == "build_umt" ]; then
 
     # apply patch
     pushd ${UMT_PATH}
-    git apply ${UMT_PATCH}/umt-git.patch
-    popd
+    git reset --hard a6e8898d34b9ea3ad6cd5603ddfd44e05c53b7ec
+    patchrepo $AOMP_REPOS_TEST/UMT
 
     # Build UMT
     mkdir build_umt
-    #pushd build_umt
 
     # Run CMake on UMT, compile, and install.
     cmake ${UMT_PATH}/src \
@@ -112,11 +104,9 @@ if [ "$1" == "build_umt" ]; then
     			    -DMFEM_ROOT=${UMT_INSTALL_PATH} \
                     -DCONDUIT_ROOT=${UMT_INSTALL_PATH} $1
     make -j install
-    popd
 
     # undo patch
-    pushd ${UMT_PATH}
-    git apply -R ${UMT_PATCH}/umt-git.patch
+    removepatch $AOMP_REPOS_TEST/UMT
     popd
 
 popd
