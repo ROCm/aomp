@@ -27,7 +27,7 @@ function usage(){
   echo ""
   echo "------------ Usage ---------------------"
   echo "./run_umt_git.sh [backend] [option]"
-  echo "Backends: hip, openmp"
+  echo "Backends: openmp"
   echo "Options: build_umt, run_umt"
   echo "---------------------------------------"
   echo ""
