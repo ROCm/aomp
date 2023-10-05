@@ -57,8 +57,6 @@ if [ "$2" == "build" ]; then
   popd
   git apply ${AOMP_PATCH_DIR}/rajaperf.patch
   
-  sleep 5
-
   rm -rf build_${BUILD_SUFFIX}
   mkdir build_${BUILD_SUFFIX}
   pushd build_${BUILD_SUFFIX}
