@@ -65,11 +65,10 @@ fi
 AOMP_SKIP_FLANG=${AOMP_SKIP_FLANG:-0}
 if [ "$AOMP_SKIP_FLANG" == 1 ] ; then
    AOMP_PROJECTS_LIST=${AOMP_PROJECTS_LIST:-"clang;lld;compiler-rt;clang-tools-extra"}
-   AOMP_COMPONENT_LIST=${AOMP_COMPONENT_LIST:-"prereq project"}
 else
    AOMP_PROJECTS_LIST=${AOMP_PROJECTS_LIST:-"clang;lld;compiler-rt;clang-tools-extra;flang"}
-   AOMP_COMPONENT_LIST=${AOMP_COMPONENT_LIST:-"prereq project"}
 fi
+AOMP_COMPONENT_LIST=${AOMP_COMPONENT_LIST:-"prereq project"}
 
 # AOMP_SUPP is for SUPPlemental software components needed for testing.
 # such as openmpi, hdf5, and silo. Applications that need supplemental
@@ -318,7 +317,6 @@ AOMP_BABELSTREAM_REPO_NAME=${AOMP_BABELSTREAM_REPO_NAME:-babelstream}
 GITUMT="https://github.com/LLNL"
 AOMP_UMT_REPO_NAME=${AOMP_UMT_REPO_NAME:-UMT}
 
-
 #  We dont use this yet, waiting for trunk merge
 AOMP_F18_REPO_NAME=${AOMP_F18_REPO_NAME:-f18}
 
@@ -334,9 +332,9 @@ AOMP_PATCH_CONTROL_FILE=${AOMP_PATCH_CONTROL_FILE:-${AOMP_REPOS}/${AOMP_REPO_NAM
 
 STASH_BEFORE_PULL=${STASH_BEFORE_PULL:-YES}
 
-# It is highly recommendded that developers set SUDO to disable and
+# It is highly recommendded that developers set SUDO to disable and 
 # this have update access to install directory $AOMP. In the future
-# we may set this default to disable
+# we may set this default to disable 
 SUDO=${SUDO:-NO}
 if [ "$SUDO" == "set" ]  || [ "$SUDO" == "yes" ] || [ "$SUDO" == "YES" ] ; then
    SUDO="sudo"
@@ -344,9 +342,9 @@ else
    SUDO=""
 fi
 
-# The default for BUILD_AOMP is AOMP_REPOS.
-# The cmake and make builds are actually done in
-# BUILD_AOMP/build, not the actual repos.
+# The default for BUILD_AOMP is AOMP_REPOS. 
+# The cmake and make builds are actually done in 
+# BUILD_AOMP/build, not the actual repos. 
 BUILD_AOMP=${BUILD_AOMP:-$AOMP_REPOS}
 BUILD_DIR=$BUILD_AOMP
 
@@ -361,7 +359,7 @@ else
    # ROCm integrated build gets ROCm pieces from installed ROCm
    ROCM_DIR=${ROCM_DIR:-/opt/rocm}
 
-   # For Integrated ROCm build we do not install to versioned dir and create
+   # For Integrated ROCm build we do not install to versioned dir and create 
    # a symbolic link.  Instead we install directly to /opt/rocm/aomp
    AOMP_INSTALL_DIR=${AOMP}
 fi
@@ -504,13 +502,13 @@ function help_build_aomp(){
    /bin/cat 2>&1 <<"EOF"
 
   The build scripts in this directory are used to build AOMP.
-
+  
   Repositories:
      Many repositories are used to build AOMP.  The script clone_aomp.sh will
      clone all the necessary repositories as subdirectories of the directory
      $HOME/git/aomp11. The web repository locations and the required branches
      are set with the file aomp_common_vars
-
+  
   Build all components:
      To build all components, run these commands:
 
@@ -528,14 +526,14 @@ function help_build_aomp(){
      "install" or "nocmake".  Running  with no options starts fresh with an empty
      component build directory.  It then runs cmake with the correct cmake options
      then it runs make with a proper -j option.
-
+  
   Optional Arguments 'nocmake' and 'install' :
      The 'nocmake' or 'install' options can only be used after your initial build
-     with no options. The 'nocmake' option is intended to restart make after
-     you fix code following a failed build. The 'install' option will run 'make'
-     and 'make install' causing installation into the directory $AOMP_INSTALL_DIR.
+     with no options. The 'nocmake' option is intended to restart make after 
+     you fix code following a failed build. The 'install' option will run 'make' 
+     and 'make install' causing installation into the directory $AOMP_INSTALL_DIR. 
      The 'install' option will also create a symbolic link to directory $AOMP.
-
+  
   Environment Variables:
      You can set environment variables to override behavior of the build scripts
      NAME             DEFAULT             DESCRIPTION
@@ -545,28 +543,28 @@ function help_build_aomp(){
      BUILD_TYPE       Release             The CMAKE build type
      BUILD_AOMP       same as AOMP_REPOS  Set a different build location than AOMP_REPOS
      AOMP_USE_NINJA   0                   Use ninja if possible
-
+  
   To build a debug version of the compiler, run this command before the build:
      export BUILD_TYPE=debug
-
+  
   The BUILD_AOMP Envronment Variable:
      The build scripts will always build with cmake and make outside your source git trees.
      By default (without BUILD_AOMP) the build will occur in the "build" subdirectory of
      AOMP_REPOS. For example build_llvm will build in $AOMP_REPOS/build/llvm
-
+  
      The BUILD_AOMP environment variable enables source development outside your git
-     repositories. By default, this feature is OFF.  The BUILD_AOMP environment variable
-     can be used if access to your git repositories is very slow or you want to test
-     changes outside of your local git repositories (specified by AOMP_REPOS env var).
+     repositories. By default, this feature is OFF.  The BUILD_AOMP environment variable 
+     can be used if access to your git repositories is very slow or you want to test 
+     changes outside of your local git repositories (specified by AOMP_REPOS env var). 
      If BUILD_AOMP is set, your git repositories (specifed by AOMP_REPOS) will be
-     replicated to subdirectories of BUILD_AOMP using rsync.  The subsequent build
+     replicated to subdirectories of BUILD_AOMP using rsync.  The subsequent build 
      (cmake and make) will occur in subdirectory BUILD_AOMP/build/llvm.
      This replication only happens on your initial build, that is, if you specify no arguments.
      The option 'nocmake' skips replication and then restarts make in the build directory.
-     The install option skips replication, skips cmake, runs 'make' and 'make install'.
+     The install option skips replication, skips cmake, runs 'make' and 'make install'. 
      Be careful to always use options nocmake or install if you made local changes in
      BUILD_AOMP or your changes will be lost by a new replica of your git repositories.
-
+  
 EOF
    exit 0
 }
