@@ -52,7 +52,7 @@ function build_aomp_component() {
        file_count=`wc -l $_stats_dir/$COMPONENT.files | cut -d" " -f1`
        file_count=$(( file_count -1 ))
        echo "COMPONENT $COMPONENT FILES : $file_count " >> $_stats_dir/$COMPONENT.stats
-       new_bytes=`grep " total" $_stats_dir/$COMPONENT.files | cut -d" " -f1`
+       new_bytes=`grep " total" $_stats_dir/$COMPONENT.files | cut -d" " -f1 | awk '{sum += $1} END {print sum}'`
        k_bytes=$(( new_bytes / 1024 ))
        m_bytes=$(( k_bytes / 1024 ))
        echo "COMPONENT $COMPONENT SIZE  : $k_bytes KB  $m_bytes MB " >> $_stats_dir/$COMPONENT.stats
