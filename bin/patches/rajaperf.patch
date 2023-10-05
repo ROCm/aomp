@@ -1,42 +1,32 @@
-diff --git a/src/common/Executor.cpp b/src/common/Executor.cpp
-index 8c4b4793..1383334b 100644
---- a/src/common/Executor.cpp
-+++ b/src/common/Executor.cpp
-@@ -545,13 +545,13 @@ void Executor::writeCSVReport(const string& filename, CSVRepMode mode,
+diff --git a/src/apps/EDGE3D-OMPTarget.cpp b/src/apps/EDGE3D-OMPTarget.cpp
+index bf86d856..7fd67e58 100644
+--- a/src/apps/EDGE3D-OMPTarget.cpp
++++ b/src/apps/EDGE3D-OMPTarget.cpp
+@@ -61,7 +61,7 @@ void EDGE3D::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tu
  
-     size_t kercol_width = kernel_col_name.size();
-     for (size_t ik = 0; ik < kernels.size(); ++ik) {
--      kercol_width = max(kercol_width, kernels[ik]->getName().size());
-+      kercol_width = std::max(kercol_width, kernels[ik]->getName().size());
-     }
-     kercol_width++;
+   } else if ( vid == RAJA_OpenMPTarget ) {
  
-     vector<size_t> varcol_width(variant_ids.size());
-     for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
--      varcol_width[iv] = max(prec+2, getVariantName(variant_ids[iv]).size());
-+      varcol_width[iv] = std::max(prec+2, getVariantName(variant_ids[iv]).size());
-     }
+-    EDGE3D_DATA_SETUP_OMP_TARGET;
++    EDGE3D_DATA_SETUP;
  
-     //
-@@ -632,7 +632,7 @@ void Executor::writeFOMReport(const string& filename)
+     startTimer();
+     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+diff --git a/src/basic/COPY8-OMPTarget.cpp b/src/basic/COPY8-OMPTarget.cpp
+index 72944986..0e67e546 100644
+--- a/src/basic/COPY8-OMPTarget.cpp
++++ b/src/basic/COPY8-OMPTarget.cpp
+@@ -40,7 +40,7 @@ void COPY8::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tun
+     startTimer();
+     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
  
-     size_t kercol_width = kernel_col_name.size();
-     for (size_t ik = 0; ik < kernels.size(); ++ik) {
--      kercol_width = max(kercol_width, kernels[ik]->getName().size());
-+      kercol_width = std::max(kercol_width, kernels[ik]->getName().size());
-     }
-     kercol_width++;
- 
-@@ -862,10 +862,10 @@ void Executor::writeChecksumReport(const string& filename)
- 
-     size_t namecol_width = 0;
-     for (size_t ik = 0; ik < kernels.size(); ++ik) {
--      namecol_width = max(namecol_width, kernels[ik]->getName().size());
-+      namecol_width = std::max(namecol_width, kernels[ik]->getName().size());
-     }
-     for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
--      namecol_width = max(namecol_width,
-+      namecol_width = std::max(namecol_width,
-                           getVariantName(variant_ids[iv]).size());
-     }
-     namecol_width++;
+-      #pragma omp target is_device_ptr(x, y) device( did )
++      #pragma omp target is_device_ptr(x1,x2,x3,x4,x5,x6,x7, y1,y2,y3,y4,y5,y6,y7) device( did )
+       #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1)
+       for (Index_type i = ibegin; i < iend; ++i ) {
+         COPY8_BODY;
+diff --git a/tpl/RAJA b/tpl/RAJA
+--- a/tpl/RAJA
++++ b/tpl/RAJA
+@@ -1 +1 @@
+-Subproject commit e78b1eb03cbcd9f954c9f54ea79b5f6f479bde45
++Subproject commit e78b1eb03cbcd9f954c9f54ea79b5f6f479bde45-dirty
