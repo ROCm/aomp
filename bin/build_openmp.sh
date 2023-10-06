@@ -218,8 +218,8 @@ $AOMP_ORIGIN_RPATH \
       echo " -----Running openmp cmake for debug ---- " 
       mkdir -p $BUILD_DIR/build/openmp_debug
       cd $BUILD_DIR/build/openmp_debug
-      echo ${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_C_FLAGS=-g -DCMAKE_CXX_FLAGS=-g -DLLVM_LIBDIR_SUFFIX=-debug $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
-      ${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_C_FLAGS=-g -DCMAKE_CXX_FLAGS=-g -DLLVM_LIBDIR_SUFFIX=-debug $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
+      echo ${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_C_FLAGS="$CFLAGS -g" -DCMAKE_CXX_FLAGS="$CXXFLAGS -g" -DLLVM_LIBDIR_SUFFIX=-debug $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
+      ${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_C_FLAGS="$CFLAGS -g" -DCMAKE_CXX_FLAGS="$CXXFLAGS -g" -DLLVM_LIBDIR_SUFFIX=-debug $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
       if [ $? != 0 ] ; then
          echo "ERROR openmp debug cmake failed. Cmake flags"
          echo "      $MYCMAKEOPTS"
