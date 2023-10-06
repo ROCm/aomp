@@ -118,14 +118,14 @@ export HSA_RUNTIME_PATH=$ROCM_DIR
 #export HIP_DEVICE_LIB_PATH=$ROCM_DIR/lib
 
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then 
-
    echo " " 
    echo "This is a FRESH START. ERASING any previous builds in $BUILD_DIR/openmp."
    echo "Use ""$0 nocmake"" or ""$0 install"" to avoid FRESH START."
-      MYCMAKEOPTS="$COMMON_CMAKE_OPTS -DCMAKE_BUILD_TYPE=Release $AOMP_ORIGIN_RPATH"
+   echo rm -rf $BUILD_DIR/build/openmp
+   rm -rf $BUILD_DIR/build/openmp
+   MYCMAKEOPTS="$COMMON_CMAKE_OPTS -DCMAKE_BUILD_TYPE=Release $AOMP_ORIGIN_RPATH"
+   if [ "$AOMP_LEGACY_OPENMP" == "1" ]; then
       echo " -----Running openmp cmake ---- "
-      echo rm -rf $BUILD_DIR/build/openmp
-      rm -rf $BUILD_DIR/build/openmp
       mkdir -p $BUILD_DIR/build/openmp
       cd $BUILD_DIR/build/openmp
       echo ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
@@ -135,7 +135,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
          echo "      $MYCMAKEOPTS"
          exit 1
       fi
-
+   fi
       if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
         ASAN_CMAKE_OPTS="$COMMON_CMAKE_OPTS -DSANITIZER_AMDGPU=1 -DCMAKE_BUILD_TYPE=Release $AOMP_ORIGIN_RPATH"
         echo " -----Running openmp cmake for asan ---- "
@@ -241,16 +241,18 @@ $AOMP_ORIGIN_RPATH \
    fi
 fi
 
-cd $BUILD_DIR/build/openmp
-echo " -----Running $AOMP_NINJA_BIN for $BUILD_DIR/build/openmp ---- "
-$AOMP_NINJA_BIN -j $AOMP_JOB_THREADS
-if [ $? != 0 ] ; then
-      echo " "
-      echo "ERROR: $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS  FAILED"
-      echo "To restart:" 
-      echo "  cd $BUILD_DIR/build/openmp"
-      echo "  $AOMP_NINJA_BIN"
-      exit 1
+if [ "$AOMP_LEGACY_OPENMP" == "1" ]; then
+  cd $BUILD_DIR/build/openmp
+  echo " -----Running $AOMP_NINJA_BIN for $BUILD_DIR/build/openmp ---- "
+  $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS
+  if [ $? != 0 ] ; then
+        echo " "
+        echo "ERROR: $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS  FAILED"
+        echo "To restart:"
+        echo "  cd $BUILD_DIR/build/openmp"
+        echo "  $AOMP_NINJA_BIN"
+        exit 1
+  fi
 fi
 
 if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
