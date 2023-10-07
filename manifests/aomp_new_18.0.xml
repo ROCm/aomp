@@ -24,6 +24,6 @@
 <project remote="roc" path="rocminfo" name="rocminfo"                         revision="rocm-5.7.x" groups="unlocked" />
 <project remote="roc" path="rocm-cmake" name="rocm-cmake"                     revision="release/rocm-rel-5.7" groups="unlocked" />
 <project remote="rocsw" path="hipfort" name="hipfort"                 revision="release/rocm-rel-5.7" groups="unlocked" />
-<project remote="gerritgit" name="hsa/ec/hsa-runtime" path="hsa-runtime" revision="bdecf27cfd17a5829ce823eefd52b0574f48fa4e" upstream="amd-master" groups="unlocked" />
+<project remote="gerritgit" name="hsa/ec/hsa-runtime" path="hsa-runtime" revision="dea67d696291ef84d57e0779a55e6e71703175ae" upstream="amd-master" groups="unlocked" />
 <project remote="gerritgit" name="compute/ec/libhsakmt" path="roct-thunk-interface" revision="06e348f59b4cc166cde0ae14a658c13383239819" upstream="amd-mainline" groups="unlocked" />
 </manifest>
