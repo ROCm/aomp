@@ -6,7 +6,7 @@ TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 RUNENV      += HSA_XNACK=0 LIBOMPTARGET_KERNEL_TRACE=2
 
-RUNCMD       = ./$(TESTNAME) 2>&1 | $(AOMP)/bin/FileCheck $(TESTSRC_MAIN)
+RUNCMD       = ./$(TESTNAME) 2>&1 | $(FILECHECK) $(TESTSRC_MAIN)
 
 OMP_FLAGS    = -fopenmp --offload-arch=$(AOMP_GPU):xnack-
 CFLAGS       += -O3

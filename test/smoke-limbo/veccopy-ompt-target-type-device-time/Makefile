@@ -14,4 +14,4 @@ CC           = $(OMP_BIN) $(VERBOSE)
 include ../Makefile.rules
 run:
 	echo $(PATH)
-	./$(TESTNAME) | $(AOMP)/bin/FileCheck $(TESTSRC_MAIN)
+	./$(TESTNAME) | $(FILECHECK) $(TESTSRC_MAIN)
