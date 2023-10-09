@@ -245,7 +245,7 @@ fi
 AOMP_JOB_THREADS=${AOMP_JOB_THREADS:-$COMP_THREADS}
 
 # These are the web sites where the AOMP git repos are pulled from
-GITROC="https://github.com/radeonopencompute"
+GITROC="https://github.com/RadeonOpenCompute"
 GITROCINTERNAL="ssh://$USER@gerrit-git.amd.com:29418/lightning/ec"
 GITGERRIT="ssh://$USER@gerrit-git.amd.com:29418"
 GITROCDEV="https://github.com/ROCm-Developer-Tools"
