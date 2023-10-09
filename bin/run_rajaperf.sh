@@ -20,6 +20,7 @@ function usage(){
 
 # Setup AOMP variables
 AOMP=${AOMP:-/usr/lib/aomp}
+AOMP_PATCH_DIR=${AOMP_REPOS}/${AOMP_REPO_NAME}/bin/patches
 
 # Use function to set and test AOMP_GPU
 setaompgpu
@@ -48,9 +49,14 @@ build_targets="hip openmp"
 if [ "$2" == "build" ]; then
   # Begin configuration
   pushd $AOMP_REPOS_TEST/RAJAPerf
-  #cd $AOMP_REPOS_TEST/RAJAPerf
-  git reset --hard 13808861f5ce8348fbaa124e23fed535a2a1e1fb
+  git reset --hard 0e6972bb29a5d316241caf057eb5815a645e57e8
   git submodule update --recursive
+  
+  pushd ${AOMP_REPOS_TEST}/RAJAPerf/tpl/RAJA
+  git apply ${AOMP_PATCH_DIR}/raja.patch
+  popd
+  git apply ${AOMP_PATCH_DIR}/rajaperf.patch
+  
   rm -rf build_${BUILD_SUFFIX}
   mkdir build_${BUILD_SUFFIX}
   pushd build_${BUILD_SUFFIX}
@@ -113,8 +119,14 @@ if [ "$2" == "build" ]; then
     exit 1
   fi
   # Cleanup patches
-  #removepatch $AOMP_REPOS_TEST/RAJAPerf/tpl/RAJA
+
   popd
+  
+  pushd ${AOMP_REPOS_TEST}/RAJAPerf/tpl/RAJA
+  git apply -R ${AOMP_PATCH_DIR}/raja.patch
+  popd
+  git apply -R ${AOMP_PATCH_DIR}/rajaperf.patch
+  
   popd
   exit 0
 fi
