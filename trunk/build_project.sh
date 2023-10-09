@@ -134,13 +134,13 @@ if [ "$1" == "install" ] ; then
    fi
    ln -sf $TRUNK_INSTALL_DIR $TRUNK_LINK
    # Create binary configs to avoid need to set LD_LIBRARY_PATH
-   echo "-Wl,-rpath=${TRUNK_INSTALL_DIR}/lib" > ${TRUNK_INSTALL_DIR}/bin/rpath.cfg
-   echo "-L${TRUNK_INSTALL_DIR}/lib" >> ${TRUNK_INSTALL_DIR}/bin/rpath.cfg
+   echo "-Wl,-rpath=<CFGDIR>/../lib" > ${TRUNK_INSTALL_DIR}/bin/rpath.cfg
+   echo "-L<CFGDIR>/../lib" >> ${TRUNK_INSTALL_DIR}/bin/rpath.cfg
    ln -sf rpath.cfg ${TRUNK_INSTALL_DIR}/bin/clang++.cfg
    ln -sf rpath.cfg ${TRUNK_INSTALL_DIR}/bin/clang.cfg
    # Do not add -L option to flang-new because it's not currently allowed
    # flang-new also appears to be reading flang.cfg
-   echo "-Wl,-rpath=${TRUNK_INSTALL_DIR}/lib" > ${TRUNK_INSTALL_DIR}/bin/flang.cfg
+   echo "-Wl,-rpath=<CFGDIR>/../lib" > ${TRUNK_INSTALL_DIR}/bin/flang.cfg
    ln -sf flang.cfg ${TRUNK_INSTALL_DIR}/bin/flang-new.cfg
    echo
    echo "SUCCESSFUL INSTALL to $TRUNK_INSTALL_DIR with link to $TRUNK"
