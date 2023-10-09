@@ -9,7 +9,7 @@ RUNCMD      = ./$(TESTNAME) | $(FILECHECK) $(TESTSRC_MAIN)
 
 CLANG        ?= clang
 OMP_BIN      = $(AOMP)/bin/$(CLANG)
-CC           = $(OMP_BIN) $(VERBOSE)
+CC           = $(OMP_BIN) $(VERBOSE) $(OMPTEST)
 #-ccc-print-phases
 #"-\#\#\#"
 

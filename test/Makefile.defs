@@ -291,3 +291,6 @@ else
    RUNENV = env $(SET_DEVICE_DEBUG) $(TKILL) $(CBL_ENV)
 endif
 
+# Header include path + linker flag for OMPT tests
+OMPTEST = -I$(AOMP_REPOS)/llvm-project/openmp/libomptarget/test/ompTest/include -lomptest
+
