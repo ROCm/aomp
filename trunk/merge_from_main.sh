@@ -117,6 +117,12 @@ echo "git merge main " | tee -a $logfile
 git merge main -m "Merge attempt by $0 into branch $_dev_branch " 2>&1 | tee -a $logfile
 _merge_rc=$?
 if [ $_merge_rc == 0 ] ; then 
+  echo "git status | grep -A10 Unmerged"
+  git status | grep -A10 "Unmerged"
+  if [ $? == 0 ] ; then
+    echo "ERROR:  Merge FAILED with unmerged files"
+    _fail=1
+  else
    if [ "$GITPUSH" == "YES" ] ; then
       echo "===============  Successful MERGE  ====================" | tee -a  $logfile
       echo "git push ${!REPO} $_dev_branch" | tee -a $logfile
@@ -134,6 +140,7 @@ if [ $_merge_rc == 0 ] ; then
    else
       echo "WARNING: SKIPPING git push because GITPUSH=$GITPUSH" | tee -a $logfile
    fi
+  fi
 else
    echo " " >> $logfile
    echo "ERROR: MERGE FAILED with rc $_merge_rc " | tee -a  $logfile
