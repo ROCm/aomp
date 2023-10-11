@@ -331,3 +331,7 @@ if [ "$EPSDB" != 1 ] && [ "$CLEANUP" != 0 ]; then
 fi
 
 popd
+
+realpath=`realpath $0`
+thisdir=`dirname $realpath`
+$thisdir/../../bin/check_amdgpu_modversion.sh
