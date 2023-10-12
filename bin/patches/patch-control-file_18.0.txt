@@ -8,6 +8,5 @@ hipfort: hipfort.patch
 bolt: bolt.patch
 rocr-runtime: rocr-runtime-combined-numa-check-openmp-support.patch
 rocprofiler: rocprofiler-no-aql-ok.patch
-babelstream: babelstream-usm.patch
 UMT: umt.patch
 llvm-project: llvm-project-device-libs-check-openmp.patch
