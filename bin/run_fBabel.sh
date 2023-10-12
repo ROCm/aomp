@@ -24,7 +24,7 @@ AOMP=${AOMP:-/usr/lib/aomp}
 FLANG=${FLANG:-flang}
 
 # note: clone_test.sh puts babelstream in $AOMP_REPOS_TEST/babelstream
-FABELSTREAM_REPO=${FABELSTREAM_REPO:-$AOMP_REPOS_TEST/fortran-babelstream}
+FABELSTREAM_REPO=${FABELSTREAM_REPO:-$AOMP_REPOS_TEST/babelstream}
 FABELSTREAM_BUILD=${FABELSTREAM_BUILD:-/tmp/$USER/fbabelstream}
 FABELSTREAM_REPEATS=${FABELSTREAM_REPEATS:-10}
 
@@ -85,10 +85,6 @@ if [ ! -d $FABELSTREAM_REPO ]; then
   echo "WARNING: BabelStream not found in $FABELSTREAM_REPO"
   echo "       Running these commands:"
   echo
-  mkdir -p $AOMP_REPOS_TEST
-  pushd $AOMP_REPOS_TEST
-  git clone -b develop https://github.com/UoB-HPC/BabelStream fortran-babelstream
-  popd
 fi
 curdir=$PWD
 mkdir -p $FABELSTREAM_BUILD
