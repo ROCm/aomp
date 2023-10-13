@@ -63,12 +63,6 @@ git log -1
 EPSDB=1 ./clone_test.sh > /dev/null
 AOMP_TEST_DIR=${AOMP_TEST_DIR:-"$HOME/git/aomp-test"}
 
-# peg hash temporarily while we move to 5.0 babel
-pushd $AOMP_TEST_DIR/babelstream 
-git clean -f -d .
-git checkout 29b2d88aa61a84ce2dca1f1a3e9c4f1fe19e0135
-popd
-
 # Set AOMP to point to rocm symlink or newest version.
 if [ -L /opt/rocm ]; then
   AOMP=${AOMP:-"/opt/rocm/llvm"}
