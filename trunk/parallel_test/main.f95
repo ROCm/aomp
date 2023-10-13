@@ -1,10 +1,10 @@
 program main  
-        integer :: hostArray(10), errors = 0  
-        do i = 1, 10    
+        integer :: hostArray(10000), errors = 0
+        do i = 1, 10000
                 hostArray(i) = 0  
         end do  
-        call writeIndex(hostArray, 10)
-        do i = 1, 10    
+        call writeIndex(hostArray, 10000)
+        do i = 1, 10000
                 if ( hostArray(i) /= i ) then
                         errors = errors + 1    
                 end if  
@@ -16,10 +16,10 @@ program main
 !       stop 0
 end program main
 subroutine writeIndex(int_array, array_length)
-        integer :: int_array(10)
+        integer :: int_array(10000)
         integer :: array_length
 !$omp target teams distribute parallel do map(from:int_array)
-        do index_ = 1, 10
+        do index_ = 1, 10000
           int_array(index_) = index_
         end do
 !$omp end target teams distribute parallel do
