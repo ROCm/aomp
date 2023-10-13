@@ -6,9 +6,9 @@ TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 
 ifeq ($(AOMP_GPU),gfx90a)
-  HSA_XNACK=1
+  HSA_XNACK ?= 1
 else
-  HSA_XNACK=0
+  HSA_XNACK ?= 0
 endif
 
 CLANG        ?= clang++
