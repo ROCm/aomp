@@ -1,6 +1,5 @@
 already_locked
 aomp-issue376
-aomp-issue531
 atomic_vs_reduction
 c-heatx
 clang-262701
