@@ -407,6 +407,7 @@ function copyresults(){
 function checkrc(){
   if [ "$1" != 0 ]; then
     ((scriptfails++))
+    echo "SCRIPTFAILS "
   fi
 }
 

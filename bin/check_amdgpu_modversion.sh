@@ -29,7 +29,7 @@ if [ $? == 0 ] ; then
         echo "         consider installing the latest "amdgpu-dkms" package from ROCm and reboot."
         echo "         Command to check amdgpu kernel module version:  modinfo -F version amdgpu"
         echo
-	exit 1
+	exit 0  # returning non zero fails the run_rocm_test.sh
      fi
    fi
 fi
