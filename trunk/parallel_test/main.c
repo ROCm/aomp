@@ -1,5 +1,5 @@
 #include <stdio.h>
-#define N_CONSTANT 10
+#define N_CONSTANT 10000
 
 void writeIndex(int *int_array, int array_length) {
   #pragma omp target teams distribute parallel for map(tofrom:int_array[0:N_CONSTANT])
