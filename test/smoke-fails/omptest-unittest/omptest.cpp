@@ -68,10 +68,10 @@ OMPTTESTCASE(ManualSuite, ParallelForToString) {
 
   OMPT_EVENT_REPORT_DISABLE()
 
-  EventReporter.whitelistEvent(omptest::internal::EventTy::ParallelBegin);
-  EventReporter.whitelistEvent(omptest::internal::EventTy::ParallelEnd);
-  EventReporter.whitelistEvent(omptest::internal::EventTy::ThreadBegin);
-  EventReporter.whitelistEvent(omptest::internal::EventTy::ThreadEnd);
+  EventReporter.permitEvent(omptest::internal::EventTy::ParallelBegin);
+  EventReporter.permitEvent(omptest::internal::EventTy::ParallelEnd);
+  EventReporter.permitEvent(omptest::internal::EventTy::ThreadBegin);
+  EventReporter.permitEvent(omptest::internal::EventTy::ThreadEnd);
 
 #pragma omp parallel for num_threads(2)
   for (int i = 0; i < 10; ++i)
@@ -91,10 +91,10 @@ OMPTTESTCASE(ManualSuite, ParallelForToString) {
   for (int i = 0; i < 10; ++i)
     arr[i] = i;
 
-  EventReporter.blacklistEvent(omptest::internal::EventTy::ParallelBegin);
-  EventReporter.blacklistEvent(omptest::internal::EventTy::ParallelEnd);
-  EventReporter.blacklistEvent(omptest::internal::EventTy::ThreadBegin);
-  EventReporter.blacklistEvent(omptest::internal::EventTy::ThreadEnd);
+  EventReporter.suppressEvent(omptest::internal::EventTy::ParallelBegin);
+  EventReporter.suppressEvent(omptest::internal::EventTy::ParallelEnd);
+  EventReporter.suppressEvent(omptest::internal::EventTy::ThreadBegin);
+  EventReporter.suppressEvent(omptest::internal::EventTy::ThreadEnd);
 
   OMPT_SEQ_ASSERT_ENABLE()
 }
