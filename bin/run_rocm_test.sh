@@ -66,9 +66,11 @@ AOMP_TEST_DIR=${AOMP_TEST_DIR:-"$HOME/git/aomp-test"}
 # Set AOMP to point to rocm symlink or newest version.
 if [ -L /opt/rocm ]; then
   AOMP=${AOMP:-"/opt/rocm/llvm"}
+  ROCMINF=/opt/rocm
 else
   newestrocm=$(ls --sort=time /opt | grep -m 1 rocm)
   AOMP=${AOMP:-"/opt/$newestrocm/llvm"}
+  ROCMINF=/opt/$newestrocm/
 fi
 export AOMP
 echo "AOMP = $AOMP"
@@ -107,12 +109,12 @@ export ROCM_LLVM=$AOMP
 export ROCM_TARGET_LST=/opt/nowhere
 
 echo "RAE devices:"
-$AOMPROCM/bin/rocm_agent_enumerator
+$ROCINF/bin/rocm_agent_enumerator
 
 # Set AOMP_GPU.
 # Regex skips first result 'gfx000' and selects second id.
 if [ "$AOMP_GPU" == "" ]; then
-  AOMP_GPU=$($AOMPROCM/bin/rocm_agent_enumerator | grep -m 1 -E gfx[^0]{1}.{2})
+  AOMP_GPU=$($ROCMINF/bin/rocm_agent_enumerator | grep -m 1 -E gfx[^0]{1}.{2})
 fi
 
 # mygpu will eventually relocate to /opt/rocm/bin, support both cases for now.
@@ -182,7 +184,8 @@ function getversion(){
     echo "Selecting highest supported version: ${versions[$maxvers]}"
   else
     # Determine ROCm version.
-    rocm=$(cat "$AOMPROCM"/.info/version*|head -1)
+    echo ROCMINF=$ROCMINF
+    rocm=$(cat "$ROCMINF"/.info/version*|head -1)
     rocmregex="([0-9]+\.[0-9]+\.[0-9]+)"
     if [[ "$rocm" =~ $rocmregex ]]; then
       rocmver=$(echo ${BASH_REMATCH[1]} | sed "s/\.//g")
@@ -537,10 +540,11 @@ function sollve(){
 }
 
 function babelstream(){
+  export AOMPHIP=$ROCMINF
   mkdir -p "$resultsdir"/babelstream
   cd "$aompdir"/bin
   if [ $aomp -eq 0 ]; then
-    export ROCMINFO_BINARY=$AOMP/../bin/rocminfo
+    export ROCMINFO_BINARY=$ROCINF/bin/rocminfo
   fi
   ./run_babelstream.sh
   cd "$AOMP_TEST_DIR"/babelstream
@@ -549,10 +553,11 @@ function babelstream(){
 }
 
 function fortran-babelstream(){
+  export AOMPHIP=$ROCMINF
   mkdir -p "$resultsdir"/fortran-babelstream
   cd "$aompdir"/bin
   if [ $aomp -eq 0 ]; then
-    export ROCMINFO_BINARY=$AOMP/../bin/rocminfo
+    export ROCMINFO_BINARY=$ROCMINF/bin/rocminfo
   fi
   ./run_fBabel.sh
   checkrc $?
