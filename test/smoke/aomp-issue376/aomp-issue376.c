@@ -4,8 +4,7 @@
 #include <assert.h>
 #include <omp.h>
 
-int start_trace();
-int stop_trace();
+#include "callbacks.h"
 
 int main()
 {
