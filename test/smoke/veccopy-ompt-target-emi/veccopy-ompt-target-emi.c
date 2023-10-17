@@ -2,6 +2,8 @@
 #include <assert.h>
 #include <omp.h>
 
+#include "callbacks.h"
+
 int main()
 {
   int N = 100000;
@@ -42,7 +44,6 @@ int main()
   return rc;
 }
 
-  /// CHECK: 0: Could not register callback 'ompt_callback_target_map_emi'
   /// CHECK: Callback Init:
   /// CHECK: Callback Load:
   /// CHECK: Callback Target EMI: kind=1 endpoint=1
@@ -85,4 +86,4 @@ int main()
   /// CHECK: Callback DataOp EMI: endpoint=1 optype=4
   /// CHECK: Callback DataOp EMI: endpoint=2 optype=4
   /// CHECK: Callback Target EMI: kind=1 endpoint=2
-  /// DISABLED-CHECK: Callback Fini:
+  /// CHECK: Callback Fini:
