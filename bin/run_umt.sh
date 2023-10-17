@@ -26,8 +26,7 @@ export OMP_APPLY_ROCM_PATCHES=1
 function usage(){
   echo ""
   echo "------------ Usage ---------------------"
-  echo "./run_umt_git.sh [backend] [option]"
-  echo "Backends: openmp"
+  echo "./run_umt.sh [option]"
   echo "Options: build_umt, run_umt"
   echo "---------------------------------------"
   echo ""
