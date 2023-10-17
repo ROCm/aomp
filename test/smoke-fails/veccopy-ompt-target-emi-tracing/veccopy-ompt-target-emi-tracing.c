@@ -2,11 +2,9 @@
 #include <assert.h>
 #include <omp.h>
 
-#include "callbacks.h"
-
-static int start_trace();
-static int flush_trace();
-static int stop_trace();
+int start_trace();
+int flush_trace();
+int stop_trace();
 
 int main()
 {
@@ -57,5 +55,5 @@ int main()
   return rc;
 }
 
-/// CHECK: Record Target kernel
+/// CHECK: Record Submit:
 

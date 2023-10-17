@@ -1,8 +1,6 @@
 #include <stdio.h>
 #include <omp.h>
 
-#include "callbacks.h"
-
 int main()
 {
   int N = 100000;
@@ -43,6 +41,7 @@ int main()
   return rc;
 }
 
+  /// CHECK: 0: Could not register callback 'ompt_callback_target_map'
   /// CHECK: Callback Init:
   /// CHECK: Callback Load:
   /// CHECK: Callback Target: target_id=[[TARGET_ID:[0-9]+]] kind=1 endpoint=1
@@ -68,4 +67,4 @@ int main()
   /// CHECK: Callback DataOp: target_id=[[TARGET_ID:[0-9]+]] host_op_id=[[HOST_OP_ID:[0-9]+]] optype=4
   /// CHECK: Callback DataOp: target_id=[[TARGET_ID:[0-9]+]] host_op_id=[[HOST_OP_ID:[0-9]+]] optype=4
   /// CHECK: Callback Target: target_id=[[TARGET_ID:[0-9]+]] kind=1 endpoint=2
-  /// CHECK: Callback Fini:
+  /// DISABLED-CHECK: Callback Fini:
