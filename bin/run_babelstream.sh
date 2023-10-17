@@ -30,6 +30,12 @@ AOMPHIP=${AOMPHIP:-$AOMP}
 BABELSTREAM_REPO=${BABELSTREAM_REPO:-$AOMP_REPOS_TEST/babelstream}
 BABELSTREAM_BUILD=${BABELSTREAM_BUILD:-/tmp/$USER/babelstream}
 BABELSTREAM_REPEATS=${BABELSTREAM_REPEATS:-10}
+BABELSTREAM_ARRAY_NUM_ELEMS=${BABELSTREAM_ARRAY_NUM_ELEMS:-''}
+
+if [ ! -z ${BABELSTREAM_ARRAY_NUM_ELEMS} ]; then
+  BABELSTREAM_ARRAY_SIZE_COMPUTED=$(( $BABELSTREAM_ARRAY_NUM_ELEMS * 1024))
+  BABELSTREAM_ARRAY_SIZE="-s ${BABELSTREAM_ARRAY_SIZE_COMPUTED}"
+fi
 
 # Clean validation files
 rm -f "$BABELSTREAM_REPO"/passing-tests.txt "$BABELSTREAM_REPO"/failing-tests.txt "$BABELSTREAM_REPO"/make-fail.txt
@@ -183,19 +189,19 @@ for option in $RUN_OPTIONS; do
     set -o pipefail
     if [ -f $GPURUN_BINDIR/gpurun ] ; then
       if [ "$option" == "omp-usm" ]; then
-         echo HSA_XNACK=1 $GPURUN_BINDIR/gpurun $_SILENT ./$EXEC -n $BABELSTREAM_REPEATS | tee -a results.txt
-         HSA_XNACK=1 $GPURUN_BINDIR/gpurun $_SILENT ./$EXEC -n $BABELSTREAM_REPEATS 2>&1 | tee -a results.txt
+         echo HSA_XNACK=1 $GPURUN_BINDIR/gpurun $_SILENT ./$EXEC -n $BABELSTREAM_REPEATS ${BABLESTREAM_ARRAY_SIZE} | tee -a results.txt
+         HSA_XNACK=1 $GPURUN_BINDIR/gpurun $_SILENT ./$EXEC -n $BABELSTREAM_REPEATS ${BABLESTREAM_ARRAY_SIZE} 2>&1 | tee -a results.txt
       elif [ "$option" == "hip-um" ]; then
-         echo HSA_XNACK=1 HIP_UM=1 $GPURUN_BINDIR/gpurun $_SILENT ./$EXEC -n $BABELSTREAM_REPEATS | tee -a results.txt
-         HSA_XNACK=1 HIP_UM=1 $GPURUN_BINDIR/gpurun $_SILENT ./$EXEC -n $BABELSTREAM_REPEATS 2>&1 | tee -a results.txt
+         echo HSA_XNACK=1 HIP_UM=1 $GPURUN_BINDIR/gpurun $_SILENT ./$EXEC -n $BABELSTREAM_REPEATS ${BABELSTREAM_ARRAY_SIZE} | tee -a results.txt
+         HSA_XNACK=1 HIP_UM=1 $GPURUN_BINDIR/gpurun $_SILENT ./$EXEC -n $BABELSTREAM_REPEATS ${BABELSTREAM_ARRAY_SIZE} 2>&1 | tee -a results.txt
       elif [ "$option" == "omp-fast" ]; then
          echo echo OMPX_FORCE_SYNC_REGIONS=1 \
-                $GPURUN_BINDIR/gpurun $_SILENT ./$EXEC -n $BABELSTREAM_REPEATS 2>&1 | tee -a results.txt
+                $GPURUN_BINDIR/gpurun $_SILENT ./$EXEC -n $BABELSTREAM_REPEATS ${BABELSTREAM_ARRAY_SIZE} 2>&1 | tee -a results.txt
          OMPX_FORCE_SYNC_REGIONS=1 \
-                $GPURUN_BINDIR/gpurun $_SILENT ./$EXEC -n $BABELSTREAM_REPEATS 2>&1 | tee -a results.txt
+                $GPURUN_BINDIR/gpurun $_SILENT ./$EXEC -n $BABELSTREAM_REPEATS ${BABELSTREAM_ARRAY_SIZE} 2>&1 | tee -a results.txt
       else
-         echo $GPURUN_BINDIR/gpurun $_SILENT ./$EXEC -n $BABELSTREAM_REPEATS | tee -a results.txt
-         $GPURUN_BINDIR/gpurun $_SILENT ./$EXEC -n $BABELSTREAM_REPEATS 2>&1 | tee -a results.txt
+         echo $GPURUN_BINDIR/gpurun $_SILENT ./$EXEC -n $BABELSTREAM_REPEATS ${BABELSTREAM_ARRAY_SIZE} | tee -a results.txt
+         $GPURUN_BINDIR/gpurun $_SILENT ./$EXEC -n $BABELSTREAM_REPEATS ${BABELSTREAM_ARRAY_SIZE} 2>&1 | tee -a results.txt
       fi
       if [ $? -ne 0 ]; then
         runtime_error=1
