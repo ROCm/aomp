@@ -104,6 +104,6 @@ int main()
 /// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:4 ConstWGSize:1024  args: 5 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X1024)
 /// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:3 ConstWGSize:257  args: 7 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 256)
 /// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:4 ConstWGSize:1024  args: 5 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 128)
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:4 ConstWGSize:1024  args: 5 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 512)
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:4 ConstWGSize:1024  args: 5 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 64)
 /// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:4 ConstWGSize:1024  args: 5 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X1024)
 
