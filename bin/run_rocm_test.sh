@@ -511,6 +511,7 @@ function sollve(){
   mkdir -p "$resultsdir"/sollve52
   cd "$aompdir"/bin
 
+  export SOLLVE_TIMELIMIT=360
   no_usm_gpus="gfx900 gfx906"
   if [[ "$no_usm_gpus" =~ "$AOMP_GPU" ]]; then
     echo "Skipping USM 5.0 tests."
