@@ -1,5 +1,6 @@
 alpaka_complex_template.cpp
 declare_target_module.F90
+gemv_target.cpp
 gemv_target_teams_dist_par_for.cpp
 gridmini_map_struct_float_mul.cpp
 linked_list.c
