@@ -17,15 +17,15 @@ int main()
   for (int j = 0; j< N; j=j+1)
     sum1 += a[j];
 
-#pragma omp target teams distribute parallel for reduction(+:sum2) num_teams(512)
+#pragma omp target teams distribute parallel for reduction(+:sum2) num_teams(50)
   for (int j = 0; j< N; j=j+1)
     sum2 += a[j];
 
-#pragma omp target teams distribute parallel for reduction(+:sum3) num_teams(100)
+#pragma omp target teams distribute parallel for reduction(+:sum3) num_teams(40)
   for (int j = 0; j< N; j=j+1)
     sum3 += a[j];
 
-#pragma omp target teams distribute parallel for reduction(+:sum4) num_teams(1024)
+#pragma omp target teams distribute parallel for reduction(+:sum4) num_teams(10)
   for (int j = 0; j< N; j=j+1)
     sum4 += a[j];
 
@@ -44,7 +44,7 @@ int main()
 }
 
 /// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:8 ConstWGSize:1024 args: 6 teamsXthrds:(   1X1024) 
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:8 ConstWGSize:1024 args: 6 teamsXthrds:( 512X1024)
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:8 ConstWGSize:1024 args: 6 teamsXthrds:( 100X1024)
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:8 ConstWGSize:1024 args: 6 teamsXthrds:( 512X1024)
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:8 ConstWGSize:1024 args: 6 teamsXthrds:( 50X1024)
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:8 ConstWGSize:1024 args: 6 teamsXthrds:( 40X1024)
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:8 ConstWGSize:1024 args: 6 teamsXthrds:( 10X1024)
 
