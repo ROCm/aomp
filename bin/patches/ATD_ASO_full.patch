@@ -1,6 +1,29 @@
+diff -Naur -x .git llvm-project.aso_orig/amd/device-libs/cmake/OCL.cmake llvm-project/amd/device-libs/cmake/OCL.cmake
+--- llvm-project.aso_orig/amd/device-libs/cmake/OCL.cmake	2023-10-19 10:56:52.612220823 -0500
++++ llvm-project/amd/device-libs/cmake/OCL.cmake	2023-10-19 11:12:38.547827284 -0500
+@@ -149,6 +149,7 @@
+   add_custom_target("${name}" ALL
+     DEPENDS "${OUTPUT_DIR}/${OUT_NAME}${FINAL_SUFFIX}"
+     SOURCES ${OPENCL_BC_LIB_SOURCES})
++  add_dependencies(rocm-device-libs "${name}")
+   set_target_properties(${name} PROPERTIES
+     OUTPUT_NAME "${OUTPUT_DIR}/${OUT_NAME}${FINAL_SUFFIX}"
+     ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+diff -Naur -x .git llvm-project.aso_orig/amd/device-libs/CMakeLists.txt llvm-project/amd/device-libs/CMakeLists.txt
+--- llvm-project.aso_orig/amd/device-libs/CMakeLists.txt	2023-10-19 10:56:52.612220823 -0500
++++ llvm-project/amd/device-libs/CMakeLists.txt	2023-10-19 11:12:38.547827284 -0500
+@@ -23,6 +23,8 @@
+ 
+ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+ 
++add_custom_target(rocm-device-libs)
++
+ # Optionally, build Device Libs with ccache.
+ set(ROCM_CCACHE_BUILD OFF CACHE BOOL "Set to ON for a ccache enabled build")
+ if (ROCM_CCACHE_BUILD)
 diff -Naur -x .git llvm-project.aso_orig/clang/docs/tools/clang-formatted-files.txt llvm-project/clang/docs/tools/clang-formatted-files.txt
 --- llvm-project.aso_orig/clang/docs/tools/clang-formatted-files.txt	2023-10-17 13:12:54.293688944 -0500
-+++ llvm-project/clang/docs/tools/clang-formatted-files.txt	2023-10-18 07:55:04.169202357 -0500
++++ llvm-project/clang/docs/tools/clang-formatted-files.txt	2023-10-19 10:59:39.486444403 -0500
 @@ -7766,6 +7766,7 @@
  mlir/include/mlir/Interfaces/CastInterfaces.h
  mlir/include/mlir/Interfaces/ControlFlowInterfaces.h
@@ -10,8 +33,8 @@ diff -Naur -x .git llvm-project.aso_orig/clang/docs/tools/clang-formatted-files.
  mlir/include/mlir/Interfaces/DecodeAttributesInterfaces.h
  mlir/include/mlir/Interfaces/DerivedAttributeOpInterface.h
 diff -Naur -x .git llvm-project.aso_orig/clang/lib/CodeGen/CGOpenMPRuntime.cpp llvm-project/clang/lib/CodeGen/CGOpenMPRuntime.cpp
---- llvm-project.aso_orig/clang/lib/CodeGen/CGOpenMPRuntime.cpp	2023-10-17 13:12:54.297688974 -0500
-+++ llvm-project/clang/lib/CodeGen/CGOpenMPRuntime.cpp	2023-10-18 07:55:04.169202357 -0500
+--- llvm-project.aso_orig/clang/lib/CodeGen/CGOpenMPRuntime.cpp	2023-10-19 10:56:52.632221092 -0500
++++ llvm-project/clang/lib/CodeGen/CGOpenMPRuntime.cpp	2023-10-19 10:59:39.490444455 -0500
 @@ -6048,8 +6048,12 @@
    getNumThreadsExprForTargetDirective(CGF, D, DefaultValThreads,
                                        /*UpperBoundOnly=*/true);
@@ -27,8 +50,8 @@ diff -Naur -x .git llvm-project.aso_orig/clang/lib/CodeGen/CGOpenMPRuntime.cpp l
  
    if (!OutlinedFn)
 diff -Naur -x .git llvm-project.aso_orig/clang/lib/Driver/ToolChains/Clang.cpp llvm-project/clang/lib/Driver/ToolChains/Clang.cpp
---- llvm-project.aso_orig/clang/lib/Driver/ToolChains/Clang.cpp	2023-10-17 13:12:54.301689003 -0500
-+++ llvm-project/clang/lib/Driver/ToolChains/Clang.cpp	2023-10-18 07:55:04.173202399 -0500
+--- llvm-project.aso_orig/clang/lib/Driver/ToolChains/Clang.cpp	2023-10-19 10:56:52.632221092 -0500
++++ llvm-project/clang/lib/Driver/ToolChains/Clang.cpp	2023-10-19 10:59:39.490444455 -0500
 @@ -8528,7 +8528,9 @@
    assert(Input.isFilename() && "Invalid input.");
    CmdArgs.push_back(Input.getFilename());
@@ -42,7 +65,7 @@ diff -Naur -x .git llvm-project.aso_orig/clang/lib/Driver/ToolChains/Clang.cpp l
      C.addCommand(std::make_unique<CC1Command>(
 diff -Naur -x .git llvm-project.aso_orig/flang/lib/Lower/OpenMP.cpp llvm-project/flang/lib/Lower/OpenMP.cpp
 --- llvm-project.aso_orig/flang/lib/Lower/OpenMP.cpp	2023-10-17 13:12:54.345689329 -0500
-+++ llvm-project/flang/lib/Lower/OpenMP.cpp	2023-10-18 07:55:04.173202399 -0500
++++ llvm-project/flang/lib/Lower/OpenMP.cpp	2023-10-19 10:59:39.490444455 -0500
 @@ -101,6 +101,18 @@
    }
  }
@@ -296,7 +319,7 @@ diff -Naur -x .git llvm-project.aso_orig/flang/lib/Lower/OpenMP.cpp llvm-project
  static void
 diff -Naur -x .git llvm-project.aso_orig/flang/test/Lower/OpenMP/FIR/if-clause.f90 llvm-project/flang/test/Lower/OpenMP/FIR/if-clause.f90
 --- llvm-project.aso_orig/flang/test/Lower/OpenMP/FIR/if-clause.f90	2023-10-17 13:12:54.345689329 -0500
-+++ llvm-project/flang/test/Lower/OpenMP/FIR/if-clause.f90	2023-10-18 07:55:04.173202399 -0500
++++ llvm-project/flang/test/Lower/OpenMP/FIR/if-clause.f90	2023-10-19 10:59:39.490444455 -0500
 @@ -7,23 +7,147 @@
    integer :: i
  
@@ -1188,7 +1211,7 @@ diff -Naur -x .git llvm-project.aso_orig/flang/test/Lower/OpenMP/FIR/if-clause.f
    ! CHECK:      omp.teams
 diff -Naur -x .git llvm-project.aso_orig/flang/test/Lower/OpenMP/FIR/loop-combined.f90 llvm-project/flang/test/Lower/OpenMP/FIR/loop-combined.f90
 --- llvm-project.aso_orig/flang/test/Lower/OpenMP/FIR/loop-combined.f90	2023-10-17 13:12:54.345689329 -0500
-+++ llvm-project/flang/test/Lower/OpenMP/FIR/loop-combined.f90	2023-10-18 07:55:04.173202399 -0500
++++ llvm-project/flang/test/Lower/OpenMP/FIR/loop-combined.f90	2023-10-19 10:59:39.490444455 -0500
 @@ -6,19 +6,51 @@
  program main
    integer :: i
@@ -1373,7 +1396,7 @@ diff -Naur -x .git llvm-project.aso_orig/flang/test/Lower/OpenMP/FIR/loop-combin
  end program main
 diff -Naur -x .git llvm-project.aso_orig/flang/test/Lower/OpenMP/loop-lifetime.f90 llvm-project/flang/test/Lower/OpenMP/loop-lifetime.f90
 --- llvm-project.aso_orig/flang/test/Lower/OpenMP/loop-lifetime.f90	1969-12-31 18:00:00.000000000 -0600
-+++ llvm-project/flang/test/Lower/OpenMP/loop-lifetime.f90	2023-10-18 07:55:04.173202399 -0500
++++ llvm-project/flang/test/Lower/OpenMP/loop-lifetime.f90	2023-10-19 10:59:39.490444455 -0500
 @@ -0,0 +1,87 @@
 +! This test checks the insertion of lifetime information for loop indices of
 +! OpenMP loop operations.
@@ -1464,7 +1487,7 @@ diff -Naur -x .git llvm-project.aso_orig/flang/test/Lower/OpenMP/loop-lifetime.f
 +end subroutine
 diff -Naur -x .git llvm-project.aso_orig/llvm/include/llvm/Frontend/OpenMP/OMPIRBuilder.h llvm-project/llvm/include/llvm/Frontend/OpenMP/OMPIRBuilder.h
 --- llvm-project.aso_orig/llvm/include/llvm/Frontend/OpenMP/OMPIRBuilder.h	2023-10-18 07:52:49.987805002 -0500
-+++ llvm-project/llvm/include/llvm/Frontend/OpenMP/OMPIRBuilder.h	2023-10-18 07:55:04.173202399 -0500
++++ llvm-project/llvm/include/llvm/Frontend/OpenMP/OMPIRBuilder.h	2023-10-19 10:59:39.490444455 -0500
 @@ -89,9 +89,14 @@
    /// Flag for specifying if the compilation is done for an accelerator.
    std::optional<bool> IsGPU;
@@ -1650,7 +1673,7 @@ diff -Naur -x .git llvm-project.aso_orig/llvm/include/llvm/Frontend/OpenMP/OMPIR
                               TargetBodyGenCallbackTy BodyGenCB,
 diff -Naur -x .git llvm-project.aso_orig/llvm/include/llvm/Frontend/OpenMP/OMPKinds.def llvm-project/llvm/include/llvm/Frontend/OpenMP/OMPKinds.def
 --- llvm-project.aso_orig/llvm/include/llvm/Frontend/OpenMP/OMPKinds.def	2023-10-17 13:12:54.389689653 -0500
-+++ llvm-project/llvm/include/llvm/Frontend/OpenMP/OMPKinds.def	2023-10-18 07:55:04.173202399 -0500
++++ llvm-project/llvm/include/llvm/Frontend/OpenMP/OMPKinds.def	2023-10-19 10:59:39.494444509 -0500
 @@ -479,6 +479,14 @@
            VoidPtr, VoidPtr, VoidPtrPtr, SizeTy)
  __OMP_RTL(__kmpc_parallel_spmd, false, Void, IdentPtr, Int32, Int32, Int32, Int32,
@@ -1666,41 +1689,9 @@ diff -Naur -x .git llvm-project.aso_orig/llvm/include/llvm/Frontend/OpenMP/OMPKi
  __OMP_RTL(__kmpc_kernel_parallel, false, Int1, VoidPtrPtr)
  __OMP_RTL(__kmpc_kernel_end_parallel, false, Void, )
  __OMP_RTL(__kmpc_serialized_parallel, false, Void, IdentPtr, Int32)
-diff -Naur -x .git llvm-project.aso_orig/llvm/include/llvm/Transforms/Utils/CodeExtractor.h llvm-project/llvm/include/llvm/Transforms/Utils/CodeExtractor.h
---- llvm-project.aso_orig/llvm/include/llvm/Transforms/Utils/CodeExtractor.h	2023-10-17 13:12:54.389689653 -0500
-+++ llvm-project/llvm/include/llvm/Transforms/Utils/CodeExtractor.h	2023-10-18 07:55:04.173202399 -0500
-@@ -114,6 +114,10 @@
-     // label, if non-empty, otherwise "extracted".
-     std::string Suffix;
- 
-+    // If true, the outlined function has aggregate argument in zero address
-+    // space.
-+    bool ArgsInZeroAddressSpace;
-+
-   public:
-     /// Create a code extractor for a sequence of blocks.
-     ///
-@@ -128,13 +132,16 @@
-     /// Any new allocations will be placed in the AllocationBlock, unless
-     /// it is null, in which case it will be placed in the entry block of
-     /// the function from which the code is being extracted.
-+    /// If ArgsInZeroAddressSpace param is set to true, then the aggregate
-+    /// param pointer of the outlined function is declared in zero address
-+    /// space.
-     CodeExtractor(ArrayRef<BasicBlock *> BBs, DominatorTree *DT = nullptr,
-                   bool AggregateArgs = false, BlockFrequencyInfo *BFI = nullptr,
-                   BranchProbabilityInfo *BPI = nullptr,
-                   AssumptionCache *AC = nullptr, bool AllowVarArgs = false,
-                   bool AllowAlloca = false,
-                   BasicBlock *AllocationBlock = nullptr,
--                  std::string Suffix = "");
-+                  std::string Suffix = "", bool ArgsInZeroAddressSpace = false);
- 
-     /// Create a code extractor for a loop body.
-     ///
 diff -Naur -x .git llvm-project.aso_orig/llvm/lib/Frontend/OpenMP/OMPIRBuilder.cpp llvm-project/llvm/lib/Frontend/OpenMP/OMPIRBuilder.cpp
 --- llvm-project.aso_orig/llvm/lib/Frontend/OpenMP/OMPIRBuilder.cpp	2023-10-18 07:52:49.999805124 -0500
-+++ llvm-project/llvm/lib/Frontend/OpenMP/OMPIRBuilder.cpp	2023-10-18 07:58:12.475261886 -0500
++++ llvm-project/llvm/lib/Frontend/OpenMP/OMPIRBuilder.cpp	2023-10-19 11:00:46.231324009 -0500
 @@ -485,8 +485,8 @@
  
    Value *NumTeams3D =
@@ -2304,11 +2295,19 @@ diff -Naur -x .git llvm-project.aso_orig/llvm/lib/Frontend/OpenMP/OMPIRBuilder.c
    if (Config.isTargetDevice()) {
      OutlinedFn->setLinkage(GlobalValue::WeakODRLinkage);
      // TODO: Determine if DSO local can be set to true.
-@@ -4257,20 +4581,38 @@
+@@ -4257,20 +4581,37 @@
      OutlinedFn->setVisibility(GlobalValue::ProtectedVisibility);
      if (Triple(M.getTargetTriple()).isAMDGCN())
        OutlinedFn->setCallingConv(CallingConv::AMDGPU_KERNEL);
 -  }
+-
+-  if (NumTeams > 0)
+-    OutlinedFn->addFnAttr("omp_target_num_teams", std::to_string(NumTeams));
+-
+-#if FIX_NUM_THREADS_ISSUE
+-  if (NumThreads == -1 && Config.isGPU())
+-    NumThreads = getGridValue(OutlinedFn).GV_Default_WG_Size;
+-#endif
 +    if (!Config.TargetCPU.empty())
 +      OutlinedFn->addFnAttr("target-cpu", Config.TargetCPU);
 +    if (!Config.TargetFeatures.empty())
@@ -2333,14 +2332,6 @@ diff -Naur -x .git llvm-project.aso_orig/llvm/lib/Frontend/OpenMP/OMPIRBuilder.c
 +  if (NumTeamsValue > 0)
 +    OutlinedFn->addFnAttr("omp_target_num_teams",
 +                          std::to_string(NumTeamsValue));
- 
--  if (NumTeams > 0)
--    OutlinedFn->addFnAttr("omp_target_num_teams", std::to_string(NumTeams));
--
--#if FIX_NUM_THREADS_ISSUE
--  if (NumThreads == -1 && Config.isGPU())
--    NumThreads = getGridValue(OutlinedFn).GV_Default_WG_Size;
--#endif
 +  if (ThreadLimitValue == -1 && Config.isGPU())
 +    ThreadLimitValue = getGridValue(OutlinedFn).GV_Default_WG_Size;
  
@@ -2353,7 +2344,7 @@ diff -Naur -x .git llvm-project.aso_orig/llvm/lib/Frontend/OpenMP/OMPIRBuilder.c
      } else {
        // Update the "maxntidx" metadata for NVIDIA, or add it.
        NamedMDNode *MD = M.getOrInsertNamedMetadata("nvvm.annotations");
-@@ -4294,19 +4636,19 @@
+@@ -4294,19 +4635,19 @@
          ExistingOp->replaceOperandWith(
              2, ConstantAsMetadata::get(
                     ConstantInt::get(OldVal->getValue()->getType(),
@@ -2376,7 +2367,7 @@ diff -Naur -x .git llvm-project.aso_orig/llvm/lib/Frontend/OpenMP/OMPIRBuilder.c
    }
  }
  
-@@ -4336,9 +4678,8 @@
+@@ -4336,9 +4677,8 @@
  
  void OpenMPIRBuilder::emitTargetRegionFunction(
      TargetRegionEntryInfo &EntryInfo,
@@ -2388,7 +2379,7 @@ diff -Naur -x .git llvm-project.aso_orig/llvm/lib/Frontend/OpenMP/OMPIRBuilder.c
  
    SmallString<64> EntryFnName;
    OffloadInfoManager.getTargetRegionEntryFnName(EntryFnName, EntryInfo);
-@@ -4358,16 +4699,15 @@
+@@ -4358,16 +4698,15 @@
            ? std::string(EntryFnName)
            : createPlatformSpecificName({EntryFnName, "region_id"});
  
@@ -2409,7 +2400,7 @@ diff -Naur -x .git llvm-project.aso_orig/llvm/lib/Frontend/OpenMP/OMPIRBuilder.c
    auto OutlinedFnID = createOutlinedFunctionID(OutlinedFn, EntryFnIDName);
    auto EntryAddr = createTargetRegionEntryAddr(OutlinedFn, EntryFnName);
    OffloadInfoManager.registerTargetRegionEntryInfo(
-@@ -4570,6 +4910,45 @@
+@@ -4570,6 +4909,45 @@
    return getOrCreateRuntimeFunction(M, Name);
  }
  
@@ -2455,7 +2446,7 @@ diff -Naur -x .git llvm-project.aso_orig/llvm/lib/Frontend/OpenMP/OMPIRBuilder.c
  static Function *createOutlinedFunction(
      OpenMPIRBuilder &OMPBuilder, IRBuilderBase &Builder, StringRef FuncName,
      SmallVectorImpl<Value *> &Inputs,
-@@ -4593,6 +4972,12 @@
+@@ -4593,6 +4971,12 @@
    auto Func = Function::Create(FuncType, GlobalValue::InternalLinkage, FuncName,
                                 Builder.GetInsertBlock()->getModule());
  
@@ -2468,7 +2459,7 @@ diff -Naur -x .git llvm-project.aso_orig/llvm/lib/Frontend/OpenMP/OMPIRBuilder.c
    // Save insert point.
    auto OldInsertPoint = Builder.saveIP();
  
-@@ -4645,27 +5030,23 @@
+@@ -4645,27 +5029,23 @@
  static void emitTargetOutlinedFunction(
      OpenMPIRBuilder &OMPBuilder, IRBuilderBase &Builder,
      TargetRegionEntryInfo &EntryInfo, Function *&OutlinedFn,
@@ -2500,7 +2491,7 @@ diff -Naur -x .git llvm-project.aso_orig/llvm/lib/Frontend/OpenMP/OMPIRBuilder.c
                             SmallVectorImpl<Value *> &Args,
                             OpenMPIRBuilder::GenMapInfoCallbackTy GenMapInfoCB) {
  
-@@ -4692,22 +5073,33 @@
+@@ -4692,22 +5072,33 @@
    unsigned NumTargetItems = MapInfo.BasePointers.size();
    // TODO: Use correct device ID
    Value *DeviceID = Builder.getInt64(OMP_DEVICEID_UNDEF);
@@ -2542,7 +2533,7 @@ diff -Naur -x .git llvm-project.aso_orig/llvm/lib/Frontend/OpenMP/OMPIRBuilder.c
  
    Builder.restoreIP(OMPBuilder.emitKernelLaunch(
        Builder, OutlinedFn, OutlinedFnID, EmitTargetCallFallbackCB, KArgs,
-@@ -4716,9 +5108,8 @@
+@@ -4716,9 +5107,8 @@
  
  OpenMPIRBuilder::InsertPointTy OpenMPIRBuilder::createTarget(
      const LocationDescription &Loc, InsertPointTy AllocaIP,
@@ -2554,7 +2545,7 @@ diff -Naur -x .git llvm-project.aso_orig/llvm/lib/Frontend/OpenMP/OMPIRBuilder.c
      OpenMPIRBuilder::TargetBodyGenCallbackTy CBFunc,
      OpenMPIRBuilder::TargetGenArgAccessorsCallbackTy ArgAccessorFuncCB) {
    if (!updateToLocation(Loc))
-@@ -4729,11 +5120,10 @@
+@@ -4729,11 +5119,10 @@
    Function *OutlinedFn;
    Constant *OutlinedFnID;
    emitTargetOutlinedFunction(*this, Builder, EntryInfo, OutlinedFn,
@@ -2569,7 +2560,7 @@ diff -Naur -x .git llvm-project.aso_orig/llvm/lib/Frontend/OpenMP/OMPIRBuilder.c
  
    return Builder.saveIP();
  }
-@@ -5755,6 +6145,43 @@
+@@ -5755,6 +6144,43 @@
  }
  
  OpenMPIRBuilder::InsertPointTy
@@ -2613,7 +2604,7 @@ diff -Naur -x .git llvm-project.aso_orig/llvm/lib/Frontend/OpenMP/OMPIRBuilder.c
  OpenMPIRBuilder::createTeams(const LocationDescription &Loc,
                               BodyGenCallbackTy BodyGenCB, Value *NumTeamsLower,
                               Value *NumTeamsUpper, Value *ThreadLimit,
-@@ -5850,6 +6277,8 @@
+@@ -5850,6 +6276,8 @@
    OI.ExcludeArgsFromAggregate.push_back(createFakeIntVal(
        Builder, OuterAllocaIP, ToBeDeleted, AllocaIP, "tid", true));
  
@@ -2622,7 +2613,7 @@ diff -Naur -x .git llvm-project.aso_orig/llvm/lib/Frontend/OpenMP/OMPIRBuilder.c
    OI.PostOutlineCB = [this, Ident, ToBeDeleted](Function &OutlinedFn) mutable {
      // The stale call instruction will be replaced with a new call instruction
      // for runtime call with the outlined function.
-@@ -5886,6 +6315,7 @@
+@@ -5886,6 +6314,7 @@
        ToBeDeleted.pop();
      }
    };
@@ -2632,7 +2623,7 @@ diff -Naur -x .git llvm-project.aso_orig/llvm/lib/Frontend/OpenMP/OMPIRBuilder.c
  
 diff -Naur -x .git llvm-project.aso_orig/llvm/lib/Transforms/IPO/OpenMPOpt.cpp llvm-project/llvm/lib/Transforms/IPO/OpenMPOpt.cpp
 --- llvm-project.aso_orig/llvm/lib/Transforms/IPO/OpenMPOpt.cpp	2023-10-17 13:12:54.397689712 -0500
-+++ llvm-project/llvm/lib/Transforms/IPO/OpenMPOpt.cpp	2023-10-18 07:55:04.177202442 -0500
++++ llvm-project/llvm/lib/Transforms/IPO/OpenMPOpt.cpp	2023-10-19 10:59:39.494444509 -0500
 @@ -522,6 +522,7 @@
    void recollectUses() {
      for (int Idx = 0; Idx < RFIs.size(); ++Idx)
@@ -2641,55 +2632,9 @@ diff -Naur -x .git llvm-project.aso_orig/llvm/lib/Transforms/IPO/OpenMPOpt.cpp l
    }
  
    // Helper function to inherit the calling convention of the function callee.
-diff -Naur -x .git llvm-project.aso_orig/llvm/lib/Transforms/Utils/CodeExtractor.cpp llvm-project/llvm/lib/Transforms/Utils/CodeExtractor.cpp
---- llvm-project.aso_orig/llvm/lib/Transforms/Utils/CodeExtractor.cpp	2023-10-17 13:12:54.401689741 -0500
-+++ llvm-project/llvm/lib/Transforms/Utils/CodeExtractor.cpp	2023-10-18 07:55:04.177202442 -0500
-@@ -245,12 +245,13 @@
-                              bool AggregateArgs, BlockFrequencyInfo *BFI,
-                              BranchProbabilityInfo *BPI, AssumptionCache *AC,
-                              bool AllowVarArgs, bool AllowAlloca,
--                             BasicBlock *AllocationBlock, std::string Suffix)
-+                             BasicBlock *AllocationBlock, std::string Suffix,
-+                             bool ArgsInZeroAddressSpace)
-     : DT(DT), AggregateArgs(AggregateArgs || AggregateArgsOpt), BFI(BFI),
-       BPI(BPI), AC(AC), AllocationBlock(AllocationBlock),
-       AllowVarArgs(AllowVarArgs),
-       Blocks(buildExtractionBlockSet(BBs, DT, AllowVarArgs, AllowAlloca)),
--      Suffix(Suffix) {}
-+      Suffix(Suffix), ArgsInZeroAddressSpace(ArgsInZeroAddressSpace) {}
- 
- CodeExtractor::CodeExtractor(DominatorTree &DT, Loop &L, bool AggregateArgs,
-                              BlockFrequencyInfo *BFI,
-@@ -866,7 +867,8 @@
-   StructType *StructTy = nullptr;
-   if (AggregateArgs && !AggParamTy.empty()) {
-     StructTy = StructType::get(M->getContext(), AggParamTy);
--    ParamTy.push_back(PointerType::get(StructTy, DL.getAllocaAddrSpace()));
-+    ParamTy.push_back(PointerType::get(
-+        StructTy, ArgsInZeroAddressSpace ? 0 : DL.getAllocaAddrSpace()));
-   }
- 
-   LLVM_DEBUG({
-@@ -1186,8 +1188,15 @@
-         StructArgTy, DL.getAllocaAddrSpace(), nullptr, "structArg",
-         AllocationBlock ? &*AllocationBlock->getFirstInsertionPt()
-                         : &codeReplacer->getParent()->front().front());
--    params.push_back(Struct);
- 
-+    if (ArgsInZeroAddressSpace && DL.getAllocaAddrSpace() != 0) {
-+      AddrSpaceCastInst *StructSpaceCast = new AddrSpaceCastInst(
-+          Struct, Struct->getType()->getPointerTo(), "structArg.ascast");
-+      StructSpaceCast->insertAfter(Struct);
-+      params.push_back(StructSpaceCast);
-+    } else {
-+      params.push_back(Struct);
-+    }
-     // Store aggregated inputs in the struct.
-     for (unsigned i = 0, e = StructValues.size(); i != e; ++i) {
-       if (inputs.contains(StructValues[i])) {
 diff -Naur -x .git llvm-project.aso_orig/llvm/unittests/Frontend/OpenMPIRBuilderTest.cpp llvm-project/llvm/unittests/Frontend/OpenMPIRBuilderTest.cpp
 --- llvm-project.aso_orig/llvm/unittests/Frontend/OpenMPIRBuilderTest.cpp	2023-10-18 07:52:50.063805774 -0500
-+++ llvm-project/llvm/unittests/Frontend/OpenMPIRBuilderTest.cpp	2023-10-18 07:55:04.177202442 -0500
++++ llvm-project/llvm/unittests/Frontend/OpenMPIRBuilderTest.cpp	2023-10-19 10:59:39.494444509 -0500
 @@ -591,9 +591,113 @@
    EXPECT_EQ(SrcSrc->getAsCString(), ";/src/test.dbg;foo;3;7;;");
  }
@@ -3008,7 +2953,7 @@ diff -Naur -x .git llvm-project.aso_orig/llvm/unittests/Frontend/OpenMPIRBuilder
    IRBuilder<> Builder(BB);
 diff -Naur -x .git llvm-project.aso_orig/mlir/include/mlir/Dialect/OpenMP/OpenMPOps.td llvm-project/mlir/include/mlir/Dialect/OpenMP/OpenMPOps.td
 --- llvm-project.aso_orig/mlir/include/mlir/Dialect/OpenMP/OpenMPOps.td	2023-10-17 13:12:54.473690273 -0500
-+++ llvm-project/mlir/include/mlir/Dialect/OpenMP/OpenMPOps.td	2023-10-18 07:55:04.177202442 -0500
++++ llvm-project/mlir/include/mlir/Dialect/OpenMP/OpenMPOps.td	2023-10-19 10:59:39.494444509 -0500
 @@ -637,6 +637,26 @@
  }
  
@@ -3076,7 +3021,7 @@ diff -Naur -x .git llvm-project.aso_orig/mlir/include/mlir/Dialect/OpenMP/OpenMP
  
 diff -Naur -x .git llvm-project.aso_orig/mlir/include/mlir/Interfaces/CSEInterfaces.h llvm-project/mlir/include/mlir/Interfaces/CSEInterfaces.h
 --- llvm-project.aso_orig/mlir/include/mlir/Interfaces/CSEInterfaces.h	1969-12-31 18:00:00.000000000 -0600
-+++ llvm-project/mlir/include/mlir/Interfaces/CSEInterfaces.h	2023-10-18 07:55:04.177202442 -0500
++++ llvm-project/mlir/include/mlir/Interfaces/CSEInterfaces.h	2023-10-19 10:59:39.494444509 -0500
 @@ -0,0 +1,32 @@
 +//===- CSEInterfaces.h ------------------------------------------*- C++ -*-===//
 +//
@@ -3112,7 +3057,7 @@ diff -Naur -x .git llvm-project.aso_orig/mlir/include/mlir/Interfaces/CSEInterfa
 +#endif // MLIR_INTERFACES_CSEINTERFACES_H_
 diff -Naur -x .git llvm-project.aso_orig/mlir/lib/Conversion/OpenMPToLLVM/OpenMPToLLVM.cpp llvm-project/mlir/lib/Conversion/OpenMPToLLVM/OpenMPToLLVM.cpp
 --- llvm-project.aso_orig/mlir/lib/Conversion/OpenMPToLLVM/OpenMPToLLVM.cpp	2023-10-17 13:12:54.473690273 -0500
-+++ llvm-project/mlir/lib/Conversion/OpenMPToLLVM/OpenMPToLLVM.cpp	2023-10-18 07:55:04.177202442 -0500
++++ llvm-project/mlir/lib/Conversion/OpenMPToLLVM/OpenMPToLLVM.cpp	2023-10-19 10:59:39.494444509 -0500
 @@ -199,10 +199,11 @@
      ConversionTarget &target, LLVMTypeConverter &typeConverter) {
    target.addDynamicallyLegalOp<
@@ -3139,7 +3084,7 @@ diff -Naur -x .git llvm-project.aso_orig/mlir/lib/Conversion/OpenMPToLLVM/OpenMP
        RegionLessOpWithVarOperandsConversion<omp::FlushOp>,
 diff -Naur -x .git llvm-project.aso_orig/mlir/lib/Dialect/OpenMP/IR/OpenMPDialect.cpp llvm-project/mlir/lib/Dialect/OpenMP/IR/OpenMPDialect.cpp
 --- llvm-project.aso_orig/mlir/lib/Dialect/OpenMP/IR/OpenMPDialect.cpp	2023-10-17 13:12:54.477690303 -0500
-+++ llvm-project/mlir/lib/Dialect/OpenMP/IR/OpenMPDialect.cpp	2023-10-18 07:55:04.177202442 -0500
++++ llvm-project/mlir/lib/Dialect/OpenMP/IR/OpenMPDialect.cpp	2023-10-19 10:59:39.494444509 -0500
 @@ -18,6 +18,7 @@
  #include "mlir/IR/DialectImplementation.h"
  #include "mlir/IR/OpImplementation.h"
@@ -3223,7 +3168,7 @@ diff -Naur -x .git llvm-project.aso_orig/mlir/lib/Dialect/OpenMP/IR/OpenMPDialec
  //===----------------------------------------------------------------------===//
 diff -Naur -x .git llvm-project.aso_orig/mlir/lib/Target/LLVMIR/Dialect/OpenMP/OpenMPToLLVMIRTranslation.cpp llvm-project/mlir/lib/Target/LLVMIR/Dialect/OpenMP/OpenMPToLLVMIRTranslation.cpp
 --- llvm-project.aso_orig/mlir/lib/Target/LLVMIR/Dialect/OpenMP/OpenMPToLLVMIRTranslation.cpp	2023-10-17 13:12:54.477690303 -0500
-+++ llvm-project/mlir/lib/Target/LLVMIR/Dialect/OpenMP/OpenMPToLLVMIRTranslation.cpp	2023-10-18 07:55:04.177202442 -0500
++++ llvm-project/mlir/lib/Target/LLVMIR/Dialect/OpenMP/OpenMPToLLVMIRTranslation.cpp	2023-10-19 10:59:39.494444509 -0500
 @@ -828,6 +828,50 @@
    }
  }
@@ -3526,7 +3471,7 @@ diff -Naur -x .git llvm-project.aso_orig/mlir/lib/Target/LLVMIR/Dialect/OpenMP/O
          // TargetOp, EnterDataOp, ExitDataOp, DataOp etc. and then
 diff -Naur -x .git llvm-project.aso_orig/mlir/lib/Transforms/CSE.cpp llvm-project/mlir/lib/Transforms/CSE.cpp
 --- llvm-project.aso_orig/mlir/lib/Transforms/CSE.cpp	2023-10-17 13:12:54.477690303 -0500
-+++ llvm-project/mlir/lib/Transforms/CSE.cpp	2023-10-18 07:55:04.177202442 -0500
++++ llvm-project/mlir/lib/Transforms/CSE.cpp	2023-10-19 10:59:39.498444560 -0500
 @@ -15,6 +15,7 @@
  
  #include "mlir/IR/Dominance.h"
@@ -3571,7 +3516,7 @@ diff -Naur -x .git llvm-project.aso_orig/mlir/lib/Transforms/CSE.cpp llvm-projec
            simplifyRegion(nestedKnownValues, region);
 diff -Naur -x .git llvm-project.aso_orig/mlir/test/lib/Dialect/Test/TestDialectInterfaces.cpp llvm-project/mlir/test/lib/Dialect/Test/TestDialectInterfaces.cpp
 --- llvm-project.aso_orig/mlir/test/lib/Dialect/Test/TestDialectInterfaces.cpp	2023-10-17 13:12:54.481690332 -0500
-+++ llvm-project/mlir/test/lib/Dialect/Test/TestDialectInterfaces.cpp	2023-10-18 07:55:04.177202442 -0500
++++ llvm-project/mlir/test/lib/Dialect/Test/TestDialectInterfaces.cpp	2023-10-19 10:59:39.498444560 -0500
 @@ -7,6 +7,7 @@
  //===----------------------------------------------------------------------===//
  
@@ -3609,7 +3554,7 @@ diff -Naur -x .git llvm-project.aso_orig/mlir/test/lib/Dialect/Test/TestDialectI
  }
 diff -Naur -x .git llvm-project.aso_orig/mlir/test/lib/Dialect/Test/TestOps.td llvm-project/mlir/test/lib/Dialect/Test/TestOps.td
 --- llvm-project.aso_orig/mlir/test/lib/Dialect/Test/TestOps.td	2023-10-17 13:12:54.481690332 -0500
-+++ llvm-project/mlir/test/lib/Dialect/Test/TestOps.td	2023-10-18 07:55:04.177202442 -0500
++++ llvm-project/mlir/test/lib/Dialect/Test/TestOps.td	2023-10-19 10:59:39.498444560 -0500
 @@ -2694,6 +2694,10 @@
    }];
  }
@@ -3623,7 +3568,7 @@ diff -Naur -x .git llvm-project.aso_orig/mlir/test/lib/Dialect/Test/TestOps.td l
  //===----------------------------------------------------------------------===//
 diff -Naur -x .git llvm-project.aso_orig/mlir/test/Transforms/cse.mlir llvm-project/mlir/test/Transforms/cse.mlir
 --- llvm-project.aso_orig/mlir/test/Transforms/cse.mlir	2023-10-17 13:12:54.481690332 -0500
-+++ llvm-project/mlir/test/Transforms/cse.mlir	2023-10-18 07:55:04.177202442 -0500
++++ llvm-project/mlir/test/Transforms/cse.mlir	2023-10-19 10:59:39.498444560 -0500
 @@ -520,3 +520,23 @@
    %2 = "test.op_with_memread"() : () -> (i32)
    return %0, %2, %1 : i32, i32, i32
@@ -3650,7 +3595,7 @@ diff -Naur -x .git llvm-project.aso_orig/mlir/test/Transforms/cse.mlir llvm-proj
 +}
 diff -Naur -x .git llvm-project.aso_orig/openmp/libomptarget/DeviceRTL/src/Workshare.cpp llvm-project/openmp/libomptarget/DeviceRTL/src/Workshare.cpp
 --- llvm-project.aso_orig/openmp/libomptarget/DeviceRTL/src/Workshare.cpp	2023-10-17 13:12:54.481690332 -0500
-+++ llvm-project/openmp/libomptarget/DeviceRTL/src/Workshare.cpp	2023-10-18 07:55:04.177202442 -0500
++++ llvm-project/openmp/libomptarget/DeviceRTL/src/Workshare.cpp	2023-10-19 10:59:39.498444560 -0500
 @@ -45,6 +45,9 @@
  
  #pragma omp begin declare target device_type(nohost)
