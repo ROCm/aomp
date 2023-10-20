@@ -215,28 +215,51 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 fi
 
 echo
-echo " -----Running make ---- " 
+echo " ----- Running ${AOMP_CMAKE} --build (ninja or make) ---- "
 
+_logmark=" ===> TARGS: "
 # Workaround for race condition in the build of compiler-rt
 for prebuild in $(${AOMP_CMAKE} --build . --target help | sed -n '/-version-list/s/^... //p') ; do
-  ${AOMP_CMAKE} --build . -j $AOMP_JOB_THREADS --target $prebuild
+   echo "$_logmark ${AOMP_CMAKE} --build . -j $AOMP_JOB_THREADS --target $prebuild"
+   ${AOMP_CMAKE} --build . -j $AOMP_JOB_THREADS --target $prebuild
+   if [ $? != 0 ] ; then
+      echo "$_logmark ERROR: ${AOMP_CMAKE} --build . -j $AOMP_JOB_THREADS --target $prebuild"
+      exit 1
+   fi
 done
 
-# Required for amdllvm support
-echo ${AOMP_CMAKE} --build . -- -j $AOMP_JOB_THREADS clang lld compiler-rt
+echo "$_logmark ${AOMP_CMAKE} --build . -- -j $AOMP_JOB_THREADS clang lld compiler-rt"
 ${AOMP_CMAKE} --build . -- -j $AOMP_JOB_THREADS clang lld compiler-rt
-
-# Required for amdllvm support
-echo ${AOMP_CMAKE} --build . -- -j $AOMP_JOB_THREADS runtimes cxx
-${AOMP_CMAKE} --build . -- -j $AOMP_JOB_THREADS runtimes cxx
-
-# Finish building
-echo ${AOMP_CMAKE} --build . -j $AOMP_JOB_THREADS
-${AOMP_CMAKE} --build . -j $AOMP_JOB_THREADS
 if [ $? != 0 ] ; then
-   echo "ERROR make -j $AOMP_JOB_THREADS failed"
+   echo "$_logmark ERROR: ${AOMP_CMAKE} --build . -- -j $AOMP_JOB_THREADS clang lld compiler-rt"
    exit 1
 fi
+
+if [ "$AOMP_SKIP_FLANG" == 0 ] ; then
+   echo "$_logmark ${AOMP_CMAKE} --build . -- -j $AOMP_JOB_THREADS flang-new"
+   ${AOMP_CMAKE} --build . -- -j $AOMP_JOB_THREADS flang-new
+   if [ $? != 0 ] ; then
+      echo "$_logmark ERROR: ${AOMP_CMAKE} --build . -- -j $AOMP_JOB_THREADS flang-new"
+      exit 1
+   fi
+fi
+
+# Required for amdllvm support
+echo "$_logmark ${AOMP_CMAKE} --build . -- -j $AOMP_JOB_THREADS runtimes cxx"
+${AOMP_CMAKE} --build . -- -j $AOMP_JOB_THREADS runtimes cxx
+if [ $? != 0 ] ; then
+   echo "$_logmark ERROR: ${AOMP_CMAKE} --build . -- -j $AOMP_JOB_THREADS runtimes cxx"
+   exit 1
+fi
+
+# Finish building
+echo "$_logmark ${AOMP_CMAKE} --build . -j $AOMP_JOB_THREADS"
+${AOMP_CMAKE} --build . -j $AOMP_JOB_THREADS
+if [ $? != 0 ] ; then
+   echo "$_logmark ERROR: ${AOMP_CMAKE} --build . -j $AOMP_JOB_THREADS"
+   exit 1
+fi
+echo "$_logmark ALL BUILD TARGETS FINISHED SUCCESSFULLY!"
 
 if [ "$1" == "install" ] ; then
    echo " -----Installing to $INSTALL_PROJECT ---- "
