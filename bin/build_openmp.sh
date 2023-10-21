@@ -360,10 +360,21 @@ if [ "$1" == "install" ] ; then
             exit 1
          fi
       fi
+
       if [[ "$DEVEL_PACKAGE" =~ "devel" ]]; then
         AOMP_INSTALL_DIR="$AOMP_INSTALL_DIR/""$DEVEL_PACKAGE"
         echo "Request for devel package found."
       fi
+
+      # Remove ompdModule.cpython...so  , contains absolute runpath
+      _ompd_dir="$AOMP_INSTALL_DIR/lib-debug/ompd"
+      OMF=`find $_ompd_dir -name ompdModule.cpython\*`
+      echo found ompdModule $OMF
+      if [ -f "$OMF" ]; then
+        echo "==> Removing $OMF"
+        rm -f "$OMF"
+      fi
+      readelf -d $_ompd_dir/ompdModule.so |grep PATH
 
       # Copy selected debugable runtime sources into the installation lib-debug/src directory
       # to satisfy the above -fdebug-prefix-map.
