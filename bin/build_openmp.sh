@@ -391,16 +391,16 @@ if [ "$1" == "install" ] ; then
          fi
       fi
 
-      # Rename ompd module library. This was introduced with the Python3 build. The include
-      # of ompdModule would fail otherwise.
-      if [ -f "$_ompd_dir/ompdModule.cpython-36m-x86_64-linux-gnu.so" ]; then
-        if [ -f "$_ompd_dir/ompdModule.so" ]; then
-          echo "==> Removing old $_ompd_dir/ompdModule.so"
-          rm -f "$_ompd_dir/ompdModule.so"
-        fi
-        echo "==> Renaming ompdModule.cpython-36m-x86_64-linux-gnu.so to ompdModule.so"
-        mv $_ompd_dir/ompdModule.cpython-36m-x86_64-linux-gnu.so $_ompd_dir/ompdModule.so
+      # Remove ompdModule.cpython...so  , contains absolute runpath
+      _ompd_dir="$AOMP_INSTALL_DIR/lib-debug/ompd"
+      OMF=`find $_ompd_dir -name ompdModule.cpython\*`
+      echo found ompdModule $OMF
+      if [ -f "$OMF" ]; then
+        echo "==> Removing $OMF"
+        rm -f "$OMF"
       fi
+      readelf -d $_ompd_dir/ompdModule.so |grep PATH
+
       if [[ "$DEVEL_PACKAGE" =~ "devel" ]]; then
         AOMP_INSTALL_DIR="$AOMP_INSTALL_DIR/""$DEVEL_PACKAGE"
         echo "Request for devel package found."
