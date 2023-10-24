@@ -5,7 +5,71 @@
 using namespace omptest;
 using namespace internal;
 
-OMPTTESTCASE(ManualSuite, veccopy_ompt_target) {
+OMPTTESTCASE(SequenceSuite, uut_target) {
+  /* The Test Body */
+  OMPT_SUPPRESS_EVENT(EventTy::TargetDataOp)
+  OMPT_SUPPRESS_EVENT(EventTy::TargetSubmit)
+
+  int N = 128;
+  int a[N];
+
+  OMPT_ASSERT_SEQUENCE(Target, /*Kind=*/TARGET, /*Endpoint=*/BEGIN,
+                       /*DeviceNum=*/0)
+  OMPT_ASSERT_SEQUENCE(Target, /*Kind=*/TARGET, /*Endpoint=*/END,
+                       /*DeviceNum=*/0)
+
+#pragma omp target parallel for
+  {
+    for (int j = 0; j < N; j++)
+      a[j] = 0;
+  }
+
+  OMPT_ASSERT_SEQUENCE_DISABLE()
+}
+
+OMPTTESTCASE(SequenceSuite, uut_target_dataop) {
+  /* The Test Body */
+  OMPT_SUPPRESS_EVENT(EventTy::Target)
+  OMPT_SUPPRESS_EVENT(EventTy::TargetSubmit)
+
+  int N = 128;
+  int a[N];
+
+  OMPT_ASSERT_SEQUENCE(TargetDataOp, /*OpType=*/ALLOC, /*Size=*/N * sizeof(int))
+
+  OMPT_ASSERT_SEQUENCE(TargetDataOp, /*OpType=*/H2D, /*Size=*/N * sizeof(int),
+                       /*SrcAddr=*/&a)
+
+  OMPT_ASSERT_SEQUENCE(TargetDataOp, /*OpType=*/D2H, /*Size=*/N * sizeof(int),
+                       /*SrcAddr=*/nullptr, /*DstAddr=*/&a)
+
+  OMPT_ASSERT_SEQUENCE(TargetDataOp, /*OpType=*/DELETE, /*Size=*/0)
+
+#pragma omp target parallel for
+  {
+    for (int j = 0; j < N; j++)
+      a[j] = 0;
+  }
+}
+
+OMPTTESTCASE(SequenceSuite, uut_target_submit) {
+  /* The Test Body */
+  OMPT_SUPPRESS_EVENT(EventTy::Target)
+  OMPT_SUPPRESS_EVENT(EventTy::TargetDataOp)
+
+  int N = 128;
+  int a[N];
+
+  OMPT_ASSERT_SEQUENCE(TargetSubmit, /*RequestedNumTeams=*/1)
+
+#pragma omp target parallel for
+  {
+    for (int j = 0; j < N; j++)
+      a[j] = 0;
+  }
+}
+
+OMPTTESTCASE(SequenceSuite, veccopy_ompt_target) {
   /* The Test Body */
 
   // Define testcase variables before events, so we can refer to them.
@@ -15,54 +79,71 @@ OMPTTESTCASE(ManualSuite, veccopy_ompt_target) {
 
   /* First Target Region */
 
-  OMPT_SEQ_ASSERT(DeviceInitialize, /*DeviceNum=*/0);
-  OMPT_SEQ_ASSERT(DeviceLoad, /*DeviceNum=*/0);
+  OMPT_ASSERT_GROUPED_SEQUENCE("R1", Target, /*Kind=*/TARGET,
+                               /*Endpoint=*/BEGIN, /*DeviceNum=*/0)
 
-  OMPT_SEQ_ASSERT_GROUP("R1", Target, /*Kind=*/TARGET, /*Endpoint=*/BEGIN, /*DeviceNum=*/0);
+  OMPT_ASSERT_GROUPED_SEQUENCE("R1", TargetDataOp, /*OpType=*/ALLOC,
+                               /*Size=*/N * sizeof(int))
+  OMPT_ASSERT_GROUPED_SEQUENCE("R1", TargetDataOp, /*OpType=*/H2D,
+                               /*Size=*/N * sizeof(int),
+                               /*SrcAddr=*/&a)
 
-  OMPT_SEQ_ASSERT_GROUP("R1", TargetDataOp, /*OpType=*/ALLOC, /*Size=*/N * sizeof(int));
-  OMPT_SEQ_ASSERT_GROUP("R1", TargetDataOp, /*OpType=*/H2D, /*Size=*/N * sizeof(int),
-                  /*SrcAddr=*/&a);
+  OMPT_ASSERT_GROUPED_SEQUENCE("R1", TargetDataOp, /*OpType=*/ALLOC,
+                               /*Size=*/N * sizeof(int))
+  OMPT_ASSERT_GROUPED_SEQUENCE("R1", TargetDataOp, /*OpType=*/H2D,
+                               /*Size=*/N * sizeof(int),
+                               /*SrcAddr=*/&b)
 
-  OMPT_SEQ_ASSERT_GROUP("R1", TargetDataOp, /*OpType=*/ALLOC, /*Size=*/N * sizeof(int));
-  OMPT_SEQ_ASSERT_GROUP("R1", TargetDataOp, /*OpType=*/H2D, /*Size=*/N * sizeof(int),
-                  /*SrcAddr=*/&b);
+  OMPT_ASSERT_GROUPED_SEQUENCE("R1", TargetSubmit, /*RequestedNumTeams=*/1)
 
-  OMPT_SEQ_ASSERT_GROUP("R1", TargetSubmit, /*RequestedNumTeams=*/1);
+  OMPT_ASSERT_GROUPED_SEQUENCE("R1", TargetDataOp, /*OpType=*/D2H,
+                               /*Size=*/N * sizeof(int),
+                               /*SrcAddr=*/nullptr, /*DstAddr=*/&b)
+  OMPT_ASSERT_GROUPED_SEQUENCE("R1", TargetDataOp, /*OpType=*/D2H,
+                               /*Size=*/N * sizeof(int),
+                               /*SrcAddr=*/nullptr, /*DstAddr=*/&a)
 
-  OMPT_SEQ_ASSERT_GROUP("R1", TargetDataOp, /*OpType=*/D2H, /*Size=*/N * sizeof(int),
-                  /*SrcAddr=*/nullptr, /*DstAddr=*/&b);
-  OMPT_SEQ_ASSERT_GROUP("R1", TargetDataOp, /*OpType=*/D2H, /*Size=*/N * sizeof(int),
-                  /*SrcAddr=*/nullptr, /*DstAddr=*/&a);
+  OMPT_ASSERT_GROUPED_SEQUENCE("R1", TargetDataOp, /*OpType=*/DELETE,
+                               /*Size=*/0)
+  OMPT_ASSERT_GROUPED_SEQUENCE("R1", TargetDataOp, /*OpType=*/DELETE,
+                               /*Size=*/0)
 
-  OMPT_SEQ_ASSERT_GROUP("R1", TargetDataOp, /*OpType=*/DELETE, /*Size=*/0);
-  OMPT_SEQ_ASSERT_GROUP("R1", TargetDataOp, /*OpType=*/DELETE, /*Size=*/0);
-
-  OMPT_SEQ_ASSERT_GROUP("R1", Target, /*Kind=*/TARGET, /*Endpoint=*/END, /*DeviceNum=*/0);
+  OMPT_ASSERT_GROUPED_SEQUENCE("R1", Target, /*Kind=*/TARGET, /*Endpoint=*/END,
+                               /*DeviceNum=*/0)
 
   /* Second Target Region */
 
-  OMPT_SEQ_ASSERT_GROUP("R2", Target, /*Kind=*/TARGET, /*Endpoint=*/BEGIN, /*DeviceNum=*/0);
+  OMPT_ASSERT_GROUPED_SEQUENCE("R2", Target, /*Kind=*/TARGET,
+                               /*Endpoint=*/BEGIN, /*DeviceNum=*/0)
 
-  OMPT_SEQ_ASSERT_GROUP("R2", TargetDataOp, /*OpType=*/ALLOC,/*Size=*/N * sizeof(int));
-  OMPT_SEQ_ASSERT_GROUP("R2", TargetDataOp, /*OpType=*/H2D, /*Size=*/N * sizeof(int),
-                  /*SrcAddr=*/&a);
+  OMPT_ASSERT_GROUPED_SEQUENCE("R2", TargetDataOp, /*OpType=*/ALLOC,
+                               /*Size=*/N * sizeof(int))
+  OMPT_ASSERT_GROUPED_SEQUENCE("R2", TargetDataOp, /*OpType=*/H2D,
+                               /*Size=*/N * sizeof(int),
+                               /*SrcAddr=*/&a)
 
-  OMPT_SEQ_ASSERT_GROUP("R2", TargetDataOp, /*OpType=*/ALLOC, /*Size=*/N * sizeof(int));
-  OMPT_SEQ_ASSERT_GROUP("R2", TargetDataOp, /*OpType=*/H2D, /*Size=*/N * sizeof(int),
-                  /*SrcAddr=*/&b);
+  OMPT_ASSERT_GROUPED_SEQUENCE("R2", TargetDataOp, /*OpType=*/ALLOC,
+                               /*Size=*/N * sizeof(int))
+  OMPT_ASSERT_GROUPED_SEQUENCE("R2", TargetDataOp, /*OpType=*/H2D,
+                               /*Size=*/N * sizeof(int),
+                               /*SrcAddr=*/&b)
 
-  OMPT_SEQ_ASSERT_GROUP("R2", TargetSubmit, /*RequestedNumTeams=*/0);
+  OMPT_ASSERT_GROUPED_SEQUENCE("R2", TargetSubmit, /*RequestedNumTeams=*/0)
 
-  OMPT_SEQ_ASSERT_GROUP("R2", TargetDataOp, /*OpType=*/D2H, /*Size=*/N * sizeof(int),
-                  /*SrcAddr=*/nullptr, /*DstAddr=*/&b);
-  OMPT_SEQ_ASSERT_GROUP("R2", TargetDataOp, /*OpType=*/D2H, /*Size=*/N * sizeof(int),
-                  /*SrcAddr=*/nullptr, /*DstAddr=*/&a);
+  OMPT_ASSERT_GROUPED_SEQUENCE("R2", TargetDataOp, /*OpType=*/D2H,
+                               /*Size=*/N * sizeof(int),
+                               /*SrcAddr=*/nullptr, /*DstAddr=*/&b)
+  OMPT_ASSERT_GROUPED_SEQUENCE("R2", TargetDataOp, /*OpType=*/D2H,
+                               /*Size=*/N * sizeof(int),
+                               /*SrcAddr=*/nullptr, /*DstAddr=*/&a)
 
-  OMPT_SEQ_ASSERT_GROUP("R2", TargetDataOp, /*OpType=*/DELETE, /*Size=*/0);
-  OMPT_SEQ_ASSERT_GROUP("R2", TargetDataOp, /*OpType=*/DELETE, /*Size=*/0);
+  OMPT_ASSERT_GROUPED_SEQUENCE("R2", TargetDataOp, /*OpType=*/DELETE,
+                               /*Size=*/0)
+  OMPT_ASSERT_GROUPED_SEQUENCE("R2", TargetDataOp, /*OpType=*/DELETE,
+                               /*Size=*/0)
 
-  OMPT_SEQ_ASSERT_GROUP("R2", Target, /*Kind=*/TARGET, /*Endpoint=*/END, /*DeviceNum=*/0);
+  OMPT_ASSERT_GROUPED_SEQUENCE("R2", Target, /*Kind=*/TARGET, /*Endpoint=*/END,
+                               /*DeviceNum=*/0)
 
   /* Actual testcase code. */
 
@@ -95,60 +176,18 @@ OMPTTESTCASE(ManualSuite, veccopy_ompt_target) {
     printf("Success\n");
 }
 
-OMPTTESTCASE(ManualSuite, uut_target) {
+// Leave this suite down here so it gets discovered last and executed first.
+OMPTTESTCASE(InitialTestSuite, uut_device_init_load) {
   /* The Test Body */
-  OMPT_EVENT_SUPPRESS_EACH_LISTENER(EventTy::TargetDataOp);
-  OMPT_EVENT_SUPPRESS_EACH_LISTENER(EventTy::TargetSubmit);
+  OMPT_SUPPRESS_EVENT(EventTy::Target)
+  OMPT_SUPPRESS_EVENT(EventTy::TargetDataOp)
+  OMPT_SUPPRESS_EVENT(EventTy::TargetSubmit)
 
   int N = 128;
   int a[N];
 
-  OMPT_SEQ_ASSERT(Target, /*Kind=*/TARGET, /*Endpoint=*/BEGIN, /*DeviceNum=*/0);
-  OMPT_SEQ_ASSERT(Target, /*Kind=*/TARGET, /*Endpoint=*/END, /*DeviceNum=*/0);
-
-#pragma omp target parallel for
-  {
-    for (int j = 0; j < N; j++)
-      a[j] = 0;
-  }
-
-  OMPT_SEQ_ASSERT_DISABLE()
-}
-
-OMPTTESTCASE(ManualSuite, uut_target_dataop) {
-  /* The Test Body */
-  OMPT_EVENT_SUPPRESS_EACH_LISTENER(EventTy::Target);
-  OMPT_EVENT_SUPPRESS_EACH_LISTENER(EventTy::TargetSubmit);
-
-  int N = 128;
-  int a[N];
-
-  OMPT_SEQ_ASSERT(TargetDataOp, /*OpType=*/ALLOC, /*Size=*/N * sizeof(int));
-
-  OMPT_SEQ_ASSERT(TargetDataOp, /*OpType=*/H2D, /*Size=*/N * sizeof(int),
-                  /*SrcAddr=*/&a);
-
-  OMPT_SEQ_ASSERT(TargetDataOp, /*OpType=*/D2H, /*Size=*/N * sizeof(int),
-                  /*SrcAddr=*/nullptr, /*DstAddr=*/&a);
-
-  OMPT_SEQ_ASSERT(TargetDataOp, /*OpType=*/DELETE, /*Size=*/0);
-
-#pragma omp target parallel for
-  {
-    for (int j = 0; j < N; j++)
-      a[j] = 0;
-  }
-}
-
-OMPTTESTCASE(ManualSuite, uut_target_submit) {
-  /* The Test Body */
-  OMPT_EVENT_SUPPRESS_EACH_LISTENER(EventTy::Target);
-  OMPT_EVENT_SUPPRESS_EACH_LISTENER(EventTy::TargetDataOp);
-
-  int N = 128;
-  int a[N];
-
-  OMPT_SEQ_ASSERT(TargetSubmit, /*RequestedNumTeams=*/1);
+  OMPT_ASSERT_SEQUENCE(DeviceInitialize, /*DeviceNum=*/0)
+  OMPT_ASSERT_SEQUENCE(DeviceLoad, /*DeviceNum=*/0)
 
 #pragma omp target parallel for
   {
