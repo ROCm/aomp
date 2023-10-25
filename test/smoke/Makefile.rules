@@ -29,7 +29,11 @@ SUPPORTED = $(AOMP_GPU)
 endif
 
 # ----- Demo compile and link in one step, no object code saved
+ifeq ($(AOMP_NO_PREREQ),)
 $(TESTNAME): prerequisites $(TESTSRC_ALL)
+else
+$(TESTNAME): $(TESTSRC_ALL)
+endif
 ifneq (,$(findstring $(AOMP_GPU),$(SUPPORTED)))
 ifeq (,$(findstring $(AOMP_GPU),$(UNSUPPORTED)))
 ifdef nvidia_targets
@@ -39,7 +43,11 @@ else ifdef march
 else ifdef make_options
 	$(CC) $(make_options) -o $@
 else
+ifeq ($(AOMP_NO_PREREQ),)
 	$(SETENV) $(CC) $(CFLAGS) $(EXTRA_CFLAGS) $(OMP_FLAGS) $(wordlist 2,$(words $^),$^) -o $@ $(LINK_FLAGS)
+else
+	$(SETENV) $(CC) $(CFLAGS) $(EXTRA_CFLAGS) $(OMP_FLAGS) $^ -o $@ $(LINK_FLAGS)
+endif
 endif
 else
 	@echo "  $(SKIP_COMPILE_UNSUPPORTED)"
