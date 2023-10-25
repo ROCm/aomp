@@ -111,6 +111,52 @@ OMPTTESTCASE(SetSuite, uut_target) {
   }
 }
 
+OMPTTESTCASE_XFAIL(SetSuite, uut_target_xfail_banned_begin_end) {
+  /* The Test Body */
+  int N = 128;
+  int a[N];
+
+  // Banning expected events should lead to a fail.
+  OMPT_ASSERT_SET_NOT(TargetEmi, /*Kind=*/TARGET, /*Endpoint=*/END,
+                      /*DeviceNum=*/0)
+  OMPT_ASSERT_SET_NOT(TargetEmi, /*Kind=*/TARGET, /*Endpoint=*/BEGIN,
+                      /*DeviceNum=*/0)
+
+#pragma omp target parallel for
+  {
+    for (int j = 0; j < N; j++)
+      a[j] = 0;
+  }
+#pragma omp target parallel for
+  {
+    for (int j = 0; j < N; j++)
+      a[j] = 0;
+  }
+}
+
+OMPTTESTCASE(SetSuite, uut_target_ignore_non_emi_events) {
+  /* The Test Body */
+  int N = 128;
+  int a[N];
+
+  // We should not observe non-EMI events
+  OMPT_ASSERT_SET_NOT(Target, /*Kind=*/TARGET, /*Endpoint=*/END,
+                      /*DeviceNum=*/0)
+  OMPT_ASSERT_SET_NOT(Target, /*Kind=*/TARGET, /*Endpoint=*/BEGIN,
+                      /*DeviceNum=*/0)
+
+#pragma omp target parallel for
+  {
+    for (int j = 0; j < N; j++)
+      a[j] = 0;
+  }
+#pragma omp target parallel for
+  {
+    for (int j = 0; j < N; j++)
+      a[j] = 0;
+  }
+}
+
 OMPTTESTCASE(SetSuite, uut_target_dataop) {
   /* The Test Body */
   OMPT_SUPPRESS_EVENT(EventTy::TargetEmi)

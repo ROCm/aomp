@@ -5,6 +5,48 @@
 using namespace omptest;
 using namespace internal;
 
+OMPTTESTCASE_XFAIL(SequenceSuite, uut_target_xfail_wrong_order) {
+  /* The Test Body */
+  OMPT_SUPPRESS_EVENT(EventTy::TargetDataOp)
+  OMPT_SUPPRESS_EVENT(EventTy::TargetSubmit)
+
+  int N = 128;
+  int a[N];
+
+  // Asserting the right observed events, but in wrong order.
+  OMPT_ASSERT_SEQUENCE(Target, /*Kind=*/TARGET, /*Endpoint=*/END,
+                       /*DeviceNum=*/0)
+  OMPT_ASSERT_SEQUENCE(Target, /*Kind=*/TARGET, /*Endpoint=*/BEGIN,
+                       /*DeviceNum=*/0)
+
+#pragma omp target parallel for
+  {
+    for (int j = 0; j < N; j++)
+      a[j] = 0;
+  }
+}
+
+OMPTTESTCASE_XFAIL(SequenceSuite, uut_target_xfail_banned_begin_end) {
+  /* The Test Body */
+  OMPT_SUPPRESS_EVENT(EventTy::TargetDataOp)
+  OMPT_SUPPRESS_EVENT(EventTy::TargetSubmit)
+
+  int N = 128;
+  int a[N];
+
+  // Banning expected events should lead to a fail.
+  OMPT_ASSERT_SEQUENCE_NOT(Target, /*Kind=*/TARGET, /*Endpoint=*/BEGIN,
+                           /*DeviceNum=*/0)
+  OMPT_ASSERT_SEQUENCE_NOT(Target, /*Kind=*/TARGET, /*Endpoint=*/END,
+                           /*DeviceNum=*/0)
+
+#pragma omp target parallel for
+  {
+    for (int j = 0; j < N; j++)
+      a[j] = 0;
+  }
+}
+
 OMPTTESTCASE(SequenceSuite, uut_target) {
   /* The Test Body */
   OMPT_SUPPRESS_EVENT(EventTy::TargetDataOp)
@@ -23,8 +65,6 @@ OMPTTESTCASE(SequenceSuite, uut_target) {
     for (int j = 0; j < N; j++)
       a[j] = 0;
   }
-
-  OMPT_ASSERT_SEQUENCE_DISABLE()
 }
 
 OMPTTESTCASE(SequenceSuite, uut_target_dataop) {
