@@ -91,10 +91,13 @@ script_dir=$(dirname "$0")
 pushd $script_dir
 path=$(pwd)
 
+SMOKE_DIRS=${SMOKE_DIRS:-./*/}  # test directories to run
+SMOKE_NRUN=${SMOKE_NRUN:-1}     # number of times to run one test
+
 cleanup
 
 if [ "$1" == "-clean" ]; then
-  for directory in ./*/; do
+  for directory in $SMOKE_DIRS; do
     pushd $directory > /dev/null
     make clean
     popd > /dev/null
@@ -152,7 +155,7 @@ if [ "$AOMP_PARALLEL_SMOKE" == 1 ]; then
     echo THREADS: $AOMP_JOB_THREADS
 
     # Parallel Make
-    for directory in ./*/; do
+    for directory in $SMOKE_DIRS; do
       pushd $directory > /dev/null
       base=$(basename `pwd`)
       echo Make: $base
@@ -174,7 +177,7 @@ if [ "$AOMP_PARALLEL_SMOKE" == 1 ]; then
     sem --wait --id def_sem
 
     # Parallel execution, currently limited to 4 jobs
-    for directory in ./*/; do
+    for directory in $SMOKE_DIRS; do
       pushd $directory > /dev/null
       base=$(basename `pwd`)
       echo RUN $base
@@ -186,7 +189,12 @@ if [ "$AOMP_PARALLEL_SMOKE" == 1 ]; then
           popd > /dev/null
           continue
         fi
-      elif [ $base == 'devices' ] || [ $base == 'stream' ]; then
+      fi
+      #--- Begin test iteration
+      run=0
+      while [ $run -lt $SMOKE_NRUN ]; do
+      #---
+      if [ $base == 'devices' ] || [ $base == 'stream' ]; then
         sem --jobs 4 --id def_sem -u 'make run > /dev/null 2>&1'
         sem --jobs 4 --id def_sem -u 'make check > /dev/null 2>&1'
       elif [ $base == 'printf_parallel_for_target' ] || [ $base == 'omp_places' ] || [ $base == 'pfspecifier' ] || [ $base == 'pfspecifier_str' ] ; then
@@ -200,6 +208,10 @@ if [ "$AOMP_PARALLEL_SMOKE" == 1 ]; then
       else
         sem --jobs 4 --id def_sem -u 'make check > /dev/null 2>&1'
       fi
+      #---
+      run=$(($run+1))
+      done
+      #--- End test iteration
       popd > /dev/null
     done
 
@@ -216,7 +228,7 @@ fi
 # ---------- End parallel logic ----------
 
 # Loop over all directories and make run / make check depending on directory name
-for directory in ./*/; do
+for directory in $SMOKE_DIRS; do
   pushd $directory > /dev/null
   make clean
   path=$(pwd)
@@ -244,10 +256,14 @@ for directory in ./*/; do
       continue
     fi
   fi
+  #--- Begin test iteration
+  run=0
+  while [ $run -lt $SMOKE_NRUN ]; do
+  #---
   make
   if [ $? -ne 0 ]; then
     echo "$base: Make Failed" >> ../make-fail.txt
-    popd > /dev/null
+    run=$(($run+1))
     continue
   fi
   if [ $base == 'devices' ] || [ $base == 'stream' ]; then
@@ -267,11 +283,15 @@ for directory in ./*/; do
     fi
   fi
   echo ""
+  #---
+  run=$(($run+1))
+  done
+  #--- End test iteration
   popd > /dev/null
 done
 
 # Print run.log for all tests that need visual inspection
-for directory in ./*/; do
+for directory in $SMOKE_DIRS; do
   pushd $directory > /dev/null
   path=$(pwd)
   base=$(basename $path)
