@@ -1,0 +1,21 @@
+DEBUG Mode ON
+env LIBRARY_PATH=/opt/rocm-5.6.0-3006/llvm//lib-debug /opt/rocm-5.6.0-3006/llvm//bin/clang flags.c -isystem/home/estewart/rocm/aomp/include  -O2  -target x86_64-pc-linux-gnu -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa  -march=gfx90a -o flags
+Aborted (core dumped)
+
+/opt/rocm-5.6.0-3006/llvm//bin/clang flags.c -isystem/home/estewart/rocm/aomp/include  -O2  -target x86_64-pc-linux-gnu -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa  -march=gfx90a -o flags
+Aborted (core dumped)
+
+/opt/rocm-5.6.0-3006/llvm//bin/clang flags.c -target x86_64-pc-linux-gnu -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa  -march=gfx90a -o flags
+Aborted (core dumped)
+
+/opt/rocm-5.6.0-3006/llvm//bin/clang flags.c -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa  -march=gfx90a -o flags
+Aborted (core dumped)
+
+/opt/rocm-5.6.0-3006/llvm//bin/clang flags.c -fopenmp -save-temps -target x86_64-pc-linux-gnu -fopenmp-targets=x86_64-pc-linux-gnu -o flags
+
+/opt/rocm-5.6.0-3006/llvm//bin/clang flags.c -fopenmp -save-temps -target x86_64-pc-linux-gnu -o flags
+
+/opt/rocm-5.6.0-3006/llvm//bin/clang flags.c -fopenmp -save-temps  -fopenmp-targets=x86_64-pc-linux-gnu -o flags
+
+/opt/rocm-5.6.0-3006/llvm//bin/clang flags.c -fopenmp -save-temps -o flags
+
