@@ -92,6 +92,7 @@ pushd $script_dir
 path=$(pwd)
 
 SMOKE_DIRS=${SMOKE_DIRS:-./*/}  # test directories to run
+SMOKE_LRUN=${SMOKE_LRUN:-1}     # number of times to run test list
 SMOKE_NRUN=${SMOKE_NRUN:-1}     # number of times to run one test
 
 cleanup
@@ -177,6 +178,10 @@ if [ "$AOMP_PARALLEL_SMOKE" == 1 ]; then
     sem --wait --id def_sem
 
     # Parallel execution, currently limited to 4 jobs
+    #--- Begin list iteration
+    lrun=0
+    while [ $lrun -lt $SMOKE_LRUN ]; do
+    #---
     for directory in $SMOKE_DIRS; do
       pushd $directory > /dev/null
       base=$(basename `pwd`)
@@ -214,6 +219,10 @@ if [ "$AOMP_PARALLEL_SMOKE" == 1 ]; then
       #--- End test iteration
       popd > /dev/null
     done
+    #---
+    lrun=$(($lrun+1))
+    done
+    #--- End list iteration
 
     # Wait for jobs to finish executing
     sem --wait --id def_sem
@@ -228,9 +237,15 @@ fi
 # ---------- End parallel logic ----------
 
 # Loop over all directories and make run / make check depending on directory name
+#--- Begin list iteration
+lrun=0
+while [ $lrun -lt $SMOKE_LRUN ]; do
+#---
 for directory in $SMOKE_DIRS; do
   pushd $directory > /dev/null
-  make clean
+  if [ $lrun -eq 0 ]; then
+      make clean
+  fi
   path=$(pwd)
   base=$(basename $path)
   # Skip tests that are known failures
@@ -289,6 +304,10 @@ for directory in $SMOKE_DIRS; do
   #--- End test iteration
   popd > /dev/null
 done
+#---
+lrun=$(($lrun+1))
+done
+#--- End list iteration
 
 # Print run.log for all tests that need visual inspection
 for directory in $SMOKE_DIRS; do
