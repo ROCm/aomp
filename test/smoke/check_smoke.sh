@@ -200,7 +200,9 @@ if [ "$AOMP_PARALLEL_SMOKE" == 1 ]; then
       fi
       #--- Begin test iteration
       run=0
-      while [ $run -lt $SMOKE_NRUN ]; do
+      my_nrun=$SMOKE_NRUN
+      if [ $my_nrun -gt 1 ] && [ -r NRUN ]; then my_nrun=`cat NRUN`; fi
+      while [ $run -lt $my_nrun ]; do
       #---
       if [ $base == 'devices' ] || [ $base == 'stream' ]; then
         sem --jobs 4 --id def_sem -u 'make run > /dev/null 2>&1'
@@ -276,7 +278,9 @@ for directory in $SMOKE_DIRS; do
   fi
   #--- Begin test iteration
   run=0
-  while [ $run -lt $SMOKE_NRUN ]; do
+  my_nrun=$SMOKE_NRUN
+  if [ $my_nrun -gt 1 ] && [ -r NRUN ]; then my_nrun=`cat NRUN`; fi
+  while [ $run -lt $my_nrun ]; do
   #---
   make
   if [ $? -ne 0 ]; then
