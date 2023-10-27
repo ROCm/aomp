@@ -95,6 +95,16 @@ SMOKE_DIRS=${SMOKE_DIRS:-./*/}  # test directories to run
 SMOKE_LRUN=${SMOKE_LRUN:-1}     # number of times to run test list
 SMOKE_NRUN=${SMOKE_NRUN:-1}     # number of times to run one test
 
+set_my_nrun() {
+  my_nrun=$SMOKE_NRUN
+  # If doing reruns, also check for NRUN file in test directory
+  if [ $my_nrun -gt 1 ] && [ -r NRUN ]; then
+    base_nrun=`cat NRUN`;
+    # Use value from NRUN if larger than default
+    if [ $base_nrun -gt $my_nrun ]; then my_nrun=$base_nrun; fi
+  fi
+}
+
 cleanup
 
 if [ "$1" == "-clean" ]; then
@@ -200,8 +210,7 @@ if [ "$AOMP_PARALLEL_SMOKE" == 1 ]; then
       fi
       #--- Begin test iteration
       run=0
-      my_nrun=$SMOKE_NRUN
-      if [ $my_nrun -gt 1 ] && [ -r NRUN ]; then my_nrun=`cat NRUN`; fi
+      set_my_nrun
       while [ $run -lt $my_nrun ]; do
       #---
       if [ $base == 'devices' ] || [ $base == 'stream' ]; then
@@ -278,8 +287,7 @@ for directory in $SMOKE_DIRS; do
   fi
   #--- Begin test iteration
   run=0
-  my_nrun=$SMOKE_NRUN
-  if [ $my_nrun -gt 1 ] && [ -r NRUN ]; then my_nrun=`cat NRUN`; fi
+  set_my_nrun
   while [ $run -lt $my_nrun ]; do
   #---
   make
