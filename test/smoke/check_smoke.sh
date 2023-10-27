@@ -135,6 +135,9 @@ fi
 
 # ---------- Begin parallel logic ----------
 if [ "$AOMP_PARALLEL_SMOKE" == 1 ]; then
+  if [ -z ${AOMP_NO_PREREQ+x} ]; then
+    export AOMP_NO_PREREQ=1     # disable prereq target so builds can be reused
+  fi
   sem --help > /dev/null
   if [ $? -eq 0 ]; then
     COMP_THREADS=1
