@@ -105,7 +105,7 @@ else
 fi
 
 omp_cpu_flags="-O3 -fopenmp -DOMP"
-hip_flags="-O3 --offload-arch=$AOMP_GPU -Wno-unused-result -DHIP -x hip"
+hip_flags="-O3 -Wno-unused-result -DHIP"
 
 omp_src="main.cpp OMPStream.cpp"
 hip_src="main.cpp HIPStream.cpp"
@@ -175,6 +175,7 @@ for option in $RUN_OPTIONS; do
       fi
     fi
     compile_cmd="$AOMPHIP/bin/hipcc $std $hip_flags $hip_src -o $EXEC"
+    HIP_PATH=$AOMPHIP
   else
     echo "ERROR: Option not recognized: $option."
     exit 1
