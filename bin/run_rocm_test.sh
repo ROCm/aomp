@@ -68,7 +68,7 @@ if [ -L /opt/rocm/lib/llvm ]; then
   AOMP=${AOMP:-"/opt/rocm/lib/llvm"}
   ROCMINF=/opt/rocm
 elif [ -L /opt/rocm-*/lib/llvm ]; then
-  AOMP=${AOMP:-"/opt/rocm-*/llvm"}
+  AOMP=${AOMP:-"/opt/rocm-*/lib/llvm"}
   ROCMINF=/opt/rocm
 elif [ -L /opt/rocm-*/llvm ]; then
   AOMP=${AOMP:-"/opt/rocm-*/llvm"}
