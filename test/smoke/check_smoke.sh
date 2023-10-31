@@ -110,6 +110,7 @@ cleanup
 if [ "$1" == "-clean" ]; then
   for directory in $SMOKE_DIRS; do
     pushd $directory > /dev/null
+    if [ $? -ne 0 ]; then continue; fi
     make clean
     popd > /dev/null
   done
@@ -133,6 +134,17 @@ skip_tests=""
 newest_rocm=$(ls /opt | grep -e "rocm-[0-9].[0-9].[0-9]" | tail -1)
 AOMPROCM=${AOMPROCM:-/opt/"$newest_rocm"}
 
+if [ ${KNOWN_FAIL_FILE+x} ] ; then
+  known_fails+="`cat $KNOWN_FAIL_FILE` "
+  export SKIP_FAILURES=${SKIP_FAILURES:-1}
+  export SKIP_FAILS=${SKIP_FAILS:-1}
+fi
+if [ ${KNOWN_FAIL_TESTS+x} ] ; then
+  known_fails+="$KNOWN_FAIL_TESTS "
+  export SKIP_FAILURES=${SKIP_FAILURES:-1}
+  export SKIP_FAILS=${SKIP_FAILS:-1}
+fi
+
 if [ "$SKIP_FAILURES" == 1 ] ; then
   skip_tests=$known_fails
 else
@@ -140,7 +152,11 @@ else
 fi
 if [ "$SKIP_FORTRAN" == 1 ] ; then
   skip_tests+="`find .  -iname '*.f9[50]' | sed s^./^^ | awk -F/ '{print $1}'` "
-  echo $skip_tests
+fi
+
+if [ "$skip_tests" != "" ]; then
+  echo "skip_tests: $skip_tests"
+  echo ""
 fi
 
 # ---------- Begin parallel logic ----------
@@ -171,6 +187,7 @@ if [ "$AOMP_PARALLEL_SMOKE" == 1 ]; then
     # Parallel Make
     for directory in $SMOKE_DIRS; do
       pushd $directory > /dev/null
+      if [ $? -ne 0 ]; then continue; fi
       base=$(basename `pwd`)
       echo Make: $base
       if [ $base == "gpus" ]; then # Compile and link only test
@@ -197,6 +214,7 @@ if [ "$AOMP_PARALLEL_SMOKE" == 1 ]; then
     #---
     for directory in $SMOKE_DIRS; do
       pushd $directory > /dev/null
+      if [ $? -ne 0 ]; then continue; fi
       base=$(basename `pwd`)
       echo RUN $base
       if [ $base == 'hip_rocblas' ] ; then
@@ -257,6 +275,7 @@ while [ $lrun -lt $SMOKE_LRUN ]; do
 #---
 for directory in $SMOKE_DIRS; do
   pushd $directory > /dev/null
+  if [ $? -ne 0 ]; then continue; fi
   if [ $lrun -eq 0 ]; then
       make clean
   fi
@@ -327,6 +346,7 @@ done
 # Print run.log for all tests that need visual inspection
 for directory in $SMOKE_DIRS; do
   pushd $directory > /dev/null
+  if [ $? -ne 0 ]; then continue; fi
   path=$(pwd)
   base=$(basename $path)
   if [ $base == 'devices' ] || [ $base == 'stream' ] ; then
