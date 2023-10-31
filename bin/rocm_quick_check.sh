@@ -1,4 +1,6 @@
 #!/bin/bash
+echo listing /opt 
+ls /opt
 
 if [ -e /usr/bin/patch  ]; then
   echo "/usr/bin/patch OK"

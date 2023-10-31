@@ -241,6 +241,7 @@ $AOMP_ORIGIN_RPATH \
    fi
 fi
 
+if [ "$1" != "install" ] ; then
 if [ "$AOMP_LEGACY_OPENMP" == "1" ]; then
   cd $BUILD_DIR/build/openmp
   echo " -----Running $AOMP_NINJA_BIN for $BUILD_DIR/build/openmp ---- "
@@ -317,7 +318,6 @@ if [ "$AOMP_BUILD_DEBUG" == "1" ] ; then
    fi
 fi
 
-if [ "$1" != "install" ] ; then
    echo
    echo "Successful build of ./build_openmp.sh .  Please run:"
    echo "  ./build_openmp.sh install "
@@ -326,13 +326,17 @@ fi
 
 #  ----------- Install only if asked  ----------------------------
 if [ "$1" == "install" ] ; then 
-   cd $BUILD_DIR/build/openmp
-   echo
-   echo " -----Installing to $INSTALL_OPENMP/lib ----- "
-   $SUDO $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS install
-   if [ $? != 0 ] ; then
-      echo "ERROR $AOMP_NINJA_BIN install failed "
-      exit 1
+   clang_major=$(/work/estewart/rocm/aomp/bin/clang --version | grep -oP '(?<=clang version )[0-9]+')
+   llvm_dylib=libLLVM-"$clang_major"_AOMP_STANDALONE_"$AOMP_VERSION_STRING".so
+   if [ "$AOMP_LEGACY_OPENMP" == "1" ]; then
+      cd $BUILD_DIR/build/openmp
+      echo
+      echo " -----Installing to $INSTALL_OPENMP/lib ----- "
+      $SUDO $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS install
+      if [ $? != 0 ] ; then
+         echo "ERROR $AOMP_NINJA_BIN install failed "
+         exit 1
+      fi
    fi
 
    if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
@@ -354,6 +358,10 @@ if [ "$1" == "install" ] ; then
      if [ $? != 0 ] ; then
         echo "ERROR $AOMP_NINJA_BIN install failed "
         exit 1
+     fi
+     if [ ! -h $AOMP_INSTALL_DIR/lib-perf/$llvm_dylib ]; then
+       cd $AOMP_INSTALL_DIR/lib-perf
+       ln -s ../lib/$llvm_dylib $llvm_dylib
      fi
 
      if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
@@ -379,6 +387,10 @@ if [ "$1" == "install" ] ; then
       if [ $? != 0 ] ; then 
          echo "ERROR $AOMP_NINJA_BIN install failed "
          exit 1
+      fi
+      if [ ! -h $AOMP_INSTALL_DIR/lib-debug/$llvm_dylib ]; then
+        cd $AOMP_INSTALL_DIR/lib-debug
+        ln -s ../lib/$llvm_dylib $llvm_dylib
       fi
 
       if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
