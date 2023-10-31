@@ -63,6 +63,11 @@ git log -1
 EPSDB=1 ./clone_test.sh > /dev/null
 AOMP_TEST_DIR=${AOMP_TEST_DIR:-"$HOME/git/aomp-test"}
 
+echo AOMP before : $AOMP
+if [ ! -e $AOMP/bin ]; then
+  echo $AOMP does not point to valid location, unsetting
+  unset AOMP
+fi
 # Set AOMP to point to rocm symlink or newest version.
 if [ -e /opt/rocm/lib/llvm/bin ]; then
   AOMP=${AOMP:-"/opt/rocm/lib/llvm"}
