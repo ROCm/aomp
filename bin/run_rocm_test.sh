@@ -64,7 +64,16 @@ EPSDB=1 ./clone_test.sh > /dev/null
 AOMP_TEST_DIR=${AOMP_TEST_DIR:-"$HOME/git/aomp-test"}
 
 # Set AOMP to point to rocm symlink or newest version.
-if [ -L /opt/rocm ]; then
+if [ -L /opt/rocm/lib/llvm ]; then
+  AOMP=${AOMP:-"/opt/rocm/lib/llvm"}
+  ROCMINF=/opt/rocm
+elif [ -L /opt/rocm-*/lib/llvm ]; then
+  AOMP=${AOMP:-"/opt/rocm-*/llvm"}
+  ROCMINF=/opt/rocm
+elif [ -L /opt/rocm-*/llvm ]; then
+  AOMP=${AOMP:-"/opt/rocm-*/llvm"}
+  ROCMINF=/opt/rocm
+elif [ -L /opt/rocm/llvm ]; then
   AOMP=${AOMP:-"/opt/rocm/llvm"}
   ROCMINF=/opt/rocm
 else
