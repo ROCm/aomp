@@ -100,8 +100,8 @@ function checkversion(){
 }
 function buildopenmpi(){
   _cname="openmpi"
-  _version=4.1.1
-  _release=v4.1
+  _version=5.0.0
+  _release=v5.0
   _installdir=$AOMP_SUPP_INSTALL/$_cname-$_version
   _linkfrom=$AOMP_SUPP/$_cname
   _builddir=$AOMP_SUPP_BUILD/$_cname
@@ -124,7 +124,7 @@ function buildopenmpi(){
     runcmd "rm -rf $_installdir"
   fi
   runcmd "mkdir -p $_installdir"
-  runcmd "./configure OMPI_CC=$AOMP/bin/clang OMPI_CXX=$AOMP/bin/clang++ OMPI_F90=$AOMP/bin/flang CXX=$AOMP/bin/clang++ CC=$AOMP/bin/clang FC=$AOMP/bin/flang --prefix=$_installdir"
+  runcmd "./configure --with-hwloc=$HOME/local/hwloc --with-hwloc-libdir=$HOME/local/hwloc/lib OMPI_CC=$AOMP/bin/clang OMPI_CXX=$AOMP/bin/clang++ OMPI_F90=$AOMP/bin/flang CXX=$AOMP/bin/clang++ CC=$AOMP/bin/clang FC=$AOMP/bin/flang --prefix=$_installdir"
   runcmd "make -j8"
   runcmd "make install"
   if [ -L $_linkfrom ] ; then 
