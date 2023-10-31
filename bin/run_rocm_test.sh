@@ -64,23 +64,27 @@ EPSDB=1 ./clone_test.sh > /dev/null
 AOMP_TEST_DIR=${AOMP_TEST_DIR:-"$HOME/git/aomp-test"}
 
 # Set AOMP to point to rocm symlink or newest version.
-if [ -L /opt/rocm/lib/llvm ]; then
+if [ -e /opt/rocm/lib/llvm/bin ]; then
   AOMP=${AOMP:-"/opt/rocm/lib/llvm"}
   ROCMINF=/opt/rocm
+  ROCMDIR=/opt/rocm/lib
   echo setting 1 $AOMP
-elif [ -L /opt/rocm/llvm ]; then
+elif [ -e /opt/rocm/llvm/bin ]; then
   AOMP=${AOMP:-"/opt/rocm/llvm"}
   ROCMINF=/opt/rocm
+  ROCMDIR=/opt/rocm
   echo setting 2 $AOMP
 else
   newestrocm=$(ls --sort=time /opt | grep -m 1 rocm)
-  if [ -L /opt/$newestrocm/lib/llvm ]; then
+  if [ -e /opt/$newestrocm/lib/llvm/bin ]; then
     AOMP=${AOMP:-"/opt/$newestrocm/lib/llvm"}
     ROCMINF=/opt/rocm
+    ROCMDIR=$ROCMINF
     echo setting 3 $AOMP
   else
     AOMP=${AOMP:-"/opt/$newestrocm/llvm"}
     ROCMINF=/opt/$newestrocm/
+    ROCMDIR=$ROCMINF/lib
     echo setting 4 $AOMP
   fi
 fi
@@ -553,12 +557,13 @@ function sollve(){
 }
 
 function babelstream(){
-  export AOMPHIP=$ROCMINF
+  export AOMPHIP=$ROCMDIR
   mkdir -p "$resultsdir"/babelstream
   cd "$aompdir"/bin
   if [ $aomp -eq 0 ]; then
     export ROCMINFO_BINARY=$ROCINF/bin/rocminfo
   fi
+  export RUN_OPTIONS="omp-default omp-fast omp-mi300"
   ./run_babelstream.sh
   cd "$AOMP_TEST_DIR"/babelstream
   checkrc $?
@@ -566,7 +571,7 @@ function babelstream(){
 }
 
 function fortran-babelstream(){
-  export AOMPHIP=$ROCMINF
+  export AOMPHIP=$ROCMDIR
   mkdir -p "$resultsdir"/fortran-babelstream
   cd "$aompdir"/bin
   if [ $aomp -eq 0 ]; then
