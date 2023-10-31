@@ -68,23 +68,21 @@ if [ -L /opt/rocm/lib/llvm ]; then
   AOMP=${AOMP:-"/opt/rocm/lib/llvm"}
   ROCMINF=/opt/rocm
   echo setting 1 $AOMP
-elif [ -L /opt/rocm-*/lib/llvm ]; then
-  AOMP=${AOMP:-"/opt/rocm-*/lib/llvm"}
-  ROCMINF=/opt/rocm
-  echo setting 2 $AOMP
-elif [ -L /opt/rocm-*/llvm ]; then
-  AOMP=${AOMP:-"/opt/rocm-*/llvm"}
-  ROCMINF=/opt/rocm
-  echo setting 3 $AOMP
 elif [ -L /opt/rocm/llvm ]; then
   AOMP=${AOMP:-"/opt/rocm/llvm"}
   ROCMINF=/opt/rocm
-  echo setting 4 $AOMP
+  echo setting 2 $AOMP
 else
   newestrocm=$(ls --sort=time /opt | grep -m 1 rocm)
-  AOMP=${AOMP:-"/opt/$newestrocm/llvm"}
-  ROCMINF=/opt/$newestrocm/
-  echo setting 5 $AOMP
+  if [ -L /opt/$newestrocm/lib/llvm ]; then
+    AOMP=${AOMP:-"/opt/$newestrocm/lib/llvm"}
+    ROCMINF=/opt/rocm
+    echo setting 3 $AOMP
+  else
+    AOMP=${AOMP:-"/opt/$newestrocm/llvm"}
+    ROCMINF=/opt/$newestrocm/
+    echo setting 4 $AOMP
+  fi
 fi
 export AOMP
 echo "AOMP = $AOMP"
