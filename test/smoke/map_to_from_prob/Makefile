@@ -9,7 +9,7 @@ CLANG        ?= clang
 OMP_BIN      = $(AOMP)/bin/$(CLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
 
-RUNENV = LD_LIBRARY_PATH=$(AOMP)/lib-debug #LIBOMPTARGET_DEBUG=1 
+# RUNENV = LD_LIBRARY_PATH=$(AOMP)/lib-debug #LIBOMPTARGET_DEBUG=1
 #-ccc-print-phases
 #"-\#\#\#"
 
