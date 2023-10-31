@@ -67,19 +67,24 @@ AOMP_TEST_DIR=${AOMP_TEST_DIR:-"$HOME/git/aomp-test"}
 if [ -L /opt/rocm/lib/llvm ]; then
   AOMP=${AOMP:-"/opt/rocm/lib/llvm"}
   ROCMINF=/opt/rocm
+  echo setting 1 $AOMP
 elif [ -L /opt/rocm-*/lib/llvm ]; then
   AOMP=${AOMP:-"/opt/rocm-*/lib/llvm"}
   ROCMINF=/opt/rocm
+  echo setting 2 $AOMP
 elif [ -L /opt/rocm-*/llvm ]; then
   AOMP=${AOMP:-"/opt/rocm-*/llvm"}
   ROCMINF=/opt/rocm
+  echo setting 3 $AOMP
 elif [ -L /opt/rocm/llvm ]; then
   AOMP=${AOMP:-"/opt/rocm/llvm"}
   ROCMINF=/opt/rocm
+  echo setting 4 $AOMP
 else
   newestrocm=$(ls --sort=time /opt | grep -m 1 rocm)
   AOMP=${AOMP:-"/opt/$newestrocm/llvm"}
   ROCMINF=/opt/$newestrocm/
+  echo setting 5 $AOMP
 fi
 export AOMP
 echo "AOMP = $AOMP"
