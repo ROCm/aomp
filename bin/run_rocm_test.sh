@@ -585,7 +585,7 @@ function fortran-babelstream(){
   ./run_fBabel.sh
   checkrc $?
   cd "$AOMP_TEST_DIR"/fortran-babelstream
-  copyresults fortran-bbabelstream
+  copyresults fortran-babelstream
 }
 
 function LLNL(){

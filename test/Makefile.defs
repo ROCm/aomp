@@ -113,10 +113,6 @@ MPILIBS ?= -L${OMPIDIR}/lib$(MPI64) -lmpi
 
 # If AOMP env variable contains opt use rocm_agent_enumerator for device id.
 # Set GFXLIST to available gfx numbers pulled from installed bc files.
-ifeq (opt,$(findstring opt,$(AOMP)))
-  INSTALLED_GPU  = $(shell $(AOMP)/../bin/rocm_agent_enumerator | grep -m 1 -E gfx[^0]{1}.{2})
-  GFXLIST = $(shell ls $(AOMP)/lib | grep -oP 'amdgcn-\K\S+(?=.bc)')
-else
   # Set GFXLIST from aomp_common_vars
   ALLGFXLIST = $(shell grep GFXLIST= ../../../bin/aomp_common_vars | grep -o "gfx.*" | sed -E "s|\"}||" | sed -E "s|gfx1010||")
   GFXLIST ?= $(ALLGFXLIST)
@@ -164,7 +160,6 @@ else
       endif
     endif
   endif
-endif
 
 AOMP_GPU       ?= $(INSTALLED_GPU)
 CC              = $(AOMP)/bin/clang
