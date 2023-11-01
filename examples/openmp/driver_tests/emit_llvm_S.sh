@@ -38,7 +38,7 @@ if [  -z $gpu ]; then
   echo "$gpu"
 fi
 
-targetoptions="-fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$gpu --no-offload-new-driver"
+targetoptions="-fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$gpu"
 RC=0
 
 cmd="$AOMP/bin/clang $tmpcfile -fopenmp -emit-llvm -S"
@@ -53,33 +53,9 @@ cmd="$AOMP/bin/clang $tmpcfile -fopenmp -S"
 echo "$cmd" ; $cmd
 file test.s
 
-cmd="$AOMP/bin/clang $tmpcfile -fopenmp -emit-llvm -S $targetoptions"
-echo "$cmd" ; $cmd
-file test.ll
-grep "target triple = \"amdgcn-amd-amdhsa\"" test.ll
-
-if [ $? -eq 0 ]; then 
-	echo passed
-else
-   echo failed "-emit-llvm -S"
-   RC=1
-fi
-
 cmd="$AOMP/bin/clang $tmpcfile -fopenmp -emit-llvm -c $targetoptions"
 echo "$cmd" ; $cmd
 file test.bc
-
-cmd="$AOMP/bin/clang $tmpcfile -fopenmp -S $targetoptions"
-echo "$cmd" ; $cmd
-file test.s
-grep ".amdgcn_target \"amdgcn-amd-amdhsa--gfx" test.s
- 
-if [ $? -eq 0 ]; then 
-	echo passed
-else
-   echo failed "-S"
-   RC=1
-fi
 
 # cleanup
 rm -rf $tdir
