@@ -141,7 +141,7 @@ if [ $AOMP_STANDALONE_BUILD == 1 ] ; then
 fi
 
 # Make sure we can update the install directory
-if [ "$1" == "install" ] ; then 
+if [ "$1" == "install" ] || [ "$1" == "install-fast" ]; then 
    $SUDO mkdir -p $INSTALL_PROJECT
    $SUDO touch $INSTALL_PROJECT/testfile
    if [ $? != 0 ] ; then 
@@ -168,16 +168,16 @@ if [ $AOMP_STANDALONE_BUILD == 1 ] ; then
 fi
 
 # Skip synchronization from git repos if nocmake or install are specified
-if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
+if [ "$1" != "nocmake" ] && [ "$1" != "install" ] && [ "$1" != "install-fast" ] ; then
    echo 
    echo "This is a FRESH START. ERASING any previous builds in $BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME"
-   echo "Use ""$0 nocmake"" or ""$0 install"" to avoid FRESH START."
+   echo "Use ""$0 nocmake"" or ""$0 install"" or ""$0 install-fast"" to avoid FRESH START."
    rm -rf $BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME
    mkdir -p $BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME
 else
    if [ ! -d $BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME ] ; then 
       echo "ERROR: The build directory $BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME does not exist"
-      echo "       run $0 without nocmake or install options. " 
+      echo "       run $0 without nocmake, install or install-fast options. " 
       exit 1
    fi
 fi
@@ -202,7 +202,7 @@ fi
 
 cd $BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME
 
-if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
+if [ "$1" != "nocmake" ] && [ "$1" != "install" ] && [ "$1" != "install-fast" ] ; then
    echo
    echo " -----Running cmake ---- " 
    echo ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/llvm
@@ -217,20 +217,23 @@ fi
 echo
 echo " -----Running make ---- " 
 
-# Workaround for race condition in the build of compiler-rt
-for prebuild in $(${AOMP_CMAKE} --build . --target help | sed -n '/-version-list/s/^... //p') ; do
-  ${AOMP_CMAKE} --build . -j $AOMP_JOB_THREADS --target $prebuild
-done
+if [ "$1" != "install-fast" ] ; then
+   # Workaround for race condition in the build of compiler-rt
+   for prebuild in $(${AOMP_CMAKE} --build . --target help | sed -n '/-version-list/s/^... //p') ; do
+       ${AOMP_CMAKE} --build . -j $AOMP_JOB_THREADS --target $prebuild
+   done
 
-# Required for amdllvm support
-echo ${AOMP_CMAKE} --build . -- -j $AOMP_JOB_THREADS clang lld compiler-rt
-${AOMP_CMAKE} --build . -- -j $AOMP_JOB_THREADS clang lld compiler-rt
+   # Required for amdllvm support
+   echo ${AOMP_CMAKE} --build . -- -j $AOMP_JOB_THREADS clang lld compiler-rt
+   ${AOMP_CMAKE} --build . -- -j $AOMP_JOB_THREADS clang lld compiler-rt
 
-# Required for amdllvm support
-echo ${AOMP_CMAKE} --build . -- -j $AOMP_JOB_THREADS runtimes cxx
-${AOMP_CMAKE} --build . -- -j $AOMP_JOB_THREADS runtimes cxx
+   # Required for amdllvm support
+   echo ${AOMP_CMAKE} --build . -- -j $AOMP_JOB_THREADS runtimes cxx
+   ${AOMP_CMAKE} --build . -- -j $AOMP_JOB_THREADS runtimes cxx
+fi
 
 # Finish building
+echo "Running CMAKE in ${PWD}"
 echo ${AOMP_CMAKE} --build . -j $AOMP_JOB_THREADS
 ${AOMP_CMAKE} --build . -j $AOMP_JOB_THREADS
 if [ $? != 0 ] ; then
@@ -238,9 +241,9 @@ if [ $? != 0 ] ; then
    exit 1
 fi
 
-if [ "$1" == "install" ] ; then
+if [ "$1" == "install" ] || [ "$1" == "install-fast" ] ; then
    echo " -----Installing to $INSTALL_PROJECT ---- "
-   $SUDO ${AOMP_CMAKE} --build . -j $AOMP_JOB_THREADS --target install
+   $SUDO ${AOMP_CMAKE} --install .
    if [ $? != 0 ] ; then
       echo "ERROR make install failed "
       exit 1
