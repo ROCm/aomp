@@ -232,10 +232,12 @@ static void on_ompt_callback_target_data_op_emi
      const void *codeptr_ra
      ) {
      if (endpoint == ompt_scope_begin) *host_op_id = next_op_id++;
+     // target_task_data may be null, avoid dereferencing it
+     uint64_t target_task_data_value = (target_task_data) ? target_task_data->value : 0;
   printf("  Callback DataOp EMI: endpoint=%d target_task_data=%p (0x%lx) target_data=%p (0x%lx) host_op_id=%p (0x%lx) optype=%d src=%p src_device_num=%d "
 	 "dest=%p dest_device_num=%d bytes=%lu code=%p\n",
 	 endpoint, 
-         target_task_data, target_task_data->value, 
+         target_task_data, target_task_data_value, 
          target_data, target_data->value, 
          host_op_id, *host_op_id, 
          optype, src_addr, src_device_num,
@@ -268,10 +270,12 @@ static void on_ompt_callback_target_emi
      const void *codeptr_ra
      ) {
      if (endpoint == ompt_scope_begin) target_data->value = next_op_id++;
+     // target_task_data may be null, avoid dereferencing it
+     uint64_t target_task_data_value = (target_task_data) ? target_task_data->value : 0;
   printf("Callback Target EMI: kind=%d endpoint=%d device_num=%d task_data=%p (0x%lx) target_task_data=%p (0x%lx) target_data=%p (0x%lx) code=%p\n",
 	 kind, endpoint, device_num, 
          task_data, task_data->value, 
-         target_task_data, target_task_data->value, 
+         target_task_data, target_task_data_value, 
          target_data, target_data->value, 
          codeptr_ra);
 }
