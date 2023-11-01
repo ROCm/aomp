@@ -1,10 +1,13 @@
 include ../Makefile.defs
 
 TESTS_DIR = \
+    declare-target-and-explicit-map \
+    declare-target-link-2 \
     flang-404247 \
     flang-421111-2 \
     LaunchLatency \
-    milestone-1
+    milestone-1 \
+    milestone-2
 
 all:
 	@for test_dir in $(TESTS_DIR); do \

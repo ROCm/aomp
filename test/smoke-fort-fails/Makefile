@@ -4,18 +4,16 @@ TESTS_DIR = \
     1D-full-bounds-exp-map \
     1D-partial-bounds-exp-map \
     bycopy-implicit-map \
-    declare-target-and-explicit-map \
     declare-target-and-implicit-and-explicit-map \
     declare-target-link-1 \
-    declare-target-link-2 \
     declare-target-link-3 \
     exp-real-map \
     f2018-select-rank \
+    flang-416048 \
     flang-420573 \
     flang-421111-1 \
     flang-421111-3 \
     flang-421353 \
-    milestone-2 \
     single-value-map \
     vmuln
 
