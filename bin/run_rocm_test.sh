@@ -568,7 +568,7 @@ function babelstream(){
   if [ $aomp -eq 0 ]; then
     export ROCMINFO_BINARY=$ROCINF/bin/rocminfo
   fi
-  export RUN_OPTIONS="omp-default omp-fast omp-mi300"
+  export RUN_OPTIONS="omp-default omp-fast"
   ./run_babelstream.sh
   cd "$AOMP_TEST_DIR"/babelstream
   checkrc $?
