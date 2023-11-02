@@ -32,6 +32,8 @@ program main
     enddo
   enddo
   deallocate(hmat%mat)
+  print *, "PASS"
+  return
 end program
 
 ! CHECK: Submatrix 1

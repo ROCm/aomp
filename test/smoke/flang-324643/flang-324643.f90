@@ -18,6 +18,7 @@ program minimal
   ! Works
   !!$omp target update to(nsp2)
   !$omp target update to(desc%nsp)
-
+  print *, "PASS"
+  return
 
 end program minimal

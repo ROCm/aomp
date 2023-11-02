@@ -24,5 +24,6 @@ contains
  
 end module worker
 program main
-          print *,'hi'
+          print *,'PASS'
+          return
 end

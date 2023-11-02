@@ -22,10 +22,15 @@ program test
 #endif
     !$omp target data use_device_ptr(array)
     do i = 1,arr_size
-        print *, array(i)
+        if ( array(i) .ne. "te" ) then
+          print *, "FAILED! Expected answer : te instead of ", array(i)
+          stop 2
+        endif
     end do
     !$omp end target data
 #ifdef TARGET_DATA
     !$omp end target data
 #endif
+    print *, "SUCCESS"
+    return
 end program test

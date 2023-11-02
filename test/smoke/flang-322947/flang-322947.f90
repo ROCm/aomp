@@ -17,7 +17,11 @@ program test
 !$omp target exit data map(from:head%array)
 
     do i=1,128
-        print *, head%array(i)
+      if ( head%array(i) .ne. i ) then
+        print *, "FAIL: Wrong answer ", head%array(i), " Expected answer ", i
+        stop 2
+      endif
     end do
-
+    print *, "PASS"
+    return
 end program test

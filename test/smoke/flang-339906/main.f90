@@ -17,8 +17,10 @@ program main
     write(*,*) 'Success!'
   else
     write(*,*) 'Failure!'
+    stop 2
   endif
 
   call destruct_hmatrix(hmat_cpu)
   call destruct_hmatrix(hmat_gpu)
+  return
 end program

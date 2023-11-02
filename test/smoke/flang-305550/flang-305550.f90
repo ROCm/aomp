@@ -41,6 +41,10 @@ program test
       !$OMP END TARGET TEAMS DISTRIBUTE
 
       do i=1, N
+      if (OUTPUT(i) .ne. 1) then
+        write(*,*)"ERROR: wrong answer"
+        stop 2
+      endif
       write(*,*) "OUTPUT(", i, ")=", OUTPUT(i)
       enddo
       !$OMP TARGET EXIT DATA MAP(DELETE:WDES1%LMMAXX)
@@ -48,6 +52,8 @@ program test
 
       !$OMP TARGET EXIT DATA MAP(DELETE:WDES%LMMAXX)
       !$OMP TARGET EXIT DATA MAP(DELETE:WDES)
+      write(*,*) "SUCCESS"
+      return
 
  end program test
 

@@ -245,7 +245,6 @@ TESTS_DIR = \
  flang-313307_simple_generic \
  flang-313307_simple_spmd \
  flang-314146 \
- flang-315421 \
  flang-315870 \
  flang-319356 \
  flang-321277 \

@@ -34,4 +34,5 @@ program main
   ENDIF
  END DO
  PRINT *, "Passed"
+ return
 end program main

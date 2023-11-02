@@ -12,7 +12,11 @@ program test
 #ifdef OFFLOAD_ATAN
 !$omp end target
 #endif
-    
+    if (at .ne. bt) then
+        write(*,*)"ERROR: wrong answer"
+        stop 2
+    endif
     print *, "atan(", a, ",", b, ")=", at
     print *, "atan(", a, ",", b, ")=", bt
+    return
 end program test

@@ -1496,6 +1496,7 @@ subroutine checksum_pass(i, u1, d1, d2, d3)
          else
             write(*,2001)
  2001       format(' Result verification failed')
+            stop 2
          endif
       endif
       print *, 'class = ', class

@@ -15,4 +15,6 @@ program target_nothing
         arr(i) = 42.0d0
     end do
     deallocate(arr(N))
+    print *, "PASS"
+    return
 end program
