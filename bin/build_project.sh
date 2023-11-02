@@ -226,16 +226,17 @@ if [ "$1" != "install-fast" ] ; then
    # Required for amdllvm support
    echo ${AOMP_CMAKE} --build . -- -j $AOMP_JOB_THREADS clang lld compiler-rt
    ${AOMP_CMAKE} --build . -- -j $AOMP_JOB_THREADS clang lld compiler-rt
-
-   # Required for amdllvm support
-   echo ${AOMP_CMAKE} --build . -- -j $AOMP_JOB_THREADS runtimes cxx
-   ${AOMP_CMAKE} --build . -- -j $AOMP_JOB_THREADS runtimes cxx
 fi
+
+# Required for amdllvm support
+echo ${AOMP_CMAKE} --build . -- -j $AOMP_JOB_THREADS runtimes cxx
+${AOMP_CMAKE} --build . -- -j $AOMP_JOB_THREADS runtimes cxx
 
 # Finish building
 echo "Running CMAKE in ${PWD}"
 echo ${AOMP_CMAKE} --build . -j $AOMP_JOB_THREADS
 ${AOMP_CMAKE} --build . -j $AOMP_JOB_THREADS
+
 if [ $? != 0 ] ; then
    echo "ERROR make -j $AOMP_JOB_THREADS failed"
    exit 1
