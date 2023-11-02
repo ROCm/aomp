@@ -445,4 +445,6 @@ program test
 
     iter = 1
     call kernel1(26,10,10969,33274,10238,1,10969,1,22306,1,33274,1,10238,1,20453,1,30696,dts,small_step,epssm,cf1,cf2,cf3, t_iter, use_gpu)
+    print *, "PASS"
+    return
 end program test

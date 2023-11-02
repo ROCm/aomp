@@ -48,6 +48,10 @@ program test
 
     call init_out(100)
     call do_calc(10,23)
-
+    if (output(10,23) .ne. 1.000000) then
+        write(*,*)"ERROR: wrong answer"
+        stop 2
+    endif
     print *,"Luise: ", output(10,23)
+    return
 end program test

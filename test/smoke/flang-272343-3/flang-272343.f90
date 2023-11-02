@@ -33,5 +33,10 @@ program loop_test
     !$OMP END TARGET PARALLEL DO
     !$OMP TARGET EXIT DATA MAP(RELEASE:obj, obj%p1)
     !!$OMP TARGET EXIT DATA MAP(RELEASE: p2)
-    write(*, *) "C= ", C(1)
+    if (c(1) .ne. obj%p1(1)) then
+        write(*,*)"ERROR: wrong answer"
+        stop 2
+    endif
+    write(*, *) "SUCCESS: C= ", C(1)
+    return
 end program loop_test

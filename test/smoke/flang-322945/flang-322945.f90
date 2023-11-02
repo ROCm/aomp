@@ -62,4 +62,6 @@ program test
     do i=1,10
        if ( head%array(i,i) .ne. tail%array(i,i)) stop 2
     end do
+    print *, "PASS"
+    return
 end program test

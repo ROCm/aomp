@@ -30,10 +30,15 @@ program test
       !$OMP END TARGET TEAMS DISTRIBUTE
 
       do i=1, N
-      write(*,*) "OUTPUT(", i, ")=", OUTPUT(i)
+        if (OUTPUT(i) .ne. 1) then
+          write (*,*) "FAIL : Wrong answer OUTPUT(", i, ")=", OUTPUT(i), "Expected answer : 1"
+          stop 2
+        endif
       enddo
 
       !$OMP TARGET EXIT DATA MAP(DELETE:WDES%LMMAXX)
       !$OMP TARGET EXIT DATA MAP(DELETE:WDES)
 
+      print *, "PASS"
+      return
       end program test

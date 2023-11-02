@@ -9,5 +9,6 @@ program test
        end do
     !$omp end target teams distribute parallel do
     write(*,*) "Work Done"
+    return
     
 end program test

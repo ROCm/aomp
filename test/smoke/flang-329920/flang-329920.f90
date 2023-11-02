@@ -44,4 +44,6 @@ program mpas_driver
     call mpas_dmpar_exch_halo_acc(field2D)
     write(*,*) "ompt map to 3D array"
     call mpas_dmpar_exch_halo_acc(field3D)
+    print *, "PASS"
+    return
 end program mpas_driver

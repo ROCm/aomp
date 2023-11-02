@@ -21,4 +21,6 @@ program test
     !$omp target update from(A)
     write(*,*) "A(1,1) = ", A(1,1)
     if (a(1,1) .ne. 1.0) stop 2
+    print *, "PASS"
+    return
 end program test

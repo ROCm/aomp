@@ -41,5 +41,6 @@ program mpas_driver
   use mpas_dmpar
   call alloc_global(26,21176,63874)
   call fill_global2(26,21176,63874)
-
+  print *, "PASS"
+  return
 end program mpas_driver

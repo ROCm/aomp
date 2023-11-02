@@ -11,4 +11,5 @@ program main
      stop 2
    endif
    print *, "Passed"
+   return
 end program main
