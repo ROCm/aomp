@@ -221,11 +221,11 @@ int main(int argc, char **argv) {
   return 0;
 }
 
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:5 ConstWGSize:256  args:10 teamsXthrds:(  20X 256)
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:5 ConstWGSize:256  args:10 teamsXthrds:(  20X 256)
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:5 ConstWGSize:256  args:10 teamsXthrds:(  20X 256)
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:5 ConstWGSize:256  args:10 teamsXthrds:(  20X 256)
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:5 ConstWGSize:256  args:10 teamsXthrds:(  20X 256)
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:5 ConstWGSize:256  args:10 teamsXthrds:(  20X 256)
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:5 ConstWGSize:256  args:10 teamsXthrds:(  20X 256)
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:5 ConstWGSize:256  args:10 teamsXthrds:(  20X 256)
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:5 ConstWGSize:256  args:11 teamsXthrds:(  20X 256)
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:5 ConstWGSize:256  args:11 teamsXthrds:(  20X 256)
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:5 ConstWGSize:256  args:11 teamsXthrds:(  20X 256)
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:5 ConstWGSize:256  args:11 teamsXthrds:(  20X 256)
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:5 ConstWGSize:256  args:11 teamsXthrds:(  20X 256)
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:5 ConstWGSize:256  args:11 teamsXthrds:(  20X 256)
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:5 ConstWGSize:256  args:11 teamsXthrds:(  20X 256)
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:5 ConstWGSize:256  args:11 teamsXthrds:(  20X 256)

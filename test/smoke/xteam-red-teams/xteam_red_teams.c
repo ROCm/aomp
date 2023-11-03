@@ -43,8 +43,8 @@ int main()
   return rc;
 }
 
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:8 ConstWGSize:1024 args: 6 teamsXthrds:(   1X1024) 
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:8 ConstWGSize:1024 args: 6 teamsXthrds:( 50X1024)
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:8 ConstWGSize:1024 args: 6 teamsXthrds:( 40X1024)
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:8 ConstWGSize:1024 args: 6 teamsXthrds:( 10X1024)
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:8 ConstWGSize:1024 args: 7 teamsXthrds:(   1X1024) 
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:8 ConstWGSize:1024 args: 7 teamsXthrds:( 50X1024)
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:8 ConstWGSize:1024 args: 7 teamsXthrds:( 40X1024)
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:8 ConstWGSize:1024 args: 7 teamsXthrds:( 10X1024)
 
