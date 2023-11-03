@@ -326,7 +326,7 @@ fi
 
 #  ----------- Install only if asked  ----------------------------
 if [ "$1" == "install" ] ; then 
-   clang_major=$(/work/estewart/rocm/aomp/bin/clang --version | grep -oP '(?<=clang version )[0-9]+')
+   clang_major=$("$AOMP_INSTALL_DIR"/bin/clang --version | grep -oP '(?<=clang version )[0-9]+')
    llvm_dylib=libLLVM-"$clang_major"_AOMP_STANDALONE_"$AOMP_VERSION_STRING".so
    if [ "$AOMP_LEGACY_OPENMP" == "1" ]; then
       cd $BUILD_DIR/build/openmp
