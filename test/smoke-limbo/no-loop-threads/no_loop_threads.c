@@ -71,8 +71,8 @@ int main()
   return rc;
 }
 
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:4 ConstWGSize:128  args: 5 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 128)
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:4 ConstWGSize:256  args: 5 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 256)
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:4 ConstWGSize:64  args: 5 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 64)
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2 ConstWGSize:512  args: 5 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 512)
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:4 ConstWGSize:256  args: 5 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 256)
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:4 ConstWGSize:128  args: 6 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 128)
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:4 ConstWGSize:256  args: 6 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 256)
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:4 ConstWGSize:64  args: 6 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 64)
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2 ConstWGSize:512  args: 6 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 512)
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:4 ConstWGSize:256  args: 6 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 256)
