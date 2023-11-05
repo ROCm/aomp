@@ -1,7 +1,7 @@
 #!/bin/bash
 
 set -x
-export AOMP=/usr/lib/aomp_16.0-2
+export AOMP=/COD/LATEST/aomp
 export MPI=/opt/openmpi-4.1.4
 
 set +x
@@ -17,7 +17,10 @@ export OMPI_CC=clang
 export OMPI_CXX=clang++
 export LD_LIBRARY_PATH=$AOMP/lib:$MPI/lib/
 export PATH=$AOMP/bin:$MPI/bin:$PATH
-export LIBOMPTARGET_AMDGPU_TEAMS_PER_CU=6
+
+# mostly helps fortran
+export OMPX_FORCE_SYNC_REGIONS=1
+
 
 runhpc -c amdgpu_clang.cfg -I -l -n 1 -T base --define gputype=gfx90a --define model=omp_target --threads=1 --ranks=8  -i test,ref tiny --rebuild
 
