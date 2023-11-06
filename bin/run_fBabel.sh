@@ -97,6 +97,14 @@ if [ "$1" != "nocopy" ] ; then
    cp $FABELSTREAM_REPO/src/fortran/OpenMPTargetStream.F90 .
    cp $FABELSTREAM_REPO/src/fortran/OpenMPTargetLoopStream.F90 .
 fi
+if [ "$1" == "patch" ] ; then
+   if [ -f $thisdir/patches/fbabel_xteamr.patch ] ; then
+      echo "Attempting to patch  $FABELSTREAM_REPO/src/fortran/OpenMPTargetStream.F90"
+      patch < $thisdir/patches/fbabel_xteamr.patch
+   else
+      echo "===============  NO patch found at $thisdir/patches/fbabel_xteamr.patch"
+   fi
+fi
 
 echo RUN_OPTIONS: $RUN_OPTIONS
 thisdate=`date`

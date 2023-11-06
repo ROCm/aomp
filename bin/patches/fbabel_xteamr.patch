@@ -1,0 +1,76 @@
+--- OpenMPTargetStream.F90.orig	2023-11-06 17:08:20.455876995 -0500
++++ OpenMPTargetStream.F90	2023-11-06 16:59:26.077976796 -0500
+@@ -9,6 +9,34 @@
+     integer(kind=StreamIntKind) :: N
+ 
+     real(kind=REAL64), allocatable :: A(:), B(:), C(:)
++    interface
++       subroutine kmpc_rfun_sum_d(a1,a2)  bind(c,name="__kmpc_rfun_sum_d")
++         use, intrinsic :: iso_c_binding
++         implicit none
++         type(c_ptr), value :: a1
++         real(8), value :: a2
++       end subroutine kmpc_rfun_sum_d
++       subroutine kmpc_rfun_sum_lds_d(a1,a2)  bind(c,name="__kmpc_rfun_sum_lds_d")
++         use, intrinsic :: iso_c_binding
++         implicit none
++         type(c_ptr), value :: a1
++         real(8), value :: a2
++       end subroutine kmpc_rfun_sum_lds_d
++      subroutine kmpc_xteamr_d_4x64(val0, r_ptr, tvals, td, &
++                      f1, f2, rnv, k, nteams) bind(c,name="__kmpc_xteamr_d_4x64")
++         use, intrinsic :: iso_c_binding
++         implicit none
++         real(8),value :: val0 !  thread local sotrage
++         type(c_ptr),value :: r_ptr
++         real(8) :: tvals(*)
++         type(c_ptr),value :: td
++         type(c_funptr),value :: f1
++         type(c_funptr),value  :: f2
++         real(8),value :: rnv
++         integer(8),value ::  k
++         integer,value :: nteams
++      end subroutine kmpc_xteamr_d_4x64
++    end interface
+ 
+     contains
+ 
+@@ -153,10 +181,35 @@
+             implicit none
+             real(kind=REAL64) :: s
+             integer(kind=StreamIntKind) :: i
++
++            ! Control values
++            integer :: nteams = 120  ! should be number of CUs
++            integer,target :: teams_done
++            integer :: idx_bj
++            integer :: nthreads = 256 ! 4x64 = 256 threads
++            integer(8) :: kc_idx
++
++            real(8),target :: tvals_d(120)
++            real(8) :: val0_d
++            real(8) :: nullval
++
+             s = real(0,kind=REAL64)
+-            !$omp target teams distribute parallel do simd reduction(+:s)
+-            do i=1,N
+-               s = s + A(i) * B(i)
++            teams_done = 0
++            nullval = real(0,kind=REAL64)
++
++!$omp target teams distribute parallel do &
++!$omp&  map(tofrom: s,teams_done) map(alloc:tvals_d) &
++!$omp&  thread_limit(nthreads) num_teams(nteams) &
++!$omp&  firstprivate(N, nteams, nthreads) private(val0_d, kc_idx, idx_bj)
++            do i = 1, nteams*nthreads
++               kc_idx = i - 1
++               val0_d = 0.0
++               do idx_bj = i , N, nteams*nthreads  ! big jump loop
++                  val0_d = val0_d + A(idx_bj)*B(idx_bj)
++               end do
++               CALL kmpc_xteamr_d_4x64(val0_d, c_loc(s), tvals_d, c_loc(teams_done),&
++                  c_funloc(kmpc_rfun_sum_d), c_funloc(kmpc_rfun_sum_lds_d),         &
++                  nullval, kc_idx, nteams)
+             end do
+         end function dot
+ 
