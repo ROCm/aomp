@@ -245,6 +245,23 @@ if [ ! -z `which "getconf"` ]; then
 fi
 AOMP_JOB_THREADS=${AOMP_JOB_THREADS:-$COMP_THREADS}
 
+
+if [ "$AOMP_LIMIT_FLANG" == "1" ] ; then
+   # Limit build jobs for llvm flang-new build.
+   FLANG_THREADS=1
+
+   # Third column of free is the amount of available memory
+   memory_regex="[0-9]+\s+[0-9]+\s+([0-9]+)"
+   free_memory=$(free -g)
+
+   if [[ "$free_memory" =~ $memory_regex ]]; then
+     memory_size=${BASH_REMATCH[1]}
+     # 6 GB estimate per thread for MLIR
+     FLANG_THREADS=$((memory_size/6))
+   fi
+
+   AOMP_FLANG_THREADS=${AOMP_FLANG_THREADS:-$FLANG_THREADS}
+fi
 # These are the web sites where the AOMP git repos are pulled from
 GITROC="https://github.com/RadeonOpenCompute"
 GITROCINTERNAL="ssh://$USER@gerrit-git.amd.com:29418/lightning/ec"
