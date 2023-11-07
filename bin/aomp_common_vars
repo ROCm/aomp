@@ -245,7 +245,6 @@ if [ ! -z `which "getconf"` ]; then
 fi
 AOMP_JOB_THREADS=${AOMP_JOB_THREADS:-$COMP_THREADS}
 
-
 if [ "$AOMP_LIMIT_FLANG" == "1" ] ; then
    # Limit build jobs for llvm flang-new build.
    FLANG_THREADS=1
@@ -262,6 +261,7 @@ if [ "$AOMP_LIMIT_FLANG" == "1" ] ; then
 
    AOMP_FLANG_THREADS=${AOMP_FLANG_THREADS:-$FLANG_THREADS}
 fi
+
 # These are the web sites where the AOMP git repos are pulled from
 GITROC="https://github.com/RadeonOpenCompute"
 GITROCINTERNAL="ssh://$USER@gerrit-git.amd.com:29418/lightning/ec"
