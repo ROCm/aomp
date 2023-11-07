@@ -2,7 +2,6 @@ gemv_target_many_matrices.cpp
 gemv_target_reduction.cpp
 reduction_separated_directives.c
 reduction_separated_directives.cpp
-test_target_defaultmap.F90
 test_target_depends.F90
 test_target_map_scalar_default.F90
 test_target_teams_distribute_default_none.F90
