@@ -9,8 +9,8 @@ thisdir=`dirname $realpath`
 export AOMP=${AOMP:-/usr/lib/aomp}
 export MPI_PATH=${HOME}/local/openmpi
 
-export UMT_PATH=$HOME/git/aomp-test/UMT
-export UMT_INSTALL_PATH=$UMT_PATH/umt_workspace/install
+export UMT_PATH=${HOME}/git/aomp-test/UMT
+export UMT_INSTALL_PATH=${UMT_PATH}/umt_workspace/install
 
 export LD_LIBRARY_PATH=${AOMP}/lib:${MPI_PATH}/lib:${LD_LIBRARY_PATH}
 
@@ -18,7 +18,7 @@ CC=${AOMP}/bin/clang
 CXX=${AOMP}/bin/clang++
 FC=${AOMP}/bin/flang
 
-export PATH=$AOMP/bin:$PATH
+export PATH=${AOMP}/bin:${MPI_PATH}/bin:${PATH}
 
 #Queried by patchrepo
 export OMP_APPLY_ROCM_PATCHES=1
@@ -32,20 +32,17 @@ function usage(){
   echo ""
 }
 
-export PATH=$MPI_INSTALL_DIR/bin:$PATH
-export LD_LIBRARY_PATH=$MPI_INSTALL_DIR/lib:$LD_LIBRARY_PATH
-
 # Build UMT
 if [ "$1" == "build_umt" ]; then
 
-    if [ ! -d "$UMT_PATH" ]; then
+    if [ ! -d "${UMT_PATH}" ]; then
         echo "*************************************************************************************"
-        echo "UMT not found. Expecting the sources in $UMT_PATH". Call script with clone_umt first.
+        echo "UMT not found. Expecting the sources in ${UMT_PATH}". Call script with clone_umt first.
         echo "*************************************************************************************"
         exit 0;
     fi
 
-    pushd $UMT_PATH
+    pushd ${UMT_PATH}
     mkdir -p ${UMT_INSTALL_PATH}
     pushd ${UMT_PATH}/umt_workspace
     echo "*** Fetch and build dependencies ***"
@@ -89,23 +86,25 @@ if [ "$1" == "build_umt" ]; then
 
     # Run CMake on UMT, compile, and install.
     cmake ${UMT_PATH}/src \
-                    -DCMAKE_BUILD_TYPE=Release \
-    			    -DSTRICT_FPP_MODE=YES \
-                    -DENABLE_OPENMP=YES \
-    			    -DENABLE_OPENMP_OFFLOAD=Yes \
-                    -DOPENMP_HAS_USE_DEVICE_ADDR=Yes \
-    			    -DOPENMP_HAS_FORTRAN_INTERFACE=NO \
-                    -DCMAKE_CXX_COMPILER=${CXX} \
-    			    -DCMAKE_Fortran_COMPILER=${FC} \
-                    -DCMAKE_INSTALL_PREFIX=${UMT_INSTALL_PATH} \
-    			    -DMETIS_ROOT=${UMT_INSTALL_PATH} \
-                    -DHYPRE_ROOT=${UMT_INSTALL_PATH} \
-    			    -DMFEM_ROOT=${UMT_INSTALL_PATH} \
-                    -DCONDUIT_ROOT=${UMT_INSTALL_PATH} $1
+            -DCMAKE_BUILD_TYPE=Release \
+    		-DSTRICT_FPP_MODE=YES \
+            -DENABLE_OPENMP=YES \
+    		-DENABLE_OPENMP_OFFLOAD=Yes \
+            -DOPENMP_HAS_USE_DEVICE_ADDR=Yes \
+    		-DOPENMP_HAS_FORTRAN_INTERFACE=NO \
+            -DCMAKE_CXX_COMPILER=${CXX} \
+    		-DCMAKE_Fortran_COMPILER=${FC} \
+            -DMPI_CXX_COMPILER=${MPI_PATH}/bin/mpicxx \
+            -DMPI_Fortran_COMPILER=${MPI_PATH}/bin/mpifort \
+            -DCMAKE_INSTALL_PREFIX=${UMT_INSTALL_PATH} \
+    		-DMETIS_ROOT=${UMT_INSTALL_PATH} \
+            -DHYPRE_ROOT=${UMT_INSTALL_PATH} \
+    		-DMFEM_ROOT=${UMT_INSTALL_PATH} \
+            -DCONDUIT_ROOT=${UMT_INSTALL_PATH} $1
     make -j install
 
     # undo patch
-    removepatch $AOMP_REPOS_TEST/UMT
+    removepatch ${AOMP_REPOS_TEST}/UMT
     popd
 
 popd
