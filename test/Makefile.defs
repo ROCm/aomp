@@ -287,5 +287,5 @@ else
 endif
 
 # Header include path + linker flag for libomptest based OMPT tests
-OMPTEST = -I$(AOMP_REPOS)/llvm-project/openmp/libomptarget/test/ompTest/include -lomptest
+OMPTEST = -I$(AOMP)/lib/omptest/include -lomptest
 
