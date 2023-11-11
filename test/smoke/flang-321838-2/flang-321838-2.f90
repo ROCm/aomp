@@ -3,16 +3,20 @@ subroutine test(arr_size)
    integer, intent(in) :: arr_size
    integer, dimension(arr_size) :: arr
    integer i
-
-   !$omp target teams private(arr)
+   integer fail 
+   fail = 0
+   !$omp target teams map(tofrom: fail)  private(arr)
       arr(:) = 0
+      do i=1, arr_size
+        if (arr(i) .ne. 0) then
+           fail = 1
+        endif
+      enddo
    !$omp end target teams
-   do i=1, arr_size
-     if (arr(i) .ne. 0) then
-       write(*,*)"ERROR: wrong answer"
-       stop 2
-     endif
-   end do
+   if (fail .eq. 1) then
+     write(*,*)"ERROR: wrong answer"
+     stop 2
+   endif
 end subroutine test
 
 program main
