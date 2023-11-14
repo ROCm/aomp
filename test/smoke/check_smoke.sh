@@ -246,8 +246,10 @@ if [ "$AOMP_PARALLEL_SMOKE" == 1 ]; then
         sem --jobs 4 --id def_sem -u 'make check > /dev/null 2>&1'
       fi
       #---
-      test_status=`cat TEST_STATUS`
-      if [ "$test_status" == "124" ]; then break; fi       # don't rerun timeouts
+      if [ -r "TEST_STATUS" ]; then
+        test_status=`cat TEST_STATUS`
+        if [ "$test_status" == "124" ]; then break; fi  # don't rerun timeouts
+      fi
       run=$(($run+1))
       done
       #--- End test iteration
@@ -314,8 +316,10 @@ for directory in $SMOKE_DIRS; do
   make
   if [ $? -ne 0 ]; then
     echo "$base: Make Failed" >> ../make-fail.txt
-    test_status=`cat TEST_STATUS`
-    if [ "$test_status" == "124" ]; then break; fi       # don't rerun timeouts
+    if [ -r "TEST_STATUS" ]; then
+      test_status=`cat TEST_STATUS`
+      if [ "$test_status" == "124" ]; then break; fi    # don't rerun timeouts
+    fi
     run=$(($run+1))
     continue
   fi
@@ -333,15 +337,18 @@ for directory in $SMOKE_DIRS; do
     # liba_bundled has an additional Makefile, that may fail on the make check
     if [ $? -ne 0 ] && ( [ $base == 'liba_bundled' ] || [ $base == 'liba_bundled_cmdline' ] ) ; then
       echo "$base: Make Failed" >> ../make-fail.txt
-      test_status=`cat TEST_STATUS`
-      if [ "$test_status" == "124" ]; then break; fi       # don't rerun timeouts
-      break     # don't rerun timeouts
+      if [ -r "TEST_STATUS" ]; then
+        test_status=`cat TEST_STATUS`
+        if [ "$test_status" == "124" ]; then break; fi  # don't rerun timeouts
+      fi
     fi
   fi
   echo ""
   #---
-  test_status=`cat TEST_STATUS`
-  if [ "$test_status" == "124" ]; then break; fi       # don't rerun timeouts
+  if [ -r "TEST_STATUS" ]; then
+    test_status=`cat TEST_STATUS`
+    if [ "$test_status" == "124" ]; then break; fi      # don't rerun timeouts
+  fi
   run=$(($run+1))
   done
   #--- End test iteration
