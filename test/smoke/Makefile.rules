@@ -107,19 +107,13 @@ ifeq (,$(findstring $(AOMP_GPU),$(UNSUPPORTED)))
 	base=`basename $$path`; \
 	( \
 	  flock -e 9 && echo  "" >> ../check-smoke.txt; \
-	  test_status=0; \
-	  if   ($(RUNENV) $(SMOKE_TIMEOUT) $(RUNPROF) $(CHECK_COMMAND) > /dev/null 2>&1); then \
-		  test_status=$$?; \
-		  echo $$base $$test_num return code: $$test_status >> ../check-smoke.txt; \
-		  echo  "" >> ../check-smoke.txt; \
-		  echo $$base $$test_num  >> ../passing-tests.txt; \
-	  else	test_status=$$?; \
-		  echo $$base $$test_num return code: $$test_status >> ../check-smoke.txt; \
-		  echo  "" >> ../check-smoke.txt; \
-		  echo $$base $$test_num  >> ../failing-tests.txt; \
-	  fi; \
+	  $(RUNENV) $(SMOKE_TIMEOUT) $(RUNPROF) $(CHECK_COMMAND) > /dev/null 2>&1; \
+	  test_status=$$?; \
 	  echo "$$test_status" > TEST_STATUS; \
-	  exit $$test_status; \
+	  echo $$base $$test_num return code: $$test_status >> ../check-smoke.txt; \
+	  echo  "" >> ../check-smoke.txt; \
+	  if [ $$test_status -eq 0 ]; then echo $$base $$test_num >> ../passing-tests.txt; \
+	                              else echo $$base $$test_num >> ../failing-tests.txt; fi; \
 	)9>../lockfile;
 else
 	@echo "  $(SKIP_RUN_UNSUPPORTED)"
