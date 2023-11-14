@@ -1,3 +1,5 @@
+SHELL=/bin/bash -o pipefail
+
 ifeq ($(AOMP),)
 # --- Standard Makefile check for AOMP installation ---
 ifeq ("$(wildcard $(AOMP))","")
