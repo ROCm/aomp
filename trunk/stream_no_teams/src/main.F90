@@ -4,7 +4,7 @@ module BabelStreamUtil
 
     implicit none
 
-    integer(kind=StreamIntKind) :: array_size = 33554432
+    integer(kind=StreamIntKind) :: array_size = 3355443
     integer(kind=StreamIntKind) :: num_times  = 100
     logical                     :: mibibytes  = .false.
     logical                     :: use_gigs   = .false.

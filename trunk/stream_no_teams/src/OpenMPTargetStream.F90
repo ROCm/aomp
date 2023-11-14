@@ -83,10 +83,10 @@ module OpenMPTargetStream
 
         subroutine read_arrays(h_A, h_B, h_C)
             implicit none
-            real(kind=REAL64), intent(inout) :: h_A(:), h_B(:), h_C(:)
+            real(kind=REAL64), allocatable, intent(inout) :: h_A(:), h_B(:), h_C(:)
             integer(kind=StreamIntKind) :: i
             ! this might need to use a copy API instead...
-            !$omp target parallel do
+            !$omp target parallel do map(tofrom: h_A, h_B, h_C)
             do i=1,N
                h_A(i) = A(i)
                h_B(i) = B(i)
@@ -156,9 +156,11 @@ module OpenMPTargetStream
             s = real(0,kind=REAL64)
             ! temporarily avoid offload of reduction till we have that working
             !!$omp target parallel do reduction(+:s)
-            do i=1,N
-               s = s + A(i) * B(i)
-            end do
+            !$omp target map(tofrom: s)
+              do i=1,N
+                s = s + A(i) * B(i)
+              end do
+            !$omp end target
         end function dot
 
 end module OpenMPTargetStream
