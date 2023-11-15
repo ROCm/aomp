@@ -3,7 +3,7 @@
 #  build_qmcpack.sh: 
 #
 #  Users can override the following variables:
-#  AOMP, AOMP_GPU, BOOST_ROOT, FFTW_HOME, OPENMPI_INSTALL, QMCPACK_REPO, HDF5_ROOT
+#  AOMP, AOMP_GPU, BOOST_ROOT, FFTW_HOME, OPENMPI_INSTALL, QMCPACK_REPO, HDF5_ROOT, USE_MODULES
 #
 #  This script assumes openmpi(4.0.3 recommended) is installed and built with clang, for example:
 #  export LD_LIBRARY_PATH=$AOMP/lib
@@ -25,7 +25,8 @@ thisdir=`dirname $realpath`
 AOMP=${AOMP:-~/usr/lib/aomp}
 ROCM_VER=${ROCM_VER:-rocm-alt}
 
-if [ -e /etc/profile.d/modules.sh ] ; then
+USE_MODULES=${USE_MODULES:-0}
+if [ "$USE_MODULES" == "1" ] && [ -e /etc/profile.d/modules.sh ] ; then
    source /etc/profile.d/modules.sh
    # This script assumes modules setup on poplar cluster
    module load cmake
