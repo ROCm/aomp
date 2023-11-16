@@ -2,7 +2,7 @@
 #define N_CONSTANT 10000
 
 void writeIndex(int *int_array, int array_length) {
-  #pragma omp target teams distribute parallel for map(tofrom:int_array[0:N_CONSTANT])
+  #pragma omp target teams distribute parallel for map(from:int_array[0:N_CONSTANT])
   for (int _index = 0; _index < N_CONSTANT ; ++_index)
     int_array[_index] = _index;
 }
