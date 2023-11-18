@@ -5,6 +5,9 @@ hipcc_loc=$AOMP/bin/hipcc
 if [ ! -f $hipcc_loc ]; then
   hipcc_loc=$AOMP/../bin/hipcc
 fi
+if [ ! -f $hipcc_loc ]; then
+  hipcc_loc=$AOMP/../../bin/hipcc
+fi
 
 ompd_dir="$AOMP/share/gdb/python/ompd"
 if [ ! -f "$ompd_dir/__init__.py" ] ; then
@@ -34,6 +37,9 @@ echo
 rocgdb=$AOMP/bin/rocgdb
 if [ ! -f $rocgdb ]; then
   rocgdb=$AOMP/../bin/rocgdb
+fi
+if [ ! -f $rocgdb ]; then
+  rocgdb=$AOMP/../../bin/rocgdb
 fi
 
 $rocgdb -x "$ompd_dir/__init__.py" ./matrixmul -ex "source do_debug_command_file"
