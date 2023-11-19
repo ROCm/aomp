@@ -29,13 +29,21 @@ ifeq ($(UNAMEP),ppc64le)
 endif
 
 ifeq ($(EPSDB),1)
-AOMPHIP ?= $(AOMP)/..
+ AOMPHIP ?= $(AOMP)/..
+ PFILE = $(AOMPHIP)/lib/libamdhip64.so
+ ifeq ("$(wildcard $(PFILE))","")
+  AOMPHIP = $(AOMP)/../..
+ endif
 else
  PFILE = $(AOMP)/lib/libamdhip64.so
  ifneq ("$(wildcard $(PFILE))","")
    AOMPHIP ?= $(AOMP)
  else
    AOMPHIP = $(AOMP)/..
+ endif
+ PFILE = $(AOMPHIP)/lib/libamdhip64.so
+ ifeq ("$(wildcard $(PFILE))","")
+  AOMPHIP = $(AOMP)/../..
  endif
 endif
 
