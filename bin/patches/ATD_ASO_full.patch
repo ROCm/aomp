@@ -1,30 +1,8 @@
-diff -Naur -x .git llvm-project.aso_orig/amd/device-libs/cmake/OCL.cmake llvm-project/amd/device-libs/cmake/OCL.cmake
---- llvm-project.aso_orig/amd/device-libs/cmake/OCL.cmake	2023-10-19 10:56:52.612220823 -0500
-+++ llvm-project/amd/device-libs/cmake/OCL.cmake	2023-10-19 11:12:38.547827284 -0500
-@@ -149,6 +149,7 @@
-   add_custom_target("${name}" ALL
-     DEPENDS "${OUTPUT_DIR}/${OUT_NAME}${FINAL_SUFFIX}"
-     SOURCES ${OPENCL_BC_LIB_SOURCES})
-+  add_dependencies(rocm-device-libs "${name}")
-   set_target_properties(${name} PROPERTIES
-     OUTPUT_NAME "${OUTPUT_DIR}/${OUT_NAME}${FINAL_SUFFIX}"
-     ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
-diff -Naur -x .git llvm-project.aso_orig/amd/device-libs/CMakeLists.txt llvm-project/amd/device-libs/CMakeLists.txt
---- llvm-project.aso_orig/amd/device-libs/CMakeLists.txt	2023-10-19 10:56:52.612220823 -0500
-+++ llvm-project/amd/device-libs/CMakeLists.txt	2023-10-19 11:12:38.547827284 -0500
-@@ -23,6 +23,8 @@
- 
- list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
- 
-+add_custom_target(rocm-device-libs)
-+
- # Optionally, build Device Libs with ccache.
- set(ROCM_CCACHE_BUILD OFF CACHE BOOL "Set to ON for a ccache enabled build")
- if (ROCM_CCACHE_BUILD)
-diff -Naur -x .git llvm-project.aso_orig/clang/docs/tools/clang-formatted-files.txt llvm-project/clang/docs/tools/clang-formatted-files.txt
---- llvm-project.aso_orig/clang/docs/tools/clang-formatted-files.txt	2023-10-17 13:12:54.293688944 -0500
-+++ llvm-project/clang/docs/tools/clang-formatted-files.txt	2023-10-19 10:59:39.486444403 -0500
-@@ -7766,6 +7766,7 @@
+diff --git a/clang/docs/tools/clang-formatted-files.txt b/clang/docs/tools/clang-formatted-files.txt
+index 18512b1a7bf6..e46be83c5135 100644
+--- a/clang/docs/tools/clang-formatted-files.txt
++++ b/clang/docs/tools/clang-formatted-files.txt
+@@ -7765,6 +7765,7 @@ mlir/include/mlir/Interfaces/CallInterfaces.h
  mlir/include/mlir/Interfaces/CastInterfaces.h
  mlir/include/mlir/Interfaces/ControlFlowInterfaces.h
  mlir/include/mlir/Interfaces/CopyOpInterface.h
@@ -32,27 +10,36 @@ diff -Naur -x .git llvm-project.aso_orig/clang/docs/tools/clang-formatted-files.
  mlir/include/mlir/Interfaces/DataLayoutInterfaces.h
  mlir/include/mlir/Interfaces/DecodeAttributesInterfaces.h
  mlir/include/mlir/Interfaces/DerivedAttributeOpInterface.h
-diff -Naur -x .git llvm-project.aso_orig/clang/lib/CodeGen/CGOpenMPRuntime.cpp llvm-project/clang/lib/CodeGen/CGOpenMPRuntime.cpp
---- llvm-project.aso_orig/clang/lib/CodeGen/CGOpenMPRuntime.cpp	2023-10-19 10:56:52.632221092 -0500
-+++ llvm-project/clang/lib/CodeGen/CGOpenMPRuntime.cpp	2023-10-19 10:59:39.490444455 -0500
-@@ -6048,8 +6048,12 @@
-   getNumThreadsExprForTargetDirective(CGF, D, DefaultValThreads,
-                                       /*UpperBoundOnly=*/true);
+diff --git a/clang/lib/CodeGen/CGOpenMPRuntime.cpp b/clang/lib/CodeGen/CGOpenMPRuntime.cpp
+index 31c1f65b1f58..9fab1b1da73c 100644
+--- a/clang/lib/CodeGen/CGOpenMPRuntime.cpp
++++ b/clang/lib/CodeGen/CGOpenMPRuntime.cpp
+@@ -5949,6 +5949,20 @@ void CGOpenMPRuntime::emitTargetOutlinedFunctionHelper(
+         return CGF.GenerateOpenMPCapturedStmtFunction(CS, D, D.getBeginLoc());
+       };
  
-+  OMPBuilder.CurrentTargetInfo.emplace();
++  // Get NumTeams and ThreadLimit attributes
++  int32_t DefaultMinTeams = -1;
++  int32_t DefaultMaxTeams = INT32_MAX;
++  int32_t DefaultMinThreads = -1;
++  int32_t DefaultMaxThreads = INT32_MAX;
++
++  computeMinAndMaxThreadsAndTeams(D, CGF, DefaultMinThreads, DefaultMaxThreads,
++                                  DefaultMinTeams, DefaultMaxTeams);
++
++  OMPBuilder.CurrentTargetInfo = llvm::OpenMPIRBuilder::TargetRegionInfo();
 +  OMPBuilder.CurrentTargetInfo->NumTeams =
-+      CGF.Builder.getInt32(DefaultValTeams);
++      CGF.Builder.getInt32(DefaultMinTeams);
 +  OMPBuilder.CurrentTargetInfo->ThreadLimit =
-+      CGF.Builder.getInt32(DefaultValThreads);
++      CGF.Builder.getInt32(DefaultMaxThreads);
    OMPBuilder.emitTargetRegionFunction(EntryInfo, GenerateOutlinedFunction,
--                                      DefaultValTeams, DefaultValThreads,
                                        IsOffloadEntry, OutlinedFn, OutlinedFnID);
  
-   if (!OutlinedFn)
-diff -Naur -x .git llvm-project.aso_orig/clang/lib/Driver/ToolChains/Clang.cpp llvm-project/clang/lib/Driver/ToolChains/Clang.cpp
---- llvm-project.aso_orig/clang/lib/Driver/ToolChains/Clang.cpp	2023-10-19 10:56:52.632221092 -0500
-+++ llvm-project/clang/lib/Driver/ToolChains/Clang.cpp	2023-10-19 10:59:39.490444455 -0500
-@@ -8528,7 +8528,9 @@
+diff --git a/clang/lib/Driver/ToolChains/Clang.cpp b/clang/lib/Driver/ToolChains/Clang.cpp
+index b4f220f6ce37..263d2767cece 100644
+--- a/clang/lib/Driver/ToolChains/Clang.cpp
++++ b/clang/lib/Driver/ToolChains/Clang.cpp
+@@ -8614,7 +8614,9 @@ void ClangAs::ConstructJob(Compilation &C, const JobAction &JA,
    assert(Input.isFilename() && "Invalid input.");
    CmdArgs.push_back(Input.getFilename());
  
@@ -63,10 +50,11 @@ diff -Naur -x .git llvm-project.aso_orig/clang/lib/Driver/ToolChains/Clang.cpp l
    if (D.CC1Main && !D.CCGenDiagnostics) {
      // Invoke cc1as directly in this process.
      C.addCommand(std::make_unique<CC1Command>(
-diff -Naur -x .git llvm-project.aso_orig/flang/lib/Lower/OpenMP.cpp llvm-project/flang/lib/Lower/OpenMP.cpp
---- llvm-project.aso_orig/flang/lib/Lower/OpenMP.cpp	2023-10-17 13:12:54.345689329 -0500
-+++ llvm-project/flang/lib/Lower/OpenMP.cpp	2023-10-19 10:59:39.490444455 -0500
-@@ -101,6 +101,18 @@
+diff --git a/flang/lib/Lower/OpenMP.cpp b/flang/lib/Lower/OpenMP.cpp
+index 00f16026d9b4..30d286b126b4 100644
+--- a/flang/lib/Lower/OpenMP.cpp
++++ b/flang/lib/Lower/OpenMP.cpp
+@@ -107,6 +107,18 @@ static void gatherFuncAndVarSyms(
    }
  }
  
@@ -85,10 +73,11 @@ diff -Naur -x .git llvm-project.aso_orig/flang/lib/Lower/OpenMP.cpp llvm-project
  //===----------------------------------------------------------------------===//
  // DataSharingProcessor
  //===----------------------------------------------------------------------===//
-@@ -1843,6 +1855,34 @@
+@@ -1897,6 +1909,34 @@ void ClauseProcessor::processTODO(mlir::Location currentLocation,
+     (checkUnhandledClause(std::get_if<Ts>(&it->u)), ...);
  }
  
- //===----------------------------------------------------------------------===//
++//===----------------------------------------------------------------------===//
 +// HostClausesInsertionGuard
 +//===----------------------------------------------------------------------===//
 +
@@ -116,11 +105,10 @@ diff -Naur -x .git llvm-project.aso_orig/flang/lib/Lower/OpenMP.cpp llvm-project
 +  mlir::OpBuilder::InsertPoint ip;
 +};
 +
-+//===----------------------------------------------------------------------===//
+ //===----------------------------------------------------------------------===//
  // Code generation helper functions
  //===----------------------------------------------------------------------===//
- 
-@@ -2047,6 +2087,54 @@
+@@ -2102,6 +2142,54 @@ createAndSetPrivatizedLoopVar(Fortran::lower::AbstractConverter &converter,
    return storeOp;
  }
  
@@ -175,20 +163,19 @@ diff -Naur -x .git llvm-project.aso_orig/flang/lib/Lower/OpenMP.cpp llvm-project
  /// Create the body (block) for an OpenMP Operation.
  ///
  /// \param [in]    op - the operation the body belongs to.
-@@ -2413,12 +2501,7 @@
-   llvm::SmallVector<mlir::Value> mapOperands;
+@@ -2587,11 +2675,7 @@ genTargetOp(Fortran::lower::AbstractConverter &converter,
+   llvm::SmallVector<const Fortran::semantics::Symbol *> mapSymbols;
  
    ClauseProcessor cp(converter, clauseList);
--  cp.processIf(stmtCtx,
--               Fortran::parser::OmpIfClause::DirectiveNameModifier::Target,
+-  cp.processIf(Fortran::parser::OmpIfClause::DirectiveNameModifier::Target,
 -               ifClauseOperand);
    cp.processDevice(stmtCtx, deviceOperand);
 -  cp.processThreadLimit(stmtCtx, threadLimitOperand);
 -  cp.processNowait(nowaitAttr);
    cp.processMap(currentLocation, directive, semanticsContext, stmtCtx,
-                 mapOperands);
+                 mapOperands, &mapSymTypes, &mapSymLocs, &mapSymbols);
    cp.processTODO<Fortran::parser::OmpClause::Private,
-@@ -2433,10 +2516,21 @@
+@@ -2606,6 +2690,16 @@ genTargetOp(Fortran::lower::AbstractConverter &converter,
                   Fortran::parser::OmpClause::Defaultmap>(
        currentLocation, llvm::omp::Directive::OMPD_target);
  
@@ -196,23 +183,25 @@ diff -Naur -x .git llvm-project.aso_orig/flang/lib/Lower/OpenMP.cpp llvm-project
 +  if (!llvm::cast<mlir::omp::OffloadModuleInterface>(
 +           converter.getModuleOp().getOperation())
 +           .getIsTargetDevice()) {
-+    cp.processIf(stmtCtx,
-+                 Fortran::parser::OmpIfClause::DirectiveNameModifier::Target,
++    cp.processIf(Fortran::parser::OmpIfClause::DirectiveNameModifier::Target,
 +                 ifClauseOperand);
 +    cp.processThreadLimit(stmtCtx, threadLimitOperand);
 +    cp.processNowait(nowaitAttr);
 +  }
 +
-   return genOpWithBody<mlir::omp::TargetOp>(
-       converter, eval, currentLocation, outerCombined, &clauseList,
--      ifClauseOperand, deviceOperand, threadLimitOperand, nowaitAttr,
--      mapOperands);
-+      ifClauseOperand, deviceOperand, threadLimitOperand,
-+      /*trip_count=*/nullptr, nowaitAttr, mapOperands);
- }
+   // 5.8.1 Implicit Data-Mapping Attribute Rules
+   // The following code follows the implicit data-mapping rules to map all the
+   // symbols used inside the region that have not been explicitly mapped using
+@@ -2720,7 +2814,7 @@ genTargetOp(Fortran::lower::AbstractConverter &converter,
  
- static mlir::omp::TeamsOp
-@@ -2457,11 +2551,20 @@
+   auto targetOp = converter.getFirOpBuilder().create<mlir::omp::TargetOp>(
+       currentLocation, ifClauseOperand, deviceOperand, threadLimitOperand,
+-      nowaitAttr, mapOperands);
++      /*trip_count=*/nullptr, nowaitAttr, mapOperands);
+ 
+   genBodyOfTargetOp(converter, eval, targetOp, mapSymTypes, mapSymLocs,
+                     mapSymbols, currentLocation);
+@@ -2745,11 +2839,20 @@ genTeamsOp(Fortran::lower::AbstractConverter &converter,
                 ifClauseOperand);
    cp.processAllocate(allocatorOperands, allocateOperands);
    cp.processDefault();
@@ -235,7 +224,7 @@ diff -Naur -x .git llvm-project.aso_orig/flang/lib/Lower/OpenMP.cpp llvm-project
    return genOpWithBody<mlir::omp::TeamsOp>(
        converter, eval, currentLocation, outerCombined, &clauseList,
        /*num_teams_lower=*/nullptr, numTeamsClauseOperand, ifClauseOperand,
-@@ -2473,6 +2576,21 @@
+@@ -2761,6 +2864,21 @@ genTeamsOp(Fortran::lower::AbstractConverter &converter,
                                   reductionDeclSymbols));
  }
  
@@ -257,7 +246,7 @@ diff -Naur -x .git llvm-project.aso_orig/flang/lib/Lower/OpenMP.cpp llvm-project
  /// Extract the list of function and variable symbols affected by the given
  /// 'declare target' directive and return the intended device type for them.
  static mlir::omp::DeclareTargetDeviceType getDeclareTargetInfo(
-@@ -2538,10 +2656,6 @@
+@@ -2826,10 +2944,6 @@ getDeclareTargetFunctionDevice(
    return std::nullopt;
  }
  
@@ -268,7 +257,7 @@ diff -Naur -x .git llvm-project.aso_orig/flang/lib/Lower/OpenMP.cpp llvm-project
  static void
  genOmpSimpleStandalone(Fortran::lower::AbstractConverter &converter,
                         Fortran::lower::pft::Evaluation &eval,
-@@ -2608,6 +2722,10 @@
+@@ -2896,6 +3010,10 @@ genOmpFlush(Fortran::lower::AbstractConverter &converter,
        converter.getCurrentLocation(), operandRange);
  }
  
@@ -279,7 +268,7 @@ diff -Naur -x .git llvm-project.aso_orig/flang/lib/Lower/OpenMP.cpp llvm-project
  static void
  genOMP(Fortran::lower::AbstractConverter &converter,
         Fortran::lower::pft::Evaluation &eval,
-@@ -2681,7 +2799,9 @@
+@@ -2969,7 +3087,9 @@ static void genOMP(Fortran::lower::AbstractConverter &converter,
      }
      if (llvm::omp::allDistributeSet.test(ompDirective)) {
        validDirective = true;
@@ -290,7 +279,7 @@ diff -Naur -x .git llvm-project.aso_orig/flang/lib/Lower/OpenMP.cpp llvm-project
      }
      if ((llvm::omp::allParallelSet & llvm::omp::loopConstructSet)
              .test(ompDirective)) {
-@@ -2791,6 +2911,26 @@
+@@ -3078,6 +3198,26 @@ static void genOMP(Fortran::lower::AbstractConverter &converter,
    createBodyOfOp<mlir::omp::WsLoopOp>(wsLoopOp, converter, currentLocation,
                                        eval, &loopOpClauseList, iv,
                                        /*outer=*/false, &dsp);
@@ -317,10 +306,11 @@ diff -Naur -x .git llvm-project.aso_orig/flang/lib/Lower/OpenMP.cpp llvm-project
  }
  
  static void
-diff -Naur -x .git llvm-project.aso_orig/flang/test/Lower/OpenMP/FIR/if-clause.f90 llvm-project/flang/test/Lower/OpenMP/FIR/if-clause.f90
---- llvm-project.aso_orig/flang/test/Lower/OpenMP/FIR/if-clause.f90	2023-10-17 13:12:54.345689329 -0500
-+++ llvm-project/flang/test/Lower/OpenMP/FIR/if-clause.f90	2023-10-19 10:59:39.490444455 -0500
-@@ -7,23 +7,147 @@
+diff --git a/flang/test/Lower/OpenMP/FIR/if-clause.f90 b/flang/test/Lower/OpenMP/FIR/if-clause.f90
+index ef98a00f10db..e8d26c09ddd3 100644
+--- a/flang/test/Lower/OpenMP/FIR/if-clause.f90
++++ b/flang/test/Lower/OpenMP/FIR/if-clause.f90
+@@ -7,23 +7,147 @@ program main
    integer :: i
  
    ! TODO When they are supported, add tests for:
@@ -480,10 +470,11 @@ diff -Naur -x .git llvm-project.aso_orig/flang/test/Lower/OpenMP/FIR/if-clause.f
  
    ! ----------------------------------------------------------------------------
    ! DO SIMD
-@@ -363,6 +487,53 @@
+@@ -362,6 +486,53 @@ program main
+   end do
    !$omp end target parallel do simd
  
-   ! ----------------------------------------------------------------------------
++  ! ----------------------------------------------------------------------------
 +  ! TARGET PARALLEL
 +  ! ----------------------------------------------------------------------------
 +  ! CHECK:      omp.target
@@ -530,23 +521,26 @@ diff -Naur -x .git llvm-project.aso_orig/flang/test/Lower/OpenMP/FIR/if-clause.f
 +  i = 1
 +  !$omp end target parallel
 +
-+  ! ----------------------------------------------------------------------------
+   ! ----------------------------------------------------------------------------
    ! TARGET SIMD
    ! ----------------------------------------------------------------------------
-   ! CHECK:      omp.target
-@@ -415,13 +586,402 @@
+@@ -415,71 +586,724 @@ program main
    !$omp end target simd
  
    ! ----------------------------------------------------------------------------
 -  ! TARGET TEAMS
 +  ! TARGET TEAMS DISTRIBUTE
-+  ! ----------------------------------------------------------------------------
-+  ! CHECK:      omp.target
-+  ! CHECK-NOT:  if({{.*}})
-+  ! CHECK-SAME: {
-+  ! CHECK:      omp.teams
-+  ! CHECK-NOT:  if({{.*}})
-+  ! CHECK-SAME: {
+   ! ----------------------------------------------------------------------------
+-
+   ! CHECK:      omp.target
+   ! CHECK-NOT:  if({{.*}})
+   ! CHECK-SAME: {
+   ! CHECK:      omp.teams
+   ! CHECK-NOT:  if({{.*}})
+   ! CHECK-SAME: {
+-  !$omp target teams
+-  i = 1
+-  !$omp end target teams
 +  ! CHECK:      omp.distribute
 +  ! CHECK-NOT:  if({{.*}})
 +  ! CHECK-SAME: {
@@ -554,11 +548,14 @@ diff -Naur -x .git llvm-project.aso_orig/flang/test/Lower/OpenMP/FIR/if-clause.f
 +  do i = 1, 10
 +  end do
 +  !$omp end target teams distribute
-+
-+  ! CHECK:      omp.target
-+  ! CHECK-SAME: if({{.*}})
-+  ! CHECK:      omp.teams
-+  ! CHECK-SAME: if({{.*}})
+ 
+   ! CHECK:      omp.target
+   ! CHECK-SAME: if({{.*}})
+   ! CHECK:      omp.teams
+   ! CHECK-SAME: if({{.*}})
+-  !$omp target teams if(.true.)
+-  i = 1
+-  !$omp end target teams
 +  ! CHECK:      omp.distribute
 +  ! CHECK-NOT:  if({{.*}})
 +  ! CHECK-SAME: {
@@ -566,11 +563,14 @@ diff -Naur -x .git llvm-project.aso_orig/flang/test/Lower/OpenMP/FIR/if-clause.f
 +  do i = 1, 10
 +  end do
 +  !$omp end target teams distribute
-+
-+  ! CHECK:      omp.target
-+  ! CHECK-SAME: if({{.*}})
-+  ! CHECK:      omp.teams
-+  ! CHECK-SAME: if({{.*}})
+ 
+   ! CHECK:      omp.target
+   ! CHECK-SAME: if({{.*}})
+   ! CHECK:      omp.teams
+   ! CHECK-SAME: if({{.*}})
+-  !$omp target teams if(target: .true.) if(teams: .false.)
+-  i = 1
+-  !$omp end target teams
 +  ! CHECK:      omp.distribute
 +  ! CHECK-NOT:  if({{.*}})
 +  ! CHECK-SAME: {
@@ -578,12 +578,15 @@ diff -Naur -x .git llvm-project.aso_orig/flang/test/Lower/OpenMP/FIR/if-clause.f
 +  do i = 1, 10
 +  end do
 +  !$omp end target teams distribute
-+
-+  ! CHECK:      omp.target
-+  ! CHECK-SAME: if({{.*}})
-+  ! CHECK:      omp.teams
-+  ! CHECK-NOT:  if({{.*}})
-+  ! CHECK-SAME: {
+ 
+   ! CHECK:      omp.target
+   ! CHECK-SAME: if({{.*}})
+   ! CHECK:      omp.teams
+   ! CHECK-NOT:  if({{.*}})
+   ! CHECK-SAME: {
+-  !$omp target teams if(target: .true.)
+-  i = 1
+-  !$omp end target teams
 +  ! CHECK:      omp.distribute
 +  ! CHECK-NOT:  if({{.*}})
 +  ! CHECK-SAME: {
@@ -591,12 +594,15 @@ diff -Naur -x .git llvm-project.aso_orig/flang/test/Lower/OpenMP/FIR/if-clause.f
 +  do i = 1, 10
 +  end do
 +  !$omp end target teams distribute
-+
-+  ! CHECK:      omp.target
-+  ! CHECK-NOT:  if({{.*}})
-+  ! CHECK-SAME: {
-+  ! CHECK:      omp.teams
-+  ! CHECK-SAME: if({{.*}})
+ 
+   ! CHECK:      omp.target
+   ! CHECK-NOT:  if({{.*}})
+   ! CHECK-SAME: {
+   ! CHECK:      omp.teams
+   ! CHECK-SAME: if({{.*}})
+-  !$omp target teams if(teams: .true.)
+-  i = 1
+-  !$omp end target teams
 +  ! CHECK:      omp.distribute
 +  ! CHECK-NOT:  if({{.*}})
 +  ! CHECK-SAME: {
@@ -604,13 +610,17 @@ diff -Naur -x .git llvm-project.aso_orig/flang/test/Lower/OpenMP/FIR/if-clause.f
 +  do i = 1, 10
 +  end do
 +  !$omp end target teams distribute
-+
-+  ! ----------------------------------------------------------------------------
+ 
+   ! ----------------------------------------------------------------------------
+-  ! TASK
 +  ! TARGET TEAMS DISTRIBUTE PARALLEL DO
-+  ! ----------------------------------------------------------------------------
+   ! ----------------------------------------------------------------------------
+-  ! CHECK:      omp.task
 +  ! CHECK:      omp.target
-+  ! CHECK-NOT:  if({{.*}})
-+  ! CHECK-SAME: {
+   ! CHECK-NOT:  if({{.*}})
+   ! CHECK-SAME: {
+-  !$omp task
+-  !$omp end task
 +  ! CHECK:      omp.teams
 +  ! CHECK-NOT:  if({{.*}})
 +  ! CHECK-SAME: {
@@ -624,9 +634,12 @@ diff -Naur -x .git llvm-project.aso_orig/flang/test/Lower/OpenMP/FIR/if-clause.f
 +  do i = 1, 10
 +  end do
 +  !$omp end target teams distribute parallel do
-+
+ 
+-  ! CHECK:      omp.task
 +  ! CHECK:      omp.target
-+  ! CHECK-SAME: if({{.*}})
+   ! CHECK-SAME: if({{.*}})
+-  !$omp task if(.true.)
+-  !$omp end task
 +  ! CHECK:      omp.teams
 +  ! CHECK-SAME: if({{.*}})
 +  ! CHECK:      omp.distribute
@@ -638,9 +651,12 @@ diff -Naur -x .git llvm-project.aso_orig/flang/test/Lower/OpenMP/FIR/if-clause.f
 +  do i = 1, 10
 +  end do
 +  !$omp end target teams distribute parallel do
-+
+ 
+-  ! CHECK:      omp.task
 +  ! CHECK:      omp.target
-+  ! CHECK-SAME: if({{.*}})
+   ! CHECK-SAME: if({{.*}})
+-  !$omp task if(task: .true.)
+-  !$omp end task
 +  ! CHECK:      omp.teams
 +  ! CHECK-SAME: if({{.*}})
 +  ! CHECK:      omp.distribute
@@ -703,7 +719,7 @@ diff -Naur -x .git llvm-project.aso_orig/flang/test/Lower/OpenMP/FIR/if-clause.f
 +
 +  ! ----------------------------------------------------------------------------
 +  ! TARGET TEAMS DISTRIBUTE PARALLEL DO SIMD
-   ! ----------------------------------------------------------------------------
++  ! ----------------------------------------------------------------------------
 +  ! CHECK:      omp.target
 +  ! CHECK-NOT:  if({{.*}})
 +  ! CHECK-SAME: {
@@ -774,11 +790,11 @@ diff -Naur -x .git llvm-project.aso_orig/flang/test/Lower/OpenMP/FIR/if-clause.f
 +  do i = 1, 10
 +  end do
 +  !$omp end target teams distribute parallel do simd
- 
-   ! CHECK:      omp.target
-   ! CHECK-NOT:  if({{.*}})
-   ! CHECK-SAME: {
-   ! CHECK:      omp.teams
++
++  ! CHECK:      omp.target
++  ! CHECK-NOT:  if({{.*}})
++  ! CHECK-SAME: {
++  ! CHECK:      omp.teams
 +  ! CHECK-SAME: if({{.*}})
 +  ! CHECK:      omp.distribute
 +  ! CHECK-NOT:  if({{.*}})
@@ -935,13 +951,66 @@ diff -Naur -x .git llvm-project.aso_orig/flang/test/Lower/OpenMP/FIR/if-clause.f
 +  ! CHECK-NOT:  if({{.*}})
 +  ! CHECK-SAME: {
 +  ! CHECK:      omp.teams
-   ! CHECK-NOT:  if({{.*}})
-   ! CHECK-SAME: {
-   !$omp target teams
-@@ -482,6 +1042,270 @@
-   !$omp end task
- 
-   ! ----------------------------------------------------------------------------
++  ! CHECK-NOT:  if({{.*}})
++  ! CHECK-SAME: {
++  !$omp target teams
++  i = 1
++  !$omp end target teams
++
++  ! CHECK:      omp.target
++  ! CHECK-SAME: if({{.*}})
++  ! CHECK:      omp.teams
++  ! CHECK-SAME: if({{.*}})
++  !$omp target teams if(.true.)
++  i = 1
++  !$omp end target teams
++
++  ! CHECK:      omp.target
++  ! CHECK-SAME: if({{.*}})
++  ! CHECK:      omp.teams
++  ! CHECK-SAME: if({{.*}})
++  !$omp target teams if(target: .true.) if(teams: .false.)
++  i = 1
++  !$omp end target teams
++
++  ! CHECK:      omp.target
++  ! CHECK-SAME: if({{.*}})
++  ! CHECK:      omp.teams
++  ! CHECK-NOT:  if({{.*}})
++  ! CHECK-SAME: {
++  !$omp target teams if(target: .true.)
++  i = 1
++  !$omp end target teams
++
++  ! CHECK:      omp.target
++  ! CHECK-NOT:  if({{.*}})
++  ! CHECK-SAME: {
++  ! CHECK:      omp.teams
++  ! CHECK-SAME: if({{.*}})
++  !$omp target teams if(teams: .true.)
++  i = 1
++  !$omp end target teams
++
++  ! ----------------------------------------------------------------------------
++  ! TASK
++  ! ----------------------------------------------------------------------------
++  ! CHECK:      omp.task
++  ! CHECK-NOT:  if({{.*}})
++  ! CHECK-SAME: {
++  !$omp task
++  !$omp end task
++
++  ! CHECK:      omp.task
++  ! CHECK-SAME: if({{.*}})
++  !$omp task if(.true.)
++  !$omp end task
++
++  ! CHECK:      omp.task
++  ! CHECK-SAME: if({{.*}})
++  !$omp task if(task: .true.)
++  !$omp end task
++
++  ! ----------------------------------------------------------------------------
 +  ! TEAMS DISTRIBUTE
 +  ! ----------------------------------------------------------------------------
 +  ! CHECK:      omp.teams
@@ -1204,14 +1273,13 @@ diff -Naur -x .git llvm-project.aso_orig/flang/test/Lower/OpenMP/FIR/if-clause.f
 +  do i = 1, 10
 +  end do
 +  !$omp end teams distribute simd
-+
-+  ! ----------------------------------------------------------------------------
-   ! TEAMS
+ 
    ! ----------------------------------------------------------------------------
-   ! CHECK:      omp.teams
-diff -Naur -x .git llvm-project.aso_orig/flang/test/Lower/OpenMP/FIR/loop-combined.f90 llvm-project/flang/test/Lower/OpenMP/FIR/loop-combined.f90
---- llvm-project.aso_orig/flang/test/Lower/OpenMP/FIR/loop-combined.f90	2023-10-17 13:12:54.345689329 -0500
-+++ llvm-project/flang/test/Lower/OpenMP/FIR/loop-combined.f90	2023-10-19 10:59:39.490444455 -0500
+   ! TEAMS
+diff --git a/flang/test/Lower/OpenMP/FIR/loop-combined.f90 b/flang/test/Lower/OpenMP/FIR/loop-combined.f90
+index 117f7d625270..97a398dc5a14 100644
+--- a/flang/test/Lower/OpenMP/FIR/loop-combined.f90
++++ b/flang/test/Lower/OpenMP/FIR/loop-combined.f90
 @@ -6,19 +6,51 @@
  program main
    integer :: i
@@ -1277,10 +1345,11 @@ diff -Naur -x .git llvm-project.aso_orig/flang/test/Lower/OpenMP/FIR/loop-combin
  
    ! ----------------------------------------------------------------------------
    ! DO SIMD
-@@ -72,6 +104,60 @@
+@@ -71,6 +103,60 @@ program main
+   end do
    !$omp end target parallel do
  
-   ! ----------------------------------------------------------------------------
++  ! ----------------------------------------------------------------------------
 +  ! TARGET TEAMS DISTRIBUTE PARALLEL DO SIMD
 +  ! ----------------------------------------------------------------------------
 +
@@ -1334,11 +1403,10 @@ diff -Naur -x .git llvm-project.aso_orig/flang/test/Lower/OpenMP/FIR/loop-combin
 +  end do
 +  !$omp end target teams distribute
 +
-+  ! ----------------------------------------------------------------------------
+   ! ----------------------------------------------------------------------------
    ! TARGET SIMD
    ! ----------------------------------------------------------------------------
-   ! CHECK: omp.target
-@@ -80,4 +166,55 @@
+@@ -80,4 +166,55 @@ program main
    do i = 1, 10
    end do
    !$omp end target simd
@@ -1394,101 +1462,41 @@ diff -Naur -x .git llvm-project.aso_orig/flang/test/Lower/OpenMP/FIR/loop-combin
 +  !$omp end teams distribute
 +
  end program main
-diff -Naur -x .git llvm-project.aso_orig/flang/test/Lower/OpenMP/loop-lifetime.f90 llvm-project/flang/test/Lower/OpenMP/loop-lifetime.f90
---- llvm-project.aso_orig/flang/test/Lower/OpenMP/loop-lifetime.f90	1969-12-31 18:00:00.000000000 -0600
-+++ llvm-project/flang/test/Lower/OpenMP/loop-lifetime.f90	2023-10-19 10:59:39.490444455 -0500
-@@ -0,0 +1,87 @@
-+! This test checks the insertion of lifetime information for loop indices of
-+! OpenMP loop operations.
-+! RUN: %flang_fc1 -flang-experimental-hlfir -emit-llvm -fopenmp %s -o - | FileCheck %s
-+
-+! CHECK-LABEL: define void @wsloop_i32
-+subroutine wsloop_i32()
-+  ! CHECK-DAG:  %[[LASTITER:.*]] = alloca i32
-+  ! CHECK-DAG:  %[[LB:.*]] = alloca i32
-+  ! CHECK-DAG:  %[[UB:.*]] = alloca i32
-+  ! CHECK-DAG:  %[[STRIDE:.*]] = alloca i32
-+  ! CHECK-DAG:  %[[I:.*]] = alloca i32
-+  integer :: i
-+
-+  ! CHECK:      call void @llvm.lifetime.start.p0(i64 4, ptr %[[I]])
-+  ! CHECK-NEXT: br label %[[WSLOOP_BLOCK:.*]]
-+  ! CHECK:      [[WSLOOP_BLOCK]]:
-+  ! CHECK-NOT:  {{^.*}}:
-+  ! CHECK:      br label %[[CONT_BLOCK:.*]]
-+  ! CHECK:      [[CONT_BLOCK]]:
-+  ! CHECK-NEXT: call void @llvm.lifetime.end.p0(i64 4, ptr %[[I]])
-+  !$omp do
-+  do i = 1, 10
-+    print *, i
-+  end do
-+  !$omp end do
-+end subroutine
-+
-+! CHECK-LABEL: define void @wsloop_i64
-+subroutine wsloop_i64()
-+  ! CHECK-DAG:  %[[LASTITER:.*]] = alloca i32
-+  ! CHECK-DAG:  %[[LB:.*]] = alloca i64
-+  ! CHECK-DAG:  %[[UB:.*]] = alloca i64
-+  ! CHECK-DAG:  %[[STRIDE:.*]] = alloca i64
-+  ! CHECK-DAG:  %[[I:.*]] = alloca i64
-+  integer*8 :: i
-+
-+  ! CHECK:      call void @llvm.lifetime.start.p0(i64 8, ptr %[[I]])
-+  ! CHECK-NEXT: br label %[[WSLOOP_BLOCK:.*]]
-+  ! CHECK:      [[WSLOOP_BLOCK]]:
-+  ! CHECK-NOT:  {{^.*}}:
-+  ! CHECK:      br label %[[CONT_BLOCK:.*]]
-+  ! CHECK:      [[CONT_BLOCK]]:
-+  ! CHECK-NEXT: call void @llvm.lifetime.end.p0(i64 8, ptr %[[I]])
-+  !$omp do
-+  do i = 1, 10
-+    print *, i
-+  end do
-+  !$omp end do
-+end subroutine
-+
-+! CHECK-LABEL: define void @simdloop_i32
-+subroutine simdloop_i32()
-+  ! CHECK:      %[[I:.*]] = alloca i32
-+  integer :: i
-+
-+  ! CHECK:      call void @llvm.lifetime.start.p0(i64 4, ptr %[[I]])
-+  ! CHECK-NEXT: br label %[[SIMDLOOP_BLOCK:.*]]
-+  ! CHECK:      [[SIMDLOOP_BLOCK]]:
-+  ! CHECK-NOT:  {{^.*}}:
-+  ! CHECK:      br label %[[CONT_BLOCK:.*]]
-+  ! CHECK:      [[CONT_BLOCK]]:
-+  ! CHECK-NEXT: call void @llvm.lifetime.end.p0(i64 4, ptr %[[I]])
-+  !$omp simd
-+  do i=1, 9
-+    print *, i
-+  end do
-+  !$omp end simd 
-+end subroutine
-+
-+! CHECK-LABEL: define void @simdloop_i64
-+subroutine simdloop_i64()
-+  ! CHECK:      %[[I:.*]] = alloca i64
-+  integer*8 :: i
-+
-+  ! CHECK:      call void @llvm.lifetime.start.p0(i64 8, ptr %[[I]])
-+  ! CHECK-NEXT: br label %[[SIMDLOOP_BLOCK:.*]]
-+  ! CHECK:      [[SIMDLOOP_BLOCK]]:
-+  ! CHECK-NOT:  {{^.*}}:
-+  ! CHECK:      br label %[[CONT_BLOCK:.*]]
-+  ! CHECK:      [[CONT_BLOCK]]:
-+  ! CHECK-NEXT: call void @llvm.lifetime.end.p0(i64 8, ptr %[[I]])
-+  !$omp simd
-+  do i=1, 9
-+    print *, i
-+  end do
-+  !$omp end simd 
-+end subroutine
-diff -Naur -x .git llvm-project.aso_orig/llvm/include/llvm/Frontend/OpenMP/OMPIRBuilder.h llvm-project/llvm/include/llvm/Frontend/OpenMP/OMPIRBuilder.h
---- llvm-project.aso_orig/llvm/include/llvm/Frontend/OpenMP/OMPIRBuilder.h	2023-10-18 07:52:49.987805002 -0500
-+++ llvm-project/llvm/include/llvm/Frontend/OpenMP/OMPIRBuilder.h	2023-10-19 10:59:39.490444455 -0500
-@@ -89,9 +89,14 @@
+diff --git a/flang/test/Lower/OpenMP/FIR/target.f90 b/flang/test/Lower/OpenMP/FIR/target.f90
+index cf3b6fff0cb7..0642841675df 100644
+--- a/flang/test/Lower/OpenMP/FIR/target.f90
++++ b/flang/test/Lower/OpenMP/FIR/target.f90
+@@ -277,8 +277,8 @@ end subroutine omp_target_implicit_bounds
+ !CHECK-LABEL: func.func @_QPomp_target_thread_limit() {
+ subroutine omp_target_thread_limit
+    integer :: a
+-   !CHECK: %[[VAL_1:.*]] = arith.constant 64 : i32
+-   !CHECK: %[[MAP:.*]] = omp.map_info var_ptr({{.*}})   map_clauses(tofrom) capture(ByRef) -> !fir.ref<i32> {name = "a"}
++   !CHECK-DAG: %[[VAL_1:.*]] = arith.constant 64 : i32
++   !CHECK-DAG: %[[MAP:.*]] = omp.map_info var_ptr({{.*}})   map_clauses(tofrom) capture(ByRef) -> !fir.ref<i32> {name = "a"}
+    !CHECK: omp.target   thread_limit(%[[VAL_1]] : i32) map_entries(%[[MAP]] -> %[[ARG_0:.*]] : !fir.ref<i32>) {
+    !CHECK: ^bb0(%[[ARG_0]]: !fir.ref<i32>):
+    !$omp target map(tofrom: a) thread_limit(64)
+diff --git a/flang/test/Lower/OpenMP/target.f90 b/flang/test/Lower/OpenMP/target.f90
+index 86f456b847df..beaaa4662616 100644
+--- a/flang/test/Lower/OpenMP/target.f90
++++ b/flang/test/Lower/OpenMP/target.f90
+@@ -300,8 +300,8 @@ end subroutine omp_target_implicit_bounds
+ !CHECK-LABEL: func.func @_QPomp_target_thread_limit() {
+ subroutine omp_target_thread_limit
+    integer :: a
+-   !CHECK: %[[VAL_1:.*]] = arith.constant 64 : i32
+-   !CHECK: %[[MAP:.*]] = omp.map_info var_ptr({{.*}})   map_clauses(tofrom) capture(ByRef) -> !fir.ref<i32> {name = "a"}
++   !CHECK-DAG: %[[VAL_1:.*]] = arith.constant 64 : i32
++   !CHECK-DAG: %[[MAP:.*]] = omp.map_info var_ptr({{.*}})   map_clauses(tofrom) capture(ByRef) -> !fir.ref<i32> {name = "a"}
+    !CHECK: omp.target   thread_limit(%[[VAL_1]] : i32) map_entries(%[[MAP]] -> %{{.*}} : !fir.ref<i32>) {
+    !CHECK: ^bb0(%{{.*}}: !fir.ref<i32>):
+    !$omp target map(tofrom: a) thread_limit(64)
+diff --git a/llvm/include/llvm/Frontend/OpenMP/OMPIRBuilder.h b/llvm/include/llvm/Frontend/OpenMP/OMPIRBuilder.h
+index 83fa389e8406..3974060fe593 100644
+--- a/llvm/include/llvm/Frontend/OpenMP/OMPIRBuilder.h
++++ b/llvm/include/llvm/Frontend/OpenMP/OMPIRBuilder.h
+@@ -90,9 +90,14 @@ public:
    /// Flag for specifying if the compilation is done for an accelerator.
    std::optional<bool> IsGPU;
  
@@ -1504,7 +1512,7 @@ diff -Naur -x .git llvm-project.aso_orig/llvm/include/llvm/Frontend/OpenMP/OMPIR
    /// First separator used between the initial two parts of a name.
    std::optional<StringRef> FirstSeparator;
    /// Separator used between all of the rest consecutive parts of s name
-@@ -902,6 +907,24 @@
+@@ -900,6 +905,24 @@ public:
                                omp::OpenMPOffloadMappingFlags MemberOfFlag);
  
  private:
@@ -1529,7 +1537,7 @@ diff -Naur -x .git llvm-project.aso_orig/llvm/include/llvm/Frontend/OpenMP/OMPIR
    /// Modifies the canonical loop to be a statically-scheduled workshare loop.
    ///
    /// This takes a \p LoopInfo representing a canonical loop, such as the one
-@@ -1022,7 +1045,7 @@
+@@ -1020,7 +1043,7 @@ public:
        llvm::omp::ScheduleKind SchedKind = llvm::omp::OMP_SCHEDULE_Default,
        Value *ChunkSize = nullptr, bool HasSimdModifier = false,
        bool HasMonotonicModifier = false, bool HasNonmonotonicModifier = false,
@@ -1538,7 +1546,7 @@ diff -Naur -x .git llvm-project.aso_orig/llvm/include/llvm/Frontend/OpenMP/OMPIR
  
    /// Tile a loop nest.
    ///
-@@ -1603,6 +1626,27 @@
+@@ -1583,6 +1606,27 @@ public:
            MapNamesArray(MapNamesArray) {}
    };
  
@@ -1566,7 +1574,7 @@ diff -Naur -x .git llvm-project.aso_orig/llvm/include/llvm/Frontend/OpenMP/OMPIR
    /// Data structure that contains the needed information to construct the
    /// kernel args vector.
    struct TargetKernelArgs {
-@@ -1611,11 +1655,11 @@
+@@ -1591,11 +1635,11 @@ public:
      /// Arguments passed to the runtime library
      TargetDataRTArgs RTArgs;
      /// The number of iterations
@@ -1580,7 +1588,7 @@ diff -Naur -x .git llvm-project.aso_orig/llvm/include/llvm/Frontend/OpenMP/OMPIR
      /// The size of the dynamic shared memory.
      Value *DynCGGroupMem;
      /// True if the kernel has 'no wait' clause.
-@@ -1623,12 +1667,11 @@
+@@ -1603,12 +1647,11 @@ public:
  
      /// Constructor for TargetKernelArgs
      TargetKernelArgs(unsigned NumTargetItems, TargetDataRTArgs RTArgs,
@@ -1597,7 +1605,7 @@ diff -Naur -x .git llvm-project.aso_orig/llvm/include/llvm/Frontend/OpenMP/OMPIR
    };
  
    /// Create the kernel args vector used by emitTargetKernel. This function
-@@ -1941,6 +1984,14 @@
+@@ -1921,6 +1964,14 @@ public:
                Value *NumTeamsLower = nullptr, Value *NumTeamsUpper = nullptr,
                Value *ThreadLimit = nullptr, Value *IfExpr = nullptr);
  
@@ -1612,47 +1620,29 @@ diff -Naur -x .git llvm-project.aso_orig/llvm/include/llvm/Frontend/OpenMP/OMPIR
    /// Generate conditional branch and relevant BasicBlocks through which private
    /// threads copy the 'copyin' variables from Master copy to threadprivate
    /// copies.
-@@ -2064,9 +2115,7 @@
+@@ -2067,6 +2118,9 @@ public:
+   static void writeThreadBoundsForKernel(const Triple &T, Function &Kernel,
+                                          int32_t LB, int32_t UB);
  
- private:
-   // Sets the function attributes expected for the outlined function
--  void setOutlinedTargetRegionFunctionAttributes(Function *OutlinedFn,
--                                                 int32_t NumTeams,
--                                                 int32_t NumThreads);
-+  void setOutlinedTargetRegionFunctionAttributes(Function *OutlinedFn);
- 
-   // Creates the function ID/Address for the given outlined function.
-   // In the case of an embedded device function the address of the function is
-@@ -2111,13 +2160,10 @@
-   /// \param InfoManager The info manager keeping track of the offload entries
-   /// \param EntryInfo The entry information about the function
-   /// \param GenerateFunctionCallback The callback function to generate the code
--  /// \param NumTeams Number default teams
--  /// \param NumThreads Number default threads
-   /// \param OutlinedFunction Pointer to the outlined function
-   /// \param EntryFnIDName Name of the ID o be created
-   void emitTargetRegionFunction(TargetRegionEntryInfo &EntryInfo,
-                                 FunctionGenCallback &GenerateFunctionCallback,
--                                int32_t NumTeams, int32_t NumThreads,
-                                 bool IsOffloadEntry, Function *&OutlinedFn,
-                                 Constant *&OutlinedFnID);
- 
-@@ -2129,13 +2175,10 @@
-   /// \param OutlinedFunction Pointer to the outlined function
-   /// \param EntryFnName Name of the outlined function
-   /// \param EntryFnIDName Name of the ID o be created
--  /// \param NumTeams Number default teams
--  /// \param NumThreads Number default threads
-   Constant *registerTargetRegionFunction(TargetRegionEntryInfo &EntryInfo,
++  /// Write the global variable to indicate which amdgcn ABI to use
++  static void emit__oclc_ABI_version(Module &M, int32_t COV);
++
+   /// Read/write a bounds on teams for \p Kernel. Read will return 0 if none
+   /// is set.
+   static std::pair<int32_t, int32_t> readTeamBoundsForKernel(const Triple &T,
+@@ -2141,7 +2195,6 @@ public:
                                           Function *OutlinedFunction,
                                           StringRef EntryFnName,
--                                         StringRef EntryFnIDName,
--                                         int32_t NumTeams, int32_t NumThreads);
-+                                         StringRef EntryFnIDName);
+                                          StringRef EntryFnIDName);
+-
    /// Type of BodyGen to use for region codegen
    ///
    /// Priv: If device pointer privatization is required, emit the body of the
-@@ -2197,8 +2240,6 @@
+@@ -2200,21 +2253,19 @@ public:
+   /// Generator for '#omp target'
+   ///
+   /// \param Loc where the target data construct was encountered.
++  /// \param IsSPMD whether this is an SPMD target launch.
    /// \param CodeGenIP The insertion point where the call to the outlined
    /// function should be emitted.
    /// \param EntryInfo The entry information about the function.
@@ -1661,8 +1651,10 @@ diff -Naur -x .git llvm-project.aso_orig/llvm/include/llvm/Frontend/OpenMP/OMPIR
    /// \param Inputs The input values to the region that will be passed.
    /// as arguments to the outlined function.
    /// \param BodyGenCB Callback that will generate the region code.
-@@ -2207,8 +2248,7 @@
-   InsertPointTy createTarget(const LocationDescription &Loc,
+   /// \param ArgAccessorFuncCB Callback that will generate accessors
+   /// instructions for passed in target arguments where neccessary
+-  InsertPointTy createTarget(const LocationDescription &Loc,
++  InsertPointTy createTarget(const LocationDescription &Loc, bool IsSPMD,
                               OpenMPIRBuilder::InsertPointTy AllocaIP,
                               OpenMPIRBuilder::InsertPointTy CodeGenIP,
 -                             TargetRegionEntryInfo &EntryInfo, int32_t NumTeams,
@@ -1671,10 +1663,11 @@ diff -Naur -x .git llvm-project.aso_orig/llvm/include/llvm/Frontend/OpenMP/OMPIR
                               SmallVectorImpl<Value *> &Inputs,
                               GenMapInfoCallbackTy GenMapInfoCB,
                               TargetBodyGenCallbackTy BodyGenCB,
-diff -Naur -x .git llvm-project.aso_orig/llvm/include/llvm/Frontend/OpenMP/OMPKinds.def llvm-project/llvm/include/llvm/Frontend/OpenMP/OMPKinds.def
---- llvm-project.aso_orig/llvm/include/llvm/Frontend/OpenMP/OMPKinds.def	2023-10-17 13:12:54.389689653 -0500
-+++ llvm-project/llvm/include/llvm/Frontend/OpenMP/OMPKinds.def	2023-10-19 10:59:39.494444509 -0500
-@@ -479,6 +479,14 @@
+diff --git a/llvm/include/llvm/Frontend/OpenMP/OMPKinds.def b/llvm/include/llvm/Frontend/OpenMP/OMPKinds.def
+index 7aaedc8d4ff7..dacd1ecc1b2a 100644
+--- a/llvm/include/llvm/Frontend/OpenMP/OMPKinds.def
++++ b/llvm/include/llvm/Frontend/OpenMP/OMPKinds.def
+@@ -479,6 +479,14 @@ __OMP_RTL(__kmpc_parallel_51, false, Void, IdentPtr, Int32, Int32, Int32, Int32,
            VoidPtr, VoidPtr, VoidPtrPtr, SizeTy)
  __OMP_RTL(__kmpc_parallel_spmd, false, Void, IdentPtr, Int32, Int32, Int32, Int32,
            VoidPtr, VoidPtr, VoidPtrPtr, SizeTy)
@@ -1689,10 +1682,11 @@ diff -Naur -x .git llvm-project.aso_orig/llvm/include/llvm/Frontend/OpenMP/OMPKi
  __OMP_RTL(__kmpc_kernel_parallel, false, Int1, VoidPtrPtr)
  __OMP_RTL(__kmpc_kernel_end_parallel, false, Void, )
  __OMP_RTL(__kmpc_serialized_parallel, false, Void, IdentPtr, Int32)
-diff -Naur -x .git llvm-project.aso_orig/llvm/lib/Frontend/OpenMP/OMPIRBuilder.cpp llvm-project/llvm/lib/Frontend/OpenMP/OMPIRBuilder.cpp
---- llvm-project.aso_orig/llvm/lib/Frontend/OpenMP/OMPIRBuilder.cpp	2023-10-18 07:52:49.999805124 -0500
-+++ llvm-project/llvm/lib/Frontend/OpenMP/OMPIRBuilder.cpp	2023-10-19 11:00:46.231324009 -0500
-@@ -485,8 +485,8 @@
+diff --git a/llvm/lib/Frontend/OpenMP/OMPIRBuilder.cpp b/llvm/lib/Frontend/OpenMP/OMPIRBuilder.cpp
+index 9e89b1124be3..d2363e9a6d7e 100644
+--- a/llvm/lib/Frontend/OpenMP/OMPIRBuilder.cpp
++++ b/llvm/lib/Frontend/OpenMP/OMPIRBuilder.cpp
+@@ -499,8 +499,8 @@ void OpenMPIRBuilder::getKernelArgsVector(TargetKernelArgs &KernelArgs,
  
    Value *NumTeams3D =
        Builder.CreateInsertValue(ZeroArray, KernelArgs.NumTeams, {0});
@@ -1703,7 +1697,7 @@ diff -Naur -x .git llvm-project.aso_orig/llvm/lib/Frontend/OpenMP/OMPIRBuilder.c
  
    ArgsVector = {Version,
                  PointerNum,
-@@ -496,10 +496,10 @@
+@@ -510,10 +510,10 @@ void OpenMPIRBuilder::getKernelArgsVector(TargetKernelArgs &KernelArgs,
                  KernelArgs.RTArgs.MapTypesArray,
                  KernelArgs.RTArgs.MapNamesArray,
                  KernelArgs.RTArgs.MappersArray,
@@ -1716,30 +1710,7 @@ diff -Naur -x .git llvm-project.aso_orig/llvm/lib/Frontend/OpenMP/OMPIRBuilder.c
                  KernelArgs.DynCGGroupMem};
  }
  
-@@ -659,6 +659,13 @@
- 
-     Function *OuterFn = OI.getFunction();
-     CodeExtractorAnalysisCache CEAC(*OuterFn);
-+    // If we generate code for the target device, we need to allocate
-+    // struct for aggregate params in the device default alloca address space.
-+    // OpenMP runtime requires that the params of the extracted functions are
-+    // passed as zero address space pointers. This flag ensures that
-+    // CodeExtractor generates correct code for extracted functions
-+    // which are used by OpenMP runtime.
-+    bool ArgsInZeroAddressSpace = Config.isTargetDevice();
-     CodeExtractor Extractor(Blocks, /* DominatorTree */ nullptr,
-                             /* AggregateArgs */ true,
-                             /* BlockFrequencyInfo */ nullptr,
-@@ -667,7 +674,7 @@
-                             /* AllowVarArgs */ true,
-                             /* AllowAlloca */ true,
-                             /* AllocaBlock*/ OI.OuterAllocaBB,
--                            /* Suffix */ ".omp_par");
-+                            /* Suffix */ ".omp_par", ArgsInZeroAddressSpace);
- 
-     LLVM_DEBUG(dbgs() << "Before     outlining: " << *OuterFn << "\n");
-     LLVM_DEBUG(dbgs() << "Entry " << OI.EntryBB->getName()
-@@ -1090,7 +1097,7 @@
+@@ -1072,7 +1072,7 @@ OpenMPIRBuilder::InsertPointTy OpenMPIRBuilder::emitKernelLaunch(
    // of teams and threads so no additional calls to the runtime are required.
    // Check the error code and execute the host version if required.
    Builder.restoreIP(emitTargetKernel(Builder, AllocaIP, Return, RTLoc, DeviceID,
@@ -1748,342 +1719,79 @@ diff -Naur -x .git llvm-project.aso_orig/llvm/lib/Frontend/OpenMP/OMPIRBuilder.c
                                       OutlinedFnID, ArgsVector));
  
    BasicBlock *OffloadFailedBlock =
-@@ -1147,6 +1154,170 @@
-   Builder.SetInsertPoint(NonCancellationBlock, NonCancellationBlock->begin());
- }
- 
-+static void targetParallelCallback(OpenMPIRBuilder *OMPIRBuilder,
-+                                   Function &OutlinedFn, Function *OuterFn,
-+                                   Value *Ident, Value *IfCondition,
-+                                   Value *NumThreads, Instruction *PrivTID,
-+                                   AllocaInst *PrivTIDAddr, Value *ThreadID,
-+                                   SmallVector<Instruction *, 4> ToBeDeleted) {
-+  // Add some known attributes.
-+  Module &M = OMPIRBuilder->M;
-+  IRBuilder<> &Builder = OMPIRBuilder->Builder;
-+  OutlinedFn.addParamAttr(0, Attribute::NoAlias);
-+  OutlinedFn.addParamAttr(1, Attribute::NoAlias);
-+  OutlinedFn.addParamAttr(0, Attribute::NoUndef);
-+  OutlinedFn.addParamAttr(1, Attribute::NoUndef);
-+  OutlinedFn.addFnAttr(Attribute::NoUnwind);
-+
-+  assert(OutlinedFn.arg_size() >= 2 &&
-+         "Expected at least tid and bounded tid as arguments");
-+  unsigned NumCapturedVars = OutlinedFn.arg_size() - /* tid & bounded tid */ 2;
-+
-+  CallInst *CI = cast<CallInst>(OutlinedFn.user_back());
-+  assert(CI && "Expected call instruction to outlined function");
-+  CI->getParent()->setName("omp_parallel");
-+  // Replace direct call to the outlined function by the call to
-+  // __kmpc_parallel_51
-+  Builder.SetInsertPoint(CI);
-+
-+  // Build call __kmpc_parallel_51
-+  auto PtrTy = Type::getInt8PtrTy(M.getContext());
-+  Value *Void = ConstantPointerNull::get(PtrTy);
-+  // Add alloca for kernel args. Put this instruction at the beginning
-+  // of the function.
-+  AllocaInst *ArgsAlloca =
-+      Builder.CreateAlloca(ArrayType::get(PtrTy, NumCapturedVars));
-+  Value *Args =
-+      Builder.CreatePointerCast(ArgsAlloca, Type::getInt8PtrTy(M.getContext()));
-+  // Store captured vars which are used by kmpc_parallel_51
-+  if (NumCapturedVars) {
-+    for (unsigned Idx = 0; Idx < NumCapturedVars; Idx++) {
-+      Value *V = *(CI->arg_begin() + 2 + Idx);
-+      Value *StoreAddress = Builder.CreateConstInBoundsGEP2_64(
-+          ArrayType::get(PtrTy, NumCapturedVars), Args, 0, Idx);
-+      Builder.CreateStore(V, StoreAddress);
-+    }
-+  }
-+  Value *Cond = IfCondition ? Builder.CreateSExtOrTrunc(
-+                                  IfCondition, Type::getInt32Ty(M.getContext()))
-+                            : Builder.getInt32(1);
-+  Value *Parallel51CallArgs[] = {
-+      /* identifier*/ Ident,
-+      /* global thread num*/ ThreadID,
-+      /* if expression */ Cond, NumThreads ? NumThreads : Builder.getInt32(-1),
-+      /* Proc bind */ Builder.getInt32(-1),
-+      /* outlined function */
-+      Builder.CreateBitCast(&OutlinedFn, OMPIRBuilder->ParallelTaskPtr), Void,
-+      Args, Builder.getInt64(NumCapturedVars)};
-+
-+  SmallVector<Value *, 16> RealArgs;
-+  RealArgs.append(std::begin(Parallel51CallArgs), std::end(Parallel51CallArgs));
-+  FunctionCallee RTLFn =
-+      OMPIRBuilder->getOrCreateRuntimeFunctionPtr(OMPRTL___kmpc_parallel_51);
-+
-+  Builder.CreateCall(RTLFn, RealArgs);
-+
-+  LLVM_DEBUG(dbgs() << "With kmpc_parallel_51 placed: "
-+                    << *Builder.GetInsertBlock()->getParent() << "\n");
-+
-+  // Initialize the local TID stack location with the argument value.
-+  Builder.SetInsertPoint(PrivTID);
-+  Function::arg_iterator OutlinedAI = OutlinedFn.arg_begin();
-+  Builder.CreateStore(Builder.CreateLoad(OMPIRBuilder->Int32, OutlinedAI),
-+                      PrivTIDAddr);
-+
-+  ToBeDeleted.insert(ToBeDeleted.begin(), CI);
-+
-+  for (Instruction *I : ToBeDeleted) {
-+    I->eraseFromParent();
-+  }
-+}
-+static void hostParallelCallback(OpenMPIRBuilder *OMPIRBuilder,
-+                                 Function &OutlinedFn, Function *OuterFn,
-+                                 Value *Ident, Value *IfCondition,
-+                                 Instruction *PrivTID, AllocaInst *PrivTIDAddr,
-+                                 SmallVector<Instruction *, 4> ToBeDeleted) {
-+  Module &M = OMPIRBuilder->M;
-+  IRBuilder<> &Builder = OMPIRBuilder->Builder;
-+  FunctionCallee RTLFn;
-+  if (IfCondition) {
-+    RTLFn =
-+        OMPIRBuilder->getOrCreateRuntimeFunctionPtr(OMPRTL___kmpc_fork_call_if);
-+  } else {
-+    RTLFn =
-+        OMPIRBuilder->getOrCreateRuntimeFunctionPtr(OMPRTL___kmpc_fork_call);
-+  }
-+  if (auto *F = dyn_cast<llvm::Function>(RTLFn.getCallee())) {
-+    if (!F->hasMetadata(llvm::LLVMContext::MD_callback)) {
-+      llvm::LLVMContext &Ctx = F->getContext();
-+      MDBuilder MDB(Ctx);
-+      // Annotate the callback behavior of the __kmpc_fork_call:
-+      //  - The callback callee is argument number 2 (microtask).
-+      //  - The first two arguments of the callback callee are unknown (-1).
-+      //  - All variadic arguments to the __kmpc_fork_call are passed to the
-+      //    callback callee.
-+      F->addMetadata(
-+          llvm::LLVMContext::MD_callback,
-+          *llvm::MDNode::get(
-+              Ctx, {MDB.createCallbackEncoding(2, {-1, -1},
-+                                               /* VarArgsArePassed */ true)}));
-+    }
-+  }
-+  // Add some known attributes.
-+  OutlinedFn.addParamAttr(0, Attribute::NoAlias);
-+  OutlinedFn.addParamAttr(1, Attribute::NoAlias);
-+  OutlinedFn.addFnAttr(Attribute::NoUnwind);
-+
-+  assert(OutlinedFn.arg_size() >= 2 &&
-+         "Expected at least tid and bounded tid as arguments");
-+  unsigned NumCapturedVars = OutlinedFn.arg_size() - /* tid & bounded tid */ 2;
-+
-+  CallInst *CI = cast<CallInst>(OutlinedFn.user_back());
-+  CI->getParent()->setName("omp_parallel");
-+  Builder.SetInsertPoint(CI);
-+
-+  // Build call __kmpc_fork_call[_if](Ident, n, microtask, var1, .., varn);
-+  Value *ForkCallArgs[] = {
-+      Ident, Builder.getInt32(NumCapturedVars),
-+      Builder.CreateBitCast(&OutlinedFn, OMPIRBuilder->ParallelTaskPtr)};
-+
-+  SmallVector<Value *, 16> RealArgs;
-+  RealArgs.append(std::begin(ForkCallArgs), std::end(ForkCallArgs));
-+  if (IfCondition) {
-+    Value *Cond = Builder.CreateSExtOrTrunc(IfCondition,
-+                                            Type::getInt32Ty(M.getContext()));
-+    RealArgs.push_back(Cond);
-+  }
-+  RealArgs.append(CI->arg_begin() + /* tid & bound tid */ 2, CI->arg_end());
-+
-+  // __kmpc_fork_call_if always expects a void ptr as the last argument
-+  // If there are no arguments, pass a null pointer.
-+  auto PtrTy = Type::getInt8PtrTy(M.getContext());
-+  if (IfCondition && NumCapturedVars == 0) {
-+    Value *Void = ConstantPointerNull::get(PtrTy);
-+    RealArgs.push_back(Void);
-+  }
-+  if (IfCondition && RealArgs.back()->getType() != PtrTy)
-+    RealArgs.back() = Builder.CreateBitCast(RealArgs.back(), PtrTy);
-+
-+  Builder.CreateCall(RTLFn, RealArgs);
-+
-+  LLVM_DEBUG(dbgs() << "With fork_call placed: "
-+                    << *Builder.GetInsertBlock()->getParent() << "\n");
-+
-+  // Initialize the local TID stack location with the argument value.
-+  Builder.SetInsertPoint(PrivTID);
-+  Function::arg_iterator OutlinedAI = OutlinedFn.arg_begin();
-+  Builder.CreateStore(Builder.CreateLoad(OMPIRBuilder->Int32, OutlinedAI),
-+                      PrivTIDAddr);
-+
-+  ToBeDeleted.insert(ToBeDeleted.begin(), CI);
-+
-+  for (Instruction *I : ToBeDeleted) {
-+    I->eraseFromParent();
-+  }
-+}
-+
- IRBuilder<>::InsertPoint OpenMPIRBuilder::createParallel(
-     const LocationDescription &Loc, InsertPointTy OuterAllocaIP,
-     BodyGenCallbackTy BodyGenCB, PrivatizeCallbackTy PrivCB,
-@@ -1161,6 +1332,12 @@
-   Constant *SrcLocStr = getOrCreateSrcLocStr(Loc, SrcLocStrSize);
-   Value *Ident = getOrCreateIdent(SrcLocStr, SrcLocStrSize);
-   Value *ThreadID = getOrCreateThreadID(Ident);
-+  // If we generate code for the target device, we need to allocate
-+  // struct for aggregate params in the device default alloca address space.
-+  // OpenMP runtime requires that the params of the extracted functions are
-+  // passed as zero address space pointers. This flag ensures that extracted
-+  // function arguments are declared in zero address space
-+  bool ArgsInZeroAddressSpace = Config.isTargetDevice();
- 
-   if (NumThreads) {
-     // Build call __kmpc_push_num_threads(&Ident, global_tid, num_threads)
-@@ -1194,13 +1371,32 @@
-   // Change the location to the outer alloca insertion point to create and
-   // initialize the allocas we pass into the parallel region.
-   Builder.restoreIP(OuterAllocaIP);
--  AllocaInst *TIDAddr = Builder.CreateAlloca(Int32, nullptr, "tid.addr");
--  AllocaInst *ZeroAddr = Builder.CreateAlloca(Int32, nullptr, "zero.addr");
-+  AllocaInst *TIDAddrAlloca = Builder.CreateAlloca(Int32, nullptr, "tid.addr");
-+  AllocaInst *ZeroAddrAlloca =
-+      Builder.CreateAlloca(Int32, nullptr, "zero.addr");
-+  Instruction *TIDAddr = nullptr;
-+  Instruction *ZeroAddr = nullptr;
-+  if (ArgsInZeroAddressSpace && M.getDataLayout().getAllocaAddrSpace() != 0) {
-+    // Add additional casts to enforce pointers in zero address spac
-+    TIDAddr = new AddrSpaceCastInst(TIDAddrAlloca,
-+                                    TIDAddrAlloca->getType()->getPointerTo(),
-+                                    "tid.addr.ascast");
-+    TIDAddr->insertAfter(TIDAddrAlloca);
-+    ToBeDeleted.push_back(TIDAddr);
-+    ZeroAddr = new AddrSpaceCastInst(ZeroAddrAlloca,
-+                                     ZeroAddrAlloca->getType()->getPointerTo(),
-+                                     "zero.addr.ascast");
-+    ZeroAddr->insertAfter(ZeroAddrAlloca);
-+    ToBeDeleted.push_back(ZeroAddr);
-+  } else {
-+    TIDAddr = TIDAddrAlloca;
-+    ZeroAddr = ZeroAddrAlloca;
-+  }
- 
-   // We only need TIDAddr and ZeroAddr for modeling purposes to get the
-   // associated arguments in the outlined function, so we delete them later.
--  ToBeDeleted.push_back(TIDAddr);
--  ToBeDeleted.push_back(ZeroAddr);
-+  ToBeDeleted.push_back(TIDAddrAlloca);
-+  ToBeDeleted.push_back(ZeroAddrAlloca);
- 
-   // Create an artificial insertion point that will also ensure the blocks we
-   // are about to split are not degenerated.
-@@ -1268,87 +1464,22 @@
-   BodyGenCB(InnerAllocaIP, CodeGenIP);
- 
-   LLVM_DEBUG(dbgs() << "After  body codegen: " << *OuterFn << "\n");
--  FunctionCallee RTLFn;
--  if (IfCondition)
--    RTLFn = getOrCreateRuntimeFunctionPtr(OMPRTL___kmpc_fork_call_if);
--  else
--    RTLFn = getOrCreateRuntimeFunctionPtr(OMPRTL___kmpc_fork_call);
+@@ -1153,7 +1153,6 @@ static void targetParallelCallback(
+   CallInst *CI = cast<CallInst>(OutlinedFn.user_back());
+   assert(CI && "Expected call instruction to outlined function");
+   CI->getParent()->setName("omp_parallel");
 -
--  if (auto *F = dyn_cast<llvm::Function>(RTLFn.getCallee())) {
--    if (!F->hasMetadata(llvm::LLVMContext::MD_callback)) {
--      llvm::LLVMContext &Ctx = F->getContext();
--      MDBuilder MDB(Ctx);
--      // Annotate the callback behavior of the __kmpc_fork_call:
--      //  - The callback callee is argument number 2 (microtask).
--      //  - The first two arguments of the callback callee are unknown (-1).
--      //  - All variadic arguments to the __kmpc_fork_call are passed to the
--      //    callback callee.
--      F->addMetadata(
--          llvm::LLVMContext::MD_callback,
--          *llvm::MDNode::get(
--              Ctx, {MDB.createCallbackEncoding(2, {-1, -1},
--                                               /* VarArgsArePassed */ true)}));
--    }
--  }
- 
-   OutlineInfo OI;
--  OI.PostOutlineCB = [=](Function &OutlinedFn) {
--    // Add some known attributes.
--    OutlinedFn.addParamAttr(0, Attribute::NoAlias);
--    OutlinedFn.addParamAttr(1, Attribute::NoAlias);
--    OutlinedFn.addFnAttr(Attribute::NoUnwind);
--    OutlinedFn.addFnAttr(Attribute::NoRecurse);
--
--    assert(OutlinedFn.arg_size() >= 2 &&
--           "Expected at least tid and bounded tid as arguments");
--    unsigned NumCapturedVars =
--        OutlinedFn.arg_size() - /* tid & bounded tid */ 2;
--
--    CallInst *CI = cast<CallInst>(OutlinedFn.user_back());
--    CI->getParent()->setName("omp_parallel");
--    Builder.SetInsertPoint(CI);
--
--    // Build call __kmpc_fork_call[_if](Ident, n, microtask, var1, .., varn);
--    Value *ForkCallArgs[] = {
--        Ident, Builder.getInt32(NumCapturedVars),
--        Builder.CreateBitCast(&OutlinedFn, ParallelTaskPtr)};
--
--    SmallVector<Value *, 16> RealArgs;
--    RealArgs.append(std::begin(ForkCallArgs), std::end(ForkCallArgs));
--    if (IfCondition) {
--      Value *Cond = Builder.CreateSExtOrTrunc(IfCondition,
--                                              Type::getInt32Ty(M.getContext()));
--      RealArgs.push_back(Cond);
--    }
--    RealArgs.append(CI->arg_begin() + /* tid & bound tid */ 2, CI->arg_end());
--
--    // __kmpc_fork_call_if always expects a void ptr as the last argument
--    // If there are no arguments, pass a null pointer.
--    auto PtrTy = Type::getInt8PtrTy(M.getContext());
--    if (IfCondition && NumCapturedVars == 0) {
--      llvm::Value *Void = ConstantPointerNull::get(PtrTy);
--      RealArgs.push_back(Void);
--    }
--    if (IfCondition && RealArgs.back()->getType() != PtrTy)
--      RealArgs.back() = Builder.CreateBitCast(RealArgs.back(), PtrTy);
--
--    Builder.CreateCall(RTLFn, RealArgs);
--
--    LLVM_DEBUG(dbgs() << "With fork_call placed: "
--                      << *Builder.GetInsertBlock()->getParent() << "\n");
--
--    InsertPointTy ExitIP(PRegExitBB, PRegExitBB->end());
--
--    // Initialize the local TID stack location with the argument value.
--    Builder.SetInsertPoint(PrivTID);
--    Function::arg_iterator OutlinedAI = OutlinedFn.arg_begin();
--    Builder.CreateStore(Builder.CreateLoad(Int32, OutlinedAI), PrivTIDAddr);
--
--    CI->eraseFromParent();
--
--    for (Instruction *I : ToBeDeleted)
--      I->eraseFromParent();
--  };
-+  if (Config.isTargetDevice()) {
-+    // Generate OpenMP target specific runtime call
-+    OI.PostOutlineCB = [=](Function &OutlinedFn) {
-+      targetParallelCallback(this, OutlinedFn, OuterFn, Ident, IfCondition,
-+                             NumThreads, PrivTID, PrivTIDAddr, ThreadID,
-+                             ToBeDeleted);
-+    };
-+  } else {
-+    // Generate OpenMP host runtime call
-+    OI.PostOutlineCB = [=](Function &OutlinedFn) {
-+      hostParallelCallback(this, OutlinedFn, OuterFn, Ident, IfCondition,
-+                           PrivTID, PrivTIDAddr, ToBeDeleted);
-+    };
-+  }
- 
-   // Adjust the finalization stack, verify the adjustment, and call the
-   // finalize function a last time to finalize values between the pre-fini
-@@ -1388,7 +1519,7 @@
-                           /* AllowVarArgs */ true,
-                           /* AllowAlloca */ true,
-                           /* AllocationBlock */ OuterAllocaBlock,
--                          /* Suffix */ ".omp_par");
-+                          /* Suffix */ ".omp_par", ArgsInZeroAddressSpace);
- 
-   // Find inputs to, outputs from the code region.
-   BasicBlock *CommonExit = nullptr;
-@@ -2585,11 +2716,204 @@
+   Builder.SetInsertPoint(CI);
+   Type *PtrTy = OMPIRBuilder->VoidPtr;
+   Value *NullPtrValue = Constant::getNullValue(PtrTy);
+@@ -2702,11 +2701,220 @@ OpenMPIRBuilder::InsertPointTy OpenMPIRBuilder::applyStaticChunkedWorkshareLoop(
    return {DispatchAfter, DispatchAfter->getFirstInsertionPt()};
  }
  
++// Returns an LLVM function to call for executing an OpenMP static worksharing
++// for loop depending on `type`. Only i32 and i64 are supported by the runtime.
++// Always interpret integers as unsigned similarly to CanonicalLoopInfo.
++static FunctionCallee getKmpcForStaticLoopForType(Type *Ty,
++                                                  OpenMPIRBuilder &OMPBuilder,
++                                                  bool IsDistribute) {
++  unsigned Bitwidth = Ty->getIntegerBitWidth();
++  Module &M = OMPBuilder.M;
++  if (IsDistribute && Bitwidth == 32)
++    return OMPBuilder.getOrCreateRuntimeFunction(
++        M, omp::RuntimeFunction::OMPRTL___kmpc_distribute_for_static_loop_4u);
++  if (IsDistribute && Bitwidth == 64)
++    return OMPBuilder.getOrCreateRuntimeFunction(
++        M, omp::RuntimeFunction::OMPRTL___kmpc_distribute_for_static_loop_8u);
++  if (Bitwidth == 32)
++    return OMPBuilder.getOrCreateRuntimeFunction(
++        M, omp::RuntimeFunction::OMPRTL___kmpc_for_static_loop_4u);
++  if (Bitwidth == 64)
++    return OMPBuilder.getOrCreateRuntimeFunction(
++        M, omp::RuntimeFunction::OMPRTL___kmpc_for_static_loop_8u);
++  llvm_unreachable("unknown OpenMP loop iterator bitwidth");
++}
++
++// Inserts a call to proper OpenMP Device RTL function which handles
++// loop worksharing.
++static void
++createTargetLoopWorkshareCall(OpenMPIRBuilder &OMPBuilder, bool IsDistribute,
++                              BasicBlock *InsertBlock, Value *Ident,
++                              Value *LoopBodyArg, Type *ParallelTaskPtr,
++                              Value *TripCount, Function &LoopBodyFn) {
++  Type *TripCountTy = TripCount->getType();
++  Module &M = OMPBuilder.M;
++  IRBuilder<> &Builder = OMPBuilder.Builder;
++  FunctionCallee RTLFn =
++      getKmpcForStaticLoopForType(TripCountTy, OMPBuilder, IsDistribute);
++  FunctionCallee RTLNumThreads = OMPBuilder.getOrCreateRuntimeFunction(
++      M, omp::RuntimeFunction::OMPRTL_omp_get_num_threads);
++  Builder.restoreIP({InsertBlock, std::prev(InsertBlock->end())});
++  Value *NumThreads = Builder.CreateCall(RTLNumThreads, {});
++  SmallVector<Value *, 8> RealArgs;
++  RealArgs.push_back(Ident);
++  /*loop body func*/
++  RealArgs.push_back(Builder.CreateBitCast(&LoopBodyFn, ParallelTaskPtr));
++  /*loop body args*/
++  RealArgs.push_back(LoopBodyArg);
++  /*num of iters*/
++  RealArgs.push_back(TripCount);
++  /*num of threads*/ RealArgs.push_back(
++      Builder.CreateZExtOrTrunc(NumThreads, TripCountTy, "num.threads.cast"));
++  if (IsDistribute) {
++    /*block chunk*/ RealArgs.push_back(TripCountTy->getIntegerBitWidth() == 32
++                                           ? Builder.getInt32(0)
++                                           : Builder.getInt64(0));
++  }
++  /*thread chunk */ RealArgs.push_back(TripCountTy->getIntegerBitWidth() == 32
++                                           ? Builder.getInt32(1)
++                                           : Builder.getInt64(1));
++
++  Builder.CreateCall(RTLFn, RealArgs);
++}
++
 +OpenMPIRBuilder::InsertPointTy
 +OpenMPIRBuilder::applyWorkshareLoopDevice(DebugLoc DL, CanonicalLoopInfo *CLI,
 +                                          bool IsDistribute) {
@@ -2127,7 +1835,6 @@ diff -Naur -x .git llvm-project.aso_orig/llvm/lib/Frontend/OpenMP/OMPIRBuilder.c
 +  OI.collectBlocks(ParallelRegionBlockSet, Blocks);
 +  SmallVector<BasicBlock *, 32> BlocksT(ParallelRegionBlockSet.begin(),
 +                                        ParallelRegionBlockSet.end());
-+  ;
 +
 +  CodeExtractorAnalysisCache CEAC(*OuterFn);
 +  CodeExtractor Extractor(Blocks,
@@ -2209,64 +1916,20 @@ diff -Naur -x .git llvm-project.aso_orig/llvm/lib/Frontend/OpenMP/OMPIRBuilder.c
 +         ++instIt) {
 +      if (CallInst *CallInstruction = dyn_cast<CallInst>(instIt)) {
 +        if (CallInstruction->getCalledFunction() == &OutlinedFn) {
-+          LoopBodyArg = CallInstruction->getArgOperand(1);
++          // Check in case no argument structure has been passed.
++          if (CallInstruction->arg_size() > 1)
++            LoopBodyArg = CallInstruction->getArgOperand(1);
++          else
++            LoopBodyArg = Constant::getNullValue(Builder.getPtrTy());
 +          CallInstruction->eraseFromParent();
 +          break;
 +        }
 +      }
 +    }
-+    if (IsDistribute) {
-+      // Create call to the OpenMP runtime function.
-+      // TODO: Provide mechanism of choosing the right OpenMP device function
-+      FunctionCallee RTLFn = getOrCreateRuntimeFunctionPtr(
-+          OMPRTL___kmpc_distribute_for_static_loop_4);
-+      FunctionCallee RTLNumThreads =
-+          getOrCreateRuntimeFunctionPtr(OMPRTL_omp_get_num_threads);
-+      Builder.restoreIP({Preheader, std::prev(Preheader->end())});
-+      Value *NumThreads = Builder.CreateCall(RTLNumThreads, {});
-+      Value *ForStaticLoopCallArgs[] = {
-+          /*identifier*/ Ident,
-+          /*loop body func*/
-+          Builder.CreateBitCast(&OutlinedFn, ParallelTaskPtr),
-+          /*loop body args*/ LoopBodyArg,
-+          /*num of iters*/
-+          Builder.CreateZExtOrTrunc(TripCount, Type::getInt32Ty(M.getContext()),
-+                                    "TripCountTrunc"),
-+          /*num of threads*/ NumThreads,
-+          /*block chunk*/ Builder.getInt32(0),
-+          /*thread chunk */ Builder.getInt32(1)};
++    createTargetLoopWorkshareCall(*this, IsDistribute, Preheader, Ident,
++                                  LoopBodyArg, ParallelTaskPtr, TripCount,
++                                  OutlinedFn);
 +
-+      SmallVector<Value *, 8> RealArgs;
-+      RealArgs.append(std::begin(ForStaticLoopCallArgs),
-+                      std::end(ForStaticLoopCallArgs));
-+
-+      Builder.CreateCall(RTLFn, RealArgs);
-+    } else {
-+      // Create call to the OpenMP runtime function.
-+      // TODO: Provide mechanism of choosing the right OpenMP device function
-+      FunctionCallee RTLFn =
-+          getOrCreateRuntimeFunctionPtr(OMPRTL___kmpc_for_static_loop_4);
-+      FunctionCallee RTLNumThreads =
-+          getOrCreateRuntimeFunctionPtr(OMPRTL_omp_get_num_threads);
-+      Builder.restoreIP({Preheader, std::prev(Preheader->end())});
-+      Value *NumThreads = Builder.CreateCall(RTLNumThreads, {});
-+      Value *ForStaticLoopCallArgs[] = {
-+          /*identifier*/ Ident,
-+          /*loop body func*/
-+          Builder.CreateBitCast(&OutlinedFn, ParallelTaskPtr),
-+          /*loop body args*/ LoopBodyArg,
-+          /*num of iters*/
-+          Builder.CreateZExtOrTrunc(TripCount, Type::getInt32Ty(M.getContext()),
-+                                    "TripCountTrunc"),
-+          /*num of threads*/ NumThreads,
-+          /*thread chunk*/ Builder.getInt32(1)};
-+
-+      SmallVector<Value *, 8> RealArgs;
-+      RealArgs.append(std::begin(ForStaticLoopCallArgs),
-+                      std::end(ForStaticLoopCallArgs));
-+
-+      Builder.CreateCall(RTLFn, RealArgs);
-+    }
 +    for (auto &ToBeDeletedItem : ToBeDeleted)
 +      ToBeDeletedItem->eraseFromParent();
 +    CLI->invalidate();
@@ -2286,28 +1949,52 @@ diff -Naur -x .git llvm-project.aso_orig/llvm/lib/Frontend/OpenMP/OMPIRBuilder.c
    OMPScheduleType EffectiveScheduleType = computeOpenMPScheduleType(
        SchedKind, ChunkSize, HasSimdModifier, HasMonotonicModifier,
        HasNonmonotonicModifier, HasOrderedClause);
-@@ -4249,7 +4573,7 @@
+@@ -4238,6 +4446,31 @@ CallInst *OpenMPIRBuilder::createCachedThreadPrivate(
+   return Builder.CreateCall(Fn, Args);
  }
  
- void OpenMPIRBuilder::setOutlinedTargetRegionFunctionAttributes(
--    Function *OutlinedFn, int32_t NumTeams, int32_t NumThreads) {
-+    Function *OutlinedFn) {
-   if (Config.isTargetDevice()) {
-     OutlinedFn->setLinkage(GlobalValue::WeakODRLinkage);
-     // TODO: Determine if DSO local can be set to true.
-@@ -4257,20 +4581,37 @@
++void OpenMPIRBuilder::emit__oclc_ABI_version(Module &M, int32_t CodeObjVers) {
++  StringRef Name = "__oclc_ABI_version";
++  llvm::GlobalVariable *GVorig = M.getNamedGlobal(Name);
++  if (GVorig && !llvm::GlobalVariable::isExternalLinkage(GVorig->getLinkage()))
++    return;
++
++  auto *Int32Ty = Type::getInt32Ty(M.getContext());
++  llvm::Constant *COV = llvm::ConstantInt::get(Int32Ty, CodeObjVers);
++
++  // It needs to be constant weak_odr without externally_initialized so that
++  // the load instuction can be eliminated by the IPSCCP.
++  auto *GV = new llvm::GlobalVariable(
++      M, Int32Ty, true, llvm::GlobalValue::WeakODRLinkage, COV, Name, nullptr,
++      llvm::GlobalValue::ThreadLocalMode::NotThreadLocal);
++  GV->setUnnamedAddr(llvm::GlobalValue::UnnamedAddr::Local);
++  GV->setVisibility(llvm::GlobalValue::VisibilityTypes::HiddenVisibility);
++
++  // Replace any external references to this variable with the new global.
++  if (GVorig) {
++    GVorig->replaceAllUsesWith(GV);
++    GV->takeName(GVorig);
++    GVorig->eraseFromParent();
++  }
++}
++
+ OpenMPIRBuilder::InsertPointTy
+ OpenMPIRBuilder::createTargetInit(const LocationDescription &Loc, bool IsSPMD,
+                                   int32_t MinThreadsVal, int32_t MaxThreadsVal,
+@@ -4366,6 +4599,9 @@ OpenMPIRBuilder::createTargetInit(const LocationDescription &Loc, bool IsSPMD,
+   CheckBBTI->eraseFromParent();
+   UI->eraseFromParent();
+ 
++  if (M.getTargetTriple().rfind("amdgcn", 0) == 0)
++    emit__oclc_ABI_version(M, 400); // FIXME: get actual value from option
++
+   // Continue in the "user_code" block, see diagram above and in
+   // openmp/libomptarget/deviceRTLs/common/include/target.h .
+   return InsertPointTy(UserCodeEntryBB, UserCodeEntryBB->getFirstInsertionPt());
+@@ -4511,6 +4747,74 @@ void OpenMPIRBuilder::setOutlinedTargetRegionFunctionAttributes(
      OutlinedFn->setVisibility(GlobalValue::ProtectedVisibility);
-     if (Triple(M.getTargetTriple()).isAMDGCN())
+     if (T.isAMDGCN())
        OutlinedFn->setCallingConv(CallingConv::AMDGPU_KERNEL);
--  }
--
--  if (NumTeams > 0)
--    OutlinedFn->addFnAttr("omp_target_num_teams", std::to_string(NumTeams));
--
--#if FIX_NUM_THREADS_ISSUE
--  if (NumThreads == -1 && Config.isGPU())
--    NumThreads = getGridValue(OutlinedFn).GV_Default_WG_Size;
--#endif
 +    if (!Config.TargetCPU.empty())
 +      OutlinedFn->addFnAttr("target-cpu", Config.TargetCPU);
 +    if (!Config.TargetFeatures.empty())
@@ -2332,75 +2019,54 @@ diff -Naur -x .git llvm-project.aso_orig/llvm/lib/Frontend/OpenMP/OMPIRBuilder.c
 +  if (NumTeamsValue > 0)
 +    OutlinedFn->addFnAttr("omp_target_num_teams",
 +                          std::to_string(NumTeamsValue));
++
 +  if (ThreadLimitValue == -1 && Config.isGPU())
-+    ThreadLimitValue = getGridValue(OutlinedFn).GV_Default_WG_Size;
- 
--  if (NumThreads > 0) {
++    ThreadLimitValue = getGridValue(T, OutlinedFn).GV_Default_WG_Size;
++
 +  if (ThreadLimitValue > 0) {
-     if (OutlinedFn->getCallingConv() == CallingConv::AMDGPU_KERNEL) {
-       OutlinedFn->addFnAttr("amdgpu-flat-work-group-size",
--                            "1," + llvm::utostr(NumThreads));
++    if (OutlinedFn->getCallingConv() == CallingConv::AMDGPU_KERNEL) {
++      OutlinedFn->addFnAttr("amdgpu-flat-work-group-size",
 +                            "1," + llvm::utostr(ThreadLimitValue));
-     } else {
-       // Update the "maxntidx" metadata for NVIDIA, or add it.
-       NamedMDNode *MD = M.getOrInsertNamedMetadata("nvvm.annotations");
-@@ -4294,19 +4635,19 @@
-         ExistingOp->replaceOperandWith(
-             2, ConstantAsMetadata::get(
-                    ConstantInt::get(OldVal->getValue()->getType(),
--                                    std::min(OldLimit, NumThreads))));
++    } else {
++      // Update the "maxntidx" metadata for NVIDIA, or add it.
++      NamedMDNode *MD = M.getOrInsertNamedMetadata("nvvm.annotations");
++      MDNode *ExistingOp = nullptr;
++      for (auto *Op : MD->operands()) {
++        if (Op->getNumOperands() != 3)
++          continue;
++        auto *Kernel = dyn_cast<ConstantAsMetadata>(Op->getOperand(0));
++        if (!Kernel || Kernel->getValue() != OutlinedFn)
++          continue;
++        auto *Prop = dyn_cast<MDString>(Op->getOperand(1));
++        if (!Prop || Prop->getString() != "maxntidx")
++          continue;
++        ExistingOp = Op;
++        break;
++      }
++      if (ExistingOp) {
++        auto *OldVal = dyn_cast<ConstantAsMetadata>(ExistingOp->getOperand(2));
++        int32_t OldLimit =
++            cast<ConstantInt>(OldVal->getValue())->getZExtValue();
++        ExistingOp->replaceOperandWith(
++            2, ConstantAsMetadata::get(
++                   ConstantInt::get(OldVal->getValue()->getType(),
 +                                    std::min(OldLimit, ThreadLimitValue))));
-       } else {
-         LLVMContext &Ctx = M.getContext();
-         Metadata *MDVals[] = {ConstantAsMetadata::get(OutlinedFn),
-                               MDString::get(Ctx, "maxntidx"),
-                               ConstantAsMetadata::get(ConstantInt::get(
--                                  Type::getInt32Ty(Ctx), NumThreads))};
++      } else {
++        LLVMContext &Ctx = M.getContext();
++        Metadata *MDVals[] = {ConstantAsMetadata::get(OutlinedFn),
++                              MDString::get(Ctx, "maxntidx"),
++                              ConstantAsMetadata::get(ConstantInt::get(
 +                                  Type::getInt32Ty(Ctx), ThreadLimitValue))};
-         // Append metadata to nvvm.annotations
-         MD->addOperand(MDNode::get(Ctx, MDVals));
-       }
-     }
-     OutlinedFn->addFnAttr("omp_target_thread_limit",
--                          std::to_string(NumThreads));
++        // Append metadata to nvvm.annotations
++        MD->addOperand(MDNode::get(Ctx, MDVals));
++      }
++    }
++    OutlinedFn->addFnAttr("omp_target_thread_limit",
 +                          std::to_string(ThreadLimitValue));
    }
  }
  
-@@ -4336,9 +4677,8 @@
- 
- void OpenMPIRBuilder::emitTargetRegionFunction(
-     TargetRegionEntryInfo &EntryInfo,
--    FunctionGenCallback &GenerateFunctionCallback, int32_t NumTeams,
--    int32_t NumThreads, bool IsOffloadEntry, Function *&OutlinedFn,
--    Constant *&OutlinedFnID) {
-+    FunctionGenCallback &GenerateFunctionCallback, bool IsOffloadEntry,
-+    Function *&OutlinedFn, Constant *&OutlinedFnID) {
- 
-   SmallString<64> EntryFnName;
-   OffloadInfoManager.getTargetRegionEntryFnName(EntryFnName, EntryInfo);
-@@ -4358,16 +4698,15 @@
-           ? std::string(EntryFnName)
-           : createPlatformSpecificName({EntryFnName, "region_id"});
- 
--  OutlinedFnID = registerTargetRegionFunction(
--      EntryInfo, OutlinedFn, EntryFnName, EntryFnIDName, NumTeams, NumThreads);
-+  OutlinedFnID = registerTargetRegionFunction(EntryInfo, OutlinedFn,
-+                                              EntryFnName, EntryFnIDName);
- }
- 
- Constant *OpenMPIRBuilder::registerTargetRegionFunction(
-     TargetRegionEntryInfo &EntryInfo, Function *OutlinedFn,
--    StringRef EntryFnName, StringRef EntryFnIDName, int32_t NumTeams,
--    int32_t NumThreads) {
-+    StringRef EntryFnName, StringRef EntryFnIDName) {
-   if (OutlinedFn)
--    setOutlinedTargetRegionFunctionAttributes(OutlinedFn, NumTeams, NumThreads);
-+    setOutlinedTargetRegionFunctionAttributes(OutlinedFn);
-   auto OutlinedFnID = createOutlinedFunctionID(OutlinedFn, EntryFnIDName);
-   auto EntryAddr = createTargetRegionEntryAddr(OutlinedFn, EntryFnName);
-   OffloadInfoManager.registerTargetRegionEntryInfo(
-@@ -4570,6 +4909,45 @@
+@@ -4776,6 +5080,45 @@ FunctionCallee OpenMPIRBuilder::createDispatchFiniFunction(unsigned IVSize,
    return getOrCreateRuntimeFunction(M, Name);
  }
  
@@ -2443,10 +2109,21 @@ diff -Naur -x .git llvm-project.aso_orig/llvm/lib/Frontend/OpenMP/OMPIRBuilder.c
 +  LLVMCompilerUsed.emplace_back(GVMode);
 +}
 +
+ static void replaceConstatExprUsesInFuncWithInstr(ConstantExpr *ConstExpr,
+                                                   Function *Func) {
+   for (User *User : make_early_inc_range(ConstExpr->users()))
+@@ -4793,8 +5136,8 @@ static void replaceConstantValueUsesInFuncWithInstr(llvm::Value *Input,
+ }
+ 
  static Function *createOutlinedFunction(
-     OpenMPIRBuilder &OMPBuilder, IRBuilderBase &Builder, StringRef FuncName,
-     SmallVectorImpl<Value *> &Inputs,
-@@ -4593,6 +4971,12 @@
+-    OpenMPIRBuilder &OMPBuilder, IRBuilderBase &Builder, StringRef FuncName,
+-    SmallVectorImpl<Value *> &Inputs,
++    OpenMPIRBuilder &OMPBuilder, IRBuilderBase &Builder, bool IsSPMD,
++    StringRef FuncName, SmallVectorImpl<Value *> &Inputs,
+     OpenMPIRBuilder::TargetBodyGenCallbackTy &CBFunc,
+     OpenMPIRBuilder::TargetGenArgAccessorsCallbackTy &ArgAccessorFuncCB) {
+   SmallVector<Type *> ParameterTypes;
+@@ -4820,6 +5163,12 @@ static Function *createOutlinedFunction(
    auto Func = Function::Create(FuncType, GlobalValue::InternalLinkage, FuncName,
                                 Builder.GetInsertBlock()->getModule());
  
@@ -2459,31 +2136,38 @@ diff -Naur -x .git llvm-project.aso_orig/llvm/lib/Frontend/OpenMP/OMPIRBuilder.c
    // Save insert point.
    auto OldInsertPoint = Builder.saveIP();
  
-@@ -4645,27 +5029,23 @@
+@@ -4829,7 +5178,7 @@ static Function *createOutlinedFunction(
+ 
+   // Insert target init call in the device compilation pass.
+   if (OMPBuilder.Config.isTargetDevice())
+-    Builder.restoreIP(OMPBuilder.createTargetInit(Builder, /*IsSPMD*/ false));
++    Builder.restoreIP(OMPBuilder.createTargetInit(Builder, IsSPMD));
+ 
+   BasicBlock *UserCodeEntryBB = Builder.GetInsertBlock();
+ 
+@@ -4890,17 +5239,16 @@ static Function *createOutlinedFunction(
+ }
+ 
  static void emitTargetOutlinedFunction(
-     OpenMPIRBuilder &OMPBuilder, IRBuilderBase &Builder,
+-    OpenMPIRBuilder &OMPBuilder, IRBuilderBase &Builder,
++    OpenMPIRBuilder &OMPBuilder, IRBuilderBase &Builder, bool IsSPMD,
      TargetRegionEntryInfo &EntryInfo, Function *&OutlinedFn,
--    Constant *&OutlinedFnID, int32_t NumTeams, int32_t NumThreads,
--    SmallVectorImpl<Value *> &Inputs,
-+    Constant *&OutlinedFnID, SmallVectorImpl<Value *> &Inputs,
+     Constant *&OutlinedFnID, SmallVectorImpl<Value *> &Inputs,
      OpenMPIRBuilder::TargetBodyGenCallbackTy &CBFunc,
      OpenMPIRBuilder::TargetGenArgAccessorsCallbackTy &ArgAccessorFuncCB) {
  
    OpenMPIRBuilder::FunctionGenCallback &&GenerateOutlinedFunction =
 -      [&OMPBuilder, &Builder, &Inputs, &CBFunc,
 -       &ArgAccessorFuncCB](StringRef EntryFnName) {
+-        return createOutlinedFunction(OMPBuilder, Builder, EntryFnName, Inputs,
+-                                      CBFunc, ArgAccessorFuncCB);
 +      [&](StringRef EntryFnName) {
-         return createOutlinedFunction(OMPBuilder, Builder, EntryFnName, Inputs,
-                                       CBFunc, ArgAccessorFuncCB);
++        return createOutlinedFunction(OMPBuilder, Builder, IsSPMD, EntryFnName,
++                                      Inputs, CBFunc, ArgAccessorFuncCB);
        };
  
--  OMPBuilder.emitTargetRegionFunction(EntryInfo, GenerateOutlinedFunction,
--                                      NumTeams, NumThreads, true, OutlinedFn,
--                                      OutlinedFnID);
-+  OMPBuilder.emitTargetRegionFunction(EntryInfo, GenerateOutlinedFunction, true,
-+                                      OutlinedFn, OutlinedFnID);
- }
- 
+   OMPBuilder.emitTargetRegionFunction(EntryInfo, GenerateOutlinedFunction, true,
+@@ -4910,7 +5258,6 @@ static void emitTargetOutlinedFunction(
  static void emitTargetCall(OpenMPIRBuilder &OMPBuilder, IRBuilderBase &Builder,
                             OpenMPIRBuilder::InsertPointTy AllocaIP,
                             Function *OutlinedFn, Constant *OutlinedFnID,
@@ -2491,7 +2175,7 @@ diff -Naur -x .git llvm-project.aso_orig/llvm/lib/Frontend/OpenMP/OMPIRBuilder.c
                             SmallVectorImpl<Value *> &Args,
                             OpenMPIRBuilder::GenMapInfoCallbackTy GenMapInfoCB) {
  
-@@ -4692,22 +5072,33 @@
+@@ -4937,22 +5284,33 @@ static void emitTargetCall(OpenMPIRBuilder &OMPBuilder, IRBuilderBase &Builder,
    unsigned NumTargetItems = MapInfo.BasePointers.size();
    // TODO: Use correct device ID
    Value *DeviceID = Builder.getInt64(OMP_DEVICEID_UNDEF);
@@ -2533,25 +2217,27 @@ diff -Naur -x .git llvm-project.aso_orig/llvm/lib/Frontend/OpenMP/OMPIRBuilder.c
  
    Builder.restoreIP(OMPBuilder.emitKernelLaunch(
        Builder, OutlinedFn, OutlinedFnID, EmitTargetCallFallbackCB, KArgs,
-@@ -4716,9 +5107,8 @@
+@@ -4960,10 +5318,9 @@ static void emitTargetCall(OpenMPIRBuilder &OMPBuilder, IRBuilderBase &Builder,
+ }
  
  OpenMPIRBuilder::InsertPointTy OpenMPIRBuilder::createTarget(
-     const LocationDescription &Loc, InsertPointTy AllocaIP,
+-    const LocationDescription &Loc, InsertPointTy AllocaIP,
 -    InsertPointTy CodeGenIP, TargetRegionEntryInfo &EntryInfo, int32_t NumTeams,
 -    int32_t NumThreads, SmallVectorImpl<Value *> &Args,
 -    GenMapInfoCallbackTy GenMapInfoCB,
++    const LocationDescription &Loc, bool IsSPMD, InsertPointTy AllocaIP,
 +    InsertPointTy CodeGenIP, TargetRegionEntryInfo &EntryInfo,
 +    SmallVectorImpl<Value *> &Args, GenMapInfoCallbackTy GenMapInfoCB,
      OpenMPIRBuilder::TargetBodyGenCallbackTy CBFunc,
      OpenMPIRBuilder::TargetGenArgAccessorsCallbackTy ArgAccessorFuncCB) {
    if (!updateToLocation(Loc))
-@@ -4729,11 +5119,10 @@
+@@ -4973,11 +5330,11 @@ OpenMPIRBuilder::InsertPointTy OpenMPIRBuilder::createTarget(
+ 
    Function *OutlinedFn;
    Constant *OutlinedFnID;
-   emitTargetOutlinedFunction(*this, Builder, EntryInfo, OutlinedFn,
--                             OutlinedFnID, NumTeams, NumThreads, Args, CBFunc,
--                             ArgAccessorFuncCB);
-+                             OutlinedFnID, Args, CBFunc, ArgAccessorFuncCB);
+-  emitTargetOutlinedFunction(*this, Builder, EntryInfo, OutlinedFn,
++  emitTargetOutlinedFunction(*this, Builder, IsSPMD, EntryInfo, OutlinedFn,
+                              OutlinedFnID, Args, CBFunc, ArgAccessorFuncCB);
    if (!Config.isTargetDevice())
 -    emitTargetCall(*this, Builder, AllocaIP, OutlinedFn, OutlinedFnID, NumTeams,
 -                   NumThreads, Args, GenMapInfoCB);
@@ -2560,10 +2246,11 @@ diff -Naur -x .git llvm-project.aso_orig/llvm/lib/Frontend/OpenMP/OMPIRBuilder.c
  
    return Builder.saveIP();
  }
-@@ -5755,6 +6144,43 @@
+@@ -5998,6 +6355,43 @@ OpenMPIRBuilder::InsertPointTy OpenMPIRBuilder::createAtomicCompare(
+   return Builder.saveIP();
  }
  
- OpenMPIRBuilder::InsertPointTy
++OpenMPIRBuilder::InsertPointTy
 +OpenMPIRBuilder::createDistribute(const LocationDescription &Loc,
 +                                  InsertPointTy OuterAllocaIP,
 +                                  BodyGenCallbackTy BodyGenCB) {
@@ -2600,11 +2287,10 @@ diff -Naur -x .git llvm-project.aso_orig/llvm/lib/Frontend/OpenMP/OMPIRBuilder.c
 +  return Builder.saveIP();
 +}
 +
-+OpenMPIRBuilder::InsertPointTy
+ OpenMPIRBuilder::InsertPointTy
  OpenMPIRBuilder::createTeams(const LocationDescription &Loc,
                               BodyGenCallbackTy BodyGenCB, Value *NumTeamsLower,
-                              Value *NumTeamsUpper, Value *ThreadLimit,
-@@ -5850,6 +6276,8 @@
+@@ -6094,6 +6488,8 @@ OpenMPIRBuilder::createTeams(const LocationDescription &Loc,
    OI.ExcludeArgsFromAggregate.push_back(createFakeIntVal(
        Builder, OuterAllocaIP, ToBeDeleted, AllocaIP, "tid", true));
  
@@ -2613,7 +2299,7 @@ diff -Naur -x .git llvm-project.aso_orig/llvm/lib/Frontend/OpenMP/OMPIRBuilder.c
    OI.PostOutlineCB = [this, Ident, ToBeDeleted](Function &OutlinedFn) mutable {
      // The stale call instruction will be replaced with a new call instruction
      // for runtime call with the outlined function.
-@@ -5886,6 +6314,7 @@
+@@ -6130,6 +6526,7 @@ OpenMPIRBuilder::createTeams(const LocationDescription &Loc,
        ToBeDeleted.pop();
      }
    };
@@ -2621,10 +2307,11 @@ diff -Naur -x .git llvm-project.aso_orig/llvm/lib/Frontend/OpenMP/OMPIRBuilder.c
  
    addOutlineInfo(std::move(OI));
  
-diff -Naur -x .git llvm-project.aso_orig/llvm/lib/Transforms/IPO/OpenMPOpt.cpp llvm-project/llvm/lib/Transforms/IPO/OpenMPOpt.cpp
---- llvm-project.aso_orig/llvm/lib/Transforms/IPO/OpenMPOpt.cpp	2023-10-17 13:12:54.397689712 -0500
-+++ llvm-project/llvm/lib/Transforms/IPO/OpenMPOpt.cpp	2023-10-19 10:59:39.494444509 -0500
-@@ -522,6 +522,7 @@
+diff --git a/llvm/lib/Transforms/IPO/OpenMPOpt.cpp b/llvm/lib/Transforms/IPO/OpenMPOpt.cpp
+index da223115c36b..9fb3445d9db0 100644
+--- a/llvm/lib/Transforms/IPO/OpenMPOpt.cpp
++++ b/llvm/lib/Transforms/IPO/OpenMPOpt.cpp
+@@ -535,6 +535,7 @@ struct OMPInformationCache : public InformationCache {
    void recollectUses() {
      for (int Idx = 0; Idx < RFIs.size(); ++Idx)
        recollectUsesForFunction(static_cast<RuntimeFunction>(Idx));
@@ -2632,188 +2319,11 @@ diff -Naur -x .git llvm-project.aso_orig/llvm/lib/Transforms/IPO/OpenMPOpt.cpp l
    }
  
    // Helper function to inherit the calling convention of the function callee.
-diff -Naur -x .git llvm-project.aso_orig/llvm/unittests/Frontend/OpenMPIRBuilderTest.cpp llvm-project/llvm/unittests/Frontend/OpenMPIRBuilderTest.cpp
---- llvm-project.aso_orig/llvm/unittests/Frontend/OpenMPIRBuilderTest.cpp	2023-10-18 07:52:50.063805774 -0500
-+++ llvm-project/llvm/unittests/Frontend/OpenMPIRBuilderTest.cpp	2023-10-19 10:59:39.494444509 -0500
-@@ -591,9 +591,113 @@
-   EXPECT_EQ(SrcSrc->getAsCString(), ";/src/test.dbg;foo;3;7;;");
- }
- 
-+TEST_F(OpenMPIRBuilderTest, ParallelSimpleGPU) {
-+  using InsertPointTy = OpenMPIRBuilder::InsertPointTy;
-+  OpenMPIRBuilder OMPBuilder(*M);
-+  OMPBuilder.Config.IsTargetDevice = true;
-+  OMPBuilder.initialize();
-+  F->setName("func");
-+  IRBuilder<> Builder(BB);
-+  BasicBlock *EnterBB = BasicBlock::Create(Ctx, "parallel.enter", F);
-+  Builder.CreateBr(EnterBB);
-+  Builder.SetInsertPoint(EnterBB);
-+  OpenMPIRBuilder::LocationDescription Loc({Builder.saveIP(), DL});
-+  Loc = OMPBuilder.createTargetInit(Loc, true);
-+  OMPBuilder.M.print(errs(), nullptr);
-+
-+  AllocaInst *PrivAI = nullptr;
-+
-+  unsigned NumBodiesGenerated = 0;
-+  unsigned NumPrivatizedVars = 0;
-+  unsigned NumFinalizationPoints = 0;
-+
-+  auto BodyGenCB = [&](InsertPointTy AllocaIP, InsertPointTy CodeGenIP) {
-+    ++NumBodiesGenerated;
-+
-+    Builder.restoreIP(AllocaIP);
-+    PrivAI = Builder.CreateAlloca(F->arg_begin()->getType());
-+    Builder.CreateStore(F->arg_begin(), PrivAI);
-+
-+    Builder.restoreIP(CodeGenIP);
-+    Value *PrivLoad =
-+        Builder.CreateLoad(PrivAI->getAllocatedType(), PrivAI, "local.use");
-+    Value *Cmp = Builder.CreateICmpNE(F->arg_begin(), PrivLoad);
-+    Instruction *ThenTerm, *ElseTerm;
-+    SplitBlockAndInsertIfThenElse(Cmp, CodeGenIP.getBlock()->getTerminator(),
-+                                  &ThenTerm, &ElseTerm);
-+  };
-+
-+  auto PrivCB = [&](InsertPointTy AllocaIP, InsertPointTy CodeGenIP,
-+                    Value &Orig, Value &Inner,
-+                    Value *&ReplacementValue) -> InsertPointTy {
-+    ++NumPrivatizedVars;
-+
-+    if (!isa<AllocaInst>(Orig)) {
-+      EXPECT_EQ(&Orig, F->arg_begin());
-+      ReplacementValue = &Inner;
-+      return CodeGenIP;
-+    }
-+
-+    // Since the original value is an allocation, it has a pointer type and
-+    // therefore no additional wrapping should happen.
-+    EXPECT_EQ(&Orig, &Inner);
-+
-+    // Trivial copy (=firstprivate).
-+    Builder.restoreIP(AllocaIP);
-+    Type *VTy = ReplacementValue->getType();
-+    Value *V = Builder.CreateLoad(VTy, &Inner, Orig.getName() + ".reload");
-+    ReplacementValue = Builder.CreateAlloca(VTy, 0, Orig.getName() + ".copy");
-+    Builder.restoreIP(CodeGenIP);
-+    Builder.CreateStore(V, ReplacementValue);
-+    return CodeGenIP;
-+  };
-+
-+  auto FiniCB = [&](InsertPointTy CodeGenIP) { ++NumFinalizationPoints; };
-+
-+  IRBuilder<>::InsertPoint AllocaIP(&F->getEntryBlock(),
-+                                    F->getEntryBlock().getFirstInsertionPt());
-+  IRBuilder<>::InsertPoint AfterIP =
-+      OMPBuilder.createParallel(Loc, AllocaIP, BodyGenCB, PrivCB, FiniCB,
-+                                nullptr, nullptr, OMP_PROC_BIND_default, false);
-+
-+  EXPECT_EQ(NumBodiesGenerated, 1U);
-+  EXPECT_EQ(NumPrivatizedVars, 1U);
-+  EXPECT_EQ(NumFinalizationPoints, 1U);
-+
-+  Builder.restoreIP(AfterIP);
-+  OMPBuilder.createTargetDeinit(Builder);
-+  Builder.CreateRetVoid();
-+
-+  OMPBuilder.finalize();
-+  OMPBuilder.M.print(llvm::errs(), nullptr);
-+  Function *OutlinedFn = PrivAI->getFunction();
-+  EXPECT_FALSE(verifyModule(*M, &errs()));
-+  EXPECT_NE(OutlinedFn, F);
-+  EXPECT_TRUE(OutlinedFn->hasFnAttribute(Attribute::NoUnwind));
-+  EXPECT_TRUE(OutlinedFn->hasParamAttribute(0, Attribute::NoAlias));
-+  EXPECT_TRUE(OutlinedFn->hasParamAttribute(1, Attribute::NoAlias));
-+
-+  EXPECT_TRUE(OutlinedFn->hasInternalLinkage());
-+  EXPECT_EQ(OutlinedFn->arg_size(), 3U);
-+
-+  EXPECT_EQ(&OutlinedFn->getEntryBlock(), PrivAI->getParent());
-+  EXPECT_EQ(OutlinedFn->getNumUses(), 1U);
-+  User *Usr = OutlinedFn->user_back();
-+  ASSERT_TRUE(isa<CallInst>(Usr));
-+  CallInst *Parallel51CI = dyn_cast<CallInst>(Usr);
-+  ASSERT_NE(Parallel51CI, nullptr);
-+
-+  EXPECT_EQ(Parallel51CI->getCalledFunction()->getName(), "__kmpc_parallel_51");
-+  EXPECT_EQ(Parallel51CI->arg_size(), 9U);
-+  EXPECT_EQ(Parallel51CI->getArgOperand(5), OutlinedFn);
-+  EXPECT_TRUE(isa<GlobalVariable>(Parallel51CI->getArgOperand(0)));
-+  EXPECT_EQ(Parallel51CI, Usr);
-+}
-+
- TEST_F(OpenMPIRBuilderTest, ParallelSimple) {
-   using InsertPointTy = OpenMPIRBuilder::InsertPointTy;
-   OpenMPIRBuilder OMPBuilder(*M);
-+  OMPBuilder.Config.IsTargetDevice = false;
-   OMPBuilder.initialize();
-   F->setName("func");
-   IRBuilder<> Builder(BB);
-@@ -671,7 +775,6 @@
-   EXPECT_NE(F, OutlinedFn);
-   EXPECT_FALSE(verifyModule(*M, &errs()));
-   EXPECT_TRUE(OutlinedFn->hasFnAttribute(Attribute::NoUnwind));
--  EXPECT_TRUE(OutlinedFn->hasFnAttribute(Attribute::NoRecurse));
-   EXPECT_TRUE(OutlinedFn->hasParamAttribute(0, Attribute::NoAlias));
-   EXPECT_TRUE(OutlinedFn->hasParamAttribute(1, Attribute::NoAlias));
- 
-@@ -699,6 +802,7 @@
- TEST_F(OpenMPIRBuilderTest, ParallelNested) {
-   using InsertPointTy = OpenMPIRBuilder::InsertPointTy;
-   OpenMPIRBuilder OMPBuilder(*M);
-+  OMPBuilder.Config.IsTargetDevice = false;
-   OMPBuilder.initialize();
-   F->setName("func");
-   IRBuilder<> Builder(BB);
-@@ -768,7 +872,6 @@
-       continue;
-     EXPECT_FALSE(verifyModule(*M, &errs()));
-     EXPECT_TRUE(OutlinedFn.hasFnAttribute(Attribute::NoUnwind));
--    EXPECT_TRUE(OutlinedFn.hasFnAttribute(Attribute::NoRecurse));
-     EXPECT_TRUE(OutlinedFn.hasParamAttribute(0, Attribute::NoAlias));
-     EXPECT_TRUE(OutlinedFn.hasParamAttribute(1, Attribute::NoAlias));
- 
-@@ -793,6 +896,7 @@
- TEST_F(OpenMPIRBuilderTest, ParallelNested2Inner) {
-   using InsertPointTy = OpenMPIRBuilder::InsertPointTy;
-   OpenMPIRBuilder OMPBuilder(*M);
-+  OMPBuilder.Config.IsTargetDevice = false;
-   OMPBuilder.initialize();
-   F->setName("func");
-   IRBuilder<> Builder(BB);
-@@ -872,7 +976,6 @@
-       continue;
-     EXPECT_FALSE(verifyModule(*M, &errs()));
-     EXPECT_TRUE(OutlinedFn.hasFnAttribute(Attribute::NoUnwind));
--    EXPECT_TRUE(OutlinedFn.hasFnAttribute(Attribute::NoRecurse));
-     EXPECT_TRUE(OutlinedFn.hasParamAttribute(0, Attribute::NoAlias));
-     EXPECT_TRUE(OutlinedFn.hasParamAttribute(1, Attribute::NoAlias));
- 
-@@ -902,6 +1005,7 @@
- TEST_F(OpenMPIRBuilderTest, ParallelIfCond) {
-   using InsertPointTy = OpenMPIRBuilder::InsertPointTy;
-   OpenMPIRBuilder OMPBuilder(*M);
-+  OMPBuilder.Config.IsTargetDevice = false;
-   OMPBuilder.initialize();
-   F->setName("func");
-   IRBuilder<> Builder(BB);
-@@ -1006,6 +1110,7 @@
- TEST_F(OpenMPIRBuilderTest, ParallelCancelBarrier) {
-   using InsertPointTy = OpenMPIRBuilder::InsertPointTy;
-   OpenMPIRBuilder OMPBuilder(*M);
-+  OMPBuilder.Config.IsTargetDevice = false;
-   OMPBuilder.initialize();
-   F->setName("func");
-   IRBuilder<> Builder(BB);
-@@ -1119,6 +1224,7 @@
- 
- TEST_F(OpenMPIRBuilderTest, ParallelForwardAsPointers) {
-   OpenMPIRBuilder OMPBuilder(*M);
-+  OMPBuilder.Config.IsTargetDevice = false;
-   OMPBuilder.initialize();
-   F->setName("func");
-   IRBuilder<> Builder(BB);
-@@ -2116,6 +2222,7 @@
+diff --git a/llvm/unittests/Frontend/OpenMPIRBuilderTest.cpp b/llvm/unittests/Frontend/OpenMPIRBuilderTest.cpp
+index 50759d7c6102..82d72fefec26 100644
+--- a/llvm/unittests/Frontend/OpenMPIRBuilderTest.cpp
++++ b/llvm/unittests/Frontend/OpenMPIRBuilderTest.cpp
+@@ -2231,6 +2231,7 @@ TEST_F(OpenMPIRBuilderTest, UnrollLoopHeuristic) {
  TEST_F(OpenMPIRBuilderTest, StaticWorkShareLoop) {
    using InsertPointTy = OpenMPIRBuilder::InsertPointTy;
    OpenMPIRBuilder OMPBuilder(*M);
@@ -2821,7 +2331,7 @@ diff -Naur -x .git llvm-project.aso_orig/llvm/unittests/Frontend/OpenMPIRBuilder
    OMPBuilder.initialize();
    IRBuilder<> Builder(BB);
    OpenMPIRBuilder::LocationDescription Loc({Builder.saveIP(), DL});
-@@ -2216,6 +2323,7 @@
+@@ -2331,6 +2332,7 @@ TEST_P(OpenMPIRBuilderTestWithIVBits, StaticChunkedWorkshareLoop) {
  
    using InsertPointTy = OpenMPIRBuilder::InsertPointTy;
    OpenMPIRBuilder OMPBuilder(*M);
@@ -2829,7 +2339,7 @@ diff -Naur -x .git llvm-project.aso_orig/llvm/unittests/Frontend/OpenMPIRBuilder
  
    BasicBlock *Body;
    CallInst *Call;
-@@ -2290,6 +2398,7 @@
+@@ -2405,6 +2407,7 @@ INSTANTIATE_TEST_SUITE_P(IVBits, OpenMPIRBuilderTestWithIVBits,
  TEST_P(OpenMPIRBuilderTestWithParams, DynamicWorkShareLoop) {
    using InsertPointTy = OpenMPIRBuilder::InsertPointTy;
    OpenMPIRBuilder OMPBuilder(*M);
@@ -2837,7 +2347,7 @@ diff -Naur -x .git llvm-project.aso_orig/llvm/unittests/Frontend/OpenMPIRBuilder
    OMPBuilder.initialize();
    IRBuilder<> Builder(BB);
    OpenMPIRBuilder::LocationDescription Loc({Builder.saveIP(), DL});
-@@ -2447,6 +2556,7 @@
+@@ -2562,6 +2565,7 @@ INSTANTIATE_TEST_SUITE_P(
  TEST_F(OpenMPIRBuilderTest, DynamicWorkShareLoopOrdered) {
    using InsertPointTy = OpenMPIRBuilder::InsertPointTy;
    OpenMPIRBuilder OMPBuilder(*M);
@@ -2845,42 +2355,20 @@ diff -Naur -x .git llvm-project.aso_orig/llvm/unittests/Frontend/OpenMPIRBuilder
    OMPBuilder.initialize();
    IRBuilder<> Builder(BB);
    OpenMPIRBuilder::LocationDescription Loc({Builder.saveIP(), DL});
-@@ -4004,6 +4114,7 @@
- TEST_F(OpenMPIRBuilderTest, CreateTeams) {
-   using InsertPointTy = OpenMPIRBuilder::InsertPointTy;
-   OpenMPIRBuilder OMPBuilder(*M);
-+  OMPBuilder.Config.IsTargetDevice = false;
-   OMPBuilder.initialize();
-   F->setName("func");
-   IRBuilder<> Builder(BB);
-@@ -4548,6 +4659,7 @@
- TEST_F(OpenMPIRBuilderTest, CreateReductions) {
-   using InsertPointTy = OpenMPIRBuilder::InsertPointTy;
-   OpenMPIRBuilder OMPBuilder(*M);
-+  OMPBuilder.Config.IsTargetDevice = false;
-   OMPBuilder.initialize();
-   F->setName("func");
-   IRBuilder<> Builder(BB);
-@@ -4780,6 +4892,7 @@
- TEST_F(OpenMPIRBuilderTest, CreateTwoReductions) {
-   using InsertPointTy = OpenMPIRBuilder::InsertPointTy;
-   OpenMPIRBuilder OMPBuilder(*M);
-+  OMPBuilder.Config.IsTargetDevice = false;
-   OMPBuilder.initialize();
-   F->setName("func");
-   IRBuilder<> Builder(BB);
-@@ -5608,8 +5721,9 @@
+@@ -5732,9 +5736,10 @@ TEST_F(OpenMPIRBuilderTest, TargetRegion) {
  
    TargetRegionEntryInfo EntryInfo("func", 42, 4711, 17);
    OpenMPIRBuilder::LocationDescription OmpLoc({Builder.saveIP(), DL});
 +  OMPBuilder.CurrentTargetInfo.emplace();
    Builder.restoreIP(OMPBuilder.createTarget(
 -      OmpLoc, Builder.saveIP(), Builder.saveIP(), EntryInfo, -1, 0, Inputs,
-+      OmpLoc, Builder.saveIP(), Builder.saveIP(), EntryInfo, Inputs,
-       GenMapInfoCB, BodyGenCB, SimpleArgAccessorCB));
+-      GenMapInfoCB, BodyGenCB, SimpleArgAccessorCB));
++      OmpLoc, /*IsSPMD=*/false, Builder.saveIP(), Builder.saveIP(), EntryInfo,
++      Inputs, GenMapInfoCB, BodyGenCB, SimpleArgAccessorCB));
    OMPBuilder.finalize();
    Builder.CreateRetVoid();
-@@ -5712,10 +5826,10 @@
+ 
+@@ -5836,10 +5841,10 @@ TEST_F(OpenMPIRBuilderTest, TargetRegionDevice) {
    TargetRegionEntryInfo EntryInfo("parent", /*DeviceID=*/1, /*FileID=*/2,
                                    /*Line=*/3, /*Count=*/0);
  
@@ -2889,75 +2377,21 @@ diff -Naur -x .git llvm-project.aso_orig/llvm/unittests/Frontend/OpenMPIRBuilder
 -                              /*NumThreads=*/0, CapturedArgs, GenMapInfoCB,
 -                              BodyGenCB, SimpleArgAccessorCB));
 +  OMPBuilder.CurrentTargetInfo.emplace();
-+  Builder.restoreIP(OMPBuilder.createTarget(Loc, EntryIP, EntryIP, EntryInfo,
-+                                            CapturedArgs, GenMapInfoCB,
-+                                            BodyGenCB, SimpleArgAccessorCB));
++  Builder.restoreIP(OMPBuilder.createTarget(
++      Loc, /*IsSPMD=*/false, EntryIP, EntryIP, EntryInfo, CapturedArgs,
++      GenMapInfoCB, BodyGenCB, SimpleArgAccessorCB));
  
    Builder.CreateRetVoid();
    OMPBuilder.finalize();
-@@ -5796,6 +5910,7 @@
- TEST_F(OpenMPIRBuilderTest, CreateTask) {
-   using InsertPointTy = OpenMPIRBuilder::InsertPointTy;
-   OpenMPIRBuilder OMPBuilder(*M);
-+  OMPBuilder.Config.IsTargetDevice = false;
-   OMPBuilder.initialize();
-   F->setName("func");
-   IRBuilder<> Builder(BB);
-@@ -5924,6 +6039,7 @@
- TEST_F(OpenMPIRBuilderTest, CreateTaskNoArgs) {
-   using InsertPointTy = OpenMPIRBuilder::InsertPointTy;
-   OpenMPIRBuilder OMPBuilder(*M);
-+  OMPBuilder.Config.IsTargetDevice = false;
-   OMPBuilder.initialize();
-   F->setName("func");
-   IRBuilder<> Builder(BB);
-@@ -5954,6 +6070,7 @@
- TEST_F(OpenMPIRBuilderTest, CreateTaskUntied) {
-   using InsertPointTy = OpenMPIRBuilder::InsertPointTy;
-   OpenMPIRBuilder OMPBuilder(*M);
-+  OMPBuilder.Config.IsTargetDevice = false;
-   OMPBuilder.initialize();
-   F->setName("func");
-   IRBuilder<> Builder(BB);
-@@ -5983,6 +6100,7 @@
- TEST_F(OpenMPIRBuilderTest, CreateTaskDepend) {
-   using InsertPointTy = OpenMPIRBuilder::InsertPointTy;
-   OpenMPIRBuilder OMPBuilder(*M);
-+  OMPBuilder.Config.IsTargetDevice = false;
-   OMPBuilder.initialize();
-   F->setName("func");
-   IRBuilder<> Builder(BB);
-@@ -6056,6 +6174,7 @@
- TEST_F(OpenMPIRBuilderTest, CreateTaskFinal) {
-   using InsertPointTy = OpenMPIRBuilder::InsertPointTy;
-   OpenMPIRBuilder OMPBuilder(*M);
-+  OMPBuilder.Config.IsTargetDevice = false;
-   OMPBuilder.initialize();
-   F->setName("func");
-   IRBuilder<> Builder(BB);
-@@ -6109,6 +6228,7 @@
- TEST_F(OpenMPIRBuilderTest, CreateTaskIfCondition) {
-   using InsertPointTy = OpenMPIRBuilder::InsertPointTy;
-   OpenMPIRBuilder OMPBuilder(*M);
-+  OMPBuilder.Config.IsTargetDevice = false;
-   OMPBuilder.initialize();
-   F->setName("func");
-   IRBuilder<> Builder(BB);
-@@ -6269,6 +6389,7 @@
- TEST_F(OpenMPIRBuilderTest, CreateTaskgroupWithTasks) {
-   using InsertPointTy = OpenMPIRBuilder::InsertPointTy;
-   OpenMPIRBuilder OMPBuilder(*M);
-+  OMPBuilder.Config.IsTargetDevice = false;
-   OMPBuilder.initialize();
-   F->setName("func");
-   IRBuilder<> Builder(BB);
-diff -Naur -x .git llvm-project.aso_orig/mlir/include/mlir/Dialect/OpenMP/OpenMPOps.td llvm-project/mlir/include/mlir/Dialect/OpenMP/OpenMPOps.td
---- llvm-project.aso_orig/mlir/include/mlir/Dialect/OpenMP/OpenMPOps.td	2023-10-17 13:12:54.473690273 -0500
-+++ llvm-project/mlir/include/mlir/Dialect/OpenMP/OpenMPOps.td	2023-10-19 10:59:39.494444509 -0500
-@@ -637,6 +637,26 @@
+diff --git a/mlir/include/mlir/Dialect/OpenMP/OpenMPOps.td b/mlir/include/mlir/Dialect/OpenMP/OpenMPOps.td
+index bfb58b98884c..04812366b105 100644
+--- a/mlir/include/mlir/Dialect/OpenMP/OpenMPOps.td
++++ b/mlir/include/mlir/Dialect/OpenMP/OpenMPOps.td
+@@ -637,6 +637,26 @@ def YieldOp : OpenMP_Op<"yield",
+   let assemblyFormat = [{ ( `(` $results^ `:` type($results) `)` )? attr-dict}];
  }
  
- //===----------------------------------------------------------------------===//
++//===----------------------------------------------------------------------===//
 +// 2.9.4 distribute Construct
 +//===----------------------------------------------------------------------===//
 +def DistributeOp : OpenMP_Op<"distribute", [RecursiveMemoryEffects]> {
@@ -2977,11 +2411,10 @@ diff -Naur -x .git llvm-project.aso_orig/mlir/include/mlir/Dialect/OpenMP/OpenMP
 +  let hasVerifier = 0;
 +}
 +
-+//===----------------------------------------------------------------------===//
+ //===----------------------------------------------------------------------===//
  // 2.10.1 task Construct
  //===----------------------------------------------------------------------===//
- 
-@@ -1390,6 +1410,9 @@
+@@ -1392,6 +1412,9 @@ def TargetOp : OpenMP_Op<"target",[IsolatedFromAbove, OutlineableOpenMPOpInterfa
  
      The optional $thread_limit specifies the limit on the number of threads
  
@@ -2991,21 +2424,21 @@ diff -Naur -x .git llvm-project.aso_orig/mlir/include/mlir/Dialect/OpenMP/OpenMP
      The optional $nowait elliminates the implicit barrier so the parent task can make progress
      even if the target task is not yet completed.
  
-@@ -1400,6 +1423,7 @@
+@@ -1402,6 +1425,7 @@ def TargetOp : OpenMP_Op<"target",[IsolatedFromAbove, OutlineableOpenMPOpInterfa
    let arguments = (ins Optional<I1>:$if_expr,
                         Optional<AnyInteger>:$device,
                         Optional<AnyInteger>:$thread_limit,
 +                       Optional<AnyInteger>:$trip_count,
                         UnitAttr:$nowait,
-                        Variadic<OpenMP_PointerLikeType>:$map_operands);
+                        Variadic<AnyType>:$map_operands);
  
-@@ -1409,12 +1433,19 @@
+@@ -1411,12 +1435,19 @@ def TargetOp : OpenMP_Op<"target",[IsolatedFromAbove, OutlineableOpenMPOpInterfa
      oilist( `if` `(` $if_expr `)`
      | `device` `(` $device `:` type($device) `)`
      | `thread_limit` `(` $thread_limit `:` type($thread_limit) `)`
 +    | `trip_count` `(` $trip_count `:` type($trip_count) `)`
      | `nowait` $nowait
-     | `map_entries` `(` $map_operands `:` type($map_operands) `)`
+     | `map_entries` `(` custom<MapEntries>($map_operands, type($map_operands)) `)`
      ) $region attr-dict
    }];
  
@@ -3019,46 +2452,11 @@ diff -Naur -x .git llvm-project.aso_orig/mlir/include/mlir/Dialect/OpenMP/OpenMP
  }
  
  
-diff -Naur -x .git llvm-project.aso_orig/mlir/include/mlir/Interfaces/CSEInterfaces.h llvm-project/mlir/include/mlir/Interfaces/CSEInterfaces.h
---- llvm-project.aso_orig/mlir/include/mlir/Interfaces/CSEInterfaces.h	1969-12-31 18:00:00.000000000 -0600
-+++ llvm-project/mlir/include/mlir/Interfaces/CSEInterfaces.h	2023-10-19 10:59:39.494444509 -0500
-@@ -0,0 +1,32 @@
-+//===- CSEInterfaces.h ------------------------------------------*- C++ -*-===//
-+//
-+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
-+// See https://llvm.org/LICENSE.txt for license information.
-+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-+//
-+//===----------------------------------------------------------------------===//
-+#ifndef MLIR_INTERFACES_CSEINTERFACES_H_
-+#define MLIR_INTERFACES_CSEINTERFACES_H_
-+
-+#include "mlir/IR/DialectInterface.h"
-+
-+namespace mlir {
-+class Operation;
-+
-+/// Define an interface to allow for dialects to control specific aspects of
-+/// common subexpression elimination behavior for operations they define.
-+class DialectCSEInterface : public DialectInterface::Base<DialectCSEInterface> {
-+public:
-+  DialectCSEInterface(Dialect *dialect) : Base(dialect) {}
-+
-+  /// Registered hook to check if an operation that is *not* isolated from
-+  /// above, should allow common subexpressions to be extracted out of its
-+  /// regions.
-+  virtual bool subexpressionExtractionAllowed(Operation *op) const {
-+    return true;
-+  }
-+};
-+
-+} // namespace mlir
-+
-+#endif // MLIR_INTERFACES_CSEINTERFACES_H_
-diff -Naur -x .git llvm-project.aso_orig/mlir/lib/Conversion/OpenMPToLLVM/OpenMPToLLVM.cpp llvm-project/mlir/lib/Conversion/OpenMPToLLVM/OpenMPToLLVM.cpp
---- llvm-project.aso_orig/mlir/lib/Conversion/OpenMPToLLVM/OpenMPToLLVM.cpp	2023-10-17 13:12:54.473690273 -0500
-+++ llvm-project/mlir/lib/Conversion/OpenMPToLLVM/OpenMPToLLVM.cpp	2023-10-19 10:59:39.494444509 -0500
-@@ -199,10 +199,11 @@
+diff --git a/mlir/lib/Conversion/OpenMPToLLVM/OpenMPToLLVM.cpp b/mlir/lib/Conversion/OpenMPToLLVM/OpenMPToLLVM.cpp
+index cd1cfb3b7686..5d16bb1cf92f 100644
+--- a/mlir/lib/Conversion/OpenMPToLLVM/OpenMPToLLVM.cpp
++++ b/mlir/lib/Conversion/OpenMPToLLVM/OpenMPToLLVM.cpp
+@@ -228,10 +228,11 @@ void mlir::configureOpenMPToLLVMConversionLegality(
      ConversionTarget &target, LLVMTypeConverter &typeConverter) {
    target.addDynamicallyLegalOp<
        mlir::omp::AtomicUpdateOp, mlir::omp::CriticalOp, mlir::omp::TargetOp,
@@ -3074,7 +2472,7 @@ diff -Naur -x .git llvm-project.aso_orig/mlir/lib/Conversion/OpenMPToLLVM/OpenMP
      return typeConverter.isLegal(&op->getRegion(0)) &&
             typeConverter.isLegal(op->getOperandTypes()) &&
             typeConverter.isLegal(op->getResultTypes());
-@@ -246,6 +247,7 @@
+@@ -275,6 +276,7 @@ void mlir::populateOpenMPToLLVMConversionPatterns(LLVMTypeConverter &converter,
        RegionOpConversion<omp::SimdLoopOp>, RegionOpConversion<omp::SingleOp>,
        RegionOpConversion<omp::TaskGroupOp>, RegionOpConversion<omp::TaskOp>,
        RegionOpConversion<omp::DataOp>, RegionOpConversion<omp::TargetOp>,
@@ -3082,9 +2480,10 @@ diff -Naur -x .git llvm-project.aso_orig/mlir/lib/Conversion/OpenMPToLLVM/OpenMP
        RegionLessOpWithVarOperandsConversion<omp::AtomicWriteOp>,
        RegionOpWithVarOperandsConversion<omp::AtomicUpdateOp>,
        RegionLessOpWithVarOperandsConversion<omp::FlushOp>,
-diff -Naur -x .git llvm-project.aso_orig/mlir/lib/Dialect/OpenMP/IR/OpenMPDialect.cpp llvm-project/mlir/lib/Dialect/OpenMP/IR/OpenMPDialect.cpp
---- llvm-project.aso_orig/mlir/lib/Dialect/OpenMP/IR/OpenMPDialect.cpp	2023-10-17 13:12:54.477690303 -0500
-+++ llvm-project/mlir/lib/Dialect/OpenMP/IR/OpenMPDialect.cpp	2023-10-19 10:59:39.494444509 -0500
+diff --git a/mlir/lib/Dialect/OpenMP/IR/OpenMPDialect.cpp b/mlir/lib/Dialect/OpenMP/IR/OpenMPDialect.cpp
+index 480af0e1307c..d3de6e27a95e 100644
+--- a/mlir/lib/Dialect/OpenMP/IR/OpenMPDialect.cpp
++++ b/mlir/lib/Dialect/OpenMP/IR/OpenMPDialect.cpp
 @@ -18,6 +18,7 @@
  #include "mlir/IR/DialectImplementation.h"
  #include "mlir/IR/OpImplementation.h"
@@ -3093,8 +2492,8 @@ diff -Naur -x .git llvm-project.aso_orig/mlir/lib/Dialect/OpenMP/IR/OpenMPDialec
  #include "mlir/Interfaces/FoldInterfaces.h"
  
  #include "llvm/ADT/BitVector.h"
-@@ -47,6 +48,15 @@
-   }
+@@ -53,6 +54,15 @@ struct LLVMPointerPointerLikeModel
+   Type getElementType(Type pointer) const { return Type(); }
  };
  
 +struct OpenMPDialectCSEInterface : public DialectCSEInterface {
@@ -3109,15 +2508,15 @@ diff -Naur -x .git llvm-project.aso_orig/mlir/lib/Dialect/OpenMP/IR/OpenMPDialec
  struct OpenMPDialectFoldInterface : public DialectFoldInterface {
    using DialectFoldInterface::DialectFoldInterface;
  
-@@ -71,6 +81,7 @@
+@@ -77,6 +87,7 @@ void OpenMPDialect::initialize() {
  #include "mlir/Dialect/OpenMP/OpenMPOpsTypes.cpp.inc"
        >();
  
 +  addInterface<OpenMPDialectCSEInterface>();
    addInterface<OpenMPDialectFoldInterface>();
-   LLVM::LLVMPointerType::attachInterface<
-       PointerLikeModel<LLVM::LLVMPointerType>>(*getContext());
-@@ -876,10 +887,48 @@
+   MemRefType::attachInterface<MemRefPointerLikeModel>(*getContext());
+   LLVM::LLVMPointerType::attachInterface<LLVMPointerPointerLikeModel>(
+@@ -949,10 +960,48 @@ LogicalResult ExitDataOp::verify() {
    return verifyMapClause(*this, getMapOperands());
  }
  
@@ -3166,10 +2565,30 @@ diff -Naur -x .git llvm-project.aso_orig/mlir/lib/Dialect/OpenMP/IR/OpenMPDialec
  //===----------------------------------------------------------------------===//
  // ParallelOp
  //===----------------------------------------------------------------------===//
-diff -Naur -x .git llvm-project.aso_orig/mlir/lib/Target/LLVMIR/Dialect/OpenMP/OpenMPToLLVMIRTranslation.cpp llvm-project/mlir/lib/Target/LLVMIR/Dialect/OpenMP/OpenMPToLLVMIRTranslation.cpp
---- llvm-project.aso_orig/mlir/lib/Target/LLVMIR/Dialect/OpenMP/OpenMPToLLVMIRTranslation.cpp	2023-10-17 13:12:54.477690303 -0500
-+++ llvm-project/mlir/lib/Target/LLVMIR/Dialect/OpenMP/OpenMPToLLVMIRTranslation.cpp	2023-10-19 10:59:39.494444509 -0500
-@@ -828,6 +828,50 @@
+diff --git a/mlir/lib/Target/LLVMIR/Dialect/OpenMP/OpenMPToLLVMIRTranslation.cpp b/mlir/lib/Target/LLVMIR/Dialect/OpenMP/OpenMPToLLVMIRTranslation.cpp
+index ae13a745196c..0a673792a8cb 100644
+--- a/mlir/lib/Target/LLVMIR/Dialect/OpenMP/OpenMPToLLVMIRTranslation.cpp
++++ b/mlir/lib/Target/LLVMIR/Dialect/OpenMP/OpenMPToLLVMIRTranslation.cpp
+@@ -694,9 +694,17 @@ convertOmpTeams(omp::TeamsOp op, llvm::IRBuilderBase &builder,
+   if (Value ifExprVar = op.getIfExpr())
+     ifExpr = moduleTranslation.lookupValue(ifExprVar);
+ 
++  llvm::OpenMPIRBuilder *ompBuilder = moduleTranslation.getOpenMPBuilder();
+   llvm::OpenMPIRBuilder::LocationDescription ompLoc(builder);
+-  builder.restoreIP(moduleTranslation.getOpenMPBuilder()->createTeams(
++  builder.restoreIP(ompBuilder->createTeams(
+       ompLoc, bodyCB, numTeamsLower, numTeamsUpper, threadLimit, ifExpr));
++
++  if (ompBuilder->CurrentTargetInfo) {
++    ompBuilder->CurrentTargetInfo->HasTeamsRegion = true;
++    ompBuilder->CurrentTargetInfo->NumTeams = numTeamsUpper;
++    ompBuilder->CurrentTargetInfo->ThreadLimit = threadLimit;
++  }
++
+   return bodyGenStatus;
+ }
+ 
+@@ -833,6 +841,50 @@ static void collectReductionInfo(
    }
  }
  
@@ -3220,7 +2639,7 @@ diff -Naur -x .git llvm-project.aso_orig/mlir/lib/Target/LLVMIR/Dialect/OpenMP/O
  /// Converts an OpenMP workshare loop into LLVM IR using OpenMPIRBuilder.
  static LogicalResult
  convertOmpWsLoop(Operation &opInst, llvm::IRBuilderBase &builder,
-@@ -884,6 +928,9 @@
+@@ -889,6 +941,9 @@ convertOmpWsLoop(Operation &opInst, llvm::IRBuilderBase &builder,
    // Set up the source location value for OpenMP runtime.
    llvm::OpenMPIRBuilder::LocationDescription ompLoc(builder);
  
@@ -3230,7 +2649,7 @@ diff -Naur -x .git llvm-project.aso_orig/mlir/lib/Target/LLVMIR/Dialect/OpenMP/O
    // Generator of the canonical loop body.
    // TODO: support error propagation in OpenMPIRBuilder and use it instead of
    // relying on captured variables.
-@@ -903,10 +950,21 @@
+@@ -908,10 +963,21 @@ convertOmpWsLoop(Operation &opInst, llvm::IRBuilderBase &builder,
      if (loopInfos.size() != loop.getNumLoops() - 1)
        return;
  
@@ -3255,7 +2674,7 @@ diff -Naur -x .git llvm-project.aso_orig/mlir/lib/Target/LLVMIR/Dialect/OpenMP/O
    };
  
    // Delegate actual loop construction to the OpenMP IRBuilder.
-@@ -951,12 +1009,14 @@
+@@ -956,12 +1022,14 @@ convertOmpWsLoop(Operation &opInst, llvm::IRBuilderBase &builder,
    std::optional<omp::ScheduleModifier> scheduleModifier =
        loop.getScheduleModifier();
    bool isSimd = loop.getSimdModifier();
@@ -3271,7 +2690,7 @@ diff -Naur -x .git llvm-project.aso_orig/mlir/lib/Target/LLVMIR/Dialect/OpenMP/O
  
    // Continue building IR after the loop. Note that the LoopInfo returned by
    // `collapseLoops` points inside the outermost loop and is intended for
-@@ -964,6 +1024,9 @@
+@@ -969,6 +1037,9 @@ convertOmpWsLoop(Operation &opInst, llvm::IRBuilderBase &builder,
    // before collapsing loops instead.
    builder.restoreIP(afterIP);
  
@@ -3281,7 +2700,7 @@ diff -Naur -x .git llvm-project.aso_orig/mlir/lib/Target/LLVMIR/Dialect/OpenMP/O
    // Process the reductions if required.
    if (loop.getNumReductionVars() == 0)
      return success();
-@@ -1114,6 +1177,9 @@
+@@ -1119,6 +1190,9 @@ convertOmpParallel(omp::ParallelOp opInst, llvm::IRBuilderBase &builder,
        ompBuilder->createParallel(ompLoc, allocaIP, bodyGenCB, privCB, finiCB,
                                   ifCond, numThreads, pbKind, isCancellable));
  
@@ -3291,7 +2710,7 @@ diff -Naur -x .git llvm-project.aso_orig/mlir/lib/Target/LLVMIR/Dialect/OpenMP/O
    return bodyGenStatus;
  }
  
-@@ -1125,6 +1191,9 @@
+@@ -1130,6 +1204,9 @@ convertOmpSimdLoop(Operation &opInst, llvm::IRBuilderBase &builder,
  
    llvm::OpenMPIRBuilder::LocationDescription ompLoc(builder);
  
@@ -3301,7 +2720,7 @@ diff -Naur -x .git llvm-project.aso_orig/mlir/lib/Target/LLVMIR/Dialect/OpenMP/O
    // Generator of the canonical loop body.
    // TODO: support error propagation in OpenMPIRBuilder and use it instead of
    // relying on captured variables.
-@@ -1144,10 +1213,21 @@
+@@ -1149,10 +1226,21 @@ convertOmpSimdLoop(Operation &opInst, llvm::IRBuilderBase &builder,
      if (loopInfos.size() != loop.getNumLoops() - 1)
        return;
  
@@ -3326,7 +2745,7 @@ diff -Naur -x .git llvm-project.aso_orig/mlir/lib/Target/LLVMIR/Dialect/OpenMP/O
    };
  
    // Delegate actual loop construction to the OpenMP IRBuilder.
-@@ -1983,11 +2063,6 @@
+@@ -2081,11 +2169,6 @@ static bool targetOpSupported(Operation &opInst) {
      return false;
    }
  
@@ -3338,10 +2757,11 @@ diff -Naur -x .git llvm-project.aso_orig/mlir/lib/Target/LLVMIR/Dialect/OpenMP/O
    if (targetOp.getNowait()) {
      opInst.emitError("Nowait clause not yet supported");
      return false;
-@@ -2053,12 +2128,47 @@
+@@ -2325,6 +2408,40 @@ createAlteredByCaptureMap(MapInfoData &mapData,
+   }
  }
  
- static LogicalResult
++static LogicalResult
 +convertOmpDistribute(Operation &opInst, llvm::IRBuilderBase &builder,
 +                     LLVM::ModuleTranslation &moduleTranslation) {
 +
@@ -3375,18 +2795,18 @@ diff -Naur -x .git llvm-project.aso_orig/mlir/lib/Target/LLVMIR/Dialect/OpenMP/O
 +  return bodyGenStatus;
 +}
 +
-+static LogicalResult
+ static LogicalResult
  convertOmpTarget(Operation &opInst, llvm::IRBuilderBase &builder,
                   LLVM::ModuleTranslation &moduleTranslation) {
- 
+@@ -2332,6 +2449,7 @@ convertOmpTarget(Operation &opInst, llvm::IRBuilderBase &builder,
    if (!targetOpSupported(opInst))
      return failure();
  
 +  auto *ompBuilder = moduleTranslation.getOpenMPBuilder();
    auto targetOp = cast<omp::TargetOp>(opInst);
    auto &targetRegion = targetOp.getRegion();
- 
-@@ -2091,6 +2201,19 @@
+   DataLayout dl = DataLayout(opInst.getParentOfType<ModuleOp>());
+@@ -2367,6 +2485,19 @@ convertOmpTarget(Operation &opInst, llvm::IRBuilderBase &builder,
      llvm::BasicBlock *exitBlock = convertOmpOpRegions(
          targetRegion, "omp.target", builder, moduleTranslation, bodyGenStatus);
      builder.SetInsertPoint(exitBlock);
@@ -3406,7 +2826,7 @@ diff -Naur -x .git llvm-project.aso_orig/mlir/lib/Target/LLVMIR/Dialect/OpenMP/O
      return builder.saveIP();
    };
  
-@@ -2109,9 +2232,6 @@
+@@ -2385,9 +2516,6 @@ convertOmpTarget(Operation &opInst, llvm::IRBuilderBase &builder,
    if (!getTargetEntryUniqueInfo(entryInfo, targetOp, parentName))
      return failure();
  
@@ -3416,32 +2836,28 @@ diff -Naur -x .git llvm-project.aso_orig/mlir/lib/Target/LLVMIR/Dialect/OpenMP/O
    llvm::OpenMPIRBuilder::InsertPointTy allocaIP =
        findAllocaInsertPoint(builder, moduleTranslation);
  
-@@ -2163,17 +2283,20 @@
-                                         allocaIP, codeGenIP);
-   };
+@@ -2462,15 +2590,18 @@ convertOmpTarget(Operation &opInst, llvm::IRBuilderBase &builder,
+       kernelInput.push_back(useValue);
+   }
  
--  builder.restoreIP(moduleTranslation.getOpenMPBuilder()->createTarget(
++  ompBuilder->CurrentTargetInfo = llvm::OpenMPIRBuilder::TargetRegionInfo();
+   builder.restoreIP(moduleTranslation.getOpenMPBuilder()->createTarget(
 -      ompLoc, allocaIP, builder.saveIP(), entryInfo, defaultValTeams,
--      defaultValThreads, inputs, genMapInfoCB, bodyCB, argAccessorCB));
-+  ompBuilder->CurrentTargetInfo.emplace();
-+  builder.restoreIP(ompBuilder->createTarget(ompLoc, allocaIP, builder.saveIP(),
-+                                             entryInfo, inputs, genMapInfoCB,
-+                                             bodyCB, argAccessorCB));
+-      defaultValThreads, kernelInput, genMapInfoCB, bodyCB, argAccessorCB));
++      ompLoc, targetOp.isTargetSPMDLoop(), allocaIP, builder.saveIP(), entryInfo,
++       kernelInput, genMapInfoCB, bodyCB, argAccessorCB));
  
    // Remap access operations to declare target reference pointers for the
    // device, essentially generating extra loadop's as necessary
--  if (moduleTranslation.getOpenMPBuilder()->Config.isTargetDevice()) {
-+  if (ompBuilder->Config.isTargetDevice()) {
-     SmallVector<Value> mapOperands = targetOp.getMapOperands();
-     handleDeclareTargetMapVar(llvm::ArrayRef(mapOperands), moduleTranslation,
-                               builder);
-   }
-+
+   if (moduleTranslation.getOpenMPBuilder()->Config.isTargetDevice())
+     handleDeclareTargetMapVar(mapData, moduleTranslation, builder);
+ 
 +  ompBuilder->CurrentTargetInfo.reset();
++
    return bodyGenStatus;
  }
  
-@@ -2393,6 +2516,17 @@
+@@ -2690,6 +2821,17 @@ LogicalResult OpenMPDialectLLVMIRTranslationInterface::amendOperation(
              }
              return failure();
            })
@@ -3459,7 +2875,7 @@ diff -Naur -x .git llvm-project.aso_orig/mlir/lib/Target/LLVMIR/Dialect/OpenMP/O
        .Default([](Attribute) {
          // Fall through for omp attributes that do not require lowering.
          return success();
-@@ -2506,6 +2640,9 @@
+@@ -2803,6 +2945,9 @@ LogicalResult OpenMPDialectLLVMIRTranslationInterface::convertOperation(
        .Case([&](omp::TargetOp) {
          return convertOmpTarget(*op, builder, moduleTranslation);
        })
@@ -3469,9 +2885,10 @@ diff -Naur -x .git llvm-project.aso_orig/mlir/lib/Target/LLVMIR/Dialect/OpenMP/O
        .Case<omp::MapInfoOp, omp::DataBoundsOp>([&](auto op) {
          // No-op, should be handled by relevant owning operations e.g.
          // TargetOp, EnterDataOp, ExitDataOp, DataOp etc. and then
-diff -Naur -x .git llvm-project.aso_orig/mlir/lib/Transforms/CSE.cpp llvm-project/mlir/lib/Transforms/CSE.cpp
---- llvm-project.aso_orig/mlir/lib/Transforms/CSE.cpp	2023-10-17 13:12:54.477690303 -0500
-+++ llvm-project/mlir/lib/Transforms/CSE.cpp	2023-10-19 10:59:39.498444560 -0500
+diff --git a/mlir/lib/Transforms/CSE.cpp b/mlir/lib/Transforms/CSE.cpp
+index 3affd88d158d..f959cb5dc414 100644
+--- a/mlir/lib/Transforms/CSE.cpp
++++ b/mlir/lib/Transforms/CSE.cpp
 @@ -15,6 +15,7 @@
  
  #include "mlir/IR/Dominance.h"
@@ -3480,7 +2897,7 @@ diff -Naur -x .git llvm-project.aso_orig/mlir/lib/Transforms/CSE.cpp llvm-projec
  #include "mlir/Interfaces/SideEffectInterfaces.h"
  #include "mlir/Pass/Pass.h"
  #include "mlir/Transforms/Passes.h"
-@@ -61,7 +62,8 @@
+@@ -61,7 +62,8 @@ namespace {
  class CSEDriver {
  public:
    CSEDriver(RewriterBase &rewriter, DominanceInfo *domInfo)
@@ -3490,7 +2907,7 @@ diff -Naur -x .git llvm-project.aso_orig/mlir/lib/Transforms/CSE.cpp llvm-projec
  
    /// Simplify all operations within the given op.
    void simplify(Operation *op, bool *changed = nullptr);
-@@ -122,6 +124,9 @@
+@@ -122,6 +124,9 @@ private:
    DominanceInfo *domInfo = nullptr;
    MemEffectsCache memEffectsCache;
  
@@ -3500,7 +2917,7 @@ diff -Naur -x .git llvm-project.aso_orig/mlir/lib/Transforms/CSE.cpp llvm-projec
    // Various statistics.
    int64_t numCSE = 0;
    int64_t numDCE = 0;
-@@ -289,7 +294,12 @@
+@@ -289,7 +294,12 @@ void CSEDriver::simplifyBlock(ScopedMapTy &knownValues, Block *bb,
        // If this operation is isolated above, we can't process nested regions
        // with the given 'knownValues' map. This would cause the insertion of
        // implicit captures in explicit capture only regions.
@@ -3514,62 +2931,11 @@ diff -Naur -x .git llvm-project.aso_orig/mlir/lib/Transforms/CSE.cpp llvm-projec
          ScopedMapTy nestedKnownValues;
          for (auto &region : op.getRegions())
            simplifyRegion(nestedKnownValues, region);
-diff -Naur -x .git llvm-project.aso_orig/mlir/test/lib/Dialect/Test/TestDialectInterfaces.cpp llvm-project/mlir/test/lib/Dialect/Test/TestDialectInterfaces.cpp
---- llvm-project.aso_orig/mlir/test/lib/Dialect/Test/TestDialectInterfaces.cpp	2023-10-17 13:12:54.481690332 -0500
-+++ llvm-project/mlir/test/lib/Dialect/Test/TestDialectInterfaces.cpp	2023-10-19 10:59:39.498444560 -0500
-@@ -7,6 +7,7 @@
- //===----------------------------------------------------------------------===//
- 
- #include "TestDialect.h"
-+#include "mlir/Interfaces/CSEInterfaces.h"
- #include "mlir/Interfaces/FoldInterfaces.h"
- #include "mlir/Reducer/ReductionPatternInterface.h"
- #include "mlir/Transforms/InliningUtils.h"
-@@ -273,6 +274,16 @@
-   }
- };
- 
-+struct TestDialectCSEInterface : public DialectCSEInterface {
-+  using DialectCSEInterface::DialectCSEInterface;
-+
-+  bool subexpressionExtractionAllowed(Operation *op) const final {
-+    // Don't allow extracting common subexpressions from the region of these
-+    // operations.
-+    return !isa<NoCSEOneRegionOp>(op);
-+  }
-+};
-+
- /// This class defines the interface for handling inlining with standard
- /// operations.
- struct TestInlinerInterface : public DialectInlinerInterface {
-@@ -385,6 +396,7 @@
-   auto &blobInterface = addInterface<TestResourceBlobManagerInterface>();
-   addInterface<TestOpAsmInterface>(blobInterface);
- 
--  addInterfaces<TestDialectFoldInterface, TestInlinerInterface,
--                TestReductionPatternInterface, TestBytecodeDialectInterface>();
-+  addInterfaces<TestDialectFoldInterface, TestDialectCSEInterface,
-+                TestInlinerInterface, TestReductionPatternInterface,
-+                TestBytecodeDialectInterface>();
- }
-diff -Naur -x .git llvm-project.aso_orig/mlir/test/lib/Dialect/Test/TestOps.td llvm-project/mlir/test/lib/Dialect/Test/TestOps.td
---- llvm-project.aso_orig/mlir/test/lib/Dialect/Test/TestOps.td	2023-10-17 13:12:54.481690332 -0500
-+++ llvm-project/mlir/test/lib/Dialect/Test/TestOps.td	2023-10-19 10:59:39.498444560 -0500
-@@ -2694,6 +2694,10 @@
-   }];
- }
- 
-+def NoCSEOneRegionOp : TEST_Op<"no_cse_one_region_op", []> {
-+  let regions = (region AnyRegion);
-+}
-+
- //===----------------------------------------------------------------------===//
- // Test Ops to upgrade base on the dialect versions
- //===----------------------------------------------------------------------===//
-diff -Naur -x .git llvm-project.aso_orig/mlir/test/Transforms/cse.mlir llvm-project/mlir/test/Transforms/cse.mlir
---- llvm-project.aso_orig/mlir/test/Transforms/cse.mlir	2023-10-17 13:12:54.481690332 -0500
-+++ llvm-project/mlir/test/Transforms/cse.mlir	2023-10-19 10:59:39.498444560 -0500
-@@ -520,3 +520,23 @@
+diff --git a/mlir/test/Transforms/cse.mlir b/mlir/test/Transforms/cse.mlir
+index c764d2b9bd57..7c0ca4b25037 100644
+--- a/mlir/test/Transforms/cse.mlir
++++ b/mlir/test/Transforms/cse.mlir
+@@ -520,3 +520,23 @@ func.func @cse_recursive_effects_failure() -> (i32, i32, i32) {
    %2 = "test.op_with_memread"() : () -> (i32)
    return %0, %2, %1 : i32, i32, i32
  }
@@ -3593,10 +2959,65 @@ diff -Naur -x .git llvm-project.aso_orig/mlir/test/Transforms/cse.mlir llvm-proj
 +  // CHECK: return %[[CONST1]] : i32
 +  return %0 : i32
 +}
-diff -Naur -x .git llvm-project.aso_orig/openmp/libomptarget/DeviceRTL/src/Workshare.cpp llvm-project/openmp/libomptarget/DeviceRTL/src/Workshare.cpp
---- llvm-project.aso_orig/openmp/libomptarget/DeviceRTL/src/Workshare.cpp	2023-10-17 13:12:54.481690332 -0500
-+++ llvm-project/openmp/libomptarget/DeviceRTL/src/Workshare.cpp	2023-10-19 10:59:39.498444560 -0500
-@@ -45,6 +45,9 @@
+diff --git a/mlir/test/lib/Dialect/Test/TestDialectInterfaces.cpp b/mlir/test/lib/Dialect/Test/TestDialectInterfaces.cpp
+index ab7d2486db9a..c20e0bcae8f5 100644
+--- a/mlir/test/lib/Dialect/Test/TestDialectInterfaces.cpp
++++ b/mlir/test/lib/Dialect/Test/TestDialectInterfaces.cpp
+@@ -7,6 +7,7 @@
+ //===----------------------------------------------------------------------===//
+ 
+ #include "TestDialect.h"
++#include "mlir/Interfaces/CSEInterfaces.h"
+ #include "mlir/Interfaces/FoldInterfaces.h"
+ #include "mlir/Reducer/ReductionPatternInterface.h"
+ #include "mlir/Transforms/InliningUtils.h"
+@@ -280,6 +281,16 @@ struct TestDialectFoldInterface : public DialectFoldInterface {
+   }
+ };
+ 
++struct TestDialectCSEInterface : public DialectCSEInterface {
++  using DialectCSEInterface::DialectCSEInterface;
++
++  bool subexpressionExtractionAllowed(Operation *op) const final {
++    // Don't allow extracting common subexpressions from the region of these
++    // operations.
++    return !isa<NoCSEOneRegionOp>(op);
++  }
++};
++
+ /// This class defines the interface for handling inlining with standard
+ /// operations.
+ struct TestInlinerInterface : public DialectInlinerInterface {
+@@ -392,6 +403,7 @@ void TestDialect::registerInterfaces() {
+   auto &blobInterface = addInterface<TestResourceBlobManagerInterface>();
+   addInterface<TestOpAsmInterface>(blobInterface);
+ 
+-  addInterfaces<TestDialectFoldInterface, TestInlinerInterface,
+-                TestReductionPatternInterface, TestBytecodeDialectInterface>();
++  addInterfaces<TestDialectFoldInterface, TestDialectCSEInterface,
++                TestInlinerInterface, TestReductionPatternInterface,
++                TestBytecodeDialectInterface>();
+ }
+diff --git a/mlir/test/lib/Dialect/Test/TestOps.td b/mlir/test/lib/Dialect/Test/TestOps.td
+index 1add9bd3c329..e6d6f47af9b9 100644
+--- a/mlir/test/lib/Dialect/Test/TestOps.td
++++ b/mlir/test/lib/Dialect/Test/TestOps.td
+@@ -2717,6 +2717,10 @@ def TestCSEOfSingleBlockOp : TEST_Op<"cse_of_single_block_op",
+   }];
+ }
+ 
++def NoCSEOneRegionOp : TEST_Op<"no_cse_one_region_op", []> {
++  let regions = (region AnyRegion);
++}
++
+ //===----------------------------------------------------------------------===//
+ // Test Ops to upgrade base on the dialect versions
+ //===----------------------------------------------------------------------===//
+diff --git a/openmp/libomptarget/DeviceRTL/src/Workshare.cpp b/openmp/libomptarget/DeviceRTL/src/Workshare.cpp
+index d3257079184b..c48e10ca30fc 100644
+--- a/openmp/libomptarget/DeviceRTL/src/Workshare.cpp
++++ b/openmp/libomptarget/DeviceRTL/src/Workshare.cpp
+@@ -45,6 +45,9 @@ struct DynamicScheduleTracker {
  
  #pragma omp begin declare target device_type(nohost)
  
@@ -3606,7 +3027,7 @@ diff -Naur -x .git llvm-project.aso_orig/openmp/libomptarget/DeviceRTL/src/Works
  // TODO: This variable is a hack inherited from the old runtime.
  static uint64_t SHARED(Cnt);
  
-@@ -698,4 +701,252 @@
+@@ -698,4 +701,252 @@ void __kmpc_for_static_init_8_simple_spmd(int64_t *, int32_t global_tid,
  void __kmpc_distribute_static_fini(IdentTy *loc, int32_t global_tid) {}
  }
  
