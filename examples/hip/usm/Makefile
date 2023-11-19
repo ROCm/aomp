@@ -77,6 +77,15 @@ ifeq (sm_,$(findstring sm_,$(TARGETS)))
   CFLAGS +=-x cuda -I$(CUDA)/include
 else
   AOMPHIP ?= $(AOMP)
+  PFILE = $(AOMPHIP)/bin/hipcc
+  ifeq ("$(wildcard $(PFILE))","")
+    AOMPHIP = $(AOMP)/..
+    PFILE = $(AOMPHIP)/bin/hipcc
+    ifeq ("$(wildcard $(PFILE))","")
+      AOMPHIP = $(AOMP)/../..
+    endif
+  endif
+
   VERS = $(shell $(AOMP)/bin/clang --version | grep -oP '(?<=clang version )[0-9.]+')
   ifeq ($(shell expr $(VERS) \>= 12.0), 1)
     RPTH = -Wl,-rpath,$(AOMPHIP)/lib

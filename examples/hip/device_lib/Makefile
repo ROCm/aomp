@@ -30,6 +30,15 @@ FLANG = $(AOMP)/bin/flang
 UNBUNDLE = $(AOMP)/bin/clang-offload-bundler
 
 AOMPHIP ?= $(AOMP)
+PFILE = $(AOMPHIP)/bin/hipcc
+ifeq ("$(wildcard $(PFILE))","")
+ AOMPHIP = $(AOMP)/..
+ PFILE = $(AOMPHIP)/bin/hipcc
+ ifeq ("$(wildcard $(PFILE))","")
+  AOMPHIP = $(AOMP)/../..
+ endif
+endif
+
 HIPCC = $(AOMPHIP)/bin/hipcc
 DEVICE_LIB_PATH = $(AOMPHIP)/amdgcn/bitcode
 

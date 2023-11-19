@@ -146,6 +146,14 @@ for option in $RUN_OPTIONS; do
     echo "babelstream" >> "$FABELSTREAM_REPO"/make-fail.txt
     break
   else
+    export ROCMINFO_BINARY=${ROCMINFO_BINARY:-$AOMP/bin/rocminfo}
+    if [ ! -f $ROCMINFO_BINARY ] ; then
+      export ROCMINFO_BINARY=$AOMP/../bin/rocminfo
+      if [ ! -f $ROCMINFO_BINARY ] ; then
+        export ROCMINFO_BINARY=$AOMP/../../bin/rocminfo
+      fi
+    fi
+    echo $ROCMINFO_BINARY
     set -o pipefail
     if [ -f $AOMP/bin/gpurun ] ; then
       echo $AOMP/bin/gpurun -s ./$EXEC -n $FABELSTREAM_REPEATS | tee -a results.txt
