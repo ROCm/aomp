@@ -517,3 +517,5 @@ program test
     print *, "sc_k1: ", (t_sum / iter)
     if (t_iter .ne. (t_sum / iter)) stop 2
 end program test
+
+! CHECK: DEVID: 0 SGN:1
