@@ -93,13 +93,13 @@ AOMP_ORIGIN_RPATH="-DCMAKE_SHARED_LINKER_FLAGS='-Wl,--disable-new-dtags' $AOMP_O
 # Libraries and Binaries need different RUNPATH as below
 if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
   # ASAN RUNPATH
-  OPENMP_EXTRAS_LIB_RPATH='$ORIGIN:$ORIGIN/../../../lib/asan:$ORIGIN/../../../lib'
-  OPENMP_EXTRAS_EXE_RPATH='$ORIGIN/../lib/asan:$ORIGIN/../lib:$ORIGIN/../../lib/asan:$ORIGIN/../../lib'
+  OPENMP_EXTRAS_LIB_RPATH='$ORIGIN:$ORIGIN/../../../lib/asan:$ORIGIN/../../../lib:$ORIGIN/../../../../lib'
+  OPENMP_EXTRAS_EXE_RPATH='$ORIGIN/../lib/asan:$ORIGIN/../lib:$ORIGIN/../../lib/asan:$ORIGIN/../../lib:$ORIGIN/../../../lib'
 else
 # RUNPATH for Libraries: \$ORIGIN:\$ORIGIN/../../lib
 # RUNPATH for Binaries: \$ORIGIN/../lib:\$ORIGIN/../../lib
-  OPENMP_EXTRAS_LIB_RPATH='$ORIGIN:$ORIGIN/../lib:$ORIGIN/../../lib'
-  OPENMP_EXTRAS_EXE_RPATH='$ORIGIN/../lib:$ORIGIN/../../lib'
+  OPENMP_EXTRAS_LIB_RPATH='$ORIGIN:$ORIGIN/../lib:$ORIGIN/../../lib:$ORIGIN/../../../lib'
+  OPENMP_EXTRAS_EXE_RPATH='$ORIGIN/../lib:$ORIGIN/../../lib:$ORIGIN/../../../lib'
 fi
 
 OPENMP_EXTRAS_SHARED_LINKER_FLAGS="-Wl,--enable-new-dtags,--build-id=sha1,--rpath,$OPENMP_EXTRAS_LIB_RPATH"
