@@ -132,6 +132,8 @@ MPILIBS ?= -L${OMPIDIR}/lib$(MPI64) -lmpi
   # to autodetect which GPU is active.
   ifneq ("$(wildcard /usr/sbin/lspci)","")
     lspci_loc = /usr/sbin/lspci
+  else if ("$(wildcard /sbin/lspci)","")
+    lspci_loc = /sbin/lspci
   else
     lspci_loc = /usr/bin/lspci
   endif
