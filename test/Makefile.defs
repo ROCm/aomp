@@ -130,12 +130,12 @@ MPILIBS ?= -L${OMPIDIR}/lib$(MPI64) -lmpi
   # If AOMP not pointing to rocm, then assume neither offload-arch nor mygpu utilities exist.
   # So use lspci to search for volta and if not then use standalone rocm_agent_enumerator
   # to autodetect which GPU is active.
-  ifneq ("$(wildcard /usr/sbin/lspci)","")
-    lspci_loc = /usr/sbin/lspci
-  else if ("$(wildcard /sbin/lspci)","")
+  lspci_loc = /usr/sbin/lspci
+  ifeq "$(wildcard /usr/sbin/lspci)" ""
     lspci_loc = /sbin/lspci
-  else
-    lspci_loc = /usr/bin/lspci
+    ifeq "$(wildcard /sbin/lspci)" ""
+      lspci_loc = lspci
+    endif
   endif
   ISVOLTA = $(shell $(lspci_loc) -n | grep 10de:1db4)
   ISGTX750= $(shell $(lspci_loc) -n | grep 10de:1380)
