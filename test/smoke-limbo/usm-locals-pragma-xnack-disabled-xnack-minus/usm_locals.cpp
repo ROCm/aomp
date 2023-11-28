@@ -38,7 +38,7 @@ int main() {
   /// CHECK-NOT: __tgt_rtl_data_retrieve_async: {{.*}} 0 ({{.*}} 4, {{.*}})
   #pragma omp target update from(z[:10])
 
-  /// CHECK: AMDGPU error: Running a program that requries XNACK on a system where XNACK is disabled! This may potentially cause memory errors!
+  /// CHECK: AMDGPU error: Running a program that requries XNACK on a system where XNACK is disabled. This may cause problems when using a OS-allocated pointer inside a target region. Re-run with HSA_XNACK=1 to remove this warning.
 
   // Note: when the output is redirected rather than printed at the console,
   // the printf'd strings are printed AFTER all the OpenMP runtime library
