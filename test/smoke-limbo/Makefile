@@ -1,7 +1,24 @@
 include ../Makefile.defs
 
 TESTS_DIR = \
-    no-loop-6
+    no-loop-6 \
+    usm-locals-pragma-xnack-disabled-xnack-any \
+    usm-locals-pragma-xnack-disabled-xnack-minus \
+    usm-locals-pragma-xnack-disabled-xnack-plus \
+    usm-locals-pragma-xnack-enabled-xnack-any \
+    usm-locals-pragma-xnack-enabled-xnack-minus \
+    usm-locals-pragma-xnack-enabled-xnack-plus \
+    usm-locals-xnack-disabled-xnack-any \
+    usm-locals-xnack-disabled-xnack-any-apu-maps \
+    usm-locals-xnack-disabled-xnack-minus \
+    usm-locals-xnack-disabled-xnack-plus \
+    usm-locals-xnack-enabled-xnack-any-apu \
+    usm-locals-xnack-enabled-xnack-any-apu-maps-non-apu \
+    usm-locals-xnack-enabled-xnack-any-non-apu \
+    usm-locals-xnack-enabled-xnack-minus \
+    usm-locals-xnack-enabled-xnack-plus-apu \
+    usm-locals-xnack-enabled-xnack-plus-apu-maps-non-apu \
+    usm-locals-xnack-enabled-xnack-plus-non-apu
 
 all:
 	@for test_dir in $(TESTS_DIR); do \
