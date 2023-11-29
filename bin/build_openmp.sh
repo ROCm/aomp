@@ -379,7 +379,7 @@ if [ "$1" == "install" ] ; then
          cd $BUILD_DIR/build/openmp
          echo
          echo " -----Installing to $INSTALL_OPENMP/lib ----- "
-         $SUDO make install
+         $SUDO make -j $NUM_THREADS install
          if [ $? != 0 ] ; then
             echo "ERROR make install failed "
             exit 1
@@ -390,7 +390,7 @@ if [ "$1" == "install" ] ; then
          cd $BUILD_DIR/build/openmp/asan
          echo
          echo " ----- Installing to $INSTALL_OPENMP/lib/asan ------ "
-         $SUDO make install
+         $SUDO make -j $NUM_THREADS install
          if [ $? != 0 ]; then
             echo "ERROR make install failed for openmp/asan"
             exit 1
@@ -401,7 +401,7 @@ if [ "$1" == "install" ] ; then
          cd $BUILD_DIR/build/openmp_debug
          echo
          echo " -----Installing to $INSTALL_OPENMP/lib-debug ---- "
-         $SUDO make install
+         $SUDO make -j $NUM_THREADS install
          if [ $? != 0 ] ; then
             echo "ERROR make install failed "
             exit 1
@@ -412,7 +412,7 @@ if [ "$1" == "install" ] ; then
          cd $BUILD_DIR/build/openmp_debug/asan
          echo
          echo " ----- Installing to $INSTALL_OPENMP/lib-debug/asan ------ "
-         $SUDO make install
+         $SUDO make -j $NUM_THREADS install
          if [ $? != 0 ]; then
             echo "ERROR make install failed for openmp_debug/asan"
             exit 1
@@ -423,7 +423,7 @@ if [ "$1" == "install" ] ; then
          cd $BUILD_DIR/build/openmp_debug/asan
          echo
          echo " ----- Installing to $INSTALL_OPENMP/lib-debug/asan ------ "
-         $SUDO make install
+         $SUDO make -j $NUM_THREADS install
          if [ $? != 0 ]; then
             echo "ERROR make install failed for openmp_debug/asan"
             exit 1
