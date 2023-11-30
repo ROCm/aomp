@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.22)
+cmake_minimum_required(VERSION 3.16)
 
 if(NOT DEFINED PROJECT_NAME OR PROJECT_NAME STREQUAL "")
   get_filename_component(PROJECT_NAME ${CMAKE_CURRENT_LIST_DIR} NAME)
