@@ -42,6 +42,7 @@ if [ -d $AOMP_REPOS_TEST/goulash ]; then
   cd $AOMP_REPOS_TEST/goulash
   goulash_home=$AOMP_REPOS_TEST/goulash
   rm -f results.txt
+  rm -f Lresults.txt
 else
   echo "ERROR: goulash not found in $AOMP_REPOS_TEST."
   exit 1
@@ -55,6 +56,7 @@ for option in $RUN_OPTIONS; do
     make CXX="$omp_cxx" CXXFLAGS="$omp_flags" COMPILERID="-DCOMPILERID=amd"
     if [ $? -ne 1 ]; then
       ./$omp_exec 100 10 2>&1 | tee -a $goulash_home/results.txt
+      ./$omp_exec 100000 .00000001 2>&1 | tee -a $goulash_home/Lresults.txt
     fi
   elif [ "$option" == "hip" ]; then
     cd $goulash_home/$hip_dir
@@ -62,6 +64,7 @@ for option in $RUN_OPTIONS; do
     make CXX="$hip_cxx" CXXFLAGS="$hip_flags" COMPILERID="-DCOMPILERID=amd"
     if [ $? -ne 1 ]; then
       ./$hip_exec 100 10 2>&1 | tee -a $goulash_home/results.txt
+      ./$hip_exec 100000 .00000001 2>&1 | tee -a $goulash_home/Lresults.txt
     fi
   elif [ "$option" == "fomp" ]; then
     cd $goulash_home/$fomp_dir
@@ -69,10 +72,12 @@ for option in $RUN_OPTIONS; do
     make FC="$fomp_f90" FCFLAGS="$fomp_flags" COMPILERID='-DCOMPILERID=\"amd\"'
     if [ $? -ne 1 ]; then
       ./$fomp_exec 100 10 2>&1 | tee -a $goulash_home/results.txt
+      ./$fomp_exec 100000 .00000001 2>&1 | tee -a $goulash_home/Lresults.txt
     fi
   else
     echo "ERROR: Option not recognized: $option."
     exit 1
   fi
   echo >>  $goulash_home/results.txt
+  echo >>  $goulash_home/Lresults.txt
 done
