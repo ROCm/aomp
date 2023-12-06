@@ -22,8 +22,8 @@
 
   A symbolic link may be required at /usr/lib64: /usr/lib64/libquadmath.so -> /usr/lib64/libquadmath.so.0.
 
-  # Additional packages used by rocgdb
-  sudo zypper install -y texinfo bison flex babeltrace-devel python3 python3-pip python3-devel python3-setuptools makeinfo ncurses-devel libexpat-devel xz-devel libgmp-devel
+  # Additional packages used by rocgdb and rocprofiler
+  sudo zypper install -y texinfo bison flex babeltrace-devel python3 python3-pip python3-devel python3-setuptools makeinfo ncurses-devel libexpat-devel xz-devel libgmp-devel libatomic libdwarf-devel gtest-devel
 
 
 ```
@@ -38,7 +38,7 @@ https://www.softwarecollections.org/en/scls/rhscl/devtoolset-7/<br>
   sudo yum install pciutils-devel numactl-devel libffi-devel mesa-libGL-devel libtool libdrm libdrm-devel ccache gcc-gfortran libdw-devel libgtest-devel systemd-devel
 
   # Additional packages used by rocgdb and roctracer
-  sudo yum install texinfo bison flex ncurses-devel expat-devel xz-devel libbabeltrace-devel libatomic
+  sudo yum install texinfo bison flex ncurses-devel expat-devel xz-devel libbabeltrace-devel libatomic libdwarf-devel gtest-devel
 ```
  RHEL 7.6 and earlier RHEL 7 versions do not have the python36-devel package, which requires a software collection installation.
 ```
@@ -59,7 +59,7 @@ RHEL 7.7 and later RHEL 7 versions
   sudo yum install gcc gcc-c++ git make pciutils-devel numactl-devel libffi-devel mesa-libGL-devel libquadmath-devel python3 python3-pip python36-devel python3-setuptools python2 libtool libdrm libdrm-devel ccache gcc-gfortran libdw-devel libgtest-devel systemd-devel
 
   # Additional packages used by rocgdb and roctracer
-  sudo yum install texinfo bison flex ncurses-devel expat-devel xz-devel libbabeltrace-devel gmp-devel libatomic
+  sudo yum install texinfo bison flex ncurses-devel expat-devel xz-devel libbabeltrace-devel gmp-devel libatomic libdwarf-devel gtest-devel
 
   # To build aomp with Ninja set AOMP_USE_NINJA=1 . You need this installed with dnf
   dnf install ninja-build
