@@ -21,8 +21,8 @@ each component build script with the name build_\<component name\>.sh .
 | COMPONENT | DEV BRANCH | DEFAULT DIRECTORY LOCATION           | REPOSITORY LINKS
 | --------- | ---------- | --------------------------           | ----------------
 | (aomp)    | aomp-dev   | $HOME/git/aomp18.0/aomp                | [aomp](https://github.com/ROCm-Developer-Tools/aomp) This repo!
-| project   | amd-stg-open | $HOME/git/aomp18.0/llvm-project      | [llvm-project](https://github.com/radeonopencompute/llvm-project)
-| openmp    | amd-stg-open | $HOME/git/aomp18.0/llvm-project/openmp | [llvm-project/openmp](https://github.com/radeonopencompute/llvm-project)
+| project   | amd-staging | $HOME/git/aomp18.0/llvm-project      | [llvm-project](https://github.com/radeonopencompute/llvm-project)
+| openmp    | amd-staging | $HOME/git/aomp18.0/llvm-project/openmp | [llvm-project/openmp](https://github.com/radeonopencompute/llvm-project)
 | extras    | aomp-dev   | $HOME/git/aomp18.0/aomp-extras         | [aomp-extras](https://github.com/ROCm-Developer-Tools/aomp-extras)
 | pgmath    | aomp-dev   | $HOME/git/aomp18.0/flang/runtime/libpgmath | [flang](https://github.com/ROCm-Developer-Tools/flang)
 | flang     | aomp-dev   | $HOME/git/aomp18.0/flang               | [flang](https://github.com/ROCm-Developer-Tools/flang)
@@ -45,7 +45,7 @@ each component build script with the name build_\<component name\>.sh .
 Notice that some components are built with different parts of the same repository.
 
 The [llvm-project](https://github.com/radeonopencompute/llvm-project) repository is a mirror of the gerrit-managed internal AMD repository.
-Actually, only the branch "amd-stg-open" is mirrored. The updates to the mirror are done at least daily.
+Actually, only the branch "amd-staging" is mirrored. The updates to the mirror are done at least daily.
 If you are internal to AMD you will pick up the llvm-project repository directly from the gerrit
  [llvm-project](ssh://git.amd.com:29418/lightning/ec/llvm-project) repository.
 

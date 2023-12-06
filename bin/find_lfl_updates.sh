@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#   find_lfl_updates.sh : Compare amd-stg-open directories
+#   find_lfl_updates.sh : Compare amd-staging directories
 #   
 #   to 
 #

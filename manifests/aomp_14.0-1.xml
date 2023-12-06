@@ -10,8 +10,8 @@
 <!-- These first 6 repos are NOT rocm4.5 because this build is for the ROCm 4.5 AFAR compiler -->
     <project remote="roc" path="llvm-project" name="llvm-project" revision="aomp-14.0-1" groups="unlocked" />
 
-    <project remote="roc" path="rocm-compilersupport" name="ROCm-CompilerSupport" upstream="amd-stg-open" revision="a75326c7204e9c91bfcfd0fb701b9f2ad1ec234d" groups="revlocked" />
-    <project remote="roc" path="rocm-device-libs" name="ROCm-Device-Libs"         upstream="amd-stg-open" revision="ff17b354e3c0c8182f85799f3d012077a59e7eef" groups="revlocked" />
+    <project remote="roc" path="rocm-compilersupport" name="ROCm-CompilerSupport" upstream="amd-staging" revision="a75326c7204e9c91bfcfd0fb701b9f2ad1ec234d" groups="revlocked" />
+    <project remote="roc" path="rocm-device-libs" name="ROCm-Device-Libs"         upstream="amd-staging" revision="ff17b354e3c0c8182f85799f3d012077a59e7eef" groups="revlocked" />
 
     <project remote="roctools" path="flang" name="flang"               revision="aomp-14.0-1" groups="unlocked" />
     <project remote="roctools" path="aomp-extras" name="aomp-extras"   revision="aomp-14.0-1" groups="unlocked" />

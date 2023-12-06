@@ -9,10 +9,10 @@
     <remote name="hwloc" fetch="https://github.com/open-mpi/" />
 
 <!-- These first 6 repos are NOT rocm4.5 because this build is for the ROCm 4.5 AFAR compiler -->
-<project remote="gerritgit" path="llvm-project" name="lightning/ec/llvm-project"    revision="amd-stg-open" groups="unlocked" />
+<project remote="gerritgit" path="llvm-project" name="lightning/ec/llvm-project"    revision="amd-staging" groups="unlocked" />
 
-<project remote="roc" path="rocm-compilersupport" name="ROCm-CompilerSupport" revision="amd-stg-open" groups="unlocked" />
-<project remote="roc" path="rocm-device-libs" name="ROCm-Device-Libs"         revision="amd-stg-open"  groups="unlocked" />
+<project remote="roc" path="rocm-compilersupport" name="ROCm-CompilerSupport" revision="amd-staging" groups="unlocked" />
+<project remote="roc" path="rocm-device-libs" name="ROCm-Device-Libs"         revision="amd-staging"  groups="unlocked" />
 <project remote="roctools" path="flang" name="flang"               revision="aomp-dev" groups="unlocked" />
 <project remote="roctools" path="aomp-extras" name="aomp-extras"   revision="aomp-dev" groups="unlocked" />
 <project remote="roctools" path="aomp" name="aomp"                 revision="aomp-dev" groups="unlocked" />

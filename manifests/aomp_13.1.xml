@@ -12,8 +12,8 @@
 <project path="roct-thunk-interface" name="compute/ec/libhsakmt" revision="amd-staging" groups="unlocked" />
 
 <!-- Lightning -->
-<project path="rocm-compilersupport" name="lightning/ec/support" upstream="amd-stg-open" revision="694f5a8e52573c4c2a1223414643c6e98f05cd23" groups="revlocked" />
-<project path="rocm-device-libs" name="lightning/ec/device-libs" revision="amd-stg-open" groups="unlocked" />
+<project path="rocm-compilersupport" name="lightning/ec/support" upstream="amd-staging" revision="694f5a8e52573c4c2a1223414643c6e98f05cd23" groups="revlocked" />
+<project path="rocm-device-libs" name="lightning/ec/device-libs" revision="amd-staging" groups="unlocked" />
 
 <!-- ROCm Utils -->
 <project path="rocminfo" name="compute/ec/rocminfo"              revision="amd-staging" groups="unlocked" />

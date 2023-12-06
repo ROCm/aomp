@@ -8,7 +8,7 @@
 
 
 <!-- The llvm-project monorepo -->
-<project remote="gerritgit" path="llvm-project" name="lightning/ec/llvm-project"    revision="amd-stg-open" groups="unlocked" />
+<project remote="gerritgit" path="llvm-project" name="lightning/ec/llvm-project"    revision="amd-staging" groups="unlocked" />
 
 <!-- INTERNAL REPOS -->
 <!-- ROCr ROCt -->
@@ -16,8 +16,8 @@
 <project remote="gerritgit" path="roct-thunk-interface" name="compute/ec/libhsakmt" revision="amd-staging" groups="unlocked" />
 
 <!-- Lightning -->
-<project remote="gerritgit" path="rocm-compilersupport" name="lightning/ec/support" revision="amd-stg-open" groups="unlocked" />
-<project remote="gerritgit" path="rocm-device-libs" name="lightning/ec/device-libs" revision="amd-stg-open" groups="unlocked" />
+<project remote="gerritgit" path="rocm-compilersupport" name="lightning/ec/support" revision="amd-staging" groups="unlocked" />
+<project remote="gerritgit" path="rocm-device-libs" name="lightning/ec/device-libs" revision="amd-staging" groups="unlocked" />
 <!-- ROCm Utils -->
 <project remote="gerritgit" path="rocminfo" name="compute/ec/rocminfo"              revision="amd-staging" groups="unlocked" />
 <project remote="gerritgit" path="ROCgdb" name="compute/ec/rocm-gdb"                revision="amd-staging" groups="unlocked" />

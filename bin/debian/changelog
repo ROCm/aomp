@@ -650,7 +650,7 @@ aomp (17.0-3) UNRELEASED; urgency=medium
   *   Flang cmake race condition fixed.
   *
   *  14.0-0
-  *   AOMP is now based on amd-stg-open branch.
+  *   AOMP is now based on amd-staging branch.
   *   Most components are build from ROCm release 4.5 sources.
   *   Components are now cloned using a manifest file. The script clone_aomp.sh is still used to clone
   *       and update repos.

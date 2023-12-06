@@ -52,7 +52,7 @@ if [ "$EPSDB" == "1" ]; then
 
 fi
 
-# amd-stg-open only has commits up to 08/11/20, which does not include these fixes for gfx908
+# amd-staging only has commits up to 08/11/20, which does not include these fixes for gfx908
 if [ "$EPSDB" == "1" ] && [ "$AOMP_GPU" == "gfx908" ];then
   skiptests+=" red_bug_51 test_offload_macros"
 fi

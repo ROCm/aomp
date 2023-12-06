@@ -73,9 +73,9 @@ MANIFEST FILE: ~/git/aomp18.0/aomp/bin/../manifests/aomp_18.0-0.xml
 ```
   repo src       branch                 path                 repo name    last hash    updated           commitor         for author
   --------       ------                 ----                 ---------    ---------    -------           --------         ----------
- gerritgit amd-stg-open         llvm-project lightning/ec/llvm-project 11d5fa11d52c 2021-10-30      Ron Lieberman     Saiyedul Islam
-       roc amd-stg-open rocm-compilersupport      ROCm-CompilerSupport ef72f4edb3dd 2021-10-12      Jeremy Newton      Jeremy Newton
-       roc amd-stg-open     rocm-device-libs          ROCm-Device-Libs fc2eac750cb3 2021-10-26           pvellien           pvellien
+ gerritgit amd-staging         llvm-project lightning/ec/llvm-project 11d5fa11d52c 2021-10-30      Ron Lieberman     Saiyedul Islam
+       roc amd-staging rocm-compilersupport      ROCm-CompilerSupport ef72f4edb3dd 2021-10-12      Jeremy Newton      Jeremy Newton
+       roc amd-staging     rocm-device-libs          ROCm-Device-Libs fc2eac750cb3 2021-10-26           pvellien           pvellien
   roctools     aomp-dev                flang                     flang 4f1282c59a76 2021-09-22             GitHub            ronlieb
   roctools     aomp-dev          aomp-extras               aomp-extras aefc0d6c7434 2021-10-18      Ron Lieberman      Ron Lieberman
   roctools     aomp-dev                 aomp                      aomp a94d9f43f3b0 2021-11-01        gregrodgers        gregrodgers
