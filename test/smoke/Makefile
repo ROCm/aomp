@@ -263,6 +263,7 @@ TESTS_DIR = \
  MasterBarrierO0 \
  omp_loop \
  requires_usm \
+ stacked-block-size-config \
  targc-generic \
  targc-spmd \
  usm1 \
