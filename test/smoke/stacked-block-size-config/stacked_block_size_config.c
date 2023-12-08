@@ -32,8 +32,8 @@ int main() {
   free(x);
   free(y);
 
-  /// CHECK: DEVID:{{.*}}SGN:5 ConstWGSize:256  args: 2 teamsXthrds:( 938X  16) {{.*}}tripcount:15000 rpc:0
-  /// CHECK: DEVID:{{.*}}SGN:5 ConstWGSize:256  args: 2 teamsXthrds:( 416X 256) {{.*}}tripcount:1000000 rpc:0
+  /// CHECK: DEVID:{{.*}}SGN:5 ConstWGSize:128  args: 2 teamsXthrds:( 938X  16) {{.*}}tripcount:15000 rpc:0
+  /// CHECK: DEVID:{{.*}}SGN:5 ConstWGSize:128  args: 2 teamsXthrds:( 832X 128) {{.*}}tripcount:1000000 rpc:0
 
   /// CHECK: x[3] = 4
   /// CHECK: y[500000] = 8

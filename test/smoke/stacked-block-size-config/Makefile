@@ -8,7 +8,7 @@ RUNENV      += LIBOMPTARGET_MIN_THREADS_FOR_LOW_TRIP_COUNT=16 LIBOMPTARGET_AMDGP
 
 RUNCMD       = ./$(TESTNAME) 2>&1 | $(FILECHECK) $(TESTSRC_MAIN)
 
-CFLAGS       += -O3
+CFLAGS       += -O3 -fopenmp-gpu-threads-per-team=128
 CLANG        = clang
 OMP_BIN      = $(AOMP)/bin/$(CLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
