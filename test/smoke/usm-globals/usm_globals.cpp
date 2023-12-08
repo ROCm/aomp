@@ -20,9 +20,10 @@ int main() {
   /// CHECK: __tgt_rtl_data_submit_async: {{.*}} 0 ({{.*}} 40, {{.*}})
   #pragma omp target update to(z[:10])
 
-  /// CHECK: __tgt_rtl_data_submit_async: {{.*}} 0 ({{.*}} 4, {{.*}})
-
+  /// CHECK-NOT: __tgt_rtl_data_alloc: {{.*}}({{.*}} 0,{{.*}} 20,{{.*}})
   /// CHECK-NOT: __tgt_rtl_data_submit_async: {{.*}} 0 ({{.*}} 20, {{.*}})
+
+  /// CHECK: __tgt_rtl_data_submit_async: {{.*}} 0 ({{.*}} 4, {{.*}})
   #pragma omp target map(to:k[:5]) map(always, tofrom:x) map(tofrom:y)
   {
     x++;
