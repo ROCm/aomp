@@ -1,4 +1,5 @@
 #include <cassert>
+#include <memory>
 #include <unordered_set>
 
 // Tool related code below
@@ -8,7 +9,8 @@
 
 // Map of devices traced
 typedef std::unordered_set<ompt_device_t*> DeviceMap_t;
-extern DeviceMap_t DeviceMap;
+typedef std::unique_ptr<DeviceMap_t> DeviceMapPtr_t;
+extern DeviceMapPtr_t DeviceMapPtr;
 
 // Utilities
 static void print_record_ompt(ompt_record_ompt_t *rec) {
@@ -176,9 +178,9 @@ static int start_trace(int device_num, ompt_device_t *Device) {
   if (!ompt_start_trace) return 0;
 
   // This device will be traced.
-  assert(DeviceMap.find(Device) == DeviceMap.end() &&
+  assert(DeviceMapPtr->find(Device) == DeviceMapPtr->end() &&
 	 "Device already present in the map");
-  DeviceMap.insert(Device);
+  DeviceMapPtr->insert(Device);
   
   if (device_num == omp_get_default_device())
     return ompt_start_trace(Device, &on_ompt_callback_buffer_request_default_device,
@@ -225,6 +227,7 @@ static void on_ompt_callback_device_initialize
     printf("WARNING: No function ompt_get_record_type found in device callbacks\n");
   }
 
+  DeviceMapPtr = std::make_unique<DeviceMap_t>();
   set_trace_ompt(device);
   
   start_trace(device_num, device);
