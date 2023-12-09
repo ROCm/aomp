@@ -12,7 +12,7 @@
 #include "callbacks.h"
 
 // Map of devices traced
-DeviceMap_t DeviceMap;
+DeviceMapPtr_t DeviceMapPtr;
 
 int main()
 {
@@ -34,7 +34,7 @@ int main()
   {
   }
 
-  for (auto Dev : DeviceMap)
+  for (auto Dev : *DeviceMapPtr)
     flush_trace(Dev);
   
   for (int dev = 0; dev < omp_get_num_devices(); ++dev) {
@@ -45,7 +45,7 @@ int main()
     }
   }
 
-  for (auto Dev : DeviceMap) {
+  for (auto Dev : *DeviceMapPtr) {
     flush_trace(Dev);
     stop_trace(Dev);
   }
