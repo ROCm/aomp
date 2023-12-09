@@ -5,6 +5,9 @@ TESTSRC_MAIN = veccopy-ompt-target-data-tracing-emi.c
 TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 
+# temporary workaround?
+RUNENV      += ROCR_VISIBLE_DEVICES=0
+
 RUNCMD      = ./$(TESTNAME) | $(FILECHECK) $(TESTSRC_MAIN)
 
 CLANG        ?= clang
