@@ -10,8 +10,7 @@ echo 'detected #ranks=' $RKS ' gpu=' $GFX
 echo $AOMP
 echo $ROCMINFO_BINARY
 echo $MPI
-
-exit
+ls /opt
 
 set +x
 . ./shrc
