@@ -30,5 +30,5 @@ export PATH=$AOMP/bin:$MPI/bin:$PATH
 export OMPX_FORCE_SYNC_REGIONS=1
 
 
-runhpc -c amdgpu_clang.cfg -I -l -n 1 -T base --define gputype=$GFX --define model=omp_target --threads=1 --ranks=$RNKS   -i test,ref tiny --rebuild
+runhpc -c amdgpu_clang.cfg -I -l -n 1 -T base --define gputype=$GFX --define model=omp_target --threads=1 --ranks=$RKS   -i test,ref tiny --rebuild
 
