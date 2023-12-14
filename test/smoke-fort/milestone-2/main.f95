@@ -25,3 +25,5 @@ subroutine writeIndex(int_array, array_length)
 !$omp end target teams distribute parallel do
 
 end subroutine writeIndex
+
+/// CHECK: Tripcount: 10
