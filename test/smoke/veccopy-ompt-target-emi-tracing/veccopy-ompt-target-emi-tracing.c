@@ -57,5 +57,6 @@ int main()
   return rc;
 }
 
+/// CHECK-NOT: host_op_id=0x0
 /// CHECK: Record Target kernel
 
