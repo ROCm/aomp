@@ -1,4 +1,3 @@
-rocminfo: rocminfo.patch
 openlibm: openlibm.patch
 RAJA: raja.patch
 RAJAPerf: rajaperf.patch
