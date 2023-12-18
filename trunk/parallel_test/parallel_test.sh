@@ -91,6 +91,13 @@ if [ -f main_in_f ] ; then
    LIBOMPTARGET_DEBUG=1 OMP_TARGET_OFFLOAD=$OFFLOAD ./main_in_f 2>debug.out
    _script_rc=$?
    echo "FORTRAN RETURN CODE IS: $_script_rc"
+   if LIBOMPTARGET_INFO=-1 ./main_in_f 2>&1 | grep  "Tripcount: 10000"
+   then
+      echo "Loop tripcount calculated correctly"
+   else
+      echo "Loop tripcount mismatch. Expected loop tripcount 10000."
+      _script_rc=1
+   fi
 else
    echo "COMPILE FAILED, SKIPPING EXECUTION"
    _script_rc=1
