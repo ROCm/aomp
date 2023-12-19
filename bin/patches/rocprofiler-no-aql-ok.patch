@@ -1,16 +1,16 @@
-diff --git a/cmake_modules/env.cmake b/cmake_modules/env.cmake
-index 5841277..70220e9 100644
---- a/cmake_modules/env.cmake
-+++ b/cmake_modules/env.cmake
-@@ -88,7 +88,7 @@ find_library(
-     FIND_AQL_PROFILE_LIB "libhsa-amd-aqlprofile64.so"
-     HINTS ${CMAKE_PREFIX_PATH}
-     PATHS ${ROCM_ROOT_DIR}
--    PATH_SUFFIXES lib REQUIRED)
-+    PATH_SUFFIXES lib)
- if(NOT FIND_AQL_PROFILE_LIB)
-     message("AQL_PROFILE not installed. Please install AQL_PROFILE")
- endif()
+diff --git a/cmake_modules/rocprofiler_options.cmake b/cmake_modules/rocprofiler_options.cmake
+index 41135b5..bfb8a81 100644
+--- a/cmake_modules/rocprofiler_options.cmake
++++ b/cmake_modules/rocprofiler_options.cmake
+@@ -27,7 +27,7 @@ mark_as_advanced(ROCPROFILER_BUILD_CI)
+ option(ROCPROFILER_ENABLE_CLANG_TIDY "Enable clang-tidy checks" OFF)
+ mark_as_advanced(ROCPROFILER_ENABLE_CLANG_TIDY)
+
+-set(ROCPROFILER_BUILD_TYPES "Release" "RelWithDebInfo" "Debug" "MinSizeRel" "Coverage")
++set(ROCPROFILER_BUILD_TYPES "release" "RelWithDebInfo" "Debug" "MinSizeRel" "Coverage")
+
+ # export compile commands in the project
+ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 diff --git a/src/api/CMakeLists.txt b/src/api/CMakeLists.txt
 index 574b77f..a152c71 100644
 --- a/src/api/CMakeLists.txt
