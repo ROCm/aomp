@@ -4,11 +4,10 @@
 
 #include "callbacks.h"
 
-#define N 100000
+// Map of devices traced
+DeviceMapPtr_t DeviceMapPtr;
 
-static int start_trace();
-static int flush_trace();
-static int stop_trace();
+#define N 100000
 
 #pragma omp declare target
 int c[N];
@@ -29,11 +28,7 @@ int main() {
   for (i = 0; i < N; i++)
     c[i] = 0;
 
-  start_trace();
-
 #pragma omp target enter data map(to : a)
-  flush_trace();
-
 #pragma omp target parallel for
   {
     for (int j = 0; j < N; j++)
@@ -41,11 +36,9 @@ int main() {
   }
 #pragma omp target exit data map(from : a)
 
-  flush_trace();
-  stop_trace();
-
-  start_trace();
-
+  for (auto Dev : *DeviceMapPtr)
+    flush_trace(Dev);
+  
 #pragma omp target parallel for map(alloc : c)
   {
     for (int j = 0; j < N; j++)
@@ -54,8 +47,11 @@ int main() {
 #pragma omp target update from(c) nowait
 #pragma omp barrier
 
-  stop_trace();
-
+  for (auto Dev : *DeviceMapPtr) {
+    flush_trace(Dev);
+    stop_trace(Dev);
+  }
+  
   int rc = 0;
   for (i = 0; i < N; i++) {
     if (a[i] != i) {
@@ -90,11 +86,6 @@ int main() {
 /// CHECK-DAG: Callback DataOp EMI: endpoint=2 optype=2
 /// CHECK-DAG: Callback Target EMI: kind=2 endpoint=2
 
-/// CHECK-DAG: Record Target task
-/// CHECK-DAG: Record Target data op
-/// CHECK-DAG: Record Target data op
-/// CHECK-DAG: Record Target task
-
 /// CHECK: Callback Target EMI: kind=1 endpoint=1
 /// CHECK-DAG: Callback DataOp EMI: endpoint=1 optype=1
 /// CHECK-DAG: Callback DataOp EMI: endpoint=2 optype=1
@@ -114,19 +105,6 @@ int main() {
 /// CHECK-DAG: Callback DataOp EMI: endpoint=2 optype=4
 /// CHECK-DAG: Callback Target EMI: kind=3 endpoint=2
 
-/// CHECK-DAG: Record Target task
-/// CHECK-DAG: Record Target data op
-/// CHECK-DAG: Record Target data op
-/// CHECK-DAG: Record Target kernel
-/// CHECK-DAG: Record Target data op
-/// CHECK-DAG: Record Target data op
-/// CHECK-DAG: Record Target task
-
-/// CHECK-DAG: Record Target task
-/// CHECK-DAG: Record Target data op
-/// CHECK-DAG: Record Target data op
-/// CHECK-DAG: Record Target task
-
 /// CHECK: Callback Target EMI: kind=1 endpoint=1
 /// CHECK-DAG: Callback Submit EMI: endpoint=1  req_num_teams=1
 /// CHECK-DAG: Callback Submit EMI: endpoint=2  req_num_teams=1
@@ -136,12 +114,6 @@ int main() {
 /// CHECK-DAG: Callback DataOp EMI: endpoint=2 optype=3
 /// CHECK-DAG: Callback Target EMI: kind=4 endpoint=2
 
-/// CHECK-DAG: Record Target task
 /// CHECK-DAG: Record Target kernel
-/// CHECK-DAG: Record Target task
-
-/// CHECK-DAG: Record Target task
-/// CHECK-DAG: Record Target data op
-/// CHECK-DAG: Record Target task
 
 /// CHECK: Callback Fini:

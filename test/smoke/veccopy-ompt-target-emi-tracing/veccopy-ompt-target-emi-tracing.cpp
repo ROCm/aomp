@@ -4,9 +4,8 @@
 
 #include "callbacks.h"
 
-static int start_trace();
-static int flush_trace();
-static int stop_trace();
+// Map of devices traced
+DeviceMapPtr_t DeviceMapPtr;
 
 int main()
 {
@@ -23,26 +22,22 @@ int main()
   for (i=0; i<N; i++)
     b[i]=i;
 
-  start_trace();
-  
 #pragma omp target parallel for
   {
     for (int j = 0; j< N; j++)
       a[j]=b[j];
   }
 
-  flush_trace();
-  stop_trace();
-
-  start_trace();
+  for (auto Dev : *DeviceMapPtr) {
+    flush_trace(Dev);
+    stop_trace(Dev);
+  }
   
 #pragma omp target teams distribute parallel for
   {
     for (int j = 0; j< N; j++)
       a[j]=b[j];
   }
-
-  stop_trace();
 
   int rc = 0;
   for (i=0; i<N; i++)
