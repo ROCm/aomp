@@ -5,7 +5,7 @@ TESTSRC_MAIN = flang-273284.f90
 TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 
-TARGET       = -fopenmp -O0 -g -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$(AOMP_GPU):$(AOMP_TARGET_FEATURES)
+TARGET       = -fopenmp -O0 -g -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$(AOMP_GPU)$(AOMP_TARGET_FEATURES)
 
 FLANG        ?= flang
 OMP_BIN      = $(AOMP)/bin/$(FLANG)
