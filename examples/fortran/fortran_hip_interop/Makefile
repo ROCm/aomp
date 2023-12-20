@@ -60,7 +60,7 @@ INSTALLED_GPU  = $(shell $(AOMP)/bin/mygpu -d gfx900) # Default AOMP_GPU is gfx9
 AOMP_GPU       ?= $(INSTALLED_GPU)
 endif
 ifeq ($(TARGETS),)
-TARGETS =-march=$(AOMP_GPU)
+TARGETS =-march=$(AOMP_GPU)$(AOMP_TARGET_FEATURES)
 endif
 
 ifeq (sm_,$(findstring sm_,$(AOMP_GPU)))

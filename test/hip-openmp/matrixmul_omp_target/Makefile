@@ -52,9 +52,9 @@ VERS = $(shell $(AOMP)/bin/clang --version | grep -oP '(?<=clang version )[0-9.]
 ifeq ($(shell expr $(VERS) \>= 12.0), 1)
   RPTH = -Wl,-rpath,$(AOMPHIP)/lib
 endif
-HIPFLAGS = -x hip $(PLATFORM) -O2 --offload-arch=$(AOMP_GPU) $(AOMP_CPUTARGET) -fopenmp -lamdhip64  $(RPTH) -I $(AOMPHIP)/include
+HIPFLAGS = -x hip $(PLATFORM) -O2 --offload-arch=$(AOMP_GPU)$(AOMP_TARGET_FEATURES) $(AOMP_CPUTARGET) -fopenmp -lamdhip64  $(RPTH) -I $(AOMPHIP)/include
 #  These OMP_TARGET_FLAGS added to HIPFLAGS provide HIP+OpenMP with GPU target offload
-OMP_TARGET_FLAGS = -fopenmp-targets=$(TRIPLE) -Xopenmp-target=$(TRIPLE) -march=$(AOMP_GPU)
+OMP_TARGET_FLAGS = -fopenmp-targets=$(TRIPLE) -Xopenmp-target=$(TRIPLE) -march=$(AOMP_GPU)$(AOMP_TARGET_FEATURES)
 
 CFLAGS = $(HIPFLAGS) $(OMP_TARGET_FLAGS) -U_OPENMP
 

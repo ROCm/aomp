@@ -35,7 +35,7 @@ TESTNAME =kern_latency
 FILETYPE =cpp
 
 ifeq ($(TARGETS),)
-TARGETS =--offload-arch=$(AOMP_GPU)
+TARGETS =--offload-arch=$(AOMP_GPU)$(AOMP_TARGET_FEATURES)
 endif
 
 CC       =$(AOMP)/bin/clang++ -std=c++11

@@ -207,7 +207,7 @@ ifeq ($(TARGET),)
    ifeq ($(USE_OFFLOAD_ARCH),1)
     TARGET  =  --offload-arch=$(AOMP_GPU)$(AOMP_TARGET_FEATURES)
    else
-    TARGET  =  -fopenmp-targets=$(AOMP_GPUTARGET) -Xopenmp-target=$(AOMP_GPUTARGET) -march=$(AOMP_GPU)
+    TARGET  =  -fopenmp-targets=$(AOMP_GPUTARGET) -Xopenmp-target=$(AOMP_GPUTARGET) -march=$(AOMP_GPU)$(AOMP_TARGET_FEATURES)
    endif
   endif
 endif

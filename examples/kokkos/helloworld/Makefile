@@ -46,7 +46,7 @@ else
 endif
 
 INCLUDES     = -I$(KOKKOS_ROOT)/include
-TARGET_FLAGS = -fopenmp -fopenmp-targets=$(AOMP_GPUTARGET) -Xopenmp-target=$(AOMP_GPUTARGET) -march=$(AOMP_GPU) 
+TARGET_FLAGS = -fopenmp -fopenmp-targets=$(AOMP_GPUTARGET) -Xopenmp-target=$(AOMP_GPUTARGET) -march=$(AOMP_GPU)$(AOMP_TARGET_FEATURES)
 CPPFLAGS     = $(INCLUDES) -Wall -Wextra -O3 -DNDEBUG  -w $(TARGET_FLAGS) -std=c++17 -DGTEST_HAS_PTHREAD=0 -DGTEST_HAS_TR1_TUPLE=0 -DKOKKOS_DEPENDENCE -DKOKKOS_WORKAROUND_OPENMPTARGET_CLANG
 LINKFLAGS    = $(enableopt) -Wall -Wextra -O3 -DNDEBUG -w $(TARGET_FLAGS)
 
@@ -77,7 +77,7 @@ endif
 
 ifeq ($(TEMPS),1)
   $(info    Compilation and linking save-temp Mode ON)
-  CPPFLAGS += -save-temps 
+  CPPFLAGS += -save-temps
 endif
 
 CPPFLAGS += $(EXTRA_CPPFLAGS)
@@ -86,9 +86,9 @@ $(TESTNAME): $(TESTNAME).o $(KOKKOS_LIB)
 	$(CCENV) $(AOMPCC) $(LINKFLAGS) -o $@ $(TESTNAME).o $(KOKKOS_LIB) -ldl
 
 $(TESTNAME).o: $(TESTNAME).cpp $(KOKKOS_LIB)
-	$(CCENV) $(AOMPCC) $(CPPFLAGS) -o $@ -c $(TESTNAME).cpp 
+	$(CCENV) $(AOMPCC) $(CPPFLAGS) -o $@ -c $(TESTNAME).cpp
 
-run: $(TESTNAME) 
+run: $(TESTNAME)
 	$(RUNENV) ./$(TESTNAME)
 
 $(KOKKOS_LIB):

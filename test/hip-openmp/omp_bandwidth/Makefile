@@ -21,7 +21,7 @@ CLANG=$(AOMP)/bin/clang++
 
 DSIZE ?= 1000000000
 
-CXXFLAGS = $(host_debug_flag) -O3 -I${OMPIDIR}/include $(AOMP_CPUTARGET) -fopenmp -fopenmp-targets=$(AOMP_GPUTARGET) -Xopenmp-target=$(AOMP_GPUTARGET) -march=$(AOMP_GPU) $(VERBOSE) $(CDEFS) -DDSIZE=$(DSIZE)
+CXXFLAGS = $(host_debug_flag) -O3 -I${OMPIDIR}/include $(AOMP_CPUTARGET) -fopenmp -fopenmp-targets=$(AOMP_GPUTARGET) -Xopenmp-target=$(AOMP_GPUTARGET) -march=$(AOMP_GPU)$(AOMP_TARGET_FEATURES) $(VERBOSE) $(CDEFS) -DDSIZE=$(DSIZE)
 CXX = $(AOMP)/bin/clang++
 LFLAGS = -fopenmp -fopenmp-targets=$(AOMP_GPUTARGET) $(AOMP_CPUTARGET)
 ifeq (nvptx,$(findstring nvptx,$(AOMP_GPUTARGET)))

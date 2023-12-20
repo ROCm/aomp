@@ -45,7 +45,7 @@ DEVICE_LIB_PATH = $(AOMPHIP)/amdgcn/bitcode
 MYGPU = $(shell $(AOMPHIP)/bin/mygpu -d gfx900)
 TRIPLE = amdgcn-amd-amdhsa
 #OMPFLAGS = -O3 -target x86_64-pc-linux-gnu -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$(MYGPU)
-OMPFLAGS = -O3 -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$(MYGPU)
+OMPFLAGS = -O3 -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$(MYGPU)$(AOMP_TARGET_FEATURES)
 
 
 writeIndex: writeIndex.hip lib_mylib.a libbc-_mylib-amdgcn.a libbc-_myomplib-amdgcn.a
