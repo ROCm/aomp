@@ -31,7 +31,7 @@ UNAMEP    = $(shell uname -m)
 HOST_TARGET = $(UNAMEP)-pc-linux-gnu
 CFLAGS  = -c -target $(HOST_TARGET) -fopenmp -fopenmp-targets=$(TRIPLE) \
             -Xopenmp-target=$(TRIPLE) \
-            -march=$(AOMP_GPU) -O2
+            -march=$(AOMP_GPU)$(AOMP_TARGET_FEATURES) -O2
 
 #   ---------------------  create bundle library -------------------
 #

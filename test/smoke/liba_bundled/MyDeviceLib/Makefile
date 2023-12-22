@@ -28,7 +28,7 @@ endif
 TMPDIR    = ./build
 CFLAGS  = -c $(AOMP_CPUTARGET) -fopenmp -fopenmp-targets=$(TRIPLE) \
             -Xopenmp-target=$(TRIPLE) \
-            -march=$(AOMP_GPU) -O2
+						-march=$(AOMP_GPU)$(AOMP_TARGET_FEATURES) -O2
 
 #   ---------------------  create bundle library -------------------
 #

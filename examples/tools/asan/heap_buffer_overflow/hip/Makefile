@@ -62,7 +62,7 @@ AOMP_GPU       ?= $(INSTALLED_GPU)
 endif
 
 ifeq ($(TARGETS),)
-TARGETS =--offload-arch=$(AOMP_GPU):xnack+
+TARGETS =--offload-arch=$(AOMP_GPU)$(AOMP_TARGET_FEATURES)
 endif
 
 CC       =$(AOMP)/bin/clang++

@@ -15,7 +15,7 @@ TESTNAME = teams512-info
 TESTSRC  = teams512-info.c
 RUNENV   += LIBOMPTARGET_KERNEL_TRACE=1
 
-CFLAGS = -O3 $(AOMP_CPUTARGET) -fopenmp -fopenmp-targets=$(AOMP_GPUTARGET) -Xopenmp-target=$(AOMP_GPUTARGET) -march=$(AOMP_GPU)
+CFLAGS = -O3 $(AOMP_CPUTARGET) -fopenmp -fopenmp-targets=$(AOMP_GPUTARGET) -Xopenmp-target=$(AOMP_GPUTARGET) -march=$(AOMP_GPU)$(AOMP_TARGET_FEATURES)
 
 ifeq (sm_,$(findstring sm_,$(AOMP_GPU)))
   CUDA   ?= /usr/local/cuda

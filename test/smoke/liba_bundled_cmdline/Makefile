@@ -45,7 +45,7 @@ MyDeviceLib/libMyDeviceLib.a : MyDeviceLib/Makefile MyDeviceLib/func_1v.c \
 	AOMP_GPU=$(AOMP_GPU) make -C MyDeviceLib libMyDeviceLib.a; \
 	make -C MyHostLib libMyHostLib.a; \
 	$(CC) -c -target $(HOST_TARGET) -fopenmp -fopenmp-targets=$(TRIPLE) \
-	-Xopenmp-target=$(TRIPLE) -march=$(AOMP_GPU) -O2 hfunc0.c -o hfunc0.o
+	-Xopenmp-target=$(TRIPLE) -march=$(AOMP_GPU)$(AOMP_TARGET_FEATURES) -O2 hfunc0.c -o hfunc0.o
 
 
 clean ::
