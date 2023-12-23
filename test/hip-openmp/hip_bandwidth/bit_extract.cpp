@@ -38,11 +38,13 @@ int main(int argc, char* argv[]) {
     hipDeviceProp_t props;
     CHECK(hipGetDeviceProperties(&props, deviceId));
     fprintf(stderr, "running on device #%d %s\n", deviceId, props.name);
-    fprintf(stderr, "Device num %d\n", props.gcnArch);
+    fprintf(stderr, "Device num %s\n", props.gcnArchName);
     size_t N = 1000000000;
+#if gfx900_supported
     // if we are a dinky memory us 2GB max.
     if (props.gcnArch < 906)
       N = N /2;
+#endif
     size_t Nbytes = N * sizeof(uint32_t);
 
     CHECK(hipDeviceSynchronize());
