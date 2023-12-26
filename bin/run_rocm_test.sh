@@ -27,7 +27,7 @@ SUITE_LIST=${SUITE_LIST:-"examples smoke-limbo smoke omp5 openmpapps ovo sollve 
 blockinglist="examples_fortran examples_openmp smoke openmpapps sollve45 sollve50 babelstream"
 else
 SUITE_LIST=${SUITE_LIST:-"examples smoke-limbo smoke omp5 openmpapps LLNL nekbone ovo sollve babelstream fortran-babelstream"}
-blockinglist="examples_fortran examples_openmp smoke openmpapps nekbone sollve45 sollve50 babelstream"
+blockinglist="examples_fortran examples_openmp smoke openmpapps sollve45 sollve50 babelstream"
 fi
 EPSDB_LIST=${EPSDB_LIST:-"examples smoke-limbo smoke omp5 openmpapps LLNL nekbone ovo sollve babelstream fortran-babelstream"}
 
