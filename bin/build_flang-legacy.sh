@@ -10,8 +10,6 @@
 #  tree for flang-legacy.
 #
 BUILD_TYPE=${BUILD_TYPE:-Release}
-AOMP_NINJA_BIN=make
-
 
 # --- Start standard header to set AOMP environment variables ----
 realpath=`realpath $0`
@@ -113,14 +111,14 @@ fi
 
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    echo
-   echo "This is a FRESH START. ERASING any previous builds in $BUILD_DIR/build/flang-legacy/$AOMP_LFL_DIR"
+   echo "This is a FRESH START. ERASING any previous builds in $BUILD_DIR/build/flang-legacy"
    echo "Use ""$0 nocmake"" or ""$0 install"" to avoid FRESH START."
-   rm -rf $BUILD_DIR/build/flang-legacy/$AOMP_LFL_DIR
-   mkdir -p $BUILD_DIR/build/flang-legacy/$AOMP_LFL_DIR
-   mkdir -p $BUILD_DIR/build/flang-legacy/$AOMP_LFL_DIR/llvm-legacy
+   rm -rf $BUILD_DIR/build/flang-legacy
+   mkdir -p $BUILD_DIR/build/flang-legacy
+   mkdir -p $BUILD_DIR/build/flang-legacy/llvm-legacy
 else
-   if [ ! -d $BUILD_DIR/build/flang-legacy/$AOMP_LFL_DIR ] ; then
-      echo "ERROR: The build directory $BUILD_DIR/build/flang-legacy/$AOMP_LFL_DIR does not exist"
+   if [ ! -d $BUILD_DIR/build/flang-legacy ] ; then
+      echo "ERROR: The build directory $BUILD_DIR/build/flang-legacy does not exist"
       echo "       run $0 without nocmake or install options. "
       exit 1
    fi
@@ -128,10 +126,10 @@ fi
 
 # Cmake for llvm legacy (ROCm 5.5).
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
-   cd $BUILD_DIR/build/flang-legacy/$AOMP_LFL_DIR/llvm-legacy
+   cd $BUILD_DIR/build/flang-legacy/llvm-legacy
    echo " -----Running cmake ---- "
-   echo ${AOMP_CMAKE} $LLVMCMAKEOPTS  $AOMP_REPOS/$AOMP_FLANG_REPO_NAME/flang-legacy/$AOMP_LFL_DIR/llvm-legacy/llvm
-   ${AOMP_CMAKE} $LLVMCMAKEOPTS  $AOMP_REPOS/$AOMP_FLANG_REPO_NAME/flang-legacy/$AOMP_LFL_DIR/llvm-legacy/llvm 2>&1
+   echo ${AOMP_CMAKE} $LLVMCMAKEOPTS  $AOMP_REPOS/$AOMP_FLANG_REPO_NAME/flang-legacy/llvm-legacy/llvm
+   ${AOMP_CMAKE} $LLVMCMAKEOPTS  $AOMP_REPOS/$AOMP_FLANG_REPO_NAME/flang-legacy/llvm-legacy/llvm 2>&1
    if [ $? != 0 ] ; then
       echo "ERROR cmake failed. Cmake flags"
       echo "      $LLVMCMAKEOPTS"
@@ -141,25 +139,25 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 fi
 
 # Build llvm legacy.
-echo " ---  Running $AOMP_NINJA_BIN for $BUILD_DIR/build/flang-legacy/$AOMP_LFL_DIR/llvm-legacy ---- "
-cd $BUILD_DIR/build/flang-legacy/$AOMP_LFL_DIR/llvm-legacy
-$AOMP_NINJA_BIN -j $AOMP_JOB_THREADS
+echo " ---  Running make for $BUILD_DIR/build/flang-legacy/llvm-legacy ---- "
+cd $BUILD_DIR/build/flang-legacy/llvm-legacy
+make -j $NUM_THREADS
 if [ $? != 0 ] ; then
       echo " "
       echo "ERROR: make -j $NUM_THREADS  FAILED"
       echo "To restart:"
-      echo "  cd $BUILD_DIR/build/flang-legacy/$AOMP_LFL_DIR/llvm-legacy"
-      echo "  $AOMP_NINJA_BIN"
+      echo "  cd $BUILD_DIR/build/flang-legacy/llvm-legacy"
+      echo "  make"
       exit 1
 fi
 
 echo
 # Cmake flang-legacy.
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
-   cd $BUILD_DIR/build/flang-legacy/$AOMP_LFL_DIR
+   cd $BUILD_DIR/build/flang-legacy
    echo " -----Running cmake ---- " 
-   echo ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_FLANG_REPO_NAME/flang-legacy/$AOMP_LFL_DIR
-   ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_FLANG_REPO_NAME/flang-legacy/$AOMP_LFL_DIR 2>&1
+   echo ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_FLANG_REPO_NAME/flang-legacy
+   ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_FLANG_REPO_NAME/flang-legacy 2>&1
    if [ $? != 0 ] ; then 
       echo "ERROR cmake failed. Cmake flags"
       echo "      $MYCMAKEOPTS"
@@ -170,15 +168,15 @@ fi
 echo
 
 # Build flang-legacy.
-echo " ---  Running $AOMP_NINJA_BIN for $BUILD_DIR/build/flang-legacy/$AOMP_LFL_DIR ---- "
-cd $BUILD_DIR/build/flang-legacy/$AOMP_LFL_DIR
-$AOMP_NINJA_BIN -j $AOMP_JOB_THREADS
+echo " ---  Running make for $BUILD_DIR/build/flang-legacy ---- "
+cd $BUILD_DIR/build/flang-legacy
+make -j $NUM_THREADS
 if [ $? != 0 ] ; then
       echo " "
       echo "ERROR: make -j $NUM_THREADS  FAILED"
       echo "To restart:"
-      echo "  cd $BUILD_DIR/build/flang-legacy/$AOMP_LFL_DIR"
-      echo "  $AOMP_NINJA_BIN"
+      echo "  cd $BUILD_DIR/build/flang-legacy"
+      echo "  make"
       exit 1
 fi
 
