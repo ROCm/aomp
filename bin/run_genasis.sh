@@ -130,7 +130,7 @@ if [ "$1" != "buildonly" ] ; then
   #echo ldd ./SineWaveAdvection_$GENASIS_MACHINE
   #ldd ./SineWaveAdvection_$GENASIS_MACHINE
   echo
-  _cmd="$OPENMPI_DIR/bin/mpirun -np 1 $AOMP/bin/openmpi_set_cu_mask $REPO_DIR/Programs/Examples/Basics/FluidDynamics/Executables/SineWaveAdvection_$GENASIS_MACHINE nCells=128,128,128"
+  _cmd="$OPENMPI_DIR/bin/mpirun -np 1 $AOMP/bin/gpurun $REPO_DIR/Programs/Examples/Basics/FluidDynamics/Executables/SineWaveAdvection_$GENASIS_MACHINE nCells=128,128,128"
   echo $_cmd
   time $_cmd
   echo "=================  end mpirun  ========"

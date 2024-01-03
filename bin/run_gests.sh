@@ -79,7 +79,7 @@ if [ "$1" != "buildonly" ] ; then
   cd $REPO_DIR
   echo
   echo "=================  attempting mpirun  ========"
-  _cmd="$OPENMPI_DIR/bin/mpirun -np 1 $AOMP/bin/openmpi_set_cu_mask ./PSDNS_fft.x"
+  _cmd="$OPENMPI_DIR/bin/mpirun -np 1 $AOMP/bin/gpurun ./PSDNS_fft.x"
   echo $_cmd
   time $_cmd
   echo
