@@ -5,9 +5,12 @@ TESTS_DIR = \
     declare-target-link-2 \
     flang-404247 \
     flang-421111-2 \
+    fdefault-sizeof \
+    fdefault-type-8 \
     LaunchLatency \
     milestone-1 \
-    milestone-2
+    milestone-2 \
+    teams-ditribute-collapse
 
 all:
 	@for test_dir in $(TESTS_DIR); do \
