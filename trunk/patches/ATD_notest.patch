@@ -1,6 +1,6 @@
 diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/clang/lib/CodeGen/CGOpenMPRuntimeGPU.cpp llvm-project/clang/lib/CodeGen/CGOpenMPRuntimeGPU.cpp
 --- llvm-project.upstream/clang/lib/CodeGen/CGOpenMPRuntimeGPU.cpp	2023-12-18 11:20:49.111183767 -0500
-+++ llvm-project/clang/lib/CodeGen/CGOpenMPRuntimeGPU.cpp	2024-01-02 11:47:38.943805325 -0500
++++ llvm-project/clang/lib/CodeGen/CGOpenMPRuntimeGPU.cpp	2024-01-05 09:08:36.030322145 -0500
 @@ -765,14 +765,13 @@
  void CGOpenMPRuntimeGPU::emitKernelInit(const OMPExecutableDirective &D,
                                          CodeGenFunction &CGF,
@@ -22,9 +22,9 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/clang/lib/
      emitGenericVarsProlog(CGF, EST.Loc);
  }
 diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/clang/lib/Driver/ToolChains/Clang.cpp llvm-project/clang/lib/Driver/ToolChains/Clang.cpp
---- llvm-project.upstream/clang/lib/Driver/ToolChains/Clang.cpp	2024-01-02 11:37:59.557301547 -0500
-+++ llvm-project/clang/lib/Driver/ToolChains/Clang.cpp	2024-01-02 11:47:43.071793690 -0500
-@@ -8414,7 +8414,9 @@
+--- llvm-project.upstream/clang/lib/Driver/ToolChains/Clang.cpp	2024-01-05 09:07:19.130571671 -0500
++++ llvm-project/clang/lib/Driver/ToolChains/Clang.cpp	2024-01-05 09:08:39.226311809 -0500
+@@ -8425,7 +8425,9 @@
    assert(Input.isFilename() && "Invalid input.");
    CmdArgs.push_back(Input.getFilename());
  
@@ -35,9 +35,54 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/clang/lib/
    if (D.CC1Main && !D.CCGenDiagnostics) {
      // Invoke cc1as directly in this process.
      C.addCommand(std::make_unique<CC1Command>(
+diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/include/flang/Optimizer/CodeGen/CodeGenOpenMP.h llvm-project/flang/include/flang/Optimizer/CodeGen/CodeGenOpenMP.h
+--- llvm-project.upstream/flang/include/flang/Optimizer/CodeGen/CodeGenOpenMP.h	1969-12-31 19:00:00.000000000 -0500
++++ llvm-project/flang/include/flang/Optimizer/CodeGen/CodeGenOpenMP.h	2024-01-05 09:27:05.922815707 -0500
+@@ -0,0 +1,27 @@
++//=== Optimizer/CodeGen/CodeGenOpenMP.h - OpenMP code generation -*- C++
++//-*-===//
++//
++// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
++// See https://llvm.org/LICENSE.txt for license information.
++// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
++//
++//===----------------------------------------------------------------------===//
++
++#ifndef FORTRAN_OPTIMIZER_CODEGEN_CODEGENOPENMP_H
++#define FORTRAN_OPTIMIZER_CODEGEN_CODEGENOPENMP_H
++
++#include "mlir/Pass/Pass.h"
++#include "mlir/Pass/PassRegistry.h"
++
++namespace fir {
++class LLVMTypeConverter;
++
++/// Specialised conversion patterns of OpenMP operations for FIR to LLVM
++/// dialect, utilised in cases where the default OpenMP dialect handling cannot
++/// handle all cases for intermingled fir types and operations.
++void populateOpenMPFIRToLLVMConversionPatterns(
++    LLVMTypeConverter &converter, mlir::RewritePatternSet &patterns);
++
++} // namespace fir
++
++#endif // FORTRAN_OPTIMIZER_CODEGEN_CODEGENOPENMP_H
+\ No newline at end of file
+diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/include/flang/Optimizer/Dialect/FIRType.h llvm-project/flang/include/flang/Optimizer/Dialect/FIRType.h
+--- llvm-project.upstream/flang/include/flang/Optimizer/Dialect/FIRType.h	2024-01-02 11:37:59.657301324 -0500
++++ llvm-project/flang/include/flang/Optimizer/Dialect/FIRType.h	2024-01-05 09:27:05.922815707 -0500
+@@ -313,6 +313,9 @@
+ /// e.g. !fir.box<!fir.type<derived>>
+ bool isBoxedRecordType(mlir::Type ty);
+ 
++/// Return true iff `ty` is a type that contains descriptor information.
++bool isTypeWithDescriptor(mlir::Type ty);
++
+ /// Return true iff `ty` is a scalar boxed record type.
+ /// e.g. !fir.box<!fir.type<derived>>
+ ///      !fir.box<!fir.heap<!fir.type<derived>>>
 diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/lib/Lower/OpenMP.cpp llvm-project/flang/lib/Lower/OpenMP.cpp
 --- llvm-project.upstream/flang/lib/Lower/OpenMP.cpp	2024-01-02 11:37:59.669301297 -0500
-+++ llvm-project/flang/lib/Lower/OpenMP.cpp	2024-01-02 11:47:43.055793734 -0500
++++ llvm-project/flang/lib/Lower/OpenMP.cpp	2024-01-05 09:27:05.922815707 -0500
 @@ -39,6 +39,19 @@
      llvm::cl::desc("In the OpenMP data clauses treat `a(N)` as `a(N:N)`."),
      llvm::cl::init(true));
@@ -77,7 +122,226 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/lib/
  //===----------------------------------------------------------------------===//
  // DataSharingProcessor
  //===----------------------------------------------------------------------===//
-@@ -1959,6 +1984,75 @@
+@@ -1718,30 +1743,76 @@
+ 
+ static mlir::omp::MapInfoOp
+ createMapInfoOp(fir::FirOpBuilder &builder, mlir::Location loc,
+-                mlir::Value baseAddr, std::stringstream &name,
+-                mlir::SmallVector<mlir::Value> bounds, uint64_t mapType,
+-                mlir::omp::VariableCaptureKind mapCaptureType,
+-                mlir::Type retTy) {
+-  mlir::Value varPtr, varPtrPtr;
+-  mlir::TypeAttr varType;
+-
++                mlir::Value baseAddr, mlir::Value varPtrPtr, std::string name,
++                mlir::SmallVector<mlir::Value> bounds,
++                mlir::SmallVector<mlir::Value> members, uint64_t mapType,
++                mlir::omp::VariableCaptureKind mapCaptureType, mlir::Type retTy,
++                bool isVal = false) {
+   if (auto boxTy = baseAddr.getType().dyn_cast<fir::BaseBoxType>()) {
+     baseAddr = builder.create<fir::BoxAddrOp>(loc, baseAddr);
+     retTy = baseAddr.getType();
+   }
+ 
+-  varPtr = baseAddr;
+-  varType = mlir::TypeAttr::get(
++  mlir::TypeAttr varType = mlir::TypeAttr::get(
+       llvm::cast<mlir::omp::PointerLikeType>(retTy).getElementType());
+ 
+   mlir::omp::MapInfoOp op = builder.create<mlir::omp::MapInfoOp>(
+-      loc, retTy, varPtr, varType, varPtrPtr, bounds,
++      loc, retTy, baseAddr, varType, varPtrPtr, members, bounds,
+       builder.getIntegerAttr(builder.getIntegerType(64, false), mapType),
+       builder.getAttr<mlir::omp::VariableCaptureKindAttr>(mapCaptureType),
+-      builder.getStringAttr(name.str()));
++      builder.getStringAttr(name));
++
+   return op;
+ }
+ 
++static mlir::omp::MapInfoOp processDescriptorTypeMappings(
++    Fortran::semantics::SemanticsContext &semanticsContext,
++    Fortran::lower::StatementContext &stmtCtx,
++    Fortran::lower::AbstractConverter &converter, mlir::Location loc,
++    mlir::Value descriptorAddr, mlir::Value descDataBaseAddr,
++    mlir::ValueRange bounds, std::string asFortran,
++    llvm::omp::OpenMPOffloadMappingFlags mapCaptureType) {
++  llvm::SmallVector<mlir::Value> descriptorBaseAddrMembers;
++  fir::FirOpBuilder &firOpBuilder = converter.getFirOpBuilder();
++
++  mlir::Value descriptor = descriptorAddr;
++
++  // The fir::BoxOffsetOp only works with !fir.ref<!fir.box<...>> types, as
++  // allowing it to access non-reference box operations can cause some
++  // problematic SSA IR. However, in the case of assumed shape's the type
++  // is not a !fir.ref, in these cases to retrieve the appropriate
++  // !fir.ref<!fir.box<...>> to access the data we need to map we must
++  // perform an alloca and then store to it and retrieve the data from the new
++  // alloca.
++  if (mlir::isa<fir::BaseBoxType>(descriptorAddr.getType())) {
++    mlir::OpBuilder::InsertPoint insPt = firOpBuilder.saveInsertionPoint();
++    firOpBuilder.setInsertionPointToStart(firOpBuilder.getAllocaBlock());
++    descriptor =
++        firOpBuilder.create<fir::AllocaOp>(loc, descriptorAddr.getType());
++    firOpBuilder.restoreInsertionPoint(insPt);
++    firOpBuilder.create<fir::StoreOp>(loc, descriptorAddr, descriptor);
++  }
++
++  mlir::Value baseAddrAddr = firOpBuilder.create<fir::BoxOffsetOp>(
++      loc, descriptor, fir::BoxFieldAttr::base_addr);
++
++  descriptorBaseAddrMembers.push_back(createMapInfoOp(
++      firOpBuilder, loc, descDataBaseAddr, baseAddrAddr, asFortran, bounds, {},
++      static_cast<std::underlying_type_t<llvm::omp::OpenMPOffloadMappingFlags>>(
++          mapCaptureType),
++      mlir::omp::VariableCaptureKind::ByRef, descDataBaseAddr.getType()));
++
++  // TODO: map the addendum segment of the descriptor, similarly to the above
++  // base address/data pointer member.
++
++  return createMapInfoOp(
++      firOpBuilder, loc, descriptor, mlir::Value{}, asFortran, {},
++      descriptorBaseAddrMembers,
++      static_cast<std::underlying_type_t<llvm::omp::OpenMPOffloadMappingFlags>>(
++          mapCaptureType),
++      mlir::omp::VariableCaptureKind::ByRef, descriptor.getType());
++}
++
+ bool ClauseProcessor::processMap(
+     mlir::Location currentLocation, const llvm::omp::Directive &directive,
+     Fortran::semantics::SemanticsContext &semanticsContext,
+@@ -1808,21 +1879,32 @@
+                   converter, firOpBuilder, semanticsContext, stmtCtx, ompObject,
+                   clauseLocation, asFortran, bounds, treatIndexAsSection);
+ 
+-          // Explicit map captures are captured ByRef by default,
+-          // optimisation passes may alter this to ByCopy or other capture
+-          // types to optimise
+-          mlir::Value mapOp = createMapInfoOp(
+-              firOpBuilder, clauseLocation, info.addr, asFortran, bounds,
+-              static_cast<
+-                  std::underlying_type_t<llvm::omp::OpenMPOffloadMappingFlags>>(
+-                  mapTypeBits),
+-              mlir::omp::VariableCaptureKind::ByRef, info.addr.getType());
++          auto origSymbol =
++              converter.getSymbolAddress(*getOmpObjectSymbol(ompObject));
++          mlir::Value mapOp, symAddr;
++          if (origSymbol && fir::isTypeWithDescriptor(origSymbol.getType())) {
++            symAddr = origSymbol;
++            mapOp = processDescriptorTypeMappings(
++                semanticsContext, stmtCtx, converter, clauseLocation,
++                origSymbol, info.addr, bounds, asFortran.str(), mapTypeBits);
++          } else {
++            // Explicit map captures are captured ByRef by default,
++            // optimisation passes may alter this to ByCopy or other capture
++            // types to optimise
++            symAddr = info.addr;
++            mapOp = createMapInfoOp(
++                firOpBuilder, clauseLocation, info.addr, mlir::Value{},
++                asFortran.str(), bounds, {},
++                static_cast<std::underlying_type_t<
++                    llvm::omp::OpenMPOffloadMappingFlags>>(mapTypeBits),
++                mlir::omp::VariableCaptureKind::ByRef, info.addr.getType());
++          }
+ 
+           mapOperands.push_back(mapOp);
+           if (mapSymTypes)
+-            mapSymTypes->push_back(info.addr.getType());
++            mapSymTypes->push_back(symAddr.getType());
+           if (mapSymLocs)
+-            mapSymLocs->push_back(info.addr.getLoc());
++            mapSymLocs->push_back(symAddr.getLoc());
+           if (mapSymbols)
+             mapSymbols->push_back(getOmpObjectSymbol(ompObject));
+         }
+@@ -1904,40 +1986,55 @@
+     Fortran::semantics::SemanticsContext &semanticsContext,
+     Fortran::lower::StatementContext &stmtCtx,
+     llvm::SmallVectorImpl<mlir::Value> &mapOperands) {
+-  return findRepeatableClause<T>(
+-      [&](const T *motionClause, const Fortran::parser::CharBlock &source) {
+-        mlir::Location clauseLocation = converter.genLocation(source);
+-        fir::FirOpBuilder &firOpBuilder = converter.getFirOpBuilder();
+-
+-        static_assert(std::is_same_v<T, ClauseProcessor::ClauseTy::To> ||
+-                      std::is_same_v<T, ClauseProcessor::ClauseTy::From>);
+-
+-        // TODO Support motion modifiers: present, mapper, iterator.
+-        constexpr llvm::omp::OpenMPOffloadMappingFlags mapTypeBits =
+-            std::is_same_v<T, ClauseProcessor::ClauseTy::To>
+-                ? llvm::omp::OpenMPOffloadMappingFlags::OMP_MAP_TO
+-                : llvm::omp::OpenMPOffloadMappingFlags::OMP_MAP_FROM;
++  return findRepeatableClause<T>([&](const T *motionClause,
++                                     const Fortran::parser::CharBlock &source) {
++    mlir::Location clauseLocation = converter.genLocation(source);
++    fir::FirOpBuilder &firOpBuilder = converter.getFirOpBuilder();
+ 
+-        for (const Fortran::parser::OmpObject &ompObject : motionClause->v.v) {
+-          llvm::SmallVector<mlir::Value> bounds;
+-          std::stringstream asFortran;
+-          Fortran::lower::AddrAndBoundsInfo info =
+-              Fortran::lower::gatherDataOperandAddrAndBounds<
+-                  Fortran::parser::OmpObject, mlir::omp::DataBoundsOp,
+-                  mlir::omp::DataBoundsType>(
+-                  converter, firOpBuilder, semanticsContext, stmtCtx, ompObject,
+-                  clauseLocation, asFortran, bounds, treatIndexAsSection);
++    static_assert(std::is_same_v<T, ClauseProcessor::ClauseTy::To> ||
++                  std::is_same_v<T, ClauseProcessor::ClauseTy::From>);
+ 
+-          mlir::Value mapOp = createMapInfoOp(
+-              firOpBuilder, clauseLocation, info.addr, asFortran, bounds,
+-              static_cast<
+-                  std::underlying_type_t<llvm::omp::OpenMPOffloadMappingFlags>>(
+-                  mapTypeBits),
+-              mlir::omp::VariableCaptureKind::ByRef, info.addr.getType());
++    // TODO Support motion modifiers: present, mapper, iterator.
++    constexpr llvm::omp::OpenMPOffloadMappingFlags mapTypeBits =
++        std::is_same_v<T, ClauseProcessor::ClauseTy::To>
++            ? llvm::omp::OpenMPOffloadMappingFlags::OMP_MAP_TO
++            : llvm::omp::OpenMPOffloadMappingFlags::OMP_MAP_FROM;
++
++    for (const Fortran::parser::OmpObject &ompObject : motionClause->v.v) {
++      llvm::SmallVector<mlir::Value> bounds;
++      std::stringstream asFortran;
++      Fortran::lower::AddrAndBoundsInfo info =
++          Fortran::lower::gatherDataOperandAddrAndBounds<
++              Fortran::parser::OmpObject, mlir::omp::DataBoundsOp,
++              mlir::omp::DataBoundsType>(
++              converter, firOpBuilder, semanticsContext, stmtCtx, ompObject,
++              clauseLocation, asFortran, bounds, treatIndexAsSection);
++
++      auto origSymbol =
++          converter.getSymbolAddress(*getOmpObjectSymbol(ompObject));
++      mlir::Value mapOp, symAddr;
++      if (origSymbol && fir::isTypeWithDescriptor(origSymbol.getType())) {
++        symAddr = origSymbol;
++        mapOp = processDescriptorTypeMappings(
++            semanticsContext, stmtCtx, converter, clauseLocation, origSymbol,
++            info.addr, bounds, asFortran.str(), mapTypeBits);
++      } else {
++        // Explicit map captures are captured ByRef by default,
++        // optimisation passes may alter this to ByCopy or other capture
++        // types to optimise
++        symAddr = info.addr;
++        mapOp = createMapInfoOp(
++            firOpBuilder, clauseLocation, info.addr, mlir::Value{},
++            asFortran.str(), bounds, {},
++            static_cast<
++                std::underlying_type_t<llvm::omp::OpenMPOffloadMappingFlags>>(
++                mapTypeBits),
++            mlir::omp::VariableCaptureKind::ByRef, info.addr.getType());
++      }
+ 
+-          mapOperands.push_back(mapOp);
+-        }
+-      });
++      mapOperands.push_back(mapOp);
++    }
++  });
+ }
+ 
+ template <typename... Ts>
+@@ -1959,6 +2056,75 @@
  }
  
  //===----------------------------------------------------------------------===//
@@ -153,7 +417,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/lib/
  // Code generation helper functions
  //===----------------------------------------------------------------------===//
  
-@@ -2138,6 +2232,83 @@
+@@ -2138,6 +2304,83 @@
    return storeOp;
  }
  
@@ -237,7 +501,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/lib/
  /// Create the body (block) for an OpenMP Operation.
  ///
  /// \param [in]    op - the operation the body belongs to.
-@@ -2318,6 +2489,27 @@
+@@ -2318,6 +2561,27 @@
        /*clauseList=*/nullptr, /*simd=*/false);
  }
  
@@ -265,7 +529,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/lib/
  static mlir::omp::ParallelOp
  genParallelOp(Fortran::lower::AbstractConverter &converter,
                Fortran::lower::pft::Evaluation &eval,
-@@ -2334,23 +2526,46 @@
+@@ -2334,23 +2598,46 @@
    ClauseProcessor cp(converter, clauseList);
    cp.processIf(Fortran::parser::OmpIfClause::DirectiveNameModifier::Parallel,
                 ifClauseOperand);
@@ -315,7 +579,17 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/lib/
  }
  
  static mlir::omp::SingleOp
-@@ -2677,13 +2892,12 @@
+@@ -2617,7 +2904,8 @@
+         std::stringstream name;
+         firOpBuilder.setInsertionPoint(targetOp);
+         mlir::Value mapOp = createMapInfoOp(
+-            firOpBuilder, copyVal.getLoc(), copyVal, name, bounds,
++            firOpBuilder, copyVal.getLoc(), copyVal, mlir::Value{}, name.str(),
++            bounds, llvm::SmallVector<mlir::Value>{},
+             static_cast<
+                 std::underlying_type_t<llvm::omp::OpenMPOffloadMappingFlags>>(
+                 llvm::omp::OpenMPOffloadMappingFlags::OMP_MAP_IMPLICIT),
+@@ -2677,13 +2965,12 @@
    llvm::SmallVector<const Fortran::semantics::Symbol *> mapSymbols;
  
    ClauseProcessor cp(converter, clauseList);
@@ -332,7 +606,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/lib/
    cp.processTODO<Fortran::parser::OmpClause::Private,
                   Fortran::parser::OmpClause::Depend,
                   Fortran::parser::OmpClause::Firstprivate,
-@@ -2696,6 +2910,11 @@
+@@ -2696,6 +2983,11 @@
                   Fortran::parser::OmpClause::Defaultmap>(
        currentLocation, llvm::omp::Directive::OMPD_target);
  
@@ -344,7 +618,54 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/lib/
    // 5.8.1 Implicit Data-Mapping Attribute Rules
    // The following code follows the implicit data-mapping rules to map all the
    // symbols used inside the region that have not been explicitly mapped using
-@@ -2763,7 +2982,9 @@
+@@ -2735,22 +3027,32 @@
+             llvm::omp::OpenMPOffloadMappingFlags::OMP_MAP_IMPLICIT;
+         mlir::omp::VariableCaptureKind captureKind =
+             mlir::omp::VariableCaptureKind::ByRef;
+-        if (auto refType = baseOp.getType().dyn_cast<fir::ReferenceType>()) {
+-          auto eleType = refType.getElementType();
+-          if (fir::isa_trivial(eleType) || fir::isa_char(eleType)) {
+-            captureKind = mlir::omp::VariableCaptureKind::ByCopy;
+-          } else if (!fir::isa_builtin_cptr_type(eleType)) {
+-            mapFlag |= llvm::omp::OpenMPOffloadMappingFlags::OMP_MAP_TO;
+-            mapFlag |= llvm::omp::OpenMPOffloadMappingFlags::OMP_MAP_FROM;
+-          }
++
++        mlir::Type eleType = baseOp.getType();
++        if (auto refType = baseOp.getType().dyn_cast<fir::ReferenceType>())
++          eleType = refType.getElementType();
++
++        if (fir::isa_trivial(eleType) || fir::isa_char(eleType)) {
++          captureKind = mlir::omp::VariableCaptureKind::ByCopy;
++        } else if (!fir::isa_builtin_cptr_type(eleType)) {
++          mapFlag |= llvm::omp::OpenMPOffloadMappingFlags::OMP_MAP_TO;
++          mapFlag |= llvm::omp::OpenMPOffloadMappingFlags::OMP_MAP_FROM;
+         }
+ 
+-        mlir::Value mapOp = createMapInfoOp(
+-            converter.getFirOpBuilder(), baseOp.getLoc(), baseOp, name, bounds,
+-            static_cast<
+-                std::underlying_type_t<llvm::omp::OpenMPOffloadMappingFlags>>(
+-                mapFlag),
+-            captureKind, baseOp.getType());
++        mlir::Value mapOp;
++        if (fir::isTypeWithDescriptor(baseOp.getType())) {
++          mapOp = processDescriptorTypeMappings(
++              semanticsContext, stmtCtx, converter, baseOp.getLoc(), baseOp,
++              info.addr, bounds, name.str(), mapFlag);
++        } else {
++          mapOp = createMapInfoOp(
++              converter.getFirOpBuilder(), baseOp.getLoc(), baseOp,
++              mlir::Value{}, name.str(), bounds, {},
++              static_cast<
++                  std::underlying_type_t<llvm::omp::OpenMPOffloadMappingFlags>>(
++                  mapFlag),
++              captureKind, baseOp.getType());
++        }
+ 
+         mapOperands.push_back(mapOp);
+         mapSymTypes.push_back(baseOp.getType());
+@@ -2763,7 +3065,9 @@
  
    auto targetOp = converter.getFirOpBuilder().create<mlir::omp::TargetOp>(
        currentLocation, ifClauseOperand, deviceOperand, threadLimitOperand,
@@ -355,7 +676,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/lib/
  
    genBodyOfTargetOp(converter, eval, targetOp, mapSymTypes, mapSymLocs,
                      mapSymbols, currentLocation);
-@@ -2788,20 +3009,63 @@
+@@ -2788,20 +3092,63 @@
                 ifClauseOperand);
    cp.processAllocate(allocatorOperands, allocateOperands);
    cp.processDefault();
@@ -424,7 +745,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/lib/
  }
  
  /// Extract the list of function and variable symbols affected by the given
-@@ -2870,10 +3134,6 @@
+@@ -2870,10 +3217,6 @@
    return std::nullopt;
  }
  
@@ -435,7 +756,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/lib/
  static void
  genOmpSimpleStandalone(Fortran::lower::AbstractConverter &converter,
                         Fortran::lower::pft::Evaluation &eval,
-@@ -2942,6 +3202,10 @@
+@@ -2942,6 +3285,10 @@
        converter.getCurrentLocation(), operandRange);
  }
  
@@ -446,7 +767,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/lib/
  static void
  genOMP(Fortran::lower::AbstractConverter &converter,
         Fortran::lower::pft::Evaluation &eval,
-@@ -3015,7 +3279,9 @@
+@@ -3015,7 +3362,9 @@
      }
      if (llvm::omp::allDistributeSet.test(ompDirective)) {
        validDirective = true;
@@ -457,7 +778,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/lib/
      }
      if ((llvm::omp::allParallelSet & llvm::omp::loopConstructSet)
              .test(ompDirective)) {
-@@ -3124,6 +3390,26 @@
+@@ -3124,6 +3473,26 @@
    createBodyOfOp<mlir::omp::WsLoopOp>(wsLoopOp, converter, currentLocation,
                                        eval, &loopOpClauseList, iv,
                                        /*outer=*/false, &dsp);
@@ -484,9 +805,147 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/lib/
  }
  
  static void
+diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/lib/Optimizer/CodeGen/CMakeLists.txt llvm-project/flang/lib/Optimizer/CodeGen/CMakeLists.txt
+--- llvm-project.upstream/flang/lib/Optimizer/CodeGen/CMakeLists.txt	2023-10-11 15:46:10.931814324 -0400
++++ llvm-project/flang/lib/Optimizer/CodeGen/CMakeLists.txt	2024-01-05 09:27:05.922815707 -0500
+@@ -1,4 +1,5 @@
+ add_flang_library(FIRCodeGen
++  CodeGenOpenMP.cpp
+   BoxedProcedure.cpp
+   CGOps.cpp
+   CodeGen.cpp
+diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/lib/Optimizer/CodeGen/CodeGen.cpp llvm-project/flang/lib/Optimizer/CodeGen/CodeGen.cpp
+--- llvm-project.upstream/flang/lib/Optimizer/CodeGen/CodeGen.cpp	2023-12-18 11:20:49.343182892 -0500
++++ llvm-project/flang/lib/Optimizer/CodeGen/CodeGen.cpp	2024-01-05 09:27:05.926815695 -0500
+@@ -13,6 +13,7 @@
+ #include "flang/Optimizer/CodeGen/CodeGen.h"
+ 
+ #include "CGOps.h"
++#include "flang/Optimizer/CodeGen/CodeGenOpenMP.h"
+ #include "flang/Optimizer/Dialect/FIRAttr.h"
+ #include "flang/Optimizer/Dialect/FIROps.h"
+ #include "flang/Optimizer/Dialect/FIRType.h"
+@@ -3882,6 +3883,11 @@
+     mlir::populateMathToLibmConversionPatterns(pattern);
+     mlir::populateComplexToLLVMConversionPatterns(typeConverter, pattern);
+     mlir::populateVectorToLLVMConversionPatterns(typeConverter, pattern);
++
++    // Flang specific overloads for OpenMP operations, to allow for special
++    // handling of things like Box types.
++    fir::populateOpenMPFIRToLLVMConversionPatterns(typeConverter, pattern);
++
+     mlir::ConversionTarget target{*context};
+     target.addLegalDialect<mlir::LLVM::LLVMDialect>();
+     // The OpenMP dialect is legal for Operations without regions, for those
+diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/lib/Optimizer/CodeGen/CodeGenOpenMP.cpp llvm-project/flang/lib/Optimizer/CodeGen/CodeGenOpenMP.cpp
+--- llvm-project.upstream/flang/lib/Optimizer/CodeGen/CodeGenOpenMP.cpp	1969-12-31 19:00:00.000000000 -0500
++++ llvm-project/flang/lib/Optimizer/CodeGen/CodeGenOpenMP.cpp	2024-01-05 09:27:05.926815695 -0500
+@@ -0,0 +1,86 @@
++#include "flang/Optimizer/CodeGen/CodeGenOpenMP.h"
++
++#include "flang/Optimizer/Builder/FIRBuilder.h"
++#include "flang/Optimizer/Builder/LowLevelIntrinsics.h"
++#include "flang/Optimizer/CodeGen/CodeGen.h"
++#include "flang/Optimizer/Dialect/FIRDialect.h"
++#include "flang/Optimizer/Dialect/FIROps.h"
++#include "flang/Optimizer/Dialect/FIRType.h"
++#include "flang/Optimizer/Dialect/Support/FIRContext.h"
++#include "flang/Optimizer/Support/FatalError.h"
++#include "flang/Optimizer/Support/InternalNames.h"
++#include "mlir/Conversion/LLVMCommon/ConversionTarget.h"
++#include "mlir/Conversion/LLVMCommon/Pattern.h"
++#include "mlir/Dialect/LLVMIR/LLVMDialect.h"
++#include "mlir/Dialect/OpenMP/OpenMPDialect.h"
++#include "mlir/IR/PatternMatch.h"
++#include "mlir/Transforms/DialectConversion.h"
++
++using namespace fir;
++
++#define DEBUG_TYPE "flang-codegen-openmp"
++
++// fir::LLVMTypeConverter for converting to LLVM IR dialect types.
++#include "flang/Optimizer/CodeGen/TypeConverter.h"
++
++namespace {
++/// A pattern that converts the region arguments in a single-region OpenMP
++/// operation to the LLVM dialect. The body of the region is not modified and is
++/// expected to either be processed by the conversion infrastructure or already
++/// contain ops compatible with LLVM dialect types.
++template <typename OpType>
++class OpenMPFIROpConversion : public mlir::ConvertOpToLLVMPattern<OpType> {
++public:
++  explicit OpenMPFIROpConversion(const fir::LLVMTypeConverter &lowering)
++      : mlir::ConvertOpToLLVMPattern<OpType>(lowering) {}
++
++  const fir::LLVMTypeConverter &lowerTy() const {
++    return *static_cast<const fir::LLVMTypeConverter *>(
++        this->getTypeConverter());
++  }
++};
++
++// FIR Op specific conversion for MapInfoOp that overwrites the default OpenMP
++// Dialect lowering, this allows FIR specific lowering of types, required for
++// descriptors of allocatables currently.
++struct MapInfoOpConversion
++    : public OpenMPFIROpConversion<mlir::omp::MapInfoOp> {
++  using OpenMPFIROpConversion::OpenMPFIROpConversion;
++
++  mlir::LogicalResult
++  matchAndRewrite(mlir::omp::MapInfoOp curOp, OpAdaptor adaptor,
++                  mlir::ConversionPatternRewriter &rewriter) const override {
++    const mlir::TypeConverter *converter = getTypeConverter();
++    llvm::SmallVector<mlir::Type> resTypes;
++    if (failed(converter->convertTypes(curOp->getResultTypes(), resTypes)))
++      return mlir::failure();
++
++    llvm::SmallVector<mlir::NamedAttribute> newAttrs;
++    mlir::omp::MapInfoOp newOp;
++    for (mlir::NamedAttribute attr : curOp->getAttrs()) {
++      if (auto typeAttr = mlir::dyn_cast<mlir::TypeAttr>(attr.getValue())) {
++        mlir::Type newAttr;
++        if (fir::isTypeWithDescriptor(typeAttr.getValue())) {
++          newAttr = lowerTy().convertBoxTypeAsStruct(
++              mlir::cast<fir::BaseBoxType>(typeAttr.getValue()));
++        } else {
++          newAttr = converter->convertType(typeAttr.getValue());
++        }
++        newAttrs.emplace_back(attr.getName(), mlir::TypeAttr::get(newAttr));
++      } else {
++        newAttrs.push_back(attr);
++      }
++    }
++
++    rewriter.replaceOpWithNewOp<mlir::omp::MapInfoOp>(
++        curOp, resTypes, adaptor.getOperands(), newAttrs);
++
++    return mlir::success();
++  }
++};
++} // namespace
++
++void fir::populateOpenMPFIRToLLVMConversionPatterns(
++    LLVMTypeConverter &converter, mlir::RewritePatternSet &patterns) {
++  patterns.add<MapInfoOpConversion>(converter);
++}
+diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/lib/Optimizer/Dialect/FIRType.cpp llvm-project/flang/lib/Optimizer/Dialect/FIRType.cpp
+--- llvm-project.upstream/flang/lib/Optimizer/Dialect/FIRType.cpp	2023-12-18 11:20:49.343182892 -0500
++++ llvm-project/flang/lib/Optimizer/Dialect/FIRType.cpp	2024-01-05 09:27:05.926815695 -0500
+@@ -330,6 +330,12 @@
+   return false;
+ }
+ 
++bool isTypeWithDescriptor(mlir::Type ty) {
++  if (mlir::isa<fir::BaseBoxType>(unwrapRefType(ty)))
++    return true;
++  return false;
++}
++
+ bool isPolymorphicType(mlir::Type ty) {
+   if (auto refTy = fir::dyn_cast_ptrEleTy(ty))
+     ty = refTy;
 diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/llvm/include/llvm/Frontend/OpenMP/OMPIRBuilder.h llvm-project/llvm/include/llvm/Frontend/OpenMP/OMPIRBuilder.h
---- llvm-project.upstream/llvm/include/llvm/Frontend/OpenMP/OMPIRBuilder.h	2023-12-18 11:20:49.639181774 -0500
-+++ llvm-project/llvm/include/llvm/Frontend/OpenMP/OMPIRBuilder.h	2024-01-02 11:47:39.155804729 -0500
+--- llvm-project.upstream/llvm/include/llvm/Frontend/OpenMP/OMPIRBuilder.h	2024-01-04 00:01:56.473494468 -0500
++++ llvm-project/llvm/include/llvm/Frontend/OpenMP/OMPIRBuilder.h	2024-01-05 09:08:39.214311847 -0500
 @@ -90,9 +90,14 @@
    /// Flag for specifying if the compilation is done for an accelerator.
    std::optional<bool> IsGPU;
@@ -642,8 +1101,8 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/llvm/inclu
                               GenMapInfoCallbackTy GenMapInfoCB,
                               TargetBodyGenCallbackTy BodyGenCB,
 diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/llvm/lib/Frontend/OpenMP/OMPIRBuilder.cpp llvm-project/llvm/lib/Frontend/OpenMP/OMPIRBuilder.cpp
---- llvm-project.upstream/llvm/lib/Frontend/OpenMP/OMPIRBuilder.cpp	2023-12-18 11:20:49.731181427 -0500
-+++ llvm-project/llvm/lib/Frontend/OpenMP/OMPIRBuilder.cpp	2024-01-02 11:47:39.195804615 -0500
+--- llvm-project.upstream/llvm/lib/Frontend/OpenMP/OMPIRBuilder.cpp	2024-01-04 00:01:56.493494398 -0500
++++ llvm-project/llvm/lib/Frontend/OpenMP/OMPIRBuilder.cpp	2024-01-05 09:08:39.210311860 -0500
 @@ -510,7 +510,7 @@
                  KernelArgs.RTArgs.MapTypesArray,
                  KernelArgs.RTArgs.MapNamesArray,
@@ -950,7 +1409,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/llvm/lib/F
  
    return Builder.saveIP();
  }
-@@ -6199,6 +6291,43 @@
+@@ -6209,6 +6301,43 @@
  }
  
  OpenMPIRBuilder::InsertPointTy
@@ -994,7 +1453,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/llvm/lib/F
  OpenMPIRBuilder::createTeams(const LocationDescription &Loc,
                               BodyGenCallbackTy BodyGenCB, Value *NumTeamsLower,
                               Value *NumTeamsUpper, Value *ThreadLimit,
-@@ -6240,8 +6369,9 @@
+@@ -6250,8 +6379,9 @@
    BasicBlock *AllocaBB =
        splitBB(Builder, /*CreateBranch=*/true, "teams.alloca");
  
@@ -1006,7 +1465,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/llvm/lib/F
      assert((NumTeamsLower == nullptr || NumTeamsUpper != nullptr) &&
             "if lowerbound is non-null, then upperbound must also be non-null "
             "for bounds on num_teams");
-@@ -6294,41 +6424,45 @@
+@@ -6304,41 +6434,45 @@
    OI.ExcludeArgsFromAggregate.push_back(createFakeIntVal(
        Builder, OuterAllocaIP, ToBeDeleted, AllocaIP, "tid", true));
  
@@ -1088,7 +1547,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/llvm/lib/F
    addOutlineInfo(std::move(OI));
 diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/llvm/lib/Transforms/IPO/OpenMPOpt.cpp llvm-project/llvm/lib/Transforms/IPO/OpenMPOpt.cpp
 --- llvm-project.upstream/llvm/lib/Transforms/IPO/OpenMPOpt.cpp	2024-01-02 11:37:59.933300706 -0500
-+++ llvm-project/llvm/lib/Transforms/IPO/OpenMPOpt.cpp	2024-01-02 11:47:43.043793768 -0500
++++ llvm-project/llvm/lib/Transforms/IPO/OpenMPOpt.cpp	2024-01-05 09:08:36.278321343 -0500
 @@ -535,6 +535,7 @@
    void recollectUses() {
      for (int Idx = 0; Idx < RFIs.size(); ++Idx)
@@ -1099,7 +1558,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/llvm/lib/T
    // Helper function to inherit the calling convention of the function callee.
 diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/mlir/include/mlir/Dialect/OpenMP/OpenMPOps.td llvm-project/mlir/include/mlir/Dialect/OpenMP/OpenMPOps.td
 --- llvm-project.upstream/mlir/include/mlir/Dialect/OpenMP/OpenMPOps.td	2023-12-18 11:20:50.535178392 -0500
-+++ llvm-project/mlir/include/mlir/Dialect/OpenMP/OpenMPOps.td	2024-01-02 11:47:39.503803747 -0500
++++ llvm-project/mlir/include/mlir/Dialect/OpenMP/OpenMPOps.td	2024-01-05 09:27:05.926815695 -0500
 @@ -638,6 +638,26 @@
  }
  
@@ -1127,7 +1586,46 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/mlir/inclu
  // 2.10.1 task Construct
  //===----------------------------------------------------------------------===//
  
-@@ -1439,9 +1459,21 @@
+@@ -1148,6 +1168,7 @@
+   let arguments = (ins OpenMP_PointerLikeType:$var_ptr,
+                        TypeAttr:$var_type,
+                        Optional<OpenMP_PointerLikeType>:$var_ptr_ptr,
++                       Variadic<OpenMP_PointerLikeType>:$members,
+                        Variadic<DataBoundsType>:$bounds, /* rank-0 to rank-{n-1} */
+                        OptionalAttr<UI64Attr>:$map_type,
+                        OptionalAttr<VariableCaptureKindAttr>:$map_capture_type,
+@@ -1187,13 +1208,17 @@
+     - `var_type`: The type of the variable to copy.
+     - `var_ptr_ptr`: Used when the variable copied is a member of a class, structure
+       or derived type and refers to the originating struct.
++    - `members`:  Used to indicate mapped child members for the current MapInfoOp,
++       represented as other MapInfoOp's, utilised in cases where a parent structure
++       type and members of the structure type are being mapped at the same time.
++       For example: map(to: parent, parent->member, parent->member2[:10])
+     - `bounds`: Used when copying slices of array's, pointers or pointer members of
+-      objects (e.g. derived types or classes), indicates the bounds to be copied
+-      of the variable. When it's an array slice it is in rank order where rank 0
+-      is the inner-most dimension.
++       objects (e.g. derived types or classes), indicates the bounds to be copied
++       of the variable. When it's an array slice it is in rank order where rank 0
++       is the inner-most dimension.
+     - 'map_clauses': OpenMP map type for this map capture, for example: from, to and
+-      always. It's a bitfield composed of the OpenMP runtime flags stored in
+-      OpenMPOffloadMappingFlags.
++       always. It's a bitfield composed of the OpenMP runtime flags stored in
++       OpenMPOffloadMappingFlags.
+     - 'map_capture_type': Capture type for the variable e.g. this, byref, byvalue, byvla
+        this can affect how the variable is lowered.
+     - `name`: Holds the name of variable as specified in user clause (including bounds).
+@@ -1205,6 +1230,7 @@
+         `var_ptr_ptr` `(` $var_ptr_ptr `:` type($var_ptr_ptr) `)`
+       | `map_clauses` `(` custom<MapClause>($map_type) `)`
+       | `capture` `(` custom<CaptureType>($map_capture_type) `)`
++      | `members` `(` $members `:` type($members) `)`
+       | `bounds` `(` $bounds `)`
+     ) `->` type($omp_ptr) attr-dict
+   }];
+@@ -1439,9 +1465,21 @@
  
      The optional $thread_limit specifies the limit on the number of threads
  
@@ -1150,7 +1648,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/mlir/inclu
      TODO:  is_device_ptr, depend, defaultmap, in_reduction
  
    }];
-@@ -1449,8 +1481,13 @@
+@@ -1449,8 +1487,13 @@
    let arguments = (ins Optional<I1>:$if_expr,
                         Optional<AnyInteger>:$device,
                         Optional<AnyInteger>:$thread_limit,
@@ -1165,7 +1663,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/mlir/inclu
  
    let regions = (region AnyRegion:$region);
  
-@@ -1458,12 +1495,32 @@
+@@ -1458,12 +1501,32 @@
      oilist( `if` `(` $if_expr `)`
      | `device` `(` $device `:` type($device) `)`
      | `thread_limit` `(` $thread_limit `:` type($thread_limit) `)`
@@ -1198,45 +1696,9 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/mlir/inclu
  }
  
  
-diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/mlir/include/mlir/Interfaces/CSEInterfaces.h llvm-project/mlir/include/mlir/Interfaces/CSEInterfaces.h
---- llvm-project.upstream/mlir/include/mlir/Interfaces/CSEInterfaces.h	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/mlir/include/mlir/Interfaces/CSEInterfaces.h	2024-01-02 11:47:39.507803737 -0500
-@@ -0,0 +1,32 @@
-+//===- CSEInterfaces.h ------------------------------------------*- C++ -*-===//
-+//
-+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
-+// See https://llvm.org/LICENSE.txt for license information.
-+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-+//
-+//===----------------------------------------------------------------------===//
-+#ifndef MLIR_INTERFACES_CSEINTERFACES_H_
-+#define MLIR_INTERFACES_CSEINTERFACES_H_
-+
-+#include "mlir/IR/DialectInterface.h"
-+
-+namespace mlir {
-+class Operation;
-+
-+/// Define an interface to allow for dialects to control specific aspects of
-+/// common subexpression elimination behavior for operations they define.
-+class DialectCSEInterface : public DialectInterface::Base<DialectCSEInterface> {
-+public:
-+  DialectCSEInterface(Dialect *dialect) : Base(dialect) {}
-+
-+  /// Registered hook to check if an operation that is *not* isolated from
-+  /// above, should allow common subexpressions to be extracted out of its
-+  /// regions.
-+  virtual bool subexpressionExtractionAllowed(Operation *op) const {
-+    return true;
-+  }
-+};
-+
-+} // namespace mlir
-+
-+#endif // MLIR_INTERFACES_CSEINTERFACES_H_
 diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/mlir/lib/Conversion/OpenMPToLLVM/OpenMPToLLVM.cpp llvm-project/mlir/lib/Conversion/OpenMPToLLVM/OpenMPToLLVM.cpp
 --- llvm-project.upstream/mlir/lib/Conversion/OpenMPToLLVM/OpenMPToLLVM.cpp	2024-01-02 11:38:00.169300177 -0500
-+++ llvm-project/mlir/lib/Conversion/OpenMPToLLVM/OpenMPToLLVM.cpp	2024-01-02 11:47:43.035793791 -0500
++++ llvm-project/mlir/lib/Conversion/OpenMPToLLVM/OpenMPToLLVM.cpp	2024-01-05 09:08:36.406320929 -0500
 @@ -228,10 +228,11 @@
      ConversionTarget &target, LLVMTypeConverter &typeConverter) {
    target.addDynamicallyLegalOp<
@@ -1263,40 +1725,40 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/mlir/lib/C
        RegionLessOpWithVarOperandsConversion<omp::FlushOp>,
 diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/mlir/lib/Dialect/OpenMP/IR/OpenMPDialect.cpp llvm-project/mlir/lib/Dialect/OpenMP/IR/OpenMPDialect.cpp
 --- llvm-project.upstream/mlir/lib/Dialect/OpenMP/IR/OpenMPDialect.cpp	2023-12-18 11:20:50.567178272 -0500
-+++ llvm-project/mlir/lib/Dialect/OpenMP/IR/OpenMPDialect.cpp	2024-01-02 11:47:39.515803713 -0500
-@@ -18,6 +18,7 @@
++++ llvm-project/mlir/lib/Dialect/OpenMP/IR/OpenMPDialect.cpp	2024-01-05 09:29:16.626407921 -0500
+@@ -18,7 +18,6 @@
  #include "mlir/IR/DialectImplementation.h"
  #include "mlir/IR/OpImplementation.h"
  #include "mlir/IR/OperationSupport.h"
-+#include "mlir/Interfaces/CSEInterfaces.h"
- #include "mlir/Interfaces/FoldInterfaces.h"
+-#include "mlir/Interfaces/FoldInterfaces.h"
  
  #include "llvm/ADT/BitVector.h"
-@@ -53,6 +54,15 @@
+ #include "llvm/ADT/STLForwardCompat.h"
+@@ -52,15 +51,6 @@
+                                             LLVM::LLVMPointerType> {
    Type getElementType(Type pointer) const { return Type(); }
  };
+-
+-struct OpenMPDialectFoldInterface : public DialectFoldInterface {
+-  using DialectFoldInterface::DialectFoldInterface;
+-
+-  bool shouldMaterializeInto(Region *region) const final {
+-    // Avoid folding constants across target regions
+-    return isa<TargetOp>(region->getParentOp());
+-  }
+-};
+ } // namespace
  
-+struct OpenMPDialectCSEInterface : public DialectCSEInterface {
-+  using DialectCSEInterface::DialectCSEInterface;
-+
-+  bool subexpressionExtractionAllowed(Operation *op) const final {
-+    // Avoid extracting common subexpressions across op boundaries
-+    return !isa<TargetOp>(op);
-+  }
-+};
-+
- struct OpenMPDialectFoldInterface : public DialectFoldInterface {
-   using DialectFoldInterface::DialectFoldInterface;
- 
-@@ -77,6 +87,7 @@
+ void OpenMPDialect::initialize() {
+@@ -77,7 +67,6 @@
  #include "mlir/Dialect/OpenMP/OpenMPOpsTypes.cpp.inc"
        >();
  
-+  addInterface<OpenMPDialectCSEInterface>();
-   addInterface<OpenMPDialectFoldInterface>();
+-  addInterface<OpenMPDialectFoldInterface>();
    MemRefType::attachInterface<MemRefPointerLikeModel>(*getContext());
    LLVM::LLVMPointerType::attachInterface<LLVMPointerPointerLikeModel>(
-@@ -979,14 +990,157 @@
+       *getContext());
+@@ -979,14 +968,157 @@
    return verifyMapClause(*this, getMapOperands());
  }
  
@@ -1454,7 +1916,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/mlir/lib/D
  //===----------------------------------------------------------------------===//
  // ParallelOp
  //===----------------------------------------------------------------------===//
-@@ -1005,6 +1159,18 @@
+@@ -1005,6 +1137,18 @@
    if (getAllocateVars().size() != getAllocatorsVars().size())
      return emitError(
          "expected equal sizes for allocate and allocator variables");
@@ -1473,7 +1935,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/mlir/lib/D
    return verifyReductionVarList(*this, getReductions(), getReductionVars());
  }
  
-@@ -1023,23 +1189,23 @@
+@@ -1023,23 +1167,23 @@
    // Check parent region
    // TODO If nested inside of a target region, also check that it does not
    // contain any statements, declarations or directives other than this
@@ -1513,7 +1975,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/mlir/lib/D
    // Check for allocate clause restrictions
 diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/mlir/lib/Target/LLVMIR/Dialect/OpenMP/OpenMPToLLVMIRTranslation.cpp llvm-project/mlir/lib/Target/LLVMIR/Dialect/OpenMP/OpenMPToLLVMIRTranslation.cpp
 --- llvm-project.upstream/mlir/lib/Target/LLVMIR/Dialect/OpenMP/OpenMPToLLVMIRTranslation.cpp	2024-01-02 11:38:00.189300132 -0500
-+++ llvm-project/mlir/lib/Target/LLVMIR/Dialect/OpenMP/OpenMPToLLVMIRTranslation.cpp	2024-01-02 11:47:43.031793802 -0500
++++ llvm-project/mlir/lib/Target/LLVMIR/Dialect/OpenMP/OpenMPToLLVMIRTranslation.cpp	2024-01-05 09:27:05.930815682 -0500
 @@ -694,9 +694,11 @@
    if (Value ifExprVar = op.getIfExpr())
      ifExpr = moduleTranslation.lookupValue(ifExprVar);
@@ -1679,7 +2141,288 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/mlir/lib/T
    };
  
    // Delegate actual loop construction to the OpenMP IRBuilder.
-@@ -2025,6 +2111,37 @@
+@@ -1676,14 +1762,14 @@
+ // This function is somewhat equivalent to Clang's getExprTypeSize inside of
+ // CGOpenMPRuntime.cpp.
+ llvm::Value *getSizeInBytes(DataLayout &dl, const mlir::Type &type,
+-                            Operation *clauseOp, llvm::IRBuilderBase &builder,
++                            Operation *clauseOp, llvm::Value *basePointer,
++                            llvm::Type *baseType, llvm::IRBuilderBase &builder,
+                             LLVM::ModuleTranslation &moduleTranslation) {
+   // utilising getTypeSizeInBits instead of getTypeSize as getTypeSize gives
+   // the size in inconsistent byte or bit format.
+   uint64_t underlyingTypeSzInBits = dl.getTypeSizeInBits(type);
+-  if (auto arrTy = llvm::dyn_cast_if_present<LLVM::LLVMArrayType>(type)) {
++  if (auto arrTy = llvm::dyn_cast_if_present<LLVM::LLVMArrayType>(type))
+     underlyingTypeSzInBits = getArrayElementSizeInBits(arrTy, dl);
+-  }
+ 
+   if (auto memberClause =
+           mlir::dyn_cast_if_present<mlir::omp::MapInfoOp>(clauseOp)) {
+@@ -1728,13 +1814,13 @@
+                                    LLVM::ModuleTranslation &moduleTranslation,
+                                    DataLayout &dl,
+                                    llvm::IRBuilderBase &builder) {
+-  for (mlir::Value mapValue : mapOperands) {
++  auto mapFill = [&](mlir::Value mapValue) {
+     assert(mlir::isa<mlir::omp::MapInfoOp>(mapValue.getDefiningOp()) &&
+            "missing map info operation or incorrect map info operation type");
+     if (auto mapOp = mlir::dyn_cast_if_present<mlir::omp::MapInfoOp>(
+             mapValue.getDefiningOp())) {
+-      mapData.OriginalValue.push_back(
+-          moduleTranslation.lookupValue(mapOp.getVarPtr()));
++      mapData.OriginalValue.push_back(moduleTranslation.lookupValue(
++          mapOp.getVarPtrPtr() ? mapOp.getVarPtrPtr() : mapOp.getVarPtr()));
+       mapData.Pointers.push_back(mapData.OriginalValue.back());
+ 
+       if (llvm::Value *refPtr =
+@@ -1747,10 +1833,11 @@
+         mapData.BasePointers.push_back(mapData.OriginalValue.back());
+       }
+ 
+-      mapData.Sizes.push_back(getSizeInBytes(dl, mapOp.getVarType(), mapOp,
+-                                             builder, moduleTranslation));
+       mapData.BaseType.push_back(
+           moduleTranslation.convertType(mapOp.getVarType()));
++      mapData.Sizes.push_back(getSizeInBytes(
++          dl, mapOp.getVarType(), mapOp, mapData.BasePointers.back(),
++          mapData.BaseType.back(), builder, moduleTranslation));
+       mapData.MapClause.push_back(mapOp.getOperation());
+       mapData.Types.push_back(
+           llvm::omp::OpenMPOffloadMappingFlags(mapOp.getMapType().value()));
+@@ -1759,6 +1846,183 @@
+       mapData.DevicePointers.push_back(
+           llvm::OpenMPIRBuilder::DeviceInfoTy::None);
+     }
++  };
++
++  // In the case of Fortran descriptors some members get added implicitly
++  // after the target region has been generated during CodeGen lowering
++  // which prevents them from being added trivially to the target region
++  // as map arguments, we must handle this case here by generating
++  // MapInfoData for them.
++  // TODO: Revisit this when implementing derived types explicit member
++  // mapping, we likely want to represent these identically to simplify
++  // the overall lowering
++  SmallVector<Value> mapMemberOperands;
++  for (size_t i = 0; i < mapOperands.size(); ++i) {
++    auto mapInfoOp =
++        mlir::dyn_cast<mlir::omp::MapInfoOp>(mapOperands[i].getDefiningOp());
++    for (auto members : mapInfoOp.getMembers()) {
++      if (!std::any_of(mapOperands.begin(), mapOperands.end(),
++                       [&](auto mapOp) {
++                         return mapOp.getDefiningOp() ==
++                                members.getDefiningOp();
++                       }) &&
++          !std::any_of(mapMemberOperands.begin(), mapMemberOperands.end(),
++                       [&](auto mapOp) {
++                         return mapOp.getDefiningOp() ==
++                                members.getDefiningOp();
++                       }))
++        mapMemberOperands.push_back(members);
++    }
++  }
++
++  for (mlir::Value mapValue : mapOperands)
++    mapFill(mapValue);
++
++  for (mlir::Value mapValue : mapMemberOperands)
++    mapFill(mapValue);
++}
++
++static void processMapWithMembersOf(
++    LLVM::ModuleTranslation &moduleTranslation, llvm::IRBuilderBase &builder,
++    llvm::OpenMPIRBuilder &ompBuilder, DataLayout &dl,
++    llvm::OpenMPIRBuilder::MapInfosTy &combinedInfo, MapInfoData &mapData,
++    uint64_t mapDataIndex, bool isTargetParams) {
++  auto parentClause =
++      mlir::dyn_cast<mlir::omp::MapInfoOp>(mapData.MapClause[mapDataIndex]);
++
++  ////////// First Parent Map Segment //////////
++  // Map the first segment of our structure
++  combinedInfo.Types.emplace_back(
++      isTargetParams
++          ? llvm::omp::OpenMPOffloadMappingFlags::OMP_MAP_TARGET_PARAM
++          : llvm::omp::OpenMPOffloadMappingFlags::OMP_MAP_NONE);
++  combinedInfo.DevicePointers.emplace_back(
++      llvm::OpenMPIRBuilder::DeviceInfoTy::None);
++  combinedInfo.Names.emplace_back(LLVM::createMappingInformation(
++      mapData.MapClause[mapDataIndex]->getLoc(), ompBuilder));
++  combinedInfo.BasePointers.emplace_back(mapData.BasePointers[mapDataIndex]);
++  combinedInfo.Pointers.emplace_back(mapData.Pointers[mapDataIndex]);
++
++  // Calculate size of the parent object being mapped based on the
++  // addresses at runtime, highAddr - lowAddr = size. This of course
++  // doesn't factor in allocated data like pointers, hence the further
++  // processing of members specified by users, or in the case of
++  // Fortran pointers and allocatables, the mapping of the pointed to
++  // data by the descriptor (which itself, is a structure containing
++  // runtime information on the dynamically allocated data).
++  llvm::Value *lowAddr = builder.CreatePointerCast(
++      mapData.Pointers[mapDataIndex], builder.getPtrTy());
++  llvm::Value *highAddr = builder.CreatePointerCast(
++      builder.CreateConstGEP1_32(mapData.BaseType[mapDataIndex],
++                                 mapData.Pointers[mapDataIndex], 1),
++      builder.getPtrTy());
++  llvm::Value *size = builder.CreateIntCast(
++      builder.CreatePtrDiff(builder.getInt8Ty(), highAddr, lowAddr),
++      builder.getInt64Ty(),
++      /*isSigned=*/false);
++  combinedInfo.Sizes.push_back(size);
++
++  ////////// Second Parent Map Segment //////////
++  // This creates the initial MEMBER_OF mapping that consists of
++  // the parent/top level container (same as above effectively, except
++  // with a fixed initial compile time size and seperate maptype which
++  // indicates the true mape type (tofrom etc.) and that it is a part
++  // of a larger mapping and indicating the link between it and it's
++  // members that are also explicitly mapped).
++  llvm::omp::OpenMPOffloadMappingFlags mapFlag =
++      llvm::omp::OpenMPOffloadMappingFlags::OMP_MAP_TO;
++  if (isTargetParams)
++    mapFlag &= ~llvm::omp::OpenMPOffloadMappingFlags::OMP_MAP_TARGET_PARAM;
++
++  llvm::omp::OpenMPOffloadMappingFlags memberOfFlag =
++      ompBuilder.getMemberOfFlag(combinedInfo.BasePointers.size() - 1);
++  ompBuilder.setCorrectMemberOfFlag(mapFlag, memberOfFlag);
++
++  combinedInfo.Types.emplace_back(mapFlag);
++  combinedInfo.DevicePointers.emplace_back(
++      llvm::OpenMPIRBuilder::DeviceInfoTy::None);
++  combinedInfo.Names.emplace_back(LLVM::createMappingInformation(
++      mapData.MapClause[mapDataIndex]->getLoc(), ompBuilder));
++  combinedInfo.BasePointers.emplace_back(mapData.BasePointers[mapDataIndex]);
++  combinedInfo.Pointers.emplace_back(mapData.Pointers[mapDataIndex]);
++  combinedInfo.Sizes.emplace_back(mapData.Sizes[mapDataIndex]);
++
++  ////////// Mapping of Members Segment //////////
++  for (auto mappedMembers : parentClause.getMembers()) {
++    auto memberClause =
++        mlir::dyn_cast<mlir::omp::MapInfoOp>(mappedMembers.getDefiningOp());
++    int memberDataIdx = -1;
++    for (size_t i = 0; i < mapData.MapClause.size(); ++i) {
++      if (mapData.MapClause[i] == memberClause)
++        memberDataIdx = i;
++    }
++
++    assert(memberDataIdx >= 0 && "could not find mapped member of structure");
++
++    // Same MemberOfFlag to indicate its link with parent and other members
++    // of, and we flag that it's part of a pointer and object coupling.
++    auto mapFlag =
++        llvm::omp::OpenMPOffloadMappingFlags(memberClause.getMapType().value());
++    mapFlag &= ~llvm::omp::OpenMPOffloadMappingFlags::OMP_MAP_TARGET_PARAM;
++    ompBuilder.setCorrectMemberOfFlag(mapFlag, memberOfFlag);
++    mapFlag |= llvm::omp::OpenMPOffloadMappingFlags::OMP_MAP_PTR_AND_OBJ;
++    combinedInfo.Types.emplace_back(mapFlag);
++    combinedInfo.DevicePointers.emplace_back(
++        llvm::OpenMPIRBuilder::DeviceInfoTy::None);
++    combinedInfo.Names.emplace_back(
++        LLVM::createMappingInformation(memberClause.getLoc(), ompBuilder));
++
++    combinedInfo.BasePointers.emplace_back(mapData.BasePointers[memberDataIdx]);
++
++    std::vector<llvm::Value *> idx{builder.getInt64(0)};
++    llvm::Value *offsetAddress = nullptr;
++    if (!memberClause.getBounds().empty()) {
++      if (mapData.BaseType[memberDataIdx]->isArrayTy()) {
++        for (int i = memberClause.getBounds().size() - 1; i >= 0; --i) {
++          if (auto boundOp = mlir::dyn_cast_if_present<mlir::omp::DataBoundsOp>(
++                  memberClause.getBounds()[i].getDefiningOp())) {
++            idx.push_back(
++                moduleTranslation.lookupValue(boundOp.getLowerBound()));
++          }
++        }
++      } else {
++        std::vector<llvm::Value *> dimensionIndexSizeOffset{
++            builder.getInt64(1)};
++        for (size_t i = 1; i < memberClause.getBounds().size(); ++i) {
++          if (auto boundOp = mlir::dyn_cast_if_present<mlir::omp::DataBoundsOp>(
++                  memberClause.getBounds()[i].getDefiningOp())) {
++            dimensionIndexSizeOffset.push_back(builder.CreateMul(
++                moduleTranslation.lookupValue(boundOp.getExtent()),
++                dimensionIndexSizeOffset[i - 1]));
++          }
++        }
++
++        for (int i = memberClause.getBounds().size() - 1; i >= 0; --i) {
++          if (auto boundOp = mlir::dyn_cast_if_present<mlir::omp::DataBoundsOp>(
++                  memberClause.getBounds()[i].getDefiningOp())) {
++            if (!offsetAddress)
++              offsetAddress = builder.CreateMul(
++                  moduleTranslation.lookupValue(boundOp.getLowerBound()),
++                  dimensionIndexSizeOffset[i]);
++            else
++              offsetAddress = builder.CreateAdd(
++                  offsetAddress,
++                  builder.CreateMul(
++                      moduleTranslation.lookupValue(boundOp.getLowerBound()),
++                      dimensionIndexSizeOffset[i]));
++          }
++        }
++      }
++    }
++
++    llvm::Value *memberIdx =
++        builder.CreateLoad(builder.getPtrTy(), mapData.Pointers[memberDataIdx]);
++    memberIdx = builder.CreateInBoundsGEP(
++        mapData.BaseType[memberDataIdx], memberIdx,
++        offsetAddress ? std::vector<llvm::Value *>{offsetAddress} : idx,
++        "member_idx");
++    combinedInfo.Pointers.emplace_back(memberIdx);
++    combinedInfo.Sizes.emplace_back(mapData.Sizes[memberDataIdx]);
+   }
+ }
+ 
+@@ -1782,15 +2046,44 @@
+     combinedInfo.Names.clear();
+   };
+ 
++  llvm::SmallVector<size_t, 4> primaryMapIdx;
++  for (size_t i = 0; i < mapData.MapClause.size(); ++i) {
++    primaryMapIdx.push_back(i);
++  }
++
++  // TODO: Handle nested MembersOf, currently only cares about the first level
++  // of nesting (all that was relevant for Fortran descriptors), but a slight
++  // refactoring of mapInfoData to hold nestings or membersOf may be a better
++  // approach to simplify things.
++  for (size_t i = 0; i < mapData.MapClause.size(); ++i) {
++    auto mapInfoOp = mlir::dyn_cast<mlir::omp::MapInfoOp>(mapData.MapClause[i]);
++    for (auto member : mapInfoOp.getMembers()) {
++      for (size_t j = 0; j < primaryMapIdx.size(); j++) {
++        if (member.getDefiningOp() == mapData.MapClause[primaryMapIdx[j]]) {
++          primaryMapIdx.erase(&primaryMapIdx[j]);
++          j--;
++        }
++      }
++    }
++  }
++
+   // We operate under the assumption that all vectors that are
+   // required in MapInfoData are of equal lengths (either filled with
+   // default constructed data or appropiate information) so we can
+   // utilise the size from any component of MapInfoData, if we can't
+   // something is missing from the initial MapInfoData construction.
+-  for (size_t i = 0; i < mapData.MapClause.size(); ++i) {
++  for (unsigned long i : primaryMapIdx) {
++    auto mapInfoOp = mlir::dyn_cast<mlir::omp::MapInfoOp>(mapData.MapClause[i]);
++
++    if (!mapInfoOp.getMembers().empty()) {
++      processMapWithMembersOf(moduleTranslation, builder, *ompBuilder, dl,
++                              combinedInfo, mapData, i, isTargetParams);
++      continue;
++    }
++
+     // Declare Target Mappings are excluded from being marked as
+-    // OMP_MAP_TARGET_PARAM as they are not passed as parameters, they're marked
+-    // with OMP_MAP_PTR_AND_OBJ instead.
++    // OMP_MAP_TARGET_PARAM as they are not passed as parameters, they're
++    // marked with OMP_MAP_PTR_AND_OBJ instead.
+     auto mapFlag = mapData.Types[i];
+     if (mapData.IsDeclareTarget[i])
+       mapFlag |= llvm::omp::OpenMPOffloadMappingFlags::OMP_MAP_PTR_AND_OBJ;
+@@ -2025,6 +2318,37 @@
    return bodyGenStatus;
  }
  
@@ -1717,7 +2460,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/mlir/lib/T
  /// Lowers the FlagsAttr which is applied to the module on the device
  /// pass when offloading, this attribute contains OpenMP RTL globals that can
  /// be passed as flags to the frontend, otherwise they are set to default
-@@ -2093,11 +2210,6 @@
+@@ -2093,11 +2417,6 @@
      return false;
    }
  
@@ -1729,7 +2472,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/mlir/lib/T
    if (targetOp.getNowait()) {
      opInst.emitError("Nowait clause not yet supported");
      return false;
-@@ -2322,6 +2434,145 @@
+@@ -2322,6 +2641,145 @@
    }
  }
  
@@ -1875,7 +2618,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/mlir/lib/T
  static LogicalResult
  convertOmpTarget(Operation &opInst, llvm::IRBuilderBase &builder,
                   LLVM::ModuleTranslation &moduleTranslation) {
-@@ -2329,11 +2580,14 @@
+@@ -2329,11 +2787,14 @@
    if (!targetOpSupported(opInst))
      return failure();
  
@@ -1890,7 +2633,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/mlir/lib/T
    LogicalResult bodyGenStatus = success();
    using InsertPointTy = llvm::OpenMPIRBuilder::InsertPointTy;
    auto bodyCB = [&](InsertPointTy allocaIP,
-@@ -2352,6 +2606,10 @@
+@@ -2352,6 +2813,10 @@
      llvm::BasicBlock *exitBlock = convertOmpOpRegions(
          targetRegion, "omp.target", builder, moduleTranslation, bodyGenStatus);
      builder.SetInsertPoint(exitBlock);
@@ -1901,7 +2644,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/mlir/lib/T
      return builder.saveIP();
    };
  
-@@ -2370,9 +2628,6 @@
+@@ -2370,9 +2835,6 @@
    if (!getTargetEntryUniqueInfo(entryInfo, targetOp, parentName))
      return failure();
  
@@ -1911,7 +2654,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/mlir/lib/T
    llvm::OpenMPIRBuilder::InsertPointTy allocaIP =
        findAllocaInsertPoint(builder, moduleTranslation);
  
-@@ -2391,7 +2646,7 @@
+@@ -2391,7 +2853,7 @@
    // kernel arg structure. It primarily becomes relevant in cases like
    // bycopy, or byref range'd arrays. In the default case, we simply
    // pass thee pointer byref as both basePointer and pointer.
@@ -1920,7 +2663,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/mlir/lib/T
      createAlteredByCaptureMap(mapData, moduleTranslation, builder);
  
    llvm::OpenMPIRBuilder::MapInfosTy combinedInfos;
-@@ -2406,14 +2661,12 @@
+@@ -2406,14 +2868,12 @@
    auto argAccessorCB = [&](llvm::Argument &arg, llvm::Value *input,
                             llvm::Value *&retVal, InsertPointTy allocaIP,
                             InsertPointTy codeGenIP) {
@@ -1936,7 +2679,14 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/mlir/lib/T
        retVal = cast<llvm::Value>(&arg);
        return codeGenIP;
      }
-@@ -2430,13 +2683,21 @@
+@@ -2424,19 +2884,27 @@
+   };
+ 
+   llvm::SmallVector<llvm::Value *, 4> kernelInput;
+-  for (size_t i = 0; i < mapData.MapClause.size(); ++i) {
++  for (size_t i = 0; i < mapOperands.size(); ++i) {
+     // declare target arguments are not passed to kernels as arguments
+     if (!mapData.IsDeclareTarget[i])
        kernelInput.push_back(mapData.OriginalValue[i]);
    }
  
@@ -1962,7 +2712,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/mlir/lib/T
      handleDeclareTargetMapVar(mapData, moduleTranslation, builder);
  
    return bodyGenStatus;
-@@ -2660,6 +2921,17 @@
+@@ -2660,6 +3128,17 @@
              }
              return failure();
            })
@@ -1980,7 +2730,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/mlir/lib/T
        .Default([](Attribute) {
          // Fall through for omp attributes that do not require lowering.
          return success();
-@@ -2774,6 +3046,9 @@
+@@ -2774,6 +3253,9 @@
        .Case([&](omp::TargetOp) {
          return convertOmpTarget(*op, builder, moduleTranslation);
        })
@@ -1990,48 +2740,3 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/mlir/lib/T
        .Case<omp::MapInfoOp, omp::DataBoundsOp>([&](auto op) {
          // No-op, should be handled by relevant owning operations e.g.
          // TargetOp, EnterDataOp, ExitDataOp, DataOp etc. and then
-diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/mlir/lib/Transforms/CSE.cpp llvm-project/mlir/lib/Transforms/CSE.cpp
---- llvm-project.upstream/mlir/lib/Transforms/CSE.cpp	2023-08-21 13:28:50.509369796 -0400
-+++ llvm-project/mlir/lib/Transforms/CSE.cpp	2024-01-02 11:47:39.523803691 -0500
-@@ -15,6 +15,7 @@
- 
- #include "mlir/IR/Dominance.h"
- #include "mlir/IR/PatternMatch.h"
-+#include "mlir/Interfaces/CSEInterfaces.h"
- #include "mlir/Interfaces/SideEffectInterfaces.h"
- #include "mlir/Pass/Pass.h"
- #include "mlir/Transforms/Passes.h"
-@@ -61,7 +62,8 @@
- class CSEDriver {
- public:
-   CSEDriver(RewriterBase &rewriter, DominanceInfo *domInfo)
--      : rewriter(rewriter), domInfo(domInfo) {}
-+      : rewriter(rewriter), domInfo(domInfo),
-+        interfaces(rewriter.getContext()) {}
- 
-   /// Simplify all operations within the given op.
-   void simplify(Operation *op, bool *changed = nullptr);
-@@ -122,6 +124,9 @@
-   DominanceInfo *domInfo = nullptr;
-   MemEffectsCache memEffectsCache;
- 
-+  /// CSE interfaces in the present context that can modify CSE behavior.
-+  DialectInterfaceCollection<DialectCSEInterface> interfaces;
-+
-   // Various statistics.
-   int64_t numCSE = 0;
-   int64_t numDCE = 0;
-@@ -289,7 +294,12 @@
-       // If this operation is isolated above, we can't process nested regions
-       // with the given 'knownValues' map. This would cause the insertion of
-       // implicit captures in explicit capture only regions.
--      if (op.mightHaveTrait<OpTrait::IsIsolatedFromAbove>()) {
-+      // Also, avoid capturing known values from parent regions if this behavior
-+      // is explicitly disabled for the given operation.
-+      const DialectCSEInterface *cseInterface = interfaces.getInterfaceFor(&op);
-+      if (op.mightHaveTrait<OpTrait::IsIsolatedFromAbove>() ||
-+          LLVM_UNLIKELY(cseInterface &&
-+                        !cseInterface->subexpressionExtractionAllowed(&op))) {
-         ScopedMapTy nestedKnownValues;
-         for (auto &region : op.getRegions())
-           simplifyRegion(nestedKnownValues, region);
