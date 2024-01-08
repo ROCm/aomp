@@ -20,7 +20,7 @@ export AOMP_USE_CCACHE=0
 : ${ROCM:=/opt/rocm-5.3.0}
 
 # Control how many OpenMP threads are used by MiniQMCPack
-: ${MQMC_OMP_NUM_THREADS:=64}
+: ${MQMC_OMP_NUM_THREADS:=32}
 
 export PATH=$AOMP/bin:$PATH
 #export PATH=/home/janplehr/rocm/trunk/bin:$PATH
