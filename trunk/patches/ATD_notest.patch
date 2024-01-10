@@ -35,6 +35,26 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/clang/lib/
    if (D.CC1Main && !D.CCGenDiagnostics) {
      // Invoke cc1as directly in this process.
      C.addCommand(std::make_unique<CC1Command>(
+diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/include/flang/Evaluate/tools.h llvm-project/flang/include/flang/Evaluate/tools.h
+--- llvm-project.upstream/flang/include/flang/Evaluate/tools.h	2024-01-04 00:01:56.449494553 -0500
++++ llvm-project/flang/include/flang/Evaluate/tools.h	2024-01-10 09:16:23.766096236 -0500
+@@ -1240,6 +1240,16 @@
+ // Is this derived type either C_PTR or C_FUNPTR from module ISO_C_BINDING
+ bool IsIsoCType(const DerivedTypeSpec *);
+ bool IsEventTypeOrLockType(const DerivedTypeSpec *);
++inline bool IsAssumedSizeArray(const Symbol &symbol) {
++  if (const auto *object{symbol.detailsIf<ObjectEntityDetails>()}) {
++    return (object->isDummy() || symbol.test(Symbol::Flag::CrayPointee)) &&
++        object->shape().CanBeAssumedSize();
++  } else if (const auto *assoc{symbol.detailsIf<AssocEntityDetails>()}) {
++    return assoc->IsAssumedSize();
++  } else {
++    return false;
++  }
++}
+ 
+ // ResolveAssociations() traverses use associations and host associations
+ // like GetUltimate(), but also resolves through whole variable associations
 diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/include/flang/Optimizer/CodeGen/CodeGenOpenMP.h llvm-project/flang/include/flang/Optimizer/CodeGen/CodeGenOpenMP.h
 --- llvm-project.upstream/flang/include/flang/Optimizer/CodeGen/CodeGenOpenMP.h	1969-12-31 19:00:00.000000000 -0500
 +++ llvm-project/flang/include/flang/Optimizer/CodeGen/CodeGenOpenMP.h	2024-01-05 09:27:05.922815707 -0500
@@ -80,9 +100,148 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/incl
  /// Return true iff `ty` is a scalar boxed record type.
  /// e.g. !fir.box<!fir.type<derived>>
  ///      !fir.box<!fir.heap<!fir.type<derived>>>
+diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/include/flang/Semantics/symbol.h llvm-project/flang/include/flang/Semantics/symbol.h
+--- llvm-project.upstream/flang/include/flang/Semantics/symbol.h	2023-09-28 15:58:07.661458581 -0400
++++ llvm-project/flang/include/flang/Semantics/symbol.h	2024-01-10 09:16:23.766096236 -0500
+@@ -339,11 +339,10 @@
+   void set_ignoreTKR(common::IgnoreTKRSet set) { ignoreTKR_ = set; }
+   bool IsArray() const { return !shape_.empty(); }
+   bool IsCoarray() const { return !coshape_.empty(); }
+-  bool CanBeAssumedShape() const {
++  bool IsAssumedShape() const {
+     return isDummy() && shape_.CanBeAssumedShape();
+   }
+   bool CanBeDeferredShape() const { return shape_.CanBeDeferredShape(); }
+-  bool IsAssumedSize() const { return isDummy() && shape_.CanBeAssumedSize(); }
+   bool IsAssumedRank() const { return isDummy() && shape_.IsAssumedRank(); }
+   std::optional<common::CUDADataAttr> cudaDataAttr() const {
+     return cudaDataAttr_;
+diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/include/flang/Semantics/tools.h llvm-project/flang/include/flang/Semantics/tools.h
+--- llvm-project.upstream/flang/include/flang/Semantics/tools.h	2023-12-18 11:20:49.327182952 -0500
++++ llvm-project/flang/include/flang/Semantics/tools.h	2024-01-10 09:16:23.766096236 -0500
+@@ -188,15 +188,6 @@
+ bool HasAllocatableDirectComponent(const DerivedTypeSpec &derived);
+ 
+ bool IsInBlankCommon(const Symbol &);
+-inline bool IsAssumedSizeArray(const Symbol &symbol) {
+-  if (const auto *object{symbol.detailsIf<ObjectEntityDetails>()}) {
+-    return object->IsAssumedSize();
+-  } else if (const auto *assoc{symbol.detailsIf<AssocEntityDetails>()}) {
+-    return assoc->IsAssumedSize();
+-  } else {
+-    return false;
+-  }
+-}
+ bool IsAssumedLengthCharacter(const Symbol &);
+ bool IsExternal(const Symbol &);
+ bool IsModuleProcedure(const Symbol &);
+diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/lib/Evaluate/characteristics.cpp llvm-project/flang/lib/Evaluate/characteristics.cpp
+--- llvm-project.upstream/flang/lib/Evaluate/characteristics.cpp	2023-12-18 11:20:49.331182937 -0500
++++ llvm-project/flang/lib/Evaluate/characteristics.cpp	2024-01-10 09:16:23.766096236 -0500
+@@ -215,9 +215,10 @@
+ void TypeAndShape::AcquireAttrs(const semantics::Symbol &symbol) {
+   if (IsAssumedShape(symbol)) {
+     attrs_.set(Attr::AssumedShape);
+-  }
+-  if (IsDeferredShape(symbol)) {
++  } else if (IsDeferredShape(symbol)) {
+     attrs_.set(Attr::DeferredShape);
++  } else if (semantics::IsAssumedSizeArray(symbol)) {
++    attrs_.set(Attr::AssumedSize);
+   }
+   if (const auto *object{
+           symbol.GetUltimate().detailsIf<semantics::ObjectEntityDetails>()}) {
+@@ -225,9 +226,6 @@
+     if (object->IsAssumedRank()) {
+       attrs_.set(Attr::AssumedRank);
+     }
+-    if (object->IsAssumedSize()) {
+-      attrs_.set(Attr::AssumedSize);
+-    }
+     if (object->IsCoarray()) {
+       attrs_.set(Attr::Coarray);
+     }
+diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/lib/Evaluate/shape.cpp llvm-project/flang/lib/Evaluate/shape.cpp
+--- llvm-project.upstream/flang/lib/Evaluate/shape.cpp	2023-09-26 09:25:56.737801415 -0400
++++ llvm-project/flang/lib/Evaluate/shape.cpp	2024-01-10 09:16:23.766096236 -0500
+@@ -258,7 +258,8 @@
+             if constexpr (LBOUND_SEMANTICS) {
+               bool ok{false};
+               auto lbValue{ToInt64(*lbound)};
+-              if (dimension_ == rank - 1 && object->IsAssumedSize()) {
++              if (dimension_ == rank - 1 &&
++                  semantics::IsAssumedSizeArray(symbol)) {
+                 // last dimension of assumed-size dummy array: don't worry
+                 // about handling an empty dimension
+                 ok = !invariantOnly_ || IsScopeInvariantExpr(*lbound);
+@@ -527,7 +528,8 @@
+         if (j++ == dimension) {
+           if (auto extent{GetNonNegativeExtent(shapeSpec, invariantOnly)}) {
+             return extent;
+-          } else if (details->IsAssumedSize() && j == symbol.Rank()) {
++          } else if (semantics::IsAssumedSizeArray(symbol) &&
++              j == symbol.Rank()) {
+             break;
+           } else if (semantics::IsDescriptor(symbol)) {
+             return ExtentExpr{DescriptorInquiry{NamedEntity{base},
+@@ -608,7 +610,8 @@
+       const auto &bound{details->shape()[dimension].ubound().GetExplicit()};
+       if (bound && (!invariantOnly || IsScopeInvariantExpr(*bound))) {
+         return *bound;
+-      } else if (details->IsAssumedSize() && dimension + 1 == symbol.Rank()) {
++      } else if (semantics::IsAssumedSizeArray(symbol) &&
++          dimension + 1 == symbol.Rank()) {
+         return std::nullopt;
+       } else {
+         return ComputeUpperBound(
+@@ -661,7 +664,8 @@
+       const semantics::ShapeSpec &shapeSpec{details->shape()[dimension]};
+       if (auto ubound{GetExplicitUBOUND(context, shapeSpec, invariantOnly)}) {
+         return *ubound;
+-      } else if (details->IsAssumedSize() && dimension + 1 == symbol.Rank()) {
++      } else if (semantics::IsAssumedSizeArray(symbol) &&
++          dimension + 1 == symbol.Rank()) {
+         return std::nullopt; // UBOUND() folding replaces with -1
+       } else if (auto lb{GetLBOUND(base, dimension, invariantOnly)}) {
+         return ComputeUpperBound(
+diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/lib/Evaluate/tools.cpp llvm-project/flang/lib/Evaluate/tools.cpp
+--- llvm-project.upstream/flang/lib/Evaluate/tools.cpp	2024-01-04 00:01:56.449494553 -0500
++++ llvm-project/flang/lib/Evaluate/tools.cpp	2024-01-10 09:16:23.770101367 -0500
+@@ -1690,7 +1690,7 @@
+ bool IsAssumedShape(const Symbol &symbol) {
+   const Symbol &ultimate{ResolveAssociations(symbol)};
+   const auto *object{ultimate.detailsIf<ObjectEntityDetails>()};
+-  return object && object->CanBeAssumedShape() &&
++  return object && object->IsAssumedShape() &&
+       !semantics::IsAllocatableOrObjectPointer(&ultimate);
+ }
+ 
+diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/lib/Evaluate/type.cpp llvm-project/flang/lib/Evaluate/type.cpp
+--- llvm-project.upstream/flang/lib/Evaluate/type.cpp	2023-11-06 08:47:03.810294687 -0500
++++ llvm-project/flang/lib/Evaluate/type.cpp	2024-01-10 09:16:23.770101367 -0500
+@@ -87,6 +87,9 @@
+   if (IsAllocatableOrPointer(symbol)) {
+     return true;
+   }
++  if (semantics::IsAssumedSizeArray(symbol)) {
++    return false;
++  }
+   if (const auto *object{
+           symbol.GetUltimate().detailsIf<ObjectEntityDetails>()}) {
+     if (object->isDummy()) {
+@@ -94,9 +97,6 @@
+           object->type()->category() == DeclTypeSpec::Character) {
+         return false;
+       }
+-      if (object->IsAssumedSize()) {
+-        return false;
+-      }
+       bool isExplicitShape{true};
+       for (const ShapeSpec &shapeSpec : object->shape()) {
+         if (!shapeSpec.lbound().GetExplicit() ||
 diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/lib/Lower/OpenMP.cpp llvm-project/flang/lib/Lower/OpenMP.cpp
 --- llvm-project.upstream/flang/lib/Lower/OpenMP.cpp	2024-01-02 11:37:59.669301297 -0500
-+++ llvm-project/flang/lib/Lower/OpenMP.cpp	2024-01-05 09:27:05.922815707 -0500
++++ llvm-project/flang/lib/Lower/OpenMP.cpp	2024-01-08 15:58:29.638654018 -0500
 @@ -39,6 +39,19 @@
      llvm::cl::desc("In the OpenMP data clauses treat `a(N)` as `a(N:N)`."),
      llvm::cl::init(true));
@@ -589,7 +748,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/lib/
              static_cast<
                  std::underlying_type_t<llvm::omp::OpenMPOffloadMappingFlags>>(
                  llvm::omp::OpenMPOffloadMappingFlags::OMP_MAP_IMPLICIT),
-@@ -2677,13 +2965,12 @@
+@@ -2677,25 +2965,29 @@
    llvm::SmallVector<const Fortran::semantics::Symbol *> mapSymbols;
  
    ClauseProcessor cp(converter, clauseList);
@@ -606,7 +765,13 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/lib/
    cp.processTODO<Fortran::parser::OmpClause::Private,
                   Fortran::parser::OmpClause::Depend,
                   Fortran::parser::OmpClause::Firstprivate,
-@@ -2696,6 +2983,11 @@
+                  Fortran::parser::OmpClause::IsDevicePtr,
+                  Fortran::parser::OmpClause::HasDeviceAddr,
+-                 Fortran::parser::OmpClause::Reduction,
++                 //                 Fortran::parser::OmpClause::Reduction,
+                  Fortran::parser::OmpClause::InReduction,
+                  Fortran::parser::OmpClause::Allocate,
+                  Fortran::parser::OmpClause::UsesAllocators,
                   Fortran::parser::OmpClause::Defaultmap>(
        currentLocation, llvm::omp::Directive::OMPD_target);
  
@@ -682,8 +847,10 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/lib/
    cp.processDefault();
 -  cp.processNumTeams(stmtCtx, numTeamsClauseOperand);
 -  cp.processThreadLimit(stmtCtx, threadLimitClauseOperand);
-   cp.processTODO<Fortran::parser::OmpClause::Reduction>(
-       currentLocation, llvm::omp::Directive::OMPD_teams);
+-  cp.processTODO<Fortran::parser::OmpClause::Reduction>(
+-      currentLocation, llvm::omp::Directive::OMPD_teams);
++  //  cp.processTODO<Fortran::parser::OmpClause::Reduction>(
++  //      currentLocation, llvm::omp::Directive::OMPD_teams);
  
 -  return genOpWithBody<mlir::omp::TeamsOp>(
 +  // Evaluate NUM_TEAMS and THREAD_LIMIT on the host device, if currently inside
@@ -943,10 +1110,89 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/lib/
  bool isPolymorphicType(mlir::Type ty) {
    if (auto refTy = fir::dyn_cast_ptrEleTy(ty))
      ty = refTy;
+diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/lib/Semantics/check-declarations.cpp llvm-project/flang/lib/Semantics/check-declarations.cpp
+--- llvm-project.upstream/flang/lib/Semantics/check-declarations.cpp	2023-12-18 11:20:49.347182876 -0500
++++ llvm-project/flang/lib/Semantics/check-declarations.cpp	2024-01-10 09:16:23.770101367 -0500
+@@ -685,7 +685,7 @@
+         messages_.Say(
+             "An INTENT(OUT) dummy argument may not be, or contain, EVENT_TYPE or LOCK_TYPE"_err_en_US);
+       }
+-      if (details.IsAssumedSize()) { // C834
++      if (IsAssumedSizeArray(symbol)) { // C834
+         if (type && type->IsPolymorphic()) {
+           messages_.Say(
+               "An INTENT(OUT) assumed-size dummy argument array may not be polymorphic"_err_en_US);
+@@ -1124,8 +1124,8 @@
+   std::optional<parser::MessageFixedText> msg;
+   if (symbol.test(Symbol::Flag::CrayPointee) && !isExplicit &&
+       !canBeAssumedSize) {
+-    msg = "Cray pointee '%s' must have explicit shape or"
+-          " assumed size"_err_en_US;
++    msg =
++        "Cray pointee '%s' must have explicit shape or assumed size"_err_en_US;
+   } else if (IsAllocatableOrPointer(symbol) && !canBeDeferred &&
+       !isAssumedRank) {
+     if (symbol.owner().IsDerivedType()) { // C745
+@@ -1155,7 +1155,8 @@
+   } else if (isAssumedRank) { // C837
+     msg = "Assumed-rank array '%s' must be a dummy argument"_err_en_US;
+   } else if (canBeImplied) {
+-    if (!IsNamedConstant(symbol) && !isCUDAShared) { // C835, C836
++    if (!IsNamedConstant(symbol) && !isCUDAShared &&
++        !symbol.test(Symbol::Flag::CrayPointee)) { // C835, C836
+       msg = "Implied-shape array '%s' must be a named constant or a "
+             "dummy argument"_err_en_US;
+     }
+@@ -2741,7 +2742,7 @@
+       context_.SetError(symbol);
+     }
+   }
+-  if (const auto *object{symbol.detailsIf<ObjectEntityDetails>()}) {
++  if (symbol.has<ObjectEntityDetails>()) {
+     if (isExplicitBindC && !symbol.owner().IsModule()) {
+       messages_.Say(symbol.name(),
+           "A variable with BIND(C) attribute may only appear in the specification part of a module"_err_en_US);
+@@ -2764,7 +2765,7 @@
+             context_.SetError(symbol);
+           }
+         } else if ((isExplicitBindC || symbol.attrs().test(Attr::VALUE)) &&
+-            !evaluate::IsExplicitShape(symbol) && !object->IsAssumedSize()) {
++            !evaluate::IsExplicitShape(symbol) && !IsAssumedSizeArray(symbol)) {
+           SayWithDeclaration(symbol, symbol.name(),
+               "BIND(C) array must have explicit shape or be assumed-size unless a dummy argument without the VALUE attribute"_err_en_US);
+           context_.SetError(symbol);
+diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/lib/Semantics/check-namelist.cpp llvm-project/flang/lib/Semantics/check-namelist.cpp
+--- llvm-project.upstream/flang/lib/Semantics/check-namelist.cpp	2022-11-28 13:39:59.277654099 -0500
++++ llvm-project/flang/lib/Semantics/check-namelist.cpp	2024-01-10 09:16:23.770101367 -0500
+@@ -15,13 +15,10 @@
+     if (const auto *nml{std::get<parser::Name>(x.t).symbol}) {
+       for (const auto &nmlObjName : std::get<std::list<parser::Name>>(x.t)) {
+         const auto *nmlObjSymbol{nmlObjName.symbol};
+-        if (nmlObjSymbol && nmlObjSymbol->has<ObjectEntityDetails>()) {
+-          const auto *symDetails{
+-              std::get_if<ObjectEntityDetails>(&nmlObjSymbol->details())};
+-          if (symDetails && symDetails->IsAssumedSize()) { // C8104
++        if (nmlObjSymbol) {
++          if (IsAssumedSizeArray(*nmlObjSymbol)) { // C8104
+             context_.Say(nmlObjName.source,
+-                "A namelist group object '%s' must not be"
+-                " assumed-size"_err_en_US,
++                "A namelist group object '%s' must not be assumed-size"_err_en_US,
+                 nmlObjSymbol->name());
+           }
+           if (nml->attrs().test(Attr::PUBLIC) &&
 diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/llvm/include/llvm/Frontend/OpenMP/OMPIRBuilder.h llvm-project/llvm/include/llvm/Frontend/OpenMP/OMPIRBuilder.h
 --- llvm-project.upstream/llvm/include/llvm/Frontend/OpenMP/OMPIRBuilder.h	2024-01-04 00:01:56.473494468 -0500
-+++ llvm-project/llvm/include/llvm/Frontend/OpenMP/OMPIRBuilder.h	2024-01-05 09:08:39.214311847 -0500
-@@ -90,9 +90,14 @@
++++ llvm-project/llvm/include/llvm/Frontend/OpenMP/OMPIRBuilder.h	2024-01-08 15:58:29.638654018 -0500
+@@ -16,6 +16,7 @@
+ 
+ #include "llvm/Analysis/MemorySSAUpdater.h"
+ #include "llvm/Frontend/OpenMP/OMPConstants.h"
++#include "llvm/Frontend/OpenMP/OMPGridValues.h"
+ #include "llvm/IR/DebugLoc.h"
+ #include "llvm/IR/IRBuilder.h"
+ #include "llvm/Support/Allocator.h"
+@@ -90,14 +91,22 @@
    /// Flag for specifying if the compilation is done for an accelerator.
    std::optional<bool> IsGPU;
  
@@ -962,7 +1208,171 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/llvm/inclu
    /// First separator used between the initial two parts of a name.
    std::optional<StringRef> FirstSeparator;
    /// Separator used between all of the rest consecutive parts of s name
-@@ -1598,6 +1603,29 @@
+   std::optional<StringRef> Separator;
+ 
++  // Grid Value for the GPU target
++  std::optional<omp::GV> GridValue;
++
+   OpenMPIRBuilderConfig();
+   OpenMPIRBuilderConfig(bool IsTargetDevice, bool IsGPU,
+                         bool OpenMPOffloadMandatory,
+@@ -123,6 +132,11 @@
+     return *OpenMPOffloadMandatory;
+   }
+ 
++  omp::GV getGridValue() const {
++    assert(GridValue.has_value() && "GridValue is not set");
++    return *GridValue;
++  }
++
+   bool hasRequiresFlags() const { return RequiresFlags; }
+   bool hasRequiresReverseOffload() const;
+   bool hasRequiresUnifiedAddress() const;
+@@ -158,6 +172,7 @@
+   void setOpenMPOffloadMandatory(bool Value) { OpenMPOffloadMandatory = Value; }
+   void setFirstSeparator(StringRef FS) { FirstSeparator = FS; }
+   void setSeparator(StringRef S) { Separator = S; }
++  void setGridValue(omp::GV G) { GridValue = G; }
+ 
+   void setHasRequiresReverseOffload(bool Value);
+   void setHasRequiresUnifiedAddress(bool Value);
+@@ -1224,18 +1239,26 @@
+   getTargetEntryUniqueInfo(FileIdentifierInfoCallbackTy CallBack,
+                            StringRef ParentName = "");
+ 
++  // using ReductionGenTy =
++  //     function_ref<InsertPointTy(InsertPointTy, Value *, Value *, Value *&)>;
++
++  // using AtomicReductionGenTy =
++  //     function_ref<InsertPointTy(InsertPointTy, Type *, Value *, Value *)>;
++
++  /// Owning equivalents of OpenMPIRBuilder::(Atomic)ReductionGen that are used
++  /// to
++  /// store lambdas with capture.
+   /// Functions used to generate reductions. Such functions take two Values
+   /// representing LHS and RHS of the reduction, respectively, and a reference
+   /// to the value that is updated to refer to the reduction result.
+-  using ReductionGenTy =
+-      function_ref<InsertPointTy(InsertPointTy, Value *, Value *, Value *&)>;
+-
++  using ReductionGenTy = std::function<OpenMPIRBuilder::InsertPointTy(
++      OpenMPIRBuilder::InsertPointTy, Value *, Value *, Value *&)>;
+   /// Functions used to generate atomic reductions. Such functions take two
+   /// Values representing pointers to LHS and RHS of the reduction, as well as
+   /// the element type of these pointers. They are expected to atomically
+   /// update the LHS to the reduced value.
+-  using AtomicReductionGenTy =
+-      function_ref<InsertPointTy(InsertPointTy, Type *, Value *, Value *)>;
++  using AtomicReductionGenTy = std::function<OpenMPIRBuilder::InsertPointTy(
++      OpenMPIRBuilder::InsertPointTy, Type *, Value *, Value *)>;
+ 
+   /// Information about an OpenMP reduction.
+   struct ReductionInfo {
+@@ -1245,6 +1268,10 @@
+         : ElementType(ElementType), Variable(Variable),
+           PrivateVariable(PrivateVariable), ReductionGen(ReductionGen),
+           AtomicReductionGen(AtomicReductionGen) {}
++    ReductionInfo(Value *PrivateVariable)
++        : ElementType(nullptr), Variable(nullptr),
++          PrivateVariable(PrivateVariable), ReductionGen(),
++          AtomicReductionGen() {}
+ 
+     /// Reduction element type, must match pointee type of variable.
+     Type *ElementType;
+@@ -1267,6 +1294,71 @@
+     AtomicReductionGenTy AtomicReductionGen;
+   };
+ 
++  /// A class that manages the reduction info to facilitate lowering of
++  /// reductions at multiple levels of parallelism. For example handling teams
++  /// and parallel reductions on GPUs
++
++  class ReductionInfoManager {
++  private:
++    SmallVector<ReductionInfo> ReductionInfos;
++    std::optional<InsertPointTy> PrivateVarAllocaIP;
++
++  public:
++    ReductionInfoManager() {};
++    void clear() {
++      ReductionInfos.clear();
++      PrivateVarAllocaIP.reset();
++    }
++
++    Value *allocatePrivateReductionVar(
++        IRBuilderBase &builder,
++        llvm::OpenMPIRBuilder::InsertPointTy &allocaIP,
++        Type *VarType) {
++      llvm::Type *ptrTy = llvm::PointerType::getUnqual(builder.getContext());
++      llvm::Value *var = builder.CreateAlloca(VarType);
++      var->setName("private_redvar");
++      llvm::Value *castVar =
++        builder.CreatePointerBitCastOrAddrSpaceCast(var, ptrTy);
++      ReductionInfos.push_back(ReductionInfo(castVar));
++      return castVar;
++    }
++
++    ReductionInfo getReductionInfo(unsigned Index) {
++      return ReductionInfos[Index];
++    }
++    ReductionInfo setReductionInfo(unsigned Index, ReductionInfo &RI) {
++      return ReductionInfos[Index] = RI;
++    }
++    Value *getPrivateReductionVariable(unsigned Index) {
++      return ReductionInfos[Index].PrivateVariable;
++    }
++    SmallVector<ReductionInfo> &getReductionInfos() {
++      return ReductionInfos;
++    }
++
++    bool hasPrivateVarAllocaIP() { return PrivateVarAllocaIP.has_value(); }
++    InsertPointTy getPrivateVarAllocaIP() {
++      assert(PrivateVarAllocaIP.has_value() && "AllocaIP not set");
++      return *PrivateVarAllocaIP;
++    }
++    void setPrivateVarAllocaIP(InsertPointTy IP) { PrivateVarAllocaIP = IP; }
++  };
++
++  /// \param Loc                The location where the reduction was
++  ///                           encountered. Must be within the associate
++  ///                           directive and after the last local access to the
++  ///                           reduction variables.
++  /// \param AllocaIP           An insertion point suitable for allocas usable
++  ///                           in reductions.
++  /// \param ReductionInfos     A list of info on each reduction variable.
++  /// \param IsNoWait           A flag set if the reduction is marked as nowait.
++  InsertPointTy createReductionsGPU(const LocationDescription &Loc,
++                                    InsertPointTy AllocaIP,
++                                    ArrayRef<ReductionInfo> ReductionInfos,
++                                    bool IsNoWait = false,
++                                    bool IsTeamsReduction = false,
++                                    bool HasDistribute = false);
++
+   // TODO: provide atomic and non-atomic reduction generators for reduction
+   // operators defined by the OpenMP specification.
+ 
+@@ -1331,7 +1423,9 @@
+   InsertPointTy createReductions(const LocationDescription &Loc,
+                                  InsertPointTy AllocaIP,
+                                  ArrayRef<ReductionInfo> ReductionInfos,
+-                                 bool IsNoWait = false);
++                                 bool IsNoWait = false,
++                                 bool IsTeamsReduction = false,
++                                 bool HasDistribute = false);
+ 
+   ///}
+ 
+@@ -1472,6 +1566,9 @@
+   /// Info manager to keep track of target regions.
+   OffloadEntriesInfoManager OffloadInfoManager;
+ 
++  /// Info manager to keep track of reduction information;
++  ReductionInfoManager RIManager;
++
+   /// The target triple of the underlying module.
+   const Triple T;
+ 
+@@ -1598,6 +1695,31 @@
            MapNamesArray(MapNamesArray) {}
    };
  
@@ -974,6 +1384,8 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/llvm/inclu
 +    int32_t MaxTeams = -1;
 +    int32_t MinThreads = 1;
 +    int32_t MaxThreads = -1;
++    int32_t ReductionDataSize = 0;
++    int32_t ReductionBufferLength = 0;
 +  };
 +
 +  /// Container to pass the runtime SSA values or constants related to the
@@ -992,7 +1404,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/llvm/inclu
    /// Data structure that contains the needed information to construct the
    /// kernel args vector.
    struct TargetKernelArgs {
-@@ -1606,7 +1634,7 @@
+@@ -1606,7 +1728,7 @@
      /// Arguments passed to the runtime library
      TargetDataRTArgs RTArgs;
      /// The number of iterations
@@ -1001,7 +1413,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/llvm/inclu
      /// The number of teams.
      Value *NumTeams;
      /// The number of threads.
-@@ -1618,12 +1646,11 @@
+@@ -1618,12 +1740,11 @@
  
      /// Constructor for TargetKernelArgs
      TargetKernelArgs(unsigned NumTargetItems, TargetDataRTArgs RTArgs,
@@ -1018,7 +1430,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/llvm/inclu
    };
  
    /// Create the kernel args vector used by emitTargetKernel. This function
-@@ -1936,6 +1963,14 @@
+@@ -1936,6 +2057,14 @@
                Value *NumTeamsLower = nullptr, Value *NumTeamsUpper = nullptr,
                Value *ThreadLimit = nullptr, Value *IfExpr = nullptr);
  
@@ -1033,7 +1445,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/llvm/inclu
    /// Generate conditional branch and relevant BasicBlocks through which private
    /// threads copy the 'copyin' variables from Master copy to threadprivate
    /// copies.
-@@ -2048,15 +2083,10 @@
+@@ -2048,15 +2177,10 @@
    ///
    /// \param Loc The insert and source location description.
    /// \param IsSPMD Flag to indicate if the kernel is an SPMD kernel or not.
@@ -1053,7 +1465,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/llvm/inclu
  
    /// Create a runtime call for kmpc_target_deinit
    ///
-@@ -2082,6 +2112,9 @@
+@@ -2082,6 +2206,9 @@
    static void writeThreadBoundsForKernel(const Triple &T, Function &Kernel,
                                           int32_t LB, int32_t UB);
  
@@ -1063,7 +1475,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/llvm/inclu
    /// Read/write a bounds on teams for \p Kernel. Read will return 0 if none
    /// is set.
    static std::pair<int32_t, int32_t> readTeamBoundsForKernel(const Triple &T,
-@@ -2156,7 +2189,6 @@
+@@ -2156,7 +2283,6 @@
                                           Function *OutlinedFunction,
                                           StringRef EntryFnName,
                                           StringRef EntryFnIDName);
@@ -1071,7 +1483,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/llvm/inclu
    /// Type of BodyGen to use for region codegen
    ///
    /// Priv: If device pointer privatization is required, emit the body of the
-@@ -2215,21 +2247,23 @@
+@@ -2215,21 +2341,23 @@
    /// Generator for '#omp target'
    ///
    /// \param Loc where the target data construct was encountered.
@@ -1102,8 +1514,58 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/llvm/inclu
                               TargetBodyGenCallbackTy BodyGenCB,
 diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/llvm/lib/Frontend/OpenMP/OMPIRBuilder.cpp llvm-project/llvm/lib/Frontend/OpenMP/OMPIRBuilder.cpp
 --- llvm-project.upstream/llvm/lib/Frontend/OpenMP/OMPIRBuilder.cpp	2024-01-04 00:01:56.493494398 -0500
-+++ llvm-project/llvm/lib/Frontend/OpenMP/OMPIRBuilder.cpp	2024-01-05 09:08:39.210311860 -0500
-@@ -510,7 +510,7 @@
++++ llvm-project/llvm/lib/Frontend/OpenMP/OMPIRBuilder.cpp	2024-01-10 09:16:23.774106499 -0500
+@@ -145,10 +145,19 @@
+ }
+ #endif
+ 
+-static const omp::GV &getGridValue(const Triple &T, Function *Kernel) {
++Function *GLOBAL_ReductionFunc = nullptr;
++
++static uint64_t getTypeSizeInBytes(Module &M, Type *Type) {
++  return divideCeil(M.getDataLayout().getTypeSizeInBits(Type), 8);
++}
++
++static Value *getTypeSizeInBytesValue(IRBuilder<> &Builder, Module &M,
++                                      Type *Type) {
++  return Builder.getInt64(getTypeSizeInBytes(M, Type));
++}
++
++static const omp::GV &getGridValue(const Triple &T, StringRef Features) {
+   if (T.isAMDGPU()) {
+-    StringRef Features =
+-        Kernel->getFnAttribute("target-features").getValueAsString();
+     if (Features.count("+wavefrontsize64"))
+       return omp::getAMDGPUGridValues<64>();
+     return omp::getAMDGPUGridValues<32>();
+@@ -158,6 +167,17 @@
+   llvm_unreachable("No grid value available for this architecture!");
+ }
+ 
++static const omp::GV &getGridValue(const Triple &T, Function *Kernel) {
++  if (T.isAMDGPU()) {
++    StringRef Features =
++        Kernel->getFnAttribute("target-features").getValueAsString();
++    return getGridValue(T, Features);
++  }
++  if (T.isNVPTX())
++    return omp::NVPTXGridValues;
++  llvm_unreachable("No grid value available for this architecture!");
++}
++
+ /// Determine which scheduling algorithm to use, determined from schedule clause
+ /// arguments.
+ static OMPScheduleType
+@@ -365,7 +385,7 @@
+   Builder.restoreIP(OuterAllocaIP);
+   Instruction *FakeVal;
+   AllocaInst *FakeValAddr =
+-      Builder.CreateAlloca(Builder.getInt32Ty(), nullptr, Name + ".addr");
++      Builder.CreateAlloca(Builder.getInt32Ty(), 0, nullptr, Name + ".addr");
+   ToBeDeleted.push(FakeValAddr);
+ 
+   if (AsPtr) {
+@@ -510,7 +530,7 @@
                  KernelArgs.RTArgs.MapTypesArray,
                  KernelArgs.RTArgs.MapNamesArray,
                  KernelArgs.RTArgs.MappersArray,
@@ -1112,7 +1574,25 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/llvm/lib/F
                  Flags,
                  NumTeams3D,
                  NumThreads3D,
-@@ -1132,7 +1132,6 @@
+@@ -678,6 +698,8 @@
+       Extractor.excludeArgFromAggregate(V);
+ 
+     Function *OutlinedFn = Extractor.extractCodeRegion(CEAC);
++    if (Config.isGPU())
++      OutlinedFn->addFnAttr(Attribute::AlwaysInline);
+ 
+     LLVM_DEBUG(dbgs() << "After      outlining: " << *OuterFn << "\n");
+     LLVM_DEBUG(dbgs() << "   Outlined function: " << *OutlinedFn << "\n");
+@@ -1115,7 +1137,7 @@
+ static void targetParallelCallback(
+     OpenMPIRBuilder *OMPIRBuilder, Function &OutlinedFn, Function *OuterFn,
+     BasicBlock *OuterAllocaBB, Value *Ident, Value *IfCondition,
+-    Value *NumThreads, Instruction *PrivTID, AllocaInst *PrivTIDAddr,
++    Value *NumThreads, Instruction *PrivTID, Value *PrivTIDAddr,
+     Value *ThreadID, const SmallVector<Instruction *, 4> &ToBeDeleted) {
+   // Add some known attributes.
+   IRBuilder<> &Builder = OMPIRBuilder->Builder;
+@@ -1132,7 +1154,6 @@
    CallInst *CI = cast<CallInst>(OutlinedFn.user_back());
    assert(CI && "Expected call instruction to outlined function");
    CI->getParent()->setName("omp_parallel");
@@ -1120,7 +1600,1372 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/llvm/lib/F
    Builder.SetInsertPoint(CI);
    Type *PtrTy = OMPIRBuilder->VoidPtr;
    Value *NullPtrValue = Constant::getNullValue(PtrTy);
-@@ -4441,10 +4440,9 @@
+@@ -1141,7 +1162,7 @@
+   OpenMPIRBuilder ::InsertPointTy CurrentIP = Builder.saveIP();
+   Builder.SetInsertPoint(OuterAllocaBB, OuterAllocaBB->getFirstInsertionPt());
+   AllocaInst *ArgsAlloca =
+-      Builder.CreateAlloca(ArrayType::get(PtrTy, NumCapturedVars));
++    Builder.CreateAlloca(ArrayType::get(PtrTy, NumCapturedVars), nullptr, "kernel_arg");
+   Value *Args = ArgsAlloca;
+   // Add address space cast if array for storing arguments is not allocated
+   // in address space 0
+@@ -1203,7 +1224,7 @@
+ static void
+ hostParallelCallback(OpenMPIRBuilder *OMPIRBuilder, Function &OutlinedFn,
+                      Function *OuterFn, Value *Ident, Value *IfCondition,
+-                     Instruction *PrivTID, AllocaInst *PrivTIDAddr,
++                     Instruction *PrivTID, Value *PrivTIDAddr,
+                      const SmallVector<Instruction *, 4> &ToBeDeleted) {
+   IRBuilder<> &Builder = OMPIRBuilder->Builder;
+   FunctionCallee RTLFn;
+@@ -1396,7 +1417,9 @@
+ 
+   AllocaInst *PrivTIDAddr =
+       Builder.CreateAlloca(Int32, nullptr, "tid.addr.local");
+-  Instruction *PrivTID = Builder.CreateLoad(Int32, PrivTIDAddr, "tid");
++  Value *PrivTIDAddrAcast = Builder.CreatePointerBitCastOrAddrSpaceCast(
++      PrivTIDAddr, Builder.getPtrTy(), PrivTIDAddr->getName() + ".acast");
++  Instruction *PrivTID = Builder.CreateLoad(Int32, PrivTIDAddrAcast, "tid");
+ 
+   // Add some fake uses for OpenMP provided arguments.
+   ToBeDeleted.push_back(Builder.CreateLoad(Int32, TIDAddr, "tid.addr.use"));
+@@ -1434,7 +1457,7 @@
+     OI.PostOutlineCB = [=, ToBeDeletedVec =
+                                std::move(ToBeDeleted)](Function &OutlinedFn) {
+       targetParallelCallback(this, OutlinedFn, OuterFn, OuterAllocaBlock, Ident,
+-                             IfCondition, NumThreads, PrivTID, PrivTIDAddr,
++                             IfCondition, NumThreads, PrivTID, PrivTIDAddrAcast,
+                              ThreadID, ToBeDeletedVec);
+     };
+   } else {
+@@ -1442,7 +1465,7 @@
+     OI.PostOutlineCB = [=, ToBeDeletedVec =
+                                std::move(ToBeDeleted)](Function &OutlinedFn) {
+       hostParallelCallback(this, OutlinedFn, OuterFn, Ident, IfCondition,
+-                           PrivTID, PrivTIDAddr, ToBeDeletedVec);
++                           PrivTID, PrivTIDAddrAcast, ToBeDeletedVec);
+     };
+   }
+ 
+@@ -2042,36 +2065,1192 @@
+                               /*IsCancellable*/ true);
+ }
+ 
++static Value *getGPUWarpSize(Module &M, OpenMPIRBuilder &OMPBuilder) {
++  return OMPBuilder.Builder.CreateCall(
++      OMPBuilder.getOrCreateRuntimeFunction(M, OMPRTL___kmpc_get_warp_size),
++      {});
++}
++
++static Value *getGPUThreadID(Module &M, OpenMPIRBuilder &OMPBuilder) {
++  return OMPBuilder.Builder.CreateCall(
++      OMPBuilder.getOrCreateRuntimeFunction(
++          M, OMPRTL___kmpc_get_hardware_thread_id_in_block),
++      {});
++}
++
++static Value *getGPUNumThreads(Module &M, OpenMPIRBuilder &OMPBuilder) {
++  const char *LocSize = "__kmpc_get_hardware_num_threads_in_block";
++  llvm::Function *F = M.getFunction(LocSize);
++  if (!F) {
++    LLVMContext &Ctx = M.getContext();
++    Type *I32Type = Type::getInt32Ty(Ctx);
++
++    F = Function::Create(
++        FunctionType::get(I32Type, std::nullopt, false),
++        GlobalVariable::ExternalLinkage, LocSize, M);
++  }
++  return OMPBuilder.Builder.CreateCall(F, std::nullopt, "nvptx_num_threads");
++}
++
++static Value *getNVPTXWarpID(Module &M, OpenMPIRBuilder &OMPIRBuilder) {
++  unsigned LaneIDBits =
++      llvm::Log2_32(OMPIRBuilder.Config.getGridValue().GV_Warp_Size);
++  return OMPIRBuilder.Builder.CreateAShr(getGPUThreadID(M, OMPIRBuilder),
++                                         LaneIDBits, "nvptx_warp_id");
++}
++
++static Value *getNVPTXLaneID(Module &M, OpenMPIRBuilder &OMPIRBuilder) {
++   unsigned LaneIDBits =
++     llvm::Log2_32(OMPIRBuilder.Config.getGridValue().GV_Warp_Size);
++  assert(LaneIDBits < 32 && "Invalid LaneIDBits size in NVPTX device.");
++  unsigned LaneIDMask = ~0u >> (32u - LaneIDBits);
++  return OMPIRBuilder.Builder.CreateAnd(
++      getGPUThreadID(M, OMPIRBuilder),
++      OMPIRBuilder.Builder.getInt32(LaneIDMask), "nvptx_lane_id");
++}
++
++namespace {
++enum CopyAction : unsigned {
++  // RemoteLaneToThread: Copy over a Reduce list from a remote lane in
++  // the warp using shuffle instructions.
++  RemoteLaneToThread,
++  // ThreadCopy: Make a copy of a Reduce list on the thread's stack.
++  ThreadCopy,
++};
++} // namespace
++
++struct CopyOptionsTy {
++  llvm::Value *RemoteLaneOffset;
++  llvm::Value *ScratchpadIndex;
++  llvm::Value *ScratchpadWidth;
++};
++
++static Value *castValueToType(Module &M, OpenMPIRBuilder &OMPBuilder,
++                              Value *From, Type *ToType,
++                              OpenMPIRBuilder::InsertPointTy AllocaIP,
++                              const OpenMPIRBuilder::LocationDescription &Loc) {
++  IRBuilder<> &Builder = OMPBuilder.Builder;
++  Type *FromType = From->getType();
++  uint64_t FromSize =
++      divideCeil(M.getDataLayout().getTypeSizeInBits(FromType), 8);
++  uint64_t ToSize =
++      divideCeil(M.getDataLayout().getTypeSizeInBits(ToType), 8);
++  assert(FromSize > 0 && "From size must be greater than zero");
++  assert(ToSize > 0 && "From size must be greater than zero");
++  if(FromType == ToType)
++    return From;
++  if(FromSize == ToSize)
++    return Builder.CreateBitCast(From, ToType);
++  if (ToType->isIntegerTy() && FromType->isIntegerTy())
++    // FIXME(JAN): Assuming signed integer here, not sure how to find out
++    // if unsigned
++    return Builder.CreateIntCast(From, ToType, /*isSigned*/true);
++  OpenMPIRBuilder::InsertPointTy CurIP = Builder.saveIP();
++  Builder.restoreIP(AllocaIP);
++  Value *CastItem = Builder.CreateAlloca(ToType, nullptr, "cast_tmp");
++  Builder.restoreIP(CurIP);
++
++  Value *ValCastItem = Builder.CreatePointerBitCastOrAddrSpaceCast(
++      CastItem, FromType->getPointerTo(), "valcastitem");
++  Builder.CreateStore(From, ValCastItem);
++  return Builder.CreateLoad(ToType, CastItem, "castitemload");
++}
++
++static Value *
++createRuntimeShuffleFunction(Module &M, OpenMPIRBuilder &OMPBuilder,
++                             const OpenMPIRBuilder::LocationDescription &Loc,
++                             OpenMPIRBuilder::InsertPointTy AllocaIP,
++                             Value *Element, Type *ElementType, Value *Offset) {
++  LLVMContext &Ctx = M.getContext();
++  IRBuilder<> &Builder = OMPBuilder.Builder;
++  uint64_t Size =
++      divideCeil(M.getDataLayout().getTypeSizeInBits(ElementType), 8);
++  assert(Size <= 8 && "Unsupported bitwidth in shuffle instruction");
++  Function *ShuffleFunc = OMPBuilder.getOrCreateRuntimeFunctionPtr(
++      Size <= 4 ? RuntimeFunction::OMPRTL___kmpc_shuffle_int32
++                : RuntimeFunction::OMPRTL___kmpc_shuffle_int64);
++  Type *IntType = Builder.getIntNTy(Size <= 4 ? 32 : 64);
++  Value *ElemCast = Builder.CreateCast(Instruction::SExt, Element, IntType);
++  Value *WarpSize = getGPUWarpSize(M, OMPBuilder);
++  Value *WarpSizeCast =
++      Builder.CreateIntCast(WarpSize, Type::getInt16Ty(Ctx), /*isSigned=*/true);
++  Value *ShuffleCall =
++      Builder.CreateCall(ShuffleFunc, {ElemCast, Offset, WarpSizeCast});
++  return castValueToType(M, OMPBuilder, ShuffleCall, IntType, AllocaIP, Loc);
++}
++
++static void shuffleAndStore(Value *SrcAddr, Value *DstAddr, Type *ElementType,
++                            llvm::Value *Offset, Type* ReductionArrayTy,
++                            const OpenMPIRBuilder::LocationDescription &Loc,
++                            Module &M,
++                            OpenMPIRBuilder &OMPBuilder,
++                            OpenMPIRBuilder::InsertPointTy AllocaIP) {
++  LLVMContext &Ctx = M.getContext();
++  IRBuilder<> &Builder = OMPBuilder.Builder;
++  uint64_t Size =
++      divideCeil(M.getDataLayout().getTypeSizeInBits(ElementType), 8);
++  Type *PtrTy = PointerType::getUnqual(Ctx);
++  Value *ElemPtr = DstAddr;
++  Value *Ptr = SrcAddr;
++  //  Value *PtrEnd = Builder.CreatePointerBitCastOrAddrSpaceCast(
++  //Builder.CreateConstGEP1_64(ReductionArrayTy, SrcAddr, 1), PtrTy);
++  for (int IntSize = 8; IntSize >= 1; IntSize /= 2) {
++    if(Size < IntSize)
++      continue;
++    // FIXME(JAN): Check if there is a function to convert from bytes to bits
++    Type *IntTy = Builder.getIntNTy(IntSize*8);
++    Ptr = Builder.CreatePointerBitCastOrAddrSpaceCast(
++        Ptr, IntTy->getPointerTo(), "ptrcast");
++    ElemPtr = Builder.CreatePointerBitCastOrAddrSpaceCast(
++        ElemPtr, IntTy->getPointerTo(), "elemptrcast");
++
++    // FIXME(JAN): Implement loop to handle larger size
++    assert(((Size / IntSize) <= 1) && "Unsupported IntSize");
++    Value *Val = Builder.CreateLoad(IntTy, Ptr);
++    Value *Res = createRuntimeShuffleFunction(M, OMPBuilder, Loc, AllocaIP, Val,
++                                              IntTy, Offset);
++    Builder.CreateStore(Res, ElemPtr);
++    Ptr = Builder.CreateConstGEP1_64(ReductionArrayTy, Ptr, 1, "ptrgep");
++    ElemPtr =
++        Builder.CreateConstGEP1_64(ReductionArrayTy, ElemPtr, 1, "elemptrgep");
++    Size = Size % IntSize;
++  }
++}
++
++static void
++emitReductionListCopy(CopyAction Action, Type *ReductionArrayTy,
++                      ArrayRef<OpenMPIRBuilder::ReductionInfo> ReductionInfos,
++                      Value *SrcBase, Value *DestBase,
++                      Module &M, OpenMPIRBuilder &OMPBuilder,
++                      const OpenMPIRBuilder::LocationDescription &Loc,
++                      OpenMPIRBuilder::InsertPointTy AllocaIP,
++                      CopyOptionsTy CopyOptions = {nullptr, nullptr, nullptr}) {
++  LLVMContext &Ctx = M.getContext();
++  IRBuilder<> &Builder = OMPBuilder.Builder;
++  Type *PtrTy = PointerType::getUnqual(Ctx);
++
++  Value *RemoteLaneOffset = CopyOptions.RemoteLaneOffset;
++
++  for (auto En : enumerate(ReductionInfos)) {
++    const OpenMPIRBuilder::ReductionInfo &RI = En.value();
++    Value *SrcElementAddr = nullptr;
++    Value *DestElementAddr = nullptr;
++    Value *DestElementPtrAddr = nullptr;
++    bool ShuffleInElement = false;
++    bool UpdateDestListPtr = false;
++
++    // Step 1.1: Get the address for the src element in the Reduce list.
++    Value *SrcElementPtrAddr = Builder.CreateConstGEP2_64(
++        ReductionArrayTy, SrcBase, 0, En.index(), "srcelementptraddr");
++    SrcElementAddr =
++        Builder.CreateLoad(PtrTy, SrcElementPtrAddr, "srcelementaddr");
++
++    // Step 1.2: Create a temporary to store the element in the destination
++    // Reduce list.
++    DestElementPtrAddr = Builder.CreateInBoundsGEP(
++        ReductionArrayTy, DestBase,
++        {Builder.getInt64(0), Builder.getInt64(En.index())},
++        "destelementptraddr");
++    switch (Action) {
++    case RemoteLaneToThread: {
++      OpenMPIRBuilder::InsertPointTy CurIP = Builder.saveIP();
++      Builder.restoreIP(AllocaIP);
++      DestElementAddr = Builder.CreateAlloca(RI.ElementType, nullptr,
++                                             ".omp.reduction.element");
++      Builder.restoreIP(CurIP);
++      ShuffleInElement = true;
++      UpdateDestListPtr = true;
++      break;
++    }
++    case ThreadCopy: {
++      DestElementAddr =
++          Builder.CreateLoad(PtrTy, DestElementPtrAddr, "destelementaddr");
++      break;
++    }
++    }
++
++    // FIXME(JAN): Original code in clanguses <Addr>.withElementType(...)
++    // check if this generates any code
++
++    if (ShuffleInElement) {
++      shuffleAndStore(SrcElementAddr, DestElementAddr,
++                      RI.ElementType, RemoteLaneOffset,
++                      ReductionArrayTy, Loc, M,
++                      OMPBuilder, AllocaIP);
++    } else {
++      // FIXME(JAN): Assume Scalar here (TEK_Scalar in Clang)
++      Value *Elem = Builder.CreateLoad(RI.ElementType, SrcElementAddr);
++      Builder.CreateStore(Elem, DestElementAddr);
++    }
++    // Step 3.1: Modify reference in dest Reduce list as needed.
++    // Modifying the reference in Reduce list to point to the newly
++    // created element.  The element is live in the current function
++    // scope and that of functions it invokes (i.e., reduce_function).
++    // RemoteReduceData[i] = (void*)&RemoteElem
++    if (UpdateDestListPtr) {
++      Value *CastDestAddr = Builder.CreatePointerBitCastOrAddrSpaceCast(
++          DestElementAddr, PtrTy, "castdestaddr");
++      Builder.CreateStore(CastDestAddr, DestElementPtrAddr);
++    }
++  }
++}
++
++static OpenMPIRBuilder::InsertPointTy getIPAfterInstr(Instruction *I) {
++  BasicBlock::iterator it(I);
++  it++;
++  return OpenMPIRBuilder::InsertPointTy(I->getParent(), it);
++}
++
++
++static Function *emitShuffleAndReduceFunction(
++    Module &M, const OpenMPIRBuilder::LocationDescription &Loc,
++    ArrayRef<OpenMPIRBuilder::ReductionInfo> ReductionInfos,
++    Function* ReduceFn,
++    OpenMPIRBuilder &OMPBuilder) {
++  IRBuilder<> &Builder = OMPBuilder.Builder;
++
++  LLVMContext &Ctx = M.getContext();
++  Type *VoidTy = Type::getVoidTy(Ctx);
++  Type *PtrTy = PointerType::getUnqual(Ctx);
++  Type *I16Type = Type::getInt16Ty(Ctx);
++  auto FuncTy = FunctionType::get(
++      VoidTy, {PtrTy, I16Type, I16Type, I16Type}, /* IsVarArg */ false);
++  Function *SarFunc =
++      Function::Create(FuncTy, GlobalVariable::InternalLinkage,
++                       "_omp_reduction_shuffle_and_reduce_func", &M);
++  SarFunc->setDoesNotRecurse();
++
++  // Set arg names
++  Argument *Arg0 = SarFunc->getArg(0);
++  Argument *Arg1 = SarFunc->getArg(1);
++  Argument *Arg2 = SarFunc->getArg(2);
++  Argument *Arg3 = SarFunc->getArg(3);
++  Arg0->setName("reduce_list_arg");
++  Arg1->setName("lane_id_arg");
++  Arg2->setName("remote_lane_offset_arg");
++  Arg3->setName("algo_ver_arg");
++
++  BasicBlock *EntryBlock = BasicBlock::Create(Ctx, "", SarFunc);
++  Builder.SetInsertPoint(EntryBlock);
++
++  Type *Arg0Type = Arg0->getType();
++  Type *ArgNType = Arg1->getType();
++  Type *ArgNPtrType = Arg1->getType()->getPointerTo();
++  Value *ReduceListAlloca =
++      Builder.CreateAlloca(Arg0Type, nullptr, Arg0->getName() + ".addr");
++  Value *LaneIdAlloca =
++      Builder.CreateAlloca(ArgNType, nullptr, Arg1->getName() + ".addr");
++  Value *RemoteLaneOffsetAlloca =
++      Builder.CreateAlloca(ArgNType, nullptr, Arg2->getName() + ".addr");
++  Value *AlgoVerAlloca =
++      Builder.CreateAlloca(ArgNType, nullptr, Arg3->getName() + ".addr");
++  // FIXME(Jan): Compute reduction list array type
++  auto *RedListArrayTy = ArrayType::get(PtrTy, 1);
++  Instruction *RemoteReductionListAlloca = Builder.CreateAlloca(
++      RedListArrayTy, nullptr, ".omp.reduction.remote_reduce_list");
++
++  Value *ReduceListAddrCast = Builder.CreatePointerBitCastOrAddrSpaceCast(
++      ReduceListAlloca, Arg0Type, ReduceListAlloca->getName() + ".acast");
++  Value *LaneIdAddrCast = Builder.CreatePointerBitCastOrAddrSpaceCast(
++      LaneIdAlloca, ArgNPtrType, LaneIdAlloca->getName() + ".acast");
++  Value *RemoteLaneOffsetAddrCast = Builder.CreatePointerBitCastOrAddrSpaceCast(
++      RemoteLaneOffsetAlloca, ArgNPtrType,
++      RemoteLaneOffsetAlloca->getName() + ".acast");
++  Value *AlgoVerAddrCast = Builder.CreatePointerBitCastOrAddrSpaceCast(
++      AlgoVerAlloca, ArgNPtrType, AlgoVerAlloca->getName() + ".acast");
++  Value *RemoteListAddrCast = Builder.CreatePointerBitCastOrAddrSpaceCast(
++      RemoteReductionListAlloca, PtrTy,
++      RemoteReductionListAlloca->getName() + ".acast");
++
++  Builder.CreateStore(Arg0, ReduceListAddrCast);
++  Builder.CreateStore(Arg1, LaneIdAddrCast);
++  Builder.CreateStore(Arg2, RemoteLaneOffsetAddrCast);
++  Builder.CreateStore(Arg3, AlgoVerAddrCast);
++
++  Value *ReduceList =
++      Builder.CreateLoad(Arg0Type, ReduceListAddrCast, "reduce_list");
++  Value *LaneId = Builder.CreateLoad(ArgNType, LaneIdAddrCast, "lane_id");
++  Value *RemoteLaneOffset = Builder.CreateLoad(
++      ArgNType, RemoteLaneOffsetAddrCast, "remote_lane_offset");
++  Value *AlgoVer = Builder.CreateLoad(ArgNType, AlgoVerAddrCast, "algo_ver");
++
++  OpenMPIRBuilder::InsertPointTy AllocaIP =
++    getIPAfterInstr(RemoteReductionListAlloca);
++  emitReductionListCopy(RemoteLaneToThread, RedListArrayTy, ReductionInfos,
++                        ReduceList, RemoteListAddrCast, M, OMPBuilder,
++                        Loc, AllocaIP, {RemoteLaneOffset, nullptr, nullptr});
++
++  // The actions to be performed on the Remote Reduce list is dependent
++  // on the algorithm version.
++  //
++  //  if (AlgoVer==0) || (AlgoVer==1 && (LaneId < Offset)) || (AlgoVer==2 &&
++  //  LaneId % 2 == 0 && Offset > 0):
++  //    do the reduction value aggregation
++  //
++  //  The thread local variable Reduce list is mutated in place to host the
++  //  reduced data, which is the aggregated value produced from local and
++  //  remote lanes.
++  //
++  //  Note that AlgoVer is expected to be a constant integer known at compile
++  //  time.
++  //  When AlgoVer==0, the first conjunction evaluates to true, making
++  //    the entire predicate true during compile time.
++  //  When AlgoVer==1, the second conjunction has only the second part to be
++  //    evaluated during runtime.  Other conjunctions evaluates to false
++  //    during compile time.
++  //  When AlgoVer==2, the third conjunction has only the second part to be
++  //    evaluated during runtime.  Other conjunctions evaluates to false
++  //    during compile time.
++  Value *CondAlgo0 = Builder.CreateIsNull(AlgoVer);
++  Value *Algo1 = Builder.CreateICmpEQ(AlgoVer, Builder.getInt16(1));
++  Value *LaneComp = Builder.CreateICmpULT(LaneId, RemoteLaneOffset);
++  Value *CondAlgo1 = Builder.CreateAnd(Algo1, LaneComp);
++  Value *Algo2 = Builder.CreateICmpEQ(AlgoVer, Builder.getInt16(2));
++  Value *LaneIdAnd1 = Builder.CreateAnd(LaneId, Builder.getInt16(1));
++  Value *LaneIdComp = Builder.CreateIsNull(LaneIdAnd1);
++  Value *Algo2AndLaneIdComp = Builder.CreateAnd(Algo2, LaneIdComp);
++  Value *RemoteOffsetComp =
++      Builder.CreateICmpSGT(RemoteLaneOffset, Builder.getInt16(0));
++  Value *CondAlgo2 = Builder.CreateAnd(Algo2AndLaneIdComp, RemoteOffsetComp);
++  Value *CA0OrCA1 = Builder.CreateOr(CondAlgo0, CondAlgo1);
++  Value *CondReduce = Builder.CreateOr(CA0OrCA1, CondAlgo2);
++
++
++  BasicBlock *ThenBB = BasicBlock::Create(Ctx, "then", SarFunc);
++  BasicBlock *ElseBB = BasicBlock::Create(Ctx, "else", SarFunc);
++  BasicBlock *MergeBB = BasicBlock::Create(Ctx, "ifcont", SarFunc);
++
++  Builder.CreateCondBr(CondReduce, ThenBB, ElseBB);
++  Builder.SetInsertPoint(ThenBB);
++  // reduce_function(LocalReduceList, RemoteReduceList)
++  Value *LocalReduceListPtr =
++      Builder.CreatePointerBitCastOrAddrSpaceCast(ReduceList, PtrTy);
++  Value *RemoteReduceListPtr = Builder.CreatePointerBitCastOrAddrSpaceCast(
++      RemoteListAddrCast, PtrTy);
++  Builder.CreateCall(ReduceFn, {LocalReduceListPtr, RemoteReduceListPtr});
++  Builder.CreateBr(MergeBB);
++  Builder.SetInsertPoint(ElseBB);
++  Builder.CreateBr(MergeBB);
++  Builder.SetInsertPoint(MergeBB);
++
++  Value *Algo1_2 = Builder.CreateICmpEQ(AlgoVer, Builder.getInt16(1));
++  Value *LaneIdGtOffset = Builder.CreateICmpUGE(LaneId, RemoteLaneOffset);
++  Value *CondCopy = Builder.CreateAnd(Algo1_2, LaneIdGtOffset);
++
++  BasicBlock *CpyThenBB = BasicBlock::Create(Ctx, "cpy_then", SarFunc);
++  BasicBlock *CpyElseBB = BasicBlock::Create(Ctx, "cpy_else", SarFunc);
++  BasicBlock *CpyMergeBB = BasicBlock::Create(Ctx, "cpy_ifcont", SarFunc);
++
++  Builder.CreateCondBr(CondCopy, CpyThenBB, CpyElseBB);
++
++  Builder.SetInsertPoint(CpyThenBB);
++  emitReductionListCopy(ThreadCopy, RedListArrayTy, ReductionInfos,
++                        RemoteListAddrCast, ReduceList, M, OMPBuilder,
++                        Loc, AllocaIP);
++  Builder.CreateBr(CpyMergeBB);
++  Builder.SetInsertPoint(CpyElseBB);
++  Builder.CreateBr(CpyMergeBB);
++  Builder.SetInsertPoint(CpyMergeBB);
++  Builder.CreateRetVoid();
++
++  return SarFunc;
++}
++
++static Function *emitInterWarpCopyFunction(
++    Module &M, const OpenMPIRBuilder::LocationDescription &Loc,
++    ArrayRef<OpenMPIRBuilder::ReductionInfo> ReductionInfos,
++    OpenMPIRBuilder &OMPBuilder) {
++  IRBuilder<> &Builder = OMPBuilder.Builder;
++  OpenMPIRBuilder::InsertPointTy OldIP = Builder.saveIP();
++  LLVMContext &Ctx = M.getContext();
++  Type *VoidTy = Type::getVoidTy(Ctx);
++  Type *PtrTy = PointerType::getUnqual(Ctx);
++  Type *I32Type = Type::getInt32Ty(Ctx);
++  auto FuncTy =
++      FunctionType::get(VoidTy, {PtrTy, I32Type}, /* IsVarArg */ false);
++  Function *WcFunc =
++      Function::Create(FuncTy, GlobalVariable::InternalLinkage,
++                       "_omp_reduction_inter_warp_copy_func", &M);
++  WcFunc->setDoesNotRecurse();
++
++  // Set arg names
++  Argument *Arg0 = WcFunc->getArg(0);
++  Argument *Arg1 = WcFunc->getArg(1);
++  Arg0->setName("reduce_list");
++  Arg1->setName("num_warps");
++
++  // Ensure data transfer storage
++  unsigned WarpSize = OMPBuilder.Config.getGridValue().GV_Warp_Size;
++  // FIXME(Jan): Not sure about the array type here, but it is I32 in Clang
++  auto *ArrayTy = ArrayType::get(I32Type, WarpSize);
++  StringRef TransferMediumName =
++      "__openmp_nvptx_data_transfer_temporary_storage";
++  GlobalVariable *TransferMedium = M.getGlobalVariable(TransferMediumName);
++  if (!TransferMedium) {
++    unsigned SharedAddressSpace =
++        3; /* FIXME(Jan): C.getTargetAddressSpace(LangAS::cuda_shared); */
++    TransferMedium = new GlobalVariable(
++        M, ArrayTy, /*isConstant=*/false, GlobalVariable::WeakAnyLinkage,
++        UndefValue::get(ArrayTy), TransferMediumName,
++        /*InsertBefore=*/nullptr, GlobalVariable::NotThreadLocal,
++        SharedAddressSpace);
++  }
++
++  BasicBlock *EntryBlock = BasicBlock::Create(Ctx, "", WcFunc);
++  Builder.SetInsertPoint(EntryBlock);
++
++  Type *Arg0Type = Arg0->getType();
++  Type *Arg1Type = Arg1->getType();
++  Value *ReduceListAlloca =
++      Builder.CreateAlloca(Arg0Type, nullptr, Arg0->getName() + ".addr");
++  Instruction *NumWarpsAlloca =
++      Builder.CreateAlloca(Arg1Type, nullptr, Arg1->getName() + ".addr");
++  Value *ReduceListAddrCast = Builder.CreatePointerBitCastOrAddrSpaceCast(
++      ReduceListAlloca, Arg0Type, ReduceListAlloca->getName() + ".acast");
++  Value *NumWarpsAddrCast = Builder.CreatePointerBitCastOrAddrSpaceCast(
++      NumWarpsAlloca, Arg1Type->getPointerTo(),
++      NumWarpsAlloca->getName() + ".acast");
++  Builder.CreateStore(Arg0, ReduceListAddrCast);
++  Builder.CreateStore(Arg1, NumWarpsAddrCast);
++
++  // Get GPU Info
++  Value *ThreadID = getGPUThreadID(M, OMPBuilder);
++  Value *LaneID = getNVPTXLaneID(M, OMPBuilder);
++  Value *WarpID = getNVPTXWarpID(M, OMPBuilder);
++
++  Value *ReduceListArg =
++      Builder.CreateLoad(PtrTy, ReduceListAddrCast, "reduce_list_arg");
++
++  for (auto En : enumerate(ReductionInfos)) {
++    const OpenMPIRBuilder::ReductionInfo &RI = En.value();
++    Type *ElementTy = RI.ElementType;
++    unsigned NumTypeBits = M.getDataLayout().getTypeSizeInBits(ElementTy);
++    unsigned RealTySize = divideCeil(NumTypeBits, 8);
++    for (unsigned TySize = 4; TySize > 0 && RealTySize > 0; TySize /= 2) {
++      unsigned NumIters = RealTySize/TySize;
++      if (NumIters == 0)
++        continue;
++      //      Type *CopyTy = Builder.getIntNTy(TySize);
++      Type *Int32Ty = Builder.getInt32Ty();
++      Value *Cnt = nullptr;
++      Value *CntAddrAcast = nullptr;
++      BasicBlock *PrecondBB = nullptr;
++      BasicBlock *ExitBB = nullptr;
++
++      if (NumIters > 1) {
++        OpenMPIRBuilder::InsertPointTy CurrIP = Builder.saveIP();
++        Builder.SetInsertPoint(NumWarpsAlloca);
++        Value *CntAddr = Builder.CreateAlloca(Int32Ty, nullptr, ".cnt.addr");
++        Builder.restoreIP(CurrIP);
++        CntAddrAcast = Builder.CreatePointerBitCastOrAddrSpaceCast(
++            CntAddr, PtrTy, CntAddr->getName() + ".acast");
++        Builder.CreateStore(Constant::getNullValue(Int32Ty), CntAddrAcast);
++        PrecondBB = BasicBlock::Create(Ctx, "precond", WcFunc);
++        ExitBB = BasicBlock::Create(Ctx, "exit", WcFunc);
++        BasicBlock *BodyBB = BasicBlock::Create(Ctx, "body", WcFunc);
++        Builder.CreateBr(PrecondBB);
++        Builder.SetInsertPoint(PrecondBB);
++        Cnt = Builder.CreateLoad(Int32Ty, CntAddrAcast, "cnt");
++        Value *Cmp = Builder.CreateICmpULT(Cnt, Builder.getInt32(NumIters));
++        Builder.CreateCondBr(Cmp, BodyBB, ExitBB);
++        Builder.SetInsertPoint(BodyBB);
++      }
++
++      OMPBuilder.createBarrier(
++          OpenMPIRBuilder::LocationDescription(Builder.saveIP(), Loc.DL),
++          omp::Directive::OMPD_unknown,
++          /* ForceSimpleCall */ false,
++          /* CheckCancelFlag */ true);
++      BasicBlock *ThenBB = BasicBlock::Create(Ctx, "then", WcFunc);
++      BasicBlock *ElseBB = BasicBlock::Create(Ctx, "else", WcFunc);
++      BasicBlock *MergeBB = BasicBlock::Create(Ctx, "ifcont", WcFunc);
++
++      // if (lane_id  == 0)
++      Value *IsWarpMaster = Builder.CreateIsNull(LaneID, "warp_master");
++      Builder.CreateCondBr(IsWarpMaster, ThenBB, ElseBB);
++
++      // then
++      // Reduce element = LocalReduceList[i]
++      Builder.SetInsertPoint(ThenBB);
++      // FIXME(JAN): Should array type be passed in?
++      auto *RedListArrayTy = ArrayType::get(PtrTy, 1);
++      // FIXME(JAN): maybe it should be 0,0 and not use En.index()
++      Value *ReduceListElementPtrPtr = Builder.CreateConstInBoundsGEP2_64(
++          RedListArrayTy, ReduceListArg, 0, En.index());
++      Value *ReduceListElementPtr = Builder.CreateLoad(
++          PtrTy, ReduceListElementPtrPtr, "reduce_list_element_ptr");
++      if (NumIters > 1)
++        ReduceListElementPtr = Builder.CreateGEP(Int32Ty, ReduceListElementPtr, Cnt);
++
++      Value *TransferElemAddr = Builder.CreateInBoundsGEP(
++          ArrayTy, TransferMedium, {Builder.getInt64(0), WarpID});
++      Value *ReduceListElement = Builder.CreateLoad(
++          I32Type, ReduceListElementPtr, "reduce_list_element");
++      Builder.CreateStore(ReduceListElement, TransferElemAddr,
++                          /*IsVolatile*/ true);
++      Builder.CreateBr(MergeBB);
++
++      // else
++      Builder.SetInsertPoint(ElseBB);
++      Builder.CreateBr(MergeBB);
++
++      // endif
++      Builder.SetInsertPoint(MergeBB);
++      OMPBuilder.createBarrier(
++          OpenMPIRBuilder::LocationDescription(Builder.saveIP(), Loc.DL),
++          omp::Directive::OMPD_unknown,
++          /* ForceSimpleCall */ false,
++          /* CheckCancelFlag */ true);
++
++      // Warp 0 copies reduce element from transfer medium
++      BasicBlock *W0ThenBB = BasicBlock::Create(Ctx, "w0then", WcFunc);
++      BasicBlock *W0ElseBB = BasicBlock::Create(Ctx, "w0else", WcFunc);
++      BasicBlock *W0MergeBB = BasicBlock::Create(Ctx, "w0ifcont", WcFunc);
++
++      Value *NumWarpsVal =
++        Builder.CreateLoad(I32Type, NumWarpsAddrCast, "num_warps");
++      Value *IsActiveThread =
++        Builder.CreateICmpULT(ThreadID, NumWarpsVal, "is_active_thread");
++      Builder.CreateCondBr(IsActiveThread, W0ThenBB, W0ElseBB);
++
++      // W0then
++      // SecMEdiumPtr = &medium[tid]
++      Builder.SetInsertPoint(W0ThenBB);
++      Value *SrcMediumPtrVal = Builder.CreateInBoundsGEP(
++          ArrayTy, TransferMedium, {Builder.getInt64(0), ThreadID});
++      // SrcMediumVal = *SrcMediumPtr
++      // TODO(JAN): Bitcast here, but no load? skipping for now
++      Value *TargetElementPtrPtr = Builder.CreateConstInBoundsGEP2_64(
++          RedListArrayTy, ReduceListArg, 0, En.index());
++      Value *TargetElementPtr = Builder.CreateLoad(PtrTy, TargetElementPtrPtr);
++      if (NumIters > 1)
++        TargetElementPtr = Builder.CreateGEP(Int32Ty, TargetElementPtr, Cnt);
++
++      Value *SrcMediumValue =
++          Builder.CreateLoad(I32Type, SrcMediumPtrVal, /*IsVolatile*/ true);
++      Builder.CreateStore(SrcMediumValue, TargetElementPtr);
++      Builder.CreateBr(W0MergeBB);
++
++      // W0else
++      Builder.SetInsertPoint(W0ElseBB);
++      Builder.CreateBr(W0MergeBB);
++
++      // W0endif
++      Builder.SetInsertPoint(W0MergeBB);
++      if (NumIters > 1) {
++        Cnt = Builder.CreateNSWAdd(Cnt, Builder.getInt32(1));
++        Builder.CreateStore(Cnt, CntAddrAcast);
++        Builder.CreateBr(PrecondBB);
++        Builder.SetInsertPoint(ExitBB);
++      }
++    }
++  }
++
++  Builder.CreateRetVoid();
++  Builder.restoreIP(OldIP);
++  return WcFunc;
++}
++
++/// This function emits a helper that copies all the reduction variables from
++/// the team into the provided global buffer for the reduction variables.
++///
++/// void list_to_global_copy_func(void *buffer, int Idx, void *reduce_data)
++///   For all data entries D in reduce_data:
++///     Copy local D to buffer.D[Idx]
++static Function *emitListToGlobalCopyFunction(
++    Module &M, const OpenMPIRBuilder::LocationDescription &Loc,
++    ArrayRef<OpenMPIRBuilder::ReductionInfo> ReductionInfos,
++    OpenMPIRBuilder &OMPBuilder) {
++  IRBuilder<> &Builder = OMPBuilder.Builder;
++  OpenMPIRBuilder::InsertPointTy OldIP = Builder.saveIP();
++  LLVMContext &Ctx = M.getContext();
++  Type *VoidTy = Type::getVoidTy(Ctx);
++  Type *Int32Ty = Builder.getInt32Ty();
++  Type *PtrTy = PointerType::getUnqual(Ctx);
++  auto FuncTy =
++      FunctionType::get(VoidTy, {PtrTy, Int32Ty, PtrTy}, /* IsVarArg */ false);
++  Function *LtGCFunc =
++      Function::Create(FuncTy, GlobalVariable::InternalLinkage,
++                       "_omp_reduction_list_to_global_copy_func", &M);
++  LtGCFunc->setDoesNotRecurse();
++
++  BasicBlock *EntryBlock = BasicBlock::Create(Ctx, "", LtGCFunc);
++  Builder.SetInsertPoint(EntryBlock);
++
++  // Set arg names
++  Argument *Arg0 = LtGCFunc->getArg(0);
++  Argument *Arg1 = LtGCFunc->getArg(1);
++  Argument *Arg2 = LtGCFunc->getArg(2);
++  Arg0->setName("buffer_arg");
++  Arg1->setName("idx_arg");
++  Arg2->setName("reduce_list_arg");
++
++  Value *BufferArgAlloca =
++      Builder.CreateAlloca(PtrTy, nullptr, Arg0->getName() + ".addr");
++  Value *IdxArgAlloca =
++      Builder.CreateAlloca(Int32Ty, nullptr, Arg1->getName() + ".addr");
++  Value *ReduceListArgAlloca =
++      Builder.CreateAlloca(PtrTy, nullptr, Arg2->getName() + ".addr");
++  Value *BufferArgAddrCast = Builder.CreatePointerBitCastOrAddrSpaceCast(
++      BufferArgAlloca, PtrTy, BufferArgAlloca->getName() + ".acast");
++  Value *IdxArgAddrCast = Builder.CreatePointerBitCastOrAddrSpaceCast(
++      IdxArgAlloca, PtrTy, IdxArgAlloca->getName() + ".acast");
++  Value *ReduceListArgAddrCast = Builder.CreatePointerBitCastOrAddrSpaceCast(
++      ReduceListArgAlloca, PtrTy, ReduceListArgAlloca->getName() + ".acast");
++  // FIXME(JAN): Assume a single globalized variable for now, this should be
++  // passed in
++  Type *SingleReductionTy = ReductionInfos.begin()->ElementType;
++  Type *TypeArgs[] = {SingleReductionTy};
++  StructType *ReductionsBufferTy =
++      StructType::create(Ctx, TypeArgs, "_globalized_locals_ty");
++
++  Builder.CreateStore(Arg0, BufferArgAddrCast);
++  Builder.CreateStore(Arg1, IdxArgAddrCast);
++  Builder.CreateStore(Arg2, ReduceListArgAddrCast);
++
++  Value *BufferArg = Builder.CreateLoad(PtrTy, BufferArgAddrCast, "buffer");
++  Value *Idxs[] = {
++      Builder.CreateLoad(Builder.getInt32Ty(), IdxArgAddrCast, "idxs")};
++  Value *ReduceListArg =
++      Builder.CreateLoad(PtrTy, ReduceListArgAddrCast, "reduce_list");
++  // FIXME(Jan): Assume TEK_SCALAR
++  for (auto En : enumerate(ReductionInfos)) {
++    const OpenMPIRBuilder::ReductionInfo &RI = En.value();
++    // FIXME(Jan): Compute array type
++    auto *RedListArrayTy = ArrayType::get(PtrTy, 1);
++    Value *TargetElementPtrPtr = Builder.CreateConstInBoundsGEP2_64(
++        RedListArrayTy, ReduceListArg, 0, En.index());
++    Value *TargetElementPtr = Builder.CreateLoad(PtrTy, TargetElementPtrPtr);
++
++    Value *BufferVD =
++        Builder.CreateInBoundsGEP(ReductionsBufferTy, BufferArg, Idxs);
++    Value *GlobValPtr = Builder.CreateConstInBoundsGEP2_32(
++        ReductionsBufferTy, BufferVD, 0, En.index());
++    Value *TargetElement = Builder.CreateLoad(RI.ElementType, TargetElementPtr);
++    Builder.CreateStore(TargetElement, GlobValPtr);
++  }
++
++  Builder.CreateRetVoid();
++  Builder.restoreIP(OldIP);
++  return LtGCFunc;
++}
++
++/// This function emits a helper that copies all the reduction variables from
++/// the team into the provided global buffer for the reduction variables.
++///
++/// void list_to_global_copy_func(void *buffer, int Idx, void *reduce_data)
++///   For all data entries D in reduce_data:
++///     Copy local D to buffer.D[Idx]
++static Function *emitGlobalToListCopyFunction(
++    Module &M, const OpenMPIRBuilder::LocationDescription &Loc,
++    ArrayRef<OpenMPIRBuilder::ReductionInfo> ReductionInfos,
++    OpenMPIRBuilder &OMPBuilder) {
++  IRBuilder<> &Builder = OMPBuilder.Builder;
++  OpenMPIRBuilder::InsertPointTy OldIP = Builder.saveIP();
++  LLVMContext &Ctx = M.getContext();
++  Type *VoidTy = Type::getVoidTy(Ctx);
++  Type *Int32Ty = Builder.getInt32Ty();
++  Type *PtrTy = PointerType::getUnqual(Ctx);
++  auto FuncTy =
++      FunctionType::get(VoidTy, {PtrTy, Int32Ty, PtrTy}, /* IsVarArg */ false);
++  Function *LtGCFunc =
++      Function::Create(FuncTy, GlobalVariable::InternalLinkage,
++                       "_omp_reduction_global_to_list_copy_func", &M);
++  LtGCFunc->setDoesNotRecurse();
++
++  BasicBlock *EntryBlock = BasicBlock::Create(Ctx, "", LtGCFunc);
++  Builder.SetInsertPoint(EntryBlock);
++
++  // Set arg names
++  Argument *Arg0 = LtGCFunc->getArg(0);
++  Argument *Arg1 = LtGCFunc->getArg(1);
++  Argument *Arg2 = LtGCFunc->getArg(2);
++  Arg0->setName("buffer_arg");
++  Arg1->setName("idx_arg");
++  Arg2->setName("reduce_list_arg");
++
++  Value *BufferArgAlloca =
++      Builder.CreateAlloca(PtrTy, nullptr, Arg0->getName() + ".addr");
++  Value *IdxArgAlloca =
++      Builder.CreateAlloca(Int32Ty, nullptr, Arg1->getName() + ".addr");
++  Value *ReduceListArgAlloca =
++      Builder.CreateAlloca(PtrTy, nullptr, Arg2->getName() + ".addr");
++  Value *BufferArgAddrCast = Builder.CreatePointerBitCastOrAddrSpaceCast(
++      BufferArgAlloca, PtrTy, BufferArgAlloca->getName() + ".acast");
++  Value *IdxArgAddrCast = Builder.CreatePointerBitCastOrAddrSpaceCast(
++      IdxArgAlloca, PtrTy, IdxArgAlloca->getName() + ".acast");
++  Value *ReduceListArgAddrCast = Builder.CreatePointerBitCastOrAddrSpaceCast(
++      ReduceListArgAlloca, PtrTy, ReduceListArgAlloca->getName() + ".acast");
++  // FIXME(JAN): Assume a single globalized variable for now, this should be
++  // passed in
++  Type *SingleReductionTy = ReductionInfos.begin()->ElementType;
++  Type *TypeArgs[] = {SingleReductionTy};
++  StructType *ReductionsBufferTy =
++      StructType::create(Ctx, TypeArgs, "_globalized_locals_ty");
++
++  Builder.CreateStore(Arg0, BufferArgAddrCast);
++  Builder.CreateStore(Arg1, IdxArgAddrCast);
++  Builder.CreateStore(Arg2, ReduceListArgAddrCast);
++
++  Value *BufferArg = Builder.CreateLoad(PtrTy, BufferArgAddrCast, "buffer");
++  Value *Idxs[] = {
++      Builder.CreateLoad(Builder.getInt32Ty(), IdxArgAddrCast, "idxs")};
++  Value *ReduceListArg =
++      Builder.CreateLoad(PtrTy, ReduceListArgAddrCast, "reduce_list");
++  // FIXME(Jan): Assume TEK_SCALAR
++  for (auto En : enumerate(ReductionInfos)) {
++    const OpenMPIRBuilder::ReductionInfo &RI = En.value();
++    // FIXME(Jan): Compute array type
++    auto *RedListArrayTy = ArrayType::get(PtrTy, 1);
++    Value *TargetElementPtrPtr = Builder.CreateConstInBoundsGEP2_64(
++        RedListArrayTy, ReduceListArg, 0, En.index());
++    Value *TargetElementPtr = Builder.CreateLoad(PtrTy, TargetElementPtrPtr);
++
++    Value *BufferVD =
++        Builder.CreateInBoundsGEP(ReductionsBufferTy, BufferArg, Idxs);
++    Value *GlobValPtr = Builder.CreateConstInBoundsGEP2_32(
++        ReductionsBufferTy, BufferVD, 0, En.index());
++    Value *TargetElement = Builder.CreateLoad(RI.ElementType, GlobValPtr);
++    Builder.CreateStore(TargetElement, TargetElementPtr);
++  }
++
++  Builder.CreateRetVoid();
++  Builder.restoreIP(OldIP);
++  return LtGCFunc;
++}
++
++/// This function emits a helper that reduces all the reduction variables from
++/// the team into the provided global buffer for the reduction variables.
++///
++/// void list_to_global_reduce_func(void *buffer, int Idx, void *reduce_data)
++///  void *GlobPtrs[];
++///  GlobPtrs[0] = (void*)&buffer.D0[Idx];
++///  ...
++///  GlobPtrs[N] = (void*)&buffer.DN[Idx];
++///  reduce_function(GlobPtrs, reduce_data);
++/// Create a function with a unique name and a "void (i8*, i8*)" signature in
++/// the given module and return it.
++static Function *emitListToGlobalReduceFunction(
++    Module &M, const OpenMPIRBuilder::LocationDescription &Loc,
++    ArrayRef<OpenMPIRBuilder::ReductionInfo> ReductionInfos, Function *ReduceFn,
++    OpenMPIRBuilder &OMPBuilder) {
++  IRBuilder<> &Builder = OMPBuilder.Builder;
++  OpenMPIRBuilder::InsertPointTy OldIP = Builder.saveIP();
++  LLVMContext &Ctx = M.getContext();
++  Type *VoidTy = Type::getVoidTy(Ctx);
++  Type *Int32Ty = Builder.getInt32Ty();
++  Type *PtrTy = PointerType::getUnqual(Ctx);
++  auto FuncTy =
++      FunctionType::get(VoidTy, {PtrTy, Int32Ty, PtrTy}, /* IsVarArg */ false);
++  Function *LtGRFunc =
++      Function::Create(FuncTy, GlobalVariable::InternalLinkage,
++                       "_omp_reduction_list_to_global_reduce_func", &M);
++  LtGRFunc->setDoesNotRecurse();
++
++  BasicBlock *EntryBlock = BasicBlock::Create(Ctx, "", LtGRFunc);
++  Builder.SetInsertPoint(EntryBlock);
++
++  // Set arg names
++  Argument *Arg0 = LtGRFunc->getArg(0);
++  Argument *Arg1 = LtGRFunc->getArg(1);
++  Argument *Arg2 = LtGRFunc->getArg(2);
++  Arg0->setName("buffer_arg");
++  Arg1->setName("idx_arg");
++  Arg2->setName("reduce_list_arg");
++
++  Value *BufferArgAlloca =
++      Builder.CreateAlloca(PtrTy, nullptr, Arg0->getName() + ".addr");
++  Value *IdxArgAlloca =
++      Builder.CreateAlloca(Int32Ty, nullptr, Arg1->getName() + ".addr");
++  Value *ReduceListArgAlloca =
++      Builder.CreateAlloca(PtrTy, nullptr, Arg2->getName() + ".addr");
++  // FIXME(Jan): Compute array type
++  auto *RedListArrayTy = ArrayType::get(PtrTy, 1);
++  Value *LocalReduceList =
++      Builder.CreateAlloca(RedListArrayTy, nullptr, ".omp.reduction.red_list");
++
++  Value *BufferArgAddrCast = Builder.CreatePointerBitCastOrAddrSpaceCast(
++      BufferArgAlloca, PtrTy, BufferArgAlloca->getName() + ".acast");
++  Value *IdxArgAddrCast = Builder.CreatePointerBitCastOrAddrSpaceCast(
++      IdxArgAlloca, PtrTy, IdxArgAlloca->getName() + ".acast");
++  Value *ReduceListArgAddrCast = Builder.CreatePointerBitCastOrAddrSpaceCast(
++      ReduceListArgAlloca, PtrTy, ReduceListArgAlloca->getName() + ".acast");
++  Value *LocalReduceListAddrCast = Builder.CreatePointerBitCastOrAddrSpaceCast(
++      LocalReduceList, PtrTy, LocalReduceList->getName() + ".acast");
++  // FIXME(JAN): Assume a single globalized variable for now, this should be
++  // passed in
++  Type *SingleReductionTy = ReductionInfos.begin()->ElementType;
++  Type *TypeArgs[] = {SingleReductionTy};
++  StructType *ReductionsBufferTy =
++      StructType::create(Ctx, TypeArgs, "_globalized_locals_ty");
++
++  Builder.CreateStore(Arg0, BufferArgAddrCast);
++  Builder.CreateStore(Arg1, IdxArgAddrCast);
++  Builder.CreateStore(Arg2, ReduceListArgAddrCast);
++
++  Value *BufferArg = Builder.CreateLoad(PtrTy, BufferArgAddrCast, "buffer");
++  Value *Idxs[] = {Builder.CreateLoad(Int32Ty, IdxArgAddrCast, "idxs")};
++  // FIXME(Jan): Assume TEK_SCALAR
++  for (auto En : enumerate(ReductionInfos)) {
++    const OpenMPIRBuilder::ReductionInfo &RI = En.value();
++    Value *TargetElementPtrPtr = Builder.CreateConstInBoundsGEP2_64(
++        RedListArrayTy, LocalReduceListAddrCast, 0, En.index());
++    Value *BufferVD =
++        Builder.CreateInBoundsGEP(ReductionsBufferTy, BufferArg, Idxs);
++    Value *GlobValPtr = Builder.CreateConstInBoundsGEP2_32(
++        ReductionsBufferTy, BufferVD, 0, En.index());
++    Builder.CreateStore(GlobValPtr, TargetElementPtrPtr);
++  }
++
++  Value *ReduceList = Builder.CreateLoad(PtrTy, ReduceListArgAddrCast);
++  Builder.CreateCall(ReduceFn, {LocalReduceListAddrCast, ReduceList});
++  Builder.CreateRetVoid();
++  Builder.restoreIP(OldIP);
++  return LtGRFunc;
++}
++
++/// This function emits a helper that reduces all the reduction variables from
++/// the team into the provided global buffer for the reduction variables.
++///
++/// void list_to_global_reduce_func(void *buffer, int Idx, void *reduce_data)
++///  void *GlobPtrs[];
++///  GlobPtrs[0] = (void*)&buffer.D0[Idx];
++///  ...
++///  GlobPtrs[N] = (void*)&buffer.DN[Idx];
++///  reduce_function(GlobPtrs, reduce_data);
+ /// Create a function with a unique name and a "void (i8*, i8*)" signature in
+ /// the given module and return it.
+-Function *getFreshReductionFunc(Module &M) {
++static Function *emitGlobalToListReduceFunction(
++    Module &M, const OpenMPIRBuilder::LocationDescription &Loc,
++    ArrayRef<OpenMPIRBuilder::ReductionInfo> ReductionInfos, Function *ReduceFn,
++    OpenMPIRBuilder &OMPBuilder) {
++  IRBuilder<> &Builder = OMPBuilder.Builder;
++  OpenMPIRBuilder::InsertPointTy OldIP = Builder.saveIP();
++  LLVMContext &Ctx = M.getContext();
++  Type *VoidTy = Type::getVoidTy(Ctx);
++  Type *Int32Ty = Builder.getInt32Ty();
++  Type *PtrTy = PointerType::getUnqual(Ctx);
++  auto FuncTy =
++      FunctionType::get(VoidTy, {PtrTy, Int32Ty, PtrTy}, /* IsVarArg */ false);
++  Function *LtGRFunc =
++      Function::Create(FuncTy, GlobalVariable::InternalLinkage,
++                       "_omp_reduction_global_to_list_reduce_func", &M);
++  LtGRFunc->setDoesNotRecurse();
++
++  BasicBlock *EntryBlock = BasicBlock::Create(Ctx, "", LtGRFunc);
++  Builder.SetInsertPoint(EntryBlock);
++
++  // Set arg names
++  Argument *Arg0 = LtGRFunc->getArg(0);
++  Argument *Arg1 = LtGRFunc->getArg(1);
++  Argument *Arg2 = LtGRFunc->getArg(2);
++  Arg0->setName("buffer_arg");
++  Arg1->setName("idx_arg");
++  Arg2->setName("reduce_list_arg");
++
++  Value *BufferArgAlloca =
++      Builder.CreateAlloca(PtrTy, nullptr, Arg0->getName() + ".addr");
++  Value *IdxArgAlloca =
++      Builder.CreateAlloca(Int32Ty, nullptr, Arg1->getName() + ".addr");
++  Value *ReduceListArgAlloca =
++      Builder.CreateAlloca(PtrTy, nullptr, Arg2->getName() + ".addr");
++  // FIXME(Jan): Compute array type
++  auto *RedListArrayTy = ArrayType::get(PtrTy, 1);
++  Value *LocalReduceList =
++      Builder.CreateAlloca(RedListArrayTy, nullptr, ".omp.reduction.red_list");
++
++  Value *BufferArgAddrCast = Builder.CreatePointerBitCastOrAddrSpaceCast(
++      BufferArgAlloca, PtrTy, BufferArgAlloca->getName() + ".acast");
++  Value *IdxArgAddrCast = Builder.CreatePointerBitCastOrAddrSpaceCast(
++      IdxArgAlloca, PtrTy, IdxArgAlloca->getName() + ".acast");
++  Value *ReduceListArgAddrCast = Builder.CreatePointerBitCastOrAddrSpaceCast(
++      ReduceListArgAlloca, PtrTy, ReduceListArgAlloca->getName() + ".acast");
++  Value *LocalReduceListAddrCast = Builder.CreatePointerBitCastOrAddrSpaceCast(
++      LocalReduceList, PtrTy, LocalReduceList->getName() + ".acast");
++  // FIXME(JAN): Assume a single globalized variable for now, this should be
++  // passed in
++  Type *SingleReductionTy = ReductionInfos.begin()->ElementType;
++  Type *TypeArgs[] = {SingleReductionTy};
++  StructType *ReductionsBufferTy =
++      StructType::create(Ctx, TypeArgs, "_globalized_locals_ty");
++
++  Builder.CreateStore(Arg0, BufferArgAddrCast);
++  Builder.CreateStore(Arg1, IdxArgAddrCast);
++  Builder.CreateStore(Arg2, ReduceListArgAddrCast);
++
++  Value *BufferArg = Builder.CreateLoad(PtrTy, BufferArgAddrCast, "buffer");
++  Value *Idxs[] = {Builder.CreateLoad(Int32Ty, IdxArgAddrCast, "idxs")};
++  // FIXME(Jan): Assume TEK_SCALAR
++  for (auto En : enumerate(ReductionInfos)) {
++    const OpenMPIRBuilder::ReductionInfo &RI = En.value();
++    Value *TargetElementPtrPtr = Builder.CreateConstInBoundsGEP2_64(
++        RedListArrayTy, LocalReduceListAddrCast, 0, En.index());
++    Value *BufferVD =
++        Builder.CreateInBoundsGEP(ReductionsBufferTy, BufferArg, Idxs);
++    Value *GlobValPtr = Builder.CreateConstInBoundsGEP2_32(
++        ReductionsBufferTy, BufferVD, 0, En.index());
++    Builder.CreateStore(GlobValPtr, TargetElementPtrPtr);
++  }
++
++  Value *ReduceList = Builder.CreateLoad(PtrTy, ReduceListArgAddrCast);
++  Builder.CreateCall(ReduceFn, {ReduceList, LocalReduceListAddrCast});
++  Builder.CreateRetVoid();
++  Builder.restoreIP(OldIP);
++  return LtGRFunc;
++}
++
++static Function *getFreshReductionFunc(Module &M) {
+   Type *VoidTy = Type::getVoidTy(M.getContext());
+   Type *Int8PtrTy = PointerType::getUnqual(M.getContext());
+   auto *FuncTy =
+       FunctionType::get(VoidTy, {Int8PtrTy, Int8PtrTy}, /* IsVarArg */ false);
+   return Function::Create(FuncTy, GlobalVariable::InternalLinkage,
+-                          M.getDataLayout().getDefaultGlobalsAddressSpace(),
+                           ".omp.reduction.func", &M);
+ }
+ 
+-OpenMPIRBuilder::InsertPointTy OpenMPIRBuilder::createReductions(
+-    const LocationDescription &Loc, InsertPointTy AllocaIP,
+-    ArrayRef<ReductionInfo> ReductionInfos, bool IsNoWait) {
+-  for (const ReductionInfo &RI : ReductionInfos) {
++static void populateReductionFunction(
++    Function *ReductionFunc,
++    ArrayRef<OpenMPIRBuilder::ReductionInfo> ReductionInfos,
++    IRBuilder<> &Builder, bool IsGPU) {
++  Module *Module = ReductionFunc->getParent();
++  BasicBlock *ReductionFuncBlock =
++      BasicBlock::Create(Module->getContext(), "", ReductionFunc);
++  Builder.SetInsertPoint(ReductionFuncBlock);
++  Value *LHSArrayPtr  = nullptr;
++  Value *RHSArrayPtr = nullptr;
++  if (IsGPU) {
++    // Need to alloca memory here and deal with the pointers before getting
++    // LHS/RHS pointers out
++    //
++    Argument *Arg0 = ReductionFunc->getArg(0);
++    Argument *Arg1 = ReductionFunc->getArg(1);
++    Type *Arg0Type = Arg0->getType();
++    Type *Arg1Type = Arg1->getType();
++
++    Value *LHSAlloca =
++        Builder.CreateAlloca(Arg0Type, nullptr, Arg0->getName() + ".addr");
++    Value *RHSAlloca =
++        Builder.CreateAlloca(Arg1Type, nullptr, Arg1->getName() + ".addr");
++    Value *LHSAddrCast =
++        Builder.CreatePointerBitCastOrAddrSpaceCast(LHSAlloca, Arg0Type);
++    Value *RHSAddrCast =
++        Builder.CreatePointerBitCastOrAddrSpaceCast(RHSAlloca, Arg1Type);
++    Builder.CreateStore(Arg0, LHSAddrCast);
++    Builder.CreateStore(Arg1, RHSAddrCast);
++    LHSArrayPtr = Builder.CreateLoad(Arg0Type, LHSAddrCast);
++    RHSArrayPtr = Builder.CreateLoad(Arg1Type, RHSAddrCast);
++  } else {
++    LHSArrayPtr = ReductionFunc->getArg(0);
++    RHSArrayPtr = ReductionFunc->getArg(1);
++  }
++
++  unsigned NumReductions = ReductionInfos.size();
++  Type *RedArrayTy = ArrayType::get(Builder.getPtrTy(), NumReductions);
++
++  for (auto En : enumerate(ReductionInfos)) {
++    const OpenMPIRBuilder::ReductionInfo &RI = En.value();
++    Value *LHSI8PtrPtr = Builder.CreateConstInBoundsGEP2_64(
++        RedArrayTy, LHSArrayPtr, 0, En.index());
++    Value *LHSI8Ptr = Builder.CreateLoad(Builder.getPtrTy(), LHSI8PtrPtr);
++    Value *LHSPtr = Builder.CreatePointerBitCastOrAddrSpaceCast(
++        LHSI8Ptr, RI.Variable->getType());
++    Value *LHS = Builder.CreateLoad(RI.ElementType, LHSPtr);
++    Value *RHSI8PtrPtr = Builder.CreateConstInBoundsGEP2_64(
++        RedArrayTy, RHSArrayPtr, 0, En.index());
++    Value *RHSI8Ptr = Builder.CreateLoad(Builder.getPtrTy(), RHSI8PtrPtr);
++    Value *RHSPtr = Builder.CreatePointerBitCastOrAddrSpaceCast(
++        RHSI8Ptr, RI.PrivateVariable->getType());
++    Value *RHS = Builder.CreateLoad(RI.ElementType, RHSPtr);
++    Value *Reduced;
++    Builder.restoreIP(RI.ReductionGen(Builder.saveIP(), LHS, RHS, Reduced));
++    if (!Builder.GetInsertBlock())
++      return;
++    Builder.CreateStore(Reduced, LHSPtr);
++  }
++  Builder.CreateRetVoid();
++}
++
++static void
++checkReductionInfos(ArrayRef<OpenMPIRBuilder::ReductionInfo> ReductionInfos,
++                    bool IsGPU) {
++  for (const OpenMPIRBuilder::ReductionInfo &RI : ReductionInfos) {
+     (void)RI;
+     assert(RI.Variable && "expected non-null variable");
+     assert(RI.PrivateVariable && "expected non-null private variable");
+     assert(RI.ReductionGen && "expected non-null reduction generator callback");
+-    assert(RI.Variable->getType() == RI.PrivateVariable->getType() &&
+-           "expected variables and their private equivalents to have the same "
+-           "type");
++    // JAN: Skip this assertion for GPU, address spaces are present
++    if (!IsGPU) {
++      assert(
++          RI.Variable->getType() == RI.PrivateVariable->getType() &&
++          "expected variables and their private equivalents to have the same "
++          "type");
++    }
+     assert(RI.Variable->getType()->isPointerTy() &&
+            "expected variables to be pointers");
+   }
++}
++
++OpenMPIRBuilder::InsertPointTy OpenMPIRBuilder::createReductionsGPU(
++    const LocationDescription &Loc, InsertPointTy AllocaIP,
++    ArrayRef<ReductionInfo> ReductionInfos, bool IsNoWait,
++    bool IsTeamsReduction, bool HasDistribute) {
++  checkReductionInfos(ReductionInfos, /*IsGPU*/ true);
++  LLVMContext &Ctx = M.getContext();
++  if (!updateToLocation(Loc))
++    return InsertPointTy();
++
++  if (ReductionInfos.size() == 0)
++    return Builder.saveIP();
++
++  assert(ReductionInfos.size() == 1 && "More than one reduction variable");
++
++  // Copied code from createReductions
++  BasicBlock *InsertBlock = Loc.IP.getBlock();
++  BasicBlock *ContinuationBlock =
++      InsertBlock->splitBasicBlock(Loc.IP.getPoint(), "reduce.finalize");
++  InsertBlock->getTerminator()->eraseFromParent();
++  Builder.SetInsertPoint(InsertBlock, InsertBlock->end());
++
++  Function *ReductionFunc = nullptr;
++  if (GLOBAL_ReductionFunc) {
++    ReductionFunc = GLOBAL_ReductionFunc;
++  } else {
++    ReductionFunc = getFreshReductionFunc(M);
++    GLOBAL_ReductionFunc= ReductionFunc;
++    InsertPointTy CurIP = Builder.saveIP();
++    populateReductionFunction(ReductionFunc, ReductionInfos, Builder, true);
++    Builder.restoreIP(CurIP);
++  }
++
++  uint32_t SrcLocStrSize;
++  Constant *SrcLocStr = getOrCreateDefaultSrcLocStr(SrcLocStrSize);
++  Value *RTLoc =
++      getOrCreateIdent(SrcLocStr, SrcLocStrSize, llvm::omp::IdentFlag(0), 0);
++
++  // 1. Build a list of reduction variables
++  auto Size = ReductionInfos.size();
++  // FIXME(JAN): skipping variably modified type storage for array size
++  Type *PtrTy = PointerType::getUnqual(Ctx);
++  Type *RedArrayTy = ArrayType::get(PtrTy, Size);
++  InsertPointTy CurIP = Builder.saveIP();
++  Builder.restoreIP(AllocaIP);
++  Value *ReductionListAlloca = Builder.CreateAlloca(RedArrayTy, nullptr,
++                                                    ".omp.reduction.red_list");
++  Value *ReductionList =
++      Builder.CreatePointerBitCastOrAddrSpaceCast(ReductionListAlloca, PtrTy);
++  Builder.restoreIP(CurIP);
++  for (auto En : enumerate(ReductionInfos)) {
++    const ReductionInfo &RI = En.value();
++    Value *ElemPtr = Builder.CreateConstGEP2_64(RedArrayTy, ReductionList,
++                                                0,
++                                                En.index(), "elem_ptr");
++    Value *CastElem =
++        Builder.CreatePointerBitCastOrAddrSpaceCast(RI.PrivateVariable, PtrTy);
++    Builder.CreateStore(CastElem, ElemPtr);
++  }
++  CurIP = Builder.saveIP();
++  Function *SarFunc = emitShuffleAndReduceFunction(M, Loc, ReductionInfos,
++                                                   ReductionFunc, *this);
++  Function *WcFunc = emitInterWarpCopyFunction(M, Loc, ReductionInfos, *this);
++  Builder.restoreIP(CurIP);
++
++  Value *RL =
++    Builder.CreatePointerBitCastOrAddrSpaceCast(ReductionList, PtrTy);
++  Value *ReductionDataSize =
++      getTypeSizeInBytesValue(Builder, M, ReductionInfos.begin()->ElementType);
++
++  Value *Res;
++  if (!IsTeamsReduction) {
++    Value *SarFuncCast =
++        Builder.CreatePointerBitCastOrAddrSpaceCast(SarFunc, PtrTy);
++    Value *WcFuncCast =
++        Builder.CreatePointerBitCastOrAddrSpaceCast(WcFunc, PtrTy);
++    Value *Args[] = {RTLoc, ReductionDataSize, RL, SarFuncCast, WcFuncCast};
++    Function *Pv2Ptr = getOrCreateRuntimeFunctionPtr(
++        RuntimeFunction::OMPRTL___kmpc_nvptx_parallel_reduce_nowait_v2);
++    Res = Builder.CreateCall(Pv2Ptr, Args);
++  } else {
++    CurIP = Builder.saveIP();
++    Function *LtGCFunc =
++      emitListToGlobalCopyFunction(M, Loc, ReductionInfos, *this);
++    Function *LtGRFunc = emitListToGlobalReduceFunction(M, Loc, ReductionInfos,
++                                                        ReductionFunc, *this);
++    Function *GtLCFunc =
++      emitGlobalToListCopyFunction(M, Loc, ReductionInfos, *this);
++    Function *GtLRFunc = emitGlobalToListReduceFunction(M, Loc, ReductionInfos,
++                                                        ReductionFunc, *this);
++    Builder.restoreIP(CurIP);
++
++    Function *RedFixedBuferFn = getOrCreateRuntimeFunctionPtr(
++        RuntimeFunction::OMPRTL___kmpc_reduction_get_fixed_buffer);
++
++    Value *KernelTeamsReductionPtr =
++      Builder.CreateCall(RedFixedBuferFn, {});
++
++    Value *Args3[] = {RTLoc,
++                      KernelTeamsReductionPtr,
++                      Builder.getInt32(1024),
++                      ReductionDataSize,
++                      RL,
++                      SarFunc,
++                      WcFunc,
++                      LtGCFunc,
++                      LtGRFunc,
++                      GtLCFunc,
++                      GtLRFunc
++    };
++
++    Function *TeamsReduceFn = getOrCreateRuntimeFunctionPtr(
++        RuntimeFunction::OMPRTL___kmpc_nvptx_teams_reduce_nowait_v2);
++    Res = Builder.CreateCall(TeamsReduceFn, Args3);
++  }
++
++  if (IsTeamsReduction || !HasDistribute) {
++    Function *CurFunc = Builder.GetInsertBlock()->getParent();
++    BasicBlock *ExitBB =
++        BasicBlock::Create(Ctx, ".omp.reduction.done", CurFunc);
++    BasicBlock *ThenBB =
++        BasicBlock::Create(Ctx, ".omp.reduction.then", CurFunc);
++    Value *Cond = Builder.CreateICmpEQ(Res, Builder.getInt32(1));
++    Builder.CreateCondBr(Cond, ThenBB, ExitBB);
++
++    Builder.SetInsertPoint(ThenBB);
++    for (auto En : enumerate(ReductionInfos)) {
++      const ReductionInfo &RI = En.value();
++      Value *InputVal = Builder.CreateLoad(RI.ElementType, RI.Variable);
++      Value *RedVal = Builder.CreateLoad(
++          RI.ElementType, Builder.CreatePointerBitCastOrAddrSpaceCast(
++                              RI.PrivateVariable, PtrTy));
++      Value *sum;
++      Builder.restoreIP(
++          RI.ReductionGen(Builder.saveIP(), InputVal, RedVal, sum));
++      Builder.CreateStore(sum, RI.Variable);
++      Builder.CreateBr(ExitBB);
++    }
++    Builder.SetInsertPoint(ExitBB);
++  }
++  Builder.CreateBr(ContinuationBlock);
++  Builder.SetInsertPoint(ContinuationBlock);
++  return Builder.saveIP();
++}
++
++OpenMPIRBuilder::InsertPointTy OpenMPIRBuilder::createReductions(
++    const LocationDescription &Loc, InsertPointTy AllocaIP,
++    ArrayRef<ReductionInfo> ReductionInfos, bool IsNoWait,
++    bool IsTeamsReduction, bool HasDistribute) {
++  if (Config.isGPU())
++    return createReductionsGPU(Loc, AllocaIP, ReductionInfos, IsNoWait,
++                               IsTeamsReduction, HasDistribute);
++
++  checkReductionInfos(ReductionInfos, /*IsGPU*/ false);
+ 
+   if (!updateToLocation(Loc))
+     return InsertPointTy();
+ 
++  if (ReductionInfos.size() == 0)
++    return Builder.saveIP();
++
++
+   BasicBlock *InsertBlock = Loc.IP.getBlock();
+   BasicBlock *ContinuationBlock =
+       InsertBlock->splitBasicBlock(Loc.IP.getPoint(), "reduce.finalize");
+@@ -2136,9 +3315,9 @@
+   Switch->addCase(Builder.getInt32(1), NonAtomicRedBlock);
+   Switch->addCase(Builder.getInt32(2), AtomicRedBlock);
+ 
+-  // Populate the non-atomic reduction using the elementwise reduction function.
+-  // This loads the elements from the global and private variables and reduces
+-  // them before storing back the result to the global variable.
++  // Populate the non-atomic reduction using the elementwise reduction
++  // function. This loads the elements from the global and private variables
++  // and reduces them before storing back the result to the global variable.
+   Builder.SetInsertPoint(NonAtomicRedBlock);
+   for (auto En : enumerate(ReductionInfos)) {
+     const ReductionInfo &RI = En.value();
+@@ -2180,33 +3359,7 @@
+   // Populate the outlined reduction function using the elementwise reduction
+   // function. Partial values are extracted from the type-erased array of
+   // pointers to private variables.
+-  BasicBlock *ReductionFuncBlock =
+-      BasicBlock::Create(Module->getContext(), "", ReductionFunc);
+-  Builder.SetInsertPoint(ReductionFuncBlock);
+-  Value *LHSArrayPtr = ReductionFunc->getArg(0);
+-  Value *RHSArrayPtr = ReductionFunc->getArg(1);
+-
+-  for (auto En : enumerate(ReductionInfos)) {
+-    const ReductionInfo &RI = En.value();
+-    Value *LHSI8PtrPtr = Builder.CreateConstInBoundsGEP2_64(
+-        RedArrayTy, LHSArrayPtr, 0, En.index());
+-    Value *LHSI8Ptr = Builder.CreateLoad(Builder.getPtrTy(), LHSI8PtrPtr);
+-    Value *LHSPtr = Builder.CreateBitCast(LHSI8Ptr, RI.Variable->getType());
+-    Value *LHS = Builder.CreateLoad(RI.ElementType, LHSPtr);
+-    Value *RHSI8PtrPtr = Builder.CreateConstInBoundsGEP2_64(
+-        RedArrayTy, RHSArrayPtr, 0, En.index());
+-    Value *RHSI8Ptr = Builder.CreateLoad(Builder.getPtrTy(), RHSI8PtrPtr);
+-    Value *RHSPtr =
+-        Builder.CreateBitCast(RHSI8Ptr, RI.PrivateVariable->getType());
+-    Value *RHS = Builder.CreateLoad(RI.ElementType, RHSPtr);
+-    Value *Reduced;
+-    Builder.restoreIP(RI.ReductionGen(Builder.saveIP(), LHS, RHS, Reduced));
+-    if (!Builder.GetInsertBlock())
+-      return InsertPointTy();
+-    Builder.CreateStore(Reduced, LHSPtr);
+-  }
+-  Builder.CreateRetVoid();
+-
++  populateReductionFunction(ReductionFunc, ReductionInfos, Builder, false);
+   Builder.SetInsertPoint(ContinuationBlock);
+   return Builder.saveIP();
+ }
+@@ -2325,7 +3478,7 @@
+   CL->assertOK();
+ #endif
+   return CL;
+-}
++  }
+ 
+ CanonicalLoopInfo *
+ OpenMPIRBuilder::createCanonicalLoop(const LocationDescription &Loc,
+@@ -2499,7 +3652,8 @@
+                       PUpperBound, PStride, One, Zero});
+   Value *LowerBound = Builder.CreateLoad(IVTy, PLowerBound);
+   Value *InclusiveUpperBound = Builder.CreateLoad(IVTy, PUpperBound);
+-  Value *TripCountMinusOne = Builder.CreateSub(InclusiveUpperBound, LowerBound);
++  Value *TripCountMinusOne =
++      Builder.CreateSub(InclusiveUpperBound, LowerBound, "trip_count_minus1");
+   Value *TripCount = Builder.CreateAdd(TripCountMinusOne, One);
+   CLI->setTripCount(TripCount);
+ 
+@@ -2644,6 +3798,7 @@
+       IsLastChunk, CountUntilOrigTripCount, ChunkRange, "omp_chunk.tripcount");
+   Value *BackcastedChunkTC =
+       Builder.CreateTrunc(ChunkTripCount, IVTy, "omp_chunk.tripcount.trunc");
++
+   CLI->setTripCount(BackcastedChunkTC);
+ 
+   // Update all uses of the induction variable except the one in the condition
+@@ -2719,10 +3874,24 @@
+ static void createTargetLoopWorkshareCall(
+     OpenMPIRBuilder *OMPBuilder, WorksharingLoopType LoopType,
+     BasicBlock *InsertBlock, Value *Ident, Value *LoopBodyArg,
+-    Type *ParallelTaskPtr, Value *TripCount, Function &LoopBodyFn) {
+-  Type *TripCountTy = TripCount->getType();
++    Type *ParallelTaskPtr, Value *TripCountOrig, Function &LoopBodyFn) {
+   Module &M = OMPBuilder->M;
+   IRBuilder<> &Builder = OMPBuilder->Builder;
++  Value *TripCount = TripCountOrig;
++  // FIXME(JAN): The trip count is 1 larger than it should be for GPU, this may
++  // not be the right way to fix it, but this works for now.
++  if (OMPBuilder->Config.isGPU()) {
++    if (LoopType != WorksharingLoopType::DistributeStaticLoop)
++      Builder.restoreIP({InsertBlock, std::prev(InsertBlock->end())});
++    LLVMContext &Ctx = M.getContext();
++    Type *IVTy = TripCountOrig->getType();
++    Type *InternalIVTy = IVTy->getIntegerBitWidth() <= 32
++                             ? Type::getInt32Ty(Ctx)
++                             : Type::getInt64Ty(Ctx);
++    Constant *One = ConstantInt::get(InternalIVTy, 1);
++    TripCount = Builder.CreateSub(TripCountOrig, One, "modified_trip_count");
++  }
++  Type *TripCountTy = TripCount->getType();
+   FunctionCallee RTLFn =
+       getKmpcForStaticLoopForType(TripCountTy, OMPBuilder, LoopType);
+   SmallVector<Value *, 8> RealArgs;
+@@ -2876,9 +4045,10 @@
+   // We need to model loop body region as the function f(cnt, loop_arg).
+   // That's why we replace loop induction variable by the new counter
+   // which will be one of loop body function argument
+-  for (auto Use = CLI->getIndVar()->user_begin();
+-       Use != CLI->getIndVar()->user_end(); ++Use) {
+-    if (Instruction *Inst = dyn_cast<Instruction>(*Use)) {
++  SmallVector<User *> Users(CLI->getIndVar()->user_begin(),
++                            CLI->getIndVar()->user_end());
++  for (auto Use : Users) {
++    if (Instruction *Inst = dyn_cast<Instruction>(Use)) {
+       if (ParallelRegionBlockSet.count(Inst->getParent())) {
+         Inst->replaceUsesOfWith(CLI->getIndVar(), NewLoopCntLoad);
+       }
+@@ -4441,10 +5611,9 @@
    return Builder.CreateCall(Fn, Args);
  }
  
@@ -1134,8 +2979,13 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/llvm/lib/F
    if (!updateToLocation(Loc))
      return Loc.IP;
  
-@@ -4461,21 +4459,23 @@
+@@ -4459,25 +5628,32 @@
  
+   Function *Kernel = Builder.GetInsertBlock()->getParent();
+ 
++  // Set the grid value in the config needed for lowering later on
++  Config.setGridValue(getGridValue(T, Config.TargetFeatures));
++
    // Manifest the launch configuration in the metadata matching the kernel
    // environment.
 -  if (MinTeamsVal > 1 || MaxTeamsVal > 0)
@@ -1155,6 +3005,8 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/llvm/lib/F
 -  Constant *MaxThreads = ConstantInt::getSigned(Int32, MaxThreadsVal);
 -  Constant *MinTeams = ConstantInt::getSigned(Int32, MinTeamsVal);
 -  Constant *MaxTeams = ConstantInt::getSigned(Int32, MaxTeamsVal);
+-  Constant *ReductionDataSize = ConstantInt::getSigned(Int32, 0);
+-  Constant *ReductionBufferLength = ConstantInt::getSigned(Int32, 0);
 +  // If MaxThreads not set, select the maximum between the default workgroup
 +  // size and the MinThreads value.
 +  int32_t MaxThreadsValue = Bounds.MaxThreads;
@@ -1169,10 +3021,28 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/llvm/lib/F
 +  Constant *MaxThreads = ConstantInt::getSigned(Int32, MaxThreadsValue);
 +  Constant *MinTeams = ConstantInt::getSigned(Int32, Bounds.MinTeams);
 +  Constant *MaxTeams = ConstantInt::getSigned(Int32, Bounds.MaxTeams);
-   Constant *ReductionDataSize = ConstantInt::getSigned(Int32, 0);
-   Constant *ReductionBufferLength = ConstantInt::getSigned(Int32, 0);
++  Constant *ReductionDataSize =
++      ConstantInt::getSigned(Int32, Bounds.ReductionDataSize);
++  Constant *ReductionBufferLength =
++      ConstantInt::getSigned(Int32, Bounds.ReductionBufferLength);
  
-@@ -4712,6 +4712,11 @@
+   // We need to strip the debug prefix to get the correct kernel name.
+   StringRef KernelName = Kernel->getName();
+@@ -4536,7 +5712,12 @@
+           ? KernelEnvironmentGV
+           : ConstantExpr::getAddrSpaceCast(KernelEnvironmentGV,
+                                            KernelEnvironmentPtr);
+-  Value *KernelLaunchEnvironment = Kernel->getArg(0);
++  LLVMContext &Ctx = Fn->getContext();
++  Type *PtrTy = PointerType::getUnqual(Ctx);
++  Value *KLEnv = Builder.CreateAlloca(PtrTy, nullptr, "kernel_launch_env");
++  Value *KLEnvAcast = Builder.CreatePointerBitCastOrAddrSpaceCast(KLEnv, PtrTy);
++  Builder.CreateStore(Kernel->getArg(0), KLEnvAcast);
++  Value *KernelLaunchEnvironment = Builder.CreateLoad(PtrTy, KLEnvAcast);
+   CallInst *ThreadKind =
+       Builder.CreateCall(Fn, {KernelEnvironment, KernelLaunchEnvironment});
+ 
+@@ -4712,6 +5893,11 @@
      if (T.isAMDGCN())
        OutlinedFn->setCallingConv(CallingConv::AMDGPU_KERNEL);
    }
@@ -1184,7 +3054,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/llvm/lib/F
  }
  
  Constant *OpenMPIRBuilder::createOutlinedFunctionID(Function *OutlinedFn,
-@@ -4976,6 +4981,45 @@
+@@ -4976,6 +6162,45 @@
    return getOrCreateRuntimeFunction(M, Name);
  }
  
@@ -1230,7 +3100,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/llvm/lib/F
  static void replaceConstatExprUsesInFuncWithInstr(ConstantExpr *ConstExpr,
                                                    Function *Func) {
    for (User *User : make_early_inc_range(ConstExpr->users()))
-@@ -4993,8 +5037,9 @@
+@@ -4993,8 +6218,9 @@
  }
  
  static Function *createOutlinedFunction(
@@ -1242,7 +3112,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/llvm/lib/F
      OpenMPIRBuilder::TargetBodyGenCallbackTy &CBFunc,
      OpenMPIRBuilder::TargetGenArgAccessorsCallbackTy &ArgAccessorFuncCB) {
    SmallVector<Type *> ParameterTypes;
-@@ -5020,6 +5065,12 @@
+@@ -5020,6 +6246,12 @@
    auto Func = Function::Create(FuncType, GlobalValue::InternalLinkage, FuncName,
                                 Builder.GetInsertBlock()->getModule());
  
@@ -1255,7 +3125,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/llvm/lib/F
    // Save insert point.
    auto OldInsertPoint = Builder.saveIP();
  
-@@ -5029,7 +5080,8 @@
+@@ -5029,7 +6261,8 @@
  
    // Insert target init call in the device compilation pass.
    if (OMPBuilder.Config.isTargetDevice())
@@ -1265,7 +3135,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/llvm/lib/F
  
    BasicBlock *UserCodeEntryBB = Builder.GetInsertBlock();
  
-@@ -5090,16 +5142,18 @@
+@@ -5090,16 +6323,18 @@
  }
  
  static void emitTargetOutlinedFunction(
@@ -1290,7 +3160,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/llvm/lib/F
                                        CBFunc, ArgAccessorFuncCB);
        };
  
-@@ -5107,12 +5161,14 @@
+@@ -5107,12 +6342,14 @@
                                        OutlinedFn, OutlinedFnID);
  }
  
@@ -1311,7 +3181,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/llvm/lib/F
  
    OpenMPIRBuilder::TargetDataInfo Info(
        /*RequiresDevicePointerInfo=*/false,
-@@ -5137,22 +5193,56 @@
+@@ -5137,22 +6374,56 @@
    unsigned NumTargetItems = MapInfo.BasePointers.size();
    // TODO: Use correct device ID
    Value *DeviceID = Builder.getInt64(OMP_DEVICEID_UNDEF);
@@ -1376,7 +3246,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/llvm/lib/F
  
    Builder.restoreIP(OMPBuilder.emitKernelLaunch(
        Builder, OutlinedFn, OutlinedFnID, EmitTargetCallFallbackCB, KArgs,
-@@ -5160,10 +5250,11 @@
+@@ -5160,10 +6431,11 @@
  }
  
  OpenMPIRBuilder::InsertPointTy OpenMPIRBuilder::createTarget(
@@ -1392,7 +3262,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/llvm/lib/F
      OpenMPIRBuilder::TargetBodyGenCallbackTy CBFunc,
      OpenMPIRBuilder::TargetGenArgAccessorsCallbackTy ArgAccessorFuncCB) {
    if (!updateToLocation(Loc))
-@@ -5173,11 +5264,12 @@
+@@ -5173,11 +6445,12 @@
  
    Function *OutlinedFn;
    Constant *OutlinedFnID;
@@ -1409,7 +3279,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/llvm/lib/F
  
    return Builder.saveIP();
  }
-@@ -6209,6 +6301,43 @@
+@@ -6209,6 +7482,43 @@
  }
  
  OpenMPIRBuilder::InsertPointTy
@@ -1453,7 +3323,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/llvm/lib/F
  OpenMPIRBuilder::createTeams(const LocationDescription &Loc,
                               BodyGenCallbackTy BodyGenCB, Value *NumTeamsLower,
                               Value *NumTeamsUpper, Value *ThreadLimit,
-@@ -6250,8 +6379,9 @@
+@@ -6250,8 +7560,9 @@
    BasicBlock *AllocaBB =
        splitBB(Builder, /*CreateBranch=*/true, "teams.alloca");
  
@@ -1465,7 +3335,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/llvm/lib/F
      assert((NumTeamsLower == nullptr || NumTeamsUpper != nullptr) &&
             "if lowerbound is non-null, then upperbound must also be non-null "
             "for bounds on num_teams");
-@@ -6304,41 +6434,45 @@
+@@ -6304,41 +7615,45 @@
    OI.ExcludeArgsFromAggregate.push_back(createFakeIntVal(
        Builder, OuterAllocaIP, ToBeDeleted, AllocaIP, "tid", true));
  
@@ -1556,6 +3426,82 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/llvm/lib/T
    }
  
    // Helper function to inherit the calling convention of the function callee.
+diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/llvm/lib/Transforms/Utils/CodeExtractor.cpp llvm-project/llvm/lib/Transforms/Utils/CodeExtractor.cpp
+--- llvm-project.upstream/llvm/lib/Transforms/Utils/CodeExtractor.cpp	2023-12-18 11:20:49.955180582 -0500
++++ llvm-project/llvm/lib/Transforms/Utils/CodeExtractor.cpp	2024-01-08 15:58:29.642652300 -0500
+@@ -1182,6 +1182,7 @@
+ 
+   StructType *StructArgTy = nullptr;
+   AllocaInst *Struct = nullptr;
++  Instruction *StructSpaceCast = nullptr;
+   unsigned NumAggregatedInputs = 0;
+   if (AggregateArgs && !StructValues.empty()) {
+     std::vector<Type *> ArgTypes;
+@@ -1194,26 +1195,39 @@
+         StructArgTy, DL.getAllocaAddrSpace(), nullptr, "structArg",
+         AllocationBlock ? &*AllocationBlock->getFirstInsertionPt()
+                         : &codeReplacer->getParent()->front().front());
+-
+-    if (ArgsInZeroAddressSpace && DL.getAllocaAddrSpace() != 0) {
+-      auto *StructSpaceCast = new AddrSpaceCastInst(
++    if (DL.getAllocaAddrSpace() != 0) {
++      StructSpaceCast = new AddrSpaceCastInst(
+           Struct, PointerType ::get(Context, 0), "structArg.ascast");
+       StructSpaceCast->insertAfter(Struct);
+       params.push_back(StructSpaceCast);
++      // Store aggregated inputs in the struct.
++      for (unsigned i = 0, e = StructValues.size(); i != e; ++i) {
++        if (inputs.contains(StructValues[i])) {
++          Value *Idx[2];
++          Idx[0] = Constant::getNullValue(Type::getInt32Ty(Context));
++          Idx[1] = ConstantInt::get(Type::getInt32Ty(Context), i);
++          GetElementPtrInst *GEP =
++              GetElementPtrInst::Create(StructArgTy, StructSpaceCast, Idx,
++                                        "gep_" + StructValues[i]->getName());
++          GEP->insertInto(codeReplacer, codeReplacer->end());
++          new StoreInst(StructValues[i], GEP, codeReplacer);
++          NumAggregatedInputs++;
++        }
++      }
+     } else {
+       params.push_back(Struct);
+-    }
+-    // Store aggregated inputs in the struct.
+-    for (unsigned i = 0, e = StructValues.size(); i != e; ++i) {
+-      if (inputs.contains(StructValues[i])) {
+-        Value *Idx[2];
+-        Idx[0] = Constant::getNullValue(Type::getInt32Ty(Context));
+-        Idx[1] = ConstantInt::get(Type::getInt32Ty(Context), i);
+-        GetElementPtrInst *GEP = GetElementPtrInst::Create(
+-            StructArgTy, Struct, Idx, "gep_" + StructValues[i]->getName());
+-        GEP->insertInto(codeReplacer, codeReplacer->end());
+-        new StoreInst(StructValues[i], GEP, codeReplacer);
+-        NumAggregatedInputs++;
++      // Store aggregated inputs in the struct.
++      for (unsigned i = 0, e = StructValues.size(); i != e; ++i) {
++        if (inputs.contains(StructValues[i])) {
++          Value *Idx[2];
++          Idx[0] = Constant::getNullValue(Type::getInt32Ty(Context));
++          Idx[1] = ConstantInt::get(Type::getInt32Ty(Context), i);
++          GetElementPtrInst *GEP = GetElementPtrInst::Create(
++              StructArgTy, Struct, Idx, "gep_" + StructValues[i]->getName());
++          GEP->insertInto(codeReplacer, codeReplacer->end());
++          new StoreInst(StructValues[i], GEP, codeReplacer);
++          NumAggregatedInputs++;
++        }
+       }
+     }
+   }
+@@ -1248,7 +1262,8 @@
+       Idx[0] = Constant::getNullValue(Type::getInt32Ty(Context));
+       Idx[1] = ConstantInt::get(Type::getInt32Ty(Context), aggIdx);
+       GetElementPtrInst *GEP = GetElementPtrInst::Create(
+-          StructArgTy, Struct, Idx, "gep_reload_" + outputs[i]->getName());
++          StructArgTy, StructSpaceCast ? StructSpaceCast : Struct, Idx,
++          "gep_reload_" + outputs[i]->getName());
+       GEP->insertInto(codeReplacer, codeReplacer->end());
+       Output = GEP;
+       ++aggIdx;
 diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/mlir/include/mlir/Dialect/OpenMP/OpenMPOps.td llvm-project/mlir/include/mlir/Dialect/OpenMP/OpenMPOps.td
 --- llvm-project.upstream/mlir/include/mlir/Dialect/OpenMP/OpenMPOps.td	2023-12-18 11:20:50.535178392 -0500
 +++ llvm-project/mlir/include/mlir/Dialect/OpenMP/OpenMPOps.td	2024-01-05 09:27:05.926815695 -0500
@@ -1975,8 +3921,59 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/mlir/lib/D
    // Check for allocate clause restrictions
 diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/mlir/lib/Target/LLVMIR/Dialect/OpenMP/OpenMPToLLVMIRTranslation.cpp llvm-project/mlir/lib/Target/LLVMIR/Dialect/OpenMP/OpenMPToLLVMIRTranslation.cpp
 --- llvm-project.upstream/mlir/lib/Target/LLVMIR/Dialect/OpenMP/OpenMPToLLVMIRTranslation.cpp	2024-01-02 11:38:00.189300132 -0500
-+++ llvm-project/mlir/lib/Target/LLVMIR/Dialect/OpenMP/OpenMPToLLVMIRTranslation.cpp	2024-01-05 09:27:05.930815682 -0500
-@@ -694,9 +694,11 @@
++++ llvm-project/mlir/lib/Target/LLVMIR/Dialect/OpenMP/OpenMPToLLVMIRTranslation.cpp	2024-01-08 15:58:29.642652300 -0500
+@@ -440,27 +440,18 @@
+ }
+ 
+ namespace {
+-/// Owning equivalents of OpenMPIRBuilder::(Atomic)ReductionGen that are used to
+-/// store lambdas with capture.
+-using OwningReductionGen = std::function<llvm::OpenMPIRBuilder::InsertPointTy(
+-    llvm::OpenMPIRBuilder::InsertPointTy, llvm::Value *, llvm::Value *,
+-    llvm::Value *&)>;
+-using OwningAtomicReductionGen =
+-    std::function<llvm::OpenMPIRBuilder::InsertPointTy(
+-        llvm::OpenMPIRBuilder::InsertPointTy, llvm::Type *, llvm::Value *,
+-        llvm::Value *)>;
+ } // namespace
+ 
+ /// Create an OpenMPIRBuilder-compatible reduction generator for the given
+ /// reduction declaration. The generator uses `builder` but ignores its
+ /// insertion point.
+-static OwningReductionGen
++static llvm::OpenMPIRBuilder::ReductionGenTy
+ makeReductionGen(omp::ReductionDeclareOp decl, llvm::IRBuilderBase &builder,
+                  LLVM::ModuleTranslation &moduleTranslation) {
+   // The lambda is mutable because we need access to non-const methods of decl
+   // (which aren't actually mutating it), and we must capture decl by-value to
+   // avoid the dangling reference after the parent function returns.
+-  OwningReductionGen gen =
++  llvm::OpenMPIRBuilder::ReductionGenTy gen =
+       [&, decl](llvm::OpenMPIRBuilder::InsertPointTy insertPoint,
+                 llvm::Value *lhs, llvm::Value *rhs,
+                 llvm::Value *&result) mutable {
+@@ -484,17 +475,17 @@
+ /// given reduction declaration. The generator uses `builder` but ignores its
+ /// insertion point. Returns null if there is no atomic region available in the
+ /// reduction declaration.
+-static OwningAtomicReductionGen
++static llvm::OpenMPIRBuilder::AtomicReductionGenTy
+ makeAtomicReductionGen(omp::ReductionDeclareOp decl,
+                        llvm::IRBuilderBase &builder,
+                        LLVM::ModuleTranslation &moduleTranslation) {
+   if (decl.getAtomicReductionRegion().empty())
+-    return OwningAtomicReductionGen();
++    return llvm::OpenMPIRBuilder::AtomicReductionGenTy();
+ 
+   // The lambda is mutable because we need access to non-const methods of decl
+   // (which aren't actually mutating it), and we must capture decl by-value to
+   // avoid the dangling reference after the parent function returns.
+-  OwningAtomicReductionGen atomicGen =
++  llvm::OpenMPIRBuilder::AtomicReductionGenTy atomicGen =
+       [&, decl](llvm::OpenMPIRBuilder::InsertPointTy insertPoint, llvm::Type *,
+                 llvm::Value *lhs, llvm::Value *rhs) mutable {
+         Region &atomicRegion = decl.getAtomicReductionRegion();
+@@ -694,9 +685,11 @@
    if (Value ifExprVar = op.getIfExpr())
      ifExpr = moduleTranslation.lookupValue(ifExprVar);
  
@@ -1989,10 +3986,86 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/mlir/lib/T
    return bodyGenStatus;
  }
  
-@@ -833,6 +835,50 @@
+@@ -781,55 +774,94 @@
+ template <typename T>
+ static void
+ allocReductionVars(T loop, llvm::IRBuilderBase &builder,
++                   llvm::OpenMPIRBuilder &ompBuilder,
+                    LLVM::ModuleTranslation &moduleTranslation,
+                    llvm::OpenMPIRBuilder::InsertPointTy &allocaIP,
+                    SmallVector<omp::ReductionDeclareOp> &reductionDecls,
+-                   SmallVector<llvm::Value *> &privateReductionVariables,
+                    DenseMap<Value, llvm::Value *> &reductionVariableMap) {
+   unsigned numReductions = loop.getNumReductionVars();
+-  privateReductionVariables.reserve(numReductions);
+   if (numReductions != 0) {
+     llvm::IRBuilderBase::InsertPointGuard guard(builder);
+-    builder.restoreIP(allocaIP);
++    llvm::OpenMPIRBuilder::InsertPointTy curIP = builder.saveIP();
++
++    if (!ompBuilder.RIManager.hasPrivateVarAllocaIP())
++      ompBuilder.RIManager.setPrivateVarAllocaIP(allocaIP);
++    builder.restoreIP(ompBuilder.RIManager.getPrivateVarAllocaIP());
+     for (unsigned i = 0; i < numReductions; ++i) {
+-      llvm::Value *var = builder.CreateAlloca(
++      llvm::Value *var = ompBuilder.RIManager.allocatePrivateReductionVar(
++          builder, allocaIP,
+           moduleTranslation.convertType(reductionDecls[i].getType()));
+-      privateReductionVariables.push_back(var);
+       reductionVariableMap.try_emplace(loop.getReductionVars()[i], var);
+     }
++    builder.restoreIP(curIP);
    }
  }
  
+ /// Collect reduction info
+ template <typename T>
+-static void collectReductionInfo(
+-    T loop, llvm::IRBuilderBase &builder,
+-    LLVM::ModuleTranslation &moduleTranslation,
+-    SmallVector<omp::ReductionDeclareOp> &reductionDecls,
+-    SmallVector<OwningReductionGen> &owningReductionGens,
+-    SmallVector<OwningAtomicReductionGen> &owningAtomicReductionGens,
+-    const SmallVector<llvm::Value *> &privateReductionVariables,
+-    SmallVector<llvm::OpenMPIRBuilder::ReductionInfo> &reductionInfos) {
++static void
++collectReductionInfo(T &loop, llvm::IRBuilderBase &builder,
++                     llvm::OpenMPIRBuilder &ompBuilder,
++                     LLVM::ModuleTranslation &moduleTranslation,
++                     SmallVector<omp::ReductionDeclareOp> &reductionDecls) {
+   unsigned numReductions = loop.getNumReductionVars();
+-
+   for (unsigned i = 0; i < numReductions; ++i) {
+-    owningReductionGens.push_back(
+-        makeReductionGen(reductionDecls[i], builder, moduleTranslation));
+-    owningAtomicReductionGens.push_back(
+-        makeAtomicReductionGen(reductionDecls[i], builder, moduleTranslation));
+-  }
+-
+-  // Collect the reduction information.
+-  reductionInfos.reserve(numReductions);
+-  for (unsigned i = 0; i < numReductions; ++i) {
+-    llvm::OpenMPIRBuilder::AtomicReductionGenTy atomicGen = nullptr;
+-    if (owningAtomicReductionGens[i])
+-      atomicGen = owningAtomicReductionGens[i];
+     llvm::Value *variable =
+         moduleTranslation.lookupValue(loop.getReductionVars()[i]);
+-    reductionInfos.push_back(
+-        {moduleTranslation.convertType(reductionDecls[i].getType()), variable,
+-         privateReductionVariables[i], owningReductionGens[i], atomicGen});
++    llvm::OpenMPIRBuilder::ReductionInfo RI =
++        ompBuilder.RIManager.getReductionInfo(i);
++    RI.Variable = variable;
++    RI.ElementType =
++        moduleTranslation.convertType(reductionDecls[i].getType());
++    RI.ReductionGen =
++        makeReductionGen(reductionDecls[i], builder, moduleTranslation);
++    RI.AtomicReductionGen =
++        makeAtomicReductionGen(reductionDecls[i], builder, moduleTranslation);
++    ompBuilder.RIManager.setReductionInfo(i, RI);
++  }
++}
++
 +/// Populate a set of previously created llvm.alloca instructions that are only
 +/// used inside of the given region but defined outside of it. Allocations of
 +/// non-primitive types are skipped by this function.
@@ -2034,13 +4107,45 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/mlir/lib/T
 +      continue;
 +
 +    allocasToSink.insert(llvmAlloca);
-+  }
-+}
-+
- /// Converts an OpenMP workshare loop into LLVM IR using OpenMPIRBuilder.
+   }
+ }
+ 
+@@ -837,6 +869,7 @@
  static LogicalResult
  convertOmpWsLoop(Operation &opInst, llvm::IRBuilderBase &builder,
-@@ -889,6 +935,9 @@
+                  LLVM::ModuleTranslation &moduleTranslation) {
++  llvm::OpenMPIRBuilder *ompBuilder = moduleTranslation.getOpenMPBuilder();
+   auto loop = cast<omp::WsLoopOp>(opInst);
+   // TODO: this should be in the op verifier instead.
+   if (loop.getLowerBound().empty())
+@@ -855,16 +888,14 @@
+         moduleTranslation.lookupValue(loop.getScheduleChunkVar());
+     chunk = builder.CreateSExtOrTrunc(chunkVar, ivType);
+   }
+-
+   SmallVector<omp::ReductionDeclareOp> reductionDecls;
+   collectReductionDecls(loop, reductionDecls);
+   llvm::OpenMPIRBuilder::InsertPointTy allocaIP =
+       findAllocaInsertPoint(builder, moduleTranslation);
+ 
+-  SmallVector<llvm::Value *> privateReductionVariables;
+   DenseMap<Value, llvm::Value *> reductionVariableMap;
+-  allocReductionVars(loop, builder, moduleTranslation, allocaIP, reductionDecls,
+-                     privateReductionVariables, reductionVariableMap);
++  allocReductionVars(loop, builder, *ompBuilder, moduleTranslation, allocaIP,
++                     reductionDecls, reductionVariableMap);
+ 
+   // Store the mapping between reduction variables and their private copies on
+   // ModuleTranslation stack. It can be then recovered when translating
+@@ -883,12 +914,16 @@
+       return failure();
+     assert(phis.size() == 1 && "expected one value to be yielded from the "
+                                "reduction neutral element declaration region");
+-    builder.CreateStore(phis[0], privateReductionVariables[i]);
++    builder.CreateStore(phis[0],
++                        ompBuilder->RIManager.getPrivateReductionVariable(i));
+   }
+ 
    // Set up the source location value for OpenMP runtime.
    llvm::OpenMPIRBuilder::LocationDescription ompLoc(builder);
  
@@ -2050,7 +4155,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/mlir/lib/T
    // Generator of the canonical loop body.
    // TODO: support error propagation in OpenMPIRBuilder and use it instead of
    // relying on captured variables.
-@@ -908,10 +957,21 @@
+@@ -908,17 +943,27 @@
      if (loopInfos.size() != loop.getNumLoops() - 1)
        return;
  
@@ -2075,7 +4180,14 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/mlir/lib/T
    };
  
    // Delegate actual loop construction to the OpenMP IRBuilder.
-@@ -956,12 +1016,24 @@
+   // TODO: this currently assumes WsLoop is semantically similar to SCF loop,
+   // i.e. it has a positive step, uses signed integer semantics. Reconsider
+   // this code when WsLoop clearly supports more cases.
+-  llvm::OpenMPIRBuilder *ompBuilder = moduleTranslation.getOpenMPBuilder();
+   for (unsigned i = 0, e = loop.getNumLoops(); i < e; ++i) {
+     llvm::Value *lowerBound =
+         moduleTranslation.lookupValue(loop.getLowerBound()[i]);
+@@ -956,12 +1001,24 @@
    std::optional<omp::ScheduleModifier> scheduleModifier =
        loop.getScheduleModifier();
    bool isSimd = loop.getSimdModifier();
@@ -2106,7 +4218,129 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/mlir/lib/T
  
    // Continue building IR after the loop. Note that the LoopInfo returned by
    // `collapseLoops` points inside the outermost loop and is intended for
-@@ -1130,6 +1202,9 @@
+@@ -975,21 +1032,19 @@
+ 
+   // Create the reduction generators. We need to own them here because
+   // ReductionInfo only accepts references to the generators.
+-  SmallVector<OwningReductionGen> owningReductionGens;
+-  SmallVector<OwningAtomicReductionGen> owningAtomicReductionGens;
+-  SmallVector<llvm::OpenMPIRBuilder::ReductionInfo> reductionInfos;
+-  collectReductionInfo(loop, builder, moduleTranslation, reductionDecls,
+-                       owningReductionGens, owningAtomicReductionGens,
+-                       privateReductionVariables, reductionInfos);
+-
++  collectReductionInfo(loop, builder, *ompBuilder, moduleTranslation,
++                       reductionDecls);
+   // The call to createReductions below expects the block to have a
+   // terminator. Create an unreachable instruction to serve as terminator
+   // and remove it later.
+   llvm::UnreachableInst *tempTerminator = builder.CreateUnreachable();
+   builder.SetInsertPoint(tempTerminator);
++
+   llvm::OpenMPIRBuilder::InsertPointTy contInsertPoint =
+-      ompBuilder->createReductions(builder.saveIP(), allocaIP, reductionInfos,
+-                                   loop.getNowait());
++      ompBuilder->createReductions(builder.saveIP(), allocaIP,
++                                   ompBuilder->RIManager.getReductionInfos(),
++                                   loop.getNowait(), /*IsTeamsReduction*/ false,
++                                   /*HasDistribute*/ distributeParallelCodeGen);
+   if (!contInsertPoint.getBlock())
+     return loop->emitOpError() << "failed to convert reductions";
+   auto nextInsertionPoint =
+@@ -997,13 +1052,17 @@
+   tempTerminator->eraseFromParent();
+   builder.restoreIP(nextInsertionPoint);
+ 
++  if (!ompBuilder->Config.isGPU())
++    ompBuilder->RIManager.clear();
++
+   return success();
+ }
+ 
+ /// Converts the OpenMP parallel operation to LLVM IR.
+ static LogicalResult
+-convertOmpParallel(omp::ParallelOp opInst, llvm::IRBuilderBase &builder,
++convertOmpParallel(Operation &opInst1, llvm::IRBuilderBase &builder,
+                    LLVM::ModuleTranslation &moduleTranslation) {
++  auto opInst = cast<omp::ParallelOp>(opInst1);
+   using InsertPointTy = llvm::OpenMPIRBuilder::InsertPointTy;
+   // TODO: support error propagation in OpenMPIRBuilder and use it instead of
+   // relying on captured variables.
+@@ -1016,11 +1075,9 @@
+     collectReductionDecls(opInst, reductionDecls);
+ 
+     // Allocate reduction vars
+-    SmallVector<llvm::Value *> privateReductionVariables;
+     DenseMap<Value, llvm::Value *> reductionVariableMap;
+-    allocReductionVars(opInst, builder, moduleTranslation, allocaIP,
+-                       reductionDecls, privateReductionVariables,
+-                       reductionVariableMap);
++    allocReductionVars(opInst, builder, *ompBuilder, moduleTranslation,
++                       allocaIP, reductionDecls, reductionVariableMap);
+ 
+     // Store the mapping between reduction variables and their private copies on
+     // ModuleTranslation stack. It can be then recovered when translating
+@@ -1040,7 +1097,8 @@
+              "expected one value to be yielded from the "
+              "reduction neutral element declaration region");
+       builder.restoreIP(allocaIP);
+-      builder.CreateStore(phis[0], privateReductionVariables[i]);
++      builder.CreateStore(phis[0],
++                          ompBuilder->RIManager.getPrivateReductionVariable(i));
+     }
+ 
+     // Save the alloca insertion point on ModuleTranslation stack for use in
+@@ -1057,12 +1115,8 @@
+     // Process the reductions if required.
+     if (opInst.getNumReductionVars() > 0) {
+       // Collect reduction info
+-      SmallVector<OwningReductionGen> owningReductionGens;
+-      SmallVector<OwningAtomicReductionGen> owningAtomicReductionGens;
+-      SmallVector<llvm::OpenMPIRBuilder::ReductionInfo> reductionInfos;
+-      collectReductionInfo(opInst, builder, moduleTranslation, reductionDecls,
+-                           owningReductionGens, owningAtomicReductionGens,
+-                           privateReductionVariables, reductionInfos);
++      collectReductionInfo(opInst, builder, *ompBuilder, moduleTranslation,
++                           reductionDecls);
+ 
+       // Move to region cont block
+       builder.SetInsertPoint(regionBlock->getTerminator());
+@@ -1070,10 +1124,10 @@
+       // Generate reductions from info
+       llvm::UnreachableInst *tempTerminator = builder.CreateUnreachable();
+       builder.SetInsertPoint(tempTerminator);
+-
+       llvm::OpenMPIRBuilder::InsertPointTy contInsertPoint =
+-          ompBuilder->createReductions(builder.saveIP(), allocaIP,
+-                                       reductionInfos, false);
++          ompBuilder->createReductions(
++              builder.saveIP(), allocaIP,
++              ompBuilder->RIManager.getReductionInfos(), false, false, false);
+       if (!contInsertPoint.getBlock()) {
+         bodyGenStatus = opInst->emitOpError() << "failed to convert reductions";
+         return;
+@@ -1095,10 +1149,7 @@
+     return codeGenIP;
+   };
+ 
+-  // TODO: Perform finalization actions for variables. This has to be
+-  // called for variables which have destructors/finalizers.
+   auto finiCB = [&](InsertPointTy codeGenIP) {};
+-
+   llvm::Value *ifCond = nullptr;
+   if (auto ifExprVar = opInst.getIfExprVar())
+     ifCond = moduleTranslation.lookupValue(ifExprVar);
+@@ -1119,6 +1170,9 @@
+       ompBuilder->createParallel(ompLoc, allocaIP, bodyGenCB, privCB, finiCB,
+                                  ifCond, numThreads, pbKind, isCancellable));
+ 
++  if (!ompBuilder->Config.isGPU())
++    ompBuilder->RIManager.clear();
++
+   return bodyGenStatus;
+ }
+ 
+@@ -1130,6 +1184,9 @@
  
    llvm::OpenMPIRBuilder::LocationDescription ompLoc(builder);
  
@@ -2116,7 +4350,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/mlir/lib/T
    // Generator of the canonical loop body.
    // TODO: support error propagation in OpenMPIRBuilder and use it instead of
    // relying on captured variables.
-@@ -1149,10 +1224,21 @@
+@@ -1149,10 +1206,21 @@
      if (loopInfos.size() != loop.getNumLoops() - 1)
        return;
  
@@ -2141,7 +4375,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/mlir/lib/T
    };
  
    // Delegate actual loop construction to the OpenMP IRBuilder.
-@@ -1676,14 +1762,14 @@
+@@ -1676,14 +1744,14 @@
  // This function is somewhat equivalent to Clang's getExprTypeSize inside of
  // CGOpenMPRuntime.cpp.
  llvm::Value *getSizeInBytes(DataLayout &dl, const mlir::Type &type,
@@ -2159,7 +4393,17 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/mlir/lib/T
  
    if (auto memberClause =
            mlir::dyn_cast_if_present<mlir::omp::MapInfoOp>(clauseOp)) {
-@@ -1728,13 +1814,13 @@
+@@ -1716,7 +1784,8 @@
+       // bytes from the extent (ub - lb) * sizeInBytes. NOTE: This may need
+       // some adjustment for members with more complex types.
+       return builder.CreateMul(elementCount,
+-                               builder.getInt64(underlyingTypeSzInBits / 8));
++                               builder.getInt64(underlyingTypeSzInBits / 8),
++                               "element_count");
+     }
+   }
+ 
+@@ -1728,13 +1797,13 @@
                                     LLVM::ModuleTranslation &moduleTranslation,
                                     DataLayout &dl,
                                     llvm::IRBuilderBase &builder) {
@@ -2176,7 +4420,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/mlir/lib/T
        mapData.Pointers.push_back(mapData.OriginalValue.back());
  
        if (llvm::Value *refPtr =
-@@ -1747,10 +1833,11 @@
+@@ -1747,10 +1816,11 @@
          mapData.BasePointers.push_back(mapData.OriginalValue.back());
        }
  
@@ -2190,7 +4434,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/mlir/lib/T
        mapData.MapClause.push_back(mapOp.getOperation());
        mapData.Types.push_back(
            llvm::omp::OpenMPOffloadMappingFlags(mapOp.getMapType().value()));
-@@ -1759,6 +1846,183 @@
+@@ -1759,6 +1829,183 @@
        mapData.DevicePointers.push_back(
            llvm::OpenMPIRBuilder::DeviceInfoTy::None);
      }
@@ -2374,7 +4618,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/mlir/lib/T
    }
  }
  
-@@ -1782,15 +2046,44 @@
+@@ -1782,15 +2029,44 @@
      combinedInfo.Names.clear();
    };
  
@@ -2422,13 +4666,14 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/mlir/lib/T
      auto mapFlag = mapData.Types[i];
      if (mapData.IsDeclareTarget[i])
        mapFlag |= llvm::omp::OpenMPOffloadMappingFlags::OMP_MAP_PTR_AND_OBJ;
-@@ -2025,6 +2318,37 @@
+@@ -2025,6 +2301,55 @@
    return bodyGenStatus;
  }
  
 +static LogicalResult
 +convertOmpDistribute(Operation &opInst, llvm::IRBuilderBase &builder,
 +                     LLVM::ModuleTranslation &moduleTranslation) {
++  llvm::OpenMPIRBuilder *ompBuilder = moduleTranslation.getOpenMPBuilder();
 +
 +  using InsertPointTy = llvm::OpenMPIRBuilder::InsertPointTy;
 +  // TODO: support error propagation in OpenMPIRBuilder and use it instead of
@@ -2443,24 +4688,41 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/mlir/lib/T
 +
 +    // DistributeOp has only one region associated with it.
 +    builder.restoreIP(codeGenIP);
-+    convertOmpOpRegions(opInst.getRegion(0), "omp.distribute.region", builder,
-+                        moduleTranslation, bodyGenStatus);
++    ompBuilder->RIManager.setPrivateVarAllocaIP(allocaIP);
++    auto regionBlock =
++        convertOmpOpRegions(opInst.getRegion(0), "omp.distribute.region",
++                            builder, moduleTranslation, bodyGenStatus);
++
++    builder.SetInsertPoint(regionBlock->getTerminator());
++
++    // FIXME(JAN): We need to know if we are inside a distribute and
++    // if there is an inner wsloop reduction, in that case we need to
++    // generate the teams reduction bits to combine everything correctly. We
++    // will try to collect the reduction info from the inner wsloop and use
++    // that instead of the reduction clause that could have been on the
++    // omp.parallel
++    auto IP = builder.saveIP();
++    if (ompBuilder->Config.isGPU()) {
++      llvm::OpenMPIRBuilder::InsertPointTy contInsertPoint =
++          ompBuilder->createReductions(
++              IP, allocaIP, ompBuilder->RIManager.getReductionInfos(), false,
++              true, true);
++      builder.restoreIP(contInsertPoint);
++    }
 +  };
 +
 +  llvm::OpenMPIRBuilder::InsertPointTy allocaIP =
 +      findAllocaInsertPoint(builder, moduleTranslation);
 +  llvm::OpenMPIRBuilder::LocationDescription ompLoc(builder);
++  builder.restoreIP(ompBuilder->createDistribute(ompLoc, allocaIP, bodyGenCB));
 +
-+  builder.restoreIP(moduleTranslation.getOpenMPBuilder()->createDistribute(
-+      ompLoc, allocaIP, bodyGenCB));
-+
-+  return bodyGenStatus;
++  return success();
 +}
 +
  /// Lowers the FlagsAttr which is applied to the module on the device
  /// pass when offloading, this attribute contains OpenMP RTL globals that can
  /// be passed as flags to the frontend, otherwise they are set to default
-@@ -2093,11 +2417,6 @@
+@@ -2093,11 +2418,6 @@
      return false;
    }
  
@@ -2472,7 +4734,16 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/mlir/lib/T
    if (targetOp.getNowait()) {
      opInst.emitError("Nowait clause not yet supported");
      return false;
-@@ -2322,6 +2641,145 @@
+@@ -2212,7 +2532,7 @@
+       ompBuilder.M.getDataLayout().getProgramAddressSpace();
+ 
+   // Create the alloca for the argument the current point.
+-  llvm::Value *v = builder.CreateAlloca(arg.getType(), allocaAS);
++  llvm::Value *v = builder.CreateAlloca(arg.getType(), allocaAS, nullptr);
+ 
+   if (allocaAS != defaultAS && arg.getType()->isPointerTy())
+     v = builder.CreatePointerBitCastOrAddrSpaceCast(
+@@ -2322,6 +2642,170 @@
    }
  }
  
@@ -2499,7 +4770,8 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/mlir/lib/T
 +static void initTargetDefaultBounds(
 +    omp::TargetOp targetOp,
 +    llvm::OpenMPIRBuilder::TargetKernelDefaultBounds &bounds,
-+    bool isTargetDevice) {
++    bool isTargetDevice,
++    bool isGPU) {
 +  // TODO Handle constant IF clauses
 +  Operation *innermostCapturedOmpOp = targetOp.getInnermostCapturedOmpOp();
 +
@@ -2582,11 +4854,35 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/mlir/lib/T
 +      (maxThreadsVal >= 0 && maxThreadsVal < combinedMaxThreadsVal))
 +    combinedMaxThreadsVal = maxThreadsVal;
 +
++  // Calculate reduction data size, limited to single reduction variable
++  // for now.
++  int32_t reductionDataSize = 0;
++  if (isGPU && innermostCapturedOmpOp) {
++    if (auto wsLoopOp =
++            mlir::dyn_cast<mlir::omp::WsLoopOp>(innermostCapturedOmpOp)) {
++      if (wsLoopOp.getNumReductionVars() > 0) {
++        assert(wsLoopOp.getNumReductionVars() &&
++               "Only 1 reduction variable currently supported");
++        mlir::Value reductionVar = wsLoopOp.getReductionVars()[0];
++        DataLayout dl =
++            DataLayout(innermostCapturedOmpOp->getParentOfType<ModuleOp>());
++
++        mlir::Type reductionVarTy = reductionVar.getType();
++        uint64_t sizeInBits = dl.getTypeSizeInBits(reductionVarTy);
++        uint64_t sizeInBytes = sizeInBits / 8;
++        reductionDataSize = sizeInBytes;
++      }
++    }
++  }
++
 +  // Update kernel bounds structure for the `OpenMPIRBuilder` to use.
 +  bounds.MinTeams = minTeamsVal;
 +  bounds.MaxTeams = maxTeamsVal;
 +  bounds.MinThreads = 1;
 +  bounds.MaxThreads = combinedMaxThreadsVal;
++  bounds.ReductionDataSize = reductionDataSize;
++  if (bounds.ReductionDataSize != 0)
++    bounds.ReductionBufferLength = 1024;
 +}
 +
 +/// Gather LLVM runtime values for all clauses evaluated in the host that are
@@ -2618,12 +4914,13 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/mlir/lib/T
  static LogicalResult
  convertOmpTarget(Operation &opInst, llvm::IRBuilderBase &builder,
                   LLVM::ModuleTranslation &moduleTranslation) {
-@@ -2329,11 +2787,14 @@
+@@ -2329,11 +2813,15 @@
    if (!targetOpSupported(opInst))
      return failure();
  
 +  llvm::OpenMPIRBuilder *ompBuilder = moduleTranslation.getOpenMPBuilder();
 +  bool isTargetDevice = ompBuilder->Config.isTargetDevice();
++  bool isGPU = ompBuilder->Config.isGPU();
    auto targetOp = cast<omp::TargetOp>(opInst);
    auto &targetRegion = targetOp.getRegion();
    DataLayout dl = DataLayout(opInst.getParentOfType<ModuleOp>());
@@ -2633,7 +4930,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/mlir/lib/T
    LogicalResult bodyGenStatus = success();
    using InsertPointTy = llvm::OpenMPIRBuilder::InsertPointTy;
    auto bodyCB = [&](InsertPointTy allocaIP,
-@@ -2352,6 +2813,10 @@
+@@ -2352,6 +2840,10 @@
      llvm::BasicBlock *exitBlock = convertOmpOpRegions(
          targetRegion, "omp.target", builder, moduleTranslation, bodyGenStatus);
      builder.SetInsertPoint(exitBlock);
@@ -2644,7 +4941,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/mlir/lib/T
      return builder.saveIP();
    };
  
-@@ -2370,9 +2835,6 @@
+@@ -2370,9 +2862,6 @@
    if (!getTargetEntryUniqueInfo(entryInfo, targetOp, parentName))
      return failure();
  
@@ -2654,7 +4951,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/mlir/lib/T
    llvm::OpenMPIRBuilder::InsertPointTy allocaIP =
        findAllocaInsertPoint(builder, moduleTranslation);
  
-@@ -2391,7 +2853,7 @@
+@@ -2391,7 +2880,7 @@
    // kernel arg structure. It primarily becomes relevant in cases like
    // bycopy, or byref range'd arrays. In the default case, we simply
    // pass thee pointer byref as both basePointer and pointer.
@@ -2663,7 +4960,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/mlir/lib/T
      createAlteredByCaptureMap(mapData, moduleTranslation, builder);
  
    llvm::OpenMPIRBuilder::MapInfosTy combinedInfos;
-@@ -2406,14 +2868,12 @@
+@@ -2406,14 +2895,12 @@
    auto argAccessorCB = [&](llvm::Argument &arg, llvm::Value *input,
                             llvm::Value *&retVal, InsertPointTy allocaIP,
                             InsertPointTy codeGenIP) {
@@ -2679,7 +4976,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/mlir/lib/T
        retVal = cast<llvm::Value>(&arg);
        return codeGenIP;
      }
-@@ -2424,19 +2884,27 @@
+@@ -2424,21 +2911,31 @@
    };
  
    llvm::SmallVector<llvm::Value *, 4> kernelInput;
@@ -2694,7 +4991,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/mlir/lib/T
 -      ompLoc, allocaIP, builder.saveIP(), entryInfo, defaultValTeams,
 -      defaultValThreads, kernelInput, genMapInfoCB, bodyCB, argAccessorCB));
 +  llvm::OpenMPIRBuilder::TargetKernelDefaultBounds defaultBounds;
-+  initTargetDefaultBounds(targetOp, defaultBounds, isTargetDevice);
++  initTargetDefaultBounds(targetOp, defaultBounds, isTargetDevice, isGPU);
 +
 +  if (Value targetThreadLimit = targetOp.getThreadLimit())
 +    runtimeBounds.TargetThreadLimit =
@@ -2711,8 +5008,12 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/mlir/lib/T
 +  if (isTargetDevice)
      handleDeclareTargetMapVar(mapData, moduleTranslation, builder);
  
++  // Clear any reduction information
++  ompBuilder->RIManager.clear();
    return bodyGenStatus;
-@@ -2660,6 +3128,17 @@
+ }
+ 
+@@ -2660,6 +3157,17 @@
              }
              return failure();
            })
@@ -2730,7 +5031,16 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/mlir/lib/T
        .Default([](Attribute) {
          // Fall through for omp attributes that do not require lowering.
          return success();
-@@ -2774,6 +3253,9 @@
+@@ -2702,7 +3210,7 @@
+         return success();
+       })
+       .Case([&](omp::ParallelOp op) {
+-        return convertOmpParallel(op, builder, moduleTranslation);
++        return convertOmpParallel(*op, builder, moduleTranslation);
+       })
+       .Case([&](omp::ReductionOp reductionOp) {
+         return convertOmpReductionOp(reductionOp, builder, moduleTranslation);
+@@ -2774,6 +3282,9 @@
        .Case([&](omp::TargetOp) {
          return convertOmpTarget(*op, builder, moduleTranslation);
        })
