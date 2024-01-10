@@ -1,6 +1,6 @@
 include ../../Makefile.defs
 
-TESTNAME     = fdefault-sizeof
+TESTNAME     = milestone-3-babel
 TESTSRC_MAIN =
 TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)

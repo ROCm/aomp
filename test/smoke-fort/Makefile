@@ -10,6 +10,8 @@ TESTS_DIR = \
     LaunchLatency \
     milestone-1 \
     milestone-2 \
+    milestone-3-babel \
+    milestone-3-babel-noteams \
     teams-ditribute-collapse
 
 all:
