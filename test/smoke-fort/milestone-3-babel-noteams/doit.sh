@@ -1,2 +1,5 @@
 #!/bin/bash
-./milestone-3-babel-noteams -n 5 -s 100000000
+set -x
+./milestone-3-babel-noteams -n 4 -s 1000000000
+./milestone-3-babel-noteams -n 4 -s 100000000
+./milestone-3-babel-noteams -n 4
