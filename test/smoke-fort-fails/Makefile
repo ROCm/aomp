@@ -17,6 +17,9 @@ TESTS_DIR = \
     flang-421111-3 \
     flang-421353 \
     flang-439387 \
+    flang-439387a \
+    flang-439387b \
+    flang-439387c \
     single-value-map \
     vmuln
 
