@@ -121,8 +121,8 @@ fi
 if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
   ASAN_LIB_PATH=$($INSTALL_PREFIX/llvm/bin/clang --print-runtime-dir)
   ASAN_RPATH_FLAGS="-Wl,-rpath=$ASAN_LIB_PATH -L$ASAN_LIB_PATH"
-  CXXFLAGS="$CXXFLAGS $ASAN_RPATH_FLAGS -I$ROCM_DIR/include"
-  CFLAGS="$CFLAGS $ASAN_RPATH_FLAGS -I$ROCM_DIR/include"
+  CXXFLAGS="$CXXFLAGS $ASAN_RPATH_FLAGS -I$ROCM_DIR/include -I$ROCM_DIR/include/hsa"
+  CFLAGS="$CFLAGS $ASAN_RPATH_FLAGS -I$ROCM_DIR/include -I$ROCM_DIR/include/hsa"
 fi
 
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then 
