@@ -11,6 +11,6 @@ CC           = ./buildit.sh
 #-ccc-print-phases
 #"-\#\#\#"
 
-RUNCMD       = ./doit.sh > ${TESTNAME}.out 2>&1 && ./chkit.sh ${TESTNAME}.out
+RUNCMD       = ./doit.sh 2>&1 | tee ${TESTNAME}.out 2>&1 && ./chkit.sh ${TESTNAME}.out
 
 include ../Makefile.rules
