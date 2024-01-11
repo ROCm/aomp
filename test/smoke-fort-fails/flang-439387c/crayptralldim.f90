@@ -6,6 +6,8 @@ subroutine cp1(n)
     pointer (itr, irray)
     double precision :: drray(*)
     pointer (dtr, drray)
+    character(20) :: crray(*)
+    pointer (ctr, crray)
 end subroutine
 
 subroutine cp2(n)
@@ -16,6 +18,8 @@ subroutine cp2(n)
     pointer (itr, irray)
     double precision :: drray(n,*)
     pointer (dtr, drray)
+    character(20) :: crray(n,*)
+    pointer (ctr, crray)
 end subroutine
 
 subroutine cp3(n)
@@ -26,6 +30,8 @@ subroutine cp3(n)
     pointer (itr, irray)
     double precision :: drray(n,n,*)
     pointer (dtr, drray)
+    character(20) :: crray(n,n,*)
+    pointer (ctr, crray)
 end subroutine
 
 subroutine cp4(n)
@@ -36,6 +42,8 @@ subroutine cp4(n)
     pointer (itr, irray)
     double precision :: drray(n,n,n,*)
     pointer (dtr, drray)
+    character(20) :: crray(n,n,n,*)
+    pointer (ctr, crray)
 end subroutine
 
 subroutine cp5(n)
@@ -46,6 +54,8 @@ subroutine cp5(n)
     pointer (itr, irray)
     double precision :: drray(n,n,n,n,*)
     pointer (dtr, drray)
+    character(20) :: crray(n,n,n,n,*)
+    pointer (ctr, crray)
 end subroutine
 
 subroutine cp6(n)
@@ -56,6 +66,8 @@ subroutine cp6(n)
     pointer (itr, irray)
     double precision :: drray(n,n,n,n,n,*)
     pointer (dtr, drray)
+    character(20) :: crray(n,n,n,n,n,*)
+    pointer (ctr, crray)
 end subroutine
 
 subroutine cp7(n)
@@ -66,6 +78,8 @@ subroutine cp7(n)
     pointer (itr, irray)
     double precision :: drray(n,n,n,n,n,n,*)
     pointer (dtr, drray)
+    character(20) :: crray(n,n,n,n,n,n,*)
+    pointer (ctr, crray)
 end subroutine
 
 subroutine cp8(n)
@@ -76,6 +90,8 @@ subroutine cp8(n)
     pointer (itr, irray)
     double precision :: drray(n,n,n,n,n,n,n,*)
     pointer (dtr, drray)
+    character(20) :: crray(n,n,n,n,n,n,n,*)
+    pointer (ctr, crray)
 end subroutine
 
 subroutine cp9(n)
@@ -86,6 +102,8 @@ subroutine cp9(n)
     pointer (itr, irray)
     double precision :: drray(n,n,n,n,n,n,n,n,*)
     pointer (dtr, drray)
+    character(20) :: crray(n,n,n,n,n,n,n,n,*)
+    pointer (ctr, crray)
 end subroutine
 
 subroutine cp10(n)
@@ -96,6 +114,8 @@ subroutine cp10(n)
     pointer (itr, irray)
     double precision :: drray(n,n,n,n,n,n,n,n,n,*)
     pointer (dtr, drray)
+    character(20) :: crray(n,n,n,n,n,n,n,n,n,*)
+    pointer (ctr, crray)
 end subroutine
 
 subroutine cp11(n)
@@ -106,6 +126,8 @@ subroutine cp11(n)
     pointer (itr, irray)
     double precision :: drray(n,n,n,n,n,n,n,n,n,n,*)
     pointer (dtr, drray)
+    character(20) :: crray(n,n,n,n,n,n,n,n,n,n,*)
+    pointer (ctr, crray)
 end subroutine
 
 subroutine cp12(n)
@@ -116,6 +138,8 @@ subroutine cp12(n)
     pointer (itr, irray)
     double precision :: drray(n,n,n,n,n,n,n,n,n,n,n,*)
     pointer (dtr, drray)
+    character(20) :: crray(n,n,n,n,n,n,n,n,n,n,n,*)
+    pointer (ctr, crray)
 end subroutine
 
 subroutine cp13(n)
@@ -126,6 +150,8 @@ subroutine cp13(n)
     pointer (itr, irray)
     double precision :: drray(n,n,n,n,n,n,n,n,n,n,n,n,*)
     pointer (dtr, drray)
+    character(20) :: crray(n,n,n,n,n,n,n,n,n,n,n,n,*)
+    pointer (ctr, crray)
 end subroutine
 
 subroutine cp14(n)
@@ -136,6 +162,8 @@ subroutine cp14(n)
     pointer (itr, irray)
     double precision :: drray(n,n,n,n,n,n,n,n,n,n,n,n,n,*)
     pointer (dtr, drray)
+    character(20) :: crray(n,n,n,n,n,n,n,n,n,n,n,n,n,*)
+    pointer (ctr, crray)
 end subroutine
 
 subroutine cp15(n)
@@ -146,4 +174,6 @@ subroutine cp15(n)
     pointer (itr, irray)
     double precision :: drray(n,n,n,n,n,n,n,n,n,n,n,n,n,n,*)
     pointer (dtr, drray)
+    character(20) :: crray(n,n,n,n,n,n,n,n,n,n,n,n,n,n,*)
+    pointer (ctr, crray)
 end subroutine
