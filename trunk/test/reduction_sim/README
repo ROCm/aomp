@@ -1,0 +1,76 @@
+
+This test "reduction_sim" simulates a reduction using the xteam helper functions
+found in amd-staging.  To try this test, you must first patch your trunk
+source and rebuild with the patch found in aomp/trunk/patches/xteam_trunk.patch.
+I used these commands to do this
+
+cd ~/git/trunk18.0/llvm-project
+patch -p1 --dry-run <~/git/trunk18.0/aomp/trunk/patches/xteam_trunk.patch
+
+if that applies cleanly with --dry-run then apply it like this.
+
+patch -p1 <~/git/trunk18.0/aomp/trunk/patches/xteam_trunk.patch
+cd git/trunk18.0/build
+ninja -j16 install
+
+Then run the test as follows
+
+cd ~/git/trunk18.0/aomp/trunk/test/reduction_sim
+./reduction_sim.sh 
+
+This will create directores tmpc and tmpf
+
+For the current (1/10/2024) amd-trunk-dev branch patched as above, 
+this test works for c and gets the wrong answer (0) for flang-new. 
+
+This test works with AOMP.  To test with AOMP, save your tmpf and tmpc 
+directories. then run these commands
+
+export TRUNK=/CAR/aomp_18.0-0
+export FLANG=flang-legacy
+./reduction_sim.sh
+
+Both sources reduction_sim.c and reduction_sim.f95 use the 
+fast_add version of the helper function.  If you change the sources
+to use the nonfast version (remove _fast_sum suffix in the CALL)
+you get similar results. 
+
+Currently the source uses target pragma "target parallel do" 
+with nteams=1 and sz=5, because this may be easier to debug. 
+
+But it also fails with "target distribute teams parallel do" with 
+nteams=60. 
+
+Note that this does not use "reduction" it is a simple parallel do 
+with a loop (big jump) and an external function call. This external 
+function uses LDS causing a backend compilatin failure because amdgpu 
+backend does not allow LDS initializers. 
+This is why the trunk patch above has a fix to clang/lib/Codegen/CGDecl.cpp. 
+This fix is in AOMP but not upstream. 
+
+The file tmpc/debug.out and tmpf/debug.out show runtime debug messages including 
+this kernel launch message for flang
+
+PluginInterface --> Launching kernel __nv_MAIN__TARGET_F1L107_1_ with 1 blocks and 256 threads in SPMD mode
+
+and this kernel launch message for clang
+
+PluginInterface --> Launching kernel __omp_offloading_fd00_4b0218a_main_l27 with 1 blocks and 256 threads in SPMD mode
+
+AOMP gets different kernel types because of AOMP optimizations so the
+ comparison to AOMP will not be as useful as the c to fortran comparsions.
+
+Please update this README file after this problem is resolved.
+
+OK, what is broken on simple parallel do?
+  I dont believe it is all external function calls
+  or a loop within a target parallel region.
+
+I  believe it is the copying back of result_i to host.  Somehow it is 0.
+Note the address of result_i is passed to the 2nd arg of the helper function.
+CALL kmpc_xteamr_i_4x64_fast_sum(val0_i, c_loc(result_i), tvals_i,  &
+  c_loc(teams_done),  c_funloc(kmpc_rfun_sum_i), c_funloc(kmpc_rfun_sum_lds_i), &
+  0, kc_idx, nteams)
+
+The helper function uses that address to store the result. 
+

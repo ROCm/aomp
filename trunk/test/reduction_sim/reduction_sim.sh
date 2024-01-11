@@ -30,7 +30,9 @@ fi
 
 if [ ! -f $TRUNK/bin/amdgpu-arch ] ; then
   OARCH=${OARCH:-sm_70}
+  echo
   echo "WARNING, no amdgpu-arch utility in $TRUNK to get current offload-arch, using $OARCH"
+  echo
 else
   amdarch=`$TRUNK/bin/amdgpu-arch | head -n 1`
   OARCH=${OARCH:-$amdarch}
@@ -45,85 +47,96 @@ ROCMINFO_BINARY="$TRUNK/bin/rocminfo"
 [ -f $ROCMINFO_BINARY ] && export ROCMINFO_BINARY
 
 flang_extra_args="-v -save-temps -O3 -fopenmp --offload-arch=$OARCH"
-clang_extra_args="-v -save-temps -std=c++11 -O3 -fopenmp --offload-arch=$OARCH"
+clang_extra_args="-O3 -v -save-temps -fopenmp --offload-arch=$OARCH"
 
 _s=$_thisdir
 omp_fsrc="$_s/reduction_sim.f95"
+omp_csrc="$_s/reduction_sim.c"
 
-#     c code not complete 
-#tmpc="tmpc"
-#echo
-#echo mkdir -p $tmpc
-#echo cd $tmpc
-#rm -rf $tmpc ; mkdir -p $tmpc ; cd $tmpc
-#echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-#echo "++++++++++  START c++ demo, in directory $tmpc   ++++++++++++"
-#echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-#[ -f main_in_c ] && rm main_in_c
-#compile_main_cmd="$_llvm_bin_dir/clang++ $clang_extra_args $_thisdir/src/main.cpp $_thisdir/src/OMPStream.cpp  -o main_in_c"
-#echo
-#echo "$compile_main_cmd 2>$tmpc/stderr_save_temps"
-#$compile_main_cmd 2>stderr_save_temps
-#
-#if [ ! -f main_in_c ] ; then 
-#   echo "ERROR: COMPILE FAILED see $tmpc/stderr_save_temps"
-#   echo 
-#   exit 1
-#fi
-#echo "OMP_TARGET_OFFLOAD=$OFFLOAD $_gpurun ./main_in_c 2>$tmpc/debug.out"
-#OMP_TARGET_OFFLOAD=$OFFLOAD $_gpurun ./main_in_c 2>debug.out | tee c_results
-#rc=$?
-#echo "EXECUTION RETURN CODE IS: $rc"
 
-#echo "CONVERTING temp bc files to ll.  See files $tmpc/host_c.ll, $tmpc/device_c.ll"
-#$TRUNK/bin/llvm-dis OMPStream-host-x86_64-unknown-linux-gnu.bc -o host_c.ll
-#$TRUNK/bin/llvm-dis OMPStream-openmp-amdgcn-amd-amdhsa-gfx908.tmp.bc -o device_c.ll
-#echo "===> finding HOST function defs and calls in tmpc/host_c.ll , see $tmpc/host_calls.txt"
-#grep "define\|call" host_c.ll | grep -v requires | grep -v nocallback > host_calls.txt
-#echo "===> finding DEVICE function defs and calls in tmpc/device_c.ll, see $tmpc/device_calls.txt"
-#grep "define\|call" device_c.ll | grep -v nocallback | grep -v lifetime >  device_calls.txt
+tmpc="tmpc"
+echo
+echo mkdir -p $tmpc
+echo cd $tmpc
+rm -rf $tmpc ; mkdir -p $tmpc ; cd $tmpc
+echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+echo "++++++++++  START c demo, in directory $tmpc   ++++++++++++"
+echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+echo
+echo $_llvm_bin_dir/clang -c -o helper_fns_cpu.o $_s/helper_fns_cpu.c
+$_llvm_bin_dir/clang -c -o helper_fns_cpu.o $_s/helper_fns_cpu.c
+echo 
+[ -f main_in_c ] && rm main_in_c
+compile_main_c_cmd="$_llvm_bin_dir/clang $clang_extra_args $omp_csrc helper_fns_cpu.o -o main_in_c"
+echo
+echo "$compile_main_c_cmd 2>$tmpc/stderr_save_temps"
+$compile_main_c_cmd 2>stderr_save_temps
 
+if [ ! -f main_in_c ] ; then
+   echo "ERROR: COMPILE FAILED see $tmpc/stderr_save_temps"
+   echo
+   cat stderr_save_temps
+   echo 
+   echo "CMD:$compile_main_c_cmd"
+   echo
+   cd $_curdir
+   exit 1
+fi
+echo "OMP_TARGET_OFFLOAD=$OFFLOAD $_gpurun ./main_in_c 2>$tmpc/debug.out"
+LIBOMPTARGET_DEBUG=1 OMP_TARGET_OFFLOAD=$OFFLOAD $_gpurun ./main_in_c 2>debug.out | tee c_results
+rc=$?
+echo "c EXECUTION RETURN CODE IS: $rc"
+
+echo "CONVERTING temp bc files to ll.  See files $tmpc/host_c.ll, $tmpc/device_c.ll"
+$TRUNK/bin/llvm-dis reduction_sim-host-x86_64-unknown-linux-gnu.bc -o host_c.ll
+$TRUNK/bin/llvm-dis reduction_sim-openmp-amdgcn-amd-amdhsa-gfx908.tmp.bc -o device_c.ll
+echo "===> finding HOST function defs and calls in tmpc/host_c.ll , see $tmpc/host_calls.txt"
+grep "define\|call" host_c.ll | grep -v requires | grep -v nocallback > host_calls.txt
+echo "===> finding DEVICE function defs and calls in tmpc/device_c.ll, see $tmpc/device_calls.txt"
+grep "define\|call" device_c.ll | grep -v nocallback | grep -v lifetime >  device_calls.txt
 
 tmpf="tmpf"
 echo
 echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-echo "+++++  END c++ demo, begin FORTRAN demo in dir $tmpf  ++++++"
+echo "+++++    END c demo, begin FORTRAN demo in dir $tmpf  ++++++"
 echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
 
 cd $_curdir
 echo mkdir -p $tmpf
 rm -rf $tmpf ; mkdir -p $tmpf ; cd $tmpf
 echo cd $tmpf
+echo
+echo $_llvm_bin_dir/clang -c -o helper_fns_cpu.o $_s/helper_fns_cpu.c
+$_llvm_bin_dir/clang -c -o helper_fns_cpu.o $_s/helper_fns_cpu.c
+echo 
 [ -f main_in_f ] && rm main_in_f
-compile_main_f_cmd="$_llvm_bin_dir/$FLANG $flang_extra_args $omp_fsrc -o main_in_f"
+compile_main_f_cmd="$_llvm_bin_dir/$FLANG $flang_extra_args $omp_fsrc helper_fns_cpu.o -o main_in_f"
+
 echo
 echo "$compile_main_f_cmd 2>$tmpf/stderr_save_temps"
 $compile_main_f_cmd 2>stderr_save_temps
 if [ -f main_in_f ] ; then 
    echo
-   echo "OMP_TARGET_OFFLOAD=$OFFLOAD ./main_in_f 2>$tmpf/debug.out"
-   OMP_TARGET_OFFLOAD=$OFFLOAD ./main_in_f 2>debug.out 
+   echo "LIBOMPTARGET_DEBUG=1 OMP_TARGET_OFFLOAD=$OFFLOAD ./main_in_f 2>$tmpf/debug.out"
+   LIBOMPTARGET_DEBUG=1 OMP_TARGET_OFFLOAD=$OFFLOAD ./main_in_f 2>debug.out 
    _script_rc=$?
    echo "FORTRAN RETURN CODE IS: $_script_rc"
-   [ $_script_rc != 0 ] && cat debug.out
+   [ $_script_rc != 0 ] && echo see $tmpf/debug.out 
 else
    echo "COMPILE FAILED, SKIPPING EXECUTION , see $tmpf/stderr_save_temps"
+   cat stderr_save_temps
+   echo 
+   echo "CMD:$compile_main_f_cmd"
+   echo
    _script_rc=1
 fi
-if [ -f main.bc ] ; then  
-   echo "CONVERTING temp main.bc files to main.ll"
-   $TRUNK/bin/llvm-dis main.bc -o main.ll
-fi
-echo 
-if [ -f main-host-x86_64-unknown-linux-gnu.bc ] ; then 
-   $TRUNK/bin/llvm-dis main-host-x86_64-unknown-linux-gnu.bc -o host_f.ll
-   echo "===> finding HOST function defs and calls in tmpf/host_f.ll, see $tmpf/host_calls.txt"
-   grep "define\|call" host_f.ll | grep -v requires | grep -v nocallback > host_calls.txt
-fi
-if [ -f main-openmp-amdgcn-amd-amdhsa-gfx908.tmp.bc ] ; then 
-   $TRUNK/bin/llvm-dis main-openmp-amdgcn-amd-amdhsa-gfx908.tmp.bc -o device_f.ll
-   echo "===> finding DEVICE function defs and calls in tmpf/device_f.ll, see $tmpf/device_calls.txt"
-   grep "define\|call" device_f.ll | grep -v nocallback >device_calls.txt
-fi
+echo "CONVERTING temp bc files to ll.  See files $tmpf/host_f.ll, $tmpf/device_f.ll"
+$TRUNK/bin/llvm-dis reduction_sim-host-x86_64-unknown-linux-gnu.bc -o host_f.ll
+$TRUNK/bin/llvm-dis reduction_sim-openmp-amdgcn-amd-amdhsa-gfx908.tmp.bc -o device_f.ll
+echo "===> finding HOST function defs and calls in tmpf/host_f.ll , see $tmpf/host_calls.txt"
+grep "define\|call" host_f.ll | grep -v requires | grep -v nocallback > host_calls.txt
+echo "===> finding DEVICE function defs and calls in tmpf/device_f.ll, see $tmpf/device_calls.txt"
+grep "define\|call" device_f.ll | grep -v nocallback | grep -v lifetime >  device_calls.txt
+
 cd $_curdir
 exit $_script_rc
