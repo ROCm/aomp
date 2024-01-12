@@ -79,6 +79,7 @@ export OTHER_LIBS="-lm -L$AOMP/lib -lflang -lflangmain -lflangrti -lpgmath -lomp
 export FORTRAN_LINK="$AOMP/bin/clang $OTHER_LIBS"
 export DEVICE_COMPILE="$AOMP/bin/hipcc -D__HIP_PLATFORM_HCC__"
 export HIP_DIR=$ROCM
+export HIP_CLANG_PATH=$AOMP/bin
 cd $currdir
 if [ "$1" != "runonly" ] ; then
   cd $REPO_DIR/Programs/UnitTests/Basics/Runtime/Executables

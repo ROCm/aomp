@@ -61,6 +61,7 @@ fi
 
 export LD_LIBRARY_PATH=$HOME/rocm/aomp/lib:$OPENMPI_DIR/lib:$FFTW_DIR/lib:$LD_LIBRARY_PATH
 export ROCM_DIR=$AOMP
+export HIP_CLANG_PATH=$AOMP/bin
 cd $REPO_DIR
 if [ "$1" != "runonly" ] ; then
   echo "=================  STARTING MAKE in $PWD ========"
