@@ -9,7 +9,7 @@
 ###########################################################
 
 set -e
-AOMP_VERSION_STRING=${AOMP_VERSION_STRING:-18.0-0}
+AOMP_VERSION_STRING=${AOMP_VERSION_STRING:-18.0-1}
 AOMP_VERSION=${AOMP_VERSION:-18.0}
 #DOCKERX_HOST=${DOCKERX_HOST:-$HOME/dockerx}
 DOCKERX_HOST=$HOME/dockerx
@@ -49,30 +49,31 @@ else
   exit 1
 fi
 
-pip_install="python3 -m pip install CppHeaderParser argparse wheel lit lxml barectf"
+pip_install="python3 -m pip install CppHeaderParser argparse wheel lit lxml barectf pandas"
+pip_install_centos7="python3.8 -m pip install CppHeaderParser argparse wheel lit lxml barectf pandas"
 # 22.04 workaround for cython/PyYAML bug.
-pip_install_2204="python3 -m pip install Cython<3; python3 -m pip install pyyaml==5.4.1 --no-cache-dir --no-build-isolation; python3 -m pip install CppHeaderParser argparse wheel lit lxml barectf"
+pip_install_2204="python3 -m pip install --ignore-installed --no-cache-dir barectf==3.1.2 PyYAML==5.3.1; python3 -m pip install CppHeaderParser argparse wheel lit lxml pandas"
 
 # Populate prereq arrays
 prereq_array["ubuntu1804"]="apt-get -y update && apt-get install -y git cmake wget vim openssl libssl-dev libelf-dev kmod pciutils gcc g++ pkg-config libpci-dev libnuma-dev libffi-dev git python libopenmpi-dev gawk mesa-common-dev libtool python3 texinfo libbison-dev bison flex libbabeltrace-dev python3-pip libncurses5-dev liblzma-dev python3-setuptools python3-dev libpython3.8-dev libudev-dev libgmp-dev debianutils devscripts cli-common-dev rsync sudo && $pip_install"
 
-prereq_array["ubuntu2004"]="apt-get -y update && apt-get install -y git cmake wget vim openssl libssl-dev libelf-dev kmod pciutils gcc g++ pkg-config libpci-dev libnuma-dev libffi-dev git python libopenmpi-dev gawk mesa-common-dev libtool python3 texinfo libbison-dev bison flex libbabeltrace-dev python3-pip libncurses5-dev liblzma-dev python3-setuptools python3-dev libpython3.8-dev libudev-dev libgmp-dev debianutils devscripts cli-common-dev rsync libsystemd-dev libdw-dev libgtest-dev sudo && $pip_install"
+prereq_array["ubuntu2004"]="apt-get -y update && apt-get install -y git cmake wget vim openssl libssl-dev libelf-dev kmod pciutils gcc g++ pkg-config libpci-dev libnuma-dev libffi-dev git python libopenmpi-dev gawk mesa-common-dev libtool python3 texinfo libbison-dev bison flex libbabeltrace-dev python3-pip libncurses5-dev liblzma-dev python3-setuptools python3-dev libpython3.8-dev libudev-dev libgmp-dev debianutils devscripts cli-common-dev rsync libsystemd-dev libdw-dev libgtest-dev sudo ccache && $pip_install"
 
-prereq_array["ubuntu2204"]="apt-get -y update && apt-get install -y git cmake wget vim openssl libssl-dev libelf-dev kmod pciutils gcc g++ pkg-config libpci-dev libnuma-dev libffi-dev git libopenmpi-dev gawk mesa-common-dev libtool python3 texinfo libbison-dev bison flex libbabeltrace-dev python3-pip libncurses5-dev liblzma-dev python3-setuptools python3-dev libpython3.10-dev libudev-dev libgmp-dev debianutils devscripts cli-common-dev rsync libsystemd-dev libdw-dev libgtest-dev libstdc++-12-dev sudo python3-lxml && $pip_install_2204"
+prereq_array["ubuntu2204"]="apt-get -y update && apt-get install -y git cmake wget vim openssl libssl-dev libelf-dev kmod pciutils gcc g++ pkg-config libpci-dev libnuma-dev libffi-dev git libopenmpi-dev gawk mesa-common-dev libtool python3 texinfo libbison-dev bison flex libbabeltrace-dev python3-pip libncurses5-dev liblzma-dev python3-setuptools python3-dev libpython3.10-dev libudev-dev libgmp-dev debianutils devscripts cli-common-dev rsync libsystemd-dev libdw-dev libgtest-dev libstdc++-12-dev sudo python3-lxml ccache && $pip_install_2204"
 
-prereq_array["centos7"]="yum install -y gcc-c++ git cmake wget vim openssl-devel elfutils-libelf-devel pciutils-devel numactl-devel libffi-devel mesa-libGL-devel libtool texinfo bison flex ncurses-devel expat-devel xz-devel libbabeltrace-devel gmp-devel python3 python3-pip python36-devel python36-setuptools rpm-build rsync systemd-devel gtest-devel libpciaccess-devel elfutils-devel && $pip_install"
+prereq_array["centos7"]="yum install -y gcc-c++ git cmake wget vim openssl-devel elfutils-libelf-devel pciutils-devel numactl-devel libffi-devel mesa-libGL-devel libtool texinfo bison flex ncurses-devel expat-devel xz-devel libbabeltrace-devel gmp-devel rpm-build rsync systemd-devel gtest-devel libpciaccess-devel elfutils-devel ccache && yum remove -y python3*"
 
-prereq_array["centos8"]="yum install -y dnf-plugins-core && yum config-manager --set-enabled PowerTools && yum install -y gcc-c++ git cmake wget vim openssl-devel elfutils-libelf-devel pciutils-devel numactl-devel libffi-devel mesa-libGL-devel libtool texinfo bison flex ncurses-devel expat-devel xz-devel libbabeltrace-devel gmp-devel rpm-build rsync systemd-devel gtest-devel elfutils-devel && $pip_install"
+prereq_array["centos8"]="yum install -y dnf-plugins-core && yum config-manager --set-enabled PowerTools && yum install -y gcc-c++ git cmake wget vim openssl-devel elfutils-libelf-devel pciutils-devel numactl-devel libffi-devel mesa-libGL-devel libtool texinfo bison flex ncurses-devel expat-devel xz-devel libbabeltrace-devel gmp-devel rpm-build rsync systemd-devel gtest-devel elfutils-devel ccache python38 python38-devel && yum remove -y python36* && $pip_install"
 
-prereq_array["centos9"]="yum install -y dnf-plugins-core gcc-c++ git cmake wget vim openssl-devel elfutils-libelf-devel pciutils-devel numactl-devel libffi-devel mesa-libGL-devel libtool texinfo bison flex ncurses-devel expat-devel xz-devel libbabeltrace-devel gmp-devel rpm-build rsync systemd-devel gtest-devel && $pip_install"
+prereq_array["centos9"]="yum install -y dnf-plugins-core gcc-c++ git cmake wget vim openssl-devel elfutils-libelf-devel pciutils-devel numactl-devel libffi-devel mesa-libGL-devel libtool texinfo bison flex ncurses-devel expat-devel xz-devel libbabeltrace-devel gmp-devel rpm-build rsync systemd-devel gtest-devel ccache && $pip_install"
 
-prereq_array["sles15"]="zypper install -y which cmake wget vim libopenssl-devel elfutils libelf-devel git pciutils-devel libffi-devel gcc gcc-c++ libnuma-devel openmpi2-devel Mesa-libGL-devel libquadmath0 libtool texinfo bison flex babeltrace-devel python3 python3-pip python3-devel python3-setuptools makeinfo ncurses-devel libexpat-devel xz-devel gmp-devel rpm-build rsync libdrm-devel libX11-devel systemd-devel libdw-devel hwdata unzip; $pip_install"
+prereq_array["sles15"]="zypper install -y which cmake wget vim libopenssl-devel elfutils libelf-devel git pciutils-devel libffi-devel gcc gcc-c++ libnuma-devel openmpi2-devel Mesa-libGL-devel libquadmath0 libtool texinfo bison flex babeltrace-devel python3 python3-pip python3-devel python3-setuptools makeinfo libexpat-devel xz-devel gmp-devel rpm-build rsync libdrm-devel libX11-devel systemd-devel libdw-devel hwdata unzip ccache; $pip_install"
 
 # Some prep
 default_os="ubuntu2004 ubuntu2204 centos7 centos8 centos9 sles15"
 OS=${OS:-$default_os}
 export DOCKER_HOME=/home/release; export DOCKER_AOMP=/usr/lib/aomp; export DOCKER_AOMP_REPOS=/home/release/git/aomp$AOMP_VERSION
-exports="export HOME=/home/release; export AOMP=/usr/lib/aomp; export AOMP_REPOS=/home/release/git/aomp$AOMP_VERSION; export AOMP_EXTERNAL_MANIFEST=1; export AOMP_JOB_THREADS=32"
+exports="export HOME=/home/release; export AOMP=/usr/lib/aomp; export AOMP_REPOS=/home/release/git/aomp$AOMP_VERSION; export AOMP_EXTERNAL_MANIFEST=1; export AOMP_JOB_THREADS=128"
 
 function getcontainer(){
   echo docker ps -aqf "name=$docker_name"
@@ -82,7 +83,7 @@ function getcontainer(){
 
 function setup(){
   if [ "$system" == "centos7" ]; then
-    exports="$exports; source /opt/rh/devtoolset-7/enable"
+    exports="$exports; export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH; source /opt/rh/devtoolset-7/enable"
   fi
 
   # Pull docker and start
@@ -110,9 +111,13 @@ function setup(){
     docker exec -i $docker_name /bin/bash -c "zypper refresh"
     docker exec -i $docker_name /bin/bash -c "$exports; ${prereq_array[$system]} 2>&1 | tee $DOCKER_HOME/logs/$system-preq.out"
     set -e
-    docker exec -i $docker_name /bin/bash -c "mkdir /tmp/googletest; cd /tmp/googletest; git clone https://github.com/google/googletest; cd googletest; git checkout release-1.11.0; mkdir build; cd build; cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON ..; make -j16; make -j16 install"
+    docker exec -i $docker_name /bin/bash -c "zypper install -y --force libncurses6=6.1-150000.5.15.1; zypper install -y ncurses-devel"
+    docker exec -i $docker_name /bin/bash -c "mkdir /tmp/googletest; cd /tmp/googletest; git clone https://github.com/google/googletest; cd googletest; git checkout release-1.14.0; mkdir build; cd build; cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON ..; make -j16; make -j16 install"
   else
     docker exec -i $docker_name /bin/bash -c "$exports; DEBIAN_FRONTEND=noninteractive ${prereq_array[$system]} 2>&1 | tee $DOCKER_HOME/logs/$system-preq.out"
+  fi
+  if [ "$system" == "centos7" ]; then
+    docker exec -i $docker_name /bin/bash -c "$exports; cd /home/release; wget https://www.python.org/ftp/python/3.8.13/Python-3.8.13.tgz; tar xf Python-3.8.13.tgz; cd Python-3.8.13; ./configure --enable-optimizations --enable-shared; make altinstall; ln -s /usr/local/bin/python3.8 /usr/bin/python3; $pip_install_centos7"
   fi
   # Run build_prerequisites.sh to build cmake, hwloc, rocmsmi, etc
   docker exec -i $docker_name /bin/bash -c "$exports; cd $DOCKER_AOMP_REPOS; git clone -b aomp-$AOMP_VERSION_STRING https://github.com/ROCm-Developer-Tools/aomp; cd aomp/bin; ./build_prereq.sh 2>&1 | tee $DOCKER_HOME/logs/$system-prereq.out"
