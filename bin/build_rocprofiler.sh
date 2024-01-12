@@ -10,6 +10,7 @@ thisdir=`dirname $realpath`
 # --- end standard header ----
 
 INSTALL_ROCPROF=${INSTALL_ROCPROF:-$AOMP_INSTALL_DIR}
+export HIP_CLANG_PATH=$INSTALL_ROCPROF/bin
 
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then 
   echo " "
