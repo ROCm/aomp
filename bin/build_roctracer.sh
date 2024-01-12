@@ -4,12 +4,15 @@
 #
 
 # --- Start standard header to set AOMP environment variables ----
+
 realpath=`realpath $0`
 thisdir=`dirname $realpath`
 . $thisdir/aomp_common_vars
 # --- end standard header ----
 
 INSTALL_ROCTRACE=${INSTALL_ROCTRACE:-$AOMP_INSTALL_DIR}
+export HIP_CLANG_PATH=$INSTALL_ROCTRACE/bin
+echo $HIP_CLANG_PATH
 
 # Needed for systems that have both AMD and Nvidia cards installed.
 HIP_PLATFORM=${HIP_PLATFORM:-amd}
