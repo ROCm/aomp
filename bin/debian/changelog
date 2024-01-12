@@ -1,4 +1,4 @@
-aomp (17.0-3) UNRELEASED; urgency=medium
+aomp (18.0-1) UNRELEASED; urgency=medium
 
   * Initial release of aomp is 0.3-2
   *   Please see example in /usr/lib/aomp/examples/vmuldemo 
