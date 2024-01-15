@@ -250,6 +250,15 @@ if [ "$1" == "install" ] ; then
          $SUDO rm $AOMP   
       fi
       $SUDO ln -sf $INSTALL_PROJECT $AOMP   
+
+      echo "------ Linking llvm/bin -> bin for hipcc usage -------"
+      # Add create AOMP/llvm directory and
+      if [ ! -d $INSTALL_PROJECT/llvm ]; then
+        mkdir -p $INSTALL_PROJECT/llvm
+      fi
+      if [ ! -h $INSTALL_PROJECT/llvm/bin ]; then
+        ln -s ../bin $INSTALL_PROJECT/llvm/bin
+      fi
    fi
 
    # add executables forgot by make install but needed for testing
@@ -270,6 +279,7 @@ if [ "$1" == "install" ] ; then
    removepatch $REPO_DIR
    REPO_DIR=$AOMP_REPOS/$AOMP_ROCR_REPO_NAME
    removepatch $REPO_DIR
+
 else 
    echo 
    echo "SUCCESSFUL BUILD, please run:  $0 install"
