@@ -1,4 +1,4 @@
-aomp (17.0-3) UNRELEASED; urgency=medium
+aomp (18.0-1) UNRELEASED; urgency=medium
 
   * Initial release of aomp is 0.3-2
   *   Please see example in /usr/lib/aomp/examples/vmuldemo 
@@ -887,5 +887,59 @@ aomp (17.0-3) UNRELEASED; urgency=medium
   *   Set default OpenMP to 5.1.
   *   Restore safe buffer usage warnings for MIOpen GTest.
   *   Fix build to use LLVM-project mono-repo components, ROCm devicelibs and comgr.
+  *
+  * 18.0-1
+  *   Move to ROCm 6.0 sources.
+  *   Change the default optimization level to -O2 if user does not specify
+  *      any -O option on the command line.  Before 18.0-1, the default was -O0 if
+  *      none was specified.
+  *   In this release we are requesting users to install the amdgpu kernel driver
+  *      found in the ROCm 5.7 amdgpu-dkms package.  Nothing prevents the use of an
+  *      older driver, but for support with current and new problems, we ask users to
+  *      upgrade to this kernel driver.  Run this command to test that your amdgpu
+  *      kernel driver is on the correct version "modinfo -F version amdgpu".  That
+  *      command should return the string "6.2.4".
+  *   Remove dependency on ROCm libraries for rocgdb.  Reminder: A goal of aomp is
+  *      to be isolated from ROCm stack with the exception of rocm-dkms which
+  *      installs the correct kernel driver.
+  *   The following issues were resolved in this release:
+  *      [#601](https://github.com/ROCm-Developer-Tools/aomp/issues/601) AOMP
+  *      17.0.3 crashes at compile time with conjunction in if clause.
+  *   While the source build of aomp, supports ASAN (address sanitizer), the
+  *      release build does not due to complexities in packaging asan.  Therefore,
+  *      the aomp release does not support ASAN.
+  *   This release has many build enhancements meant for developers that build
+  *      aomp from source.  These changes have little impact to user of AOMP.
+  *   The build scripts for this release now build openmp host and device
+  *      libraries via LLVM_ENABLE_RUNTIMES with the COMPONENT build_project.sh. This
+  *      was formerly done in the COMPONENT build_openmp.sh. This change allows lit
+  *      testing of openmp.   Extra libraries found in lib-debug and lib-perf
+  *      directories are still build with the COMPONENT build_openmp.sh.
+  *   Developers can now use ccache to speed rebuild process.  The use of
+  *      ccache is the default.  To turn this off set AOMP_USE_CCACHE=0.
+  *   The build scripts also build flang-new with build_project.sh and remove
+  *      the use of build_flang-new.sh.
+  *   The build scripts have added a hidden directory in the installation
+  *      called .aomp_component_stats showing the files added to the installation by
+  *      each build COMPONENT. The current list of build COMPONENTs for AOMP are:
+  *      prereq project roct rocr openmp extras comgr rocminfo flang-legacy pgmath
+  *      flang flang_runtime hipcc hipamd  rocdbgapi rocgdb roctracer rocprofiler
+  *   Changes to build_supp.sh which builds prequisite and supplemental
+  *      components needed for the build and/or testing include: change to version 6.0
+  *      for hsa-amd-aqlprofile, update wget location of silo tarball,  change to
+  *      version 6.0.x for rocmsmilib.
+  *   Build optimizations to reduce the size of the installation. Previously
+  *      release binaries had llvm libraries statically linked in. We are now linking
+  *      in the shared library build of llvm, and this reduces overall size by ~50%.
+  *   Changes to the build of libomptarget DeviceRTL to be code object version
+  *      agnostic. These changes reduce the amount of files installed on to one per
+  *      architecture for the opaque-linker + the fat archive for the linker wrapper as
+  *      well as improve build time for the libraries.
+  *
+  *   The following enhancements were made to the AOMP test infrastructure:
+  *     Support for openmp lit testing.
+  *     New testing of UMT.
+  *     Babelstream updates to support USM.
+  *     Babelstream updates to support FORTRAN babelstream.
 
  -- Greg Rodgers <Gregory.Rodgers@amd.com>  Thu, 19 May 2022 23:34:44 -0500

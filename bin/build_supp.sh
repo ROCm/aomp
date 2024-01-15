@@ -171,6 +171,9 @@ function buildninja(){
 function buildaqlprofile(){
   _cname="aqlprofile"
   _version=6.0
+  _packageversion=6.0.0
+  _fullversion=60000
+  _buildnumber=91
   _installdir=$AOMP_SUPP_INSTALL/$_cname-$_version
   _linkfrom=$AOMP_SUPP/$_cname
   _builddir=$AOMP_SUPP_BUILD/$_cname
@@ -185,25 +188,30 @@ function buildaqlprofile(){
   fi
   runcmd "mkdir -p $_builddir"
   runcmd "cd $_builddir"
-  which dpkg 2>/dev/null
-  if [ $? == 0 ] ; then
+  osname=$(cat /etc/os-release | grep -e ^NAME=)
+  if [[ $osname =~ "Ubuntu" ]]; then
     # not sure if deb_version is 20 or 22
     deb_version="22"
     os_version=`grep VERSION_ID /etc/os-release | cut -d"\"" -f2`
     [ $os_version == "20.04" ] && deb_version="20"
-    runcmd "wget https://repo.radeon.com/rocm/apt/5.7/pool/main/h/hsa-amd-aqlprofile5.7.0/hsa-amd-aqlprofile5.7.0_1.0.0.50700.50700-63~${deb_version}.04_amd64.deb"
-    runcmd "dpkg -x hsa-amd-aqlprofile5.7.0_1.0.0.50700.50700-63~${deb_version}.04_amd64.deb $_builddir"
+    runcmd "wget https://repo.radeon.com/rocm/apt/"$_version"/pool/main/h/hsa-amd-aqlprofile"$_packageversion"/hsa-amd-aqlprofile"$_packageversion"_1.0.0."$_fullversion"."$_fullversion"-"$_buildnumber"~${deb_version}.04_amd64.deb"
+    runcmd "dpkg -x hsa-amd-aqlprofile"$_packageversion"_1.0.0."$_fullversion"."$_fullversion"-"$_buildnumber"~${deb_version}.04_amd64.deb $_builddir"
+  elif [[ $osname =~ "SLES" ]]; then
+    runcmd "wget https://repo.radeon.com/rocm/zyp/"$_version"/main/hsa-amd-aqlprofile"$_packageversion"-1.0.0."$_fullversion"."$_fullversion"-sles154."$_buildnumber".x86_64.rpm"
+    echo "hsa-amd-aqlprofile"$_packageversion"-1.0.0."$_fullversion"."$_fullversion"-sles154."$_buildnumber".x86_64.rpm | cpio -idm"
+    rpm2cpio hsa-amd-aqlprofile"$_packageversion"-1.0.0."$_fullversion"."$_fullversion"-sles154."$_buildnumber".x86_64.rpm | cpio -idm
   else
-    runcmd "wget https://repo.radeon.com/rocm/yum/5.7/main/hsa-amd-aqlprofile5.7.0-1.0.0.50700.50700-63.el7.x86_64.rpm"
-    echo "hsa-amd-aqlprofile5.7.0-1.0.0.50700.50700-63.el7.x86_64.rpm | cpio -idm"
-    rpm2cpio hsa-amd-aqlprofile5.7.0-1.0.0.50700.50700-63.el7.x86_64.rpm | cpio -idm
+    runcmd "wget https://repo.radeon.com/rocm/yum/"$_version"/main/hsa-amd-aqlprofile"$_packageversion"-1.0.0."$_fullversion"."$_fullversion"-"$_buildnumber".el7.x86_64.rpm"
+    echo "hsa-amd-aqlprofile"$_packageversion"-1.0.0."$_fullversion"."$_fullversion"-"$_buildnumber".el7.x86_64.rpm | cpio -idm"
+    rpm2cpio hsa-amd-aqlprofile"$_packageversion"-1.0.0."$_fullversion"."$_fullversion"-"$_buildnumber".el7.x86_64.rpm | cpio -idm
   fi
+
   if [ -d $_installdir ] ; then
     runcmd "rm -rf $_installdir"
   fi
   runcmd "mkdir -p $_installdir/lib"
   runcmd "cd $_installdir"
-  runcmd "cp -rp $_builddir/opt/rocm-5.7.0/lib  $_installdir"
+  runcmd "cp -rp $_builddir/opt/rocm-"$_packageversion"/lib  $_installdir"
 
   if [ -L $_linkfrom ] ; then
     runcmd "rm $_linkfrom"

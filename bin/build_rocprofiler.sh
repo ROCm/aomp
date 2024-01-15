@@ -65,7 +65,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
          fi
       fi
    fi
-   BUILD_TYPE="release"
+   BUILD_TYPE="Release"
    export CMAKE_BUILD_TYPE=$BUILD_TYPE
    CMAKE_PREFIX_PATH="$ROCM_DIR/roctracer/include/ext;$ROCM_DIR/include/platform;$ROCM_DIR/include;$ROCM_DIR/lib;$ROCM_DIR;$HOME/.local/bin;$HOME/local/aqlprofile"
    export CMAKE_PREFIX_PATH
@@ -79,7 +79,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    export PATH=$HOME/.local/bin:$INSTALL_ROCPROF/bin:$PATH
    echo " -----Running rocprofiler cmake ---- " 
    echo ${AOMP_CMAKE} -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DROCM_PATH=$AOMP_INSTALL_DIR -DCMAKE_MODULE_PATH=$INSTALL_ROCPROF/lib/cmake/hip -DCMAKE_INSTALL_PREFIX=$INSTALL_ROCPROF -DCMAKE_PREFIX_PATH="""$CMAKE_PREFIX_PATH""" $CMAKE_WITH_EXPERIMENTAL $AOMP_ORIGIN_RPATH -DGPU_TARGETS="""$GFXSEMICOLONS""" -DPROF_API_HEADER_PATH=$INSTALL_ROCPROF/include/roctracer/ext  -DHIP_ROOT_DIR=$INSTALL_ROCPROF/hip $AOMP_REPOS/$AOMP_PROF_REPO_NAME -DAQLPROFILE_LIB=$AOMP_SUPP/aqlprofile/lib/libhsa-amd-aqlprofile64.so
-   ${AOMP_CMAKE} -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DROCM_PATH=$AOMP_INSTALL_DIR -DCMAKE_MODULE_PATH=$INSTALL_ROCPROF/lib/cmake/hip -DCMAKE_INSTALL_PREFIX=$INSTALL_ROCPROF -DCMAKE_PREFIX_PATH="""$CMAKE_PREFIX_PATH""" $CMAKE_WITH_EXPERIMENTAL $AOMP_ORIGIN_RPATH -DGPU_TARGETS="""$GFXSEMICOLONS""" -DPROF_API_HEADER_PATH=$INSTALL_ROCPROF/include/roctracer/ext  -DHIP_ROOT_DIR=$INSTALL_ROCPROF/hip $AOMP_REPOS/$AOMP_PROF_REPO_NAME -DAQLPROFILE_LIB=$AOMP_SUPP/aqlprofile/lib/libhsa-amd-aqlprofile64.so -DCMAKE_CXX_FLAGS=-I$HOME/local/rocmsmilib/include -DHIP_HIPCC_FLAGS="-I$HOME/local/rocmsmilib/include" -DCMAKE_EXE_LINKER_FLAGS="-L$HOME/local/rocmsmilib/lib -L$HOME/local/rocmsmilib/lib64"
+   ${AOMP_CMAKE} -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DROCM_PATH=$AOMP_INSTALL_DIR -DCMAKE_MODULE_PATH=$INSTALL_ROCPROF/lib/cmake/hip -DCMAKE_INSTALL_PREFIX=$INSTALL_ROCPROF -DCMAKE_PREFIX_PATH="""$CMAKE_PREFIX_PATH""" $CMAKE_WITH_EXPERIMENTAL $AOMP_ORIGIN_RPATH -DGPU_TARGETS="""$GFXSEMICOLONS""" -DPROF_API_HEADER_PATH=$INSTALL_ROCPROF/include/roctracer/ext  -DHIP_ROOT_DIR=$INSTALL_ROCPROF/hip $AOMP_REPOS/$AOMP_PROF_REPO_NAME -DAQLPROFILE_LIB=$AOMP_SUPP/aqlprofile/lib/libhsa-amd-aqlprofile64.so -DCMAKE_CXX_FLAGS=-I$HOME/local/rocmsmilib/include -DHIP_HIPCC_FLAGS="-I$HOME/local/rocmsmilib/include" -DCMAKE_EXE_LINKER_FLAGS="-L$HOME/local/rocmsmilib/lib -L$HOME/local/rocmsmilib/lib64 -Wl,--disable-new-dtags"
    if [ $? != 0 ] ; then 
       echo "ERROR rocprofiler cmake failed. cmake flags"
       echo "      $MYCMAKEOPTS"

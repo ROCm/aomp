@@ -40,23 +40,19 @@ https://www.softwarecollections.org/en/scls/rhscl/devtoolset-7/<br>
   # Additional packages used by rocgdb and roctracer
   sudo yum install texinfo bison flex ncurses-devel expat-devel xz-devel libbabeltrace-devel libatomic libdwarf-devel gtest-devel
 ```
- RHEL 7.6 and earlier RHEL 7 versions do not have the python36-devel package, which requires a software collection installation.
+ RHEL 7.6 and earlier RHEL 7 versions do not have the python38-devel package, which requires a software collection installation.
 ```
   sudo subscription-manager repos --enable rhel-7-server-optional-rpms --enable rhel-server-rhscl-7-rpms
-  sudo yum -y install rh-python36 rh-python36-python-tools
+  sudo yum -y install rh-python38 rh-python38-python-tools
   scl enable rh-python36 bash
 ```
 
-RHEL 7.7 and later RHEL 7 versions
-```
-  sudo yum install python3 python3-pip python36-devel python36-setuptools
-```
 #### CentOS 8 Packages
 ```
   sudo yum install dnf-plugins-core
   sudo yum config-manager --set-enabled powertools
 
-  sudo yum install gcc gcc-c++ git make pciutils-devel numactl-devel libffi-devel mesa-libGL-devel libquadmath-devel python3 python3-pip python36-devel python3-setuptools python2 libtool libdrm libdrm-devel ccache gcc-gfortran libdw-devel libgtest-devel systemd-devel
+  sudo yum install gcc gcc-c++ git make pciutils-devel numactl-devel libffi-devel mesa-libGL-devel libquadmath-devel python38 python38-pip python38-devel python38-setuptools python2 libtool libdrm libdrm-devel ccache gcc-gfortran libdw-devel libgtest-devel systemd-devel
 
   # Additional packages used by rocgdb and roctracer
   sudo yum install texinfo bison flex ncurses-devel expat-devel xz-devel libbabeltrace-devel gmp-devel libatomic libdwarf-devel gtest-devel
@@ -78,7 +74,7 @@ RHEL 7.7 and later RHEL 7 versions
 After all the required system package from section 1 are installed, there are some python packages that must be locally installed by the user building AOMP. Use this command to install these.  Do not install these as root.
 
 ```
-  python3 -m pip install CppHeaderParser argparse wheel lit lxml barectf termcolor
+  python3 -m pip install CppHeaderParser argparse wheel lit lxml barectf termcolor pandas
 ```
 
 ### 3.  Build CMake in /usr/local/cmake

@@ -1,16 +1,3 @@
-diff --git a/cmake_modules/rocprofiler_options.cmake b/cmake_modules/rocprofiler_options.cmake
-index 41135b5..bfb8a81 100644
---- a/cmake_modules/rocprofiler_options.cmake
-+++ b/cmake_modules/rocprofiler_options.cmake
-@@ -27,7 +27,7 @@ mark_as_advanced(ROCPROFILER_BUILD_CI)
- option(ROCPROFILER_ENABLE_CLANG_TIDY "Enable clang-tidy checks" OFF)
- mark_as_advanced(ROCPROFILER_ENABLE_CLANG_TIDY)
-
--set(ROCPROFILER_BUILD_TYPES "Release" "RelWithDebInfo" "Debug" "MinSizeRel" "Coverage")
-+set(ROCPROFILER_BUILD_TYPES "release" "RelWithDebInfo" "Debug" "MinSizeRel" "Coverage")
-
- # export compile commands in the project
- set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 diff --git a/src/api/CMakeLists.txt b/src/api/CMakeLists.txt
 index 574b77f..a152c71 100644
 --- a/src/api/CMakeLists.txt
