@@ -6,6 +6,7 @@ TESTSRC_AUX  = fortran_callable_init.o
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 AOMPHIP ?= $(AOMP)
 HIPCC ?= $(AOMPHIP)/bin/hipcc
+HIP_CLANG_PATH ?= $(AOMP)/bin
 
 CFLAGS = -O3
 FLANG        ?= flang
@@ -19,4 +20,4 @@ include ../Makefile.rules
 all: $(TESTNAME)
 
 fortran_callable_init.o : fortran_callable_init.hip
-	$(HIPCC) -c --offload-arch=$(AOMP_GPU) -fPIC $^ -o $@
+	HIP_CLANG_PATH=$(HIP_CLANG_PATH) $(HIPCC) -c --offload-arch=$(AOMP_GPU) -fPIC $^ -o $@

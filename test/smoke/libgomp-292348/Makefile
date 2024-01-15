@@ -21,7 +21,8 @@ else
 AOMP ?=$(AOMPROCM)
 OMP_BIN      = $(AOMP)/bin/$(CLANG)
 endif
-CC           = $(OMP_BIN) $(VERBOSE)
+HIP_CLANG_PATH ?= $(AOMP)/bin
+CC           = HIP_CLANG_PATH=$(HIP_CLANG_PATH) $(OMP_BIN) $(VERBOSE)
 
 #-ccc-print-phases
 #"-\#\#\#"
