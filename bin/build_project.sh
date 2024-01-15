@@ -279,7 +279,6 @@ if [ "$1" == "install" ] ; then
    removepatch $REPO_DIR
    REPO_DIR=$AOMP_REPOS/$AOMP_ROCR_REPO_NAME
    removepatch $REPO_DIR
-
 else 
    echo 
    echo "SUCCESSFUL BUILD, please run:  $0 install"
