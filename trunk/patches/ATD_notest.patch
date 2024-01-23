@@ -1,6 +1,6 @@
 diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/clang/lib/CodeGen/CGOpenMPRuntimeGPU.cpp llvm-project/clang/lib/CodeGen/CGOpenMPRuntimeGPU.cpp
 --- llvm-project.upstream/clang/lib/CodeGen/CGOpenMPRuntimeGPU.cpp	2023-12-18 11:20:49.111183767 -0500
-+++ llvm-project/clang/lib/CodeGen/CGOpenMPRuntimeGPU.cpp	2024-01-10 11:08:48.767046416 -0500
++++ llvm-project/clang/lib/CodeGen/CGOpenMPRuntimeGPU.cpp	2024-01-23 10:31:07.449925617 -0500
 @@ -765,14 +765,13 @@
  void CGOpenMPRuntimeGPU::emitKernelInit(const OMPExecutableDirective &D,
                                          CodeGenFunction &CGF,
@@ -22,9 +22,9 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/clang/lib/
      emitGenericVarsProlog(CGF, EST.Loc);
  }
 diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/clang/lib/Driver/ToolChains/Clang.cpp llvm-project/clang/lib/Driver/ToolChains/Clang.cpp
---- llvm-project.upstream/clang/lib/Driver/ToolChains/Clang.cpp	2024-01-05 09:07:19.130571671 -0500
-+++ llvm-project/clang/lib/Driver/ToolChains/Clang.cpp	2024-01-10 11:08:48.775043182 -0500
-@@ -8425,7 +8425,9 @@
+--- llvm-project.upstream/clang/lib/Driver/ToolChains/Clang.cpp	2024-01-23 09:59:12.766705933 -0500
++++ llvm-project/clang/lib/Driver/ToolChains/Clang.cpp	2024-01-23 10:31:07.461925588 -0500
+@@ -8494,7 +8494,9 @@
    assert(Input.isFilename() && "Invalid input.");
    CmdArgs.push_back(Input.getFilename());
  
@@ -35,29 +35,9 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/clang/lib/
    if (D.CC1Main && !D.CCGenDiagnostics) {
      // Invoke cc1as directly in this process.
      C.addCommand(std::make_unique<CC1Command>(
-diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/include/flang/Evaluate/tools.h llvm-project/flang/include/flang/Evaluate/tools.h
---- llvm-project.upstream/flang/include/flang/Evaluate/tools.h	2024-01-04 00:01:56.449494553 -0500
-+++ llvm-project/flang/include/flang/Evaluate/tools.h	2024-01-10 11:08:48.831020542 -0500
-@@ -1240,6 +1240,16 @@
- // Is this derived type either C_PTR or C_FUNPTR from module ISO_C_BINDING
- bool IsIsoCType(const DerivedTypeSpec *);
- bool IsEventTypeOrLockType(const DerivedTypeSpec *);
-+inline bool IsAssumedSizeArray(const Symbol &symbol) {
-+  if (const auto *object{symbol.detailsIf<ObjectEntityDetails>()}) {
-+    return (object->isDummy() || symbol.test(Symbol::Flag::CrayPointee)) &&
-+        object->shape().CanBeAssumedSize();
-+  } else if (const auto *assoc{symbol.detailsIf<AssocEntityDetails>()}) {
-+    return assoc->IsAssumedSize();
-+  } else {
-+    return false;
-+  }
-+}
- 
- // ResolveAssociations() traverses use associations and host associations
- // like GetUltimate(), but also resolves through whole variable associations
 diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/include/flang/Optimizer/CodeGen/CodeGenOpenMP.h llvm-project/flang/include/flang/Optimizer/CodeGen/CodeGenOpenMP.h
 --- llvm-project.upstream/flang/include/flang/Optimizer/CodeGen/CodeGenOpenMP.h	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/flang/include/flang/Optimizer/CodeGen/CodeGenOpenMP.h	2024-01-10 11:08:48.831020542 -0500
++++ llvm-project/flang/include/flang/Optimizer/CodeGen/CodeGenOpenMP.h	2024-01-23 10:31:07.669925060 -0500
 @@ -0,0 +1,27 @@
 +//=== Optimizer/CodeGen/CodeGenOpenMP.h - OpenMP code generation -*- C++
 +//-*-===//
@@ -89,7 +69,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/incl
 \ No newline at end of file
 diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/include/flang/Optimizer/Dialect/FIRType.h llvm-project/flang/include/flang/Optimizer/Dialect/FIRType.h
 --- llvm-project.upstream/flang/include/flang/Optimizer/Dialect/FIRType.h	2024-01-10 11:07:34.892639755 -0500
-+++ llvm-project/flang/include/flang/Optimizer/Dialect/FIRType.h	2024-01-10 11:08:52.065725018 -0500
++++ llvm-project/flang/include/flang/Optimizer/Dialect/FIRType.h	2024-01-23 10:31:07.669925060 -0500
 @@ -313,6 +313,9 @@
  /// e.g. !fir.box<!fir.type<derived>>
  bool isBoxedRecordType(mlir::Type ty);
@@ -100,149 +80,10 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/incl
  /// Return true iff `ty` is a scalar boxed record type.
  /// e.g. !fir.box<!fir.type<derived>>
  ///      !fir.box<!fir.heap<!fir.type<derived>>>
-diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/include/flang/Semantics/symbol.h llvm-project/flang/include/flang/Semantics/symbol.h
---- llvm-project.upstream/flang/include/flang/Semantics/symbol.h	2023-09-28 15:58:07.661458581 -0400
-+++ llvm-project/flang/include/flang/Semantics/symbol.h	2024-01-10 11:08:48.831020542 -0500
-@@ -339,11 +339,10 @@
-   void set_ignoreTKR(common::IgnoreTKRSet set) { ignoreTKR_ = set; }
-   bool IsArray() const { return !shape_.empty(); }
-   bool IsCoarray() const { return !coshape_.empty(); }
--  bool CanBeAssumedShape() const {
-+  bool IsAssumedShape() const {
-     return isDummy() && shape_.CanBeAssumedShape();
-   }
-   bool CanBeDeferredShape() const { return shape_.CanBeDeferredShape(); }
--  bool IsAssumedSize() const { return isDummy() && shape_.CanBeAssumedSize(); }
-   bool IsAssumedRank() const { return isDummy() && shape_.IsAssumedRank(); }
-   std::optional<common::CUDADataAttr> cudaDataAttr() const {
-     return cudaDataAttr_;
-diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/include/flang/Semantics/tools.h llvm-project/flang/include/flang/Semantics/tools.h
---- llvm-project.upstream/flang/include/flang/Semantics/tools.h	2023-12-18 11:20:49.327182952 -0500
-+++ llvm-project/flang/include/flang/Semantics/tools.h	2024-01-10 11:08:48.831020542 -0500
-@@ -188,15 +188,6 @@
- bool HasAllocatableDirectComponent(const DerivedTypeSpec &derived);
- 
- bool IsInBlankCommon(const Symbol &);
--inline bool IsAssumedSizeArray(const Symbol &symbol) {
--  if (const auto *object{symbol.detailsIf<ObjectEntityDetails>()}) {
--    return object->IsAssumedSize();
--  } else if (const auto *assoc{symbol.detailsIf<AssocEntityDetails>()}) {
--    return assoc->IsAssumedSize();
--  } else {
--    return false;
--  }
--}
- bool IsAssumedLengthCharacter(const Symbol &);
- bool IsExternal(const Symbol &);
- bool IsModuleProcedure(const Symbol &);
-diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/lib/Evaluate/characteristics.cpp llvm-project/flang/lib/Evaluate/characteristics.cpp
---- llvm-project.upstream/flang/lib/Evaluate/characteristics.cpp	2023-12-18 11:20:49.331182937 -0500
-+++ llvm-project/flang/lib/Evaluate/characteristics.cpp	2024-01-10 11:08:48.835018925 -0500
-@@ -215,9 +215,10 @@
- void TypeAndShape::AcquireAttrs(const semantics::Symbol &symbol) {
-   if (IsAssumedShape(symbol)) {
-     attrs_.set(Attr::AssumedShape);
--  }
--  if (IsDeferredShape(symbol)) {
-+  } else if (IsDeferredShape(symbol)) {
-     attrs_.set(Attr::DeferredShape);
-+  } else if (semantics::IsAssumedSizeArray(symbol)) {
-+    attrs_.set(Attr::AssumedSize);
-   }
-   if (const auto *object{
-           symbol.GetUltimate().detailsIf<semantics::ObjectEntityDetails>()}) {
-@@ -225,9 +226,6 @@
-     if (object->IsAssumedRank()) {
-       attrs_.set(Attr::AssumedRank);
-     }
--    if (object->IsAssumedSize()) {
--      attrs_.set(Attr::AssumedSize);
--    }
-     if (object->IsCoarray()) {
-       attrs_.set(Attr::Coarray);
-     }
-diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/lib/Evaluate/shape.cpp llvm-project/flang/lib/Evaluate/shape.cpp
---- llvm-project.upstream/flang/lib/Evaluate/shape.cpp	2023-09-26 09:25:56.737801415 -0400
-+++ llvm-project/flang/lib/Evaluate/shape.cpp	2024-01-10 11:08:48.835018925 -0500
-@@ -258,7 +258,8 @@
-             if constexpr (LBOUND_SEMANTICS) {
-               bool ok{false};
-               auto lbValue{ToInt64(*lbound)};
--              if (dimension_ == rank - 1 && object->IsAssumedSize()) {
-+              if (dimension_ == rank - 1 &&
-+                  semantics::IsAssumedSizeArray(symbol)) {
-                 // last dimension of assumed-size dummy array: don't worry
-                 // about handling an empty dimension
-                 ok = !invariantOnly_ || IsScopeInvariantExpr(*lbound);
-@@ -527,7 +528,8 @@
-         if (j++ == dimension) {
-           if (auto extent{GetNonNegativeExtent(shapeSpec, invariantOnly)}) {
-             return extent;
--          } else if (details->IsAssumedSize() && j == symbol.Rank()) {
-+          } else if (semantics::IsAssumedSizeArray(symbol) &&
-+              j == symbol.Rank()) {
-             break;
-           } else if (semantics::IsDescriptor(symbol)) {
-             return ExtentExpr{DescriptorInquiry{NamedEntity{base},
-@@ -608,7 +610,8 @@
-       const auto &bound{details->shape()[dimension].ubound().GetExplicit()};
-       if (bound && (!invariantOnly || IsScopeInvariantExpr(*bound))) {
-         return *bound;
--      } else if (details->IsAssumedSize() && dimension + 1 == symbol.Rank()) {
-+      } else if (semantics::IsAssumedSizeArray(symbol) &&
-+          dimension + 1 == symbol.Rank()) {
-         return std::nullopt;
-       } else {
-         return ComputeUpperBound(
-@@ -661,7 +664,8 @@
-       const semantics::ShapeSpec &shapeSpec{details->shape()[dimension]};
-       if (auto ubound{GetExplicitUBOUND(context, shapeSpec, invariantOnly)}) {
-         return *ubound;
--      } else if (details->IsAssumedSize() && dimension + 1 == symbol.Rank()) {
-+      } else if (semantics::IsAssumedSizeArray(symbol) &&
-+          dimension + 1 == symbol.Rank()) {
-         return std::nullopt; // UBOUND() folding replaces with -1
-       } else if (auto lb{GetLBOUND(base, dimension, invariantOnly)}) {
-         return ComputeUpperBound(
-diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/lib/Evaluate/tools.cpp llvm-project/flang/lib/Evaluate/tools.cpp
---- llvm-project.upstream/flang/lib/Evaluate/tools.cpp	2024-01-04 00:01:56.449494553 -0500
-+++ llvm-project/flang/lib/Evaluate/tools.cpp	2024-01-10 11:08:48.835018925 -0500
-@@ -1690,7 +1690,7 @@
- bool IsAssumedShape(const Symbol &symbol) {
-   const Symbol &ultimate{ResolveAssociations(symbol)};
-   const auto *object{ultimate.detailsIf<ObjectEntityDetails>()};
--  return object && object->CanBeAssumedShape() &&
-+  return object && object->IsAssumedShape() &&
-       !semantics::IsAllocatableOrObjectPointer(&ultimate);
- }
- 
-diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/lib/Evaluate/type.cpp llvm-project/flang/lib/Evaluate/type.cpp
---- llvm-project.upstream/flang/lib/Evaluate/type.cpp	2023-11-06 08:47:03.810294687 -0500
-+++ llvm-project/flang/lib/Evaluate/type.cpp	2024-01-10 11:08:48.835018925 -0500
-@@ -87,6 +87,9 @@
-   if (IsAllocatableOrPointer(symbol)) {
-     return true;
-   }
-+  if (semantics::IsAssumedSizeArray(symbol)) {
-+    return false;
-+  }
-   if (const auto *object{
-           symbol.GetUltimate().detailsIf<ObjectEntityDetails>()}) {
-     if (object->isDummy()) {
-@@ -94,9 +97,6 @@
-           object->type()->category() == DeclTypeSpec::Character) {
-         return false;
-       }
--      if (object->IsAssumedSize()) {
--        return false;
--      }
-       bool isExplicitShape{true};
-       for (const ShapeSpec &shapeSpec : object->shape()) {
-         if (!shapeSpec.lbound().GetExplicit() ||
 diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/lib/Lower/OpenMP.cpp llvm-project/flang/lib/Lower/OpenMP.cpp
---- llvm-project.upstream/flang/lib/Lower/OpenMP.cpp	2024-01-02 11:37:59.669301297 -0500
-+++ llvm-project/flang/lib/Lower/OpenMP.cpp	2024-01-10 11:08:48.835018925 -0500
-@@ -39,6 +39,19 @@
+--- llvm-project.upstream/flang/lib/Lower/OpenMP.cpp	2024-01-23 09:59:12.950705461 -0500
++++ llvm-project/flang/lib/Lower/OpenMP.cpp	2024-01-23 10:31:07.673925050 -0500
+@@ -40,6 +40,19 @@
      llvm::cl::desc("In the OpenMP data clauses treat `a(N)` as `a(N:N)`."),
      llvm::cl::init(true));
  
@@ -262,7 +103,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/lib/
  using DeclareTargetCapturePair =
      std::pair<mlir::omp::DeclareTargetCaptureClause,
                Fortran::semantics::Symbol>;
-@@ -110,6 +123,18 @@
+@@ -111,6 +124,18 @@
    }
  }
  
@@ -278,10 +119,10 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/lib/
 +  return targetOp;
 +}
 +
- //===----------------------------------------------------------------------===//
- // DataSharingProcessor
- //===----------------------------------------------------------------------===//
-@@ -1718,30 +1743,76 @@
+ static Fortran::lower::pft::Evaluation *
+ getCollapsedLoopEval(Fortran::lower::pft::Evaluation &eval, int collapseValue) {
+   // Return the Evaluation of the innermost collapsed loop, or the current one
+@@ -1818,30 +1843,76 @@
  
  static mlir::omp::MapInfoOp
  createMapInfoOp(fir::FirOpBuilder &builder, mlir::Location loc,
@@ -369,7 +210,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/lib/
  bool ClauseProcessor::processMap(
      mlir::Location currentLocation, const llvm::omp::Directive &directive,
      Fortran::semantics::SemanticsContext &semanticsContext,
-@@ -1808,21 +1879,32 @@
+@@ -1908,21 +1979,32 @@
                    converter, firOpBuilder, semanticsContext, stmtCtx, ompObject,
                    clauseLocation, asFortran, bounds, treatIndexAsSection);
  
@@ -413,7 +254,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/lib/
            if (mapSymbols)
              mapSymbols->push_back(getOmpObjectSymbol(ompObject));
          }
-@@ -1904,40 +1986,55 @@
+@@ -2005,40 +2087,55 @@
      Fortran::semantics::SemanticsContext &semanticsContext,
      Fortran::lower::StatementContext &stmtCtx,
      llvm::SmallVectorImpl<mlir::Value> &mapOperands) {
@@ -424,16 +265,18 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/lib/
 -
 -        static_assert(std::is_same_v<T, ClauseProcessor::ClauseTy::To> ||
 -                      std::is_same_v<T, ClauseProcessor::ClauseTy::From>);
--
++  return findRepeatableClause<T>([&](const T *motionClause,
++                                     const Fortran::parser::CharBlock &source) {
++    mlir::Location clauseLocation = converter.genLocation(source);
++    fir::FirOpBuilder &firOpBuilder = converter.getFirOpBuilder();
+ 
 -        // TODO Support motion modifiers: present, mapper, iterator.
 -        constexpr llvm::omp::OpenMPOffloadMappingFlags mapTypeBits =
 -            std::is_same_v<T, ClauseProcessor::ClauseTy::To>
 -                ? llvm::omp::OpenMPOffloadMappingFlags::OMP_MAP_TO
 -                : llvm::omp::OpenMPOffloadMappingFlags::OMP_MAP_FROM;
-+  return findRepeatableClause<T>([&](const T *motionClause,
-+                                     const Fortran::parser::CharBlock &source) {
-+    mlir::Location clauseLocation = converter.genLocation(source);
-+    fir::FirOpBuilder &firOpBuilder = converter.getFirOpBuilder();
++    static_assert(std::is_same_v<T, ClauseProcessor::ClauseTy::To> ||
++                  std::is_same_v<T, ClauseProcessor::ClauseTy::From>);
  
 -        for (const Fortran::parser::OmpObject &ompObject : motionClause->v.v) {
 -          llvm::SmallVector<mlir::Value> bounds;
@@ -444,9 +287,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/lib/
 -                  mlir::omp::DataBoundsType>(
 -                  converter, firOpBuilder, semanticsContext, stmtCtx, ompObject,
 -                  clauseLocation, asFortran, bounds, treatIndexAsSection);
-+    static_assert(std::is_same_v<T, ClauseProcessor::ClauseTy::To> ||
-+                  std::is_same_v<T, ClauseProcessor::ClauseTy::From>);
- 
+-
 -          mlir::Value mapOp = createMapInfoOp(
 -              firOpBuilder, clauseLocation, info.addr, asFortran, bounds,
 -              static_cast<
@@ -500,7 +341,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/lib/
  }
  
  template <typename... Ts>
-@@ -1959,6 +2056,75 @@
+@@ -2060,6 +2157,75 @@
  }
  
  //===----------------------------------------------------------------------===//
@@ -576,7 +417,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/lib/
  // Code generation helper functions
  //===----------------------------------------------------------------------===//
  
-@@ -2138,6 +2304,83 @@
+@@ -2230,6 +2396,83 @@
    return storeOp;
  }
  
@@ -660,7 +501,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/lib/
  /// Create the body (block) for an OpenMP Operation.
  ///
  /// \param [in]    op - the operation the body belongs to.
-@@ -2318,6 +2561,27 @@
+@@ -2490,6 +2733,27 @@
        /*clauseList=*/nullptr, /*simd=*/false);
  }
  
@@ -687,8 +528,8 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/lib/
 +
  static mlir::omp::ParallelOp
  genParallelOp(Fortran::lower::AbstractConverter &converter,
-               Fortran::lower::pft::Evaluation &eval,
-@@ -2334,23 +2598,46 @@
+               Fortran::lower::pft::Evaluation &eval, bool genNested,
+@@ -2506,23 +2770,46 @@
    ClauseProcessor cp(converter, clauseList);
    cp.processIf(Fortran::parser::OmpIfClause::DirectiveNameModifier::Parallel,
                 ifClauseOperand);
@@ -715,7 +556,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/lib/
 +  }
 +
 +  auto parallelOp = genOpWithBody<mlir::omp::ParallelOp>(
-       converter, eval, currentLocation, outerCombined, &clauseList,
+       converter, eval, genNested, currentLocation, outerCombined, &clauseList,
        /*resultTypes=*/mlir::TypeRange(), ifClauseOperand,
 -      numThreadsClauseOperand, allocateOperands, allocatorOperands,
 +      /*num_threads_var=*/nullptr, allocateOperands, allocatorOperands,
@@ -737,8 +578,8 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/lib/
 +  return parallelOp;
  }
  
- static mlir::omp::SingleOp
-@@ -2617,7 +2904,8 @@
+ static mlir::omp::SectionOp
+@@ -2806,7 +3093,8 @@
          std::stringstream name;
          firOpBuilder.setInsertionPoint(targetOp);
          mlir::Value mapOp = createMapInfoOp(
@@ -748,7 +589,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/lib/
              static_cast<
                  std::underlying_type_t<llvm::omp::OpenMPOffloadMappingFlags>>(
                  llvm::omp::OpenMPOffloadMappingFlags::OMP_MAP_IMPLICIT),
-@@ -2677,25 +2965,29 @@
+@@ -2867,25 +3155,29 @@
    llvm::SmallVector<const Fortran::semantics::Symbol *> mapSymbols;
  
    ClauseProcessor cp(converter, clauseList);
@@ -783,7 +624,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/lib/
    // 5.8.1 Implicit Data-Mapping Attribute Rules
    // The following code follows the implicit data-mapping rules to map all the
    // symbols used inside the region that have not been explicitly mapped using
-@@ -2735,22 +3027,32 @@
+@@ -2925,22 +3217,32 @@
              llvm::omp::OpenMPOffloadMappingFlags::OMP_MAP_IMPLICIT;
          mlir::omp::VariableCaptureKind captureKind =
              mlir::omp::VariableCaptureKind::ByRef;
@@ -830,7 +671,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/lib/
  
          mapOperands.push_back(mapOp);
          mapSymTypes.push_back(baseOp.getType());
-@@ -2763,7 +3065,9 @@
+@@ -2953,7 +3255,9 @@
  
    auto targetOp = converter.getFirOpBuilder().create<mlir::omp::TargetOp>(
        currentLocation, ifClauseOperand, deviceOperand, threadLimitOperand,
@@ -839,9 +680,9 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/lib/
 +      /*num_teams_lower=*/nullptr, /*num_teams_upper=*/nullptr,
 +      /*teams_thread_limit=*/nullptr, /*num_threads=*/nullptr);
  
-   genBodyOfTargetOp(converter, eval, targetOp, mapSymTypes, mapSymLocs,
-                     mapSymbols, currentLocation);
-@@ -2788,20 +3092,63 @@
+   genBodyOfTargetOp(converter, eval, genNested, targetOp, mapSymTypes,
+                     mapSymLocs, mapSymbols, currentLocation);
+@@ -2978,20 +3282,63 @@
                 ifClauseOperand);
    cp.processAllocate(allocatorOperands, allocateOperands);
    cp.processDefault();
@@ -871,7 +712,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/lib/
 +  }
 +
 +  auto teamsOp = genOpWithBody<mlir::omp::TeamsOp>(
-       converter, eval, currentLocation, outerCombined, &clauseList,
+       converter, eval, genNested, currentLocation, outerCombined, &clauseList,
 -      /*num_teams_lower=*/nullptr, numTeamsClauseOperand, ifClauseOperand,
 -      threadLimitClauseOperand, allocateOperands, allocatorOperands,
 +      /*num_teams_lower=*/nullptr, /*num_teams_upper=*/nullptr, ifClauseOperand,
@@ -898,7 +739,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/lib/
 +
 +static mlir::omp::DistributeOp
 +genDistributeOp(Fortran::lower::AbstractConverter &converter,
-+                Fortran::lower::pft::Evaluation &eval,
++                Fortran::lower::pft::Evaluation &eval, bool genNested,
 +                mlir::Location currentLocation,
 +                const Fortran::parser::OmpClauseList &clauseList,
 +                bool outerCombined = false) {
@@ -908,11 +749,11 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/lib/
 +  // ...
 +
 +  return genOpWithBody<mlir::omp::DistributeOp>(
-+      converter, eval, currentLocation, outerCombined, &clauseList);
++      converter, eval, genNested, currentLocation, outerCombined, &clauseList);
  }
  
  /// Extract the list of function and variable symbols affected by the given
-@@ -2870,10 +3217,6 @@
+@@ -3060,10 +3407,6 @@
    return std::nullopt;
  }
  
@@ -923,7 +764,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/lib/
  static void
  genOmpSimpleStandalone(Fortran::lower::AbstractConverter &converter,
                         Fortran::lower::pft::Evaluation &eval,
-@@ -2942,6 +3285,10 @@
+@@ -3134,6 +3477,10 @@
        converter.getCurrentLocation(), operandRange);
  }
  
@@ -933,21 +774,10 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/lib/
 +
  static void
  genOMP(Fortran::lower::AbstractConverter &converter,
-        Fortran::lower::pft::Evaluation &eval,
-@@ -3015,7 +3362,9 @@
-     }
-     if (llvm::omp::allDistributeSet.test(ompDirective)) {
-       validDirective = true;
--      TODO(currentLocation, "Distribute construct");
-+      bool outerCombined = llvm::omp::topDistributeSet.test(ompDirective);
-+      genDistributeOp(converter, eval, currentLocation, loopOpClauseList,
-+                      outerCombined);
-     }
-     if ((llvm::omp::allParallelSet & llvm::omp::loopConstructSet)
-             .test(ompDirective)) {
-@@ -3124,6 +3473,26 @@
-   createBodyOfOp<mlir::omp::WsLoopOp>(wsLoopOp, converter, currentLocation,
-                                       eval, &loopOpClauseList, iv,
+        Fortran::lower::SymMap &symTable,
+@@ -3306,6 +3653,26 @@
+   createBodyOfOp<mlir::omp::WsLoopOp>(wsLoopOp, converter, loc, *nestedEval,
+                                       /*genNested=*/true, &beginClauseList, iv,
                                        /*outer=*/false, &dsp);
 +
 +  // Create trip_count if inside of omp.target and this is host compilation
@@ -964,17 +794,38 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/lib/
 +    HostClausesInsertionGuard guard(firOpBuilder);
 +    llvm::SmallVector<mlir::Value> outsideLB, outsideUB, outsideStep;
 +    llvm::SmallVector<const Fortran::semantics::Symbol *> outsideIV;
-+    cp.processCollapse(currentLocation, eval, outsideLB, outsideUB, outsideStep,
++    cp.processCollapse(loc, eval, outsideLB, outsideUB, outsideStep,
 +                       outsideIV, loopVarTypeSize);
 +    targetOp.getTripCountMutable().assign(calculateTripCount(
-+        converter, currentLocation, outsideLB, outsideUB, outsideStep));
++        converter, loc, outsideLB, outsideUB, outsideStep));
 +  }
  }
  
- static void
+ static void genOMP(Fortran::lower::AbstractConverter &converter,
+@@ -3355,7 +3722,9 @@
+     }
+     if (llvm::omp::allDistributeSet.test(ompDirective)) {
+       validDirective = true;
+-      TODO(currentLocation, "Distribute construct");
++      bool outerCombined = llvm::omp::topDistributeSet.test(ompDirective);
++      genDistributeOp(converter, eval, /*genNested=*/false, currentLocation,
++                      loopOpClauseList, outerCombined);
+     }
+     if ((llvm::omp::allParallelSet & llvm::omp::loopConstructSet)
+             .test(ompDirective)) {
+@@ -3469,8 +3838,7 @@
+     break;
+   case llvm::omp::Directive::OMPD_teams:
+     genTeamsOp(converter, eval, /*genNested=*/true, currentLocation,
+-               beginClauseList,
+-               /*outerCombined=*/false);
++               beginClauseList, /*outerCombined=*/false);
+     break;
+   case llvm::omp::Directive::OMPD_workshare:
+     TODO(currentLocation, "Workshare construct");
 diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/lib/Optimizer/CodeGen/CMakeLists.txt llvm-project/flang/lib/Optimizer/CodeGen/CMakeLists.txt
 --- llvm-project.upstream/flang/lib/Optimizer/CodeGen/CMakeLists.txt	2023-10-11 15:46:10.931814324 -0400
-+++ llvm-project/flang/lib/Optimizer/CodeGen/CMakeLists.txt	2024-01-10 11:08:48.839017308 -0500
++++ llvm-project/flang/lib/Optimizer/CodeGen/CMakeLists.txt	2024-01-23 10:31:07.673925050 -0500
 @@ -1,4 +1,5 @@
  add_flang_library(FIRCodeGen
 +  CodeGenOpenMP.cpp
@@ -982,8 +833,8 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/lib/
    CGOps.cpp
    CodeGen.cpp
 diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/lib/Optimizer/CodeGen/CodeGen.cpp llvm-project/flang/lib/Optimizer/CodeGen/CodeGen.cpp
---- llvm-project.upstream/flang/lib/Optimizer/CodeGen/CodeGen.cpp	2023-12-18 11:20:49.343182892 -0500
-+++ llvm-project/flang/lib/Optimizer/CodeGen/CodeGen.cpp	2024-01-10 11:08:48.839017308 -0500
+--- llvm-project.upstream/flang/lib/Optimizer/CodeGen/CodeGen.cpp	2024-01-23 09:59:12.954705450 -0500
++++ llvm-project/flang/lib/Optimizer/CodeGen/CodeGen.cpp	2024-01-23 10:31:07.673925050 -0500
 @@ -13,6 +13,7 @@
  #include "flang/Optimizer/CodeGen/CodeGen.h"
  
@@ -992,7 +843,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/lib/
  #include "flang/Optimizer/Dialect/FIRAttr.h"
  #include "flang/Optimizer/Dialect/FIROps.h"
  #include "flang/Optimizer/Dialect/FIRType.h"
-@@ -3882,6 +3883,11 @@
+@@ -3953,6 +3954,11 @@
      mlir::populateMathToLibmConversionPatterns(pattern);
      mlir::populateComplexToLLVMConversionPatterns(typeConverter, pattern);
      mlir::populateVectorToLLVMConversionPatterns(typeConverter, pattern);
@@ -1006,7 +857,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/lib/
      // The OpenMP dialect is legal for Operations without regions, for those
 diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/lib/Optimizer/CodeGen/CodeGenOpenMP.cpp llvm-project/flang/lib/Optimizer/CodeGen/CodeGenOpenMP.cpp
 --- llvm-project.upstream/flang/lib/Optimizer/CodeGen/CodeGenOpenMP.cpp	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/flang/lib/Optimizer/CodeGen/CodeGenOpenMP.cpp	2024-01-10 11:08:48.839017308 -0500
++++ llvm-project/flang/lib/Optimizer/CodeGen/CodeGenOpenMP.cpp	2024-01-23 10:31:07.673925050 -0500
 @@ -0,0 +1,86 @@
 +#include "flang/Optimizer/CodeGen/CodeGenOpenMP.h"
 +
@@ -1096,7 +947,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/lib/
 +}
 diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/lib/Optimizer/Dialect/FIRType.cpp llvm-project/flang/lib/Optimizer/Dialect/FIRType.cpp
 --- llvm-project.upstream/flang/lib/Optimizer/Dialect/FIRType.cpp	2024-01-10 11:07:34.896621145 -0500
-+++ llvm-project/flang/lib/Optimizer/Dialect/FIRType.cpp	2024-01-10 11:08:52.065725018 -0500
++++ llvm-project/flang/lib/Optimizer/Dialect/FIRType.cpp	2024-01-23 10:31:07.673925050 -0500
 @@ -333,6 +333,12 @@
    return false;
  }
@@ -1110,103 +961,9 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/lib/
  bool isPolymorphicType(mlir::Type ty) {
    // CLASS(T) or CLASS(*)
    if (mlir::isa<fir::ClassType>(fir::unwrapRefType(ty)))
-diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/lib/Semantics/check-declarations.cpp llvm-project/flang/lib/Semantics/check-declarations.cpp
---- llvm-project.upstream/flang/lib/Semantics/check-declarations.cpp	2023-12-18 11:20:49.347182876 -0500
-+++ llvm-project/flang/lib/Semantics/check-declarations.cpp	2024-01-11 16:30:58.302440915 -0500
-@@ -685,7 +685,7 @@
-         messages_.Say(
-             "An INTENT(OUT) dummy argument may not be, or contain, EVENT_TYPE or LOCK_TYPE"_err_en_US);
-       }
--      if (details.IsAssumedSize()) { // C834
-+      if (IsAssumedSizeArray(symbol)) { // C834
-         if (type && type->IsPolymorphic()) {
-           messages_.Say(
-               "An INTENT(OUT) assumed-size dummy argument array may not be polymorphic"_err_en_US);
-@@ -1121,11 +1121,11 @@
-   bool isCUDAShared{
-       GetCUDADataAttr(&symbol).value_or(common::CUDADataAttr::Device) ==
-       common::CUDADataAttr::Shared};
-+  bool isCrayPointee{symbol.test(Symbol::Flag::CrayPointee)};
-   std::optional<parser::MessageFixedText> msg;
--  if (symbol.test(Symbol::Flag::CrayPointee) && !isExplicit &&
--      !canBeAssumedSize) {
--    msg = "Cray pointee '%s' must have explicit shape or"
--          " assumed size"_err_en_US;
-+  if (isCrayPointee && !isExplicit && !canBeAssumedSize) {
-+    msg =
-+        "Cray pointee '%s' must have explicit shape or assumed size"_err_en_US;
-   } else if (IsAllocatableOrPointer(symbol) && !canBeDeferred &&
-       !isAssumedRank) {
-     if (symbol.owner().IsDerivedType()) { // C745
-@@ -1150,12 +1150,14 @@
-     }
-   } else if (canBeAssumedShape && !canBeDeferred) {
-     msg = "Assumed-shape array '%s' must be a dummy argument"_err_en_US;
--  } else if (canBeAssumedSize && !canBeImplied && !isCUDAShared) { // C833
--    msg = "Assumed-size array '%s' must be a dummy argument"_err_en_US;
-   } else if (isAssumedRank) { // C837
-     msg = "Assumed-rank array '%s' must be a dummy argument"_err_en_US;
-+  } else if (canBeAssumedSize && !canBeImplied && !isCUDAShared &&
-+      !isCrayPointee) { // C833
-+    msg = "Assumed-size array '%s' must be a dummy argument"_err_en_US;
-   } else if (canBeImplied) {
--    if (!IsNamedConstant(symbol) && !isCUDAShared) { // C835, C836
-+    if (!IsNamedConstant(symbol) && !isCUDAShared &&
-+        !isCrayPointee) { // C835, C836
-       msg = "Implied-shape array '%s' must be a named constant or a "
-             "dummy argument"_err_en_US;
-     }
-@@ -1164,7 +1166,8 @@
-       msg = "Named constant '%s' array must have constant or"
-             " implied shape"_err_en_US;
-     }
--  } else if (!IsAllocatableOrPointer(symbol) && !isExplicit) {
-+  } else if (!isExplicit &&
-+      !(IsAllocatableOrPointer(symbol) || isCrayPointee)) {
-     if (symbol.owner().IsDerivedType()) { // C749
-       msg = "Component array '%s' without ALLOCATABLE or POINTER attribute must"
-             " have explicit shape"_err_en_US;
-@@ -2741,7 +2744,7 @@
-       context_.SetError(symbol);
-     }
-   }
--  if (const auto *object{symbol.detailsIf<ObjectEntityDetails>()}) {
-+  if (symbol.has<ObjectEntityDetails>()) {
-     if (isExplicitBindC && !symbol.owner().IsModule()) {
-       messages_.Say(symbol.name(),
-           "A variable with BIND(C) attribute may only appear in the specification part of a module"_err_en_US);
-@@ -2764,7 +2767,7 @@
-             context_.SetError(symbol);
-           }
-         } else if ((isExplicitBindC || symbol.attrs().test(Attr::VALUE)) &&
--            !evaluate::IsExplicitShape(symbol) && !object->IsAssumedSize()) {
-+            !evaluate::IsExplicitShape(symbol) && !IsAssumedSizeArray(symbol)) {
-           SayWithDeclaration(symbol, symbol.name(),
-               "BIND(C) array must have explicit shape or be assumed-size unless a dummy argument without the VALUE attribute"_err_en_US);
-           context_.SetError(symbol);
-diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/flang/lib/Semantics/check-namelist.cpp llvm-project/flang/lib/Semantics/check-namelist.cpp
---- llvm-project.upstream/flang/lib/Semantics/check-namelist.cpp	2022-11-28 13:39:59.277654099 -0500
-+++ llvm-project/flang/lib/Semantics/check-namelist.cpp	2024-01-10 11:08:48.839017308 -0500
-@@ -15,13 +15,10 @@
-     if (const auto *nml{std::get<parser::Name>(x.t).symbol}) {
-       for (const auto &nmlObjName : std::get<std::list<parser::Name>>(x.t)) {
-         const auto *nmlObjSymbol{nmlObjName.symbol};
--        if (nmlObjSymbol && nmlObjSymbol->has<ObjectEntityDetails>()) {
--          const auto *symDetails{
--              std::get_if<ObjectEntityDetails>(&nmlObjSymbol->details())};
--          if (symDetails && symDetails->IsAssumedSize()) { // C8104
-+        if (nmlObjSymbol) {
-+          if (IsAssumedSizeArray(*nmlObjSymbol)) { // C8104
-             context_.Say(nmlObjName.source,
--                "A namelist group object '%s' must not be"
--                " assumed-size"_err_en_US,
-+                "A namelist group object '%s' must not be assumed-size"_err_en_US,
-                 nmlObjSymbol->name());
-           }
-           if (nml->attrs().test(Attr::PUBLIC) &&
 diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/llvm/include/llvm/Frontend/OpenMP/OMPIRBuilder.h llvm-project/llvm/include/llvm/Frontend/OpenMP/OMPIRBuilder.h
 --- llvm-project.upstream/llvm/include/llvm/Frontend/OpenMP/OMPIRBuilder.h	2024-01-04 00:01:56.473494468 -0500
-+++ llvm-project/llvm/include/llvm/Frontend/OpenMP/OMPIRBuilder.h	2024-01-10 11:08:48.890996285 -0500
++++ llvm-project/llvm/include/llvm/Frontend/OpenMP/OMPIRBuilder.h	2024-01-23 10:31:07.725924918 -0500
 @@ -16,6 +16,7 @@
  
  #include "llvm/Analysis/MemorySSAUpdater.h"
@@ -1536,8 +1293,8 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/llvm/inclu
                               GenMapInfoCallbackTy GenMapInfoCB,
                               TargetBodyGenCallbackTy BodyGenCB,
 diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/llvm/lib/Frontend/OpenMP/OMPIRBuilder.cpp llvm-project/llvm/lib/Frontend/OpenMP/OMPIRBuilder.cpp
---- llvm-project.upstream/llvm/lib/Frontend/OpenMP/OMPIRBuilder.cpp	2024-01-04 00:01:56.493494398 -0500
-+++ llvm-project/llvm/lib/Frontend/OpenMP/OMPIRBuilder.cpp	2024-01-10 11:08:48.930980114 -0500
+--- llvm-project.upstream/llvm/lib/Frontend/OpenMP/OMPIRBuilder.cpp	2024-01-23 09:59:13.178704876 -0500
++++ llvm-project/llvm/lib/Frontend/OpenMP/OMPIRBuilder.cpp	2024-01-23 10:31:07.761924827 -0500
 @@ -145,10 +145,19 @@
  }
  #endif
@@ -2974,21 +2731,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/llvm/lib/F
    FunctionCallee RTLFn =
        getKmpcForStaticLoopForType(TripCountTy, OMPBuilder, LoopType);
    SmallVector<Value *, 8> RealArgs;
-@@ -2876,9 +4045,10 @@
-   // We need to model loop body region as the function f(cnt, loop_arg).
-   // That's why we replace loop induction variable by the new counter
-   // which will be one of loop body function argument
--  for (auto Use = CLI->getIndVar()->user_begin();
--       Use != CLI->getIndVar()->user_end(); ++Use) {
--    if (Instruction *Inst = dyn_cast<Instruction>(*Use)) {
-+  SmallVector<User *> Users(CLI->getIndVar()->user_begin(),
-+                            CLI->getIndVar()->user_end());
-+  for (auto Use : Users) {
-+    if (Instruction *Inst = dyn_cast<Instruction>(Use)) {
-       if (ParallelRegionBlockSet.count(Inst->getParent())) {
-         Inst->replaceUsesOfWith(CLI->getIndVar(), NewLoopCntLoad);
-       }
-@@ -4441,10 +5611,9 @@
+@@ -4442,10 +5611,9 @@
    return Builder.CreateCall(Fn, Args);
  }
  
@@ -3002,7 +2745,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/llvm/lib/F
    if (!updateToLocation(Loc))
      return Loc.IP;
  
-@@ -4459,25 +5628,32 @@
+@@ -4460,25 +5628,32 @@
  
    Function *Kernel = Builder.GetInsertBlock()->getParent();
  
@@ -3051,7 +2794,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/llvm/lib/F
  
    // We need to strip the debug prefix to get the correct kernel name.
    StringRef KernelName = Kernel->getName();
-@@ -4536,7 +5712,12 @@
+@@ -4537,7 +5712,12 @@
            ? KernelEnvironmentGV
            : ConstantExpr::getAddrSpaceCast(KernelEnvironmentGV,
                                             KernelEnvironmentPtr);
@@ -3065,7 +2808,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/llvm/lib/F
    CallInst *ThreadKind =
        Builder.CreateCall(Fn, {KernelEnvironment, KernelLaunchEnvironment});
  
-@@ -4712,6 +5893,11 @@
+@@ -4713,6 +5893,11 @@
      if (T.isAMDGCN())
        OutlinedFn->setCallingConv(CallingConv::AMDGPU_KERNEL);
    }
@@ -3077,7 +2820,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/llvm/lib/F
  }
  
  Constant *OpenMPIRBuilder::createOutlinedFunctionID(Function *OutlinedFn,
-@@ -4976,6 +6162,45 @@
+@@ -4977,6 +6162,45 @@
    return getOrCreateRuntimeFunction(M, Name);
  }
  
@@ -3123,7 +2866,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/llvm/lib/F
  static void replaceConstatExprUsesInFuncWithInstr(ConstantExpr *ConstExpr,
                                                    Function *Func) {
    for (User *User : make_early_inc_range(ConstExpr->users()))
-@@ -4993,8 +6218,9 @@
+@@ -4994,8 +6218,9 @@
  }
  
  static Function *createOutlinedFunction(
@@ -3135,7 +2878,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/llvm/lib/F
      OpenMPIRBuilder::TargetBodyGenCallbackTy &CBFunc,
      OpenMPIRBuilder::TargetGenArgAccessorsCallbackTy &ArgAccessorFuncCB) {
    SmallVector<Type *> ParameterTypes;
-@@ -5020,6 +6246,12 @@
+@@ -5021,6 +6246,12 @@
    auto Func = Function::Create(FuncType, GlobalValue::InternalLinkage, FuncName,
                                 Builder.GetInsertBlock()->getModule());
  
@@ -3148,7 +2891,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/llvm/lib/F
    // Save insert point.
    auto OldInsertPoint = Builder.saveIP();
  
-@@ -5029,7 +6261,8 @@
+@@ -5030,7 +6261,8 @@
  
    // Insert target init call in the device compilation pass.
    if (OMPBuilder.Config.isTargetDevice())
@@ -3158,7 +2901,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/llvm/lib/F
  
    BasicBlock *UserCodeEntryBB = Builder.GetInsertBlock();
  
-@@ -5090,16 +6323,18 @@
+@@ -5091,16 +6323,18 @@
  }
  
  static void emitTargetOutlinedFunction(
@@ -3183,7 +2926,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/llvm/lib/F
                                        CBFunc, ArgAccessorFuncCB);
        };
  
-@@ -5107,12 +6342,14 @@
+@@ -5108,12 +6342,14 @@
                                        OutlinedFn, OutlinedFnID);
  }
  
@@ -3204,7 +2947,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/llvm/lib/F
  
    OpenMPIRBuilder::TargetDataInfo Info(
        /*RequiresDevicePointerInfo=*/false,
-@@ -5137,22 +6374,56 @@
+@@ -5138,22 +6374,56 @@
    unsigned NumTargetItems = MapInfo.BasePointers.size();
    // TODO: Use correct device ID
    Value *DeviceID = Builder.getInt64(OMP_DEVICEID_UNDEF);
@@ -3269,7 +3012,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/llvm/lib/F
  
    Builder.restoreIP(OMPBuilder.emitKernelLaunch(
        Builder, OutlinedFn, OutlinedFnID, EmitTargetCallFallbackCB, KArgs,
-@@ -5160,10 +6431,11 @@
+@@ -5161,10 +6431,11 @@
  }
  
  OpenMPIRBuilder::InsertPointTy OpenMPIRBuilder::createTarget(
@@ -3285,7 +3028,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/llvm/lib/F
      OpenMPIRBuilder::TargetBodyGenCallbackTy CBFunc,
      OpenMPIRBuilder::TargetGenArgAccessorsCallbackTy ArgAccessorFuncCB) {
    if (!updateToLocation(Loc))
-@@ -5173,11 +6445,12 @@
+@@ -5174,11 +6445,12 @@
  
    Function *OutlinedFn;
    Constant *OutlinedFnID;
@@ -3302,7 +3045,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/llvm/lib/F
  
    return Builder.saveIP();
  }
-@@ -6209,6 +7482,43 @@
+@@ -6210,6 +7482,43 @@
  }
  
  OpenMPIRBuilder::InsertPointTy
@@ -3346,7 +3089,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/llvm/lib/F
  OpenMPIRBuilder::createTeams(const LocationDescription &Loc,
                               BodyGenCallbackTy BodyGenCB, Value *NumTeamsLower,
                               Value *NumTeamsUpper, Value *ThreadLimit,
-@@ -6250,8 +7560,9 @@
+@@ -6251,8 +7560,9 @@
    BasicBlock *AllocaBB =
        splitBB(Builder, /*CreateBranch=*/true, "teams.alloca");
  
@@ -3358,7 +3101,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/llvm/lib/F
      assert((NumTeamsLower == nullptr || NumTeamsUpper != nullptr) &&
             "if lowerbound is non-null, then upperbound must also be non-null "
             "for bounds on num_teams");
-@@ -6304,41 +7615,45 @@
+@@ -6305,41 +7615,45 @@
    OI.ExcludeArgsFromAggregate.push_back(createFakeIntVal(
        Builder, OuterAllocaIP, ToBeDeleted, AllocaIP, "tid", true));
  
@@ -3440,7 +3183,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/llvm/lib/F
    addOutlineInfo(std::move(OI));
 diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/llvm/lib/Transforms/IPO/OpenMPOpt.cpp llvm-project/llvm/lib/Transforms/IPO/OpenMPOpt.cpp
 --- llvm-project.upstream/llvm/lib/Transforms/IPO/OpenMPOpt.cpp	2024-01-02 11:37:59.933300706 -0500
-+++ llvm-project/llvm/lib/Transforms/IPO/OpenMPOpt.cpp	2024-01-10 11:08:49.026941350 -0500
++++ llvm-project/llvm/lib/Transforms/IPO/OpenMPOpt.cpp	2024-01-23 10:31:07.829924655 -0500
 @@ -535,6 +535,7 @@
    void recollectUses() {
      for (int Idx = 0; Idx < RFIs.size(); ++Idx)
@@ -3450,8 +3193,8 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/llvm/lib/T
  
    // Helper function to inherit the calling convention of the function callee.
 diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/llvm/lib/Transforms/Utils/CodeExtractor.cpp llvm-project/llvm/lib/Transforms/Utils/CodeExtractor.cpp
---- llvm-project.upstream/llvm/lib/Transforms/Utils/CodeExtractor.cpp	2023-12-18 11:20:49.955180582 -0500
-+++ llvm-project/llvm/lib/Transforms/Utils/CodeExtractor.cpp	2024-01-10 11:08:49.038936524 -0500
+--- llvm-project.upstream/llvm/lib/Transforms/Utils/CodeExtractor.cpp	2024-01-23 09:59:13.354704425 -0500
++++ llvm-project/llvm/lib/Transforms/Utils/CodeExtractor.cpp	2024-01-23 10:31:07.833924644 -0500
 @@ -1182,6 +1182,7 @@
  
    StructType *StructArgTy = nullptr;
@@ -3527,7 +3270,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/llvm/lib/T
        ++aggIdx;
 diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/mlir/include/mlir/Dialect/OpenMP/OpenMPOps.td llvm-project/mlir/include/mlir/Dialect/OpenMP/OpenMPOps.td
 --- llvm-project.upstream/mlir/include/mlir/Dialect/OpenMP/OpenMPOps.td	2024-01-10 11:07:35.243067048 -0500
-+++ llvm-project/mlir/include/mlir/Dialect/OpenMP/OpenMPOps.td	2024-01-10 11:08:52.053729775 -0500
++++ llvm-project/mlir/include/mlir/Dialect/OpenMP/OpenMPOps.td	2024-01-23 10:31:08.145923853 -0500
 @@ -639,6 +639,26 @@
  }
  
@@ -3667,7 +3410,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/mlir/inclu
  
 diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/mlir/lib/Conversion/OpenMPToLLVM/OpenMPToLLVM.cpp llvm-project/mlir/lib/Conversion/OpenMPToLLVM/OpenMPToLLVM.cpp
 --- llvm-project.upstream/mlir/lib/Conversion/OpenMPToLLVM/OpenMPToLLVM.cpp	2024-01-02 11:38:00.169300177 -0500
-+++ llvm-project/mlir/lib/Conversion/OpenMPToLLVM/OpenMPToLLVM.cpp	2024-01-10 11:08:49.158888260 -0500
++++ llvm-project/mlir/lib/Conversion/OpenMPToLLVM/OpenMPToLLVM.cpp	2024-01-23 10:31:08.145923853 -0500
 @@ -228,10 +228,11 @@
      ConversionTarget &target, LLVMTypeConverter &typeConverter) {
    target.addDynamicallyLegalOp<
@@ -3693,8 +3436,8 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/mlir/lib/C
        RegionOpWithVarOperandsConversion<omp::AtomicUpdateOp>,
        RegionLessOpWithVarOperandsConversion<omp::FlushOp>,
 diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/mlir/lib/Dialect/OpenMP/IR/OpenMPDialect.cpp llvm-project/mlir/lib/Dialect/OpenMP/IR/OpenMPDialect.cpp
---- llvm-project.upstream/mlir/lib/Dialect/OpenMP/IR/OpenMPDialect.cpp	2023-12-18 11:20:50.567178272 -0500
-+++ llvm-project/mlir/lib/Dialect/OpenMP/IR/OpenMPDialect.cpp	2024-01-10 11:08:49.162886651 -0500
+--- llvm-project.upstream/mlir/lib/Dialect/OpenMP/IR/OpenMPDialect.cpp	2024-01-23 09:59:13.866703111 -0500
++++ llvm-project/mlir/lib/Dialect/OpenMP/IR/OpenMPDialect.cpp	2024-01-23 10:31:08.149923844 -0500
 @@ -18,7 +18,6 @@
  #include "mlir/IR/DialectImplementation.h"
  #include "mlir/IR/OpImplementation.h"
@@ -3727,7 +3470,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/mlir/lib/D
    MemRefType::attachInterface<MemRefPointerLikeModel>(*getContext());
    LLVM::LLVMPointerType::attachInterface<LLVMPointerPointerLikeModel>(
        *getContext());
-@@ -979,14 +968,157 @@
+@@ -972,14 +961,157 @@
    return verifyMapClause(*this, getMapOperands());
  }
  
@@ -3885,7 +3628,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/mlir/lib/D
  //===----------------------------------------------------------------------===//
  // ParallelOp
  //===----------------------------------------------------------------------===//
-@@ -1005,6 +1137,18 @@
+@@ -998,6 +1130,18 @@
    if (getAllocateVars().size() != getAllocatorsVars().size())
      return emitError(
          "expected equal sizes for allocate and allocator variables");
@@ -3904,7 +3647,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/mlir/lib/D
    return verifyReductionVarList(*this, getReductions(), getReductionVars());
  }
  
-@@ -1023,23 +1167,23 @@
+@@ -1016,23 +1160,23 @@
    // Check parent region
    // TODO If nested inside of a target region, also check that it does not
    // contain any statements, declarations or directives other than this
@@ -3943,8 +3686,8 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/mlir/lib/D
  
    // Check for allocate clause restrictions
 diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/mlir/lib/Target/LLVMIR/Dialect/OpenMP/OpenMPToLLVMIRTranslation.cpp llvm-project/mlir/lib/Target/LLVMIR/Dialect/OpenMP/OpenMPToLLVMIRTranslation.cpp
---- llvm-project.upstream/mlir/lib/Target/LLVMIR/Dialect/OpenMP/OpenMPToLLVMIRTranslation.cpp	2024-01-10 11:07:35.258996937 -0500
-+++ llvm-project/mlir/lib/Target/LLVMIR/Dialect/OpenMP/OpenMPToLLVMIRTranslation.cpp	2024-01-10 11:08:52.049731360 -0500
+--- llvm-project.upstream/mlir/lib/Target/LLVMIR/Dialect/OpenMP/OpenMPToLLVMIRTranslation.cpp	2024-01-23 09:59:13.874703090 -0500
++++ llvm-project/mlir/lib/Target/LLVMIR/Dialect/OpenMP/OpenMPToLLVMIRTranslation.cpp	2024-01-23 10:31:08.149923844 -0500
 @@ -440,27 +440,18 @@
  }
  
@@ -4689,7 +4432,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/mlir/lib/T
      auto mapFlag = mapData.Types[i];
      if (mapData.IsDeclareTarget[i])
        mapFlag |= llvm::omp::OpenMPOffloadMappingFlags::OMP_MAP_PTR_AND_OBJ;
-@@ -2025,6 +2301,55 @@
+@@ -2028,6 +2304,55 @@
    return bodyGenStatus;
  }
  
@@ -4745,7 +4488,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/mlir/lib/T
  /// Lowers the FlagsAttr which is applied to the module on the device
  /// pass when offloading, this attribute contains OpenMP RTL globals that can
  /// be passed as flags to the frontend, otherwise they are set to default
-@@ -2097,11 +2422,6 @@
+@@ -2100,11 +2425,6 @@
      return false;
    }
  
@@ -4757,7 +4500,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/mlir/lib/T
    if (targetOp.getNowait()) {
      opInst.emitError("Nowait clause not yet supported");
      return false;
-@@ -2216,7 +2536,7 @@
+@@ -2219,7 +2539,7 @@
        ompBuilder.M.getDataLayout().getProgramAddressSpace();
  
    // Create the alloca for the argument the current point.
@@ -4766,7 +4509,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/mlir/lib/T
  
    if (allocaAS != defaultAS && arg.getType()->isPointerTy())
      v = builder.CreatePointerBitCastOrAddrSpaceCast(
-@@ -2326,6 +2646,170 @@
+@@ -2329,6 +2649,170 @@
    }
  }
  
@@ -4937,7 +4680,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/mlir/lib/T
  static LogicalResult
  convertOmpTarget(Operation &opInst, llvm::IRBuilderBase &builder,
                   LLVM::ModuleTranslation &moduleTranslation) {
-@@ -2333,11 +2817,15 @@
+@@ -2336,11 +2820,15 @@
    if (!targetOpSupported(opInst))
      return failure();
  
@@ -4953,7 +4696,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/mlir/lib/T
    LogicalResult bodyGenStatus = success();
    using InsertPointTy = llvm::OpenMPIRBuilder::InsertPointTy;
    auto bodyCB = [&](InsertPointTy allocaIP,
-@@ -2356,6 +2844,10 @@
+@@ -2359,6 +2847,10 @@
      llvm::BasicBlock *exitBlock = convertOmpOpRegions(
          targetRegion, "omp.target", builder, moduleTranslation, bodyGenStatus);
      builder.SetInsertPoint(exitBlock);
@@ -4964,7 +4707,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/mlir/lib/T
      return builder.saveIP();
    };
  
-@@ -2374,9 +2866,6 @@
+@@ -2370,9 +2862,6 @@
    if (!getTargetEntryUniqueInfo(entryInfo, targetOp, parentName))
      return failure();
  
@@ -4974,7 +4717,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/mlir/lib/T
    llvm::OpenMPIRBuilder::InsertPointTy allocaIP =
        findAllocaInsertPoint(builder, moduleTranslation);
  
-@@ -2395,7 +2884,7 @@
+@@ -2391,7 +2880,7 @@
    // kernel arg structure. It primarily becomes relevant in cases like
    // bycopy, or byref range'd arrays. In the default case, we simply
    // pass thee pointer byref as both basePointer and pointer.
@@ -4983,7 +4726,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/mlir/lib/T
      createAlteredByCaptureMap(mapData, moduleTranslation, builder);
  
    llvm::OpenMPIRBuilder::MapInfosTy combinedInfos;
-@@ -2410,14 +2899,12 @@
+@@ -2406,14 +2895,12 @@
    auto argAccessorCB = [&](llvm::Argument &arg, llvm::Value *input,
                             llvm::Value *&retVal, InsertPointTy allocaIP,
                             InsertPointTy codeGenIP) {
@@ -4999,7 +4742,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/mlir/lib/T
        retVal = cast<llvm::Value>(&arg);
        return codeGenIP;
      }
-@@ -2428,21 +2915,31 @@
+@@ -2424,21 +2911,31 @@
    };
  
    llvm::SmallVector<llvm::Value *, 4> kernelInput;
@@ -5036,7 +4779,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/mlir/lib/T
    return bodyGenStatus;
  }
  
-@@ -2664,6 +3161,17 @@
+@@ -2660,6 +3157,17 @@
              }
              return failure();
            })
@@ -5054,7 +4797,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/mlir/lib/T
        .Default([](Attribute) {
          // Fall through for omp attributes that do not require lowering.
          return success();
-@@ -2706,7 +3214,7 @@
+@@ -2702,7 +3210,7 @@
          return success();
        })
        .Case([&](omp::ParallelOp op) {
@@ -5063,7 +4806,7 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/mlir/lib/T
        })
        .Case([&](omp::ReductionOp reductionOp) {
          return convertOmpReductionOp(reductionOp, builder, moduleTranslation);
-@@ -2778,6 +3286,9 @@
+@@ -2774,6 +3282,9 @@
        .Case([&](omp::TargetOp) {
          return convertOmpTarget(*op, builder, moduleTranslation);
        })
@@ -5073,3 +4816,18 @@ diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/mlir/lib/T
        .Case<omp::MapInfoOp, omp::DataBoundsOp>([&](auto op) {
          // No-op, should be handled by relevant owning operations e.g.
          // TargetOp, EnterDataOp, ExitDataOp, DataOp etc. and then
+diff -Naur -x .git -x test -x unittests -x docs llvm-project.upstream/openmp/runtime/src/CMakeLists.txt llvm-project/openmp/runtime/src/CMakeLists.txt
+--- llvm-project.upstream/openmp/runtime/src/CMakeLists.txt	2024-01-10 11:07:35.274926827 -0500
++++ llvm-project/openmp/runtime/src/CMakeLists.txt	2024-01-23 10:31:08.161923813 -0500
+@@ -139,6 +139,11 @@
+ set_source_files_properties(${LIBOMP_CXXFILES} PROPERTIES COMPILE_FLAGS "${LIBOMP_CONFIGURED_CXXFLAGS}")
+ set_source_files_properties(${LIBOMP_ASMFILES} ${LIBOMP_GNUASMFILES} PROPERTIES COMPILE_FLAGS "${LIBOMP_CONFIGURED_ASMFLAGS}")
+ 
++# Disable libstdc++/libc++ assertions, even in an LLVM_ENABLE_ASSERTIONS build,
++# to avoid an unwanted dependency on libstdc++/libc++.so.
++add_definitions(-U_GLIBCXX_ASSERTIONS)
++add_definitions(-U_LIBCPP_ENABLE_ASSERTIONS)
++
+ # Remove any cmake-automatic linking of the standard C++ library.
+ # We neither need (nor want) the standard C++ library dependency even though we compile c++ files.
+ if(NOT ${LIBOMP_USE_STDCPPLIB})
