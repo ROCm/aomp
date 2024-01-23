@@ -5,7 +5,7 @@ TESTSRC_MAIN = multi-image.c
 TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 
-OMP_FLAGS    = -fopenmp --offload-arch=$(AOMP_GPU) --offload-arch=gfx803
+OMP_FLAGS    = -fopenmp --offload-arch=$(AOMP_GPU)$(AOMP_TARGET_FEATURES) --offload-arch=gfx803$(AOMP_TARGET_FEATURES)
 CLANG        = clang
 OMP_BIN      = $(AOMP)/bin/$(CLANG)
 CC           = $(OMP_BIN) $(VERBOSE)

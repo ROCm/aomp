@@ -70,12 +70,12 @@ lib_mylib.a: inc_arrayval.o dec_arrayval.o
 inc_arrayval-amdgcn.bc: inc_arrayval.c
 	@echo
 	@echo " 1.4 Re-Compile c library source to create a device bitcode.		$@"
-	$(CLANG) -c -emit-llvm -mcpu=$(MYGPU) -target $(TRIPLE) -nogpulib $^ -o $@
+	$(CLANG) -c -emit-llvm -mcpu=$(MYGPU)$(AOMP_TARGET_FEATURES) -target $(TRIPLE) -nogpulib $^ -o $@
 
 dec_arrayval-amdgcn.bc: dec_arrayval.c
 	@echo
 	@echo " 1.5 Re-Compile c Code to create a 2nd device bitcode file.		$@"
-	$(CLANG) -c -emit-llvm -mcpu=$(MYGPU) -target $(TRIPLE) -nogpulib $^ -o $@
+	$(CLANG) -c -emit-llvm -mcpu=$(MYGPU)$(AOMP_TARGET_FEATURES) -target $(TRIPLE) -nogpulib $^ -o $@
 
 libbc-_mylib-amdgcn.a: inc_arrayval-amdgcn.bc dec_arrayval-amdgcn.bc
 	@echo
