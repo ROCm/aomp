@@ -17,9 +17,9 @@ get_fresh=1
 if [ ${get_fresh} == 1 ] ; then 
    rm -f pulls
    rm -f *.diff
-   wget https://github.com/ROCm-Developer-Tools/llvm-project/pulls 2>/dev/null >/dev/null
-#for dir in ` cat pulls | grep ROCm-Developer-Tools/llvm-project/pull |  grep pull_request | cut -d"/" -f7- | cut -d"\"" -f1` ; do 
-   cat pulls | grep ROCm-Developer-Tools/llvm-project/pull | grep pull_request | cut -d"/" -f7- | cut -d"<" -f1 |  while read line ; do 
+   wget https://github.com/ROCm/llvm-project/pulls 2>/dev/null >/dev/null
+#for dir in ` cat pulls | grep ROCm/llvm-project/pull |  grep pull_request | cut -d"/" -f7- | cut -d"\"" -f1` ; do 
+   cat pulls | grep ROCm/llvm-project/pull | grep pull_request | cut -d"/" -f7- | cut -d"<" -f1 |  while read line ; do 
      dir=`echo $line | cut -d"\"" -f1`
      comment=`echo $line | cut -d">" -f2`
      number=`echo $dir | cut -d"/" -f4`

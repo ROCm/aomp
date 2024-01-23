@@ -12,8 +12,8 @@ and execute these commands:
 ``` bash
 mkdir -p $TRUNK_REPOS
 cd $TRUNK_REPOS
-git clone https://github.com/ROCm-Developer-Tools/aomp
-git clone https://github.com/ROCm-Developer-Tools/llvm-project
+git clone https://github.com/ROCm/aomp
+git clone https://github.com/ROCm/llvm-project
 cd llvm-project
 git checkout amd-trunk-dev
 $TRUNK_REPOS/aomp/trunk/build_trunk.sh 
@@ -214,14 +214,14 @@ This script carefully runs the git commands to merge from `main`.
 This script ensures that neither the `main` branch nor `amd-trunk-dev` branch has
 local changes. Save any of your local changes before using `merge_from_main.sh`.
 Note: the `main` branch of
-[ROCm-Developer-Tools/llvm-project](https://github.com/ROCm-Developer-Tools/llvm-project)
+[ROCm/llvm-project](https://github.com/ROCm/llvm-project)
 is automatically mirrored from
 [LLVM trunk](https://github.com/llvm/llvm-project) `main` branch every three
 hours.
 
 Before running `merge_from_main.sh`, ensure `amd-trunk-dev` is indeed behind
 `main` by looking at this
-[URL](https://github.com/ROCm-Developer-Tools/llvm-project/branches) or by
+[URL](https://github.com/ROCm/llvm-project/branches) or by
 running this command:
 
 ``` bash

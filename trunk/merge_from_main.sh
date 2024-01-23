@@ -21,7 +21,7 @@ if [ "$GITPUSH" == "YES" ] ; then
       exit 1
    fi
 fi
-REPO_MIRROR="https://github.com/ROCm-Developer-Tools/llvm-project"
+REPO_MIRROR="https://github.com/ROCm/llvm-project"
 REPO="REPO_MIRROR"
 _dev_branch="amd-trunk-dev"
 logfile="/tmp/${USER}_trunk_merge.log"
