@@ -14,7 +14,7 @@ CC           = $(OMP_BIN) $(VERBOSE)
 #"-\#\#\#"
 
 include ../Makefile.rules
-LOCAL_OMP_FLAGS1 = $(filter-out -march=$(AOMP_GPU), $(OMP_FLAGS))
+LOCAL_OMP_FLAGS1 = $(filter-out -march=$(AOMP_GPU)$(AOMP_TARGET_FEATURES), $(OMP_FLAGS))
 LOCAL_OMP_FLAGS = $(filter-out -D__OFFLOAD_ARCH_$(INSTALLED_GPU)__, $(LOCAL_OMP_FLAGS1))
 
 
@@ -26,7 +26,7 @@ $(TESTNAME):
 	@echo
 
 $(GFXLIST):
-	$(CC) $(LOCAL_OMP_FLAGS) -march=$@ gpus.c -o gpus-$@
+	$(CC) $(LOCAL_OMP_FLAGS) -march=$@$(AOMP_TARGET_FEATURES) gpus.c -o gpus-$@$(AOMP_TARGET_FEATURES)
 
 run: $(GFXLIST)
 	@echo
