@@ -9,7 +9,7 @@ documentation, and
 [examples](https://github.com/ROCm/aomp/tree/master/examples).
 
 The last [release is AOMP 18.0-1](https://github.com/ROCm/aomp/releases).
-Currently AOMP 18.0-2 is under development.
+Currently AOMP 19.0-0 is under development.
 
 Attention Users!  Please use this repository for [issues](https://github.com/ROCm/aomp/issues).
 Do not put issues in any of the source code repositories.

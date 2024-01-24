@@ -1,4 +1,4 @@
-# Source Install V 18.0-2
+# Source Install V 19.0-0
 
 Build and install from sources is possible.  However, the source build for AOMP is complex for several reasons.
 - Many repos are required.
@@ -32,7 +32,7 @@ Here are the commands to do a source build of AOMP:
 
 <b>Development Branch:</b>
 ```
-   export AOMP_VERSION=18.0
+   export AOMP_VERSION=19.0
    export AOMP_REPOS=$HOME/git/aomp${AOMP_VERSION}
    mkdir -p $AOMP_REPOS
    cd $AOMP_REPOS
@@ -66,7 +66,7 @@ There is a "list" option on the clone\_aomp.sh that provides useful information 
 ```
 The above command will produce output like this showing you the location and branch of the repos in the AOMP\_REPOS directory and if there are any discrepencies with respect to the manifest file.<br>
 
-<b>USED manifest file: /work/grodgers/git/aomp18.0/aomp/bin/../manifests/aompi_18.0.xml</b><br>
+<b>USED manifest file: /work/grodgers/git/aomp19.0/aomp/bin/../manifests/aompi_19.0.xml</b><br>
   repo src       branch                 path                 repo name    last hash    updated           commitor         for author
   --------       ------                 ----                 ---------    ---------    -------           --------         ----------
  gerritgit  amd-staging         llvm-project lightning/ec/llvm-project f986706166c9 2023-12-06      Ron Lieberman            JP Lehr         

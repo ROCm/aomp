@@ -1,0 +1,13 @@
+rocminfo: rocminfo.patch
+openlibm: openlibm.patch
+RAJA: raja.patch
+RAJAPerf: rajaperf.patch
+GenASis: genasis.patch
+hipamd: hipamd-hip-clang-root.patch
+hipfort: hipfort.patch
+bolt: bolt.patch
+hsa-runtime: rocr-runtime-combined-numa-check-openmp-support-aomp-new.patch
+rocprofiler: rocprofiler-no-aql-ok.patch
+babelstream: babelstream-usm.patch
+UMT: umt.patch
+llvm-project: llvm-project-device-libs-check-openmp.patch
