@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest>
+<default revision="develop" remote="gerritgit" sync-j="4" sync-c="true" />
+	<!-- Manifest for AOMP Testing repositories -->
+<remote name="gerritgit" review="git.amd.com:8080" fetch="ssh://gerritgit/" />
+<remote name="roctools"  fetch="https://github.com/ROCm-Developer-Tools/" />
+<remote name="roc"  fetch="https://github.com/RadeonOpenCompute/" />
+<remote name="llnl" fetch="https://github.com/LLNL/" />
+<remote name="kokkos" fetch="https://github.com/kokkos/" />
+<remote name="amdlibs" fetch="https://github.com/AMDComputeLibraries/" />
+<remote name="omphost" fetch="https://github.com/doru1004/" />
+<remote name="julia" fetch="https://github.com/JuliaMath/" />
+<remote name="tapple" fetch="https://github.com/TApplencourt/" />
+<remote name="qmcpack" fetch="https://github.com/QMCPACK/" />
+<remote name="sollve" fetch="https://github.com/SOLLVE/" />
+<remote name="uob-hpc" fetch="https://github.com/UoB-HPC/" />
+<remote name="GenASis" fetch="https://github.com/GenASis/" />
+<remote name="UMT" fetch="https://github.com/LLNL/" />
+
+<!-- --- List of test repos and the path they are cloned to --- -->
+
+<project remote="llnl"    path="goulash"    name="goulash" revision="master" groups="unlocked" />
+<project remote="kokkos"  path="kokkos"     name="kokkos" revision="develop" groups="unlocked" />
+<project remote="amdlibs" path="Nekbone"    name="Nekbone" revision="amd-openmp" groups="unlocked" />
+<project remote="omphost" path="omptests"   name="omptests" revision="main" groups="unlocked" />
+<project remote="julia"   path="openlibm"   name="openlibm" revision="v0.7.2" groups="unlocked" />
+<project remote="amdlibs" path="openmpapps" name="openmpapps" revision="AOMP-0.5" groups="unlocked" />
+<project remote="tapple"  path="OvO"        name="OvO" revision="master" groups="unlocked" />
+<project remote="qmcpack" path="qmcpack"    name="qmcpack" revision="develop" groups="unlocked" />
+<project remote="sollve"  path="sollve_vv"  name="sollve_vv" revision="master" groups="unlocked" />
+<project remote="uob-hpc" path="babelstream" name="BabelStream" revision="main" groups="unlocked" />
+<project remote="uob-hpc" path="fortran-babelstream" name="BabelStream" revision="develop" groups="unlocked" />
+<project remote="llnl"    path="RAJAPerf" name="RAJAPerf" revision="develop" groups="unlocked" />
+<project remote="llnl"    path="RAJAPerf/tpl/RAJA" name="RAJA" revision="master" groups="skip" />
+<project remote="llnl"    path="RAJAPerf/blt" name="blt" revision="" groups="skip" />
+<project remote="GenASis"  path="GenASis"  name="GenASis" revision="master" groups="unlocked" />
+<project remote="UMT"  path="UMT"  name="UMT" revision="develop" groups="unlocked" />
+
+</manifest>
