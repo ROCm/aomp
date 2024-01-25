@@ -54,7 +54,7 @@ fi
 rm -rf ${MQMC_BUILD_DIR}
 # Note: We currently need the -fopenmp-assume-no-nested-parallelism to work around a call to malloc which probably should not be there.
 # In the case that we disable hostservices, the application crashes when trying to call malloc.
-CMAKE_PREFIX_PATH=${ROCM}/lib/cmake/ cmake -B ${MQMC_BUILD_DIR} -S ${MQMC_SOURCE_DIR} -DCMAKE_CXX_COMPILER=clang++ -DENABLE_OFFLOAD=ON -DQMC_ENABLE_ROCM=ON -DCMAKE_CXX_FLAGS='-fopenmp-assume-no-nested-parallelism ' -DAMDGPU_DISABLE_HOST_DEVMEM=ON -DCMAKE_VERBOSE_MAKEFILE=ON
+CMAKE_PREFIX_PATH=${ROCM}/lib/cmake/ cmake -B ${MQMC_BUILD_DIR} -S ${MQMC_SOURCE_DIR} -DCMAKE_CXX_COMPILER=clang++ -DENABLE_OFFLOAD=ON -DQMC_ENABLE_ROCM=ON -DCMAKE_CXX_FLAGS='-fopenmp-assume-no-nested-parallelism -DCUDART_VERSION=10000 -DcudaMemoryTypeManaged=hipMemoryTypeManaged ' -DAMDGPU_DISABLE_HOST_DEVMEM=ON -DCMAKE_VERBOSE_MAKEFILE=ON
 
 # Build miniqmc binaries
 #cmake --build ${MQMC_BUILD_DIR}  --clean-first -j ${MQMC_NUM_BUILD_PROCS}
