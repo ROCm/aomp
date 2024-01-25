@@ -41,7 +41,6 @@ flang-thread-limit
 flang-usm
 helloworld_cov4
 hipstyle_vs_ompred
-hsa-lazy-queues
 kmpc_alloc_cov4
 liba_bundled
 liba_bundled_cmdline_simplified
