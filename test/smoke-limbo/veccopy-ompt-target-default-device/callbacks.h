@@ -183,7 +183,15 @@ static void on_ompt_callback_device_initialize
     printf("WARNING: No function ompt_get_record_type found in device callbacks\n");
   }
 
-  DeviceMapPtr = std::make_unique<DeviceMap_t>();
+  // DeviceMap must be initialized only once. Ensure this logic does not
+  // depend on external data structures because this init function may be
+  // called before main.
+  static bool IsDeviceMapInitialized = false;
+  if (!IsDeviceMapInitialized) {
+    DeviceMapPtr = std::make_unique<DeviceMap_t>();
+    IsDeviceMapInitialized = true;
+  }
+  
   set_trace_ompt(device);
   
   start_trace(device_num, device);

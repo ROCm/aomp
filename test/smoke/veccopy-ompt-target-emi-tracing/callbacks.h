@@ -179,7 +179,15 @@ static void on_ompt_callback_device_initialize
   ompt_get_record_ompt = (ompt_get_record_ompt_t) lookup("ompt_get_record_ompt");
   ompt_advance_buffer_cursor = (ompt_advance_buffer_cursor_t) lookup("ompt_advance_buffer_cursor");
 
-  DeviceMapPtr = std::make_unique<DeviceMap_t>();
+  // DeviceMap must be initialized only once. Ensure this logic does not
+  // depend on external data structures because this init function may be
+  // called before main.
+  static bool IsDeviceMapInitialized = false;
+  if (!IsDeviceMapInitialized) {
+    DeviceMapPtr = std::make_unique<DeviceMap_t>();
+    IsDeviceMapInitialized = true;
+  }
+  
   set_trace_ompt();
 
   // In many scenarios, this will be a good place to start the
