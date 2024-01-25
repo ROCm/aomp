@@ -1,6 +1,6 @@
 diff -Naur -x .git llvm-project.upstream/clang/lib/CodeGen/CGOpenMPRuntimeGPU.cpp llvm-project/clang/lib/CodeGen/CGOpenMPRuntimeGPU.cpp
---- llvm-project.upstream/clang/lib/CodeGen/CGOpenMPRuntimeGPU.cpp	2023-12-18 11:20:49.111183767 -0500
-+++ llvm-project/clang/lib/CodeGen/CGOpenMPRuntimeGPU.cpp	2024-01-23 10:31:07.449925617 -0500
+--- llvm-project.upstream/clang/lib/CodeGen/CGOpenMPRuntimeGPU.cpp	2024-01-25 08:49:18.233907790 -0600
++++ llvm-project/clang/lib/CodeGen/CGOpenMPRuntimeGPU.cpp	2024-01-25 08:22:25.634438610 -0600
 @@ -765,14 +765,13 @@
  void CGOpenMPRuntimeGPU::emitKernelInit(const OMPExecutableDirective &D,
                                          CodeGenFunction &CGF,
@@ -22,9 +22,9 @@ diff -Naur -x .git llvm-project.upstream/clang/lib/CodeGen/CGOpenMPRuntimeGPU.cp
      emitGenericVarsProlog(CGF, EST.Loc);
  }
 diff -Naur -x .git llvm-project.upstream/clang/lib/Driver/ToolChains/Clang.cpp llvm-project/clang/lib/Driver/ToolChains/Clang.cpp
---- llvm-project.upstream/clang/lib/Driver/ToolChains/Clang.cpp	2024-01-23 09:59:12.766705933 -0500
-+++ llvm-project/clang/lib/Driver/ToolChains/Clang.cpp	2024-01-23 10:31:07.461925588 -0500
-@@ -8494,7 +8494,9 @@
+--- llvm-project.upstream/clang/lib/Driver/ToolChains/Clang.cpp	2024-01-25 08:49:18.249907860 -0600
++++ llvm-project/clang/lib/Driver/ToolChains/Clang.cpp	2024-01-25 08:22:25.642438649 -0600
+@@ -8492,7 +8492,9 @@
    assert(Input.isFilename() && "Invalid input.");
    CmdArgs.push_back(Input.getFilename());
  
@@ -35,9 +35,42 @@ diff -Naur -x .git llvm-project.upstream/clang/lib/Driver/ToolChains/Clang.cpp l
    if (D.CC1Main && !D.CCGenDiagnostics) {
      // Invoke cc1as directly in this process.
      C.addCommand(std::make_unique<CC1Command>(
+diff -Naur -x .git llvm-project.upstream/flang/docs/Extensions.md llvm-project/flang/docs/Extensions.md
+--- llvm-project.upstream/flang/docs/Extensions.md	2024-01-25 08:49:19.677914254 -0600
++++ llvm-project/flang/docs/Extensions.md	2024-01-25 17:06:01.786706769 -0600
+@@ -314,8 +314,8 @@
+   fixed form source by a '0' in column 6, can contain spaces
+   between the letters of the word INCLUDE, and can have a
+   numeric character literal kind prefix on the file name.
+-* Intrinsic procedures TAND and ATAND. Constant folding is currently
+-  not supported for these procedures but this is planned.
++* Intrinsic procedures SIND, COSD, TAND and ATAND. Constant folding
++  is currently not supported for these procedures but this is planned.
+ * When a pair of quotation marks in a character literal are split
+   by a line continuation in free form, the second quotation mark
+   may appear at the beginning of the continuation line without an
+diff -Naur -x .git llvm-project.upstream/flang/include/flang/Optimizer/Builder/IntrinsicCall.h llvm-project/flang/include/flang/Optimizer/Builder/IntrinsicCall.h
+--- llvm-project.upstream/flang/include/flang/Optimizer/Builder/IntrinsicCall.h	2024-01-25 08:49:19.689914306 -0600
++++ llvm-project/flang/include/flang/Optimizer/Builder/IntrinsicCall.h	2024-01-25 17:06:01.786706769 -0600
+@@ -205,6 +205,7 @@
+   void genCFProcPointer(llvm::ArrayRef<fir::ExtendedValue>);
+   fir::ExtendedValue genCFunLoc(mlir::Type, llvm::ArrayRef<fir::ExtendedValue>);
+   fir::ExtendedValue genCLoc(mlir::Type, llvm::ArrayRef<fir::ExtendedValue>);
++  mlir::Value genCosd(mlir::Type, llvm::ArrayRef<mlir::Value>);
+   void genDateAndTime(llvm::ArrayRef<fir::ExtendedValue>);
+   mlir::Value genDim(mlir::Type, llvm::ArrayRef<mlir::Value>);
+   fir::ExtendedValue genDotProduct(mlir::Type,
+@@ -332,6 +333,7 @@
+   mlir::Value genShift(mlir::Type resultType, llvm::ArrayRef<mlir::Value>);
+   mlir::Value genShiftA(mlir::Type resultType, llvm::ArrayRef<mlir::Value>);
+   mlir::Value genSign(mlir::Type, llvm::ArrayRef<mlir::Value>);
++  mlir::Value genSind(mlir::Type, llvm::ArrayRef<mlir::Value>);
+   fir::ExtendedValue genSize(mlir::Type, llvm::ArrayRef<fir::ExtendedValue>);
+   mlir::Value genSpacing(mlir::Type resultType,
+                          llvm::ArrayRef<mlir::Value> args);
 diff -Naur -x .git llvm-project.upstream/flang/include/flang/Optimizer/CodeGen/CodeGenOpenMP.h llvm-project/flang/include/flang/Optimizer/CodeGen/CodeGenOpenMP.h
---- llvm-project.upstream/flang/include/flang/Optimizer/CodeGen/CodeGenOpenMP.h	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/flang/include/flang/Optimizer/CodeGen/CodeGenOpenMP.h	2024-01-23 10:31:07.669925060 -0500
+--- llvm-project.upstream/flang/include/flang/Optimizer/CodeGen/CodeGenOpenMP.h	1969-12-31 18:00:00.000000000 -0600
++++ llvm-project/flang/include/flang/Optimizer/CodeGen/CodeGenOpenMP.h	2024-01-25 08:22:25.774439315 -0600
 @@ -0,0 +1,27 @@
 +//=== Optimizer/CodeGen/CodeGenOpenMP.h - OpenMP code generation -*- C++
 +//-*-===//
@@ -68,8 +101,8 @@ diff -Naur -x .git llvm-project.upstream/flang/include/flang/Optimizer/CodeGen/C
 +#endif // FORTRAN_OPTIMIZER_CODEGEN_CODEGENOPENMP_H
 \ No newline at end of file
 diff -Naur -x .git llvm-project.upstream/flang/include/flang/Optimizer/Dialect/FIRType.h llvm-project/flang/include/flang/Optimizer/Dialect/FIRType.h
---- llvm-project.upstream/flang/include/flang/Optimizer/Dialect/FIRType.h	2024-01-10 11:07:34.892639755 -0500
-+++ llvm-project/flang/include/flang/Optimizer/Dialect/FIRType.h	2024-01-23 10:31:07.669925060 -0500
+--- llvm-project.upstream/flang/include/flang/Optimizer/Dialect/FIRType.h	2024-01-25 08:49:19.693914324 -0600
++++ llvm-project/flang/include/flang/Optimizer/Dialect/FIRType.h	2024-01-25 08:22:25.774439315 -0600
 @@ -313,6 +313,9 @@
  /// e.g. !fir.box<!fir.type<derived>>
  bool isBoxedRecordType(mlir::Type ty);
@@ -81,8 +114,8 @@ diff -Naur -x .git llvm-project.upstream/flang/include/flang/Optimizer/Dialect/F
  /// e.g. !fir.box<!fir.type<derived>>
  ///      !fir.box<!fir.heap<!fir.type<derived>>>
 diff -Naur -x .git llvm-project.upstream/flang/lib/Lower/OpenMP.cpp llvm-project/flang/lib/Lower/OpenMP.cpp
---- llvm-project.upstream/flang/lib/Lower/OpenMP.cpp	2024-01-23 09:59:12.950705461 -0500
-+++ llvm-project/flang/lib/Lower/OpenMP.cpp	2024-01-23 10:31:07.673925050 -0500
+--- llvm-project.upstream/flang/lib/Lower/OpenMP.cpp	2024-01-25 08:49:19.709914395 -0600
++++ llvm-project/flang/lib/Lower/OpenMP.cpp	2024-01-25 08:22:25.774439315 -0600
 @@ -40,6 +40,19 @@
      llvm::cl::desc("In the OpenMP data clauses treat `a(N)` as `a(N:N)`."),
      llvm::cl::init(true));
@@ -122,7 +155,39 @@ diff -Naur -x .git llvm-project.upstream/flang/lib/Lower/OpenMP.cpp llvm-project
  static Fortran::lower::pft::Evaluation *
  getCollapsedLoopEval(Fortran::lower::pft::Evaluation &eval, int collapseValue) {
    // Return the Evaluation of the innermost collapsed loop, or the current one
-@@ -1818,30 +1843,76 @@
+@@ -618,6 +643,9 @@
+                   llvm::SmallVectorImpl<mlir::Location> *mapSymLocs = nullptr,
+                   llvm::SmallVectorImpl<const Fortran::semantics::Symbol *>
+                       *mapSymbols = nullptr) const;
++  bool processTargetReduction(
++      llvm::SmallVector<const Fortran::semantics::Symbol *> &reductionSymbols)
++      const;
+   bool processReduction(
+       mlir::Location currentLocation,
+       llvm::SmallVectorImpl<mlir::Value> &reductionVars,
+@@ -1070,6 +1098,21 @@
+     return decl;
+   }
+ 
++  static void addReductionSym(
++      const Fortran::parser::OmpReductionClause &reduction,
++      llvm::SmallVector<const Fortran::semantics::Symbol *> &Symbols) {
++    const auto &objectList{
++        std::get<Fortran::parser::OmpObjectList>(reduction.t)};
++
++    for (const Fortran::parser::OmpObject &ompObject : objectList.v) {
++      if (const auto *name{
++              Fortran::parser::Unwrap<Fortran::parser::Name>(ompObject)}) {
++        if (const Fortran::semantics::Symbol * symbol{name->symbol})
++          Symbols.push_back(symbol);
++      }
++    }
++  }
++
+   /// Creates a reduction declaration and associates it with an OpenMP block
+   /// directive.
+   static void addReductionDecl(
+@@ -1818,30 +1861,76 @@
  
  static mlir::omp::MapInfoOp
  createMapInfoOp(fir::FirOpBuilder &builder, mlir::Location loc,
@@ -210,7 +275,7 @@ diff -Naur -x .git llvm-project.upstream/flang/lib/Lower/OpenMP.cpp llvm-project
  bool ClauseProcessor::processMap(
      mlir::Location currentLocation, const llvm::omp::Directive &directive,
      Fortran::semantics::SemanticsContext &semanticsContext,
-@@ -1908,21 +1979,32 @@
+@@ -1908,27 +1997,49 @@
                    converter, firOpBuilder, semanticsContext, stmtCtx, ompObject,
                    clauseLocation, asFortran, bounds, treatIndexAsSection);
  
@@ -254,7 +319,24 @@ diff -Naur -x .git llvm-project.upstream/flang/lib/Lower/OpenMP.cpp llvm-project
            if (mapSymbols)
              mapSymbols->push_back(getOmpObjectSymbol(ompObject));
          }
-@@ -2005,40 +2087,55 @@
+       });
+ }
+ 
++bool ClauseProcessor::processTargetReduction(
++    llvm::SmallVector<const Fortran::semantics::Symbol *> &reductionSymbols)
++    const {
++  return findRepeatableClause<ClauseTy::Reduction>(
++      [&](const ClauseTy::Reduction *reductionClause,
++          const Fortran::parser::CharBlock &) {
++        ReductionProcessor rp;
++        rp.addReductionSym(reductionClause->v, reductionSymbols);
++      });
++}
++
+ bool ClauseProcessor::processReduction(
+     mlir::Location currentLocation,
+     llvm::SmallVectorImpl<mlir::Value> &reductionVars,
+@@ -2005,40 +2116,55 @@
      Fortran::semantics::SemanticsContext &semanticsContext,
      Fortran::lower::StatementContext &stmtCtx,
      llvm::SmallVectorImpl<mlir::Value> &mapOperands) {
@@ -265,18 +347,16 @@ diff -Naur -x .git llvm-project.upstream/flang/lib/Lower/OpenMP.cpp llvm-project
 -
 -        static_assert(std::is_same_v<T, ClauseProcessor::ClauseTy::To> ||
 -                      std::is_same_v<T, ClauseProcessor::ClauseTy::From>);
-+  return findRepeatableClause<T>([&](const T *motionClause,
-+                                     const Fortran::parser::CharBlock &source) {
-+    mlir::Location clauseLocation = converter.genLocation(source);
-+    fir::FirOpBuilder &firOpBuilder = converter.getFirOpBuilder();
- 
+-
 -        // TODO Support motion modifiers: present, mapper, iterator.
 -        constexpr llvm::omp::OpenMPOffloadMappingFlags mapTypeBits =
 -            std::is_same_v<T, ClauseProcessor::ClauseTy::To>
 -                ? llvm::omp::OpenMPOffloadMappingFlags::OMP_MAP_TO
 -                : llvm::omp::OpenMPOffloadMappingFlags::OMP_MAP_FROM;
-+    static_assert(std::is_same_v<T, ClauseProcessor::ClauseTy::To> ||
-+                  std::is_same_v<T, ClauseProcessor::ClauseTy::From>);
++  return findRepeatableClause<T>([&](const T *motionClause,
++                                     const Fortran::parser::CharBlock &source) {
++    mlir::Location clauseLocation = converter.genLocation(source);
++    fir::FirOpBuilder &firOpBuilder = converter.getFirOpBuilder();
  
 -        for (const Fortran::parser::OmpObject &ompObject : motionClause->v.v) {
 -          llvm::SmallVector<mlir::Value> bounds;
@@ -287,7 +367,9 @@ diff -Naur -x .git llvm-project.upstream/flang/lib/Lower/OpenMP.cpp llvm-project
 -                  mlir::omp::DataBoundsType>(
 -                  converter, firOpBuilder, semanticsContext, stmtCtx, ompObject,
 -                  clauseLocation, asFortran, bounds, treatIndexAsSection);
--
++    static_assert(std::is_same_v<T, ClauseProcessor::ClauseTy::To> ||
++                  std::is_same_v<T, ClauseProcessor::ClauseTy::From>);
+ 
 -          mlir::Value mapOp = createMapInfoOp(
 -              firOpBuilder, clauseLocation, info.addr, asFortran, bounds,
 -              static_cast<
@@ -341,7 +423,7 @@ diff -Naur -x .git llvm-project.upstream/flang/lib/Lower/OpenMP.cpp llvm-project
  }
  
  template <typename... Ts>
-@@ -2060,6 +2157,75 @@
+@@ -2060,6 +2186,75 @@
  }
  
  //===----------------------------------------------------------------------===//
@@ -417,7 +499,7 @@ diff -Naur -x .git llvm-project.upstream/flang/lib/Lower/OpenMP.cpp llvm-project
  // Code generation helper functions
  //===----------------------------------------------------------------------===//
  
-@@ -2230,6 +2396,83 @@
+@@ -2230,6 +2425,83 @@
    return storeOp;
  }
  
@@ -501,7 +583,7 @@ diff -Naur -x .git llvm-project.upstream/flang/lib/Lower/OpenMP.cpp llvm-project
  /// Create the body (block) for an OpenMP Operation.
  ///
  /// \param [in]    op - the operation the body belongs to.
-@@ -2490,6 +2733,27 @@
+@@ -2490,6 +2762,27 @@
        /*clauseList=*/nullptr, /*simd=*/false);
  }
  
@@ -529,7 +611,7 @@ diff -Naur -x .git llvm-project.upstream/flang/lib/Lower/OpenMP.cpp llvm-project
  static mlir::omp::ParallelOp
  genParallelOp(Fortran::lower::AbstractConverter &converter,
                Fortran::lower::pft::Evaluation &eval, bool genNested,
-@@ -2506,23 +2770,46 @@
+@@ -2506,23 +2799,46 @@
    ClauseProcessor cp(converter, clauseList);
    cp.processIf(Fortran::parser::OmpIfClause::DirectiveNameModifier::Parallel,
                 ifClauseOperand);
@@ -579,7 +661,7 @@ diff -Naur -x .git llvm-project.upstream/flang/lib/Lower/OpenMP.cpp llvm-project
  }
  
  static mlir::omp::SectionOp
-@@ -2806,7 +3093,8 @@
+@@ -2806,7 +3122,8 @@
          std::stringstream name;
          firOpBuilder.setInsertionPoint(targetOp);
          mlir::Value mapOp = createMapInfoOp(
@@ -589,8 +671,11 @@ diff -Naur -x .git llvm-project.upstream/flang/lib/Lower/OpenMP.cpp llvm-project
              static_cast<
                  std::underlying_type_t<llvm::omp::OpenMPOffloadMappingFlags>>(
                  llvm::omp::OpenMPOffloadMappingFlags::OMP_MAP_IMPLICIT),
-@@ -2867,25 +3155,29 @@
+@@ -2865,27 +3182,35 @@
+   llvm::SmallVector<mlir::Type> mapSymTypes;
+   llvm::SmallVector<mlir::Location> mapSymLocs;
    llvm::SmallVector<const Fortran::semantics::Symbol *> mapSymbols;
++  llvm::SmallVector<const Fortran::semantics::Symbol *> reductionSymbols;
  
    ClauseProcessor cp(converter, clauseList);
 -  cp.processIf(Fortran::parser::OmpIfClause::DirectiveNameModifier::Target,
@@ -621,10 +706,13 @@ diff -Naur -x .git llvm-project.upstream/flang/lib/Lower/OpenMP.cpp llvm-project
 +           .getIsTargetDevice())
 +    cp.processNowait(nowaitAttr);
 +
++  if (outerCombined)
++    cp.processTargetReduction(reductionSymbols);
++
    // 5.8.1 Implicit Data-Mapping Attribute Rules
    // The following code follows the implicit data-mapping rules to map all the
    // symbols used inside the region that have not been explicitly mapped using
-@@ -2925,22 +3217,32 @@
+@@ -2928,22 +3253,36 @@
              llvm::omp::OpenMPOffloadMappingFlags::OMP_MAP_IMPLICIT;
          mlir::omp::VariableCaptureKind captureKind =
              mlir::omp::VariableCaptureKind::ByRef;
@@ -641,7 +729,11 @@ diff -Naur -x .git llvm-project.upstream/flang/lib/Lower/OpenMP.cpp llvm-project
 +        if (auto refType = baseOp.getType().dyn_cast<fir::ReferenceType>())
 +          eleType = refType.getElementType();
 +
-+        if (fir::isa_trivial(eleType) || fir::isa_char(eleType)) {
++        // Do a tofrom map for reduction variables.
++        if (llvm::find(reductionSymbols, &sym) != reductionSymbols.end()) {
++          mapFlag |= llvm::omp::OpenMPOffloadMappingFlags::OMP_MAP_FROM;
++          mapFlag |= llvm::omp::OpenMPOffloadMappingFlags::OMP_MAP_TO;
++        } else if (fir::isa_trivial(eleType) || fir::isa_char(eleType)) {
 +          captureKind = mlir::omp::VariableCaptureKind::ByCopy;
 +        } else if (!fir::isa_builtin_cptr_type(eleType)) {
 +          mapFlag |= llvm::omp::OpenMPOffloadMappingFlags::OMP_MAP_TO;
@@ -671,7 +763,7 @@ diff -Naur -x .git llvm-project.upstream/flang/lib/Lower/OpenMP.cpp llvm-project
  
          mapOperands.push_back(mapOp);
          mapSymTypes.push_back(baseOp.getType());
-@@ -2953,7 +3255,9 @@
+@@ -2956,7 +3295,9 @@
  
    auto targetOp = converter.getFirOpBuilder().create<mlir::omp::TargetOp>(
        currentLocation, ifClauseOperand, deviceOperand, threadLimitOperand,
@@ -682,7 +774,7 @@ diff -Naur -x .git llvm-project.upstream/flang/lib/Lower/OpenMP.cpp llvm-project
  
    genBodyOfTargetOp(converter, eval, genNested, targetOp, mapSymTypes,
                      mapSymLocs, mapSymbols, currentLocation);
-@@ -2978,20 +3282,63 @@
+@@ -2981,20 +3322,68 @@
                 ifClauseOperand);
    cp.processAllocate(allocatorOperands, allocateOperands);
    cp.processDefault();
@@ -749,11 +841,16 @@ diff -Naur -x .git llvm-project.upstream/flang/lib/Lower/OpenMP.cpp llvm-project
 +  // ...
 +
 +  return genOpWithBody<mlir::omp::DistributeOp>(
-+      converter, eval, genNested, currentLocation, outerCombined, &clauseList);
++      converter, eval, genNested, currentLocation, outerCombined, &clauseList,
++      /*dist_schedule_static=*/nullptr,
++      /*chunk_size=*/nullptr,
++      /*allocate_vars=*/mlir::ValueRange(),
++      /*allocators_vars=*/mlir::ValueRange(),
++      /*order_val=*/nullptr);
  }
  
  /// Extract the list of function and variable symbols affected by the given
-@@ -3060,10 +3407,6 @@
+@@ -3063,10 +3452,6 @@
    return std::nullopt;
  }
  
@@ -764,7 +861,7 @@ diff -Naur -x .git llvm-project.upstream/flang/lib/Lower/OpenMP.cpp llvm-project
  static void
  genOmpSimpleStandalone(Fortran::lower::AbstractConverter &converter,
                         Fortran::lower::pft::Evaluation &eval,
-@@ -3134,6 +3477,10 @@
+@@ -3137,6 +3522,10 @@
        converter.getCurrentLocation(), operandRange);
  }
  
@@ -775,7 +872,7 @@ diff -Naur -x .git llvm-project.upstream/flang/lib/Lower/OpenMP.cpp llvm-project
  static void
  genOMP(Fortran::lower::AbstractConverter &converter,
         Fortran::lower::SymMap &symTable,
-@@ -3306,6 +3653,26 @@
+@@ -3309,6 +3698,26 @@
    createBodyOfOp<mlir::omp::WsLoopOp>(wsLoopOp, converter, loc, *nestedEval,
                                        /*genNested=*/true, &beginClauseList, iv,
                                        /*outer=*/false, &dsp);
@@ -802,7 +899,7 @@ diff -Naur -x .git llvm-project.upstream/flang/lib/Lower/OpenMP.cpp llvm-project
  }
  
  static void genOMP(Fortran::lower::AbstractConverter &converter,
-@@ -3355,7 +3722,9 @@
+@@ -3358,7 +3767,9 @@
      }
      if (llvm::omp::allDistributeSet.test(ompDirective)) {
        validDirective = true;
@@ -813,7 +910,7 @@ diff -Naur -x .git llvm-project.upstream/flang/lib/Lower/OpenMP.cpp llvm-project
      }
      if ((llvm::omp::allParallelSet & llvm::omp::loopConstructSet)
              .test(ompDirective)) {
-@@ -3469,8 +3838,7 @@
+@@ -3472,8 +3883,7 @@
      break;
    case llvm::omp::Directive::OMPD_teams:
      genTeamsOp(converter, eval, /*genNested=*/true, currentLocation,
@@ -823,9 +920,72 @@ diff -Naur -x .git llvm-project.upstream/flang/lib/Lower/OpenMP.cpp llvm-project
      break;
    case llvm::omp::Directive::OMPD_workshare:
      TODO(currentLocation, "Workshare construct");
+diff -Naur -x .git llvm-project.upstream/flang/lib/Optimizer/Builder/IntrinsicCall.cpp llvm-project/flang/lib/Optimizer/Builder/IntrinsicCall.cpp
+--- llvm-project.upstream/flang/lib/Optimizer/Builder/IntrinsicCall.cpp	2024-01-25 08:49:19.713914414 -0600
++++ llvm-project/flang/lib/Optimizer/Builder/IntrinsicCall.cpp	2024-01-25 17:06:01.786706769 -0600
+@@ -179,6 +179,7 @@
+      {{{"x", asValue}, {"y", asValue, handleDynamicOptional}}}},
+     {"command_argument_count", &I::genCommandArgumentCount},
+     {"conjg", &I::genConjg},
++    {"cosd", &I::genCosd},
+     {"count",
+      &I::genCount,
+      {{{"mask", asAddr}, {"dim", asValue}, {"kind", asValue}}},
+@@ -550,6 +551,7 @@
+     {"shiftl", &I::genShift<mlir::arith::ShLIOp>},
+     {"shiftr", &I::genShift<mlir::arith::ShRUIOp>},
+     {"sign", &I::genSign},
++    {"sind", &I::genSind},
+     {"size",
+      &I::genSize,
+      {{{"array", asBox},
+@@ -2639,6 +2641,21 @@
+       cplx, negImag, /*isImagPart=*/true);
+ }
+ 
++// COSD
++mlir::Value IntrinsicLibrary::genCosd(mlir::Type resultType,
++                                      llvm::ArrayRef<mlir::Value> args) {
++  assert(args.size() == 1);
++  mlir::MLIRContext *context = builder.getContext();
++  mlir::FunctionType ftype =
++      mlir::FunctionType::get(context, {resultType}, {args[0].getType()});
++  llvm::APFloat pi = llvm::APFloat(llvm::numbers::pi);
++  mlir::Value dfactor = builder.createRealConstant(
++      loc, mlir::FloatType::getF64(context), pi / llvm::APFloat(180.0));
++  mlir::Value factor = builder.createConvert(loc, args[0].getType(), dfactor);
++  mlir::Value arg = builder.create<mlir::arith::MulFOp>(loc, args[0], factor);
++  return getRuntimeCallGenerator("cos", ftype)(builder, loc, {arg});
++}
++
+ // COUNT
+ fir::ExtendedValue
+ IntrinsicLibrary::genCount(mlir::Type resultType,
+@@ -5593,6 +5610,21 @@
+   return genRuntimeCall("sign", resultType, args);
+ }
+ 
++// SIND
++mlir::Value IntrinsicLibrary::genSind(mlir::Type resultType,
++                                      llvm::ArrayRef<mlir::Value> args) {
++  assert(args.size() == 1);
++  mlir::MLIRContext *context = builder.getContext();
++  mlir::FunctionType ftype =
++      mlir::FunctionType::get(context, {resultType}, {args[0].getType()});
++  llvm::APFloat pi = llvm::APFloat(llvm::numbers::pi);
++  mlir::Value dfactor = builder.createRealConstant(
++      loc, mlir::FloatType::getF64(context), pi / llvm::APFloat(180.0));
++  mlir::Value factor = builder.createConvert(loc, args[0].getType(), dfactor);
++  mlir::Value arg = builder.create<mlir::arith::MulFOp>(loc, args[0], factor);
++  return getRuntimeCallGenerator("sin", ftype)(builder, loc, {arg});
++}
++
+ // SIZE
+ fir::ExtendedValue
+ IntrinsicLibrary::genSize(mlir::Type resultType,
 diff -Naur -x .git llvm-project.upstream/flang/lib/Optimizer/CodeGen/CMakeLists.txt llvm-project/flang/lib/Optimizer/CodeGen/CMakeLists.txt
---- llvm-project.upstream/flang/lib/Optimizer/CodeGen/CMakeLists.txt	2023-10-11 15:46:10.931814324 -0400
-+++ llvm-project/flang/lib/Optimizer/CodeGen/CMakeLists.txt	2024-01-23 10:31:07.673925050 -0500
+--- llvm-project.upstream/flang/lib/Optimizer/CodeGen/CMakeLists.txt	2024-01-25 08:49:19.713914414 -0600
++++ llvm-project/flang/lib/Optimizer/CodeGen/CMakeLists.txt	2024-01-25 08:22:25.774439315 -0600
 @@ -1,4 +1,5 @@
  add_flang_library(FIRCodeGen
 +  CodeGenOpenMP.cpp
@@ -833,8 +993,8 @@ diff -Naur -x .git llvm-project.upstream/flang/lib/Optimizer/CodeGen/CMakeLists.
    CGOps.cpp
    CodeGen.cpp
 diff -Naur -x .git llvm-project.upstream/flang/lib/Optimizer/CodeGen/CodeGen.cpp llvm-project/flang/lib/Optimizer/CodeGen/CodeGen.cpp
---- llvm-project.upstream/flang/lib/Optimizer/CodeGen/CodeGen.cpp	2024-01-23 09:59:12.954705450 -0500
-+++ llvm-project/flang/lib/Optimizer/CodeGen/CodeGen.cpp	2024-01-23 10:31:07.673925050 -0500
+--- llvm-project.upstream/flang/lib/Optimizer/CodeGen/CodeGen.cpp	2024-01-25 08:49:19.713914414 -0600
++++ llvm-project/flang/lib/Optimizer/CodeGen/CodeGen.cpp	2024-01-25 08:22:25.774439315 -0600
 @@ -13,6 +13,7 @@
  #include "flang/Optimizer/CodeGen/CodeGen.h"
  
@@ -856,8 +1016,8 @@ diff -Naur -x .git llvm-project.upstream/flang/lib/Optimizer/CodeGen/CodeGen.cpp
      target.addLegalDialect<mlir::LLVM::LLVMDialect>();
      // The OpenMP dialect is legal for Operations without regions, for those
 diff -Naur -x .git llvm-project.upstream/flang/lib/Optimizer/CodeGen/CodeGenOpenMP.cpp llvm-project/flang/lib/Optimizer/CodeGen/CodeGenOpenMP.cpp
---- llvm-project.upstream/flang/lib/Optimizer/CodeGen/CodeGenOpenMP.cpp	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/flang/lib/Optimizer/CodeGen/CodeGenOpenMP.cpp	2024-01-23 10:31:07.673925050 -0500
+--- llvm-project.upstream/flang/lib/Optimizer/CodeGen/CodeGenOpenMP.cpp	1969-12-31 18:00:00.000000000 -0600
++++ llvm-project/flang/lib/Optimizer/CodeGen/CodeGenOpenMP.cpp	2024-01-25 08:22:25.774439315 -0600
 @@ -0,0 +1,86 @@
 +#include "flang/Optimizer/CodeGen/CodeGenOpenMP.h"
 +
@@ -946,8 +1106,8 @@ diff -Naur -x .git llvm-project.upstream/flang/lib/Optimizer/CodeGen/CodeGenOpen
 +  patterns.add<MapInfoOpConversion>(converter);
 +}
 diff -Naur -x .git llvm-project.upstream/flang/lib/Optimizer/Dialect/FIRType.cpp llvm-project/flang/lib/Optimizer/Dialect/FIRType.cpp
---- llvm-project.upstream/flang/lib/Optimizer/Dialect/FIRType.cpp	2024-01-10 11:07:34.896621145 -0500
-+++ llvm-project/flang/lib/Optimizer/Dialect/FIRType.cpp	2024-01-23 10:31:07.673925050 -0500
+--- llvm-project.upstream/flang/lib/Optimizer/Dialect/FIRType.cpp	2024-01-25 08:49:19.713914414 -0600
++++ llvm-project/flang/lib/Optimizer/Dialect/FIRType.cpp	2024-01-25 08:22:25.774439315 -0600
 @@ -333,6 +333,12 @@
    return false;
  }
@@ -962,8 +1122,8 @@ diff -Naur -x .git llvm-project.upstream/flang/lib/Optimizer/Dialect/FIRType.cpp
    // CLASS(T) or CLASS(*)
    if (mlir::isa<fir::ClassType>(fir::unwrapRefType(ty)))
 diff -Naur -x .git llvm-project.upstream/flang/test/Integration/OpenMP/map-types-and-sizes.f90 llvm-project/flang/test/Integration/OpenMP/map-types-and-sizes.f90
---- llvm-project.upstream/flang/test/Integration/OpenMP/map-types-and-sizes.f90	2023-12-18 11:20:49.359182832 -0500
-+++ llvm-project/flang/test/Integration/OpenMP/map-types-and-sizes.f90	2024-01-23 10:31:07.673925050 -0500
+--- llvm-project.upstream/flang/test/Integration/OpenMP/map-types-and-sizes.f90	2024-01-25 08:49:19.753914594 -0600
++++ llvm-project/flang/test/Integration/OpenMP/map-types-and-sizes.f90	2024-01-25 08:22:25.774439315 -0600
 @@ -30,8 +30,8 @@
    !$omp end target
  end subroutine mapType_array
@@ -1040,8 +1200,8 @@ diff -Naur -x .git llvm-project.upstream/flang/test/Integration/OpenMP/map-types
 +!CHECK: store i64 %[[DIV]], ptr %[[OFFLOAD_SIZE_ARR]], align 8
 \ No newline at end of file
 diff -Naur -x .git llvm-project.upstream/flang/test/Integration/OpenMP/target-filtering.f90 llvm-project/flang/test/Integration/OpenMP/target-filtering.f90
---- llvm-project.upstream/flang/test/Integration/OpenMP/target-filtering.f90	2023-12-18 11:20:49.359182832 -0500
-+++ llvm-project/flang/test/Integration/OpenMP/target-filtering.f90	2024-01-23 10:31:07.673925050 -0500
+--- llvm-project.upstream/flang/test/Integration/OpenMP/target-filtering.f90	2024-01-25 08:49:19.753914594 -0600
++++ llvm-project/flang/test/Integration/OpenMP/target-filtering.f90	2024-01-25 08:22:25.774439315 -0600
 @@ -7,7 +7,7 @@
  !===----------------------------------------------------------------------===!
  
@@ -1051,9 +1211,69 @@ diff -Naur -x .git llvm-project.upstream/flang/test/Integration/OpenMP/target-fi
  
  !HOST: define {{.*}}@{{.*}}before{{.*}}(
  !DEVICE-NOT: define {{.*}}@before{{.*}}(
+diff -Naur -x .git llvm-project.upstream/flang/test/Lower/Intrinsics/cosd.f90 llvm-project/flang/test/Lower/Intrinsics/cosd.f90
+--- llvm-project.upstream/flang/test/Lower/Intrinsics/cosd.f90	1969-12-31 18:00:00.000000000 -0600
++++ llvm-project/flang/test/Lower/Intrinsics/cosd.f90	2024-01-25 17:06:01.786706769 -0600
+@@ -0,0 +1,26 @@
++! RUN: bbc -emit-fir %s -o - | FileCheck %s --check-prefixes="CHECK,CHECK-FAST"
++! RUN: bbc --math-runtime=precise -emit-fir %s -o - | FileCheck %s --check-prefixes="CHECK,CHECK-PRECISE"
++! RUN: %flang_fc1 -emit-fir %s -o - | FileCheck %s --check-prefixes="CHECK,CHECK-FAST"
++
++function test_real4(x)
++  real :: x, test_real4
++  test_real4 = cosd(x)
++end function
++
++! CHECK-LABEL: @_QPtest_real4
++! CHECK: %[[dfactor:.*]] = arith.constant 0.017453292519943295 : f64
++! CHECK: %[[factor:.*]] = fir.convert %[[dfactor]] : (f64) -> f32
++! CHECK: %[[arg:.*]] = arith.mulf %{{[A-Za-z0-9._]+}}, %[[factor]] fastmath<contract> : f32
++! CHECK-PRECISE: %{{.*}} = fir.call @cosf(%[[arg]]) fastmath<contract> : (f32) -> f32
++! CHECK-FAST: %{{.*}} = math.cos %[[arg]] fastmath<contract> : f32
++
++function test_real8(x)
++  real(8) :: x, test_real8
++  test_real8 = cosd(x)
++end function
++
++! CHECK-LABEL: @_QPtest_real8
++! CHECK: %[[factor:.*]] = arith.constant 0.017453292519943295 : f64
++! CHECK: %[[arg:.*]] = arith.mulf %{{[A-Za-z0-9._]+}}, %[[factor]] fastmath<contract> : f64
++! CHECK-PRECISE: %{{.*}} = fir.call @cos(%[[arg]]) fastmath<contract> : (f64) -> f64
++! CHECK-FAST: %{{.*}} = math.cos %[[arg]] fastmath<contract> : f64
+diff -Naur -x .git llvm-project.upstream/flang/test/Lower/Intrinsics/sind.f90 llvm-project/flang/test/Lower/Intrinsics/sind.f90
+--- llvm-project.upstream/flang/test/Lower/Intrinsics/sind.f90	1969-12-31 18:00:00.000000000 -0600
++++ llvm-project/flang/test/Lower/Intrinsics/sind.f90	2024-01-25 17:06:01.786706769 -0600
+@@ -0,0 +1,26 @@
++! RUN: bbc -emit-fir %s -o - | FileCheck %s --check-prefixes="CHECK,CHECK-FAST"
++! RUN: bbc --math-runtime=precise -emit-fir %s -o - | FileCheck %s --check-prefixes="CHECK,CHECK-PRECISE"
++! RUN: %flang_fc1 -emit-fir %s -o - | FileCheck %s --check-prefixes="CHECK,CHECK-FAST"
++
++function test_real4(x)
++  real :: x, test_real4
++  test_real4 = sind(x)
++end function
++
++! CHECK-LABEL: @_QPtest_real4
++! CHECK: %[[dfactor:.*]] = arith.constant 0.017453292519943295 : f64
++! CHECK: %[[factor:.*]] = fir.convert %[[dfactor]] : (f64) -> f32
++! CHECK: %[[arg:.*]] = arith.mulf %{{[A-Za-z0-9._]+}}, %[[factor]] fastmath<contract> : f32
++! CHECK-PRECISE: %{{.*}} = fir.call @sinf(%[[arg]]) fastmath<contract> : (f32) -> f32
++! CHECK-FAST: %{{.*}} = math.sin %[[arg]] fastmath<contract> : f32
++
++function test_real8(x)
++  real(8) :: x, test_real8
++  test_real8 = sind(x)
++end function
++
++! CHECK-LABEL: @_QPtest_real8
++! CHECK: %[[factor:.*]] = arith.constant 0.017453292519943295 : f64
++! CHECK: %[[arg:.*]] = arith.mulf %{{[A-Za-z0-9._]+}}, %[[factor]] fastmath<contract> : f64
++! CHECK-PRECISE: %{{.*}} = fir.call @sin(%[[arg]]) fastmath<contract> : (f64) -> f64
++! CHECK-FAST: %{{.*}} = math.sin %[[arg]] fastmath<contract> : f64
 diff -Naur -x .git llvm-project.upstream/flang/test/Lower/OpenMP/allocatable-array-bounds.f90 llvm-project/flang/test/Lower/OpenMP/allocatable-array-bounds.f90
---- llvm-project.upstream/flang/test/Lower/OpenMP/allocatable-array-bounds.f90	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/flang/test/Lower/OpenMP/allocatable-array-bounds.f90	2024-01-23 10:31:07.677925039 -0500
+--- llvm-project.upstream/flang/test/Lower/OpenMP/allocatable-array-bounds.f90	1969-12-31 18:00:00.000000000 -0600
++++ llvm-project/flang/test/Lower/OpenMP/allocatable-array-bounds.f90	2024-01-25 08:22:25.774439315 -0600
 @@ -0,0 +1,121 @@
 +!RUN: %flang_fc1 -emit-hlfir -fopenmp %s -o - | FileCheck %s --check-prefixes HOST
 +
@@ -1178,8 +1398,8 @@ diff -Naur -x .git llvm-project.upstream/flang/test/Lower/OpenMP/allocatable-arr
 +end subroutine call_assumed_shape_and_size_array
 \ No newline at end of file
 diff -Naur -x .git llvm-project.upstream/flang/test/Lower/OpenMP/allocatable-map.f90 llvm-project/flang/test/Lower/OpenMP/allocatable-map.f90
---- llvm-project.upstream/flang/test/Lower/OpenMP/allocatable-map.f90	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/flang/test/Lower/OpenMP/allocatable-map.f90	2024-01-23 10:31:07.677925039 -0500
+--- llvm-project.upstream/flang/test/Lower/OpenMP/allocatable-map.f90	1969-12-31 18:00:00.000000000 -0600
++++ llvm-project/flang/test/Lower/OpenMP/allocatable-map.f90	2024-01-25 08:22:25.774439315 -0600
 @@ -0,0 +1,15 @@
 +!RUN: %flang_fc1 -emit-hlfir -fopenmp %s -o - | FileCheck %s --check-prefixes="HLFIRDIALECT"
 +
@@ -1197,8 +1417,8 @@ diff -Naur -x .git llvm-project.upstream/flang/test/Lower/OpenMP/allocatable-map
 +!$omp end target
 +end subroutine pointer_routine
 diff -Naur -x .git llvm-project.upstream/flang/test/Lower/OpenMP/array-bounds.f90 llvm-project/flang/test/Lower/OpenMP/array-bounds.f90
---- llvm-project.upstream/flang/test/Lower/OpenMP/array-bounds.f90	2023-12-18 11:20:49.367182801 -0500
-+++ llvm-project/flang/test/Lower/OpenMP/array-bounds.f90	2024-01-23 10:31:07.677925039 -0500
+--- llvm-project.upstream/flang/test/Lower/OpenMP/array-bounds.f90	2024-01-25 08:49:19.769914664 -0600
++++ llvm-project/flang/test/Lower/OpenMP/array-bounds.f90	2024-01-25 08:22:25.774439315 -0600
 @@ -40,6 +40,7 @@
  
  !HOST-LABEL: func.func @_QMassumed_array_routinesPassumed_shape_array(
@@ -1259,8 +1479,8 @@ diff -Naur -x .git llvm-project.upstream/flang/test/Lower/OpenMP/array-bounds.f9
  !HOST-LABEL:func.func @_QPcall_assumed_shape_and_size_array() {
  !HOST: %[[C20:.*]] = arith.constant 20 : index
 diff -Naur -x .git llvm-project.upstream/flang/test/Lower/OpenMP/FIR/array-bounds.f90 llvm-project/flang/test/Lower/OpenMP/FIR/array-bounds.f90
---- llvm-project.upstream/flang/test/Lower/OpenMP/FIR/array-bounds.f90	2023-12-18 11:20:49.367182801 -0500
-+++ llvm-project/flang/test/Lower/OpenMP/FIR/array-bounds.f90	2024-01-23 10:31:07.673925050 -0500
+--- llvm-project.upstream/flang/test/Lower/OpenMP/FIR/array-bounds.f90	2024-01-25 08:49:19.765914649 -0600
++++ llvm-project/flang/test/Lower/OpenMP/FIR/array-bounds.f90	2024-01-25 08:22:25.774439315 -0600
 @@ -35,6 +35,7 @@
  contains
  !ALL-LABEL: func.func @_QMassumed_array_routinesPassumed_shape_array(
@@ -1333,8 +1553,8 @@ diff -Naur -x .git llvm-project.upstream/flang/test/Lower/OpenMP/FIR/array-bound
      use assumed_array_routines
      integer :: arr_read_write(20)
 diff -Naur -x .git llvm-project.upstream/flang/test/Lower/OpenMP/FIR/if-clause.f90 llvm-project/flang/test/Lower/OpenMP/FIR/if-clause.f90
---- llvm-project.upstream/flang/test/Lower/OpenMP/FIR/if-clause.f90	2023-09-26 09:25:56.793801347 -0400
-+++ llvm-project/flang/test/Lower/OpenMP/FIR/if-clause.f90	2024-01-23 10:31:07.673925050 -0500
+--- llvm-project.upstream/flang/test/Lower/OpenMP/FIR/if-clause.f90	2024-01-25 08:49:19.765914649 -0600
++++ llvm-project/flang/test/Lower/OpenMP/FIR/if-clause.f90	2024-01-25 08:22:25.774439315 -0600
 @@ -7,23 +7,147 @@
    integer :: i
  
@@ -2225,8 +2445,8 @@ diff -Naur -x .git llvm-project.upstream/flang/test/Lower/OpenMP/FIR/if-clause.f
    ! ----------------------------------------------------------------------------
    ! CHECK:      omp.teams
 diff -Naur -x .git llvm-project.upstream/flang/test/Lower/OpenMP/FIR/loop-combined.f90 llvm-project/flang/test/Lower/OpenMP/FIR/loop-combined.f90
---- llvm-project.upstream/flang/test/Lower/OpenMP/FIR/loop-combined.f90	2023-09-26 09:25:56.793801347 -0400
-+++ llvm-project/flang/test/Lower/OpenMP/FIR/loop-combined.f90	2024-01-23 10:31:07.677925039 -0500
+--- llvm-project.upstream/flang/test/Lower/OpenMP/FIR/loop-combined.f90	2024-01-25 08:49:19.765914649 -0600
++++ llvm-project/flang/test/Lower/OpenMP/FIR/loop-combined.f90	2024-01-25 08:22:25.774439315 -0600
 @@ -6,19 +6,51 @@
  program main
    integer :: i
@@ -2410,8 +2630,8 @@ diff -Naur -x .git llvm-project.upstream/flang/test/Lower/OpenMP/FIR/loop-combin
 +
  end program main
 diff -Naur -x .git llvm-project.upstream/flang/test/Lower/OpenMP/FIR/mismatched-bound-types.f90 llvm-project/flang/test/Lower/OpenMP/FIR/mismatched-bound-types.f90
---- llvm-project.upstream/flang/test/Lower/OpenMP/FIR/mismatched-bound-types.f90	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/flang/test/Lower/OpenMP/FIR/mismatched-bound-types.f90	2024-01-23 10:31:07.677925039 -0500
+--- llvm-project.upstream/flang/test/Lower/OpenMP/FIR/mismatched-bound-types.f90	1969-12-31 18:00:00.000000000 -0600
++++ llvm-project/flang/test/Lower/OpenMP/FIR/mismatched-bound-types.f90	2024-01-25 08:22:25.774439315 -0600
 @@ -0,0 +1,23 @@
 +! RUN: %flang_fc1 -fopenmp -emit-fir %s -o - | FileCheck %s
 +
@@ -2437,8 +2657,8 @@ diff -Naur -x .git llvm-project.upstream/flang/test/Lower/OpenMP/FIR/mismatched-
 +
 +end module Test
 diff -Naur -x .git llvm-project.upstream/flang/test/Lower/OpenMP/FIR/target.f90 llvm-project/flang/test/Lower/OpenMP/FIR/target.f90
---- llvm-project.upstream/flang/test/Lower/OpenMP/FIR/target.f90	2024-01-02 11:37:59.677301279 -0500
-+++ llvm-project/flang/test/Lower/OpenMP/FIR/target.f90	2024-01-23 10:31:07.677925039 -0500
+--- llvm-project.upstream/flang/test/Lower/OpenMP/FIR/target.f90	2024-01-25 08:49:19.765914649 -0600
++++ llvm-project/flang/test/Lower/OpenMP/FIR/target.f90	2024-01-25 08:22:25.774439315 -0600
 @@ -411,8 +411,8 @@
  !CHECK-LABEL: func.func @_QPomp_target_thread_limit() {
  subroutine omp_target_thread_limit
@@ -2461,8 +2681,8 @@ diff -Naur -x .git llvm-project.upstream/flang/test/Lower/OpenMP/FIR/target.f90 
     !$omp target data map(tofrom: a) use_device_addr(a)
     !CHECK: ^bb0(%[[VAL_1:.*]]: !fir.ref<!fir.box<!fir.ptr<i32>>>):
 diff -Naur -x .git llvm-project.upstream/flang/test/Lower/OpenMP/function-filtering-2.f90 llvm-project/flang/test/Lower/OpenMP/function-filtering-2.f90
---- llvm-project.upstream/flang/test/Lower/OpenMP/function-filtering-2.f90	2023-12-18 11:20:49.367182801 -0500
-+++ llvm-project/flang/test/Lower/OpenMP/function-filtering-2.f90	2024-01-23 10:31:07.677925039 -0500
+--- llvm-project.upstream/flang/test/Lower/OpenMP/function-filtering-2.f90	2024-01-25 08:49:19.769914664 -0600
++++ llvm-project/flang/test/Lower/OpenMP/function-filtering-2.f90	2024-01-25 08:22:25.774439315 -0600
 @@ -1,9 +1,9 @@
  ! RUN: %flang_fc1 -fopenmp -flang-experimental-hlfir -emit-llvm %s -o - | FileCheck --check-prefix=LLVM %s
  ! RUN: %flang_fc1 -fopenmp -emit-hlfir %s -o - | FileCheck --check-prefix=MLIR %s
@@ -2477,8 +2697,8 @@ diff -Naur -x .git llvm-project.upstream/flang/test/Lower/OpenMP/function-filter
  ! MLIR: func.func @{{.*}}implicit_invocation() attributes {omp.declare_target = #omp.declaretarget<device_type = (nohost), capture_clause = (to)>}
  ! MLIR: return
 diff -Naur -x .git llvm-project.upstream/flang/test/Lower/OpenMP/function-filtering.f90 llvm-project/flang/test/Lower/OpenMP/function-filtering.f90
---- llvm-project.upstream/flang/test/Lower/OpenMP/function-filtering.f90	2023-12-18 11:20:49.367182801 -0500
-+++ llvm-project/flang/test/Lower/OpenMP/function-filtering.f90	2024-01-23 10:31:07.677925039 -0500
+--- llvm-project.upstream/flang/test/Lower/OpenMP/function-filtering.f90	2024-01-25 08:49:19.769914664 -0600
++++ llvm-project/flang/test/Lower/OpenMP/function-filtering.f90	2024-01-25 08:22:25.774439315 -0600
 @@ -1,9 +1,9 @@
  ! RUN: %flang_fc1 -fopenmp -flang-experimental-hlfir -emit-llvm %s -o - | FileCheck --check-prefixes=LLVM-HOST,LLVM-ALL %s
  ! RUN: %flang_fc1 -fopenmp -emit-hlfir %s -o - | FileCheck --check-prefixes=MLIR-HOST,MLIR-ALL %s
@@ -2493,8 +2713,8 @@ diff -Naur -x .git llvm-project.upstream/flang/test/Lower/OpenMP/function-filter
  ! Check that the correct LLVM IR functions are kept for the host and device
  ! after running the whole set of translation and transformation passes from
 diff -Naur -x .git llvm-project.upstream/flang/test/Lower/OpenMP/loop-lifetime.f90 llvm-project/flang/test/Lower/OpenMP/loop-lifetime.f90
---- llvm-project.upstream/flang/test/Lower/OpenMP/loop-lifetime.f90	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/flang/test/Lower/OpenMP/loop-lifetime.f90	2024-01-23 10:31:07.677925039 -0500
+--- llvm-project.upstream/flang/test/Lower/OpenMP/loop-lifetime.f90	1969-12-31 18:00:00.000000000 -0600
++++ llvm-project/flang/test/Lower/OpenMP/loop-lifetime.f90	2024-01-25 08:22:25.774439315 -0600
 @@ -0,0 +1,87 @@
 +! This test checks the insertion of lifetime information for loop indices of
 +! OpenMP loop operations.
@@ -2583,9 +2803,56 @@ diff -Naur -x .git llvm-project.upstream/flang/test/Lower/OpenMP/loop-lifetime.f
 +  end do
 +  !$omp end simd 
 +end subroutine
+diff -Naur -x .git llvm-project.upstream/flang/test/Lower/OpenMP/reduction_var_map.f90 llvm-project/flang/test/Lower/OpenMP/reduction_var_map.f90
+--- llvm-project.upstream/flang/test/Lower/OpenMP/reduction_var_map.f90	1969-12-31 18:00:00.000000000 -0600
++++ llvm-project/flang/test/Lower/OpenMP/reduction_var_map.f90	2024-01-25 08:22:25.774439315 -0600
+@@ -0,0 +1,43 @@
++!RUN: %flang_fc1 -emit-hlfir -fopenmp %s -o - | FileCheck %s
++
++! This test checks that if reduction clause is on a combined target
++! construct, there is an implicit map(tofrom) for each reduction variable.
++
++! construct with target
++subroutine omp_target_combined
++   implicit none
++   integer(kind = 8) :: s1
++   integer(kind = 8) :: s2
++   integer(kind = 4) ::  i
++   s1 = 1
++   s2 = 1
++   !$omp target teams distribute parallel do reduction(+:s1) reduction(+:s2)
++      do i=1,1000
++          s1 = s1 + i
++          s2 = s2 + i
++      end do
++   !$omp end target teams distribute parallel do
++   return
++end subroutine omp_target_combined
++!CHECK-LABEL: func.func @_QPomp_target_combined() {
++!CHECK: omp.map_info var_ptr({{.*}} : !fir.ref<i64>, i64) map_clauses(implicit, tofrom) capture(ByRef) -> !fir.ref<i64> {name = "s1"}
++!CHECK: omp.map_info var_ptr({{.*}} : !fir.ref<i64>, i64) map_clauses(implicit, tofrom) capture(ByRef) -> !fir.ref<i64> {name = "s2"}
++!CHECK: omp.map_info var_ptr({{.*}} : !fir.ref<i32>, i32) map_clauses(implicit, exit_release_or_enter_alloc) capture(ByCopy) -> !fir.ref<i32> {name = "i"}
++
++subroutine omp_target_team_separate
++   implicit none
++   integer(kind = 8) :: s3
++   integer i
++   s3 = 1
++   !$omp target
++   s3 = 2
++   !$omp teams distribute parallel do reduction(+:s3)
++      do i=1,1000
++         s3 = s3 + i
++      end do
++   !$omp end teams distribute parallel do
++   !$omp end target
++   return
++end subroutine omp_target_team_separate
++!CHECK-LABEL: func.func @_QPomp_target_team_separate() {
++!CHECK:  omp.map_info var_ptr({{.*}} : !fir.ref<i64>, i64) map_clauses(implicit, exit_release_or_enter_alloc) capture(ByCopy) -> !fir.ref<i64> {name = "s3"}
 diff -Naur -x .git llvm-project.upstream/flang/test/Lower/OpenMP/target.f90 llvm-project/flang/test/Lower/OpenMP/target.f90
---- llvm-project.upstream/flang/test/Lower/OpenMP/target.f90	2024-01-02 11:37:59.677301279 -0500
-+++ llvm-project/flang/test/Lower/OpenMP/target.f90	2024-01-23 10:31:07.677925039 -0500
+--- llvm-project.upstream/flang/test/Lower/OpenMP/target.f90	2024-01-25 08:49:19.769914664 -0600
++++ llvm-project/flang/test/Lower/OpenMP/target.f90	2024-01-25 08:22:25.774439315 -0600
 @@ -405,8 +405,8 @@
  !CHECK-LABEL: func.func @_QPomp_target_thread_limit() {
  subroutine omp_target_thread_limit
@@ -2608,8 +2875,8 @@ diff -Naur -x .git llvm-project.upstream/flang/test/Lower/OpenMP/target.f90 llvm
     !$omp target data map(tofrom: a) use_device_addr(a)
     !CHECK: ^bb0(%[[VAL_1:.*]]: !fir.ref<!fir.box<!fir.ptr<i32>>>):
 diff -Naur -x .git llvm-project.upstream/flang/test/Lower/OpenMP/Todo/reduction-teams.f90 llvm-project/flang/test/Lower/OpenMP/Todo/reduction-teams.f90
---- llvm-project.upstream/flang/test/Lower/OpenMP/Todo/reduction-teams.f90	2023-08-25 16:22:57.769359629 -0400
-+++ llvm-project/flang/test/Lower/OpenMP/Todo/reduction-teams.f90	2024-01-23 10:31:07.677925039 -0500
+--- llvm-project.upstream/flang/test/Lower/OpenMP/Todo/reduction-teams.f90	2024-01-25 08:49:19.769914664 -0600
++++ llvm-project/flang/test/Lower/OpenMP/Todo/reduction-teams.f90	2024-01-25 08:22:25.774439315 -0600
 @@ -1,7 +1,7 @@
  ! RUN: %not_todo_cmd bbc -emit-fir -fopenmp -o - %s 2>&1 | FileCheck %s
  ! RUN: %not_todo_cmd %flang_fc1 -emit-fir -fopenmp -o - %s 2>&1 | FileCheck %s
@@ -2620,8 +2887,8 @@ diff -Naur -x .git llvm-project.upstream/flang/test/Lower/OpenMP/Todo/reduction-
    integer :: i
    i = 0
 diff -Naur -x .git llvm-project.upstream/llvm/include/llvm/Frontend/OpenMP/OMPIRBuilder.h llvm-project/llvm/include/llvm/Frontend/OpenMP/OMPIRBuilder.h
---- llvm-project.upstream/llvm/include/llvm/Frontend/OpenMP/OMPIRBuilder.h	2024-01-04 00:01:56.473494468 -0500
-+++ llvm-project/llvm/include/llvm/Frontend/OpenMP/OMPIRBuilder.h	2024-01-23 10:31:07.725924918 -0500
+--- llvm-project.upstream/llvm/include/llvm/Frontend/OpenMP/OMPIRBuilder.h	2024-01-25 08:49:21.045920376 -0600
++++ llvm-project/llvm/include/llvm/Frontend/OpenMP/OMPIRBuilder.h	2024-01-25 08:22:25.802439458 -0600
 @@ -16,6 +16,7 @@
  
  #include "llvm/Analysis/MemorySSAUpdater.h"
@@ -2951,8 +3218,8 @@ diff -Naur -x .git llvm-project.upstream/llvm/include/llvm/Frontend/OpenMP/OMPIR
                               GenMapInfoCallbackTy GenMapInfoCB,
                               TargetBodyGenCallbackTy BodyGenCB,
 diff -Naur -x .git llvm-project.upstream/llvm/lib/Frontend/OpenMP/OMPIRBuilder.cpp llvm-project/llvm/lib/Frontend/OpenMP/OMPIRBuilder.cpp
---- llvm-project.upstream/llvm/lib/Frontend/OpenMP/OMPIRBuilder.cpp	2024-01-23 09:59:13.178704876 -0500
-+++ llvm-project/llvm/lib/Frontend/OpenMP/OMPIRBuilder.cpp	2024-01-23 10:31:07.761924827 -0500
+--- llvm-project.upstream/llvm/lib/Frontend/OpenMP/OMPIRBuilder.cpp	2024-01-25 08:49:21.217921148 -0600
++++ llvm-project/llvm/lib/Frontend/OpenMP/OMPIRBuilder.cpp	2024-01-25 17:06:01.786706769 -0600
 @@ -145,10 +145,19 @@
  }
  #endif
@@ -4452,21 +4719,18 @@ diff -Naur -x .git llvm-project.upstream/llvm/lib/Frontend/OpenMP/OMPIRBuilder.c
  
    // We need to strip the debug prefix to get the correct kernel name.
    StringRef KernelName = Kernel->getName();
-@@ -4537,7 +5712,12 @@
+@@ -4537,9 +5712,8 @@
            ? KernelEnvironmentGV
            : ConstantExpr::getAddrSpaceCast(KernelEnvironmentGV,
                                             KernelEnvironmentPtr);
 -  Value *KernelLaunchEnvironment = Kernel->getArg(0);
-+  LLVMContext &Ctx = Fn->getContext();
-+  Type *PtrTy = PointerType::getUnqual(Ctx);
-+  Value *KLEnv = Builder.CreateAlloca(PtrTy, nullptr, "kernel_launch_env");
-+  Value *KLEnvAcast = Builder.CreatePointerBitCastOrAddrSpaceCast(KLEnv, PtrTy);
-+  Builder.CreateStore(Kernel->getArg(0), KLEnvAcast);
-+  Value *KernelLaunchEnvironment = Builder.CreateLoad(PtrTy, KLEnvAcast);
    CallInst *ThreadKind =
-       Builder.CreateCall(Fn, {KernelEnvironment, KernelLaunchEnvironment});
+-      Builder.CreateCall(Fn, {KernelEnvironment, KernelLaunchEnvironment});
++      Builder.CreateCall(Fn, {KernelEnvironment, Kernel->getArg(0)});
  
-@@ -4713,6 +5893,11 @@
+   Value *ExecUserCode = Builder.CreateICmpEQ(
+       ThreadKind, ConstantInt::get(ThreadKind->getType(), -1),
+@@ -4713,6 +5887,11 @@
      if (T.isAMDGCN())
        OutlinedFn->setCallingConv(CallingConv::AMDGPU_KERNEL);
    }
@@ -4478,7 +4742,7 @@ diff -Naur -x .git llvm-project.upstream/llvm/lib/Frontend/OpenMP/OMPIRBuilder.c
  }
  
  Constant *OpenMPIRBuilder::createOutlinedFunctionID(Function *OutlinedFn,
-@@ -4977,6 +6162,45 @@
+@@ -4977,6 +6156,45 @@
    return getOrCreateRuntimeFunction(M, Name);
  }
  
@@ -4524,7 +4788,7 @@ diff -Naur -x .git llvm-project.upstream/llvm/lib/Frontend/OpenMP/OMPIRBuilder.c
  static void replaceConstatExprUsesInFuncWithInstr(ConstantExpr *ConstExpr,
                                                    Function *Func) {
    for (User *User : make_early_inc_range(ConstExpr->users()))
-@@ -4994,8 +6218,9 @@
+@@ -4994,8 +6212,9 @@
  }
  
  static Function *createOutlinedFunction(
@@ -4536,7 +4800,7 @@ diff -Naur -x .git llvm-project.upstream/llvm/lib/Frontend/OpenMP/OMPIRBuilder.c
      OpenMPIRBuilder::TargetBodyGenCallbackTy &CBFunc,
      OpenMPIRBuilder::TargetGenArgAccessorsCallbackTy &ArgAccessorFuncCB) {
    SmallVector<Type *> ParameterTypes;
-@@ -5021,6 +6246,12 @@
+@@ -5021,6 +6240,12 @@
    auto Func = Function::Create(FuncType, GlobalValue::InternalLinkage, FuncName,
                                 Builder.GetInsertBlock()->getModule());
  
@@ -4549,7 +4813,7 @@ diff -Naur -x .git llvm-project.upstream/llvm/lib/Frontend/OpenMP/OMPIRBuilder.c
    // Save insert point.
    auto OldInsertPoint = Builder.saveIP();
  
-@@ -5030,7 +6261,8 @@
+@@ -5030,7 +6255,8 @@
  
    // Insert target init call in the device compilation pass.
    if (OMPBuilder.Config.isTargetDevice())
@@ -4559,7 +4823,7 @@ diff -Naur -x .git llvm-project.upstream/llvm/lib/Frontend/OpenMP/OMPIRBuilder.c
  
    BasicBlock *UserCodeEntryBB = Builder.GetInsertBlock();
  
-@@ -5091,16 +6323,18 @@
+@@ -5091,16 +6317,18 @@
  }
  
  static void emitTargetOutlinedFunction(
@@ -4584,7 +4848,7 @@ diff -Naur -x .git llvm-project.upstream/llvm/lib/Frontend/OpenMP/OMPIRBuilder.c
                                        CBFunc, ArgAccessorFuncCB);
        };
  
-@@ -5108,12 +6342,14 @@
+@@ -5108,12 +6336,14 @@
                                        OutlinedFn, OutlinedFnID);
  }
  
@@ -4605,7 +4869,7 @@ diff -Naur -x .git llvm-project.upstream/llvm/lib/Frontend/OpenMP/OMPIRBuilder.c
  
    OpenMPIRBuilder::TargetDataInfo Info(
        /*RequiresDevicePointerInfo=*/false,
-@@ -5138,22 +6374,56 @@
+@@ -5138,22 +6368,56 @@
    unsigned NumTargetItems = MapInfo.BasePointers.size();
    // TODO: Use correct device ID
    Value *DeviceID = Builder.getInt64(OMP_DEVICEID_UNDEF);
@@ -4670,7 +4934,7 @@ diff -Naur -x .git llvm-project.upstream/llvm/lib/Frontend/OpenMP/OMPIRBuilder.c
  
    Builder.restoreIP(OMPBuilder.emitKernelLaunch(
        Builder, OutlinedFn, OutlinedFnID, EmitTargetCallFallbackCB, KArgs,
-@@ -5161,10 +6431,11 @@
+@@ -5161,10 +6425,11 @@
  }
  
  OpenMPIRBuilder::InsertPointTy OpenMPIRBuilder::createTarget(
@@ -4686,7 +4950,7 @@ diff -Naur -x .git llvm-project.upstream/llvm/lib/Frontend/OpenMP/OMPIRBuilder.c
      OpenMPIRBuilder::TargetBodyGenCallbackTy CBFunc,
      OpenMPIRBuilder::TargetGenArgAccessorsCallbackTy ArgAccessorFuncCB) {
    if (!updateToLocation(Loc))
-@@ -5174,11 +6445,12 @@
+@@ -5174,11 +6439,12 @@
  
    Function *OutlinedFn;
    Constant *OutlinedFnID;
@@ -4703,7 +4967,7 @@ diff -Naur -x .git llvm-project.upstream/llvm/lib/Frontend/OpenMP/OMPIRBuilder.c
  
    return Builder.saveIP();
  }
-@@ -6210,6 +7482,43 @@
+@@ -6210,6 +7476,43 @@
  }
  
  OpenMPIRBuilder::InsertPointTy
@@ -4747,7 +5011,7 @@ diff -Naur -x .git llvm-project.upstream/llvm/lib/Frontend/OpenMP/OMPIRBuilder.c
  OpenMPIRBuilder::createTeams(const LocationDescription &Loc,
                               BodyGenCallbackTy BodyGenCB, Value *NumTeamsLower,
                               Value *NumTeamsUpper, Value *ThreadLimit,
-@@ -6251,8 +7560,9 @@
+@@ -6251,8 +7554,9 @@
    BasicBlock *AllocaBB =
        splitBB(Builder, /*CreateBranch=*/true, "teams.alloca");
  
@@ -4759,7 +5023,7 @@ diff -Naur -x .git llvm-project.upstream/llvm/lib/Frontend/OpenMP/OMPIRBuilder.c
      assert((NumTeamsLower == nullptr || NumTeamsUpper != nullptr) &&
             "if lowerbound is non-null, then upperbound must also be non-null "
             "for bounds on num_teams");
-@@ -6305,41 +7615,45 @@
+@@ -6305,41 +7609,45 @@
    OI.ExcludeArgsFromAggregate.push_back(createFakeIntVal(
        Builder, OuterAllocaIP, ToBeDeleted, AllocaIP, "tid", true));
  
@@ -4840,9 +5104,30 @@ diff -Naur -x .git llvm-project.upstream/llvm/lib/Frontend/OpenMP/OMPIRBuilder.c
  
    addOutlineInfo(std::move(OI));
 diff -Naur -x .git llvm-project.upstream/llvm/lib/Transforms/IPO/OpenMPOpt.cpp llvm-project/llvm/lib/Transforms/IPO/OpenMPOpt.cpp
---- llvm-project.upstream/llvm/lib/Transforms/IPO/OpenMPOpt.cpp	2024-01-02 11:37:59.933300706 -0500
-+++ llvm-project/llvm/lib/Transforms/IPO/OpenMPOpt.cpp	2024-01-23 10:31:07.829924655 -0500
-@@ -535,6 +535,7 @@
+--- llvm-project.upstream/llvm/lib/Transforms/IPO/OpenMPOpt.cpp	2024-01-25 08:49:21.549922633 -0600
++++ llvm-project/llvm/lib/Transforms/IPO/OpenMPOpt.cpp	2024-01-25 08:22:25.842439659 -0600
+@@ -287,6 +287,20 @@
+         OpenMPPostLink(OpenMPPostLink) {
+ 
+     OMPBuilder.Config.IsTargetDevice = isOpenMPDevice(OMPBuilder.M);
++    const Triple T(OMPBuilder.M.getTargetTriple());
++    switch (T.getArch()) {
++    case llvm::Triple::nvptx:
++    case llvm::Triple::nvptx64:
++    case llvm::Triple::amdgcn:
++      assert(OMPBuilder.Config.IsTargetDevice &&
++             "OpenMP AMDGPU/NVPTX is only prepared to deal with device code.");
++      OMPBuilder.Config.IsGPU = true;
++      break;
++    default:
++      OMPBuilder.Config.IsGPU = false;
++      break;
++    }
++
+     OMPBuilder.initialize();
+     initializeRuntimeFunctions(M);
+     initializeInternalControlVars();
+@@ -535,6 +549,7 @@
    void recollectUses() {
      for (int Idx = 0; Idx < RFIs.size(); ++Idx)
        recollectUsesForFunction(static_cast<RuntimeFunction>(Idx));
@@ -4851,8 +5136,8 @@ diff -Naur -x .git llvm-project.upstream/llvm/lib/Transforms/IPO/OpenMPOpt.cpp l
  
    // Helper function to inherit the calling convention of the function callee.
 diff -Naur -x .git llvm-project.upstream/llvm/lib/Transforms/Utils/CodeExtractor.cpp llvm-project/llvm/lib/Transforms/Utils/CodeExtractor.cpp
---- llvm-project.upstream/llvm/lib/Transforms/Utils/CodeExtractor.cpp	2024-01-23 09:59:13.354704425 -0500
-+++ llvm-project/llvm/lib/Transforms/Utils/CodeExtractor.cpp	2024-01-23 10:31:07.833924644 -0500
+--- llvm-project.upstream/llvm/lib/Transforms/Utils/CodeExtractor.cpp	2024-01-25 08:49:21.581922778 -0600
++++ llvm-project/llvm/lib/Transforms/Utils/CodeExtractor.cpp	2024-01-25 08:22:25.842439659 -0600
 @@ -1182,6 +1182,7 @@
  
    StructType *StructArgTy = nullptr;
@@ -4927,8 +5212,8 @@ diff -Naur -x .git llvm-project.upstream/llvm/lib/Transforms/Utils/CodeExtractor
        Output = GEP;
        ++aggIdx;
 diff -Naur -x .git llvm-project.upstream/llvm/unittests/Frontend/OpenMPIRBuilderTest.cpp llvm-project/llvm/unittests/Frontend/OpenMPIRBuilderTest.cpp
---- llvm-project.upstream/llvm/unittests/Frontend/OpenMPIRBuilderTest.cpp	2023-12-18 11:20:50.503178513 -0500
-+++ llvm-project/llvm/unittests/Frontend/OpenMPIRBuilderTest.cpp	2024-01-23 10:31:08.145923853 -0500
+--- llvm-project.upstream/llvm/unittests/Frontend/OpenMPIRBuilderTest.cpp	2024-01-25 08:49:24.381935309 -0600
++++ llvm-project/llvm/unittests/Frontend/OpenMPIRBuilderTest.cpp	2024-01-25 08:22:26.054440729 -0600
 @@ -600,6 +600,7 @@
        "256-v256:256-v512:512-v1024:1024-v2048:2048-n32:64-S32-A5-G1-ni:7:8");
    OpenMPIRBuilder OMPBuilder(*M);
@@ -5148,7 +5433,40 @@ diff -Naur -x .git llvm-project.upstream/llvm/unittests/Frontend/OpenMPIRBuilder
  
    Builder.CreateRetVoid();
    OMPBuilder.finalize();
-@@ -5993,6 +6024,7 @@
+@@ -5940,8 +5971,14 @@
+   EXPECT_TRUE(isa<AllocaInst>(Alloca2));
+   auto *Store2 = Alloca2->getNextNode();
+   EXPECT_TRUE(isa<StoreInst>(Store2));
++  auto *Alloca3 = Store2->getNextNode();
++  EXPECT_TRUE(isa<AllocaInst>(Alloca3));
++  auto *Store3 = Alloca3->getNextNode();
++  EXPECT_TRUE(isa<StoreInst>(Store3));
++  auto *Load1 = Store3->getNextNode();
++  EXPECT_TRUE(isa<LoadInst>(Load1));
+ 
+-  auto *InitCall = dyn_cast<CallInst>(Store2->getNextNode());
++  auto *InitCall = dyn_cast<CallInst>(Load1->getNextNode());
+   EXPECT_NE(InitCall, nullptr);
+   EXPECT_EQ(InitCall->getCalledFunction()->getName(), "__kmpc_target_init");
+   EXPECT_EQ(InitCall->arg_size(), 2U);
+@@ -5965,12 +6002,12 @@
+   // Check user code block
+   auto *UserCodeBlock = EntryBlockBranch->getSuccessor(0);
+   EXPECT_EQ(UserCodeBlock->getName(), "user_code.entry");
+-  auto *Load1 = UserCodeBlock->getFirstNonPHI();
+-  EXPECT_TRUE(isa<LoadInst>(Load1));
+-  auto *Load2 = Load1->getNextNode();
++  auto *Load2 = UserCodeBlock->getFirstNonPHI();
+   EXPECT_TRUE(isa<LoadInst>(Load2));
++  auto *Load3 = Load2->getNextNode();
++  EXPECT_TRUE(isa<LoadInst>(Load3));
+ 
+-  auto *Value1 = Load2->getNextNode();
++  auto *Value1 = Load3->getNextNode();
+   EXPECT_EQ(Value1, Value);
+   EXPECT_EQ(Value1->getNextNode(), TargetStore);
+   auto *Deinit = TargetStore->getNextNode();
+@@ -5993,6 +6030,7 @@
    using InsertPointTy = OpenMPIRBuilder::InsertPointTy;
    OpenMPIRBuilder OMPBuilder(*M);
    OMPBuilder.Config.IsTargetDevice = false;
@@ -5156,7 +5474,7 @@ diff -Naur -x .git llvm-project.upstream/llvm/unittests/Frontend/OpenMPIRBuilder
    OMPBuilder.initialize();
    F->setName("func");
    IRBuilder<> Builder(BB);
-@@ -6122,6 +6154,7 @@
+@@ -6122,6 +6160,7 @@
    using InsertPointTy = OpenMPIRBuilder::InsertPointTy;
    OpenMPIRBuilder OMPBuilder(*M);
    OMPBuilder.Config.IsTargetDevice = false;
@@ -5164,7 +5482,7 @@ diff -Naur -x .git llvm-project.upstream/llvm/unittests/Frontend/OpenMPIRBuilder
    OMPBuilder.initialize();
    F->setName("func");
    IRBuilder<> Builder(BB);
-@@ -6153,6 +6186,7 @@
+@@ -6153,6 +6192,7 @@
    using InsertPointTy = OpenMPIRBuilder::InsertPointTy;
    OpenMPIRBuilder OMPBuilder(*M);
    OMPBuilder.Config.IsTargetDevice = false;
@@ -5172,7 +5490,7 @@ diff -Naur -x .git llvm-project.upstream/llvm/unittests/Frontend/OpenMPIRBuilder
    OMPBuilder.initialize();
    F->setName("func");
    IRBuilder<> Builder(BB);
-@@ -6183,6 +6217,7 @@
+@@ -6183,6 +6223,7 @@
    using InsertPointTy = OpenMPIRBuilder::InsertPointTy;
    OpenMPIRBuilder OMPBuilder(*M);
    OMPBuilder.Config.IsTargetDevice = false;
@@ -5180,7 +5498,7 @@ diff -Naur -x .git llvm-project.upstream/llvm/unittests/Frontend/OpenMPIRBuilder
    OMPBuilder.initialize();
    F->setName("func");
    IRBuilder<> Builder(BB);
-@@ -6257,6 +6292,7 @@
+@@ -6257,6 +6298,7 @@
    using InsertPointTy = OpenMPIRBuilder::InsertPointTy;
    OpenMPIRBuilder OMPBuilder(*M);
    OMPBuilder.Config.IsTargetDevice = false;
@@ -5188,7 +5506,7 @@ diff -Naur -x .git llvm-project.upstream/llvm/unittests/Frontend/OpenMPIRBuilder
    OMPBuilder.initialize();
    F->setName("func");
    IRBuilder<> Builder(BB);
-@@ -6311,6 +6347,7 @@
+@@ -6311,6 +6353,7 @@
    using InsertPointTy = OpenMPIRBuilder::InsertPointTy;
    OpenMPIRBuilder OMPBuilder(*M);
    OMPBuilder.Config.IsTargetDevice = false;
@@ -5196,7 +5514,7 @@ diff -Naur -x .git llvm-project.upstream/llvm/unittests/Frontend/OpenMPIRBuilder
    OMPBuilder.initialize();
    F->setName("func");
    IRBuilder<> Builder(BB);
-@@ -6472,6 +6509,7 @@
+@@ -6472,6 +6515,7 @@
    using InsertPointTy = OpenMPIRBuilder::InsertPointTy;
    OpenMPIRBuilder OMPBuilder(*M);
    OMPBuilder.Config.IsTargetDevice = false;
@@ -5205,36 +5523,9 @@ diff -Naur -x .git llvm-project.upstream/llvm/unittests/Frontend/OpenMPIRBuilder
    F->setName("func");
    IRBuilder<> Builder(BB);
 diff -Naur -x .git llvm-project.upstream/mlir/include/mlir/Dialect/OpenMP/OpenMPOps.td llvm-project/mlir/include/mlir/Dialect/OpenMP/OpenMPOps.td
---- llvm-project.upstream/mlir/include/mlir/Dialect/OpenMP/OpenMPOps.td	2024-01-10 11:07:35.243067048 -0500
-+++ llvm-project/mlir/include/mlir/Dialect/OpenMP/OpenMPOps.td	2024-01-23 10:31:08.145923853 -0500
-@@ -639,6 +639,26 @@
- }
- 
- //===----------------------------------------------------------------------===//
-+// 2.9.4 distribute Construct
-+//===----------------------------------------------------------------------===//
-+def DistributeOp : OpenMP_Op<"distribute", [RecursiveMemoryEffects]> {
-+  let summary = "distribute construct";
-+  let description = [{
-+    TODO Replace placeholder with upstream definition
-+  }];
-+
-+  let arguments = (ins);
-+
-+  let regions = (region AnyRegion:$region);
-+
-+  let assemblyFormat = [{
-+    $region attr-dict
-+  }];
-+
-+  let hasVerifier = 0;
-+}
-+
-+//===----------------------------------------------------------------------===//
- // 2.10.1 task Construct
- //===----------------------------------------------------------------------===//
- 
-@@ -1149,6 +1169,7 @@
+--- llvm-project.upstream/mlir/include/mlir/Dialect/OpenMP/OpenMPOps.td	2024-01-25 08:49:24.517935918 -0600
++++ llvm-project/mlir/include/mlir/Dialect/OpenMP/OpenMPOps.td	2024-01-25 08:22:26.054440729 -0600
+@@ -1203,6 +1203,7 @@
    let arguments = (ins OpenMP_PointerLikeType:$var_ptr,
                         TypeAttr:$var_type,
                         Optional<OpenMP_PointerLikeType>:$var_ptr_ptr,
@@ -5242,7 +5533,7 @@ diff -Naur -x .git llvm-project.upstream/mlir/include/mlir/Dialect/OpenMP/OpenMP
                         Variadic<DataBoundsType>:$bounds, /* rank-0 to rank-{n-1} */
                         OptionalAttr<UI64Attr>:$map_type,
                         OptionalAttr<VariableCaptureKindAttr>:$map_capture_type,
-@@ -1188,13 +1209,17 @@
+@@ -1242,13 +1243,17 @@
      - `var_type`: The type of the variable to copy.
      - `var_ptr_ptr`: Used when the variable copied is a member of a class, structure
        or derived type and refers to the originating struct.
@@ -5265,7 +5556,7 @@ diff -Naur -x .git llvm-project.upstream/mlir/include/mlir/Dialect/OpenMP/OpenMP
      - 'map_capture_type': Capture type for the variable e.g. this, byref, byvalue, byvla
         this can affect how the variable is lowered.
      - `name`: Holds the name of variable as specified in user clause (including bounds).
-@@ -1206,6 +1231,7 @@
+@@ -1260,6 +1265,7 @@
          `var_ptr_ptr` `(` $var_ptr_ptr `:` type($var_ptr_ptr) `)`
        | `map_clauses` `(` custom<MapClause>($map_type) `)`
        | `capture` `(` custom<CaptureType>($map_capture_type) `)`
@@ -5273,7 +5564,7 @@ diff -Naur -x .git llvm-project.upstream/mlir/include/mlir/Dialect/OpenMP/OpenMP
        | `bounds` `(` $bounds `)`
      ) `->` type($omp_ptr) attr-dict
    }];
-@@ -1440,9 +1466,21 @@
+@@ -1494,9 +1500,21 @@
  
      The optional $thread_limit specifies the limit on the number of threads
  
@@ -5296,7 +5587,7 @@ diff -Naur -x .git llvm-project.upstream/mlir/include/mlir/Dialect/OpenMP/OpenMP
      TODO:  is_device_ptr, depend, defaultmap, in_reduction
  
    }];
-@@ -1450,8 +1488,13 @@
+@@ -1504,8 +1522,13 @@
    let arguments = (ins Optional<I1>:$if_expr,
                         Optional<AnyInteger>:$device,
                         Optional<AnyInteger>:$thread_limit,
@@ -5311,7 +5602,7 @@ diff -Naur -x .git llvm-project.upstream/mlir/include/mlir/Dialect/OpenMP/OpenMP
  
    let regions = (region AnyRegion:$region);
  
-@@ -1459,12 +1502,32 @@
+@@ -1513,12 +1536,32 @@
      oilist( `if` `(` $if_expr `)`
      | `device` `(` $device `:` type($device) `)`
      | `thread_limit` `(` $thread_limit `:` type($thread_limit) `)`
@@ -5345,8 +5636,8 @@ diff -Naur -x .git llvm-project.upstream/mlir/include/mlir/Dialect/OpenMP/OpenMP
  
  
 diff -Naur -x .git llvm-project.upstream/mlir/lib/Conversion/OpenMPToLLVM/OpenMPToLLVM.cpp llvm-project/mlir/lib/Conversion/OpenMPToLLVM/OpenMPToLLVM.cpp
---- llvm-project.upstream/mlir/lib/Conversion/OpenMPToLLVM/OpenMPToLLVM.cpp	2024-01-02 11:38:00.169300177 -0500
-+++ llvm-project/mlir/lib/Conversion/OpenMPToLLVM/OpenMPToLLVM.cpp	2024-01-23 10:31:08.145923853 -0500
+--- llvm-project.upstream/mlir/lib/Conversion/OpenMPToLLVM/OpenMPToLLVM.cpp	2024-01-25 08:49:24.561936114 -0600
++++ llvm-project/mlir/lib/Conversion/OpenMPToLLVM/OpenMPToLLVM.cpp	2024-01-25 08:22:26.054440729 -0600
 @@ -228,10 +228,11 @@
      ConversionTarget &target, LLVMTypeConverter &typeConverter) {
    target.addDynamicallyLegalOp<
@@ -5372,8 +5663,8 @@ diff -Naur -x .git llvm-project.upstream/mlir/lib/Conversion/OpenMPToLLVM/OpenMP
        RegionOpWithVarOperandsConversion<omp::AtomicUpdateOp>,
        RegionLessOpWithVarOperandsConversion<omp::FlushOp>,
 diff -Naur -x .git llvm-project.upstream/mlir/lib/Dialect/OpenMP/IR/OpenMPDialect.cpp llvm-project/mlir/lib/Dialect/OpenMP/IR/OpenMPDialect.cpp
---- llvm-project.upstream/mlir/lib/Dialect/OpenMP/IR/OpenMPDialect.cpp	2024-01-23 09:59:13.866703111 -0500
-+++ llvm-project/mlir/lib/Dialect/OpenMP/IR/OpenMPDialect.cpp	2024-01-23 10:31:08.149923844 -0500
+--- llvm-project.upstream/mlir/lib/Dialect/OpenMP/IR/OpenMPDialect.cpp	2024-01-25 08:49:24.597936278 -0600
++++ llvm-project/mlir/lib/Dialect/OpenMP/IR/OpenMPDialect.cpp	2024-01-25 08:22:26.054440729 -0600
 @@ -18,7 +18,6 @@
  #include "mlir/IR/DialectImplementation.h"
  #include "mlir/IR/OpImplementation.h"
@@ -5622,8 +5913,8 @@ diff -Naur -x .git llvm-project.upstream/mlir/lib/Dialect/OpenMP/IR/OpenMPDialec
  
    // Check for allocate clause restrictions
 diff -Naur -x .git llvm-project.upstream/mlir/lib/Target/LLVMIR/Dialect/OpenMP/OpenMPToLLVMIRTranslation.cpp llvm-project/mlir/lib/Target/LLVMIR/Dialect/OpenMP/OpenMPToLLVMIRTranslation.cpp
---- llvm-project.upstream/mlir/lib/Target/LLVMIR/Dialect/OpenMP/OpenMPToLLVMIRTranslation.cpp	2024-01-23 09:59:13.874703090 -0500
-+++ llvm-project/mlir/lib/Target/LLVMIR/Dialect/OpenMP/OpenMPToLLVMIRTranslation.cpp	2024-01-23 10:31:08.149923844 -0500
+--- llvm-project.upstream/mlir/lib/Target/LLVMIR/Dialect/OpenMP/OpenMPToLLVMIRTranslation.cpp	2024-01-25 08:49:24.629936419 -0600
++++ llvm-project/mlir/lib/Target/LLVMIR/Dialect/OpenMP/OpenMPToLLVMIRTranslation.cpp	2024-01-25 08:22:26.058440747 -0600
 @@ -440,27 +440,18 @@
  }
  
@@ -6753,8 +7044,8 @@ diff -Naur -x .git llvm-project.upstream/mlir/lib/Target/LLVMIR/Dialect/OpenMP/O
          // No-op, should be handled by relevant owning operations e.g.
          // TargetOp, EnterDataOp, ExitDataOp, DataOp etc. and then
 diff -Naur -x .git llvm-project.upstream/mlir/test/Dialect/OpenMP/invalid.mlir llvm-project/mlir/test/Dialect/OpenMP/invalid.mlir
---- llvm-project.upstream/mlir/test/Dialect/OpenMP/invalid.mlir	2023-12-18 11:20:50.607178121 -0500
-+++ llvm-project/mlir/test/Dialect/OpenMP/invalid.mlir	2024-01-23 10:31:08.149923844 -0500
+--- llvm-project.upstream/mlir/test/Dialect/OpenMP/invalid.mlir	2024-01-25 08:49:24.677936634 -0600
++++ llvm-project/mlir/test/Dialect/OpenMP/invalid.mlir	2024-01-25 08:22:26.058440747 -0600
 @@ -1130,24 +1130,18 @@
  // -----
  
@@ -6786,9 +7077,9 @@ diff -Naur -x .git llvm-project.upstream/mlir/test/Dialect/OpenMP/invalid.mlir l
    }
    return
 diff -Naur -x .git llvm-project.upstream/mlir/test/Dialect/OpenMP/ops.mlir llvm-project/mlir/test/Dialect/OpenMP/ops.mlir
---- llvm-project.upstream/mlir/test/Dialect/OpenMP/ops.mlir	2023-12-18 11:20:50.607178121 -0500
-+++ llvm-project/mlir/test/Dialect/OpenMP/ops.mlir	2024-01-23 10:31:08.149923844 -0500
-@@ -487,7 +487,7 @@
+--- llvm-project.upstream/mlir/test/Dialect/OpenMP/ops.mlir	2024-01-25 08:49:24.677936634 -0600
++++ llvm-project/mlir/test/Dialect/OpenMP/ops.mlir	2024-01-25 08:22:26.058440747 -0600
+@@ -517,7 +517,7 @@
      "omp.target"(%if_cond, %device, %num_threads) ({
         // CHECK: omp.terminator
         omp.terminator
@@ -6797,7 +7088,7 @@ diff -Naur -x .git llvm-project.upstream/mlir/test/Dialect/OpenMP/ops.mlir llvm-
  
      // Test with optional map clause.
      // CHECK: %[[MAP_A:.*]] = omp.map_info var_ptr(%[[VAL_1:.*]] : memref<?xi32>, tensor<?xi32>)   map_clauses(tofrom) capture(ByRef) -> memref<?xi32> {name = ""}
-@@ -2083,6 +2083,21 @@
+@@ -2113,6 +2113,21 @@
      return
  }
  
@@ -6820,8 +7111,8 @@ diff -Naur -x .git llvm-project.upstream/mlir/test/Dialect/OpenMP/ops.mlir llvm-
  func.func @omp_target_update_data (%if_cond : i1, %device : si32, %map1: memref<?xi32>, %map2: memref<?xi32>) -> () {
      %mapv_from = omp.map_info var_ptr(%map1 : memref<?xi32>, tensor<?xi32>) map_clauses(from) capture(ByRef) -> memref<?xi32> {name = ""}
 diff -Naur -x .git llvm-project.upstream/mlir/test/Target/LLVMIR/omptarget-byref-bycopy-generation-device.mlir llvm-project/mlir/test/Target/LLVMIR/omptarget-byref-bycopy-generation-device.mlir
---- llvm-project.upstream/mlir/test/Target/LLVMIR/omptarget-byref-bycopy-generation-device.mlir	2023-11-06 08:47:04.230293032 -0500
-+++ llvm-project/mlir/test/Target/LLVMIR/omptarget-byref-bycopy-generation-device.mlir	2024-01-23 10:31:08.149923844 -0500
+--- llvm-project.upstream/mlir/test/Target/LLVMIR/omptarget-byref-bycopy-generation-device.mlir	2024-01-25 08:49:24.717936813 -0600
++++ llvm-project/mlir/test/Target/LLVMIR/omptarget-byref-bycopy-generation-device.mlir	2024-01-25 08:22:26.058440747 -0600
 @@ -1,6 +1,6 @@
  // RUN: mlir-translate -mlir-to-llvmir %s | FileCheck %s
  
@@ -6840,8 +7131,8 @@ diff -Naur -x .git llvm-project.upstream/mlir/test/Target/LLVMIR/omptarget-byref
  // CHECK: entry:
  // CHECK: %[[ALLOCA_BYREF:.*]] = alloca ptr, align 8
 diff -Naur -x .git llvm-project.upstream/mlir/test/Target/LLVMIR/omptarget-constant-indexing-device-region.mlir llvm-project/mlir/test/Target/LLVMIR/omptarget-constant-indexing-device-region.mlir
---- llvm-project.upstream/mlir/test/Target/LLVMIR/omptarget-constant-indexing-device-region.mlir	2023-11-15 11:27:44.386740590 -0500
-+++ llvm-project/mlir/test/Target/LLVMIR/omptarget-constant-indexing-device-region.mlir	2024-01-23 10:31:08.149923844 -0500
+--- llvm-project.upstream/mlir/test/Target/LLVMIR/omptarget-constant-indexing-device-region.mlir	2024-01-25 08:49:24.717936813 -0600
++++ llvm-project/mlir/test/Target/LLVMIR/omptarget-constant-indexing-device-region.mlir	2024-01-25 08:22:26.058440747 -0600
 @@ -1,6 +1,6 @@
  // RUN: mlir-translate -mlir-to-llvmir %s | FileCheck %s
  
@@ -6860,8 +7151,8 @@ diff -Naur -x .git llvm-project.upstream/mlir/test/Target/LLVMIR/omptarget-const
  // CHECK: %[[ARG1_ALLOCA:.*]] = alloca ptr, align 8
  // CHECK: store ptr %[[ARG1]], ptr %[[ARG1_ALLOCA]], align 8
 diff -Naur -x .git llvm-project.upstream/mlir/test/Target/LLVMIR/omptarget-declare-target-llvm-device.mlir llvm-project/mlir/test/Target/LLVMIR/omptarget-declare-target-llvm-device.mlir
---- llvm-project.upstream/mlir/test/Target/LLVMIR/omptarget-declare-target-llvm-device.mlir	2023-11-06 08:47:04.230293032 -0500
-+++ llvm-project/mlir/test/Target/LLVMIR/omptarget-declare-target-llvm-device.mlir	2024-01-23 10:31:08.149923844 -0500
+--- llvm-project.upstream/mlir/test/Target/LLVMIR/omptarget-declare-target-llvm-device.mlir	2024-01-25 08:49:24.717936813 -0600
++++ llvm-project/mlir/test/Target/LLVMIR/omptarget-declare-target-llvm-device.mlir	2024-01-25 08:22:26.058440747 -0600
 @@ -7,7 +7,7 @@
  // Unfortunately, only so much can be tested as the device side is dependent on a *.bc
  // file created by the host and appended as an attribute to the module.
@@ -6872,8 +7163,8 @@ diff -Naur -x .git llvm-project.upstream/mlir/test/Target/LLVMIR/omptarget-decla
    llvm.mlir.global external @_QMtest_0Esp() {addr_space = 0 : i32, omp.declare_target = #omp.declaretarget<device_type = (any), capture_clause = (link)>} : i32 {
      %0 = llvm.mlir.constant(0 : i32) : i32
 diff -Naur -x .git llvm-project.upstream/mlir/test/Target/LLVMIR/omptarget-fortran-allocatable-types-host.mlir llvm-project/mlir/test/Target/LLVMIR/omptarget-fortran-allocatable-types-host.mlir
---- llvm-project.upstream/mlir/test/Target/LLVMIR/omptarget-fortran-allocatable-types-host.mlir	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/mlir/test/Target/LLVMIR/omptarget-fortran-allocatable-types-host.mlir	2024-01-23 10:31:08.149923844 -0500
+--- llvm-project.upstream/mlir/test/Target/LLVMIR/omptarget-fortran-allocatable-types-host.mlir	1969-12-31 18:00:00.000000000 -0600
++++ llvm-project/mlir/test/Target/LLVMIR/omptarget-fortran-allocatable-types-host.mlir	2024-01-25 08:22:26.058440747 -0600
 @@ -0,0 +1,349 @@
 +// RUN: mlir-translate -mlir-to-llvmir %s | FileCheck %s
 +
@@ -7225,8 +7516,8 @@ diff -Naur -x .git llvm-project.upstream/mlir/test/Target/LLVMIR/omptarget-fortr
 +// CHECK: %[[OFFLOADPTRS:.*]] = getelementptr inbounds [9 x ptr], ptr %.offload_ptrs, i32 0, i32 8
 +// CHECK: store ptr %[[SCALAR_PTR]], ptr %[[OFFLOADPTRS]], align 8
 diff -Naur -x .git llvm-project.upstream/mlir/test/Target/LLVMIR/omptarget-parallel-llvm.mlir llvm-project/mlir/test/Target/LLVMIR/omptarget-parallel-llvm.mlir
---- llvm-project.upstream/mlir/test/Target/LLVMIR/omptarget-parallel-llvm.mlir	2024-01-23 09:59:13.894703039 -0500
-+++ llvm-project/mlir/test/Target/LLVMIR/omptarget-parallel-llvm.mlir	2024-01-23 10:31:08.149923844 -0500
+--- llvm-project.upstream/mlir/test/Target/LLVMIR/omptarget-parallel-llvm.mlir	2024-01-25 08:49:24.717936813 -0600
++++ llvm-project/mlir/test/Target/LLVMIR/omptarget-parallel-llvm.mlir	2024-01-25 08:22:26.058440747 -0600
 @@ -55,7 +55,7 @@
  }
  
@@ -7267,8 +7558,8 @@ diff -Naur -x .git llvm-project.upstream/mlir/test/Target/LLVMIR/omptarget-paral
  // CHECK:         %[[IFCOND_TMP2:.*]] = load i32, ptr %[[IFCOND_TMP1]], align 4
  // CHECK:         %[[IFCOND_TMP3:.*]] = icmp ne i32 %[[IFCOND_TMP2]], 0
 diff -Naur -x .git llvm-project.upstream/mlir/test/Target/LLVMIR/omptarget-parallel-wsloop.mlir llvm-project/mlir/test/Target/LLVMIR/omptarget-parallel-wsloop.mlir
---- llvm-project.upstream/mlir/test/Target/LLVMIR/omptarget-parallel-wsloop.mlir	2024-01-02 11:38:00.209300087 -0500
-+++ llvm-project/mlir/test/Target/LLVMIR/omptarget-parallel-wsloop.mlir	2024-01-23 10:31:08.149923844 -0500
+--- llvm-project.upstream/mlir/test/Target/LLVMIR/omptarget-parallel-wsloop.mlir	2024-01-25 08:49:24.717936813 -0600
++++ llvm-project/mlir/test/Target/LLVMIR/omptarget-parallel-wsloop.mlir	2024-01-25 08:22:26.058440747 -0600
 @@ -30,7 +30,7 @@
  // CHECK-SAME:  (ptr noalias noundef %[[TID_ADDR:.*]], ptr noalias noundef %[[ZERO_ADDR:.*]],
  // CHECK-SAME:  ptr %[[ARG_PTR:.*]])
@@ -7280,8 +7571,8 @@ diff -Naur -x .git llvm-project.upstream/mlir/test/Target/LLVMIR/omptarget-paral
 -// CHECK:      define internal void @[[LOOP_BODY_FUNC]](i32 %[[CNT:.*]], ptr %[[LOOP_BODY_ARG_PTR:.*]]) {
 +// CHECK:      define internal void @[[LOOP_BODY_FUNC]](i32 %[[CNT:.*]], ptr %[[LOOP_BODY_ARG_PTR:.*]]) #{{[0-9]+}} {
 diff -Naur -x .git llvm-project.upstream/mlir/test/Target/LLVMIR/omptarget-region-device-llvm.mlir llvm-project/mlir/test/Target/LLVMIR/omptarget-region-device-llvm.mlir
---- llvm-project.upstream/mlir/test/Target/LLVMIR/omptarget-region-device-llvm.mlir	2023-11-15 11:27:44.386740590 -0500
-+++ llvm-project/mlir/test/Target/LLVMIR/omptarget-region-device-llvm.mlir	2024-01-23 10:31:08.149923844 -0500
+--- llvm-project.upstream/mlir/test/Target/LLVMIR/omptarget-region-device-llvm.mlir	2024-01-25 08:49:24.717936813 -0600
++++ llvm-project/mlir/test/Target/LLVMIR/omptarget-region-device-llvm.mlir	2024-01-25 08:22:26.058440747 -0600
 @@ -1,6 +1,6 @@
  // RUN: mlir-translate -mlir-to-llvmir %s | FileCheck %s
  
@@ -7313,8 +7604,8 @@ diff -Naur -x .git llvm-project.upstream/mlir/test/Target/LLVMIR/omptarget-regio
  // CHECK-NEXT:   br i1 %[[CMP]], label %[[LABEL_ENTRY:.*]], label %[[LABEL_EXIT:.*]]
  // CHECK:        [[LABEL_ENTRY]]:
 diff -Naur -x .git llvm-project.upstream/mlir/test/Target/LLVMIR/omptarget-wsloop-collapsed.mlir llvm-project/mlir/test/Target/LLVMIR/omptarget-wsloop-collapsed.mlir
---- llvm-project.upstream/mlir/test/Target/LLVMIR/omptarget-wsloop-collapsed.mlir	2024-01-23 09:59:13.894703039 -0500
-+++ llvm-project/mlir/test/Target/LLVMIR/omptarget-wsloop-collapsed.mlir	2024-01-23 10:31:08.149923844 -0500
+--- llvm-project.upstream/mlir/test/Target/LLVMIR/omptarget-wsloop-collapsed.mlir	2024-01-25 08:49:24.717936813 -0600
++++ llvm-project/mlir/test/Target/LLVMIR/omptarget-wsloop-collapsed.mlir	2024-01-25 08:22:26.058440747 -0600
 @@ -22,7 +22,7 @@
  
  // CHECK: define void @[[FUNC_COLLAPSED_WSLOOP:.*]](ptr %[[ARG0:.*]])
@@ -7325,8 +7616,8 @@ diff -Naur -x .git llvm-project.upstream/mlir/test/Target/LLVMIR/omptarget-wsloo
  
  // CHECK: define internal void @[[COLLAPSED_WSLOOP_BODY_FN]](i32 %[[LOOP_CNT:.*]], ptr %[[LOOP_BODY_ARG:.*]])
 diff -Naur -x .git llvm-project.upstream/mlir/test/Target/LLVMIR/omptarget-wsloop.mlir llvm-project/mlir/test/Target/LLVMIR/omptarget-wsloop.mlir
---- llvm-project.upstream/mlir/test/Target/LLVMIR/omptarget-wsloop.mlir	2023-12-18 11:20:50.623178060 -0500
-+++ llvm-project/mlir/test/Target/LLVMIR/omptarget-wsloop.mlir	2024-01-23 10:31:08.149923844 -0500
+--- llvm-project.upstream/mlir/test/Target/LLVMIR/omptarget-wsloop.mlir	2024-01-25 08:49:24.717936813 -0600
++++ llvm-project/mlir/test/Target/LLVMIR/omptarget-wsloop.mlir	2024-01-25 08:22:26.058440747 -0600
 @@ -30,10 +30,10 @@
  // CHECK: define void @[[FUNC0:.*]](ptr %[[ARG0:.*]])
  // CHECK:   %[[STRUCTARG:.*]] = alloca { ptr }, align 8, addrspace(5)
@@ -7350,8 +7641,8 @@ diff -Naur -x .git llvm-project.upstream/mlir/test/Target/LLVMIR/omptarget-wsloo
  
  // CHECK: define internal void @[[LOOP_EMPTY_BODY_FN]](i32 %[[LOOP_CNT:.*]])
 diff -Naur -x .git llvm-project.upstream/mlir/test/Target/LLVMIR/openmp-llvm.mlir llvm-project/mlir/test/Target/LLVMIR/openmp-llvm.mlir
---- llvm-project.upstream/mlir/test/Target/LLVMIR/openmp-llvm.mlir	2024-01-10 11:07:35.266961882 -0500
-+++ llvm-project/mlir/test/Target/LLVMIR/openmp-llvm.mlir	2024-01-23 10:31:08.149923844 -0500
+--- llvm-project.upstream/mlir/test/Target/LLVMIR/openmp-llvm.mlir	2024-01-25 08:49:24.721936833 -0600
++++ llvm-project/mlir/test/Target/LLVMIR/openmp-llvm.mlir	2024-01-25 08:22:26.058440747 -0600
 @@ -2060,7 +2060,7 @@
        // CHECK: [[SECTION3]]:
        // CHECK:   br label %[[REGION3:[^ ,]*]]
@@ -7362,8 +7653,8 @@ diff -Naur -x .git llvm-project.upstream/mlir/test/Target/LLVMIR/openmp-llvm.mli
        // CHECK:   store i32 %{{.*}}, ptr %{{.*}}, align 4
        // CHECK:   br label %{{.*}}
 diff -Naur -x .git llvm-project.upstream/mlir/test/Target/LLVMIR/openmp-reduction.mlir llvm-project/mlir/test/Target/LLVMIR/openmp-reduction.mlir
---- llvm-project.upstream/mlir/test/Target/LLVMIR/openmp-reduction.mlir	2023-08-21 13:28:50.537369762 -0400
-+++ llvm-project/mlir/test/Target/LLVMIR/openmp-reduction.mlir	2024-01-23 10:31:08.149923844 -0500
+--- llvm-project.upstream/mlir/test/Target/LLVMIR/openmp-reduction.mlir	2024-01-25 08:49:24.721936833 -0600
++++ llvm-project/mlir/test/Target/LLVMIR/openmp-reduction.mlir	2024-01-25 08:22:26.058440747 -0600
 @@ -532,8 +532,8 @@
  // CHECK: define internal void @[[OUTLINED]]
  
@@ -7376,8 +7667,8 @@ diff -Naur -x .git llvm-project.upstream/mlir/test/Target/LLVMIR/openmp-reductio
  // Loop exit:
  // CHECK: call void @__kmpc_barrier
 diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/test/offloading/fortran/allocatable-array-section-1d-bounds.f90 llvm-project/openmp/libomptarget/test/offloading/fortran/allocatable-array-section-1d-bounds.f90
---- llvm-project.upstream/openmp/libomptarget/test/offloading/fortran/allocatable-array-section-1d-bounds.f90	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/openmp/libomptarget/test/offloading/fortran/allocatable-array-section-1d-bounds.f90	2024-01-23 10:31:08.161923813 -0500
+--- llvm-project.upstream/openmp/libomptarget/test/offloading/fortran/allocatable-array-section-1d-bounds.f90	1969-12-31 18:00:00.000000000 -0600
++++ llvm-project/openmp/libomptarget/test/offloading/fortran/allocatable-array-section-1d-bounds.f90	2024-01-25 08:22:26.066440789 -0600
 @@ -0,0 +1,46 @@
 +! Offloading test checking interaction of a
 +! two 1-D allocatable arrays with a target region
@@ -7426,8 +7717,8 @@ diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/test/offloading/for
 +! CHECK: 0
 +! CHECK: 0
 diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/test/offloading/fortran/allocatable-array-section-3d-bounds.f90 llvm-project/openmp/libomptarget/test/offloading/fortran/allocatable-array-section-3d-bounds.f90
---- llvm-project.upstream/openmp/libomptarget/test/offloading/fortran/allocatable-array-section-3d-bounds.f90	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/openmp/libomptarget/test/offloading/fortran/allocatable-array-section-3d-bounds.f90	2024-01-23 10:31:08.161923813 -0500
+--- llvm-project.upstream/openmp/libomptarget/test/offloading/fortran/allocatable-array-section-3d-bounds.f90	1969-12-31 18:00:00.000000000 -0600
++++ llvm-project/openmp/libomptarget/test/offloading/fortran/allocatable-array-section-3d-bounds.f90	2024-01-25 08:22:26.066440789 -0600
 @@ -0,0 +1,44 @@
 +! Offloading test checking interaction of allocatables
 +! with multi-dimensional bounds (3-D in this case) and
@@ -7474,8 +7765,8 @@ diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/test/offloading/for
 +
 +! CHECK: 0 0 0 0 0 0 0 0 0 42 42 42 42 42 42 42 42 42 0 0 0 0 0 0 0 0 0
 diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/test/offloading/fortran/allocatable-map-scopes.f95 llvm-project/openmp/libomptarget/test/offloading/fortran/allocatable-map-scopes.f95
---- llvm-project.upstream/openmp/libomptarget/test/offloading/fortran/allocatable-map-scopes.f95	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/openmp/libomptarget/test/offloading/fortran/allocatable-map-scopes.f95	2024-01-23 10:31:08.161923813 -0500
+--- llvm-project.upstream/openmp/libomptarget/test/offloading/fortran/allocatable-map-scopes.f95	1969-12-31 18:00:00.000000000 -0600
++++ llvm-project/openmp/libomptarget/test/offloading/fortran/allocatable-map-scopes.f95	2024-01-25 08:22:26.066440789 -0600
 @@ -0,0 +1,66 @@
 +! Offloading test checking interaction of allocatables
 +! with target in different scopes
@@ -7544,8 +7835,8 @@ diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/test/offloading/for
 +! CHECK: 1 2 3 4 5 6 7 8 9 10
 +! CHECK: 2 4 6 8 10 12 14 16 18 20
 diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/test/offloading/fortran/pointer-scopes-enter-exit-map.f90 llvm-project/openmp/libomptarget/test/offloading/fortran/pointer-scopes-enter-exit-map.f90
---- llvm-project.upstream/openmp/libomptarget/test/offloading/fortran/pointer-scopes-enter-exit-map.f90	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/openmp/libomptarget/test/offloading/fortran/pointer-scopes-enter-exit-map.f90	2024-01-23 10:31:08.161923813 -0500
+--- llvm-project.upstream/openmp/libomptarget/test/offloading/fortran/pointer-scopes-enter-exit-map.f90	1969-12-31 18:00:00.000000000 -0600
++++ llvm-project/openmp/libomptarget/test/offloading/fortran/pointer-scopes-enter-exit-map.f90	2024-01-25 08:22:26.066440789 -0600
 @@ -0,0 +1,83 @@
 +! Offloading test checking interaction of pointers
 +! with target in different scopes
@@ -7631,8 +7922,8 @@ diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/test/offloading/for
 +! CHECK: 1 2 3 4 5 6 7 8 9 10
 +! CHECK: 2 4 6 8 10 12 14 16 18 20
 diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/test/offloading/fortran/pointer-target-array-section-3d-bounds.f90 llvm-project/openmp/libomptarget/test/offloading/fortran/pointer-target-array-section-3d-bounds.f90
---- llvm-project.upstream/openmp/libomptarget/test/offloading/fortran/pointer-target-array-section-3d-bounds.f90	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/openmp/libomptarget/test/offloading/fortran/pointer-target-array-section-3d-bounds.f90	2024-01-23 10:31:08.161923813 -0500
+--- llvm-project.upstream/openmp/libomptarget/test/offloading/fortran/pointer-target-array-section-3d-bounds.f90	1969-12-31 18:00:00.000000000 -0600
++++ llvm-project/openmp/libomptarget/test/offloading/fortran/pointer-target-array-section-3d-bounds.f90	2024-01-25 08:22:26.066440789 -0600
 @@ -0,0 +1,43 @@
 +! Offloading test checking interaction of pointer
 +! and target with target where 3-D bounds have
@@ -7678,8 +7969,8 @@ diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/test/offloading/for
 +
 +! CHECK: 0 0 0 0 0 0 0 0 0 42 42 42 42 42 42 42 42 42 0 0 0 0 0 0 0 0 0
 diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/test/offloading/fortran/pointer-target-map-scopes.f95 llvm-project/openmp/libomptarget/test/offloading/fortran/pointer-target-map-scopes.f95
---- llvm-project.upstream/openmp/libomptarget/test/offloading/fortran/pointer-target-map-scopes.f95	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/openmp/libomptarget/test/offloading/fortran/pointer-target-map-scopes.f95	2024-01-23 10:31:08.161923813 -0500
+--- llvm-project.upstream/openmp/libomptarget/test/offloading/fortran/pointer-target-map-scopes.f95	1969-12-31 18:00:00.000000000 -0600
++++ llvm-project/openmp/libomptarget/test/offloading/fortran/pointer-target-map-scopes.f95	2024-01-25 08:22:26.066440789 -0600
 @@ -0,0 +1,64 @@
 +! Offloading test checking interaction of pointer
 +! and target with target across multiple scopes
@@ -7746,8 +8037,8 @@ diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/test/offloading/for
 +!CHECK: 1 2 3 4 5 6 7 8 9 10
 +!CHECK: 2 4 6 8 10 12 14 16 18 20
 diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/test/offloading/fortran/target_enter_exit_allocatables.f90 llvm-project/openmp/libomptarget/test/offloading/fortran/target_enter_exit_allocatables.f90
---- llvm-project.upstream/openmp/libomptarget/test/offloading/fortran/target_enter_exit_allocatables.f90	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/openmp/libomptarget/test/offloading/fortran/target_enter_exit_allocatables.f90	2024-01-23 10:31:08.161923813 -0500
+--- llvm-project.upstream/openmp/libomptarget/test/offloading/fortran/target_enter_exit_allocatables.f90	1969-12-31 18:00:00.000000000 -0600
++++ llvm-project/openmp/libomptarget/test/offloading/fortran/target_enter_exit_allocatables.f90	2024-01-25 08:22:26.066440789 -0600
 @@ -0,0 +1,44 @@
 +! Offloading test checking interaction of allocatables
 +! with enter, exit and target
@@ -7794,8 +8085,8 @@ diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/test/offloading/for
 +! CHECK: 9
 +! CHECK: 10
 diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/test/offloading/fortran/target_enter_exit_array.f90 llvm-project/openmp/libomptarget/test/offloading/fortran/target_enter_exit_array.f90
---- llvm-project.upstream/openmp/libomptarget/test/offloading/fortran/target_enter_exit_array.f90	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/openmp/libomptarget/test/offloading/fortran/target_enter_exit_array.f90	2024-01-23 10:31:08.161923813 -0500
+--- llvm-project.upstream/openmp/libomptarget/test/offloading/fortran/target_enter_exit_array.f90	1969-12-31 18:00:00.000000000 -0600
++++ llvm-project/openmp/libomptarget/test/offloading/fortran/target_enter_exit_array.f90	2024-01-25 08:22:26.066440789 -0600
 @@ -0,0 +1,41 @@
 +! Offloading test checking interaction of fixed size
 +! arrays with enter, exit and target
@@ -7839,8 +8130,8 @@ diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/test/offloading/for
 +! CHECK: 9
 +! CHECK: 10
 diff -Naur -x .git llvm-project.upstream/openmp/runtime/src/CMakeLists.txt llvm-project/openmp/runtime/src/CMakeLists.txt
---- llvm-project.upstream/openmp/runtime/src/CMakeLists.txt	2024-01-10 11:07:35.274926827 -0500
-+++ llvm-project/openmp/runtime/src/CMakeLists.txt	2024-01-23 10:31:08.161923813 -0500
+--- llvm-project.upstream/openmp/runtime/src/CMakeLists.txt	2024-01-25 08:49:24.773937064 -0600
++++ llvm-project/openmp/runtime/src/CMakeLists.txt	2024-01-25 08:22:26.066440789 -0600
 @@ -139,6 +139,11 @@
  set_source_files_properties(${LIBOMP_CXXFILES} PROPERTIES COMPILE_FLAGS "${LIBOMP_CONFIGURED_CXXFLAGS}")
  set_source_files_properties(${LIBOMP_ASMFILES} ${LIBOMP_GNUASMFILES} PROPERTIES COMPILE_FLAGS "${LIBOMP_CONFIGURED_ASMFLAGS}")
