@@ -12,8 +12,10 @@ else
 	RUNPROF   = $(AOMPROCM)/../bin/rocprof
 endif
 
+RUNPROF_FLAGS = --hsa-trace
+
 RUNENV      = OMP_NUM_THREADS=2 LIBOMPTARGET_AMDGPU_HSA_QUEUE_BUSY_TRACKING=1
-RUNCMD      = $(RUNPROF) --hsa-trace ./$(TESTNAME) && python3 countQueueCreateEvents.py 2
+RUNCMD      = ./$(TESTNAME) && python3 countQueueCreateEvents.py 2
 
 CLANG        ?= clang++
 OMP_BIN      = $(AOMP)/bin/$(CLANG)
