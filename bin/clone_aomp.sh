@@ -150,9 +150,9 @@ function list_repo_from_manifest(){
    if [[ "$REPO_REMOTE" == "roc" ]] ; then
         manifest_project=`echo radeonopencompute/$REPO_PROJECT | tr '[:upper:]' '[:lower:]'`
    elif [[ "$REPO_REMOTE" == "roctools" ]] ; then
-        manifest_project=`echo ROCM-Developer-Tools/$REPO_PROJECT | tr '[:upper:]' '[:lower:]'`
+        manifest_project=`echo ROCm/$REPO_PROJECT | tr '[:upper:]' '[:lower:]'`
    elif [[ "$REPO_REMOTE" == "rocsw" ]] ; then
-        manifest_project=`echo ROCmSoftwarePlatform/$REPO_PROJECT | tr '[:upper:]' '[:lower:]'`
+        manifest_project=`echo ROCm/$REPO_PROJECT | tr '[:upper:]' '[:lower:]'`
    elif [[ "$REPO_REMOTE" == "gerritgit" ]] ; then
         manifest_project=`echo $REPO_PROJECT | tr '[:upper:]' '[:lower:]'`
    elif [[ "$REPO_REMOTE" == "hwloc" ]] ; then
