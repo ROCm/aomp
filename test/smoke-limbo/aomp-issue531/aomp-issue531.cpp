@@ -5,6 +5,9 @@
 #include <stdio.h>
 #include "callbacks.h"
 
+// Map of devices traced
+DeviceMapPtr_t DeviceMapPtr;
+
 int main( void )
 {
 #pragma omp parallel num_threads(2)

@@ -1,13 +1,13 @@
 include ../../Makefile.defs
 
-TESTNAME     = aomp_issue531
-TESTSRC_MAIN = aomp_issue531.c
+TESTNAME     = aomp-issue531
+TESTSRC_MAIN = aomp-issue531.cpp
 TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 
 RUNCMD      = ./$(TESTNAME) | $(FILECHECK) $(TESTSRC_MAIN)
 
-CLANG        ?= clang
+CLANG        ?= clang++
 OMP_BIN      = $(AOMP)/bin/$(CLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
 #-ccc-print-phases

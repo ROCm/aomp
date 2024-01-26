@@ -6,6 +6,9 @@
 
 #include "callbacks.h"
 
+// Map of devices traced
+DeviceMapPtr_t DeviceMapPtr;
+
 int main()
 {
   int N = 100000;
@@ -21,8 +24,6 @@ int main()
   for (i=0; i<N; i++)
     b[i]=i;
 
-  start_trace();
-  
   int initial_device = omp_get_initial_device();
   printf("initial device_num = %d\n", initial_device);
 #pragma omp target data map(to: i)  device(0)
@@ -35,8 +36,11 @@ int main()
         a[j]=b[j];
     }
   }
-  
-  stop_trace();
+
+  for (auto Dev : *DeviceMapPtr) {
+    flush_trace(Dev);
+    stop_trace(Dev);
+  }
 
   int rc = 0;
   for (i=0; i<N; i++)
