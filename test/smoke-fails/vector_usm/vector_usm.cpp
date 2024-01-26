@@ -23,13 +23,12 @@ private:
   size_t size;
 };
 
-#define N 1000
-#define ARR_SIZE 100
-
 int main() {
-  size_t n = N;
-  size_t size = ARR_SIZE;
+  const size_t n = 1000;
+  const size_t size = 1024*10;
   std::vector<T> vecTs;
+
+  size_t num_devices = omp_get_num_devices();
 
   for(size_t i = 0; i < n; i++)
     vecTs.emplace_back(T(size));
@@ -40,18 +39,26 @@ int main() {
     for(size_t j = 0; j < vecTs[i].getSize(); j++)
       vecTs[i].getArr()[j] = (double) i+j;
 
-  // compute with multiple GPU kernels, one per available device
-  #pragma omp parallel for num_threads(omp_get_num_devices())
-  for(int i = 0; i < vecTs.size(); i++) {
-    printf("TID = %d/%d: offloading to a GPU\n", omp_get_thread_num(), omp_get_num_threads());
-    #pragma omp target teams distribute parallel for device(omp_get_thread_num()) // map(tofrom: vecTs[i].getArr[:vecTs[i].getSize()])
-    for(int j = 0; j < vecTs[i].getSize(); j++) {
-      if (i == 0 && j == 10)
-	vecTs[i].getArr()[j] = (double)3.14;
-      else
-	vecTs[i].getArr()[j] += (double)j;
+  // One OpenMP host thread per available GPU, the i-th OpenMP thread offloads to the i-th GPU.
+  #pragma omp parallel for num_threads(num_devices)
+  for(size_t i = 0; i < vecTs.size(); i++) {
+    // no need to map memory in unified_shared_memory.
+    #pragma omp target teams distribute parallel for device(omp_get_thread_num())
+    for(size_t j = 0; j < vecTs[i].getSize(); j++) {
+      vecTs[i].getArr()[j] += (double)j;
     }
   }
-  printf("%lf\n", vecTs[0].getArr()[10]);
-  return 0;
+
+  int err = 0;
+  for(size_t i = 0; i < vecTs.size(); i++)
+    for(size_t j = 0; j < vecTs[i].getSize(); j++) {
+      if (vecTs[i].getArr()[j] != (i+2*j)) {
+        printf("Error at (%zu,%zu): got %lf, expected %lf\n", i, j, vecTs[i].getArr()[j], (double)(i+2*j));
+        err++;
+        if (err > 10) return err;
+      }
+    }
+
+  if (!err) printf("Success!\n");
+  return err;
 }
