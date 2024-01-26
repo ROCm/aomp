@@ -6,13 +6,14 @@
 
 #include "callbacks.h"
 
+// Map of devices traced
+DeviceMapPtr_t DeviceMapPtr;
+
 int main()
 {
   int initial_device=1;
 
-  start_trace();
-  
- #pragma omp target data map(tofrom: initial_device) 
+#pragma omp target data map(tofrom: initial_device)
   {
       int a;
       #pragma omp target
@@ -33,7 +34,10 @@ int main()
       }
   }
 
-  stop_trace();
+  for (auto Dev : *DeviceMapPtr) {
+    flush_trace(Dev);
+    stop_trace(Dev);
+  }
 
   return 0;
 }
