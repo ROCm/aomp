@@ -9,8 +9,8 @@ CLANG        ?= clang++
 OMP_BIN      = $(AOMP)/bin/$(CLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
 
-RUNENV      += HSA_XNACK=1
-RUNCMD      = ./$(TESTNAME)
+RUNENV       ?= HSA_XNACK=1
+RUNCMD       = ./$(TESTNAME)
 
 #-ccc-print-phases
 #"-\#\#\#"
