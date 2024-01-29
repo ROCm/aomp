@@ -4,7 +4,7 @@ AOMP Developer README.md
 AOMP is a scripted build of LLVM and supporting software. It has support for OpenMP target offload on amdgcn GPUs.
 This is the AOMP developer README stored at:
 ```
-https://github.com/ROCm-Developer-Tools/aomp/blob/aomp-dev/bin/README.md
+https://github.com/ROCm/aomp/blob/aomp-dev/bin/README.md
 ```
 The AOMP compiler supports OpenMP, clang-hip, clang-cuda, device OpenCL, and the offline kernel compilation tool called cloc.  It contains a recent version of the AMD Lightning compiler (llvm amdgcn backend) and the llvm nvptx backend.  Except for clang-cuda, this compiler works for both Nvidia and AMD Radeon GPUs.
 
@@ -20,44 +20,44 @@ each component build script with the name build_\<component name\>.sh .
 
 | COMPONENT | DEV BRANCH | DEFAULT DIRECTORY LOCATION           | REPOSITORY LINKS
 | --------- | ---------- | --------------------------           | ----------------
-| (aomp)    | aomp-dev   | $HOME/git/aomp19.0/aomp                | [aomp](https://github.com/ROCm-Developer-Tools/aomp) This repo!
-| project   | amd-staging | $HOME/git/aomp19.0/llvm-project      | [llvm-project](https://github.com/radeonopencompute/llvm-project)
-| openmp    | amd-staging | $HOME/git/aomp19.0/llvm-project/openmp | [llvm-project/openmp](https://github.com/radeonopencompute/llvm-project)
-| extras    | aomp-dev   | $HOME/git/aomp19.0/aomp-extras         | [aomp-extras](https://github.com/ROCm-Developer-Tools/aomp-extras)
-| pgmath    | aomp-dev   | $HOME/git/aomp19.0/flang/runtime/libpgmath | [flang](https://github.com/ROCm-Developer-Tools/flang)
-| flang     | aomp-dev   | $HOME/git/aomp19.0/flang               | [flang](https://github.com/ROCm-Developer-Tools/flang)
-| flang_runtime | aomp-dev | $HOME/git/aomp19.0/flang             | [flang](https://github.com/ROCm-Developer-Tools/flang)
+| (aomp)    | aomp-dev   | $HOME/git/aomp19.0/aomp                | [aomp](https://github.com/ROCm/aomp) This repo!
+| project   | amd-staging | $HOME/git/aomp19.0/llvm-project      | [llvm-project](https://github.com/ROCm/llvm-project)
+| openmp    | amd-staging | $HOME/git/aomp19.0/llvm-project/openmp | [llvm-project/openmp](https://github.com/ROCm/llvm-project)
+| extras    | aomp-dev   | $HOME/git/aomp19.0/aomp-extras         | [aomp-extras](https://github.com/ROCm/aomp-extras)
+| pgmath    | aomp-dev   | $HOME/git/aomp19.0/flang/runtime/libpgmath | [flang](https://github.com/ROCm/flang)
+| flang     | aomp-dev   | $HOME/git/aomp19.0/flang               | [flang](https://github.com/ROCm/flang)
+| flang_runtime | aomp-dev | $HOME/git/aomp19.0/flang             | [flang](https://github.com/ROCm/flang)
 |            |           |                                        |
-| roct       |Latest ROCm| $HOME/git/aomp19.0/roct-thunk-interfaces | [roct-thunk-interfaces](https://github.com/radeonopencompute/roct-thunk-interface)
-| rocr       |Latest ROCm| $HOME/git/aomp19.0/rocr-runtime        | [rocr-runtime](https://github.com/radeonopencompute/rocr-runtime)
-| hip        |Latest ROCm| $HOME/git/aomp19.0/hip              | [hipamd](https://github.com/ROCm-Developer-Tools/hip)
-|            |Latest ROCm| $HOME/git/aomp19.0/hipcc                 | [hip](https://github.com/ROCm-Developer-Tools/hipcc)
-|            |Latest ROCm| $HOME/git/aomp19.0/clr              | [ROCclr](https://github.com/ROCm-Developer-Tools/clr)
-|            |Latest ROCm| $HOME/git/aomp19.0/ROCm-OpenCL-Runtime | [ocl](https://github.com/radeonopencompute/ROCm-OpenCL-Runtime)
-| comgr      |Latest ROCm| $HOME/git/aomp19.0/rocm-compilersupport| [comgr](https://github.com/radeonopencompute/rocm-compilersupport)
-| libdevice  |Latest ROCm| $HOME/git/aomp19.0/rocm-device-libs    | [rocm-device-libs](https://github.com/radeonopencompute/rocm-device-libs)
-| rocminfo   |Latest ROCm| $HOME/git/aomp19.0/rocminfo            | [rocminfo](https://github.com/radeonopencompute/rocminfo)
-| rocdbgapi  |Latest ROCm| $HOME/git/aomp19.0/ROCdbgapi           | [rocdbgapi](https://github.com/ROCm-Developer-Tools/ROCdbgapi)
-| rocgdb     |Latest ROCm| $HOME/git/aomp19.0/ROCgdb              | [rocgdb](https://github.com/ROCm-Developer-Tools/ROCgdb)
-| roctracer  |Latest ROCm| $HOME/git/aomp19.0/roctracer           | [roctracer](https://github.com/ROCm-Developer-Tools/roctracer)
+| roct       |Latest ROCm| $HOME/git/aomp19.0/roct-thunk-interfaces | [roct-thunk-interfaces](https://github.com/ROCm/roct-thunk-interface)
+| rocr       |Latest ROCm| $HOME/git/aomp19.0/rocr-runtime        | [rocr-runtime](https://github.com/ROCm/rocr-runtime)
+| hip        |Latest ROCm| $HOME/git/aomp19.0/hip              | [hipamd](https://github.com/ROCm/hip)
+|            |Latest ROCm| $HOME/git/aomp19.0/hipcc                 | [hip](https://github.com/ROCm/hipcc)
+|            |Latest ROCm| $HOME/git/aomp19.0/clr              | [ROCclr](https://github.com/ROCm/clr)
+|            |Latest ROCm| $HOME/git/aomp19.0/ROCm-OpenCL-Runtime | [ocl](https://github.com/ROCm/ROCm-OpenCL-Runtime)
+| comgr      |Latest ROCm| $HOME/git/aomp19.0/rocm-compilersupport| [comgr](https://github.com/ROCm/rocm-compilersupport)
+| libdevice  |Latest ROCm| $HOME/git/aomp19.0/rocm-device-libs    | [rocm-device-libs](https://github.com/ROCm/rocm-device-libs)
+| rocminfo   |Latest ROCm| $HOME/git/aomp19.0/rocminfo            | [rocminfo](https://github.com/ROCm/rocminfo)
+| rocdbgapi  |Latest ROCm| $HOME/git/aomp19.0/ROCdbgapi           | [rocdbgapi](https://github.com/ROCm/ROCdbgapi)
+| rocgdb     |Latest ROCm| $HOME/git/aomp19.0/ROCgdb              | [rocgdb](https://github.com/ROCm/ROCgdb)
+| roctracer  |Latest ROCm| $HOME/git/aomp19.0/roctracer           | [roctracer](https://github.com/ROCm/roctracer)
 | rocm-cmake |Latest ROCm| $HOME/git/aomp19.0/rocm-cmake          | [rocm-cmake](https://github.com/RadeonOpenCompute/rocm-cmake)
 
 Notice that some components are built with different parts of the same repository.
 
-The [llvm-project](https://github.com/radeonopencompute/llvm-project) repository is a mirror of the gerrit-managed internal AMD repository.
+The [llvm-project](https://github.com/ROCm/llvm-project) repository is a mirror of the gerrit-managed internal AMD repository.
 The updates to the mirror are done at least daily.
 If you are internal to AMD you will pick up the llvm-project repository directly from the gerrit
  [llvm-project](ssh://git.amd.com:29418/lightning/ec/llvm-project) repository.
 
 In addition to the gerrit-managed llvm-project repository, the three repositories
-[aomp](https://github.com/ROCm-Developer-Tools/aomp) ,
-[aomp-extras](https://github.com/ROCm-Developer-Tools/aomp-extras) , and
-[flang](https://github.com/ROCm-Developer-Tools/flang) make up the core aomp development repositories.
+[aomp](https://github.com/ROCm/aomp) ,
+[aomp-extras](https://github.com/ROCm/aomp-extras) , and
+[flang](https://github.com/ROCm/flang) make up the core aomp development repositories.
 These three use the branch "aomp-dev" and are managed completely on external github.
 The default branch name for other non-core components is typically the name of the latest ROCm release in the external source repository.
 
 The clone_aomp.sh script, described in the "Quick Start" below, uses a manfest file from the
-[manifests](https://github.com/ROCm-Developer-Tools/aomp/tree/aomp-dev/manifests)
+[manifests](https://github.com/ROCm/aomp/tree/aomp-dev/manifests)
 directory to find and clone all repositories used by aomp.
 
 ## AOMP Environment Variables
@@ -129,7 +129,7 @@ To build and clone all components using the latest development sources, first cl
 ```
    mkdir $HOME/git/aomp19.0
    cd git/aomp19.0
-   git clone https://github.com/ROCm-Developer-Tools/aomp.git aomp
+   git clone https://github.com/ROCm/aomp.git aomp
    cd aomp
    git checkout aomp-dev
    git pull
@@ -173,7 +173,7 @@ The default AOMP source build is a standalone build of all components needed for
 
 Starting with ROCM 4.0, AOMP will continue as a research and development compiler released into github with the package name aomp.
 This will often be used to validate code going into the ROCm production compiler including quick fixes for issues identified in
-[AOMP issues] (https://github.com/ROCm-Developer-Tools/aomp/issues).
+[AOMP issues] (https://github.com/ROCm/aomp/issues).
 To ensure complete isolation from the ROCm installation and to make AOMP work in the absense of ROCm,
 all necessary ROCm components are built from source.
 Furthermore, through comprehensive use of RPATH by AOMP, all AOMP libraries and references to AOMP libraries will resolve the absolute location

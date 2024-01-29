@@ -383,7 +383,7 @@ function buildrocmsmilib(){
   fi
   runcmd "mkdir -p $_builddir"
   runcmd "cd $_builddir"
-  runcmd "git clone -b rocm-$_version https://github.com/radeonopencompute/rocm_smi_lib rocmsmilib-$_version"
+  runcmd "git clone -b rocm-$_version https://github.com/ROCm/rocm_smi_lib rocmsmilib-$_version"
   runcmd "cd rocmsmilib-$_version"
   runcmd "mkdir -p build"
   runcmd "cd build"
