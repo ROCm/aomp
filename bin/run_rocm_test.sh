@@ -25,11 +25,11 @@ $lspci_loc 2>&1 | grep -q VMware
 if [ $? -eq 0 ] ; then
   ISVIRT=1
 fi
-lspci 2>&1 | grep -q Hyperv
+lscpu 2>&1 | grep -q Hyperv
 if [ $? -eq 0 ] ; then
   ISVIRT=1
 fi
-if [ $ISVERT -eq 0 ] ; then
+if [ $ISVIRT -eq 1 ] ; then
 SUITE_LIST=${SUITE_LIST:-"examples smoke-limbo smoke omp5 openmpapps ovo sollve babelstream fortran-babelstream"}
 blockinglist="examples_fortran examples_openmp smoke openmpapps sollve45 sollve50 babelstream"
 else
