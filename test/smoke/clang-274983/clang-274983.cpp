@@ -1,8 +1,8 @@
 #include <omp.h>
 #include <stdio.h>
-#if defined(__OFFLOAD_ARCH_gfx90a__)
+
 #pragma omp requires unified_shared_memory
-#endif
+
 int main(){
     int N;
     double *x;

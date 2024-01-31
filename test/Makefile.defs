@@ -1,5 +1,18 @@
 SHELL=/bin/bash -o pipefail
 
+# target IDs that support OpenMP 'requires unified_shared_memory'
+# as defined in https://llvm.org/docs/AMDGPUUsage.html#amdgpu-processor-table
+# with xnack target feature supported.
+SUPPORTS_USM=gfx90a,gfx90a:xnack+,\
+             gfx90c,gfx90c:xnack+,\
+             gfx940,gfx940:xnack+,\
+             gfx941,gfx941:xnack+,\
+             gfx942,\
+             gfx1010,gfx1010:xnack+\
+             gfx1011,gfx1011:xnack+\
+             gfx1012,gfx1012:xnack+\
+             gfx1013,gfx1013:xnack+
+
 ifeq ($(AOMP),)
 # --- Standard Makefile check for AOMP installation ---
 ifeq ("$(wildcard $(AOMP))","")

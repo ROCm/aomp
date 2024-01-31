@@ -3,7 +3,7 @@
 
 // The test is meant to run in both USM and non-USM mode.
 
-#if defined(__OFFLOAD_ARCH_gfx90a__)
+#if defined(__OFFLOAD_ARCH_gfx90a__) || defined(__OFFLOAD_ARCH_gfx90c__) || defined(__OFFLOAD_ARCH_gfx940__) || defined(__OFFLOAD_ARCH_gfx941__) || defined(__OFFLOAD_ARCH_gfx942__) || defined(__OFFLOAD_ARCH_gfx1010__) || defined(__OFFLOAD_ARCH_gfx1011__) || defined(__OFFLOAD_ARCH_gfx1012__) || defined(__OFFLOAD_ARCH_gfx1013__)
 #define IS_USM 1
 #else
 #define IS_USM 0
