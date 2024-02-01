@@ -101,7 +101,7 @@ COMMON_CMAKE_OPTS="-DDEVICELIBS_ROOT=$DEVICELIBS_ROOT
 -DOPENMP_TEST_CXX_COMPILER=$INSTALL_PREFIX/llvm/bin/clang++"
 
 if [ "$AOMP_STANDALONE_BUILD" == 0 ]; then
-  COMMON_CMAKE_OPTS="$COMMON_CMAKE_OPTS -DENABLE_DEVEL_PACKAGE=ON -DENABLE_RUN_PACKAGE=ON $OPENMP_EXTRAS_ORIGIN_RPATH"
+  COMMON_CMAKE_OPTS="$COMMON_CMAKE_OPTS  $OPENMP_EXTRAS_ORIGIN_RPATH"
 fi
 
 if [[ "$ROCM_DIR" =~ "/opt/rocm" ]]; then
@@ -417,21 +417,6 @@ if [ "$1" == "install" ] ; then
             echo "ERROR make install failed for openmp_debug/asan"
             exit 1
          fi
-      fi
-
-      if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
-         cd $BUILD_DIR/build/openmp_debug/asan
-         echo
-         echo " ----- Installing to $INSTALL_OPENMP/lib-debug/asan ------ "
-         $SUDO make -j $NUM_THREADS install
-         if [ $? != 0 ]; then
-            echo "ERROR make install failed for openmp_debug/asan"
-            exit 1
-         fi
-      fi
-      if [[ "$DEVEL_PACKAGE" =~ "devel" ]]; then
-        AOMP_INSTALL_DIR="$AOMP_INSTALL_DIR/""$DEVEL_PACKAGE"
-        echo "Request for devel package found."
       fi
 
       # Copy selected debugable runtime sources into the installation lib-debug/src directory

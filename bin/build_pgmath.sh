@@ -59,7 +59,7 @@ fi
 
 if [ "$AOMP_STANDALONE_BUILD" == 0 ]; then
   MYCMAKEOPTS="$MYCMAKEOPTS
-  -DENABLE_DEVEL_PACKAGE=ON -DENABLE_RUN_PACKAGE=ON"
+  "
 fi
 
 if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
@@ -199,11 +199,6 @@ if [ "$1" == "install" ] ; then
          echo "ERROR make install failed "
          exit 1
       fi
-      $SUDO make install/local
-      if [ $? != 0 ] ; then
-         echo "ERROR make install/local failed "
-         exit 1
-      fi
       echo "SUCCESSFUL INSTALL to $INSTALL_FLANG "
    fi
    echo
@@ -213,11 +208,6 @@ if [ "$1" == "install" ] ; then
       $SUDO make install
       if [ $? != 0 ] ; then
          echo "ERROR make install failed "
-         exit 1
-      fi
-      $SUDO make install/local
-      if [ $? != 0 ]; then
-         echo "ERROR make install/local failed "
          exit 1
       fi
    fi

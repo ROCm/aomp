@@ -81,7 +81,7 @@ $AOMP_ORIGIN_RPATH"
 
 if [ "$AOMP_STANDALONE_BUILD" == 0 ]; then
   MYCMAKEOPTS="$MYCMAKEOPTS
-  -DENABLE_DEVEL_PACKAGE=ON -DENABLE_RUN_PACKAGE=ON"
+  "
 fi
 
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then 

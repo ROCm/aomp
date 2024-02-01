@@ -126,7 +126,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
   -DCMAKE_INSTALL_PREFIX=$INSTALL_EXTRAS \
   -DCMAKE_PREFIX_PATH=$DEVICELIBS_BUILD_PATH;$OUT_DIR/build/devicelibs \
   -DAOMP_VERSION_STRING=$ROCM_VERSION \
-  -DENABLE_DEVEL_PACKAGE=ON"
+  "
   fi
 
   mkdir -p $BUILD_DIR/build/extras
