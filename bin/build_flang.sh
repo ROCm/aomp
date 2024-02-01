@@ -62,7 +62,7 @@ MYCMAKEOPTS="-DCMAKE_BUILD_TYPE=$BUILD_TYPE \
 
 if [ "$AOMP_STANDALONE_BUILD" == 0 ]; then
   MYCMAKEOPTS="$MYCMAKEOPTS $OPENMP_EXTRAS_ORIGIN_RPATH
-  -DENABLE_DEVEL_PACKAGE=ON -DENABLE_RUN_PACKAGE=ON"
+  "
 fi
 
 if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
@@ -197,11 +197,6 @@ if [ "$1" == "install" ] ; then
          echo "ERROR make install failed "
          exit 1
       fi
-      $SUDO make install/local
-      if [ $? != 0 ] ; then
-         echo "ERROR make install/local failed "
-         exit 1
-      fi
       echo "SUCCESSFUL INSTALL to $INSTALL_FLANG "
 	 fi
    echo
@@ -210,11 +205,6 @@ if [ "$1" == "install" ] ; then
       $SUDO make install
       if [ $? != 0 ] ; then
          echo "ERROR make install failed "
-         exit 1
-      fi
-      $SUDO make install/local
-      if [ $? != 0 ] ; then
-         echo "ERROR make install/local failed "
          exit 1
       fi
    fi
@@ -231,6 +221,7 @@ if [ "$1" == "install" ] ; then
      echo "Copy flang, flang1, flang2 into $INSTALL_PREFIX/llvm/bin"
      cp $INSTALL_PREFIX/openmp-extras/bin/flang1 $INSTALL_PREFIX/llvm/bin
      cp $INSTALL_PREFIX/openmp-extras/bin/flang2 $INSTALL_PREFIX/llvm/bin
+     cp $INSTALL_PREFIX/openmp-extras/bin/flang-legacy $INSTALL_PREFIX/llvm/bin
    fi
 else
    echo

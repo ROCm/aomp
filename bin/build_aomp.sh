@@ -195,6 +195,33 @@ echo
 date
 echo " =================  END build_aomp.sh ==================="   
 echo
+if [ "$AOMP_STANDALONE_BUILD" -eq 0 ]; then
+  cd $BUILD_DIR/build
+  legacy_version=`ls flang-legacy`
+  legacy_install_manifest=$legacy_version/install_manifest.txt
+  if [ "$SANITIZER" == 1 ]; then
+    install_manifest_orig=asan/install_manifest.txt
+  else
+    install_manifest_orig=install_manifest.txt
+  fi
+
+  # Clean file log
+  rm -f $BUILD_DIR/build/installed_files.txt
+
+  for directory in ./*/; do
+    pushd $directory > /dev/null
+    if [[ "$directory" =~ "flang-legacy" ]]; then
+      install_manifest=$legacy_install_manifest
+    else
+      install_manifest=$install_manifest_orig
+    fi
+    if [ -f "$install_manifest" ]; then
+      cat $install_manifest  >> $BUILD_DIR/build/installed_files.txt
+      echo "" >> $BUILD_DIR/build/installed_files.txt
+    fi
+    popd > /dev/null
+  done
+fi
 
 echo "ls $INSTALL_PREFIX/openmp-extras:"
 ls $INSTALL_PREFIX/openmp-extras

@@ -76,7 +76,6 @@ MYCMAKEOPTS="-DCMAKE_BUILD_TYPE=$BUILD_TYPE \
 
 if [ "$AOMP_STANDALONE_BUILD" == 0 ]; then
   MYCMAKEOPTS="$MYCMAKEOPTS $OPENMP_EXTRAS_ORIGIN_RPATH
-  -DENABLE_DEVEL_PACKAGE=ON -DENABLE_RUN_PACKAGE=ON
   -DOPENMP_EXTRAS_SHARED_LINKER_FLAGS=$OPENMP_EXTRAS_SHARED_LINKER_FLAGS"
 fi
 
@@ -220,11 +219,6 @@ if [ "$1" == "install" ] ; then
          echo "ERROR make install failed "
          exit 1
       fi
-      $SUDO make install/local
-      if [ $? != 0 ] ; then
-         echo "ERROR make install/local failed "
-         exit 1
-      fi
       echo "SUCCESSFUL INSTALL to $INSTALL_FLANG "
    fi
    echo
@@ -235,11 +229,6 @@ if [ "$1" == "install" ] ; then
       $SUDO make install
       if [ $? != 0 ] ; then
          echo "ERROR make install failed "
-         exit 1
-      fi
-      $SUDO make install/local
-      if [ $? != 0 ] ; then
-         echo "ERROR make install/local failed "
          exit 1
       fi
       echo "SUCCESSFUL INSTALL to $INSTALL_FLANG/lib/asan "
