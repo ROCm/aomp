@@ -108,11 +108,6 @@ if [ "$1" == "install" ] ; then
       echo "ERROR make install failed "
       exit 1
    fi
-   $SUDO make install/local
-   if [ $? != 0 ] ; then 
-      echo "ERROR make install/local failed "
-      exit 1
-   fi
    echo "SUCCESSFUL INSTALL to $INSTALL_FLANG "
    echo
 else 
