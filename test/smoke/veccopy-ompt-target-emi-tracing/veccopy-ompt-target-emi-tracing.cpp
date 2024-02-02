@@ -28,10 +28,8 @@ int main()
       a[j]=b[j];
   }
 
-  for (auto Dev : *DeviceMapPtr) {
+  for (auto Dev : *DeviceMapPtr)
     flush_trace(Dev);
-    stop_trace(Dev);
-  }
   
 #pragma omp target teams distribute parallel for
   {

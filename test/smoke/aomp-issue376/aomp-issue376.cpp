@@ -34,10 +34,8 @@ int main()
       }
   }
 
-  for (auto Dev : *DeviceMapPtr) {
+  for (auto Dev : *DeviceMapPtr)
     flush_trace(Dev);
-    stop_trace(Dev);
-  }
 
   return 0;
 }

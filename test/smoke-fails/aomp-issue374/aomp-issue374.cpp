@@ -37,10 +37,8 @@ int main()
     }
   }
 
-  for (auto Dev : *DeviceMapPtr) {
+  for (auto Dev : *DeviceMapPtr)
     flush_trace(Dev);
-    stop_trace(Dev);
-  }
 
   int rc = 0;
   for (i=0; i<N; i++)
