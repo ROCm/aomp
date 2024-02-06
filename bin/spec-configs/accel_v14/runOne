@@ -1,7 +1,8 @@
 #!/bin/bash
 set -x
-export AOMP=~/rocm//aomp_16.0-40
-export AOMP_GPU=gfx90a
+
+export AOMP=${AOMP:-ls -d /opt/rocm-*/llvm |sort|tail -1}
+export AOMP_GPU=${AOMP_GPU:-rocm_agent_enumerator | grep -v gfx000|uniq}
 
 set +x
 . ./shrc 
