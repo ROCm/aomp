@@ -1,0 +1,6 @@
+Fortran babelstream
+
+Modifications:
+  - build with -Dsimd= (to remove simd)
+  - remove calls of IEEE_Is_Normal (not yet supported)
+  - add map(tofrom:s) to the reduction (workaround)
