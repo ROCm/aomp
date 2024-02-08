@@ -208,8 +208,8 @@ for option in $RUN_OPTIONS; do
         runtime_error=1
       fi
     else
-      echo ./$EXEC -n $BABELSTREAM_REPEATS | tee -a results.txt
-      ./$EXEC -n $BABELSTREAM_REPEATS 2>&1 | tee -a results.txt
+      echo ./$EXEC -n $BABELSTREAM_REPEATS ${BABELSTREAM_ARRAY_SIZE} | tee -a results.txt
+      ./$EXEC -n $BABELSTREAM_REPEATS ${BABELSTREAM_ARRAY_SIZE} 2>&1 | tee -a results.txt
       if [ $? -ne 0 ]; then
         runtime_error=1
       fi
