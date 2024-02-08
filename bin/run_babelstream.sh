@@ -190,8 +190,8 @@ for option in $RUN_OPTIONS; do
     set -o pipefail
     if [ -f $GPURUN_BINDIR/gpurun ] ; then
       if [ "$option" == "omp-usm" ]; then
-         echo HSA_XNACK=1 $GPURUN_BINDIR/gpurun $_SILENT ./$EXEC -n $BABELSTREAM_REPEATS ${BABLESTREAM_ARRAY_SIZE} | tee -a results.txt
-         HSA_XNACK=1 $GPURUN_BINDIR/gpurun $_SILENT ./$EXEC -n $BABELSTREAM_REPEATS ${BABLESTREAM_ARRAY_SIZE} 2>&1 | tee -a results.txt
+         echo HSA_XNACK=1 $GPURUN_BINDIR/gpurun $_SILENT ./$EXEC -n $BABELSTREAM_REPEATS ${BABELSTREAM_ARRAY_SIZE} | tee -a results.txt
+         HSA_XNACK=1 $GPURUN_BINDIR/gpurun $_SILENT ./$EXEC -n $BABELSTREAM_REPEATS ${BABELSTREAM_ARRAY_SIZE} 2>&1 | tee -a results.txt
       elif [ "$option" == "hip-um" ]; then
          echo HSA_XNACK=1 HIP_UM=1 $GPURUN_BINDIR/gpurun $_SILENT ./$EXEC -n $BABELSTREAM_REPEATS ${BABELSTREAM_ARRAY_SIZE} | tee -a results.txt
          HSA_XNACK=1 HIP_UM=1 $GPURUN_BINDIR/gpurun $_SILENT ./$EXEC -n $BABELSTREAM_REPEATS ${BABELSTREAM_ARRAY_SIZE} 2>&1 | tee -a results.txt
