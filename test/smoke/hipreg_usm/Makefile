@@ -1,4 +1,6 @@
 include ../../Makefile.defs
+HSA_XNACK ?= 1
+AOMP_TARGET_FEATURES = xnack+
 
 TESTNAME     = hostreg_usm
 TESTSRC_MAIN = omp.cpp
@@ -13,7 +15,6 @@ OMP_BIN      = $(AOMP)/bin/$(CLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
 EXTRA_CFLAGS = -L$(AOMPHIP)/lib -lamdhip64 -Wl,-rpath,$(AOMPHIP)/lib
 
-HSA_XNACK ?= 1
 
 #-ccc-print-phases
 #"-\#\#\#"
@@ -24,5 +25,7 @@ all: $(TESTNAME)
 hip_hostreg.o : hip_hostreg.hip
 	$(HIPCC) -c --offload-arch=$(AOMP_GPU) $^ -o $@
 
-run:
-	HSA_XNACK=${HSA_XNACK} ./$(TESTNAME)
+RUNENV       += HSA_XNACK=$(HSA_XNACK)
+RUNCMD       = ./$(TESTNAME)
+
+SUPPORTED    = $(SUPPORTS_USM)

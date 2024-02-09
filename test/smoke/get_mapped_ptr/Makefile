@@ -1,4 +1,6 @@
 include ../../Makefile.defs
+HSA_XNACK        ?= 1
+AOMP_TARGET_FEATURES = xnack+
 
 TESTNAME     = get_mapped_ptr
 TESTSRC_MAIN = get_mapped_ptr.cpp
@@ -10,5 +12,10 @@ OMP_BIN      = $(AOMP)/bin/$(CLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
 #-ccc-print-phases
 #"-\#\#\#"
+
+RUNENV       += HSA_XNACK=$(HSA_XNACK)
+RUNCMD       = ./$(TESTNAME)
+
+SUPPORTED    = $(SUPPORTS_USM)
 
 include ../Makefile.rules
