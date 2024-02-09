@@ -24,8 +24,14 @@ endif
 # ----- If SUPPORTED is empty then it means that there is no
 # restriction for the test and the test can be compiled and run
 # on the current GPU architecture.
+ifeq ($(AOMP_TARGET_FEATURES),)
+GPU_W_FEATURES = $(AOMP_GPU)
+else
+GPU_W_FEATURES = $(AOMP_GPU):$(AOMP_TARGET_FEATURES)
+endif
+
 ifeq ($(SUPPORTED),)
-SUPPORTED = $(AOMP_GPU)$(AOMP_TARGET_FEATURES)
+SUPPORTED = $(GPU_W_FEATURES)
 endif
 
 # ----- Demo compile and link in one step, no object code saved
@@ -34,8 +40,8 @@ $(TESTNAME): prerequisites $(TESTSRC_ALL)
 else
 $(TESTNAME): $(TESTSRC_ALL)
 endif
-ifneq (,$(findstring $(AOMP_GPU)$(AOMP_TARGET_FEATURES),$(SUPPORTED)))
-ifeq (,$(findstring $(AOMP_GPU)$(AOMP_TARGET_FEATURES),$(UNSUPPORTED)))
+ifneq (,$(findstring $(GPU_W_FEATURES),$(SUPPORTED)))
+ifeq (,$(findstring $(GPU_W_FEATURES),$(UNSUPPORTED)))
 ifdef nvidia_targets
 	$(CC) $(make_options) $(nvidia_targets) $(march) $(cuda) -o $@
 else ifdef march
@@ -57,8 +63,8 @@ else
 endif
 
 run: $(TESTNAME)
-ifneq (,$(findstring $(AOMP_GPU)$(AOMP_TARGET_FEATURES),$(SUPPORTED)))
-ifeq (,$(findstring $(AOMP_GPU)$(AOMP_TARGET_FEATURES),$(UNSUPPORTED)))
+ifneq (,$(findstring $(GPU_W_FEATURES),$(SUPPORTED)))
+ifeq (,$(findstring $(GPU_W_FEATURES),$(UNSUPPORTED)))
 	$(RUNENV) $(RUNPROF) $(RUNPROF_FLAGS) $(CHECK_COMMAND) 2>&1 | tee $@.log
 else
 	@echo "  $(SKIP_RUN_UNSUPPORTED)"
@@ -95,8 +101,8 @@ verify-log: run
 	)9>../lockfile;
 
 check: $(TESTNAME)
-ifneq (,$(findstring $(AOMP_GPU)$(AOMP_TARGET_FEATURES),$(SUPPORTED)))
-ifeq (,$(findstring $(AOMP_GPU)$(AOMP_TARGET_FEATURES),$(UNSUPPORTED)))
+ifneq (,$(findstring $(GPU_W_FEATURES),$(SUPPORTED)))
+ifeq (,$(findstring $(GPU_W_FEATURES),$(UNSUPPORTED)))
 	path=`pwd`; \
 	base=`basename $$path`; \
 	( \

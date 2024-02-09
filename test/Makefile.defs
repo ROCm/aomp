@@ -214,13 +214,19 @@ ifeq (gfx11,$(findstring gfx11,$(AOMP_GPU)))
  AOMP_WSIZE = -DWAVE_SIZE=32
 endif
 
+ifeq ($(AOMP_TARGET_FEATURES),)
+GPU_W_FEATURES = $(AOMP_GPU)
+else
+GPU_W_FEATURES = $(AOMP_GPU):$(AOMP_TARGET_FEATURES)
+endif
+
 USE_OFFLOAD_ARCH ?= 1
 ifeq ($(TARGET),)
   ifeq ($(OMP_HOST),)
    ifeq ($(USE_OFFLOAD_ARCH),1)
-    TARGET  =  --offload-arch=$(AOMP_GPU)$(AOMP_TARGET_FEATURES)
+	TARGET  =  --offload-arch=$(GPU_W_FEATURES)
    else
-    TARGET  =  -fopenmp-targets=$(AOMP_GPUTARGET) -Xopenmp-target=$(AOMP_GPUTARGET) -march=$(AOMP_GPU)$(AOMP_TARGET_FEATURES)
+	TARGET  =  -fopenmp-targets=$(AOMP_GPUTARGET) -Xopenmp-target=$(AOMP_GPUTARGET) -march=$(GPU_W_FEATURES)
    endif
   endif
 endif
