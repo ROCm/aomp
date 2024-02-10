@@ -1,3 +1,4 @@
+
 #include <stdio.h>
 #include <stdbool.h>
 #include <math.h>
@@ -17,7 +18,7 @@ bool is_prime(int n) {
 #include <stdbool.h>
 #include <math.h>
 
-bool is_primeT(int p, int *table, int size) {
+bool is_primeT(int p, int* table, int size) {
     if (p < 2) {
         return false;
     }
@@ -34,7 +35,8 @@ bool is_primeT(int p, int *table, int size) {
 }
 
 int main() {
-    int n = 100;
+
+#define n 1000
 
     int primes[n];
     int count_gpu = 0;
@@ -55,30 +57,30 @@ int main() {
     }
     printf("\n");
 
-    int last_prime = primes[n-1];
+    int last_prime = primes[n - 1];
     int last_prime_square = last_prime * last_prime;
 
     printf("Primes from %d to %d:\n", last_prime, last_prime_square);
 
-    count_gpu=0;
-#pragma omp target teams distribute parallel for map(to:primes[n]) reduction(+:count_gpu)
-    for (int i = last_prime; i <= last_prime_square; i=i+2) {
-       if (is_primeT(i, primes, n)) {
-          count_gpu++;
-       }
+    count_gpu = 0;
+#pragma omp target teams distribute parallel for map(to:primes[0:n]) reduction(+:count_gpu)
+    for (int i = last_prime; i <= last_prime_square; i = i + 2) {
+        if (is_primeT(i, primes, n)) {
+            count_gpu++;
+        }
     }
     printf("OpenMP Offloading Count = %d \n", count_gpu);
 
-    count_cpu=0;
-    for (int i = last_prime; i <= last_prime_square; i=i+2) {
-       if (is_primeT(i, primes, n)) count_cpu++;
+    count_cpu = 0;
+    for (int i = last_prime; i <= last_prime_square; i = i + 2) {
+        if (is_primeT(i, primes, n)) count_cpu++;
     }
     printf("CPU Count = %d , These two numbers should be equal.\n", count_cpu);
 
     if (count_cpu == count_gpu) {
-       return 0;
-    } else {
-       return -1;
+        return 0;
+    }
+    else {
+        return -1;
     }
 }
-

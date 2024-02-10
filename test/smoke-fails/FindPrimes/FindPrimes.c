@@ -6,8 +6,8 @@
 #include <math.h>
 #include <omp.h>
 
-int compare(const void *a, const void *b) {
-    return ( *(int*)a - *(int*)b );
+int compare(const void* a, const void* b) {
+    return (*(int*)a - *(int*)b);
 }
 
 int count_primes(int* primes, int n, int i1, int i2, int* output) {
@@ -36,9 +36,9 @@ int count_primes(int* primes, int n, int i1, int i2, int* output) {
 
         // If i is prime, add it to the output array and increment the count
         if (is_prime) {
-            #pragma omp critical
+#pragma omp critical
             {
-                output[count]=i;
+                output[count] = i;
                 count++;
             }
         }
@@ -50,37 +50,34 @@ int count_primes(int* primes, int n, int i1, int i2, int* output) {
 int main() {
 
     // Seeding the prime array with the primes from 2^1 to 2^2.
-    int *primes = (int*)malloc(2 * sizeof(int));
+    int* primes = (int*)malloc(2 * sizeof(int));
     primes[0] = 2;
     primes[1] = 3;
 
-    // How many threads?
-    int num_threads = 48;
-    omp_set_num_threads(num_threads);
-    printf("OMP_NUM_THREADS = %d\n", omp_get_num_threads());
-
     int n_primes = 2;
-    int count    = 0;
+    int count = 0;
     for (int n = 2; n <= 22; n++) {
         int i1 = pow(2, n);
-        int i2 = pow(2, n+1);
-        int *output = (int*)malloc((i2-i1)/2 * sizeof(int));
+        int i2 = pow(2, n + 1);
+        int* output = (int*)malloc((i2 - i1) / 2 * sizeof(int));
         count = count_primes(primes, n_primes, i1, i2, output);
+        
         primes = (int*)realloc(primes, (n_primes + count) * sizeof(int));
+        
         memcpy(primes + n_primes, output, count * sizeof(int));
-        (void) qsort(primes, n_primes, sizeof(int), compare);
-//        for (int i=n_primes;i<n_primes+count; i++) {
-//           printf("Primes[%d] = %d\n",i,primes[i]);
-//        }
+        
+        (void)qsort(primes, n_primes, sizeof(int), compare);
+
         n_primes = n_primes + count;
         printf("Number of primes between %d and %d: %d\n", i1, i2, count);
         free(output);
     }
 
     if (count == 268216) {
-       return 0;
-    } else {
-       return -1;
+        return 0;
+    }
+    else {
+        return -1;
     }
 }
 
