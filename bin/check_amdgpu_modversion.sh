@@ -9,7 +9,17 @@ thisdir=`dirname $realpath`
 [ -f $thisdir/aomp_common_vars ] && . $thisdir/aomp_common_vars
 # --- end standard header ----
 
-ROCM_EXPECTED_MODVERSION=${ROCM_EXPECTED_MODVERSION:-6.2.4}
+which dpkg 2>/dev/null >/dev/null
+if [ $? == 0 ] ; then
+_packaged_amdgpu_ver=`dpkg -l amdgpu-dkms 2>/dev/null | tail -n 1 | cut -d":" -f2 | cut -d"." -f1-3`
+else
+_packaged_amdgpu_ver=""
+fi
+if [ "$_packaged_amdgpu_ver" == "" ] ; then
+   ROCM_EXPECTED_MODVERSION=${ROCM_EXPECTED_MODVERSION:-6.3.6}
+else
+   ROCM_EXPECTED_MODVERSION=$_packaged_amdgpu_ver
+fi
 _llvm_install_dir=${AOMP:-/opt/rocm/llvm}
 which modinfo >/dev/null 2>/dev/null
 if [ $? == 0 ] ; then
