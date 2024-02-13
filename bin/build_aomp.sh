@@ -134,7 +134,11 @@ echo " =================  START build_aomp.sh ==================="
 echo 
 if [ -n "$AOMP_JENKINS_BUILD_LIST" ] ; then
    components=$AOMP_JENKINS_BUILD_LIST
-   components="extras openmp flang-legacy pgmath flang flang_runtime"
+   if [ "$SANITIZER" == 1 ] && [ -f $AOMP/bin/flang-legacy ] ; then
+     components="extras openmp pgmath flang flang_runtime"
+   else
+     components="extras openmp flang-legacy pgmath flang flang_runtime"
+   fi
 else
    if [ "$AOMP_STANDALONE_BUILD" == 1 ] ; then
       # There is no good external repo for the opencl runtime but we only need the headers for build_vdi.sh
