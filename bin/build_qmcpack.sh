@@ -5,6 +5,12 @@
 #  Users can override the following variables:
 #  AOMP, AOMP_GPU, BOOST_ROOT, FFTW_HOME, OPENMPI_INSTALL, QMCPACK_REPO, HDF5_ROOT, USE_MODULES
 #
+#  To build OpenMP+HIP version (off by default):
+#  1. export cmake prefix path to cmake folder in rocm libs, such as:
+#  export CMAKE_PREFIX_PATH=/opt/rocm/lib/cmake
+#  2. Set
+#  USE_HIP_OPENMP=1
+#
 #  This script assumes openmpi(4.0.3 recommended) is installed and built with clang, for example:
 #  export LD_LIBRARY_PATH=$AOMP/lib
 #  export PATH=$AOMP/bin:$PATH
@@ -24,6 +30,7 @@ thisdir=`dirname $realpath`
 
 AOMP=${AOMP:-~/usr/lib/aomp}
 ROCM_VER=${ROCM_VER:-rocm-alt}
+USE_HIP_OPENMP="${USE_HIP_OPENMP:0}"
 
 USE_MODULES=${USE_MODULES:-0}
 if [ "$USE_MODULES" == "1" ] && [ -e /etc/profile.d/modules.sh ] ; then
@@ -100,15 +107,28 @@ mpi="-DQMC_MPI="
 cc="-DCMAKE_C_COMPILER="
 cxx="-DCMAKE_CXX_COMPILER="
 qmc_data="-DQMC_DATA="
+cuda="-DENABLE_CUDA="
+cuda2hip="-DQMC_CUDA2HIP="
 
 declare -A opts_array
 # Default to:
 # -DQMC_COMPLEX=OFF -DQMC_MIXED_PRECISION=OFF -DQMC_MPI=OFF -DCMAKE_C_COMPILER=$AOMP/bin/clang -DCMAKE_CXX_COMPILER=$AOMP/bin/clang++
 opts_array[$complex]=OFF
 opts_array[$mixed]=OFF
-opts_array[$mpi]=OFF
-opts_array[$cc]=$AOMP/bin/clang
-opts_array[$cxx]=$AOMP/bin/clang++
+if [[ -z "${USE_HIP_OPENMP}" ]]; then
+    echo "Building OpenMP only version"
+    opts_array[$mpi]=OFF
+    opts_array[$cc]=$AOMP/bin/clang
+    opts_array[$cxx]=$AOMP/bin/clang++
+else
+    echo "Building OpenMP+HIP production version"
+    opts_array[$mpi]=ON
+    opts_array[$cc]=$HOME/local/openmpi/bin/mpicc OMPI_CC=$AOMP/bin/clang
+    opts_array[$cxx]=$HOME/local/openmpi/bin/mpic++ OMPI_CXX=$AOMP/bin/clang++
+    opts_array[$cuda]=ON
+    opts_array[$cuda2hip]=ON
+fi
+
 
 if [[ -z "${QMC_DATA}" ]]; then
   echo "QMC_DATA not set: will not select performance tests"
