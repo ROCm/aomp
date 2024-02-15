@@ -139,9 +139,9 @@ if [ "$1" != "nocopy" ] ; then
 else
    # for nocopy option, ensure temp sources exist (possibly edited),
    # AND save a copies of unpatched upstream code in temp dir for easy compare.
-   [ ! -f OMPStream.cpp ] && echo missing $BABELSTREADM_BUILD/OMPStream.cpp && exit 1
+   [ ! -f OMPStream.cpp ] && echo missing $BABELSTREAM_BUILD/OMPStream.cpp && exit 1
    cp $BABELSTREAM_REPO/src/omp/OMPStream.cpp OMPStream.cpp.orig
-   [ ! -f HIPStream.cpp ] && echo missing $BABELSTREADM_BUILD/HIPStream.cpp && exit 1
+   [ ! -f HIPStream.cpp ] && echo missing $BABELSTREAM_BUILD/HIPStream.cpp && exit 1
    cp $BABELSTREAM_REPO/src/hip/HIPStream.cpp HIPStream.cpp.orig
 fi
 
