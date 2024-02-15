@@ -1,17 +1,41 @@
 SHELL=/bin/bash -o pipefail
 
-# target IDs that support OpenMP 'requires unified_shared_memory'
-# as defined in https://llvm.org/docs/AMDGPUUsage.html#amdgpu-processor-table
-# with xnack target feature supported.
-SUPPORTS_USM=gfx90a,gfx90a:xnack+,\
-             gfx90c,gfx90c:xnack+,\
-             gfx940,gfx940:xnack+,\
-             gfx941,gfx941:xnack+,\
-             gfx942,\
-             gfx1010,gfx1010:xnack+\
-             gfx1011,gfx1011:xnack+\
-             gfx1012,gfx1012:xnack+\
-             gfx1013,gfx1013:xnack+
+
+# Set the value of SKIP_USM to 1 if the system is a VM, else sets SKIP_USM to 0.
+# a system is considered a VM if it has the HyperV or VMWare names present in
+# output of lspci or /usr/sbin/lspci or /sbin/lspci commands.
+define checkVM
+  SKIP_USM=$(shell lspci 2>/dev/null| grep -i -E "VMWare|HyperV" | wc -l)
+  ifeq ($(SKIP_USM),0)
+    SKIP_USM=$(shell /usr/sbin/lspci 2>/dev/null | grep -i -E "VMWare|HyperV" | wc -l)
+  endif
+  ifeq ($(SKIP_USM),0)
+    SKIP_USM=$(shell /sbin/lspci 2>/dev/null | grep -i -E "VMWare|HyperV" | wc -l)
+  endif
+endef
+
+# if SKIP_USM is not already set, then call checkVM to set the value of SKIP_USM
+ifeq ($(SKIP_USM),)
+  $(eval $(call checkVM))
+endif
+
+# If SKIP_USM is 1 then do not compile/run the test
+ifneq ($(SKIP_USM),0)
+  SUPPORTS_USM="SKIP_USM = 0"
+else
+  # target IDs that support OpenMP 'requires unified_shared_memory'
+  # as defined in https://llvm.org/docs/AMDGPUUsage.html#amdgpu-processor-table
+  # with xnack target feature supported.
+  SUPPORTS_USM= gfx90a, gfx90a:xnack+,\
+                gfx90c, gfx90c:xnack+,\
+                gfx940, gfx940:xnack+,\
+                gfx941, gfx941:xnack+,\
+                gfx942, gfx942:xnack+,\
+                gfx1010, gfx1010:xnack+\
+                gfx1011, gfx1011:xnack+\
+                gfx1012, gfx1012:xnack+\
+                gfx1013, gfx1013:xnack+
+endif
 
 ifeq ($(AOMP),)
 # --- Standard Makefile check for AOMP installation ---

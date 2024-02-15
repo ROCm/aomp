@@ -15,6 +15,8 @@ OMP_BIN      = $(AOMP)/bin/$(CLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
 EXTRA_CFLAGS = -L$(AOMPHIP)/lib -lamdhip64 -Wl,-rpath,$(AOMPHIP)/lib
 
+SUPPORTED    = $(SUPPORTS_USM)
+
 
 #-ccc-print-phases
 #"-\#\#\#"
@@ -28,4 +30,3 @@ hip_hostreg.o : hip_hostreg.hip
 RUNENV       += HSA_XNACK=$(HSA_XNACK)
 RUNCMD       = ./$(TESTNAME)
 
-SUPPORTED    = $(SUPPORTS_USM)
