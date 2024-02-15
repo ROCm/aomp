@@ -20,7 +20,9 @@ export AOMP_USE_CCACHE=0
 . $thisdir/aomp_common_vars
 # --- end standard header ----
 
+if [ "$1" != "nocopy" ] ; then
 patchrepo $AOMP_REPOS_TEST/$AOMP_BABELSTREAM_REPO_NAME
+fi
 
 # Set defaults for environment variables
 AOMP=${AOMP:-/usr/lib/aomp}
@@ -131,10 +133,16 @@ if [ "$1" != "nocopy" ] ; then
    cp $BABELSTREAM_REPO/src/main.cpp .
    cp $BABELSTREAM_REPO/src/Stream.h .
    cp $BABELSTREAM_REPO/src/omp/OMPStream.cpp .
-   cp $BABELSTREAM_REPO/src/omp/OMPStream.cpp OMPStream.cpp.orig
    cp $BABELSTREAM_REPO/src/omp/OMPStream.h .
    cp $BABELSTREAM_REPO/src/hip/HIPStream.cpp .
    cp $BABELSTREAM_REPO/src/hip/HIPStream.h .
+else
+   # for nocopy option, ensure temp sources exist (possibly edited),
+   # AND save a copies of unpatched upstream code in temp dir for easy compare.
+   [ ! -f OMPStream.cpp ] && echo missing $BABELSTREADM_BUILD/OMPStream.cpp && exit 1
+   cp $BABELSTREAM_REPO/src/omp/OMPStream.cpp OMPStream.cpp.orig
+   [ ! -f HIPStream.cpp ] && echo missing $BABELSTREADM_BUILD/HIPStream.cpp && exit 1
+   cp $BABELSTREAM_REPO/src/hip/HIPStream.cpp HIPStream.cpp.orig
 fi
 
 echo RUN_OPTIONS: $RUN_OPTIONS
@@ -229,4 +237,6 @@ fi
 cd $curdir
 echo
 echo "DONE. See results at end of file $BABELSTREAM_BUILD/results.txt"
+if [ "$1" != "nocopy" ] ; then
 removepatch $AOMP_REPOS_TEST/$AOMP_BABELSTREAM_REPO_NAME
+fi
