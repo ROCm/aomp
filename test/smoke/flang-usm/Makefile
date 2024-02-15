@@ -8,6 +8,8 @@ TESTSRC_MAIN = flang-usm.f90
 TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 
+SUPPORTED    = $(SUPPORTS_USM)
+
 FLANG        ?= flang
 OMP_BIN      = $(AOMP)/bin/$(FLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
@@ -15,7 +17,6 @@ CC           = $(OMP_BIN) $(VERBOSE)
 RUNENV       += HSA_XNACK=$(HSA_XNACK)
 RUNCMD       = ./$(TESTNAME)
 
-SUPPORTED    = $(SUPPORTS_USM)
 
 #-ccc-print-phases
 #"-\#\#\#"

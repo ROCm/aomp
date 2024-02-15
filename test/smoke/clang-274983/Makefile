@@ -13,6 +13,7 @@ else
   _gputriple = amdgcn-amd-amdhsa
 endif
 
+SUPPORTED    = $(SUPPORTS_USM)
 
 TARGET       = -fopenmp -O3 -fopenmp-targets=$(_gputriple) -Xopenmp-target=$(_gputriple) -march=$(AOMP_GPU)$(AOMP_TARGET_FEATURES)
 
@@ -25,6 +26,5 @@ CC           = $(OMP_BIN) $(VERBOSE)
 RUNENV       += HSA_XNACK=$(HSA_XNACK)
 RUNCMD       = ./$(TESTNAME)
 
-SUPPORTED    = $(SUPPORTS_USM)
 
 include ../Makefile.rules

@@ -7,6 +7,8 @@ TESTSRC_MAIN = requires_usm.cpp
 TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 
+SUPPORTED    = $(SUPPORTS_USM)
+
 CLANG        ?= clang++
 OMP_BIN      = $(AOMP)/bin/$(CLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
@@ -14,7 +16,6 @@ CC           = $(OMP_BIN) $(VERBOSE)
 RUNENV       += HSA_XNACK=$(HSA_XNACK)
 RUNCMD       = ./$(TESTNAME)
 
-SUPPORTED    = $(SUPPORTS_USM)
 
 #-ccc-print-phases
 #"-\#\#\#"
