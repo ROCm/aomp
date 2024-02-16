@@ -12,6 +12,8 @@ CC           = $(OMP_BIN) $(VERBOSE)
 RUNENV       ?= HSA_XNACK=1
 RUNCMD       = ./$(TESTNAME)
 
+SUPPORTED    = $(SUPPORTS_USM)
+
 #-ccc-print-phases
 #"-\#\#\#"
 

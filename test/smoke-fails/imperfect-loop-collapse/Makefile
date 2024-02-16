@@ -10,6 +10,7 @@ OMP_BIN      = $(AOMP)/bin/$(CLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
 
 HSA_XNACK ?= 1
+SUPPORTED    = $(SUPPORTS_USM)
 
 #-ccc-print-phases
 #"-\#\#\#"
