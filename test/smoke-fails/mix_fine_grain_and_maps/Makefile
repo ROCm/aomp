@@ -8,6 +8,9 @@ TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 CLANG        = clang++ -DREQUIRES_USM
 OMP_BIN      = $(AOMP)/bin/$(CLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
+
+SUPPORTED    = $(SUPPORTS_USM)
+
 #-ccc-print-phases
 #"-\#\#\#"
 

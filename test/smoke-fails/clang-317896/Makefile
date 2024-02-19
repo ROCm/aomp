@@ -8,6 +8,9 @@ TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 CLANG        = clang++ -D__HIP_PLATFORM_AMD__   -lamdhip64 -DUSE_HIP_MALLOC -DUSE_POSSIX_MEMALIGN
 OMP_BIN      = $(AOMP)/bin/$(CLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
+
+SUPPORTED    = $(SUPPORTS_USM)
+
 #-ccc-print-phases
 #"-\#\#\#"
 
