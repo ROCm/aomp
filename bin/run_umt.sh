@@ -45,44 +45,33 @@ if [ "$1" == "build_umt" ]; then
     pushd ${UMT_PATH}
     mkdir -p ${UMT_INSTALL_PATH}
     pushd ${UMT_PATH}/umt_workspace
-    echo "*** Fetch and build dependencies ***"
 
-    git clone https://github.com/LLNL/UMT_TPLS.git
-
-    tar xvzf UMT_TPLS/metis-5.1.0.tar.gz
-    pushd metis-5.1.0
-    cmake . -DCMAKE_INSTALL_PREFIX=${UMT_INSTALL_PATH} -DCMAKE_C_COMPILER=${CC} -DCMAKE_CXX_COMPILER=${CXX} -DGKLIB_PATH=${PWD}/GKlib
-    make -j install
-    popd
-
-    tar xvzf UMT_TPLS/conduit-v0.8.8-src-with-blt.tar.gz
+    git clone --recurse-submodules  https://github.com/LLNL/conduit.git conduit -b v0.9.0
     mkdir build_conduit
     pushd build_conduit
-    cmake ${PWD}/../conduit-v0.8.8/src -DCMAKE_INSTALL_PREFIX=${UMT_INSTALL_PATH} -DCMAKE_C_COMPILER=${CC} -DCMAKE_CXX_COMPILER=${CXX} -DCMAKE_Fortran_COMPILER=${FC} -DMPI_CXX_COMPILER=${MPI_PATH}/bin/mpicxx -DMPI_Fortran_COMPILER=${MPI_PATH}/bin/mpifort -DBUILD_SHARED_LIBS=OFF -DENABLE_TESTS=OFF -DENABLE_EXAMPLES=OFF -DENABLE_DOCS=OFF -DENABLE_FORTRAN=ON -DENABLE_MPI=ON -DENABLE_PYTHON=OFF
-    make -j install
-    popd
-
-    tar xvzf UMT_TPLS/v2.24.0.tar.gz
-    mkdir build_hypre
-    pushd build_hypre
-    cmake ${PWD}/../hypre-2.24.0/src -DCMAKE_INSTALL_PREFIX=${UMT_INSTALL_PATH} -DCMAKE_C_COMPILER=${CC}
-    make -j install
-    popd
-
-    unzip -o UMT_TPLS/v4.4.zip
-    mkdir build_mfem
-    pushd build_mfem
-    cmake ${PWD}/../mfem-4.4 -DCMAKE_INSTALL_PREFIX=${UMT_INSTALL_PATH} -DCMAKE_C_COMPILER=${CC} -DCMAKE_CXX_COMPILER=${CXX} -DMPI_CXX_COMPILER=${MPI_PATH}/bin/mpicxx -DMFEM_USE_MPI=TRUE -DMFEM_USE_CONDUIT=TRUE -DMFEM_USE_METIS_5=TRUE -DCMAKE_PREFIX_PATH=${INSTALL_PATH}}
+    cmake ${PWD}/../conduit/src -DCMAKE_INSTALL_PREFIX=${UMT_INSTALL_PATH} \
+                                -DCMAKE_C_COMPILER=${CC} \
+                                -DCMAKE_CXX_COMPILER=${CXX} \
+                                -DCMAKE_Fortran_COMPILER=${FC} \
+                                -DMPI_CXX_COMPILER=mpicxx \
+                                -DMPI_Fortran_COMPILER=mpifort \
+                                -DBUILD_SHARED_LIBS=OFF \
+                                -DENABLE_TESTS=OFF \
+                                -DENABLE_EXAMPLES=OFF \
+                                -DENABLE_DOCS=OFF \
+                                -DENABLE_FORTRAN=ON \
+                                -DENABLE_MPI=ON \
+                                -DENABLE_PYTHON=OFF
     make -j install
     popd
 
     # apply patch
-    pushd ${UMT_PATH}
-    git reset --hard a6e8898d34b9ea3ad6cd5603ddfd44e05c53b7ec
+    git reset --hard 30b0175228af4c5eb084c3e219db6a7cd3f27ead
     patchrepo $AOMP_REPOS_TEST/UMT
 
     # Build UMT
     mkdir build_umt
+    pushd build_umt
 
     # Run CMake on UMT, compile, and install.
     cmake ${UMT_PATH}/src \
@@ -97,9 +86,6 @@ if [ "$1" == "build_umt" ]; then
             -DMPI_CXX_COMPILER=${MPI_PATH}/bin/mpicxx \
             -DMPI_Fortran_COMPILER=${MPI_PATH}/bin/mpifort \
             -DCMAKE_INSTALL_PREFIX=${UMT_INSTALL_PATH} \
-    		-DMETIS_ROOT=${UMT_INSTALL_PATH} \
-            -DHYPRE_ROOT=${UMT_INSTALL_PATH} \
-    		-DMFEM_ROOT=${UMT_INSTALL_PATH} \
             -DCONDUIT_ROOT=${UMT_INSTALL_PATH} $1
     make -j install
 
@@ -113,8 +99,8 @@ fi
 
 # Run UMT
 if [ "$1" == "run_umt" ]; then
-    ${UMT_INSTALL_PATH}/bin/makeUnstructuredBox
-    ${UMT_INSTALL_PATH}/bin/test_driver -i ./unstructBox3D.mesh -r 1 -R 6 -b 1
+    ${UMT_INSTALL_PATH}/bin/test_driver -c 10 -B local -d 8,8,0 --benchmark_problem 2
+    ${UMT_INSTALL_PATH}/bin/test_driver -c 10 -B local -d 4,4,4 --benchmark_problem 2
     exit 1
 fi
 
