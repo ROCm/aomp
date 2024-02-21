@@ -47,34 +47,34 @@ if [ "$1" == "build_umt" ]; then
     pushd ${UMT_PATH}/umt_workspace
 
     git clone --recurse-submodules  https://github.com/LLNL/conduit.git conduit -b v0.9.0
-    mkdir build_conduit
-    pushd build_conduit
-    cmake ${PWD}/../conduit/src -DCMAKE_INSTALL_PREFIX=${UMT_INSTALL_PATH} \
-                                -DCMAKE_C_COMPILER=${CC} \
-                                -DCMAKE_CXX_COMPILER=${CXX} \
-                                -DCMAKE_Fortran_COMPILER=${FC} \
-                                -DMPI_CXX_COMPILER=mpicxx \
-                                -DMPI_Fortran_COMPILER=mpifort \
-                                -DBUILD_SHARED_LIBS=OFF \
-                                -DENABLE_TESTS=OFF \
-                                -DENABLE_EXAMPLES=OFF \
-                                -DENABLE_DOCS=OFF \
-                                -DENABLE_FORTRAN=ON \
-                                -DENABLE_MPI=ON \
-                                -DENABLE_PYTHON=OFF
-    make -j install
-    popd
 
+    cmake -S ${UMT_PATH}/umt_workspace/conduit/src -B build_conduit \
+                        -DCMAKE_INSTALL_PREFIX=${UMT_INSTALL_PATH} \
+                        -DCMAKE_C_COMPILER=${CC} \
+                        -DCMAKE_CXX_COMPILER=${CXX} \
+                        -DCMAKE_Fortran_COMPILER=${FC} \
+                        -DMPI_CXX_COMPILER=mpicxx \
+                        -DMPI_Fortran_COMPILER=mpifort \
+                        -DBUILD_SHARED_LIBS=OFF \
+                        -DENABLE_TESTS=OFF \
+                        -DENABLE_EXAMPLES=OFF \
+                        -DENABLE_DOCS=OFF \
+                        -DENABLE_FORTRAN=ON \
+                        -DENABLE_MPI=ON \
+                        -DENABLE_PYTHON=OFF
+    
+    cmake --build build_conduit --parallel
+    cmake --install build_conduit
+    popd
+    
     # apply patch
     git reset --hard 30b0175228af4c5eb084c3e219db6a7cd3f27ead
     patchrepo $AOMP_REPOS_TEST/UMT
 
     # Build UMT
-    mkdir build_umt
-    pushd build_umt
-
+  
     # Run CMake on UMT, compile, and install.
-    cmake ${UMT_PATH}/src \
+    cmake -S ${UMT_PATH}/src -B build_umt \
             -DCMAKE_BUILD_TYPE=Release \
     		-DSTRICT_FPP_MODE=YES \
             -DENABLE_OPENMP=YES \
@@ -87,8 +87,10 @@ if [ "$1" == "build_umt" ]; then
             -DMPI_Fortran_COMPILER=${MPI_PATH}/bin/mpifort \
             -DCMAKE_INSTALL_PREFIX=${UMT_INSTALL_PATH} \
             -DCONDUIT_ROOT=${UMT_INSTALL_PATH} $1
-    make -j install
-
+    
+    cmake --build build_umt --parallel
+    cmake --install build_umt
+    
     # undo patch
     removepatch ${AOMP_REPOS_TEST}/UMT
     popd
