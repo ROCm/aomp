@@ -96,17 +96,17 @@ int main() {
 /// CHECK-DAG: rec=[[ADDRX_10]]
 /// CHECK-DAG: rec=[[ADDRX_11]]
 
-/// CHECK-DAG: type= 8 (Target task) {{.+}} kind=1 endpoint=1
-/// CHECK-DAG: type= 9 (Target data op) {{.+}} optype=1
-/// CHECK-DAG: type= 9 (Target data op) {{.+}} optype=2
-/// CHECK-DAG: type= 9 (Target data op) {{.+}} optype=1
-/// CHECK-DAG: type= 9 (Target data op) {{.+}} optype=2
+/// CHECK-DAG: type=8 (Target task) {{.+}} kind=1 endpoint=1
+/// CHECK-DAG: type=9 (Target data op) {{.+}} optype=1
+/// CHECK-DAG: type=9 (Target data op) {{.+}} optype=2
+/// CHECK-DAG: type=9 (Target data op) {{.+}} optype=1
+/// CHECK-DAG: type=9 (Target data op) {{.+}} optype=2
 /// CHECK-DAG: type=10 (Target kernel) {{.+}} requested_num_teams=1
-/// CHECK-DAG: type= 9 (Target data op) {{.+}} optype=3
-/// CHECK-DAG: type= 9 (Target data op) {{.+}} optype=3
-/// CHECK-DAG: type= 9 (Target data op) {{.+}} optype=4
-/// CHECK-DAG: type= 9 (Target data op) {{.+}} optype=4
-/// CHECK-DAG: type= 8 (Target task) {{.+}} kind=1 endpoint=2
+/// CHECK-DAG: type=9 (Target data op) {{.+}} optype=3
+/// CHECK-DAG: type=9 (Target data op) {{.+}} optype=3
+/// CHECK-DAG: type=9 (Target data op) {{.+}} optype=4
+/// CHECK-DAG: type=9 (Target data op) {{.+}} optype=4
+/// CHECK-DAG: type=8 (Target task) {{.+}} kind=1 endpoint=2
 
 // Note: These addresses will only occur once. They are only captured to
 //       indicate their existence.
@@ -122,17 +122,17 @@ int main() {
 /// CHECK-DAG: rec=[[ADDRX_21:0x[0-f]+]]
 /// CHECK-DAG: rec=[[ADDRX_22:0x[0-f]+]]
 
-/// CHECK-DAG: type= 8 (Target task) {{.+}} kind=1 endpoint=1
-/// CHECK-DAG: type= 9 (Target data op) {{.+}} optype=1
-/// CHECK-DAG: type= 9 (Target data op) {{.+}} optype=2
-/// CHECK-DAG: type= 9 (Target data op) {{.+}} optype=1
-/// CHECK-DAG: type= 9 (Target data op) {{.+}} optype=2
+/// CHECK-DAG: type=8 (Target task) {{.+}} kind=1 endpoint=1
+/// CHECK-DAG: type=9 (Target data op) {{.+}} optype=1
+/// CHECK-DAG: type=9 (Target data op) {{.+}} optype=2
+/// CHECK-DAG: type=9 (Target data op) {{.+}} optype=1
+/// CHECK-DAG: type=9 (Target data op) {{.+}} optype=2
 /// CHECK-DAG: type=10 (Target kernel) {{.+}} requested_num_teams=0
-/// CHECK-DAG: type= 9 (Target data op) {{.+}} optype=3
-/// CHECK-DAG: type= 9 (Target data op) {{.+}} optype=3
-/// CHECK-DAG: type= 9 (Target data op) {{.+}} optype=4
-/// CHECK-DAG: type= 9 (Target data op) {{.+}} optype=4
-/// CHECK-DAG: type= 8 (Target task) {{.+}} kind=1 endpoint=2
+/// CHECK-DAG: type=9 (Target data op) {{.+}} optype=3
+/// CHECK-DAG: type=9 (Target data op) {{.+}} optype=3
+/// CHECK-DAG: type=9 (Target data op) {{.+}} optype=4
+/// CHECK-DAG: type=9 (Target data op) {{.+}} optype=4
+/// CHECK-DAG: type=8 (Target task) {{.+}} kind=1 endpoint=2
 
 // Note: ADDRX_11 may not trigger a final callback.
 /// CHECK-DAG: Executing buffer complete callback: {{[0-9]+}} [[ADDRX_01]] {{[0-9]+}} (nil) {{[0-9]+}}
@@ -162,5 +162,3 @@ int main() {
 
 /// CHECK-NOT: rec=
 /// CHECK-NOT: host_op_id=0x0
-
-// clang-format on

@@ -2,14 +2,34 @@
 #include <memory>
 #include <unordered_set>
 
-#define EMI 1
-
 // Tool related code below
 #include <omp-tools.h>
 
-ompt_id_t next_op_id = 0x8000000000000001;
+// Enable / disable OMPT's 'External Monitoring Interface'
+#define EMI 1
+
+// From openmp/runtime/test/ompt/callback.h
+#define register_ompt_callback_t(name, type)                                   \
+  do {                                                                         \
+    type f_##name = &on_##name;                                                \
+    if (ompt_set_callback(name, (ompt_callback_t)f_##name) == ompt_set_never)  \
+      printf("0: Could not register callback '" #name "'\n");                  \
+  } while (0)
+
+#define register_ompt_callback(name) register_ompt_callback_t(name, name##_t)
 
 #define OMPT_BUFFER_REQUEST_SIZE 256
+
+ompt_id_t next_op_id = 0x8000000000000001;
+
+// OMPT entry point handles
+static ompt_set_callback_t ompt_set_callback = 0;
+static ompt_set_trace_ompt_t ompt_set_trace_ompt = 0;
+static ompt_start_trace_t ompt_start_trace = 0;
+static ompt_flush_trace_t ompt_flush_trace = 0;
+static ompt_stop_trace_t ompt_stop_trace = 0;
+static ompt_get_record_ompt_t ompt_get_record_ompt = 0;
+static ompt_advance_buffer_cursor_t ompt_advance_buffer_cursor = 0;
 
 // Map of devices traced
 typedef std::unordered_set<ompt_device_t *> DeviceMap_t;
@@ -25,7 +45,7 @@ static void print_record_ompt(ompt_record_ompt_t *rec) {
   case ompt_callback_target:
   case ompt_callback_target_emi: {
     ompt_record_target_t target_rec = rec->record.target;
-    printf("rec=%p type=%2d (Target task) time=%lu thread_id=%lu "
+    printf("rec=%p type=%d (Target task) time=%lu thread_id=%lu "
            "target_id=0x%lx kind=%d endpoint=%d device=%d task_id=%lu "
            "codeptr=%p\n",
            rec, rec->type, rec->time, rec->thread_id, rec->target_id,
@@ -37,7 +57,7 @@ static void print_record_ompt(ompt_record_ompt_t *rec) {
   case ompt_callback_target_data_op_emi: {
     ompt_record_target_data_op_t target_data_op_rec =
         rec->record.target_data_op;
-    printf("rec=%p type=%2d (Target data op) time=%lu thread_id=%lu "
+    printf("rec=%p type=%d (Target data op) time=%lu thread_id=%lu "
            "target_id=0x%lx host_op_id=0x%lx optype=%d "
            "src_addr=%p src_device=%d dest_addr=%p dest_device=%d bytes=%lu "
            "end_time=%lu duration=%lu ns codeptr=%p\n",
@@ -53,7 +73,7 @@ static void print_record_ompt(ompt_record_ompt_t *rec) {
   case ompt_callback_target_submit:
   case ompt_callback_target_submit_emi: {
     ompt_record_target_kernel_t target_kernel_rec = rec->record.target_kernel;
-    printf("rec=%p type=%2d (Target kernel) time=%lu thread_id=%lu "
+    printf("rec=%p type=%d (Target kernel) time=%lu thread_id=%lu "
            "target_id=0x%lx host_op_id=0x%lx requested_num_teams=%u "
            "granted_num_teams=%u end_time=%lu duration=%lu ns\n",
            rec, rec->type, rec->time, rec->thread_id, rec->target_id,
@@ -72,15 +92,6 @@ static void delete_buffer_ompt(ompt_buffer_t *buffer) {
   free(buffer);
   printf("Deallocated %p\n", buffer);
 }
-
-// OMPT entry point handles
-static ompt_set_callback_t ompt_set_callback = 0;
-static ompt_set_trace_ompt_t ompt_set_trace_ompt = 0;
-static ompt_start_trace_t ompt_start_trace = 0;
-static ompt_flush_trace_t ompt_flush_trace = 0;
-static ompt_stop_trace_t ompt_stop_trace = 0;
-static ompt_get_record_ompt_t ompt_get_record_ompt = 0;
-static ompt_advance_buffer_cursor_t ompt_advance_buffer_cursor = 0;
 
 // OMPT callbacks
 
@@ -160,8 +171,8 @@ static void on_ompt_callback_device_initialize(int device_num, const char *type,
                                                ompt_device_t *device,
                                                ompt_function_lookup_t lookup,
                                                const char *documentation) {
-  printf("Init: device_num=%d type=%s device=%p lookup=%p doc=%p\n", device_num,
-         type, device, lookup, documentation);
+  printf("Callback Init: device_num=%d type=%s device=%p lookup=%p doc=%p\n",
+         device_num, type, device, lookup, documentation);
   if (!lookup) {
     printf("Trace collection disabled on device %d\n", device_num);
     return;
@@ -195,13 +206,17 @@ static void on_ompt_callback_device_initialize(int device_num, const char *type,
   start_trace(device_num, device);
 }
 
+static void on_ompt_callback_device_finalize(int device_num) {
+  printf("Callback Fini: device_num=%d\n", device_num);
+}
+
 static void on_ompt_callback_device_load(int device_num, const char *filename,
                                          int64_t offset_in_file,
                                          void *vma_in_file, size_t bytes,
                                          void *host_addr, void *device_addr,
                                          uint64_t module_id) {
-  printf("Load: device_num:%d filename:%s host_adddr:%p device_addr:%p "
-         "bytes:%lu\n",
+  printf("Callback Load: device_num:%d filename:%s host_adddr:%p device_addr:%p"
+         " bytes:%lu\n",
          device_num, filename, host_addr, device_addr, bytes);
 }
 
@@ -226,12 +241,11 @@ static void on_ompt_callback_target_data_op_emi(
   // target_task_data may be null, avoid dereferencing it
   uint64_t target_task_data_value =
       (target_task_data) ? target_task_data->value : 0;
-  printf("  Callback DataOp EMI: endpoint=%d target_task_data=%p (0x%lx) "
-         "target_data=%p (0x%lx) host_op_id=%p (0x%lx) optype=%d src=%p "
-         "src_device_num=%d "
-         "dest=%p dest_device_num=%d bytes=%lu code=%p\n",
-         endpoint, target_task_data, target_task_data_value, target_data,
-         target_data->value, host_op_id, *host_op_id, optype, src_addr,
+  printf("  Callback DataOp EMI: endpoint=%d optype=%d target_task_data=%p "
+         "(0x%lx) target_data=%p (0x%lx) host_op_id=%p (0x%lx) src=%p "
+         "src_device_num=%d dest=%p dest_device_num=%d bytes=%lu code=%p\n",
+         endpoint, optype, target_task_data, target_task_data_value,
+         target_data, target_data->value, host_op_id, *host_op_id, src_addr,
          src_device_num, dest_addr, dest_device_num, bytes, codeptr_ra);
 }
 
@@ -273,10 +287,10 @@ static void on_ompt_callback_target_submit(ompt_id_t target_id,
 static void on_ompt_callback_target_submit_emi(
     ompt_scope_endpoint_t endpoint, ompt_data_t *target_data,
     ompt_id_t *host_op_id, unsigned int requested_num_teams) {
-  printf("  Callback Submit EMI: endpoint=%d target_data=%p (0x%lx) "
-         "host_op_id=%p (0x%lx) req_num_teams=%d\n",
-         endpoint, target_data, target_data->value, host_op_id, *host_op_id,
-         requested_num_teams);
+  printf("  Callback Submit EMI: endpoint=%d req_num_teams=%d target_data=%p "
+         "(0x%lx) host_op_id=%p (0x%lx)\n",
+         endpoint, requested_num_teams, target_data, target_data->value,
+         host_op_id, *host_op_id);
 }
 
 // Init functions
@@ -284,25 +298,22 @@ int ompt_initialize(ompt_function_lookup_t lookup, int initial_device_num,
                     ompt_data_t *tool_data) {
   ompt_set_callback = (ompt_set_callback_t)lookup("ompt_set_callback");
 
-  ompt_set_callback(ompt_callback_device_initialize,
-                    (ompt_callback_t)&on_ompt_callback_device_initialize);
-  ompt_set_callback(ompt_callback_device_load,
-                    (ompt_callback_t)&on_ompt_callback_device_load);
+  if (!ompt_set_callback)
+    return 0; // failed
+
+  register_ompt_callback(ompt_callback_device_initialize);
+  register_ompt_callback(ompt_callback_device_finalize);
+  register_ompt_callback(ompt_callback_device_load);
 #if EMI
-  ompt_set_callback(ompt_callback_target_submit_emi,
-                    (ompt_callback_t)&on_ompt_callback_target_submit_emi);
-  ompt_set_callback(ompt_callback_target_data_op_emi,
-                    (ompt_callback_t)&on_ompt_callback_target_data_op_emi);
-  ompt_set_callback(ompt_callback_target_emi,
-                    (ompt_callback_t)&on_ompt_callback_target_emi);
+  register_ompt_callback(ompt_callback_target_data_op_emi);
+  register_ompt_callback(ompt_callback_target_emi);
+  register_ompt_callback(ompt_callback_target_submit_emi);
 #else
-  ompt_set_callback(ompt_callback_target_submit,
-                    (ompt_callback_t)&on_ompt_callback_target_submit);
-  ompt_set_callback(ompt_callback_target_data_op,
-                    (ompt_callback_t)&on_ompt_callback_target_data_op);
-  ompt_set_callback(ompt_callback_target,
-                    (ompt_callback_t)&on_ompt_callback_target);
+  register_ompt_callback(ompt_callback_target_data_op);
+  register_ompt_callback(ompt_callback_target);
+  register_ompt_callback(ompt_callback_target_submit);
 #endif
+
   return 1; // success
 }
 
