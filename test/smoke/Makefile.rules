@@ -1,3 +1,6 @@
+ifeq ($(TESTSRC_ALL),)
+    $(info    WARNING: TESTSRC_ALL is empty)
+endif
 TESTNAMES_ALL = $(basename $(TESTSRC_ALL))
 TIMEOUT ?= 60s
 SMOKE_TIMEOUT ?= timeout --foreground $(TIMEOUT)
