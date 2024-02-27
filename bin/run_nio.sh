@@ -69,6 +69,14 @@ QMCPACK_REPO=${QMCPACK_REPO:-$AOMP_REPOS_TEST/$AOMP_QMCPACK_REPO_NAME}
 _build_dir=$QMCPACK_REPO/$build_folder
 
 _rundir="$_build_dir/tests/performance/NiO/dmc-a32-e384-DU32-batched_driver"
+_input_file_name="NiO-fcc-S8-dmc.xml"
+if [ -n $1 ] ; then
+    if [ "$1" == 'S32' ] ; then
+	_rundir="$_build_dir/tests/performance/NiO/dmc-a128-e1536-DU32-batched_driver"
+	_input_file_name="NiO-fcc-S32-dmc.xml"
+	echo "Running S32 input"
+    fi
+fi
 
 if [ ! -d $_rundir ] ; then 
   echo cd $QMC_DATA
@@ -87,8 +95,8 @@ echo
 echo cd $_rundir
 cd $_rundir
 
-echo OMP_NUM_THREADS=7 mpirun -np 8 ../../../../bin/qmcpack NiO-fcc-S8-dmc.xml
-OMP_NUM_THREADS=7 mpirun -np 8 $AOMP/bin/gpurun ../../../../bin/qmcpack NiO-fcc-S8-dmc.xml | tee stdout
+echo OMP_NUM_THREADS=7 mpirun -np 8 $_input_file_name
+OMP_NUM_THREADS=7 mpirun -np 8 $AOMP/bin/gpurun ../../../../bin/qmcpack $_input_file_name | tee stdout
 
 echo
 echo DONE $0
