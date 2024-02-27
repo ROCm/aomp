@@ -13,6 +13,3 @@ OMP_BIN      = $(AOMP)/bin/$(FLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
 
 include ../Makefile.rules
-
-run:
-	$(RUNCMD)

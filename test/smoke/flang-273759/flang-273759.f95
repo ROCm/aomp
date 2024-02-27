@@ -17,6 +17,7 @@ program main
     write(6,*)"ERROR: wrong answers"
     stop 2
   endif
+! CHECK: DEVID
   write(6,*)"Success: if a diagnostic line starting with DEVID was output"
   ! Always return 1 to show failure in check_smoke_fails.sh. Once
   ! the depend clause is supported on map this can be reverted.
