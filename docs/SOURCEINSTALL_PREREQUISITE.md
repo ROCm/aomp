@@ -5,13 +5,13 @@
 #### Debian or Ubuntu Packages
 
 ```
-   sudo apt-get install gcc g++ pkg-config libpci-dev libnuma-dev libffi-dev git python libopenmpi-dev gawk mesa-common-dev libtool libdrm-amdgpu1 libdrm-dev ccache libdw-dev libgtest-dev libsystemd-dev
+   sudo apt-get install gcc g++ pkg-config libpci-dev libnuma-dev libffi-dev git python3 libopenmpi-dev gawk mesa-common-dev libtool libdrm-amdgpu1 libdrm-dev ccache libdw-dev libgtest-dev libsystemd-dev cmake openssl libssl-dev
 
    # ubuntu 22 distributions seem to be missing libstdc++12
    sudo apt-get install  libstdc++-12-dev
    
    # Additional packages used by rocgdb
-   sudo apt-get install python3 texinfo libbison-dev bison flex libbabeltrace-dev python3-pip libncurses5-dev liblzma-dev python3-setuptools python3-dev libpython3.8-dev libudev-dev libgmp-dev
+   sudo apt-get install texinfo libbison-dev bison flex libbabeltrace-dev python3-pip libncurses5-dev liblzma-dev python3-setuptools python3-dev libudev-dev libgmp-dev libmpfr-dev
 
 ```
 
@@ -77,23 +77,13 @@ After all the required system package from section 1 are installed, there are so
   python3 -m pip install CppHeaderParser argparse wheel lit lxml barectf termcolor pandas
 ```
 
-### 3.  Build CMake in /usr/local/cmake
+### 3. cmake
 
-This can also be done with ./build_prereq.sh, which installs to $HOME/local/cmake.<br>
-All invocations of cmake in the build scripts use $AOMP_CMAKE.  The default for the AOMP_CMAKE variable is /usr/local/cmake/bin/cmake. You can also use these commands to install cmake 3.22.1 manually from source into /usr/local/cmake instead of using ./build_prereq.sh.
+This section is no longer required.
 
-```
-  $ sudo apt-get install libssl-dev
-  $ mkdir /tmp/cmake
-  $ cd /tmp/cmake
-  $ wget https://github.com/Kitware/CMake/releases/download/v3.22.1/cmake-3.22.1.tar.gz
-  $ tar -xvzf cmake-3.22.1.tar.gz
-  $ cd cmake-3.22.1
-  $ ./bootstrap --prefix=/usr/local/cmake
-  $ make
-  $ sudo make install
-```
-Alternatively, you could change the --prefix option to install cmake somewhere else. Then be sure to change the value of he environment variable AOMP_CMAKE to be the cmake binary.
+The requirement for a specific version of cmake is now satisfied with the build_prereq.sh script
+which is called by build_aomp.sh. The distribution cmake installed above is only required for
+the first execution of build_prereq.sh. The AOMP build scripts are found in the bin directory of the aomp repository and are described in the developwer README.
 
 ### 4. Verify KFD Driver
 
