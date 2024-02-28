@@ -243,7 +243,9 @@ function getversion(){
       echo ompextrasver: $ompextrasver
     else
       echo Unable to determine openmp-extras package version.
-      exit 1
+      if [ "$MAINLINE_BUILD" == "" ]; then
+        exit 1
+      fi
     fi
     # Set the final version to use for expected passing lists. The expected passes
     # will include an aggregation of suported versions up to and including the chosen
