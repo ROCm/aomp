@@ -26,6 +26,16 @@ TESTS_DIR = \
     milestone-3-babel \
     milestone-3-babel-drop-1 \
     milestone-3-babel-noteams \
+    olcf-tc-0-serial \
+    olcf-tc-1-openmp-cpu \
+    olcf-tc-2-openmp-gpu-teams \
+    olcf-tc-3-openmp-gpu-parallel \
+    olcf-tc-4-openmp-gpu-data \
+    olcf-tc-5-openmp-gpu-implicit \
+    olcf-tc-6-openmp-combined \
+    olcf-tc-7-loop-combined \
+    olcf-tf-0-serial \
+    olcf-tf-1-openmp-cpu \
     single-value-map \
     teams-distribute-no-parallel \
     teams-ditribute-collapse

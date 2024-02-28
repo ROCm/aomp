@@ -11,7 +11,17 @@ TESTS_DIR = \
     flang-444386 \
     flang-445718 \
     flang-445888 \
+    flang-446057a \
+    flang-446057b \
+    flang-446057c \
     flang-446525 \
+    llvm-issue-82047 \
+    olcf-tf-2-openmp-gpu-teams \
+    olcf-tf-3-openmp-gpu-teams-parallel \
+    olcf-tf-4-openmp-gpu-teams-parallel-data \
+    olcf-tf-5-openmp-gpu-teams-parallel-implicit-map \
+    olcf-tf-6-combined \
+    olcf-tf-7-loop-combined \
     vmuln
 
 all:
