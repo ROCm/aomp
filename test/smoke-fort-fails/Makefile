@@ -22,6 +22,7 @@ TESTS_DIR = \
     olcf-tf-5-openmp-gpu-teams-parallel-implicit-map \
     olcf-tf-6-combined \
     olcf-tf-7-loop-combined \
+    rocm-issue-842 \
     vmuln
 
 all:
