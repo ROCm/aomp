@@ -20,6 +20,7 @@ TESTS_DIR = \
     flang-439387a \
     flang-439387b \
     flang-439387c \
+    flang-443915 \
     LaunchLatency \
     milestone-1 \
     milestone-2 \
