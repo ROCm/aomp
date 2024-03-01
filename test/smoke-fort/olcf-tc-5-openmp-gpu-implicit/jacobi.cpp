@@ -5,7 +5,7 @@
 #include <string.h>
 #include <time.h>
 
-const unsigned int n_cells = 4096;
+const unsigned int n_cells = 512;
 const unsigned int SIZE = (n_cells + 2) * (n_cells +2);
 
 #define MAX(X, Y) ((X) > (Y) ? (X) : (Y))
