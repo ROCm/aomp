@@ -187,6 +187,14 @@ if [ "$1" == "install" ] ; then
       echo "ERROR make install failed "
       exit 1
    fi
+   if [ "$CLANG_LINK_FLANG_LEGACY" == "ON" ] ; then
+      echo "------ Linking flang-legacy to flang -------"
+      if [ -L $AOMP_INSTALL_DIR/bin/flang ] ; then
+         $SUDO rm $AOMP_INSTALL_DIR/bin/flang
+      fi
+      cd $AOMP_INSTALL_DIR/bin
+      $SUDO ln -sf flang-legacy flang
+   fi
    echo
    echo "SUCCESSFUL INSTALL to $AOMP_INSTALL_DIR"
    echo
