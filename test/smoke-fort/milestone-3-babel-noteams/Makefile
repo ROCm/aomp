@@ -7,7 +7,7 @@ TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 
 FLANG        ?= flang-new
 OMP_BIN      =
-CC           = ./buildit.sh
+CC           = AOMP=${AOMP} AOMP_GPU=${AOMP_GPU} FLANG=${FLANG} ./buildit.sh
 #-ccc-print-phases
 #"-\#\#\#"
 
