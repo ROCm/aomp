@@ -86,14 +86,13 @@ if [ "$1" == "build_umt" ]; then
             -DMPI_CXX_COMPILER=${MPI_PATH}/bin/mpicxx \
             -DMPI_Fortran_COMPILER=${MPI_PATH}/bin/mpifort \
             -DCMAKE_INSTALL_PREFIX=${UMT_INSTALL_PATH} \
-            -DCONDUIT_ROOT=${UMT_INSTALL_PATH} $1
+            -DCONDUIT_ROOT=${UMT_INSTALL_PATH}
     
     cmake --build build_umt --parallel
     cmake --install build_umt
     
     # undo patch
     removepatch ${AOMP_REPOS_TEST}/UMT
-    popd
 
 popd
 exit 1

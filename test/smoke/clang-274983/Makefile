@@ -15,7 +15,7 @@ endif
 
 SUPPORTED    = $(SUPPORTS_USM)
 
-TARGET       = -fopenmp -O3 -fopenmp-targets=$(_gputriple) -Xopenmp-target=$(_gputriple) -march=$(AOMP_GPU)$(AOMP_TARGET_FEATURES)
+TARGET       = -fopenmp -O3 -fopenmp-targets=$(_gputriple) -Xopenmp-target=$(_gputriple) -march=$(AOMP_GPU):$(AOMP_TARGET_FEATURES)
 
 CLANG        ?= clang++
 OMP_BIN      = $(AOMP)/bin/$(CLANG)
