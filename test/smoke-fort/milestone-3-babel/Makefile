@@ -11,6 +11,7 @@ CC           = AOMP=${AOMP} AOMP_GPU=${AOMP_GPU} FLANG=${FLANG} ./buildit.sh
 #-ccc-print-phases
 #"-\#\#\#"
 
-RUNCMD       = AOMP_GPU=${AOMP_GPU} ./doit.sh 2>&1 | tee ${TESTNAME}.perf 2>&1 && ./chkit.sh ${TESTNAME}.perf
+RUNENV       = AOMP_GPU=${AOMP_GPU}
+RUNCMD       = ./doit.sh 2>&1 | tee ${TESTNAME}.perf 2>&1 && ./chkit.sh ${TESTNAME}.perf
 
 include ../Makefile.rules
