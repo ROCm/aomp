@@ -56,7 +56,7 @@ export PATH=$OPENMPI_INSTALL/bin:$PATH
 
 #export CMAKE_PREFIX_PATH=$AOMP/lib/cmake
 export CMAKE_PREFIX_PATH=/opt/rocm/lib/cmake
-if [ ! -d $CMAKE_PREFIX_PATH] ; then 
+if [ ! -d $CMAKE_PREFIX_PATH ] ; then
   echo "ERROR: Missing directory $CMAKE_PREFIX_PATH"
   echo "       You probally need rocm installed"
   cd $_curdir
