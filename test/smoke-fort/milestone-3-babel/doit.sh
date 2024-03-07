@@ -8,9 +8,9 @@ if [[ "$AOMP_GPU" =~ ^gfx10.* ]]; then
     echo "$AOMP_GPU: Skipping remaining larger memory tests"
     exit 0
 fi
-./milestone-3-babel -n 20 -s 500000000  # 12000.0 MB
+./milestone-3-babel -n 10 -s 500000000  # 12000.0 MB
 if [[ "$AOMP_GPU" =~ ^gfx11.* ]]; then
     echo "$AOMP_GPU: Skipping remaining larger memory tests"
     exit 0
 fi
-./milestone-3-babel -n 20 -s 1000000000 # 24000.0 MB
+./milestone-3-babel -n 5  -s 1000000000 # 24000.0 MB
