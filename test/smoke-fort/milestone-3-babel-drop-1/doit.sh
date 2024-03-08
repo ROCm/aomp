@@ -4,7 +4,10 @@ set -x
 ./milestone-3-babel -n 20               # 805.3 MB
 ./milestone-3-babel -n 20 -s 100000000  # 2400.0 MB
 ./milestone-3-babel -n 20 -s 200000000  # 4800.0 MB
-if [[ "$AOMP_GPU" =~ ^gfx10.* ]]; then
+if [[ "$AOMP_GPU" =~ ^gfx900 ]] ||
+   [[ "$AOMP_GPU" =~ ^gfx906 ]] ||
+   [[ "$AOMP_GPU" =~ ^gfx908 ]] ||
+   [[ "$AOMP_GPU" =~ ^gfx10.* ]]; then
     echo "$AOMP_GPU: Skipping remaining larger memory tests"
     exit 0
 fi
