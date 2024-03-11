@@ -345,22 +345,24 @@ function copyresults(){
         # This can happen if there is a test binary that is not cleaned up, which keeps the test directory present.
         if [ -e "$resultsdir/$1/$1_make_fail.txt" ]; then
           for fail in $fails; do
-            notpresent=0
-            if [ ! -d "$2/$fail" ]; then
-              notpresent=1
-            else
-              pushd "$2/$fail" > /dev/null
-              # If no Makefile then assume this is a recently deleted test.
-              if [ ! -e Makefile ]; then
+	    if [ "$2" != "" ]; then
+              notpresent=0
+              if [ ! -d "$2/$fail" ]; then
                 notpresent=1
+              else
+                pushd "$2/$fail" > /dev/null
+                # If no Makefile then assume this is a recently deleted test.
+                if [ ! -e Makefile ]; then
+                  notpresent=1
+                fi
+                popd > /dev/null
               fi
-              popd > /dev/null
-            fi
-            if [ "$notpresent" == 1 ]; then
-              warnings[$1]+="$fail, "
-              ((unexpectedfails--))
-              ((warningcount++))
-            fi
+              if [ "$notpresent" == 1 ]; then
+                warnings[$1]+="$fail, "
+                ((unexpectedfails--))
+                ((warningcount++))
+              fi
+	    fi
           done
         fi
       elif [[ "$1" =~ sollve|ovo|LLNL|openmpapps ]]; then
@@ -477,7 +479,7 @@ function smoke(){
   cd "$aompdir"/test/smoke
   AOMP_PARALLEL_SMOKE=1 CLEANUP=0 AOMPHIP=$AOMPROCM ./check_smoke.sh
   checkrc $?
-  copyresults smoke
+  copyresults smoke "$aompdir"/test/smoke
 }
 
 SMOKE_FAILS=${SMOKE_FAILS:-1}
