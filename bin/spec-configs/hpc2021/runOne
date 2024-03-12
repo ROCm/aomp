@@ -26,9 +26,5 @@ export OMPI_CXX=clang++
 export LD_LIBRARY_PATH=$AOMP/lib:$MPI/lib/
 export PATH=$AOMP/bin:$MPI/bin:$PATH
 
-#needed due to SDMA issue
-export HSA_ENABLE_SDMA=0
-
-
 runhpc -c amdgpu_clang.cfg -I -l -n 1 -T base --define gputype=$GFX --define model=omp_target --threads=1 --ranks=$RKS   -i test,ref tiny --rebuild
 
