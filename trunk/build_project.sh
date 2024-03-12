@@ -48,7 +48,7 @@ $_targets_to_build \
 $AOMP_CCACHE_OPTS \
 -DLLVM_ENABLE_PROJECTS='$TRUNK_PROJECTS_LIST' \
 -DLLVM_INSTALL_UTILS=ON \
--DBUILD_SHARED_LIBS=ON \
+-DBUILD_SHARED_LIBS=OFF \
 -DCMAKE_CXX_STANDARD=17 \
 $_cuda_plugin \
 -DCLANG_DEFAULT_PIE_ON_LINUX=OFF \
@@ -134,13 +134,20 @@ if [ "$1" == "install" ] ; then
    fi
    ln -sf $TRUNK_INSTALL_DIR $TRUNK_LINK
    # Create binary configs to avoid need to set LD_LIBRARY_PATH
-   echo "-Wl,-rpath=<CFGDIR>/../lib" > ${TRUNK_INSTALL_DIR}/bin/rpath.cfg
-   echo "-L<CFGDIR>/../lib" >> ${TRUNK_INSTALL_DIR}/bin/rpath.cfg
+   cat <<EOD > ${TRUNK_INSTALL_DIR}/bin/rpath.cfg
+-Wl,-rpath=<CFGDIR>/../lib
+-Wl,-rpath=<CFGDIR>/../lib/x86_64-unknown-linux-gnu
+-L<CFGDIR>/../lib
+-L<CFGDIR>/../lib/x86_64-unknown-linux-gnu
+EOD
    ln -sf rpath.cfg ${TRUNK_INSTALL_DIR}/bin/clang++.cfg
    ln -sf rpath.cfg ${TRUNK_INSTALL_DIR}/bin/clang.cfg
    # Do not add -L option to flang-new because it's not currently allowed
    # flang-new also appears to be reading flang.cfg
-   echo "-Wl,-rpath=<CFGDIR>/../lib" > ${TRUNK_INSTALL_DIR}/bin/flang.cfg
+   cat <<EOD > ${TRUNK_INSTALL_DIR}/bin/flang.cfg
+-Wl,-rpath=<CFGDIR>/../lib"
+-Wl,-rpath=<CFGDIR>/../lib/x86_64-unknown-linux-gnu
+EOD
    ln -sf flang.cfg ${TRUNK_INSTALL_DIR}/bin/flang-new.cfg
    echo
    echo "SUCCESSFUL INSTALL to $TRUNK_INSTALL_DIR with link to $TRUNK"
