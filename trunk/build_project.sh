@@ -145,7 +145,7 @@ EOD
    # Do not add -L option to flang-new because it's not currently allowed
    # flang-new also appears to be reading flang.cfg
    cat <<EOD > ${TRUNK_INSTALL_DIR}/bin/flang.cfg
--Wl,-rpath=<CFGDIR>/../lib"
+-Wl,-rpath=<CFGDIR>/../lib
 -Wl,-rpath=<CFGDIR>/../lib/x86_64-unknown-linux-gnu
 EOD
    ln -sf flang.cfg ${TRUNK_INSTALL_DIR}/bin/flang-new.cfg
