@@ -70,10 +70,10 @@ ifneq (,$(findstring $(GPU_W_FEATURES),$(SUPPORTED)))
 ifeq (,$(findstring $(GPU_W_FEATURES),$(UNSUPPORTED)))
 	$(RUNENV) $(RUNPROF) $(RUNPROF_FLAGS) $(CHECK_COMMAND) 2>&1 | tee $@.log
 else
-	@echo "  $(SKIP_RUN_UNSUPPORTED)"
+	@echo "  $(SKIP_RUN_UNSUPPORTED)" 2>&1 | tee $@.log
 endif
 else
-	@echo "  $(SKIP_RUN_SUPPORTED)"
+	@echo "  $(SKIP_RUN_SUPPORTED)" 2>&1 | tee $@.log
 endif
 
 $(TESTNAME)_og11: $(TESTSRC_ALL)

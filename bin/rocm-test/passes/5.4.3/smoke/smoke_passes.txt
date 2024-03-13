@@ -5,7 +5,6 @@ c-heatx
 clang-262701
 clang-296953-ornla-38
 clang-310869-scan
-clang-325070
 clang-326105
 clang-337336
 clang-ifaces
