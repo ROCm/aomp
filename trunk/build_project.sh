@@ -48,7 +48,7 @@ $_targets_to_build \
 $AOMP_CCACHE_OPTS \
 -DLLVM_ENABLE_PROJECTS='$TRUNK_PROJECTS_LIST' \
 -DLLVM_INSTALL_UTILS=ON \
--DBUILD_SHARED_LIBS=OFF \
+-DBUILD_SHARED_LIBS=ON \
 -DCMAKE_CXX_STANDARD=17 \
 $_cuda_plugin \
 -DCLANG_DEFAULT_PIE_ON_LINUX=OFF \
@@ -149,6 +149,12 @@ EOD
 -Wl,-rpath=<CFGDIR>/../lib/x86_64-unknown-linux-gnu
 EOD
    ln -sf flang.cfg ${TRUNK_INSTALL_DIR}/bin/flang-new.cfg
+   (
+   # workaround for issue with triple subdir and shared builds
+   # problem with libomptarget.so finding dependent libLLVM* libs
+   cd ${TRUNK_INSTALL_DIR}/lib
+   ln -sf x86_64-unknown-linux-gnu/*{.bc,.so,git} .
+   )
    echo
    echo "SUCCESSFUL INSTALL to $TRUNK_INSTALL_DIR with link to $TRUNK"
    echo
