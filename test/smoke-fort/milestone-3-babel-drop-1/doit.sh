@@ -21,6 +21,10 @@ if [[ "$AOMP_GPU" =~ ^gfx11.* ]]; then
     echo "$AOMP_GPU: Skipping remaining larger memory tests"
     exit $rval
 fi
+
+# stop here for smoke testing so we don't exceed smoke test timeout
+exit $rval
+
 ./milestone-3-babel -n 5  -s 1000000000 # 24000.0 MB
 save_status
 exit $rval
