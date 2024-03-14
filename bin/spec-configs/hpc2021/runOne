@@ -18,6 +18,8 @@ set -x
 
 ulimit -s unlimited
 
+export OMPX_FORCE_SYNC_REGIONS=1
+
 export OMP_TARGET_OFFLOAD=MANDATORY
 export LIBRARY_PATH=$AOMP/lib
 export OMPI_FC=flang
