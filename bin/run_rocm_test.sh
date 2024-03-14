@@ -337,45 +337,72 @@ function copyresults(){
       unexpectedfails=0
     fi
 
-    # Check unexpected fails for false negatives, i.e. tests that may have been deleted.
+    # Check unexpected fails for false negatives, i.e. tests that may have been deleted or unsupported tests.
     if [ "$unexpectedfails" != 0 ]; then
       fails=`diff $1_sorted_exp_passes $1_sorted_passes | grep '^<' | sed "s|< ||g"`
+      if [ -e "$1"_failing_tests.txt ]; then
+        cat "$1"_failing_tests.txt | tee -a "$resultsdir"/"$1"/"$1"_all_tests.txt
+      fi
+      if [ -e "$1"_make_fail.txt ]; then
+        cat "$1"_make_fail.txt | tee -a "$resultsdir"/"$1"/"$1"_all_tests.txt
+      fi
+      if [ -e "$1"_passing_tests.txt ]; then
+        cat "$1"_passing_tests.txt | tee -a "$resultsdir"/"$1"/"$1"_all_tests.txt
+      fi
+
       if [[ "$1" =~ examples|smoke|omp5 ]]; then
+        if [ -e "$resultsdir"/"$1"/"$1"_all_tests.txt ]; then
+          for fail in $fails; do
+	    unsupported=0
+	    pushd "$2/$fail" > /dev/null
+	    if [ -f make-log.txt ]; then
+              cat make-log.txt | grep -i skipped
+	      if [ $? == 0 ]; then
+	        unsupported=1
+              elif [ -f run.log ]; then
+                cat run.log | grep -i skipped
+		if [ $? == 0 ]; then
+		  unsupported=1
+	        fi
+	      fi
+	    fi
+	    popd > /dev/null
+	    if [ $unsupported -eq 1 ]; then
+              warnings[$1]+="$fail (unsupported), "
+              ((unexpectedfails--))
+              ((warningcount++))
+	    fi
+          done
+	fi
+
         # For smoke, examples, and omp5 the missing test will have no directory or the directory is missing a Makefile.
         # This can happen if there is a test binary that is not cleaned up, which keeps the test directory present.
         if [ -e "$resultsdir/$1/$1_make_fail.txt" ]; then
           for fail in $fails; do
-            notpresent=0
-            if [ ! -d "$2/$fail" ]; then
-              notpresent=1
-            else
-              pushd "$2/$fail" > /dev/null
-              # If no Makefile then assume this is a recently deleted test.
-              if [ ! -e Makefile ]; then
+	    if [ "$2" != "" ]; then
+              notpresent=0
+              if [ ! -d "$2/$fail" ]; then
                 notpresent=1
+              else
+                pushd "$2/$fail" > /dev/null
+                # If no Makefile then assume this is a recently deleted test.
+                if [ ! -e Makefile ]; then
+                  notpresent=1
+                fi
+                popd > /dev/null
               fi
-              popd > /dev/null
-            fi
-            if [ "$notpresent" == 1 ]; then
-              warnings[$1]+="$fail, "
-              ((unexpectedfails--))
-              ((warningcount++))
-            fi
+              if [ "$notpresent" == 1 ]; then
+                warnings[$1]+="$fail, "
+                ((unexpectedfails--))
+                ((warningcount++))
+              fi
+	    fi
           done
         fi
       elif [[ "$1" =~ sollve|ovo|LLNL|openmpapps ]]; then
         # Combine passing/failing tests, which shows all tests that tried to build/run.
         # If the unexpected failure is not on that list, warn the user that test may be missing
         # from suite.
-        if [ -e "$1"_failing_tests.txt ]; then
-          cat "$1"_failing_tests.txt | tee -a "$resultsdir"/"$1"/"$1"_all_tests.txt
-        fi
-        if [ -e "$1"_make_fail.txt ]; then
-          cat "$1"_make_fail.txt | tee -a "$resultsdir"/"$1"/"$1"_all_tests.txt
-        fi
-        if [ -e "$1"_passing_tests.txt ]; then
-          cat "$1"_passing_tests.txt | tee -a "$resultsdir"/"$1"/"$1"_all_tests.txt
-        fi
         if [ -e "$resultsdir"/"$1"/"$1"_all_tests.txt ]; then
           for fail in $fails; do
             match=`grep -e "^$fail$" "$resultsdir"/"$1"/"$1"_all_tests.txt`
@@ -475,9 +502,9 @@ function smoke(){
   # Smoke
   mkdir -p "$resultsdir"/smoke
   cd "$aompdir"/test/smoke
-  AOMP_PARALLEL_SMOKE=1 CLEANUP=0 AOMPHIP=$AOMPROCM ./check_smoke.sh
+  HIP_PATH="" AOMP_PARALLEL_SMOKE=1 CLEANUP=0 AOMPHIP=$AOMPROCM ./check_smoke.sh
   checkrc $?
-  copyresults smoke
+  copyresults smoke "$aompdir"/test/smoke
 }
 
 SMOKE_FAILS=${SMOKE_FAILS:-1}
