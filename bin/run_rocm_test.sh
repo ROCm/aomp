@@ -341,36 +341,38 @@ function copyresults(){
     if [ "$unexpectedfails" != 0 ]; then
       fails=`diff $1_sorted_exp_passes $1_sorted_passes | grep '^<' | sed "s|< ||g"`
       if [ -e "$1"_failing_tests.txt ]; then
-        cat "$1"_failing_tests.txt | tee -a "$resultsdir"/"$1"/"$1"_all_tests.txt
+        cat "$1"_failing_tests.txt >> "$resultsdir"/"$1"/"$1"_all_tests.txt
       fi
       if [ -e "$1"_make_fail.txt ]; then
-        cat "$1"_make_fail.txt | tee -a "$resultsdir"/"$1"/"$1"_all_tests.txt
+        cat "$1"_make_fail.txt >> "$resultsdir"/"$1"/"$1"_all_tests.txt
       fi
       if [ -e "$1"_passing_tests.txt ]; then
-        cat "$1"_passing_tests.txt | tee -a "$resultsdir"/"$1"/"$1"_all_tests.txt
+        cat "$1"_passing_tests.txt >> "$resultsdir"/"$1"/"$1"_all_tests.txt
       fi
 
       if [[ "$1" =~ examples|smoke|omp5 ]]; then
         if [ -e "$resultsdir"/"$1"/"$1"_all_tests.txt ]; then
           for fail in $fails; do
-	    unsupported=0
-	    pushd "$2/$fail" > /dev/null
-	    if [ -f make-log.txt ]; then
-              cat make-log.txt | grep -i skipped
-	      if [ $? == 0 ]; then
-	        unsupported=1
-              elif [ -f run.log ]; then
-                cat run.log | grep -i skipped
-		if [ $? == 0 ]; then
-		  unsupported=1
+	    if [ "$2" != "" ]; then
+	      unsupported=0
+	      pushd "$2/$fail" > /dev/null
+	      if [ -f make-log.txt ]; then
+                cat make-log.txt | grep -i skipped
+	        if [ $? == 0 ]; then
+	          unsupported=1
+                elif [ -f run.log ]; then
+                  cat run.log | grep -i skipped
+		  if [ $? == 0 ]; then
+		    unsupported=1
+	          fi
 	        fi
 	      fi
-	    fi
-	    popd > /dev/null
-	    if [ $unsupported -eq 1 ]; then
-              warnings[$1]+="$fail (unsupported), "
-              ((unexpectedfails--))
-              ((warningcount++))
+	      popd > /dev/null
+	      if [ $unsupported -eq 1 ]; then
+                warnings[$1]+="$fail (unsupported), "
+                ((unexpectedfails--))
+                ((warningcount++))
+	      fi
 	    fi
           done
 	fi
@@ -529,7 +531,7 @@ function smoke-limbo(){
     cd "$aompdir"/test/smoke-limbo
     ./check_smoke_limbo.sh
     checkrc $?
-    copyresults smoke-limbo
+    copyresults smoke-limbo "$aompdir"/test/smoke-limbo
   else
     echo "Skipping smoke-limbo."
   fi
