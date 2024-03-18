@@ -104,6 +104,25 @@ else
 fi
 export AOMP
 echo "AOMP = $AOMP"
+export REAL_AOMP=`realpath $AOMP`
+
+if [ "$TEST_BRANCH" == "" ]; then
+ if [[ $REAL_AOMP =~ "/opt/rocm-6.0" ]]; then
+  export TEST_BRANCH=aomp-test-6.0
+ elif [[ $REAL_AOMP =~ "/opt/rocm-6.1" ]]; then
+  export TEST_BRANCH=aomp-test-6.1
+ elif [[ $REAL_AOMP =~ "/opt/rocm-6.2" ]]; then
+  export TEST_BRANCH=aomp-test-6.2
+ else
+  export TEST_BRANCH=aomp-dev
+ fi
+ git checkout $TEST_BRANCH
+ echo "+++ Using $TEST_BRANCH +++"
+ sleep 5
+ ./run_rocm_test.sh
+ exit $?
+fi
+echo $AOMP $REAL_AOMP using test branch $TEST_BRANCH
 
 # Make sure clang is present.
 $AOMP/bin/clang --version
