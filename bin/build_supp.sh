@@ -171,9 +171,9 @@ function buildninja(){
 function buildaqlprofile(){
   _cname="aqlprofile"
   _version=6.0
-  _packageversion=6.0.0
-  _fullversion=60000
-  _buildnumber=91
+  _packageversion=6.0.2
+  _fullversion=60002
+  _buildnumber=115
   _installdir=$AOMP_SUPP_INSTALL/$_cname-$_version
   _linkfrom=$AOMP_SUPP/$_cname
   _builddir=$AOMP_SUPP_BUILD/$_cname
@@ -368,7 +368,7 @@ function buildcmake(){
 
 function buildrocmsmilib(){
   _cname="rocmsmilib"
-  _version=6.0.x
+  _version=6.0.2
   _installdir=$AOMP_SUPP_INSTALL/rocmsmilib-$_version
   _linkfrom=$AOMP_SUPP/rocmsmilib
   _builddir=$AOMP_SUPP_BUILD/rocmsmilib
