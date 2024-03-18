@@ -170,7 +170,7 @@ function buildninja(){
 
 function buildaqlprofile(){
   _cname="aqlprofile"
-  _version=6.0
+  _version=6.0.2
   _packageversion=6.0.2
   _fullversion=60002
   _buildnumber=115
