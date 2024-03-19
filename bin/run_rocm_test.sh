@@ -104,6 +104,35 @@ else
 fi
 export AOMP
 echo "AOMP = $AOMP"
+export REAL_AOMP=`realpath $AOMP`
+
+if [ "$TEST_BRANCH" == "" ]; then
+ git reset --hard HEAD
+ if [ -e /jenkins/workspace/compiler-psdb-amd-mainline-open ]; then
+  export TEST_BRANCH=amd-mainline-open
+  git checkout 080e9bc62ad8501defc4ec9124c90e28a1f749db
+ elif [ -e /jenkins/workspace/compiler-psdb-amd-staging ]; then
+  export TEST_BRANCH=amd-staging
+  git checkout aomp-dev
+ elif [[ $REAL_AOMP =~ "/opt/rocm-6.0" ]]; then
+  export TEST_BRANCH=aomp-test-6.0
+  git checkout 080e9bc62ad8501defc4ec9124c90e28a1f749db
+ elif [[ $REAL_AOMP =~ "/opt/rocm-6.1" ]]; then
+  export TEST_BRANCH=aomp-test-6.1
+  git checkout 080e9bc62ad8501defc4ec9124c90e28a1f749db
+ elif [[ $REAL_AOMP =~ "/opt/rocm-6.2" ]]; then
+  export TEST_BRANCH=aomp-test-6.2
+  git checkout 080e9bc62ad8501defc4ec9124c90e28a1f749db
+ else
+  export TEST_BRANCH=aomp-dev
+  git checkout aomp-dev
+ fi
+ echo "+++ Using $TEST_BRANCH +++"
+ sleep 5
+ ./run_rocm_test.sh
+ exit $?
+fi
+echo $AOMP $REAL_AOMP using test branch $TEST_BRANCH
 
 # Make sure clang is present.
 $AOMP/bin/clang --version
