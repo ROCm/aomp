@@ -12,6 +12,8 @@ TESTS_DIR = \
     exp-real-map \
     fdefault-sizeof \
     fdefault-type-8 \
+    flang-274768 \
+    flang-274768-1 \
     flang-404247 \
     flang-421111-1 \
     flang-421111-2 \
