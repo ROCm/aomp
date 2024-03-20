@@ -12,6 +12,7 @@ TESTS_DIR = \
     milestone-2 \
     milestone-3-babel \
     milestone-3-babel-noteams \
+    mix-host-target \
     teams-ditribute-collapse
 
 all:
