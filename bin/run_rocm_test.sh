@@ -10,6 +10,10 @@
 #
 
 # look for presence of VMware (SRIOV)
+
+# we need to see 1 device only, babelstream in particular.
+export ROCR_VISIBLE_DEVICES=0
+
 if [ -e /usr/sbin/lspci ]; then
   lspci_loc=/usr/sbin/lspci
 else
