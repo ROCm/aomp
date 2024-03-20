@@ -6,7 +6,7 @@ set -x
 save_status
 ./milestone-3-babel-noteams -n 4 -s 100000000   # 2400.0 MB
 save_status
-./milestone-3-babel-noteams -n 4 -s 200000000   # 4400.0 MB
-save_status
 # skip larger test cases, very slow without teams
 exit $rval
+./milestone-3-babel-noteams -n 4 -s 200000000   # 4400.0 MB
+save_status
