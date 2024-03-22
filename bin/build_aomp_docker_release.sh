@@ -9,8 +9,8 @@
 ###########################################################
 
 set -e
-AOMP_VERSION_STRING=${AOMP_VERSION_STRING:-18.0-1}
-AOMP_VERSION=${AOMP_VERSION:-18.0}
+AOMP_VERSION_STRING=${AOMP_VERSION_STRING:-19.0-0}
+AOMP_VERSION=${AOMP_VERSION:-19.0}
 #DOCKERX_HOST=${DOCKERX_HOST:-$HOME/dockerx}
 DOCKERX_HOST=$HOME/dockerx
 #DOCKERX=${DOCKERX:-/dockerx}
@@ -73,7 +73,7 @@ prereq_array["sles15"]="zypper install -y which cmake wget vim libopenssl-devel 
 default_os="ubuntu2004 ubuntu2204 centos7 centos8 centos9 sles15"
 OS=${OS:-$default_os}
 export DOCKER_HOME=/home/release; export DOCKER_AOMP=/usr/lib/aomp; export DOCKER_AOMP_REPOS=/home/release/git/aomp$AOMP_VERSION
-exports="export HOME=/home/release; export AOMP=/usr/lib/aomp; export AOMP_REPOS=/home/release/git/aomp$AOMP_VERSION; export AOMP_EXTERNAL_MANIFEST=1; export AOMP_JOB_THREADS=128"
+exports="export HOME=/home/release; export AOMP=/usr/lib/aomp; export AOMP_REPOS=/home/release/git/aomp$AOMP_VERSION; export AOMP_EXTERNAL_MANIFEST=1; export AOMP_JOB_THREADS=128; export AOMP_SKIP_FLANG_NEW=1"
 
 function getcontainer(){
   echo docker ps -aqf "name=$docker_name"

@@ -4,8 +4,8 @@ TESTNAME     = xteam_red_1_g
 TESTSRC_MAIN = xteam_red_1_g.c
 TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
-RUNENV      += LIBOMPTARGET_KERNEL_TRACE=1
 
+RUNENV      += LIBOMPTARGET_KERNEL_TRACE=1
 RUNCMD      = ./$(TESTNAME) 2>&1 | $(FILECHECK) $(TESTSRC_MAIN)
 
 CFLAGS       += -fopenmp-target-fast -g
@@ -16,5 +16,3 @@ CC           = $(OMP_BIN) $(VERBOSE)
 #"-\#\#\#"
 
 include ../Makefile.rules
-run: $(TESTNAME)
-	$(RUNENV) $(RUNCMD)

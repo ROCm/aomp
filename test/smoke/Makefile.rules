@@ -1,11 +1,14 @@
+ifeq ($(TESTSRC_ALL),)
+    $(info    WARNING: TESTSRC_ALL is empty)
+endif
 TESTNAMES_ALL = $(basename $(TESTSRC_ALL))
 TIMEOUT ?= 60s
 SMOKE_TIMEOUT ?= timeout --foreground $(TIMEOUT)
 CHECK_COMMAND ?= $(or $(RUNCMD), ./$(TESTNAME) $(ARGS))
 
-SKIP_COMPILE_SUPPORTED   = Skipped compiling $(TESTNAME): supported only on $(SUPPORTED)
+SKIP_COMPILE_SUPPORTED   = Skipped compiling $(TESTNAME) for $(GPU_W_FEATURES) (supported only on $(SUPPORTED))
 SKIP_COMPILE_UNSUPPORTED = Skipped compiling $(TESTNAME): not supported on $(UNSUPPORTED)
-SKIP_RUN_SUPPORTED       = Skipped running $(TESTNAME): supported only on $(SUPPORTED)
+SKIP_RUN_SUPPORTED       = Skipped running $(TESTNAME) on $(GPU_W_FEATURES) (supported only on $(SUPPORTED))
 SKIP_RUN_UNSUPPORTED     = Skipped running $(TESTNAME): not supported on $(UNSUPPORTED)
 
 all: $(TESTNAME)
@@ -24,8 +27,14 @@ endif
 # ----- If SUPPORTED is empty then it means that there is no
 # restriction for the test and the test can be compiled and run
 # on the current GPU architecture.
+ifeq ($(AOMP_TARGET_FEATURES),)
+GPU_W_FEATURES = $(AOMP_GPU)
+else
+GPU_W_FEATURES = $(AOMP_GPU):$(AOMP_TARGET_FEATURES)
+endif
+
 ifeq ($(SUPPORTED),)
-SUPPORTED = $(AOMP_GPU)$(AOMP_TARGET_FEATURES)
+SUPPORTED = $(GPU_W_FEATURES)
 endif
 
 # ----- Demo compile and link in one step, no object code saved
@@ -34,8 +43,8 @@ $(TESTNAME): prerequisites $(TESTSRC_ALL)
 else
 $(TESTNAME): $(TESTSRC_ALL)
 endif
-ifneq (,$(findstring $(AOMP_GPU)$(AOMP_TARGET_FEATURES),$(SUPPORTED)))
-ifeq (,$(findstring $(AOMP_GPU)$(AOMP_TARGET_FEATURES),$(UNSUPPORTED)))
+ifneq (,$(findstring $(GPU_W_FEATURES),$(SUPPORTED)))
+ifeq (,$(findstring $(GPU_W_FEATURES),$(UNSUPPORTED)))
 ifdef nvidia_targets
 	$(CC) $(make_options) $(nvidia_targets) $(march) $(cuda) -o $@
 else ifdef march
@@ -57,18 +66,14 @@ else
 endif
 
 run: $(TESTNAME)
-ifneq (,$(findstring $(AOMP_GPU)$(AOMP_TARGET_FEATURES),$(SUPPORTED)))
-ifeq (,$(findstring $(AOMP_GPU)$(AOMP_TARGET_FEATURES),$(UNSUPPORTED)))
-ifeq ($(RUNCMD),)
-	$(RUNENV) $(RUNPROF) ./$(TESTNAME) 2>&1 | tee $@.log
+ifneq (,$(findstring $(GPU_W_FEATURES),$(SUPPORTED)))
+ifeq (,$(findstring $(GPU_W_FEATURES),$(UNSUPPORTED)))
+	$(RUNENV) $(RUNPROF) $(RUNPROF_FLAGS) $(CHECK_COMMAND) 2>&1 | tee $@.log
 else
-	$(RUNENV) $(RUNCMD)
+	@echo "  $(SKIP_RUN_UNSUPPORTED)" 2>&1 | tee $@.log
 endif
 else
-	@echo "  $(SKIP_RUN_UNSUPPORTED)"
-endif
-else
-	@echo "  $(SKIP_RUN_SUPPORTED)"
+	@echo "  $(SKIP_RUN_SUPPORTED)" 2>&1 | tee $@.log
 endif
 
 $(TESTNAME)_og11: $(TESTSRC_ALL)
@@ -99,13 +104,13 @@ verify-log: run
 	)9>../lockfile;
 
 check: $(TESTNAME)
-ifneq (,$(findstring $(AOMP_GPU)$(AOMP_TARGET_FEATURES),$(SUPPORTED)))
-ifeq (,$(findstring $(AOMP_GPU)$(AOMP_TARGET_FEATURES),$(UNSUPPORTED)))
+ifneq (,$(findstring $(GPU_W_FEATURES),$(SUPPORTED)))
+ifeq (,$(findstring $(GPU_W_FEATURES),$(UNSUPPORTED)))
 	path=`pwd`; \
 	base=`basename $$path`; \
 	( \
 	  flock -e 9 && echo  "" >> ../check-smoke.txt; \
-	  $(RUNENV) $(SMOKE_TIMEOUT) $(RUNPROF) $(CHECK_COMMAND) > /dev/null 2>&1; \
+	  $(RUNENV) $(SMOKE_TIMEOUT) $(RUNPROF) $(RUNPROF_FLAGS) $(CHECK_COMMAND) > /dev/null 2>&1; \
 	  test_status=$$?; \
 	  echo "$$test_status" > TEST_STATUS; \
 	  echo $$base $$test_num return code: $$test_status >> ../check-smoke.txt; \
@@ -244,7 +249,7 @@ run_sbin: sbin
 
 # Cleanup anything this makefile can create
 clean::
-	rm -f $(TESTNAME) $(TESTNAME).a llbin sbin obin *.i *.ii *.bc *.lk a.out-* *.ll *.s *.o *.log *.mod verify_output *.stb *.ilm *.cmod *.cmdx $(TESTNAME)_og11 make-log.txt TEST_STATUS
+	rm -f $(TESTNAME) $(TESTNAME).a llbin sbin obin *.i *.ii *.bc *.lk a.out-* *.ll *.s *.o *.log *.mod verify_output *.stb *.ilm *.cmod *.cmdx *.so $(TESTNAME)_og11 make-log.txt TEST_STATUS
 
 clean_log:
 	rm -f *.log

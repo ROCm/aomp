@@ -4,16 +4,11 @@
 #include <assert.h>
 #include <omp.h>
 
-int start_trace();
-int stop_trace();
-
 int main()
 {
   int initial_device=1;
 
-  start_trace();
-  
- #pragma omp target data map(tofrom: initial_device) 
+#pragma omp target data map(tofrom : initial_device)
   {
       int a;
       #pragma omp target
@@ -33,8 +28,6 @@ int main()
         }
       }
   }
-
-  stop_trace();
 
   return 0;
 }

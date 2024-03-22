@@ -80,4 +80,7 @@ if [ -e /sbin/lspci ]; then
 else
   lspci | grep VMware
 fi
+echo "Checking for Hyper"
+lscpu |grep Hyper
+
 echo "Done checking for SRIOV"

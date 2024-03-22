@@ -1,9 +1,16 @@
 #include <assert.h>
+#include <memory>
+#include <unordered_set>
 
 // Tool related code below
 #include <omp-tools.h>
 
 #define OMPT_BUFFER_REQUEST_SIZE 256
+
+// Map of devices traced
+typedef std::unordered_set<ompt_device_t*> DeviceMap_t;
+typedef std::unique_ptr<DeviceMap_t> DeviceMapPtr_t;
+extern DeviceMapPtr_t DeviceMapPtr;
 
 // Utilities
 static void print_record_ompt(ompt_record_ompt_t *rec) {
@@ -116,21 +123,27 @@ static ompt_set_result_t set_trace_ompt() {
 
   return ompt_set_always;
 }
-  
-static int start_trace() {
+
+static int start_trace(int device_num, ompt_device_t *Device) {
   if (!ompt_start_trace) return 0;
-  return ompt_start_trace(0, &on_ompt_callback_buffer_request,
+
+  // This device will be traced.
+  assert(DeviceMapPtr->find(Device) == DeviceMapPtr->end() &&
+	 "Device already present in the map");
+  DeviceMapPtr->insert(Device);
+
+  return ompt_start_trace(Device, &on_ompt_callback_buffer_request,
 			  &on_ompt_callback_buffer_complete);
 }
 
-static int flush_trace() {
+static int flush_trace(ompt_device_t *Device) {
   if (!ompt_flush_trace) return 0;
-  return ompt_flush_trace(0);
+  return ompt_flush_trace(Device);
 }
 
-static int stop_trace() {
+static int stop_trace(ompt_device_t *Device) {
   if (!ompt_stop_trace) return 0;
-  return ompt_stop_trace(0);
+  return ompt_stop_trace(Device);
 }
 
 // Synchronous callbacks
@@ -156,15 +169,24 @@ static void on_ompt_callback_device_initialize
   ompt_get_record_ompt = (ompt_get_record_ompt_t) lookup("ompt_get_record_ompt");
   ompt_advance_buffer_cursor = (ompt_advance_buffer_cursor_t) lookup("ompt_advance_buffer_cursor");
 
+  // DeviceMap must be initialized only once. Ensure this logic does not
+  // depend on external data structures because this init function may be
+  // called before main.
+  static bool IsDeviceMapInitialized = false;
+  if (!IsDeviceMapInitialized) {
+    DeviceMapPtr = std::make_unique<DeviceMap_t>();
+    IsDeviceMapInitialized = true;
+  }
+
   set_trace_ompt();
-  
+
   // In many scenarios, this will be a good place to start the
   // trace. If start_trace is called from the main program before this
   // callback is dispatched, the start_trace handle will be null. This
   // is because this device_init callback is invoked during the first
   // target construct implementation.
 
-  start_trace();
+  start_trace(device_num, device);
 }
 
 static void on_ompt_callback_device_load

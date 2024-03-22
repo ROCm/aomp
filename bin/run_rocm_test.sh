@@ -10,6 +10,10 @@
 #
 
 # look for presence of VMware (SRIOV)
+
+# we need to see 1 device only, babelstream in particular.
+export ROCR_VISIBLE_DEVICES=0
+
 if [ -e /usr/sbin/lspci ]; then
   lspci_loc=/usr/sbin/lspci
 else
@@ -19,10 +23,20 @@ else
     lspci_loc=/usr/bin/lspci
   fi
 fi
+ISVIRT=0
 echo $lspci_loc
 $lspci_loc 2>&1 | grep -q VMware
-
 if [ $? -eq 0 ] ; then
+  ISVIRT=1
+fi
+lscpu 2>&1 | grep -q Hyperv
+if [ $? -eq 0 ] ; then
+  ISVIRT=1
+fi
+if [ $ISVIRT -eq 1 ] ; then
+SKIP_USM=1
+export SKIP_USM=1
+export HSA_XNACK=${HSA_XNACK:-0}
 SUITE_LIST=${SUITE_LIST:-"examples smoke-limbo smoke omp5 openmpapps ovo sollve babelstream fortran-babelstream"}
 blockinglist="examples_fortran examples_openmp smoke openmpapps sollve45 sollve50 babelstream"
 else
@@ -95,6 +109,38 @@ else
 fi
 export AOMP
 echo "AOMP = $AOMP"
+export REAL_AOMP=`realpath $AOMP`
+
+if [ "$TEST_BRANCH" == "" ]; then
+ git reset --hard HEAD
+ if [ -e /home/jenkins/workspace/compiler-psdb-amd-mainline-open-a+a ]; then
+  export TEST_BRANCH=amd-mainline-open-a+a
+  git checkout 080e9bc62ad8501defc4ec9124c90e28a1f749db
+ elif [ -e /jenkins/workspace/compiler-psdb-amd-mainline-open ]; then
+  export TEST_BRANCH=amd-mainline-open
+  git checkout 080e9bc62ad8501defc4ec9124c90e28a1f749db
+ elif [ -e /jenkins/workspace/compiler-psdb-amd-staging ]; then
+  export TEST_BRANCH=amd-staging
+  git checkout aomp-dev
+ elif [[ $REAL_AOMP =~ "/opt/rocm-6.0" ]]; then
+  export TEST_BRANCH=aomp-test-6.0
+  git checkout 080e9bc62ad8501defc4ec9124c90e28a1f749db
+ elif [[ $REAL_AOMP =~ "/opt/rocm-6.1" ]]; then
+  export TEST_BRANCH=aomp-test-6.1
+  git checkout 080e9bc62ad8501defc4ec9124c90e28a1f749db
+ elif [[ $REAL_AOMP =~ "/opt/rocm-6.2" ]]; then
+  export TEST_BRANCH=aomp-test-6.2
+  git checkout 080e9bc62ad8501defc4ec9124c90e28a1f749db
+ else
+  export TEST_BRANCH=aomp-dev
+  git checkout aomp-dev
+ fi
+ echo "+++ Using $TEST_BRANCH +++"
+ sleep 5
+ ./run_rocm_test.sh
+ exit $?
+fi
+echo $AOMP $REAL_AOMP using test branch $TEST_BRANCH
 
 # Make sure clang is present.
 $AOMP/bin/clang --version
@@ -234,7 +280,9 @@ function getversion(){
       echo ompextrasver: $ompextrasver
     else
       echo Unable to determine openmp-extras package version.
-      exit 1
+      if [ "$MAINLINE_BUILD" == "" ]; then
+        exit 1
+      fi
     fi
     # Set the final version to use for expected passing lists. The expected passes
     # will include an aggregation of suported versions up to and including the chosen
@@ -326,45 +374,74 @@ function copyresults(){
       unexpectedfails=0
     fi
 
-    # Check unexpected fails for false negatives, i.e. tests that may have been deleted.
+    # Check unexpected fails for false negatives, i.e. tests that may have been deleted or unsupported tests.
     if [ "$unexpectedfails" != 0 ]; then
       fails=`diff $1_sorted_exp_passes $1_sorted_passes | grep '^<' | sed "s|< ||g"`
+      if [ -e "$1"_failing_tests.txt ]; then
+        cat "$1"_failing_tests.txt >> "$resultsdir"/"$1"/"$1"_all_tests.txt
+      fi
+      if [ -e "$1"_make_fail.txt ]; then
+        cat "$1"_make_fail.txt >> "$resultsdir"/"$1"/"$1"_all_tests.txt
+      fi
+      if [ -e "$1"_passing_tests.txt ]; then
+        cat "$1"_passing_tests.txt >> "$resultsdir"/"$1"/"$1"_all_tests.txt
+      fi
+
       if [[ "$1" =~ examples|smoke|omp5 ]]; then
+        if [ -e "$resultsdir"/"$1"/"$1"_all_tests.txt ]; then
+          for fail in $fails; do
+	    if [ "$2" != "" ]; then
+	      unsupported=0
+	      pushd "$2/$fail" > /dev/null
+	      if [ -f make-log.txt ]; then
+                cat make-log.txt | grep -i skipped
+	        if [ $? == 0 ]; then
+	          unsupported=1
+                elif [ -f run.log ]; then
+                  cat run.log | grep -i skipped
+		  if [ $? == 0 ]; then
+		    unsupported=1
+	          fi
+	        fi
+	      fi
+	      popd > /dev/null
+	      if [ $unsupported -eq 1 ]; then
+                warnings[$1]+="$fail (unsupported), "
+                ((unexpectedfails--))
+                ((warningcount++))
+	      fi
+	    fi
+          done
+	fi
+
         # For smoke, examples, and omp5 the missing test will have no directory or the directory is missing a Makefile.
         # This can happen if there is a test binary that is not cleaned up, which keeps the test directory present.
         if [ -e "$resultsdir/$1/$1_make_fail.txt" ]; then
           for fail in $fails; do
-            notpresent=0
-            if [ ! -d "$2/$fail" ]; then
-              notpresent=1
-            else
-              pushd "$2/$fail" > /dev/null
-              # If no Makefile then assume this is a recently deleted test.
-              if [ ! -e Makefile ]; then
+	    if [ "$2" != "" ]; then
+              notpresent=0
+              if [ ! -d "$2/$fail" ]; then
                 notpresent=1
+              else
+                pushd "$2/$fail" > /dev/null
+                # If no Makefile then assume this is a recently deleted test.
+                if [ ! -e Makefile ]; then
+                  notpresent=1
+                fi
+                popd > /dev/null
               fi
-              popd > /dev/null
-            fi
-            if [ "$notpresent" == 1 ]; then
-              warnings[$1]+="$fail, "
-              ((unexpectedfails--))
-              ((warningcount++))
-            fi
+              if [ "$notpresent" == 1 ]; then
+                warnings[$1]+="$fail, "
+                ((unexpectedfails--))
+                ((warningcount++))
+              fi
+	    fi
           done
         fi
       elif [[ "$1" =~ sollve|ovo|LLNL|openmpapps ]]; then
         # Combine passing/failing tests, which shows all tests that tried to build/run.
         # If the unexpected failure is not on that list, warn the user that test may be missing
         # from suite.
-        if [ -e "$1"_failing_tests.txt ]; then
-          cat "$1"_failing_tests.txt | tee -a "$resultsdir"/"$1"/"$1"_all_tests.txt
-        fi
-        if [ -e "$1"_make_fail.txt ]; then
-          cat "$1"_make_fail.txt | tee -a "$resultsdir"/"$1"/"$1"_all_tests.txt
-        fi
-        if [ -e "$1"_passing_tests.txt ]; then
-          cat "$1"_passing_tests.txt | tee -a "$resultsdir"/"$1"/"$1"_all_tests.txt
-        fi
         if [ -e "$resultsdir"/"$1"/"$1"_all_tests.txt ]; then
           for fail in $fails; do
             match=`grep -e "^$fail$" "$resultsdir"/"$1"/"$1"_all_tests.txt`
@@ -464,9 +541,9 @@ function smoke(){
   # Smoke
   mkdir -p "$resultsdir"/smoke
   cd "$aompdir"/test/smoke
-  AOMP_PARALLEL_SMOKE=1 CLEANUP=0 AOMPHIP=$AOMPROCM ./check_smoke.sh
+  HIP_PATH="" AOMP_PARALLEL_SMOKE=1 CLEANUP=0 AOMPHIP=$AOMPROCM ./check_smoke.sh
   checkrc $?
-  copyresults smoke
+  copyresults smoke "$aompdir"/test/smoke
 }
 
 SMOKE_FAILS=${SMOKE_FAILS:-1}
@@ -491,7 +568,7 @@ function smoke-limbo(){
     cd "$aompdir"/test/smoke-limbo
     ./check_smoke_limbo.sh
     checkrc $?
-    copyresults smoke-limbo
+    copyresults smoke-limbo "$aompdir"/test/smoke-limbo
   else
     echo "Skipping smoke-limbo."
   fi

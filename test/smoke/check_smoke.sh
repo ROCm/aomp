@@ -313,8 +313,8 @@ for directory in $SMOKE_DIRS; do
   set_my_nrun
   while [ $run -lt $my_nrun ]; do
   #---
-  make
-  if [ $? -ne 0 ]; then
+  make 2>&1 | tee make-log.txt
+  if [ ${PIPESTATUS[0]} -ne 0 ]; then
     echo "$base: Make Failed" >> ../make-fail.txt
     if [ -r "TEST_STATUS" ]; then
       test_status=`cat TEST_STATUS`

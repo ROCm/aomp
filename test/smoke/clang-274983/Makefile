@@ -1,4 +1,6 @@
 include ../../Makefile.defs
+HSA_XNACK        ?= 1
+AOMP_TARGET_FEATURES = xnack+
 
 TESTNAME     = clang-274983
 TESTSRC_MAIN = clang-274983.cpp
@@ -11,19 +13,18 @@ else
   _gputriple = amdgcn-amd-amdhsa
 endif
 
-ifeq ($(AOMP_GPU),gfx90a)
-  HSA_XNACK = 1
-else
-  HSA_XNACK = 0
-endif
+SUPPORTED    = $(SUPPORTS_USM)
 
-TARGET       = -fopenmp -O3 -fopenmp-targets=$(_gputriple) -Xopenmp-target=$(_gputriple) -march=$(AOMP_GPU)$(AOMP_TARGET_FEATURES)
+TARGET       = -fopenmp -O3 -fopenmp-targets=$(_gputriple) -Xopenmp-target=$(_gputriple) -march=$(AOMP_GPU):$(AOMP_TARGET_FEATURES)
 
 CLANG        ?= clang++
 OMP_BIN      = $(AOMP)/bin/$(CLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
-RUNENV       = HSA_XNACK=$(HSA_XNACK)
 #-ccc-print-phases
 #"-\#\#\#"
+
+RUNENV       += HSA_XNACK=$(HSA_XNACK)
+RUNCMD       = ./$(TESTNAME)
+
 
 include ../Makefile.rules

@@ -189,6 +189,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
       
       MYCMAKEOPTS="$COMMON_CMAKE_OPTS \
 -DLIBOMPTARGET_NVPTX_DEBUG=ON \
+-DLLVM_ENABLE_ASSERTIONS=ON \
 -DCMAKE_BUILD_TYPE=Debug \
 $AOMP_ORIGIN_RPATH \
 -DROCM_DIR=$ROCM_DIR \
@@ -327,7 +328,7 @@ fi
 #  ----------- Install only if asked  ----------------------------
 if [ "$1" == "install" ] ; then 
    clang_major=$("$AOMP_INSTALL_DIR"/bin/clang --version | grep -oP '(?<=clang version )[0-9]+')
-   llvm_dylib=libLLVM-"$clang_major"_AOMP_STANDALONE_"$AOMP_VERSION_STRING".so
+   llvm_dylib=$(readlink "$AOMP_INSTALL_DIR"/lib/libLLVM.so)
    if [ "$AOMP_LEGACY_OPENMP" == "1" ]; then
       cd $BUILD_DIR/build/openmp
       echo
@@ -359,7 +360,7 @@ if [ "$1" == "install" ] ; then
         echo "ERROR $AOMP_NINJA_BIN install failed "
         exit 1
      fi
-     if [ ! -h $AOMP_INSTALL_DIR/lib-perf/$llvm_dylib ]; then
+     if [ ! -h $AOMP_INSTALL_DIR/lib-perf/$llvm_dylib ] && [ "$llvm_dylib" != "" ]; then
        cd $AOMP_INSTALL_DIR/lib-perf
        ln -s ../lib/$llvm_dylib $llvm_dylib
      fi
@@ -388,7 +389,7 @@ if [ "$1" == "install" ] ; then
          echo "ERROR $AOMP_NINJA_BIN install failed "
          exit 1
       fi
-      if [ ! -h $AOMP_INSTALL_DIR/lib-debug/$llvm_dylib ]; then
+      if [ ! -h $AOMP_INSTALL_DIR/lib-debug/$llvm_dylib ] && [ "$llvm_dylib" != "" ]; then
         cd $AOMP_INSTALL_DIR/lib-debug
         ln -s ../lib/$llvm_dylib $llvm_dylib
       fi

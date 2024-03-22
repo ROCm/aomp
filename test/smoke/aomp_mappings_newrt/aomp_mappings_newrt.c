@@ -287,7 +287,7 @@ int main()
 
     //Set mask for warps with full (64) active threads
     if (i < N - remainder){
-      if(WARP_SIZE == 64)
+      if(isAMDGPU)
         mask = 0xff;
       else
         mask = 0xffffffff;
@@ -349,8 +349,10 @@ int main()
         recordError(&errors, "DEVICE NUMBER", i, default_dev, NULL);
 
       //check warp # (target teams region only execute by thread master in team,
-      // which in Generic mode is thread ID 256, hence warp ID 4)
-      if (warp_id[i] != 4)
+      // which in Generic mode is thread ID 256, hence warp ID 4 for WARP_SIZE
+      // 64 and warp ID 8 for WARP_SIZE 32 for gfx1030 and gfx1100 arches.)
+      if ((warp_id[i] != 4) && 
+          !(warp_id[i] == 8 && WARP_SIZE == 32 && isAMDGPU))
         recordError(&errors, "WARP NUMBER", i, warp_id, NULL);
 
       //check lane #

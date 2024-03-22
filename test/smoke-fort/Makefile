@@ -1,18 +1,49 @@
 include ../Makefile.defs
 
 TESTS_DIR = \
+    1D-full-bounds-exp-map \
+    1D-partial-bounds-exp-map \
+    bycopy-implicit-map \
     declare-target-and-explicit-map \
+    declare-target-and-implicit-and-explicit-map \
+    declare-target-link-1 \
     declare-target-link-2 \
-    flang-404247 \
-    flang-421111-2 \
+    declare-target-link-3 \
+    exp-real-map \
     fdefault-sizeof \
     fdefault-type-8 \
+    flang-274768 \
+    flang-274768-1 \
+    flang-404247 \
+    flang-421111-1 \
+    flang-421111-2 \
+    flang-421353 \
+    flang-439387 \
+    flang-439387a \
+    flang-439387b \
+    flang-439387c \
+    flang-443915 \
+    flang-445888 \
     LaunchLatency \
+    llvm-issue-82047 \
     milestone-1 \
     milestone-2 \
     milestone-3-babel \
+    milestone-3-babel-drop-1 \
     milestone-3-babel-noteams \
     mix-host-target \
+    olcf-tc-0-serial \
+    olcf-tc-1-openmp-cpu \
+    olcf-tc-2-openmp-gpu-teams \
+    olcf-tc-3-openmp-gpu-parallel \
+    olcf-tc-4-openmp-gpu-data \
+    olcf-tc-5-openmp-gpu-implicit \
+    olcf-tc-6-openmp-combined \
+    olcf-tc-7-loop-combined \
+    olcf-tf-0-serial \
+    olcf-tf-1-openmp-cpu \
+    single-value-map \
+    teams-distribute-no-parallel \
     teams-ditribute-collapse
 
 all:

@@ -23,7 +23,7 @@ ROCM_VERSION=${ROCM_VERSION:-6.0.0}
 
 # Set the AOMP VERSION STRING
 AOMP_VERSION=${AOMP_VERSION:-"19.0"}
-AOMP_VERSION_MOD=${AOMP_VERSION_MOD:-"0"}
+AOMP_VERSION_MOD=${AOMP_VERSION_MOD:-"1"}
 AOMP_VERSION_STRING=${AOMP_VERSION_STRING:-"$AOMP_VERSION-$AOMP_VERSION_MOD"}
 ROCM_EXPECTED_MODVERSION=${ROCM_EXPECTED_MODVERSION:-6.2.4}
 export AOMP_VERSION_STRING AOMP_VERSION AOMP_VERSION_MOD ROCM_VERSION ROCM_EXPECTED_MODVERSION
@@ -49,14 +49,19 @@ fi
 # all the test repositories in a different directory.
 AOMP_REPOS_TEST=${AOMP_REPOS_TEST:-$HOME/git/aomp-test}
 
+_ccache_bin=`which ccache`
+if [ "$_ccache_bin" == "" ] ; then
+AOMP_USE_CCACHE=${AOMP_USE_CCACHE:-0}
+else
 AOMP_USE_CCACHE=${AOMP_USE_CCACHE:-1}
+fi
 if [ "$AOMP_USE_CCACHE" == 0 ] ; then
   AOMP_CCACHE_OPTS=""
 else
   _ccache_bin=`which ccache`
   if [ "$_ccache_bin" == "" ] ; then
     echo "ERROR: AOMP_USE_CCACHE is $AOMP_USE_CCACHE but no ccache bin found in PATH"
-    echo "       Either install ccache or set AOMP_USE_CCACHE=0"
+    echo "       Either fix path,  install ccache, or set AOMP_USE_CCACHE=0"
     echo
     exit 1
   fi
@@ -64,7 +69,8 @@ else
 fi
 
 AOMP_SKIP_FLANG=${AOMP_SKIP_FLANG:-0}
-if [ "$AOMP_SKIP_FLANG" == 1 ] ; then
+AOMP_SKIP_FLANG_NEW=${AOMP_SKIP_FLANG_NEW:-0}
+if [ "$AOMP_SKIP_FLANG" == 1 ] || [ "$AOMP_SKIP_FLANG_NEW" == 1 ] ; then
    AOMP_PROJECTS_LIST=${AOMP_PROJECTS_LIST:-"clang;lld;compiler-rt;clang-tools-extra"}
 else
    AOMP_PROJECTS_LIST=${AOMP_PROJECTS_LIST:-"clang;lld;compiler-rt;clang-tools-extra;flang"}
@@ -152,6 +158,14 @@ GCC=`which gcc`
 GCCXX=`which g++`
 AOMP_CC_COMPILER=${AOMP_CC_COMPILER:-$GCC}
 AOMP_CXX_COMPILER=${AOMP_CXX_COMPILER:-$GCCXX}
+# Set specified clang and clang++ compilers with env vars AOMP_CLANG*_COMPILER.
+# Otherwise default to installed AOMP. If not yet installed, try rocm clang.
+_clang_compiler=$AOMP/bin/clang
+_clangxx_compiler=$AOMP/bin/clang++
+[ ! -f $_clang_compiler ] && _clang_compiler=/opt/rocm/llvm/bin/clang
+[ ! -f $_clangxx_compiler ] && _clangxx_compiler=/opt/rocm/llvm/bin/clang++
+AOMP_CLANG_COMPILER=${AOMP_CLANG_COMPILER:-$_clang_compiler}
+AOMP_CLANGXX_COMPILER=${AOMP_CLANGXX_COMPILER:-$_clangxx_compiler}
 
 # Non standalone builds are done with ROCm builds.
 AOMP_STANDALONE_BUILD=${AOMP_STANDALONE_BUILD:-1}
@@ -513,8 +527,12 @@ function setaompgpu (){
       detected_gpu=$($AOMP/bin/amdgpu-arch)
       detected_gpu=$(echo $detected_gpu | awk '{print $1,$5}')
       detected_gpu=`echo $detected_gpu | cut -d" " -f1` # pick first found
-    else
+    elif [ -e $AOMP/../bin/mygpu ]; then
       detected_gpu=$($AOMP/../bin/mygpu)
+    else
+      echo "Error: in setaompgpu, could not find rocm_agent_enumerator"
+      echo "       Set AOMP_GPU, AOMP, or install ROCm"
+      exit 1
     fi
   fi
 

@@ -1,26 +1,26 @@
 include ../Makefile.defs
 
 TESTS_DIR = \
-    1D-full-bounds-exp-map \
-    1D-partial-bounds-exp-map \
-    bycopy-implicit-map \
-    declare-target-and-implicit-and-explicit-map \
-    declare-target-link-1 \
-    declare-target-link-3 \
-    exp-real-map \
     f2018-select-rank \
     flang-315421 \
     flang-325095 \
     flang-416048 \
     flang-420573 \
-    flang-421111-1 \
     flang-421111-3 \
-    flang-421353 \
-    flang-439387 \
-    flang-439387a \
-    flang-439387b \
-    flang-439387c \
-    single-value-map \
+    flang-444386 \
+    flang-444386-1 \
+    flang-445718 \
+    flang-446057a \
+    flang-446057b \
+    flang-446057c \
+    flang-446525 \
+    olcf-tf-2-openmp-gpu-teams \
+    olcf-tf-3-openmp-gpu-teams-parallel \
+    olcf-tf-4-openmp-gpu-teams-parallel-data \
+    olcf-tf-5-openmp-gpu-teams-parallel-implicit-map \
+    olcf-tf-6-combined \
+    olcf-tf-7-loop-combined \
+    rocm-issue-842 \
     vmuln
 
 all:
