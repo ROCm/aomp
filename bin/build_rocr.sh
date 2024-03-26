@@ -59,6 +59,11 @@ if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
    LDFLAGS="-fuse-ld=lld $ASAN_FLAGS"
 fi
 
+_install_src_dir_rocr="$AOMP_INSTALL_DIR/share/gdb/python/ompd/src/rocr"
+if [ "$AOMP_BUILD_DEBUG" == 1 ] ; then
+   ROCR_DEBUG_FLAGS="-g -DOPENMP_SOURCE_DEBUG_MAP=-fdebug-prefix-map=$AOMP_REPOS/$AOMP_ROCR_REPO_NAME/src=$_install_src_dir_rocr/src"
+fi
+
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then 
 
    echo " " 
@@ -95,6 +100,22 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
       fi
    fi
 
+   if [ "$AOMP_BUILD_DEBUG" == "1" ] ; then
+      echo rm -rf $BUILD_DIR/build/rocr_debug
+      [ -d $BUILD_DIR/build/rocr_debug ] && rm -rf $BUILD_DIR/build/rocr_debug
+      ROCR_CMAKE_OPTS="-DCMAKE_C_COMPILER=$AOMP_CLANG_COMPILER -DCMAKE_CXX_COMPILER=$AOMP_CLANGXX_COMPILER -DCMAKE_INSTALL_PREFIX=$INSTALL_ROCM -DCMAKE_BUILD_TYPE=$BUILDTYPE $AOMP_ORIGIN_RPATH -DCMAKE_INSTALL_LIBDIR=$AOMP_INSTALL_DIR/lib-debug"
+      echo " -----Running rocr_debug cmake -----"
+      mkdir -p  $BUILD_AOMP/build/rocr_debug
+      cd $BUILD_AOMP/build/rocr_debug
+      echo ${AOMP_CMAKE} $ROCR_CMAKE_OPTS -DCMAKE_C_FLAGS="'$ROCR_DEBUG_FLAGS'" -DCMAKE_CXX_FLAGS="'$ROCR_DEBUG_FLAGS'" $AOMP_REPOS/$AOMP_ROCR_REPO_NAME/src
+      ${AOMP_CMAKE} $ROCR_CMAKE_OPTS -DCMAKE_C_FLAGS="'$ROCR_DEBUG_FLAGS'" -DCMAKE_CXX_FLAGS="'$ROCR_DEBUG_FLAGS'" $AOMP_REPOS/$AOMP_ROCR_REPO_NAME/src
+      if [ $? != 0 ] ; then
+         echo "ERROR rocr_debug cmake failed.cmake flags"
+         echo "      $ROCR_CMAKE_OPTS"
+         exit 1
+      fi
+   fi
+
 fi
 
 cd $BUILD_AOMP/build/rocr
@@ -127,6 +148,20 @@ if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
    fi
 fi
 
+if [ "$AOMP_BUILD_DEBUG" == 1 ] ; then
+   cd $BUILD_AOMP/build/rocr_debug
+   echo
+   echo " ----- Running make for rocr_debug ----- "
+   make -j $AOMP_JOB_THREADS
+   if [ $? != 0 ] ; then
+     echo " "
+     echo "ERROR: make -j $AOMP_JOB_THREADS FAILED"
+     echo "To restart:"
+     echo "  cd $BUILD_AOMP/build/rocr_debug"
+     echo "  make"
+     exit 1
+   fi
+fi
 
 #  ----------- Install only if asked  ----------------------------
 if [ "$1" == "install" ] ; then 
@@ -149,6 +184,25 @@ if [ "$1" == "install" ] ; then
             exit 1
          fi
       fi
+
+      if [ "$AOMP_BUILD_DEBUG" == 1 ] ; then
+         cd $BUILD_AOMP/build/rocr_debug
+         echo " -----Installing to $INSTALL_ROCM/lib-debug ----- "
+         $SUDO make install
+         if [ $? != 0 ] ; then
+            echo "ERROR make install for rocr  failed "
+            exit 1
+         fi
+        $SUDO mkdir -p $_install_src_dir_rocr
+        echo $SUDO cp -r $AOMP_REPOS/$AOMP_ROCR_REPO_NAME/src $_install_src_dir_rocr
+        $SUDO cp -r $AOMP_REPOS/$AOMP_ROCR_REPO_NAME/src $_install_src_dir_rocr
+	# remove non-source files to save space
+	find $_install_src_dir_rocr/src  -type f  | grep  -v "\.cpp$\|\.h$\|\.hpp$" | xargs rm
+	rm -rf $_install_src_dir_rocr/src/RPM
+	rm -rf $_install_src_dir_rocr/src/DEBIAN
+	rm -rf $_install_src_dir_rocr/src/cmake_modules
+      fi
+
       if [ "$AOMP_NEW" == 1 ] ; then
          removepatch $AOMP_REPOS/hsa-runtime
       else

@@ -114,6 +114,8 @@ fi
 # This is how we tell the hsa plugin where to find hsa
 export HSA_RUNTIME_PATH=$ROCM_DIR
 
+_ompd_dir="$AOMP_INSTALL_DIR/share/gdb/python/ompd"
+
 #breaks build as it cant find rocm-path
 #export HIP_DEVICE_LIB_PATH=$ROCM_DIR/lib
 
@@ -181,9 +183,6 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
   fi
 
    if [ "$AOMP_BUILD_DEBUG" == "1" ] ; then
-      _ompd_dir="$AOMP_INSTALL_DIR/lib-debug/ompd"
-      #  This is the new locationof the ompd directory
-      [[ ! -d $_ompd_dir ]] && _ompd_dir="$AOMP_INSTALL_DIR/share/gdb/python/ompd"
       echo rm -rf $BUILD_DIR/build/openmp_debug
       rm -rf $BUILD_DIR/build/openmp_debug
       
@@ -199,7 +198,7 @@ $AOMP_ORIGIN_RPATH \
 -DLIBOMP_CPPFLAGS='-O0' \
 -DLIBOMP_OMPD_SUPPORT=ON \
 -DLIBOMP_OMPT_DEBUG=ON \
--DOPENMP_SOURCE_DEBUG_MAP="\""-fdebug-prefix-map=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp=$_ompd_dir/src/openmp"\"" "
+-DOPENMP_SOURCE_DEBUG_MAP=-fdebug-prefix-map=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp=$_ompd_dir/src/openmp "
 
       # The 'pip install --system' command is not supported on non-debian systems. This will disable
       # the system option if the debian_version file is not present.
@@ -379,9 +378,6 @@ if [ "$1" == "install" ] ; then
 
    if [ "$AOMP_BUILD_DEBUG" == "1" ] ; then
       cd $BUILD_DIR/build/openmp_debug
-      _ompd_dir="$AOMP_INSTALL_DIR/lib-debug/ompd"
-      #  This is the new locationof the ompd directory
-      [[ ! -d $_ompd_dir ]] && _ompd_dir="$AOMP_INSTALL_DIR/share/gdb/python/ompd"
       echo
       echo " -----Installing to $INSTALL_OPENMP/lib-debug ---- " 
       $SUDO $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS install
@@ -405,7 +401,6 @@ if [ "$1" == "install" ] ; then
       fi
 
       # Remove ompdModule.cpython...so  , contains absolute runpath
-      _ompd_dir="$AOMP_INSTALL_DIR/lib-debug/ompd"
       OMF=`find $_ompd_dir -name ompdModule.cpython\*`
       echo found ompdModule $OMF
       if [ -f "$OMF" ]; then
@@ -423,12 +418,17 @@ if [ "$1" == "install" ] ; then
       # Copy selected debugable runtime sources into the installation $ompd_dir/src directory
       # to satisfy the above -fdebug-prefix-map.
       $SUDO mkdir -p $_ompd_dir/src/openmp/runtime/src
-      echo cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/runtime/src $_ompd_dir/src/openmp/runtime
-      $SUDO cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/runtime/src $_ompd_dir/src/openmp/runtime
+      echo cp -r $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/runtime/src $_ompd_dir/src/openmp/runtime
+      $SUDO cp -r $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/runtime/src $_ompd_dir/src/openmp/runtime
       $SUDO mkdir -p $_ompd_dir/src/openmp/libomptarget/src
-      echo cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/libomptarget/src $_ompd_dir/src/openmp/libomptarget
-      $SUDO cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/libomptarget/src $_ompd_dir/src/openmp/libomptarget
+      echo cp -r $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/libomptarget/src $_ompd_dir/src/openmp/libomptarget
+      $SUDO cp -r $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/libomptarget/src $_ompd_dir/src/openmp/libomptarget
+
+      $SUDO cp -r $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/libomptarget/plugins-nextgen $_ompd_dir/src/openmp/libomptarget
+      $SUDO mkdir -p $_ompd_dir/src/openmp/libomptarget/hostexec/services
+      $SUDO cp -r $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/libomptarget/hostexec/services $_ompd_dir/src/openmp/libomptarget/hostexec
+
       $SUDO mkdir -p $_ompd_dir/src/openmp/libompd/src
-      $SUDO cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/libompd/src $_ompd_dir/src/openmp/libompd
+      $SUDO cp -r $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/libompd/src $_ompd_dir/src/openmp/libompd
    fi
 fi
