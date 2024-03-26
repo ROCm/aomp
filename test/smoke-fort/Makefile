@@ -31,6 +31,7 @@ TESTS_DIR = \
     milestone-3-babel \
     milestone-3-babel-drop-1 \
     milestone-3-babel-noteams \
+    mix-host-target \
     olcf-tc-0-serial \
     olcf-tc-1-openmp-cpu \
     olcf-tc-2-openmp-gpu-teams \
