@@ -1,6 +1,6 @@
 include ../../Makefile.defs
 HSA_XNACK    ?= 1
-AOMP_TARGET_FEATURES = xnack+
+AOMP_TARGET_FEATURES = :xnack+
 
 TESTNAME     = leopold-devicePtr
 TESTSRC_MAIN = leopold-devicePtr.cpp
