@@ -9256,7 +9256,7 @@ diff -Naur -x .git llvm-project.upstream/mlir/lib/Dialect/OpenMP/IR/OpenMPDialec
    // Check for allocate clause restrictions
 diff -Naur -x .git llvm-project.upstream/mlir/lib/Target/LLVMIR/Dialect/OpenMP/OpenMPToLLVMIRTranslation.cpp llvm-project/mlir/lib/Target/LLVMIR/Dialect/OpenMP/OpenMPToLLVMIRTranslation.cpp
 --- llvm-project.upstream/mlir/lib/Target/LLVMIR/Dialect/OpenMP/OpenMPToLLVMIRTranslation.cpp	2024-03-26 14:53:01.200742598 -0400
-+++ llvm-project/mlir/lib/Target/LLVMIR/Dialect/OpenMP/OpenMPToLLVMIRTranslation.cpp	2024-03-28 09:45:13.542238325 -0400
++++ llvm-project/mlir/lib/Target/LLVMIR/Dialect/OpenMP/OpenMPToLLVMIRTranslation.cpp	2024-03-28 13:26:11.361057572 -0400
 @@ -719,9 +719,11 @@
    if (Value ifExprVar = op.getIfExpr())
      ifExpr = moduleTranslation.lookupValue(ifExprVar);
@@ -9591,7 +9591,37 @@ diff -Naur -x .git llvm-project.upstream/mlir/lib/Target/LLVMIR/Dialect/OpenMP/O
      }
    }
  
-@@ -2609,6 +2717,67 @@
+@@ -2575,8 +2683,12 @@
+           argIndex++;
+         }
+ 
+-        bodyGenStatus = inlineConvertOmpRegions(region, "omp.data.region",
+-                                                builder, moduleTranslation);
++        SmallVector<llvm::PHINode *> phis;
++        llvm::BasicBlock *continuationBlock =
++            convertOmpOpRegions(region, "omp.data.region", builder,
++                                moduleTranslation, bodyGenStatus, &phis);
++        builder.SetInsertPoint(continuationBlock,
++                               continuationBlock->getFirstInsertionPt());
+       }
+       break;
+     case BodyGenTy::DupNoPriv:
+@@ -2585,8 +2697,12 @@
+       // If device info is available then region has already been generated
+       if (info.DevicePtrInfoMap.empty()) {
+         builder.restoreIP(codeGenIP);
+-        bodyGenStatus = inlineConvertOmpRegions(region, "omp.data.region",
+-                                                builder, moduleTranslation);
++        SmallVector<llvm::PHINode *> phis;
++        llvm::BasicBlock *continuationBlock =
++            convertOmpOpRegions(region, "omp.data.region", builder,
++                                moduleTranslation, bodyGenStatus, &phis);
++        builder.SetInsertPoint(continuationBlock,
++                               continuationBlock->getFirstInsertionPt());
+       }
+       break;
+     }
+@@ -2609,6 +2725,67 @@
    return bodyGenStatus;
  }
  
@@ -9659,7 +9689,7 @@ diff -Naur -x .git llvm-project.upstream/mlir/lib/Target/LLVMIR/Dialect/OpenMP/O
  /// Lowers the FlagsAttr which is applied to the module on the device
  /// pass when offloading, this attribute contains OpenMP RTL globals that can
  /// be passed as flags to the frontend, otherwise they are set to default
-@@ -2681,11 +2850,6 @@
+@@ -2681,11 +2858,6 @@
      return false;
    }
  
@@ -9671,7 +9701,7 @@ diff -Naur -x .git llvm-project.upstream/mlir/lib/Target/LLVMIR/Dialect/OpenMP/O
    if (targetOp.getNowait()) {
      opInst.emitError("Nowait clause not yet supported");
      return false;
-@@ -2800,7 +2964,7 @@
+@@ -2800,7 +2972,7 @@
        ompBuilder.M.getDataLayout().getProgramAddressSpace();
  
    // Create the alloca for the argument the current point.
@@ -9680,7 +9710,7 @@ diff -Naur -x .git llvm-project.upstream/mlir/lib/Target/LLVMIR/Dialect/OpenMP/O
  
    if (allocaAS != defaultAS && arg.getType()->isPointerTy())
      v = builder.CreatePointerBitCastOrAddrSpaceCast(
-@@ -2830,6 +2994,169 @@
+@@ -2830,6 +3002,169 @@
    return builder.saveIP();
  }
  
@@ -9850,7 +9880,7 @@ diff -Naur -x .git llvm-project.upstream/mlir/lib/Target/LLVMIR/Dialect/OpenMP/O
  static LogicalResult
  convertOmpTarget(Operation &opInst, llvm::IRBuilderBase &builder,
                   LLVM::ModuleTranslation &moduleTranslation) {
-@@ -2837,32 +3164,20 @@
+@@ -2837,32 +3172,20 @@
    if (!targetOpSupported(opInst))
      return failure();
  
@@ -9887,7 +9917,7 @@ diff -Naur -x .git llvm-project.upstream/mlir/lib/Target/LLVMIR/Dialect/OpenMP/O
      builder.restoreIP(codeGenIP);
      unsigned argIndex = 0;
      for (auto &mapOp : mapOperands) {
-@@ -2877,6 +3192,10 @@
+@@ -2877,6 +3200,10 @@
      llvm::BasicBlock *exitBlock = convertOmpOpRegions(
          targetRegion, "omp.target", builder, moduleTranslation, bodyGenStatus);
      builder.SetInsertPoint(exitBlock);
@@ -9898,7 +9928,7 @@ diff -Naur -x .git llvm-project.upstream/mlir/lib/Target/LLVMIR/Dialect/OpenMP/O
      return builder.saveIP();
    };
  
-@@ -2888,9 +3207,6 @@
+@@ -2888,9 +3215,6 @@
    if (!getTargetEntryUniqueInfo(entryInfo, targetOp, parentName))
      return failure();
  
@@ -9908,7 +9938,7 @@ diff -Naur -x .git llvm-project.upstream/mlir/lib/Target/LLVMIR/Dialect/OpenMP/O
    llvm::OpenMPIRBuilder::InsertPointTy allocaIP =
        findAllocaInsertPoint(builder, moduleTranslation);
  
-@@ -2910,14 +3226,12 @@
+@@ -2910,14 +3234,12 @@
    auto argAccessorCB = [&](llvm::Argument &arg, llvm::Value *input,
                             llvm::Value *&retVal, InsertPointTy allocaIP,
                             InsertPointTy codeGenIP) {
@@ -9924,7 +9954,7 @@ diff -Naur -x .git llvm-project.upstream/mlir/lib/Target/LLVMIR/Dialect/OpenMP/O
        retVal = cast<llvm::Value>(&arg);
        return codeGenIP;
      }
-@@ -2939,13 +3253,21 @@
+@@ -2939,13 +3261,21 @@
        kernelInput.push_back(mapData.OriginalValue[i]);
    }
  
@@ -9950,7 +9980,7 @@ diff -Naur -x .git llvm-project.upstream/mlir/lib/Target/LLVMIR/Dialect/OpenMP/O
      handleDeclareTargetMapVar(mapData, moduleTranslation, builder);
  
    return bodyGenStatus;
-@@ -3042,125 +3364,51 @@
+@@ -3042,125 +3372,51 @@
    return success();
  }
  
@@ -10113,7 +10143,7 @@ diff -Naur -x .git llvm-project.upstream/mlir/lib/Target/LLVMIR/Dialect/OpenMP/O
  
    llvm::OpenMPIRBuilder *ompBuilder = moduleTranslation.getOpenMPBuilder();
  
-@@ -3190,7 +3438,7 @@
+@@ -3190,7 +3446,7 @@
          return success();
        })
        .Case([&](omp::ParallelOp op) {
@@ -10122,7 +10152,7 @@ diff -Naur -x .git llvm-project.upstream/mlir/lib/Target/LLVMIR/Dialect/OpenMP/O
        })
        .Case([&](omp::ReductionOp reductionOp) {
          return convertOmpReductionOp(reductionOp, builder, moduleTranslation);
-@@ -3262,6 +3510,9 @@
+@@ -3262,6 +3518,9 @@
        .Case([&](omp::TargetOp) {
          return convertOmpTarget(*op, builder, moduleTranslation);
        })
@@ -10132,7 +10162,7 @@ diff -Naur -x .git llvm-project.upstream/mlir/lib/Target/LLVMIR/Dialect/OpenMP/O
        .Case<omp::MapInfoOp, omp::MapBoundsOp, omp::PrivateClauseOp>(
            [&](auto op) {
              // No-op, should be handled by relevant owning operations e.g.
-@@ -3275,6 +3526,306 @@
+@@ -3275,6 +3534,316 @@
        });
  }
  
@@ -10224,14 +10254,24 @@ diff -Naur -x .git llvm-project.upstream/mlir/lib/Target/LLVMIR/Dialect/OpenMP/O
 +
 +static LogicalResult
 +convertTopLevelTargetOp(Operation *op, llvm::IRBuilderBase &builder,
-+                              LLVM::ModuleTranslation &moduleTranslation) {
++                        LLVM::ModuleTranslation &moduleTranslation) {
 +  if (isa<omp::TargetOp>(op))
 +    return convertOmpTarget(*op, builder, moduleTranslation);
++  if (isa<omp::TargetDataOp>(op))
++    return convertOmpTargetData(op, builder, moduleTranslation);
 +  bool interrupted =
-+      op->walk<WalkOrder::PreOrder>([&](omp::TargetOp targetOp) {
-+          if (failed(convertOmpTarget(*targetOp, builder, moduleTranslation)))
-+            return WalkResult::interrupt();
-+          return WalkResult::skip();
++      op->walk<WalkOrder::PreOrder>([&](Operation *oper) {
++          if (isa<omp::TargetOp>(oper)) {
++            if (failed(convertOmpTarget(*oper, builder, moduleTranslation)))
++              return WalkResult::interrupt();
++            return WalkResult::skip();
++          }
++          if (isa<omp::TargetDataOp>(oper)) {
++            if (failed(convertOmpTargetData(oper, builder, moduleTranslation)))
++              return WalkResult::interrupt();
++            return WalkResult::skip();
++          }
++          return WalkResult::advance();
 +        }).wasInterrupted();
 +  return failure(interrupted);
 +}
