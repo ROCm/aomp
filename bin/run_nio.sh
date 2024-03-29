@@ -84,7 +84,8 @@ if [ ! -d $_rundir ] ; then
   cd $QMC_DATA
   [ -f nohup.out ] && rm nohup.out
   echo USE_HIP_OPENMP=1 $thisdir/build_qmcpack.sh 
-  USE_HIP_OPENMP=1 $thisdir/build_qmcpack.sh 2>&1 >build_qmcpack.log
+  mkdir -p /tmp/$USER
+  USE_HIP_OPENMP=1 $thisdir/build_qmcpack.sh 2>&1 >/tmp/$USER/build_qmcpack.log
 else
   echo
   echo "WARNING: Using existing run directory $_rundir"
@@ -96,8 +97,8 @@ echo
 echo cd $_rundir
 cd $_rundir
 
-echo "HSA_XNACK=1 OMP_NUM_THREADS=7 mpirun -np 8 --tag-output $AOMP/bin/gpurun ../../../../bin/qmcpack $_input_file_name "
-HSA_XNACK=1 OMP_NUM_THREADS=7 mpirun -np 8 --tag-output $AOMP/bin/gpurun ../../../../bin/qmcpack $_input_file_name | tee stdout
+echo "LIBOMPTARGET_SYNC_COPY_BACK=0 HSA_XNACK=1 OMP_NUM_THREADS=7 mpirun -np 8 --tag-output $AOMP/bin/gpurun ../../../../bin/qmcpack $_input_file_name"
+LIBOMPTARGET_SYNC_COPY_BACK=0 HSA_XNACK=1 OMP_NUM_THREADS=7 mpirun -np 8 --tag-output $AOMP/bin/gpurun ../../../../bin/qmcpack $_input_file_name | tee stdout
 
 echo
 echo DONE $0
