@@ -20,8 +20,7 @@ LIBSRC3   = hfunc3
 
 TMPDIR    = ./build
 UNAMEP    = $(shell uname -m)
-HOST_TARGET = $(UNAMEP)-pc-linux-gnu
-CFLAGS  = -c -target $(HOST_TARGET) -O2
+CFLAGS  = -c -target $(CLANG_HOST_TARGET) -O2
 
 #   ---------------------  create bundle library -------------------
 #

@@ -5,7 +5,7 @@ TESTSRC_MAIN = host_targ.c
 TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 
-TARGET 	     = -fopenmp -fopenmp-targets=x86_64-pc-linux-gnu -Xopenmp-target=x86_64-pc-linux-gnu --march=x86 -save-temps
+TARGET 	     = -fopenmp -fopenmp-targets=$(CLANG_HOST_TARGET) -Xopenmp-target=$(CLANG_HOST_TARGET) --march=x86 -save-temps
 
 CLANG        ?= clang
 OMP_BIN      = $(AOMP)/bin/$(CLANG)

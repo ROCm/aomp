@@ -56,6 +56,8 @@ endif
 # --- End Standard Makefile check for AOMP installation ---
 endif
 
+CLANG_HOST_TARGET=$(shell $(AOMP)/bin/clang --version | grep -oP '(?<=Target: ).*')
+
 ifneq ($(TIMEOUT),)
   TKILL= timeout $(TIMEOUT)
 endif
@@ -259,27 +261,27 @@ endif
 ifeq ($(OFFLOAD_DEBUG),1)
   $(info    DEBUG Mode ON)
   SET_DEVICE_DEBUG =  LIBOMPTARGET_DEBUG=1
-  SETENV  = env LIBRARY_PATH=$(AOMP)/lib-debug
+  SETENV  = env LIBRARY_PATH=$(AOMP)/lib-debug/$(CLANG_HOST_TARGET):$(AOMP)/lib-debug
 endif
 ifeq ($(OFFLOAD_DEBUG),2)
   $(info    DEBUG Mode ON)
   SET_DEVICE_DEBUG = LIBOMPTARGET_DEVICE_RTL_DEBUG=-1
-  SETENV  = env LIBRARY_PATH=$(AOMP)/lib-debug
+  SETENV  = env LIBRARY_PATH=$(AOMP)/lib-debug/$(CLANG_HOST_TARGET):$(AOMP)/lib-debug
 endif
 ifeq ($(OFFLOAD_DEBUG),3)
   $(info    DEBUG Mode ON)
   SET_DEVICE_DEBUG = LIBOMPTARGET_DEBUG=1 LIBOMPTARGET_DEVICE_RTL_DEBUG=-1
-  SETENV  = env LIBRARY_PATH=$(AOMP)/lib-debug
+  SETENV  = env LIBRARY_PATH=$(AOMP)/lib-debug/$(CLANG_HOST_TARGET):$(AOMP)/lib-debug
 endif
 ifeq ($(OFFLOAD_DEBUG),4)
   $(info    DEBUG Mode ON)
   SET_DEVICE_DEBUG = ATMI_DEBUG=1
-  SETENV  = env LIBRARY_PATH=$(AOMP)/lib-debug
+  SETENV  = env LIBRARY_PATH=$(AOMP)/lib-debug/$(CLANG_HOST_TARGET):$(AOMP)/lib-debug
 endif
 ifeq ($(OFFLOAD_DEBUG),5)
   $(info    DEBUG Mode ON)
   SET_DEVICE_DEBUG = ATMI_DEBUG=1 LIBOMPTARGET_DEBUG=1 LIBOMPTARGET_DEVICE_RTL_DEBUG=-1
-  SETENV  = env LIBRARY_PATH=$(AOMP)/lib-debug
+  SETENV  = env LIBRARY_PATH=$(AOMP)/lib-debug/$(CLANG_HOST_TARGET):$(AOMP)/lib-debug
 endif
 
 ifeq ($(OMP_FLAGS),)

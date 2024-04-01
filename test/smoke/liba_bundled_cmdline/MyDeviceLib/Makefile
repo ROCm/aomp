@@ -28,8 +28,7 @@ endif
 
 TMPDIR    = ./build
 UNAMEP    = $(shell uname -m)
-HOST_TARGET = $(UNAMEP)-pc-linux-gnu
-CFLAGS  = -c -target $(HOST_TARGET) -fopenmp -fopenmp-targets=$(TRIPLE) \
+CFLAGS  = -c -target $(CLANG_HOST_TARGET) -fopenmp -fopenmp-targets=$(TRIPLE) \
             -Xopenmp-target=$(TRIPLE) \
             -march=$(AOMP_GPU)$(AOMP_TARGET_FEATURES) -O2
 

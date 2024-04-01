@@ -1,8 +1,8 @@
 CXX = ${ROCM_PATH}/llvm/bin/clang++
 
-CXXFLAGS += -O2 -fopenmp -target x86_64-pc-linux-gnu -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=gfx908$(AOMP_TARGET_FEATURES)
+CXXFLAGS += -O2 -fopenmp -target $(CLANG_HOST_TARGET) -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=gfx908$(AOMP_TARGET_FEATURES)
 
-LIBS = -lm -fopenmp -target x86_64-pc-linux-gnu -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=gfx908$(AOMP_TARGET_FEATURES)
+LIBS = -lm -fopenmp -target $(CLANG_HOST_TARGET) -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=gfx908$(AOMP_TARGET_FEATURES)
 
 %.o:%.cc
 	$(CXX) $(CXXFLAGS) -c $<

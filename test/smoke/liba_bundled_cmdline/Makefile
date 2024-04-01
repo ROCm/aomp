@@ -13,7 +13,7 @@ EXTRA_OMP_FLAGS =
 
 CC        = $(AOMP)/bin/clang
 UNAMEP    = $(shell uname -m)
-HOST_TARGET = $(UNAMEP)-pc-linux-gnu
+
 EXTRA_CFLAGS = -target $(HOST_TARGET)
 
 ifeq (sm_,$(findstring sm_,$(AOMP_GPU)))
@@ -44,7 +44,7 @@ MyDeviceLib/libMyDeviceLib.a : MyDeviceLib/Makefile MyDeviceLib/func_1v.c \
 				MyHostLib/hfunc2.c MyHostLib/hfunc3.c hfunc0.c
 	AOMP_GPU=$(AOMP_GPU) make -C MyDeviceLib libMyDeviceLib.a; \
 	make -C MyHostLib libMyHostLib.a; \
-	$(CC) -c -target $(HOST_TARGET) -fopenmp -fopenmp-targets=$(TRIPLE) \
+	$(CC) -c -target $(CLANG_HOST_TARGET) -fopenmp -fopenmp-targets=$(TRIPLE) \
 	-Xopenmp-target=$(TRIPLE) -march=$(AOMP_GPU)$(AOMP_TARGET_FEATURES) -O2 hfunc0.c -o hfunc0.o
 
 
