@@ -64,6 +64,7 @@ if [ "$1" != "noconfigure" ] && [ "$1" != "install" ] ; then
    rm -rf $BUILD_AOMP/build/rocgdb
    MYCONFIGOPTS="--prefix=$AOMP_INSTALL_DIR --srcdir=$AOMP_REPOS/$AOMP_GDB_REPO_NAME --program-prefix=roc \
      --with-bugurl="$BUG_URL" --with-pkgversion="${AOMP_COMPILER_NAME}_${AOMP_VERSION_STRING}" \
+     --with-gdb-datadir="\${prefix}/share/rocgdb" \
      --enable-64-bit-bfd --enable-targets="x86_64-linux-gnu,amdgcn-amd-amdhsa" \
      --disable-ld --disable-gas --disable-gdbserver --disable-sim --enable-tui \
      --disable-gdbtk --disable-shared  \
