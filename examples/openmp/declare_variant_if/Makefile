@@ -16,7 +16,7 @@ include ../../Makefile.find_gpu_and_install_dir
 CC = $(LLVM_INSTALL_DIR)/bin/clang
 
 # Sorry, clang openmp requires these complex options
-CFLAGS = -O3 -fopenmp -fopenmp-version=50 -fopenmp-targets=$(LLVM_GPU_TRIPLE) -Xopenmp-target=$(LLVM_GPU_TRIPLE) -march=$(LLVM_GPU_ARCH)$(AOMP_TARGET_FEATURES)
+CFLAGS = -O3 -fopenmp -fopenmp-version=50 --offload-arch=$(LLVM_GPU_ARCH)$(AOMP_TARGET_FEATURES)
 
 ifeq ($(OFFLOAD_DEBUG),1)
   $(info    DEBUG Mode ON)
