@@ -39,12 +39,12 @@ AOMPHIP ?= $(LLVM_INSTALL_DIR)
 HIPCC ?= $(AOMPHIP)/bin/hipcc
 
 ifeq ($(TARGETS),)
-TARGETS =-march=$(LLVM_GPU_ARCH)$(_XA_TARGET_FEATURES)
+TARGETS =--offload-arch=$(LLVM_GPU_ARCH)$(AOMP_TARGET_FEATURES)
 endif
 
 FORT   =$(LLVM_INSTALL_DIR)/bin/flang -fPIC -O2
 LFLAGS = -L$(AOMPHIP)/lib -lamdhip64 -Wl,-rpath,$(AOMPHIP)/lib
-FFLAGS = -fopenmp -fopenmp-targets=$(LLVM_GPU_TRIPLE) -Xopenmp-target=$(LLVM_GPU_TRIPLE)
+FFLAGS = -fopenmp
 
 # ----- Demo compile and link in one step, no object code saved
 $(TESTNAME): $(TESTNAME).$(FILETYPE) fortran_callable_init.o
