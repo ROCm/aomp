@@ -31,61 +31,27 @@
 TESTNAME =vectorAdd-HBO
 FILETYPE =cpp
 
-UNAMEP = $(shell uname -m)
-AOMP_CPUTARGET = $(UNAMEP)-pc-linux-gnu
-ifeq ($(UNAMEP),ppc64le)
-  AOMP_CPUTARGET = ppc64le-linux-gnu
-endif
-ifeq ($(AOMP),)
-# --- Standard Makefile check for AOMP installation ---
-ifeq ("$(wildcard $(AOMP))","")
-  ifneq ($(AOMP),)
-    $(warning AOMP not found at $(AOMP))
-  endif
-  AOMP = $(HOME)/rocm/aomp
-  ifeq ("$(wildcard $(AOMP))","")
-    $(warning AOMP not found at $(AOMP))
-    AOMP = /usr/lib/aomp
-    ifeq ("$(wildcard $(AOMP))","")
-      $(warning AOMP not found at $(AOMP))
-      $(error Please install AOMP or correctly set env-var AOMP)
-    endif
-  endif
-endif
-# --- End Standard Makefile check for AOMP installation ---
-endif
-
-ifeq ($(AOMP_GPU),)
-# Default AOMP_GPU is gfx900 which is vega
-INSTALLED_GPU  = $(shell $(AOMP)/bin/mygpu -d gfx900)
-AOMP_GPU       ?= $(INSTALLED_GPU)
-endif
+include ../../../../Makefile.find_gpu_and_install_dir
 
 ifeq ($(TARGETS),)
-TARGETS =--offload-arch=$(AOMP_GPU)$(AOMP_TARGET_FEATURES)
+TARGETS =--offload-arch=$(LLVM_GPU_ARCH)$(AOMP_TARGET_FEATURES)
 endif
 
-CC       =$(AOMP)/bin/clang++
+CC       =$(LLVM_INSTALL_DIR)/bin/clang++
 
 #  compiler automatically adds "libdevice/<target>/ to -L opts
-LFLAGS   =-L$(AOMP)/lib
+LFLAGS   =-L$(LLVM_INSTALL_DIR)/lib
 ASAN_FLAGS = -fsanitize=address -shared-libasan
 
 
-VERS = $(shell $(AOMP)/bin/clang --version | grep -oP '(?<=clang version )[0-9.]+')
-ROCM = $(shell $(AOMP)/bin/clang --version | grep -oP 'AMD clang')
-
-ifeq ($(ROCM),)
-  AOMPHIP ?= $(AOMP)
-else
-  AOMPHIP ?= $(AOMP)/..
-endif
+VERS = $(shell $(LLVM_INSTALL_DIR)/bin/clang --version | grep -oP '(?<=clang version )[0-9.]+')
+ROCM = $(shell $(LLVM_INSTALL_DIR)/bin/clang --version | grep -oP 'AMD clang')
 
 ifeq ($(shell expr $(VERS) \>= 12.0), 1)
-        RPTH = -Wl,-rpath,$(AOMPHIP)/lib -Wl,-rpath,$(AOMP)/lib/clang/$(VERS)/lib/linux
+        RPTH = -Wl,-rpath,$(HIPDIR)/lib -Wl,-rpath,$(LLVM_INSTALL_DIR)/lib/clang/$(VERS)/lib/linux
 endif
 LFLAGS  =
-HIPLIBS = -L $(AOMPHIP)/lib  $(RPTH)
+HIPLIBS = -L $(HIPDIR)/lib  $(RPTH)
 CFLAGS  = -O0 -g -x hip -std=c++11 $(HIPLIBS) -lamdhip64
 
 HSA_XNACK ?= 1
@@ -131,12 +97,6 @@ help:
 	@echo "  make $(TESTNAME).ll	// compile step only       : -c -S -emit-llvm"
 	@echo "  make clean		// cleanup files"
 	@echo "  make help 		// this help"
-	@echo
-	@echo "Environment Variables:"
-	@echo "  AOMP      default: $(HOME)/rocm/aomp     value: $(AOMP)"
-	@echo "  AOMP_GPU  default: gfx900                value: $(AOMP_GPU)"
-	@echo "  TARGETS   default: --offload-arch=$(AOMP_GPU)"
-	@echo "              value: $(TARGETS)"
 	@echo
 	@echo "Link Flags:"
 	@echo "  Link flags: $(LFLAGS)"

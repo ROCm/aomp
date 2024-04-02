@@ -32,27 +32,7 @@
 TESTNAME =helloworld
 FILETYPE =f90
 
-ifeq ($(AOMP),)
-# --- Standard Makefile check for AOMP installation ---
-ifeq ("$(wildcard $(AOMP))","")
-  ifneq ($(AOMP),)
-    $(warning AOMP not found at $(AOMP))
-  endif
-  AOMP = $(HOME)/rocm/aomp
-  ifeq ("$(wildcard $(AOMP))","")
-    $(warning AOMP not found at $(AOMP))
-    AOMP = /usr/lib/aomp
-    ifeq ("$(wildcard $(AOMP))","")
-      $(warning AOMP not found at $(AOMP))
-      $(error Please install AOMP or correctly set env-var AOMP)
-    endif
-  endif
-endif
-# --- End Standard Makefile check for AOMP installation ---
-endif
-ifeq ($(CUDA),)
-CUDA = /usr/local/cuda
-endif
+include ../../Makefile.find_gpu_and_install_dir
 
 FORT   =$(AOMP)/bin/flang
 LFLAGS = 
@@ -99,13 +79,6 @@ help:
 	@echo "  make $(TESTNAME).ll	// compile step only       : -c -S -emit-llvm"
 	@echo "  make clean		// cleanup files"
 	@echo "  make help 		// this help"
-	@echo
-	@echo "Environment Variables:"
-	@echo "  AOMP      default: $(HOME)/rocm/aomp     value: $(AOMP)"
-	@echo "  AOMP_GPU  default: gfx900                value: $(AOMP_GPU)"
-	@echo "  CUDA      default: /usr/local/cuda       value: $(CUDA)"
-	@echo "  TARGETS   default: --offload-arch=$(AOMP_GPU)"
-	@echo "              value: $(TARGETS)"
 	@echo
 	@echo "Link Flags:"
 	@echo "  Link flags: $(LFLAGS)"
