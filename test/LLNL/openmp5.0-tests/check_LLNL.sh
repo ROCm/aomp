@@ -38,6 +38,7 @@ if [ $? -ne 0 ] ; then
 fi
 AOMP=${AOMP:-/usr/lib/aomp}
 AOMP_GPU=${AOMP_GPU:-`$AOMP/bin/mygpu`}
+CLANG_HOST_TARGET=`$AOMP/bin/clang --version | grep -oP '(?<=Target: ).*'`
 export AOMP AOMP_GPU
 echo AOMP_GPU = $AOMP_GPU
 echo AOMP = $AOMP
@@ -50,7 +51,7 @@ if [ "$1" == "log" ]; then
     log="LLNL.run.log.$date"
   fi
   echo "Log enabled: $log"
- timeout 120 ./test.py $AOMP $AOMP_GPU 2>&1 | tee $log
+ timeout 120 ./test.py $AOMP $AOMP_GPU $CLANG_HOST_TARGET 2>&1 | tee $log
 else
- timeout 120 ./test.py $AOMP $AOMP_GPU
+ timeout 120 ./test.py $AOMP $AOMP_GPU $CLANG_HOST_TARGET
 fi

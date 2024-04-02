@@ -3,12 +3,13 @@ from collections import defaultdict
 import subprocess
 import sys
 
-if len(sys.argv) != 3:
-  print ("Error: Argument list is incorrect. Test.py expects AOMP location and AOMP_GPU.")
+if len(sys.argv) != 4:
+  print ("Error: Argument list is incorrect. Test.py expects AOMP location, AOMP_GPU, and CLANG_HOST_TARGET.")
   exit(1)
 
 AOMP = sys.argv[1]
 AOMP_GPU = sys.argv[2]
+CLANG_HOST_TARGET = sys.argv[3]
 
 if AOMP == "":
   print ("Error: Please set AOMP env variable and rerun.")
@@ -89,7 +90,7 @@ def compile(CC,LIBS, tests):
 def main():
     tests=get_tests("test_list")
 # Change Compile line in CC and LIBS
-    CC="{}/bin/clang++  -O2  -target x86_64-pc-linux-gnu -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march={}".format(AOMP, AOMP_GPU)
+    CC="{}/bin/clang++  -O2  -target {} -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march={}".format(AOMP, CLANG_HOST_TARGET, AOMP_GPU)
     LIBS = ""
 # End Compile line 
     runnables=compile(CC,LIBS, tests)

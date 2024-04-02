@@ -33,6 +33,9 @@ export AOMP_VERSION_STRING AOMP_VERSION AOMP_VERSION_MOD ROCM_VERSION ROCM_EXPEC
 AOMP=${AOMP:-$HOME/rocm/aomp}
 AOMP_INSTALL_DIR=${AOMP}_${AOMP_VERSION_STRING}
 
+# Determine clang target
+CLANG_HOST_TARGET=`$AOMP/bin/clang --version | grep -oP '(?<=Target: ).*'`
+
 # For example, if AOMP_REPOS=$HOME/git/aomp11, then the primary aomp repo
 # is stored in $HOME/git/aomp11/aomp and the mono repo is stored in
 # $HOME/aomp/llvm-project.

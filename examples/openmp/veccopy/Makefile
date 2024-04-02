@@ -13,7 +13,7 @@ TESTNAME = veccopy
 TESTSRC  = veccopy.c
 
 UNAMEP = $(shell uname -m)
-AOMP_CPUTARGET = $(UNAMEP)-pc-linux-gnu
+AOMP_CPUTARGET = $(UNAMEP)-unknown-linux-gnu
 ifeq ($(UNAMEP),ppc64le)
   AOMP_CPUTARGET = ppc64le-linux-gnu
 endif

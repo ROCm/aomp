@@ -14,8 +14,6 @@ EXTRA_OMP_FLAGS =
 CC        = $(AOMP)/bin/clang
 UNAMEP    = $(shell uname -m)
 
-EXTRA_CFLAGS = -target $(HOST_TARGET)
-
 ifeq (sm_,$(findstring sm_,$(AOMP_GPU)))
   TRIPLE  = nvptx64-nvidia-cuda
   ARCH    = nvptx

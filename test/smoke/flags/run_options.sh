@@ -13,6 +13,8 @@ march_regex="(march=AOMP_GPU_or_auto_detect)"
 debug_regex="(OFFLOAD_DEBUG=([0-9]))"
 # Regex to search for Nvidia cards
 target_regex="(-fopenmp-[a-z]*=[a-z,-]*).*(-Xopenmp-[a-z]*=[a-z,-]*)"
+# Regex to search for Nvidia cards
+host_regex="(-fopenmp-targets=HOST_TARGET)"
 
 UNAMEP=`uname -m`
 if [[ $UNAMEP == "ppc64le" ]] ; then
@@ -67,11 +69,20 @@ while read -r line; do
       echo "$base $test_num: Make Failed" >> ../make-fail.txt
     fi
   else # Host compilation or run, GPU not detected on input line, no need to pass other variables to make
+    if [[ "$line" =~ $host_regex ]]; then
+      host_match=${BASH_REMATCH[1]}
+      clang_host_target=`$AOMP/bin/clang --version | grep -oP '(?<=Target: ).*'`
+      # Remove HOST_TARGET from command and replace with correct version
+      line=${line/"-$host_match"}
+      host_target="-fopenmp-targets=$clang_host_target"
+    else
+      host_target=""
+    fi
     if [[ $1 != "run" ]]; then
-      make --no-print-directory make_options="$line" compile
+      make --no-print-directory make_options="$line $host_target" compile
     fi
     if [[ $1 == "run" ]]; then
-      make --no-print-directory make_options="$line" test_num=$test_num check
+      make --no-print-directory make_options="$line $host_target" test_num=$test_num check
     fi
   fi
   # Host not successfull

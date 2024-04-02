@@ -24,7 +24,7 @@ This demonstration shows the commands and output for the reduction example:
 
 ```
 :/usr/lib/aomp/examples/openmp/reduction$ make
-/usr/lib/aomp/bin/clang -O3 -target x86_64-pc-linux-gnu -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=gfx900 reduction.c -o reduction
+/usr/lib/aomp/bin/clang -O3 -target x86_64-unknown-linux-gnu -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=gfx900 reduction.c -o reduction
 
 :/usr/lib/aomp/examples/openmp/reduction$ make run
 ./reduction
