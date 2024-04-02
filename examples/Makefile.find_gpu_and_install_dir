@@ -28,7 +28,6 @@ ifeq ("$(wildcard $(LLVM_INSTALL_DIR))","")
   ifeq ("$(wildcard $(LLVM_INSTALL_DIR))","")
     $(error Please install ROCm, AOMP, or set LLVM_INSTALL_DIR to LLVM install dir)
   endif
-  ### $(info Set LLVM_INSTALL_DIR = $(LLVM_INSTALL_DIR))
 endif
 
 # Test for GPUs and get offload arch from either nvidia-arch or amdgpu-arch
@@ -48,7 +47,6 @@ else
    LLVM_GPU_ARCH   = $(shell $(LLVM_INSTALL_DIR)/bin/amdgpu-arch | head -n 1 )
 endif
 
-# Try to find hipcc
 HIPDIR ?= $(LLVM_INSTALL_DIR)
 ifeq ("$(wildcard $(HIPDIR)/bin/hipcc))","")
  HIPDIR = $(LLVM_INSTALL_DIR)/..
@@ -57,6 +55,3 @@ ifeq ("$(wildcard $(HIPDIR)/bin/hipcc))","")
  endif
 endif
 HIPCC = $(HIPDIR)/bin/hipcc
-
-###$(info Set LLVM_GPU_TRIPLE  = $(LLVM_GPU_TRIPLE)) 
-###$(info Set LLVM_GPU_ARCH    = $(LLVM_GPU_ARCH))

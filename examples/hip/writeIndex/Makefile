@@ -27,19 +27,9 @@
 
 include ../../Makefile.find_gpu_and_install_dir
 
-AOMPHIP ?= $(LLVM_INSTALL_DIR)
-PFILE = $(AOMPHIP)/bin/hipcc
-ifeq ("$(wildcard $(PFILE))","")
-  AOMPHIP = $(AOMP)/..
-  PFILE = $(AOMPHIP)/bin/hipcc
-  ifeq ("$(wildcard $(PFILE))","")
-    AOMPHIP = $(AOMP)/../..
-  endif
-endif
+DEVICE_LIB_PATH=$(HIPDIR)/amdgcn/bitcode/
 
-DEVICE_LIB_PATH=$(AOMPHIP)/amdgcn/bitcode/
-
-CC   =  DEVICE_LIB_PATH=$(DEVICE_LIB_PATH) $(AOMPHIP)/bin/hipcc
+CC   =  DEVICE_LIB_PATH=$(DEVICE_LIB_PATH) $(HIPCC)
 
 # --- Demo compile and link in one step, no object code saved
 writeIndex: writeIndex.cpp kernel.cpp
