@@ -25,8 +25,9 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-AOMP ?= /usr/lib/aomp
-AOMPHIP ?= $(AOMP)
+include ../../Makefile.find_gpu_and_install_dir
+
+AOMPHIP ?= $(LLVM_INSTALL_DIR)
 PFILE = $(AOMPHIP)/bin/hipcc
 ifeq ("$(wildcard $(PFILE))","")
   AOMPHIP = $(AOMP)/..

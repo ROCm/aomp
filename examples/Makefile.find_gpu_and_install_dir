@@ -4,6 +4,8 @@
 #     Include for examples to find LLVM installation and GPU arch.
 #     This include sets LLVM_INSTALL_DIR, LLVM_GPU_TRIPLE, and LLVM_GPU_ARCH
 #     This include also sets CUDA and LFLAGS to find CUDA lib if NVIDIA gpu
+#     This include also sets HIPDIR and HIPCC=$(HIPDIR)/bin/hipcc
+#     CUDA and LFLAGS to find CUDA lib if NVIDIA gpu
 #
 # If LLVM_INSTALL_DIR not preset and AOMP is, then use AOMP and print deprication warning
 ifeq ("$(wildcard $(LLVM_INSTALL_DIR))","")
@@ -45,6 +47,16 @@ else
    LLVM_GPU_TRIPLE = amdgcn-amd-amdhsa
    LLVM_GPU_ARCH   = $(shell $(LLVM_INSTALL_DIR)/bin/amdgpu-arch | head -n 1 )
 endif
+
+# Try to find hipcc
+HIPDIR ?= $(LLVM_INSTALL_DIR)
+ifeq ("$(wildcard $(HIPDIR)/bin/hipcc))","")
+ HIPDIR = $(LLVM_INSTALL_DIR)/..
+ ifeq ("$(wildcard $(HIPDIR)/bin/hipcc)","")
+   HIPDIR = $(LLVM_INSTALL_DIR)/../..
+ endif
+endif
+HIPCC = $(HIPDIR)/bin/hipcc
 
 ###$(info Set LLVM_GPU_TRIPLE  = $(LLVM_GPU_TRIPLE)) 
 ###$(info Set LLVM_GPU_ARCH    = $(LLVM_GPU_ARCH))

@@ -29,24 +29,11 @@ CLANG = $(AOMP)/bin/clang
 FLANG = $(AOMP)/bin/flang
 UNBUNDLE = $(AOMP)/bin/clang-offload-bundler
 
-AOMPHIP ?= $(AOMP)
-PFILE = $(AOMPHIP)/bin/hipcc
-ifeq ("$(wildcard $(PFILE))","")
- AOMPHIP = $(AOMP)/..
- PFILE = $(AOMPHIP)/bin/hipcc
- ifeq ("$(wildcard $(PFILE))","")
-  AOMPHIP = $(AOMP)/../..
- endif
-endif
+include ../../Makefile.find_gpu_and_install_dir
 
-HIPCC = $(AOMPHIP)/bin/hipcc
 DEVICE_LIB_PATH = $(AOMPHIP)/amdgcn/bitcode
 
-MYGPU = $(shell $(AOMPHIP)/bin/mygpu -d gfx900)
-TRIPLE = amdgcn-amd-amdhsa
-#OMPFLAGS = -O3 -target x86_64-pc-linux-gnu -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$(MYGPU)
-OMPFLAGS = -O3 -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$(MYGPU)$(AOMP_TARGET_FEATURES)
-
+OMPFLAGS = -O3 -fopenmp --offload-arch=$(LLVM_GPU_ARCH)$(AOMP_TARGET_FEATURES)
 
 writeIndex: writeIndex.hip lib_mylib.a libbc-_mylib-amdgcn.a libbc-_myomplib-amdgcn.a
 	@echo
@@ -70,12 +57,12 @@ lib_mylib.a: inc_arrayval.o dec_arrayval.o
 inc_arrayval-amdgcn.bc: inc_arrayval.c
 	@echo
 	@echo " 1.4 Re-Compile c library source to create a device bitcode.		$@"
-	$(CLANG) -c -emit-llvm -mcpu=$(MYGPU)$(AOMP_TARGET_FEATURES) -target $(TRIPLE) -nogpulib $^ -o $@
+	$(CLANG) -c -emit-llvm -mcpu=$(MYGPU)$(AOMP_TARGET_FEATURES) -target $(LLVM_GPU_TRIPLE) -nogpulib $^ -o $@
 
 dec_arrayval-amdgcn.bc: dec_arrayval.c
 	@echo
 	@echo " 1.5 Re-Compile c Code to create a 2nd device bitcode file.		$@"
-	$(CLANG) -c -emit-llvm -mcpu=$(MYGPU)$(AOMP_TARGET_FEATURES) -target $(TRIPLE) -nogpulib $^ -o $@
+	$(CLANG) -c -emit-llvm -mcpu=$(MYGPU)$(AOMP_TARGET_FEATURES) -target $(LLVM_GPU_TRIPLE) -nogpulib $^ -o $@
 
 libbc-_mylib-amdgcn.a: inc_arrayval-amdgcn.bc dec_arrayval-amdgcn.bc
 	@echo
