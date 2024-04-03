@@ -587,7 +587,7 @@ function openmpapps(){
   # -----Run Openmpapps-----
   mkdir -p "$resultsdir"/openmpapps
   cd "$AOMP_TEST_DIR"/openmpapps
-  ./check_openmpapps.sh
+  AOMP_CPUTARGET=x86_64-unknown-linux-gnu ./check_openmpapps.sh
   copyresults openmpapps
 }
 
