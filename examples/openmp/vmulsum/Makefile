@@ -10,9 +10,17 @@
 #  Run "make help" to see other options for this Makefile
 
 TESTNAME = vmulsum
-TESTSRC  = main.c vsum.c vmul.c
+S1 = main.c
+S2 = vsum.c 
+S3 = vmul.c
 
-include ../../Makefile.find_gpu_and_install_dir
+mkfile_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+ifneq ($(CURDIR)/,$(mkfile_dir))
+  TESTSRC := $(mkfile_dir)$(S1) $(mkfile_dir)$(S2) $(mkfile_dir)$(S3) 
+else
+  TESTSRC := $(S1) $(S2) $(S3) 
+endif
+include $(mkfile_dir)../../Makefile.find_gpu_and_install_dir
 
 CC = $(LLVM_INSTALL_DIR)/bin/clang
 

@@ -17,14 +17,16 @@ ifneq ("$(wildcard $(AOMP))","")
 endif
 endif
 
+
 # If LLVM_INSTALL_DIR not preset, seach private build, rocm, and then installed aomp
 ifeq ("$(wildcard $(LLVM_INSTALL_DIR))","")
   ifneq ($(LLVM_INSTALL_DIR),)
     $(warning Specified LLVM_INSTALL_DIR:$(LLVM_INSTALL_DIR) NOT FOUND)
   endif
-  dirs := $(HOME)/rocm/aomp /opt/rocm/llvm /usr/lib/aomp
+  this_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+  LLVM_INSTALL_SEARCH_DIRS ?= $(HOME)/rocm/aomp /opt/rocm/llvm /usr/lib/aomp $(this_dir)..
   # Select the first directory found from above list.
-  LLVM_INSTALL_DIR := $(word 1, $(strip $(foreach dir,$(dirs),$(wildcard $(dir)))))
+  LLVM_INSTALL_DIR := $(word 1, $(strip $(foreach dir,$(LLVM_INSTALL_SEARCH_DIRS),$(wildcard $(dir)))))
   ifeq ("$(wildcard $(LLVM_INSTALL_DIR))","")
     $(error Please install ROCm, AOMP, or set LLVM_INSTALL_DIR to LLVM install dir)
   endif

@@ -29,24 +29,30 @@ CLANG = $(AOMP)/bin/clang
 FLANG = $(AOMP)/bin/flang
 UNBUNDLE = $(AOMP)/bin/clang-offload-bundler
 
-include ../../Makefile.find_gpu_and_install_dir
+mkfile_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+ifneq ($(CURDIR)/,$(mkfile_dir))
+  _in_dir := $(mkfile_dir)
+else
+  _in_dir :=
+endif
+include $(mkfile_dir)../../Makefile.find_gpu_and_install_dir
 
-DEVICE_LIB_PATH = $(AOMPHIP)/amdgcn/bitcode
+DEVICE_LIB_PATH = $(HIPDIR)/amdgcn/bitcode
 
 OMPFLAGS = -O3 -fopenmp --offload-arch=$(LLVM_GPU_ARCH)$(AOMP_TARGET_FEATURES)
 
-writeIndex: writeIndex.hip lib_mylib.a libbc-_mylib-amdgcn.a libbc-_myomplib-amdgcn.a
+writeIndex: $(_in_dir)writeIndex.hip lib_mylib.a libbc-_mylib-amdgcn.a libbc-_myomplib-amdgcn.a
 	@echo
 	@echo " 3.2 Create HIP application using both _mylib and _myomplib SDLs.        $@"
-	DEVICE_LIB_PATH=$(DEVICE_LIB_PATH) $(HIPCC) -std=c++11 -fgpu-rdc -L$(PWD) -l_myomplib -l_mylib writeIndex.hip -o $@ -std=c++11
+	DEVICE_LIB_PATH=$(DEVICE_LIB_PATH) $(HIPCC) -std=c++11 -fgpu-rdc -L$(PWD) -l_myomplib -l_mylib $(_in_dir)writeIndex.hip -o $@ -std=c++11
 
-inc_arrayval.o: inc_arrayval.c
+inc_arrayval.o: $(_in_dir)inc_arrayval.c
 	@echo
 	@echo " ----------  1 Build _mylib SDL (two files) ------------------------"
 	@echo
 	@echo " 1.1 Compile C library function source to create host-only object 	$@"
 	$(CLANG) -c $^ -o $@
-dec_arrayval.o: dec_arrayval.f95
+dec_arrayval.o: $(_in_dir)dec_arrayval.f95
 	@echo
 	@echo " 1.2 Compile FORTRAN function to create 2nd host-only object.		$@"
 	$(FLANG) -c $^ -o $@
@@ -54,22 +60,22 @@ lib_mylib.a: inc_arrayval.o dec_arrayval.o
 	@echo
 	@echo " 1.3 Use Linux ar command to create the host-only archive file.		$@"
 	ar rcs $@ $^ 
-inc_arrayval-amdgcn.bc: inc_arrayval.c
+inc_arrayval-amdgcn.bc: $(_in_dir)inc_arrayval.c
 	@echo
 	@echo " 1.4 Re-Compile c library source to create a device bitcode.		$@"
-	$(CLANG) -c -emit-llvm -mcpu=$(MYGPU)$(AOMP_TARGET_FEATURES) -target $(LLVM_GPU_TRIPLE) -nogpulib $^ -o $@
+	$(CLANG) -c -emit-llvm -mcpu=$(LLVM_GPU_ARCH)$(AOMP_TARGET_FEATURES) -target $(LLVM_GPU_TRIPLE) -nogpulib $^ -o $@
 
-dec_arrayval-amdgcn.bc: dec_arrayval.c
+dec_arrayval-amdgcn.bc: $(_in_dir)dec_arrayval.c
 	@echo
 	@echo " 1.5 Re-Compile c Code to create a 2nd device bitcode file.		$@"
-	$(CLANG) -c -emit-llvm -mcpu=$(MYGPU)$(AOMP_TARGET_FEATURES) -target $(LLVM_GPU_TRIPLE) -nogpulib $^ -o $@
+	$(CLANG) -c -emit-llvm -mcpu=$(LLVM_GPU_ARCH)$(AOMP_TARGET_FEATURES) -target $(LLVM_GPU_TRIPLE) -nogpulib $^ -o $@
 
 libbc-_mylib-amdgcn.a: inc_arrayval-amdgcn.bc dec_arrayval-amdgcn.bc
 	@echo
 	@echo " 1.6 Use Linux ar command to create device-specific archive (DAL). 		$@"
 	$(AOMP)/bin/llvm-ar rcs $@ $^
 
-_myomplib.o:  _myomplib.c
+_myomplib.o:  $(_in_dir)_myomplib.c
 	@echo
 	@echo " ----------  2 Build _myomplib SDL (single fat archive file) --------"
 	@echo
@@ -86,7 +92,7 @@ libbc-_myomplib-amdgcn.a: lib_myomplib.a
 	@echo
 	@echo " 3.1 Extract(unbundle) DAL from openmp fat archive lib_myomplib.a        $@"
 	@echo "     Note: HIP can only auto-extract from HIP-created fat libraries"
-	$(AOMP)/bin/clang-offload-bundler -unbundle -type=a -input=$^ -targets=openmp-amdgcn-amd-amdhsa--$(MYGPU) -output=$@ -allow-missing-bundles
+	$(AOMP)/bin/clang-offload-bundler -unbundle -type=a -input=$^ -targets=openmp-amdgcn-amd-amdhsa--$(LLVM_GPU_ARCH) -output=$@ -allow-missing-bundles
 
 run: writeIndex
 	./writeIndex

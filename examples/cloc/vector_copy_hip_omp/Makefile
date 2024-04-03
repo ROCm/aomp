@@ -2,7 +2,13 @@
 TEST_NAME=vector_copy
 CU_FILE=vector_copy
 
-include ../../Makefile.find_gpu_and_install_dir
+mkfile_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+ifneq ($(CURDIR)/,$(mkfile_dir))
+  _in_dir := $(mkfile_dir)
+else
+  _in_dir :=
+endif
+include $(mkfile_dir)../../Makefile.find_gpu_and_install_dir
 
 ifeq (sm_,$(findstring sm_,$(LLVM_GPU_ARCH)))
   LLVM_GPU_ARCHTARGET = nvptx64-nvidia-cuda
@@ -34,7 +40,7 @@ endif
 
 CFLAGS += $(EXTRA_CFLAGS)
 
-CXX_FILES := $(wildcard *.cpp)
+CXX_FILES := $(wildcard $(_in_dir)*.cpp)
 OBJ_FILES := $(addprefix obj/, $(notdir $(CXX_FILES:.cpp=.o)))
 
 all: $(TEST_NAME) $(CU_FILE).hsaco
@@ -43,9 +49,9 @@ $(TEST_NAME): $(OBJ_FILES) $(COMMON_OBJ_FILES)
 	$(LLVM_INSTALL_DIR)/bin/clang++  $(OBJ_FILES) $(CFLAGS) -L$(HIPDIR)/lib -lamdhip64 -o $(TEST_NAME) $(LFLAGS)
 
 $(CU_FILE).hsaco :
-	$(HIPDIR)/bin/cloc.sh $(FUNOPTS) -mcpu $(LLVM_GPU_ARCH) $(CU_FILE).cu
+	$(HIPDIR)/bin/cloc.sh $(FUNOPTS) -mcpu $(LLVM_GPU_ARCH) $(_in_dir)$(CU_FILE).cu -o $(CU_FILE).hsaco
 
-obj/%.o: %.cpp
+obj/%.o: $(_in_dir)%.cpp
 	mkdir -p obj
 	$(LLVM_INSTALL_DIR)/bin/clang++ -I$(LLVM_INSTALL_DIR)/include -c $(CFLAGS) -o $@ $<
 

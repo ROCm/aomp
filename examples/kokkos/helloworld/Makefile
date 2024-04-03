@@ -6,8 +6,13 @@
 #  Run "make help" to see other options for this Makefile
 
 TESTNAME = helloworld
+TESTSRC = $(TESTNAME).cpp
 
-include ../../Makefile.find_gpu_and_install_dir
+mkfile_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+ifneq ($(CURDIR)/,$(mkfile_dir))
+  TESTSRC := $(mkfile_dir)$(TESTSRC)
+endif
+include $(mkfile_dir)../../Makefile.find_gpu_and_install_dir
 
 CC          = $(LLVM_INSTALL_DIR)/bin/clang++
 LLVM_GPU_ARCHTARGET ?= amdgcn-amd-amdhsa
@@ -61,8 +66,8 @@ CPPFLAGS += $(EXTRA_CPPFLAGS)
 $(TESTNAME): $(TESTNAME).o $(KOKKOS_LIB)
 	$(CCENV) $(CC) $(LINKFLAGS) -o $@ $(TESTNAME).o $(KOKKOS_LIB) -ldl
 
-$(TESTNAME).o: $(TESTNAME).cpp $(KOKKOS_LIB)
-	$(CCENV) $(CC) $(CPPFLAGS) -o $@ -c $(TESTNAME).cpp
+$(TESTNAME).o: $(TESTSRC) $(KOKKOS_LIB)
+	$(CCENV) $(CC) $(CPPFLAGS) -o $@ -c $(TESTSRC)
 
 run: $(TESTNAME)
 	$(RUNENV) ./$(TESTNAME)
@@ -72,7 +77,7 @@ $(KOKKOS_LIB):
 
 help:
 	@echo
-	@echo "Source[s]:		$(TESTNAME).cpp"
+	@echo "Source[s]:		$(TESTSRC)"
 	@echo "Application binary:    	$(TESTNAME)"
 	@echo "Target GPU:		$(LLVM_GPU_ARCH)"
 	@echo "Compiler: 		$(CC)"

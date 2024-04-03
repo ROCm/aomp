@@ -12,7 +12,11 @@
 TESTNAME = vmul_template
 TESTSRC  = vmul_template.cpp
 
-include ../../Makefile.find_gpu_and_install_dir
+mkfile_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+ifneq ($(CURDIR)/,$(mkfile_dir))
+  TESTSRC := $(mkfile_dir)$(TESTSRC)
+endif
+include $(mkfile_dir)../../Makefile.find_gpu_and_install_dir
 
 CC       = $(LLVM_INSTALL_DIR)/bin/clang++
 

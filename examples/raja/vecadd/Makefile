@@ -9,9 +9,13 @@
 TESTNAME = vecadd
 TESTSRC  = vecadd.cpp
 
-include ../../Makefile.find_gpu_and_install_dir
+mkfile_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+ifneq ($(CURDIR)/,$(mkfile_dir))
+  TESTSRC := $(mkfile_dir)$(TESTSRC)
+endif
+include $(mkfile_dir)../../Makefile.find_gpu_and_install_dir
 
-CC       = $(LLVM_INSTALL_DIR)/bin/clang++
+CC = $(LLVM_INSTALL_DIR)/bin/clang++
 
 export PATH := $(LLVM_INSTALL_DIR)/bin:$(PATH)
 RAJA_BUILD_PREFIX ?= $(HOME)

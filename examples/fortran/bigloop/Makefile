@@ -31,8 +31,13 @@
 
 TESTNAME =bigloop
 FILETYPE =f95
+TESTSRC = $(TESTNAME).$(FILETYPE)
 
-include ../../Makefile.find_gpu_and_install_dir
+mkfile_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+ifneq ($(CURDIR)/,$(mkfile_dir))
+  TESTSRC := $(mkfile_dir)$(TESTSRC)
+endif
+include $(mkfile_dir)../../Makefile.find_gpu_and_install_dir
 
 ifeq ($(TARGETS),)
 TARGETS =--offload-arch=$(LLVM_GPU_ARCH)$(AOMP_TARGET_FEATURES)
@@ -43,7 +48,7 @@ LFLAGS =
 FFLAGS = -O3 -m64 -i8 -fopenmp 
 
 # ----- Demo compile and link in one step, no object code saved
-$(TESTNAME): $(TESTNAME).$(FILETYPE)
+$(TESTNAME): $(TESTSRC)
 	$(FORT) $(FFLAGS) $(TARGETS) $(LFLAGS) $^ -o $@
 
 run: .FORCE $(TESTNAME)
@@ -51,7 +56,7 @@ run: .FORCE $(TESTNAME)
 	LIBOMPTARGET_KERNEL_TRACE=1 ./$(TESTNAME)
 
 #  ----   Demo compile and link in two steps, object saved
-$(TESTNAME).o: $(TESTNAME).$(FILETYPE)
+$(TESTNAME).o: $(TESTSRC)
 	$(FORT) -c $(FFLAGS) $(TARGETS) $^
 
 obin:	$(TESTNAME).o 
@@ -62,10 +67,10 @@ run_obin: obin
 	LIBOMPTARGET_KERNEL_TRACE=1 ./obin
 
 #  ----   Demo compile to intermediates LLVMIR or assembly
-$(TESTNAME).ll: $(TESTNAME).$(FILETYPE)
+$(TESTNAME).ll: $(TESTSRC)
 	$(FORT) -c -S -emit-llvm $(FFLAGS) $(TARGETS) $^
 
-$(TESTNAME).s: $(TESTNAME).$(FILETYPE)
+$(TESTNAME).s: $(TESTSRC)
 	$(FORT)  -c -S $(FFLAGS) $(TARGETS)  $^
 
 .FORCE:
@@ -74,7 +79,7 @@ $(TESTNAME).s: $(TESTNAME).$(FILETYPE)
 help: 
 	@echo
 	@echo "Makefile Help:"
-	@echo "  Source:		$(TESTNAME).$(FILETYPE)"
+	@echo "  Source:		$(TESTSRC)"
 	@echo "  Compiler: 		$(FORT)"
 	@echo "  Compiler flags: 	$(FFLAGS)"
 	@echo

@@ -32,8 +32,15 @@
 TESTNAME =fortran_hip_interop
 HIPOBJECT =fortran_callable_init
 FILETYPE =f95
+TESTSRC = $(TESTNAME).$(FILETYPE)
+TESTSRCHIP = fortran_callable_init.hip
 
-include ../../Makefile.find_gpu_and_install_dir
+mkfile_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+ifneq ($(CURDIR)/,$(mkfile_dir))
+  TESTSRC := $(mkfile_dir)$(TESTSRC)
+  TESTSRCHIP := $(mkfile_dir)$(TESTSRCHIP)
+endif
+include $(mkfile_dir)../../Makefile.find_gpu_and_install_dir
 
 AOMPHIP ?= $(LLVM_INSTALL_DIR)
 HIPCC ?= $(AOMPHIP)/bin/hipcc
@@ -47,17 +54,17 @@ LFLAGS = -L$(AOMPHIP)/lib -lamdhip64 -Wl,-rpath,$(AOMPHIP)/lib
 FFLAGS = -fopenmp
 
 # ----- Demo compile and link in one step, no object code saved
-$(TESTNAME): $(TESTNAME).$(FILETYPE) fortran_callable_init.o
+$(TESTNAME): $(TESTSRC) fortran_callable_init.o
 	$(FORT) $(FFLAGS) $(TARGETS) $(LFLAGS) $^ -o $@
 
-fortran_callable_init.o : fortran_callable_init.hip
+fortran_callable_init.o : $(TESTSRCHIP)
 	$(HIPCC) -c --offload-arch=$(LLVM_GPU_ARCH) -fPIC $^ -o $@
 
 run: .FORCE $(TESTNAME)
 	LIBOMPTARGET_KERNEL_TRACE=1 ./$(TESTNAME)
 
 #  ----   Demo compile and link in two steps, object saved
-$(TESTNAME).o: $(TESTNAME).$(FILETYPE)
+$(TESTNAME).o: $(TESTSRC)
 	$(FORT) -c $(FFLAGS) $(TARGETS) $^
 
 obin:	$(TESTNAME).o fortran_callable_init.o 
@@ -67,16 +74,16 @@ run_obin: obin
 	LIBOMPTARGET_KERNEL_TRACE=1 ./obin
 
 #  ----   Demo compile to intermediates LLVMIR or assembly
-$(TESTNAME).ll: $(TESTNAME).$(FILETYPE) fortran_callable_init.ll
-	$(FORT) -c -S -emit-llvm $(FFLAGS) $(TARGETS) $(TESTNAME).$(FILETYPE)
+$(TESTNAME).ll: $(TESTSRC) fortran_callable_init.ll
+	$(FORT) -c -S -emit-llvm $(FFLAGS) $(TARGETS) $(TESTSRC)
 
-fortran_callable_init.ll : fortran_callable_init.hip
+fortran_callable_init.ll : $(TESTSRCHIP)
 	$(LLVM_INSTALL_DIR)/bin/hipcc -c -S -emit-llvm --offload-arch=$(LLVM_GPU_ARCH) $^
 
-$(TESTNAME).s: $(TESTNAME).$(FILETYPE) fortran_callable_init.s
-	$(FORT)  -c -S $(FFLAGS) $(TARGETS)  $(TESTNAME).$(FILETYPE)
+$(TESTNAME).s: $(TESTSRC) fortran_callable_init.s
+	$(FORT)  -c -S $(FFLAGS) $(TARGETS) $(TESTSRC)
 
-fortran_callable_init.s : fortran_callable_init.hip
+fortran_callable_init.s : $(TESTSRCHIP)
 	$(LLVM_INSTALL_DIR)/bin/hipcc -c -S --offload-arch=$(LLVM_GPU_ARCH) $^
 
 .FORCE:
@@ -85,7 +92,7 @@ fortran_callable_init.s : fortran_callable_init.hip
 help: 
 	@echo
 	@echo "Makefile Help:"
-	@echo "  Source:		$(TESTNAME).$(FILETYPE)"
+	@echo "  Source:		$(TESTSRC)"
 	@echo "  Compiler: 		$(FORT)"
 	@echo "  Compiler flags: 	$(FFLAGS)"
 	@echo

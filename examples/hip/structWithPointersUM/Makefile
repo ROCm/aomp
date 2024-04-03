@@ -31,8 +31,13 @@
 
 TESTNAME =um
 FILETYPE =cpp
+TESTSRC = $(TESTNAME).$(FILETYPE)
 
-include ../../Makefile.find_gpu_and_install_dir
+mkfile_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+ifneq ($(CURDIR)/,$(mkfile_dir))
+  TESTSRC := $(mkfile_dir)$(TESTSRC)
+endif
+include $(mkfile_dir)../../Makefile.find_gpu_and_install_dir
 
 ifeq ($(TARGETS),)
 TARGETS =--offload-arch=$(LLVM_GPU_ARCH)$(AOMP_TARGET_FEATURES)
@@ -57,14 +62,14 @@ else
 endif
 
 # ----- Demo compile and link in one step, no object code saved
-$(TESTNAME): $(TESTNAME).$(FILETYPE)
+$(TESTNAME): $(TESTSRC)
 	$(CC) $(CFLAGS) $(TARGETS) $(LFLAGS) $^ -o $@
 
 run: $(TESTNAME)
 	./$(TESTNAME)
 
 #  ----   Demo compile and link in two steps, object saved
-$(TESTNAME).o: $(TESTNAME).$(FILETYPE)
+$(TESTNAME).o: $(TESTSRC)
 	$(CC) -c $(CFLAGS) $(TARGETS) $^
 
 obin:	$(TESTNAME).o
@@ -74,16 +79,16 @@ run_obin: obin
 	./obin
 
 #  ----   Demo compile to intermediates LLVMIR or assembly
-$(TESTNAME).ll: $(TESTNAME).$(FILETYPE)
+$(TESTNAME).ll: $(TESTSRC)
 	$(CC) -c -S -emit-llvm $(CFLAGS) $(TARGETS) $^
 
-$(TESTNAME).s: $(TESTNAME).$(FILETYPE)
+$(TESTNAME).s: $(TESTSRC)
 	$(CC)  -c -S $(CFLAGS) $(TARGETS)  $^
 
 help:
 	@echo
 	@echo "Makefile Help:"
-	@echo "  Source:		$(TESTNAME).$(FILETYPE)"
+	@echo "  Source:		$(TESTSRC)"
 	@echo "  Compiler: 		$(CC)"
 	@echo "  Compiler flags: 	$(CFLAGS)"
 	@echo

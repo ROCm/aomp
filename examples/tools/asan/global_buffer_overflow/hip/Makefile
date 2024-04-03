@@ -30,8 +30,13 @@
 
 TESTNAME =vectorAdd-GBO
 FILETYPE =cpp
+TESTSRC = $(TESTNAME).$(FILETYPE)
 
-include ../../../../Makefile.find_gpu_and_install_dir
+mkfile_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+ifneq ($(CURDIR)/,$(mkfile_dir))
+  TESTSRC := $(mkfile_dir)$(TESTSRC)
+endif
+include $(mkfile_dir)../../../../Makefile.find_gpu_and_install_dir
 
 ifeq ($(TARGETS),)
 TARGETS =--offload-arch=$(LLVM_GPU_ARCH)$(AOMP_TARGET_FEATURES)
@@ -55,14 +60,14 @@ CFLAGS  = -O0 -g -x hip -std=c++11 $(HIPLIBS) -lamdhip64
 HSA_XNACK ?= 1
 
 # ----- Demo compile and link in one step, no object code saved
-$(TESTNAME): $(TESTNAME).$(FILETYPE)
+$(TESTNAME): $(TESTSRC)
 	$(CC) $(CFLAGS) $(TARGETS) $(ASAN_FLAGS) $(LFLAGS) $^ -o $@
 
 run: $(TESTNAME)
 	HSA_XNACK=${HSA_XNACK} ./$(TESTNAME)
 
 #  ----   Demo compile and link in two steps, object saved
-$(TESTNAME).o: $(TESTNAME).$(FILETYPE)
+$(TESTNAME).o: $(TESTSRC)
 	$(CC) -c $(CFLAGS) $(TARGETS) $(ASAN_FLAGS) $^
 
 obin:	$(TESTNAME).o
@@ -72,16 +77,16 @@ run_obin: obin
 	./obin
 
 #  ----   Demo compile to intermediates LLVMIR or assembly
-$(TESTNAME).ll: $(TESTNAME).$(FILETYPE)
+$(TESTNAME).ll: $(TESTSRC)
 	$(CC) -c -S -emit-llvm $(CFLAGS) $(TARGETS) $(ASAN_FLAGS) $^
 
-$(TESTNAME).s: $(TESTNAME).$(FILETYPE)
+$(TESTNAME).s: $(TESTSRC)
 	$(CC)  -c -S $(CFLAGS) $(TARGETS) $(ASAN_FLAGS) $^
 
 help:
 	@echo
 	@echo "Makefile Help:"
-	@echo "  Source:		$(TESTNAME).$(FILETYPE)"
+	@echo "  Source:		$(TESTSRC)"
 	@echo "  Compiler: 		$(CC)"
 	@echo "  Compiler flags: 	$(CFLAGS)"
 	@echo
