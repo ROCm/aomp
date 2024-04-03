@@ -1,5 +1,5 @@
 #-----------------------------------------------------------------------
-#  Makefile: Demo simple makefile for hip with the AOMP compiler
+#  Makefile: Demo simple makefile for hip with the LLVM compiler
 #            This makefile uses hipcc. 
 #-----------------------------------------------------------------------
 # MIT License
@@ -42,7 +42,7 @@ CC   =  DEVICE_LIB_PATH=$(DEVICE_LIB_PATH) $(HIPCC)
 writeIndex: $(TESTSRC1) $(TESTSRC2)
 	  $(CC) $^ -o $@ -std=c++11
 run: writeIndex
-	LD_LIBRARY_PATH=$(AOMP)/lib ./writeIndex
+	LD_LIBRARY_PATH=$(LLVM_INSTALL_DIR)/lib ./writeIndex
 
 # --- Demo compile and link in two steps, object saved
 writeIndex.o: $(TESTSRC1)
@@ -52,7 +52,7 @@ kernel.o: $(TESTSRC2)
 obin:	writeIndex.o  kernel.o
 	$(CC)  $^ -o obin
 run_obin: obin 
-	LD_LIBRARY_PATH=$(AOMP)/lib ./obin
+	LD_LIBRARY_PATH=$(LLVM_INSTALL_DIR)/lib ./obin
 
 clean:
 	@[ -f ./writeIndex ] && rm ./writeIndex ; true

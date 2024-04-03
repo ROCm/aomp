@@ -50,10 +50,10 @@ else
 endif
 
 HIPDIR ?= $(LLVM_INSTALL_DIR)
-ifeq ("$(wildcard $(HIPDIR)/bin/hipcc))","")
- HIPDIR = $(LLVM_INSTALL_DIR)/..
- ifeq ("$(wildcard $(HIPDIR)/bin/hipcc)","")
-   HIPDIR = $(LLVM_INSTALL_DIR)/../..
- endif
+ifeq ("$(wildcard $(HIPDIR)/bin/hipcc)","")
+  HIPDIR := $(LLVM_INSTALL_DIR)/..
+  ifeq ("$(wildcard $(HIPDIR)/bin/hipcc)","")
+    HIPDIR := $(LLVM_INSTALL_DIR)/../..
+  endif
 endif
-HIPCC = $(HIPDIR)/bin/hipcc
+HIPCC := $(HIPDIR)/bin/hipcc

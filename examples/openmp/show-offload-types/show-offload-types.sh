@@ -2,11 +2,8 @@
 #
 #  show-offload-types.sh:  Show GPU offloading, host offloading and no offloading
 #
-# find AOMP if not set in an environment variable 
-AOMP=${AOMP:-$HOME/rocm/aomp}
-[[ -f $AOMP/bin/clang ]] || AOMP=/usr/lib/aomp
-if [ ! -f $AOMP/bin/clang ] ; then
-  echo please build or install AOMP
+if [ ! -f $LLVM_INSTALL_DIR/bin/clang ] ; then
+  echo please build or install an LLVM compiler and correctly set LLVM_INSTALL_DIR
   exit 1
 fi
 tdir=/tmp/s$$
@@ -31,21 +28,22 @@ echo "======== $tmpcfile ========"
 cat $tmpcfile
 echo; echo "========== COMPILES ==========="
 
-gpu=`$AOMP/bin/offload-arch`
-
-cmd="$AOMP/bin/clang $tmpcfile -fopenmp -o $tdir/no-offload     "
+cmd="$LLVM_INSTALL_DIR/bin/clang $tmpcfile -fopenmp -o $tdir/no-offload     "
 echo "$cmd" ; $cmd
 
-cmd="$AOMP/bin/clang $tmpcfile -fopenmp -o $tdir/host-offload   --offload-arch=x86"
-echo "$cmd" ; $cmd
+### cmd="$LLVM_INSTALL_DIR/bin/clang $tmpcfile -fopenmp -o $tdir/host-offload   --offload-arch=x86_64"
+### echo "$cmd" ; $cmd
 
-cmd="$AOMP/bin/clang $tmpcfile -fopenmp -o $tdir/gpu-offload    --offload-arch=$gpu"
+cmd="$LLVM_INSTALL_DIR/bin/clang $tmpcfile -fopenmp -o $tdir/gpu-offload --offload-arch=$LLVM_GPU_ARCH"
 echo "$cmd" ; $cmd
 
 # This does not work for nvidia devices 
-if [[ "${gpu##*sm_}" == "${gpu}" ]] ; then
-  cmd="$AOMP/bin/clang $tmpcfile -fopenmp -o $tdir/qualed-offload --offload-arch=$gpu:xnack+"
-  echo "$cmd" ; $cmd
+if [[ "${LLVM_GPU_ARCH##*sm_}" == "${LLVM_GPU_ARCH}" ]] ; then
+  if [ "$LLVM_GPU_ARCH" == "gfx90a" ] || [ "$LLVM_GPU_ARCH" == "gfx940" ] ; then
+    cmd="env HSA_XNACK=1 $LLVM_INSTALL_DIR/bin/clang $tmpcfile -fopenmp -o $tdir/qualed-offload --offload-arch=$LLVM_GPU_ARCH:xnack+"
+    echo "$cmd"
+    $cmd
+  fi
 fi
 
 
@@ -63,7 +61,9 @@ if [[ -f $tdir/gpu-offload ]] ; then
 fi
  
 if [[ -f $tdir/qualed-offload ]] ; then
-  echo ; echo  ==== qualed-offload with no qualified devices ==== ; $tdir/qualed-offload
+  if [ "$LLVM_GPU_ARCH" == "gfx90a" ] || [ "$LLVM_GPU_ARCH" == "gfx940" ] ; then
+    echo ; echo  ==== qualed-offload with no qualified devices ==== ; HSA_XNACK=1 $tdir/qualed-offload
+  fi
 fi
 
 echo; echo "========== EXECUTE DISABLED ==========="
@@ -82,8 +82,10 @@ if [[ -f $tdir/gpu-offload ]] ; then
   echo ; echo  ==== gpu-offload with offload disabled appears as if no-offload ==== ; $tdir/gpu-offload
 fi
 
-if [[ -f $tdir/qualed-offload ]] ; then
-  echo ; echo  ==== qualed-offload with offload disabled and no qualified devices === ; $tdir/qualed-offload
+if [[ -f $tdir/qualed-offload ]] ; then 
+  if [ "$LLVM_GPU_ARCH" == "gfx90a" ] || [ "$LLVM_GPU_ARCH" == "gfx940" ] ; then
+    echo ; echo  ==== qualed-offload with offload disabled and no qualified devices === ; HSA_XNACK=1 $tdir/qualed-offload
+  fi
 fi
 
 echo; echo "========== EXECUTE MANDATORY ==========="
@@ -91,7 +93,7 @@ echo export OMP_TARGET_OFFLOAD=MANDATORY
 export OMP_TARGET_OFFLOAD=MANDATORY
 
 if [[ -f $tdir/no-offload ]] ; then
-  echo ; echo  X=== no-offload with offload mandatory === SHOULD THIS FAIL ?? ; $tdir/no-offload
+  echo ; echo  X=== no-offload with offload mandatory === ; $tdir/no-offload
 fi
 
 if [[ -f $tdir/host-offload ]] ; then
@@ -99,11 +101,13 @@ if [[ -f $tdir/host-offload ]] ; then
 fi
 
 if [[ -f $tdir/gpu-offload ]] ; then
-  echo ; echo  ==== gpu-offload with offload mandatory === ; $tdir/gpu-offload
+  echo ; echo  X=== gpu-offload with offload mandatory === ; $tdir/gpu-offload
 fi
 
 if [[ -f $tdir/qualed-offload ]] ; then
-  echo ; echo  X=== qualed-offload with offload mandatory and no qualified devices === ; $tdir/qualed-offload
+  if [ "$LLVM_GPU_ARCH" == "gfx90a" ] || [ "$LLVM_GPU_ARCH" == "gfx940" ] ; then
+  echo ; echo  X=== qualed-offload with offload mandatory and no qualified devices === ; HSA_XNACK=1 $tdir/qualed-offload
+  fi
 fi
 
 # cleanup

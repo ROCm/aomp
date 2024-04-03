@@ -24,11 +24,6 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-AOMP ?= /usr/lib/aomp
-CLANG = $(AOMP)/bin/clang
-FLANG = $(AOMP)/bin/flang
-UNBUNDLE = $(AOMP)/bin/clang-offload-bundler
-
 mkfile_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 ifneq ($(CURDIR)/,$(mkfile_dir))
   _in_dir := $(mkfile_dir)
@@ -36,6 +31,10 @@ else
   _in_dir :=
 endif
 include $(mkfile_dir)../../Makefile.find_gpu_and_install_dir
+
+CLANG = $(LLVM_INSTALL_DIR)/bin/clang
+FLANG = $(LLVM_INSTALL_DIR)/bin/flang
+UNBUNDLE = $(LLVM_INSTALL_DIR)/bin/clang-offload-bundler
 
 DEVICE_LIB_PATH = $(HIPDIR)/amdgcn/bitcode
 
@@ -73,7 +72,7 @@ dec_arrayval-amdgcn.bc: $(_in_dir)dec_arrayval.c
 libbc-_mylib-amdgcn.a: inc_arrayval-amdgcn.bc dec_arrayval-amdgcn.bc
 	@echo
 	@echo " 1.6 Use Linux ar command to create device-specific archive (DAL). 		$@"
-	$(AOMP)/bin/llvm-ar rcs $@ $^
+	$(LLVM_INSTALL_DIR)/bin/llvm-ar rcs $@ $^
 
 _myomplib.o:  $(_in_dir)_myomplib.c
 	@echo
@@ -84,7 +83,7 @@ _myomplib.o:  $(_in_dir)_myomplib.c
 lib_myomplib.a:  _myomplib.o
 	@echo
 	@echo " 2.2 Create heterogeneous archive from bundled objects.			$@"
-	$(AOMP)/bin/llvm-ar rcs $@ $^
+	$(LLVM_INSTALL_DIR)/bin/llvm-ar rcs $@ $^
 
 libbc-_myomplib-amdgcn.a: lib_myomplib.a
 	@echo
@@ -92,7 +91,7 @@ libbc-_myomplib-amdgcn.a: lib_myomplib.a
 	@echo
 	@echo " 3.1 Extract(unbundle) DAL from openmp fat archive lib_myomplib.a        $@"
 	@echo "     Note: HIP can only auto-extract from HIP-created fat libraries"
-	$(AOMP)/bin/clang-offload-bundler -unbundle -type=a -input=$^ -targets=openmp-amdgcn-amd-amdhsa--$(LLVM_GPU_ARCH) -output=$@ -allow-missing-bundles
+	$(LLVM_INSTALL_DIR)/bin/clang-offload-bundler -unbundle -type=a -input=$^ -targets=openmp-amdgcn-amd-amdhsa--$(LLVM_GPU_ARCH) -output=$@ -allow-missing-bundles
 
 run: writeIndex
 	./writeIndex

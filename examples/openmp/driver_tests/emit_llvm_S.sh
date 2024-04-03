@@ -2,11 +2,8 @@
 #
 #  show-offload-types.sh:  Show GPU offloading, host offloading and no offloading
 #
-# find AOMP if not set in an environment variable 
-AOMP=${AOMP:-$HOME/rocm/aomp}
-[[ -f $AOMP/bin/clang ]] || AOMP=/usr/lib/aomp
-if [ ! -f $AOMP/bin/clang ] ; then
-  echo please build or install AOMP
+if [ ! -f $LLVM_INSTALL_DIR/bin/clang ] ; then
+  echo please build or install an LLVM compiler and correctly set LLVM_INSTALL_DIR
   exit 1
 fi
 tdir=/tmp/s$$
@@ -31,29 +28,28 @@ echo "======== $tmpcfile ========"
 cat $tmpcfile
 echo; echo "========== COMPILES ==========="
 
-gpu=`$AOMP/bin/offload-arch`
-if [  -z $gpu ]; then
-  echo offload-arch fails, fixing
-  gpu=`rocminfo |grep amdgcn-amd-amdhsa--gfx | head -1|awk '{print $2}'|sed s/amdgcn-amd-amdhsa--//`
-  echo "$gpu"
+if [  -z $LLVM_GPU_ARCH ]; then
+  echo amdgpu-arch fails, fixing
+  LLVM_GPU_ARCH=`rocminfo |grep amdgcn-amd-amdhsa--gfx | head -1|awk '{print $2}'|sed s/amdgcn-amd-amdhsa--//`
+  echo "$LLVM_GPU_ARCH"
 fi
 
-targetoptions="-fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$gpu"
+targetoptions="--offload-arch=$LLVM_GPU_ARCH"
 RC=0
 
-cmd="$AOMP/bin/clang $tmpcfile -fopenmp -emit-llvm -S"
+cmd="$LLVM_INSTALL_DIR/bin/clang $tmpcfile -fopenmp -emit-llvm -S"
 echo "$cmd" ; $cmd
 file test.ll
 
-cmd="$AOMP/bin/clang $tmpcfile -fopenmp -emit-llvm -c"
+cmd="$LLVM_INSTALL_DIR/bin/clang $tmpcfile -fopenmp -emit-llvm -c"
 echo "$cmd" ; $cmd
 file test.bc
 
-cmd="$AOMP/bin/clang $tmpcfile -fopenmp -S"
+cmd="$LLVM_INSTALL_DIR/bin/clang $tmpcfile -fopenmp -S"
 echo "$cmd" ; $cmd
 file test.s
 
-cmd="$AOMP/bin/clang $tmpcfile -fopenmp -emit-llvm -c $targetoptions"
+cmd="$LLVM_INSTALL_DIR/bin/clang $tmpcfile -fopenmp -emit-llvm -c $targetoptions"
 echo "$cmd" ; $cmd
 file test.bc
 

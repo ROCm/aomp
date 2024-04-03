@@ -42,15 +42,12 @@ ifneq ($(CURDIR)/,$(mkfile_dir))
 endif
 include $(mkfile_dir)../../Makefile.find_gpu_and_install_dir
 
-AOMPHIP ?= $(LLVM_INSTALL_DIR)
-HIPCC ?= $(AOMPHIP)/bin/hipcc
-
 ifeq ($(TARGETS),)
 TARGETS =--offload-arch=$(LLVM_GPU_ARCH)$(AOMP_TARGET_FEATURES)
 endif
 
 FORT   =$(LLVM_INSTALL_DIR)/bin/flang -fPIC -O2
-LFLAGS = -L$(AOMPHIP)/lib -lamdhip64 -Wl,-rpath,$(AOMPHIP)/lib
+LFLAGS = -L$(HIPDIR)/lib -lamdhip64 -Wl,-rpath,$(HIPDIR)/lib
 FFLAGS = -fopenmp
 
 # ----- Demo compile and link in one step, no object code saved
