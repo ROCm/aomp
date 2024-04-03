@@ -6,17 +6,17 @@
 #     This include also sets CUDA and LFLAGS to find CUDA lib if NVIDIA gpu
 #     This include also sets HIPDIR and HIPCC=$(HIPDIR)/bin/hipcc
 #     CUDA and LFLAGS to find CUDA lib if NVIDIA gpu
-#
-# If LLVM_INSTALL_DIR not preset and AOMP is, then use AOMP and print deprication warning
+ 
+# NOTE: THIS FIRST BLOCK CAN EVENTUALLY BE DELETED
+# If LLVM_INSTALL_DIR not preset and AOMP is, then use AOMP and print deprecation warning
 ifeq ("$(wildcard $(LLVM_INSTALL_DIR))","")
 ifneq ("$(wildcard $(AOMP))","")
   $(info 'WARNING: Environment variable AOMP deprecated for examples.')
   $(info '         Please set LLVM_INSTALL_DIR to avoid this message.')
   LLVM_INSTALL_DIR = $(AOMP)
-  $(info '         Using $(LLVM_INSTALL_DIR) for LLVM_INSTALL_DIR.')
+  $(info '         Using AOMP=$(LLVM_INSTALL_DIR) as the LLVM_INSTALL_DIR.')
 endif
 endif
-
 
 # If LLVM_INSTALL_DIR not preset, seach private build, rocm, and then installed aomp
 ifeq ("$(wildcard $(LLVM_INSTALL_DIR))","")
@@ -24,7 +24,9 @@ ifeq ("$(wildcard $(LLVM_INSTALL_DIR))","")
     $(warning Specified LLVM_INSTALL_DIR:$(LLVM_INSTALL_DIR) NOT FOUND)
   endif
   this_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
-  LLVM_INSTALL_SEARCH_DIRS ?= $(HOME)/rocm/aomp /opt/rocm/llvm /usr/lib/aomp $(this_dir)..
+  # this_dir ... finds the compiler if example run direct from installation e.g.:
+  #   make -f /opt/rocm/share/openmp-extras/examples/openmp/veccopy/Makefile run
+  LLVM_INSTALL_SEARCH_DIRS ?= /opt/rocm/llvm $(this_dir)../../../llvm
   # Select the first directory found from above list.
   LLVM_INSTALL_DIR := $(word 1, $(strip $(foreach dir,$(LLVM_INSTALL_SEARCH_DIRS),$(wildcard $(dir)))))
   ifeq ("$(wildcard $(LLVM_INSTALL_DIR))","")
@@ -32,23 +34,33 @@ ifeq ("$(wildcard $(LLVM_INSTALL_DIR))","")
   endif
 endif
 
-# Test for GPUs and get offload arch from either nvidia-arch or amdgpu-arch
-_amdgpu_mod_dir = $(shell ls -d /sys/module/amdgpu 2>/dev/null)
-ifeq ("$(wildcard $(_amdgpu_mod_dir))","")
-   _nvidia_pcidev = $(shell lspci -nd 10de:*:*)
-   ifeq ($(_nvidia_pcidev),)
-     $(error NO amdgpu or nvidia GPU detected)
-   endif	
-   LLVM_GPU_TRIPLE = nvptx64-nvidia-cuda
-   LLVM_GPU_ARCH   = $(shell $(LLVM_INSTALL_DIR)/bin/nvidia-arch | head -n 1 )
-   UNAMEP          = $(shell uname -m)
-   CUDA           ?= /usr/local/cuda
-   LFLAGS         += -L$(CUDA)/targets/$(UNAMEP)-linux/lib -lcudart
-else
-   LLVM_GPU_TRIPLE = amdgcn-amd-amdhsa
-   LLVM_GPU_ARCH   = $(shell $(LLVM_INSTALL_DIR)/bin/amdgpu-arch | head -n 1 )
+# Test for preset GPUs
+ifeq ($(LLVM_GPU_ARCH),)
+  # If not preset, get offload arch from either nvidia-arch or amdgpu-arch
+  _amdgpu_mod_dir = $(shell ls -d /sys/module/amdgpu 2>/dev/null)
+  ifeq ("$(wildcard $(_amdgpu_mod_dir))","")
+     _nvidia_pcidev = $(shell lspci -nd 10de:*:*)
+     ifeq ($(_nvidia_pcidev),)
+       $(error NO amdgpu or nvidia GPU detected! To test compile only, set LLVM_GPU_ARCH=gfx90a)
+     endif
+     LLVM_GPU_TRIPLE = nvptx64-nvidia-cuda
+     LLVM_GPU_ARCH   = $(shell $(LLVM_INSTALL_DIR)/bin/nvidia-arch | head -n 1 )
+     ifeq ($(strip $(LLVM_GPU_ARCH)),)
+       $(error $(LLVM_INSTALL_DIR)/bin/nvidia-arch could not determine nvidia GPU arch)
+     endif
+     UNAMEP          = $(shell uname -m)
+     CUDA           ?= /usr/local/cuda
+     ifeq ("$(wildcard $(CUDA))","")
+       $(error $(CUDA) not found. Either install CUDA SDK or set CUDA to install directory)
+     endif
+     LFLAGS         += -L$(CUDA)/targets/$(UNAMEP)-linux/lib -lcudart
+  else
+     LLVM_GPU_TRIPLE = amdgcn-amd-amdhsa
+     LLVM_GPU_ARCH   = $(shell $(LLVM_INSTALL_DIR)/bin/amdgpu-arch | head -n 1 )
+  endif
 endif
 
+# Find where HIP is installed and set HIPDIR and HIPCC
 HIPDIR ?= $(LLVM_INSTALL_DIR)
 ifeq ("$(wildcard $(HIPDIR)/bin/hipcc)","")
   HIPDIR := $(LLVM_INSTALL_DIR)/..
