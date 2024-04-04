@@ -121,13 +121,13 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    echo "Use ""$0 nocmake"" or ""$0 install"" to avoid FRESH START."
    echo rm -rf $BUILD_DIR/build/openmp
    rm -rf $BUILD_DIR/build/openmp
-   MYCMAKEOPTS="$COMMON_CMAKE_OPTS -DCMAKE_BUILD_TYPE=Release $AOMP_ORIGIN_RPATH"
+   MYCMAKEOPTS="$COMMON_CMAKE_OPTS -DCMAKE_BUILD_TYPE=Release $AOMP_ORIGIN_RPATH -DOPENMP_STANDALONE_BUILD=On"
    if [ "$AOMP_LEGACY_OPENMP" == "1" ]; then
       echo " -----Running openmp cmake ---- "
       mkdir -p $BUILD_DIR/build/openmp
       cd $BUILD_DIR/build/openmp
-      echo ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
-      ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
+      echo ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload
+      ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload
       if [ $? != 0 ] ; then
          echo "ERROR openmp cmake failed. Cmake flags"
          echo "      $MYCMAKEOPTS"
@@ -423,9 +423,9 @@ if [ "$1" == "install" ] ; then
       $SUDO mkdir -p $_ompd_dir/src/openmp/runtime/src
       echo cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/runtime/src $_ompd_dir/src/openmp/runtime
       $SUDO cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/runtime/src $_ompd_dir/src/openmp/runtime
-      $SUDO mkdir -p $_ompd_dir/src/openmp/libomptarget/src
-      echo cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/libomptarget/src $_ompd_dir/src/openmp/libomptarget
-      $SUDO cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/libomptarget/src $_ompd_dir/src/openmp/libomptarget
+      $SUDO mkdir -p $_ompd_dir/src/offload/src
+      echo cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload/src $_ompd_dir/src/offload
+      $SUDO cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload/src $_ompd_dir/src/offload
       $SUDO mkdir -p $_ompd_dir/src/openmp/libompd/src
       $SUDO cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/libompd/src $_ompd_dir/src/openmp/libompd
    fi
