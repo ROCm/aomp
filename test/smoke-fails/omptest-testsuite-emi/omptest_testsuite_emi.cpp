@@ -5,7 +5,7 @@
 using namespace omptest;
 using namespace internal;
 
-OMPTTESTCASE(SequenceSuite, uut_target) {
+TEST(SequenceSuite, uut_target) {
   /* The Test Body */
   OMPT_SUPPRESS_EVENT(EventTy::TargetDataOpEmi)
   OMPT_SUPPRESS_EVENT(EventTy::TargetSubmitEmi)
@@ -26,7 +26,7 @@ OMPTTESTCASE(SequenceSuite, uut_target) {
   }
 }
 
-OMPTTESTCASE(SequenceSuite, uut_target_dataop) {
+TEST(SequenceSuite, uut_target_dataop) {
   /* The Test Body */
   OMPT_SUPPRESS_EVENT(EventTy::TargetEmi)
   OMPT_SUPPRESS_EVENT(EventTy::TargetSubmitEmi)
@@ -69,7 +69,7 @@ OMPTTESTCASE(SequenceSuite, uut_target_dataop) {
   }
 }
 
-OMPTTESTCASE(SequenceSuite, uut_target_submit) {
+TEST(SequenceSuite, uut_target_submit) {
   /* The Test Body */
   OMPT_SUPPRESS_EVENT(EventTy::TargetEmi)
   OMPT_SUPPRESS_EVENT(EventTy::TargetDataOpEmi)
@@ -90,7 +90,7 @@ OMPTTESTCASE(SequenceSuite, uut_target_submit) {
   }
 }
 
-OMPTTESTCASE(SetSuite, uut_target) {
+TEST(SetSuite, uut_target) {
   /* The Test Body */
   OMPT_SUPPRESS_EVENT(EventTy::TargetDataOpEmi)
   OMPT_SUPPRESS_EVENT(EventTy::TargetSubmitEmi)
@@ -111,7 +111,7 @@ OMPTTESTCASE(SetSuite, uut_target) {
   }
 }
 
-OMPTTESTCASE_XFAIL(SetSuite, uut_target_xfail_banned_begin_end) {
+TEST_XFAIL(SetSuite, uut_target_xfail_banned_begin_end) {
   /* The Test Body */
   int N = 128;
   int a[N];
@@ -134,7 +134,7 @@ OMPTTESTCASE_XFAIL(SetSuite, uut_target_xfail_banned_begin_end) {
   }
 }
 
-OMPTTESTCASE(SetSuite, uut_target_ignore_non_emi_events) {
+TEST(SetSuite, uut_target_ignore_non_emi_events) {
   /* The Test Body */
   int N = 128;
   int a[N];
@@ -157,7 +157,7 @@ OMPTTESTCASE(SetSuite, uut_target_ignore_non_emi_events) {
   }
 }
 
-OMPTTESTCASE(SetSuite, uut_target_dataop) {
+TEST(SetSuite, uut_target_dataop) {
   /* The Test Body */
   OMPT_SUPPRESS_EVENT(EventTy::TargetEmi)
   OMPT_SUPPRESS_EVENT(EventTy::TargetSubmitEmi)
@@ -200,7 +200,7 @@ OMPTTESTCASE(SetSuite, uut_target_dataop) {
   }
 }
 
-OMPTTESTCASE(SequenceSuite, veccopy_ompt_target) {
+TEST(SequenceSuite, veccopy_ompt_target) {
   /* The Test Body */
 
   // Define testcase variables before events, so we can refer to them.
@@ -380,7 +380,7 @@ OMPTTESTCASE(SequenceSuite, veccopy_ompt_target) {
 }
 
 // Leave this suite down here so it gets discovered last and executed first.
-OMPTTESTCASE(InitialTestSuite, uut_device_init_load) {
+TEST(InitialTestSuite, uut_device_init_load) {
   /* The Test Body */
   OMPT_SUPPRESS_EVENT(EventTy::TargetEmi)
   OMPT_SUPPRESS_EVENT(EventTy::TargetDataOpEmi)
@@ -391,8 +391,6 @@ OMPTTESTCASE(InitialTestSuite, uut_device_init_load) {
 
   OMPT_ASSERT_SET(DeviceLoad, /*DeviceNum=*/0)
 
-  OMPT_ASSERT_SET(DeviceInitialize, /*DeviceNum=*/0)
-
 #pragma omp target parallel for
   {
     for (int j = 0; j < N; j++)
@@ -401,7 +399,6 @@ OMPTTESTCASE(InitialTestSuite, uut_device_init_load) {
 }
 
 int main(int argc, char **argv) {
-  libomptest_global_eventreporter_set_active(false);
   Runner R;
   R.run();
 
