@@ -26,7 +26,7 @@ ifeq ("$(wildcard $(LLVM_INSTALL_DIR))","")
   this_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
   # this_dir ... finds the compiler if example run direct from installation e.g.:
   #   make -f /opt/rocm/share/openmp-extras/examples/openmp/veccopy/Makefile run
-  LLVM_INSTALL_SEARCH_DIRS ?= /opt/rocm/llvm $(this_dir)../../../llvm
+  LLVM_INSTALL_SEARCH_DIRS ?= /opt/rocm/llvm $(this_dir)../../../llvm $(HOME)/rocm/aomp
   # Select the first directory found from above list.
   LLVM_INSTALL_DIR := $(word 1, $(strip $(foreach dir,$(LLVM_INSTALL_SEARCH_DIRS),$(wildcard $(dir)))))
   ifeq ("$(wildcard $(LLVM_INSTALL_DIR))","")
@@ -39,25 +39,20 @@ ifeq ($(LLVM_GPU_ARCH),)
   # If not preset, get offload arch from either nvidia-arch or amdgpu-arch
   _amdgpu_mod_dir = $(shell ls -d /sys/module/amdgpu 2>/dev/null)
   ifeq ("$(wildcard $(_amdgpu_mod_dir))","")
-     _nvidia_pcidev = $(shell lspci -nd 10de:*:*)
-     ifeq ($(_nvidia_pcidev),)
-       $(error NO amdgpu or nvidia GPU detected! To test compile only, set LLVM_GPU_ARCH=gfx90a)
-     endif
-     LLVM_GPU_TRIPLE = nvptx64-nvidia-cuda
-     LLVM_GPU_ARCH   = $(shell $(LLVM_INSTALL_DIR)/bin/nvidia-arch | head -n 1 )
-     ifeq ($(strip $(LLVM_GPU_ARCH)),)
-       $(error $(LLVM_INSTALL_DIR)/bin/nvidia-arch could not determine nvidia GPU arch)
-     endif
-     UNAMEP          = $(shell uname -m)
-     CUDA           ?= /usr/local/cuda
-     ifeq ("$(wildcard $(CUDA))","")
-       $(error $(CUDA) not found. Either install CUDA SDK or set CUDA to install directory)
-     endif
-     LFLAGS         += -L$(CUDA)/targets/$(UNAMEP)-linux/lib -lcudart
+    LLVM_GPU_ARCH = $(shell $(LLVM_INSTALL_DIR)/bin/nvptx-arch | head -n 1 )
   else
-     LLVM_GPU_TRIPLE = amdgcn-amd-amdhsa
-     LLVM_GPU_ARCH   = $(shell $(LLVM_INSTALL_DIR)/bin/amdgpu-arch | head -n 1 )
+    LLVM_GPU_ARCH = $(shell $(LLVM_INSTALL_DIR)/bin/amdgpu-arch | head -n 1 )
   endif
+endif
+
+ifeq ($(strip $(LLVM_GPU_ARCH)),)
+  $(error Could NOT detect a GPU to set LLVM_GPU_ARCH! To test compile only, set LLVM_GPU_ARCH=gfx90a)
+endif
+
+ifeq (sm_,$(findstring sm_,$(LLVM_GPU_ARCH)))
+  LLVM_GPU_TRIPLE = nvptx64-nvidia-cuda
+else
+  LLVM_GPU_TRIPLE = amdgcn-amd-amdhsa
 endif
 
 # Find where HIP is installed and set HIPDIR and HIPCC

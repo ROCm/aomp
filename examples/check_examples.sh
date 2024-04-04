@@ -3,7 +3,21 @@
 # Runs examples in LIST
 #
 
-script_dir=$(dirname "$0")
+curdir=$PWD
+realpath=`realpath $0`
+realdir=$(dirname $realpath)
+if [ $curdir != $realdir ] ; then
+  for dir in `find $realdir -type d` ; do
+    rdir=${dir#${realdir}/*}
+    mkdir -p $rdir
+  done
+  _use_make_flag=1
+  script_dir=$curdir
+else
+  _use_make_flag=0
+  script_dir=$(dirname "$0")
+fi
+
 pushd $script_dir
 path=$(pwd)
 
@@ -38,13 +52,15 @@ for directory in $LIST; do
   for testdir in ./*/; do
     pushd $testdir > /dev/null
     testdir=$(echo $testdir | sed 's/.\///; s/\///')
-		make clean
-		make
+    _mf=""
+    [ $_use_make_flag == 1 ] && _mf="-f $realdir/$directory/$testdir/Makefile"
+		make $_mf clean
+		make $_mf
     if [ $? -ne 0 ]; then
       echo "$testdir" >> ../make-fail.txt
       echo " Return Code for $testdir: Make Failed" >> ../check-"$directory".txt
     else
-      make run
+      make $_mf run
       result=$?
       if [ $result -ne 0 ]; then
         echo "$testdir" >> ../failing-tests.txt

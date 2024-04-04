@@ -72,9 +72,6 @@ help:
 	@echo "Target GPU:		$(LLVM_GPU_ARCH)"
 	@echo "Compiler: 		$(CC)"
 	@echo "Compile flags:		$(CFLAGS)"
-ifeq (sm_,$(findstring sm_,$(LLVM_GPU_ARCH)))
-	@echo "CUDA installation:	$(CUDA)"
-endif
 	@echo
 	@echo "This Makefile supports these targets:"
 	@echo
@@ -98,9 +95,6 @@ endif
 	@echo "  OFFLOAD_DEBUG=n      if n=1, compile and run in Debug mode"
 	@echo "  VERBOSE=n            if n=1, add verbose output"
 	@echo "  TEMPS=1              do not delete intermediate files"
-ifeq (sm_,$(findstring sm_,$(LLVM_GPU_ARCH)))
-	@echo "  CUDA=<dir>           CUDA install dir, default=/usr/local/cuda"
-endif
 	@echo
 
 # Cleanup anything this makefile can create

@@ -47,38 +47,7 @@ $(TESTNAME): $(TESTSRC)
 run: $(TESTNAME)
 	$(RUNENV) ./$(TESTNAME)
 
-help:
-	@echo
-	@echo "Source[s]:		$(TESTSRC)"
-	@echo "Application binary:    	$(TESTNAME)"
-	@echo "Target GPU:		$(LLVM_GPU_ARCH)"
-	@echo "Target triple:		$(LLVM_GPU_TRIPLE)"
-	@echo "Compiler: 		$(CC)"
-	@echo "Compile flags:		$(CFLAGS)"
-ifeq (sm_,$(findstring sm_,$(LLVM_GPU_ARCH)))
-	@echo "CUDA installation:	$(CUDA)"
-endif
-	@echo
-	@echo "This Makefile supports these targets:"
-	@echo
-	@echo " make			// Builds $(TESTNAME) "
-	@echo " make run		// Executes $(TESTNAME) "
-	@echo
-	@echo " make clean"
-	@echo " make help"
-	@echo
-	@echo "Environment variables used by this Makefile:"
-	@echo "  LLVM_GPU_ARCH=<GPU>       Target GPU, e.g sm_30, default=gfx900. To build for"
-	@echo "                       Nvidia GPUs, set LLVM_GPU_ARCH=sm_60 or appropriate sm_"
-	@echo "  LLVM_INSTALL_DIR     Compiler install dir"
-	@echo "  EXTRA_CFLAGS=<args>  extra arguments for compiler"
-	@echo "  OFFLOAD_DEBUG=n      if n=1, compile and run in Debug mode"
-	@echo "  VERBOSE=n            if n=1, add verbose output"
-	@echo "  TEMPS=1              do not delete intermediate files"
-ifeq (sm_,$(findstring sm_,$(LLVM_GPU_ARCH)))
-	@echo "  CUDA=<dir>           CUDA install dir, default=/usr/local/cuda"
-endif
-	@echo
+include $(mkfile_dir)../../Makefile.help
 
 # Cleanup anything this makefile can create
 clean:

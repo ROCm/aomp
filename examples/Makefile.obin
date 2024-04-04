@@ -1,0 +1,16 @@
+#-----------------------------------------------------------------------
+#
+#  Makefile.obin
+#
+#  ----   Demo compile and link in two steps, object saved
+#         for those examples that have a single source file. 
+#
+$(TESTNAME).o: $(TESTSRC)
+	$(CCENV) $(CC) -c $(CFLAGS) $^ -o $@
+
+obin:	$(TESTNAME).o
+	$(CCENV) $(CC) $(CFLAGS) $(LFLAGS) $^ -o $@
+
+run_obin: obin
+	$(RUNENV) ./obin
+
