@@ -47,7 +47,7 @@ cp -rp $RO_SHELL_DIR/MatrixTranspose $TEST_DIR/.
 cp -rp $RO_SHELL_DIR/MatrixTranspose_test $TEST_DIR/.
 
 INC_PATH="$AOMP/include/roctracer"
-LIB_PATH="${AOMP}/roctracer/lib"
+LIB_PATH="${AOMP}/lib"
 EXPORT_ENV="HIP_VDI=1 ROCM_PATH=${AOMP} HSA_PATH=${AOMP} INC_PATH=${INC_PATH} LIB_PATH=${LIB_PATH} HIPCC_VERBOSE=3"
 
 echo export $EXPORT_ENV

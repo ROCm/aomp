@@ -1,5 +1,5 @@
 INC_PATH  ?= $(AOMP)/include
-LIB_PATH  ?= $(AOMP)/roctracer/lib
+LIB_PATH  ?= $(AOMP)/lib
 ROCM_PATH ?= $(AOMP)
 HIP_VDI   ?= 0
 ITERS     ?= 100
@@ -16,7 +16,7 @@ FLAGS =-g $(INC_PATH:%=-I%) -I$(ROCM_PATH)/include/roctracer -I$(ROCM_PATH)/incl
 ifeq ($(C_TEST), 1)
 	COMP=${CC}
 	SOURCES = MatrixTranspose.c
-	FLAGS += -DHIP_TEST=0 -D__HIP_PLATFORM_HCC__=1
+	FLAGS += -DHIP_TEST=0 -D__HIP_PLATFORM_AMD__=1
 else
 	COMP=$(HIPCC)
 	SOURCES = MatrixTranspose.cpp
