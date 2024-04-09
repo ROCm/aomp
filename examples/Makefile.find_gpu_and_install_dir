@@ -61,6 +61,9 @@ ifeq ("$(wildcard $(HIPDIR)/bin/hipcc)","")
   HIPDIR := $(LLVM_INSTALL_DIR)/..
   ifeq ("$(wildcard $(HIPDIR)/bin/hipcc)","")
     HIPDIR := $(LLVM_INSTALL_DIR)/../..
+     ifeq ("$(wildcard $(HIPDIR)/bin/hipcc)","")
+	HIPDIR := /opt/rocm
+     endif
   endif
 endif
 HIPCC := $(HIPDIR)/bin/hipcc

@@ -12,13 +12,13 @@ if [ $curdir != $realdir ] ; then
     mkdir -p $rdir
   done
   _use_make_flag=1
-  script_dir=$curdir
+  run_dir=$curdir
 else
   _use_make_flag=0
-  script_dir=$(dirname "$0")
+  run_dir=$(dirname "$0")
 fi
 
-pushd $script_dir
+pushd $run_dir
 path=$(pwd)
 
 function cleanup() {
@@ -28,7 +28,7 @@ function cleanup() {
   rm -f passing-tests.txt
 }
 echo ""
-echo -e "$ORG"RUNNING ALL TESTS IN: $path"$BLK"
+echo -e "$ORG"RUNNING ALL TESTS IN: $realdir"$BLK"
 echo ""
 
 echo "************************************************************************************" 
