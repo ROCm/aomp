@@ -33,6 +33,7 @@ FILETYPE =cpp
 
 UNAMEP = $(shell uname -m)
 AOMP_CPUTARGET = $(UNAMEP)-pc-linux-gnu
+AOMP_TARGET_FEATURES = :xnack+
 ifeq ($(UNAMEP),ppc64le)
   AOMP_CPUTARGET = ppc64le-linux-gnu
 endif
@@ -67,7 +68,7 @@ endif
 
 CC       =$(AOMP)/bin/clang++
 
-VERS = $(shell $(AOMP)/bin/clang --version | grep -oP '(?<=clang version )[0-9.]+')
+VERS = $(shell $(AOMP)/bin/clang --version | grep -oP '(?<=clang version )[0-9]+')
 ROCM = $(shell $(AOMP)/bin/clang --version | grep -oP 'AMD clang')
 
 ifeq ($(ROCM),)
