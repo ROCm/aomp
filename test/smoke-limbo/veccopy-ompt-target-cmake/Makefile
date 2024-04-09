@@ -14,6 +14,7 @@ RUNCMD       = ./performBuildRun.sh -a $(AOMP) -t $(AOMP_GPU)
 
 CLANG        ?= clang
 OMP_BIN      = $(AOMP)/bin/$(CLANG)
+RUNENV       += OMPTEST_RUN_AS_TESTSUITE=1
 DUMMYOPT     = $(VERBOSE) -x c -
 CC           = $(DUMMYSRC) | $(OMP_BIN) $(DUMMYOPT)
 

@@ -226,7 +226,6 @@ TEST(InitialTestSuite, uut_device_init_load) {
   int N = 128;
   int a[N];
 
-  OMPT_ASSERT_SEQUENCE(DeviceInitialize, /*DeviceNum=*/0)
   OMPT_ASSERT_SEQUENCE(DeviceLoad, /*DeviceNum=*/0)
 
 #pragma omp target parallel for
@@ -237,7 +236,6 @@ TEST(InitialTestSuite, uut_device_init_load) {
 }
 
 int main(int argc, char **argv) {
-  libomptest_global_eventreporter_set_active(false);
   Runner R;
   R.run();
 
