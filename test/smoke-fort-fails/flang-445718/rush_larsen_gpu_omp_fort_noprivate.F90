@@ -581,7 +581,7 @@ contains
     ! Test if GPU is available using OpenMP4.5 legal code 
     runningOnGPU = 0
     !$omp target map(from:runningOnGPU)
-    if (omp_is_initial_device() .eq. 0) then
+    if (.not. omp_is_initial_device()) then
        runningOnGPU = 1
     else
        runningOnGPU = 2
