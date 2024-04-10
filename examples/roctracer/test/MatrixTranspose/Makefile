@@ -6,7 +6,11 @@ ifneq ($(CURDIR)/,$(mkfile_dir))
 else
   _in_dir :=
 endif
-include $(mkfile_dir)../../../Makefile.find_gpu_and_install_dir
+mkfile_find_loc := $(mkfile_dir)../../../Makefile.find_gpu_and_install_dir
+ifeq ("$(wildcard $(mkfile_find_loc))","")
+  mkfile_find_loc := $(mkfile_dir)../Makefile.find_gpu_and_install_dir
+endif
+include $(mkfile_find_loc)
 
 INC_PATH  ?= $(LLVM_INSTALL_DIR)/include
 LIB_PATH  ?= $(LLVM_INSTALL_DIR)/lib
@@ -28,7 +32,7 @@ FLAGS =-g $(INC_PATH:%=-I%) -I$(ROCM_PATH)/include/roctracer -I$(ROCM_PATH)/incl
 ifeq ($(C_TEST), 1)
 	COMP=${CC}
 	SOURCES = $(_in_dir)MatrixTranspose.c
-	FLAGS += -DHIP_TEST=0 -D__HIP_PLATFORM_HCC__=1
+	FLAGS += -DHIP_TEST=0 -D__HIP_PLATFORM_AMD__=1
 else
 	COMP=$(HIPCC)
 	SOURCES = $(_in_dir)MatrixTranspose.cpp

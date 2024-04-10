@@ -45,16 +45,22 @@ echo
 
 cp -rp $RO_SHELL_DIR/MatrixTranspose $TEST_DIR/.
 cp -rp $RO_SHELL_DIR/MatrixTranspose_test $TEST_DIR/.
+cp -rp $RO_SHELL_DIR/../../Makefile.find_gpu_and_install_dir $TEST_DIR/.
 
-LLVM_INSTALL_DIR=${LLVM_INSTALL_DIR:-/opt/rocm/llvm}
+if [ -z $LLVM_INSTALL_DIR ] ; then 
+  LLVM_INSTALL_DIR=$AOMP
+fi
 if [ -d $LLVM_INSTALL_DIR/../roctracer ] ; then
-  # This is a rocm install
+  # This is a rocm install.  This does not work yet
+  echo "|---------------------------------------------------------------------|"
+  echo "|  WARNING example use of roctracer with ROCm LLVM not yet functional |"
+  echo "|---------------------------------------------------------------------|"
   INC_PATH=$LLVM_INSTALL_DIR/../roctracer/include
   LIB_PATH=$LLVM_INSTALL_DIR/../roctracer/lib
   ROCM_PATH=$LLVM_INSTALL_DIR/..
   ALL_LIB_PATH=$ROCM_PATH/lib:$LIB_PATH:$LLVM_INSTALL_DIR/lib/roctracer
 else
-  # This is build of standalone install
+  # This is build of standalone install of AOMP
   INC_PATH=$LLVM_INSTALL_DIR/include/roctracer
   LIB_PATH=$LLVM_INSTALL_DIR/lib
   ROCM_PATH=$LLVM_INSTALL_DIR
@@ -145,11 +151,11 @@ eval_test() {
       cat $test_trace
       echo "$test_name: FAILED"
     else 
-      python $RO_SHELL_DIR/check_trace.py -in $test_name -ck $check_trace_flag -rd $TEST_DIR
+      python3 $RO_SHELL_DIR/check_trace.py -in $test_name -ck $check_trace_flag -rd $TEST_DIR
       is_failed=$?
       if [ $is_failed != 0 ] ; then
         echo "Trace checker error:"
-        python $RO_SHELL_DIR/check_trace.py -v -in $test_name -ck $check_trace_flag -rd $TEST_DIR
+        python3 $RO_SHELL_DIR/check_trace.py -v -in $test_name -ck $check_trace_flag -rd $TEST_DIR
         echo "$test_name: FAILED"
       else 
         echo "$test_name: PASSED"
