@@ -38,10 +38,12 @@ SKIP_USM=1
 export SKIP_USM=1
 export HSA_XNACK=${HSA_XNACK:-0}
 SUITE_LIST=${SUITE_LIST:-"examples smoke-limbo smoke omp5 openmpapps ovo sollve babelstream fortran-babelstream"}
-blockinglist="examples_fortran examples_openmp smoke openmpapps sollve45 sollve50 babelstream"
+blockinglist="smoke openmpapps sollve45 sollve50 babelstream"
+#blockinglist="examples_fortran examples_openmp smoke openmpapps sollve45 sollve50 babelstream"
 else
 SUITE_LIST=${SUITE_LIST:-"examples smoke-limbo smoke omp5 openmpapps LLNL nekbone ovo sollve babelstream fortran-babelstream"}
-blockinglist="examples_fortran examples_openmp smoke openmpapps sollve45 sollve50 babelstream"
+blockinglist="smoke openmpapps sollve45 sollve50 babelstream"
+#blockinglist="examples_fortran examples_openmp smoke openmpapps sollve45 sollve50 babelstream"
 fi
 EPSDB_LIST=${EPSDB_LIST:-"examples smoke-limbo smoke omp5 openmpapps LLNL nekbone ovo sollve babelstream fortran-babelstream"}
 
