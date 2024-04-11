@@ -49,7 +49,6 @@ CC       =$(LLVM_INSTALL_DIR)/bin/clang++
 LFLAGS   =-L$(LLVM_INSTALL_DIR)/lib
 ASAN_FLAGS = -fsanitize=address -shared-libasan
 
-
 VERS = $(shell $(LLVM_INSTALL_DIR)/bin/clang --version | grep -oP '(?<=clang version )[0-9]+')
 ROCM = $(shell $(LLVM_INSTALL_DIR)/bin/clang --version | grep -oP 'AMD clang')
 

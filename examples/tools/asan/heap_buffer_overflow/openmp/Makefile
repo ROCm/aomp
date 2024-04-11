@@ -35,6 +35,7 @@ TESTSRC = $(TESTNAME).$(FILETYPE)
 mkfile_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 ifneq ($(CURDIR)/,$(mkfile_dir))
   TESTSRC := $(mkfile_dir)$(TESTSRC)
+
 endif
 include $(mkfile_dir)../../../../Makefile.find_gpu_and_install_dir
 
