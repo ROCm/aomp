@@ -45,10 +45,29 @@ echo
 
 cp -rp $RO_SHELL_DIR/MatrixTranspose $TEST_DIR/.
 cp -rp $RO_SHELL_DIR/MatrixTranspose_test $TEST_DIR/.
+cp -rp $RO_SHELL_DIR/../../Makefile.find_gpu_and_install_dir $TEST_DIR/.
 
-INC_PATH="$AOMP/include/roctracer"
-LIB_PATH="${AOMP}/lib"
-EXPORT_ENV="HIP_VDI=1 ROCM_PATH=${AOMP} HSA_PATH=${AOMP} INC_PATH=${INC_PATH} LIB_PATH=${LIB_PATH} HIPCC_VERBOSE=3"
+if [ -z $LLVM_INSTALL_DIR ] ; then 
+  LLVM_INSTALL_DIR=$AOMP
+fi
+if [ -d $LLVM_INSTALL_DIR/../roctracer ] ; then
+  # This is a rocm install.  This does not work yet
+  echo "|---------------------------------------------------------------------|"
+  echo "|  WARNING example use of roctracer with ROCm LLVM not yet functional |"
+  echo "|---------------------------------------------------------------------|"
+  INC_PATH=$LLVM_INSTALL_DIR/../roctracer/include
+  LIB_PATH=$LLVM_INSTALL_DIR/../roctracer/lib
+  ROCM_PATH=$LLVM_INSTALL_DIR/..
+  ALL_LIB_PATH=$ROCM_PATH/lib:$LIB_PATH:$LLVM_INSTALL_DIR/lib/roctracer
+else
+  # This is build of standalone install of AOMP
+  INC_PATH=$LLVM_INSTALL_DIR/include/roctracer
+  LIB_PATH=$LLVM_INSTALL_DIR/lib
+  ROCM_PATH=$LLVM_INSTALL_DIR
+  ALL_LIB_PATH=$LIB_PATH:$LLVM_INSTALL_DIR/lib/roctracer
+fi
+
+EXPORT_ENV="HIP_VDI=1 ROCM_PATH=${ROCM_PATH} HSA_PATH=${ROCM_PATH} INC_PATH=${INC_PATH} LIB_PATH=${LIB_PATH} HIPCC_VERBOSE=3"
 
 echo export $EXPORT_ENV
 export $EXPORT_ENV
@@ -94,7 +113,7 @@ cd $TEST_DIR
 # enable tools load failure reporting
 export HSA_TOOLS_REPORT_LOAD_FAILURE=1
 # paths to ROC profiler and other libraries
-export LD_LIBRARY_PATH=$AOMP/lib:$AOMP/roctracer/lib
+export LD_LIBRARY_PATH=$ALL_LIB_PATH
 
 # test filter input
 test_filter=-1
@@ -132,11 +151,11 @@ eval_test() {
       cat $test_trace
       echo "$test_name: FAILED"
     else 
-      python $RO_SHELL_DIR/check_trace.py -in $test_name -ck $check_trace_flag -rd $TEST_DIR
+      python3 $RO_SHELL_DIR/check_trace.py -in $test_name -ck $check_trace_flag -rd $TEST_DIR
       is_failed=$?
       if [ $is_failed != 0 ] ; then
         echo "Trace checker error:"
-        python $RO_SHELL_DIR/check_trace.py -v -in $test_name -ck $check_trace_flag -rd $TEST_DIR
+        python3 $RO_SHELL_DIR/check_trace.py -v -in $test_name -ck $check_trace_flag -rd $TEST_DIR
         echo "$test_name: FAILED"
       else 
         echo "$test_name: PASSED"
@@ -160,7 +179,11 @@ eval_test "standalone HIP MGPU test" "./bin/MatrixTranspose_mgpu" MatrixTranspos
 
 # Tool test
 # rocTracer/tool is loaded by HSA runtime
-export HSA_TOOLS_LIB="$AOMP/roctracer/lib/libtracer_tool.so"
+if [ -d $LLVM_INSTALL_DIR/../roctracer ] ; then
+  export HSA_TOOLS_LIB="$LLVM_INSTALL_DIR/../lib/roctracer/libtracer_tool.so"
+else
+  export HSA_TOOLS_LIB="$LLVM_INSTALL_DIR/lib/roctracer/libtracer_tool.so"
+fi
 
 # SYS test
 export ROCTRACER_DOMAIN="sys:roctx"

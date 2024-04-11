@@ -3,8 +3,22 @@
 # Runs examples in LIST
 #
 
-script_dir=$(dirname "$0")
-pushd $script_dir
+curdir=$PWD
+realpath=`realpath $0`
+realdir=$(dirname $realpath)
+if [ $curdir != $realdir ] ; then
+  for dir in `find $realdir -type d` ; do
+    rdir=${dir#${realdir}/*}
+    mkdir -p $rdir
+  done
+  _use_make_flag=1
+  run_dir=$curdir
+else
+  _use_make_flag=0
+  run_dir=$(dirname "$0")
+fi
+
+pushd $run_dir
 path=$(pwd)
 
 function cleanup() {
@@ -14,7 +28,7 @@ function cleanup() {
   rm -f passing-tests.txt
 }
 echo ""
-echo -e "$ORG"RUNNING ALL TESTS IN: $path"$BLK"
+echo -e "$ORG"RUNNING ALL TESTS IN: $realdir"$BLK"
 echo ""
 
 echo "************************************************************************************" 
@@ -25,7 +39,7 @@ echo "**************************************************************************
 if [ "$#" -ne 0 ]; then
   LIST="$@"
 elif [ "$EPSDB" != "1" ]; then
-  LIST="fortran hip openmp cloc"
+  LIST="fortran hip openmp"
 else
   LIST="fortran openmp"
 fi
@@ -38,13 +52,15 @@ for directory in $LIST; do
   for testdir in ./*/; do
     pushd $testdir > /dev/null
     testdir=$(echo $testdir | sed 's/.\///; s/\///')
-		make clean
-		make
+    _mf=""
+    [ $_use_make_flag == 1 ] && _mf="-f $realdir/$directory/$testdir/Makefile"
+		make $_mf clean
+		make $_mf
     if [ $? -ne 0 ]; then
       echo "$testdir" >> ../make-fail.txt
       echo " Return Code for $testdir: Make Failed" >> ../check-"$directory".txt
     else
-      make run
+      make $_mf run
       result=$?
       if [ $result -ne 0 ]; then
         echo "$testdir" >> ../failing-tests.txt

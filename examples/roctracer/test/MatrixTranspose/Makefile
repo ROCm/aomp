@@ -1,13 +1,28 @@
-INC_PATH  ?= $(AOMP)/include
-LIB_PATH  ?= $(AOMP)/lib
-ROCM_PATH ?= $(AOMP)
+
+mkfile_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+ifneq ($(CURDIR)/,$(mkfile_dir))
+  _in_dir := $(mkfile_dir)
+else
+  _in_dir :=
+endif
+mkfile_find_loc := $(mkfile_dir)../../../Makefile.find_gpu_and_install_dir
+ifeq ("$(wildcard $(mkfile_find_loc))","")
+  mkfile_find_loc := $(mkfile_dir)../Makefile.find_gpu_and_install_dir
+endif
+include $(mkfile_find_loc)
+
+INC_PATH  ?= $(LLVM_INSTALL_DIR)/include
+LIB_PATH  ?= $(LLVM_INSTALL_DIR)/lib
+ROCM_PATH ?= $(HIPDIR)
 HIP_VDI   ?= 0
 ITERS     ?= 100
-HIP_PATH  ?= $(AOMP)
+HIP_PATH  ?= $(HIPDIR)
+
+ifeq ("$(wildcard $(LIB_PATH)/libroctracer64.so)","")
+  LIB_PATH := $(LLVM_INSTALL_DIR)/../roctracer/lib
+endif
 
 ROC_LIBS  = -Wl,--rpath,${LIB_PATH} $(LIB_PATH)/libroctracer64.so $(LIB_PATH)/libroctx64.so
-
-HIPCC=$(HIP_PATH)/bin/hipcc
 
 EXECUTABLE=./MatrixTranspose
 OBJECTS = MatrixTranspose.o
@@ -15,11 +30,11 @@ FLAGS =-g $(INC_PATH:%=-I%) -I$(ROCM_PATH)/include/roctracer -I$(ROCM_PATH)/incl
 
 ifeq ($(C_TEST), 1)
 	COMP=${CC}
-	SOURCES = MatrixTranspose.c
+	SOURCES = $(_in_dir)MatrixTranspose.c
 	FLAGS += -DHIP_TEST=0 -D__HIP_PLATFORM_AMD__=1
 else
 	COMP=$(HIPCC)
-	SOURCES = MatrixTranspose.cpp
+	SOURCES = $(_in_dir)MatrixTranspose.cpp
 	FLAGS += -DHIP_TEST=1 --rocm-path=$(ROCM_PATH)
 endif
 ifeq ($(MGPU_TEST), 1)
