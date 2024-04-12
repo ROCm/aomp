@@ -24,6 +24,7 @@ TESTS_DIR = \
     flang-439387c \
     flang-443915 \
     flang-445888 \
+    flang-453308 \
     LaunchLatency \
     llvm-issue-82047 \
     milestone-1 \
