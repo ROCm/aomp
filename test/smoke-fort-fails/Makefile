@@ -14,6 +14,7 @@ TESTS_DIR = \
     flang-446057a \
     flang-446057b \
     flang-446057c \
+    flang-446057d \
     flang-446525 \
     olcf-tf-2-openmp-gpu-teams \
     olcf-tf-3-openmp-gpu-teams-parallel \
