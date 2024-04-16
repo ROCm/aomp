@@ -8,7 +8,7 @@ TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 CLANG        ?= clang++
 OMP_BIN      = $(AOMP)/bin/$(CLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
-CFLAGS       = -O3 -std=c++11 -fopenmp-target-fast -latomic
+CFLAGS       = -O3 -std=c++11 -fopenmp-target-fast -latomic -lmlir_float16_utils
 #-ccc-print-phases
 #"-\#\#\#"
 

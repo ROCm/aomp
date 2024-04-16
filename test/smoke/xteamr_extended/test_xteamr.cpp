@@ -213,6 +213,13 @@ int main(int argc, char *argv[]) {
 	    << _XTEAM_NUM_TEAMS << " TEAMS"
             << std::endl;
   run_tests_extended<_Float16, float, false, true>(ARRAY_SIZE);
+  // ----  This __bf16 test gets incorrect result from ompdot, but simulation works nicely
+  // std::cout << std::endl
+  //          << "-- EXT TEST __bf16 extended to float  : " << _XTEAM_NUM_THREADS << " THREADS "
+  //	    << _XTEAM_NUM_TEAMS << " TEAMS"
+  //          << std::endl;
+  // run_tests_extended<__bf16, float, false, true>(ARRAY_SIZE);
+  // ----
   std::cout << std::endl;
   std::cout << std::endl
             << "TEST INT  : " << _XTEAM_NUM_THREADS << " THREADS" 
@@ -865,7 +872,7 @@ void run_tests_extended(uint64_t array_size) {
     if (sizeof(T) == sizeof(float))
       std::cout << "Precision: float" << std::endl;
     else if (sizeof(T) == sizeof(_Float16))
-      std::cout << "Precision: _Float16" << std::endl;
+      std::cout << "Precision: 16bit" << std::endl;
     else
       std::cout << "Precision: double" << std::endl;
   }
