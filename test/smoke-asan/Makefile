@@ -3,9 +3,9 @@ include ../Makefile.defs
 TESTS_DIR = \
     hip-global-buffer-overflow \
     hip-heap-buffer-overflow \
-		hip-use-after-free \
-		omp-global-buffer-overflow \
-		omp-heap-buffer-overflow
+    hip-use-after-free \
+    omp-global-buffer-overflow \
+    omp-heap-buffer-overflow
 
 all:
 	@for test_dir in $(TESTS_DIR); do \

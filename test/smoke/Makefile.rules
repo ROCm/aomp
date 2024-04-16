@@ -125,6 +125,53 @@ else
 	@echo "  $(SKIP_RUN_SUPPORTED)"
 endif
 
+check-asan: $(TESTNAME)
+ifneq (,$(findstring $(GPU_W_FEATURES),$(SUPPORTED)))
+ifeq (,$(findstring $(GPU_W_FEATURES),$(UNSUPPORTED)))
+       path=`pwd`; \
+       base=`basename $$path`; \
+       ( \
+    flock -e 9 && echo  "" >> ../check-smoke-asan.txt; \
+    declare -A CmdStatus; \
+    pipeline="$(RUNENV) $(SMOKE_TIMEOUT) $(RUNPROF) $(RUNPROF_FLAGS) $(CHECK_COMMAND) > /dev/null 2>&1"; \
+    $(RUNENV) $(SMOKE_TIMEOUT) $(RUNPROF) $(RUNPROF_FLAGS) $(CHECK_COMMAND) > /dev/null 2>&1; \
+    pstat=($${PIPESTATUS[@]}); \
+    function GetPipedCmdStatus() { \
+      Cmd="$$2"; \
+      CmdRunIndex="$$3"; \
+      CmdRunIndexList=($$(echo $$1 | awk -F'|' '{for(i=1;i<=NF;i++) {gsub(/^[ \t]+|[ \t]+$$/, "", $$i); print $$i}}' | awk -v Cmd_Pattern="$$Cmd " '$$0~Cmd_Pattern {print NR}')); \
+      for CmdIndex in "$${CmdRunIndexList[@]}"; do \
+        if [ -v CmdStatus["$$Cmd"] ]; then \
+           ArrString=$${CmdStatus["$$Cmd"]}; \
+           ArrString+=",$${pstat[$$CmdIndex-1]}"; \
+           CmdStatus["$$Cmd"]=$${ArrString}; \
+        else \
+           NewArrString=$${pstat[$$CmdIndex-1]}; \
+           CmdStatus["$$Cmd"]=$${NewArrString}; \
+        fi; \
+      done; \
+      if [ -v CmdStatus[$$Cmd] ] && [ $$CmdRunIndex -gt 0 ];then \
+         IFS=',' read -ra CmdStatusList <<< "$${CmdStatus[$$Cmd]}"; \
+         return $${CmdStatusList["$$CmdRunIndex"-1]}; \
+      fi; \
+    }; \
+    GetPipedCmdStatus "$$pipeline" "$(TESTNAME)" "1"; \
+    test_status=$$?; \
+    GetPipedCmdStatus "$$pipeline" "FileCheck" "1"; \
+    filecheck_status=$$?; \
+         echo "$$test_status" > TEST_STATUS; \
+         echo "$$filecheck_status" > FILECHECK_STATUS; \
+         echo $$base $$test_num return code: $$test_status >> ../check-smoke-asan.txt; \
+         echo  "" >> ../check-smoke-asan.txt; \
+               if [ $$filecheck_status -eq 0 ]; then echo $$base $$test_num >> ../passing-tests.txt; \
+                                     else echo $$base $$test_num >> ../failing-tests.txt; fi; \
+       )9>../lockfile;
+else
+       @echo "  $(SKIP_RUN_UNSUPPORTED)"
+endif
+else
+       @echo "  $(SKIP_RUN_SUPPORTED)"
+endif
 
 # ----- Demo compile and link to object file
 ifneq ($(TESTNAME), $(findstring $(TESTNAME),$(TESTNAMES_ALL)))
@@ -249,7 +296,7 @@ run_sbin: sbin
 
 # Cleanup anything this makefile can create
 clean::
-	rm -f $(TESTNAME) $(TESTNAME).a llbin sbin obin *.i *.ii *.bc *.lk a.out-* *.ll *.s *.o *.log *.mod verify_output *.stb *.ilm *.cmod *.cmdx *.so $(TESTNAME)_og11 make-log.txt TEST_STATUS
+	rm -f $(TESTNAME) $(TESTNAME).a llbin sbin obin *.i *.ii *.bc *.lk a.out-* *.ll *.s *.o *.log *.mod verify_output *.stb *.ilm *.cmod *.cmdx *.so $(TESTNAME)_og11 make-log.txt TEST_STATUS FILECHECK_STATUS
 
 clean_log:
 	rm -f *.log

@@ -210,7 +210,6 @@ MPILIBS ?= -L${OMPIDIR}/lib$(MPI64) -lmpi
     endif
 
 AOMP_GPU       ?= $(INSTALLED_GPU)
-AOMP_SANITIZER ?= $(AOMP_BUILD_SANITIZER)
 CC              = $(AOMP)/bin/clang
 OG11           ?= $(HOME)/git/og11/install
 OG11FLAGS      ?= -O3 -fopenmp -foffload=-march=$(AOMP_GPU) -I. -lgfortran -L $(OG11)/lib64
@@ -238,10 +237,10 @@ ifeq (gfx11,$(findstring gfx11,$(AOMP_GPU)))
  AOMP_WSIZE = -DWAVE_SIZE=32
 endif
 
-ifeq ($(AOMP_SANITIZER),)
-ASAN_FLAGS = -fsanitize=address -shared-libasan -g
-# For Sanitizer below environment variable should always be enabled by default
-AOMP_TARGET_FEATURES=:xnack+
+ifeq ($(AOMP_SANITIZER),1)
+  ASAN_FLAGS = -fsanitize=address -shared-libasan -g
+  #ASan requires xnack+ by default
+  AOMP_TARGET_FEATURES = :xnack+
 endif
 
 ifeq ($(AOMP_TARGET_FEATURES),)
