@@ -47,12 +47,6 @@ fi
 
 patchrepo $AOMP_REPOS/$AOMP_ROCT_REPO_NAME
 
-if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
-   ASAN_LIB_PATH=$($AOMP_CLANG_COMPILER --print-runtime-dir)
-   ASAN_FLAGS="-g -fsanitize=address -shared-libasan -Wl,-rpath=$ASAN_LIB_PATH -L$ASAN_LIB_PATH"
-   LDFLAGS="-fuse-ld=lld $ASAN_FLAGS"
-fi
-
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then 
 
    echo " " 

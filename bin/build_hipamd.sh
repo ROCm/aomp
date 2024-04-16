@@ -74,12 +74,6 @@ fi
 
 patchrepo $AOMP_REPOS/hipamd
 
-if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
-   ASAN_LIB_PATH=$(${AOMP}/bin/clang --print-runtime-dir)
-   ASAN_FLAGS="-g -fsanitize=address -shared-libasan -Wl,-rpath=$ASAN_LIB_PATH -L$ASAN_LIB_PATH"
-   LD_FLAGS="-fuse-ld=lld $ASAN_FLAGS"
-fi
-
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 
   if [ -d "$BUILD_DIR/build/hipamd" ] ; then
