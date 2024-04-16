@@ -159,11 +159,11 @@ ifeq (,$(findstring $(GPU_W_FEATURES),$(UNSUPPORTED)))
     test_status=$$?; \
     GetPipedCmdStatus "$$pipeline" "FileCheck" "1"; \
     filecheck_status=$$?; \
-         echo "$$test_status" > TEST_STATUS; \
-         echo "$$filecheck_status" > FILECHECK_STATUS; \
-         echo $$base $$test_num return code: $$test_status >> ../check-smoke-asan.txt; \
-         echo  "" >> ../check-smoke-asan.txt; \
-               if [ $$filecheck_status -eq 0 ]; then echo $$base $$test_num >> ../passing-tests.txt; \
+    echo "$$test_status" > TEST_STATUS; \
+    echo "$$filecheck_status" > FILECHECK_STATUS; \
+    echo $$base $$test_num return code: $$test_status >> ../check-smoke-asan.txt; \
+    echo  "" >> ../check-smoke-asan.txt; \
+    if [ $$filecheck_status -eq 0 ]; then echo $$base $$test_num >> ../passing-tests.txt; \
                                      else echo $$base $$test_num >> ../failing-tests.txt; fi; \
        )9>../lockfile;
 else

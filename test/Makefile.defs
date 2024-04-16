@@ -238,6 +238,7 @@ ifeq (gfx11,$(findstring gfx11,$(AOMP_GPU)))
 endif
 
 ifeq ($(AOMP_SANITIZER),1)
+  HSA_XNACK = 1
   ASAN_FLAGS = -fsanitize=address -shared-libasan -g
   #ASan requires xnack+ by default
   AOMP_TARGET_FEATURES = :xnack+
