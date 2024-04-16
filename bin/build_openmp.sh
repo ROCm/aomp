@@ -107,6 +107,12 @@ fi
 
 if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
    ASAN_LIB_PATH=$(${AOMP}/bin/clang --print-runtime-dir)
+   if [ ! -d $ASAN_LIB_PATH ]; then
+     # --print-runtime-dir outputs the new lib directory that includes the host target.
+     # Workaround this for now until LLVM_ENABLE_PER_TARGET_RUNTIME_DIR is on by default.
+     RESOURCE_PATH=$(${AOMP}/bin/clang --print-resource-dir)
+     ASAN_LIB_PATH="$RESOURCE_PATH/lib/linux"
+   fi
    ASAN_FLAGS="-g -fsanitize=address -shared-libasan -Wl,-rpath=$ASAN_LIB_PATH -L$ASAN_LIB_PATH"
    LDFLAGS="-fuse-ld=lld $ASAN_FLAGS"
 fi
