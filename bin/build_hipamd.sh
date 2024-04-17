@@ -74,6 +74,10 @@ fi
 
 patchrepo $AOMP_REPOS/hipamd
 
+if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
+  LDFLAGS="-fuse-ld=lld $ASAN_FLAGS"
+fi
+
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 
   if [ -d "$BUILD_DIR/build/hipamd" ] ; then

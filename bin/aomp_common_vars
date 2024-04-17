@@ -201,7 +201,6 @@ if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
      ASAN_LIB_PATH="$RESOURCE_PATH/lib/linux"
    fi
    ASAN_FLAGS="-g -fsanitize=address -shared-libasan -Wl,-rpath=$ASAN_LIB_PATH -L$ASAN_LIB_PATH"
-   LDFLAGS="-fuse-ld=lld $ASAN_FLAGS"
 fi
 
 # AOMP uses RPATH (not) RUNPATH because LD_LIBRARY_PATH is a user feature for

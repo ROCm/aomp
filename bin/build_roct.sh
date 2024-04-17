@@ -47,6 +47,10 @@ fi
 
 patchrepo $AOMP_REPOS/$AOMP_ROCT_REPO_NAME
 
+if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
+  LDFLAGS="-fuse-ld=lld $ASAN_FLAGS"
+fi
+
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then 
 
    echo " " 
