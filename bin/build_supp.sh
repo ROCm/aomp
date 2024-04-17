@@ -170,10 +170,10 @@ function buildninja(){
 
 function buildaqlprofile(){
   _cname="aqlprofile"
-  _version=6.0.2
-  _packageversion=6.0.2
-  _fullversion=60002
-  _buildnumber=115
+  _version=6.1
+  _packageversion=6.1.0
+  _fullversion=60100
+  _buildnumber=82
   _installdir=$AOMP_SUPP_INSTALL/$_cname-$_version
   _linkfrom=$AOMP_SUPP/$_cname
   _builddir=$AOMP_SUPP_BUILD/$_cname
@@ -194,9 +194,13 @@ function buildaqlprofile(){
     deb_version="22"
     os_version=`grep VERSION_ID /etc/os-release | cut -d"\"" -f2`
     [ $os_version == "20.04" ] && deb_version="20"
+    #https://repo.radeon.com/rocm/apt/6.1/pool/main/h/hsa-amd-aqlprofile6.1.0/hsa-amd-aqlprofile6.1.0_1.0.0.60100.60100-82~${deb_version}_amd64.deb
+    #https://repo.radeon.com/rocm/apt/6.1/pool/main/h/hsa-amd-aqlprofile6.1.0/hsa-amd-aqlprofile6.1.0_1.0.0.60100.60100-82~22.04_amd64.deb
     runcmd "wget https://repo.radeon.com/rocm/apt/"$_version"/pool/main/h/hsa-amd-aqlprofile"$_packageversion"/hsa-amd-aqlprofile"$_packageversion"_1.0.0."$_fullversion"."$_fullversion"-"$_buildnumber"~${deb_version}.04_amd64.deb"
+
     runcmd "dpkg -x hsa-amd-aqlprofile"$_packageversion"_1.0.0."$_fullversion"."$_fullversion"-"$_buildnumber"~${deb_version}.04_amd64.deb $_builddir"
   elif [[ $osname =~ "SLES" ]]; then
+    #https://repo.radeon.com/rocm/yum/6.1/main/hsa-amd-aqlprofile6.1.0-1.0.0.60100.60100-82.el7.x86_64.rpm
     runcmd "wget https://repo.radeon.com/rocm/zyp/"$_version"/main/hsa-amd-aqlprofile"$_packageversion"-1.0.0."$_fullversion"."$_fullversion"-sles154."$_buildnumber".x86_64.rpm"
     echo "hsa-amd-aqlprofile"$_packageversion"-1.0.0."$_fullversion"."$_fullversion"-sles154."$_buildnumber".x86_64.rpm | cpio -idm"
     rpm2cpio hsa-amd-aqlprofile"$_packageversion"-1.0.0."$_fullversion"."$_fullversion"-sles154."$_buildnumber".x86_64.rpm | cpio -idm
@@ -368,7 +372,7 @@ function buildcmake(){
 
 function buildrocmsmilib(){
   _cname="rocmsmilib"
-  _version=6.0.x
+  _version=6.1.x
   _installdir=$AOMP_SUPP_INSTALL/rocmsmilib-$_version
   _linkfrom=$AOMP_SUPP/rocmsmilib
   _builddir=$AOMP_SUPP_BUILD/rocmsmilib
