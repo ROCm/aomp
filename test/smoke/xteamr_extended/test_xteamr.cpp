@@ -41,6 +41,12 @@ const uint64_t ARRAY_SIZE = _ARRAY_SIZE;
 unsigned int repeat_num_times = 12;
 unsigned int ignore_times = 2; // ignore this many timings first
 
+// Set this macro if you want omp reductions to use same precision as data
+// arrays. Comment it OUT for omp reductions to use extended precision.
+//#define USE_ARRAY_OMP_PRECISION
+// The simulated omp reductions will always use extended precision.
+// for run_tests_extended which specifies an extended type.
+
 // If we know at compile time that we have 0 index with 1 stride,
 // then generate an optimized _BIG_JUMP_LOOP.
 // This test case has index 0 and stride 1, so we set this here.
@@ -217,14 +223,19 @@ int main(int argc, char *argv[]) {
             << std::endl;
   run_tests_extended<_Float16, float, false, true>(ARRAY_SIZE);
 
-  // ----  This __bf16 test gets incorrect result from ompdot, but simulation works nicely
+  // ----  This __bf16 test gets incorrect result from omp_dot. sim_dot works.
+  //       This fail occurs when USE_ARRAY_OMP_PRECISION is defined causing
+  //       omp_dot to be called.  If not defined, omp_dot_extended will be
+  //       called and the fail does not occur.
   std::cout << std::endl
             << "TEST __bf16 extended to float : " << _XTEAM_NUM_THREADS << " THREADS  "
             << _XTEAM_NUM_TEAMS << " TEAMS"
             << std::endl;
   unsigned int saved_rc_because_this_is_known_fail = test_run_rc;
   run_tests_extended<__bf16, float, false, true>(ARRAY_SIZE);
+  //       Ignore this known failure for reporting overall rc.
   test_run_rc = saved_rc_because_this_is_known_fail;
+
   // ----
   std::cout << std::endl;
   std::cout << std::endl
@@ -338,6 +349,35 @@ template <typename T, bool DATA_TYPE_IS_INT> T omp_min(T *c, uint64_t array_size
     minval = (c[i] < minval) ? c[i] : minval;
   }
   return minval;
+}
+
+// These 3 functions do omp reductions in the extended precision.
+// Set USE_ARRAY_OMP_PRECISION macro to use native data array precision for
+// omp reductions found in above functions; omp_dot, omp_max, and omp_min.
+// The returned result is always in the data type of the data arrays.
+template <typename T, typename EXT_T> T omp_dot_extended(T *a, T *b, uint64_t array_size) {
+  EXT_T sum = 0.0;
+#pragma omp target teams distribute parallel for map(tofrom: sum) reduction(+:sum)
+  for (int64_t i = 0; i < array_size; i++)
+    sum += (EXT_T) a[i] * (EXT_T) b[i];
+  return (T) sum;
+}
+
+template <typename T, typename EXT_T> T omp_max_extended(T *c, uint64_t array_size) {
+  EXT_T maxval = std::numeric_limits<EXT_T>::lowest();
+#pragma omp target teams distribute parallel for map(tofrom:maxval) reduction(max:maxval)
+  for (int64_t i = 0; i < array_size; i++)
+    maxval = ((EXT_T) c[i] > maxval) ? (EXT_T) c[i] : maxval;
+  return (T) maxval;
+}
+
+template <typename T, typename EXT_T, bool DATA_TYPE_IS_INT> T omp_min_extended(T *c, uint64_t array_size) {
+  EXT_T minval = std::numeric_limits<EXT_T>::max();
+#pragma omp target teams distribute parallel for map(tofrom:minval) reduction(min:minval)
+  for (int64_t i = 0; i < array_size; i++) {
+    minval = ((EXT_T) c[i] < minval) ? (EXT_T) c[i] : minval;
+  }
+  return (T) minval;
 }
 
 template <typename T> T sim_dot(T *a, T *b, int warp_size) {
@@ -715,9 +755,9 @@ void run_tests(uint64_t array_size) {
     c[i] = (i + 1);
   }
 
-  std::cout << "Running kernels " << repeat_num_times << " times" << std::endl;
-  std::cout << "Ignoring timing of first " << ignore_times << "  runs "
-            << std::endl;
+  std::cout << "Running kernels " << repeat_num_times
+	    << " times, timings ignore first "
+	    << ignore_times << " runs." << std::endl;
 
   double ETOL = 0.0000001;
   if (DATA_TYPE_IS_INT) {
@@ -880,24 +920,37 @@ void run_tests_extended(uint64_t array_size) {
     }
   }
 
-  std::cout << "Running kernels " << repeat_num_times << " times" << std::endl;
-  std::cout << "Ignoring timing of first " << ignore_times << "  runs "
-            << std::endl;
+  std::cout << "Running kernels " << repeat_num_times
+	    << " times, timings ignore first "
+	    << ignore_times << " runs." << std::endl;
 
   double ETOL = 0.0000001;
   if (DATA_TYPE_IS_INT) {
-    std::cout << "Integer Size: " << sizeof(T) << std::endl;
-    std::cout << "Integer is signed:" << DATA_TYPE_IS_SIGNED << std::endl;
+    std::cout << "Array data type size: " << sizeof(T) << std::endl;
+    std::cout << "Data size of calculations (Extended) : " << sizeof(EXT_T) << std::endl;
   } else {
     if (sizeof(T) == sizeof(float))
-      std::cout << "Precision: float" << std::endl;
+      std::cout << "Array data type: float" << std::endl;
     else if (sizeof(T) == sizeof(_Float16))
-      std::cout << "Precision: 16bit" << std::endl;
+      std::cout << "Array data type: 16-bit" << std::endl;
     else
-      std::cout << "Precision: double" << std::endl;
-  }
+      std::cout << "Array data type: double" << std::endl;
 
-  std::cout << "Warp size:" << warp_size << std::endl;
+    if (sizeof(EXT_T) == sizeof(float))
+      std::cout << "Calculations precision: float" << std::endl;
+    else if (sizeof(EXT_T) == sizeof(_Float16))
+      std::cout << "Calculations precision: 16-bit" << std::endl;
+    else
+      std::cout << "Calculations precision: double" << std::endl;
+  }
+#ifdef USE_ARRAY_OMP_PRECISION
+  std::cout << "OpenMP reductions done with precision of array data type." << std::endl;
+#else
+  std::cout << "OpenMP reductions done with extended precision." << std::endl;
+#endif
+  std::cout << "Simulated reductions done with extended precision." << std::endl;
+
+  // std::cout << "Warp size:" << warp_size << std::endl;
   // int num_teams = ompx_get_device_num_units(omp_get_default_device());
   int num_teams = _XTEAM_NUM_TEAMS;
   std::cout << "Array elements: " << array_size << std::endl;
@@ -925,7 +978,11 @@ void run_tests_extended(uint64_t array_size) {
   // Timing loop
   for (unsigned int k = 0; k < repeat_num_times; k++) {
     t1 = std::chrono::high_resolution_clock::now();
+#ifdef USE_ARRAY_OMP_PRECISION
     T omp_sum = omp_dot<T>(a, b, array_size);
+#else
+    T omp_sum = omp_dot_extended<T,EXT_T>(a, b, array_size);
+#endif
     t2 = std::chrono::high_resolution_clock::now();
     timings[0].push_back(
         std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1)
@@ -940,7 +997,11 @@ void run_tests_extended(uint64_t array_size) {
             .count());
     _check_val<T, DATA_TYPE_IS_INT, DATA_TYPE_IS_SIGNED>(sim_sum, goldDot, "sim_dot");
     t1 = std::chrono::high_resolution_clock::now();
+#ifdef USE_ARRAY_OMP_PRECISION
     T omp_max_val = omp_max<T>(c, array_size);
+#else
+    T omp_max_val = omp_max_extended<T,EXT_T>(c, array_size);
+#endif
     t2 = std::chrono::high_resolution_clock::now();
     timings[2].push_back(
         std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1)
@@ -956,7 +1017,11 @@ void run_tests_extended(uint64_t array_size) {
     _check_val<T, DATA_TYPE_IS_INT,DATA_TYPE_IS_SIGNED>(sim_max_val, goldMax, "sim_max");
 
     t1 = std::chrono::high_resolution_clock::now();
+#ifdef USE_ARRAY_OMP_PRECISION
     T omp_min_val = omp_min<T, DATA_TYPE_IS_INT>(c, array_size);
+#else
+    T omp_min_val = omp_min_extended<T, EXT_T, DATA_TYPE_IS_INT>(c, array_size);
+#endif
     t2 = std::chrono::high_resolution_clock::now();
     timings[4].push_back(
         std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1)
@@ -1128,9 +1193,9 @@ void run_tests_complex(const uint64_t array_size) {
     // a[i] * b[i] = 2 + 0i
   }
 
-  std::cout << "Running kernels " << repeat_num_times << " times" << std::endl;
-  std::cout << "Ignoring timing of first " << ignore_times << "  runs "
-            << std::endl;
+  std::cout << "Running kernels " << repeat_num_times
+	    << " times, timings ignore first "
+	    << ignore_times << " runs." << std::endl;
 
   double ETOL = 0.0000001;
   if (sizeof(TC) == sizeof(float _Complex))
