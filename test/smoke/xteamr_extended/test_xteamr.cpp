@@ -39,8 +39,7 @@
 #endif
 const uint64_t ARRAY_SIZE = _ARRAY_SIZE;
 unsigned int repeat_num_times = 12;
-unsigned int ignore_times =
-    2; // ignore this many timings first
+unsigned int ignore_times = 2; // ignore this many timings first
 
 // If we know at compile time that we have 0 index with 1 stride,
 // then generate an optimized _BIG_JUMP_LOOP.
@@ -48,11 +47,12 @@ unsigned int ignore_times =
 #define __OPTIMIZE_INDEX0_STRIDE1
 
 //  Extern Xteamr functions are designed for 1024, 512, and 256 thread blocks.
-//  The default here is 512.
+//  The default here is 1024
 
 #ifndef _XTEAM_NUM_THREADS
 #define _XTEAM_NUM_THREADS 1024
 #endif
+//  _XTEAM_NUM_TEAMS is 104 because that is number of CUs on MI200
 #ifndef _XTEAM_NUM_TEAMS
 #define _XTEAM_NUM_TEAMS 104
 #endif
@@ -189,84 +189,105 @@ template <typename TC, typename EXT_T, bool, bool> void run_tests_extended(const
 
 int main(int argc, char *argv[]) {
   std::cout << std::endl
-            << "TEST DOUBLE  : " << _XTEAM_NUM_THREADS << " THREADS" 
+            << "TEST double : " << _XTEAM_NUM_THREADS << " THREADS  "
 	    << _XTEAM_NUM_TEAMS << " TEAMS"
             << std::endl;
   run_tests<double, false>(ARRAY_SIZE);
   std::cout << std::endl
-            << "TEST FLOAT  : " << _XTEAM_NUM_THREADS << " THREADS"
+            << "TEST float : " << _XTEAM_NUM_THREADS << " THREADS  "
 	    << _XTEAM_NUM_TEAMS << " TEAMS"
             << std::endl;
   run_tests<float, false>(ARRAY_SIZE);
   std::cout << std::endl
-            << "-- EXT TEST float extended to double  : " << _XTEAM_NUM_THREADS << " THREADS " 
+            << "TEST float extended to double : "
+	    << _XTEAM_NUM_THREADS << " THREADS  "
 	    << _XTEAM_NUM_TEAMS << " TEAMS"
             << std::endl;
   run_tests_extended<float, double, false, true>(ARRAY_SIZE);
   std::cout << std::endl
-            << "-- EXT TEST _Float16 extended to double  : " << _XTEAM_NUM_THREADS << " THREADS "
+            << "TEST _Float16 extended to double : "
+	    << _XTEAM_NUM_THREADS << " THREADS  "
 	    << _XTEAM_NUM_TEAMS << " TEAMS"
             << std::endl;
   run_tests_extended<_Float16, double, false, true>(ARRAY_SIZE);
   std::cout << std::endl
-            << "-- EXT TEST _Float16 extended to float  : " << _XTEAM_NUM_THREADS << " THREADS " 
+            << "TEST _Float16 extended to float : "
+	    << _XTEAM_NUM_THREADS << " THREADS  "
 	    << _XTEAM_NUM_TEAMS << " TEAMS"
             << std::endl;
   run_tests_extended<_Float16, float, false, true>(ARRAY_SIZE);
+
   // ----  This __bf16 test gets incorrect result from ompdot, but simulation works nicely
-  // std::cout << std::endl
-  //          << "-- EXT TEST __bf16 extended to float  : " << _XTEAM_NUM_THREADS << " THREADS "
-  //	    << _XTEAM_NUM_TEAMS << " TEAMS"
-  //          << std::endl;
-  // run_tests_extended<__bf16, float, false, true>(ARRAY_SIZE);
+  std::cout << std::endl
+            << "TEST __bf16 extended to float : " << _XTEAM_NUM_THREADS << " THREADS  "
+            << _XTEAM_NUM_TEAMS << " TEAMS"
+            << std::endl;
+  unsigned int saved_rc_because_this_is_known_fail = test_run_rc;
+  run_tests_extended<__bf16, float, false, true>(ARRAY_SIZE);
+  test_run_rc = saved_rc_because_this_is_known_fail;
   // ----
   std::cout << std::endl;
   std::cout << std::endl
-            << "TEST INT  : " << _XTEAM_NUM_THREADS << " THREADS" 
+            << "TEST int : " << _XTEAM_NUM_THREADS << " THREADS  "
 	    << _XTEAM_NUM_TEAMS << " TEAMS"
 	    << std::endl;
   run_tests<int, true>(ARRAY_SIZE);
+
   std::cout << std::endl
-            << "TEST UNSIGNED INT " << _XTEAM_NUM_THREADS << " THREADS"
+            << "TEST unsigned int :  " << _XTEAM_NUM_THREADS << " THREADS  "
+	    << _XTEAM_NUM_TEAMS << " TEAMS"
             << std::endl;
   run_tests<unsigned, true>(ARRAY_SIZE);
+
   std::cout << std::endl
-            << "TEST LONG " << _XTEAM_NUM_THREADS << " THREADS " << std::endl;
+            << "TEST long :  " << _XTEAM_NUM_THREADS << " THREADS  "
+	    << _XTEAM_NUM_TEAMS << " TEAMS"
+	    << std::endl;
   run_tests<long, true>(ARRAY_SIZE);
+
   std::cout << std::endl
-            << "TEST UNSIGNED LONG " << _XTEAM_NUM_THREADS << " THREADS"
+            << "TEST unsigned long :  " << _XTEAM_NUM_THREADS << " THREADS  "
+	    << _XTEAM_NUM_TEAMS << " TEAMS"
             << std::endl;
   run_tests<unsigned long, true>(ARRAY_SIZE);
 
   std::cout << std::endl
-            << "-- EXT TEST int extended to long " << _XTEAM_NUM_THREADS << " THREADS " 
+            << "TEST int extended to long :  "
+	    << _XTEAM_NUM_THREADS << " THREADS  "
 	    << _XTEAM_NUM_TEAMS << " TEAMS"
             << std::endl;
   run_tests_extended<int, long, true, true>(ARRAY_SIZE);
 
   std::cout << std::endl
-            << "-- EXT TEST unsigned extended to unsigned long " << _XTEAM_NUM_THREADS << " THREADS " 
+            << "TEST unsigned extended to unsigned long :  "
+	    << _XTEAM_NUM_THREADS << " THREADS  "
 	    << _XTEAM_NUM_TEAMS << " TEAMS"
             << std::endl;
   run_tests_extended<unsigned, unsigned long, true, false>(ARRAY_SIZE);
+
   std::cout << std::endl
-            << "-- EXT TEST half extended to int  : " << _XTEAM_NUM_THREADS << " THREADS " 
+            << "TEST short extended to int :  "
+	    << _XTEAM_NUM_THREADS << " THREADS  "
 	    << _XTEAM_NUM_TEAMS << " TEAMS"
             << std::endl;
   run_tests_extended<short, int , true, true>(ARRAY_SIZE);
+
   std::cout << std::endl
-            << "-- EXT TEST half extended to long  : " << _XTEAM_NUM_THREADS << " THREADS " 
+            << "TEST short extended to long :  "
+	    << _XTEAM_NUM_THREADS << " THREADS  "
 	    << _XTEAM_NUM_TEAMS << " TEAMS"
             << std::endl;
   run_tests_extended<short, long , true, true>(ARRAY_SIZE);
 
   std::cout << std::endl
-            << "-- EXT TEST unsigned half extended to unsigned  : " << _XTEAM_NUM_THREADS << " THREADS " 
+            << "TEST unsigned short extended to unsigned : "
+	    << _XTEAM_NUM_THREADS << " THREADS  "
 	    << _XTEAM_NUM_TEAMS << " TEAMS"
             << std::endl;
   run_tests_extended<unsigned short, unsigned , true, false>(ARRAY_SIZE);
   std::cout << std::endl
-            << "-- EXT TEST half extended to long  : " << _XTEAM_NUM_THREADS << " THREADS " 
+            << "TEST unsigned short extended to unsigned long :  "
+	    << _XTEAM_NUM_THREADS << " THREADS  "
 	    << _XTEAM_NUM_TEAMS << " TEAMS"
             << std::endl;
   run_tests_extended<unsigned short, unsigned long , true, false>(ARRAY_SIZE);
@@ -834,7 +855,6 @@ void run_tests_extended(uint64_t array_size) {
   int64_t max_T = (int64_t) std::numeric_limits<T>::max();
   if (sizeof(T) < 4 && !DATA_TYPE_IS_INT) {
     // FIX for float16 bug on numeric_limits<_Float16>
-    printf(" - --- --  fixing max_T \n");
     max_T = 65504;
   }
 #pragma omp target enter data map(alloc                                        \
