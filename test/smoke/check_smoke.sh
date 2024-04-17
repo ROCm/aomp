@@ -90,6 +90,7 @@ cleanup(){
 script_dir=$(dirname "$0")
 pushd $script_dir
 path=$(pwd)
+script_dir_name=$(basename "$path")
 
 SMOKE_DIRS=${SMOKE_DIRS:-./*/}  # test directories to run
 SMOKE_LRUN=${SMOKE_LRUN:-1}     # number of times to run test list
@@ -242,7 +243,7 @@ if [ "$AOMP_PARALLEL_SMOKE" == 1 ]; then
         sem --jobs 4 --id def_sem -u 'base=$(basename $(pwd)); make check > /dev/null; if [ $? -ne 0 ]; then flock -e lockfile -c "echo $base: Make Failed >> ../make-fail.txt"; fi;'
       elif [ $base == "gpus" ]; then # Compile and link only test
         echo gpus is compile only!
-      elif [ "$AOMP_SANITIZER" == 1 ]; then
+      elif [ "$AOMP_SANITIZER" == 1 ] && [ "$script_dir_name" == "smoke-asan" ]; then
         sem --jobs 4 --id def_sem -u 'make check-asan > /dev/null 2>&1'
       else
         sem --jobs 4 --id def_sem -u 'make check > /dev/null 2>&1'
@@ -337,7 +338,7 @@ for directory in $SMOKE_DIRS; do
     echo "$base" >> ../passing-tests.txt
   elif [ $base == 'printf_parallel_for_target' ] || [ $base == 'omp_places' ] || [ $base == 'pfspecifier' ] || [ $base == 'pfspecifier_str' ] ; then
     make verify-log
-  elif [ "$AOMP_SANITIZER" == 1 ]; then
+  elif [ "$AOMP_SANITIZER" == 1 ] && [ "$script_dir_name" == "smoke-asan" ]; then
     make check-asan > /dev/null 2>&1
   else
     make check > /dev/null 2>&1

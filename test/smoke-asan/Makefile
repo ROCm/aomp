@@ -23,13 +23,13 @@ run run_obin run_sbin run_llbin clean clean_log llbin sbin obin:
 	  $(MAKE) -C $$test_dir $@; \
 	done
 
-check:
-	 @for test_dir in $(TESTS_DIR); do \
-          echo $$nnn; \
-          test_name=`grep "TESTNAME *=" $$test_dir/Makefile | sed "s/.*= *//"`; \
-          echo "TEST_DIR: $$test_dir\tTEST_NAME: $$test_name\tMAKE: $(MAKE) -C $$test_dir $@"; \
-          $(MAKE) -C $$test_dir $@; \
-        done
+check-asan:
+	@for test_dir in $(TESTS_DIR); do \
+	  echo $$nnn; \
+	  test_name=`grep "TESTNAME *=" $$test_dir/Makefile | sed "s/.*= *//"`; \
+	  echo "TEST_DIR: $$test_dir\tTEST_NAME: $$test_name\tMAKE: $(MAKE) -C $$test_dir $@"; \
+	  $(MAKE) -C $$test_dir $@; \
+	done
 
 .ll .ll.s .ll.o .s .s.o .o:
 	@for test_dir in $(TESTS_DIR); do \
