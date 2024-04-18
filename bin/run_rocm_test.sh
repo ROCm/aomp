@@ -266,10 +266,10 @@ function getversion(){
     osname=$(cat /etc/os-release | grep -e ^NAME=)
     # Regex to cover single/multi version installs for deb/rpm.
     ompextrasregex="openmp-extras-?[a-z]*-?\s*[0-9]+\.([0-9]+)\.([0-9]+)"
-    rpmregex="Red Hat|CentOS|SLES"
+    rpmregex="Red Hat|CentOS|SLES|Oracle Linux Server"
     echo $osname
     if [[ "$osname" =~ $rpmregex ]]; then
-      echo "Red Hat/CentOS/SLES found"
+      echo "Red Hat/CentOS/SLES/Oracle found"
       ompextraspkg=$(rpm -qa | grep openmp-extras | tail -1)
     elif [[ $osname =~ "Ubuntu" ]]; then
       echo "Ubuntu found"
