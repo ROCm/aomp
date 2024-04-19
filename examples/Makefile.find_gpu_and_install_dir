@@ -11,10 +11,8 @@
 # If LLVM_INSTALL_DIR not preset and AOMP is, then use AOMP and print deprecation warning
 ifeq ("$(wildcard $(LLVM_INSTALL_DIR))","")
 ifneq ("$(wildcard $(AOMP))","")
-  $(info 'WARNING: Environment variable AOMP deprecated for examples.')
-  $(info '         Please set LLVM_INSTALL_DIR to avoid this message.')
+  $(info 'WARNING: Either preset LLVM_INSTALL_DIR or unset AOMP. Using LLVM_INSTALL_DIR=$(AOMP).')
   LLVM_INSTALL_DIR = $(AOMP)
-  $(info '         Using AOMP=$(LLVM_INSTALL_DIR) as the LLVM_INSTALL_DIR.')
 endif
 endif
 
