@@ -20,23 +20,25 @@ ITERS     ?= 100
 HIP_PATH  ?= $(HIPDIR)
 
 ifeq ("$(wildcard $(LIB_PATH)/libroctracer_tool.so)","")
+  # These changes support ROCm installed compiler, LLVM_INSTALL_DIR=/opt/rocm/lib/llvm
   LIB_PATH := $(LLVM_INSTALL_DIR)/../roctracer/lib
+  ROCM_PATH := $(LLVM_INSTALL_DIR)
 endif
 
 ROC_LIBS  = -Wl,--rpath,${LIB_PATH} $(HIPDIR)/lib/libroctracer64.so $(HIPDIR)/lib/libroctx64.so
 
 EXECUTABLE=./MatrixTranspose
 OBJECTS = MatrixTranspose.o
-FLAGS =-g -fPIC $(INC_PATH:%=-I%) -I$(ROCM_PATH)/include/roctracer -I$(ROCM_PATH)/include/hip -I$(ROCM_PATH)/include -DLOCAL_BUILD=1 -DHIP_VDI=${HIP_VDI} -DITERATIONS=$(ITERS) -DAMD_INTERNAL_BUILD=1 -Wno-unused-result
+FLAGS =-g -fPIC $(INC_PATH:%=-I%) -I$(HIPDIR)/include/roctracer -I$(ROCM_PATH)/include/hip -I$(ROCM_PATH)/include -DLOCAL_BUILD=1 -DHIP_VDI=${HIP_VDI} -DITERATIONS=$(ITERS) -DAMD_INTERNAL_BUILD=1
 
 ifeq ($(C_TEST), 1)
 	COMP=${CC}
 	SOURCES = $(_in_dir)MatrixTranspose.c
 	FLAGS += -DHIP_TEST=0 -D__HIP_PLATFORM_AMD__=1
 else
-	COMP=$(HIPCC)
+	COMP=$(HIPCC).bin
 	SOURCES = $(_in_dir)MatrixTranspose.cpp
-	FLAGS += -DHIP_TEST=1 --rocm-path=$(ROCM_PATH)
+	FLAGS += -DHIP_TEST=1 --rocm-path=$(ROCM_PATH) -D__HIP_PLATFORM_AMD__=1 --offload-arch=$(LLVM_GPU_ARCH) -Wno-unused-result
 endif
 ifeq ($(MGPU_TEST), 1)
 	FLAGS += -DMGPU_TEST=1
@@ -53,7 +55,7 @@ $(OBJECTS): $(SOURCES)
 	$(COMP) $(FLAGS) -c -o $@ $<
 
 $(EXECUTABLE): $(OBJECTS)
-	$(HIPCC) $(OBJECTS) -o $@ $(ROC_LIBS)
+	env HIP_PLATFORM=amd $(HIPCC) $(OBJECTS) -o $@ $(ROC_LIBS)
 
 test: $(EXECUTABLE)
 	LD_PRELOAD="librocprofiler64.so" $(EXECUTABLE)

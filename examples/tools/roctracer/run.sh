@@ -47,27 +47,30 @@ cp -rp $RO_SHELL_DIR/MatrixTranspose $TEST_DIR/.
 cp -rp $RO_SHELL_DIR/MatrixTranspose_test $TEST_DIR/.
 cp -rp $RO_SHELL_DIR/../../Makefile.find_gpu_and_install_dir $TEST_DIR/.
 
-if [ -z $LLVM_INSTALL_DIR ] ; then 
-  LLVM_INSTALL_DIR=$AOMP
-fi
+[ -z $AOMP ] && AOMP=/opt/rocm/lib/llvm
+[ -z $LLVM_INSTALL_DIR ] && LLVM_INSTALL_DIR=$AOMP
+#  For installed rocm llvm, avoid issues with symbolic link to old llvm install dir
+[ "$LLVM_INSTALL_DIR" == "/opt/rocm/llvm" ] && [ -L $LLVM_INSTALL_DIR ] && [ -d /opt/rocm/lib/llvm ] && export LLVM_INSTALL_DIR=/opt/rocm/lib/llvm
+
+AOMP=$LLVM_INSTALL_DIR
+
 if [ -d $LLVM_INSTALL_DIR/../roctracer ] ; then
-  # This is a rocm install.  This does not work yet
-  echo "|---------------------------------------------------------------------|"
-  echo "|  WARNING example use of roctracer with ROCm LLVM not yet functional |"
-  echo "|---------------------------------------------------------------------|"
-  INC_PATH=$LLVM_INSTALL_DIR/../roctracer/include
-  LIB_PATH=$LLVM_INSTALL_DIR/../roctracer/lib
-  ROCM_PATH=$LLVM_INSTALL_DIR/..
-  ALL_LIB_PATH=$ROCM_PATH/lib:$LIB_PATH:$LLVM_INSTALL_DIR/lib/roctracer
+  # LLVM_INSTALL_DIR is a rocm compiler install now in /opt/rocm/lib/llvm as of ROCM 6.1
+  INC_PATH=$LLVM_INSTALL_DIR/../../include/roctracer
+  LIB_PATH=$LLVM_INSTALL_DIR/..
+  ROCM_PATH=$LLVM_INSTALL_DIR/../..
+  ALL_LIB_PATH=$ROCM_PATH/lib:$LIB_PATH:$LLVM_INSTALL_DIR/../roctracer
+  DEVICE_LIB_PATH=$LLVM_INSTALL_DIR/../../amdgcn/bitcode
 else
-  # This is build of standalone install of AOMP
+  # LLVM_INSTALL_DIR is build of standalone install of AOMP
   INC_PATH=$LLVM_INSTALL_DIR/include/roctracer
   LIB_PATH=$LLVM_INSTALL_DIR/lib
   ROCM_PATH=$LLVM_INSTALL_DIR
   ALL_LIB_PATH=$LIB_PATH:$LLVM_INSTALL_DIR/lib/roctracer
+  DEVICE_LIB_PATH=$LLVM_INSTALL_DIR/amdgcn/bitcode
 fi
 
-EXPORT_ENV="HIP_VDI=1 ROCM_PATH=${ROCM_PATH} HSA_PATH=${ROCM_PATH} INC_PATH=${INC_PATH} LIB_PATH=${LIB_PATH} HIPCC_VERBOSE=3"
+EXPORT_ENV="HIP_VDI=1 ROCM_PATH=${ROCM_PATH} HSA_PATH=${ROCM_PATH} INC_PATH=${INC_PATH} LIB_PATH=${LIB_PATH} HIP_CLANG_PATH=${LLVM_INSTALL_DIR}/bin DEVICE_LIB_PATH=${DEVICE_LIB_PATH} HIPCC_VERBOSE=3"
 
 echo export $EXPORT_ENV
 export $EXPORT_ENV
