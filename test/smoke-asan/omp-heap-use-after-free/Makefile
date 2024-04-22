@@ -1,7 +1,7 @@
 include ../../Makefile.defs
 
-TESTNAME     = omp-global-buffer-overflow
-TESTSRC_MAIN = omp-global-buffer-overflow.cpp
+TESTNAME     = omp-heap-use-after-free
+TESTSRC_MAIN = omp-heap-use-after-free.cpp
 TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 

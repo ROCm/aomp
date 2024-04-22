@@ -26,7 +26,8 @@ else
   # target IDs that support OpenMP 'requires unified_shared_memory'
   # as defined in https://llvm.org/docs/AMDGPUUsage.html#amdgpu-processor-table
   # with xnack target feature supported.
-  SUPPORTS_USM= gfx90a, gfx90a:xnack+,\
+  SUPPORTS_USM= gfx908, gfx908:xnack+,\
+                gfx90a, gfx90a:xnack+,\
                 gfx90c, gfx90c:xnack+,\
                 gfx940, gfx940:xnack+,\
                 gfx941, gfx941:xnack+,\

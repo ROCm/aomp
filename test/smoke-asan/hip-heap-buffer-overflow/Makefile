@@ -22,7 +22,7 @@ CLANG        ?= clang++
 OMP_BIN      = $(AOMP)/bin/$(CLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
 
-SUPPORTED    = gfx90a:xnack+,gfx940:xnack+,gfx941:xnack+,gfx942:xnack+
+SUPPORTED    = gfx908:xnack+,gfx90a:xnack+,gfx940:xnack+,gfx941:xnack+,gfx942:xnack+
 
 #-ccc-print-phases
 #"-\#\#\#"
