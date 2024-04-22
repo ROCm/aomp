@@ -8,7 +8,7 @@ ifneq ($(CURDIR)/,$(mkfile_dir))
 else
   _src = src
 endif
-include $(mkfile_dir)../Makefile.find_gpu_and_install_dir
+include $(mkfile_dir)../../Makefile.find_gpu_and_install_dir
 
 CLANG        ?= clang -O3 -fopenmp --offload-arch=$(LLVM_GPU_ARCH)
 OMP_BIN      = $(LLVM_INSTALL_DIR)/bin/$(CLANG)
