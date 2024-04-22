@@ -16,15 +16,15 @@ ifneq ("$(wildcard $(AOMP))","")
 endif
 endif
 
-# If LLVM_INSTALL_DIR not preset, seach private build, rocm, and then installed aomp
+# If LLVM_INSTALL_DIR not preset, seach rocm at /opt/rocm/lib/llvm, and then ~/rocm/aomp
 ifeq ("$(wildcard $(LLVM_INSTALL_DIR))","")
   ifneq ($(LLVM_INSTALL_DIR),)
     $(warning Specified LLVM_INSTALL_DIR:$(LLVM_INSTALL_DIR) NOT FOUND)
   endif
   this_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
-  # this_dir ... finds the compiler if example run direct from installation e.g.:
+  # this_dir ... finds the compiler if example Make is run directly from the installation e.g.:
   #   make -f /opt/rocm/share/openmp-extras/examples/openmp/veccopy/Makefile run
-  LLVM_INSTALL_SEARCH_DIRS ?= /opt/rocm/llvm $(this_dir)../../../llvm $(HOME)/rocm/aomp
+  LLVM_INSTALL_SEARCH_DIRS ?= /opt/rocm/lib/llvm $(this_dir)../../../llvm $(HOME)/rocm/aomp
   # Select the first directory found from above list.
   LLVM_INSTALL_DIR := $(word 1, $(strip $(foreach dir,$(LLVM_INSTALL_SEARCH_DIRS),$(wildcard $(dir)))))
   ifeq ("$(wildcard $(LLVM_INSTALL_DIR))","")
