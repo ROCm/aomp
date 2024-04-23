@@ -41,12 +41,6 @@ const uint64_t ARRAY_SIZE = _ARRAY_SIZE;
 unsigned int repeat_num_times = 12;
 unsigned int ignore_times = 2; // ignore this many timings first
 
-// Set this macro if you want omp reductions to use same precision as data
-// arrays. Comment it OUT for omp reductions to use extended precision.
-//#define USE_ARRAY_OMP_PRECISION
-// The simulated omp reductions will always use extended precision.
-// for run_tests_extended which specifies an extended type.
-
 // If we know at compile time that we have 0 index with 1 stride,
 // then generate an optimized _BIG_JUMP_LOOP.
 // This test case has index 0 and stride 1, so we set this here.
@@ -224,9 +218,6 @@ int main(int argc, char *argv[]) {
   run_tests_extended<_Float16, float, false, true>(ARRAY_SIZE);
 
   // ----  This __bf16 test gets incorrect result from omp_dot. sim_dot works.
-  //       This fail occurs when USE_ARRAY_OMP_PRECISION is defined causing
-  //       omp_dot to be called.  If not defined, omp_dot_extended will be
-  //       called and the fail does not occur.
   std::cout << std::endl
             << "TEST __bf16 extended to float : " << _XTEAM_NUM_THREADS << " THREADS  "
             << _XTEAM_NUM_TEAMS << " TEAMS"
@@ -319,6 +310,8 @@ int main(int argc, char *argv[]) {
   return test_run_rc;
 }
 
+// -------- omp_dot and omp_dot_extended
+
 template <typename T> T omp_dot(T *a, T *b, uint64_t array_size) {
   T sum = 0.0;
 #pragma omp target teams distribute parallel for map(tofrom: sum) reduction(+:sum)
@@ -326,16 +319,37 @@ template <typename T> T omp_dot(T *a, T *b, uint64_t array_size) {
     sum += a[i] * b[i];
   return sum;
 }
+template <typename T, typename EXT_T> T omp_dot_extended(T *a, T *b, uint64_t array_size) {
+  EXT_T sum = 0.0;
+#pragma omp target teams distribute parallel for map(tofrom: sum) reduction(+:sum)
+  for (int64_t i = 0; i < array_size; i++)
+    sum += (EXT_T) a[i] * (EXT_T) b[i];
+  return (T) sum;
+}
 
-template <typename T> T omp_max(T *c, uint64_t array_size) {
+// -------- omp_max and omp_max_extended
+
+template <typename T>
+T omp_max(T *c, uint64_t array_size) {
   T maxval = std::numeric_limits<T>::lowest();
 #pragma omp target teams distribute parallel for map(tofrom:maxval) reduction(max:maxval)
   for (int64_t i = 0; i < array_size; i++)
     maxval = (c[i] > maxval) ? c[i] : maxval;
   return maxval;
 }
+template <typename T, typename EXT_T>
+T omp_max_extended(T *c, uint64_t array_size) {
+  EXT_T maxval = std::numeric_limits<EXT_T>::lowest();
+#pragma omp target teams distribute parallel for map(tofrom:maxval) reduction(max:maxval)
+  for (int64_t i = 0; i < array_size; i++)
+    maxval = ((EXT_T) c[i] > maxval) ? (EXT_T) c[i] : maxval;
+  return (T) maxval;
+}
 
-template <typename T, bool DATA_TYPE_IS_INT> T omp_min(T *c, uint64_t array_size) {
+// -------- omp_min and omp_min_extended
+
+template <typename T, bool DATA_TYPE_IS_INT>
+T omp_min(T *c, uint64_t array_size) {
   T minval ;
   if (sizeof(T) < 4 && ! DATA_TYPE_IS_INT) { 
     // FIX for float16 bug on numeric_limits
@@ -350,28 +364,8 @@ template <typename T, bool DATA_TYPE_IS_INT> T omp_min(T *c, uint64_t array_size
   }
   return minval;
 }
-
-// These 3 functions do omp reductions in the extended precision.
-// Set USE_ARRAY_OMP_PRECISION macro to use native data array precision for
-// omp reductions found in above functions; omp_dot, omp_max, and omp_min.
-// The returned result is always in the data type of the data arrays.
-template <typename T, typename EXT_T> T omp_dot_extended(T *a, T *b, uint64_t array_size) {
-  EXT_T sum = 0.0;
-#pragma omp target teams distribute parallel for map(tofrom: sum) reduction(+:sum)
-  for (int64_t i = 0; i < array_size; i++)
-    sum += (EXT_T) a[i] * (EXT_T) b[i];
-  return (T) sum;
-}
-
-template <typename T, typename EXT_T> T omp_max_extended(T *c, uint64_t array_size) {
-  EXT_T maxval = std::numeric_limits<EXT_T>::lowest();
-#pragma omp target teams distribute parallel for map(tofrom:maxval) reduction(max:maxval)
-  for (int64_t i = 0; i < array_size; i++)
-    maxval = ((EXT_T) c[i] > maxval) ? (EXT_T) c[i] : maxval;
-  return (T) maxval;
-}
-
-template <typename T, typename EXT_T, bool DATA_TYPE_IS_INT> T omp_min_extended(T *c, uint64_t array_size) {
+template <typename T, typename EXT_T, bool DATA_TYPE_IS_INT>
+T omp_min_extended(T *c, uint64_t array_size) {
   EXT_T minval = std::numeric_limits<EXT_T>::max();
 #pragma omp target teams distribute parallel for map(tofrom:minval) reduction(min:minval)
   for (int64_t i = 0; i < array_size; i++) {
@@ -380,7 +374,9 @@ template <typename T, typename EXT_T, bool DATA_TYPE_IS_INT> T omp_min_extended(
   return (T) minval;
 }
 
-template <typename T> T sim_dot(T *a, T *b, int warp_size) {
+// -------- sim_dot 
+template <typename T>
+T sim_dot(T *a, T *b, int warp_size) {
   T sum = T(0);
   int devid = 0;
   struct loop_ctl_t {
@@ -433,7 +429,9 @@ template <typename T> T sim_dot(T *a, T *b, int warp_size) {
   return sum;
 }
 
-template <typename T, typename EXT_T > T sim_dot_extended(T *a, T *b, int warp_size) {
+// -------- sim_dot_extended
+template <typename T, typename EXT_T>
+T sim_dot_extended(T *a, T *b, int warp_size) {
   EXT_T sum = EXT_T(0);
   int devid = 0;
   struct loop_ctl_t {
@@ -442,8 +440,8 @@ template <typename T, typename EXT_T > T sim_dot_extended(T *a, T *b, int warp_s
     const int64_t stride = 1; // stride to process input vectors
     const int64_t offset = 0; // Offset to initial index of input vectors
     const int64_t size = _ARRAY_SIZE; // Size of input vector
-    const EXT_T rnv = EXT_T(0);               // reduction null value
-    EXT_T *team_vals;                     // array of global team values
+    const EXT_T rnv = EXT_T(0);       // reduction null value
+    EXT_T *team_vals;                 // array of global team values
   };
   static uint32_t zero = 0;
   static loop_ctl_t lc0;
@@ -483,11 +481,12 @@ template <typename T, typename EXT_T > T sim_dot_extended(T *a, T *b, int warp_s
                            _XTEAM_NUM_TEAMS);
     }
   }
-  T result = sum;
-  return result;
+  return (T) sum;
 }
 
-template <typename T> T sim_max(T *c, int warp_size) {
+// -------- sim_max
+template <typename T>
+T sim_max(T *c, int warp_size) {
   T retval = std::numeric_limits<T>::lowest();
   int devid = 0;
   struct loop_ctl_t {
@@ -540,7 +539,9 @@ template <typename T> T sim_max(T *c, int warp_size) {
   return retval;
 }
 
-template <typename T, typename EXT_T> T sim_max_extended(T *c, int warp_size) {
+// -------- sim_max_extended
+template <typename T, typename EXT_T>
+T sim_max_extended(T *c, int warp_size) {
   EXT_T retval = std::numeric_limits<T>::lowest();
   int devid = 0;
   struct loop_ctl_t {
@@ -590,11 +591,12 @@ template <typename T, typename EXT_T> T sim_max_extended(T *c, int warp_size) {
                            _XTEAM_NUM_TEAMS);
     }
   }
-  T result = retval;
-  return result;
+  return (T) retval;
 }
 
-template <typename T> T sim_min(T *c, int warp_size) {
+// -------- sim_min
+template <typename T>
+T sim_min(T *c, int warp_size) {
   T retval = std::numeric_limits<T>::max();
   int devid = 0;
   struct loop_ctl_t {
@@ -647,7 +649,9 @@ template <typename T> T sim_min(T *c, int warp_size) {
   return retval;
 }
 
-template <typename T, typename EXT_T, bool DATA_TYPE_IS_INT > T sim_min_extended(T *c, int warp_size) {
+// -------- sim_min_extended
+template <typename T, typename EXT_T, bool DATA_TYPE_IS_INT>
+T sim_min_extended(T *c, int warp_size) {
   EXT_T retval = std::numeric_limits<EXT_T>::max();
 
   int devid = 0;
@@ -694,10 +698,10 @@ template <typename T, typename EXT_T, bool DATA_TYPE_IS_INT > T sim_min_extended
                            _XTEAM_NUM_TEAMS);
     }
   }
-  T result = retval;
-  return result;
+  return (T) retval;
 }
 
+// -------- _check_val
 template <typename T, bool DATA_TYPE_IS_INT, bool DATA_TYPE_IS_SIGNED=true>
 void _check_val(T computed_val, T gold_val, const char *msg) {
   double ETOL = 0.0000001;
@@ -843,7 +847,7 @@ void run_tests(uint64_t array_size) {
   } // end Timing loop
 
   // Display timing results
-  std::cout << std::left << std::setw(12) << "Function" << std::left
+  std::cout << std::left << std::setw(11) << " Function" << std::left
             << std::setw(12) << "Best-MB/sec" << std::left << std::setw(12)
             << " Min (sec)" << std::left << std::setw(12) << "   Max"
             << std::left << std::setw(8) << "Avg" 
@@ -927,7 +931,7 @@ void run_tests_extended(uint64_t array_size) {
   double ETOL = 0.0000001;
   if (DATA_TYPE_IS_INT) {
     std::cout << "Array data type size: " << sizeof(T) << std::endl;
-    std::cout << "Data size of calculations (Extended) : " << sizeof(EXT_T) << std::endl;
+    std::cout << "Data size of calculations (extended): " << sizeof(EXT_T) << std::endl;
   } else {
     if (sizeof(T) == sizeof(float))
       std::cout << "Array data type: float" << std::endl;
@@ -943,12 +947,7 @@ void run_tests_extended(uint64_t array_size) {
     else
       std::cout << "Calculations precision: double" << std::endl;
   }
-#ifdef USE_ARRAY_OMP_PRECISION
-  std::cout << "OpenMP reductions done with precision of array data type." << std::endl;
-#else
-  std::cout << "OpenMP reductions done with extended precision." << std::endl;
-#endif
-  std::cout << "Simulated reductions done with extended precision." << std::endl;
+  std::cout << "Functions marked _e done with extended precision." << std::endl;
 
   // std::cout << "Warp size:" << warp_size << std::endl;
   // int num_teams = ompx_get_device_num_units(omp_get_default_device());
@@ -970,19 +969,18 @@ void run_tests_extended(uint64_t array_size) {
   double goldMin_d = (double)goldMin;
 
   // List of times
-  std::vector<std::vector<double>> timings(6);
+  std::vector<std::vector<double>> timings(9);
 
   // Declare timers
   std::chrono::high_resolution_clock::time_point t1, t2;
 
   // Timing loop
   for (unsigned int k = 0; k < repeat_num_times; k++) {
+
+    // ------------------- dot reductions
+    
     t1 = std::chrono::high_resolution_clock::now();
-#ifdef USE_ARRAY_OMP_PRECISION
     T omp_sum = omp_dot<T>(a, b, array_size);
-#else
-    T omp_sum = omp_dot_extended<T,EXT_T>(a, b, array_size);
-#endif
     t2 = std::chrono::high_resolution_clock::now();
     timings[0].push_back(
         std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1)
@@ -990,48 +988,69 @@ void run_tests_extended(uint64_t array_size) {
     _check_val<T, DATA_TYPE_IS_INT, DATA_TYPE_IS_SIGNED>(omp_sum, goldDot, "omp_dot");
 
     t1 = std::chrono::high_resolution_clock::now();
-    T sim_sum = sim_dot_extended<T,EXT_T>(a, b, warp_size);
+    T omp_sum_e = omp_dot_extended<T,EXT_T>(a, b, array_size);
     t2 = std::chrono::high_resolution_clock::now();
     timings[1].push_back(
         std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1)
             .count());
-    _check_val<T, DATA_TYPE_IS_INT, DATA_TYPE_IS_SIGNED>(sim_sum, goldDot, "sim_dot");
+    _check_val<T, DATA_TYPE_IS_INT, DATA_TYPE_IS_SIGNED>(omp_sum_e, goldDot, "omp_dot_e");
+
     t1 = std::chrono::high_resolution_clock::now();
-#ifdef USE_ARRAY_OMP_PRECISION
-    T omp_max_val = omp_max<T>(c, array_size);
-#else
-    T omp_max_val = omp_max_extended<T,EXT_T>(c, array_size);
-#endif
+    T sim_sum = sim_dot_extended<T,EXT_T>(a, b, warp_size);
     t2 = std::chrono::high_resolution_clock::now();
     timings[2].push_back(
+        std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1)
+            .count());
+    _check_val<T, DATA_TYPE_IS_INT, DATA_TYPE_IS_SIGNED>(sim_sum, goldDot, "sim_dot");
+
+    // ------------------- max reductions
+    
+    t1 = std::chrono::high_resolution_clock::now();
+    T omp_max_val = omp_max<T>(c, array_size);
+    t2 = std::chrono::high_resolution_clock::now();
+    timings[3].push_back(
         std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1)
             .count());
     _check_val<T, DATA_TYPE_IS_INT, DATA_TYPE_IS_SIGNED>(omp_max_val, goldMax, "omp_max");
 
     t1 = std::chrono::high_resolution_clock::now();
+    T omp_max_val_e = omp_max_extended<T,EXT_T>(c, array_size);
+    t2 = std::chrono::high_resolution_clock::now();
+    timings[4].push_back(
+        std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1)
+            .count());
+    _check_val<T, DATA_TYPE_IS_INT, DATA_TYPE_IS_SIGNED>(omp_max_val_e, goldMax, "omp_max_e");
+
+    t1 = std::chrono::high_resolution_clock::now();
     T sim_max_val = sim_max_extended<T,EXT_T>(c, warp_size);
     t2 = std::chrono::high_resolution_clock::now();
-    timings[3].push_back(
+    timings[5].push_back(
         std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1)
             .count());
     _check_val<T, DATA_TYPE_IS_INT,DATA_TYPE_IS_SIGNED>(sim_max_val, goldMax, "sim_max");
 
+    // ------------------- min reductions
+
     t1 = std::chrono::high_resolution_clock::now();
-#ifdef USE_ARRAY_OMP_PRECISION
     T omp_min_val = omp_min<T, DATA_TYPE_IS_INT>(c, array_size);
-#else
-    T omp_min_val = omp_min_extended<T, EXT_T, DATA_TYPE_IS_INT>(c, array_size);
-#endif
     t2 = std::chrono::high_resolution_clock::now();
-    timings[4].push_back(
+    timings[6].push_back(
         std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1)
             .count());
     _check_val<T, DATA_TYPE_IS_INT,DATA_TYPE_IS_SIGNED>(omp_min_val, goldMin, "omp_min");
 
     t1 = std::chrono::high_resolution_clock::now();
+    T omp_min_val_e = omp_min_extended<T, EXT_T, DATA_TYPE_IS_INT>(c, array_size);
+    t2 = std::chrono::high_resolution_clock::now();
+    timings[7].push_back(
+        std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1)
+            .count());
+    _check_val<T, DATA_TYPE_IS_INT,DATA_TYPE_IS_SIGNED>(omp_min_val_e, goldMin, "omp_min_e");
+
+    t1 = std::chrono::high_resolution_clock::now();
     T sim_min_val = sim_min_extended<T,EXT_T,DATA_TYPE_IS_INT>(c, warp_size);
     t2 = std::chrono::high_resolution_clock::now();
-    timings[5].push_back(
+    timings[8].push_back(
         std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1)
             .count());
     _check_val<T, DATA_TYPE_IS_INT,DATA_TYPE_IS_SIGNED>(sim_min_val, goldMin, "sim_min");
@@ -1048,13 +1067,15 @@ void run_tests_extended(uint64_t array_size) {
 
   std::cout << std::fixed;
 
-  std::string labels[6] = {"ompdot", "simdot", "ompmax",
-                           "simmax", "ompmin", "simmin"};
-  size_t sizes[6] = {2 * sizeof(T) * array_size, 2 * sizeof(T) * array_size,
-                     1 * sizeof(T) * array_size, 1 * sizeof(T) * array_size,
-                     1 * sizeof(T) * array_size, 1 * sizeof(T) * array_size};
+  std::string labels[9] = {"ompdot  ", "ompdot_e", "simdot_e", "ompmax  ",
+                           "ompmax_e", "simmax_e", "ompmin  ", "ompmin_e",
+			   "simmin_e"};
+  const size_t array_bytes= sizeof(T)*array_size;
+  const size_t sizes[9] = {2*array_bytes, 2*array_bytes, 2*array_bytes,
+                           array_bytes, array_bytes, array_bytes,
+                           array_bytes, array_bytes, array_bytes };
 
-  for (int i = 0; i < 6; i++) {
+  for (int i = 0; i < 9; i++) {
     // Get min/max; ignore the first couple results
     auto minmax = std::minmax_element(timings[i].begin() + ignore_times,
                                       timings[i].end());
@@ -1063,14 +1084,13 @@ void run_tests_extended(uint64_t array_size) {
                                      timings[i].end(), 0.0) /
                      (double)(repeat_num_times - ignore_times);
     double Bitems_per_sec  = 1.0E-9 * (double) array_size / average;
-    printf("  %s       %8.0f   %8.6f  %8.6f   %8.6f %8.0f %8.0f\n",
+    printf("  %s     %8.0f   %8.6f  %8.6f   %8.6f %8.0f %8.0f\n",
            labels[i].c_str(), 1.0E-6 * sizes[i] / (*minmax.first),
            (double)*minmax.first, (double)*minmax.second, (double)average,
            1.0E-6 * sizes[i] / (average), Bitems_per_sec);
   }
-#pragma omp target exit data map(release                                       \
-                                 : a [0:array_size], b [0:array_size],         \
-                                   c [0:array_size])
+#pragma omp target exit data map(release: a[0:array_size], b[0:array_size], \
+                                          c[0:array_size])
   free(a);
   free(b);
   free(c);
