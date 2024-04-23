@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#  build_openmp.sh:  Script to build the AOMP runtime libraries and debug libraries.  
+#  build_offload.sh:  Script to build the AOMP runtime libraries and debug libraries.
 #                This script will install in location defined by AOMP env variable
 #
 
@@ -12,7 +12,7 @@ thisdir=`dirname $realpath`
 
 INSTALL_OPENMP=${INSTALL_OPENMP:-$AOMP_INSTALL_DIR}
 
-if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then 
+if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   help_build_aomp
 fi
 
@@ -27,7 +27,7 @@ if [ "$AOMP_BUILD_CUDA" == 1 ] ; then
       echo
       echo "ERROR:  THE cuda.h FILE WAS NOT FOUND WITH ARCH $AOMP_PROC"
       echo "        A CUDA installation is necessary to build libomptarget deviceRTLs"
-      echo "        Please install CUDA to build openmp"
+      echo "        Please install CUDA to build offload"
       echo
       exit 1
    fi
@@ -35,17 +35,17 @@ if [ "$AOMP_BUILD_CUDA" == 1 ] ; then
    export CUDAFE_FLAGS="-w"
 fi
 
-if [ ! -d $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME ] ; then 
+if [ ! -d $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME ] ; then
    echo "ERROR:  Missing repository $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME "
    echo "        Consider setting env variables AOMP_REPOS and/or AOMP_PROJECT_REPO_NAME "
    exit 1
 fi
 
 # Make sure we can update the install directory
-if [ "$1" == "install" ] ; then 
+if [ "$1" == "install" ] ; then
    $SUDO mkdir -p $INSTALL_OPENMP
    $SUDO touch $INSTALL_OPENMP/testfile
-   if [ $? != 0 ] ; then 
+   if [ $? != 0 ] ; then
       echo "ERROR: No update access to $INSTALL_OPENMP"
       exit 1
    fi
@@ -76,8 +76,6 @@ COMMON_CMAKE_OPTS="$AOMP_SET_NINJA_GEN -DOPENMP_ENABLE_LIBOMPTARGET=1
 -DCMAKE_C_COMPILER=$ALTAOMP/bin/clang
 -DCMAKE_CXX_COMPILER=$ALTAOMP/bin/clang++
 -DLIBOMPTARGET_AMDGCN_GFXLIST=$GFXSEMICOLONS
--DDEVICELIBS_ROOT=$DEVICELIBS_ROOT
--DLIBOMP_COPY_EXPORTS=OFF
 -DLIBOMPTARGET_ENABLE_DEBUG=ON
 -DLLVM_DIR=$LLVM_DIR"
 
@@ -89,8 +87,7 @@ if [ "$AOMP_STANDALONE_BUILD" == 0 ]; then
 else
   COMMON_CMAKE_OPTS="$COMMON_CMAKE_OPTS \
 -DLLVM_MAIN_INCLUDE_DIR=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/llvm/include \
--DLIBOMPTARGET_LLVM_INCLUDE_DIRS=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/llvm/include \
--DLIBOMP_USE_HWLOC=ON -DLIBOMP_HWLOC_INSTALL_DIR=$AOMP_SUPP/hwloc"
+-DLIBOMPTARGET_LLVM_INCLUDE_DIRS=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/llvm/include"
 fi
 
 if [ "$AOMP_BUILD_CUDA" == 1 ] ; then
@@ -115,34 +112,34 @@ export HSA_RUNTIME_PATH=$ROCM_DIR
 #breaks build as it cant find rocm-path
 #export HIP_DEVICE_LIB_PATH=$ROCM_DIR/lib
 
-if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then 
-   echo " " 
-   echo "This is a FRESH START. ERASING any previous builds in $BUILD_DIR/openmp."
+if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
+   echo " "
+   echo "This is a FRESH START. ERASING any previous builds in $BUILD_DIR/offload."
    echo "Use ""$0 nocmake"" or ""$0 install"" to avoid FRESH START."
-   echo rm -rf $BUILD_DIR/build/openmp
-   rm -rf $BUILD_DIR/build/openmp
+   echo rm -rf $BUILD_DIR/build/offload
+   rm -rf $BUILD_DIR/build/offload
    MYCMAKEOPTS="$COMMON_CMAKE_OPTS -DCMAKE_BUILD_TYPE=Release $AOMP_ORIGIN_RPATH"
    if [ "$AOMP_LEGACY_OPENMP" == "1" ]; then
-      echo " -----Running openmp cmake ---- "
-      mkdir -p $BUILD_DIR/build/openmp
-      cd $BUILD_DIR/build/openmp
-      echo ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
-      ${AOMP_CMAKE} $MYCMAKEOPTS $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
+      echo " -----Running offload cmake ---- "
+      mkdir -p $BUILD_DIR/build/offload
+      cd $BUILD_DIR/build/offload
+      echo ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload
+      ${AOMP_CMAKE} $MYCMAKEOPTS $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload
       if [ $? != 0 ] ; then
-         echo "ERROR openmp cmake failed. Cmake flags"
+         echo "ERROR offload cmake failed. Cmake flags"
          echo "      $MYCMAKEOPTS"
          exit 1
       fi
    fi
       if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
         ASAN_CMAKE_OPTS="$COMMON_CMAKE_OPTS -DSANITIZER_AMDGPU=1 -DCMAKE_BUILD_TYPE=Release $AOMP_ORIGIN_RPATH"
-        echo " -----Running openmp cmake for asan ---- "
-        mkdir -p $BUILD_DIR/build/openmp/asan
-        cd $BUILD_DIR/build/openmp/asan
-        echo ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DCMAKE_C_FLAGS="'$ASAN_FLAGS'" -DCMAKE_CXX_FLAGS="'$ASAN_FLAGS'" -DLLVM_LIBDIR_SUFFIX="/asan" $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
-        ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DCMAKE_C_FLAGS="'$ASAN_FLAGS'" -DCMAKE_CXX_FLAGS="'$ASAN_FLAGS'" -DLLVM_LIBDIR_SUFFIX="/asan" $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
+        echo " -----Running offload cmake for asan ---- "
+        mkdir -p $BUILD_DIR/build/offload/asan
+        cd $BUILD_DIR/build/offload/asan
+        echo ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DCMAKE_C_FLAGS="'$ASAN_FLAGS'" -DCMAKE_CXX_FLAGS="'$ASAN_FLAGS'" -DLLVM_LIBDIR_SUFFIX="/asan" $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload
+        ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DCMAKE_C_FLAGS="'$ASAN_FLAGS'" -DCMAKE_CXX_FLAGS="'$ASAN_FLAGS'" -DLLVM_LIBDIR_SUFFIX="/asan" $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload
         if [ $? != 0 ] ; then
-           echo "ERROR openmp cmake failed. Cmake flags"
+           echo "ERROR offload cmake failed. Cmake flags"
            echo "      $ASAN_CMAKE_OPTS"
            exit 1
         fi
@@ -150,28 +147,28 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 
   # Build a dedicatd "performance" version of libomptarget
   if [ "$AOMP_BUILD_PERF" == "1" ]; then
-    echo rm -rf $BUILD_DIR/build/openmp_perf
-    rm -rf $BUILD_DIR/build/openmp_perf
+    echo rm -rf $BUILD_DIR/build/offload_perf
+    rm -rf $BUILD_DIR/build/offload_perf
     MYCMAKEOPTS="$COMMON_CMAKE_OPTS -DLIBOMPTARGET_ENABLE_DEBUG=OFF -DCMAKE_BUILD_TYPE=Release -DLIBOMPTARGET_PERF=ON -DLLVM_LIBDIR_SUFFIX=-perf $AOMP_ORIGIN_RPATH"
-    mkdir -p $BUILD_DIR/build/openmp_perf
-    cd $BUILD_DIR/build/openmp_perf
-    echo " -----Running openmp cmake for perf ---- "
-    echo ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
-    ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
+    mkdir -p $BUILD_DIR/build/offload_perf
+    cd $BUILD_DIR/build/offload_perf
+    echo " -----Running offload cmake for perf ---- "
+    echo ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload
+    ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload
     if [ $? != 0 ] ; then
-       echo "error openmp cmake failed. cmake flags"
+       echo "error offload cmake failed. cmake flags"
        echo "      $MYCMAKEOPTS"
        exit 1
     fi
     if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
        ASAN_CMAKE_OPTS="$MYCMAKEOPTS -DSANITIZER_AMDGPU=1"
-       echo " -----Running openmp cmake for perf-asan ---- "
-       mkdir -p $BUILD_DIR/build/openmp_perf/asan
-       cd $BUILD_DIR/build/openmp_perf/asan
-       echo ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DCMAKE_C_FLAGS="'$ASAN_FLAGS'" -DCMAKE_CXX_FLAGS="'$ASAN_FLAGS'" -DLLVM_LIBDIR_SUFFIX="-perf/asan" $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
-       ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DCMAKE_C_FLAGS="'$ASAN_FLAGS'" -DCMAKE_CXX_FLAGS="'$ASAN_FLAGS'" -DLLVM_LIBDIR_SUFFIX="-perf/asan" $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
+       echo " -----Running offload cmake for perf-asan ---- "
+       mkdir -p $BUILD_DIR/build/offload_perf/asan
+       cd $BUILD_DIR/build/offload_perf/asan
+       echo ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DCMAKE_C_FLAGS="'$ASAN_FLAGS'" -DCMAKE_CXX_FLAGS="'$ASAN_FLAGS'" -DLLVM_LIBDIR_SUFFIX="-perf/asan" $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload
+       ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DCMAKE_C_FLAGS="'$ASAN_FLAGS'" -DCMAKE_CXX_FLAGS="'$ASAN_FLAGS'" -DLLVM_LIBDIR_SUFFIX="-perf/asan" $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload
        if [ $? != 0 ] ; then
-          echo "error openmp cmake failed. cmake flags"
+          echo "error offload cmake failed. cmake flags"
           echo "      $ASAN_CMAKE_OPTS"
           exit 1
        fi
@@ -182,9 +179,9 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
       _ompd_dir="$AOMP_INSTALL_DIR/lib-debug/ompd"
       #  This is the new locationof the ompd directory
       [[ ! -d $_ompd_dir ]] && _ompd_dir="$AOMP_INSTALL_DIR/share/gdb/python/ompd"
-      echo rm -rf $BUILD_DIR/build/openmp_debug
-      rm -rf $BUILD_DIR/build/openmp_debug
-      
+      echo rm -rf $BUILD_DIR/build/offload_debug
+      rm -rf $BUILD_DIR/build/offload_debug
+
       MYCMAKEOPTS="$COMMON_CMAKE_OPTS \
 -DLIBOMPTARGET_NVPTX_DEBUG=ON \
 -DLLVM_ENABLE_ASSERTIONS=ON \
@@ -197,7 +194,7 @@ $AOMP_ORIGIN_RPATH \
 -DLIBOMP_CPPFLAGS='-O0' \
 -DLIBOMP_OMPD_SUPPORT=ON \
 -DLIBOMP_OMPT_DEBUG=ON \
--DOPENMP_SOURCE_DEBUG_MAP="\""-fdebug-prefix-map=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp=$_ompd_dir/src/openmp"\"" "
+-DOPENMP_SOURCE_DEBUG_MAP="\""-fdebug-prefix-map=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload=$_ompd_dir/src/offload"\"" "
 
       # The 'pip install --system' command is not supported on non-debian systems. This will disable
       # the system option if the debian_version file is not present.
@@ -214,25 +211,25 @@ $AOMP_ORIGIN_RPATH \
       fi
 
       echo
-      echo " -----Running openmp cmake for debug ---- " 
-      mkdir -p $BUILD_DIR/build/openmp_debug
-      cd $BUILD_DIR/build/openmp_debug
-      echo ${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_C_FLAGS="$CFLAGS -g" -DCMAKE_CXX_FLAGS="$CXXFLAGS -g" -DLLVM_LIBDIR_SUFFIX=-debug $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
-      ${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_C_FLAGS="$CFLAGS -g" -DCMAKE_CXX_FLAGS="$CXXFLAGS -g" -DLLVM_LIBDIR_SUFFIX=-debug $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
+      echo " -----Running offload cmake for debug ---- "
+      mkdir -p $BUILD_DIR/build/offload_debug
+      cd $BUILD_DIR/build/offload_debug
+      echo ${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_C_FLAGS="$CFLAGS -g" -DCMAKE_CXX_FLAGS="$CXXFLAGS -g" -DLLVM_LIBDIR_SUFFIX=-debug $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload
+      ${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_C_FLAGS="$CFLAGS -g" -DCMAKE_CXX_FLAGS="$CXXFLAGS -g" -DLLVM_LIBDIR_SUFFIX=-debug $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload
       if [ $? != 0 ] ; then
-         echo "ERROR openmp debug cmake failed. Cmake flags"
+         echo "ERROR offload debug cmake failed. Cmake flags"
          echo "      $MYCMAKEOPTS"
          exit 1
       fi
       if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
          ASAN_CMAKE_OPTS="$MYCMAKEOPTS -DSANITIZER_AMDGPU=1"
-         echo " -----Running openmp cmake for debug-asan ---- "
-         mkdir -p $BUILD_DIR/build/openmp_debug/asan
-         cd $BUILD_DIR/build/openmp_debug/asan
-         echo ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DCMAKE_C_FLAGS="'$ASAN_FLAGS'" -DCMAKE_CXX_FLAGS="'$ASAN_FLAGS'" -DLLVM_LIBDIR_SUFFIX="-debug/asan" $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
-         ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DCMAKE_C_FLAGS="'$ASAN_FLAGS'" -DCMAKE_CXX_FLAGS="'$ASAN_FLAGS'" -DLLVM_LIBDIR_SUFFIX="-debug/asan" $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
+         echo " -----Running offload cmake for debug-asan ---- "
+         mkdir -p $BUILD_DIR/build/offload_debug/asan
+         cd $BUILD_DIR/build/offload_debug/asan
+         echo ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DCMAKE_C_FLAGS="'$ASAN_FLAGS'" -DCMAKE_CXX_FLAGS="'$ASAN_FLAGS'" -DLLVM_LIBDIR_SUFFIX="-debug/asan" $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload
+         ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DCMAKE_C_FLAGS="'$ASAN_FLAGS'" -DCMAKE_CXX_FLAGS="'$ASAN_FLAGS'" -DLLVM_LIBDIR_SUFFIX="-debug/asan" $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload
          if [ $? != 0 ] ; then
-            echo "ERROR openmp debug cmake failed. Cmake flags"
+            echo "ERROR offload debug cmake failed. Cmake flags"
             echo "      $ASAN_CMAKE_OPTS"
             exit 1
          fi
@@ -242,48 +239,48 @@ fi
 
 if [ "$1" != "install" ] ; then
 if [ "$AOMP_LEGACY_OPENMP" == "1" ]; then
-  cd $BUILD_DIR/build/openmp
-  echo " -----Running $AOMP_NINJA_BIN for $BUILD_DIR/build/openmp ---- "
+  cd $BUILD_DIR/build/offload
+  echo " -----Running $AOMP_NINJA_BIN for $BUILD_DIR/build/offload ---- "
   $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS
   if [ $? != 0 ] ; then
         echo " "
         echo "ERROR: $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS  FAILED"
         echo "To restart:"
-        echo "  cd $BUILD_DIR/build/openmp"
+        echo "  cd $BUILD_DIR/build/offload"
         echo "  $AOMP_NINJA_BIN"
         exit 1
   fi
 fi
 
 if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
-   cd $BUILD_DIR/build/openmp/asan
-   echo " -----Running $AOMP_NINJA_BIN for $BUILD_DIR/build/openmp/asan ---- "
+   cd $BUILD_DIR/build/offload/asan
+   echo " -----Running $AOMP_NINJA_BIN for $BUILD_DIR/build/offload/asan ---- "
    $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS
    if [ $? != 0 ] ; then
       echo " "
       echo "ERROR: $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS  FAILED"
       echo "To restart:"
-      echo "  cd $BUILD_DIR/build/openmp/asan"
+      echo "  cd $BUILD_DIR/build/offload/asan"
       echo "  $AOMP_NINJA_BIN"
       exit 1
    fi
 fi
 
 if [ "$AOMP_BUILD_PERF" == "1" ] ; then
-   cd $BUILD_DIR/build/openmp_perf
+   cd $BUILD_DIR/build/offload_perf
    echo
    echo
-   echo " -----Running $AOMP_NINJA_BIN for $BUILD_DIR/build/openmp_perf ---- "
+   echo " -----Running $AOMP_NINJA_BIN for $BUILD_DIR/build/offload_perf ---- "
    $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS
    if [ $? != 0 ] ; then 
          echo "ERROR $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS failed"
          exit 1
    fi
    if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
-      cd $BUILD_DIR/build/openmp_perf/asan
+      cd $BUILD_DIR/build/offload_perf/asan
       echo
       echo
-      echo " ----- Running $AOMP_NINJA_BIN for $BUILD_DIR/build/openmp_perf/asan ----- "
+      echo " ----- Running $AOMP_NINJA_BIN for $BUILD_DIR/build/offload_perf/asan ----- "
       $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS
       if [ $? != 0 ] ; then
          echo "ERROR $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS failed"
@@ -293,10 +290,10 @@ if [ "$AOMP_BUILD_PERF" == "1" ] ; then
 fi
 
 if [ "$AOMP_BUILD_DEBUG" == "1" ] ; then
-   cd $BUILD_DIR/build/openmp_debug
+   cd $BUILD_DIR/build/offload_debug
    echo
    echo
-   echo " -----Running $AOMP_NINJA_BIN for $BUILD_DIR/build/openmp_debug ---- "
+   echo " -----Running $AOMP_NINJA_BIN for $BUILD_DIR/build/offload_debug ---- "
    $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS
    if [ $? != 0 ] ; then
       echo "ERROR $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS failed"
@@ -305,10 +302,10 @@ if [ "$AOMP_BUILD_DEBUG" == "1" ] ; then
 
 
    if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
-      cd $BUILD_DIR/build/openmp_debug/asan
+      cd $BUILD_DIR/build/offload_debug/asan
       echo
       echo
-      echo " -----Running $AOMP_NINJA_BIN for $BUILD_DIR/build/openmp_debug/asan ---- "
+      echo " -----Running $AOMP_NINJA_BIN for $BUILD_DIR/build/offload_debug/asan ---- "
       $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS
       if [ $? != 0 ] ; then
          echo "ERROR $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS failed"
@@ -318,17 +315,17 @@ if [ "$AOMP_BUILD_DEBUG" == "1" ] ; then
 fi
 
    echo
-   echo "Successful build of ./build_openmp.sh .  Please run:"
-   echo "  ./build_openmp.sh install "
+   echo "Successful build of ./build_offload.sh .  Please run:"
+   echo "  ./build_offload.sh install "
    echo
 fi
 
 #  ----------- Install only if asked  ----------------------------
-if [ "$1" == "install" ] ; then 
+if [ "$1" == "install" ] ; then
    clang_major=$("$AOMP_INSTALL_DIR"/bin/clang --version | grep -oP '(?<=clang version )[0-9]+')
    llvm_dylib=$(readlink "$AOMP_INSTALL_DIR"/lib/libLLVM.so)
    if [ "$AOMP_LEGACY_OPENMP" == "1" ]; then
-      cd $BUILD_DIR/build/openmp
+      cd $BUILD_DIR/build/offload
       echo
       echo " -----Installing to $INSTALL_OPENMP/lib ----- "
       $SUDO $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS install
@@ -339,7 +336,7 @@ if [ "$1" == "install" ] ; then
    fi
 
    if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
-      cd $BUILD_DIR/build/openmp/asan
+      cd $BUILD_DIR/build/offload/asan
       echo
       echo " -----Installing to $INSTALL_OPENMP/lib/asan ----- "
       $SUDO $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS install
@@ -350,7 +347,7 @@ if [ "$1" == "install" ] ; then
    fi
 
    if [ "$AOMP_BUILD_PERF" == "1" ]; then
-     cd $BUILD_DIR/build/openmp_perf
+     cd $BUILD_DIR/build/offload_perf
      echo
      echo " -----Installing to $INSTALL_OPENMP/lib-perf ----- "
      $SUDO $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS install
@@ -364,7 +361,7 @@ if [ "$1" == "install" ] ; then
      fi
 
      if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
-        cd $BUILD_DIR/build/openmp_perf/asan
+        cd $BUILD_DIR/build/offload_perf/asan
         echo
         echo " ----- Installing to $INSTALL_OPENMP/lib-perf/asan ----- "
         $SUDO $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS install
@@ -376,14 +373,14 @@ if [ "$1" == "install" ] ; then
    fi
 
    if [ "$AOMP_BUILD_DEBUG" == "1" ] ; then
-      cd $BUILD_DIR/build/openmp_debug
+      cd $BUILD_DIR/build/offload_debug
       _ompd_dir="$AOMP_INSTALL_DIR/lib-debug/ompd"
       #  This is the new locationof the ompd directory
       [[ ! -d $_ompd_dir ]] && _ompd_dir="$AOMP_INSTALL_DIR/share/gdb/python/ompd"
       echo
-      echo " -----Installing to $INSTALL_OPENMP/lib-debug ---- " 
+      echo " -----Installing to $INSTALL_OPENMP/lib-debug ---- "
       $SUDO $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS install
-      if [ $? != 0 ] ; then 
+      if [ $? != 0 ] ; then
          echo "ERROR $AOMP_NINJA_BIN install failed "
          exit 1
       fi
@@ -393,7 +390,7 @@ if [ "$1" == "install" ] ; then
       fi
 
       if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
-         cd $BUILD_DIR/build/openmp_debug/asan
+         cd $BUILD_DIR/build/offload_debug/asan
          echo " -----Installing to $INSTALL_OPENMP/lib-debug/asan ---- "
          $SUDO $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS install
          if [ $? != 0 ] ; then
@@ -401,32 +398,5 @@ if [ "$1" == "install" ] ; then
             exit 1
          fi
       fi
-
-      # Remove ompdModule.cpython...so  , contains absolute runpath
-      _ompd_dir="$AOMP_INSTALL_DIR/lib-debug/ompd"
-      OMF=`find $_ompd_dir -name ompdModule.cpython\*`
-      echo found ompdModule $OMF
-      if [ -f "$OMF" ]; then
-        echo "==> Removing $OMF"
-        rm -f "$OMF"
-      fi
-      readelf -d $_ompd_dir/ompdModule.so |grep PATH
-
-      if [[ "$DEVEL_PACKAGE" =~ "devel" ]]; then
-        AOMP_INSTALL_DIR="$AOMP_INSTALL_DIR/""$DEVEL_PACKAGE"
-        echo "Request for devel package found."
-      fi
-
-      # we do not yet have OMPD in llvm 12, disable this for now.
-      # Copy selected debugable runtime sources into the installation $ompd_dir/src directory
-      # to satisfy the above -fdebug-prefix-map.
-      $SUDO mkdir -p $_ompd_dir/src/openmp/runtime/src
-      echo cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/runtime/src $_ompd_dir/src/openmp/runtime
-      $SUDO cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/runtime/src $_ompd_dir/src/openmp/runtime
-      $SUDO mkdir -p $_ompd_dir/src/openmp/src
-      echo cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/src $_ompd_dir/src/openmp
-      $SUDO cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/src $_ompd_dir/src/openmp
-      $SUDO mkdir -p $_ompd_dir/src/openmp/libompd/src
-      $SUDO cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/libompd/src $_ompd_dir/src/openmp/libompd
    fi
 fi
