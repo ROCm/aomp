@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#  build_openmp.sh:  Script to build the AOMP runtime libraries and debug libraries.  
+#  build_offload.sh:  Script to build the AOMP runtime libraries and debug libraries.  
 #                This script will install in location defined by AOMP env variable
 #
 # --- Start standard header ----
@@ -46,7 +46,7 @@ if [ "$AOMP_BUILD_CUDA" == 1 ] ; then
       echo
       echo "ERROR:  THE cuda.h FILE WAS NOT FOUND WITH ARCH $AOMP_PROC"
       echo "        A CUDA installation is necessary to build libomptarget deviceRTLs"
-      echo "        Please install CUDA to build openmp"
+      echo "        Please install CUDA to build offload"
       echo
       exit 1
    fi
@@ -128,33 +128,33 @@ fi
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then 
 
    echo " " 
-   echo "This is a FRESH START. ERASING any previous builds in $BUILD_DIR/openmp "
+   echo "This is a FRESH START. ERASING any previous builds in $BUILD_DIR/offload "
    echo "Use ""$0 nocmake"" or ""$0 install"" to avoid FRESH START."
 
    if [ $COPYSOURCE ] ; then
       mkdir -p $BUILD_DIR/$AOMP_PROJECT_REPO_NAME
-      echo rsync -av --delete $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp  $BUILD_DIR/$AOMP_PROJECT_REPO_NAME
-      rsync -av --delete $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp  $BUILD_DIR/$AOMP_PROJECT_REPO_NAME
+      echo rsync -av --delete $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload  $BUILD_DIR/$AOMP_PROJECT_REPO_NAME
+      rsync -av --delete $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload  $BUILD_DIR/$AOMP_PROJECT_REPO_NAME
    fi
 
-      echo rm -rf $BUILD_DIR/build/openmp
-      rm -rf $BUILD_DIR/build/openmp
+      echo rm -rf $BUILD_DIR/build/offload
+      rm -rf $BUILD_DIR/build/offload
       #MYCMAKEOPTS="$COMMON_CMAKE_OPTS -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS=-g =DCMAKE_C_FLAGS=-g $AOMP_ORIGIN_RPATH -DROCM_DIR=$ROCM_DIR -DAOMP_STANDALONE_BUILD=$AOMP_STANDALONE_BUILD"
       MYCMAKEOPTS="$COMMON_CMAKE_OPTS \
       -DCMAKE_BUILD_TYPE=Release"
       if [ "$AOMP_BUILD_SANITIZER" != 1 ]; then
-         mkdir -p $BUILD_DIR/build/openmp
-         cd $BUILD_DIR/build/openmp
-         echo " -----Running openmp cmake ---- "
+         mkdir -p $BUILD_DIR/build/offload
+         cd $BUILD_DIR/build/offload
+         echo " -----Running offload cmake ---- "
          if [ $COPYSOURCE ] ; then
-            echo ${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_C_FLAGS="-I$ROCM_DIR/include" -DCMAKE_CXX_FLAGS="-I$ROCM_DIR/include" $BUILD_DIR/$AOMP_PROJECT_REPO_NAME/openmp
-            env "$@" ${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_C_FLAGS="-I$ROCM_DIR/include" -DCMAKE_CXX_FLAGS="-I$ROCM_DIR/include" $BUILD_DIR/$AOMP_PROJECT_REPO_NAME/openmp
+            echo ${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_C_FLAGS="-I$ROCM_DIR/include" -DCMAKE_CXX_FLAGS="-I$ROCM_DIR/include" $BUILD_DIR/$AOMP_PROJECT_REPO_NAME/offload
+            env "$@" ${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_C_FLAGS="-I$ROCM_DIR/include" -DCMAKE_CXX_FLAGS="-I$ROCM_DIR/include" $BUILD_DIR/$AOMP_PROJECT_REPO_NAME/offload
          else
-            echo ${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_C_FLAGS="-I$ROCM_DIR/include" -DCMAKE_CXX_FLAGS="-I$ROCM_DIR/include" $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
-            env "$@" ${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_C_FLAGS="-I$ROCM_DIR/include" -DCMAKE_CXX_FLAGS="-I$ROCM_DIR/include" $AOMP_REPOS/../$AOMP_PROJECT_REPO_NAME/openmp
+            echo ${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_C_FLAGS="-I$ROCM_DIR/include" -DCMAKE_CXX_FLAGS="-I$ROCM_DIR/include" $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload
+            env "$@" ${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_C_FLAGS="-I$ROCM_DIR/include" -DCMAKE_CXX_FLAGS="-I$ROCM_DIR/include" $AOMP_REPOS/../$AOMP_PROJECT_REPO_NAME/offload
          fi
          if [ $? != 0 ] ; then
-            echo "ERROR openmp cmake failed. Cmake flags"
+            echo "ERROR offload cmake failed. Cmake flags"
             echo "      $MYCMAKEOPTS"
             exit 1
          fi
@@ -162,25 +162,25 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 
       if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
          ASAN_CMAKE_OPTS="$MYCMAKEOPTS -DSANITIZER_AMDGPU=1 -DLLVM_LIBDIR_SUFFIX=/asan"
-         mkdir -p $BUILD_DIR/build/openmp/asan
-         cd $BUILD_DIR/build/openmp/asan
-         echo " ------Running openmp-asan cmake ---- "
+         mkdir -p $BUILD_DIR/build/offload/asan
+         cd $BUILD_DIR/build/offload/asan
+         echo " ------Running offload-asan cmake ---- "
          if [ $COPYSOURCE ] ; then
-            echo ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DCMAKE_C_FLAGS="'$CFLAGS'" -DCMAKE_CXX_FLAGS="'$CXXFLAGS'" $BUILD_DIR/$AOMP_PROJECT_REPO_NAME/openmp
-            env "$@" ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DCMAKE_C_FLAGS="'$CFLAGS'" -DCMAKE_CXX_FLAGS="'$CXXFLAGS'" $BUILD_DIR/$AOMP_PROJECT_REPO_NAME/openmp
+            echo ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DCMAKE_C_FLAGS="'$CFLAGS'" -DCMAKE_CXX_FLAGS="'$CXXFLAGS'" $BUILD_DIR/$AOMP_PROJECT_REPO_NAME/offload
+            env "$@" ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DCMAKE_C_FLAGS="'$CFLAGS'" -DCMAKE_CXX_FLAGS="'$CXXFLAGS'" $BUILD_DIR/$AOMP_PROJECT_REPO_NAME/offload
          else
-            echo ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DCMAKE_C_FLAGS="'$CFLAGS'" -DCMAKE_CXX_FLAGS="'$CXXFLAGS'" $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
-            env "$@" ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DCMAKE_C_FLAGS="'$CFLAGS'" -DCMAKE_CXX_FLAGS="'$CXXFLAGS'" $AOMP_REPOS/../$AOMP_PROJECT_REPO_NAME/openmp
+            echo ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DCMAKE_C_FLAGS="'$CFLAGS'" -DCMAKE_CXX_FLAGS="'$CXXFLAGS'" $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload
+            env "$@" ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DCMAKE_C_FLAGS="'$CFLAGS'" -DCMAKE_CXX_FLAGS="'$CXXFLAGS'" $AOMP_REPOS/../$AOMP_PROJECT_REPO_NAME/offload
          fi
          if [ $? != 0 ] ; then
-            echo "ERROR openmp-asan cmake failed. Cmake flags"
+            echo "ERROR offload-asan cmake failed. Cmake flags"
             echo "      $ASAN_CMAKE_OPTS"
             exit 1
          fi
       fi
 
-      echo rm -rf $BUILD_DIR/build/openmp_debug
-      rm -rf $BUILD_DIR/build/openmp_debug
+      echo rm -rf $BUILD_DIR/build/offload_debug
+      rm -rf $BUILD_DIR/build/offload_debug
       #MYCMAKEOPTS="$COMMON_CMAKE_OPTS -DLIBOMPTARGET_NVPTX_DEBUG=ON -DCMAKE_BUILD_TYPE=Debug $AOMP_ORIGIN_RPATH -DROCM_DIR=$ROCM_DIR -DAOMP_STANDALONE_BUILD=$AOMP_STANDALONE_BUILD"
       MYCMAKEOPTS="$COMMON_CMAKE_OPTS \
       -DCMAKE_BUILD_TYPE=Debug \
@@ -191,7 +191,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
       -DLIBOMP_CPPFLAGS='-O0' \
       -DLIBOMP_OMPD_SUPPORT=ON \
       -DLIBOMP_OMPT_DEBUG=ON \
-      -DOPENMP_SOURCE_DEBUG_MAP="\""-fdebug-prefix-map=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp=$ROCM_INSTALL_PATH/llvm/lib-debug/src/openmp"\"""
+      -DOPENMP_SOURCE_DEBUG_MAP="\""-fdebug-prefix-map=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload=$ROCM_INSTALL_PATH/llvm/lib-debug/src/offload"\"""
 
       # Only use CMAKE_CXX/C_FLAGS on non-asan builds as these will overwrite the asan flags
       if [ "$AOMP_BUILD_SANITIZER" == 1  ]; then
@@ -200,40 +200,40 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 
       MYCMAKEOPTS="$MYCMAKEOPTS -DLLVM_LIBDIR_SUFFIX=-debug"
       if [ "$AOMP_BUILD_SANITIZER" != 1 ]; then
-         mkdir -p $BUILD_DIR/build/openmp_debug
-         cd $BUILD_DIR/build/openmp_debug
+         mkdir -p $BUILD_DIR/build/offload_debug
+         cd $BUILD_DIR/build/offload_debug
          echo
-         echo " -----Running openmp cmake for debug ---- "
+         echo " -----Running offload cmake for debug ---- "
          if [ $COPYSOURCE ] ; then
-            echo ${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_C_FLAGS="-g -I$ROCM_DIR/include" -DCMAKE_CXX_FLAGS="-g -I$ROCM_DIR/include" $BUILD_DIR/$AOMP_PROJECT_REPO_NAME/openmp
-            env "$@" ${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_C_FLAGS="-g -I$ROCM_DIR/include" -DCMAKE_CXX_FLAGS="-g -I$ROCM_DIR/include" $BUILD_DIR/$AOMP_PROJECT_REPO_NAME/openmp
+            echo ${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_C_FLAGS="-g -I$ROCM_DIR/include" -DCMAKE_CXX_FLAGS="-g -I$ROCM_DIR/include" $BUILD_DIR/$AOMP_PROJECT_REPO_NAME/offload
+            env "$@" ${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_C_FLAGS="-g -I$ROCM_DIR/include" -DCMAKE_CXX_FLAGS="-g -I$ROCM_DIR/include" $BUILD_DIR/$AOMP_PROJECT_REPO_NAME/offload
          else
             # FIXME: Remove CMAKE_CXX_FLAGS and CMAKE_C_FLAGS when AFAR uses 5.3 ROCr.
-            echo ${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_C_FLAGS="-g -I$ROCM_DIR/include" -DCMAKE_CXX_FLAGS="-g -I$ROCM_DIR/include" $AOMP_REPOS/../$AOMP_PROJECT_REPO_NAME/openmp
-            env "$@" ${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_C_FLAGS="-g -I$ROCM_DIR/include" -DCMAKE_CXX_FLAGS="-g -I$ROCM_DIR/include" $AOMP_REPOS/../$AOMP_PROJECT_REPO_NAME/openmp
+            echo ${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_C_FLAGS="-g -I$ROCM_DIR/include" -DCMAKE_CXX_FLAGS="-g -I$ROCM_DIR/include" $AOMP_REPOS/../$AOMP_PROJECT_REPO_NAME/offload
+            env "$@" ${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_C_FLAGS="-g -I$ROCM_DIR/include" -DCMAKE_CXX_FLAGS="-g -I$ROCM_DIR/include" $AOMP_REPOS/../$AOMP_PROJECT_REPO_NAME/offload
          fi
          if [ $? != 0 ] ; then
-            echo "ERROR openmp debug cmake failed. Cmake flags"
+            echo "ERROR offload debug cmake failed. Cmake flags"
             echo "      $MYCMAKEOPTS"
             exit 1
          fi
       fi
 
       if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
-         mkdir -p $BUILD_DIR/build/openmp_debug/asan
-         cd $BUILD_DIR/build/openmp_debug/asan
+         mkdir -p $BUILD_DIR/build/offload_debug/asan
+         cd $BUILD_DIR/build/offload_debug/asan
          echo
-         echo " -----Running openmp cmake for debug-asan ---- "
+         echo " -----Running offload cmake for debug-asan ---- "
          if [ $COPYSOURCE ] ; then
-            echo ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DCMAKE_C_FLAGS="'$CFLAGS -I$ROCM_DIR/include'" -DCMAKE_CXX_FLAGS="'$CXXFLAGS -I$ROCM_DIR/include'" $BUILD_DIR/$AOMP_PROJECT_REPO_NAME/openmp
-            env "$@" ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DCMAKE_C_FLAGS="'$CFLAGS -I$ROCM_DIR/include'" -DCMAKE_CXX_FLAGS="'$CXXFLAGS -I$ROCM_DIR/include'" $BUILD_DIR/$AOMP_PROJECT_REPO_NAME/openmp
+            echo ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DCMAKE_C_FLAGS="'$CFLAGS -I$ROCM_DIR/include'" -DCMAKE_CXX_FLAGS="'$CXXFLAGS -I$ROCM_DIR/include'" $BUILD_DIR/$AOMP_PROJECT_REPO_NAME/offload
+            env "$@" ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DCMAKE_C_FLAGS="'$CFLAGS -I$ROCM_DIR/include'" -DCMAKE_CXX_FLAGS="'$CXXFLAGS -I$ROCM_DIR/include'" $BUILD_DIR/$AOMP_PROJECT_REPO_NAME/offload
          else
             # FIXME: Remove CMAKE_CXX_FLAGS and CMAKE_C_FLAGS when AFAR uses 5.3 ROCr.
-            echo ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DCMAKE_C_FLAGS="'$CFLAGS -I$ROCM_DIR/include'" -DCMAKE_CXX_FLAGS="'$CXXFLAGS -I$ROCM_DIR/include'" $AOMP_REPOS/../$AOMP_PROJECT_REPO_NAME/openmp
-            env "$@" ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DCMAKE_C_FLAGS="'$CFLAGS -I$ROCM_DIR/include'" -DCMAKE_CXX_FLAGS="'$CXXFLAGS -I$ROCM_DIR/include'" $AOMP_REPOS/../$AOMP_PROJECT_REPO_NAME/openmp
+            echo ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DCMAKE_C_FLAGS="'$CFLAGS -I$ROCM_DIR/include'" -DCMAKE_CXX_FLAGS="'$CXXFLAGS -I$ROCM_DIR/include'" $AOMP_REPOS/../$AOMP_PROJECT_REPO_NAME/offload
+            env "$@" ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DCMAKE_C_FLAGS="'$CFLAGS -I$ROCM_DIR/include'" -DCMAKE_CXX_FLAGS="'$CXXFLAGS -I$ROCM_DIR/include'" $AOMP_REPOS/../$AOMP_PROJECT_REPO_NAME/offload
          fi
          if [ $? != 0 ] ; then
-            echo "ERROR openmp debug-asan cmake failed. Cmake flags"
+            echo "ERROR offload debug-asan cmake failed. Cmake flags"
             echo "      $ASAN_CMAKE_OPTS"
             exit 1
          fi
@@ -241,40 +241,40 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 fi
 
 if [ "$AOMP_BUILD_SANITIZER" != 1 ]; then
-   cd $BUILD_DIR/build/openmp
+   cd $BUILD_DIR/build/offload
    echo
-   echo " -----Running make for $BUILD_DIR/build/openmp ---- "
+   echo " -----Running make for $BUILD_DIR/build/offload ---- "
    make -j $NUM_THREADS
    if [ $? != 0 ] ; then
       echo " "
       echo "ERROR: make -j $NUM_THREADS  FAILED"
       echo "To restart:"
-      echo "  cd $BUILD_DIR/build/openmp"
+      echo "  cd $BUILD_DIR/build/offload"
       echo "  make"
       exit 1
    fi
 fi
 
 if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
-   cd $BUILD_DIR/build/openmp/asan
+   cd $BUILD_DIR/build/offload/asan
    echo
-   echo " ------ Running make for $BUILD_DIR/build/openmp/asan ---- "
+   echo " ------ Running make for $BUILD_DIR/build/offload/asan ---- "
    make -j $NUM_THREADS
    if [ $? != 0 ] ; then
       echo " "
       echo "ERROR: make -j $NUM_THREADS  FAILED"
       echo "To restart:"
-      echo "  cd $BUILD_DIR/build/openmp/asan"
+      echo "  cd $BUILD_DIR/build/offload/asan"
       echo "  make"
       exit 1
    fi
 fi
 
 if [ "$AOMP_BUILD_SANITIZER" != 1 ]; then
-   cd $BUILD_DIR/build/openmp_debug
+   cd $BUILD_DIR/build/offload_debug
    echo
    echo
-   echo " -----Running make for $BUILD_DIR/build/openmp_debug ---- "
+   echo " -----Running make for $BUILD_DIR/build/offload_debug ---- "
    make -j $NUM_THREADS
    if [ $? != 0 ] ; then
       echo "ERROR make -j $NUM_THREADS failed"
@@ -282,8 +282,8 @@ if [ "$AOMP_BUILD_SANITIZER" != 1 ]; then
    else
       if [ "$1" != "install" ] ; then
          echo
-         echo "Successful build of ./build_openmp.sh .  Please run:"
-         echo "  ./build_openmp.sh install "
+         echo "Successful build of ./build_offload.sh .  Please run:"
+         echo "  ./build_offload.sh install "
          echo "to install into directory $INSTALL_OPENMP/lib and $INSTALL_OPENMP/lib-debug"
          echo
       fi
@@ -291,10 +291,10 @@ if [ "$AOMP_BUILD_SANITIZER" != 1 ]; then
 fi
 
 if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
-   cd $BUILD_DIR/build/openmp_debug/asan
+   cd $BUILD_DIR/build/offload_debug/asan
    echo
    echo
-   echo " -----Running make for $BUILD_DIR/build/openmp_debug/asan ---- "
+   echo " -----Running make for $BUILD_DIR/build/offload_debug/asan ---- "
    make -j $NUM_THREADS
    if [ $? != 0 ] ; then
       echo "ERROR make -j $NUM_THREADS failed"
@@ -302,8 +302,8 @@ if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
    else
       if [ "$1" != "install" ] ; then
          echo
-         echo "Successful ASan build of ./build_openmp.sh .  Please run:"
-         echo "  ./build_openmp.sh install "
+         echo "Successful ASan build of ./build_offload.sh .  Please run:"
+         echo "  ./build_offload.sh install "
          echo "to install into directory $INSTALL_OPENMP/lib/asan and $INSTALL_OPENMP/lib-debug/asan"
          echo
       fi
@@ -313,7 +313,7 @@ fi
 #  ----------- Install only if asked  ----------------------------
 if [ "$1" == "install" ] ; then
       if [ "$AOMP_BUILD_SANITIZER" != 1 ]; then
-         cd $BUILD_DIR/build/openmp
+         cd $BUILD_DIR/build/offload
          echo
          echo " -----Installing to $INSTALL_OPENMP/lib ----- "
          $SUDO make -j $NUM_THREADS install
@@ -324,18 +324,18 @@ if [ "$1" == "install" ] ; then
       fi
 
       if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
-         cd $BUILD_DIR/build/openmp/asan
+         cd $BUILD_DIR/build/offload/asan
          echo
          echo " ----- Installing to $INSTALL_OPENMP/lib/asan ------ "
          $SUDO make -j $NUM_THREADS install
          if [ $? != 0 ]; then
-            echo "ERROR make install failed for openmp/asan"
+            echo "ERROR make install failed for offload/asan"
             exit 1
          fi
       fi
 
       if [ "$AOMP_BUILD_SANITIZER" != 1 ]; then
-         cd $BUILD_DIR/build/openmp_debug
+         cd $BUILD_DIR/build/offload_debug
          echo
          echo " -----Installing to $INSTALL_OPENMP/lib-debug ---- "
          $SUDO make -j $NUM_THREADS install
@@ -346,21 +346,20 @@ if [ "$1" == "install" ] ; then
       fi
 
       if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
-         cd $BUILD_DIR/build/openmp_debug/asan
+         cd $BUILD_DIR/build/offload_debug/asan
          echo
          echo " ----- Installing to $INSTALL_OPENMP/lib-debug/asan ------ "
          $SUDO make -j $NUM_THREADS install
          if [ $? != 0 ]; then
-            echo "ERROR make install failed for openmp_debug/asan"
+            echo "ERROR make install failed for offload_debug/asan"
             exit 1
          fi
       fi
-
       # Copy selected debugable runtime sources into the installation lib-debug/src directory
       # to satisfy the above -fdebug-prefix-map.
-      $SUDO mkdir -p $AOMP_INSTALL_DIR/lib-debug/src/openmp/runtime/src
-      echo cp -rp $LLVM_PROJECT_ROOT/openmp/runtime/src $AOMP_INSTALL_DIR/lib-debug/src/openmp/runtime
-      $SUDO cp -rp $LLVM_PROJECT_ROOT/openmp/runtime/src $AOMP_INSTALL_DIR/lib-debug/src/openmp/runtime
-      $SUDO mkdir -p $AOMP_INSTALL_DIR/lib-debug/src/openmp/libompd/src
-      $SUDO cp -rp $LLVM_PROJECT_ROOT/openmp/libompd/src $AOMP_INSTALL_DIR/lib-debug/src/openmp/libompd
+      $SUDO mkdir -p $AOMP_INSTALL_DIR/lib-debug/src/offload/src
+      echo cp -rp $LLVM_PROJECT_ROOT/offload/src $AOMP_INSTALL_DIR/lib-debug/src/offload
+      $SUDO cp -rp $LLVM_PROJECT_ROOT/offload/src $AOMP_INSTALL_DIR/lib-debug/src/offload
+      echo cp -rp $LLVM_PROJECT_ROOT/offload/plugins-nextgen $AOMP_INSTALL_DIR/lib-debug/src/offload
+      $SUDO cp -rp $LLVM_PROJECT_ROOT/offload/plugins-nextgen $AOMP_INSTALL_DIR/lib-debug/src/offload
 fi
