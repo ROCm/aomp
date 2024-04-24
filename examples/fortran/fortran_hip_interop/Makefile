@@ -32,59 +32,36 @@
 TESTNAME =fortran_hip_interop
 HIPOBJECT =fortran_callable_init
 FILETYPE =f95
+TESTSRC = $(TESTNAME).$(FILETYPE)
+TESTSRCHIP = fortran_callable_init.hip
 
-ifeq ($(AOMP),)
-# --- Standard Makefile check for AOMP installation ---
-ifeq ("$(wildcard $(AOMP))","")
-  ifneq ($(AOMP),)
-    $(warning AOMP not found at $(AOMP))
-  endif
-  AOMP = $(HOME)/rocm/aomp
-  ifeq ("$(wildcard $(AOMP))","")
-    $(warning AOMP not found at $(AOMP))
-    AOMP = /usr/lib/aomp
-    ifeq ("$(wildcard $(AOMP))","")
-      $(warning AOMP not found at $(AOMP))
-      $(error Please install AOMP or correctly set env-var AOMP)
-    endif
-  endif
+mkfile_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+ifneq ($(CURDIR)/,$(mkfile_dir))
+  TESTSRC := $(mkfile_dir)$(TESTSRC)
+  TESTSRCHIP := $(mkfile_dir)$(TESTSRCHIP)
 endif
-# --- End Standard Makefile check for AOMP installation ---
-endif
+include $(mkfile_dir)../../Makefile.find_gpu_and_install_dir
 
-AOMPHIP ?= $(AOMP)
-HIPCC ?= $(AOMPHIP)/bin/hipcc
-
-ifeq ($(AOMP_GPU),)
-INSTALLED_GPU  = $(shell $(AOMP)/bin/mygpu -d gfx900) # Default AOMP_GPU is gfx900 which is vega
-AOMP_GPU       ?= $(INSTALLED_GPU)
-endif
 ifeq ($(TARGETS),)
-TARGETS =-march=$(AOMP_GPU)$(AOMP_TARGET_FEATURES)
+TARGETS =--offload-arch=$(LLVM_GPU_ARCH)$(AOMP_TARGET_FEATURES)
 endif
 
-ifeq (sm_,$(findstring sm_,$(AOMP_GPU)))
-  AOMP_GPUTARGET = nvptx64-nvidia-cuda
-else
-  AOMP_GPUTARGET = amdgcn-amd-amdhsa
-endif
-
-FORT   =$(AOMP)/bin/flang -fPIC -O2
-LFLAGS = -L$(AOMPHIP)/lib -lamdhip64 -Wl,-rpath,$(AOMPHIP)/lib
-FFLAGS = -fopenmp -fopenmp-targets=$(AOMP_GPUTARGET) -Xopenmp-target=$(AOMP_GPUTARGET)
+FORT   =$(LLVM_INSTALL_DIR)/bin/flang -fPIC -O2
+LFLAGS = -L$(HIPDIR)/lib -lamdhip64 -Wl,-rpath,$(HIPDIR)/lib
+FFLAGS = -fopenmp
 
 # ----- Demo compile and link in one step, no object code saved
-$(TESTNAME): $(TESTNAME).$(FILETYPE) fortran_callable_init.o
+$(TESTNAME): $(TESTSRC) fortran_callable_init.o
 	$(FORT) $(FFLAGS) $(TARGETS) $(LFLAGS) $^ -o $@
 
-fortran_callable_init.o : fortran_callable_init.hip
-	$(HIPCC) -c --offload-arch=$(AOMP_GPU) -fPIC $^ -o $@
+fortran_callable_init.o : $(TESTSRCHIP)
+	$(HIPCC) -c --offload-arch=$(LLVM_GPU_ARCH) -fPIC $^ -o $@
 
 run: .FORCE $(TESTNAME)
 	LIBOMPTARGET_KERNEL_TRACE=1 ./$(TESTNAME)
 
 #  ----   Demo compile and link in two steps, object saved
-$(TESTNAME).o: $(TESTNAME).$(FILETYPE)
+$(TESTNAME).o: $(TESTSRC)
 	$(FORT) -c $(FFLAGS) $(TARGETS) $^
 
 obin:	$(TESTNAME).o fortran_callable_init.o 
@@ -94,17 +71,17 @@ run_obin: obin
 	LIBOMPTARGET_KERNEL_TRACE=1 ./obin
 
 #  ----   Demo compile to intermediates LLVMIR or assembly
-$(TESTNAME).ll: $(TESTNAME).$(FILETYPE) fortran_callable_init.ll
-	$(FORT) -c -S -emit-llvm $(FFLAGS) $(TARGETS) $(TESTNAME).$(FILETYPE)
+$(TESTNAME).ll: $(TESTSRC) fortran_callable_init.ll
+	$(FORT) -c -S -emit-llvm $(FFLAGS) $(TARGETS) $(TESTSRC)
 
-fortran_callable_init.ll : fortran_callable_init.hip
-	$(AOMP)/bin/hipcc -c -S -emit-llvm --offload-arch=$(AOMP_GPU) $^
+fortran_callable_init.ll : $(TESTSRCHIP)
+	$(LLVM_INSTALL_DIR)/bin/hipcc -c -S -emit-llvm --offload-arch=$(LLVM_GPU_ARCH) $^
 
-$(TESTNAME).s: $(TESTNAME).$(FILETYPE) fortran_callable_init.s
-	$(FORT)  -c -S $(FFLAGS) $(TARGETS)  $(TESTNAME).$(FILETYPE)
+$(TESTNAME).s: $(TESTSRC) fortran_callable_init.s
+	$(FORT)  -c -S $(FFLAGS) $(TARGETS) $(TESTSRC)
 
-fortran_callable_init.s : fortran_callable_init.hip
-	$(AOMP)/bin/hipcc -c -S --offload-arch=$(AOMP_GPU) $^
+fortran_callable_init.s : $(TESTSRCHIP)
+	$(LLVM_INSTALL_DIR)/bin/hipcc -c -S --offload-arch=$(LLVM_GPU_ARCH) $^
 
 .FORCE:
 	rm -f $(TESTNAME)
@@ -112,7 +89,7 @@ fortran_callable_init.s : fortran_callable_init.hip
 help: 
 	@echo
 	@echo "Makefile Help:"
-	@echo "  Source:		$(TESTNAME).$(FILETYPE)"
+	@echo "  Source:		$(TESTSRC)"
 	@echo "  Compiler: 		$(FORT)"
 	@echo "  Compiler flags: 	$(FFLAGS)"
 	@echo
@@ -128,10 +105,11 @@ help:
 	@echo "  make help 		// this help"
 	@echo
 	@echo "Environment Variables:"
-	@echo "  AOMP      default: $(HOME)/rocm/aomp     value: $(AOMP)"
-	@echo "  AOMP_GPU  default: gfx900                value: $(AOMP_GPU)"
+	@echo "  LLVM_INSTALL_DIR  value: $(LLVM_INSTALL_DIR)"
+	@echo "  LLVM_GPU_ARCH     value: $(LLVM_GPU_ARCH)"
+	@echo "  LLVM_GPU_TRIPLE   value: $(LLVM_GPU_TRIPLE)"
 	@echo "  CUDA      default: /usr/local/cuda       value: $(CUDA)"
-	@echo "  TARGETS   default: --offload-arch=$(AOMP_GPU)"
+	@echo "  TARGETS   default: --offload-arch=$(LLVM_GPU_ARCH)"
 	@echo "              value: $(TARGETS)"
 	@echo
 	@echo "Link Flags:"

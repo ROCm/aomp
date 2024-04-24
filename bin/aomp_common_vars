@@ -23,7 +23,7 @@ ROCM_VERSION=${ROCM_VERSION:-6.0.0}
 
 # Set the AOMP VERSION STRING
 AOMP_VERSION=${AOMP_VERSION:-"19.0"}
-AOMP_VERSION_MOD=${AOMP_VERSION_MOD:-"1"}
+AOMP_VERSION_MOD=${AOMP_VERSION_MOD:-"2"}
 AOMP_VERSION_STRING=${AOMP_VERSION_STRING:-"$AOMP_VERSION-$AOMP_VERSION_MOD"}
 ROCM_EXPECTED_MODVERSION=${ROCM_EXPECTED_MODVERSION:-6.2.4}
 export AOMP_VERSION_STRING AOMP_VERSION AOMP_VERSION_MOD ROCM_VERSION ROCM_EXPECTED_MODVERSION
@@ -70,6 +70,10 @@ fi
 
 AOMP_SKIP_FLANG=${AOMP_SKIP_FLANG:-0}
 AOMP_SKIP_FLANG_NEW=${AOMP_SKIP_FLANG_NEW:-0}
+
+# Do not build openmp as standalone unless user specifies.
+AOMP_LEGACY_OPENMP=${AOMP_LEGACY_OPENMP:-0}
+
 if [ "$AOMP_SKIP_FLANG" == 1 ] || [ "$AOMP_SKIP_FLANG_NEW" == 1 ] ; then
    AOMP_PROJECTS_LIST=${AOMP_PROJECTS_LIST:-"clang;lld;compiler-rt;clang-tools-extra"}
 else
@@ -190,6 +194,22 @@ else
    AOMP_BUILD_PERF=${AOMP_BUILD_PERF:-0}
    AOMP_BUILD_SANITIZER=${AOMP_BUILD_SANITIZER:-0}
    AOMP_ORIGIN_RPATH_NO_DTAGS="-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON -DCMAKE_INSTALL_RPATH=$AOMP_ORIGIN_RPATH_LIST"
+fi
+
+if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
+   if [ -f "${AOMP}/bin/clang" ] ; then
+      ASAN_LIB_PATH=$(${AOMP}/bin/clang --print-runtime-dir)
+      if [ ! -d $ASAN_LIB_PATH ] ; then
+         # --print-runtime-dir outputs the new lib directory that includes the host target.
+         # Workaround this for now until LLVM_ENABLE_PER_TARGET_RUNTIME_DIR is on by default.
+         RESOURCE_PATH=$(${AOMP}/bin/clang --print-resource-dir)
+         ASAN_LIB_PATH="$RESOURCE_PATH/lib/linux"
+      fi
+   else
+      # no compiler at $AOMP so set where we expect ASAN_LIP_PATH to be
+      ASAN_LIB_PATH=${AOMP}/lib/clang/${AOMP_MAJOR_VERSION}/lib/linux
+   fi
+   ASAN_FLAGS="-g -fsanitize=address -shared-libasan -Wl,-rpath=$ASAN_LIB_PATH -L$ASAN_LIB_PATH"
 fi
 
 # AOMP uses RPATH (not) RUNPATH because LD_LIBRARY_PATH is a user feature for

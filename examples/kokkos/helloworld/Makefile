@@ -6,47 +6,28 @@
 #  Run "make help" to see other options for this Makefile
 
 TESTNAME = helloworld
+TESTSRC = $(TESTNAME).cpp
 
-UNAMEP = $(shell uname -m)
-AOMP_CPUTARGET = $(UNAMEP)-pc-linux-gnu
-ifeq ($(UNAMEP),ppc64le)
-  AOMP_CPUTARGET = ppc64le-linux-gnu
+mkfile_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+ifneq ($(CURDIR)/,$(mkfile_dir))
+  TESTSRC := $(mkfile_dir)$(TESTSRC)
 endif
-# --- Standard Makefile check for AOMP installation ---
-ifeq ("$(wildcard $(AOMP))","")
-  ifneq ($(AOMP),)
-    $(warning AOMP not found at $(AOMP))
-  endif
-  AOMP = $(HOME)/rocm/aomp
-  ifeq ("$(wildcard $(AOMP))","")
-    $(warning AOMP not found at $(AOMP))
-    AOMP = /usr/lib/aomp
-    ifeq ("$(wildcard $(AOMP))","")
-      $(warning AOMP not found at $(AOMP))
-      $(error Please install AOMP or correctly set env-var AOMP)
-    endif
-  endif
-endif
-# --- End Standard Makefile check for AOMP installation ---
-#
-#
-# Default AOMP_GPU is gfx900 which is vega
-INSTALLED_GPU   = $(shell $(AOMP)/bin/mygpu -d gfx900)
-AOMP_GPU       ?= $(INSTALLED_GPU)
-AOMPCC          = $(AOMP)/bin/clang++
-AOMP_GPUTARGET ?= amdgcn-amd-amdhsa
+include $(mkfile_dir)../../Makefile.find_gpu_and_install_dir
+
+CC          = $(LLVM_INSTALL_DIR)/bin/clang++
+LLVM_GPU_ARCHTARGET ?= amdgcn-amd-amdhsa
 KOKKOS_INSTALL_PREFIX ?= $(HOME)
 
 ifeq ($(KOKKOS_USE_HIP),1)
   is_hip    = hip
-  KOKKOS_ROOT = $(KOKKOS_INSTALL_PREFIX)/kokkos_hip.$(AOMP_GPU)
+  KOKKOS_ROOT = $(KOKKOS_INSTALL_PREFIX)/kokkos_hip.$(LLVM_GPU_ARCH)
 else
   is_hip    =
-  KOKKOS_ROOT = $(KOKKOS_INSTALL_PREFIX)/kokkos_omp.$(AOMP_GPU)
+  KOKKOS_ROOT = $(KOKKOS_INSTALL_PREFIX)/kokkos_omp.$(LLVM_GPU_ARCH)
 endif
 
 INCLUDES     = -I$(KOKKOS_ROOT)/include
-TARGET_FLAGS = -fopenmp -fopenmp-targets=$(AOMP_GPUTARGET) -Xopenmp-target=$(AOMP_GPUTARGET) -march=$(AOMP_GPU)$(AOMP_TARGET_FEATURES)
+TARGET_FLAGS = -fopenmp --offload-arch=$(LLVM_GPU_ARCH)$(AOMP_TARGET_FEATURES)
 CPPFLAGS     = $(INCLUDES) -Wall -Wextra -O3 -DNDEBUG  -w $(TARGET_FLAGS) -std=c++17 -DGTEST_HAS_PTHREAD=0 -DGTEST_HAS_TR1_TUPLE=0 -DKOKKOS_DEPENDENCE -DKOKKOS_WORKAROUND_OPENMPTARGET_CLANG
 LINKFLAGS    = $(enableopt) -Wall -Wextra -O3 -DNDEBUG -w $(TARGET_FLAGS)
 
@@ -66,7 +47,7 @@ endif
 
 ifeq ($(OFFLOAD_DEBUG),1)
   $(info    DEBUG Mode ON)
-  CCENV  = env LIBRARY_PATH=$(AOMP)/lib-debug
+  CCENV  = env LIBRARY_PATH=$(LLVM_INSTALL_DIR)/lib-debug
   RUNENV = LIBOMPTARGET_DEBUG=1
 endif
 
@@ -83,27 +64,26 @@ endif
 CPPFLAGS += $(EXTRA_CPPFLAGS)
 
 $(TESTNAME): $(TESTNAME).o $(KOKKOS_LIB)
-	$(CCENV) $(AOMPCC) $(LINKFLAGS) -o $@ $(TESTNAME).o $(KOKKOS_LIB) -ldl
+	$(CCENV) $(CC) $(LINKFLAGS) -o $@ $(TESTNAME).o $(KOKKOS_LIB) -ldl
 
-$(TESTNAME).o: $(TESTNAME).cpp $(KOKKOS_LIB)
-	$(CCENV) $(AOMPCC) $(CPPFLAGS) -o $@ -c $(TESTNAME).cpp
+$(TESTNAME).o: $(TESTSRC) $(KOKKOS_LIB)
+	$(CCENV) $(CC) $(CPPFLAGS) -o $@ -c $(TESTSRC)
 
 run: $(TESTNAME)
 	$(RUNENV) ./$(TESTNAME)
 
 $(KOKKOS_LIB):
-	$(AOMP)/bin/kokkos_build.sh $(is_hip)
+	$(LLVM_INSTALL_DIR)/bin/kokkos_build.sh $(is_hip)
 
 help:
 	@echo
-	@echo "Source[s]:		$(TESTNAME).cpp"
+	@echo "Source[s]:		$(TESTSRC)"
 	@echo "Application binary:    	$(TESTNAME)"
-	@echo "Target GPU:		$(AOMP_GPU)"
-	@echo "Target triple:		$(AOMP_GPUTARGET)"
-	@echo "AOMP compiler: 		$(CC)"
+	@echo "Target GPU:		$(LLVM_GPU_ARCH)"
+	@echo "Compiler: 		$(CC)"
 	@echo "Compile flags:		$(CPPFLAGS)"
 	@echo "KOKKOS install prefix:	$(KOKKOS_INSTALL_PREFIX)"
-ifeq (sm_,$(findstring sm_,$(AOMP_GPU)))
+ifeq (sm_,$(findstring sm_,$(LLVM_GPU_ARCH)))
 	@echo "CUDA installation:	$(CUDA)"
 endif
 	@echo
@@ -117,12 +97,12 @@ endif
 	@echo " make help"
 	@echo
 	@echo "Environment variables used by this Makefile:"
-	@echo "  AOMP=<dir>           AOMP install dir, default=/usr/lib/aomp"
+	@echo "  LLVM_INSTALL_DIR=<dir>"
 	@echo "  EXTRA_CFLAGS=<args>  extra arguments for compiler"
 	@echo "  OFFLOAD_DEBUG=n      if n=1, compile and run in Debug mode"
 	@echo "  VERBOSE=n            if n=1, add verbose output"
 	@echo "  TEMPS=1              do not delete intermediate files"
-ifeq (sm_,$(findstring sm_,$(AOMP_GPU)))
+ifeq (sm_,$(findstring sm_,$(LLVM_GPU_ARCH)))
 	@echo "  CUDA=<dir>           CUDA install dir, default=/usr/local/cuda"
 endif
 	@echo
@@ -132,4 +112,4 @@ clean:
 	rm -rf $(TESTNAME) obin *.i *.ii *.bc *.lk a.out-* *.ll *.s *.o *.cubin
 
 clean_kokkos:
-	$(AOMP)/bin/kokkos_build.sh clean
+	$(LLVM_INSTALL_DIR)/bin/kokkos_build.sh clean

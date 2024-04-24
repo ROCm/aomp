@@ -106,8 +106,6 @@ else
 fi
 
 if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
-   ASAN_LIB_PATH=$(${AOMP}/bin/clang --print-runtime-dir)
-   ASAN_FLAGS="-g -fsanitize=address -shared-libasan -Wl,-rpath=$ASAN_LIB_PATH -L$ASAN_LIB_PATH"
    LDFLAGS="-fuse-ld=lld $ASAN_FLAGS"
 fi
 
@@ -129,7 +127,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
       mkdir -p $BUILD_DIR/build/openmp
       cd $BUILD_DIR/build/openmp
       echo ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
-      ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
+      ${AOMP_CMAKE} $MYCMAKEOPTS $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
       if [ $? != 0 ] ; then
          echo "ERROR openmp cmake failed. Cmake flags"
          echo "      $MYCMAKEOPTS"
@@ -425,9 +423,9 @@ if [ "$1" == "install" ] ; then
       $SUDO mkdir -p $_ompd_dir/src/openmp/runtime/src
       echo cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/runtime/src $_ompd_dir/src/openmp/runtime
       $SUDO cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/runtime/src $_ompd_dir/src/openmp/runtime
-      $SUDO mkdir -p $_ompd_dir/src/openmp/libomptarget/src
-      echo cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/libomptarget/src $_ompd_dir/src/openmp/libomptarget
-      $SUDO cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/libomptarget/src $_ompd_dir/src/openmp/libomptarget
+      $SUDO mkdir -p $_ompd_dir/src/openmp/src
+      echo cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/src $_ompd_dir/src/openmp
+      $SUDO cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/src $_ompd_dir/src/openmp
       $SUDO mkdir -p $_ompd_dir/src/openmp/libompd/src
       $SUDO cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/libompd/src $_ompd_dir/src/openmp/libompd
    fi

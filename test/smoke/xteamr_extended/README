@@ -1,0 +1,25 @@
+
+This smoke test (xteamr_extended) is used to simulate reductions using cross team helper functions. 
+This is showing a comparison of openmp reductions followed by the same simulated reduction. 
+If cases where aomp has codegen for the data type and reduction (sum, min, or max) 
+you will see comparable performance to the simulation.  Example is double ompdot vs double simdot. 
+Otherwise the simulation will be much faster than the test case with openmp. 
+
+The major difference between xteamr_extended and xteamr is that xteamr_extended has
+functions to support extending precision. 
+
+There are no helper functions for data types _Float16, half, and unsigned half.  
+These data types are handled by extending the precision and using the helper functions
+for the existing data types.  
+
+It turns out that extending the precision has three advantages. 
+   1. Reduces error propogation and potentially reduces integer overflow. 
+   2. Removes the need to implement more helper functions. 
+   3. Sometimes, higher precision operators are faster, This appears to be true for 
+      float over double.  
+
+Because of 3, we should always extend precision for float and _Float16 to double. 
+Review performance on various machines to be sure. 
+For short and unsigned short, codegen should extend precision to int and unsigned int respectively. 
+Again review performance to be sure. 
+

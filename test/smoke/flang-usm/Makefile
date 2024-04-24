@@ -1,7 +1,7 @@
 include ../../Makefile.defs
 USE_OFFLOAD_ARCH = 1
 HSA_XNACK        ?= 1
-AOMP_TARGET_FEATURES = xnack+
+AOMP_TARGET_FEATURES = :xnack+
 
 TESTNAME     = flang-usm
 TESTSRC_MAIN = flang-usm.f90

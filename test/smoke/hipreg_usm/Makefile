@@ -1,6 +1,6 @@
 include ../../Makefile.defs
 HSA_XNACK ?= 1
-AOMP_TARGET_FEATURES = xnack+
+AOMP_TARGET_FEATURES = :xnack+
 
 TESTNAME     = hostreg_usm
 TESTSRC_MAIN = omp.cpp

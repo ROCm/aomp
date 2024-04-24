@@ -12,6 +12,7 @@ TESTS_DIR = \
     clang-296953-ornla-38 \
     clang-317896 \
     clang-326105 \
+    clang-440121 \
     clang_llnl-58 \
     clang_llnl-58-1 \
     clang-nwchem-s1_1 \

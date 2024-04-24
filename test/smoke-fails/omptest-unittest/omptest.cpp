@@ -2,56 +2,56 @@
 
 #include "OmptTester.h"
 
-OMPTTESTCASE(ManualSuite, ParallelFor) {
+TEST(ManualSuite, ParallelFor) {
   /* The Test Body */
   int arr[10] = {0};
-  SequenceAsserter.insert(omptest::OmptAssertEvent::ParallelBegin(
-      /*NumThreads=*/2, "User Parallel Begin"));
+  SequenceAsserter.insert(omptest::OmptAssertEvent::ParallelBegin("User Parallel Begin", "Group", omptest::ObserveState::always,
+      /*NumThreads=*/2));
   SequenceAsserter.insert(omptest::OmptAssertEvent::ThreadBegin(
-      ompt_thread_initial, "User Thread Begin"));
+      "User Thread Begin", "Group", omptest::ObserveState::always, ompt_thread_initial));
   SequenceAsserter.insert(
-      omptest::OmptAssertEvent::ParallelEnd("User Parallel End"));
+      omptest::OmptAssertEvent::ParallelEnd("User Parallel End", "Group", omptest::ObserveState::always));
 
-  SequenceAsserter.insert(omptest::OmptAssertEvent::ParallelEnd(""));
+  SequenceAsserter.insert(omptest::OmptAssertEvent::ParallelEnd("User Parallel End 2", "Group", omptest::ObserveState::always));
 
 #pragma omp parallel for num_threads(2)
   for (int i = 0; i < 10; ++i)
     arr[i] = i;
 }
 
-OMPTTESTCASE(ManualSuite, ParallelForActivation) {
+TEST(ManualSuite, ParallelForActivation) {
   /* The Test Body */
   int arr[10] = {0};
-  SequenceAsserter.insert(omptest::OmptAssertEvent::ParallelBegin(
-      /*NumThreads=*/2, "User Parallel Begin"));
+  SequenceAsserter.insert(omptest::OmptAssertEvent::ParallelBegin("User Parallel Begin", "Group", omptest::ObserveState::always,
+      /*NumThreads=*/2));
   SequenceAsserter.insert(
-      omptest::OmptAssertEvent::ParallelEnd("User Parallel End"));
+      omptest::OmptAssertEvent::ParallelEnd("User Parallel End", "Group", omptest::ObserveState::always));
 
   // The last sequence we want to observe does not contain
   // another thread begin.
-  SequenceAsserter.insert(omptest::OmptAssertEvent::ParallelBegin(
-      /*NumThreads=*/2, "User Parallel Begin"));
+  SequenceAsserter.insert(omptest::OmptAssertEvent::ParallelBegin("User Parallel Begin", "Group", omptest::ObserveState::always,
+      /*NumThreads=*/2));
   SequenceAsserter.insert(
-      omptest::OmptAssertEvent::ParallelEnd("User Parallel End"));
+      omptest::OmptAssertEvent::ParallelEnd("User Parallel End", "Group", omptest::ObserveState::always));
 
 #pragma omp parallel for num_threads(2)
   for (int i = 0; i < 10; ++i)
     arr[i] = i;
 
-  OMPT_SEQ_ASSERT_DISABLE()
+  OMPT_ASSERT_SEQUENCE_DISABLE();
 
 #pragma omp parallel for num_threads(2)
   for (int i = 0; i < 10; ++i)
     arr[i] = i;
 
-  OMPT_SEQ_ASSERT_ENABLE()
+  OMPT_ASSERT_SEQUENCE_ENABLE();
 
 #pragma omp parallel for num_threads(2)
   for (int i = 0; i < 10; ++i)
     arr[i] = i;
 }
 
-OMPTTESTCASE(ManualSuite, AnotherTest) {
+TEST(ManualSuite, AnotherTest) {
   int arr[12] = {0};
 
 #pragma omp parallel for num_threads(2)
@@ -60,13 +60,13 @@ OMPTTESTCASE(ManualSuite, AnotherTest) {
   }
 }
 
-OMPTTESTCASE(ManualSuite, ParallelForToString) {
+TEST(ManualSuite, ParallelForToString) {
   /* The Test Body */
   int arr[10] = {0};
 
-  OMPT_SEQ_ASSERT_DISABLE()
+  OMPT_ASSERT_SEQUENCE_DISABLE();
 
-  OMPT_EVENT_REPORT_DISABLE()
+  OMPT_REPORT_EVENT_DISABLE();
 
   EventReporter.permitEvent(omptest::internal::EventTy::ParallelBegin);
   EventReporter.permitEvent(omptest::internal::EventTy::ParallelEnd);
@@ -77,7 +77,7 @@ OMPTTESTCASE(ManualSuite, ParallelForToString) {
   for (int i = 0; i < 10; ++i)
     arr[i] = i;
 
-  OMPT_EVENT_REPORT_ENABLE()
+  OMPT_REPORT_EVENT_ENABLE();
 
 #pragma omp parallel for num_threads(3)
   for (int i = 0; i < 10; ++i)
@@ -96,27 +96,27 @@ OMPTTESTCASE(ManualSuite, ParallelForToString) {
   EventReporter.suppressEvent(omptest::internal::EventTy::ThreadBegin);
   EventReporter.suppressEvent(omptest::internal::EventTy::ThreadEnd);
 
-  OMPT_SEQ_ASSERT_ENABLE()
+  OMPT_ASSERT_SEQUENCE_ENABLE();
 }
 
-OMPTTESTCASE(ManualSuite, TargetParallelToString) {
+TEST(ManualSuite, TargetParallelToString) {
   /* The Test Body */
   int arr[10] = {0};
 
-  OMPT_SEQ_ASSERT_DISABLE()
-  OMPT_EVENT_REPORT_ENABLE()
+  OMPT_ASSERT_SEQUENCE_DISABLE();
+  OMPT_REPORT_EVENT_ENABLE();
 
 #pragma omp target parallel for num_threads(1)
   for (int i = 0; i < 10; ++i)
     arr[i] = i;
 
-  OMPT_SEQ_ASSERT_ENABLE()
+  OMPT_ASSERT_SEQUENCE_ENABLE();
 }
 
-OMPTTESTCASE(ManualSuite, veccopy_ompt_target) {
+TEST(ManualSuite, veccopy_ompt_target) {
   /* The Test Body */
-  OMPT_SEQ_ASSERT_DISABLE()
-  OMPT_EVENT_REPORT_ENABLE()
+  OMPT_ASSERT_SEQUENCE_DISABLE();
+  OMPT_REPORT_EVENT_ENABLE();
 
   int N = 100000;
 
@@ -153,7 +153,7 @@ OMPTTESTCASE(ManualSuite, veccopy_ompt_target) {
   if (!rc)
     printf("Success\n");
 
-  OMPT_SEQ_ASSERT_ENABLE()
+  OMPT_ASSERT_SEQUENCE_ENABLE();
 }
 
 int main(int argc, char **argv) {

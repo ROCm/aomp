@@ -12,13 +12,22 @@ ifeq ($(NEWEST_ROCM),)
 endif
 AOMPROCM ?= /opt/$(NEWEST_ROCM)
 $(warning "AOMPROCM = $(AOMPROCM)")
-CFLAGS       = -x hip -I $(AOMPROCM)/rocblas/include/ --offload-arch=${AOMP_GPU} -std=c++11
+ROCBLAS_INCLUDE=$(AOMPROCM)/include/rocblas
+ifeq "$(wildcard $(ROCBLAS_INCLUDE)/rocblas.h)" ""
+  ROCBLAS_INCLUDE=$(AOMPROCM)/rocblas/include
+endif
+ROCBLAS_LIB=$(AOMPROCM)/rocblas/lib
+ifeq "$(wildcard $(ROCBLAS_LIB)/librocblas.so)" ""
+  ROCBLAS_LIB=$(AOMPROCM)/lib
+endif
+
+CFLAGS       = -x hip -I $(ROCBLAS_INCLUDE) --offload-arch=${AOMP_GPU} -std=c++11
 VERS = $(shell $(AOMP)/bin/clang --version | grep -oP '(?<=clang version )[0-9.]+')
 ifeq ($(shell expr $(VERS) \>= 12.0), 1)
   RPTH = -Wl,-rpath,$(AOMPHIP)/lib
   LLIB = -L$(AOMPHIP)/lib
 endif
-LINK_FLAGS =  -L $(AOMPROCM)/rocblas/lib -lrocblas -Wl,-rpath,$(AOMPROCM)/rocblas/lib $(LLIB) -lamdhip64  $(RPTH)
+LINK_FLAGS =  -L $(ROCBLAS_LIB) -lrocblas -Wl,-rpath,$(ROCBLAS_LIB) $(LLIB) -lamdhip64  $(RPTH)
 
 ifeq ($(EPSDB),1)
 OMP_BIN      = $(AOMPROCM)/bin/hipcc
