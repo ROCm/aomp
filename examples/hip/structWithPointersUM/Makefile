@@ -31,78 +31,45 @@
 
 TESTNAME =um
 FILETYPE =cpp
+TESTSRC = $(TESTNAME).$(FILETYPE)
 
-UNAMEP = $(shell uname -m)
-AOMP_CPUTARGET = $(UNAMEP)-pc-linux-gnu
-ifeq ($(UNAMEP),ppc64le)
-  AOMP_CPUTARGET = ppc64le-linux-gnu
+mkfile_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+ifneq ($(CURDIR)/,$(mkfile_dir))
+  TESTSRC := $(mkfile_dir)$(TESTSRC)
 endif
-ifeq ($(AOMP),)
-# --- Standard Makefile check for AOMP installation ---
-ifeq ("$(wildcard $(AOMP))","")
-  ifneq ($(AOMP),)
-    $(warning AOMP not found at $(AOMP))
-  endif
-  AOMP = $(HOME)/rocm/aomp
-  ifeq ("$(wildcard $(AOMP))","")
-    $(warning AOMP not found at $(AOMP))
-    AOMP = /usr/lib/aomp
-    ifeq ("$(wildcard $(AOMP))","")
-      $(warning AOMP not found at $(AOMP))
-      $(error Please install AOMP or correctly set env-var AOMP)
-    endif
-  endif
-endif
-# --- End Standard Makefile check for AOMP installation ---
-endif
-ifeq ($(CUDA),)
-CUDA = /usr/local/cuda
-endif
-ifeq ($(AOMP_GPU),)
-INSTALLED_GPU  = $(shell $(AOMP)/bin/mygpu -d gfx900) # Default AOMP_GPU is gfx900 which is vega
-AOMP_GPU       ?= $(INSTALLED_GPU)
-endif
+include $(mkfile_dir)../../Makefile.find_gpu_and_install_dir
+
 ifeq ($(TARGETS),)
-TARGETS =--offload-arch=$(AOMP_GPU)$(AOMP_TARGET_FEATURES)
+TARGETS =--offload-arch=$(LLVM_GPU_ARCH)$(AOMP_TARGET_FEATURES)
 endif
 
-CC       =$(AOMP)/bin/clang++
+CC       =$(LLVM_INSTALL_DIR)/bin/clang++
 
 #  compiler automatically adds "libdevice/<target>/ to -L opts
-LFLAGS   =-L$(AOMP)/lib
+LFLAGS   =-L$(LLVM_INSTALL_DIR)/lib
 
 # Add cudart only if we have an Nvidia sm_ target
 ifeq (sm_,$(findstring sm_,$(TARGETS)))
-  LFLAGS +=-L$(CUDA)/targets/$(UNAMEP)-linux/lib -lcudart -Wl,-rpath,$(CUDA)/targets/$(UNAMEP)-linux/lib -std=c++11
+  LFLAGS += -Wl,-rpath,$(CUDA)/targets/$(UNAMEP)-linux/lib -std=c++11
   CFLAGS +=-x cuda -I$(CUDA)/include
 else
-  AOMPHIP ?= $(AOMP)
-  PFILE = $(AOMPHIP)/bin/hipcc
-  ifeq ("$(wildcard $(PFILE))","")
-    AOMPHIP = $(AOMP)/..
-    PFILE = $(AOMPHIP)/bin/hipcc
-    ifeq ("$(wildcard $(PFILE))","")
-      AOMPHIP = $(AOMP)/../..
-    endif
-  endif
-
-  VERS = $(shell $(AOMP)/bin/clang --version | grep -oP '(?<=clang version )[0-9.]+')
+  VERS = $(shell $(LLVM_INSTALL_DIR)/bin/clang --version | grep -oP '(?<=clang version )[0-9.]+')
   ifeq ($(shell expr $(VERS) \>= 12.0), 1)
-    RPTH = -Wl,-rpath,$(AOMPHIP)/lib
+    RPTH = -Wl,-rpath,$(HIPDIR)/lib
   endif
-  HIPLIBS = -L $(AOMPHIP)/hip -L $(AOMPHIP)/lib  $(RPTH)
+  HIPLIBS = -L $(HIPDIR)/hip -L $(HIPDIR)/lib  $(RPTH)
   CFLAGS = -x hip -std=c++11 $(HIPLIBS) -lamdhip64 -mcode-object-version=4
 endif
 
 # ----- Demo compile and link in one step, no object code saved
-$(TESTNAME): $(TESTNAME).$(FILETYPE)
+$(TESTNAME): $(TESTSRC)
 	$(CC) $(CFLAGS) $(TARGETS) $(LFLAGS) $^ -o $@
 
 run: $(TESTNAME)
 	./$(TESTNAME)
 
 #  ----   Demo compile and link in two steps, object saved
-$(TESTNAME).o: $(TESTNAME).$(FILETYPE)
+$(TESTNAME).o: $(TESTSRC)
 	$(CC) -c $(CFLAGS) $(TARGETS) $^
 
 obin:	$(TESTNAME).o
@@ -112,16 +79,16 @@ run_obin: obin
 	./obin
 
 #  ----   Demo compile to intermediates LLVMIR or assembly
-$(TESTNAME).ll: $(TESTNAME).$(FILETYPE)
+$(TESTNAME).ll: $(TESTSRC)
 	$(CC) -c -S -emit-llvm $(CFLAGS) $(TARGETS) $^
 
-$(TESTNAME).s: $(TESTNAME).$(FILETYPE)
+$(TESTNAME).s: $(TESTSRC)
 	$(CC)  -c -S $(CFLAGS) $(TARGETS)  $^
 
 help:
 	@echo
 	@echo "Makefile Help:"
-	@echo "  Source:		$(TESTNAME).$(FILETYPE)"
+	@echo "  Source:		$(TESTSRC)"
 	@echo "  Compiler: 		$(CC)"
 	@echo "  Compiler flags: 	$(CFLAGS)"
 	@echo
@@ -135,13 +102,6 @@ help:
 	@echo "  make $(TESTNAME).ll	// compile step only       : -c -S -emit-llvm"
 	@echo "  make clean		// cleanup files"
 	@echo "  make help 		// this help"
-	@echo
-	@echo "Environment Variables:"
-	@echo "  AOMP      default: $(HOME)/rocm/aomp     value: $(AOMP)"
-	@echo "  AOMP_GPU  default: gfx900                value: $(AOMP_GPU)"
-	@echo "  CUDA      default: /usr/local/cuda       value: $(CUDA)"
-	@echo "  TARGETS   default: --offload-arch=$(AOMP_GPU)"
-	@echo "              value: $(TARGETS)"
 	@echo
 	@echo "Link Flags:"
 	@echo "  Link flags: $(LFLAGS)"

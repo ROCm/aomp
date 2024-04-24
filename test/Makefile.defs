@@ -156,31 +156,12 @@ endif
 #$(info -- openmpi found at $(OMPIDIR))
 MPILIBS ?= -L${OMPIDIR}/lib$(MPI64) -lmpi
 
-
-
 # If AOMP env variable contains opt use rocm_agent_enumerator for device id.
 # Set GFXLIST to available gfx numbers pulled from installed bc files.
   # Set GFXLIST from aomp_common_vars
   ALLGFXLIST = $(shell grep GFXLIST= ../../../bin/aomp_common_vars | grep -o "gfx.*" | sed -E "s|\"}||" | sed -E "s|gfx1010||")
   GFXLIST ?= $(ALLGFXLIST)
 
-  # If AOMP not pointing to rocm, then assume neither offload-arch nor mygpu utilities exist.
-  # So use lspci to search for volta and if not then use standalone rocm_agent_enumerator
-  # to autodetect which GPU is active.
-  lspci_loc = /usr/sbin/lspci
-  ifeq "$(wildcard /usr/sbin/lspci)" ""
-    lspci_loc = /sbin/lspci
-    ifeq "$(wildcard /sbin/lspci)" ""
-      lspci_loc = lspci
-    endif
-  endif
-  ISVOLTA = $(shell $(lspci_loc) -n | grep 10de:1db4)
-  ISGTX750= $(shell $(lspci_loc) -n | grep 10de:1380)
-  ifeq (10de,$(findstring 10de,$(ISVOLTA)))
-    INSTALLED_GPU = sm_70
-  else ifeq (10de,$(findstring 10de,$(ISGTX750)))
-    INSTALLED_GPU = sm_50
-  else
     ifneq ($(CBL),1)
       # Honor AOMP_GPU.
       ifneq ("$(AOMP_GPU)","")
@@ -203,12 +184,30 @@ MPILIBS ?= -L${OMPIDIR}/lib$(MPI64) -lmpi
             INSTALLED_GPU = $(shell $(AOMP)/bin/nvptx-arch | grep -m 1 sm)
           endif
           ifeq ("$(INSTALLED_GPU)","")
-            $(error "AOMP_GPU cannot be set via detection tools.")
+  # Check for nvidia arch last
+  # If AOMP not pointing to rocm, then assume neither offload-arch nor mygpu utilities exist.
+  # So use lspci to search for volta and if not then use standalone rocm_agent_enumerator
+  # to autodetect which GPU is active.
+  lspci_loc = /usr/sbin/lspci
+  ifeq "$(wildcard /usr/sbin/lspci)" ""
+    lspci_loc = /sbin/lspci
+    ifeq "$(wildcard /sbin/lspci)" ""
+      lspci_loc = lspci
+    endif
+  endif
+  ISVOLTA = $(shell $(lspci_loc) -n | grep 10de:1db4)
+  ISGTX750= $(shell $(lspci_loc) -n | grep 10de:1380)
+  ifeq (10de,$(findstring 10de,$(ISVOLTA)))
+    INSTALLED_GPU = sm_70
+  else ifeq (10de,$(findstring 10de,$(ISGTX750)))
+    INSTALLED_GPU = sm_50
+  else
+    $(error "AOMP_GPU cannot be set via detection tools.")
+  endif
           endif
         endif
       endif
     endif
-  endif
 
 AOMP_GPU       ?= $(INSTALLED_GPU)
 CC              = $(AOMP)/bin/clang
@@ -241,7 +240,7 @@ endif
 ifeq ($(AOMP_TARGET_FEATURES),)
 GPU_W_FEATURES = $(AOMP_GPU)
 else
-GPU_W_FEATURES = $(AOMP_GPU):$(AOMP_TARGET_FEATURES)
+GPU_W_FEATURES = $(AOMP_GPU)$(AOMP_TARGET_FEATURES)
 endif
 
 USE_OFFLOAD_ARCH ?= 1

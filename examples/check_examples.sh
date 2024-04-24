@@ -25,7 +25,7 @@ echo "**************************************************************************
 if [ "$#" -ne 0 ]; then
   LIST="$@"
 elif [ "$EPSDB" != "1" ]; then
-  LIST="fortran hip openmp cloc"
+  LIST="fortran hip openmp"
 else
   LIST="fortran openmp"
 fi

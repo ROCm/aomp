@@ -1,7 +1,7 @@
 NOOPT        = 1
 NOOMP        = 1
 include ../../Makefile.defs
-OMP_FLAGS    = --gcc-toolchain=/usr/lib/gcc/x86_64-linux-gnu/9
+OMP_FLAGS    = --gcc-install-dir=/usr/lib/gcc/x86_64-linux-gnu/9
 
 TESTNAME     = hello
 TESTSRC_MAIN = hello.f

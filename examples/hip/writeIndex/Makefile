@@ -1,5 +1,5 @@
 #-----------------------------------------------------------------------
-#  Makefile: Demo simple makefile for hip with the AOMP compiler
+#  Makefile: Demo simple makefile for hip with the LLVM compiler
 #            This makefile uses hipcc. 
 #-----------------------------------------------------------------------
 # MIT License
@@ -25,36 +25,34 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-AOMP ?= /usr/lib/aomp
-AOMPHIP ?= $(AOMP)
-PFILE = $(AOMPHIP)/bin/hipcc
-ifeq ("$(wildcard $(PFILE))","")
-  AOMPHIP = $(AOMP)/..
-  PFILE = $(AOMPHIP)/bin/hipcc
-  ifeq ("$(wildcard $(PFILE))","")
-    AOMPHIP = $(AOMP)/../..
-  endif
+TESTSRC1 = writeIndex.cpp
+TESTSRC2 = kernel.cpp
+
+mkfile_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+ifneq ($(CURDIR)/,$(mkfile_dir))
+  TESTSRC1 := $(mkfile_dir)$(TESTSRC1)
+  TESTSRC2 := $(mkfile_dir)$(TESTSRC2)
 endif
+include $(mkfile_dir)../../Makefile.find_gpu_and_install_dir
+DEVICE_LIB_PATH=$(HIPDIR)/amdgcn/bitcode/
 
-DEVICE_LIB_PATH=$(AOMPHIP)/amdgcn/bitcode/
-
-CC   =  DEVICE_LIB_PATH=$(DEVICE_LIB_PATH) $(AOMPHIP)/bin/hipcc
+CC   =  DEVICE_LIB_PATH=$(DEVICE_LIB_PATH) $(HIPCC)
 
 # --- Demo compile and link in one step, no object code saved
-writeIndex: writeIndex.cpp kernel.cpp
+writeIndex: $(TESTSRC1) $(TESTSRC2)
 	  $(CC) $^ -o $@ -std=c++11
 run: writeIndex
-	LD_LIBRARY_PATH=$(AOMP)/lib ./writeIndex
+	LD_LIBRARY_PATH=$(LLVM_INSTALL_DIR)/lib ./writeIndex
 
 # --- Demo compile and link in two steps, object saved
-writeIndex.o: writeIndex.cpp
+writeIndex.o: $(TESTSRC1)
 	$(CC) -c $^
-kernel.o: kernel.cpp
+kernel.o: $(TESTSRC2)
 	$(CC) -c $^
 obin:	writeIndex.o  kernel.o
 	$(CC)  $^ -o obin
 run_obin: obin 
-	LD_LIBRARY_PATH=$(AOMP)/lib ./obin
+	LD_LIBRARY_PATH=$(LLVM_INSTALL_DIR)/lib ./obin
 
 clean:
 	@[ -f ./writeIndex ] && rm ./writeIndex ; true

@@ -1,22 +1,8 @@
 #-----------------------------------------------------------------------
 #
 
-# --- Standard Makefile check for AOMP installation ---
-ifeq ("$(wildcard $(AOMP))","")
-  ifneq ($(AOMP),)
-    $(warning AOMP not found at $(AOMP))
-  endif
-  AOMP = $(HOME)/rocm/aomp
-  ifeq ("$(wildcard $(AOMP))","")
-    $(warning AOMP not found at $(AOMP))
-    AOMP = /usr/lib/aomp
-    ifeq ("$(wildcard $(AOMP))","")
-      $(warning AOMP not found at $(AOMP))
-      $(error Please install AOMP or correctly set env-var AOMP)
-    endif
-  endif
-endif
-
+mkfile_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+include $(mkfile_dir)../../Makefile.find_gpu_and_install_dir
 
 run: $(show.sh)
-	env AOMP=$(AOMP) ./show-offload-types.sh
+	env LLVM_INSTALL_DIR=$(LLVM_INSTALL_DIR) LLVM_GPU_ARCH=$(LLVM_GPU_ARCH) $(mkfile_dir)show-offload-types.sh

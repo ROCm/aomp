@@ -1,7 +1,7 @@
 NOOPT        = 1
 NOOMP        = 1
 include ../../Makefile.defs
-OMP_FLAGS    = --rocm-path=/opt/rocm
+OMP_FLAGS    = --gcc-toolchain=/usr
 
 TESTNAME     = hello
 TESTSRC_MAIN = hello.f

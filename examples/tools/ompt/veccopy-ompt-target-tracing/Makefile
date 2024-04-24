@@ -4,7 +4,7 @@
 #            amdgcn GPU targets begin with "gfx". nvptx targets begin
 #            with sm_.  Example: To build and run on k4000 do this:
 #
-#            export AOMP_GPU=sm_30
+#            export LLVM_GPU_ARCH=sm_30
 #            make run
 #
 #  Run "make help" to see other options for this Makefile
@@ -12,44 +12,19 @@
 TESTNAME = veccopy-ompt-target-tracing
 TESTSRC  = veccopy-ompt-target-tracing.c
 
-UNAMEP = $(shell uname -m)
-AOMP_CPUTARGET = $(UNAMEP)-pc-linux-gnu
-ifeq ($(UNAMEP),ppc64le)
-  AOMP_CPUTARGET = ppc64le-linux-gnu
+mkfile_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+ifneq ($(CURDIR)/,$(mkfile_dir))
+  TESTSRC := $(mkfile_dir)$(TESTSRC)
 endif
+include $(mkfile_dir)../../../Makefile.find_gpu_and_install_dir
 
-# --- Standard Makefile check for AOMP installation ---
-ifeq ("$(wildcard $(AOMP))","")
-  ifneq ($(AOMP),)
-    $(warning AOMP not found at $(AOMP))
-  endif
-  AOMP = $(HOME)/rocm/aomp
-  ifeq ("$(wildcard $(AOMP))","")
-    $(warning AOMP not found at $(AOMP))
-    AOMP = /usr/lib/aomp
-    ifeq ("$(wildcard $(AOMP))","")
-      $(warning AOMP not found at $(AOMP))
-      $(error Please install AOMP or correctly set env-var AOMP)
-    endif
-  endif
-endif
-# --- End Standard Makefile check for AOMP installation ---
-INSTALLED_GPU  = $(shell $(AOMP)/bin/mygpu -d gfx900)# Default AOMP_GPU is gfx900 which is vega
-AOMP_GPU       ?= $(INSTALLED_GPU)
-CC              = $(AOMP)/bin/clang
+CC       = $(LLVM_INSTALL_DIR)/bin/clang
 
-ifeq (sm_,$(findstring sm_,$(AOMP_GPU)))
-  AOMP_GPUTARGET = nvptx64-nvidia-cuda
-else
-  AOMP_GPUTARGET = amdgcn-amd-amdhsa
-endif
-
-# Sorry, clang openmp requires these complex options
-CFLAGS = -O3 -target $(AOMP_CPUTARGET) -fopenmp -fopenmp-targets=$(AOMP_GPUTARGET) -Xopenmp-target=$(AOMP_GPUTARGET) -march=$(AOMP_GPU)$(AOMP_TARGET_FEATURES)
+CFLAGS = -O3 -fopenmp --offload-arch=$(LLVM_GPU_ARCH)$(AOMP_TARGET_FEATURES)
 
 ifeq ($(OFFLOAD_DEBUG),1)
   $(info    DEBUG Mode ON)
-  CCENV  = env LIBRARY_PATH=$(AOMP)/lib-debug
+  CCENV  = env LIBRARY_PATH=$(LLVM_INSTALL_DIR)/lib-debug
   RUNENV = LIBOMPTARGET_DEBUG=1
 endif
 
@@ -61,11 +36,6 @@ endif
 ifeq ($(TEMPS),1)
   $(info    Compilation and linking save-temp Mode ON)
   CFLAGS += -save-temps 
-endif
-
-ifeq (sm_,$(findstring sm_,$(AOMP_GPU)))
-  CUDA   ?= /usr/local/cuda
-  LFLAGS += -L$(CUDA)/targets/$(UNAMEP)-linux/lib -lcudart
 endif
 
 CFLAGS += $(EXTRA_CFLAGS)
@@ -91,11 +61,10 @@ help:
 	@echo
 	@echo "Source[s]:		$(TESTSRC)"
 	@echo "Application binary:    	$(TESTNAME)"
-	@echo "Target GPU:		$(AOMP_GPU)"
-	@echo "Target triple:		$(AOMP_GPUTARGET)"
-	@echo "AOMP compiler: 		$(CC)"
+	@echo "Target GPU:		$(LLVM_GPU_ARCH)"
+	@echo "Compiler: 		$(CC)"
 	@echo "Compile flags:		$(CFLAGS)"
-ifeq (sm_,$(findstring sm_,$(AOMP_GPU)))
+ifeq (sm_,$(findstring sm_,$(LLVM_GPU_ARCH)))
 	@echo "CUDA installation:	$(CUDA)"
 endif
 	@echo
@@ -112,14 +81,14 @@ endif
 	@echo " make help"
 	@echo
 	@echo "Environment variables used by this Makefile:"
-	@echo "  AOMP_GPU=<GPU>       Target GPU, e.g sm_30, default=gfx900. To build for"
-	@echo "                       Nvidia GPUs, set AOMP_GPU=sm_60 or appropriate sm_"
-	@echo "  AOMP=<dir>           AOMP install dir, default=/usr/lib/aomp"
+	@echo "  LLVM_GPU_ARCH=<GPU>       Target GPU, e.g sm_30, default=gfx900. To build for"
+	@echo "                       Nvidia GPUs, set LLVM_GPU_ARCH=sm_60 or appropriate sm_"
+	@echo "  LLVM_INSTALL_DIR=<dir>"
 	@echo "  EXTRA_CFLAGS=<args>  extra arguments for compiler"
 	@echo "  OFFLOAD_DEBUG=n      if n=1, compile and run in Debug mode"
 	@echo "  VERBOSE=n            if n=1, add verbose output"
 	@echo "  TEMPS=1              do not delete intermediate files"
-ifeq (sm_,$(findstring sm_,$(AOMP_GPU)))
+ifeq (sm_,$(findstring sm_,$(LLVM_GPU_ARCH)))
 	@echo "  CUDA=<dir>           CUDA install dir, default=/usr/local/cuda"
 endif
 	@echo
