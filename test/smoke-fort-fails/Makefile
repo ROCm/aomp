@@ -10,6 +10,7 @@ TESTS_DIR = \
     flang-444386 \
     flang-444386-1 \
     flang-445718 \
+    flang-445718-fortran-intrinsic \
     flang-446057a \
     flang-446057b \
     flang-446057c \
