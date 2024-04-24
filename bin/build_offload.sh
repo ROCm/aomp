@@ -161,7 +161,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
       fi
 
       if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
-         ASAN_CMAKE_OPTS="$MYCMAKEOPTS -DSANITIZER_AMDGPU=1 -DLLVM_LIBDIR_SUFFIX=/asan"
+         ASAN_CMAKE_OPTS="$MYCMAKEOPTS -DSANITIZER_AMDGPU=1 -DOFFLOAD_LIBDIR_SUFFIX=/asan"
          mkdir -p $BUILD_DIR/build/offload/asan
          cd $BUILD_DIR/build/offload/asan
          echo " ------Running offload-asan cmake ---- "
@@ -195,10 +195,10 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 
       # Only use CMAKE_CXX/C_FLAGS on non-asan builds as these will overwrite the asan flags
       if [ "$AOMP_BUILD_SANITIZER" == 1  ]; then
-         ASAN_CMAKE_OPTS="$MYCMAKEOPTS -DSANITIZER_AMDGPU=1 -DLLVM_LIBDIR_SUFFIX=-debug/asan"
+         ASAN_CMAKE_OPTS="$MYCMAKEOPTS -DSANITIZER_AMDGPU=1 -DOFFLOAD_LIBDIR_SUFFIX=-debug/asan"
       fi
 
-      MYCMAKEOPTS="$MYCMAKEOPTS -DLLVM_LIBDIR_SUFFIX=-debug"
+      MYCMAKEOPTS="$MYCMAKEOPTS -DOFFLOAD_LIBDIR_SUFFIX=-debug"
       if [ "$AOMP_BUILD_SANITIZER" != 1 ]; then
          mkdir -p $BUILD_DIR/build/offload_debug
          cd $BUILD_DIR/build/offload_debug
