@@ -1,4 +1,5 @@
 #!/bin/bash
+set -x
 
 usage() { echo "Usage: $0 [-a <AOMP directory>]" \
                         " [-t <Target offload architecture>]" \
@@ -21,6 +22,9 @@ done
 # Set 'PROJECT_NAME' to the parent directory's name
 PROJECT_NAME=$(basename $(pwd))
 
+# Set 'build' directory for re-use
+BUILD_DIR=build
+
 # If 'AOMP_DIR' was not specified, fallback to user's AOMP directory
 if [[ -z ${AOMP_DIR} ]]; then
   AOMP_DIR="/home/$USER/rocm/aomp"
@@ -35,15 +39,18 @@ if [ ! -d ${AOMP_DIR} ]; then
   echo "WARNING: AOMP directory '${AOMP_DIR}' does not exist!"
 fi
 
+echo " >>> Clean ..."
+git clean -fdx ./${BUILD_DIR}
+
 echo " >>> Configure ..."
-cmake -B build -S .                                                            \
+cmake -B ${BUILD_DIR} -S .                                                     \
 -DAOMP_DIR=${AOMP_DIR}                                                         \
 -DTGT_OFFLOAD_ARCH=${TGT_OFFLOAD_ARCH}
 
-echo " >>> Clean & Build ..."
-cmake --build build --clean-first --parallel || exit 1
+echo " >>> Build ..."
+cmake --build ${BUILD_DIR} --clean-first --parallel || exit 1
 
 echo " >>> Run ..."
-./build/$PROJECT_NAME || exit 1
+./${BUILD_DIR}/${PROJECT_NAME} || exit 1
 
 echo " >>> DONE!"

@@ -19,3 +19,6 @@ DUMMYOPT     = $(VERBOSE) -x c -
 CC           = $(DUMMYSRC) | $(OMP_BIN) $(DUMMYOPT)
 
 include ../Makefile.rules
+
+clean::
+	git clean -dfx ./build
