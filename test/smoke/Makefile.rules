@@ -140,7 +140,7 @@ ifeq (,$(findstring $(GPU_W_FEATURES),$(UNSUPPORTED)))
 	  # param_3: Cmd Name as string. \
 	  # param_4: CmdRunIndex of Cmd as positive integer. \
 	  function GetPipedCmdStatus() { \
-	  # pstat: Piped command status list. \
+	  # pstat: Pipeline status list. \
 	    local -n pstat=$$2; \
 	  # Cmd: Command Name \
 	    Cmd="$$3"; \

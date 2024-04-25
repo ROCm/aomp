@@ -14,6 +14,12 @@
 # we need to see 1 device only, babelstream in particular.
 export ROCR_VISIBLE_DEVICES=0
 
+# Enable AMDGPU Sanitizer Testing
+if [ "$1" == "-a" ]; then
+  export AOMP_SANITIZER=1
+  export LD_LIBRARY_PATH=$ROCM_INSTALL_PATH/llvm/lib/asan:$ROCM_INSTALL_PATH/lib/asan:$LD_LIBRARY_PATH
+fi
+
 if [ -e /usr/sbin/lspci ]; then
   lspci_loc=/usr/sbin/lspci
 else
@@ -37,13 +43,13 @@ if [ $ISVIRT -eq 1 ] ; then
 SKIP_USM=1
 export SKIP_USM=1
 export HSA_XNACK=${HSA_XNACK:-0}
-SUITE_LIST=${SUITE_LIST:-"examples smoke-limbo smoke omp5 openmpapps ovo sollve babelstream fortran-babelstream"}
+SUITE_LIST=${SUITE_LIST:-"examples smoke-limbo smoke smoke-asan omp5 openmpapps ovo sollve babelstream fortran-babelstream"}
 blockinglist="examples_fortran examples_openmp smoke openmpapps sollve45 sollve50 babelstream"
 else
-SUITE_LIST=${SUITE_LIST:-"examples smoke-limbo smoke omp5 openmpapps LLNL nekbone ovo sollve babelstream fortran-babelstream"}
+SUITE_LIST=${SUITE_LIST:-"examples smoke-limbo smoke smoke-asan omp5 openmpapps LLNL nekbone ovo sollve babelstream fortran-babelstream"}
 blockinglist="examples_fortran examples_openmp smoke openmpapps sollve45 sollve50 babelstream"
 fi
-EPSDB_LIST=${EPSDB_LIST:-"examples smoke-limbo smoke omp5 openmpapps LLNL nekbone ovo sollve babelstream fortran-babelstream"}
+EPSDB_LIST=${EPSDB_LIST:-"examples smoke-limbo smoke smoke-asan omp5 openmpapps LLNL nekbone ovo sollve babelstream fortran-babelstream"}
 
 export AOMP_USE_CCACHE=0
 
@@ -544,6 +550,19 @@ function smoke(){
   HIP_PATH="" AOMP_PARALLEL_SMOKE=1 CLEANUP=0 AOMPHIP=$AOMPROCM ./check_smoke.sh
   checkrc $?
   copyresults smoke "$aompdir"/test/smoke
+}
+
+function smoke-asan(){
+  # Smoke-ASan
+  if [ "$AOMP_SANITIZER" == 1 ]; then
+    mkdir -p "$resultsdir"/smoke-asan
+    cd "$aompdir"/test/smoke-asan
+    HIP_PATH="" AOMP_PARALLEL_SMOKE=1 CLEANUP=0 AOMPHIP=$AOMPROCM ./check_smoke_asan.sh
+    checkrc $?
+    copyresults smoke-asan "$aompdir"/test/smoke-asan
+  else
+    echo "Skipping smoke-asan."
+  fi
 }
 
 SMOKE_FAILS=${SMOKE_FAILS:-1}
