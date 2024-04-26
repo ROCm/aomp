@@ -1,0 +1,14 @@
+include ../../Makefile.defs
+
+TESTNAME     = vmul
+TESTSRC_MAIN = vmul.c
+TESTSRC_AUX  =
+TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
+
+CLANG        ?= clang
+OMP_BIN      = $(AOMP)/bin/$(CLANG) -march=native
+CC           = $(OMP_BIN) $(VERBOSE)
+#-ccc-print-phases
+#"-\#\#\#"
+
+include ../Makefile.rules
