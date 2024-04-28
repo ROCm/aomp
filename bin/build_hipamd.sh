@@ -88,8 +88,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
   fi
 
   export ROCM_RPATH="$AOMP_ORIGIN_RPATH_LIST"
-  MYCMAKEOPTS="$AOMP_ORIGIN_RPATH -DCMAKE_BUILD_TYPE=$BUILDTYPE \
- -DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR \
+  MYCMAKEOPTS="-DCMAKE_BUILD_TYPE=$BUILDTYPE \
  -DCMAKE_INSTALL_PREFIX=$AOMP_INSTALL_DIR \
  -DHIP_COMMON_DIR=$HIP_DIR \
  -DHIP_PLATFORM=amd \
@@ -101,10 +100,10 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 
   if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
      ASAN_FLAGS="$ASAN_FLAGS -I$SANITIZER_COMGR_INCLUDE_PATH -Wno-error=deprecated-declarations"
-     ASAN_CMAKE_OPTS="$MYCMAKEOPTS -DCMAKE_INSTALL_LIBDIR=lib/asan -DCMAKE_C_COMPILER=$AOMP/bin/clang -DCMAKE_CXX_COMPILER=$AOMP/bin/clang++"
+     ASAN_CMAKE_OPTS="$MYCMAKEOPTS $AOMP_ASAN_ORIGIN_RPATH -DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR/lib/asan/cmake -DCMAKE_INSTALL_LIBDIR=lib/asan -DCMAKE_C_COMPILER=$AOMP/bin/clang -DCMAKE_CXX_COMPILER=$AOMP/bin/clang++"
   fi
 
-  MYCMAKEOPTS="$MYCMAKEOPTS -DCMAKE_INSTALL_LIBDIR=lib -DCMAKE_CXX_FLAGS=-I$AOMP_include/amd_comgr -DCMAKE_CXX_FLAGS=-Wno-error=deprecated-declarations -DCMAKE_C_FLAGS=-Wno-error=deprecated-declarations"
+  MYCMAKEOPTS="$MYCMAKEOPTS $AOMP_ORIGIN_RPATH -DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR -DCMAKE_INSTALL_LIBDIR=lib -DCMAKE_CXX_FLAGS=-I$AOMP_include/amd_comgr -DCMAKE_CXX_FLAGS=-Wno-error=deprecated-declarations -DCMAKE_C_FLAGS=-Wno-error=deprecated-declarations"
 
   # If this machine does not have an actvie amd GPU, tell hipamd
   # to use first in GFXLIST or gfx90a if no GFXLIST
