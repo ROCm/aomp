@@ -34,6 +34,8 @@ TESTS_DIR = \
     flang-453308a \
     flang-446005a \
     flang-446005b \
+    flang-446033c_ttdpd \
+    flang-446033d_ttdpd \
     flang-446034 \
     LaunchLatency \
     llvm-issue-82047 \
