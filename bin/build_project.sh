@@ -29,7 +29,7 @@ patchrepo $REPO_DIR
 # Create symlink in roct
 cd $AOMP_REPOS/$AOMP_ROCT_REPO_NAME/include
 if [ ! -h hsakmt ]; then
-  ln -s $(pwd) hsakmt
+  ln -s $(pwd) hsakmt # Link will be removed with install
 fi
 
 # Patch rocm-device-libs
@@ -285,6 +285,8 @@ if [ "$1" == "install" ] ; then
    removepatch $REPO_DIR
    REPO_DIR=$AOMP_REPOS/$AOMP_ROCR_REPO_NAME
    removepatch $REPO_DIR
+   # Remove link needed to compile roct
+   [ -L $AOMP_REPOS/$AOMP_ROCT_REPO_NAME/include/hsakmt ] && rm $AOMP_REPOS/$AOMP_ROCT_REPO_NAME/include/hsakmt
 else 
    echo 
    echo "SUCCESSFUL BUILD, please run:  $0 install"

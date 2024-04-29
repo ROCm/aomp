@@ -1,5 +1,5 @@
 diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
-index 9759e74..c7c4c53 100644
+index 321d6e9..2c61547 100644
 --- a/src/CMakeLists.txt
 +++ b/src/CMakeLists.txt
 @@ -95,7 +95,14 @@ set ( PACKAGE_VERSION_STRING "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_COMMIT
@@ -18,9 +18,9 @@ index 9759e74..c7c4c53 100644
  pkg_check_modules(drm REQUIRED IMPORTED_TARGET libdrm)
  
  ## Create the rocr target.
-@@ -125,6 +132,9 @@ target_include_directories( ${CORE_RUNTIME_TARGET}
-   ${CMAKE_CURRENT_SOURCE_DIR}/libamdhsacode
-   ${CMAKE_CURRENT_BINARY_DIR}/core/runtime/trap_handler)
+@@ -126,6 +133,9 @@ target_include_directories( ${CORE_RUNTIME_TARGET}
+   ${CMAKE_CURRENT_BINARY_DIR}/core/runtime/trap_handler
+   ${CMAKE_CURRENT_BINARY_DIR}/core/runtime/blit_shaders)
  
 +if(DEFINED LLVM_RUNTIME_OPENMP)
 +  target_include_directories(${CORE_RUNTIME_TARGET} PRIVATE ${HSAKMT_SRC_PATH}/include)
@@ -28,7 +28,7 @@ index 9759e74..c7c4c53 100644
  
  ## ------------------------- Linux Compiler and Linker options -------------------------
  set ( HSA_CXX_FLAGS ${HSA_COMMON_CXX_FLAGS} -fexceptions -fno-rtti -fvisibility=hidden -Wno-error=missing-braces -Wno-error=sign-compare -Wno-sign-compare -Wno-write-strings -Wno-conversion-null -fno-math-errno -fno-threadsafe-statics -fmerge-all-constants -fms-extensions -Wno-error=comment -Wno-comment -Wno-error=pointer-arith -Wno-pointer-arith -Wno-error=unused-variable -Wno-error=unused-function )
-@@ -273,8 +283,12 @@ if(${IMAGE_SUPPORT})
+@@ -279,8 +289,12 @@ if(${IMAGE_SUPPORT})
  endif()
  
  ## Link dependencies.
@@ -41,9 +41,9 @@ index 9759e74..c7c4c53 100644
 +endif()
 +target_link_libraries ( ${CORE_RUNTIME_TARGET} PRIVATE elf::elf dl pthread rt numa drm_amdgpu drm )
  
- ## Set the VERSION and SOVERSION values
- set_property ( TARGET ${CORE_RUNTIME_TARGET} PROPERTY VERSION "${SO_VERSION_STRING}" )
-@@ -295,7 +309,7 @@ if( NOT ${BUILD_SHARED_LIBS} )
+ find_package(rocprofiler-register)
+ if(rocprofiler-register_FOUND)
+@@ -313,7 +327,7 @@ if( NOT ${BUILD_SHARED_LIBS} )
  
    ## Add external link requirements.
    target_link_libraries ( ${CORE_RUNTIME_NAME} INTERFACE hsakmt::hsakmt )
