@@ -20,18 +20,18 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-CATEGORIES := \
-	stdpar \
-	fortran
+stdpar_examples := \
+	babelstream \
+	tsp
 
-all: $(CATEGORIES)
+all: $(stdpar_examples)
 
 clean: TARGET=clean
 clean: all
 run: TARGET=run
 run: all
 
-$(CATEGORIES):
+$(stdpar_examples):
 	$(MAKE) -C $@ $(TARGET)
 
-.PHONY: all clean $(CATEGORIES)
+.PHONY: all clean $(stdpar_examples)

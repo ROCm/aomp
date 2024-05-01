@@ -12,8 +12,8 @@ mkdir /tmp/demo ; cd /tmp/demo
 EXROOT=/opt/rocm/share/openmp-extras/examples  # The examples base directory.
 make -f $EXROOT/openmp/reduction/Makefile run
 ```
-To execute an example directly, recursively copy the entire examples directory
-to a writeable directory. For example:
+To execute an example directly from a writeble directory, first recursively copy the entire set of examples,
+then cd to the desired example. For example:
 ```
 EXROOT=/opt/rocm/share/openmp-extras/examples # The examples base directory.
 cp -rp $EXROOT /tmp/                          # Recursively copy examples to /tmp/examples
@@ -29,10 +29,10 @@ env OFFLOAD_DEBUG=1 make
 env OFFLOAD_DEBUG=1 make run
 ```
 These are the c and C++ examples in the [openmp](.) examples category:
-- [veccopy](veccopy)
-- [vmulsum](vmulsum)
-- [reduction](reduction)
-- [driver_tests](driver_tests)
+- [veccopy](veccopy) A simple vector copy in c
+- [vmulsum](vmulsum) A simple vector multiply and sum in c
+- [reduction](reduction) A simple parallel reduction in c 
+- [driver_tests](driver_tests) 
 - [declare_variant_if](declare_variant_if)
 - [show-offload-types](show-offload-types)
-- [vmul_template](vmul_template)
+- [vmul_template](vmul_template) A C++ example

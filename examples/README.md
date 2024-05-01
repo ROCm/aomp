@@ -34,59 +34,68 @@ Each category is a directory and each example is a subdirectory of the category 
 
 ## Using Compiler Example Makefiles
  
-There is a Makefile for each Compiler example. That Makefile can be executed "in-source-tree" 
-with update access to the example directory where the Makefile is found OR from 
-a different directory ("out-of-tree").
-The later is necessary when the examples exist in a read-only directory such
-as an installation directory. 
-
-To run the veccopy example "out-of-tree" from a writable /tmp directory run these commands. 
+There is a Makefile for each Compiler example. That Makefile can be executed
+with update access to the example directory where Makefile and sources are
+found "in-tree" OR from a different directory "out-of-tree". The later is
+necessary when examples are run from a read-only directory such as an
+installation directory. For example, to run the veccopy example
+"out-of-tree" from a new /tmp directory run these commands.
 ```
 mkdir /tmp/demo ; cd /tmp/demo
-EXROOT=/opt/rocm/share/openmp-extras/examples  # The examples base directory.
+EXROOT=/opt/rocm/share/examples/Compiler  # The examples base directory.
 make -f $EXROOT/openmp/veccopy/Makefile run
 ```
 The above will compile and execute the openmp/veccopy example.
 The Makefile will print the compile and execute commands to the console.
 
+If you plan to copy the sources for these examples to test "in-tree"
+compile and execute be sure to copy the entire Compiler examples directory.
+For example, 
+```
+EXROOT=/opt/rocm/share/examples/Compiler  # The examples base directory.
+cp -rp $EXROOT /tmp
+cd /tmp/Compiler/openmp/veccopy
+make run 
+```
 ## Setting LLVM_INSTALL_DIR and LLVM_GPU_ARCH
 
 Each Makefile includes the common Makefile helper file
-[inc/Find_gpu_and_install_dir.mk] (inc/Find_gpu_and_install_dir.mk).
+[inc/Find_gpu_and_install_dir.mk](inc/Find_gpu_and_install_dir.mk).
 This "include-file" finds the LLVM compiler and sets environment
 variable `LLVM_INSTALL_DIR` if not already preset by the user.
-If not preset, or the value of `LLVM_INSTALL_DIR` specifies a nonexistant directory,
-the include-file searches this list of directories to set LLVM_INSTALL_DIR:
+If not preset, or `LLVM_INSTALL_DIR` specifies a nonexistant directory,
+the include-file searches this list of directories to set 'LLVM_INSTALL_DIR':
 
 ```
 /opt/rocm/lib/llvm /usr/lib/aomp ./../../../llvm  ~/rocm/aomp
 ```
+If no LLVM installation is found, all Compile examples will fail.
+Therefore, it is recommended that users of these examples preset `LLVM_INSTALL_DIR`
+to demo or test a compiler other than the last installed ROCm compiler
+found at /opt/rocm/lib/llvm. 
+
 The include-file then searches for an active GPU to set 'LLVM_GPU_ARCH'
 (e.g. gfx90a, gfx940, sm_70, etc).
-Each example Makefile uses LLVM_GPU_ARCH to instruct the compiler
-which GPU to for compilation. If LLVM_GPU_ARCH is not preset,
+Each example uses the value of 'LLVM_GPU_ARCH' to instruct the compiler
+which GPU to for compilation. If 'LLVM_GPU_ARCH' is not preset,
 the include-file first checks for an active amdgpu kernel module.
 If there is an active amdgpu kernel module, the include-file calls the LLVM compiler utility
-`\$(LLVM_INSTALL_DIR)/bin/amdgpu-arch` to set the value of `LLVM_GPU_ARCH`.
+`$(LLVM_INSTALL_DIR)/bin/amdgpu-arch` to set the value of `LLVM_GPU_ARCH`.
 If no active amdgpu kernel module is found, the include file looks for an nvidia PCI
-device and then uses the compiler utility `\$(LLVM_INSTALL_DIR)/bin/nvptx-arch`
+device and then uses the compiler utility `$(LLVM_INSTALL_DIR)/bin/nvptx-arch`
 to set the value `LLVM_GPU_ARCH`.
 If there is no active GPU or the examples are being run for compile-only,
 users may preset LLVM_GPU_ARCH to avoid this search.
 
-If no LLVM installation is found or LLVM_GPU_ARCH is not preset or found, the example Makefile will fail.
+If LLVM_GPU_ARCH is not preset and no GPU is found, all Compile examples will fail.
 
-It is recommended that users of these examples preset `LLVM_INSTALL_DIR`
-to demo or test a compiler other than the last installed ROCm compiler
-found at /opt/rocm/lib/llvm. 
+## Makefile Targets
 
-## Makefile targets
+The default for each Makefile is to compile and link the example binary.
+The target "run" will compile, link, and execute the example.
+The target "clean" will remove all generated files by the Makefile.   
 
-The default for each Makefile is to build the example binary.  The target "run" will 
-compile and execute the example.   The target "clean" will remove any 
-generated files by the Makefile.   
-
-There are often other make targets to show different ways to build the binary.
+There are often other make targets. To show different ways to build the binary.
 E.g. to run with some debug output set `OFFLOAD_DEBUG` variable:
 
 ```
@@ -98,4 +107,4 @@ Run ```make help``` to see various demos of each example.
 
 ## Contributions
 
-If you want to contribute a Compiler example, please read these [rules] (inc/contribute_rules.md)
+If you want to contribute a Compiler example, please read these [rules](inc/contribute_rules.md).

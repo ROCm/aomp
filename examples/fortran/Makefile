@@ -20,18 +20,19 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-CATEGORIES := \
-	stdpar \
-	fortran
+fortran_examples := \
+	bigloop \
+	helloworld \
+	simple_offload
 
-all: $(CATEGORIES)
+all: $(fortran_examples)
 
 clean: TARGET=clean
 clean: all
 run: TARGET=run
 run: all
 
-$(CATEGORIES):
+$(fortran_examples):
 	$(MAKE) -C $@ $(TARGET)
 
-.PHONY: all clean $(CATEGORIES)
+.PHONY: all clean $(fortran_examples)
