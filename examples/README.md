@@ -60,7 +60,7 @@ make run
 ## Setting LLVM_INSTALL_DIR and LLVM_GPU_ARCH
 
 Each Makefile includes the common Makefile helper file
-[inc/Find_gpu_and_install_dir.mk](inc/Find_gpu_and_install_dir.mk).
+[inc/find_gpu_and_install_dir.mk](inc/find_gpu_and_install_dir.mk).
 This "include-file" finds the LLVM compiler and sets environment
 variable `LLVM_INSTALL_DIR` if not already preset by the user.
 If not preset, or `LLVM_INSTALL_DIR` specifies a nonexistant directory,
@@ -74,20 +74,20 @@ Therefore, it is recommended that users of these examples preset `LLVM_INSTALL_D
 to demo or test a compiler other than the last installed ROCm compiler
 found at /opt/rocm/lib/llvm. 
 
-The include-file then searches for an active GPU to set 'LLVM_GPU_ARCH'
+The include-file then searches for an active GPU to set `LLVM_GPU_ARCH`
 (e.g. gfx90a, gfx940, sm_70, etc).
-Each example uses the value of 'LLVM_GPU_ARCH' to instruct the compiler
-which GPU to for compilation. If 'LLVM_GPU_ARCH' is not preset,
+Each example uses the value of `LLVM_GPU_ARCH` to instruct the compiler
+which GPU to for compilation. If `LLVM_GPU_ARCH` is not preset,
 the include-file first checks for an active amdgpu kernel module.
 If there is an active amdgpu kernel module, the include-file calls the LLVM compiler utility
 `$(LLVM_INSTALL_DIR)/bin/amdgpu-arch` to set the value of `LLVM_GPU_ARCH`.
 If no active amdgpu kernel module is found, the include file looks for an nvidia PCI
 device and then uses the compiler utility `$(LLVM_INSTALL_DIR)/bin/nvptx-arch`
 to set the value `LLVM_GPU_ARCH`.
-If there is no active GPU or the examples are being run for compile-only,
-users may preset LLVM_GPU_ARCH to avoid this search.
+If there are no active GPUs or the examples are being run for compile-only,
+users may preset `LLVM_GPU_ARCH` to avoid this search.
 
-If LLVM_GPU_ARCH is not preset and no GPU is found, all Compile examples will fail.
+If `LLVM_GPU_ARCH` is not preset and no GPUs are found, all Compile examples will fail.
 
 ## Makefile Targets
 
