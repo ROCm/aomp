@@ -1,17 +1,28 @@
 #!/bin/bash
 
 # run_babelstream.sh - runs babelstream in the $BABELSTREAM_BUILD dir.
-# User can set RUN_OPTIONS to control which of the 4 variants to build and run
-# The variants are:  omp-default, omp-fast, hip, and omp-cpu .
+# User can set RUN_OPTIONS to control which variants to build and run
+# The variants are:
+#    omp-default
+#    omp-fast
+#    hip
+#    hip-um    - requires XNACK and sets HSA_XNACK=1
+#    omp-cpu
+#    stdpar    - requires XNACK and sets HSA_XNACK=1
+#    stdind    - requires XNACK and sets HSA_XNACK=1
+#    omp-mi300 - requires XNACK and sets HSA_XNACK=1
+#    omp-usm   - requires XNACK and sets HSA_XNACK=1
 #
 # This script allows overrides to the following environment variables:
-#   BABELSTREAM_BUILD   - Build directory with results
+#   BABELSTREAM_BUILD   - Build directory with results /tmp/$USER/babelstream
 #   BABELSTREAM_REPO    - Directory for the Babelstream repo
-#   BABLESTREAM_REPEATS - The number of repititions
-#   AOMP                - Compiler install directory
+#   BABLESTREAM_REPEATS - The number of repititions, default is 10
+#   AOMP                - Compiler install directory, can set to /opt/rocm/lib/llvm
 #   AOMPHIP             - HIP Compiler install directory, defaults to $AOMP
-#   RUN_OPTIONS         - which of 4 variants to build and execute
-
+#   RUN_OPTIONS         - which variants to build and execute
+#                         default is "omp-default omp-fast hip stdpar"
+#   ENABLE_USM=1        - run variants "omp-default omp-fast omp-mi300 omp-usm hip hip-um"
+#
 # --- Start standard header to set AOMP environment variables ----
 realpath=`realpath $0`
 thisdir=`dirname $realpath`
@@ -55,7 +66,7 @@ else
    if [ "$ENABLE_USM" == 1 ]; then
      RUN_OPTIONS=${RUN_OPTIONS:-"omp-default omp-fast omp-mi300 omp-usm hip hip-um"}
    else
-     RUN_OPTIONS=${RUN_OPTIONS:-"omp-default omp-fast omp-mi300 hip"}
+     RUN_OPTIONS=${RUN_OPTIONS:-"omp-default omp-fast hip stdpar"}
    fi
 fi
 
@@ -110,9 +121,12 @@ fi
 
 omp_cpu_flags="-O3 -fopenmp -DOMP"
 hip_flags="-O3 -Wno-unused-result -DHIP"
+stdpar_flags="-O3 -I. --offload-arch=$AOMP_GPU -DNDEBUG -O3 --hipstdpar --hipstdpar-path=/opt/rocm/include/thrust/system/hip --hipstdpar-thrust-path=/opt/rocm/include --hipstdpar-prim-path=/opt/rocm/include -std=c++17 "
 
 omp_src="main.cpp OMPStream.cpp"
 hip_src="main.cpp HIPStream.cpp"
+stdpar_src="main.cpp STDDataStream.cpp"
+stdind_src="main.cpp STDIndicesStream.cpp"
 
 gccver=`gcc --version | grep gcc | cut -d")" -f2 | cut -d"." -f1`
 std="-std=c++20"
@@ -138,6 +152,11 @@ if [ "$1" != "nocopy" ] ; then
    cp $BABELSTREAM_REPO/src/omp/OMPStream.h .
    cp $BABELSTREAM_REPO/src/hip/HIPStream.cpp .
    cp $BABELSTREAM_REPO/src/hip/HIPStream.h .
+   cp $BABELSTREAM_REPO/src/std-data/STDDataStream.cpp .
+   cp $BABELSTREAM_REPO/src/std-data/STDDataStream.h .
+   cp $BABELSTREAM_REPO/src/std-indices/STDIndicesStream.cpp .
+   cp $BABELSTREAM_REPO/src/std-indices/STDIndicesStream.h .
+   cp $BABELSTREAM_REPO/src/dpl_shim.h .
 else
    # for nocopy option, ensure temp sources exist (possibly edited),
    # AND save a copies of unpatched upstream code in temp dir for easy compare.
@@ -169,6 +188,10 @@ for option in $RUN_OPTIONS; do
     compile_cmd="$AOMP/bin/clang++ $std $omp_mi300_flags   $omp_src -o $EXEC"
   elif [ "$option" == "omp-cpu" ]; then
     compile_cmd="$AOMP/bin/clang++ $std $omp_cpu_flags    $omp_src -o $EXEC"
+  elif [ "$option" == "stdpar" ]; then
+    compile_cmd="$AOMP/bin/clang++ -DSTD_DATA $stdpar_flags $stdpar_src -o $EXEC"
+  elif [ "$option" == "stdind" ]; then
+    compile_cmd="$AOMP/bin/hipcc -DSTD_INDICES $stdpar_flags $stdind_src -o $EXEC"
   elif [ "$option" == "omp-usm" ]; then
     compile_cmd="$AOMP/bin/clang++ -DOMP_USM $std $omp_fast_flags   $omp_src -o $EXEC"
   elif [ "$option" == "hip" ] || [ "$option" == "hip-um" ]; then
@@ -205,6 +228,12 @@ for option in $RUN_OPTIONS; do
       elif [ "$option" == "hip-um" ]; then
          echo HSA_XNACK=1 HIP_UM=1 $GPURUN_BINDIR/gpurun $_SILENT ./$EXEC -n $BABELSTREAM_REPEATS ${BABELSTREAM_ARRAY_SIZE} | tee -a results.txt
          HSA_XNACK=1 HIP_UM=1 $GPURUN_BINDIR/gpurun $_SILENT ./$EXEC -n $BABELSTREAM_REPEATS ${BABELSTREAM_ARRAY_SIZE} 2>&1 | tee -a results.txt
+      elif [ "$option" == "stdpar" ]; then
+         echo HSA_XNACK=1 $GPURUN_BINDIR/gpurun $_SILENT ./$EXEC -n $BABELSTREAM_REPEATS ${BABELSTREAM_ARRAY_SIZE} | tee -a results.txt
+         HSA_XNACK=1 $GPURUN_BINDIR/gpurun $_SILENT ./$EXEC -n $BABELSTREAM_REPEATS ${BABELSTREAM_ARRAY_SIZE} | tee -a results.txt
+      elif [ "$option" == "stdind" ]; then
+         echo HSA_XNACK=1 $GPURUN_BINDIR/gpurun $_SILENT ./$EXEC -n $BABELSTREAM_REPEATS ${BABELSTREAM_ARRAY_SIZE} | tee -a results.txt
+         HSA_XNACK=1 $GPURUN_BINDIR/gpurun $_SILENT ./$EXEC -n $BABELSTREAM_REPEATS ${BABELSTREAM_ARRAY_SIZE} | tee -a results.txt
       elif [ "$option" == "omp-fast" ]; then
          echo echo OMPX_FORCE_SYNC_REGIONS=1 \
                 $GPURUN_BINDIR/gpurun $_SILENT ./$EXEC -n $BABELSTREAM_REPEATS ${BABELSTREAM_ARRAY_SIZE} 2>&1 | tee -a results.txt
