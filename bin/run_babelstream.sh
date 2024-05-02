@@ -188,13 +188,9 @@ for option in $RUN_OPTIONS; do
     compile_cmd="$AOMP/bin/clang++ $std $omp_mi300_flags   $omp_src -o $EXEC"
   elif [ "$option" == "omp-cpu" ]; then
     compile_cmd="$AOMP/bin/clang++ $std $omp_cpu_flags    $omp_src -o $EXEC"
-  elif [ "$option" == "stdpar" ]; then
-    compile_cmd="$AOMP/bin/clang++ -DSTD_DATA $stdpar_flags $stdpar_src -o $EXEC"
-  elif [ "$option" == "stdind" ]; then
-    compile_cmd="$AOMP/bin/hipcc -DSTD_INDICES $stdpar_flags $stdind_src -o $EXEC"
   elif [ "$option" == "omp-usm" ]; then
     compile_cmd="$AOMP/bin/clang++ -DOMP_USM $std $omp_fast_flags   $omp_src -o $EXEC"
-  elif [ "$option" == "hip" ] || [ "$option" == "hip-um" ]; then
+  elif [ "$option" == "hip" ] || [ "$option" == "hip-um" ] || [ "$option" == "stdpar" ] || [ "$option" == "stdind" ] ; then
     if [ ! -f $AOMPHIP/bin/hipcc ] ; then 
       AOMPHIP="$AOMPHIP/.."
       if [ ! -f $AOMPHIP/bin/hipcc ] ; then
@@ -207,7 +203,13 @@ for option in $RUN_OPTIONS; do
         fi
       fi
     fi
-    compile_cmd="$AOMPHIP/bin/hipcc $std $hip_flags $hip_src -o $EXEC"
+    if [ "$option" == "stdpar" ]; then
+      compile_cmd="$AOMPHIP/bin/hipcc -DSTD_DATA $stdpar_flags $stdpar_src -o $EXEC"
+    elif [ "$option" == "stdind" ]; then
+      compile_cmd="$AOMPHIP/bin/hipcc -DSTD_INDICES $stdpar_flags $stdind_src -o $EXEC"
+    else
+      compile_cmd="$AOMPHIP/bin/hipcc $std $hip_flags $hip_src -o $EXEC"
+    fi
     HIP_PATH=$AOMPHIP
   else
     echo "ERROR: Option not recognized: $option."
