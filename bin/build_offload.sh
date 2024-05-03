@@ -397,4 +397,16 @@ if [ "$1" == "install" ] ; then
          fi
       fi
    fi
+   # we do not yet have OMPD in llvm 12, disable this for now.
+   # Copy selected debugable runtime sources into the installation $ompd_dir/src directory
+   # to satisfy the above -fdebug-prefix-map.
+   if [ "$AOMP_STANDALONE_BUILD" == 1 ]; then
+      $SUDO mkdir -p $_ompd_dir/src/offload/src
+      echo cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload/src $_ompd_dir/src/offload
+      $SUDO cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload/src $_ompd_dir/src/offload
+   else
+     $SUDO mkdir -p $AOMP_INSTALL_DIR/lib-debug/src/offload/src
+     echo cp -rp $LLVM_PROJECT_ROOT/offload/src $AOMP_INSTALL_DIR/lib-debug/src/offload
+     $SUDO cp -rp $LLVM_PROJECT_ROOT/offload/src $AOMP_INSTALL_DIR/lib-debug/src/offload
+   fi
 fi

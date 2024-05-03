@@ -35,10 +35,10 @@ if [ "$AOMP_BUILD_CUDA" == 1 ] ; then
    export CUDAFE_FLAGS="-w"
 fi
 
-if [ ! -d $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME ] ; then 
-   echo "ERROR:  Missing repository $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME "
-   echo "        Consider setting env variables AOMP_REPOS and/or AOMP_PROJECT_REPO_NAME "
-   exit 1
+if [ ! -d $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME ] ; then
+  echo "ERROR:  Missing repository $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME "
+  echo "        Consider setting env variables AOMP_REPOS and/or AOMP_PROJECT_REPO_NAME "
+  exit 1
 fi
 
 # Make sure we can update the install directory
@@ -84,7 +84,7 @@ if [ "$AOMP_STANDALONE_BUILD" == 0 ]; then
   COMMON_CMAKE_OPTS="$COMMON_CMAKE_OPTS $OPENMP_EXTRAS_ORIGIN_RPATH
   -DLLVM_MAIN_INCLUDE_DIR=$LLVM_PROJECT_ROOT/llvm/include
   -DLIBOMPTARGET_LLVM_INCLUDE_DIRS=$LLVM_PROJECT_ROOT/llvm/include
-  -DENABLE_DEVEL_PACKAGE=ON -DENABLE_RUN_PACKAGE=ON"
+  -DROCM_DIR=$ROCM_DIR -DAOMP_STANDALONE_BUILD=$AOMP_STANDALONE_BUILD"
 else
   COMMON_CMAKE_OPTS="$COMMON_CMAKE_OPTS \
 -DLLVM_MAIN_INCLUDE_DIR=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/llvm/include \
@@ -418,13 +418,22 @@ if [ "$1" == "install" ] ; then
       # we do not yet have OMPD in llvm 12, disable this for now.
       # Copy selected debugable runtime sources into the installation $ompd_dir/src directory
       # to satisfy the above -fdebug-prefix-map.
-      $SUDO mkdir -p $_ompd_dir/src/openmp/runtime/src
-      echo cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/runtime/src $_ompd_dir/src/openmp/runtime
-      $SUDO cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/runtime/src $_ompd_dir/src/openmp/runtime
-      $SUDO mkdir -p $_ompd_dir/src/openmp/src
-      echo cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/src $_ompd_dir/src/openmp
-      $SUDO cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/src $_ompd_dir/src/openmp
-      $SUDO mkdir -p $_ompd_dir/src/openmp/libompd/src
-      $SUDO cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/libompd/src $_ompd_dir/src/openmp/libompd
+      if [ "$AOMP_STANDALONE_BUILD" == 1 ]; then
+        $SUDO mkdir -p $_ompd_dir/src/openmp/runtime/src
+        echo cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/runtime/src $_ompd_dir/src/openmp/runtime
+        $SUDO cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/runtime/src $_ompd_dir/src/openmp/runtime
+
+        $SUDO mkdir -p $_ompd_dir/src/openmp/libompd/src
+        $SUDO cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/libompd/src $_ompd_dir/src/openmp/libompd
+      else
+        # Copy selected debugable runtime sources into the installation lib-debug/src directory
+        # to satisfy the above -fdebug-prefix-map.
+        $SUDO mkdir -p $AOMP_INSTALL_DIR/lib-debug/src/openmp/runtime/src
+        echo cp -rp $LLVM_PROJECT_ROOT/openmp/runtime/src $AOMP_INSTALL_DIR/lib-debug/src/openmp/runtime
+        $SUDO cp -rp $LLVM_PROJECT_ROOT/openmp/runtime/src $AOMP_INSTALL_DIR/lib-debug/src/openmp/runtime
+
+        $SUDO mkdir -p $AOMP_INSTALL_DIR/lib-debug/src/openmp/libompd/src
+        $SUDO cp -rp $LLVM_PROJECT_ROOT/openmp/libompd/src $AOMP_INSTALL_DIR/lib-debug/src/openmp/libompd
+      fi
    fi
 fi

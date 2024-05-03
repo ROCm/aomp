@@ -71,8 +71,13 @@ fi
 AOMP_SKIP_FLANG=${AOMP_SKIP_FLANG:-0}
 AOMP_SKIP_FLANG_NEW=${AOMP_SKIP_FLANG_NEW:-0}
 
-# Do not build openmp as standalone unless user specifies.
-AOMP_LEGACY_OPENMP=${AOMP_LEGACY_OPENMP:-0}
+if [ $AOMP_STANDALONE_BUILD == 0 ] ; then
+  # ROCm still uses standalone openmp build.
+  AOMP_LEGACY_OPENMP=${AOMP_LEGACY_OPENMP:-1}
+else
+  # Do not build openmp as standalone unless user specifies.
+  AOMP_LEGACY_OPENMP=${AOMP_LEGACY_OPENMP:-0}
+fi
 
 if [ "$AOMP_SKIP_FLANG" == 1 ] || [ "$AOMP_SKIP_FLANG_NEW" == 1 ] ; then
    AOMP_PROJECTS_LIST=${AOMP_PROJECTS_LIST:-"clang;lld;compiler-rt;clang-tools-extra"}
@@ -190,7 +195,7 @@ if [ $AOMP_STANDALONE_BUILD == 1 ] ; then
 else
    # Default is to NOT build nvptx for ROCm integrated build
    AOMP_BUILD_CUDA=${AOMP_BUILD_CUDA:-0}
-   AOMP_BUILD_DEBUG=${AOMP_BUILD_DEBUG:-0}
+   AOMP_BUILD_DEBUG=${AOMP_BUILD_DEBUG:-1}
    AOMP_BUILD_PERF=${AOMP_BUILD_PERF:-0}
    AOMP_BUILD_SANITIZER=${AOMP_BUILD_SANITIZER:-0}
    AOMP_ORIGIN_RPATH_NO_DTAGS="-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON -DCMAKE_INSTALL_RPATH=$AOMP_ORIGIN_RPATH_LIST"
@@ -311,7 +316,11 @@ GITKHRONOS="https://github.com/KhronosGroup"
 GITHWLOC="https://github.com/open-mpi"
 AOMP_GIT_INTERNAL_IP="gerrit-git.amd.com"
 GITPROJECT=$GITROCDEV
-AOMP_PROJECT_REPO_NAME=${AOMP_PROJECT_REPO_NAME:-llvm-project}
+if [ "$AOMP_STANDALONE_BUILD" == 1 ]; then
+  AOMP_PROJECT_REPO_NAME=${AOMP_PROJECT_REPO_NAME:-llvm-project}
+else
+  AOMP_PROJECT_REPO_NAME=${AOMP_PROJECT_REPO_NAME:-"../llvm-project"}
+fi
 AOMP_EXTRAS_REPO_NAME=${AOMP_EXTRAS_REPO_NAME:-aomp-extras}
 AOMP_FLANG_REPO_NAME=${AOMP_FLANG_REPO_NAME:-flang}
 
