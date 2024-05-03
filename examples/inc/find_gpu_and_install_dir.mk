@@ -1,11 +1,12 @@
 #-----------------------------------------------------------------------
 #
-#  Makefile.find_gpu_and_install_dir
+#  find_gpu_and_install_dir.mk
 #     Include for examples to find LLVM installation and GPU arch.
-#     This include sets LLVM_INSTALL_DIR, LLVM_GPU_TRIPLE, and LLVM_GPU_ARCH
-#     This include also sets CUDA and LFLAGS to find CUDA lib if NVIDIA gpu
-#     This include also sets HIPDIR and HIPCC=$(HIPDIR)/bin/hipcc
-#     CUDA and LFLAGS to find CUDA lib if NVIDIA gpu
+#     This include
+#        - sets LLVM_INSTALL_DIR, LLVM_GPU_TRIPLE, and LLVM_GPU_ARCH
+#        - sets CUDA and LFLAGS to find CUDA lib if NVIDIA gpu
+#          CUDA and LFLAGS to find CUDA lib if NVIDIA gpu
+#        - HIPDIR and HIPCC=$(HIPDIR)/bin/hipcc
  
 # NOTE: THIS FIRST BLOCK CAN EVENTUALLY BE DELETED
 # If LLVM_INSTALL_DIR not preset and AOMP is, then use AOMP and print deprecation warning
