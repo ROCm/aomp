@@ -24,6 +24,8 @@ openmp_examples := \
 	declare_variant_if \
 	veccopy \
 	driver_tests \
+	reduction \
+	vmul_template \
         vmulsum	
 
 all: $(openmp_examples)

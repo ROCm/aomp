@@ -16,7 +16,7 @@ mkfile_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 ifneq ($(CURDIR)/,$(mkfile_dir))
   TESTSRC := $(mkfile_dir)$(TESTSRC)
 endif
-include $(mkfile_dir)../../Makefile.find_gpu_and_install_dir
+include $(mkfile_dir)../../inc/find_gpu_and_install_dir.mk
 
 CC       = $(LLVM_INSTALL_DIR)/bin/clang++
 
@@ -47,8 +47,8 @@ $(TESTNAME): $(TESTSRC)
 run: $(TESTNAME)
 	$(RUNENV) ./$(TESTNAME)
 
-include $(mkfile_dir)../../Makefile.obin
-include $(mkfile_dir)../../Makefile.help
+include $(mkfile_dir)../../inc/obin.mk
+include $(mkfile_dir)../../inc/help.mk
 
 # Cleanup anything this makefile can create
 clean:
