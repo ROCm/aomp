@@ -55,11 +55,12 @@ run: $(TESTNAME)
 	./gpu-offload
 	@echo 
 	@echo "4. GPU offload qualified with HSA_XNACK=0. Runtime fail will disable offloading."
+	#FIXME: Reenable when ROCm fixes targetid
 	@echo "   SKIPPING SINCE ROCm 6.1 has runtime fail here:  env HSA_XNACK=0 ./$(TESTNAME) "
 	@echo 
 	@echo "5. GPU offload qualified with HSA_XNACK=1. This works on machines that support dynamic XNACK"
-	env HSA_XNACK=1 ./$(TESTNAME) 
-	@echo 
+	#FIXME: Reenable when ROCm fixes targetid
+	@echo "   SKIPPING SINCE ROCm 6.1 has runtime fail here:  env HSA_XNACK=1 ./$(TESTNAME) "
 	@echo 
 	@echo "------- DEMO EXECUTION WITH OMP_TARGET_OFFLOAD=DISBLED -------"
 	@echo 
@@ -90,10 +91,12 @@ run: $(TESTNAME)
 	env OMP_TARGET_OFFLOAD=MANDATORY ./gpu-offload
 	@echo 
 	@echo "4. SKIPPING execution of qualified offload with OMP_TARGET_OFFLOAD=MANDATORY"
-	@echo "   and HSA_XNACK=0 because this would create an expected fatal runtime error."
+	@echo "   and HSA_XNACK=0 because this always creates expected fatal runtime error."
 	@echo 
 	@echo "5. GPU offload qualified with HSA_XNACK=1"
-	env OMP_TARGET_OFFLOAD=MANDATORY HSA_XNACK=1 ./$(TESTNAME) 
+	#FIXME: Reenable when ROCm fixes targetid
+	@echo "   SKIPPING SINCE ROCm 6.1 has runtime fail here: env OMP_TARGET_OFFLOAD=MANDATORY HSA_XNACK=1 ./$(TESTNAME)"
+	#env OMP_TARGET_OFFLOAD=MANDATORY HSA_XNACK=1 ./$(TESTNAME)
 
 # Cleanup anything this makefile can create
 clean:
