@@ -23,10 +23,11 @@
 openmp_examples := \
 	declare_variant_if \
 	veccopy \
-	driver_tests \
+	vmulsum \
 	reduction \
 	vmul_template \
-        vmulsum	
+	driver_tests \
+	demo_offload_types
 
 all: $(openmp_examples)
 
