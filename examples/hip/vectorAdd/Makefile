@@ -37,81 +37,40 @@ mkfile_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 ifneq ($(CURDIR)/,$(mkfile_dir))
   TESTSRC := $(mkfile_dir)$(TESTSRC)
 endif
-include $(mkfile_dir)../../Makefile.find_gpu_and_install_dir
+include $(mkfile_dir)../../inc/find_gpu_and_install_dir.mk
 
-ifeq ($(TARGETS),)
-TARGETS =--offload-arch=$(LLVM_GPU_ARCH)$(AOMP_TARGET_FEATURES)
-endif
-
-CC       =$(LLVM_INSTALL_DIR)/bin/clang++
-
-#  compiler automatically adds "libdevice/<target>/ to -L opts
-LFLAGS   =-L$(LLVM_INSTALL_DIR)/lib
+CC := $(LLVM_INSTALL_DIR)/bin/clang++
 
 # Add cudart only if we have an Nvidia sm_ target
-ifeq (sm_,$(findstring sm_,$(TARGETS)))
+ifeq (sm_,$(findstring sm_,$(LLVM_GPU_ARC)))
+  CFLAGS +=-x cuda -I$(CUDA)/include --offload-arch=$(LLVM_GPU_ARCH)
   LFLAGS +=-L$(CUDA)/targets/$(UNAMEP)-linux/lib -lcudart -Wl,-rpath,$(CUDA)/targets/$(UNAMEP)-linux/lib -std=c++11
-  CFLAGS +=-x cuda -I$(CUDA)/include
 else
-
-  VERS = $(shell $(LLVM_INSTALL_DIR)/bin/clang --version | grep -oP '(?<=clang version )[0-9.]+')
-  ifeq ($(shell expr $(VERS) \>= 12.0), 1)
-    RPTH = -Wl,-rpath,$(HIPDIR)/lib
-  endif
-  HIPLIBS = -L $(HIPDIR)/hip -L $(HIPDIR)/lib  $(RPTH)
-  CFLAGS = -x hip -std=c++11 $(HIPLIBS) -lamdhip64 -mcode-object-version=4
+  CFLAGS += -x hip -std=c++11 --offload-arch=$(LLVM_GPU_ARCH)$(AOMP_TARGET_FEATURES)
+  LFLAGS += -L$(HIPDIR)/lib -lamdhip64
 endif
 
 # ----- Demo compile and link in one step, no object code saved
 $(TESTNAME): $(TESTSRC)
-	$(CC) $(CFLAGS) $(TARGETS) $(LFLAGS) $^ -o $@
+	$(CC) $(CFLAGS) $(LFLAGS) $^ -o $@
 
 run: $(TESTNAME)
 	./$(TESTNAME)
 
 #  ----   Demo compile and link in two steps, object saved
 $(TESTNAME).o: $(TESTSRC)
-	$(CC) -c $(CFLAGS) $(TARGETS) $^
+	$(CCENV) $(CC) -c $(CFLAGS) $^ -o $@
 
-obin:	$(TESTNAME).o 
-	$(CC) $(LFLAGS) $^ -o obin
+obin: $(TESTNAME).o
+	$(CCENV) $(CC) $(LFLAGS) $^ -o $@
 
-run_obin: obin 
+run_obin: obin
 	./obin
 
-#  ----   Demo compile to intermediates LLVMIR or assembly
-$(TESTNAME).ll: $(TESTSRC)
-	$(CC) -c -S -emit-llvm $(CFLAGS) $(TARGETS) $^
-
-$(TESTNAME).s: $(TESTSRC)
-	$(CC)  -c -S $(CFLAGS) $(TARGETS)  $^
-
-help: 
-	@echo
-	@echo "Makefile Help:"
-	@echo "  Source:		$(TESTSRC)"
-	@echo "  Compiler: 		$(CC)"
-	@echo "  Compiler flags: 	$(CFLAGS)"
-	@echo
-	@echo "Avalable Targets:"
-	@echo "  make			// build binary $(TESTNAME)"
-	@echo "  make run		// run $(TESTNAME)"
-	@echo "  make $(TESTNAME).o	// compile, be, & assemble : -c"
-	@echo "  make obin         	// link step only"
-	@echo "  make run_obin     	// run obin "
-	@echo "  make $(TESTNAME).s	// compile & backend steps : -c -S"
-	@echo "  make $(TESTNAME).ll	// compile step only       : -c -S -emit-llvm"
-	@echo "  make clean		// cleanup files"
-	@echo "  make help 		// this help"
-	@echo
-	@echo "Link Flags:"
-	@echo "  Link flags: $(LFLAGS)"
-	@echo
+include $(mkfile_dir)../../inc/help.mk
 
 # Cleanup anything this makefile can create
 clean:
 	@[ -f ./$(TESTNAME) ] && rm ./$(TESTNAME) ; true
 	@[ -f ./obin ] && rm ./obin ; true
-	@[ -f ./$(TESTNAME).ll ] && rm *.ll ; true
 	@[ -f ./$(TESTNAME).o ] && rm $(TESTNAME).o ; true
-	@[ -f ./$(TESTNAME).s ] && rm *.s ; true
