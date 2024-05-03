@@ -20,7 +20,7 @@ ifneq ($(CURDIR)/,$(mkfile_dir))
 else
   TESTSRC := $(S1) $(S2) $(S3) 
 endif
-include $(mkfile_dir)../../Makefile.find_gpu_and_install_dir
+include $(mkfile_dir)../../inc/find_gpu_and_install_dir.mk
 
 CC = $(LLVM_INSTALL_DIR)/bin/clang
 
