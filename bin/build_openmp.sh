@@ -120,9 +120,14 @@ fi
 
 if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
   ASAN_LIB_PATH=$($INSTALL_PREFIX/llvm/bin/clang --print-runtime-dir)
+  if [ ! -d "$ASAN_LIB_PATH" ]; then
+    CLANG_RES_DIR=$($INSTALL_PREFIX/llvm/bin/clang --print-resource-dir)
+    ASAN_LIB_PATH="$CLANG_RES_DIR/lib/linux"
+  fi
   ASAN_RPATH_FLAGS="-Wl,-rpath=$ASAN_LIB_PATH -L$ASAN_LIB_PATH"
   CXXFLAGS="$CXXFLAGS $ASAN_RPATH_FLAGS -I$ROCM_DIR/include -I$ROCM_DIR/include/hsa"
   CFLAGS="$CFLAGS $ASAN_RPATH_FLAGS -I$ROCM_DIR/include -I$ROCM_DIR/include/hsa"
+  LDFLAGS="$LDFLAGS"
 fi
 
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then 
@@ -161,7 +166,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
       fi
 
       if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
-         ASAN_CMAKE_OPTS="$MYCMAKEOPTS -DSANITIZER_AMDGPU=1 -DLLVM_LIBDIR_SUFFIX=/asan"
+         ASAN_CMAKE_OPTS="$MYCMAKEOPTS -DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=OFF -DSANITIZER_AMDGPU=1 -DLLVM_LIBDIR_SUFFIX=/asan"
          mkdir -p $BUILD_DIR/build/openmp/asan
          cd $BUILD_DIR/build/openmp/asan
          echo " ------Running openmp-asan cmake ---- "
@@ -195,7 +200,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 
       # Only use CMAKE_CXX/C_FLAGS on non-asan builds as these will overwrite the asan flags
       if [ "$AOMP_BUILD_SANITIZER" == 1  ]; then
-         ASAN_CMAKE_OPTS="$MYCMAKEOPTS -DSANITIZER_AMDGPU=1 -DLLVM_LIBDIR_SUFFIX=-debug/asan"
+         ASAN_CMAKE_OPTS="$MYCMAKEOPTS -DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=OFF -DSANITIZER_AMDGPU=1 -DLLVM_LIBDIR_SUFFIX=-debug/asan"
       fi
 
       MYCMAKEOPTS="$MYCMAKEOPTS -DLLVM_LIBDIR_SUFFIX=-debug"
