@@ -117,7 +117,7 @@ export AOMP
 echo "AOMP = $AOMP"
 export REAL_AOMP=`realpath $AOMP`
 
-if [ "$TEST_BRANCH" == "" ]; then
+if [ "$TEST_BRANCH" == "1" ]; then
  git reset --hard HEAD
  if [ -e /home/jenkins/workspace/compiler-psdb-amd-mainline-open-a+a ]; then
   export TEST_BRANCH=amd-mainline-open-a+a
