@@ -26,7 +26,8 @@ else
   # target IDs that support OpenMP 'requires unified_shared_memory'
   # as defined in https://llvm.org/docs/AMDGPUUsage.html#amdgpu-processor-table
   # with xnack target feature supported.
-  SUPPORTS_USM= gfx90a, gfx90a:xnack+,\
+  SUPPORTS_USM= gfx908, gfx908:xnack+,\
+                gfx90a, gfx90a:xnack+,\
                 gfx90c, gfx90c:xnack+,\
                 gfx940, gfx940:xnack+,\
                 gfx941, gfx941:xnack+,\
@@ -237,6 +238,13 @@ ifeq (gfx11,$(findstring gfx11,$(AOMP_GPU)))
  AOMP_WSIZE = -DWAVE_SIZE=32
 endif
 
+ifeq ($(AOMP_SANITIZER),1)
+  HSA_XNACK = 1
+  ASAN_FLAGS = -fsanitize=address -shared-libasan -g
+  #ASan requires xnack+ by default
+  AOMP_TARGET_FEATURES = :xnack+
+endif
+
 ifeq ($(AOMP_TARGET_FEATURES),)
 GPU_W_FEATURES = $(AOMP_GPU)
 else
@@ -247,9 +255,9 @@ USE_OFFLOAD_ARCH ?= 1
 ifeq ($(TARGET),)
   ifeq ($(OMP_HOST),)
    ifeq ($(USE_OFFLOAD_ARCH),1)
-	TARGET  =  --offload-arch=$(GPU_W_FEATURES)
+	TARGET  =  --offload-arch=$(GPU_W_FEATURES) $(ASAN_FLAGS)
    else
-	TARGET  =  -fopenmp-targets=$(AOMP_GPUTARGET) -Xopenmp-target=$(AOMP_GPUTARGET) -march=$(GPU_W_FEATURES)
+	TARGET  =  -fopenmp-targets=$(AOMP_GPUTARGET) -Xopenmp-target=$(AOMP_GPUTARGET) -march=$(GPU_W_FEATURES) $(ASAN_FLAGS)
    endif
   endif
 endif
