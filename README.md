@@ -50,7 +50,7 @@ However, we recommend that you install the latest release of the [debian or rpm 
 
 <A NAME="Copyright">
 
-Copyright (c) 2019 ADVANCED MICRO DEVICES, INC.
+Copyright (c) 2024 ADVANCED MICRO DEVICES, INC.
 
 AMD is granting you permission to use this software and documentation (if any) (collectively, the 
 Materials) pursuant to the terms and conditions of the Software License Agreement included with the 
