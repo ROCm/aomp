@@ -56,6 +56,7 @@ TESTS_DIR = \
     olcf-tf-0-serial \
     olcf-tf-1-openmp-cpu \
     single-value-map \
+    target-cray-pointer \
     teams-distribute-no-parallel \
     teams-ditribute-collapse
 
