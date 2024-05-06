@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# merge_from_main.sh:  Merge main branch into amd-trunk-dev (ATD)
+# merge_from_main.sh:  Merge main branch into amd-trunk-dev2 (ATD2)
 #
 #       This script has no command line arguments. 
 #       However, it requires that the environment variable variable
@@ -23,7 +23,7 @@ if [ "$GITPUSH" == "YES" ] ; then
 fi
 REPO_MIRROR="https://github.com/ROCm/llvm-project"
 REPO="REPO_MIRROR"
-_dev_branch="amd-trunk-dev"
+_dev_branch="amd-trunk-dev2"
 logfile="/tmp/${USER}_trunk_merge.log"
 merge_repo_dir=$TRUNK_REPOS/llvm-project
 touch $logfile
