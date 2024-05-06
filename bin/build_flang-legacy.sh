@@ -49,7 +49,7 @@ fi
 # utilizes the clang runtime libraries build/install using build_project.sh.
 # The LLVM_VERSION_MAJOR of legacy flang driver has to match with the clang
 # binaries generated from build_project.sh.
-LLVM_VERSION_MAJOR=$(${AOMP}/llvm/bin/clang --version | grep -oP '(?<=clang version )[0-9]+')
+LLVM_VERSION_MAJOR=$(${AOMP}/bin/clang --version | grep -oP '(?<=clang version )[0-9]+')
 
 # We need a version of ROCM llvm that supports legacy flang 
 # via the link from flang to clang.  rocm 5.5 would be best. 
