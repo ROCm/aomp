@@ -81,7 +81,7 @@ COMMON_CMAKE_OPTS="$AOMP_SET_NINJA_GEN -DOPENMP_ENABLE_LIBOMPTARGET=1
 -DLLVM_DIR=$LLVM_DIR"
 
 if [ "$AOMP_STANDALONE_BUILD" == 0 ]; then
-  COMMON_CMAKE_OPTS="$COMMON_CMAKE_OPTS $OPENMP_EXTRAS_ORIGIN_RPATH
+  COMMON_CMAKE_OPTS="$COMMON_CMAKE_OPTS
   -DLLVM_MAIN_INCLUDE_DIR=$LLVM_PROJECT_ROOT/llvm/include
   -DLIBOMPTARGET_LLVM_INCLUDE_DIRS=$LLVM_PROJECT_ROOT/llvm/include
   -DROCM_DIR=$ROCM_DIR -DAOMP_STANDALONE_BUILD=$AOMP_STANDALONE_BUILD"
@@ -120,7 +120,12 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    echo "Use ""$0 nocmake"" or ""$0 install"" to avoid FRESH START."
    echo rm -rf $BUILD_DIR/build/openmp
    rm -rf $BUILD_DIR/build/openmp
-   MYCMAKEOPTS="$COMMON_CMAKE_OPTS -DCMAKE_PREFIX_PATH=$ROCM_CMAKECONFIG_PATH;$AOMP_INSTALL_DIR/lib/cmake -DCMAKE_BUILD_TYPE=Release $AOMP_ORIGIN_RPATH"
+   if [ "$AOMP_STANDALONE_BUILD" == 1 ]; then
+     MYCMAKEOPTS="$COMMON_CMAKE_OPTS -DCMAKE_PREFIX_PATH=$ROCM_CMAKECONFIG_PATH;$AOMP_INSTALL_DIR/lib/cmake -DCMAKE_BUILD_TYPE=Release $AOMP_ORIGIN_RPATH"
+   else
+     MYCMAKEOPTS="$COMMON_CMAKE_OPTS -DCMAKE_PREFIX_PATH=$ROCM_CMAKECONFIG_PATH;$INSTALL_PREFIX/lib/cmake -DCMAKE_BUILD_TYPE=Release $OPENMP_EXTRAS_ORIGIN_RPATH"
+   fi
+
    if [ "$AOMP_LEGACY_OPENMP" == "1" ]; then
       echo " -----Running openmp cmake ---- "
       mkdir -p $BUILD_DIR/build/openmp
@@ -134,7 +139,11 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
       fi
    fi
       if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
-        ASAN_CMAKE_OPTS="$COMMON_CMAKE_OPTS -DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=OFF -DCMAKE_PREFIX_PATH=$ROCM_CMAKECONFIG_PATH;$AOMP_INSTALL_DIR/lib/asan/cmake $AOMP_ASAN_ORIGIN_RPATH -DSANITIZER_AMDGPU=1 -DCMAKE_BUILD_TYPE=Release"
+        if [ "$AOMP_STANDALONE_BUILD" == 1 ]; then
+          ASAN_CMAKE_OPTS="$COMMON_CMAKE_OPTS -DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=OFF -DCMAKE_PREFIX_PATH=$ROCM_CMAKECONFIG_PATH;$AOMP_INSTALL_DIR/lib/asan/cmake $AOMP_ASAN_ORIGIN_RPATH -DSANITIZER_AMDGPU=1 -DCMAKE_BUILD_TYPE=Release $AOMP_ASAN_ORIGIN_RPATH"
+	else
+          ASAN_CMAKE_OPTS="$COMMON_CMAKE_OPTS -DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=OFF -DCMAKE_PREFIX_PATH=$ROCM_CMAKECONFIG_PATH;$INSTALL_PREFIX/lib/asan/cmake $AOMP_ASAN_ORIGIN_RPATH -DSANITIZER_AMDGPU=1 -DCMAKE_BUILD_TYPE=Release $OPENMP_EXTRAS_ORIGIN_RPATH"
+	fi
         echo " -----Running openmp cmake for asan ---- "
         mkdir -p $BUILD_DIR/build/openmp/asan
         cd $BUILD_DIR/build/openmp/asan
@@ -196,6 +205,16 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 -DLIBOMP_OMPD_SUPPORT=ON \
 -DLIBOMP_OMPT_DEBUG=ON \
 -DOPENMP_SOURCE_DEBUG_MAP="\""-fdebug-prefix-map=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp=$_ompd_dir/src/openmp"\"" "
+
+      if [ "$AOMP_STANDALONE_BUILD" == 1 ]; then
+        if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
+          MYCMAKEOPTS="$MYCMAKEOPTS $AOMP_ASAN_ORIGIN_RPATH"
+        else
+          MYCMAKEOPTS="$MYCMAKEOPTS $AOMP_ORIGIN_RPATH"
+        fi
+      else
+        MYCMAKEOPTS="$MYCMAKEOPTS $OPENMP_EXTRAS_ORIGIN_RPATH"
+      fi
 
       # The 'pip install --system' command is not supported on non-debian systems. This will disable
       # the system option if the debian_version file is not present.

@@ -79,10 +79,9 @@ COMMON_CMAKE_OPTS="$AOMP_SET_NINJA_GEN -DOPENMP_ENABLE_LIBOMPTARGET=1
 -DLLVM_DIR=$LLVM_DIR"
 
 if [ "$AOMP_STANDALONE_BUILD" == 0 ]; then
-  COMMON_CMAKE_OPTS="$COMMON_CMAKE_OPTS $OPENMP_EXTRAS_ORIGIN_RPATH
+  COMMON_CMAKE_OPTS="$COMMON_CMAKE_OPTS
   -DLLVM_MAIN_INCLUDE_DIR=$LLVM_PROJECT_ROOT/llvm/include
-  -DLIBOMPTARGET_LLVM_INCLUDE_DIRS=$LLVM_PROJECT_ROOT/llvm/include
-  -DENABLE_DEVEL_PACKAGE=ON -DENABLE_RUN_PACKAGE=ON"
+  -DLIBOMPTARGET_LLVM_INCLUDE_DIRS=$LLVM_PROJECT_ROOT/llvm/include"
 else
   COMMON_CMAKE_OPTS="$COMMON_CMAKE_OPTS \
 -DLLVM_MAIN_INCLUDE_DIR=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/llvm/include \
@@ -117,7 +116,11 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    echo "Use ""$0 nocmake"" or ""$0 install"" to avoid FRESH START."
    echo rm -rf $BUILD_DIR/build/offload
    rm -rf $BUILD_DIR/build/offload
-   MYCMAKEOPTS="$COMMON_CMAKE_OPTS -DCMAKE_PREFIX_PATH=$ROCM_CMAKECONFIG_PATH;$AOMP_INSTALL_DIR/lib/cmake -DCMAKE_BUILD_TYPE=Release $AOMP_ORIGIN_RPATH"
+   if [ "$AOMP_STANDALONE_BUILD" == 1 ]; then
+     MYCMAKEOPTS="$COMMON_CMAKE_OPTS -DCMAKE_PREFIX_PATH=$ROCM_CMAKECONFIG_PATH;$AOMP_INSTALL_DIR/lib/cmake -DCMAKE_BUILD_TYPE=Release $AOMP_ORIGIN_RPATH"
+   else
+     MYCMAKEOPTS="$COMMON_CMAKE_OPTS -DCMAKE_PREFIX_PATH=$ROCM_CMAKECONFIG_PATH;$INSTALL_PREFIX/lib/cmake -DCMAKE_BUILD_TYPE=Release $OPENMP_EXTRAS_ORIGIN_RPATH"
+   fi
    if [ "$AOMP_LEGACY_OPENMP" == "1" ]; then
       echo " -----Running offload cmake ---- "
       mkdir -p $BUILD_DIR/build/offload
@@ -131,7 +134,11 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
       fi
    fi
       if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
-        ASAN_CMAKE_OPTS="$COMMON_CMAKE_OPTS -DCMAKE_PREFIX_PATH=$ROCM_CMAKECONFIG_PATH;$AOMP_INSTALL_DIR/lib/asan/cmake -DSANITIZER_AMDGPU=1 -DCMAKE_BUILD_TYPE=Release -DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=OFF $AOMP_ASAN_ORIGIN_RPATH"
+        if [ "$AOMP_STANDALONE_BUILD" == 1 ]; then
+          ASAN_CMAKE_OPTS="$COMMON_CMAKE_OPTS -DCMAKE_PREFIX_PATH=$ROCM_CMAKECONFIG_PATH;$AOMP_INSTALL_DIR/lib/asan/cmake -DSANITIZER_AMDGPU=1 -DCMAKE_BUILD_TYPE=Release -DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=OFF $AOMP_ASAN_ORIGIN_RPATH"
+        else
+          ASAN_CMAKE_OPTS="$COMMON_CMAKE_OPTS -DCMAKE_PREFIX_PATH=$ROCM_CMAKECONFIG_PATH;$INSTALL_PREFIX/lib/asan/cmake -DSANITIZER_AMDGPU=1 -DCMAKE_BUILD_TYPE=Release -DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=OFF $OPENMP_EXTRAS_ORIGIN_RPATH"
+        fi
         echo " -----Running offload cmake for asan ---- "
         mkdir -p $BUILD_DIR/build/offload/asan
         cd $BUILD_DIR/build/offload/asan
@@ -194,6 +201,16 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 -DLIBOMP_OMPT_DEBUG=ON \
 -DOPENMP_SOURCE_DEBUG_MAP="\""-fdebug-prefix-map=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload=$_ompd_dir/src/offload"\"" "
 
+      if [ "$AOMP_STANDALONE_BUILD" == 1 ]; then
+        if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
+          MYCMAKEOPTS="$MYCMAKEOPTS $AOMP_ASAN_ORIGIN_RPATH"
+        else
+          MYCMAKEOPTS="$MYCMAKEOPTS $AOMP_ORIGIN_RPATH"
+        fi
+      else
+        MYCMAKEOPTS="$MYCMAKEOPTS $OPENMP_EXTRAS_ORIGIN_RPATH"
+      fi
+
       # The 'pip install --system' command is not supported on non-debian systems. This will disable
       # the system option if the debian_version file is not present.
       if [ ! -f /etc/debian_version ]; then
@@ -212,20 +229,18 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
       echo " -----Running offload cmake for debug ---- "
       mkdir -p $BUILD_DIR/build/offload_debug
       cd $BUILD_DIR/build/offload_debug
-      echo ${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_PREFIX_PATH="$ROCM_CMAKECONFIG_PATH;$AOMP_INSTALL_DIR/lib/cmake" -DCMAKE_C_FLAGS="$CFLAGS -g" -DCMAKE_CXX_FLAGS="$CXXFLAGS -g" -DOFFLOAD_LIBDIR_SUFFIX=-debug $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload $AOMP_ORIGIN_RPATH
-      ${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_PREFIX_PATH="$ROCM_CMAKECONFIG_PATH;$AOMP_INSTALL_DIR/lib/cmake" -DCMAKE_C_FLAGS="$CFLAGS -g" -DCMAKE_CXX_FLAGS="$CXXFLAGS -g" -DOFFLOAD_LIBDIR_SUFFIX=-debug $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload $AOMP_ORIGIN_RPATH
+        echo ${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_C_FLAGS="$CFLAGS -g" -DCMAKE_CXX_FLAGS="$CXXFLAGS -g" -DOFFLOAD_LIBDIR_SUFFIX=-debug $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload
+        ${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_C_FLAGS="$CFLAGS -g" -DCMAKE_CXX_FLAGS="$CXXFLAGS -g" -DOFFLOAD_LIBDIR_SUFFIX=-debug $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload
       if [ $? != 0 ] ; then
          echo "ERROR offload debug cmake failed. Cmake flags"
          echo "      $MYCMAKEOPTS"
          exit 1
       fi
       if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
-         ASAN_CMAKE_OPTS="$MYCMAKEOPTS -DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=OFF -DSANITIZER_AMDGPU=1 $AOMP_ASAN_ORIGIN_RPATH"
+         ASAN_CMAKE_OPTS="$MYCMAKEOPTS -DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=OFF -DSANITIZER_AMDGPU=1"
          echo " -----Running offload cmake for debug-asan ---- "
          mkdir -p $BUILD_DIR/build/offload_debug/asan
          cd $BUILD_DIR/build/offload_debug/asan
-         echo ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DCMAKE_PREFIX_PATH="$ROCM_CMAKECONFIG_PATH;$AOMP_INSTALL_DIR/lib/asan/cmake" -DCMAKE_C_FLAGS="'$ASAN_FLAGS'" -DCMAKE_CXX_FLAGS="'$ASAN_FLAGS'" -DOFFLOAD_LIBDIR_SUFFIX="-debug/asan" $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload
-         ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DCMAKE_PREFIX_PATH="$ROCM_CMAKECONFIG_PATH;$AOMP_INSTALL_DIR/lib/asan/cmake" -DCMAKE_C_FLAGS="'$ASAN_FLAGS'" -DCMAKE_CXX_FLAGS="'$ASAN_FLAGS'" -DOFFLOAD_LIBDIR_SUFFIX="-debug/asan" $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload
          if [ $? != 0 ] ; then
             echo "ERROR offload debug cmake failed. Cmake flags"
             echo "      $ASAN_CMAKE_OPTS"

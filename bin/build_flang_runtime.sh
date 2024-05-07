@@ -28,14 +28,24 @@ COMP_INC_DIR=$(ls -d $AOMP_INSTALL_DIR/lib/clang/*/include )
 REPO_DIR=$AOMP_REPOS/$AOMP_FLANG_REPO_NAME
 COMP_INC_DIR=$REPO_DIR/runtime/libpgmath/lib/common
 
-if [ -d $BUILD_DIR/build/openmp/runtime/src ] ; then
-  openmp_build_runtime_src="$BUILD_DIR/build/openmp/runtime/src"
-else
-  openmp_build_runtime_src="$BUILD_DIR/build/llvm-project/runtimes/runtimes-bins/openmp/runtime/src"
-fi
 
-if [ "$AOMP_BUILD_SANITIZER" == 1 ] && [ -d $BUILD_DIR/build/openmp/asan/runtime/src ]; then
-  openmp_build_runtime_src="$BUILD_DIR/build/openmp/asan/runtime/src"
+if [ "$AOMP_STANDALONE_BUILD" == 0 ]; then
+  if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
+    openmp_build_runtime_src=$BUILD_DIR/build/openmp/asan/runtime/src
+    CMAKE_PREFIX_PATH=$BUILD_DIR/build/pgmath/asan
+  else
+    openmp_build_runtime_src=$BUILD_DIR/build/openmp/runtime/src
+    CMAKE_PREFIX_PATH=$BUILD_DIR/build/pgmath
+  fi
+else
+  if [ -d $BUILD_DIR/build/openmp/runtime/src ] ; then
+    openmp_build_runtime_src="$BUILD_DIR/build/openmp/runtime/src"
+  else
+    openmp_build_runtime_src="$BUILD_DIR/build/llvm-project/runtimes/runtimes-bins/openmp/runtime/src"
+  fi
+  if [ "$AOMP_BUILD_SANITIZER" == 1 ] && [ -d $BUILD_DIR/build/openmp/asan/runtime/src ]; then
+    openmp_build_runtime_src="$BUILD_DIR/build/openmp/asan/runtime/src"
+  fi
 fi
 
 MYCMAKEOPTS="-DCMAKE_BUILD_TYPE=$BUILD_TYPE \
@@ -53,9 +63,9 @@ MYCMAKEOPTS="-DCMAKE_BUILD_TYPE=$BUILD_TYPE \
 
 if [ "$AOMP_STANDALONE_BUILD" == 0 ]; then
    MYCMAKEOPTS="$MYCMAKEOPTS $OPENMP_EXTRAS_ORIGIN_RPATH
-   -DENABLE_DEVEL_PACKAGE=ON -DENABLE_RUN_PACKAGE=ON
    -DOPENMP_EXTRAS_SHARED_LINKER_FLAGS=$OPENMP_EXTRAS_SHARED_LINKER_FLAGS
-   -DAOMP_BUILD_SANITIZER=$AOMP_BUILD_SANITIZER"
+   -DAOMP_BUILD_SANITIZER=$AOMP_BUILD_SANITIZER
+   -DCMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH"
 fi
 
 # Note this variable is used only for AOMP ASan-ROCm builds don't remove it.
@@ -66,10 +76,20 @@ fi
 
 if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
    ASAN_FLAGS="$ASAN_FLAGS -I$COMP_INC_DIR"
-   ASAN_CMAKE_OPTS="$MYCMAKEOPTS -DCMAKE_PREFIX_PATH=$AOMP/lib/asan/cmake $AOMP_ASAN_ORIGIN_RPATH -DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=OFF -DCMAKE_INSTALL_BINDIR=bin/asan -DCMAKE_INSTALL_LIBDIR=lib/asan"
+   ASAN_CMAKE_OPTS="$MYCMAKEOPTS -DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=OFF -DCMAKE_INSTALL_BINDIR=bin/asan -DCMAKE_INSTALL_LIBDIR=lib/asan"
+   if [ "$AOMP_STANDALONE_BUILD" == 1 ]; then
+     ASAN_CMAKE_OPTS="$ASAN_CMAKE_OPTS -DCMAKE_PREFIX_PATH=$AOMP/lib/asan/cmake $AOMP_ASAN_ORIGIN_RPATH"
+   else
+     ASAN_CMAKE_OPTS="$ASAN_CMAKE_OPTS -DCMAKE_PREFIX_PATH=$INSTALL_PREFIX/lib/asan/cmake $OPENMP_EXTRAS_ORIGIN_RPATH -DOPENMP_EXTRAS_SHARED_LINKER_FLAGS=$OPENMP_EXTRAS_SHARED_LINKER_FLAGS"
+   fi
+else
+  if [ "$AOMP_STANDALONE_BUILD" == 1 ]; then
+    MYCMAKEOPTS="$MYCMAKEOPTS -DCMAKE_PREFIX_PATH=$AOMP/lib/cmake $AOMP_ORIGIN_RPATH"
+  else
+    MYCMAKEOPTS="$MYCMAKEOPTS -DCMAKE_PREFIX_PATH=$INSTALL_PREFIX/lib/asan/cmake $OPENMP_EXTRAS_ORIGIN_RPATH -DOPENMP_EXTRAS_SHARED_LINKER_FLAGS=$OPENMP_EXTRAS_SHARED_LINKER_FLAGS"
+  fi 
 fi
 
-MYCMAKEOPTS="$MYCMAKEOPTS -DCMAKE_PREFIX_PATH=$AOMP/lib/cmake $AOMP_ORIGIN_RPATH"
 
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   help_build_aomp
