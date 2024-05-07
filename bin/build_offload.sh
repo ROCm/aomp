@@ -238,9 +238,16 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
       fi
       if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
          ASAN_CMAKE_OPTS="$MYCMAKEOPTS -DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=OFF -DSANITIZER_AMDGPU=1"
+         if [ "$AOMP_STANDALONE_BUILD" == 1 ]; then
+           ASAN_CMAKE_OPTS="$ASAN_CMAKE_OPTS $AOMP_ASAN_ORIGIN_RPATH"
+         else
+           ASAN_CMAKE_OPTS="$ASAN_CMAKE_OPTS $OPENMP_EXTRAS_ORIGIN_RPATH"
+         fi
          echo " -----Running offload cmake for debug-asan ---- "
          mkdir -p $BUILD_DIR/build/offload_debug/asan
          cd $BUILD_DIR/build/offload_debug/asan
+         echo ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DCMAKE_PREFIX_PATH="$ROCM_CMAKECONFIG_PATH;$AOMP_INSTALL_DIR/lib/asan/cmake" -DCMAKE_C_FLAGS="'$ASAN_FLAGS'" -DCMAKE_CXX_FLAGS="'$ASAN_FLAGS'" -DOFFLOAD_LIBDIR_SUFFIX="-debug/asan" $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload
+         ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DCMAKE_PREFIX_PATH="$ROCM_CMAKECONFIG_PATH;$AOMP_INSTALL_DIR/lib/asan/cmake" -DCMAKE_C_FLAGS="'$ASAN_FLAGS'" -DCMAKE_CXX_FLAGS="'$ASAN_FLAGS'" -DOFFLOAD_LIBDIR_SUFFIX="-debug/asan" $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload
          if [ $? != 0 ] ; then
             echo "ERROR offload debug cmake failed. Cmake flags"
             echo "      $ASAN_CMAKE_OPTS"
