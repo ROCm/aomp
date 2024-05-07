@@ -58,7 +58,7 @@ fi
 
 if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
    OPENMP_BUILD_DIR=$OUT_DIR/build/openmp-extras/build/openmp/asan/runtime/src
-	 CMAKE_PREFIX_PATH=$OUT_DIR/build/openmp-extras/build/pgmath/asan
+   CMAKE_PREFIX_PATH=$OUT_DIR/build/openmp-extras/build/pgmath/asan
 fi
 
 MYCMAKEOPTS="-DCMAKE_BUILD_TYPE=$BUILD_TYPE \
