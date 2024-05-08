@@ -65,7 +65,6 @@ veccopy-ompt-target
 veccopy-ompt-target-disallow-both
 veccopy-ompt-target-emi
 veccopy-ompt-target-emi-map
-veccopy-ompt-target-emi-tracing
 veccopy-ompt-target-map
 veccopy-ompt-target-noinit
 veccopy-ompt-target-wrong-return
