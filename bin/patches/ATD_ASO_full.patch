@@ -8737,45 +8737,6 @@ diff -Naur -x .git llvm-project.orig/flang/test/Transforms/DoConcurrent/basic.ml
 +
 +    return
 +  }
-diff -Naur -x .git llvm-project.orig/libcxx/utils/libcxx/__pycache__/header_information.cpython-310.pyc llvm-project/libcxx/utils/libcxx/__pycache__/header_information.cpython-310.pyc
---- llvm-project.orig/libcxx/utils/libcxx/__pycache__/header_information.cpython-310.pyc	1969-12-31 18:00:00.000000000 -0600
-+++ llvm-project/libcxx/utils/libcxx/__pycache__/header_information.cpython-310.pyc	2024-04-25 06:21:37.839287760 -0500
-@@ -0,0 +1,26 @@
-+o
-+    ¨:*f{$  ã                   @   s´  d dl Z d dlZi dd“dd“dd“dd“dd“d	d“d
-+d“dd“dd“dd“dd“dd“dd“dd“dd“dd“dd“ddddddddddddœ¥Zi dd“dd“d	d“dd“dd“dd“d d!“d"d!“d#d!“d$d!“d%d!“d&d'“d
-+d(“d)d*“dd“dd“dd“i dd“d+d“dd“dd“d,d*“dd“d-d.“dd“d/d“d0d1“dd“dd2“d3d“dd“dd“dd“d4d*“¥ddd5œ¥Zi d6d7g“d8d9d7g“d:d;d<g“d=d9g“d>d?g“d@dAg“dd9g“dBd9d7g“d&d9g“dCd9d7g“dd;g“dg dD¢“dEd9dFg“dGd9d7g“dHd9d7g“dId9g“dJd9g“i dKd9d7g“dLd7g“dMg dN¢“dd9d7g“dOd9d7g“dPd9d7g“dQd9g“d<d9d7g“ddg“dRd9g“dSdTdAg“d4d9g“dUd9g“dVd9g“dWd9d7g“dXd9d7g“dYd9d7g“¥d7gd9gd9d7gdZœ¥Zg d[¢Zd\d]„ Zd^d_„ Zd`da„ Ze 	e j
-+ e j
-+ e j
-+ e j
-+ e¡¡¡¡¡Ze 	e j
-+ edb¡¡Ze 	e j
-+ edc¡¡Ze ¡ s¢J ‚eddde„ e df¡D ƒƒZedgde„ e df¡D ƒƒZedhde„ e di¡D ƒƒZdjdk„ eD ƒZdldk„ eD ƒZg dm¢ZdS )né    NÚatomicz&!defined(_LIBCPP_HAS_NO_ATOMIC_HEADER)zstdatomic.hÚiosz%!defined(_LIBCPP_HAS_NO_LOCALIZATION)zlocale.hÚclocaleÚcodecvtÚfstreamÚiomanipÚiostreamÚistreamÚlocaleÚostreamÚregexÚsstreamÚ	streambufÚ	strstreamÚ
-+syncstreamz !defined(_LIBCPP_HAS_NO_THREADS)z(!defined(_LIBCPP_HAS_NO_WIDE_CHARACTERS))ÚbarrierÚfutureÚlatchÚ	semaphoreÚshared_mutexÚ
-+stop_tokenÚthreadúwchar.húwctype.hÚcwcharÚcwctyper   z6// UNSUPPORTED: no-threads, c++03, c++11, c++14, c++17z// UNSUPPORTED: no-localizationÚ	coroutinez*// UNSUPPORTED: c++03, c++11, c++14, c++17r   z"// UNSUPPORTED: no-wide-charactersr   zexperimental/iteratorz// UNSUPPORTED: c++03zexperimental/propagate_constzexperimental/simdzexperimental/type_traitszexperimental/utilityÚ
-+filesystemz2// UNSUPPORTED: no-filesystem, c++03, c++11, c++14z.// UNSUPPORTED: no-localization, no-filesystemr   z!// UNSUPPORTED: no-threads, c++03r   ÚmutexÚprintzb// UNSUPPORTED: no-filesystem, c++03, c++11, c++14, c++17, c++20, availability-fp_to_chars-missingr   r   z(// UNSUPPORTED: no-threads, c++03, c++11z=// UNSUPPORTED: no-threads, c++03, c++11, c++14, c++17, c++20r   r   )r   r   Ú	algorithmÚinitializer_listÚarrayÚcompareÚbitsetÚiosfwdÚstringÚchronoÚ	cinttypesÚcstdintz	complex.hÚcomplexÚdequeÚforward_list)r   r	   r   r   ÚiteratorÚconceptsÚlistÚmapÚmemoryÚoptionalÚqueueÚrandomÚranges)r#   r!   r-   ÚsetÚstackÚstring_viewÚsystem_errorztgmath.hÚcmathÚtupleÚ	typeindexÚunordered_mapÚunordered_setÚutility)ÚvalarrayÚvariantÚvector)Ú	debuggingÚflat_mapÚflat_setÚ	generatorÚhazard_pointerÚlinalgÚrcuÚ
-+spanstreamÚ
-+stacktraceÚstdfloatÚtext_encodingc                 C   s   |   ¡  o	| jdvS )zXReturns whether the given file is a header (i.e. not a directory or the modulemap file).)zmodule.modulemapzCMakeLists.txtz
-+libcxx.imp)Úis_dirÚname)Úfile© rQ   úR/work/grodgers/git/aomp19.0/llvm-project/libcxx/utils/libcxx/header_information.pyÚ	is_header›   s   rS   c                 C   s   d| vo	|   d¡ S )NÚ__úext/©Ú
-+startswith©ÚheaderrQ   rQ   rR   Úis_public_header¤   s   rZ   c                 C   sD   | dkrdS | dkrdS | dv rdS |   d¡rdS |   d¡r dS dS )z:Returns whether a header should be listed in the modulemapÚ__config_siteFÚ__assertion_handler)zcxxabi.hz__cxxabi_config.hz
-+__support/rU   TrV   rX   rQ   rQ   rR   Úis_modulemap_header¨   s   
-+
-+r]   ÚincludeÚtestc                 c   ó&    | ]}t |ƒr| t¡ ¡ V  qd S ©N©rS   Úrelative_tor^   Úas_posix©Ú.0ÚprQ   rQ   rR   Ú	<genexpr>Æ   ó   € ÿ
-+ÿrh   z[_a-z]*c                 c   r`   ra   rb   re   rQ   rQ   rR   rh   É   ri   c                 c   r`   ra   rb   re   rQ   rQ   rR   rh   Ì   s   € ı
-+ÿzexperimental/[a-z]*c                 C   s   g | ]}t |ƒr|‘qS rQ   )rZ   re   rQ   rQ   rR   Ú
-+<listcomp>Ò   s    rj   c                 C   s*   g | ]}|  d ¡st|ƒr|dvr|‘qS )z.h)ÚccomplexÚciso646ÚcstdboolÚctgmath)ÚendswithrZ   )rf   rY   rQ   rQ   rR   rj   ×   s    ııü)ÚcassertÚcctypeÚcerrnoÚcfenvÚcfloatr(   Úclimitsr   r:   ÚcsetjmpÚcsignalÚcstdargÚcstddefr)   ÚcstdioÚcstdlibÚcstringÚctimeÚcucharr   r   )ÚosÚpathlibÚheader_restrictionsÚlit_header_restrictionsÚmandatory_inclusionsÚheaders_not_availablerS   rZ   r]   ÚPathÚpathÚdirnameÚabspathÚ__file__Úlibcxx_rootÚjoinr^   r_   ÚexistsÚsortedÚrglobÚall_headersÚglobÚtoplevel_headersÚexperimental_headersÚpublic_headersÚmodule_headersÚmodule_c_headersrQ   rQ   rQ   rR   Ú<module>   s®  şıúù	÷
-+öõôóòñğïîíìëÛ(ÿşıüûúùø	÷
-+öõôóòñğïîíìëêéèçæåäãâá à!ß"Ş#Ü+ÿşıüûúùø	÷
-+öõôóòñğïîíìëêéèçæåäãâá à!ß"Ş#Û.	*ÿÿşş	
-\ No newline at end of file
-diff -Naur -x .git llvm-project.orig/libcxx/utils/libcxx/__pycache__/__init__.cpython-310.pyc llvm-project/libcxx/utils/libcxx/__pycache__/__init__.cpython-310.pyc
---- llvm-project.orig/libcxx/utils/libcxx/__pycache__/__init__.cpython-310.pyc	1969-12-31 18:00:00.000000000 -0600
-+++ llvm-project/libcxx/utils/libcxx/__pycache__/__init__.cpython-310.pyc	2024-04-23 09:09:13.350270772 -0500
-@@ -0,0 +1,3 @@
-+o
-+    UHf.  ã                   @   s0   d Z dZdZdZd dd„ eD ƒ¡d Zg ZdS )	zlibcxx python utilitieszEric Fiselierzeric@efcs.ca)é    é   r   ú c                 c   s    | ]}t |ƒV  qd S )N)Ústr)Ú.0Úv© r   úH/work/grodgers/git/aomp19.0/llvm-project/libcxx/utils/libcxx/__init__.pyÚ	<genexpr>   s   € r	   ÚdevN)Ú__doc__Ú
-+__author__Ú	__email__Ú__versioninfo__ÚjoinÚ__version__Ú__all__r   r   r   r   Ú<module>   s   
-\ No newline at end of file
 diff -Naur -x .git llvm-project.orig/llvm/include/llvm/Frontend/OpenMP/OMPIRBuilder.h llvm-project/llvm/include/llvm/Frontend/OpenMP/OMPIRBuilder.h
 --- llvm-project.orig/llvm/include/llvm/Frontend/OpenMP/OMPIRBuilder.h	2024-05-08 12:18:16.315497125 -0500
 +++ llvm-project/llvm/include/llvm/Frontend/OpenMP/OMPIRBuilder.h	2024-05-08 12:37:09.236327315 -0500
