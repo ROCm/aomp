@@ -71,14 +71,6 @@ fi
 AOMP_SKIP_FLANG=${AOMP_SKIP_FLANG:-0}
 AOMP_SKIP_FLANG_NEW=${AOMP_SKIP_FLANG_NEW:-0}
 
-if [ $AOMP_STANDALONE_BUILD == 0 ] ; then
-  # ROCm still uses standalone openmp build.
-  AOMP_LEGACY_OPENMP=${AOMP_LEGACY_OPENMP:-1}
-else
-  # Do not build openmp as standalone unless user specifies.
-  AOMP_LEGACY_OPENMP=${AOMP_LEGACY_OPENMP:-0}
-fi
-
 if [ "$AOMP_SKIP_FLANG" == 1 ] || [ "$AOMP_SKIP_FLANG_NEW" == 1 ] ; then
    AOMP_PROJECTS_LIST=${AOMP_PROJECTS_LIST:-"clang;lld;compiler-rt;clang-tools-extra"}
 else
@@ -178,6 +170,14 @@ AOMP_CLANGXX_COMPILER=${AOMP_CLANGXX_COMPILER:-$_clangxx_compiler}
 
 # Non standalone builds are done with ROCm builds.
 AOMP_STANDALONE_BUILD=${AOMP_STANDALONE_BUILD:-1}
+
+if [ "$AOMP_STANDALONE_BUILD" == 0 ] ; then
+  # ROCm still uses standalone openmp build.
+  AOMP_LEGACY_OPENMP=${AOMP_LEGACY_OPENMP:-1}
+else
+  # Do not build openmp as standalone unless user specifies.
+  AOMP_LEGACY_OPENMP=${AOMP_LEGACY_OPENMP:-0}
+fi
 
 #  The logic for turning on AOMP_BUILD_CUDA build is here
 if [ "$AOMP_PROC" == "ppc64le" ] ; then
