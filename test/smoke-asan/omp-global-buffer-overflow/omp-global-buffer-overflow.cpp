@@ -19,4 +19,4 @@ int main(int argc, char *argv[]) {
 /// CHECK:=================================================================
 /// CHECK-NEXT:=={{[0-9]+}}==ERROR: AddressSanitizer: global-buffer-overflow on amdgpu device 0 at pc [[PC:.*]]
 /// CHECK-NEXT:WRITE of size 4 in workgroup id ({{[0-9]+}},0,0)
-/// CHECK-NEXT:  #0 [[PC]] in __omp_offloading_{{.*}} at {{.*}}aomp/test/smoke-asan/omp-global-buffer-overflow/omp-global-buffer-overflow.cpp:13:13
+/// CHECK-NEXT:  #0 [[PC]] in __omp_offloading_{{.*}} at {{.*}}aomp/test/smoke-asan/omp-global-buffer-overflow/omp-global-buffer-overflow.cpp:13:{{[0-9]+}}

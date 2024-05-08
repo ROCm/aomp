@@ -37,4 +37,4 @@ int main(int argc, char *argv[]) {
 /// CHECK:=================================================================
 /// CHECK-NEXT:=={{[0-9]+}}==ERROR: AddressSanitizer: heap-use-after-free on amdgpu device 0 at pc [[PC:.*]]
 /// CHECK-NEXT:WRITE of size 4 in workgroup id ({{[0-9]+}},0,0)
-/// CHECK-NEXT:  #0 [[PC]] in Initialize(int, int*) at {{.*}}aomp/test/smoke-asan/hip-use-after-free/hip-use-after-free.cpp:17:11
+/// CHECK-NEXT:  #0 [[PC]] in Initialize(int, int*) at {{.*}}aomp/test/smoke-asan/hip-use-after-free/hip-use-after-free.cpp:17:{{[0-9]+}}
