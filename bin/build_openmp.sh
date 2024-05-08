@@ -126,7 +126,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
      MYCMAKEOPTS="$COMMON_CMAKE_OPTS -DCMAKE_PREFIX_PATH=$ROCM_CMAKECONFIG_PATH;$INSTALL_PREFIX/lib/cmake -DCMAKE_BUILD_TYPE=Release $OPENMP_EXTRAS_ORIGIN_RPATH"
    fi
 
-   if [ "$AOMP_LEGACY_OPENMP" == "1" ]; then
+   if [ "$AOMP_LEGACY_OPENMP" == "1" ] && [ "$SANITIZER" != 1 ]; then
       echo " -----Running openmp cmake ---- "
       mkdir -p $BUILD_DIR/build/openmp
       cd $BUILD_DIR/build/openmp
@@ -230,16 +230,18 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
          MYCMAKEOPTS="$MYCMAKEOPTS -DPython3_ROOT_DIR=/opt/rh/rh-python36/root/bin -DPYTHON_HEADERS=/opt/rh/rh-python36/root/usr/include/python3.6m"
       fi
 
-      echo
-      echo " -----Running openmp cmake for debug ---- " 
-      mkdir -p $BUILD_DIR/build/openmp_debug
-      cd $BUILD_DIR/build/openmp_debug
-      echo ${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_PREFIX_PATH="$ROCM_CMAKECONFIG_PATH;$AOMP_INSTALL_DIR/lib/cmake" $AOMP_ORIGIN_RPATH -DCMAKE_C_FLAGS="$CFLAGS -g" -DCMAKE_CXX_FLAGS="$CXXFLAGS -g" -DLLVM_LIBDIR_SUFFIX=-debug $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
-      ${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_PREFIX_PATH="$ROCM_CMAKECONFIG_PATH;$AOMP_INSTALL_DIR/lib/cmake" $AOMP_ORIGIN_RPATH -DCMAKE_C_FLAGS="$CFLAGS -g" -DCMAKE_CXX_FLAGS="$CXXFLAGS -g" -DLLVM_LIBDIR_SUFFIX=-debug $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
-      if [ $? != 0 ] ; then
-         echo "ERROR openmp debug cmake failed. Cmake flags"
-         echo "      $MYCMAKEOPTS"
-         exit 1
+      if [ "$SANITIZER" != 1 ]; then
+         echo
+         echo " -----Running openmp cmake for debug ---- "
+         mkdir -p $BUILD_DIR/build/openmp_debug
+         cd $BUILD_DIR/build/openmp_debug
+         echo ${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_PREFIX_PATH="$ROCM_CMAKECONFIG_PATH;$AOMP_INSTALL_DIR/lib/cmake" $AOMP_ORIGIN_RPATH -DCMAKE_C_FLAGS="$CFLAGS -g" -DCMAKE_CXX_FLAGS="$CXXFLAGS -g" -DLLVM_LIBDIR_SUFFIX=-debug $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
+         ${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_PREFIX_PATH="$ROCM_CMAKECONFIG_PATH;$AOMP_INSTALL_DIR/lib/cmake" $AOMP_ORIGIN_RPATH -DCMAKE_C_FLAGS="$CFLAGS -g" -DCMAKE_CXX_FLAGS="$CXXFLAGS -g" -DLLVM_LIBDIR_SUFFIX=-debug $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
+         if [ $? != 0 ] ; then
+            echo "ERROR openmp debug cmake failed. Cmake flags"
+            echo "      $MYCMAKEOPTS"
+            exit 1
+         fi
       fi
       if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
          ASAN_CMAKE_OPTS="$MYCMAKEOPTS -DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=OFF -DSANITIZER_AMDGPU=1"
@@ -258,7 +260,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 fi
 
 if [ "$1" != "install" ] ; then
-if [ "$AOMP_LEGACY_OPENMP" == "1" ]; then
+if [ "$AOMP_LEGACY_OPENMP" == "1" ] && [ "$SANITIZER" != 1 ] ; then
   cd $BUILD_DIR/build/openmp
   echo " -----Running $AOMP_NINJA_BIN for $BUILD_DIR/build/openmp ---- "
   $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS
@@ -310,16 +312,17 @@ if [ "$AOMP_BUILD_PERF" == "1" ] ; then
 fi
 
 if [ "$AOMP_BUILD_DEBUG" == "1" ] ; then
-   cd $BUILD_DIR/build/openmp_debug
-   echo
-   echo
-   echo " -----Running $AOMP_NINJA_BIN for $BUILD_DIR/build/openmp_debug ---- "
-   $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS
-   if [ $? != 0 ] ; then
-      echo "ERROR $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS failed"
-      exit 1
+   if [ "$SANITIZER" != 1 ] ; then
+      cd $BUILD_DIR/build/openmp_debug
+      echo
+      echo
+      echo " -----Running $AOMP_NINJA_BIN for $BUILD_DIR/build/openmp_debug ---- "
+      $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS
+      if [ $? != 0 ] ; then
+         echo "ERROR $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS failed"
+         exit 1
+      fi
    fi
-
 
    if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
       cd $BUILD_DIR/build/openmp_debug/asan
@@ -344,7 +347,7 @@ fi
 if [ "$1" == "install" ] ; then 
    clang_major=$("$AOMP_INSTALL_DIR"/bin/clang --version | grep -oP '(?<=clang version )[0-9]+')
    llvm_dylib=$(readlink "$AOMP_INSTALL_DIR"/lib/libLLVM.so)
-   if [ "$AOMP_LEGACY_OPENMP" == "1" ]; then
+   if [ "$AOMP_LEGACY_OPENMP" == "1" ] && [ "$SANITIZER" != 1 ] ; then
       cd $BUILD_DIR/build/openmp
       echo
       echo " -----Installing to $INSTALL_OPENMP/lib ----- "
@@ -393,20 +396,22 @@ if [ "$1" == "install" ] ; then
    fi
 
    if [ "$AOMP_BUILD_DEBUG" == "1" ] ; then
-      cd $BUILD_DIR/build/openmp_debug
-      _ompd_dir="$AOMP_INSTALL_DIR/lib-debug/ompd"
-      #  This is the new locationof the ompd directory
-      [[ ! -d $_ompd_dir ]] && _ompd_dir="$AOMP_INSTALL_DIR/share/gdb/python/ompd"
-      echo
-      echo " -----Installing to $INSTALL_OPENMP/lib-debug ---- " 
-      $SUDO $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS install
-      if [ $? != 0 ] ; then 
-         echo "ERROR $AOMP_NINJA_BIN install failed "
-         exit 1
-      fi
-      if [ ! -h $AOMP_INSTALL_DIR/lib-debug/$llvm_dylib ] && [ "$llvm_dylib" != "" ]; then
-        cd $AOMP_INSTALL_DIR/lib-debug
-        ln -s ../lib/$llvm_dylib $llvm_dylib
+      if [ "$SANITIZER" != 1 ] ; then
+         cd $BUILD_DIR/build/openmp_debug
+         _ompd_dir="$AOMP_INSTALL_DIR/lib-debug/ompd"
+         #  This is the new locationof the ompd directory
+         [[ ! -d $_ompd_dir ]] && _ompd_dir="$AOMP_INSTALL_DIR/share/gdb/python/ompd"
+         echo
+         echo " -----Installing to $INSTALL_OPENMP/lib-debug ---- "
+         $SUDO $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS install
+         if [ $? != 0 ] ; then
+            echo "ERROR $AOMP_NINJA_BIN install failed "
+            exit 1
+         fi
+         if [ ! -h $AOMP_INSTALL_DIR/lib-debug/$llvm_dylib ] && [ "$llvm_dylib" != "" ]; then
+            cd $AOMP_INSTALL_DIR/lib-debug
+            ln -s ../lib/$llvm_dylib $llvm_dylib
+         fi
       fi
 
       if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then

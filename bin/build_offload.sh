@@ -84,8 +84,8 @@ if [ "$AOMP_STANDALONE_BUILD" == 0 ]; then
   -DLIBOMPTARGET_LLVM_INCLUDE_DIRS=$LLVM_PROJECT_ROOT/llvm/include"
 else
   COMMON_CMAKE_OPTS="$COMMON_CMAKE_OPTS \
--DLLVM_MAIN_INCLUDE_DIR=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/llvm/include \
--DLIBOMPTARGET_LLVM_INCLUDE_DIRS=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/llvm/include"
+  -DLLVM_MAIN_INCLUDE_DIR=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/llvm/include \
+  -DLIBOMPTARGET_LLVM_INCLUDE_DIRS=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/llvm/include"
 fi
 
 if [ "$AOMP_BUILD_CUDA" == 1 ] ; then
@@ -121,7 +121,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    else
      MYCMAKEOPTS="$COMMON_CMAKE_OPTS -DCMAKE_PREFIX_PATH=$ROCM_CMAKECONFIG_PATH;$INSTALL_PREFIX/lib/cmake -DCMAKE_BUILD_TYPE=Release $OPENMP_EXTRAS_ORIGIN_RPATH"
    fi
-   if [ "$AOMP_LEGACY_OPENMP" == "1" ]; then
+   if [ "$AOMP_LEGACY_OPENMP" == "1" ] && [ "$SANITIZER" != 1 ]; then
       echo " -----Running offload cmake ---- "
       mkdir -p $BUILD_DIR/build/offload
       cd $BUILD_DIR/build/offload
@@ -185,8 +185,6 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
       _ompd_dir="$AOMP_INSTALL_DIR/lib-debug/ompd"
       #  This is the new locationof the ompd directory
       [[ ! -d $_ompd_dir ]] && _ompd_dir="$AOMP_INSTALL_DIR/share/gdb/python/ompd"
-      echo rm -rf $BUILD_DIR/build/offload_debug
-      rm -rf $BUILD_DIR/build/offload_debug
 
       MYCMAKEOPTS="$COMMON_CMAKE_OPTS \
 -DLIBOMPTARGET_NVPTX_DEBUG=ON \
@@ -226,15 +224,20 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
       fi
 
       echo
-      echo " -----Running offload cmake for debug ---- "
-      mkdir -p $BUILD_DIR/build/offload_debug
-      cd $BUILD_DIR/build/offload_debug
-        echo ${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_C_FLAGS="$CFLAGS -g" -DCMAKE_CXX_FLAGS="$CXXFLAGS -g" -DOFFLOAD_LIBDIR_SUFFIX=-debug $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload
-        ${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_C_FLAGS="$CFLAGS -g" -DCMAKE_CXX_FLAGS="$CXXFLAGS -g" -DOFFLOAD_LIBDIR_SUFFIX=-debug $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload
-      if [ $? != 0 ] ; then
-         echo "ERROR offload debug cmake failed. Cmake flags"
-         echo "      $MYCMAKEOPTS"
-         exit 1
+      if [ "$SANITIZER" != 1 ] ; then
+         echo rm -rf $BUILD_DIR/build/offload_debug
+         rm -rf $BUILD_DIR/build/offload_debug
+         echo " -----Running offload cmake for debug ---- "
+         mkdir -p $BUILD_DIR/build/offload_debug
+         cd $BUILD_DIR/build/offload_debug
+         echo ${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_C_FLAGS="$CFLAGS -g" -DCMAKE_CXX_FLAGS="$CXXFLAGS -g" -DOFFLOAD_LIBDIR_SUFFIX=-debug $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload
+         ${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_C_FLAGS="$CFLAGS -g" -DCMAKE_CXX_FLAGS="$CXXFLAGS -g" -DOFFLOAD_LIBDIR_SUFFIX=-debug $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload
+
+         if [ $? != 0 ] ; then
+            echo "ERROR offload debug cmake failed. Cmake flags"
+            echo "      $MYCMAKEOPTS"
+            exit 1
+         fi
       fi
       if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
          ASAN_CMAKE_OPTS="$MYCMAKEOPTS -DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=OFF -DSANITIZER_AMDGPU=1"
@@ -256,9 +259,8 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
       fi
    fi
 fi
-
 if [ "$1" != "install" ] ; then
-if [ "$AOMP_LEGACY_OPENMP" == "1" ]; then
+if [ "$AOMP_LEGACY_OPENMP" == "1" ] && [ "$SANITIZER" != 1 ] ; then
   cd $BUILD_DIR/build/offload
   echo " -----Running $AOMP_NINJA_BIN for $BUILD_DIR/build/offload ---- "
   $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS
@@ -310,17 +312,17 @@ if [ "$AOMP_BUILD_PERF" == "1" ] ; then
 fi
 
 if [ "$AOMP_BUILD_DEBUG" == "1" ] ; then
-   cd $BUILD_DIR/build/offload_debug
-   echo
-   echo
-   echo " -----Running $AOMP_NINJA_BIN for $BUILD_DIR/build/offload_debug ---- "
-   $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS
-   if [ $? != 0 ] ; then
-      echo "ERROR $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS failed"
-      exit 1
+   if [ "$SANITIZER" != 1 ] ; then
+      cd $BUILD_DIR/build/offload_debug
+      echo
+      echo
+      echo " -----Running $AOMP_NINJA_BIN for $BUILD_DIR/build/offload_debug ---- "
+      $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS
+      if [ $? != 0 ] ; then
+         echo "ERROR $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS failed"
+         exit 1
+      fi
    fi
-
-
    if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
       cd $BUILD_DIR/build/offload_debug/asan
       echo
@@ -344,7 +346,7 @@ fi
 if [ "$1" == "install" ] ; then
    clang_major=$("$AOMP_INSTALL_DIR"/bin/clang --version | grep -oP '(?<=clang version )[0-9]+')
    llvm_dylib=$(readlink "$AOMP_INSTALL_DIR"/lib/libLLVM.so)
-   if [ "$AOMP_LEGACY_OPENMP" == "1" ]; then
+   if [ "$AOMP_LEGACY_OPENMP" == "1" ] && [ "$SANITIZER" != 1 ] ; then
       cd $BUILD_DIR/build/offload
       echo
       echo " -----Installing to $INSTALL_OPENMP/lib ----- "
@@ -393,22 +395,23 @@ if [ "$1" == "install" ] ; then
    fi
 
    if [ "$AOMP_BUILD_DEBUG" == "1" ] ; then
-      cd $BUILD_DIR/build/offload_debug
       _ompd_dir="$AOMP_INSTALL_DIR/lib-debug/ompd"
       #  This is the new locationof the ompd directory
       [[ ! -d $_ompd_dir ]] && _ompd_dir="$AOMP_INSTALL_DIR/share/gdb/python/ompd"
-      echo
-      echo " -----Installing to $INSTALL_OPENMP/lib-debug ---- "
-      $SUDO $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS install
-      if [ $? != 0 ] ; then
-         echo "ERROR $AOMP_NINJA_BIN install failed "
-         exit 1
+      if [ "$SANITIZER" != 1 ] ; then
+         cd $BUILD_DIR/build/offload_debug
+         echo
+         echo " -----Installing to $INSTALL_OPENMP/lib-debug ---- "
+         $SUDO $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS install
+         if [ $? != 0 ] ; then
+            echo "ERROR $AOMP_NINJA_BIN install failed "
+            exit 1
+         fi
+         if [ ! -h $AOMP_INSTALL_DIR/lib-debug/$llvm_dylib ] && [ "$llvm_dylib" != "" ]; then
+            cd $AOMP_INSTALL_DIR/lib-debug
+            ln -s ../lib/$llvm_dylib $llvm_dylib
+         fi
       fi
-      if [ ! -h $AOMP_INSTALL_DIR/lib-debug/$llvm_dylib ] && [ "$llvm_dylib" != "" ]; then
-        cd $AOMP_INSTALL_DIR/lib-debug
-        ln -s ../lib/$llvm_dylib $llvm_dylib
-      fi
-
       if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
          cd $BUILD_DIR/build/offload_debug/asan
          echo " -----Installing to $INSTALL_OPENMP/lib-debug/asan ---- "
