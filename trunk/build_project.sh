@@ -21,9 +21,12 @@ fi
 if [ "$TRUNK_BUILD_CUDA" == 0 ] ; then
    _cuda_plugin="-DLIBOMPTARGET_BUILD_CUDA_PLUGIN=OFF"
    _targets_to_build="-DLLVM_TARGETS_TO_BUILD='X86;AMDGPU'"
+   _plugins_to_build="-DLIBOMPTARGET_PLUGINS_TO_BUILD='amdgpu;host'"
+   AOMP_NVPTX_CAPS_OPT=""
 else
    _cuda_plugin="-DLIBOMPTARGET_BUILD_CUDA_PLUGIN=ON"
    _targets_to_build="-DLLVM_TARGETS_TO_BUILD='X86;AMDGPU;NVPTX'"
+   _plugins_to_build="-DLIBOMPTARGET_PLUGINS_TO_BUILD='amdgpu;cuda;host'"
 fi
 
 #  -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
@@ -40,6 +43,7 @@ $DO_TESTS \
 $_targets_to_build \
 -DLLVM_ENABLE_ASSERTIONS=ON \
 -DLLVM_ENABLE_RUNTIMES='openmp;compiler-rt;offload' \
+$_plugins_to_build \
 -DCOMPILER_RT_BUILD_ORC=OFF \
 -DCOMPILER_RT_BUILD_XRAY=OFF \
 -DCOMPILER_RT_BUILD_MEMPROF=OFF \
