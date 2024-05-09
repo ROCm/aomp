@@ -132,10 +132,14 @@ else
   # libdevice, project, comgr, rocminfo, hipamd, rocdbgapi, rocgdb,
   # roctracer, and rocprofiler should be found in ROCM in /opt/rocm.
   # The ROCM build only needs these components:
+  components="extras openmp"
+  if [ -f "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload/CMakeLists.txt" ]; then
+    components="$components offload"
+  fi
   if [ "$SANITIZER" == 1 ] && [ -f $AOMP/bin/flang-legacy ] ; then
-    components="extras openmp offload pgmath flang flang_runtime"
+    components="$components pgmath flang flang_runtime"
   else
-    components="extras openmp offload flang-legacy pgmath flang flang_runtime"
+    components="$components flang-legacy pgmath flang flang_runtime"
   fi
 fi
 echo "COMPONENTS:$components"
