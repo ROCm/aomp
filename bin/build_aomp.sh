@@ -135,8 +135,7 @@ else
   if [ "$SANITIZER" == 1 ] && [ -f $AOMP/bin/flang-legacy ] ; then
     components="extras openmp offload pgmath flang flang_runtime"
   else
-    #components="extras openmp offload flang-legacy pgmath flang flang_runtime"
-    components="extras openmp offload flang-legacy"
+    components="extras openmp offload flang-legacy pgmath flang flang_runtime"
   fi
 fi
 echo "COMPONENTS:$components"
