@@ -10,13 +10,13 @@
 #if defined(__AMDGCN__) || defined(__NVPTX__)
 void __kmpc_rfun_sum_d(double *val, double otherval);
 void __kmpc_rfun_sum_lds_d(_RF_LDS double *val, _RF_LDS double *otherval);
-void _INLINE_ATTR_  __kmpc_iteamr_d_4x64
+void _INLINE_ATTR_  __kmpc_iteamr_d_16x64
    (double v, double *r_ptr, void (*_rf)(double *, double),
       void (*_rf_lds)(_RF_LDS double *, _RF_LDS double *), const double iv, const uint64_t k);
 #else
 void __kmpc_rfun_sum_d(double *val, double otherval) {}
 void __kmpc_rfun_sum_lds_d(_RF_LDS double *val, _RF_LDS double *otherval) {}
-void _INLINE_ATTR_  __kmpc_iteamr_d_4x64
+void _INLINE_ATTR_  __kmpc_iteamr_d_16x64
    (double v, double *r_ptr, void (*_rf)(double *, double),
     void (*_rf_lds)(_RF_LDS double *, _RF_LDS double *), const double iv, const uint64_t k) {}
 #endif
@@ -44,7 +44,7 @@ void vmul_sim(double*a, double*b, double*c, int N) {
       double val0 = 0;
       for (int64_t j = k; j < N; j += NUM_THREADS)
 	val0 += a[i] * b[j];
-      __kmpc_iteamr_d_4x64(val0, &sum,
+      __kmpc_iteamr_d_16x64(val0, &sum,
 			   __kmpc_rfun_sum_d,
 			   __kmpc_rfun_sum_lds_d,
 			   0, k);
