@@ -34,12 +34,18 @@ Each category is a directory and each example is a subdirectory of the category 
 
 ## Using Compiler Example Makefiles
  
-There is a Makefile for each Compiler example. That Makefile can be executed
-with update access to the example directory where Makefile and sources are
-found "in-tree" OR from a different directory "out-of-tree". The later is
-necessary when examples are run from a read-only directory such as an
-installation directory. For example, to run the veccopy example
-"out-of-tree" from a new /tmp directory run these commands.
+There is a Makefile for each Compiler example. The Makefile(s) can be executed
+with update access to the example directory where the Makefile and sources are
+found, "in-tree", OR from a different directory, "out-of-tree".
+These commands demonstrate how to test the example "in-tree":
+```
+cd openmp/veccopy
+make run
+
+```
+An "out-of-tree" test is useful when examples are stored in a read-only
+directory such as an installation directory. For example, to run the
+veccopy example "out-of-tree" from a new /tmp directory run these commands:
 ```
 mkdir /tmp/demo ; cd /tmp/demo
 EXROOT=/opt/rocm/share/examples/Compiler  # The examples base directory.
@@ -48,9 +54,8 @@ make -f $EXROOT/openmp/veccopy/Makefile run
 The above will compile and execute the openmp/veccopy example.
 The Makefile will print the compile and execute commands to the console.
 
-If you plan to copy the sources for these examples to test "in-tree"
-compile and execute be sure to copy the entire Compiler examples directory.
-For example, 
+If you plan to copy the sources for these examples, be sure to copy
+the entire Compiler examples directory.  For example:
 ```
 EXROOT=/opt/rocm/share/examples/Compiler  # The examples base directory.
 cp -rp $EXROOT /tmp
