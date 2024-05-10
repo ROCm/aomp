@@ -37,6 +37,12 @@ else
   _cxx_flag=""
 fi
 
+# Legacy Flang dosen't support building of compiler-rt so it
+# utilizes the clang runtime libraries build/install using build_project.sh.
+# The LLVM_VERSION_MAJOR of legacy flang driver has to match with the clang
+# binaries generated from build_project.sh.
+LLVM_VERSION_MAJOR=$(${INSTALL_PREFIX}/llvm/bin/clang --version | grep -oP '(?<=clang version )[0-9]+')
+
 # We need a version of ROCM llvm that supports legacy flang 
 # via the link from flang to clang.  rocm 5.5 would be best. 
 # This will enable removal of legacy flang driver support 
@@ -61,6 +67,7 @@ LLVMCMAKEOPTS="\
 -DLLVM_ENABLE_ASSERTIONS=ON \
 -DLLVM_TARGETS_TO_BUILD=$TARGETS_TO_BUILD \
 -DCLANG_DEFAULT_LINKER=lld \
+-DLLVM_VERSION_MAJOR=$LLVM_VERSION_MAJOR \
 -DLLVM_INCLUDE_BENCHMARKS=0 \
 -DLLVM_INCLUDE_RUNTIMES=0 \
 -DLLVM_INCLUDE_EXAMPLES=0 \
