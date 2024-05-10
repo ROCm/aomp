@@ -21,12 +21,14 @@
 # SOFTWARE.
 
 openmp_examples := \
+	hello \
 	declare_variant_if \
 	veccopy \
 	vmulsum \
 	reduction \
 	vmul_template \
 	driver_tests \
+	atomic_vs_reduction \
 	demo_offload_types
 
 all: $(openmp_examples)

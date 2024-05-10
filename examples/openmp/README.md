@@ -2,37 +2,17 @@ Examples to demonstrate use of OpenMP in c and C++
 ==================================================
 
 The LLVM compiler supports several accelerated programming models for GPUs.
-OpenMP is one of these models.
-Examples in this directory demonstrate how to compile and execute c and C++ applications
-that use OpenMP target offload.
+OpenMP is one of these programming models used to accelerate c, C++ and FORTRAN.
+Examples in these subdirectories demonstrate how to compile and execute c and C++ 
+sources to use OpenMP target offload.
 
-If examples are in a read-only directory, the Makefile can be run from a writeable directory as follows:
-```
-mkdir /tmp/demo ; cd /tmp/demo
-EXROOT=/opt/rocm/share/openmp-extras/examples  # The examples base directory.
-make -f $EXROOT/openmp/reduction/Makefile run
-```
-To execute an example directly from a writeble directory, first recursively copy the entire set of examples,
-then cd to the desired example. For example:
-```
-EXROOT=/opt/rocm/share/openmp-extras/examples # The examples base directory.
-cp -rp $EXROOT /tmp/                          # Recursively copy examples to /tmp/examples
-cd /tmp/examples/openmp/reduction             # cd to writeable example directory
-make run                                      # Compile and execute the reduction example
-```
-There are many other make targets to show different ways to build the binary. Run ```make help``` to see all the possible demos as Makefile targets.
-
-E.g. to run with some debug output set OFFLOAD_DEBUG variable:
-
-```
-env OFFLOAD_DEBUG=1 make
-env OFFLOAD_DEBUG=1 make run
-```
 These are the c and C++ examples in the [openmp](.) examples category:
+- [hello](hello/README.md) A printf demo showing various levels of parallelism
 - [veccopy](veccopy) A simple vector copy in c
-- [vmulsum](vmulsum) A simple vector multiply and sum in c
-- [reduction](reduction) A simple parallel reduction in c 
-- [driver_tests](driver_tests) 
+- [vmulsum](vmulsum/README) A simple vector multiply and sum in c
+- [reduction](reduction/README) A simple parallel reduction in c
+- [driver_tests](driver_tests) Demo of various command line options
 - [declare_variant_if](declare_variant_if)
-- [show-offload-types](show-offload-types)
-- [vmul_template](vmul_template) A C++ example
+- [demo_offload_types](demo_offload_types) Demo showing use of OMP_TARGET_OFFLOAD in various build types. 
+- [vmul_template](vmul_template/README) A C++ example
+- [atomic_vs_reduction](atomic_vs_reduction/README.md) Demo showing it's better to use a reduction than atomic update in a parallel loop. 

@@ -21,8 +21,10 @@
 # SOFTWARE.
 
 CATEGORIES := \
-	stdpar \
-	fortran
+	openmp \
+	fortran \
+	hip \
+	stdpar
 
 all: $(CATEGORIES)
 

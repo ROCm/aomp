@@ -11,7 +11,7 @@ ifneq ($(CURDIR)/,$(mkfile_dir))
 endif
 
 # Set LLVM_INSTALL_DIR and LLVM_GPU_ARCH
-include $(mkfile_dir)../../Makefile.find_gpu_and_install_dir
+include $(mkfile_dir)../../inc/find_gpu_and_install_dir.mk
 
 HIPSTDPARPATH = /opt/rocm/include/thrust/system/hip
 ifeq ("$(wildcard $(HIPSTDPARPATH))","")
