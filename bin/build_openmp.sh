@@ -121,9 +121,9 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    echo rm -rf $BUILD_DIR/build/openmp
    rm -rf $BUILD_DIR/build/openmp
    if [ "$AOMP_STANDALONE_BUILD" == 1 ]; then
-     MYCMAKEOPTS="$COMMON_CMAKE_OPTS -DCMAKE_PREFIX_PATH=$ROCM_CMAKECONFIG_PATH;$AOMP_INSTALL_DIR/lib/cmake -DCMAKE_BUILD_TYPE=Release $AOMP_ORIGIN_RPATH"
+     MYCMAKEOPTS="$COMMON_CMAKE_OPTS -DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR/lib/cmake -DCMAKE_BUILD_TYPE=Release $AOMP_ORIGIN_RPATH"
    else
-     MYCMAKEOPTS="$COMMON_CMAKE_OPTS -DCMAKE_PREFIX_PATH=$ROCM_CMAKECONFIG_PATH;$INSTALL_PREFIX/lib/cmake -DCMAKE_BUILD_TYPE=Release $OPENMP_EXTRAS_ORIGIN_RPATH"
+     MYCMAKEOPTS="$COMMON_CMAKE_OPTS -DCMAKE_PREFIX_PATH=$INSTALL_PREFIX/lib/cmake -DCMAKE_BUILD_TYPE=Release $OPENMP_EXTRAS_ORIGIN_RPATH"
    fi
 
    if [ "$AOMP_LEGACY_OPENMP" == "1" ] && [ "$SANITIZER" != 1 ]; then
@@ -164,8 +164,8 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
     mkdir -p $BUILD_DIR/build/openmp_perf
     cd $BUILD_DIR/build/openmp_perf
     echo " -----Running openmp cmake for perf ---- "
-    echo ${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_PREFIX_PATH="$ROCM_CMAKECONFIG_PATH;$AOMP_INSTALL_DIR/lib/cmake" $AOMP_ORIGIN_RPATH $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
-    ${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_PREFIX_PATH="$ROCM_CMAKECONFIG_PATH;$AOMP_INSTALL_DIR/lib/cmake" $AOMP_ORIGIN_RPATH $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
+    echo ${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR/lib/cmake" $AOMP_ORIGIN_RPATH $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
+    ${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR/lib/cmake" $AOMP_ORIGIN_RPATH $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
     if [ $? != 0 ] ; then
        echo "error openmp cmake failed. cmake flags"
        echo "      $MYCMAKEOPTS"
@@ -235,8 +235,13 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
          echo " -----Running openmp cmake for debug ---- "
          mkdir -p $BUILD_DIR/build/openmp_debug
          cd $BUILD_DIR/build/openmp_debug
-         echo ${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_PREFIX_PATH="$ROCM_CMAKECONFIG_PATH;$AOMP_INSTALL_DIR/lib/cmake" $AOMP_ORIGIN_RPATH -DCMAKE_C_FLAGS="$CFLAGS -g" -DCMAKE_CXX_FLAGS="$CXXFLAGS -g" -DLLVM_LIBDIR_SUFFIX=-debug $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
-         ${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_PREFIX_PATH="$ROCM_CMAKECONFIG_PATH;$AOMP_INSTALL_DIR/lib/cmake" $AOMP_ORIGIN_RPATH -DCMAKE_C_FLAGS="$CFLAGS -g" -DCMAKE_CXX_FLAGS="$CXXFLAGS -g" -DLLVM_LIBDIR_SUFFIX=-debug $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
+	 if [ "$AOMP_STANDALONE_BUILD" == 1 ]; then
+	   MYCMAKEOPTS="$MYCMAKEOPTS -DCMAKE_PREFIX_PATH=AOMP_INSTALL_DIR/lib/cmake"
+	 else
+	   MYCMAKEOPTS="$MYCMAKEOPTS -DCMAKE_PREFIX_PATH=$INSTALL_PREFIX/lib/asan/cmake"
+	 fi
+         echo ${AOMP_CMAKE} $MYCMAKEOPTS $AOMP_ORIGIN_RPATH -DCMAKE_C_FLAGS="$CFLAGS -g" -DCMAKE_CXX_FLAGS="$CXXFLAGS -g" -DLLVM_LIBDIR_SUFFIX=-debug $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
+         ${AOMP_CMAKE} $MYCMAKEOPTS $AOMP_ORIGIN_RPATH -DCMAKE_C_FLAGS="$CFLAGS -g" -DCMAKE_CXX_FLAGS="$CXXFLAGS -g" -DLLVM_LIBDIR_SUFFIX=-debug $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
          if [ $? != 0 ] ; then
             echo "ERROR openmp debug cmake failed. Cmake flags"
             echo "      $MYCMAKEOPTS"
@@ -248,8 +253,13 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
          echo " -----Running openmp cmake for debug-asan ---- "
          mkdir -p $BUILD_DIR/build/openmp_debug/asan
          cd $BUILD_DIR/build/openmp_debug/asan
-         echo ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DCMAKE_PREFIX_PATH="$ROCM_CMAKECONFIG_PATH;$AOMP_INSTALL_DIR/lib/asan/cmake" $AOMP_ASAN_ORIGIN_RPATH -DCMAKE_C_FLAGS="'$ASAN_FLAGS'" -DCMAKE_CXX_FLAGS="'$ASAN_FLAGS'" -DLLVM_LIBDIR_SUFFIX="-debug/asan" $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
-         ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DCMAKE_PREFIX_PATH="$ROCM_CMAKECONFIG_PATH;$AOMP_INSTALL_DIR/lib/asan/cmake" $AOMP_ASAN_ORIGIN_RPATH -DCMAKE_C_FLAGS="'$ASAN_FLAGS'" -DCMAKE_CXX_FLAGS="'$ASAN_FLAGS'" -DLLVM_LIBDIR_SUFFIX="-debug/asan" $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
+	 if [ "$AOMP_STANDALONE_BUILD" == 1 ]; then
+	   ASAN_CMAKE_OPTS="$ASAN_CMAKE_OPTS -DCMAKE_PREFIX_PATH=$ROCM_CMAKECONFIG_PATH;$AOMP_INSTALL_DIR/lib/asan/cmake"
+	 else
+	   ASAN_CMAKE_OPTS="$ASAN_CMAKE_OPTS -DCMAKE_PREFIX_PATH=$ROCM_CMAKECONFIG_PATH;$INSTALL_PREFIX/lib/asan/cmake"
+	 fi
+         echo ${AOMP_CMAKE} $ASAN_CMAKE_OPTS $AOMP_ASAN_ORIGIN_RPATH -DCMAKE_C_FLAGS="'$ASAN_FLAGS'" -DCMAKE_CXX_FLAGS="'$ASAN_FLAGS'" -DLLVM_LIBDIR_SUFFIX="-debug/asan" $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
+         ${AOMP_CMAKE} $ASAN_CMAKE_OPTS $AOMP_ASAN_ORIGIN_RPATH -DCMAKE_C_FLAGS="'$ASAN_FLAGS'" -DCMAKE_CXX_FLAGS="'$ASAN_FLAGS'" -DLLVM_LIBDIR_SUFFIX="-debug/asan" $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
          if [ $? != 0 ] ; then
             echo "ERROR openmp debug cmake failed. Cmake flags"
             echo "      $ASAN_CMAKE_OPTS"
