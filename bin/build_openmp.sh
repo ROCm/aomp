@@ -236,7 +236,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
          mkdir -p $BUILD_DIR/build/openmp_debug
          cd $BUILD_DIR/build/openmp_debug
 	 if [ "$AOMP_STANDALONE_BUILD" == 1 ]; then
-	   MYCMAKEOPTS="$MYCMAKEOPTS -DCMAKE_PREFIX_PATH=AOMP_INSTALL_DIR/lib/cmake"
+	   MYCMAKEOPTS="$MYCMAKEOPTS -DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR/lib/cmake"
 	 else
 	   MYCMAKEOPTS="$MYCMAKEOPTS -DCMAKE_PREFIX_PATH=$INSTALL_PREFIX/lib/cmake"
 	 fi
