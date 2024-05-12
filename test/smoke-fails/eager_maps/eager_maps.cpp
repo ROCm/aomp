@@ -14,7 +14,7 @@ int main() {
     b[i] = i;
   }
 
-  // CHECK: __tgt_rtl_prepopulate_page_table:  {{.+}} 163840
+  // CHECK: prepopulate_page_table:  {{.+}} 163840
   #pragma omp target teams loop map(tofrom: a[:n], b[:n]) 
   for (int64_t i = 0; i < n; i++)
     a[i] += b[i];

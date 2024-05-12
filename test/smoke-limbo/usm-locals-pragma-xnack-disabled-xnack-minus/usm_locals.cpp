@@ -19,10 +19,10 @@ int main() {
   for(size_t t = 0; t < 5; t++)
     k[t] = -t;
 
-  /// CHECK-NOT: __tgt_rtl_data_submit_async: {{.*}} 0 ({{.*}} 4, {{.*}})
-  /// CHECK-NOT: __tgt_rtl_data_submit_async: {{.*}} 0 ({{.*}} 4, {{.*}})
-  /// CHECK-NOT: __tgt_rtl_data_submit_async: {{.*}} 0 ({{.*}} 40, {{.*}})
-  /// CHECK-NOT: __tgt_rtl_data_submit_async: {{.*}} 0 ({{.*}} 20, {{.*}})
+  /// CHECK-NOT: data_submit_async: {{.*}} 0 ({{.*}} 4, {{.*}})
+  /// CHECK-NOT: data_submit_async: {{.*}} 0 ({{.*}} 4, {{.*}})
+  /// CHECK-NOT: data_submit_async: {{.*}} 0 ({{.*}} 40, {{.*}})
+  /// CHECK-NOT: data_submit_async: {{.*}} 0 ({{.*}} 20, {{.*}})
   #pragma omp target update to(z[:10])
 
   #pragma omp target map(tofrom:k[:5]) map(tofrom:y)
@@ -32,10 +32,10 @@ int main() {
     // No access to y, z, k possible.
     x++;
   }
-  /// CHECK-NOT: __tgt_rtl_data_retrieve_async: {{.*}} 0 ({{.*}} 20, {{.*}})
-  /// CHECK-NOT: __tgt_rtl_data_retrieve_async: {{.*}} 0 ({{.*}} 40, {{.*}})
-  /// CHECK-NOT: __tgt_rtl_data_retrieve_async: {{.*}} 0 ({{.*}} 4, {{.*}})
-  /// CHECK-NOT: __tgt_rtl_data_retrieve_async: {{.*}} 0 ({{.*}} 4, {{.*}})
+  /// CHECK-NOT: data_retrieve_async: {{.*}} 0 ({{.*}} 20, {{.*}})
+  /// CHECK-NOT: data_retrieve_async: {{.*}} 0 ({{.*}} 40, {{.*}})
+  /// CHECK-NOT: data_retrieve_async: {{.*}} 0 ({{.*}} 4, {{.*}})
+  /// CHECK-NOT: data_retrieve_async: {{.*}} 0 ({{.*}} 4, {{.*}})
   #pragma omp target update from(z[:10])
 
   /// CHECK: AMDGPU message: Running a program that requires XNACK on a system where XNACK is disabled. This may cause problems when using an OS-allocated pointer inside a target region. Re-run with HSA_XNACK=1 to remove this warning.
