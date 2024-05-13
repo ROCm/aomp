@@ -49,7 +49,7 @@ else
 SUITE_LIST=${SUITE_LIST:-"examples smoke-limbo smoke smoke-asan omp5 openmpapps LLNL nekbone ovo sollve babelstream fortran-babelstream"}
 blockinglist="examples_fortran examples_openmp smoke openmpapps sollve45 sollve50 babelstream"
 fi
-EPSDB_LIST=${EPSDB_LIST:-"examples smoke-limbo smoke smoke-asan omp5 openmpapps LLNL nekbone ovo sollve babelstream fortran-babelstream"}
+EPSDB_LIST=${EPSDB_LIST:-"examples smoke-limbo smoke-dev smoke smoke-asan omp5 openmpapps LLNL nekbone ovo sollve babelstream fortran-babelstream"}
 
 export AOMP_USE_CCACHE=0
 
@@ -121,10 +121,10 @@ if [ "$TEST_BRANCH" == "" ]; then
  git reset --hard HEAD
  if [ -e /home/jenkins/workspace/compiler-psdb-amd-mainline-open-a+a ]; then
   export TEST_BRANCH=amd-mainline-open-a+a
-  git checkout 080e9bc62ad8501defc4ec9124c90e28a1f749db
+  git checkout aomp-dev
  elif [ -e /jenkins/workspace/compiler-psdb-amd-mainline-open ]; then
   export TEST_BRANCH=amd-mainline-open
-  git checkout 080e9bc62ad8501defc4ec9124c90e28a1f749db
+  git checkout aomp-dev
  elif [ -e /jenkins/workspace/compiler-psdb-amd-staging ]; then
   export TEST_BRANCH=amd-staging
   git checkout aomp-dev
@@ -136,7 +136,7 @@ if [ "$TEST_BRANCH" == "" ]; then
   git checkout 080e9bc62ad8501defc4ec9124c90e28a1f749db
  elif [[ $REAL_AOMP =~ "/opt/rocm-6.2" ]]; then
   export TEST_BRANCH=aomp-test-6.2
-  git checkout 080e9bc62ad8501defc4ec9124c90e28a1f749db
+  git checkout aomp-dev
  else
   export TEST_BRANCH=aomp-dev
   git checkout aomp-dev
@@ -576,6 +576,20 @@ function smokefails(){
     copyresults smoke-fails
   else
     echo "Skipping smoke-fails."
+  fi
+}
+
+SMOKE_DEV=${SMOKE_DEV:-1}
+function smoke-dev(){
+  # Smoke-fails
+  if [ "$SMOKE_DEV" == "1" ]; then
+    mkdir -p "$resultsdir"/smoke-dev
+    cd "$aompdir"/test/smoke-dev
+    ./check_smoke_dev.sh
+    checkrc $?
+    copyresults smoke-dev "$aompdir"/test/smoke-dev
+  else
+    echo "Skipping smoke-dev."
   fi
 }
 
