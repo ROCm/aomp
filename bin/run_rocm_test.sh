@@ -579,6 +579,20 @@ function smokefails(){
   fi
 }
 
+SMOKE_DEV=${SMOKE_DEV:-1}
+function smoke-dev(){
+  # Smoke-fails
+  if [ "$SMOKE_DEV" == "1" ]; then
+    mkdir -p "$resultsdir"/smoke-dev
+    cd "$aompdir"/test/smoke-dev
+    ./check_smoke_dev.sh
+    checkrc $?
+    copyresults smoke-dev "$aompdir"/test/smoke-dev
+  else
+    echo "Skipping smoke-dev."
+  fi
+}
+
 SMOKE_LIMBO=${SMOKE_LIMBO:-1}
 function smoke-limbo(){
   # Smoke-fails
