@@ -8,6 +8,9 @@ int main() {
   int N       = 5001;
   float expect = (float) (((float)N-1)*(float)N)/2.0;
 
+#if defined(__LLVM_COMPILER_NAME_IS_CLANG__)
+  printf("Skipping fast FP atomic hint because this is not AMD Compiler\n");
+#else
   float a    = 0.0;
   double t0 = omp_get_wtime();
   #pragma omp target teams distribute parallel for map(tofrom:a)
@@ -22,6 +25,7 @@ int main() {
     printf("FAIL ATOMIC SUM N:%d result: %f != expect: %f \n", N,a,expect);
     main_rc=1;
   }
+#endif
 
   float casa    = 0.0;
   double t_cas0 = omp_get_wtime();

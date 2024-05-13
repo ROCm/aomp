@@ -33,6 +33,9 @@ ifeq ("$(wildcard $(LLVM_INSTALL_DIR))","")
   endif
 endif
 
+# Determine COMPILER_NAME (AMD, AOMP, or clang)
+LLVM_COMPILER_NAME := $(shell $(LLVM_INSTALL_DIR)/bin/clang --version | head -n1 | cut -d" " -f1  | cut -d"_" -f1 )
+
 # Test for preset GPUs
 ifeq ($(LLVM_GPU_ARCH),)
   # If not preset, get offload arch from either nvidia-arch or amdgpu-arch

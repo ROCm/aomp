@@ -33,6 +33,10 @@ ifeq ($(VERBOSE),1)
   CFLAGS += -v
 endif
 
+ifeq ($(LLVM_COMPILER_NAME),clang)
+  CFLAGS += -D__LLVM_COMPILER_NAME_IS_CLANG__
+endif
+
 ifeq ($(TEMPS),1)
   $(info    Compilation and linking save-temp Mode ON)
   CFLAGS += -save-temps 
