@@ -1,4 +1,5 @@
 # MIT License
+# MIT License
 #
 # Copyright (c) 2024 Advanced Micro Devices, Inc. All rights reserved.
 #
@@ -19,10 +20,16 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+#
+mkfile_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+include $(mkfile_dir)../inc/find_gpu_and_install_dir.mk
+ifneq ($(CURDIR)/,$(mkfile_dir))
+  _in_prefix := $(mkfile_dir)
+endif
 
 stdpar_examples := \
-	babelstream \
-	tsp
+	$(_in_prefix)babelstream \
+	$(_in_prefix)tsp
 
 all: $(stdpar_examples)
 
@@ -32,6 +39,12 @@ run: TARGET=run
 run: all
 
 $(stdpar_examples):
-	$(MAKE) -C $@ $(TARGET)
+	@echo
+	@echo "# ========> Compiler example: $@"
+ifeq ($(CURDIR)/,$(mkfile_dir))
+	$(MAKE) --no-print-directory -C $@ $(TARGET)
+else
+	$(MAKE) --no-print-directory -f $@/Makefile $(TARGET)
+endif
 
 .PHONY: all clean $(stdpar_examples)

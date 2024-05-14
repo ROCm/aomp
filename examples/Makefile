@@ -19,12 +19,18 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+#
+mkfile_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+include $(mkfile_dir)inc/find_gpu_and_install_dir.mk
+ifneq ($(CURDIR)/,$(mkfile_dir))
+  _in_prefix := $(mkfile_dir)
+endif
 
 CATEGORIES := \
-	openmp \
-	fortran \
-	hip \
-	stdpar
+	$(_in_prefix)openmp \
+	$(_in_prefix)fortran \
+	$(_in_prefix)hip \
+	$(_in_prefix)stdpar
 
 all: $(CATEGORIES)
 
@@ -34,6 +40,13 @@ run: TARGET=run
 run: all
 
 $(CATEGORIES):
-	$(MAKE) -C $@ $(TARGET)
+	@echo "#--------------------------------------------------------------"
+	@echo "# ===== START OF COMPILER EXAMPLES CATEGORY $(@) ===== "
+	@echo "#--------------------------------------------------------------"
+ifeq ($(CURDIR)/,$(mkfile_dir))
+	$(MAKE) --no-print-directory -C $@ $(TARGET)
+else
+	$(MAKE) --no-print-directory -f $@/Makefile $(TARGET)
+endif
 
 .PHONY: all clean $(CATEGORIES)

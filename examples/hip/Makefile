@@ -28,7 +28,7 @@ endif
 
 hip_examples := \
 	$(_in_prefix)writeIndex \
-	$(in_prefix)vectorAdd
+	$(_in_prefix)vectorAdd
 
 all: $(hip_examples)
 
