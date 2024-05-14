@@ -20,9 +20,15 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+mkfile_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+include $(mkfile_dir)../inc/find_gpu_and_install_dir.mk
+ifneq ($(CURDIR)/,$(mkfile_dir))
+  _in_prefix := $(mkfile_dir)
+endif
+
 hip_examples := \
-	writeIndex \
-	vectorAdd
+	$(_in_prefix)writeIndex \
+	$(in_prefix)vectorAdd
 
 all: $(hip_examples)
 
@@ -32,6 +38,12 @@ run: TARGET=run
 run: all
 
 $(hip_examples):
-	$(MAKE) -C $@ $(TARGET)
+	@echo
+	@echo "# ========> Compiler example: $@"
+ifeq ($(CURDIR)/,$(mkfile_dir))
+	$(MAKE) --no-print-directory -C $@ $(TARGET)
+else
+	$(MAKE) --no-print-directory -f $@/Makefile $(TARGET)
+endif
 
 .PHONY: all clean $(hip_examples)

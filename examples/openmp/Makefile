@@ -19,17 +19,23 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+#
+mkfile_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+include $(mkfile_dir)../inc/find_gpu_and_install_dir.mk
+ifneq ($(CURDIR)/,$(mkfile_dir))
+  _in_prefix := $(mkfile_dir)
+endif
 
 openmp_examples := \
-	hello \
-	declare_variant_if \
-	veccopy \
-	vmulsum \
-	reduction \
-	vmul_template \
-	driver_tests \
-	atomic_vs_reduction \
-	demo_offload_types
+	$(_in_prefix)hello \
+	$(_in_prefix)declare_variant_if \
+	$(_in_prefix)veccopy \
+	$(_in_prefix)vmulsum \
+	$(_in_prefix)reduction \
+	$(_in_prefix)vmul_template \
+	$(_in_prefix)driver_tests \
+	$(_in_prefix)atomic_vs_reduction \
+	$(_in_prefix)demo_offload_types
 
 all: $(openmp_examples)
 
@@ -39,6 +45,12 @@ run: TARGET=run
 run: all
 
 $(openmp_examples):
-	$(MAKE) -C $@ $(TARGET)
+	@echo
+	@echo "# ========> Compiler example: $@"
+ifeq ($(CURDIR)/,$(mkfile_dir))
+	$(MAKE) --no-print-directory -C $@ $(TARGET)
+else
+	$(MAKE) --no-print-directory -f $@/Makefile $(TARGET)
+endif
 
 .PHONY: all clean $(openmp_examples)
