@@ -135,23 +135,25 @@ export PATH=$AOMP_INSTALL_DIR/bin:$PATH
 export FC=$AOMP_INSTALL_DIR/bin/flang
 
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
-   cd $BUILD_DIR/build/flang_runtime
-   echo
-   echo " -----Running cmake ---- "
-   echo ${AOMP_CMAKE} $MYCMAKEOPTS \
-        -DCMAKE_C_FLAGS="$CFLAGS -I$COMP_INC_DIR" \
-        -DCMAKE_CXX_FLAGS="$CXXFLAGS -I$COMP_INC_DIR" \
-        $AOMP_REPOS/$AOMP_FLANG_REPO_NAME
+   if [ "$SANITIZER" != 1 ]; then
+      cd $BUILD_DIR/build/flang_runtime
+      echo
+      echo " -----Running cmake ---- "
+      echo ${AOMP_CMAKE} $MYCMAKEOPTS \
+           -DCMAKE_C_FLAGS="$CFLAGS -I$COMP_INC_DIR" \
+           -DCMAKE_CXX_FLAGS="$CXXFLAGS -I$COMP_INC_DIR" \
+           $AOMP_REPOS/$AOMP_FLANG_REPO_NAME
 
-   ${AOMP_CMAKE} $MYCMAKEOPTS \
-   -DCMAKE_C_FLAGS="$CFLAGS -I$COMP_INC_DIR" \
-   -DCMAKE_CXX_FLAGS="$CXXFLAGS -I$COMP_INC_DIR" \
-   $AOMP_REPOS/$AOMP_FLANG_REPO_NAME 2>&1
+      ${AOMP_CMAKE} $MYCMAKEOPTS \
+      -DCMAKE_C_FLAGS="$CFLAGS -I$COMP_INC_DIR" \
+      -DCMAKE_CXX_FLAGS="$CXXFLAGS -I$COMP_INC_DIR" \
+      $AOMP_REPOS/$AOMP_FLANG_REPO_NAME 2>&1
 
-   if [ $? != 0 ] ; then
-      echo "ERROR cmake failed. Cmake flags"
-      echo "      $MYCMAKEOPTS"
-      exit 1
+      if [ $? != 0 ] ; then
+         echo "ERROR cmake failed. Cmake flags"
+         echo "      $MYCMAKEOPTS"
+         exit 1
+      fi
    fi
 
    if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
@@ -177,13 +179,15 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 fi
 
 echo
-echo " -----Running make ---- "
-cd $BUILD_DIR/build/flang_runtime
-echo make -j $AOMP_JOB_THREADS
-make -j $AOMP_JOB_THREADS
-if [ $? != 0 ] ; then
-   echo "ERROR make -j $AOMP_JOB_THREADS failed"
-   exit 1
+if [ "$SANITIZER" != 1 ]; then
+   echo " -----Running make ---- "
+   cd $BUILD_DIR/build/flang_runtime
+   echo make -j $AOMP_JOB_THREADS
+   make -j $AOMP_JOB_THREADS
+   if [ $? != 0 ] ; then
+      echo "ERROR make -j $AOMP_JOB_THREADS failed"
+      exit 1
+   fi
 fi
 
 if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
@@ -199,15 +203,18 @@ if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
 fi
 
 if [ "$1" == "install" ] ; then
-   cd $BUILD_DIR/build/flang_runtime
-   echo " -----Installing to $INSTALL_FLANG ---- "
-   $SUDO make install
-   if [ $? != 0 ] ; then
-      echo "ERROR make install failed "
-      exit 1
+   if [ "$SANITIZER" != 1 ]; then
+      cd $BUILD_DIR/build/flang_runtime
+      echo " -----Installing to $INSTALL_FLANG ---- "
+      $SUDO make install
+      if [ $? != 0 ] ; then
+         echo "ERROR make install failed "
+         exit 1
+      fi
+      echo "SUCCESSFUL INSTALL to $INSTALL_FLANG "
+      echo
    fi
-   echo "SUCCESSFUL INSTALL to $INSTALL_FLANG "
-   echo
+
    if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
       cd $BUILD_DIR/build/flang_runtime/asan
       echo " -----Installing to $INSTALL_FLANG/lib/asan ---- "

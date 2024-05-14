@@ -88,21 +88,23 @@ fi
 export PATH=$AOMP_INSTALL_DIR/bin:$PATH
 
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
-   echo
-   cd $BUILD_DIR/build/pgmath
-   echo " -----Running cmake ---- "
-   echo ${AOMP_CMAKE} $MYCMAKEOPTS  \
-        -DCMAKE_C_FLAGS="$CFLAGS -I$COMP_INC_DIR" \
-        -DCMAKE_CXX_FLAGS="$CXXFLAGS -I$COMP_INC_DIR" \
-        $AOMP_REPOS/$AOMP_FLANG_REPO_NAME/runtime/libpgmath
-   ${AOMP_CMAKE} $MYCMAKEOPTS  \
-   -DCMAKE_C_FLAGS="$CFLAGS -I$COMP_INC_DIR" \
-   -DCMAKE_CXX_FLAGS="$CXXFLAGS -I$COMP_INC_DIR" \
-   $AOMP_REPOS/$AOMP_FLANG_REPO_NAME/runtime/libpgmath  2>&1
-   if [ $? != 0 ] ; then
-      echo "ERROR cmake failed. Cmake flags"
-      echo "      $MYCMAKEOPTS"
-      exit 1
+   if [ "$SANITIZER" != 1 ]; then
+      echo
+      cd $BUILD_DIR/build/pgmath
+      echo " -----Running cmake ---- "
+      echo ${AOMP_CMAKE} $MYCMAKEOPTS  \
+           -DCMAKE_C_FLAGS="$CFLAGS -I$COMP_INC_DIR" \
+           -DCMAKE_CXX_FLAGS="$CXXFLAGS -I$COMP_INC_DIR" \
+           $AOMP_REPOS/$AOMP_FLANG_REPO_NAME/runtime/libpgmath
+      ${AOMP_CMAKE} $MYCMAKEOPTS  \
+      -DCMAKE_C_FLAGS="$CFLAGS -I$COMP_INC_DIR" \
+      -DCMAKE_CXX_FLAGS="$CXXFLAGS -I$COMP_INC_DIR" \
+      $AOMP_REPOS/$AOMP_FLANG_REPO_NAME/runtime/libpgmath  2>&1
+      if [ $? != 0 ] ; then
+         echo "ERROR cmake failed. Cmake flags"
+         echo "      $MYCMAKEOPTS"
+         exit 1
+      fi
    fi
 
    if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
@@ -125,14 +127,16 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    fi
 fi
 
-echo
-cd $BUILD_DIR/build/pgmath
-echo " -----Running make ---- "
-echo make -j $AOMP_JOB_THREADS
-make -j $AOMP_JOB_THREADS
-if [ $? != 0 ] ; then
-   echo "ERROR make -j $AOMP_JOB_THREADS failed"
-   exit 1
+if [ "$SANITIZER" != 1 ]; then
+   echo
+   cd $BUILD_DIR/build/pgmath
+   echo " -----Running make ---- "
+   echo make -j $AOMP_JOB_THREADS
+   make -j $AOMP_JOB_THREADS
+   if [ $? != 0 ] ; then
+      echo "ERROR make -j $AOMP_JOB_THREADS failed"
+      exit 1
+   fi
 fi
 
 if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
@@ -148,15 +152,17 @@ fi
 fi
 
 if [ "$1" == "install" ] ; then
-   cd $BUILD_DIR/build/pgmath
-   echo " -----Installing to $INSTALL_FLANG ---- "
-   $SUDO make install
-   if [ $? != 0 ] ; then
-      echo "ERROR make install failed "
-      exit 1
+   if [ "$SANITIZER" != 1 ]; then
+      cd $BUILD_DIR/build/pgmath
+      echo " -----Installing to $INSTALL_FLANG ---- "
+      $SUDO make install
+      if [ $? != 0 ] ; then
+         echo "ERROR make install failed "
+         exit 1
+      fi
+      echo "SUCCESSFUL INSTALL to $INSTALL_FLANG "
+      echo
    fi
-   echo "SUCCESSFUL INSTALL to $INSTALL_FLANG "
-   echo
    if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
       cd $BUILD_DIR/build/pgmath/asan
       echo " -----Installing to $INSTALL_FLANG/lib/asan ---- "
