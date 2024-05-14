@@ -1,9 +1,6 @@
 #-----------------------------------------------------------------------
 #
-#  Makefile: demo Makefile for amdgcn target (for flang).
-#            amdgcn targets begin with gfx. 
-#
-#  Run "make help" to see how to use this Makefile
+#  Makefile: demo Makefile for Compiler example bigloop
 #
 #-----------------------------------------------------------------------
 # MIT License
@@ -29,74 +26,48 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-TESTNAME =bigloop
-FILETYPE =f95
-TESTSRC = $(TESTNAME).$(FILETYPE)
-
+# All Compile examples Makefiles should include find_gpu_and_install_dir.mk
 mkfile_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+include $(mkfile_dir)../../inc/find_gpu_and_install_dir.mk
+
+TESTNAME := bigloop
+FILETYPE := f95
+TESTSRC := $(TESTNAME).$(FILETYPE)
+
+# If out-of-tree, prefix all inputs with $(mkfile_dir)
 ifneq ($(CURDIR)/,$(mkfile_dir))
   TESTSRC := $(mkfile_dir)$(TESTSRC)
 endif
-include $(mkfile_dir)../../inc/find_gpu_and_install_dir.mk
 
-ifeq ($(TARGETS),)
-TARGETS =--offload-arch=$(LLVM_GPU_ARCH)$(AOMP_TARGET_FEATURES)
+FORT   := $(LLVM_INSTALL_DIR)/bin/$(FLANG)
+FFLAGS := -O3 -fopenmp --offload-arch=$(LLVM_GPU_ARCH)
+LFLAGS := $(FFLAGS) 
+ifeq ($(LLVM_COMPILER_NAME),clang)
+  FORTENV := ulimit -s unlimited;
+else
+  FFLAGS += -m64 -i8
+  LFLAGS += -m64
+  FORTENV := ulimit -s unlimited; LIBOMPTARGET_KERNEL_TRACE=1
 endif
-
-FORT   =$(LLVM_INSTALL_DIR)/bin/flang
-LFLAGS = 
-FFLAGS = -O3 -m64 -i8 -fopenmp 
 
 # ----- Demo compile and link in one step, no object code saved
 $(TESTNAME): $(TESTSRC)
-	$(FORT) $(FFLAGS) $(TARGETS) $(LFLAGS) $^ -o $@
+	$(FORT) $(FFLAGS) $^ -o $@
 
-run: .FORCE $(TESTNAME)
-	ulimit -s unlimited 
-	LIBOMPTARGET_KERNEL_TRACE=1 ./$(TESTNAME)
+run: $(TESTNAME)
+	$(FORTENV) ./$(TESTNAME)
 
-#  ----   Demo compile and link in two steps, object saved
-$(TESTNAME).o: $(TESTSRC)
-	$(FORT) -c $(FFLAGS) $(TARGETS) $^
-
-obin:	$(TESTNAME).o 
-	$(FORT) $(LFLAGS) $^ -o obin
-
-run_obin: obin 
-	ulimit -s unlimited 
-	LIBOMPTARGET_KERNEL_TRACE=1 ./obin
+include $(mkfile_dir)../../inc/obin_fortran.mk
 
 #  ----   Demo compile to intermediates LLVMIR or assembly
 $(TESTNAME).ll: $(TESTSRC)
-	$(FORT) -c -S -emit-llvm $(FFLAGS) $(TARGETS) $^
+	$(FORT) -c -S -emit-llvm $(FFLAGS) $^
 
 $(TESTNAME).s: $(TESTSRC)
-	$(FORT)  -c -S $(FFLAGS) $(TARGETS)  $^
+	$(FORT)  -c -S $(FFLAGS) $^
 
-.FORCE:
-	rm -f $(TESTNAME)
 
-help: 
-	@echo
-	@echo "Makefile Help:"
-	@echo "  Source:		$(TESTSRC)"
-	@echo "  Compiler: 		$(FORT)"
-	@echo "  Compiler flags: 	$(FFLAGS)"
-	@echo
-	@echo "Avalable Targets:"
-	@echo "  make			// build binary $(TESTNAME)"
-	@echo "  make run		// run $(TESTNAME)"
-	@echo "  make $(TESTNAME).o	// compile, be, & assemble : -c"
-	@echo "  make obin         	// link step only"
-	@echo "  make run_obin     	// run obin "
-	@echo "  make $(TESTNAME).s	// compile & backend steps : -c -S"
-	@echo "  make $(TESTNAME).ll	// compile step only       : -c -S -emit-llvm"
-	@echo "  make clean		// cleanup files"
-	@echo "  make help 		// this help"
-	@echo
-	@echo "Link Flags:"
-	@echo "  Link flags: $(LFLAGS)"
-	@echo
+include $(mkfile_dir)../../inc/help_fortran.mk
 
 # Cleanup anything this makefile can create
 clean:

@@ -35,6 +35,11 @@ endif
 
 # Determine COMPILER_NAME (AMD, AOMP, or clang)
 LLVM_COMPILER_NAME := $(shell $(LLVM_INSTALL_DIR)/bin/clang --version | head -n1 | cut -d" " -f1  | cut -d"_" -f1 )
+ifeq ($(LLVM_COMPILER_NAME),clang)
+  FLANG ?= flang-new
+else
+  FLANG ?= flang
+endif
 
 # Test for preset GPUs
 ifeq ($(LLVM_GPU_ARCH),)

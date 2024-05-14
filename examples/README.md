@@ -18,11 +18,11 @@ The Compiler examples are divided into categories:
 - [OpenMP](openmp/README.md)  C++ and c examples of OpenMP target offload
 - [FORTRAN](fortran)  FORTRAN examples of OpenMP target offload
 - [HIP](hip/README.md)  Acceleration with HIP
+- [stdpar](stdpar)  C++ stdpar examples
 - [Raja](raja/README.md)  Examples that use the RAJA programming model
 - [Kokkos](kokkos)  Examples that use the kokkos programming model
 - [tools](tools)  Examples on how to use profiling, debug, and address sanitizer tools
 - [stress](stress)  Examples that are complex or stress resources. CI is not run on these examples
-- [stdpar](stdpar)  C++ stdpar examples
 
 Eventually we will add these categories:
 
@@ -44,7 +44,7 @@ make run
 
 ```
 An "out-of-tree" test is useful when examples are stored in a read-only
-directory such as an installation directory. For example, to run the
+directory such as the ROCm installation directory. For example, to run the
 veccopy example "out-of-tree" from a new /tmp directory run these commands:
 ```
 mkdir /tmp/demo ; cd /tmp/demo
@@ -67,7 +67,7 @@ make run
 Each Makefile includes the common Makefile helper file
 [inc/find_gpu_and_install_dir.mk](inc/find_gpu_and_install_dir.mk).
 This "include-file" finds the LLVM compiler and sets environment
-variable `LLVM_INSTALL_DIR` if not already preset by the user.
+variable `LLVM_INSTALL_DIR`, if not already preset by the user.
 If not preset, or `LLVM_INSTALL_DIR` specifies a nonexistant directory,
 the include-file searches this list of directories to set 'LLVM_INSTALL_DIR':
 
@@ -76,13 +76,13 @@ the include-file searches this list of directories to set 'LLVM_INSTALL_DIR':
 ```
 If no LLVM installation is found, all Compile examples will fail.
 Therefore, it is recommended that users of these examples preset `LLVM_INSTALL_DIR`
-to demo or test a compiler other than the last installed ROCm compiler
+to use a compiler other than the last installed ROCm compiler typically
 found at /opt/rocm/lib/llvm. 
 
 The include-file then searches for an active GPU to set `LLVM_GPU_ARCH`
 (e.g. gfx90a, gfx940, sm_70, etc).
 Each example uses the value of `LLVM_GPU_ARCH` to instruct the compiler
-which GPU to for compilation. If `LLVM_GPU_ARCH` is not preset,
+which GPU to use for compilation. If `LLVM_GPU_ARCH` is not preset,
 the include-file first checks for an active amdgpu kernel module.
 If there is an active amdgpu kernel module, the include-file calls the LLVM compiler utility
 `$(LLVM_INSTALL_DIR)/bin/amdgpu-arch` to set the value of `LLVM_GPU_ARCH`.

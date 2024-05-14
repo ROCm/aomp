@@ -1,4 +1,0 @@
-
-Currently declare target is failing for FORTRAN.  After we fix this, we need to enhance this example so that the subroutine decrement_value is in a different source file, decrement_value.f95
-
-Greg

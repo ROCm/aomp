@@ -35,7 +35,7 @@ subroutine foo(a,b,c)
     end do
    end do
   end do
-!$omp end target teams distribute parallel do
+!$omp end target teams distribute parallel do simd
   return
 end
 
