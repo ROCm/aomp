@@ -28,21 +28,21 @@
 # ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+mkfile_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+include $(mkfile_dir)../../inc/find_gpu_and_install_dir.mk
 
 TESTNAME =vectorAdd
 FILETYPE =cpp
 TESTSRC = $(TESTNAME).$(FILETYPE)
 
-mkfile_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 ifneq ($(CURDIR)/,$(mkfile_dir))
   TESTSRC := $(mkfile_dir)$(TESTSRC)
 endif
-include $(mkfile_dir)../../inc/find_gpu_and_install_dir.mk
 
 CC := $(LLVM_INSTALL_DIR)/bin/clang++
 
 # Add cudart only if we have an Nvidia sm_ target
-ifeq (sm_,$(findstring sm_,$(LLVM_GPU_ARC)))
+ifeq (sm_,$(findstring sm_,$(LLVM_GPU_ARCH)))
   CFLAGS +=-x cuda -I$(CUDA)/include --offload-arch=$(LLVM_GPU_ARCH)
   LFLAGS +=-L$(CUDA)/targets/$(UNAMEP)-linux/lib -lcudart -Wl,-rpath,$(CUDA)/targets/$(UNAMEP)-linux/lib -std=c++11
 else

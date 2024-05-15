@@ -40,6 +40,7 @@ run: TARGET=run
 run: all
 
 $(CATEGORIES):
+	@echo
 	@echo "#--------------------------------------------------------------"
 	@echo "# ===== START OF COMPILER EXAMPLES CATEGORY $(@) ===== "
 	@echo "#--------------------------------------------------------------"
