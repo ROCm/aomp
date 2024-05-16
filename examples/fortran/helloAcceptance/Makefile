@@ -1,11 +1,9 @@
 #-----------------------------------------------------------------------
-#  ROCM_LLVM:       Defaults to /opt/rocm/llvm
-#  ROCM_GPU:        Auto detected via rocm_agent_enumerator
-#  ROCM_GPUTARGET:  Defaults to amdgcn-amd-amdhsa
 #
-#  make run
+#  Makefile: Cuda clang demo Makefile for both amdgcn and nvptx targets.
+#            amdgcn targets begin with gfx. nvptx targets begin with sm_
 #
-#  Run "make help" to see other options for this Makefile
+#  Run "make help" to see how to use this Makefile
 #
 #-----------------------------------------------------------------------
 # MIT License
@@ -47,7 +45,7 @@ endif
 
 FORT   =$(LLVM_INSTALL_DIR)/bin/flang
 LFLAGS = 
-FFLAGS =-fopenmp -fopenmp-targets=$(ROCM_GPUTARGET) -Xopenmp-target=$(ROCM_GPUTARGET)
+FFLAGS =
 
 # ----- Demo compile and link in one step, no object code saved
 $(TESTNAME): $(TESTSRC)

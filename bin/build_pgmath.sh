@@ -80,13 +80,6 @@ else
       echo "       run $0 without nocmake or install options. "
       exit 1
    fi
-   if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
-      if [ ! -d $BUILD_DIR/build/pgmath/asan ] ; then
-         echo "ERROR: The build directory $BUILD_DIR/build/pgmath/asan does not exist"
-         echo "       run $0 without nocmake or install options. "
-         exit 1
-      fi
-   fi
 fi
 
 #  Need llvm-config to come from previous LLVM build

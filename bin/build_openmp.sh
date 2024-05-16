@@ -11,6 +11,7 @@ thisdir=`dirname $realpath`
 # --- end standard header ----
 
 INSTALL_OPENMP=${INSTALL_OPENMP:-$AOMP_INSTALL_DIR}
+
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then 
   help_build_aomp
 fi
@@ -34,11 +35,11 @@ if [ "$AOMP_BUILD_CUDA" == 1 ] ; then
    export CUDAFE_FLAGS="-w"
 fi
 
-#if [ ! -d $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME ] ; then
-#   echo "ERROR:  Missing repository $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME "
-#   echo "        Consider setting env variables AOMP_REPOS and/or AOMP_PROJECT_REPO_NAME "
-#   exit 1
-#fi
+if [ ! -d $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME ] ; then 
+   echo "ERROR:  Missing repository $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME "
+   echo "        Consider setting env variables AOMP_REPOS and/or AOMP_PROJECT_REPO_NAME "
+   exit 1
+fi
 
 # Make sure we can update the install directory
 if [ "$1" == "install" ] ; then 

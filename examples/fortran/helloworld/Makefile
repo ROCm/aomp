@@ -1,9 +1,9 @@
 #-----------------------------------------------------------------------
-#  ROCM_LLVM:       Defaults to /opt/rocm/llvm
 #
-#  make run
+#  Makefile: Cuda clang demo Makefile for both amdgcn and nvptx targets.
+#            amdgcn targets begin with gfx. nvptx targets begin with sm_
 #
-#  Run "make help" to see other options for this Makefile
+#  Run "make help" to see how to use this Makefile
 #
 #-----------------------------------------------------------------------
 # MIT License

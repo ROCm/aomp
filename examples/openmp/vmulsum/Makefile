@@ -1,7 +1,4 @@
 #-----------------------------------------------------------------------
-#  ROCM_LLVM:       Defaults to /opt/rocm/llvm
-#  ROCM_GPU:        Auto detected via rocm_agent_enumerator
-#  ROCM_GPUTARGET:  Defaults to amdgcn-amd-amdhsa
 #
 #  Makefile: Cuda clang demo Makefile for both amdgcn and nvptx targets.
 #            amdgcn GPU targets begin with "gfx". nvptx targets begin

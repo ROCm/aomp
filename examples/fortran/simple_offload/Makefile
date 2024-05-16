@@ -1,11 +1,9 @@
 #-----------------------------------------------------------------------
-#  ROCM_LLVM:       Defaults to /opt/rocm/llvm
-#  ROCM_GPU:        Auto detected via rocm_agent_enumerator
-#  ROCM_GPUTARGET:  Defaults to amdgcn-amd-amdhsa
 #
-#  make run
+#  Makefile: demo Makefile for amdgcn target (for flang).
+#            amdgcn targets begin with gfx. 
 #
-#  Run "make help" to see other options for this Makefile
+#  Run "make help" to see how to use this Makefile
 #
 #-----------------------------------------------------------------------
 # MIT License

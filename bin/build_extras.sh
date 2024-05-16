@@ -62,13 +62,13 @@ if [ ! -d $EXTRAS_REPO_DIR ] ; then
    exit 1
 fi
 
-#if [ ! -f $AOMP/bin/clang ] ; then
-#   echo "ERROR:  Missing file $AOMP/bin/clang"
-#   echo "        Build and install the AOMP clang compiler in $AOMP first"
-#   echo "        This is needed to build extras "
-#   echo " "
-#   exit 1
-#fi
+if [ ! -f $AOMP/bin/clang ] ; then
+   echo "ERROR:  Missing file $AOMP/bin/clang"
+   echo "        Build and install the AOMP clang compiler in $AOMP first"
+   echo "        This is needed to build extras "
+   echo " "
+   exit 1
+fi
 
 # Make sure we can update the install directory
 if [ "$1" == "install" ] ; then
@@ -109,7 +109,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
   echo
   echo " -----Running cmake ---- "
   echo ${AOMP_CMAKE} $MYCMAKEOPTS $EXTRAS_REPO_DIR
-  env "$@" ${AOMP_CMAKE} $MYCMAKEOPTS $EXTRAS_REPO_DIR
+  ${AOMP_CMAKE} $MYCMAKEOPTS $EXTRAS_REPO_DIR 
   if [ $? != 0 ] ; then
       echo "ERROR extras cmake failed. Cmake flags"
       echo "      $MYCMAKEOPTS"
@@ -136,8 +136,6 @@ else
       echo "  $0 install"
       echo
   fi
-  echo "ls $INSTALL_PREFIX/openmp-extras/bin"
-  ls $INSTALL_PREFIX/openmp-extras/bin
 fi
 
 #  ----------- Install only if asked  ----------------------------
