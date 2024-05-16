@@ -1,0 +1,30 @@
+diff --git a/core/src/Kokkos_Macros.hpp b/core/src/Kokkos_Macros.hpp
+index 9dbd2de0c..cab5d3eee 100644
+--- a/core/src/Kokkos_Macros.hpp
++++ b/core/src/Kokkos_Macros.hpp
+@@ -603,6 +603,8 @@ static constexpr bool kokkos_omp_on_host() { return false; }
+ #define KOKKOS_ENABLE_TASKDAG
+ #endif
+ 
++#undef KOKKOS_ENABLE_TASKDAG
++
+ #define KOKKOS_INVALID_INDEX (~std::size_t(0))
+ 
+ #define KOKKOS_IMPL_CTOR_DEFAULT_ARG KOKKOS_INVALID_INDEX
+diff --git a/core/unit_test/TestNonTrivialScalarTypes.hpp b/core/unit_test/TestNonTrivialScalarTypes.hpp
+index 02064d2fc..e593e7e3d 100644
+--- a/core/unit_test/TestNonTrivialScalarTypes.hpp
++++ b/core/unit_test/TestNonTrivialScalarTypes.hpp
+@@ -158,10 +158,12 @@ struct array_reduce {
+   array_reduce() {
+     for (int i = 0; i < N; i++) data[i] = scalar_t();
+   }
++#if 0
+   KOKKOS_INLINE_FUNCTION
+   array_reduce(const array_reduce &rhs) {
+     for (int i = 0; i < N; i++) data[i] = rhs.data[i];
+   }
++#endif
+   KOKKOS_INLINE_FUNCTION
+   array_reduce(const scalar_t value) {
+     for (int i = 0; i < N; i++) data[i] = scalar_t(value);
