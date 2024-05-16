@@ -5,28 +5,28 @@
 #
 #  Run "make help" to see other options for this Makefile
 
+mkfile_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+include $(mkfile_dir)../../inc/find_gpu_and_install_dir.mk
+
 TESTNAME = helloworld
 TESTSRC = $(TESTNAME).cpp
 
-mkfile_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 ifneq ($(CURDIR)/,$(mkfile_dir))
   TESTSRC := $(mkfile_dir)$(TESTSRC)
 endif
-include $(mkfile_dir)../../Makefile.find_gpu_and_install_dir
 
-CC          = $(LLVM_INSTALL_DIR)/bin/clang++
-LLVM_GPU_ARCHTARGET ?= amdgcn-amd-amdhsa
-KOKKOS_INSTALL_PREFIX ?= $(HOME)
+CC := $(LLVM_INSTALL_DIR)/bin/clang++
+KOKKOS_INSTALL_PREFIX ?= /work/$(USER)
 
 ifeq ($(KOKKOS_USE_HIP),1)
   is_hip    = hip
-  KOKKOS_ROOT = $(KOKKOS_INSTALL_PREFIX)/kokkos_hip.$(LLVM_GPU_ARCH)
+  KOKKOS_INSTALL_DIR = $(KOKKOS_INSTALL_PREFIX)/kokkos-3.7.01_hip.$(LLVM_GPU_ARCH)
 else
   is_hip    =
-  KOKKOS_ROOT = $(KOKKOS_INSTALL_PREFIX)/kokkos_omp.$(LLVM_GPU_ARCH)
+  KOKKOS_INSTALL_DIR = $(KOKKOS_INSTALL_PREFIX)/kokkos-3.7.01_omp.$(LLVM_GPU_ARCH)
 endif
 
-INCLUDES     = -I$(KOKKOS_ROOT)/include
+INCLUDES     = -I$(KOKKOS_INSTALL_DIR)/include
 TARGET_FLAGS = -fopenmp --offload-arch=$(LLVM_GPU_ARCH)$(AOMP_TARGET_FEATURES)
 CPPFLAGS     = $(INCLUDES) -Wall -Wextra -O3 -DNDEBUG  -w $(TARGET_FLAGS) -std=c++17 -DGTEST_HAS_PTHREAD=0 -DGTEST_HAS_TR1_TUPLE=0 -DKOKKOS_DEPENDENCE -DKOKKOS_WORKAROUND_OPENMPTARGET_CLANG
 LINKFLAGS    = $(enableopt) -Wall -Wextra -O3 -DNDEBUG -w $(TARGET_FLAGS)
@@ -37,28 +37,12 @@ LINKFLAGS    = $(enableopt) -Wall -Wextra -O3 -DNDEBUG -w $(TARGET_FLAGS)
 DEBIAN := $(shell cat /etc/os-release | grep debian)
 ifneq (,$(wildcard /usr/lib64))
   ifeq (,$(DEBIAN))
-    KOKKOS_LIB   = $(KOKKOS_ROOT)/lib64/libkokkoscore.a
+    KOKKOS_LIB   = $(KOKKOS_INSTALL_DIR)/lib64/libkokkoscore.a
   else
-    KOKKOS_LIB   = $(KOKKOS_ROOT)/lib/libkokkoscore.a
+    KOKKOS_LIB   = $(KOKKOS_INSTALL_DIR)/lib/libkokkoscore.a
   endif
 else
-  KOKKOS_LIB   = $(KOKKOS_ROOT)/lib/libkokkoscore.a
-endif
-
-ifeq ($(OFFLOAD_DEBUG),1)
-  $(info    DEBUG Mode ON)
-  CCENV  = env LIBRARY_PATH=$(LLVM_INSTALL_DIR)/lib-debug
-  RUNENV = LIBOMPTARGET_DEBUG=1
-endif
-
-ifeq ($(VERBOSE),1)
-  $(info    Compilation VERBOSE Mode ON)
-  CPPFLAGS += -v
-endif
-
-ifeq ($(TEMPS),1)
-  $(info    Compilation and linking save-temp Mode ON)
-  CPPFLAGS += -save-temps
+  KOKKOS_LIB   = $(KOKKOS_INSTALL_DIR)/lib/libkokkoscore.a
 endif
 
 CPPFLAGS += $(EXTRA_CPPFLAGS)
@@ -73,16 +57,19 @@ run: $(TESTNAME)
 	$(RUNENV) ./$(TESTNAME)
 
 $(KOKKOS_LIB):
-	$(LLVM_INSTALL_DIR)/bin/kokkos_build.sh $(is_hip)
+	env AOMP=$(LLVM_INSTALL_DIR) AOMP_INSTALL_DIR=$(LLVM_INSTALL_DIR) AOMP_GPU=$(LLVM_GPU_ARCH) KOKKOS_BUILD_PREFIX=$(KOKKOS_INSTALL_PREFIX) KOKKOS_INSTALL_DIR=$(KOKKOS_INSTALL_DIR) $(LLVM_INSTALL_DIR)/bin/kokkos_build.sh $(is_hip)
 
 help:
 	@echo
-	@echo "Source[s]:		$(TESTSRC)"
+	@echo "Source:			$(TESTSRC)"
 	@echo "Application binary:    	$(TESTNAME)"
+	@echo "KOKKOS lib:		$(KOKKOS_LIB)"
 	@echo "Target GPU:		$(LLVM_GPU_ARCH)"
 	@echo "Compiler: 		$(CC)"
+	@echo "KOKKOS build script:	$(LLVM_INSTALL_DIR)/bin/kokkos_build.sh"
+	@echo "KOKKOS install dir:	$(KOKKOS_INSTALL_DIR)"
 	@echo "Compile flags:		$(CPPFLAGS)"
-	@echo "KOKKOS install prefix:	$(KOKKOS_INSTALL_PREFIX)"
+
 ifeq (sm_,$(findstring sm_,$(LLVM_GPU_ARCH)))
 	@echo "CUDA installation:	$(CUDA)"
 endif
@@ -92,16 +79,15 @@ endif
 	@echo " make			 // Builds $(TESTNAME) and KOKKOS "
 	@echo " make run		 // Executes $(TESTNAME) "
 	@echo
-	@echo " make clean              // Deletes test build  "
+	@echo " make clean              // Deletes $(TESTNAME) but not kokkos"
 	@echo " make clean_kokkos       // Deletes KOKKOS build "
 	@echo " make help"
 	@echo
 	@echo "Environment variables used by this Makefile:"
-	@echo "  LLVM_INSTALL_DIR=<dir>"
-	@echo "  EXTRA_CFLAGS=<args>  extra arguments for compiler"
-	@echo "  OFFLOAD_DEBUG=n      if n=1, compile and run in Debug mode"
-	@echo "  VERBOSE=n            if n=1, add verbose output"
-	@echo "  TEMPS=1              do not delete intermediate files"
+	@echo "  LLVM_INSTALL_DIR	$(LLVM_INSTALL_DIR)"
+	@echo "  LLVM_GPU_ARCH		$(LLVM_GPU_ARCH)" 
+	@echo "  KOKKOS_INSTALL_PREFIX	$(KOKKOS_INSTALL_PREFIX)" 
+	@echo "  EXTRA_CFLAGS		extra arguments for compiler"
 ifeq (sm_,$(findstring sm_,$(LLVM_GPU_ARCH)))
 	@echo "  CUDA=<dir>           CUDA install dir, default=/usr/local/cuda"
 endif

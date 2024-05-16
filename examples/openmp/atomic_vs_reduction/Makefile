@@ -8,15 +8,15 @@
 #            make run
 #
 #  Run "make help" to see other options for this Makefile
+mkfile_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+include $(mkfile_dir)../../inc/find_gpu_and_install_dir.mk
 
 TESTNAME = atomic_vs_reduction
 TESTSRC = atomic_vs_reduction.c
 
-mkfile_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 ifneq ($(CURDIR)/,$(mkfile_dir))
   TESTSRC := $(mkfile_dir)$(TESTSRC)
 endif
-include $(mkfile_dir)../../inc/find_gpu_and_install_dir.mk
 
 CC = $(LLVM_INSTALL_DIR)/bin/clang
 
