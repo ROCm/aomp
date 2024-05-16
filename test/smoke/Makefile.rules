@@ -1,5 +1,15 @@
+ifeq ($(TESTSRC_ALL),)
+    $(info    WARNING: TESTSRC_ALL is empty)
+endif
 TESTNAMES_ALL = $(basename $(TESTSRC_ALL))
-SMOKE_TIMEOUT=timeout --foreground 30s
+TIMEOUT ?= 60s
+SMOKE_TIMEOUT ?= timeout --foreground $(TIMEOUT)
+CHECK_COMMAND ?= $(or $(RUNCMD), ./$(TESTNAME) $(ARGS))
+
+SKIP_COMPILE_SUPPORTED   = Skipped compiling $(TESTNAME) for $(GPU_W_FEATURES) (supported only on $(SUPPORTED))
+SKIP_COMPILE_UNSUPPORTED = Skipped compiling $(TESTNAME): not supported on $(UNSUPPORTED)
+SKIP_RUN_SUPPORTED       = Skipped running $(TESTNAME) on $(GPU_W_FEATURES) (supported only on $(SUPPORTED))
+SKIP_RUN_UNSUPPORTED     = Skipped running $(TESTNAME): not supported on $(UNSUPPORTED)
 
 all: $(TESTNAME)
 
@@ -14,8 +24,27 @@ prerequisites:
 	@echo ">>> $(SCRIPT_INIT) >>>"
 endif
 
+# ----- If SUPPORTED is empty then it means that there is no
+# restriction for the test and the test can be compiled and run
+# on the current GPU architecture.
+ifeq ($(AOMP_TARGET_FEATURES),)
+GPU_W_FEATURES = $(AOMP_GPU)
+else
+GPU_W_FEATURES = $(AOMP_GPU)$(AOMP_TARGET_FEATURES)
+endif
+
+ifeq ($(SUPPORTED),)
+SUPPORTED = $(GPU_W_FEATURES)
+endif
+
 # ----- Demo compile and link in one step, no object code saved
+ifeq ($(AOMP_NO_PREREQ),)
 $(TESTNAME): prerequisites $(TESTSRC_ALL)
+else
+$(TESTNAME): $(TESTSRC_ALL)
+endif
+ifneq (,$(findstring $(GPU_W_FEATURES),$(SUPPORTED)))
+ifeq (,$(findstring $(GPU_W_FEATURES),$(UNSUPPORTED)))
 ifdef nvidia_targets
 	$(CC) $(make_options) $(nvidia_targets) $(march) $(cuda) -o $@
 else ifdef march
@@ -23,23 +52,143 @@ else ifdef march
 else ifdef make_options
 	$(CC) $(make_options) -o $@
 else
+ifeq ($(AOMP_NO_PREREQ),)
 	$(SETENV) $(CC) $(CFLAGS) $(EXTRA_CFLAGS) $(OMP_FLAGS) $(wordlist 2,$(words $^),$^) -o $@ $(LINK_FLAGS)
+else
+	$(SETENV) $(CC) $(CFLAGS) $(EXTRA_CFLAGS) $(OMP_FLAGS) $^ -o $@ $(LINK_FLAGS)
+endif
+endif
+else
+	@echo "  $(SKIP_COMPILE_UNSUPPORTED)"
+endif
+else
+	@echo "  $(SKIP_COMPILE_SUPPORTED)"
 endif
 
 run: $(TESTNAME)
-	$(RUNENV) $(RUNPROF) ./$(TESTNAME) 2>&1 | tee $@.log
+ifneq (,$(findstring $(GPU_W_FEATURES),$(SUPPORTED)))
+ifeq (,$(findstring $(GPU_W_FEATURES),$(UNSUPPORTED)))
+	$(RUNENV) $(RUNPROF) $(RUNPROF_FLAGS) $(CHECK_COMMAND) 2>&1 | tee $@.log
+else
+	@echo "  $(SKIP_RUN_UNSUPPORTED)" 2>&1 | tee $@.log
+endif
+else
+	@echo "  $(SKIP_RUN_SUPPORTED)" 2>&1 | tee $@.log
+endif
 
-check: $(TESTNAME)
+$(TESTNAME)_og11: $(TESTSRC_ALL)
+	$(OG11CC) $^ -o $@
+og11run: $(TESTNAME)_og11
+	$(OG11ENV) ./$(TESTNAME)_og11
+gpurun: $(TESTNAME)
+	$(AOMP)/bin/gpurun $(RUNENV) $(RUNPROF) ./$(TESTNAME) 2>&1 | tee $@.log
+
+# Just verify output
+verify: run
+	$(CC) verify_output.c -o verify_output
+	./verify_output
+
+# Verify output and log results, used for check_smoke.sh
+verify-log: run
+	$(CC) verify_output.c -o verify_output
 	path=`pwd`; \
 	base=`basename $$path`; \
-	if   ($(SMOKE_TIMEOUT) ./$(TESTNAME)> /dev/null 2>&1); then \
-		echo $$base $$test_num return code: $$? >> ../check-smoke.txt; \
-		echo  "" >> ../check-smoke.txt; \
-		echo $$base $$test_num  >> ../passing-tests.txt; \
-	else	echo $$base $$test_num return code: $$? >> ../check-smoke.txt; \
-		echo  "" >> ../check-smoke.txt; \
-		echo $$base $$test_num  >> ../failing-tests.txt; \
-	fi
+	( \
+	  flock -e 9 && echo  "" >> ../check-smoke.txt; \
+	  ./verify_output; \
+	  vrfy_status=$$?; \
+	  echo $$base $$test_num return code: $$vrfy_status >> ../check-smoke.txt; \
+	  echo  "" >> ../check-smoke.txt; \
+	  if [ $$vrfy_status -eq 0 ]; then echo $$base $$test_num >> ../passing-tests.txt; \
+	                              else echo $$base $$test_num >> ../failing-tests.txt; fi; \
+	)9>../lockfile;
+
+check: $(TESTNAME)
+ifneq (,$(findstring $(GPU_W_FEATURES),$(SUPPORTED)))
+ifeq (,$(findstring $(GPU_W_FEATURES),$(UNSUPPORTED)))
+	path=`pwd`; \
+	base=`basename $$path`; \
+	( \
+	  flock -e 9 && echo  "" >> ../check-smoke.txt; \
+	  $(RUNENV) $(SMOKE_TIMEOUT) $(RUNPROF) $(RUNPROF_FLAGS) $(CHECK_COMMAND) > /dev/null 2>&1; \
+	  test_status=$$?; \
+	  echo "$$test_status" > TEST_STATUS; \
+	  echo $$base $$test_num return code: $$test_status >> ../check-smoke.txt; \
+	  echo  "" >> ../check-smoke.txt; \
+	  if [ $$test_status -eq 0 ]; then echo $$base $$test_num >> ../passing-tests.txt; \
+	                              else echo $$base $$test_num >> ../failing-tests.txt; fi; \
+	)9>../lockfile;
+else
+	@echo "  $(SKIP_RUN_UNSUPPORTED)"
+endif
+else
+	@echo "  $(SKIP_RUN_SUPPORTED)"
+endif
+
+check-asan: $(TESTNAME)
+ifneq (,$(findstring $(GPU_W_FEATURES),$(SUPPORTED)))
+ifeq (,$(findstring $(GPU_W_FEATURES),$(UNSUPPORTED)))
+	path=`pwd`; \
+	base=`basename $$path`; \
+	( \
+	  flock -e 9 && echo  "" >> ../check-smoke-asan.txt; \
+	  # CmdStatus: Associative Container which keeps track of execution status of any command in the pipeline. \
+	  declare -A CmdStatus; \
+	  # GetPipedCmdStatus: Function which on demand populates the CmdStatus container with execution status values of each command executing in a given input pipeline. \
+	  # param_1: pipeline as string. \
+	  # param_2: pipestatus computed from PIPESTATUS as array. \
+	  # param_3: Cmd Name as string. \
+	  # param_4: CmdRunIndex of Cmd as positive integer. \
+	  function GetPipedCmdStatus() { \
+	  # pstat: Pipeline status list. \
+	    local -n pstat=$$2; \
+	  # Cmd: Command Name \
+	    Cmd="$$3"; \
+	  # CmdRunIndex: Index value of Cmd executing in the pipeline. \
+	  # Ex. pipeline = "Cmd1 | Cmd2 | Cmd3 | Cmd1 | Cmd4 | Cmd3" \
+	  # CmdRunIndex of Cmd1(First Time): 1 \
+	  # CmdRunIndex of Cmd2(First Time): 1 \
+	  # CmdRunIndex of Cmd1(Second Time): 2 \
+	    CmdRunIndex="$$4"; \
+	  # CmdRunIndexList: Index List of each Cmd. \
+	  # Ex. pipeline = "Cmd1 | Cmd2 | Cmd1 | Cmd3" \
+	  #     CmdRunIndexList of Cmd1: (1,3) \
+	    CmdRunIndexList=($$(echo $$1 | awk -F'|' '{for(i=1;i<=NF;i++) {gsub(/^[ \t]+|[ \t]+$$/, "", $$i); print $$i}}' | awk -v Cmd_Pattern="$$Cmd " '$$0~Cmd_Pattern {print NR}')); \
+	    for CmdIndex in "$${CmdRunIndexList[@]}"; do \
+	      if [ -v CmdStatus["$$Cmd"] ]; then \
+	         ArrString=$${CmdStatus["$$Cmd"]}; \
+	         ArrString+=",$${pstat[$$CmdIndex-1]}"; \
+	         CmdStatus["$$Cmd"]=$${ArrString}; \
+	      else \
+	         NewArrString=$${pstat[$$CmdIndex-1]}; \
+	         CmdStatus["$$Cmd"]=$${NewArrString}; \
+	      fi; \
+	    done; \
+	    if [ -v CmdStatus[$$Cmd] ] && [ $$CmdRunIndex -gt 0 ];then \
+	       IFS=',' read -ra CmdStatusList <<< "$${CmdStatus[$$Cmd]}"; \
+	       return $${CmdStatusList["$$CmdRunIndex"-1]}; \
+	    fi; \
+	  }; \
+	  pipeline="$(RUNENV) $(SMOKE_TIMEOUT) $(RUNPROF) $(RUNPROF_FLAGS) $(CHECK_COMMAND) > /dev/null 2>&1"; \
+	  $(RUNENV) $(SMOKE_TIMEOUT) $(RUNPROF) $(RUNPROF_FLAGS) $(CHECK_COMMAND) > /dev/null 2>&1; \
+	  pipestatus=($${PIPESTATUS[@]}); \
+	  GetPipedCmdStatus "$$pipeline" "pipestatus" "$(TESTNAME)" "1"; \
+	  test_status=$$?; \
+	  GetPipedCmdStatus "$$pipeline" "pipestatus" "FileCheck" "1"; \
+	  filecheck_status=$$?; \
+	  echo "$$test_status" > TEST_STATUS; \
+	  echo "$$filecheck_status" > FILECHECK_STATUS; \
+	  echo $$base $$test_num return code: $$test_status >> ../check-smoke-asan.txt; \
+	  echo  "" >> ../check-smoke-asan.txt; \
+	  if [ $$filecheck_status -eq 0 ]; then echo $$base $$test_num >> ../passing-tests.txt; \
+	                                   else echo $$base $$test_num >> ../failing-tests.txt; fi; \
+	)9>../lockfile;
+else
+	@echo "  $(SKIP_RUN_UNSUPPORTED)"
+endif
+else
+	@echo "  $(SKIP_RUN_SUPPORTED)"
+endif
 
 
 # ----- Demo compile and link to object file
@@ -165,7 +314,7 @@ run_sbin: sbin
 
 # Cleanup anything this makefile can create
 clean::
-	rm -f $(TESTNAME) $(TESTNAME).a llbin sbin obin *.i *.ii *.bc *.lk a.out-* *.ll *.s *.o *.log
+	rm -f $(TESTNAME) $(TESTNAME).a llbin sbin obin *.i *.ii *.bc *.lk a.out-* *.ll *.s *.o *.log *.mod verify_output *.stb *.ilm *.cmod *.cmdx *.so $(TESTNAME)_og11 make-log.txt TEST_STATUS FILECHECK_STATUS
 
 clean_log:
 	rm -f *.log

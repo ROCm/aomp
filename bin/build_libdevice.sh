@@ -3,34 +3,16 @@
 #  File: build_libdevice.sh
 #        build the rocm-device-libs libraries in $AOMP/lib/libdevice
 #
-# --- Start standard header ----
-function getdname(){
-   local __DIRN=`dirname "$1"`
-   if [ "$__DIRN" = "." ] ; then
-      __DIRN=$PWD;
-   else
-      if [ ${__DIRN:0:1} != "/" ] ; then
-         if [ ${__DIRN:0:2} == ".." ] ; then
-               __DIRN=`dirname $PWD`/${__DIRN:3}
-         else
-            if [ ${__DIRN:0:1} = "." ] ; then
-               __DIRN=$PWD/${__DIRN:2}
-            else
-               __DIRN=$PWD/$__DIRN
-            fi
-         fi
-      fi
-   fi
-   echo $__DIRN
-}
-thisdir=$(getdname $0)
-[ ! -L "$0" ] || thisdir=$(getdname `readlink "$0"`)
+
+# --- Start standard header to set AOMP environment variables ----
+realpath=`realpath $0`
+thisdir=`dirname $realpath`
 . $thisdir/aomp_common_vars
 # --- end standard header ----
 
 # We now pickup HSA from the AOMP install directory because it is built
 # with build_roct.sh and build_rocr.sh . 
-HSA_DIR=${HSA_DIR:-$AOMP/hsa}
+HSA_DIR=${HSA_DIR:-$AOMP}
 SKIPTEST=${SKIPTEST:-"YES"}
 
 INSTALL_ROOT_DIR=${INSTALL_LIBDEVICE:-$AOMP_INSTALL_DIR}
@@ -38,13 +20,11 @@ INSTALL_DIR=$INSTALL_ROOT_DIR
 
 export LLVM_DIR=$AOMP_INSTALL_DIR
 export LLVM_BUILD=$AOMP_INSTALL_DIR
-SOURCEDIR=$AOMP_REPOS/$AOMP_LIBDEVICE_REPO_NAME
+SOURCEDIR=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/amd/$AOMP_LIBDEVICE_REPO_NAME
 
-REPO_BRANCH=$AOMP_LIBDEVICE_REPO_BRANCH
-REPO_DIR=$AOMP_REPOS/$AOMP_LIBDEVICE_REPO_NAME
-checkrepo
+REPO_DIR=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/amd/$AOMP_LIBDEVICE_REPO_NAME
 
-MYCMAKEOPTS="-DLLVM_DIR=$LLVM_DIR -DBUILD_HC_LIB=ON"
+MYCMAKEOPTS="-DLLVM_DIR=$LLVM_DIR -DCMAKE_INSTALL_LIBDIR=lib"
 
 if [ ! -d $AOMP_INSTALL_DIR/lib ] ; then 
   echo "ERROR: Directory $AOMP/lib is missing"
@@ -59,20 +39,6 @@ patchrepo $REPO_DIR
 
 if [ "$1" != "install" ] ; then 
     
-   if [ $COPYSOURCE ] ; then 
-      if [ -d $BUILD_DIR/$AOMP_LIBDEVICE_REPO_NAME ] ; then 
-         echo rm -rf $BUILD_DIR/$AOMP_LIBDEVICE_REPO_NAME
-         $SUDO rm -rf $BUILD_DIR/$AOMP_LIBDEVICE_REPO_NAME
-      fi
-      mkdir -p $BUILD_DIR/$AOMP_LIBDEVICE_REPO_NAME
-      echo rsync -a $SOURCEDIR/ $BUILD_DIR/$AOMP_LIBDEVICE_REPO_NAME/
-      rsync -a $SOURCEDIR/ $BUILD_DIR/$AOMP_LIBDEVICE_REPO_NAME/
-      # Fixup ll files to avoid link warnings
-      for llfile in `find $BUILD_DIR/$AOMP_LIBDEVICE_REPO_NAME -type f | grep "\.ll" ` ; do 
-        sed -i -e"s/:64-A5/:64-S32-A5/" $llfile
-      done
-   fi
-
       builddir_libdevice=$BUILD_DIR/build/libdevice
       if [ -d $builddir_libdevice ] ; then 
          echo rm -rf $builddir_libdevice
@@ -87,20 +53,15 @@ if [ "$1" != "install" ] ; then
 
       CC="$LLVM_BUILD/bin/clang"
       export CC
-      if [ $COPYSOURCE ] ; then 
-         echo "${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR $BUILD_DIR/$AOMP_LIBDEVICE_REPO_NAME"
-         ${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR $BUILD_DIR/$AOMP_LIBDEVICE_REPO_NAME
-      else 
-         echo "${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR $AOMP_REPOS/$AOMP_LIBDEVICE_REPO_NAME"
-         ${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR $AOMP_REPOS/$AOMP_LIBDEVICE_REPO_NAME
-      fi
+      echo "${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/amd/$AOMP_LIBDEVICE_REPO_NAME"
+      ${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/amd/$AOMP_LIBDEVICE_REPO_NAME
       if [ $? != 0 ] ; then 
          echo "ERROR cmake failed  command was \n"
          echo "      ${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR $BUILD_DIR/$AOMP_LIBDEVICE_REPO_NAME"
          exit 1
       fi
-      echo "make -j $NUM_THREADS"
-      make -j $NUM_THREADS 
+      echo "make -j $AOMP_JOB_THREADS"
+      make -j $AOMP_JOB_THREADS 
       if [ $? != 0 ] ; then 
          echo "ERROR make failed "
          exit 1
@@ -132,8 +93,8 @@ if [ "$1" == "install" ] ; then
    builddir_libdevice=$BUILD_DIR/build/libdevice
    echo "running make install from $builddir_libdevice"
    cd $builddir_libdevice
-   echo $SUDO make -j $NUM_THREADS install
-   $SUDO make -j $NUM_THREADS install
+   echo $SUDO make -j $AOMP_JOB_THREADS install
+   $SUDO make -j $AOMP_JOB_THREADS install
 
    # rocm-device-lib cmake installs to lib dir, move all bc files up one level
    # and cleanup unused oclc_isa_version bc files and link correct one

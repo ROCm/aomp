@@ -1,42 +1,35 @@
 #!/bin/bash
 #
-#  build-rpm.sh: Build the rpm for SLES15 SP1 or RHEL 7
+#  build-rpm.sh: Build the rpm for SLES15 SP4 and Centos 7-9
 #
-# --- Start standard header ----
-function getdname(){
-   local __DIRN=`dirname "$1"`
-   if [ "$__DIRN" = "." ] ; then
-      __DIRN=$PWD;
-   else
-      if [ ${__DIRN:0:1} != "/" ] ; then
-         if [ ${__DIRN:0:2} == ".." ] ; then
-               __DIRN=`dirname $PWD`/${__DIRN:3}
-         else
-            if [ ${__DIRN:0:1} = "." ] ; then
-               __DIRN=$PWD/${__DIRN:2}
-            else
-               __DIRN=$PWD/$__DIRN
-            fi
-         fi
-      fi
-   fi
-   echo $__DIRN
-}
-thisdir=$(getdname $0)
-[ ! -L "$0" ] || thisdir=$(getdname `readlink "$0"`)
+
+# --- Start standard header to set AOMP environment variables ----
+realpath=`realpath $0`
+thisdir=`dirname $realpath`
 . $thisdir/aomp_common_vars
+# --- end standard header ----
 
 osname=$(cat /etc/os-release | grep -e ^NAME=)
+version=$(cat /etc/os-release | grep -e ^VERSION=)
 rpmname="Not_Found"
 if [[ $osname =~ "Red Hat" ]]; then
   echo "Red Hat found!!!"
   rpmname=${1:-aomp_REDHAT_7}
+elif [[ $osname =~ "SLES" ]]; then
+  echo "SLES15_SP4 found!!!"
+  rpmname=${1:-aomp_SLES15_SP4}
+elif [[ $osname =~ "CentOS" ]]; then
+  echo "CENTOS found!!!"
+  if [[ $version =~ "9" ]]; then
+    rpmname=${1:-aomp_CENTOS_9}
+  elif [[ $version =~ "8" ]]; then
+    rpmname=${1:-aomp_CENTOS_8}
+  elif [[ $version =~ "7" ]]; then
+    rpmname=${1:-aomp_CENTOS_7}
+  fi
 fi
 
-if [[ $osname =~ "SLES" ]]; then
-  echo "SLES15_SP1 found!!!"
-  rpmname=${1:-aomp_SLES15_SP1}
-fi
+echo "rpmname: $rpmname"
 
 # Ensure the rpmbuild tool from rpm-build package is available
 rpmbuild_loc=`which rpmbuild 2>/dev/null`

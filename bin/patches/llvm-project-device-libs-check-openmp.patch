@@ -1,0 +1,25 @@
+diff --git a/amd/device-libs/CMakeLists.txt b/amd/device-libs/CMakeLists.txt
+index 9ff5f4d71ef0..c98020630240 100644
+--- a/amd/device-libs/CMakeLists.txt
++++ b/amd/device-libs/CMakeLists.txt
+@@ -23,6 +23,8 @@ endif()
+ 
+ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+ 
++add_custom_target(rocm-device-libs)
++
+ # Optionally, build Device Libs with ccache.
+ set(ROCM_CCACHE_BUILD OFF CACHE BOOL "Set to ON for a ccache enabled build")
+ if (ROCM_CCACHE_BUILD)
+diff --git a/amd/device-libs/cmake/OCL.cmake b/amd/device-libs/cmake/OCL.cmake
+index fe45b26bfc38..07f7d90f38ad 100644
+--- a/amd/device-libs/cmake/OCL.cmake
++++ b/amd/device-libs/cmake/OCL.cmake
+@@ -145,6 +145,7 @@ macro(opencl_bc_lib)
+   add_custom_target("${name}" ALL
+     DEPENDS "${OUTPUT_DIR}/${OUT_NAME}${FINAL_SUFFIX}"
+     SOURCES ${OPENCL_BC_LIB_SOURCES})
++  add_dependencies(rocm-device-libs "${name}")
+   set_target_properties(${name} PROPERTIES
+     OUTPUT_NAME "${OUTPUT_DIR}/${OUT_NAME}${FINAL_SUFFIX}"
+     ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"

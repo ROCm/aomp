@@ -1,3 +1,6 @@
+The AOMP compiler supports ASan for AMDGPU with applications written in both HIP and OpenMP.
+========================================================================================================================================
+
 Address Sanitizer(ASan) is a memory error detector tool utilized by applications to detect various errors ranging from spatial issues like out-of-bound access to temporal issues like use-after-free.
 
 * **Features Supported On Host Platfrom(Target x86_64).**

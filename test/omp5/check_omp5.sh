@@ -12,6 +12,53 @@ BLU="\033[0;34m"
 ORG="\033[0;33m"
 BLK="\033[0m"
 
+function gatherdata(){
+  #Gather Test Data
+  passing_tests=0
+  if [ -e passing-tests.txt ]; then
+    ((passing_tests=$(wc -l <  passing-tests.txt)))
+    total_tests=$passing_tests
+  fi
+  if [ -e make-fail.txt ]; then
+    ((total_tests+=$(wc -l <  make-fail.txt)))
+  fi
+  if [ -e failing-tests.txt ]; then
+    ((total_tests+=$(wc -l <  failing-tests.txt)))
+  fi
+
+  #Print Results
+  echo -e "$BLU"-------------------- Results --------------------"$BLK"
+  echo -e "$BLU"Number of tests: $total_tests"$BLK"
+  echo ""
+  echo -e "$GRN"Passing tests: $passing_tests/$total_tests"$BLK"
+  echo ""
+
+  #Print failed tests
+  echo -e "$RED"
+  if [ "$SKIP_FAILS" != 1 ] && [ "$known_fails" != "" ] ; then
+    echo "Known failures: $known_fails"
+  fi
+  echo ""
+  if [ -e failing-tests.txt ]; then
+    echo "Runtime Fails"
+    echo "--------------------"
+    cat failing-tests.txt
+    echo ""
+  fi
+
+  if [ -e make-fail.txt ]; then
+    echo "Compile Fails"
+    echo "--------------------"
+    cat make-fail.txt
+  fi
+  echo -e "$BLK"
+}
+
+if [ "$1" == "gatherdata" ]; then
+  gatherdata
+  exit 0
+fi
+
 cleanup(){
   rm -f passing-tests.txt
   rm -f failing-tests.txt
@@ -31,10 +78,9 @@ echo ""
 
 echo "************************************************************************************" > check-omp5.txt
 echo "                   A non-zero exit code means a failure occured." >> check-omp5.txt
-echo "Tests that need to be visually inspected: devices, pfspecify, pfspecify_str, stream" >> check-omp5.txt
 echo "***********************************************************************************" >> check-omp5.txt
 
-known_fails="red_bug_51 declare_variant shape_noncontig"
+known_fails="red_bug_51 shape_noncontig concur_update mapper_prob loop prag_error"
 
 if [ "$SKIP_FAILURES" == 1 ] ; then
   skip_tests=$known_fails
@@ -121,45 +167,7 @@ if [ -e make-fail.txt ]; then
 fi
 echo ""
 
-#Gather Test Data
-passing_tests=0
-if [ -e passing-tests.txt ]; then
-  ((passing_tests=$(wc -l <  passing-tests.txt)))
-  total_tests=$passing_tests
-fi
-if [ -e make-fail.txt ]; then
-  ((total_tests+=$(wc -l <  make-fail.txt)))
-fi
-if [ -e failing-tests.txt ]; then
-  ((total_tests+=$(wc -l <  failing-tests.txt)))
-fi
-
-#Print Results
-echo -e "$BLU"-------------------- Results --------------------"$BLK"
-echo -e "$BLU"Number of tests: $total_tests"$BLK"
-echo ""
-echo -e "$GRN"Passing tests: $passing_tests/$total_tests"$BLK"
-echo ""
-
-#Print failed tests
-echo -e "$RED"
-if [ "$SKIP_FAILS" != 1 ] ; then
-  echo "Known failures: $known_fails"
-fi
-echo ""
-if [ -e failing-tests.txt ]; then
-  echo "Runtime Fails"
-  echo "--------------------"
-  cat failing-tests.txt
-  echo ""
-fi
-
-if [ -e make-fail.txt ]; then
-  echo "Compile Fails"
-  echo "--------------------"
-  cat make-fail.txt
-fi
-echo -e "$BLK"
+gatherdata
 
 #Tests that need visual inspection
 #echo ""
@@ -167,5 +175,3 @@ echo -e "$BLK"
 #echo "---------- Please inspect the output above to verify the following tests ----------"
 #echo "stream"
 #echo -e "$BLK"
-#Clean up, hide output
-cleanup

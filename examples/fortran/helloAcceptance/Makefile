@@ -33,31 +33,31 @@
 
 TESTNAME =hello
 FILETYPE =f90
+TESTSRC = $(TESTNAME).$(FILETYPE)
 
-ROCM_LLVM ?= /opt/rocm/llvm
-ROCM_GPUTARGET ?= amdgcn-amd-amdhsa
-
-INSTALLED_GPU  = $(shell $(ROCM_LLVM)/../bin/rocm_agent_enumerator | grep -m 1 -E gfx[^0]{1})
-ROCM_GPU       ?= $(INSTALLED_GPU)
-CC              = $(ROCM_LLVM)/bin/clang
+mkfile_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+ifneq ($(CURDIR)/,$(mkfile_dir))
+  TESTSRC := $(mkfile_dir)$(TESTSRC)
+endif
+include $(mkfile_dir)../../Makefile.find_gpu_and_install_dir
 
 ifeq ($(TARGETS),)
-TARGETS =-march=$(ROCM_GPU)
+TARGETS =-fopenmp --offload-arch=$(LLVM_GPU_ARCH)$(AOMP_TARGET_FEATURES) -O2
 endif
 
-FORT   =$(ROCM_LLVM)/bin/flang
+FORT   =$(LLVM_INSTALL_DIR)/bin/flang
 LFLAGS = 
 FFLAGS =-fopenmp -fopenmp-targets=$(ROCM_GPUTARGET) -Xopenmp-target=$(ROCM_GPUTARGET)
 
 # ----- Demo compile and link in one step, no object code saved
-$(TESTNAME): $(TESTNAME).$(FILETYPE)
+$(TESTNAME): $(TESTSRC)
 	$(FORT) $(FFLAGS) $(TARGETS) $(LFLAGS) $^ -o $@
 
 run: $(TESTNAME)
 	./$(TESTNAME)
 
 #  ----   Demo compile and link in two steps, object saved
-$(TESTNAME).o: $(TESTNAME).$(FILETYPE)
+$(TESTNAME).o: $(TESTSRC)
 	$(FORT) -c $(FFLAGS) $(TARGETS) $^
 
 obin:	$(TESTNAME).o 
@@ -67,16 +67,16 @@ run_obin: obin
 	./obin
 
 #  ----   Demo compile to intermediates LLVMIR or assembly
-$(TESTNAME).ll: $(TESTNAME).$(FILETYPE)
+$(TESTNAME).ll: $(TESTSRC)
 	$(FORT) -c -S -emit-llvm $(FFLAGS) $(TARGETS) $^
 
-$(TESTNAME).s: $(TESTNAME).$(FILETYPE)
+$(TESTNAME).s: $(TESTSRC)
 	$(FORT)  -c -S $(FFLAGS) $(TARGETS)  $^
 
 help: 
 	@echo
 	@echo "Makefile Help:"
-	@echo "  Source:		$(TESTNAME).$(FILETYPE)"
+	@echo "  Source:		$(TESTSRC)"
 	@echo "  Compiler: 		$(FORT)"
 	@echo "  Compiler flags: 	$(FFLAGS)"
 	@echo
@@ -90,12 +90,6 @@ help:
 	@echo "  make $(TESTNAME).ll	// compile step only       : -c -S -emit-llvm"
 	@echo "  make clean		// cleanup files"
 	@echo "  make help 		// this help"
-	@echo
-	@echo "Environment Variables:"
-	@echo "  ROCM_LLVM default: /opt/rocm/llvm                            value: $(ROCM_LLVM)"
-	@echo "  ROCM_GPU  default: auto detected by rocm_agent_enumerator    value: $(ROCM_GPU)"
-	@echo "  TARGETS   default: --offload-arch=$(ROCM_GPU)"
-	@echo "              value: $(TARGETS)"
 	@echo
 	@echo "Link Flags:"
 	@echo "  Link flags: $(LFLAGS)"

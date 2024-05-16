@@ -8,30 +8,13 @@
 #                      You must also have sudo access to build the debs.
 #                      You will be prompted for your password for sudo. 
 #
-# --- Start standard header ----
-function getdname(){
-   local __DIRN=`dirname "$1"`
-   if [ "$__DIRN" = "." ] ; then
-      __DIRN=$PWD;
-   else
-      if [ ${__DIRN:0:1} != "/" ] ; then
-         if [ ${__DIRN:0:2} == ".." ] ; then
-               __DIRN=`dirname $PWD`/${__DIRN:3}
-         else
-            if [ ${__DIRN:0:1} = "." ] ; then
-               __DIRN=$PWD/${__DIRN:2}
-            else
-               __DIRN=$PWD/$__DIRN
-            fi
-         fi
-      fi
-   fi
-   echo $__DIRN
-}
-thisdir=$(getdname $0)
-[ ! -L "$0" ] || thisdir=$(getdname `readlink "$0"`)
+
+# --- Start standard header to set AOMP environment variables ----
+realpath=`realpath $0`
+thisdir=`dirname $realpath`
 . $thisdir/aomp_common_vars
-# --- End standard header ----
+# --- end standard header ----
+
 . /etc/lsb-release
 RELSTRING=`echo $DISTRIB_ID$DISTRIB_RELEASE | tr -d "."`
 echo RELSTRING=$RELSTRING
@@ -44,7 +27,7 @@ DEBFULLNAME="Greg Rodgers"
 DEBEMAIL="Gregory.Rodgers@amd.com"
 export DEBFULLNAME DEBEMAIL
 
-DEBARCH=`uname -p`
+DEBARCH=`uname -m`
 RPMARCH=$DEBARCH
 if [ "$DEBARCH" == "x86_64" ] ; then 
    DEBARCH="amd64"
@@ -81,14 +64,13 @@ fi
 
 # Make the install and links file version specific
 echo "usr/lib/$dirname usr/lib/aomp" > $froot/debian/$pkgname.links
-echo "usr/lib/$dirname/bin/bundle.sh  /usr/bin/bundle.sh" >> $froot/debian/$pkgname.links
-echo "usr/lib/$dirname/bin/unbundle.sh  /usr/bin/unbundle.sh" >> $froot/debian/$pkgname.links
 echo "usr/lib/$dirname/bin/aompExtractRegion /usr/bin/aompExtractRegion" >> $froot/debian/$pkgname.links
 echo "usr/lib/$dirname/bin/cloc.sh /usr/bin/cloc.sh" >> $froot/debian/$pkgname.links
 echo "usr/lib/$dirname/bin/mymcpu  /usr/bin/mymcpu" >> $froot/debian/$pkgname.links
 echo "usr/lib/$dirname/bin/mygpu  /usr/bin/mygpu" >> $froot/debian/$pkgname.links
 echo "usr/lib/$dirname/bin/aompversion /usr/bin/aompversion" >> $froot/debian/$pkgname.links
 echo "usr/lib/$dirname/bin/aompcc /usr/bin/aompcc" >> $froot/debian/$pkgname.links
+echo "usr/lib/$dirname/bin/gpurun /usr/bin/gpurun" >> $froot/debian/$pkgname.links
 echo "usr/lib/$dirname" > $froot/debian/$pkgname.install
 echo "usr/share/doc/$dirname" >> $froot/debian/$pkgname.install
 
@@ -102,8 +84,13 @@ echo "    DONE BUILDING TARBALL"
 echo 
 echo "--- RUNNING dch TO MANANGE CHANGELOG "
 cd  $froot
+# Skip changelog editor for docker release builds.
 echo dch -v ${AOMP_VERSION_STRING} -e --package $pkgname
-dch -v ${AOMP_VERSION_STRING} --package $pkgname
+if [ "$DOCKER" -eq "1" ]; then
+  dch -v ${AOMP_VERSION_STRING} --package $pkgname ""
+else
+  dch -v ${AOMP_VERSION_STRING} --package $pkgname
+fi
 # Backup the debian changelog to git repo, be sure to commit this 
 cp -p $froot/debian/changelog $debdir/.
 

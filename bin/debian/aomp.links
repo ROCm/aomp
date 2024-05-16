@@ -1,6 +1,0 @@
-usr/lib/aomp_0.7-0 usr/lib/aomp
-usr/lib/aomp_0.7-0/bin/bundle.sh  /usr/bin/bundle.sh
-usr/lib/aomp_0.7-0/bin/unbundle.sh  /usr/bin/unbundle.sh
-usr/lib/aomp_0.7-0/bin/cloc.sh /usr/bin/cloc.sh
-usr/lib/aomp_0.7-0/bin/mymcpu  /usr/bin/mymcpu
-usr/lib/aomp_0.7-0/bin/mygpu  /usr/bin/mygpu

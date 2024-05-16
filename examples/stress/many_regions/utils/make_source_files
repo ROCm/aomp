@@ -1,0 +1,35 @@
+
+for i in `seq 10 99` ; do 
+fn1=vmul_0$i.c
+echo "void vmul_0$i(int*a, int*b, int*c, int N){" >$fn1
+echo "#pragma omp target teams map(to: a[0:N],b[0:N]) map(from:c[0:N])" >>$fn1
+echo "#pragma omp distribute parallel for" >>$fn1
+echo "   for(int i=0;i<N;i++) {" >>$fn1
+echo "      c[i]=a[i]*b[i];" >> $fn1
+echo "   }" >> $fn1
+echo "}" >>$fn1
+fn2=vsum_0$i.c
+echo "void vsum_0$i(int*a, int*b, int*c, int N){" > $fn2
+echo "#pragma omp target teams map(to: a[0:N],b[0:N]) map(from:c[0:N])" >> $fn2
+echo "#pragma omp distribute parallel for" >> $fn2
+echo "   for(int i=0;i<N;i++) {" >> $fn2
+echo "      c[i]=a[i]+b[i];" >> $fn2
+echo "   }" >> $fn2
+echo " }" >> $fn2
+echo "vmul_0$i.o: vmul_0$i.c" >> x
+echo "	\$(CCENV) \$(CC) -c \$(CFLAGS) \$^ -o \$@" >> x
+echo "vsum_0$i.o: vsum_0$i.c" >> x
+echo "	\$(CCENV) \$(CC) -c \$(CFLAGS) \$^ -o \$@" >> x
+echo vsum_0$i.o >>y
+echo vmul_0$i.o >>y
+
+echo "     case $i:" >>z
+echo "       vmul_0$i(a,b,p,N);" >>z
+echo "       vsum_0$i(a,b,s,N);" >>z
+echo "       break;" >>z
+echo "void vmul_0$i(int*a, int*b, int*c, int N);" >> a
+echo "void vsum_0$i(int*a, int*b, int*c, int N);" >> a
+
+done
+
+

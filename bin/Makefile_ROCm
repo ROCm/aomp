@@ -1,0 +1,80 @@
+# Makefile for ROCm compiler
+
+HIP_DIR            ?= /opt/rocm
+#FORTRAN_COMPILE     ?= $(ROCM_DIR)/bin/flang
+#FC                  ?= $(ROCM_DIR)/bin/flang
+FORTRAN_FIXEDFORM    = -ffixed
+FORTRAN_BOUND_CHECK  = #-R bcp #-- FIXME: bound checking causes issue with
+                               #          OpenMP. Reported to Cray.
+FORTRAN_DEBUG        = #-hdevelop -eF -hfp0 -K trap=fp
+FORTRAN_OPTIMIZE     = -O1
+FORTRAN_PROFILE      = 
+
+CC_DEBUG             = -g
+CC_OPTIMIZE          = $(FORTRAN_OPTIMIZE)
+
+
+# Define default switches for this compiler. These can be overwritten at
+# build time with, e.g., 'make ENABLE_OMP_OFFLOAD=0 <target>'
+ENABLE_HIP           = 1
+ENABLE_MPI          ?= 1
+ENABLE_OMP          ?= 1
+ENABLE_OMP_OFFLOAD  ?= 1
+USE_ISO_10646       ?= 0
+
+#-- Silo library may be  automatically included & linked by 
+#-- "module load silo" if provided, otherwise, manually put include and 
+#-- link line flag &  location below
+SILO_DIR    ?= /usr/local/silo/4.10.2
+INCLUDE_SILO = -I${SILO_DIR}/include
+LIBRARY_SILO = -L${SILO_DIR}/lib -lsilo
+
+#-- HDF5 library may be  automatically included & linked by 
+#-- "module load hdf5" if provided, otherwise, manually put include and 
+#-- link line flag &  location below
+HDF5_DIR    ?= /usr/local/hdf5/1.10.12
+INCLUDE_HDF5 = -I${HDF5_DIR}/include
+LIBRARY_HDF5 = -L${HDF5_DIR}/lib -lhdf5_fortran -lhdf5
+
+OPENMPI_DIR ?= /usr/local/openmpi/openmpi-4.0.4
+INCLUDE_OPENMPI = -I${OPENMPI_DIR}/lib
+LIBRARY_OPENMPI = -L${OPENMPI_DIR}/lib -lmpi_usempif08 -lmpi_usempi_ignore_tkr -lmpi_mpifh -lmpi
+
+#-- if empty, don't link to HDF5
+ifeq ($(strip $(HDF5_DIR)),)  
+  INCLUDE_HDF5 = 
+  LIBRARY_HDF5 = 
+endif
+
+INCLUDE_PREPROCESSOR = -I$(PATH_GENASIS)/Build
+
+DEFINES =
+ifeq ($(ENABLE_OMP), 1)
+  DEFINES += -fopenmp
+endif
+ifeq ($(ENABLE_OMP_OFFLOAD), 1)
+  OFFLOAD_TRIPLE = amdgcn-amd-amdhsa
+  OFFLOAD_ARCH = $(GPU_ID)
+  DEFINES += -DENABLE_OMP_OFFLOAD
+  DEFINES += -fopenmp-targets=$(OFFLOAD_TRIPLE) -Xopenmp-target=$(OFFLOAD_TRIPLE) -march=$(OFFLOAD_ARCH)
+endif
+ifeq ($(ENABLE_HIP), 1)
+  DEVICE_COMPILE ?= $(HIP_DIR)/bin/hipcc -c -D__HIP_PLATFORM_AMD__
+  LIBRARY_DEVICE = -L$(HIP_DIR)/lib -lamdhip64
+  Device_Interface = Device_HIP
+endif
+DEFINES += -D$(GENASIS_MACHINE)
+
+ifeq ($(ENABLE_MPI), 1)
+  #FC ?= $(FORTRAN_COMPILE)
+  #FORTRAN_COMPILE = $(OPENMPI_DIR)/bin/mpifort -v
+  #CC_COMPILE = $(OPENMPI_DIR)/bin/mpicc -v
+  #CC_COMPILE = $(ROCM_DIR)/bin/clang -v
+  FCFLAGS =  $(DEFINES) 
+  CC_COMPILE =  $(HIP_DIR)/bin/hipcc -c -D__HIP_PLATFORM_AMD__
+  FCFLAGS += $(LIBRARY_OPENMPI)
+  #LINK = $(OPENMPI_DIR)/bin/mpifort
+  LINK = $(FORTRAN_LINK)
+  LIBRARY_DEVICE += -L${OPENMPI_DIR}/lib -lmpi_usempif08 -lmpi_usempi_ignore_tkr -lmpi_mpifh -lmpi
+endif
+

@@ -4,38 +4,14 @@
 #                  aomp compiler installation
 #                  Requires that "build_roct.sh install" be installed first
 #
-# --- Start standard header ----
-function getdname(){
-   local __DIRN=`dirname "$1"`
-   if [ "$__DIRN" = "." ] ; then
-      __DIRN=$PWD;
-   else
-      if [ ${__DIRN:0:1} != "/" ] ; then
-         if [ ${__DIRN:0:2} == ".." ] ; then
-               __DIRN=`dirname $PWD`/${__DIRN:3}
-         else
-            if [ ${__DIRN:0:1} = "." ] ; then
-               __DIRN=$PWD/${__DIRN:2}
-            else
-               __DIRN=$PWD/$__DIRN
-            fi
-         fi
-      fi
-   fi
-   echo $__DIRN
-}
 
-thisdir=$(getdname $0)
+# --- Start standard header to set AOMP environment variables ----
+realpath=`realpath $0`
+thisdir=`dirname $realpath`
 . $thisdir/aomp_common_vars
 # --- end standard header ----
 
 INSTALL_ROCM=${INSTALL_ROCM:-$AOMP_INSTALL_DIR}
-
-ROCT_DIR=${ROCT_DIR:-"${INSTALL_ROCM}"}
-
-REPO_DIR=$AOMP_REPOS/$AOMP_ROCR_REPO_NAME
-REPO_BRANCH=$AOMP_ROCR_REPO_BRANCH
-checkrepo
 
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then 
   echo " "
@@ -71,7 +47,15 @@ if [ "$1" == "install" ] ; then
    $SUDO rm $INSTALL_ROCM/testfile
 fi
 
-patchrepo $AOMP_REPOS/$AOMP_ROCR_REPO_NAME
+if [ "$AOMP_NEW" == 1 ] ; then
+   patchrepo $AOMP_REPOS/hsa-runtime
+else
+   patchrepo $AOMP_REPOS/$AOMP_ROCR_REPO_NAME
+fi
+
+if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
+  LDFLAGS="-fuse-ld=lld $ASAN_FLAGS"
+fi
 
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then 
 
@@ -82,7 +66,8 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    BUILDTYPE="Release"
    echo rm -rf $BUILD_AOMP/build/rocr
    rm -rf $BUILD_AOMP/build/rocr
-   MYCMAKEOPTS="-DCMAKE_INSTALL_PREFIX=$INSTALL_ROCM -DCMAKE_BUILD_TYPE=$BUILDTYPE -DHSAKMT_INC_PATH=$ROCT_DIR/include -DHSAKMT_LIB_PATH=$ROCT_DIR/lib $AOMP_ORIGIN_RPATH"
+   export PATH=/opt/rocm/llvm/bin:$PATH
+   MYCMAKEOPTS="-DCMAKE_INSTALL_PREFIX=$INSTALL_ROCM -DCMAKE_BUILD_TYPE=$BUILDTYPE -DCMAKE_PREFIX_PATH=$ROCM_DIR -DIMAGE_SUPPORT=OFF $AOMP_ORIGIN_RPATH"
    mkdir -p $BUILD_AOMP/build/rocr
    cd $BUILD_AOMP/build/rocr
    echo " -----Running rocr cmake ---- " 
@@ -94,21 +79,52 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
       exit 1
    fi
 
+   if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
+      ASAN_CMAKE_OPTS="-DCMAKE_C_COMPILER=${AOMP}/bin/clang -DCMAKE_CXX_COMPILER=${AOMP}/bin/clang++ -DCMAKE_INSTALL_PREFIX=$INSTALL_ROCM -DCMAKE_INSTALL_LIBDIR=$INSTALL_ROCM/lib/asan -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_PREFIX_PATH=$ROCM_DIR/lib/asan/cmake -DIMAGE_SUPPORT=OFF $AOMP_ASAN_ORIGIN_RPATH"
+      mkdir -p $BUILD_AOMP/build/rocr/asan
+      cd $BUILD_AOMP/build/rocr/asan
+      echo " ----Running rocr-asan cmake ----- "
+      echo ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DCMAKE_C_FLAGS="'$ASAN_FLAGS'" -DCMAKE_CXX_FLAGS="'$ASAN_FLAGS'" $AOMP_REPOS/$AOMP_ROCR_REPO_NAME/src
+      ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DCMAKE_C_FLAGS="'$ASAN_FLAGS'" -DCMAKE_CXX_FLAGS="'$ASAN_FLAGS'" $AOMP_REPOS/$AOMP_ROCR_REPO_NAME/src
+      if [ $? != 0 ] ; then
+         echo "ERROR rocr-asan cmake failed. cmake flags"
+         echo "      $ASAN_CMAKE_OPTS"
+         exit 1
+      fi
+   fi
+
 fi
 
 cd $BUILD_AOMP/build/rocr
 echo
 echo " -----Running make for rocr ---- " 
-echo make -j $NUM_THREADS
-make -j $NUM_THREADS
+echo make -j $AOMP_JOB_THREADS
+make -j $AOMP_JOB_THREADS
 if [ $? != 0 ] ; then 
       echo " "
-      echo "ERROR: make -j $NUM_THREADS  FAILED"
+      echo "ERROR: make -j $AOMP_JOB_THREADS  FAILED"
       echo "To restart:" 
       echo "  cd $BUILD_AOMP/build/rocr"
       echo "  make"
       exit 1
 fi
+
+if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
+   cd $BUILD_AOMP/build/rocr/asan
+   echo
+   echo " -----Running make for rocr-asan ---- "
+   echo make -j $AOMP_JOB_THREADS
+   make -j $AOMP_JOB_THREADS
+   if [ $? != 0 ] ; then
+      echo " "
+      echo "ERROR: make -j $AOMP_JOB_THREADS FAILED"
+      echo "To restart:"
+      echo "  cd $BUILD_AOMP/build/rocr/asan"
+      echo "  make"
+      exit 1
+   fi
+fi
+
 
 #  ----------- Install only if asked  ----------------------------
 if [ "$1" == "install" ] ; then 
@@ -120,5 +136,25 @@ if [ "$1" == "install" ] ; then
          echo "ERROR make install failed "
          exit 1
       fi
-      removepatch $AOMP_REPOS/$AOMP_ROCR_REPO_NAME
+
+      if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
+         cd $BUILD_AOMP/build/rocr/asan
+         echo " ------Installing to $INSTALL_ROCM/lib/asan ------ "
+         echo $SUDO make install
+         $SUDO make install
+         if [ $? != 0 ] ; then
+            echo "ERROR make install failed "
+            exit 1
+         fi
+      fi
+      if [ "$AOMP_NEW" == 1 ] ; then
+         removepatch $AOMP_REPOS/hsa-runtime
+      else
+         removepatch $AOMP_REPOS/$AOMP_ROCR_REPO_NAME
+      fi
+      # Remove hsa directory from install to ensure it is not used
+#      if [ -d $INSTALL_ROCM/hsa ] ; then
+#         echo rm -rf $INSTALL_ROCM/hsa
+#         rm -rf $INSTALL_ROCM/hsa
+#      fi
 fi

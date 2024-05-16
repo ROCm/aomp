@@ -1,9 +1,9 @@
-# How to Build the _trunk17_ Compiler
+# How to Build the _trunk18_ Compiler
 
 Add the following to your environment in either `.bash_profile` or `.bashrc`:
 
 ``` bash
-export TRUNK_REPOS=$HOME/git/trunk17.0
+export TRUNK_REPOS=$HOME/git/trunk18.0
 ```
 
 Or set `TRUNK_REPOS` to a location with a fast file system. Then log in again
@@ -12,8 +12,8 @@ and execute these commands:
 ``` bash
 mkdir -p $TRUNK_REPOS
 cd $TRUNK_REPOS
-git clone https://github.com/ROCm-Developer-Tools/aomp
-git clone https://github.com/ROCm-Developer-Tools/llvm-project
+git clone https://github.com/ROCm/aomp
+git clone https://github.com/ROCm/llvm-project
 cd llvm-project
 git checkout amd-trunk-dev
 $TRUNK_REPOS/aomp/trunk/build_trunk.sh 
@@ -32,17 +32,17 @@ override.
 
 ## TRUNK_REPOS
 
-See the discussion above for building _trunk17_ on the use of `TRUNK_REPOS`.
+See the discussion above for building _trunk18_ on the use of `TRUNK_REPOS`.
 
 
 ## TRUNK_LINK
 
 The default value for `TRUNK_LINK` is `"$HOME/rocm/trunk"`. The `build_trunk.sh`
-script will install into directory `${TRUNK_LINK}_17.0-0`.
+script will install into directory `${TRUNK_LINK}_18.0-0`.
 
 Furthermore, it creates a symbolic link from `$TRUNK_LINK` to the install dir.
 So `$TRUNK_LINK` **MUST NOT** be a physical directory. This symbolic link makes
-it easy to switch between future qualifed releases of _trunk17_. If you are on a
+it easy to switch between future qualifed releases of _trunk18_. If you are on a
 system where `$HOME` is in a slow filesystem, set `TRUNK_LINK` to where you want
 the install directory to be. For example set the following in your
 `.bash_profile` or `.bashrc` then relogin:
@@ -51,7 +51,7 @@ the install directory to be. For example set the following in your
 export TRUNK_LINK=/work/$USER/rocm/trunk
 ```
 
-Then the install scripts will install into `/work/$USER/rocm/trunk_17.0-0` and
+Then the install scripts will install into `/work/$USER/rocm/trunk_18.0-0` and
 a symlink will be created from `$TRUNK_LINK`.
 
 
@@ -114,31 +114,42 @@ Maybe the default should be 1.
 
 ## TRUNK_COMPONENTS_LIST
 
-This is a list of components to build.
+This is a list of COMPONENTs to build.
 
-The default is "prereq project compiler-rt flang"
 
 The build_trunk.sh script will call build_<component_name>.sh twice for each component.
 The first time has no arguments and builds without installation. The 2nd time is with the
-install argument to install the component.
+"install" argument to install the component.
+
+The default value for TRUNK_COMPONENT_LIST is now only  "prereq project".  This implies
+the build_trunk.sh will run these scripts.
+```
+  build_prereq.sh
+  build_prereq.sh install
+  build_project.sh
+  build_project.sh install
+```
 
 ## TRUNK_PROJECTS_LIST
-This is the list of LLVM projects that the build_project.sh script will attempt to build.
 
-The default is "clang;lld;mlir"
+This is the list of LLVM projects to build. The build_project.sh script will set this cmake option
 
-Do not add compiler-rt or flang to this list because those parts of LLVM are built with
-build_compiler-rt.sh and build_flang.sh because they use the compiler installed by
-build_project.sh.
+```
+  -DLLVM_ENABLE_PROJECTS='$TRUNK_PROJECTS_LIST'
+```
+
+The default value is "clang;lld;llvm;flang"
+
+Do not add compiler-rt or openmp to this list because those parts of LLVM are built with
+-DLLVM_ENABLE_RUNTIMES cmake variable in build_project.sh.
 
 ## TRUNK_SKIP_FLANG
 
 The default for this variable is 0. Setting this to 1 will shorten build time by
-changing the defaults for TRUNK_COMPONENT_LIST and TRUNK_PROJECTS_LIST to
+changing the defaults for TRUNK_PROJECTS_LIST to
 
 ```
-TRUNK_COMPONENT_LIST=" prereq project compiler-rt"
-TRUNK_PROJECTS_LIST="clang;lld"
+TRUNK_PROJECTS_LIST="clang;lld;llvm"
 ```
 
 The TRUNK_SKIP_FLANG variable is for developers working upstream but not on LLVM flang.
@@ -149,16 +160,16 @@ The default for `BUILD_TYPE` is "Release". This sets the value for
 `CMAKE_BUILD_TYPE`. See CMake documentation for different possible values.
 
 
-# Releases of _trunk17_
+# Releases of _trunk18_
 
-At various development check points we will qualify releases of _trunk17_ and
+At various development check points we will qualify releases of _trunk18_ and
 increment the development version in `trunk_common_vars`. For example, after the
-release of `trunk_17.0-0`, development will move to `trunk_17.0-1`. The build
-scripts will then install into directory `$HOME/rocm/trunk_17.0-1`. The symbolic
+release of `trunk_18.0-0`, development will move to `trunk_18.0-1`. The build
+scripts will then install into directory `$HOME/rocm/trunk_18.0-1`. The symbolic
 link from `$HOME/rocm/trunk` will also change to the new install directory.
 
-After a _trunk17_ release, a static release branch will be created. such as
-`trunk_17.0-0`. This branch will be created by interactive rebasing all the
+After a _trunk18_ release, a static release branch will be created. such as
+`trunk_18.0-0`. This branch will be created by interactive rebasing all the
 local commits in `amd-trunk-dev`. Development will continue in the branch
 `amd-trunk-dev`.
 
@@ -172,7 +183,7 @@ similar to the `clone_aomp.sh` script used for AOMP. For now, simply run
 merges from main.
 
 
-# Testing _trunk17_
+# Testing _trunk18_
  
 To use the various AOMP testing infrastructure in `$TRUNK_REPOS/aomp/test`:
 
@@ -203,14 +214,14 @@ This script carefully runs the git commands to merge from `main`.
 This script ensures that neither the `main` branch nor `amd-trunk-dev` branch has
 local changes. Save any of your local changes before using `merge_from_main.sh`.
 Note: the `main` branch of
-[ROCm-Developer-Tools/llvm-project](https://github.com/ROCm-Developer-Tools/llvm-project)
+[ROCm/llvm-project](https://github.com/ROCm/llvm-project)
 is automatically mirrored from
 [LLVM trunk](https://github.com/llvm/llvm-project) `main` branch every three
 hours.
 
 Before running `merge_from_main.sh`, ensure `amd-trunk-dev` is indeed behind
 `main` by looking at this
-[URL](https://github.com/ROCm-Developer-Tools/llvm-project/branches) or by
+[URL](https://github.com/ROCm/llvm-project/branches) or by
 running this command:
 
 ``` bash

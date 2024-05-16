@@ -1,0 +1,36 @@
+-------
+flags: 
+ sizeof integer:  4
+ sizeof real:     4
+ sizeof double:   8
+-------
+flags: -fdefault-integer-8
+ sizeof integer:  8
+ sizeof real:     4
+ sizeof double:   8
+-------
+flags:                     -fdefault-real-8
+ sizeof integer:  4
+ sizeof real:     8
+ sizeof double:   16
+-------
+flags:                                      -fdefault-double-8
+error: Use of `-fdefault-double-8` requires `-fdefault-real-8`
+-------
+flags: -fdefault-integer-8 -fdefault-real-8
+ sizeof integer:  8
+ sizeof real:     8
+ sizeof double:   16
+-------
+flags: -fdefault-integer-8                  -fdefault-double-8
+error: Use of `-fdefault-double-8` requires `-fdefault-real-8`
+-------
+flags:                     -fdefault-real-8 -fdefault-double-8
+ sizeof integer:  4
+ sizeof real:     8
+ sizeof double:   8
+-------
+flags: -fdefault-integer-8 -fdefault-real-8 -fdefault-double-8
+ sizeof integer:  8
+ sizeof real:     8
+ sizeof double:   8

@@ -1,0 +1,122 @@
+#!/bin/bash
+#
+# flang: Temporary f18 driver script 
+#        the environment variable F18 should be set to the install directory for F18
+#
+
+# F18: Install location of F18 , default is $HOME/rocm/f18
+F18=${F18:-$HOME/rocm/f18}
+
+# F18_REPOS: LOcation of F18 repositories
+F18_REPOS=${F18_REPOS:-$HOME/git/f18}
+
+# F18_PROJECT_REPO_NAME:  Directory name for the f18 monorepo
+F18_PROJECT_REPO_NAME=${F18_PROJECT_REPO_NAME:-firdev-llvm-project}
+
+# F18_BUILD: cmake build location for F18
+F18_BUILD=${F18_BUILD:-$F18_REPOS/build/$F18_PROJECT_REPO_NAME}
+
+# Set F18_USE_BUILD_BIN if you dont want run out of install binaries
+F18_USE_BUILD_BIN=${F18_USE_BUILD_BIN:-0}
+
+# Set extra libs that may be needed
+EXTRA_LIBS="/usr/local/lib -lpgmath"
+EXTRA_LIBS=""
+
+# Set the name of the c compiler to build main program
+CC="$F18/clang"
+CC=gcc
+
+
+if [ $F18_USE_BUILD_BIN == 0 ] ; then
+   bindir=$F18/bin
+else
+   bindir=$F18_BUILD/bin
+fi
+
+echo "--- $* ---"
+filelist=" "
+skip_forOutFileName=0
+asis=" "
+output_bin="a.out"
+for i in $* ; do
+   if [ $skip_forOutFileName -eq 0 ] ; then 
+     if [ "X$i" = "X-o" ] ; then 
+       skip_forOutFileName=1
+     else
+       echo "--- Processing input file:  $i"
+       strippedname=`echo $i | sed -e "s/\.f$//" -e "s/\.f90$//" -e "s/\.f95$//"`
+       if [ "X$i" = "X$strippedname" ] ; then 
+         echo "    unknown suffix, $i"
+       fi
+# the bbc phase includes parsing, semantic analysis, producing FIR, and lastly # MLIR
+       echo "    bbc $i           -o $strippedname.mlir"
+       $bindir/bbc $i
+       if [ $? -ne 0 ] ; then 
+	 echo bbc failed
+         exit 1
+       fi
+# the tco phase takes in MLIR and lowers it to llvm IR
+       echo "    tco (input $strippedname.mlir)  -o $strippedname.ll"
+       $bindir/tco <$strippedname.mlir >$strippedname.ll
+       if [ $? -ne 0 ] ; then 
+	 echo tco failed
+         exit 1
+       fi
+# convert LLVM IR to assembly
+       echo "    llc $strippedname.ll            -o $strippedname.s"
+       $bindir/llc $strippedname.ll -o $strippedname.s
+       if [ $? -ne 0 ] ; then 
+	 echo llc failed
+         exit 1
+       fi
+# convert assembly to .o
+       echo "    $CC -c $strippedname.s          -o $strippedname.o"
+       $CC -c $strippedname.s -o $strippedname.o
+       if [ $? -ne 0 ] ; then 
+	 echo "ERROR: compile asm failed"
+         exit 1
+       fi
+       filelist="$filelist $strippedname.o"
+     fi
+   else
+     skip_forOutFileName=0
+     output_bin=$i
+   fi
+done
+
+echo "--- Creating c wrapper"
+# Create c Main program
+mymain=mymain$$
+mymainc=/tmp/$mymain.c
+mymaino=/tmp/$mymain.o
+cat >$mymainc <<EOF 
+#include <stdio.h> 
+extern void _FortranAStopStatement(int, char, char);
+extern void _FortranAProgramStart(int argc, const char *argv[], const char *envp[]);
+void _QQmain();
+int main(int argc, const char *argv[], const char *envp[]){
+   printf("cmain calling _FortranAProgramStart()\n");
+   _FortranAProgramStart(argc, argv, envp);
+   printf("cmain calling _QQmain\n");
+   _QQmain();
+   printf("cmain calling _FortranAStopStatement\n");
+   _FortranAStopStatement(0, (char) 0, (char) 1); 
+} 
+EOF
+echo "    $CC -c $mymainc -o $mymaino"
+$CC -c $mymainc -o $mymaino
+
+echo "--- Linking c wrapper to all objects"
+echo "    g++ -no-pie -L $F18_BUILD/lib -lFortranRuntime $filelist $mymaino -lFortranRuntime -lFortranDecimal $EXTRA_LIBS -o $output_bin"
+g++ -no-pie -L $F18_BUILD/lib -lFortranRuntime $filelist $mymaino -lFortranRuntime -lFortranDecimal $EXTRA_LIBS -o $output_bin
+echo "--- Cleanup /tmp files"
+echo "    rm $mymainc $mymaino"
+rm $mymainc
+rm $mymaino
+echo
+echo "--- Executable is $output_bin"
+echo
+
+# g++ -no-pie  -L $F18_BUILD/lib  -lFortranRuntime bill.o main.o  -lflang -lflangrti -lFortranRuntime -lFortranDecimal
+

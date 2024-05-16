@@ -1,0 +1,28 @@
+help: 
+	@echo
+	@echo "Makefile Help:"
+	@echo "  Source:		$(TESTNAME).$(FILETYPE)"
+	@echo "  Compiler: 		$(CC)"
+	@echo "  Compiler flags: 	$(CFLAGS)"
+	@echo
+	@echo "Avalable Targets:"
+	@echo "  make			// build binary $(TESTNAME)"
+	@echo "  make run		// run $(TESTNAME)"
+	@echo "  make $(TESTNAME).o	// compile, be, & assemble : -c"
+	@echo "  make obin         	// link step only"
+	@echo "  make run_obin     	// run obin "
+	@echo "  make clean		// cleanup files"
+	@echo "  make help 		// this help"
+	@echo
+	@echo "Environment Variables:"
+	@echo "  AOMP      default: $(HOME)/rocm/aomp 	value: $(AOMP)"
+	@echo "  AOMP_GPU  default: gfx900                	value: $(AOMP_GPU)"
+	@echo
+
+# Cleanup anything this makefile can create
+clean:
+	@[ -f ./$(TESTNAME) ] && rm ./$(TESTNAME) ; true
+	@[ -f ./obin ] && rm ./obin ; true
+	@[ -f ./$(TESTNAME).ll ] && rm *.ll ; true
+	@[ -f ./$(TESTNAME).o ] && rm *.o ; true
+	@[ -f ./$(TESTNAME).s ] && rm *.s ; true

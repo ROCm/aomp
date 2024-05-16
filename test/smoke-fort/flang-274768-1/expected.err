@@ -1,0 +1,7 @@
+error: Semantic errors in assumed-nosize.f90
+./assumed-nosize.f90:8:39: error: Assumed-size whole arrays may not appear on the MAP clause
+      !$omp target parallel do map(from:B) map(to:A)
+                                        ^
+./assumed-nosize.f90:8:49: error: Assumed-size whole arrays may not appear on the MAP clause
+      !$omp target parallel do map(from:B) map(to:A)
+                                                  ^

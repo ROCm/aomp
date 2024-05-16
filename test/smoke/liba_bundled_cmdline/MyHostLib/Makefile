@@ -11,32 +11,16 @@
 #            written by Greg Rodgers
 #
 
+include ../../../Makefile.defs
+
 LIB       = MyHostLib
 LIBSRC1   = hfunc1
 LIBSRC2   = hfunc2
 LIBSRC3   = hfunc3
 
-# --- Standard Makefile check for AOMP installation ---
-ifeq ("$(wildcard $(AOMP))","")
-  ifneq ($(AOMP),)
-    $(warning AOMP not found at $(AOMP))
-  endif
-  AOMP = $(HOME)/rocm/aomp
-  ifeq ("$(wildcard $(AOMP))","")
-    $(warning AOMP not found at $(AOMP))
-    AOMP = /usr/lib/aomp
-    ifeq ("$(wildcard $(AOMP))","")
-      $(warning AOMP not found at $(AOMP))
-      $(error Please install AOMP or correctly set env-var AOMP)
-    endif
-  endif
-endif
-# --- End Standard Makefile check for AOMP installation ---
-CC        = $(AOMP)/bin/clang
-UNAMEP    = $(shell uname -p)
+TMPDIR    = ./build
+UNAMEP    = $(shell uname -m)
 HOST_TARGET = $(UNAMEP)-pc-linux-gnu
-
-TMPDIR   ?= ./build
 CFLAGS  = -c -target $(HOST_TARGET) -O2
 
 #   ---------------------  create bundle library -------------------

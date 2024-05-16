@@ -1,0 +1,46 @@
+DEVID: 0 SGN:0 ConstWGSize:256  args: 4 teamsXthrds:( 120X 256) reqd:(   0X   0) n:__omp_offloading_fd02_1a05004_zero3_l1780
+DEVID: 0 SGN:0 ConstWGSize:256  args: 4 teamsXthrds:( 120X 256) reqd:(   0X   0) n:__omp_offloading_fd02_1a05004_zero3_l1780
+DEVID: 0 SGN:0 ConstWGSize:256  args: 4 teamsXthrds:( 120X 256) reqd:(   0X   0) n:__omp_offloading_fd02_1a05004_zran3_l1616
+DEVID: 0 SGN:0 ConstWGSize:256  args:11 teamsXthrds:(   1X 256) reqd:(   0X   0) n:__omp_offloading_fd02_1a05004_zran3_l1636
+DEVID: 0 SGN:0 ConstWGSize:256  args:11 teamsXthrds:(   1X 256) reqd:(   0X   0) n:__omp_offloading_fd02_1a05004_zran3_l1645
+DEVID: 0 SGN:0 ConstWGSize:256  args: 4 teamsXthrds:( 120X 256) reqd:(   0X   0) n:__omp_offloading_fd02_1a05004_comm3_l1365
+DEVID: 0 SGN:0 ConstWGSize:256  args: 4 teamsXthrds:( 120X 256) reqd:(   0X   0) n:__omp_offloading_fd02_1a05004_comm3_l1383
+DEVID: 0 SGN:0 ConstWGSize:256  args: 4 teamsXthrds:( 120X 256) reqd:(   0X   0) n:__omp_offloading_fd02_1a05004_comm3_l1402
+DEVID: 0 SGN:0 ConstWGSize:256  args: 7 teamsXthrds:( 120X 256) reqd:(   0X   0) n:__omp_offloading_fd02_1a05004_norm2u3_l1312
+Call         __tgt_rtl_number_of_devices:        0ms              2 )
+Call           __tgt_rtl_is_valid_binary:        1ms              1 (0x00000045a6e0)
+
+
+ NAS Parallel Benchmarks (NPB3.3-ACC-C) - MG Benchmark
+
+ No input file. Using compiled defaults 
+Call             __tgt_rtl_init_requires:        0ms              1 (             1)
+Call               __tgt_rtl_init_device:        6ms              0 (             0)
+Call               __tgt_rtl_load_binary:    19447ms 0x0000006b3c60 (             0, 0x00000045a6e0)
+Call                __tgt_rtl_data_alloc:        3ms 0x155452039000 (             0,              8, 0x00000065e110)
+Call                __tgt_rtl_data_alloc:       67ms 0x1552e2600000 (             0,      157635904, 0x1553307aa010)
+Call               __tgt_rtl_data_submit:      136ms              0 (             0, 0x155452039000, 0x7fffffffde88,              8)
+Call                __tgt_rtl_data_alloc:        1ms 0x15545203a000 (             0,              8, 0x00000065e118)
+Call                __tgt_rtl_data_alloc:       53ms 0x1552d8c00000 (             0,      157635904, 0x155327154010)
+Call               __tgt_rtl_data_submit:      109ms              0 (             0, 0x15545203a000, 0x7fffffffde88,              8)
+Call                __tgt_rtl_data_alloc:        1ms 0x15545203b000 (             0,              8, 0x00000065e120)
+Call                __tgt_rtl_data_alloc:       56ms 0x1552cf200000 (             0,      157635904, 0x15531dafe010)
+Call               __tgt_rtl_data_submit:      100ms              0 (             0, 0x15545203b000, 0x7fffffffde88,              8)
+Call    __tgt_rtl_run_target_team_region:      887ms              0 (             0, 0x000000684fa0, 0x00000093e390, 0x00000094ffd0,              4,              0,              0,       17173512)
+Call    __tgt_rtl_run_target_team_region:      450ms              0 (             0, 0x000000684fa0, 0x00000093e390, 0x00000094ffd0,              4,              0,              0,       17173512)
+Call    __tgt_rtl_run_target_team_region:      657ms              0 (             0, 0x000000792ff0, 0x00000093e390, 0x00000094ffd0,              4,              0,              0,       17173512)
+Call                __tgt_rtl_data_alloc:        8ms 0x15545203c000 (             0,            320, 0x7fffffffdf40)
+Call               __tgt_rtl_data_submit:      371ms              0 (             0, 0x15545203c000, 0x7fffffffdf40,            320)
+Call    __tgt_rtl_run_target_team_region:       34ms              0 (             0, 0x0000007932a0, 0x00000078d860, 0x0000007a2ca0,             11,              0,              0,             10)
+Call    __tgt_rtl_run_target_team_region:       26ms              0 (             0, 0x0000007a41e0, 0x00000078d860, 0x0000007a2ca0,             11,              0,              0,             10)
+Call               __tgt_rtl_data_delete:        2ms              0 (             0, 0x15545203c000)
+Call    __tgt_rtl_run_target_team_region:       54ms              0 (             0, 0x0000007991d0, 0x00000093e390, 0x00000094ffd0,              4,              0,              0,          65536)
+Call    __tgt_rtl_run_target_team_region:       37ms              0 (             0, 0x0000007a94a0, 0x00000093e390, 0x00000094ffd0,              4,              0,              0,          66048)
+Call    __tgt_rtl_run_target_team_region:       35ms              0 (             0, 0x0000007951c0, 0x00000093e390, 0x00000094ffd0,              4,              0,              0,          66564)
+Call                __tgt_rtl_data_alloc:        1ms 0x15545203c000 (             0,              8, 0x7fffffffdf80)
+Call         __tgt_rtl_data_submit_async:      119ms              0 (             0, 0x15545203c000, 0x7fffffffdf80,              8, 0x7fffffffdc68)
+Call                __tgt_rtl_data_alloc:        1ms 0x15545203d000 (             0,              8, 0x7fffffffdf78)
+Call         __tgt_rtl_data_submit_async:      106ms              0 (             0, 0x15545203d000, 0x7fffffffdf78,              8, 0x7fffffffdc68)
+Call    __tDEVID: 0 SGN:0 ConstWGSize:256  args: 6 teamsXthrds:( 120X 256) reqd:(   0X   0) n:__omp_offloading_fd02_1a05004_resid_l675
+[GPU Memory Error] Addr: 0x1552c6fa6000 Reason: Page not present or supervisor privilege. 
+Memory access fault by GPU node-2 (Agent handle: 0x6a9840) on address 0x1552c6fa6000. Reason: Page not present or supervisor privilege.

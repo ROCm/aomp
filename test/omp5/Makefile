@@ -1,12 +1,19 @@
-include Makefile.defs
+include ../Makefile.defs
 
 TESTS_DIR = \
+    concur_update \
     declare_variant \
+    declare_target_nested \
+    loop \
+    mapper_prob \
     nestedSIMD \
+    noncontig \
+    prag_error \
     reduc_map_prob \
     red_bug_51 \
-    shape_noncontig \
-    reduc_map_prob
+    reduc_map_prob \
+    rush_larsen \
+    shape_noncontig
 
 all:
 	@for test_dir in $(TESTS_DIR); do \

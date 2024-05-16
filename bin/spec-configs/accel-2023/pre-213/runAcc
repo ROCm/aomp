@@ -1,0 +1,47 @@
+#!/bin/bash
+set -x
+export AOMP=/COD/LATEST/aomp
+
+set +x
+. ./shrc
+set -x
+# for src.alt
+#   define altmodel={omp_target,omp_loop,omp_inner_simd} or nothing
+
+# for regular src
+#   define model={omp_target,omp_loop,omp_inner_simd} or nothing
+
+ulimit -s unlimited
+
+export OMP_TARGET_OFFLOAD=MANDATORY
+export LIBRARY_PATH=$AOMP/lib
+export LD_LIBRARY_PATH=$AOMP/lib:$LD_LIBRARY_PATH
+export PATH=$AOMP/bin:$PATH
+
+#runspec -c amd_aomp.cfg --action scrub openmp
+#rm -f benchspec/ACCEL/*/build/list
+#rm -f benchspec/ACCEL/*/run/list
+
+#export DSET=test,train,ref
+export DSET=test
+#export DSET=train
+#export DSET=ref
+#export DSET=train,ref
+#export DSET=ref
+#export RBLD=--rebuild
+export TLIST="openmp"
+#export TLIST="563"
+
+runaccel -c amd_aomp.cfg --define altmodel=omp_target     --define gputype=gfx90a -I -l -n 1 -T peak -i $DSET $TLIST $RBLD
+runaccel -c amd_aomp.cfg --define altmodel=omp_loop       --define gputype=gfx90a -I -l -n 1 -T peak -i $DSET $TLIST $RBLD
+#exit
+runaccel -c amd_aomp.cfg --define model=omp_target     --define gputype=gfx90a -I -l -n 1 -T peak -i $DSET $TLIST $RBLD 
+runaccel -c amd_aomp.cfg --define model=omp_loop       --define gputype=gfx90a -I -l -n 1 -T peak -i $DSET $TLIST $RBLD 
+#exit
+
+#export DSET=train
+#export TLIST="openmp"
+runaccel -c amd_aomp.cfg --define altmodel=omp_inner_simd --define gputype=gfx90a -I -l -n 1 -T peak -i $DSET $TLIST $RBLD
+runaccel -c amd_aomp.cfg --define model=omp_inner_simd --define gputype=gfx90a -I -l -n 1 -T peak -i $DSET $TLIST $RBLD 
+
+

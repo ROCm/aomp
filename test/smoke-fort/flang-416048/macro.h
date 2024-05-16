@@ -1,0 +1,1 @@
+#define DECLARE_PARAM(var) INTEGER, PARAMETER :: var

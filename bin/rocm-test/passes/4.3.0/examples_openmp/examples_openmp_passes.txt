@@ -1,0 +1,4 @@
+declare_variant_if
+veccopy
+vmulsum
+vmul_template

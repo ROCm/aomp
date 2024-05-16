@@ -1,4 +1,4 @@
-aomp (11.0-1) UNRELEASED; urgency=medium
+aomp (18.0-1) UNRELEASED; urgency=medium
 
   * Initial release of aomp is 0.3-2
   *   Please see example in /usr/lib/aomp/examples/vmuldemo 
@@ -329,4 +329,636 @@ aomp (11.0-1) UNRELEASED; urgency=medium
   *   Issue #89 Linker error (The file was not recognized as a valid object file) when trying to
   *       link archive file on command line
   *   Issue #92 hipcc fails when AOMP is not installed in /usr/lib/aomp
- -- Greg Rodgers <Gregory.Rodgers@amd.com>  Tue, 07 Apr 2020 10:48:19 -0500
+  *
+  * 11.5-0
+  *  Start using month in the release number consistent with ROCM numbering.
+  *        However the version will continue to use the LLVM version number.
+  *  Merge a fork of atmi and hostcall into the libomptarget hsa plugin. This removes
+  *        dependencies on these two external components and allows us to streamline the code
+  *        for the openmp device plugin. Merging this code caused the trunk delta to go up significantly
+  *        as we prepare to submit this plugin upstream.
+  *  Improved solvv coverage 9/201 fails, 95% passing rate on amdgcn
+  *  AOMP supports -g compilation of C/C++ codes and will allow on target debugging. This is initial functionality.
+  *  Hipcc now uses AOMP env variable to support installs not located in /usr/lib/aomp
+  *
+  * 11.6-1
+  *   Upgraded to ROCm 3.5 HIP/ROCclr
+  *   Upgraded ROCt ROCr to 3.5 sources
+  *
+  * 11.6-2
+  *   Enabled OpenMP 5.0 by default, use -fopenmp-version=45 to enable OpenMP 4.5 compliance.
+  *   Restructuring to prepare for upstream and inclusion to ROCm compiler.
+  *   Fix issue #114 fix bitcode search path using hip policy HIP_DEVICE_LIB_PATH and hip-device-lib
+  *        command line option.
+  *   Turn on global_free for kmpc_impl_free.
+  *   Significant cleanup and restructuring of hostrpc including:
+  *        -Get rid of hostcall register functions. Replace with handlePayload(service, payload).
+  *          handlPayload has a simple switch to call the correct service handler function.
+  *        -Get rid of WITH_HSA macro. It is always on.
+  *        -Move the hostrpc stubs and host fallback functions into a single library and include file.
+  *        -It also makes the stubs openmp cpp source instead of hip and reorganizes everything in the directory
+  *         openmp/libomptarget/hostrpc.
+  *        -Move hostrpc_invoke.cl into DeviceRTLs/amdgcn because it is arch specific.
+  *        -Generalize the vargs processing in printf to work for any vargs function that we want
+  *         to execute on the host, including a vargs function that uses a function pointer.
+  *        -Reorganize files, add global_allocate and global_free, and fix some compile warnings.
+  *        -Fix llvm TypeID enum to match current upstream llvm TypeID.
+  *   Moved strlen_max function inside the declare target #ifdef _DEVICE_GPU in hostrpc.cpp to resolve linker
+  *         failure seen in pfspecifier_str smoke test.
+  *   Fixed AOMP_GIT_CHECK_BRANCH in aomp_common_vars to not block builds in Red Hat if repo is on a specific commit hash.
+  *
+  * 11.7-0
+  * Merge of trunk as of July 2nd.
+  * Dropped support for 16.04.
+  *
+  * Known Issues:
+  *        -Hip example device_lib fails to compile   *
+  *
+  * 11.7-1
+  *   Inclusion of OMPD support which is not yet upstream
+  *   Build of ROCgdb
+  *   Host runtime optimisation. GPU image information is now mostly read on the
+  *         host instead of from the GPU.
+  *   Fixed the source build scripts so that building from the source tarball does not fail
+  *         because of missing test directories. This fixes issue #116.
+  *
+  * Known Issues:
+  *        -Hip example device_lib fails to compile
+  *
+  *
+  * 11.8-0
+  *   Switch to the LLVM 11.x stable code base.
+  *   OMPD updates for flang.
+  *   To support debugging OpenMP, selected OpenMP runtime sources are included in
+  *         lib-debug/src/openmp.  The ROCgdb debugger will find these automatically.
+  *   Threadsafe hsa plugin for libomptarget.
+  *   Updates to support device libraries.
+  *   Openmpi configure issue with real16 resolved.
+  *   DeviceRTL memory use is now independent of number of openmp binaries.
+  *   Startup latency on first kernel launch reduced by order of magnitude. 
+  *
+  *   These are the known issues with this release:
+  *   Further reductions in memory use by DeviceRTL required
+  *
+  * 11.9-0
+  *   Fix compiler warnings for build_project.sh and build_openmp.sh
+  *   Fix: [AOMP] [flang] The AOMP 11.7-1 Fortran compiler claims to support
+  *         the -isystem flag, but ignores it.
+  *   Fix: [AOMP] [flang] producing internal compiler error when character
+  *         is used with KIND
+  *   Fixes [flang] openmp map clause on complex allocatable expressions !$omp
+  *         target data map( chunk%tiles(1)%field%density0)
+  *   DeviceRTL memory footprint has been reduced from ~2.3GB to ~770MB for
+  *   AMDGCN target.
+  *   Switch sources to ROCm 3.7.x branches
+  *   Fixed hash for raja to avoid build error in example
+  *   Workaround for red_bug_51 failing on gfx908.
+  *   Switch to python3 for ompd and rocgdb.
+  *   ROCdbgapi requires g++7 as a minimum
+  *   Ubuntu 16.04 build does not have the rocgdb debugger as the system only supports g++5.
+  *
+  * Known Issues
+  *   -ROCgdb does not work on gfx803
+  *   -Barrier issue on gfx803 for generic kernels.
+  *
+  * 11.9-1
+  *   Merge with stable LLVM 11
+  *   Switch sources to ROCm 3.8.x branches, ROCr remained on 3.7.x as there
+  *         were no source updates put in 3.8.
+  *   Fixes for ompt lit tests  * 
+  *
+  * Known Issues
+  *   Race condition in the build of hostrpc in openmp, which may result in an 
+  *         empty libhostrpc.a. Rerun build_openmp.sh.
+  *   ROCgdb does not work on gfx803.
+  *   Barrier issue on gfx803 for generic kernels.
+  *
+  * 11.11-0
+  * Major fixes to internal clang math headers:
+  *   This set of changes applies to clang internal headers to support OpenMP C, C++,
+  *         and FORTRAN and for HIP C.  This establishes consistency between NVPTX and AMDGCN
+  *         offloading and between OpenMP, HIP, and CUDA.  OpenMP uses function variants and header
+  *         overlays to define device versions of functions.  This causes clang LLVM IR codegen to
+  *         mangled names of variants in both the definition and callsites of functions defined in
+  *         the internal clang headers.  These changes apply to headers found in the installation
+  *         subdirectory lib/clang/11.0.0/include.
+  *   These changes temporarily eliminates the use of the libm bitcode libraries for C and C++.
+  *         Although math functions are now defined with internal clang  headers, a bitcode library
+  *         of the C functions defined in the headers is still built for FORTRAN toolchain linking
+  *         because FORTRAN cannot use c math headers.  This bitcode library is installed in
+  *         lib/libdevice/libm-<device arch>.bc.  The source build of this bitcode library is done
+  *         with the aomp-extras repository and the component built script build_extras.sh.
+  *         In the future, we will introduce across the board changes to eliminate massive header files
+  *         for math libraries and replace it with linking to bitcode libraries.
+  * Usability updates:
+  *   Add support for -gpubnames in Flang Driver
+  * Performance updates:
+  *   Runtime performance improvements for synchronous memory copy between host and device.
+  *   Added a performant  "integer to integer" pow function for c++ that does not convert to float.
+  * Bug fixes:
+  *   Fixed hostrpc cmake race condition in the build of openmp
+  *   Add a fatal error if missing -Xopenmp-target or -march options when -fopenmp-targets is specified.
+  *         However, we do forgive this requirement for offloading to host when there is only a single
+  *         target and that target is the host.
+  *   Fix a bug in InstructionSimplify pass where a compare of two constants of different sizes found
+  *         in the optimization pass.  This fixes issue  #182 which was causing kokkos build failure.
+  *   Fix openmp error message output for no_rocm_device_lib, was asserting.
+  * New Feature:
+  *   Added an example category for Kokkos.  The Kokkos example makefile detects if Kokkos is installed
+  *       and builds Kokkos from the web if not. See the script kokkos_build.sh in the bin directory
+  *       for how we build Kokkos.  Kokkos now builds cleanly with the OpenMP backend.  However,
+  *       only simple test cases are working.
+  * Development changes:
+  *   Switch branch naming scheme to aomp11.  It was amd-stg-openmp.  This change applies to repos
+  *       amd-llvm-project, aomp-extras, and flang.
+  *   Add environment variables ROCM_LLD_ARGS ROCM_LINK_ARGS ROCM_SELECT_ARGS to test driver options
+  *       without compiler rebuild. This is not an upstream change.
+  *   Code reorganization in preparation for upstream:
+  *   Rename libomptarget plugin from hsa to amdgpu following upstream.
+  *   Merge hostrpc host and device library with libomptarget.
+  *   Remove some memory management overhead in libomptarget plugin.
+  *   Eliminate need for -lhostrpc during application link by merging with libomptarget.
+  *   Remove multiple inessential differences from upstream across the toolchain.
+  *
+  *  11.11-1
+  *
+  *  Fix problems with device math functions being ambiguous, especially the
+  *       pow function.
+  *  Added smoke test called math_pow for checking all variants of pow and doing a
+  *       sqrt(integer).
+  *  New Makefile for KOKKOS example to properly clean up KOKKOS install
+  *  Fix the slices.cpp and math_modf.cpp Makefile so they call clang++. Using
+  *       clang on a cpp file causes the c++ personality not to be defined which results
+  *       in an resolved reference at link time.
+  *  Update shared variable linkage which further reduces differences between nvptx
+  *       and amdgcn LLVM IR codegen.
+  *
+  * 11.11-2
+  *  Move to ROCm 3.9 sources.
+  *  Removal of hsa install directory. This required minor changes to build scripts
+  *       of components that referenced hsa/include and hsa/lib.
+  *  Minor build script updates including fix for lit checking on non-production builds.
+  *  Support multiple devices with malloc and hostrpc.
+  *  Tested A+A (AOMP11 and AOCC2.3) with smoke test lto_teams. This test case shows how to
+  *       plugin the AOCC linker to the AOMP compiler which provides proprietary CPU link
+  *       time optimizations only available in AOCC. It relies on a clang driver option to
+  *       specify an alternative linker. The Makefile in this test case was updated to check
+  *       for LLVM 12 compiler and use the correct clang option for the alternative linker.
+  *       In LLVM 11 and before the alternative linker option was -fuse-ld=. In LLVM 12 and
+  *       later it will be --ld-path=
+  *  Improve hostrpc version check
+  *  Added max reduction offload feature to flang
+  *  Developer documentation updates including some cleanup of the source-build prerequisites.
+  *  We now require a specific version of cmake built from source.
+  *  We also require the mesa-common-dev package needed by rocclr (vdi).
+  *  This release has packages for ppc64le. These packages have not been tested.
+  *       Some fixes were applied to flang to support build on ppc64le. The rocclr (vdi)
+  *       component is very x86_64 specific. So it would not build on ppc64le. Since HIP
+  *       and OpenCL depend on rocclr, these components were not build for the ppc64le
+  *       build. Only OpenMP should work on ppc64le.
+  *
+  * 11.12-0
+  *  Add new testing from openlibm testing.  This tests the libm functions used for offloading in
+  *       either openmp target region or hip kernel. It tests accuracy and exception situations.
+  *  Integration of roctracer and rocprofiler.
+  *  Integration of changes to support HPC Toolkit
+  *  Fix for Devito .  This handles Lvalue References that are typically pointer to pointer kernel args.
+  *  Support for fprintf.
+  *  Fix a latent race between host runtime and devicertl
+  *  Initial support for gpu malloc and free. The internal (device rtl) need for malloc and free
+  *       is for nested parallelism.  This is used in two of our applications, possibly by accident.
+  *       The initial implementation of malloc and free was broken. This change uses a malloc and free
+  *       that uses hostrpc which is very slow.  Eventually we will develop the malloc and free hostrpc
+  *       stubs to use a smart heap allocation scheme and only go to the host when the heap is consumed.
+  *       This change will slow down the applications (snap) till a smarter malloc and free are implemented.
+  *       This change just removes the broken malloc and free and improves the device memory footprint.
+  *  Increase detail of debug printing controlled by LIBOMPTARGET_KERNEL_TRACE environment variable
+  *  Support for Ubuntu 20.04.
+  *  Move to ROCm 3.10 sources
+  *  AOMP is no longer part of ROCm release starting with ROCM 4.0. OpenMP support in ROCm is part of the
+  *       unified compiler. The unified compiler in ROCm is in the llvm-amdgpu package as of ROCm 3.9.
+  *
+  * 13.0-2
+  *  Rebase all changes to the current LLVM development trunk which is the development of LLVM 13.
+  *  Set the default number of teams to 4 times the number of computation units for improving GPU occupancy.
+  *  Support for adjusting the number of threads in a team based on VGPR usage of a kernel
+  *  Enhanced the kernel trace (when LIBOMPTARGET_KERNEL_TRACE is set) with register usage information.
+          This already includes the requested and actual number of teams and threads used for a kernel.
+  *  Updated ROCm components to 4.1.x branches.
+  *  Default Code Object v4.
+  * Known Issues:
+  *  Regression with QMCPACK deterministic tests.
+  *  pow(double, int) is returning -inf.
+  *
+  * 13.0-3
+  *  Features:
+  *  1. support for the --offload-arch option. Both cuda and hip offload kinds already support
+  *       --offload-arch flag. One could think if it as an alias for --fopenmp-targets=TRIPLE
+  *       -Xopenmp-target=TRIPLE -march=GPUNAME which greatly simplifies command line specification for
+  *       OpenMP offloading. One only needs to  specify --offload-arch=GPUNAME.
+  *  2. A new cross-architecture clang tool called 'offload-arch' will determine the current GPUNAME of an
+  *       active system with a supported GPU card. There are a number of options. However, with no options
+  *       it prints to stdout the GPUNAME. So this command could be used to compile foo.c for openmp offloading
+  *       "clang -fopenmp --offload-arch=`offload-arch`"  Assuming $AOMP/bin is in your $PATH environment variable.
+  *  3. New runtime checking now looks at available images and selects an image whose requirements are satisfied
+  *       with runtime capabilities. Requirements include the GPUNAME and special compilation features that
+  *       create an image that only works when a system is operating with the special capabilities. These special
+  *       requirements form what is known as target-id.
+  *  4. Archive files on the command line are now checked to see if they contain offloading code for the specified
+  *       offload target  which are subsequently used to link the GPU image.
+  *  Fixes:
+  *  [flang] Resolved: cannot compile modules with private allocatable structs.
+  *  Removed invalid header definition for log2 affecting Kokkos.
+  *  QMCPACK unit tests now at 100% pass rate.
+  *  Move hostcall required test to rtl, fix minor race.
+  *  Centos 7 system headers had math functions with various return types for isnan/isinf, which caused
+  *        conflicts with clang headers. Clang headers now use omp variants to resolve issue.
+  *
+  *  System Build
+  *  Moved the construction of offloading libm from aomp-extras to openmp/libomptarget/deviceRTLs/libm.
+  *       Currently the libm device library is only needed for FORTRAN because clang system headers have
+  *       architecture specific definitions for math functions for c and c++. The build of libm builds bc files
+  *       for GPU linking in  $AOMP/lib/libdevice/libm-<ARCH>-<GPUNAME>.bc. These are built using the clang system
+  *       headers by changing each static definition to external definitions by setting __BUILD_MATH_BUILTINS_LIB__
+  *
+  *  Known issues to be resolved in 13.0-4
+  *  aomp/examples failures:
+  *       cloc/vector_copy_hip
+  *       cloc/vector_copy_hip_omp
+  *       hip/device_lib
+  *       hip/writeIndex
+  *  hip-openmp failures:
+  *       aomp_hip_launch_test
+  *       hip_host_register
+  *  36 Clang lit tests failing
+  *  RAJA build failure
+  *
+  * 13.0-4
+  *   These are the release notes for AOMP_13.0-4. The source code base for this release is the upstream LLVM 13
+  *       monorepo  main branch as of April 1, 2021 with hash value 0889181625bb570e463362ab8f53f9a14c886b2e.
+  *       Updates from the aomp-stg-open repo were added as one commit per file difference as of April  6, 2021.
+  *   Features:
+  *   Support larger CU masks up to 128 bit or up to 128 CUs.
+  *   Provide warning when HIP tries to use OpenMP offloading that this is not supported and target constructs
+  *       will be ignored.
+  *
+  *   Fixes:
+  *   Fixed examples/cloc/vector_copy_hip and vector_copy_hip_omp to use __HIP_PLATFORM_AMD__ from depracated
+  *       __HIP_PLATFORM_HCC__.
+  *   Fixed examples/hip/device_lib.
+  *   Fixed examples/hip/writeIndex.
+  *   Fixed test/hip-openmp/aomp_hip_launch_test. Bug in driver.cpp and new name for a.out file.
+  *   Fixed test/hip-openmp/hip_host_register.
+  *   Fixed hipcc when using noroot installs.
+  *   Fixed host compilation picking up the wrong libomp.so on some systems.
+  *   Fixed RPATH to include lib64.
+  *   Fixed RAJA build issue.
+  *   Fixed issue where targetID was not handled properly with march/fopenmp-targets.
+  *
+  *   Build changes:
+  *   Turn on ROCT_ENABLE for openmp default build in addtion to openmp_debug build.
+  *   Update list of gfx names to include gfx90a.
+  *   Update list of NVPTX GPU names to : 30,35,37,50,52,53,60,61,62
+  *
+  *   Known Regressions:
+  *   9 Clang lit test failures
+  *
+  *  13.0-5
+  *   This release includes a demo of a new LLVM library called libLLVMOffloadArch.cpp.
+  *       The clang tool offload-arch is now build with this library. The libomptarget runtime
+  *       no longer calls the binary "offload-arch -c" and traps its stdout. Instead a library
+  *       call is made to libLLVMOffloadArch.cpp to determine current capabilities. The tool
+  *       offload-arch is still create with the llvm build but its sources are in
+  *       llvm-project/llvm/lib/OffloadArch/offload-arch. Updates were made so offload-arch
+  *       returns the first VISIBLE gpu which could be the result of setting ROCM_VISIBLE_DEVICES
+  *       for amdgpus.
+  *   This release starts to deprecate the use of mygpu in favor of offload-arch. A new version
+  *   of mygpu calls offload-arch. The tables used to drive mygpu have been deleted. All pci-id
+  *   tables for offloading identification are now in llvm library OffloadArch.
+  *   Added a new command line option -offload-usm which turns on OpenMP pragma requires
+  *       unified_shared_memory and sets  toolchain flags appropriately. This saves having to
+  *       change every source file to turn on unified shared memory.
+  *  Build changes:
+  *  Update list of gfx names to include gfx1030 and gfx1031
+  *  Known Issues:
+  *  9 Clang lit test failures
+  *  Long build times when large numbers of archive libraries are needed because toolchain must
+  *       unbundle the archive for device linking.
+  *
+  *  13.0-6
+  *   Update to ROCm 4.3 sources.
+  *   Flang cmake race condition fixed.
+  *
+  *  14.0-0
+  *   AOMP is now based on amd-stg-open branch.
+  *   Most components are build from ROCm release 4.5 sources.
+  *   Components are now cloned using a manifest file. The script clone_aomp.sh is still used to clone
+  *       and update repos.
+  *   New hip build method.
+  *   Support for unified shared memory on gfx90a.
+  *   Support for atomic hint clause to enable fast floating point atomics.
+  *   Support for LLVM IR code generation with updated device RTL (deviceRTLs).
+  *   Support for target ID with XNACK settings.
+  *   Support for cross-platform offload device identification LLVM library and tool (offload-arch).
+  *   Fixed many reduction problems and nested parallelism.
+  *
+  *  Known Issues:
+  *   Slow CPU device-to-host data transfer speeds.
+  *   Miniqmc, Kokkos, Raja fail to build.
+  *   Non-deterministic failures in qmcpack deterministic tests.
+  *   Possible incorrect linking of libclang-cpp.so in the build of libomptarget.so.
+  *
+  *  14.0-1
+  *   A restructuring of the clang driver to a) remove the clang-build-select-link tool b) remove all
+  *       "post" clang linking with mlink attributes on the clang -cc1 command.  All device library
+  *       linking is now done in the llvm-link step which follows clang -cc1.  Furthermore, libraries
+  *       including the critical libomptarget-..-.bc library are internalized by the llvm-link step to
+  *       avoid unnecessary bit code for the backend.
+  *   The construction of libomptarget-..-.bc library now includes rocm-device-lib functions, device
+  *       libm functions, hostrpc stubs, and lastly the OpenMP deviceRTLs. This all-inclusive library
+  *       simplifies the device toolchain and improves performance.
+  *   Elimination of the need for the aomp-extras library.
+  *
+  *   Known issues:
+  *   Compilation for nvidia GPUs is broken.  We will fix this in 14.0-2.
+  *
+  *  14.0-2
+  *   Device runtime performance improvements by overlapping multiple copies between host and device.
+  *   Inclusion of a static build of hwloc in libomp.so. This supports the use of PLACES for CPU affinity.
+  *   Fixes to support compilation for nvptx64.
+  *   Fix to support uninitialized integers for hostrpc support.
+  *   Support for managed memory allocations in OpenMP.
+  *   Fix to support optimization of constant indexes for shared memory arrays in a target region.
+  *   Fix to resolve an unresolved global found in certain rocm-device-lib bitcode files.
+  *
+  *   Known issues:
+  *   For badly formed custom mappers, host access to unmapped struct members causes segfault.
+  *   Usage of flang -g results in differing debug_info_version and dwarf_version.
+  *
+  *  14.0-3
+  *   Update to ROCm 5.0 components.
+  *   Fix to libompd cmake to support enabling HWLOC.
+  *
+  *  15.0-0
+  *   New development infrastructure support source build of supplemental components:
+  *       There are two types of supplemental components, prerequisite and post-build components.
+  *       All supplemental components are built and installed in subdirectories of a directory specified
+  *       with the AOMP_SUPP environment variable which gets a default value of $HOME/local. Supplemental
+  *       components are not included in the aomp installation package because they are for development,
+  *       build, and test only. Prerequisite components are cmake, hwloc, and rocmsmilib. These are created
+  *       with the build_prereq.sh script. Post-build components are for testing and require the AOMP or
+  *       ROCm compiler to be installed. The current list of post-build supplemental components is:
+  *       openmpi, hdf5, silo, and fftw. Post-build supplemental components are built with the
+  *       build_supp.sh script.  build_prereq.sh is a symbolic link to build_supp.sh. For each component,
+  *       the script fetches the source, builds the component, and then installs the components.
+  *   Enhanced support for CU masking in the openmp_set_cu_mask wedge script. This now supports multiple
+  *       devices and no longer requires that the number of CUs be a multiple of the number of ranks.
+  *       If the total number of CUs is not a multiple of ranks, appropriate controls ensure each rank
+  *       gets an equal set of CUs on some device.
+  *   The AOMP release is done in concert with a ROCm AFAR compiler release.  The primary difference is
+  *       that the AFAR compiler depends and works with an installed version of ROCm and installed as a
+  *       tarball. AOMP is a standalone build and only depends on the amdgpu Linux kernel module and is
+  *       installed with debian or rpm packages. The AFAR compiler for this release can be found at this
+  *       URL XXXXXXXXXXXXXXXXXXXX
+  *   Added new scripts to build and run GenASiS and GESTS applications which would scan the dependent
+  *       libraries coming from build_supp.sh and use them to build and run the applications.
+  *
+  *  Performance Improvements
+  *   A new type of GPU kernel called "no-loop" is created for simple target regions. Currently this is
+  *       an opt-in feature because it ignores runtime environment variables that require additional loop logic.
+  *  Reliability improvements
+  *   Increase the maximum number of captured variables in a target region to 48 from 32. Future plans are
+  *       to remove this maximum completely.
+  *
+  *  15.0-1
+  *   Update to ROCm 5.1 sources.
+  *
+  *  15.0-2
+  *   Add user requested hint value AMD_unsafe_fp_atomics to match AMD_fast_fp_atomics
+  *   Fixes to compile SPEC CPU with A + A options
+  *   Add implementation of omp_is_initial_device to the new OpenMP runtime.
+  *   Add Fortran specific functions to the new OpenMP runtime. Classic flang compiler does not use the
+  *       same OpenMP API as Clang and does not use __kmpc_parallel_51. This function is responsible
+  *       for thread parallelization. __kmpc_parallel_51 increases parallel level and it launches parallel code.
+  *   Updated cloc.sh in aomp-extras to pass bitcode for abi version.
+  *   Fixed timing accuracy for OMPT target data transfer and kernel dispatch trace records
+  *
+  *  15.0-3
+  *   Use the new openmp DeviceRTL by default.
+  *   New DeviceRTL APIs for optimized cross-team reduction.
+  *   Clang codegen changes to use the optimized cross-team reduction APIs for a reduction clause in a device construct.
+  *   Added support for classic flang to use the new DeviceRTL.
+  *
+  *  Known Issues:
+  *   Flang has issues at -O0 when using the new DeviceRTL on GPUs other than gfx90a.
+  *   Nekbone app currently has performance issues due to the rpc thread being turned on.
+  *
+  *  16.0-0
+  *   Adds new flag -fopenmp-target-fast to group enable a set of OpenMP target optimizations.
+  *   Enhancements and bug fixes for No-Loop and cross-team reduction support.
+  *
+  *  16.0-1
+  *   Enhanced xteam reductions, no codegen.
+  *   Optimized wait for signals (perf gain).
+  *   Fix aompcc and mark for deprecation.
+  *   Added switch for code object version 5. Version 4 is still default.
+  *   Support for gfx1100 - gfx1103.
+  *   Support for order(concurrent).
+  *   Build OpenMP warnings cleaned up.
+  *   Upstream comparison data:
+  *       Lines different: 63997
+  *       Files different: 467
+  *   Support atomic min/max on MI200.
+  *   Support for device new and delete.
+  *   Bumped cmake version to 3.18.5.
+  *
+  * 16.0-2
+  *   Fix for early USM failure - openfoam does not hang.
+  *   Enhance xteam reductions (with codegen). Support for integer data types.
+  *   Fix for double _Complex scalars in target region,
+  *      test/smoke-fails/double_complex_scalar now works. This test will move to smoke in next release.
+  *   Support for target teams loop directive.
+  *   Force synchronous execution of regions controlled via OMPX_FORCE_SYNC_REGIONS.
+  *   New environment variable GPU_MAX_HW_QUEUES controls number of HSA queues created, default is 4.
+  *      This change actually occurred in 16.0-1 but was not listed in release notes.
+  *
+  * 16.0-3
+  *   Build includes gfx90c, gfx1035, and gfx1036.
+  *   Fix to rocm_agent_enumerator to correctly identify gfx90c.
+  *   Fix issue #435 "abs undefined within device block #435".
+  *   More enhancements to xteam reductions .
+  *   Ignore map clause option with USM.
+  *   Additional support for OMPT functions "get_device_time" and "get_record_type".
+  *   NUM_QUEUES_PER_DEVICE default to 1.
+  *   Fixed clang-build-select-link to honor -fdisable-host-devmem.
+  *   Fixed openmp lib-debug build overwriting release libraries/plugins.
+  *   Updated cmake to 3.22.1.
+  *
+  * 17.0-0
+  *   Add support for amdclang, amdclang++, and amdflang.
+  *   Updated build scripts for Kokkos (and updated to Kokkos v 3.7.00).
+  *   Support for multiple blocksizes in Xteam reduction (1024 limit).
+  *   A new execution mode BigJumpLoop for SPMD non-reduction kernels.
+  *   Additional support for OMPT function "translate_time".
+  *   Fixed duplication of clang-offload-bundler commands for archives.
+  *   Added Centos-9 and SLES 15 SP4 rpms.
+  *   No longer support SLES15 SP1.
+  *
+  * 17.0-1
+  *   Switch to nextgen plugin as default.  This has shown significant
+  *      performance improvements. To revert to the old plugin set
+  *      LIBOMPTARGET_NEXTGEN_PLUGINS=OFF
+  *   Switch from hostrpc to hostexec. hostexec is a significant rewrite of
+  *      hostrpc. The device hostexec_invoke is now written in OpenMP for
+  *      portability to other platforms. The names of the wrapper (stub) to run a host
+  *      function has changed to hostexec() and hostexec_\<ReturnType\>(). hostexec
+  *      also uses a global variable to find the transfer payload buffer instead of AMD
+  *      implicit kernel args. This will support portability of hostexec, printf, and
+  *      fprintf to other platforms. The update to this device global is made with
+  *      global variable services in the nextgen plugin.
+  *   An example on the use of hostexec to run MPI_Send and MPI_Recv in a
+  *      target region is given.  This example demonstrates how library owners can
+  *      build a supplemental header file to enable transparent host execution of
+  *      selected library functions within an OpenMP target regions with the same host
+  *      interface. This eliminates the need for any source changes in the user code
+  *      when host execution from a target region is desired.  Before hostexec, users
+  *      would typically have to end their target region, execute a host-only function,
+  *      then start another target region.  This feature significantly increases
+  *      general purpose computing capabilities of OpenMP on GPGPU platforms.
+  *   OMPT target support is incomplete with the nextgen plugin. To use OMPT,
+  *      set the environment variable LIBOMPTARGET_NEXTGEN_PLUGINS=OFF
+  *   Set GPU_MAX_HW_QUEUES in gpurun.
+  *   Support for enhanced critical region.
+  *   Implement dynamic LDS accesses from non-kernel functions.
+  *   Insert alloca for kernel args at function entry block instead of the launch point.
+  *   Respect EnvVar for syncronous kernel launch in NextGen.
+  *
+  * 17.0-2
+  *   Changed gpurun to set value of both GPU_MAX_HW_QUEUES and
+  *      LIBOMPTARGET_AMDGPU_NUM_HSA_QUEUES to 1 if there is shared use of GPU by
+  *      multiple mpi ranks. Also, it is set to 1 ONLY if it was not already set by
+  *      caller.
+  *   Added environment variables LIBOMPTARGET_AMDGPU_ KERNEL_BUSYWAIT and
+  *      LIBOMPTARGET_AMDGPU_DATA_BUSYWAIT to control how much time to wait in an
+  *      active state for kernel completion and data transfer completion respectively.
+  *      The default is 0 which means to wait indefinitely in blocked state. If set,
+  *      and the specified timeout expires, the waiting runtime jumps to waiting for
+  *      signal in blocked state.
+  *   Changed run_babelstream.sh to set LIBOMPTARGET_AMDGPU_KERNEL_BUSYWAIT and
+  *      LIBOMPTARGET_AMDGPU_DATA_BUSYWAIT to improve performance.
+  *   Fixed the amdgpu nextgen plugin to work for cov5 (code object version 5). The
+  *      default code object version is cov4.
+  *   Fixed the amdgpu nextgen plugin to work with OMPT (OpenMP Tools environment).
+  *   Fixed the amdgpu nextgen plugin to work for multiple architectures supported
+  *      in same image.
+  *
+  * 17.0-3
+  *   Non-compiler components are built with ROCm 5.6.0 sources
+  *   Support code object version 5 the libomptarget device library is now
+  *      generated for both code object version 4 and code object version 5.
+  *   New build components for flang-legacy, hipcc, clr.
+  *   Enabled Big Jump Loop by default.
+  *   Improved target teams loop transform.
+  *   Removed the link from flang to clang. Replace it with flang-legacy.
+  *   Implemented dynamic LDS accesses from non-kernel functions.
+  *   Performance improvements for small kernels via lazy HSA queue creation and
+  *      tracking of busy queues.
+  *   Restored GPU_MAX_HW_QUEUES in AMDGPU nextgen plugin.
+  *   Extended environment variable ompx_apu_maps to MI200.
+  *   Added --archive to the clang-offload-packager which repackages the extracted
+  *      files into a new static library. This allows a fat binary static library to
+  *      become a static library for a single architecture.
+  *   Disabled PIE as default in llvm.
+  *
+  * 18.0-0
+  *   New driver default (opaque offload linker).
+  *      Fix support for multi-arch.
+  *      Optimizations to remove initial hostexec malloc.
+  *      This driver uses clang-offload-packager to build and extract heterogeneous objects.
+  *      For amdgpu, the final link phase of the new driver steps through a series of commands instead of using the clang-linker-wrapper binary.
+  *   Zero copy support for MI300A.
+  *   Fixed data_share2 smoke test regression.
+  *   Fix new DeviceRTL schedule clause intermittent fail.
+  *   Support HIP bundles.
+  *   Upstream convergence (3490  lines removed).
+  *      Remove old plugin code.
+  *      Remove the hostRPC code.
+  *   DeviceRTL cleanup - Synchronized threads.
+  *   Set default OpenMP to 5.1.
+  *   Restore safe buffer usage warnings for MIOpen GTest.
+  *   Fix build to use LLVM-project mono-repo components, ROCm devicelibs and comgr.
+  *
+  * 18.0-1
+  *   Move to ROCm 6.0 sources.
+  *   Change the default optimization level to -O2 if user does not specify
+  *      any -O option on the command line.  Before 18.0-1, the default was -O0 if
+  *      none was specified.
+  *   In this release we are requesting users to install the amdgpu kernel driver
+  *      found in the ROCm 5.7 amdgpu-dkms package.  Nothing prevents the use of an
+  *      older driver, but for support with current and new problems, we ask users to
+  *      upgrade to this kernel driver.  Run this command to test that your amdgpu
+  *      kernel driver is on the correct version "modinfo -F version amdgpu".  That
+  *      command should return the string "6.2.4".
+  *   Remove dependency on ROCm libraries for rocgdb.  Reminder: A goal of aomp is
+  *      to be isolated from ROCm stack with the exception of rocm-dkms which
+  *      installs the correct kernel driver.
+  *   The following issues were resolved in this release:
+  *      [#601](https://github.com/ROCm-Developer-Tools/aomp/issues/601) AOMP
+  *      17.0.3 crashes at compile time with conjunction in if clause.
+  *   While the source build of aomp, supports ASAN (address sanitizer), the
+  *      release build does not due to complexities in packaging asan.  Therefore,
+  *      the aomp release does not support ASAN.
+  *   This release has many build enhancements meant for developers that build
+  *      aomp from source.  These changes have little impact to user of AOMP.
+  *   The build scripts for this release now build openmp host and device
+  *      libraries via LLVM_ENABLE_RUNTIMES with the COMPONENT build_project.sh. This
+  *      was formerly done in the COMPONENT build_openmp.sh. This change allows lit
+  *      testing of openmp.   Extra libraries found in lib-debug and lib-perf
+  *      directories are still build with the COMPONENT build_openmp.sh.
+  *   Developers can now use ccache to speed rebuild process.  The use of
+  *      ccache is the default.  To turn this off set AOMP_USE_CCACHE=0.
+  *   The build scripts also build flang-new with build_project.sh and remove
+  *      the use of build_flang-new.sh.
+  *   The build scripts have added a hidden directory in the installation
+  *      called .aomp_component_stats showing the files added to the installation by
+  *      each build COMPONENT. The current list of build COMPONENTs for AOMP are:
+  *      prereq project roct rocr openmp extras comgr rocminfo flang-legacy pgmath
+  *      flang flang_runtime hipcc hipamd  rocdbgapi rocgdb roctracer rocprofiler
+  *   Changes to build_supp.sh which builds prequisite and supplemental
+  *      components needed for the build and/or testing include: change to version 6.0
+  *      for hsa-amd-aqlprofile, update wget location of silo tarball,  change to
+  *      version 6.0.x for rocmsmilib.
+  *   Build optimizations to reduce the size of the installation. Previously
+  *      release binaries had llvm libraries statically linked in. We are now linking
+  *      in the shared library build of llvm, and this reduces overall size by ~50%.
+  *   Changes to the build of libomptarget DeviceRTL to be code object version
+  *      agnostic. These changes reduce the amount of files installed on to one per
+  *      architecture for the opaque-linker + the fat archive for the linker wrapper as
+  *      well as improve build time for the libraries.
+  *
+  *   The following enhancements were made to the AOMP test infrastructure:
+  *     Support for openmp lit testing.
+  *     New testing of UMT.
+  *     Babelstream updates to support USM.
+  *     Babelstream updates to support FORTRAN babelstream.
+  *
+  * 19.0-0
+  *   Now use ROCM 6.0.2 sources for non compiler components.
+  *   Default to not use multiple SDMA engines.  This could be changed for testing
+  *     by setting: LIBOMPTARGET_AMDGPU_USE_MULTIPLE_SDMA_ENGINES=true
+  *   Updates to gpurun utility
+  *     - uses preset HSA_CU_MASK and ROCR_VISIBLE_DEVICES.
+  *   OpenMP lit testing pre-install, 100% pass rate.
+  *   [Perf] Implement the loop directive as used in the metadirective for spec.
+  *   Support for testing QMCpack NiO performance.
+  *   ROCgdb support for gfx1103.
+  *   Circumvented driver timing issue with complex signal chains. Post kernel
+  *     copies occasionally started before kernel completion.  The temporary fix
+  *     forces the wait for kernel completion before scheduling post-kernel copies.
+  *     For testing purposes, this behavior could be reverted by setting
+  *     LIBOMPTARGET_SYNC_COPY_BACK=false
+  *
+  *   Fix regressions:
+  *     #616 llvm-addr2line does not work on AOMP-generated binary.
+
+ -- Greg Rodgers <Gregory.Rodgers@amd.com>  Thu, 19 May 2022 23:34:44 -0500

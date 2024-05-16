@@ -29,38 +29,10 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+include ../../Makefile.defs
+
 TESTNAME =matrixmul
 FILETYPE =cpp
-
-UNAMEP = $(shell uname -p)
-AOMP_CPUTARGET = $(UNAMEP)-pc-linux-gnu
-ifeq ($(UNAMEP),ppc64le)
-  AOMP_CPUTARGET = ppc64le-linux-gnu
-endif
-ifeq ($(AOMP),)
-# --- Standard Makefile check for AOMP installation ---
-ifeq ("$(wildcard $(AOMP))","")
-  ifneq ($(AOMP),)
-    $(warning AOMP not found at $(AOMP))
-  endif
-  AOMP = $(HOME)/rocm/aomp
-  ifeq ("$(wildcard $(AOMP))","")
-    $(warning AOMP not found at $(AOMP))
-    AOMP = /usr/lib/aomp
-    ifeq ("$(wildcard $(AOMP))","")
-      $(warning AOMP not found at $(AOMP))
-      $(error Please install AOMP or correctly set env-var AOMP)
-    endif
-  endif
-endif
-# --- End Standard Makefile check for AOMP installation ---
-endif
-ifeq ($(CUDA),)
-CUDA = /usr/local/cuda
-endif
-ifeq ($(AOMP_GPU),)
-AOMP_GPU = $(shell $(AOMP)/bin/mygpu -d gfx900) #get installed card, if unknown return gfx900
-endif
 
 CC = $(AOMP)/bin/clang++ -std=c++11
 
@@ -76,15 +48,20 @@ else
 endif
 
 #  These HIPFLAGS provide HIP+OpenMP for CPU only. No target offload
-HIPFLAGS = -x hip $(PLATFORM) -O2 --offload-arch=$(AOMP_GPU) -target $(AOMP_CPUTARGET)
+HIPLIBS = -L $(AOMPHIP)/hip -L $(AOMPHIP)/lib
+VERS = $(shell $(AOMP)/bin/clang --version | grep -oP '(?<=clang version )[0-9.]+')
+ifeq ($(shell expr $(VERS) \>= 12.0), 1)
+  RPTH = -Wl,-rpath,$(AOMPHIP)/lib
+endif
+HIPFLAGS = -x hip $(PLATFORM) -O2 --offload-arch=$(AOMP_GPU)$(AOMP_TARGET_FEATURES) $(AOMP_CPUTARGET)  $(HIPLIBS) -lamdhip64 $(RPTH)
 #  These OMP_TARGET_FLAGS added to HIPFLAGS provide HIP+OpenMP with GPU target offload
-OMP_TARGET_FLAGS = -fopenmp-targets=$(TRIPLE) -Xopenmp-target=$(TRIPLE) -march=$(AOMP_GPU) -target $(AOMP_CPUTARGET)
+OMP_TARGET_FLAGS = -fopenmp-targets=$(TRIPLE) -Xopenmp-target=$(TRIPLE) -march=$(AOMP_GPU)$(AOMP_TARGET_FEATURES) $(AOMP_CPUTARGET)
 
 CFLAGS = -fopenmp -O2 
 
 # ----- Demo compile and link in one step, no object code saved
-$(TESTNAME): matsup.o hiptarg.o omptarg.o $(TESTNAME).$(FILETYPE)
-	$(CC) $(CFLAGS) $(LFLAGS) $^ -o $@ $(HIPFLAGS) $(OMP_TARGET_FLAGS) -lhip_hcc
+$(TESTNAME): matsup.o hiptarg.o omptarg.o $(TESTNAME).o
+	$(CC) $(CFLAGS) $(LFLAGS) $^ -o $@ $(HIPFLAGS) $(OMP_TARGET_FLAGS) $(HIPLIBS) -lamdhip64
 
 run: $(TESTNAME)
 	timeout 10 ./$(TESTNAME)
@@ -108,7 +85,4 @@ obin:	$(TESTNAME).o
 run_obin: obin 
 	./obin
 
-
-# Cleanup anything this makefile can create
-clean::
-	rm -f $(TESTNAME) $(TESTNAME).a llbin sbin obin *.i *.ii *.bc *.lk a.out-* *.ll *.s *.o *.log
+include ../Makefile.HelpClean 

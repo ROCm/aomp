@@ -2,34 +2,14 @@
 #
 #  build_roct.sh:  Script to build the ROCt thunk libraries.
 #
-function getdname(){
-   local __DIRN=`dirname "$1"`
-   if [ "$__DIRN" = "." ] ; then
-      __DIRN=$PWD;
-   else
-      if [ ${__DIRN:0:1} != "/" ] ; then
-         if [ ${__DIRN:0:2} == ".." ] ; then
-               __DIRN=`dirname $PWD`/${__DIRN:3}
-         else
-            if [ ${__DIRN:0:1} = "." ] ; then
-               __DIRN=$PWD/${__DIRN:2}
-            else
-               __DIRN=$PWD/$__DIRN
-            fi
-         fi
-      fi
-   fi
-   echo $__DIRN
-}
 
-thisdir=$(getdname $0)
+# --- Start standard header to set AOMP environment variables ----
+realpath=`realpath $0`
+thisdir=`dirname $realpath`
 . $thisdir/aomp_common_vars
+# --- end standard header ----
 
 INSTALL_ROCT=${INSTALL_ROCT:-$AOMP_INSTALL_DIR}
-
-REPO_DIR=$AOMP_REPOS/$AOMP_ROCT_REPO_NAME
-REPO_BRANCH=$AOMP_ROCT_REPO_BRANCH
-checkrepo
 
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then 
   echo " "
@@ -67,6 +47,10 @@ fi
 
 patchrepo $AOMP_REPOS/$AOMP_ROCT_REPO_NAME
 
+if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
+  LDFLAGS="-fuse-ld=lld $ASAN_FLAGS"
+fi
+
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then 
 
    echo " " 
@@ -76,7 +60,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    BUILDTYPE="Release"
    echo $SUDO rm -rf $BUILD_AOMP/build/roct
    $SUDO rm -rf $BUILD_AOMP/build/roct
-   MYCMAKEOPTS="-DCMAKE_INSTALL_PREFIX=$INSTALL_ROCT -DCMAKE_BUILD_TYPE=$BUILDTYPE $AOMP_ORIGIN_RPATH -DCMAKE_INSTALL_LIBDIR=$AOMP_INSTALL_DIR/lib"
+   MYCMAKEOPTS="-DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR/lib/cmake -DCMAKE_INSTALL_PREFIX=$INSTALL_ROCT -DCMAKE_BUILD_TYPE=$BUILDTYPE $AOMP_ORIGIN_RPATH -DCMAKE_INSTALL_LIBDIR=$AOMP_INSTALL_DIR/lib"
    mkdir -p $BUILD_AOMP/build/roct
    cd $BUILD_AOMP/build/roct
    echo " -----Running roct cmake ---- " 
@@ -88,19 +72,46 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
       exit 1
    fi
 
+   if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
+      mkdir -p $BUILD_AOMP/build/roct/asan
+      cd $BUILD_AOMP/build/roct/asan
+      ASAN_CMAKE_OPTS="-DCMAKE_C_COMPILER=$AOMP_CLANG_COMPILER -DCMAKE_CXX_COMPILER=$AOMP_CLANGXX_COMPILER -DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR/lib/asan/cmake -DCMAKE_INSTALL_PREFIX=$INSTALL_ROCT -DCMAKE_BUILD_TYPE=$BUILDTYPE $AOMP_ASAN_ORIGIN_RPATH -DCMAKE_INSTALL_LIBDIR=$AOMP_INSTALL_DIR/lib/asan"
+      echo " -----Running roct-asan cmake -----"
+      echo ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DCMAKE_C_FLAGS="'$ASAN_FLAGS'" -DCMAKE_CXX_FLAGS="'$ASAN_FLAGS'" $AOMP_REPOS/$AOMP_ROCT_REPO_NAME
+      ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DCMAKE_C_FLAGS="'$ASAN_FLAGS'" -DCMAKE_CXX_FLAGS="'$ASAN_FLAGS'" $AOMP_REPOS/$AOMP_ROCT_REPO_NAME
+      if [ $? != 0 ] ; then
+         echo "ERROR roct-asan cmake failed.cmake flags"
+         echo "      $ASAN_CMAKE_OPTS"
+         exit 1
+      fi
+   fi
 fi
 
 cd $BUILD_AOMP/build/roct
 echo
 echo " -----Running make for roct ---- " 
-make -j $NUM_THREADS
+make -j $AOMP_JOB_THREADS
 if [ $? != 0 ] ; then 
       echo " "
-      echo "ERROR: make -j $NUM_THREADS  FAILED"
+      echo "ERROR: make -j $AOMP_JOB_THREADS  FAILED"
       echo "To restart:" 
       echo "  cd $BUILD_AOMP/build/roct"
       echo "  make"
       exit 1
+fi
+
+if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
+   echo
+   echo " ----- Running make for roct-asan ----- "
+   make -j $AOMP_JOB_THREADS
+   if [ $? != 0 ] ; then
+     echo " "
+     echo "ERROR: make -j $AOMP_JOB_THREADS FAILED"
+     echo "To restart:"
+     echo "  cd $BUILD_AOMP/build/roct/asan "
+     echo "  make"
+     exit 1
+   fi
 fi
 
 #  ----------- Install only if asked  ----------------------------
@@ -108,10 +119,19 @@ if [ "$1" == "install" ] ; then
       cd $BUILD_AOMP/build/roct
       echo " -----Installing to $INSTALL_ROCT/lib ----- " 
       $SUDO make install 
-      $SUDO make install-dev
       if [ $? != 0 ] ; then 
          echo "ERROR make install failed "
          exit 1
+      fi
+
+      if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
+         cd $BUILD_AOMP/build/roct/asan
+         echo " -----Installing to $INSTALL_ROCT/lib/asan ----- "
+         $SUDO make install
+         if [ $? != 0 ] ; then
+            echo "ERROR make install failed "
+            exit 1
+         fi
       fi
       removepatch $AOMP_REPOS/$AOMP_ROCT_REPO_NAME
 fi

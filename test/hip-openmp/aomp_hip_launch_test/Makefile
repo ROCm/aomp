@@ -29,40 +29,13 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+include ../../Makefile.defs
 TESTNAME =hiplaunch
 FILETYPE =cpp
 
-UNAMEP = $(shell uname -p)
-AOMP_CPUTARGET = $(UNAMEP)-pc-linux-gnu
-ifeq ($(UNAMEP),ppc64le)
-  AOMP_CPUTARGET = ppc64le-linux-gnu
-endif
-ifeq ($(AOMP),)
-# --- Standard Makefile check for AOMP installation ---
-ifeq ("$(wildcard $(AOMP))","")
-  ifneq ($(AOMP),)
-    $(warning AOMP not found at $(AOMP))
-  endif
-  AOMP = $(HOME)/rocm/aomp
-  ifeq ("$(wildcard $(AOMP))","")
-    $(warning AOMP not found at $(AOMP))
-    AOMP = /usr/lib/aomp
-    ifeq ("$(wildcard $(AOMP))","")
-      $(warning AOMP not found at $(AOMP))
-      $(error Please install AOMP or correctly set env-var AOMP)
-    endif
-  endif
-endif
-# --- End Standard Makefile check for AOMP installation ---
-endif
-ifeq ($(CUDA),)
-CUDA = /usr/local/cuda
-endif
-ifeq ($(AOMP_GPU),)
-AOMP_GPU = $(shell $(AOMP)/bin/mygpu -d gfx900) #get installed card, if unknown return gfx900
-endif
 
 CC = $(AOMP)/bin/clang
+DEVICE_LIB_PATH=$(AOMPHIP)/amdgcn/bitcode/
 
 # Add cudart only if we have an Nvidia sm_ target
 # We have not tested CUDA+OpenMP target offload
@@ -74,17 +47,24 @@ else
   TRIPLE = amdgcn-amd-amdhsa
   PLATFORM = -D__HIP_PLATFORM_HCC__=1
 endif
-
-HIPFLAGS = -x hip $(PLATFORM) -O2 --offload-arch=$(AOMP_GPU) -lpthread -std=c++11
-OMP_TARGET_FLAGS = -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$(AOMP_GPU) --save-temps 
+VERS = $(shell $(AOMP)/bin/clang --version | grep -oP '(?<=clang version )[0-9.]+')
+ifeq ($(shell expr $(VERS) \>= 12.0), 1)
+  RPTH = -Wl,-rpath,$(AOMPHIP)/lib
+endif
+HIPFLAGS = -x hip $(PLATFORM) -O2 --offload-arch=$(AOMP_GPU)$(AOMP_TARGET_FEATURES) -lpthread -std=c++11 -lamdhip64  $(RPTH)
+OMP_TARGET_FLAGS = -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$(AOMP_GPU)$(AOMP_TARGET_FEATURES) --save-temps
 CC=$(AOMP)/bin/clang
 
 # ----- Demo compile and link in one step, no object code saved
+#  The copy logic below is to support older compilers using latest aomp suite
 $(TESTNAME).exe: $(TESTNAME).$(FILETYPE)
 	$(CC) $(OMP_TARGET_FLAGS) test_omp.c -o test_omp.exe
 	test -f test_omp-host-x86_64-unknown-linux-gnu.o
-	test -f a.out-openmp-amdgcn-amd-amdhsa-$(AOMP_GPU)
-	$(AOMP)/bin/hipcc -o hiplaunch.exe hiplaunch.cpp -fopenmp
+	test -f a.out-openmp-amdgcn-amd-amdhsa && \
+	               cp a.out-openmp-amdgcn-amd-amdhsa a.out-openmp-amdgcn-amd-amdhsa-${AOMP_GPU} || \
+	               cp a.out-openmp-amdgcn-amd-amdhsa-${AOMP_GPU} a.out-openmp-amdgcn-amd-amdhsa || \
+	               cp a-${AOMP_GPU}.out-openmp-amdgcn-amd-amdhsa.out a.out-openmp-amdgcn-amd-amdhsa
+	DEVICE_LIB_PATH=$(DEVICE_LIB_PATH) $(AOMPHIP)/bin/hipcc -o hiplaunch.exe hiplaunch.cpp -fopenmp
 	#/opt/rocm/bin/hipcc -o hiplaunch.exe hiplaunch.c -fopenmp # this needs code-obj-v3 fix , ROCm 3.0 ???
 #	/work/hip-clang-bld/HIP/bin/hipcc -o hiplaunch.exe hiplaunch.c -fopenmp # this needs code-obj-v3 fix , ROCm 3.0 ???
 
@@ -97,4 +77,4 @@ run: $(TESTNAME).exe
 
 # Cleanup anything this makefile can create
 clean:
-	rm -f *.bc *.i *.o *.s test_omp.lk test_omp.exe hiplaunch.exe a.out-*
+	rm -f *.bc *.i *.o *.s test_omp.lk test_omp.exe hiplaunch.exe a.out-* a-*.out test*out

@@ -1,0 +1,7 @@
+target-teams-loop-codegen as parallel for: HOST: loop_dir_10.c: 30
+target-teams-loop-codegen as distribute: HOST: loop_dir_10.c: 49
+target-teams-loop-codegen as distribute: HOST: loop_dir_10.c: 69
+target-teams-loop-codegen as distribute: HOST: loop_dir_10.c: 100
+target-teams-loop-codegen as distribute: DEVICE: loop_dir_10.c: 49
+target-teams-loop-codegen as distribute: DEVICE: loop_dir_10.c: 69
+target-teams-loop-codegen as distribute: DEVICE: loop_dir_10.c: 100

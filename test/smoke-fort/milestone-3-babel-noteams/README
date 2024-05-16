@@ -1,0 +1,7 @@
+Fortran babelstream
+
+Modifications:
+  - remove 'target teams'
+  - remove 'simd'
+  - remove calls to IEEE_Is_Normal (not yet supported)
+  - add map(tofrom:s) to the reduction (workaround)

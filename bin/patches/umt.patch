@@ -1,0 +1,35 @@
+diff --git a/src/teton/CMakeLists.txt b/src/teton/CMakeLists.txt
+index c8875aa..52a96fb 100644
+--- a/src/teton/CMakeLists.txt
++++ b/src/teton/CMakeLists.txt
+@@ -173,6 +173,10 @@ if(ENABLE_TESTS)
+     set_target_properties( test_driver PROPERTIES LINK_FLAGS ${OpenMP_Fortran_FLAGS})
+     #target_link_options(test_driver PRIVATE ${OpenMP_Fortran_FLAGS})
+ 
++    if( ENABLE_OPENMP_OFFLOAD)
++      target_link_libraries( test_driver PUBLIC omptarget )
++    endif()
++
+   endif()
+ 
+   if(ENABLE_SILO)
+diff --git a/src/teton/gpu/OMPWrappers_mod.F90 b/src/teton/gpu/OMPWrappers_mod.F90
+index 5adbe9d..736e364 100644
+--- a/src/teton/gpu/OMPWrappers_mod.F90
++++ b/src/teton/gpu/OMPWrappers_mod.F90
+@@ -98,13 +98,13 @@ module OMPWrappers_mod
+         integer(C_INT), value :: device_num
+       end function omp_target_disassociate_ptr
+ 
+-      integer (C_INT) function omp_target_is_present( h_ptr, device_num) bind(c)
++      integer (C_INT) function omp_target_is_present_( h_ptr, device_num) bind(c)
+         use iso_c_binding
+         implicit none
+ 
+         type(C_PTR), value :: h_ptr
+         integer(C_INT), value :: device_num
+-      end function omp_target_is_present
++      end function omp_target_is_present_
+ 
+    end interface
+ 

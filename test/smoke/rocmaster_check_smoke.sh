@@ -5,7 +5,21 @@
 #
 #
 
-export AOMP=/opt/rocm/aomp
+echo "This script is deprecated. Please run : cd aomp/bin; ./run_rocm_test.sh"
+
+if [ "$EPSDB_ROCMASTER_OVERRIDE" != "1" ]; then
+  exit 1
+fi
+
+#default to on for qa runs
+EPSDB=${EPSDB:-1}
+
+if [ "$EPSDB" == "1" ]; then
+  export AOMP=/opt/rocm/llvm
+  export AOMP_GPU=`$AOMP/../bin/mygpu`
+else
+  export AOMP=/opt/rocm/aomp
+fi
 
 cleanup(){
   rm -rf check-smoke.txt
@@ -27,7 +41,21 @@ echo "**************************************************************************
 echo "                   A non-zero exit code means a failure occured." >> check-smoke.txt
 echo "***********************************************************************************" >> check-smoke.txt
 
-skiptests="devices pfspecifier pfspecifier_str target_teams_reduction hip_rocblas tasks reduction_array_section extern_init targ_static complex omp_wtime"
+skiptests="devices pfspecifier pfspecifier_str target_teams_reduction hip_rocblas tasks reduction_array_section targ_static omp_wtime data_share2 global_allocate complex2 flang_omp_map omp_get_initial slices printf_parallel_for_target reduction_shared_array d2h_slow_copy"
+
+if [ "$EPSDB" == "1" ]; then
+  skiptests+=" taskwait_prob flang_isystem_prob flang_real16_prob"
+  # additional for rocm 4.4
+  skiptests+=" flang-272730-complex flang-273990-2 flang-tracekernel math_exp math_libmextras simple_ctor use_device_ptr"
+  # additional for rocm 4.3
+  skiptests+=" alignedattribute devito_prob1 libgomp-292348 math_max"
+
+fi
+
+# amd-stg-open only has commits up to 08/11/20, which does not include these fixes for gfx908
+if [ "$EPSDB" == "1" ] && [ "$AOMP_GPU" == "gfx908" ];then
+  skiptests+=" red_bug_51 test_offload_macros"
+fi
 
 #Loop over all directories and make run / make check depending on directory name
 for directory in ./*/; do

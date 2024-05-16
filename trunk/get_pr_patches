@@ -1,0 +1,58 @@
+#!/bin/bash
+#  get_pr_patches: 
+
+# --- Start standard header ----
+realpath=`realpath $0`
+thisdir=`dirname $realpath`
+. $thisdir/trunk_common_vars
+# --- end standard header ----
+
+curdir=$PWD
+tdir="/tmp/$USER/ATD_patches"
+mkdir -p $tdir
+cd $tdir
+
+get_fresh=1
+
+if [ ${get_fresh} == 1 ] ; then 
+   rm -f pulls
+   rm -f *.diff
+   wget https://github.com/ROCm/llvm-project/pulls 2>/dev/null >/dev/null
+#for dir in ` cat pulls | grep ROCm/llvm-project/pull |  grep pull_request | cut -d"/" -f7- | cut -d"\"" -f1` ; do 
+   cat pulls | grep ROCm/llvm-project/pull | grep pull_request | cut -d"/" -f7- | cut -d"<" -f1 |  while read line ; do 
+     dir=`echo $line | cut -d"\"" -f1`
+     comment=`echo $line | cut -d">" -f2`
+     number=`echo $dir | cut -d"/" -f4`
+     patchurl="https://github.com/${dir}.diff"
+     echo $patchurl
+     wget $patchurl 2>/dev/null >/dev/null
+     cfile=comment.${number}.txt
+     echo $comment > $cfile
+   done
+   echo
+   echo " DONE getting files into $tdir"
+fi
+
+echo " Now attempting to dry-run patches to $TRUNK_REPOS/$LLVMPROJECT"
+echo
+
+cd $TRUNK_REPOS/$LLVMPROJECT
+for patchfile in `ls $tdir/*.diff` ; do
+  lines=`wc -l $patchfile | cut -d" " -f1`
+  number=`echo $patchfile | cut -d"." -f1 | cut -d"/" -f5`
+  comment=`cat $tdir/comment.${number}.txt`
+  patch -p1 -t -N --dry-run <$patchfile >/dev/null
+  if [ $? != 0 ] ; then
+     echo "FAIL ${number}.diff title: \"$comment\" $lines lines, try:"
+     echo "   patch -p1 -t -N --dry-run <$patchfile"
+    #  patch -p1 -t -N --dry-run <$patchfile 
+  else
+     echo "OK   ${number}.diff  title: \"$comment\" $lines lines"
+ #  echo "patch -p1 --no-backup-if-mismatch \<patchfile"
+  fi
+done
+echo
+echo " See above patches in directory $tdir"
+echo
+cd $curdir
+

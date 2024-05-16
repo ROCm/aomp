@@ -83,17 +83,45 @@ void* wrapper(void * start) {
         }
     }
     printf("PASSED %d!\n",mytid);
-// See: http://ontrack-internal.amd.com/browse/SWDEV-210802
-#define HIP_FREE_THREADSAFE
-#ifdef HIP_FREE_THREADSAFE
     printf("calling hipFree %d!\n",mytid);
     hipFree(A_d);
     hipFree(C_d);
-#endif
     return NULL;
 }
 
-const char *device_image_filename="a.out-openmp-amdgcn-amd-amdhsa-";
+const char *device_image_filename="a.out-openmp-amdgcn-amd-amdhsa";
+
+#define MAXSTRSIZE 256
+uint16_t get_wg_size(const char *kernel_name, hipModule_t *hipmod) {
+  hipError_t hipres;
+  char wg_size_name[MAXSTRSIZE];
+  strcpy(wg_size_name, kernel_name);
+  strcat(wg_size_name, "_wg_size");
+  uint16_t *dev_wg_size_ptr = nullptr;
+  size_t size_uint16 = 0;
+  hipres = hipModuleGetGlobal((void **)&dev_wg_size_ptr, &size_uint16, *hipmod,
+                              wg_size_name);
+  CHECKRES(hipModuleGetGlobal);
+  uint16_t wg_size;
+  hipres = hipMemcpyDtoH(&wg_size, dev_wg_size_ptr, size_uint16);
+  CHECKRES(hipMemcpyDtoH);
+  return wg_size;
+}
+unsigned int get_exec_mode(const char *kernel_name, hipModule_t *hipmod) {
+  hipError_t hipres;
+  char exec_mode_name[MAXSTRSIZE];
+  strcpy(exec_mode_name, kernel_name);
+  strcat(exec_mode_name, "_exec_mode");
+  uint8_t *dev_exec_mode_ptr = nullptr;
+  size_t size_uint8 = 0;
+  hipres = hipModuleGetGlobal((void **)&dev_exec_mode_ptr, &size_uint8, *hipmod,
+                              exec_mode_name);
+  CHECKRES(hipModuleGetGlobal);
+  uint8_t exec_mode;
+  hipres = hipMemcpyDtoH(&exec_mode, dev_exec_mode_ptr, size_uint8);
+  CHECKRES(hipMemcpyDtoH);
+  return (unsigned int)exec_mode;
+}
 
 #define N 100
 int A[N];
@@ -107,7 +135,6 @@ int main(int argc, char *argv[])
     const char *kernel_name = argv[1];
     char ImageName[1000];
     strcpy(ImageName, device_image_filename);
-    strcat(ImageName, argv[2]);
     printf("Image is %s\n", ImageName);
     hipError_t hipres;
     hipModule_t hipmod;
@@ -161,13 +188,22 @@ int main(int argc, char *argv[])
         HIP_LAUNCH_PARAM_BUFFER_SIZE,    &size,
         HIP_LAUNCH_PARAM_END
     };
-    hipres = hipModuleLaunchKernel( hipkern,
-				    1,1,1, // grid dims
-				    128,1,1, // block dims
-				    0, // shared mem bytes
-				    0, // stream
-				    0, // unused
-				    config);  // extra (kernel params)
+    unsigned int wg_size = get_wg_size(kernel_name, &hipmod);
+    unsigned int exec_mode = get_exec_mode(kernel_name, &hipmod);
+    uint warp_size = 64;
+    // Not adding assert here to support test case with old compilers.
+    // assert((exec_mode==1) && ((wg_size%warp_size)==1) &&
+    // "bad wg_size to launch generic kernel");
+    if ((exec_mode == 1) && ((wg_size % warp_size) != 1)) {
+      printf("WARNING generic kernals now require K*warpsize + 1 threads\n");
+      printf("        Launch %s with wg_size = %d\n", kernel_name, wg_size);
+    }
+    hipres = hipModuleLaunchKernel(hipkern, 1, 1, 1, // grid dims
+                                   wg_size, 1, 1,    // block dims
+                                   0,                // shared mem bytes
+                                   0,                // stream
+                                   0,                // unused
+                                   config);          // extra (kernel params)
     CHECKRES(hipModuleLaunchKernel);
     hipres = hipDeviceSynchronize();
     //sleep(10);

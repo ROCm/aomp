@@ -1,31 +1,8 @@
-diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 5a3e969..6f22658 100644
---- a/CMakeLists.txt
-+++ b/CMakeLists.txt
-@@ -46,6 +46,10 @@ endif() # if (ROCM_CCACHE_BUILD)
- ## Set default module path if not already set
- if ( NOT DEFINED CMAKE_MODULE_PATH )
-     set ( CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules/" )
-+else()
-+    set(saved_cmake_module_path ${CMAKE_MODULE_PATH})
-+    message("-- Temporarily settng CMAKE_MODULE_PATH to ${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules/" )
-+    set ( CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules/" )
- endif ()
- 
- ## Include common cmake modules
-@@ -203,3 +207,7 @@ set ( CPACK_RPM_POST_UNINSTALL_SCRIPT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/RPM/rpm_
- configure_file ( libhsakmt.pc.in ${DEV_BUILD_DIR}/libhsakmt.pc @ONLY )
- 
- include ( CPack )
-+if ( DEFINED saved_cmake_module_path )
-+    message("-- Returning CMAKE_MODULE_PATH to ${saved_cmake_module_path}")
-+    set(CMAKE_MODULE_PATH ${saved_cmake_module_path})
-+endif()
 diff --git a/src/fmm.c b/src/fmm.c
-index 4442876..0f34c25 100644
+index c9a356d..be63cb9 100644
 --- a/src/fmm.c
 +++ b/src/fmm.c
-@@ -1485,8 +1485,11 @@ static int bind_mem_to_numa(uint32_t node_id, void *mem,
+@@ -1495,8 +1495,11 @@ static int bind_mem_to_numa(uint32_t node_id, void *mem,
  	node_mask = numa_bitmask_alloc(num_node);
  	if (!node_mask)
  		return -ENOMEM;
@@ -39,7 +16,7 @@ index 4442876..0f34c25 100644
  	r = mbind(mem, SizeInBytes, mode, node_mask->maskp, num_node + 1, 0);
  	numa_bitmask_free(node_mask);
 diff --git a/src/topology.c b/src/topology.c
-index b4266ad..5331994 100644
+index 8a8cc96..502dad0 100644
 --- a/src/topology.c
 +++ b/src/topology.c
 @@ -1,5 +1,6 @@
@@ -66,7 +43,7 @@ index b4266ad..5331994 100644
  };
  
  static HSAKMT_STATUS topology_take_snapshot(void);
-@@ -439,6 +442,13 @@ static int get_cpu_cache_info(const char *prefix, struct proc_cpuinfo *cpuinfo,
+@@ -460,6 +463,13 @@ static int get_cpu_cache_info(const char *prefix, struct proc_cpuinfo *cpuinfo,
  	int idx, num_idx, n;
  	HsaCacheProperties *this_cache;
  	char path[256], str[256];
@@ -80,7 +57,7 @@ index b4266ad..5331994 100644
  
  	this_cache = cpu_ci->cache_prop;
  	num_idx = cpu_ci->num_caches;
-@@ -446,18 +456,31 @@ static int get_cpu_cache_info(const char *prefix, struct proc_cpuinfo *cpuinfo,
+@@ -467,18 +477,31 @@ static int get_cpu_cache_info(const char *prefix, struct proc_cpuinfo *cpuinfo,
  		/* If this cache is shared by multiple CPUs, we only need
  		 * to list it in the first CPU.
  		 */
@@ -123,7 +100,7 @@ index b4266ad..5331994 100644
  
  		/* CacheLevel */
  		snprintf(path, 256, "%s/index%d/level", prefix, idx);
-@@ -814,6 +837,8 @@ static int topology_search_processor_vendor(const char *processor_name)
+@@ -829,6 +852,8 @@ static int topology_search_processor_vendor(const char *processor_name)
  	for (i = 0; i < ARRAY_LEN(supported_processor_vendor_name); i++) {
  		if (!strcmp(processor_name, supported_processor_vendor_name[i]))
  			return i;
@@ -132,7 +109,7 @@ index b4266ad..5331994 100644
  	}
  	return -1;
  }
-@@ -845,6 +870,52 @@ static HSAKMT_STATUS topology_parse_cpuinfo(struct proc_cpuinfo *cpuinfo,
+@@ -861,6 +886,52 @@ static HSAKMT_STATUS topology_parse_cpuinfo(struct proc_cpuinfo *cpuinfo,
  		return HSAKMT_STATUS_ERROR;
  	}
  
@@ -185,7 +162,7 @@ index b4266ad..5331994 100644
  	/* Each line in /proc/cpuinfo that read_buf is constructed, the format
  	 * is like this:
  	 * "token       : value\n"
-@@ -895,6 +966,7 @@ static HSAKMT_STATUS topology_parse_cpuinfo(struct proc_cpuinfo *cpuinfo,
+@@ -910,6 +981,7 @@ static HSAKMT_STATUS topology_parse_cpuinfo(struct proc_cpuinfo *cpuinfo,
  			cpuinfo[proc].apicid = atoi(p);
  		}
  	}
@@ -193,7 +170,7 @@ index b4266ad..5331994 100644
  
  	if (processor_vendor < 0) {
  		pr_err("Failed to get Processor Vendor. Setting to %s",
-@@ -1203,7 +1275,13 @@ static int topology_create_temp_cpu_cache_list(int node,
+@@ -1228,7 +1300,13 @@ static int topology_create_temp_cpu_cache_list(int node,
  	*temp_cpu_ci_list = NULL;
  
  	/* Get info from /sys/devices/system/node/nodeX/cpuY/cache */
@@ -208,7 +185,7 @@ index b4266ad..5331994 100644
  	/* Other than cpuY folders, this dir also has cpulist and cpumap */
  	max_cpus = num_subdirs(node_dir, "cpu");
  	if (max_cpus <= 0) {
-@@ -1237,7 +1315,7 @@ static int topology_create_temp_cpu_cache_list(int node,
+@@ -1262,7 +1340,7 @@ static int topology_create_temp_cpu_cache_list(int node,
  			continue;
  		if (!isdigit(dir->d_name[3])) /* ignore files like cpulist */
  			continue;

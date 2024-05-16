@@ -1,0 +1,26 @@
+CXX = CC
+
+CXXFLAGS += -O2 -fopenmp
+
+LIBS = -lm -fopenmp
+
+%.o:%.cc
+	$(CXX) $(CXXFLAGS) -c $<
+TARGET = ./main
+
+all: $(TARGET)
+
+OBJS = main.o f.o g.o
+
+# dependencies
+$(TARGET): $(OBJS)
+
+$(TARGET): $(OBJS)
+	$(CXX) -o $(TARGET) $(OBJS) $(LIBS)
+
+#------------------------------------------------------------------------------
+#  Cleanup object files
+clean :
+	rm -rf *.o
+	rm -f $(TARGET)
+

@@ -1,0 +1,11 @@
+openlibm: openlibm.patch
+RAJA: raja.patch
+RAJAPerf: rajaperf.patch
+GenASis: genasis.patch
+hipamd: hipamd-hip-clang-root.patch
+hipfort: hipfort.patch
+bolt: bolt.patch
+rocr-runtime: rocr-runtime-combined-numa-check-openmp-support.patch
+rocprofiler: rocprofiler-no-aql-ok.patch
+babelstream: babelstream-usm.patch
+UMT: umt.patch

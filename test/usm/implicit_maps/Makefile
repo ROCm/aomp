@@ -1,0 +1,26 @@
+include ../../Makefile.defs
+
+HSA_XNACK ?= 1
+
+TESTNAME     = implicit_maps
+TESTSRC_MAIN = implicit_maps.cpp
+TESTSRC_AUX  =
+TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
+RUNENV-COARSE += LIBOMPTARGET_KERNEL_TRACE=2 HSA_XNACK=${HSA_XNACK}
+RUNENV-FINE += OMPX_DISABLE_USM_MAPS=1 LIBOMPTARGET_KERNEL_TRACE=2 RHSA_XNACK=${HSA_XNACK}
+
+RUNCMD-COARSE      = ./$(TESTNAME) 2>&1 | $(FILECHECK) --check-prefix=CHECK-COARSE $(TESTSRC_MAIN)
+RUNCMD-FINE      = ./$(TESTNAME) 2>&1 | $(FILECHECK) --check-prefix=CHECK-FINE $(TESTSRC_MAIN)
+
+
+CLANG        ?= clang++
+OMP_BIN      = $(AOMP)/bin/$(CLANG)
+CC           = $(OMP_BIN) $(VERBOSE)
+#-ccc-print-phases
+#"-\#\#\#"
+
+include ../Makefile.rules
+
+run: $(TESTNAME)
+	$(RUNENV-COARSE) $(RUNCMD-COARSE)
+	$(RUNENV-FINE) $(RUNCMD-FINE)

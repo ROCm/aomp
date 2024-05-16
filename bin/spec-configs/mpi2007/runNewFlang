@@ -1,0 +1,27 @@
+#!/bin/bash
+
+set -x
+#export AOMP=~/rocm/trunk_1.0  
+export AOMP=/COD/LATEST/aomp 
+export FAOMP=/COD/LATEST/trunk
+
+export MPI=/opt/openmpi-4.0.4-newflang
+
+set +x
+. ./shrc
+set -x
+
+
+export OMP_TARGET_OFFLOAD=MANDATORY
+export LIBRARY_PATH=$AOMP/lib
+export OMPI_FC=flang-new
+export OMPI_CC=clang
+export OMPI_CXX=clang++
+export LD_LIBRARY_PATH=$AOMP/lib:$MPI/lib/:$FAOMP/lib:/opt/AMD/amd-libm/lib:/opt/AMD/jemalloc-5.1.0/lib:$LD_LIBRARY_PATH 
+export PATH=$FAOMP/bin:$AOMP/bin:$MPI/bin:$PATH
+
+ulimit -s unlimited
+
+runspec -c newflang.cfg -I -l -n 1 -T base --ranks=16 -i mtest 107 113 115 121 127 128 129 130 132 137 --rebuild
+
+

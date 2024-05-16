@@ -1,15 +1,24 @@
-Examples to demonstrate use of OpenMP
-==============================================
+Examples to demonstrate use of OpenMP in c and C++
+==================================================
 
-The ROCm LLVM compiler supports several accelerated programming models. OpenMP is one of these models.
+The LLVM compiler supports several accelerated programming models for GPUs.
+OpenMP is one of these models.
+Examples in this directory demonstrate how to compile and execute c and C++ applications
+that use OpenMP target offload.
 
-Examples in this directory demonstrate how to compile OpenMP 4.5 sources and execute the binaries on GPU.
-
-Cd to a specific example folder and run the following commands to build and execute:
-
+If examples are in a read-only directory, the Makefile can be run from a writeable directory as follows:
 ```
-make
-make run
+mkdir /tmp/demo ; cd /tmp/demo
+EXROOT=/opt/rocm/share/openmp-extras/examples  # The examples base directory.
+make -f $EXROOT/openmp/reduction/Makefile run
+```
+To execute an example directly, recursively copy the entire examples directory
+to a writeable directory. For example:
+```
+EXROOT=/opt/rocm/share/openmp-extras/examples # The examples base directory.
+cp -rp $EXROOT /tmp/                          # Recursively copy examples to /tmp/examples
+cd /tmp/examples/openmp/reduction             # cd to writeable example directory
+make run                                      # Compile and execute the reduction example
 ```
 There are many other make targets to show different ways to build the binary. Run ```make help``` to see all the possible demos as Makefile targets.
 
@@ -19,15 +28,11 @@ E.g. to run with some debug output set OFFLOAD_DEBUG variable:
 env OFFLOAD_DEBUG=1 make
 env OFFLOAD_DEBUG=1 make run
 ```
-
-This demonstration shows the commands and output for the reduction example:
-
-```
-/path/to/examples/openmp/reduction$ make
-/opt/rocm/llvm/bin/clang -O3 -target x86_64-pc-linux-gnu -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=gfx906 reduction.c -o reduction
-
-/path/to/examples/openmp/reduction$ make run
-./reduction
-The result is correct = 499999500000!
-
-```
+These are the c and C++ examples in the [openmp](.) examples category:
+- [veccopy](veccopy)
+- [vmulsum](vmulsum)
+- [reduction](reduction)
+- [driver_tests](driver_tests)
+- [declare_variant_if](declare_variant_if)
+- [show-offload-types](show-offload-types)
+- [vmul_template](vmul_template)

@@ -1,0 +1,45 @@
+#!/bin/bash
+
+# Determine hipcc location
+hipcc_loc=$AOMP/bin/hipcc
+if [ ! -f $hipcc_loc ]; then
+  hipcc_loc=$AOMP/../bin/hipcc
+fi
+if [ ! -f $hipcc_loc ]; then
+  hipcc_loc=$AOMP/../../bin/hipcc
+fi
+
+ompd_dir="$AOMP/share/gdb/python/ompd"
+if [ ! -f "$ompd_dir/__init__.py" ] ; then
+  ompd_dir="$AOMP/lib-debug/ompd"
+fi
+if [ ! -f "$ompd_dir/__init__.py" ] ; then
+  echo "ERROR ompd directory not found in $AOMP/share/gdb/python/ompd"
+  exit 1
+fi
+
+bldcmd="$hipcc_loc -O0 -g -ggdb  -fopenmp matrixmul.cpp -o matrixmul"
+#cgdb=`which cgdb` && [ "$cgdb" != "" ] && gdbcmd="$cgdb -d $gdbcmd"
+
+export LD_LIBRARY_PATH=$AOMP/lib-debug:$AOMP/lib:$ompd_dir
+export OMP_DEBUG=enabled
+export OMP_NUM_THREADS=3
+
+echo
+echo $bldcmd
+$bldcmd
+echo
+echo $gdbcmd
+echo
+#$gdbcmd
+
+# Determine rocgdb location
+rocgdb=$AOMP/bin/rocgdb
+if [ ! -f $rocgdb ]; then
+  rocgdb=$AOMP/../bin/rocgdb
+fi
+if [ ! -f $rocgdb ]; then
+  rocgdb=$AOMP/../../bin/rocgdb
+fi
+
+$rocgdb -x "$ompd_dir/__init__.py" ./matrixmul -ex "source do_debug_command_file"

@@ -1,0 +1,90 @@
+
+ROCM_PATH 	                     ?= /opt/rocm
+HSALIBDIR 	                     ?= $(ROCM_PATH)/hsa/lib
+OLARCH    	                     ?= $(ROCM_PATH)/llvm/bin/offload-arch
+TARGET     	                     = $(shell $(OLARCH))
+
+TETON_PATH                       = $(UMT_PATH)/Teton
+CMG_PATH                         = $(UMT_PATH)/cmg2Kull
+CMG_CLEAN_PATH                   = $(UMT_PATH)/CMG_CLEAN
+
+CXXFLAGS                         = -O3 -I$AOMP/include
+
+CWD                              = $(shell pwd)
+
+OPT                              = on
+DEBUG                            = off
+USE_HPM                          = off
+USE_GPROF                        = off
+USE_TAU                          = off
+USE_TAU_PDT                      = off
+USE_OPENMP                       = on
+STATIC_LINK                      = off
+CFLAGS_CMG                       = 
+
+
+CFLAGS_CMG                      += 
+
+OPENMP_FLAGS                     = -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=gfx90a -Wno-error=implicit-function-declaration -Wno-error=return-type -I$AOMP/include
+FLIBS                            =
+
+CPPFLAGS                        += -I$(AOMP)/include -DLINUX -DLinux -DUSE_MPI -DMPICH_SKIP_MPICXX $(GPROF_FLAGS)
+CPPFFLAGS                        = -I$(AOMP)/include -DLINUX -DLinux -Dmpi -DMPI -DUSE_MPI -DMPICH_SKIP_MPICXX $(OPENMP_FLAGS) $(GPROF_FLAGS)
+
+export PLATFORM_LIBPATH_EXTRAS   = -L $(TETON_PATH) -Wl,-rpath=$(TETON_PATH) -L $(CMG_PATH)/sources -Wl,-rpath=$(CMG_PATH)/sources -L $(CMG_CLEAN_PATH)/src -Wl,-rpath=$(CMG_CLEAN_PATH)/src -L$(AOMP)/lib -Wl,-rpath=$(AOMP)/lib -v
+
+# MPI Definitions
+MPI_INC_PATH                     = -I$(MPI_INSTALL_DIR)/include
+MPI_LIB_PATH                     = -L$(MPI_INSTALL_DIR)/lib 
+MPI_LIBS                         = -lmpi_mpifh -lmpi -libverbs -lpthread 
+
+FLIBS                           += -lm -lc -lflang -lflangrti
+LIBS 	                          += $(MPI_LIBS) 
+LIBPATH 		                     = 
+INCPATH 		                     = $(MPI_INC_PATH)
+
+CXX				                       = mpic++
+CC				                       = mpicc
+F90                              = mpifort
+FPP                              = mpifort
+
+F90FLAGS_OPT                     = -O3 -fPIC $(OPENMP_FLAGS)
+CXXFLAGS_OPT	                   = -O3 -w  -fPIC  $(OPENMP_FLAGS)
+CFLAGS_OPT		                   = -O3 -w -fPIC  $(OPENMP_FLAGS)
+
+
+LD                               = $(CXX)
+LIB_EXT                          = so
+LDFLAGS                          = -shared -fPIC
+
+LINK                             = $(CXX)
+LINKFLAGS                        = $(CXXFLAGS)
+
+
+%.o: %.F90
+	#$(FPP) $(CPPFFLAGS) $(INCPATH) $< > $*.f90
+	$(F90) $(F90FLAGS) -c $*.F90 -o $@
+
+CXXFLAGS = $(CFLAGS_CMG) $(INCPATH)
+CFLAGS = $(CFLAGS_CMG) $(INCPATH)
+F90FLAGS = $(INCPATH)
+
+ifeq ($(OPT),on)
+  CXXFLAGS += $(CXXFLAGS_OPT) 
+  CFLAGS += $(CFLAGS_OPT) 
+  F90FLAGS += $(F90FLAGS_OPT) 
+endif
+
+ifeq ($(DEBUG),on)
+  CXXFLAGS += $(CXXFLAGS_DEBUG) 
+  CFLAGS += $(CFLAGS_DEBUG) 
+  F90FLAGS += $(F90FLAGS_DEBUG) 
+endif
+
+F90FLAGS +=  $(CPPFFLAGS)
+
+%.o : %.cc
+	$(CXX) -c $(CXXFLAGS) $(CPPFLAGS) $< -o $@
+
+%.d: %.cc
+	$(CXX) -c $(CFLAGS_CMG) $(CPPFLAGS) $(INCPATH) $< -MM -MF $@

@@ -1,0 +1,54 @@
+diff --git a/opensrc/hsa-runtime/CMakeLists.txt b/opensrc/hsa-runtime/CMakeLists.txt
+index 130815c5..1f975711 100644
+--- a/opensrc/hsa-runtime/CMakeLists.txt
++++ b/opensrc/hsa-runtime/CMakeLists.txt
+@@ -95,7 +95,14 @@ set ( PACKAGE_VERSION_STRING "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_COMMIT
+ ## Find external dependencies.
+ find_package(PkgConfig)
+ find_package(LibElf REQUIRED)
+-find_package(hsakmt 1.0 REQUIRED HINTS ${CMAKE_INSTALL_PREFIX} PATHS /opt/rocm)
++
++
++if(DEFINED LLVM_RUNTIME_OPENMP)
++  find_library(HSAKMT_LIB hsakmt REQUIRED HINTS ${CMAKE_BINARY_DIR}/../../../roct-prefix/src/roct-build)
++else()
++  find_package(hsakmt 1.0 REQUIRED HINTS ${CMAKE_INSTALL_PREFIX} PATHS /opt/rocm)
++endif()
++
+ pkg_check_modules(drm REQUIRED IMPORTED_TARGET libdrm)
+ 
+ ## Create the rocr target.
+@@ -126,6 +133,9 @@ target_include_directories( ${CORE_RUNTIME_TARGET}
+   ${CMAKE_CURRENT_BINARY_DIR}/core/runtime/trap_handler
+   ${CMAKE_CURRENT_BINARY_DIR}/core/runtime/blit_shaders)
+ 
++if(DEFINED LLVM_RUNTIME_OPENMP)
++  target_include_directories(${CORE_RUNTIME_TARGET} PRIVATE ${HSAKMT_SRC_PATH}/include)
++endif()
+ 
+ ## ------------------------- Linux Compiler and Linker options -------------------------
+ set ( HSA_CXX_FLAGS ${HSA_COMMON_CXX_FLAGS} -fexceptions -fno-rtti -fvisibility=hidden -Wno-error=missing-braces -Wno-error=sign-compare -Wno-sign-compare -Wno-write-strings -Wno-conversion-null -fno-math-errno -fno-threadsafe-statics -fmerge-all-constants -fms-extensions -Wno-error=comment -Wno-comment -Wno-error=pointer-arith -Wno-pointer-arith -Wno-error=unused-variable -Wno-error=unused-function )
+@@ -278,8 +288,12 @@ if(${IMAGE_SUPPORT})
+ endif()
+ 
+ ## Link dependencies.
+-target_link_libraries ( ${CORE_RUNTIME_TARGET} PRIVATE hsakmt::hsakmt PkgConfig::drm)
+-target_link_libraries ( ${CORE_RUNTIME_TARGET} PRIVATE elf::elf dl pthread rt )
++if(DEFINED LLVM_RUNTIME_OPENMP)
++  target_link_libraries ( ${CORE_RUNTIME_TARGET} PRIVATE ${HSAKMT_LIB} PkgConfig::drm )
++else()
++  target_link_libraries ( ${CORE_RUNTIME_TARGET} PRIVATE hsakmt::hsakmt PkgConfig::drm )
++endif()
++target_link_libraries ( ${CORE_RUNTIME_TARGET} PRIVATE elf::elf dl pthread rt numa drm_amdgpu drm )
+ 
+ ## Set the VERSION and SOVERSION values
+ set_property ( TARGET ${CORE_RUNTIME_TARGET} PROPERTY VERSION "${SO_VERSION_STRING}" )
+@@ -300,7 +314,7 @@ if( NOT ${BUILD_SHARED_LIBS} )
+ 
+   ## Add external link requirements.
+   target_link_libraries ( ${CORE_RUNTIME_NAME} INTERFACE hsakmt::hsakmt )
+-  target_link_libraries ( ${CORE_RUNTIME_NAME} INTERFACE elf::elf dl pthread rt )
++  target_link_libraries ( ${CORE_RUNTIME_NAME} INTERFACE elf::elf dl pthread rt numa drm_amdgpu drm)
+ 
+   install ( TARGETS ${CORE_RUNTIME_NAME} EXPORT ${CORE_RUNTIME_NAME}Targets )
+ endif()

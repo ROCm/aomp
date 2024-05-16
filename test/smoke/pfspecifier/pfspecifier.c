@@ -5,7 +5,6 @@ int main()
 {
 #pragma omp target
   {
-    int num;
     printf ("Signed: %i\n", 392);
     printf ("Unsigned: %d\n", 7235);
     printf ("Unsigned: %o\n", 0610);
@@ -20,7 +19,6 @@ int main()
     printf ("Hexadecimal: %a\n", 3.9265e+2);
     printf ("Hexadecimal: %A\n", 3.9265e+2);
     printf ("Characters: %c\n", 65);
-    printf ("Pointer: %p\n", &num);
     printf ("Signed: %d\n", 392);
     printf ("Only percent sign %%\n");
 

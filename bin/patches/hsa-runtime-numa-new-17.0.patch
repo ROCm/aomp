@@ -1,0 +1,22 @@
+diff --git a/opensrc/hsa-runtime/CMakeLists.txt b/opensrc/hsa-runtime/CMakeLists.txt
+index 3a826da3..aba00fda 100644
+--- a/opensrc/hsa-runtime/CMakeLists.txt
++++ b/opensrc/hsa-runtime/CMakeLists.txt
+@@ -269,7 +269,7 @@ endif()
+
+ ## Link dependencies.
+ target_link_libraries ( ${CORE_RUNTIME_TARGET} PRIVATE hsakmt::hsakmt PkgConfig::drm)
+-target_link_libraries ( ${CORE_RUNTIME_TARGET} PRIVATE elf::elf dl pthread rt )
++target_link_libraries ( ${CORE_RUNTIME_TARGET} PRIVATE elf::elf dl pthread rt numa drm_amdgpu drm )
+
+ ## Set the VERSION and SOVERSION values
+ set_property ( TARGET ${CORE_RUNTIME_TARGET} PROPERTY VERSION "${SO_VERSION_STRING}" )
+@@ -290,7 +290,7 @@ if( NOT ${BUILD_SHARED_LIBS} )
+
+   ## Add external link requirements.
+   target_link_libraries ( ${CORE_RUNTIME_NAME} INTERFACE hsakmt::hsakmt )
+-  target_link_libraries ( ${CORE_RUNTIME_NAME} INTERFACE elf::elf dl pthread rt )
++  target_link_libraries ( ${CORE_RUNTIME_TARGET} PRIVATE elf::elf dl pthread rt numa drm_amdgpu drm )
+
+   install ( TARGETS ${CORE_RUNTIME_NAME} EXPORT ${CORE_RUNTIME_NAME}Targets )
+ endif()

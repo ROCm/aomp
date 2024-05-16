@@ -1,0 +1,16 @@
+test_acquire_release.cxx
+test_allocate_directive.cxx
+test_concurrent_map.cxx
+test_implicit_declare_target.cxx foo.cxx
+test_declare_variant.cxx
+test_imperfect_loop.cxx
+test_loop.cxx
+test_lvalue_map_motion.cxx
+test_non_rectangular.cxx
+test_noncontiguous_update.cxx
+test_omp_pause_resources.cxx
+test_order_concurrent.cxx
+test_pointer_attach.cxx
+test_scan.cxx
+test_use_device_addr.cxx
+test_requires_unified_shared_memory.cxx

@@ -1,0 +1,55 @@
+diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
+index 7174044..1d1feba 100644
+--- a/src/CMakeLists.txt
++++ b/src/CMakeLists.txt
+@@ -173,6 +173,7 @@ add_library( ${CORE_RUNTIME_TARGET} ${SRCS} )
+ 
+ target_link_libraries ( ${CORE_RUNTIME_TARGET}
+   PRIVATE hsakmt
++  -L${HSAKMT_LIB_PATH} -lhsakmt -Wl,-rpath,${HSAKMT_LIB_PATH}
+   elf dl pthread rt
+ )
+ 
+diff --git a/src/core/inc/amd_memory_region.h b/src/core/inc/amd_memory_region.h
+index 8be4644..1fa7f1b 100644
+--- a/src/core/inc/amd_memory_region.h
++++ b/src/core/inc/amd_memory_region.h
+@@ -182,7 +182,11 @@ class MemoryRegion : public core::MemoryRegion {
+ 
+   mutable KernelMutex access_lock_;
+ 
++#ifdef __PPC64__
++  static const size_t kPageSize_ = 65536;
++#else
+   static const size_t kPageSize_ = 4096;
++#endif
+ 
+   // Determine access type allowed to requesting device
+   hsa_amd_memory_pool_access_t GetAccessInfo(const core::Agent& agent,
+diff --git a/src/core/util/utils.h b/src/core/util/utils.h
+index fbe7e47..5a9a7d5 100644
+--- a/src/core/util/utils.h
++++ b/src/core/util/utils.h
+@@ -52,6 +52,9 @@
+ #include <iostream>
+ #include <string>
+ #include <algorithm>
++#ifndef NDEBUG
++#define NDEBUG
++#endif
+ 
+ typedef unsigned int uint;
+ typedef uint64_t uint64;
+diff --git a/src/inc/hsa.h b/src/inc/hsa.h
+index 0e59368..4430a28 100644
+--- a/src/inc/hsa.h
++++ b/src/inc/hsa.h
+@@ -80,7 +80,7 @@
+ // Try to detect CPU endianness
+ #if !defined(LITTLEENDIAN_CPU) && !defined(BIGENDIAN_CPU)
+ #if defined(__i386__) || defined(__x86_64__) || defined(_M_IX86) || \
+-    defined(_M_X64)
++    defined(_M_X64) || defined(__PPC64__) || defined(__aarch64__)
+ #define LITTLEENDIAN_CPU
+ #endif
+ #endif

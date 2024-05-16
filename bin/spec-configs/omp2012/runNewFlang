@@ -1,0 +1,24 @@
+#!/bin/bash
+
+set -x
+export FLIB=${AOMP:-/COD/LATEST/aomp}
+export AOMP=${TRUNK:-/COD/LATEST/trunk}
+export FAOMP=${TRUNK:-/COD/LATEST/trunk}
+
+set +x
+. ./shrc
+set -x
+
+
+export OMP_TARGET_OFFLOAD=MANDATORY
+export LIBRARY_PATH=$AOMP/lib:$FAOMP/lib:$FLIB/lib
+export C_INCLUDE_PATH=$AOMP//lib/clang/16.0.0/include
+export CPLUS_INCLUDE_PATH=$AOMP//lib/clang/16.0.0/include
+export LD_LIBRARY_PATH=$AOMP/lib:$MPI/lib/:$FAOMP/lib:$FLIB/lib
+export PATH=$FAOMP/bin:$AOMP/bin:$MPI/bin:$PATH   #:~/tmp/
+
+ulimit -s unlimited
+
+runspec -c newflang.cfg -I -l -n 1 -T base --threads=16 -i test 350 351 357 360 362 363 370 371 --rebuild
+
+

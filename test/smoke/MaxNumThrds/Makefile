@@ -1,11 +1,11 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = maxnum
 TESTSRC_MAIN = maxnum.c
 TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 
-CLANG        = clang
+CLANG        ?= clang
 OMP_BIN      = $(AOMP)/bin/$(CLANG) -isystem$(AOMP)/include
 CC           = $(OMP_BIN) $(VERBOSE)
 #-ccc-print-phases

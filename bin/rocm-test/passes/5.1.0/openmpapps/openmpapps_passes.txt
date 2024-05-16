@@ -1,0 +1,9 @@
+bigloopC
+comd-mp4
+lulesh-mp4
+matmul
+matmul_Mthreads
+matmul_usm
+matmul-weights
+MI-Teams
+xsbench-mp4

@@ -1,124 +1,88 @@
-# Source Install V 11.5-1 (DEV)
+# Source Install V 19.0-1
 
 Build and install from sources is possible.  However, the source build for AOMP is complex for several reasons.
-- Many repos are required.  The clone_aomp.sh script ensures you have all repos and the correct branch.
+- Many repos are required.
 - Requires that Cuda SDK 10 is installed for NVIDIA GPUs. ROCm does not need to be installed for AOMP.
 - It is a bootstrapped build. The built and installed LLVM compiler is used to build library components.
 - Additional package dependencies are required that are not required when installing the AOMP package.
 
 ## Source Build Prerequisites
 
-### 1. Required Distribution Packages
-
-#### Debian or Ubuntu Packages
-
+To build and test AOMP from source you must:
 ```
-   sudo apt-get install cmake g++-5 g++ pkg-config libpci-dev libnuma-dev libelf-dev libffi-dev git python libopenmpi-dev gawk mesa-common-dev
+1. Install certain distribution packages,
+2. Build CMake 3.22.1 from source. This can be done with ./build_prereq.sh,
+3. Ensure the KFD kernel module is installed and operating,
+4. Create the Unix video group, and
+5. Install spack if required.
 ```
-#### SLES-15-SP1 Packages
-
-```
-  sudo zypper install -y git pciutils-devel cmake python-base libffi-devel gcc gcc-c++ libnuma-devel libelf-devel patchutils openmpi2-devel
-```
-#### RHEL 7  Packages
-Building from source requires a newer gcc. Devtoolset-7 is recommended, follow instructions 1-3 here:<br>
-Note that devtoolset-7 is a Software Collections package, and it is not supported by AMD.
-https://www.softwarecollections.org/en/scls/rhscl/devtoolset-7/<br>
-
-<b>The build_aomp.sh script will automatically enable devtoolset-7 if found in /opt/rh/devtoolset-7/enable. If you want to build an individual component you will need to manually start devtoolset-7 from the instructions above.</b><br>
-
-```
-  sudo yum install cmake3 pciutils-devel numactl-devel libffi-devel
-```
-The build scripts use cmake, so we need to link cmake --> cmake3 in /usr/bin
-```
-  sudo ln -s /usr/bin/cmake3 /usr/bin/cmake
-```
-
-### 2. Verify KFD Driver
-
-Please verify you have the proper software installed as AOMP needs certain support to function properly, such as the KFD driver for AMD GPUs.
-
-#### Debian or Ubuntu Support
-These commands are for supported Debian-based systems and target only the rock_dkms core component. More information can be found [HERE](https://rocm.github.io/ROCmInstall.html#ubuntu-support---installing-from-a-debian-repository).
-```
-wget -qO - http://repo.radeon.com/rocm/apt/debian/rocm.gpg.key | sudo apt-key add -
-echo 'deb [arch=amd64] http://repo.radeon.com/rocm/apt/debian/ xenial main' | sudo tee /etc/apt/sources.list.d/rocm.list
-sudo apt update
-sudo apt install rock-dkms
-```
-
-#### SUSE SLES-15-SP1 Support
-<b>Important Note:</b>
-There is a conflict with the KFD when simultaneously running the GUI on SLES-15-SP1, which leads to unpredicatable behavior when offloading to the GPU. We recommend using SLES-15-SP1 in text mode to avoid running both the KFD and GUI at the same time.
-
-SUSE SLES-15-SP1 comes with kfd support installed. To verify this:
-```
-  sudo dmesg | grep kfd
-  sudo dmesg | grep amdgpu
-```
-
-#### RHEL 7 Support
-```
-  sudo subscription-manager repos --enable rhel-server-rhscl-7-rpms
-  sudo subscription-manager repos --enable rhel-7-server-optional-rpms
-  sudo subscription-manager repos --enable rhel-7-server-extras-rpms
-  sudo rpm -ivh https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
-```
-<b>Install dkms tool</b>
-```
-  sudo yum install -y epel-release
-  sudo yum install -y dkms kernel-headers-`uname -r` kernel-devel-`uname -r`
-```
-Create a /etc/yum.repos.d/rocm.repo file with the following contents:
-```
-  [ROCm]
-  name=ROCm
-  baseurl=http://repo.radeon.com/rocm/yum/rpm
-  enabled=1
-  gpgcheck=0
-```
-<b>Install rock-dkms</b>
-```
-  sudo yum install rock-dkms
-```
-
-### 3. Create the Unix Video Group
-```
-  echo 'SUBSYSTEM=="kfd", KERNEL=="kfd", TAG+="uaccess", GROUP="video"' | sudo tee /etc/udev/rules.d/70-kfd.rules
-  sudo reboot
-  sudo usermod -a -G video $USER
-```
+[This link](SOURCEINSTALL_PREREQUISITE.md) provides detailed instructions to satisfy all the AOMP source build requirements.
 
 ## Clone and Build AOMP
 
+AOMP now uses a manifest file to specify the git repositories to clone.
+We studied the use of the google repo command and found it was too compilicated for development
+as compared to manually cloning the repos specified in a manifest file.
+The script clone\_aomp.sh issues a sequence of "git clone" and "git pull" commands
+by parsing information in the manifest file associated with a particular release.
+
+<b>Choose a Build Version (Development or Release)</b> The development version is the next version to be released. It is possible that the development version is broken due to regressions that often occur during development.
+
+Here are the commands to do a source build of AOMP:
+
+<b>Development Branch:</b>
 ```
-   cd $HOME ; mkdir -p git/aomp11 ; cd git/aomp11
-   git clone https://github.com/rocm-developer-tools/aomp
-   cd $HOME/git/aomp11/aomp/bin
+   export AOMP_VERSION=19.0
+   export AOMP_REPOS=$HOME/git/aomp${AOMP_VERSION}
+   mkdir -p $AOMP_REPOS
+   cd $AOMP_REPOS
+   git clone -b aomp-dev https://github.com/ROCm-Developer-Tools/aomp
 ```
 
-<b>Choose a Build Version (Development or Release)</b>
-The development version is the next version to be released.  It is possible that the development version is broken due to regressions that often occur during development.  If instead, you want to build from the sources of a previous release such as 11.5-0 that is possible as well.
+The development version is the next version to be released.  It is possible that the development version is broken due to regressions that often occur during development.
+These commands will build a previous release of AOMP such as aomp-19.0-0.<br>
+<b>Release Branch:</b>
+```
+   export AOMP_VERSION=19.0
+   export AOMP_REPOS=$HOME/git/aomp${AOMP_VERSION}
+   mkdir -p $AOMP_REPOS
+   cd $AOMP_REPOS
+   git clone -b aomp-19.0-0 https://github.com/ROCm-Developer-Tools/aomp
+```
+<b>Clone and build:</b>
+```
+   $AOMP_REPOS/aomp/bin/clone_aomp.sh
+   $AOMP_REPOS/aomp/bin/build_prereq.sh
+   nohup $AOMP_REPOS/aomp/bin/build_aomp.sh &
+```
 
-<b>For the Development Branch:</b>
-```
-   git checkout amd-stg-openmp
-   git pull
-```
+Change the value of AOMP\_REPOS to the directory name where you want to store all the repositories needed for AOMP. All the AOMP repositories will consume more than 12GB. Furthermore, each AOMP component will be built in a subdirectory of $AOMP\_REPOS/build which will consume an additional 6GB. So it is recommened that the directory $AOMP\_REPOS have more than 20GB of free space before beginning. It is recommended that $AOMP\_REPOS name include the value of AOMP\_VERSION as shown above. It is also recommended to put the values of AOMP\_VERSION and AOMP\_REPOS in a login profile (such as .bashrc) so future incremental build scripts will correctly find your sources.
 
-<b>For the Release Branch:</b>
-```
-   git checkout rel_11.5-0
-   git pull
-```
-<b>Clone and Build:</b>
-```
-   ./clone_aomp.sh
-   ./build_aomp.sh
-```
-Depending on your system, the last two commands could take a very long time. For more information, please refer to the AOMP developers README file located [HERE](../bin/README.md).
+Warning: the clone\_aomp.sh, and build\_aomp.sh are expected to take a long time to execute. As such we recommend the use of nohup to run build\_aomp.sh. It is ok to run build\_aomp.sh without nohup. The clone and build time will be affected by the performance of the filesystem that contains $AOMP\_REPOS.
 
-You only need to do the checkout/pull in the AOMP repository. The file "bin/aomp_common_vars" lists the branches of each repository for a particular AOMP release. In the master branch of AOMP, aomp_common_vars lists the development branches. It is a good idea to run clone_aomp.sh twice after you checkout a release to be sure you pulled all the checkouts for a particular release.
+There is a "list" option on the clone\_aomp.sh that provides useful information about each AOMP repository.
+```
+   $AOMP_REPOS/aomp/bin/clone_aomp.sh list
+```
+The above command will produce output like this showing you the location and branch of the repos in the AOMP\_REPOS directory and if there are any discrepencies with respect to the manifest file.<br>
 
-If you are interested in joining the development of AOMP, please read the details on the source build at [README](../bin/README.md).
+<b>USED manifest file: /work/grodgers/git/aomp19.0/aomp/bin/../manifests/aompi_19.0.xml</b><br>
+  repo src       branch                 path                 repo name    last hash    updated           commitor         for author
+  --------       ------                 ----                 ---------    ---------    -------           --------         ----------
+ gerritgit  amd-staging         llvm-project lightning/ec/llvm-project f986706166c9 2023-12-06      Ron Lieberman            JP Lehr         
+  roctools     aomp-dev                flang                     flang 88b81b0a8ead 2023-11-30             GitHub    Emma Pilkington         
+  roctools     aomp-dev          aomp-extras               aomp-extras 7097f3e2ba36 2023-12-04      Ron Lieberman      Ron Lieberman         
+  roctools     aomp-dev                 aomp                      aomp df5b5d8ddffa 2023-12-05 Dhruva Chakrabarti Dhruva Chakrabarti         
+  roctools   rocm-6.0.x          rocprofiler               rocprofiler 4e190a02e60e 2023-10-30             GitHub      Ammar ELWazir         
+  roctools   rocm-6.0.x            roctracer                 roctracer 6fbf7673aa7f 2023-07-13 Ranjith Ramakrishnan Ranjith Ramakrishnan         
+  roctools   rocm-6.0.x            ROCdbgapi                 ROCdbgapi df1a8df2be08 2023-07-28       Lancelot SIX       Lancelot SIX         
+  roctools   rocm-6.0.x               ROCgdb                    ROCgdb 157eed788288 2023-07-28       Lancelot SIX       Lancelot SIX         
+  roctools   rocm-6.0.x                  hip                       hip 80681169ae20 2023-08-15        Julia Jiang        Julia Jiang         
+  roctools   rocm-6.0.x                  clr                       clr 1949b1621a80 2023-09-21        Julia Jiang        Julia Jiang         
+       roc   rocm-6.0.x             rocminfo                  rocminfo c8db38ede264 2023-06-02       Mark Searles       Mark Searles         
+       roc rocm-rel-6.0           rocm-cmake                rocm-cmake 15cbb2e47f0b 2023-07-11   Lauren Wrubleski   Lauren Wrubleski         
+       roc   rocm-6.0.x         rocr-runtime              ROCR-Runtime b2b6811571bf 2023-09-15      David Yat Sin      David Yat Sin         
+       roc   rocm-6.0.x roct-thunk-interface      ROCT-Thunk-Interface 5268ea80e32a 2023-08-09     David Belanger     David Belanger         
+     rocsw rocm-rel-6.0              hipfort                   hipfort 41f33eeaa3f7 2023-09-07             Sam Wu    dependabot[bot]         
+```
+For more information, or if you are interested in joining the development of AOMP, please read the AOMP developers README file located here [README](../bin/README.md).

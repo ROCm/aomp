@@ -12,7 +12,7 @@ int main(int argc, char *argv[]) {
   {
     #pragma omp target device(dev) map(from:host[0:N]) 
     {
-      static int A;
+      [[clang::loader_uninitialized]] static int A;
       #pragma omp allocate(A) allocator(omp_pteam_mem_alloc)
       A = VALUE;
       #pragma omp barrier

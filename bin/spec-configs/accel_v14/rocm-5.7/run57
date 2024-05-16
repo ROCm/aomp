@@ -1,0 +1,14 @@
+#!/bin/bash
+set -x
+export AOMP=/opt/rocm-5.7.0/llvm
+export AOMP_GPU=gfx90a
+
+set +x
+. ./shrc 
+set -x
+ulimit -s unlimited
+export OMP_TARGET_OFFLOAD=MANDATORY
+export LIBRARY_PATH=$AOMP/lib
+export LD_LIBRARY_PATH=$AOMP/lib:$LD_LIBRARY_PATH
+export PATH=$AOMP/bin:$PATH
+runspec -c 57amd_aomp.cfg -I -l -n 1 -T base -i ref openmp --rebuild 

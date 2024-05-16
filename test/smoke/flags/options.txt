@@ -1,8 +1,8 @@
-OFFLOAD_DEBUG=1 flags.c -isystem/home/estewart/rocm/aomp/include  -O2  -target ${AOMP_CPUTARGET} -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=gfx906
-flags.c -isystem/home/estewart/rocm/aomp/include  -O2  -target ${AOMP_CPUTARGET} -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=gfx906
-flags.c -target ${AOMP_CPUTARGET} -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=gfx906
-flags.c -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=gfx906
-flags.c -fopenmp -save-temps -target ${AOMP_CPUTARGET} -fopenmp-targets=${AOMP_CPUTARGET}
-flags.c -fopenmp -save-temps -target ${AOMP_CPUTARGET}
-flags.c -fopenmp -save-temps  -fopenmp-targets=${AOMP_CPUTARGET}
+OFFLOAD_DEBUG=1 flags.c -isystem${AOMP}/include  -O2 ${AOMP_CPUTARGET} -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=AOMP_GPU_or_auto_detect
+flags.c -isystem${AOMP}/include  -O2 ${AOMP_CPUTARGET} -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=AOMP_GPU_or_auto_detect
+flags.c ${AOMP_CPUTARGET} -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=AOMP_GPU_or_auto_detect
+flags.c -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=AOMP_GPU_or_auto_detect
+flags.c -fopenmp -save-temps ${AOMP_CPUTARGET} -fopenmp-targets=x86_64-pc-linux-gnu
+flags.c -fopenmp -save-temps ${AOMP_CPUTARGET}
+flags.c -fopenmp -save-temps -fopenmp-targets=x86_64-pc-linux-gnu
 flags.c -fopenmp -save-temps

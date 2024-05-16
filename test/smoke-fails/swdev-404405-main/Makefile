@@ -1,0 +1,2 @@
+run:
+	./doit.sh 

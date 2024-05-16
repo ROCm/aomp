@@ -1,0 +1,289 @@
+#!/bin/bash
+#
+#  trunk_common_vars: This file is sourced by all TRUNK build scripts.
+#
+#     This file is stored in trunk directory of the aomp repo.
+#     You don't need to change this file unless you want to change
+#     default values for all TRUNK developers. To customize your build,
+#     set environment variables defined in this file.
+#
+# Set the TRUNK VERSION STRING and TRUNK_PROJECT_REPO_BRANCH.
+TRUNK_VERSION=${TRUNK_VERSION:-"18.0"}
+TRUNK_VERSION_MOD=${TRUNK_VERSION_MOD:-"0"}
+TRUNK_VERSION_STRING=${TRUNK_VERSION_STRING:-"$TRUNK_VERSION-$TRUNK_VERSION_MOD"}
+export TRUNK_VERSION_STRING TRUNK_VERSION TRUNK_VERSION_MOD 
+
+# Set the install directory TRUNK_INSTALL_DIR
+# TRUNK will be a symbolic link to TRUNK_INSTALL_DIR which has the version number
+TRUNK_LINK=${TRUNK_LINK:-$HOME/rocm/trunk}
+TRUNK_INSTALL_DIR=${TRUNK_LINK}_${TRUNK_VERSION_STRING}
+
+TRUNK_MAJOR_VERSION=${TRUNK_VERSION%.*}
+export TRUNK_MAJOR_VERSION
+
+# LLVMPROJECT names of the source directory to enable alternatve builds
+# such as a build of pure upstream sources without amd-trunk-dev
+LLVMPROJECT=${LLVMPROJECT:-llvm-project}
+
+# Set the directory location where all local TRUNK git repos are stored.
+TRUNK_REPOS=${TRUNK_REPOS:-${HOME}/git/trunk${TRUNK_VERSION}}
+
+# The patch control file 
+TRUNK_PATCH_CONTROL_FILE="${TRUNK_REPOS}/aomp/trunk/patches/patch-control-file_$TRUNK_VERSION.txt"
+
+# The cmake and make builds are done in $BUILD_TRUNK/build/<component>, not in the repos.
+# The default for BUILD_TRUNK is TRUNK_REPOS.
+BUILD_TRUNK=${BUILD_TRUNK:-$TRUNK_REPOS}
+
+# We uses RPATH (not) RUNPATH to enforce isolation of this install from other LLVM installs.
+# Also, we consider LD_LIBRARY_PATH is a user feature for user lib development. 
+# We do not want the compiler runtime to search user paths
+# first because we want assurance to recreate reported compiler runtime fails.
+# While it may appear to hamper compiler developers from testing experimental
+# compiler runtimes, this policy enforces replacement of installed compiler
+# runtime for testing instead of path manipulation. We use $ORIGIN in the
+# RPATH to allow relocation of the installation.
+TRUNK_ORIGIN_RPATH="-DCMAKE_SHARED_LINKER_FLAGS='-Wl,--disable-new-dtags' -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON -DCMAKE_INSTALL_RPATH='\$ORIGIN:\$ORIGIN/../lib:\$ORIGIN/../lib64'"
+
+CUDA=${CUDA:-/usr/local/cuda}
+CUDAT=${CUDAT:-$CUDA/targets}
+CUDAINCLUDE=${CUDAINCLUDE:-$CUDA/include}
+CUDABIN=${CUDABIN:-$CUDA/bin}
+
+AOMP_SUPP=${AOMP_SUPP:-$HOME/local}
+
+AOMP_USE_NINJA=${AOMP_USE_NINJA:-1}
+if [ "$AOMP_USE_NINJA" == 0 ] ; then
+  AOMP_NINJA_BIN="make"
+else
+  AOMP_NINJA_BIN=`which ninja`
+  if [ "$AOMP_NINJA_BIN" == "" ] ; then
+    AOMP_NINJA_BIN="$AOMP_SUPP/ninja/bin/ninja"
+    if [ ! -f "$AOMP_NINJA_BIN" ] ; then
+       echo "ERROR: AOMP_USE_NINJA is $AOMP_USE_NINJA but no ninja bin found in PATH."
+       echo "       Either install ninja in PATH or set AOMP_USE_NINJA=0"
+       echo "       You may also install ninja as an AOMP supplemental component with"
+       echo "       ./build_supp.sh ninja"
+       echo
+       exit 1
+    fi
+    export PATH=$AOMP_SUPP/ninja/bin:$PATH
+  fi
+fi
+
+AOMP_USE_CCACHE=${AOMP_USE_CCACHE:-1}
+if [ "$AOMP_USE_CCACHE" == 0 ] ; then
+  AOMP_CCACHE_OPTS=""
+else
+  _ccache_bin=`which ccache`
+  if [ "$_ccache_bin" == "" ] ; then
+    echo "ERROR: AOMP_USE_CCACHE is $AOMP_USE_CCACHE but no ccache bin found in PATH"
+    echo "       Either install ccache or set AOMP_USE_CCACHE=0"
+    echo
+    exit 1
+  fi
+  AOMP_CCACHE_OPTS="-DCMAKE_C_COMPILER_LAUNCHER=$_ccache_bin -DCMAKE_CXX_COMPILER_LAUNCHER=$_ccache_bin"
+fi
+
+TRUNK_SKIP_FLANG=${TRUNK_SKIP_FLANG:-0}
+if [ "$TRUNK_SKIP_FLANG" == 1 ] ; then
+   TRUNK_PROJECTS_LIST=${TRUNK_PROJECTS_LIST:-"clang;lld;llvm"}
+else
+   TRUNK_PROJECTS_LIST=${TRUNK_PROJECTS_LIST:-"clang;lld;llvm;flang"}
+fi
+TRUNK_COMPONENT_LIST=${TRUNK_COMPONENT_LIST:-"prereq project"}
+
+# AOMP_SUPP is for SUPPlemental software components needed for testing.
+# such as openmpi, hdf5, and silo. Applications that need supplemental
+# components can get the latest version with $AOMP_SUPP/<component name>
+# For example set OPENMPI_DIR=$AOMP_SUPP/openmpi in the run script.
+# Supplemental components are built with either the ROCm or AOMP
+# compiler using the build_supp.sh script. The build_supp.sh script
+# will use the AOMP environment variable to identify which LLVM to use
+# for building the supplemental component.
+# The directory structure for a supplemental component includes:
+#   1. a build directory for each component,
+#   2. an install directory for each version of a component,
+#   3. a link from AOMP_SUPP/<component name> to latest version.
+# For example: The openmpi component is built in directory
+# $AOMP_SUPP_BUILD/openmpi/ and installed in directory
+# $AOMP_SUPP_INSTALL/openmpi/openmpi-4.1.1/ with a symbolic link from
+# $AOMP_SUPP/openmpi to $AOMP_SUPP_INSTALL/openmpi/openmpi-4.1.1/
+#
+# The default AOMP_SUPP directory is $HOME/local but a sysadmin with root
+# root authority could set AOMP_SUPP=/usr/local
+#
+# AOMP_SUPP_BUILD could be a temp directory but defaults to $AOMP_SUPP/build
+AOMP_SUPP_BUILD=${AOMP_SUPP_BUILD:-$AOMP_SUPP/build}
+#
+# AOMP_SUPP_INSTALL must be permanent directory.
+AOMP_SUPP_INSTALL=${AOMP_SUPP_INSTALL:-$AOMP_SUPP/install}
+
+
+if [ -d $AOMP_SUPP/cmake/bin ] ; then 
+   AOMP_CMAKE=${AOMP_CMAKE:-$AOMP_SUPP/cmake/bin/cmake}
+else
+   AOMP_CMAKE=${AOMP_CMAKE:-cmake}
+fi
+
+GCC=`which gcc`
+GCCXX=`which g++`
+TRUNK_CC_COMPILER=${TRUNK_CC_COMPILER:-$GCC}
+TRUNK_CXX_COMPILER=${TRUNK_CXX_COMPILER:-$GCCXX}
+
+# Default is to build nvptx
+TRUNK_BUILD_CUDA=${TRUNK_BUILD_CUDA:-1}
+# Turn off TRUNK_BUILD_CUDA if CUDA not available
+if [ ! -d "$CUDABIN" ] ; then
+   TRUNK_BUILD_CUDA=0
+fi
+
+if [ -z $NVPTXGPUS ] ; then
+   AOMP_NVPTX_CAPS_OPT=""
+else
+   AOMP_NVPTX_CAPS_OPT="-DLIBOMPTARGET_NVPTX_COMPUTE_CAPABILITIES='${NVPTXGPUS}'"
+fi
+
+# Set list of default amdgcn subarchitectures to build
+# Developers may override GFXLIST to shorten build time.
+if [ -z "$GFXLIST"  ] ; then
+   AOMP_GFXLIST_OPT=""
+else
+   GFXSEMICOLONS=`echo $GFXLIST | tr ' ' ';' `
+   AOMP_GFXLIST_OPT="-DLIBOMPTARGET_AMDGCN_GFXLIST='${GFXSEMICOLONS}'"
+fi
+
+# FIXME:
+# Default for LIBOMP_OMPT_SUPPORT is ON. Then, OMPT is supposed to only be
+# enabled when user defines function ompt_start_tool. But that is not the case
+# currently. So we are turning off LIBOMP_OMPT_SUPPORT for build_trunk.sh
+# till resolved by Michael and Dhurva. This eliminates OMPT banner diagnostics
+# from trace when ENABLE_DEBUG is on.
+TRUNK_BUILD_DEBUG=${TRUNK_BUILD_DEBUG:-0}
+if [ "$TRUNK_BUILD_DEBUG" == 0 ] ; then
+  ENABLE_DEBUG_OPT="-DLIBOMP_OMPT_SUPPORT=OFF"
+else
+  ENABLE_DEBUG_OPT="-DLIBOMPTARGET_ENABLE_DEBUG=ON -DLIBOMP_OMPT_SUPPORT=OFF"
+fi
+
+# Calculate the number of threads to use for make
+NUM_THREADS=
+if [ ! -z `which "getconf"` ]; then
+   NUM_THREADS=$(`which "getconf"` _NPROCESSORS_ONLN)
+   NUM_THREADS=$(echo "$NUM_THREADS / 2.75" | bc)
+fi
+AOMP_JOB_THREADS=${AOMP_JOB_THREADS:-$NUM_THREADS}
+
+# These are the web sites where the TRUNK git repos are pulled from
+GITROC="https://github.com/radeonopencompute"
+GITROCLIB="https://github.com/AMDComputeLibraries"
+GITKHRONOS="https://github.com/KhronosGroup"
+
+TRUNK_APPLY_PATCHES=${TRUNK_APPLY_PATCHES:-1}
+
+#  TO use this function set variables patchdir and patchfile
+function patchrepo(){
+patchdir=$1
+if [ "$TRUNK_APPLY_PATCHES" == 1 ] && [ -d "$patchdir" ] ; then
+   patches=""
+   cd $patchdir
+   if [[ "$2" =~ "postinstall" ]]; then
+     getpatchlist $2
+   else
+     getpatchlist
+   fi
+
+   #loop through list of patches to apply
+   if [ "$patches" != "" ] ; then
+   patchloc=${TRUNK_PATCH_CONTROL_FILE%/*}
+   echo patchloc=$patchloc
+   for patch in $patches; do
+     patchfile=$patchloc/$patch
+     echo "Testing patch $patchfile to $patchdir"
+
+     applypatch="yes"
+     patch -p1 -t -N --dry-run <$patchfile >/dev/null
+     if [ $? != 0 ] ; then
+        applypatch="no"
+        # Check to see if reverse patch applies cleanly
+        patch -p1 -R --dry-run -t <$patchfile >/dev/null
+        if [ $? == 0 ] ; then
+           echo "patch $patchfile was already applied to $patchdir"
+        else
+           echo
+           echo "ERROR: Patch $patchfile will not apply"
+           echo "       cleanly to directory $patchdir"
+           echo "       Check if it was already applied."
+           echo
+           exit 1
+        fi
+     fi
+     if [ "$applypatch" == "yes" ] ; then
+        echo "Applying patch $patchfile to $patchdir"
+        patch -p1 --no-backup-if-mismatch <$patchfile
+     fi
+   done
+   fi
+fi
+
+}
+
+function removepatch(){
+patchdir=$1
+if [ "$TRUNK_APPLY_PATCHES" == 1 ] && [ -d "$patchdir" ] ; then
+   patches=""
+   cd $patchdir
+   getpatchlist
+   if [ "$patches" != "" ] ; then
+      echo "Patchdir $patchdir"
+      echo "PATCHES TO REMOVE: $patches"
+   fi
+   patchloc=${TRUNK_PATCH_CONTROL_FILE%/*}
+   if [ "$patches" != "" ] ; then
+   for patch in $patches; do
+     patchfile=$patchloc/$patch
+     echo "Testing reverse patch $patchfile to $patchdir"
+     reversepatch="yes"
+     # Check to see if reverse patch applies cleanly
+     patch -p1 -R --dry-run -f <$patchfile  >/dev/null
+     if [ $? != 0 ] ; then
+        echo "patch $patchfile was NOT applied $patchdir, no patch to reverse"
+        reversepatch="no"
+     fi
+     if [ "$reversepatch" == "yes" ] ; then
+        echo "Reversing patch $patchfile to $patchdir"
+        patch -p1 -R -f --no-backup-if-mismatch <$patchfile
+     fi
+   done
+   fi
+fi
+}
+
+function getpatchlist(){
+   currdir=$(pwd)
+   basedir=$(basename $currdir)
+   if [[ "$1" =~ "postinstall" ]]; then
+     reporegex="(^$1:\s)"
+   else
+     reporegex="(^$basedir:\s)"
+   fi
+   #read patch control file and look for correct patches
+   while read -r line; do
+   if [[ "$line" =~ $reporegex ]]; then
+     #remove basename from list of patches
+     patches=${line/"${BASH_REMATCH[1]}"}
+     echo "patches: $patches"
+     break
+   fi
+   done < "$TRUNK_PATCH_CONTROL_FILE"
+}
+
+function help_build_trunk(){
+   /bin/cat 2>&1 <<"EOF"
+
+  The build scripts in this directory are used to build TRUNK.
+  
+  
+EOF
+   exit 0
+}

@@ -10,48 +10,150 @@
 #     The bash syntax ENVNAME=${ENVNAME:-value} checks if ENVNAME is
 #     already set. If not, it assigns it the value following the :-
 
+# --- Start standard header to set AOMP environment variables ----
+realpath=`realpath $0`
+thisdir=`dirname $realpath`
+
 # The AOMP_COMPILER_NAME is used whenever version is queried.
 # FIXME: More work is needed to propogate the use of AOMP_COMPILER_NAME.
 AOMP_COMPILER_NAME=${AOMP_COMPILER_NAME:-AOMP}
 
 # ROCM_VERSION may be set by Jenkins, if not guess a good number
-ROCM_VERSION=${ROCM_VERSION:-3.5.0}
+ROCM_VERSION=${ROCM_VERSION:-6.0.0}
 
-# Set the AOMP VERSION STRING and AOMP_PROJECT_REPO_BRANCH.
-AOMP_VERSION=${AOMP_VERSION:-"11.5"}
-AOMP_VERSION_MOD=${AOMP_VERSION_MOD:-"1"}
+# Set the AOMP VERSION STRING
+AOMP_VERSION=${AOMP_VERSION:-"19.0"}
+AOMP_VERSION_MOD=${AOMP_VERSION_MOD:-"2"}
 AOMP_VERSION_STRING=${AOMP_VERSION_STRING:-"$AOMP_VERSION-$AOMP_VERSION_MOD"}
-export AOMP_VERSION_STRING AOMP_VERSION AOMP_VERSION_MOD ROCM_VERSION
+ROCM_EXPECTED_MODVERSION=${ROCM_EXPECTED_MODVERSION:-6.2.4}
+export AOMP_VERSION_STRING AOMP_VERSION AOMP_VERSION_MOD ROCM_VERSION ROCM_EXPECTED_MODVERSION
 
 # Set install directory and the link directory.
 # AOMP will be a symbolic link AOMP_INSTALL_DIR is the versioned dir name
 AOMP=${AOMP:-$HOME/rocm/aomp}
 AOMP_INSTALL_DIR=${AOMP}_${AOMP_VERSION_STRING}
 
-# Set the directory location where all local AOMP git repos are stored.
 # For example, if AOMP_REPOS=$HOME/git/aomp11, then the primary aomp repo
 # is stored in $HOME/git/aomp11/aomp and the mono repo is stored in
 # $HOME/aomp/llvm-project.
-AOMP_REPOS=${AOMP_REPOS:-$HOME/git/aomp11}
+AOMP_MAJOR_VERSION=${AOMP_VERSION%.*}
+export AOMP_MAJOR_VERSION
+AOMP_REPOS=${AOMP_REPOS:-${HOME}/git/aomp${AOMP_VERSION}}
+if [ "$AOMP_NEW" == 1 ] ; then
+   AOMP_PATCH_CONTROL_FILE="$thisdir/patches/patch-control-file-new_$AOMP_VERSION.txt"
+else
+   AOMP_PATCH_CONTROL_FILE="$thisdir/patches/patch-control-file_$AOMP_VERSION.txt"
+fi
 
 # Because the source for all repos are tarred for release, we store
 # all the test repositories in a different directory.
 AOMP_REPOS_TEST=${AOMP_REPOS_TEST:-$HOME/git/aomp-test}
 
-# To build aomp from the release source taball, set these values to 0
-AOMP_CHECK_GIT_BRANCH=${AOMP_CHECK_GIT_BRANCH:-1}
-AOMP_APPLY_ROCM_PATCHES=${AOMP_APPLY_ROCM_PATCHES:-1}
+_ccache_bin=`which ccache`
+if [ "$_ccache_bin" == "" ] ; then
+AOMP_USE_CCACHE=${AOMP_USE_CCACHE:-0}
+else
+AOMP_USE_CCACHE=${AOMP_USE_CCACHE:-1}
+fi
+if [ "$AOMP_USE_CCACHE" == 0 ] ; then
+  AOMP_CCACHE_OPTS=""
+else
+  _ccache_bin=`which ccache`
+  if [ "$_ccache_bin" == "" ] ; then
+    echo "ERROR: AOMP_USE_CCACHE is $AOMP_USE_CCACHE but no ccache bin found in PATH"
+    echo "       Either fix path,  install ccache, or set AOMP_USE_CCACHE=0"
+    echo
+    exit 1
+  fi
+  AOMP_CCACHE_OPTS="-DCMAKE_C_COMPILER_LAUNCHER=$_ccache_bin -DCMAKE_CXX_COMPILER_LAUNCHER=$_ccache_bin"
+fi
 
-#Set common rpath for build scripts
-AOMP_ORIGIN_RPATH="-DCMAKE_SHARED_LINKER_FLAGS='-Wl,--disable-new-dtags' -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON -DCMAKE_INSTALL_RPATH=\$ORIGIN:\$ORIGIN/../lib:\$ORIGIN/../hsa/lib:\$ORIGIN/../../lib64:\$ORIGIN/../../hsa/lib:$AOMP_INSTALL_DIR/lib:$AOMP_INSTALL_DIR/hsa/lib"
+AOMP_SKIP_FLANG=${AOMP_SKIP_FLANG:-0}
+AOMP_SKIP_FLANG_NEW=${AOMP_SKIP_FLANG_NEW:-0}
+
+# Do not build openmp as standalone unless user specifies.
+AOMP_LEGACY_OPENMP=${AOMP_LEGACY_OPENMP:-0}
+
+if [ "$AOMP_SKIP_FLANG" == 1 ] || [ "$AOMP_SKIP_FLANG_NEW" == 1 ] ; then
+   AOMP_PROJECTS_LIST=${AOMP_PROJECTS_LIST:-"clang;lld;compiler-rt;clang-tools-extra"}
+else
+   AOMP_PROJECTS_LIST=${AOMP_PROJECTS_LIST:-"clang;lld;compiler-rt;clang-tools-extra;flang"}
+fi
+AOMP_COMPONENT_LIST=${AOMP_COMPONENT_LIST:-"prereq project"}
+
+# AOMP_SUPP is for SUPPlemental software components needed for testing.
+# such as openmpi, hdf5, and silo. Applications that need supplemental
+# components can get the latest version with $AOMP_SUPP/<component name>
+# For example set OPENMPI_DIR=$AOMP_SUPP/openmpi in the run script.
+# Supplemental components are built with either the ROCm or AOMP
+# compiler using the build_supp.sh script. The build_supp.sh script
+# will use the AOMP environment variable to identify which LLVM to use
+# for building the supplemental component.
+# The directory structure for a supplemental component includes:
+#   1. a build directory for each component,
+#   2. an install directory for each version of a component,
+#   3. a link from AOMP_SUPP/<component name> to latest version.
+# For example: The openmpi component is built in directory
+# $AOMP_SUPP_BUILD/openmpi/ and installed in directory
+# $AOMP_SUPP_INSTALL/openmpi/openmpi-4.1.1/ with a symbolic link from
+# $AOMP_SUPP/openmpi to $AOMP_SUPP_INSTALL/openmpi/openmpi-4.1.1/
+#
+# The default AOMP_SUPP directory is $HOME/local but a sysadmin with root
+# root authority could set AOMP_SUPP=/usr/local
+AOMP_SUPP=${AOMP_SUPP:-$HOME/local}
+#
+# AOMP_SUPP_BUILD could be a temp directory but defaults to $AOMP_SUPP/build
+AOMP_SUPP_BUILD=${AOMP_SUPP_BUILD:-$AOMP_SUPP/build}
+#
+# AOMP_SUPP_INSTALL must be permanent directory.
+AOMP_SUPP_INSTALL=${AOMP_SUPP_INSTALL:-$AOMP_SUPP/install}
+
+# Set the directory location where all local AOMP git repos are stored.
+
+# To build aomp from the release source taball, set these values to 0
+AOMP_APPLY_ROCM_PATCHES=${AOMP_APPLY_ROCM_PATCHES:-1}
 
 CUDA=${CUDA:-/usr/local/cuda}
 CUDAT=${CUDAT:-$CUDA/targets}
 CUDAINCLUDE=${CUDAINCLUDE:-$CUDA/include}
 CUDABIN=${CUDABIN:-$CUDA/bin}
 
-AOMP_CMAKE=${AOMP_CMAKE:-cmake}
-AOMP_PROC=`uname -p`
+# unless overridden with AOMP_CMAKE, get CMAKE from the
+# prerequisite supplemental component cmake.
+AOMP_CMAKE=${AOMP_CMAKE:-$AOMP_SUPP/cmake/bin/cmake}
+if [ ! -f $AOMP_CMAKE ] ; then
+  AOMP_CMAKE=`which cmake`
+  if [ "$AOMP_CMAKE" == "" ] ; then
+    echo "ERROR: finding cmake in aomp_common_vars."
+    echo "       Missing prerequisite supplemental component cmake."
+    echo "       Please run: ./build_prereq.sh cmake"
+    echo "       OR set AOMP_CMAKE env variable to a valid cmake binary"
+    echo "       OR build ALL prerequisite components with: ./build_prereq.sh"
+    echo
+    echo "NOTE:  All supplemental components are built and retrieved from "
+    echo "       subdirectories of the directory defined by environment variable"
+    echo "       AOMP_SUPP whose current value is: $AOMP_SUPP"
+    exit 1
+  else
+    # FIXME: Add version check here for system cmake.
+    echo "WARNING: Using system cmake $AOMP_CMAKE "
+    echo "         consider building cmake with: ./build_prereq.sh cmake"
+  fi
+fi
+
+AOMP_USE_NINJA=${AOMP_USE_NINJA:-0}
+if [ "$AOMP_USE_NINJA" == 0 ] ; then
+  AOMP_NINJA_BIN="make"
+else
+  AOMP_NINJA_BIN=`which ninja`
+  if [ AOMP_NINJA_BIN == "" ] ; then
+    echo "ERROR: AOMP_USE_NINJA is $AOMP_USE_NINJA but no ninja bin found in PATH"
+    echo "       Either install ninja in PATH or set AOMP_USE_NINJA=0"
+    echo
+    exit 1
+  fi
+fi
+AOMP_PROC=`uname -m`
 if [ "$AOMP_PROC" == "unknown" ] ; then
    AOMP_PROC=`uname -a | awk '{print $(NF-1)}'`
 fi
@@ -60,23 +162,54 @@ GCC=`which gcc`
 GCCXX=`which g++`
 AOMP_CC_COMPILER=${AOMP_CC_COMPILER:-$GCC}
 AOMP_CXX_COMPILER=${AOMP_CXX_COMPILER:-$GCCXX}
+# Set specified clang and clang++ compilers with env vars AOMP_CLANG*_COMPILER.
+# Otherwise default to installed AOMP. If not yet installed, try rocm clang.
+_clang_compiler=$AOMP/bin/clang
+_clangxx_compiler=$AOMP/bin/clang++
+[ ! -f $_clang_compiler ] && _clang_compiler=/opt/rocm/llvm/bin/clang
+[ ! -f $_clangxx_compiler ] && _clangxx_compiler=/opt/rocm/llvm/bin/clang++
+AOMP_CLANG_COMPILER=${AOMP_CLANG_COMPILER:-$_clang_compiler}
+AOMP_CLANGXX_COMPILER=${AOMP_CLANGXX_COMPILER:-$_clangxx_compiler}
 
 # Non standalone builds are done with ROCm builds.
 AOMP_STANDALONE_BUILD=${AOMP_STANDALONE_BUILD:-1}
 
-#  The logic for turning on CUDA build is here
+#  The logic for turning on AOMP_BUILD_CUDA build is here
+if [ "$AOMP_PROC" == "ppc64le" ] ; then
+   AOMP_BUILD_CUDA=1
+   AOMP_STANDALONE_BUILD=1
+fi
+AOMP_ORIGIN_RPATH_LIST="\$ORIGIN:\$ORIGIN/../lib:\$ORIGIN/../lib64"
 if [ $AOMP_STANDALONE_BUILD == 1 ] ; then
    # Default is to build nvptx for STANDALONE build
    AOMP_BUILD_CUDA=${AOMP_BUILD_CUDA:-1}
-   AOMP_BUILD_SANITIZER=${AOMP_BUILD_SANITIZER:-0}
+   AOMP_BUILD_DEBUG=${AOMP_BUILD_DEBUG:-1}
+   AOMP_BUILD_PERF=${AOMP_BUILD_PERF:-1}
+   AOMP_BUILD_SANITIZER=${AOMP_BUILD_SANITIZER:-1}
+   AOMP_ORIGIN_RPATH_NO_DTAGS="-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON -DCMAKE_INSTALL_RPATH=$AOMP_ORIGIN_RPATH_LIST"
 else
    # Default is to NOT build nvptx for ROCm integrated build
    AOMP_BUILD_CUDA=${AOMP_BUILD_CUDA:-0}
-   if [ "$SANITIZER" == 1 ]; then
-      AOMP_BUILD_SANITIZER=${AOMP_BUILD_SANITIZER:-1}
+   AOMP_BUILD_DEBUG=${AOMP_BUILD_DEBUG:-0}
+   AOMP_BUILD_PERF=${AOMP_BUILD_PERF:-0}
+   AOMP_BUILD_SANITIZER=${AOMP_BUILD_SANITIZER:-0}
+   AOMP_ORIGIN_RPATH_NO_DTAGS="-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON -DCMAKE_INSTALL_RPATH=$AOMP_ORIGIN_RPATH_LIST"
+fi
+
+if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
+   if [ -f "${AOMP}/bin/clang" ] ; then
+      ASAN_LIB_PATH=$(${AOMP}/bin/clang --print-runtime-dir)
+      if [ ! -d $ASAN_LIB_PATH ] ; then
+         # --print-runtime-dir outputs the new lib directory that includes the host target.
+         # Workaround this for now until LLVM_ENABLE_PER_TARGET_RUNTIME_DIR is on by default.
+         RESOURCE_PATH=$(${AOMP}/bin/clang --print-resource-dir)
+         ASAN_LIB_PATH="$RESOURCE_PATH/lib/linux"
+      fi
    else
-      AOMP_BUILD_SANITIZER=${AOMP_BUILD_SANITIZER:-0}
+      # no compiler at $AOMP so set where we expect ASAN_LIP_PATH to be
+      ASAN_LIB_PATH=${AOMP}/lib/clang/${AOMP_MAJOR_VERSION}/lib/linux
    fi
+   ASAN_FLAGS="-g -fsanitize=address -shared-libasan -Wl,-rpath=$ASAN_LIB_PATH -L$ASAN_LIB_PATH"
 fi
 
 # AOMP uses RPATH (not) RUNPATH because LD_LIBRARY_PATH is a user feature for
@@ -92,12 +225,16 @@ AOMP_ORIGIN_RPATH="-DCMAKE_SHARED_LINKER_FLAGS='-Wl,--disable-new-dtags' $AOMP_O
 
 # Libraries and Binaries need different RUNPATH as below
 if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
+  ## Below 3 lines are actually only required for AOMP ASan RPATH Cmake configuration.
+  AOMP_ASAN_ORIGIN_RPATH_LIST="\$ORIGIN:\$ORIGIN/../../lib:\$ORIGIN/../lib:\$ORIGIN/../lib64"
+  AOMP_ASAN_ORIGIN_RPATH_NO_DTAGS="-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=OFF -DCMAKE_INSTALL_RPATH=$AOMP_ASAN_ORIGIN_RPATH_LIST"
+  AOMP_ASAN_ORIGIN_RPATH="-DCMAKE_SHARED_LINKER_FLAGS='-Wl,--disable-new-dtags' $AOMP_ASAN_ORIGIN_RPATH_NO_DTAGS"
+  # Please note below lines are only setup for ROCm ASan integration with AOMP.
   # Relative RUNPATH for ASAN binaries and libraries
   OPENMP_EXTRAS_LIB_RPATH='$ORIGIN:$ORIGIN/../../../lib/asan:$ORIGIN/../../../lib:$ORIGIN/../../../../lib/asan:$ORIGIN/../../../../lib'
   OPENMP_EXTRAS_EXE_RPATH='$ORIGIN/../lib/asan:$ORIGIN/../lib:$ORIGIN/../../lib/asan:$ORIGIN/../../lib:$ORIGIN/../../../lib/asan:$ORIGIN/../../../lib'
 else
-# RUNPATH for Libraries: \$ORIGIN:\$ORIGIN/../../lib
-# RUNPATH for Binaries: \$ORIGIN/../lib:\$ORIGIN/../../lib
+  # Relative RUNPATH for non-ASAN binaries and libraries
   OPENMP_EXTRAS_LIB_RPATH='$ORIGIN:$ORIGIN/../lib:$ORIGIN/../../lib:$ORIGIN/../../../lib'
   OPENMP_EXTRAS_EXE_RPATH='$ORIGIN/../lib:$ORIGIN/../../lib:$ORIGIN/../../../lib'
 fi
@@ -118,12 +255,7 @@ fi
 # Set list of default nvptx subarchitectures to build
 # Only Cuda 9 and above supports sm_70
 if [ "$AOMP_BUILD_CUDA" == 1 ] ; then
-   NVPTXGPUS_DEFAULT="30,32,35,50,60,61"
-   if [ -f $CUDA/version.txt ] ; then
-      if [ `head -1 /usr/local/cuda/version.txt | cut -d " " -f 3 | cut -d "." -f 1` -ge 9 ] ; then
-         NVPTXGPUS_DEFAULT+=",70"
-      fi
-   fi
+   NVPTXGPUS_DEFAULT="35,37,50,52,53,60,61,62,70,72,75,80,86"
    #  Developers should override NVPTXGPUS to shorten build time.
    NVPTXGPUS=${NVPTXGPUS:-"${NVPTXGPUS_DEFAULT}"}
    AOMP_NVPTX_TARGET="NVPTX;"
@@ -139,31 +271,60 @@ GFXLIST=${GFXLIST:-"gfx700 gfx701 gfx801 gfx803 gfx900 gfx902 gfx906 gfx908 gfx9
 export GFXLIST
 
 # Calculate the number of threads to use for make
-NUM_THREADS=
+COMP_THREADS=1
 if [ ! -z `which "getconf"` ]; then
-   NUM_THREADS=$(`which "getconf"` _NPROCESSORS_ONLN)
+   COMP_THREADS=$(`which "getconf"` _NPROCESSORS_ONLN)
    if [ "$AOMP_PROC" == "ppc64le" ] ; then
-      NUM_THREADS=8
+      COMP_THREADS=$(( COMP_THREADS / 6))
    fi
    if [ "$AOMP_PROC" == "aarch64" ] ; then
-      NUM_THREADS=$(( NUM_THREADS / 4))
+      COMP_THREADS=$(( COMP_THREADS / 4))
    fi
+fi
+AOMP_JOB_THREADS=${AOMP_JOB_THREADS:-$COMP_THREADS}
+
+if [ "$AOMP_LIMIT_FLANG" == "1" ] ; then
+   # Limit build jobs for llvm flang-new build.
+   FLANG_THREADS=1
+
+   # Third column of free is the amount of available memory
+   memory_regex="[0-9]+\s+[0-9]+\s+([0-9]+)"
+   free_memory=$(free -g)
+
+   if [[ "$free_memory" =~ $memory_regex ]]; then
+     memory_size=${BASH_REMATCH[1]}
+     # 6 GB estimate per thread for MLIR
+     FLANG_THREADS=$((memory_size/6))
+   fi
+
+   AOMP_FLANG_THREADS=${AOMP_FLANG_THREADS:-$FLANG_THREADS}
 fi
 
 # These are the web sites where the AOMP git repos are pulled from
-GITROC="https://github.com/radeonopencompute"
-GITROCDEV="https://github.com/ROCm-Developer-Tools"
-GITROCLIB="https://github.com/AMDComputeLibraries"
+GITROC="https://github.com/ROCm"
+GITROCINTERNAL="ssh://$USER@gerrit-git.amd.com:29418/lightning/ec"
+GITGERRIT="ssh://$USER@gerrit-git.amd.com:29418"
+GITROCDEV="https://github.com/ROCm"
+GITROCLIB="https://github.com/ROCm"
+GITROCSW="https://github.com/ROCm"
 GITKHRONOS="https://github.com/KhronosGroup"
+GITHWLOC="https://github.com/open-mpi"
+AOMP_GIT_INTERNAL_IP="gerrit-git.amd.com"
+GITPROJECT=$GITROCDEV
+AOMP_PROJECT_REPO_NAME=${AOMP_PROJECT_REPO_NAME:-llvm-project}
+AOMP_EXTRAS_REPO_NAME=${AOMP_EXTRAS_REPO_NAME:-aomp-extras}
+AOMP_FLANG_REPO_NAME=${AOMP_FLANG_REPO_NAME:-flang}
 
-# FIXME: In the near future, we will remove the _BRANCH variables and use a
-#        manifest file to determine which branch to build each component.
-#
-# The difference between a _REPO_NAME and _REPO_GITNAME is that the
-# _REPO_NAME is the directory name following $AOMP_REPOS.  The GITNAME
-# Is the name of the git repository used in the clone_aomp script.
-# The _REPO_GITNAME variables will also be removed with the conversion to
-# the use of the repo tool.
+# Last version of rocm (5.5) that supports the legacy driver (command generation)
+# The archives are built during flang-legacy.
+AOMP_FLANG_LEGACY_REL=${AOMP_FLANG_LEGACY_REL:-${AOMP_REPOS}/${AOMP_FLANG_REPO_NAME}/flang-legacy}
+if [ -d $AOMP_FLANG_LEGACY_REL/llvm-legacy ] ; then
+   AOMP_BUILD_FLANG_LEGACY=1
+else
+   AOMP_BUILD_FLANG_LEGACY=0
+fi
+
+# The AOMP_XXX_REPO_NAME is the directory name following $AOMP_REPOS.
 
 # External component names for LLVM_EXTERNAL_PROJECTS may have no special
 # characters in them.  Therefore, AOMP_xxx_REPO_NAME is different than
@@ -172,63 +333,65 @@ GITKHRONOS="https://github.com/KhronosGroup"
 
 #  These aomp development repositories
 AOMP_REPO_NAME=${AOMP_REPO_NAME:-aomp}
-AOMP_REPO_BRANCH=${AOMP_REPO_BRANCH:-amd-stg-openmp}
-AOMP_PROJECT_REPO_NAME=${AOMP_PROJECT_REPO_NAME:-amd-llvm-project}
-AOMP_PROJECT_REPO_BRANCH=${AOMP_PROJECT_REPO_BRANCH:-amd-stg-openmp}
-AOMP_EXTRAS_REPO_NAME=${AOMP_EXTRAS_REPO_NAME:-aomp-extras}
-AOMP_EXTRAS_REPO_BRANCH=${AOMP_EXTRAS_REPO_BRANCH:-amd-stg-openmp}
-AOMP_FLANG_REPO_NAME=${AOMP_FLANG_REPO_NAME:-flang}
-AOMP_FLANG_REPO_BRANCH=${AOMP_FLANG_REPO_BRANCH:-amd-stg-openmp}
 
 #  These extra repositories are needed but we cannot update them
 AOMP_ROCT_REPO_NAME=${AOMP_ROCT_REPO_NAME:-roct-thunk-interface}
-AOMP_ROCT_REPO_BRANCH=${AOMP_ROCT_REPO_BRANCH:-roc-3.3.x}
 AOMP_ROCT_COMPONENT_NAME=${AOMP_ROCT_COMPONENT_NAME:-roct}
 AOMP_ROCR_REPO_NAME=${AOMP_ROCR_REPO_NAME:-rocr-runtime}
-AOMP_ROCR_REPO_BRANCH=${AOMP_ROCR_REPO_BRANCH:-rocm-3.3.x}
 AOMP_ROCR_COMPONENT_NAME=${AOMP_ROCR_COMPONENT_NAME:-rocr}
-AOMP_LIBDEVICE_REPO_NAME=${AOMP_LIBDEVICE_REPO_NAME:-rocm-device-libs}
+AOMP_LIBDEVICE_REPO_NAME=${AOMP_LIBDEVICE_REPO_NAME:-device-libs}
 AOMP_LIBDEVICE_COMPONENT_NAME=${AOMP_LIBDEVICE_COMPONENT_NAME:-rocdl}
-AOMP_LIBDEVICE_REPO_BRANCH=${AOMP_LIBDEVICE_REPO_BRANCH:-amd-stg-open}
-AOMP_LIBDEVICE_REPO_SHA=${AOMP_LIBDEVICE_REPO_SHA:-168cbba7c}
-AOMP_COMGR_REPO_NAME=${AOMP_COMGR_REPO_NAME:-rocm-compilersupport}
-AOMP_COMGR_REPO_BRANCH=${AOMP_COMGR_REPO_BRANCH:-amd-stg-open}
-AOMP_COMGR_REPO_SHA=${AOMP_COMGR_REPO_SHA:-9b0cdb6}
+DEVICELIBS_ROOT=${DEVICELIBS_ROOT:-$AOMP_REPOS/$AOMP_LIBDEVICE_REPO_NAME}
+AOMP_COMGR_REPO_NAME=${AOMP_COMGR_REPO_NAME:-comgr}
 AOMP_RINFO_REPO_NAME=${AOMP_RINFO_REPO_NAME:-rocminfo}
-AOMP_RINFO_REPO_BRANCH=${AOMP_RINFO_REPO_BRANCH:-master}
-AOMP_RINFO_REPO_SHA=${AOMP_RINFO_REPO_SHA:-1a81ee3}
 
-# These are repos we will use when we switch to HIP VDI
-AOMP_VDI_REPO_NAME=${AOMP_VDI_REPO_NAME:-vdi}
-AOMP_VDI_REPO_BRANCH=${AOMP_VDI_REPO_BRANCH:-master}
-AOMP_VDI_REPO_GITNAME=${AOMP_VDI_REPO_GITNAME:-ROCclr}
-AOMP_OCL_REPO_NAME=${AOMP_OCL_REPO_NAME:-opencl-on-vdi}
-AOMP_OCL_REPO_GITNAME=${AOMP_OCL_REPO_GITNAME:-ROCm-OpenCL-Runtime}
-AOMP_OCL_REPO_BRANCH=${AOMP_OCL_REPO_BRANCH:-master-next}
-AOMP_HIPVDI_REPO_NAME=${AOMP_HIPVDI_REPO_NAME:-hip-on-vdi}
-AOMP_HIPVDI_REPO_GITNAME=${AOMP_HIPVDI_REPO_GITNAME:-hip}
-AOMP_HIPVDI_REPO_BRANCH=${AOMP_HIPVDI_REPO_BRANCH:-master-next}
+AOMP_ROCMCMAKE_REPO_NAME=${AOMP_ROCMCMAKE_REPO_NAME:-rocm-cmake}
+
+# These are needed when AOMP_BUILD_DEBUG=1
+AOMP_GDB_REPO_NAME=${AOMP_GDB_REPO_NAME:-ROCgdb}
+AOMP_DBGAPI_REPO_NAME=${AOMP_DBGAPI_REPO_NAME:-ROCdbgapi}
+AOMP_PROF_REPO_NAME=${AOMP_PROF_REPO_NAME:-rocprofiler}
+AOMP_TRACE_REPO_NAME=${AOMP_TRACE_REPO_NAME:-roctracer}
 
 # These are test repositories
 GITNEKBONE="https://github.com/AMDComputeLibraries"
 AOMP_NEKBONE_REPO_NAME=${AOMP_NEKBONE_REPO_NAME:-Nekbone}
-AOMP_NEKBONE_REPO_BRANCH=${AOMP_NEKBONE_REPO_BRANCH:-amd-openmp}
 AOMP_APPS_REPO_NAME=${AOMP_APPS_REPO_NAME:-openmpapps}
 GITSOLVV="https://github.com/SOLLVE"
 AOMP_SOLVV_REPO_NAME=${AOMP_SOLVV_REPO_NAME:-sollve_vv}
-AOMP_SOLVV_REPO_BRANCH=${AOMP_SOLVV_REPO_BRANCH:-master}
 AOMP_APPS_REPO_NAME=${AOMP_APPS_REPO_NAME:-openmpapps}
-AOMP_APPS_REPO_BRANCH=${AOMP_APPS_REPO_BRANCH:-AOMP-0.5}
 GITLLNL="https://github.com/llnl"
 AOMP_RAJA_REPO_NAME=${AOMP_RAJA_REPO_NAME:-raja}
-AOMP_RAJA_REPO_BRANCH=${AOMP_RAJA_REPO_BRANCH:-master}
+AOMP_RAJAPERF_REPO_NAME=${AOMP_RAJAPERF_REPO_NAME:-RAJAPerf}
+GITKOKKOS="https://github.com/kokkos"
+AOMP_KOKKOS_REPO_NAME=${AOMP_KOKKOS_REPO_NAME:-kokkos}
 AOMP_INTERNAL_IP="gitlab1.amd.com"
 GITINTERNAL="http://${AOMP_INTERNAL_IP}/dmcdouga"  # This will change soon
+GITOVO="https://github.com/TApplencourt"
+AOMP_OVO_REPO_NAME=${AOMP_OVO_REPO_NAME:-OvO}
+GITOMPTESTS="https://github.com/doru1004"
+AOMP_OMPTESTS_REPO_NAME=${AOMP_OMPTESTS_REPO_NAME:-omptests}
+GITQMCPACK="https://github.com/QMCPACK"
+AOMP_QMCPACK_REPO_NAME=${AOMP_QMCPACK_REPO_NAME:-qmcpack}
+GITOPENLIBM="https://github.com/JuliaMath"
+AOMP_OPENLIBM_REPO_NAME=${AOMP_OPENLIBM_REPO_NAME:-openlibm}
+GITLLNLGOULASH="https://github.com/LLNL"
+AOMP_GOULASH_REPO_NAME=${AOMP_GOULASH_REPO_NAME:-goulash}
+AOMP_BABELSTREAM_REPO_NAME=${AOMP_BABELSTREAM_REPO_NAME:-babelstream}
+GITUMT="https://github.com/LLNL"
+AOMP_UMT_REPO_NAME=${AOMP_UMT_REPO_NAME:-UMT}
 
 #  We dont use this yet, waiting for trunk merge
 AOMP_F18_REPO_NAME=${AOMP_F18_REPO_NAME:-f18}
-AOMP_F18_REPO_BRANCH=${AOMP_F18_REPO_BRANCH:-master}
 
+if [ -d $AOMP_REPOS/$AOMP_TRACE_REPO_NAME ] ; then
+   pushd $AOMP_REPOS/$AOMP_TRACE_REPO_NAME > /dev/null
+   roctracer_branch=`git branch --list | grep "\*" | cut -d" " -f2`
+   if [ "$roctracer_branch" == "rocm-4.0.x" ] ; then
+      AOMP_PATCH_CONTROL_FILE="${AOMP_REPOS}/${AOMP_REPO_NAME}/bin/patches/patch-control-file_4.0.txt"
+   fi
+   popd > /dev/null
+fi
 AOMP_PATCH_CONTROL_FILE=${AOMP_PATCH_CONTROL_FILE:-${AOMP_REPOS}/${AOMP_REPO_NAME}/bin/patches/patch-control-file.txt}
 
 STASH_BEFORE_PULL=${STASH_BEFORE_PULL:-YES}
@@ -249,18 +412,6 @@ fi
 BUILD_AOMP=${BUILD_AOMP:-$AOMP_REPOS}
 BUILD_DIR=$BUILD_AOMP
 
-# If you override BUILD_AOMP to something other than AOMP_REPOS
-# then the scripts will copy the repository sources from AOMP_REPOS
-# to the directory BUILD_AOMP. A developer would do this for a
-# couple of reasons.  1) access to git repos is slow and 
-# access to BUILD_AOMP is fast or 2) lots of updates and test code
-# is planned that are not desired in his git repository. 
-# This COPYSOURCE flag is used by build scripts to conditianlly rsync
-# source code to the BUILD_AOMP/build/<component>  directory.
-if [ "$BUILD_DIR" != "$AOMP_REPOS" ] ; then
-   COPYSOURCE=true
-fi
-
 # Here is where we define different behaviors for STANDALONE build
 # and the new ROCm integrated build. The default is STANDALONE build.
 if [ $AOMP_STANDALONE_BUILD == 1 ] ; then
@@ -271,42 +422,11 @@ if [ $AOMP_STANDALONE_BUILD == 1 ] ; then
 else
    # ROCm integrated build gets ROCm pieces from installed ROCm
    ROCM_DIR=${ROCM_DIR:-/opt/rocm}
-   # Jenkins builds may not use the current development branches.
-   # So we turn off git branch checking.
-   AOMP_CHECK_GIT_BRANCH=0
-   # Jenkins build will set the build directory BUILD_DIR to its own work area.
-   # And since that is not $AOMP_REPOS/build COPYSOURCE will be turned on above.
-   # We dont want that.  So for now, turn it off for ROCm integrated builds.
-   unset COPYSOURCE
 
    # For Integrated ROCm build we do not install to versioned dir and create 
    # a symbolic link.  Instead we install directly to /opt/rocm/aomp
    AOMP_INSTALL_DIR=${AOMP}
 fi
-
-#  Check the repositories exist and are on the correct branch
-function checkrepo(){
-   if [ ! -d $REPO_DIR ] ; then
-      echo "ERROR:  Missing repository directory $REPO_DIR"
-      exit 1
-   fi
-   if [ "$AOMP_CHECK_GIT_BRANCH" == 1 ] ; then
-      cd $REPO_DIR
-      COBRANCH=`git branch --list | grep "\*" | cut -d" " -f2`
-      if [ "$COBRANCH" != "$REPO_BRANCH" ] ; then
-         if [ "$COBRANCH" == "master" ] ; then
-           echo "EXIT:  Repository $REPO_DIR is on development branch: master"
-           exit 1
-	 elif [ "$COBRANCH" == "(HEAD" ] ; then
-           echo "we have an override $REPO_DIR"
-         else
-           echo "ERROR:  The repository at $REPO_DIR is not on branch $REPO_BRANCH"
-           echo "          It is on branch $COBRANCH"
-           exit 1
-        fi
-      fi
-   fi
-}
 
 #  TO use this function set variables patchdir and patchfile
 function patchrepo(){
@@ -326,6 +446,13 @@ if [ "$AOMP_APPLY_ROCM_PATCHES" == 1 ] && [ -d "$patchdir" ] ; then
    echo patchloc=$patchloc
    for patch in $patches; do
      patchfile=$patchloc/$patch
+     if [ ! -f $patchfile ] ; then
+       echo
+       echo "ERROR: Patch $patchfile does not exist"
+       echo "       It is referenced in ${AOMP_PATCH_CONTROL_FILE}"
+       exit 1
+     fi
+
      echo "Testing patch $patchfile to $patchdir"
 
      applypatch="yes"
@@ -394,6 +521,8 @@ function getpatchlist(){
    else
      reporegex="(^$basedir:\s)"
    fi
+   echo FILE: $AOMP_PATCH_CONTROL_FILE
+   echo regex $reporegex
    #read patch control file and look for correct patches
    while read -r line; do
    if [[ "$line" =~ $reporegex ]]; then
@@ -403,6 +532,44 @@ function getpatchlist(){
      break
    fi
    done < "$AOMP_PATCH_CONTROL_FILE"
+}
+
+function setaompgpu (){
+  if [[ -e "$AOMP/../../bin/rocm_agent_enumerator" ]]; then
+    echo Set AOMP_GPU with ../.. rocm_agent_enumerator.
+    detected_gpu=$($AOMP/../../bin/rocm_agent_enumerator | grep -m 1 -E gfx[^0]{1}.{2})
+  elif [[ -e "$AOMP/../bin/rocm_agent_enumerator" ]]; then
+    echo Set AOMP_GPU with .. rocm_agent_enumerator.
+    detected_gpu=$($AOMP/../bin/rocm_agent_enumerator | grep -m 1 -E gfx[^0]{1}.{2})
+  elif [[ "$AOMP" =~ "opt" ]]; then
+    echo Set AOMP_GPU with rocm_agent_enumerator.
+    detected_gpu=$($AOMP/../bin/rocm_agent_enumerator | grep -m 1 -E gfx[^0]{1}.{2})
+  else
+    echo Set AOMP_GPU with rocm_agent_enumerator.
+    if [ -a $AOMP/bin/rocm_agent_enumerator ]; then
+      detected_gpu=$($AOMP/bin/rocm_agent_enumerator | grep -m 1 -E gfx[^0]{1}.{2})
+    elif [ -a $AOMP/bin/amdgpu-arch ]; then
+      detected_gpu=$($AOMP/bin/amdgpu-arch)
+      detected_gpu=$(echo $detected_gpu | awk '{print $1,$5}')
+      detected_gpu=`echo $detected_gpu | cut -d" " -f1` # pick first found
+    elif [ -e $AOMP/../bin/mygpu ]; then
+      detected_gpu=$($AOMP/../bin/mygpu)
+    else
+      echo "Error: in setaompgpu, could not find rocm_agent_enumerator"
+      echo "       Set AOMP_GPU, AOMP, or install ROCm"
+      exit 1
+    fi
+  fi
+
+  AOMP_GPU=${AOMP_GPU:-$detected_gpu}
+  export AOMP_GPU
+  echo AOMP_GPU = $AOMP_GPU
+  echo AOMP     = $AOMP
+
+  if [ "$AOMP_GPU" == "" ] || [ "$AOMP_GPU" == "unknown" ]; then
+    echo Error: AOMP_GPU not properly set...exiting.
+    exit 1
+  fi
 }
 
 function help_build_aomp(){
@@ -449,6 +616,7 @@ function help_build_aomp(){
      AOMP_REPOS       $HOME/git/aomp11    Location of all aomp repos
      BUILD_TYPE       Release             The CMAKE build type
      BUILD_AOMP       same as AOMP_REPOS  Set a different build location than AOMP_REPOS
+     AOMP_USE_NINJA   0                   Use ninja if possible
   
   To build a debug version of the compiler, run this command before the build:
      export BUILD_TYPE=debug
