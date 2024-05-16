@@ -132,7 +132,15 @@ else
   # libdevice, project, comgr, rocminfo, hipamd, rocdbgapi, rocgdb,
   # roctracer, and rocprofiler should be found in ROCM in /opt/rocm.
   # The ROCM build only needs these components:
-  components="extras openmp flang-legacy pgmath flang flang_runtime"
+  components="extras openmp"
+  if [ -f "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload/CMakeLists.txt" ]; then
+    components="$components offload"
+  fi
+  if [ "$SANITIZER" == 1 ] && [ -f $AOMP/bin/flang-legacy ] ; then
+    components="$components pgmath flang flang_runtime"
+  else
+    components="$components flang-legacy pgmath flang flang_runtime"
+  fi
 fi
 echo "COMPONENTS:$components"
 
@@ -184,4 +192,32 @@ echo
 date
 echo " =================  END build_aomp.sh ==================="   
 echo 
+
+if [ "$AOMP_STANDALONE_BUILD" -eq 0 ]; then
+  cd $BUILD_DIR/build
+  legacy_version=`ls flang-legacy`
+  legacy_install_manifest=$legacy_version/install_manifest.txt
+  if [ "$SANITIZER" == 1 ]; then
+    install_manifest_orig=asan/install_manifest.txt
+  else
+    install_manifest_orig=install_manifest.txt
+  fi
+
+  # Clean file log
+  rm -f $BUILD_DIR/build/installed_files.txt
+
+  for directory in ./*/; do
+    pushd $directory > /dev/null
+    if [[ "$directory" =~ "flang-legacy" ]]; then
+      install_manifest=$legacy_install_manifest
+    else
+      install_manifest=$install_manifest_orig
+    fi
+    if [ -f "$install_manifest" ]; then
+      cat $install_manifest  >> $BUILD_DIR/build/installed_files.txt
+      echo "" >> $BUILD_DIR/build/installed_files.txt
+    fi
+    popd > /dev/null
+  done
+fi
 exit 0
