@@ -117,34 +117,65 @@ export AOMP
 echo "AOMP = $AOMP"
 export REAL_AOMP=`realpath $AOMP`
 
-if [ "$TEST_BRANCH" == "" ]; then
- git reset --hard HEAD
- if [ -e /home/jenkins/workspace/compiler-psdb-amd-mainline-open-a+a ]; then
-  export TEST_BRANCH=amd-mainline-open-a+a
-  git checkout aomp-dev
- elif [ -e /jenkins/workspace/compiler-psdb-amd-mainline-open ]; then
-  export TEST_BRANCH=amd-mainline-open
-  git checkout aomp-dev
- elif [ -e /jenkins/workspace/compiler-psdb-amd-staging ]; then
-  export TEST_BRANCH=amd-staging
-  git checkout aomp-dev
- elif [[ $REAL_AOMP =~ "/opt/rocm-6.0" ]]; then
-  export TEST_BRANCH=aomp-test-6.0
-  git checkout 080e9bc62ad8501defc4ec9124c90e28a1f749db
- elif [[ $REAL_AOMP =~ "/opt/rocm-6.1" ]]; then
-  export TEST_BRANCH=aomp-test-6.1
-  git checkout 080e9bc62ad8501defc4ec9124c90e28a1f749db
- elif [[ $REAL_AOMP =~ "/opt/rocm-6.2" ]]; then
-  export TEST_BRANCH=aomp-test-6.2
-  git checkout aomp-dev
- else
-  export TEST_BRANCH=aomp-dev
-  git checkout aomp-dev
- fi
- echo "+++ Using $TEST_BRANCH +++"
- sleep 5
- ./run_rocm_test.sh
- exit $?
+function extract_rpm(){
+  local test_package=$1
+  cd $tmpdir
+  rpm2cpio $test_package | cpio -idmv > /dev/null
+  script=$(find . -type f -name 'run_rocm_test.sh')
+  cd $(dirname $script)
+}
+
+# Keep support for older release testing that will not have release branch
+# updated. From 6.2 onwards the openmp-extras-tests package will be used for testing.
+if [[ $REAL_AOMP =~ "/opt/rocm-6.0" ]] || [[ $REAL_AOMP =~ "/opt/rocm-6.1" ]]; then
+  if [ "$TEST_BRANCH" == "" ]; then
+    git reset --hard
+    export TEST_BRANCH="aomp-test-6.0-6.1"
+    git checkout 080e9bc62ad8501defc4ec9124c90e28a1f749db
+  fi
+  echo "+++ Using $TEST_BRANCH +++"
+  sleep 5
+  ./run_rocm_test.sh
+  exit $?
+fi
+
+# Support for using openmp-extras-tests package.
+if [ "$SKIP_TEST_PACKAGE" != 1 ] && [ "$TEST_BRANCH" == "" ]; then
+  tmpdir="/tmp/openmp-extras"
+  mkdir -p $tmpdir
+  os_name=$(cat /etc/os-release | grep NAME)
+  test_package_name="openmp-extras-tests"
+  # Determine OS and download package not using sudo.
+  if [[ "$os_name" =~ "Ubuntu" ]]; then
+    cd $tmpdir
+    apt-get download $test_package_name
+    test_package=$(ls -lt $tmpdir | grep -Eo -m1 openmp-extras-tests.*)
+    dpkg -x $test_package .
+    script=$(find . -type f -name 'run_rocm_test.sh')
+    cd $(dirname $script)
+  # CentOS/RHEL support. CentOS 7 requires a different method.
+  elif [[ "$os_name" =~ "CentOS" ]] || [[ "$os_name" =~ "Red Hat" ]]; then
+    osversion=$(cat /etc/os-release | grep -e ^VERSION_ID)
+    if [[ $osversion =~ '"7' ]]; then
+      yumdownloader --destdir=/tmp/openmp-extras $test_package_name
+    else
+      yum download --destdir /tmp/openmp-extras $test_package_name
+    fi
+    test_package=$(ls -lt $tmpdir | grep -Eo -m1 openmp-extras-tests.*)
+    extract_rpm $test_package
+  # SLES support.
+  elif [[ "$os_name" =~ "SLES" ]]; then
+    zypper download $test_package_name
+    test_package=$(ls -lt /var/cache/zypp/packages/rocm/ | grep -Eo -m1 openmp-extras-tests.*)
+    cp /var/cache/zypp/packages/rocm/"$test_package" $tmpdir
+    extract_rpm $test_package
+  else
+    echo "Error: Could not determine operating system name."
+    exit 1
+  fi
+  export SKIP_TEST_PACKAGE=1
+  ./run_rocm_test.sh
+  exit $?
 fi
 echo $AOMP $REAL_AOMP using test branch $TEST_BRANCH
 
