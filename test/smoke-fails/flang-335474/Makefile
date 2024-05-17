@@ -1,0 +1,5 @@
+run:
+	./cmd.sh
+
+clean:
+

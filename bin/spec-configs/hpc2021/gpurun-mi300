@@ -1,0 +1,38 @@
+#!/bin/bash
+
+ngpus=$(rocm-smi --showtoponuma --csv | grep '^card' | wc -l)
+nnuma=$(lscpu -p | tail +5 | awk -F, '{ print $3 }' | sort -u | wc -l)
+
+
+# assume openmpi --bind-to numa on an MI300A
+myrank=$OMPI_COMM_WORLD_LOCAL_RANK
+
+# the ranks are distributed cyclically (round-robin) across the numa nodes
+mynumanode=$(($myrank % $nnuma))
+
+# The GPUs are numbered consecutvely from 0 to ngpus-1 with ngpus/nnuma gpus per numa node
+gpublksz=$(($ngpus / $nnuma))   # blocking factor 
+
+# my gpu block is just my numa node
+# my offset within the block is as follows:
+myoffset=$(( ($myrank / $nnuma) % $gpublksz ))
+
+# then translate to the global device number
+mygpu=$(( $mynumanode * $gpublksz + $myoffset))
+#echo "$myrank: gpu=$mygpu"
+
+export ROCR_VISIBLE_DEVICES=$mygpu
+exec \
+$*
+
+# Stuff for various tools to insert around the exec line above
+# "snapshot" (Larry's OMPT tool plus MPIP plus some scripts
+#export MPIP="-v -k0"
+#LD_PRELOAD=/home/lmeadows/tools/ompt/timings.so:/home/lmeadows/mpiP/libmpiP.so \
+
+# HPCToolkit
+#hpcrun -e gpu=amd -e REALTIME \
+
+# rocprof
+#rocprofv2 --hsa-activity -d trace.$OMPI_COMM_WORLD_LOCAL_RANK \
+

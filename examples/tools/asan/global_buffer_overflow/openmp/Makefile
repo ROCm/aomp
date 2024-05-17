@@ -30,47 +30,43 @@
 
 TESTNAME =vecadd-GBO
 FILETYPE =cpp
+TESTSRC = $(TESTNAME).$(FILETYPE)
 
-ROCM_LLVM ?= /opt/rocm/llvm
-
-ifeq ($(LLVM_GPU),)
-INSTALLED_GPU  = $(shell $(ROCM_LLVM)/../bin/rocm_agent_enumerator | grep -m 1 -E gfx[^0]{1})
-ROCM_GPU       ?= $(INSTALLED_GPU)
+mkfile_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+ifneq ($(CURDIR)/,$(mkfile_dir))
+  TESTSRC := $(mkfile_dir)$(TESTSRC)
 endif
+include $(mkfile_dir)../../../../Makefile.find_gpu_and_install_dir
 
+AOMP_TARGET_FEATURES = :xnack+
 ifeq ($(TARGETS),)
-TARGETS =--offload-arch=$(ROCM_GPU):xnack+
+TARGETS =--offload-arch=$(LLVM_GPU_ARCH)$(AOMP_TARGET_FEATURES)
 endif
 
-CC       =$(ROCM_LLVM)/bin/clang++
+CC      =$(LLVM_INSTALL_DIR)/bin/clang++
 
-VERS = $(shell $(ROCM_LLVM)/bin/clang --version | grep -oP '(?<=clang version )[0-9.]+')
-ROCM = $(shell $(ROCM_LLVM)/bin/clang --version | grep -oP 'AMD clang')
-
-ifeq ($(ROCM),)
-  ROCMHIP ?= $(ROCM_LLVM)
-else
-  ROCMHIP ?= $(ROCM_LLVM)/..
-endif
+VERS = $(shell $(LLVM_INSTALL_DIR)/bin/clang --version | grep -oP '(?<=clang version )[0-9]+')
+ROCM = $(shell $(LLVM_INSTALL_DIR)/bin/clang --version | grep -oP 'AMD clang')
 
 ifeq ($(shell expr $(VERS) \>= 12.0), 1)
-        RPTH = -Wl,-rpath,$(ROCMHIP)/lib -Wl,-rpath,$(ROCM_LLVM)/lib/clang/$(VERS)/lib/linux
+        RPTH = -Wl,-rpath,$(HIPDIR)/lib -Wl,-rpath,$(LLVM_INSTALL_DIR)/lib/clang/$(VERS)/lib/linux
 endif
 
 #  compiler automatically adds "libdevice/<target>/ to -L opts
-LFLAGS   =-L$(ROCMHIP)/lib $(RPTH)
+LFLAGS   =-L$(HIPDIR)/lib $(RPTH)
 ASAN_FLAGS = -fsanitize=address -shared-libsan
 CFLAGS = -O0 -g -std=c++11 -fopenmp 
 
+HSA_XNACK ?= 1
 # ----- Demo compile and link in one step, no object code saved
-$(TESTNAME): $(TESTNAME).$(FILETYPE)
+$(TESTNAME): $(TESTSRC)
 	$(CC) $(CFLAGS) $(TARGETS) $(ASAN_FLAGS) $(LFLAGS) $^ -o $@
 
 run: $(TESTNAME)
-	HSA_XNACK=1 ./$(TESTNAME)
+	HSA_XNACK=${HSA_XNACK} ./$(TESTNAME)
 
 #  ----   Demo compile and link in two steps, object saved
-$(TESTNAME).o: $(TESTNAME).$(FILETYPE)
+$(TESTNAME).o: $(TESTSRC)
 	$(CC) -c $(CFLAGS) $(TARGETS) $(ASAN_FLAGS) $^
 
 obin:	$(TESTNAME).o
@@ -80,16 +76,16 @@ run_obin: obin
 	./obin
 
 #  ----   Demo compile to intermediates LLVMIR or assembly
-$(TESTNAME).ll: $(TESTNAME).$(FILETYPE)
+$(TESTNAME).ll: $(TESTSRC)
 	$(CC) -c -S -emit-llvm $(CFLAGS) $(TARGETS) $(ASAN_FLAGS) $^
 
-$(TESTNAME).s: $(TESTNAME).$(FILETYPE)
+$(TESTNAME).s: $(TESTSRC)
 	$(CC)  -c -S $(CFLAGS) $(TARGETS) $(ASAN_FLAGS) $^
 
 help:
 	@echo
 	@echo "Makefile Help:"
-	@echo "  Source:		$(TESTNAME).$(FILETYPE)"
+	@echo "  Source:		$(TESTSRC)"
 	@echo "  Compiler: 		$(CC)"
 	@echo "  Compiler flags: 	$(CFLAGS)"
 	@echo
@@ -103,12 +99,6 @@ help:
 	@echo "  make $(TESTNAME).ll	// compile step only       : -c -S -emit-llvm"
 	@echo "  make clean		// cleanup files"
 	@echo "  make help 		// this help"
-	@echo
-	@echo "Environment Variables:"
-	@echo "  ROCM_LLVM  default: /opt/rocm/llvm     value: $(ROCM_LLVM)"
-	@echo "  ROCM_GPU   default: $(INSTALLED_GPU)             value: $(ROCM_GPU)"
-	@echo "  TARGETS    default: --offload-arch=$(ROCM_GPU)"
-	@echo "              value: $(TARGETS)"
 	@echo
 	@echo "Link Flags:"
 	@echo "  Link flags: $(LFLAGS)"

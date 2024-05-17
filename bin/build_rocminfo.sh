@@ -28,28 +28,9 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# --- Start standard header ----
-function getdname(){
-   local __DIRN=`dirname "$1"`
-   if [ "$__DIRN" = "." ] ; then
-      __DIRN=$PWD;
-   else
-      if [ ${__DIRN:0:1} != "/" ] ; then
-         if [ ${__DIRN:0:2} == ".." ] ; then
-               __DIRN=`dirname $PWD`/${__DIRN:3}
-         else
-            if [ ${__DIRN:0:1} = "." ] ; then
-               __DIRN=$PWD/${__DIRN:2}
-            else
-               __DIRN=$PWD/$__DIRN
-            fi
-         fi
-      fi
-   fi
-   echo $__DIRN
-}
-thisdir=$(getdname $0)
-[ ! -L "$0" ] || thisdir=$(getdname `readlink "$0"`)
+# --- Start standard header to set AOMP environment variables ----
+realpath=`realpath $0`
+thisdir=`dirname $realpath`
 . $thisdir/aomp_common_vars
 # --- end standard header ----
 
@@ -61,10 +42,6 @@ BUILDTYPE="Release"
 
 INSTALL_RINFO=${INSTALL_RINFO:-$AOMP_INSTALL_DIR}
 LLVM_BUILD=$AOMP
-
-REPO_BRANCH=$AOMP_RINFO_REPO_BRANCH
-REPO_DIR=$AOMP_REPOS/$AOMP_RINFO_REPO_NAME
-checkrepo
 
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   echo " "
@@ -110,7 +87,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
      rm -rf $BUILD_DIR/build/rocminfo
   fi
 
-  MYCMAKEOPTS="$AOMP_ORIGIN_RPATH -DCMAKE_BUILD_TYPE=$BUILDTYPE -DCMAKE_INSTALL_PREFIX=$INSTALL_RINFO -DROCM_DIR=$ROCM_DIR -DROCRTST_BLD_TYPE=$BUILDTYPE -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON -DCMAKE_INSTALL_RPATH='\$ORIGIN/../lib' -DCMAKE_EXE_LINKER_FLAGS='-Wl,--disable-new-dtags'"
+  MYCMAKEOPTS="$AOMP_ORIGIN_RPATH -DCMAKE_BUILD_TYPE=$BUILDTYPE -DCMAKE_INSTALL_PREFIX=$INSTALL_RINFO -DROCRTST_BLD_TYPE=$BUILDTYPE -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON -DCMAKE_INSTALL_RPATH='\$ORIGIN/../lib' -DCMAKE_EXE_LINKER_FLAGS='-Wl,--disable-new-dtags'"
 
   mkdir -p $BUILD_DIR/build/rocminfo
   cd $BUILD_DIR/build/rocminfo
@@ -129,10 +106,10 @@ fi
 cd $BUILD_DIR/build/rocminfo
 echo
 echo " -----Running make for rocminfo ---- "
-make -j $NUM_THREADS 
+make -j $AOMP_JOB_THREADS 
 if [ $? != 0 ] ; then
       echo " "
-      echo "ERROR: make -j $NUM_THREADS  FAILED"
+      echo "ERROR: make -j $AOMP_JOB_THREADS  FAILED"
       echo "To restart:"
       echo "  cd $BUILD_DIR/build/rocminfo"
       echo "  make "

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest>
+	<!-- Manifest for AOMP 17.0-x which uses ROCM 5.6 release branches of external repositories -->
+
+    <remote name="gerritgit" review="git.amd.com:8080" fetch="ssh://gerritgit/" />
+    <default revision="release/rocm-rel-5.6" remote="gerritgit" sync-j="4" sync-c="true" />
+    <remote name="roctools"  fetch="https://github.com/ROCm-Developer-Tools/" />
+    <remote name="roc"  fetch="https://github.com/RadeonOpenCompute/" />
+    <remote name="rocsw"  fetch="https://github.com/ROCmSoftwarePlatform/" />
+
+<!-- These first 6 repos are NOT rocm 5.6 -->
+<project remote="roc" path="llvm-project" name="llvm-project"    revision="amd-stg-open" groups="unlocked" />
+
+<project remote="roc" path="rocm-compilersupport" name="ROCm-CompilerSupport" revision="amd-stg-open" groups="unlocked" />
+<project remote="roc" path="rocm-device-libs" name="ROCm-Device-Libs"         revision="amd-stg-open" groups="unlocked" />
+<project remote="roctools" path="flang" name="flang"               revision="aomp-dev" groups="unlocked" />
+<project remote="roctools" path="aomp-extras" name="aomp-extras"   revision="aomp-dev" groups="unlocked" />
+<project remote="roctools" path="aomp" name="aomp"                 revision="aomp-dev" groups="unlocked" />
+
+<project remote="roctools" path="rocprofiler" name="rocprofiler"              revision="rocm-5.6.x" groups="unlocked" />
+<project remote="roctools" path="roctracer" name="roctracer"                  revision="rocm-5.6.x" groups="unlocked" />
+<project remote="roctools" path="ROCdbgapi" name="ROCdbgapi"                  revision="rocm-5.6.x" groups="unlocked" />
+<project remote="roctools" path="ROCgdb" name="ROCgdb"                        revision="rocm-5.6.x" groups="unlocked" />
+<project remote="roctools" path="hip"    name="hip"                           revision="rocm-5.6.x" groups="unlocked" />
+<project remote="roctools" path="hipcc"    name="hipcc"                           revision="rocm-5.6.x" groups="unlocked" />
+<project remote="roctools" path="clr" name="clr"                        revision="rocm-5.6.x" groups="unlocked" />
+<project remote="roc" path="rocminfo" name="rocminfo"                         revision="rocm-5.6.x" groups="unlocked" />
+<project remote="roc" path="rocm-cmake" name="rocm-cmake"                     revision="release/rocm-rel-5.6" groups="unlocked" />
+<project remote="roc" path="rocr-runtime" name="ROCR-Runtime"                 revision="rocm-5.6.x" groups="unlocked" />
+<project remote="roc" path="roct-thunk-interface" name="ROCT-Thunk-Interface" revision="rocm-5.6.x" groups="unlocked" />
+<project remote="rocsw" path="hipfort" name="hipfort"                 revision="release/rocm-rel-5.6" groups="unlocked" />
+</manifest>

@@ -1,0 +1,360 @@
+#!/bin/bash
+#
+#  f18_common_vars: This file is sourced by all F18 build scripts.
+#
+#     This file is stored in f18bin directory of the aomp repo.
+#     You don't need to change this file unless you want to change
+#     default values for all F18 developers. To customize your build,
+#     set environment variables defined in this file.
+#
+#     The bash syntax ENVNAME=${ENVNAME:-value} checks if ENVNAME is
+#     already set. If not, it assigns it the value following the :-
+
+# The F18_COMPILER_NAME is used whenever version is queried.
+# FIXME: More work is needed to propogate the use of F18_COMPILER_NAME.
+F18_COMPILER_NAME=${F18_COMPILER_NAME:-F18}
+
+# ROCM_VERSION may be set by Jenkins, if not guess a good number
+ROCM_VERSION=${ROCM_VERSION:-3.6.0}
+
+# Set the F18 VERSION STRING and F18_PROJECT_REPO_BRANCH.
+F18_VERSION=${F18_VERSION:-"0.0"}
+F18_VERSION_MOD=${F18_VERSION_MOD:-"1"}
+F18_VERSION_STRING=${F18_VERSION_STRING:-"$F18_VERSION-$F18_VERSION_MOD"}
+export F18_VERSION_STRING F18_VERSION F18_VERSION_MOD ROCM_VERSION
+
+# Set install directory and the link directory.
+# F18 will be a symbolic link F18_INSTALL_DIR is the versioned dir name
+F18=${F18:-$HOME/rocm/f18}
+F18_INSTALL_DIR=${F18}_${F18_VERSION_STRING}
+
+# Set the directory location where all local F18 git repos are stored.
+# For example, if F18_REPOS=$HOME/git/f18, then the primary f18 repo
+# is stored in $HOME/git/f1811/f18 and the mono repo is stored in
+# $HOME/f18/llvm-project.
+F18_REPOS=${F18_REPOS:-$HOME/git/f18}
+
+# Because the source for all repos are tarred for release, we store
+# all the test repositories in a different directory.
+F18_REPOS_TEST=${F18_REPOS_TEST:-$HOME/git/f18-test}
+
+# To build f18 from the release source taball, set these values to 0
+F18_CHECK_GIT_BRANCH=${F18_CHECK_GIT_BRANCH:-1}
+F18_APPLY_ROCM_PATCHES=${F18_APPLY_ROCM_PATCHES:-1}
+
+#Set common rpath for build scripts
+F18_ORIGIN_RPATH_NO_DTAGS="-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON -DCMAKE_INSTALL_RPATH=\$ORIGIN:\$ORIGIN/../lib:\$ORIGIN/../hsa/lib:\$ORIGIN/../../lib64:\$ORIGIN/../../hsa/lib:$F18_INSTALL_DIR/lib:$F18_INSTALL_DIR/hsa/lib"
+F18_ORIGIN_RPATH="-DCMAKE_SHARED_LINKER_FLAGS='-Wl,--disable-new-dtags' $F18_ORIGIN_RPATH_NO_DTAGS"
+
+CUDA=${CUDA:-/usr/local/cuda}
+CUDAT=${CUDAT:-$CUDA/targets}
+CUDAINCLUDE=${CUDAINCLUDE:-$CUDA/include}
+CUDABIN=${CUDABIN:-$CUDA/bin}
+
+F18_CMAKE=${F18_CMAKE:-cmake}
+F18_PROC=`uname -m`
+if [ "$F18_PROC" == "unknown" ] ; then
+   F18_PROC=`uname -a | awk '{print $(NF-1)}'`
+fi
+
+GCC=`which gcc`
+GCCXX=`which g++`
+F18_CC_COMPILER=${F18_CC_COMPILER:-$GCC}
+F18_CXX_COMPILER=${F18_CXX_COMPILER:-$GCCXX}
+
+# Non standalone builds are done with ROCm builds.
+F18_STANDALONE_BUILD=${F18_STANDALONE_BUILD:-1}
+
+#  The logic for turning on CUDA build is here
+if [ $F18_STANDALONE_BUILD == 1 ] ; then
+   # Default is to build nvptx for STANDALONE build
+   F18_BUILD_CUDA=${F18_BUILD_CUDA:-1}
+else
+   # Default is to NOT build nvptx for ROCm integrated build
+   F18_BUILD_CUDA=${F18_BUILD_CUDA:-0}
+fi
+# Regardless, turn off F18_BUILD_CUDA if CUDA not available
+if [ ! -d "$CUDABIN" ] ; then
+   F18_BUILD_CUDA=0
+fi
+# Regardless, turn off F18_BUILD_CUDA for arm
+if [ "$F18_PROC" == "aarch64" ] ; then
+   F18_BUILD_CUDA=0
+fi
+
+# Set list of default nvptx subarchitectures to build
+# Only Cuda 9 and above supports sm_70
+if [ "$F18_BUILD_CUDA" == 1 ] ; then
+   NVPTXGPUS_DEFAULT="30,32,35,50,60,61"
+   if [ -f $CUDA/version.txt ] ; then
+      if [ `head -1 /usr/local/cuda/version.txt | cut -d " " -f 3 | cut -d "." -f 1` -ge 9 ] ; then
+         NVPTXGPUS_DEFAULT+=",70"
+      fi
+   fi
+   #  Developers should override NVPTXGPUS to shorten build time.
+   NVPTXGPUS=${NVPTXGPUS:-"${NVPTXGPUS_DEFAULT}"}
+   F18_NVPTX_TARGET="NVPTX;"
+else
+   NVPTXGPUS_DEFAULT=""
+   NVPTXGPUS=""
+   F18_NVPTX_TARGET=""
+fi
+
+# Set list of default amdgcn subarchitectures to build
+# Developers may override GFXLIST to shorten build time.
+GFXLIST=${GFXLIST:-"gfx700 gfx701 gfx801 gfx803 gfx900 gfx902 gfx906 gfx908"}
+export GFXLIST
+
+# Calculate the number of threads to use for make
+NUM_THREADS=
+if [ ! -z `which "getconf"` ]; then
+   NUM_THREADS=$(`which "getconf"` _NPROCESSORS_ONLN)
+   if [ "$F18_PROC" == "ppc64le" ] ; then
+      NUM_THREADS=8
+   fi
+   if [ "$F18_PROC" == "aarch64" ] ; then
+      NUM_THREADS=$(( NUM_THREADS / 4))
+   fi
+fi
+
+# These are the web sites where the F18 git repos are pulled from
+GITROC="https://github.com/radeonopencompute"
+GITROCDEV="https://github.com/ROCm-Developer-Tools"
+GITROCLIB="https://github.com/AMDComputeLibraries"
+GITKHRONOS="https://github.com/KhronosGroup"
+
+# FIXME: In the near future, we will remove the _BRANCH variables and use a
+#        manifest file to determine which branch to build each component.
+#
+# The difference between a _REPO_NAME and _REPO_GITNAME is that the
+# _REPO_NAME is the directory name following $F18_REPOS.  The GITNAME
+# Is the name of the git repository used in the clone_f18 script.
+# The _REPO_GITNAME variables will also be removed with the conversion to
+# the use of the repo tool.
+
+# External component names for LLVM_EXTERNAL_PROJECTS may have no special
+# characters in them.  Therefore, F18_xxx_REPO_NAME is different than
+# F18_xxx_COMPONENT NAME for some components. Recommend that component
+# names be short lowercase names.
+
+#  These f18 development repositories
+AOMP_REPO_NAME=${AOMP_REPO_NAME:-aomp}
+AOMP_REPO_BRANCH=${AOMP_REPO_BRANCH:-amd-stg-openmp}
+F18_PROJECT_REPO_NAME=${F18_PROJECT_REPO_NAME:-f18-llvm-project}
+F18_PROJECT_REPO_BRANCH=${F18_PROJECT_REPO_BRANCH:-amd-fir-dev}
+F18_EXTRAS_REPO_NAME=${F18_EXTRAS_REPO_NAME:-aomp-extras}
+F18_EXTRAS_REPO_BRANCH=${F18_EXTRAS_REPO_BRANCH:-amd-stg-openmp}
+F18_FLANG_REPO_NAME=${F18_FLANG_REPO_NAME:-flang}
+F18_FLANG_REPO_BRANCH=${F18_FLANG_REPO_BRANCH:-amd-stg-openmp}
+
+F18_ROCT_REPO_NAME=${F18_ROCT_REPO_NAME:-roct-thunk-interface}
+F18_ROCT_REPO_BRANCH=${F18_ROCT_REPO_BRANCH:-roc-3.5.x}
+F18_ROCT_COMPONENT_NAME=${F18_ROCT_COMPONENT_NAME:-roct}
+F18_ROCR_REPO_NAME=${F18_ROCR_REPO_NAME:-rocr-runtime}
+F18_ROCR_REPO_BRANCH=${F18_ROCR_REPO_BRANCH:-rocm-3.5.x}
+F18_ROCR_COMPONENT_NAME=${F18_ROCR_COMPONENT_NAME:-rocr}
+F18_LIBDEVICE_REPO_NAME=${F18_LIBDEVICE_REPO_NAME:-rocm-device-libs}
+F18_LIBDEVICE_COMPONENT_NAME=${F18_LIBDEVICE_COMPONENT_NAME:-rocdl}
+F18_LIBDEVICE_REPO_BRANCH=${F18_LIBDEVICE_REPO_BRANCH:-amd-stg-open}
+
+# These are test repositories
+GITNEKBONE="https://github.com/AMDComputeLibraries"
+F18_NEKBONE_REPO_NAME=${F18_NEKBONE_REPO_NAME:-Nekbone}
+F18_NEKBONE_REPO_BRANCH=${F18_NEKBONE_REPO_BRANCH:-amd-openmp}
+F18_APPS_REPO_NAME=${F18_APPS_REPO_NAME:-openmpapps}
+GITSOLVV="https://github.com/SOLLVE"
+F18_SOLVV_REPO_NAME=${F18_SOLVV_REPO_NAME:-sollve_vv}
+F18_SOLVV_REPO_BRANCH=${F18_SOLVV_REPO_BRANCH:-master}
+F18_APPS_REPO_NAME=${F18_APPS_REPO_NAME:-openmpapps}
+F18_APPS_REPO_BRANCH=${F18_APPS_REPO_BRANCH:-F18-0.5}
+GITLLNL="https://github.com/llnl"
+F18_RAJA_REPO_NAME=${F18_RAJA_REPO_NAME:-raja}
+F18_RAJA_REPO_BRANCH=${F18_RAJA_REPO_BRANCH:-master}
+F18_INTERNAL_IP="gitlab1.amd.com"
+GITINTERNAL="http://${F18_INTERNAL_IP}/dmcdouga"  # This will change soon
+
+F18_PATCH_CONTROL_FILE=${F18_PATCH_CONTROL_FILE:-${F18_REPOS}/${AOMP_REPO_NAME}/f18bin/patches/patch-control-file.txt}
+
+STASH_BEFORE_PULL=${STASH_BEFORE_PULL:-YES}
+
+# It is highly recommendded that developers set SUDO to disable and 
+# this have update access to install directory $F18. In the future
+# we may set this default to disable 
+SUDO=${SUDO:-NO}
+if [ "$SUDO" == "set" ]  || [ "$SUDO" == "yes" ] || [ "$SUDO" == "YES" ] ; then
+   SUDO="sudo"
+else
+   SUDO=""
+fi
+
+# The default for BUILD_F18 is F18_REPOS. 
+# The cmake and make builds are actually done in 
+# BUILD_F18/build, not the actual repos. 
+BUILD_F18=${BUILD_F18:-$F18_REPOS}
+BUILD_DIR=$BUILD_F18
+
+# If you override BUILD_F18 to something other than F18_REPOS
+# then the scripts will copy the repository sources from F18_REPOS
+# to the directory BUILD_F18. A developer would do this for a
+# couple of reasons.  1) access to git repos is slow and 
+# access to BUILD_F18 is fast or 2) lots of updates and test code
+# is planned that are not desired in his git repository. 
+# This COPYSOURCE flag is used by build scripts to conditianlly rsync
+# source code to the BUILD_F18/build/<component>  directory.
+if [ "$BUILD_DIR" != "$F18_REPOS" ] ; then
+   COPYSOURCE=true
+fi
+
+# Here is where we define different behaviors for STANDALONE build
+# and the new ROCm integrated build. The default is STANDALONE build.
+if [ $F18_STANDALONE_BUILD == 1 ] ; then
+   # Standalone build gets ROCm components from the F18 Installation.
+   # As a result their is an order to component builds.
+   ROCM_DIR=${ROCM_DIR:-$F18_INSTALL_DIR}
+   # We hardcode the ROCM_VERSION here for standalone builds
+else
+   # ROCm integrated build gets ROCm pieces from installed ROCm
+   ROCM_DIR=${ROCM_DIR:-/opt/rocm}
+   # Jenkins builds may not use the current development branches.
+   # So we turn off git branch checking.
+   F18_CHECK_GIT_BRANCH=0
+   # Jenkins build will set the build directory BUILD_DIR to its own work area.
+   # And since that is not $F18_REPOS/build COPYSOURCE will be turned on above.
+   # We dont want that.  So for now, turn it off for ROCm integrated builds.
+   unset COPYSOURCE
+
+   # For Integrated ROCm build we do not install to versioned dir and create 
+   # a symbolic link.  Instead we install directly to /opt/rocm/f18
+   F18_INSTALL_DIR=${F18}
+fi
+
+#  Check the repositories exist and are on the correct branch
+function checkrepo(){
+   if [ ! -d $REPO_DIR ] ; then
+      echo "ERROR:  Missing repository directory $REPO_DIR"
+      exit 1
+   fi
+   if [ "$F18_CHECK_GIT_BRANCH" == 1 ] ; then
+      cd $REPO_DIR
+      COBRANCH=`git branch --list | grep "\*" | cut -d" " -f2`
+      if [ "$COBRANCH" != "$REPO_BRANCH" ] ; then
+         if [ "$COBRANCH" == "master" ] ; then
+           echo "EXIT:  Repository $REPO_DIR is on development branch: master"
+           exit 1
+	 elif [ "$COBRANCH" == "(HEAD" ] ; then
+           echo "we have an override $REPO_DIR"
+         else
+           echo "ERROR:  The repository at $REPO_DIR is not on branch $REPO_BRANCH"
+           echo "          It is on branch $COBRANCH"
+           exit 1
+        fi
+      fi
+   fi
+}
+
+#  TO use this function set variables patchdir and patchfile
+function patchrepo(){
+patchdir=$1
+if [ "$F18_APPLY_ROCM_PATCHES" == 1 ] && [ -d "$patchdir" ] ; then
+   patches=""
+   cd $patchdir
+   if [[ "$2" =~ "postinstall" ]]; then
+     getpatchlist $2
+   else
+     getpatchlist
+   fi
+
+   #loop through list of patches to apply
+   if [ "$patches" != "" ] ; then
+   patchloc=${F18_PATCH_CONTROL_FILE%/*}
+   echo patchloc=$patchloc
+   for patch in $patches; do
+     patchfile=$patchloc/$patch
+     echo "Testing patch $patchfile to $patchdir"
+
+     applypatch="yes"
+     patch -p1 -t -N --dry-run <$patchfile >/dev/null
+     if [ $? != 0 ] ; then
+        applypatch="no"
+        # Check to see if reverse patch applies cleanly
+        patch -p1 -R --dry-run -t <$patchfile >/dev/null
+        if [ $? == 0 ] ; then
+           echo "patch $patchfile was already applied to $patchdir"
+        else
+           echo
+           echo "ERROR: Patch $patchfile will not apply"
+           echo "       cleanly to directory $patchdir"
+           echo "       Check if it was already applied."
+           echo
+           exit 1
+        fi
+     fi
+     if [ "$applypatch" == "yes" ] ; then
+        echo "Applying patch $patchfile to $patchdir"
+        patch -p1 --no-backup-if-mismatch <$patchfile
+     fi
+   done
+   fi
+fi
+
+}
+
+function removepatch(){
+patchdir=$1
+if [ "$F18_APPLY_ROCM_PATCHES" == 1 ] && [ -d "$patchdir" ] ; then
+   patches=""
+   cd $patchdir
+   getpatchlist
+   if [ "$patches" != "" ] ; then
+      echo "Patchdir $patchdir"
+      echo "PATCHES TO REMOVE: $patches"
+   fi
+   patchloc=${F18_PATCH_CONTROL_FILE%/*}
+   if [ "$patches" != "" ] ; then
+   for patch in $patches; do
+     patchfile=$patchloc/$patch
+     echo "Testing reverse patch $patchfile to $patchdir"
+     reversepatch="yes"
+     # Check to see if reverse patch applies cleanly
+     patch -p1 -R --dry-run -f <$patchfile  >/dev/null
+     if [ $? != 0 ] ; then
+        echo "patch $patchfile was NOT applied $patchdir, no patch to reverse"
+        reversepatch="no"
+     fi
+     if [ "$reversepatch" == "yes" ] ; then
+        echo "Reversing patch $patchfile to $patchdir"
+        patch -p1 -R -f --no-backup-if-mismatch <$patchfile
+     fi
+   done
+   fi
+fi
+}
+
+function getpatchlist(){
+   currdir=$(pwd)
+   basedir=$(basename $currdir)
+   if [[ "$1" =~ "postinstall" ]]; then
+     reporegex="(^$1:\s)"
+   else
+     reporegex="(^$basedir:\s)"
+   fi
+   #read patch control file and look for correct patches
+   while read -r line; do
+   if [[ "$line" =~ $reporegex ]]; then
+     #remove basename from list of patches
+     patches=${line/"${BASH_REMATCH[1]}"}
+     echo "patches: $patches"
+     break
+   fi
+   done < "$F18_PATCH_CONTROL_FILE"
+}
+
+function help_build_f18(){
+   /bin/cat 2>&1 <<"EOF"
+
+  The build scripts in this directory are used to build F18.
+  
+  
+EOF
+   exit 0
+}

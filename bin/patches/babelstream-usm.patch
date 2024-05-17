@@ -1,0 +1,239 @@
+diff --git a/src/main.cpp b/src/main.cpp
+index abfc14e..027bb21 100644
+--- a/src/main.cpp
++++ b/src/main.cpp
+@@ -210,9 +210,8 @@ void run()
+     else if (selection == Benchmark::Triad)
+     {
+       std::cout << "Running triad " << num_times << " times" << std::endl;
+-      std::cout << "Number of elements: " << ARRAY_SIZE << std::endl;
+     }
+-
++    std::cout << "Number of elements: " << ARRAY_SIZE << std::endl;
+ 
+     if (sizeof(T) == sizeof(float))
+       std::cout << "Precision: float" << std::endl;
+diff --git a/src/omp/OMPStream.cpp b/src/omp/OMPStream.cpp
+index 774f61b..bd1fa3b 100644
+--- a/src/omp/OMPStream.cpp
++++ b/src/omp/OMPStream.cpp
+@@ -23,12 +23,14 @@ OMPStream<T>::OMPStream(const int ARRAY_SIZE, int device)
+   this->c = (T*)aligned_alloc(ALIGNMENT, sizeof(T)*array_size);
+ 
+ #ifdef OMP_TARGET_GPU
++#ifndef OMP_USM
+   omp_set_default_device(device);
+   T *a = this->a;
+   T *b = this->b;
+   T *c = this->c;
+   // Set up data region on device
+   #pragma omp target enter data map(alloc: a[0:array_size], b[0:array_size], c[0:array_size])
++#endif
+   {}
+ #endif
+ 
+@@ -38,12 +40,14 @@ template <class T>
+ OMPStream<T>::~OMPStream()
+ {
+ #ifdef OMP_TARGET_GPU
++#ifndef OMP_USM
+   // End data region on device
+   int array_size = this->array_size;
+   T *a = this->a;
+   T *b = this->b;
+   T *c = this->c;
+   #pragma omp target exit data map(release: a[0:array_size], b[0:array_size], c[0:array_size])
++#endif
+   {}
+ #endif
+   free(a);
+@@ -56,9 +60,11 @@ void OMPStream<T>::init_arrays(T initA, T initB, T initC)
+ {
+   int array_size = this->array_size;
+ #ifdef OMP_TARGET_GPU
++#ifndef OMP_USM
+   T *a = this->a;
+   T *b = this->b;
+   T *c = this->c;
++#endif
+   #pragma omp target teams distribute parallel for simd
+ #else
+   #pragma omp parallel for
+@@ -70,9 +76,11 @@ void OMPStream<T>::init_arrays(T initA, T initB, T initC)
+     c[i] = initC;
+   }
+   #if defined(OMP_TARGET_GPU) && defined(_CRAYC)
++#ifndef OMP_USM
+   // If using the Cray compiler, the kernels do not block, so this update forces
+   // a small copy to ensure blocking so that timing is correct
+   #pragma omp target update from(a[0:0])
++#endif
+   #endif
+ }
+ 
+@@ -81,10 +89,12 @@ void OMPStream<T>::read_arrays(std::vector<T>& h_a, std::vector<T>& h_b, std::ve
+ {
+ 
+ #ifdef OMP_TARGET_GPU
++#ifndef OMP_USM
+   T *a = this->a;
+   T *b = this->b;
+   T *c = this->c;
+   #pragma omp target update from(a[0:array_size], b[0:array_size], c[0:array_size])
++#endif
+   {}
+ #endif
+ 
+@@ -102,9 +112,11 @@ template <class T>
+ void OMPStream<T>::copy()
+ {
+ #ifdef OMP_TARGET_GPU
++#ifndef OMP_USM
+   int array_size = this->array_size;
+   T *a = this->a;
+   T *c = this->c;
++#endif
+   #pragma omp target teams distribute parallel for simd
+ #else
+   #pragma omp parallel for
+@@ -114,9 +126,11 @@ void OMPStream<T>::copy()
+     c[i] = a[i];
+   }
+   #if defined(OMP_TARGET_GPU) && defined(_CRAYC)
++#ifndef OMP_USM
+   // If using the Cray compiler, the kernels do not block, so this update forces
+   // a small copy to ensure blocking so that timing is correct
+   #pragma omp target update from(a[0:0])
++#endif
+   #endif
+ }
+ 
+@@ -126,9 +140,11 @@ void OMPStream<T>::mul()
+   const T scalar = startScalar;
+ 
+ #ifdef OMP_TARGET_GPU
++#ifndef OMP_USM
+   int array_size = this->array_size;
+   T *b = this->b;
+   T *c = this->c;
++#endif
+   #pragma omp target teams distribute parallel for simd
+ #else
+   #pragma omp parallel for
+@@ -138,9 +154,11 @@ void OMPStream<T>::mul()
+     b[i] = scalar * c[i];
+   }
+   #if defined(OMP_TARGET_GPU) && defined(_CRAYC)
++#ifndef OMP_USM
+   // If using the Cray compiler, the kernels do not block, so this update forces
+   // a small copy to ensure blocking so that timing is correct
+   #pragma omp target update from(c[0:0])
++#endif
+   #endif
+ }
+ 
+@@ -148,10 +166,12 @@ template <class T>
+ void OMPStream<T>::add()
+ {
+ #ifdef OMP_TARGET_GPU
++#ifndef OMP_USM
+   int array_size = this->array_size;
+   T *a = this->a;
+   T *b = this->b;
+   T *c = this->c;
++#endif
+   #pragma omp target teams distribute parallel for simd
+ #else
+   #pragma omp parallel for
+@@ -161,9 +181,11 @@ void OMPStream<T>::add()
+     c[i] = a[i] + b[i];
+   }
+   #if defined(OMP_TARGET_GPU) && defined(_CRAYC)
++#ifndef OMP_USM
+   // If using the Cray compiler, the kernels do not block, so this update forces
+   // a small copy to ensure blocking so that timing is correct
+   #pragma omp target update from(a[0:0])
++#endif
+   #endif
+ }
+ 
+@@ -173,10 +195,12 @@ void OMPStream<T>::triad()
+   const T scalar = startScalar;
+ 
+ #ifdef OMP_TARGET_GPU
++#ifndef OMP_USM
+   int array_size = this->array_size;
+   T *a = this->a;
+   T *b = this->b;
+   T *c = this->c;
++#endif
+   #pragma omp target teams distribute parallel for simd
+ #else
+   #pragma omp parallel for
+@@ -186,9 +210,11 @@ void OMPStream<T>::triad()
+     a[i] = b[i] + scalar * c[i];
+   }
+   #if defined(OMP_TARGET_GPU) && defined(_CRAYC)
++#ifndef OMP_USM
+   // If using the Cray compiler, the kernels do not block, so this update forces
+   // a small copy to ensure blocking so that timing is correct
+   #pragma omp target update from(a[0:0])
++#endif
+   #endif
+ }
+ 
+@@ -198,10 +224,12 @@ void OMPStream<T>::nstream()
+   const T scalar = startScalar;
+ 
+ #ifdef OMP_TARGET_GPU
++#ifndef OMP_USM
+   int array_size = this->array_size;
+   T *a = this->a;
+   T *b = this->b;
+   T *c = this->c;
++#endif
+   #pragma omp target teams distribute parallel for simd
+ #else
+   #pragma omp parallel for
+@@ -211,9 +239,11 @@ void OMPStream<T>::nstream()
+     a[i] += b[i] + scalar * c[i];
+   }
+   #if defined(OMP_TARGET_GPU) && defined(_CRAYC)
++#ifndef OMP_USM
+   // If using the Cray compiler, the kernels do not block, so this update forces
+   // a small copy to ensure blocking so that timing is correct
+   #pragma omp target update from(a[0:0])
++#endif
+   #endif
+ }
+ 
+@@ -223,10 +253,14 @@ T OMPStream<T>::dot()
+   T sum{};
+ 
+ #ifdef OMP_TARGET_GPU
++#ifndef OMP_USM
+   int array_size = this->array_size;
+   T *a = this->a;
+   T *b = this->b;
+   #pragma omp target teams distribute parallel for simd map(tofrom: sum) reduction(+:sum)
++#else 
++  #pragma omp target teams distribute parallel for simd reduction(+:sum)
++#endif
+ #else
+   #pragma omp parallel for reduction(+:sum)
+ #endif
+diff --git a/src/omp/OMPStream.h b/src/omp/OMPStream.h
+index 5a5622f..446a3a9 100644
+--- a/src/omp/OMPStream.h
++++ b/src/omp/OMPStream.h
+@@ -7,6 +7,10 @@
+ 
+ #pragma once
+ 
++#ifdef OMP_USM
++#pragma omp requires unified_shared_memory
++#endif
++
+ #include <iostream>
+ #include <stdexcept>
+ 

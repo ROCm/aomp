@@ -18,6 +18,8 @@ echo "" >> hip-openmp-check.txt
 echo "*******A non-zero exit code means a failure occured.*******" >> hip-openmp-check.txt
 echo "*************************************************************" >> hip-openmp-check.txt
 
+known_fails="aomp_hip_launch_test matmul_hip_omp_printf_fails matrixmul_omp_target"
+
 #Loop over all directories and make run / make check depending on directory name
 for directory in ./*/; do 
 	(cd "$directory" && path=$(pwd) && base=$(basename $path) 
@@ -38,4 +40,6 @@ for directory in ./*/; do
 	)
 done
 
+echo
+echo "Known Fails: $known_fails"
 cat hip-openmp-check.txt

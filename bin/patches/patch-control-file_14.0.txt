@@ -1,0 +1,7 @@
+rocminfo: rocminfo_ppc_cmake.patch
+openlibm: openlibm.patch
+RAJA: raja.patch
+RAJAPerf: rajaperf.patch
+rocm-compilersupport: rocm-compilersupport.patch
+rocm-device-libs: rocm-device-libs.patch
+hipamd: hipamd.patch

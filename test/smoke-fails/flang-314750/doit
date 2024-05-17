@@ -1,0 +1,6 @@
+
+cd NPB_FT/FT
+make clean
+rm -f ../bin/ft.A.x
+make CLASS=A
+timeout -s 9 2m ../bin/ft.A.x

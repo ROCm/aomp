@@ -17,6 +17,14 @@ thisdir=`dirname $realpath`
 . $thisdir/aomp_common_vars
 # --- end standard header ----
 
+if [ $AOMP_BUILD_FLANG_LEGACY == 0 ] ; then
+   if [ "$1" != "install" ] ; then
+      echo "WARNING:  ROCM install for $AOMP_FLANG_LEGACY_REL/llvm-legacy not found."
+      echo "          This build will skip build of flang-legacy."
+      echo "          The flang will link to the clang driver."
+   fi
+   exit
+fi
 TARGETS_TO_BUILD="AMDGPU;${AOMP_NVPTX_TARGET}X86"
 
 if [ $AOMP_STANDALONE_BUILD == 1 ] ; then
@@ -36,6 +44,12 @@ if [[ $osversion =~ '"7.' ]] || [[ $osversion =~ '"8' ]]; then
 else
   _cxx_flag=""
 fi
+
+# Legacy Flang dosen't support building of compiler-rt so it
+# utilizes the clang runtime libraries build/install using build_project.sh.
+# The LLVM_VERSION_MAJOR of legacy flang driver has to match with the clang
+# binaries generated from build_project.sh.
+LLVM_VERSION_MAJOR=$(${AOMP}/bin/clang --version | grep -oP '(?<=clang version )[0-9]+')
 
 # We need a version of ROCM llvm that supports legacy flang 
 # via the link from flang to clang.  rocm 5.5 would be best. 
@@ -61,28 +75,35 @@ LLVMCMAKEOPTS="\
 -DLLVM_ENABLE_ASSERTIONS=ON \
 -DLLVM_TARGETS_TO_BUILD=$TARGETS_TO_BUILD \
 -DCLANG_DEFAULT_LINKER=lld \
+-DLLVM_VERSION_MAJOR="$LLVM_VERSION_MAJOR" \
 -DLLVM_INCLUDE_BENCHMARKS=0 \
 -DLLVM_INCLUDE_RUNTIMES=0 \
 -DLLVM_INCLUDE_EXAMPLES=0 \
 -DLLVM_INCLUDE_TESTS=0 \
 -DLLVM_INCLUDE_DOCS=0 \
+-DLLVM_INCLUDE_UTILS=0 \
+-DCLANG_DEFAULT_PIE_ON_LINUX=0 \
+-DLLVM_ENABLE_ZSTD=OFF \
 $_cxx_flag \
--DLLVM_INCLUDE_UTILS=0 llvm-legacy/llvm \
--DCLANG_DEFAULT_PIE_ON_LINUX=0"
+$AOMP_SET_NINJA_GEN"
 
 MYCMAKEOPTS="\
 -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
--DCMAKE_C_COMPILER=$INSTALL_PREFIX/llvm/bin/clang \
--DCMAKE_CXX_COMPILER=$INSTALL_PREFIX/llvm/bin/clang++ \
+-DCMAKE_C_COMPILER=$AOMP_INSTALL_DIR/bin/clang \
+-DCMAKE_CXX_COMPILER=$AOMP_INSTALL_DIR/bin/clang++ \
 $_cxx_flag \
 -DBUILD_SHARED_LIBS=OFF \
+-DCMAKE_CXX_STANDARD=17 \
 -DCMAKE_INSTALL_PREFIX=$AOMP_INSTALL_DIR \
-$AOMP_ORIGIN_RPATH"
+$AOMP_SET_NINJA_GEN \
+"
 
-if [ "$AOMP_STANDALONE_BUILD" == 0 ]; then
-  MYCMAKEOPTS="$MYCMAKEOPTS
-  "
+if [ $AOMP_STANDALONE_BUILD == 1 ] ; then
+  MYCMAKEOPTS="$MYCMAKEOPTS -DBUILD_SHARED_LIBS=ON $AOMP_ORIGIN_RPATH"
+else
+  MYCMAKEOPTS="$MYCMAKEOPTS -DBUILD_SHARED_LIBS=OFF $OPENMP_EXTRAS_ORIGIN_RPATH"
 fi
+
 
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then 
   help_build_aomp
@@ -139,15 +160,15 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 fi
 
 # Build llvm legacy.
-echo " ---  Running make for $BUILD_DIR/build/flang-legacy/$AOMP_LFL_DIR/llvm-legacy ---- "
+echo " ---  Running $AOMP_NINJA_BIN for $BUILD_DIR/build/flang-legacy/$AOMP_LFL_DIR/llvm-legacy ---- "
 cd $BUILD_DIR/build/flang-legacy/$AOMP_LFL_DIR/llvm-legacy
-make -j $NUM_THREADS
+$AOMP_NINJA_BIN -j $AOMP_JOB_THREADS
 if [ $? != 0 ] ; then
       echo " "
-      echo "ERROR: make -j $NUM_THREADS  FAILED"
+      echo "ERROR: $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS  FAILED"
       echo "To restart:"
       echo "  cd $BUILD_DIR/build/flang-legacy/$AOMP_LFL_DIR/llvm-legacy"
-      echo "  make"
+      echo "  $AOMP_NINJA_BIN"
       exit 1
 fi
 
@@ -168,26 +189,26 @@ fi
 echo
 
 # Build flang-legacy.
-echo " ---  Running make for $BUILD_DIR/build/flang-legacy/$AOMP_LFL_DIR ---- "
+echo " ---  Running $AOMP_NINJA_BIN for $BUILD_DIR/build/flang-legacy/$AOMP_LFL_DIR ---- "
 cd $BUILD_DIR/build/flang-legacy/$AOMP_LFL_DIR
-make -j $NUM_THREADS
+$AOMP_NINJA_BIN -j $AOMP_JOB_THREADS
 if [ $? != 0 ] ; then
       echo " "
-      echo "ERROR: make -j $NUM_THREADS  FAILED"
+      echo "ERROR: $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS  FAILED"
       echo "To restart:"
       echo "  cd $BUILD_DIR/build/flang-legacy/$AOMP_LFL_DIR"
-      echo "  make"
+      echo "  $AOMP_NINJA_BIN"
       exit 1
 fi
 
 if [ "$1" == "install" ] ; then
    echo " -----Installing to $AOMP_INSTALL_DIR ---- "
-   $SUDO ${AOMP_CMAKE} --build . -j $NUM_THREADS --target install
+   $SUDO ${AOMP_CMAKE} --build . -j $AOMP_JOB_THREADS --target install
    if [ $? != 0 ] ; then
       echo "ERROR make install failed "
       exit 1
    fi
-   if [ "$CLANG_LINK_FLANG_LEGACY" == "ON" ] ; then
+   if [ $AOMP_BUILD_FLANG_LEGACY == 1 ] ; then
       echo "------ Linking flang-legacy to flang -------"
       if [ -L $AOMP_INSTALL_DIR/bin/flang ] ; then
          $SUDO rm $AOMP_INSTALL_DIR/bin/flang

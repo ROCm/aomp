@@ -1,0 +1,58 @@
+#!/bin/bash
+set -x
+
+export AOMP=${AOMP:-`ls -d /opt/rocm-*/llvm |sort|tail -1`}
+
+export AOMP_GPU=${AOMP_GPU:-`rocm_agent_enumerator | grep -v gfx000|uniq`}
+echo "Detected gfx=$AOMP_GPU"
+echo "AOMP: $AOMP"
+
+. ./shrc
+set -x
+
+ulimit -s unlimited
+
+export OMP_TARGET_OFFLOAD=MANDATORY
+export LIBRARY_PATH=$AOMP/lib
+export LD_LIBRARY_PATH=$AOMP/lib:$LD_LIBRARY_PATH
+export PATH=$AOMP/bin:$PATH
+
+export DSET=${DSET:-test}
+export RBLD=--rebuild
+export TLIST="accel"
+#export TLIST="457"
+#export TLIST="openmp ^450 ^452 ^456 ^457"
+
+declare -a PRAGMA_MODEL
+
+# By default all models will be executed. A user can set USER_PRAGMA_MODEL to select
+# which one(s) are used.
+# Examples: USER_PRAGMA_MODEL=tgt or USER_PRAGMA_MODEL='tgt tgts lops'
+if [ -z "$USER_PRAGMA_MODEL" ]
+then
+  PRAGMA_MODEL=( tgts tgt smd smds lop lops )
+else
+  PRAGMA_MODEL=( $USER_PRAGMA_MODEL )
+fi
+
+echo "Running for models ${PRAGMA_MODEL}"
+
+cd `realpath .`
+
+for m in ${PRAGMA_MODEL[@]}
+do
+  echo "Running for $m"
+# MODEL may be one of the following options:
+#   1. "lop" - Use OpenMP with "loop" construct
+#   2. "tgt" - Use OpenMP with "distribute" construct
+#   3. "smd" - Use OpenMP with "distribute" and inner "simd" construct
+#   4. "lops" - Use OpenMP with "loop" construct src.alt (no metadirectives)
+#   5. "tgts" - Use OpenMP with "distribute" construct src.alt (no metadirectives)
+#   6. "smds" - Use OpenMP with "distribute" and inner "simd" construct src.alt (no metadirectives)
+
+  runaccel -c amd_aomp.cfg --define model=$m   --define gputype=$AOMP_GPU -I -l -n 1 -T base -i $DSET $TLIST  $RBLD
+done
+
+exit
+
+runaccel -c amd_aomp.cfg --define model=tgts --parallel_test=8 --parallel_test_workloads=ref  --noreportable   --define gputype=$AOMP_GPU -I -l  -T base -i ref -n 1 403 463  $RBLD

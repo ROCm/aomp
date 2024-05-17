@@ -1,0 +1,9 @@
+String on   host: 12345_ABCDEFGabcdegf?!
+String on device: 12345_ABCDEFGabcdegf?!
+String on device: 12345_ABCDEFGabcdegf?!
+String on device: 12345_ABCDEFGabcdegf?!
+String on device: 12345_ABCDEFGabcdegf?!
+String on device: 67890_XYZxyz?!
+String on device:         67890_XYZxyz?!
+Data   on device: 22 <<<        67890_XYZxyz?!>>> 22   22
+Data   on   host: 22 <<<        67890_XYZxyz?!>>> 22   22

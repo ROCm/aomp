@@ -1,0 +1,102 @@
+#!/bin/bash
+#
+#  get_trunk_pr_since: 
+#     get_trunk_pr_since takes three optional arguments: 
+#       repo_dir  - Directory to test patches against
+#       date      - Date since PR was updated in form yyyy-mm-dd
+#       status    - Status of PRs default is "open", can change to "merged"
+# 
+#   This script is used for OpenMP development. 
+
+# --- Start standard AOMP header ----
+realpath=`realpath $0`
+thisdir=`dirname $realpath`
+. $thisdir/aomp_common_vars
+# --- end standard AOMP header ----
+
+repo_dir=${1:-$AOMP_REPOS/llvm-project}
+date_since=${2:-lastweek}
+pr_status=${3:-open}
+
+[ $date_since == "lastweek" ] && date_since=`date --date="last week" -I`
+
+curdir=$PWD
+tdir="/tmp/$USER/trunk_patches"
+[ -d $tdir ] && rm -rf $tdir 
+mkdir -p $tdir
+cd $tdir
+
+REVIEW_URL="https://github.com/llvm/llvm-project/pulls?q=is%3Apr++is%3A${pr_status}+%22%5BOpenMP%5D%22+in%3Atitle+updated%3A%3E%3D${date_since}"
+echo
+echo "Getting OpenMP trunk PRs updated on or after $date_since with status $pr_status"
+echo "URL: $REVIEW_URL"
+echo
+
+http_filename=pull_${pr_status}_${date_since}
+wget $REVIEW_URL -O $http_filename 2>/dev/null >/dev/null
+
+cat $http_filename | grep llvm/llvm-project/pull | grep pull_request | cut -d"/" -f7- |  while read line ; do 
+     dir=`echo $line | cut -d"\"" -f1`
+     comment=`echo $line | cut -d">" -f2-`
+     comment=`echo $comment | sed "s/<code>//g" | sed "s/<\/code>//g" | sed "s/<\/a>//g"`
+     number=`echo $dir | cut -d"/" -f4`
+     patchurl="https://github.com/${dir}.patch"
+     local_file=${patchurl##*/}
+     [ -f $local_file ] && rm -f $local_file 
+     echo wget $patchurl -O $local_file 
+     wget $patchurl 2>/dev/null >/dev/null
+
+     cfile=comment.${number}.txt
+     echo $comment > $cfile
+done
+echo
+echo " DONE getting files into $tdir"
+if [ $pr_status == "merged" ] ; then 
+   #  Do not attempt to test merged commits 
+   echo "The above patches are found in directory $tdir"
+   cd $curdir
+   exit 0
+fi
+if [ ! -d $repo_dir ] ; then 
+   echo "ERROR directory $repo_dir does not exist to test patches"
+   echo 
+   cd $curdir
+   exit 1
+fi
+echo " Now attempting to dry-run patches to $repo_dir"
+echo
+
+cd $repo_dir 
+prcount=0
+failcount=0
+for patchfile in `ls $tdir/*.patch` ; do 
+  prcount=$(( $prcount + 1 ))
+  lines=`wc -l $patchfile | cut -d" " -f1`
+  number=`echo $patchfile | cut -d"." -f1 | cut -d"/" -f5`
+  comment=`cat $tdir/comment.${number}.txt`
+  patch -p1 -t -N --dry-run <$patchfile >/dev/null
+  if [ $? != 0 ] ; then
+     failcount=$(( $failcount + 1 ))
+     echo "FAIL in $patchfile with   $lines lines."
+     echo "     Title: \"$comment\" "
+     echo "     URL: https://github.com/llvm/llvm-project/pull/$number"
+     echo "     Try these commands to recreate this fail:"
+     echo "       cd $repo_dir"
+     echo "       patch -p1 -t -N --dry-run < $patchfile"
+     echo 
+  else
+     echo "OK   PR ${number} applies with   $lines lines"
+     echo "     Title: \"$comment\" "
+     echo "     URL: https://github.com/llvm/llvm-project/pull/$number"
+     echo
+  fi
+done
+echo
+echo "The above patches are found in directory $tdir"
+echo "$failcount out of $prcount pull requests failed to apply to $repo_dir"
+echo "URL: $REVIEW_URL"
+echo "get_trunk_pr_since could be rerun with this command:"
+echo 
+echo "   $0 $repo_dir $date_since $pr_status"
+echo
+cd $curdir

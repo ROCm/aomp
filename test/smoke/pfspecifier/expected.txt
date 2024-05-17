@@ -1,0 +1,17 @@
+Signed: 392
+Unsigned: 7235
+Unsigned: 610
+Unsigned: 7fa
+Unsigned: 7FA
+floating point: 392.650000
+floating point: 392.650000
+S notation point: 3.926500e+02
+S notation point: 3.926500E+02
+floating point: 392.65
+floating point: 392.65
+Hexadecimal: 0x1.88a6666666666p+8
+Hexadecimal: 0X1.88A6666666666P+8
+Characters: A
+Signed: 392
+Only percent sign %
+No specifier!

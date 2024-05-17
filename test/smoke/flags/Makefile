@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = flags
 TESTSRC_MAIN = flags.c
@@ -33,14 +33,17 @@ run:
 check: compile
 	@path=`pwd`; \
 	base=`basename $$path`; \
-	if   (./$(TESTNAME)> /dev/null 2>&1); then \
+	( \
+	flock -e 9 && echo  "" >> ../check-smoke.txt; \
+	if   (./$(TESTNAME)); then \
 		echo $$base $$test_num return code: $$? >> ../check-smoke.txt; \
 		echo "" >> ../check-smoke.txt; \
 		echo $$base $$test_num  >> ../passing-tests.txt; \
 	else  echo $$base $$test_num return code: $$? >> ../check-smoke.txt; \
 		echo "" >> ../check-smoke.txt; \
 		echo $$base $$test_num  >> ../failing-tests.txt; \
-	fi
+	fi; \
+	)9>../lockfile;
 
 clean::
 	rm -f $(TESTNAME) $(TESTNAME).a llbin sbin obin *.i *.ii *.bc *.lk a.out-* *.ll *.s *.o *.log

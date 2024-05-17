@@ -6,7 +6,7 @@ Files Makefile.defs and Makefile.rules should be used in individual test Makefil
 N.B. The TESTNAME in case of a multisource test must be different from names of individual test source files. Otherwise make will be confused.
 
 Example of individual Makefile:
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME       = vmulsum
 TESTSRC_MAIN   = main.c

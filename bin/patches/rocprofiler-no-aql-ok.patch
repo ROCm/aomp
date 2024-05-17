@@ -1,0 +1,26 @@
+diff --git a/src/api/CMakeLists.txt b/src/api/CMakeLists.txt
+index 574b77f..a152c71 100644
+--- a/src/api/CMakeLists.txt
++++ b/src/api/CMakeLists.txt
+@@ -56,7 +56,7 @@ find_library(
+     PATH_SUFFIXES lib)
+ 
+ if(NOT AQLPROFILE_LIB)
+-    message(FATAL_ERROR "AQL_PROFILE not installed. Please install hsa-amd-aqlprofile!")
++    message(WARNING "AQL_PROFILE not installed. Please install hsa-amd-aqlprofile!")
+ endif()
+ 
+ # ########################################################################################
+diff --git a/src/tools/rocprofv2/CMakeLists.txt b/src/tools/rocprofv2/CMakeLists.txt
+index 8693bf3..f05e519 100644
+--- a/src/tools/rocprofv2/CMakeLists.txt
++++ b/src/tools/rocprofv2/CMakeLists.txt
+@@ -13,7 +13,7 @@ find_library(
+     PATHS ${ROCM_PATH}
+     PATH_SUFFIXES lib)
+ if(NOT AQLPROFILE_LIB)
+-    message(FATAL_ERROR "AQL_PROFILE not installed. Please install hsa-amd-aqlprofile!")
++    message(WARNING "AQL_PROFILE not installed. Please install hsa-amd-aqlprofile!")
+ endif()
+ 
+ file(GLOB ROCPROFV2_SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)

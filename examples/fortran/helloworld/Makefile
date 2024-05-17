@@ -1,9 +1,9 @@
 #-----------------------------------------------------------------------
-#  ROCM_LLVM:       Defaults to /opt/rocm/llvm
 #
-#  make run
+#  Makefile: Cuda clang demo Makefile for both amdgcn and nvptx targets.
+#            amdgcn targets begin with gfx. nvptx targets begin with sm_
 #
-#  Run "make help" to see other options for this Makefile
+#  Run "make help" to see how to use this Makefile
 #
 #-----------------------------------------------------------------------
 # MIT License
@@ -31,22 +31,27 @@
 
 TESTNAME =helloworld
 FILETYPE =f90
+TESTSRC = $(TESTNAME).$(FILETYPE)
 
-ROCM_LLVM ?= /opt/rocm/llvm
+mkfile_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+ifneq ($(CURDIR)/,$(mkfile_dir))
+  TESTSRC := $(mkfile_dir)$(TESTSRC)
+endif
+include $(mkfile_dir)../../Makefile.find_gpu_and_install_dir
 
-FORT   = $(ROCM_LLVM)/bin/flang
+FORT   =$(LLVM_INSTALL_DIR)/bin/flang
 LFLAGS = 
-FFLAGS =
+FFLAGS = -fopenmp
 
 # ----- Demo compile and link in one step, no object code saved
-$(TESTNAME): $(TESTNAME).$(FILETYPE)
+$(TESTNAME): $(TESTSRC)
 	$(FORT) $(FFLAGS) $(TARGETS) $(LFLAGS) $^ -o $@
 
 run: $(TESTNAME)
 	./$(TESTNAME)
 
 #  ----   Demo compile and link in two steps, object saved
-$(TESTNAME).o: $(TESTNAME).$(FILETYPE)
+$(TESTNAME).o: $(TESTSRC)
 	$(FORT) -c $(FFLAGS) $(TARGETS) $^
 
 obin:	$(TESTNAME).o 
@@ -56,16 +61,16 @@ run_obin: obin
 	./obin
 
 #  ----   Demo compile to intermediates LLVMIR or assembly
-$(TESTNAME).ll: $(TESTNAME).$(FILETYPE)
+$(TESTNAME).ll: $(TESTSRC)
 	$(FORT) -c -S -emit-llvm $(FFLAGS) $(TARGETS) $^
 
-$(TESTNAME).s: $(TESTNAME).$(FILETYPE)
+$(TESTNAME).s: $(TESTSRC)
 	$(FORT)  -c -S $(FFLAGS) $(TARGETS)  $^
 
 help: 
 	@echo
 	@echo "Makefile Help:"
-	@echo "  Source:		$(TESTNAME).$(FILETYPE)"
+	@echo "  Source:		$(TESTSRC)"
 	@echo "  Compiler: 		$(FORT)"
 	@echo "  Compiler flags: 	$(FFLAGS)"
 	@echo
@@ -79,9 +84,6 @@ help:
 	@echo "  make $(TESTNAME).ll	// compile step only       : -c -S -emit-llvm"
 	@echo "  make clean		// cleanup files"
 	@echo "  make help 		// this help"
-	@echo
-	@echo "Environment Variables:"
-	@echo "  ROCM_LLVM default: /opt/rocm/llvm                            value: $(ROCM_LLVM)"
 	@echo
 	@echo "Link Flags:"
 	@echo "  Link flags: $(LFLAGS)"

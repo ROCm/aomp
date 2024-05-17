@@ -1,0 +1,15 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 3ce1fc10..c5b03fd1 100755
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -353,10 +353,6 @@ if(NOT ${INSTALL_SOURCE} EQUAL 0)
+               PATTERN *.bat EXCLUDE)
+     endif()
+ 
+-    # The following two lines will be removed after upstream updation
+-    install(CODE "MESSAGE(\"Removing ${CMAKE_INSTALL_PREFIX}/include\")")
+-    install(CODE "file(REMOVE_RECURSE ${CMAKE_INSTALL_PREFIX}/include)")
+-
+     install(DIRECTORY include DESTINATION .)
+     install(DIRECTORY ${HIP_COMMON_INCLUDE_DIR}/hip/ DESTINATION include/hip/)
+     install(DIRECTORY ${HIP_COMMON_DIR}/cmake DESTINATION .)

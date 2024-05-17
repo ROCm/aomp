@@ -1,0 +1,105 @@
+--- OMPStream.cpp.orig	2022-07-14 16:00:15.287892643 +0000
++++ OMPStream.cpp	2022-07-14 16:17:06.711925128 +0000
+@@ -12,6 +12,29 @@
+ #define ALIGNMENT (2*1024*1024) // 2MB
+ #endif
+ 
++#ifdef OMP_TARGET_GPU
++#ifdef _DEFAULTS_NOSIMD
++// If compiled with -D_DEFAULTS_NOSIMD, only remove simd in the pragma omp target
++#define simd
++#else
++// vectorization inside target region is not possible, so define simd as a macro
++// to define extra clauses such as schedule and grid sizes.
++// Try 4 X number_of_cus or 2 X number_of_cus
++#ifndef NUM_TEAMS
++#define NUM_TEAMS 240
++#endif
++#ifndef NUM_THREADS
++#define NUM_THREADS 1024
++#endif
++#define CHUNKSZ 1
++//#define simd schedule(nonmonotonic:static,CHUNKSZ) num_teams(NUM_TEAMS) thread_limit(NUM_THREADS)
++#define simd num_teams(NUM_TEAMS) thread_limit(NUM_THREADS)
++#define XSTR(x) STRING_CLAUSE(x)
++#define STRING_CLAUSE(x) #x
++#endif
++#endif
++static int didprint = 0;
++
+ template <class T>
+ OMPStream<T>::OMPStream(const int ARRAY_SIZE, int device)
+ {
+@@ -27,6 +50,18 @@
+   T *a = this->a;
+   T *b = this->b;
+   T *c = this->c;
++  // Print diagnostic one time.
++  if (!didprint) {
++#ifdef _DEFAULTS_NOSIMD
++     printf("#pragma omp target teams distribute parallel for\n");
++#else
++     printf("#pragma omp target teams distribute parallel for %s\n",XSTR(simd));
++     printf("arrays_size:%d nteams:%d teamsz:%d chunksz:%d iters/thread:%d iters/team:%d chunks/thread:%d\n",
++                  array_size, NUM_TEAMS, NUM_THREADS , CHUNKSZ, (array_size/NUM_TEAMS)/NUM_THREADS,
++                  array_size/NUM_TEAMS,  ((array_size/NUM_TEAMS)/NUM_THREADS)/CHUNKSZ);
++#endif
++     didprint=1;
++  }
+   // Set up data region on device
+   #pragma omp target enter data map(alloc: a[0:array_size], b[0:array_size], c[0:array_size])
+   {}
+@@ -217,6 +252,45 @@
+   #endif
+ }
+ 
++#if defined(OMP_TARGET_GPU) && defined(OMP_TARGET_FAST_DOT)
++#if defined(__AMDGCN__) || defined(__NVPTX__)
++  //  Device headers for reduction helpers in DeviceRTLs/src/Xteam.cpp
++  extern "C" __attribute__((flatten, always_inline)) void __kmpc_xteam_sum_d(double,double*);
++  extern "C" __attribute__((flatten, always_inline)) void __kmpc_xteam_sum_f(float,float*);
++#else
++  // Host dummy routines needed because we are simulating codegen by calling xteam_sum
++  extern "C"  void __kmpc_xteam_sum_d(double val, double* dval) { *dval = val;}
++  extern "C"  void __kmpc_xteam_sum_f(float val, float*rval) { *rval = val;}
++#endif
++// These overloads call type-specific DeviceRTL helper functions
++void __attribute__((flatten, always_inline)) __kmpc_xteam_sum(double val, double* rval) {
++  __kmpc_xteam_sum_d(val,rval); }
++void __attribute__((flatten, always_inline)) __kmpc_xteam_sum(float val, float* rval) {
++  __kmpc_xteam_sum_f(val,rval); }
++template <class T> T OMPStream<T>::dot() {
++  T sum = T(0);
++  int array_size = this->array_size;
++  T *a = this->a;
++  T *b = this->b;
++  T * pinned_sum = (T *)omp_alloc(sizeof(T), ompx_pinned_mem_alloc);
++  pinned_sum[0] = sum ;
++  int team_procs = ompx_get_team_procs(0);
++  #pragma omp target teams distribute parallel for map(tofrom:pinned_sum[0:1]) \
++          num_teams(team_procs) num_threads(1024)
++  for (unsigned int k=0; k<(team_procs*1024); k++) {
++    T val;
++    #pragma omp allocate(val) allocator(omp_thread_mem_alloc)
++    val = T(0);
++    for (unsigned int i = k; i < array_size ; i += team_procs*1024)
++      val += a[i] * b[i];
++    __kmpc_xteam_sum(val,&pinned_sum[0]);
++  }
++  sum = pinned_sum[0];
++  omp_free(pinned_sum);
++  return sum;
++}
++
++#else
+ template <class T>
+ T OMPStream<T>::dot()
+ {
+@@ -237,6 +311,7 @@
+ 
+   return sum;
+ }
++#endif
+ 
+ 
+ 

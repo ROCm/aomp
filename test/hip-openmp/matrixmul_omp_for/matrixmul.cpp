@@ -24,6 +24,7 @@
 
 #include "hip/hip_runtime.h"
 #include <stdio.h>
+#include <omp.h>
 
 #define N 3
 #define M 3
@@ -84,6 +85,8 @@ void printHipError(hipError_t error) {
 }
 
 void randomizeMatrix(int *matrix, int Rows, int Cols) {
+  omp_set_num_threads(2);
+#pragma omp parallel for
   for (int i = 0; i < Rows * Cols; ++i)
     matrix[i] = rand() % 10;
 }
@@ -157,15 +160,15 @@ int main() {
 
     if (matrixAAllocated && matrixBAllocated && matrixCAllocated) {
       bool copiedSrcMatA=false, copiedSrcMatB=false;
-//#pragma omp task shared(copiedSrcMatA)
+#pragma omp task shared(copiedSrcMatA)
       copiedSrcMatA = hipCallSuccessful(hipMemcpy(deviceSrcMatA, hostSrcMatA,
                                                      N * M * sizeof(int),
                                                      hipMemcpyHostToDevice));
-//#pragma omp task shared(copiedSrcMatB)
+#pragma omp task shared(copiedSrcMatB)
       copiedSrcMatB = hipCallSuccessful(hipMemcpy(deviceSrcMatB, hostSrcMatB,
                                                      M * P * sizeof(int),
                                                      hipMemcpyHostToDevice));
-//#pragma omp taskwait
+#pragma omp taskwait
       if (copiedSrcMatA && copiedSrcMatB) {
         dim3 dimGrid(N, P);
         matrixMul<<<dimGrid, 1, 0, 0>>>(deviceSrcMatA, deviceSrcMatB,
@@ -192,8 +195,6 @@ int main() {
         }
       } else fprintf(stderr,"Unable to make initial copy\n");
     }
-// See: http://ontrack-internal.amd.com/browse/SWDEV-210802
-#ifdef HIP_FREE_THREADSAFE
 //#pragma omp task shared(matrixAAllocated, deviceSrcMatA)
     if (matrixAAllocated)
       hipFree(deviceSrcMatA);
@@ -203,7 +204,6 @@ int main() {
 //#pragma omp task shared(matrixCAllocated, deviceDstMat)
     if (matrixCAllocated)
       hipFree(deviceDstMat);
-#endif
 //#pragma omp taskwait
     fprintf(stderr,"Interation: %d finished >>>\n",i);
   }

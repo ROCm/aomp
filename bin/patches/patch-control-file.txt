@@ -1,3 +1,9 @@
-roct-thunk-interface: roct-thunk-interface.patch
-rocr-runtime: rocr-runtime.patch
 rocminfo: rocminfo_ppc_cmake.patch
+hip-on-vdi: hipvdi.patch
+opencl-on-vdi: ocl.patch
+openlibm: openlibm.patch
+RAJA: raja.patch
+RAJAPerf: rajaperf.patch
+rocr-runtime: rocr-runtime.patch
+roct-thunk-interface: roct-thunk-interface.patch
+rocm-compilersupport: rocm-compilersupport.patch

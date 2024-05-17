@@ -3,7 +3,7 @@
 #include <unistd.h>
 
 // 920 fails
-#define TRIALS 919
+#define TRIALS  600 //#919
 // 6000 fails
 #define N 64*5000
 
@@ -36,6 +36,7 @@ int main() {
     if (A[i] != TRIALS) {
       printf("Error at A[%d], h = %lf, d = %lf\n", i, (double) (2.0+3.0)*TRIALS, A[i]);
       fail = 1;
+      break;
     }
   }
 

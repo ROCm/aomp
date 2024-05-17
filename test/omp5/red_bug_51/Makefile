@@ -1,4 +1,4 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = red_bug_51
 TESTSRC_MAIN = red_bug_51.cpp

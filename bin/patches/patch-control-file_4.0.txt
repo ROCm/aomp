@@ -1,0 +1,6 @@
+rocminfo: rocminfo_ppc_cmake.patch
+openlibm: openlibm.patch
+opencl-on-vdi: ocl.patch
+roctracer: roctracer_4.0.patch
+RAJA: raja.patch
+RAJAPerf: rajaperf.patch

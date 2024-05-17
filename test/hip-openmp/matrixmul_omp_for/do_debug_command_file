@@ -1,0 +1,46 @@
+# Set trace-commands to 'on' to have the commands printed out prefixed with a + before getting executed
+set trace-commands on
+ompd init
+set confirm off
+set breakpoint pending on
+# Place a temporary breakpoint in the parallel for region inside randomizeMatrix()
+# This should be breakpoint number 3
+tbreak matrixmul.cpp:90 thread 1
+# Place a temporary breakpoint inside the hip kernel
+tbreak matrixMul
+# Commands to be run when we hit the breakpoint in randomizeMatrix()
+commands 3
+bt
+ompd bt on continued
+set trace-commands off
+# This should display the context of the nested parallel regions
+bt
+set trace-commands on
+# Show the hierarchy of parallel regions
+ompd parallel
+# Display the values of the ICVs
+ompd icvs
+ompd bt off
+# End of commands to be executed at Breakpoint 3 (matrixmul.cpp:89)
+end
+c
+# We should have hit the breakpoint in the hip kernel
+# Commands below to demonstrate that we are in the hip kernel
+bt
+thr
+show architecture
+x/5i $pc
+i share
+ompd threads
+# Switch focus to the master thread
+thr 1
+bt
+ompd bt on continued
+set trace-commands off
+bt
+set trace-commands on
+ompd parallel
+ompd icvs
+q
+
+

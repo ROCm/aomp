@@ -1,0 +1,353 @@
+SHELL=/bin/bash -o pipefail
+
+
+# Set the value of SKIP_USM to 1 if the system is a VM, else sets SKIP_USM to 0.
+# a system is considered a VM if it has the HyperV or VMWare names present in
+# output of lspci or /usr/sbin/lspci or /sbin/lspci commands.
+define checkVM
+  SKIP_USM=$(shell lspci 2>/dev/null| grep -i -E "VMWare|HyperV" | wc -l)
+  ifeq ($(SKIP_USM),0)
+    SKIP_USM=$(shell /usr/sbin/lspci 2>/dev/null | grep -i -E "VMWare|HyperV" | wc -l)
+  endif
+  ifeq ($(SKIP_USM),0)
+    SKIP_USM=$(shell /sbin/lspci 2>/dev/null | grep -i -E "VMWare|HyperV" | wc -l)
+  endif
+endef
+
+# if SKIP_USM is not already set, then call checkVM to set the value of SKIP_USM
+ifeq ($(SKIP_USM),)
+  $(eval $(call checkVM))
+endif
+
+# If SKIP_USM is 1 then do not compile/run the test
+ifneq ($(SKIP_USM),0)
+  SUPPORTS_USM="SKIP_USM = 0"
+else
+  # target IDs that support OpenMP 'requires unified_shared_memory'
+  # as defined in https://llvm.org/docs/AMDGPUUsage.html#amdgpu-processor-table
+  # with xnack target feature supported.
+  SUPPORTS_USM= gfx908, gfx908:xnack+,\
+                gfx90a, gfx90a:xnack+,\
+                gfx90c, gfx90c:xnack+,\
+                gfx940, gfx940:xnack+,\
+                gfx941, gfx941:xnack+,\
+                gfx942, gfx942:xnack+,\
+                gfx1010, gfx1010:xnack+\
+                gfx1011, gfx1011:xnack+\
+                gfx1012, gfx1012:xnack+\
+                gfx1013, gfx1013:xnack+
+endif
+
+ifeq ($(AOMP),)
+# --- Standard Makefile check for AOMP installation ---
+ifeq ("$(wildcard $(AOMP))","")
+  ifneq ($(AOMP),)
+    $(warning AOMP not found at $(AOMP))
+  endif
+  AOMP = $(HOME)/rocm/aomp
+  ifeq ("$(wildcard $(AOMP))","")
+    $(warning AOMP not found at $(AOMP))
+    AOMP = /usr/lib/aomp
+    ifeq ("$(wildcard $(AOMP))","")
+      $(warning AOMP not found at $(AOMP))
+      $(error Please install AOMP or correctly set env-var AOMP)
+    endif
+  endif
+endif
+# --- End Standard Makefile check for AOMP installation ---
+endif
+
+ifneq ($(TIMEOUT),)
+  TKILL= timeout $(TIMEOUT)
+endif
+
+UNAMEP = $(shell uname -m)
+ifeq ($(UNAMEP),ppc64le)
+  AOMP_CPUTARGET = -target ppc64le-linux-gnu GREG
+endif
+
+ifeq ($(EPSDB),1)
+ AOMPHIP ?= $(AOMP)/..
+ PFILE = $(AOMPHIP)/lib/libamdhip64.so
+ ifeq ("$(wildcard $(PFILE))","")
+  AOMPHIP = $(AOMP)/../..
+ endif
+else
+ PFILE = $(AOMP)/lib/libamdhip64.so
+ ifneq ("$(wildcard $(PFILE))","")
+   AOMPHIP ?= $(AOMP)
+ else
+   AOMPHIP = $(AOMP)/..
+ endif
+ PFILE = $(AOMPHIP)/lib/libamdhip64.so
+ ifeq ("$(wildcard $(PFILE))","")
+  AOMPHIP = $(AOMP)/../..
+ endif
+endif
+
+# Look for FileCheck on the system in various places.
+# Check local AOMP install first.
+FILECHECK=$(AOMP)/bin/FileCheck
+FILECHECK_RT=$(shell ls $(FILECHECK) 2>/dev/null || echo error)
+ifeq ($(FILECHECK_RT),error)
+  # Check default AOMP release location.
+  FILECHECK=/usr/lib/aomp/bin/FileCheck
+  FILECHECK_RT=$(shell ls $(FILECHECK) 2> /dev/null || echo error)
+  ifeq ($(FILECHECK_RT),error)
+    # Check copy location for psdb.
+    FILECHECK=$(HOME)/git/aomp-test/FileCheck
+    FILECHECK_RT=$(shell ls $(FILECHECK) 2> /dev/null || echo error)
+    ifeq ($(FILECHECK_RT),error)
+      # Check system llvm.
+      SYSLLVM=$(shell ls /usr/lib | grep -m1 -e "llvm-[0-9]\+")
+      FILECHECK=/usr/lib/$(SYSLLVM)/bin/FileCheck
+      FILECHECK_RT=$(shell ls $(FILECHECK) 2>/dev/null || echo error)
+      ifeq ($(FILECHECK_RT),error)
+        # Check system llvm-tools.
+        SYSFILECHECK=$(shell ls /usr/bin | grep -m1 -e "FileCheck")
+        ifneq ($(SYSFILECHECK),)
+          FILECHECK=/usr/bin/$(SYSFILECHECK)
+          FILECHECK_RT=$(shell ls $(FILECHECK) 2>/dev/null || echo error)
+          ifeq ($(FILECHECK_RT),error)
+            NOFILECHECK=1
+          endif
+        else
+          NOFILECHECK=1
+        endif
+        ifeq ($(NOFILECHECK),1)
+          $(warning ----Warning---- FileCheck was not found and is needed by smoke tests.)
+          FILECHECK="FileCheck notfound. May need to install llvm-XY-tools (where XY is llvm version)."
+        endif
+      endif
+    endif
+  endif
+endif
+
+
+OMPIDIR ?= ~/local/openmpi
+ifeq "$(wildcard $(OMPIDIR))" ""
+  OMPIDIR = /opt/openmpi-4.1.5
+  ifeq "$(wildcard $(OMPIDIR))" ""
+    OMPIDIR = /opt/openmpi-4.1.4
+    ifeq "$(wildcard $(OMPIDIR))" ""
+      OMPIDIR = /usr/local/openmpi
+      ifeq "$(wildcard $(OMPIDIR))" ""
+        OMPIDIR = /usr/lib/x86_64-linux-gnu/openmpi
+        ifeq "$(wildcard $(OMPIDIR)/lib/libmpi*)" ""
+          OMPIDIR = /usr/lib/openmpi
+          ifeq "$(wildcard $(OMPIDIR)/lib/libmpi*)" ""
+            OMPIDIR = /usr/lib64/openmpi
+            ifeq "$(wildcard $(OMPIDIR)/lib/libmpi*)" ""
+              OMPIDIR = /usr/local
+              ifeq "$(wildcard $(OMPIDIR)/lib/libmpi*)" ""
+                OMPIDIR = /usr/local
+	        MPI64 = 64
+                ifeq "$(wildcard $(OMPIDIR)/lib$(MPI64)/libmpi*)" ""
+                  $(warning Openmpi not found on the system and is required. Set OMPIDIR to openmpi installation)
+                endif
+              endif
+            endif
+          endif
+        endif
+      endif
+    endif
+  endif
+endif
+
+#$(info -- openmpi found at $(OMPIDIR))
+MPILIBS ?= -L${OMPIDIR}/lib$(MPI64) -lmpi
+
+# If AOMP env variable contains opt use rocm_agent_enumerator for device id.
+# Set GFXLIST to available gfx numbers pulled from installed bc files.
+  # Set GFXLIST from aomp_common_vars
+  ALLGFXLIST = $(shell grep GFXLIST= ../../../bin/aomp_common_vars | grep -o "gfx.*" | sed -E "s|\"}||" | sed -E "s|gfx1010||")
+  GFXLIST ?= $(ALLGFXLIST)
+
+    ifneq ($(CBL),1)
+      # Honor AOMP_GPU.
+      ifneq ("$(AOMP_GPU)","")
+        INSTALLED_GPU = $(shell echo $(AOMP_GPU))
+      # Honor ROCR_VISIBLE_DEVICES. Returns first GPU in list.
+      else ifneq ("$(ROCR_VISIBLE_DEVICES)","")
+        INSTALLED_GPU = $(shell $(AOMP)/bin/amdgpu-arch | grep -m 1 -E gfx[^0]{1}.{2})
+      # Default to amdgpu-arch. Returns first GPU in list.
+      else
+        INSTALLED_GPU = $(shell $(AOMP)/bin/amdgpu-arch | grep -m 1 -E gfx[^0]{1}.{2})
+        ifeq ("$(INSTALLED_GPU)","")
+          ifneq ("$(wildcard $(AOMP)/bin/rocm_agent_enumerator)","")
+            INSTALLED_GPU = $(shell $(AOMP)/bin/rocm_agent_enumerator | grep -m 1 -E gfx[^0]{1}.{2})
+          else
+            # in case AOMP is trunk build without rocm_agent_enumerator, try /opt/rocm/bin
+            INSTALLED_GPU = $(shell /opt/rocm/bin/rocm_agent_enumerator | grep -m 1 -E gfx[^0]{1}.{2})
+          endif
+          # Try nvptx-arch
+          ifeq ("$(INSTALLED_GPU)","")
+            INSTALLED_GPU = $(shell $(AOMP)/bin/nvptx-arch | grep -m 1 sm)
+          endif
+          ifeq ("$(INSTALLED_GPU)","")
+  # Check for nvidia arch last
+  # If AOMP not pointing to rocm, then assume neither offload-arch nor mygpu utilities exist.
+  # So use lspci to search for volta and if not then use standalone rocm_agent_enumerator
+  # to autodetect which GPU is active.
+  lspci_loc = /usr/sbin/lspci
+  ifeq "$(wildcard /usr/sbin/lspci)" ""
+    lspci_loc = /sbin/lspci
+    ifeq "$(wildcard /sbin/lspci)" ""
+      lspci_loc = lspci
+    endif
+  endif
+  ISVOLTA = $(shell $(lspci_loc) -n | grep 10de:1db4)
+  ISGTX750= $(shell $(lspci_loc) -n | grep 10de:1380)
+  ifeq (10de,$(findstring 10de,$(ISVOLTA)))
+    INSTALLED_GPU = sm_70
+  else ifeq (10de,$(findstring 10de,$(ISGTX750)))
+    INSTALLED_GPU = sm_50
+  else
+    $(error "AOMP_GPU cannot be set via detection tools.")
+  endif
+          endif
+        endif
+      endif
+    endif
+
+AOMP_GPU       ?= $(INSTALLED_GPU)
+CC              = $(AOMP)/bin/clang
+OG11           ?= $(HOME)/git/og11/install
+OG11FLAGS      ?= -O3 -fopenmp -foffload=-march=$(AOMP_GPU) -I. -lgfortran -L $(OG11)/lib64
+OG11CC         ?= $(OG11)/bin/g++ $(OG11FLAGS) $(CFLAGS)
+OG11LIBPATH    ?= $(OG11)/lib64:$(AOMP)/lib
+ifeq ($(OFFLOAD_DEBUG),1)
+  OG11ENV = LD_LIBRARY_PATH=$(OG11LIBPATH) GCN_DEBUG=1
+else
+  OG11ENV = LD_LIBRARY_PATH=$(OG11LIBPATH)
+endif
+
+CUDA           ?= /usr/local/cuda
+
+ifeq (sm_,$(findstring sm_,$(AOMP_GPU)))
+  AOMP_GPUTARGET = nvptx64
+else
+  AOMP_GPUTARGET = amdgcn-amd-amdhsa
+endif
+
+ifeq (gfx10,$(findstring gfx10,$(AOMP_GPU)))
+ AOMP_WSIZE = -DWAVE_SIZE=32
+endif
+
+ifeq (gfx11,$(findstring gfx11,$(AOMP_GPU)))
+ AOMP_WSIZE = -DWAVE_SIZE=32
+endif
+
+ifeq ($(AOMP_SANITIZER),1)
+  HSA_XNACK = 1
+  ASAN_FLAGS = -fsanitize=address -shared-libasan -g
+  #ASan requires xnack+ by default
+  AOMP_TARGET_FEATURES = :xnack+
+endif
+
+ifeq ($(AOMP_TARGET_FEATURES),)
+GPU_W_FEATURES = $(AOMP_GPU)
+else
+GPU_W_FEATURES = $(AOMP_GPU)$(AOMP_TARGET_FEATURES)
+endif
+
+USE_OFFLOAD_ARCH ?= 1
+ifeq ($(TARGET),)
+  ifeq ($(OMP_HOST),)
+   ifeq ($(USE_OFFLOAD_ARCH),1)
+	TARGET  =  --offload-arch=$(GPU_W_FEATURES) $(ASAN_FLAGS)
+   else
+	TARGET  =  -fopenmp-targets=$(AOMP_GPUTARGET) -Xopenmp-target=$(AOMP_GPUTARGET) -march=$(GPU_W_FEATURES) $(ASAN_FLAGS)
+   endif
+  endif
+endif
+
+# OFFLOAD_DEBUG is used by this test harnass to turn on HOST and/or DEVICE level debug
+ifeq ($(OFFLOAD_DEBUG),1)
+  $(info    DEBUG Mode ON)
+  SET_DEVICE_DEBUG =  LIBOMPTARGET_DEBUG=1
+  SETENV  = env LIBRARY_PATH=$(AOMP)/lib-debug
+endif
+ifeq ($(OFFLOAD_DEBUG),2)
+  $(info    DEBUG Mode ON)
+  SET_DEVICE_DEBUG = LIBOMPTARGET_DEVICE_RTL_DEBUG=-1
+  SETENV  = env LIBRARY_PATH=$(AOMP)/lib-debug
+endif
+ifeq ($(OFFLOAD_DEBUG),3)
+  $(info    DEBUG Mode ON)
+  SET_DEVICE_DEBUG = LIBOMPTARGET_DEBUG=1 LIBOMPTARGET_DEVICE_RTL_DEBUG=-1
+  SETENV  = env LIBRARY_PATH=$(AOMP)/lib-debug
+endif
+ifeq ($(OFFLOAD_DEBUG),4)
+  $(info    DEBUG Mode ON)
+  SET_DEVICE_DEBUG = ATMI_DEBUG=1
+  SETENV  = env LIBRARY_PATH=$(AOMP)/lib-debug
+endif
+ifeq ($(OFFLOAD_DEBUG),5)
+  $(info    DEBUG Mode ON)
+  SET_DEVICE_DEBUG = ATMI_DEBUG=1 LIBOMPTARGET_DEBUG=1 LIBOMPTARGET_DEVICE_RTL_DEBUG=-1
+  SETENV  = env LIBRARY_PATH=$(AOMP)/lib-debug
+endif
+
+ifeq ($(OMP_FLAGS),)
+    ifeq ($(OMP_HOST),)
+      OMP_FLAGS = $(AOMP_CPUTARGET) $(AOMP_WSIZE) -fopenmp $(TARGET)
+    else
+      OMP_FLAGS = $(AOMP_CPUTARGET) $(AOMP_WSIZE) -fopenmp
+    endif
+endif
+
+ifeq ($(CBL),1)
+  OMP_FLAGS = -foffload=-march=gfx90a -m64 -fopenmp
+  CBL_ENV = LD_LIBRARY_PATH=$(AOMP)/x86_64-none-linux-gnu/lib64:/opt/rocm/lib:$(LD_LIBRARY_PATH)
+  GFIND := $(shell grep 'clang++' Makefile)
+  ifeq ($(GFIND),)
+    CLANG = x86_64-none-linux-gnu-gcc
+  else
+    CLANG = x86_64-none-linux-gnu-g++
+  endif
+  FLANG= x86_64-none-linux-gnu-gfortran
+  GFIND := $(shell grep 'flang' Makefile)
+  ifneq ($(GFIND),)
+    OMP_FLAGS += -ffree-form -ffree-line-length-none
+  endif
+endif
+
+OMP_FLAGS += $(EXTRA_OMP_FLAGS)
+OMP_FLAGS += -D__OFFLOAD_ARCH_$(INSTALLED_GPU)__
+
+ifeq ($(VERBOSE),1)
+  $(info    Compilation and linking VERBOSE Mode ON)
+  VERBOSE = -v
+endif
+
+ifeq ($(TEMPS),1)
+  $(info    Compilation and linking save-temp Mode ON)
+  VERBOSE += -save-temps 
+endif
+
+ifeq ($(NOOPT),1)
+CFLAGS =
+else
+CFLAGS = -O2
+endif
+
+ifeq (sm_,$(findstring sm_,$(AOMP_GPU)))
+LINK_FLAGS = -L$(CUDA)/targets/$(UNAMEP)-linux/lib -lcudart
+else
+LINK_FLAGS =
+endif
+LINK_FLAGS += $(EXTRA_LDFLAGS)
+
+RUNPROF =  $(CUDA)/bin/nvprof 
+RUNPROF =
+
+ifeq ($(SET_DEVICE_DEBUG),)
+   RUNENV = $(TKILL) $(CBL_ENV)
+else
+   RUNENV = env $(SET_DEVICE_DEBUG) $(TKILL) $(CBL_ENV)
+endif
+
+# Header include path + linker flag for libomptest based OMPT tests
+OMPTEST = -I$(AOMP)/lib/omptest/include -lomptest
+

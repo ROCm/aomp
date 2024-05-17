@@ -1,0 +1,12 @@
+
+The xteamr smoke test executes a simulated reductions directly using the 
+DeviceRTL xteam helper functions and compares to the existing OpenMP reduction.
+It currently tests double, float and integer versions of dot, max, and min. 
+
+This smoke test will fail if either the openmp reduction or the simulated reduction 
+gets the wrong answer.  
+
+The goal of this smoke test is to ensure that the DeviceRTL helper functions in Xteamr.cpp
+are correct. 
+
+

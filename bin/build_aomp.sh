@@ -2,63 +2,10 @@
 # 
 #   build_aomp.sh : Build all AOMP components 
 #
-if [ "$1" == "clean" ]; then
-  echo "Exiting build, clean argument unknown. Try '--clean'."
-  exit 1
-fi
 
-echo "ls $INSTALL_PREFIX/llvm/bin"
-ls $INSTALL_PREFIX/llvm/bin
-
-# Force clean because --clean is not being called correctly
-if [ "$AOMP_STANDALONE_BUILD" == 0 ] ; then
-  echo "ls $OUT_DIR/build/"
-  ls $OUT_DIR/build/
-
-  echo "Clean install directory:"
-  echo "rm -rf $INSTALL_PREFIX/openmp-extras/*"
-  rm -rf $INSTALL_PREFIX/openmp-extras/*
-
-  echo "Clean build directory:"
-  echo "rm -rf $OUT_DIR/build/openmp-extras/*"
-  rm -rf "$OUT_DIR/build/openmp-extras/*"
-
-  echo "ls $INSTALL_PREFIX/openmp-extras"
-  ls $INSTALL_PREFIX/openmp-extras
-
-  echo "ls $OUT_DIR/build/"
-  ls $OUT_DIR/build/
-
-  if [ -d $OUT_DIR/build/openmp-extras ]; then
-    echo "ls $OUT_DIR/build/openmp-extras"
-    ls "$OUT_DIR/build/openmp-extras"
-  else
-    echo "$OUT_DIR/build/openmp-extras has been removed"
-  fi
-fi
-
-# --- Start standard header ----
-function getdname(){
-   local __DIRN=`dirname "$1"`
-   if [ "$__DIRN" = "." ] ; then
-      __DIRN=$PWD;
-   else
-      if [ ${__DIRN:0:1} != "/" ] ; then
-         if [ ${__DIRN:0:2} == ".." ] ; then
-               __DIRN=`dirname $PWD`/${__DIRN:3}
-         else
-            if [ ${__DIRN:0:1} = "." ] ; then
-               __DIRN=$PWD/${__DIRN:2}
-            else
-               __DIRN=$PWD/$__DIRN
-            fi
-         fi
-      fi
-   fi
-   echo $__DIRN
-}
-thisdir=$(getdname $0)
-[ ! -L "$0" ] || thisdir=$(getdname `readlink "$0"`)
+# --- Start standard header to set AOMP environment variables ----
+realpath=`realpath $0`
+thisdir=`dirname $realpath`
 . $thisdir/aomp_common_vars
 # --- end standard header ----
 
@@ -76,22 +23,39 @@ function build_aomp_component() {
      gcc --version
    fi
 
+   _stats_dir=$AOMP_INSTALL_DIR/.aomp_component_stats
+   mkdir -p $_stats_dir
+   touch $_stats_dir/.${COMPONENT}.ts
+   start_date=`date`
+   start_secs=`date +%s`
+
    $AOMP_REPOS/$AOMP_REPO_NAME/bin/build_$COMPONENT.sh "$@"
    rc=$?
    if [ $rc != 0 ] ; then 
       echo " !!!  build_aomp.sh: BUILD FAILED FOR COMPONENT $COMPONENT !!!"
       exit $rc
-   fi
-   echo "Number of Arguments: $#"
-   if [ $# -eq 0 ] || [ "$SANITIZER" == "1" ]; then
-       echo "Installing $@"
+   fi  
+   if [ $# -eq 0 ] ; then
        $AOMP_REPOS/$AOMP_REPO_NAME/bin/build_$COMPONENT.sh install
-       echo ""
        rc=$?
        if [ $rc != 0 ] ; then 
            echo " !!!  build_aomp.sh: INSTALL FAILED FOR COMPONENT $COMPONENT !!!"
            exit $rc
        fi
+       # gather stats on artifacts installed with this component build
+       end_date=`date`
+       end_secs=`date +%s`
+       find $AOMP_INSTALL_DIR -type f -newer $_stats_dir/.${COMPONENT}.ts | xargs wc -c >$_stats_dir/$COMPONENT.files
+       echo "COMPONENT $COMPONENT START : $start_date " >$_stats_dir/$COMPONENT.stats
+       echo "COMPONENT $COMPONENT END   : $end_date" >>$_stats_dir/$COMPONENT.stats
+       echo "COMPONENT $COMPONENT TIME  : $(( $end_secs - $start_secs )) seconds" >> $_stats_dir/$COMPONENT.stats
+       file_count=`wc -l $_stats_dir/$COMPONENT.files | cut -d" " -f1`
+       file_count=$(( file_count -1 ))
+       echo "COMPONENT $COMPONENT FILES : $file_count " >> $_stats_dir/$COMPONENT.stats
+       new_bytes=`grep " total" $_stats_dir/$COMPONENT.files | cut -d" " -f1 | awk '{sum += $1} END {print sum}'`
+       k_bytes=$(( new_bytes / 1024 ))
+       m_bytes=$(( k_bytes / 1024 ))
+       echo "COMPONENT $COMPONENT SIZE  : $k_bytes KB  $m_bytes MB " >> $_stats_dir/$COMPONENT.stats
    fi
 }
 
@@ -128,23 +92,55 @@ if [[ -z $GAWK ]] && [[ "$OS" == *"Ubuntu"* ]] ; then
    exit 1
 fi
 
+if [ "$DISABLE_LLVM_TESTS" == "1" ]; then
+  export DO_TESTS="-DLLVM_INCLUDE_TESTS=OFF -DCLANG_INCLUDE_TESTS=OFF"
+fi
+
 echo 
 date
 echo " =================  START build_aomp.sh ==================="   
 echo 
-if [ -n "$AOMP_JENKINS_BUILD_LIST" ] ; then
-   components=$AOMP_JENKINS_BUILD_LIST
-   components="extras openmp flang-legacy pgmath flang flang_runtime"
+components="$AOMP_COMPONENT_LIST"
+
+if [ "$AOMP_STANDALONE_BUILD" == 1 ] ; then
+  components="$components roct rocr openmp offload extras comgr rocminfo"
+  _hostarch=`uname -m`
+  # The rocclr architecture is very x86 centric so it will not build on ppc64. Without
+  # rocclr, we have no HIP or OpenCL for ppc64 :-( However, rocr works for ppc64 so AOMP works.
+  if [ "$_hostarch" == "x86_64" ] ; then
+    # These components build on x86_64, so add them to components list
+    if [ "$AOMP_SKIP_FLANG" == 0 ] ; then
+      components="$components flang-legacy pgmath flang flang_runtime"
+    fi
+    #components="$components hipfort"
+    components="$components hipcc hipamd "
+  fi
+
+  # ROCdbgapi requires atleast g++ 7
+  GPPVERS=`g++ --version | grep g++ | cut -d")" -f2 | cut -d"." -f1`
+  if [ "$AOMP_BUILD_DEBUG" == "1" ] && [ "$GPPVERS" -ge 7 ]; then
+    components="$components rocdbgapi rocgdb"
+  fi
+  # Do not add roctracer/rocprofiler for tarball install
+  # Also, as of ROCm 5.3 roctracer and rocprofiler require a rocm installation
+  # The preceeding AOMP installation is not sufficient to build them.
+  if [ "$TARBALL_INSTALL" != 1 ] && [ "$_hostarch" == "x86_64" ] ; then
+    components="$components roctracer rocprofiler"
+  fi
 else
-   if [ "$AOMP_STANDALONE_BUILD" == 1 ] ; then
-      # There is no good external repo for the opencl runtime but we only need the headers for build_vdi.sh
-      # So build_ocl.sh is currently not called.
-      components="roct rocr project libdevice extras openmp pgmath flang flang_runtime comgr rocminfo vdi hipvdi "
-   else
-      # With AOMP 11, ROCM integrated build will not need roct rocr libdevice comgr and rocminfo
-      #               In the future, when ROCm build vdi and hipvdi we can remove them
-      components="project extras openmp pgmath flang flang_runtime vdi hipvdi"
-   fi
+  # For ROCM build (AOMP_STANDALONE_BUILD=0) the components roct, rocr,
+  # libdevice, project, comgr, rocminfo, hipamd, rocdbgapi, rocgdb,
+  # roctracer, and rocprofiler should be found in ROCM in /opt/rocm.
+  # The ROCM build only needs these components:
+  components="extras openmp"
+  if [ -f "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload/CMakeLists.txt" ]; then
+    components="$components offload"
+  fi
+  if [ "$SANITIZER" == 1 ] && [ -f $AOMP/bin/flang-legacy ] ; then
+    components="$components pgmath flang flang_runtime"
+  else
+    components="$components flang-legacy pgmath flang flang_runtime"
+  fi
 fi
 echo "COMPONENTS:$components"
 
@@ -180,6 +176,7 @@ if [ -n "$1" ] ; then
     set --
   fi
 fi
+echo "components: $components"
 
 for COMPONENT in $components ; do 
    echo 
@@ -194,7 +191,8 @@ done
 echo 
 date
 echo " =================  END build_aomp.sh ==================="   
-echo
+echo 
+
 if [ "$AOMP_STANDALONE_BUILD" -eq 0 ]; then
   cd $BUILD_DIR/build
   legacy_version=`ls flang-legacy`
@@ -222,19 +220,4 @@ if [ "$AOMP_STANDALONE_BUILD" -eq 0 ]; then
     popd > /dev/null
   done
 fi
-
-echo "ls $INSTALL_PREFIX/openmp-extras:"
-ls $INSTALL_PREFIX/openmp-extras
-echo
-
-echo "ls $INSTALL_PREFIX/openmp-extras/bin:"
-ls $INSTALL_PREFIX/openmp-extras/bin
-echo
-
-echo "ls $INSTALL_PREFIX/openmp-extras/rocm-bin:"
-ls $INSTALL_PREFIX/openmp-extras/rocm-bin
-echo
-
-#PATH=$INSTALL_PREFIX/llvm/bin:$PATH $AOMP_REPOS/$AOMP_REPO_NAME/bin/bashtest
-#PATH=$INSTALL_PREFIX/llvm/bin:$PATH $AOMP_REPOS/$AOMP_REPO_NAME/bin/bashtestf90
 exit 0

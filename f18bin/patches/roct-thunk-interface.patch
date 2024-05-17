@@ -1,0 +1,219 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 5a3e969..6f22658 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -46,6 +46,10 @@ endif() # if (ROCM_CCACHE_BUILD)
+ ## Set default module path if not already set
+ if ( NOT DEFINED CMAKE_MODULE_PATH )
+     set ( CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules/" )
++else()
++    set(saved_cmake_module_path ${CMAKE_MODULE_PATH})
++    message("-- Temporarily settng CMAKE_MODULE_PATH to ${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules/" )
++    set ( CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules/" )
+ endif ()
+ 
+ ## Include common cmake modules
+@@ -203,3 +207,7 @@ set ( CPACK_RPM_POST_UNINSTALL_SCRIPT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/RPM/rpm_
+ configure_file ( libhsakmt.pc.in ${DEV_BUILD_DIR}/libhsakmt.pc @ONLY )
+ 
+ include ( CPack )
++if ( DEFINED saved_cmake_module_path )
++    message("-- Returning CMAKE_MODULE_PATH to ${saved_cmake_module_path}")
++    set(CMAKE_MODULE_PATH ${saved_cmake_module_path})
++endif()
+diff --git a/src/fmm.c b/src/fmm.c
+index 4442876..0f34c25 100644
+--- a/src/fmm.c
++++ b/src/fmm.c
+@@ -1485,8 +1485,11 @@ static int bind_mem_to_numa(uint32_t node_id, void *mem,
+ 	node_mask = numa_bitmask_alloc(num_node);
+ 	if (!node_mask)
+ 		return -ENOMEM;
+-
++#ifdef __PPC64__
++	numa_bitmask_setbit(node_mask, node_id * 8);
++#else
+ 	numa_bitmask_setbit(node_mask, node_id);
++#endif
+ 	mode |= flags.ui32.NoSubstitute ? MPOL_BIND : MPOL_PREFERRED;
+ 	r = mbind(mem, SizeInBytes, mode, node_mask->maskp, num_node + 1, 0);
+ 	numa_bitmask_free(node_mask);
+diff --git a/src/topology.c b/src/topology.c
+index b4266ad..5331994 100644
+--- a/src/topology.c
++++ b/src/topology.c
+@@ -1,5 +1,6 @@
+ /*
+  * Copyright © 2014 Advanced Micro Devices, Inc.
++ * Copyright 2016-2018 Raptor Engineering, LLC. All Rights Reserved.
+  *
+  * Permission is hereby granted, free of charge, to any person
+  * obtaining a copy of this software and associated documentation
+@@ -73,12 +74,14 @@ static int processor_vendor = -1;
+ /* Supported System Vendors */
+ enum SUPPORTED_PROCESSOR_VENDORS {
+ 	GENUINE_INTEL = 0,
+-	AUTHENTIC_AMD
++	AUTHENTIC_AMD,
++	IBM_POWER
+ };
+ /* Adding newline to make the search easier */
+ static const char *supported_processor_vendor_name[] = {
+ 	"GenuineIntel\n",
+-	"AuthenticAMD\n"
++	"AuthenticAMD\n",
++	"\n"			// POWER requires a different search method
+ };
+ 
+ static HSAKMT_STATUS topology_take_snapshot(void);
+@@ -439,6 +442,13 @@ static int get_cpu_cache_info(const char *prefix, struct proc_cpuinfo *cpuinfo,
+ 	int idx, num_idx, n;
+ 	HsaCacheProperties *this_cache;
+ 	char path[256], str[256];
++	char is_x86 = 1;
++
++	if (processor_vendor == IBM_POWER) {
++		if (!strcmp(cpuinfo[0].model_name, "POWER9")) {
++			is_x86 = 0;
++		}
++	}
+ 
+ 	this_cache = cpu_ci->cache_prop;
+ 	num_idx = cpu_ci->num_caches;
+@@ -446,18 +456,31 @@ static int get_cpu_cache_info(const char *prefix, struct proc_cpuinfo *cpuinfo,
+ 		/* If this cache is shared by multiple CPUs, we only need
+ 		 * to list it in the first CPU.
+ 		 */
+-		snprintf(path, 256, "%s/index%d/shared_cpu_list", prefix, idx);
+-		/* shared_cpu_list is shown as n1,n2... or n1-n2,n3-n4...
+-		 * For both cases, this cache is listed to proc n1 only.
+-		 */
+-		fscanf_dec(path, (uint32_t *)&n);
+-		if (cpu_ci->proc_num != n) {
+-			/* proc is not n1. Skip and reduce the cache count. */
+-			--cpu_ci->num_caches;
+-			continue;
++		if (is_x86) {
++			snprintf(path, 256, "%s/index%d/shared_cpu_list", prefix, idx);
++			/* shared_cpu_list is shown as n1,n2... or n1-n2,n3-n4...
++			 * For both cases, this cache is listed to proc n1 only.
++			 */
++			fscanf_dec(path, (uint32_t *)&n);
++			if (cpu_ci->proc_num != n) {
++				/* proc is not n1. Skip and reduce the cache count. */
++				--cpu_ci->num_caches;
++				continue;
++			}
++			this_cache->ProcessorIdLow = cpuinfo[cpu_ci->proc_num].apicid;
++		}
++		else {
++			if (processor_vendor == IBM_POWER) {
++				if (!strcmp(cpuinfo[0].model_name, "POWER9")) {
++					// POWER9 has SMT4
++					if (cpu_ci->proc_num & 0x3) {
++						/* proc is not 0,4,8,etc.  Skip and reduce the cache count. */
++						--cpu_ci->num_caches;
++						continue;
++					}
++				}
++			}
+ 		}
+-
+-		this_cache->ProcessorIdLow = cpuinfo[cpu_ci->proc_num].apicid;
+ 
+ 		/* CacheLevel */
+ 		snprintf(path, 256, "%s/index%d/level", prefix, idx);
+@@ -814,6 +837,8 @@ static int topology_search_processor_vendor(const char *processor_name)
+ 	for (i = 0; i < ARRAY_LEN(supported_processor_vendor_name); i++) {
+ 		if (!strcmp(processor_name, supported_processor_vendor_name[i]))
+ 			return i;
++		if (!strcmp(processor_name, "POWER9, altivec supported\n"))
++			return IBM_POWER;
+ 	}
+ 	return -1;
+ }
+@@ -845,6 +870,52 @@ static HSAKMT_STATUS topology_parse_cpuinfo(struct proc_cpuinfo *cpuinfo,
+ 		return HSAKMT_STATUS_ERROR;
+ 	}
+ 
++#ifdef __PPC64__
++	char *p2;
++
++	/* Each line in /proc/cpuinfo that read_buf is constructed, the format
++	 * is like this:
++	 * "token       : value\n"
++	 * where token is our target like vendor_id, model name, apicid ...
++	 * and value is the answer
++	 */
++	while (fgets(read_buf, sizeof(read_buf), fd)) {
++		/* processor number */
++		if (!strncmp("processor	", read_buf, sizeof("processor	") - 1)) {
++			p = strchr(read_buf, ':');
++			p += 2; /* remove ": " */
++			proc = atoi(p);
++			if (proc >= num_procs) {
++				pr_warn("cpuinfo contains processor %d larger than %u\n",
++					proc, num_procs);
++				ret = HSAKMT_STATUS_NO_MEMORY;
++				goto exit;
++			}
++			continue;
++		}
++
++		/* vendor name / model name */
++		if (!strncmp("cpu	", read_buf, sizeof("cpu	") - 1) &&
++			(processor_vendor == -1)) {
++			p = strchr(read_buf, ':');
++			p += 2; /* remove ": " */
++			processor_vendor = topology_search_processor_vendor(p);
++
++			p2 = strchr(p, ',');
++			if (p2 != NULL) {
++				p2++;
++				*p2 = 0;
++			}
++			if (strlen(p) < HSA_PUBLIC_NAME_SIZE) {
++				/* -1 to remove \n from p */
++				strncpy(cpuinfo[proc].model_name, p, strlen(p) - 1);
++				cpuinfo[proc].model_name[strlen(p) - 1] = '\0';
++			} else
++				strncpy(cpuinfo[proc].model_name, p, HSA_PUBLIC_NAME_SIZE);
++			continue;
++		}
++	}
++#else
+ 	/* Each line in /proc/cpuinfo that read_buf is constructed, the format
+ 	 * is like this:
+ 	 * "token       : value\n"
+@@ -895,6 +966,7 @@ static HSAKMT_STATUS topology_parse_cpuinfo(struct proc_cpuinfo *cpuinfo,
+ 			cpuinfo[proc].apicid = atoi(p);
+ 		}
+ 	}
++#endif
+ 
+ 	if (processor_vendor < 0) {
+ 		pr_err("Failed to get Processor Vendor. Setting to %s",
+@@ -1203,7 +1275,13 @@ static int topology_create_temp_cpu_cache_list(int node,
+ 	*temp_cpu_ci_list = NULL;
+ 
+ 	/* Get info from /sys/devices/system/node/nodeX/cpuY/cache */
+-	snprintf(node_dir, MAXPATHSIZE, "/sys/devices/system/node/node%d", node);
++	int node_real = node;
++	if (processor_vendor == IBM_POWER) {
++		if (!strcmp(cpuinfo[0].model_name, "POWER9")) {
++			node_real = node * 8;
++		}
++	}
++	snprintf(node_dir, MAXPATHSIZE, "/sys/devices/system/node/node%d", node_real);
+ 	/* Other than cpuY folders, this dir also has cpulist and cpumap */
+ 	max_cpus = num_subdirs(node_dir, "cpu");
+ 	if (max_cpus <= 0) {
+@@ -1237,7 +1315,7 @@ static int topology_create_temp_cpu_cache_list(int node,
+ 			continue;
+ 		if (!isdigit(dir->d_name[3])) /* ignore files like cpulist */
+ 			continue;
+-		snprintf(path, MAXPATHSIZE, "%s/%s/cache", node_dir, dir->d_name);
++		snprintf(path, MAXPATHSIZE, "/sys/devices/system/node/node%d/%s/cache", node_real, dir->d_name);
+ 		this_cpu->num_caches = num_subdirs(path, "index");
+ 		this_cpu->cache_prop = calloc(this_cpu->num_caches,
+ 					sizeof(HsaCacheProperties));

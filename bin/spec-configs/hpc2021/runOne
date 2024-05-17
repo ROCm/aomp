@@ -1,0 +1,32 @@
+#!/bin/bash
+
+export AOMP=${AOMP:-`ls -d /opt/rocm-*/llvm |sort|tail -1`}
+export MPI=${MPI:-/opt/openmpi-4.1.4}
+export ROCMINFO_BINARY=${ROCMINFO_BINARY:-/opt/rocm/bin/rocminfo}
+
+export RKS=${RKS:-`rocm_agent_enumerator | grep -v gfx000|wc -l`}
+export GFX=${GFX:-`rocm_agent_enumerator | grep -v gfx000|uniq`}
+echo 'detected #ranks=' $RKS ' gpu=' $GFX
+echo $AOMP
+echo $ROCMINFO_BINARY
+echo $MPI
+ls /opt
+
+set +x
+. ./shrc
+set -x
+
+ulimit -s unlimited
+
+export OMPX_FORCE_SYNC_REGIONS=1
+
+export OMP_TARGET_OFFLOAD=MANDATORY
+export LIBRARY_PATH=$AOMP/lib
+export OMPI_FC=flang
+export OMPI_CC=clang
+export OMPI_CXX=clang++
+export LD_LIBRARY_PATH=$AOMP/lib:$MPI/lib/
+export PATH=$AOMP/bin:$MPI/bin:$PATH
+
+runhpc -c amdgpu_clang.cfg -I -l -n 1 -T base --define gputype=$GFX --define model=omp_target --threads=1 --ranks=$RKS   -i test,ref tiny --rebuild
+

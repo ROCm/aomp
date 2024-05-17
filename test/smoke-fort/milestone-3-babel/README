@@ -1,0 +1,4 @@
+Fortran babelstream
+
+Modifications:
+  - remove calls of IEEE_Is_Normal (not yet supported)

@@ -1,0 +1,11 @@
+
+set +x
+
+ulimit -t 61
+
+cd NPB_LU/src
+make clean
+rm -f ft.A.x
+
+make AOMP=$AOMP AOMP_GPU=$AOMP_GPU CLASS=A
+timeout -s 9 2m ./ft.A.x

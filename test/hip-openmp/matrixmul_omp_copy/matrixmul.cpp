@@ -181,15 +181,12 @@ int main() {
       }
     } else printf("Unable to make initial copy\n");
   }
-// See: http://ontrack-internal.amd.com/browse/SWDEV-210802
-#ifdef HIP_FREE_THREADSAFE
   if (matrixAAllocated)
     hipFree(deviceSrcMatA);
   if (matrixBAllocated)
     hipFree(deviceSrcMatB);
   if (matrixCAllocated)
     hipFree(deviceDstMat);
-#endif
   if (error == 0){
     printf("%s", "Success\n");
     return error;	

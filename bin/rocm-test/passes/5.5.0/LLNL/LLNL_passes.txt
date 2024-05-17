@@ -1,0 +1,7 @@
+test_acquire_release
+test_allocate_directive
+test_concurrent_map
+test_implicit_declare_target
+test_loop
+test_non_rectangular
+test_use_device_addr

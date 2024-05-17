@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest>
+  <!-- Manifest for AOMP 15.0-x which uses ROCM 5.1 release branches of external reositories -->
+
+    <remote name="gerritgit" review="git.amd.com:8080" fetch="ssh://gerritgit/" />
+    <default revision="release/rocm-rel-5.1" remote="gerritgit" sync-j="4" sync-c="true" />
+    <remote name="roctools"  fetch="https://github.com/ROCm-Developer-Tools/" />
+    <remote name="roc"  fetch="https://github.com/RadeonOpenCompute/" />
+    <remote name="rocsw"  fetch="https://github.com/ROCmSoftwarePlatform/" />
+
+    <project remote="roc" path="llvm-project" name="llvm-project" revision="aomp-15.0-2" groups="unlocked" />
+
+    <project remote="roc" path="rocm-compilersupport" name="ROCm-CompilerSupport" upstream="amd-stg-open" revision="47ce7412513149525760fe30e0a6d8b2470cbbc9" groups="revlocked" />
+    <project remote="roc" path="rocm-device-libs" name="ROCm-Device-Libs"         upstream="amd-stg-open" revision="57897489f4ea486182a770a0fc8eda3fdf63889f" groups="revlocked" />
+
+    <project remote="roctools" path="flang" name="flang"               revision="aomp-15.0-2" groups="unlocked" />
+    <project remote="roctools" path="aomp-extras" name="aomp-extras"   revision="aomp-15.0-2" groups="unlocked" />
+    <project remote="roctools" path="aomp" name="aomp"                 revision="aomp-15.0-2" groups="unlocked" />
+
+    <project remote="roctools" path="rocprofiler" name="rocprofiler"              revision="rocm-5.1.x" groups="unlocked" />
+    <project remote="roctools" path="roctracer" name="roctracer"                  revision="rocm-5.1.x" groups="unlocked" />
+    <project remote="roctools" path="ROCdbgapi" name="ROCdbgapi"                  revision="rocm-5.1.x" groups="unlocked" />
+    <project remote="roctools" path="ROCgdb" name="ROCgdb"                        revision="rocm-5.1.x" groups="unlocked" />
+    <project remote="roctools" path="hipamd" name="hipamd"                        revision="rocm-5.1.x" groups="unlocked" />
+    <project remote="roctools" path="hip"    name="hip"                           revision="rocm-5.1.x" groups="unlocked" />
+    <project remote="roctools" path="ROCclr" name="ROCclr"                        revision="rocm-5.1.x" groups="unlocked" />
+    <project remote="roc" path="ROCm-OpenCL-Runtime" name="ROCm-OpenCL-Runtime"   revision="rocm-5.1.x" groups="unlocked" />
+    <project remote="roc" path="rocminfo" name="rocminfo"                         revision="roc-5.1.x" groups="unlocked" />
+    <project remote="roc" path="rocm-cmake" name="rocm-cmake"                     revision="rocm-5.1.x" groups="unlocked" />
+    <project remote="roc" path="rocr-runtime" name="ROCR-Runtime"                 revision="rocm-5.1.x" groups="unlocked" />
+    <project remote="roc" path="roct-thunk-interface" name="ROCT-Thunk-Interface" revision="roc-5.1.x" groups="unlocked" />
+    <project remote="roc" path="rocm_smi_lib" name="rocm_smi_lib"                 revision="roc-5.1.x" groups="unlocked" />
+    <project remote="hwloc" path="hwloc" name="hwloc" upstream="v2.7"             revision="fd5b8655f0e2f203661037345fa4e82919005499" groups="revlocked" />
+    <project remote="rocsw" path="hipfort" name="hipfort"                         revision="release/rocm-rel-5.1" groups="unlocked" />
+</manifest>

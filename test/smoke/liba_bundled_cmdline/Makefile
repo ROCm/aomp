@@ -1,20 +1,20 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME        = liba_bundled
 TESTSRC_MAIN    = main.c
 TESTSRC_AUX     = MyDeviceLib/libMyDeviceLib.a MyHostLib/libMyHostLib.a hfunc0.o
 TESTSRC_ALL     = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 
-CLANG           = clang
+CLANG           ?= clang
 OMP_BIN         = $(AOMP)/bin/$(CLANG)
 CC              = $(OMP_BIN) $(VERBOSE)
-EXTRA_LDFLAGS   =
+EXTRA_LDFLAGS   = -lMyDeviceLib -LMyDeviceLib
 EXTRA_OMP_FLAGS =
 
-# --- End Standard Makefile check for AOMP installation ---
 CC        = $(AOMP)/bin/clang
-UNAMEP    = $(shell uname -p)
+UNAMEP    = $(shell uname -m)
 HOST_TARGET = $(UNAMEP)-pc-linux-gnu
+EXTRA_CFLAGS = -target $(HOST_TARGET)
 
 ifeq (sm_,$(findstring sm_,$(AOMP_GPU)))
   TRIPLE  = nvptx64-nvidia-cuda
@@ -45,7 +45,7 @@ MyDeviceLib/libMyDeviceLib.a : MyDeviceLib/Makefile MyDeviceLib/func_1v.c \
 	AOMP_GPU=$(AOMP_GPU) make -C MyDeviceLib libMyDeviceLib.a; \
 	make -C MyHostLib libMyHostLib.a; \
 	$(CC) -c -target $(HOST_TARGET) -fopenmp -fopenmp-targets=$(TRIPLE) \
-	-Xopenmp-target=$(TRIPLE) -march=$(AOMP_GPU) -O2 hfunc0.c -o hfunc0.o
+	-Xopenmp-target=$(TRIPLE) -march=$(AOMP_GPU)$(AOMP_TARGET_FEATURES) -O2 hfunc0.c -o hfunc0.o
 
 
 clean ::

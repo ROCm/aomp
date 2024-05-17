@@ -1,0 +1,15 @@
+#!/bin/bash
+echo "compiling main"
+
+AOMP_GPU=${AOMP_GPU:-`$AOMP/bin/mygpu`}
+
+CXX=$AOMP/bin/clang
+${CXX} -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$AOMP_GPU -O3 -DOMP -DOMP_TARGET_GPU -c main.cpp -std=c++20
+echo "compiling OMPStream"
+
+${CXX} -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$AOMP_GPU -O3 -DOMP_TARGET_GPU -c OMPStream.cpp  -std=c++20
+
+echo "linking"
+${CXX} -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$AOMP_GPU main.o OMPStream.o -L${AOMP}/lib -std=c++20 -lstdc++ # -L${GCC_PATH}/snos/lib64 -lstdc++ 
+./a.out
+

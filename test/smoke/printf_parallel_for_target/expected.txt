@@ -1,0 +1,18 @@
+0 - 1. On Host: CPU Parallel
+0 - 2. On Target: Begin Target
+0 - 3. On Target: First Parallel Section
+0 - 3. On Target: First Parallel Section
+0 - 4. On Target: End First Parallel Section. Master Thread ID: 0
+0 - 5. On Target: Second Parallel Section
+0 - 5. On Target: Second Parallel Section
+0 - 6. On Target: End Second Parallel Section. Master Thread ID: 0
+0 - 7. On Host: End Target
+1 - 1. On Host: CPU Parallel
+1 - 2. On Target: Begin Target
+1 - 3. On Target: First Parallel Section
+1 - 3. On Target: First Parallel Section
+1 - 4. On Target: End First Parallel Section. Master Thread ID: 0
+1 - 5. On Target: Second Parallel Section
+1 - 5. On Target: Second Parallel Section
+1 - 6. On Target: End Second Parallel Section. Master Thread ID: 0
+1 - 7. On Host: End Target

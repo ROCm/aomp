@@ -1,0 +1,50 @@
+diff --git a/asanrtl/CMakeLists.txt b/asanrtl/CMakeLists.txt
+index f1ed020..24f1c13 100644
+--- a/asanrtl/CMakeLists.txt
++++ b/asanrtl/CMakeLists.txt
+@@ -16,3 +16,5 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/inc)
+ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
+ 
+ opencl_bc_lib(NAME asanrtl SOURCES ${sources})
++set(CLANG_OCL_FLAGS ${CLANG_OCL_FLAGS} -D__BUILD_FOR_OPENMP)
++opencl_bc_lib(NAME asanrtl_omp SOURCES ${sources})
+diff --git a/asanrtl/inc/asan_util.h b/asanrtl/inc/asan_util.h
+index 941b843..0ec0022 100644
+--- a/asanrtl/inc/asan_util.h
++++ b/asanrtl/inc/asan_util.h
+@@ -15,6 +15,13 @@ typedef unsigned short u16;
+ typedef short s16;
+ typedef unsigned long u64;
+ 
++#ifndef __BUILD_FOR_OPENMP
++#define __HOSTCALL_ASAN_WRAPPER __ockl_sanitizer_report
++#else
++extern void __hostrpc_sanitizer_report(ulong, ulong, ulong, ulong, ulong, ulong, ulong, ulong);
++#define __HOSTCALL_ASAN_WRAPPER __hostrpc_sanitizer_report
++#endif
++
+ #define ASAN_SHADOW 3
+ 
+ #define SHADOW_GRANULARITY (1ULL << ASAN_SHADOW)
+@@ -32,7 +39,7 @@ typedef unsigned long u64;
+     if (no_abort)                                                              \
+         read |= 0xFFFFFFFF00000000;                                            \
+                                                                                \
+-    __ockl_sanitizer_report(addr, caller_pc, WORKGROUP_ID(x), WORKGROUP_ID(y), \
++    __HOSTCALL_ASAN_WRAPPER(addr, caller_pc, WORKGROUP_ID(x), WORKGROUP_ID(y), \
+                             WORKGROUP_ID(z), __ockl_get_local_linear_id(),     \
+                             read, size);
+ 
+diff --git a/cmake/OCL.cmake b/cmake/OCL.cmake
+index 4e324e8..a605d15 100644
+--- a/cmake/OCL.cmake
++++ b/cmake/OCL.cmake
+@@ -85,7 +85,7 @@ macro(opencl_bc_lib)
+     get_filename_component(fname_we "${file}" NAME_WE)
+     get_filename_component(fext "${file}" EXT)
+     if (fext STREQUAL ".cl")
+-      set(output "${CMAKE_CURRENT_BINARY_DIR}/${fname_we}${BC_EXT}")
++      set(output "${CMAKE_CURRENT_BINARY_DIR}/${name}_${fname_we}${BC_EXT}")
+       add_custom_command(OUTPUT "${output}"
+         COMMAND $<TARGET_FILE:clang> ${inc_options} ${CLANG_OCL_FLAGS}
+           -emit-llvm -Xclang -mlink-builtin-bitcode -Xclang "${irif_lib_output}"

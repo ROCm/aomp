@@ -1,14 +1,17 @@
-include ../Makefile.defs
+include ../../Makefile.defs
 
 TESTNAME     = schedule
 TESTSRC_MAIN = schedule.c
 TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 
-CLANG        = clang
+CLANG        ?= clang
 OMP_BIN      = $(AOMP)/bin/$(CLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
 #-ccc-print-phases
 #"-\#\#\#"
 
 include ../Makefile.rules
+
+run: $(TESTNAME)
+	$(RUNENV) $(RUNPROF) ./$(TESTNAME) >$@.log

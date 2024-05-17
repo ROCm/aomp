@@ -1,0 +1,12 @@
+diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
+index 11568f9..5cb773b 100644
+--- a/src/CMakeLists.txt
++++ b/src/CMakeLists.txt
+@@ -141,6 +141,7 @@ target_include_directories(roctracer
+     ${HIP_INCLUDE_DIRECTORIES} ${HSA_RUNTIME_INCLUDE_DIRECTORIES}
+     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/inc>
++    /opt/rocm/include
+   PRIVATE
+     ${CMAKE_CURRENT_SOURCE_DIR}/roctracer ${CMAKE_CURRENT_SOURCE_DIR})
+ 

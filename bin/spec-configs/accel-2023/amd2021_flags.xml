@@ -1,0 +1,305 @@
+<?xml version="1.0"?>
+<!DOCTYPE flagsdescription SYSTEM
+       "http://www.spec.org/dtd/cpuflags2.dtd">
+
+<!-- This file defines flags for use with the AMD AOMP Linux Compilers -->
+<flagsdescription>
+<filename>amd2021_flags</filename>
+<title>AMD Compilers.  Optimization, Compiler, and Other flags for use by SPEChpc</title>
+
+<!-- Style -->
+
+<style>
+<![CDATA[
+body {
+  margin:  1em;
+  border:  0;
+  padding: 0;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-position: 100% 0;
+  color:      black;
+  font-family: "Times Roman", times, serif;
+}
+
+div.flagDesc {
+  clear: both;
+  color: black;
+  background-color: #d6e7f7;
+  border: 1px solid #blue;
+  margin: 0 auto;
+  width: 90%;
+}
+
+ul.flagTOC {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+ul.flagTOC > li {
+  border: 1px solid #d6e7f7;
+  background: #d6e7f7;
+}
+
+ul.flagTOC > li > a:link {
+   color: blue;
+}
+
+ul.SubMenu li {
+  border: 1px solid #d6e7f7; /* rgb(211, 211, 211); */
+}
+
+ul.SubMenu {
+  border: 1px solid blue;
+  background-color: #d6e7f7;
+}
+]]>
+</style>
+
+<!-- Header -->
+
+<header>
+<![CDATA[
+<div id='banner'>
+<h2><b>Compilers: AMD Fortran/C/C++</b></h2>
+<h2><b>Operating systems: Linux</b></h2>
+</div>
+]]>
+</header>
+
+<!-- Compilers -->
+
+<flag name='clang' class='compiler' regexp="clang" >
+<![CDATA[
+ <p>The LLVM C driver configured for use as the AOMP C compiler (clang).</p>
+ ]]>
+<example>clang</example>
+</flag>
+
+<flag name='flang' class='compiler' regexp="flang" >
+<![CDATA[
+ <p>The LLVM Fortran driver configured for use as the AOMP Fortran compiler (flang).</p>
+ ]]>
+<example>flang</example>
+</flag>
+
+<!-- Portability, Other Flags. -->
+
+<flag name="w" class="other"
+ compilers="clang, flang" regexp="-w\b">
+<![CDATA[
+ <p>Disable warning messages.</p>
+]]>
+<example>-w</example>
+</flag>
+
+<flag name="O0" class="optimization"
+ compilers="clang, flang"
+ regexp="-O0\b">
+<![CDATA[
+ <p>A basic block is generated for each C statement.  No scheduling is done
+between statements.  No global optimizations are performed.</p>
+]]>
+<example>-O0</example>
+</flag>
+
+<flag name="O1" class="optimization"
+ compilers="clang, flang"
+ regexp="-O1\b">
+<![CDATA[
+ <p>Level-one optimization specifies local optimization (-O1). 
+]]>
+<example>-O1</example>
+</flag>
+
+<flag name="O2" class="optimization"
+ compilers="clang, flang"
+ regexp="-O2\b">
+<![CDATA[
+ <p>
+Level-two optimization (-O2 or -O) specifies global optimization.
+]]>
+<include flag="O1" />
+<example>-O2</example>
+</flag>
+
+<flag name="O3" class="optimization"
+ compilers="clang, flang"
+ regexp="-O3\b">
+<![CDATA[
+ <p>All level 1 and 2 optimizations are performed.
+In addition, this level enables more aggressive code hoisting and scalar replacement optimizations that may or may not be profitable.</p>
+]]>
+<include flag="O2" />
+<example>-O3</example>
+</flag>
+
+<flag name="fast-math" class="optimization"
+ compilers="clang, flang"
+ regexp="-ffast-math\b">
+<![CDATA[
+ <p>All level 1 and 2 and 3 optimizations are performed
+In addition, this level enables more aggressive code hoisting and scalar replacement optimizations that may or may not be profitable.</p>
+]]>
+<include flag="O3" />
+<example>-O3</example>
+</flag>
+
+<flag name="flto" class="optimization"
+ compilers="clang, flang"
+ regexp="-flto\b">
+<![CDATA[
+<p>Generate output files in LLVM formats suitable for link time optimization.</p>
+]]>
+<include flag="O3" />
+<example>-O3</example>
+</flag>
+
+<flag name="fopenmp-target-fast" class="optimization"
+ compilers="clang, flang"
+ regexp="-fopenmp-target-fast\b">
+<![CDATA[
+<p>Enable OpenMP optimizations.</p>
+]]>
+</flag>
+
+<flag name="fopenmp" class="optimization"
+ compilers="clang, flang"
+ regexp="-fopenmp\b">
+<![CDATA[
+<p>Enable OpenMP compilation for hpc2021.</p>
+]]>
+</flag>
+
+<flag name="offload-mandatory" class="optimization"
+ regexp="-offload-mandatory\b">
+<![CDATA[
+<p>Make offload mandatory.</p>
+]]>
+</flag>
+
+<flag name="NOALWAYS" class="portability"
+ regexp="-DSPEC_NO_OMP_ALWAYS\b">
+<![CDATA[
+<p>Suppress ALWAYS.</p>
+]]>
+</flag>
+
+<flag name="nomain" class="portability"
+ regexp="-Mnomain\b">
+<![CDATA[
+<p>Suppress fortran main.</p>
+]]>
+</flag>
+
+<flag name="norelax" class="portability"
+ regexp="-Wl,--no-relax\b">
+<![CDATA[
+<p>Relax relocations.</p>
+]]>
+</flag>
+
+<flag name="mcmodel-medium" class="portability"
+ regexp="-mcmodel=medium\b">
+<![CDATA[
+<p>Use medium data model.</p>
+]]>
+</flag>
+
+<flag name="DSPEC_OPENMP" class="optimization"
+ compilers="clang, flang"
+ regexp="-DSPEC_OPENMP\b">
+<![CDATA[
+<p>Enable OPENMP programming model for hpc2021.</p>
+]]>
+</flag>
+
+<flag name="DSPEC_OPENMP_TARGET" class="optimization"
+ compilers="clang, flang"
+ regexp="-DSPEC_OPENMP_TARGET\b">
+<![CDATA[
+<p>Enable OPENMP Target Offload programming model for hpc2021.</p>
+]]>
+</flag>
+
+<flag name="DSPEC_USE_MPIFH" class="optimization"
+ compilers="clang, flang"
+ regexp="-DSPEC_USE_MPIFH\b">
+<![CDATA[
+<p>Enable using textual F90 include instead of modules for MPI in hpc2021.</p>
+]]>
+</flag>
+
+<flag name="targets" class="optimization"
+ compilers="clang, flang"
+ regexp="-targets=(\S+)(?=\s|$)\b">
+<![CDATA[
+<p>Select target to compile for.</p>
+]]>
+<example>-targets=amdgcn-amd-amdhsa</example>
+</flag>
+
+<flag name="XopenmpTarget" class="optimization"
+ compilers="clang, flang"
+ regexp="-Xopenmp-target=(\S+)(?=\s|$)\b">
+<![CDATA[
+<p>Select the openmp target to compile for.</p>
+]]>
+<example>-Xopenmp-target=amdgcn-amd-amdhsa</example>
+</flag>
+
+<flag name="fno-openmp-target-xteam-reduction" class="optimization"
+ compilers="clang, flang"
+ regexp="-fno-openmp-target-xteam-reduction\b">
+<![CDATA[
+<p>specify reduction.</p>
+]]>
+<example>-fno-openmp-target-xteam-reduction</example>
+</flag>
+
+<flag name="target-xteam-reduction-blocksize" class="optimization"
+ compilers="clang, flang"
+ regexp="-target-xteam-reduction-blocksize=(\S+)(?=\s|$)\b">
+<![CDATA[
+<p>specify reduction blocksize.</p>
+]]>
+<example>-target-xteam-reduction-blocksize-arch=gfx900</example>
+</flag>
+
+<flag name="Moffloadarch" class="optimization"
+ compilers="clang, flang"
+ regexp="--offload-arch=(\S+)(?=\s|$)\b">
+<![CDATA[
+<p>Select the specific target architecture to compile for.</p>
+]]>
+<example>--offload-arch=gfx900</example>
+</flag>
+
+<flag name="March" class="optimization"
+ compilers="clang, flang"
+ regexp="-march=(\S+)(?=\s|$)\b">
+<![CDATA[
+<p>Select the specific target architecture to compile for.</p>
+]]>
+<example>-march=gfx900</example>
+</flag>
+
+<flag name="Mcpu" class="optimization"
+ compilers="clang, flang"
+ regexp="-mcpu=(\S+)(?=\s|$)\b">
+<![CDATA[
+<p>Select the specific target architecture to compile for.</p>
+]]>
+<example>-mcpu=x86</example>
+</flag>
+
+
+</flagsdescription>
+
+
+
+
+
+
+

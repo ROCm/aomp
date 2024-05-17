@@ -1,4 +1,5 @@
 #include <iostream>
+#include <omp.h>
 
 int main()
 {
@@ -14,7 +15,8 @@ int main()
         #pragma omp atomic
         counts_team += 1;
     }
-    counts1 = counts_team;
+    if (omp_get_team_num() == 0)
+      counts1 = counts_team;
   }
 
   #pragma omp target teams map(from:counts2)
@@ -26,7 +28,8 @@ int main()
       for (int i=0; i<4; i++)
         counts_team += 1;
     }
-    counts2 = counts_team;
+    if (omp_get_team_num() == 0)
+      counts2 = counts_team;
   }
 
   if (counts1 != 4)

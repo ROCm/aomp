@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest>
+<!-- Manifest for AOMP 14.0-x which uses AMD internal development repos  -->
+    <remote name="gerritgit" review="git.amd.com:8080" fetch="ssh://gerritgit/" />
+    <default revision="release/rocm-rel-4.3" remote="gerritgit" sync-j="4" sync-c="true" />
+    <remote name="roctools"  fetch="https://github.com/ROCm-Developer-Tools/" />
+    <remote name="roc"  fetch="https://github.com/RadeonOpenCompute/" />
+
+
+<!-- The llvm-project monorepo -->
+<project remote="gerritgit" path="llvm-project" name="lightning/ec/llvm-project"    revision="amd-stg-open" groups="unlocked" />
+
+<!-- INTERNAL REPOS -->
+<!-- ROCr ROCt -->
+<project remote="gerritgit" path="hsa-runtime" name="hsa/ec/hsa-runtime"            revision="amd-staging" groups="unlocked" />
+<project remote="gerritgit" path="roct-thunk-interface" name="compute/ec/libhsakmt" revision="amd-staging" groups="unlocked" />
+
+<!-- Lightning -->
+<project remote="gerritgit" path="rocm-compilersupport" name="lightning/ec/support" revision="amd-stg-open" groups="unlocked" />
+<project remote="gerritgit" path="rocm-device-libs" name="lightning/ec/device-libs" revision="amd-stg-open" groups="unlocked" />
+<!-- ROCm Utils -->
+<project remote="gerritgit" path="rocminfo" name="compute/ec/rocminfo"              revision="amd-staging" groups="unlocked" />
+<project remote="gerritgit" path="ROCgdb" name="compute/ec/rocm-gdb"                revision="amd-staging" groups="unlocked" />
+<project remote="gerritgit" path="ROCdbgapi" name="compute/ec/rocm-dbgapi"          revision="amd-staging" groups="unlocked" />
+<project remote="gerritgit" path="rocprofiler" name="compute/ec/rocprofiler"        revision="amd-staging" groups="unlocked" />
+<project remote="gerritgit" path="roctracer" name="compute/ec/roctracer"            revision="amd-staging" groups="unlocked" />
+
+<!-- EXTERNAL REPOS -->
+<!-- HIP/ROCclr/OpenCL -->
+<project remote="roctools" path="hipamd" name="hipamd" revision="develop" groups="unlocked" />
+<project remote="roctools" path="hip"    name="hip" revision="develop" groups="unlocked" />
+<project remote="roctools" path="ROCclr" name="ROCclr" revision="develop" groups="unlocked" />
+<project remote="roc"      path="ROCm-OpenCL-Runtime" name="ROCm-OpenCL-Runtime" revision="develop" groups="unlocked" />
+<project remote="roc"      path="rocm-cmake" name="rocm-cmake" revision="master" groups="unlocked" />
+
+<!-- AOMP -->
+<project remote="roctools" path="flang" name="flang"               revision="aomp-dev" groups="unlocked" />
+<project remote="roctools" path="aomp-extras" name="aomp-extras"   revision="aomp-dev" groups="unlocked" />
+<project remote="roctools" path="aomp" name="aomp"                 revision="aomp-dev" groups="unlocked" />
+</manifest>
