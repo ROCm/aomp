@@ -39,9 +39,10 @@ MYCMAKEOPTS="-DCMAKE_BUILD_TYPE=$BUILD_TYPE \
   -DLLVM_INSTALL_TOOLCHAIN_ONLY=ON \
   -DFLANG_INCLUDE_TESTS=OFF"
 
-if [ "$AOMP_STANDALONE_BUILD" == 0 ]; then
-  MYCMAKEOPTS="$MYCMAKEOPTS $OPENMP_EXTRAS_ORIGIN_RPATH
-  -DENABLE_DEVEL_PACKAGE=ON -DENABLE_RUN_PACKAGE=ON"
+if [ "$AOMP_STANDALONE_BUILD" == 1 ]; then
+  MYCMAKEOPTS="$MYCMAKEOPTS $AOMP_ORIGIN_RPATH"
+else
+  MYCMAKEOPTS="$MYCMAKEOPTS $OPENMP_EXTRAS_ORIGIN_RPATH"
 fi
 
 if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
@@ -95,21 +96,23 @@ cd $BUILD_DIR/build/$AOMP_FLANG_REPO_NAME
 export PATH=$AOMP_INSTALL_DIR/bin:$PATH
 
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
-   echo
-   echo " -----Running cmake ---- "
-   echo ${AOMP_CMAKE} $MYCMAKEOPTS \
-        -DCMAKE_C_FLAGS="$CFLAGS -I$COMP_INC_DIR" \
-        -DCMAKE_CXX_FLAGS="$CXXFLAGS -I$COMP_INC_DIR" \
-        $AOMP_REPOS/$AOMP_FLANG_REPO_NAME
+   if [ "$SANITIZER" != 1 ]; then
+      echo
+      echo " -----Running cmake ---- "
+      echo ${AOMP_CMAKE} $MYCMAKEOPTS \
+           -DCMAKE_C_FLAGS="$CFLAGS -I$COMP_INC_DIR" \
+           -DCMAKE_CXX_FLAGS="$CXXFLAGS -I$COMP_INC_DIR" \
+           $AOMP_REPOS/$AOMP_FLANG_REPO_NAME
 
-   ${AOMP_CMAKE} $MYCMAKEOPTS \
-   -DCMAKE_C_FLAGS="$CFLAGS -I$COMP_INC_DIR" \
-   -DCMAKE_CXX_FLAGS="$CXXFLAGS -I$COMP_INC_DIR" \
-   $AOMP_REPOS/$AOMP_FLANG_REPO_NAME 2>&1
-   if [ $? != 0 ] ; then
-      echo "ERROR cmake failed. Cmake flags"
-      echo "      $MYCMAKEOPTS"
-      exit 1
+      ${AOMP_CMAKE} $MYCMAKEOPTS \
+      -DCMAKE_C_FLAGS="$CFLAGS -I$COMP_INC_DIR" \
+      -DCMAKE_CXX_FLAGS="$CXXFLAGS -I$COMP_INC_DIR" \
+      $AOMP_REPOS/$AOMP_FLANG_REPO_NAME 2>&1
+      if [ $? != 0 ] ; then
+         echo "ERROR cmake failed. Cmake flags"
+         echo "      $MYCMAKEOPTS"
+         exit 1
+      fi
    fi
 
    if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
@@ -134,13 +137,15 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 fi
 
 echo
-echo " ----- Running make ---- "
-cd $BUILD_DIR/build/$AOMP_FLANG_REPO_NAME
-echo make -j $AOMP_JOB_THREADS
-make -j $AOMP_JOB_THREADS
-if [ $? != 0 ] ; then
-   echo "ERROR make -j $AOMP_JOB_THREADS failed"
-   exit 1
+if [ "$SANITIZER" != 1 ]; then
+   echo " ----- Running make ---- "
+   cd $BUILD_DIR/build/$AOMP_FLANG_REPO_NAME
+   echo make -j $AOMP_JOB_THREADS
+   make -j $AOMP_JOB_THREADS
+   if [ $? != 0 ] ; then
+      echo "ERROR make -j $AOMP_JOB_THREADS failed"
+      exit 1
+   fi
 fi
 
 if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
@@ -156,14 +161,16 @@ if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
 fi
 
 if [ "$1" == "install" ] ; then
-   cd $BUILD_DIR/build/$AOMP_FLANG_REPO_NAME
-   echo " -----Installing to $INSTALL_FLANG ---- "
-   $SUDO make install
-   if [ $? != 0 ] ; then
-      echo "ERROR make install failed "
-      exit 1
+   if [ "$SANITIZER" != 1 ]; then
+      cd $BUILD_DIR/build/$AOMP_FLANG_REPO_NAME
+      echo " -----Installing to $INSTALL_FLANG ---- "
+      $SUDO make install
+      if [ $? != 0 ] ; then
+         echo "ERROR make install failed "
+         exit 1
+      fi
+      echo "SUCCESSFUL INSTALL to $INSTALL_FLANG "
    fi
-   echo "SUCCESSFUL INSTALL to $INSTALL_FLANG "
 
    echo
    if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
