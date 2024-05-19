@@ -127,7 +127,13 @@ function buildopenmpi(){
   runcmd "mkdir -p $_installdir"
   ### update configure to recognize flang-new
   runcmd "cp configure configure-orig"
-  sed -e 's/flang\s*)/flang*)/' configure-orig > configure
+  if [ $DRYRUN ] ; then
+    echo "sed -e 's/flang\s*)/flang*)/' configure-orig > configure"
+  else
+    echo "sed -e 's/flang\s*)/flang*)/' configure-orig > configure"
+    echo "sed -e 's/flang\s*)/flang*)/' configure-orig > configure" >>$CMDLOGFILE
+    sed -e 's/flang\s*)/flang*)/' configure-orig > configure
+  fi
   ###
   runcmd "./configure --with-hwloc=$HOME/local/hwloc --with-hwloc-libdir=$HOME/local/hwloc/lib OMPI_CC=$AOMP/bin/clang OMPI_CXX=$AOMP/bin/clang++ OMPI_F90=$AOMP/bin/${FLANG} CXX=$AOMP/bin/clang++ CC=$AOMP/bin/clang FC=$AOMP/bin/${FLANG} --prefix=$_installdir"
   runcmd "make -j8"
