@@ -75,9 +75,9 @@ scriptfails=0
 totalunexpectedfails=0
 
 # make sure we see latest aomp dir
-git pull
+#git pull
 #git clean -f -d
-git log -1
+#git log -1
 ./rocm_quick_check.sh
 
 EPSDB=1 ./clone_test.sh > /dev/null
