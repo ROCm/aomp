@@ -368,9 +368,11 @@ function copyresults(){
   # Copy logs from suite to results folder
   if [ -e failing-tests.txt ]; then
     cp failing-tests.txt "$resultsdir/$1"/"$1"_failing_tests.txt
+    cat failing-tests.txt > "$resultsdir/$1"/"$1"_failing_tests_combined.txt
   fi
   if [ -e make-fail.txt ]; then
     cp make-fail.txt "$resultsdir/$1"/"$1"_make_fail.txt
+    cat make-fail.txt | sed 's/\: Make Failed//' >> "$resultsdir/$1"/"$1"_failing_tests_combined.txt
   fi
   if [ -e passing-tests.txt ]; then
     cp passing-tests.txt "$resultsdir/$1"/"$1"_passing_tests.txt
@@ -386,34 +388,53 @@ function copyresults(){
   echo ===== $1 ===== | tee -a $summary $unexpresults
 
   # Sort expected passes
-  for ver in $finalvers; do
-    if [ -e "$rocmtestdir"/passes/$ver/$1/"$1"_passes.txt ]; then
-      cat "$rocmtestdir"/passes/$ver/$1/"$1"_passes.txt >> "$1"_combined_exp_passes
-    fi
-  done
-  sort -f -d "$1"_combined_exp_passes > "$1"_sorted_exp_passes
-  passlines=`cat "$1"_sorted_exp_passes | wc -l`
-
+  if [ "$1" != "smoke" ] && [ "$1" != "smoke-limbo" ]; then
+    for ver in $finalvers; do
+      if [ -e "$rocmtestdir"/passes/$ver/$1/"$1"_passes.txt ]; then
+        cat "$rocmtestdir"/passes/$ver/$1/"$1"_passes.txt >> "$1"_combined_exp_passes
+      fi
+    done
+    sort -f -d "$1"_combined_exp_passes > "$1"_sorted_exp_passes
+    passlines=`cat "$1"_sorted_exp_passes | wc -l`
+  else
+    passlines=0
+  fi
   if [ -e "$1"_passing_tests.txt ]; then
     # Sort test reported passes
     sort -f -d "$1"_passing_tests.txt > "$1"_sorted_passes
 
     # Unexpected passes
-    unexpectedpasses=$(diff "$1"_sorted_exp_passes "$1"_sorted_passes | grep '^>' | wc -l)
-    echo Unexpected Passes: $unexpectedpasses | tee -a $summary $unexpresults
-    diff "$1"_sorted_exp_passes "$1"_sorted_passes | grep '^>' | sed 's/> //' >> $summary
-    echo >> $summary
-
+    if [ "$1" != "smoke" ] && [ "$1" != "smoke-limbo" ]; then
+      unexpectedpasses=$(diff "$1"_sorted_exp_passes "$1"_sorted_passes | grep '^>' | wc -l)
+      echo Unexpected Passes: $unexpectedpasses | tee -a $summary $unexpresults
+      diff "$1"_sorted_exp_passes "$1"_sorted_passes | grep '^>' | sed 's/> //' >> $summary
+      echo >> $summary
+    fi
     # Unexpected Fails
     if [ "$passlines" != 0 ]; then
       unexpectedfails=$(diff "$1"_sorted_exp_passes "$1"_sorted_passes | grep '^<' | wc -l)
     else
-      unexpectedfails=0
+      if [ "$1" == "smoke" ] || [ "$1" == "smoke-limbo" ]; then
+        if [ -e "$resultsdir/$1"/"$1"_failing_tests.txt ]; then
+	  runtimefails=$(cat "$resultsdir/$1"/"$1"_failing_tests.txt | wc -l)
+	  unexpectedfails=$((unexpectedfails + runtimefails))
+        fi
+        if [ -e "$resultsdir/$1"/"$1"_make_fail.txt ]; then
+          compilefails=$(cat "$resultsdir/$1"/"$1"_make_fail.txt | wc -l)
+          unexpectedfails=$((unexpectedfails + compilefails))
+        fi
+      else
+        unexpectedfails=0
+      fi
     fi
 
     # Check unexpected fails for false negatives, i.e. tests that may have been deleted or unsupported tests.
     if [ "$unexpectedfails" != 0 ]; then
-      fails=`diff $1_sorted_exp_passes $1_sorted_passes | grep '^<' | sed "s|< ||g"`
+      if [ "$1" != "smoke" ] && [ "$1" != "smoke-limbo" ]; then
+        fails=`diff $1_sorted_exp_passes $1_sorted_passes | grep '^<' | sed "s|< ||g"`
+      else
+        fails=$(cat "$resultsdir/$1"/"$1"_failing_tests_combined.txt)
+      fi
       if [ -e "$1"_failing_tests.txt ]; then
         cat "$1"_failing_tests.txt >> "$resultsdir"/"$1"/"$1"_all_tests.txt
       fi
@@ -504,7 +525,9 @@ function copyresults(){
     fi
 
     echo "Unexpected Fails: $unexpectedfails" | tee -a $summary $unexpresults
-    diff "$1"_sorted_exp_passes "$1"_sorted_passes | grep '^<' | sed 's/< //' >> $summary
+    if [ "$1" != "smoke" ] && [ "$1" != "smoke-limbo" ]; then
+      diff "$1"_sorted_exp_passes "$1"_sorted_passes | grep '^<' | sed 's/< //' >> $summary
+    fi
     echo >> $summary
 
     # Failing Tests
@@ -525,7 +548,18 @@ function copyresults(){
     if [ "$passlines" != 0 ]; then
       numtests=$(cat "$resultsdir"/"$1"/"$1"_sorted_exp_passes | wc -l)
     else
-      numtests=0
+      if [ "$1" == "smoke" ] || [ "$1" == "smoke-limbo" ]; then
+        if [ -e "$resultsdir/$1"/"$1"_failing_tests.txt ]; then
+	  runtimefails=$(cat "$resultsdir/$1"/"$1"_failing_tests.txt | wc -l)
+	  numtests=$((numtests + runtimefails))
+        fi
+        if [ -e "$resultsdir/$1"/"$1"_make_fail.txt ]; then
+          compilefails=$(cat "$resultsdir/$1"/"$1"_make_fail.txt | wc -l)
+          numtests=$((numtests + compilefails))
+        fi
+      else
+        numtests=0
+      fi
     fi
     echo "Unexpected Fails: $numtests" | tee -a $summary $unexpresults
     cat "$1"_sorted_exp_passes >> $summary
