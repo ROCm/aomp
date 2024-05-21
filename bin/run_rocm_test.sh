@@ -139,43 +139,58 @@ if [[ $REAL_AOMP =~ "/opt/rocm-6.0" ]] || [[ $REAL_AOMP =~ "/opt/rocm-6.1" ]]; t
   exit $?
 fi
 
+clangversion=`$AOMP/bin/clang --version`
+aomp=0
+if [[ "$clangversion" =~ "AOMP_STANDALONE" ]]; then
+  aomp=1
+fi
+
 # Support for using openmp-extras-tests package.
-if [ "$SKIP_TEST_PACKAGE" != 1 ] && [ "$TEST_BRANCH" == "" ]; then
+if [ "$aomp" != 1 ]; then
   tmpdir="/tmp/openmp-extras"
+  rm -rf $tmpdir
   mkdir -p $tmpdir
   os_name=$(cat /etc/os-release | grep NAME)
   test_package_name="openmp-extras-tests"
-  # Determine OS and download package not using sudo.
-  if [[ "$os_name" =~ "Ubuntu" ]]; then
-    cd $tmpdir
-    apt-get download $test_package_name
-    test_package=$(ls -lt $tmpdir | grep -Eo -m1 openmp-extras-tests.*)
-    dpkg -x $test_package .
-    script=$(find . -type f -name 'run_rocm_test.sh')
-    cd $(dirname $script)
-  # CentOS/RHEL support. CentOS 7 requires a different method.
-  elif [[ "$os_name" =~ "CentOS" ]] || [[ "$os_name" =~ "Red Hat" ]]; then
-    osversion=$(cat /etc/os-release | grep -e ^VERSION_ID)
-    if [[ $osversion =~ '"7' ]]; then
-      yumdownloader --destdir=/tmp/openmp-extras $test_package_name
+  if [ "$SKIP_TEST_PACKAGE" != 1 ] && [ "$TEST_BRANCH" == "" ]; then
+    if [ ! -e "$ROCMINF/share/openmp-extras/tests/bin/run_rocm_test.sh" ]; then
+      # Determine OS and download package not using sudo.
+      if [[ "$os_name" =~ "Ubuntu" ]]; then
+        cd $tmpdir
+        apt-get download $test_package_name
+        test_package=$(ls -lt $tmpdir | grep -Eo -m1 openmp-extras-tests.*)
+        #dpkg -x $test_package .
+        script=$(find . -type f -name 'run_rocm_test.sh')
+        cd $(dirname $script)
+      # CentOS/RHEL support. CentOS 7 requires a different method.
+      elif [[ "$os_name" =~ "CentOS" ]] || [[ "$os_name" =~ "Red Hat" ]]; then
+        osversion=$(cat /etc/os-release | grep -e ^VERSION_ID)
+        if [[ $osversion =~ '"7' ]]; then
+          yumdownloader --destdir=/tmp/openmp-extras $test_package_name
+        else
+          yum download --destdir /tmp/openmp-extras $test_package_name
+        fi
+        test_package=$(ls -lt $tmpdir | grep -Eo -m1 openmp-extras-tests.*)
+        extract_rpm $test_package
+      # SLES support.
+      elif [[ "$os_name" =~ "SLES" ]]; then
+        zypper download $test_package_name
+        test_package=$(ls -lt /var/cache/zypp/packages/rocm/ | grep -Eo -m1 openmp-extras-tests.*)
+        cp /var/cache/zypp/packages/rocm/"$test_package" $tmpdir
+        extract_rpm $test_package
+      else
+        echo "Error: Could not determine operating system name."
+        exit 1
+      fi
+    # Environment already has test package
     else
-      yum download --destdir /tmp/openmp-extras $test_package_name
+      cp -ra "$ROCMINF"/share/openmp-extras/tests $tmpdir
+      cd $tmpdir/tests/bin
     fi
-    test_package=$(ls -lt $tmpdir | grep -Eo -m1 openmp-extras-tests.*)
-    extract_rpm $test_package
-  # SLES support.
-  elif [[ "$os_name" =~ "SLES" ]]; then
-    zypper download $test_package_name
-    test_package=$(ls -lt /var/cache/zypp/packages/rocm/ | grep -Eo -m1 openmp-extras-tests.*)
-    cp /var/cache/zypp/packages/rocm/"$test_package" $tmpdir
-    extract_rpm $test_package
-  else
-    echo "Error: Could not determine operating system name."
-    exit 1
-  fi
   export SKIP_TEST_PACKAGE=1
   ./run_rocm_test.sh
   exit $?
+  fi
 fi
 echo $AOMP $REAL_AOMP using test branch $TEST_BRANCH
 
@@ -187,12 +202,6 @@ if [ $? -ne 0 ]; then
 fi
 
 $AOMP/bin/flang1 --version
-
-clangversion=`$AOMP/bin/clang --version`
-aomp=0
-if [[ "$clangversion" =~ "AOMP_STANDALONE" ]]; then
-  aomp=1
-fi
 
 # Parent dir should be ROCm base dir.
 if [ $aomp -eq 1 ]; then
