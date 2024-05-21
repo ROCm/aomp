@@ -137,7 +137,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
         if [ "$AOMP_STANDALONE_BUILD" == 1 ]; then
           ASAN_CMAKE_OPTS="$COMMON_CMAKE_OPTS -DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR/lib/asan/cmake -DSANITIZER_AMDGPU=1 -DCMAKE_BUILD_TYPE=Release -DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=OFF $AOMP_ASAN_ORIGIN_RPATH"
         else
-          ASAN_CMAKE_OPTS="$COMMON_CMAKE_OPTS -DCMAKE_PREFIX_PATH=$ROCM_CMAKECONFIG_PATH -DSANITIZER_AMDGPU=1 -DCMAKE_BUILD_TYPE=Release -DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=OFF $OPENMP_EXTRAS_ORIGIN_RPATH"
+          ASAN_CMAKE_OPTS="$COMMON_CMAKE_OPTS -DCMAKE_PREFIX_PATH=$ROCM_CMAKECONFIG_PATH;$INSTALL_PREFIX/lib/llvm/lib/asan -DSANITIZER_AMDGPU=1 -DCMAKE_BUILD_TYPE=Release -DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=OFF $OPENMP_EXTRAS_ORIGIN_RPATH"
         fi
         echo " -----Running offload cmake for asan ---- "
         mkdir -p $BUILD_DIR/build/offload/asan
@@ -250,7 +250,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
          if [ "$AOMP_STANDALONE_BUILD" == 1 ]; then
            ASAN_CMAKE_OPTS="$ASAN_CMAKE_OPTS -DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR/lib/asan/cmake"
          else
-           ASAN_CMAKE_OPTS="$ASAN_CMAKE_OPTS -DCMAKE_PREFIX_PATH=$ROCM_CMAKECONFIG_PATH"
+           ASAN_CMAKE_OPTS="$ASAN_CMAKE_OPTS -DCMAKE_PREFIX_PATH=$ROCM_CMAKECONFIG_PATH;$INSTALL_PREFIX/lib/llvm/lib/asan"
          fi
          echo " -----Running offload cmake for debug-asan ---- "
          mkdir -p $BUILD_DIR/build/offload_debug/asan
