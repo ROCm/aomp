@@ -148,12 +148,12 @@ fi
 # Support for using openmp-extras-tests package.
 if [ "$aomp" != 1 ]; then
   tmpdir="/tmp/openmp-extras"
-  rm -rf $tmpdir
-  mkdir -p $tmpdir
   os_name=$(cat /etc/os-release | grep NAME)
   test_package_name="openmp-extras-tests"
   if [ "$SKIP_TEST_PACKAGE" != 1 ] && [ "$TEST_BRANCH" == "" ]; then
     if [ ! -e "$ROCMINF/share/openmp-extras/tests/bin/run_rocm_test.sh" ]; then
+      rm -rf $tmpdir
+      mkdir -p $tmpdir
       # Determine OS and download package not using sudo.
       if [[ "$os_name" =~ "Ubuntu" ]]; then
         cd $tmpdir
@@ -184,6 +184,8 @@ if [ "$aomp" != 1 ]; then
       fi
     # Environment already has test package
     else
+      rm -rf $tmpdir
+      mkdir -p $tmpdir
       cp -ra "$ROCMINF"/share/openmp-extras/tests $tmpdir
       cd $tmpdir/tests/bin
     fi
@@ -207,7 +209,7 @@ $AOMP/bin/flang1 --version
 if [ $aomp -eq 1 ]; then
   AOMPROCM=$AOMP
 else
-  AOMPROCM=$AOMP/..
+  AOMPROCM=$AOMP/../..
 fi
 export AOMPROCM
 echo AOMPROCM=$AOMPROCM
