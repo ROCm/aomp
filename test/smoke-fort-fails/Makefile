@@ -8,6 +8,7 @@ TESTS_DIR = \
     flang-444386-1 \
     flang-445718 \
     flang-445718-fortran-intrinsic \
+    flang-445718-sign \
     flang-445999 \
     flang-446033a_loop \
     flang-446033a_ttdpd \
