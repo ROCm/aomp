@@ -33,14 +33,14 @@ Table of contents
 
 <A NAME="Overview">
 
-AOMP is a scripted build of LLVM and supporting software. It has support for OpenMP target offload on AMD GPUs.
+AOMP is a scripted build of LLVM and supporting software.
+It has support for OpenMP target offload on AMD GPUs.
 Since AOMP is a clang/llvm compiler, it also supports GPU offloading with HIP, stdpar, CUDA, and OpenCL.
-
 The source code used to build AOMP is the amd-staging branch of the
 [llvm-project](https://github.com/ROCm/llvm-project) repository used by AMD for llvm developments.
 
-The bin directory of this repository contains the developer [README.md](bin/README.md) and build scripts needed
-to download, build, and install AOMP from source.
+The bin directory of this repository contains the developer [README.md](bin/README.md)
+and build scripts needed to download, build, and install AOMP from source.
 In addition to the mirrored [llvm-project repository](https://github.com/ROCm/llvm-project),
 AOMP uses a number of open-source ROCm components. The build scripts will download, build, and install all components needed for AOMP.
 
