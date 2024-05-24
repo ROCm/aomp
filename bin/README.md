@@ -218,6 +218,7 @@ The component build scripts take a single positional argument with the value "in
 The master build script build_aomp.sh will call the component build scripts in the following order and stop if
 any fails occur.
 
+```
    ./build_prereq.sh
    ./build_prereq.sh install
    ./build_project.sh
