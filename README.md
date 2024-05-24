@@ -26,6 +26,7 @@ Table of contents
 - [Examples](examples)
 - [Issues](https://github.com/ROCm/aomp/issues)
 - [Developers Readme](bin/README.md)
+- [amd-trunk-dev](trunk/README.md) Only for developers working on upstream integration branch.
 - [Limitations](#Limitations)
 
 ## Overview
@@ -33,24 +34,26 @@ Table of contents
 <A NAME="Overview">
 
 AOMP is a scripted build of LLVM and supporting software. It has support for OpenMP target offload on AMD GPUs.
-Since AOMP is a clang/llvm compiler, it also supports GPU offloading with HIP, CUDA, and OpenCL.
+Since AOMP is a clang/llvm compiler, it also supports GPU offloading with HIP, stdpar, CUDA, and OpenCL.
 
-Some sources to support OpenMP target offload on AMD GPUs have not yet been merged into the upstream LLVM trunk.
-However all sources used by AOMP are available in [AOMP repositories](https://github.com/ROCm/aomp/blob/master/bin/README.md#repositories).
-One of those repositories is a
-[mirror of the LLVM monorepo llvm-project](https://github.com/ROCm/llvm-project)
-with a set of commits applied to a stable LLVM release branch.
+The source code used to build AOMP is the amd-staging branch of the
+[llvm-project](https://github.com/ROCm/llvm-project) repository used by AMD for llvm developments.
 
-The bin directory of this repository contains a README.md and build scripts needed to download, build, and install AOMP from source.
-In addition to the  mirrored [LLVM project repository](https://github.com/ROCm/llvm-project),
+The bin directory of this repository contains the developer [README.md](bin/README.md) and build scripts needed
+to download, build, and install AOMP from source.
+In addition to the mirrored [llvm-project repository](https://github.com/ROCm/llvm-project),
 AOMP uses a number of open-source ROCm components. The build scripts will download, build, and install all components needed for AOMP.
-However, we recommend that you install the latest release of the [debian or rpm package](https://github.com/ROCm/aomp/releases) for AOMP described in the [install page](docs/INSTALL.md).
+
+This from-source build is intended for developers. It is long, has many system prerequisites, and requires extensive resources.
+If your goal is to test an advanced develpment compiler, we recommend that you install the latest development
+release of the [AOMP debian or rpm package](https://github.com/ROCm/aomp/releases)
+described in the [install page](docs/INSTALL.md).
 
 ## Copyright and Disclaimer
 
 <A NAME="Copyright">
 
-Copyright (c) 2019 ADVANCED MICRO DEVICES, INC.
+Copyright (c) 2024 ADVANCED MICRO DEVICES, INC.
 
 AMD is granting you permission to use this software and documentation (if any) (collectively, the 
 Materials) pursuant to the terms and conditions of the Software License Agreement included with the 
