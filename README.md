@@ -31,7 +31,7 @@ Table of contents
 
 ## Overview
 
-<A NAME="Overview">
+<A NAME="Overview"></A>
 
 AOMP is a scripted build of LLVM and supporting software.
 It has support for OpenMP target offload on AMD GPUs.
@@ -51,7 +51,7 @@ described in the [install page](docs/INSTALL.md).
 
 ## Copyright and Disclaimer
 
-<A NAME="Copyright">
+<A NAME="Copyright"></A>
 
 Copyright (c) 2024 ADVANCED MICRO DEVICES, INC.
 
@@ -93,7 +93,7 @@ Software License Agreement.
 
 ## AOMP Limitations
 
-<A NAME="Limitations">
+<A NAME="Limitations"></A>
 
 See the [release notes](https://github.com/ROCm/aomp/releases) in github.  Here are some limitations.
 

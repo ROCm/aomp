@@ -11,8 +11,7 @@ The AOMP compiler supports OpenMP, clang-hip, clang-cuda, device OpenCL, and the
 
 ## Repositories
 
-<A NAME="Repositories">
-
+<A NAME="Repositories"></A>
 The clone_aomp.sh script clones the necessary github repositories and the correct
 branches into subdirectories of $HOME/git/aomp19.0 (or $AOMP_REPOS if AOMP_REPOS is set).
 The repositories and components needed by AOMP are shown in the following table.
