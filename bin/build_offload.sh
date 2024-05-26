@@ -186,7 +186,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
       #  This is the new locationof the ompd directory
       [[ ! -d $_ompd_dir ]] && _ompd_dir="$AOMP_INSTALL_DIR/share/gdb/python/ompd"
 
-      MYCMAKEOPTS="$COMMON_CMAKE_OPTS \
+      DEBUGCMAKEOPTS="
 -DLIBOMPTARGET_NVPTX_DEBUG=ON \
 -DLLVM_ENABLE_ASSERTIONS=ON \
 -DCMAKE_BUILD_TYPE=Debug \
@@ -199,28 +199,18 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 -DLIBOMP_OMPT_DEBUG=ON \
 -DOPENMP_SOURCE_DEBUG_MAP="\""-fdebug-prefix-map=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload=$_ompd_dir/src/offload"\"" "
 
-      if [ "$AOMP_STANDALONE_BUILD" == 1 ]; then
-        if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
-          MYCMAKEOPTS="$MYCMAKEOPTS $AOMP_ASAN_ORIGIN_RPATH"
-        else
-          MYCMAKEOPTS="$MYCMAKEOPTS $AOMP_ORIGIN_RPATH"
-        fi
-      else
-        MYCMAKEOPTS="$MYCMAKEOPTS $OPENMP_EXTRAS_ORIGIN_RPATH"
-      fi
-
       # The 'pip install --system' command is not supported on non-debian systems. This will disable
       # the system option if the debian_version file is not present.
       if [ ! -f /etc/debian_version ]; then
          echo "==> Non-Debian OS, disabling use of pip install --system"
-         MYCMAKEOPTS="$MYCMAKEOPTS -DDISABLE_SYSTEM_NON_DEBIAN=1"
+         DEBUGCMAKEOPTS="$DEBUGCMAKEOPTS -DDISABLE_SYSTEM_NON_DEBIAN=1"
       fi
 
       # Redhat 7.6 does not have python36-devel package, which is needed for ompd compilation.
       # This is acquired through RH Software Collections.
       if [ -f /opt/rh/rh-python36/enable ]; then
          echo "==> Using python3.6 out of rh tools."
-         MYCMAKEOPTS="$MYCMAKEOPTS -DPython3_ROOT_DIR=/opt/rh/rh-python36/root/bin -DPYTHON_HEADERS=/opt/rh/rh-python36/root/usr/include/python3.6m"
+         DEBUGCMAKEOPTS="$DEBUGCMAKEOPTS -DPython3_ROOT_DIR=/opt/rh/rh-python36/root/bin -DPYTHON_HEADERS=/opt/rh/rh-python36/root/usr/include/python3.6m"
       fi
 
       echo
@@ -230,11 +220,12 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
          echo " -----Running offload cmake for debug ---- "
          mkdir -p $BUILD_DIR/build/offload_debug
          cd $BUILD_DIR/build/offload_debug
-         # Cannot modify MYCMAKEOPTS as ASAN_CMAKE_OPTS uses them as well.
          if [ "$AOMP_STANDALONE_BUILD" == 1 ]; then
            PREFIX_PATH="-DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR/lib/cmake"
+           MYCMAKEOPTS="$COMMON_CMAKE_OPTS $DEBUGCMAKEOPTS $AOMP_ORIGIN_RPATH"
          else
            PREFIX_PATH="-DCMAKE_PREFIX_PATH=$INSTALL_PREFIX/lib/cmake"
+           MYCMAKEOPTS="$COMMON_CMAKE_OPTS $DEBUGCMAKEOPTS $OPENMP_EXTRAS_ORIGIN_RPATH"
          fi
          echo ${AOMP_CMAKE} $MYCMAKEOPTS $PREFIX_PATH -DCMAKE_C_FLAGS="$CFLAGS -g" -DCMAKE_CXX_FLAGS="$CXXFLAGS -g" -DOFFLOAD_LIBDIR_SUFFIX=-debug $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload
          ${AOMP_CMAKE} $MYCMAKEOPTS $PREFIX_PATH -DCMAKE_C_FLAGS="$CFLAGS -g" -DCMAKE_CXX_FLAGS="$CXXFLAGS -g" -DOFFLOAD_LIBDIR_SUFFIX=-debug $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload
@@ -246,11 +237,11 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
          fi
       fi
       if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
-         ASAN_CMAKE_OPTS="$MYCMAKEOPTS -DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=OFF -DSANITIZER_AMDGPU=1"
+         ASAN_CMAKE_OPTS="$COMMON_CMAKE_OPTS $DEBUGCMAKEOPTS -DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=OFF -DSANITIZER_AMDGPU=1"
          if [ "$AOMP_STANDALONE_BUILD" == 1 ]; then
-           ASAN_CMAKE_OPTS="$ASAN_CMAKE_OPTS -DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR/lib/asan/cmake"
+           ASAN_CMAKE_OPTS="$ASAN_CMAKE_OPTS -DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR/lib/asan/cmake $AOMP_ASAN_ORIGIN_RPATH"
          else
-           ASAN_CMAKE_OPTS="$ASAN_CMAKE_OPTS -DCMAKE_PREFIX_PATH=$ROCM_CMAKECONFIG_PATH;$INSTALL_PREFIX/lib/llvm/lib/asan"
+           ASAN_CMAKE_OPTS="$ASAN_CMAKE_OPTS -DCMAKE_PREFIX_PATH=$ROCM_CMAKECONFIG_PATH;$INSTALL_PREFIX/lib/llvm/lib/asan $OPENMP_EXTRAS_ORIGIN_RPATH"
          fi
          echo " -----Running offload cmake for debug-asan ---- "
          mkdir -p $BUILD_DIR/build/offload_debug/asan
