@@ -19,7 +19,7 @@ $(warning "AOMPROCM = $(AOMPROCM)")
 OMP_BIN      = $(AOMPROCM)/bin/$(CLANG)
 else
 AOMP ?=$(AOMPROCM)
-OMP_BIN      = $(AOMP)/bin/$(CLANG)
+OMP_BIN      = $(AOMPHIP)/bin/$(CLANG)
 endif
 HIP_CLANG_PATH ?= $(AOMP)/bin
 CC           = HIP_CLANG_PATH=$(HIP_CLANG_PATH) $(OMP_BIN) $(VERBOSE)
