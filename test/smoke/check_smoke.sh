@@ -132,7 +132,7 @@ echo "**************************************************************************
 
 known_fails=""
 skip_tests=""
-newest_rocm=$(ls /opt | grep -e "rocm-[0-9].[0-9].[0-9]" | tail -1)
+newest_rocm=$(ls /opt | grep -e "rocm-[0-9].[0-9].[0-9].*" | tail -1)
 AOMPROCM=${AOMPROCM:-/opt/"$newest_rocm"}
 
 if [ ${KNOWN_FAIL_FILE+x} ] ; then
@@ -191,6 +191,15 @@ if [ "$AOMP_PARALLEL_SMOKE" == 1 ]; then
       if [ $? -ne 0 ]; then continue; fi
       base=$(basename `pwd`)
       echo Make: $base
+      if [ $base == 'hip_rocblas' ] ; then
+        ls $AOMPROCM/rocblas > /dev/null 2>&1
+        if [ $? -ne 0 ]; then
+          echo -e "$RED"$base - needs rocblas installed at $AOMPROCM/rocblas:"$BLK"
+          echo -e "$RED"$base - ROCBLAS NOT FOUND!!! SKIPPING TEST!"$BLK"
+          popd > /dev/null
+          continue
+        fi
+      fi
       if [ $base == "gpus" ]; then # Compile and link only test
         make clean > /dev/null
         make &> make-log.txt

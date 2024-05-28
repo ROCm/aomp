@@ -5,7 +5,7 @@ TESTSRC_MAIN = async-events.cpp
 TESTSRC_AUX  = empty-sink.c
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 
-AOMPROCM     ?= $(AOMP)
+AOMPROCM     ?= $(AOMPHIP)
 ifneq (,$(wildcard $(AOMPROCM)/bin/rocprof))
 	RUNPROF   = $(AOMPROCM)/bin/rocprof
 else
