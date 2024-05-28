@@ -159,7 +159,7 @@ if [ "$aomp" != 1 ]; then
         cd $tmpdir
         apt-get download $test_package_name
         test_package=$(ls -lt $tmpdir | grep -Eo -m1 openmp-extras-tests.*)
-        #dpkg -x $test_package .
+        dpkg -x $test_package .
         script=$(find . -type f -name 'run_rocm_test.sh')
         cd $(dirname $script)
       # CentOS/RHEL support. CentOS 7 requires a different method.
