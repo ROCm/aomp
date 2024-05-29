@@ -84,7 +84,7 @@ else
   triple="amdgcn-amd-amdhsa"
 fi
 
-export MY_SOLLVE_FLAGS="-O2 -fopenmp -fopenmp-targets=$triple -Xopenmp-target=$triple -march=$AOMP_GPU"
+export MY_SOLLVE_FLAGS=${MY_SOLLVE_FLAGS:-"-O2 -fopenmp --offload-arch=$AOMP_GPU"}
 
 pushd $AOMP_REPOS_TEST/$AOMP_SOLVV_REPO_NAME
 
