@@ -82,7 +82,6 @@ totalunexpectedfails=0
 
 EPSDB=1 ./clone_test.sh > /dev/null
 AOMP_TEST_DIR=${AOMP_TEST_DIR:-"$HOME/git/aomp-test"}
-
 echo AOMP before : $AOMP
 if [ ! -e $AOMP/bin ]; then
   echo $AOMP does not point to valid location, unsetting
@@ -151,6 +150,7 @@ if [ "$aomp" != 1 ]; then
   os_name=$(cat /etc/os-release | grep NAME)
   test_package_name="openmp-extras-tests"
   if [ "$SKIP_TEST_PACKAGE" != 1 ] && [ "$TEST_BRANCH" == "" ]; then
+    git log -1
     if [ ! -e "$ROCMINF/share/openmp-extras/tests/bin/run_rocm_test.sh" ]; then
       rm -rf $tmpdir
       mkdir -p $tmpdir
@@ -163,7 +163,7 @@ if [ "$aomp" != 1 ]; then
         script=$(find . -type f -name 'run_rocm_test.sh')
         cd $(dirname $script)
       # CentOS/RHEL support. CentOS 7 requires a different method.
-      elif [[ "$os_name" =~ "CentOS" ]] || [[ "$os_name" =~ "Red Hat" ]]; then
+      elif [[ "$os_name" =~ "CentOS" ]] || [[ "$os_name" =~ "Red Hat" ]] || [[ "$os_name" =~ "Oracle Linux Server" ]]; then
         osversion=$(cat /etc/os-release | grep -e ^VERSION_ID)
         if [[ $osversion =~ '"7' ]]; then
           yumdownloader --destdir=/tmp/openmp-extras $test_package_name
