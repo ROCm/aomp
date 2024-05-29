@@ -59,6 +59,7 @@ realpath=`realpath $0`
 thisdir=`dirname $realpath`
 . $thisdir/aomp_common_vars
 # --- end standard header ----
+FLANG=${FLANG:-flang}
 
 function runcmd(){
    THISCMD=$1
@@ -72,6 +73,24 @@ function runcmd(){
       if [ $rc != 0 ] ; then
          echo "ERROR:  The following command failed with return code $rc: "
          echo "        $THISCMD"
+         exit $rc
+      fi
+   fi
+}
+
+function runcmdout(){
+   THISCMD=$1
+   OUTFILE=$2
+   if [ $DRYRUN ] ; then
+      echo "$THISCMD > $OUTFILE"
+   else
+      echo "$THISCMD > $OUTFILE"
+      echo "$THISCMD > $OUTFILE" >>$CMDLOGFILE
+      $THISCMD > $OUTFILE
+      rc=$?
+      if [ $rc != 0 ] ; then
+         echo "ERROR:  The following command failed with return code $rc: "
+         echo "        $THISCMD > $OUTFILE"
          exit $rc
       fi
    fi
@@ -124,7 +143,11 @@ function buildopenmpi(){
     runcmd "rm -rf $_installdir"
   fi
   runcmd "mkdir -p $_installdir"
-  runcmd "./configure --with-hwloc=$HOME/local/hwloc --with-hwloc-libdir=$HOME/local/hwloc/lib OMPI_CC=$AOMP/bin/clang OMPI_CXX=$AOMP/bin/clang++ OMPI_F90=$AOMP/bin/flang CXX=$AOMP/bin/clang++ CC=$AOMP/bin/clang FC=$AOMP/bin/flang --prefix=$_installdir"
+  ### update configure to recognize flang-new
+  runcmd "cp configure configure-orig"
+  runcmdout "sed -e s/flang\s*)/flang*)/ configure-orig" configure
+  ###
+  runcmd "./configure --with-hwloc=$HOME/local/hwloc --with-hwloc-libdir=$HOME/local/hwloc/lib OMPI_CC=$AOMP/bin/clang OMPI_CXX=$AOMP/bin/clang++ OMPI_F90=$AOMP/bin/${FLANG} CXX=$AOMP/bin/clang++ CC=$AOMP/bin/clang FC=$AOMP/bin/${FLANG} --prefix=$_installdir"
   runcmd "make -j8"
   runcmd "make install"
   if [ -L $_linkfrom ] ; then 

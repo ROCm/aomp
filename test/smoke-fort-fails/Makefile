@@ -8,6 +8,7 @@ TESTS_DIR = \
     flang-444386-1 \
     flang-445718 \
     flang-445718-fortran-intrinsic \
+    flang-445718-sign \
     flang-445999 \
     flang-446033a_loop \
     flang-446033a_ttdpd \
@@ -16,8 +17,7 @@ TESTS_DIR = \
     flang-446033c_loop \
     flang-446033d_loop \
     flang-446525 \
-    flang-457354 \
-    flang-460740 \
+    flang-462537 \
     flang-464660 \
     olcf-tf-2-openmp-gpu-teams \
     olcf-tf-3-openmp-gpu-teams-parallel \

@@ -6,7 +6,7 @@ TESTSRC_MAIN = hip_rocblas.cpp
 TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 OMP_FLAGS    =  --offload-arch=${AOMP_GPU}
-NEWEST_ROCM ?= $(shell ls /opt | grep -oP "rocm-[0-9].[0-9].[0-9]" | tail -1)
+NEWEST_ROCM ?= $(shell ls /opt | grep -oP "rocm-[0-9].[0-9].[0-9].*" | tail -1)
 ifeq ($(NEWEST_ROCM),)
 	$(error "Error: No ROCm detected!")
 endif
