@@ -27,6 +27,7 @@ ifneq ($(CURDIR)/,$(mkfile_dir))
 endif
 
 openmp_examples := \
+	$(_in_prefix)print_device \
 	$(_in_prefix)hello \
 	$(_in_prefix)declare_variant_if \
 	$(_in_prefix)veccopy \

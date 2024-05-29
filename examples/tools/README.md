@@ -1,3 +1,6 @@
-# AOMP -- Examples for tools usage
+Examples to demonstrate various compiler tools
+==============================================
 
-This directory contains examples of different tools.
+These Compiler Examples demonstrate various compiler tools.
+
+- [roctracer](roctracer/README.md) Demos of how to use roctracer

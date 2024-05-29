@@ -11,6 +11,7 @@ These are the c and C++ examples in the [openmp](.) examples category:
 - [veccopy](veccopy) A simple vector copy in c
 - [vmulsum](vmulsum/README) A simple vector multiply and sum in c
 - [reduction](reduction/README) A simple parallel reduction in c
+- [print_device](print_device/README.md) Prints the number of GPUs and the value of ROCR_VISIBLE_DEVICES to demonstrate gpurun.
 - [driver_tests](driver_tests) Demo of various command line options
 - [declare_variant_if](declare_variant_if)
 - [demo_offload_types](demo_offload_types) Demo showing use of OMP_TARGET_OFFLOAD in various build types. 

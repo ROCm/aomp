@@ -110,6 +110,25 @@ env OFFLOAD_DEBUG=1 make run
 
 Run ```make help``` to see various demos of each example.
 
+## Hierarchical Makefiles
+
+Each category has a Makefile that will build and run all the examples for that category. 
+For example the Makefile for openmp is [openmp/Makefile](here).
+To test all the openmp examples with the AOMP compiler run these commands:
+```
+EXROOT=~/git/rocm-examples/Compiler   # The examples base directory.
+cd $EXROOT/openmp
+env LLVM_INSTALL_DIR=$AOMP make run
+```
+The Compiler Examples has a root [Makefile](Makefile) that can be used to build and run all examples. 
+To test all Compiler Examples with the AOMP compiler run these commands:
+```
+EXROOT=~/git/rocm-examples/Compiler   # The examples base directory.
+cd $EXROOT
+env LLVM_INSTALL_DIR=$AOMP make run
+```
+
+
 ## Contributions
 
 If you want to contribute a Compiler example, please read these [rules](inc/contribute_rules.md).

@@ -6,9 +6,9 @@ else
   _in_dir :=
 endif
 
-mkfile_find_loc := $(mkfile_dir)../../../Makefile.find_gpu_and_install_dir
+mkfile_find_loc := $(mkfile_dir)../../../inc/find_gpu_and_install_dir.mk
 ifeq ("$(wildcard $(mkfile_find_loc))","")
-  mkfile_find_loc := $(mkfile_dir)../Makefile.find_gpu_and_install_dir
+  mkfile_find_loc := $(mkfile_dir)../find_gpu_and_install_dir.mk
 endif
 include $(mkfile_find_loc)
 

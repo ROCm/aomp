@@ -21,58 +21,28 @@
 # SOFTWARE.
 #
 mkfile_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
-include $(mkfile_dir)inc/find_gpu_and_install_dir.mk
+include $(mkfile_dir)../inc/find_gpu_and_install_dir.mk
 ifneq ($(CURDIR)/,$(mkfile_dir))
   _in_prefix := $(mkfile_dir)
 endif
 
-ifeq ($(LLVM_COMPILER_NAME),clang)
-$(info WARNING: TRUNK COMPILER DOES NOT YET SUPPORT kokkos EXAMPLES )
-$(info WARNING: TRUNK COMPILER DOES NOT YET SUPPORT raja EXAMPLES )
-$(info WARNING: TRUNK COMPILER DOES NOT YET SUPPORT tools EXAMPLES )
-CATEGORIES := \
-	$(_in_prefix)openmp \
-	$(_in_prefix)fortran \
-	$(_in_prefix)hip \
-	$(_in_prefix)stdpar
-endif
-ifeq ($(LLVM_COMPILER_NAME),AMD)
-$(info WARNING: ROCM COMPILER DOES NOT YET SUPPORT raja EXAMPLES )
-$(info WARNING: ROCM COMPILER DOES NOT YET SUPPORT tools EXAMPLES )
-CATEGORIES := \
-	$(_in_prefix)openmp \
-	$(_in_prefix)fortran \
-	$(_in_prefix)hip \
-	$(_in_prefix)kokkos \
-	$(_in_prefix)stdpar
-endif
-ifeq ($(LLVM_COMPILER_NAME),AOMP)
-$(info WARNING: AOMP COMPILER DOES NOT YET SUPPORT raja EXAMPLES )
-CATEGORIES := \
-	$(_in_prefix)openmp \
-	$(_in_prefix)fortran \
-	$(_in_prefix)hip \
-	$(_in_prefix)kokkos \
-	$(_in_prefix)tools \
-	$(_in_prefix)stdpar
-endif
+tools_examples := \
+	$(_in_prefix)roctracer
 
-all: $(CATEGORIES)
+all: $(tools_examples)
 
 clean: TARGET=clean
 clean: all
 run: TARGET=run
 run: all
 
-$(CATEGORIES):
+$(tools_examples):
 	@echo
-	@echo "#--------------------------------------------------------------"
-	@echo "# ===== START OF COMPILER EXAMPLES CATEGORY $(@) ===== "
-	@echo "#--------------------------------------------------------------"
+	@echo "# ========> Compiler example: $@"
 ifeq ($(CURDIR)/,$(mkfile_dir))
 	$(MAKE) --no-print-directory -C $@ $(TARGET)
 else
 	$(MAKE) --no-print-directory -f $@/Makefile $(TARGET)
 endif
 
-.PHONY: all clean $(CATEGORIES)
+.PHONY: all clean $(tools_examples)
