@@ -10,7 +10,7 @@ TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 DUMMYSRC     = echo 'int main(void) { return 0; }'
 
-RUNCMD       = ./performBuildRun.sh -a $(AOMP) -t $(AOMP_GPU)
+RUNCMD       = CPLUS_INCLUDE_PATH=$(AOMP)/lib64/omptest/include ./performBuildRun.sh -a $(AOMP) -t $(AOMP_GPU)
 
 CLANG        ?= clang
 OMP_BIN      = $(AOMP)/bin/$(CLANG)
