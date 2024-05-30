@@ -379,14 +379,17 @@ function copyresults(){
   # Copy logs from suite to results folder
   if [ -e failing-tests.txt ]; then
     cp failing-tests.txt "$resultsdir/$1"/"$1"_failing_tests.txt
-    cat failing-tests.txt > "$resultsdir/$1"/"$1"_failing_tests_combined.txt
+    cat failing-tests.txt >> "$resultsdir/$1"/"$1"_failing_tests_combined.txt
+    cat failing-tests.txt >> "$resultsdir/$1"/"$1"_all_tests.txt
   fi
   if [ -e make-fail.txt ]; then
     cp make-fail.txt "$resultsdir/$1"/"$1"_make_fail.txt
     cat make-fail.txt | sed 's/\: Make Failed//' >> "$resultsdir/$1"/"$1"_failing_tests_combined.txt
+    cat make-fail.txt | sed 's/\: Make Failed//' >> "$resultsdir/$1"/"$1"_all_tests.txt
   fi
   if [ -e passing-tests.txt ]; then
     cp passing-tests.txt "$resultsdir/$1"/"$1"_passing_tests.txt
+    cat passing-tests.txt >> "$resultsdir/$1"/"$1"_all_tests.txt
   fi
 
   # Begin logging info in summary.txt.
@@ -420,8 +423,13 @@ function copyresults(){
       echo Unexpected Passes: $unexpectedpasses | tee -a $summary $unexpresults
       diff "$1"_sorted_exp_passes "$1"_sorted_passes | grep '^>' | sed 's/> //' >> $summary
       echo >> $summary
+    else
+      unexpectedpasses=0
+      echo Unexpected Passes: $unexpectedpasses | tee -a $summary $unexpresults
+      echo >> $summary
     fi
     # Unexpected Fails
+    unexpectedfails=0
     if [ "$passlines" != 0 ]; then
       unexpectedfails=$(diff "$1"_sorted_exp_passes "$1"_sorted_passes | grep '^<' | wc -l)
     else
@@ -434,8 +442,6 @@ function copyresults(){
           compilefails=$(cat "$resultsdir/$1"/"$1"_make_fail.txt | wc -l)
           unexpectedfails=$((unexpectedfails + compilefails))
         fi
-      else
-        unexpectedfails=0
       fi
     fi
 
@@ -445,15 +451,6 @@ function copyresults(){
         fails=`diff $1_sorted_exp_passes $1_sorted_passes | grep '^<' | sed "s|< ||g"`
       else
         fails=$(cat "$resultsdir/$1"/"$1"_failing_tests_combined.txt)
-      fi
-      if [ -e "$1"_failing_tests.txt ]; then
-        cat "$1"_failing_tests.txt >> "$resultsdir"/"$1"/"$1"_all_tests.txt
-      fi
-      if [ -e "$1"_make_fail.txt ]; then
-        cat "$1"_make_fail.txt >> "$resultsdir"/"$1"/"$1"_all_tests.txt
-      fi
-      if [ -e "$1"_passing_tests.txt ]; then
-        cat "$1"_passing_tests.txt >> "$resultsdir"/"$1"/"$1"_all_tests.txt
       fi
 
       if [[ "$1" =~ examples|smoke|omp5 ]]; then
@@ -538,6 +535,10 @@ function copyresults(){
     echo "Unexpected Fails: $unexpectedfails" | tee -a $summary $unexpresults
     if [ "$1" != "smoke" ] && [ "$1" != "smoke-limbo" ]; then
       diff "$1"_sorted_exp_passes "$1"_sorted_passes | grep '^<' | sed 's/< //' >> $summary
+    else
+      if [ -e "$resultsdir/$1"/"$1"_failing_tests_combined.txt ]; then
+        cat "$1"_failing_tests_combined.txt >> $summary
+      fi
     fi
     echo >> $summary
 
@@ -573,7 +574,12 @@ function copyresults(){
       fi
     fi
     echo "Unexpected Fails: $numtests" | tee -a $summary $unexpresults
-    cat "$1"_sorted_exp_passes >> $summary
+    if [ "$1" != "smoke" ] && [ "$1" != "smoke-limbo" ]; then
+      cat "$1"_sorted_exp_passes >> $summary
+    else
+      cat "$1"_all_tests.txt >> $summary
+    fi
+
     if [ "$EPSDB" == "1" ]; then
       for suite in $blockinglist; do
         if [ "$1" == "$suite" ]; then
