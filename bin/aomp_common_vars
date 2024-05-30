@@ -260,7 +260,7 @@ fi
 
 # Set list of default amdgcn subarchitectures to build
 # Developers may override GFXLIST to shorten build time.
-GFXLIST=${GFXLIST:-"gfx700 gfx701 gfx801 gfx803 gfx900 gfx902 gfx906 gfx908 gfx90a gfx90c gfx940 gfx941 gfx942 gfx1030 gfx1031 gfx1035 gfx1036 gfx1100 gfx1101 gfx1102 gfx1103"}
+GFXLIST=${GFXLIST:-"gfx700 gfx701 gfx801 gfx803 gfx900 gfx902 gfx906 gfx908 gfx90a gfx90c gfx940 gfx941 gfx942 gfx1030 gfx1031 gfx1035 gfx1036 gfx1100 gfx1101 gfx1102 gfx1103 gfx1200 gfx1201"}
 export GFXLIST
 
 # Calculate the number of threads to use for make
