@@ -44,10 +44,10 @@ SKIP_USM=1
 export SKIP_USM=1
 export HSA_XNACK=${HSA_XNACK:-0}
 SUITE_LIST=${SUITE_LIST:-"examples smoke-limbo smoke smoke-asan omp5 openmpapps ovo sollve babelstream fortran-babelstream"}
-blockinglist="examples_fortran examples_openmp smoke openmpapps sollve45 sollve50 babelstream"
+blockinglist="examples_fortran examples_openmp smoke smoke-limbo openmpapps sollve45 sollve50 babelstream"
 else
 SUITE_LIST=${SUITE_LIST:-"examples smoke-limbo smoke smoke-asan omp5 openmpapps LLNL nekbone ovo sollve babelstream fortran-babelstream"}
-blockinglist="examples_fortran examples_openmp smoke openmpapps sollve45 sollve50 babelstream"
+blockinglist="examples_fortran examples_openmp smoke smoke-limbo openmpapps sollve45 sollve50 babelstream"
 fi
 EPSDB_LIST=${EPSDB_LIST:-"examples smoke-limbo smoke-dev smoke smoke-asan omp5 openmpapps LLNL nekbone ovo sollve babelstream fortran-babelstream"}
 
@@ -75,14 +75,13 @@ scriptfails=0
 totalunexpectedfails=0
 
 # make sure we see latest aomp dir
-git pull
+#git pull
 #git clean -f -d
-git log -1
+#git log -1
 ./rocm_quick_check.sh
 
 EPSDB=1 ./clone_test.sh > /dev/null
 AOMP_TEST_DIR=${AOMP_TEST_DIR:-"$HOME/git/aomp-test"}
-
 echo AOMP before : $AOMP
 if [ ! -e $AOMP/bin ]; then
   echo $AOMP does not point to valid location, unsetting
@@ -117,34 +116,83 @@ export AOMP
 echo "AOMP = $AOMP"
 export REAL_AOMP=`realpath $AOMP`
 
-if [ "$TEST_BRANCH" == "" ]; then
- git reset --hard HEAD
- if [ -e /home/jenkins/workspace/compiler-psdb-amd-mainline-open-a+a ]; then
-  export TEST_BRANCH=amd-mainline-open-a+a
-  git checkout aomp-dev
- elif [ -e /jenkins/workspace/compiler-psdb-amd-mainline-open ]; then
-  export TEST_BRANCH=amd-mainline-open
-  git checkout aomp-dev
- elif [ -e /jenkins/workspace/compiler-psdb-amd-staging ]; then
-  export TEST_BRANCH=amd-staging
-  git checkout aomp-dev
- elif [[ $REAL_AOMP =~ "/opt/rocm-6.0" ]]; then
-  export TEST_BRANCH=aomp-test-6.0
-  git checkout 080e9bc62ad8501defc4ec9124c90e28a1f749db
- elif [[ $REAL_AOMP =~ "/opt/rocm-6.1" ]]; then
-  export TEST_BRANCH=aomp-test-6.1
-  git checkout 080e9bc62ad8501defc4ec9124c90e28a1f749db
- elif [[ $REAL_AOMP =~ "/opt/rocm-6.2" ]]; then
-  export TEST_BRANCH=aomp-test-6.2
-  git checkout aomp-dev
- else
-  export TEST_BRANCH=aomp-dev
-  git checkout aomp-dev
- fi
- echo "+++ Using $TEST_BRANCH +++"
- sleep 5
- ./run_rocm_test.sh
- exit $?
+function extract_rpm(){
+  local test_package=$1
+  cd $tmpdir
+  rpm2cpio $test_package | cpio -idmv > /dev/null
+  script=$(find . -type f -name 'run_rocm_test.sh')
+  cd $(dirname $script)
+}
+
+# Keep support for older release testing that will not have release branch
+# updated. From 6.2 onwards the openmp-extras-tests package will be used for testing.
+if [[ $REAL_AOMP =~ "/opt/rocm-6.0" ]] || [[ $REAL_AOMP =~ "/opt/rocm-6.1" ]]; then
+  if [ "$TEST_BRANCH" == "" ]; then
+    git reset --hard
+    export TEST_BRANCH="aomp-test-6.0-6.1"
+    git checkout 080e9bc62ad8501defc4ec9124c90e28a1f749db
+  fi
+  echo "+++ Using $TEST_BRANCH +++"
+  sleep 5
+  ./run_rocm_test.sh
+  exit $?
+fi
+
+clangversion=`$AOMP/bin/clang --version`
+aomp=0
+if [[ "$clangversion" =~ "AOMP_STANDALONE" ]]; then
+  aomp=1
+fi
+
+# Support for using openmp-extras-tests package.
+if [ "$aomp" != 1 ]; then
+  tmpdir="/tmp/openmp-extras"
+  os_name=$(cat /etc/os-release | grep NAME)
+  test_package_name="openmp-extras-tests"
+  if [ "$SKIP_TEST_PACKAGE" != 1 ] && [ "$TEST_BRANCH" == "" ]; then
+    git log -1
+    if [ ! -e "$ROCMINF/share/openmp-extras/tests/bin/run_rocm_test.sh" ]; then
+      rm -rf $tmpdir
+      mkdir -p $tmpdir
+      # Determine OS and download package not using sudo.
+      if [[ "$os_name" =~ "Ubuntu" ]]; then
+        cd $tmpdir
+        apt-get download $test_package_name
+        test_package=$(ls -lt $tmpdir | grep -Eo -m1 openmp-extras-tests.*)
+        dpkg -x $test_package .
+        script=$(find . -type f -name 'run_rocm_test.sh')
+        cd $(dirname $script)
+      # CentOS/RHEL support. CentOS 7 requires a different method.
+      elif [[ "$os_name" =~ "CentOS" ]] || [[ "$os_name" =~ "Red Hat" ]] || [[ "$os_name" =~ "Oracle Linux Server" ]]; then
+        osversion=$(cat /etc/os-release | grep -e ^VERSION_ID)
+        if [[ $osversion =~ '"7' ]]; then
+          yumdownloader --destdir=/tmp/openmp-extras $test_package_name
+        else
+          yum download --destdir /tmp/openmp-extras $test_package_name
+        fi
+        test_package=$(ls -lt $tmpdir | grep -Eo -m1 openmp-extras-tests.*)
+        extract_rpm $test_package
+      # SLES support.
+      elif [[ "$os_name" =~ "SLES" ]]; then
+        zypper download $test_package_name
+        test_package=$(ls -lt /var/cache/zypp/packages/rocm/ | grep -Eo -m1 openmp-extras-tests.*)
+        cp /var/cache/zypp/packages/rocm/"$test_package" $tmpdir
+        extract_rpm $test_package
+      else
+        echo "Error: Could not determine operating system name."
+        exit 1
+      fi
+    # Environment already has test package
+    else
+      rm -rf $tmpdir
+      mkdir -p $tmpdir
+      cp -ra "$ROCMINF"/share/openmp-extras/tests $tmpdir
+      cd $tmpdir/tests/bin
+    fi
+  export SKIP_TEST_PACKAGE=1
+  ./run_rocm_test.sh
+  exit $?
+  fi
 fi
 echo $AOMP $REAL_AOMP using test branch $TEST_BRANCH
 
@@ -157,17 +205,11 @@ fi
 
 $AOMP/bin/flang1 --version
 
-clangversion=`$AOMP/bin/clang --version`
-aomp=0
-if [[ "$clangversion" =~ "AOMP_STANDALONE" ]]; then
-  aomp=1
-fi
-
 # Parent dir should be ROCm base dir.
 if [ $aomp -eq 1 ]; then
   AOMPROCM=$AOMP
 else
-  AOMPROCM=$AOMP/..
+  AOMPROCM=$AOMP/../..
 fi
 export AOMPROCM
 echo AOMPROCM=$AOMPROCM
@@ -337,12 +379,17 @@ function copyresults(){
   # Copy logs from suite to results folder
   if [ -e failing-tests.txt ]; then
     cp failing-tests.txt "$resultsdir/$1"/"$1"_failing_tests.txt
+    cat failing-tests.txt >> "$resultsdir/$1"/"$1"_failing_tests_combined.txt
+    cat failing-tests.txt >> "$resultsdir/$1"/"$1"_all_tests.txt
   fi
   if [ -e make-fail.txt ]; then
     cp make-fail.txt "$resultsdir/$1"/"$1"_make_fail.txt
+    cat make-fail.txt | sed 's/\: Make Failed//' >> "$resultsdir/$1"/"$1"_failing_tests_combined.txt
+    cat make-fail.txt | sed 's/\: Make Failed//' >> "$resultsdir/$1"/"$1"_all_tests.txt
   fi
   if [ -e passing-tests.txt ]; then
     cp passing-tests.txt "$resultsdir/$1"/"$1"_passing_tests.txt
+    cat passing-tests.txt >> "$resultsdir/$1"/"$1"_all_tests.txt
   fi
 
   # Begin logging info in summary.txt.
@@ -355,42 +402,55 @@ function copyresults(){
   echo ===== $1 ===== | tee -a $summary $unexpresults
 
   # Sort expected passes
-  for ver in $finalvers; do
-    if [ -e "$rocmtestdir"/passes/$ver/$1/"$1"_passes.txt ]; then
-      cat "$rocmtestdir"/passes/$ver/$1/"$1"_passes.txt >> "$1"_combined_exp_passes
-    fi
-  done
-  sort -f -d "$1"_combined_exp_passes > "$1"_sorted_exp_passes
-  passlines=`cat "$1"_sorted_exp_passes | wc -l`
-
+  if [ "$1" != "smoke" ] && [ "$1" != "smoke-limbo" ]; then
+    for ver in $finalvers; do
+      if [ -e "$rocmtestdir"/passes/$ver/$1/"$1"_passes.txt ]; then
+        cat "$rocmtestdir"/passes/$ver/$1/"$1"_passes.txt >> "$1"_combined_exp_passes
+      fi
+    done
+    sort -f -d "$1"_combined_exp_passes > "$1"_sorted_exp_passes
+    passlines=`cat "$1"_sorted_exp_passes | wc -l`
+  else
+    passlines=0
+  fi
   if [ -e "$1"_passing_tests.txt ]; then
     # Sort test reported passes
     sort -f -d "$1"_passing_tests.txt > "$1"_sorted_passes
 
     # Unexpected passes
-    unexpectedpasses=$(diff "$1"_sorted_exp_passes "$1"_sorted_passes | grep '^>' | wc -l)
-    echo Unexpected Passes: $unexpectedpasses | tee -a $summary $unexpresults
-    diff "$1"_sorted_exp_passes "$1"_sorted_passes | grep '^>' | sed 's/> //' >> $summary
-    echo >> $summary
-
+    if [ "$1" != "smoke" ] && [ "$1" != "smoke-limbo" ]; then
+      unexpectedpasses=$(diff "$1"_sorted_exp_passes "$1"_sorted_passes | grep '^>' | wc -l)
+      echo Unexpected Passes: $unexpectedpasses | tee -a $summary $unexpresults
+      diff "$1"_sorted_exp_passes "$1"_sorted_passes | grep '^>' | sed 's/> //' >> $summary
+      echo >> $summary
+    else
+      unexpectedpasses=0
+      echo Unexpected Passes: $unexpectedpasses | tee -a $summary $unexpresults
+      echo >> $summary
+    fi
     # Unexpected Fails
+    unexpectedfails=0
     if [ "$passlines" != 0 ]; then
       unexpectedfails=$(diff "$1"_sorted_exp_passes "$1"_sorted_passes | grep '^<' | wc -l)
     else
-      unexpectedfails=0
+      if [ "$1" == "smoke" ] || [ "$1" == "smoke-limbo" ]; then
+        if [ -e "$resultsdir/$1"/"$1"_failing_tests.txt ]; then
+	  runtimefails=$(cat "$resultsdir/$1"/"$1"_failing_tests.txt | wc -l)
+	  unexpectedfails=$((unexpectedfails + runtimefails))
+        fi
+        if [ -e "$resultsdir/$1"/"$1"_make_fail.txt ]; then
+          compilefails=$(cat "$resultsdir/$1"/"$1"_make_fail.txt | wc -l)
+          unexpectedfails=$((unexpectedfails + compilefails))
+        fi
+      fi
     fi
 
     # Check unexpected fails for false negatives, i.e. tests that may have been deleted or unsupported tests.
     if [ "$unexpectedfails" != 0 ]; then
-      fails=`diff $1_sorted_exp_passes $1_sorted_passes | grep '^<' | sed "s|< ||g"`
-      if [ -e "$1"_failing_tests.txt ]; then
-        cat "$1"_failing_tests.txt >> "$resultsdir"/"$1"/"$1"_all_tests.txt
-      fi
-      if [ -e "$1"_make_fail.txt ]; then
-        cat "$1"_make_fail.txt >> "$resultsdir"/"$1"/"$1"_all_tests.txt
-      fi
-      if [ -e "$1"_passing_tests.txt ]; then
-        cat "$1"_passing_tests.txt >> "$resultsdir"/"$1"/"$1"_all_tests.txt
+      if [ "$1" != "smoke" ] && [ "$1" != "smoke-limbo" ]; then
+        fails=`diff $1_sorted_exp_passes $1_sorted_passes | grep '^<' | sed "s|< ||g"`
+      else
+        fails=$(cat "$resultsdir/$1"/"$1"_failing_tests_combined.txt)
       fi
 
       if [[ "$1" =~ examples|smoke|omp5 ]]; then
@@ -473,7 +533,13 @@ function copyresults(){
     fi
 
     echo "Unexpected Fails: $unexpectedfails" | tee -a $summary $unexpresults
-    diff "$1"_sorted_exp_passes "$1"_sorted_passes | grep '^<' | sed 's/< //' >> $summary
+    if [ "$1" != "smoke" ] && [ "$1" != "smoke-limbo" ]; then
+      diff "$1"_sorted_exp_passes "$1"_sorted_passes | grep '^<' | sed 's/< //' >> $summary
+    else
+      if [ -e "$resultsdir/$1"/"$1"_failing_tests_combined.txt ]; then
+        cat "$1"_failing_tests_combined.txt >> $summary
+      fi
+    fi
     echo >> $summary
 
     # Failing Tests
@@ -494,10 +560,26 @@ function copyresults(){
     if [ "$passlines" != 0 ]; then
       numtests=$(cat "$resultsdir"/"$1"/"$1"_sorted_exp_passes | wc -l)
     else
-      numtests=0
+      if [ "$1" == "smoke" ] || [ "$1" == "smoke-limbo" ]; then
+        if [ -e "$resultsdir/$1"/"$1"_failing_tests.txt ]; then
+	  runtimefails=$(cat "$resultsdir/$1"/"$1"_failing_tests.txt | wc -l)
+	  numtests=$((numtests + runtimefails))
+        fi
+        if [ -e "$resultsdir/$1"/"$1"_make_fail.txt ]; then
+          compilefails=$(cat "$resultsdir/$1"/"$1"_make_fail.txt | wc -l)
+          numtests=$((numtests + compilefails))
+        fi
+      else
+        numtests=0
+      fi
     fi
     echo "Unexpected Fails: $numtests" | tee -a $summary $unexpresults
-    cat "$1"_sorted_exp_passes >> $summary
+    if [ "$1" != "smoke" ] && [ "$1" != "smoke-limbo" ]; then
+      cat "$1"_sorted_exp_passes >> $summary
+    else
+      cat "$1"_all_tests.txt >> $summary
+    fi
+
     if [ "$EPSDB" == "1" ]; then
       for suite in $blockinglist; do
         if [ "$1" == "$suite" ]; then

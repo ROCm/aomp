@@ -55,6 +55,9 @@ fi
 # Look for FileCheck on the system in various places.
 # Check local AOMP install first.
 SYSFILECHECK=`ls /usr/bin | grep -m1 -e "FileCheck"`
+if [ "$SYSFILECHECK" == "" ]; then
+	SYSFILECHECK="FileCheck"
+fi
 AOMP=`ls -d /opt/rocm-*/llvm | head -1`
 echo $AOMP
 SYSLLVM=`ls /usr/lib | grep -m1 -e "llvm-[0-9]\+"`

@@ -84,7 +84,7 @@ else
   triple="amdgcn-amd-amdhsa"
 fi
 
-export MY_SOLLVE_FLAGS="-O2 -fopenmp -fopenmp-targets=$triple -Xopenmp-target=$triple -march=$AOMP_GPU"
+export MY_SOLLVE_FLAGS=${MY_SOLLVE_FLAGS:-"-O2 -fopenmp --offload-arch=$AOMP_GPU"}
 
 pushd $AOMP_REPOS_TEST/$AOMP_SOLVV_REPO_NAME
 
@@ -173,6 +173,12 @@ if [ "$SKIP_SOLLVE50" != 1 ]; then
 fi
 
 if [ "$SKIP_SOLLVE51" != 1 ]; then
+  enable_xnack=0
+  if [ "$AOMP_GPU" == gfx90a ] && [ "$HSA_XNACK" == "" ]; then
+    export HSA_XNACK=1
+    enable_xnack=1
+    echo "Turning on HSA_XNACK=1 for 5.0 to allow USM tests to pass."
+  fi
   echo "--------------------------- START OMP 5.1 TESTING ---------------------"
   # Run OpenMP 5.1 Tests
   export MY_SOLLVE_FLAGS="$MY_SOLLVE_FLAGS -fopenmp-version=51"
@@ -187,9 +193,19 @@ if [ "$SKIP_SOLLVE51" != 1 ]; then
   echo "--------------------------- OMP 5.1 Results ---------------------------" >> abrev.combined-results.txt
   make_sollve_reports 51
   custom_source=""
+  if [ "$enable_xnack" == 1 ]; then
+    unset HSA_XNACK
+  fi
 fi
 
 if [ "$SKIP_SOLLVE52" != 1 ]; then
+  echo "Catherine"
+  enable_xnack=0
+  if [ "$AOMP_GPU" == gfx90a ] && [ "$HSA_XNACK" == "" ]; then
+    export HSA_XNACK=1
+    enable_xnack=1
+    echo "Turning on HSA_XNACK=1 for 5.0 to allow USM tests to pass."
+  fi
   echo "--------------------------- START OMP 5.2 TESTING ---------------------"
   # Run OpenMP 5.2 Tests
   export MY_SOLLVE_FLAGS="$MY_SOLLVE_FLAGS -fopenmp-version=52"
@@ -199,6 +215,9 @@ if [ "$SKIP_SOLLVE52" != 1 ]; then
   echo "--------------------------- OMP 5.2 Detailed Results ---------------------------" >> combined-results.txt
   echo "--------------------------- OMP 5.2 Results ---------------------------" >> abrev.combined-results.txt
   make_sollve_reports 52
+  if [ "$enable_xnack" == 1 ]; then
+    unset HSA_XNACK
+  fi
 fi
 
 echo "========================= ALL TESTING COMPLETE ! ====================="

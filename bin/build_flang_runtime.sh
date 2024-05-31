@@ -28,14 +28,23 @@ COMP_INC_DIR=$(ls -d $AOMP_INSTALL_DIR/lib/clang/*/include )
 REPO_DIR=$AOMP_REPOS/$AOMP_FLANG_REPO_NAME
 COMP_INC_DIR=$REPO_DIR/runtime/libpgmath/lib/common
 
-if [ -d $BUILD_DIR/build/openmp/runtime/src ] ; then
-  openmp_build_runtime_src="$BUILD_DIR/build/openmp/runtime/src"
+if [ "$AOMP_STANDALONE_BUILD" == 0 ]; then
+  if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
+    openmp_build_runtime_src=$BUILD_DIR/build/openmp/asan/runtime/src
+    CMAKE_PREFIX_PATH=$BUILD_DIR/build/pgmath/asan
+  else
+    openmp_build_runtime_src=$BUILD_DIR/build/openmp/runtime/src
+    CMAKE_PREFIX_PATH=$BUILD_DIR/build/pgmath
+  fi
 else
-  openmp_build_runtime_src="$BUILD_DIR/build/llvm-project/runtimes/runtimes-bins/openmp/runtime/src"
-fi
-
-if [ "$AOMP_BUILD_SANITIZER" == 1 ] && [ -d $BUILD_DIR/build/openmp/asan/runtime/src ]; then
-  openmp_build_runtime_src="$BUILD_DIR/build/openmp/asan/runtime/src"
+  if [ -d $BUILD_DIR/build/openmp/runtime/src ] ; then
+    openmp_build_runtime_src="$BUILD_DIR/build/openmp/runtime/src"
+  else
+    openmp_build_runtime_src="$BUILD_DIR/build/llvm-project/runtimes/runtimes-bins/openmp/runtime/src"
+  fi
+  if [ "$AOMP_BUILD_SANITIZER" == 1 ] && [ -d $BUILD_DIR/build/openmp/asan/runtime/src ]; then
+    openmp_build_runtime_src="$BUILD_DIR/build/openmp/asan/runtime/src"
+  fi
 fi
 
 MYCMAKEOPTS="-DCMAKE_BUILD_TYPE=$BUILD_TYPE \
@@ -51,13 +60,6 @@ MYCMAKEOPTS="-DCMAKE_BUILD_TYPE=$BUILD_TYPE \
   -DOPENMP_BUILD_DIR=$openmp_build_runtime_src \
   -DFLANG_INCLUDE_TESTS=OFF"
 
-if [ "$AOMP_STANDALONE_BUILD" == 0 ]; then
-   MYCMAKEOPTS="$MYCMAKEOPTS $OPENMP_EXTRAS_ORIGIN_RPATH
-   -DENABLE_DEVEL_PACKAGE=ON -DENABLE_RUN_PACKAGE=ON
-   -DOPENMP_EXTRAS_SHARED_LINKER_FLAGS=$OPENMP_EXTRAS_SHARED_LINKER_FLAGS
-   -DAOMP_BUILD_SANITIZER=$AOMP_BUILD_SANITIZER"
-fi
-
 # Note this variable is used only for AOMP ASan-ROCm builds don't remove it.
 # This is not used for AOMP-ASan standalone build.
 if [ "$SANITIZER" == 1 ]; then
@@ -66,10 +68,23 @@ fi
 
 if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
    ASAN_FLAGS="$ASAN_FLAGS -I$COMP_INC_DIR"
-   ASAN_CMAKE_OPTS="$MYCMAKEOPTS -DCMAKE_PREFIX_PATH=$AOMP/lib/asan/cmake $AOMP_ASAN_ORIGIN_RPATH -DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=OFF -DCMAKE_INSTALL_BINDIR=bin/asan -DCMAKE_INSTALL_LIBDIR=lib/asan"
+   ASAN_CMAKE_OPTS="$MYCMAKEOPTS -DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=OFF -DCMAKE_INSTALL_BINDIR=bin/asan -DCMAKE_INSTALL_LIBDIR=lib/asan"
+   if [ "$AOMP_STANDALONE_BUILD" == 1 ]; then
+     ASAN_CMAKE_OPTS="$ASAN_CMAKE_OPTS -DCMAKE_PREFIX_PATH=$AOMP/lib/asan/cmake $AOMP_ASAN_ORIGIN_RPATH"
+   else
+     ASAN_CMAKE_OPTS="$ASAN_CMAKE_OPTS -DCMAKE_PREFIX_PATH="$CMAKE_PREFIX_PATH;$INSTALL_PREFIX/lib/asan/cmake" $OPENMP_EXTRAS_ORIGIN_RPATH -DOPENMP_EXTRAS_SHARED_LINKER_FLAGS=$OPENMP_EXTRAS_SHARED_LINKER_FLAGS"
+   fi
 fi
 
-MYCMAKEOPTS="$MYCMAKEOPTS -DCMAKE_PREFIX_PATH=$AOMP/lib/cmake $AOMP_ORIGIN_RPATH"
+if [ "$AOMP_STANDALONE_BUILD" == 1 ]; then
+  MYCMAKEOPTS="$MYCMAKEOPTS -DCMAKE_PREFIX_PATH=$AOMP/lib/cmake $AOMP_ORIGIN_RPATH"
+else
+  MYCMAKEOPTS="$MYCMAKEOPTS -DCMAKE_PREFIX_PATH=$INSTALL_PREFIX/lib/asan/cmake
+   -DOPENMP_EXTRAS_SHARED_LINKER_FLAGS=$OPENMP_EXTRAS_SHARED_LINKER_FLAGS
+   -DAOMP_BUILD_SANITIZER=$AOMP_BUILD_SANITIZER
+   -DCMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH
+   $OPENMP_EXTRAS_ORIGIN_RPATH"
+fi
 
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   help_build_aomp
@@ -115,23 +130,25 @@ export PATH=$AOMP_INSTALL_DIR/bin:$PATH
 export FC=$AOMP_INSTALL_DIR/bin/flang
 
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
-   cd $BUILD_DIR/build/flang_runtime
-   echo
-   echo " -----Running cmake ---- "
-   echo ${AOMP_CMAKE} $MYCMAKEOPTS \
-        -DCMAKE_C_FLAGS="$CFLAGS -I$COMP_INC_DIR" \
-        -DCMAKE_CXX_FLAGS="$CXXFLAGS -I$COMP_INC_DIR" \
-        $AOMP_REPOS/$AOMP_FLANG_REPO_NAME
+   if [ "$SANITIZER" != 1 ]; then
+      cd $BUILD_DIR/build/flang_runtime
+      echo
+      echo " -----Running cmake ---- "
+      echo ${AOMP_CMAKE} $MYCMAKEOPTS \
+           -DCMAKE_C_FLAGS="$CFLAGS -I$COMP_INC_DIR" \
+           -DCMAKE_CXX_FLAGS="$CXXFLAGS -I$COMP_INC_DIR" \
+           $AOMP_REPOS/$AOMP_FLANG_REPO_NAME
 
-   ${AOMP_CMAKE} $MYCMAKEOPTS \
-   -DCMAKE_C_FLAGS="$CFLAGS -I$COMP_INC_DIR" \
-   -DCMAKE_CXX_FLAGS="$CXXFLAGS -I$COMP_INC_DIR" \
-   $AOMP_REPOS/$AOMP_FLANG_REPO_NAME 2>&1
+      ${AOMP_CMAKE} $MYCMAKEOPTS \
+      -DCMAKE_C_FLAGS="$CFLAGS -I$COMP_INC_DIR" \
+      -DCMAKE_CXX_FLAGS="$CXXFLAGS -I$COMP_INC_DIR" \
+      $AOMP_REPOS/$AOMP_FLANG_REPO_NAME 2>&1
 
-   if [ $? != 0 ] ; then
-      echo "ERROR cmake failed. Cmake flags"
-      echo "      $MYCMAKEOPTS"
-      exit 1
+      if [ $? != 0 ] ; then
+         echo "ERROR cmake failed. Cmake flags"
+         echo "      $MYCMAKEOPTS"
+         exit 1
+      fi
    fi
 
    if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
@@ -157,13 +174,15 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 fi
 
 echo
-echo " -----Running make ---- "
-cd $BUILD_DIR/build/flang_runtime
-echo make -j $AOMP_JOB_THREADS
-make -j $AOMP_JOB_THREADS
-if [ $? != 0 ] ; then
-   echo "ERROR make -j $AOMP_JOB_THREADS failed"
-   exit 1
+if [ "$SANITIZER" != 1 ]; then
+   echo " -----Running make ---- "
+   cd $BUILD_DIR/build/flang_runtime
+   echo make -j $AOMP_JOB_THREADS
+   make -j $AOMP_JOB_THREADS
+   if [ $? != 0 ] ; then
+      echo "ERROR make -j $AOMP_JOB_THREADS failed"
+      exit 1
+   fi
 fi
 
 if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
@@ -179,15 +198,18 @@ if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
 fi
 
 if [ "$1" == "install" ] ; then
-   cd $BUILD_DIR/build/flang_runtime
-   echo " -----Installing to $INSTALL_FLANG ---- "
-   $SUDO make install
-   if [ $? != 0 ] ; then
-      echo "ERROR make install failed "
-      exit 1
+   if [ "$SANITIZER" != 1 ]; then
+      cd $BUILD_DIR/build/flang_runtime
+      echo " -----Installing to $INSTALL_FLANG ---- "
+      $SUDO make install
+      if [ $? != 0 ] ; then
+         echo "ERROR make install failed "
+         exit 1
+      fi
+      echo "SUCCESSFUL INSTALL to $INSTALL_FLANG "
+      echo
    fi
-   echo "SUCCESSFUL INSTALL to $INSTALL_FLANG "
-   echo
+
    if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
       cd $BUILD_DIR/build/flang_runtime/asan
       echo " -----Installing to $INSTALL_FLANG/lib/asan ---- "

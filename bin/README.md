@@ -10,7 +10,8 @@ The AOMP compiler supports OpenMP, clang-hip, clang-cuda, device OpenCL, and the
 
 
 ## Repositories
-<A NAME="Repositories">
+
+<A NAME="Repositories"></A>
 The clone_aomp.sh script clones the necessary github repositories and the correct
 branches into subdirectories of $HOME/git/aomp19.0 (or $AOMP_REPOS if AOMP_REPOS is set).
 The repositories and components needed by AOMP are shown in the following table.
@@ -24,10 +25,11 @@ each component build script with the name build_\<component name\>.sh .
 | project   | amd-staging | $HOME/git/aomp19.0/llvm-project      | [llvm-project](https://github.com/ROCm/llvm-project)
 | openmp    | amd-staging | $HOME/git/aomp19.0/llvm-project/openmp | [llvm-project/openmp](https://github.com/ROCm/llvm-project)
 | extras    | aomp-dev   | $HOME/git/aomp19.0/aomp-extras         | [aomp-extras](https://github.com/ROCm/aomp-extras)
-| pgmath    | aomp-dev   | $HOME/git/aomp19.0/flang/runtime/libpgmath | [flang](https://github.com/ROCm/flang)
 | flang     | aomp-dev   | $HOME/git/aomp19.0/flang               | [flang](https://github.com/ROCm/flang)
+| pgmath    | aomp-dev   | $HOME/git/aomp19.0/flang/runtime/libpgmath | [flang](https://github.com/ROCm/flang)
+| flang-legacy | aomp-dev   | $HOME/git/aomp19.0/flang/flang-legacy/17.0-4 | [flang](https://github.com/ROCm/flang/flang-legacy/17.0-4/llvm-legacy)
 | flang_runtime | aomp-dev | $HOME/git/aomp19.0/flang             | [flang](https://github.com/ROCm/flang)
-|            |           |                                        |
+||           |                                        |
 | roct       |Latest ROCm| $HOME/git/aomp19.0/roct-thunk-interfaces | [roct-thunk-interfaces](https://github.com/ROCm/roct-thunk-interface)
 | rocr       |Latest ROCm| $HOME/git/aomp19.0/rocr-runtime        | [rocr-runtime](https://github.com/ROCm/rocr-runtime)
 | hip        |Latest ROCm| $HOME/git/aomp19.0/hip              | [hipamd](https://github.com/ROCm/hip)
@@ -35,12 +37,10 @@ each component build script with the name build_\<component name\>.sh .
 |            |Latest ROCm| $HOME/git/aomp19.0/clr              | [ROCclr](https://github.com/ROCm/clr)
 |            |Latest ROCm| $HOME/git/aomp19.0/ROCm-OpenCL-Runtime | [ocl](https://github.com/ROCm/ROCm-OpenCL-Runtime)
 | comgr      |Latest ROCm| $HOME/git/aomp19.0/rocm-compilersupport| [comgr](https://github.com/ROCm/rocm-compilersupport)
-| libdevice  |Latest ROCm| $HOME/git/aomp19.0/rocm-device-libs    | [rocm-device-libs](https://github.com/ROCm/rocm-device-libs)
 | rocminfo   |Latest ROCm| $HOME/git/aomp19.0/rocminfo            | [rocminfo](https://github.com/ROCm/rocminfo)
 | rocdbgapi  |Latest ROCm| $HOME/git/aomp19.0/ROCdbgapi           | [rocdbgapi](https://github.com/ROCm/ROCdbgapi)
 | rocgdb     |Latest ROCm| $HOME/git/aomp19.0/ROCgdb              | [rocgdb](https://github.com/ROCm/ROCgdb)
 | roctracer  |Latest ROCm| $HOME/git/aomp19.0/roctracer           | [roctracer](https://github.com/ROCm/roctracer)
-| rocm-cmake |Latest ROCm| $HOME/git/aomp19.0/rocm-cmake          | [rocm-cmake](https://github.com/RadeonOpenCompute/rocm-cmake)
 
 Notice that some components are built with different parts of the same repository.
 
@@ -118,10 +118,10 @@ to the physical installation directory.
 Most test scripts use the environment variable AOMP to identify the compiler location.
 For testing purposes, you will often change the value of AOMP when not testing your latest
 AOMP build.  For example, to test the latest  packaged aomp release, set AOMP=/usr/lib/aomp.
-To test against the ROCM installed compiler, set AOMP=/opt/rocm/llvm. To test one of your
+To test against the ROCM installed compiler, set AOMP=/opt/rocm/lib/llvm. To test one of your
 previous AOMP source builds, set AOMP to an older physical installation directory, such as
-AOMP=$HOME/rocm/aomp_19.0-0.  Be careful that if you set AOMP for testing purposes that
-it is reset to the correct value when rebuilding aomp from source.
+AOMP=$HOME/rocm/aomp_18.0-1. BE CAREFUL! If you set AOMP for testing purposes,
+remember to set it back before rebuilding aomp from source.
 
 ## Quick Start to AOMP Development
 To build and clone all components using the latest development sources, first clone aomp repo and checkout the aomp-dev branch as follows:
@@ -187,9 +187,7 @@ The only ROCm common component required by AOMP is the kernel kfd.
 
 
 ## Individual Component Builds
-
-This bin directory ($HOME/git/aomp19.0/aomp/bin) contains many component scripts to build and install AOMP from source.
-Here are some of the scripts contained in this direcotry
+This bin directory ($HOME/git/aomp19.0/aomp/bin) contains many component scripts to build and install AOMP from source. Here are some of the scripts contained in this direcotry
 ```
 clone_aomp.sh            -  A script to make sure the necessary repos are up to date.
                             See list source repositories above.
@@ -198,19 +196,17 @@ build_aomp.sh            -  This is the master build script. It runs all the
 build_roct.sh            -  Builds the hsa thunk library.
 build_rocr.sh            -  Builds the ROCm runtime.
 build_project.sh         -  Builds llvm, lld, and clang components.
-build_libdevice.sh       -  Builds the rocdl device bc libraries from rocm-device-libs.
 build_comgr.sh           -  Builds the code object manager (needs rocm-device-libs).
 build_rocminfo.sh        -  Builds the rocminfo utilities to support hip.
 build_extras.sh          -  Builds hostcall, libm, and utils all in aomp-extras repo.
-build_openmp.sh          -  Builds the OpenMP libraries and device RTL.
+build_openmp.sh          -  Builds the OpenMP libraries
 build_pgmath.sh          -  Builds the pgmath support for flang.
 build_flang.sh           -  Builds flang for aomp.
 build_flang_runtime.sh   -  Builds the flang runtime for aomp.
 build_rocdbgapi.sh       -  Builds ROCm Debugger API.
 build_gdb.sh             -  Builds ROC gdb.
 build_roctracer.sh       -  Builds ROC gdb. UNDER DEVELOPMENT
-build_rocm-cmake.sh      -  Builds rocm-cmake.
-build_prereq.sh          -  Builds prerequisites such as cmake, hwloc, rocmsmi.
+build_prereq.sh          -  Builds prerequisites such as cmake, hwloc, rocmsmi in $HOME/local.
 
 create_release_tarball.sh - This builds an important release artifact
                             containing all sources.
@@ -223,48 +219,36 @@ The master build script build_aomp.sh will call the component build scripts in t
 any fails occur.
 
 ```
-   # AOMP_STANDALONE_BUILD==1 is the default.
-   # If you turn this off, you must have a compatible ROCm installed.
-   # AOMP_STANDALONE_BUILD==0 only installs openmp, extras, pgmath, flang, flang_runtime.
-
    ./build_prereq.sh
    ./build_prereq.sh install
-   ./build_rocm-cmake.sh
-   ./build_rocm-cmake.sh install
    ./build_project.sh
    ./build_project.sh install
    ./build_roct.sh
    ./build_roct.sh install
    ./build_rocr.sh
    ./build_rocr.sh install
-   ./build_libdevice.sh
-   ./build_libdevice.sh install
    ./build_openmp.sh
    ./build_openmp.sh install
+   ./build_offload.sh
+   ./build_offload.sh install
    ./build_extras.sh
    ./build_extras.sh install
    ./build_comgr.sh
    ./build_comgr.sh install
    ./build_rocminfo.sh
    ./build_rocminfo.sh install
-
-   # The components pgmath, flang, and flang_runtime all use the flang repository.
+   ./build_flang-legacy.sh
+   ./build_flang-legacy.sh install
    ./build_pgmath.sh
    ./build_pgmath.sh install
    ./build_flang.sh
    ./build_flang.sh install
    ./build_flang_runtime.sh
    ./build_flang_runtime.sh install
-
-   # These components only build on x86_64
    ./build_hipcc.sh
    ./build_hipcc.sh install
    ./build_hipamd.sh
    ./build_hipamd.sh install
-
-   # These two components build only when
-   # AOMP_BUILD_STANDALONE=1 && AOMP_BUILD_DEBUG=1
-   # which are the default values.
    ./build_rocdbgapi.sh
    ./build_rocdbgapi.sh install
    ./build_rocgdb.sh
@@ -308,7 +292,7 @@ The aomp package installs in /usr/lib/aomp_\<version_string\> and symlinks /usr/
 It is also possible to test the ROCm compiler with AOMP tests by setting AOMP as follows:
 
 ```
-export AOMP=/opt/rocm/llvm
+export AOMP=/opt/rocm/lib/llvm
 ```
 
 Many tests must determine the type of GPU available with the mygpu script.  The location of mygpu is expected in $AOMP/bin/mygpu. ROCm puts this utility in a different location.  But this script is only used if the environment variable AOMP_GPU is not set which is the default. So, to use AOMP tests with the ROCM compiler set the value of AOMP_GPU as follows:
