@@ -102,7 +102,7 @@ else
   newestrocm=$(ls --sort=time /opt | grep -m 1 rocm)
   if [ -e /opt/$newestrocm/lib/llvm/bin ]; then
     AOMP=${AOMP:-"/opt/$newestrocm/lib/llvm"}
-    ROCMINF=/opt/rocm
+    ROCMINF=/opt/$newestrocm
     ROCMDIR=$ROCMINF
     echo setting 3 $AOMP
   else
@@ -146,7 +146,7 @@ fi
 
 # Support for using openmp-extras-tests package.
 if [ "$aomp" != 1 ]; then
-  tmpdir="/tmp/openmp-extras"
+  tmpdir="$HOME/tmp/openmp-extras"
   os_name=$(cat /etc/os-release | grep NAME)
   test_package_name="openmp-extras-tests"
   if [ "$SKIP_TEST_PACKAGE" != 1 ] && [ "$TEST_BRANCH" == "" ]; then
@@ -224,7 +224,7 @@ export ROCM_LLVM=$AOMP
 export ROCM_TARGET_LST=/opt/nowhere
 
 echo "RAE devices:"
-$ROCINF/bin/rocm_agent_enumerator
+$ROCMINF/bin/rocm_agent_enumerator
 
 # Set AOMP_GPU.
 # Regex skips first result 'gfx000' and selects second id.
@@ -758,7 +758,7 @@ function babelstream(){
   mkdir -p "$resultsdir"/babelstream
   cd "$aompdir"/bin
   if [ $aomp -eq 0 ]; then
-    export ROCMINFO_BINARY=$ROCINF/bin/rocminfo
+    export ROCMINFO_BINARY=$ROCMINF/bin/rocminfo
   fi
   export RUN_OPTIONS="omp-default omp-fast"
   ./run_babelstream.sh
