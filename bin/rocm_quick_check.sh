@@ -60,14 +60,19 @@ echo $AOMP
 SYSLLVM=`ls /usr/lib | grep -m1 -e "llvm-[0-9]\+"`
 if [ -e "$AOMP/bin/FileCheck" ]; then
   echo "$AOMP/bin/FileCheck OK"
+  $AOMP/bin/FileCheck --version
 elif [ -e /usr/lib/aomp/bin/FileCheck ]; then
   echo "/usr/lib/aomp/bin/FileCheck OK"
+  /usr/lib/aomp/bin/FileCheck --version
 elif [ -e $HOME/git/aomp-test/FileCheck ]; then
   echo "$HOME/git/aomp-test/FileCheck OK"
+  $HOME/git/aomp-test/FileCheck --version
 elif [ -e /usr/lib/$SYSLLVM/bin/FileCheck ]; then
   echo "/usr/lib/$SYSLLVM/bin/FileCheck OK"
+  /usr/lib/$SYSLLVM/bin/FileCheck --version
 elif [ -e /usr/bin/$SYSFILECHECK ]; then
   echo "/usr/bin/$SYSFILECHECK OK"
+  /usr/bin/$SYSFILECHECK --version
 else
   echo "Warning ----Warning---- FileCheck was not found and is needed by smoke tests."
   echo "FileCheck notfound. May need to install llvm-XY-tools (where XY is llvm version)."
