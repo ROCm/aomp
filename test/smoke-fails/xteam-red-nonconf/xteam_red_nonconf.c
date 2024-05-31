@@ -9,8 +9,8 @@ int main() {
   for (int i = 0; i < N; i++)
     a[i] = i;
 
-  double sum1, sum2, sum3, sum4;
-  sum1 = sum2 = sum3 = sum4 = 0;
+  double sum1, sum2, sum3, sum4, sum5;
+  sum1 = sum2 = sum3 = sum4 = sum5 = 0;
 
 #pragma omp target teams distribute parallel for reduction(+ : sum1)
   for (int j = 0; j < N; j = j + 1)
@@ -30,9 +30,14 @@ int main() {
     sum4 = a[j];
   }
 
-  printf("%f %f %f %f\n", sum1, sum2, sum3, sum4);
+#pragma omp target teams distribute parallel for reduction(+ : sum4) reduction(+ : sum5)
+  for (int j = 0; j < N; j = j + 1) {
+    sum5 = sum4 + a[j];
+  }
 
-  int rc = (sum1 != 1013) || (sum2 != 52) || (sum3 != 1013) || (sum4 != 9);
+  printf("%f %f %f %f %f\n", sum1, sum2, sum3, sum4, sum5);
+
+  int rc = (sum1 != 1013) || (sum2 != 52) || (sum3 != 1013) || (sum4 != 9) || (sum5 != 18);
 
   if (!rc)
     printf("Success\n");
