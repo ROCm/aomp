@@ -90,6 +90,11 @@ endif
 FILECHECK=$(AOMP)/bin/FileCheck
 FILECHECK_RT=$(shell ls $(FILECHECK) 2>/dev/null || echo error)
 ifeq ($(FILECHECK_RT),error)
+TESTPACKAGE_BINDIR=$(shell find $(HOME)/tmp/openmp-extras -type f -name 'aomp_common_vars' | xargs dirname)
+FILECHECK=$(TESTPACKAGE_BINDIR)/FileCheck
+FILECHECK_RT=$(shell ls $(FILECHECK) 2>/dev/null || echo error)
+endif
+ifeq ($(FILECHECK_RT),error)
   # Check default AOMP release location.
   FILECHECK=/usr/lib/aomp/bin/FileCheck
   FILECHECK_RT=$(shell ls $(FILECHECK) 2> /dev/null || echo error)

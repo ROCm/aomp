@@ -58,7 +58,12 @@ SYSFILECHECK=`ls /usr/bin | grep -m1 -e "FileCheck"`
 AOMP=`ls -d /opt/rocm-*/llvm | head -1`
 echo $AOMP
 SYSLLVM=`ls /usr/lib | grep -m1 -e "llvm-[0-9]\+"`
-if [ -e "$AOMP/bin/FileCheck" ]; then
+TESTPACKAGE_BINDIR=`find "$HOME/tmp/openmp-extras" -type f -name 'aomp_common_vars' | xargs dirname`
+
+if [ -e "$TESTPACKAGE_BINDIR/FileCheck" ]; then
+  echo "$TESTPACKAGE_BINDIR/FileCheck OK"
+  $TESTPACKAGE_BINDIR/FileCheck --version
+elif [ -e "$AOMP/bin/FileCheck" ]; then
   echo "$AOMP/bin/FileCheck OK"
   $AOMP/bin/FileCheck --version
 elif [ -e /usr/lib/aomp/bin/FileCheck ]; then
