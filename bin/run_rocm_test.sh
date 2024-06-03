@@ -166,9 +166,9 @@ if [ "$aomp" != 1 ]; then
       elif [[ "$os_name" =~ "CentOS" ]] || [[ "$os_name" =~ "Red Hat" ]] || [[ "$os_name" =~ "Oracle Linux Server" ]]; then
         osversion=$(cat /etc/os-release | grep -e ^VERSION_ID)
         if [[ $osversion =~ '"7' ]]; then
-          yumdownloader --destdir=/tmp/openmp-extras $test_package_name
+          yumdownloader --destdir=$tmpdir $test_package_name
         else
-          yum download --destdir /tmp/openmp-extras $test_package_name
+          yum download --destdir $tmpdir $test_package_name
         fi
         test_package=$(ls -lt $tmpdir | grep -Eo -m1 openmp-extras-tests.*)
         extract_rpm $test_package
