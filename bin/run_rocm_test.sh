@@ -78,7 +78,6 @@ totalunexpectedfails=0
 #git pull
 #git clean -f -d
 #git log -1
-./rocm_quick_check.sh
 
 EPSDB=1 ./clone_test.sh > /dev/null
 AOMP_TEST_DIR=${AOMP_TEST_DIR:-"$HOME/git/aomp-test"}
@@ -189,6 +188,7 @@ if [ "$aomp" != 1 ]; then
       cp -ra "$ROCMINF"/share/openmp-extras/tests $tmpdir
       cd $tmpdir/tests/bin
     fi
+  ./rocm_quick_check.sh
   export SKIP_TEST_PACKAGE=1
   ./run_rocm_test.sh
   exit $?
