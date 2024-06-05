@@ -14,6 +14,3 @@ CC           = $(OMP_BIN) $(VERBOSE) $(OMPTEST)
 #"-\#\#\#"
 
 include ../Makefile.rules
-run:
-	echo $(PATH)
-	$(RUNCMD)

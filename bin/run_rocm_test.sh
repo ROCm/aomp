@@ -78,7 +78,6 @@ totalunexpectedfails=0
 #git pull
 #git clean -f -d
 #git log -1
-./rocm_quick_check.sh
 
 EPSDB=1 ./clone_test.sh > /dev/null
 AOMP_TEST_DIR=${AOMP_TEST_DIR:-"$HOME/git/aomp-test"}
@@ -166,9 +165,9 @@ if [ "$aomp" != 1 ]; then
       elif [[ "$os_name" =~ "CentOS" ]] || [[ "$os_name" =~ "Red Hat" ]] || [[ "$os_name" =~ "Oracle Linux Server" ]]; then
         osversion=$(cat /etc/os-release | grep -e ^VERSION_ID)
         if [[ $osversion =~ '"7' ]]; then
-          yumdownloader --destdir=/tmp/openmp-extras $test_package_name
+          yumdownloader --destdir=$tmpdir $test_package_name
         else
-          yum download --destdir /tmp/openmp-extras $test_package_name
+          yum download --destdir $tmpdir $test_package_name
         fi
         test_package=$(ls -lt $tmpdir | grep -Eo -m1 openmp-extras-tests.*)
         extract_rpm $test_package
@@ -189,6 +188,7 @@ if [ "$aomp" != 1 ]; then
       cp -ra "$ROCMINF"/share/openmp-extras/tests $tmpdir
       cd $tmpdir/tests/bin
     fi
+  ./rocm_quick_check.sh
   export SKIP_TEST_PACKAGE=1
   ./run_rocm_test.sh
   exit $?
