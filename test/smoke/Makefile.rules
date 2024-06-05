@@ -110,7 +110,7 @@ ifeq (,$(findstring $(GPU_W_FEATURES),$(UNSUPPORTED)))
 	base=`basename $$path`; \
 	( \
 	  flock -e 9 && echo  "" >> ../check-smoke.txt; \
-	  $(RUNENV) $(SMOKE_TIMEOUT) $(RUNPROF) $(RUNPROF_FLAGS) $(CHECK_COMMAND) > /dev/null 2>&1; \
+	  $(RUNENV) $(SMOKE_TIMEOUT) $(RUNPROF) $(RUNPROF_FLAGS) $(CHECK_COMMAND); \
 	  test_status=$$?; \
 	  echo "$$test_status" > TEST_STATUS; \
 	  echo $$base $$test_num return code: $$test_status >> ../check-smoke.txt; \
