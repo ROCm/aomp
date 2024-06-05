@@ -15,6 +15,65 @@ BLK="\033[0m"
 # Limit any step to 6 minutes
 ulimit -t 150
 
+function printfails(){
+  # Print run logs for runtime fails, EPSDB only
+  if [ "$EPSDB" == 1 ] ; then
+    files='make-fail.txt failing-tests.txt'
+    flags_test_done=0
+    for file in $files; do
+    if [ -e "$file" ]; then
+      echo ---------- Printing $file Logs ---------
+      while read -r line; do
+        trimline=$(echo $line | sed 's/\: Make Failed//')
+        line=$trimline
+        echo
+        if [ "$file" == "failing-tests.txt" ]; then
+          echo "-->    Test: $line - Runtime Error! Print Log:"
+        else
+          echo "-->    Test: $line - Compile Error! Print Log:"
+        fi
+        # The flags test has multiple numbered runs. We cannot pushd flags 1 because only the flags dir exists.
+        # We must re-run the entire flags test to get run.log. If more than one flags subtest fails only run once.
+        if [[ "$line" =~ "flags" ]]; then
+          if [[ "$flags_test_done" == 0 ]]; then
+            echo
+            pushd flags > /dev/null
+            echo The flags test must run all iterations if one subtest fails.
+            if [ "$file" == "failing-tests.txt" ]; then
+	      cat run.log | sed -e '1,/lockfile/d'
+	    else
+	      if [ -e "run.log" ]; then
+                cat run.log
+	      else
+	        cat make-log.txt
+	      fi
+	    fi
+            flags_test_done=1
+            popd > /dev/null
+          fi
+        else
+          pushd $line > /dev/null
+          echo
+          if [ "$file" == "failing-tests.txt" ]; then
+	    cat run.log | sed -e '1,/lockfile/d'
+	  else
+	    if [ -e "run.log" ]; then
+              cat run.log
+	    else
+	      cat make-log.txt
+	    fi
+	  fi
+          popd > /dev/null
+        fi
+      done < "$file"
+      echo
+      echo "**** End of $file ****"
+      echo
+    fi
+    done
+  fi
+}
+
 function gatherdata(){
   # Replace false positive return codes with 'Check the run.log' so that user knows to visually inspect those.
   echo ""
@@ -255,7 +314,7 @@ if [ "$AOMP_PARALLEL_SMOKE" == 1 ]; then
       elif [ "$AOMP_SANITIZER" == 1 ] && [ "$script_dir_name" == "smoke-asan" ]; then
         sem --jobs 4 --id def_sem -u 'make check-asan > /dev/null 2>&1'
       else
-        sem --jobs 4 --id def_sem -u 'make check > /dev/null 2>&1'
+        sem --jobs 4 --id def_sem -u 'make check &> run.log'
       fi
       #---
       if [ -r "TEST_STATUS" ]; then
@@ -278,6 +337,7 @@ if [ "$AOMP_PARALLEL_SMOKE" == 1 ]; then
     # Wait for jobs to finish executing
     sem --wait --id def_sem
     gatherdata
+    printfails
     exit
   else
     echo
@@ -350,7 +410,7 @@ for directory in $SMOKE_DIRS; do
   elif [ "$AOMP_SANITIZER" == 1 ] && [ "$script_dir_name" == "smoke-asan" ]; then
     make check-asan > /dev/null 2>&1
   else
-    make check > /dev/null 2>&1
+    make check &> run.log
     # liba_bundled has an additional Makefile, that may fail on the make check
     if [ $? -ne 0 ] && ( [ $base == 'liba_bundled' ] || [ $base == 'liba_bundled_cmdline' ] ) ; then
       echo "$base: Make Failed" >> ../make-fail.txt
@@ -398,42 +458,8 @@ for directory in $SMOKE_DIRS; do
   popd > /dev/null
 done
 
-
 gatherdata
-
-# Print run logs for runtime fails, EPSDB only
-if [ "$EPSDB" == 1 ] ; then
-  file='failing-tests.txt'
-  flags_test_done=0
-  if [ -e $file ]; then
-    echo ----------Printing Runtime Fail Logs---------
-    while read -r line; do
-      # The flags test has multiple numbered runs. We cannot pushd flags 1 because only the flags dir exists.
-      # We must re-run the entire flags test to get run.log. If more than one flags subtest fails only run once.
-      if [[ "$line" =~ "flags" ]]; then
-        if [[ "$flags_test_done" == 0 ]]; then
-          echo
-          pushd flags > /dev/null
-          echo Test: flags run log:
-          echo The flags test must run all iterations if one subtest fails.
-          make run
-          cat run.log
-          flags_test_done=1
-          popd > /dev/null
-        fi
-      else
-        echo
-        pushd $line > /dev/null
-        echo
-        make run > /dev/null
-        echo Test: $line run log:
-        cat run.log
-        popd > /dev/null
-      fi
-    done < "$file"
-    echo
-  fi
-fi
+printfails
 
 # Clean up, hide output
 if [ "$EPSDB" != 1 ] && [ "$CLEANUP" != 0 ]; then
