@@ -199,7 +199,6 @@ if [ "$SKIP_SOLLVE51" != 1 ]; then
 fi
 
 if [ "$SKIP_SOLLVE52" != 1 ]; then
-  echo "Catherine"
   enable_xnack=0
   if [ "$AOMP_GPU" == gfx90a ] && [ "$HSA_XNACK" == "" ]; then
     export HSA_XNACK=1
