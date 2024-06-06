@@ -1,0 +1,14 @@
+test_declare_mapper_present.c
+test_declare_target_enter.c
+test_declare_target_enter_device_type_any.c
+test_declare_target_enter_device_type_host.c
+test_declare_target_enter_device_type_nohost.c
+test_declare_target_enter_device_type_nohost1.c
+test_fortran_pure_nothing.F90
+test_omp_in_explicit_task.c
+test_ompx_free.F90
+test_omx_fixed.F
+test_print_in_target_region.F90
+test_printf_in_target_region.c
+test_target_enter_data_map.c
+test_target_map_device_pointer.c

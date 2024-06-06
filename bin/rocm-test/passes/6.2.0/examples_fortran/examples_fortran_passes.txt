@@ -1,0 +1,7 @@
+bigloop
+declare_target
+fortran_hip_interop
+gdb_simple
+helloAcceptance
+helloworld
+simple_offload

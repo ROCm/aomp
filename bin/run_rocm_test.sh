@@ -273,25 +273,16 @@ echo
 # this version mismatch on release testing. We will choose the lower version so that
 # unsupported tests are not included.
 function getversion(){
-  supportedvers="4.3.0 4.4.0 4.5.0 4.5.2 5.0.0 5.1.0 5.2.0 5.3.0 5.4.3 5.5.0"
+  supportedvers="6.2.0"
   declare -A versions
-  versions[430]=4.3.0
-  versions[440]=4.4.0
-  versions[450]=4.5.0
-  versions[452]=4.5.2
-  versions[500]=5.0.0
-  versions[510]=5.1.0
-  versions[520]=5.2.0
-  versions[530]=5.3.0
-  versions[543]=5.4.3
-  versions[550]=5.5.0
+  versions[620]=6.2.0
 
   if [ $aomp -eq 1 ]; then
     echo "AOMP detected at $AOMP, skipping ROCm version detections"
     maxvers=`echo $supportedvers | grep -o "[0-9].[0-9].[0-9]$" | sed -e 's/\.//g'`
     versionregex="(.*${versions[$maxvers]})"
     if [[ "$supportedvers" =~ $versionregex ]]; then
-      finalvers=${BASH_REMATCH[1]}
+      finalvers=${versions[$maxvers]}
     else
       echo "AOMP - Cannot select proper version list."
       exit 1
@@ -332,10 +323,12 @@ function getversion(){
         exit 1
       fi
     fi
+
     # Set the final version to use for expected passing lists. The expected passes
     # will include an aggregation of suported versions up to and including the chosen
     # version.  Example: If 4.4 is selected then the final list will include expected passes
     # from 4.3 and 4.4. Openmp-extras should not be a higher version than rocm.
+    echo ompvers: $ompextrasver   rocmvers:$rocmver
     if [ "$rocmver" == "$ompextrasver" ] || [ "$rocmver" -gt "$ompextrasver" ]; then
       echo "Using ompextrasver: $ompextrasver"
       compilerver=${versions[$ompextrasver]}
@@ -360,17 +353,12 @@ function getversion(){
 
     if [ "$compilerver" == "" ]; then
       echo "Warning: Cannot detect compiler version or version is not supported in this script."
-      echo "All expected passes were combined."
+      echo "Choosing most recent supported compiler version."
+      compilerver=`echo $supportedvers | grep -o "[0-9].[0-9].[0-9]$"`
     fi
 
     echo Chosen Version: $compilerver
-    versionregex="(.*$compilerver)"
-    if [[ "$supportedvers" =~ $versionregex ]]; then
-      finalvers=${BASH_REMATCH[1]}
-    else
-      echo "Error: Unsupported compiler build: $compilerver."
-      exit 1
-    fi
+    finalvers=$compilerver
   fi
 }
 
@@ -402,13 +390,15 @@ function copyresults(){
   echo ===== $1 ===== | tee -a $summary $unexpresults
 
   # Sort expected passes
-  if [ "$1" != "smoke" ] && [ "$1" != "smoke-limbo" ]; then
-    for ver in $finalvers; do
-      if [ -e "$rocmtestdir"/passes/$ver/$1/"$1"_passes.txt ]; then
-        cat "$rocmtestdir"/passes/$ver/$1/"$1"_passes.txt >> "$1"_combined_exp_passes
-      fi
-    done
-    sort -f -d "$1"_combined_exp_passes > "$1"_sorted_exp_passes
+  checkstring=$(cat "$rocmtestdir"/passes/"$finalvers"/"$1"/"$1"_passes.txt)
+  if [[ "$checkstring" =~ "ALL TESTS SHOULD PASS" ]]; then
+    allmustpass=1
+  else
+    allmustpass=0
+  fi
+  if [ -e "$rocmtestdir"/passes/"$finalvers"/"$1"/"$1"_passes.txt ] && [ $allmustpass == 0 ] ; then
+    cat "$rocmtestdir"/passes/$finalvers/$1/"$1"_passes.txt >> "$1"_exp_passes
+    sort -f -d "$1"_exp_passes > "$1"_sorted_exp_passes
     passlines=`cat "$1"_sorted_exp_passes | wc -l`
   else
     passlines=0
@@ -418,7 +408,7 @@ function copyresults(){
     sort -f -d "$1"_passing_tests.txt > "$1"_sorted_passes
 
     # Unexpected passes
-    if [ "$1" != "smoke" ] && [ "$1" != "smoke-limbo" ]; then
+    if [ $allmustpass == 0 ]; then
       unexpectedpasses=$(diff "$1"_sorted_exp_passes "$1"_sorted_passes | grep '^>' | wc -l)
       echo Unexpected Passes: $unexpectedpasses | tee -a $summary $unexpresults
       diff "$1"_sorted_exp_passes "$1"_sorted_passes | grep '^>' | sed 's/> //' >> $summary
@@ -433,7 +423,7 @@ function copyresults(){
     if [ "$passlines" != 0 ]; then
       unexpectedfails=$(diff "$1"_sorted_exp_passes "$1"_sorted_passes | grep '^<' | wc -l)
     else
-      if [ "$1" == "smoke" ] || [ "$1" == "smoke-limbo" ]; then
+      if [ $allmustpass == 1 ]; then
         if [ -e "$resultsdir/$1"/"$1"_failing_tests.txt ]; then
 	  runtimefails=$(cat "$resultsdir/$1"/"$1"_failing_tests.txt | wc -l)
 	  unexpectedfails=$((unexpectedfails + runtimefails))
@@ -447,7 +437,7 @@ function copyresults(){
 
     # Check unexpected fails for false negatives, i.e. tests that may have been deleted or unsupported tests.
     if [ "$unexpectedfails" != 0 ]; then
-      if [ "$1" != "smoke" ] && [ "$1" != "smoke-limbo" ]; then
+      if [ $allmustpass == 0 ]; then
         fails=`diff $1_sorted_exp_passes $1_sorted_passes | grep '^<' | sed "s|< ||g"`
       else
         fails=$(cat "$resultsdir/$1"/"$1"_failing_tests_combined.txt)
@@ -533,7 +523,7 @@ function copyresults(){
     fi
 
     echo "Unexpected Fails: $unexpectedfails" | tee -a $summary $unexpresults
-    if [ "$1" != "smoke" ] && [ "$1" != "smoke-limbo" ]; then
+    if [ $allmustpass == 0 ]; then
       diff "$1"_sorted_exp_passes "$1"_sorted_passes | grep '^<' | sed 's/< //' >> $summary
     else
       if [ -e "$resultsdir/$1"/"$1"_failing_tests_combined.txt ]; then
@@ -560,7 +550,7 @@ function copyresults(){
     if [ "$passlines" != 0 ]; then
       numtests=$(cat "$resultsdir"/"$1"/"$1"_sorted_exp_passes | wc -l)
     else
-      if [ "$1" == "smoke" ] || [ "$1" == "smoke-limbo" ]; then
+      if [ $allmustpass == 1 ]; then
         if [ -e "$resultsdir/$1"/"$1"_failing_tests.txt ]; then
 	  runtimefails=$(cat "$resultsdir/$1"/"$1"_failing_tests.txt | wc -l)
 	  numtests=$((numtests + runtimefails))
@@ -574,7 +564,7 @@ function copyresults(){
       fi
     fi
     echo "Unexpected Fails: $numtests" | tee -a $summary $unexpresults
-    if [ "$1" != "smoke" ] && [ "$1" != "smoke-limbo" ]; then
+    if [ $allmustpass == 0 ]; then
       cat "$1"_sorted_exp_passes >> $summary
     else
       cat "$1"_all_tests.txt >> $summary
@@ -818,7 +808,7 @@ echo "************************************" >> $summary
 
 if [ "$compilerver" == "" ]; then
   echo "Warning: Cannot detect compiler version or version is not supported in this script." >> $summary
-  echo "All expected passes were combined." >> $summary
+  echo "Choosing most recent supported compiler version: $finalvers" >> $summary
 fi
 
 echo "" >> $summary

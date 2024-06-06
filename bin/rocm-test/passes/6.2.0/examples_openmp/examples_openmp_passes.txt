@@ -1,0 +1,7 @@
+declare_variant_if
+driver_tests
+reduction
+show-offload-types
+veccopy
+vmul_template
+vmulsum

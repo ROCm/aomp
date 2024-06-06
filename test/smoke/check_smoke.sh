@@ -461,11 +461,6 @@ done
 gatherdata
 printfails
 
-# Clean up, hide output
-if [ "$EPSDB" != 1 ] && [ "$CLEANUP" != 0 ]; then
-  cleanup
-fi
-
 popd
 
 realpath=`realpath $0`

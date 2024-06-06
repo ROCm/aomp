@@ -1,0 +1,10 @@
+declare_target_nested
+declare_variant
+mapper_prob
+metadirective
+nestedSIMD
+noncontig
+reduc_map_prob
+rush_larsen
+task_dep_prob
+teams_host
