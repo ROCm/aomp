@@ -11,6 +11,5 @@ CC             = $(OMP_BIN) $(VERBOSE)
 #-ccc-print-phases
 #"-\#\#\#"
 
+RUNPROF = $(AOMP)/bin/rocprof --hsa-trace
 include ../Makefile.rules
-run:
-	$(AOMP)/bin/rocprof --hsa-trace ./$(TESTNAME)
