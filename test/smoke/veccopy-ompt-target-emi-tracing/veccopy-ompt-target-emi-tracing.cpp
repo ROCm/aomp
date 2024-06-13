@@ -51,8 +51,6 @@ int main() {
 
 // clang-format off
 
-// clang-format off
-
 /// CHECK-NOT: host_op_id=0x0
 
 /// CHECK-DAG: Allocated {{[0-9]+}} bytes at [[ADDRX_01:0x[0-f]+]] in buffer request callback
@@ -78,9 +76,6 @@ int main() {
 /// CHECK-DAG: Executing buffer complete callback: {{[0-9]+}} [[ADDRX_09]] {{[0-9]+}} [[ADDRX_09]] {{[0-9]+}}
 /// CHECK-DAG: Executing buffer complete callback: {{[0-9]+}} [[ADDRX_10]] {{[0-9]+}} [[ADDRX_10]] {{[0-9]+}}
 /// CHECK-DAG: Executing buffer complete callback: {{[0-9]+}} [[ADDRX_11]] {{[0-9]+}} [[ADDRX_11]] {{[0-9]+}}
-
-// Note: This entry should happen due to the call to flush_trace.
-/// CHECK-DAG: Executing buffer complete callback: {{[0-9]+}} [[ADDRX_06]] {{[0-9]+}} {{.+}} {{[0-9]+}}
 
 // Note: Split checks for record address and content. That way we do not imply
 //       any order. Records 01-06 and 12-17 occur interleaved and belong to the

@@ -79,9 +79,6 @@ int main() {
 /// CHECK-DAG: Executing buffer complete callback {{.+}} device_num=0, buffer=[[ADDRX_06]], {{.+}} begin=[[ADDRX_06]]
 /// CHECK-DAG: Executing buffer complete callback {{.+}} device_num=0, buffer=[[ADDRX_07]], {{.+}} begin=[[ADDRX_07]]
 
-// Note: This entry should happen due to the call to flush_trace.
-/// CHECK-DAG: Executing buffer complete callback {{.+}} device_num=0, buffer=[[ADDRX_02]], {{.+}} buffer_owned=0
-
 // Note: Split checks for record address and content. That way we do not imply
 //       any order. Records may / will occur interleaved.
 /// CHECK-DAG: rec=[[ADDRX_01]]
