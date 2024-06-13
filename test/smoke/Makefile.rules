@@ -10,6 +10,7 @@ SKIP_COMPILE_SUPPORTED   = Skipped compiling $(TESTNAME) for $(GPU_W_FEATURES) (
 SKIP_COMPILE_UNSUPPORTED = Skipped compiling $(TESTNAME): not supported on $(UNSUPPORTED)
 SKIP_RUN_SUPPORTED       = Skipped running $(TESTNAME) on $(GPU_W_FEATURES) (supported only on $(SUPPORTED))
 SKIP_RUN_UNSUPPORTED     = Skipped running $(TESTNAME): not supported on $(UNSUPPORTED)
+POSTRUN ?= echo
 
 all: $(TESTNAME)
 
@@ -69,6 +70,7 @@ run: $(TESTNAME)
 ifneq (,$(findstring $(GPU_W_FEATURES),$(SUPPORTED)))
 ifeq (,$(findstring $(GPU_W_FEATURES),$(UNSUPPORTED)))
 	$(RUNENV) $(RUNPROF) $(RUNPROF_FLAGS) $(CHECK_COMMAND) 2>&1 | tee $@.log
+	$(POSTRUN) 2>&1 | tee -a $@.log
 else
 	@echo "  $(SKIP_RUN_UNSUPPORTED)" 2>&1 | tee $@.log
 endif
@@ -112,6 +114,7 @@ ifeq (,$(findstring $(GPU_W_FEATURES),$(UNSUPPORTED)))
 	  flock -e 9 && echo  "" >> ../check-smoke.txt; \
 	  $(RUNENV) $(SMOKE_TIMEOUT) $(RUNPROF) $(RUNPROF_FLAGS) $(CHECK_COMMAND); \
 	  test_status=$$?; \
+	  $(POSTRUN); \
 	  echo "$$test_status" > TEST_STATUS; \
 	  echo $$base $$test_num return code: $$test_status >> ../check-smoke.txt; \
 	  echo  "" >> ../check-smoke.txt; \
