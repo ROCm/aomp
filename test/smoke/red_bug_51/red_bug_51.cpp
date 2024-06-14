@@ -5,7 +5,8 @@ int main()
 {
   int counts1 = 0;
   int counts2 = 0;
-  #pragma omp target teams map(from:counts1)
+
+  #pragma omp target map(from:counts1)
   {
     int counts_team = 0;
     #pragma omp parallel
@@ -19,7 +20,7 @@ int main()
       counts1 = counts_team;
   }
 
-  #pragma omp target teams map(from:counts2)
+  #pragma omp target map(from:counts2)
   {
     int counts_team = 0;
     #pragma omp parallel
