@@ -26,6 +26,9 @@ fi
 if [ -e failing-tests.txt ]; then
   rm failing-tests.txt
 fi
+if [ -e xfail-tests.txt ]; then
+  rm xfail-tests.txt
+fi
 if [ -e make-fail.txt ]; then
   rm make-fail.txt
 fi
@@ -49,6 +52,10 @@ function parse(){
       fi
       [[ "$line" =~ $testname_regex ]]
       llnltest=${BASH_REMATCH[1]}
+      if [ "$outfile" = "failing-tests.txt" ] && \
+         grep -Fq "$llnltest" xfail-list; then
+        outfile="xfail-tests.txt"
+      fi
       echo "$llnltest" >> $outfile
     fi
   done < "$infile"
