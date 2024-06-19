@@ -10,7 +10,7 @@ SKIP_COMPILE_SUPPORTED   = Skipped compiling $(TESTNAME) for $(GPU_W_FEATURES) (
 SKIP_COMPILE_UNSUPPORTED = Skipped compiling $(TESTNAME): not supported on $(UNSUPPORTED)
 SKIP_RUN_SUPPORTED       = Skipped running $(TESTNAME) on $(GPU_W_FEATURES) (supported only on $(SUPPORTED))
 SKIP_RUN_UNSUPPORTED     = Skipped running $(TESTNAME): not supported on $(UNSUPPORTED)
-POSTRUN ?= echo
+POSTRUN ?= echo > /dev/null
 
 all: $(TESTNAME)
 
