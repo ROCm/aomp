@@ -16,8 +16,7 @@ CC           = $(OMP_BIN) $(VERBOSE)
 
 LIBPATH = $(AOMPHIP)/lib:/opt/rocm/lib
 RUNENV += PATH=$(ROCM)/bin:$(PATH) LD_LIBRARY_PATH=$(LIBPATH):$(LD_LIBRARY_PATH) LIBOMPTARGET_KERNEL_TRACE=2
-RUNPROF = rocprof --roctx-trace --sys-trace
+RUNPROF = $(AOMPHIP)/bin/rocprof
+RUNPROF_FLAGS = --roctx-trace --sys-trace
 
 include ../Makefile.rules
-run:
-	$(RUNENV) $(RUNPROF) ./$(TESTNAME)
