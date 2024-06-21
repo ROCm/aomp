@@ -16,8 +16,14 @@ testname_regex='.*(test_\S*)'
 compile_regex='Compilation.*failed'
 runtime_regex='Running.+\.\.\.\s+([A-Z]*[a-z]*)'
 
-cd "$aompdir/test/LLNL/openmp5.0-tests"
-infile=`ls | grep "LLNL.run.log"`
+cd "$aompdir/test/LLNL/openmp5.0-tests" || exit 1
+declare -a infiles
+infiles=( LLNL.run.log* )
+if [ "${#infiles[@]}" -ne 1 ]; then
+  echo "Expected to find a single result file, bailing out" >&2
+  exit 1
+fi
+infile=${infiles[0]}
 
 # Clean up before parsing
 if [ -e passing-tests.txt ]; then
