@@ -1,25 +1,27 @@
 include ../../Makefile.defs
 
-TEST_SRC    := dynamic_module_load.c
-TEST_BIN    := dynamic_module_load
-TEST_SO     := dynamic_module_load.so
+TESTNAME      = dynamic_module_load
+TESTSRC_MAIN := dynamic_module_load.c
+TESTSRC_SO   := dynamic_module_load_shared.c
+TEST_SO      := dynamic_module_load.so
+TESTSRC_ALL  := $(TESTSRC_MAIN)
+ARGS         := ./$(TEST_SO)
 
 # We do not get double free detected in tcache 2 with clang-linker-wrapper
 # which is used with --no-opaque-offload-linker
-#FIXARG       := --no-opaque-offload-linker
-FIXARG       :=
+# FIXARG       := --no-opaque-offload-linker
 
 CLANG        ?= clang
 OMP_BIN      = $(AOMP)/bin/$(CLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
+CFLAGS       =
+OMP_FLAGS    =
+LINK_FLAGS   = -ldl
 
-run : $(TEST_BIN) 
-	./$(TEST_BIN) ./$(TEST_SO)
+include ../Makefile.rules
 
-$(TEST_BIN) : $(TEST_SRC) $(TEST_SO)
-	$(CC) $(TEST_SRC) -ldl -o $(TEST_BIN)
-$(TEST_SO) : $(TEST_SRC)
-	$(CC) -fopenmp $(TARGET) $(FIXARG) -DSHARED -fPIC -shared $(TEST_SRC) -o $(TEST_SO)
+# Indirectly add prerequisite TEST_SO to general TESTNAME recipe via TESTSRC_ALL
+$(TESTSRC_ALL) : $(TEST_SO)
 
-clean: 
-	rm -f $(TEST_SO) $(TEST_BIN)
+$(TEST_SO) : $(TESTSRC_SO)
+	$(CC) -fopenmp $(TARGET) $(FIXARG) -fPIC -shared $(TESTSRC_SO) -o $(TEST_SO)

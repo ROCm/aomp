@@ -1,15 +1,6 @@
-// RUN: %libomptarget-compile-generic -DSHARED -fPIC -shared -o %t.so && %clang %flags %s -o %t -ldl && %libomptarget-run-generic %t.so 2>&1 | %fcheck-generic
-
-#ifdef SHARED
-#include <stdio.h>
-int foo() {
-#pragma omp target
-  ;
-  return 0;
-}
-#else
 #include <dlfcn.h>
 #include <stdio.h>
+
 int main(int argc, char **argv) {
 #pragma omp target
   ;
@@ -26,8 +17,9 @@ int main(int argc, char **argv) {
     printf("dlsym() failed: %s\n", dlerror());
     return 1;
   }
-  // CHECK: DONE.
-  // CHECK-NOT: {{abort|fault}}
+
   return Foo();
 }
-#endif
+
+// CHECK: DONE.
+// CHECK-NOT: {{abort|fault}}
