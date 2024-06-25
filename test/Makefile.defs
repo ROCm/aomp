@@ -248,6 +248,7 @@ ifeq ($(AOMP_SANITIZER),1)
   ASAN_FLAGS = -fsanitize=address -shared-libasan -g
   #ASan requires xnack+ by default
   AOMP_TARGET_FEATURES = :xnack+
+  ASAN_UNSUPPORTED = ASAN_COMPILE ASAN_RUNTIME
 endif
 
 ifeq ($(AOMP_TARGET_FEATURES),)

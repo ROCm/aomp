@@ -19,4 +19,6 @@ RUNENV += PATH=$(ROCM)/bin:$(PATH) LD_LIBRARY_PATH=$(LIBPATH):$(LD_LIBRARY_PATH)
 RUNPROF = $(AOMPHIP)/bin/rocprof
 RUNPROF_FLAGS = --roctx-trace --sys-trace
 
+UNSUPPORTED = ASAN_COMPILE
+
 include ../Makefile.rules

@@ -10,6 +10,7 @@ SKIP_COMPILE_SUPPORTED   = Skipped compiling $(TESTNAME) for $(GPU_W_FEATURES) (
 SKIP_COMPILE_UNSUPPORTED = Skipped compiling $(TESTNAME): not supported on $(UNSUPPORTED)
 SKIP_RUN_SUPPORTED       = Skipped running $(TESTNAME) on $(GPU_W_FEATURES) (supported only on $(SUPPORTED))
 SKIP_RUN_UNSUPPORTED     = Skipped running $(TESTNAME): not supported on $(UNSUPPORTED)
+SKIP_ASAN_UNSPPORTED = Skipped compiling/running $(TESTNAME): $(UNSUPPORTED) is not supported on $(GPU_W_FEATURES)
 POSTRUN ?= echo > /dev/null
 
 all: $(TESTNAME)
@@ -44,6 +45,7 @@ $(TESTNAME): prerequisites $(TESTSRC_ALL)
 else
 $(TESTNAME): $(TESTSRC_ALL)
 endif
+ifneq (ASAN_COMPILE,$(findstring $(word 1,$(ASAN_UNSUPPORTED)),$(UNSUPPORTED)))
 ifneq (,$(findstring $(GPU_W_FEATURES),$(SUPPORTED)))
 ifeq (,$(findstring $(GPU_W_FEATURES),$(UNSUPPORTED)))
 ifdef nvidia_targets
@@ -65,8 +67,12 @@ endif
 else
 	@echo "  $(SKIP_COMPILE_SUPPORTED)"
 endif
+else
+  @echo "$(SKIP_ASAN_UNSPPORTED)"
+endif
 
 run: $(TESTNAME)
+ifneq (ASAN_RUNTIME,$(findstring $(word 2,$(ASAN_UNSUPPORTED)),$(UNSUPPORTED)))
 ifneq (,$(findstring $(GPU_W_FEATURES),$(SUPPORTED)))
 ifeq (,$(findstring $(GPU_W_FEATURES),$(UNSUPPORTED)))
 	$(RUNENV) $(RUNPROF) $(RUNPROF_FLAGS) $(CHECK_COMMAND) 2>&1 | tee $@.log
@@ -76,6 +82,9 @@ else
 endif
 else
 	@echo "  $(SKIP_RUN_SUPPORTED)" 2>&1 | tee $@.log
+endif
+else
+  @echo "$(SKIP_ASAN_UNSPPORTED)"
 endif
 
 $(TESTNAME)_og11: $(TESTSRC_ALL)
@@ -106,6 +115,7 @@ verify-log: run
 	)9>../lockfile;
 
 check: $(TESTNAME)
+ifneq (ASAN_RUNTIME,$(findstring $(word 2,$(ASAN_UNSUPPORTED)),$(UNSUPPORTED)))
 ifneq (,$(findstring $(GPU_W_FEATURES),$(SUPPORTED)))
 ifeq (,$(findstring $(GPU_W_FEATURES),$(UNSUPPORTED)))
 	path=`pwd`; \
@@ -127,8 +137,12 @@ endif
 else
 	@echo "  $(SKIP_RUN_SUPPORTED)"
 endif
+else
+  @echo "$(SKIP_ASAN_UNSPPORTED)"
+endif
 
 check-asan: $(TESTNAME)
+ifneq (ASAN_RUNTIME,$(findstring $(word 2,$(ASAN_UNSUPPORTED)),$(UNSUPPORTED)))
 ifneq (,$(findstring $(GPU_W_FEATURES),$(SUPPORTED)))
 ifeq (,$(findstring $(GPU_W_FEATURES),$(UNSUPPORTED)))
 	path=`pwd`; \
@@ -191,6 +205,9 @@ else
 endif
 else
 	@echo "  $(SKIP_RUN_SUPPORTED)"
+endif
+else
+  @echo "$(SKIP_ASAN_UNSPPORTED)"
 endif
 
 
