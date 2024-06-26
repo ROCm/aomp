@@ -33,6 +33,8 @@ fi
 # Copy Makefile_ROCm to GenASis repository
 cp Makefile_ROCmFlangNew $REPO_DIR/Build/Machines/
 
+patchrepo $AOMP_REPOS_TEST/GenASis
+
 cd $REPO_DIR
 
 AOMP_SUPP=${AOMP_SUPP:-$HOME/local}
