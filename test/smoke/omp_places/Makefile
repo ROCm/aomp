@@ -26,8 +26,8 @@ RUNENV9 += $(RUNENV) OMP_PLACES="cores(3)"
 RUNENV10 += $(RUNENV) OMP_PLACES="cores(7)"
 RUNENV11 += $(RUNENV) OMP_PLACES="ll_caches(1)"
 RUNENV12 += $(RUNENV) OMP_PLACES="ll_caches(2)"
-RUNENV13 += $(RUNENV) OMP_PLACES="numa_domains(1)"
-RUNENV14 += $(RUNENV) OMP_PLACES="numa_domains(7)"
+RUNENV13 += $(RUNENV) OMP_PLACES="numa_domains(0)"
+#RUNENV14 += $(RUNENV) OMP_PLACES="numa_domains(7)"
 
 
 include ../Makefile.rules
