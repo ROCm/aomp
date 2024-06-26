@@ -148,7 +148,7 @@ function smoke(){
   header SMOKE
   cd $AOMP_SRC/test/smoke > /dev/null
   echo "Log file at: $log_dir/smoke.log"
-  CLEANUP=0 ./check_smoke.sh > $log_dir/smoke.log 2>&1
+  AOMP_PARALLEL_SMOKE=1 CLEANUP=0 ./check_smoke.sh > $log_dir/smoke.log 2>&1
   update_logs bin check_smoke.sh gatherdata
 }
 
