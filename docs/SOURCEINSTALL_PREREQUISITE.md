@@ -5,7 +5,7 @@
 #### Debian or Ubuntu Packages
 
 ```
-   sudo apt-get install gcc g++ pkg-config libpci-dev libnuma-dev libffi-dev git python3 libopenmpi-dev gawk mesa-common-dev libtool libdrm-amdgpu1 libdrm-dev ccache libdw-dev libgtest-dev libsystemd-dev cmake openssl libssl-dev
+   sudo apt-get install gcc g++ pkg-config libpci-dev libnuma-dev libffi-dev git python3 libopenmpi-dev gawk mesa-common-dev libtool libdrm-amdgpu1 libdrm-dev ccache libdw-dev libgtest-dev libsystemd-dev cmake openssl libssl-dev libgmp-dev libmpfr-dev
 
    # ubuntu 22 distributions seem to be missing libstdc++12
    sudo apt-get install  libstdc++-12-dev
@@ -18,7 +18,7 @@
 
 #### SLES-15-SP4 Packages
 ```
-  sudo zypper install -y git pciutils-devel python-base libffi-devel gcc gcc-c++ libnuma-devel patchutils openmpi2-devel mesa-libGL-devel libquadmath0 libtool libdrm libdrm-devel ccache gcc-gfortran libdw-devel libgtest-devel systemd-devel libX-devel
+  sudo zypper install -y git pciutils-devel python-base libffi-devel gcc gcc-c++ libnuma-devel patchutils openmpi2-devel mesa-libGL-devel libquadmath0 libtool libdrm libdrm-devel ccache gcc-gfortran libdw-devel libgtest-devel systemd-devel libX-devel mpfr-devel
 
   A symbolic link may be required at /usr/lib64: /usr/lib64/libquadmath.so -> /usr/lib64/libquadmath.so.0.
 
@@ -35,7 +35,7 @@ https://www.softwarecollections.org/en/scls/rhscl/devtoolset-7/<br>
 <b>The build_aomp.sh script will automatically enable devtoolset-7 if found in /opt/rh/devtoolset-7/enable. If you want to build an individual component you will need to manually start devtoolset-7 from the instructions above.</b><br>
 
 ```
-  sudo yum install pciutils-devel numactl-devel libffi-devel mesa-libGL-devel libtool libdrm libdrm-devel ccache gcc-gfortran libdw-devel libgtest-devel systemd-devel
+  sudo yum install pciutils-devel numactl-devel libffi-devel mesa-libGL-devel libtool libdrm libdrm-devel ccache gcc-gfortran libdw-devel libgtest-devel systemd-devel mpfr-devel
 
   # Additional packages used by rocgdb and roctracer
   sudo yum install texinfo bison flex ncurses-devel expat-devel xz-devel libbabeltrace-devel libatomic libdwarf-devel gtest-devel
@@ -52,7 +52,7 @@ https://www.softwarecollections.org/en/scls/rhscl/devtoolset-7/<br>
   sudo yum install dnf-plugins-core
   sudo yum config-manager --set-enabled powertools
 
-  sudo yum install gcc gcc-c++ git make pciutils-devel numactl-devel libffi-devel mesa-libGL-devel libquadmath-devel python38 python38-pip python38-devel python38-setuptools python2 libtool libdrm libdrm-devel ccache gcc-gfortran libdw-devel libgtest-devel systemd-devel
+  sudo yum install gcc gcc-c++ git make pciutils-devel numactl-devel libffi-devel mesa-libGL-devel libquadmath-devel python38 python38-pip python38-devel python38-setuptools python2 libtool libdrm libdrm-devel ccache gcc-gfortran libdw-devel libgtest-devel systemd-devel mpfr-devel
 
   # Additional packages used by rocgdb and roctracer
   sudo yum install texinfo bison flex ncurses-devel expat-devel xz-devel libbabeltrace-devel gmp-devel libatomic libdwarf-devel gtest-devel
@@ -63,7 +63,7 @@ https://www.softwarecollections.org/en/scls/rhscl/devtoolset-7/<br>
 
 #### CentOS 9 Packages
 ```
-  sudo yum install dnf-plugins-core gcc gcc-c++ git make pciutils-devel numactl-devel libffi-devel mesa-libGL-devel libquadmath-devel python3 python3-pip python3-devel python3-setuptools libtool libdrm libdrm-devel ccache gcc-gfortran libdw-devel libgtest-devel systemd-devel
+  sudo yum install dnf-plugins-core gcc gcc-c++ git make pciutils-devel numactl-devel libffi-devel mesa-libGL-devel libquadmath-devel python3 python3-pip python3-devel python3-setuptools libtool libdrm libdrm-devel ccache gcc-gfortran libdw-devel libgtest-devel systemd-devel mpfr-devel
 
   # Additional packages used by rocgdb
   sudo yum install texinfo bison flex ncurses-devel expat-devel xz-devel libbabeltrace-devel gmp-devel

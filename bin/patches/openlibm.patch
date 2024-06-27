@@ -474,7 +474,7 @@ diff -Naur -x .git openlibm.0.7.2/test/Makefile openlibm/test/Makefile
 +#    Clang offloading has header overlays for math.h to define device variants of math functions.
 +#    It does not have an overlay for openlibm headers, so we must use system defines.
 +AOMP ?= /usr/lib/aomp
-+_gpu  = $(shell $(AOMP)/bin/mygpu -d gfx900)
++_gpu  = $(shell $(AOMP)/bin/offload-arch)
 +ifeq (sm_,$(findstring sm_,$(_gpu)))
 +  _gputriple = nvptx64-nvidia-cuda
 +else
