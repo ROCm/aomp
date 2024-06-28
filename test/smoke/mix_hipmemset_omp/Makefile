@@ -6,6 +6,7 @@ TESTSRC_AUX  = hip_memset.o
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 AOMPHIP ?= $(AOMP)
 HIPCC ?= $(AOMPHIP)/bin/hipcc
+HIP_CLANG_PATH ?= $(AOMPHIP)/bin
 
 CFLAGS = -O3
 CLANG        = clang++
@@ -19,4 +20,4 @@ include ../Makefile.rules
 all: $(TESTNAME)
 
 hip_memset.o : hip_memset.hip
-	$(HIPCC) -c --offload-arch=$(AOMP_GPU) $^ -o $@
+	HIP_CLANG_PATH=$(HIP_CLANG_PATH) $(HIPCC) -c --offload-arch=$(AOMP_GPU) $^ -o $@
