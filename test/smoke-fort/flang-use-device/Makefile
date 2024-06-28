@@ -14,4 +14,4 @@ include ../Makefile.rules
 flang-use-device: $(TESTSRC_ALL)
 	$(AOMP)/bin/$(CLANG) $(VERBOSE) $(OMP_FLAGS) -c use-device_c.c
 	$(AOMP)/bin/$(FLANG) $(VERBOSE) $(OMP_FLAGS) -c use-device_fortran.f90
-	$(AOMP)/bin/$(CLANG) -lm -L$(AOMP)/lib -lFortranRuntime $(OMP_FLAGS) -lomptarget use-device_c.o use-device_fortran.o -o ${TESTNAME}
+	$(AOMP)/bin/$(CLANG)  -L$(AOMP)/lib -lFortranRuntime -lFortranDecimal  -lm  $(OMP_FLAGS) -lomptarget use-device_c.o use-device_fortran.o -o ${TESTNAME}
