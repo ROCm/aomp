@@ -8,6 +8,7 @@ TESTSRC_AUX  = hip_hostreg.o
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 AOMPHIP ?= $(AOMP)
 HIPCC ?= $(AOMPHIP)/bin/hipcc
+HIP_CLANG_PATH ?= $(AOMPHIP)/bin
 
 CFLAGS = -Ofast -fopenmp-target-fast
 CLANG        = clang++
@@ -25,7 +26,7 @@ include ../Makefile.rules
 all: $(TESTNAME)
 
 hip_hostreg.o : hip_hostreg.hip
-	$(HIPCC) -c --offload-arch=$(AOMP_GPU) $^ -o $@
+	HIP_CLANG_PATH=$(HIP_CLANG_PATH) $(HIPCC) -c --offload-arch=$(AOMP_GPU) $^ -o $@
 
 RUNENV       += HSA_XNACK=$(HSA_XNACK)
 RUNCMD       = ./$(TESTNAME)

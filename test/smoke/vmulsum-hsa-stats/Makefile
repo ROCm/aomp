@@ -8,9 +8,11 @@ TESTSRC_ALL    = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 CLANG          ?= clang
 OMP_BIN        = $(AOMP)/bin/$(CLANG)
 CC             = $(OMP_BIN) $(VERBOSE)
+RUNPROF = $(AOMP)/bin/rocprof
+RUNPROF_FLAGS = --hsa-trace
+
 #-ccc-print-phases
 #"-\#\#\#"
 
 include ../Makefile.rules
-run:
-	$(AOMP)/bin/rocprof --hsa-trace ./$(TESTNAME)
+

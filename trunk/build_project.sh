@@ -61,6 +61,8 @@ $AOMP_NVPTX_CAPS_OPT \
 $ENABLE_DEBUG_OPT \
 "
 
+# -DFLANG_RUNTIME_F128_MATH_LIB=libquadmath \
+
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then 
   help_build_trunk
 fi

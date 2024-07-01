@@ -14,6 +14,10 @@
 # we need to see 1 device only, babelstream in particular.
 export ROCR_VISIBLE_DEVICES=0
 
+# Do not cleanup logs at the end of smoke related suites to avoid
+# prematurely removing pass/fail results.
+export CLEANUP=0
+
 # Enable AMDGPU Sanitizer Testing
 if [ "$1" == "-a" ]; then
   export AOMP_SANITIZER=1

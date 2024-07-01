@@ -67,7 +67,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    echo rm -rf $BUILD_AOMP/build/rocr
    rm -rf $BUILD_AOMP/build/rocr
    export PATH=/opt/rocm/llvm/bin:$PATH
-   MYCMAKEOPTS="-DCMAKE_INSTALL_PREFIX=$INSTALL_ROCM -DCMAKE_BUILD_TYPE=$BUILDTYPE -DCMAKE_PREFIX_PATH=$ROCM_DIR -DIMAGE_SUPPORT=OFF $AOMP_ORIGIN_RPATH"
+   MYCMAKEOPTS="-DCMAKE_INSTALL_PREFIX=$INSTALL_ROCM -DCMAKE_BUILD_TYPE=$BUILDTYPE -DCMAKE_PREFIX_PATH=$ROCM_DIR -DIMAGE_SUPPORT=OFF $AOMP_ORIGIN_RPATH -DCMAKE_INSTALL_LIBDIR=lib"
    mkdir -p $BUILD_AOMP/build/rocr
    cd $BUILD_AOMP/build/rocr
    echo " -----Running rocr cmake ---- " 
