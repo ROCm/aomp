@@ -9,7 +9,5 @@ CLANG        ?= clang++
 OMP_BIN      = $(AOMP)/bin/$(CLANG)
 RUNENV       += OMPTEST_RUN_AS_TESTSUITE=1
 CC           = $(OMP_BIN) $(VERBOSE) $(OMPTEST)
-#-ccc-print-phases
-#"-\#\#\#"
 
 include ../Makefile.rules

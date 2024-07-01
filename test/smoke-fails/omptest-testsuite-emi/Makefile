@@ -11,7 +11,5 @@ RUNENV       += OMPTEST_USE_OMPT_EMI=1
 RUNENV       += OMPTEST_RUN_AS_TESTSUITE=1
 RUNCMD       = ./$(TESTNAME)
 CC           = $(OMP_BIN) $(VERBOSE) $(OMPTEST)
-#-ccc-print-phases
-#"-\#\#\#"
 
 include ../Makefile.rules
