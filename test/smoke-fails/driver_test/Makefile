@@ -1,36 +1,30 @@
 include ../../Makefile.defs
 
 TESTNAME	= driver_test
-
-AOMP_PATH 	?= $(HOME)/rocm/aomp
-ROCM_PATH 	?= /opt/rocm
-HSALIBDIR 	?= $(ROCM_PATH)/hsa/lib
-OLARCH    	?= $(ROCM_PATH)/llvm/bin/offload-arch
+# While these are not really the source files, these make up the prerequisites
+TESTSRC_ALL = dec_arrayval.f95.o inc_arrayval.c.o main.c.o
 
 FLANG       = $(AOMP)/bin/flang
 CLANG		= $(AOMP)/bin/clang
 
-TARGET     	= $(shell $(OLARCH))
+COMMON      = -O3 -fopenmp $(TARGET) -ffast-math -c
+COMMON     += -DPTRSIZE8 -DLONGINT8 -DUNDERSCORE -DGLOBAL_LONG_LONG
+FFLAGS     	= $(COMMON) -r8 -i8 -cpp
+CCFLAGS		= $(COMMON) -g -DPREFIX=jl_
 
-FFLAGS     	= -c -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$(TARGET) -ffast-math -O3 -r8 -i8 -cpp -DPTRSIZE8 -DLONGINT8 -DUNDERSCORE -DGLOBAL_LONG_LONG
-CCFLAGS		= -c -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$(TARGET) -ffast-math -O3 -DPTRSIZE8 -DLONGINT8 -DUNDERSCORE -DGLOBAL_LONG_LONG -g -DPREFIX=jl_
-LD_FLAGS	= -O3 -fdisable-host-devmem -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$(TARGET) -ffast-math -lm
+CC          = $(FLANG)
+CFLAGS	    = -O3 -fdisable-host-devmem -ffast-math -lm
+OMP_FLAGS   = -fopenmp $(TARGET)
 
-all: inc_arrayval.c.o main.c.o dec_arrayval.f95.o
-	$(FLANG) $(LD_FLAGS) inc_arrayval.c.o dec_arrayval.f95.o main.c.o -o driver_test
+include ../Makefile.rules
 
-inc_arrayval.c.o:
-	$(CLANG) $(CCFLAGS) inc_arrayval.c -o $@
+dec_arrayval.f95.o: dec_arrayval.f95
+	$(FLANG)  $(FFLAGS) $^ -o $@
 
-dec_arrayval.f95.o:
-	$(FLANG) $(FFLAGS) dec_arrayval.f95 -o $@
+inc_arrayval.c.o: inc_arrayval.c
+	$(CLANG) $(CCFLAGS) $^ -o $@
 
-main.c.o:
-	$(CLANG) $(CCFLAGS) main.c -o $@
-
-run: all
-	./driver_test
+main.c.o: main.c
+	$(CLANG) $(CCFLAGS) $^ -o $@
 
 .PHONY: clean
-clean:
-	rm *.o driver_test 2>/dev/null
