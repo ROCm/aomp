@@ -41,7 +41,7 @@ TEST(SequenceAssertion, uut_target_sequence) {
       a[j] = 0;
   }
 
-  OMPT_ASSERT_SYNC_POINT("C1")
+  OMPT_ASSERT_SYNC_POINT("S1")
 }
 
 TEST(SetAssertion, uut_target_set) {
@@ -104,6 +104,56 @@ TEST(SetAssertion, uut_target_set_generic_duplicates) {
   }
 }
 
+TEST(AssertionMode, uut_target_set_mode_relaxed) {
+  /* The Test Body */
+  int N = 128;
+  int a[N];
+
+  OMPT_SUPPRESS_EVENT(EventTy::TargetDataOpEmi)
+  OMPT_SUPPRESS_EVENT(EventTy::TargetSubmitEmi)
+  OMPT_SUPPRESS_EVENT(EventTy::DeviceLoad)
+  OMPT_SUPPRESS_EVENT(EventTy::BufferRequest)
+  OMPT_SUPPRESS_EVENT(EventTy::BufferComplete)
+
+  OMPT_ASSERT_SET_MODE_RELAXED()
+
+  OMPT_ASSERT_SET(BufferRecord, /*Type=*/CB_KERNEL)
+
+#pragma omp target parallel for
+  {
+    for (int j = 0; j < N; j++)
+      a[j] = 0;
+  }
+}
+
+TEST(AssertionMode, uut_target_sequence_mode_relaxed) {
+  /* The Test Body */
+  int N = 128;
+  int a[N];
+
+  OMPT_SUPPRESS_EVENT(EventTy::TargetDataOpEmi)
+  OMPT_SUPPRESS_EVENT(EventTy::TargetSubmitEmi)
+  OMPT_SUPPRESS_EVENT(EventTy::DeviceLoad)
+  OMPT_SUPPRESS_EVENT(EventTy::BufferRequest)
+  OMPT_SUPPRESS_EVENT(EventTy::BufferComplete)
+
+  OMPT_ASSERT_SEQUENCE_MODE_RELAXED()
+
+  OMPT_ASSERT_SEQUENCE(BufferRecord, /*Type=*/CB_TARGET)
+  OMPT_ASSERT_SEQUENCE(BufferRecord, /*Type=*/CB_DATAOP)
+  OMPT_ASSERT_SEQUENCE(BufferRecord, /*Type=*/CB_DATAOP)
+  OMPT_ASSERT_SEQUENCE(BufferRecord, /*Type=*/CB_KERNEL)
+  OMPT_ASSERT_SEQUENCE(BufferRecord, /*Type=*/CB_DATAOP)
+  OMPT_ASSERT_SEQUENCE(BufferRecord, /*Type=*/CB_DATAOP)
+  OMPT_ASSERT_SEQUENCE(BufferRecord, /*Type=*/CB_TARGET)
+
+#pragma omp target parallel for
+  {
+    for (int j = 0; j < N; j++)
+      a[j] = 0;
+  }
+}
+
 TEST(MixedAssertionSuite, uut_target_sequence_and_set) {
   /* The Test Body */
   int N = 128;
@@ -135,11 +185,21 @@ TEST(MixedAssertionSuite, uut_target_sequence_and_set) {
   OMPT_ASSERT_SET_GROUPED("R1", BufferRecord, /*Type=*/CB_DATAOP,
                           /*OpType=*/H2D, /*Bytes=*/sizeof(a),
                           /*Timeframe=*/{10, 100000})
+  OMPT_ASSERT_SET_GROUPED("R1", BufferRecord, /*Type=*/CB_DATAOP,
+                          /*OpType=*/ALLOC, /*Bytes=*/sizeof(b),
+                          /*MinimumTimeDelta=*/10)
+  OMPT_ASSERT_SET_GROUPED("R1", BufferRecord, /*Type=*/CB_DATAOP,
+                          /*OpType=*/H2D, /*Bytes=*/sizeof(b),
+                          /*Timeframe=*/{10, 100000})
 
   OMPT_ASSERT_SET_GROUPED("R1", BufferRecord, /*Type=*/CB_KERNEL)
 
   OMPT_ASSERT_SET_GROUPED("R1", BufferRecord, /*Type=*/CB_DATAOP,
                           /*OpType=*/D2H)
+  OMPT_ASSERT_SET_GROUPED("R1", BufferRecord, /*Type=*/CB_DATAOP,
+                          /*OpType=*/D2H)
+  OMPT_ASSERT_SET_GROUPED("R1", BufferRecord, /*Type=*/CB_DATAOP,
+                          /*OpType=*/DELETE)
   OMPT_ASSERT_SET_GROUPED("R1", BufferRecord, /*Type=*/CB_DATAOP,
                           /*OpType=*/DELETE)
   OMPT_ASSERT_SET_GROUPED("R1", BufferRecord, /*Type=*/CB_TARGET,
@@ -163,7 +223,10 @@ TEST(MixedAssertionSuite, uut_target_sequence_and_set) {
   }
 
   // Ensure there are no remaining expected events
-  OMPT_ASSERT_SYNC_POINT("C1")
+  OMPT_ASSERT_SYNC_POINT("S1")
+
+  OMPT_ASSERT_SET_GROUPED("R2", TargetEmi, /*Kind=*/TARGET,
+                          /*Endpoint=*/BEGIN)
 
   OMPT_ASSERT_SEQUENCE_GROUPED_ONLY("R2", TargetEmi, /*Kind=*/TARGET,
                                     /*Endpoint=*/BEGIN)
@@ -179,15 +242,28 @@ TEST(MixedAssertionSuite, uut_target_sequence_and_set) {
   OMPT_ASSERT_SET_GROUPED("R2", BufferRecord, /*Type=*/CB_DATAOP,
                           /*OpType=*/H2D, /*Bytes=*/sizeof(a),
                           /*Timeframe=*/{10, 100000})
+  OMPT_ASSERT_SET_GROUPED("R2", BufferRecord, /*Type=*/CB_DATAOP,
+                          /*OpType=*/ALLOC, /*Bytes=*/sizeof(b),
+                          /*MinimumTimeDelta=*/10)
+  OMPT_ASSERT_SET_GROUPED("R2", BufferRecord, /*Type=*/CB_DATAOP,
+                          /*OpType=*/H2D, /*Bytes=*/sizeof(b),
+                          /*Timeframe=*/{10, 100000})
 
   OMPT_ASSERT_SET_GROUPED("R2", BufferRecord, /*Type=*/CB_KERNEL)
 
   OMPT_ASSERT_SET_GROUPED("R2", BufferRecord, /*Type=*/CB_DATAOP,
                           /*OpType=*/D2H)
   OMPT_ASSERT_SET_GROUPED("R2", BufferRecord, /*Type=*/CB_DATAOP,
+                          /*OpType=*/D2H)
+  OMPT_ASSERT_SET_GROUPED("R2", BufferRecord, /*Type=*/CB_DATAOP,
+                          /*OpType=*/DELETE)
+  OMPT_ASSERT_SET_GROUPED("R2", BufferRecord, /*Type=*/CB_DATAOP,
                           /*OpType=*/DELETE)
   OMPT_ASSERT_SET_GROUPED("R2", BufferRecord, /*Type=*/CB_TARGET,
                           /*Kind=*/TARGET, /*Endpoint=*/END)
+
+  OMPT_ASSERT_SET_GROUPED("R2", TargetEmi, /*Kind=*/TARGET,
+                          /*Endpoint=*/END)
 
 #pragma omp target teams distribute parallel for
   {
@@ -195,7 +271,7 @@ TEST(MixedAssertionSuite, uut_target_sequence_and_set) {
       a[j] = b[j];
   }
 
-  OMPT_ASSERT_SYNC_POINT("C2")
+  OMPT_ASSERT_SYNC_POINT("S2")
 
   int rc = 0;
   for (int i = 0; i < N; i++)
