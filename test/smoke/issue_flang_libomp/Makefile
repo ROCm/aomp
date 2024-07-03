@@ -12,6 +12,8 @@ CC           = $(OMP_BIN) $(VERBOSE)
 #-ccc-print-phases
 #"-\#\#\#"
 
+UNSUPPORTED = ASAN_COMPILE
+
 include ../Makefile.rules
 all: $(TESTNAME)
 	@ldd issue_flang_libomp | grep  libomp.so

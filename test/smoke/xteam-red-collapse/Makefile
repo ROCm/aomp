@@ -15,4 +15,6 @@ CC           = $(OMP_BIN) $(VERBOSE)
 #-ccc-print-phases
 #"-\#\#\#"
 
+UNSUPPORTED = ASAN_RUNTIME
+
 include ../Makefile.rules

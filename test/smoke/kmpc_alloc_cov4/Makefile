@@ -9,4 +9,6 @@ CLANG        ?= clang++
 OMP_BIN      = $(AOMP)/bin/$(CLANG)
 CC           = $(OMP_BIN) $(VERBOSE) -mcode-object-version=4
 
+UNSUPPORTED = ASAN_RUNTIME
+
 include ../Makefile.rules
