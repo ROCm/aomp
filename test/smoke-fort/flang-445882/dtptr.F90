@@ -39,7 +39,7 @@ program main
   integer :: M, N, i, j
   real :: start, finish
 
-  M = 10000
+  M = 2000
   N = 10000
 
   allocate (loc_f%mesh)
