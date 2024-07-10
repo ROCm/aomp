@@ -32,6 +32,7 @@ TESTS_DIR = \
     flang-446057b \
     flang-446057c \
     flang-446057d \
+    flang-445882 \
     flang-453308 \
     flang-453308a \
     flang-446005a \
