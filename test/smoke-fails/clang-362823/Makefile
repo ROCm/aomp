@@ -3,10 +3,6 @@ include ../../Makefile.defs
 TESTNAME        = vectoradd_hip
 TESTSRC_MAIN    = vectoradd_hip.o
 TESTSRC_AUX     = vectoradd_hip2.o
-
-$(TESTRC_MAIN)  : vectoradd_hip.cpp
-$(TESTSRC_AUX)  : vectoradd_hip2.cpp
-
 TESTSRC_ALL     = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 
 CLANG           = hipcc
@@ -20,3 +16,6 @@ OMP_BIN         = $(HIPCC)
 CC              = $(COMPILE_ENV) $(OMP_BIN)
 
 include ../Makefile.rules
+
+$(TESTRC_MAIN)  : vectoradd_hip.cpp
+$(TESTSRC_AUX)  : vectoradd_hip2.cpp

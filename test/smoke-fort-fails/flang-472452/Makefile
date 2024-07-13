@@ -1,19 +1,18 @@
+NOOPT        = 1
 include ../../Makefile.defs
 
-TESTNAME     = issue_flang_libomp
-TESTSRC_MAIN = issue_flang_libomp.f90
+TESTNAME     = submodule_noargs
+TESTSRC_MAIN = submodule_noargs.f90
 TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 
-TARGET       = -fopenmp -O3 -w
-FLANG        ?= flang
+FLANG        ?= flang-new
+CFLAGS       = -c
 OMP_BIN      = $(AOMP)/bin/$(FLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
 #-ccc-print-phases
 #"-\#\#\#"
 
-UNSUPPORTED = ASAN_COMPILE
+RUNCMD       = ./doit.sh > ${TESTNAME}.out 2>&1 && ./chkit.sh ${TESTNAME}.out
 
 include ../Makefile.rules
-all: $(TESTNAME)
-	@ldd issue_flang_libomp | grep  libomp.so
