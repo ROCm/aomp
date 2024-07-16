@@ -1,0 +1,22 @@
+# Compiler
+HIPCC           = ${AOMP}/bin/clang -x hip
+FC              = ${AOMP}/bin/flang-new
+#HIP_LIB_PATH   ?= ${ROCM_PATH}/hip/lib
+#HIP_LIB_PATH   ?= /COD/LATEST/aomp/lib
+HIP_LIB_PATH   ?= /opt/rocm/lib
+AOMP_GPU       ?= gfx90a
+
+# Compiler flags
+HIP_FLAGS       = -O3
+F_FLAGS         = -O2 -fopenmp -fopenmp-version=50 --offload-arch=${AOMP_GPU}
+LD_FLAGS        = -O3 -L${HIP_LIB_PATH} -lamdhip64 -lstdc++
+
+all:
+	mkdir -p obj
+	${HIPCC} ${HIP_FLAGS} -c kernel.cpp -o obj/kernel.o
+	${FC} ${F_FLAGS} -c driver.f90 -o obj/driver.o
+	${FC} ${F_FLAGS} ${LD_FLAGS} -o test obj/driver.o obj/kernel.o
+	rm -rf obj
+
+clean:
+	rm -rf test obj *.mod *.o
