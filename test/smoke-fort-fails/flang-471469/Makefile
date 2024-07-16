@@ -21,10 +21,13 @@ FC              = ${AOMP}/bin/flang-new
 HIP_LIB_PATH   ?= /opt/rocm/lib
 
 # Compiler flags
-HIP_FLAGS       = -O3
+HIP_FLAGS       = -O3 --offload-arch=${AOMP_GPU}
 F_FLAGS         = -O2 -fopenmp -fopenmp-version=50 --offload-arch=${AOMP_GPU}
 LD_FLAGS        = -O3 -L${HIP_LIB_PATH} -lamdhip64 -lstdc++
 
+# To verify HIP runs, use:
+#   AMD_LOG_LEVEL=1 ...
+#   AMD_LOG_LEVEL=3 ...
 test:
 	mkdir -p obj
 	${HIPCC} ${HIP_FLAGS} -c kernel.cpp -o obj/kernel.o
