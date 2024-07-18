@@ -8,7 +8,7 @@ RUNENV      += HSA_XNACK=1 OMPX_APU_MAPS=1
 
 RUNCMD       = ./$(TESTNAME) 2>&1 | $(FILECHECK) $(TESTSRC_MAIN)
 
-OMP_FLAGS    = -fopenmp --offload-arch=$(AOMP_GPU) -I$(AOMP)/include -L$(AOMP)/lib -lhsa-runtime64
+OMP_FLAGS    = -fopenmp --offload-arch=$(AOMP_GPU) -I$(AOMP)/include -I$(AOMP)../../include  -L$(AOMP)/lib -L$(AOMP)/../../lib -lhsa-runtime64
 CFLAGS       += -O3
 CLANG        = clang++
 OMP_BIN      = $(AOMP)/bin/$(CLANG)
