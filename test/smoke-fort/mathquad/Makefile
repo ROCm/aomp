@@ -3,8 +3,8 @@ NOOMP        = 1
 OMP_FLAGS    = -DNOOMP
 include ../../Makefile.defs
 
-TESTNAME     = quadmath
-TESTSRC_MAIN = quadmath.f90
+TESTNAME     = mathquad
+TESTSRC_MAIN = mathquad.f90
 TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 
