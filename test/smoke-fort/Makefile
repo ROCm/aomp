@@ -45,6 +45,9 @@ TESTS_DIR = \
     flang-use-device \
     LaunchLatency \
     llvm-issue-82047 \
+    mathdbl \
+    mathdbl-tgt \
+    mathquad \
     milestone-1 \
     milestone-2 \
     milestone-3-babel \

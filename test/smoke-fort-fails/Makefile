@@ -22,6 +22,7 @@ TESTS_DIR = \
     flang-464660-1 \
     flang-471469 \
     flang-472452 \
+    mathquad-tgt \
     olcf-tf-2-openmp-gpu-teams \
     olcf-tf-3-openmp-gpu-teams-parallel \
     olcf-tf-4-openmp-gpu-teams-parallel-data \
