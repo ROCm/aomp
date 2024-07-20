@@ -6,7 +6,6 @@ TESTS_DIR = \
     flang-325095 \
     flang-421111-3 \
     flang-444386-1 \
-    flang-445718 \
     flang-445999 \
     flang-446033a_loop \
     flang-446033a_ttdpd \
