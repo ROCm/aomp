@@ -43,6 +43,8 @@ TESTS_DIR = \
     flang-457354 \
     flang-460740 \
     flang-use-device \
+    intrin-rename-func \
+    intrin-rename-sub \
     LaunchLatency \
     llvm-issue-82047 \
     mathdbl \
