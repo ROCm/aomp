@@ -12,7 +12,6 @@ CC           = $(OMP_BIN) $(VERBOSE)
 #-ccc-print-phases
 #"-\#\#\#"
 
-include ../Makefile.rules
+RUNCMD = ./$(TESTNAME) 100 1
 
-run: $(TESTNAME)
-	./$(TESTNAME) 100 1
+include ../Makefile.rules
