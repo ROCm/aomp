@@ -1,8 +1,10 @@
 NOOPT        = 1
+NOOMP        = 1
+OMP_FLAGS    = -DNOOMP
 include ../../Makefile.defs
 
-TESTNAME     = rush_larsen_gpu_omp_fort_noprivate
-TESTSRC_MAIN = rush_larsen_gpu_omp_fort_noprivate.F90
+TESTNAME     = mathquad
+TESTSRC_MAIN = mathquad.f90
 TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 
@@ -13,6 +15,3 @@ CC           = $(OMP_BIN) $(VERBOSE)
 #"-\#\#\#"
 
 include ../Makefile.rules
-
-run: $(TESTNAME)
-	./$(TESTNAME) 100 1
