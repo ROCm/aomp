@@ -8,7 +8,7 @@ TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 CLANG        = clang++
 OMP_BIN      = $(AOMP)/bin/$(CLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
-OMP_FLAGS += -Ofast -v -c 
+OMP_FLAGS += -O3 -v -c 
 #-ccc-print-phases
 #"-\#\#\#"
 
