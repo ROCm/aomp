@@ -50,13 +50,13 @@ VERS = $(shell $(LLVM_INSTALL_DIR)/bin/clang --version | grep -oP '(?<=clang ver
 ROCM = $(shell $(LLVM_INSTALL_DIR)/bin/clang --version | grep -oP 'AMD clang')
 
 ifeq ($(shell expr $(VERS) \>= 12.0), 1)
-        RPTH = -Wl,-rpath,$(HIPDIR)/lib -Wl,-rpath,$(LLVM_INSTALL_DIR)/lib/clang/$(VERS)/lib/linux
+        RPTH = -Wl,-rpath,$(HIPDIR)/lib/asan -Wl,-rpath,$(LLVM_INSTALL_DIR)/lib/clang/$(VERS)/lib/linux
 endif
 
 #  compiler automatically adds "libdevice/<target>/ to -L opts
-LFLAGS   =-L$(HIPDIR)/lib $(RPTH)
+LFLAGS   =-L$(HIPDIR)/lib/asan $(RPTH)
 ASAN_FLAGS = -fsanitize=address -shared-libsan
-CFLAGS = -O0 -g -std=c++11 -fopenmp
+CFLAGS = -g -std=c++11 -fopenmp
 
 HSA_XNACK ?= 1
 # ----- Demo compile and link in one step, no object code saved

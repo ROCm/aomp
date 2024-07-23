@@ -2,7 +2,7 @@ include ../../Makefile.defs
 
 TESTNAME     = test_xteamr
 TESTSRC_MAIN = test_xteamr.cpp
-TESTSRC_AUX  = 
+TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 
 CLANG        ?= clang++
@@ -15,5 +15,7 @@ ifneq ("$(wildcard $(AOMP)/lib/libmlir_float16_utils.so)","")
 endif
 #-ccc-print-phases
 #"-\#\#\#"
+
+UNSUPPORTED = ASAN_COMPILE
 
 include ../Makefile.rules

@@ -5,7 +5,7 @@ TESTSRC_MAIN = targetid-multi-image.c
 TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 
-OMP_FLAGS    = -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$(AOMP_GPU):xnack- -Xopenmp-target=amdgcn-amd-amdhsa -march=$(AOMP_GPU):xnack+
+OMP_FLAGS    = -fopenmp --offload-arch=$(AOMP_GPU):xnack+,$(AOMP_GPU):xnack-
 CLANG        = clang
 OMP_BIN      = $(AOMP)/bin/$(CLANG)
 CC           = $(OMP_BIN) $(VERBOSE)

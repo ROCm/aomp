@@ -114,12 +114,12 @@ static void on_ompt_callback_buffer_complete (
   if (buffer_owned) delete_buffer_ompt(buffer);
 }
 
-static ompt_set_result_t set_trace_ompt() {
+static ompt_set_result_t set_trace_ompt(ompt_device_t *Device) {
   if (!ompt_set_trace_ompt) return ompt_set_error;
 
-  ompt_set_trace_ompt(0, 1, ompt_callback_target);
-  ompt_set_trace_ompt(0, 1, ompt_callback_target_data_op);
-  ompt_set_trace_ompt(0, 1, ompt_callback_target_submit);
+  ompt_set_trace_ompt(Device, 1, ompt_callback_target);
+  ompt_set_trace_ompt(Device, 1, ompt_callback_target_data_op);
+  ompt_set_trace_ompt(Device, 1, ompt_callback_target_submit);
 
   return ompt_set_always;
 }
@@ -178,7 +178,7 @@ static void on_ompt_callback_device_initialize
     IsDeviceMapInitialized = true;
   }
 
-  set_trace_ompt();
+  set_trace_ompt(device);
 
   // In many scenarios, this will be a good place to start the
   // trace. If start_trace is called from the main program before this

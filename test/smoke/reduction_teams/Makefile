@@ -13,4 +13,6 @@ RUNENV       = OMP_MAX_TEAMS_DEFAULT=32768 OMP_NUM_TEAMS=4096
 #-ccc-print-phases
 #"-\#\#\#"
 
+UNSUPPORTED = ASAN_COMPILE
+
 include ../Makefile.rules

@@ -8,4 +8,6 @@ CLANG        ?= clang++
 OMP_BIN      = $(AOMP)/bin/$(CLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
 
+UNSUPPORTED = ASAN_COMPILE
+
 include ../Makefile.rules

@@ -1,10 +1,7 @@
-NOOPT        = 1
-NOOMP        = 1
-OMP_FLAGS    = -DNOOMP
 include ../../Makefile.defs
 
-TESTNAME     = quadmath
-TESTSRC_MAIN = quadmath.f90
+TESTNAME     = mathquad-tgt
+TESTSRC_MAIN = mathquad-tgt.f90
 TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 

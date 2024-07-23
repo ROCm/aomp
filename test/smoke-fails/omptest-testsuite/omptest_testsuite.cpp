@@ -119,70 +119,70 @@ TEST(SequenceSuite, veccopy_ompt_target) {
 
   /* First Target Region */
 
-  OMPT_ASSERT_GROUPED_SEQUENCE("R1", Target, /*Kind=*/TARGET,
+  OMPT_ASSERT_SEQUENCE_GROUPED("R1", Target, /*Kind=*/TARGET,
                                /*Endpoint=*/BEGIN, /*DeviceNum=*/0)
 
-  OMPT_ASSERT_GROUPED_SEQUENCE("R1", TargetDataOp, /*OpType=*/ALLOC,
+  OMPT_ASSERT_SEQUENCE_GROUPED("R1", TargetDataOp, /*OpType=*/ALLOC,
                                /*Size=*/N * sizeof(int))
-  OMPT_ASSERT_GROUPED_SEQUENCE("R1", TargetDataOp, /*OpType=*/H2D,
+  OMPT_ASSERT_SEQUENCE_GROUPED("R1", TargetDataOp, /*OpType=*/H2D,
                                /*Size=*/N * sizeof(int),
                                /*SrcAddr=*/&a)
 
-  OMPT_ASSERT_GROUPED_SEQUENCE("R1", TargetDataOp, /*OpType=*/ALLOC,
+  OMPT_ASSERT_SEQUENCE_GROUPED("R1", TargetDataOp, /*OpType=*/ALLOC,
                                /*Size=*/N * sizeof(int))
-  OMPT_ASSERT_GROUPED_SEQUENCE("R1", TargetDataOp, /*OpType=*/H2D,
+  OMPT_ASSERT_SEQUENCE_GROUPED("R1", TargetDataOp, /*OpType=*/H2D,
                                /*Size=*/N * sizeof(int),
                                /*SrcAddr=*/&b)
 
-  OMPT_ASSERT_GROUPED_SEQUENCE("R1", TargetSubmit, /*RequestedNumTeams=*/1)
+  OMPT_ASSERT_SEQUENCE_GROUPED("R1", TargetSubmit, /*RequestedNumTeams=*/1)
 
-  OMPT_ASSERT_GROUPED_SEQUENCE("R1", TargetDataOp, /*OpType=*/D2H,
+  OMPT_ASSERT_SEQUENCE_GROUPED("R1", TargetDataOp, /*OpType=*/D2H,
                                /*Size=*/N * sizeof(int),
                                /*SrcAddr=*/nullptr, /*DstAddr=*/&b)
-  OMPT_ASSERT_GROUPED_SEQUENCE("R1", TargetDataOp, /*OpType=*/D2H,
+  OMPT_ASSERT_SEQUENCE_GROUPED("R1", TargetDataOp, /*OpType=*/D2H,
                                /*Size=*/N * sizeof(int),
                                /*SrcAddr=*/nullptr, /*DstAddr=*/&a)
 
-  OMPT_ASSERT_GROUPED_SEQUENCE("R1", TargetDataOp, /*OpType=*/DELETE,
+  OMPT_ASSERT_SEQUENCE_GROUPED("R1", TargetDataOp, /*OpType=*/DELETE,
                                /*Size=*/0)
-  OMPT_ASSERT_GROUPED_SEQUENCE("R1", TargetDataOp, /*OpType=*/DELETE,
+  OMPT_ASSERT_SEQUENCE_GROUPED("R1", TargetDataOp, /*OpType=*/DELETE,
                                /*Size=*/0)
 
-  OMPT_ASSERT_GROUPED_SEQUENCE("R1", Target, /*Kind=*/TARGET, /*Endpoint=*/END,
+  OMPT_ASSERT_SEQUENCE_GROUPED("R1", Target, /*Kind=*/TARGET, /*Endpoint=*/END,
                                /*DeviceNum=*/0)
 
   /* Second Target Region */
 
-  OMPT_ASSERT_GROUPED_SEQUENCE("R2", Target, /*Kind=*/TARGET,
+  OMPT_ASSERT_SEQUENCE_GROUPED("R2", Target, /*Kind=*/TARGET,
                                /*Endpoint=*/BEGIN, /*DeviceNum=*/0)
 
-  OMPT_ASSERT_GROUPED_SEQUENCE("R2", TargetDataOp, /*OpType=*/ALLOC,
+  OMPT_ASSERT_SEQUENCE_GROUPED("R2", TargetDataOp, /*OpType=*/ALLOC,
                                /*Size=*/N * sizeof(int))
-  OMPT_ASSERT_GROUPED_SEQUENCE("R2", TargetDataOp, /*OpType=*/H2D,
+  OMPT_ASSERT_SEQUENCE_GROUPED("R2", TargetDataOp, /*OpType=*/H2D,
                                /*Size=*/N * sizeof(int),
                                /*SrcAddr=*/&a)
 
-  OMPT_ASSERT_GROUPED_SEQUENCE("R2", TargetDataOp, /*OpType=*/ALLOC,
+  OMPT_ASSERT_SEQUENCE_GROUPED("R2", TargetDataOp, /*OpType=*/ALLOC,
                                /*Size=*/N * sizeof(int))
-  OMPT_ASSERT_GROUPED_SEQUENCE("R2", TargetDataOp, /*OpType=*/H2D,
+  OMPT_ASSERT_SEQUENCE_GROUPED("R2", TargetDataOp, /*OpType=*/H2D,
                                /*Size=*/N * sizeof(int),
                                /*SrcAddr=*/&b)
 
-  OMPT_ASSERT_GROUPED_SEQUENCE("R2", TargetSubmit, /*RequestedNumTeams=*/0)
+  OMPT_ASSERT_SEQUENCE_GROUPED("R2", TargetSubmit, /*RequestedNumTeams=*/0)
 
-  OMPT_ASSERT_GROUPED_SEQUENCE("R2", TargetDataOp, /*OpType=*/D2H,
+  OMPT_ASSERT_SEQUENCE_GROUPED("R2", TargetDataOp, /*OpType=*/D2H,
                                /*Size=*/N * sizeof(int),
                                /*SrcAddr=*/nullptr, /*DstAddr=*/&b)
-  OMPT_ASSERT_GROUPED_SEQUENCE("R2", TargetDataOp, /*OpType=*/D2H,
+  OMPT_ASSERT_SEQUENCE_GROUPED("R2", TargetDataOp, /*OpType=*/D2H,
                                /*Size=*/N * sizeof(int),
                                /*SrcAddr=*/nullptr, /*DstAddr=*/&a)
 
-  OMPT_ASSERT_GROUPED_SEQUENCE("R2", TargetDataOp, /*OpType=*/DELETE,
+  OMPT_ASSERT_SEQUENCE_GROUPED("R2", TargetDataOp, /*OpType=*/DELETE,
                                /*Size=*/0)
-  OMPT_ASSERT_GROUPED_SEQUENCE("R2", TargetDataOp, /*OpType=*/DELETE,
+  OMPT_ASSERT_SEQUENCE_GROUPED("R2", TargetDataOp, /*OpType=*/DELETE,
                                /*Size=*/0)
 
-  OMPT_ASSERT_GROUPED_SEQUENCE("R2", Target, /*Kind=*/TARGET, /*Endpoint=*/END,
+  OMPT_ASSERT_SEQUENCE_GROUPED("R2", Target, /*Kind=*/TARGET, /*Endpoint=*/END,
                                /*DeviceNum=*/0)
 
   /* Actual testcase code. */
