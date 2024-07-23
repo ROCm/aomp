@@ -16,6 +16,7 @@ TESTS_DIR = \
     flang-446525 \
     flang-464660 \
     flang-464660-1 \
+    flang-nested-parallel-do-loops \
     mathquad-tgt \
     olcf-tf-7-loop-combined \
     rocm-issue-842
