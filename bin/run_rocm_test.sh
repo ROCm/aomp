@@ -21,7 +21,7 @@ export CLEANUP=0
 # Enable AMDGPU Sanitizer Testing
 if [ "$1" == "-a" ]; then
   export AOMP_SANITIZER=1
-  export LD_LIBRARY_PATH=$ROCM_INSTALL_PATH/llvm/lib/asan:$ROCM_INSTALL_PATH/lib/asan:$LD_LIBRARY_PATH
+  export LD_LIBRARY_PATH=$AOMP/lib/asan:$AOMPROCM/lib/asan:$LD_LIBRARY_PATH
 fi
 
 if [ -e /usr/sbin/lspci ]; then
