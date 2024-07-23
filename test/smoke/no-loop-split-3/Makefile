@@ -8,7 +8,7 @@ RUNENV      += LIBOMPTARGET_KERNEL_TRACE=1
 
 RUNCMD      = ./$(TESTNAME) 2>&1 | $(FILECHECK) $(TESTSRC_MAIN)
 
-CFLAGS       += -Ofast -fopenmp-gpu-threads-per-team=1024
+CFLAGS       += -O3 -fopenmp-gpu-threads-per-team=1024 -fopenmp-target-fast
 CLANG        = clang
 OMP_BIN      = $(AOMP)/bin/$(CLANG)
 CC           = $(OMP_BIN) $(VERBOSE)

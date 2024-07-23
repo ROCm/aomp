@@ -5,7 +5,7 @@ TESTSRC_MAIN = flang-teams.f90
 TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 
-FLANG        ?= flang  -Ofast -Mx,234,32
+FLANG        ?= flang  -O3 -Mx,234,32
 OMP_BIN      = $(AOMP)/bin/$(FLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
 #-ccc-print-phases

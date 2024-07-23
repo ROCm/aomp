@@ -1,6 +1,6 @@
 NOOPT        = 1
 include ../../Makefile.defs
-CFLAGS      += -Ofast
+CFLAGS      += -O3
 
 TESTNAME     = jacobi
 TESTSRC_MAIN = jacobi.c
