@@ -20,6 +20,7 @@ TESTS_DIR = \
     flang-462537 \
     flang-464660 \
     flang-464660-1 \
+    flang-nested-parallel-do-loops \
     olcf-tf-2-openmp-gpu-teams \
     olcf-tf-3-openmp-gpu-teams-parallel \
     olcf-tf-4-openmp-gpu-teams-parallel-data \
