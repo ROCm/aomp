@@ -49,7 +49,7 @@ fi
 # utilizes the clang runtime libraries build/install using build_project.sh.
 # The LLVM_VERSION_MAJOR of legacy flang driver has to match with the clang
 # binaries generated from build_project.sh.
-LLVM_VERSION_MAJOR=$(${AOMP}/bin/clang --version | grep -oP '(?<=clang version )[0-9]+')
+LLVM_VERSION_MAJOR=$(${LLVM_INSTALL_LOC}/bin/clang --version | grep -oP '(?<=clang version )[0-9]+')
 
 # We need a version of ROCM llvm that supports legacy flang 
 # via the link from flang to clang.  rocm 5.5 would be best. 
@@ -89,11 +89,11 @@ $AOMP_SET_NINJA_GEN"
 
 MYCMAKEOPTS="\
 -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
--DCMAKE_C_COMPILER=$AOMP_INSTALL_DIR/bin/clang \
--DCMAKE_CXX_COMPILER=$AOMP_INSTALL_DIR/bin/clang++ \
+-DCMAKE_C_COMPILER=$LLVM_INSTALL_LOC/bin/clang \
+-DCMAKE_CXX_COMPILER=$LLVM_INSTALL_LOC/bin/clang++ \
 $_cxx_flag \
 -DCMAKE_CXX_STANDARD=17 \
--DCMAKE_INSTALL_PREFIX=$AOMP_INSTALL_DIR \
+-DCMAKE_INSTALL_PREFIX=$LLVM_INSTALL_LOC \
 $AOMP_SET_NINJA_GEN \
 "
 
@@ -212,7 +212,7 @@ if [ "$1" == "install" ] ; then
       if [ -L $AOMP_INSTALL_DIR/bin/flang ] ; then
          $SUDO rm $AOMP_INSTALL_DIR/bin/flang
       fi
-      cd $AOMP_INSTALL_DIR/bin
+      cd $LLVM_INSTALL_LOC/bin
       $SUDO ln -sf flang-legacy flang
    fi
    echo
