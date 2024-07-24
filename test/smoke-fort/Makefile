@@ -29,12 +29,13 @@ TESTS_DIR = \
     flang-443915 \
     flang-445718 \
     flang-445718-fortran-intrinsic \
+    flang-445882 \
     flang-445888 \
     flang-446057a \
     flang-446057b \
     flang-446057c \
     flang-446057d \
-    flang-445882 \
+    flang-446525 \
     flang-453308 \
     flang-453308a \
     flang-446005a \
@@ -46,6 +47,7 @@ TESTS_DIR = \
     flang-457354 \
     flang-460740 \
     flang-462537 \
+    flang-463690 \
     flang-471469 \
     flang-472452 \
     flang-use-device \
