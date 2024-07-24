@@ -13,7 +13,8 @@ TESTS_DIR = \
     flang-446033b_ttdpd \
     flang-446033c_loop \
     flang-446033d_loop \
-    flang-446525 \
+    flang-463332 \
+    flang-464541 \
     flang-464660 \
     flang-464660-1 \
     flang-nested-parallel-do-loops \
