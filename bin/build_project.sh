@@ -17,7 +17,7 @@ thisdir=`dirname $realpath`
 # --- end standard header ----
 
 echo "LLVM PROJECTS TO BUILD:$AOMP_PROJECTS_LIST"
-INSTALL_PROJECT=${INSTALL_PROJECT:-$AOMP_INSTALL_DIR}
+INSTALL_PROJECT=${INSTALL_PROJECT:-$LLVM_INSTALL_LOC}
 
 WEBSITE="http\:\/\/github.com\/ROCm-Developer-Tools\/aomp"
 
@@ -81,6 +81,8 @@ else
   LLVM_RUNTIMES="libcxx;libcxxabi;libunwind;openmp;offload"
 fi
 
+rocmdevicelib_loc_new=lib/llvm/lib/clang/$AOMP_MAJOR_VERSION/lib/amdgcn
+
 GFXSEMICOLONS=`echo $GFXLIST | tr ' ' ';' `
 MYCMAKEOPTS="-DCMAKE_BUILD_TYPE=$BUILD_TYPE
  -DCMAKE_INSTALL_PREFIX=$INSTALL_PROJECT
@@ -100,10 +102,13 @@ MYCMAKEOPTS="-DCMAKE_BUILD_TYPE=$BUILD_TYPE
  -DLLVM_BUILD_LLVM_DYLIB=ON
  -DLLVM_LINK_LLVM_DYLIB=ON
  -DCLANG_LINK_CLANG_DYLIB=ON
- -DLLVM_EXTERNAL_PROJECTS=rocm-device-libs
- -DLLVM_EXTERNAL_ROCM_DEVICE_LIBS_SOURCE_DIR=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/amd/device-libs
  -DLIBOMPTARGET_EXTERNAL_PROJECT_HSA_PATH=$AOMP_REPOS/$AOMP_ROCR_REPO_NAME/src
  -DLIBOMPTARGET_EXTERNAL_PROJECT_THUNK_PATH=$AOMP_REPOS/$AOMP_ROCT_REPO_NAME
+ -DLIBOMPTARGET_EXTERNAL_PROJECT_ROCM_DEVICE_LIBS_PATH=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/amd/device-libs
+ -DROCM_DEVICE_LIBS_INSTALL_PREFIX_PATH=$AOMP_INSTALL_DIR
+ -DROCM_DEVICE_LIBS_BITCODE_INSTALL_LOC=$rocmdevicelib_loc_new
+ -DROCM_LLVM_BACKWARD_COMPAT_LINK="$AOMP_INSTALL_DIR/llvm"
+ -DROCM_LLVM_BACKWARD_COMPAT_LINK_TARGET="./lib/llvm"
  -DLIBOMP_COPY_EXPORTS=OFF
  -DLIBOMPTARGET_ENABLE_DEBUG=ON
  -DLIBOMPTARGET_AMDGCN_GFXLIST=$GFXSEMICOLONS
@@ -255,28 +260,20 @@ if [ "$1" == "install" ] ; then
       if [ -L $AOMP ] ; then 
          $SUDO rm $AOMP   
       fi
-      $SUDO ln -sf $INSTALL_PROJECT $AOMP   
+      $SUDO ln -sf $AOMP_INSTALL_DIR $AOMP
 
-      echo "------ Linking llvm/bin -> bin for hipcc usage -------"
-      # Add create AOMP/llvm directory and
-      if [ ! -d $INSTALL_PROJECT/llvm ]; then
-        mkdir -p $INSTALL_PROJECT/llvm
-      fi
-      if [ ! -h $INSTALL_PROJECT/llvm/bin ]; then
-        ln -s ../bin $INSTALL_PROJECT/llvm/bin
-      fi
    fi
 
    # add executables forgot by make install but needed for testing
-   $SUDO cp -p $BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME/bin/llvm-lit $AOMP/bin/llvm-lit
+   $SUDO cp -p $BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME/bin/llvm-lit $LLVM_INSTALL_LOC/bin/llvm-lit
    # update map_config and llvm_source_root paths in the copied llvm-lit file
    SED_AOMP_REPOS=`echo $AOMP_REPOS | sed -e 's/\//\\\\\//g' `
-   sed -ie "s/..\/..\/..\//$SED_AOMP_REPOS\//g" $AOMP/bin/llvm-lit
+   sed -ie "s/..\/..\/..\//$SED_AOMP_REPOS\//g" $LLVM_INSTALL_LOC/bin/llvm-lit
 
-   $SUDO cp -p $BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME/bin/FileCheck $AOMP/bin/FileCheck
-   $SUDO cp -p $BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME/bin/count $AOMP/bin/count
-   $SUDO cp -p $BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME/bin/not $AOMP/bin/not
-   $SUDO cp -p $BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME/bin/yaml-bench $AOMP/bin/yaml-bench
+   $SUDO cp -p $BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME/bin/FileCheck $LLVM_INSTALL_LOC/bin/FileCheck
+   $SUDO cp -p $BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME/bin/count $LLVM_INSTALL_LOC/bin/count
+   $SUDO cp -p $BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME/bin/not $LLVM_INSTALL_LOC/bin/not
+   $SUDO cp -p $BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME/bin/yaml-bench $LLVM_INSTALL_LOC/bin/yaml-bench
    cd $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME
    git checkout llvm/lib/Support/CommandLine.cpp
    echo

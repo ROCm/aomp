@@ -10,7 +10,8 @@ thisdir=`dirname $realpath`
 # --- end standard header ----
 
 INSTALL_ROCPROF=${INSTALL_ROCPROF:-$AOMP_INSTALL_DIR}
-export HIP_CLANG_PATH=$INSTALL_ROCPROF/bin
+export HIP_CLANG_PATH=$LLVM_INSTALL_LOC/bin
+export ROCM_PATH=$AOMP_INSTALL_DIR
 
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then 
   echo " "
@@ -67,7 +68,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    fi
    BUILD_TYPE="Release"
    export CMAKE_BUILD_TYPE=$BUILD_TYPE
-   CMAKE_PREFIX_PATH="$ROCM_DIR/roctracer/include/ext;$ROCM_DIR/include/platform;$ROCM_DIR/include;$ROCM_DIR/lib;$ROCM_DIR;$HOME/.local/bin;$HOME/local/aqlprofile"
+   CMAKE_PREFIX_PATH="$ROCM_DIR/roctracer/include/ext;$ROCM_DIR/include/platform;$ROCM_DIR/include;$ROCM_DIR/lib;$ROCM_DIR;$HOME/.local/bin;$HOME/local/aqlprofile;$LLVM_INSTALL_LOC"
    export CMAKE_PREFIX_PATH
    #export HSA_RUNTIME_INC=$ROCM_DIR/include
    #export HSA_RUNTIME_LIB=$ROCM_DIR/include/lib
