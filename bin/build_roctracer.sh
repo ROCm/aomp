@@ -11,8 +11,9 @@ thisdir=`dirname $realpath`
 # --- end standard header ----
 
 INSTALL_ROCTRACE=${INSTALL_ROCTRACE:-$AOMP_INSTALL_DIR}
-export HIP_CLANG_PATH=$INSTALL_ROCTRACE/bin
+export HIP_CLANG_PATH=$LLVM_INSTALL_LOC/bin
 echo $HIP_CLANG_PATH
+export ROCM_PATH=$ROCM_DIR
 
 # Needed for systems that have both AMD and Nvidia cards installed.
 HIP_PLATFORM=${HIP_PLATFORM:-amd}
@@ -73,10 +74,11 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    fi
    BUILD_TYPE="release"
    export CMAKE_BUILD_TYPE=$BUILD_TYPE
-   CMAKE_PREFIX_PATH="$ROCM_DIR/include/hsa;$ROCM_DIR/include;$ROCM_DIR/lib;$ROCM_DIR"
-   export HIP_PATH=$ROCM_DIR
+   CMAKE_PREFIX_PATH="$ROCM_DIR/include/hsa;$ROCM_DIR/include;$ROCM_DIR/lib;$ROCM_DIR;$LLVM_INSTALL_LOC"
    export CMAKE_PREFIX_PATH
    GFXSEMICOLONS=`echo $GFXLIST | tr ' ' ';' `
+   export ROCM_PATH=$ROCM_DIR
+   export HIPCC_COMPILE_FLAGS_APPEND="--rocm-path=$ROCM_PATH"
    mkdir -p $BUILD_AOMP/build/roctracer
    cd $BUILD_AOMP/build/roctracer
    echo " -----Running roctracer cmake ---- " 
