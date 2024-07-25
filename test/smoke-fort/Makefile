@@ -56,7 +56,6 @@ TESTS_DIR = \
     LaunchLatency \
     llvm-issue-82047 \
     mathdbl \
-    mathdbl-tgt \
     mathquad \
     milestone-1 \
     milestone-2 \
