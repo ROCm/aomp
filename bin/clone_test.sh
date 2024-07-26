@@ -166,8 +166,8 @@ fi
 tmpfile=/tmp/mlines$$
 cat $manifest_file | grep project > $tmpfile
 
-if [ ! -d ~/git/aomp-test ]; then
-  mkdir -p ~/git/aomp-test
+if [ ! -d ${AOMP_REPOS_TEST} ]; then
+  mkdir -p ${AOMP_REPOS_TEST}
 fi
 
 while read line ; do 

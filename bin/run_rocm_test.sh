@@ -747,19 +747,19 @@ function sollve(){
   checkrc $?
 
   # 4.5 Results
-  cd "$HOME"/git/aomp-test/sollve_vv/results_report45
+  cd "$AOMP_TEST_DIR"/sollve_vv/results_report45
   copyresults sollve45
 
   # 5.0 Results
-  cd "$HOME"/git/aomp-test/sollve_vv/results_report50
+  cd "$AOMP_TEST_DIR"/sollve_vv/results_report50
   copyresults sollve50
 
   # 5.1 Results
-  cd "$HOME"/git/aomp-test/sollve_vv/results_report51
+  cd "$AOMP_TEST_DIR"/sollve_vv/results_report51
   copyresults sollve51
 
   # 5.2 Results
-  cd "$HOME"/git/aomp-test/sollve_vv/results_report52
+  cd "$AOMP_TEST_DIR"/sollve_vv/results_report52
   copyresults sollve52
 }
 
@@ -801,7 +801,7 @@ function LLNL(){
 function ovo(){
   mkdir -p "$resultsdir"/ovo
   cd "$aompdir"/bin
-  ./run_ovo.sh log "$HOME"/git/aomp-test/OvO
+  ./run_ovo.sh log "$AOMP_TEST_DIR"/OvO
   "$scriptsdir"/parse_OvO.sh
   cd "$AOMP_TEST_DIR"/OvO
   copyresults ovo
