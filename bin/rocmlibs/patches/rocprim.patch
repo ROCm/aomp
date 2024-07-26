@@ -1,0 +1,88 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index bdff5831..55c05947 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -91,7 +91,7 @@ if(NOT USE_HIP_CPU)
+ 
+   if(GPU_TARGETS STREQUAL "all")
+     rocm_check_target_ids(DEFAULT_AMDGPU_TARGETS
+-      TARGETS "gfx803;gfx900:xnack-;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack-;gfx90a:xnack+;gfx940;gfx941;gfx942;gfx1030;gfx1100;gfx1101;gfx1102"
++      TARGETS "gfx803;gfx900:xnack-;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack-;gfx90a:xnack+;gfx90c;gfx940;gfx941;gfx942;gfx1030;gfx1100;gfx1101;gfx1102;gfx1103"
+     )
+     set(GPU_TARGETS "${DEFAULT_AMDGPU_TARGETS}" CACHE STRING "GPU architectures to compile for" FORCE)
+   endif()
+diff --git a/rmake.py b/rmake.py
+index 265577f1..653fcd7b 100644
+--- a/rmake.py
++++ b/rmake.py
+@@ -37,7 +37,7 @@ def parse_args():
+                         help='Install after build (default: False)')
+     parser.add_argument(      '--cmake-darg', required=False, dest='cmake_dargs', action='append', default=[],
+                         help='List of additional cmake defines for builds (e.g. CMAKE_CXX_COMPILER_LAUNCHER=ccache)')
+-    parser.add_argument('-a', '--architecture', dest='gpu_architecture', required=False, default="gfx906;gfx1030;gfx1100;gfx1101;gfx1102", #:sramecc+:xnack-" ) #gfx1030" ) #gfx906" ) # gfx1030" )
++    parser.add_argument('-a', '--architecture', dest='gpu_architecture', required=False, default="gfx906;gfx1030;gfx1100;gfx1101;gfx1102;gfx1103", #:sramecc+:xnack-" ) #gfx1030" ) #gfx906" ) # gfx1030" )
+                         help='Set GPU architectures, e.g. all, gfx000, gfx803, gfx906:xnack-;gfx1030;gfx1100 (optional, default: all)')
+     parser.add_argument('-v', '--verbose', required=False, default=False, action='store_true',
+                         help='Verbose build (default: False)')
+diff --git a/rocprim/include/rocprim/device/config_types.hpp b/rocprim/include/rocprim/device/config_types.hpp
+index 484db834..0f8a59fb 100644
+--- a/rocprim/include/rocprim/device/config_types.hpp
++++ b/rocprim/include/rocprim/device/config_types.hpp
+@@ -169,8 +169,10 @@ enum class target_arch : unsigned int
+     gfx906  = 906,
+     gfx908  = 908,
+     gfx90a  = 910,
++    gfx90c  = 912,
+     gfx1030 = 1030,
+     gfx1102 = 1102,
++    gfx1103 = 1103,
+     unknown = std::numeric_limits<unsigned int>::max(),
+ };
+ #endif // DOXYGEN_SHOULD_SKIP_THIS
+@@ -203,15 +205,17 @@ constexpr bool prefix_equals(const char* lhs, const char* rhs, std::size_t n)
+ constexpr target_arch get_target_arch_from_name(const char* const arch_name, const std::size_t n)
+ {
+     constexpr const char* target_names[]
+-        = {"gfx803", "gfx900", "gfx906", "gfx908", "gfx90a", "gfx1030", "gfx1102"};
++        = {"gfx803", "gfx900", "gfx906", "gfx908", "gfx90a", "gfx90c", "gfx1030", "gfx1102", "gfx1103"};
+     constexpr target_arch target_architectures[] = {
+         target_arch::gfx803,
+         target_arch::gfx900,
+         target_arch::gfx906,
+         target_arch::gfx908,
+         target_arch::gfx90a,
++        target_arch::gfx90c,
+         target_arch::gfx1030,
+         target_arch::gfx1102,
++        target_arch::gfx1103,
+     };
+     static_assert(sizeof(target_names) / sizeof(target_names[0])
+                       == sizeof(target_architectures) / sizeof(target_architectures[0]),
+@@ -264,10 +268,14 @@ auto dispatch_target_arch(const target_arch target_arch)
+             return Config::template architecture_config<target_arch::gfx908>::params;
+         case target_arch::gfx90a:
+             return Config::template architecture_config<target_arch::gfx90a>::params;
++        case target_arch::gfx90c:
++            return Config::template architecture_config<target_arch::gfx90c>::params;
+         case target_arch::gfx1030:
+             return Config::template architecture_config<target_arch::gfx1030>::params;
+         case target_arch::gfx1102:
+             return Config::template architecture_config<target_arch::gfx1102>::params;
++        case target_arch::gfx1103:
++            return Config::template architecture_config<target_arch::gfx1103>::params;
+         case target_arch::invalid:
+             assert(false && "Invalid target architecture selected at runtime.");
+     }
+diff --git a/scripts/autotune/create_optimization.py b/scripts/autotune/create_optimization.py
+index 57c2e0d6..e68f44f9 100755
+--- a/scripts/autotune/create_optimization.py
++++ b/scripts/autotune/create_optimization.py
+@@ -41,7 +41,7 @@ from collections import defaultdict
+ from typing import Dict, List, Callable
+ from jinja2 import Environment, PackageLoader, select_autoescape
+ 
+-TARGET_ARCHITECTURES = ['gfx803', 'gfx900', 'gfx906', 'gfx908', 'gfx90a', 'gfx1030', 'gfx1102']
++TARGET_ARCHITECTURES = ['gfx803', 'gfx900', 'gfx906', 'gfx908', 'gfx90a', 'gfx90c', 'gfx1030', 'gfx1102', 'gfx1103' ]
+ # C++ typename used for optional types
+ EMPTY_TYPENAME = "empty_type"
+ 

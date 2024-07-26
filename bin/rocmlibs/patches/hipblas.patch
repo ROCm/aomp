@@ -1,0 +1,48 @@
+diff --git a/clients/common/utility.cpp b/clients/common/utility.cpp
+index 2aa6438..1232587 100644
+--- a/clients/common/utility.cpp
++++ b/clients/common/utility.cpp
+@@ -460,6 +460,10 @@ hipblasClientProcessor getArch()
+     {
+         return hipblasClientProcessor::gfx90a;
+     }
++    else if(deviceString.find("gfx90c") != std::string::npos)
++    {
++        return hipblasClientProcessor::gfx90c;
++    }
+     else if(deviceString.find("gfx940") != std::string::npos)
+     {
+         return hipblasClientProcessor::gfx940;
+@@ -500,6 +504,10 @@ hipblasClientProcessor getArch()
+     {
+         return hipblasClientProcessor::gfx1102;
+     }
++    else if(deviceString.find("gfx1103") != std::string::npos)
++    {
++        return hipblasClientProcessor::gfx1103;
++    }
+     return static_cast<hipblasClientProcessor>(0);
+ }
+ 
+diff --git a/clients/include/utility.h b/clients/include/utility.h
+index 0f3ff7b..a4a1b27 100644
+--- a/clients/include/utility.h
++++ b/clients/include/utility.h
+@@ -486,6 +486,7 @@ typedef enum hipblasClientProcessor
+     gfx906  = 906,
+     gfx908  = 908,
+     gfx90a  = 910,
++    gfx90c  = 912,
+     gfx940  = 940,
+     gfx941  = 941,
+     gfx942  = 942,
+@@ -499,7 +500,8 @@ typedef enum hipblasClientProcessor
+     gfx1035 = 1035,
+     gfx1100 = 1100,
+     gfx1101 = 1101,
+-    gfx1102 = 1102
++    gfx1102 = 1102,
++    gfx1103 = 1103
+ } hipblasClientProcessor;
+ 
+ /* get architecture number */

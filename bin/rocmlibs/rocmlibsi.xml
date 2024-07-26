@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest>
+<!-- Manifest for rocmlibs -->
+
+    <remote name="gerritgit" review="git.amd.com:8080" fetch="ssh://gerritgit/" />
+    <default revision="release/rocm-rel-6.1" remote="gerritgit" sync-j="4" sync-c="true" />
+    <remote name="rocm"  fetch="https://github.com/ROCm" />
+    <remote name="SJTU"  fetch="https://github.com/SJTU-IPADS" />
+
+    <project remote="rocm" path="rocBLAS" name="rocBLAS-internal" revision="develop" groups="unlocked" />
+    <project remote="rocm" path="rocPRIM" name="rocPRIM" revision="release/rocm-rel-6.2" groups="unlocked" />
+    <project remote="rocm" path="hipBLASLt" name="hipBLASLt" revision="release/rocm-rel-6.2" groups="unlocked" />
+    <project remote="rocm" path="Tensile" name="Tensile" revision="release/rocm-rel-6.2" groups="unlocked" />
+    <project remote="rocm" path="rocSOLVER" name="rocSOLVER" revision="release/rocm-rel-6.2" groups="unlocked" />
+    <project remote="rocm" path="rocSPARSE" name="rocSPARSE-internal" revision="develop" groups="unlocked" />
+    <project remote="rocm" path="hipBLAS" name="hipBLAS" revision="release/rocm-rel-6.2" groups="unlocked" />
+    <project remote="SJTU" path="PowerInfer" name="PowerInfer" revision="main" groups="unlocked" />
+</manifest>
