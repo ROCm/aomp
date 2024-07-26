@@ -31,14 +31,15 @@ setaompgpu
 cd $AOMP_REPOS_TEST/Nekbone
 cd test/nek_gpu1
 rm -f make-fail.txt failing-tests.txt passing-tests.txt
-make -f makefile.aomp clean
+make_overrides="CASEDIR:=${AOMP_TEST_DIR}/Nekbone/test/nek_gpu1 S:=${AOMP_TEST_DIR}/Nekbone/src"
+make -f makefile.aomp clean ${make_overrides}
 ret=$?
 if [ $ret -ne 0 ]; then
   echo "nekbone" >> make-fail.txt
   exit 1
 fi
 ulimit -s unlimited
-PATH=$AOMP/bin/:$PATH make F77=$FLANG -f makefile.aomp
+PATH=$AOMP/bin/:$PATH make F77=$FLANG -f makefile.aomp  ${make_overrides}
 VERBOSE=${VERBOSE:-"1"}
 if [ $VERBOSE -eq 0 ]; then
   ./nekbone 2>&1 | tee nek.log > /dev/null
