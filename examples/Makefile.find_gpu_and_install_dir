@@ -43,6 +43,13 @@ ifeq ($(LLVM_GPU_ARCH),)
   endif
 endif
 
+_clangversion=$(shell $(LLVM_INSTALL_DIR)/bin/clang --version | grep -o STANDALONE)
+ifneq ($(_clangversion),)
+  LD_FLAGS=-Wl,-rpath,$(LLVM_INSTALL_DIR)/lib -Wl,--disable-new-dtags
+else
+  LD_FLAGS=-Wl,-rpath,$(LLVM_INSTALL_DIR)/lib -Wl,-rpath,$(LLVM_INSTALL_DIR)/../../lib -Wl,--enable-new-dtags
+endif
+
 ifeq ($(strip $(LLVM_GPU_ARCH)),)
   $(error Could NOT detect a GPU to set LLVM_GPU_ARCH! To test compile only, set LLVM_GPU_ARCH=gfx90a)
 endif
