@@ -139,6 +139,9 @@ TEST(SetSuite, uut_target_ignore_non_emi_events) {
   int N = 128;
   int a[N];
 
+  // Ignore other additional events
+  OMPT_ASSERT_SET_MODE_RELAXED()
+
   // We should not observe non-EMI events
   OMPT_ASSERT_SET_NOT(Target, /*Kind=*/TARGET, /*Endpoint=*/END,
                       /*DeviceNum=*/0)
@@ -400,7 +403,5 @@ TEST(InitialTestSuite, uut_device_init_load) {
 
 int main(int argc, char **argv) {
   Runner R;
-  R.run();
-
-  return 0;
+  return R.run();
 }
