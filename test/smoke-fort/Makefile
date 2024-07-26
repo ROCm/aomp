@@ -45,6 +45,7 @@ TESTS_DIR = \
     flang-446034 \
     flang-445718-sign \
     flang-457354 \
+    flang-458684 \
     flang-460740 \
     flang-462537 \
     flang-463690 \

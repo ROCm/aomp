@@ -21,7 +21,8 @@ TESTS_DIR = \
     mathdbl-tgt \
     mathquad-tgt \
     olcf-tf-7-loop-combined \
-    rocm-issue-842
+    rocm-issue-842 \
+    tgt-printf-c \
 
 all:
 	@for test_dir in $(TESTS_DIR); do \
