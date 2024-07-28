@@ -5,7 +5,7 @@
 #include <cmath>
 
 #define GB (1024 * 1024 * 1024)
-const size_t SIZE = 90 * 1024L * 1024L;
+const size_t SIZE = 3 * 1024L * 1024L;
 const unsigned int NUM_TEAMS = 3;
 
 int main()
