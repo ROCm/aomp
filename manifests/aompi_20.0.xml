@@ -22,6 +22,8 @@
     <project remote="roctools" path="hip"    name="hip"                           revision="rocm-6.1.x" groups="unlocked" />
     <project remote="roctools" path="clr" name="clr"                        revision="rocm-6.1.x" groups="unlocked" />
     <project remote="roc" path="rocminfo" name="rocminfo"                         revision="rocm-6.1.x" groups="unlocked" />
+    <project remote="roc" path="rocm_smi_lib" name="rocm_smi_lib"                 revision="rocm-6.1.x" groups="unlocked" />
+    <project remote="roc" path="amdsmi" name="amdsmi"                             revision="rocm-6.1.x" groups="unlocked" />
     <project remote="roc" path="rocm-cmake" name="rocm-cmake"                     revision="release/rocm-rel-6.1" groups="unlocked" />
     <project remote="roc" path="rocr-runtime" name="ROCR-Runtime"                 revision="rocm-6.1.x" groups="unlocked" />
     <project remote="roc" path="roct-thunk-interface" name="ROCT-Thunk-Interface" revision="rocm-6.1.x" groups="unlocked" />
