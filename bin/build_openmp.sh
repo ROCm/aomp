@@ -10,7 +10,7 @@ thisdir=`dirname $realpath`
 . $thisdir/aomp_common_vars
 # --- end standard header ----
 
-INSTALL_OPENMP=${INSTALL_OPENMP:-$AOMP_INSTALL_DIR}
+INSTALL_OPENMP=$AOMP_INSTALL_DIR/lib/llvm
 
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then 
   help_build_aomp
@@ -68,16 +68,17 @@ fi
 export LLVM_DIR=$AOMP_INSTALL_DIR
 GFXSEMICOLONS=`echo $GFXLIST | tr ' ' ';' `
 ALTAOMP=${ALTAOMP:-$AOMP}
-COMMON_CMAKE_OPTS="$AOMP_SET_NINJA_GEN -DOPENMP_ENABLE_LIBOMPTARGET=1
--DCMAKE_INSTALL_PREFIX=$INSTALL_OPENMP
--DOPENMP_TEST_C_COMPILER=$AOMP/bin/clang
--DOPENMP_TEST_CXX_COMPILER=$AOMP/bin/clang++
--DCMAKE_C_COMPILER=$ALTAOMP/bin/clang
--DCMAKE_CXX_COMPILER=$ALTAOMP/bin/clang++
--DLIBOMPTARGET_AMDGCN_GFXLIST=$GFXSEMICOLONS
--DDEVICELIBS_ROOT=$DEVICELIBS_ROOT
--DLIBOMP_COPY_EXPORTS=OFF
--DLIBOMPTARGET_ENABLE_DEBUG=ON
+COMMON_CMAKE_OPTS="$AOMP_SET_NINJA_GEN -DOPENMP_ENABLE_LIBOMPTARGET=1 \
+-DCMAKE_INSTALL_PREFIX=$INSTALL_OPENMP \
+-DOPENMP_TEST_C_COMPILER=$AOMP/lib/llvm/bin/clang \
+-DOPENMP_TEST_CXX_COMPILER=$AOMP/lib/llvm/bin/clang++ \
+-DCMAKE_C_COMPILER=$ALTAOMP/lib/llvm/bin/clang \
+-DCMAKE_CXX_COMPILER=$ALTAOMP/lib/llvm/bin/clang++ \
+-DLIBOMPTARGET_AMDGCN_GFXLIST=$GFXSEMICOLONS \
+-DDEVICELIBS_ROOT=$DEVICELIBS_ROOT \
+-DLIBOMP_COPY_EXPORTS=OFF \
+-DLIBOMPTARGET_ENABLE_DEBUG=ON \
+-DOPENMP_LLVM_TOOLS_DIR=$AOMP_INSTALL_DIR/lib/llvm/bin \
 -DLLVM_DIR=$LLVM_DIR"
 
 if [ "$AOMP_STANDALONE_BUILD" == 0 ]; then
@@ -99,8 +100,8 @@ fi
 if [ "$AOMP_BUILD_CUDA" == 1 ] ; then
    COMMON_CMAKE_OPTS="$COMMON_CMAKE_OPTS
 -DLIBOMPTARGET_NVPTX_ENABLE_BCLIB=ON
--DLIBOMPTARGET_NVPTX_CUDA_COMPILER=$AOMP/bin/clang++
--DLIBOMPTARGET_NVPTX_BC_LINKER=$AOMP/bin/llvm-link
+-DLIBOMPTARGET_NVPTX_CUDA_COMPILER=$AOMP/lib/llvm/bin/clang++
+-DLIBOMPTARGET_NVPTX_BC_LINKER=$AOMP/lib/llvm/bin/llvm-link
 -DLIBOMPTARGET_NVPTX_COMPUTE_CAPABILITIES=$NVPTXGPUS"
 else
 #  Need to force CUDA off this way in case cuda is installed in this system
@@ -125,7 +126,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    echo rm -rf $BUILD_DIR/build/openmp
    rm -rf $BUILD_DIR/build/openmp
    if [ "$AOMP_STANDALONE_BUILD" == 1 ]; then
-     MYCMAKEOPTS="$COMMON_CMAKE_OPTS -DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR/lib/cmake -DCMAKE_BUILD_TYPE=Release $AOMP_ORIGIN_RPATH"
+     MYCMAKEOPTS="$COMMON_CMAKE_OPTS -DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR/lib/llvm/lib/cmake -DCMAKE_BUILD_TYPE=Release $AOMP_ORIGIN_RPATH"
    else
      MYCMAKEOPTS="$COMMON_CMAKE_OPTS -DCMAKE_PREFIX_PATH=$INSTALL_PREFIX/lib/cmake -DCMAKE_BUILD_TYPE=Release $OPENMP_EXTRAS_ORIGIN_RPATH"
    fi
@@ -144,7 +145,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    fi
       if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
         if [ "$AOMP_STANDALONE_BUILD" == 1 ]; then
-          ASAN_CMAKE_OPTS="$COMMON_CMAKE_OPTS -DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=OFF -DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR/lib/asan/cmake -DSANITIZER_AMDGPU=1 -DCMAKE_BUILD_TYPE=Release $AOMP_ASAN_ORIGIN_RPATH"
+          ASAN_CMAKE_OPTS="$COMMON_CMAKE_OPTS -DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=OFF -DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR/lib/llvm/lib/asan/cmake -DSANITIZER_AMDGPU=1 -DCMAKE_BUILD_TYPE=Release $AOMP_ASAN_ORIGIN_RPATH"
 	else
           ASAN_CMAKE_OPTS="$COMMON_CMAKE_OPTS -DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=OFF -DCMAKE_PREFIX_PATH=$ROCM_CMAKECONFIG_PATH -DSANITIZER_AMDGPU=1 -DCMAKE_BUILD_TYPE=Release $OPENMP_EXTRAS_ORIGIN_RPATH"
 	fi
@@ -168,7 +169,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
     mkdir -p $BUILD_DIR/build/openmp_perf
     cd $BUILD_DIR/build/openmp_perf
     echo " -----Running openmp cmake for perf ---- "
-    echo ${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR/lib/cmake" $AOMP_ORIGIN_RPATH $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
+    echo ${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR/lib/llvm/lib/cmake" $AOMP_ORIGIN_RPATH $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
     ${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR/lib/cmake" $AOMP_ORIGIN_RPATH $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
     if [ $? != 0 ] ; then
        echo "error openmp cmake failed. cmake flags"
@@ -180,8 +181,8 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
        echo " -----Running openmp cmake for perf-asan ---- "
        mkdir -p $BUILD_DIR/build/openmp_perf/asan
        cd $BUILD_DIR/build/openmp_perf/asan
-       echo ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR/lib/asan/cmake" $AOMP_ASAN_ORIGIN_RPATH -DCMAKE_C_FLAGS="'$ASAN_FLAGS'" -DCMAKE_CXX_FLAGS="'$ASAN_FLAGS'" -DLLVM_LIBDIR_SUFFIX="-perf/asan" $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
-       ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR/lib/asan/cmake" $AOMP_ASAN_ORIGIN_RPATH -DCMAKE_C_FLAGS="'$ASAN_FLAGS'" -DCMAKE_CXX_FLAGS="'$ASAN_FLAGS'" -DLLVM_LIBDIR_SUFFIX="-perf/asan" $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
+       echo ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR/lib/llvm/lib/asan/cmake" $AOMP_ASAN_ORIGIN_RPATH -DCMAKE_C_FLAGS="'$ASAN_FLAGS'" -DCMAKE_CXX_FLAGS="'$ASAN_FLAGS'" -DLLVM_LIBDIR_SUFFIX="-perf/asan" $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
+       ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR/lib/llvm/lib/asan/cmake" $AOMP_ASAN_ORIGIN_RPATH -DCMAKE_C_FLAGS="'$ASAN_FLAGS'" -DCMAKE_CXX_FLAGS="'$ASAN_FLAGS'" -DLLVM_LIBDIR_SUFFIX="-perf/asan" $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp
        if [ $? != 0 ] ; then
           echo "error openmp cmake failed. cmake flags"
           echo "      $ASAN_CMAKE_OPTS"
@@ -191,9 +192,9 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
   fi
 
    if [ "$AOMP_BUILD_DEBUG" == "1" ] ; then
-      _ompd_dir="$AOMP_INSTALL_DIR/lib-debug/ompd"
+      _ompd_dir="$AOMP_INSTALL_DIR/lib/llvm/lib-debug/ompd"
       #  This is the new locationof the ompd directory
-      [[ ! -d $_ompd_dir ]] && _ompd_dir="$AOMP_INSTALL_DIR/share/gdb/python/ompd"
+      [[ ! -d $_ompd_dir ]] && _ompd_dir="$AOMP_INSTALL_DIR/lib/llvm/share/gdb/python/ompd"
       echo rm -rf $BUILD_DIR/build/openmp_debug
       rm -rf $BUILD_DIR/build/openmp_debug
       
@@ -230,7 +231,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
          mkdir -p $BUILD_DIR/build/openmp_debug
          cd $BUILD_DIR/build/openmp_debug
          if [ "$AOMP_STANDALONE_BUILD" == 1 ]; then
-           PREFIX_PATH="-DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR/lib/cmake"
+           PREFIX_PATH="-DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR/lib/llvm/lib/cmake"
            MYCMAKEOPTS="$COMMON_CMAKE_OPTS $DEBUGCMAKEOPTS $AOMP_ORIGIN_RPATH"
          else
            PREFIX_PATH="-DCMAKE_PREFIX_PATH=$INSTALL_PREFIX/lib/cmake"
@@ -250,7 +251,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
          mkdir -p $BUILD_DIR/build/openmp_debug/asan
          cd $BUILD_DIR/build/openmp_debug/asan
 	 if [ "$AOMP_STANDALONE_BUILD" == 1 ]; then
-	   ASAN_CMAKE_OPTS="$ASAN_CMAKE_OPTS -DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR/lib/asan/cmake $AOMP_ASAN_ORIGIN_RPATH"
+	   ASAN_CMAKE_OPTS="$ASAN_CMAKE_OPTS -DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR/lib/llvm/lib/asan/cmake $AOMP_ASAN_ORIGIN_RPATH"
 	 else
 	   ASAN_CMAKE_OPTS="$ASAN_CMAKE_OPTS -DCMAKE_PREFIX_PATH=$ROCM_CMAKECONFIG_PATH $OPENMP_EXTRAS_ORIGIN_RPATH"
 	 fi
@@ -351,12 +352,12 @@ fi
 
 #  ----------- Install only if asked  ----------------------------
 if [ "$1" == "install" ] ; then 
-   clang_major=$("$AOMP_INSTALL_DIR"/bin/clang --version | grep -oP '(?<=clang version )[0-9]+')
-   llvm_dylib=$(readlink "$AOMP_INSTALL_DIR"/lib/libLLVM.so)
+   clang_major=$("$AOMP_INSTALL_DIR"/lib/llvm/bin/clang --version | grep -oP '(?<=clang version )[0-9]+')
+   llvm_dylib=$(readlink "$AOMP_INSTALL_DIR"/lib/llvm/lib/libLLVM.so)
    if [ "$AOMP_LEGACY_OPENMP" == "1" ] && [ "$SANITIZER" != 1 ] ; then
       cd $BUILD_DIR/build/openmp
       echo
-      echo " -----Installing to $INSTALL_OPENMP/lib ----- "
+      echo " -----Installing to $INSTALL_OPENMP/lib/llvm/lib ----- "
       $SUDO $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS install
       if [ $? != 0 ] ; then
          echo "ERROR $AOMP_NINJA_BIN install failed "
@@ -384,8 +385,8 @@ if [ "$1" == "install" ] ; then
         echo "ERROR $AOMP_NINJA_BIN install failed "
         exit 1
      fi
-     if [ ! -h $AOMP_INSTALL_DIR/lib-perf/$llvm_dylib ] && [ "$llvm_dylib" != "" ]; then
-       cd $AOMP_INSTALL_DIR/lib-perf
+     if [ ! -h $AOMP_INSTALL_DIR/lib/llvm/lib-perf/$llvm_dylib ] && [ "$llvm_dylib" != "" ]; then
+       cd $AOMP_INSTALL_DIR/lib/llvm/lib-perf
        ln -s ../lib/$llvm_dylib $llvm_dylib
      fi
 
@@ -404,9 +405,9 @@ if [ "$1" == "install" ] ; then
    if [ "$AOMP_BUILD_DEBUG" == "1" ] ; then
       if [ "$SANITIZER" != 1 ] ; then
          cd $BUILD_DIR/build/openmp_debug
-         _ompd_dir="$AOMP_INSTALL_DIR/lib-debug/ompd"
+         _ompd_dir="$AOMP_INSTALL_DIR/lib/llvm/lib-debug/ompd"
          #  This is the new locationof the ompd directory
-         [[ ! -d $_ompd_dir ]] && _ompd_dir="$AOMP_INSTALL_DIR/share/gdb/python/ompd"
+         [[ ! -d $_ompd_dir ]] && _ompd_dir="$AOMP_INSTALL_DIR/lib/llvm/share/gdb/python/ompd"
          echo
          echo " -----Installing to $INSTALL_OPENMP/lib-debug ---- "
          $SUDO $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS install
@@ -414,8 +415,8 @@ if [ "$1" == "install" ] ; then
             echo "ERROR $AOMP_NINJA_BIN install failed "
             exit 1
          fi
-         if [ ! -h $AOMP_INSTALL_DIR/lib-debug/$llvm_dylib ] && [ "$llvm_dylib" != "" ]; then
-            cd $AOMP_INSTALL_DIR/lib-debug
+         if [ ! -h $AOMP_INSTALL_DIR/lib/llvm/lib-debug/$llvm_dylib ] && [ "$llvm_dylib" != "" ]; then
+            cd $AOMP_INSTALL_DIR/lib/llvm/lib-debug
             ln -s ../lib/$llvm_dylib $llvm_dylib
          fi
       fi
@@ -431,14 +432,16 @@ if [ "$1" == "install" ] ; then
       fi
 
       # Remove ompdModule.cpython...so  , contains absolute runpath
-      _ompd_dir="$AOMP_INSTALL_DIR/lib-debug/ompd"
-      OMF=`find $_ompd_dir -name ompdModule.cpython\*`
-      echo found ompdModule $OMF
-      if [ -f "$OMF" ]; then
-        echo "==> Removing $OMF"
-        rm -f "$OMF"
-      fi
-      readelf -d $_ompd_dir/ompdModule.so |grep PATH
+
+      ##  DONT KNOW WHY WE HAVE THIS HERE, BUT IF FAILS
+      _ompd_dir="$AOMP_INSTALL_DIR/lib/llvm/lib-debug/ompd"
+      ## OMF=`find $_ompd_dir -name ompdModule.cpython\*`
+      ## echo found ompdModule $OMF
+      ## if [ -f "$OMF" ]; then
+      ##   echo "==> Removing $OMF"
+      ##   rm -f "$OMF"
+      ## fi
+      ## readelf -d $_ompd_dir/ompdModule.so |grep PATH
 
       if [[ "$DEVEL_PACKAGE" =~ "devel" ]]; then
         AOMP_INSTALL_DIR="$AOMP_INSTALL_DIR/""$DEVEL_PACKAGE"
@@ -458,12 +461,12 @@ if [ "$1" == "install" ] ; then
       else
         # Copy selected debugable runtime sources into the installation lib-debug/src directory
         # to satisfy the above -fdebug-prefix-map.
-        $SUDO mkdir -p $AOMP_INSTALL_DIR/lib-debug/src/openmp/runtime/src
-        echo cp -rp $LLVM_PROJECT_ROOT/openmp/runtime/src $AOMP_INSTALL_DIR/lib-debug/src/openmp/runtime
-        $SUDO cp -rp $LLVM_PROJECT_ROOT/openmp/runtime/src $AOMP_INSTALL_DIR/lib-debug/src/openmp/runtime
+        $SUDO mkdir -p $AOMP_INSTALL_DIR/lib/llvm/lib-debug/src/openmp/runtime/src
+        echo cp -rp $LLVM_PROJECT_ROOT/openmp/runtime/src $AOMP_INSTALL_DIR/lib/llvm/lib-debug/src/openmp/runtime
+        $SUDO cp -rp $LLVM_PROJECT_ROOT/openmp/runtime/src $AOMP_INSTALL_DIR/lib/llvm/lib-debug/src/openmp/runtime
 
-        $SUDO mkdir -p $AOMP_INSTALL_DIR/lib-debug/src/openmp/libompd/src
-        $SUDO cp -rp $LLVM_PROJECT_ROOT/openmp/libompd/src $AOMP_INSTALL_DIR/lib-debug/src/openmp/libompd
+        $SUDO mkdir -p $AOMP_INSTALL_DIR/lib/llvm/lib-debug/src/openmp/libompd/src
+        $SUDO cp -rp $LLVM_PROJECT_ROOT/openmp/libompd/src $AOMP_INSTALL_DIR/lib/llvm/lib-debug/src/openmp/libompd
       fi
    fi
 fi

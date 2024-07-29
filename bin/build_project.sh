@@ -17,7 +17,9 @@ thisdir=`dirname $realpath`
 # --- end standard header ----
 
 echo "LLVM PROJECTS TO BUILD:$AOMP_PROJECTS_LIST"
-INSTALL_PROJECT=${INSTALL_PROJECT:-$AOMP_INSTALL_DIR}
+
+# This matches how ROCm installs the compiler
+INSTALL_PROJECT=$AOMP_INSTALL_DIR/lib/llvm
 
 WEBSITE="http\:\/\/github.com\/ROCm-Developer-Tools\/aomp"
 
@@ -251,36 +253,37 @@ if [ "$1" == "install" ] ; then
    fi
    if [ $AOMP_STANDALONE_BUILD == 1 ] ; then 
       echo " "
-      echo "------ Linking $INSTALL_PROJECT to $AOMP -------"
+      echo "------ Linking $AOMP_INSTALL_DIR to $AOMP -------"
       if [ -L $AOMP ] ; then 
          $SUDO rm $AOMP   
       fi
-      $SUDO ln -sf $INSTALL_PROJECT $AOMP   
+      $SUDO ln -sf $AOMP_INSTALL_DIR $AOMP
 
       echo "------ Linking llvm/bin -> bin for hipcc usage -------"
       # Add create AOMP/llvm directory and
-      if [ ! -d $INSTALL_PROJECT/llvm ]; then
-        mkdir -p $INSTALL_PROJECT/llvm
+      if [ ! -d $AOMP_INSTALL_DIR/llvm ]; then
+        mkdir -p $AOMP_INSTALL_DIR/llvm
       fi
-      if [ ! -h $INSTALL_PROJECT/llvm/bin ]; then
-        ln -s ../bin $INSTALL_PROJECT/llvm/bin
+      if [ ! -h $AOMP_INSTALL_DIR/llvm/bin ]; then
+        ln -s $INSTALL_PROJECT/bin $AOMP_INSTALL_DIR/llvm/bin
       fi
+      # we may also want to ln -s $INSTALL_PROJECT/lib $AOMP_INSTALL_DIR/llvm/lib
    fi
 
    # add executables forgot by make install but needed for testing
-   $SUDO cp -p $BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME/bin/llvm-lit $AOMP/bin/llvm-lit
+   $SUDO cp -p $BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME/bin/llvm-lit $AOMP/lib/llvm/bin/llvm-lit
    # update map_config and llvm_source_root paths in the copied llvm-lit file
    SED_AOMP_REPOS=`echo $AOMP_REPOS | sed -e 's/\//\\\\\//g' `
-   sed -ie "s/..\/..\/..\//$SED_AOMP_REPOS\//g" $AOMP/bin/llvm-lit
+   sed -ie "s/..\/..\/..\//$SED_AOMP_REPOS\//g" $AOMP/lib/llvm/bin/llvm-lit
 
-   $SUDO cp -p $BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME/bin/FileCheck $AOMP/bin/FileCheck
-   $SUDO cp -p $BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME/bin/count $AOMP/bin/count
-   $SUDO cp -p $BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME/bin/not $AOMP/bin/not
-   $SUDO cp -p $BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME/bin/yaml-bench $AOMP/bin/yaml-bench
+   $SUDO cp -p $BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME/bin/FileCheck $AOMP/lib/llvm/bin/FileCheck
+   $SUDO cp -p $BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME/bin/count $AOMP/lib/llvm/bin/count
+   $SUDO cp -p $BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME/bin/not $AOMP/lib/llvm/bin/not
+   $SUDO cp -p $BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME/bin/yaml-bench $AOMP/lib/llvm/bin/yaml-bench
    cd $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME
    git checkout llvm/lib/Support/CommandLine.cpp
    echo
-   echo "SUCCESSFUL INSTALL to $INSTALL_PROJECT with link to $AOMP"
+   echo "SUCCESSFUL INSTALL to $INSTALL_PROJECT with $AOMP_INSTALL_DIR linked $AOMP"
    echo
    removepatch $REPO_DIR
    REPO_DIR=$AOMP_REPOS/$AOMP_ROCR_REPO_NAME

@@ -93,7 +93,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
       mkdir -p $BUILD_AOMP/build/comgr/asan
       cd $BUILD_AOMP/build/comgr/asan
       echo " -----Running comgr-asan cmake ----- "
-      ASAN_CMAKE_OPTS="$MYCMAKEOPTS -DCMAKE_C_COMPILER=$AOMP/bin/clang -DCMAKE_CXX_COMPILER=$AOMP/bin/clang++"
+      ASAN_CMAKE_OPTS="$MYCMAKEOPTS -DCMAKE_C_COMPILER=$AOMP/lib/llvm/bin/clang -DCMAKE_CXX_COMPILER=$AOMP/lib/llvm/bin/clang++"
       echo ${AOMP_CMAKE} ${ASAN_CMAKE_OPTS} -DCMAKE_PREFIX_PATH="$AOMP/lib/asan/cmake;$COMMON_PREFIX_PATH:$AOMP/lib/cmake" -DCMAKE_INSTALL_LIBDIR=lib/asan $AOMP_ASAN_ORIGIN_RPATH -DCMAKE_C_FLAGS="'$ASAN_FLAGS'" -DCMAKE_CXX_FLAGS="'$ASAN_FLAGS'" $AOMP_ASAN_ORIGIN_RPATH $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/amd/$AOMP_COMGR_REPO_NAME
       ${AOMP_CMAKE} ${ASAN_CMAKE_OPTS} -DCMAKE_PREFIX_PATH="$AOMP/lib/asan/cmake;$COMMON_PREFIX_PATH;$AOMP/lib/cmake" -DCMAKE_INSTALL_LIBDIR=lib/asan $AOMP_ASAN_ORIGIN_RPATH -DCMAKE_C_FLAGS="'$ASAN_FLAGS'" -DCMAKE_CXX_FLAGS="'$ASAN_FLAGS'" $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/amd/$AOMP_COMGR_REPO_NAME
       if [ $? != 0 ] ; then
