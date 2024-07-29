@@ -55,14 +55,6 @@ if [ ! -d $RSMILIB_REPO_DIR ] ; then
    exit 1
 fi
 
-if [ ! -f $AOMP/bin/clang ] ; then
-   echo "ERROR:  Missing file $AOMP/bin/clang"
-   echo "        Build the AOMP llvm compiler in $AOMP first"
-   echo "        This is needed to build the device libraries"
-   echo " "
-   exit 1
-fi
-
 # Make sure we can update the install directory
 if [ "$1" == "install" ] ; then
    $SUDO mkdir -p $AOMP_INSTALL_DIR

@@ -161,10 +161,10 @@ AOMP_CC_COMPILER=${AOMP_CC_COMPILER:-$GCC}
 AOMP_CXX_COMPILER=${AOMP_CXX_COMPILER:-$GCCXX}
 # Set specified clang and clang++ compilers with env vars AOMP_CLANG*_COMPILER.
 # Otherwise default to installed AOMP. If not yet installed, try rocm clang.
-_clang_compiler=$AOMP/bin/clang
-_clangxx_compiler=$AOMP/bin/clang++
-[ ! -f $_clang_compiler ] && _clang_compiler=/opt/rocm/llvm/bin/clang
-[ ! -f $_clangxx_compiler ] && _clangxx_compiler=/opt/rocm/llvm/bin/clang++
+_clang_compiler=$AOMP/lib/llvm/bin/clang
+_clangxx_compiler=$AOMP/lib/llvm/bin/clang++
+[ ! -f $_clang_compiler ] && _clang_compiler=/opt/rocm/lib/llvm/bin/clang
+[ ! -f $_clangxx_compiler ] && _clangxx_compiler=/opt/rocm/lib/llvm/bin/clang++
 AOMP_CLANG_COMPILER=${AOMP_CLANG_COMPILER:-$_clang_compiler}
 AOMP_CLANGXX_COMPILER=${AOMP_CLANGXX_COMPILER:-$_clangxx_compiler}
 

@@ -10,7 +10,7 @@ thisdir=`dirname $realpath`
 . $thisdir/aomp_common_vars
 # --- end standard header ----
 
-INSTALL_OPENMP=${INSTALL_OPENMP:-$AOMP_INSTALL_DIR}
+INSTALL_OFFLOAD=$AOMP_INSTALL_DIR/lib/llvm
 
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   help_build_aomp
@@ -43,13 +43,13 @@ fi
 
 # Make sure we can update the install directory
 if [ "$1" == "install" ] ; then
-   $SUDO mkdir -p $INSTALL_OPENMP
-   $SUDO touch $INSTALL_OPENMP/testfile
+   $SUDO mkdir -p $INSTALL_OFFLOAD
+   $SUDO touch $INSTALL_OFFLOAD/testfile
    if [ $? != 0 ] ; then
-      echo "ERROR: No update access to $INSTALL_OPENMP"
+      echo "ERROR: No update access to $INSTALL_OFFLOAD"
       exit 1
    fi
-   $SUDO rm $INSTALL_OPENMP/testfile
+   $SUDO rm $INSTALL_OFFLOAD/testfile
 fi
 
 if [ "$AOMP_BUILD_CUDA" == 1 ] ; then
@@ -68,14 +68,15 @@ fi
 export LLVM_DIR=$AOMP_INSTALL_DIR
 GFXSEMICOLONS=`echo $GFXLIST | tr ' ' ';' `
 ALTAOMP=${ALTAOMP:-$AOMP}
-COMMON_CMAKE_OPTS="$AOMP_SET_NINJA_GEN -DOPENMP_ENABLE_LIBOMPTARGET=1
--DCMAKE_INSTALL_PREFIX=$INSTALL_OPENMP
--DOPENMP_TEST_C_COMPILER=$AOMP/bin/clang
--DOPENMP_TEST_CXX_COMPILER=$AOMP/bin/clang++
--DCMAKE_C_COMPILER=$ALTAOMP/bin/clang
--DCMAKE_CXX_COMPILER=$ALTAOMP/bin/clang++
--DLIBOMPTARGET_AMDGCN_GFXLIST=$GFXSEMICOLONS
--DLIBOMPTARGET_ENABLE_DEBUG=ON
+COMMON_CMAKE_OPTS="$AOMP_SET_NINJA_GEN -DOPENMP_ENABLE_LIBOMPTARGET=1 \
+-DCMAKE_INSTALL_PREFIX=$INSTALL_OFFLOAD \
+-DOPENMP_TEST_C_COMPILER=$AOMP/lib/llvm/bin/clang \
+-DOPENMP_TEST_CXX_COMPILER=$AOMP/lib/llvm/bin/clang++ \
+-DCMAKE_C_COMPILER=$ALTAOMP/lib/llvm/bin/clang \
+-DCMAKE_CXX_COMPILER=$ALTAOMP/lib/llvm/bin/clang++ \
+-DLIBOMPTARGET_AMDGCN_GFXLIST=$GFXSEMICOLONS \
+-DLIBOMPTARGET_ENABLE_DEBUG=ON \
+-DOPENMP_LLVM_TOOLS_DIR=$AOMP_INSTALL_DIR/lib/llvm/bin \
 -DLLVM_DIR=$LLVM_DIR"
 
 if [ "$AOMP_STANDALONE_BUILD" == 0 ]; then
@@ -91,8 +92,8 @@ fi
 if [ "$AOMP_BUILD_CUDA" == 1 ] ; then
    COMMON_CMAKE_OPTS="$COMMON_CMAKE_OPTS
 -DLIBOMPTARGET_NVPTX_ENABLE_BCLIB=ON
--DLIBOMPTARGET_NVPTX_CUDA_COMPILER=$AOMP/bin/clang++
--DLIBOMPTARGET_NVPTX_BC_LINKER=$AOMP/bin/llvm-link
+-DLIBOMPTARGET_NVPTX_CUDA_COMPILER=$AOMP/lib/llvm/bin/clang++
+-DLIBOMPTARGET_NVPTX_BC_LINKER=$AOMP/lib/llvm/bin/llvm-link
 -DLIBOMPTARGET_NVPTX_COMPUTE_CAPABILITIES=$NVPTXGPUS"
 else
 #  Need to force CUDA off this way in case cuda is installed in this system
@@ -117,7 +118,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    echo rm -rf $BUILD_DIR/build/offload
    rm -rf $BUILD_DIR/build/offload
    if [ "$AOMP_STANDALONE_BUILD" == 1 ]; then
-     MYCMAKEOPTS="$COMMON_CMAKE_OPTS -DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR/lib/cmake -DCMAKE_BUILD_TYPE=Release $AOMP_ORIGIN_RPATH"
+     MYCMAKEOPTS="$COMMON_CMAKE_OPTS -DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR/lib/llvm/lib/cmake -DCMAKE_BUILD_TYPE=Release $AOMP_ORIGIN_RPATH"
    else
      MYCMAKEOPTS="$COMMON_CMAKE_OPTS -DCMAKE_PREFIX_PATH=$INSTALL_PREFIX/lib/cmake -DCMAKE_BUILD_TYPE=Release $OPENMP_EXTRAS_ORIGIN_RPATH"
    fi
@@ -135,7 +136,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    fi
       if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
         if [ "$AOMP_STANDALONE_BUILD" == 1 ]; then
-          ASAN_CMAKE_OPTS="$COMMON_CMAKE_OPTS -DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR/lib/asan/cmake -DSANITIZER_AMDGPU=1 -DCMAKE_BUILD_TYPE=Release -DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=OFF $AOMP_ASAN_ORIGIN_RPATH"
+          ASAN_CMAKE_OPTS="$COMMON_CMAKE_OPTS -DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR/lib/llvm/lib/asan/cmake;$AOMP_INSTALL_DIR/lib/llvm/lib/cmake  -DSANITIZER_AMDGPU=1 -DCMAKE_BUILD_TYPE=Release -DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=OFF $AOMP_ASAN_ORIGIN_RPATH"
         else
           ASAN_CMAKE_OPTS="$COMMON_CMAKE_OPTS -DCMAKE_PREFIX_PATH=$ROCM_CMAKECONFIG_PATH;$INSTALL_PREFIX/lib/llvm/lib/asan -DSANITIZER_AMDGPU=1 -DCMAKE_BUILD_TYPE=Release -DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=OFF $OPENMP_EXTRAS_ORIGIN_RPATH"
         fi
@@ -155,7 +156,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
   if [ "$AOMP_BUILD_PERF" == "1" ]; then
     echo rm -rf $BUILD_DIR/build/offload_perf
     rm -rf $BUILD_DIR/build/offload_perf
-    MYCMAKEOPTS="$COMMON_CMAKE_OPTS -DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR/lib/cmake -DLIBOMPTARGET_ENABLE_DEBUG=OFF -DCMAKE_BUILD_TYPE=Release -DLIBOMPTARGET_PERF=ON -DOFFLOAD_LIBDIR_SUFFIX=-perf"
+    MYCMAKEOPTS="$COMMON_CMAKE_OPTS -DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR/lib/llvm/lib-perf/cmake;$AOMP_INSTALL_DIR/lib/llvm/lib/cmake -DLIBOMPTARGET_ENABLE_DEBUG=OFF -DCMAKE_BUILD_TYPE=Release -DLIBOMPTARGET_PERF=ON -DOFFLOAD_LIBDIR_SUFFIX=-perf"
     mkdir -p $BUILD_DIR/build/offload_perf
     cd $BUILD_DIR/build/offload_perf
     echo " -----Running offload cmake for perf ---- "
@@ -167,7 +168,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
        exit 1
     fi
     if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
-       ASAN_CMAKE_OPTS="$COMMON_CMAKE_OPTS -DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR/lib/asan/cmake -DLIBOMPTARGET_ENABLE_DEBUG=OFF -DCMAKE_BUILD_TYPE=Release -DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=OFF -DLIBOMPTARGET_PERF=ON -DSANITIZER_AMDGPU=1 $AOMP_ASAN_ORIGIN_RPATH"
+       ASAN_CMAKE_OPTS="$COMMON_CMAKE_OPTS -DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR/lib/llvm/lib/asan/cmake;$AOMP_INSTALL_DIR/lib/llvm/lib/cmake  -DLIBOMPTARGET_ENABLE_DEBUG=OFF -DCMAKE_BUILD_TYPE=Release -DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=OFF -DLIBOMPTARGET_PERF=ON -DSANITIZER_AMDGPU=1 $AOMP_ASAN_ORIGIN_RPATH"
        echo " -----Running offload cmake for perf-asan ---- "
        mkdir -p $BUILD_DIR/build/offload_perf/asan
        cd $BUILD_DIR/build/offload_perf/asan
@@ -221,7 +222,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
          mkdir -p $BUILD_DIR/build/offload_debug
          cd $BUILD_DIR/build/offload_debug
          if [ "$AOMP_STANDALONE_BUILD" == 1 ]; then
-           PREFIX_PATH="-DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR/lib/cmake"
+           PREFIX_PATH="-DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR/lib/llvm/lib/cmake"
            MYCMAKEOPTS="$COMMON_CMAKE_OPTS $DEBUGCMAKEOPTS $AOMP_ORIGIN_RPATH"
          else
            PREFIX_PATH="-DCMAKE_PREFIX_PATH=$INSTALL_PREFIX/lib/cmake"
@@ -239,7 +240,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
       if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
          ASAN_CMAKE_OPTS="$COMMON_CMAKE_OPTS $DEBUGCMAKEOPTS -DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=OFF -DSANITIZER_AMDGPU=1"
          if [ "$AOMP_STANDALONE_BUILD" == 1 ]; then
-           ASAN_CMAKE_OPTS="$ASAN_CMAKE_OPTS -DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR/lib/asan/cmake $AOMP_ASAN_ORIGIN_RPATH"
+           ASAN_CMAKE_OPTS="$ASAN_CMAKE_OPTS -DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR/lib/llvm/lib/asan/cmake;$AOMP_INSTALL_DIR/lib/llvm/lib/cmake $AOMP_ASAN_ORIGIN_RPATH"
          else
            ASAN_CMAKE_OPTS="$ASAN_CMAKE_OPTS -DCMAKE_PREFIX_PATH=$ROCM_CMAKECONFIG_PATH;$INSTALL_PREFIX/lib/llvm/lib/asan $OPENMP_EXTRAS_ORIGIN_RPATH"
          fi
@@ -346,7 +347,7 @@ if [ "$1" == "install" ] ; then
    if [ "$AOMP_LEGACY_OPENMP" == "1" ] && [ "$SANITIZER" != 1 ] ; then
       cd $BUILD_DIR/build/offload
       echo
-      echo " -----Installing to $INSTALL_OPENMP/lib ----- "
+      echo " -----Installing to $INSTALL_OFFLOAD/lib ----- "
       $SUDO $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS install
       if [ $? != 0 ] ; then
          echo "ERROR $AOMP_NINJA_BIN install failed "
@@ -357,7 +358,7 @@ if [ "$1" == "install" ] ; then
    if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
       cd $BUILD_DIR/build/offload/asan
       echo
-      echo " -----Installing to $INSTALL_OPENMP/lib/asan ----- "
+      echo " -----Installing to $INSTALL_OFFLOAD/lib/asan ----- "
       $SUDO $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS install
       if [ $? != 0 ] ; then
          echo "ERROR $AOMP_NINJA_BIN install failed "
@@ -368,7 +369,7 @@ if [ "$1" == "install" ] ; then
    if [ "$AOMP_BUILD_PERF" == "1" ]; then
      cd $BUILD_DIR/build/offload_perf
      echo
-     echo " -----Installing to $INSTALL_OPENMP/lib-perf ----- "
+     echo " -----Installing to $INSTALL_OFFLOAD/lib-perf ----- "
      $SUDO $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS install
      if [ $? != 0 ] ; then
         echo "ERROR $AOMP_NINJA_BIN install failed "
@@ -382,7 +383,7 @@ if [ "$1" == "install" ] ; then
      if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
         cd $BUILD_DIR/build/offload_perf/asan
         echo
-        echo " ----- Installing to $INSTALL_OPENMP/lib-perf/asan ----- "
+        echo " ----- Installing to $INSTALL_OFFLOAD/lib-perf/asan ----- "
         $SUDO $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS install
         if [ $? != 0 ] ; then
            echo "ERROR $AOMP_NINJA_BIN install failed "
@@ -398,7 +399,7 @@ if [ "$1" == "install" ] ; then
       if [ "$SANITIZER" != 1 ] ; then
          cd $BUILD_DIR/build/offload_debug
          echo
-         echo " -----Installing to $INSTALL_OPENMP/lib-debug ---- "
+         echo " -----Installing to $INSTALL_OFFLOAD/lib-debug ---- "
          $SUDO $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS install
          if [ $? != 0 ] ; then
             echo "ERROR $AOMP_NINJA_BIN install failed "
@@ -411,7 +412,7 @@ if [ "$1" == "install" ] ; then
       fi
       if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
          cd $BUILD_DIR/build/offload_debug/asan
-         echo " -----Installing to $INSTALL_OPENMP/lib-debug/asan ---- "
+         echo " -----Installing to $INSTALL_OFFLOAD/lib-debug/asan ---- "
          $SUDO $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS install
          if [ $? != 0 ] ; then
             echo "ERROR $AOMP_NINJA_BIN install failed "
