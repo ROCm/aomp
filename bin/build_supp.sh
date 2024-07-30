@@ -198,7 +198,7 @@ function buildninja(){
   _patch_file="$thisdir/patches/ninja-nprocs-v${_version}.patch"
   if [ -r $_patch_file ]; then
     runcmd   "cp $_patch_file $_builddir"
-    runcmdin "patch -p1" "$_patch_file"
+    runcmdin "patch --merge -p1" "$_patch_file"
   fi
   if [ -d $_installdir ] ; then
     runcmd "rm -rf $_installdir"
