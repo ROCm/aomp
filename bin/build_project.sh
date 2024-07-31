@@ -38,8 +38,8 @@ patchrepo $REPO_DIR
 
 # End check-openmp prep
 if [ "$AOMP_PROC" == "ppc64le" ] || [ "$AOMP_PROC" == "aarch64" ] ; then
-   echo "WARNING: You are about to build AOMP for the *untested* target $AOMP_PROC. Press enter to continue."
-   read
+   echo "WARNING: You are about to build AOMP for the *untested* target $AOMP_PROC."
+   sleep 6
 fi
 
 if [ "$AOMP_PROC" == "ppc64le" ] ; then
