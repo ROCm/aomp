@@ -25,6 +25,7 @@ TEST(MultiGPUTracingSuite, uut_device_set_trace_disabled) {
   OMPT_SUPPRESS_EVENT(EventTy::DeviceLoad)
   OMPT_SUPPRESS_EVENT(EventTy::BufferRequest)
   OMPT_SUPPRESS_EVENT(EventTy::BufferComplete)
+  OMPT_SUPPRESS_EVENT(EventTy::BufferRecordDeallocation);
 
   int HostId = omp_get_initial_device();
   int NumDevices = omp_get_num_devices();
@@ -73,6 +74,7 @@ TEST(MultiGPUTracingSuite, uut_device_set_trace_target) {
   OMPT_SUPPRESS_EVENT(EventTy::DeviceLoad)
   OMPT_SUPPRESS_EVENT(EventTy::BufferRequest)
   OMPT_SUPPRESS_EVENT(EventTy::BufferComplete)
+  OMPT_SUPPRESS_EVENT(EventTy::BufferRecordDeallocation);
 
   int HostId = omp_get_initial_device();
   int NumDevices = omp_get_num_devices();
@@ -122,6 +124,7 @@ TEST(MultiGPUTracingSuite, uut_device_set_trace_data_op) {
   OMPT_SUPPRESS_EVENT(EventTy::DeviceLoad)
   OMPT_SUPPRESS_EVENT(EventTy::BufferRequest)
   OMPT_SUPPRESS_EVENT(EventTy::BufferComplete)
+  OMPT_SUPPRESS_EVENT(EventTy::BufferRecordDeallocation);
 
   int HostId = omp_get_initial_device();
   int NumDevices = omp_get_num_devices();
@@ -197,6 +200,7 @@ TEST(MultiGPUTracingSuite, uut_device_set_trace_target_submit) {
   OMPT_SUPPRESS_EVENT(EventTy::DeviceLoad)
   OMPT_SUPPRESS_EVENT(EventTy::BufferRequest)
   OMPT_SUPPRESS_EVENT(EventTy::BufferComplete)
+  OMPT_SUPPRESS_EVENT(EventTy::BufferRecordDeallocation);
 
   int HostId = omp_get_initial_device();
   int NumDevices = omp_get_num_devices();
@@ -261,6 +265,7 @@ TEST(SequenceAssertion, uut_target_sequence) {
   OMPT_SUPPRESS_EVENT(EventTy::DeviceLoad)
   OMPT_SUPPRESS_EVENT(EventTy::BufferRequest)
   OMPT_SUPPRESS_EVENT(EventTy::BufferComplete)
+  OMPT_SUPPRESS_EVENT(EventTy::BufferRecordDeallocation);
 
   OMPT_ASSERT_SEQUENCE(BufferRecord, /*Type=*/CB_TARGET, /*Kind=*/TARGET,
                        /*Endpoint=*/BEGIN)
@@ -297,6 +302,7 @@ TEST(SetAssertion, uut_target_set) {
   OMPT_SUPPRESS_EVENT(EventTy::DeviceLoad)
   OMPT_SUPPRESS_EVENT(EventTy::BufferRequest)
   OMPT_SUPPRESS_EVENT(EventTy::BufferComplete)
+  OMPT_SUPPRESS_EVENT(EventTy::BufferRecordDeallocation);
 
   OMPT_ASSERT_SET(BufferRecord, /*Type=*/CB_TARGET, /*Kind=*/TARGET,
                   /*Endpoint=*/BEGIN)
@@ -333,6 +339,7 @@ TEST(SetAssertion, uut_target_set_generic_duplicates) {
   OMPT_SUPPRESS_EVENT(EventTy::DeviceLoad)
   OMPT_SUPPRESS_EVENT(EventTy::BufferRequest)
   OMPT_SUPPRESS_EVENT(EventTy::BufferComplete)
+  OMPT_SUPPRESS_EVENT(EventTy::BufferRecordDeallocation);
 
   OMPT_GENERATE_EVENTS(2, OMPT_ASSERT_SET(BufferRecord, /*Type=*/CB_TARGET))
   OMPT_GENERATE_EVENTS(4, OMPT_ASSERT_SET(BufferRecord, /*Type=*/CB_DATAOP))
@@ -354,6 +361,7 @@ TEST(AssertionMode, uut_target_set_mode_relaxed) {
   OMPT_SUPPRESS_EVENT(EventTy::DeviceLoad)
   OMPT_SUPPRESS_EVENT(EventTy::BufferRequest)
   OMPT_SUPPRESS_EVENT(EventTy::BufferComplete)
+  OMPT_SUPPRESS_EVENT(EventTy::BufferRecordDeallocation);
 
   OMPT_ASSERT_SET_MODE_RELAXED()
 
@@ -375,6 +383,7 @@ TEST(AssertionMode, uut_target_sequence_mode_relaxed) {
   OMPT_SUPPRESS_EVENT(EventTy::DeviceLoad)
   OMPT_SUPPRESS_EVENT(EventTy::BufferRequest)
   OMPT_SUPPRESS_EVENT(EventTy::BufferComplete)
+  OMPT_SUPPRESS_EVENT(EventTy::BufferRecordDeallocation);
 
   OMPT_ASSERT_SEQUENCE_MODE_RELAXED()
 
@@ -403,6 +412,7 @@ TEST(MixedAssertionSuite, uut_target_sequence_and_set) {
   OMPT_SUPPRESS_EVENT(EventTy::DeviceLoad)
   OMPT_SUPPRESS_EVENT(EventTy::BufferRequest)
   OMPT_SUPPRESS_EVENT(EventTy::BufferComplete)
+  OMPT_SUPPRESS_EVENT(EventTy::BufferRecordDeallocation);
 
   // This will create / delete groups using sequential asserter
   OMPT_ASSERT_SEQUENCE_GROUPED_ONLY("R1", TargetEmi, /*Kind=*/TARGET,
