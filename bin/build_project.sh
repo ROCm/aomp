@@ -37,6 +37,10 @@ REPO_DIR=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME
 patchrepo $REPO_DIR
 
 # End check-openmp prep
+if [ "$AOMP_PROC" == "ppc64le" ] || [ "$AOMP_PROC" == "aarch64" ] ; then
+   echo "WARNING: You are about to build AOMP for the *untested* target $AOMP_PROC. Press enter to continue."
+   read
+fi
 
 if [ "$AOMP_PROC" == "ppc64le" ] ; then
    COMPILERS="-DCMAKE_C_COMPILER=/usr/bin/gcc-7 -DCMAKE_CXX_COMPILER=/usr/bin/g++-7"
