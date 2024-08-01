@@ -96,6 +96,24 @@ function runcmdout(){
    fi
 }
 
+function runcmdin(){
+   THISCMD=$1
+   INFILE=$2
+   if [ $DRYRUN ] ; then
+      echo "$THISCMD < $INFILE"
+   else
+      echo "$THISCMD < $INFILE"
+      echo "$THISCMD < $INFILE" >>$CMDLOGFILE
+      $THISCMD < $INFILE
+      rc=$?
+      if [ $rc != 0 ] ; then
+         echo "ERROR:  The following command failed with return code $rc: "
+         echo "        $THISCMD < $INFILE"
+         exit $rc
+      fi
+   fi
+}
+
 function checkversion(){
   # inputs: $_linkfrom, $_cname, $CMDLOGFILE, $_version
   # output: $SKIPBUILD
@@ -177,6 +195,11 @@ function buildninja(){
   runcmd "wget https://github.com/ninja-build/ninja/archive/refs/tags/v${_version}.tar.gz"
   runcmd "tar -xzf v${_version}.tar.gz"
   runcmd "cd ninja-$_version"
+  _patch_file="$thisdir/patches/ninja-nprocs-v${_version}.patch"
+  if [ -r $_patch_file ]; then
+    runcmd   "cp $_patch_file $_builddir"
+    runcmdin "patch --merge -p1" "$_patch_file"
+  fi
   if [ -d $_installdir ] ; then
     runcmd "rm -rf $_installdir"
   fi
