@@ -55,7 +55,7 @@ if [ ! -d $RSMILIB_REPO_DIR ] ; then
    exit 1
 fi
 
-if [ ! -f $AOMP/bin/clang ] ; then
+if [ ! -f $LLVM_INSTALL_LOC/bin/clang ] ; then
    echo "ERROR:  Missing file $AOMP/bin/clang"
    echo "        Build the AOMP llvm compiler in $AOMP first"
    echo "        This is needed to build the device libraries"
