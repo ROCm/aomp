@@ -9,7 +9,7 @@
 ###########################################################
 
 set -e
-AOMP_VERSION_STRING=${AOMP_VERSION_STRING:-19.0-2}
+AOMP_VERSION_STRING=${AOMP_VERSION_STRING:-19.0-3}
 AOMP_VERSION=${AOMP_VERSION:-19.0}
 #DOCKERX_HOST=${DOCKERX_HOST:-$HOME/dockerx}
 DOCKERX_HOST=$HOME/dockerx
@@ -34,7 +34,7 @@ if [ -f $DOCKERX_HOST/docker-urls.txt ]; then
       url_array["ubuntu2004"]=$line
     elif [[ "$line" =~ "ubuntu:22" ]]; then
       url_array["ubuntu2204"]=$line
-    elif [[ "$line" =~ "centos7" ]]; then
+    elif [[ "$line" =~ "centos:7" ]]; then
       url_array["centos7"]=$line
     elif [[ "$line" =~ "centos8" ]]; then
       url_array["centos8"]=$line
@@ -61,7 +61,7 @@ prereq_array["ubuntu2004"]="apt-get -y update && apt-get install -y git cmake wg
 
 prereq_array["ubuntu2204"]="apt-get -y update && apt-get install -y git cmake wget vim openssl libssl-dev libelf-dev kmod pciutils gcc g++ pkg-config libpci-dev libnuma-dev libffi-dev git libopenmpi-dev gawk mesa-common-dev libtool python3 texinfo libbison-dev bison flex libbabeltrace-dev python3-pip libncurses5-dev liblzma-dev python3-setuptools python3-dev libpython3.10-dev libudev-dev libgmp-dev debianutils devscripts cli-common-dev rsync libsystemd-dev libdw-dev libgtest-dev libstdc++-12-dev sudo python3-lxml ccache libgmp-dev libmpfr-dev && $pip_install_2204"
 
-prereq_array["centos7"]="yum install -y gcc-c++ git cmake wget vim openssl-devel elfutils-libelf-devel pciutils-devel numactl-devel libffi-devel mesa-libGL-devel libtool texinfo bison flex ncurses-devel expat-devel xz-devel libbabeltrace-devel gmp-devel rpm-build rsync systemd-devel gtest-devel libpciaccess-devel elfutils-devel ccache libxml2-devel xz-lzma-compat devtoolset-9 devtoolset-9-libatomic-devel devtoolset-9-elfutils-libelf-devel scl-utils mpfr-devel && yum remove -y python3*"
+prereq_array["centos7"]="yum install -y make gcc-c++ git cmake wget vim openssl-devel elfutils-libelf-devel pciutils-devel numactl-devel libffi-devel mesa-libGL-devel libtool texinfo bison flex ncurses-devel expat-devel xz-devel libbabeltrace-devel gmp-devel rpm-build rsync systemd-devel gtest-devel libpciaccess-devel elfutils-devel ccache libxml2-devel xz-lzma-compat devtoolset-9 devtoolset-9-libatomic-devel devtoolset-9-elfutils-libelf-devel scl-utils mpfr-devel && yum remove -y python3*"
 
 prereq_array["centos8"]="yum install -y dnf-plugins-core && yum config-manager --set-enabled PowerTools && yum install -y gcc-c++ git cmake wget vim openssl-devel elfutils-libelf-devel pciutils-devel numactl-devel libffi-devel mesa-libGL-devel libtool texinfo bison flex ncurses-devel expat-devel xz-devel libbabeltrace-devel gmp-devel rpm-build rsync systemd-devel gtest-devel elfutils-devel ccache python38 python38-devel mpfr-devel && yum remove -y python36* && $pip_install"
 
@@ -89,6 +89,13 @@ function setup(){
   # Pull docker and start
   docker pull ${url_array[$system]}
   docker run -d -it --name="$docker_name" --network=host --privileged --group-add video --cap-add=SYS_PTRACE --device=/dev/kfd --device=/dev/dri --security-opt seccomp=unconfined --ipc=host -v $DOCKERX_HOST:$DOCKERX ${url_array[$system]}
+
+  if [ "$system" == "centos7" ]; then
+    # Support for centos7 has reached EOL. Many of the repos no longer use the mirror list url and need switched to baseurl with vault url.
+    docker exec -i $docker_name /bin/bash -c "sed -i 's/mirrorlist=/#mirrorlist=/g' /etc/yum.repos.d/CentOS-*.repo; sed -i 's/#\s*baseurl=/baseurl=/g' /etc/yum.repos.d/CentOS-*.repo; sed -i 's/mirror\./vault\./g' /etc/yum.repos.d/CentOS-*.repo"
+    docker exec -i $docker_name /bin/bash -c "yum install -y epel-release centos-release-scl"
+    docker exec -i $docker_name /bin/bash -c "sed -i 's/mirrorlist=/#mirrorlist=/g' /etc/yum.repos.d/CentOS-*.repo; sed -i 's/#\s*baseurl=/baseurl=/g' /etc/yum.repos.d/CentOS-*.repo; sed -i 's/mirror\./vault\./g' /etc/yum.repos.d/CentOS-*.repo"
+  fi
 
   # Change repos for Centos 8 to enable yum functionality again as it has been vaulted.
   if [ "$system" == "centos8" ]; then

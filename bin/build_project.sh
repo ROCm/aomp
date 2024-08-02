@@ -262,8 +262,11 @@ if [ "$1" == "install" ] ; then
       if [ ! -d $INSTALL_PROJECT/llvm ]; then
         mkdir -p $INSTALL_PROJECT/llvm
       fi
-      if [ ! -h $INSTALL_PROJECT/llvm/bin ]; then
-        ln -s ../bin $INSTALL_PROJECT/llvm/bin
+      if [ ! -h $INSTALL_PROJECT/lib/llvm/bin ]; then
+        if [ ! -d $INSTALL_PROJECT/lib/llvm ]; then
+          mkdir -p $INSTALL_PROJECT/lib/llvm
+        fi
+        ln -s ../../bin $INSTALL_PROJECT/lib/llvm/bin
       fi
    fi
 

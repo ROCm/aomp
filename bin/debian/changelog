@@ -1,4 +1,4 @@
-aomp (18.0-1) UNRELEASED; urgency=medium
+aomp (19.0-3) UNRELEASED; urgency=medium
 
   * Initial release of aomp is 0.3-2
   *   Please see example in /usr/lib/aomp/examples/vmuldemo 
@@ -979,5 +979,13 @@ aomp (18.0-1) UNRELEASED; urgency=medium
   *   Support for fp16 and bfloat16 reductions.
   *   Removed long deprecated utilities mygpu, mymcpu, aompcc, aompExtractRegion,
   *     clang-ocl, and cloc.sh.
+  *
+  * 19.0-3
+  *   Support for requires atomic default mem order clause was added.
+  *   OMPT does no longer fall back into synchronous execution mode when profiler is attached.
+  *   OMPT now supports callbacks for omp_target_associate_ptr and omp_target_disassociate_ptr
+  *   Xteam Reduction enabled by default at all opt levels.
+  *   Some HIP interoperability issues with tracking HIP memory allocations on Mi200 were resolved.
+  *   Remove deprecated utility offload-arch. This was replaced with amdgpu-arch or nvptx-arch.
 
  -- Greg Rodgers <Gregory.Rodgers@amd.com>  Thu, 19 May 2022 23:34:44 -0500

@@ -40,14 +40,14 @@ Here are the commands to do a source build of AOMP:
 ```
 
 The development version is the next version to be released.  It is possible that the development version is broken due to regressions that often occur during development.
-These commands will build a previous release of AOMP such as aomp-19.0-2.<br>
+These commands will build a previous release of AOMP such as aomp-19.0-3.<br>
 <b>Release Branch:</b>
 ```
    export AOMP_VERSION=19.0
    export AOMP_REPOS=$HOME/git/aomp${AOMP_VERSION}
    mkdir -p $AOMP_REPOS
    cd $AOMP_REPOS
-   git clone -b aomp-19.0-2 https://github.com/ROCm-Developer-Tools/aomp
+   git clone -b aomp-19.0-3 https://github.com/ROCm-Developer-Tools/aomp
 ```
 <b>Clone and build:</b>
 ```
