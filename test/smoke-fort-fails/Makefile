@@ -1,6 +1,9 @@
 include ../Makefile.defs
 
 TESTS_DIR = \
+    clause_num_teams \
+    clause_num_threads \
+    clause_thread_limit \
     f2018-select-rank \
     flang-315421 \
     flang-325095 \
