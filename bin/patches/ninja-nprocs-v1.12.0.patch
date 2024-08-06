@@ -1,0 +1,72 @@
+diff --git a/src/ninja.cc b/src/ninja.cc
+index ce1beda..530c255 100644
+--- a/src/ninja.cc
++++ b/src/ninja.cc
+@@ -241,15 +241,40 @@ void Usage(const BuildConfig& config) {
+ 
+ /// Choose a default value for the -j (parallelism) flag.
+ int GuessParallelism() {
+-  switch (int processors = GetProcessorCount()) {
++  int nprocs = GetProcessorCount();
++  switch (nprocs) {
+   case 0:
+   case 1:
+-    return 2;
+   case 2:
+-    return 3;
++    nprocs++;
++    break;
+   default:
+-    return processors + 2;
++    nprocs += 2;
++    break;
+   }
++
++  const char * nprocs_str = getenv("NINJA_NPROCS");
++  if (!nprocs_str) return nprocs;
++
++  char * end;
++  auto nprocs_env = strtol(nprocs_str, &end, 10);
++
++  if (*end != 0 || nprocs_env <= 0) return nprocs;
++
++  return int(nprocs_env);
++}
++
++/// Returns verbosity mode from the environment variable
++int HasVerbose() {
++  const char * verbose_str = getenv("NINJA_VERBOSE");
++  if (!verbose_str) return 0;
++
++  char * end;
++  auto verbose = strtol(verbose_str, &end, 10);
++
++  if (*end != 0 || verbose <= 0) return 0;
++
++  return verbose > 0;
+ }
+ 
+ /// Rebuild the build manifest, if necessary.
+@@ -1523,6 +1548,9 @@ int ReadFlags(int* argc, char*** argv,
+   *argv += optind;
+   *argc -= optind;
+ 
++  if (HasVerbose())
++    config->verbosity = BuildConfig::VERBOSE;
++
+   return -1;
+ }
+ 
+diff --git a/src/version.cc b/src/version.cc
+index ca54c37..6c3da4c 100644
+--- a/src/version.cc
++++ b/src/version.cc
+@@ -20,7 +20,7 @@
+ 
+ using namespace std;
+ 
+-const char* kNinjaVersion = "1.12.0";
++const char* kNinjaVersion = "1.12.0-mk";
+ 
+ void ParseVersion(const string& version, int* major, int* minor) {
+   size_t end = version.find('.');

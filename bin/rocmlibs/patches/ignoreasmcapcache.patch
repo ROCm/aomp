@@ -1,0 +1,13 @@
+diff --git a/Tensile/TensileCreateLibrary.py b/Tensile/TensileCreateLibrary.py
+index 3c75b978..9b2b2c0f 100644
+--- a/Tensile/TensileCreateLibrary.py
++++ b/Tensile/TensileCreateLibrary.py
+@@ -1217,7 +1217,7 @@ def TensileCreateLibrary():
+   argParser.add_argument("--client-config", dest="ClientConfig", action="store_true",
+                          help="Create client config for setting the library and code object files")
+   argParser.add_argument("--global-parameters", nargs="+", type=splitExtraParameters, default=[])
+-  argParser.add_argument("--ignore-asm-cap-cache", dest="IgnoreAsmCapCache", action="store_true", default=False,
++  argParser.add_argument("--ignore-asm-cap-cache", dest="IgnoreAsmCapCache", action="store_true", default=True,
+                          help="Ignore asm cap cache and derive the asm caps at runtime")
+   args = argParser.parse_args()
+ 

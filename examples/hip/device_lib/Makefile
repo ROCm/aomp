@@ -48,7 +48,7 @@ writeIndex: $(_in_dir)writeIndex.hip lib_mylib.a bundled/lib_myomplib.a
 	@echo " ----------  3 Build HIP application using both SDLs ----------------"
 	@echo
 	@echo " 3.1 Create HIP application using both _mylib and _myomplib SDLs.        $@"
-	DEVICE_LIB_PATH=$(DEVICE_LIB_PATH) $(HIPCC) -std=c++11 -fgpu-rdc -L$(PWD)/bundled -l_myomplib -L$(PWD) -l_mylib $(_in_dir)writeIndex.hip -o $@ -std=c++11
+	DEVICE_LIB_PATH=$(DEVICE_LIB_PATH) $(HIPCC) -std=c++11 -fgpu-rdc -L$(PWD)/bundled -l_myomplib -L$(PWD) -l_mylib $(_in_dir)writeIndex.hip -o $@ -std=c++11 ${LD_FLAGS}
 
 inc_arrayval.o: $(_in_dir)inc_arrayval.c
 	@echo
@@ -99,7 +99,7 @@ lib_myomplib.a:  _myomplib.o
 bundled/lib_myomplib.a: lib_myomplib.a
 	@echo
 	@echo " 2.3 Create bundled archive lib from packaged archive lib.			$@"
-	mkdir -p bundled ; $(mkfile_dir)../../rebundle_hip_lib.sh $(PWD)/$^ $(PWD)/$@
+	mkdir -p bundled ; LLVM_INSTALL_DIR=$(LLVM_INSTALL_DIR) $(mkfile_dir)../../rebundle_hip_lib.sh $(PWD)/$^ $(PWD)/$@
 
 run: writeIndex
 	./writeIndex

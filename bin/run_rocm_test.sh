@@ -21,7 +21,7 @@ export CLEANUP=0
 # Enable AMDGPU Sanitizer Testing
 if [ "$1" == "-a" ]; then
   export AOMP_SANITIZER=1
-  export LD_LIBRARY_PATH=$ROCM_INSTALL_PATH/llvm/lib/asan:$ROCM_INSTALL_PATH/lib/asan:$LD_LIBRARY_PATH
+  export LD_LIBRARY_PATH=$AOMP/lib/asan:$AOMPROCM/lib/asan:$LD_LIBRARY_PATH
 fi
 
 if [ -e /usr/sbin/lspci ]; then
@@ -155,6 +155,10 @@ if [ "$aomp" != 1 ]; then
   if [ "$SKIP_TEST_PACKAGE" != 1 ] && [ "$TEST_BRANCH" == "" ]; then
     git --no-pager log -1
     if [ ! -e "$ROCMINF/share/openmp-extras/tests/bin/run_rocm_test.sh" ]; then
+      if [ "$EPSDB" == "1" ]; then
+        echo "Error: nPSDB should have the openmp-extras-tests package installed before this test step."
+        exit 1
+      fi
       rm -rf $tmpdir
       mkdir -p $tmpdir
       # Determine OS and download package not using sudo.

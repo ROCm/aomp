@@ -5,7 +5,7 @@ TESTSRC_MAIN = map-from-into-const-global-class.cpp
 TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 
-CFLAGS       += -Ofast -fno-openmp-target-ignore-env-vars
+CFLAGS       += -O3 -fno-openmp-target-ignore-env-vars
 CLANG        ?= clang++
 OMP_BIN      = $(AOMP)/bin/$(CLANG)
 CC           = $(OMP_BIN) $(VERBOSE)

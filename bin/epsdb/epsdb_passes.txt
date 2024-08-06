@@ -215,7 +215,6 @@ reduction_teams
 reduction_teams_distribute_parallel
 simd
 slices
-snap_red
 stream
 targ-273742
 targc-273738

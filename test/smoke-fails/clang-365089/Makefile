@@ -9,6 +9,6 @@ CLANG        = clang++
 OMP_BIN      = $(AOMP)/bin/$(CLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
 
-OMP_FLAGS = -fopenmp -Ofast -v -c
+OMP_FLAGS = -fopenmp -O3 -v -c
 
 include ../Makefile.rules

@@ -10,7 +10,7 @@ AOMPHIP ?= $(AOMP)
 HIPCC ?= $(AOMPHIP)/bin/hipcc
 HIP_CLANG_PATH ?= $(AOMPHIP)/bin
 
-CFLAGS = -Ofast -fopenmp-target-fast
+CFLAGS = -O3 -fopenmp-target-fast
 CLANG        = clang++
 OMP_BIN      = $(AOMP)/bin/$(CLANG)
 CC           = $(OMP_BIN) $(VERBOSE)

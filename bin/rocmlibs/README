@@ -1,0 +1,51 @@
+Notes on build and install of rocmlibs with the AOMP development compiler.
+
+- AOMP is the AMD development compiler based on upstream LLVM-20 and the
+  amd-staging branch of llvm-project.  AOMP builds the full LLVM compiler stack
+  and supporting components such as rocgdb, rocprofiler, and rocminfo.
+  However, those components does not include any of the ROCm math libraries.
+
+- Everything to build and install of rocmlibs for AOMP is in this subdirectory
+  aomp/bin/rocmlibs including this README.  The parent directory aomp/bin is 
+  contains all the original AOMP component build scripts and test scripts.
+
+- The top level script is build_rocmlibs.sh. It is optional and can only be 
+  run after successful execution of build_aomp.sh.  Because it is optional,
+  the rocmlibs components will not be added to build_aomp.sh.
+
+- The components that build_rocmlibs.sh builds and installs are:
+  ../build_prereq.sh
+  ../build_rocm-cmake.sh
+  build_rocblas.sh
+  build_rocprim.sh
+  build_rocsparse.sh
+  build_rocsolver.sh 
+  build_hipblas.sh
+
+- The build of all these libraries can take a long time.  It is recommended
+  to run this command to build and install all the rocmlibs components:
+ 
+  nohup ./build_rocmlibs.sh &
+
+  This will provide a log of your build in the file nohup.out.
+
+- build_rocmlibs.sh will call each of the above scripts twice. The first
+  is with no arguments to do the actual build. The 2nd is with the single
+  argument "install" to install the component into $AOMP. The 2nd execution
+  will only occur if the build was successful. 
+
+- These systems dependencies are needed to build rocmlibs:
+  apt-get install make python3 python3-yaml python3-venv python3-joblib libmsgpack-dev libfmt-dev
+  Eventually, these will get added to aomp/docs/SOURCEINSTALL_PREREQUISITE.md 
+
+- Currently we disable Tensile for build_rocblas.sh
+
+- It appears that TensileCreateLibrary args are not getting set from cmake.py
+  This is not a problem while we currently do not use Tensile. 
+
+- We are using the AOMP patch subsystem to manage changes we need to make to
+  rocmlibs. This subsystem allows us to stay current with current repos without commiting 
+  our fix. The patch is applied by build_<components>.sh and then 
+  removed after successful build and install. For example, see the file 
+  patches/rocblas.patch for our changes to rocBLAS repository for gfx1103.
+

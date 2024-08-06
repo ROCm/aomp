@@ -1,7 +1,7 @@
 NOOPT        = 1
 OMP_FLAGS    = -fopenmp
 include ../../Makefile.defs
-CFLAGS      += -Ofast
+CFLAGS      += -O3
 
 TESTNAME     = jacobi
 TESTSRC_MAIN = jacobi.cpp

@@ -237,7 +237,5 @@ TEST(InitialTestSuite, uut_device_init_load) {
 
 int main(int argc, char **argv) {
   Runner R;
-  R.run();
-
-  return 0;
+  return R.run();
 }

@@ -53,11 +53,11 @@ VERS = $(shell $(LLVM_INSTALL_DIR)/bin/clang --version | grep -oP '(?<=clang ver
 ROCM = $(shell $(LLVM_INSTALL_DIR)/bin/clang --version | grep -oP 'AMD clang')
 
 ifeq ($(shell expr $(VERS) \>= 12.0), 1)
-        RPTH = -Wl,-rpath,$(HIPDIR)/lib -Wl,-rpath,$(LLVM_INSTALL_DIR)/lib/clang/$(VERS)/lib/linux
+        RPTH = -Wl,-rpath,$(HIPDIR)/lib/asan -Wl,-rpath,$(LLVM_INSTALL_DIR)/lib/clang/$(VERS)/lib/linux
 endif
 LFLAGS  =
-HIPLIBS = -L $(HIPDIR)/lib  $(RPTH)
-CFLAGS  = -O0 -g -x hip -std=c++11 $(HIPLIBS) -lamdhip64
+HIPLIBS = -L $(HIPDIR)/lib/asan  $(RPTH)
+CFLAGS  = -g -x hip -std=c++11 $(HIPLIBS) -lamdhip64
 
 HSA_XNACK ?= 1
 

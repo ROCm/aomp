@@ -1,6 +1,9 @@
 include ../Makefile.defs
 
 TESTS_DIR = \
+    clause_num_teams \
+    clause_num_threads \
+    clause_thread_limit \
     f2018-select-rank \
     flang-315421 \
     flang-325095 \
@@ -13,12 +16,16 @@ TESTS_DIR = \
     flang-446033b_ttdpd \
     flang-446033c_loop \
     flang-446033d_loop \
-    flang-446525 \
+    flang-463332 \
+    flang-464541 \
     flang-464660 \
     flang-464660-1 \
+    flang-nested-parallel-do-loops \
+    mathdbl-tgt \
     mathquad-tgt \
     olcf-tf-7-loop-combined \
-    rocm-issue-842
+    rocm-issue-842 \
+    tgt-printf-c \
 
 all:
 	@for test_dir in $(TESTS_DIR); do \

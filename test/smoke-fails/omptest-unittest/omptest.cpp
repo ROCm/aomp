@@ -176,7 +176,5 @@ TEST(ManualSuite, veccopy_ompt_target) {
 
 int main(int argc, char **argv) {
   Runner R;
-  R.run();
-
-  return 0;
+  return R.run();
 }

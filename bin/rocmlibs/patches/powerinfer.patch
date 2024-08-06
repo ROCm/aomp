@@ -1,0 +1,13 @@
+diff --git a/flake.nix b/flake.nix
+index 4cf28d5..2cf69a1 100644
+--- a/flake.nix
++++ b/flake.nix
+@@ -103,7 +103,7 @@
+             # Build all targets supported by rocBLAS. When updating search for TARGET_LIST_ROCM
+             # in github.com/ROCmSoftwarePlatform/rocBLAS/blob/develop/CMakeLists.txt
+             # and select the line that matches the current nixpkgs version of rocBLAS.
+-            "-DAMDGPU_TARGETS=gfx803;gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack+;gfx90a:xnack-;gfx940;gfx941;gfx942;gfx1010;gfx1012;gfx1030;gfx1100;gfx1101;gfx1102"
++            "-DAMDGPU_TARGETS=gfx803;gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack+;gfx90a:xnack-;gfx90c;gfx940;gfx941;gfx942;gfx1010;gfx1012;gfx1030;gfx1100;gfx1101;gfx1102;gfx1103"
+           ];
+         };
+         apps.llama-server = {
