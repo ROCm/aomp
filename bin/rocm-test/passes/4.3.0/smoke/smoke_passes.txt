@@ -168,7 +168,6 @@ schedule
 simd
 simple_ctor
 slices
-snap_red
 stream
 targ-273742
 targ_declare
