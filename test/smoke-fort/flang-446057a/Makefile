@@ -1,7 +1,8 @@
 NOOPT        = 1
 NOOMP        = 1
 include ../../Makefile.defs
-OMP_FLAGS    = --gcc-install-dir=/usr/lib/gcc/x86_64-linux-gnu/9
+GCC_INSTALL  := $(shell find /usr/lib/gcc/x86_64-linux-gnu -maxdepth 1 -type d | tail -1)
+OMP_FLAGS    = --gcc-install-dir=$(GCC_INSTALL)
 
 TESTNAME     = hello
 TESTSRC_MAIN = hello.f
