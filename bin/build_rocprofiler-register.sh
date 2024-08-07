@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#  build_rocprofiler_register.sh:  Script to build rocprofiler_register for AOMP standalone build
+#  build_rocprofiler-register.sh:  Script to build rocprofiler-register for AOMP standalone build
 #
 
 # --- Start standard header to set AOMP environment variables ----
@@ -20,9 +20,9 @@ if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   echo " It installs in:           $INSTALL_ROCPROF_REGISTER"
   echo " "
   echo "Example commands and actions: "
-  echo "  ./build_rocprofiler_register.sh                   cmake, make , NO Install "
-  echo "  ./build_rocprofiler_register.sh nocmake           NO cmake, make, NO install "
-  echo "  ./build_rocprofiler_register.sh install           NO Cmake, make , INSTALL"
+  echo "  ./build_rocprofiler-register.sh                   cmake, make , NO Install "
+  echo "  ./build_rocprofiler-register.sh nocmake           NO cmake, make, NO install "
+  echo "  ./build_rocprofiler-register.sh install           NO Cmake, make , INSTALL"
   echo " "
   echo "To build aomp, see the README file in this directory"
   echo " "
