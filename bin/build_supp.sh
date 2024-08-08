@@ -52,7 +52,7 @@ EOF
 }
 
 SUPPLEMENTAL_COMPONENTS=${SUPPLEMENTAL_COMPONENTS:-openmpi silo hdf5 fftw ninja}
-PREREQUISITE_COMPONENTS=${PREREQUISITE_COMPONENTS:-cmake rocmsmilib hwloc aqlprofile}
+PREREQUISITE_COMPONENTS=${PREREQUISITE_COMPONENTS:-cmake rocmsmilib hwloc aqlprofile openclicdloader}
 
 # --- Start standard header to set AOMP environment variables ----
 realpath=`realpath $0`
@@ -214,11 +214,22 @@ function buildninja(){
   echo "# $_linkfrom is now symbolic link to $_installdir " >>$CMDLOGFILE
 }
 
-function buildaqlprofile(){
-  _cname="aqlprofile"
+function getrocmpackage(){
+  if [[ "$1" == "" || "$2" ==  "" || "$3" == "" ]]; then
+    echo "ERROR: getrocmpackage requires 3 parameters - localname packagename componentversion"
+    exit 1
+  fi
+  _cname="$1"
+  _packagename="$2"
+  _componentversion="$3"
+  _directory=$(echo $2 | cut -b 1)
   _version=6.2
   _packageversion=6.2.0
-  _fullversion=60200
+  if [ "$1" == "aqlprofile" ]; then
+    _fullversion=60200.60200
+  else
+    _fullversion=60200
+  fi
   _buildnumber=66
   _installdir=$AOMP_SUPP_INSTALL/$_cname-$_version
   _linkfrom=$AOMP_SUPP/$_cname
@@ -242,18 +253,18 @@ function buildaqlprofile(){
     [ $os_version == "20.04" ] && deb_version="20"
     #https://repo.radeon.com/rocm/apt/6.1/pool/main/h/hsa-amd-aqlprofile6.1.0/hsa-amd-aqlprofile6.1.0_1.0.0.60100.60100-82~${deb_version}_amd64.deb
     #https://repo.radeon.com/rocm/apt/6.1/pool/main/h/hsa-amd-aqlprofile6.1.0/hsa-amd-aqlprofile6.1.0_1.0.0.60100.60100-82~22.04_amd64.deb
-    runcmd "wget https://repo.radeon.com/rocm/apt/"$_version"/pool/main/h/hsa-amd-aqlprofile"$_packageversion"/hsa-amd-aqlprofile"$_packageversion"_1.0.0."$_fullversion"."$_fullversion"-"$_buildnumber"~${deb_version}.04_amd64.deb"
+    runcmd "wget https://repo.radeon.com/rocm/apt/"$_version"/pool/main/$_directory/"$_packagename$_packageversion"/"$_packagename$_packageversion"_"$_componentversion"."$_fullversion"-"$_buildnumber"~${deb_version}.04_amd64.deb"
 
-    runcmd "dpkg -x hsa-amd-aqlprofile"$_packageversion"_1.0.0."$_fullversion"."$_fullversion"-"$_buildnumber"~${deb_version}.04_amd64.deb $_builddir"
+    runcmd "dpkg -x "$_packagename$_packageversion"_"$_componentversion"."$_fullversion"-"$_buildnumber"~${deb_version}.04_amd64.deb $_builddir"
   elif [[ $osname =~ "SLES" ]]; then
     #https://repo.radeon.com/rocm/yum/6.1/main/hsa-amd-aqlprofile6.1.0-1.0.0.60100.60100-82.el7.x86_64.rpm
-    runcmd "wget https://repo.radeon.com/rocm/zyp/"$_version"/main/hsa-amd-aqlprofile"$_packageversion"-1.0.0."$_fullversion"."$_fullversion"-sles154."$_buildnumber".x86_64.rpm"
-    echo "hsa-amd-aqlprofile"$_packageversion"-1.0.0."$_fullversion"."$_fullversion"-sles154."$_buildnumber".x86_64.rpm | cpio -idm"
-    rpm2cpio hsa-amd-aqlprofile"$_packageversion"-1.0.0."$_fullversion"."$_fullversion"-sles154."$_buildnumber".x86_64.rpm | cpio -idm
+    runcmd "wget https://repo.radeon.com/rocm/zyp/"$_version"/main/"$_packagename$_packageversion"-"$_componentversion"."$_fullversion"-sles154."$_buildnumber".x86_64.rpm"
+    echo ""$_packagename$_packageversion"-"$_componentversion"."$_fullversion"-sles154."$_buildnumber".x86_64.rpm | cpio -idm"
+    rpm2cpio "$_packagename$_packageversion"-"$_componentversion"."$_fullversion"-sles154."$_buildnumber".x86_64.rpm | cpio -idm
   else
-    runcmd "wget https://repo.radeon.com/rocm/yum/"$_version"/main/hsa-amd-aqlprofile"$_packageversion"-1.0.0."$_fullversion"."$_fullversion"-"$_buildnumber".el7.x86_64.rpm"
-    echo "hsa-amd-aqlprofile"$_packageversion"-1.0.0."$_fullversion"."$_fullversion"-"$_buildnumber".el7.x86_64.rpm | cpio -idm"
-    rpm2cpio hsa-amd-aqlprofile"$_packageversion"-1.0.0."$_fullversion"."$_fullversion"-"$_buildnumber".el7.x86_64.rpm | cpio -idm
+    runcmd "wget https://repo.radeon.com/rocm/yum/"$_version"/main/"$_packagename$_packageversion"-"$_componentversion"."$_fullversion"-"$_buildnumber".el7.x86_64.rpm"
+    echo ""$_packagename$_packageversion"-"$_componentversion"."$_fullversion"-"$_buildnumber".el7.x86_64.rpm | cpio -idm"
+    rpm2cpio "$_packagename$_packageversion"-"$_componentversion"."$_fullversion"-"$_buildnumber".el7.x86_64.rpm | cpio -idm
   fi
 
   if [ -d $_installdir ] ; then
@@ -539,7 +550,9 @@ for _component in $_components ; do
   elif [ $_component == "ninja" ] ; then
     buildninja
   elif [ $_component == "aqlprofile" ] ; then
-    buildaqlprofile
+    getrocmpackage aqlprofile hsa-amd-aqlprofile 1.0.0
+  elif [ $_component == "openclicdloader" ] ; then
+    getrocmpackage openclicdloader rocm-opencl-icd-loader 1.2
   else
     echo "ERROR:  Invalid component name $_component" >>$CMDLOGFILE
     echo "ERROR:  Invalid component name $_component"
