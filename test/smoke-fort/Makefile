@@ -51,6 +51,8 @@ TESTS_DIR = \
     flang-463690 \
     flang-471469 \
     flang-472452 \
+    flang-476122 \
+    flang-476122a \
     flang-use-device \
     intrin-rename-func \
     intrin-rename-sub \
