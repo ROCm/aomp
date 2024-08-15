@@ -1,7 +1,7 @@
 include ../../Makefile.defs
 
-TESTNAME     = get_ptr
-TESTSRC_MAIN = get_ptr.f90
+TESTNAME     = gep_ptr
+TESTSRC_MAIN = gep_ptr.f90
 TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 

@@ -19,6 +19,8 @@ TESTS_DIR = \
     flang-464660-1 \
     flang-479382 \
     flang-479382-1 \
+    flang-479382-2 \
+    flang-479382-3 \
     mathdbl-tgt \
     mathquad-tgt \
     olcf-tf-7-loop-combined \
