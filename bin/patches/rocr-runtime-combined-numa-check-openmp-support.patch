@@ -1,13 +1,12 @@
 diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
-index ea4f398..65c79eb 100644
+index ea4f398..a354d1f 100644
 --- a/src/CMakeLists.txt
 +++ b/src/CMakeLists.txt
-@@ -96,7 +96,14 @@ set ( PACKAGE_VERSION_STRING "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_COMMIT
+@@ -96,7 +96,13 @@ set ( PACKAGE_VERSION_STRING "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_COMMIT
  ## Find external dependencies.
  find_package(PkgConfig)
  find_package(LibElf REQUIRED)
 -find_package(hsakmt 1.0 REQUIRED HINTS ${CMAKE_INSTALL_PREFIX} PATHS /opt/rocm)
-+
 +
 +if(DEFINED LLVM_RUNTIME_OPENMP)
 +  find_library(HSAKMT_LIB hsakmt REQUIRED HINTS ${CMAKE_BINARY_DIR}/../../../roct-prefix/src/roct-build)
@@ -18,7 +17,7 @@ index ea4f398..65c79eb 100644
  pkg_check_modules(drm REQUIRED IMPORTED_TARGET libdrm)
  
  ## Create the rocr target.
-@@ -127,6 +134,9 @@ target_include_directories( ${CORE_RUNTIME_TARGET}
+@@ -127,6 +133,9 @@ target_include_directories( ${CORE_RUNTIME_TARGET}
    ${CMAKE_CURRENT_BINARY_DIR}/core/runtime/trap_handler
    ${CMAKE_CURRENT_BINARY_DIR}/core/runtime/blit_shaders)
  
@@ -28,13 +27,7 @@ index ea4f398..65c79eb 100644
  
  ## ------------------------- Linux Compiler and Linker options -------------------------
  set ( HSA_CXX_FLAGS ${HSA_COMMON_CXX_FLAGS} -fexceptions -fno-rtti -fvisibility=hidden -Wno-error=missing-braces -Wno-error=sign-compare -Wno-sign-compare -Wno-write-strings -Wno-conversion-null -fno-math-errno -fno-threadsafe-statics -fmerge-all-constants -fms-extensions -Wno-error=comment -Wno-comment -Wno-error=pointer-arith -Wno-pointer-arith -Wno-error=unused-variable -Wno-error=unused-function )
-@@ -295,12 +305,16 @@ if(${IMAGE_SUPPORT})
- 
- endif()
- 
--target_link_libraries ( ${CORE_RUNTIME_TARGET} PRIVATE elf::elf dl pthread rt )
-+target_link_libraries ( ${CORE_RUNTIME_TARGET} PRIVATE elf::elf dl pthread rt numa drm_amdgpu drm)
- # For static package rocprofiler-register dependency is not required
+@@ -300,7 +309,11 @@ target_link_libraries ( ${CORE_RUNTIME_TARGET} PRIVATE elf::elf dl pthread rt )
  # Link to hsakmt target for shared library builds
  # Link to hsakmt-staticdrm target for static library builds
  if( BUILD_SHARED_LIBS )
@@ -47,8 +40,11 @@ index ea4f398..65c79eb 100644
    find_package(rocprofiler-register)
    if(rocprofiler-register_FOUND)
      target_compile_definitions(${CORE_RUNTIME_TARGET} PRIVATE HSA_ROCPROFILER_REGISTER=1
-@@ -314,7 +328,11 @@ if( BUILD_SHARED_LIBS )
+@@ -312,9 +325,14 @@ if( BUILD_SHARED_LIBS )
+   else()
+     set(HSA_DEP_ROCPROFILER_REGISTER OFF)
    endif() # end rocprofiler-register_FOUND
++  target_link_libraries ( ${CORE_RUNTIME_TARGET} PRIVATE numa drm_amdgpu drm)
  else()
    include_directories(${drm_INCLUDE_DIRS})
 -  target_link_libraries ( ${CORE_RUNTIME_TARGET} PRIVATE hsakmt-staticdrm::hsakmt-staticdrm)
