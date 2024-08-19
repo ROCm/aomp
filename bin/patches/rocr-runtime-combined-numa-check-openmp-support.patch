@@ -1,13 +1,12 @@
 diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
-index 321d6e9..2c61547 100644
+index ea4f398..a354d1f 100644
 --- a/src/CMakeLists.txt
 +++ b/src/CMakeLists.txt
-@@ -95,7 +95,14 @@ set ( PACKAGE_VERSION_STRING "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_COMMIT
+@@ -96,7 +96,13 @@ set ( PACKAGE_VERSION_STRING "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_COMMIT
  ## Find external dependencies.
  find_package(PkgConfig)
  find_package(LibElf REQUIRED)
 -find_package(hsakmt 1.0 REQUIRED HINTS ${CMAKE_INSTALL_PREFIX} PATHS /opt/rocm)
-+
 +
 +if(DEFINED LLVM_RUNTIME_OPENMP)
 +  find_library(HSAKMT_LIB hsakmt REQUIRED HINTS ${CMAKE_BINARY_DIR}/../../../roct-prefix/src/roct-build)
@@ -18,7 +17,7 @@ index 321d6e9..2c61547 100644
  pkg_check_modules(drm REQUIRED IMPORTED_TARGET libdrm)
  
  ## Create the rocr target.
-@@ -126,6 +133,9 @@ target_include_directories( ${CORE_RUNTIME_TARGET}
+@@ -127,6 +133,9 @@ target_include_directories( ${CORE_RUNTIME_TARGET}
    ${CMAKE_CURRENT_BINARY_DIR}/core/runtime/trap_handler
    ${CMAKE_CURRENT_BINARY_DIR}/core/runtime/blit_shaders)
  
@@ -28,39 +27,47 @@ index 321d6e9..2c61547 100644
  
  ## ------------------------- Linux Compiler and Linker options -------------------------
  set ( HSA_CXX_FLAGS ${HSA_COMMON_CXX_FLAGS} -fexceptions -fno-rtti -fvisibility=hidden -Wno-error=missing-braces -Wno-error=sign-compare -Wno-sign-compare -Wno-write-strings -Wno-conversion-null -fno-math-errno -fno-threadsafe-statics -fmerge-all-constants -fms-extensions -Wno-error=comment -Wno-comment -Wno-error=pointer-arith -Wno-pointer-arith -Wno-error=unused-variable -Wno-error=unused-function )
-@@ -279,8 +289,12 @@ if(${IMAGE_SUPPORT})
- endif()
+@@ -300,7 +309,11 @@ target_link_libraries ( ${CORE_RUNTIME_TARGET} PRIVATE elf::elf dl pthread rt )
+ # Link to hsakmt target for shared library builds
+ # Link to hsakmt-staticdrm target for static library builds
+ if( BUILD_SHARED_LIBS )
+-  target_link_libraries ( ${CORE_RUNTIME_TARGET} PRIVATE hsakmt::hsakmt PkgConfig::drm)
++  if(DEFINED LLVM_RUNTIME_OPENMP)
++    target_link_libraries ( ${CORE_RUNTIME_TARGET} PRIVATE ${HSAKMT_LIB} PkgConfig::drm )
++  else()
++    target_link_libraries ( ${CORE_RUNTIME_TARGET} PRIVATE hsakmt::hsakmt PkgConfig::drm )
++  endif()
+   find_package(rocprofiler-register)
+   if(rocprofiler-register_FOUND)
+     target_compile_definitions(${CORE_RUNTIME_TARGET} PRIVATE HSA_ROCPROFILER_REGISTER=1
+@@ -312,9 +325,14 @@ if( BUILD_SHARED_LIBS )
+   else()
+     set(HSA_DEP_ROCPROFILER_REGISTER OFF)
+   endif() # end rocprofiler-register_FOUND
++  target_link_libraries ( ${CORE_RUNTIME_TARGET} PRIVATE numa drm_amdgpu drm)
+ else()
+   include_directories(${drm_INCLUDE_DIRS})
+-  target_link_libraries ( ${CORE_RUNTIME_TARGET} PRIVATE hsakmt-staticdrm::hsakmt-staticdrm)
++  if(DEFINED LLVM_RUNTIME_OPENMP)
++    target_link_libraries ( ${CORE_RUNTIME_TARGET} PRIVATE ${HSAKMT_LIB})
++  else()
++    target_link_libraries ( ${CORE_RUNTIME_TARGET} PRIVATE hsakmt-staticdrm::hsakmt-staticdrm)
++  endif()
+ endif()#end BUILD_SHARED_LIBS
  
- ## Link dependencies.
--target_link_libraries ( ${CORE_RUNTIME_TARGET} PRIVATE hsakmt::hsakmt PkgConfig::drm)
--target_link_libraries ( ${CORE_RUNTIME_TARGET} PRIVATE elf::elf dl pthread rt )
-+if(DEFINED LLVM_RUNTIME_OPENMP)
-+  target_link_libraries ( ${CORE_RUNTIME_TARGET} PRIVATE ${HSAKMT_LIB} PkgConfig::drm )
-+else()
-+  target_link_libraries ( ${CORE_RUNTIME_TARGET} PRIVATE hsakmt::hsakmt PkgConfig::drm )
-+endif()
-+target_link_libraries ( ${CORE_RUNTIME_TARGET} PRIVATE elf::elf dl pthread rt numa drm_amdgpu drm )
- 
- find_package(rocprofiler-register)
- if(rocprofiler-register_FOUND)
-@@ -313,7 +327,7 @@ if( NOT ${BUILD_SHARED_LIBS} )
+ ## Set the VERSION and SOVERSION values
+@@ -335,8 +353,12 @@ if( NOT ${BUILD_SHARED_LIBS} )
+   add_dependencies( ${CORE_RUNTIME_NAME} ${CORE_RUNTIME_TARGET} )
  
    ## Add external link requirements.
-   target_link_libraries ( ${CORE_RUNTIME_NAME} INTERFACE hsakmt::hsakmt )
+-  target_link_libraries ( ${CORE_RUNTIME_NAME} INTERFACE hsakmt-staticdrm::hsakmt-staticdrm )
 -  target_link_libraries ( ${CORE_RUNTIME_NAME} INTERFACE elf::elf dl pthread rt )
++  if(DEFINED LLVM_RUNTIME_OPENMP)
++    target_link_libraries ( ${CORE_RUNTIME_TARGET} PRIVATE ${HSAKMT_LIB})
++  else()
++    target_link_libraries ( ${CORE_RUNTIME_TARGET} PRIVATE hsakmt-staticdrm::hsakmt-staticdrm)
++  endif()
 +  target_link_libraries ( ${CORE_RUNTIME_NAME} INTERFACE elf::elf dl pthread rt numa drm_amdgpu drm)
  
    install ( TARGETS ${CORE_RUNTIME_NAME} EXPORT ${CORE_RUNTIME_NAME}Targets )
  endif()
-diff --git a/src/core/runtime/amd_gpu_agent.cpp b/src/core/runtime/amd_gpu_agent.cpp
-index d7f6a4f..3057f8d 100644
---- a/src/core/runtime/amd_gpu_agent.cpp
-+++ b/src/core/runtime/amd_gpu_agent.cpp
-@@ -922,7 +922,6 @@ hsa_status_t GpuAgent::DmaCopy(void* dst, core::Agent& dst_agent,
-   }
- 
-   ScopedAcquire<KernelMutex> lock(&sdma_gang_lock_);
--  if (gang_factor == 1) sdma_gang_lock_.Release();
-   // Manage internal gang signals
-   std::vector<core::Signal*> gang_signals;
-   if (gang_factor > 1) {

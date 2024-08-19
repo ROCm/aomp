@@ -4,6 +4,9 @@ TESTS_DIR = \
     1D-full-bounds-exp-map \
     1D-partial-bounds-exp-map \
     bycopy-implicit-map \
+    clause_num_teams \
+    clause_num_threads \
+    clause_thread_limit \
     declare-target-and-explicit-map \
     declare-target-and-implicit-and-explicit-map \
     declare-target-link-1 \
@@ -51,6 +54,9 @@ TESTS_DIR = \
     flang-463690 \
     flang-471469 \
     flang-472452 \
+    flang-476122 \
+    flang-476122a \
+    flang-nested-parallel-do-loops \
     flang-use-device \
     intrin-rename-func \
     intrin-rename-sub \

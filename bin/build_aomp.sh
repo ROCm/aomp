@@ -103,7 +103,7 @@ echo
 components="$AOMP_COMPONENT_LIST"
 
 if [ "$AOMP_STANDALONE_BUILD" == 1 ] ; then
-  components="$components roct rocr openmp offload extras comgr rocminfo rocm_smi_lib amdsmi"
+  components="$components rocprofiler-register roct rocr openmp offload extras comgr rocminfo rocm_smi_lib amdsmi"
   _hostarch=`uname -m`
   # The rocclr architecture is very x86 centric so it will not build on ppc64. Without
   # rocclr, we have no HIP or OpenCL for ppc64 :-( However, rocr works for ppc64 so AOMP works.
