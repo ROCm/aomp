@@ -12,7 +12,7 @@ export AOMP_USE_CCACHE=${AOMP_USE_CCACHE:-0}
 . $thisdir/aomp_common_vars
 # --- end standard header ----
 
-EPSDB_LIST=${EPSDB_LIST:-"openmpapps sollve_vv Nekbone goulash fortran-babelstream babelstream OvO"}
+EPSDB_LIST=${EPSDB_LIST:-"openmpapps openmp_vv Nekbone goulash fortran-babelstream babelstream OvO"}
 
 function list_repo_from_manifest(){
    logcommit=`git log -1 | grep "^commit" | cut -d" " -f2 | xargs`

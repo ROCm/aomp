@@ -47,13 +47,13 @@ if [ $ISVIRT -eq 1 ] ; then
 SKIP_USM=1
 export SKIP_USM=1
 export HSA_XNACK=${HSA_XNACK:-0}
-SUITE_LIST=${SUITE_LIST:-"examples smoke-limbo smoke smoke-asan omp5 openmpapps ovo sollve babelstream fortran-babelstream"}
-blockinglist="examples_fortran examples_openmp smoke smoke-limbo openmpapps sollve45 sollve50 babelstream ovo"
+SUITE_LIST=${SUITE_LIST:-"examples smoke-limbo smoke smoke-asan omp5 openmpapps ovo openmp_vv babelstream fortran-babelstream"}
+blockinglist="examples_fortran examples_openmp smoke smoke-limbo openmpapps openmp_vv45 openmp_vv50 babelstream ovo"
 else
-SUITE_LIST=${SUITE_LIST:-"examples smoke-limbo smoke smoke-asan omp5 openmpapps LLNL nekbone ovo sollve babelstream fortran-babelstream"}
-blockinglist="examples_fortran examples_openmp smoke smoke-limbo openmpapps sollve45 sollve50 babelstream ovo"
+SUITE_LIST=${SUITE_LIST:-"examples smoke-limbo smoke smoke-asan omp5 openmpapps LLNL nekbone ovo openmp_vv babelstream fortran-babelstream"}
+blockinglist="examples_fortran examples_openmp smoke smoke-limbo openmpapps openmp_vv45 openmp_vv50 babelstream ovo"
 fi
-EPSDB_LIST=${EPSDB_LIST:-"examples smoke-limbo smoke-dev smoke smoke-asan omp5 openmpapps LLNL nekbone ovo sollve babelstream fortran-babelstream"}
+EPSDB_LIST=${EPSDB_LIST:-"examples smoke-limbo smoke-dev smoke smoke-asan omp5 openmpapps LLNL nekbone ovo openmp_vv babelstream fortran-babelstream"}
 
 export AOMP_USE_CCACHE=0
 
@@ -514,7 +514,7 @@ function copyresults(){
 	    fi
           done
         fi
-      elif [[ "$1" =~ sollve|ovo|LLNL|openmpapps ]]; then
+      elif [[ "$1" =~ openmp_vv|ovo|LLNL|openmpapps ]]; then
         # Combine passing/failing tests, which shows all tests that tried to build/run.
         # If the unexpected failure is not on that list, warn the user that test may be missing
         # from suite.
@@ -726,41 +726,41 @@ function nekbone(){
   copyresults nekbone
 }
 
-function sollve(){
-  # Sollve
-  mkdir -p "$resultsdir"/sollve45
-  mkdir -p "$resultsdir"/sollve50
-  mkdir -p "$resultsdir"/sollve51
-  mkdir -p "$resultsdir"/sollve52
+function openmp_vv(){
+  # OpenMP_VV
+  mkdir -p "$resultsdir"/openmp_vv45
+  mkdir -p "$resultsdir"/openmp_vv50
+  mkdir -p "$resultsdir"/openmp_vv51
+  mkdir -p "$resultsdir"/openmp_vv52
   cd "$aompdir"/bin
 
-  export SOLLVE_TIMELIMIT=360
+  export OPENMP_VV_TIMELIMIT=360
   no_usm_gpus="gfx900 gfx906"
   if [[ "$no_usm_gpus" =~ "$AOMP_GPU" ]]; then
     echo "Skipping USM 5.0 tests."
-    SKIP_USM=1 SKIP_SOLLVE51=1 ./run_sollve.sh
+    SKIP_USM=1 SKIP_OPENMP_VV51=1 ./run_openmp_vv.sh
   else
-    SKIP_SOLLVE51=1 ./run_sollve.sh
+    SKIP_OPENMP_VV51=1 ./run_openmp_vv.sh
   fi
 
-  ./check_sollve.sh
+  ./check_openmp_vv.sh
   checkrc $?
 
   # 4.5 Results
-  cd "$HOME"/git/aomp-test/sollve_vv/results_report45
-  copyresults sollve45
+  cd "$HOME"/git/aomp-test/openmp_vv/results_report45
+  copyresults openmp_vv45
 
   # 5.0 Results
-  cd "$HOME"/git/aomp-test/sollve_vv/results_report50
-  copyresults sollve50
+  cd "$HOME"/git/aomp-test/openmp_vv/results_report50
+  copyresults openmp_vv50
 
   # 5.1 Results
-  cd "$HOME"/git/aomp-test/sollve_vv/results_report51
-  copyresults sollve51
+  cd "$HOME"/git/aomp-test/openmp_vv/results_report51
+  copyresults openmp_vv51
 
   # 5.2 Results
-  cd "$HOME"/git/aomp-test/sollve_vv/results_report52
-  copyresults sollve52
+  cd "$HOME"/git/aomp-test/openmp_vv/results_report52
+  copyresults openmp_vv52
 }
 
 function babelstream(){

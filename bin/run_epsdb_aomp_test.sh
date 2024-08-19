@@ -129,11 +129,11 @@ appfails=$?
 tail -12 openmpapps.log
 appfails=0
 
-# sollve take about 16 minutes
-echo "======= sollve ======="
+# OpenMP_VV take about 16 minutes
+echo "======= openmp_vv ======="
 cd $aompdir/bin
-#./run_sollve.sh > sollve.log 2>&1
-#tail -12 sollve.log
+#./run_openmp_vv.sh > openmp_vv.log 2>&1
+#tail -12 openmp_vv.log
 AOMPHIP=$AOMP/.. ./run_babelstream.sh
 AOMPHIP=$AOMP/.. ./run_rushlarsen.sh
 

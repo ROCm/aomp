@@ -12,7 +12,7 @@
 <remote name="julia" fetch="https://github.com/JuliaMath/" />
 <remote name="tapple" fetch="https://github.com/TApplencourt/" />
 <remote name="qmcpack" fetch="https://github.com/QMCPACK/" />
-<remote name="sollve" fetch="https://github.com/SOLLVE/" />
+<remote name="openmp-vv" fetch="https://github.com/OpenMP-Validation-and-Verification/" />
 <remote name="uob-hpc" fetch="https://github.com/UoB-HPC/" />
 
 <!-- --- List of test repos and the path they are cloned to --- --> 
@@ -25,7 +25,7 @@
 <project remote="amdlibs" path="openmpapps" name="openmpapps" revision="AOMP-0.5" groups="unlocked" />
 <project remote="tapple"  path="OvO"        name="OvO" revision="master" groups="unlocked" />
 <project remote="qmcpack" path="qmcpack"    name="qmcpack" revision="develop" groups="unlocked" />
-<project remote="sollve"  path="sollve_vv"  name="sollve_vv" revision="master" groups="unlocked" />
+<project remote="openmp-vv" path="openmp_vv" name="OpenMP_VV" revision="master" groups="unlocked" />
 <project remote="uob-hpc" path="babelstream" name="BabelStream" revision="main" groups="unlocked" />
 <project remote="llnl"    path="RAJAPerf" name="RAJAPerf" revision="develop" groups="unlocked" />
 <project remote="llnl"    path="RAJAPerf/tpl/RAJA" name="RAJA" revision="master" groups="skip" />

@@ -70,8 +70,8 @@ reponame=$AOMP_APPS_REPO_NAME
 COBRANCH=$AOMP_APPS_REPO_BRANCH
 clone_or_pull
 
-repo_web_location=$GITSOLVV
-reponame=$AOMP_SOLVV_REPO_NAME
+repo_web_location=$GITOPENMPVV
+reponame=$AOMP_OPENMP_VV_REPO_NAME
 COBRANCH=$AOMP_SOLVV_REPO_BRANCH
 clone_or_pull
 

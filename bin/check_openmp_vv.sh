@@ -1,7 +1,7 @@
 #!/bin/bash
 #
-#  check_sollve.sh
-#  Assumes run_sollve.sh has been executed.
+#  check_openmp_vv.sh
+#  Assumes run_openmp_vv.sh has been executed.
 #
 # --- Start standard header to set AOMP environment variables ----
 realpath=`realpath $0`
@@ -11,24 +11,24 @@ thisdir=`dirname $realpath`
 
 set -e
 
-pushd $AOMP_REPOS_TEST/$AOMP_SOLVV_REPO_NAME
+pushd $AOMP_REPOS_TEST/$AOMP_OPENMP_VV_REPO_NAME
 testname_regex='Test\sname":\s"(.*)"'
 compiler_regex='Compiler\sresult":\s"([A-Z]+)'
 runtime_regex='Runtime\sresult":\s"([A-Z]+)'
 function parse(){
   local file=$2
   while read -r line; do
-    local sollvetest=""
+    local openmpvvtest=""
     if [[ "$line" =~ $testname_regex ]]; then
-      sollvetest=${BASH_REMATCH[1]}
+      openmpvvtest=${BASH_REMATCH[1]}
     elif [[ "$line" =~ $compiler_regex ]]; then
       compresult=${BASH_REMATCH[1]}
     elif [[ "$line" =~ $runtime_regex ]]; then
       runresult=${BASH_REMATCH[1]}
     fi
-    if [ "$sollvetest" != "" ];then
-      results[$sollvetest]="$compresult"
-      results[$sollvetest]+="$runresult"
+    if [ "$openmpvvtest" != "" ];then
+      results[$openmpvvtest]="$compresult"
+      results[$openmpvvtest]+="$runresult"
       compresult=""
       runresult=""
     fi
@@ -75,7 +75,7 @@ function checkresult(){
   rm -f $tmppassfile $tmpcompfailfile $tmprunfailfile
 }
 
-# Get all openmp versions in sollve from available reports
+# Get all openmp versions in openmp_vv from available reports
 vers=`ls $s | grep results_report | grep -Eo [0-9][0-9]`
 
 # Loop through results json for each openmp version and log pass/fails
@@ -90,14 +90,14 @@ done
 # Each test is prefixed with openmp version for clarity.
 if [ "$1" == "log" ]; then
   date=${BLOG_DATE:-`date '+%Y-%m-%d'`}
-  base_dir=$AOMP_REPOS_TEST/$AOMP_SOLVV_REPO_NAME
+  base_dir=$AOMP_REPOS_TEST/$AOMP_OPENMP_VV_REPO_NAME
   cd $base_dir
 
   if [ "$2" != "" ]; then
     prefix=$2
-    log="$prefix/sollve.run.log.$date"
+    log="$prefix/openmp_vv.run.log.$date"
   else
-    log="$base_dir/sollve.run.log.$date"
+    log="$base_dir/openmp_vv.run.log.$date"
   fi
   rm -f $parent_dir$log
   for ver in $vers; do

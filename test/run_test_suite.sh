@@ -16,11 +16,11 @@
 DISABLED_LIST="raja omptests"
 
 # Available Suites - Qmcpack will timeout at 20 minutes
-SUITE_LIST=${SUITE_LIST:-"ovo examples smoke hipopenmp omp5 openmpapps nekbone sollve llnl openlibm qmcpack"}
+SUITE_LIST=${SUITE_LIST:-"ovo examples smoke hipopenmp omp5 openmpapps nekbone openmp_vv llnl openlibm qmcpack"}
 
 #Groups
 GROUP_LIST="epsdb"
-EPSDB_LIST=${EPSDB_LIST:-"examples smoke hipopenmp omp5 openmpapps nekbone sollve"}
+EPSDB_LIST=${EPSDB_LIST:-"examples smoke hipopenmp omp5 openmpapps nekbone openmp_vv"}
 
 # Set up variables
 AOMP_REPOS=${AOMP_REPOS:-"$HOME/git/aomp19.0"}
@@ -211,17 +211,17 @@ function nekbone(){
   update_logs bin nekbone
 }
 
-function sollve(){
-  # -----Run Sollve-----
-  header SOLLVE
-  cd $AOMP_REPOS_TEST/sollve_vv
+function openmp_vv(){
+  # -----Run OpenMP_VV (formerly SOLLVE) -----
+  header OPENMP_VV
+  cd $AOMP_REPOS_TEST/openmp_vv
   git pull
 
   cd $AOMP_SRC/bin
-  echo "Log file at: $log_dir/sollve.log"
-  ./run_sollve.sh > $log_dir/sollve.log 2>&1
+  echo "Log file at: $log_dir/openmp_vv.log"
+  ./run_openmp_vv.sh > $log_dir/openmp_vv.log 2>&1
 
-  cd $AOMP_REPOS_TEST/sollve_vv
+  cd $AOMP_REPOS_TEST/openmp_vv
   update_logs log combined-results.txt
 }
 
