@@ -29,6 +29,10 @@ TESTS_DIR = \
     olcf-tf-7-loop-combined \
     rocm-issue-842 \
     tgt-printf-c \
+    flang-gpu-stop-integer \
+    flang-gpu-stop-string \
+    flang-gpu-exit \
+    flang-gpu-abort
 
 all:
 	@for test_dir in $(TESTS_DIR); do \
