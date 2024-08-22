@@ -24,6 +24,7 @@ TESTS_DIR = \
     flang-479382-2 \
     flang-479382-3 \
     flang-479382-4 \
+    flang-479382-5 \
     flang-480581 \
     mathdbl-tgt \
     mathquad-tgt \
