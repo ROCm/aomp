@@ -230,6 +230,8 @@ function get_monthnumber() {
          repo_web_location=$GITGERRIT
       elif [ "$remote" == "hwloc" ] ; then
          repo_web_location=$GITHWLOC
+      elif [ "$remote" == "SJTU" ] ; then
+         repo_web_location=$POWERINFER_REPO
       else
          line_is_good=1
       fi
@@ -256,5 +258,3 @@ function get_monthnumber() {
    rm $tmpfile
 
    exit $rc
-
-
