@@ -2,7 +2,6 @@
 
 This directory contains these examples that use stdpar GPU acceleration.
 
-- babelstream:  builds and executes two variants of babelstream.
 - tsp:  build GPU accelerated traveling salesman problem
 
 These examples require that rocthrust and rocprim be installed.
