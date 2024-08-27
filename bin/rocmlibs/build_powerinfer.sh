@@ -37,9 +37,9 @@ export CXXFLAGS="-I$AOMP_INSTALL_DIR/include -D__HIP_PLATFORM_AMD__=1"
 MYCMAKEOPTS="-DCMAKE_BUILD_TYPE=$BUILD_TYPE \
 -DLLAMA_HIPBLAS=ON \
 -DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR/lib/cmake  \
--DCMAKE_INSTALL_PREFIX=$HOME/rocm/PowerInfer \
--DCMAKE_C_COMPILER=$ROCM_DIR/bin/clang \
--DCMAKE_CXX_COMPILER=$ROCM_DIR/bin/clang++ \
+-DCMAKE_INSTALL_PREFIX=$AOMP_INSTALL_DIR/PowerInfer \
+-DCMAKE_C_COMPILER=$AOMP/bin/clang \
+-DCMAKE_CXX_COMPILER=$AOMP/bin/clang++ \
 -DHIP_PLATFORM=amd \
 -DAMDGPU_TARGETS="\'$GFXSEMICOLONS\'" \
 "
@@ -113,12 +113,12 @@ if [ "$1" == "install" ] ; then
       exit 1
    fi
    echo
-   echo "SUCCESSFUL INSTALL to $HOME/rocm/PowerInfer"
+   echo "SUCCESSFUL INSTALL to $AOMP_INSTALL_DIR/PowerInfer"
    echo
    removepatch $_repo_dir
 else 
    echo 
    echo "SUCCESSFUL BUILD, please run:  $0 install"
-   echo "  to install into $HOME/rocm/PowerInfer "
+   echo "  to install into $AOMP_INSTALL_DIR/PowerInfer "
    echo 
 fi

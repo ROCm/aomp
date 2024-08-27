@@ -17,17 +17,24 @@ TESTS_DIR = \
     flang-464541 \
     flang-464660 \
     flang-464660-1 \
+    flang-469194 \
     flang-478281 \
     flang-479382 \
     flang-479382-1 \
     flang-479382-2 \
     flang-479382-3 \
     flang-479382-4 \
+    flang-479382-5 \
+    flang-480581 \
     mathdbl-tgt \
     mathquad-tgt \
     olcf-tf-7-loop-combined \
     rocm-issue-842 \
     tgt-printf-c \
+    flang-gpu-stop-integer \
+    flang-gpu-stop-string \
+    flang-gpu-exit \
+    flang-gpu-abort
 
 all:
 	@for test_dir in $(TESTS_DIR); do \

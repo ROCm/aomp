@@ -304,6 +304,7 @@ GITKHRONOS="https://github.com/KhronosGroup"
 GITHWLOC="https://github.com/open-mpi"
 AOMP_GIT_INTERNAL_IP="gerrit-git.amd.com"
 GITPROJECT=$GITROCDEV
+POWERINFER_REPO="https://github.com/SJTU-IPADS"
 if [ "$AOMP_STANDALONE_BUILD" == 1 ]; then
   AOMP_PROJECT_REPO_NAME=${AOMP_PROJECT_REPO_NAME:-llvm-project}
 else
