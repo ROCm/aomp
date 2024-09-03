@@ -9,6 +9,8 @@ thisdir=`dirname $realpath`
 . $thisdir/../aomp_common_vars
 # --- end standard header ----
 
+set -x
+
 # Set POWERINFER_INSTALL_DIR if it is not already set via env variable
 POWERINFER_INSTALL_DIR=${POWERINFER_INSTALL_DIR:-$AOMP_INSTALL_DIR/PowerInfer}
 
@@ -19,9 +21,11 @@ MODEL_DIR=${MODEL_DIR:-$AOMP_REPOS/powerinfer_models}
 if [ ! -d $MODEL_DIR ]; then
     mkdir -p $MODEL_DIR
 fi
+pushd $MODEL_DIR
 
 # Install huggingface-cli to download the PowerInfer GGUF models
 pip install -U "huggingface_hub[cli]"
+export PATH=$PATH:$HOME/.local/bin
 
 # Use huggingface-cli to download the PowerInfer GGUF version of LLaMA(ReLU)-2-7B model
 huggingface-cli download --resume-download --local-dir ReluLLaMA-7B --local-dir-use-symlinks False PowerInfer/ReluLLaMA-7B-PowerInfer-GGUF
@@ -55,6 +59,8 @@ MODEL_NAME=ReluLLaMA-7B/llama-7b-relu.powerinfer.gguf
 # huggingface-cli download --resume-download --local-dir Bamboo-DPO-7B --local-dir-use-symlinks False PowerInfer/Bamboo-DPO-v0.1-gguf
 # MODEL_NAME=Bamboo-DPO-7B/bamboo-dpo-7b-gguf.powerinfer.gguf
 
+popd
+
 PREDICTION_LENGTH=128
 THREAD_COUNT=8
 PROMPT="Once upon a time"
@@ -74,7 +80,9 @@ if [ -f $LOG_FILE_NAME ]; then
     LOG_FILE_NAME=$LOG_FILE_NAME.$i
 fi
 
-$POWERINFER_INSTALL_DIR/bin/main -m $MODEL_DIR/$MODEL_NAME -n $PREDICTION_LENGTH -t $THREAD_COUNT -p $PROMPT --vram-budget $VRAM_BUDGET 2>&1 | tee $LOG_FILE_NAME.log
+$POWERINFER_INSTALL_DIR/bin/main -m $MODEL_DIR/$MODEL_NAME -n $PREDICTION_LENGTH -t $THREAD_COUNT -p "$PROMPT" --vram-budget $VRAM_BUDGET 2>&1 | tee $LOG_FILE_NAME.log
+
+set +x
 
 # Print the log file name and parameters with which the model was run
 echo "Inference via PowerInfer completed for the following:"
