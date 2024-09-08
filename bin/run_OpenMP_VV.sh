@@ -1,6 +1,6 @@
 #!/bin/bash
 # 
-#  run_sollve.sh: 
+#  run_OpenMP_VV.sh: 
 #
 
 ulimit -t 120
@@ -15,7 +15,7 @@ export AOMP_USE_CCACHE=0
 . $thisdir/aomp_common_vars
 # --- end standard header ----
 
-function make_sollve_reports(){
+function make_OpenMP_VV_reports(){
   # Lines for report_summary tail
   numlines=4
   if [ "$1" == "52" ]; then
@@ -150,7 +150,7 @@ fi
 if [ "$SKIP_SOLLVE45" != 1 ]; then
   echo "--------------------------- OMP 4.5 Detailed Results ---------------------------" >> combined-results.txt
   echo "--------------------------- OMP 4.5 Results ---------------------------" > abrev.combined-results.txt
-  make_sollve_reports 45
+  make_OpenMP_VV_reports 45
 fi
 
 if [ "$SKIP_SOLLVE50" != 1 ]; then
@@ -168,7 +168,7 @@ if [ "$SKIP_SOLLVE50" != 1 ]; then
   echo
   echo "--------------------------- OMP 5.0 Detailed Results ---------------------------" >> combined-results.txt
   echo "--------------------------- OMP 5.0 Results ---------------------------" >> abrev.combined-results.txt
-  make_sollve_reports 50
+  make_OpenMP_VV_reports 50
   if [ "$enable_xnack" == 1 ]; then
     unset HSA_XNACK
   fi
@@ -193,7 +193,7 @@ if [ "$SKIP_SOLLVE51" != 1 ]; then
   echo
   echo "--------------------------- OMP 5.1 Detailed Results ---------------------------" >> combined-results.txt
   echo "--------------------------- OMP 5.1 Results ---------------------------" >> abrev.combined-results.txt
-  make_sollve_reports 51
+  make_OpenMP_VV_reports 51
   custom_source=""
   if [ "$enable_xnack" == 1 ]; then
     unset HSA_XNACK
@@ -215,7 +215,7 @@ if [ "$SKIP_SOLLVE52" != 1 ]; then
   echo
   echo "--------------------------- OMP 5.2 Detailed Results ---------------------------" >> combined-results.txt
   echo "--------------------------- OMP 5.2 Results ---------------------------" >> abrev.combined-results.txt
-  make_sollve_reports 52
+  make_OpenMP_VV_reports 52
   if [ "$enable_xnack" == 1 ]; then
     unset HSA_XNACK
   fi
