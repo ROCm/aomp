@@ -726,6 +726,43 @@ function nekbone(){
   copyresults nekbone
 }
 
+function OpenMP_VV(){
+  # Sollve
+  mkdir -p "$resultsdir"/sollve45
+  mkdir -p "$resultsdir"/sollve50
+  mkdir -p "$resultsdir"/sollve51
+  mkdir -p "$resultsdir"/sollve52
+  cd "$aompdir"/bin
+
+  export SOLLVE_TIMELIMIT=360
+  no_usm_gpus="gfx900 gfx906"
+  if [[ "$no_usm_gpus" =~ "$AOMP_GPU" ]]; then
+    echo "Skipping USM 5.x tests."
+    SKIP_USM=1 SKIP_SOLLVE51=1 SKIP_SOLLVE52=1 ./run_OpenMP_VV.sh
+  else
+    SKIP_SOLLVE51=1 SKIP_SOLLVE52=1 ./run_OpenMP_VV.sh
+  fi
+
+  ./check_sollve.sh
+  checkrc $?
+
+  # 4.5 Results
+  cd "$AOMP_TEST_DIR"/sollve_vv/results_report45
+  copyresults sollve45
+
+  # 5.0 Results
+  cd "$AOMP_TEST_DIR"/sollve_vv/results_report50
+  copyresults sollve50
+
+  # 5.1 Results
+  cd "$AOMP_TEST_DIR"/sollve_vv/results_report51
+  copyresults sollve51
+
+  # 5.2 Results
+  cd "$AOMP_TEST_DIR"/sollve_vv/results_report52
+  copyresults sollve52
+}
+
 function sollve(){
   # Sollve
   mkdir -p "$resultsdir"/sollve45
