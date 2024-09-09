@@ -4,7 +4,7 @@
 # HPC2021_BUILD_NUM_THREADS    Number of parallel compile processes. Default: 32
 # export HPC_INPUT=ref   if you wantto run reference isntead of test
 
-export HPC_INPUT=${HPC_INPUT:-test}
+export HPG_INPUT=${HPG_INPUT:-test}
 realpath=`realpath $0`
 thisdir=`dirname $realpath`
 export AOMP_USE_CCACHE=0
@@ -14,15 +14,17 @@ export AOMP_USE_CCACHE=0
 : ${HPC2021_SOURCE_DIR:=$AOMP_REPOS_TEST/hpc2021-1.1.9}
 : ${HPC2021_BUILD_NUM_THREADS:=32}
 
-rm -rf ${HPC2021_SOURCE_DIR}
-mkdir -p ${HPC2021_SOURCE_DIR}
-
-cd ${HPC2021_SOURCE_DIR} || exit 1
-wget http://roclogin.amd.com/SPEC/hpc2021-1.1.9.tar.xz
-wget http://roclogin.amd.com/SPEC/Hpc21-scripts.tar
-tar xf hpc2021-1.1.9.tar.xz
-./install.sh -f
-tar xvf Hpc21-scripts.tar
-sed -i s/ref/${HPC_INPUT}/g ./runOne
+if [ "$1" == "-clean" ]; then
+  rm -rf ${HPC2021_SOURCE_DIR}
+  mkdir -p ${HPC2021_SOURCE_DIR}
+  cd ${HPC2021_SOURCE_DIR} || exit 1
+  wget http://roclogin.amd.com/SPEC/hpc2021-1.1.9.tar.xz
+  wget http://roclogin.amd.com/SPEC/Hpc21-scripts.tar
+  tar xf hpc2021-1.1.9.tar.xz
+  ./install.sh -f
+  tar xvf Hpc21-scripts.tar
+else
+  cd ${HPC2021_SOURCE_DIR} || exit 1
+fi
 ./runOne
 grep ratio= result/*.log
