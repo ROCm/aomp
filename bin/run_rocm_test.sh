@@ -743,7 +743,6 @@ function OpenMP_VV(){
     SKIP_SOLLVE51=1 SKIP_SOLLVE52=1 ./run_OpenMP_VV.sh
   fi
 
-if [ "$LATER" == "1" ] ; then
   ./check_sollve.sh
   checkrc $?
 
@@ -762,7 +761,6 @@ if [ "$LATER" == "1" ] ; then
   # 5.2 Results
   cd "$AOMP_TEST_DIR"/sollve_vv/results_report52
   copyresults sollve52
-fi
 }
 
 function sollve(){
