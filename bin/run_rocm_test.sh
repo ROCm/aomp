@@ -844,6 +844,24 @@ function ovo(){
   copyresults ovo
 }
 
+function accel2023(){
+  mkdir -p "$resultsdir"/accel2023
+  cd "$aompdir"/bin
+  ./run_accel2023.sh log "$AOMP_TEST_DIR"/accel2023
+  echo need to run "$scriptsdir"/parse_accel2023.sh
+  cd "$AOMP_TEST_DIR"/accel2023
+  copyresults accel2023
+}
+
+function hpc2021(){
+  mkdir -p "$resultsdir"/hpc2021
+  cd "$aompdir"/bin
+  ./run_hpc2021.sh log "$AOMP_TEST_DIR"/hpc2021
+  echo need to run "$scriptsdir"/parse_hpc2021.sh
+  cd "$AOMP_TEST_DIR"/hpc2021
+  copyresults hpc2021
+}
+
 # Clean Results
 cd "$aompdir"/bin
 rm -rf $resultsdir
