@@ -57,6 +57,7 @@ program main
   ENDDO
   print *
   
+  chk = 0
   DO rkm=1,10
      write(*, "(I5)", advance="no") rkm
      write(*, "(A1)", advance="no") "|"

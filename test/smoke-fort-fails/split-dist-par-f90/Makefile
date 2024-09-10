@@ -1,3 +1,6 @@
+# NOOPT        = 1
+# NOOMP        = 1
+# OMP_FLANGS   = -DNO_OMP
 include ../../Makefile.defs
 
 TESTNAME     = split-dist-par
