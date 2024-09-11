@@ -30,6 +30,7 @@ TESTS_DIR = \
     mathquad-tgt \
     olcf-tf-7-loop-combined \
     rocm-issue-842 \
+    split-dist-f90 \
     split-dist-par-c \
     split-dist-par-f90 \
     tgt-printf-c \
