@@ -170,7 +170,7 @@ if [ "$aomp" != 1 ]; then
         script=$(find . -type f -name 'run_rocm_test.sh')
         cd $(dirname $script)
       # CentOS/RHEL support. CentOS 7 requires a different method.
-      elif [[ "$os_name" =~ "CentOS" ]] || [[ "$os_name" =~ "Red Hat" ]] || [[ "$os_name" =~ "Oracle Linux Server" ]]; then
+      elif [[ "$os_name" =~ "CentOS" ]] || [[ "$os_name" =~ "Red Hat" ]] || [[ "$os_name" =~ "Oracle Linux Server" ]] || [[ "$os_name" =~ "Alibaba Linux Server" ]]; then
         osversion=$(cat /etc/os-release | grep -e ^VERSION_ID)
         if [[ $osversion =~ '"7' ]]; then
           yumdownloader --destdir=$tmpdir $test_package_name
