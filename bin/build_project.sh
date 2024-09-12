@@ -109,7 +109,9 @@ MYCMAKEOPTS="-DCMAKE_BUILD_TYPE=$BUILD_TYPE
  -DLIBOMP_USE_HWLOC=ON -DLIBOMP_HWLOC_INSTALL_DIR=$AOMP_SUPP/hwloc
  -DOPENMP_ENABLE_LIBOMPTARGET=1
  -DLIBOMP_SHARED_LINKER_FLAGS=-Wl,--disable-new-dtags
- -DLIBOMP_INSTALL_RPATH=$AOMP_ORIGIN_RPATH_LIST"
+ -DCLANG_LINK_FLANG_LEGACY=ON
+ -DLIBOMP_INSTALL_RPATH=$AOMP_ORIGIN_RPATH_LIST
+ -DLIBOMPTARGET_INSTALL_RPATH=$AOMP_ORIGIN_RPATH_LIST"
 
 # Enable amdflang, amdclang, amdclang++, amdllvm.
 # clang-tools-extra added to LLVM_ENABLE_PROJECTS above.
@@ -121,10 +123,6 @@ $AOMP_CCACHE_OPTS
 -DLIBCXX_ENABLE_STATIC=ON
 -DLIBCXXABI_ENABLE_STATIC=ON
 "
-if [ $AOMP_BUILD_FLANG_LEGACY == 1 ] ; then
-   # this prevents the install link from clang to flang
-   MYCMAKEOPTS="$MYCMAKEOPTS -DCLANG_LINK_FLANG=OFF"
-fi
 
 # Enable Compiler-rt Sanitizer Build
 if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
@@ -276,6 +274,29 @@ if [ "$1" == "install" ] ; then
    removepatch $REPO_DIR
    REPO_DIR=$AOMP_REPOS/$AOMP_ROCR_REPO_NAME
    removepatch $REPO_DIR
+   amd_compiler_symlinks=("amdclang" "amdclang++" "amdclang-cl" "amdclang-cpp" "amdflang" "amdlld")
+   amd_compiler_cfg=("clang" "clang++" "clang-cpp" "clang-${AOMP_MAJOR_VERSION}" "clang-cl" "flang" "flang-new")
+   for i in "${amd_compiler_symlinks[@]}"; do
+      if [ -f "$LLVM_INSTALL_LOC/bin/$i" ] && [ ! -h $AOMP_INSTALL_DIR/bin/$i ]; then
+         echo "Creating $i symlink: ${AOMP_INSTALL_DIR}/bin/$i -> ${LLVM_INSTALL_LOC}/bin/$i"
+         cd ${AOMP_INSTALL_DIR}
+         mkdir -p bin
+         ln -s ../lib/llvm/bin/$i ${AOMP_INSTALL_DIR}/bin/$i
+      fi
+   done
+   # rocm.cfg content
+   {
+      echo "--rocm-path='<CFGDIR>/../../..'"
+      echo "-frtlib-add-rpath"
+    } > "${LLVM_INSTALL_LOC}/bin/rocm.cfg"
+
+   for i in "${amd_compiler_cfg[@]}"; do
+      if [ -f "${LLVM_INSTALL_LOC}/bin/$i" ]; then
+         echo "Creating config file: ${i}.cfg in ${LLVM_INSTALL_LOC}/bin"
+         config_file="${LLVM_INSTALL_LOC}/bin/${i}.cfg"
+         cp ${LLVM_INSTALL_LOC}/bin/rocm.cfg $config_file
+      fi
+   done
 else 
    echo 
    echo "SUCCESSFUL BUILD, please run:  $0 install"

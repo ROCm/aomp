@@ -18,7 +18,7 @@ if [ ! -f "$ompd_dir/__init__.py" ] ; then
   exit 1
 fi
 
-bldcmd="$hipcc_loc -O0 -g -ggdb  -fopenmp matrixmul.cpp -o matrixmul"
+bldcmd="$hipcc_loc -O0 -g -ggdb  -fopenmp -Wl,--enable-new-dtags matrixmul.cpp -o matrixmul"
 #cgdb=`which cgdb` && [ "$cgdb" != "" ] && gdbcmd="$cgdb -d $gdbcmd"
 
 export LD_LIBRARY_PATH=$AOMP/lib-debug:$AOMP/lib:$ompd_dir
