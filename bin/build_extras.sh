@@ -44,8 +44,8 @@ BUILD_DIR=${BUILD_AOMP}
 
 BUILDTYPE="Release"
 
-INSTALL_EXTRAS=${INSTALL_EXTRAS:-$AOMP_INSTALL_DIR}
-export LLVM_DIR=$AOMP_INSTALL_DIR 
+INSTALL_EXTRAS=${INSTALL_EXTRAS:-$LLVM_INSTALL_LOC}
+export LLVM_DIR=$LLVM_INSTALL_LOC
 
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   echo " "
