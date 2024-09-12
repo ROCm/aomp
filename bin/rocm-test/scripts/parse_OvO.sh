@@ -19,7 +19,8 @@ runtime_regex='>>> runtime error'
 wrong_value_regex='>>> wrong value'
 success_regex='>>> success'
 
-cd "$HOME/git/aomp-test/OvO"
+AOMP_TEST_DIR=${AOMP_TEST_DIR:-"$HOME/git/aomp-test"}
+cd "${AOMP_TEST_DIR}/OvO"
 infile=`ls | grep "ovo.run.log"`
 
 # Clean up before parsing

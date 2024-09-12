@@ -13,6 +13,7 @@
 <remote name="tapple" fetch="https://github.com/TApplencourt/" />
 <remote name="qmcpack" fetch="https://github.com/QMCPACK/" />
 <remote name="sollve" fetch="https://github.com/SOLLVE/" />
+<remote name="OpenMP_VV" fetch="https://github.com/OpenMP-Validation-and-Verification/" />
 <remote name="uob-hpc" fetch="https://github.com/UoB-HPC/" />
 <remote name="GenASis" fetch="https://github.com/GenASis/" />
 <remote name="UMT" fetch="https://github.com/LLNL/" />
@@ -28,6 +29,7 @@
 <project remote="tapple"  path="OvO"        name="OvO" revision="master" groups="unlocked" />
 <project remote="qmcpack" path="qmcpack"    name="qmcpack" revision="develop" groups="unlocked" />
 <project remote="sollve"  path="sollve_vv"  name="sollve_vv" revision="master" groups="unlocked" />
+<project remote="OpenMP_VV"  path="OpenMP_VV"  name="OpenMP_VV" revision="master" groups="unlocked" />
 <project remote="uob-hpc" path="babelstream" name="BabelStream" revision="main" groups="unlocked" />
 <project remote="uob-hpc" path="fortran-babelstream" name="BabelStream" revision="develop" groups="unlocked" />
 <project remote="llnl"    path="RAJAPerf" name="RAJAPerf" revision="develop" groups="unlocked" />

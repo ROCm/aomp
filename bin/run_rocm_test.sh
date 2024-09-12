@@ -47,13 +47,13 @@ if [ $ISVIRT -eq 1 ] ; then
 SKIP_USM=1
 export SKIP_USM=1
 export HSA_XNACK=${HSA_XNACK:-0}
-SUITE_LIST=${SUITE_LIST:-"examples smoke-limbo smoke smoke-asan omp5 openmpapps ovo sollve babelstream fortran-babelstream"}
+SUITE_LIST=${SUITE_LIST:-"examples smoke-limbo smoke smoke-asan omp5 openmpapps ovo sollve babelstream fortran-babelstream hpc2021"}
 blockinglist="examples_fortran examples_openmp smoke smoke-limbo openmpapps sollve45 sollve50 babelstream ovo"
 else
-SUITE_LIST=${SUITE_LIST:-"examples smoke-limbo smoke smoke-asan omp5 openmpapps LLNL nekbone ovo sollve babelstream fortran-babelstream"}
+SUITE_LIST=${SUITE_LIST:-"examples smoke-limbo smoke smoke-asan omp5 openmpapps LLNL nekbone ovo sollve babelstream fortran-babelstream hpc2021"}
 blockinglist="examples_fortran examples_openmp smoke smoke-limbo openmpapps sollve45 sollve50 babelstream ovo"
 fi
-EPSDB_LIST=${EPSDB_LIST:-"examples smoke-limbo smoke-dev smoke smoke-asan omp5 openmpapps LLNL nekbone ovo sollve babelstream fortran-babelstream"}
+EPSDB_LIST=${EPSDB_LIST:-"examples smoke-limbo smoke-dev smoke smoke-asan omp5 openmpapps LLNL nekbone ovo sollve babelstream fortran-babelstream hpc2021"}
 
 export AOMP_USE_CCACHE=0
 
@@ -170,7 +170,7 @@ if [ "$aomp" != 1 ]; then
         script=$(find . -type f -name 'run_rocm_test.sh')
         cd $(dirname $script)
       # CentOS/RHEL support. CentOS 7 requires a different method.
-      elif [[ "$os_name" =~ "CentOS" ]] || [[ "$os_name" =~ "Red Hat" ]] || [[ "$os_name" =~ "Oracle Linux Server" ]]; then
+      elif [[ "$os_name" =~ "CentOS" ]] || [[ "$os_name" =~ "Red Hat" ]] || [[ "$os_name" =~ "Oracle Linux Server" ]] || [[ "$os_name" =~ "Alibaba Linux Server" ]]; then
         osversion=$(cat /etc/os-release | grep -e ^VERSION_ID)
         if [[ $osversion =~ '"7' ]]; then
           yumdownloader --destdir=$tmpdir $test_package_name
@@ -726,6 +726,43 @@ function nekbone(){
   copyresults nekbone
 }
 
+function OpenMP_VV(){
+  # Sollve
+  mkdir -p "$resultsdir"/sollve45
+  mkdir -p "$resultsdir"/sollve50
+  mkdir -p "$resultsdir"/sollve51
+  mkdir -p "$resultsdir"/sollve52
+  cd "$aompdir"/bin
+
+  export SOLLVE_TIMELIMIT=360
+  no_usm_gpus="gfx900 gfx906"
+  if [[ "$no_usm_gpus" =~ "$AOMP_GPU" ]]; then
+    echo "Skipping USM 5.x tests."
+    SKIP_USM=1 SKIP_SOLLVE51=1 SKIP_SOLLVE52=1 ./run_OpenMP_VV.sh
+  else
+    SKIP_SOLLVE51=1 SKIP_SOLLVE52=1 ./run_OpenMP_VV.sh
+  fi
+
+  ./check_sollve.sh
+  checkrc $?
+
+  # 4.5 Results
+  cd "$AOMP_TEST_DIR"/sollve_vv/results_report45
+  copyresults sollve45
+
+  # 5.0 Results
+  cd "$AOMP_TEST_DIR"/sollve_vv/results_report50
+  copyresults sollve50
+
+  # 5.1 Results
+  cd "$AOMP_TEST_DIR"/sollve_vv/results_report51
+  copyresults sollve51
+
+  # 5.2 Results
+  cd "$AOMP_TEST_DIR"/sollve_vv/results_report52
+  copyresults sollve52
+}
+
 function sollve(){
   # Sollve
   mkdir -p "$resultsdir"/sollve45
@@ -747,19 +784,19 @@ function sollve(){
   checkrc $?
 
   # 4.5 Results
-  cd "$HOME"/git/aomp-test/sollve_vv/results_report45
+  cd "$AOMP_TEST_DIR"/sollve_vv/results_report45
   copyresults sollve45
 
   # 5.0 Results
-  cd "$HOME"/git/aomp-test/sollve_vv/results_report50
+  cd "$AOMP_TEST_DIR"/sollve_vv/results_report50
   copyresults sollve50
 
   # 5.1 Results
-  cd "$HOME"/git/aomp-test/sollve_vv/results_report51
+  cd "$AOMP_TEST_DIR"/sollve_vv/results_report51
   copyresults sollve51
 
   # 5.2 Results
-  cd "$HOME"/git/aomp-test/sollve_vv/results_report52
+  cd "$AOMP_TEST_DIR"/sollve_vv/results_report52
   copyresults sollve52
 }
 
@@ -801,10 +838,40 @@ function LLNL(){
 function ovo(){
   mkdir -p "$resultsdir"/ovo
   cd "$aompdir"/bin
-  ./run_ovo.sh log "$HOME"/git/aomp-test/OvO
+  ./run_ovo.sh log "$AOMP_TEST_DIR"/OvO
   "$scriptsdir"/parse_OvO.sh
   cd "$AOMP_TEST_DIR"/OvO
   copyresults ovo
+}
+
+function accel2023(){
+  mkdir -p "$resultsdir"/accel2023
+  cd "$aompdir"/bin
+  ./run_accel2023.sh -clean
+  echo need to run "$scriptsdir"/parse_accel2023.sh
+  cd "$AOMP_TEST_DIR"/accel2023
+  copyresults accel2023
+}
+
+function hpc2021(){
+  cd "$aompdir"/bin
+  ./run_hpc2021.sh -clean
+  pushd $AOMP_TEST_DIR/hpc2021-1.1.9
+  mkdir -p "$resultsdir"/hpc2021
+  ls -l "$resultsdir"/hpc2021
+
+  grep ratio= result/*.log
+  grep ratio= result/*.log | grep Succ > "$resultsdir"/hpc2021/passing-tests.txt
+  grep ratio= result/*.log | grep -v Succ > failing-tests.txt
+  nsucc=$(grep ratio= result/*.log  | grep Succ | wc -l)
+  if [ $nsucc -eq 9 ]; then
+    echo "Success $nsucc passes"
+  else
+    echo "Failure $nsucc passes"
+  fi
+  cd "$AOMP_TEST_DIR"/hpc2021-1.1.9
+  copyresults hpc2021
+  popd
 }
 
 # Clean Results
