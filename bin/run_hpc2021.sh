@@ -27,4 +27,4 @@ else
   cd ${HPC2021_SOURCE_DIR} || exit 1
 fi
 ./runOne
-grep ratio= result/*.log
+#grep ratio= result/*.log

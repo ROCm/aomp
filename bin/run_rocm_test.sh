@@ -47,13 +47,13 @@ if [ $ISVIRT -eq 1 ] ; then
 SKIP_USM=1
 export SKIP_USM=1
 export HSA_XNACK=${HSA_XNACK:-0}
-SUITE_LIST=${SUITE_LIST:-"examples smoke-limbo smoke smoke-asan omp5 openmpapps ovo sollve babelstream fortran-babelstream"}
+SUITE_LIST=${SUITE_LIST:-"examples smoke-limbo smoke smoke-asan omp5 openmpapps ovo sollve babelstream fortran-babelstream hpc2021"}
 blockinglist="examples_fortran examples_openmp smoke smoke-limbo openmpapps sollve45 sollve50 babelstream ovo"
 else
-SUITE_LIST=${SUITE_LIST:-"examples smoke-limbo smoke smoke-asan omp5 openmpapps LLNL nekbone ovo sollve babelstream fortran-babelstream"}
+SUITE_LIST=${SUITE_LIST:-"examples smoke-limbo smoke smoke-asan omp5 openmpapps LLNL nekbone ovo sollve babelstream fortran-babelstream hpc2021"}
 blockinglist="examples_fortran examples_openmp smoke smoke-limbo openmpapps sollve45 sollve50 babelstream ovo"
 fi
-EPSDB_LIST=${EPSDB_LIST:-"examples smoke-limbo smoke-dev smoke smoke-asan omp5 openmpapps LLNL nekbone ovo sollve babelstream fortran-babelstream"}
+EPSDB_LIST=${EPSDB_LIST:-"examples smoke-limbo smoke-dev smoke smoke-asan omp5 openmpapps LLNL nekbone ovo sollve babelstream fortran-babelstream hpc2021"}
 
 export AOMP_USE_CCACHE=0
 
@@ -854,12 +854,24 @@ function accel2023(){
 }
 
 function hpc2021(){
-  mkdir -p "$resultsdir"/hpc2021
   cd "$aompdir"/bin
   ./run_hpc2021.sh -clean
-  echo need to run "$scriptsdir"/parse_hpc2021.sh
-  cd "$AOMP_TEST_DIR"/hpc2021
+  pushd $AOMP_TEST_DIR/hpc2021-1.1.9
+  mkdir -p "$resultsdir"/hpc2021
+  ls -l "$resultsdir"/hpc2021
+
+  grep ratio= result/*.log
+  grep ratio= result/*.log | grep Succ > "$resultsdir"/hpc2021/passing-tests.txt
+  grep ratio= result/*.log | grep -v Succ > failing-tests.txt
+  nsucc=$(grep ratio= result/*.log  | grep Succ | wc -l)
+  if [ $nsucc -eq 9 ]; then
+    echo "Success $nsucc passes"
+  else
+    echo "Failure $nsucc passes"
+  fi
+  cd "$AOMP_TEST_DIR"/hpc2021-1.1.9
   copyresults hpc2021
+  popd
 }
 
 # Clean Results
