@@ -18,12 +18,6 @@ export ROCR_VISIBLE_DEVICES=0
 # prematurely removing pass/fail results.
 export CLEANUP=0
 
-# Enable AMDGPU Sanitizer Testing
-if [ "$1" == "-a" ]; then
-  export AOMP_SANITIZER=1
-  export LD_LIBRARY_PATH=$AOMP/lib/asan:$AOMPROCM/lib/asan:$LD_LIBRARY_PATH
-fi
-
 if [ -e /usr/sbin/lspci ]; then
   lspci_loc=/usr/sbin/lspci
 else
@@ -259,6 +253,12 @@ if [ "$AOMP_GPU" == "" ]; then
 fi
 echo AOMP_GPU=$AOMP_GPU
 export AOMP_GPU
+
+# Enable AMDGPU Sanitizer Testing
+if [ "$1" == "-a" ]; then
+  export AOMP_SANITIZER=1
+  export LD_LIBRARY_PATH=$AOMP/lib/asan:$AOMPROCM/lib/asan:$LD_LIBRARY_PATH
+fi
 
 # Disable HSA_XNACK if gfx1*
 if [[ $AOMP_GPU == gfx1* ]]; then
@@ -855,6 +855,10 @@ function accel2023(){
 
 function hpc2021(){
   cd "$aompdir"/bin
+  if [ ! -e /home/$USER/local/install/openmpi-5.0.0 ]; then
+    SUPPLEMENTAL_COMPONENTS=openmpi ./build_supp.sh
+  fi
+  export MPI=/home/$USER/local/install/openmpi-5.0.0
   ./run_hpc2021.sh -clean
   pushd $AOMP_TEST_DIR/hpc2021-1.1.9
   mkdir -p "$resultsdir"/hpc2021
