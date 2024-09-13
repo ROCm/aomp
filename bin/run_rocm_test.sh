@@ -855,6 +855,10 @@ function accel2023(){
 
 function hpc2021(){
   cd "$aompdir"/bin
+  if [ ! -e /home/$USER/local/install/openmpi-5.0.0 ]; then
+    SUPPLEMENTAL_COMPONENTS=openmpi ./build_supp.sh
+  fi
+  export MPI=/home/$USER/local/install/openmpi-5.0.0
   ./run_hpc2021.sh -clean
   pushd $AOMP_TEST_DIR/hpc2021-1.1.9
   mkdir -p "$resultsdir"/hpc2021
