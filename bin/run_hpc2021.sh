@@ -26,5 +26,6 @@ if [ "$1" == "-clean" ]; then
 else
   cd ${HPC2021_SOURCE_DIR} || exit 1
 fi
+export PATH=/opt/rocm-*/bin:$PATH
 ./runOne
 #grep ratio= result/*.log
