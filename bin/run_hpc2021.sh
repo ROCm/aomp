@@ -18,8 +18,8 @@ if [ "$1" == "-clean" ]; then
   rm -rf ${HPC2021_SOURCE_DIR}
   mkdir -p ${HPC2021_SOURCE_DIR}
   cd ${HPC2021_SOURCE_DIR} || exit 1
-  wget http://roclogin.amd.com/SPEC/hpc2021-1.1.9.tar.xz
-  wget http://roclogin.amd.com/SPEC/Hpc21-scripts.tar
+  wget -q http://roclogin.amd.com/SPEC/hpc2021-1.1.9.tar.xz
+  wget -q http://roclogin.amd.com/SPEC/Hpc21-scripts.tar
   tar xf hpc2021-1.1.9.tar.xz
   ./install.sh -f
   tar xvf Hpc21-scripts.tar
