@@ -28,6 +28,7 @@ FLANG=${FLANG:-flang}
 # Use function to set and test AOMP_GPU
 setaompgpu
 
+AOMP_TEST_DIR=${AOMP_TEST_DIR:-"$HOME/git/aomp-test"}
 cd $AOMP_REPOS_TEST/Nekbone
 cd test/nek_gpu1
 rm -f make-fail.txt failing-tests.txt passing-tests.txt
