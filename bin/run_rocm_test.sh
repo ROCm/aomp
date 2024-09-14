@@ -854,26 +854,34 @@ function accel2023(){
 }
 
 function hpc2021(){
-  cd "$aompdir"/bin
-  ./build_supp.sh cmake rocmsmilib hwloc openmpi
-  export MPI=/home/$USER/local/install/openmpi-5.0.0
-  ./run_hpc2021.sh -clean
-  pushd $AOMP_TEST_DIR/hpc2021-1.1.9
-  mkdir -p "$resultsdir"/hpc2021
-  ls -l "$resultsdir"/hpc2021
+  grep -q Ubuntu /etc/os-release
+  if [ "$?" -eq "0" ]; then
+    echo "running on ubuntu"
+    pushd /tmp;
+    wget -q http://roclogin.amd.com/SPEC/npsdbOmpi.tar
+    tar xf npsdbOmpi.tar
+    rm -f npsdbOmpi.tar
+    popd
+    cd "$aompdir"/bin
+    export MPI=/tmp/npsdb/openmpi-5.0.0
+    ./run_hpc2021.sh -clean
+    pushd $AOMP_TEST_DIR/hpc2021-1.1.9
+    mkdir -p "$resultsdir"/hpc2021
+    ls -l "$resultsdir"/hpc2021
 
-  grep ratio= result/*.log
-  grep ratio= result/*.log | grep Succ > "$resultsdir"/hpc2021/passing-tests.txt
-  grep ratio= result/*.log | grep -v Succ > failing-tests.txt
-  nsucc=$(grep ratio= result/*.log  | grep Succ | wc -l)
-  if [ $nsucc -eq 9 ]; then
-    echo "Success $nsucc passes"
-  else
-    echo "Failure $nsucc passes"
+    grep ratio= result/*.log
+    grep ratio= result/*.log | grep Succ > "$resultsdir"/hpc2021/passing-tests.txt
+    grep ratio= result/*.log | grep -v Succ > failing-tests.txt
+    nsucc=$(grep ratio= result/*.log  | grep Succ | wc -l)
+    if [ $nsucc -eq 9 ]; then
+      echo "Success $nsucc passes"
+    else
+      echo "Failure $nsucc passes"
+    fi
+    cd "$AOMP_TEST_DIR"/hpc2021-1.1.9
+    copyresults hpc2021
+    popd
   fi
-  cd "$AOMP_TEST_DIR"/hpc2021-1.1.9
-  copyresults hpc2021
-  popd
 }
 
 # Clean Results
