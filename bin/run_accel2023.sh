@@ -28,6 +28,6 @@ if [ "$1" == "-clean" ]; then
 else
   cd ${ACCEL2023_SOURCE_DIR} || exit 1
 fi
-
+export PATH=$AOMP/../bin:$AOMP/../../bin:$PATH
 ./runOne
 #grep ratio= result/*.log
