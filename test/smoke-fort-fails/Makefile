@@ -37,7 +37,8 @@ TESTS_DIR = \
     flang-gpu-stop-integer \
     flang-gpu-stop-string \
     flang-gpu-exit \
-    flang-gpu-abort
+    flang-gpu-abort \
+    flang-target-alias-analysis
 
 all:
 	@for test_dir in $(TESTS_DIR); do \
