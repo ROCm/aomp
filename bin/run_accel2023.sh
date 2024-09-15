@@ -18,14 +18,16 @@ if [ "$1" == "-clean" ]; then
   rm -rf ${ACCEL2023_SOURCE_DIR}
   mkdir -p ${ACCEL2023_SOURCE_DIR}
   cd ${ACCEL2023_SOURCE_DIR} || exit 1
-  wget http://roclogin.amd.com/SPEC/accel2023-2.0.18.tar.xz
-  wget http://roclogin.amd.com/SPEC/Accel23-scripts.tar
+  set -x
+  wget -q http://roclogin.amd.com/SPEC/accel2023-2.0.18.tar.xz
+  wget -q http://roclogin.amd.com/SPEC/Accel23-scripts.tar
   tar xf accel2023-2.0.18.tar.xz
-  ./install.sh -f
   tar xvf Accel23-scripts.tar
+  set +x
+  ./install.sh -f
 else
   cd ${ACCEL2023_SOURCE_DIR} || exit 1
 fi
 
 ./runOne
-grep ratio= result/*.log
+#grep ratio= result/*.log
