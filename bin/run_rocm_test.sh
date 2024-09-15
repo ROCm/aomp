@@ -18,6 +18,9 @@ export ROCR_VISIBLE_DEVICES=0
 # prematurely removing pass/fail results.
 export CLEANUP=0
 
+# whats the OS ?
+grep PRETTY_NAME /etc/os-release
+
 if [ -e /usr/sbin/lspci ]; then
   lspci_loc=/usr/sbin/lspci
 else
@@ -41,13 +44,13 @@ if [ $ISVIRT -eq 1 ] ; then
 SKIP_USM=1
 export SKIP_USM=1
 export HSA_XNACK=${HSA_XNACK:-0}
-SUITE_LIST=${SUITE_LIST:-"examples smoke-limbo smoke smoke-asan omp5 openmpapps ovo sollve babelstream fortran-babelstream hpc2021"}
+SUITE_LIST=${SUITE_LIST:-"examples smoke-limbo smoke smoke-asan omp5 openmpapps ovo sollve babelstream fortran-babelstream accel2023 hpc2021"}
 blockinglist="examples_fortran examples_openmp smoke smoke-limbo openmpapps sollve45 sollve50 babelstream ovo"
 else
-SUITE_LIST=${SUITE_LIST:-"examples smoke-limbo smoke smoke-asan omp5 openmpapps LLNL nekbone ovo sollve babelstream fortran-babelstream hpc2021"}
+SUITE_LIST=${SUITE_LIST:-"examples smoke-limbo smoke smoke-asan omp5 openmpapps LLNL nekbone ovo sollve babelstream fortran-babelstream accel2023 hpc2021"}
 blockinglist="examples_fortran examples_openmp smoke smoke-limbo openmpapps sollve45 sollve50 babelstream ovo"
 fi
-EPSDB_LIST=${EPSDB_LIST:-"examples smoke-limbo smoke-dev smoke smoke-asan omp5 openmpapps LLNL nekbone ovo sollve babelstream fortran-babelstream hpc2021"}
+EPSDB_LIST=${EPSDB_LIST:-"examples smoke-limbo smoke-dev smoke smoke-asan omp5 openmpapps LLNL nekbone ovo sollve babelstream fortran-babelstream accel2023 hpc2021"}
 
 export AOMP_USE_CCACHE=0
 
@@ -845,11 +848,21 @@ function ovo(){
 }
 
 function accel2023(){
-  mkdir -p "$resultsdir"/accel2023
   cd "$aompdir"/bin
   ./run_accel2023.sh -clean
-  echo need to run "$scriptsdir"/parse_accel2023.sh
-  cd "$AOMP_TEST_DIR"/accel2023
+  pushd $AOMP_TEST_DIR/accel2023-2.0.18
+  mkdir -p "$resultsdir"/accel2023
+  ls -l "$resultsdir"/accel2023
+  grep ratio= result/*.log
+  grep ratio= result/*.log | grep Succ > "$resultsdir"/accel2023/passing-tests.txt
+  grep ratio= result/*.log | grep -v Succ > failing-tests.txt
+  nsucc=$(grep ratio= result/*.log  | grep Succ | wc -l)
+  if [ $nsucc -eq 12 ]; then
+    echo "Success $nsucc passes"
+  else
+    echo "Failure $nsucc passes"
+  fi
+  cd $AOMP_TEST_DIR/accel2023-2.0.18
   copyresults accel2023
 }
 
