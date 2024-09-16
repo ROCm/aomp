@@ -2,7 +2,6 @@
 #include "route_cost.h"
 #include "tsp_utils.h"
 #include "counting_iterator.h"
-#include "SimpleTimer.h"
 
 // #include <thrust/iterator/counting_iterator.h>
 // #include <thrust/system/omp/execution_policy.h>
@@ -15,8 +14,12 @@
 #include <iostream>
 
 #include <algorithm>
+#include <chrono>
 #include <execution>
 #include <numeric>
+
+using namespace std;
+using namespace std::chrono;
 
 // ============================================
 // ============================================
@@ -122,24 +125,22 @@ route_cost find_best_route(int const* distances)
 // ============================================================
 // ============================================================
 //! \param[in] nbRepeat number of repeat (for accurate time measurement)
+
 template <int N>
 void solve_traveling_salesman(int nbRepeat = 1)
 {
-  // find best route
   auto distances_small = init_distance_matrix_small(N);
-
   route_cost best_route;
 
-  SimpleTimer timer;
-  timer.start();
+  auto start = high_resolution_clock::now();
   for (int i = 0; i<nbRepeat; ++i)
     best_route = find_best_route<N>(distances_small.data());
-  timer.stop();
 
-  double time = timer.elapsedSeconds()/nbRepeat;
+  auto end = high_resolution_clock::now();
 
+  duration<double, milli> elapsed = (end - start) / nbRepeat;
   // print best route
-  printf("Trav Salesman Prob N=%d, best route cost is: %d, average time is %f seconds\n",N, best_route.cost, time);
+  printf("Trav Salesman Prob N=%d, best route cost is: %d, average time is %f seconds\n",N, best_route.cost, elapsed.count());
 
   printf("Solution route is ");
   route_iterator<N> rit(best_route.route);
