@@ -2,8 +2,8 @@ NOOPT        = 1
 include ../../Makefile.defs
 OMP_FLAGS    += -O3 -save-temps
 
-TESTNAME     = flang-target-alias-analysis
-TESTSRC_MAIN = flang-target-alias-analysis.f90
+TESTNAME     = flang-485265
+TESTSRC_MAIN = flang-485265.f90
 TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 

@@ -26,6 +26,7 @@ TESTS_DIR = \
     flang-479382-4 \
     flang-479382-5 \
     flang-480581 \
+    flang-485265 \
     mathdbl-tgt \
     mathquad-tgt \
     olcf-tf-7-loop-combined \
@@ -37,8 +38,7 @@ TESTS_DIR = \
     flang-gpu-stop-integer \
     flang-gpu-stop-string \
     flang-gpu-exit \
-    flang-gpu-abort \
-    flang-target-alias-analysis
+    flang-gpu-abort
 
 all:
 	@for test_dir in $(TESTS_DIR); do \
