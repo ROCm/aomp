@@ -1,7 +1,6 @@
 #include "route_iterator.h"
 #include "route_cost.h"
 #include "tsp_utils.h"
-#include "counting_iterator.h"
 
 // #include <thrust/iterator/counting_iterator.h>
 // #include <thrust/system/omp/execution_policy.h>
@@ -17,6 +16,7 @@
 #include <chrono>
 #include <execution>
 #include <numeric>
+#include <ranges>
 
 using namespace std;
 using namespace std::chrono;
@@ -82,23 +82,20 @@ void test_city_distance()
 
 } // test_city_distance
 
-// ============================================
-// ============================================
+
 template<int N>
 route_cost find_best_route(int const* distances)
 {
-
+  int X = factorial(N);
   return
     std::transform_reduce(std::execution::par_unseq,
-                          counting_iterator(0),
-                          counting_iterator(factorial(N)),
+		    	  std::views::iota(0, X).begin(),
+		    	  std::views::iota(0, X).end(),
                           route_cost(),
-                          //route_cost::minf,
                           [](route_cost x, route_cost y) { return x.cost < y.cost ? x : y; },
                           [=](int64_t i)
   {
     int cost = 0;
-
     route_iterator<N> it(i);
 
     // first city visited
@@ -109,18 +106,14 @@ route_cost find_best_route(int const* distances)
     while (!it.done())
     {
       int to = it.next();
-      cost += distances[to + N*from];
+      cost += distances[to + N * from];
       from = to;
     }
-
-    // debug
-    // printf("route #%d cost=%d\n",i,cost);
-
     // update best_route -> reduction
     return route_cost(i, cost);
   });
 
-} // find_best_route
+}
 
 // ============================================================
 // ============================================================
