@@ -1,0 +1,41 @@
+#!/usr/bin/perl
+#
+# Recompute the checksum (first line) for a llvm-flang mod file
+#
+# Matches computation performed in flang/lib/Semantics/mod-file.cpp
+# Fowler-Noll-Vo hash function
+#
+# Note: The first line (existing checksum) is ignored by the computation
+#       !mod$ v1 sum:3e44696ef2ebf285
+#
+#   $ head /COD/LATEST/trunk-atd/include/flang/iso_c_binding.mod
+#   !mod$ v1 sum:979aba7fc65ae566
+#   !need$ 5705608e9b8d8d9c n __fortran_builtins
+#   module iso_c_binding
+#   ...
+#
+#   $ mod-chksum-llvm-flang /COD/LATEST/trunk-atd/include/flang/iso_c_binding.mod
+#   !mod$ v1 sum:979aba7fc65ae566
+#
+use strict;
+no strict "refs";
+select(STDERR); $| = 1;         # make STDERR unbuffered
+select(STDOUT); $| = 1;         # make STDOUT unbuffered
+
+my $hash=0xcbf29ce484222325;
+my ($char, $line);
+
+my $cnt = 0;
+while (<>) {
+    $cnt++;
+    $line = $_;
+    next if ($cnt <= 1);        # skip first line (original hash)
+    foreach $char (split //, $line) {
+        use integer;            # only perform integer math
+        $hash ^= ord($char) & 0xff;
+        $hash *= 0x100000001b3;
+        $hash &= 0xffffffffffffffff;    # clip to 64-bits
+    }
+}
+
+printf("!mod\$ v1 sum:%x\n", $hash);
