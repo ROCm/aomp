@@ -110,7 +110,7 @@ if [ "$AOMP_STANDALONE_BUILD" == 1 ] ; then
   if [ "$_hostarch" == "x86_64" ] ; then
     # These components build on x86_64, so add them to components list
     if [ "$AOMP_SKIP_FLANG" == 0 ] ; then
-      components="$components flang-legacy pgmath flang flang_runtime"
+      components="$components llvm-legacy flang-legacy pgmath flang flang_runtime"
     fi
     #components="$components hipfort"
     components="$components hipcc hipamd "
@@ -139,7 +139,7 @@ else
   if [ "$SANITIZER" == 1 ] && [ -f $AOMP/bin/flang-legacy ] ; then
     components="$components pgmath flang flang_runtime"
   else
-    components="$components flang-legacy pgmath flang flang_runtime"
+    components="$components llvm-legacy flang-legacy pgmath flang flang_runtime"
   fi
 fi
 echo "COMPONENTS:$components"

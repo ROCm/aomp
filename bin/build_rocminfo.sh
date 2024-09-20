@@ -100,7 +100,10 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
       echo "      $MYCMAKEOPTS"
       exit 1
   fi
+fi
 
+if [ "$1" = "cmake" ]; then
+   exit 0
 fi
 
 cd $BUILD_DIR/build/rocminfo
