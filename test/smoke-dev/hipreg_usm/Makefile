@@ -8,7 +8,7 @@ TESTSRC_AUX  = hip_hostreg.o
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 AOMPHIP ?= $(AOMP)
 HIPCC ?= $(AOMPHIP)/bin/hipcc
-HIP_CLANG_PATH ?= $(AOMPHIP)/bin
+HIP_CLANG_PATH =
 
 CFLAGS = -O3 -fopenmp-target-fast
 CLANG        = clang++

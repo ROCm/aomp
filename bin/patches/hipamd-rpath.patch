@@ -1,0 +1,12 @@
+diff --git a/hipamd/src/CMakeLists.txt b/hipamd/src/CMakeLists.txt
+index 31437e87c..10dda95b9 100644
+--- a/hipamd/src/CMakeLists.txt
++++ b/hipamd/src/CMakeLists.txt
+@@ -313,7 +313,6 @@ if(HIP_ENABLE_ROCPROFILER_REGISTER)
+         HIP_ROCP_REG_VERSION_MINOR=${HIP_VERSION_MINOR}
+         HIP_ROCP_REG_VERSION_PATCH=0)
+     target_link_libraries(amdhip64 PRIVATE rocprofiler-register::rocprofiler-register)
+-    set_target_properties(amdhip64 PROPERTIES INSTALL_RPATH "\$ORIGIN")
+ endif()
+ 
+ add_custom_command(TARGET amdhip64 POST_BUILD COMMAND

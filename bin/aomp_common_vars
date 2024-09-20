@@ -191,7 +191,7 @@ if [ "$AOMP_PROC" == "ppc64le" ] ; then
    AOMP_BUILD_CUDA=1
    AOMP_STANDALONE_BUILD=1
 fi
-AOMP_ORIGIN_RPATH_LIST="\$ORIGIN:\$ORIGIN/../lib:\$ORIGIN/../lib64:\$ORIGIN/../../../lib"
+AOMP_ORIGIN_RPATH_LIST="\$ORIGIN:\$ORIGIN/../lib:\$ORIGIN/../lib64:\$ORIGIN/../../../lib:\$ORIGIN/../llvm/lib"
 if [ $AOMP_STANDALONE_BUILD == 1 ] ; then
    # Default is to build nvptx for STANDALONE build
    AOMP_BUILD_CUDA=${AOMP_BUILD_CUDA:-1}
@@ -226,7 +226,7 @@ AOMP_ORIGIN_RPATH="-DCMAKE_SHARED_LINKER_FLAGS='-Wl,--disable-new-dtags' $AOMP_O
 # Libraries and Binaries need different RUNPATH as below
 if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
   ## Below 3 lines are actually only required for AOMP ASan RPATH Cmake configuration.
-  AOMP_ASAN_ORIGIN_RPATH_LIST="\$ORIGIN:\$ORIGIN/../../lib:\$ORIGIN/../lib:\$ORIGIN/../lib64:\$ORIGIN/../../../../lib:\$ORIGIN/../llvm/lib"
+  AOMP_ASAN_ORIGIN_RPATH_LIST="\$ORIGIN:\$ORIGIN/../../lib:\$ORIGIN/../lib:\$ORIGIN/../lib64:\$ORIGIN/../../../../lib:\$ORIGIN/../lib/llvm"
   AOMP_ASAN_ORIGIN_RPATH_NO_DTAGS="-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=OFF -DCMAKE_INSTALL_RPATH=$AOMP_ASAN_ORIGIN_RPATH_LIST"
   AOMP_ASAN_ORIGIN_RPATH="-DCMAKE_SHARED_LINKER_FLAGS='-Wl,--disable-new-dtags' $AOMP_ASAN_ORIGIN_RPATH_NO_DTAGS"
   # Please note below lines are only setup for ROCm ASan integration with AOMP.

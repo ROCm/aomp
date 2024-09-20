@@ -276,14 +276,16 @@ if [ "$1" == "install" ] ; then
    removepatch $REPO_DIR
    amd_compiler_symlinks=("amdclang" "amdclang++" "amdclang-cl" "amdclang-cpp" "amdflang" "amdlld")
    amd_compiler_cfg=("clang" "clang++" "clang-cpp" "clang-${AOMP_MAJOR_VERSION}" "clang-cl" "flang" "flang-new")
-   for i in "${amd_compiler_symlinks[@]}"; do
-      if [ -f "$LLVM_INSTALL_LOC/bin/$i" ] && [ ! -h $AOMP_INSTALL_DIR/bin/$i ]; then
-         echo "Creating $i symlink: ${AOMP_INSTALL_DIR}/bin/$i -> ${LLVM_INSTALL_LOC}/bin/$i"
-         cd ${AOMP_INSTALL_DIR}
-         mkdir -p bin
-         ln -s ../lib/llvm/bin/$i ${AOMP_INSTALL_DIR}/bin/$i
-      fi
-   done
+
+   # Leaving this in just in case we decide to add the amd* symlinks in the top level bin directory.
+   #for i in "${amd_compiler_symlinks[@]}"; do
+   #   if [ -f "$LLVM_INSTALL_LOC/bin/$i" ] && [ ! -h $AOMP_INSTALL_DIR/bin/$i ]; then
+   #      echo "Creating $i symlink: ${AOMP_INSTALL_DIR}/bin/$i -> ${LLVM_INSTALL_LOC}/bin/$i"
+   #      cd ${AOMP_INSTALL_DIR}
+   #      mkdir -p bin
+   #      ln -s ../lib/llvm/bin/$i ${AOMP_INSTALL_DIR}/bin/$i
+   #   fi
+   #done
    # rocm.cfg content
    {
       echo "--rocm-path='<CFGDIR>/../../..'"
@@ -294,7 +296,10 @@ if [ "$1" == "install" ] ; then
       if [ -f "${LLVM_INSTALL_LOC}/bin/$i" ]; then
          echo "Creating config file: ${i}.cfg in ${LLVM_INSTALL_LOC}/bin"
          config_file="${LLVM_INSTALL_LOC}/bin/${i}.cfg"
-         cp ${LLVM_INSTALL_LOC}/bin/rocm.cfg $config_file
+         {
+            echo "@rocm.cfg"
+         } > "$config_file"
+         #cp ${LLVM_INSTALL_LOC}/bin/rocm.cfg $config_file
       fi
    done
 else 
