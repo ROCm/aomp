@@ -34,11 +34,11 @@ ISVIRT=0
 echo $lspci_loc
 $lspci_loc 2>&1 | grep -q VMware
 if [ $? -eq 0 ] ; then
-  ISVIRT=1
+  export ISVIRT=1
 fi
 lscpu 2>&1 | grep -q Hyperv
 if [ $? -eq 0 ] ; then
-  ISVIRT=1
+  export ISVIRT=1
 fi
 if [ $ISVIRT -eq 1 ] ; then
 SKIP_USM=1

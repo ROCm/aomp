@@ -3,6 +3,7 @@
 #include <string>
 #include <cmath>
 #include <omp.h>
+#include <stdlib.h>
 
 // Timing infrastructure
 using namespace std;
@@ -185,14 +186,47 @@ int vecadd(long size, std::string label) {
   return rc;
 }
 
-int main()
+int checkSize(long arraySize , float memSize, int initialExponent){
+  int exponent = 0;
+  float GiB =  pow(1024,3);
+  float sizeGiB;
+  int numArrays = 20;
+
+  for (int i = initialExponent; i > 0; i--){
+    sizeGiB = (arraySize * numArrays * i) / GiB;
+    if (sizeGiB < memSize){
+      exponent = i;
+      printf("BOo: %d\n", i);
+      return exponent;
+   }
+  }
+  return initialExponent;
+}
+
+int main(int argc, char * argv[])
 {
+  int largeExponent = 8;
+  int adjustedExponent = 0;
   long smallSize = pow(10,3);
+  long largeSize = pow(10,largeExponent);
+
+  // Expects size of GPU memory in GiB (Bytes/1024^3)
+  if (argc > 1){
+    float memSize = atof(argv[1]);
+    adjustedExponent = checkSize(largeSize, memSize, largeExponent);
+    largeSize =  pow(10,adjustedExponent);
+    largeExponent = adjustedExponent;
+    printf("largeExponent: %d\n", adjustedExponent);
+  }
+
   int rc = vecadd(smallSize, "small (10^3)");
   if (rc) return rc;
+  std::string largeString = "large (10^";
+  largeString = largeString + std::to_string(largeExponent) + ")";
+  rc = vecadd(largeSize, largeString);
 
-  long largeSize = pow(10,8);
-  rc = vecadd(largeSize, "large (10^8)");
+  if (adjustedExponent != 0)
+    printf("Warning: Large exponent was adjusted due to insufficient GPU memory. largeSize: %s\n", largeString.c_str());
 
   return rc;
 }
