@@ -92,7 +92,10 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
          exit 1
       fi
    fi
+fi
 
+if [ "$1" = "cmake" ]; then
+   exit 0
 fi
 
 cd $BUILD_AOMP/build/rocr

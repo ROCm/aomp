@@ -176,6 +176,10 @@ $custom_opts \
 ..
 fi
 
+if [ "$1" = "cmake" ]; then
+   exit 0
+fi
+
 echo
 echo make -j$AOMP_JOB_THREADS
 make -j$AOMP_JOB_THREADS
