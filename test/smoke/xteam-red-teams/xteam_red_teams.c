@@ -17,7 +17,7 @@ int main()
   for (int j = 0; j< N; j=j+1)
     sum1 += a[j];
 
-#pragma omp target teams distribute parallel for reduction(+:sum2) num_teams(50)
+#pragma omp target teams distribute parallel for reduction(+:sum2) num_teams(5)
   for (int j = 0; j< N; j=j+1)
     sum2 += a[j];
 
@@ -44,7 +44,7 @@ int main()
 }
 
 /// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:8 ConstWGSize:1024 args: 7 teamsXthrds:(   1X1024) 
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:8 ConstWGSize:1024 args: 7 teamsXthrds:( 50X1024)
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:8 ConstWGSize:1024 args: 7 teamsXthrds:( 5X1024)
 /// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:8 ConstWGSize:1024 args: 7 teamsXthrds:( 40X1024)
 /// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:8 ConstWGSize:1024 args: 7 teamsXthrds:( 10X1024)
 
