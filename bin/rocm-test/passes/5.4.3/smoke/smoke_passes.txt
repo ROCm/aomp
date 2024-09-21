@@ -74,4 +74,3 @@ xteam-red-1-g
 xteam-red-2
 xteam-red-3
 xteam-red-4
-xteam-red-collapse
