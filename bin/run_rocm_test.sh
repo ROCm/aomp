@@ -34,13 +34,20 @@ ISVIRT=0
 echo $lspci_loc
 $lspci_loc 2>&1 | grep -q VMware
 if [ $? -eq 0 ] ; then
-  ISVIRT=1
+  export ISVIRT=1
 fi
+
 lscpu 2>&1 | grep -q Hyperv
 if [ $? -eq 0 ] ; then
-  ISVIRT=1
+  export ISVIRT=1
 fi
 if [ $ISVIRT -eq 1 ] ; then
+
+$lspci_loc 2>&1 | grep -qi Virtio
+if [ $? -eq 0 ] ; then
+  export ISVIRT=1
+fi
+
 SKIP_USM=1
 export SKIP_USM=1
 export HSA_XNACK=${HSA_XNACK:-0}
@@ -532,6 +539,21 @@ function copyresults(){
             fi
           done
         fi
+      elif [[ "$1" =~ accel2023|hpc2021 ]]; then
+        # Combine passing/failing tests, which shows all tests that tried to build/run.
+        # If the unexpected failure is not on that list, warn the user that test may be missing
+        # from suite.
+        if [ -e "$resultsdir"/"$1"/"$1"_all_tests.txt ]; then
+          for fail in $fails; do
+            match=`grep -e "^$fail$" "$resultsdir"/"$1"/"$1"_all_tests.txt`
+            # No match means test was possibly removed
+            if [ "$match" == "" ]; then
+              warnings[$1]+="$fail, "
+              ((unexpectedfails--))
+              ((warningcount++))
+            fi
+          done
+        fi
       fi
     fi # End unexpected fail parsing for missing tests
     if [ "$EPSDB" == "1" ]; then
@@ -848,21 +870,20 @@ function ovo(){
 }
 
 function accel2023(){
+  mkdir -p "$resultsdir"/accel2023
   cd "$aompdir"/bin
   ./run_accel2023.sh -clean
-  pushd $AOMP_TEST_DIR/accel2023-2.0.18
-  mkdir -p "$resultsdir"/accel2023
-  ls -l "$resultsdir"/accel2023
+  cd $AOMP_TEST_DIR/accel2023-2.0.18
   grep ratio= result/*.log
-  grep ratio= result/*.log | grep Succ > "$resultsdir"/accel2023/passing-tests.txt
-  grep ratio= result/*.log | grep -v Succ > failing-tests.txt
+  echo "" > make-fail.txt
+  grep ratio= result/*.log | grep 'Success ' | awk '{print $2}' > passing-tests.txt
+  grep ratio= result/*.log | grep -v 'Success ' | awk '{print $2}' > failing-tests.txt
   nsucc=$(grep ratio= result/*.log  | grep Succ | wc -l)
   if [ $nsucc -eq 12 ]; then
     echo "Success $nsucc passes"
   else
     echo "Failure $nsucc passes"
   fi
-  cd $AOMP_TEST_DIR/accel2023-2.0.18
   copyresults accel2023
 }
 
@@ -875,25 +896,22 @@ function hpc2021(){
     tar xf npsdbOmpi.tar
     rm -f npsdbOmpi.tar
     popd
-    cd "$aompdir"/bin
     export MPI=/tmp/npsdb/openmpi-5.0.0
-    ./run_hpc2021.sh -clean
-    pushd $AOMP_TEST_DIR/hpc2021-1.1.9
     mkdir -p "$resultsdir"/hpc2021
-    ls -l "$resultsdir"/hpc2021
-
+    cd "$aompdir"/bin
+    ./run_hpc2021.sh -clean
+    cd $AOMP_TEST_DIR/hpc2021-1.1.9
     grep ratio= result/*.log
+    echo "" > make-fail.txt
     grep ratio= result/*.log | grep Succ > "$resultsdir"/hpc2021/passing-tests.txt
-    grep ratio= result/*.log | grep -v Succ > failing-tests.txt
+    grep ratio= result/*.log | grep -v Succ > "$resultsdir"/hpc2021/failing-tests.txt
     nsucc=$(grep ratio= result/*.log  | grep Succ | wc -l)
     if [ $nsucc -eq 9 ]; then
       echo "Success $nsucc passes"
     else
       echo "Failure $nsucc passes"
     fi
-    cd "$AOMP_TEST_DIR"/hpc2021-1.1.9
     copyresults hpc2021
-    popd
   fi
 }
 

@@ -16,6 +16,11 @@ endif
 #-ccc-print-phases
 #"-\#\#\#"
 
+
+ifeq ($(ISVIRT),1)
+ARGS = $(GPU_MEM_SIZE_GIB)
+endif
+
 UNSUPPORTED = ASAN_COMPILE
 
 include ../Makefile.rules

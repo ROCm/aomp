@@ -243,6 +243,10 @@ ifeq (gfx11,$(findstring gfx11,$(AOMP_GPU)))
  AOMP_WSIZE = -DWAVE_SIZE=32
 endif
 
+ifeq (gfx12,$(findstring gfx12,$(AOMP_GPU)))
+ AOMP_WSIZE = -DWAVE_SIZE=32
+endif
+
 ifeq ($(AOMP_SANITIZER),1)
   HSA_XNACK = 1
   ASAN_FLAGS = -fsanitize=address -shared-libasan -g
@@ -357,3 +361,8 @@ endif
 # Header include path + linker flag for libomptest based OMPT tests
 OMPTEST = -I$(AOMP)/lib/omptest/include -lomptest
 
+ifeq ($(ISVIRT),1)
+GPU_MEM_SIZE = $(shell $(AOMPHIP)/bin/rocm-smi --showmeminfo vram | grep -E "VRAM Total Memory"  | grep -m1 -Eo " [0-9]+" | tr -d ' ')
+GPU_MEM_SIZE_GIB := $(shell bc -l <<< "$(GPU_MEM_SIZE)/1024 ^ 3")
+ISVIRT_UNSUPPORTED = ISVIRT_COMPILE ISVIRT_RUNTIME
+endif
