@@ -68,7 +68,7 @@ else
 	@echo "  $(SKIP_COMPILE_SUPPORTED)"
 endif
 else
-  @echo "$(SKIP_ASAN_UNSPPORTED)"
+	@echo "$(SKIP_ASAN_UNSPPORTED)"
 endif
 
 run: $(TESTNAME)
@@ -84,7 +84,7 @@ else
 	@echo "  $(SKIP_RUN_SUPPORTED)" 2>&1 | tee $@.log
 endif
 else
-  @echo "$(SKIP_ASAN_UNSPPORTED)"
+	@echo "$(SKIP_ASAN_UNSPPORTED)"
 endif
 
 $(TESTNAME)_og11: $(TESTSRC_ALL)
@@ -138,7 +138,7 @@ else
 	@echo "  $(SKIP_RUN_SUPPORTED)"
 endif
 else
-  @echo "$(SKIP_ASAN_UNSPPORTED)"
+	@echo "$(SKIP_ASAN_UNSPPORTED)"
 endif
 
 check-asan: $(TESTNAME)
@@ -207,7 +207,7 @@ else
 	@echo "  $(SKIP_RUN_SUPPORTED)"
 endif
 else
-  @echo "$(SKIP_ASAN_UNSPPORTED)"
+	@echo "$(SKIP_ASAN_UNSPPORTED)"
 endif
 
 
