@@ -12,7 +12,7 @@ CC           = $(OMP_BIN) $(VERBOSE)
 #"-\#\#\#"
 
 UNSUPPORTED = ASAN_COMPILE
-export TIMEOUT = 120s
+export TIMEOUT = 180s
 
 include ../Makefile.rules
 

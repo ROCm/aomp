@@ -126,6 +126,7 @@ verify-log: run
 
 check: $(TESTNAME)
 ifneq (ASAN_RUNTIME,$(findstring $(word 2,$(ASAN_UNSUPPORTED)),$(UNSUPPORTED)))
+ifeq (,$(findstring $(word 2,$(ISVIRT_UNSUPPORTED)),$(UNSUPPORTED)))
 ifneq (,$(findstring $(GPU_W_FEATURES),$(SUPPORTED)))
 ifeq (,$(findstring $(GPU_W_FEATURES),$(UNSUPPORTED)))
 	path=`pwd`; \
@@ -146,6 +147,9 @@ else
 endif
 else
 	@echo "  $(SKIP_RUN_SUPPORTED)"
+endif
+else
+	@echo "$(SKIP_ISVIRT_RUN_UNSUPPORTED)"
 endif
 else
 	@echo "$(SKIP_ASAN_UNSPPORTED)"
