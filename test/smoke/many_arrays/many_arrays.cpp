@@ -196,7 +196,6 @@ int checkSize(long arraySize , float memSize, int initialExponent){
     sizeGiB = (arraySize * numArrays * i) / GiB;
     if (sizeGiB < memSize){
       exponent = i;
-      printf("BOo: %d\n", i);
       return exponent;
    }
   }
