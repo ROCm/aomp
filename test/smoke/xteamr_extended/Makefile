@@ -16,4 +16,8 @@ endif
 #-ccc-print-phases
 #"-\#\#\#"
 
+ifeq ($(ISVIRT),1)
+ARGS = $(GPU_MEM_SIZE_GIB)
+endif
+
 include ../Makefile.rules

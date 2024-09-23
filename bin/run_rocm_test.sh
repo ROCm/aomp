@@ -33,13 +33,20 @@ ISVIRT=0
 echo $lspci_loc
 $lspci_loc 2>&1 | grep -q VMware
 if [ $? -eq 0 ] ; then
-  ISVIRT=1
+  export ISVIRT=1
 fi
+
 lscpu 2>&1 | grep -q Hyperv
 if [ $? -eq 0 ] ; then
-  ISVIRT=1
+  export ISVIRT=1
 fi
 if [ $ISVIRT -eq 1 ] ; then
+
+$lspci_loc 2>&1 | grep -qi Virtio
+if [ $? -eq 0 ] ; then
+  export ISVIRT=1
+fi
+
 SKIP_USM=1
 export SKIP_USM=1
 export HSA_XNACK=${HSA_XNACK:-0}
