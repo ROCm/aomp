@@ -243,6 +243,10 @@ ifeq (gfx11,$(findstring gfx11,$(AOMP_GPU)))
  AOMP_WSIZE = -DWAVE_SIZE=32
 endif
 
+ifeq (gfx12,$(findstring gfx12,$(AOMP_GPU)))
+ AOMP_WSIZE = -DWAVE_SIZE=32
+endif
+
 ifeq ($(AOMP_SANITIZER),1)
   HSA_XNACK = 1
   ASAN_FLAGS = -fsanitize=address -shared-libasan -g
