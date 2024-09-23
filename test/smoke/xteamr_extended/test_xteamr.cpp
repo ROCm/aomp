@@ -33,11 +33,12 @@
 #include "test_xteamr.h"
 
 #ifndef _ARRAY_SIZE
-//#define _ARRAY_SIZE 33554432
-//#define _ARRAY_SIZE 134217728
-#define _ARRAY_SIZE 536870912
+#define _ARRAY_SIZE_S 33554432
+#define _ARRAY_SIZE_M 134217728
+#define _ARRAY_SIZE_L 536870912
 #endif
-const uint64_t ARRAY_SIZE = _ARRAY_SIZE;
+
+uint64_t ARRAY_SIZE = _ARRAY_SIZE_L;
 unsigned int repeat_num_times = 12;
 unsigned int ignore_times = 2; // ignore this many timings first
 
@@ -187,7 +188,35 @@ template <typename T, bool> void run_tests(const uint64_t);
 template <typename TC, typename T> void run_tests_complex(const uint64_t);
 template <typename TC, typename EXT_T, bool, bool> void run_tests_extended(const uint64_t);
 
+uint64_t checkSize(float gpuMemorySize){
+  uint64_t sizes[3] = {_ARRAY_SIZE_L, _ARRAY_SIZE_M, _ARRAY_SIZE_S};
+  float arraySize;
+  for (int i = 0; i < 3; i++){
+    // Multiply by size of double (8)
+    // Divide by GiB (1024^3)
+    // Mulitply by number of arrays used on GPU at a time (4)
+    arraySize = ((sizes[i] * 8) / pow(1024,3)) * 4;
+    if (arraySize <= gpuMemorySize){
+      printf("ArraySize: %f\n", arraySize);
+      return sizes[i];
+    }
+  }
+  printf("Error: Could not find a valid array size for the current available GPU memory!\n");
+  return 1;
+}
+
 int main(int argc, char *argv[]) {
+  if (argc > 1){
+    float memSize = atof(argv[1]);
+    uint64_t adjustedArraySize = checkSize(memSize);
+    if (adjustedArraySize == 1)
+      return 1;
+    if(adjustedArraySize != _ARRAY_SIZE_L){
+      printf("ARRAY_SIZE adjusted to: %lu\n", adjustedArraySize);
+      ARRAY_SIZE = adjustedArraySize;
+    }
+  }
+  printf("ARRAY_SIZE: %lu\n", ARRAY_SIZE);
   std::cout << std::endl
             << "TEST double : " << _XTEAM_NUM_THREADS << " THREADS  "
 	    << _XTEAM_NUM_TEAMS << " TEAMS"
@@ -384,7 +413,7 @@ T sim_dot(T *a, T *b, int warp_size) {
     uint32_t reserved;        // reserved
     const int64_t stride = 1; // stride to process input vectors
     const int64_t offset = 0; // Offset to initial index of input vectors
-    const int64_t size = _ARRAY_SIZE; // Size of input vector
+    const int64_t size = ARRAY_SIZE; // Size of input vector
     const T rnv = T(0);               // reduction null value
     T *team_vals;                     // array of global team values
   };
@@ -439,7 +468,7 @@ T sim_dot_extended(T *a, T *b, int warp_size) {
     uint32_t reserved;        // reserved
     const int64_t stride = 1; // stride to process input vectors
     const int64_t offset = 0; // Offset to initial index of input vectors
-    const int64_t size = _ARRAY_SIZE; // Size of input vector
+    const int64_t size = ARRAY_SIZE; // Size of input vector
     const EXT_T rnv = EXT_T(0);       // reduction null value
     EXT_T *team_vals;                 // array of global team values
   };
@@ -494,7 +523,7 @@ T sim_max(T *c, int warp_size) {
     uint32_t reserved;                // reserved
     const int64_t stride = 1;         // stride to process input vectors
     const int64_t offset = 0;         // Offset to index of input vectors
-    const int64_t size = _ARRAY_SIZE; // Size of input vectors
+    const int64_t size = ARRAY_SIZE; // Size of input vectors
     T rnv;                            // reduction null value
     T *team_vals;                     // array of global team values
   };
@@ -549,7 +578,7 @@ T sim_max_extended(T *c, int warp_size) {
     uint32_t reserved;                // reserved
     const int64_t stride = 1;         // stride to process input vectors
     const int64_t offset = 0;         // Offset to index of input vectors
-    const int64_t size = _ARRAY_SIZE; // Size of input vectors
+    const int64_t size = ARRAY_SIZE; // Size of input vectors
     EXT_T rnv;                        // reduction null value
     EXT_T *team_vals;                 // array of global team values
   };
@@ -604,7 +633,7 @@ T sim_min(T *c, int warp_size) {
     uint32_t reserved;        // reserved
     const int64_t stride = 1; // stride to process input vectors
     const int64_t offset = 0; // Offset to initial index of input vectors
-    const int64_t size = _ARRAY_SIZE; // Size of input vectors
+    const int64_t size = ARRAY_SIZE; // Size of input vectors
     T rnv;                            // reduction null value
     T *team_vals;                     // array of global team values
   };
@@ -660,7 +689,7 @@ T sim_min_extended(T *c, int warp_size) {
     uint32_t reserved;        // reserved
     const int64_t stride = 1; // stride to process input vectors
     const int64_t offset = 0; // Offset to initial index of input vectors
-    const int64_t size = _ARRAY_SIZE; // Size of input vectors
+    const int64_t size = ARRAY_SIZE; // Size of input vectors
     EXT_T rnv;                // reduction null value
     EXT_T *team_vals;         // array of global team values
   };
@@ -1140,7 +1169,7 @@ template <typename T> T sim_dot_complex(T *a, T *b, int warp_size) {
     uint32_t reserved;        // reserved
     const int64_t stride = 1; // stride to process input vectors
     const int64_t offset = 0; // Offset to initial index of input vectors
-    const int64_t size = _ARRAY_SIZE; // Size of input vectors
+    const int64_t size = ARRAY_SIZE; // Size of input vectors
     T rnv;                            // reduction null value
     T *team_vals;                     // array of global team values
   };
