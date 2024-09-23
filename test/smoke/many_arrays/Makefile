@@ -11,9 +11,15 @@ CC           = $(OMP_BIN) $(VERBOSE)
 #-ccc-print-phases
 #"-\#\#\#"
 
+
+
+ifeq ($(ISVIRT),1)
+ARGS = $(GPU_MEM_SIZE_GIB)
+endif
+
+RUNENV = LIBOMPTARGET_KERNEL_TRACE=2
+
 export TIMEOUT = 120s
 
 include ../Makefile.rules
 
-run: $(TESTNAME)
-	LIBOMPTARGET_KERNEL_TRACE=2 $(RUNENV) $(RUNPROF) ./$(TESTNAME) 2>&1 | tee $@.log

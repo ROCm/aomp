@@ -10,6 +10,9 @@ SKIP_COMPILE_SUPPORTED   = Skipped compiling $(TESTNAME) for $(GPU_W_FEATURES) (
 SKIP_COMPILE_UNSUPPORTED = Skipped compiling $(TESTNAME): not supported on $(UNSUPPORTED)
 SKIP_RUN_SUPPORTED       = Skipped running $(TESTNAME) on $(GPU_W_FEATURES) (supported only on $(SUPPORTED))
 SKIP_RUN_UNSUPPORTED     = Skipped running $(TESTNAME): not supported on $(UNSUPPORTED)
+SKIP_ISVIRT_COMPILE_UNSUPPORTED = Skipped compiling $(TESTNAME): not supported on virtual environment
+SKIP_ISVIRT_RUN_UNSUPPORTED = Skipped running $(TESTNAME): not supported on virtual environment
+POSTRUN ?= echo > /dev/null
 
 all: $(TESTNAME)
 
@@ -43,6 +46,7 @@ $(TESTNAME): prerequisites $(TESTSRC_ALL)
 else
 $(TESTNAME): $(TESTSRC_ALL)
 endif
+ifeq (,$(findstring $(word 1,$(ISVIRT_UNSUPPORTED)),$(UNSUPPORTED)))
 ifneq (,$(findstring $(GPU_W_FEATURES),$(SUPPORTED)))
 ifeq (,$(findstring $(GPU_W_FEATURES),$(UNSUPPORTED)))
 ifdef nvidia_targets
@@ -64,8 +68,12 @@ endif
 else
 	@echo "  $(SKIP_COMPILE_SUPPORTED)"
 endif
+else
+	@echo "  ${SKIP_ISVIRT_COMPILE_UNSUPPORTED}"
+endif
 
 run: $(TESTNAME)
+ifeq (,$(findstring $(word 2,$(ISVIRT_UNSUPPORTED)),$(UNSUPPORTED)))
 ifneq (,$(findstring $(GPU_W_FEATURES),$(SUPPORTED)))
 ifeq (,$(findstring $(GPU_W_FEATURES),$(UNSUPPORTED)))
 	$(RUNENV) $(RUNPROF) $(RUNPROF_FLAGS) $(CHECK_COMMAND) 2>&1 | tee $@.log
@@ -74,6 +82,9 @@ else
 endif
 else
 	@echo "  $(SKIP_RUN_SUPPORTED)" 2>&1 | tee $@.log
+endif
+else
+	@echo "$(SKIP_ISVIRT_RUN_UNSUPPORTED)"
 endif
 
 $(TESTNAME)_og11: $(TESTSRC_ALL)
@@ -104,6 +115,7 @@ verify-log: run
 	)9>../lockfile;
 
 check: $(TESTNAME)
+ifeq (,$(findstring $(word 2,$(ISVIRT_UNSUPPORTED)),$(UNSUPPORTED)))
 ifneq (,$(findstring $(GPU_W_FEATURES),$(SUPPORTED)))
 ifeq (,$(findstring $(GPU_W_FEATURES),$(UNSUPPORTED)))
 	path=`pwd`; \
@@ -123,6 +135,9 @@ else
 endif
 else
 	@echo "  $(SKIP_RUN_SUPPORTED)"
+endif
+else
+	@echo "$(SKIP_ISVIRT_RUN_UNSUPPORTED)"
 endif
 
 check-asan: $(TESTNAME)
