@@ -1,46 +1,44 @@
-diff -Naur -x .git llvm-project.upstream/clang/lib/CodeGen/CGBuiltin.cpp llvm-project/clang/lib/CodeGen/CGBuiltin.cpp
---- llvm-project.upstream/clang/lib/CodeGen/CGBuiltin.cpp	2023-08-08 09:10:33.166920827 -0400
-+++ llvm-project/clang/lib/CodeGen/CGBuiltin.cpp	2023-08-08 21:50:25.012520822 -0400
-@@ -5262,8 +5262,12 @@
-   case Builtin::BIprintf:
-     if (getTarget().getTriple().isNVPTX() ||
-         getTarget().getTriple().isAMDGCN()) {
--      if (getLangOpts().OpenMPIsTargetDevice)
-+      if (getLangOpts().OpenMPIsTargetDevice) {
-+        if (getTarget().getTriple().isAMDGCN())
-+          return EmitHostexecAllocAndExecFns(E, "printf_allocate",
-+			  "printf_execute");
-         return EmitOpenMPDevicePrintfCallExpr(E);
-+      }
-       if (getTarget().getTriple().isNVPTX())
-         return EmitNVPTXDevicePrintfCallExpr(E);
-       if (getTarget().getTriple().isAMDGCN() && getLangOpts().HIP)
-diff -Naur -x .git llvm-project.upstream/clang/lib/CodeGen/CGExpr.cpp llvm-project/clang/lib/CodeGen/CGExpr.cpp
---- llvm-project.upstream/clang/lib/CodeGen/CGExpr.cpp	2023-08-08 09:10:33.170920822 -0400
-+++ llvm-project/clang/lib/CodeGen/CGExpr.cpp	2023-08-08 21:50:25.016520817 -0400
-@@ -5446,6 +5446,16 @@
-       }
+diff -Naur -x .git llvm-project.atd/clang/lib/CodeGen/CGBuiltin.cpp llvm-project/clang/lib/CodeGen/CGBuiltin.cpp
+--- llvm-project.atd/clang/lib/CodeGen/CGBuiltin.cpp	2024-09-24 17:07:27.258685800 -0400
++++ llvm-project/clang/lib/CodeGen/CGBuiltin.cpp	2024-09-24 15:03:40.553362657 -0400
+@@ -5983,6 +5983,9 @@
+            getTarget().getTriple().isSPIRV()) &&
+           getLangOpts().HIP)
+         return EmitAMDGPUDevicePrintfCallExpr(E);
++      else if (getLangOpts().OpenMP)
++        return EmitHostexecAllocAndExecFns(E, "hostexec_allocate",
++                                              "printf_execute");
      }
+ 
+     break;
+diff -Naur -x .git llvm-project.atd/clang/lib/CodeGen/CGExpr.cpp llvm-project/clang/lib/CodeGen/CGExpr.cpp
+--- llvm-project.atd/clang/lib/CodeGen/CGExpr.cpp	2024-09-24 17:07:27.442685175 -0400
++++ llvm-project/clang/lib/CodeGen/CGExpr.cpp	2024-09-24 15:03:08.945457677 -0400
+@@ -6077,6 +6077,18 @@
+       StaticOperator = true;
    }
+ 
 +  // GPUs can execute hostexec variadic functions, printf, and fprintf on host.
 +  if ((CGM.getTriple().isAMDGCN() || CGM.getTriple().isNVPTX()) &&
 +      CGM.getLangOpts().OpenMP && FnType &&
 +      dyn_cast<FunctionProtoType>(FnType) &&
 +      dyn_cast<FunctionProtoType>(FnType)->isVariadic() &&
 +      (std::find(std::begin(HostexecFns), std::end(HostexecFns),
-+       E->getDirectCallee()->getNameAsString()) != std::end(HostexecFns)))
-+     return EmitHostexecAllocAndExecFns(E,
-+         E->getDirectCallee()->getNameAsString().append("_allocate").c_str(),
-+         E->getDirectCallee()->getNameAsString().append("_execute").c_str());
- 
-   EmitCallArgs(Args, dyn_cast<FunctionProtoType>(FnType), E->arguments(),
-                E->getDirectCallee(), /*ParamsToSkip*/ 0, Order);
-diff -Naur -x .git llvm-project.upstream/clang/lib/CodeGen/CGGPUBuiltin.cpp llvm-project/clang/lib/CodeGen/CGGPUBuiltin.cpp
---- llvm-project.upstream/clang/lib/CodeGen/CGGPUBuiltin.cpp	2023-07-12 10:50:59.540798621 -0400
-+++ llvm-project/clang/lib/CodeGen/CGGPUBuiltin.cpp	2023-08-08 21:50:25.016520817 -0400
-@@ -216,3 +216,360 @@
-   return EmitDevicePrintfCallExpr(E, this, GetOpenMPVprintfDeclaration(CGM),
-                                   true);
++                 E->getDirectCallee()->getNameAsString()) !=
++       std::end(HostexecFns)))
++    return EmitHostexecAllocAndExecFns(
++        E, "hostexec_allocate",
++        E->getDirectCallee()->getNameAsString().append("_execute").c_str());
++
+   auto Arguments = E->arguments();
+   if (StaticOperator) {
+     // If we're calling a static operator, we need to emit the object argument
+diff -Naur -x .git llvm-project.atd/clang/lib/CodeGen/CGGPUBuiltin.cpp llvm-project/clang/lib/CodeGen/CGGPUBuiltin.cpp
+--- llvm-project.atd/clang/lib/CodeGen/CGGPUBuiltin.cpp	2024-09-24 17:07:27.594684659 -0400
++++ llvm-project/clang/lib/CodeGen/CGGPUBuiltin.cpp	2024-09-11 09:21:44.120045585 -0400
+@@ -191,3 +191,361 @@
+   Builder.SetInsertPoint(IRB.GetInsertBlock(), IRB.GetInsertPoint());
+   return RValue::get(Printf);
  }
 +
 +// EmitHostexecAllocAndExecFns:
@@ -159,7 +157,7 @@ diff -Naur -x .git llvm-project.upstream/clang/lib/CodeGen/CGGPUBuiltin.cpp llvm
 +// Returns a function pointer to the GPU stub function
 +static llvm::Function *
 +hostexecVargsReturnsFnDeclaration(CodeGenModule &CGM, QualType Ty,
-+                                 const char *GPUStubFunctionName) {
++                                  const char *GPUStubFunctionName) {
 +  auto &M = CGM.getModule();
 +  llvm::Type *ArgTypes[] = {llvm::PointerType::getUnqual(CGM.Int8Ty),
 +                            CGM.Int32Ty};
@@ -178,9 +176,10 @@ diff -Naur -x .git llvm-project.upstream/clang/lib/CodeGen/CGGPUBuiltin.cpp llvm
 +#define PACK_TY_BITLEN(x, y) ((uint32_t)x << 16) | ((uint32_t)y)
 +
 +// Emit the code to support a host vargs function such as printf.
-+RValue CodeGenFunction::EmitHostexecAllocAndExecFns(const CallExpr *E,
-+                                           const char *GPUAllocateName,
-+                                           const char *GPUStubFunctionName) {
++RValue
++CodeGenFunction::EmitHostexecAllocAndExecFns(const CallExpr *E,
++                                             const char *GPUAllocateName,
++                                             const char *GPUStubFunctionName) {
 +  assert(getTarget().getTriple().isAMDGCN() ||
 +         getTarget().getTriple().isNVPTX());
 +  // assert(E->getBuiltinCallee() == Builtin::BIprintf);
@@ -378,7 +377,7 @@ diff -Naur -x .git llvm-project.upstream/clang/lib/CodeGen/CGGPUBuiltin.cpp llvm
 +        Address SrcAddr = Address(Arg, Int8Ty, CharUnits::fromQuantity(1));
 +        Builder.CreateMemCpy(BufferPtrByteAddr, SrcAddr, varStrLength);
 +        // update BufferPtrByteAddr for next string memcpy
-+        llvm::Value *PtrAsInt = BufferPtrByteAddr.getPointer();
++        llvm::Value *PtrAsInt = BufferPtrByteAddr.emitRawPointer(*this);
 +        BufferPtrByteAddr = Address(
 +            Builder.CreateGEP(Int8Ty,
 +		    PtrAsInt, ArrayRef<llvm::Value*>(varStrLength)),
@@ -399,260 +398,174 @@ diff -Naur -x .git llvm-project.upstream/clang/lib/CodeGen/CGGPUBuiltin.cpp llvm
 +      hostexecVargsReturnsFnDeclaration(CGM, E->getType(), GPUStubFunctionName),
 +      {DataStructPtr, BufferLen}));
 +}
-diff -Naur -x .git llvm-project.upstream/clang/lib/CodeGen/CodeGenFunction.h llvm-project/clang/lib/CodeGen/CodeGenFunction.h
---- llvm-project.upstream/clang/lib/CodeGen/CodeGenFunction.h	2023-08-08 09:10:33.186920803 -0400
-+++ llvm-project/clang/lib/CodeGen/CodeGenFunction.h	2023-08-08 21:50:25.016520817 -0400
-@@ -4163,6 +4163,13 @@
+diff -Naur -x .git llvm-project.atd/clang/lib/CodeGen/CodeGenFunction.h llvm-project/clang/lib/CodeGen/CodeGenFunction.h
+--- llvm-project.atd/clang/lib/CodeGen/CodeGenFunction.h	2024-09-24 17:07:27.778684034 -0400
++++ llvm-project/clang/lib/CodeGen/CodeGenFunction.h	2024-09-11 09:08:31.374566109 -0400
+@@ -4544,6 +4544,13 @@
+ 
    RValue EmitNVPTXDevicePrintfCallExpr(const CallExpr *E);
    RValue EmitAMDGPUDevicePrintfCallExpr(const CallExpr *E);
-   RValue EmitOpenMPDevicePrintfCallExpr(const CallExpr *E);
 +  std::vector<std::string> HostexecFns{
-+      "printf",        "fprintf",         "hostexec",
-+      "hostexec_uint", "hostexec_uint64", "hostexec_int",
-+      "hostexec_long", "hostexec_float",  "hostexec_double"};
-+  RValue EmitHostexecAllocAndExecFns(const CallExpr *E, 
-+		  const char *allocate_name, const char *execute_name);
-+
++      "printf",          "fprintf",        "hostexec",      "hostexec_uint",
++      "hostexec_uint64", "hostexec_int",   "hostexec_long", "hostexec_float",
++      "hostexec_double", "hostexec_fortrt"};
++  RValue EmitHostexecAllocAndExecFns(const CallExpr *E,
++                                     const char *allocate_name,
++                                     const char *execute_name);
  
    RValue EmitBuiltinExpr(const GlobalDecl GD, unsigned BuiltinID,
                           const CallExpr *E, ReturnValueSlot ReturnValue);
-diff -Naur -x .git llvm-project.upstream/clang/lib/Driver/ToolChains/AMDGPUOpenMP.cpp llvm-project/clang/lib/Driver/ToolChains/AMDGPUOpenMP.cpp
---- llvm-project.upstream/clang/lib/Driver/ToolChains/AMDGPUOpenMP.cpp	2023-02-10 14:55:56.548718783 -0500
-+++ llvm-project/clang/lib/Driver/ToolChains/AMDGPUOpenMP.cpp	2023-08-08 21:50:25.016520817 -0400
-@@ -54,6 +54,14 @@
-   CC1Args.push_back(DriverArgs.MakeArgStringRef(GPUArch));
-   CC1Args.push_back("-fcuda-is-device");
+diff -Naur -x .git llvm-project.atd/offload/DeviceRTL/CMakeLists.txt llvm-project/offload/DeviceRTL/CMakeLists.txt
+--- llvm-project.atd/offload/DeviceRTL/CMakeLists.txt	2024-09-24 17:07:27.934683504 -0400
++++ llvm-project/offload/DeviceRTL/CMakeLists.txt	2024-09-24 16:41:30.275940347 -0400
+@@ -83,6 +83,7 @@
+   ${include_directory}/Types.h
+   ${include_directory}/Utils.h
+   ${include_directory}/Workshare.h
++  ${include_directory}/Hostexec.h
+ )
  
-+  // link hostexec support if available for this GPU
-+  StringRef libhostexec(DriverArgs.MakeArgString(getDriver().Dir +
-+      "/../lib/libdevice/libhostexec-amdgcn-" + GPUArch + ".bc"));
-+  if (llvm::sys::fs::exists(libhostexec)) {
-+    CC1Args.push_back("-mlink-builtin-bitcode");
-+    CC1Args.push_back(DriverArgs.MakeArgStringRef(libhostexec));
-+  }
-+
-   if (DriverArgs.hasArg(options::OPT_nogpulib))
-     return;
+ set(src_files
+@@ -101,6 +102,7 @@
+   ${source_directory}/Tasking.cpp
+   ${source_directory}/Utils.cpp
+   ${source_directory}/Workshare.cpp
++  ${source_directory}/Hostexec.cpp
+ )
  
-diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/CMakeLists.txt llvm-project/openmp/libomptarget/CMakeLists.txt
---- llvm-project.upstream/openmp/libomptarget/CMakeLists.txt	2023-07-12 10:51:02.388794579 -0400
-+++ llvm-project/openmp/libomptarget/CMakeLists.txt	2023-08-08 21:50:25.016520817 -0400
-@@ -118,6 +118,7 @@
- # Build offloading plugins and device RTLs if they are available.
- add_subdirectory(plugins-nextgen)
- add_subdirectory(DeviceRTL)
-+add_subdirectory(hostexec)
- add_subdirectory(tools)
+ # We disable the slp vectorizer during the runtime optimization to avoid
+@@ -140,6 +142,29 @@
+   set(target_bc_flags ${ARGN})
  
- # Add tests.
-diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/hostexec/CMakeLists.txt llvm-project/openmp/libomptarget/hostexec/CMakeLists.txt
---- llvm-project.upstream/openmp/libomptarget/hostexec/CMakeLists.txt	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/openmp/libomptarget/hostexec/CMakeLists.txt	2023-08-08 21:50:25.016520817 -0400
-@@ -0,0 +1,199 @@
-+##===----------------------------------------------------------------------===##
-+#
-+# Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
-+# See https://llvm.org/LICENSE.txt for license information.
-+# SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-+#
-+##===----------------------------------------------------------------------===##
-+#
-+# Build hostexec host and device  support
-+#
-+##===----------------------------------------------------------------------===##
-+
-+cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
-+
-+if("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_CURRENT_SOURCE_DIR}")
-+  message(FATAL_ERROR "Direct configuration not supported, please use parent directory!")
-+endif()
-+
-+find_package(hsa-runtime64 1.2.0 QUIET HINTS ${CMAKE_INSTALL_PREFIX} PATHS /opt/rocm/hsa)
-+if (hsa-runtime64_FOUND)
-+   list(APPEND HOSTEXEC_ARCHS "amdgcn")
-+   add_library(amdgcn_hostexec_services STATIC 
-+      services/amdgcn_hostexec.cpp 
-+      services/execute_service.cpp 
-+      services/devsanitizer.cpp 
-+      services/amdgcn_urilocator.cpp 
-+   )
-+   target_include_directories(
-+      amdgcn_hostexec_services
-+      PRIVATE
-+      ${CMAKE_CURRENT_SOURCE_DIR}/services
-+      ${LIBOMPTARGET_INCLUDE_DIR}
-+   )
-+   target_include_directories(
-+      amdgcn_hostexec_services
-+      PUBLIC
-+      ${hsa-runtime64_DIR}/../../../include)
-+   target_link_libraries(amdgcn_hostexec_services hsa-runtime64::hsa-runtime64)
-+   if(SANITIZER_AMDGPU)
-+      add_definitions(-DSANITIZER_AMDGPU=1)
-+      set(ASAN_LIB ${LLVM_LIBRARY_DIR}/clang/${LLVM_VERSION_MAJOR}.${LLVM_VERSION_MINOR}.${LLVM_VERSION_PATCH}/lib/linux/libclang_rt.asan-x86_64.so)
-+      target_link_libraries(amdgcn_hostexec_services ${ASAN_LIB})
-+   endif()
-+   set_property(TARGET amdgcn_hostexec_services PROPERTY POSITION_INDEPENDENT_CODE ON)
-+   set(LIBOMPTARGET_SYSTEM_TARGETS "${LIBOMPTARGET_SYSTEM_TARGETS} amdgcn_hostexec_services" PARENT_SCOPE)
-+else()
-+   libomptarget_say("Not building hostexec for AMDGCN because hsa-runtime64 not found")
-+endif()
-+
-+if (LIBOMPTARGET_DEP_CUDA_FOUND)
-+   list(APPEND HOSTEXEC_ARCHS "nvptx")
-+   add_library(nvptx_hostexec_services STATIC 
-+      services/execute_service.cpp
-+   )
-+   target_include_directories(
-+      nvptx_hostexec_services
-+      PRIVATE
-+      ${CMAKE_CURRENT_SOURCE_DIR}/services
-+      ${LIBOMPTARGET_INCLUDE_DIR}
-+   )
-+   set_property(TARGET nvptx_hostexec_services PROPERTY POSITION_INDEPENDENT_CODE ON)
-+   set(LIBOMPTARGET_SYSTEM_TARGETS "${LIBOMPTARGET_SYSTEM_TARGETS} nvptx_hostexec_services" PARENT_SCOPE)
-+else()
-+   libomptarget_say("Not building hostexec for NVPTX because cuda not found")
-+endif()
-+
-+if(NOT HOSTEXEC_ARCHS)
-+   return()
-+endif()
-+
-+if (LLVM_DIR)
-+  message("   -- Building hostexec with LLVM ${LLVM_PACKAGE_VERSION} found with CLANG_TOOL ${CLANG_TOOL}")
-+  find_program(CLANG_TOOL clang PATHS ${LLVM_TOOLS_BINARY_DIR} NO_DEFAULT_PATH)
-+  find_program(PACKAGER_TOOL clang-offload-packager PATHS ${LLVM_TOOLS_BINARY_DIR} NO_DEFAULT_PATH)
-+  find_program(LINK_TOOL llvm-link PATHS ${LLVM_TOOLS_BINARY_DIR} NO_DEFAULT_PATH)
-+else()
-+  message("   ERROR: NO LLVM FOUND! Not building hostexec.")
-+  return()
-+endif()
-+
-+set(amdgpu_mcpus gfx700 gfx701 gfx801 gfx803 gfx900 gfx902 gfx906 gfx908 gfx90a gfx90c gfx940 gfx941 gfx942 gfx1010 gfx1030 gfx1031 gfx1032 gfx1033 gfx1034 gfx1035 gfx1036 gfx1100 gfx1101 gfx1102 gfx1103)
-+if (DEFINED LIBOMPTARGET_AMDGCN_GFXLIST)
-+  set(amdgpu_mcpus ${LIBOMPTARGET_AMDGCN_GFXLIST})
-+endif()
-+
-+set(all_capabilities 35 37 50 52 53 60 61 62 70 72 75 80 86 89 90)
-+set(LIBOMPTARGET_NVPTX_COMPUTE_CAPABILITIES ${all_capabilities} CACHE STRING
-+  "List of CUDA Compute Capabilities to be used to compile the NVPTX DeviceRTL.")
-+string(TOLOWER ${LIBOMPTARGET_NVPTX_COMPUTE_CAPABILITIES} LIBOMPTARGET_NVPTX_COMPUTE_CAPABILITIES)
-+if (LIBOMPTARGET_NVPTX_COMPUTE_CAPABILITIES STREQUAL "all")
-+  set(nvptx_sm_list ${all_capabilities})
-+elseif(LIBOMPTARGET_NVPTX_COMPUTE_CAPABILITIES STREQUAL "auto")
-+  if (NOT LIBOMPTARGET_DEP_CUDA_FOUND)
-+    libomptarget_error_say("[NVPTX] Cannot auto detect compute capability as CUDA not found.")
-+  endif()
-+  set(nvptx_sm_list ${LIBOMPTARGET_DEP_CUDA_ARCH})
-+else()
-+  string(REPLACE "," ";" nvptx_sm_list "${LIBOMPTARGET_NVPTX_COMPUTE_CAPABILITIES}")
-+endif()
-+foreach(sm ${nvptx_sm_list})
-+   list(APPEND nvptx_mcpus "sm_${sm}")
-+endforeach()
-+
-+set(ocl_atomics_cl_filename ${CMAKE_CURRENT_SOURCE_DIR}/src/oclAtomics.cl)
-+set(invoke_cpp_file_name ${CMAKE_CURRENT_SOURCE_DIR}/src/hostexec_invoke.cpp)
-+set(hostexec_stubs_filename ${CMAKE_CURRENT_SOURCE_DIR}/src/hostexec_stubs.cpp)
-+set(h_file           ${CMAKE_CURRENT_SOURCE_DIR}/src/hostexec.h)
-+set(internal_h_file  ${CMAKE_CURRENT_SOURCE_DIR}/src/hostexec_internal.h)
-+
-+foreach(archname ${HOSTEXEC_ARCHS})
-+   if (${archname} STREQUAL "amdgcn")
-+      set(triple "amdgcn-amd-amdhsa")
-+      set(mcpus ${amdgpu_mcpus})
-+   endif()
-+   if (${archname} STREQUAL "nvptx")
-+      set(triple "nvptx64-nvidia-cuda")
-+      set(mcpus ${nvptx_mcpus})
-+   endif()
-+
-+
-+   if (${archname} STREQUAL "amdgcn")
-+      set(opencl_cmd ${CLANG_TOOL}
+   set(bc_files "")
++  set(ocl_atomics_cl_filename ${CMAKE_CURRENT_SOURCE_DIR}/src/oclAtomics.cl)
++  set(ocl_atomics_bc_filename ${CMAKE_CURRENT_BINARY_DIR}/ocl_atomics_${target_name}_${target_cpu}.bc)
++  if (${target_name} STREQUAL "amdgpu")
++    set(depfile "${ocl_atomics_bc_filename}.d")
++    set(opencl_cmd ${CLANG_TOOL}
 +       -fvisibility=default
-+       -c -emit-llvm -nogpulib
++       -c -emit-llvm -nogpulib -nogpuinc
 +       -DCL_VERSION_2_0=200 -D__OPENCL_C_VERSION__=200
 +       -Dcl_khr_fp64 -Dcl_khr_fp16
 +       -Dcl_khr_subgroups -Dcl_khr_int64_base_atomics -Dcl_khr_int64_extended_atomics
 +       -x cl -Xclang -cl-std=CL2.0 -Xclang -finclude-default-header
++       -Xclang -mcode-object-version=none
++       -MD -MF ${depfile}
 +       -target amdgcn-amd-amdhsa )
-+      set(ocl_atomics_cl_bc "ocl_atomics_${archname}.bc")
-+      add_custom_target(${ocl_atomics_cl_bc}
-+      COMMAND ${opencl_cmd} ${ocl_atomics_cl_filename} -o ${ocl_atomics_cl_bc}
-+      DEPENDS ${ocl_atomics_cl_filename})
-+   endif()
++    add_custom_command(OUTPUT ${ocl_atomics_bc_filename}
++      COMMAND ${opencl_cmd} ${ocl_atomics_cl_filename} -o ${ocl_atomics_bc_filename}
++      DEPENDS ${ocl_atomics_cl_filename}
++      DEPFILE ${depfile}
++      COMMENT "CL Building ${ocl_atomics_bc_filename}"
++      VERBATIM)
++    list(APPEND bc_files ${ocl_atomics_bc_filename})
++  endif()
 +
-+   foreach(mcpu ${mcpus})
-+      if (${archname} STREQUAL "amdgcn")
-+         set(openmp_device_args 
-+	      -I../../runtime/src  # to pickup omp.h, we may need a dependency
-+	      -fopenmp -fopenmp-cuda-mode -mllvm -openmp-opt-disable 
-+	      -std=c++17 -fvisibility=hidden 
-+	      -fopenmp-targets=${triple} -Xopenmp-target=${triple} -march=${mcpu}
-+	      -c -emit-llvm --offload-device-only -nogpulib)
-+      endif()
-+      if (${archname} STREQUAL "nvptx")
-+         set(openmp_device_args 
-+	      -I../../runtime/src  # to pickup omp.h, we may need a dependency
-+	      -fopenmp -fopenmp-cuda-mode -mllvm -openmp-opt-disable 
-+	      -std=c++17 -fvisibility=hidden 
-+	      -fopenmp-targets=${triple} -Xopenmp-target=${triple} -march=${mcpu}
-+	      --cuda-feature=+ptx61,+${mcpu}
-+	      -c -emit-llvm --offload-device-only -nocudalib -nogpulib 
-+	      -Wno-unknown-cuda-version)
-+      endif()
+   foreach(src ${src_files})
+     get_filename_component(infile ${src} ABSOLUTE)
+     get_filename_component(outfile ${src} NAME)
+diff -Naur -x .git llvm-project.atd/offload/DeviceRTL/include/Hostexec.h llvm-project/offload/DeviceRTL/include/Hostexec.h
+--- llvm-project.atd/offload/DeviceRTL/include/Hostexec.h	1969-12-31 19:00:00.000000000 -0500
++++ llvm-project/offload/DeviceRTL/include/Hostexec.h	2024-09-24 14:30:38.139205871 -0400
+@@ -0,0 +1,80 @@
++#ifndef __HOSTEXEC_DEV_H__
++#define __HOSTEXEC_DEV_H__
 +
-+      set(bc_filename "hostexec-stubs-${archname}-${mcpu}.bc")
-+      add_custom_target(${bc_filename}
-+         COMMAND ${CLANG_TOOL} ${openmp_device_args} ${hostexec_stubs_filename} -o ${bc_filename}
-+         DEPENDS ${hostexec_stubs_filename} ${h_file} ${internal_h_file}
-+         COMMENT "Built file ${bc_filename}")
++// This device runtime utility function is needed for variable length strings.
++// EXTERN uint32_t __strlen_max(char *instr, uint32_t maxstrlen);
 +
-+      set(hostexec_invoke_cpp_bc "hostexec-invoke-${archname}-${mcpu}.bc")
-+      add_custom_target(${hostexec_invoke_cpp_bc}
-+         COMMAND ${CLANG_TOOL} ${openmp_device_args} ${invoke_cpp_file_name} -o ${hostexec_invoke_cpp_bc}
-+	 DEPENDS ${invoke_cpp_file_name}
-+         COMMENT "Building bc file for hostexec_invoke: ${hostexec_invoke_cpp_bc}")
++// The host runtime for host services is linked statically into the
++// libomptarget plugin i.e.  libomptarget.rtl.amdgcn or libomptarget.rtl.cuda
++// Typically these are part of the compiler installation so VRM checking
++// would not be necessary. However, compiled applications that dynamically
++// link to libomptarget and the plugin may might get an old runtime.
++// so VRM checking is
++//
++// Please update at least the patch level when adding a new service id (sid)
++// below. This ensures that applications that use a new device stub do not
++// try to use backlevel host runtimes that do not have a valid VRM.
++enum hostexec_sid {
++  HOSTEXEC_SID_UNUSED,
++  HOSTEXEC_SID_TERMINATE,
++  HOSTEXEC_SID_DEVICE_MALLOC, // Device global memory
++  HOSTEXEC_SID_HOST_MALLOC,   // shared or managed memory
++  HOSTEXEC_SID_FREE,
++  HOSTEXEC_SID_PRINTF,
++  HOSTEXEC_SID_FPRINTF,
++  HOSTEXEC_SID_FTNASSIGN,
++  HOSTEXEC_SID_SANITIZER,
++  HOSTEXEC_SID_UINT,
++  HOSTEXEC_SID_UINT64,
++  HOSTEXEC_SID_DOUBLE,
++  HOSTEXEC_SID_INT,
++  HOSTEXEC_SID_LONG,
++  HOSTEXEC_SID_FLOAT,
++  HOSTEXEC_SID_VOID,
++  HOSTEXEC_SID_FORTRT,
++};
 +
-+      if (${archname} STREQUAL "amdgcn")
++typedef enum fortran_device_rt_idx {
++  _FortranAio_INVALID,
++  _FortranAioBeginExternalListOutput_idx,
++  _FortranAioOutputAscii_idx,
++  _FortranAioOutputInteger32_idx,
++  _FortranAioEndIoStatement_idx,
++  _FortranAioOutputInteger8_idx,
++  _FortranAioOutputInteger16_idx,
++  _FortranAioOutputInteger64_idx,
++  _FortranAioOutputReal32_idx,
++  _FortranAioOutputReal64_idx,
++  _FortranAioOutputComplex32_idx,
++  _FortranAioOutputComplex64_idx,
++  _FortranAioOutputLogical_idx,
++  _FortranAAbort_idx,
++  _FortranAStopStatementText_idx,
++} fortran_device_rt_idx;
 +
-+         #  amdgcn needs to compile and link in ocl_atomics
-+         set(invoke_resolved_bc "invoked_resolved-${archname}-${mcpu}.bc")
-+         add_custom_target(${invoke_resolved_bc}
-+            COMMAND ${LINK_TOOL} ${hostexec_invoke_cpp_bc} --internalize --only-needed ${ocl_atomics_cl_bc} -o ${invoke_resolved_bc}
-+	    DEPENDS ${hostexec_invoke_cpp_bc} ${ocl_atomics_cl_bc}
-+            COMMENT "Building invoke resolved bc ${invoke_resolved_bc}")
-+          add_dependencies(${invoke_resolved_bc} ${hostexec_invoke_cpp_bc} ${ocl_atomics_cl_bc})
-+      else()
-+          # for nvptx we dont need ocl_atomics
-+         set(invoke_resolved_bc ${hostexec_invoke_cpp_bc})
-+      endif()
++#if 0
++typedef void hostexec_t(void *, ...);
++typedef uint32_t hostexec_uint_t(void *, ...);
++typedef uint64_t hostexec_uint64_t(void *, ...);
++typedef double hostexec_double_t(void *, ...);
++typedef float hostexec_float_t(void *, ...);
++typedef int hostexec_int_t(void *, ...);
++typedef long hostexec_long_t(void *, ...);
++#endif
 +
-+      set(libhostexec-bc "libhostexec-${archname}-${mcpu}.bc")
-+      add_custom_target(${libhostexec-bc}
-+         COMMAND ${LINK_TOOL} ${bc_filename} --internalize --only-needed ${invoke_resolved_bc} -o ${libhostexec-bc}
-+	 DEPENDS ${invoke_resolved_bc} ${bc_filename} 
-+         COMMENT "Building hostexec file ${libhostexec-bc}")
-+      add_dependencies(${libhostexec-bc} ${bc_filename} ${invoke_resolved_bc})
++#if defined(__NVPTX__) || defined(__AMDGCN__)
 +
-+      if (${archname} STREQUAL "amdgcn")
-+         add_dependencies(amdgcn_hostexec_services ${libhostexec-bc})
-+      endif()
-+      if (${archname} STREQUAL "nvptx")
-+         add_dependencies(nvptx_hostexec_services ${libhostexec-bc})
-+      endif()
-+      install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${libhostexec-bc} DESTINATION ${DEVEL_PACKAGE}lib/libdevice)
-+   endforeach() # end for each mcpu
++// Device interfaces for user-callable hostexec functions
++extern "C" void hostexec(void *fnptr, ...);
++extern "C" uint32_t hostexec_uint(void *fnptr, ...);
++extern "C" uint64_t hostexec_uint64(void *fnptr, ...);
++extern "C" uint64_t hostexec_fortrt(void *fnptr, ...);
++extern "C" double hostexec_double(void *fnptr, ...);
++extern "C" float hostexec_float(void *fnptr, ...);
++extern "C" int hostexec_int(void *fnptr, ...);
++extern "C" long hostexec_long(void *fnptr, ...);
 +
-+endforeach() # end foreach archs
-+install(FILES ${h_file} DESTINATION ${DEVEL_PACKAGE}lib/clang/${LLVM_VERSION_MAJOR}/include)
-diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/hostexec/services/amdgcn_hostexec.cpp llvm-project/openmp/libomptarget/hostexec/services/amdgcn_hostexec.cpp
---- llvm-project.upstream/openmp/libomptarget/hostexec/services/amdgcn_hostexec.cpp	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/openmp/libomptarget/hostexec/services/amdgcn_hostexec.cpp	2023-08-08 21:50:25.016520817 -0400
-@@ -0,0 +1,547 @@
-+//===---- amdgcn_hostexec.cpp - Services thread management  ---------------===//
++#endif
++
++
++#endif // __HOSTEXEC_DEV_H__ 
+diff -Naur -x .git llvm-project.atd/offload/DeviceRTL/src/exports llvm-project/offload/DeviceRTL/src/exports
+--- llvm-project.atd/offload/DeviceRTL/src/exports	2024-09-24 17:07:28.122682866 -0400
++++ llvm-project/offload/DeviceRTL/src/exports	2024-09-24 15:09:51.940130672 -0400
+@@ -14,5 +14,8 @@
+ malloc
+ free
+ memcmp
+-printf
++printf_execute
++fprintf_execute
++_Fortran*
++hostexec_*
+ __assert_fail
+diff -Naur -x .git llvm-project.atd/offload/DeviceRTL/src/Hostexec.cpp llvm-project/offload/DeviceRTL/src/Hostexec.cpp
+--- llvm-project.atd/offload/DeviceRTL/src/Hostexec.cpp	1969-12-31 19:00:00.000000000 -0500
++++ llvm-project/offload/DeviceRTL/src/Hostexec.cpp	2024-09-24 16:51:19.409910803 -0400
+@@ -0,0 +1,769 @@
++//===----- Hostexec.cpp -  OpenMP workshare implementation ------ C++ -*-===//
 +//
 +// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 +// See https://llvm.org/LICENSE.txt for license information.
@@ -660,23 +573,945 @@ diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/hostexec/services/a
 +//
 +//===----------------------------------------------------------------------===//
 +//
-+// This contains code for the services thread for the hostexec system using
++// This file contains the implementation of hostexec_invoke.  Hostexec_invoke
++// is called by device stubs to synchronously execute a host service request.
++// THis file also contains all usages of hostexec_invoke.  
++//
++//===----------------------------------------------------------------------===//
++
++#include "Synchronization.h"
++#include "Types.h"
++#include "Hostexec.h"
++
++/** \brief 
++ *  hostexec_invoke is a wave-wide operation, where the service_id
++ *  must be uniform, but the parameters are different for each
++ *  workitem. Parameters from all active lanes are written into
++ *  the host packet (buffer). hostexec_invoke blocks until the host
++ *  processes the request, and returns the response it receives.
++ *
++ *  service_thread_buf is a global constant symbol that contains the
++ *  pointer to the buffer used by the service thread. This is written
++ *  by nextgen plugin method writeGlobalToDevice only when the device
++ *  image requires host services.
++ *  This is the alternative to using reserved IMPLICIT kern arg hostcall
++ *  because nvptx arch does not have implicit kern args.
++ */
++
++using namespace ompx;
++
++#define GLOB_ATTR __attribute__((address_space(1)))
++#define __static_inl static __attribute__((flatten, always_inline))
++#define __inl __attribute__((flatten, always_inline))
++
++// headers for amdgcn opencl (ocl) atomics
++typedef uint64_t hsa_signal_value_t;
++typedef uint64_t hsa_signal_t;
++// typedef struct {
++//  uint64_t handle;
++// } signal_t;
++// mem order codes: A=acquire, X=relaxed, R=release
++typedef enum __ockl_memory_order_e {
++  __ockl_memory_order_relaxed = __ATOMIC_RELAXED,
++  __ockl_memory_order_acquire = __ATOMIC_ACQUIRE,
++  __ockl_memory_order_release = __ATOMIC_RELEASE,
++  __ockl_memory_order_acq_rel = __ATOMIC_ACQ_REL,
++  __ockl_memory_order_seq_cst = __ATOMIC_SEQ_CST,
++} __ockl_memory_order;
++extern "C" __inl uint64_t oclAtomic64Load_A(GLOB_ATTR uint64_t *Address);
++extern "C" __inl uint64_t oclAtomic64Load_X(GLOB_ATTR uint64_t *Address);
++extern "C" __inl uint32_t oclAtomic32Load_A(GLOB_ATTR const uint32_t *Address);
++extern "C" __inl uint32_t oclAtomic64CAS_AX(GLOB_ATTR uint64_t *Address,
++                                            uint64_t *e_Val, uint64_t new_ptr);
++extern "C" __inl uint32_t oclAtomic64CAS_RX(GLOB_ATTR uint64_t *Address,
++                                            uint64_t *e_Val, uint64_t new_ptr);
++extern "C" void ocl_hsa_signal_add(hsa_signal_t signal,
++                             hsa_signal_value_t value, __ockl_memory_order mo);
++
++// headers for cuda nvptx atomics
++extern "C" __attribute__((nothrow)) unsigned long long
++__ullAtomicAdd_system(unsigned long long *address, unsigned long long val);
++extern "C" __attribute__((nothrow)) unsigned __uAtomicAdd(unsigned *address,
++                                                          unsigned val);
++extern "C" __attribute__((nothrow)) unsigned long long
++__ullAtomicCAS_system(unsigned long long int *address,
++                      unsigned long long int compare,
++                      unsigned long long int val);
++// headers for builtins
++int __builtin_popcountl(unsigned long);
++int __builtin_popcount(unsigned);
++int __builtin_amdgcn_readfirstlane(int);
++unsigned long __builtin_amdgcn_read_exec();
++unsigned int __builtin_amdgcn_mbcnt_hi(unsigned int, unsigned int);
++unsigned int __builtin_amdgcn_mbcnt_lo(unsigned int, unsigned int);
++int __nvvm_read_ptx_sreg_tid_x();
++
++#pragma omp begin declare target device_type(nohost)
++
++typedef enum { STATUS_SUCCESS, STATUS_BUSY } status_t;
++
++typedef enum {
++  CONTROL_OFFSET_READY_FLAG = 0,
++  CONTROL_OFFSET_RESERVED0 = 1,
++} control_offset_t;
++
++typedef enum {
++  CONTROL_WIDTH_READY_FLAG = 1,
++  CONTROL_WIDTH_RESERVED0 = 31,
++} control_width_t;
++
++typedef uint64_t LaneMask_t;
++
++typedef struct {
++  uint64_t next;
++  LaneMask_t activemask;
++  uint32_t service;
++  uint32_t control;
++} header_t;
++
++typedef struct {
++  // 64 slots of 8 uint64_ts each (4KB/payload)
++  uint64_t slots[64][8];
++} payload_t;
++
++
++typedef struct {
++  GLOB_ATTR header_t *headers;
++  GLOB_ATTR payload_t *payloads;
++  uint64_t doorbell;
++  uint64_t free_stack;
++  uint64_t ready_stack;
++  uint32_t index_size;
++  uint32_t device_id;
++} buffer_t;
++
++namespace impl {
++
++// These functions have arch-specific variants
++__inl void deviceSleepHostWait();
++//  These still dont have nvptx variants
++__inl void send_signal(uint64_t signal);
++__inl uint32_t first_lane_id(uint32_t val);
++__inl uint32_t lane_id();
++__inl uint64_t get_mask();
++// mem order codes: A=acquire, X=relaxed, R=release
++__inl uint64_t atomic64Load_A(GLOB_ATTR uint64_t *Address);
++__inl uint64_t atomic64Load_X(GLOB_ATTR uint64_t *Address);
++__inl uint32_t atomic32Load_A(GLOB_ATTR const uint32_t *Address);
++__inl bool atomic64CAS_AX(GLOB_ATTR uint64_t *Address, uint64_t *e_Val,
++                          uint64_t new_ptr);
++__inl bool atomic64CAS_RX(GLOB_ATTR uint64_t *Address, uint64_t *e_Val,
++                          uint64_t new_ptr);
++__inl void write_needs_host_services_symbol();
++
++#pragma omp begin declare variant match(device = {arch(amdgcn)})
++
++__static_inl void write_needs_host_services_symbol() {
++  // The global variable "__needs_host_services" is used to detect that
++  // host services are required. If hostexec_invoke is not called, the symbol
++  // will not be present and the runtime can avoid allocating and initialising
++  // service_thread_buf.
++  __asm__(".type __needs_host_services,@object\n\t"
++          ".global __needs_host_services\n\t"
++          ".comm __needs_host_services,4" ::
++              :);
++  
++}
++
++__static_inl uint32_t lane_id() {
++  return __builtin_amdgcn_mbcnt_hi(~0u, __builtin_amdgcn_mbcnt_lo(~0u, 0u));
++};
++
++__static_inl uint32_t first_lane_id(uint32_t me) {
++  return __builtin_amdgcn_readfirstlane(me);
++}
++__static_inl uint64_t get_mask() { return __builtin_amdgcn_read_exec(); }
++__static_inl void send_signal(uint64_t signal) {
++  ocl_hsa_signal_add((hsa_signal_t) signal, 1, __ockl_memory_order_release);
++//  ompx::atomic::add(&(signal.handle), 1, ompx::atomic::release);
++}
++__static_inl void deviceSleepHostWait() { __builtin_amdgcn_s_sleep(1); }
++__static_inl uint64_t atomic64Load_A(GLOB_ATTR uint64_t *Address) {
++  return oclAtomic64Load_A(Address);
++  // return (uint64_t) ompx::atomic::load((uint64_t*) Address, ompx::atomic::aquire); 
++}
++__static_inl uint64_t atomic64Load_X(GLOB_ATTR uint64_t *Address) {
++  return oclAtomic64Load_X(Address);
++  //return (uint64_t) ompx::atomic::load((uint64_t*) Address, ompx::atomic::relaxed);
++}
++__static_inl uint32_t atomic32Load_A(GLOB_ATTR const uint32_t *Address) {
++  return oclAtomic32Load_A(Address);
++  //return (uint32_t) ompx::atomic::load((uint32_t*) Address, ompx::atomic::aquire);
++}
++__static_inl bool atomic64CAS_AX(GLOB_ATTR uint64_t *Address, uint64_t *e_Val,
++                                 uint64_t new_ptr) {
++  return (bool)oclAtomic64CAS_AX(Address, e_Val, new_ptr);
++  // return (bool) ompx::atomic::cas((uint64_t*) Address, *e_Val, new_ptr,
++// 			 ompx::atomic::aquire, ompx::atomic::relaxed);
++}
++__static_inl bool atomic64CAS_RX(GLOB_ATTR uint64_t *Address, uint64_t *e_Val,
++                                 uint64_t new_ptr) {
++  return (bool)oclAtomic64CAS_RX(Address, e_Val, new_ptr);
++  //return (bool) ompx::atomic::cas((uint64_t*) Address, *e_Val, new_ptr,
++//			 ompx::atomic::release, ompx::atomic::relaxed);
++}
++
++#pragma omp end declare variant
++
++#pragma omp begin declare variant match(                                       \
++        device = {arch(nvptx, nvptx64)},                                       \
++            implementation = {extension(match_any)})
++
++__static_inl void write_needs_host_services_symbol() {
++  // The global variable "__needs_host_services" is used to detect that
++  // host services are required. If hostexec_invoke is not called, the symbol
++  // will not be present and the runtime can avoid allocating and initialising
++  // service_thread_buf.
++  __asm__(".global .align 4 .u32 __needs_host_services = 1;");
++}
++__static_inl inline void send_signal(hsa_signal_t signal) {
++  __ullAtomicAdd_system((unsigned long long *)&signal, 1);
++}
++
++__static_inl void deviceSleepHostWait() {
++  int32_t start = __nvvm_read_ptx_sreg_clock();
++  for (;;) {
++    if ((__nvvm_read_ptx_sreg_clock() - start) >= 1000)
++      break;
++  }
++}
++
++__static_inl uint64_t get_mask() {
++  unsigned int Mask;
++  asm("activemask.b32 %0;" : "=r"(Mask));
++  uint64_t mask64 = (uint64_t)Mask;
++  return mask64;
++}
++
++//  FIXME: nvptx needs to use lane_id somehow here
++__static_inl uint32_t first_lane_id(unsigned int lane_id) {
++  unsigned int mask = (unsigned int)get_mask();
++  if (mask == 0)
++    return 0;
++  unsigned int pos = 0;
++  unsigned int m = 1;
++  while (!(mask & m)) {
++    m = m << 1;
++    pos++;
++  }
++  return pos;
++};
++
++__static_inl uint32_t lane_id() {
++  return (uint32_t)(__nvvm_read_ptx_sreg_tid_x() & 31);
++};
++
++__static_inl uint64_t atomic64Load_A(GLOB_ATTR uint64_t *Address) {
++  unsigned long long result =
++      __ullAtomicAdd_system((unsigned long long *)Address, 0);
++  return (uint64_t)result;
++}
++__static_inl uint64_t atomic64Load_X(GLOB_ATTR uint64_t *Address) {
++  unsigned long long result =
++      __ullAtomicAdd_system((unsigned long long *)Address, 0);
++  return (uint64_t)result;
++}
++__static_inl uint32_t atomic32Load_A(GLOB_ATTR const uint32_t *Address) {
++  return __uAtomicAdd((uint32_t *)Address, 0);
++}
++__static_inl bool atomic64CAS_AX(GLOB_ATTR uint64_t *Address, uint64_t *e_Val,
++                                 uint64_t new_ptr) {
++  unsigned long long result = __ullAtomicCAS_system(
++      (unsigned long long *)Address, (unsigned long long)*e_Val,
++      (unsigned long long)new_ptr);
++  return (bool)result;
++}
++__static_inl bool atomic64CAS_RX(GLOB_ATTR uint64_t *Address, uint64_t *e_Val,
++                                 uint64_t new_ptr) {
++  unsigned long long result = __ullAtomicCAS_system(
++      (unsigned long long *)Address, (unsigned long long)*e_Val,
++      (unsigned long long)new_ptr);
++  return (bool)result;
++}
++
++#pragma omp end declare variant
++
++} // end namespace impl
++
++__static_inl uint64_t get_ptr_index(uint64_t ptr, uint32_t index_size) {
++  return ptr & (((uint64_t)1 << index_size) - 1);
++}
++
++__static_inl GLOB_ATTR header_t *get_header(GLOB_ATTR buffer_t *buffer,
++                                            uint64_t ptr) {
++  return buffer->headers + get_ptr_index(ptr, buffer->index_size);
++}
++
++__static_inl GLOB_ATTR payload_t *get_payload(GLOB_ATTR buffer_t *buffer,
++                                              uint64_t ptr) {
++  return buffer->payloads + get_ptr_index(ptr, buffer->index_size);
++}
++
++// get_control_field only used by get_ready_flag
++__static_inl uint32_t get_control_field(uint32_t control, uint32_t offset,
++                                        uint32_t width) {
++  return (control >> offset) & ((1 << width) - 1);
++}
++
++// get_ready_flag only called by lead lane of get_return_value
++//                on atomically loaded control field of packet header
++__static_inl uint32_t get_ready_flag(uint32_t control) {
++  return get_control_field(control, CONTROL_OFFSET_READY_FLAG,
++                           CONTROL_WIDTH_READY_FLAG);
++}
++
++// set_control_field only used by set_ready_flag
++__static_inl uint32_t set_control_field(uint32_t control, uint32_t offset,
++                                        uint32_t width, uint32_t value) {
++  uint32_t mask = ~(((1 << width) - 1) << offset);
++  return (control & mask) | (value << offset);
++}
++
++__static_inl uint32_t set_ready_flag(uint32_t control) {
++  return set_control_field(control, CONTROL_OFFSET_READY_FLAG,
++                           CONTROL_WIDTH_READY_FLAG, 1);
++}
++
++__static_inl uint64_t pop(GLOB_ATTR uint64_t *top, GLOB_ATTR buffer_t *buffer) {
++  uint64_t F = impl::atomic64Load_A(top);
++  // F is guaranteed to be non-zero, since there are at least as
++  // many packets as there are waves, and each wave can hold at most
++  // one packet.
++  while (true) {
++    GLOB_ATTR header_t *P = get_header(buffer, F);
++    uint64_t N = impl::atomic64Load_X(&P->next);
++    if (impl::atomic64CAS_AX(top, &F, N))
++      break;
++    impl::deviceSleepHostWait();
++  }
++
++  return F;
++}
++
++/** \brief Use the first active lane to get a free packet and
++ *         broadcast to the whole wave.
++ */
++__static_inl uint64_t pop_free_stack(GLOB_ATTR buffer_t *buffer, uint32_t me,
++                                     uint32_t low) {
++  uint64_t packet_ptr = 0;
++  if (me == low) {
++    packet_ptr = pop(&buffer->free_stack, buffer);
++  }
++
++  uint32_t ptr_lo = packet_ptr;
++  uint32_t ptr_hi = packet_ptr >> 32;
++  ptr_lo = impl::first_lane_id(ptr_lo);
++  ptr_hi = impl::first_lane_id(ptr_hi);
++
++  return ((uint64_t)ptr_hi << 32) | ptr_lo;
++}
++
++__static_inl void push(GLOB_ATTR uint64_t *top, uint64_t ptr,
++                       GLOB_ATTR buffer_t *buffer) {
++  uint64_t F = impl::atomic64Load_X(top);
++  GLOB_ATTR header_t *P = get_header(buffer, ptr);
++
++  while (true) {
++    P->next = F;
++    if (impl::atomic64CAS_RX(top, &F, ptr))
++      break;
++    impl::deviceSleepHostWait();
++  }
++}
++
++/** \brief Use the first active lane in a wave to submit a ready
++ *         packet and signal the host.
++ */
++__static_inl void push_ready_stack(GLOB_ATTR buffer_t *buffer, uint64_t ptr,
++                                   uint32_t me, uint32_t low) {
++  if (me == low) {
++    push(&buffer->ready_stack, ptr, buffer);
++    impl::send_signal(buffer->doorbell);
++  }
++}
++
++__static_inl uint64_t inc_ptr_tag(uint64_t ptr, uint32_t index_size) {
++  // Unit step for the tag.
++  uint64_t inc = 1UL << index_size;
++  ptr += inc;
++  // When the tag for index 0 wraps, increment the tag.
++  return ptr == 0 ? inc : ptr;
++}
++
++/** \brief Return the packet after incrementing the ABA tag
++ */
++__static_inl void return_free_packet(GLOB_ATTR buffer_t *buffer, uint64_t ptr,
++                                     uint32_t me, uint32_t low) {
++  if (me == low) {
++    ptr = inc_ptr_tag(ptr, buffer->index_size);
++    push(&buffer->free_stack, ptr, buffer);
++  }
++}
++
++void __static_inl fill_packet(GLOB_ATTR header_t *header,
++                              GLOB_ATTR payload_t *payload, uint32_t service_id,
++                              uint64_t arg0, uint64_t arg1, uint64_t arg2,
++                              uint64_t arg3, uint64_t arg4, uint64_t arg5,
++                              uint64_t arg6, uint64_t arg7, uint32_t me,
++                              uint32_t low) {
++  uint64_t active = impl::get_mask();
++  if (me == low) {
++    header->service = service_id;
++    header->activemask = active;
++    uint32_t control = set_ready_flag(0);
++    header->control = control;
++  }
++  GLOB_ATTR uint64_t *ptr = payload->slots[me];
++  ptr[0] = arg0;
++  ptr[1] = arg1;
++  ptr[2] = arg2;
++  ptr[3] = arg3;
++  ptr[4] = arg4;
++  ptr[5] = arg5;
++  ptr[6] = arg6;
++  ptr[7] = arg7;
++}
++
++//  result is 8*8=64 bytes per lane
++//  Total payload could be 64 lanes * 64 bytes = 4KB
++typedef struct hostexec_result_s {
++  uint64_t arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7;
++} hostexec_result_t;
++
++/** \brief Wait for the host response and return the first two uint64_t
++ *         entries per workitem.
++ *
++ *  After the packet is submitted in READY state, the wave spins until
++ *  the host changes the state to DONE. Each workitem reads the first
++ *  two uint64_t elements in its slot and returns this.
++ */
++__static_inl hostexec_result_t get_return_value(GLOB_ATTR header_t *header,
++                                                GLOB_ATTR payload_t *payload,
++                                                uint32_t me, uint32_t low) {
++  // The while loop needs to be executed by all active
++  // lanes. Otherwise, later reads from ptr are performed only by
++  // the first thread, while other threads reuse a value cached from
++  // previous operations. The use of readfirstlane in the while loop
++  // prevents this reordering.
++  //
++  // In the absence of the readfirstlane, only one thread has a
++  // sequenced-before relation from the atomic load on
++  // header->control to the ordinary loads on ptr. As a result, the
++  // compiler is free to reorder operations in such a way that the
++  // ordinary loads are performed only by the first thread. The use
++  // of readfirstlane provides a stronger code-motion barrier, and
++  // it effectively "spreads out" the sequenced-before relation to
++  // the ordinary stores in other threads too.
++  while (true) {
++    uint32_t ready_flag = 1;
++    if (me == low) {
++      uint32_t control =
++          impl::atomic32Load_A((GLOB_ATTR uint32_t *)&header->control);
++      ready_flag = get_ready_flag(control);
++    }
++    ready_flag = impl::first_lane_id(ready_flag);
++    if (ready_flag == 0)
++      break;
++    impl::deviceSleepHostWait();
++  }
++
++  GLOB_ATTR uint64_t *ptr = (GLOB_ATTR uint64_t *)(payload->slots + me);
++  hostexec_result_t retval;
++  retval.arg0 = *ptr++;
++  retval.arg1 = *ptr++;
++  retval.arg2 = *ptr++;
++  retval.arg3 = *ptr++;
++  retval.arg4 = *ptr++;
++  retval.arg5 = *ptr++;
++  retval.arg6 = *ptr++;
++  retval.arg7 = *ptr;
++
++  return retval;
++}
++
++#undef __static_inl
++
++uint64_t [[clang::address_space(4)]] service_thread_buf
++    [[clang::loader_uninitialized]] __attribute__((used, retain, weak,
++                                                   visibility("protected")));
++extern "C" __attribute__((noinline)) hostexec_result_t
++hostexec_invoke(const uint32_t service_id, uint64_t arg0, uint64_t arg1,
++                uint64_t arg2, uint64_t arg3, uint64_t arg4, uint64_t arg5,
++                uint64_t arg6, uint64_t arg7) {
++  impl::write_needs_host_services_symbol();
++  uint32_t me = impl::lane_id();
++  uint32_t low = impl::first_lane_id(me);
++
++  GLOB_ATTR buffer_t *buffer = (GLOB_ATTR buffer_t *)service_thread_buf;
++
++  uint64_t packet_ptr = pop_free_stack(buffer, me, low);
++  GLOB_ATTR header_t *header = get_header(buffer, packet_ptr);
++  GLOB_ATTR payload_t *payload = get_payload(buffer, packet_ptr);
++  fill_packet(header, payload, service_id, arg0, arg1, arg2, arg3, arg4, arg5,
++              arg6, arg7, me, low);
++  push_ready_stack(buffer, packet_ptr, me, low);
++  hostexec_result_t retval = get_return_value(header, payload, me, low);
++  return_free_packet(buffer, packet_ptr, me, low);
++  return retval;
++}
++
++static __attribute__((flatten, always_inline)) hostexec_result_t
++hostexec_invoke_zeros(const uint32_t id, uint64_t arg0 = 0, uint64_t arg1 = 0,
++                      uint64_t arg2 = 0, uint64_t arg3 = 0, uint64_t arg4 = 0,
++                      uint64_t arg5 = 0, uint64_t arg6 = 0, uint64_t arg7 = 0) {
++  return hostexec_invoke(id, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
++}
++
++extern "C" {
++// This definition of __ockl_devmem_request and __ockl_sanitizer_report needs to
++// override the weak symbol for __ockl_devmem_request and
++// __ockl_sanitizer_report in rocm device lib ockl.bc because ockl uses
++// hostcall but OpenMP uses hostexec.
++__attribute__((noinline)) uint64_t __ockl_devmem_request(uint64_t addr,
++                                                         uint64_t size) {
++  uint64_t arg0;
++  if (size) { // allocation request
++    arg0 = size;
++    hostexec_result_t result =
++        hostexec_invoke_zeros(HOSTEXEC_SID_DEVICE_MALLOC, arg0);
++    return result.arg1;
++  } else { // free request
++    arg0 = addr;
++    hostexec_result_t result =
++        hostexec_invoke_zeros(HOSTEXEC_SID_FREE, arg0);
++    return result.arg0;
++  }
++}
++
++__attribute__((noinline)) void
++__ockl_sanitizer_report(uint64_t addr, uint64_t pc, uint64_t wgidx,
++                        uint64_t wgidy, uint64_t wgidz, uint64_t wave_id,
++                        uint64_t is_read, uint64_t access_size) {
++  hostexec_result_t result =
++      hostexec_invoke(HOSTEXEC_SID_SANITIZER, addr, pc, wgidx, wgidy,
++                      wgidz, wave_id, is_read, access_size);
++}
++
++#if 0
++void f90print_(char *s) { printf("%s\n", s); }
++void f90printi_(char *s, int *i) { printf("%s %d\n", s, *i); }
++void f90printl_(char *s, long *i) { printf("%s %ld\n", s, *i); }
++void f90printf_(char *s, float *f) { printf("%s %f\n", s, *f); }
++void f90printd_(char *s, double *d) { printf("%s %g\n", s, *d); }
++uint64_t __tgt_fort_ptr_assn_i8(void *varg0, void *varg1, void *varg2,
++                                void *varg3, void *varg4) {
++  uint64_t arg0, arg1, arg2, arg3, arg4;
++  arg0 = (uint64_t)varg0;
++  arg1 = (uint64_t)varg1;
++  arg2 = (uint64_t)varg2;
++  arg3 = (uint64_t)varg3;
++  arg4 = (uint64_t)varg4;
++  hostexec_result_t result = hostexec_invoke_zeros(
++      HOSTEXEC_SID_FTNASSIGN, arg0, arg1, arg2, arg3, arg4);
++  return (uint64_t)result.arg0;
++
++// FIXME: Deprecate upstream, change test cases to use malloc & free directly
++__attribute__((flatten, always_inline)) char *global_allocate(uint32_t bufsz) {
++  return (char *)__ockl_dm_alloc(bufsz);
++}
++__attribute__((flatten, always_inline)) int global_free(void *ptr) {
++  __ockl_dm_dealloc((uint64_t)ptr);
++  return 0;
++}
++#endif
++
++char *hostexec_allocate(uint32_t bufsz) {
++  uint64_t arg0 = (uint64_t)bufsz;
++  hostexec_result_t result =
++      hostexec_invoke_zeros(HOSTEXEC_SID_HOST_MALLOC, arg0);
++  return (char *)result.arg1;
++}
++int printf_execute(char *print_buffer, uint32_t bufsz) {
++  uint64_t arg0, arg1;
++  arg0 = (uint64_t)bufsz;
++  arg1 = (uint64_t)print_buffer;
++  hostexec_result_t result =
++      hostexec_invoke_zeros(HOSTEXEC_SID_PRINTF, arg0, arg1);
++  return (int)result.arg0;
++}
++int fprintf_execute(char *print_buffer, uint32_t bufsz) {
++  uint64_t arg0, arg1;
++  arg0 = (uint64_t)bufsz;
++  arg1 = (uint64_t)print_buffer;
++  hostexec_result_t result =
++      hostexec_invoke_zeros(HOSTEXEC_SID_FPRINTF, arg0, arg1);
++  return (int)result.arg0;
++}
++void hostexec_execute(char *print_buffer, uint32_t bufsz) {
++  uint64_t arg0, arg1;
++  arg0 = (uint64_t)bufsz;
++  arg1 = (uint64_t)print_buffer;
++  hostexec_result_t result =
++      hostexec_invoke_zeros(HOSTEXEC_SID_VOID, arg0, arg1);
++  return;
++}
++uint32_t hostexec_uint_execute(char *print_buffer, uint32_t bufsz) {
++  uint64_t arg0, arg1;
++  arg0 = (uint64_t)bufsz;
++  arg1 = (uint64_t)print_buffer;
++  hostexec_result_t result =
++      hostexec_invoke_zeros(HOSTEXEC_SID_UINT, arg0, arg1);
++  return (uint32_t)result.arg0;
++}
++uint64_t hostexec_uint64_execute(char *print_buffer, uint32_t bufsz) {
++  uint64_t arg0, arg1;
++  arg0 = (uint64_t)bufsz;
++  arg1 = (uint64_t)print_buffer;
++  hostexec_result_t result =
++      hostexec_invoke_zeros(HOSTEXEC_SID_UINT64, arg0, arg1);
++  return (uint64_t)result.arg0;
++}
++uint64_t hostexec_fortrt_execute(char *print_buffer, uint32_t bufsz) {
++  uint64_t arg0, arg1;
++  arg0 = (uint64_t)bufsz;
++  arg1 = (uint64_t)print_buffer;
++  hostexec_result_t result =
++      hostexec_invoke_zeros(HOSTEXEC_SID_FORTRT, arg0, arg1);
++  return (uint64_t)result.arg0;
++}
++double hostexec_double_execute(char *print_buffer, uint32_t bufsz) {
++  uint64_t arg0, arg1;
++  arg0 = (uint64_t)bufsz;
++  arg1 = (uint64_t)print_buffer;
++  hostexec_result_t result =
++      hostexec_invoke_zeros(HOSTEXEC_SID_DOUBLE, arg0, arg1);
++  union {
++    uint64_t val;
++    double dval;
++  } unionarg;
++  unionarg.val = result.arg0;
++  return unionarg.dval;
++}
++int hostexec_int_execute(char *print_buffer, uint32_t bufsz) {
++  uint64_t arg0, arg1;
++  arg0 = (uint64_t)bufsz;
++  arg1 = (uint64_t)print_buffer;
++  hostexec_result_t result =
++      hostexec_invoke_zeros(HOSTEXEC_SID_INT, arg0, arg1);
++  return (int)result.arg0;
++}
++float hostexec_float_execute(char *print_buffer, uint32_t bufsz) {
++  uint64_t arg0, arg1;
++  arg0 = (uint64_t)bufsz;
++  arg1 = (uint64_t)print_buffer;
++  hostexec_result_t result =
++      hostexec_invoke_zeros(HOSTEXEC_SID_FLOAT, arg0, arg1);
++  union {
++    float fval[2];
++    uint64_t val;
++  } unionarg;
++  unionarg.val = result.arg0;
++  return unionarg.fval[0];
++}
++long hostexec_long_execute(char *print_buffer, uint32_t bufsz) {
++  uint64_t arg0, arg1;
++  arg0 = (uint64_t)bufsz;
++  arg1 = (uint64_t)print_buffer;
++  hostexec_result_t result =
++      hostexec_invoke_zeros(HOSTEXEC_SID_LONG, arg0, arg1);
++  return (long)result.arg0;
++}
++
++// Keep these declarations in sync with the ones in DeviceRTL/src/State.cpp
++// See https://github.com/llvm/llvm-project/issues/63597
++__attribute__((noinline)) extern "C" uint64_t __ockl_dm_alloc(uint64_t bufsz);
++__attribute__((noinline)) extern "C" void __ockl_dm_dealloc(uint64_t ptr);
++
++// This function is used for printf arguments that are variable length strings
++// The clang compiler will generate calls to this only when a string length is
++// not a compile time constant.
++uint32_t __strlen_max(char *instr, uint32_t maxstrlen) {
++  for (uint32_t i = 0; i < maxstrlen; i++)
++    if (instr[i] == (char)0)
++      return (uint32_t)(i + 1);
++  return maxstrlen;
++}
++
++#if defined(__NVPTX__) || defined(__AMDGCN__)
++// These are function definitions of selected fortran device runtime functions
++// that will be executed on the host using hostexec. The host functions
++// that implement the service are defined in services/execute_service.cpp.
++// These functions begin with V_ because they are variadic functions.
++// Variadic functions make it easy to reconstruct the exact arguments for
++// the call to the actual fortran host runtime function.
++
++// Since these variadic functions are static functions in execute_service.cpp,
++// we only send the index from the enum set of known functions as a fake
++// function pointer in the first arg. See the switch(DeviceRuntime_idx) in
++// execute_service.cpp which determins the correct function pointer to
++// the V_ function based on this index.
++//
++// Note that eventually these device fortran runtime functions definitions
++// will be moved to flang/runtime under the same #if above as the
++// device alternative to the host version of the functions. This will
++// require hostexec to be available.
++
++uint32_t omp_get_thread_num();
++uint32_t omp_get_num_threads();
++uint32_t omp_get_team_num();
++uint32_t omp_get_num_teams();
++
++
++#define _EXTRA_ARGS                                                            \
++  omp_get_thread_num(), omp_get_num_threads(), omp_get_team_num(),             \
++      omp_get_num_teams()
++void *_FortranAioBeginExternalListOutput(uint32_t a1, const char *a2,
++                                         uint32_t a3) {
++  void *cookie = (void *)hostexec_fortrt(
++      (void *)_FortranAioBeginExternalListOutput_idx, _EXTRA_ARGS, a1, a2, a3);
++  return cookie;
++}
++bool _FortranAioOutputAscii(void *a1, char *a2, uint64_t a3) {
++  // TODO: must use string length from a3 arg
++  a2[a3 - 1] = (char)0; // loose a char, till we create hostexec_charlen_arg
++                        // that gets length from subsequent arg
++  return (bool)hostexec_fortrt((void *)_FortranAioOutputAscii_idx, _EXTRA_ARGS,
++                               a1, a2, a3);
++}
++bool _FortranAioOutputInteger32(void *a1, uint32_t a2) {
++  return (bool)hostexec_fortrt((void *)_FortranAioOutputInteger32_idx,
++                               _EXTRA_ARGS, a1, a2);
++}
++uint32_t _FortranAioEndIoStatement(void *a1) {
++  return (uint32_t)hostexec_fortrt((void *)_FortranAioEndIoStatement_idx,
++                                   _EXTRA_ARGS, a1);
++}
++bool _FortranAioOutputInteger8(void *cookie, int8_t n) {
++  return (bool)hostexec_fortrt((void *)_FortranAioOutputInteger8_idx,
++                               _EXTRA_ARGS, cookie, n);
++}
++bool _FortranAioOutputInteger16(void *cookie, int16_t n) {
++  return (bool)hostexec_fortrt((void *)_FortranAioOutputInteger16_idx,
++                               _EXTRA_ARGS, cookie, n);
++}
++bool _FortranAioOutputInteger64(void *cookie, int64_t n) {
++  return (bool)hostexec_fortrt((void *)_FortranAioOutputInteger64_idx,
++                               _EXTRA_ARGS, cookie, n);
++}
++bool _FortranAioOutputReal32(void *cookie, float x) {
++  return (bool)hostexec_fortrt((void *)_FortranAioOutputReal32_idx, _EXTRA_ARGS,
++                               cookie, x);
++}
++bool _FortranAioOutputReal64(void *cookie, double x) {
++  return (bool)hostexec_fortrt((void *)_FortranAioOutputReal64_idx, _EXTRA_ARGS,
++                               cookie, x);
++}
++bool _FortranAioOutputComplex32(void *cookie, float re, float im) {
++  return (bool)hostexec_fortrt((void *)_FortranAioOutputComplex32_idx,
++                               _EXTRA_ARGS, cookie, re, im);
++}
++bool _FortranAioOutputComplex64(void *cookie, double re, double im) {
++  return (bool)hostexec_fortrt((void *)_FortranAioOutputComplex64_idx,
++                               _EXTRA_ARGS, cookie, re, im);
++}
++bool _FortranAioOutputLogical(void *cookie, bool barg) {
++  return (bool)hostexec_fortrt((void *)_FortranAioOutputLogical_idx,
++                               _EXTRA_ARGS, cookie, barg);
++}
++void _FortranAAbort() {
++  hostexec_fortrt((void *)_FortranAAbort_idx);
++  // When  host service _FortranAAbort finishes, we must die from the device.
++  __builtin_trap();
++}
++void _FortranAStopStatementText(char *errmsg, int64_t a1, bool a2, bool a3) {
++  // TODO: must use string length from a1 arg
++  errmsg[a1 - 1] = (char)0;
++  hostexec_fortrt((void *)_FortranAStopStatementText_idx, errmsg, a1, a2, a3);
++  __builtin_trap();
++}
++#endif // defined(__NVPTX__) || defined(__AMDGCN__)
++
++} // end extern "C"
++#pragma omp end declare target
++#undef _EXTRA_ARGS
+diff -Naur -x .git llvm-project.atd/offload/DeviceRTL/src/oclAtomics.cl llvm-project/offload/DeviceRTL/src/oclAtomics.cl
+--- llvm-project.atd/offload/DeviceRTL/src/oclAtomics.cl	1969-12-31 19:00:00.000000000 -0500
++++ llvm-project/offload/DeviceRTL/src/oclAtomics.cl	2024-09-24 16:45:40.435079605 -0400
+@@ -0,0 +1,93 @@
++
++#pragma OPENCL EXTENSION cl_khr_int64_base_atomics : enable
++#pragma OPENCL EXTENSION cl_khr_int64_extended_atomics : enable
++
++#define __atomic_ulong atomic_ulong
++#define __inl __attribute__((flatten, always_inline))
++
++// mem order codes: A=acquire, X=relaxed, R=release
++extern __inl ulong oclAtomic64Load_A(__global __atomic_ulong * Address){
++  return  __opencl_atomic_load(Address, memory_order_acquire, memory_scope_all_svm_devices);
++}
++extern __inl ulong oclAtomic64Load_X(__global __atomic_ulong * Address){
++  return  __opencl_atomic_load(Address, memory_order_relaxed, memory_scope_all_svm_devices);
++}
++extern __inl uint oclAtomic32Load_A(__global const atomic_uint * Address){
++  return  __opencl_atomic_load(Address, memory_order_acquire, memory_scope_all_svm_devices);
++}
++extern __inl uint oclAtomic64CAS_AX(__global __atomic_ulong * Address,  ulong * e_val, ulong new_val) {
++   return __opencl_atomic_compare_exchange_strong( Address, e_val, new_val,
++     memory_order_acquire, memory_order_relaxed, memory_scope_all_svm_devices);
++}
++extern __inl uint oclAtomic64CAS_RX(__global __atomic_ulong * Address,  ulong * e_val, ulong new_val) {
++   return __opencl_atomic_compare_exchange_strong(Address, e_val, new_val,
++     memory_order_release, memory_order_relaxed, memory_scope_all_svm_devices);
++}
++
++// Code for ocl_hsa_signal_add is from __ockl_hsa_signal_add because ockl
++// is not available to trunk. 
++
++typedef struct {
++  ulong handle;
++} hsa_signal_t;
++
++// from ockl
++typedef enum __ockl_memory_order_e {
++  __ockl_memory_order_relaxed = __ATOMIC_RELAXED,
++  __ockl_memory_order_acquire = __ATOMIC_ACQUIRE,
++  __ockl_memory_order_release = __ATOMIC_RELEASE,
++  __ockl_memory_order_acq_rel = __ATOMIC_ACQ_REL,
++  __ockl_memory_order_seq_cst = __ATOMIC_SEQ_CST,
++} __ockl_memory_order;
++
++// AMD Signal Kind Enumeration Values.
++typedef long amd_signal_kind64_t;
++enum amd_signal_kind_t {
++  AMD_SIGNAL_KIND_INVALID = 0,
++  AMD_SIGNAL_KIND_USER = 1,
++  AMD_SIGNAL_KIND_DOORBELL = -1,
++  AMD_SIGNAL_KIND_LEGACY_DOORBELL = -2
++};
++
++// AMD Signal.
++#define __ALIGNED__(x) __attribute__((aligned(x)))
++#define AMD_SIGNAL_ALIGN_BYTES 64
++#define AMD_SIGNAL_ALIGN __ALIGNED__(AMD_SIGNAL_ALIGN_BYTES)
++typedef struct AMD_SIGNAL_ALIGN amd_signal_s {
++  amd_signal_kind64_t kind;
++  union {
++    volatile long value;
++    __global volatile uint* legacy_hardware_doorbell_ptr;
++    __global volatile ulong* hardware_doorbell_ptr;
++  };
++  ulong event_mailbox_ptr;
++  uint event_id;
++  uint reserved1;
++  ulong start_ts;
++  ulong end_ts;
++// union {
++//   ;; __global amd_queue_t* queue_ptr;
++    ulong reserved2;
++//  };
++  uint reserved3[2];
++} amd_signal_t;
++
++#define AS(P,V,O,S) __opencl_atomic_store(P,V,O,S)
++#define AF(T,K,P,V,O,S) __opencl_atomic_fetch_##K(P,V,O,S)
++static void update_mbox(const __global amd_signal_t *sig) {
++    __global atomic_ulong *mb = (__global atomic_ulong *)sig->event_mailbox_ptr;
++    if (mb) {
++        uint id = sig->event_id;
++        AS(mb, id, memory_order_release, memory_scope_all_svm_devices);
++        __builtin_amdgcn_s_sendmsg(1 | (0 << 4), __builtin_amdgcn_readfirstlane(id) & 0xff);
++    }
++}
++extern __inl void ocl_hsa_signal_add(hsa_signal_t sig, long value,
++               __ockl_memory_order mem_order) {
++    __global amd_signal_t *s = (__global amd_signal_t *)sig.handle;
++    AF(long, add, (__global atomic_long *)&s->value, value, mem_order, memory_scope_all_svm_devices);
++    update_mbox(s);
++}
++
++#undef __atomic_ulong
++#undef __inl
+diff -Naur -x .git llvm-project.atd/offload/plugins-nextgen/amdgpu/CMakeLists.txt llvm-project/offload/plugins-nextgen/amdgpu/CMakeLists.txt
+--- llvm-project.atd/offload/plugins-nextgen/amdgpu/CMakeLists.txt	2024-09-24 17:07:28.278682336 -0400
++++ llvm-project/offload/plugins-nextgen/amdgpu/CMakeLists.txt	2024-09-24 14:17:45.777571802 -0400
+@@ -4,13 +4,19 @@
+ # Create the library and add the default arguments.
+ add_target_library(omptarget.rtl.amdgpu AMDGPU)
+ 
+-target_sources(omptarget.rtl.amdgpu PRIVATE src/rtl.cpp)
++target_sources(omptarget.rtl.amdgpu PRIVATE src/rtl.cpp
++        hostexec/amdgcn_hostexec.cpp
++        hostexec/amdgcn_urilocator.cpp
++        hostexec/devsanitizer.cpp
++        hostexec/execute_service.cpp)
+ target_include_directories(omptarget.rtl.amdgpu PRIVATE
+                            ${CMAKE_CURRENT_SOURCE_DIR}/utils)
+ 
+-if(hsa-runtime64_FOUND AND NOT "amdgpu" IN_LIST LIBOMPTARGET_DLOPEN_PLUGINS)
++#if(hsa-runtime64_FOUND AND NOT "amdgpu" IN_LIST LIBOMPTARGET_DLOPEN_PLUGINS)
++if(hsa-runtime64_FOUND)
+   message(STATUS "Building AMDGPU plugin linked against libhsa")
+   target_link_libraries(omptarget.rtl.amdgpu PRIVATE hsa-runtime64::hsa-runtime64 LLVMFrontendOffloading)
++
+ else()
+   message(STATUS "Building AMDGPU plugin for dlopened libhsa")
+   target_include_directories(omptarget.rtl.amdgpu PRIVATE dynamic_hsa)
+@@ -18,6 +24,15 @@
+   target_link_libraries(omptarget.rtl.amdgpu PRIVATE LLVMFrontendOffloading)
+ endif()
+ 
++option(LIBOMPTARGET_BUILD_DEVICE_FORTRT "Build device fortran IO runtime with hostexec" ON)
++if (LIBOMPTARGET_BUILD_DEVICE_FORTRT)
++  add_compile_definitions(_HOSTEXEC_BUILD_DEVICE_FORTRT)
++  target_link_libraries(omptarget.rtl.amdgpu PRIVATE FortranDecimal
++    -L${CMAKE_BINARY_DIR}/../../lib  -L${CMAKE_INSTALL_PREFIX}/lib)
++  target_link_libraries(omptarget.rtl.amdgpu PRIVATE FortranRuntime
++    -L${CMAKE_BINARY_DIR}/../../lib  -L${CMAKE_INSTALL_PREFIX}/lib)
++endif()
++
+ # Configure testing for the AMDGPU plugin. We will build tests if we could a
+ # functional AMD GPU on the system, or if manually specifies by the user.
+ option(LIBOMPTARGET_FORCE_AMDGPU_TESTS "Build AMDGPU libomptarget tests" OFF)
+diff -Naur -x .git llvm-project.atd/offload/plugins-nextgen/amdgpu/hostexec/amdgcn_hostexec.cpp llvm-project/offload/plugins-nextgen/amdgpu/hostexec/amdgcn_hostexec.cpp
+--- llvm-project.atd/offload/plugins-nextgen/amdgpu/hostexec/amdgcn_hostexec.cpp	1969-12-31 19:00:00.000000000 -0500
++++ llvm-project/offload/plugins-nextgen/amdgpu/hostexec/amdgcn_hostexec.cpp	2024-09-24 14:36:12.834206843 -0400
+@@ -0,0 +1,513 @@
++//===---- amdgcn_hostrpc.cpp - Services thread management  ----------------===//
++//
++// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
++// See https://llvm.org/LICENSE.txt for license information.
++// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
++//
++//===----------------------------------------------------------------------===//
++//
++// This contains code for the services thread for the hostrpc system using
 +// amdgcn hsa. This nvptx cuda variant of this process is in development.
 +//
 +//===----------------------------------------------------------------------===//
 +
-+#include "../src/hostexec_internal.h"
++// #include "hostexec_internal.h"
++#include "../../../DeviceRTL/include/Hostexec.h"
 +#include "execute_service.h"
 +#include "urilocator.h"
++#include <cassert>
 +#include <atomic>
 +#include <cstring>
 +#include <functional>
-+#include <hsa/hsa.h>
-+#include <hsa/hsa_ext_amd.h>
 +#include <iostream>
 +#include <list>
 +#include <mutex>
 +#include <thread>
++
++#if __has_include("hsa/hsa.h")
++#include "hsa/hsa.h"
++#include "hsa/hsa_ext_amd.h"
++#else
++#include "hsa.h"
++#include "hsa_ext_amd.h"
++#endif
++
++/// Defines how many GPUs are maximally supported on a system
++#define AMD_MAX_HSA_AGENTS 256
 +
 +/** Opaque wrapper for signal */
 +typedef struct {
@@ -793,12 +1628,13 @@ diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/hostexec/services/a
 +}
 +
 +static hsa_amd_memory_pool_t static_host_memory_pool;
-+static hsa_amd_memory_pool_t static_device_memory_pools[8];
-+static hsa_agent_t static_hsa_agents[8];
++static hsa_amd_memory_pool_t static_device_memory_pools[AMD_MAX_HSA_AGENTS];
++static hsa_agent_t static_hsa_agents[AMD_MAX_HSA_AGENTS];
 +
 +void save_hsa_statics(uint32_t device_id, hsa_amd_memory_pool_t HostMemoryPool,
 +                      hsa_amd_memory_pool_t DevMemoryPool,
 +                      hsa_agent_t hsa_agent) {
++  assert(device_id < AMD_MAX_HSA_AGENTS && "Supports up n GPUs");
 +  static_host_memory_pool = HostMemoryPool;
 +  static_device_memory_pools[device_id] = DevMemoryPool;
 +  static_hsa_agents[device_id] = hsa_agent;
@@ -833,7 +1669,7 @@ diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/hostexec/services/a
 +}
 +
 +void thread_abort(service_rc rc) {
-+  fprintf(stderr,"hostexec thread_abort called with code %d\n", rc);
++  fprintf(stderr, "hostrpc thread_abort called with code %d\n", rc);
 +  abort();
 +}
 +// ====== END helper functions for execute_service ======
@@ -876,8 +1712,6 @@ diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/hostexec/services/a
 +                                          uint64_t activemask,
 +                                          uint32_t gpu_device,
 +                                          UriLocator *uri_locator);
-+
-+static bool static_version_was_checked = false;
 +struct consumer_t {
 +private:
 +  signal_t doorbell;
@@ -909,40 +1743,6 @@ diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/hostexec/services/a
 +    return NULL;
 +  }
 +
-+  service_rc check_version(uint device_vrm) const {
-+    if (device_vrm == (unsigned int)HOSTEXEC_VRM)
-+      return _RC_SUCCESS;
-+    uint device_version_release = device_vrm >> 6;
-+    if (device_version_release != HOSTEXEC_VERSION_RELEASE) {
-+      fprintf(stderr,"ERROR Incompatible device and host release\n     Device "
-+             "release(%d)\n     Host release(%d)\n",
-+             device_version_release, HOSTEXEC_VERSION_RELEASE);
-+      return _RC_ERROR_WRONGVERSION;
-+    }
-+    if (device_vrm > HOSTEXEC_VRM) {
-+      fprintf(stderr,"ERROR Incompatible device and host version\n      Device "
-+             "version(%d)\n     Host version(%d)\n",
-+             device_vrm, HOSTEXEC_VERSION_RELEASE);
-+      fprintf(stderr,"         Upgrade libomptarget runtime on your system.\n");
-+      return _RC_ERROR_OLDHOSTVERSIONMOD;
-+    }
-+    if (device_vrm < HOSTEXEC_VRM) {
-+      unsigned int host_ver = ((unsigned int)HOSTEXEC_VRM) >> 12;
-+      unsigned int host_rel = (((unsigned int)HOSTEXEC_VRM) << 20) >> 26;
-+      unsigned int host_mod = (((unsigned int)HOSTEXEC_VRM) << 26) >> 26;
-+      unsigned int dev_ver = ((unsigned int)device_vrm) >> 12;
-+      unsigned int dev_rel = (((unsigned int)device_vrm) << 20) >> 26;
-+      unsigned int dev_mod = (((unsigned int)device_vrm) << 26) >> 26;
-+      fprintf(stderr,
-+          "WARNING:  Device mod version < host mod version \n          Device "
-+          "version: %d.%d.%d\n          Host version:   %d.%d.%d\n",
-+          dev_ver, dev_rel, dev_mod, host_ver, host_rel, host_mod);
-+      fprintf(stderr,
-+        "          Consider rebuild binary with more recent compiler.\n");
-+    }
-+    return _RC_SUCCESS;
-+  }
-+
 +  void process_packets(buffer_t *buffer, uint64_t ready_stack) const {
 +    // This function is always called from consume_packets, which owns
 +    // the lock for the critical data.
@@ -963,16 +1763,7 @@ diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/hostexec/services/a
 +      auto payload = get_payload(buffer, iter);
 +      uint64_t activemask = header->activemask;
 +
-+      // split the 32-bit service number into service_id and VRM to be checked
-+      // if device hostexec or stubs are ahead of this host runtime.
-+      uint service_id = (header->service << 16) >> 16;
-+      if (!static_version_was_checked) {
-+        uint device_vrm = ((uint)(header->service) >> 16);
-+        service_rc err = check_version(device_vrm);
-+        if (err != _RC_SUCCESS)
-+          thread_abort(err);
-+        static_version_was_checked = true;
-+      }
++      uint service_id = header->service;
 +
 +      if (service_id == HOSTEXEC_SID_SANITIZER) {
 +        handler_SERVICE_SANITIZER(payload, activemask, buffer->device_id,
@@ -1072,7 +1863,7 @@ diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/hostexec/services/a
 +    return _RC_SUCCESS;
 +  }
 +
-+  // destructor triggered by delete static_consumer_ptr in hostexec_terminate().
++  // destructor triggered by delete static_consumer_ptr in hostrpc_terminate().
 +  ~consumer_t() {
 +    for (auto hsaq_buf : hsaq_bufs) {
 +      if (hsaq_buf) {
@@ -1090,7 +1881,7 @@ diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/hostexec/services/a
 +
 +  buffer_t *create_buffer_t(uint32_t num_packets, uint32_t devid) {
 +    if (num_packets == 0) {
-+      fprintf(stderr,"hostexec create_buffer-t num_packets cannot be zero.\n");
++      fprintf(stderr, "hostrpc create_buffer-t num_packets cannot be zero.\n");
 +      thread_abort(_RC_ERROR_ZEROPACKETS);
 +    }
 +    size_t size = get_buffer_size(num_packets);
@@ -1098,12 +1889,12 @@ diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/hostexec/services/a
 +    void *newbuffer = NULL;
 +    service_rc err = host_malloc(&newbuffer, size + align, devid);
 +    if (!newbuffer || (err != _RC_SUCCESS)) {
-+      fprintf(stderr,"hostexec call to host_malloc failed \n");
++      fprintf(stderr, "hostrpc call to host_malloc failed \n");
 +      thread_abort(err);
 +    }
 +
 +    if ((uintptr_t)newbuffer % get_buffer_alignment() != 0) {
-+      fprintf(stderr,"ERROR: incorrect alignment \n");
++      fprintf(stderr, "ERROR: incorrect alignment \n");
 +      thread_abort(_RC_ERROR_ALIGNMENT);
 +    }
 +
@@ -1145,11 +1936,11 @@ diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/hostexec/services/a
 +// This instance starts a single service thread for ALL devices.
 +static consumer_t *static_consumer_ptr = NULL;
 +
-+// This is the main hostexec function called by the amdgpu plugin when
++// This is the main hostrpc function called by the amdgpu plugin when
 +// launching a kernel on a designated hsa_queue_t. This function should only
-+// be called if any kernel in the device image requires hostexec services.
++// be called if any kernel in the device image requires hostrpc services.
 +extern "C" unsigned long
-+hostexec_assign_buffer(hsa_agent_t agent, hsa_queue_t *this_Q,
++hostrpc_assign_buffer(hsa_agent_t agent, hsa_queue_t *this_Q,
 +                      uint32_t device_id, hsa_amd_memory_pool_t HostMemoryPool,
 +                      hsa_amd_memory_pool_t DevMemoryPool) {
 +  // Create and launch the services thread
@@ -1159,7 +1950,6 @@ diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/hostexec/services/a
 +    if (err != _RC_SUCCESS)
 +      thread_abort(err);
 +  }
-+
 +  // quick return to kernel launch if this hsa q is being reused
 +  hsaq_buf_entry_t *hsaq_buf = static_consumer_ptr->find_hsaq_buf_entry(this_Q);
 +  if (hsaq_buf)
@@ -1191,7 +1981,7 @@ diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/hostexec/services/a
 +  return (unsigned long)hcb;
 +}
 +
-+extern "C" hsa_status_t hostexec_terminate() {
++extern "C" hsa_status_t hostrpc_terminate() {
 +  if (static_consumer_ptr) {
 +    // The consumer_t destructor takes care of all memory returns
 +    delete static_consumer_ptr;
@@ -1199,9 +1989,9 @@ diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/hostexec/services/a
 +  }
 +  return HSA_STATUS_SUCCESS;
 +}
-diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/hostexec/services/amdgcn_urilocator.cpp llvm-project/openmp/libomptarget/hostexec/services/amdgcn_urilocator.cpp
---- llvm-project.upstream/openmp/libomptarget/hostexec/services/amdgcn_urilocator.cpp	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/openmp/libomptarget/hostexec/services/amdgcn_urilocator.cpp	2023-08-08 21:50:25.016520817 -0400
+diff -Naur -x .git llvm-project.atd/offload/plugins-nextgen/amdgpu/hostexec/amdgcn_urilocator.cpp llvm-project/offload/plugins-nextgen/amdgpu/hostexec/amdgcn_urilocator.cpp
+--- llvm-project.atd/offload/plugins-nextgen/amdgpu/hostexec/amdgcn_urilocator.cpp	1969-12-31 19:00:00.000000000 -0500
++++ llvm-project/offload/plugins-nextgen/amdgpu/hostexec/amdgcn_urilocator.cpp	2024-08-26 07:41:15.638860390 -0400
 @@ -0,0 +1,228 @@
 +//===---- amdgcn_urilocator.cpp - services support for urilocator  --------===//
 +//
@@ -1211,7 +2001,7 @@ diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/hostexec/services/a
 +//
 +//===----------------------------------------------------------------------===//
 +//
-+// This contains code to support hsa UriLocator in hostexec.
++// This contains code to support hsa UriLocator in hostrpc.
 +//
 +//===----------------------------------------------------------------------===//
 +
@@ -1431,9 +2221,9 @@ diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/hostexec/services/a
 +
 +  return errorstate;
 +}
-diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/hostexec/services/devsanitizer.cpp llvm-project/openmp/libomptarget/hostexec/services/devsanitizer.cpp
---- llvm-project.upstream/openmp/libomptarget/hostexec/services/devsanitizer.cpp	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/openmp/libomptarget/hostexec/services/devsanitizer.cpp	2023-08-08 21:50:25.016520817 -0400
+diff -Naur -x .git llvm-project.atd/offload/plugins-nextgen/amdgpu/hostexec/devsanitizer.cpp llvm-project/offload/plugins-nextgen/amdgpu/hostexec/devsanitizer.cpp
+--- llvm-project.atd/offload/plugins-nextgen/amdgpu/hostexec/devsanitizer.cpp	1969-12-31 19:00:00.000000000 -0500
++++ llvm-project/offload/plugins-nextgen/amdgpu/hostexec/devsanitizer.cpp	2024-08-26 07:41:15.638860390 -0400
 @@ -0,0 +1,143 @@
 +//===---- devsanitizer.cpp: Definition of handler for Sanitizer Service ---===//
 +//
@@ -1578,11 +2368,11 @@ diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/hostexec/services/d
 +#endif
 +}
 +} // end anonymous namespace
-diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/hostexec/services/execute_service.cpp llvm-project/openmp/libomptarget/hostexec/services/execute_service.cpp
---- llvm-project.upstream/openmp/libomptarget/hostexec/services/execute_service.cpp	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/openmp/libomptarget/hostexec/services/execute_service.cpp	2023-08-08 21:50:25.016520817 -0400
-@@ -0,0 +1,953 @@
-+//===---- execute_service.cpp - support for hostexec services -------------===//
+diff -Naur -x .git llvm-project.atd/offload/plugins-nextgen/amdgpu/hostexec/execute_service.cpp llvm-project/offload/plugins-nextgen/amdgpu/hostexec/execute_service.cpp
+--- llvm-project.atd/offload/plugins-nextgen/amdgpu/hostexec/execute_service.cpp	1969-12-31 19:00:00.000000000 -0500
++++ llvm-project/offload/plugins-nextgen/amdgpu/hostexec/execute_service.cpp	2024-09-24 14:13:22.678381543 -0400
+@@ -0,0 +1,1390 @@
++//===---- execute_service.cpp - support for hostrpc services --------------===//
 +//
 +// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 +// See https://llvm.org/LICENSE.txt for license information.
@@ -1590,8 +2380,8 @@ diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/hostexec/services/e
 +//
 +//===----------------------------------------------------------------------===//
 +//
-+// This file contains architecture independed host code for hostexec services
-+// Calls to hostexec_execute are serialized by the thread and packet manager.
++// This file contains architecture independed host code for hostrpc services
++// Calls to hostrpc_execute are serialized by the thread and packet manager.
 +// For printf and fprintf, this code reconstructs the host variable argument
 +// ABI to support alls to vprintf and vfprintf.  This is facilitated by
 +// a robust buffer packaging scheme defined in Clang codegen. The same buffer
@@ -1625,10 +2415,12 @@ diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/hostexec/services/e
 +*/
 +
 +#include "execute_service.h"
-+#include "../src/hostexec_internal.h"
++#include "hostexec.h"
++#include "../../../DeviceRTL/include/Hostexec.h"
 +#include <assert.h>
 +#include <cstring>
 +#include <ctype.h>
++#include <list>
 +#include <stdarg.h>
 +#include <stdbool.h>
 +#include <stddef.h>
@@ -1637,6 +2429,7 @@ diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/hostexec/services/e
 +#include <stdlib.h>
 +#include <string.h>
 +#include <tuple>
++#include <vector>
 +
 +// MAXVARGS applies to non-printf vargs functions only.
 +#define MAXVARGS 32
@@ -1646,34 +2439,34 @@ diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/hostexec/services/e
 +#define FPREGSZ 16
 +
 +typedef int uint128_t __attribute__((mode(TI)));
-+struct hostexec_pfIntRegs {
++struct hostrpc_pfIntRegs {
 +  uint64_t rdi, rsi, rdx, rcx, r8, r9;
 +};
-+typedef struct hostexec_pfIntRegs hostexec_pfIntRegs_t; // size = 48 bytes
++typedef struct hostrpc_pfIntRegs hostrpc_pfIntRegs_t; // size = 48 bytes
 +
-+struct hostexec_pfRegSaveArea {
-+  hostexec_pfIntRegs_t iregs;
++struct hostrpc_pfRegSaveArea {
++  hostrpc_pfIntRegs_t iregs;
 +  uint128_t freg[NUMFPREGS];
 +};
-+typedef struct hostexec_pfRegSaveArea
-+    hostexec_pfRegSaveArea_t; // size = 304 bytes
++typedef struct hostrpc_pfRegSaveArea
++    hostrpc_pfRegSaveArea_t; // size = 304 bytes
 +
-+struct hostexec_ValistExt {
++struct hostrpc_ValistExt {
 +  uint32_t gp_offset;      /* offset to next available gpr in reg_save_area */
 +  uint32_t fp_offset;      /* offset to next available fpr in reg_save_area */
 +  void *overflow_arg_area; /* args that are passed on the stack */
-+  hostexec_pfRegSaveArea_t *reg_save_area; /* int and fp registers */
++  hostrpc_pfRegSaveArea_t *reg_save_area; /* int and fp registers */
 +  size_t overflow_size;
 +} __attribute__((packed));
-+typedef struct hostexec_ValistExt hostexec_ValistExt_t;
++typedef struct hostrpc_ValistExt hostrpc_ValistExt_t;
 +
 +/// Prototype for host fallback functions
 +// typedef uint32_t hostexec_uint_t(void *, ...);
 +// typedef uint64_t hostexec_uint64_t(void *, ...);
 +// typedef double   hostexec_double_t(void *, ...);
 +
-+static service_rc hostexec_printf(char *buf, size_t bufsz, uint32_t *rc);
-+static service_rc hostexec_fprintf(char *buf, size_t bufsz, uint32_t *rc);
++static service_rc hostrpc_printf(char *buf, size_t bufsz, uint32_t *rc);
++static service_rc hostrpc_fprintf(char *buf, size_t bufsz, uint32_t *rc);
 +
 +template <typename T, typename FT>
 +static service_rc hostexec_service(char *buf, size_t bufsz, T *rc);
@@ -1682,7 +2475,7 @@ diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/hostexec/services/e
 +  size_t bufsz = (size_t)payload[0];
 +  char *device_buffer = (char *)payload[1];
 +  uint uint_value;
-+  service_rc rc = hostexec_printf(device_buffer, bufsz, &uint_value);
++  service_rc rc = hostrpc_printf(device_buffer, bufsz, &uint_value);
 +  payload[0] = (uint64_t)uint_value; // what the printf returns
 +  payload[1] = (uint64_t)rc;         // Any errors in the service function
 +  service_rc rcmem = host_device_mem_free(device_buffer);
@@ -1692,7 +2485,7 @@ diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/hostexec/services/e
 +  size_t bufsz = (size_t)payload[0];
 +  char *device_buffer = (char *)payload[1];
 +  uint uint_value;
-+  service_rc rc = hostexec_fprintf(device_buffer, bufsz, &uint_value);
++  service_rc rc = hostrpc_fprintf(device_buffer, bufsz, &uint_value);
 +  payload[0] = (uint64_t)uint_value; // what the printf returns
 +  payload[1] = (uint64_t)rc;         // Any errors in the service function
 +  service_rc err = host_device_mem_free(device_buffer);
@@ -1713,8 +2506,22 @@ diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/hostexec/services/e
 +  payload[2] = (uint64_t)err; // any errors on memory free
 +}
 +
-+static void handler_SERVICE_HOST_MALLOC(uint32_t device_id,
-+                                          uint64_t *payload) {
++static service_rc fortran_rt_service(char *buf, size_t bufsz, uint64_t *rc);
++
++static void handler_SERVICE_FORTRT(uint32_t device_id, uint64_t *payload) {
++  size_t bufsz = (size_t)payload[0];
++  char *device_buffer = (char *)payload[1];
++  payload[0] = 0; // zero 64 bits
++  service_rc rc = fortran_rt_service(device_buffer, bufsz, (uint64_t *)payload);
++  // payload[0] has the return value
++  // payload[1] reserved for 128 bit values such as double complex
++  // payload[2-3] reserved for 256 bit return values
++  payload[1] = (uint64_t)rc; // any errors in the service function
++  service_rc err = host_device_mem_free(device_buffer);
++  payload[2] = (uint64_t)err; // any errors on memory free
++}
++
++static void handler_SERVICE_HOST_MALLOC(uint32_t device_id, uint64_t *payload) {
 +  void *ptr = NULL;
 +  // CPU device ID 0 is the fine grain memory
 +  size_t sz = (size_t)payload[0];
@@ -1738,7 +2545,7 @@ diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/hostexec/services/e
 +
 +#if 0
 +void fort_ptr_assign_i8(void *arg0, void *arg1, void *arg2, void *arg3, void *arg4) {
-+  printf("\n\n ERROR: hostexec service FTNASSIGN is not functional\n\n");
++  printf("\n\n ERROR: hostrpc service FTNASSIGN is not functional\n\n");
 +};
 +service_rc FtnAssignWrapper(void *arg0, void *arg1, void *arg2, void *arg3, void *arg4) {
 +  fort_ptr_assign_i8(arg0, arg1, arg2, arg3, arg4);
@@ -1767,11 +2574,31 @@ diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/hostexec/services/e
 +  payload[0] = (uint64_t)err;
 +}
 +
++static bool trace_init = false;
++static bool host_exec_trace;
++#define _CCHAR (const char *)
++static const char *TrcStrs[HOSTEXEC_SID_VOID + 1] = {
++    _CCHAR "unsed",       _CCHAR "terminate", _CCHAR "device_malloc",
++    _CCHAR "host_malloc", _CCHAR "free",      _CCHAR "printf",
++    _CCHAR "fprintf",     _CCHAR "ftnassign", _CCHAR "sanatizer",
++    _CCHAR "uint",        _CCHAR "uint64",    _CCHAR "double",
++    _CCHAR "int",         _CCHAR "long",      _CCHAR "float",
++    _CCHAR "void"};
++#undef _CCAR
 +// The consumer thread will serialize each active lane and call execute_service
 +// for the service request. These services are intended to be architecturally
 +// independent.
 +void execute_service(uint32_t service_id, uint32_t device_id,
 +                     uint64_t *payload) {
++  if (!trace_init) {
++    trace_init = true;
++    if (char *EnvStr = getenv("LIBOMPTARGET_HOSTEXEC_TRACE"))
++      host_exec_trace = std::atoi(EnvStr) != 0;
++  }
++  if (host_exec_trace)
++    fprintf(stderr, "Hostexec service: %s SrvId: %d DevId: %d PayLoad: %lu\n",
++                    TrcStrs[service_id], service_id, device_id, payload[0]);
++
 +  switch (service_id) {
 +  case HOSTEXEC_SID_PRINTF:
 +    handler_SERVICE_PRINTF(device_id, payload);
@@ -1813,16 +2640,19 @@ diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/hostexec/services/e
 +  case HOSTEXEC_SID_FREE:
 +    handler_SERVICE_FREE(device_id, payload);
 +    break;
++  case HOSTEXEC_SID_FORTRT:
++    handler_SERVICE_FORTRT(device_id, payload);
++    break;
 +  default:
-+    fprintf(stderr,"ERROR: hostexec got a bad service id:%d\n", service_id);
++    fprintf(stderr, "ERROR: hostrpc got a bad service id:%d\n", service_id);
 +    thread_abort(_RC_INVALIDSERVICE_ERROR);
 +  }
 +}
 +
-+// Support for hostexec_printf service
++// Support for hostrpc_printf service
 +
 +// Handle overflow when building the va_list for vprintf
-+static service_rc hostexec_pfGetOverflow(hostexec_ValistExt_t *valist,
++static service_rc hostrpc_pfGetOverflow(hostrpc_ValistExt_t *valist,
 +                                        size_t needsize) {
 +  if (needsize < valist->overflow_size)
 +    return _RC_SUCCESS;
@@ -1853,7 +2683,7 @@ diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/hostexec/services/e
 +}
 +
 +// Add an integer to the va_list for vprintf
-+static service_rc hostexec_pfAddInteger(hostexec_ValistExt_t *valist, char *val,
++static service_rc hostrpc_pfAddInteger(hostrpc_ValistExt_t *valist, char *val,
 +                                       size_t valsize, size_t *stacksize) {
 +  uint64_t ival;
 +  switch (valsize) {
@@ -1874,7 +2704,7 @@ diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/hostexec/services/e
 +  }
 +  }
 +  //  Always copy 8 bytes, sizeof(ival)
-+  if ((valist->gp_offset + sizeof(ival)) <= sizeof(hostexec_pfIntRegs_t)) {
++  if ((valist->gp_offset + sizeof(ival)) <= sizeof(hostrpc_pfIntRegs_t)) {
 +    memcpy(((char *)valist->reg_save_area + valist->gp_offset), &ival,
 +           sizeof(ival));
 +    valist->gp_offset += sizeof(ival);
@@ -1882,7 +2712,7 @@ diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/hostexec/services/e
 +  }
 +  // Ensure valist overflow area is big enough
 +  size_t needsize = (size_t)*stacksize + sizeof(ival);
-+  if (hostexec_pfGetOverflow(valist, needsize) != _RC_SUCCESS)
++  if (hostrpc_pfGetOverflow(valist, needsize) != _RC_SUCCESS)
 +    return _RC_STATUS_ERROR;
 +  // Copy to overflow
 +  memcpy((char *)(valist->overflow_arg_area) + (size_t)*stacksize, &ival,
@@ -1893,17 +2723,17 @@ diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/hostexec/services/e
 +}
 +
 +// Add a String argument when building va_list for vprintf
-+static service_rc hostexec_pfAddString(hostexec_ValistExt_t *valist, char *val,
++static service_rc hostrpc_pfAddString(hostrpc_ValistExt_t *valist, char *val,
 +                                      size_t strsz, size_t *stacksize) {
 +  size_t valsize =
 +      sizeof(char *); // ABI captures pointer to string,  not string
-+  if ((valist->gp_offset + valsize) <= sizeof(hostexec_pfIntRegs_t)) {
++  if ((valist->gp_offset + valsize) <= sizeof(hostrpc_pfIntRegs_t)) {
 +    memcpy(((char *)valist->reg_save_area + valist->gp_offset), val, valsize);
 +    valist->gp_offset += valsize;
 +    return _RC_SUCCESS;
 +  }
 +  size_t needsize = (size_t)*stacksize + valsize;
-+  if (hostexec_pfGetOverflow(valist, needsize) != _RC_SUCCESS)
++  if (hostrpc_pfGetOverflow(valist, needsize) != _RC_SUCCESS)
 +    return _RC_STATUS_ERROR;
 +  memcpy((char *)(valist->overflow_arg_area) + (size_t)*stacksize, val,
 +         valsize);
@@ -1912,7 +2742,7 @@ diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/hostexec/services/e
 +}
 +
 +// Add a floating point value when building va_list for vprintf
-+static service_rc hostexec_pfAddFloat(hostexec_ValistExt_t *valist, char *numdata,
++static service_rc hostrpc_pfAddFloat(hostrpc_ValistExt_t *valist, char *numdata,
 +                                     size_t valsize, size_t *stacksize) {
 +  // FIXME, we can used load because doubles are now aligned
 +  double dval;
@@ -1925,14 +2755,14 @@ diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/hostexec/services/e
 +  } else {
 +    return _RC_STATUS_ERROR;
 +  }
-+  if ((valist->fp_offset + FPREGSZ) <= sizeof(hostexec_pfRegSaveArea_t)) {
++  if ((valist->fp_offset + FPREGSZ) <= sizeof(hostrpc_pfRegSaveArea_t)) {
 +    memcpy(((char *)valist->reg_save_area + (size_t)(valist->fp_offset)), &dval,
 +           sizeof(double));
 +    valist->fp_offset += FPREGSZ;
 +    return _RC_SUCCESS;
 +  }
 +  size_t needsize = (size_t)*stacksize + sizeof(double);
-+  if (hostexec_pfGetOverflow(valist, needsize) != _RC_SUCCESS)
++  if (hostrpc_pfGetOverflow(valist, needsize) != _RC_SUCCESS)
 +    return _RC_STATUS_ERROR;
 +  memcpy((char *)(valist->overflow_arg_area) + (size_t)*stacksize, &dval,
 +         sizeof(double));
@@ -1957,7 +2787,6 @@ diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/hostexec/services/e
 +  VoidTyID,      ///< type with no size
 +  LabelTyID,     ///< Labels
 +  MetadataTyID,  ///< Metadata
-+  X86_MMXTyID,   ///< MMX vectors (64 bits, X86 specific)
 +  X86_AMXTyID,   ///< AMX vectors (8192 bits, X86 specific)
 +  TokenTyID,     ///< Tokens
 +
@@ -1974,17 +2803,17 @@ diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/hostexec/services/e
 +};
 +
 +// Build an extended va_list for vprintf by unpacking the buffer
-+static service_rc hostexec_pfBuildValist(hostexec_ValistExt_t *valist,
++static service_rc hostrpc_pfBuildValist(hostrpc_ValistExt_t *valist,
 +                                        int NumArgs, char *keyptr,
 +                                        char *dataptr, char *strptr,
 +                                        size_t *data_not_used) {
-+  hostexec_pfRegSaveArea_t *regs;
++  hostrpc_pfRegSaveArea_t *regs;
 +  size_t regs_size = sizeof(*regs);
-+  regs = (hostexec_pfRegSaveArea_t *)malloc(regs_size);
++  regs = (hostrpc_pfRegSaveArea_t *)malloc(regs_size);
 +  if (!regs)
 +    return _RC_STATUS_ERROR;
 +  memset(regs, 0, regs_size);
-+  *valist = (hostexec_ValistExt_t){
++  *valist = (hostrpc_ValistExt_t){
 +      .gp_offset = 0,
 +      .fp_offset = 0,
 +      .overflow_arg_area = NULL,
@@ -2005,7 +2834,6 @@ diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/hostexec/services/e
 +    unsigned int key = *(unsigned int *)keyptr;
 +    unsigned int llvmID = key >> 16;
 +    unsigned int numbits = (key << 16) >> 16;
-+
 +    switch (llvmID) {
 +    case FloatTyID:  ///<  2: 32-bit floating point type
 +    case DoubleTyID: ///<  3: 64-bit floating point type
@@ -2020,8 +2848,8 @@ diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/hostexec/services/e
 +      if ((*data_not_used) < bytes_consumed)
 +        return _RC_DATA_USED_ERROR;
 +      if (valist->fp_offset == 0)
-+        valist->fp_offset = sizeof(hostexec_pfIntRegs_t);
-+      if (hostexec_pfAddFloat(valist, dataptr, num_bytes, &stacksize))
++        valist->fp_offset = sizeof(hostrpc_pfIntRegs_t);
++      if (hostrpc_pfAddFloat(valist, dataptr, num_bytes, &stacksize))
 +        return _RC_ADDFLOAT_ERROR;
 +      break;
 +
@@ -2035,7 +2863,7 @@ diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/hostexec/services/e
 +      }
 +      if ((*data_not_used) < bytes_consumed)
 +        return _RC_DATA_USED_ERROR;
-+      if (hostexec_pfAddInteger(valist, dataptr, num_bytes, &stacksize))
++      if (hostrpc_pfAddInteger(valist, dataptr, num_bytes, &stacksize))
 +        return _RC_ADDINT_ERROR;
 +      break;
 +
@@ -2046,7 +2874,7 @@ diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/hostexec/services/e
 +        strsz = (size_t) * (unsigned int *)dataptr;
 +        if ((*data_not_used) < bytes_consumed)
 +          return _RC_DATA_USED_ERROR;
-+        if (hostexec_pfAddString(valist, (char *)&strptr, strsz, &stacksize))
++        if (hostrpc_pfAddString(valist, (char *)&strptr, strsz, &stacksize))
 +          return _RC_ADDSTRING_ERROR;
 +      } else {
 +        num_bytes = 8;
@@ -2058,7 +2886,7 @@ diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/hostexec/services/e
 +        }
 +        if ((*data_not_used) < bytes_consumed)
 +          return _RC_DATA_USED_ERROR;
-+        if (hostexec_pfAddInteger(valist, dataptr, num_bytes, &stacksize))
++        if (hostrpc_pfAddInteger(valist, dataptr, num_bytes, &stacksize))
 +          return _RC_ADDINT_ERROR;
 +      }
 +      break;
@@ -2068,7 +2896,6 @@ diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/hostexec/services/e
 +    case StructTyID:         ///< 13: Structures
 +    case FunctionTyID:       ///< 12: Functions
 +    case TokenTyID:          ///< 10: Tokens
-+    case X86_MMXTyID:        ///<  9: MMX vectors (64 bits, X86 specific)
 +    case MetadataTyID:       ///<  8: Metadata
 +    case LabelTyID:          ///<  7: Labels
 +    case PPC_FP128TyID:      ///<  6: 128-bit floating point type (two 64-bits,
@@ -2091,7 +2918,7 @@ diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/hostexec/services/e
 +    keyptr += 4;
 +  }
 +  return _RC_SUCCESS;
-+} // end hostexec_pfBuildValist
++} // end hostrpc_pfBuildValist
 +
 +/*
 + *  The buffer to pack arguments for all vargs functions has thes 4 sections:
@@ -2106,7 +2933,7 @@ diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/hostexec/services/e
 + *                   the dataptr contains the string length.
 + *  4. strings_data  Exection time string values
 + */
-+static service_rc hostexec_fprintf(char *buf, size_t bufsz, uint *rc) {
++static service_rc hostrpc_fprintf(char *buf, size_t bufsz, uint *rc) {
 +
 +  // FIXME: Put the collection of these 6 values in a function
 +  //        All service routines that use vargs will need these values.
@@ -2133,17 +2960,17 @@ diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/hostexec/services/e
 +  strptr += strsz;
 +  data_not_used -= (sizeof(FILE *) + 4); // 12
 +
-+  hostexec_ValistExt_t valist;
++  hostrpc_ValistExt_t valist;
 +  va_list *real_va_list;
 +  real_va_list = (va_list *)&valist;
 +
-+  if (hostexec_pfBuildValist(&valist, NumArgs, keyptr, dataptr, strptr,
++  if (hostrpc_pfBuildValist(&valist, NumArgs, keyptr, dataptr, strptr,
 +                            &data_not_used) != _RC_SUCCESS)
 +    return _RC_ERROR_INVALID_REQUEST;
 +
 +  // Roll back offsets and save stack pointer
 +  valist.gp_offset = 0;
-+  valist.fp_offset = sizeof(hostexec_pfIntRegs_t);
++  valist.fp_offset = sizeof(hostrpc_pfIntRegs_t);
 +  void *save_stack = valist.overflow_arg_area;
 +
 +  *rc = vfprintf(fileptr, fmtstr, *real_va_list);
@@ -2156,7 +2983,7 @@ diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/hostexec/services/e
 +  return _RC_SUCCESS;
 +}
 +//  This the main service routine for printf
-+static service_rc hostexec_printf(char *buf, size_t bufsz, uint *rc) {
++static service_rc hostrpc_printf(char *buf, size_t bufsz, uint *rc) {
 +  if (bufsz == 0)
 +    return _RC_SUCCESS;
 +
@@ -2168,6 +2995,7 @@ diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/hostexec/services/e
 +  char *keyptr = buf + (2 * sizeof(int));
 +  char *dataptr = keyptr + (NumArgs * sizeof(int));
 +  char *strptr = buf + (size_t)*datalen;
++
 +
 +  if (NumArgs <= 0)
 +    return _RC_ERROR_INVALID_REQUEST;
@@ -2181,17 +3009,17 @@ diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/hostexec/services/e
 +  strptr += strsz;
 +  data_not_used -= 4;
 +
-+  hostexec_ValistExt_t valist;
++  hostrpc_ValistExt_t valist;
 +  va_list *real_va_list;
 +  real_va_list = (va_list *)&valist;
 +
-+  if (hostexec_pfBuildValist(&valist, NumArgs, keyptr, dataptr, strptr,
++  if (hostrpc_pfBuildValist(&valist, NumArgs, keyptr, dataptr, strptr,
 +                            &data_not_used) != _RC_SUCCESS)
 +    return _RC_ERROR_INVALID_REQUEST;
 +
 +  // Roll back offsets and save stack pointer for
 +  valist.gp_offset = 0;
-+  valist.fp_offset = sizeof(hostexec_pfIntRegs_t);
++  valist.fp_offset = sizeof(hostrpc_pfIntRegs_t);
 +  void *save_stack = valist.overflow_arg_area;
 +
 +  *rc = vprintf(fmtstr, *real_va_list);
@@ -2220,7 +3048,7 @@ diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/hostexec/services/e
 +}
 +
 +// build argument array
-+static service_rc hostexec_build_vargs_array(int NumArgs, char *keyptr,
++static service_rc hostrpc_build_vargs_array(int NumArgs, char *keyptr,
 +                                            char *dataptr, char *strptr,
 +                                            size_t *data_not_used,
 +                                            uint64_t *a[MAXVARGS]) {
@@ -2306,7 +3134,6 @@ diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/hostexec/services/e
 +    case StructTyID:         ///< 13: Structures
 +    case FunctionTyID:       ///< 12: Functions
 +    case TokenTyID:          ///< 10: Tokens
-+    case X86_MMXTyID:        ///<  9: MMX vectors (64 bits, X86 specific)
 +    case MetadataTyID:       ///<  8: Metadata
 +    case LabelTyID:          ///<  7: Labels
 +    case PPC_FP128TyID:      ///<  6: 128-bit floating point type (two 64-bits,
@@ -2336,13 +3163,13 @@ diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/hostexec/services/e
 +// Make the vargs function call to the function pointer fnptr
 +// by casting fnptr to vfnptr. Return uint32_t
 +template <typename T, typename FT>
-+static service_rc hostexec_call_fnptr(uint32_t NumArgs, void *fnptr,
++static service_rc hostrpc_call_fnptr(uint32_t NumArgs, void *fnptr,
 +                                     uint64_t *a[MAXVARGS], T *rv) {
 +  //
 +  // Currently users are instructed that the first arg must be reserved
 +  // for device side to store function pointer. Removing this requirement
 +  // is much more difficult that it appears.  One change of many is to
-+  // remove fnptr in the call sites below. 2nd is to change the host 
++  // remove fnptr in the call sites below. 2nd is to change the host
 +  // side macro in hostexec.h to remove the fn arg. This results in the
 +  // symbol for the variadic function being undefined at GPU link time.
 +  // This is because device compilation must ignore variadic function
@@ -2526,18 +3353,418 @@ diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/hostexec/services/e
 +    return _RC_ERROR_INVALID_REQUEST;
 +
 +  uint64_t *a[MAXVARGS];
-+  if (hostexec_build_vargs_array(NumArgs, keyptr, dataptr, strptr,
++  if (hostrpc_build_vargs_array(NumArgs, keyptr, dataptr, strptr,
 +                                &data_not_used, a) != _RC_SUCCESS)
 +    return _RC_ERROR_INVALID_REQUEST;
 +
-+  if (hostexec_call_fnptr<T, FT>(NumArgs, fnptr, a, return_value) != _RC_SUCCESS)
++  if (hostrpc_call_fnptr<T, FT>(NumArgs, fnptr, a, return_value) != _RC_SUCCESS)
 +    return _RC_ERROR_INVALID_REQUEST;
 +
 +  return _RC_SUCCESS;
 +}
-diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/hostexec/services/execute_service.h llvm-project/openmp/libomptarget/hostexec/services/execute_service.h
---- llvm-project.upstream/openmp/libomptarget/hostexec/services/execute_service.h	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/openmp/libomptarget/hostexec/services/execute_service.h	2023-08-08 21:50:25.016520817 -0400
++
++// Headers for Host Fortran Runtime API as built in flang/runtime
++extern "C" { 
++extern void *_FortranAioBeginExternalListOutput(uint32_t a1, const char *a2,
++                                                uint32_t a3);
++extern bool _FortranAioOutputAscii(void *a1, char *a2, uint64_t a3);
++extern bool _FortranAioOutputInteger32(void *a1, uint32_t a2);
++extern uint32_t _FortranAioEndIoStatement(void *a1);
++extern bool _FortranAioOutputInteger8(void *cookie, __int8_t n);
++extern bool _FortranAioOutputInteger16(void *cookie, __int16_t n);
++extern bool _FortranAioOutputInteger64(void *cookie, __int64_t n);
++extern bool _FortranAioOutputReal32(void *cookie, float x);
++extern bool _FortranAioOutputReal64(void *cookie, double x);
++extern bool _FortranAioOutputComplex32(void *cookie, float re, float im);
++extern bool _FortranAioOutputComplex64(void *cookie, double re, double im);
++extern bool _FortranAioOutputLogical(void *cookie, bool truth);
++extern void _FortranAAbort();
++extern void _FortranAStopStatementText(char *errmsg, int64_t a1, bool a2,
++                                       bool a3);
++
++//  Save the cookie because deferred functions have execution reordered.
++static void *_list_started_cookie = nullptr;
++extern void *V_FortranAioBeginExternalListOutput(void *fnptr, ...) {
++  va_list args;
++  va_start(args, fnptr);
++  int32_t v0 = va_arg(args, int32_t);
++  const char *v1 = va_arg(args, const char *);
++  int32_t v2 = va_arg(args, int32_t);
++  va_end(args);
++  void *cookie = _FortranAioBeginExternalListOutput(v0, v1, v2);
++  _list_started_cookie = cookie;
++  return cookie;
++}
++extern bool V_FortranAioOutputAscii(void *fnptr, ...) {
++  va_list args;
++  va_start(args, fnptr);
++  void *v0 = va_arg(args, void *);
++  char *v1 = va_arg(args, char *);
++  uint64_t v2 = va_arg(args, uint64_t);
++  va_end(args);
++  v0 = _list_started_cookie;
++  return _FortranAioOutputAscii(v0, v1, v2);
++}
++extern bool V_FortranAioOutputInteger32(void *fnptr, ...) {
++  va_list args;
++  va_start(args, fnptr);
++  void *v0 = va_arg(args, void *);
++  uint32_t v1 = va_arg(args, uint32_t);
++  va_end(args);
++  v0 = _list_started_cookie;
++  return _FortranAioOutputInteger32(v0, v1);
++}
++extern uint32_t V_FortranAioEndIoStatement(void *fnptr, ...) {
++  va_list args;
++  va_start(args, fnptr);
++  void *v0 = va_arg(args, void *);
++  va_end(args);
++  v0 = _list_started_cookie;
++  uint32_t rv = _FortranAioEndIoStatement(v0);
++  return rv;
++}
++extern bool V_FortranAioOutputInteger8(void *fnptr, ...) {
++  va_list args;
++  va_start(args, fnptr);
++  void *v0 = va_arg(args, void *);
++  uint32_t v1 = va_arg(args, uint32_t);
++  va_end(args);
++  v0 = _list_started_cookie;
++  return _FortranAioOutputInteger8(v0, v1);
++}
++extern bool V_FortranAioOutputInteger16(void *fnptr, ...) {
++  va_list args;
++  va_start(args, fnptr);
++  void *v0 = va_arg(args, void *);
++  uint32_t v1 = va_arg(args, uint32_t);
++  va_end(args);
++  v0 = _list_started_cookie;
++  return _FortranAioOutputInteger16(v0, v1);
++}
++extern bool V_FortranAioOutputInteger64(void *fnptr, ...) {
++  va_list args;
++  va_start(args, fnptr);
++  void *v0 = va_arg(args, void *);
++  uint32_t v1 = va_arg(args, uint32_t);
++  va_end(args);
++  v0 = _list_started_cookie;
++  return _FortranAioOutputInteger64(v0, v1);
++}
++extern bool V_FortranAioOutputReal32(void *fnptr, ...) {
++  va_list args;
++  va_start(args, fnptr);
++  void *v0 = va_arg(args, void *);
++  uint64_t v1 = va_arg(args, uint64_t);
++  va_end(args);
++  v0 = _list_started_cookie;
++  double dv;
++  memcpy(&dv, &v1, 8);
++  return _FortranAioOutputReal32(v0, (float)dv);
++}
++extern bool V_FortranAioOutputReal64(void *fnptr, ...) {
++  va_list args;
++  va_start(args, fnptr);
++  void *cookie = va_arg(args, void *);
++  uint64_t v1 = va_arg(args, uint64_t);
++  va_end(args);
++  cookie = _list_started_cookie;
++  double dv;
++  memcpy(&dv, &v1, 8);
++  return _FortranAioOutputReal64(cookie, dv);
++}
++extern bool V_FortranAioOutputComplex32(void *fnptr, ...) {
++  va_list args;
++  va_start(args, fnptr);
++  void *v0 = va_arg(args, void *);
++  uint64_t v1 = va_arg(args, uint64_t);
++  uint64_t v2 = va_arg(args, uint64_t);
++  va_end(args);
++  v0 = _list_started_cookie;
++  double dv1, dv2;
++  memcpy(&dv1, &v1, 8);
++  memcpy(&dv2, &v2, 8);
++  return _FortranAioOutputComplex32(v0, (float)dv1, (float)dv2);
++}
++extern bool V_FortranAioOutputComplex64(void *fnptr, ...) {
++  va_list args;
++  va_start(args, fnptr);
++  void *v0 = va_arg(args, void *);
++  uint64_t v1 = va_arg(args, uint64_t);
++  uint64_t v2 = va_arg(args, uint64_t);
++  va_end(args);
++  v0 = _list_started_cookie;
++  double dv1, dv2;
++  memcpy(&dv1, &v1, 8);
++  memcpy(&dv2, &v2, 8);
++  return _FortranAioOutputComplex64(v0, dv1, dv2);
++}
++extern bool V_FortranAioOutputLogical(void *fnptr, ...) {
++  va_list args;
++  va_start(args, fnptr);
++  void *v0 = va_arg(args, void *);
++  uint32_t v1 = va_arg(args, uint32_t);
++  va_end(args);
++  v0 = _list_started_cookie;
++  return _FortranAioOutputLogical(v0, v1);
++}
++extern void V_FortranAAbort(void *fnptr, ...) {
++  va_list args;
++  va_start(args, fnptr);
++  va_end(args);
++  _FortranAAbort();
++  // Now return to device to run abort from stub
++}
++extern void V_FortranAStopStatementText(void *fnptr, ...) {
++  va_list args;
++  va_start(args, fnptr);
++  char *errmsg = va_arg(args, char *);
++  int64_t a1 = va_arg(args, int64_t);
++  uint32_t a2 = va_arg(args, uint32_t);
++  uint32_t a3 = va_arg(args, uint32_t);
++  va_end(args);
++  bool b2 = (bool)a2;
++  bool b3 = (bool)a3;
++  _FortranAStopStatementText(errmsg, a1, b2, b3);
++}
++}
++
++// Static vars used to defer functions to reorder execution by thread and team.
++static uint32_t _deferred_fn_count = 0;
++static uint32_t _deferred_begin_statements = 0;
++static uint32_t _deferred_end_statements = 0;
++static uint64_t _max_num_threads = 0;
++static uint64_t _max_num_teams = 0;
++// structure for deferred functions
++typedef struct {
++  uint32_t NumArgs;    // The number of args in arg_array
++  void *fnptr;         // The function pointer for this index
++  uint64_t fn_idx;     // The function index, good for debug
++  uint32_t dfnid;      // The dvoideferred function id, in order received
++  uint64_t *arg_array; // ptr to malloced arg_array
++  char *c_ptr;         // ptr to null terminated char string
++  uint64_t thread_num;
++  uint64_t num_threads;
++  uint64_t team_num;
++  uint64_t num_teams;
++  uint64_t *return_value; // pointer to where return value is copied
++} deferred_entry_t;
++
++static std::vector<deferred_entry_t *>*  _deferred_fns_ptr;
++// static std::list<deferred_entry_t *> _deferred_fns;
++
++static service_rc fortran_rt_service(char *buf, size_t bufsz,
++                                     uint64_t *return_value) {
++  if (bufsz == 0)
++    return _RC_SUCCESS;
++
++  // Get 6 values needed to unpack the buffer
++  int *datalen = (int *)buf;
++  int NumArgs = *((int *)(buf + sizeof(int)));
++  size_t data_not_used =
++      (size_t)(*datalen) - ((size_t)(2 + NumArgs) * sizeof(int));
++  char *keyptr = buf + (2 * sizeof(int));
++  char *dataptr = keyptr + (NumArgs * sizeof(int));
++  char *strptr = buf + (size_t)*datalen;
++
++  // skip the function pointer arg including any align buffer
++  if (((size_t)dataptr) % (size_t)8) {
++    dataptr += 4;
++    data_not_used -= 4;
++  }
++  void *fnptr = getfnptr(dataptr);
++  NumArgs--;
++  keyptr += 4;
++  dataptr += 8;
++  data_not_used -= 4;
++
++  if (NumArgs <= 0)
++    return _RC_ERROR_INVALID_REQUEST;
++
++
++  uint64_t *a[MAXVARGS];
++  if (hostrpc_build_vargs_array(NumArgs, keyptr, dataptr, strptr,
++                                &data_not_used, a) != _RC_SUCCESS)
++    return _RC_ERROR_INVALID_REQUEST;
++
++  // std::list<deferred_entry_t *> _deferred_fns;
++  if (!_deferred_fns_ptr)
++    _deferred_fns_ptr = new std::vector<deferred_entry_t *> ;
++
++  char *c_ptr = nullptr;
++  bool defer_for_reorder = true;
++  bool run_deferred_functions = false;
++  uint64_t DeviceRuntime_idx = (uint64_t)fnptr;
++  switch (DeviceRuntime_idx) {
++  case _FortranAioBeginExternalListOutput_idx: {
++    _deferred_begin_statements++;
++    fnptr = (void *)V_FortranAioBeginExternalListOutput;
++    size_t slen = std::strlen((char *)a[5]) + 1;
++    c_ptr = (char *)aligned_alloc(sizeof(uint64_t *), slen);
++    if (!c_ptr)
++      fprintf(stderr, "MALLOC FAILED for c_ptr size:%ld \n", slen);
++    std::strncpy(c_ptr, (char *)a[5], slen - 1);
++    c_ptr[slen - 1] = (char)0;
++    a[5] = (uint64_t *)c_ptr;
++    break;
++  }
++  case _FortranAioOutputAscii_idx: {
++    fnptr = (void *)V_FortranAioOutputAscii;
++
++    size_t slen = (size_t)a[6] + 1;
++    c_ptr = (char *)aligned_alloc(sizeof(uint64_t *), slen);
++    if (!c_ptr)
++      fprintf(stderr, "MALLOC FAILED for c_ptr size:%ld \n", slen);
++    std::strncpy(c_ptr, (char *)a[5], slen - 1);
++    c_ptr[slen - 1] = (char)0;
++    a[5] = (uint64_t *)c_ptr;
++
++    break;
++  }
++  case _FortranAioOutputInteger32_idx: {
++    fnptr = (void *)V_FortranAioOutputInteger32;
++    break;
++  }
++  case _FortranAioEndIoStatement_idx: {
++    _deferred_end_statements++;
++    fnptr = (void *)V_FortranAioEndIoStatement;
++    // We cannot use last tread and team number to trigger running deferred
++    // functions because its warp could finish early (out of order). So, if
++    // this is the last FortranAioEndIoStatement by count of begin statements,
++    // then run the deferred functions ordered by team and thread number.
++    if (_deferred_end_statements == _deferred_begin_statements)
++      run_deferred_functions = true;
++    break;
++  }
++  case _FortranAioOutputInteger8_idx: {
++    fnptr = (void *)V_FortranAioOutputInteger8;
++    break;
++  }
++  case _FortranAioOutputInteger16_idx: {
++    fnptr = (void *)V_FortranAioOutputInteger16;
++    break;
++  }
++  case _FortranAioOutputInteger64_idx: {
++    fnptr = (void *)V_FortranAioOutputInteger64;
++    break;
++  }
++  case _FortranAioOutputReal32_idx: {
++    fnptr = (void *)V_FortranAioOutputReal32;
++    break;
++  }
++  case _FortranAioOutputReal64_idx: {
++    fnptr = (void *)V_FortranAioOutputReal64;
++    break;
++  }
++  case _FortranAioOutputComplex32_idx: {
++    fnptr = (void *)V_FortranAioOutputComplex32;
++    break;
++  }
++  case _FortranAioOutputComplex64_idx: {
++    fnptr = (void *)V_FortranAioOutputComplex64;
++    break;
++  }
++  case _FortranAioOutputLogical_idx: {
++    fnptr = (void *)V_FortranAioOutputLogical;
++    break;
++  }
++  case _FortranAAbort_idx: {
++    defer_for_reorder = false;
++    fnptr = (void *)V_FortranAAbort;
++    break;
++  }
++  case _FortranAStopStatementText_idx: {
++    defer_for_reorder = false;
++    fnptr = (void *)V_FortranAStopStatementText;
++    break;
++  }
++  case _FortranAio_INVALID:
++  default: {
++    defer_for_reorder = false;
++    break;
++  }
++  } // end of switch
++
++  if (defer_for_reorder) {
++    _deferred_fn_count++;
++    deferred_entry_t *q = new deferred_entry_t;
++
++    q->dfnid = _deferred_fn_count - 1;
++    q->thread_num = (uint64_t)a[0];
++    q->num_threads = (uint64_t)a[1];
++    _max_num_threads =
++        (q->num_threads > _max_num_threads) ? q->num_threads : _max_num_threads;
++    q->team_num = (uint64_t)a[2];
++    q->num_teams = (uint64_t)a[3];
++    _max_num_teams =
++        (q->num_teams > _max_num_teams) ? q->num_teams : _max_num_teams;
++    q->NumArgs = NumArgs - 4;
++    q->fnptr = fnptr;
++    q->fn_idx = DeviceRuntime_idx;
++    uint64_t *arg_array = (uint64_t *)aligned_alloc(
++        sizeof(uint64_t), (NumArgs - 4) * sizeof(uint64_t));
++    if (!arg_array)
++      fprintf(stderr, " MALLOC FAILED for arg_array size:%ld \n",
++              sizeof(uint64_t) * (NumArgs - 4));
++    for (int32_t i = 0; i < NumArgs - 4; i++) {
++      uint64_t val = (uint64_t)a[i + 4];
++      arg_array[i] = val;
++    }
++    q->arg_array = arg_array;
++    q->return_value = (uint64_t *)return_value;
++    q->c_ptr = c_ptr;
++    _deferred_fns_ptr->push_back(q);
++  } else {
++    // non deferred functions get a return_value
++    if (hostrpc_call_fnptr<uint64_t, hostexec_uint64_t>(
++            NumArgs - 4, fnptr, &a[4], return_value) != _RC_SUCCESS)
++      return _RC_ERROR_INVALID_REQUEST;
++  }
++
++  if (run_deferred_functions) {
++    // This specific team and thread ordering does not reflect the 
++    // actual non-deterministic ordering.
++    for (uint32_t team_num = 0; team_num < _max_num_teams; team_num++) {
++      for (uint32_t thread_num = 0; thread_num < _max_num_threads;
++           thread_num++) {
++        for (auto q : *_deferred_fns_ptr) {
++          if ((thread_num == q->thread_num) && (team_num == q->team_num)) {
++            for (uint32_t i = 0; i < q->NumArgs; i++)
++              a[i] = (uint64_t *)q->arg_array[i];
++            service_rc rc = hostrpc_call_fnptr<uint64_t, hostexec_uint64_t>(
++                q->NumArgs, q->fnptr, a, q->return_value);
++            if (rc != _RC_SUCCESS) {
++              fprintf(stderr, "    BAD RETURN FROM hostrpc_call_fnptr %d\n",
++                      rc);
++              return _RC_ERROR_INVALID_REQUEST;
++            }
++          }
++	  // Only the return value for the last end statement is returned.
++	  return_value = q->return_value;
++        }
++      }
++    }
++
++    //  Reset static deferred function counters and free memory
++    for (auto q : *_deferred_fns_ptr) {
++      if (q->c_ptr)
++        free(q->c_ptr);
++      free(q->arg_array);
++      delete q;
++    }
++    _deferred_fns_ptr->clear();
++    _deferred_fn_count = 0;
++    _deferred_begin_statements = 0;
++    _deferred_end_statements = 0;
++    _max_num_threads = 0;
++    _max_num_teams = 0;
++    delete _deferred_fns_ptr;
++  } // end run_deferred_functions 
++
++  return _RC_SUCCESS;
++} // end fortran_rt_service
+diff -Naur -x .git llvm-project.atd/offload/plugins-nextgen/amdgpu/hostexec/execute_service.h llvm-project/offload/plugins-nextgen/amdgpu/hostexec/execute_service.h
+--- llvm-project.atd/offload/plugins-nextgen/amdgpu/hostexec/execute_service.h	1969-12-31 19:00:00.000000000 -0500
++++ llvm-project/offload/plugins-nextgen/amdgpu/hostexec/execute_service.h	2024-08-26 07:41:15.638860390 -0400
 @@ -0,0 +1,56 @@
 +//===---- execute_service.h - header file for execute_service -------------===//
 +//
@@ -2578,11 +3805,11 @@ diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/hostexec/services/e
 +  _RC_ERROR_WRONGVERSION = 20,
 +  _RC_ERROR_OLDHOSTVERSIONMOD = 21,
 +  _RC_ERROR_HSAFAIL = 22,
-+  _RC_ERROR_ZEROPACKETS= 23,
-+  _RC_ERROR_ALIGNMENT= 24,
++  _RC_ERROR_ZEROPACKETS = 23,
++  _RC_ERROR_ALIGNMENT = 24,
 +} service_rc;
 +
-+// helper functions defined in <arch>-hostexec.cpp used by execute_service
++// helper functions defined in <arch>-hostrpc.cpp used by execute_service
 +service_rc host_malloc(void **mem, size_t size, uint32_t device_id);
 +service_rc device_malloc(void **mem, size_t size, uint32_t device_id);
 +service_rc host_device_mem_free(void *mem);
@@ -2595,77 +3822,10 @@ diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/hostexec/services/e
 +void execute_service(uint32_t service_id, uint32_t devid, uint64_t *payload);
 +
 +#endif
-diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/hostexec/services/urilocator.h llvm-project/openmp/libomptarget/hostexec/services/urilocator.h
---- llvm-project.upstream/openmp/libomptarget/hostexec/services/urilocator.h	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/openmp/libomptarget/hostexec/services/urilocator.h	2023-08-08 21:50:25.016520817 -0400
-@@ -0,0 +1,63 @@
-+//===--- UriLocator.h: Schema of URI Locator  -----------------------------===//
-+//
-+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
-+// See https://llvm.org/LICENSE.txt for license information.
-+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-+//
-+//===----------------------------------------------------------------------===//
-+
-+/* Copyright (c) 2023 Advanced Micro Devices, Inc.
-+
-+ Permission is hereby granted, free of charge, to any person obtaining a copy
-+ of this software and associated documentation files (the "Software"), to deal
-+ in the Software without restriction, including without limitation the rights
-+ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-+ copies of the Software, and to permit persons to whom the Software is
-+ furnished to do so, subject to the following conditions:
-+
-+ The above copyright notice and this permission notice shall be included in
-+ all copies or substantial portions of the Software.
-+
-+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-+ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-+ THE SOFTWARE.
-+*/
-+
-+#ifndef URILOCATOR_H
-+#define URILOCATOR_H
-+#include "hsa/hsa_ven_amd_loader.h"
-+#include <string>
-+#include <vector>
-+
-+class UriLocator {
-+
-+public:
-+  struct UriInfo {
-+    std::string uriPath;
-+    int64_t loadAddressDiff;
-+  };
-+
-+  struct UriRange {
-+    uint64_t startAddr_, endAddr_;
-+    int64_t elfDelta_;
-+    std::string Uri_;
-+  };
-+
-+  bool init_ = false;
-+  std::vector<UriRange> rangeTab_;
-+  hsa_ven_amd_loader_1_03_pfn_t fn_table_;
-+
-+  hsa_status_t createUriRangeTable();
-+
-+  ~UriLocator() {}
-+
-+  UriInfo lookUpUri(uint64_t device_pc);
-+  std::pair<uint64_t, uint64_t> decodeUriAndGetFd(UriInfo &uri_path,
-+                                                  int *uri_fd);
-+};
-+
-+#endif
-diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/hostexec/src/hostexec.h llvm-project/openmp/libomptarget/hostexec/src/hostexec.h
---- llvm-project.upstream/openmp/libomptarget/hostexec/src/hostexec.h	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/openmp/libomptarget/hostexec/src/hostexec.h	2023-08-08 21:50:25.016520817 -0400
-@@ -0,0 +1,49 @@
+diff -Naur -x .git llvm-project.atd/offload/plugins-nextgen/amdgpu/hostexec/hostexec.h llvm-project/offload/plugins-nextgen/amdgpu/hostexec/hostexec.h
+--- llvm-project.atd/offload/plugins-nextgen/amdgpu/hostexec/hostexec.h	1969-12-31 19:00:00.000000000 -0500
++++ llvm-project/offload/plugins-nextgen/amdgpu/hostexec/hostexec.h	2024-09-18 15:53:50.518764374 -0400
+@@ -0,0 +1,55 @@
 +//
 +// hostexec.h: Headers for hostexec device stubs
 +//
@@ -2686,7 +3846,7 @@ diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/hostexec/src/hostex
 +typedef uint64_t hostexec_uint64_t(void *, ...);
 +typedef double hostexec_double_t(void *, ...);
 +typedef float hostexec_float_t(void *, ...);
-+typedef int hostexec_int_t(void*,...);
++typedef int hostexec_int_t(void *, ...);
 +typedef long hostexec_long_t(void *, ...);
 +
 +#if defined(__NVPTX__) || defined(__AMDGCN__)
@@ -2695,6 +3855,7 @@ diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/hostexec/src/hostex
 +EXTERN void hostexec(void *fnptr, ...);
 +EXTERN uint32_t hostexec_uint(void *fnptr, ...);
 +EXTERN uint64_t hostexec_uint64(void *fnptr, ...);
++EXTERN uint64_t hostexec_fortrt(void *fnptr, ...);
 +EXTERN double hostexec_double(void *fnptr, ...);
 +EXTERN float hostexec_float(void *fnptr, ...);
 +EXTERN int hostexec_int(void *fnptr, ...);
@@ -2702,23 +3863,28 @@ diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/hostexec/src/hostex
 +
 +#else
 +
++
 +//  On host pass, simply drop the hostexec wrapper. Technically,
 +//  host passes should not see these hostexec functions
-+#define hostexec_uint(fn, ...) fn(fn,__VA_ARGS__)
-+#define hostexec_uint64(fn, ...) fn(fn,__VA_ARGS__)
-+#define hostexec_double(fn, ...) fn(fn,__VA_ARGS__)
-+#define hostexec_float(fn, ...) fn(fn,__VA_ARGS__)
-+#define hostexec_int(fn, ...) fn(fn,__VA_ARGS__)
-+#define hostexec_long(fn, ...) fn(fn,__VA_ARGS__)
-+#define hostexec(fn, ...) fn(fn,__VA_ARGS__)
++#define hostexec_uint(fn, ...) fn(fn, __VA_ARGS__)
++#define hostexec_uint64(fn, ...) fn(fn, __VA_ARGS__)
++#define hostexec_double(fn, ...) fn(fn, __VA_ARGS__)
++#define hostexec_float(fn, ...) fn(fn, __VA_ARGS__)
++#define hostexec_int(fn, ...) fn(fn, __VA_ARGS__)
++#define hostexec_long(fn, ...) fn(fn, __VA_ARGS__)
++#define hostexec(fn, ...) fn(fn, __VA_ARGS__)
++// FIXME: this should be defined as an aborting function
++//        if ever seen on a host pass because first arg
++//        is an enum for fortrt, not a function pointer
++#define hostexec_fortrt(fn, ...) fn(fn, __VA_ARGS__)
 +
 +#endif
 +
 +#endif // __HOSTEXEC_H__
-diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/hostexec/src/hostexec_internal.h llvm-project/openmp/libomptarget/hostexec/src/hostexec_internal.h
---- llvm-project.upstream/openmp/libomptarget/hostexec/src/hostexec_internal.h	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/openmp/libomptarget/hostexec/src/hostexec_internal.h	2023-08-08 21:50:25.016520817 -0400
-@@ -0,0 +1,112 @@
+diff -Naur -x .git llvm-project.atd/offload/plugins-nextgen/amdgpu/hostexec/hostexec_internal.h llvm-project/offload/plugins-nextgen/amdgpu/hostexec/hostexec_internal.h
+--- llvm-project.atd/offload/plugins-nextgen/amdgpu/hostexec/hostexec_internal.h	1969-12-31 19:00:00.000000000 -0500
++++ llvm-project/offload/plugins-nextgen/amdgpu/hostexec/hostexec_internal.h	2024-09-18 17:28:33.151629178 -0400
+@@ -0,0 +1,64 @@
 +#ifndef __HOSTEXEC_INTERNAL_H__
 +#define __HOSTEXEC_INTERNAL_H__
 +
@@ -2757,12 +3923,9 @@ diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/hostexec/src/hostex
 +
 +#define NOINLINE __attribute__((noinline))
 +
-+#include "hostexec.h"
-+#include <stdint.h>
-+#include <stdio.h>
 +
-+//  These are the interfaces for the device stubs emitted 
-+//  by EmitHostexecAllocAndExecFns in CGGPUBuiltin.cpp 
++//  These are the interfaces for the device stubs emitted
++//  by EmitHostexecAllocAndExecFns in CGGPUBuiltin.cpp
 +EXTERN char *printf_allocate(uint32_t bufsz);
 +EXTERN int printf_execute(char *bufptr, uint32_t bufsz);
 +EXTERN char *fprintf_allocate(uint32_t bufsz);
@@ -2785,1465 +3948,185 @@ diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/hostexec/src/hostex
 +// This device runtime utility function is needed for variable length strings.
 +EXTERN uint32_t __strlen_max(char *instr, uint32_t maxstrlen);
 +
-+// The version release and patch level (VRM) are embedded in every packet with
-+// the service id (sid) and checked by the host runtime on the first packet.
-+// The runtime fails if VR is different or device VRM > host VRM.
-+// Runtime warns if device VRM < host VRM i.e old compiler with newer runtime.
-+// See check_version in services/<arch>_hostexec.cpp.
-+#define HOSTEXEC_VERSION 0
-+#define HOSTEXEC_RELEASE 1
-+#define HOSTEXEC_PATCH 0
-+// HOSTEXEC_VRM uses 2 bytes allowing 64 patches, 64 releases, 15 versions
-+#define HOSTEXEC_VRM ((HOSTEXEC_VERSION * 4096) + \
-+		(HOSTEXEC_RELEASE * 64) + HOSTEXEC_PATCH) 
-+#define HOSTEXEC_VERSION_RELEASE ((HOSTEXEC_VERSION * 64) + HOSTEXEC_RELEASE)
-+
-+// This macro packs VRM and sid id into the 1st 4 bytes of the packet.
-+#define PACK_VERS(x) ((uint32_t)HOSTEXEC_VRM << 16) | ((uint32_t)x)
-+
-+// The host runtime for host services is linked statically into the 
-+// libomptarget plugin i.e.  libomptarget.rtl.amdgcn or libomptarget.rtl.cuda 
-+// Typically these are part of the compiler installation so VRM checking
-+// would not be necessary. However, compiled applications that dynamically
-+// link to libomptarget and the plugin may might get an old runtime.
-+// so VRM checking is 
-+//
-+// Please update at least the patch level when adding a new service id (sid)
-+// below. This ensures that applications that use a new device stub do not
-+// try to use backlevel host runtimes that do not have a valid VRM.
-+enum hostexec_sid {
-+  HOSTEXEC_SID_UNUSED,
-+  HOSTEXEC_SID_TERMINATE,
-+  HOSTEXEC_SID_DEVICE_MALLOC, // Device global memory
-+  HOSTEXEC_SID_HOST_MALLOC,   // shared or managed memory
-+  HOSTEXEC_SID_FREE,
-+  HOSTEXEC_SID_PRINTF,
-+  HOSTEXEC_SID_FPRINTF,
-+  HOSTEXEC_SID_FTNASSIGN,
-+  HOSTEXEC_SID_SANITIZER,
-+  HOSTEXEC_SID_UINT,
-+  HOSTEXEC_SID_UINT64,
-+  HOSTEXEC_SID_DOUBLE,
-+  HOSTEXEC_SID_INT,
-+  HOSTEXEC_SID_LONG,
-+  HOSTEXEC_SID_FLOAT,
-+  HOSTEXEC_SID_VOID,
-+};
-+
 +#endif // __HOSTEXEC_INTERNAL_H__
-diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/hostexec/src/hostexec_invoke.cpp llvm-project/openmp/libomptarget/hostexec/src/hostexec_invoke.cpp
---- llvm-project.upstream/openmp/libomptarget/hostexec/src/hostexec_invoke.cpp	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/openmp/libomptarget/hostexec/src/hostexec_invoke.cpp	2023-08-08 21:50:25.020520812 -0400
-@@ -0,0 +1,502 @@
+diff -Naur -x .git llvm-project.atd/offload/plugins-nextgen/amdgpu/hostexec/urilocator.h llvm-project/offload/plugins-nextgen/amdgpu/hostexec/urilocator.h
+--- llvm-project.atd/offload/plugins-nextgen/amdgpu/hostexec/urilocator.h	1969-12-31 19:00:00.000000000 -0500
++++ llvm-project/offload/plugins-nextgen/amdgpu/hostexec/urilocator.h	2024-08-26 07:41:15.638860390 -0400
+@@ -0,0 +1,68 @@
++//===--- UriLocator.h: Schema of URI Locator  -----------------------------===//
++//
++// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
++// See https://llvm.org/LICENSE.txt for license information.
++// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
++//
++//===----------------------------------------------------------------------===//
 +
-+#include <stdint.h>
++/* Copyright (c) 2023 Advanced Micro Devices, Inc.
 +
-+#define GLOB_ATTR __attribute__((address_space(1)))
-+#define __static_inl static __attribute__((flatten, always_inline))
-+#define __inl __attribute__((flatten, always_inline))
++ Permission is hereby granted, free of charge, to any person obtaining a copy
++ of this software and associated documentation files (the "Software"), to deal
++ in the Software without restriction, including without limitation the rights
++ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
++ copies of the Software, and to permit persons to whom the Software is
++ furnished to do so, subject to the following conditions:
 +
-+// mem order codes: A=acquire, X=relaxed, R=release
++ The above copyright notice and this permission notice shall be included in
++ all copies or substantial portions of the Software.
 +
-+// headers for amdgcn opencl atomics
-+extern "C" __inl uint64_t oclAtomic64Load_A(GLOB_ATTR uint64_t *Address);
-+extern "C" __inl uint64_t oclAtomic64Load_X(GLOB_ATTR uint64_t *Address);
-+extern "C" __inl uint32_t oclAtomic32Load_A(GLOB_ATTR const uint32_t *Address);
-+extern "C" __inl bool oclAtomic64CAS_AX(GLOB_ATTR uint64_t *Address, uint64_t *e_Val,
-+                                  uint64_t new_ptr);
-+extern "C" __inl bool oclAtomic64CAS_RX(GLOB_ATTR uint64_t *Address, uint64_t *e_Val,
-+                                  uint64_t new_ptr);
++ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
++ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
++ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
++ THE SOFTWARE.
++*/
 +
-+// headers for cuda nvptx atomics
-+extern "C" __attribute__((nothrow)) unsigned long long
-+__ullAtomicAdd_system(unsigned long long *address, unsigned long long val);
-+extern "C" __attribute__((nothrow)) unsigned long long
-+__ullAtomicCAS_system(unsigned long long int *address,
-+                      unsigned long long int compare,
-+                      unsigned long long int val);
-+// headers for builtins
-+int __builtin_popcountl(unsigned long);
-+int __builtin_popcount(unsigned);
-+int __builtin_amdgcn_readfirstlane(int);
-+unsigned long __builtin_amdgcn_read_exec();
-+unsigned int __builtin_amdgcn_mbcnt_hi(unsigned int, unsigned int);
-+unsigned int __builtin_amdgcn_mbcnt_lo(unsigned int, unsigned int);
-+int __nvvm_read_ptx_sreg_tid_x();
++#ifndef URILOCATOR_H
++#define URILOCATOR_H
 +
-+// We need __ockl_hsa_signal_add and __ockl_lane_u32 from ockl
-+typedef uint64_t hsa_signal_value_t;
-+typedef uint64_t hsa_signal_t;
-+// typedef struct hsa_signal_s {
-+// uint64_t handle;
-+//} hsa_signal_t;
-+typedef enum __ockl_memory_order_e {
-+  __ockl_memory_order_relaxed = __ATOMIC_RELAXED,
-+  __ockl_memory_order_acquire = __ATOMIC_ACQUIRE,
-+  __ockl_memory_order_release = __ATOMIC_RELEASE,
-+  __ockl_memory_order_acq_rel = __ATOMIC_ACQ_REL,
-+  __ockl_memory_order_seq_cst = __ATOMIC_SEQ_CST,
-+} __ockl_memory_order;
-+extern "C" void __ockl_hsa_signal_add(hsa_signal_t signal,
-+                                      hsa_signal_value_t value,
-+                                      __ockl_memory_order mo);
-+extern "C" uint32_t __ockl_lane_u32();
-+
-+#pragma omp begin declare target device_type(nohost)
-+
-+typedef enum { STATUS_SUCCESS, STATUS_BUSY } status_t;
-+
-+typedef enum {
-+  CONTROL_OFFSET_READY_FLAG = 0,
-+  CONTROL_OFFSET_RESERVED0 = 1,
-+} control_offset_t;
-+
-+typedef enum {
-+  CONTROL_WIDTH_READY_FLAG = 1,
-+  CONTROL_WIDTH_RESERVED0 = 31,
-+} control_width_t;
-+
-+typedef uint64_t LaneMask_t;
-+
-+typedef struct {
-+  uint64_t next;
-+  LaneMask_t activemask;
-+  uint32_t service;
-+  uint32_t control;
-+} header_t;
-+
-+typedef struct {
-+  // 64 slots of 8 uint64_ts each (4KB/payload)
-+  uint64_t slots[64][8];
-+} payload_t;
-+
-+typedef struct {
-+  GLOB_ATTR header_t *headers;
-+  GLOB_ATTR payload_t *payloads;
-+  hsa_signal_t doorbell;
-+  uint64_t free_stack;
-+  uint64_t ready_stack;
-+  uint32_t index_size;
-+  uint32_t device_id;
-+} buffer_t;
-+
-+namespace impl {
-+
-+// These functions have arch-specific variants
-+__inl void deviceSleepHostWait();
-+//  These still dont have nvptx variants
-+__inl void send_signal(hsa_signal_t signal);
-+__inl uint32_t first_lane_id(uint32_t val);
-+__inl uint32_t lane_id();
-+__inl uint64_t get_mask();
-+__inl uint64_t atomic64Load_A(GLOB_ATTR uint64_t *Address);
-+__inl uint64_t atomic64Load_X(GLOB_ATTR uint64_t *Address);
-+__inl uint32_t atomic32Load_A(GLOB_ATTR const uint32_t *Address);
-+__inl bool atomic64CAS_AX(GLOB_ATTR uint64_t *Address, uint64_t *e_Val,
-+                    uint64_t new_ptr);
-+__inl bool atomic64CAS_RX(GLOB_ATTR uint64_t *Address, uint64_t *e_Val,
-+                    uint64_t new_ptr);
-+__inl void write_needs_host_services_symbol();
-+
-+#pragma omp begin declare variant match(device = {arch(amdgcn)})
-+
-+__static_inl void write_needs_host_services_symbol() {
-+  // The global variable "__needs_host_services" is used to detect that
-+  // host services are required. If hostexec_invoke is not called, the symbol
-+  // will not be present and the runtime can avoid allocating and initialising
-+  // service_thread_buf.
-+  __asm__( ".type __needs_host_services,@object\n\t"
-+          ".global __needs_host_services\n\t"
-+          ".comm __needs_host_services,4" ::
-+              :);
-+}
-+
-+__static_inl uint32_t lane_id() {
-+  return __builtin_amdgcn_mbcnt_hi(~0u, __builtin_amdgcn_mbcnt_lo(~0u, 0u));
-+};
-+
-+__static_inl uint32_t first_lane_id(uint32_t me) {
-+  return __builtin_amdgcn_readfirstlane(me);
-+}
-+__static_inl uint64_t get_mask() { return __builtin_amdgcn_read_exec(); }
-+__static_inl void send_signal(hsa_signal_t signal) {
-+  __ockl_hsa_signal_add(signal, 1, __ockl_memory_order_release);
-+}
-+__static_inl void deviceSleepHostWait() { __builtin_amdgcn_s_sleep(1); }
-+__static_inl uint64_t atomic64Load_A(GLOB_ATTR uint64_t *Address) {
-+  return oclAtomic64Load_A(Address);
-+}
-+__static_inl uint64_t atomic64Load_X(GLOB_ATTR uint64_t *Address) {
-+  return oclAtomic64Load_X(Address);
-+}
-+__static_inl uint32_t atomic32Load_A(GLOB_ATTR const uint32_t *Address) {
-+  return oclAtomic32Load_A(Address);
-+}
-+__static_inl bool atomic64CAS_AX(GLOB_ATTR uint64_t *Address, uint64_t *e_Val,
-+                           uint64_t new_ptr) {
-+  return oclAtomic64CAS_AX(Address, e_Val, new_ptr);
-+}
-+__static_inl bool atomic64CAS_RX(GLOB_ATTR uint64_t *Address, uint64_t *e_Val,
-+                           uint64_t new_ptr) {
-+  return oclAtomic64CAS_RX(Address, e_Val, new_ptr);
-+}
-+
-+#pragma omp end declare variant
-+
-+#pragma omp begin declare variant match(                                       \
-+    device = {arch(nvptx, nvptx64)}, implementation = {extension(match_any)})
-+
-+__static_inl void write_needs_host_services_symbol() {
-+  // The global variable "__needs_host_services" is used to detect that
-+  // host services are required. If hostexec_invoke is not called, the symbol
-+  // will not be present and the runtime can avoid allocating and initialising
-+  // service_thread_buf.
-+  __asm__(".global .align 4 .u32 __needs_host_services = 1;");
-+}
-+__static_inl inline void send_signal(hsa_signal_t signal) {
-+  __ullAtomicAdd_system((unsigned long long *)signal, 1);
-+}
-+
-+__static_inl void deviceSleepHostWait() {
-+  int32_t start = __nvvm_read_ptx_sreg_clock();
-+  for (;;) {
-+    if ((__nvvm_read_ptx_sreg_clock() - start) >= 1000)
-+      break;
-+  }
-+}
-+
-+__static_inl uint64_t get_mask() {
-+  unsigned int Mask;
-+  asm("activemask.b32 %0;" : "=r"(Mask));
-+  uint64_t mask64 = (uint64_t)Mask;
-+  return mask64;
-+}
-+
-+//  FIXME: nvptx needs to use lane_id somehow here
-+__static_inl uint32_t first_lane_id(unsigned int lane_id) {
-+  unsigned int mask = (unsigned int)get_mask();
-+  if (mask == 0)
-+    return 0;
-+  unsigned int pos = 0;
-+  unsigned int m = 1;
-+  while (!(mask & m)) {
-+    m = m << 1;
-+    pos++;
-+  }
-+  return pos;
-+};
-+
-+__static_inl uint32_t lane_id() {
-+  return (uint32_t)(__nvvm_read_ptx_sreg_tid_x() & 31);
-+};
-+
-+__static_inl uint64_t atomic64Load_A(GLOB_ATTR uint64_t *Address) {
-+  unsigned long long result =
-+      __ullAtomicAdd_system((unsigned long long *)Address, 0);
-+  return (uint64_t)result;
-+}
-+__static_inl uint64_t atomic64Load_X(GLOB_ATTR uint64_t *Address) {
-+  unsigned long long result =
-+      __ullAtomicAdd_system((unsigned long long *)Address, 0);
-+  return (uint64_t)result;
-+}
-+__static_inl uint32_t atomic32Load_A(GLOB_ATTR const uint32_t *Address) {
-+  return __uAtomicAdd((uint32_t *)Address, 0);
-+}
-+__static_inl bool atomic64CAS_AX(GLOB_ATTR uint64_t *Address, uint64_t *e_Val,
-+                           uint64_t new_ptr) {
-+  unsigned long long result = __ullAtomicCAS_system(
-+      (unsigned long long *)Address, (unsigned long long)*e_Val,
-+      (unsigned long long)new_ptr);
-+  return (bool)result;
-+}
-+__static_inl bool atomic64CAS_RX(GLOB_ATTR uint64_t *Address, uint64_t *e_Val,
-+                           uint64_t new_ptr) {
-+  unsigned long long result = __ullAtomicCAS_system(
-+      (unsigned long long *)Address, (unsigned long long)*e_Val,
-+      (unsigned long long)new_ptr);
-+  return (bool)result;
-+}
-+
-+#pragma omp end declare variant
-+
-+} // end namespace impl
-+
-+
-+__static_inl uint64_t get_ptr_index(uint64_t ptr, uint32_t index_size) {
-+  return ptr & (((uint64_t)1 << index_size) - 1);
-+}
-+
-+__static_inl GLOB_ATTR header_t *get_header(GLOB_ATTR buffer_t *buffer,
-+                                      uint64_t ptr) {
-+  return buffer->headers + get_ptr_index(ptr, buffer->index_size);
-+}
-+
-+__static_inl GLOB_ATTR payload_t *get_payload(GLOB_ATTR buffer_t *buffer,
-+                                        uint64_t ptr) {
-+  return buffer->payloads + get_ptr_index(ptr, buffer->index_size);
-+}
-+
-+// get_control_field only used by get_ready_flag
-+__static_inl uint32_t get_control_field(uint32_t control, uint32_t offset,
-+                                  uint32_t width) {
-+  return (control >> offset) & ((1 << width) - 1);
-+}
-+
-+// get_ready_flag only called by lead lane of get_return_value
-+//                on atomically loaded control field of packet header
-+__static_inl uint32_t get_ready_flag(uint32_t control) {
-+  return get_control_field(control, CONTROL_OFFSET_READY_FLAG,
-+                           CONTROL_WIDTH_READY_FLAG);
-+}
-+
-+// set_control_field only used by set_ready_flag
-+__static_inl uint32_t set_control_field(uint32_t control, uint32_t offset,
-+                                  uint32_t width, uint32_t value) {
-+  uint32_t mask = ~(((1 << width) - 1) << offset);
-+  return (control & mask) | (value << offset);
-+}
-+
-+__static_inl uint32_t set_ready_flag(uint32_t control) {
-+  return set_control_field(control, CONTROL_OFFSET_READY_FLAG,
-+                           CONTROL_WIDTH_READY_FLAG, 1);
-+}
-+
-+__static_inl uint64_t pop(GLOB_ATTR uint64_t *top, GLOB_ATTR buffer_t *buffer) {
-+  uint64_t F = impl::atomic64Load_A(top);
-+  // F is guaranteed to be non-zero, since there are at least as
-+  // many packets as there are waves, and each wave can hold at most
-+  // one packet.
-+  while (true) {
-+    GLOB_ATTR header_t *P = get_header(buffer, F);
-+    uint64_t N = impl::atomic64Load_X(&P->next);
-+    if (impl::atomic64CAS_AX(top, &F, N))
-+      break;
-+    impl::deviceSleepHostWait();
-+  }
-+
-+  return F;
-+}
-+
-+/** \brief Use the first active lane to get a free packet and
-+ *         broadcast to the whole wave.
-+ */
-+__static_inl uint64_t pop_free_stack(GLOB_ATTR buffer_t *buffer, uint32_t me,
-+                               uint32_t low) {
-+  uint64_t packet_ptr = 0;
-+  if (me == low) {
-+    packet_ptr = pop(&buffer->free_stack, buffer);
-+  }
-+
-+  uint32_t ptr_lo = packet_ptr;
-+  uint32_t ptr_hi = packet_ptr >> 32;
-+  ptr_lo = impl::first_lane_id(ptr_lo);
-+  ptr_hi = impl::first_lane_id(ptr_hi);
-+
-+  return ((uint64_t)ptr_hi << 32) | ptr_lo;
-+}
-+
-+__static_inl void push(GLOB_ATTR uint64_t *top, uint64_t ptr,
-+                 GLOB_ATTR buffer_t *buffer) {
-+  uint64_t F = impl::atomic64Load_X(top);
-+  GLOB_ATTR header_t *P = get_header(buffer, ptr);
-+
-+  while (true) {
-+    P->next = F;
-+    if (impl::atomic64CAS_RX(top, &F, ptr))
-+      break;
-+    impl::deviceSleepHostWait();
-+  }
-+}
-+
-+/** \brief Use the first active lane in a wave to submit a ready
-+ *         packet and signal the host.
-+ */
-+__static_inl void push_ready_stack(GLOB_ATTR buffer_t *buffer, uint64_t ptr,
-+                             uint32_t me, uint32_t low) {
-+  if (me == low) {
-+    push(&buffer->ready_stack, ptr, buffer);
-+    impl::send_signal(buffer->doorbell);
-+  }
-+}
-+
-+__static_inl uint64_t inc_ptr_tag(uint64_t ptr, uint32_t index_size) {
-+  // Unit step for the tag.
-+  uint64_t inc = 1UL << index_size;
-+  ptr += inc;
-+  // When the tag for index 0 wraps, increment the tag.
-+  return ptr == 0 ? inc : ptr;
-+}
-+
-+/** \brief Return the packet after incrementing the ABA tag
-+ */
-+__static_inl void return_free_packet(GLOB_ATTR buffer_t *buffer, uint64_t ptr,
-+                               uint32_t me, uint32_t low) {
-+  if (me == low) {
-+    ptr = inc_ptr_tag(ptr, buffer->index_size);
-+    push(&buffer->free_stack, ptr, buffer);
-+  }
-+}
-+
-+void __static_inl fill_packet(GLOB_ATTR header_t *header,
-+                        GLOB_ATTR payload_t *payload, uint32_t service_id,
-+                        uint64_t arg0, uint64_t arg1, uint64_t arg2,
-+                        uint64_t arg3, uint64_t arg4, uint64_t arg5,
-+                        uint64_t arg6, uint64_t arg7, uint32_t me,
-+                        uint32_t low) {
-+  uint64_t active = impl::get_mask();
-+  if (me == low) {
-+    header->service = service_id;
-+    header->activemask = active;
-+    uint32_t control = set_ready_flag(0);
-+    header->control = control;
-+  }
-+  GLOB_ATTR uint64_t *ptr = payload->slots[me];
-+  ptr[0] = arg0;
-+  ptr[1] = arg1;
-+  ptr[2] = arg2;
-+  ptr[3] = arg3;
-+  ptr[4] = arg4;
-+  ptr[5] = arg5;
-+  ptr[6] = arg6;
-+  ptr[7] = arg7;
-+}
-+
-+//  result is 8*8=64 bytes per lane
-+//  Total payload could be 64 lanes * 64 bytes = 4KB
-+typedef struct {
-+  uint64_t arg0;
-+  uint64_t arg1;
-+  uint64_t arg2;
-+  uint64_t arg3;
-+  uint64_t arg4;
-+  uint64_t arg5;
-+  uint64_t arg6;
-+  uint64_t arg7;
-+} hostexec_result_t;
-+
-+/** \brief Wait for the host response and return the first two uint64_t
-+ *         entries per workitem.
-+ *
-+ *  After the packet is submitted in READY state, the wave spins until
-+ *  the host changes the state to DONE. Each workitem reads the first
-+ *  two uint64_t elements in its slot and returns this.
-+ */
-+__static_inl hostexec_result_t get_return_value(GLOB_ATTR header_t *header,
-+                                         GLOB_ATTR payload_t *payload,
-+                                         uint32_t me, uint32_t low) {
-+  // The while loop needs to be executed by all active
-+  // lanes. Otherwise, later reads from ptr are performed only by
-+  // the first thread, while other threads reuse a value cached from
-+  // previous operations. The use of readfirstlane in the while loop
-+  // prevents this reordering.
-+  //
-+  // In the absence of the readfirstlane, only one thread has a
-+  // sequenced-before relation from the atomic load on
-+  // header->control to the ordinary loads on ptr. As a result, the
-+  // compiler is free to reorder operations in such a way that the
-+  // ordinary loads are performed only by the first thread. The use
-+  // of readfirstlane provides a stronger code-motion barrier, and
-+  // it effectively "spreads out" the sequenced-before relation to
-+  // the ordinary stores in other threads too.
-+  while (true) {
-+    uint32_t ready_flag = 1;
-+    if (me == low) {
-+      uint32_t control =
-+          impl::atomic32Load_A((GLOB_ATTR uint32_t *)&header->control);
-+      ready_flag = get_ready_flag(control);
-+    }
-+    ready_flag = impl::first_lane_id(ready_flag);
-+    if (ready_flag == 0)
-+      break;
-+    impl::deviceSleepHostWait();
-+  }
-+
-+  GLOB_ATTR uint64_t *ptr = (GLOB_ATTR uint64_t *)(payload->slots + me);
-+  hostexec_result_t retval;
-+  retval.arg0 = *ptr++;
-+  retval.arg1 = *ptr++;
-+  retval.arg2 = *ptr++;
-+  retval.arg3 = *ptr++;
-+  retval.arg4 = *ptr++;
-+  retval.arg5 = *ptr++;
-+  retval.arg6 = *ptr++;
-+  retval.arg7 = *ptr;
-+
-+  return retval;
-+}
-+
-+#undef __static_inl
-+
-+/** \brief The implementation that should be hidden behind an ABI
-+ *
-+ *  The transaction is a wave-wide operation, where the service_id
-+ *  must be uniform, but the parameters are different for each
-+ *  workitem. Parameters from all active lanes are written into a
-+ *  hostcall packet. The hostcall blocks until the host processes the
-+ *  request, and returns the response it receiveds.
-+ *
-+ *  TODO: This function and everything above it should eventually move
-+ *  to a separate library that is loaded by the language runtime. The
-+ *  function itself will be exposed as an orindary function symbol to
-+ *  be linked into kernel objects that are loaded after this library.
-+ */
-+
-+//  service_thread_buf is a global constant symbol that contains the
-+//  pointer to the buffer used by the service thread. This is written
-+//  by nextgen plugin method writeGlobalToDevice only when the device
-+//  image requires host services.
-+//  This is the alternative to using reserved IMPLICIT kern arg hostcall
-+//  because nvptx arch does not have implicit kern args.
-+uint64_t [[clang::address_space(4)]] service_thread_buf
-+    [[clang::loader_uninitialized]]
-+    __attribute__((used, retain, weak, visibility("protected")));
-+
-+extern "C" __attribute__((noinline)) hostexec_result_t
-+hostexec_invoke(const uint32_t service_id, uint64_t arg0, uint64_t arg1, uint64_t arg2,
-+               uint64_t arg3, uint64_t arg4, uint64_t arg5, uint64_t arg6,
-+               uint64_t arg7) {
-+  impl::write_needs_host_services_symbol();
-+  uint32_t me = impl::lane_id();
-+  uint32_t low = impl::first_lane_id(me);
-+
-+  GLOB_ATTR buffer_t *buffer = (GLOB_ATTR buffer_t *)service_thread_buf;
-+
-+#ifdef __AMDGCN__
-+  // Temporary hack to support the old amdgcn plugin. When running the
-+  // old plugin, the global service_thread_buf will be null. So get value
-+  // from implicit kernel args set by the old plugin. The location in
-+  // the implicit kernel args depends on which abi version is in use.
-+  if (!buffer){
-+    const size_t* argptr = (const size_t *)__builtin_amdgcn_implicitarg_ptr();
-+#ifndef __oclc_ABI_version
-+#define __oclc_ABI_version 500
-+#endif
-+#if ( __oclc_ABI_version < 500 )
-+    buffer = (GLOB_ATTR buffer_t *) argptr[3];
++#if __has_include("hsa/hsa.h")
++#include "hsa/hsa_ven_amd_loader.h"
 +#else
-+    buffer = (GLOB_ATTR buffer_t *) argptr[10];
++#include "hsa_ven_amd_loader.h"
 +#endif
-+  }
++#include <string>
++#include <vector>
++
++class UriLocator {
++
++public:
++  struct UriInfo {
++    std::string uriPath;
++    int64_t loadAddressDiff;
++  };
++
++  struct UriRange {
++    uint64_t startAddr_, endAddr_;
++    int64_t elfDelta_;
++    std::string Uri_;
++  };
++
++  bool init_ = false;
++  std::vector<UriRange> rangeTab_;
++  hsa_ven_amd_loader_1_03_pfn_t fn_table_;
++
++  hsa_status_t createUriRangeTable();
++
++  ~UriLocator() {}
++
++  UriInfo lookUpUri(uint64_t device_pc);
++  std::pair<uint64_t, uint64_t> decodeUriAndGetFd(UriInfo &uri_path,
++                                                  int *uri_fd);
++};
++
 +#endif
-+
-+  uint64_t packet_ptr = pop_free_stack(buffer, me, low);
-+  GLOB_ATTR header_t *header = get_header(buffer, packet_ptr);
-+  GLOB_ATTR payload_t *payload = get_payload(buffer, packet_ptr);
-+  fill_packet(header, payload, service_id, arg0, arg1, arg2, arg3, arg4, arg5,
-+              arg6, arg7, me, low);
-+  push_ready_stack(buffer, packet_ptr, me, low);
-+  hostexec_result_t retval = get_return_value(header, payload, me, low);
-+  return_free_packet(buffer, packet_ptr, me, low);
-+  return retval;
-+}
-+
-+#pragma omp end declare target
-diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/hostexec/src/hostexec_stubs.cpp llvm-project/openmp/libomptarget/hostexec/src/hostexec_stubs.cpp
---- llvm-project.upstream/openmp/libomptarget/hostexec/src/hostexec_stubs.cpp	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/openmp/libomptarget/hostexec/src/hostexec_stubs.cpp	2023-08-08 21:50:25.020520812 -0400
-@@ -0,0 +1,224 @@
-+///
-+///  hostexec_stubs.cpp: definitions of device stubs
-+///
-+// GPUs typically do not support vargs style functions.  So to implement
-+// printf or any vargs function as a hostexec service requires the compiler
-+// to generate code to allocate a buffer, fill the buffer with the value of
-+// each argument, and then call a stub to execute the service with a pointer to
-+// the buffer. The clang compiler does this in the CGGPUBuiltin.cpp source.
-+// Here we define printf_allocate and printf_execute device functions that are
-+// generated by the clang compiler when it encounters a printf statement.
-+// printf_allocate is implemented as a hostexec stub. We assume that the
-+// host routine for printf_execute will free the buffer that was allocated
-+// by printf_allocate.
-+
-+#include "hostexec_internal.h"
-+#include <stdint.h>
-+#include <stdio.h>
-+
-+#pragma omp declare target
-+
-+// #pragma omp begin declare variant match(device = {kind(gpu)})
-+
-+typedef struct hostexec_result_s {
-+  uint64_t arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7;
-+} hostexec_result_t;
-+
-+extern "C" hostexec_result_t hostexec_invoke(const uint32_t id, uint64_t arg0,
-+                                           uint64_t arg1, uint64_t arg2,
-+                                           uint64_t arg3, uint64_t arg4,
-+                                           uint64_t arg5, uint64_t arg6,
-+                                           uint64_t arg7);
-+
-+
-+static __attribute__((flatten, always_inline)) hostexec_result_t
-+hostexec_invoke_zeros(const uint32_t id, uint64_t arg0 = 0, uint64_t arg1 = 0,
-+                     uint64_t arg2 = 0, uint64_t arg3 = 0, uint64_t arg4 = 0,
-+                     uint64_t arg5 = 0, uint64_t arg6 = 0, uint64_t arg7 = 0) {
-+  return hostexec_invoke(id, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
-+}
-+
-+extern "C" {
-+// This definition of __ockl_devmem_request and __ockl_sanitizer_report needs to
-+// override the weak symbol for __ockl_devmem_request and
-+// __ockl_sanitizer_report in rocm device lib ockl.bc because ockl uses
-+// hostcall but OpenMP uses hostexec.
-+__attribute__((noinline)) uint64_t __ockl_devmem_request(uint64_t addr,
-+                                                         uint64_t size) {
-+  uint64_t arg0;
-+  if (size) { // allocation request
-+    arg0 = size;
-+    hostexec_result_t result =
-+        hostexec_invoke_zeros(PACK_VERS(HOSTEXEC_SID_DEVICE_MALLOC), arg0);
-+    return result.arg1;
-+  } else { // free request
-+    arg0 = addr;
-+    hostexec_result_t result =
-+        hostexec_invoke_zeros(PACK_VERS(HOSTEXEC_SID_FREE), arg0);
-+    return result.arg0;
-+  }
-+}
-+
-+void __ockl_sanitizer_report(uint64_t addr, uint64_t pc, uint64_t wgidx,
-+                             uint64_t wgidy, uint64_t wgidz, uint64_t wave_id,
-+                             uint64_t is_read, uint64_t access_size) {
-+  hostexec_result_t result =
-+      hostexec_invoke(PACK_VERS(HOSTEXEC_SID_SANITIZER), addr, pc, wgidx,
-+                     wgidy, wgidz, wave_id, is_read, access_size);
-+}
-+void f90print_(char *s) { printf("%s\n", s); }
-+void f90printi_(char *s, int *i) { printf("%s %d\n", s, *i); }
-+void f90printl_(char *s, long *i) { printf("%s %ld\n", s, *i); }
-+void f90printf_(char *s, float *f) { printf("%s %f\n", s, *f); }
-+void f90printd_(char *s, double *d) { printf("%s %g\n", s, *d); }
-+
-+char *printf_allocate(uint32_t bufsz) {
-+  uint64_t arg0 = (uint64_t)bufsz;
-+  hostexec_result_t result =
-+      hostexec_invoke_zeros(PACK_VERS(HOSTEXEC_SID_HOST_MALLOC), arg0);
-+  return (char *)result.arg1;
-+}
-+int printf_execute(char *print_buffer, uint32_t bufsz) {
-+  uint64_t arg0, arg1;
-+  arg0 = (uint64_t)bufsz;
-+  arg1 = (uint64_t)print_buffer;
-+  hostexec_result_t result =
-+      hostexec_invoke_zeros(PACK_VERS(HOSTEXEC_SID_PRINTF), arg0, arg1);
-+  return (int)result.arg0;
-+}
-+
-+char *hostexec_allocate(uint32_t bufsz) {
-+  uint64_t arg0 = (uint64_t)bufsz;
-+  hostexec_result_t result =
-+      hostexec_invoke_zeros(PACK_VERS(HOSTEXEC_SID_HOST_MALLOC), arg0);
-+  return (char *)result.arg1;
-+}
-+
-+char *hostexec_uint_allocate(uint32_t bufsz) {
-+  return hostexec_allocate(bufsz);
-+}
-+char *hostexec_uint64_allocate(uint32_t bufsz) {
-+  return hostexec_allocate(bufsz);
-+}
-+char *hostexec_int_allocate(uint32_t bufsz) { return hostexec_allocate(bufsz); }
-+char *hostexec_long_allocate(uint32_t bufsz) {
-+  return hostexec_allocate(bufsz);
-+}
-+char *hostexec_double_allocate(uint32_t bufsz) {
-+  return hostexec_allocate(bufsz);
-+}
-+char *hostexec_float_allocate(uint32_t bufsz) {
-+  return hostexec_allocate(bufsz);
-+}
-+
-+char *fprintf_allocate(uint32_t bufsz) {
-+  uint64_t arg0 = (uint64_t)bufsz;
-+  hostexec_result_t result =
-+      hostexec_invoke_zeros(PACK_VERS(HOSTEXEC_SID_HOST_MALLOC), arg0);
-+  return (char *)result.arg1;
-+}
-+int fprintf_execute(char *print_buffer, uint32_t bufsz) {
-+  uint64_t arg0, arg1;
-+  arg0 = (uint64_t)bufsz;
-+  arg1 = (uint64_t)print_buffer;
-+  hostexec_result_t result =
-+      hostexec_invoke_zeros(PACK_VERS(HOSTEXEC_SID_FPRINTF), arg0, arg1);
-+  return (int)result.arg0;
-+}
-+
-+#if 0
-+uint64_t __tgt_fort_ptr_assn_i8(void *varg0, void *varg1, void *varg2,
-+                                void *varg3, void *varg4) {
-+  uint64_t arg0, arg1, arg2, arg3, arg4;
-+  arg0 = (uint64_t)varg0;
-+  arg1 = (uint64_t)varg1;
-+  arg2 = (uint64_t)varg2;
-+  arg3 = (uint64_t)varg3;
-+  arg4 = (uint64_t)varg4;
-+  hostexec_result_t result = hostexec_invoke_zeros(
-+      PACK_VERS(HOSTEXEC_SID_FTNASSIGN), arg0, arg1, arg2, arg3, arg4);
-+  return (uint64_t)result.arg0;
-+}
-+#endif
-+
-+void hostexec_execute(char *print_buffer, uint32_t bufsz) {
-+  uint64_t arg0, arg1;
-+  arg0 = (uint64_t)bufsz;
-+  arg1 = (uint64_t)print_buffer;
-+  hostexec_result_t result =
-+      hostexec_invoke_zeros(PACK_VERS(HOSTEXEC_SID_VOID), arg0, arg1);
-+  // hostexec() is a user-callable void function that returns nothing.
-+  return;
-+}
-+uint32_t hostexec_uint_execute(char *print_buffer, uint32_t bufsz) {
-+  uint64_t arg0, arg1;
-+  arg0 = (uint64_t)bufsz;
-+  arg1 = (uint64_t)print_buffer;
-+  hostexec_result_t result =
-+      hostexec_invoke_zeros(PACK_VERS(HOSTEXEC_SID_UINT), arg0, arg1);
-+  return (uint32_t)result.arg0;
-+}
-+uint64_t hostexec_uint64_execute(char *print_buffer, uint32_t bufsz) {
-+  uint64_t arg0, arg1;
-+  arg0 = (uint64_t)bufsz;
-+  arg1 = (uint64_t)print_buffer;
-+  hostexec_result_t result =
-+      hostexec_invoke_zeros(PACK_VERS(HOSTEXEC_SID_UINT64), arg0, arg1);
-+  return (uint64_t)result.arg0;
-+}
-+double hostexec_double_execute(char *print_buffer, uint32_t bufsz) {
-+  uint64_t arg0, arg1;
-+  arg0 = (uint64_t)bufsz;
-+  arg1 = (uint64_t)print_buffer;
-+  hostexec_result_t result =
-+      hostexec_invoke_zeros(PACK_VERS(HOSTEXEC_SID_DOUBLE), arg0, arg1);
-+  union {
-+    uint64_t val;
-+    double dval;
-+  } unionarg;
-+  unionarg.val = result.arg0;
-+  return unionarg.dval;
-+}
-+int hostexec_int_execute(char *print_buffer, uint32_t bufsz) {
-+  uint64_t arg0, arg1;
-+  arg0 = (uint64_t)bufsz;
-+  arg1 = (uint64_t)print_buffer;
-+  hostexec_result_t result =
-+      hostexec_invoke_zeros(PACK_VERS(HOSTEXEC_SID_INT), arg0, arg1);
-+  return (int)result.arg0;
-+}
-+float hostexec_float_execute(char *print_buffer, uint32_t bufsz) {
-+  uint64_t arg0, arg1;
-+  arg0 = (uint64_t)bufsz;
-+  arg1 = (uint64_t)print_buffer;
-+  hostexec_result_t result =
-+      hostexec_invoke_zeros(PACK_VERS(HOSTEXEC_SID_FLOAT), arg0, arg1);
-+  union {
-+    float fval[2];
-+    uint64_t val;
-+  } unionarg;
-+  unionarg.val = result.arg0;
-+  return unionarg.fval[0];
-+}
-+long hostexec_long_execute(char *print_buffer, uint32_t bufsz) {
-+  uint64_t arg0, arg1;
-+  arg0 = (uint64_t)bufsz;
-+  arg1 = (uint64_t)print_buffer;
-+  hostexec_result_t result =
-+      hostexec_invoke_zeros(PACK_VERS(HOSTEXEC_SID_LONG), arg0, arg1);
-+  return (long)result.arg0;
-+}
-+
-+// This function is used for printf arguments that are variable length strings
-+// The clang compiler will generate calls to this only when a string length is
-+// not a compile time constant.
-+uint32_t __strlen_max(char *instr, uint32_t maxstrlen) {
-+  for (uint32_t i = 0; i < maxstrlen; i++)
-+    if (instr[i] == (char)0)
-+      return (uint32_t)(i + 1);
-+  return maxstrlen;
-+}
-+
-+} // end extern "C"
-+
-+#pragma omp end declare target
-diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/hostexec/src/oclAtomics.cl llvm-project/openmp/libomptarget/hostexec/src/oclAtomics.cl
---- llvm-project.upstream/openmp/libomptarget/hostexec/src/oclAtomics.cl	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/openmp/libomptarget/hostexec/src/oclAtomics.cl	2023-08-08 21:50:25.020520812 -0400
-@@ -0,0 +1,27 @@
-+
-+#pragma OPENCL EXTENSION cl_khr_int64_base_atomics : enable
-+#pragma OPENCL EXTENSION cl_khr_int64_extended_atomics : enable
-+
-+#define __atomic_ulong atomic_ulong
-+#define __inl __attribute__((flatten, always_inline))
-+
-+// mem order codes: A=acquire, X=relaxed, R=release
-+extern __inl ulong oclAtomic64Load_A(__global __atomic_ulong * Address){
-+  return  __opencl_atomic_load(Address, memory_order_acquire, memory_scope_all_svm_devices);
-+}
-+extern __inl ulong oclAtomic64Load_X(__global __atomic_ulong * Address){
-+  return  __opencl_atomic_load(Address, memory_order_relaxed, memory_scope_all_svm_devices);
-+}
-+extern __inl uint oclAtomic32Load_A(__global const atomic_uint * Address){
-+  return  __opencl_atomic_load(Address, memory_order_acquire, memory_scope_all_svm_devices);
-+}
-+extern __inl int oclAtomic64CAS_AX(__global __atomic_ulong * Address,  ulong * e_val, ulong new_val) {
-+   return __opencl_atomic_compare_exchange_strong( Address, e_val, new_val,
-+     memory_order_acquire, memory_order_relaxed, memory_scope_all_svm_devices);
-+}
-+extern __inl int oclAtomic64CAS_RX(__global __atomic_ulong * Address,  ulong * e_val, ulong new_val) {
-+   return __opencl_atomic_compare_exchange_strong(Address, e_val, new_val,
-+     memory_order_release, memory_order_relaxed, memory_scope_all_svm_devices);
-+}
-+#undef __atomic_ulong
-+#undef __inl
-diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/hostexec/test/compile_execute_cmds llvm-project/openmp/libomptarget/hostexec/test/compile_execute_cmds
---- llvm-project.upstream/openmp/libomptarget/hostexec/test/compile_execute_cmds	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/openmp/libomptarget/hostexec/test/compile_execute_cmds	2023-08-08 21:50:25.020520812 -0400
-@@ -0,0 +1,50 @@
-+
-+AOMP=${AOMP:-/usr/lib/aomp}
-+AOMP_GPU=${AOMP_GPU:-gfx908}
-+export LD_LIBRARY_PATH=$AOMP/lib
-+
-+echo $AOMP/bin/clang -O3 -fopenmp --offload-arch=$AOMP_GPU hostexec_test.c -o hostexec_test
-+$AOMP/bin/clang -O3 -fopenmp --offload-arch=$AOMP_GPU hostexec_test.c -o hostexec_test
-+echo 
-+echo ===== Running ./hostexec_test with offloading =====
-+echo LIBOMPTARGET_KERNEL_TRACE=1 OMP_TARGET_OFFLOAD=MANDATORY ./hostexec_test
-+LIBOMPTARGET_KERNEL_TRACE=1 OMP_TARGET_OFFLOAD=MANDATORY ./hostexec_test
-+echo
-+echo ===== Running ./hostexec_test with offloading disabled =====
-+echo LIBOMPTARGET_KERNEL_TRACE=1 OMP_TARGET_OFFLOAD=DISABLED ./hostexec_test
-+LIBOMPTARGET_KERNEL_TRACE=1 OMP_TARGET_OFFLOAD=DISABLED ./hostexec_test
-+
-+echo 
-+echo $AOMP/bin/clang -O3 -fopenmp --offload-arch=$AOMP_GPU variant.c -o variant
-+$AOMP/bin/clang -O3 -fopenmp --offload-arch=$AOMP_GPU variant.c -o variant
-+echo 
-+echo ===== Running ./variant with offloading =====
-+echo LIBOMPTARGET_KERNEL_TRACE=1 OMP_TARGET_OFFLOAD=MANDATORY ./variant
-+LIBOMPTARGET_KERNEL_TRACE=1 OMP_TARGET_OFFLOAD=MANDATORY ./variant
-+echo
-+echo ===== Running ./variant with offloading disabled =====
-+echo LIBOMPTARGET_KERNEL_TRACE=1 OMP_TARGET_OFFLOAD=DISABLED ./variant
-+LIBOMPTARGET_KERNEL_TRACE=1 OMP_TARGET_OFFLOAD=DISABLED ./variant
-+
-+echo
-+# try to find openmpi
-+MPI=~/local/openmpi
-+[ ! -d $MPI ] && MPI=/opt/openmpi-4.1.5
-+[ ! -d $MPI ] && MPI=/opt/openmpi-4.1.4
-+[ ! -d $MPI ] && MPI=/usr/local/openmpi
-+[ ! -d $MPI ] && MPI=/usr/lib/openmpi
-+[ ! -d $MPI ] && MPI=/usr/lib/x86_64-linux-gnu/openmpi
-+[ ! -d $MPI ] && exit 
-+echo OMPI_CC=$AOMP/bin/clang++ $MPI/bin/mpicc -O2 -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$AOMP_GPU mpi-in-target-region.cpp -I. -o mpi-in-target-region
-+OMPI_CC=$AOMP/bin/clang++ $MPI/bin/mpicc -O2 -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$AOMP_GPU mpi-in-target-region.cpp -I. -o mpi-in-target-region
-+echo
-+echo ===== Running ./mpi-in-target-region with offloading =====
-+echo LIBOMPTARGET_KERNEL_TRACE=1 OMP_TARGET_OFFLOAD=MANDATORY ./variant
-+echo LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$MPI/lib:/usr/lib/x86_64-linux-gnu: $MPI/bin/mpirun -np 2 --mca btl_openib_warn_no_device_params_found 0 ./mpi-in-target-region
-+LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$MPI/lib:/usr/lib/x86_64-linux-gnu: $MPI/bin/mpirun -np 2 --mca btl_openib_warn_no_device_params_found 0 ./mpi-in-target-region
-+
-+echo
-+echo cleanup 
-+rm ./variant
-+rm ./hostexec_test
-+rm ./mpi-in-target-region
-diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/hostexec/test/hostexec_test.c llvm-project/openmp/libomptarget/hostexec/test/hostexec_test.c
---- llvm-project.upstream/openmp/libomptarget/hostexec/test/hostexec_test.c	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/openmp/libomptarget/hostexec/test/hostexec_test.c	2023-08-08 21:50:25.020520812 -0400
-@@ -0,0 +1,159 @@
-+#include <hostexec.h>
-+#include <omp.h>
-+#include <stdarg.h>
-+#include <stdio.h>
-+
-+int myintfn(void *fnptr, ...) {
-+  va_list args;
-+  va_start(args, fnptr);
-+  int *a = va_arg(args, int *);
-+  int i2 = va_arg(args, int);
-+  int i3 = va_arg(args, int);
-+  va_end(args);
-+  int rv = i2 + i3;
-+  printf("  INSIDE myintfn:  fnptr:%p  &a:%p int arg2:%d  int arg3:%d rv:%d \n",
-+         fnptr, a, i2, i3, rv);
-+  return rv;
-+}
-+double mydoublefn(void *fnptr, ...) {
-+  va_list args;
-+  va_start(args, fnptr);
-+  int *a = va_arg(args, int *);
-+  int i2 = va_arg(args, int);
-+  int i3 = va_arg(args, int);
-+  double rv = (double)(i2 + i3) * 1.1;
-+  printf(
-+      "  INSIDE mydoublefn:  fnptr:%p  &a:%p int arg2:%d  int arg3:%d rv:%f \n",
-+      fnptr, a, i2, i3, rv);
-+  va_end(args);
-+  return rv;
-+}
-+long mylongfn(void *fnptr, ...) {
-+  va_list args;
-+  va_start(args, fnptr);
-+  int *a = va_arg(args, int *);
-+  int i2 = va_arg(args, int);
-+  int i3 = va_arg(args, int);
-+  long rv = -(long)(i2 + i3);
-+  printf(
-+      "  INSIDE mylongfn:  fnptr:%p  &a:%p int arg2:%d  int arg3:%d rv:%ld \n",
-+      fnptr, a, i2, i3, rv);
-+  va_end(args);
-+  return rv;
-+}
-+float myfloatfn(void *fnptr, ...) {
-+  va_list args;
-+  va_start(args, fnptr);
-+  int *a = va_arg(args, int *);
-+  int i2 = va_arg(args, int);
-+  int i3 = va_arg(args, int);
-+  float rv = (float)(i2 + i3) * 1.1;
-+  printf(
-+      "  INSIDE myfloatfn:  fnptr:%p  &a:%p int arg2:%d  int arg3:%d rv:%f \n",
-+      fnptr, a, i2, i3, rv);
-+  va_end(args);
-+  return rv;
-+}
-+void my4argvoidfn(void *fnptr, ...) {
-+  va_list args;
-+  va_start(args, fnptr);
-+  int *a = va_arg(args, int *);
-+  int i2 = va_arg(args, int);
-+  int i3 = va_arg(args, int);
-+  printf("  INSIDE my4argvoidfn:  fnptr:%p  &a:%p int arg2:%d  int arg3:%d  \n",
-+         fnptr, a, i2, i3);
-+  va_end(args);
-+}
-+
-+int main() {
-+  int N = 4;
-+  int a[N];
-+  int b[N];
-+  for (int i = 0; i < N; i++) {
-+    a[i] = 0;
-+    b[i] = i;
-+  }
-+
-+  printf("\nTesting native variadic function pointers fnptr:%p  &a:%p\n", myintfn, (void*) a);
-+  uint sim1 = myintfn(myintfn, &a, 2, 3);
-+  double sim1d = mydoublefn(mydoublefn, &a, 2, 3);
-+  my4argvoidfn(my4argvoidfn, &a, 2, 3);
-+  printf("Return values are %d  and %f \n", sim1, sim1d);
-+
-+  printf("\nTesting hostexec wrappers/macro on host (no target region)\n");
-+  printf("  Results should be same as above  fn_ptr:%p &a:%p\n", myintfn, &a);
-+  uint sim2 = hostexec_int(myintfn, &a, 2, 3);
-+  double sim2d = hostexec_double(mydoublefn, &a, 2, (int)3);
-+  hostexec(my4argvoidfn, &a, 2, 3);
-+  printf("Return values are %d  and %f \n", sim2, sim2d);
-+
-+  // function pointers are not captured so convert to variables
-+  hostexec_int_t *myintfn_var = myintfn;
-+  hostexec_double_t *mydoublefn_var = mydoublefn;
-+  hostexec_float_t *myfloatfn_var = myfloatfn;
-+  hostexec_long_t *mylongfn_var = mylongfn;
-+  hostexec_t *my4argvoidfn_var = my4argvoidfn;
-+
-+  printf("\nTesting hostexec variadic functions in simple target region \n");
-+  printf("  Results should be same as above  fn_ptr:%p &a:%p\n", myintfn, &a);
-+#pragma omp target map(to:a[0:N]) 
-+  {
-+  uint sim2 = hostexec_int(myintfn_var, &a, 2, 3);
-+  double sim2d = hostexec_double(mydoublefn_var, &a, 2, (int)3);
-+  hostexec(my4argvoidfn_var, &a, 2, 3);
-+  printf("target printf: Return values are %d  and %f \n", sim2, sim2d);
-+  }
-+
-+  int failcode = 0;
-+  printf("\nTesting hostexec variadic functions in omp parallel target region \n");
-+#pragma omp target parallel for map(from: a[0:N]) map(to:b[0:N]) map(tofrom : failcode) 
-+  for (int j = 0; j < N; j++) {
-+    a[j] = b[j];
-+    uint rv = hostexec_int(myintfn_var, &a, j, a[j]);
-+    double rvd = hostexec_double(mydoublefn_var, &a, j, a[j]);
-+    float rvf = hostexec_float(myfloatfn_var, &a, j, a[j]);
-+    long rvl = hostexec_long(mylongfn_var, &a, j, a[j]);
-+    hostexec(my4argvoidfn_var, &a, j, a[j]);
-+    printf( "target printf: t:%d of %d :: j:%d a[j]:%d return_vals int:%d "
-+            "double:%f float:%f long:%ld \n",
-+         omp_get_thread_num(), omp_get_num_threads(), j, a[j], rv, rvd, rvf, rvl);
-+    if (rv != j + a[j]) {
-+      failcode++;
-+      fprintf(stderr, "hostexec_int failed\n");
-+    }
-+    if (rvd != (double)(j + a[j]) * 1.1) {
-+      failcode++;
-+      fprintf(stderr, "hostexec_double failed\n");
-+    }
-+    if (rvf - ((float)(j + a[j]) * 1.1) > 10e-8) {
-+      failcode++;
-+      fprintf(stderr, "hostexec_float failed rvf:%f answer:%f \n", rvf,
-+              (float)(j + a[j]) * 1.1);
-+    }
-+    if (rvd - ((double)(j + a[j]) * 1.1) > 10e-15) {
-+      failcode++;
-+      fprintf(stderr, "hostexec_double failed rvd:%f answer:%f \n", rvd,
-+              (double)(j + a[j]) * 1.1);
-+    }
-+    if (rvl != -(long)(j + a[j])) {
-+      failcode++;
-+      printf("hostexec_long FAILED %ld rvl:%ld\n", -(long)(j + a[j]), rvl);
-+    }
-+  }
-+
-+  // Check that b was copied into a
-+  int rc = 0;
-+  for (int i = 0; i < N; i++)
-+    if (a[i] != b[i]) {
-+      rc++;
-+      printf("Wrong value: a[%d]=%d\n", i, a[i]);
-+    }
-+
-+  if (!rc && !failcode) {
-+    printf("Success\n");
-+    return EXIT_SUCCESS;
-+  } else {
-+    printf("Failure %d\n", failcode);
-+    return EXIT_FAILURE;
-+  }
-+}
-diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/hostexec/test/mpi-in-target-region.cpp llvm-project/openmp/libomptarget/hostexec/test/mpi-in-target-region.cpp
---- llvm-project.upstream/openmp/libomptarget/hostexec/test/mpi-in-target-region.cpp	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/openmp/libomptarget/hostexec/test/mpi-in-target-region.cpp	2023-08-08 21:50:25.020520812 -0400
-@@ -0,0 +1,54 @@
-+#include "mpi_supplemental.h"
-+#include "omp.h"
-+#include <mpi.h>
-+#include <stdio.h>
-+// #define VSIZE 256 * 8
-+#define VSIZE 256
-+
-+int main(int argc, char *argv[]) {
-+  _mpilib_set_device_globals();
-+  int numranks, rank;
-+  MPI_Init(&argc, &argv);
-+  MPI_Comm_size(MPI_COMM_WORLD, &numranks);
-+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-+  printf("Number of Ranks= %d My rank= %d\n", numranks, rank);
-+  MPI_Comm _mpi_comm = MPI_COMM_WORLD;
-+  MPI_Datatype _mpi_int = MPI_INT;
-+  int *send_recv_buffer = (int *)malloc(VSIZE * sizeof(int));
-+  printf("buffer address is %p\n", send_recv_buffer);
-+
-+#pragma omp target teams distribute parallel for map(to                        \
-+                                                     : send_recv_buffer        \
-+                                                     [0:VSIZE])
-+  for (int i = 0; i < VSIZE; i++) {
-+    int rc = 0;
-+    int TH = omp_get_thread_num();
-+    int NTH = omp_get_num_threads();
-+    int TM = omp_get_team_num();
-+    int NTM = omp_get_num_teams();
-+    int L = TH % 64;
-+    if (rank == 0) {
-+      send_recv_buffer[i] = -i;
-+      if (L == 0 || L == 63) // Only print 1st and last lane
-+        printf("P:%d TAG:%d sending %d with dev addr %p team:%d of %d  "
-+               "thread:%d of %d  LANE:%d  WARP:%d \n",
-+               rank, i, send_recv_buffer[i], &send_recv_buffer[i], TM, NTM, TH,
-+               NTH, L, TH / 64);
-+      MPI_Send(&send_recv_buffer[i], 1, _mpi_int, 1, i, _mpi_comm);
-+    } else {
-+      MPI_Recv(&send_recv_buffer[i], 1, _mpi_int, 0, i, _mpi_comm,
-+               MPI_STATUS_IGNORE);
-+      if (send_recv_buffer[i] != -i)
-+        rc = 1;
-+      if (rc != 0 || L == 0 || L == 63) // Only print 1st and last lane
-+        printf("P:%d TAG:%d received %d with dev addr %p team:%d of %d  "
-+               "thread:%d of %d  LANE:%d  WARP:%d rc:%d\n",
-+               rank, i, send_recv_buffer[i], &send_recv_buffer[i], TM, NTM, TH,
-+               NTH, L, TH / 64, rc);
-+    }
-+  } // end for loop and target region
-+
-+  MPI_Finalize();
-+  //  fprintf(stderr,"rc = %d\n",rc);
-+  return 0;
-+}
-diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/hostexec/test/mpi-simple.cpp llvm-project/openmp/libomptarget/hostexec/test/mpi-simple.cpp
---- llvm-project.upstream/openmp/libomptarget/hostexec/test/mpi-simple.cpp	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/openmp/libomptarget/hostexec/test/mpi-simple.cpp	2023-08-08 21:50:25.020520812 -0400
-@@ -0,0 +1,37 @@
-+#include "mpi_supplemental.h"
-+#include "omp.h"
-+#include <mpi.h>
-+#include <stdio.h>
-+
-+int main(int argc, char *argv[]) {
-+  _mpilib_set_device_globals();
-+  int numranks, rank;
-+  MPI_Init(&argc, &argv);
-+  MPI_Comm_size(MPI_COMM_WORLD, &numranks);
-+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-+  printf("Number of Ranks= %d My rank= %d\n", numranks, rank);
-+  MPI_Comm _mpi_comm = MPI_COMM_WORLD;
-+  MPI_Datatype _mpi_int = MPI_INT;
-+  int send_recv_buffer[2];
-+  printf("buffer address is %p\n", send_recv_buffer);
-+
-+#pragma omp target
-+  {
-+    if (rank == 0) {
-+      send_recv_buffer[0] = -123;
-+      printf("\nProcess %d sending  %d from dev address %p to process 1\n",
-+             rank, send_recv_buffer[0], send_recv_buffer);
-+      MPI_Send(&send_recv_buffer[0], 1, _mpi_int, 1, 0, _mpi_comm);
-+    }
-+    if (rank == 1) {
-+      MPI_Recv(&send_recv_buffer[0], 1, _mpi_int, 0, 0, _mpi_comm,
-+               MPI_STATUS_IGNORE);
-+      printf("\nProcess %d received %d from dev address %p from process 0\n\n",
-+             rank, send_recv_buffer[0], send_recv_buffer);
-+    }
-+  }
-+
-+  MPI_Finalize();
-+
-+  return 0;
-+}
-diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/hostexec/test/mpi_supplemental.h llvm-project/openmp/libomptarget/hostexec/test/mpi_supplemental.h
---- llvm-project.upstream/openmp/libomptarget/hostexec/test/mpi_supplemental.h	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/openmp/libomptarget/hostexec/test/mpi_supplemental.h	2023-08-08 21:50:25.020520812 -0400
-@@ -0,0 +1,79 @@
-+//
-+// mpi_supplemental.h: Supplemental header to build device variants for specific
-+//                     openmpi host function declarations using hostexec:
-+//
-+// int MPI_Send(const void *buf, int count, MPI_Datatype datatype, int dest,
-+//              int tag, MPI_Comm comm);
-+// int MPI_Recv(void *buf, int count, MPI_Datatype datatype, int source,
-+//              int tag, MPI_Comm comm, MPI_Status *status);
-+//
-+// These functions can now be called from OpenMP target regions without
-+// source code modifications.
-+//
-+#include <hostexec.h>
-+#include <mpi.h>
-+#include <stdarg.h>
-+
-+//  There are 4 parts to a supplemental header.
-+
-+// 1. Create variadic proxy functions
-+extern int V_MPI_Send(void *fnptr, ...) {
-+  va_list args;
-+  va_start(args, fnptr);
-+  void *v0 = va_arg(args, void *);
-+  int v1 = va_arg(args, int);
-+  MPI_Datatype v2 = va_arg(args, MPI_Datatype);
-+  int v3 = va_arg(args, int);
-+  int v4 = va_arg(args, int);
-+  MPI_Comm v5 = va_arg(args, MPI_Comm);
-+  va_end(args);
-+  int rval = MPI_Send(v0, v1, v2, v3, v4, v5);
-+  return rval;
-+}
-+extern int V_MPI_Recv(void *fnptr, ...) {
-+  va_list args;
-+  va_start(args, fnptr);
-+  void *v0 = va_arg(args, void *);
-+  int v1 = va_arg(args, int);
-+  MPI_Datatype v2 = va_arg(args, MPI_Datatype);
-+  int v3 = va_arg(args, int);
-+  int v4 = va_arg(args, int);
-+  MPI_Comm v5 = va_arg(args, MPI_Comm);
-+  MPI_Status *v6 = va_arg(args, MPI_Status *);
-+  va_end(args);
-+  int rval = MPI_Recv(v0, v1, v2, v3, v4, v5, v6);
-+  return rval;
-+}
-+
-+#pragma omp begin declare target
-+
-+// 2. Create global variables to store pointers to variadic proxy functions.
-+//    These must be inside a declare target.
-+hostexec_int_t *V_MPI_Send_var;
-+hostexec_int_t *V_MPI_Recv_var;
-+
-+// 3. Create the device variants that call hostexec.
-+#pragma omp begin declare variant match(                                       \
-+    device = {arch(amdgcn, nvptx, nvptx64)},                                   \
-+    implementation = {extension(match_any)})
-+int MPI_Send(const void *buf, int count, MPI_Datatype datatype, int dest,
-+             int tag, MPI_Comm comm) {
-+  return hostexec_int((void *)V_MPI_Send_var, buf, count, datatype, dest, tag,
-+                      comm);
-+}
-+int MPI_Recv(void *buf, int count, MPI_Datatype datatype, int source, int tag,
-+             MPI_Comm comm, MPI_Status *st) {
-+  return hostexec_int((void *)V_MPI_Recv_var, buf, count, datatype, source, tag,
-+                      comm, st);
-+}
-+#pragma omp end declare variant
-+#pragma omp end declare target
-+
-+// 4.  Initialize pointers to host-only library functions on the device.
-+//     These are host pointers stored as device globals which are passed
-+//     to hostexec in the device variants above.
-+void _mpilib_set_device_globals() {
-+  V_MPI_Send_var = V_MPI_Send;
-+  V_MPI_Recv_var = V_MPI_Recv;
-+#pragma omp target update to(V_MPI_Send_var, V_MPI_Recv_var)
-+}
-diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/hostexec/test/mpi_test llvm-project/openmp/libomptarget/hostexec/test/mpi_test
---- llvm-project.upstream/openmp/libomptarget/hostexec/test/mpi_test	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/openmp/libomptarget/hostexec/test/mpi_test	2023-08-08 21:50:25.020520812 -0400
-@@ -0,0 +1,26 @@
-+
-+TRUNK=${TRUNK:-$HOME/rocm/trunk}
-+GPU=${GPU:-gfx908}
-+export LD_LIBRARY_PATH=$TRUNK/lib
-+binary=mpi_in_target_region
-+[ -f $binary ] && rm $binary
-+
-+# try to find openmpi
-+MPI=~/local/openmpi
-+[ ! -d $MPI ] && MPI=/opt/openmpi-4.1.5
-+[ ! -d $MPI ] && MPI=/opt/openmpi-4.1.4
-+[ ! -d $MPI ] && MPI=/usr/local/openmpi
-+[ ! -d $MPI ] && MPI=/usr/lib/openmpi
-+[ ! -d $MPI ] && MPI=/usr/lib/x86_64-linux-gnu/openmpi
-+[ ! -d $MPI ] && exit 
-+echo
-+echo ===== Compiling mpi-in-target-region.cpp =====
-+echo OMPI_CC=$TRUNK/bin/clang++ $MPI/bin/mpicc -O2 -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$GPU mpi-in-target-region.cpp -I. -o $binary
-+OMPI_CC=$TRUNK/bin/clang++ $MPI/bin/mpicc -O2 -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$GPU mpi-in-target-region.cpp -I. -o $binary
-+echo
-+if [ -f $binary ] ; then 
-+echo ===== Running ./$binary offloading =====
-+echo
-+LIBOMPTARGET_KERNEL_TRACE=1 LD_LIBRARY_PATH=$TRUNK/lib:$MPI/lib:/usr/lib/x86_64-linux-gnu $MPI/bin/mpirun -np 2 --mca btl_openib_warn_no_device_params_found 0 ./$binary
-+fi
-+
-diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/hostexec/test/variant.c llvm-project/openmp/libomptarget/hostexec/test/variant.c
---- llvm-project.upstream/openmp/libomptarget/hostexec/test/variant.c	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/openmp/libomptarget/hostexec/test/variant.c	2023-08-08 21:50:25.020520812 -0400
-@@ -0,0 +1,107 @@
-+#include <hostexec.h>
-+#include <omp.h>
-+#include <stdarg.h>
-+#include <stdio.h>
-+//#include <unistd.h>
-+
-+// In this test case, think of my_increment as some library function that may
-+// only execute on the host. When my_increment is called from a target region,
-+// the device variant of my_increment will use hostexec_int to run my_increment
-+// on the host.
-+
-+extern int my_increment(int val) {
-+  int rval = val + 1;
-+  return rval;
-+}
-+
-+//========== START of example supplemental library header ==========
-+//
-+//  To enable host-only execution inside an OpenMP target region of any
-+//  library function without source modification in the target region,
-+//  the library maintainer would create a "supplemental" header.
-+//  This supplemental header has 4 parts for each host-only library function
-+//  This is alternative to source modifications to use reverse offload.
-+//  This supplemental header could be auto-generated from information found
-+//  in the library function declaration.
-+
-+// 1. Create variadic proxy function for each host-only library function.
-+//    This variadic proxy function builds a non-variadic call site on the
-+//    host which results in a correct stack frame. The host service thread
-+//    calls the variadic function via function pointer passed by hostexec.
-+//    First, the args are unpacked suitable for a variadic function call. 
-+//    The service thread cannot call a non-variadic library function directly 
-+//    because we cannot recreate every possible function template.
-+//    Having the library owner be responsible for the conversion from variadic
-+//    to nonvariadic function provides the ability to use hostexec for
-+//    any library function without changing the user code.
-+extern int V_my_increment(void*fnptr, ...) { 
-+  va_list args;
-+  va_start(args, fnptr);
-+  int v0 = va_arg(args, int);
-+  va_end(args);
-+  return my_increment(v0);  // The non-variadic call site
-+}
-+
-+#pragma omp begin declare target 
-+
-+// 2. Create a global variable to store pointer to variadic proxy function
-+hostexec_int_t * V_my_increment_var;
-+
-+// 3. Create the device variant of the library function that calls hostexec
-+//    with the pointer to the variadic proxy function. 
-+#pragma omp begin declare variant match(device = {arch(amdgcn, nvptx, nvptx64)})
-+int my_increment(int val) {return hostexec_int(V_my_increment_var,val);}
-+#pragma omp end declare variant  
-+#pragma omp end declare target
-+
-+// 4.  Initialize pointers to host-only library functions on the device.
-+//     These are host pointers stored as device globals passed to hostexec.
-+void _mylib_set_device_globals(){
-+  V_my_increment_var  = V_my_increment;
-+  #pragma omp target update to(V_my_increment_var)
-+}
-+
-+//========== END example supplemental library header ==========
-+
-+void vmul(int*a, int*b, int*c, int N){
-+  #pragma omp target teams distribute parallel for map(to: a[0:N],b[0:N]) map(from:c[0:N]) 
-+  for(int i=0;i<N;i++) {
-+    c[i]=a[i]*b[i];
-+    c[i] = my_increment(c[i]) ; // example call to library function.
-+    c[i]--;  // adjust (decrement) to get the correct answer in this test case.
-+  }
-+}
-+
-+int main(){
-+    // Initialize pointers to host-only library functions on device.
-+    // FIXME: Get this done by initialization of libomptarget globals.
-+    _mylib_set_device_globals(); 
-+    
-+    const int N = 10;    
-+    int a[N],b[N],c[N],validate[N];
-+    int flag=-1; // Mark Success
-+    for(int i=0;i<N;i++) {
-+        a[i]=i+1;
-+        b[i]=i+2;
-+        validate[i]=a[i]*b[i];
-+    }
-+
-+    vmul(a,b,c,N);
-+
-+    for(int i=0;i<N;i++) {
-+        if(c[i]!=validate[i]) {
-+//          print 1st bad index
-+            if( flag == -1 ) 
-+              printf("First fail: c[%d](%d) != validate[%d](%d)\n",i,c[i],i,validate[i]);
-+            flag = i;
-+        }
-+    }
-+    if( flag == -1 ){
-+        printf("Success\n");
-+        return 0;
-+    } else {
-+        printf("Last fail: c[%d](%d) != validate[%d](%d)\n",flag,c[flag],flag,validate[flag]);
-+        printf("Fail\n");
-+        return 1;
-+    }
-+}
-diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/plugins-nextgen/amdgpu/CMakeLists.txt llvm-project/openmp/libomptarget/plugins-nextgen/amdgpu/CMakeLists.txt
---- llvm-project.upstream/openmp/libomptarget/plugins-nextgen/amdgpu/CMakeLists.txt	2023-07-12 10:51:02.388794579 -0400
-+++ llvm-project/openmp/libomptarget/plugins-nextgen/amdgpu/CMakeLists.txt	2023-08-08 21:50:25.020520812 -0400
-@@ -85,10 +85,12 @@
-   PluginInterface
-   ${LIBOMPTARGET_DEP_LIBRARIES}
-   ${OPENMP_PTHREAD_LIB}
-+   -Wl,--whole-archive amdgcn_hostexec_services -Wl,--no-whole-archive
-   ${LDFLAGS_UNDEFINED}
+diff -Naur -x .git llvm-project.atd/offload/plugins-nextgen/amdgpu/src/rtl.cpp llvm-project/offload/plugins-nextgen/amdgpu/src/rtl.cpp
+--- llvm-project.atd/offload/plugins-nextgen/amdgpu/src/rtl.cpp	2024-09-24 17:07:28.454681738 -0400
++++ llvm-project/offload/plugins-nextgen/amdgpu/src/rtl.cpp	2024-09-23 17:34:30.303769478 -0400
+@@ -93,6 +93,14 @@
  
-   NO_INSTALL_RPATH
- )
-+add_dependencies(omptarget.rtl.amdgpu amdgcn_hostexec_services)
- 
- if ((OMPT_TARGET_DEFAULT) AND (LIBOMPTARGET_OMPT_SUPPORT))
-   target_link_libraries(omptarget.rtl.amdgpu PRIVATE OMPT)
-diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/plugins-nextgen/amdgpu/src/rtl.cpp llvm-project/openmp/libomptarget/plugins-nextgen/amdgpu/src/rtl.cpp
---- llvm-project.upstream/openmp/libomptarget/plugins-nextgen/amdgpu/src/rtl.cpp	2023-08-08 09:10:34.834918824 -0400
-+++ llvm-project/openmp/libomptarget/plugins-nextgen/amdgpu/src/rtl.cpp	2023-08-08 21:50:25.020520812 -0400
-@@ -59,6 +59,27 @@
- namespace target {
- namespace plugin {
+ namespace utils {
  
 +extern "C" {
-+uint64_t hostexec_assign_buffer(hsa_agent_t Agent, hsa_queue_t *ThisQ,
++uint64_t hostrpc_assign_buffer(hsa_agent_t Agent, hsa_queue_t *ThisQ,
 +                               uint32_t DeviceId,
 +                               hsa_amd_memory_pool_t HostMemoryPool,
 +                               hsa_amd_memory_pool_t DevMemoryPool);
-+hsa_status_t hostexec_terminate();
-+__attribute__((weak)) hsa_status_t hostexec_terminate() {
-+  return HSA_STATUS_SUCCESS;
-+}
-+__attribute__((weak)) uint64_t
-+hostexec_assign_buffer(hsa_agent_t, hsa_queue_t *, uint32_t DeviceId,
-+                      hsa_amd_memory_pool_t HostMemoryPool,
-+                      hsa_amd_memory_pool_t DevMemoryPool) {
-+  // FIXME:THIS SHOULD BE HARD FAIL
-+  DP("Warning: Attempting to assign hostexec to device %u, but hostexec library "
-+     "missing\n",
-+     DeviceId);
-+  return 0;
-+}
++hsa_status_t hostrpc_terminate();
 +}
 +
- /// Forward declarations for all specialized data structures.
- struct AMDGPUKernelTy;
- struct AMDGPUDeviceTy;
-@@ -130,6 +151,11 @@
-                        "Error in hsa_amd_agent_iterate_memory_pools: %s");
- }
+ /// Iterate elements using an HSA iterate function. Do not use this function
+ /// directly but the specialized ones below instead.
+ template <typename ElemTy, typename IterFuncTy, typename CallbackTy>
+@@ -495,6 +503,9 @@
+     return It->second;
+   }
  
-+extern "C" uint64_t hostexec_assign_buffer(hsa_agent_t Agent, hsa_queue_t *ThisQ,
-+                                          uint32_t DeviceId,
-+                                          hsa_amd_memory_pool_t HostMemoryPool,
-+                                          hsa_amd_memory_pool_t DevMemoryPool);
-+extern "C" hsa_status_t hostexec_terminate();
- } // namespace utils
- 
- /// Utility class representing generic resource references to AMDGPU resources.
-@@ -409,6 +435,7 @@
++  /// Does device image contain Symbol
++  bool hasDeviceSymbol(GenericDeviceTy &Device, StringRef SymbolName) const;
++
+ private:
+   /// The exectuable loaded on the agent.
+   hsa_executable_t Executable;
+@@ -507,7 +518,12 @@
+ /// generic kernel class.
+ struct AMDGPUKernelTy : public GenericKernelTy {
    /// Create an AMDGPU kernel with a name and an execution mode.
-   AMDGPUKernelTy(const char *Name, OMPTgtExecModeFlags ExecutionMode)
-       : GenericKernelTy(Name, ExecutionMode),
-+        GlobalTy_device_st_buf("service_thread_buf", sizeof(uint64_t)),
-         ImplicitArgsSize(sizeof(utils::AMDGPUImplicitArgsTy)) {}
+-  AMDGPUKernelTy(const char *Name) : GenericKernelTy(Name) {}
++  AMDGPUKernelTy(const char *Name, GenericGlobalHandlerTy &Handler)
++      : GenericKernelTy(Name),
++        OMPX_DisableHostExec("LIBOMPTARGET_DISABLE_HOST_EXEC", false),
++        ServiceThreadDeviceBufferGlobal("service_thread_buf",
++			sizeof(uint64_t)),
++        HostServiceBufferHandler(Handler) {}
  
    /// Initialize the AMDGPU kernel.
-@@ -456,8 +483,23 @@
+   Error initImpl(GenericDeviceTy &Device, DeviceImageTy &Image) override {
+@@ -558,6 +574,14 @@
        INFO(OMP_INFOTYPE_PLUGIN_KERNEL, Device.getDeviceId(),
             "Could not read extra information for kernel %s.", getName());
  
-+    needs_host_services = true;
-+    auto sym = AMDImage.findDeviceSymbol(Device, "__needs_host_services");
-+    if (!sym) {
-+      LLVMConsumeError(llvm::wrap(sym.takeError()));
-+      needs_host_services = false ;
-+    }
-+    if (needs_host_services) {
-+      if (auto Err = rpc_buf_handler->getGlobalMetadataFromDevice(
-+              Device, AMDImage, GlobalTy_device_st_buf))
++    NeedsHostServices =
++        AMDImage.hasDeviceSymbol(Device, "__needs_host_services");
++    if (NeedsHostServices && !OMPX_DisableHostExec) {
++      if (auto Err = HostServiceBufferHandler.getGlobalMetadataFromDevice(
++              Device, AMDImage, ServiceThreadDeviceBufferGlobal))
 +        return Err;
 +    }
 +
      return Plugin::success();
    }
-+  bool needs_host_services;
-+  GlobalTy GlobalTy_device_st_buf;
-+  GenericGlobalHandlerTy *rpc_buf_handler = Plugin::createGlobalHandler();
  
-   /// Launch the AMDGPU kernel function.
-   Error launchImpl(GenericDeviceTy &GenericDevice, uint32_t NumThreads,
-@@ -672,6 +714,7 @@
-     // Push the barrier with the lock acquired.
-     return pushBarrierImpl(OutputSignal, InputSignal1, InputSignal2);
-   }
-+  hsa_queue_t *getHsaQueue() { return Queue; }
+@@ -586,6 +610,9 @@
+   /// Indicates whether or not we need to set up our own private segment size.
+   bool usesDynamicStack() const { return DynamicStack; }
  
- private:
-   /// Push a barrier packet that will wait up to two input signals. Assumes the
-@@ -796,6 +839,7 @@
- /// devices. This class relies on signals to implement streams and define the
- /// dependencies between asynchronous operations.
- struct AMDGPUStreamTy {
++  /// Envar to disable host-exec thread creation.
++  BoolEnvar OMPX_DisableHostExec;
 +
  private:
-   /// Utility struct holding arguments for async H2H memory copies.
-   struct MemcpyArgsTy {
-@@ -1090,6 +1134,8 @@
+   /// The kernel object to execute.
+   uint64_t KernelObject;
+@@ -601,6 +628,16 @@
+ 
+   /// Additional Info for the AMD GPU Kernel
+   std::optional<offloading::amdgpu::AMDGPUKernelMetaData> KernelInfo;
++
++  /// Indicate whether this Kernel requires host services
++  bool NeedsHostServices;
++
++  /// Global for host service device thread buffer
++  GlobalTy ServiceThreadDeviceBufferGlobal;
++
++  /// Global handler for hostservices buffer
++  GenericGlobalHandlerTy &HostServiceBufferHandler;
++
+ };
+ 
+ /// Class representing an HSA signal. Signals are used to define dependencies
+@@ -784,6 +821,12 @@
+     return pushBarrierImpl(OutputSignal, InputSignal1, InputSignal2);
+   }
+ 
++  /// Return the pointer to the underlying HSA queue
++  hsa_queue_t *getHsaQueue() {
++    assert(Queue && "HSA Queue initialized");
++    return Queue;
++  }
++
+ private:
+   /// Push a barrier packet that will wait up to two input signals. Assumes the
+   /// the queue lock is acquired.
+@@ -1127,6 +1170,7 @@
+       return Err;
+ 
+     // Push a barrier into the queue with both input signals.
++    DP("Using Queue: %p with HSA Queue: %p\n", Queue, Queue->getHsaQueue());
+     return Queue->pushBarrier(OutputSignal, InputSignal, OtherSignal);
+   }
+ 
+@@ -1216,6 +1260,8 @@
    /// Deinitialize the stream's signals.
    Error deinit() { return Plugin::success(); }
  
@@ -4252,7 +4135,7 @@ diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/plugins-nextgen/amd
    /// Attach an RPC server to this stream.
    void setRPCServer(RPCServerTy *Server) { RPCServer = Server; }
  
-@@ -1595,6 +1641,9 @@
+@@ -1741,6 +1787,9 @@
  
      return Plugin::success();
    }
@@ -4262,60 +4145,93 @@ diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/plugins-nextgen/amd
  
    /// Retrieve and construct all memory pools from the device agent(s).
    virtual Error retrieveAllMemoryPools() = 0;
-@@ -2793,6 +2842,7 @@
+@@ -2113,7 +2162,8 @@
+     if (!AMDGPUKernel)
+       return Plugin::error("Failed to allocate memory for AMDGPU kernel");
+ 
+-    new (AMDGPUKernel) AMDGPUKernelTy(Name);
++    //new (AMDGPUKernel) AMDGPUKernelTy(Name);
++    new (AMDGPUKernel) AMDGPUKernelTy(Name, Plugin.getGlobalHandler());
+ 
+     return *AMDGPUKernel;
+   }
+@@ -2804,7 +2854,8 @@
+       return Plugin::success();
+ 
+     // Allocate and construct the AMDGPU kernel.
+-    AMDGPUKernelTy AMDGPUKernel(KernelName);
++    //AMDGPUKernelTy AMDGPUKernel(KernelName);
++    AMDGPUKernelTy AMDGPUKernel(KernelName, Plugin.getGlobalHandler());
+     if (auto Err = AMDGPUKernel.init(*this, Image))
+       return Err;
+ 
+@@ -2976,6 +3027,7 @@
+   hsa_agent_t Agent = AMDGPUDevice.getAgent();
+ 
+   hsa_executable_symbol_t Symbol;
++  // printf("= = = > findDeviceSymbol for %s\n",SymbolName.data());
+   hsa_status_t Status = hsa_executable_get_symbol_by_name(
+       Executable, SymbolName.data(), &Agent, &Symbol);
+   if (auto Err = Plugin::check(
+@@ -2986,6 +3038,17 @@
+   return Symbol;
+ }
+ 
++bool AMDGPUDeviceImageTy::hasDeviceSymbol(GenericDeviceTy &Device,
++                                          StringRef SymbolName) const {
++  AMDGPUDeviceTy &AMDGPUDevice = static_cast<AMDGPUDeviceTy &>(Device);
++  hsa_agent_t Agent = AMDGPUDevice.getAgent();
++  hsa_executable_symbol_t Symbol;
++  // printf("= = = > hasDeviceSymbol for %s\n",SymbolName.data());
++  hsa_status_t Status = hsa_executable_get_symbol_by_name(
++      Executable, SymbolName.data(), &Agent, &Symbol);
++  return (Status == HSA_STATUS_SUCCESS);
++}
++
+ template <typename ResourceTy>
+ Error AMDGPUResourceRef<ResourceTy>::create(GenericDeviceTy &Device) {
+   if (Resource)
+@@ -3139,6 +3202,7 @@
  
    /// Deinitialize the plugin.
    Error deinitImpl() override {
-+    utils::hostexec_terminate();
++    utils::hostrpc_terminate();
      // The HSA runtime was not initialized, so nothing from the plugin was
      // actually initialized.
      if (!Initialized)
-@@ -2969,10 +3019,32 @@
-                 sizeof(void *) * KernelArgs.NumArgs);
+@@ -3349,11 +3413,35 @@
+   if (LaunchParams.Size)
+     std::memcpy(AllArgs, LaunchParams.Data, LaunchParams.Size);
  
++  uint64_t Buffer = 0;
    AMDGPUDeviceTy &AMDGPUDevice = static_cast<AMDGPUDeviceTy &>(GenericDevice);
--
+ 
    AMDGPUStreamTy *Stream = nullptr;
    if (auto Err = AMDGPUDevice.getStream(AsyncInfoWrapper, Stream))
      return Err;
-+  if (needs_host_services) {
-+    int32_t devid = AMDGPUDevice.getDeviceId();
-+    hsa_amd_memory_pool_t host_mem_pool =
++  if (NeedsHostServices) {
++    int32_t DevID = AMDGPUDevice.getDeviceId();
++    hsa_amd_memory_pool_t HostMemPool =
 +        HostDevice.getFineGrainedMemoryPool().get();
-+    hsa_amd_memory_pool_t device_mem_pool =
++    hsa_amd_memory_pool_t DeviceMemPool =
 +        AMDGPUDevice.getCoarseGrainedMemoryPool()->get();
-+    hsa_queue_t *hsa_queue = Stream->getHsaQueue();
-+    uint64_t Buffer =
-+        utils::hostexec_assign_buffer(AMDGPUDevice.getAgent(), hsa_queue, devid,
-+                                     host_mem_pool, device_mem_pool);
-+    GlobalTy GlobalTy_host_st_buf("service_thread_buf", sizeof(uint64_t),
-+                                  &Buffer);
-+    if (auto Err = rpc_buf_handler->writeGlobalToDevice(
-+            AMDGPUDevice, GlobalTy_host_st_buf, GlobalTy_device_st_buf)) {
++    hsa_queue_t *HsaQueue = Stream->getHsaQueue();
++    Buffer = utils::hostrpc_assign_buffer(AMDGPUDevice.getAgent(), HsaQueue,
++                                          DevID, HostMemPool, DeviceMemPool);
++    GlobalTy ServiceThreadHostBufferGlobal("service_thread_buf",
++                                           sizeof(uint64_t), &Buffer);
++    if (auto Err = HostServiceBufferHandler.writeGlobalToDevice(
++            AMDGPUDevice, ServiceThreadHostBufferGlobal,
++            ServiceThreadDeviceBufferGlobal)) {
 +      DP("Missing symbol %s, continue execution anyway.\n",
-+         GlobalTy_host_st_buf.getName().data());
++         ServiceThreadHostBufferGlobal.getName().data());
 +      consumeError(std::move(Err));
 +    }
-+    DP("hostexec buffer allocated at %p and service thread started\n",
++    DP("Hostrpc buffer allocated at %p and service thread started\n",
 +       (void *)Buffer);
 +  } else {
-+    DP("No hostexec buffer or service thread required\n");
++    DP("No hostrpc buffer or service thread required\n");
 +  }
  
    // If this kernel requires an RPC server we attach its pointer to the stream.
    if (GenericDevice.getRPCServer())
-diff -Naur -x .git llvm-project.upstream/openmp/libomptarget/plugins-nextgen/cuda/CMakeLists.txt llvm-project/openmp/libomptarget/plugins-nextgen/cuda/CMakeLists.txt
---- llvm-project.upstream/openmp/libomptarget/plugins-nextgen/cuda/CMakeLists.txt	2023-07-12 10:51:02.392794574 -0400
-+++ llvm-project/openmp/libomptarget/plugins-nextgen/cuda/CMakeLists.txt	2023-08-08 21:50:25.020520812 -0400
-@@ -38,9 +38,10 @@
-   MemoryManager
-   PluginInterface
-   ${OPENMP_PTHREAD_LIB}
--
-+  "-Wl,--whole-archive nvptx_hostexec_services -Wl,--no-whole-archive"
-   NO_INSTALL_RPATH
- )
-+add_dependencies(omptarget.rtl.cuda nvptx_hostexec_services)
- 
- if ((OMPT_TARGET_DEFAULT) AND (LIBOMPTARGET_OMPT_SUPPORT))
-   target_link_libraries(omptarget.rtl.cuda PRIVATE OMPT)
