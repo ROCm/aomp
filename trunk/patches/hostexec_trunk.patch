@@ -1,6 +1,6 @@
 diff -Naur -x .git llvm-project.atd/clang/lib/CodeGen/CGBuiltin.cpp llvm-project/clang/lib/CodeGen/CGBuiltin.cpp
---- llvm-project.atd/clang/lib/CodeGen/CGBuiltin.cpp	2024-09-24 17:21:16.627854672 -0400
-+++ llvm-project/clang/lib/CodeGen/CGBuiltin.cpp	2024-09-24 17:18:09.904493697 -0400
+--- llvm-project.atd/clang/lib/CodeGen/CGBuiltin.cpp	2024-09-25 10:05:14.994414749 -0500
++++ llvm-project/clang/lib/CodeGen/CGBuiltin.cpp	2024-09-25 08:28:31.616214109 -0500
 @@ -5989,6 +5989,9 @@
             getTarget().getTriple().isSPIRV()) &&
            getLangOpts().HIP)
@@ -12,8 +12,8 @@ diff -Naur -x .git llvm-project.atd/clang/lib/CodeGen/CGBuiltin.cpp llvm-project
  
      break;
 diff -Naur -x .git llvm-project.atd/clang/lib/CodeGen/CGExpr.cpp llvm-project/clang/lib/CodeGen/CGExpr.cpp
---- llvm-project.atd/clang/lib/CodeGen/CGExpr.cpp	2024-09-24 17:21:16.807854056 -0400
-+++ llvm-project/clang/lib/CodeGen/CGExpr.cpp	2024-09-24 17:18:09.908493684 -0400
+--- llvm-project.atd/clang/lib/CodeGen/CGExpr.cpp	2024-09-25 10:05:15.122417468 -0500
++++ llvm-project/clang/lib/CodeGen/CGExpr.cpp	2024-09-25 08:28:31.616214109 -0500
 @@ -6098,6 +6098,18 @@
        StaticOperator = true;
    }
@@ -34,8 +34,8 @@ diff -Naur -x .git llvm-project.atd/clang/lib/CodeGen/CGExpr.cpp llvm-project/cl
    if (StaticOperator) {
      // If we're calling a static operator, we need to emit the object argument
 diff -Naur -x .git llvm-project.atd/clang/lib/CodeGen/CGGPUBuiltin.cpp llvm-project/clang/lib/CodeGen/CGGPUBuiltin.cpp
---- llvm-project.atd/clang/lib/CodeGen/CGGPUBuiltin.cpp	2024-09-24 17:21:16.963853522 -0400
-+++ llvm-project/clang/lib/CodeGen/CGGPUBuiltin.cpp	2024-09-24 17:18:09.908493684 -0400
+--- llvm-project.atd/clang/lib/CodeGen/CGGPUBuiltin.cpp	2024-09-25 10:05:15.242420016 -0500
++++ llvm-project/clang/lib/CodeGen/CGGPUBuiltin.cpp	2024-09-25 08:28:31.616214109 -0500
 @@ -191,3 +191,361 @@
    Builder.SetInsertPoint(IRB.GetInsertBlock(), IRB.GetInsertPoint());
    return RValue::get(Printf);
@@ -399,8 +399,8 @@ diff -Naur -x .git llvm-project.atd/clang/lib/CodeGen/CGGPUBuiltin.cpp llvm-proj
 +      {DataStructPtr, BufferLen}));
 +}
 diff -Naur -x .git llvm-project.atd/clang/lib/CodeGen/CodeGenFunction.h llvm-project/clang/lib/CodeGen/CodeGenFunction.h
---- llvm-project.atd/clang/lib/CodeGen/CodeGenFunction.h	2024-09-24 17:21:17.139852919 -0400
-+++ llvm-project/clang/lib/CodeGen/CodeGenFunction.h	2024-09-24 17:18:09.908493684 -0400
+--- llvm-project.atd/clang/lib/CodeGen/CodeGenFunction.h	2024-09-25 10:05:15.358422479 -0500
++++ llvm-project/clang/lib/CodeGen/CodeGenFunction.h	2024-09-25 08:28:31.616214109 -0500
 @@ -4548,6 +4548,13 @@
  
    RValue EmitNVPTXDevicePrintfCallExpr(const CallExpr *E);
@@ -416,8 +416,8 @@ diff -Naur -x .git llvm-project.atd/clang/lib/CodeGen/CodeGenFunction.h llvm-pro
    RValue EmitBuiltinExpr(const GlobalDecl GD, unsigned BuiltinID,
                           const CallExpr *E, ReturnValueSlot ReturnValue);
 diff -Naur -x .git llvm-project.atd/offload/DeviceRTL/CMakeLists.txt llvm-project/offload/DeviceRTL/CMakeLists.txt
---- llvm-project.atd/offload/DeviceRTL/CMakeLists.txt	2024-09-24 17:21:17.323852290 -0400
-+++ llvm-project/offload/DeviceRTL/CMakeLists.txt	2024-09-24 17:18:09.908493684 -0400
+--- llvm-project.atd/offload/DeviceRTL/CMakeLists.txt	2024-09-25 10:05:15.478425028 -0500
++++ llvm-project/offload/DeviceRTL/CMakeLists.txt	2024-09-25 08:28:31.616214109 -0500
 @@ -83,6 +83,7 @@
    ${include_directory}/DeviceTypes.h
    ${include_directory}/DeviceUtils.h
@@ -465,8 +465,8 @@ diff -Naur -x .git llvm-project.atd/offload/DeviceRTL/CMakeLists.txt llvm-projec
      get_filename_component(infile ${src} ABSOLUTE)
      get_filename_component(outfile ${src} NAME)
 diff -Naur -x .git llvm-project.atd/offload/DeviceRTL/include/Hostexec.h llvm-project/offload/DeviceRTL/include/Hostexec.h
---- llvm-project.atd/offload/DeviceRTL/include/Hostexec.h	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/offload/DeviceRTL/include/Hostexec.h	2024-09-24 17:18:09.908493684 -0400
+--- llvm-project.atd/offload/DeviceRTL/include/Hostexec.h	1969-12-31 18:00:00.000000000 -0600
++++ llvm-project/offload/DeviceRTL/include/Hostexec.h	2024-09-25 08:28:31.616214109 -0500
 @@ -0,0 +1,80 @@
 +#ifndef __HOSTEXEC_DEV_H__
 +#define __HOSTEXEC_DEV_H__
@@ -549,8 +549,8 @@ diff -Naur -x .git llvm-project.atd/offload/DeviceRTL/include/Hostexec.h llvm-pr
 +
 +#endif // __HOSTEXEC_DEV_H__ 
 diff -Naur -x .git llvm-project.atd/offload/DeviceRTL/src/exports llvm-project/offload/DeviceRTL/src/exports
---- llvm-project.atd/offload/DeviceRTL/src/exports	2024-09-24 17:21:17.515851632 -0400
-+++ llvm-project/offload/DeviceRTL/src/exports	2024-09-24 17:18:09.908493684 -0400
+--- llvm-project.atd/offload/DeviceRTL/src/exports	2024-09-25 10:05:15.594427491 -0500
++++ llvm-project/offload/DeviceRTL/src/exports	2024-09-25 08:28:31.616214109 -0500
 @@ -14,5 +14,8 @@
  malloc
  free
@@ -562,8 +562,8 @@ diff -Naur -x .git llvm-project.atd/offload/DeviceRTL/src/exports llvm-project/o
 +hostexec_*
  __assert_fail
 diff -Naur -x .git llvm-project.atd/offload/DeviceRTL/src/Hostexec.cpp llvm-project/offload/DeviceRTL/src/Hostexec.cpp
---- llvm-project.atd/offload/DeviceRTL/src/Hostexec.cpp	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/offload/DeviceRTL/src/Hostexec.cpp	2024-09-24 17:18:09.908493684 -0400
+--- llvm-project.atd/offload/DeviceRTL/src/Hostexec.cpp	1969-12-31 18:00:00.000000000 -0600
++++ llvm-project/offload/DeviceRTL/src/Hostexec.cpp	2024-09-25 09:56:37.787596236 -0500
 @@ -0,0 +1,769 @@
 +//===----- Hostexec.cpp -  OpenMP workshare implementation ------ C++ -*-===//
 +//
@@ -580,7 +580,7 @@ diff -Naur -x .git llvm-project.atd/offload/DeviceRTL/src/Hostexec.cpp llvm-proj
 +//===----------------------------------------------------------------------===//
 +
 +#include "Synchronization.h"
-+#include "Types.h"
++#include "DeviceTypes.h"
 +#include "Hostexec.h"
 +
 +/** \brief 
@@ -1335,8 +1335,8 @@ diff -Naur -x .git llvm-project.atd/offload/DeviceRTL/src/Hostexec.cpp llvm-proj
 +#pragma omp end declare target
 +#undef _EXTRA_ARGS
 diff -Naur -x .git llvm-project.atd/offload/DeviceRTL/src/oclAtomics.cl llvm-project/offload/DeviceRTL/src/oclAtomics.cl
---- llvm-project.atd/offload/DeviceRTL/src/oclAtomics.cl	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/offload/DeviceRTL/src/oclAtomics.cl	2024-09-24 17:18:09.908493684 -0400
+--- llvm-project.atd/offload/DeviceRTL/src/oclAtomics.cl	1969-12-31 18:00:00.000000000 -0600
++++ llvm-project/offload/DeviceRTL/src/oclAtomics.cl	2024-09-25 08:28:31.616214109 -0500
 @@ -0,0 +1,93 @@
 +
 +#pragma OPENCL EXTENSION cl_khr_int64_base_atomics : enable
@@ -1432,8 +1432,8 @@ diff -Naur -x .git llvm-project.atd/offload/DeviceRTL/src/oclAtomics.cl llvm-pro
 +#undef __atomic_ulong
 +#undef __inl
 diff -Naur -x .git llvm-project.atd/offload/plugins-nextgen/amdgpu/CMakeLists.txt llvm-project/offload/plugins-nextgen/amdgpu/CMakeLists.txt
---- llvm-project.atd/offload/plugins-nextgen/amdgpu/CMakeLists.txt	2024-09-24 17:21:17.699851003 -0400
-+++ llvm-project/offload/plugins-nextgen/amdgpu/CMakeLists.txt	2024-09-24 17:18:09.908493684 -0400
+--- llvm-project.atd/offload/plugins-nextgen/amdgpu/CMakeLists.txt	2024-09-25 10:05:15.710429955 -0500
++++ llvm-project/offload/plugins-nextgen/amdgpu/CMakeLists.txt	2024-09-25 08:28:31.616214109 -0500
 @@ -4,13 +4,19 @@
  # Create the library and add the default arguments.
  add_target_library(omptarget.rtl.amdgpu AMDGPU)
@@ -1473,8 +1473,8 @@ diff -Naur -x .git llvm-project.atd/offload/plugins-nextgen/amdgpu/CMakeLists.tx
  # functional AMD GPU on the system, or if manually specifies by the user.
  option(LIBOMPTARGET_FORCE_AMDGPU_TESTS "Build AMDGPU libomptarget tests" OFF)
 diff -Naur -x .git llvm-project.atd/offload/plugins-nextgen/amdgpu/hostexec/amdgcn_hostexec.cpp llvm-project/offload/plugins-nextgen/amdgpu/hostexec/amdgcn_hostexec.cpp
---- llvm-project.atd/offload/plugins-nextgen/amdgpu/hostexec/amdgcn_hostexec.cpp	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/offload/plugins-nextgen/amdgpu/hostexec/amdgcn_hostexec.cpp	2024-09-24 17:18:09.912493670 -0400
+--- llvm-project.atd/offload/plugins-nextgen/amdgpu/hostexec/amdgcn_hostexec.cpp	1969-12-31 18:00:00.000000000 -0600
++++ llvm-project/offload/plugins-nextgen/amdgpu/hostexec/amdgcn_hostexec.cpp	2024-09-25 08:28:31.616214109 -0500
 @@ -0,0 +1,513 @@
 +//===---- amdgcn_hostrpc.cpp - Services thread management  ----------------===//
 +//
@@ -1990,8 +1990,8 @@ diff -Naur -x .git llvm-project.atd/offload/plugins-nextgen/amdgpu/hostexec/amdg
 +  return HSA_STATUS_SUCCESS;
 +}
 diff -Naur -x .git llvm-project.atd/offload/plugins-nextgen/amdgpu/hostexec/amdgcn_urilocator.cpp llvm-project/offload/plugins-nextgen/amdgpu/hostexec/amdgcn_urilocator.cpp
---- llvm-project.atd/offload/plugins-nextgen/amdgpu/hostexec/amdgcn_urilocator.cpp	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/offload/plugins-nextgen/amdgpu/hostexec/amdgcn_urilocator.cpp	2024-09-24 17:18:09.912493670 -0400
+--- llvm-project.atd/offload/plugins-nextgen/amdgpu/hostexec/amdgcn_urilocator.cpp	1969-12-31 18:00:00.000000000 -0600
++++ llvm-project/offload/plugins-nextgen/amdgpu/hostexec/amdgcn_urilocator.cpp	2024-09-25 08:28:31.616214109 -0500
 @@ -0,0 +1,228 @@
 +//===---- amdgcn_urilocator.cpp - services support for urilocator  --------===//
 +//
@@ -2222,8 +2222,8 @@ diff -Naur -x .git llvm-project.atd/offload/plugins-nextgen/amdgpu/hostexec/amdg
 +  return errorstate;
 +}
 diff -Naur -x .git llvm-project.atd/offload/plugins-nextgen/amdgpu/hostexec/devsanitizer.cpp llvm-project/offload/plugins-nextgen/amdgpu/hostexec/devsanitizer.cpp
---- llvm-project.atd/offload/plugins-nextgen/amdgpu/hostexec/devsanitizer.cpp	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/offload/plugins-nextgen/amdgpu/hostexec/devsanitizer.cpp	2024-09-24 17:18:09.912493670 -0400
+--- llvm-project.atd/offload/plugins-nextgen/amdgpu/hostexec/devsanitizer.cpp	1969-12-31 18:00:00.000000000 -0600
++++ llvm-project/offload/plugins-nextgen/amdgpu/hostexec/devsanitizer.cpp	2024-09-25 08:28:31.616214109 -0500
 @@ -0,0 +1,143 @@
 +//===---- devsanitizer.cpp: Definition of handler for Sanitizer Service ---===//
 +//
@@ -2369,8 +2369,8 @@ diff -Naur -x .git llvm-project.atd/offload/plugins-nextgen/amdgpu/hostexec/devs
 +}
 +} // end anonymous namespace
 diff -Naur -x .git llvm-project.atd/offload/plugins-nextgen/amdgpu/hostexec/execute_service.cpp llvm-project/offload/plugins-nextgen/amdgpu/hostexec/execute_service.cpp
---- llvm-project.atd/offload/plugins-nextgen/amdgpu/hostexec/execute_service.cpp	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/offload/plugins-nextgen/amdgpu/hostexec/execute_service.cpp	2024-09-24 17:18:09.912493670 -0400
+--- llvm-project.atd/offload/plugins-nextgen/amdgpu/hostexec/execute_service.cpp	1969-12-31 18:00:00.000000000 -0600
++++ llvm-project/offload/plugins-nextgen/amdgpu/hostexec/execute_service.cpp	2024-09-25 08:28:31.616214109 -0500
 @@ -0,0 +1,1390 @@
 +//===---- execute_service.cpp - support for hostrpc services --------------===//
 +//
@@ -3763,8 +3763,8 @@ diff -Naur -x .git llvm-project.atd/offload/plugins-nextgen/amdgpu/hostexec/exec
 +  return _RC_SUCCESS;
 +} // end fortran_rt_service
 diff -Naur -x .git llvm-project.atd/offload/plugins-nextgen/amdgpu/hostexec/execute_service.h llvm-project/offload/plugins-nextgen/amdgpu/hostexec/execute_service.h
---- llvm-project.atd/offload/plugins-nextgen/amdgpu/hostexec/execute_service.h	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/offload/plugins-nextgen/amdgpu/hostexec/execute_service.h	2024-09-24 17:18:09.912493670 -0400
+--- llvm-project.atd/offload/plugins-nextgen/amdgpu/hostexec/execute_service.h	1969-12-31 18:00:00.000000000 -0600
++++ llvm-project/offload/plugins-nextgen/amdgpu/hostexec/execute_service.h	2024-09-25 08:28:31.616214109 -0500
 @@ -0,0 +1,56 @@
 +//===---- execute_service.h - header file for execute_service -------------===//
 +//
@@ -3823,8 +3823,8 @@ diff -Naur -x .git llvm-project.atd/offload/plugins-nextgen/amdgpu/hostexec/exec
 +
 +#endif
 diff -Naur -x .git llvm-project.atd/offload/plugins-nextgen/amdgpu/hostexec/hostexec.h llvm-project/offload/plugins-nextgen/amdgpu/hostexec/hostexec.h
---- llvm-project.atd/offload/plugins-nextgen/amdgpu/hostexec/hostexec.h	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/offload/plugins-nextgen/amdgpu/hostexec/hostexec.h	2024-09-24 17:18:09.912493670 -0400
+--- llvm-project.atd/offload/plugins-nextgen/amdgpu/hostexec/hostexec.h	1969-12-31 18:00:00.000000000 -0600
++++ llvm-project/offload/plugins-nextgen/amdgpu/hostexec/hostexec.h	2024-09-25 08:28:31.616214109 -0500
 @@ -0,0 +1,55 @@
 +//
 +// hostexec.h: Headers for hostexec device stubs
@@ -3882,8 +3882,8 @@ diff -Naur -x .git llvm-project.atd/offload/plugins-nextgen/amdgpu/hostexec/host
 +
 +#endif // __HOSTEXEC_H__
 diff -Naur -x .git llvm-project.atd/offload/plugins-nextgen/amdgpu/hostexec/hostexec_internal.h llvm-project/offload/plugins-nextgen/amdgpu/hostexec/hostexec_internal.h
---- llvm-project.atd/offload/plugins-nextgen/amdgpu/hostexec/hostexec_internal.h	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/offload/plugins-nextgen/amdgpu/hostexec/hostexec_internal.h	2024-09-24 17:18:09.912493670 -0400
+--- llvm-project.atd/offload/plugins-nextgen/amdgpu/hostexec/hostexec_internal.h	1969-12-31 18:00:00.000000000 -0600
++++ llvm-project/offload/plugins-nextgen/amdgpu/hostexec/hostexec_internal.h	2024-09-25 08:28:31.616214109 -0500
 @@ -0,0 +1,64 @@
 +#ifndef __HOSTEXEC_INTERNAL_H__
 +#define __HOSTEXEC_INTERNAL_H__
@@ -3950,8 +3950,8 @@ diff -Naur -x .git llvm-project.atd/offload/plugins-nextgen/amdgpu/hostexec/host
 +
 +#endif // __HOSTEXEC_INTERNAL_H__
 diff -Naur -x .git llvm-project.atd/offload/plugins-nextgen/amdgpu/hostexec/urilocator.h llvm-project/offload/plugins-nextgen/amdgpu/hostexec/urilocator.h
---- llvm-project.atd/offload/plugins-nextgen/amdgpu/hostexec/urilocator.h	1969-12-31 19:00:00.000000000 -0500
-+++ llvm-project/offload/plugins-nextgen/amdgpu/hostexec/urilocator.h	2024-09-24 17:18:09.912493670 -0400
+--- llvm-project.atd/offload/plugins-nextgen/amdgpu/hostexec/urilocator.h	1969-12-31 18:00:00.000000000 -0600
++++ llvm-project/offload/plugins-nextgen/amdgpu/hostexec/urilocator.h	2024-09-25 08:28:31.616214109 -0500
 @@ -0,0 +1,68 @@
 +//===--- UriLocator.h: Schema of URI Locator  -----------------------------===//
 +//
@@ -4022,8 +4022,8 @@ diff -Naur -x .git llvm-project.atd/offload/plugins-nextgen/amdgpu/hostexec/uril
 +
 +#endif
 diff -Naur -x .git llvm-project.atd/offload/plugins-nextgen/amdgpu/src/rtl.cpp llvm-project/offload/plugins-nextgen/amdgpu/src/rtl.cpp
---- llvm-project.atd/offload/plugins-nextgen/amdgpu/src/rtl.cpp	2024-09-24 17:21:17.883850372 -0400
-+++ llvm-project/offload/plugins-nextgen/amdgpu/src/rtl.cpp	2024-09-24 17:18:09.912493670 -0400
+--- llvm-project.atd/offload/plugins-nextgen/amdgpu/src/rtl.cpp	2024-09-25 10:05:15.830432503 -0500
++++ llvm-project/offload/plugins-nextgen/amdgpu/src/rtl.cpp	2024-09-25 09:54:16.312683109 -0500
 @@ -94,6 +94,14 @@
  
  namespace hsa_utils {
@@ -4195,7 +4195,7 @@ diff -Naur -x .git llvm-project.atd/offload/plugins-nextgen/amdgpu/src/rtl.cpp l
  
    /// Deinitialize the plugin.
    Error deinitImpl() override {
-+    utils::hostrpc_terminate();
++    hsa_utils::hostrpc_terminate();
      // The HSA runtime was not initialized, so nothing from the plugin was
      // actually initialized.
      if (!Initialized)
@@ -4216,7 +4216,7 @@ diff -Naur -x .git llvm-project.atd/offload/plugins-nextgen/amdgpu/src/rtl.cpp l
 +    hsa_amd_memory_pool_t DeviceMemPool =
 +        AMDGPUDevice.getCoarseGrainedMemoryPool()->get();
 +    hsa_queue_t *HsaQueue = Stream->getHsaQueue();
-+    Buffer = utils::hostrpc_assign_buffer(AMDGPUDevice.getAgent(), HsaQueue,
++    Buffer = hsa_utils::hostrpc_assign_buffer(AMDGPUDevice.getAgent(), HsaQueue,
 +                                          DevID, HostMemPool, DeviceMemPool);
 +    GlobalTy ServiceThreadHostBufferGlobal("service_thread_buf",
 +                                           sizeof(uint64_t), &Buffer);
