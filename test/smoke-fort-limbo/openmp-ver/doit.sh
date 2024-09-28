@@ -32,6 +32,8 @@ for flag in ${skeys[@]}; do
     cmd="${AOMP}/bin/${FLANG} -fopenmp $flag -cpp -E test.f90"
     exp=${flags[$flag]}
     echo $cmd
+    echo "    Saw:"
+    $cmd | grep "var1 = "
     echo "    Expected: $exp"
     $cmd | grep "var1 = $exp"
     mystat=$?
