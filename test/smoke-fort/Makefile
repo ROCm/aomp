@@ -61,6 +61,7 @@ TESTS_DIR = \
     flang-use-device \
     intrin-rename-func \
     intrin-rename-sub \
+    jacobi \
     LaunchLatency \
     llvm-issue-82047 \
     mathdbl \
