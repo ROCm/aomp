@@ -57,6 +57,12 @@ TESTS_DIR = \
     flang-476122 \
     flang-476122a \
     flang-478281 \
+    flang-479382 \
+    flang-479382-1 \
+    flang-479382-2 \
+    flang-479382-3 \
+    flang-479382-4 \
+    flang-479382-5 \
     flang-nested-parallel-do-loops \
     flang-use-device \
     intrin-rename-func \

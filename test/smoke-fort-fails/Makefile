@@ -19,12 +19,6 @@ TESTS_DIR = \
     flang-464660-1 \
     flang-464660-2 \
     flang-469194 \
-    flang-479382 \
-    flang-479382-1 \
-    flang-479382-2 \
-    flang-479382-3 \
-    flang-479382-4 \
-    flang-479382-5 \
     flang-480581 \
     flang-485265 \
     mathdbl-tgt \
