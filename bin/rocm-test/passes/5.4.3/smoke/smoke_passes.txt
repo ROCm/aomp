@@ -56,7 +56,6 @@ no-loop-8
 no-loop-sched
 no-loop-split-1
 omp_places
-red_bug_51
 stream-copy
 stream-dot
 stream-loop
