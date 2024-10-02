@@ -123,7 +123,14 @@ if [ "$1" != "buildonly" ] ; then
   echo
   cd $REPO_DIR/Programs/Examples/Basics/FluidDynamics/Executables
   echo
+  echo "=================  2D RiemannProblem ========"
   _cmd="./RiemannProblem_$GENASIS_MACHINE Verbosity=INFO_2 nCells=256,256 \ Dimensionality=2D FinishTime=0.25 nWrite=10"
+  echo $_cmd
+  time $_cmd
+  echo "Done: $_cmd"
+  echo
+  echo "=================  3D RiemannProblem ========"
+  _cmd="./RiemannProblem_${GENASIS_MACHINE} Verbosity=INFO_2 nCells=256,256,256 Dimensionality=3D NoWrite=T FinishCycle=10"
   echo $_cmd
   time $_cmd
   echo "Done: $_cmd"
