@@ -75,7 +75,7 @@ else
 fi
 
 export LD_LIBRARY_PATH=$AOMP/lib:$OPENMPI_DIR/lib::$LD_LIBRARY_PATH
-export FORTRAN_COMPILE="$AOMP/bin/$FLANG -c -fopenmp --offload-arch=$GPU_ID -fPIC -I$OPENMPI_DIR/lib"
+export FORTRAN_COMPILE="$AOMP/bin/$FLANG -c -fopenmp --offload-arch=$GPU_ID -fPIC -I$OPENMPI_DIR/lib -cpp"
 export CC_COMPILE="$AOMP/bin/clang -fPIC"
 export OTHER_LIBS="-lm -L$AOMP/lib -lFortranRuntime -lFortranDecimal  -lomp -lomptarget -z muldefs "
 export FORTRAN_LINK="$AOMP/bin/clang $OTHER_LIBS"
@@ -117,6 +117,9 @@ if [ "$1" != "runonly" ] ; then
 fi
 
 if [ "$1" != "buildonly" ] ; then
+  export LIBOMPTARGET_KERNEL_TRACE=1
+  export LIBOMPTARGET_INFO=1
+  export OMP_TARGET_OFFLOAD=MANDATORY
   cd $REPO_DIR/Programs/UnitTests/Basics/Runtime/Executables
   echo ./PROGRAM_HEADER_Singleton_Test_$GENASIS_MACHINE
   ./PROGRAM_HEADER_Singleton_Test_$GENASIS_MACHINE
