@@ -159,17 +159,24 @@ GCC=`which gcc`
 GCCXX=`which g++`
 AOMP_CC_COMPILER=${AOMP_CC_COMPILER:-$GCC}
 AOMP_CXX_COMPILER=${AOMP_CXX_COMPILER:-$GCCXX}
+
+# Non standalone builds are done with ROCm builds.
+AOMP_STANDALONE_BUILD=${AOMP_STANDALONE_BUILD:-1}
+
+if [ "$AOMP_STANDALONE_BUILD" == 1 ] ; then
+  LLVM_INSTALL_LOC=$AOMP_INSTALL_DIR/lib/llvm
+else
+  LLVM_INSTALL_LOC=$INSTALL_PREFIX/lib/llvm
+fi
+
 # Set specified clang and clang++ compilers with env vars AOMP_CLANG*_COMPILER.
 # Otherwise default to installed AOMP. If not yet installed, try rocm clang.
-_clang_compiler=$AOMP/bin/clang
-_clangxx_compiler=$AOMP/bin/clang++
+_clang_compiler=$LLVM_INSTALL_LOC/bin/clang
+_clangxx_compiler=$LLVM_INSTALL_LOC/bin/clang++
 [ ! -f $_clang_compiler ] && _clang_compiler=/opt/rocm/llvm/bin/clang
 [ ! -f $_clangxx_compiler ] && _clangxx_compiler=/opt/rocm/llvm/bin/clang++
 AOMP_CLANG_COMPILER=${AOMP_CLANG_COMPILER:-$_clang_compiler}
 AOMP_CLANGXX_COMPILER=${AOMP_CLANGXX_COMPILER:-$_clangxx_compiler}
-
-# Non standalone builds are done with ROCm builds.
-AOMP_STANDALONE_BUILD=${AOMP_STANDALONE_BUILD:-1}
 
 if [ "$AOMP_STANDALONE_BUILD" == 0 ] ; then
   # ROCm still uses standalone openmp build.
@@ -184,7 +191,7 @@ if [ "$AOMP_PROC" == "ppc64le" ] ; then
    AOMP_BUILD_CUDA=1
    AOMP_STANDALONE_BUILD=1
 fi
-AOMP_ORIGIN_RPATH_LIST="\$ORIGIN:\$ORIGIN/../lib:\$ORIGIN/../lib64"
+AOMP_ORIGIN_RPATH_LIST="\$ORIGIN:\$ORIGIN/../lib:\$ORIGIN/../lib64:\$ORIGIN/../../../lib:\$ORIGIN/../llvm/lib"
 if [ $AOMP_STANDALONE_BUILD == 1 ] ; then
    # Default is to build nvptx for STANDALONE build
    AOMP_BUILD_CUDA=${AOMP_BUILD_CUDA:-1}
@@ -219,7 +226,7 @@ AOMP_ORIGIN_RPATH="-DCMAKE_SHARED_LINKER_FLAGS='-Wl,--disable-new-dtags' $AOMP_O
 # Libraries and Binaries need different RUNPATH as below
 if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
   ## Below 3 lines are actually only required for AOMP ASan RPATH Cmake configuration.
-  AOMP_ASAN_ORIGIN_RPATH_LIST="\$ORIGIN:\$ORIGIN/../../lib:\$ORIGIN/../lib:\$ORIGIN/../lib64"
+  AOMP_ASAN_ORIGIN_RPATH_LIST="\$ORIGIN:\$ORIGIN/../../lib:\$ORIGIN/../lib:\$ORIGIN/../lib64:\$ORIGIN/../../../../lib:\$ORIGIN/../lib/llvm"
   AOMP_ASAN_ORIGIN_RPATH_NO_DTAGS="-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=OFF -DCMAKE_INSTALL_RPATH=$AOMP_ASAN_ORIGIN_RPATH_LIST"
   AOMP_ASAN_ORIGIN_RPATH="-DCMAKE_SHARED_LINKER_FLAGS='-Wl,--disable-new-dtags' $AOMP_ASAN_ORIGIN_RPATH_NO_DTAGS"
   # Please note below lines are only setup for ROCm ASan integration with AOMP.
@@ -434,16 +441,16 @@ fi
 
 if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
    if [ -f "${AOMP}/bin/clang" ] ; then
-      ASAN_LIB_PATH=$(${AOMP}/bin/clang --print-runtime-dir)
+      ASAN_LIB_PATH=$(${LLVM_INSTALL_LOC}/bin/clang --print-runtime-dir)
       if [ ! -d $ASAN_LIB_PATH ] ; then
          # --print-runtime-dir outputs the new lib directory that includes the host target.
          # Workaround this for now until LLVM_ENABLE_PER_TARGET_RUNTIME_DIR is on by default.
-         RESOURCE_PATH=$(${AOMP}/bin/clang --print-resource-dir)
+         RESOURCE_PATH=$(${LLVM_INSTALL_LOC}/bin/clang --print-resource-dir)
          ASAN_LIB_PATH="$RESOURCE_PATH/lib/linux"
       fi
    else
       # no compiler at $AOMP so set where we expect ASAN_LIP_PATH to be
-      ASAN_LIB_PATH=${AOMP}/lib/clang/${AOMP_MAJOR_VERSION}/lib/linux
+      ASAN_LIB_PATH=${LLVM_INSTALL_LOC}/lib/clang/${AOMP_MAJOR_VERSION}/lib/linux
    fi
    ASAN_FLAGS="-g -fsanitize=address -shared-libasan -Wl,-rpath=$ASAN_LIB_PATH -L$ASAN_LIB_PATH"
    if [ "$AOMP_STANDALONE_BUILD" == 0 ]; then

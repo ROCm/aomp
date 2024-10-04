@@ -10,7 +10,7 @@ thisdir=`dirname $realpath`
 . $thisdir/aomp_common_vars
 # --- end standard header ----
 
-INSTALL_OPENMP=${INSTALL_OPENMP:-$AOMP_INSTALL_DIR}
+INSTALL_OPENMP=${INSTALL_OPENMP:-$LLVM_INSTALL_LOC}
 
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   help_build_aomp
@@ -67,11 +67,11 @@ fi
 
 export LLVM_DIR=$AOMP_INSTALL_DIR
 GFXSEMICOLONS=`echo $GFXLIST | tr ' ' ';' `
-ALTAOMP=${ALTAOMP:-$AOMP}
+ALTAOMP=${ALTAOMP:-$LLVM_INSTALL_LOC}
 COMMON_CMAKE_OPTS="$AOMP_SET_NINJA_GEN -DOPENMP_ENABLE_LIBOMPTARGET=1
 -DCMAKE_INSTALL_PREFIX=$INSTALL_OPENMP
--DOPENMP_TEST_C_COMPILER=$AOMP/bin/clang
--DOPENMP_TEST_CXX_COMPILER=$AOMP/bin/clang++
+-DOPENMP_TEST_C_COMPILER=$LLVM_INSTALL_LOC/bin/clang
+-DOPENMP_TEST_CXX_COMPILER=$LLVM_INSTALL_LOC/bin/clang++
 -DCMAKE_C_COMPILER=$ALTAOMP/bin/clang
 -DCMAKE_CXX_COMPILER=$ALTAOMP/bin/clang++
 -DLIBOMPTARGET_AMDGCN_GFXLIST=$GFXSEMICOLONS
@@ -135,7 +135,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    fi
       if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
         if [ "$AOMP_STANDALONE_BUILD" == 1 ]; then
-          ASAN_CMAKE_OPTS="$COMMON_CMAKE_OPTS -DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR/lib/asan/cmake -DSANITIZER_AMDGPU=1 -DCMAKE_BUILD_TYPE=Release -DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=OFF $AOMP_ASAN_ORIGIN_RPATH"
+          ASAN_CMAKE_OPTS="$COMMON_CMAKE_OPTS -DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR/lib/asan/cmake;$AOMP_INSTALL_DIR/lib/cmake -DSANITIZER_AMDGPU=1 -DCMAKE_BUILD_TYPE=Release -DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=OFF $AOMP_ASAN_ORIGIN_RPATH"
         else
           ASAN_CMAKE_OPTS="$COMMON_CMAKE_OPTS -DCMAKE_PREFIX_PATH=$ROCM_CMAKECONFIG_PATH;$INSTALL_PREFIX/lib/llvm/lib/asan -DSANITIZER_AMDGPU=1 -DCMAKE_BUILD_TYPE=Release -DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=OFF $OPENMP_EXTRAS_ORIGIN_RPATH"
         fi
@@ -167,7 +167,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
        exit 1
     fi
     if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
-       ASAN_CMAKE_OPTS="$COMMON_CMAKE_OPTS -DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR/lib/asan/cmake -DLIBOMPTARGET_ENABLE_DEBUG=OFF -DCMAKE_BUILD_TYPE=Release -DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=OFF -DLIBOMPTARGET_PERF=ON -DSANITIZER_AMDGPU=1 $AOMP_ASAN_ORIGIN_RPATH"
+       ASAN_CMAKE_OPTS="$COMMON_CMAKE_OPTS -DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR/lib/asan/cmake;$AOMP_INSTALL_DIR/lib/cmake -DLIBOMPTARGET_ENABLE_DEBUG=OFF -DCMAKE_BUILD_TYPE=Release -DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=OFF -DLIBOMPTARGET_PERF=ON -DSANITIZER_AMDGPU=1 $AOMP_ASAN_ORIGIN_RPATH"
        echo " -----Running offload cmake for perf-asan ---- "
        mkdir -p $BUILD_DIR/build/offload_perf/asan
        cd $BUILD_DIR/build/offload_perf/asan
@@ -184,7 +184,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    if [ "$AOMP_BUILD_DEBUG" == "1" ] ; then
       _ompd_dir="$AOMP_INSTALL_DIR/lib-debug/ompd"
       #  This is the new locationof the ompd directory
-      [[ ! -d $_ompd_dir ]] && _ompd_dir="$AOMP_INSTALL_DIR/share/gdb/python/ompd"
+      [[ ! -d $_ompd_dir ]] && _ompd_dir="$LLVM_INSTALL_LOC/share/gdb/python/ompd"
 
       DEBUGCMAKEOPTS="
 -DLIBOMPTARGET_NVPTX_DEBUG=ON \
@@ -239,7 +239,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
       if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
          ASAN_CMAKE_OPTS="$COMMON_CMAKE_OPTS $DEBUGCMAKEOPTS -DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=OFF -DSANITIZER_AMDGPU=1"
          if [ "$AOMP_STANDALONE_BUILD" == 1 ]; then
-           ASAN_CMAKE_OPTS="$ASAN_CMAKE_OPTS -DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR/lib/asan/cmake $AOMP_ASAN_ORIGIN_RPATH"
+           ASAN_CMAKE_OPTS="$ASAN_CMAKE_OPTS -DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR/lib/asan/cmake;$AOMP_INSTALL_DIR/lib/cmake $AOMP_ASAN_ORIGIN_RPATH"
          else
            ASAN_CMAKE_OPTS="$ASAN_CMAKE_OPTS -DCMAKE_PREFIX_PATH=$ROCM_CMAKECONFIG_PATH;$INSTALL_PREFIX/lib/llvm/lib/asan $OPENMP_EXTRAS_ORIGIN_RPATH"
          fi
@@ -393,8 +393,8 @@ if [ "$1" == "install" ] ; then
 
    if [ "$AOMP_BUILD_DEBUG" == "1" ] ; then
       _ompd_dir="$AOMP_INSTALL_DIR/lib-debug/ompd"
-      #  This is the new locationof the ompd directory
-      [[ ! -d $_ompd_dir ]] && _ompd_dir="$AOMP_INSTALL_DIR/share/gdb/python/ompd"
+        This is the new locationof the ompd directory
+      [[ ! -d $_ompd_dir ]] && _ompd_dir="$LLVM_INSTALL_LOC/share/gdb/python/ompd"
       if [ "$SANITIZER" != 1 ] ; then
          cd $BUILD_DIR/build/offload_debug
          echo

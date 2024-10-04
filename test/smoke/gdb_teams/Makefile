@@ -19,8 +19,10 @@ ifneq (,$(wildcard $(AOMPROCM)/bin/rocgdb))
 RUNPROF   = $(AOMPROCM)/bin/rocgdb
 else ifneq (,$(wildcard /opt/rocm/bin/rocgdb))
 RUNPROF   = /opt/rocm/bin/rocgdb
-else
+else ifneq (,$(wildcard $(AOMPROCM)/../bin/rocgdb))
 RUNPROF   = $(AOMPROCM)/../bin/rocgdb
+else
+RUNPROF   = $(AOMPHIP)/bin/rocgdb
 endif
 ARGS      = -x cmd_script -q
 

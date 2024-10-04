@@ -44,8 +44,8 @@ BUILD_DIR=${BUILD_AOMP}
 
 BUILDTYPE="Release"
 
-INSTALL_EXTRAS=${INSTALL_EXTRAS:-$AOMP_INSTALL_DIR}
-export LLVM_DIR=$AOMP_INSTALL_DIR 
+INSTALL_EXTRAS=${INSTALL_EXTRAS:-$LLVM_INSTALL_LOC}
+export LLVM_DIR=$LLVM_INSTALL_LOC
 
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   echo " "
@@ -62,7 +62,7 @@ if [ ! -d $EXTRAS_REPO_DIR ] ; then
    exit 1
 fi
 
-if [ ! -f $AOMP/bin/clang ] ; then
+if [ ! -f $LLVM_INSTALL_LOC/bin/clang ] ; then
    echo "ERROR:  Missing file $AOMP/bin/clang"
    echo "        Build and install the AOMP clang compiler in $AOMP first"
    echo "        This is needed to build extras "

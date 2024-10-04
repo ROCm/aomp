@@ -6,7 +6,7 @@ TESTSRC_AUX  = hip_memset.o
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 AOMPHIP ?= $(AOMP)
 HIPCC ?= $(AOMPHIP)/bin/hipcc
-HIP_CLANG_PATH ?= $(AOMPHIP)/bin
+HIP_CLANG_PATH =
 
 CFLAGS = -O3
 CLANG        = clang++
