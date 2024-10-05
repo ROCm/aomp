@@ -122,12 +122,16 @@ if [ "$1" != "runonly" ] ; then
 fi
 
 if [ "$1" != "buildonly" ] ; then
+  export LIBOMPTARGET_KERNEL_TRACE=1
+  export LIBOMPTARGET_INFO=1
+  export OMP_TARGET_OFFLOAD=MANDATORY
   cd $REPO_DIR/Programs/UnitTests/Basics/Runtime/Executables
   echo ./PROGRAM_HEADER_Singleton_Test_$GENASIS_MACHINE
   ./PROGRAM_HEADER_Singleton_Test_$GENASIS_MACHINE
   echo
   cd $REPO_DIR/Programs/Examples/Basics/FluidDynamics/Executables
   echo
+  echo "=================  2D RiemannProblem ========"
   _cmd="./RiemannProblem_$GENASIS_MACHINE Verbosity=INFO_2 nCells=256,256 \ Dimensionality=2D FinishTime=0.25 nWrite=10"
   echo $_cmd
   time $_cmd

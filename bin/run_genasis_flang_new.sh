@@ -81,7 +81,7 @@ else
     exit
 fi
 
-export LD_LIBRARY_PATH=$AOMP/lib:$AOMPHIP/lib:$OPENMPI_DIR/lib::$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$AOMP/lib:$AOMPHIP/lib:$OPENMPI_DIR/lib:$LD_LIBRARY_PATH
 export FORTRAN_COMPILE="$AOMP/bin/$FLANG -c -fopenmp --offload-arch=$GPU_ID -fPIC -I$OPENMPI_DIR/lib -cpp"
 export CC_COMPILE="$AOMP/bin/clang -fPIC"
 export OTHER_LIBS="-lm -L$AOMP/lib -lFortranRuntime -lFortranDecimal  -lomp -lomptarget -z muldefs "
