@@ -440,7 +440,7 @@ else
 fi
 
 if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
-   if [ -f "${AOMP}/bin/clang" ] ; then
+   if [ -f "${LLVM_INSTALL_LOC}/bin/clang" ] ; then
       ASAN_LIB_PATH=$(${LLVM_INSTALL_LOC}/bin/clang --print-runtime-dir)
       if [ ! -d $ASAN_LIB_PATH ] ; then
          # --print-runtime-dir outputs the new lib directory that includes the host target.
