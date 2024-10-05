@@ -41,6 +41,7 @@ fi
 cp Makefile_ROCmFlangNew $REPO_DIR/Build/Machines/
 
 patchrepo $AOMP_REPOS_TEST/GenASis
+trap "removepatch $AOMP_REPOS_TEST/GenASis" EXIT
 
 cd $REPO_DIR
 
