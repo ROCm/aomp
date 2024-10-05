@@ -13,9 +13,15 @@ export AOMP_USE_CCACHE=0
 
 # Setup AOMP variables
 AOMP=${AOMP:-$HOME/rocm/aomp/llvm}
-AOMPHIP=${AOMPHIP:-$AOMP/..}
-ROCM=${ROCM:-$HOME/rocm/aomp}   # for ROCm utilities (e.g. rocm_agent_enumerator)
+AOMPHIP=${AOMPHIP:-$(realpath -m $(realpath -m $AOMP)/../..)}
+# for ROCm utilities (e.g. rocm_agent_enumerator)
+ROCM=${ROCM:-$(realpath -m $(realpath -m $AOMP)/../..)}
 FLANG=${FLANG:-flang}
+
+echo "AOMP    = $AOMP"
+echo "AOMPHIP = $AOMPHIP"
+echo "ROCM    = $ROCM"
+echo "FLANG   = $FLANG"
 
 # Use function to set and test AOMP_GPU
 setaompgpu
