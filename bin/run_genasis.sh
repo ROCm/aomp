@@ -12,7 +12,8 @@ export AOMP_USE_CCACHE=0
 # --- end standard header ----
 
 # Setup AOMP variables
-AOMP=${AOMP:-$HOME/rocm/aomp}
+AOMP=${AOMP:-$HOME/rocm/aomp/llvm}
+AOMPHIP=${AOMPHIP:-$AOMP/..}
 ROCM=${ROCM:-$HOME/rocm/aomp}   # for ROCm utilities (e.g. rocm_agent_enumerator)
 FLANG=${FLANG:-flang}
 
@@ -72,12 +73,12 @@ else
     exit
 fi
 
-export LD_LIBRARY_PATH=$AOMP/lib:$OPENMPI_DIR/lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$AOMP/lib:$AOMPHIP/lib:$OPENMPI_DIR/lib:$LD_LIBRARY_PATH
 export FORTRAN_COMPILE="$AOMP/bin/$FLANG -c -fPIC -I$OPENMPI_DIR/lib"
 export CC_COMPILE="$AOMP/bin/clang -fPIC"
 export OTHER_LIBS="-lm -L$AOMP/lib -lflang -lflangmain -lflangrti -lpgmath -lomp -lomptarget -z muldefs"
 export FORTRAN_LINK="$AOMP/bin/clang $OTHER_LIBS"
-export DEVICE_COMPILE="$AOMP/bin/hipcc -D__HIP_PLATFORM_HCC__"
+export DEVICE_COMPILE="$AOMPHIP/bin/hipcc -D__HIP_PLATFORM_HCC__"
 export HIP_DIR=$ROCM
 export HIP_CLANG_PATH=$AOMP/bin
 cd $currdir
