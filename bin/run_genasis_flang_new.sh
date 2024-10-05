@@ -13,9 +13,15 @@ export AOMP_USE_CCACHE=0
 
 # Setup AOMP variables
 AOMP=${AOMP:-$HOME/rocm/aomp/llvm}
-AOMPHIP=${AOMPHIP:-$AOMP/..}
-ROCM=${ROCM:-$HOME/rocm/aomp}   # for ROCm utilities (e.g. rocm_agent_enumerator)
+AOMPHIP=${AOMPHIP:-$(realpath -m $(realpath -m $AOMP)/../..)}
+# for ROCm utilities (e.g. rocm_agent_enumerator)
+ROCM=${ROCM:-$(realpath -m $(realpath -m $AOMP)/../..)}
 FLANG=${FLANG:-flang-new}
+
+echo "AOMP    = $AOMP"
+echo "AOMPHIP = $AOMPHIP"
+echo "ROCM    = $ROCM"
+echo "FLANG   = $FLANG"
 
 # Use function to set and test AOMP_GPU
 setaompgpu
@@ -75,7 +81,7 @@ else
     exit
 fi
 
-export LD_LIBRARY_PATH=$AOMP/lib:$AOMPHIP/lib:$OPENMPI_DIR/lib::$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$AOMP/lib:$AOMPHIP/lib:$OPENMPI_DIR/lib:$LD_LIBRARY_PATH
 export FORTRAN_COMPILE="$AOMP/bin/$FLANG -c -fopenmp --offload-arch=$GPU_ID -fPIC -I$OPENMPI_DIR/lib -cpp"
 export CC_COMPILE="$AOMP/bin/clang -fPIC"
 export OTHER_LIBS="-lm -L$AOMP/lib -lFortranRuntime -lFortranDecimal  -lomp -lomptarget -z muldefs "
