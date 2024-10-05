@@ -277,6 +277,12 @@ if [ "$1" == "install" ] ; then
    amd_compiler_symlinks=("amdclang" "amdclang++" "amdclang-cl" "amdclang-cpp" "amdflang" "amdlld")
    amd_compiler_cfg=("clang" "clang++" "clang-cpp" "clang-${AOMP_MAJOR_VERSION}" "clang-cl" "flang" "flang-new")
 
+   # amdflang-new -> amdllvm symlink
+   if [ ! -h "$LLVM_INSTALL_LOC/bin/amdflang-new" ]; then
+     cd ${LLVM_INSTALL_LOC}/bin
+     ln -s amdllvm amdflang-new
+   fi
+
    # Leaving this in just in case we decide to add the amd* symlinks in the top level bin directory.
    #for i in "${amd_compiler_symlinks[@]}"; do
    #   if [ -f "$LLVM_INSTALL_LOC/bin/$i" ] && [ ! -h $AOMP_INSTALL_DIR/bin/$i ]; then
