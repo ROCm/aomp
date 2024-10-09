@@ -1,8 +1,26 @@
 #!/bin/bash
-# 
-#  run_genasis.sh 
 #
-
+#  run_genasis.sh
+#
+#  Test environment: (set before running this script)
+#    To run on host:
+#       export ENABLE_OMP_OFFLOAD=0
+#    To run on target:
+#       export ENABLE_OMP_OFFLOAD=1
+#    To run with clone of https://github.com/GenASis/GenASis
+#       export SRC_DIR=GenASis
+#    To run with clone of https://github.com/GenASiS/GenASiS_Basics
+#       export SRC_DIR=GenASiS_Basics
+#
+# Also requires: openmpi, silo, hdf5
+#
+#    cd  ~/git/aomp20.0/aomp/bin
+#    AOMP_USE_CCACHE=0  \
+#    AOMP=<path-to-compiler-install>/llvm ./build_supp_llvm-flang.sh
+#
+# To run:
+#    AOMP=<path-to-compiler-install>/llvm ./run_genasis_flang_new.sh
+#
 # --- Start standard header to set AOMP environment variables ----
 realpath=`realpath $0`
 thisdir=`dirname $realpath`
@@ -85,7 +103,7 @@ fi
 export LD_LIBRARY_PATH=$AOMP/lib:$AOMPHIP/lib:$OPENMPI_DIR/lib:$LD_LIBRARY_PATH
 export FORTRAN_COMPILE="$AOMP/bin/$FLANG -c -fopenmp --offload-arch=$GPU_ID -fPIC -I$OPENMPI_DIR/lib -cpp"
 export CC_COMPILE="$AOMP/bin/clang -fPIC"
-export OTHER_LIBS="-lm -L$AOMP/lib -lFortranRuntime -lFortranDecimal  -lomp -lomptarget -z muldefs "
+export OTHER_LIBS="-lm -L$AOMP/lib -lFortranRuntime -lFortranRuntimeHostDevice -lFortranDecimal  -lomp -lomptarget -z muldefs "
 export FORTRAN_LINK="$AOMP/bin/clang $OTHER_LIBS"
 export DEVICE_COMPILE="$AOMPHIP/bin/hipcc -D__HIP_PLATFORM_HCC__"
 export HIP_DIR=$ROCM
