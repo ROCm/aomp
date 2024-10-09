@@ -14,11 +14,12 @@
 #
 # Also requires: openmpi, silo, hdf5
 #
-#    cd  ~/git/aomp20.0/aomp/bin
-#    AOMP_USE_CCACHE=0  \
+#    cd ~/git/aomp20.0/aomp/bin
+#    AOMP_USE_CCACHE=0 \
 #    AOMP=<path-to-compiler-install>/llvm ./build_supp_llvm-flang.sh
 #
 # To run:
+#    AOMP_SUPP=$HOME/local/llvm-flang \
 #    AOMP=<path-to-compiler-install>/llvm ./run_genasis_flang_new.sh
 #
 # --- Start standard header to set AOMP environment variables ----
