@@ -59,8 +59,8 @@ fi
 # Copy Makefile_ROCm to GenASis repository
 cp Makefile_ROCmFlangNew $REPO_DIR/Build/Machines/
 
-patchrepo $AOMP_REPOS_TEST/GenASis
-trap "removepatch $AOMP_REPOS_TEST/GenASis" EXIT
+patchrepo $AOMP_REPOS_TEST/$SRC_DIR
+trap "removepatch $AOMP_REPOS_TEST/$SRC_DIR" EXIT
 
 cd $REPO_DIR
 
@@ -144,8 +144,8 @@ if [ "$1" != "runonly" ] ; then
 fi
 
 if [ "$1" != "buildonly" ] ; then
-  export LIBOMPTARGET_KERNEL_TRACE=1
-  export LIBOMPTARGET_INFO=1
+  # export LIBOMPTARGET_KERNEL_TRACE=1
+  # export LIBOMPTARGET_INFO=1
   export OMP_TARGET_OFFLOAD=MANDATORY
   cd $REPO_DIR/Programs/UnitTests/Basics/Runtime/Executables
   echo ./PROGRAM_HEADER_Singleton_Test_$GENASIS_MACHINE

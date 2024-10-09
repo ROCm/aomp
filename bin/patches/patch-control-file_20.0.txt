@@ -2,6 +2,7 @@ openlibm: openlibm.patch
 RAJA: raja.patch
 RAJAPerf: rajaperf.patch
 GenASis: genasis.patch
+GenASiS_Basics: genasis_basics.patch
 hipamd: hipamd-rpath.patch
 hipfort: hipfort.patch
 bolt: bolt.patch

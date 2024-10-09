@@ -16,6 +16,7 @@
 <remote name="OpenMP_VV" fetch="https://github.com/OpenMP-Validation-and-Verification/" />
 <remote name="uob-hpc" fetch="https://github.com/UoB-HPC/" />
 <remote name="GenASis" fetch="https://github.com/GenASis/" />
+<remote name="GenASiS_Basics" fetch="https://github.com/GenASiS/" />
 <remote name="UMT" fetch="https://github.com/LLNL/" />
 
 <!-- --- List of test repos and the path they are cloned to --- -->
@@ -36,6 +37,7 @@
 <project remote="llnl"    path="RAJAPerf/tpl/RAJA" name="RAJA" revision="master" groups="skip" />
 <project remote="llnl"    path="RAJAPerf/blt" name="blt" revision="" groups="skip" />
 <project remote="GenASis"  path="GenASis"  name="GenASis" revision="master" groups="unlocked" />
+<project remote="GenASiS_Basics"  path="GenASiS_Basics"  name="GenASiS_Basics" revision="master" groups="unlocked" />
 <project remote="UMT"  path="UMT"  name="UMT" revision="develop" groups="unlocked" />
 
 </manifest>
