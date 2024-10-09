@@ -1,0 +1,13 @@
+diff --git a/Build/Preprocessor b/Build/Preprocessor
+index 5fc7364..4ae10ae 100644
+--- a/Build/Preprocessor
++++ b/Build/Preprocessor
+@@ -9,7 +9,7 @@
+ #define OMP_TARGET_DISTRIBUTE_SCHEDULE dist_schedule ( static, 1 )
+ #endif
+ 
+-#if defined(POWER_GCC) || defined(Cray_GCC) || defined(Cray_GCC_UMS) || defined (Cray_CCE) || defined (Cray_AMD)
++#if defined(POWER_GCC) || defined(Cray_GCC) || defined(Cray_GCC_UMS) || defined (Cray_CCE) || defined (Cray_AMD) || defined(ROCm) || defined(ROCmFlangNew)
+ #define OMP_SCHEDULE_TARGET auto
+ #define OMP_SCHEDULE_HOST runtime
+ #define OMP_TARGET_DISTRIBUTE_SCHEDULE dist_schedule ( auto )
