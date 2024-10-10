@@ -29,7 +29,7 @@ include ../../Makefile.defs
 AOMP ?= /usr/lib/aomp
 DEVICE_LIB_PATH=$(AOMPHIP)/amdgcn/bitcode/
 
-CC   =  DEVICE_LIB_PATH=$(DEVICE_LIB_PATH) $(AOMPHIP)/bin/hipcc -I$(AOMP)/include/hip
+CC   =  DEVICE_LIB_PATH=$(DEVICE_LIB_PATH) $(AOMPHIP)/bin/hipcc -I$(AOMPHIP)/include/hip
 
 hip_host_register: hip_host_register.hip
 	$(CC) $^ -o $@ -std=c++11
