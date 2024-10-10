@@ -3,8 +3,8 @@ Domain size:  4096 x  4096
 Starting Jacobi run
 Iteration:    0 - Residual: 2.21052E-02
 Stopped after    1 iterations with residue: 2.21052E-02
-Total Jacobi run time: 2.61E-03 sec.
-Measured lattice updates:   6.435E+09 LU/s
-Measured FLOPS: 109.398E+09 FLOPS
-Measured device bandwidth: 617.778E+09 B/s
+Total Jacobi run time: 2.16E-03 sec.
+Measured lattice updates:   7.771E+09 LU/s
+Measured FLOPS: 132.111E+09 FLOPS
+Measured device bandwidth: 746.041E+09 B/s
 Measured AI=0.177
