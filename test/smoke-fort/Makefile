@@ -67,6 +67,7 @@ TESTS_DIR = \
     flang-use-device \
     intrin-rename-func \
     intrin-rename-sub \
+    iso_flush \
     jacobi \
     LaunchLatency \
     llvm-issue-82047 \
