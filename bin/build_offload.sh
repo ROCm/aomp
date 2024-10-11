@@ -257,6 +257,11 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
       fi
    fi
 fi
+
+if [ "$1" = "cmake" ]; then
+   exit 0
+fi
+
 if [ "$1" != "install" ] ; then
 if [ "$AOMP_LEGACY_OPENMP" == "1" ] && [ "$SANITIZER" != 1 ] ; then
   cd $BUILD_DIR/build/offload

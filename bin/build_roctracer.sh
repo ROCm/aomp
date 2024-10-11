@@ -72,7 +72,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
          fi
       fi
    fi
-   BUILD_TYPE="release"
+   BUILD_TYPE="Release"
    export CMAKE_BUILD_TYPE=$BUILD_TYPE
    CMAKE_PREFIX_PATH="$ROCM_DIR/include/hsa;$ROCM_DIR/include;$ROCM_DIR/lib;$ROCM_DIR;$LLVM_INSTALL_LOC"
    export CMAKE_PREFIX_PATH
@@ -88,6 +88,10 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
       echo "      $MYCMAKEOPTS"
       exit 1
    fi
+fi
+
+if [ "$1" = "cmake" ]; then
+   exit 0
 fi
 
 cd $BUILD_AOMP/build/roctracer

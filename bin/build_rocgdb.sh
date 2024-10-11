@@ -84,6 +84,10 @@ if [ "$1" != "noconfigure" ] && [ "$1" != "install" ] ; then
    fi
 fi
 
+if [ "$1" = "configure" ]; then
+   exit 0
+fi
+
 cd $BUILD_AOMP/build/rocgdb
 echo
 echo " -----Running make for gdb ---- " 
