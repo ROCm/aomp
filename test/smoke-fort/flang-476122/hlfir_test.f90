@@ -33,9 +33,9 @@ program main
   allocate(U(dimsB(1):dimsE(1),dimsB(2):dimsE(2)))
   U(:,:) = 1.0
 
-  !$OMP TARGET ENTER DATA MAP(to: U, dimsB, dimsE)
+  !$OMP TARGET ENTER DATA MAP(to: U)
   call test_omp(dimsB, dimsE, U)
-  !$OMP TARGET EXIT DATA MAP(from: U) MAP(release: dimsB, dimsE)
+  !$OMP TARGET EXIT DATA MAP(from: U)
 
   if (abs(sum(U) - 50.0d0) < TOL) then
     print*,"OMP offload test passed."
