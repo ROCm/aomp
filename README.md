@@ -1,4 +1,4 @@
-AOMP - V 19.0-3
+AOMP - V 20.0-0
 ==============
 
 This is README.md for https://github.com/ROCm/aomp.
@@ -8,8 +8,8 @@ This is the base repository for AOMP. Use this github repository for
 documentation, and
 [examples](https://github.com/ROCm/aomp/tree/master/examples).
 
-The last [release is AOMP 19.0-3](https://github.com/ROCm/aomp/releases).
-Currently AOMP 20.0-0 is under development.
+The last [release is AOMP 20.0-0](https://github.com/ROCm/aomp/releases).
+Currently AOMP 20.0-1 is under development.
 
 Attention Users!  Please use this repository for [issues](https://github.com/ROCm/aomp/issues).
 Do not put issues in any of the source code repositories.
