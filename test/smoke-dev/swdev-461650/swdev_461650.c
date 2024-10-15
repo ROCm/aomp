@@ -40,4 +40,4 @@ int main() {
 
 }
 
-/// CHECK: SGN:2
+/// CHECK: SGN:4
