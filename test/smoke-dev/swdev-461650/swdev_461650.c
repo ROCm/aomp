@@ -7,7 +7,7 @@
 // With 23, we start seeing failures. Not always but definitely repeatable.
 #define DIM 23
 
-// With 32, we fail at one executiono or two at the most.
+// With 32, we fail at one execution or two at the most.
 // #define DIM 32
 #define N (DIM*DIM)
 
