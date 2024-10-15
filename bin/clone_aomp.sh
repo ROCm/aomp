@@ -70,8 +70,13 @@ if [ -d $repodirname  ] ; then
 else 
    echo --- NEW CLONE of repo $repogitname to $repodirname ----
    cd $AOMP_REPOS
-   echo git clone -b $COBRANCH $repo_web_location/$repogitname $reponame
-   git clone -b $COBRANCH $repo_web_location/$repogitname $reponame
+   if [ "$SINGLE_BRANCH" == 1 ]; then
+     echo git clone -b $COBRANCH --depth=1 --single-branch $repo_web_location/$repogitname $reponame
+     git clone -b $COBRANCH --depth=1 --single-branch $repo_web_location/$repogitname $reponame
+   else
+     echo git clone -b $COBRANCH $repo_web_location/$repogitname $reponame
+     git clone -b $COBRANCH $repo_web_location/$repogitname $reponame
+   fi
    if [ $? != 0 ] ; then
      echo "git clone failed for: $repodirname"
      exit 1

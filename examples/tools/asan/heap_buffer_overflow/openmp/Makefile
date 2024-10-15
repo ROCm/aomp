@@ -50,7 +50,7 @@ VERS = $(shell $(LLVM_INSTALL_DIR)/bin/clang --version | grep -oP '(?<=clang ver
 ROCM = $(shell $(LLVM_INSTALL_DIR)/bin/clang --version | grep -oP 'AMD clang')
 
 ifeq ($(shell expr $(VERS) \>= 12.0), 1)
-        RPTH = -Wl,-rpath,$(HIPDIR)/lib/asan -Wl,-rpath,$(LLVM_INSTALL_DIR)/lib/clang/$(VERS)/lib/linux
+        RPTH = -Wl,-rpath,$(HIPDIR)/lib/asan -Wl,-rpath,$(LLVM_INSTALL_DIR)/lib/asan -Wl,-rpath,$(LLVM_INSTALL_DIR)/lib/clang/$(VERS)/lib/linux -Wl,-rpath,$(LLVM_INSTALL_DIR)/lib
 endif
 
 #  compiler automatically adds "libdevice/<target>/ to -L opts
