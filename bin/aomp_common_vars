@@ -72,9 +72,9 @@ AOMP_SKIP_FLANG=${AOMP_SKIP_FLANG:-0}
 AOMP_SKIP_FLANG_NEW=${AOMP_SKIP_FLANG_NEW:-0}
 
 if [ "$AOMP_SKIP_FLANG" == 1 ] || [ "$AOMP_SKIP_FLANG_NEW" == 1 ] ; then
-   AOMP_PROJECTS_LIST=${AOMP_PROJECTS_LIST:-"clang;lld;compiler-rt;clang-tools-extra"}
+   AOMP_PROJECTS_LIST=${AOMP_PROJECTS_LIST:-"clang;lld;clang-tools-extra"}
 else
-   AOMP_PROJECTS_LIST=${AOMP_PROJECTS_LIST:-"clang;lld;compiler-rt;clang-tools-extra;flang"}
+   AOMP_PROJECTS_LIST=${AOMP_PROJECTS_LIST:-"clang;lld;clang-tools-extra;flang"}
 fi
 AOMP_COMPONENT_LIST=${AOMP_COMPONENT_LIST:-"prereq project"}
 
