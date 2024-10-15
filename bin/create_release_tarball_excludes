@@ -17,6 +17,7 @@ ROCgdb/sim
 flang/test
 hcc
 .git
+.gitmodules
 llgo
 lldb
 build
