@@ -276,12 +276,14 @@ if [ "$1" == "install" ] ; then
    REPO_DIR=$AOMP_REPOS/$AOMP_ROCR_REPO_NAME
    removepatch $REPO_DIR
    amd_compiler_symlinks=("amdclang" "amdclang++" "amdclang-cl" "amdclang-cpp" "amdflang" "amdlld")
-   amd_compiler_cfg=("clang" "clang++" "clang-cpp" "clang-${AOMP_MAJOR_VERSION}" "clang-cl" "flang" "flang-new")
-
-   # amdflang-new -> amdllvm symlink
-   if [ ! -h "$LLVM_INSTALL_LOC/bin/amdflang-new" ]; then
-     cd ${LLVM_INSTALL_LOC}/bin
-     ln -s amdllvm amdflang-new
+   if [ "$AOMP_SKIP_FLANG_NEW" == 1 ]; then
+     amd_compiler_cfg=("clang" "clang++" "clang-cpp" "clang-${AOMP_MAJOR_VERSION}" "clang-cl" "flang")
+   else
+     amd_compiler_cfg=("clang" "clang++" "clang-cpp" "clang-${AOMP_MAJOR_VERSION}" "clang-cl" "flang" "flang-new")
+     # amdflang-new -> amdllvm symlink
+     if [ ! -h "$LLVM_INSTALL_LOC/bin/amdflang-new" ] && [ -e "$LLVM_INSTALL_LOC/bin/flang-new" ]; then
+       ln -s amdllvm ${LLVM_INSTALL_LOC}/bin/amdflang-new
+     fi
    fi
 
    # Leaving this in just in case we decide to add the amd* symlinks in the top level bin directory.
