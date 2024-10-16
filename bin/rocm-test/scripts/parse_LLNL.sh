@@ -16,8 +16,14 @@ testname_regex='.*(test_\S*)'
 compile_regex='Compilation.*failed'
 runtime_regex='Running.+\.\.\.\s+([A-Z]*[a-z]*)'
 
-cd "$aompdir/test/LLNL/openmp5.0-tests"
-infile=`ls | grep "LLNL.run.log"`
+cd "$aompdir/test/LLNL/openmp5.0-tests" || exit 1
+declare -a infiles
+infiles=( LLNL.run.log* )
+if [ "${#infiles[@]}" -ne 1 ]; then
+  echo "Expected to find a single result file, bailing out" >&2
+  exit 1
+fi
+infile=${infiles[0]}
 
 # Clean up before parsing
 if [ -e passing-tests.txt ]; then
@@ -25,6 +31,9 @@ if [ -e passing-tests.txt ]; then
 fi
 if [ -e failing-tests.txt ]; then
   rm failing-tests.txt
+fi
+if [ -e xfail-tests.txt ]; then
+  rm xfail-tests.txt
 fi
 if [ -e make-fail.txt ]; then
   rm make-fail.txt
@@ -49,6 +58,10 @@ function parse(){
       fi
       [[ "$line" =~ $testname_regex ]]
       llnltest=${BASH_REMATCH[1]}
+      if [ "$outfile" = "failing-tests.txt" ] && \
+         grep -Fq "$llnltest" xfail-list; then
+        outfile="xfail-tests.txt"
+      fi
       echo "$llnltest" >> $outfile
     fi
   done < "$infile"

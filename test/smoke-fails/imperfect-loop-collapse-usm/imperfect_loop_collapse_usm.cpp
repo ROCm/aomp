@@ -2,6 +2,8 @@
 
 #define N 1024
 
+#pragma omp requires unified_shared_memory
+
 int main() {
   double *a = new double[N*N];
 
@@ -10,8 +12,7 @@ int main() {
     for(int j = 0; j < N; j++)
       a[i*N+j] = (double) (i*N+j);
 
-  #pragma omp target teams distribute parallel for collapse(2) \
-                     map(tofrom: a[0:N*N])
+  #pragma omp target teams distribute parallel for collapse(2)
   for(int i = 0; i < N; i++) {
     double k = i*3.14;
     for(int j = 0; j < N; j++)
