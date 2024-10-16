@@ -155,7 +155,7 @@ fi
 
 if [ "$SKIP_SOLLVE50" != 1 ]; then
   enable_xnack=0
-  if [ "$AOMP_GPU" == gfx90a ] && [ "$HSA_XNACK" == "" ]; then
+  if gpu_needs_xnack_for_usm "$AOMP_GPU" && ! is_apu && [ "$HSA_XNACK" == "" ]; then
     export HSA_XNACK=1
     enable_xnack=1
     echo "Turning on HSA_XNACK=1 for 5.0 to allow USM tests to pass."
@@ -176,7 +176,7 @@ fi
 
 if [ "$SKIP_SOLLVE51" != 1 ]; then
   enable_xnack=0
-  if [ "$AOMP_GPU" == gfx90a ] && [ "$HSA_XNACK" == "" ]; then
+  if gpu_needs_xnack_for_usm "$AOMP_GPU" && ! is_apu && [ "$HSA_XNACK" == "" ]; then
     export HSA_XNACK=1
     enable_xnack=1
     echo "Turning on HSA_XNACK=1 for 5.0 to allow USM tests to pass."
@@ -202,7 +202,7 @@ fi
 
 if [ "$SKIP_SOLLVE52" != 1 ]; then
   enable_xnack=0
-  if [ "$AOMP_GPU" == gfx90a ] && [ "$HSA_XNACK" == "" ]; then
+  if gpu_needs_xnack_for_usm "$AOMP_GPU" && ! is_apu && [ "$HSA_XNACK" == "" ]; then
     export HSA_XNACK=1
     enable_xnack=1
     echo "Turning on HSA_XNACK=1 for 5.0 to allow USM tests to pass."
