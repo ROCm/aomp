@@ -165,7 +165,7 @@ function buildopenmpi(){
   runcmd "cp configure configure-orig"
   runcmdout "sed -e s/flang\s*)/flang*)/ configure-orig" configure
   ###
-  runcmd "./configure --with-hwloc=$HOME/local/hwloc --with-hwloc-libdir=$HOME/local/hwloc/lib OMPI_CC=$AOMP/bin/clang OMPI_CXX=$AOMP/bin/clang++ OMPI_F90=$AOMP/bin/${FLANG} CXX=$AOMP/bin/clang++ CC=$AOMP/bin/clang FC=$AOMP/bin/${FLANG} --prefix=$_installdir"
+  runcmd "./configure --with-hwloc=$HOME/local/hwloc --with-hwloc-libdir=$HOME/local/hwloc/lib OMPI_CC=$LLVM_INSTALL_LOC/bin/clang OMPI_CXX=$LLVM_INSTALL_LOC/bin/clang++ OMPI_F90=$LLVM_INSTALL_LOC/bin/${FLANG} CXX=$LLVM_INSTALL_LOC/bin/clang++ CC=$LLVM_INSTALL_LOC/bin/clang FC=$LLVM_INSTALL_LOC/bin/${FLANG} --prefix=$_installdir"
   runcmd "make -j8"
   runcmd "make install"
   if [ -L $_linkfrom ] ; then 
