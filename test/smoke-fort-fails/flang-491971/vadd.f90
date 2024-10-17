@@ -15,7 +15,7 @@ subroutine vadd(a, b, c, N)
         c(i) = c(i) + b(i)
     end do
 !$omp end target
-!$omp target update from(present, c)
+!$omp target update from(present:c)
 end subroutine
 
 
