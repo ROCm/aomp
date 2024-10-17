@@ -21,6 +21,7 @@ TESTS_DIR = \
     flang-469194 \
     flang-480581 \
     flang-485265 \
+    flang-491971 \
     flang-gpu-stop-integer \
     flang-gpu-stop-string \
     flang-gpu-exit \
