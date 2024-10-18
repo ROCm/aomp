@@ -602,6 +602,52 @@ function setaompgpu (){
   fi
 }
 
+# GPUs which need HSA_XNACK=1 to be set for USM to work.  The canonical place
+# this info is stored in these scripts is in test/Makefile.defs (SUPPORTS_USM).
+# We use a tiny custom makefile to extract the info.
+# Usage:
+# if gpu_needs_xnack_for_usm "$GPU"; then ...; fi
+
+function gpu_needs_xnack_for_usm(){
+  local needs_usm
+  needs_usm=$(make -s -C "$thisdir"/../test -f USM_check.make GPU="$1")
+  case "$needs_usm" in
+    true)
+      return 0
+      ;;
+    false)
+      return 1
+      ;;
+    *)
+      return 2
+      ;;
+  esac
+}
+
+# Return success (0) if ROCR_VISIBLE_DEVICES (or the first GPU if it is unset)
+# refers to an APU, as indicated by rocminfo returning
+# "Coherent Host Access: TRUE" for the device, else return failure (1).
+
+function is_apu(){
+  local device_num=${ROCR_VISIBLE_DEVICES:-0}
+  local cha
+  cha=$(ROCR_VISIBLE_DEVICES="$device_num" rocminfo | grep -m 1 -F "Coherent Host Access:")
+  if [[ "$cha" =~ Coherent\ Host\ Access:[[:blank:]]+(TRUE|FALSE) ]]; then
+    case "${BASH_REMATCH[1]}" in
+      TRUE)
+        return 0
+        ;;
+      FALSE)
+        return 1
+        ;;
+     esac
+  else
+    # If we don't see the above pattern in rocminfo output, it's probably not
+    # an APU.
+    return 1
+  fi
+}
+
 function help_build_aomp(){
    /bin/cat 2>&1 <<"EOF"
 
