@@ -125,7 +125,7 @@ module OpenMPTargetStream
             real(kind=REAL64) :: s
             integer(kind=StreamIntKind) :: i
             s = real(0,kind=REAL64)
-            !$omp target teams distribute parallel do simd reduction(+:s) map(tofrom:s)
+            !$omp target teams distribute parallel do simd reduction(+:s)
             do i=1,N
                s = s + A(i) * B(i)
             end do
