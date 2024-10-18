@@ -21,6 +21,11 @@ TESTS_DIR = \
     flang-469194 \
     flang-480581 \
     flang-485265 \
+    flang-491971 \
+    flang-gpu-stop-integer \
+    flang-gpu-stop-string \
+    flang-gpu-exit \
+    flang-gpu-abort \
     mathdbl-tgt \
     mathquad-tgt \
     olcf-tf-7-loop-combined \
@@ -28,11 +33,10 @@ TESTS_DIR = \
     split-dist-f90 \
     split-dist-par-c \
     split-dist-par-f90 \
+    tgt-print \
     tgt-printf-c \
-    flang-gpu-stop-integer \
-    flang-gpu-stop-string \
-    flang-gpu-exit \
-    flang-gpu-abort
+    tgt-stop \
+    tgt-write
 
 all:
 	@for test_dir in $(TESTS_DIR); do \

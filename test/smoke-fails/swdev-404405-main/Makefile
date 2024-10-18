@@ -11,7 +11,7 @@ CLANG		 = $(AOMP)/bin/clang++
 CC           = $(AOMP)/bin/$(FLANG)
 CFLAGS	     =
 OMP_FLAGS    = -fopenmp $(TARGET)
-LINK_FLAGS   = -lamdhip64 -lstdc++
+LINK_FLAGS   = -L${AOMPHIP}/lib -lamdhip64 -lstdc++
 
 RUNENV       = OMP_TARGET_OFFLOAD=MANDATORY
 

@@ -75,7 +75,7 @@ These are some important environment variables and their default values.
 | AOMP_REPOS            | $HOME/git/aomp20.0   | The base directory for all AOMP build repositories
 | AOMP_STANDALONE_BUILD | 1                  | Build all components, do NOT use installed ROCm
 | AOMP_VERSION          | 20.0               | Clang version.
-| AOMP_VERSION_MOD      | 0                  | This implies the next release will be AOMP_20.0-0.
+| AOMP_VERSION_MOD      | 1                  | This implies the next release will be AOMP_20.0-1.
 | AOMP_VERSION_STRING   | $AOMP_VERSION-$AOMP_VERSION_MOD |
 | AOMP_USE_NINJA        | 0                  | Use ninja instead of make to build certain components
 | GFXLIST               | gfx700 gfx701 gfx801 gfx803     | List of AMDGPU gpus to build for
@@ -275,16 +275,16 @@ That is, the physical installation will be in directory name formed by concatona
 The "build_project.sh install" script will make a symbolic link from the physical directory to the symbolic directory $AOMP.
 The default value for AOMP is $HOME/rocm/aomp.
 For example, when building AOMP version 20.0-0 the install scripts will put all files and directories
-in $HOME/rocm/aomp_20.0-0 and create a symbolic link as follows:
+in $HOME/rocm/aomp_20.0-1 and create a symbolic link as follows:
 
 ```
-ln -sf ${AOMP}_20.0-0 ${AOMP}
+ln -sf ${AOMP}_20.0-1 ${AOMP}
 ```
 All testing for AOMP uses the environment variable AOMP to locate the installation. This makes it easy to switch between versions of AOMP for testing by simply changing the environment variable AOMP. You do NOT need to change the symbolic link.
-For example, if the aomp symbolic link currently points to aomp_20.0-0 and you want to test aomp_19.0-3, do this:
+For example, if the aomp symbolic link currently points to aomp_20.0-1 and you want to test aomp_20.0-0, do this:
 
 ```
-export AOMP=$HOME/rocm/aomp_19.0-3
+export AOMP=$HOME/rocm/aomp_20.0-0
 ```
 
 The aomp package installs in /usr/lib/aomp_\<version_string\> and symlinks /usr/lib/aomp to the versioned directory. To test the installed package, set AOMP to /usr/lib/aomp or /usr/lib/aomp_\<version_string\>.

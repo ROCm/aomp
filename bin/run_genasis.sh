@@ -12,9 +12,16 @@ export AOMP_USE_CCACHE=0
 # --- end standard header ----
 
 # Setup AOMP variables
-AOMP=${AOMP:-$HOME/rocm/aomp}
-ROCM=${ROCM:-$HOME/rocm/aomp}   # for ROCm utilities (e.g. rocm_agent_enumerator)
+AOMP=${AOMP:-$HOME/rocm/aomp/llvm}
+AOMPHIP=${AOMPHIP:-$(realpath -m $(realpath -m $AOMP)/../..)}
+# for ROCm utilities (e.g. rocm_agent_enumerator)
+ROCM=${ROCM:-$(realpath -m $(realpath -m $AOMP)/../..)}
 FLANG=${FLANG:-flang}
+
+echo "AOMP    = $AOMP"
+echo "AOMPHIP = $AOMPHIP"
+echo "ROCM    = $ROCM"
+echo "FLANG   = $FLANG"
 
 # Use function to set and test AOMP_GPU
 setaompgpu
@@ -72,12 +79,12 @@ else
     exit
 fi
 
-export LD_LIBRARY_PATH=$AOMP/lib:$OPENMPI_DIR/lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$AOMP/lib:$AOMPHIP/lib:$OPENMPI_DIR/lib:$LD_LIBRARY_PATH
 export FORTRAN_COMPILE="$AOMP/bin/$FLANG -c -fPIC -I$OPENMPI_DIR/lib"
 export CC_COMPILE="$AOMP/bin/clang -fPIC"
 export OTHER_LIBS="-lm -L$AOMP/lib -lflang -lflangmain -lflangrti -lpgmath -lomp -lomptarget -z muldefs"
 export FORTRAN_LINK="$AOMP/bin/clang $OTHER_LIBS"
-export DEVICE_COMPILE="$AOMP/bin/hipcc -D__HIP_PLATFORM_HCC__"
+export DEVICE_COMPILE="$AOMPHIP/bin/hipcc -D__HIP_PLATFORM_HCC__"
 export HIP_DIR=$ROCM
 export HIP_CLANG_PATH=$AOMP/bin
 cd $currdir
@@ -115,12 +122,16 @@ if [ "$1" != "runonly" ] ; then
 fi
 
 if [ "$1" != "buildonly" ] ; then
+  export LIBOMPTARGET_KERNEL_TRACE=1
+  export LIBOMPTARGET_INFO=1
+  export OMP_TARGET_OFFLOAD=MANDATORY
   cd $REPO_DIR/Programs/UnitTests/Basics/Runtime/Executables
   echo ./PROGRAM_HEADER_Singleton_Test_$GENASIS_MACHINE
   ./PROGRAM_HEADER_Singleton_Test_$GENASIS_MACHINE
   echo
   cd $REPO_DIR/Programs/Examples/Basics/FluidDynamics/Executables
   echo
+  echo "=================  2D RiemannProblem ========"
   _cmd="./RiemannProblem_$GENASIS_MACHINE Verbosity=INFO_2 nCells=256,256 \ Dimensionality=2D FinishTime=0.25 nWrite=10"
   echo $_cmd
   time $_cmd

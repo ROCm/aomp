@@ -1,4 +1,4 @@
-# Source Install V 20.0-0
+# Source Install V 20.0-1
 
 Build and install from sources is possible.  However, the source build for AOMP is complex for several reasons.
 - Many repos are required.
@@ -40,14 +40,14 @@ Here are the commands to do a source build of AOMP:
 ```
 
 The development version is the next version to be released.  It is possible that the development version is broken due to regressions that often occur during development.
-These commands will build a previous release of AOMP such as aomp-19.0-3.<br>
+These commands will build a previous release of AOMP such as aomp-20.0-0.<br>
 <b>Release Branch:</b>
 ```
-   export AOMP_VERSION=19.0
+   export AOMP_VERSION=20.0
    export AOMP_REPOS=$HOME/git/aomp${AOMP_VERSION}
    mkdir -p $AOMP_REPOS
    cd $AOMP_REPOS
-   git clone -b aomp-19.0-3 https://github.com/ROCm-Developer-Tools/aomp
+   git clone -b aomp-20.0-0 https://github.com/ROCm-Developer-Tools/aomp
 ```
 <b>Clone and build:</b>
 ```
@@ -73,16 +73,16 @@ The above command will produce output like this showing you the location and bra
   roctools     aomp-dev                flang                     flang 88b81b0a8ead 2023-11-30             GitHub    Emma Pilkington
   roctools     aomp-dev          aomp-extras               aomp-extras 7097f3e2ba36 2023-12-04      Ron Lieberman      Ron Lieberman
   roctools     aomp-dev                 aomp                      aomp df5b5d8ddffa 2023-12-05 Dhruva Chakrabarti Dhruva Chakrabarti
-  roctools   rocm-6.1.x          rocprofiler               rocprofiler 4e190a02e60e 2023-10-30             GitHub      Ammar ELWazir
-  roctools   rocm-6.1.x            roctracer                 roctracer 6fbf7673aa7f 2023-07-13 Ranjith Ramakrishnan Ranjith Ramakrishnan
-  roctools   rocm-6.1.x            ROCdbgapi                 ROCdbgapi df1a8df2be08 2023-07-28       Lancelot SIX       Lancelot SIX
-  roctools   rocm-6.1.x               ROCgdb                    ROCgdb 157eed788288 2023-07-28       Lancelot SIX       Lancelot SIX
-  roctools   rocm-6.1.x                  hip                       hip 80681169ae20 2023-08-15        Julia Jiang        Julia Jiang
-  roctools   rocm-6.1.x                  clr                       clr 1949b1621a80 2023-09-21        Julia Jiang        Julia Jiang
-       roc   rocm-6.1.x             rocminfo                  rocminfo c8db38ede264 2023-06-02       Mark Searles       Mark Searles
-       roc rocm-rel-6.1           rocm-cmake                rocm-cmake 15cbb2e47f0b 2023-07-11   Lauren Wrubleski   Lauren Wrubleski
-       roc   rocm-6.1.x         rocr-runtime              ROCR-Runtime b2b6811571bf 2023-09-15      David Yat Sin      David Yat Sin
-       roc   rocm-6.1.x roct-thunk-interface      ROCT-Thunk-Interface 5268ea80e32a 2023-08-09     David Belanger     David Belanger
-     rocsw rocm-rel-6.1              hipfort                   hipfort 41f33eeaa3f7 2023-09-07             Sam Wu    dependabot[bot]
+  roctools   rocm-6.2.x          rocprofiler               rocprofiler 4e190a02e60e 2023-10-30             GitHub      Ammar ELWazir
+  roctools   rocm-6.2.x            roctracer                 roctracer 6fbf7673aa7f 2023-07-13 Ranjith Ramakrishnan Ranjith Ramakrishnan
+  roctools   rocm-6.2.x            ROCdbgapi                 ROCdbgapi df1a8df2be08 2023-07-28       Lancelot SIX       Lancelot SIX
+  roctools   rocm-6.2.x               ROCgdb                    ROCgdb 157eed788288 2023-07-28       Lancelot SIX       Lancelot SIX
+  roctools   rocm-6.2.x                  hip                       hip 80681169ae20 2023-08-15        Julia Jiang        Julia Jiang
+  roctools   rocm-6.2.x                  clr                       clr 1949b1621a80 2023-09-21        Julia Jiang        Julia Jiang
+       roc   rocm-6.2.x             rocminfo                  rocminfo c8db38ede264 2023-06-02       Mark Searles       Mark Searles
+       roc rocm-rel-6.2           rocm-cmake                rocm-cmake 15cbb2e47f0b 2023-07-11   Lauren Wrubleski   Lauren Wrubleski
+       roc   rocm-6.2.x         rocr-runtime              ROCR-Runtime b2b6811571bf 2023-09-15      David Yat Sin      David Yat Sin
+       roc   rocm-6.2.x roct-thunk-interface      ROCT-Thunk-Interface 5268ea80e32a 2023-08-09     David Belanger     David Belanger
+     rocsw rocm-rel-6.2              hipfort                   hipfort 41f33eeaa3f7 2023-09-07             Sam Wu    dependabot[bot]
 ```
 For more information, or if you are interested in joining the development of AOMP, please read the AOMP developers README file located here [README](../bin/README.md).

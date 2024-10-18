@@ -165,7 +165,7 @@ function buildopenmpi(){
   runcmd "cp configure configure-orig"
   runcmdout "sed -e s/flang\s*)/flang*)/ configure-orig" configure
   ###
-  runcmd "./configure --with-hwloc=$HOME/local/hwloc --with-hwloc-libdir=$HOME/local/hwloc/lib OMPI_CC=$AOMP/bin/clang OMPI_CXX=$AOMP/bin/clang++ OMPI_F90=$AOMP/bin/${FLANG} CXX=$AOMP/bin/clang++ CC=$AOMP/bin/clang FC=$AOMP/bin/${FLANG} --prefix=$_installdir"
+  runcmd "./configure --with-hwloc=$HOME/local/hwloc --with-hwloc-libdir=$HOME/local/hwloc/lib OMPI_CC=$LLVM_INSTALL_LOC/bin/clang OMPI_CXX=$LLVM_INSTALL_LOC/bin/clang++ OMPI_F90=$LLVM_INSTALL_LOC/bin/${FLANG} CXX=$LLVM_INSTALL_LOC/bin/clang++ CC=$LLVM_INSTALL_LOC/bin/clang FC=$LLVM_INSTALL_LOC/bin/${FLANG} --prefix=$_installdir"
   runcmd "make -j8"
   runcmd "make install"
   if [ -L $_linkfrom ] ; then 
@@ -258,9 +258,9 @@ function getrocmpackage(){
     runcmd "dpkg -x "$_packagename$_packageversion"_"$_componentversion"."$_fullversion"-"$_buildnumber"~${deb_version}.04_amd64.deb $_builddir"
   elif [[ $osname =~ "SLES" ]]; then
     #https://repo.radeon.com/rocm/yum/6.1/main/hsa-amd-aqlprofile6.1.0-1.0.0.60100.60100-82.el7.x86_64.rpm
-    runcmd "wget https://repo.radeon.com/rocm/zyp/"$_version"/main/"$_packagename$_packageversion"-"$_componentversion"."$_fullversion"-sles154."$_buildnumber".x86_64.rpm"
-    echo ""$_packagename$_packageversion"-"$_componentversion"."$_fullversion"-sles154."$_buildnumber".x86_64.rpm | cpio -idm"
-    rpm2cpio "$_packagename$_packageversion"-"$_componentversion"."$_fullversion"-sles154."$_buildnumber".x86_64.rpm | cpio -idm
+    runcmd "wget https://repo.radeon.com/rocm/zyp/"$_version"/main/"$_packagename$_packageversion"-"$_componentversion"."$_fullversion"-sles155."$_buildnumber".x86_64.rpm"
+    echo ""$_packagename$_packageversion"-"$_componentversion"."$_fullversion"-sles155."$_buildnumber".x86_64.rpm | cpio -idm"
+    rpm2cpio "$_packagename$_packageversion"-"$_componentversion"."$_fullversion"-sles155."$_buildnumber".x86_64.rpm | cpio -idm
   else
     runcmd "wget https://repo.radeon.com/rocm/yum/"$_version"/main/"$_packagename$_packageversion"-"$_componentversion"."$_fullversion"-"$_buildnumber".el7.x86_64.rpm"
     echo ""$_packagename$_packageversion"-"$_componentversion"."$_fullversion"-"$_buildnumber".el7.x86_64.rpm | cpio -idm"

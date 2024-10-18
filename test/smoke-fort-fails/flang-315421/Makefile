@@ -5,7 +5,7 @@ TESTSRC_MAIN = ft.f90
 TESTSRC_AUX  = ft_data.f90 randdp.f90
 TESTSRC_ALL  =  $(TESTSRC_AUX) $(TESTSRC_MAIN)
 
-FLANG        ?= flang
+FLANG        ?= flang-new
 OMP_BIN      = $(AOMP)/bin/$(FLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
 OMP_FLAGS   += -DFAIL

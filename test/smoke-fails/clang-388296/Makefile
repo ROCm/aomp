@@ -5,7 +5,7 @@ TESTSRC_MAIN = clang-388296.cpp
 TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 
-CLANG        = clang++  --std=c++17  -fnew-alignment=256  -D__HIP_PLATFORM_AMD__  -fopenmp-version=51 -DUSE_UNIFIED_MEMORY_MINMAX
+CLANG        = clang++  --std=c++17  -fnew-alignment=256  -D__HIP_PLATFORM_AMD__  -fopenmp-version=51 -DUSE_UNIFIED_MEMORY_MINMAX -L${AOMPHIP}/lib -lamdhip64
 
 OMP_BIN      = $(AOMP)/bin/$(CLANG)
 CC           = $(OMP_BIN) $(VERBOSE)

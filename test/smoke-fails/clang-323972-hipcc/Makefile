@@ -9,7 +9,7 @@ CLANG           = hipcc
 AOMPHIP        ?= $(AOMP)
 HIP_CLANG_PATH ?= $(AOMPHIP)/bin
 HIPCC          ?= $(HIP_CLANG_PATH)/$(CLANG)
-COMPILE_ENV     = HIP_CLANG_PATH=$(HIP_CLANG_PATH)
+COMPILE_ENV     =
 
 OMP_FLAGS       = -fopenmp -O2
 OMP_BIN         = $(HIPCC)

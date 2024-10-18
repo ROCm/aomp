@@ -16,7 +16,14 @@
 // Tool related code below. The tool is expected to provide the
 // following definitions, some of them optionally.
 
+// Note that 256 is used here for illustration.
+// A tool should use a larger buffer size for realistic workloads.
 #define OMPT_BUFFER_REQUEST_SIZE 256
+
+// Note that this test assumes the presence of only 1 device.
+// If more devices are used for offloading, it may be necessary
+// to track all of them for tracing purposes.
+extern ompt_device_t *my_device;
 
 // Utilities
 
@@ -132,29 +139,29 @@ static void on_ompt_callback_buffer_complete (
 
 // Utility routine to enable the desired tracing modes
 static ompt_set_result_t set_trace_ompt() {
-  if (!ompt_set_trace_ompt) return ompt_set_error;
+  if (!ompt_set_trace_ompt || !my_device) return ompt_set_error;
 
-  ompt_set_trace_ompt(0, 1, ompt_callback_target);
-  ompt_set_trace_ompt(0, 1, ompt_callback_target_data_op);
-  ompt_set_trace_ompt(0, 1, ompt_callback_target_submit);
+  ompt_set_trace_ompt(my_device, 1, ompt_callback_target);
+  ompt_set_trace_ompt(my_device, 1, ompt_callback_target_data_op);
+  ompt_set_trace_ompt(my_device, 1, ompt_callback_target_submit);
 
   return ompt_set_always;
 }
 
 static int start_trace() {
-  if (!ompt_start_trace) return 0;
-  return ompt_start_trace(0, &on_ompt_callback_buffer_request,
+  if (!ompt_start_trace || !my_device) return 0;
+  return ompt_start_trace(my_device, &on_ompt_callback_buffer_request,
 			  &on_ompt_callback_buffer_complete);
 }
 
 static int flush_trace() {
-  if (!ompt_flush_trace) return 0;
-  return ompt_flush_trace(0);
+  if (!ompt_flush_trace || !my_device) return 0;
+  return ompt_flush_trace(my_device);
 }
 
 static int stop_trace() {
-  if (!ompt_stop_trace) return 0;
-  return ompt_stop_trace(0);
+  if (!ompt_stop_trace || !my_device) return 0;
+  return ompt_stop_trace(my_device);
 }
 
 // Synchronous callbacks
@@ -174,8 +181,12 @@ static void on_ompt_callback_device_initialize
     printf("Trace collection disabled on device %d\n", device_num);
     return;
   }
-
-  ompt_set_trace_ompt = (ompt_set_trace_ompt_t) lookup("ompt_set_trace_ompt");
+  if (!device) {
+    printf("Device is null, trace collection disabled\n");
+    return;
+  }
+  my_device = device;
+  ompt_set_trace_ompt = (ompt_set_trace_ompt_t)lookup("ompt_set_trace_ompt");
   ompt_start_trace = (ompt_start_trace_t) lookup("ompt_start_trace");
   ompt_flush_trace = (ompt_flush_trace_t) lookup("ompt_flush_trace");
   ompt_stop_trace = (ompt_stop_trace_t) lookup("ompt_stop_trace");

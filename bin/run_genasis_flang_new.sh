@@ -1,8 +1,27 @@
 #!/bin/bash
-# 
-#  run_genasis.sh 
 #
-
+#  run_genasis.sh
+#
+#  Test environment: (set before running this script)
+#    To run on host:
+#       export ENABLE_OMP_OFFLOAD=0
+#    To run on target:
+#       export ENABLE_OMP_OFFLOAD=1
+#    To run with clone of https://github.com/GenASis/GenASis
+#       export SRC_DIR=GenASis
+#    To run with clone of https://github.com/GenASiS/GenASiS_Basics
+#       export SRC_DIR=GenASiS_Basics
+#
+# Also requires: openmpi, silo, hdf5
+#
+#    cd ~/git/aomp20.0/aomp/bin
+#    AOMP_USE_CCACHE=0 \
+#    AOMP=<path-to-compiler-install>/llvm ./build_supp_llvm-flang.sh
+#
+# To run:
+#    AOMP_SUPP=$HOME/local/llvm-flang \
+#    AOMP=<path-to-compiler-install>/llvm ./run_genasis_flang_new.sh
+#
 # --- Start standard header to set AOMP environment variables ----
 realpath=`realpath $0`
 thisdir=`dirname $realpath`
@@ -12,9 +31,16 @@ export AOMP_USE_CCACHE=0
 # --- end standard header ----
 
 # Setup AOMP variables
-AOMP=${AOMP:-$HOME/rocm/aomp}
-ROCM=${ROCM:-$HOME/rocm/aomp}   # for ROCm utilities (e.g. rocm_agent_enumerator)
-FLANG=${FLANG:-flang}
+AOMP=${AOMP:-$HOME/rocm/aomp/llvm}
+AOMPHIP=${AOMPHIP:-$(realpath -m $(realpath -m $AOMP)/../..)}
+# for ROCm utilities (e.g. rocm_agent_enumerator)
+ROCM=${ROCM:-$(realpath -m $(realpath -m $AOMP)/../..)}
+FLANG=${FLANG:-flang-new}
+
+echo "AOMP    = $AOMP"
+echo "AOMPHIP = $AOMPHIP"
+echo "ROCM    = $ROCM"
+echo "FLANG   = $FLANG"
 
 # Use function to set and test AOMP_GPU
 setaompgpu
@@ -33,7 +59,8 @@ fi
 # Copy Makefile_ROCm to GenASis repository
 cp Makefile_ROCmFlangNew $REPO_DIR/Build/Machines/
 
-patchrepo $AOMP_REPOS_TEST/GenASis
+patchrepo $AOMP_REPOS_TEST/$SRC_DIR
+trap "removepatch $AOMP_REPOS_TEST/$SRC_DIR" EXIT
 
 cd $REPO_DIR
 
@@ -74,12 +101,12 @@ else
     exit
 fi
 
-export LD_LIBRARY_PATH=$AOMP/lib:$OPENMPI_DIR/lib::$LD_LIBRARY_PATH
-export FORTRAN_COMPILE="$AOMP/bin/$FLANG -c -fopenmp --offload-arch=$GPU_ID -fPIC -I$OPENMPI_DIR/lib"
+export LD_LIBRARY_PATH=$AOMP/lib:$AOMPHIP/lib:$OPENMPI_DIR/lib:$LD_LIBRARY_PATH
+export FORTRAN_COMPILE="$AOMP/bin/$FLANG -c -fopenmp --offload-arch=$GPU_ID -fPIC -I$OPENMPI_DIR/lib -cpp"
 export CC_COMPILE="$AOMP/bin/clang -fPIC"
-export OTHER_LIBS="-lm -L$AOMP/lib -lFortranRuntime -lFortranDecimal  -lomp -lomptarget -z muldefs "
+export OTHER_LIBS="-lm -L$AOMP/lib -lFortranRuntime -lFortranRuntimeHostDevice -lFortranDecimal  -lomp -lomptarget -z muldefs "
 export FORTRAN_LINK="$AOMP/bin/clang $OTHER_LIBS"
-export DEVICE_COMPILE="$AOMP/bin/hipcc -D__HIP_PLATFORM_HCC__"
+export DEVICE_COMPILE="$AOMPHIP/bin/hipcc -D__HIP_PLATFORM_HCC__"
 export HIP_DIR=$ROCM
 export HIP_CLANG_PATH=$AOMP/bin
 cd $currdir
@@ -117,13 +144,23 @@ if [ "$1" != "runonly" ] ; then
 fi
 
 if [ "$1" != "buildonly" ] ; then
+  # export LIBOMPTARGET_KERNEL_TRACE=1
+  # export LIBOMPTARGET_INFO=1
+  export OMP_TARGET_OFFLOAD=MANDATORY
   cd $REPO_DIR/Programs/UnitTests/Basics/Runtime/Executables
   echo ./PROGRAM_HEADER_Singleton_Test_$GENASIS_MACHINE
   ./PROGRAM_HEADER_Singleton_Test_$GENASIS_MACHINE
   echo
   cd $REPO_DIR/Programs/Examples/Basics/FluidDynamics/Executables
   echo
+  echo "=================  2D RiemannProblem ========"
   _cmd="./RiemannProblem_$GENASIS_MACHINE Verbosity=INFO_2 nCells=256,256 \ Dimensionality=2D FinishTime=0.25 nWrite=10"
+  echo $_cmd
+  time $_cmd
+  echo "Done: $_cmd"
+  echo
+  echo "=================  3D RiemannProblem ========"
+  _cmd="./RiemannProblem_${GENASIS_MACHINE} Verbosity=INFO_2 nCells=256,256,256 Dimensionality=3D NoWrite=T FinishCycle=10"
   echo $_cmd
   time $_cmd
   echo "Done: $_cmd"

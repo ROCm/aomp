@@ -2,7 +2,8 @@ openlibm: openlibm.patch
 RAJA: raja.patch
 RAJAPerf: rajaperf.patch
 GenASis: genasis.patch
-hipamd: hipamd-hip-clang-root.patch
+GenASiS_Basics: genasis_basics.patch
+hipamd: hipamd-rpath.patch
 hipfort: hipfort.patch
 bolt: bolt.patch
 rocr-runtime: rocr-runtime-combined-numa-check-openmp-support.patch
