@@ -876,8 +876,10 @@ function accel2023(){
   cd $AOMP_TEST_DIR/accel2023-2.0.18
   grep ratio= result/*.log
   echo "" > make-fail.txt
-  grep ratio= result/*.log | grep 'Success ' | awk '{print $2}' > passing-tests.txt
-  grep ratio= result/*.log | grep -v 'Success ' | awk '{print $2}' > failing-tests.txt
+  grep ratio= result/*.log | grep Succ | awk '{print $2}' > "$resultsdir"/accel2023/passing-tests.txt
+  cat "$resultsdir"/accel2023/passing-tests.txt | tee passing-tests.txt
+  grep ratio= result/*.log | grep -v Succ | awk '{print $2}' > "$resultsdir"/accel2023/failing-tests.txt
+  cat "$resultsdir"/accel2023/failing-tests.txt | tee failing-tests.txt
   nsucc=$(grep ratio= result/*.log  | grep Succ | wc -l)
   if [ $nsucc -eq 12 ]; then
     echo "Success $nsucc passes"
@@ -903,8 +905,10 @@ function hpc2021(){
     cd $AOMP_TEST_DIR/hpc2021-1.1.9
     grep ratio= result/*.log
     echo "" > make-fail.txt
-    grep ratio= result/*.log | grep Succ > "$resultsdir"/hpc2021/passing-tests.txt
-    grep ratio= result/*.log | grep -v Succ > "$resultsdir"/hpc2021/failing-tests.txt
+    grep ratio= result/*.log | grep Succ | awk '{print $2}' > "$resultsdir"/hpc2021/passing-tests.txt
+    cat "$resultsdir"/hpc2021/passing-tests.txt | tee passing-tests.txt
+    grep ratio= result/*.log | grep -v Succ | awk '{print $2}' > "$resultsdir"/hpc2021/failing-tests.txt
+    cat "$resultsdir"/hpc2021/failing-tests.txt | tee failing-tests.txt
     nsucc=$(grep ratio= result/*.log  | grep Succ | wc -l)
     if [ $nsucc -eq 9 ]; then
       echo "Success $nsucc passes"
