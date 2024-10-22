@@ -110,7 +110,10 @@ $AOMP_ORIGIN_RPATH \
       echo "      $MYCMAKEOPTS"
       exit 1
   fi
+fi
 
+if [ "$1" = "cmake" ]; then
+  exit 0
 fi
 
 cd $BUILD_DIR/build/bolt

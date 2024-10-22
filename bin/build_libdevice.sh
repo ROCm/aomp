@@ -37,7 +37,7 @@ export PATH=$LLVM_BUILD/bin:$PATH
 
 patchrepo $REPO_DIR
 
-if [ "$1" != "install" ] ; then 
+if [ "$1" != "install" && "$1" != "nocmake" ]; then
     
       builddir_libdevice=$BUILD_DIR/build/libdevice
       if [ -d $builddir_libdevice ] ; then 
@@ -60,6 +60,14 @@ if [ "$1" != "install" ] ; then
          echo "      ${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR $BUILD_DIR/$AOMP_LIBDEVICE_REPO_NAME"
          exit 1
       fi
+fi
+
+if [ "$1" = "cmake" ]; then
+   removepatch $REPO_DIR
+   exit 0
+fi
+
+if [ "$1" != "install" ]; then
       echo "make -j $AOMP_JOB_THREADS"
       make -j $AOMP_JOB_THREADS 
       if [ $? != 0 ] ; then 

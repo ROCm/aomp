@@ -71,6 +71,10 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    fi
 fi
 
+if [ "$1" = "cmake" ]; then
+   exit 0
+fi
+
 cd $BUILD_AOMP/build/$AOMP_PROF_REGISTER_REPO_NAME
 echo
 echo " -----Running make for $AOMP_PROF_REGISTER_REPO_NAME ---- " 
