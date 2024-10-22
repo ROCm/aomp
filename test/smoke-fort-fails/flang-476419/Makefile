@@ -1,6 +1,6 @@
 NOOPT        = 1
 include ../../Makefile.defs
-OMP_FLAGS    += -O3 -save-temps
+OMP_FLAGS    += -O3
 
 TESTNAME     = flang-476419
 TESTSRC_MAIN = flang-476419.f90
