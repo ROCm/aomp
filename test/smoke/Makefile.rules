@@ -348,7 +348,7 @@ run_sbin: sbin
 
 # Cleanup anything this makefile can create
 clean::
-	rm -f $(TESTNAME) $(TESTNAME).a llbin sbin obin *.i *.ii *.bc *.lk a.out-* *.ll *.s *.o *.log *.mod verify_output *.stb *.ilm *.cmod *.cmdx *.so $(TESTNAME)_og11 make-log.txt TEST_STATUS FILECHECK_STATUS
+	rm -f $(TESTNAME) $(TESTNAME).a llbin sbin obin *.i *.ii *.bc *.lk a.out-* *.ll *.s *.o *.out *.log *.mlir *.mod verify_output *.stb *.ilm *.cmod *.cmdx *.so $(TESTNAME)_og11 make-log.txt TEST_STATUS FILECHECK_STATUS
 
 clean_log:
 	rm -f *.log
