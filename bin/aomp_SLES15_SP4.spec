@@ -50,10 +50,6 @@ if [ -L /usr/bin/cloc.sh ] ; then rm /usr/bin/cloc.sh ; fi
 ln -sf /usr/lib/aomp/bin/cloc.sh /usr/bin/cloc.sh
 if [ -L /usr/bin/gpurun ] ; then rm /usr/bin/gpurun ; fi
 ln -sf /usr/lib/aomp/bin/gpurun /usr/bin/gpurun
-if [ -f /etc/profile.d/aomp.sh ] ; then rm /etc/profile.d/aomp.sh ; fi
-echo "export AOMP=/usr/lib/aomp" >/etc/profile.d/aomp.sh
-if [ -f /etc/profile.d/aomp.csh ] ; then rm /etc/profile.d/aomp.csh ; fi
-echo "setenv AOMP /usr/lib/aomp" >/etc/profile.d/aomp.csh
 echo "DONE POST INSTALL SCRIPT FROM spec file RUNNING IN $PWD"
 
 %files
