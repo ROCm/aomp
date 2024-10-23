@@ -5,8 +5,8 @@ program vmm
     integer j,i, num, flag;
     num = N
     
-!$omp target teams
-!$omp loop map(to: a,b) map(from: c)
+!$omp target teams map(to: a,b) map(from: c)
+!$omp loop collapse(2)
     do j=1,1000
     do i=1,N
         c(i) = a(i) * b(i)

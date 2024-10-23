@@ -4,10 +4,11 @@ program vmm
     integer a(N), b(N), c(N)
     integer j,i, num, flag;
     num = N
-    
-!$omp target teams
-!$omp loop map(to: a,b) map(from: c)
+
+!$omp target teams  map(to: a,b) map(from: c)
+!$omp loop
     do j=1,1000
+!$omp loop
     do i=1,N
         c(i) = a(i) * b(i)
     end do
@@ -15,5 +16,4 @@ program vmm
 !$omp end target teams
     print *,'done'
 end program
-
 
