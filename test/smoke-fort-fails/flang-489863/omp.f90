@@ -1,3 +1,5 @@
+
+
 program main
     implicit none
     integer :: nkgmax, nr, i, j, k
@@ -6,9 +8,11 @@ program main
     real(kind=8) :: tmp
     integer :: time1, time2, dt, count_rate, count_max
     real(kind=8) :: secs_acc
+    real(kind=8) :: vmat2d_min, vmat2d_max, vmat2d_mean, epsilon
 
     nkgmax = 10000
-    nr     = 10000
+    nr = 10000
+    epsilon = 1.0e-6
 
     allocate(cont_wave(1:nkgmax*nr))
 
@@ -56,4 +60,21 @@ program main
     print*, 'Max value in vmat2D: ', maxval(vmat2D(1:nkgmax, 1:nkgmax))
     print*, 'Mean value in vmat2D: ', sum(vmat2D(1:nkgmax, 1:nkgmax)) / dble(nkgmax * nkgmax)
 
+    ! Time in secs with OpenMP Offload:  48.430999755859375
+    ! Min value in vmat2D:  -3847.6374622142002
+    ! Max value in vmat2D:  9967.42851222314
+    ! Mean value in vmat2D:  1109.6848768110396
+
+    vmat2d_min  = minval(vmat2D(1:nkgmax, 1:nkgmax))
+    vmat2d_max  = maxval(vmat2D(1:nkgmax, 1:nkgmax))
+    vmat2d_mean = sum(vmat2D(1:nkgmax, 1:nkgmax)) / dble(nkgmax * nkgmax)
+    print *, abs((vmat2d_min  - -3847.6374622142002) / vmat2d_min )
+    print *, abs((vmat2d_max  - 9967.42851222314   ) / vmat2d_max )
+    print *, abs((vmat2d_mean - 1109.6848768110396 ) / vmat2d_mean)
+
+    if (abs((vmat2d_min  - -3847.6374622142002) / vmat2d_min ) > epsilon) stop -1
+    if (abs((vmat2d_max  - 9967.42851222314   ) / vmat2d_max ) > epsilon) stop -2
+    if (abs((vmat2d_mean - 1109.6848768110396 ) / vmat2d_mean) > epsilon) stop -3
+
 end program main
+
