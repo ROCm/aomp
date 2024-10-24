@@ -15,6 +15,6 @@ CC           = $(OMP_BIN) $(VERBOSE)
 #-ccc-print-phases
 #"-\#\#\#"
 
-RUNCMD      = ./$(TESTNAME) 2>&1 | diff - expected.out
+RUNCMD      = ./$(TESTNAME) 2>&1 | diff - chk.stdout
 
 include ../Makefile.rules

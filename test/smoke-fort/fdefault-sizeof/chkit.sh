@@ -1,2 +1,2 @@
 #!/bin/bash
-diff $1 expected.out
+diff $1 chk.stdout
