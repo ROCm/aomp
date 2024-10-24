@@ -3,7 +3,8 @@ test_allocate_directive.cxx
 test_concurrent_map.cxx
 test_implicit_declare_target.cxx foo.cxx
 test_declare_variant.cxx
-test_imperfect_loop.cxx
+test_imperfect_loop.cxx / -Rpass-analysis=openmp-opt
+test_imperfect_loop_warning.cxx
 test_loop.cxx
 test_lvalue_map_motion.cxx
 test_non_rectangular.cxx
