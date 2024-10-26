@@ -18,4 +18,5 @@ RUNCMD       = ./doit.sh ${TESTNAME} 2>&1 | tee ${TESTNAME}.perf
 include ../Makefile.rules
 
 jacobi:
+	make clean
 	make FC=${OMP_BIN} ROCM_GPU=${AOMP_GPU} -f Makefile.jacobi
