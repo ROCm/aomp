@@ -1,7 +1,6 @@
 include ../Makefile.defs
 
 TESTS_DIR = \
-    f2018-select-rank \
     flang-315421 \
     flang-325095 \
     flang-421111-3 \
