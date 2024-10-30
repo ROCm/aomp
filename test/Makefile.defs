@@ -370,8 +370,10 @@ endif
 # Header include path + linker flag for libomptest based OMPT tests
 OMPTEST = -I$(AOMP)/lib/omptest/include -lomptest
 
+GPU_MEM_TOTAL_SIZE = $(shell $(AOMPHIP)/bin/rocm-smi --showmeminfo vram | grep -E "VRAM Total Memory"  | grep -m1 -Eo " [0-9]+" | tr -d ' ')
+GPU_MEM_USED_SIZE = $(shell $(AOMPHIP)/bin/rocm-smi --showmeminfo vram | grep -E "VRAM Total Used Memory"  | grep -m1 -Eo " [0-9]+" | tr -d ' ')
+GPU_MEM_SIZE_GIB := $(shell echo "scale=2; ( ($(GPU_MEM_TOTAL_SIZE) - $(GPU_MEM_USED_SIZE)) / (1024 * 1024 * 1024) )" | bc)
+
 ifeq ($(ISVIRT),1)
-GPU_MEM_SIZE = $(shell $(AOMPHIP)/bin/rocm-smi --showmeminfo vram | grep -E "VRAM Total Memory"  | grep -m1 -Eo " [0-9]+" | tr -d ' ')
-GPU_MEM_SIZE_GIB := $(shell bc -l <<< "$(GPU_MEM_SIZE)/1024 ^ 3")
 ISVIRT_UNSUPPORTED = ISVIRT_COMPILE ISVIRT_RUNTIME
 endif
