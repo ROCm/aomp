@@ -186,6 +186,17 @@ for COMPONENT in $components ; do
    date
    echo " =================  DONE INSTALLING COMPONENT $COMPONENT ==================="   
 done
+
+echo "------ Linking flang-new or flang-legacy to flang -------"
+if [ -L $LLVM_INSTALL_LOC/bin/flang ] ; then
+  $SUDO rm $LLVM_INSTALL_LOC/bin/flang
+fi
+pushd $LLVM_INSTALL_LOC/bin
+$SUDO ln -sf $AOMP_FLANG_DRIVER flang
+ls -l flang
+ls -l $LLVM_INSTALL_LOC/bin/flang
+popd
+
 #Run build_fixups.sh to clean the AOMP directory before packaging
 #$AOMP_REPOS/$AOMP_REPO_NAME/bin/build_fixups.sh
 echo 
