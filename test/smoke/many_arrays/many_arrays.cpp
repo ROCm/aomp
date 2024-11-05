@@ -186,37 +186,37 @@ int vecadd(long size, std::string label) {
   return rc;
 }
 
-int checkSize(long arraySize , float memSize, int initialExponent){
-  int exponent = 0;
-  float GiB =  pow(1024,3);
-  float sizeGiB;
+int checkSize(float memSize, int initialExponent, long smallSize, float reservedMemPercent) {
+  float GiB =  1 << 30;
   int numArrays = 20;
+  float sizeGiB;
 
-  for (int i = initialExponent; i > 0; i--){
-    sizeGiB = (arraySize * numArrays * i) / GiB;
-    if (sizeGiB < memSize){
-      exponent = i;
-      return exponent;
+  for (int i = initialExponent; i > 0; i--) {
+    sizeGiB = ((pow(10, i) + smallSize) * numArrays * sizeof(double)) / GiB;
+    printf("sizeGiB: %f, memSize: %f, reservedMemPercent: %f\n", sizeGiB, memSize, reservedMemPercent);
+    if (sizeGiB < (memSize * (1 - reservedMemPercent/100))) {
+      return i;
    }
   }
   return initialExponent;
 }
 
-int main(int argc, char * argv[])
-{
+int main(int argc, char * argv[]) {
   int largeExponent = 8;
+  long smallSize = 1000;
+  float reservedMemPercent = 5;
   int adjustedExponent = 0;
-  long smallSize = pow(10,3);
-  long largeSize = pow(10,largeExponent);
+  long largeSize;
 
   // Expects size of GPU memory in GiB (Bytes/1024^3)
   if (argc > 1){
     float memSize = atof(argv[1]);
-    adjustedExponent = checkSize(largeSize, memSize, largeExponent);
-    largeSize =  pow(10,adjustedExponent);
+    adjustedExponent = checkSize(memSize, largeExponent, smallSize, reservedMemPercent);
     largeExponent = adjustedExponent;
-    printf("largeExponent: %d\n", adjustedExponent);
+    printf("adjustedExponent: %d\n", adjustedExponent);
   }
+
+  largeSize = pow(10, largeExponent);
 
   int rc = vecadd(smallSize, "small (10^3)");
   if (rc) return rc;

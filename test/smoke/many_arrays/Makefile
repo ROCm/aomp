@@ -11,11 +11,7 @@ CC           = $(OMP_BIN) $(VERBOSE)
 #-ccc-print-phases
 #"-\#\#\#"
 
-
-
-ifeq ($(ISVIRT),1)
 ARGS = $(GPU_MEM_SIZE_GIB)
-endif
 
 RUNENV = LIBOMPTARGET_KERNEL_TRACE=2
 
