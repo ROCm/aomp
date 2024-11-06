@@ -191,6 +191,10 @@ if [ "$aomp" != 1 ]; then
         test_package=$(ls -lt "$local_dir"/rocm/ | grep -Eo -m1 openmp-extras-tests.*)
         cp "$local_dir"/rocm/"$test_package" $tmpdir
         extract_rpm $test_package
+      elif [[ "$os_name" =~ "Microsoft Azure Linux" ]]; then
+	dnf download --destdir=$tmpdir openmp-extras-tests
+	test_package=$(ls -lt $tmpdir | grep -Eo -m1 openmp-extras-tests.*)
+	extract_rpm $test_package
       else
         echo "Error: Could not determine operating system name."
         exit 1
@@ -334,10 +338,10 @@ function getversion(){
     osname=$(cat /etc/os-release | grep -e ^NAME=)
     # Regex to cover single/multi version installs for deb/rpm.
     ompextrasregex="openmp-extras-?[a-z]*-?\s*[0-9]+\.([0-9]+)\.([0-9]+)"
-    rpmregex="Red Hat|CentOS|SLES|Oracle Linux Server"
+    rpmregex="Red Hat|CentOS|SLES|Oracle Linux Server|Microsoft Azure Linux"
     echo $osname
     if [[ "$osname" =~ $rpmregex ]]; then
-      echo "Red Hat/CentOS/SLES/Oracle found"
+      echo "Red Hat/CentOS/SLES/Oracle/Microsoft Azure found"
       ompextraspkg=$(rpm -qa | grep openmp-extras | tail -1)
     elif [[ $osname =~ "Ubuntu" ]]; then
       echo "Ubuntu found"
