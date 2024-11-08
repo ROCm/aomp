@@ -10,8 +10,6 @@ thisdir=`dirname $realpath`
 . $thisdir/aomp_common_vars
 # --- end standard header ----
 
-INSTALL_OPENMP=${INSTALL_OPENMP:-$LLVM_INSTALL_LOC}
-
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   help_build_aomp
 fi
@@ -43,13 +41,13 @@ fi
 
 # Make sure we can update the install directory
 if [ "$1" == "install" ] ; then
-   $SUDO mkdir -p $INSTALL_OPENMP
-   $SUDO touch $INSTALL_OPENMP/testfile
+   $SUDO mkdir -p $LLVM_INSTALL_LOC
+   $SUDO touch $LLVM_INSTALL_LOC/testfile
    if [ $? != 0 ] ; then
-      echo "ERROR: No update access to $INSTALL_OPENMP"
+      echo "ERROR: No update access to $LLVM_INSTALL_LOC"
       exit 1
    fi
-   $SUDO rm $INSTALL_OPENMP/testfile
+   $SUDO rm $LLVM_INSTALL_LOC/testfile
 fi
 
 if [ "$AOMP_BUILD_CUDA" == 1 ] ; then
@@ -69,7 +67,7 @@ export LLVM_DIR=$AOMP_INSTALL_DIR
 GFXSEMICOLONS=`echo $GFXLIST | tr ' ' ';' `
 ALTAOMP=${ALTAOMP:-$LLVM_INSTALL_LOC}
 COMMON_CMAKE_OPTS="$AOMP_SET_NINJA_GEN -DOPENMP_ENABLE_LIBOMPTARGET=1
--DCMAKE_INSTALL_PREFIX=$INSTALL_OPENMP
+-DCMAKE_INSTALL_PREFIX=$LLVM_INSTALL_LOC
 -DOPENMP_TEST_C_COMPILER=$LLVM_INSTALL_LOC/bin/clang
 -DOPENMP_TEST_CXX_COMPILER=$LLVM_INSTALL_LOC/bin/clang++
 -DCMAKE_C_COMPILER=$ALTAOMP/bin/clang
@@ -182,9 +180,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
   fi
 
    if [ "$AOMP_BUILD_DEBUG" == "1" ] ; then
-      _ompd_dir="$AOMP_INSTALL_DIR/lib-debug/ompd"
-      #  This is the new locationof the ompd directory
-      [[ ! -d $_ompd_dir ]] && _ompd_dir="$LLVM_INSTALL_LOC/share/gdb/python/ompd"
+      _ompd_dir="$LLVM_INSTALL_LOC/share/gdb/python/ompd"
 
       DEBUGCMAKEOPTS="
 -DLIBOMPTARGET_NVPTX_DEBUG=ON \
@@ -222,7 +218,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
          cd $BUILD_DIR/build/offload_debug
          if [ "$AOMP_STANDALONE_BUILD" == 1 ]; then
            PREFIX_PATH="-DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR/lib/cmake;$AOMP_INSTALL_DIR/lib64/cmake"
-           MYCMAKEOPTS="$COMMON_CMAKE_OPTS $DEBUGCMAKEOPTS $AOMP_ORIGIN_RPATH"
+           MYCMAKEOPTS="$COMMON_CMAKE_OPTS $DEBUGCMAKEOPTS $AOMP_DEBUG_ORIGIN_RPATH"
          else
            PREFIX_PATH="-DCMAKE_PREFIX_PATH=$INSTALL_PREFIX/lib/cmake"
            MYCMAKEOPTS="$COMMON_CMAKE_OPTS $DEBUGCMAKEOPTS $OPENMP_EXTRAS_ORIGIN_RPATH"
@@ -351,7 +347,7 @@ if [ "$1" == "install" ] ; then
    if [ "$AOMP_LEGACY_OPENMP" == "1" ] && [ "$SANITIZER" != 1 ] ; then
       cd $BUILD_DIR/build/offload
       echo
-      echo " -----Installing to $INSTALL_OPENMP/lib ----- "
+      echo " -----Installing to $LLVM_INSTALL_LOC/lib ----- "
       $SUDO $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS install
       if [ $? != 0 ] ; then
          echo "ERROR $AOMP_NINJA_BIN install failed "
@@ -362,7 +358,7 @@ if [ "$1" == "install" ] ; then
    if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
       cd $BUILD_DIR/build/offload/asan
       echo
-      echo " -----Installing to $INSTALL_OPENMP/lib/asan ----- "
+      echo " -----Installing to $LLVM_INSTALL_LOC/lib/asan ----- "
       $SUDO $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS install
       if [ $? != 0 ] ; then
          echo "ERROR $AOMP_NINJA_BIN install failed "
@@ -373,7 +369,7 @@ if [ "$1" == "install" ] ; then
    if [ "$AOMP_BUILD_PERF" == "1" ]; then
      cd $BUILD_DIR/build/offload_perf
      echo
-     echo " -----Installing to $INSTALL_OPENMP/lib-perf ----- "
+     echo " -----Installing to $LLVM_INSTALL_LOC/lib-perf ----- "
      $SUDO $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS install
      if [ $? != 0 ] ; then
         echo "ERROR $AOMP_NINJA_BIN install failed "
@@ -387,7 +383,7 @@ if [ "$1" == "install" ] ; then
      if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
         cd $BUILD_DIR/build/offload_perf/asan
         echo
-        echo " ----- Installing to $INSTALL_OPENMP/lib-perf/asan ----- "
+        echo " ----- Installing to $LLVM_INSTALL_LOC/lib-perf/asan ----- "
         $SUDO $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS install
         if [ $? != 0 ] ; then
            echo "ERROR $AOMP_NINJA_BIN install failed "
@@ -397,13 +393,11 @@ if [ "$1" == "install" ] ; then
    fi
 
    if [ "$AOMP_BUILD_DEBUG" == "1" ] ; then
-      _ompd_dir="$AOMP_INSTALL_DIR/lib-debug/ompd"
-        This is the new locationof the ompd directory
-      [[ ! -d $_ompd_dir ]] && _ompd_dir="$LLVM_INSTALL_LOC/share/gdb/python/ompd"
+      _ompd_dir="$LLVM_INSTALL_LOC/share/gdb/python/ompd"
       if [ "$SANITIZER" != 1 ] ; then
          cd $BUILD_DIR/build/offload_debug
          echo
-         echo " -----Installing to $INSTALL_OPENMP/lib-debug ---- "
+         echo " -----Installing to $LLVM_INSTALL_LOC/lib-debug ---- "
          $SUDO $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS install
          if [ $? != 0 ] ; then
             echo "ERROR $AOMP_NINJA_BIN install failed "
@@ -416,7 +410,7 @@ if [ "$1" == "install" ] ; then
       fi
       if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
          cd $BUILD_DIR/build/offload_debug/asan
-         echo " -----Installing to $INSTALL_OPENMP/lib-debug/asan ---- "
+         echo " -----Installing to $LLVM_INSTALL_LOC/lib-debug/asan ---- "
          $SUDO $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS install
          if [ $? != 0 ] ; then
             echo "ERROR $AOMP_NINJA_BIN install failed "

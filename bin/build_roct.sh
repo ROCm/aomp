@@ -50,6 +50,10 @@ patchrepo $AOMP_REPOS/$AOMP_ROCT_REPO_NAME
 if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
   LDFLAGS="-fuse-ld=lld $ASAN_FLAGS"
 fi
+_install_src_dir_roct="$AOMP_INSTALL_DIR/lib-debug/ompd/src/roct"
+if [ "$AOMP_BUILD_DEBUG" == 1 ] ; then
+   ROCT_DEBUG_FLAGS="-g -DOPENMP_SOURCE_DEBUG_MAP=-fdebug-prefix-map=$AOMP_REPOS/$AOMP_ROCT_REPO_NAME/src=$_install_src_dir_roct/src"
+fi
 
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then 
 
@@ -85,6 +89,21 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
          exit 1
       fi
    fi
+   if [ "$AOMP_BUILD_DEBUG" == "1" ] ; then
+      echo rm -rf $BUILD_AOMP/build/roct_debug
+      [ -d $BUILD_AOMP/build/roct_debug ] && rm -rf $BUILD_AOMP/build/roct_debug
+      ROCT_CMAKE_OPTS="-DCMAKE_C_COMPILER=$AOMP_CLANG_COMPILER -DCMAKE_CXX_COMPILER=$AOMP_CLANGXX_COMPILER -DCMAKE_INSTALL_PREFIX=$INSTALL_ROCT -DCMAKE_BUILD_TYPE=$BUILDTYPE $AOMP_ORIGIN_RPATH -DCMAKE_INSTALL_LIBDIR=$AOMP_INSTALL_DIR/lib-debug"
+      echo " -----Running roct_debug cmake -----"
+      mkdir -p  $BUILD_AOMP/build/roct_debug
+      cd $BUILD_AOMP/build/roct_debug
+      echo ${AOMP_CMAKE} $ROCT_CMAKE_OPTS -DCMAKE_C_FLAGS="'$ROCT_DEBUG_FLAGS'" -DCMAKE_CXX_FLAGS="'$ROCT_DEBUG_FLAGS'" $AOMP_REPOS/$AOMP_ROCT_REPO_NAME
+      ${AOMP_CMAKE} $ROCT_CMAKE_OPTS -DCMAKE_C_FLAGS="'$ROCT_DEBUG_FLAGS'" -DCMAKE_CXX_FLAGS="'$ROCT_DEBUG_FLAGS'" $AOMP_REPOS/$AOMP_ROCT_REPO_NAME
+      if [ $? != 0 ] ; then
+         echo "ERROR roct_debug cmake failed.cmake flags"
+         echo "      $ROCT_CMAKE_OPTS"
+         exit 1
+      fi
+   fi
 fi
 
 if [ "$1" = "cmake" ]; then
@@ -117,6 +136,20 @@ if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
      exit 1
    fi
 fi
+if [ "$AOMP_BUILD_DEBUG" == 1 ] ; then
+   cd $BUILD_AOMP/build/roct_debug
+   echo
+   echo " ----- Running make for roct_debug ----- "
+   make -j $AOMP_JOB_THREADS
+   if [ $? != 0 ] ; then
+     echo " "
+     echo "ERROR: make -j $AOMP_JOB_THREADS FAILED"
+     echo "To restart:"
+     echo "  cd $BUILD_AOMP/build/roct_debug"
+     echo "  make"
+     exit 1
+   fi
+fi
 
 #  ----------- Install only if asked  ----------------------------
 if [ "$1" == "install" ] ; then 
@@ -137,5 +170,18 @@ if [ "$1" == "install" ] ; then
             exit 1
          fi
       fi
+      if [ "$AOMP_BUILD_DEBUG" == 1 ] ; then
+         cd $BUILD_AOMP/build/roct_debug
+         echo " -----Installing to $INSTALL_ROCT/lib-debug ----- "
+         $SUDO make install
+         if [ $? != 0 ] ; then
+            echo "ERROR make install for roct  failed "
+            exit 1
+         fi
+         $SUDO mkdir -p $_install_src_dir_roct
+         echo $SUDO cp -r $AOMP_REPOS/$AOMP_ROCT_REPO_NAME/src $_install_src_dir_roct
+         $SUDO cp -r $AOMP_REPOS/$AOMP_ROCT_REPO_NAME/src $_install_src_dir_roct
+      fi
+
       removepatch $AOMP_REPOS/$AOMP_ROCT_REPO_NAME
 fi
