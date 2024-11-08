@@ -10,13 +10,12 @@ thisdir=`dirname $realpath`
 . $thisdir/aomp_common_vars
 # --- end standard header ----
 
-INSTALL_OPENMP=${INSTALL_OPENMP:-$LLVM_INSTALL_LOC}
-
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   help_build_aomp
 fi
 
 REPO_DIR=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME
+_ompd_src_dir="$LLVM_INSTALL_LOC/share/gdb/python/ompd/src"
 
 if [ "$AOMP_BUILD_CUDA" == 1 ] ; then
    CUDAH=`find $CUDAT -type f -name "cuda.h" 2>/dev/null`
@@ -43,13 +42,13 @@ fi
 
 # Make sure we can update the install directory
 if [ "$1" == "install" ] ; then
-   $SUDO mkdir -p $INSTALL_OPENMP
-   $SUDO touch $INSTALL_OPENMP/testfile
+   $SUDO mkdir -p $LLVM_INSTALL_LOC
+   $SUDO touch $LLVM_INSTALL_LOC/testfile
    if [ $? != 0 ] ; then
-      echo "ERROR: No update access to $INSTALL_OPENMP"
+      echo "ERROR: No update access to $LLVM_INSTALL_LOC"
       exit 1
    fi
-   $SUDO rm $INSTALL_OPENMP/testfile
+   $SUDO rm $LLVM_INSTALL_LOC/testfile
 fi
 
 if [ "$AOMP_BUILD_CUDA" == 1 ] ; then
@@ -69,7 +68,7 @@ export LLVM_DIR=$AOMP_INSTALL_DIR
 GFXSEMICOLONS=`echo $GFXLIST | tr ' ' ';' `
 ALTAOMP=${ALTAOMP:-$LLVM_INSTALL_LOC}
 COMMON_CMAKE_OPTS="$AOMP_SET_NINJA_GEN -DOPENMP_ENABLE_LIBOMPTARGET=1
--DCMAKE_INSTALL_PREFIX=$INSTALL_OPENMP
+-DCMAKE_INSTALL_PREFIX=$LLVM_INSTALL_LOC
 -DOPENMP_TEST_C_COMPILER=$LLVM_INSTALL_LOC/bin/clang
 -DOPENMP_TEST_CXX_COMPILER=$LLVM_INSTALL_LOC/bin/clang++
 -DCMAKE_C_COMPILER=$ALTAOMP/bin/clang
@@ -182,10 +181,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
   fi
 
    if [ "$AOMP_BUILD_DEBUG" == "1" ] ; then
-      _ompd_dir="$AOMP_INSTALL_DIR/lib-debug/ompd"
-      #  This is the new locationof the ompd directory
-      [[ ! -d $_ompd_dir ]] && _ompd_dir="$LLVM_INSTALL_LOC/share/gdb/python/ompd"
-
+      _prefix_map="\""-fdebug-prefix-map=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload=$_ompd_src_dir/offload"\"" 
       DEBUGCMAKEOPTS="
 -DLIBOMPTARGET_NVPTX_DEBUG=ON \
 -DLLVM_ENABLE_ASSERTIONS=ON \
@@ -196,8 +192,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 -DLIBOMP_USE_DEBUGGER=ON \
 -DLIBOMP_CPPFLAGS='-O0' \
 -DLIBOMP_OMPD_SUPPORT=ON \
--DLIBOMP_OMPT_DEBUG=ON \
--DOPENMP_SOURCE_DEBUG_MAP="\""-fdebug-prefix-map=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload=$_ompd_dir/src/offload"\"" "
+-DLIBOMP_OMPT_DEBUG=ON"
 
       # The 'pip install --system' command is not supported on non-debian systems. This will disable
       # the system option if the debian_version file is not present.
@@ -222,13 +217,12 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
          cd $BUILD_DIR/build/offload_debug
          if [ "$AOMP_STANDALONE_BUILD" == 1 ]; then
            PREFIX_PATH="-DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR/lib/cmake;$AOMP_INSTALL_DIR/lib64/cmake"
-           MYCMAKEOPTS="$COMMON_CMAKE_OPTS $DEBUGCMAKEOPTS $AOMP_ORIGIN_RPATH"
+           MYCMAKEOPTS="$COMMON_CMAKE_OPTS $DEBUGCMAKEOPTS $AOMP_DEBUG_ORIGIN_RPATH"
          else
            PREFIX_PATH="-DCMAKE_PREFIX_PATH=$INSTALL_PREFIX/lib/cmake"
            MYCMAKEOPTS="$COMMON_CMAKE_OPTS $DEBUGCMAKEOPTS $OPENMP_EXTRAS_ORIGIN_RPATH"
          fi
-         echo ${AOMP_CMAKE} $MYCMAKEOPTS $PREFIX_PATH -DCMAKE_C_FLAGS="$CFLAGS -g" -DCMAKE_CXX_FLAGS="$CXXFLAGS -g" -DOFFLOAD_LIBDIR_SUFFIX=-debug $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload
-         ${AOMP_CMAKE} $MYCMAKEOPTS $PREFIX_PATH -DCMAKE_C_FLAGS="$CFLAGS -g" -DCMAKE_CXX_FLAGS="$CXXFLAGS -g" -DOFFLOAD_LIBDIR_SUFFIX=-debug $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload
+         ${AOMP_CMAKE} $MYCMAKEOPTS $PREFIX_PATH -DCMAKE_C_FLAGS="$CFLAGS -g" -DCMAKE_CXX_FLAGS="$CXXFLAGS -g $_prefix_map" -DOFFLOAD_LIBDIR_SUFFIX=-debug $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload
 
          if [ $? != 0 ] ; then
             echo "ERROR offload debug cmake failed. Cmake flags"
@@ -351,7 +345,7 @@ if [ "$1" == "install" ] ; then
    if [ "$AOMP_LEGACY_OPENMP" == "1" ] && [ "$SANITIZER" != 1 ] ; then
       cd $BUILD_DIR/build/offload
       echo
-      echo " -----Installing to $INSTALL_OPENMP/lib ----- "
+      echo " -----Installing to $LLVM_INSTALL_LOC/lib ----- "
       $SUDO $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS install
       if [ $? != 0 ] ; then
          echo "ERROR $AOMP_NINJA_BIN install failed "
@@ -362,7 +356,7 @@ if [ "$1" == "install" ] ; then
    if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
       cd $BUILD_DIR/build/offload/asan
       echo
-      echo " -----Installing to $INSTALL_OPENMP/lib/asan ----- "
+      echo " -----Installing to $LLVM_INSTALL_LOC/lib/asan ----- "
       $SUDO $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS install
       if [ $? != 0 ] ; then
          echo "ERROR $AOMP_NINJA_BIN install failed "
@@ -373,7 +367,7 @@ if [ "$1" == "install" ] ; then
    if [ "$AOMP_BUILD_PERF" == "1" ]; then
      cd $BUILD_DIR/build/offload_perf
      echo
-     echo " -----Installing to $INSTALL_OPENMP/lib-perf ----- "
+     echo " -----Installing to $LLVM_INSTALL_LOC/lib-perf ----- "
      $SUDO $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS install
      if [ $? != 0 ] ; then
         echo "ERROR $AOMP_NINJA_BIN install failed "
@@ -387,7 +381,7 @@ if [ "$1" == "install" ] ; then
      if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
         cd $BUILD_DIR/build/offload_perf/asan
         echo
-        echo " ----- Installing to $INSTALL_OPENMP/lib-perf/asan ----- "
+        echo " ----- Installing to $LLVM_INSTALL_LOC/lib-perf/asan ----- "
         $SUDO $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS install
         if [ $? != 0 ] ; then
            echo "ERROR $AOMP_NINJA_BIN install failed "
@@ -397,13 +391,10 @@ if [ "$1" == "install" ] ; then
    fi
 
    if [ "$AOMP_BUILD_DEBUG" == "1" ] ; then
-      _ompd_dir="$AOMP_INSTALL_DIR/lib-debug/ompd"
-        This is the new locationof the ompd directory
-      [[ ! -d $_ompd_dir ]] && _ompd_dir="$LLVM_INSTALL_LOC/share/gdb/python/ompd"
       if [ "$SANITIZER" != 1 ] ; then
          cd $BUILD_DIR/build/offload_debug
          echo
-         echo " -----Installing to $INSTALL_OPENMP/lib-debug ---- "
+         echo " -----Installing to $LLVM_INSTALL_LOC/lib-debug ---- "
          $SUDO $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS install
          if [ $? != 0 ] ; then
             echo "ERROR $AOMP_NINJA_BIN install failed "
@@ -416,24 +407,28 @@ if [ "$1" == "install" ] ; then
       fi
       if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
          cd $BUILD_DIR/build/offload_debug/asan
-         echo " -----Installing to $INSTALL_OPENMP/lib-debug/asan ---- "
+         echo " -----Installing to $LLVM_INSTALL_LOC/lib-debug/asan ---- "
          $SUDO $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS install
          if [ $? != 0 ] ; then
             echo "ERROR $AOMP_NINJA_BIN install failed "
             exit 1
          fi
       fi
-   fi
-   # we do not yet have OMPD in llvm 12, disable this for now.
-   # Copy selected debugable runtime sources into the installation $ompd_dir/src directory
-   # to satisfy the above -fdebug-prefix-map.
-   if [ "$AOMP_STANDALONE_BUILD" == 1 ]; then
-      $SUDO mkdir -p $_ompd_dir/src/offload/src
-      echo cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload/src $_ompd_dir/src/offload
-      $SUDO cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload/src $_ompd_dir/src/offload
-   else
-     $SUDO mkdir -p $AOMP_INSTALL_DIR/lib-debug/src/offload/src
-     echo cp -rp $LLVM_PROJECT_ROOT/offload/src $AOMP_INSTALL_DIR/lib-debug/src/offload
-     $SUDO cp -rp $LLVM_PROJECT_ROOT/offload/src $AOMP_INSTALL_DIR/lib-debug/src/offload
-   fi
-fi
+
+      # Copy selected debugable runtime sources into the installation directory
+      # $_ompd_src_dir directory to satisfy the above CXXOPT  -fdebug-prefix-map.
+      $SUDO mkdir -p $_ompd_src_dir/offload
+      $SUDO mkdir -p $_ompd_src_dir/offload/plugins-nextgen
+      if [ "$AOMP_STANDALONE_BUILD" == 1 ]; then
+         _from_dir_src="$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload/src"
+         _from_dir_plugins="$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload/plugins-nextgen"
+      else
+         _from_dir_src="$LLVM_PROJECT_ROOT/offload/src"
+         _from_dir_plugins="$LLVM_PROJECT_ROOT/offload/plugins-nextgen"
+      fi
+      echo cp -rp $_from_dir_src $_ompd_src_dir/offload
+      $SUDO cp -rp $_from_dir_src $_ompd_src_dir/offload
+      echo cp -rp $_from_dir_plugins $_ompd_src_dir/offload
+      $SUDO cp -rp $_from_dir_plugins $_ompd_src_dir/offload
+   fi # end of AOMP_BUILD_DEBUG install block
+fi # end of install block

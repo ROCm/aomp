@@ -192,26 +192,23 @@ if [ "$AOMP_PROC" == "ppc64le" ] ; then
    AOMP_BUILD_CUDA=1
    AOMP_STANDALONE_BUILD=1
 fi
-AOMP_ORIGIN_RPATH_LIST="\$ORIGIN:\$ORIGIN/../lib:\$ORIGIN/../lib64:\$ORIGIN/../../../lib:\$ORIGIN/../llvm/lib"
+AOMP_BUILD_DEBUG=${AOMP_BUILD_DEBUG:-1}
+if [ "$SANITIZER" == 1 ]; then
+   AOMP_BUILD_SANITIZER=${AOMP_BUILD_SANITIZER:-1}
+else
+   AOMP_BUILD_SANITIZER=${AOMP_BUILD_SANITIZER:-0}
+fi
+
 if [ $AOMP_STANDALONE_BUILD == 1 ] ; then
    # Default is to build nvptx for STANDALONE build
    AOMP_BUILD_CUDA=${AOMP_BUILD_CUDA:-1}
-   AOMP_BUILD_DEBUG=${AOMP_BUILD_DEBUG:-1}
    AOMP_BUILD_PERF=${AOMP_BUILD_PERF:-1}
-   AOMP_BUILD_SANITIZER=${AOMP_BUILD_SANITIZER:-1}
-   AOMP_ORIGIN_RPATH_NO_DTAGS="-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON -DCMAKE_INSTALL_RPATH=$AOMP_ORIGIN_RPATH_LIST"
 else
    # Default is to NOT build nvptx for ROCm integrated build
    AOMP_BUILD_CUDA=${AOMP_BUILD_CUDA:-0}
-   AOMP_BUILD_DEBUG=${AOMP_BUILD_DEBUG:-1}
    AOMP_BUILD_PERF=${AOMP_BUILD_PERF:-0}
-   if [ "$SANITIZER" == 1 ]; then
-     AOMP_BUILD_SANITIZER=${AOMP_BUILD_SANITIZER:-1}
-   else
-     AOMP_BUILD_SANITIZER=${AOMP_BUILD_SANITIZER:-0}
-   fi
-   AOMP_ORIGIN_RPATH_NO_DTAGS="-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON -DCMAKE_INSTALL_RPATH=$AOMP_ORIGIN_RPATH_LIST"
 fi
+
 
 # AOMP uses RPATH (not) RUNPATH because LD_LIBRARY_PATH is a user feature for
 # user lib development. We do not want the compiler runtime to search user paths
@@ -219,17 +216,20 @@ fi
 # While it may appear to hamper users and developers from testing experimental
 # compiler runtimes, this policy enforces replacement of installed compiler
 # runtime for testing instead of path manipulation. AOMP uses $ORIGIN in the
-# RPATH to allow relocation of the installation.
-# Most build scripts use $AOMP_ORIGIN_RPATH, some components (build_ocl.sh) need to split
-# the CMAKE arguments so
-AOMP_ORIGIN_RPATH="-DCMAKE_SHARED_LINKER_FLAGS='-Wl,--disable-new-dtags' $AOMP_ORIGIN_RPATH_NO_DTAGS"
+# RPATH to allow installation relocation. All scripts now use $AOMP_ORIGIN_RPATH,
+# AOMP_DEBUG_ORIGIN_RPATH, AOMP_ASAN_ORIGIN_RPATH, or OPENMP_EXTRAS_LIB_RPATH.
+# Spliting options with AOMP_ORIGIN_NO_DTAGS is no longer necessary.
+
+AOMP_ORIGIN_RPATH_LIST="\$ORIGIN:\$ORIGIN/../lib:\$ORIGIN/../lib64:\$ORIGIN/../../../lib:\$ORIGIN/../llvm/lib"
+AOMP_ORIGIN_RPATH="-DCMAKE_SHARED_LINKER_FLAGS='-Wl,--disable-new-dtags' -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON -DCMAKE_INSTALL_RPATH=$AOMP_ORIGIN_RPATH_LIST"
+AOMP_DEBUG_ORIGIN_RPATH_LIST="\$ORIGIN:\$ORIGIN/../lib-debug:\$ORIGIN/../lib64:\$ORIGIN/../../../lib-debug"
+AOMP_DEBUG_ORIGIN_RPATH="-DCMAKE_SHARED_LINKER_FLAGS='-Wl,--disable-new-dtags' -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON -DCMAKE_INSTALL_RPATH=$AOMP_DEBUG_ORIGIN_RPATH_LIST"
 
 # Libraries and Binaries need different RUNPATH as below
 if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
   ## Below 3 lines are actually only required for AOMP ASan RPATH Cmake configuration.
   AOMP_ASAN_ORIGIN_RPATH_LIST="\$ORIGIN:\$ORIGIN/../../lib:\$ORIGIN/../lib:\$ORIGIN/../lib64:\$ORIGIN/../../../../lib:\$ORIGIN/../lib/llvm"
-  AOMP_ASAN_ORIGIN_RPATH_NO_DTAGS="-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=OFF -DCMAKE_INSTALL_RPATH=$AOMP_ASAN_ORIGIN_RPATH_LIST"
-  AOMP_ASAN_ORIGIN_RPATH="-DCMAKE_SHARED_LINKER_FLAGS='-Wl,--disable-new-dtags' $AOMP_ASAN_ORIGIN_RPATH_NO_DTAGS"
+  AOMP_ASAN_ORIGIN_RPATH="-DCMAKE_SHARED_LINKER_FLAGS='-Wl,--disable-new-dtags' -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=OFF -DCMAKE_INSTALL_RPATH=$AOMP_ASAN_ORIGIN_RPATH_LIST"
   # Please note below lines are only setup for ROCm ASan integration with AOMP.
   # Relative RUNPATH for ASAN binaries and libraries
   OPENMP_EXTRAS_LIB_RPATH='$ORIGIN:$ORIGIN/../../../lib/asan:$ORIGIN/../../../lib:$ORIGIN/../../../../lib/asan:$ORIGIN/../../../../lib'

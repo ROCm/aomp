@@ -46,6 +46,7 @@ export HSA_PATH=$AOMP_INSTALL_DIR
 export ROCM_PATH=$AOMP_INSTALL_DIR
 export HIP_CLANG_PATH=$AOMP_INSTALL_DIR/bin
 export DEVICE_LIB_PATH=$AOMP_INSTALL_DIR/lib
+export LLVM_DIR=$LLVM_INSTALL_LOC
 
 HIP_PATH=$AOMP_INSTALL_DIR
 BUILD_DIR=${BUILD_AOMP}
@@ -78,6 +79,8 @@ if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
   LDFLAGS="-fuse-ld=lld $ASAN_FLAGS"
 fi
 
+_ompd_src_dir="$LLVM_INSTALL_LOC/share/gdb/python/ompd/src"
+
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 
   if [ -d "$BUILD_DIR/build/hipamd" ] ; then
@@ -87,7 +90,6 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
      rm -rf $BUILD_DIR/build/hipamd
   fi
 
-  export ROCM_RPATH="$AOMP_ORIGIN_RPATH_LIST"
   MYCMAKEOPTS="-DCMAKE_BUILD_TYPE=$BUILDTYPE \
  -DCMAKE_INSTALL_PREFIX=$AOMP_INSTALL_DIR \
  -DHIP_COMMON_DIR=$HIP_DIR \
@@ -98,17 +100,10 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
  -DHIPCC_BIN_DIR=$AOMP_REPOS/build/hipcc \
  -DROCM_PATH=$ROCM_PATH"
 
-  if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
-     ASAN_FLAGS="$ASAN_FLAGS -I$SANITIZER_COMGR_INCLUDE_PATH -Wno-error=deprecated-declarations"
-     ASAN_CMAKE_OPTS="$MYCMAKEOPTS $AOMP_ASAN_ORIGIN_RPATH -DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR/lib/asan/cmake;$AOMP_INSTALL_DIR;$HOME/local/openclicdloader -DCMAKE_INSTALL_LIBDIR=lib/asan -DCMAKE_C_COMPILER=$LLVM_INSTALL_LOC/bin/clang -DCMAKE_CXX_COMPILER=$LLVM_INSTALL_LOC/bin/clang++"
-  fi
-
-  MYCMAKEOPTS="$MYCMAKEOPTS $AOMP_ORIGIN_RPATH -DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR;$HOME/local/openclicdloader -DCMAKE_INSTALL_LIBDIR=lib -DCMAKE_CXX_FLAGS=-I$AOMP_include/amd_comgr -DCMAKE_CXX_FLAGS=-Wno-error=deprecated-declarations -DCMAKE_C_FLAGS=-Wno-error=deprecated-declarations"
-
   # If this machine does not have an actvie amd GPU, tell hipamd
   # to use first in GFXLIST or gfx90a if no GFXLIST
-  if [ -f $AOMP/bin/amdgpu-arch ] ; then
-     $AOMP/bin/amdgpu-arch >/dev/null
+  if [ -f $LLVM_INSTALL_LOC/bin/amdgpu-arch ] ; then
+     $LLVM_INSTALL_LOC/bin/amdgpu-arch >/dev/null
      if [ $? != 0 ] ; then
 	if [ ! -z "$GFXLIST" ] ; then
 	   amdgpu=`echo $GFXLIST | cut -d" " -f1`
@@ -119,13 +114,24 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
      fi
   fi
 
+  if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
+     ASAN_FLAGS="$ASAN_FLAGS -I$SANITIZER_COMGR_INCLUDE_PATH -Wno-error=deprecated-declarations"
+     ASAN_CMAKE_OPTS="$MYCMAKEOPTS $AOMP_ASAN_ORIGIN_RPATH -DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR/lib/asan/cmake;$AOMP_INSTALL_DIR;$HOME/local/openclicdloader -DCMAKE_INSTALL_LIBDIR=lib/asan -DCMAKE_C_COMPILER=$LLVM_INSTALL_LOC/bin/clang -DCMAKE_CXX_COMPILER=$LLVM_INSTALL_LOC/bin/clang++ -DHIP_LLVM_ROOT=$LLVM_INSTALL_LOC"
+  fi
+
+  if [ "$AOMP_BUILD_DEBUG" == 1 ]; then
+     HIPAMD_DEBUG_CMAKE_OPTS="$MYCMAKEOPTS $AOMP_DEBUG_ORIGIN_RPATH -DCMAKE_BUILD_TYPE=DEBUG -DCMAKE_INSTALL_LIBDIR=lib-debug -DCMAKE_C_COMPILER=$LLVM_INSTALL_LOC/bin/clang -DCMAKE_CXX_COMPILER=$LLVM_INSTALL_LOC/bin/clang++ -DHIP_LLVM_ROOT=$LLVM_INSTALL_LOC"
+  fi
+
+  HIPAMD_CMAKE_OPTS="$MYCMAKEOPTS -DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR;$HOME/local/openclicdloader -DCMAKE_INSTALL_LIBDIR=lib -DCMAKE_CXX_FLAGS=-I${AOMP_INSTALL_DIR}/include/amd_comgr -DCMAKE_CXX_FLAGS=-Wno-error=deprecated-declarations -DCMAKE_C_FLAGS=-Wno-error=deprecated-declarations -DHIP_LLVM_ROOT=$LLVM_INSTALL_LOC $AOMP_ORIGIN_RPATH"
+
   echo mkdir -p $BUILD_DIR/build/hipamd
   mkdir -p $BUILD_DIR/build/hipamd
   echo cd $BUILD_DIR/build/hipamd
   cd $BUILD_DIR/build/hipamd
   echo
   echo " -----Running hipamd cmake ---- "
-  echo ${AOMP_CMAKE} $MYCMAKEOPTS $HIPAMD_DIR
+  echo ${AOMP_CMAKE} $HIPAMD_CMAKE_OPTS $HIPAMD_DIR
   ${AOMP_CMAKE} $MYCMAKEOPTS $HIPAMD_DIR
   if [ $? != 0 ] ; then
       echo "ERROR hipamd cmake failed. Cmake flags"
@@ -134,17 +140,34 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
   fi
 
   if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
+     export ROCM_RPATH="$AOMP_ORIGIN_RPATH_LIST"
      echo mkdir -p $BUILD_DIR/build/hipamd/asan
      mkdir -p $BUILD_DIR/build/hipamd/asan
      echo cd $BUILD_DIR/build/hipamd/asan
      cd $BUILD_DIR/build/hipamd/asan
      echo
      echo " -----Running hipamd-asan cmake -----"
-     echo ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DOFFLOAD_ARCH_STR=$amdgpu -DCMAKE_CXX_FLAGS="$ASAN_FLAGS" -DCMAKE_CXX_FLAGS="$ASAN_FLAGS" $HIPAMD_DIR
-     ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DOFFLOAD_ARCH_STR="$amdgpu" -DCMAKE_CXX_FLAGS="$ASAN_FLAGS" -DCMAKE_CXX_FLAGS="$ASAN_FLAGS" $HIPAMD_DIR
+     echo ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DCMAKE_CXX_FLAGS="$ASAN_FLAGS" $HIPAMD_DIR
+     ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DCMAKE_CXX_FLAGS="$ASAN_FLAGS" $HIPAMD_DIR
      if [ $? != 0 ] ; then
         echo "ERROR hipamd-asan cmake failed. Cmake flags"
         echo "      $ASAN_CMAKE_OPTS"
+        exit 1
+     fi
+  fi
+  if [ "$AOMP_BUILD_DEBUG" == 1 ]; then
+     echo mkdir -p $BUILD_DIR/build/hipamd_debug
+     mkdir -p $BUILD_DIR/build/hipamd_debug
+     echo cd $BUILD_DIR/build/hipamd_debug
+     cd $BUILD_DIR/build/hipamd_debug
+     echo
+     echo " -----Running hipamd-debug cmake -----"
+     _prefix_map="\""-fdebug-prefix-map=$HIPAMD_DIR=$_ompd_src_dir/clr"\""
+     echo ${AOMP_CMAKE} $HIPAMD_DEBUG_CMAKE_OPTS -DCMAKE_CXX_FLAGS="-g $_prefix_map" -DCMAKE_C_FLAGS="-g $_prefix_map" $HIPAMD_DIR
+     ${AOMP_CMAKE} $HIPAMD_DEBUG_CMAKE_OPTS -DCMAKE_CXX_FLAGS="-g $_prefix_map" -DCMAKE_C_FLAGS="-g $_prefix_map" $HIPAMD_DIR
+     if [ $? != 0 ] ; then
+        echo "ERROR hipamd-debug cmake failed. Cmake flags"
+        echo "      $HIPAMD_DEBUG_CMAKE_OPTS"
         exit 1
      fi
   fi
@@ -196,7 +219,27 @@ if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
       fi
    fi
 fi
-
+if [ "$AOMP_BUILD_DEBUG" == 1 ] ; then
+   cd $BUILD_DIR/build/hipamd_debug
+   echo
+   echo " -----Running make for hipamd-debug ----- "
+   make -j $AOMP_JOB_THREADS amdhip64
+   if [ $? != 0 ] ; then
+      echo " "
+      echo "ERROR: make -j $AOMP_JOB_THREADS FAILED"
+      echo "To restart:"
+      echo "  cd restart:"
+      echo "  make "
+      exit 1
+   else
+      if [ "$1" != "install" ] ; then
+         echo
+         echo " BUILD COMPLETE! To install hipamd-debug component run this command:"
+         echo " $0 install"
+         echo
+      fi
+   fi
+fi
 
 function edit_installed_hip_file(){
    if [ -f $installed_hip_file_to_edit ] ; then
@@ -229,6 +272,24 @@ if [ "$1" == "install" ] ; then
          exit 1
       fi
    fi
+   if [ "$AOMP_BUILD_DEBUG" == 1 ] ; then
+      cd $BUILD_DIR/build/hipamd_debug
+      echo
+      echo " -----Installing to $AOMP_INSTALL_DIR/lib-debug"
+      $SUDO make install
+      if [ $? != 0 ] ; then
+         echo "ERROR make install failed "
+         exit 1
+      fi
+      $SUDO mkdir -p $_ompd_src_dir
+      echo  cp -r $HIPAMD_DIR/hipamd $_ompd_src_dir
+      $SUDO cp -r $HIPAMD_DIR/hipamd $_ompd_src_dir
+      echo  cp -r $HIPAMD_DIR/opencl $_ompd_src_dir
+      $SUDO cp -r $HIPAMD_DIR/opencl $_ompd_src_dir
+      echo  cp -r $HIPAMD_DIR/rocclr $_ompd_src_dir
+      $SUDO cp -r $HIPAMD_DIR/rocclr $_ompd_src_dir
+   fi
+
    removepatch $AOMP_REPOS/hipamd
 
       # The hip perl scripts have /opt/rocm hardcoded, so fix them after then are installed

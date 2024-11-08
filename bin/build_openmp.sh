@@ -10,13 +10,13 @@ thisdir=`dirname $realpath`
 . $thisdir/aomp_common_vars
 # --- end standard header ----
 
-INSTALL_OPENMP=${INSTALL_OPENMP:-$LLVM_INSTALL_LOC}
-
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then 
   help_build_aomp
 fi
 
 REPO_DIR=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME
+_ompd_src_dir="$LLVM_INSTALL_LOC/share/gdb/python/ompd/src"
+_ompd_dir="$LLVM_INSTALL_LOC/share/gdb/python/ompd"
 
 if [ "$AOMP_BUILD_CUDA" == 1 ] ; then
    CUDAH=`find $CUDAT -type f -name "cuda.h" 2>/dev/null`
@@ -43,13 +43,13 @@ fi
 
 # Make sure we can update the install directory
 if [ "$1" == "install" ] ; then 
-   $SUDO mkdir -p $INSTALL_OPENMP
-   $SUDO touch $INSTALL_OPENMP/testfile
+   $SUDO mkdir -p $LLVM_INSTALL_LOC
+   $SUDO touch $LLVM_INSTALL_LOC/testfile
    if [ $? != 0 ] ; then 
-      echo "ERROR: No update access to $INSTALL_OPENMP"
+      echo "ERROR: No update access to $LLVM_INSTALL_LOC"
       exit 1
    fi
-   $SUDO rm $INSTALL_OPENMP/testfile
+   $SUDO rm $LLVM_INSTALL_LOC/testfile
 fi
 
 if [ "$AOMP_BUILD_CUDA" == 1 ] ; then
@@ -69,7 +69,7 @@ export LLVM_DIR=$AOMP_INSTALL_DIR
 GFXSEMICOLONS=`echo $GFXLIST | tr ' ' ';' `
 ALTAOMP=${ALTAOMP:-$LLVM_INSTALL_LOC}
 COMMON_CMAKE_OPTS="$AOMP_SET_NINJA_GEN -DOPENMP_ENABLE_LIBOMPTARGET=1
--DCMAKE_INSTALL_PREFIX=$INSTALL_OPENMP
+-DCMAKE_INSTALL_PREFIX=$LLVM_INSTALL_LOC
 -DOPENMP_TEST_C_COMPILER=$LLVM_INSTALL_LOC/bin/clang
 -DOPENMP_TEST_CXX_COMPILER=$LLVM_INSTALL_LOC/bin/clang++
 -DCMAKE_C_COMPILER=$ALTAOMP/bin/clang
@@ -191,9 +191,6 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
   fi
 
    if [ "$AOMP_BUILD_DEBUG" == "1" ] ; then
-      _ompd_dir="$AOMP_INSTALL_DIR/lib-debug/ompd"
-      #  This is the new locationof the ompd directory
-      [[ ! -d $_ompd_dir ]] && _ompd_dir="$AOMP_INSTALL_DIR/share/gdb/python/ompd"
       echo rm -rf $BUILD_DIR/build/openmp_debug
       rm -rf $BUILD_DIR/build/openmp_debug
       
@@ -208,7 +205,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 -DLIBOMP_CPPFLAGS='-O0' \
 -DLIBOMP_OMPD_SUPPORT=ON \
 -DLIBOMP_OMPT_DEBUG=ON \
--DOPENMP_SOURCE_DEBUG_MAP="\""-fdebug-prefix-map=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp=$_ompd_dir/src/openmp"\"" "
+-DOPENMP_SOURCE_DEBUG_MAP="\""-fdebug-prefix-map=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp=$_ompd_src_dir/openmp"\"" "
 
       # The 'pip install --system' command is not supported on non-debian systems. This will disable
       # the system option if the debian_version file is not present.
@@ -231,7 +228,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
          cd $BUILD_DIR/build/openmp_debug
          if [ "$AOMP_STANDALONE_BUILD" == 1 ]; then
            PREFIX_PATH="-DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR/lib/cmake"
-           MYCMAKEOPTS="$COMMON_CMAKE_OPTS $DEBUGCMAKEOPTS $AOMP_ORIGIN_RPATH"
+           MYCMAKEOPTS="$COMMON_CMAKE_OPTS $DEBUGCMAKEOPTS $AOMP_DEBUG_ORIGIN_RPATH"
          else
            PREFIX_PATH="-DCMAKE_PREFIX_PATH=$INSTALL_PREFIX/lib/cmake"
            MYCMAKEOPTS="$COMMON_CMAKE_OPTS $DEBUGCMAKEOPTS $OPENMP_EXTRAS_ORIGIN_RPATH"
@@ -360,7 +357,7 @@ if [ "$1" == "install" ] ; then
    if [ "$AOMP_LEGACY_OPENMP" == "1" ] && [ "$SANITIZER" != 1 ] ; then
       cd $BUILD_DIR/build/openmp
       echo
-      echo " -----Installing to $INSTALL_OPENMP/lib ----- "
+      echo " -----Installing to $LLVM_INSTALL_LOC/lib ----- "
       $SUDO $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS install
       if [ $? != 0 ] ; then
          echo "ERROR $AOMP_NINJA_BIN install failed "
@@ -371,7 +368,7 @@ if [ "$1" == "install" ] ; then
    if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
       cd $BUILD_DIR/build/openmp/asan
       echo
-      echo " -----Installing to $INSTALL_OPENMP/lib/asan ----- "
+      echo " -----Installing to $LLVM_INSTALL_LOC/lib/asan ----- "
       $SUDO $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS install
       if [ $? != 0 ] ; then
          echo "ERROR $AOMP_NINJA_BIN install failed "
@@ -382,7 +379,7 @@ if [ "$1" == "install" ] ; then
    if [ "$AOMP_BUILD_PERF" == "1" ]; then
      cd $BUILD_DIR/build/openmp_perf
      echo
-     echo " -----Installing to $INSTALL_OPENMP/lib-perf ----- "
+     echo " -----Installing to $LLVM_INSTALL_LOC/lib-perf ----- "
      $SUDO $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS install
      if [ $? != 0 ] ; then
         echo "ERROR $AOMP_NINJA_BIN install failed "
@@ -396,7 +393,7 @@ if [ "$1" == "install" ] ; then
      if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
         cd $BUILD_DIR/build/openmp_perf/asan
         echo
-        echo " ----- Installing to $INSTALL_OPENMP/lib-perf/asan ----- "
+        echo " ----- Installing to $LLVM_INSTALL_LOC/lib-perf/asan ----- "
         $SUDO $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS install
         if [ $? != 0 ] ; then
            echo "ERROR $AOMP_NINJA_BIN install failed "
@@ -408,11 +405,8 @@ if [ "$1" == "install" ] ; then
    if [ "$AOMP_BUILD_DEBUG" == "1" ] ; then
       if [ "$SANITIZER" != 1 ] ; then
          cd $BUILD_DIR/build/openmp_debug
-         _ompd_dir="$AOMP_INSTALL_DIR/lib-debug/ompd"
-         #  This is the new locationof the ompd directory
-         [[ ! -d $_ompd_dir ]] && _ompd_dir="$AOMP_INSTALL_DIR/share/gdb/python/ompd"
          echo
-         echo " -----Installing to $INSTALL_OPENMP/lib-debug ---- "
+         echo " -----Installing to $LLVM_INSTALL_LOC/lib-debug ---- "
          $SUDO $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS install
          if [ $? != 0 ] ; then
             echo "ERROR $AOMP_NINJA_BIN install failed "
@@ -426,7 +420,7 @@ if [ "$1" == "install" ] ; then
 
       if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
          cd $BUILD_DIR/build/openmp_debug/asan
-         echo " -----Installing to $INSTALL_OPENMP/lib-debug/asan ---- "
+         echo " -----Installing to $LLVM_INSTALL_LOC/lib-debug/asan ---- "
          $SUDO $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS install
          if [ $? != 0 ] ; then
             echo "ERROR $AOMP_NINJA_BIN install failed "
@@ -435,7 +429,6 @@ if [ "$1" == "install" ] ; then
       fi
 
       # Remove ompdModule.cpython...so  , contains absolute runpath
-      _ompd_dir="$AOMP_INSTALL_DIR/lib-debug/ompd"
       OMF=`find $_ompd_dir -name ompdModule.cpython\*`
       echo found ompdModule $OMF
       if [ -f "$OMF" ]; then
@@ -449,25 +442,16 @@ if [ "$1" == "install" ] ; then
         echo "Request for devel package found."
       fi
 
-      # we do not yet have OMPD in llvm 12, disable this for now.
-      # Copy selected debugable runtime sources into the installation $ompd_dir/src directory
+      # Copy selected debugable runtime sources into the installation $ompd_src_dir/src directory
       # to satisfy the above -fdebug-prefix-map.
+      $SUDO mkdir -p $_ompd_src_dir/openmp/runtime
+      $SUDO mkdir -p $_ompd_src_dir/openmp/libompd
       if [ "$AOMP_STANDALONE_BUILD" == 1 ]; then
-        $SUDO mkdir -p $_ompd_dir/src/openmp/runtime/src
-        echo cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/runtime/src $_ompd_dir/src/openmp/runtime
-        $SUDO cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/runtime/src $_ompd_dir/src/openmp/runtime
-
-        $SUDO mkdir -p $_ompd_dir/src/openmp/libompd/src
-        $SUDO cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/libompd/src $_ompd_dir/src/openmp/libompd
+        $SUDO cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/runtime/src $_ompd_src_dir/openmp/runtime
+        $SUDO cp -rp $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/libompd/src $_ompd_src_dir/openmp/libompd
       else
-        # Copy selected debugable runtime sources into the installation lib-debug/src directory
-        # to satisfy the above -fdebug-prefix-map.
-        $SUDO mkdir -p $AOMP_INSTALL_DIR/lib-debug/src/openmp/runtime/src
-        echo cp -rp $LLVM_PROJECT_ROOT/openmp/runtime/src $AOMP_INSTALL_DIR/lib-debug/src/openmp/runtime
-        $SUDO cp -rp $LLVM_PROJECT_ROOT/openmp/runtime/src $AOMP_INSTALL_DIR/lib-debug/src/openmp/runtime
-
-        $SUDO mkdir -p $AOMP_INSTALL_DIR/lib-debug/src/openmp/libompd/src
-        $SUDO cp -rp $LLVM_PROJECT_ROOT/openmp/libompd/src $AOMP_INSTALL_DIR/lib-debug/src/openmp/libompd
+        $SUDO cp -rp $LLVM_PROJECT_ROOT/openmp/runtime/src $_ompd_src_dir/openmp/runtime
+        $SUDO cp -rp $LLVM_PROJECT_ROOT/openmp/libompd/src $_ompd_src_dir/openmp/libompd
       fi
    fi
 fi

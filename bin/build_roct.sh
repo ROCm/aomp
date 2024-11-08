@@ -51,6 +51,8 @@ if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
   LDFLAGS="-fuse-ld=lld $ASAN_FLAGS"
 fi
 
+_ompd_src_dir="$LLVM_INSTALL_LOC/share/gdb/python/ompd/src"
+
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then 
 
    echo " " 
@@ -60,7 +62,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    BUILDTYPE="Release"
    echo $SUDO rm -rf $BUILD_AOMP/build/roct
    $SUDO rm -rf $BUILD_AOMP/build/roct
-   MYCMAKEOPTS="-DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR/lib/cmake -DCMAKE_INSTALL_PREFIX=$INSTALL_ROCT -DCMAKE_BUILD_TYPE=$BUILDTYPE $AOMP_ORIGIN_RPATH -DCMAKE_INSTALL_LIBDIR=$AOMP_INSTALL_DIR/lib"
+   MYCMAKEOPTS="-DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR/lib/cmake -DCMAKE_INSTALL_PREFIX=$INSTALL_ROCT -DCMAKE_BUILD_TYPE=$BUILDTYPE $AOMP_ORIGIN_RPATH -DCMAKE_INSTALL_LIBDIR=lib"
    mkdir -p $BUILD_AOMP/build/roct
    cd $BUILD_AOMP/build/roct
    echo " -----Running roct cmake ---- " 
@@ -82,6 +84,22 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
       if [ $? != 0 ] ; then
          echo "ERROR roct-asan cmake failed.cmake flags"
          echo "      $ASAN_CMAKE_OPTS"
+         exit 1
+      fi
+   fi
+   if [ "$AOMP_BUILD_DEBUG" == "1" ] ; then
+      echo rm -rf $BUILD_AOMP/build/roct_debug
+      [ -d $BUILD_AOMP/build/roct_debug ] && rm -rf $BUILD_AOMP/build/roct_debug
+      ROCT_CMAKE_OPTS="-DCMAKE_C_COMPILER=$AOMP_CLANG_COMPILER -DCMAKE_CXX_COMPILER=$AOMP_CLANGXX_COMPILER -DCMAKE_INSTALL_PREFIX=$INSTALL_ROCT -DCMAKE_BUILD_TYPE=Debug $AOMP_DEBUG_ORIGIN_RPATH -DCMAKE_INSTALL_LIBDIR=lib-debug -DBUILD_SHARED_LIBS=ON"
+      echo " -----Running roct_debug cmake -----"
+      mkdir -p  $BUILD_AOMP/build/roct_debug
+      cd $BUILD_AOMP/build/roct_debug
+      _prefix_map="\""-fdebug-prefix-map=$AOMP_REPOS/$AOMP_ROCT_REPO_NAME/src=$_ompd_src_dir/roct/src"\""
+      echo ${AOMP_CMAKE} $ROCT_CMAKE_OPTS -DCMAKE_C_FLAGS="-g $_prefix_map" -DCMAKE_CXX_FLAGS="-g $_prefix_map" $AOMP_REPOS/$AOMP_ROCT_REPO_NAME
+      ${AOMP_CMAKE} $ROCT_CMAKE_OPTS -DCMAKE_C_FLAGS="-g $_prefix_map" -DCMAKE_CXX_FLAGS="-g $_prefix_map" $AOMP_REPOS/$AOMP_ROCT_REPO_NAME
+      if [ $? != 0 ] ; then
+         echo "ERROR roct_debug cmake failed.cmake flags"
+         echo "      $ROCT_CMAKE_OPTS"
          exit 1
       fi
    fi
@@ -117,6 +135,20 @@ if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
      exit 1
    fi
 fi
+if [ "$AOMP_BUILD_DEBUG" == 1 ] ; then
+   cd $BUILD_AOMP/build/roct_debug
+   echo
+   echo " ----- Running make for roct_debug ----- "
+   make -j $AOMP_JOB_THREADS
+   if [ $? != 0 ] ; then
+     echo " "
+     echo "ERROR: make -j $AOMP_JOB_THREADS FAILED"
+     echo "To restart:"
+     echo "  cd $BUILD_AOMP/build/roct_debug"
+     echo "  make"
+     exit 1
+   fi
+fi
 
 #  ----------- Install only if asked  ----------------------------
 if [ "$1" == "install" ] ; then 
@@ -137,5 +169,18 @@ if [ "$1" == "install" ] ; then
             exit 1
          fi
       fi
+      if [ "$AOMP_BUILD_DEBUG" == 1 ] ; then
+         cd $BUILD_AOMP/build/roct_debug
+         echo " -----Installing to $INSTALL_ROCT/lib-debug ----- "
+         $SUDO make install
+         if [ $? != 0 ] ; then
+            echo "ERROR make install for roct  failed "
+            exit 1
+         fi
+	 $SUDO mkdir -p $_ompd_src_dir/roct
+	 echo $SUDO cp -r $AOMP_REPOS/$AOMP_ROCT_REPO_NAME/src $_ompd_src_dir/roct
+	 $SUDO cp -r $AOMP_REPOS/$AOMP_ROCT_REPO_NAME/src $_ompd_src_dir/roct
+      fi
+
       removepatch $AOMP_REPOS/$AOMP_ROCT_REPO_NAME
 fi
