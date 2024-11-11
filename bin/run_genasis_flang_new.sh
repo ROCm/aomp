@@ -104,12 +104,24 @@ fi
 export LD_LIBRARY_PATH=$AOMP/lib:$AOMPHIP/lib:$OPENMPI_DIR/lib:$LD_LIBRARY_PATH
 export FORTRAN_COMPILE="$AOMP/bin/$FLANG -c -fopenmp --offload-arch=$GPU_ID -fPIC -I$OPENMPI_DIR/lib -cpp"
 export CC_COMPILE="$AOMP/bin/clang -fPIC"
-export OTHER_LIBS="-lm -L$AOMP/lib -lFortranRuntime -lFortranRuntimeHostDevice -lFortranDecimal  -lomp -lomptarget -z muldefs "
+export FORTDEV_LIBS=${FORTDEV_LIBS-"-lFortranRuntimeHostDevice"}
+export OTHER_LIBS="-lm -L$AOMP/lib -lFortranRuntime $FORTDEV_LIBS -lFortranDecimal -lomp -lomptarget -z muldefs "
 export FORTRAN_LINK="$AOMP/bin/clang $OTHER_LIBS"
 export DEVICE_COMPILE="$AOMPHIP/bin/hipcc -D__HIP_PLATFORM_HCC__"
 export HIP_DIR=$ROCM
 export HIP_CLANG_PATH=$AOMP/bin
 cd $currdir
+
+echo "LD_LIBRARY_PATH = $LD_LIBRARY_PATH"
+echo "FORTRAN_COMPILE = $FORTRAN_COMPILE"
+echo "CC_COMPILE      = $CC_COMPILE"
+echo "FORTDEV_LIBS    = $FORTDEV_LIBS"
+echo "OTHER_LIBS      = $OTHER_LIBS"
+echo "FORTRAN_LINK    = $FORTRAN_LINK"
+echo "DEVICE_COMPILE  = $DEVICE_COMPILE"
+echo "HIP_DIR         = $HIP_DIR"
+echo "HIP_CLANG_PATH  = $HIP_CLANG_PATH"
+
 if [ "$1" != "runonly" ] ; then
   cd $REPO_DIR/Programs/UnitTests/Basics/Runtime/Executables
   echo "=================  STARTING 1st MAKE in $PWD ========"
