@@ -1,3 +1,9 @@
+# OVERFLOW_GUARD=1 needs to be set before including Makefile.defs.
+# It will ensure that the first argument to the make run command is
+# the available GPU memory in GiB. No need to set ARGS variable
+# explicitly.
+OVERFLOW_GUARD=1
+
 include ../../Makefile.defs
 
 TESTNAME     = many_arrays
@@ -10,8 +16,6 @@ OMP_BIN      = $(AOMP)/bin/$(CLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
 #-ccc-print-phases
 #"-\#\#\#"
-
-ARGS = $(GPU_MEM_SIZE_GIB)
 
 RUNENV = LIBOMPTARGET_KERNEL_TRACE=2
 
