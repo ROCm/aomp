@@ -136,6 +136,14 @@ function checkversion(){
   fi
 }
 function buildopenmpi(){
+  # Not all builds, trunk for example, install clang into lib/llvm/bin. Fall back on $AOMP/bin.
+  if [ ! -f $LLVM_INSTALL_LOC/bin/clang ]; then
+    LLVM_INSTALL_LOC=$AOMP
+    if [ ! -f $LLVM_INSTALL_LOC/bin/clang ]; then
+      echo "Error: buildopenmpi cannot find clang executable. Set AOMP to one level above clang bin directory."
+      exit 1
+     fi
+  fi
   _cname="openmpi"
   _version=5.0.0
   _release=v5.0
