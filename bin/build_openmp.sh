@@ -442,15 +442,6 @@ if [ "$1" == "install" ] ; then
          fi
       fi
 
-      # Remove ompdModule.cpython...so  , contains absolute runpath
-      OMF=`find $_ompd_dir -name ompdModule.cpython\*`
-      echo found ompdModule $OMF
-      if [ -f "$OMF" ]; then
-        echo "==> Removing $OMF"
-        rm -f "$OMF"
-      fi
-      readelf -d $_ompd_dir/ompdModule.so |grep PATH
-
       if [[ "$DEVEL_PACKAGE" =~ "devel" ]]; then
         AOMP_INSTALL_DIR="$AOMP_INSTALL_DIR/""$DEVEL_PACKAGE"
         echo "Request for devel package found."
