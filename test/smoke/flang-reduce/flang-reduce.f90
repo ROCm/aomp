@@ -1,10 +1,10 @@
 program main
-    real(8) ::x(2048)
-    real(8) ::y(2048)
+    real(8) ::x(8192)
+    real(8) ::y(8192)
     real(8) ::cgdot
     integer :: i,N
-    N = 2408
-    do i=1,Niters
+    N = 8192
+    do i=1,N
       x(i) = i * 0.5
       y(i) = i * 0.5
     enddo

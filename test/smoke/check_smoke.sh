@@ -314,7 +314,7 @@ if [ "$AOMP_PARALLEL_SMOKE" == 1 ]; then
       elif [ "$AOMP_SANITIZER" == 1 ] && [ "$script_dir_name" == "smoke-asan" ]; then
         sem --jobs 4 --id def_sem -u 'make check-asan > /dev/null 2>&1'
       else
-        sem --jobs 4 --id def_sem -u 'make check &> run.log'
+        sem --jobs 4 --id def_sem -u 'base=$(basename $(pwd)); make check &> run.log; rc=$?; if [ $rc -ne 0 ]; then [ -e ../make-fail.txt ] && mytest=$(grep -E "$base:" ../make-fail.txt); flock -e lockfile -c "if [[ ! -e ../make-fail.txt || -z \"$mytest\" ]]; then echo $base make check failed: $rc >> ../make-fail.txt; fi"; fi'
       fi
       #---
       if [ -r "TEST_STATUS" ]; then
@@ -411,9 +411,14 @@ for directory in $SMOKE_DIRS; do
     make check-asan > /dev/null 2>&1
   else
     make check &> run.log
+    rc=$?
     # liba_bundled has an additional Makefile, that may fail on the make check
-    if [ $? -ne 0 ] && ( [ $base == 'liba_bundled' ] || [ $base == 'liba_bundled_cmdline' ] ) ; then
-      echo "$base: Make Failed" >> ../make-fail.txt
+    if [ $rc -ne 0 ]; then
+      if [ $base == 'liba_bundled' ] || [ $base == 'liba_bundled_cmdline' ]; then
+        echo "$base: Make Failed" >> ../make-fail.txt
+      else
+        echo "$base 'make check' failed: $rc" >> ../make-fail.txt
+      fi
       if [ -r "TEST_STATUS" ]; then
         test_status=`cat TEST_STATUS`
         if [ "$test_status" == "124" ]; then break; fi  # don't rerun timeouts

@@ -27,4 +27,3 @@ target_depend_dag
 target_nowait
 usm1
 virtfunc1
-vmulsum-hsa-stats

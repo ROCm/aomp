@@ -5,34 +5,49 @@
 TEST(ManualSuite, ParallelFor) {
   /* The Test Body */
   int arr[10] = {0};
-  SequenceAsserter.insert(omptest::OmptAssertEvent::ParallelBegin("User Parallel Begin", "Group", omptest::ObserveState::always,
+  SequenceAsserter->insert(omptest::OmptAssertEvent::ParallelBegin(
+      "User Parallel Begin", "Group", omptest::ObserveState::always,
       /*NumThreads=*/2));
-  SequenceAsserter.insert(omptest::OmptAssertEvent::ThreadBegin(
-      "User Thread Begin", "Group", omptest::ObserveState::always, ompt_thread_initial));
-  SequenceAsserter.insert(
-      omptest::OmptAssertEvent::ParallelEnd("User Parallel End", "Group", omptest::ObserveState::always));
+  SequenceAsserter->insert(omptest::OmptAssertEvent::ThreadBegin(
+      "User Thread Begin", "Group", omptest::ObserveState::always,
+      ompt_thread_initial));
+  SequenceAsserter->insert(omptest::OmptAssertEvent::ParallelEnd(
+      "User Parallel End", "Group", omptest::ObserveState::always));
 
-  SequenceAsserter.insert(omptest::OmptAssertEvent::ParallelEnd("User Parallel End 2", "Group", omptest::ObserveState::always));
+  SequenceAsserter->permitEvent(omptest::internal::EventTy::ParallelBegin);
+  SequenceAsserter->permitEvent(omptest::internal::EventTy::ParallelEnd);
+  SequenceAsserter->permitEvent(omptest::internal::EventTy::ThreadBegin);
+  SequenceAsserter->permitEvent(omptest::internal::EventTy::ThreadEnd);
 
 #pragma omp parallel for num_threads(2)
   for (int i = 0; i < 10; ++i)
     arr[i] = i;
+
+  SequenceAsserter->suppressEvent(omptest::internal::EventTy::ParallelBegin);
+  SequenceAsserter->suppressEvent(omptest::internal::EventTy::ParallelEnd);
+  SequenceAsserter->suppressEvent(omptest::internal::EventTy::ThreadBegin);
+  SequenceAsserter->suppressEvent(omptest::internal::EventTy::ThreadEnd);
 }
 
 TEST(ManualSuite, ParallelForActivation) {
   /* The Test Body */
   int arr[10] = {0};
-  SequenceAsserter.insert(omptest::OmptAssertEvent::ParallelBegin("User Parallel Begin", "Group", omptest::ObserveState::always,
+  SequenceAsserter->insert(omptest::OmptAssertEvent::ParallelBegin(
+      "User Parallel Begin", "Group", omptest::ObserveState::always,
       /*NumThreads=*/2));
-  SequenceAsserter.insert(
-      omptest::OmptAssertEvent::ParallelEnd("User Parallel End", "Group", omptest::ObserveState::always));
+  SequenceAsserter->insert(omptest::OmptAssertEvent::ParallelEnd(
+      "User Parallel End", "Group", omptest::ObserveState::always));
 
   // The last sequence we want to observe does not contain
   // another thread begin.
-  SequenceAsserter.insert(omptest::OmptAssertEvent::ParallelBegin("User Parallel Begin", "Group", omptest::ObserveState::always,
+  SequenceAsserter->insert(omptest::OmptAssertEvent::ParallelBegin(
+      "User Parallel Begin", "Group", omptest::ObserveState::always,
       /*NumThreads=*/2));
-  SequenceAsserter.insert(
-      omptest::OmptAssertEvent::ParallelEnd("User Parallel End", "Group", omptest::ObserveState::always));
+  SequenceAsserter->insert(omptest::OmptAssertEvent::ParallelEnd(
+      "User Parallel End", "Group", omptest::ObserveState::always));
+
+  SequenceAsserter->permitEvent(omptest::internal::EventTy::ParallelBegin);
+  SequenceAsserter->permitEvent(omptest::internal::EventTy::ParallelEnd);
 
 #pragma omp parallel for num_threads(2)
   for (int i = 0; i < 10; ++i)
@@ -49,6 +64,9 @@ TEST(ManualSuite, ParallelForActivation) {
 #pragma omp parallel for num_threads(2)
   for (int i = 0; i < 10; ++i)
     arr[i] = i;
+
+  SequenceAsserter->suppressEvent(omptest::internal::EventTy::ParallelBegin);
+  SequenceAsserter->suppressEvent(omptest::internal::EventTy::ParallelEnd);
 }
 
 TEST(ManualSuite, AnotherTest) {
@@ -68,10 +86,10 @@ TEST(ManualSuite, ParallelForToString) {
 
   OMPT_REPORT_EVENT_DISABLE();
 
-  EventReporter.permitEvent(omptest::internal::EventTy::ParallelBegin);
-  EventReporter.permitEvent(omptest::internal::EventTy::ParallelEnd);
-  EventReporter.permitEvent(omptest::internal::EventTy::ThreadBegin);
-  EventReporter.permitEvent(omptest::internal::EventTy::ThreadEnd);
+  EventReporter->permitEvent(omptest::internal::EventTy::ParallelBegin);
+  EventReporter->permitEvent(omptest::internal::EventTy::ParallelEnd);
+  EventReporter->permitEvent(omptest::internal::EventTy::ThreadBegin);
+  EventReporter->permitEvent(omptest::internal::EventTy::ThreadEnd);
 
 #pragma omp parallel for num_threads(2)
   for (int i = 0; i < 10; ++i)
@@ -91,10 +109,10 @@ TEST(ManualSuite, ParallelForToString) {
   for (int i = 0; i < 10; ++i)
     arr[i] = i;
 
-  EventReporter.suppressEvent(omptest::internal::EventTy::ParallelBegin);
-  EventReporter.suppressEvent(omptest::internal::EventTy::ParallelEnd);
-  EventReporter.suppressEvent(omptest::internal::EventTy::ThreadBegin);
-  EventReporter.suppressEvent(omptest::internal::EventTy::ThreadEnd);
+  EventReporter->suppressEvent(omptest::internal::EventTy::ParallelBegin);
+  EventReporter->suppressEvent(omptest::internal::EventTy::ParallelEnd);
+  EventReporter->suppressEvent(omptest::internal::EventTy::ThreadBegin);
+  EventReporter->suppressEvent(omptest::internal::EventTy::ThreadEnd);
 
   OMPT_ASSERT_SEQUENCE_ENABLE();
 }

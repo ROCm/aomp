@@ -5,8 +5,6 @@ TESTS_DIR = \
     flang-325095 \
     flang-421111-3 \
     flang-444386-1 \
-    flang-445718 \
-    flang-445718-fortran-intrinsic \
     flang-445999 \
     flang-446033a_loop \
     flang-446033a_ttdpd \
@@ -15,16 +13,11 @@ TESTS_DIR = \
     flang-446033c_loop \
     flang-446033d_loop \
     flang-446525 \
-    flang-457354 \
-    flang-460740 \
-    olcf-tf-2-openmp-gpu-teams \
-    olcf-tf-3-openmp-gpu-teams-parallel \
-    olcf-tf-4-openmp-gpu-teams-parallel-data \
-    olcf-tf-5-openmp-gpu-teams-parallel-implicit-map \
-    olcf-tf-6-combined \
+    flang-464660 \
+    flang-464660-1 \
+    mathquad-tgt \
     olcf-tf-7-loop-combined \
-    rocm-issue-842 \
-    vmuln
+    rocm-issue-842
 
 all:
 	@for test_dir in $(TESTS_DIR); do \

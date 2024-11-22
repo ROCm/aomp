@@ -106,6 +106,8 @@ mixed="-DQMC_MIXED_PRECISION="
 mpi="-DQMC_MPI="
 cc="-DCMAKE_C_COMPILER="
 cxx="-DCMAKE_CXX_COMPILER="
+mpicc="-DMPI_C_COMPILER="
+mpicxx="-DMPI_CXX_COMPILER="
 qmc_data="-DQMC_DATA="
 cuda="-DENABLE_CUDA="
 cuda2hip="-DQMC_CUDA2HIP="
@@ -117,18 +119,14 @@ opts_array[$complex]=OFF
 opts_array[$mixed]=OFF
 if [[ -z "${USE_HIP_OPENMP}" ]]; then
     echo "Building OpenMP only version"
-    opts_array[$mpi]=OFF
-    opts_array[$cc]=$AOMP/bin/clang
-    opts_array[$cxx]=$AOMP/bin/clang++
 else
     echo "Building OpenMP+HIP production version"
-    opts_array[$mpi]=ON
-    opts_array[$cc]=$HOME/local/openmpi/bin/mpicc OMPI_CC=$AOMP/bin/clang
-    opts_array[$cxx]=$HOME/local/openmpi/bin/mpic++ OMPI_CXX=$AOMP/bin/clang++
     opts_array[$cuda]=ON
     opts_array[$cuda2hip]=ON
 fi
 
+opts_array[$cc]=$AOMP/bin/clang
+opts_array[$cxx]=$AOMP/bin/clang++
 
 if [[ -z "${QMC_DATA}" ]]; then
   echo "QMC_DATA not set: will not select performance tests"
@@ -151,8 +149,8 @@ do
       echo $1 turns QMC_MPI=ON;
       opts_array[$mpi]=ON;
       mpi=1;
-      opts_array[$cc]=$OPENMPI_INSTALL/bin/mpicc;
-      opts_array[$cxx]=$OPENMPI_INSTALL/bin/mpicxx ;;
+      opts_array[$mpicc]=$OPENMPI_INSTALL/bin/mpicc;
+      opts_array[$mpicxx]=$OPENMPI_INSTALL/bin/mpicxx ;;
     *)
       echo $1 option not recognized ; exit 1 ;;
   esac

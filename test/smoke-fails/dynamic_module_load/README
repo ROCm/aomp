@@ -1,0 +1,9 @@
+
+This test case builds a shared object with a target region.
+However, with the old --opaque-offload-linker we get this fail. 
+
+free(): double free detected in tcache 2
+
+Using the cmake arge --no-opaque-offload-linker which uses clang-linker-wrapper
+will correct this fail.  The target region is not necessary to make this fail. 
+

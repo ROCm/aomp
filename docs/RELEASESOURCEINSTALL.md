@@ -14,8 +14,8 @@ To build AOMP from source you must: 1. Install certain distribution packages, 2.
 To build and install aomp from the release source tarball run these commands:
 
 ```
-   wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_19.0-0/aomp-19.0-0.tar.gz
-   tar -xzf aomp-19.0-0.tar.gz
+   wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_19.0-2/aomp-19.0-2.tar.gz
+   tar -xzf aomp-19.0-2.tar.gz
    cd aomp19.0
    nohup make &
 ```
@@ -30,17 +30,17 @@ If you set the environment variable AOMP, the Makefile will install to that dire
 Otherwise, the Makefile will install into /usr/local.
 So you must have authorization to write into /usr/local if you do not set the environment variable AOMP.
 Let's assume you set the environment variable AOMP to "$HOME/rocm/aomp" in .bash_profile.
-The build_aomp.sh script will install into $HOME/rocm/aomp_19.0-0 and create a symbolic link from $HOME/rocm/aomp to $HOME/rocm/aomp_19.0-0.
+The build_aomp.sh script will install into $HOME/rocm/aomp_19.0-2 and create a symbolic link from $HOME/rocm/aomp to $HOME/rocm/aomp_19.0-2.
 This feature allows multiple versions of AOMP to be installed concurrently.
-To enable a backlevel version of AOMP, simply set AOMP to $HOME/rocm/aomp_18.0-1.
+To enable a backlevel version of AOMP, simply set AOMP to $HOME/rocm/aomp_19.0-0.
 
 ## Build AOMP with spack
 
 Assuming your have installed the [prerequisites](SOURCEINSTALL_PREREQUISITE.md), use these commands to fetch the source and build aomp. Currently the aomp configuration is not yet in the spack git hub so you must create the spack package first.
 
 ```
-   wget https://github.com/ROCm-Developer-Tools/aomp/blob/aomp-19.0-0/bin/package.py
-   spack create -n aomp -t makefile --force https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_19.0-0/aomp-19.0-0.tar.gz
+   wget https://github.com/ROCm-Developer-Tools/aomp/blob/aomp-19.0-2/bin/package.py
+   spack create -n aomp -t makefile --force https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_19.0-2/aomp-19.0-2.tar.gz
    spack edit aomp
    spack install aomp
 ```

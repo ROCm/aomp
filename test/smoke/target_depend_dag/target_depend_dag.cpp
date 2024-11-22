@@ -60,9 +60,9 @@ int main() {
     }
   }
 
-  free(a);
-  free(b);
-  free(c);
+	delete[] a;
+  delete[] b;
+  delete[] c;
 
   if (!err) printf("Success\n");
 

@@ -55,43 +55,16 @@ unsigned int ignore_times =
 #define _XTEAM_NUM_TEAMS 80
 #endif
 
-#if _XTEAM_NUM_THREADS == 1024
+#if (_XTEAM_NUM_THREADS <= 1024) && \
+  ((_XTEAM_NUM_THREADS & (_XTEAM_NUM_THREADS - 1)) == 0)
 #define _SUM_OVERLOAD_64_FCT _overload_to_extern_sum_16x64
 #define _SUM_OVERLOAD_32_FCT _overload_to_extern_sum_32x32
 #define _MAX_OVERLOAD_64_FCT _overload_to_extern_max_16x64
 #define _MAX_OVERLOAD_32_FCT _overload_to_extern_max_32x32
 #define _MIN_OVERLOAD_64_FCT _overload_to_extern_min_16x64
 #define _MIN_OVERLOAD_32_FCT _overload_to_extern_min_32x32
-#elif _XTEAM_NUM_THREADS == 512
-#define _SUM_OVERLOAD_64_FCT _overload_to_extern_sum_8x64
-#define _SUM_OVERLOAD_32_FCT _overload_to_extern_sum_16x32
-#define _MAX_OVERLOAD_64_FCT _overload_to_extern_max_8x64
-#define _MAX_OVERLOAD_32_FCT _overload_to_extern_max_16x32
-#define _MIN_OVERLOAD_64_FCT _overload_to_extern_min_8x64
-#define _MIN_OVERLOAD_32_FCT _overload_to_extern_min_16x32
-#elif _XTEAM_NUM_THREADS == 256
-#define _SUM_OVERLOAD_64_FCT _overload_to_extern_sum_4x64
-#define _SUM_OVERLOAD_32_FCT _overload_to_extern_sum_8x32
-#define _MAX_OVERLOAD_64_FCT _overload_to_extern_max_4x64
-#define _MAX_OVERLOAD_32_FCT _overload_to_extern_max_8x32
-#define _MIN_OVERLOAD_64_FCT _overload_to_extern_min_4x64
-#define _MIN_OVERLOAD_32_FCT _overload_to_extern_min_8x32
-#elif _XTEAM_NUM_THREADS == 128
-#define _SUM_OVERLOAD_64_FCT _overload_to_extern_sum_2x64
-#define _SUM_OVERLOAD_32_FCT _overload_to_extern_sum_4x32
-#define _MAX_OVERLOAD_64_FCT _overload_to_extern_max_2x64
-#define _MAX_OVERLOAD_32_FCT _overload_to_extern_max_4x32
-#define _MIN_OVERLOAD_64_FCT _overload_to_extern_min_2x64
-#define _MIN_OVERLOAD_32_FCT _overload_to_extern_min_4x32
-#elif _XTEAM_NUM_THREADS == 64
-#define _SUM_OVERLOAD_64_FCT _overload_to_extern_sum_1x64
-#define _SUM_OVERLOAD_32_FCT _overload_to_extern_sum_2x32
-#define _MAX_OVERLOAD_64_FCT _overload_to_extern_max_1x64
-#define _MAX_OVERLOAD_32_FCT _overload_to_extern_max_2x32
-#define _MIN_OVERLOAD_64_FCT _overload_to_extern_min_1x64
-#define _MIN_OVERLOAD_32_FCT _overload_to_extern_min_2x32
 #else
-#error Invalid value for _XTEAM_NUM_THREADS. Must be 1024, 512, 256, 128, or 64
+#error Invalid value for _XTEAM_NUM_THREADS. Expected upper limit: 1024 and a power of 2.
 #endif
 
 // Question to Dhruva, should the limiter include the stride?

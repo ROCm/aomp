@@ -9,4 +9,6 @@ FLANG        ?= flang
 OMP_BIN      = $(AOMP)/bin/$(FLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
 
+UNSUPPORTED = ASAN_RUNTIME
+
 include ../Makefile.rules

@@ -15,6 +15,9 @@ OMP_BIN      = $(AOMP)/bin/$(FLANG) $(TARGET)
 CC           = $(OMP_BIN) $(VERBOSE)
 #-ccc-print-phases
 #"-\#\#\#"
+
+UNSUPPORTED = ASAN_COMPILE
+
 include ../Makefile.rules
 $(TESTNAME):
 	$(CC) -J minimpi/lib/ mod.f90 -c

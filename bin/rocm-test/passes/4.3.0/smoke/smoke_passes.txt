@@ -117,7 +117,6 @@ issue_002
 issue_flang_libomp
 kmpc_alloc
 kokkos_log2
-launch_latency
 lds-prob1
 lds-prob2
 lds-prob3

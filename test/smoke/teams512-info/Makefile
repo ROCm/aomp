@@ -23,25 +23,11 @@ ifeq (sm_,$(findstring sm_,$(AOMP_GPU)))
 endif
 
 CFLAGS += $(EXTRA_CFLAGS)
+AOMP_NO_PREREQ = 1
+
+include ../Makefile.rules
 
 # ----- Demo compile and link in one step, no object code saved
 $(TESTNAME): $(TESTSRC)
 	$(CCENV) $(CC) $(CFLAGS) -DGPUINFO $(LFLAGS) $^ -o $@ -mllvm -amdgpu-dump-hsa-metadata 2>&1 | egrep '.vgpr_count|.max_flat_workgroup_size'
 	$(CCENV) $(CC) $(CFLAGS) -DGPUINFO $(LFLAGS) $^ -o $@
-
-run: $(TESTNAME)
-	$(RUNENV) ./$(TESTNAME)
-
-#  ----   Demo compile and link in two steps, object saved
-$(TESTNAME).o: $(TESTSRC)
-	$(CCENV) $(CC) -c $(CFLAGS) $^ -o $@
-
-obin:	$(TESTNAME).o
-	$(CCENV) $(CC) $(CFLAGS) $(LFLAGS) $^ -o $@
-
-run_obin: obin
-	$(RUNENV) ./obin
-
-# Cleanup anything this makefile can create
-clean:
-	rm -f $(TESTNAME) obin *.i *.ii *.bc *.lk a.out-* *.ll *.s *.o *.cubin

@@ -130,7 +130,7 @@ template <typename T> int test_em() {
     return 1;
   }
 
-  free(a);
+  delete[] a;
   return 0;
 }
 

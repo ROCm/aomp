@@ -25,12 +25,16 @@ TESTS_DIR = \
     flang-439387b \
     flang-439387c \
     flang-440121 \
+    flang-441477 \
     flang-443915 \
+    flang-445718 \
+    flang-445718-fortran-intrinsic \
     flang-445888 \
     flang-446057a \
     flang-446057b \
     flang-446057c \
     flang-446057d \
+    flang-445882 \
     flang-453308 \
     flang-453308a \
     flang-446005a \
@@ -38,8 +42,20 @@ TESTS_DIR = \
     flang-446033c_ttdpd \
     flang-446033d_ttdpd \
     flang-446034 \
+    flang-445718-sign \
+    flang-457354 \
+    flang-460740 \
+    flang-462537 \
+    flang-471469 \
+    flang-472452 \
+    flang-use-device \
+    intrin-rename-func \
+    intrin-rename-sub \
     LaunchLatency \
     llvm-issue-82047 \
+    mathdbl \
+    mathdbl-tgt \
+    mathquad \
     milestone-1 \
     milestone-2 \
     milestone-3-babel \
@@ -56,10 +72,16 @@ TESTS_DIR = \
     olcf-tc-7-loop-combined \
     olcf-tf-0-serial \
     olcf-tf-1-openmp-cpu \
+    olcf-tf-2-openmp-gpu-teams \
+    olcf-tf-3-openmp-gpu-teams-parallel \
+    olcf-tf-4-openmp-gpu-teams-parallel-data \
+    olcf-tf-5-openmp-gpu-teams-parallel-implicit-map \
+    olcf-tf-6-combined \
     single-value-map \
     target-cray-pointer \
     teams-distribute-no-parallel \
-    teams-ditribute-collapse
+    teams-ditribute-collapse \
+    vmuln
 
 all:
 	@for test_dir in $(TESTS_DIR); do \
@@ -94,37 +116,37 @@ check:
 	done
 
 help:
-	@echo 
+	@echo
 	@echo "LLVM Tool Chain:	$(AOMP)/bin"
 	@echo "Offload Targets:	$(TARGET)"
 	@echo "Host Target:		$(AOMP_CPUTARGET)"
 	@echo "Application Dirs:	$(TESTS_DIR)"
-	@echo 
+	@echo
 	@echo "This Makefile supports the following flags:"
-	@echo 
+	@echo
 	@echo "	make llbin      // Link pass only"
 	@echo "	make run_llbin  // Execute llbin"
-	@echo 
+	@echo
 	@echo "	make sbin       // Link pass only"
 	@echo "	make run_sbin   // Execute sbin"
-	@echo 
+	@echo
 	@echo "	make obin       // Link pass only"
 	@echo "	make run_obin   // Execute obin"
-	@echo 
+	@echo
 	@echo "	make .ll        // Compile pass only             : -c -S -emit-llvm"
 	@echo "	make .ll.s      // Backend pass only             : -c -S"
 	@echo "	make .ll.o      // Assemble pass only            : -c"
 	@echo "	make .s         // Compile & Backend passes      : -c -S"
 	@echo "	make .s.o       // Assemble pass only            : -c"
 	@echo "	make .o         // Compile, Backend, Assemble    : -c"
-	@echo 
+	@echo
 	@echo "	make            // All passes, build all examples from Application Dirs"
 	@echo "	make run        // Execute all binaries from Application Dirs"
-	@echo 
+	@echo
 	@echo "	make clean"
 	@echo "	make clean_log"
 	@echo "	make help"
-	@echo 
+	@echo
 	@echo " Environment variables to control compilation & execution"
 	@echo "    VERBOSE=1        See lots of compiler messages and driver actions"
 	@echo "    TEMPS=1          Do not delete intermediate files"

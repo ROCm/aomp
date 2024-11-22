@@ -960,5 +960,24 @@ aomp (18.0-1) UNRELEASED; urgency=medium
   *
   *   Fix regressions:
   *     #616 llvm-addr2line does not work on AOMP-generated binary.
+  *
+  * 19.0-2
+  *   Significant runtime features to support zero-copy for CPU-GPU unified shared
+  *     memory. See subsections below.
+  *   Merge of the LLVM upstream relocation of libomptarget into the high level
+  *     "offload" directory. This establishes the long term objective of the LLVM
+  *     community to unify offload support for different offloading programming models.
+  *   The integrated ROCm components (non-compiler) were built from ROCM 6.1.2 sources.
+  *   Significant enhancements to the gpurun utility including: support for multiple
+  *     devices, heterogeneous devices, malloc control inherited from numa-ctl -m -l
+  *     options, and CPU core binding to same numa node as selected GPU. These changes
+  *     preserve gpurun's ability to oversubscribe (run multiple processes per GPU) by
+  *     segmenting a GPUs CUs to different processes. To be fixed in 19.0-3, gpurun
+  *     fails in TPX mode on MI300X.
+  *   Changes in runtime library locations unique to CPU target triple including
+  *     fixes for lib64 in Red Hat package.
+  *   Support for fp16 and bfloat16 reductions.
+  *   Removed long deprecated utilities mygpu, mymcpu, aompcc, aompExtractRegion,
+  *     clang-ocl, and cloc.sh.
 
  -- Greg Rodgers <Gregory.Rodgers@amd.com>  Thu, 19 May 2022 23:34:44 -0500

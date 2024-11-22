@@ -14,4 +14,6 @@ CC           = $(OMP_BIN) $(VERBOSE)
 #-ccc-print-phases
 #"-\#\#\#"
 
+UNSUPPORTED = ASAN_COMPILE
+
 include ../Makefile.rules

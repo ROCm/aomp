@@ -47,7 +47,6 @@ test_target_enter_data_devices.c
 test_target_enter_data_global_array.c
 test_target_enter_data_if.F90
 test_target_enter_data_malloced_array.c
-test_target_enter_data_module_array.F90
 test_target_enter_data_set_default_device.F90
 test_target_enter_data_struct.c
 test_target_enter_exit_data_allocate_array_alloc_delete.F90

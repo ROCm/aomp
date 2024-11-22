@@ -13,6 +13,8 @@ CC           = $(OMP_BIN) $(VERBOSE)
 
 RUNCMD       = ./$(TESTNAME) 2>&1 | grep -q 'f90print inside target region' && echo 'Success' || (echo 'Failure' && false)
 
+UNSUPPORTED = ASAN_COMPILE
+
 include ../Makefile.rules
 run: $(TESTNAME)
 	$(RUNCMD)

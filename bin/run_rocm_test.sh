@@ -14,6 +14,10 @@
 # we need to see 1 device only, babelstream in particular.
 export ROCR_VISIBLE_DEVICES=0
 
+# Do not cleanup logs at the end of smoke related suites to avoid
+# prematurely removing pass/fail results.
+export CLEANUP=0
+
 # Enable AMDGPU Sanitizer Testing
 if [ "$1" == "-a" ]; then
   export AOMP_SANITIZER=1
@@ -156,7 +160,7 @@ if [ "$aomp" != 1 ]; then
   os_name=$(cat /etc/os-release | grep NAME)
   test_package_name="openmp-extras-tests"
   if [ "$SKIP_TEST_PACKAGE" != 1 ] && [ "$TEST_BRANCH" == "" ]; then
-    git log -1
+    git --no-pager log -1
     if [ ! -e "$ROCMINF/share/openmp-extras/tests/bin/run_rocm_test.sh" ]; then
       rm -rf $tmpdir
       mkdir -p $tmpdir
@@ -180,9 +184,11 @@ if [ "$aomp" != 1 ]; then
         extract_rpm $test_package
       # SLES support.
       elif [[ "$os_name" =~ "SLES" ]]; then
-        zypper download $test_package_name
-        test_package=$(ls -lt /var/cache/zypp/packages/rocm/ | grep -Eo -m1 openmp-extras-tests.*)
-        cp /var/cache/zypp/packages/rocm/"$test_package" $tmpdir
+        local_dir=~/openmp-extras-test
+        rm -f "$local_dir"/*
+        zypper --pkg-cache-dir $local_dir download $test_package_name
+        test_package=$(ls -lt "$local_dir"/rocm/ | grep -Eo -m1 openmp-extras-tests.*)
+        cp "$local_dir"/rocm/"$test_package" $tmpdir
         extract_rpm $test_package
       elif [[ "$os_name" =~ "Microsoft Azure Linux" ]]; then
 	dnf download --destdir=$tmpdir openmp-extras-tests

@@ -77,7 +77,7 @@ LLVM_VERSION=`$AOMP/bin/clang++ --version | grep version | cut -d" " -f 3 | cut 
 if [ "$LLVM_VERSION" == "version" ]  ; then
   # If 3rd  arg is version, must be aomp or rocm compiler, so get version from 4th field.
   LLVM_VERSION=`$AOMP/bin/clang++ --version | grep version | cut -d" " -f 4 | cut -d"." -f1`
-  special_aso_flags="-fopenmp-gpu-threads-per-team=1024 -fopenmp-target-fast"
+  special_aso_flags="-fopenmp-target-fast"
   special_mi300_flags="-fopenmp-target-fast -fopenmp-target-fast-reduction"
 else
   # temp hack to detect trunk (not vendor compiler) (found version in 3 args)"
