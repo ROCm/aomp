@@ -97,3 +97,8 @@ echo "Checking for Hyper"
 lscpu |grep Hyper
 
 echo "Done checking for SRIOV"
+
+rocm-smi
+
+rocminfo
+
