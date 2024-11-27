@@ -118,6 +118,14 @@ export HSA_RUNTIME_PATH=$ROCM_DIR
 #breaks build as it cant find rocm-path
 #export HIP_DEVICE_LIB_PATH=$ROCM_DIR/lib
 
+# Patch llvm-project with ATD patch customized for amd-staging.
+# WARNING: This patch (ATD_ASO_full.patch) rarely applies cleanly
+#          because of its size and constant trunk merges to amd-staging.
+#          This is why default is 0 (OFF).
+if [ "$AOMP_APPLY_ATD_AMD_STAGING_PATCH"  == 1 ] ; then
+   patchrepo $REPO_DIR
+fi
+
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    echo " "
    echo "This is a FRESH START. ERASING any previous builds in $BUILD_DIR/openmp."
@@ -457,4 +465,9 @@ if [ "$1" == "install" ] ; then
         $SUDO cp -rp $LLVM_PROJECT_ROOT/openmp/libompd/src $_ompd_src_dir/openmp/libompd
       fi
    fi
+
+   if [ "$AOMP_APPLY_ATD_AMD_STAGING_PATCH"  == 1 ] ; then
+      removepatch $REPO_DIR
+   fi
+
 fi

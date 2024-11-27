@@ -111,6 +111,9 @@ AOMP_SUPP_INSTALL=${AOMP_SUPP_INSTALL:-$AOMP_SUPP/install}
 # To build aomp from the release source taball, set these values to 0
 AOMP_APPLY_ROCM_PATCHES=${AOMP_APPLY_ROCM_PATCHES:-1}
 
+#  This applies ATD_ASO_full.patch to llvm-project
+AOMP_APPLY_ATD_AMD_STAGING_PATCH=${AOMP_APPLY_ATD_AMD_STAGING_PATCH:-0}
+
 CUDA=${CUDA:-/usr/local/cuda}
 CUDAT=${CUDAT:-$CUDA/targets}
 CUDAINCLUDE=${CUDAINCLUDE:-$CUDA/include}

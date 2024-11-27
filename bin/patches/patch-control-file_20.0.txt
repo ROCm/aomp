@@ -9,4 +9,5 @@ bolt: bolt.patch
 rocr-runtime: rocr-runtime-combined-numa-check-openmp-support.patch
 rocprofiler: rocprofiler-no-aql-ok.patch
 babelstream: babelstream-usm.patch
+llvm-project: ATD_ASO_full.patch
 UMT: umt.patch
