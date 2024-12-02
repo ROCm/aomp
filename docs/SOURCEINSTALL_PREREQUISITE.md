@@ -5,7 +5,7 @@
 #### Debian or Ubuntu Packages
 
 ```
-   sudo apt-get install gcc g++ pkg-config libpci-dev libnuma-dev libffi-dev git python3 libopenmpi-dev gawk mesa-common-dev libtool libdrm-amdgpu1 libdrm-dev ccache libdw-dev libgtest-dev libsystemd-dev cmake openssl libssl-dev libgmp-dev libmpfr-dev
+   sudo apt-get install gcc g++ pkg-config libpci-dev libnuma-dev libffi-dev git python3 libopenmpi-dev gawk mesa-common-dev libtool libdrm-amdgpu1 libdrm-dev ccache libdw-dev libgtest-dev libsystemd-dev cmake openssl libssl-dev libgmp-dev libmpfr-dev rpm2cpio
 
    # ubuntu 22 distributions seem to be missing libstdc++12
    sudo apt-get install  libstdc++-12-dev
