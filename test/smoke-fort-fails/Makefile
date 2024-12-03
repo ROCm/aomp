@@ -33,6 +33,8 @@ TESTS_DIR = \
     olcf-tf-7-loop-combined \
     rocm-aomp-issue-842 \
     rocm-aomp-issue-1148 \
+    rocm-issue-201 \
+    rocm-issue-208 \
     split-dist-f90 \
     split-dist-par-c \
     split-dist-par-f90 \

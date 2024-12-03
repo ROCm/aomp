@@ -1,0 +1,7 @@
+Also reported to llvm upstream
+llvm#116509
+
+I tested AMD downstream compiler and realized that the issue was from upstream.
+flang version 20.0.0git (https://github.com/llvm/llvm-project.git 5a5502b)
+
+Got wrong results regardless of enabling offload or not.

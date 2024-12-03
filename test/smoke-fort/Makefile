@@ -94,6 +94,7 @@ TESTS_DIR = \
     olcf-tf-4-openmp-gpu-teams-parallel-data \
     olcf-tf-5-openmp-gpu-teams-parallel-implicit-map \
     olcf-tf-6-combined \
+    rocm-issue-202 \
     single-value-map \
     target-cray-pointer \
     teams-distribute-no-parallel \
