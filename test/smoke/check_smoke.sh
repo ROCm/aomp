@@ -13,7 +13,7 @@ ORG="\033[0;33m"
 BLK="\033[0m"
 
 # Limit any step to 6 minutes
-ulimit -t 150
+ulimit -t 360
 
 function printfails(){
   # Print run logs for runtime fails, EPSDB only
