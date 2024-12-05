@@ -403,7 +403,7 @@ function buildfftw(){
 
 function buildcmake(){
   _cname="cmake"
-  _version=3.22.1
+  _version=3.25.2
   _installdir=$AOMP_SUPP_INSTALL/$_cname-$_version
   _linkfrom=$AOMP_SUPP/$_cname
   _builddir=$AOMP_SUPP_BUILD/$_cname 
