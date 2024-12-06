@@ -28,6 +28,7 @@ TESTS_DIR = \
     flang-gpu-stop-string \
     flang-gpu-exit \
     flang-gpu-abort \
+    hellofort-io \
     mathdbl-tgt \
     mathquad-tgt \
     olcf-tf-7-loop-combined \

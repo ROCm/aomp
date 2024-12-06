@@ -65,6 +65,7 @@ TESTS_DIR = \
     flang-479382-5 \
     flang-nested-parallel-do-loops \
     flang-use-device \
+    hellofort-nio \
     intrin-rename-func \
     intrin-rename-sub \
     iso_flush \
