@@ -10,6 +10,7 @@
 
 <!-- These first 4 repos are NOT rocm 6.2. They are compiler developer branches -->
     <project remote="gerritgit" path="llvm-project" name="lightning/ec/llvm-project" revision="amd-staging" groups="unlocked" />
+    <project remote="gerritgit" path="SPIRV-LLVM-Translator" name="lightning/ec/spirv-llvm-translator" revision="amd-staging" groups="unlocked" />
 
     <project remote="roctools" path="flang" name="flang"               revision="aomp-dev" groups="unlocked" />
     <project remote="roctools" path="aomp-extras" name="aomp-extras"   revision="aomp-dev" groups="unlocked" />
