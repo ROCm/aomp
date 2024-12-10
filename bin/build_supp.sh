@@ -52,7 +52,7 @@ EOF
 }
 
 SUPPLEMENTAL_COMPONENTS=${SUPPLEMENTAL_COMPONENTS:-openmpi silo hdf5 fftw ninja}
-PREREQUISITE_COMPONENTS=${PREREQUISITE_COMPONENTS:-cmake rocmsmilib hwloc aqlprofile openclicdloader}
+PREREQUISITE_COMPONENTS=${PREREQUISITE_COMPONENTS:-cmake rocmsmilib hwloc aqlprofile}
 
 # --- Start standard header to set AOMP environment variables ----
 realpath=`realpath $0`
@@ -231,14 +231,10 @@ function getrocmpackage(){
   _packagename="$2"
   _componentversion="$3"
   _directory=$(echo $2 | cut -b 1)
-  _version=6.2
-  _packageversion=6.2.0
-  if [ "$1" == "aqlprofile" ]; then
-    _fullversion=60200.60200
-  else
-    _fullversion=60200
-  fi
-  _buildnumber=66
+  _version=6.3
+  _packageversion=6.3.0
+  _fullversion=60300
+  _buildnumber=39
   _installdir=$AOMP_SUPP_INSTALL/$_cname-$_version
   _linkfrom=$AOMP_SUPP/$_cname
   _builddir=$AOMP_SUPP_BUILD/$_cname
@@ -256,9 +252,9 @@ function getrocmpackage(){
   osname=$(cat /etc/os-release | grep -e ^NAME=)
   if [[ $osname =~ "Ubuntu" ]]; then
     # not sure if deb_version is 20 or 22
-    deb_version="22"
+    deb_version="24"
     os_version=`grep VERSION_ID /etc/os-release | cut -d"\"" -f2`
-    [ $os_version == "20.04" ] && deb_version="20"
+    [ $os_version == "22.04" ] && deb_version="22"
     #https://repo.radeon.com/rocm/apt/6.1/pool/main/h/hsa-amd-aqlprofile6.1.0/hsa-amd-aqlprofile6.1.0_1.0.0.60100.60100-82~${deb_version}_amd64.deb
     #https://repo.radeon.com/rocm/apt/6.1/pool/main/h/hsa-amd-aqlprofile6.1.0/hsa-amd-aqlprofile6.1.0_1.0.0.60100.60100-82~22.04_amd64.deb
     runcmd "wget https://repo.radeon.com/rocm/apt/"$_version"/pool/main/$_directory/"$_packagename$_packageversion"/"$_packagename$_packageversion"_"$_componentversion"."$_fullversion"-"$_buildnumber"~${deb_version}.04_amd64.deb"
@@ -437,7 +433,7 @@ function buildcmake(){
 
 function buildrocmsmilib(){
   _cname="rocmsmilib"
-  _version=6.2.x
+  _version=6.3.x
   _installdir=$AOMP_SUPP_INSTALL/rocmsmilib-$_version
   _linkfrom=$AOMP_SUPP/rocmsmilib
   _builddir=$AOMP_SUPP_BUILD/rocmsmilib

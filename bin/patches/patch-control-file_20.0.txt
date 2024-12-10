@@ -6,7 +6,7 @@ GenASiS_Basics: genasis_basics.patch
 hipamd: hipamd-rpath.patch
 hipfort: hipfort.patch
 bolt: bolt.patch
-rocr-runtime: rocr-runtime-combined-numa-check-openmp-support.patch
+rocr-runtime: rocr-runtime-numa.patch
 rocprofiler: rocprofiler-no-aql-ok.patch
 babelstream: babelstream-usm.patch
 UMT: umt.patch

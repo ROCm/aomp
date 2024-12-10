@@ -47,11 +47,7 @@ if [ "$1" == "install" ] ; then
    $SUDO rm $INSTALL_ROCM/testfile
 fi
 
-if [ "$AOMP_NEW" == 1 ] ; then
-   patchrepo $AOMP_REPOS/hsa-runtime
-else
-   patchrepo $AOMP_REPOS/$AOMP_ROCR_REPO_NAME
-fi
+patchrepo $AOMP_REPOS/$AOMP_ROCR_REPO_NAME
 
 if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
   LDFLAGS="-fuse-ld=lld $ASAN_FLAGS"
@@ -69,13 +65,13 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    echo rm -rf $BUILD_AOMP/build/rocr
    rm -rf $BUILD_AOMP/build/rocr
    export PATH=/opt/rocm/llvm/bin:$PATH
-   MYCMAKEOPTS="-DCMAKE_INSTALL_PREFIX=$INSTALL_ROCM -DCMAKE_BUILD_TYPE=$BUILDTYPE -DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR/lib -DIMAGE_SUPPORT=OFF $AOMP_ORIGIN_RPATH -DCMAKE_INSTALL_LIBDIR=lib -DCMAKE_C_COMPILER=${AOMP_INSTALL_DIR}/lib/llvm/bin/clang -DCMAKE_CXX_COMPILER=${AOMP_INSTALL_DIR}/lib/llvm/bin/clang++ -DLLVM_DIR=$AOMP_INSTALL_DIR/lib/llvm/bin"
+   MYCMAKEOPTS="-DCMAKE_INSTALL_PREFIX=$INSTALL_ROCM -DCMAKE_BUILD_TYPE=$BUILDTYPE -DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR/lib -DIMAGE_SUPPORT=OFF $AOMP_ORIGIN_RPATH -DCMAKE_INSTALL_LIBDIR=lib -DCMAKE_C_COMPILER=${AOMP_INSTALL_DIR}/lib/llvm/bin/clang -DCMAKE_CXX_COMPILER=${AOMP_INSTALL_DIR}/lib/llvm/bin/clang++ -DLLVM_DIR=$AOMP_INSTALL_DIR/lib/llvm/bin -DBUILD_SHARED_LIBS=On"
    mkdir -p $BUILD_AOMP/build/rocr
    cd $BUILD_AOMP/build/rocr
    echo
    echo " -----Running rocr cmake ---- " 
-   echo ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_ROCR_REPO_NAME/src
-   ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_ROCR_REPO_NAME/src
+   echo ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_ROCR_REPO_NAME
+   ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_ROCR_REPO_NAME
    if [ $? != 0 ] ; then 
       echo "ERROR rocr cmake failed. cmake flags"
       echo "      $MYCMAKEOPTS"
@@ -84,13 +80,13 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 
    if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
       # unused prefix path :$ROCM_DIR/lib/asan/cmake;${AOMP_INSTALL_DIR}/lib/cmake 
-      ASAN_CMAKE_OPTS="-DCMAKE_C_COMPILER=${AOMP_INSTALL_DIR}/lib/llvm/bin/clang -DCMAKE_CXX_COMPILER=${AOMP_INSTALL_DIR}/lib/llvm/bin/clang++ -DLLVM_DIR=$AOMP_INSTALL_DIR/lib/llvm/bin -DCMAKE_INSTALL_PREFIX=$AOMP_INSTALL_DIR  -DCMAKE_INSTALL_LIBDIR=$INSTALL_ROCM/lib/asan -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR/lib -DIMAGE_SUPPORT=OFF $AOMP_ASAN_ORIGIN_RPATH"
+      ASAN_CMAKE_OPTS="-DCMAKE_C_COMPILER=${AOMP_INSTALL_DIR}/lib/llvm/bin/clang -DCMAKE_CXX_COMPILER=${AOMP_INSTALL_DIR}/lib/llvm/bin/clang++ -DLLVM_DIR=$AOMP_INSTALL_DIR/lib/llvm/bin -DCMAKE_INSTALL_PREFIX=$AOMP_INSTALL_DIR  -DCMAKE_INSTALL_LIBDIR=lib/asan -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR/lib -DIMAGE_SUPPORT=OFF $AOMP_ASAN_ORIGIN_RPATH -DBUILD_SHARED_LIBS=On"
       mkdir -p $BUILD_AOMP/build/rocr/asan
       cd $BUILD_AOMP/build/rocr/asan
       echo
       echo " ----Running rocr-asan cmake ----- "
-      echo ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DCMAKE_C_FLAGS="'$ASAN_FLAGS'" -DCMAKE_CXX_FLAGS="'$ASAN_FLAGS'" $AOMP_REPOS/$AOMP_ROCR_REPO_NAME/src
-      ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DCMAKE_C_FLAGS="'$ASAN_FLAGS'" -DCMAKE_CXX_FLAGS="'$ASAN_FLAGS'" $AOMP_REPOS/$AOMP_ROCR_REPO_NAME/src
+      echo ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DCMAKE_C_FLAGS="'$ASAN_FLAGS'" -DCMAKE_CXX_FLAGS="'$ASAN_FLAGS'" $AOMP_REPOS/$AOMP_ROCR_REPO_NAME
+      ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DCMAKE_C_FLAGS="'$ASAN_FLAGS'" -DCMAKE_CXX_FLAGS="'$ASAN_FLAGS'" $AOMP_REPOS/$AOMP_ROCR_REPO_NAME
       if [ $? != 0 ] ; then
          echo "ERROR rocr-asan cmake failed. cmake flags"
          echo "      $ASAN_CMAKE_OPTS"
@@ -100,14 +96,14 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    if [ "$AOMP_BUILD_DEBUG" == "1" ] ; then
       echo rm -rf $BUILD_AOMP/build/rocr_debug
       [ -d $BUILD_AOMP/build/rocr_debug ] && rm -rf $BUILD_AOMP/build/rocr_debug
-      ROCR_CMAKE_OPTS="-DCMAKE_C_COMPILER=$AOMP_INSTALL_DIR/lib/llvm/bin/clang -DCMAKE_CXX_COMPILER=$AOMP_INSTALL_DIR/lib/llvm/bin/clang++ -DLLVM_DIR=$AOMP_INSTALL_DIR/lib/llvm/bin -DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR/lib -DCMAKE_INSTALL_PREFIX=$AOMP_INSTALL_DIR -DCMAKE_BUILD_TYPE=Debug $AOMP_DEBUG_ORIGIN_RPATH -DCMAKE_INSTALL_LIBDIR=lib-debug"
+      ROCR_CMAKE_OPTS="-DCMAKE_C_COMPILER=$AOMP_INSTALL_DIR/lib/llvm/bin/clang -DCMAKE_CXX_COMPILER=$AOMP_INSTALL_DIR/lib/llvm/bin/clang++ -DLLVM_DIR=$AOMP_INSTALL_DIR/lib/llvm/bin -DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR/lib -DCMAKE_INSTALL_PREFIX=$AOMP_INSTALL_DIR -DCMAKE_BUILD_TYPE=Debug $AOMP_DEBUG_ORIGIN_RPATH -DCMAKE_INSTALL_LIBDIR=lib-debug -DBUILD_SHARED_LIBS=On"
       echo  
       echo " -----Running rocr_debug cmake -----"
       mkdir -p  $BUILD_AOMP/build/rocr_debug
       cd $BUILD_AOMP/build/rocr_debug
       _prefix_map="\""-fdebug-prefix-map=$AOMP_REPOS/$AOMP_ROCR_REPO_NAME/src=$_ompd_src_dir/rocr/src"\"" 
-      echo ${AOMP_CMAKE} $ROCR_CMAKE_OPTS -DCMAKE_C_FLAGS="-g $_prefix_map" -DCMAKE_CXX_FLAGS="-g $_prefix_map" $AOMP_REPOS/$AOMP_ROCR_REPO_NAME/src
-      ${AOMP_CMAKE} $ROCR_CMAKE_OPTS -DCMAKE_C_FLAGS="-g $_prefix_map" -DCMAKE_CXX_FLAGS="-g $_prefix_map" $AOMP_REPOS/$AOMP_ROCR_REPO_NAME/src
+      echo ${AOMP_CMAKE} $ROCR_CMAKE_OPTS -DCMAKE_C_FLAGS="-g $_prefix_map" -DCMAKE_CXX_FLAGS="-g $_prefix_map" $AOMP_REPOS/$AOMP_ROCR_REPO_NAME
+      ${AOMP_CMAKE} $ROCR_CMAKE_OPTS -DCMAKE_C_FLAGS="-g $_prefix_map" -DCMAKE_CXX_FLAGS="-g $_prefix_map" $AOMP_REPOS/$AOMP_ROCR_REPO_NAME
       if [ $? != 0 ] ; then
          echo "ERROR rocr_debug cmake failed.cmake flags"
          echo "      $ROCR_CMAKE_OPTS"
@@ -200,14 +196,5 @@ if [ "$1" == "install" ] ; then
         rm -rf $_ompd_src_dir/rocr/src/DEBIAN
         rm -rf $_ompd_src_dir/rocr/src/cmake_modules
       fi
-      if [ "$AOMP_NEW" == 1 ] ; then
-         removepatch $AOMP_REPOS/hsa-runtime
-      else
-         removepatch $AOMP_REPOS/$AOMP_ROCR_REPO_NAME
-      fi
-      # Remove hsa directory from install to ensure it is not used
-#      if [ -d $INSTALL_ROCM/hsa ] ; then
-#         echo rm -rf $INSTALL_ROCM/hsa
-#         rm -rf $INSTALL_ROCM/hsa
-#      fi
+      removepatch $AOMP_REPOS/$AOMP_ROCR_REPO_NAME
 fi
