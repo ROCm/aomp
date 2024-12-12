@@ -12,5 +12,5 @@ CC           = $(OMP_BIN) $(VERBOSE)
 include ../Makefile.rules
 
 flang-464660-1: $(TESTSRC_ALL)
-	$(CC) $(OMP_FLAGS) -c flang-464660-1.f90
-	$(AOMP)/bin/$(CLANG) -lm -L$(AOMP)/lib -lFortranRuntime -lFortranDecimal -lomp -lomptarget -gpulibc $(OMP_FLAGS) -o $@ flang-464660-1.o
+	$(CC) $(OMP_FLAGS) -O2 -c flang-464660-1.f90
+	$(AOMP)/bin/$(CLANG) -lm -L$(AOMP)/lib -lFortranRuntime -lFortranDecimal -lomp -lomptarget $(OMP_FLAGS) -o $@ flang-464660-1.o

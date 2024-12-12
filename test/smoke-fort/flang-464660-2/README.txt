@@ -1,3 +1,5 @@
+Without -O2, _FortranAAssign is not eliminated/still needed
+
 Failure mode:
 ld.lld: error: undefined symbol: _FortranAAssign
 or without builtins/shim/libc
