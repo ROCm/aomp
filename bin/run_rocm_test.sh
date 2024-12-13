@@ -24,6 +24,11 @@ if [ "$1" == "-a" ]; then
   export LD_LIBRARY_PATH=$ROCM_INSTALL_PATH/llvm/lib/asan:$ROCM_INSTALL_PATH/lib/asan:$LD_LIBRARY_PATH
 fi
 
+# whats the OS ?
+cat /etc/os-release
+rocm-smi
+rocminfo
+
 if [ -e /usr/sbin/lspci ]; then
   lspci_loc=/usr/sbin/lspci
 else
@@ -165,7 +170,7 @@ if [ "$aomp" != 1 ]; then
       rm -rf $tmpdir
       mkdir -p $tmpdir
       # Determine OS and download package not using sudo.
-      if [[ "$os_name" =~ "Ubuntu" ]]; then
+      if [[ "$os_name" =~ "Ubuntu" ]] || [[ "$os_name" =~ "Debian GNU/Linux" ]]; then
         cd $tmpdir
         apt-get download $test_package_name
         test_package=$(ls -lt $tmpdir | grep -Eo -m1 openmp-extras-tests.*)
@@ -195,7 +200,7 @@ if [ "$aomp" != 1 ]; then
 	test_package=$(ls -lt $tmpdir | grep -Eo -m1 openmp-extras-tests.*)
 	extract_rpm $test_package
       else
-        echo "Error: Could not determine operating system name."
+        echo "Error: Could not determine operating system package manager type."
         exit 1
       fi
     # Environment already has test package
