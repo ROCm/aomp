@@ -1,0 +1,78 @@
+diff --git a/test/CMakeLists.txt b/test/CMakeLists.txt
+index 5b1a659..4ae8c53 100644
+--- a/test/CMakeLists.txt
++++ b/test/CMakeLists.txt
+@@ -98,8 +98,8 @@ set(CTRL_SRC ${TEST_DIR}/app/test.cpp ${TEST_DIR}/ctrl/test_hsa.cpp)
+ # Dummy kernel
+ set(DUMMY_NAME dummy_kernel)
+ # Test kernel
+-set(TEST_NAME simple_convolution)
+-set(KERN_SRC ${TEST_DIR}/${TEST_NAME}/${TEST_NAME}.cpp)
++#set(TEST_NAME simple_convolution)
++#set(KERN_SRC ${TEST_DIR}/${TEST_NAME}/${TEST_NAME}.cpp)
+ 
+ # Building test kernels add_custom_target( mytest COMMAND sh -xc
+ # "${TEST_DIR}/../bin/build_kernel.sh ${TEST_DIR}/${DUMMY_NAME}/${DUMMY_NAME}
+@@ -118,7 +118,7 @@ function(generate_hsaco TARGET_ID INPUT_FILE OUTPUT_FILE)
+         CLANG_ARG_LIST
+         UNIX_COMMAND
+         "-O2 -x cl -Xclang -finclude-default-header -cl-denorms-are-zero -cl-std=CL2.0 --hip-device-lib-path=${ROCM_ROOT_DIR}/amdgcn/bitcode
+-    -Wl,--build-id=sha1 -target amdgcn-amd-amdhsa -mcpu=${TARGET_ID} -mcode-object-version=4 -o ${OUTPUT_FILE} ${INPUT_FILE}"
++    -Wl,--build-id=sha1 -target amdgcn-amd-amdhsa -mcpu=${TARGET_ID} -o ${OUTPUT_FILE} ${INPUT_FILE}"
+         )
+     add_custom_command(
+         OUTPUT ${PROJECT_BINARY_DIR}/${OUTPUT_FILE}
+@@ -146,8 +146,8 @@ else()
+ endif()
+ foreach(target_id ${GPU_LIST})
+     # generate kernel bitcodes
+-    generate_hsaco(${target_id} ${TEST_DIR}/${TEST_NAME}/${TEST_NAME}.cl
+-                   ${target_id}_SimpleConvolution.hsaco)
++#    generate_hsaco(${target_id} ${TEST_DIR}/${TEST_NAME}/${TEST_NAME}.cl
++#                   ${target_id}_SimpleConvolution.hsaco)
+     generate_hsaco(${target_id} ${TEST_DIR}/${DUMMY_NAME}/${DUMMY_NAME}.cl
+                    ${target_id}_DummyKernel.hsaco)
+ endforeach(target_id)
+diff --git a/test/app/stand_intercept_test.cpp b/test/app/stand_intercept_test.cpp
+index e7d83bc..e6c87b6 100644
+--- a/test/app/stand_intercept_test.cpp
++++ b/test/app/stand_intercept_test.cpp
+@@ -182,7 +182,7 @@ int main() {
+     else
+       rocprofiler_stop_queue_callbacks();
+     ret_val = RunKernel<DummyKernel, TestAql>(0, NULL, agent_info, queue, diter);
+-    if (ret_val) ret_val = RunKernel<SimpleConvolution, TestAql>(0, NULL, agent_info, queue, diter);
++    //    if (ret_val) ret_val = RunKernel<SimpleConvolution, TestAql>(0, NULL, agent_info, queue, diter);
+   }
+ 
+   TestHsa::HsaShutdown();
+diff --git a/test/app/standalone_test.cpp b/test/app/standalone_test.cpp
+index 7df3052..26825b5 100644
+--- a/test/app/standalone_test.cpp
++++ b/test/app/standalone_test.cpp
+@@ -202,8 +202,8 @@ int main() {
+ #if 1
+     const unsigned queue_ind = ind % queue_count;
+     hsa_queue_t* prof_queue = queue[queue_ind];
+-    // ret_val = RunKernel<DummyKernel, TestAql>(0, NULL, NULL, prof_queue);
+-    ret_val = RunKernel<SimpleConvolution, TestAql>(0, NULL, NULL, prof_queue);
++    ret_val = RunKernel<DummyKernel, TestAql>(0, NULL, NULL, prof_queue);
++    // ret_val = RunKernel<SimpleConvolution, TestAql>(0, NULL, NULL, prof_queue);
+     std::cout << "run kernel, queue " << queue_ind << std::endl;
+ #else
+     sleep(3);
+diff --git a/test/app/test.cpp b/test/app/test.cpp
+index 71eb4ce..c366fcf 100644
+--- a/test/app/test.cpp
++++ b/test/app/test.cpp
+@@ -50,8 +50,8 @@ void thread_fun(const int kiter, const int diter, const uint32_t agents_number)
+ 
+   for (int i = 0; i < kiter; ++i) {
+     for (uint32_t n = 0; n < agents_number; ++n) {
+-      //RunKernel<DummyKernel, TestAql>(0, NULL, agent_info[n], queue[n], diter);
+-       RunKernel<SimpleConvolution, TestAql>(0, NULL, agent_info[n], queue[n], diter);
++      RunKernel<DummyKernel, TestAql>(0, NULL, agent_info[n], queue[n], diter);
++      //RunKernel<SimpleConvolution, TestAql>(0, NULL, agent_info[n], queue[n], diter);
+     }
+   }
+ 

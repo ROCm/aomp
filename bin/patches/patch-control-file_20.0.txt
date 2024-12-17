@@ -7,6 +7,7 @@ hipamd: hipamd-rpath.patch
 hipfort: hipfort.patch
 bolt: bolt.patch
 rocr-runtime: rocr-runtime-numa.patch
+rocprofiler: rocprofiler-fix-cov6.patch
 rocprofiler: rocprofiler-no-aql-ok.patch
 babelstream: babelstream-usm.patch
 llvm-project: ATD_ASO_full.patch
