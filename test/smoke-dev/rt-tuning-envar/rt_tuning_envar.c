@@ -35,4 +35,6 @@ int main()
   return rc;
 }
 
-/// CHECK: Kernel Duration: {{[0-9]+}} ns
+/// CHECK: [Autotuning run] Kernel [[KERNEL_NAME:[^ ]+]] with
+/// [[NUM_TEAMS:[0-9]+]] teams ({{[0-9]+}} CU multiplier) and
+/// [[NUM_THREADS:[0-9]+]] threads completed in [[TIME:[0-9]+]] ns.
