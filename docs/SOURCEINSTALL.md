@@ -1,8 +1,8 @@
-# Source Install V 20.0-1
+# Source Install V 20.0-2
 
 Build and install from sources is possible.  However, the source build for AOMP is complex for several reasons.
 - Many repos are required.
-- Requires that Cuda SDK 10 is installed for NVIDIA GPUs. ROCm does not need to be installed for AOMP.
+- Requires that Cuda SDK 10/11 is installed for NVIDIA GPUs. ROCm does not need to be installed for AOMP.
 - It is a bootstrapped build. The built and installed LLVM compiler is used to build library components.
 - Additional package dependencies are required that are not required when installing the AOMP package.
 
@@ -11,7 +11,7 @@ Build and install from sources is possible.  However, the source build for AOMP 
 To build and test AOMP from source you must:
 ```
 1. Install certain distribution packages,
-2. Build CMake 3.22.1 from source. This can be done with ./build_prereq.sh,
+2. Build CMake 3.25.2 from source. This can be done with ./build_prereq.sh,
 3. Ensure the KFD kernel module is installed and operating,
 4. Create the Unix video group, and
 5. Install spack if required.
@@ -40,14 +40,14 @@ Here are the commands to do a source build of AOMP:
 ```
 
 The development version is the next version to be released.  It is possible that the development version is broken due to regressions that often occur during development.
-These commands will build a previous release of AOMP such as aomp-20.0-0.<br>
+These commands will build a previous release of AOMP such as aomp-20.0-1.<br>
 <b>Release Branch:</b>
 ```
    export AOMP_VERSION=20.0
    export AOMP_REPOS=$HOME/git/aomp${AOMP_VERSION}
    mkdir -p $AOMP_REPOS
    cd $AOMP_REPOS
-   git clone -b aomp-20.0-0 https://github.com/ROCm-Developer-Tools/aomp
+   git clone -b aomp-20.0-1 https://github.com/ROCm-Developer-Tools/aomp
 ```
 <b>Clone and build:</b>
 ```
@@ -67,9 +67,11 @@ There is a "list" option on the clone\_aomp.sh that provides useful information 
 The above command will produce output like this showing you the location and branch of the repos in the AOMP\_REPOS directory and if there are any discrepencies with respect to the manifest file.<br>
 
 <b>USED manifest file: /work/grodgers/git/aomp20.0/aomp/bin/../manifests/aompi_20.0.xml</b><br>
+```
   repo src       branch                 path                 repo name    last hash    updated           commitor         for author
   --------       ------                 ----                 ---------    ---------    -------           --------         ----------
  gerritgit  amd-staging         llvm-project lightning/ec/llvm-project f986706166c9 2023-12-06      Ron Lieberman            JP Lehr
+       roc  amd-staging   SPIRV-LLVM-Translator  SPIRV-LLVM-Translator 0659e45216b2 2024-12-04            AlexVlx            AlexVlx
   roctools     aomp-dev                flang                     flang 88b81b0a8ead 2023-11-30             GitHub    Emma Pilkington
   roctools     aomp-dev          aomp-extras               aomp-extras 7097f3e2ba36 2023-12-04      Ron Lieberman      Ron Lieberman
   roctools     aomp-dev                 aomp                      aomp df5b5d8ddffa 2023-12-05 Dhruva Chakrabarti Dhruva Chakrabarti

@@ -10,6 +10,7 @@
 
 <!-- These first 4 repos are NOT rocm 6.3. They are compiler developer branches -->
     <project remote="roc" path="llvm-project" name="llvm-project"    revision="amd-staging" groups="unlocked" />
+    <project remote="roc" path="SPIRV-LLVM-Translator" name="SPIRV-LLVM-Translator"    revision="amd-staging" groups="unlocked" />
 
     <project remote="roctools" path="flang" name="flang"               revision="aomp-dev" groups="unlocked" />
     <project remote="roctools" path="aomp-extras" name="aomp-extras"   revision="aomp-dev" groups="unlocked" />

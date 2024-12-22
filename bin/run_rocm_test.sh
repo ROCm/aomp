@@ -168,7 +168,7 @@ if [ "$aomp" != 1 ]; then
       rm -rf $tmpdir
       mkdir -p $tmpdir
       # Determine OS and download package not using sudo.
-      if [[ "$os_name" =~ "Ubuntu" ]] || [[ "$os_name" =~ "Debian GNU/Linux" ]]; then
+      if [[ "$os_name" =~ "Ubuntu" ]] || [[ "$os_name" =~ "Debian" ]]; then
         cd $tmpdir
         apt-get download $test_package_name
         test_package=$(ls -lt $tmpdir | grep -Eo -m1 openmp-extras-tests.*)

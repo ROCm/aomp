@@ -111,8 +111,12 @@ done
 echo "----------------- PATCHING REPOS -----------------"
 for repo_name in $REPO_NAMES ; do
    echo
-   echo patchrepo $AOMP_REPOS/$repo_name
-   patchrepo $AOMP_REPOS/$repo_name
+   if [ "$repo_name" == "llvm-project" ] && [ "$AOMP_APPLY_ATD_AMD_STAGING_PATCH"  == 0 ] ; then
+     continue
+   else
+     echo patchrepo $AOMP_REPOS/$repo_name
+     patchrepo $AOMP_REPOS/$repo_name
+   fi
 done
 echo "----------------- POST-PATCH STATUS -----------------"
 for repo_name in $REPO_NAMES ; do

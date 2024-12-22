@@ -1,8 +1,8 @@
 Summary: AMD OpenMP Compiler Suite
-Name: aomp_SLES15_SP4
+Name: aomp_SLES15_SP5
 Version: __VERSION1
 Release: __VERSION3_MOD
-Source: ~/rpm/SOURCES/aomp_SLES15_SP4.tar.gz
+Source: ~/rpm/SOURCES/aomp_SLES15_SP5.tar.gz
 URL: https://github.com/ROCm-Developer-Tools/aomp
 License: MIT and ASL 2.0
 Group: System/Base

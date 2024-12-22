@@ -23,7 +23,7 @@ GROUP_LIST="epsdb"
 EPSDB_LIST=${EPSDB_LIST:-"examples smoke hipopenmp omp5 openmpapps nekbone sollve"}
 
 # Set up variables
-AOMP_REPOS=${AOMP_REPOS:-"$HOME/git/aomp19.0"}
+AOMP_REPOS=${AOMP_REPOS:-"$HOME/git/aomp20.0"}
 AOMP_SRC=${AOMP_SRC:-$AOMP_REPOS/aomp}
 AOMP_BIN=${AOMP_BIN:-$AOMP_SRC/bin}
 AOMP_REPOS_TEST=${AOMP_REPOS_TEST:-"$HOME/git/aomp-test"}

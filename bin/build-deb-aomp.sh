@@ -113,13 +113,6 @@ if [ -f $tmpdir/debs/${pkgname}_${AOMP_VERSION_STRING}_$DEBARCH.deb ] ; then
 fi
 # Insert the os release name
 cp -p $builddir/${pkgname}_${AOMP_VERSION_STRING}_$DEBARCH.deb $tmpdir/debs/${pkgname}_${RELSTRING}_${AOMP_VERSION_STRING}_$DEBARCH.deb
-mkdir -p $tmpdir/rpms
-cd $tmpdir/rpms
-echo 
-echo "--- BUILDING RPM: alien -k --scripts --to-rpm $tmpdir/debs/${pkgname}_${AOMP_VERSION_STRING}_$DEBARCH.deb"
-sudo alien -k --scripts --to-rpm $builddir/${pkgname}_${AOMP_VERSION_STRING}_$DEBARCH.deb 
-
 echo 
 echo "DONE Debian package is in $tmpdir/debs/${pkgname}_${AOMP_VERSION_STRING}_$DEBARCH.deb"
-echo "     rpm package is in $tmpdir/rpms/${pkgname}_${AOMP_VERSION_STRING}.$RPMARCH.rpm"
 echo 

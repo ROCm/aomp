@@ -266,9 +266,9 @@ function getrocmpackage(){
     echo ""$_packagename$_packageversion"-"$_componentversion"."$_fullversion"-sles155."$_buildnumber".x86_64.rpm | cpio -idm"
     rpm2cpio "$_packagename$_packageversion"-"$_componentversion"."$_fullversion"-sles155."$_buildnumber".x86_64.rpm | cpio -idm
   else
-    runcmd "wget https://repo.radeon.com/rocm/yum/"$_version"/main/"$_packagename$_packageversion"-"$_componentversion"."$_fullversion"-"$_buildnumber".el7.x86_64.rpm"
-    echo ""$_packagename$_packageversion"-"$_componentversion"."$_fullversion"-"$_buildnumber".el7.x86_64.rpm | cpio -idm"
-    rpm2cpio "$_packagename$_packageversion"-"$_componentversion"."$_fullversion"-"$_buildnumber".el7.x86_64.rpm | cpio -idm
+    runcmd "wget https://repo.radeon.com/rocm/rhel8/"$_version"/main/"$_packagename$_packageversion"-"$_componentversion"."$_fullversion"-"$_buildnumber".el8.x86_64.rpm"
+    echo ""$_packagename$_packageversion"-"$_componentversion"."$_fullversion"-"$_buildnumber".el8.x86_64.rpm | cpio -idm"
+    rpm2cpio "$_packagename$_packageversion"-"$_componentversion"."$_fullversion"-"$_buildnumber".el8.x86_64.rpm | cpio -idm
   fi
 
   if [ -d $_installdir ] ; then

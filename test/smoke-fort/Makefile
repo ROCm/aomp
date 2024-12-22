@@ -67,6 +67,7 @@ TESTS_DIR = \
     flang-479382-5 \
     flang-nested-parallel-do-loops \
     flang-use-device \
+    flang-target-associate-ptr \
     hellofort-nio \
     intrin-rename-func \
     intrin-rename-sub \

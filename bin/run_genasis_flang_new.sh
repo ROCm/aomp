@@ -101,8 +101,13 @@ else
     exit
 fi
 
+OMP_DEFINES="-DENABLE_OMP_OFFLOAD"
+if [ "$ENABLE_OMP_OFFLOAD" -eq "0" ] ; then
+    OMP_DEFINES=
+fi
+
 export LD_LIBRARY_PATH=$AOMP/lib:$AOMPHIP/lib:$OPENMPI_DIR/lib:$LD_LIBRARY_PATH
-export FORTRAN_COMPILE="$AOMP/bin/$FLANG -c -fopenmp --offload-arch=$GPU_ID -fPIC -I$OPENMPI_DIR/lib -cpp"
+export FORTRAN_COMPILE="$AOMP/bin/$FLANG -c -fopenmp --offload-arch=$GPU_ID -fPIC -I$OPENMPI_DIR/lib -cpp $OMP_DEFINES"
 export CC_COMPILE="$AOMP/bin/clang -fPIC"
 export FORTDEV_LIBS=${FORTDEV_LIBS-"-lFortranRuntimeHostDevice"}
 export OTHER_LIBS="-lm -L$AOMP/lib -lFortranRuntime $FORTDEV_LIBS -lFortranDecimal -lomp -lomptarget -z muldefs "

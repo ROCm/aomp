@@ -1,12 +1,3 @@
-diff --git a/Build/Preprocessor b/Build/Preprocessor
-index 5a66aa14..0a11c950 100644
---- a/Build/Preprocessor
-+++ b/Build/Preprocessor
-@@ -1,3 +1,4 @@
-+#define ENABLE_OMP_OFFLOAD 1
- #ifdef ENABLE_OMP_OFFLOAD
- #define OMP_TARGET_DIRECTIVE target teams distribute
- #define OMP_SCHEDULE_TARGET static, 1
 diff --git a/Modules/Basics/DataManagement/ArrayOperations/Clear_Command.f90 b/Modules/Basics/DataManagement/ArrayOperations/Clear_Command.f90
 index eba18541..6d430130 100644
 --- a/Modules/Basics/DataManagement/ArrayOperations/Clear_Command.f90
@@ -283,15 +274,19 @@ diff --git a/Programs/Examples/Basics/FluidDynamics/PlaneWaveAdvection_Template.
 index a2d813c..335e77b 100644
 --- a/Programs/Examples/Basics/FluidDynamics/PlaneWaveAdvection_Template.f90
 +++ b/Programs/Examples/Basics/FluidDynamics/PlaneWaveAdvection_Template.f90
-@@ -102,9 +102,11 @@ contains
+@@ -104,8 +104,14 @@ contains
      VZ = K ( 3 ) / ( dot_product ( K, K ) * Period )
 
      end associate !-- K
 
-+    call PF % UpdateDevice ( )
++#ifdef ENABLE_OMP_OFFLOAD
++      call PF % UpdateDevice ( )
++#endif
      call PF % ComputeAuxiliary ( PF % Value )
      call PF % ComputeConserved ( PF % Value )
-+    call PF % UpdateHost ( )
++#ifdef ENABLE_OMP_OFFLOAD
++      call PF % UpdateHost ( )
++#endif
 
      !-- FIXME: Implicit do-loop array needed to workaround Cray compiler
      !          crashes for elemental function argument of array and scalar

@@ -14,10 +14,14 @@ version=$(cat /etc/os-release | grep -e ^VERSION=)
 rpmname="Not_Found"
 if [[ $osname =~ "Red Hat" ]]; then
   echo "Red Hat found!!!"
-  rpmname=${1:-aomp_REDHAT_7}
+  if [[ $version =~ "9" ]]; then
+    rpmname=${1:-aomp_REDHAT_9}
+  elif [[ $version =~ "8" ]]; then
+    rpmname=${1:-aomp_REDHAT_8}
+  fi
 elif [[ $osname =~ "SLES" ]]; then
   echo "SLES15_SP4 found!!!"
-  rpmname=${1:-aomp_SLES15_SP4}
+  rpmname=${1:-aomp_SLES15_SP5}
 elif [[ $osname =~ "CentOS" ]]; then
   echo "CENTOS found!!!"
   if [[ $version =~ "9" ]]; then

@@ -989,5 +989,46 @@ aomp (19.0-3) UNRELEASED; urgency=medium
   *   Remove deprecated utility offload-arch. This was replaced with amdgpu-arch or nvptx-arch.
   *
   * 20.0-0
+  *   Switched to ROCm 6.2.2 sources. This introduced a new component called rocprofiler-register.
+  *   Move the install of llvm to lib/llvm, which is where ROCm installs llvm.
+  *   AOMP now creates and uses rocm.cfg, clang.cfg clang++.cfg, etc.
+  *   Add support for multiple devices (-md option) to gpurun utility.
+  *   AOMP example updates:
+  *      Use a common include file to set LLVM_INSTALL_DIR and LLVM_GPU_ARCH using
+  *      amdgpu-arch and nvidia-arch.
+  *      Remove mygpu dependency from every example.
+  *      Create a new category stress for complex examples not in CI.
+  *      Build Kokkos with a make file instead of script.
+  *   Added build support for gfx90c, gfx1103, gfx1150, gfx1151, and gfx1152.
+  *   Add ROCm SMI and AMD SMI as AOMP components.
+  *
+  * 20.0-1
+  *   Changed default LIBOMPTARGET_SYNC_COPY_BACK=false
+  *   Dropped support for CentOS 7/8/9, Ubuntu 20.04, SLES15-SP4
+  *   Added support for RHEL 8/9, Ubuntu 24.04, SLES15-SP5
+  *   Updated to ROCm 6.3 sources
+  *   Added new component, SPIRV-LLVM-Translator. This is initial support for
+  *      spirv JIT offloading. This includes a spirv to LLVM IR translation tool
+  *      installed in the compiler bin directory lib/llvm/bin/amd-llvm-spirv. Toolchain
+  *      support to support SPIRV is still in development.
+  *   Added a new release file showing the summary of relevant git commits since
+  *      the last release. See llvm-project-20-0-1-gitlog-summary.txt
+  *   Upgraded cmake to 3.25.2
+  *   Changed the commands for OpenMP offload linking to use the
+  *      clang-linker-wrapper command. The old method was set of intermediate commands
+  *      that passed files between various steps of the heterogeneous linking process.
+  *      The default command line option before 20.0-1 was --opaque-offload-linker. The
+  *      default is now --no-opaque-offload-linker. While both methods performed
+  *      similar GPU linking, IR optimizations and backend, there were minor
+  *      differences in the final offloading image that caused issues that have been
+  *      resolved. One can still see the commands from the old method with the command
+  *      line options "-v -save-temps --opaque-offload-linker",
+  *   Corrected the installation lib-debug directories to contain debug builds of
+  *      various runtime libraries. The sources of all debug runtimes are also
+  *      installed so that gdbtui will automatically find the sources.
+  *   Merged roct and rocr into a single aomp build COMPONENT.
+  *   Renamed flang-legacy binary to **flang-classic""  as it is better known
+  *   by the flang community.  Yes, this will be deprecated in the future for the
+  *   new llvm flang.   Currently "flang" is a symbolic link to flang-classic binary.
 
  -- Greg Rodgers <Gregory.Rodgers@amd.com>  Thu, 19 May 2022 23:34:44 -0500

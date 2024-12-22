@@ -6,15 +6,15 @@ Once installed go to [TESTINSTALL](TESTINSTALL.md) for instructions on getting s
 ### Debian
 To install the debian package without root access into your home directory, you can run these commands.<br>
 
-On Ubuntu 20.04:
-```
-   wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_20.0-0/aomp_Ubuntu2004_20.0-0_amd64.deb
-   dpkg -x aomp_Ubuntu2004_20.0-0_amd64.deb /tmp/temproot
-```
 On Ubuntu 22.04:
 ```
-   wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_20.0-0/aomp_Ubuntu2204_20.0-0_amd64.deb
-   dpkg -x aomp_Ubuntu2204_20.0-0_amd64.deb /tmp/temproot
+   wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_20.0-1/aomp_Ubuntu2204_20.0-1_amd64.deb
+   dpkg -x aomp_Ubuntu2204_20.0-1_amd64.deb /tmp/temproot
+```
+On Ubuntu 24.04:
+```
+   wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_20.0-1/aomp_Ubuntu2404_20.0-1_amd64.deb
+   dpkg -x aomp_Ubuntu2404_20.0-1_amd64.deb /tmp/temproot
 ```
 Move to $HOME and set variables:
 ```
@@ -29,25 +29,20 @@ To install the rpm package without root access into your home directory, you can
 ```
    mkdir /tmp/temproot ; cd /tmp/temproot 
 ```
-For SLES15-SP4:
+For SLES15-SP5:
 ```
-   wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_20.0-0/aomp_SLES15_SP4-20.0-0.x86_64.rpm
-   rpm2cpio aomp_SLES15_SP4-20.0-0.x86_64.rpm | cpio -idmv
+   wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_20.0-1/aomp_SLES15_SP5-20.0-1.x86_64.rpm
+   rpm2cpio aomp_SLES15_SP5-20.0-1.x86_64.rpm | cpio -idmv
 ```
-For CentOS/RHEL 7:
+For RHEL 8:
 ```
-   wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_20.0-0/aomp_CENTOS_7-20.0-0.x86_64.rpm
-   rpm2cpio aomp_CENTOS_7-20.0-0.x86_64.rpm | cpio -idmv
+   wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_20.0-1/aomp_REDHAT_8-20.0-1.x86_64.rpm
+   rpm2cpio aomp_REDHAT_8-20.0-1.x86_64.rpm | cpio -idmv
 ```
-For CentOS 8:
+For RHEL 9:
 ```
-   wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_20.0-0/aomp_CENTOS_8-20.0-0.x86_64.rpm
-   rpm2cpio aomp_CENTOS_8-20.0-0.x86_64.rpm | cpio -idmv
-```
-For CentOS 9:
-```
-   wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_20.0-0/aomp_CENTOS_9-20.0-0.x86_64.rpm
-   rpm2cpio aomp_CENTOS_9-20.0-0.x86_64.rpm | cpio -idmv
+   wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_20.0-1/aomp_REDHAT_9-20.0-1.x86_64.rpm
+   rpm2cpio aomp_REDHAT_9-20.0-1.x86_64.rpm | cpio -idmv
 ```
 Move to $HOME and set variables:
 ```
