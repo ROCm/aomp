@@ -348,7 +348,7 @@ function getversion(){
     rpmregex="Red Hat|CentOS|SLES|Oracle Linux Server|Microsoft Azure Linux|Alibaba Linux Server"
     echo $osname
     if [[ "$osname" =~ $rpmregex ]]; then
-      echo "Red Hat/CentOS/SLES/Oracle/Microsoft Azure found|Alibaba Linux Server"
+      echo "Red Hat/CentOS/SLES/Oracle/Microsoft Azure/Alibaba Linux Server found"
       ompextraspkg=$(rpm -qa | grep openmp-extras | tail -1)
     elif [[ "$os_name" =~ "Ubuntu" ]] || [[ "$os_name" =~ "Debian" ]]; then
       echo "Ubuntu/Debian found"
