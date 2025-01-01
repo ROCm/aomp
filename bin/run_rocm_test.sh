@@ -64,7 +64,7 @@ else
 SUITE_LIST=${SUITE_LIST:-"examples smoke-limbo smoke smoke-asan omp5 openmpapps LLNL nekbone ovo sollve babelstream fortran-babelstream accel2023 hpc2021"}
 blockinglist="examples_fortran examples_openmp smoke smoke-limbo openmpapps sollve45 sollve50 babelstream ovo accel2023 hpc2021"
 fi
-EPSDB_LIST=${EPSDB_LIST:-"examples smoke-limbo smoke-dev smoke smoke-asan omp5 openmpapps LLNL nekbone ovo sollve babelstream fortran-babelstream accel2023 hpc2021"}
+EPSDB_LIST=${EPSDB_LIST:-"examples smoke-limbo smoke-dev smoke smoke-asan omp5 openmpapps LLNL nekbone ovo sollve babelstream fortran-babelstream accel2023 hpc2021 smoke-fort-limbo"}
 
 export AOMP_USE_CCACHE=0
 
@@ -732,6 +732,23 @@ function smoke-limbo(){
     copyresults smoke-limbo "$aompdir"/test/smoke-limbo
   else
     echo "Skipping smoke-limbo."
+  fi
+}
+
+SMOKE_FORT_LIMBO=${SMOKE_FORT_LIMBO:-1}
+function smoke-fort-limbo(){
+  # Smoke-fails
+  if [ ! -e $AOMP/bin/flang-new ]; then
+    SMOKE_FORT_LIMBO=0
+  fi
+  if [ "$SMOKE_FORT_LIMBO" == "1" ]; then
+    mkdir -p "$resultsdir"/smoke-fort-limbo
+    cd "$aompdir"/test/smoke-fort-limbo
+    ./check_smoke_fort_limbo.sh
+    checkrc $?
+    copyresults smoke-fort-limbo "$aompdir"/test/smoke-fort-limbo
+  else
+    echo "Skipping smoke-fort-limbo."
   fi
 }
 
