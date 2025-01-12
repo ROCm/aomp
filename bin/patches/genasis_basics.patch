@@ -12,18 +12,21 @@ index 5fc7364..4ae10ae 100644
  #define OMP_SCHEDULE_HOST runtime
  #define OMP_TARGET_DISTRIBUTE_SCHEDULE dist_schedule ( auto )
 diff --git a/Programs/Examples/Basics/FluidDynamics/PlaneWaveAdvection_Template.f90 b/Programs/Examples/Basics/FluidDynamics/PlaneWaveAdvection_Template.f90
-index a2d813c..335e77b 100644
+index a2d813c..580d9ab 100644
 --- a/Programs/Examples/Basics/FluidDynamics/PlaneWaveAdvection_Template.f90
 +++ b/Programs/Examples/Basics/FluidDynamics/PlaneWaveAdvection_Template.f90
-@@ -102,9 +102,11 @@ contains
-     VZ = K ( 3 ) / ( dot_product ( K, K ) * Period )
+@@ -103,8 +103,14 @@ contains
 
      end associate !-- K
 
-+    call PF % UpdateDevice ( )
++#ifdef ENABLE_OMP_OFFLOAD
++      call PF % UpdateDevice ( )
++#endif
      call PF % ComputeAuxiliary ( PF % Value )
      call PF % ComputeConserved ( PF % Value )
-+    call PF % UpdateHost ( )
++#ifdef ENABLE_OMP_OFFLOAD
++      call PF % UpdateHost ( )
++#endif
 
      !-- FIXME: Implicit do-loop array needed to workaround Cray compiler
      !          crashes for elemental function argument of array and scalar
