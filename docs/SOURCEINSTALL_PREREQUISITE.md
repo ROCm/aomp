@@ -5,7 +5,7 @@
 #### Debian or Ubuntu Packages
 
 ```
-  sudo apt-get install wget gcc g++ pkg-config libpci-dev libnuma-dev libffi-dev git python3 libopenmpi-dev gawk mesa-common-dev libtool libdrm-amdgpu1 libdrm-dev ccache libdw-dev libgtest-dev libsystemd-dev cmake openssl libssl-dev libgmp-dev libmpfr-dev libelf-dev pciutils python3.10-dev libudev-dev libgtest-dev libstdc++-12-dev python3-lxml ocl-icd-opencl-devi libsystemd-dev
+  sudo apt-get install wget gcc g++ pkg-config libpci-dev libnuma-dev libffi-dev git python3 libopenmpi-dev gawk mesa-common-dev libtool libdrm-amdgpu1 libdrm-dev ccache libdw-dev libgtest-dev libsystemd-dev cmake openssl libssl-dev libgmp-dev libmpfr-dev libelf-dev pciutils python3.10-dev libudev-dev libgtest-dev libstdc++-12-dev python3-lxml ocl-icd-opencl-dev libsystemd-dev
 
   # Additional packages used by rocgdb
   sudo apt-get install texinfo libbison-dev bison flex libbabeltrace-dev python3-pip libncurses5-dev liblzma-dev python3-setuptools python3-dev libudev-dev libgmp-dev libmpfr-dev libdw-dev

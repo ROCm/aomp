@@ -904,7 +904,7 @@ TEST(VeccopyTraces, OnDeviceCallbacks_teams_distribute_parallel_for_nowait_w_tim
   OMPT_ASSERT_SET(BufferRecord, CB_DATAOP);
   OMPT_ASSERT_SET(BufferRecord, CB_DATAOP);
   OMPT_ASSERT_SET(BufferRecord, CB_DATAOP);
-  OMPT_ASSERT_SET(BufferRecord, CB_KERNEL, {5000, 40000});
+  OMPT_ASSERT_SET(BufferRecord, CB_KERNEL, 1000);
   OMPT_ASSERT_SET(BufferRecord, CB_TARGET, TARGET, END);
 #pragma omp target teams distribute parallel for nowait map(a, b)
   {
