@@ -54,7 +54,7 @@ index 548b31f2..de4c2dd5 100644
                'HasAtomicAdd': True,
                'HasDirectToLdsDest': False,
 diff --git a/Tensile/Common.py b/Tensile/Common.py
-index 66f2caa2..d4f79558 100644
+index 66f2caa2..4a77df59 100644
 --- a/Tensile/Common.py
 +++ b/Tensile/Common.py
 @@ -253,7 +253,7 @@ globalParameters["SupportedISA"] = [(8,0,3),
@@ -65,6 +65,15 @@ index 66f2caa2..d4f79558 100644
 +                                    (11,0,0), (11,0,1), (11,0,2), (11,0,3),
                                      (11,5,1),
                                      (12,0,0), (12,0,1)] # assembly kernels writer supports these architectures
+ 
+@@ -316,7 +316,7 @@ globalParameters["SeparateArchitectures"] = False # write Tensile library metada
+ 
+ globalParameters["LazyLibraryLoading"] = False # Load library and code object files when needed instead of at startup
+ 
+-globalParameters["IgnoreAsmCapCache"] = False # Ignore checking for discrepancies between derived and cached asm caps
++globalParameters["IgnoreAsmCapCache"] = True # Ignore checking for discrepancies between derived and cached asm caps
+ 
+ globalParameters["ExperimentalLogicDir"] = "/experimental/"
  
 @@ -328,13 +328,13 @@ architectureMap = {
    'all':'_','gfx000':'none', 'gfx803':'r9nano', 'gfx900':'vega10', 'gfx900:xnack-':'vega10',
@@ -253,6 +262,19 @@ index 8ee6d217..bd67cfd7 100644
              else
              {
                  return static_cast<AMDGPU::Processor>(0);
+diff --git a/Tensile/TensileCreateLib/ParseArguments.py b/Tensile/TensileCreateLib/ParseArguments.py
+index 6970caba..5dc6406c 100644
+--- a/Tensile/TensileCreateLib/ParseArguments.py
++++ b/Tensile/TensileCreateLib/ParseArguments.py
+@@ -239,7 +239,7 @@ def parseArguments(input: Optional[List[str]] = None) -> Dict[str, Any]:
+         "--ignore-asm-cap-cache",
+         dest="IgnoreAsmCapCache",
+         action="store_true",
+-        default=False,
++        default=True,
+         help="Ignore ASM capabilities cache and derive the capabilities at runtime.",
+     )
+     parser.add_argument(
 diff --git a/docs/src/cli-reference/TensileCreateLibrary.rst b/docs/src/cli-reference/TensileCreateLibrary.rst
 index 6e22a2c7..09345113 100644
 --- a/docs/src/cli-reference/TensileCreateLibrary.rst

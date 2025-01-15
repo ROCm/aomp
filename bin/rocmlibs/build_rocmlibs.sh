@@ -2,7 +2,6 @@
 # 
 #   build_rocmlibs.sh : Build and install ROCm libraries as AOMP components 
 #
-
 # --- Start standard header to set AOMP environment variables ----
 realpath=`realpath $0`
 thisdir=`dirname $realpath`
@@ -96,7 +95,6 @@ date
 echo " =================  START build_rocmlibs.sh ==================="   
 echo 
 components="prereq rocm-cmake"
-
 if [ "$AOMP_STANDALONE_BUILD" == 1 ] ; then
   # This ordered build is important when starting from scratch
   components="$components rocblas rocprim rocsparse rocsolver hipblas-common hipblas"
@@ -160,5 +158,20 @@ echo "rocmlibs SIZE  : $_total_file_size MB "  >> $_stats_dir/rocmlibs.stats
 date
 echo " =================  END build_rocmlibs.sh ==================="   
 echo 
+
+cd $AOMP_REPOS/build/rocmlibs
+install_manifest=install_manifest.txt
+
+# Clean file log
+rm -f $BUILD_DIR/build/rocmlibs/installed_files.txt
+
+for directory in ./*/; do
+  pushd $directory > /dev/null
+  if [ -f "$install_manifest" ]; then
+    cat $install_manifest  >> $AOMP_REPOS/build/rocmlibs/installed_files.txt
+    echo "" >> $BUILD_DIR/build/rocmlibs/installed_files.txt
+  fi
+  popd > /dev/null
+done
 
 exit 0
