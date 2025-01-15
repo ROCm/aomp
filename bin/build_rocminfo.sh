@@ -66,16 +66,7 @@ if [ ! -f $LLVM_INSTALL_LOC/bin/clang ] ; then
    exit 1
 fi
 
-# Make sure we can update the install directory
-if [ "$1" == "install" ] ; then
-   $SUDO mkdir -p $INSTALL_RINFO
-   $SUDO touch $INSTALL_RINFO/testfile
-   if [ $? != 0 ] ; then
-      echo "ERROR: No update access to $INSTALL_RINFO"
-      exit 1
-   fi
-   $SUDO rm $INSTALL_RINFO/testfile
-fi
+check_writable_installdir "$1" "$INSTALL_RINFO"
 
 patchrepo $AOMP_REPOS/$AOMP_RINFO_REPO_NAME
 

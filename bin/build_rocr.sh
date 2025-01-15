@@ -36,16 +36,7 @@ if [ ! -d $AOMP_REPOS/$AOMP_ROCR_REPO_NAME ] ; then
    exit 1
 fi
 
-# Make sure we can update the install directory
-if [ "$1" == "install" ] ; then 
-   $SUDO mkdir -p $INSTALL_ROCM
-   $SUDO touch $INSTALL_ROCM/testfile
-   if [ $? != 0 ] ; then 
-      echo "ERROR: No update access to $INSTALL_ROCM"
-      exit 1
-   fi
-   $SUDO rm $INSTALL_ROCM/testfile
-fi
+check_writable_installdir "$1" "$INSTALL_ROCM"
 
 patchrepo $AOMP_REPOS/$AOMP_ROCR_REPO_NAME
 

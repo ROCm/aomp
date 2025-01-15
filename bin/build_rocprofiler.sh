@@ -36,16 +36,7 @@ if [ ! -d $AOMP_REPOS/$AOMP_PROF_REPO_NAME ] ; then
    exit 1
 fi
 
-# Make sure we can update the install directory
-if [ "$1" == "install" ] ; then 
-   $SUDO mkdir -p $INSTALL_ROCPROF
-   $SUDO touch $INSTALL_ROCPROF/testfile
-   if [ $? != 0 ] ; then 
-      echo "ERROR: No update access to $INSTALL_ROCPROF"
-      exit 1
-   fi
-   $SUDO rm $INSTALL_ROCPROF/testfile
-fi
+check_writable_installdir "$1" "$INSTALL_ROCPROF"
 
 patchrepo $AOMP_REPOS/$AOMP_PROF_REPO_NAME
 

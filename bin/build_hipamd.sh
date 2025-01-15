@@ -62,16 +62,7 @@ if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   exit
 fi
 
-# Make sure we can update the install directory
-if [ "$1" == "install" ] ; then
-   $SUDO mkdir -p $AOMP_INSTALL_DIR
-   $SUDO touch $AOMP_INSTALL_DIR/testfile
-   if [ $? != 0 ] ; then
-      echo "ERROR: No update access to $AOMP_INSTALL_DIR"
-      exit 1
-   fi
-   $SUDO rm $AOMP_INSTALL_DIR/testfile
-fi
+check_writable_installdir "$1" "$AOMP_INSTALL_DIR"
 
 patchrepo $AOMP_REPOS/hipamd
 patchrepo $AOMP_REPOS/clr

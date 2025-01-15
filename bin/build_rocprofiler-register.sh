@@ -35,16 +35,7 @@ if [ ! -d $AOMP_REPOS/$AOMP_PROF_REGISTER_REPO_NAME ] ; then
    exit 1
 fi
 
-# Make sure we can update the install directory
-if [ "$1" == "install" ] ; then 
-   $SUDO mkdir -p $INSTALL_ROCPROF_REGISTER
-   $SUDO touch $INSTALL_ROCPROF_REGISTER/testfile
-   if [ $? != 0 ] ; then 
-      echo "ERROR: No update access to $INSTALL_ROCPROF_REGISTER"
-      exit 1
-   fi
-   $SUDO rm $INSTALL_ROCPROF_REGISTER/testfile
-fi
+check_writable_installdir "$1" "$INSTALL_ROCPROF_REGISTER"
 
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then 
    echo " " 
