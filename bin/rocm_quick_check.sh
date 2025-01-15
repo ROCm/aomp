@@ -57,14 +57,14 @@ fi
 
 # Look for FileCheck on the system in various places.
 # Check local AOMP install first.
-SYSFILECHECK=`ls /usr/bin | grep -m1 -e "FileCheck"`
+SYSFILECHECK=$(ls /usr/bin | grep -m1 -e "FileCheck")
 if [ "$SYSFILECHECK" == "" ]; then
 	SYSFILECHECK="FileCheck"
 fi
-AOMP=`ls -d /opt/rocm-*/llvm | head -1`
+AOMP=$(ls -d /opt/rocm-*/llvm | head -1)
 echo $AOMP
-SYSLLVM=`ls /usr/lib | grep -m1 -e "llvm-[0-9]\+"`
-TESTPACKAGE_BINDIR=`find "$HOME/tmp/openmp-extras" -type f -name 'aomp_common_vars' | xargs dirname`
+SYSLLVM=$(ls /usr/lib | grep -m1 -e "llvm-[0-9]\+")
+TESTPACKAGE_BINDIR=$(find "$HOME/tmp/openmp-extras" -type f -name 'aomp_common_vars' | xargs dirname)
 
 if [ -e "$TESTPACKAGE_BINDIR/FileCheck" ]; then
   echo "$TESTPACKAGE_BINDIR/FileCheck OK"

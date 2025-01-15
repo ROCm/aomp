@@ -7,8 +7,8 @@
 #
 
 # --- Start standard header to set AOMP environment variables ----
-realpath=`realpath $0`
-thisdir=`dirname $realpath`
+realpath=$(realpath "$0")
+thisdir=$(dirname "$realpath")
 . $thisdir/aomp_common_vars
 # --- end standard header ----
 
@@ -26,7 +26,7 @@ function getmanifest(){
         # AMD internal repo file
         manifest_file=$thisdir/../manifests/aompi_${AOMP_VERSION}.xml
       else
-        abranch=`git branch | awk '/\*/ { print $2; }'`
+        abranch=$(git branch | awk '/\*/ { print $2; }')
         # Use release manifest if on release branch
         if [ "$abranch" == "aomp-${AOMP_VERSION_STRING}" ]; then
           manifest_file=$thisdir/../manifests/aomp_${AOMP_VERSION_STRING}.xml
@@ -54,9 +54,9 @@ function getreponame(){
   cat $manifest_file | grep project > $tmpfile
   while read line ; do
     found=0
-    for field in `echo $line` ; do
+    for field in $(echo $line) ; do
       if [ -z "${field##*path=*}" ]  ; then
-        path=$(eval echo `echo $field | cut -d= -f2 `)
+        path=$(eval echo $(echo $field | cut -d= -f2))
       fi
     done
   reponame=$path
@@ -81,7 +81,7 @@ getreponame
 REPO_NAMES=$repos
 ALL_NAMES="$REPO_NAMES Makefile build aomp"
 # Check for extra directories.  Note build is in the exclude list
-for dir_name in `ls $AOMP_REPOS` ; do
+for dir_name in $(ls $AOMP_REPOS) ; do
    found=0
    for repo_name in $ALL_NAMES ; do
       if [ "$repo_name" == "$dir_name" ] ; then

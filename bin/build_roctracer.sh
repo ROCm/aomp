@@ -5,8 +5,8 @@
 
 # --- Start standard header to set AOMP environment variables ----
 
-realpath=`realpath $0`
-thisdir=`dirname $realpath`
+realpath=$(realpath "$0")
+thisdir=$(dirname "$realpath")
 . $thisdir/aomp_common_vars
 # --- end standard header ----
 
@@ -55,10 +55,10 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    rm -rf $BUILD_AOMP/build/roctracer
    CMAKE_WITH_EXPERIMENTAL=""
    if [ -d "/usr/include/c++/5/experimental" ] ; then
-      _loc=`which gcc`
+      _loc=$(which gcc)
       if [ "$_loc" != "" ] ; then
-         _gccver=`$_loc --version | grep gcc | cut -d")" -f2 | cut -d"." -f1`
-	 if [ "$_gccver" == "5" ] ; then
+         _gccver=$($_loc --version | grep gcc | cut -d")" -f2 | cut -d"." -f1)
+         if [ "$_gccver" == "5" ] ; then
             CMAKE_WITH_EXPERIMENTAL="-DCMAKE_CXX_FLAGS=-I/usr/include/c++/5/experimental"
          fi
       fi
@@ -67,7 +67,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    export CMAKE_BUILD_TYPE=$BUILD_TYPE
    CMAKE_PREFIX_PATH="$ROCM_DIR/include/hsa;$ROCM_DIR/include;$ROCM_DIR/lib;$ROCM_DIR;$LLVM_INSTALL_LOC"
    export CMAKE_PREFIX_PATH
-   GFXSEMICOLONS=`echo $GFXLIST | tr ' ' ';' `
+   GFXSEMICOLONS=$(echo "$GFXLIST" | tr ' ' ';')
    export ROCM_PATH=$ROCM_DIR
    export HIPCC_COMPILE_FLAGS_APPEND="--rocm-path=$ROCM_PATH"
    mkdir -p $BUILD_AOMP/build/roctracer
@@ -99,7 +99,7 @@ if [ $? != 0 ] ; then
       exit 1
 fi
 
-doxygen=`which doxygen`
+doxygen=$(which doxygen)
 if [ ! -z $doxygen ] ; then
    # the roctracer CMakeLists.txt will prepare docs install if doxygen found.
    # However, the make doc has issues.  But if you dont make doc, the install
