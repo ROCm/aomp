@@ -55,16 +55,7 @@ fi
 
 REPO_DIR=$AOMP_REPOS/$AOMP_FLANG_REPO_NAME
 
-# Make sure we can update the install directory
-if [ "$1" == "install" ] ; then
-   $SUDO mkdir -p $INSTALL_FLANG
-   $SUDO touch $INSTALL_FLANG/testfile
-   if [ $? != 0 ] ; then
-      echo "ERROR: No update access to $INSTALL_FLANG"
-      exit 1
-   fi
-   $SUDO rm $INSTALL_FLANG/testfile
-fi
+check_writable_installdir "$1" "$INSTALL_FLANG"
 
 # Skip synchronization from git repos if nocmake or install are specified
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then

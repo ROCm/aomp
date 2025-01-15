@@ -36,16 +36,7 @@ if [ ! -d $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/amd/$AOMP_COMGR_REPO_NAME ] ; then
    exit 1
 fi
 
-# Make sure we can update the install directory
-if [ "$1" == "install" ] ; then 
-   $SUDO mkdir -p $INSTALL_COMGR
-   $SUDO touch $INSTALL_COMGR/testfile
-   if [ $? != 0 ] ; then 
-      echo "ERROR: No update access to $INSTALL_COMGR"
-      exit 1
-   fi
-   $SUDO rm $INSTALL_COMGR/testfile
-fi
+check_writable_installdir "$1" "$INSTALL_COMGR"
 
 osversion=$(cat /etc/os-release)
 #if [ "$AOMP_MAJOR_VERSION" != "12" ] && [[ "$osversion" =~ "Ubuntu 16" ]];  then
