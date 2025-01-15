@@ -60,16 +60,7 @@ if [ ! -f $AOMP/bin/clang ] ; then
   fi
 fi
 
-# Make sure we can update the install directory
-if [ "$1" == "install" ] ; then
-   $SUDO mkdir -p $HIPFORT_INSTALL_DIR
-   $SUDO touch $HIPFORT_INSTALL_DIR/testfile
-   if [ $? != 0 ] ; then
-      echo "ERROR: No update access to $HIPFORT_INSTALL_DIR"
-      exit 1
-   fi
-   $SUDO rm $HIPFORT_INSTALL_DIR/testfile
-fi
+check_writable_installdir "$1" "$HIPFORT_INSTALL_DIR"
 
 patchrepo $AOMP_REPOS/hipfort
 

@@ -150,26 +150,15 @@ if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   help_build_aomp
 fi
 
-if [ $AOMP_STANDALONE_BUILD == 1 ] ; then 
-   if [ ! -L $AOMP ] ; then 
-     if [ -d $AOMP ] ; then 
-        echo "ERROR: Directory $AOMP is a physical directory."
-        echo "       It must be a symbolic link or not exist"
-        exit 1
-     fi
+if [ "$AOMP_STANDALONE_BUILD" == 1 ] ; then 
+   if [ ! -L "$AOMP" ] && [ -d "$AOMP" ] ; then 
+      echo "ERROR: Directory $AOMP is a physical directory."
+      echo "       It must be a symbolic link or not exist"
+      exit 1
    fi
 fi
 
-# Make sure we can update the install directory
-if [ "$1" == "install" ] ; then
-   $SUDO mkdir -p $INSTALL_PROJECT
-   $SUDO touch $INSTALL_PROJECT/testfile
-   if [ $? != 0 ] ; then 
-      echo "ERROR: No update access to $INSTALL_PROJECT"
-      exit 1
-   fi
-   $SUDO rm $INSTALL_PROJECT/testfile
-fi
+check_writable_installdir "$1" "$INSTALL_PROJECT"
 
 # Fix the banner to print the AOMP version string. 
 if [ $AOMP_STANDALONE_BUILD == 1 ] ; then

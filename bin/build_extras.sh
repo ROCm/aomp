@@ -58,15 +58,7 @@ if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
 fi
 
 # Make sure we can update the install directory
-if [ "$1" == "install" ] ; then
-  $SUDO mkdir -p $INSTALL_EXTRAS
-  $SUDO touch $INSTALL_EXTRAS/testfile
-  if [ $? != 0 ] ; then
-  echo "ERROR: No update access to $INSTALL_EXTRAS"
-  exit 1
-fi
-  $SUDO rm $INSTALL_EXTRAS/testfile
-fi
+check_writable_installdir "$1" "$INSTALL_EXTRAS"
 
 if [ "$1" != "install" ] ; then
   if [ -d "$BUILD_DIR/build/extras" ] ; then

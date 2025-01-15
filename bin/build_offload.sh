@@ -40,16 +40,7 @@ if [ ! -d $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME ] ; then
    exit 1
 fi
 
-# Make sure we can update the install directory
-if [ "$1" == "install" ] ; then
-   $SUDO mkdir -p $LLVM_INSTALL_LOC
-   $SUDO touch $LLVM_INSTALL_LOC/testfile
-   if [ $? != 0 ] ; then
-      echo "ERROR: No update access to $LLVM_INSTALL_LOC"
-      exit 1
-   fi
-   $SUDO rm $LLVM_INSTALL_LOC/testfile
-fi
+check_writable_installdir "$1" "$LLVM_INSTALL_LOC"
 
 if [ "$AOMP_BUILD_CUDA" == 1 ] ; then
    if [ -f $CUDABIN/nvcc ] ; then

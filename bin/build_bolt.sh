@@ -65,16 +65,7 @@ if [ ! -f $AOMP/bin/clang ] ; then
    exit 1
 fi
 
-# Make sure we can update the install directory
-if [ "$1" == "install" ] ; then
-   $SUDO mkdir -p $BOLT_INSTALL_DIR
-   $SUDO touch $BOLT_INSTALL_DIR/testfile
-   if [ $? != 0 ] ; then
-      echo "ERROR: No update access to $BOLT_INSTALL_DIR"
-      exit 1
-   fi
-   $SUDO rm $BOLT_INSTALL_DIR/testfile
-fi
+check_writable_installdir "$1" "$BOLT_INSTALL_DIR"
 
 patchrepo $AOMP_REPOS/bolt
 

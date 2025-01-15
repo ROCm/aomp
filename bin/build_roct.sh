@@ -34,16 +34,7 @@ if [ ! -d $AOMP_REPOS/$AOMP_ROCT_REPO_NAME ] ; then
    exit 1
 fi
 
-# Make sure we can update the install directory
-if [ "$1" == "install" ] ; then 
-   $SUDO mkdir -p $INSTALL_ROCT
-   $SUDO touch $INSTALL_ROCT/testfile
-   if [ $? != 0 ] ; then 
-      echo "ERROR: No update access to $INSTALL_ROCT"
-      exit 1
-   fi
-   $SUDO rm $INSTALL_ROCT/testfile
-fi
+check_writable_installdir "$1" "$INSTALL_ROCT"
 
 patchrepo $AOMP_REPOS/$AOMP_ROCT_REPO_NAME
 

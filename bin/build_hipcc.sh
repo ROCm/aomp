@@ -60,16 +60,7 @@ if [ ! -f $LLVM_INSTALL_LOC/bin/clang ] ; then
    exit 1
 fi
 
-# Make sure we can update the install directory
-if [ "$1" == "install" ] ; then
-   $SUDO mkdir -p $INSTALL_HIPCC
-   $SUDO touch $INSTALL_HIPCC/testfile
-   if [ $? != 0 ] ; then
-      echo "ERROR: No update access to $INSTALL_HIPCC"
-      exit 1
-   fi
-   $SUDO rm $INSTALL_HIPCC/testfile
-fi
+check_writable_installdir "$1" "$INSTALL_HIPCC"
 
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 

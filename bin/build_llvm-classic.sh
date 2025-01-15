@@ -91,26 +91,15 @@ if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   help_build_aomp
 fi
 
-if [ $AOMP_STANDALONE_BUILD == 1 ] ; then
-   if [ ! -L $AOMP ] ; then
-     if [ -d $AOMP ] ; then
-        echo "ERROR: Directory $AOMP is a physical directory."
-        echo "       It must be a symbolic link or not exist"
-        exit 1
-     fi
+if [ "$AOMP_STANDALONE_BUILD" == 1 ] ; then
+   if [ ! -L "$AOMP" ] && [ -d "$AOMP" ] ; then
+      echo "ERROR: Directory $AOMP is a physical directory."
+      echo "       It must be a symbolic link or not exist"
+      exit 1
    fi
 fi
 
-# Make sure we can update the install directory
-if [ "$1" == "install" ] ; then
-   $SUDO mkdir -p $AOMP_INSTALL_DIR
-   $SUDO touch $AOMP_INSTALL_DIR/testfile
-   if [ $? != 0 ] ; then
-      echo "ERROR: No update access to $AOMP_INSTALL_DIR"
-      exit 1
-   fi
-   $SUDO rm $AOMP_INSTALL_DIR/testfile
-fi
+check_writable_installdir "$1" "$AOMP_INSTALL_DIR"
 
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    echo

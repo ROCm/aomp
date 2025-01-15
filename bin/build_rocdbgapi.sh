@@ -34,16 +34,7 @@ if [ ! -d $AOMP_REPOS/$AOMP_DBGAPI_REPO_NAME ] ; then
    exit 1
 fi
 
-# Make sure we can update the install directory
-if [ "$1" == "install" ] ; then 
-   $SUDO mkdir -p $INSTALL_ROCDBGAPI
-   $SUDO touch $INSTALL_ROCDBGAPI/testfile
-   if [ $? != 0 ] ; then 
-      echo "ERROR: No update access to $INSTALL_ROCDBGAPI"
-      exit 1
-   fi
-   $SUDO rm $INSTALL_ROCDBGAPI/testfile
-fi
+check_writable_installdir "$1" "$INSTALL_ROCDBGAPI"
 
 API_NAME=rocm-dbgapi
 PROJ_NAME=$API_NAME
