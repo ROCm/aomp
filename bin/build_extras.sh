@@ -30,8 +30,8 @@
 # SOFTWARE.
 
 # --- Start standard header to set AOMP environment variables ----
-realpath=`realpath $0`
-thisdir=`dirname $realpath`
+realpath=$(realpath "$0")
+thisdir=$(dirname "$realpath")
 . $thisdir/aomp_common_vars
 # --- end standard header ----
 
@@ -76,9 +76,9 @@ if [ "$1" != "install" ] ; then
   cd $BUILD_DIR/build/extras
 
   if [ $AOMP_STANDALONE_BUILD == 0 ] ; then
-    SED_INSTALL_DIR=`echo /opt/rocm/llvm | sed -e 's/\//\\\\\//g' `
+    SED_INSTALL_DIR=$(echo /opt/rocm/llvm | sed -e 's/\//\\\\\//g')
   else
-    SED_INSTALL_DIR=`echo $INSTALL_EXTRAS | sed -e 's/\//\\\\\//g' `
+    SED_INSTALL_DIR=$(echo $INSTALL_EXTRAS | sed -e 's/\//\\\\\//g')
   fi
 
   export SED_INSTALL_DIR

@@ -4,8 +4,8 @@
 #
 
 # --- Start standard header to set AOMP environment variables ----
-realpath=`realpath $0`
-thisdir=`dirname $realpath`
+realpath=$(realpath "$0")
+thisdir=$(dirname "$realpath")
 . $thisdir/aomp_common_vars
 # --- end standard header ----
 
@@ -51,10 +51,10 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    rm -rf $BUILD_AOMP/build/rocdbgapi
    _cxx_flags="-DCMAKE_CXX_FLAGS=-I$AOMP_INSTALL_DIR/include/amd_comgr"
    if [ -d "/usr/include/c++/5/experimental" ] ; then
-      _loc=`which gcc`
+      _loc=$(which gcc)
       if [ "$_loc" != "" ] ; then
-         _gccver=`$_loc --version | grep gcc | cut -d")" -f2 | cut -d"." -f1`
-	 if [ "$_gccver" == "5" ] ; then
+         _gccver=$($_loc --version | grep gcc | cut -d")" -f2 | cut -d"." -f1)
+         if [ "$_gccver" == "5" ] ; then
             _cxx_flags+="\;-I/usr/include/c++/5/experimental"
          fi
       fi
@@ -95,7 +95,7 @@ if [ $? != 0 ] ; then
       exit 1
 fi
 
-doxygen=`which doxygen`
+doxygen=$(which doxygen)
 if [ ! -z $doxygen ] ; then
    # the ROCdbgapi CMakeLists.txt will prepare docs install if doxygen found.
    # However, the make doc has issues.  But if you dont make doc, the install

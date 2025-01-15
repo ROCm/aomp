@@ -11,8 +11,8 @@
 #     already set. If not, it assigns it the value following the :-
 
 # --- Start standard header to set AOMP environment variables ----
-realpath=`realpath $0`
-thisdir=`dirname $realpath`
+realpath=$(realpath "$0")
+thisdir=$(dirname "$realpath")
 
 # Individual scripts will determine what generator to use
 unset CMAKE_GENERATOR
@@ -62,7 +62,7 @@ fi
 # all the test repositories in a different directory.
 AOMP_REPOS_TEST=${AOMP_REPOS_TEST:-$HOME/git/aomp-test}
 
-_ccache_bin=`which ccache`
+_ccache_bin=$(which ccache)
 if [ "$_ccache_bin" == "" ] ; then
 AOMP_USE_CCACHE=${AOMP_USE_CCACHE:-0}
 else
@@ -71,7 +71,7 @@ fi
 if [ "$AOMP_USE_CCACHE" == 0 ] ; then
   AOMP_CCACHE_OPTS=""
 else
-  _ccache_bin=`which ccache`
+  _ccache_bin=$(which ccache)
   if [ "$_ccache_bin" == "" ] ; then
     echo "ERROR: AOMP_USE_CCACHE is $AOMP_USE_CCACHE but no ccache bin found in PATH"
     echo "       Either fix path,  install ccache, or set AOMP_USE_CCACHE=0"
@@ -137,7 +137,7 @@ CUDABIN=${CUDABIN:-$CUDA/bin}
 # prerequisite supplemental component cmake.
 AOMP_CMAKE=${AOMP_CMAKE:-$AOMP_SUPP/cmake/bin/cmake}
 if [ ! -f $AOMP_CMAKE ] ; then
-  AOMP_CMAKE=`which cmake`
+  AOMP_CMAKE=$(which cmake)
   if [ "$AOMP_CMAKE" == "" ] ; then
     echo "ERROR: finding cmake in aomp_common_vars."
     echo "       Missing prerequisite supplemental component cmake."
@@ -160,7 +160,7 @@ AOMP_USE_NINJA=${AOMP_USE_NINJA:-0}
 if [ "$AOMP_USE_NINJA" == 0 ] ; then
   AOMP_NINJA_BIN="make"
 else
-  AOMP_NINJA_BIN=`which ninja`
+  AOMP_NINJA_BIN=$(which ninja)
   if [ AOMP_NINJA_BIN == "" ] ; then
     echo "ERROR: AOMP_USE_NINJA is $AOMP_USE_NINJA but no ninja bin found in PATH"
     echo "       Either install ninja in PATH or set AOMP_USE_NINJA=0"
@@ -168,13 +168,13 @@ else
     exit 1
   fi
 fi
-AOMP_PROC=`uname -m`
+AOMP_PROC=$(uname -m)
 if [ "$AOMP_PROC" == "unknown" ] ; then
-   AOMP_PROC=`uname -a | awk '{print $(NF-1)}'`
+   AOMP_PROC=$(uname -a | awk '{print $(NF-1)}')
 fi
 
-GCC=`which gcc`
-GCCXX=`which g++`
+GCC=$(which gcc)
+GCCXX=$(which g++)
 AOMP_CC_COMPILER=${AOMP_CC_COMPILER:-$GCC}
 AOMP_CXX_COMPILER=${AOMP_CXX_COMPILER:-$GCCXX}
 
@@ -330,8 +330,8 @@ done
 
 # Calculate the number of threads to use for make
 COMP_THREADS=1
-if [ ! -z `which "getconf"` ]; then
-   COMP_THREADS=$(`which "getconf"` _NPROCESSORS_ONLN)
+if [ ! -z $(which getconf) ]; then
+   COMP_THREADS=$($(which getconf) _NPROCESSORS_ONLN)
    if [ "$AOMP_PROC" == "ppc64le" ] ; then
       COMP_THREADS=$(( COMP_THREADS / 6))
    fi
@@ -452,7 +452,7 @@ AOMP_F18_REPO_NAME=${AOMP_F18_REPO_NAME:-f18}
 
 if [ -d $AOMP_REPOS/$AOMP_TRACE_REPO_NAME ] ; then
    pushd $AOMP_REPOS/$AOMP_TRACE_REPO_NAME > /dev/null
-   roctracer_branch=`git branch --list | grep "\*" | cut -d" " -f2`
+   roctracer_branch=$(git branch --list | grep "\*" | cut -d" " -f2)
    if [ "$roctracer_branch" == "rocm-4.0.x" ] ; then
       AOMP_PATCH_CONTROL_FILE="${AOMP_REPOS}/${AOMP_REPO_NAME}/bin/patches/patch-control-file_4.0.txt"
    fi
@@ -652,7 +652,7 @@ function setaompgpu (){
     elif [ -a $AOMP/bin/amdgpu-arch ]; then
       detected_gpu=$($AOMP/bin/amdgpu-arch)
       detected_gpu=$(echo $detected_gpu | awk '{print $1,$5}')
-      detected_gpu=`echo $detected_gpu | cut -d" " -f1` # pick first found
+      detected_gpu=$(echo "$detected_gpu" | cut -d" " -f1) # pick first found
     elif [ -e $AOMP/../bin/mygpu ]; then
       detected_gpu=$($AOMP/../bin/mygpu)
     else

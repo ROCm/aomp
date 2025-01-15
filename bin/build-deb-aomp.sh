@@ -10,13 +10,13 @@
 #
 
 # --- Start standard header to set AOMP environment variables ----
-realpath=`realpath $0`
-thisdir=`dirname $realpath`
+realpath=$(realpath "$0")
+thisdir=$(dirname "$realpath")
 . $thisdir/aomp_common_vars
 # --- end standard header ----
 
 . /etc/lsb-release
-RELSTRING=`echo $DISTRIB_ID$DISTRIB_RELEASE | tr -d "."`
+RELSTRING=$(echo $DISTRIB_ID$DISTRIB_RELEASE | tr -d ".")
 echo RELSTRING=$RELSTRING
 
 if [ "$1" == aomp-hip-libraries ]; then
@@ -35,7 +35,7 @@ DEBFULLNAME="Greg Rodgers"
 DEBEMAIL="Gregory.Rodgers@amd.com"
 export DEBFULLNAME DEBEMAIL
 
-DEBARCH=`uname -m`
+DEBARCH=$(uname -m)
 if [ "$DEBARCH" == "x86_64" ] ; then 
    DEBARCH="amd64"
 fi

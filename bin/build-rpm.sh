@@ -4,8 +4,8 @@
 #
 
 # --- Start standard header to set AOMP environment variables ----
-realpath=`realpath $0`
-thisdir=`dirname $realpath`
+realpath=$(realpath "$0")
+thisdir=$(dirname "$realpath")
 . $thisdir/aomp_common_vars
 # --- end standard header ----
 
@@ -42,7 +42,7 @@ fi
 echo "rpmname: $rpmname"
 
 # Ensure the rpmbuild tool from rpm-build package is available
-rpmbuild_loc=`which rpmbuild 2>/dev/null`
+rpmbuild_loc=$(which rpmbuild 2>/dev/null)
 if [ -z "$rpmbuild_loc" ];then
    echo
    echo "ERROR:  You need to install rpm-build for $0"

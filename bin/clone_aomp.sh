@@ -5,14 +5,14 @@
 #
 
 # --- Start standard header to set AOMP environment variables ----
-realpath=`realpath $0`
-thisdir=`dirname $realpath`
+realpath=$(realpath "$0")
+thisdir=$(dirname "$realpath")
 export AOMP_USE_CCACHE=${AOMP_USE_CCACHE:-0}
 . $thisdir/aomp_common_vars
 # --- end standard header ----
 
 thischk="$AOMP_REPOS/$AOMP_REPO_NAME/bin"
-thischk=`realpath $thischk`
+thischk=$(realpath "$thischk")
 if [ "$thisdir" != "$thischk" ] ; then
    echo
    echo "ERROR:  This clone_aomp.sh script is found in directory $thisdir "
@@ -29,8 +29,8 @@ fi
 function list_repo(){
 repodirname=$AOMP_REPOS/$reponame
 cd $repodirname
-abranch=`git branch | awk '/\*/ { print $2; }'`
-echo `git config --get remote.origin.url` " desired: " $COBRANCH " actual: " $abranch "  " `git log --numstat --format="%h" |head -1`
+abranch=$(git branch | awk '/\*/ { print $2; }')
+echo "$(git config --get remote.origin.url)" " desired: " "$COBRANCH" " actual: " "$abranch" "  " "$(git log --numstat --format="%h" |head -1)"
 }
 
 function clone_or_pull(){
@@ -99,21 +99,21 @@ fi
 }
 
 function list_repo_from_manifest(){
-   logcommit=`git log -1 | grep "^commit" | cut -d" " -f2 | xargs`
+   logcommit=$(git log -1 | grep "^commit" | cut -d" " -f2 | xargs)
    thiscommit=${logcommit:0:12}
-   thisdate=`git log -1 --pretty=fuller | grep "^CommitDate:" | cut -d":" -f2- | xargs | cut -d" " -f2-`
+   thisdate=$(git log -1 --pretty=fuller | grep "^CommitDate:" | cut -d":" -f2- | xargs | cut -d" " -f2-)
    get_monthnumber $thisdate
-   thisday=`echo $thisdate | cut -d" " -f2`
-   thisyear=`echo $thisdate | cut -d" " -f4`
+   thisday=$(echo $thisdate | cut -d" " -f2)
+   thisyear=$(echo $thisdate | cut -d" " -f4)
    printf -v thisdatevar "%4u-%2s-%02u" $thisyear $monthnumber $thisday
-   author=`git log -1 --pretty=fuller | grep "^Commit:" | cut -d":" -f2- | cut -d"<" -f1 | xargs`
-   forauthor=`git log -1 --pretty=fuller | grep "^Author:" | cut -d":" -f2- | cut -d"<" -f1 | xargs`
+   author=$(git log -1 --pretty=fuller | grep "^Commit:" | cut -d":" -f2- | cut -d"<" -f1 | xargs)
+   forauthor=$(git log -1 --pretty=fuller | grep "^Author:" | cut -d":" -f2- | cut -d"<" -f1 | xargs)
    repodirname=$REPO_PATH
-   HASH=`git log -1 --numstat --format="%h" | head -1`
+   HASH=$(git log -1 --numstat --format="%h" | head -1)
    is_hash=0
    branch_name=${REPO_RREV}
    # get the actual branch
-   actual_branch=`git branch | awk '/\*/ { print $2; }'`
+   actual_branch=$(git branch | awk '/\*/ { print $2; }')
    WARNWORD=""
    if [ "$actual_branch" == "(no" ] || [ "$actual_branch" == "(HEAD" ] || [ "$actual_branch" == "(detached" ] ; then
       is_hash=1
@@ -121,7 +121,7 @@ function list_repo_from_manifest(){
       git describe --exact-match --tags > /dev/null 2>&1
       # Repo has a tag checked out
       if [ $? -eq 0 ]; then
-        head_tags=`git tag --points-at HEAD`
+        head_tags=$(git tag --points-at HEAD)
         # If tag is found in list of tags at HEAD, then it is correct.
         if [[ "$head_tags" =~ "$branch_name" ]]; then
           WARNWORD="tag"
@@ -131,10 +131,10 @@ function list_repo_from_manifest(){
           thiscommit=$HASH
         fi
       else # This is a hash not a tag
-        actual_hash=`git branch | awk '/\*/ { print $5; }' | cut -d")" -f1`
+        actual_hash=$(git branch | awk '/\*/ { print $5; }' | cut -d")" -f1)
         # RHEL 7 'git branch' returns (detached from 123456), try to get hash again.
         if [ "$actual_hash" == "" ] ; then
-          actual_hash=`git branch | awk '/\*/ { print $4; }' | cut -d")" -f1`
+          actual_hash=$(git branch | awk '/\*/ { print $4; }' | cut -d")" -f1)
         fi
         revision_regex="^$actual_hash"
         if [[ ! "$COSHAKEY" =~ $revision_regex ]] ; then
@@ -149,29 +149,29 @@ function list_repo_from_manifest(){
    else
       printbranch=${REPO_RREV##*release/}
    fi
-   url=`grep url .git/config | grep -v google | grep -v fmtlib | cut -d":" -f2- | cut -d"/" -f3-`
-   project_name=`echo $url | cut -d"/" -f2- | tr '[:upper:]' '[:lower:]'`
+   url=$(grep url .git/config | grep -v google | grep -v fmtlib | cut -d":" -f2- | cut -d"/" -f3-)
+   project_name=$(echo $url | cut -d"/" -f2- | tr '[:upper:]' '[:lower:]')
    REPO_PROJECT=${REPO_PROJECT%*\.git}
    if [[ "$REPO_REMOTE" == "githubemu-lightning" ]] ; then
       REPO_REMOTE="emu"
    fi
    #website=`echo $url | cut -d"/" -f1`
    if [[ "$REPO_REMOTE" == "roc" ]] ; then
-        manifest_project=`echo ROCm/$REPO_PROJECT | tr '[:upper:]' '[:lower:]'`
+        manifest_project=$(echo ROCm/$REPO_PROJECT | tr '[:upper:]' '[:lower:]')
    elif [[ "$REPO_REMOTE" == "emu" ]] ; then
-        url=`grep url .git/config | cut -d":" -f2- | cut -d"/" -f1- | cut -d"." -f1`
-        project_name=`echo $url | cut -d"/" -f2- | tr '[:upper:]' '[:lower:]'`
-        manifest_project=`echo $REPO_PROJECT | tr '[:upper:]' '[:lower:]' | cut -d"." -f1`
+        url=$(grep url .git/config | cut -d":" -f2- | cut -d"/" -f1- | cut -d"." -f1)
+        project_name=$(echo $url | cut -d"/" -f2- | tr '[:upper:]' '[:lower:]')
+        manifest_project=$(echo $REPO_PROJECT | tr '[:upper:]' '[:lower:]' | cut -d"." -f1)
    elif [[ "$REPO_REMOTE" == "roctools" ]] ; then
-        manifest_project=`echo ROCm/$REPO_PROJECT | tr '[:upper:]' '[:lower:]'`
+        manifest_project=$(echo "ROCm/$REPO_PROJECT" | tr '[:upper:]' '[:lower:]')
    elif [[ "$REPO_REMOTE" == "rocsw" ]] ; then
-        manifest_project=`echo ROCm/$REPO_PROJECT | tr '[:upper:]' '[:lower:]'`
+        manifest_project=$(echo "ROCm/$REPO_PROJECT" | tr '[:upper:]' '[:lower:]')
    elif [[ "$REPO_REMOTE" == "gerritgit" ]] ; then
-        manifest_project=`echo $REPO_PROJECT | tr '[:upper:]' '[:lower:]'`
+        manifest_project=$(echo "$REPO_PROJECT" | tr '[:upper:]' '[:lower:]')
    elif [[ "$REPO_REMOTE" == "hwloc" ]] ; then
-        manifest_project=`echo open-mpi/$REPO_PROJECT | tr '[:upper:]' '[:lower:]'`
+        manifest_project=$(echo "open-mpi/$REPO_PROJECT" | tr '[:upper:]' '[:lower:]')
    else
-        manifest_project=`echo $REPO_REMOTE/$REPO_PROJECT | tr '[:upper:]' '[:lower:]'`
+        manifest_project=$(echo "$REPO_REMOTE/$REPO_PROJECT" | tr '[:upper:]' '[:lower:]')
    fi
    #tr '[:upper:]' '[:lower:]'`
    if [[ "$manifest_project" != "$project_name" ]] ; then
@@ -214,7 +214,7 @@ if [[ "$AOMP_VERSION" == "13.1" ]] || [[ $AOMP_MAJOR_VERSION -gt 13 ]] ; then
          manifest_file=$thisdir/../manifests/aompi_${AOMP_VERSION}.xml
       fi
    else
-      abranch=`git branch | awk '/\*/ { print $2; }'`
+      abranch=$(git branch | awk '/\*/ { print $2; }')
       # Use release manifest if on release branch
       if [ "$abranch" == "aomp-${AOMP_VERSION_STRING}" ]; then
          manifest_file=$thisdir/../manifests/aomp_${AOMP_VERSION_STRING}.xml
@@ -242,28 +242,28 @@ if [[ "$AOMP_VERSION" == "13.1" ]] || [[ $AOMP_MAJOR_VERSION -gt 13 ]] ; then
    fi
    while read line ; do 
       line_is_good=1
-      remote=`echo $line | grep remote | cut -d"=" -f2`
+      remote=$(echo "$line" | grep remote | cut -d"=" -f2)
       sha_key_used=0
       COSHAKEY=""
-      for field in `echo $line` ; do 
+      for field in $(echo $line); do
          if [ -z "${field##*remote=*}" ]  ; then
            # strip off = and double quotes
-           remote=$(eval echo `echo $field | cut -d= -f2 `)
+           remote=$(eval echo $(echo $field | cut -d= -f2))
          fi
          if [ -z "${field##*name=*}" ]  ; then
-           name=$(eval echo `echo $field | cut -d= -f2 `)
+           name=$(eval echo $(echo $field | cut -d= -f2))
          fi
          if [ -z "${field##*path=*}" ]  ; then
-           path=$(eval echo `echo $field | cut -d= -f2 `)
+           path=$(eval echo $(echo $field | cut -d= -f2))
          fi
          if [ -z "${field##*upstream=*}" ]  ; then
-           COBRANCH=$(eval echo `echo $field | cut -d= -f2 `)
+           COBRANCH=$(eval echo $(echo $field | cut -d= -f2))
            sha_key_used=1
          fi
          if [ -z "${field##*revision=*}" ] && [ "$sha_key_used" == 1 ]  ; then
-           COSHAKEY=$(eval echo `echo $field | cut -d= -f2 `)
+           COSHAKEY=$(eval echo $(echo $field | cut -d= -f2))
          elif [ -z "${field##*revision=*}" ]; then
-           COBRANCH=$(eval echo `echo $field | cut -d= -f2 `)
+           COBRANCH=$(eval echo $(echo $field | cut -d= -f2))
          fi
       done
       reponame=$path

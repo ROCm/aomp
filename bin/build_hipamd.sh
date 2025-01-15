@@ -28,8 +28,8 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 # --- Start standard header to set AOMP environment variables ----
-realpath=`realpath $0`
-thisdir=`dirname $realpath`
+realpath=$(realpath "$0")
+thisdir=$(dirname "$realpath")
 . $thisdir/aomp_common_vars
 # --- end standard header ----
 
@@ -98,7 +98,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
      $LLVM_INSTALL_LOC/bin/amdgpu-arch >/dev/null
      if [ $? != 0 ] ; then
 	if [ ! -z "$GFXLIST" ] ; then
-	   amdgpu=`echo $GFXLIST | cut -d" " -f1`
+           amdgpu=$(echo $GFXLIST | cut -d" " -f1)
         else
            amdgpu=gfx90a
 	fi
@@ -295,7 +295,7 @@ if [ "$1" == "install" ] ; then
       # The hip perl scripts have /opt/rocm hardcoded, so fix them after then are installed
    # but only if not installing to rocm.
    if [ $AOMP_INSTALL_DIR != "/opt/rocm/llvm" ] ; then
-      SED_INSTALL_DIR=`echo $AOMP_INSTALL_DIR | sed -e 's/\//\\\\\//g' `
+      SED_INSTALL_DIR=$(echo $AOMP_INSTALL_DIR | sed -e 's/\//\\\\\//g')
       installed_file_to_edit=$AOMP_INSTALL_DIR/bin/hipcc
       $(edit_installed_hip_file)
       installed_file_to_edit=$AOMP_INSTALL_DIR/bin/hipvars.pm

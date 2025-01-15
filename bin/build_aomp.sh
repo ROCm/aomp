@@ -4,8 +4,8 @@
 #
 
 # --- Start standard header to set AOMP environment variables ----
-realpath=`realpath $0`
-thisdir=`dirname $realpath`
+realpath=$(realpath "$0")
+thisdir=$(dirname "$realpath")
 . $thisdir/aomp_common_vars
 # --- end standard header ----
 
@@ -13,10 +13,10 @@ function build_aomp_component() {
    osversion=$(cat /etc/os-release | grep -e ^VERSION_ID)
 
    if [[ $osversion =~ '"7.' ]]; then
-     echo "OS version 7 found `cat /etc/os-release`"
+     echo "OS version 7 found $(cat /etc/os-release)"
      [ -f /opt/rh/devtoolset-7/enable ] &&  . /opt/rh/devtoolset-7/enable
    elif [[ $osversion =~ '"8' ]]; then
-     echo "OS version 8 found `cat /etc/os-release`"
+     echo "OS version 8 found $(cat /etc/os-release)"
      echo
      echo "Get updated gcc 8: export PATH=/usr/bin:\$PATH"
      export PATH=/usr/bin:$PATH
@@ -26,8 +26,8 @@ function build_aomp_component() {
    _stats_dir=$AOMP_INSTALL_DIR/.aomp_component_stats
    mkdir -p $_stats_dir
    touch $_stats_dir/.${COMPONENT}.ts
-   start_date=`date`
-   start_secs=`date +%s`
+   start_date=$(date)
+   start_secs=$(date +%s)
 
    $AOMP_REPOS/$AOMP_REPO_NAME/bin/build_$COMPONENT.sh "$@"
    rc=$?
@@ -43,16 +43,16 @@ function build_aomp_component() {
            exit $rc
        fi
        # gather stats on artifacts installed with this component build
-       end_date=`date`
-       end_secs=`date +%s`
+       end_date=$(date)
+       end_secs=$(date +%s)
        find $AOMP_INSTALL_DIR -type f -newercc $_stats_dir/.${COMPONENT}.ts | xargs wc -c >$_stats_dir/$COMPONENT.files
        echo "COMPONENT $COMPONENT START : $start_date " >$_stats_dir/$COMPONENT.stats
        echo "COMPONENT $COMPONENT END   : $end_date" >>$_stats_dir/$COMPONENT.stats
        echo "COMPONENT $COMPONENT TIME  : $(( $end_secs - $start_secs )) seconds" >> $_stats_dir/$COMPONENT.stats
-       file_count=`wc -l $_stats_dir/$COMPONENT.files | cut -d" " -f1`
+       file_count=$(wc -l "$_stats_dir/$COMPONENT.files" | cut -d" " -f1)
        file_count=$(( file_count -1 ))
        echo "COMPONENT $COMPONENT FILES : $file_count " >> $_stats_dir/$COMPONENT.stats
-       new_bytes=`grep " total" $_stats_dir/$COMPONENT.files | cut -d" " -f1 | awk '{sum += $1} END {print sum}'`
+       new_bytes=$(grep " total" "$_stats_dir/$COMPONENT.files" | cut -d" " -f1 | awk '{sum += $1} END {print sum}')
        k_bytes=$(( new_bytes / 1024 ))
        m_bytes=$(( k_bytes / 1024 ))
        echo "COMPONENT $COMPONENT SIZE  : $k_bytes KB  $m_bytes MB " >> $_stats_dir/$COMPONENT.stats
@@ -104,7 +104,7 @@ components="$AOMP_COMPONENT_LIST"
 
 if [ "$AOMP_STANDALONE_BUILD" == 1 ] ; then
   components="$components rocprofiler-register rocr openmp offload extras comgr rocminfo rocm_smi_lib amdsmi"
-  _hostarch=`uname -m`
+  _hostarch=$(uname -m)
   # The rocclr architecture is very x86 centric so it will not build on ppc64. Without
   # rocclr, we have no HIP or OpenCL for ppc64 :-( However, rocr works for ppc64 so AOMP works.
   if [ "$_hostarch" == "x86_64" ] ; then
@@ -120,7 +120,7 @@ if [ "$AOMP_STANDALONE_BUILD" == 1 ] ; then
   fi
 
   # ROCdbgapi requires atleast g++ 7
-  GPPVERS=`g++ --version | grep g++ | cut -d")" -f2 | cut -d"." -f1`
+  GPPVERS=$(g++ --version | grep g++ | cut -d")" -f2 | cut -d"." -f1)
   if [ "$AOMP_BUILD_DEBUG" == "1" ] && [ "$GPPVERS" -ge 7 ]; then
     components="$components rocdbgapi rocgdb"
   fi
@@ -203,7 +203,7 @@ echo
 
 if [ "$AOMP_STANDALONE_BUILD" -eq 0 ]; then
   cd $BUILD_DIR/build
-  classic_version=`ls flang-classic`
+  classic_version=$(ls flang-classic)
   classic_install_manifest=$classic_version/install_manifest.txt
   if [ "$SANITIZER" == 1 ]; then
     install_manifest_orig=asan/install_manifest.txt

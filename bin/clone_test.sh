@@ -5,8 +5,8 @@
 #
 
 # --- Start standard header to set AOMP environment variables ----
-realpath=`realpath $0`
-thisdir=`dirname $realpath`
+realpath=$(realpath "$0")
+thisdir=$(dirname "$realpath")
 export AOMP_USE_CCACHE=${AOMP_USE_CCACHE:-0}
 
 . $thisdir/aomp_common_vars
@@ -15,25 +15,25 @@ export AOMP_USE_CCACHE=${AOMP_USE_CCACHE:-0}
 EPSDB_LIST=${EPSDB_LIST:-"openmpapps sollve_vv Nekbone goulash fortran-babelstream babelstream OvO OpenMP_VV"}
 
 function list_repo_from_manifest(){
-   logcommit=`git log -1 | grep "^commit" | cut -d" " -f2 | xargs`
+   logcommit=$(git log -1 | grep "^commit" | cut -d" " -f2 | xargs)
    thiscommit=${logcommit:0:12}
-   thisdate=`git log -1 --pretty=fuller | grep "^CommitDate:" | cut -d":" -f2- | xargs | cut -d" " -f2-`
+   thisdate=$(git log -1 --pretty=fuller | grep "^CommitDate:" | cut -d":" -f2- | xargs | cut -d" " -f2-)
    get_monthnumber $thisdate
-   thisday=`echo $thisdate | cut -d" " -f2`
-   thisyear=`echo $thisdate | cut -d" " -f4`
+   thisday=$(echo $thisdate | cut -d" " -f2)
+   thisyear=$(echo $thisdate | cut -d" " -f4)
    printf -v thisdatevar "%4u-%2s-%02u" $thisyear $monthnumber $thisday
-   author=`git log -1 --pretty=fuller | grep "^Commit:" | cut -d":" -f2- | cut -d"<" -f1 | xargs`
-   forauthor=`git log -1 --pretty=fuller | grep "^Author:" | cut -d":" -f2- | cut -d"<" -f1 | xargs`
+   author=$(git log -1 --pretty=fuller | grep "^Commit:" | cut -d":" -f2- | cut -d"<" -f1 | xargs)
+   forauthor=$(git log -1 --pretty=fuller | grep "^Author:" | cut -d":" -f2- | cut -d"<" -f1 | xargs)
    repodirname=$REPO_PATH
-   HASH=`git log -1 --numstat --format="%h" | head -1`
+   HASH=$(git log -1 --numstat --format="%h" | head -1)
    is_hash=0
    branch_name=${REPO_RREV}
    # get the actual branch
-   actual_branch=`git branch | awk '/\*/ { print $2; }'`
+   actual_branch=$(git branch | awk '/\*/ { print $2; }')
    WARNWORD=""
    if [ "$actual_branch" == "(no" ] || [ "$actual_branch" == "(HEAD" ] ; then
       is_hash=1
-      actual_hash=`git branch | awk '/\*/ { print $5; }' | cut -d")" -f1`
+      actual_hash=$(git branch | awk '/\*/ { print $5; }' | cut -d")" -f1)
       if [ "$actual_hash" == "$branch_name" ] ; then
          WARNWORD="tagged"
 	 thiscommit=$HASH
@@ -53,25 +53,25 @@ function list_repo_from_manifest(){
    fi
 if [[ -f .git/config ]] ; then 
 
-   url=`grep -m1 url .git/config | cut -d":" -f2- | cut -d"/" -f3-`
-   project_name=`echo $url | cut -d"/" -f2- | tr '[:upper:]' '[:lower:]'`
+   url=$(grep -m1 url .git/config | cut -d":" -f2- | cut -d"/" -f3-)
+   project_name=$(echo $url | cut -d"/" -f2- | tr '[:upper:]' '[:lower:]')
    #website=`echo $url | cut -d"/" -f1`
    if [[ "$REPO_REMOTE" == "roc" ]] ; then
-        manifest_project=`echo radeonopencompute/$REPO_PROJECT | tr '[:upper:]' '[:lower:]'`
+        manifest_project=$(echo radeonopencompute/$REPO_PROJECT | tr '[:upper:]' '[:lower:]')
    elif [[ "$REPO_REMOTE" == "roctools" ]] ; then
-        manifest_project=`echo ROCM-Developer-Tools/$REPO_PROJECT | tr '[:upper:]' '[:lower:]'`
+        manifest_project=$(echo ROCM-Developer-Tools/$REPO_PROJECT | tr '[:upper:]' '[:lower:]')
    elif [[ "$REPO_REMOTE" == "amdlibs" ]] ; then
-        manifest_project=`echo AMDComputeLibraries/$REPO_PROJECT | tr '[:upper:]' '[:lower:]'`
+        manifest_project=$(echo AMDComputeLibraries/$REPO_PROJECT | tr '[:upper:]' '[:lower:]')
    elif [[ "$REPO_REMOTE" == "omphost" ]] ; then
-        manifest_project=`echo doru1004/$REPO_PROJECT | tr '[:upper:]' '[:lower:]'`
+        manifest_project=$(echo doru1004/$REPO_PROJECT | tr '[:upper:]' '[:lower:]')
    elif [[ "$REPO_REMOTE" == "julia" ]] ; then
-        manifest_project=`echo JuliaMath/$REPO_PROJECT | tr '[:upper:]' '[:lower:]'`
+        manifest_project=$(echo JuliaMath/$REPO_PROJECT | tr '[:upper:]' '[:lower:]')
    elif [[ "$REPO_REMOTE" == "tapple" ]] ; then
-        manifest_project=`echo TApplencourt/$REPO_PROJECT | tr '[:upper:]' '[:lower:]'`
+        manifest_project=$(echo TApplencourt/$REPO_PROJECT | tr '[:upper:]' '[:lower:]')
    elif [[ "$REPO_REMOTE" == "gerritgit" ]] ; then
-        manifest_project=`echo $REPO_PROJECT | tr '[:upper:]' '[:lower:]'`
+        manifest_project=$(echo $REPO_PROJECT | tr '[:upper:]' '[:lower:]')
    else
-        manifest_project=`echo $REPO_REMOTE/$REPO_PROJECT | tr '[:upper:]' '[:lower:]'`
+        manifest_project=$(echo $REPO_REMOTE/$REPO_PROJECT | tr '[:upper:]' '[:lower:]')
    fi
    #tr '[:upper:]' '[:lower:]'`
    if [[ "$manifest_project" != "$project_name" ]] ; then
@@ -172,29 +172,29 @@ fi
 
 while read line ; do 
       line_is_good=1
-      remote=`echo $line | grep remote | cut -d"=" -f2`
-      for field in `echo $line` ; do 
+      remote=$(echo $line | grep remote | cut -d"=" -f2)
+      for field in $(echo $line) ; do
          if [ -z "${field##*remote=*}" ]  ; then
 	    # strip off = and double quotes 
-	    remote=$(eval echo `echo $field | cut -d= -f2 `) 
+	    remote=$(eval echo $(echo $field | cut -d= -f2))
          fi
          if [ -z "${field##*name=*}" ]  ; then
-	    name=$(eval echo `echo $field | cut -d= -f2 `) 
+	    name=$(eval echo $(echo $field | cut -d= -f2))
          fi
          if [ -z "${field##*path=*}" ]  ; then
-	    path=$(eval echo `echo $field | cut -d= -f2 `) 
+	    path=$(eval echo $(echo $field | cut -d= -f2))
          fi
          if [ -z "${field##*revision=*}" ]  ; then
-	    COBRANCH=$(eval echo `echo $field | cut -d= -f2 `) 
+	    COBRANCH=$(eval echo $(echo $field | cut -d= -f2))
          fi
          if [ -z "${field##*groups=*}" ]  ; then
-	    groups=$(eval echo `echo $field | cut -d= -f2 `) 
+	    groups=$(eval echo $(echo $field | cut -d= -f2))
          fi
       done
       reponame=$path
       repogitname=$name
       repodirname=$AOMP_REPOS_TEST/$reponame
-      repo_web_location=`grep http $manifest_file | grep $remote | cut -d":" -f2 | cut -d"\"" -f1`
+      repo_web_location=$(grep http $manifest_file | grep $remote | cut -d":" -f2 | cut -d"\"" -f1)
       repo_web_location="https:${repo_web_location}"
       REPO_PROJECT=$name
       REPO_PATH=$path
