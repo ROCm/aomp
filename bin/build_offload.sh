@@ -5,8 +5,8 @@
 #
 
 # --- Start standard header to set AOMP environment variables ----
-realpath=`realpath $0`
-thisdir=`dirname $realpath`
+realpath=$(realpath "$0")
+thisdir=$(dirname "$realpath")
 . $thisdir/aomp_common_vars
 # --- end standard header ----
 
@@ -18,9 +18,9 @@ REPO_DIR=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME
 _ompd_src_dir="$LLVM_INSTALL_LOC/share/gdb/python/ompd/src"
 
 if [ "$AOMP_BUILD_CUDA" == 1 ] ; then
-   CUDAH=`find $CUDAT -type f -name "cuda.h" 2>/dev/null`
+   CUDAH=$(find $CUDAT -type f -name "cuda.h" 2>/dev/null)
    if [ "$CUDAH" == "" ] ; then
-      CUDAH=`find $CUDAINCLUDE -type f -name "cuda.h" 2>/dev/null`
+      CUDAH=$(find $CUDAINCLUDE -type f -name "cuda.h" 2>/dev/null)
    fi
    if [ "$CUDAH" == "" ] ; then
       echo
@@ -44,7 +44,7 @@ check_writable_installdir "$1" "$LLVM_INSTALL_LOC"
 
 if [ "$AOMP_BUILD_CUDA" == 1 ] ; then
    if [ -f $CUDABIN/nvcc ] ; then
-      CUDAVER=`$CUDABIN/nvcc --version | grep compilation | cut -d" " -f5 | cut -d"." -f1 `
+      CUDAVER=$($CUDABIN/nvcc --version | grep compilation | cut -d" " -f5 | cut -d"." -f1)
       echo "CUDA VERSION IS $CUDAVER"
    fi
 fi
@@ -56,7 +56,7 @@ else
 fi
 
 export LLVM_DIR=$AOMP_INSTALL_DIR
-GFXSEMICOLONS=`echo $GFXLIST | tr ' ' ';' `
+GFXSEMICOLONS=$(echo "$GFXLIST" | tr ' ' ';')
 ALTAOMP=${ALTAOMP:-$LLVM_INSTALL_LOC}
 COMMON_CMAKE_OPTS="$AOMP_SET_NINJA_GEN -DOPENMP_ENABLE_LIBOMPTARGET=1
 -DCMAKE_INSTALL_PREFIX=$LLVM_INSTALL_LOC

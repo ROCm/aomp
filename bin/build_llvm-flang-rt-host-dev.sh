@@ -13,8 +13,8 @@
 # https://github.com/llvm/llvm-project/blob/main/flang/docs/GettingStarted.md
 #
 # --- Start standard header to set AOMP environment variables ----
-realpath=`realpath $0`
-thisdir=`dirname $realpath`
+realpath=$(realpath $0)
+thisdir=$(dirname $realpath)
 . $thisdir/aomp_common_vars
 # --- end standard header ----
 
@@ -57,7 +57,7 @@ OMPRUNTIME_DIR=$BUILD_DIR/runtimes/runtimes-bins/openmp/runtime/src
 INSTALL_DIR=$AOMP
 
 # generate ARCH_LIST from GFXLIST
-ARCH_LIST=`echo $GFXLIST | tr ' ' ','`
+ARCH_LIST=$(echo $GFXLIST | tr ' ' ',')
 
 echo "BUILD_DIR          = $BUILD_DIR"
 echo "BUILD_DIR_FRT      = $BUILD_DIR_FRT"

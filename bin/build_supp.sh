@@ -56,8 +56,8 @@ SUPPLEMENTAL_COMPONENTS=${SUPPLEMENTAL_COMPONENTS:-openmpi silo hdf5 fftw ninja}
 PREREQUISITE_COMPONENTS=${PREREQUISITE_COMPONENTS:-cmake rocmsmilib hwloc aqlprofile rocm-core}
 
 # --- Start standard header to set AOMP environment variables ----
-realpath=`realpath $0`
-thisdir=`dirname $realpath`
+realpath=$(realpath "$0")
+thisdir=$(dirname "$realpath")
 . $thisdir/aomp_common_vars
 # --- end standard header ----
 FLANG=${FLANG:-flang}
@@ -119,7 +119,7 @@ function checkversion(){
   # inputs: $_linkfrom, $_cname, $CMDLOGFILE, $_version
   # output: $SKIPBUILD
   if [ -L $_linkfrom ] ; then 
-    existing_install_dir=`ls -l $_linkfrom | grep $_cname | awk '{print $NF}'`
+    existing_install_dir=$(ls -l $_linkfrom | grep $_cname | awk '{print $NF}')
     if [ -d $existing_install_dir ] ; then 
       existing_version=${existing_install_dir##*-} 
       if [ "$existing_version" == "$_version" ] ; then 
@@ -263,7 +263,7 @@ function getrocmpackage(){
   if [[ $osname =~ "Ubuntu" ]]; then
     # not sure if deb_version is 20 or 22
     deb_version="24"
-    os_version=`grep VERSION_ID /etc/os-release | cut -d"\"" -f2`
+    os_version=$(grep VERSION_ID /etc/os-release | cut -d"\"" -f2)
     [ $os_version == "22.04" ] && deb_version="22"
     #https://repo.radeon.com/rocm/apt/6.1/pool/main/h/hsa-amd-aqlprofile6.1.0/hsa-amd-aqlprofile6.1.0_1.0.0.60100.60100-82~${deb_version}_amd64.deb
     #https://repo.radeon.com/rocm/apt/6.1/pool/main/h/hsa-amd-aqlprofile6.1.0/hsa-amd-aqlprofile6.1.0_1.0.0.60100.60100-82~22.04_amd64.deb
@@ -548,7 +548,7 @@ fi
 # save the current directory
 curdir=$PWD
 for _component in $_components ; do 
-  _thisdate=`date`
+  _thisdate=$(date)
   echo "" >>$CMDLOGFILE
   echo "# -------------------------------------------------" >>$CMDLOGFILE
   echo "# $_component build started on $_thisdate" >>$CMDLOGFILE
@@ -584,7 +584,7 @@ for _component in $_components ; do
     fi
     exit 0
   fi
-  _thisdate=`date`
+  _thisdate=$(date)
   echo "# DONE: successful build of $_component on $_thisdate " >>$CMDLOGFILE
 done
 

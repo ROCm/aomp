@@ -10,7 +10,7 @@ _compiler_bin_dir=${3:-/opt/rocm/llvm/bin}
 
 # Check default gfxid using offload-arch
 if [ -f $_compiler_bin_dir/offload-arch ] ; then 
-  _oa_gfxid=`$_compiler_bin_dir/offload-arch`
+  _oa_gfxid=$($_compiler_bin_dir/offload-arch)
   if [ "$_oa_gfxid" != "$_gfxid" ] ; then 
     echo "WARNING: changing gfxid to $_oa_gfxid"
     _gfxid=$_oa_gfxid
@@ -74,7 +74,7 @@ EOF
 function run_tests() {
    _log=stdout.log
    _rc0=0
-   for i in `seq 1 $_iters` ; do $_binary ; [ $? == 0 ] && _rc0=$(( $_rc0 + 1 )) ; done >$_log
+   for i in $(seq 1 $_iters) ; do $_binary ; [ $? == 0 ] && _rc0=$(( $_rc0 + 1 )) ; done >$_log
    _fails=$(( $_iters - $_rc0 ))
    _failrate=$(( ( $_fails * 100 ) / $_iters ))
 }

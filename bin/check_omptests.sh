@@ -4,8 +4,8 @@
 #  Assumes run_omptests.sh has been executed.
 #
 # --- Start standard header to set AOMP environment variables ----
-realpath=`realpath $0`
-thisdir=`dirname $realpath`
+realpath=$(realpath "$0")
+thisdir=$(dirname "$realpath")
 . $thisdir/aomp_common_vars
 # --- end standard header ----
 
@@ -24,11 +24,11 @@ total_tests=$(ls | grep "\(^t\-*\|^test\-\)" | wc -l)
 # Count compile/runtime fails and successful tests
 for directory in ./t-*/; do
   pushd $directory > /dev/null
-  testname=`basename $(pwd)`
+  testname=$(basename $(pwd))
   diff results/stdout expected > /dev/null
   return_code=$?
   if [ $return_code != 0 ] && [ -e results/a.out ]; then
-    reason=`grep -E 'Killed' results/stderr`
+    reason=$(grep -E 'Killed' results/stderr)
     echo $testname $reason >> $AOMP_REPOS_TEST/$AOMP_OMPTESTS_REPO_NAME/runtime-fails.txt
   elif ! [[ -e results/a.out ]]; then
     echo $testname >> $AOMP_REPOS_TEST/$AOMP_OMPTESTS_REPO_NAME/compile-fails.txt
@@ -76,7 +76,7 @@ if [ "$passing_tests" == "$total_tests" ]; then
   pass_rate=100
 else
   # The calculation results in extra zeros that can be removed with sed
-  pass_rate=`bc -l <<< "scale=4; ($passing_tests/$total_tests) * 100" | sed -E "s/([0-9]+\.[0-9]+)00/\1/g"`
+  pass_rate=$(bc -l <<< "scale=4; ($passing_tests/$total_tests) * 100" | sed -E "s/([0-9]+\.[0-9]+)00/\1/g")
 fi
 
 echo

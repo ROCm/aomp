@@ -9,8 +9,8 @@
 #   This script is used for OpenMP development. 
 
 # --- Start standard AOMP header ----
-realpath=`realpath $0`
-thisdir=`dirname $realpath`
+realpath=$(realpath "$0")
+thisdir=$(dirname "$realpath")
 . $thisdir/aomp_common_vars
 # --- end standard AOMP header ----
 
@@ -18,7 +18,7 @@ repo_dir=${1:-$AOMP_REPOS/llvm-project}
 date_since=${2:-lastweek}
 pr_status=${3:-open}
 
-[ $date_since == "lastweek" ] && date_since=`date --date="last week" -I`
+[ "$date_since" == "lastweek" ] && date_since=$(date --date="last week" -I)
 
 curdir=$PWD
 tdir="/tmp/$USER/trunk_patches"
@@ -36,10 +36,10 @@ http_filename=pull_${pr_status}_${date_since}
 wget $REVIEW_URL -O $http_filename 2>/dev/null >/dev/null
 
 cat $http_filename | grep llvm/llvm-project/pull | grep pull_request | cut -d"/" -f7- |  while read line ; do 
-     dir=`echo $line | cut -d"\"" -f1`
-     comment=`echo $line | cut -d">" -f2-`
-     comment=`echo $comment | sed "s/<code>//g" | sed "s/<\/code>//g" | sed "s/<\/a>//g"`
-     number=`echo $dir | cut -d"/" -f4`
+     dir=$(echo $line | cut -d"\"" -f1)
+     comment=$(echo $line | cut -d">" -f2-)
+     comment=$(echo $comment | sed "s/<code>//g" | sed "s/<\/code>//g" | sed "s/<\/a>//g")
+     number=$(echo $dir | cut -d"/" -f4)
      patchurl="https://github.com/${dir}.patch"
      local_file=${patchurl##*/}
      [ -f $local_file ] && rm -f $local_file 
@@ -69,11 +69,11 @@ echo
 cd $repo_dir 
 prcount=0
 failcount=0
-for patchfile in `ls $tdir/*.patch` ; do 
+for patchfile in $(ls $tdir/*.patch) ; do
   prcount=$(( $prcount + 1 ))
-  lines=`wc -l $patchfile | cut -d" " -f1`
-  number=`echo $patchfile | cut -d"." -f1 | cut -d"/" -f5`
-  comment=`cat $tdir/comment.${number}.txt`
+  lines=$(wc -l $patchfile | cut -d" " -f1)
+  number=$(echo $patchfile | cut -d"." -f1 | cut -d"/" -f5)
+  comment=$(cat $tdir/comment.${number}.txt)
   patch -p1 -t -N --dry-run <$patchfile >/dev/null
   if [ $? != 0 ] ; then
      failcount=$(( $failcount + 1 ))

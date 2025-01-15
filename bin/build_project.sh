@@ -11,8 +11,8 @@
 BUILD_TYPE=${BUILD_TYPE:-Release}
 
 # --- Start standard header to set AOMP environment variables ----
-realpath=`realpath $0`
-thisdir=`dirname $realpath`
+realpath=$(realpath "$0")
+thisdir=$(dirname "$realpath")
 . $thisdir/aomp_common_vars
 # --- end standard header ----
 
@@ -85,7 +85,7 @@ fi
 
 rocmdevicelib_loc_new=lib/llvm/lib/clang/$AOMP_MAJOR_VERSION/lib/amdgcn
 
-GFXSEMICOLONS=`echo $GFXLIST | tr ' ' ';' `
+GFXSEMICOLONS=$(echo $GFXLIST | tr ' ' ';')
 MYCMAKEOPTS="-DCMAKE_BUILD_TYPE=$BUILD_TYPE
  -DCMAKE_INSTALL_PREFIX=$INSTALL_PROJECT
  -DLLVM_ENABLE_ASSERTIONS=ON
@@ -163,7 +163,7 @@ check_writable_installdir "$1" "$INSTALL_PROJECT"
 # Fix the banner to print the AOMP version string. 
 if [ $AOMP_STANDALONE_BUILD == 1 ] ; then
    cd $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME
-   MONO_REPO_ID=`git log | grep -m1 commit | cut -d" " -f2`
+   MONO_REPO_ID=$(git log | grep -m1 commit | cut -d" " -f2)
    SOURCEID="Source ID:$AOMP_VERSION_STRING-$MONO_REPO_ID"
    TEMPCLFILE="/tmp/clfile$$.cpp"
    ORIGCLFILE="$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/llvm/lib/Support/CommandLine.cpp"
@@ -270,7 +270,7 @@ if [ "$1" == "install" ] ; then
    # add executables forgot by make install but needed for testing
    $SUDO cp -p $BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME/bin/llvm-lit $LLVM_INSTALL_LOC/bin/llvm-lit
    # update map_config and llvm_source_root paths in the copied llvm-lit file
-   SED_AOMP_REPOS=`echo $AOMP_REPOS | sed -e 's/\//\\\\\//g' `
+   SED_AOMP_REPOS=$(echo "$AOMP_REPOS" | sed -e 's/\//\\\\\//g')
    sed -ie "s/..\/..\/..\//$SED_AOMP_REPOS\//g" $LLVM_INSTALL_LOC/bin/llvm-lit
 
    $SUDO cp -p $BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME/bin/FileCheck $LLVM_INSTALL_LOC/bin/FileCheck
