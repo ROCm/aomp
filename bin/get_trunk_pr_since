@@ -69,7 +69,7 @@ echo
 cd "$repo_dir" || exit
 prcount=0
 failcount=0
-for patchfile in $(ls $tdir/*.patch) ; do
+for patchfile in "$tdir"/*.patch; do
   prcount=$(( $prcount + 1 ))
   lines=$(wc -l $patchfile | cut -d" " -f1)
   number=$(echo $patchfile | cut -d"." -f1 | cut -d"/" -f5)

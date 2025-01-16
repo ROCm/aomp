@@ -119,7 +119,7 @@ function checkversion(){
   # inputs: $_linkfrom, $_cname, $CMDLOGFILE, $_version
   # output: $SKIPBUILD
   if [ -L "$_linkfrom" ] ; then 
-    existing_install_dir=$(ls -l "$_linkfrom" | grep "$_cname" | awk '{print $NF}')
+    existing_install_dir=$(readlink "$_linkfrom")
     if [ -d "$existing_install_dir" ] ; then 
       existing_version=${existing_install_dir##*-} 
       if [ "$existing_version" == "$_version" ] ; then 
