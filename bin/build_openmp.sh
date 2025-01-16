@@ -102,9 +102,10 @@ else
                       -DCUDA_TOOLKIT_ROOT_DIR=OFF)
 fi
 
-if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
-   LDFLAGS=$(shquot '-fuse-ld=lld' "${ASAN_FLAGS[@]}")
-fi
+#if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
+   #LDFLAGS=$(shquot '-fuse-ld=lld' "${ASAN_FLAGS[@]}")
+   #export LDFLAGS
+#fi
 
 # This is how we tell the hsa plugin where to find hsa
 export HSA_RUNTIME_PATH=$ROCM_DIR
