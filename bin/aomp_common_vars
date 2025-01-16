@@ -161,7 +161,7 @@ if [ "$AOMP_USE_NINJA" == 0 ] ; then
   AOMP_NINJA_BIN="make"
 else
   AOMP_NINJA_BIN=$(which ninja)
-  if [ AOMP_NINJA_BIN == "" ] ; then
+  if [ "$AOMP_NINJA_BIN" == "" ] ; then
     echo "ERROR: AOMP_USE_NINJA is $AOMP_USE_NINJA but no ninja bin found in PATH"
     echo "       Either install ninja in PATH or set AOMP_USE_NINJA=0"
     echo
