@@ -271,7 +271,8 @@ if [ "$AOMP_BUILD_DEBUG" == 1 ] ; then
 fi
 
 function edit_installed_hip_file(){
-   if [ -f $installed_hip_file_to_edit ] ; then
+   local installed_file_to_edit="$1"
+   if [ -f "$installed_file_to_edit" ] ; then
       # In hipvars.pm HIP_PATH is determined by parent directory of hipcc location.
       # Set ROCM_PATH using HIP_PATH
       $SUDO sed -i -e "s/\"\/opt\/rocm\"/\"\$HIP_PATH\"/" "$installed_file_to_edit"
@@ -322,18 +323,12 @@ if [ "$1" == "install" ] ; then
    removepatch "$AOMP_REPOS/hipamd"
    removepatch "$AOMP_REPOS/clr"
 
-      # The hip perl scripts have /opt/rocm hardcoded, so fix them after then are installed
+   # The hip perl scripts have /opt/rocm hardcoded, so fix them after then are installed
    # but only if not installing to rocm.
-   if [ $AOMP_INSTALL_DIR != "/opt/rocm/llvm" ] ; then
-      SED_INSTALL_DIR=$(echo $AOMP_INSTALL_DIR | sed -e 's/\//\\\\\//g')
-      installed_file_to_edit=$AOMP_INSTALL_DIR/bin/hipcc
-      $(edit_installed_hip_file)
-      installed_file_to_edit=$AOMP_INSTALL_DIR/bin/hipvars.pm
-      $(edit_installed_hip_file)
+   if [ "$AOMP_INSTALL_DIR" != "/opt/rocm/llvm" ] ; then
+      edit_installed_hip_file "$AOMP_INSTALL_DIR/bin/hipcc"
+      edit_installed_hip_file "$AOMP_INSTALL_DIR/bin/hipvars.pm"
       # nothing to change in hipconfig but in case something is added in future, try to fix it
-      installed_file_to_edit=$AOMP_INSTALL_DIR/bin/hipconfig
-      $(edit_installed_hip_file)
+      edit_installed_hip_file "$AOMP_INSTALL_DIR/bin/hipconfig"
    fi
-
-
 fi
