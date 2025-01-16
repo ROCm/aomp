@@ -929,6 +929,7 @@ function hpc2021(){
     export MPI=/tmp/npsdb/openmpi-5.0.0
     mkdir -p "$resultsdir"/hpc2021
     cd "$aompdir"/bin
+    unset ROCR_VISIBLE_DEVICES
     ./run_hpc2021.sh -clean
     cd $AOMP_TEST_DIR/hpc2021-1.1.9
     grep ratio= result/*.log
