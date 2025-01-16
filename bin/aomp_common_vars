@@ -228,6 +228,32 @@ else
    fi
 fi
 
+# Quote argument list suitable for passing as a single (string) argument to
+# cmake.  Result can be used within a double-quoted string, i.e. using
+# "$(cmquot ...)".
+function cmquot() {
+   local escaped_flags
+   local escaped_flag
+   local flag
+   escaped_flags=()
+   for flag in "$@"; do
+      escaped_flag=$(printf "%s" "$flag" | sed 's/\\/\\\\/g; s/\$/\\$/g; s/ /\\ /g; s/"/\\"/g')
+      escaped_flags+=("$escaped_flag")
+   done
+   echo "${escaped_flags[*]}"
+}
+
+# Quote argument list suitable for passing back to the shell as a string.
+# Useful for e.g. dumping argument lists in such a way that they can be safely
+# copy & pasted into the user's terminal.  Output should not be further quoted.
+function shquot() {
+  local -a output
+  output=()
+  for arg in "$@"; do
+    output+=(\'${arg//\'/\'\\\'\'}\')
+  done
+  printf '%s' "${output[*]}"
+}
 
 # AOMP uses RPATH (not) RUNPATH because LD_LIBRARY_PATH is a user feature for
 # user lib development. We do not want the compiler runtime to search user paths
