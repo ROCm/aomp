@@ -19,7 +19,8 @@ compile_fails=0
 runtime_fails=0
 
 # Count tests that start with t- or test-
-total_tests=$(ls | grep "\(^t\-*\|^test\-\)" | wc -l)
+# shellcheck disable=SC2010 # 'ls' is OK here
+total_tests=$(ls -U1q | grep -Ec '^t-|^test-')
 
 # Count compile/runtime fails and successful tests
 for directory in ./t-*/; do
@@ -54,7 +55,8 @@ fi
 # Add tests that were skipped to avoid soft hang
 echo
 echo -----Runtime Fails-----
-runtime_fails=$(ls | grep "^test\-" | wc -l)
+# shellcheck disable=SC2010 # 'ls' is OK here
+runtime_fails=$(ls -U1q | grep -Ec '^test-')
 if [ -e runtime-fails.txt ]; then
   echo
   cat runtime-fails.txt
