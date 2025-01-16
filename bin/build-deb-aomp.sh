@@ -1,4 +1,4 @@
-#/bin/bash
+#!/bin/bash
 #
 #  build-deb-aomp.sh:  Using debhelper and alien, build the aomp debian and rpm packages
 #                      This script is tested on amd64 and ppc64le linux architectures. 
