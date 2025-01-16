@@ -319,7 +319,7 @@ if [[ "$AOMP_VERSION" == "13.1" ]] || [[ $AOMP_MAJOR_VERSION -gt 13 ]] ; then
       fi
    fi
 
-   exit $rc
+   exit
 fi
 
 ## Before 13.1 repos were specified with environment variablse in aomp_common_vars

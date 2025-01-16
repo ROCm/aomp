@@ -66,11 +66,6 @@ QMCPACK_REPO=${QMCPACK_REPO:-$AOMP_REPOS_TEST/$AOMP_QMCPACK_REPO_NAME}
 export PATH=$OPENMPI_INSTALL/bin:$AOMP/bin:$PATH
 export LD_LIBRARY_PATH=$OPENMPI_INSTALL/lib:$LD_LIBRARY_PATH
 
-if [ "$mygpu" == "unknown" ] ; then 
-   echo "ERROR: No gpu found"
-   exit 1
-fi
-
 pushd $QMCPACK_REPO
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    if [ -d $build_folder ] ; then
