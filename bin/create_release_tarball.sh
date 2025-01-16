@@ -96,7 +96,7 @@ for dir_name in "$AOMP_REPOS"/*; do
       echo "          $dir_name WILL NOT BE ADDED TO SOURCE TARBALL."
       echo "          CHECK DIRECTORY $AOMP_REPOS ."
       echo "          HIT ENTER TO CONTINUE or CTRL-C TO CANCEL"
-      read
+      read -r
    fi
 done
 
