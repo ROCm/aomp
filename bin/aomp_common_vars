@@ -487,6 +487,22 @@ if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
    fi
 fi
 
+function check_writable_installdir() {
+   local action=$1
+   local installdir=$2
+
+   # Make sure we can update the install directory
+   if [ "$action" == "install" ] ; then
+      $SUDO mkdir -p "$installdir"
+
+      if ! $SUDO touch "$installdir/testfile"; then
+         echo "ERROR: No update access to $installdir"
+         exit 1
+      fi
+      $SUDO rm "$installdir/testfile"
+   fi
+}
+
 #  TO use this function set variables patchdir and patchfile
 function patchrepo(){
 patchdir=$1
