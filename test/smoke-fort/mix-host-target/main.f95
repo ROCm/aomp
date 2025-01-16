@@ -32,4 +32,4 @@ subroutine writeIndex(int_array, array_length)
 
 end subroutine writeIndex
 
-// CHECK: ======= FORTRAN Test passed! =======
+! CHECK: ======= FORTRAN Test passed! =======
