@@ -43,9 +43,10 @@ osversion=$(cat /etc/os-release)
   patchrepo "$REPO_DIR"
 #fi
 
-if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
-  LDFLAGS=$(shquot '-fuse-ld=lld' "${ASAN_FLAGS[@]}")
-fi
+#if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
+  #LDFLAGS=$(shquot '-fuse-ld=lld' "${ASAN_FLAGS[@]}")
+  #export LDFLAGS
+#fi
 
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 

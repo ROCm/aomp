@@ -66,9 +66,10 @@ check_writable_installdir "$1" "$AOMP_INSTALL_DIR"
 patchrepo "$AOMP_REPOS/hipamd"
 patchrepo "$AOMP_REPOS/clr"
 
-if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
-  LDFLAGS=$(shquot '-fuse-ld=lld' "${ASAN_FLAGS[@]}")"
-fi
+#if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
+  #LDFLAGS=$(shquot '-fuse-ld=lld' "${ASAN_FLAGS[@]}")"
+  #export LDFLAGS
+#fi
 
 _ompd_src_dir="$LLVM_INSTALL_LOC/share/gdb/python/ompd/src"
 
