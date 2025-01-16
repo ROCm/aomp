@@ -85,8 +85,8 @@ cd "$BUILD_AOMP/build/rocdbgapi" || exit
 echo
 echo " -----Running make for rocdbgapi ---- " 
 echo "make -j $AOMP_JOB_THREADS"
-make -j "$AOMP_JOB_THREADS"
-if [ $? != 0 ] ; then 
+
+if ! make -j "$AOMP_JOB_THREADS"; then
       echo " "
       echo "ERROR: make -j $AOMP_JOB_THREADS  FAILED"
       echo "To restart:" 

@@ -182,10 +182,10 @@ fi
 
 echo
 echo "make -j$AOMP_JOB_THREADS"
-make -j"$AOMP_JOB_THREADS"
+
 
 # Exit if build was not successful
-if [ $? != 0 ]; then
+if ! make -j"$AOMP_JOB_THREADS"; then
   echo
   echo ERROR: make command failed.
   echo

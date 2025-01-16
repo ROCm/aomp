@@ -69,13 +69,13 @@ fi
 
 # Test update access to AOMP_INSTALL_DIR
 # This should be done early to ensure sudo (if set) does not prompt for password later
-$TOPSUDO mkdir -p "$AOMP_INSTALL_DIR"
-if [ $? != 0 ] ; then
+
+if ! $TOPSUDO mkdir -p "$AOMP_INSTALL_DIR"; then
    echo "ERROR: $TOPSUDO mkdir failed, No update access to $AOMP_INSTALL_DIR"
    exit 1
 fi
-$TOPSUDO touch "$AOMP_INSTALL_DIR/testfile"
-if [ $? != 0 ] ; then
+
+if ! $TOPSUDO touch "$AOMP_INSTALL_DIR/testfile"; then
    echo "ERROR: $TOPSUDO touch failed, No update access to $AOMP_INSTALL_DIR"
    exit 1
 fi

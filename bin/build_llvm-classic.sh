@@ -131,8 +131,8 @@ fi
 # Build llvm classic.
 echo " ---  Running $AOMP_NINJA_BIN for $BUILD_DIR/build/flang-classic/$AOMP_LFL_DIR/llvm-classic ---- "
 cd "$BUILD_DIR/build/flang-classic/$AOMP_LFL_DIR/llvm-classic" || exit
-$AOMP_NINJA_BIN -j "$AOMP_JOB_THREADS"
-if [ $? != 0 ] ; then
+
+if ! $AOMP_NINJA_BIN -j "$AOMP_JOB_THREADS"; then
       echo " "
       echo "ERROR: $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS  FAILED"
       echo "To restart:"

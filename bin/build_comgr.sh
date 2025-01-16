@@ -101,8 +101,8 @@ fi
 cd "$BUILD_AOMP/build/comgr" || exit
 echo
 echo " -----Running make for comgr ---- " 
-make -j $AOMP_JOB_THREADS
-if [ $? != 0 ] ; then 
+
+if ! make -j "$AOMP_JOB_THREADS"; then
       echo " "
       echo "ERROR: make -j $AOMP_JOB_THREADS  FAILED"
       echo "To restart:" 
@@ -114,8 +114,8 @@ fi
 if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
    cd "$BUILD_AOMP/build/comgr/asan" || exit
    echo " -----Running make for comgr-asan ---- "
-   make -j "$AOMP_JOB_THREADS"
-   if [ $? != 0 ] ; then
+
+   if ! make -j "$AOMP_JOB_THREADS"; then
       echo " "
       echo "ERROR: make -j $AOMP_JOB_THREADS FAILED"
       echo "To restart:"
@@ -126,11 +126,11 @@ if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
 fi
 
 #  ----------- Install only if asked  ----------------------------
-if [ "$1" == "install" ] ; then 
+if [ "$1" == "install" ] ; then
       cd "$BUILD_AOMP/build/comgr" || exit
       echo " -----Installing to $INSTALL_COMGR/lib ----- " 
-      $SUDO make install 
-      if [ $? != 0 ] ; then 
+
+      if ! $SUDO make install; then 
          echo "ERROR make install failed "
          exit 1
       fi
@@ -138,8 +138,8 @@ if [ "$1" == "install" ] ; then
       if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
          cd "$BUILD_AOMP/build/comgr/asan" || exit
          echo " -----Installing to $INSTALL_COMGR/lib/asan ----"
-         $SUDO make install
-         if [ $? != 0 ] ; then
+
+         if ! $SUDO make install; then
             echo "ERROR make install failed"
             exit 1
          fi

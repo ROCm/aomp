@@ -130,31 +130,31 @@ if [ "$SANITIZER" != 1 ]; then
    cd "$BUILD_DIR/build/pgmath" || exit
    echo " -----Running make ---- "
    echo make -j "$AOMP_JOB_THREADS"
-   make -j "$AOMP_JOB_THREADS"
-   if [ $? != 0 ] ; then
+
+   if ! make -j "$AOMP_JOB_THREADS"; then
       echo "ERROR make -j $AOMP_JOB_THREADS failed"
       exit 1
    fi
 fi
 
 if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
-echo
+   echo
    cd "$BUILD_DIR/build/pgmath/asan" || exit
-echo " -----Running make ---- "
-echo "make -j $AOMP_JOB_THREADS"
-make -j "$AOMP_JOB_THREADS"
-if [ $? != 0 ] ; then
-   echo "ERROR make -j $AOMP_JOB_THREADS failed"
-   exit 1
-fi
+   echo " -----Running make ---- "
+   echo "make -j $AOMP_JOB_THREADS"
+
+   if ! make -j "$AOMP_JOB_THREADS"; then
+      echo "ERROR make -j $AOMP_JOB_THREADS failed"
+      exit 1
+   fi
 fi
 
 if [ "$1" == "install" ] ; then
    if [ "$SANITIZER" != 1 ]; then
       cd "$BUILD_DIR/build/pgmath" || exit
       echo " -----Installing to $INSTALL_FLANG ---- "
-      $SUDO make install
-      if [ $? != 0 ] ; then
+
+      if ! $SUDO make install; then
          echo "ERROR make install failed "
          exit 1
       fi
@@ -164,8 +164,8 @@ if [ "$1" == "install" ] ; then
    if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
       cd "$BUILD_DIR/build/pgmath/asan" || exit
       echo " -----Installing to $INSTALL_FLANG/lib/asan ---- "
-      $SUDO make install
-      if [ $? != 0 ] ; then
+
+      if ! $SUDO make install; then
          echo "ERROR make install failed "
          exit 1
       fi
