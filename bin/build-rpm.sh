@@ -41,6 +41,12 @@ fi
 
 echo "rpmname: $rpmname"
 
+# For the life of this script, change home directory 
+curdir=$PWD
+tmphome="/tmp/$USER/home"
+savehome=$HOME
+export HOME=$tmphome
+
 # Ensure the rpmbuild tool from rpm-build package is available
 rpmbuild_loc=$(which rpmbuild 2>/dev/null)
 if [ -z "$rpmbuild_loc" ];then
@@ -51,12 +57,6 @@ if [ -z "$rpmbuild_loc" ];then
    cd "$curdir" || exit
    exit 1
 fi
-
-# For the life of this script, change home directory 
-curdir=$PWD
-tmphome="/tmp/$USER/home"
-savehome=$HOME
-export HOME=$tmphome
 
 echo "--- checking for $tmphome/rpmbuild"
 if [ -d "$tmphome/rpmbuild" ] ; then 
