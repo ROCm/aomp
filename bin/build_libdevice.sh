@@ -68,12 +68,11 @@ fi
 
 if [ "$1" != "install" ]; then
       echo "make -j $AOMP_JOB_THREADS"
-      make -j "$AOMP_JOB_THREADS"
-      if [ $? != 0 ] ; then 
+
+      if ! make -j "$AOMP_JOB_THREADS"; then
          echo "ERROR make failed "
          exit 1
       fi
-
 
    echo 
    echo "  Done with all makes"

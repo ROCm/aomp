@@ -25,9 +25,8 @@ total_tests=$(ls | grep "\(^t\-*\|^test\-\)" | wc -l)
 for directory in ./t-*/; do
   pushd "$directory" > /dev/null || exit
   testname=$(basename "$(pwd)")
-  diff results/stdout expected > /dev/null
-  return_code=$?
-  if [ $return_code != 0 ] && [ -e results/a.out ]; then
+
+  if ! diff results/stdout expected > /dev/null && [ -e results/a.out ]; then
     reason=$(grep -E 'Killed' results/stderr)
     echo "$testname $reason" >> "$AOMP_REPOS_TEST/$AOMP_OMPTESTS_REPO_NAME/runtime-fails.txt"
   elif ! [[ -e results/a.out ]]; then

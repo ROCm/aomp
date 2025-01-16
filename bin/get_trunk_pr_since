@@ -74,9 +74,8 @@ for patchfile in $(ls $tdir/*.patch) ; do
   lines=$(wc -l $patchfile | cut -d" " -f1)
   number=$(echo $patchfile | cut -d"." -f1 | cut -d"/" -f5)
   comment=$(cat $tdir/comment.${number}.txt)
-  patch -p1 -t -N --dry-run <$patchfile >/dev/null
-  if [ $? != 0 ] ; then
-     failcount=$(( $failcount + 1 ))
+  if ! patch -p1 -t -N --dry-run < "$patchfile" >/dev/null; then
+     failcount=$(( failcount + 1 ))
      echo "FAIL in $patchfile with   $lines lines."
      echo "     Title: \"$comment\" "
      echo "     URL: https://github.com/llvm/llvm-project/pull/$number"

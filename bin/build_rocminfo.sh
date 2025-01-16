@@ -99,8 +99,8 @@ fi
 cd "$BUILD_DIR/build/rocminfo" || exit
 echo
 echo " -----Running make for rocminfo ---- "
-make -j "$AOMP_JOB_THREADS"
-if [ $? != 0 ] ; then
+
+if ! make -j "$AOMP_JOB_THREADS"; then
       echo " "
       echo "ERROR: make -j $AOMP_JOB_THREADS  FAILED"
       echo "To restart:"
@@ -119,12 +119,12 @@ fi
 #  ----------- Install only if asked  ----------------------------
 if [ "$1" == "install" ] ; then
    cd "$BUILD_DIR/build/rocminfo" || exit
-      echo
-      echo " -----Installing to $INSTALL_RINFO ----- "
-      $SUDO make install
-      if [ $? != 0 ] ; then
-         echo "ERROR make install failed "
-         exit 1
-      fi
-      removepatch "$AOMP_REPOS/$AOMP_RINFO_REPO_NAME"
+   echo
+   echo " -----Installing to $INSTALL_RINFO ----- "
+
+   if ! $SUDO make install; then
+      echo "ERROR make install failed "
+      exit 1
+   fi
+   removepatch "$AOMP_REPOS/$AOMP_RINFO_REPO_NAME"
 fi

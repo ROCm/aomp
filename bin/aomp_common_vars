@@ -557,12 +557,10 @@ if [ "$AOMP_APPLY_ROCM_PATCHES" == 1 ] && [ -d "$patchdir" ] ; then
      echo "Testing patch $patchfile to $patchdir"
 
      applypatch="yes"
-     patch -p1 -t -N --dry-run <"$patchfile" >/dev/null
-     if [ $? != 0 ] ; then
+     if ! patch -p1 -t -N --dry-run <"$patchfile" >/dev/null; then
         applypatch="no"
         # Check to see if reverse patch applies cleanly
-        patch -p1 -R --dry-run -t <"$patchfile" >/dev/null
-        if [ $? == 0 ] ; then
+        if patch -p1 -R --dry-run -t <"$patchfile" >/dev/null; then
            echo "patch $patchfile was already applied to $patchdir"
         else
            echo
@@ -600,8 +598,8 @@ if [ "$AOMP_APPLY_ROCM_PATCHES" == 1 ] && [ -d "$patchdir" ] ; then
      echo "Testing reverse patch $patchfile to $patchdir"
      reversepatch="yes"
      # Check to see if reverse patch applies cleanly
-     patch -p1 -R --dry-run -f <"$patchfile"  >/dev/null
-     if [ $? != 0 ] ; then
+
+     if ! patch -p1 -R --dry-run -f <"$patchfile"  >/dev/null; then
         echo "patch $patchfile was NOT applied $patchdir, no patch to reverse"
         reversepatch="no"
      fi

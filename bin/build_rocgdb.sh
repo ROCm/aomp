@@ -84,8 +84,8 @@ echo " -----Running make for gdb ---- "
 #echo make -j $AOMP_JOB_THREADS all-gdb
 #make -j $AOMP_JOB_THREADS all-gdb
 echo "make -j $AOMP_JOB_THREADS"
-make -j "$AOMP_JOB_THREADS"
-if [ $? != 0 ] ; then 
+
+if ! make -j "$AOMP_JOB_THREADS"; then
       echo " "
       echo "ERROR: make -j $AOMP_JOB_THREADS  FAILED"
       echo "To restart:" 
@@ -109,8 +109,8 @@ if [ "$1" == "install" ] ; then
       echo "$SUDO make install-info-gdb"
       $SUDO make install-info-gdb
       echo "$SUDO make install-strip-gdb"
-      $SUDO make install-strip-gdb
-      if [ $? != 0 ] ; then 
+
+      if ! $SUDO make install-strip-gdb; then
          echo "ERROR make install failed "
          exit 1
       fi

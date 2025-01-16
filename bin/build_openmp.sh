@@ -283,8 +283,8 @@ if [ "$1" != "install" ] ; then
 if [ "$AOMP_LEGACY_OPENMP" == "1" ] && [ "$SANITIZER" != 1 ] ; then
   cd "$BUILD_DIR/build/openmp" || exit
   echo " -----Running $AOMP_NINJA_BIN for $BUILD_DIR/build/openmp ---- "
-  $AOMP_NINJA_BIN -j "$AOMP_JOB_THREADS"
-  if [ $? != 0 ] ; then
+
+  if ! $AOMP_NINJA_BIN -j "$AOMP_JOB_THREADS"; then
         echo " "
         echo "ERROR: $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS  FAILED"
         echo "To restart:"
@@ -297,8 +297,8 @@ fi
 if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
    cd "$BUILD_DIR/build/openmp/asan" || exit
    echo " -----Running $AOMP_NINJA_BIN for $BUILD_DIR/build/openmp/asan ---- "
-   $AOMP_NINJA_BIN -j "$AOMP_JOB_THREADS"
-   if [ $? != 0 ] ; then
+
+   if ! $AOMP_NINJA_BIN -j "$AOMP_JOB_THREADS"; then
       echo " "
       echo "ERROR: $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS  FAILED"
       echo "To restart:"
@@ -313,8 +313,7 @@ if [ "$AOMP_BUILD_PERF" == "1" ] ; then
    echo
    echo
    echo " -----Running $AOMP_NINJA_BIN for $BUILD_DIR/build/openmp_perf ---- "
-   $AOMP_NINJA_BIN -j "$AOMP_JOB_THREADS"
-   if [ $? != 0 ] ; then
+   if ! $AOMP_NINJA_BIN -j "$AOMP_JOB_THREADS"; then
          echo "ERROR $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS failed"
          exit 1
    fi
@@ -323,8 +322,8 @@ if [ "$AOMP_BUILD_PERF" == "1" ] ; then
       echo
       echo
       echo " ----- Running $AOMP_NINJA_BIN for $BUILD_DIR/build/openmp_perf/asan ----- "
-      $AOMP_NINJA_BIN -j "$AOMP_JOB_THREADS"
-      if [ $? != 0 ] ; then
+
+      if ! $AOMP_NINJA_BIN -j "$AOMP_JOB_THREADS"; then
          echo "ERROR $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS failed"
          exit 1
       fi
@@ -337,8 +336,8 @@ if [ "$AOMP_BUILD_DEBUG" == "1" ] ; then
       echo
       echo
       echo " -----Running $AOMP_NINJA_BIN for $BUILD_DIR/build/openmp_debug ---- "
-      $AOMP_NINJA_BIN -j "$AOMP_JOB_THREADS"
-      if [ $? != 0 ] ; then
+
+      if ! $AOMP_NINJA_BIN -j "$AOMP_JOB_THREADS"; then
          echo "ERROR $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS failed"
          exit 1
       fi
@@ -349,8 +348,8 @@ if [ "$AOMP_BUILD_DEBUG" == "1" ] ; then
       echo
       echo
       echo " -----Running $AOMP_NINJA_BIN for $BUILD_DIR/build/openmp_debug/asan ---- "
-      $AOMP_NINJA_BIN -j "$AOMP_JOB_THREADS"
-      if [ $? != 0 ] ; then
+
+      if ! $AOMP_NINJA_BIN -j "$AOMP_JOB_THREADS"; then
          echo "ERROR $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS failed"
          exit 1
       fi
@@ -369,8 +368,8 @@ if [ "$1" == "install" ] ; then
       cd "$BUILD_DIR/build/openmp" || exit
       echo
       echo " -----Installing to $LLVM_INSTALL_LOC/lib ----- "
-      $SUDO $AOMP_NINJA_BIN -j "$AOMP_JOB_THREADS" install
-      if [ $? != 0 ] ; then
+
+      if ! $SUDO "$AOMP_NINJA_BIN" -j "$AOMP_JOB_THREADS" install; then
          echo "ERROR $AOMP_NINJA_BIN install failed "
          exit 1
       fi
@@ -380,8 +379,8 @@ if [ "$1" == "install" ] ; then
       cd "$BUILD_DIR/build/openmp/asan" || exit
       echo
       echo " -----Installing to $LLVM_INSTALL_LOC/lib/asan ----- "
-      $SUDO $AOMP_NINJA_BIN -j "$AOMP_JOB_THREADS" install
-      if [ $? != 0 ] ; then
+
+      if ! $SUDO "$AOMP_NINJA_BIN" -j "$AOMP_JOB_THREADS" install; then
          echo "ERROR $AOMP_NINJA_BIN install failed "
          exit 1
       fi
@@ -391,8 +390,8 @@ if [ "$1" == "install" ] ; then
      cd "$BUILD_DIR/build/openmp_perf" || exit
      echo
      echo " -----Installing to $LLVM_INSTALL_LOC/lib-perf ----- "
-     $SUDO $AOMP_NINJA_BIN -j "$AOMP_JOB_THREADS" install
-     if [ $? != 0 ] ; then
+
+     if ! $SUDO "$AOMP_NINJA_BIN" -j "$AOMP_JOB_THREADS" install; then
         echo "ERROR $AOMP_NINJA_BIN install failed "
         exit 1
      fi
@@ -405,8 +404,8 @@ if [ "$1" == "install" ] ; then
         cd "$BUILD_DIR/build/openmp_perf/asan" || exit
         echo
         echo " ----- Installing to $LLVM_INSTALL_LOC/lib-perf/asan ----- "
-        $SUDO $AOMP_NINJA_BIN -j "$AOMP_JOB_THREADS" install
-        if [ $? != 0 ] ; then
+
+        if ! $SUDO "$AOMP_NINJA_BIN" -j "$AOMP_JOB_THREADS" install; then
            echo "ERROR $AOMP_NINJA_BIN install failed "
            exit 1
         fi
@@ -418,8 +417,8 @@ if [ "$1" == "install" ] ; then
          cd "$BUILD_DIR/build/openmp_debug" || exit
          echo
          echo " -----Installing to $LLVM_INSTALL_LOC/lib-debug ---- "
-         $SUDO $AOMP_NINJA_BIN -j "$AOMP_JOB_THREADS" install
-         if [ $? != 0 ] ; then
+
+         if ! $SUDO "$AOMP_NINJA_BIN" -j "$AOMP_JOB_THREADS" install; then
             echo "ERROR $AOMP_NINJA_BIN install failed "
             exit 1
          fi
@@ -432,8 +431,8 @@ if [ "$1" == "install" ] ; then
       if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
          cd "$BUILD_DIR/build/openmp_debug/asan" || exit
          echo " -----Installing to $LLVM_INSTALL_LOC/lib-debug/asan ---- "
-         $SUDO $AOMP_NINJA_BIN -j "$AOMP_JOB_THREADS" install
-         if [ $? != 0 ] ; then
+
+         if ! $SUDO "$AOMP_NINJA_BIN" -j "$AOMP_JOB_THREADS" install; then
             echo "ERROR $AOMP_NINJA_BIN install failed "
             exit 1
          fi

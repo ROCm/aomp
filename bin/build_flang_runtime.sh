@@ -173,8 +173,8 @@ if [ "$SANITIZER" != 1 ]; then
    echo " -----Running make ---- "
    cd "$BUILD_DIR/build/flang_runtime" || exit
    echo make -j "$AOMP_JOB_THREADS"
-   make -j "$AOMP_JOB_THREADS"
-   if [ $? != 0 ] ; then
+
+   if ! make -j "$AOMP_JOB_THREADS"; then
       echo "ERROR make -j $AOMP_JOB_THREADS failed"
       exit 1
    fi
@@ -185,8 +185,8 @@ if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
    echo " -----Running make ---- "
    cd "$BUILD_DIR/build/flang_runtime/asan" || exit
    echo make -j "$AOMP_JOB_THREADS"
-   make -j "$AOMP_JOB_THREADS"
-   if [ $? != 0 ] ; then
+
+   if ! make -j "$AOMP_JOB_THREADS"; then
       echo "ERROR make -j $AOMP_JOB_THREADS failed"
       exit 1
    fi
@@ -196,8 +196,8 @@ if [ "$1" == "install" ] ; then
    if [ "$SANITIZER" != 1 ]; then
       cd "$BUILD_DIR/build/flang_runtime" || exit
       echo " -----Installing to $INSTALL_FLANG ---- "
-      $SUDO make install
-      if [ $? != 0 ] ; then
+
+      if ! $SUDO make install; then
          echo "ERROR make install failed "
          exit 1
       fi
@@ -208,8 +208,8 @@ if [ "$1" == "install" ] ; then
    if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
       cd "$BUILD_DIR/build/flang_runtime/asan" || exit
       echo " -----Installing to $INSTALL_FLANG/lib/asan ---- "
-      $SUDO make install
-      if [ $? != 0 ] ; then
+
+      if ! $SUDO make install; then
          echo "ERROR make install failed "
          exit 1
       fi
