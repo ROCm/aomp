@@ -81,7 +81,7 @@ getreponame
 REPO_NAMES=$repos
 ALL_NAMES="$REPO_NAMES Makefile build aomp"
 # Check for extra directories.  Note build is in the exclude list
-for dir_name in $(ls $AOMP_REPOS) ; do
+for dir_name in "$AOMP_REPOS"/*; do
    found=0
    for repo_name in $ALL_NAMES ; do
       if [ "$repo_name" == "$dir_name" ] ; then
