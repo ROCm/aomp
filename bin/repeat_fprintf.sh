@@ -74,9 +74,13 @@ EOF
 function run_tests() {
    _log=stdout.log
    _rc0=0
-   for i in $(seq 1 $_iters) ; do $_binary ; [ $? == 0 ] && _rc0=$(( $_rc0 + 1 )) ; done >$_log
-   _fails=$(( $_iters - $_rc0 ))
-   _failrate=$(( ( $_fails * 100 ) / $_iters ))
+   for i in $(seq 1 "$_iters") ; do
+      if $_binary ; then
+         _rc0=$(( _rc0 + 1 ))
+      fi
+   done > "$_log"
+   _fails=$(( _iters - _rc0 ))
+   _failrate=$(( ( _fails * 100 ) / _iters ))
 }
 
 _compile_cmd="$_compiler_bin_dir/clang -O2 -fopenmp --offload-arch=$_gfxid $_source_file -o $_binary"
