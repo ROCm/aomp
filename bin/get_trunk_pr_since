@@ -70,10 +70,10 @@ cd "$repo_dir" || exit
 prcount=0
 failcount=0
 for patchfile in "$tdir"/*.patch; do
-  prcount=$(( $prcount + 1 ))
-  lines=$(wc -l $patchfile | cut -d" " -f1)
-  number=$(echo $patchfile | cut -d"." -f1 | cut -d"/" -f5)
-  comment=$(cat $tdir/comment.${number}.txt)
+  prcount=$(( prcount + 1 ))
+  lines=$(wc -l "$patchfile" | cut -d" " -f1)
+  number=$(echo "$patchfile" | cut -d"." -f1 | cut -d"/" -f5)
+  comment=$(cat "$tdir/comment.${number}.txt")
   if ! patch -p1 -t -N --dry-run < "$patchfile" >/dev/null; then
      failcount=$(( failcount + 1 ))
      echo "FAIL in $patchfile with   $lines lines."
