@@ -59,6 +59,8 @@ env DEVICE_TYPE=amd DEVICE_TARGET="$DEVICE_TARGET" DEVICE_ARCH="$DEVICE_ARCH" HO
     TARGETRTL="$AOMP/lib" GLOMPRTL="$AOMP/lib" LLVMBIN="$AOMP/bin" \
     make -i 2>&1 | tee "omptests_run_$log"
 
+export log
+
 "$thisdir"/check_omptests.sh
 
 # Move tests back to avoid polluting the repo

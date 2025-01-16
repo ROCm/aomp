@@ -88,6 +88,11 @@ echo "Pass Rate: $pass_rate%"
 echo "-------------------"
 echo
 
+if [ -z "$log" ]; then
+   echo "Log file not set! Exiting." >&2
+   exit 1
+fi
+
 # Log Results
 {
   echo
