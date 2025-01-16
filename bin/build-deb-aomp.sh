@@ -100,19 +100,25 @@ fi
 
 # Make the install and links file version specific
 if [ "$pkgname" == "aomp-hip-libraries" ]; then
-  echo "usr/lib/$dirname" > $froot/debian/$pkgname.install
-  echo "usr/share/doc/${pkgname}_${AOMP_VERSION_STRING}" >> $froot/debian/$pkgname.install
+  {
+    echo "usr/lib/$dirname"
+    echo "usr/share/doc/${pkgname}_${AOMP_VERSION_STRING}"
+  } > "$froot/debian/$pkgname.install"
 else
-  echo "usr/lib/$dirname usr/lib/aomp" > $froot/debian/$pkgname.links
-  echo "usr/lib/$dirname/bin/aompExtractRegion /usr/bin/aompExtractRegion" >> $froot/debian/$pkgname.links
-  echo "usr/lib/$dirname/bin/cloc.sh /usr/bin/cloc.sh" >> $froot/debian/$pkgname.links
-  echo "usr/lib/$dirname/bin/mymcpu  /usr/bin/mymcpu" >> $froot/debian/$pkgname.links
-  echo "usr/lib/$dirname/bin/mygpu  /usr/bin/mygpu" >> $froot/debian/$pkgname.links
-  echo "usr/lib/$dirname/bin/aompversion /usr/bin/aompversion" >> $froot/debian/$pkgname.links
-  echo "usr/lib/$dirname/bin/aompcc /usr/bin/aompcc" >> $froot/debian/$pkgname.links
-  echo "usr/lib/$dirname/bin/gpurun /usr/bin/gpurun" >> $froot/debian/$pkgname.links
-  echo "usr/lib/$dirname" > $froot/debian/$pkgname.install
-  echo "usr/share/doc/$dirname" >> $froot/debian/$pkgname.install
+  {
+    echo "usr/lib/$dirname usr/lib/aomp"
+    echo "usr/lib/$dirname/bin/aompExtractRegion /usr/bin/aompExtractRegion"
+    echo "usr/lib/$dirname/bin/cloc.sh /usr/bin/cloc.sh"
+    echo "usr/lib/$dirname/bin/mymcpu  /usr/bin/mymcpu"
+    echo "usr/lib/$dirname/bin/mygpu  /usr/bin/mygpu"
+    echo "usr/lib/$dirname/bin/aompversion /usr/bin/aompversion"
+    echo "usr/lib/$dirname/bin/aompcc /usr/bin/aompcc"
+    echo "usr/lib/$dirname/bin/gpurun /usr/bin/gpurun"
+  } > "$froot/debian/$pkgname.links"
+  {
+    echo "usr/lib/$dirname"
+    echo "usr/share/doc/$dirname"
+  } > "$froot/debian/$pkgname.install"
 fi
 
 echo 
