@@ -38,7 +38,7 @@ export PATH="$LLVM_BUILD/bin":$PATH
 
 patchrepo "$REPO_DIR"
 
-if [ "$1" != "install" && "$1" != "nocmake" ]; then
+if [ "$1" != "install" ] && [ "$1" != "nocmake" ]; then
     
       builddir_libdevice=$BUILD_DIR/build/libdevice
       if [ -d "$builddir_libdevice" ]; then
