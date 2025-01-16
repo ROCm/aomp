@@ -161,8 +161,10 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
      echo " -----Running hipamd-debug cmake -----"
      _prefix_map="\""-fdebug-prefix-map=$HIPAMD_DIR=$_ompd_src_dir/clr"\""
      echo "${AOMP_CMAKE} $HIPAMD_DEBUG_CMAKE_OPTS -DCMAKE_CXX_FLAGS=\"-g $_prefix_map\" -DCMAKE_C_FLAGS=\"-g $_prefix_map\" $HIPAMD_DIR"
-     ${AOMP_CMAKE} "$HIPAMD_DEBUG_CMAKE_OPTS" -DCMAKE_CXX_FLAGS="-g $_prefix_map" -DCMAKE_C_FLAGS="-g $_prefix_map" "$HIPAMD_DIR"
-     if [ $? != 0 ] ; then
+
+     if ! ${AOMP_CMAKE} "$HIPAMD_DEBUG_CMAKE_OPTS" \
+             -DCMAKE_CXX_FLAGS="-g $_prefix_map" \
+             -DCMAKE_C_FLAGS="-g $_prefix_map" "$HIPAMD_DIR"; then
         echo "ERROR hipamd-debug cmake failed. Cmake flags"
         echo "      $HIPAMD_DEBUG_CMAKE_OPTS"
         exit 1
@@ -178,8 +180,8 @@ cd "$BUILD_DIR/build/hipamd" || exit
 
 echo
 echo " -----Running make for hipamd ---- "
-make -j "$AOMP_JOB_THREADS"
-if [ $? != 0 ] ; then
+
+if ! make -j "$AOMP_JOB_THREADS"; then
       echo " "
       echo "ERROR: make -j $AOMP_JOB_THREADS  FAILED"
       echo "To restart:"
@@ -199,8 +201,8 @@ if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
    cd "$BUILD_DIR/build/hipamd/asan" || exit
    echo
    echo " -----Running make for hipamd-asan ----- "
-   make -j "$AOMP_JOB_THREADS"
-   if [ $? != 0 ] ; then
+
+   if ! make -j "$AOMP_JOB_THREADS"; then
       echo " "
       echo "ERROR: make -j $AOMP_JOB_THREADS FAILED"
       echo "To restart:"
@@ -220,8 +222,8 @@ if [ "$AOMP_BUILD_DEBUG" == 1 ] ; then
    cd "$BUILD_DIR/build/hipamd_debug" || exit
    echo
    echo " -----Running make for hipamd-debug ----- "
-   make -j "$AOMP_JOB_THREADS" amdhip64
-   if [ $? != 0 ] ; then
+
+   if ! make -j "$AOMP_JOB_THREADS" amdhip64; then
       echo " "
       echo "ERROR: make -j $AOMP_JOB_THREADS FAILED"
       echo "To restart:"
@@ -253,8 +255,8 @@ if [ "$1" == "install" ] ; then
    cd "$BUILD_DIR/build/hipamd" || exit
    echo
    echo " -----Installing to $AOMP_INSTALL_DIR ----- "
-   $SUDO make install
-   if [ $? != 0 ] ; then
+
+   if ! $SUDO make install; then
       echo "ERROR make install failed "
       exit 1
    fi
@@ -263,8 +265,8 @@ if [ "$1" == "install" ] ; then
       cd "$BUILD_DIR/build/hipamd/asan" || exit
       echo
       echo " -----Installing to $AOMP_INSTALL_DIR/lib/asan"
-      $SUDO make install
-      if [ $? != 0 ] ; then
+
+      if ! $SUDO make install; then
          echo "ERROR make install failed "
          exit 1
       fi
@@ -273,8 +275,8 @@ if [ "$1" == "install" ] ; then
       cd "$BUILD_DIR/build/hipamd_debug" || exit
       echo
       echo " -----Installing to $AOMP_INSTALL_DIR/lib-debug"
-      $SUDO make install
-      if [ $? != 0 ] ; then
+
+      if ! $SUDO make install; then
          echo "ERROR make install failed "
          exit 1
       fi

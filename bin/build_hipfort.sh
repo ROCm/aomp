@@ -103,8 +103,8 @@ fi
 cd "$BUILD_DIR/build/hipfort" || exit
 echo
 echo " -----Running make for hipfort ---- "
-make -j "$AOMP_JOB_THREADS"
-if [ $? != 0 ] ; then
+
+if ! make -j "$AOMP_JOB_THREADS"; then
       echo " "
       echo "ERROR: make -j $AOMP_JOB_THREADS  FAILED"
       echo "To restart:"
@@ -125,8 +125,7 @@ if [ "$1" == "install" ] ; then
       cd "$BUILD_DIR/build/hipfort" || exit
       echo
       echo " -----Installing to $HIPFORT_INSTALL_DIR ----- "
-      $SUDO make install
-      if [ $? != 0 ] ; then
+      if ! $SUDO make install; then
          echo "ERROR make install failed "
          exit 1
       fi

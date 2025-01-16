@@ -89,8 +89,8 @@ cd "$BUILD_AOMP/build/roctracer" || exit
 echo
 echo " -----Running make for roctracer ---- " 
 echo "make -j $AOMP_JOB_THREADS"
-make -j "$AOMP_JOB_THREADS"
-if [ $? != 0 ] ; then 
+
+if ! make -j "$AOMP_JOB_THREADS"; then
       echo " "
       echo "ERROR: make -j $AOMP_JOB_THREADS  FAILED"
       echo "To restart:" 
@@ -109,12 +109,12 @@ if [ -n "$doxygen" ] ; then
 fi
 
 #  ----------- Install only if asked  ----------------------------
-if [ "$1" == "install" ] ; then 
+if [ "$1" == "install" ] ; then
       cd "$BUILD_AOMP/build/roctracer" || exit
       echo " -----Installing to $INSTALL_ROCTRACE/lib ----- " 
-      echo $SUDO make install 
-      $SUDO make install 
-      if [ $? != 0 ] ; then 
+      echo "$SUDO make install "
+
+      if ! $SUDO make install; then 
          echo "ERROR make install failed "
          exit 1
       fi

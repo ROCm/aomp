@@ -87,8 +87,10 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
       cd "$BUILD_AOMP/build/roct_debug" || exit
       _prefix_map="\""-fdebug-prefix-map=$AOMP_REPOS/$AOMP_ROCT_REPO_NAME/src=$_ompd_src_dir/roct/src"\""
       echo ${AOMP_CMAKE} $ROCT_CMAKE_OPTS -DCMAKE_C_FLAGS="-g $_prefix_map" -DCMAKE_CXX_FLAGS="-g $_prefix_map" $AOMP_REPOS/$AOMP_ROCT_REPO_NAME
-      ${AOMP_CMAKE} $ROCT_CMAKE_OPTS -DCMAKE_C_FLAGS="-g $_prefix_map" -DCMAKE_CXX_FLAGS="-g $_prefix_map" $AOMP_REPOS/$AOMP_ROCT_REPO_NAME
-      if [ $? != 0 ] ; then
+
+      if ! ${AOMP_CMAKE} $ROCT_CMAKE_OPTS -DCMAKE_C_FLAGS="-g $_prefix_map" \
+             -DCMAKE_CXX_FLAGS="-g $_prefix_map" \
+             $AOMP_REPOS/$AOMP_ROCT_REPO_NAME; then
          echo "ERROR roct_debug cmake failed.cmake flags"
          echo "      $ROCT_CMAKE_OPTS"
          exit 1
@@ -103,8 +105,8 @@ fi
 cd "$BUILD_AOMP/build/roct" || exit
 echo
 echo " -----Running make for roct ---- " 
-make -j "$AOMP_JOB_THREADS"
-if [ $? != 0 ] ; then 
+
+if ! make -j "$AOMP_JOB_THREADS"; then
       echo " "
       echo "ERROR: make -j $AOMP_JOB_THREADS  FAILED"
       echo "To restart:" 
@@ -116,8 +118,8 @@ fi
 if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
    echo
    echo " ----- Running make for roct-asan ----- "
-   make -j "$AOMP_JOB_THREADS"
-   if [ $? != 0 ] ; then
+
+   if ! make -j "$AOMP_JOB_THREADS"; then
      echo " "
      echo "ERROR: make -j $AOMP_JOB_THREADS FAILED"
      echo "To restart:"
@@ -130,8 +132,8 @@ if [ "$AOMP_BUILD_DEBUG" == 1 ] ; then
    cd "$BUILD_AOMP/build/roct_debug" || exit
    echo
    echo " ----- Running make for roct_debug ----- "
-   make -j "$AOMP_JOB_THREADS"
-   if [ $? != 0 ] ; then
+
+   if ! make -j "$AOMP_JOB_THREADS"; then
      echo " "
      echo "ERROR: make -j $AOMP_JOB_THREADS FAILED"
      echo "To restart:"
@@ -142,11 +144,11 @@ if [ "$AOMP_BUILD_DEBUG" == 1 ] ; then
 fi
 
 #  ----------- Install only if asked  ----------------------------
-if [ "$1" == "install" ] ; then 
+if [ "$1" == "install" ] ; then
       cd "$BUILD_AOMP/build/roct" || exit
       echo " -----Installing to $INSTALL_ROCT/lib ----- " 
-      $SUDO make install 
-      if [ $? != 0 ] ; then 
+
+      if ! $SUDO make install; then 
          echo "ERROR make install failed "
          exit 1
       fi
@@ -154,8 +156,8 @@ if [ "$1" == "install" ] ; then
       if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
          cd "$BUILD_AOMP/build/roct/asan" || exit
          echo " -----Installing to $INSTALL_ROCT/lib/asan ----- "
-         $SUDO make install
-         if [ $? != 0 ] ; then
+
+         if ! $SUDO make install; then
             echo "ERROR make install failed "
             exit 1
          fi
@@ -163,8 +165,7 @@ if [ "$1" == "install" ] ; then
       if [ "$AOMP_BUILD_DEBUG" == 1 ] ; then
          cd "$BUILD_AOMP/build/roct_debug" || exit
          echo " -----Installing to $INSTALL_ROCT/lib-debug ----- "
-         $SUDO make install
-         if [ $? != 0 ] ; then
+         if ! $SUDO make install; then
             echo "ERROR make install for roct  failed "
             exit 1
          fi

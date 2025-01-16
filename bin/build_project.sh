@@ -168,8 +168,7 @@ if [ "$AOMP_STANDALONE_BUILD" == 1 ] ; then
    ORIGCLFILE="$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/llvm/lib/Support/CommandLine.cpp"
    BUILDCLFILE=$ORIGCLFILE
 
-   sed "s/LLVM (http:\/\/llvm\.org\/):/AOMP-${AOMP_VERSION_STRING} ($WEBSITE):\\\n $SOURCEID/" "$ORIGCLFILE" > "$TEMPCLFILE"
-   if [ $? != 0 ] ; then
+   if ! sed "s/LLVM (http:\/\/llvm\.org\/):/AOMP-${AOMP_VERSION_STRING} ($WEBSITE):\\\n $SOURCEID/" "$ORIGCLFILE" > "$TEMPCLFILE"; then
       echo "ERROR sed command to fix CommandLine.cpp failed."
       exit 1
    fi
@@ -194,8 +193,8 @@ if [ "$AOMP_STANDALONE_BUILD" == 1 ] ; then
    cd "$BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME" || exit
    if [ -f "$BUILDCLFILE" ] ; then
       # only copy if there has been a change to the source.
-      diff "$TEMPCLFILE" "$BUILDCLFILE" >/dev/null
-      if [ $? != 0 ] ; then
+
+      if ! diff "$TEMPCLFILE" "$BUILDCLFILE" >/dev/null; then
          echo "Updating $BUILDCLFILE with corrected $SOURCEID"
          cp "$TEMPCLFILE" "$BUILDCLFILE"
       else
@@ -241,18 +240,17 @@ fi
 
 # Build llvm-project in one step
 echo "Running CMAKE in ${PWD}"
-echo ${AOMP_CMAKE} --build . -j $AOMP_JOB_THREADS
-${AOMP_CMAKE} --build . -j $AOMP_JOB_THREADS
+echo "${AOMP_CMAKE} --build . -j $AOMP_JOB_THREADS"
 
-if [ $? != 0 ] ; then
+if ! ${AOMP_CMAKE} --build . -j "$AOMP_JOB_THREADS"; then
    echo "ERROR make -j $AOMP_JOB_THREADS failed"
    exit 1
 fi
 
 if [ "$1" == "install" ] ; then
    echo " -----Installing to $INSTALL_PROJECT ---- "
-   $SUDO "${AOMP_CMAKE}" --install .
-   if [ $? != 0 ] ; then
+
+   if ! $SUDO "$AOMP_CMAKE" --install .; then
       echo "ERROR make install failed "
       exit 1
    fi

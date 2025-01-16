@@ -90,8 +90,8 @@ if [ "$1" == "install" ] ; then
    cd "$BUILD_DIR/build/rocm-cmake" || exit
    echo
    echo " -----Installing to $AOMP_INSTALL_DIR ----- "
-   $SUDO make install
-   if [ $? != 0 ] ; then
+
+   if ! $SUDO make install; then
       echo "ERROR make install failed "
       exit 1
    fi

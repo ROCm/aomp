@@ -94,8 +94,10 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
       cd "$BUILD_AOMP/build/rocr_debug" || exit
       _prefix_map="\""-fdebug-prefix-map=$AOMP_REPOS/$AOMP_ROCR_REPO_NAME=$_ompd_src_dir/rocr"\""
       echo ${AOMP_CMAKE} $ROCR_CMAKE_OPTS -DCMAKE_C_FLAGS="-g $_prefix_map" -DCMAKE_CXX_FLAGS="-g $_prefix_map" $AOMP_REPOS/$AOMP_ROCR_REPO_NAME
-      ${AOMP_CMAKE} $ROCR_CMAKE_OPTS -DCMAKE_C_FLAGS="-g $_prefix_map" -DCMAKE_CXX_FLAGS="-g $_prefix_map" $AOMP_REPOS/$AOMP_ROCR_REPO_NAME
-      if [ $? != 0 ] ; then
+
+      if ! ${AOMP_CMAKE} $ROCR_CMAKE_OPTS -DCMAKE_C_FLAGS="-g $_prefix_map" \
+             -DCMAKE_CXX_FLAGS="-g $_prefix_map" \
+             $AOMP_REPOS/$AOMP_ROCR_REPO_NAME; then
          echo "ERROR rocr_debug cmake failed.cmake flags"
          echo "      $ROCR_CMAKE_OPTS"
          exit 1
@@ -111,8 +113,8 @@ cd "$BUILD_AOMP/build/rocr" || exit
 echo
 echo " -----Running make for rocr ---- " 
 echo "make -j $AOMP_JOB_THREADS"
-make -j "$AOMP_JOB_THREADS"
-if [ $? != 0 ] ; then 
+
+if ! make -j "$AOMP_JOB_THREADS"; then
       echo " "
       echo "ERROR: make -j $AOMP_JOB_THREADS  FAILED"
       echo "To restart:" 
@@ -126,8 +128,8 @@ if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
    echo
    echo " -----Running make for rocr-asan ---- "
    echo "make -j $AOMP_JOB_THREADS"
-   make -j "$AOMP_JOB_THREADS"
-   if [ $? != 0 ] ; then
+
+   if ! make -j "$AOMP_JOB_THREADS"; then
       echo " "
       echo "ERROR: make -j $AOMP_JOB_THREADS FAILED"
       echo "To restart:"
@@ -140,8 +142,8 @@ if [ "$AOMP_BUILD_DEBUG" == 1 ] ; then
    cd "$BUILD_AOMP/build/rocr_debug" || exit
    echo
    echo " ----- Running make for rocr_debug ----- "
-   make -j "$AOMP_JOB_THREADS"
-   if [ $? != 0 ] ; then
+
+   if ! make -j "$AOMP_JOB_THREADS"; then
      echo " "
      echo "ERROR: make -j $AOMP_JOB_THREADS FAILED"
      echo "To restart:"
@@ -155,8 +157,8 @@ if [ "$1" == "install" ] ; then
       cd "$BUILD_AOMP/build/rocr" || exit
       echo " -----Installing to $INSTALL_ROCM/lib ----- " 
       echo "$SUDO make install "
-      $SUDO make install 
-      if [ $? != 0 ] ; then 
+
+      if ! $SUDO make install; then
          echo "ERROR make install failed "
          exit 1
       fi
@@ -165,8 +167,8 @@ if [ "$1" == "install" ] ; then
          cd "$BUILD_AOMP/build/rocr/asan" || exit
          echo " ------Installing to $INSTALL_ROCM/lib/asan ------ "
          echo "$SUDO make install"
-         $SUDO make install
-         if [ $? != 0 ] ; then
+
+         if ! $SUDO make install; then
             echo "ERROR make install failed "
             exit 1
          fi
@@ -174,8 +176,7 @@ if [ "$1" == "install" ] ; then
       if [ "$AOMP_BUILD_DEBUG" == 1 ] ; then
          cd "$BUILD_AOMP/build/rocr_debug" || exit
          echo " -----Installing to $INSTALL_ROCM/lib-debug ----- "
-         $SUDO make install
-         if [ $? != 0 ] ; then
+         if ! $SUDO make install; then
             echo "ERROR make install for rocr  failed "
             exit 1
          fi

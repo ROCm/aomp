@@ -88,8 +88,8 @@ echo
 echo " -----Running make for rocprofiler ---- " 
 echo "make -j $AOMP_JOB_THREADS"
 make -j "$AOMP_JOB_THREADS"
-make -j "$AOMP_JOB_THREADS" mytest
-if [ $? != 0 ] ; then 
+
+if ! make -j "$AOMP_JOB_THREADS" mytest; then
       echo " "
       echo "ERROR: make -j $AOMP_JOB_THREADS  FAILED"
       echo "To restart:" 
@@ -112,8 +112,8 @@ if [ "$1" == "install" ] ; then
       cd "$BUILD_AOMP/build/rocprofiler" || exit
       echo " -----Installing to $INSTALL_ROCPROF/lib ----- " 
       echo "$SUDO make install"
-      $SUDO make install 
-      if [ $? != 0 ] ; then 
+
+      if ! $SUDO make install; then
          echo "ERROR make install failed "
          exit 1
       fi

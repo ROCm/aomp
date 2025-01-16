@@ -39,6 +39,11 @@ list_repo
 return
 fi
 
+function clone_failed() {
+   echo "git clone failed for: $repodirname"
+   exit 1
+}
+
 repodirname=$AOMP_REPOS/$reponame
 echo
 if [ -d "$repodirname" ] ; then
@@ -50,20 +55,17 @@ if [ -d "$repodirname" ] ; then
      git stash -u
    fi
    echo "git pull "
-   git pull
-   if [ $? != 0 ] && [ "$IGNORE_GIT_ERROR" != 1 ] ; then
+   if ! git pull && [ "$IGNORE_GIT_ERROR" != 1 ] ; then
      echo "git pull failed for: $repodirname"
      exit 1
    fi
    echo "cd $repodirname ; git checkout $COBRANCH"
-   git checkout $COBRANCH
-   if [ $? != 0 ] && [ "$IGNORE_GIT_ERROR" != 1 ] ; then
+   if ! git checkout "$COBRANCH" && [ "$IGNORE_GIT_ERROR" != 1 ] ; then
      echo "git checkout failed for: $repodirname"
      exit 1
    fi
    echo "git pull "
-   git pull
-   if [ $? != 0 ] && [ "$IGNORE_GIT_ERROR" != 1 ]; then
+   if ! git pull && [ "$IGNORE_GIT_ERROR" != 1 ]; then
      echo "git pull failed for: $repodirname"
      exit 1
    fi
@@ -72,19 +74,18 @@ else
    cd "$AOMP_REPOS" || exit
    if [ "$SINGLE_BRANCH" == 1 ]; then
      echo "git clone -b $COBRANCH --depth=1 --single-branch $repo_web_location/$repogitname $reponame"
-     git clone -b $COBRANCH --depth=1 --single-branch $repo_web_location/$repogitname $reponame
+     if ! git clone -b "$COBRANCH" --depth=1 --single-branch "$repo_web_location/$repogitname" "$reponame"; then
+       clone_failed
+     fi
    else
      echo "git clone -b $COBRANCH $repo_web_location/$repogitname $reponame"
-     git clone -b $COBRANCH $repo_web_location/$repogitname $reponame
+     if ! git clone -b "$COBRANCH" "$repo_web_location/$repogitname" "$reponame"; then
+       clone_failed
+     fi
    fi
-   if [ $? != 0 ] ; then
-     echo "git clone failed for: $repodirname"
-     exit 1
-   else
-      echo "cd $repodirname ; git checkout $COBRANCH"
-      cd $repodirname
-      git checkout $COBRANCH
-   fi
+   echo "cd $repodirname ; git checkout $COBRANCH"
+   cd "$repodirname" || exit
+   git checkout "$COBRANCH"
 fi 
 if [ -d "$repodirname" ] ; then
    echo "cd $repodirname"
@@ -118,9 +119,8 @@ function list_repo_from_manifest(){
    if [ "$actual_branch" == "(no" ] || [ "$actual_branch" == "(HEAD" ] || [ "$actual_branch" == "(detached" ] ; then
       is_hash=1
       WARNWORD="hash"
-      git describe --exact-match --tags > /dev/null 2>&1
       # Repo has a tag checked out
-      if [ $? -eq 0 ]; then
+      if git describe --exact-match --tags > /dev/null 2>&1; then
         head_tags=$(git tag --points-at HEAD)
         # If tag is found in list of tags at HEAD, then it is correct.
         if [[ "$head_tags" =~ $branch_name ]]; then
