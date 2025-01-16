@@ -30,6 +30,8 @@ TESTS_DIR = \
     hellofort-io \
     mathdbl-tgt \
     mathquad-tgt \
+    math-acos \
+    math-erfc \
     olcf-tf-7-loop-combined \
     rocm-aomp-issue-842 \
     rocm-aomp-issue-1148 \
