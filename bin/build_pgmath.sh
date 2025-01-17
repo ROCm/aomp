@@ -84,7 +84,7 @@ export PATH=$LLVM_INSTALL_LOC/bin:$PATH
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    if [ "$SANITIZER" != 1 ]; then
       echo
-      cd $BUILD_DIR/build/pgmath
+      cd $BUILD_DIR/build/pgmath || exit
       echo " -----Running cmake ---- "
       echo ${AOMP_CMAKE} $MYCMAKEOPTS  \
            -DCMAKE_C_FLAGS="$CFLAGS -I$COMP_INC_DIR" \
@@ -103,7 +103,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 
    if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
       echo
-      cd $BUILD_DIR/build/pgmath/asan
+      cd $BUILD_DIR/build/pgmath/asan || exit
       echo " -----Running cmake pgmath-asan ---- "
       echo ${AOMP_CMAKE} $ASAN_CMAKE_OPTS \
       -DCMAKE_C_FLAGS="$CFLAGS $ASAN_FLAGS" \
@@ -127,7 +127,7 @@ fi
 
 if [ "$SANITIZER" != 1 ]; then
    echo
-   cd $BUILD_DIR/build/pgmath
+   cd $BUILD_DIR/build/pgmath || exit
    echo " -----Running make ---- "
    echo make -j $AOMP_JOB_THREADS
    make -j $AOMP_JOB_THREADS
@@ -139,7 +139,7 @@ fi
 
 if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
 echo
-cd $BUILD_DIR/build/pgmath/asan
+   cd $BUILD_DIR/build/pgmath/asan || exit
 echo " -----Running make ---- "
 echo make -j $AOMP_JOB_THREADS
 make -j $AOMP_JOB_THREADS
@@ -151,7 +151,7 @@ fi
 
 if [ "$1" == "install" ] ; then
    if [ "$SANITIZER" != 1 ]; then
-      cd $BUILD_DIR/build/pgmath
+      cd $BUILD_DIR/build/pgmath || exit
       echo " -----Installing to $INSTALL_FLANG ---- "
       $SUDO make install
       if [ $? != 0 ] ; then
@@ -162,7 +162,7 @@ if [ "$1" == "install" ] ; then
       echo
    fi
    if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
-      cd $BUILD_DIR/build/pgmath/asan
+      cd $BUILD_DIR/build/pgmath/asan || exit
       echo " -----Installing to $INSTALL_FLANG/lib/asan ---- "
       $SUDO make install
       if [ $? != 0 ] ; then

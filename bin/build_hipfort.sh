@@ -83,7 +83,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 -DHIPFORT_RANLIB=$LLVM_INSTALL_LOC/bin/llvm-ranlib "
 
   mkdir -p $BUILD_DIR/build/hipfort
-  cd $BUILD_DIR/build/hipfort
+  cd $BUILD_DIR/build/hipfort || exit
   echo
   echo " -----Running hipfort cmake ---- "
   echo ${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_Fortran_FLAGS="-ffree-form -fPIC" $REPO_DIR
@@ -100,7 +100,7 @@ if [ "$1" = "cmake" ]; then
   exit 0
 fi
 
-cd $BUILD_DIR/build/hipfort
+cd $BUILD_DIR/build/hipfort || exit
 echo
 echo " -----Running make for hipfort ---- "
 make -j $AOMP_JOB_THREADS 
@@ -122,7 +122,7 @@ fi
 
 #  ----------- Install only if asked  ----------------------------
 if [ "$1" == "install" ] ; then
-      cd $BUILD_DIR/build/hipfort
+      cd $BUILD_DIR/build/hipfort || exit
       echo
       echo " -----Installing to $HIPFORT_INSTALL_DIR ----- "
       $SUDO make install

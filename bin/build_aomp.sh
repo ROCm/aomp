@@ -202,7 +202,7 @@ echo " =================  END build_aomp.sh ==================="
 echo 
 
 if [ "$AOMP_STANDALONE_BUILD" -eq 0 ]; then
-  cd $BUILD_DIR/build
+  cd $BUILD_DIR/build || exit
   classic_version=$(ls flang-classic)
   classic_install_manifest=$classic_version/install_manifest.txt
   if [ "$SANITIZER" == 1 ]; then
@@ -215,7 +215,7 @@ if [ "$AOMP_STANDALONE_BUILD" -eq 0 ]; then
   rm -f $BUILD_DIR/build/installed_files.txt
 
   for directory in ./*/; do
-    pushd $directory > /dev/null
+    pushd $directory > /dev/null || exit
     if [[ "$directory" =~ "flang-classic" ]]; then
       install_manifest=$classic_install_manifest
     else
@@ -225,7 +225,7 @@ if [ "$AOMP_STANDALONE_BUILD" -eq 0 ]; then
       cat $install_manifest  >> $BUILD_DIR/build/installed_files.txt
       echo "" >> $BUILD_DIR/build/installed_files.txt
     fi
-    popd > /dev/null
+    popd > /dev/null || exit
   done
 fi
 exit 0

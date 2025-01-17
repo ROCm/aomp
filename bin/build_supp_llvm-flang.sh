@@ -11,8 +11,8 @@ thisdir=$(dirname "$realpath")
 
 # CLEAN_SUPP=${CLEAN_SUPP:-1}    # set if clean build needed in nightly tests
 
-cd $AOMP_REPOS
-cd aomp
+cd $AOMP_REPOS || exit
+cd aomp || exit
 
 export AOMP_SUPP=$HOME/local/llvm-flang
 export FLANG=flang

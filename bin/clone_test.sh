@@ -107,13 +107,13 @@ if [ -d $repodirname  ] ; then
    echo "--- Pulling updates to existing dir $repodirname ----"
    echo "    We assume this came from an earlier clone of $repo_web_location$repogitname"
    # FIXME look in $repodir/.git/config to be sure
-   cd $repodirname
+   cd $repodirname || exit
    #   undo the patches to RAJA
    if [ "$reponame" == "raja" ] ; then
       git checkout include/RAJA/policy/atomic_auto.hpp
-      cd blt
+      cd blt || exit
       git checkout cmake/SetupCompilerOptions.cmake
-      cd $repodirname
+      cd $repodirname || exit
    fi
    if [ "$STASH_BEFORE_PULL" == "YES" ] ; then
       if [ "$reponame" != "raja" ] ; then
@@ -134,18 +134,18 @@ if [ -d $repodirname  ] ; then
    fi
 else
    echo --- NEW CLONE of repo $reponame to $repodirname ----
-   cd $AOMP_REPOS_TEST
+   cd $AOMP_REPOS_TEST || exit
    if [[ "$reponame" == "raja" || "$reponame" == "RAJAPerf" ]]; then
      git clone --recursive -b $COBRANCH $repo_web_location$repogitname $reponame
    else
      echo git clone $repo_web_location$repogitname
      git clone ${repo_web_location}${repogitname} $reponame
      echo "cd $repodirname ; git checkout $COBRANCH"
-     cd $repodirname
+     cd $repodirname || exit
      git checkout $COBRANCH
    fi
 fi
-cd $repodirname
+cd $repodirname || exit
 echo git status
 git status
 }
@@ -202,7 +202,7 @@ while read line ; do
       REPO_REMOTE=$remote
       if [ "$1" == "list" ] ; then
          if [ -d $repodirname ] ; then
-            cd $repodirname
+            cd $repodirname || exit
             list_repo_from_manifest
          else
             echo $repodirname not found

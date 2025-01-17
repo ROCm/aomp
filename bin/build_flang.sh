@@ -84,7 +84,7 @@ else
    fi
 fi
 
-cd $BUILD_DIR/build/$AOMP_FLANG_REPO_NAME
+cd $BUILD_DIR/build/$AOMP_FLANG_REPO_NAME || exit
 
 #  Need llvm-config to come from previous LLVM build
 export PATH=$AOMP_INSTALL_DIR/bin:$PATH
@@ -110,7 +110,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    fi
 
    if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
-      cd $BUILD_DIR/build/$AOMP_FLANG_REPO_NAME/asan
+      cd $BUILD_DIR/build/$AOMP_FLANG_REPO_NAME/asan || exit
       echo
       echo " ----Running cmake for flang-asan ----- "
       echo ${AOMP_CMAKE} $ASAN_CMAKE_OPTS \
@@ -137,7 +137,7 @@ fi
 echo
 if [ "$SANITIZER" != 1 ]; then
    echo " ----- Running make ---- "
-   cd $BUILD_DIR/build/$AOMP_FLANG_REPO_NAME
+   cd $BUILD_DIR/build/$AOMP_FLANG_REPO_NAME || exit
    echo make -j $AOMP_JOB_THREADS
    make -j $AOMP_JOB_THREADS
    if [ $? != 0 ] ; then
@@ -147,7 +147,7 @@ if [ "$SANITIZER" != 1 ]; then
 fi
 
 if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
-   cd $BUILD_DIR/build/$AOMP_FLANG_REPO_NAME/asan
+   cd $BUILD_DIR/build/$AOMP_FLANG_REPO_NAME/asan || exit
    echo
    echo " ----- Running make for flang-asan ---- "
    echo make -j $AOMP_JOB_THREADS
@@ -160,7 +160,7 @@ fi
 
 if [ "$1" == "install" ] ; then
    if [ "$SANITIZER" != 1 ]; then
-      cd $BUILD_DIR/build/$AOMP_FLANG_REPO_NAME
+      cd $BUILD_DIR/build/$AOMP_FLANG_REPO_NAME || exit
       echo " -----Installing to $INSTALL_FLANG ---- "
       $SUDO make install
       if [ $? != 0 ] ; then
@@ -172,7 +172,7 @@ if [ "$1" == "install" ] ; then
 
    echo
    if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
-      cd $BUILD_DIR/build/$AOMP_FLANG_REPO_NAME/asan
+      cd $BUILD_DIR/build/$AOMP_FLANG_REPO_NAME/asan || exit
       echo " -----Installing to $INSTALL_FLANG/lib/asan ---- "
       $SUDO make install
       if [ $? != 0 ] ; then

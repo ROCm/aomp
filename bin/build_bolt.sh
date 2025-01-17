@@ -91,7 +91,7 @@ $AOMP_ORIGIN_RPATH \
 -DLIBOMP_USE_ARGOBOTS=on"
 
   mkdir -p $BUILD_DIR/build/bolt
-  cd $BUILD_DIR/build/bolt
+  cd $BUILD_DIR/build/bolt || exit
   echo
   echo " -----Running bolt cmake ---- "
   echo ${AOMP_CMAKE} $MYCMAKEOPTS $REPO_DIR
@@ -107,7 +107,7 @@ if [ "$1" = "cmake" ]; then
   exit 0
 fi
 
-cd $BUILD_DIR/build/bolt
+cd $BUILD_DIR/build/bolt || exit
 echo
 echo " -----Running make for bolt ---- "
 make -j $AOMP_JOB_THREADS 
@@ -129,7 +129,7 @@ fi
 
 #  ----------- Install only if asked  ----------------------------
 if [ "$1" == "install" ] ; then
-      cd $BUILD_DIR/build/bolt
+      cd $BUILD_DIR/build/bolt || exit
       echo
       echo " -----Installing to $BOLT_INSTALL_DIR ----- "
       $SUDO make install

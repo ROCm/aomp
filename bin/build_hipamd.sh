@@ -119,7 +119,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
   echo mkdir -p $BUILD_DIR/build/hipamd
   mkdir -p $BUILD_DIR/build/hipamd
   echo cd $BUILD_DIR/build/hipamd
-  cd $BUILD_DIR/build/hipamd
+  cd $BUILD_DIR/build/hipamd || exit
   echo
   echo " -----Running hipamd cmake ---- "
   echo ${AOMP_CMAKE} $HIPAMD_CMAKE_OPTS $HIPAMD_DIR
@@ -135,7 +135,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
      echo mkdir -p $BUILD_DIR/build/hipamd/asan
      mkdir -p $BUILD_DIR/build/hipamd/asan
      echo cd $BUILD_DIR/build/hipamd/asan
-     cd $BUILD_DIR/build/hipamd/asan
+     cd $BUILD_DIR/build/hipamd/asan || exit
      echo
      echo " -----Running hipamd-asan cmake -----"
      echo ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DCMAKE_CXX_FLAGS="$ASAN_FLAGS" $HIPAMD_DIR
@@ -157,7 +157,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
      echo mkdir -p $BUILD_DIR/build/hipamd_debug
      mkdir -p $BUILD_DIR/build/hipamd_debug
      echo cd $BUILD_DIR/build/hipamd_debug
-     cd $BUILD_DIR/build/hipamd_debug
+     cd $BUILD_DIR/build/hipamd_debug || exit
      echo
      echo " -----Running hipamd-debug cmake -----"
      _prefix_map="\""-fdebug-prefix-map=$HIPAMD_DIR=$_ompd_src_dir/clr"\""
@@ -175,7 +175,7 @@ if [ "$1" = "cmake" ]; then
   exit 0
 fi
 
-cd $BUILD_DIR/build/hipamd
+cd $BUILD_DIR/build/hipamd || exit
 
 echo
 echo " -----Running make for hipamd ---- "
@@ -197,7 +197,7 @@ else
 fi
 
 if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
-   cd $BUILD_DIR/build/hipamd/asan
+   cd $BUILD_DIR/build/hipamd/asan || exit
    echo
    echo " -----Running make for hipamd-asan ----- "
    make -j $AOMP_JOB_THREADS
@@ -218,7 +218,7 @@ if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
    fi
 fi
 if [ "$AOMP_BUILD_DEBUG" == 1 ] ; then
-   cd $BUILD_DIR/build/hipamd_debug
+   cd $BUILD_DIR/build/hipamd_debug || exit
    echo
    echo " -----Running make for hipamd-debug ----- "
    make -j $AOMP_JOB_THREADS amdhip64
@@ -251,7 +251,7 @@ function edit_installed_hip_file(){
 
 #  ----------- Install only if asked  ----------------------------
 if [ "$1" == "install" ] ; then
-   cd $BUILD_DIR/build/hipamd
+   cd $BUILD_DIR/build/hipamd || exit
    echo
    echo " -----Installing to $AOMP_INSTALL_DIR ----- "
    $SUDO make install
@@ -261,7 +261,7 @@ if [ "$1" == "install" ] ; then
    fi
 
    if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
-      cd $BUILD_DIR/build/hipamd/asan
+      cd $BUILD_DIR/build/hipamd/asan || exit
       echo
       echo " -----Installing to $AOMP_INSTALL_DIR/lib/asan"
       $SUDO make install
@@ -271,7 +271,7 @@ if [ "$1" == "install" ] ; then
       fi
    fi
    if [ "$AOMP_BUILD_DEBUG" == 1 ] ; then
-      cd $BUILD_DIR/build/hipamd_debug
+      cd $BUILD_DIR/build/hipamd_debug || exit
       echo
       echo " -----Installing to $AOMP_INSTALL_DIR/lib-debug"
       $SUDO make install

@@ -78,7 +78,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
   MYCMAKEOPTS="$AOMP_ORIGIN_RPATH -DCMAKE_BUILD_TYPE=$BUILDTYPE -DCMAKE_INSTALL_PREFIX=$AOMP_INSTALL_DIR -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON -DCMAKE_INSTALL_RPATH='\$ORIGIN/../lib' -DCMAKE_EXE_LINKER_FLAGS='-Wl,--disable-new-dtags'"
 
   mkdir -p $BUILD_DIR/build/amdsmi
-  cd $BUILD_DIR/build/amdsmi
+  cd $BUILD_DIR/build/amdsmi || exit
   echo
   echo " -----Running amdsmi cmake ---- "
   echo ${AOMP_CMAKE} $MYCMAKEOPTS $RSMILIB_REPO_DIR
@@ -94,7 +94,7 @@ if [ "$1" = "cmake" ]; then
   exit 0
 fi
 
-cd $BUILD_DIR/build/amdsmi
+cd $BUILD_DIR/build/amdsmi || exit
 echo
 echo " -----Running make for amdsmi ---- "
 make -j $AOMP_JOB_THREADS 
@@ -116,7 +116,7 @@ fi
 
 #  ----------- Install only if asked  ----------------------------
 if [ "$1" == "install" ] ; then
-      cd $BUILD_DIR/build/amdsmi
+      cd $BUILD_DIR/build/amdsmi || exit
       echo
       echo " -----Installing to $AOMP_INSTALL_DIR ----- "
       $SUDO make install

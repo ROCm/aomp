@@ -9,7 +9,7 @@ thisdir=$(dirname "$realpath")
 . $thisdir/aomp_common_vars
 # --- end standard header ----
 
-pushd $AOMP_REPOS_TEST/$AOMP_OMPTESTS_REPO_NAME
+pushd $AOMP_REPOS_TEST/$AOMP_OMPTESTS_REPO_NAME || exit
 rm -f runtime-fails.txt
 rm -f compile-fails.txt
 rm -f passing-tests.txt
@@ -23,7 +23,7 @@ total_tests=$(ls | grep "\(^t\-*\|^test\-\)" | wc -l)
 
 # Count compile/runtime fails and successful tests
 for directory in ./t-*/; do
-  pushd $directory > /dev/null
+  pushd $directory > /dev/null || exit
   testname=$(basename $(pwd))
   diff results/stdout expected > /dev/null
   return_code=$?
@@ -37,7 +37,7 @@ for directory in ./t-*/; do
       echo $testname >> $AOMP_REPOS_TEST/$AOMP_OMPTESTS_REPO_NAME/passing-tests.txt
     fi
   fi
-  popd > /dev/null
+  popd > /dev/null || exit
 done
 
 # Add skip_list tests to runtime fails
@@ -101,4 +101,4 @@ echo
   echo -------------------
   echo
 } >> omptests_run_$log
-popd
+popd || exit
