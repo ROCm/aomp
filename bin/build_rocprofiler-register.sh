@@ -48,7 +48,6 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    export CMAKE_BUILD_TYPE=$BUILD_TYPE
    CMAKE_PREFIX_PATH="$ROCM_DIR/include;$ROCM_DIR/lib;$ROCM_DIR"
    export CMAKE_PREFIX_PATH
-   GFXSEMICOLONS=`echo $GFXLIST | tr ' ' ';' `
    mkdir -p $BUILD_AOMP/build/$AOMP_PROF_REGISTER_REPO_NAME
    cd $BUILD_AOMP/build/$AOMP_PROF_REGISTER_REPO_NAME
    echo " -----Running $AOMP_PROF_REGISTER_REPO_NAME cmake ---- " 

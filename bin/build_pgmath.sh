@@ -53,8 +53,6 @@ if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   help_build_aomp
 fi
 
-REPO_DIR=$AOMP_REPOS/$AOMP_FLANG_REPO_NAME
-
 check_writable_installdir "$1" "$INSTALL_FLANG"
 
 # Skip synchronization from git repos if nocmake or install are specified
