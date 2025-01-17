@@ -242,30 +242,29 @@ if [[ "$AOMP_VERSION" == "13.1" ]] || [[ $AOMP_MAJOR_VERSION -gt 13 ]] ; then
       printf "%6s %14s %21s %25s %12s %10s %18s %18s\n" "----" "------" "----" "---------" "---------" "-------" "--------" "----------"
   #   printf "%6s %14s %24s %25s %12s %10s %18s %18s %8s\n" $REPO_REMOTE $printbranch $REPO_PATH ${REPO_PROJECT} $thiscommit $thisdatevar "$author" "$forauthor" "$WARNWORD"
    fi
-   while read line ; do 
+   while read -r line; do
       line_is_good=1
       remote=$(echo "$line" | grep remote | cut -d"=" -f2)
       sha_key_used=0
       COSHAKEY=""
-      for field in $(echo $line); do
-         if [ -z "${field##*remote=*}" ]  ; then
-           # strip off = and double quotes
-           remote=$(eval echo $(echo $field | cut -d= -f2))
+      for field in $line; do
+         if [[ "$field" =~ remote=\"([^\"]*)\" ]]; then
+           remote=${BASH_REMATCH[1]}
          fi
-         if [ -z "${field##*name=*}" ]  ; then
-           name=$(eval echo $(echo $field | cut -d= -f2))
+         if [[ "$field" =~ name=\"([^\"]*)\" ]]; then
+           name=${BASH_REMATCH[1]}
          fi
-         if [ -z "${field##*path=*}" ]  ; then
-           path=$(eval echo $(echo $field | cut -d= -f2))
+         if [[ "$field" =~ path=\"([^\"]*)\" ]]; then
+           path=${BASH_REMATCH[1]}
          fi
-         if [ -z "${field##*upstream=*}" ]  ; then
-           COBRANCH=$(eval echo $(echo $field | cut -d= -f2))
+         if [[ "$field" =~ upstream=\"([^\"]*)\" ]]; then
+           COBRANCH=${BASH_REMATCH[1]}
            sha_key_used=1
          fi
-         if [ -z "${field##*revision=*}" ] && [ "$sha_key_used" == 1 ]  ; then
-           COSHAKEY=$(eval echo $(echo $field | cut -d= -f2))
-         elif [ -z "${field##*revision=*}" ]; then
-           COBRANCH=$(eval echo $(echo $field | cut -d= -f2))
+         if [[ "$field" =~ revision=\"([^\"]*)\" ]] && [ "$sha_key_used" == 1 ]; then
+           COSHAKEY=${BASH_REMATCH[1]}
+         elif [[ "$field" =~ revision=\"([^\"]*)\" ]]; then
+           COBRANCH=${BASH_REMATCH[1]}
          fi
       done
       reponame=$path
@@ -296,8 +295,8 @@ if [[ "$AOMP_VERSION" == "13.1" ]] || [[ $AOMP_MAJOR_VERSION -gt 13 ]] ; then
             if [ "$reponame" == "aomp" ] ; then
                echo
                echo "Skipping pull of aomp repo "
-	       echo
-	    else
+               echo
+            else
                clone_or_pull
             fi
          fi
