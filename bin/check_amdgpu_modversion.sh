@@ -24,7 +24,7 @@ _llvm_install_dir=${AOMP:-/opt/rocm/llvm}
 which modinfo >/dev/null 2>/dev/null
 if [ $? == 0 ] ; then
    _amdgpu_mod_version=$(modinfo -F version amdgpu)
-   if [ ! -z $_amdgpu_mod_version ] ; then
+   if [ -n "$_amdgpu_mod_version" ] ; then
      if [ "$_amdgpu_mod_version" != "$ROCM_EXPECTED_MODVERSION" ] ; then
         if [ -f  $_llvm_install_dir/bin/aompversion ] ; then
            _aomp_version_string=$($AOMP/bin/aompversion)
