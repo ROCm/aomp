@@ -52,23 +52,23 @@ function getreponame(){
   # Manifest file must be one project line per repo
   #manifest_file=/home/release/git/aomp14/aomp/manifests/aomp_14.0-0.xml
   grep project < "$manifest_file" > "$tmpfile"
-  while read line ; do
+  while read -r line; do
     found=0
-    for field in $(echo $line) ; do
-      if [ -z "${field##*path=*}" ]  ; then
-        path=$(eval echo $(echo $field | cut -d= -f2))
+    for field in $line; do
+      if [[ "$field" =~ path=\"([^\"]*)\" ]]; then
+        path=${BASH_REMATCH[1]}
       fi
     done
-  reponame=$path
-  for component in $tarballremove; do
-    if [ "$reponame" == "$component" ]; then
-      found=1
-      break
+    reponame=$path
+    for component in $tarballremove; do
+      if [ "$reponame" == "$component" ]; then
+        found=1
+        break
+      fi
+    done
+    if [ "$found" == 0 ]; then
+      repos="$repos $reponame"
     fi
-  done
-  if [ "$found" == 0 ]; then
-    repos="$repos $reponame"
-  fi
   done < "$tmpfile"
 
   echo "$repos"

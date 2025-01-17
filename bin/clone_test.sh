@@ -171,25 +171,23 @@ if [ ! -d "${AOMP_REPOS_TEST}" ]; then
   mkdir -p "${AOMP_REPOS_TEST}"
 fi
 
-while read line ; do 
-      line_is_good=1
+while read -r line ; do
       remote=$(echo "$line" | grep remote | cut -d"=" -f2)
-      for field in $(echo $line) ; do
-         if [ -z "${field##*remote=*}" ]  ; then
-	    # strip off = and double quotes 
-	    remote=$(eval echo $(echo $field | cut -d= -f2))
+      for field in $line; do
+         if [[ "$field" =~ remote=\"([^\"]*)\" ]]; then
+           remote=${BASH_REMATCH[1]}
          fi
-         if [ -z "${field##*name=*}" ]  ; then
-	    name=$(eval echo $(echo $field | cut -d= -f2))
+         if [[ "$field" =~ name=\"([^\"]*)\" ]]; then
+           name=${BASH_REMATCH[1]}
          fi
-         if [ -z "${field##*path=*}" ]  ; then
-	    path=$(eval echo $(echo $field | cut -d= -f2))
+         if [[ "$field" =~ path=\"([^\"]*)\" ]]; then
+           path=${BASH_REMATCH[1]}
          fi
-         if [ -z "${field##*revision=*}" ]  ; then
-	    COBRANCH=$(eval echo $(echo $field | cut -d= -f2))
+         if [[ "$field" =~ revision=\"([^\"]*)\" ]]; then
+           COBRANCH=${BASH_REMATCH[1]}
          fi
-         if [ -z "${field##*groups=*}" ]  ; then
-	    groups=$(eval echo $(echo $field | cut -d= -f2))
+         if [[ "$field" =~ groups=\"([^\"]*)\" ]]; then
+           groups=${BASH_REMATCH[1]}
          fi
       done
       reponame=$path
