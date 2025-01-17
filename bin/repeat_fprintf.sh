@@ -74,6 +74,8 @@ EOF
 function run_tests() {
    _log=stdout.log
    _rc0=0
+   # Disable warning for unused 'i' variable
+   # shellcheck disable=2034
    for i in $(seq 1 "$_iters") ; do
       if $_binary ; then
          _rc0=$(( _rc0 + 1 ))
