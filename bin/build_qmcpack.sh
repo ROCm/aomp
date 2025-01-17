@@ -66,7 +66,7 @@ QMCPACK_REPO=${QMCPACK_REPO:-$AOMP_REPOS_TEST/$AOMP_QMCPACK_REPO_NAME}
 export PATH=$OPENMPI_INSTALL/bin:$AOMP/bin:$PATH
 export LD_LIBRARY_PATH=$OPENMPI_INSTALL/lib:$LD_LIBRARY_PATH
 
-pushd $QMCPACK_REPO
+pushd $QMCPACK_REPO || exit
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    if [ -d $build_folder ] ; then
       echo "FRESH START"
@@ -94,7 +94,7 @@ echo Building AOMP_offload_real_MP_$AOMP_GPU
 echo "###################################"
 
 mkdir -p $build_folder
-pushd $build_folder
+pushd $build_folder || exit
 
 complex="-DQMC_COMPLEX="
 mixed="-DQMC_MIXED_PRECISION="
@@ -192,5 +192,5 @@ echo "DONE!  Build is in $build_folder. To test:"
 echo "       cd $QMCPACK_REPO/$build_folder"
 echo "       ctest -R deterministic"
 echo 
-popd
-popd
+popd || exit
+popd || exit

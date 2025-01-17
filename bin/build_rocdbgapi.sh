@@ -66,7 +66,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
      $_cxx_flags \
      $AOMP_ORIGIN_RPATH"
    mkdir -p $BUILD_AOMP/build/rocdbgapi
-   cd $BUILD_AOMP/build/rocdbgapi
+   cd $BUILD_AOMP/build/rocdbgapi || exit
    echo " -----Running rocdbgapi cmake ---- " 
    echo ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_DBGAPI_REPO_NAME
    ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_DBGAPI_REPO_NAME
@@ -81,7 +81,7 @@ if [ "$1" = "cmake" ]; then
    exit 0
 fi
 
-cd $BUILD_AOMP/build/rocdbgapi
+cd $BUILD_AOMP/build/rocdbgapi || exit
 echo
 echo " -----Running make for rocdbgapi ---- " 
 echo make -j $AOMP_JOB_THREADS
@@ -106,7 +106,7 @@ fi
 
 #  ----------- Install only if asked  ----------------------------
 if [ "$1" == "install" ] ; then 
-      cd $BUILD_AOMP/build/rocdbgapi
+   cd $BUILD_AOMP/build/rocdbgapi || exit
       echo " -----Installing to $INSTALL_ROCDBGAPI/lib ----- " 
       echo $SUDO make install 
       $SUDO make install 

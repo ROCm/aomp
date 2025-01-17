@@ -122,7 +122,7 @@ export FC=$AOMP_INSTALL_DIR/bin/flang
 
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    if [ "$SANITIZER" != 1 ]; then
-      cd $BUILD_DIR/build/flang_runtime
+      cd $BUILD_DIR/build/flang_runtime || exit
       echo
       echo " -----Running cmake ---- "
       echo ${AOMP_CMAKE} $MYCMAKEOPTS \
@@ -143,7 +143,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    fi
 
    if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
-      cd $BUILD_DIR/build/flang_runtime/asan
+      cd $BUILD_DIR/build/flang_runtime/asan || exit
       echo
       echo " -----Running cmake flang_runtime-asan ---- "
       echo ${AOMP_CMAKE} $ASAN_CMAKE_OPTS \
@@ -171,7 +171,7 @@ fi
 echo
 if [ "$SANITIZER" != 1 ]; then
    echo " -----Running make ---- "
-   cd $BUILD_DIR/build/flang_runtime
+   cd $BUILD_DIR/build/flang_runtime || exit
    echo make -j $AOMP_JOB_THREADS
    make -j $AOMP_JOB_THREADS
    if [ $? != 0 ] ; then
@@ -183,7 +183,7 @@ fi
 if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
    echo
    echo " -----Running make ---- "
-   cd $BUILD_DIR/build/flang_runtime/asan
+   cd $BUILD_DIR/build/flang_runtime/asan || exit
    echo make -j $AOMP_JOB_THREADS
    make -j $AOMP_JOB_THREADS
    if [ $? != 0 ] ; then
@@ -194,7 +194,7 @@ fi
 
 if [ "$1" == "install" ] ; then
    if [ "$SANITIZER" != 1 ]; then
-      cd $BUILD_DIR/build/flang_runtime
+      cd $BUILD_DIR/build/flang_runtime || exit
       echo " -----Installing to $INSTALL_FLANG ---- "
       $SUDO make install
       if [ $? != 0 ] ; then
@@ -206,7 +206,7 @@ if [ "$1" == "install" ] ; then
    fi
 
    if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
-      cd $BUILD_DIR/build/flang_runtime/asan
+      cd $BUILD_DIR/build/flang_runtime/asan || exit
       echo " -----Installing to $INSTALL_FLANG/lib/asan ---- "
       $SUDO make install
       if [ $? != 0 ] ; then

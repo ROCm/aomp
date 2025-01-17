@@ -112,7 +112,7 @@ fi
 
 # Cmake for llvm classic (ROCm 5.5).
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
-   cd $BUILD_DIR/build/flang-classic/$AOMP_LFL_DIR/llvm-classic
+   cd $BUILD_DIR/build/flang-classic/$AOMP_LFL_DIR/llvm-classic || exit
    echo " -----Running cmake ---- "
    echo ${AOMP_CMAKE} $LLVMCMAKEOPTS  $AOMP_REPOS/$AOMP_FLANG_REPO_NAME/flang-classic/$AOMP_LFL_DIR/llvm-classic/llvm
    ${AOMP_CMAKE} $LLVMCMAKEOPTS  $AOMP_REPOS/$AOMP_FLANG_REPO_NAME/flang-classic/$AOMP_LFL_DIR/llvm-classic/llvm 2>&1
@@ -130,7 +130,7 @@ fi
 
 # Build llvm classic.
 echo " ---  Running $AOMP_NINJA_BIN for $BUILD_DIR/build/flang-classic/$AOMP_LFL_DIR/llvm-classic ---- "
-cd $BUILD_DIR/build/flang-classic/$AOMP_LFL_DIR/llvm-classic
+cd $BUILD_DIR/build/flang-classic/$AOMP_LFL_DIR/llvm-classic || exit
 $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS
 if [ $? != 0 ] ; then
       echo " "

@@ -73,7 +73,7 @@ if [ "$1" != "install" ] ; then
   fi
 
   mkdir -p $BUILD_DIR/build/extras
-  cd $BUILD_DIR/build/extras
+  cd $BUILD_DIR/build/extras || exit
 
   if [ $AOMP_STANDALONE_BUILD == 0 ] ; then
     SED_INSTALL_DIR=$(echo /opt/rocm/llvm | sed -e 's/\//\\\\\//g')
@@ -95,7 +95,7 @@ if [ "$1" != "install" ] ; then
   done
 fi
 
-cd $BUILD_DIR/build/extras
+cd $BUILD_DIR/build/extras || exit
 echo
 if [ "$1" != "install" ] ; then
   echo
@@ -106,7 +106,7 @@ fi
 
 #  ----------- Install only if asked  ----------------------------
 if [ "$1" == "install" ] ; then
-  cd $BUILD_DIR/build/extras
+  cd $BUILD_DIR/build/extras || exit
   echo " -----Installing to $INSTALL_EXTRAS/bin ----- "
   for util in $install_list; do
     echo "-- Installing: $INSTALL_EXTRAS/bin/$util"

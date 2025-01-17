@@ -110,7 +110,7 @@ fi
 echo
 # Cmake flang-classic.
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
-   cd $BUILD_DIR/build/flang-classic/$AOMP_LFL_DIR
+   cd $BUILD_DIR/build/flang-classic/$AOMP_LFL_DIR || exit
    echo " -----Running cmake ---- " 
    echo ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_FLANG_REPO_NAME/flang-classic/$AOMP_LFL_DIR
    ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_FLANG_REPO_NAME/flang-classic/$AOMP_LFL_DIR 2>&1
@@ -129,7 +129,7 @@ echo
 
 # Build flang-classic.
 echo " ---  Running $AOMP_NINJA_BIN for $BUILD_DIR/build/flang-classic/$AOMP_LFL_DIR ---- "
-cd $BUILD_DIR/build/flang-classic/$AOMP_LFL_DIR
+cd $BUILD_DIR/build/flang-classic/$AOMP_LFL_DIR || exit
 $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS
 if [ $? != 0 ] ; then
       echo " "

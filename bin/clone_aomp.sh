@@ -28,7 +28,7 @@ fi
 
 function list_repo(){
 repodirname=$AOMP_REPOS/$reponame
-cd $repodirname
+cd $repodirname || exit
 abranch=$(git branch | awk '/\*/ { print $2; }')
 echo "$(git config --get remote.origin.url)" " desired: " "$COBRANCH" " actual: " "$abranch" "  " "$(git log --numstat --format="%h" |head -1)"
 }
@@ -45,7 +45,7 @@ if [ -d $repodirname  ] ; then
    echo "--- Pulling updates to existing dir $repodirname ----"
    echo "    We assume this came from an earlier clone of $repo_web_location/$repogitname"
    # FIXME look in $repodir/.git/config to be sure 
-   cd $repodirname
+   cd $repodirname || exit
    if [ "$STASH_BEFORE_PULL" == "YES" ] ; then
      git stash -u
    fi
@@ -69,7 +69,7 @@ if [ -d $repodirname  ] ; then
    fi
 else 
    echo --- NEW CLONE of repo $repogitname to $repodirname ----
-   cd $AOMP_REPOS
+   cd $AOMP_REPOS || exit
    if [ "$SINGLE_BRANCH" == 1 ]; then
      echo git clone -b $COBRANCH --depth=1 --single-branch $repo_web_location/$repogitname $reponame
      git clone -b $COBRANCH --depth=1 --single-branch $repo_web_location/$repogitname $reponame
@@ -88,7 +88,7 @@ else
 fi 
 if [ -d $repodirname ] ; then 
    echo cd $repodirname
-   cd $repodirname
+   cd $repodirname || exit
    if [ "$COSHAKEY" != "" ] ; then
      echo git checkout $COSHAKEY
      git checkout $COSHAKEY
@@ -287,7 +287,7 @@ if [[ "$AOMP_VERSION" == "13.1" ]] || [[ $AOMP_MAJOR_VERSION -gt 13 ]] ; then
                REPO_PATH=$path
                REPO_RREV=$COBRANCH
 	       REPO_REMOTE=$remote
-               cd $repodirname
+               cd $repodirname || exit
                list_repo_from_manifest
             fi
          else
@@ -311,7 +311,7 @@ if [[ "$AOMP_VERSION" == "13.1" ]] || [[ $AOMP_MAJOR_VERSION -gt 13 ]] ; then
          echo mkdir -p $AOMP_REPOS/rocr-runtime
          mkdir -p $AOMP_REPOS/rocr-runtime
          echo cd $AOMP_REPOS/rocr-runtime
-         cd $AOMP_REPOS/rocr-runtime
+         cd $AOMP_REPOS/rocr-runtime || exit
          echo ln -sf -t $AOMP_REPOS/rocr-runtime ../hsa-runtime/opensrc/hsa-runtime
          ln -sf -t $AOMP_REPOS/rocr-runtime ../hsa-runtime/opensrc/hsa-runtime
          echo ln -sf hsa-runtime src

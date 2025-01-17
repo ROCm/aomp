@@ -64,7 +64,7 @@ if [ "$1" != "noconfigure" ] && [ "$1" != "install" ] ; then
 
    mkdir -p $BUILD_AOMP/build/rocgdb
    export LDFLAGS="-Wl,-rpath=$AOMP_INSTALL_DIR/lib"
-   cd $BUILD_AOMP/build/rocgdb
+   cd $BUILD_AOMP/build/rocgdb || exit
    echo " -----Running gdb configure ---- " 
    echo "$AOMP_REPOS/$AOMP_GDB_REPO_NAME/configure $MYCONFIGOPTS"
    $AOMP_REPOS/$AOMP_GDB_REPO_NAME/configure $MYCONFIGOPTS
@@ -78,7 +78,7 @@ if [ "$1" = "configure" ]; then
    exit 0
 fi
 
-cd $BUILD_AOMP/build/rocgdb
+cd $BUILD_AOMP/build/rocgdb || exit
 echo
 echo " -----Running make for gdb ---- " 
 #echo make -j $AOMP_JOB_THREADS all-gdb
@@ -104,7 +104,7 @@ fi
 
 #  ----------- Install only if asked  ----------------------------
 if [ "$1" == "install" ] ; then 
-      cd $BUILD_AOMP/build/rocgdb
+      cd $BUILD_AOMP/build/rocgdb || exit
       echo " -----Installing to $AOMP_INSTALL_DIR ----- " 
       echo $SUDO make install-info-gdb
       $SUDO make install-info-gdb

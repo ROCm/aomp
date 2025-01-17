@@ -71,7 +71,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    export ROCM_PATH=$ROCM_DIR
    export HIPCC_COMPILE_FLAGS_APPEND="--rocm-path=$ROCM_PATH"
    mkdir -p $BUILD_AOMP/build/roctracer
-   cd $BUILD_AOMP/build/roctracer
+   cd $BUILD_AOMP/build/roctracer || exit
    echo " -----Running roctracer cmake ---- " 
    ${AOMP_CMAKE} -DCMAKE_INSTALL_LIBDIR=lib -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX=$INSTALL_ROCTRACE -DCMAKE_PREFIX_PATH="""$CMAKE_PREFIX_PATH""" $CMAKE_WITH_EXPERIMENTAL $AOMP_ORIGIN_RPATH -DGPU_TARGETS="""$GFXSEMICOLONS""" -DROCM_PATH=$ROCM_DIR $AOMP_REPOS/$AOMP_TRACE_REPO_NAME
    if [ $? != 0 ] ; then 
@@ -85,7 +85,7 @@ if [ "$1" = "cmake" ]; then
    exit 0
 fi
 
-cd $BUILD_AOMP/build/roctracer
+cd $BUILD_AOMP/build/roctracer || exit
 echo
 echo " -----Running make for roctracer ---- " 
 echo make -j $AOMP_JOB_THREADS
@@ -110,7 +110,7 @@ fi
 
 #  ----------- Install only if asked  ----------------------------
 if [ "$1" == "install" ] ; then 
-      cd $BUILD_AOMP/build/roctracer
+      cd $BUILD_AOMP/build/roctracer || exit
       echo " -----Installing to $INSTALL_ROCTRACE/lib ----- " 
       echo $SUDO make install 
       $SUDO make install 

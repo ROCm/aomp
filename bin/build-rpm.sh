@@ -48,7 +48,7 @@ if [ -z "$rpmbuild_loc" ];then
    echo "ERROR:  You need to install rpm-build for $0"
    echo
    export HOME=$savehome
-   cd $curdir
+   cd $curdir || exit
    exit 1
 fi
 
@@ -103,14 +103,14 @@ sed -ie "s/\$rpmname.tar.gz/$rpmname.tar.gz/" $tmpspecfile
 cat $thisdir/debian/changelog | grep -v " --" | grep -v "UNRELEASED" >>$tmpspecfile
 
 echo --- cd ~/rpmbuild/SOURCES
-cd ~/rpmbuild/SOURCES
+cd ~/rpmbuild/SOURCES || exit
 
 if [ ! -d ${rpmname} ] ; then
       echo 
       echo "ERROR: Missing directory $tmphome/rpmbuild/SOURCES/${rpmname}"
       echo 
       export HOME=$savehome
-      cd $curdir
+    cd $curdir || exit
       exit 1
 fi
 
@@ -136,7 +136,7 @@ if [ $rc != 0 ] ; then
    echo "ERROR during rpmbuild"
    echo 
    export HOME=$savehome
-   cd $curdir
+   cd $curdir || exit
    exit 1
 fi
 
@@ -147,4 +147,4 @@ ls -lh $outfile
 echo    
 
 export HOME=$savehome
-cd $curdir
+cd $curdir || exit

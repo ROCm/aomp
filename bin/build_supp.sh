@@ -588,5 +588,4 @@ for _component in $_components ; do
   echo "# DONE: successful build of $_component on $_thisdate " >>$CMDLOGFILE
 done
 
-cd $curdir
-
+cd $curdir || exit

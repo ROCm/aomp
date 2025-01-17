@@ -161,7 +161,7 @@ check_writable_installdir "$1" "$INSTALL_PROJECT"
 
 # Fix the banner to print the AOMP version string. 
 if [ $AOMP_STANDALONE_BUILD == 1 ] ; then
-   cd $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME
+   cd $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME || exit
    MONO_REPO_ID=$(git log | grep -m1 commit | cut -d" " -f2)
    SOURCEID="Source ID:$AOMP_VERSION_STRING-$MONO_REPO_ID"
    TEMPCLFILE="/tmp/clfile$$.cpp"
@@ -191,7 +191,7 @@ else
 fi
 
 if [ $AOMP_STANDALONE_BUILD == 1 ] ; then
-   cd $BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME
+   cd $BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME || exit
    if [ -f $BUILDCLFILE ] ; then
       # only copy if there has been a change to the source.
       diff $TEMPCLFILE $BUILDCLFILE >/dev/null
@@ -208,7 +208,7 @@ if [ $AOMP_STANDALONE_BUILD == 1 ] ; then
    rm $TEMPCLFILE
 fi
 
-cd $BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME
+cd $BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME || exit
 
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    echo
@@ -276,7 +276,7 @@ if [ "$1" == "install" ] ; then
    $SUDO cp -p $BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME/bin/count $LLVM_INSTALL_LOC/bin/count
    $SUDO cp -p $BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME/bin/not $LLVM_INSTALL_LOC/bin/not
    $SUDO cp -p $BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME/bin/yaml-bench $LLVM_INSTALL_LOC/bin/yaml-bench
-   cd $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME
+   cd $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME || exit
    git checkout llvm/lib/Support/CommandLine.cpp
    echo
    echo "SUCCESSFUL INSTALL to $INSTALL_PROJECT with link to $AOMP"

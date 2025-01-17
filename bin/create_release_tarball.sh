@@ -104,7 +104,7 @@ patchloc=$thisdir/patches
 export IFS=" "
 echo "----------------- PRE-PATCH STATUS -----------------"
 for repo_name in $REPO_NAMES ; do
-   cd $AOMP_REPOS/$repo_name
+   cd $AOMP_REPOS/$repo_name || exit
    echo
    echo $repo_name: git status
    git status
@@ -121,7 +121,7 @@ for repo_name in $REPO_NAMES ; do
 done
 echo "----------------- POST-PATCH STATUS -----------------"
 for repo_name in $REPO_NAMES ; do
-   cd $AOMP_REPOS/$repo_name
+   cd $AOMP_REPOS/$repo_name || exit
    echo
    echo $repo_name: git status
    git status
@@ -135,7 +135,7 @@ tardir=$tmpdir/aomp$majorver
 echo "----- Building symbolic temp dir $tardir------------"
 echo mkdir -p $tardir
 mkdir -p $tardir
-cd $tardir
+cd $tardir || exit
 #  Copy makefile to $tardir
 echo cp -p $AOMP_REPOS/$AOMP_REPO_NAME/Makefile $tardir/Makefile
 cp -p $AOMP_REPOS/aomp/Makefile $tardir/Makefile
@@ -145,7 +145,7 @@ for repo_name in $REPO_NAMES ; do
 done
 echo ln -sf $AOMP_REPOS/$AOMP_REPO_NAME $AOMP_REPO_NAME
 ln -sf $AOMP_REPOS/$AOMP_REPO_NAME $AOMP_REPO_NAME
-cd $tmpdir
+cd $tmpdir || exit
 cmd="tar --exclude-from $thisdir/create_release_tarball_excludes -h -czf $tarball aomp$majorver "
 echo "----------------- START tar COMMAND -----------------"
 echo time $cmd
@@ -155,12 +155,12 @@ echo done creating $PWD/$tarball
 echo
 echo "----- Cleanup symbolic temp dir $tardir------------"
 echo cd $tardir
-cd $tardir
+cd $tardir || exit
 echo "rm *"
 rm *
 echo rmdir $tardir
 rmdir $tardir
-cd /tmp
+cd /tmp || exit
 echo rmdir $tmpdir
 rmdir $tmpdir
 
@@ -171,13 +171,13 @@ done
 
 echo "----------------- POST REVERSE PATCH STATUS -----------------"
 for repo_name in $REPO_NAMES ; do
-   cd $AOMP_REPOS/$repo_name
+   cd $AOMP_REPOS/$repo_name || exit
    echo
    echo $repo_name: git status
    git status
 done
 
 echo 
-cd $AOMP_REPOS/..
+cd $AOMP_REPOS/.. || exit
 echo "------ DONE! CMD:$0  FILE:$tarball ------"
 ls -lh $tarball

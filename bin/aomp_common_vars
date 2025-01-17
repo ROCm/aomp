@@ -451,12 +451,12 @@ AOMP_UMT_REPO_NAME=${AOMP_UMT_REPO_NAME:-UMT}
 AOMP_F18_REPO_NAME=${AOMP_F18_REPO_NAME:-f18}
 
 if [ -d $AOMP_REPOS/$AOMP_TRACE_REPO_NAME ] ; then
-   pushd $AOMP_REPOS/$AOMP_TRACE_REPO_NAME > /dev/null
+   pushd $AOMP_REPOS/$AOMP_TRACE_REPO_NAME > /dev/null || exit
    roctracer_branch=$(git branch --list | grep "\*" | cut -d" " -f2)
    if [ "$roctracer_branch" == "rocm-4.0.x" ] ; then
       AOMP_PATCH_CONTROL_FILE="${AOMP_REPOS}/${AOMP_REPO_NAME}/bin/patches/patch-control-file_4.0.txt"
    fi
-   popd > /dev/null
+   popd > /dev/null || exit
 fi
 AOMP_PATCH_CONTROL_FILE=${AOMP_PATCH_CONTROL_FILE:-${AOMP_REPOS}/${AOMP_REPO_NAME}/bin/patches/patch-control-file.txt}
 
@@ -534,7 +534,7 @@ function patchrepo(){
 patchdir=$1
 if [ "$AOMP_APPLY_ROCM_PATCHES" == 1 ] && [ -d "$patchdir" ] ; then
    patches=""
-   cd $patchdir
+   cd $patchdir || exit
    if [[ "$2" =~ "postinstall" ]]; then
      getpatchlist $2
    else
@@ -587,7 +587,7 @@ function removepatch(){
 patchdir=$1
 if [ "$AOMP_APPLY_ROCM_PATCHES" == 1 ] && [ -d "$patchdir" ] ; then
    patches=""
-   cd $patchdir
+   cd $patchdir || exit
    getpatchlist
    if [ "$patches" != "" ] ; then
       echo "Patchdir $patchdir"

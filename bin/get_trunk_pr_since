@@ -24,7 +24,7 @@ curdir=$PWD
 tdir="/tmp/$USER/trunk_patches"
 [ -d $tdir ] && rm -rf $tdir 
 mkdir -p $tdir
-cd $tdir
+cd $tdir || exit
 
 REVIEW_URL="https://github.com/llvm/llvm-project/pulls?q=is%3Apr++is%3A${pr_status}+%22%5BOpenMP%5D%22+in%3Atitle+updated%3A%3E%3D${date_since}"
 echo
@@ -54,19 +54,19 @@ echo " DONE getting files into $tdir"
 if [ $pr_status == "merged" ] ; then 
    #  Do not attempt to test merged commits 
    echo "The above patches are found in directory $tdir"
-   cd $curdir
+   cd $curdir || exit
    exit 0
 fi
 if [ ! -d $repo_dir ] ; then 
    echo "ERROR directory $repo_dir does not exist to test patches"
    echo 
-   cd $curdir
+   cd $curdir || exit
    exit 1
 fi
 echo " Now attempting to dry-run patches to $repo_dir"
 echo
 
-cd $repo_dir 
+cd $repo_dir || exit
 prcount=0
 failcount=0
 for patchfile in $(ls $tdir/*.patch) ; do
@@ -99,4 +99,4 @@ echo "get_trunk_pr_since could be rerun with this command:"
 echo 
 echo "   $0 $repo_dir $date_since $pr_status"
 echo
-cd $curdir
+cd $curdir || exit
