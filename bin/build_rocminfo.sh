@@ -80,7 +80,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
   MYCMAKEOPTS="$AOMP_ORIGIN_RPATH -DCMAKE_BUILD_TYPE=$BUILDTYPE -DCMAKE_INSTALL_PREFIX=$INSTALL_RINFO -DROCRTST_BLD_TYPE=$BUILDTYPE -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON -DCMAKE_INSTALL_RPATH='\$ORIGIN/../lib' -DCMAKE_EXE_LINKER_FLAGS='-Wl,--disable-new-dtags'"
 
   mkdir -p $BUILD_DIR/build/rocminfo
-  cd $BUILD_DIR/build/rocminfo
+  cd $BUILD_DIR/build/rocminfo || exit
   echo
   echo " -----Running rocminfo cmake ---- "
   echo ${AOMP_CMAKE} $MYCMAKEOPTS $RINFO_REPO_DIR
@@ -96,7 +96,7 @@ if [ "$1" = "cmake" ]; then
    exit 0
 fi
 
-cd $BUILD_DIR/build/rocminfo
+cd $BUILD_DIR/build/rocminfo || exit
 echo
 echo " -----Running make for rocminfo ---- "
 make -j $AOMP_JOB_THREADS 
@@ -118,7 +118,7 @@ fi
 
 #  ----------- Install only if asked  ----------------------------
 if [ "$1" == "install" ] ; then
-      cd $BUILD_DIR/build/rocminfo
+   cd $BUILD_DIR/build/rocminfo || exit
       echo
       echo " -----Installing to $INSTALL_RINFO ----- "
       $SUDO make install

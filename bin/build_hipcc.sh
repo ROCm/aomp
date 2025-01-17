@@ -74,7 +74,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
   MYCMAKEOPTS="-DCMAKE_BUILD_TYPE=$BUILDTYPE -DCMAKE_INSTALL_PREFIX=$AOMP_INSTALL_DIR"
 
   mkdir -p $BUILD_DIR/build/hipcc
-  cd $BUILD_DIR/build/hipcc
+  cd $BUILD_DIR/build/hipcc || exit
 
   export SED_INSTALL_DIR
   echo
@@ -92,7 +92,7 @@ if [ "$1" = "cmake" ]; then
   exit 0
 fi
 
-cd $BUILD_DIR/build/hipcc
+cd $BUILD_DIR/build/hipcc || exit
 echo
 echo " -----Running make for hipcc ---- "
 make -j $AOMP_JOB_THREADS 
@@ -114,7 +114,7 @@ fi
 
 #  ----------- Install only if asked  ----------------------------
 if [ "$1" == "install" ] ; then
-      cd $BUILD_DIR/build/hipcc
+      cd $BUILD_DIR/build/hipcc || exit
       echo
       echo " -----Installing to $INSTALL_HIPCC ----- "
       $SUDO make install

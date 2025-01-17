@@ -20,7 +20,7 @@ DEVICE_TARGET=${DEVICE_TARGET:-amdgcn-amd-amdhsa}
 echo DEVICE_ARCH   = $DEVICE_ARCH
 echo DEVICE_TARGET = $DEVICE_TARGET
 
-pushd $AOMP_REPOS_TEST/$AOMP_OMPTESTS_REPO_NAME
+pushd $AOMP_REPOS_TEST/$AOMP_OMPTESTS_REPO_NAME || exit
 rm -f runtime-fails.txt
 rm -f compile-fails.txt
 rm -f passing-tests.txt

@@ -119,13 +119,13 @@ echo
 
 echo "--- BUILDING SOURCE TARBALL $builddir/${pkgname}_$AOMP_VERSION.orig.tar.gz "
 echo "    FROM FAKEROOT: $froot "
-cd $builddir
+cd $builddir || exit
 tar -czf $builddir/${pkgname}_$AOMP_VERSION.orig.tar.gz ${pkgname}-$AOMP_VERSION
 echo "    DONE BUILDING TARBALL"
 
 echo 
 echo "--- RUNNING dch TO MANANGE CHANGELOG "
-cd  $froot
+cd $froot || exit
 # Skip changelog editor for docker release builds.
 echo dch -v ${AOMP_VERSION_STRING} -e --package $pkgname
 if [ "$DOCKER" == "1" ]; then

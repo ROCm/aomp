@@ -71,12 +71,12 @@ echo "Sleeping 5 sec..."
 sleep 5
 
 mkdir -p $BUILD_AOMP
-cd $BUILD_AOMP
+cd $BUILD_AOMP || exit
 mkdir -p build
-cd build
+cd build || exit
 rm -rf flang-runtime
 mkdir flang-runtime
-cd flang-runtime
+cd flang-runtime || exit
 
 if [ "$AOMP_USE_NINJA" == 0 ] ; then
     AOMP_SET_NINJA_GEN=""

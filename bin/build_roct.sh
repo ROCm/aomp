@@ -55,7 +55,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    $SUDO rm -rf $BUILD_AOMP/build/roct
    MYCMAKEOPTS="-DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR/lib/cmake -DCMAKE_INSTALL_PREFIX=$INSTALL_ROCT -DCMAKE_BUILD_TYPE=$BUILDTYPE $AOMP_ORIGIN_RPATH -DCMAKE_INSTALL_LIBDIR=lib"
    mkdir -p $BUILD_AOMP/build/roct
-   cd $BUILD_AOMP/build/roct
+   cd $BUILD_AOMP/build/roct || exit
    echo " -----Running roct cmake ---- " 
    echo ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_ROCT_REPO_NAME
    ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_ROCT_REPO_NAME
@@ -67,7 +67,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 
    if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
       mkdir -p $BUILD_AOMP/build/roct/asan
-      cd $BUILD_AOMP/build/roct/asan
+      cd $BUILD_AOMP/build/roct/asan || exit
       ASAN_CMAKE_OPTS="-DCMAKE_C_COMPILER=$AOMP_CLANG_COMPILER -DCMAKE_CXX_COMPILER=$AOMP_CLANGXX_COMPILER -DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR/lib/asan/cmake -DCMAKE_INSTALL_PREFIX=$INSTALL_ROCT -DCMAKE_BUILD_TYPE=$BUILDTYPE $AOMP_ASAN_ORIGIN_RPATH -DCMAKE_INSTALL_LIBDIR=$AOMP_INSTALL_DIR/lib/asan"
       echo " -----Running roct-asan cmake -----"
       echo ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DCMAKE_C_FLAGS="'$ASAN_FLAGS'" -DCMAKE_CXX_FLAGS="'$ASAN_FLAGS'" $AOMP_REPOS/$AOMP_ROCT_REPO_NAME
@@ -84,7 +84,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
       ROCT_CMAKE_OPTS="-DCMAKE_C_COMPILER=$AOMP_CLANG_COMPILER -DCMAKE_CXX_COMPILER=$AOMP_CLANGXX_COMPILER -DCMAKE_INSTALL_PREFIX=$INSTALL_ROCT -DCMAKE_BUILD_TYPE=Debug $AOMP_DEBUG_ORIGIN_RPATH -DCMAKE_INSTALL_LIBDIR=lib-debug -DBUILD_SHARED_LIBS=ON"
       echo " -----Running roct_debug cmake -----"
       mkdir -p  $BUILD_AOMP/build/roct_debug
-      cd $BUILD_AOMP/build/roct_debug
+      cd $BUILD_AOMP/build/roct_debug || exit
       _prefix_map="\""-fdebug-prefix-map=$AOMP_REPOS/$AOMP_ROCT_REPO_NAME/src=$_ompd_src_dir/roct/src"\""
       echo ${AOMP_CMAKE} $ROCT_CMAKE_OPTS -DCMAKE_C_FLAGS="-g $_prefix_map" -DCMAKE_CXX_FLAGS="-g $_prefix_map" $AOMP_REPOS/$AOMP_ROCT_REPO_NAME
       ${AOMP_CMAKE} $ROCT_CMAKE_OPTS -DCMAKE_C_FLAGS="-g $_prefix_map" -DCMAKE_CXX_FLAGS="-g $_prefix_map" $AOMP_REPOS/$AOMP_ROCT_REPO_NAME
@@ -100,7 +100,7 @@ if [ "$1" = "cmake" ]; then
    exit 0
 fi
 
-cd $BUILD_AOMP/build/roct
+cd $BUILD_AOMP/build/roct || exit
 echo
 echo " -----Running make for roct ---- " 
 make -j $AOMP_JOB_THREADS
@@ -127,7 +127,7 @@ if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
    fi
 fi
 if [ "$AOMP_BUILD_DEBUG" == 1 ] ; then
-   cd $BUILD_AOMP/build/roct_debug
+   cd $BUILD_AOMP/build/roct_debug || exit
    echo
    echo " ----- Running make for roct_debug ----- "
    make -j $AOMP_JOB_THREADS
@@ -143,7 +143,7 @@ fi
 
 #  ----------- Install only if asked  ----------------------------
 if [ "$1" == "install" ] ; then 
-      cd $BUILD_AOMP/build/roct
+      cd $BUILD_AOMP/build/roct || exit
       echo " -----Installing to $INSTALL_ROCT/lib ----- " 
       $SUDO make install 
       if [ $? != 0 ] ; then 
@@ -152,7 +152,7 @@ if [ "$1" == "install" ] ; then
       fi
 
       if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
-         cd $BUILD_AOMP/build/roct/asan
+         cd $BUILD_AOMP/build/roct/asan || exit
          echo " -----Installing to $INSTALL_ROCT/lib/asan ----- "
          $SUDO make install
          if [ $? != 0 ] ; then
@@ -161,7 +161,7 @@ if [ "$1" == "install" ] ; then
          fi
       fi
       if [ "$AOMP_BUILD_DEBUG" == 1 ] ; then
-         cd $BUILD_AOMP/build/roct_debug
+         cd $BUILD_AOMP/build/roct_debug || exit
          echo " -----Installing to $INSTALL_ROCT/lib-debug ----- "
          $SUDO make install
          if [ $? != 0 ] ; then

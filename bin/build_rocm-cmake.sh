@@ -65,7 +65,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
   MYCMAKEOPTS="-DCMAKE_INSTALL_PREFIX=$AOMP_INSTALL_DIR"
 
   mkdir -p $BUILD_DIR/build/rocm-cmake
-  cd $BUILD_DIR/build/rocm-cmake
+  cd $BUILD_DIR/build/rocm-cmake || exit
   echo
   echo " -----Running rocm-cmake cmake ---- "
   echo ${AOMP_CMAKE} $MYCMAKEOPTS $AOMP_REPOS/$AOMP_ROCMCMAKE_REPO_NAME
@@ -81,13 +81,13 @@ if [ "$1" = "cmake" ]; then
    exit 0
 fi
 
-cd $BUILD_DIR/build/rocm-cmake
+cd $BUILD_DIR/build/rocm-cmake || exit
 
 #  ----------- no make for this component
 
 #  ----------- Install only if asked  ----------------------------
 if [ "$1" == "install" ] ; then
-   cd $BUILD_DIR/build/rocm-cmake
+   cd $BUILD_DIR/build/rocm-cmake || exit
    echo
    echo " -----Installing to $AOMP_INSTALL_DIR ----- "
    $SUDO make install

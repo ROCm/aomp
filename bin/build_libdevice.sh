@@ -45,7 +45,7 @@ if [ "$1" != "install" && "$1" != "nocmake" ]; then
          $SUDO rm -rf $builddir_libdevice
       fi
       mkdir -p $builddir_libdevice
-      cd $builddir_libdevice
+      cd $builddir_libdevice || exit
       echo 
       echo DOING BUILD in Directory $builddir_libdevice
       echo 
@@ -82,7 +82,7 @@ if [ "$1" != "install" ]; then
 
    if [ "$SKIPTEST" != "YES" ] ; then 
          builddir_libdevice=$BUILD_DIR/build/libdevice
-         cd $builddir_libdevice
+         cd $builddir_libdevice || exit
          echo "running tests in $builddir_libdevice"
          make test 
       echo 
@@ -99,7 +99,7 @@ if [ "$1" == "install" ] ; then
    $SUDO mkdir -p $INSTALL_DIR/lib
    builddir_libdevice=$BUILD_DIR/build/libdevice
    echo "running make install from $builddir_libdevice"
-   cd $builddir_libdevice
+   cd $builddir_libdevice || exit
    echo $SUDO make -j $AOMP_JOB_THREADS install
    $SUDO make -j $AOMP_JOB_THREADS install
 
