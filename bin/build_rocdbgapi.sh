@@ -96,7 +96,7 @@ if [ $? != 0 ] ; then
 fi
 
 doxygen=$(which doxygen)
-if [ ! -z $doxygen ] ; then
+if [ -n "$doxygen" ] ; then
    # the ROCdbgapi CMakeLists.txt will prepare docs install if doxygen found.
    # However, the make doc has issues.  But if you dont make doc, the install
    # fails.  This 'make doc' will do enough so install does not fail.
