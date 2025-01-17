@@ -25,7 +25,7 @@
 # --- Start standard header to set AOMP environment variables ----
 realpath=$(realpath "$0")
 thisdir=$(dirname "$realpath")
-. $thisdir/aomp_common_vars
+. "$thisdir/aomp_common_vars"
 # --- end standard header ----
 
 AOMP=${AOMP:-~/usr/lib/aomp}
@@ -41,7 +41,7 @@ if [ "$USE_MODULES" == "1" ] && [ -e /etc/profile.d/modules.sh ] ; then
    module load hdf5/1.10.1
    module load openblas
    if [ "$ROCM_VER" != "none" ]; then
-     module load $ROCM_VER
+     module load "$ROCM_VER"
    fi
    BOOST_ROOT=${BOOST_ROOT:-/cm/shared/opt/boost/1.72.0}
    FFTW_HOME=${FFTW_HOME:-/cm/shared/apps/fftw/openmpi/gcc/64/3.3.8}
@@ -66,12 +66,12 @@ QMCPACK_REPO=${QMCPACK_REPO:-$AOMP_REPOS_TEST/$AOMP_QMCPACK_REPO_NAME}
 export PATH=$OPENMPI_INSTALL/bin:$AOMP/bin:$PATH
 export LD_LIBRARY_PATH=$OPENMPI_INSTALL/lib:$LD_LIBRARY_PATH
 
-pushd $QMCPACK_REPO || exit
+pushd "$QMCPACK_REPO" || exit
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
-   if [ -d $build_folder ] ; then
+   if [ -d "$build_folder" ] ; then
       echo "FRESH START"
-      echo rm -rf $build_folder
-      rm -rf $build_folder
+      echo rm -rf "$build_folder"
+      rm -rf "$build_folder"
    fi
 fi
 
@@ -80,21 +80,21 @@ clang --version
 mpicc --version
 
 echo Environment Variables:
-echo AOMP: $AOMP
-echo AOMP_GPU: $AOMP_GPU
-echo OPENMPI_INSTALL: $OPENMPI_INSTALL
-echo BOOST_ROOT: $BOOST_ROOT
-echo FFTW_HOME: $FFTW_HOME
-echo QMCPACK_REPO: $QMCPACK_REPO
-echo HDF5_ROOT: $HDF5_ROOT
+echo "AOMP: $AOMP"
+echo "AOMP_GPU: $AOMP_GPU"
+echo "OPENMPI_INSTALL: $OPENMPI_INSTALL"
+echo "BOOST_ROOT: $BOOST_ROOT"
+echo "FFTW_HOME: $FFTW_HOME"
+echo "QMCPACK_REPO: $QMCPACK_REPO"
+echo "HDF5_ROOT: $HDF5_ROOT"
 echo
 
 echo "###################################"
-echo Building AOMP_offload_real_MP_$AOMP_GPU
+echo "Building AOMP_offload_real_MP_$AOMP_GPU"
 echo "###################################"
 
-mkdir -p $build_folder
-pushd $build_folder || exit
+mkdir -p "$build_folder"
+pushd "$build_folder" || exit
 
 complex="-DQMC_COMPLEX="
 mixed="-DQMC_MIXED_PRECISION="
@@ -135,19 +135,24 @@ while [ "$1" != "" ];
 do
   case $1 in
     -c | --complex | complex)
-      echo $1 turns QMC_COMPLEX=ON;
-      opts_array[$complex]=ON ;;
+      echo "$1 turns QMC_COMPLEX=ON"
+      opts_array[$complex]=ON
+      ;;
     -m | --mixed | mixed)
-      echo $1 turns QMC_MIXED_PRECISION=ON;
-      opts_array[$mixed]=ON ;;
+      echo "$1 turns QMC_MIXED_PRECISION=ON"
+      opts_array[$mixed]=ON
+      ;;
     -mpi | --mpi | mpi)
-      echo $1 turns QMC_MPI=ON;
-      opts_array[$mpi]=ON;
-      mpi=1;
-      opts_array[$mpicc]=$OPENMPI_INSTALL/bin/mpicc;
-      opts_array[$mpicxx]=$OPENMPI_INSTALL/bin/mpicxx ;;
+      echo "$1 turns QMC_MPI=ON"
+      opts_array[$mpi]=ON
+      mpi=1
+      opts_array[$mpicc]=$OPENMPI_INSTALL/bin/mpicc
+      opts_array[$mpicxx]=$OPENMPI_INSTALL/bin/mpicxx
+      ;;
     *)
-      echo $1 option not recognized ; exit 1 ;;
+      echo "$1 option not recognized"
+      exit 1
+      ;;
   esac
   shift 1
 done
@@ -176,8 +181,8 @@ if [ "$1" = "cmake" ]; then
 fi
 
 echo
-echo make -j$AOMP_JOB_THREADS
-make -j$AOMP_JOB_THREADS
+echo "make -j$AOMP_JOB_THREADS"
+make -j"$AOMP_JOB_THREADS"
 
 # Exit if build was not successful
 if [ $? != 0 ]; then

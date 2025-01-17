@@ -6,7 +6,7 @@
 # --- Start standard header to set AOMP environment variables ----
 realpath=$(realpath "$0")
 thisdir=$(dirname "$realpath")
-. $thisdir/aomp_common_vars
+. "$thisdir/aomp_common_vars"
 # --- end standard header ----
 
 INSTALL_ROCPROF=${INSTALL_ROCPROF:-$AOMP_INSTALL_DIR}
@@ -30,7 +30,7 @@ if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   exit 
 fi
 
-if [ ! -d $AOMP_REPOS/$AOMP_PROF_REPO_NAME ] ; then 
+if [ ! -d "$AOMP_REPOS/$AOMP_PROF_REPO_NAME" ] ; then 
    echo "ERROR:  Missing repository $AOMP_REPOS/$AOMP_PROF_REPO_NAME"
    echo "        Are environment variables AOMP_REPOS and AOMP_PROF_REPO_NAME set correctly?"
    exit 1
@@ -38,15 +38,15 @@ fi
 
 check_writable_installdir "$1" "$INSTALL_ROCPROF"
 
-patchrepo $AOMP_REPOS/$AOMP_PROF_REPO_NAME
+patchrepo "$AOMP_REPOS/$AOMP_PROF_REPO_NAME"
 
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then 
    echo " " 
    echo "This is a FRESH START. ERASING any previous builds in $BUILD_AOMP/build_rocprofiler"
    echo "Use ""$0 nocmake"" or ""$0 install"" to avoid FRESH START."
 
-   echo rm -rf $BUILD_AOMP/build/rocprofiler
-   rm -rf $BUILD_AOMP/build/rocprofiler
+   echo "rm -rf $BUILD_AOMP/build/rocprofiler"
+   rm -rf "$BUILD_AOMP/build/rocprofiler"
    CMAKE_WITH_EXPERIMENTAL=""
    if [ -d "/usr/include/c++/5/experimental" ] ; then
       _loc=$(which gcc)
@@ -66,8 +66,8 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    #export HSA_KMT_LIB=$ROCM_DIR/lib 
    #export HSA_KMT_LIB_PATH=$ROCM_DIR/lib 
    GFXSEMICOLONS=$(echo "$GFXLIST" | tr ' ' ';')
-   mkdir -p $BUILD_AOMP/build/rocprofiler
-   cd $BUILD_AOMP/build/rocprofiler || exit
+   mkdir -p "$BUILD_AOMP/build/rocprofiler"
+   cd "$BUILD_AOMP/build/rocprofiler" || exit
    export PATH=$HOME/.local/bin:$INSTALL_ROCPROF/bin:$PATH
    echo " -----Running rocprofiler cmake ---- " 
    echo ${AOMP_CMAKE} -DCMAKE_INSTALL_LIBDIR=lib -DENABLE_ASAN_PACKAGING=ON -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DROCM_PATH=$AOMP_INSTALL_DIR -DCMAKE_MODULE_PATH=$INSTALL_ROCPROF/lib/cmake/hip -DCMAKE_INSTALL_PREFIX=$INSTALL_ROCPROF -DCMAKE_PREFIX_PATH="""$CMAKE_PREFIX_PATH""" $CMAKE_WITH_EXPERIMENTAL $AOMP_ORIGIN_RPATH -DGPU_TARGETS="""$GFXSEMICOLONS""" -DPROF_API_HEADER_PATH=$INSTALL_ROCPROF/include/roctracer/ext  -DHIP_ROOT_DIR=$INSTALL_ROCPROF/hip $AOMP_REPOS/$AOMP_PROF_REPO_NAME -DAQLPROFILE_LIB=$AOMP_SUPP/aqlprofile/lib/libhsa-amd-aqlprofile64.so -DCMAKE_CXX_FLAGS=-I$HOME/local/rocmsmilib/include -DHIP_HIPCC_FLAGS="-I$HOME/local/rocmsmilib/include" -DCMAKE_EXE_LINKER_FLAGS="-L$HOME/local/rocmsmilib/lib -L$HOME/local/rocmsmilib/lib64 -Wl,--disable-new-dtags"
@@ -83,12 +83,12 @@ if [ "$1" = "cmake" ]; then
    exit 0
 fi
 
-cd $BUILD_AOMP/build/rocprofiler || exit
+cd "$BUILD_AOMP/build/rocprofiler" || exit
 echo
 echo " -----Running make for rocprofiler ---- " 
-echo make -j $AOMP_JOB_THREADS
-make -j $AOMP_JOB_THREADS
-make -j $AOMP_JOB_THREADS mytest
+echo "make -j $AOMP_JOB_THREADS"
+make -j "$AOMP_JOB_THREADS"
+make -j "$AOMP_JOB_THREADS" mytest
 if [ $? != 0 ] ; then 
       echo " "
       echo "ERROR: make -j $AOMP_JOB_THREADS  FAILED"
@@ -103,21 +103,21 @@ if [ -n "$doxygen" ] ; then
    # the rocprofiler CMakeLists.txt will prepare docs install if doxygen found.
    # However, the make doc has issues.  But if you dont make doc, the install
    # fails.  This 'make doc' will do enough so install does not fail.
-   echo make -j $AOMP_JOB_THREADS doc
-   make -j $AOMP_JOB_THREADS doc 2>/dev/null >/dev/null
+   echo "make -j $AOMP_JOB_THREADS doc"
+   make -j "$AOMP_JOB_THREADS" doc 2>/dev/null >/dev/null
 fi
 
 #  ----------- Install only if asked  ----------------------------
 if [ "$1" == "install" ] ; then 
-      cd $BUILD_AOMP/build/rocprofiler || exit
+      cd "$BUILD_AOMP/build/rocprofiler" || exit
       echo " -----Installing to $INSTALL_ROCPROF/lib ----- " 
-      echo $SUDO make install 
+      echo "$SUDO make install"
       $SUDO make install 
       if [ $? != 0 ] ; then 
          echo "ERROR make install failed "
          exit 1
       fi
-      removepatch $AOMP_REPOS/$AOMP_PROF_REPO_NAME
+      removepatch "$AOMP_REPOS/$AOMP_PROF_REPO_NAME"
 else
    echo
    echo "SUCCESSFUL BUILD, please run:  $0 install"

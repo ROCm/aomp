@@ -14,10 +14,10 @@ BUILD_TYPE=${BUILD_TYPE:-Release}
 # --- Start standard header to set AOMP environment variables ----
 realpath=$(realpath "$0")
 thisdir=$(dirname "$realpath")
-. $thisdir/aomp_common_vars
+. "$thisdir/aomp_common_vars"
 # --- end standard header ----
 
-if [ $AOMP_BUILD_FLANG_CLASSIC == 0 ] ; then
+if [ "$AOMP_BUILD_FLANG_CLASSIC" == 0 ] ; then
    if [ "$1" != "install" ] ; then
       echo "WARNING:  ROCM install for $AOMP_FLANG_CLASSIC_REL/llvm-classic not found."
       echo "          This build will skip build of flang-classic."
@@ -32,7 +32,7 @@ else
     AOMP_SET_NINJA_GEN="-G Ninja"
 fi
 osversion=$(cat /etc/os-release | grep -e ^VERSION_ID)
-if [[ $osversion =~ '"7.' ]] || [[ $osversion =~ '"8' ]]; then
+if [[ $osversion =~ \"7\. ]] || [[ $osversion =~ \"8\. ]]; then
   _cxx_flag="-DCMAKE_CXX_FLAGS='-D_GLIBCXX_USE_CXX11_ABI=0'"
 else
   _cxx_flag=""
@@ -63,7 +63,7 @@ $_cxx_flag \
 $AOMP_SET_NINJA_GEN \
 "
 
-if [ $AOMP_STANDALONE_BUILD == 1 ] ; then
+if [ "$AOMP_STANDALONE_BUILD" == 1 ] ; then
   MYCMAKEOPTS="$MYCMAKEOPTS -DBUILD_SHARED_LIBS=ON $AOMP_ORIGIN_RPATH"
 else
   MYCMAKEOPTS="$MYCMAKEOPTS -DBUILD_SHARED_LIBS=OFF $OPENMP_EXTRAS_ORIGIN_RPATH"
@@ -100,7 +100,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
      exit 1
    fi
 else
-   if [ ! -d $BUILD_DIR/build/flang-classic/$AOMP_LFL_DIR ] ; then
+   if [ ! -d "$BUILD_DIR/build/flang-classic/$AOMP_LFL_DIR" ] ; then
       echo "ERROR: The build directory $BUILD_DIR/build/flang-classic/$AOMP_LFL_DIR does not exist"
       echo "       run $0 without nocmake or install options. "
       exit 1
@@ -110,7 +110,7 @@ fi
 echo
 # Cmake flang-classic.
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
-   cd $BUILD_DIR/build/flang-classic/$AOMP_LFL_DIR || exit
+   cd "$BUILD_DIR/build/flang-classic/$AOMP_LFL_DIR" || exit
    echo " -----Running cmake ---- " 
    echo ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_FLANG_REPO_NAME/flang-classic/$AOMP_LFL_DIR
    ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_FLANG_REPO_NAME/flang-classic/$AOMP_LFL_DIR 2>&1
@@ -129,8 +129,8 @@ echo
 
 # Build flang-classic.
 echo " ---  Running $AOMP_NINJA_BIN for $BUILD_DIR/build/flang-classic/$AOMP_LFL_DIR ---- "
-cd $BUILD_DIR/build/flang-classic/$AOMP_LFL_DIR || exit
-$AOMP_NINJA_BIN -j $AOMP_JOB_THREADS
+cd "$BUILD_DIR/build/flang-classic/$AOMP_LFL_DIR" || exit
+$AOMP_NINJA_BIN -j "$AOMP_JOB_THREADS"
 if [ $? != 0 ] ; then
       echo " "
       echo "ERROR: $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS  FAILED"
@@ -142,7 +142,7 @@ fi
 
 if [ "$1" == "install" ] ; then
    echo " -----Installing to $AOMP_INSTALL_DIR ---- "
-   $SUDO ${AOMP_CMAKE} --build . -j $AOMP_JOB_THREADS --target install
+   $SUDO "${AOMP_CMAKE}" --build . -j "$AOMP_JOB_THREADS" --target install
    if [ $? != 0 ] ; then
       echo "ERROR make install failed "
       exit 1

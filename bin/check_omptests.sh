@@ -6,10 +6,10 @@
 # --- Start standard header to set AOMP environment variables ----
 realpath=$(realpath "$0")
 thisdir=$(dirname "$realpath")
-. $thisdir/aomp_common_vars
+. "$thisdir/aomp_common_vars"
 # --- end standard header ----
 
-pushd $AOMP_REPOS_TEST/$AOMP_OMPTESTS_REPO_NAME || exit
+pushd "$AOMP_REPOS_TEST/$AOMP_OMPTESTS_REPO_NAME" || exit
 rm -f runtime-fails.txt
 rm -f compile-fails.txt
 rm -f passing-tests.txt
@@ -23,18 +23,18 @@ total_tests=$(ls | grep "\(^t\-*\|^test\-\)" | wc -l)
 
 # Count compile/runtime fails and successful tests
 for directory in ./t-*/; do
-  pushd $directory > /dev/null || exit
-  testname=$(basename $(pwd))
+  pushd "$directory" > /dev/null || exit
+  testname=$(basename "$(pwd)")
   diff results/stdout expected > /dev/null
   return_code=$?
   if [ $return_code != 0 ] && [ -e results/a.out ]; then
     reason=$(grep -E 'Killed' results/stderr)
-    echo $testname $reason >> $AOMP_REPOS_TEST/$AOMP_OMPTESTS_REPO_NAME/runtime-fails.txt
+    echo "$testname $reason" >> "$AOMP_REPOS_TEST/$AOMP_OMPTESTS_REPO_NAME/runtime-fails.txt"
   elif ! [[ -e results/a.out ]]; then
-    echo $testname >> $AOMP_REPOS_TEST/$AOMP_OMPTESTS_REPO_NAME/compile-fails.txt
+    echo "$testname" >> "$AOMP_REPOS_TEST/$AOMP_OMPTESTS_REPO_NAME/compile-fails.txt"
   else
     if [ -e results/a.out ]; then
-      echo $testname >> $AOMP_REPOS_TEST/$AOMP_OMPTESTS_REPO_NAME/passing-tests.txt
+      echo "$testname" >> "$AOMP_REPOS_TEST/$AOMP_OMPTESTS_REPO_NAME/passing-tests.txt"
     fi
   fi
   popd > /dev/null || exit
@@ -80,25 +80,25 @@ else
 fi
 
 echo
-echo ----- Results -----
-echo Compile Fails: $compile_fails
-echo Runtime Fails: $runtime_fails
+echo "----- Results -----"
+echo "Compile Fails: $compile_fails"
+echo "Runtime Fails: $runtime_fails"
 
-echo Successful Tests: $passing_tests/$total_tests
-echo Pass Rate: $pass_rate%
-echo -------------------
+echo "Successful Tests: $passing_tests/$total_tests"
+echo "Pass Rate: $pass_rate%"
+echo "-------------------"
 echo
 
 # Log Results
 {
   echo
-  echo ----- Results -----
-  echo Compile Fails: $compile_fails
-  echo Runtime Fails: $runtime_fails
+  echo "----- Results -----"
+  echo "Compile Fails: $compile_fails"
+  echo "Runtime Fails: $runtime_fails"
 
-  echo Successful Tests: $passing_tests/$total_tests
-  echo Pass Rate: $pass_rate%
-  echo -------------------
+  echo "Successful Tests: $passing_tests/$total_tests"
+  echo "Pass Rate: $pass_rate%"
+  echo "-------------------"
   echo
-} >> omptests_run_$log
+} >> "omptests_run_$log"
 popd || exit

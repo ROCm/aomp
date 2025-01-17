@@ -13,9 +13,9 @@
 # https://github.com/llvm/llvm-project/blob/main/flang/docs/GettingStarted.md
 #
 # --- Start standard header to set AOMP environment variables ----
-realpath=$(realpath $0)
-thisdir=$(dirname $realpath)
-. $thisdir/aomp_common_vars
+realpath=$(realpath "$0")
+thisdir=$(dirname "$realpath")
+. "$thisdir/aomp_common_vars"
 # --- end standard header ----
 
 echo "-----------------------------------------------------------------------------"
@@ -35,18 +35,18 @@ if [ -z ${AOMP_REPOS+x} ]; then
     echo "Error: AOMP_REPOS must be defined"
     exit 0
 fi
-if [ ! -x $CMAKE_C_COMPILER ]; then
+if [ ! -x "$CMAKE_C_COMPILER" ]; then
     # try again by adding the llvm subdirectory
     AOMP="$AOMP/llvm"
     CMAKE_C_COMPILER="$AOMP/bin/clang"
     CMAKE_CXX_COMPILER="$AOMP/bin/clang++"
 
-    if [ ! -x $CMAKE_C_COMPILER ]; then
+    if [ ! -x "$CMAKE_C_COMPILER" ]; then
         echo "Error: $CMAKE_C_COMPILER not found"
         exit 0
     fi
 fi
-if [ ! -x $CMAKE_CXX_COMPILER ]; then
+if [ ! -x "$CMAKE_CXX_COMPILER" ]; then
     echo "Error: $CMAKE_CXX_COMPILER not found"
     exit 0
 fi
@@ -57,7 +57,7 @@ OMPRUNTIME_DIR=$BUILD_DIR/runtimes/runtimes-bins/openmp/runtime/src
 INSTALL_DIR=$AOMP
 
 # generate ARCH_LIST from GFXLIST
-ARCH_LIST=$(echo $GFXLIST | tr ' ' ',')
+ARCH_LIST=$(echo "$GFXLIST" | tr ' ' ',')
 
 echo "BUILD_DIR          = $BUILD_DIR"
 echo "BUILD_DIR_FRT      = $BUILD_DIR_FRT"
@@ -70,8 +70,8 @@ echo "GFXLIST            = $GFXLIST"
 echo "Sleeping 5 sec..."
 sleep 5
 
-mkdir -p $BUILD_AOMP
-cd $BUILD_AOMP || exit
+mkdir -p "$BUILD_AOMP"
+cd "$BUILD_AOMP" || exit
 mkdir -p build
 cd build || exit
 rm -rf flang-runtime
@@ -91,23 +91,23 @@ ${AOMP_CMAKE} $AOMP_SET_NINJA_GEN \
     -DLLVM_ENABLE_RUNTIMES=flang-rt \
     -DFLANG_RT_EXPERIMENTAL_OFFLOAD_SUPPORT="OpenMP" \
     -DFLANG_RT_INCLUDE_TESTS=OFF \
-    -DCMAKE_C_COMPILER=$CMAKE_C_COMPILER \
-    -DCMAKE_CXX_COMPILER=$CMAKE_CXX_COMPILER \
+    -DCMAKE_C_COMPILER="$CMAKE_C_COMPILER" \
+    -DCMAKE_CXX_COMPILER="$CMAKE_CXX_COMPILER" \
     -DFLANG_RT_DEVICE_ARCHITECTURES="$ARCH_LIST" \
     -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
-    $AOMP_REPOS/llvm-project/runtimes
+    "$AOMP_REPOS/llvm-project/runtimes"
 
 $AOMP_NINJA_BIN --version
-$AOMP_NINJA_BIN -j $AOMP_JOB_THREADS flang-rt
+$AOMP_NINJA_BIN -j "$AOMP_JOB_THREADS" flang-rt
 mystat=$?
-allstat=$(($allstat+$mystat))
+allstat=$((allstat+mystat))
 echo "status: $mystat"
 
 cmd="cp $BUILD_DIR_FRT/libflang_rt.runtime.a $INSTALL_DIR/lib/libflang_rt.hostdevice.a"
-echo $cmd
+echo "$cmd"
 $cmd
 mystat=$?
-allstat=$(($allstat+$mystat))
+allstat=$((allstat+mystat))
 echo "status: $mystat"
 
 echo "allstat: $allstat"

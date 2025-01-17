@@ -6,7 +6,7 @@
 # --- Start standard header to set AOMP environment variables ----
 realpath=$(realpath "$0")
 thisdir=$(dirname "$realpath")
-. $thisdir/aomp_common_vars
+. "$thisdir/aomp_common_vars"
 # --- end standard header ----
 
 INSTALL_COMGR=${INSTALL_COMGR:-$AOMP_INSTALL_DIR}
@@ -30,7 +30,7 @@ if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   exit 
 fi
 
-if [ ! -d $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/amd/$AOMP_COMGR_REPO_NAME ] ; then
+if [ ! -d "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/amd/$AOMP_COMGR_REPO_NAME" ] ; then
    echo "ERROR:  Missing repository $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/amd/$AOMP_COMGR_REPO_NAME"
    echo "        Are environment variables AOMP_REPOS and AOMP_COMGR_REPO_NAME set correctly?"
    exit 1
@@ -40,7 +40,7 @@ check_writable_installdir "$1" "$INSTALL_COMGR"
 
 osversion=$(cat /etc/os-release)
 #if [ "$AOMP_MAJOR_VERSION" != "12" ] && [[ "$osversion" =~ "Ubuntu 16" ]];  then
-  patchrepo $REPO_DIR
+  patchrepo "$REPO_DIR"
 #fi
 
 if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
@@ -54,13 +54,13 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    echo "Use ""$0 nocmake"" or ""$0 install"" to avoid FRESH START."
 
    BUILDTYPE="Release"
-   echo $SUDO rm -rf $BUILD_AOMP/build/comgr
-   $SUDO rm -rf $BUILD_AOMP/build/comgr
+   echo $SUDO rm -rf "$BUILD_AOMP/build/comgr"
+   $SUDO rm -rf "$BUILD_AOMP/build/comgr"
    export LLVM_DIR=$AOMP_INSTALL_DIR
    export Clang_DIR=$AOMP_INSTALL_DIR
 
-   mkdir -p $BUILD_AOMP/build/comgr
-   cd $BUILD_AOMP/build/comgr || exit
+   mkdir -p "$BUILD_AOMP/build/comgr"
+   cd "$BUILD_AOMP/build/comgr" || exit
    echo " -----Running comgr cmake ---- " 
 
    DEVICELIBS_BUILD_PATH=$AOMP_REPOS/build/AOMP_LIBDEVICE_REPO_NAME
@@ -81,8 +81,8 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    fi
 
    if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
-      mkdir -p $BUILD_AOMP/build/comgr/asan
-      cd $BUILD_AOMP/build/comgr/asan || exit
+      mkdir -p "$BUILD_AOMP/build/comgr/asan"
+      cd "$BUILD_AOMP/build/comgr/asan" || exit
       echo " -----Running comgr-asan cmake ----- "
       ASAN_CMAKE_OPTS="$MYCMAKEOPTS -DCMAKE_C_COMPILER=$LLVM_INSTALL_LOC/bin/clang -DCMAKE_CXX_COMPILER=$LLVM_INSTALL_LOC/bin/clang++"
       echo ${AOMP_CMAKE} ${ASAN_CMAKE_OPTS} -DCMAKE_PREFIX_PATH="$AOMP/lib/asan/cmake;$COMMON_PREFIX_PATH:$AOMP/lib/cmake" -DCMAKE_INSTALL_LIBDIR=lib/asan $AOMP_ASAN_ORIGIN_RPATH -DCMAKE_C_FLAGS="'$ASAN_FLAGS'" -DCMAKE_CXX_FLAGS="'$ASAN_FLAGS'" $AOMP_ASAN_ORIGIN_RPATH $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/amd/$AOMP_COMGR_REPO_NAME
@@ -98,7 +98,7 @@ if [ "$1" = "cmake" ]; then
   exit 0
 fi
 
-cd $BUILD_AOMP/build/comgr || exit
+cd "$BUILD_AOMP/build/comgr" || exit
 echo
 echo " -----Running make for comgr ---- " 
 make -j $AOMP_JOB_THREADS
@@ -112,9 +112,9 @@ if [ $? != 0 ] ; then
 fi
 
 if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
-   cd $BUILD_AOMP/build/comgr/asan || exit
+   cd "$BUILD_AOMP/build/comgr/asan" || exit
    echo " -----Running make for comgr-asan ---- "
-   make -j $AOMP_JOB_THREADS
+   make -j "$AOMP_JOB_THREADS"
    if [ $? != 0 ] ; then
       echo " "
       echo "ERROR: make -j $AOMP_JOB_THREADS FAILED"
@@ -127,7 +127,7 @@ fi
 
 #  ----------- Install only if asked  ----------------------------
 if [ "$1" == "install" ] ; then 
-      cd $BUILD_AOMP/build/comgr || exit
+      cd "$BUILD_AOMP/build/comgr" || exit
       echo " -----Installing to $INSTALL_COMGR/lib ----- " 
       $SUDO make install 
       if [ $? != 0 ] ; then 
@@ -136,7 +136,7 @@ if [ "$1" == "install" ] ; then
       fi
 
       if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
-         cd $BUILD_AOMP/build/comgr/asan || exit
+         cd "$BUILD_AOMP/build/comgr/asan" || exit
          echo " -----Installing to $INSTALL_COMGR/lib/asan ----"
          $SUDO make install
          if [ $? != 0 ] ; then
@@ -145,8 +145,8 @@ if [ "$1" == "install" ] ; then
          fi
       fi
       # amd_comgr.h is now in amd_comgr/amd_comgr.h, so remove depracated file
-      [ -f $INSTALL_COMGR/include/amd_comgr.h ] && rm $INSTALL_COMGR/include/amd_comgr.h
+      [ -f "$INSTALL_COMGR/include/amd_comgr.h" ] && rm "$INSTALL_COMGR/include/amd_comgr.h"
       if [ "$AOMP_MAJOR_VERSION" != "12" ] && [[ "$osversion" =~ "Ubuntu 16" ]]; then
-        removepatch $REPO_DIR
+        removepatch "$REPO_DIR"
       fi
 fi
