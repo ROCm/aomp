@@ -26,7 +26,7 @@
 # --- Start standard header to set AOMP environment variables ----
 realpath=$(realpath "$0")
 thisdir=$(dirname "$realpath")
-. $thisdir/aomp_common_vars
+. "$thisdir/aomp_common_vars"
 # --- end standard header ----
 
 HIPCC_REPO_DIR=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/amd/hipcc
@@ -47,12 +47,12 @@ if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   exit
 fi
 
-if [ ! -d $HIPCC_REPO_DIR ] ; then
+if [ ! -d "$HIPCC_REPO_DIR" ] ; then
    echo "ERROR:  Missing repository $HIPCC_REPO_DIR/"
    exit 1
 fi
 
-if [ ! -f $LLVM_INSTALL_LOC/bin/clang ] ; then
+if [ ! -f "$LLVM_INSTALL_LOC/bin/clang" ] ; then
    echo "ERROR:  Missing file $LLVM_INSTALL_LOC/bin/clang"
    echo "        Build and install the AOMP clang compiler in $AOMP first"
    echo "        This is needed to build hipcc "
@@ -67,14 +67,14 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
   if [ -d "$BUILD_DIR/build/hipcc" ] ; then
      echo
      echo "FRESH START , CLEANING UP FROM PREVIOUS BUILD"
-     echo rm -rf $BUILD_DIR/build/hipcc
-     rm -rf $BUILD_DIR/build/hipcc
+     echo "rm -rf $BUILD_DIR/build/hipcc"
+     rm -rf "$BUILD_DIR/build/hipcc"
   fi
 
   MYCMAKEOPTS="-DCMAKE_BUILD_TYPE=$BUILDTYPE -DCMAKE_INSTALL_PREFIX=$AOMP_INSTALL_DIR"
 
-  mkdir -p $BUILD_DIR/build/hipcc
-  cd $BUILD_DIR/build/hipcc || exit
+  mkdir -p "$BUILD_DIR/build/hipcc"
+  cd "$BUILD_DIR/build/hipcc" || exit
 
   export SED_INSTALL_DIR
   echo
@@ -92,10 +92,10 @@ if [ "$1" = "cmake" ]; then
   exit 0
 fi
 
-cd $BUILD_DIR/build/hipcc || exit
+cd "$BUILD_DIR/build/hipcc" || exit
 echo
 echo " -----Running make for hipcc ---- "
-make -j $AOMP_JOB_THREADS 
+make -j "$AOMP_JOB_THREADS"
 if [ $? != 0 ] ; then
       echo " "
       echo "ERROR: make -j $AOMP_JOB_THREADS  FAILED"
@@ -114,7 +114,7 @@ fi
 
 #  ----------- Install only if asked  ----------------------------
 if [ "$1" == "install" ] ; then
-      cd $BUILD_DIR/build/hipcc || exit
+      cd "$BUILD_DIR/build/hipcc" || exit
       echo
       echo " -----Installing to $INSTALL_HIPCC ----- "
       $SUDO make install

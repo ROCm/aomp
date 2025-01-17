@@ -6,16 +6,16 @@
 # --- Start standard header to set AOMP environment variables ----
 realpath=$(realpath "$0")
 thisdir=$(dirname "$realpath")
-. $thisdir/aomp_common_vars
+. "$thisdir/aomp_common_vars"
 # --- end standard header ----
 
 function build_aomp_component() {
    osversion=$(cat /etc/os-release | grep -e ^VERSION_ID)
 
-   if [[ $osversion =~ '"7.' ]]; then
+   if [[ $osversion =~ \"7\. ]]; then
      echo "OS version 7 found $(cat /etc/os-release)"
      [ -f /opt/rh/devtoolset-7/enable ] &&  . /opt/rh/devtoolset-7/enable
-   elif [[ $osversion =~ '"8' ]]; then
+   elif [[ $osversion =~ \"8\. ]]; then
      echo "OS version 8 found $(cat /etc/os-release)"
      echo
      echo "Get updated gcc 8: export PATH=/usr/bin:\$PATH"
@@ -24,19 +24,19 @@ function build_aomp_component() {
    fi
 
    _stats_dir=$AOMP_INSTALL_DIR/.aomp_component_stats
-   mkdir -p $_stats_dir
-   touch $_stats_dir/.${COMPONENT}.ts
+   mkdir -p "$_stats_dir"
+   touch "$_stats_dir/.${COMPONENT}.ts"
    start_date=$(date)
    start_secs=$(date +%s)
 
-   $AOMP_REPOS/$AOMP_REPO_NAME/bin/build_$COMPONENT.sh "$@"
+   "$AOMP_REPOS/$AOMP_REPO_NAME/bin/build_$COMPONENT.sh" "$@"
    rc=$?
    if [ $rc != 0 ] ; then 
       echo " !!!  build_aomp.sh: BUILD FAILED FOR COMPONENT $COMPONENT !!!"
       exit $rc
    fi  
    if [ $# -eq 0 ] ; then
-       $AOMP_REPOS/$AOMP_REPO_NAME/bin/build_$COMPONENT.sh install
+       "$AOMP_REPOS/$AOMP_REPO_NAME/bin/build_$COMPONENT.sh" install
        rc=$?
        if [ $rc != 0 ] ; then 
            echo " !!!  build_aomp.sh: INSTALL FAILED FOR COMPONENT $COMPONENT !!!"
@@ -45,17 +45,17 @@ function build_aomp_component() {
        # gather stats on artifacts installed with this component build
        end_date=$(date)
        end_secs=$(date +%s)
-       find $AOMP_INSTALL_DIR -type f -newercc $_stats_dir/.${COMPONENT}.ts | xargs wc -c >$_stats_dir/$COMPONENT.files
-       echo "COMPONENT $COMPONENT START : $start_date " >$_stats_dir/$COMPONENT.stats
-       echo "COMPONENT $COMPONENT END   : $end_date" >>$_stats_dir/$COMPONENT.stats
-       echo "COMPONENT $COMPONENT TIME  : $(( $end_secs - $start_secs )) seconds" >> $_stats_dir/$COMPONENT.stats
+       find "$AOMP_INSTALL_DIR" -type f -newercc "$_stats_dir/.${COMPONENT}.ts" | xargs wc -c >"$_stats_dir/$COMPONENT.files"
+       echo "COMPONENT $COMPONENT START : $start_date " >"$_stats_dir/$COMPONENT.stats"
+       echo "COMPONENT $COMPONENT END   : $end_date" >>"$_stats_dir/$COMPONENT.stats"
+       echo "COMPONENT $COMPONENT TIME  : $(( end_secs - start_secs )) seconds" >> "$_stats_dir/$COMPONENT.stats"
        file_count=$(wc -l "$_stats_dir/$COMPONENT.files" | cut -d" " -f1)
        file_count=$(( file_count -1 ))
-       echo "COMPONENT $COMPONENT FILES : $file_count " >> $_stats_dir/$COMPONENT.stats
+       echo "COMPONENT $COMPONENT FILES : $file_count " >> "$_stats_dir/$COMPONENT.stats"
        new_bytes=$(grep " total" "$_stats_dir/$COMPONENT.files" | cut -d" " -f1 | awk '{sum += $1} END {print sum}')
        k_bytes=$(( new_bytes / 1024 ))
        m_bytes=$(( k_bytes / 1024 ))
-       echo "COMPONENT $COMPONENT SIZE  : $k_bytes KB  $m_bytes MB " >> $_stats_dir/$COMPONENT.stats
+       echo "COMPONENT $COMPONENT SIZE  : $k_bytes KB  $m_bytes MB " >> "$_stats_dir/$COMPONENT.stats"
    fi
 }
 
@@ -69,23 +69,23 @@ fi
 
 # Test update access to AOMP_INSTALL_DIR
 # This should be done early to ensure sudo (if set) does not prompt for password later
-$TOPSUDO mkdir -p $AOMP_INSTALL_DIR
+$TOPSUDO mkdir -p "$AOMP_INSTALL_DIR"
 if [ $? != 0 ] ; then
    echo "ERROR: $TOPSUDO mkdir failed, No update access to $AOMP_INSTALL_DIR"
    exit 1
 fi
-$TOPSUDO touch $AOMP_INSTALL_DIR/testfile
+$TOPSUDO touch "$AOMP_INSTALL_DIR/testfile"
 if [ $? != 0 ] ; then
    echo "ERROR: $TOPSUDO touch failed, No update access to $AOMP_INSTALL_DIR"
    exit 1
 fi
-$TOPSUDO rm $AOMP_INSTALL_DIR/testfile
+$TOPSUDO rm "$AOMP_INSTALL_DIR/testfile"
 
 #Check for gawk on Ubuntu, which is needed for the flang build.
 GAWK=$(gawk --version | grep "^GNU Awk")
 OS=$(cat /etc/os-release | grep "^NAME=")
 
-if [[ -z $GAWK ]] && [[ "$OS" == *"Ubuntu"* ]] ; then
+if [[ -z "$GAWK" ]] && [[ "$OS" == *"Ubuntu"* ]] ; then
    echo
    echo "Build Error: gawk was not found and is required for building flang! Please run 'sudo apt-get install gawk' and run build_aomp.sh again."
    echo
@@ -142,7 +142,7 @@ else
     components="$components offload"
   fi
   if [ "$AOMP_SKIP_FLANG" == 0 ] ; then
-    if [ "$SANITIZER" == 1 ] && [ -f $AOMP/bin/flang-classic ] ; then
+    if [ "$SANITIZER" == 1 ] && [ -f "$AOMP/bin/flang-classic" ] ; then
       components="$components pgmath flang flang_runtime"
     else
       components="$components llvm-classic flang-classic pgmath flang flang_runtime"
@@ -157,7 +157,7 @@ if [ -n "$1" ] ; then
 #Start build from given component (./build_aomp.sh continue openmp)
   if [ "$1" == 'continue' ] ; then
     for COMPONENT in $components ; do
-      if [ $COMPONENT == "$2" ] ; then
+      if [ "$COMPONENT" == "$2" ] ; then
         found=1
       fi
       if [[ $found -eq 1 ]] ; then
@@ -173,8 +173,8 @@ if [ -n "$1" ] ; then
 
   #Select which components to build(./build_aomp.sh select libdevice extras)
   elif [ "$1" == 'select' ] ; then
-    for ARGUMENT in $@ ; do
-      if [ $ARGUMENT != "$1" ] ; then
+    for ARGUMENT in "$@" ; do
+      if [ "$ARGUMENT" != "$1" ] ; then
         list+="$ARGUMENT "
       fi
     done
@@ -202,7 +202,7 @@ echo " =================  END build_aomp.sh ==================="
 echo 
 
 if [ "$AOMP_STANDALONE_BUILD" -eq 0 ]; then
-  cd $BUILD_DIR/build || exit
+  cd "$BUILD_DIR/build" || exit
   classic_version=$(ls flang-classic)
   classic_install_manifest=$classic_version/install_manifest.txt
   if [ "$SANITIZER" == 1 ]; then
@@ -212,18 +212,18 @@ if [ "$AOMP_STANDALONE_BUILD" -eq 0 ]; then
   fi
 
   # Clean file log
-  rm -f $BUILD_DIR/build/installed_files.txt
+  rm -f "$BUILD_DIR/build/installed_files.txt"
 
   for directory in ./*/; do
-    pushd $directory > /dev/null || exit
+    pushd "$directory" > /dev/null || exit
     if [[ "$directory" =~ "flang-classic" ]]; then
       install_manifest=$classic_install_manifest
     else
-      install_manifest=$install_manifest_orig
+      install_manifest="$install_manifest_orig"
     fi
     if [ -f "$install_manifest" ]; then
-      cat $install_manifest  >> $BUILD_DIR/build/installed_files.txt
-      echo "" >> $BUILD_DIR/build/installed_files.txt
+      cat "$install_manifest" >> "$BUILD_DIR/build/installed_files.txt"
+      echo "" >> "$BUILD_DIR/build/installed_files.txt"
     fi
     popd > /dev/null || exit
   done

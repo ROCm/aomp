@@ -7,12 +7,12 @@
 
 realpath=$(realpath "$0")
 thisdir=$(dirname "$realpath")
-. $thisdir/aomp_common_vars
+. "$thisdir/aomp_common_vars"
 # --- end standard header ----
 
 INSTALL_ROCTRACE=${INSTALL_ROCTRACE:-$AOMP_INSTALL_DIR}
 export HIP_CLANG_PATH=$LLVM_INSTALL_LOC/bin
-echo $HIP_CLANG_PATH
+echo "$HIP_CLANG_PATH"
 export ROCM_PATH=$ROCM_DIR
 
 # Needed for systems that have both AMD and Nvidia cards installed.
@@ -36,7 +36,7 @@ if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   exit 
 fi
 
-if [ ! -d $AOMP_REPOS/$AOMP_TRACE_REPO_NAME ] ; then 
+if [ ! -d "$AOMP_REPOS/$AOMP_TRACE_REPO_NAME" ] ; then
    echo "ERROR:  Missing repository $AOMP_REPOS/$AOMP_TRACE_REPO_NAME"
    echo "        Are environment variables AOMP_REPOS and AOMP_TRACE_REPO_NAME set correctly?"
    exit 1
@@ -44,15 +44,15 @@ fi
 
 check_writable_installdir "$1" "$INSTALL_ROCTRACE"
 
-patchrepo $AOMP_REPOS/$AOMP_TRACE_REPO_NAME
+patchrepo "$AOMP_REPOS/$AOMP_TRACE_REPO_NAME"
 
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then 
    echo " " 
    echo "This is a FRESH START. ERASING any previous builds in $BUILD_AOMP/build_roctracer"
    echo "Use ""$0 nocmake"" or ""$0 install"" to avoid FRESH START."
 
-   echo rm -rf $BUILD_AOMP/build/roctracer
-   rm -rf $BUILD_AOMP/build/roctracer
+   echo "rm -rf $BUILD_AOMP/build/roctracer"
+   rm -rf "$BUILD_AOMP/build/roctracer"
    CMAKE_WITH_EXPERIMENTAL=""
    if [ -d "/usr/include/c++/5/experimental" ] ; then
       _loc=$(which gcc)
@@ -70,8 +70,8 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    GFXSEMICOLONS=$(echo "$GFXLIST" | tr ' ' ';')
    export ROCM_PATH=$ROCM_DIR
    export HIPCC_COMPILE_FLAGS_APPEND="--rocm-path=$ROCM_PATH"
-   mkdir -p $BUILD_AOMP/build/roctracer
-   cd $BUILD_AOMP/build/roctracer || exit
+   mkdir -p "$BUILD_AOMP/build/roctracer"
+   cd "$BUILD_AOMP/build/roctracer" || exit
    echo " -----Running roctracer cmake ---- " 
    ${AOMP_CMAKE} -DCMAKE_INSTALL_LIBDIR=lib -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX=$INSTALL_ROCTRACE -DCMAKE_PREFIX_PATH="""$CMAKE_PREFIX_PATH""" $CMAKE_WITH_EXPERIMENTAL $AOMP_ORIGIN_RPATH -DGPU_TARGETS="""$GFXSEMICOLONS""" -DROCM_PATH=$ROCM_DIR $AOMP_REPOS/$AOMP_TRACE_REPO_NAME
    if [ $? != 0 ] ; then 
@@ -85,11 +85,11 @@ if [ "$1" = "cmake" ]; then
    exit 0
 fi
 
-cd $BUILD_AOMP/build/roctracer || exit
+cd "$BUILD_AOMP/build/roctracer" || exit
 echo
 echo " -----Running make for roctracer ---- " 
-echo make -j $AOMP_JOB_THREADS
-make -j $AOMP_JOB_THREADS
+echo "make -j $AOMP_JOB_THREADS"
+make -j "$AOMP_JOB_THREADS"
 if [ $? != 0 ] ; then 
       echo " "
       echo "ERROR: make -j $AOMP_JOB_THREADS  FAILED"
@@ -104,13 +104,13 @@ if [ -n "$doxygen" ] ; then
    # the roctracer CMakeLists.txt will prepare docs install if doxygen found.
    # However, the make doc has issues.  But if you dont make doc, the install
    # fails.  This 'make doc' will do enough so install does not fail.
-   echo make -j $AOMP_JOB_THREADS doc
-   make -j $AOMP_JOB_THREADS doc 2>/dev/null >/dev/null
+   echo "make -j $AOMP_JOB_THREADS doc"
+   make -j "$AOMP_JOB_THREADS" doc 2>/dev/null >/dev/null
 fi
 
 #  ----------- Install only if asked  ----------------------------
 if [ "$1" == "install" ] ; then 
-      cd $BUILD_AOMP/build/roctracer || exit
+      cd "$BUILD_AOMP/build/roctracer" || exit
       echo " -----Installing to $INSTALL_ROCTRACE/lib ----- " 
       echo $SUDO make install 
       $SUDO make install 
@@ -118,7 +118,7 @@ if [ "$1" == "install" ] ; then
          echo "ERROR make install failed "
          exit 1
       fi
-      removepatch $AOMP_REPOS/$AOMP_TRACE_REPO_NAME
+      removepatch "$AOMP_REPOS/$AOMP_TRACE_REPO_NAME"
 else
    echo
    echo "SUCCESSFUL BUILD, please run:  $0 install"

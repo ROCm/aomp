@@ -31,7 +31,7 @@
 # --- Start standard header to set AOMP environment variables ----
 realpath=$(realpath "$0")
 thisdir=$(dirname "$realpath")
-. $thisdir/aomp_common_vars
+. "$thisdir/aomp_common_vars"
 # --- end standard header ----
 
 BUILD_DIR=${BUILD_AOMP}
@@ -45,8 +45,8 @@ if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   exit
 fi
 
-echo checking for $AOMP_REPOS/$AOMP_ROCMCMAKE_REPO_NAME 
-if [ ! -d $AOMP_REPOS/$AOMP_ROCMCMAKE_REPO_NAME ] ; then
+echo "checking for $AOMP_REPOS/$AOMP_ROCMCMAKE_REPO_NAME"
+if [ ! -d "$AOMP_REPOS/$AOMP_ROCMCMAKE_REPO_NAME" ] ; then
    echo "ERROR:  Missing repository $AOMP_REPOS/$AOMP_ROCMCMAKE_REPO_NAME"
    exit 1
 fi
@@ -57,15 +57,15 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
   if [ -d "$BUILD_DIR/build/rocm-cmake" ] ; then
      echo
      echo "FRESH START , CLEANING UP FROM PREVIOUS BUILD"
-     echo rm -rf $BUILD_DIR/build/rocm-cmake
-     rm -rf $BUILD_DIR/build/rocm-cmake
+     echo rm -rf "$BUILD_DIR/build/rocm-cmake"
+     rm -rf "$BUILD_DIR/build/rocm-cmake"
   fi
  
   export CMAKE_PREFIX_PATH="""$AOMP_INSTALL_DIR"""
   MYCMAKEOPTS="-DCMAKE_INSTALL_PREFIX=$AOMP_INSTALL_DIR"
 
-  mkdir -p $BUILD_DIR/build/rocm-cmake
-  cd $BUILD_DIR/build/rocm-cmake || exit
+  mkdir -p "$BUILD_DIR/build/rocm-cmake"
+  cd "$BUILD_DIR/build/rocm-cmake" || exit
   echo
   echo " -----Running rocm-cmake cmake ---- "
   echo ${AOMP_CMAKE} $MYCMAKEOPTS $AOMP_REPOS/$AOMP_ROCMCMAKE_REPO_NAME
@@ -81,13 +81,13 @@ if [ "$1" = "cmake" ]; then
    exit 0
 fi
 
-cd $BUILD_DIR/build/rocm-cmake || exit
+cd "$BUILD_DIR/build/rocm-cmake" || exit
 
 #  ----------- no make for this component
 
 #  ----------- Install only if asked  ----------------------------
 if [ "$1" == "install" ] ; then
-   cd $BUILD_DIR/build/rocm-cmake || exit
+   cd "$BUILD_DIR/build/rocm-cmake" || exit
    echo
    echo " -----Installing to $AOMP_INSTALL_DIR ----- "
    $SUDO make install

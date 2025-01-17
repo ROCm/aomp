@@ -14,10 +14,10 @@ BUILD_TYPE=${BUILD_TYPE:-Release}
 # --- Start standard header to set AOMP environment variables ----
 realpath=$(realpath "$0")
 thisdir=$(dirname "$realpath")
-. $thisdir/aomp_common_vars
+. "$thisdir/aomp_common_vars"
 # --- end standard header ----
 
-if [ $AOMP_BUILD_FLANG_CLASSIC == 0 ] ; then
+if [ "$AOMP_BUILD_FLANG_CLASSIC" == 0 ] ; then
    if [ "$1" != "install" ] ; then
       echo "WARNING:  ROCM install for $AOMP_FLANG_CLASSIC_REL/llvm-classic not found."
       echo "          This build will skip build of flang-classic."
@@ -33,7 +33,7 @@ else
     AOMP_SET_NINJA_GEN="-G Ninja"
 fi
 osversion=$(cat /etc/os-release | grep -e ^VERSION_ID)
-if [[ $osversion =~ '"7.' ]] || [[ $osversion =~ '"8' ]]; then
+if [[ $osversion =~ \"7\. ]] || [[ $osversion =~ \"8\. ]]; then
   _cxx_flag="-DCMAKE_CXX_FLAGS='-D_GLIBCXX_USE_CXX11_ABI=0'"
 else
   _cxx_flag=""
@@ -43,7 +43,7 @@ fi
 # utilizes the clang runtime libraries build/install using build_project.sh.
 # The LLVM_VERSION_MAJOR of classic flang driver has to match with the clang
 # binaries generated from build_project.sh.
-LLVM_VERSION_MAJOR=$(${LLVM_INSTALL_LOC}/bin/clang --version | grep -oP '(?<=clang version )[0-9]+')
+LLVM_VERSION_MAJOR=$("${LLVM_INSTALL_LOC}"/bin/clang --version | grep -oP '(?<=clang version )[0-9]+')
 
 # We need a version of ROCM llvm that supports flang-classic 
 # via the link from flang to clang.  rocm 5.5 would be best.
@@ -99,11 +99,11 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    echo
    echo "This is a FRESH START. ERASING any previous builds in $BUILD_DIR/build/flang-classic/$AOMP_LFL_DIR"
    echo "Use ""$0 nocmake"" or ""$0 install"" to avoid FRESH START."
-   rm -rf $BUILD_DIR/build/flang-classic/$AOMP_LFL_DIR/llvm-classic
-   mkdir -p $BUILD_DIR/build/flang-classic/$AOMP_LFL_DIR
-   mkdir -p $BUILD_DIR/build/flang-classic/$AOMP_LFL_DIR/llvm-classic
+   rm -rf "$BUILD_DIR/build/flang-classic/$AOMP_LFL_DIR/llvm-classic"
+   mkdir -p "$BUILD_DIR/build/flang-classic/$AOMP_LFL_DIR"
+   mkdir -p "$BUILD_DIR/build/flang-classic/$AOMP_LFL_DIR/llvm-classic"
 else
-   if [ ! -d $BUILD_DIR/build/flang-classic/$AOMP_LFL_DIR ] ; then
+   if [ ! -d "$BUILD_DIR/build/flang-classic/$AOMP_LFL_DIR" ] ; then
       echo "ERROR: The build directory $BUILD_DIR/build/flang-classic/$AOMP_LFL_DIR does not exist"
       echo "       run $0 without nocmake or install options. "
       exit 1
@@ -112,7 +112,7 @@ fi
 
 # Cmake for llvm classic (ROCm 5.5).
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
-   cd $BUILD_DIR/build/flang-classic/$AOMP_LFL_DIR/llvm-classic || exit
+   cd "$BUILD_DIR/build/flang-classic/$AOMP_LFL_DIR/llvm-classic" || exit
    echo " -----Running cmake ---- "
    echo ${AOMP_CMAKE} $LLVMCMAKEOPTS  $AOMP_REPOS/$AOMP_FLANG_REPO_NAME/flang-classic/$AOMP_LFL_DIR/llvm-classic/llvm
    ${AOMP_CMAKE} $LLVMCMAKEOPTS  $AOMP_REPOS/$AOMP_FLANG_REPO_NAME/flang-classic/$AOMP_LFL_DIR/llvm-classic/llvm 2>&1
@@ -130,8 +130,8 @@ fi
 
 # Build llvm classic.
 echo " ---  Running $AOMP_NINJA_BIN for $BUILD_DIR/build/flang-classic/$AOMP_LFL_DIR/llvm-classic ---- "
-cd $BUILD_DIR/build/flang-classic/$AOMP_LFL_DIR/llvm-classic || exit
-$AOMP_NINJA_BIN -j $AOMP_JOB_THREADS
+cd "$BUILD_DIR/build/flang-classic/$AOMP_LFL_DIR/llvm-classic" || exit
+$AOMP_NINJA_BIN -j "$AOMP_JOB_THREADS"
 if [ $? != 0 ] ; then
       echo " "
       echo "ERROR: $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS  FAILED"

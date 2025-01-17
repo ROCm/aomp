@@ -30,7 +30,7 @@
 # --- Start standard header to set AOMP environment variables ----
 realpath=$(realpath "$0")
 thisdir=$(dirname "$realpath")
-. $thisdir/aomp_common_vars
+. "$thisdir/aomp_common_vars"
 # --- end standard header ----
 
 REPO_DIR=$AOMP_REPOS/hipfort
@@ -47,13 +47,13 @@ if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   exit
 fi
 
-if [ ! -d $REPO_DIR ] ; then
+if [ ! -d "$REPO_DIR" ] ; then
    echo "ERROR:  Missing repository $REPO_DIR/"
    exit 1
 fi
 
-if [ ! -f $AOMP/bin/clang ] ; then
-   if [ ! -f $AOMP/lib/llvm/bin/clang ] ; then
+if [ ! -f "$AOMP/bin/clang" ] ; then
+   if [ ! -f "$AOMP/lib/llvm/bin/clang" ] ; then
       echo "ERROR:  Missing file $AOMP/lib/llvm/bin/clang"
       echo " "
       exit 1
@@ -62,14 +62,14 @@ fi
 
 check_writable_installdir "$1" "$HIPFORT_INSTALL_DIR"
 
-patchrepo $AOMP_REPOS/hipfort
+patchrepo "$AOMP_REPOS/hipfort"
 
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
   if [ -d "$BUILD_DIR/build/hipfort" ] ; then
      echo
      echo "FRESH START , CLEANING UP FROM PREVIOUS BUILD"
-     echo rm -rf $BUILD_DIR/build/hipfort
-     rm -rf $BUILD_DIR/build/hipfort
+     echo "rm -rf $BUILD_DIR/build/hipfort"
+     rm -rf "$BUILD_DIR/build/hipfort"
   fi
 
   MYCMAKEOPTS=" \
@@ -82,8 +82,8 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 -DHIPFORT_AR=$LLVM_INSTALL_LOC/bin/llvm-ar \
 -DHIPFORT_RANLIB=$LLVM_INSTALL_LOC/bin/llvm-ranlib "
 
-  mkdir -p $BUILD_DIR/build/hipfort
-  cd $BUILD_DIR/build/hipfort || exit
+  mkdir -p "$BUILD_DIR/build/hipfort"
+  cd "$BUILD_DIR/build/hipfort" || exit
   echo
   echo " -----Running hipfort cmake ---- "
   echo ${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_Fortran_FLAGS="-ffree-form -fPIC" $REPO_DIR
@@ -100,10 +100,10 @@ if [ "$1" = "cmake" ]; then
   exit 0
 fi
 
-cd $BUILD_DIR/build/hipfort || exit
+cd "$BUILD_DIR/build/hipfort" || exit
 echo
 echo " -----Running make for hipfort ---- "
-make -j $AOMP_JOB_THREADS 
+make -j "$AOMP_JOB_THREADS"
 if [ $? != 0 ] ; then
       echo " "
       echo "ERROR: make -j $AOMP_JOB_THREADS  FAILED"
@@ -122,7 +122,7 @@ fi
 
 #  ----------- Install only if asked  ----------------------------
 if [ "$1" == "install" ] ; then
-      cd $BUILD_DIR/build/hipfort || exit
+      cd "$BUILD_DIR/build/hipfort" || exit
       echo
       echo " -----Installing to $HIPFORT_INSTALL_DIR ----- "
       $SUDO make install
@@ -130,5 +130,5 @@ if [ "$1" == "install" ] ; then
          echo "ERROR make install failed "
          exit 1
       fi
-      removepatch $AOMP_REPOS/hipfort
+      removepatch "$AOMP_REPOS/hipfort"
 fi

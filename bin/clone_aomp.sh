@@ -8,7 +8,7 @@
 realpath=$(realpath "$0")
 thisdir=$(dirname "$realpath")
 export AOMP_USE_CCACHE=${AOMP_USE_CCACHE:-0}
-. $thisdir/aomp_common_vars
+. "$thisdir/aomp_common_vars"
 # --- end standard header ----
 
 thischk="$AOMP_REPOS/$AOMP_REPO_NAME/bin"
@@ -28,7 +28,7 @@ fi
 
 function list_repo(){
 repodirname=$AOMP_REPOS/$reponame
-cd $repodirname || exit
+cd "$repodirname" || exit
 abranch=$(git branch | awk '/\*/ { print $2; }')
 echo "$(git config --get remote.origin.url)" " desired: " "$COBRANCH" " actual: " "$abranch" "  " "$(git log --numstat --format="%h" |head -1)"
 }
@@ -41,11 +41,11 @@ fi
 
 repodirname=$AOMP_REPOS/$reponame
 echo
-if [ -d $repodirname  ] ; then 
+if [ -d "$repodirname" ] ; then
    echo "--- Pulling updates to existing dir $repodirname ----"
    echo "    We assume this came from an earlier clone of $repo_web_location/$repogitname"
    # FIXME look in $repodir/.git/config to be sure 
-   cd $repodirname || exit
+   cd "$repodirname" || exit
    if [ "$STASH_BEFORE_PULL" == "YES" ] ; then
      git stash -u
    fi
@@ -68,13 +68,13 @@ if [ -d $repodirname  ] ; then
      exit 1
    fi
 else 
-   echo --- NEW CLONE of repo $repogitname to $repodirname ----
-   cd $AOMP_REPOS || exit
+   echo "--- NEW CLONE of repo $repogitname to $repodirname ----"
+   cd "$AOMP_REPOS" || exit
    if [ "$SINGLE_BRANCH" == 1 ]; then
-     echo git clone -b $COBRANCH --depth=1 --single-branch $repo_web_location/$repogitname $reponame
+     echo "git clone -b $COBRANCH --depth=1 --single-branch $repo_web_location/$repogitname $reponame"
      git clone -b $COBRANCH --depth=1 --single-branch $repo_web_location/$repogitname $reponame
    else
-     echo git clone -b $COBRANCH $repo_web_location/$repogitname $reponame
+     echo "git clone -b $COBRANCH $repo_web_location/$repogitname $reponame"
      git clone -b $COBRANCH $repo_web_location/$repogitname $reponame
    fi
    if [ $? != 0 ] ; then
@@ -86,14 +86,14 @@ else
       git checkout $COBRANCH
    fi
 fi 
-if [ -d $repodirname ] ; then 
-   echo cd $repodirname
-   cd $repodirname || exit
+if [ -d "$repodirname" ] ; then
+   echo "cd $repodirname"
+   cd "$repodirname" || exit
    if [ "$COSHAKEY" != "" ] ; then
-     echo git checkout $COSHAKEY
-     git checkout $COSHAKEY
+     echo "git checkout $COSHAKEY"
+     git checkout "$COSHAKEY"
    fi
-   echo git status
+   echo "git status"
    git status
 fi
 }
@@ -102,10 +102,10 @@ function list_repo_from_manifest(){
    logcommit=$(git log -1 | grep "^commit" | cut -d" " -f2 | xargs)
    thiscommit=${logcommit:0:12}
    thisdate=$(git log -1 --pretty=fuller | grep "^CommitDate:" | cut -d":" -f2- | xargs | cut -d" " -f2-)
-   get_monthnumber $thisdate
-   thisday=$(echo $thisdate | cut -d" " -f2)
-   thisyear=$(echo $thisdate | cut -d" " -f4)
-   printf -v thisdatevar "%4u-%2s-%02u" $thisyear $monthnumber $thisday
+   get_monthnumber "$thisdate"
+   thisday=$(echo "$thisdate" | cut -d" " -f2)
+   thisyear=$(echo "$thisdate" | cut -d" " -f4)
+   printf -v thisdatevar "%4u-%2s-%02u" "$thisyear" "$monthnumber" "$thisday"
    author=$(git log -1 --pretty=fuller | grep "^Commit:" | cut -d":" -f2- | cut -d"<" -f1 | xargs)
    forauthor=$(git log -1 --pretty=fuller | grep "^Author:" | cut -d":" -f2- | cut -d"<" -f1 | xargs)
    repodirname=$REPO_PATH
@@ -123,7 +123,7 @@ function list_repo_from_manifest(){
       if [ $? -eq 0 ]; then
         head_tags=$(git tag --points-at HEAD)
         # If tag is found in list of tags at HEAD, then it is correct.
-        if [[ "$head_tags" =~ "$branch_name" ]]; then
+        if [[ "$head_tags" =~ $branch_name ]]; then
           WARNWORD="tag"
           thiscommit=$branch_name
         else
@@ -179,11 +179,13 @@ function list_repo_from_manifest(){
       echo "        Manifest project: $manifest_project"
       WARNWORD="!REPO!"
    fi
-   printf "%6s %14s %21s %25s %12s %10s %18s %18s %8s\n" $REPO_REMOTE $printbranch $REPO_PATH ${REPO_PROJECT} $thiscommit $thisdatevar "$author" "$forauthor" "$WARNWORD"
+   printf "%6s %14s %21s %25s %12s %10s %18s %18s %8s\n" "$REPO_REMOTE" \
+       "$printbranch" "$REPO_PATH" "${REPO_PROJECT}" "$thiscommit" \
+       "$thisdatevar" "$author" "$forauthor" "$WARNWORD"
 }
 
 function get_monthnumber() {
-    case $(echo ${1:0:3} | tr '[a-z]' '[A-Z]') in
+    case $(echo "${1:0:3}" | tr '[:lower:]' '[:upper:]') in
         JAN) monthnumber="01" ;;
         FEB) monthnumber="02" ;;
         MAR) monthnumber="03" ;;
@@ -227,7 +229,7 @@ if [[ "$AOMP_VERSION" == "13.1" ]] || [[ $AOMP_MAJOR_VERSION -gt 13 ]] ; then
       fi
    fi
    echo "USED manifest file: $manifest_file"
-   if [ ! -f $manifest_file ] ; then 
+   if [ ! -f "$manifest_file" ] ; then
       echo "ERROR manifest file missing: $manifest_file"
       exit 1
    fi
@@ -235,7 +237,7 @@ if [[ "$AOMP_VERSION" == "13.1" ]] || [[ $AOMP_MAJOR_VERSION -gt 13 ]] ; then
    # Manifest file must be one project line per repo
    cat $manifest_file | grep project > $tmpfile
    if [ "$1" == "list" ] ; then
-      printf "MANIFEST FILE: %40s\n" $manifest_file
+      printf "MANIFEST FILE: %40s\n" "$manifest_file"
       printf "%6s %14s %21s %25s %12s %10s %18s %18s\n" "repo" "branch" "path" "repo name" "last hash" "updated" "commitor" "for author"
       printf "%6s %14s %21s %25s %12s %10s %18s %18s\n" "----" "------" "----" "---------" "---------" "-------" "--------" "----------"
   #   printf "%6s %14s %24s %25s %12s %10s %18s %18s %8s\n" $REPO_REMOTE $printbranch $REPO_PATH ${REPO_PROJECT} $thiscommit $thisdatevar "$author" "$forauthor" "$WARNWORD"
@@ -279,19 +281,19 @@ if [[ "$AOMP_VERSION" == "13.1" ]] || [[ $AOMP_MAJOR_VERSION -gt 13 ]] ; then
       else
          line_is_good=0
       fi
-      if [ $line_is_good  == 1 ] ; then
+      if [ "$line_is_good" == 1 ] ; then
          if [ "$1" == "list" ] ; then
             repodirname=$AOMP_REPOS/$reponame
-	    if [ -d $repodirname ] ; then
+            if [ -d "$repodirname" ] ; then
                REPO_PROJECT=$name
                REPO_PATH=$path
                REPO_RREV=$COBRANCH
-	       REPO_REMOTE=$remote
-               cd $repodirname || exit
+               REPO_REMOTE=$remote
+               cd "$repodirname" || exit
                list_repo_from_manifest
             fi
          else
-	    if [ $reponame == "aomp" ] ; then
+            if [ "$reponame" == "aomp" ] ; then
                echo
                echo "Skipping pull of aomp repo "
 	       echo
@@ -300,21 +302,21 @@ if [[ "$AOMP_VERSION" == "13.1" ]] || [[ $AOMP_MAJOR_VERSION -gt 13 ]] ; then
             fi
          fi
       fi  # end line_is_good
-   done <$tmpfile
-   rm $tmpfile
+   done <"$tmpfile"
+   rm "$tmpfile"
 
    # build_rocr.sh expects directory rocr-runtime which is a subdir of hsa-runtime
    # Link in the open source hsa-runtime as "src" directory
-   if [ -d $AOMP_REPOS/hsa-runtime ] ; then
-      if [ ! -L $AOMP_REPOS/rocr-runtime/src ] ; then
+   if [ -d "$AOMP_REPOS/hsa-runtime" ] ; then
+      if [ ! -L "$AOMP_REPOS/rocr-runtime/src" ] ; then
          echo "Fixing rocr-runtime with correct link to hsa-runtime/opensrc/hsa-runtime src"
-         echo mkdir -p $AOMP_REPOS/rocr-runtime
-         mkdir -p $AOMP_REPOS/rocr-runtime
-         echo cd $AOMP_REPOS/rocr-runtime
-         cd $AOMP_REPOS/rocr-runtime || exit
-         echo ln -sf -t $AOMP_REPOS/rocr-runtime ../hsa-runtime/opensrc/hsa-runtime
-         ln -sf -t $AOMP_REPOS/rocr-runtime ../hsa-runtime/opensrc/hsa-runtime
-         echo ln -sf hsa-runtime src
+         echo "mkdir -p $AOMP_REPOS/rocr-runtime"
+         mkdir -p "$AOMP_REPOS/rocr-runtime"
+         echo "cd $AOMP_REPOS/rocr-runtime"
+         cd "$AOMP_REPOS/rocr-runtime" || exit
+         echo "ln -sf -t $AOMP_REPOS/rocr-runtime ../hsa-runtime/opensrc/hsa-runtime"
+         ln -sf -t "$AOMP_REPOS/rocr-runtime" ../hsa-runtime/opensrc/hsa-runtime
+         echo "ln -sf hsa-runtime src"
          ln -sf hsa-runtime src
       fi
    fi

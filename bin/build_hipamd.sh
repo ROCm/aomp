@@ -30,7 +30,7 @@
 # --- Start standard header to set AOMP environment variables ----
 realpath=$(realpath "$0")
 thisdir=$(dirname "$realpath")
-. $thisdir/aomp_common_vars
+. "$thisdir/aomp_common_vars"
 # --- end standard header ----
 
 export HIPAMD_DIR=$AOMP_REPOS/clr
@@ -63,8 +63,8 @@ fi
 
 check_writable_installdir "$1" "$AOMP_INSTALL_DIR"
 
-patchrepo $AOMP_REPOS/hipamd
-patchrepo $AOMP_REPOS/clr
+patchrepo "$AOMP_REPOS/hipamd"
+patchrepo "$AOMP_REPOS/clr"
 
 if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
   LDFLAGS="-fuse-ld=lld $ASAN_FLAGS"
@@ -77,8 +77,8 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
   if [ -d "$BUILD_DIR/build/hipamd" ] ; then
      echo
      echo "FRESH START , CLEANING UP FROM PREVIOUS BUILD"
-     echo rm -rf $BUILD_DIR/build/hipamd
-     rm -rf $BUILD_DIR/build/hipamd
+     echo rm -rf "$BUILD_DIR/build/hipamd"
+     rm -rf "$BUILD_DIR/build/hipamd"
   fi
 
   MYCMAKEOPTS="-DCMAKE_BUILD_TYPE=$BUILDTYPE \
@@ -93,11 +93,10 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 
   # If this machine does not have an actvie amd GPU, tell hipamd
   # to use first in GFXLIST or gfx90a if no GFXLIST
-  if [ -f $LLVM_INSTALL_LOC/bin/amdgpu-arch ] ; then
-     $LLVM_INSTALL_LOC/bin/amdgpu-arch >/dev/null
-     if [ $? != 0 ] ; then
-	if [ -n "$GFXLIST" ] ; then
-           amdgpu=$(echo $GFXLIST | cut -d" " -f1)
+  if [ -f "$LLVM_INSTALL_LOC/bin/amdgpu-arch" ] ; then
+     if ! "$LLVM_INSTALL_LOC/bin/amdgpu-arch" >/dev/null; then
+        if [ -n "$GFXLIST" ] ; then
+           amdgpu=$(echo "$GFXLIST" | cut -d" " -f1)
         else
            amdgpu=gfx90a
 	fi
@@ -116,10 +115,10 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 
   HIPAMD_CMAKE_OPTS="$MYCMAKEOPTS -DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR;$HOME/local/openclicdloader -DCMAKE_INSTALL_LIBDIR=lib -DCMAKE_CXX_FLAGS=-I${AOMP_INSTALL_DIR}/include/amd_comgr -DCMAKE_CXX_FLAGS=-Wno-error=deprecated-declarations -DCMAKE_C_FLAGS=-Wno-error=deprecated-declarations -DHIP_LLVM_ROOT=$LLVM_INSTALL_LOC $AOMP_ORIGIN_RPATH"
 
-  echo mkdir -p $BUILD_DIR/build/hipamd
-  mkdir -p $BUILD_DIR/build/hipamd
-  echo cd $BUILD_DIR/build/hipamd
-  cd $BUILD_DIR/build/hipamd || exit
+  echo "mkdir -p $BUILD_DIR/build/hipamd"
+  mkdir -p "$BUILD_DIR/build/hipamd"
+  echo "cd $BUILD_DIR/build/hipamd"
+  cd "$BUILD_DIR/build/hipamd" || exit
   echo
   echo " -----Running hipamd cmake ---- "
   echo ${AOMP_CMAKE} $HIPAMD_CMAKE_OPTS $HIPAMD_DIR
@@ -132,10 +131,10 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 
   if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
      export ROCM_RPATH="$AOMP_ORIGIN_RPATH_LIST"
-     echo mkdir -p $BUILD_DIR/build/hipamd/asan
-     mkdir -p $BUILD_DIR/build/hipamd/asan
-     echo cd $BUILD_DIR/build/hipamd/asan
-     cd $BUILD_DIR/build/hipamd/asan || exit
+     echo "mkdir -p $BUILD_DIR/build/hipamd/asan"
+     mkdir -p "$BUILD_DIR/build/hipamd/asan"
+     echo "cd $BUILD_DIR/build/hipamd/asan"
+     cd "$BUILD_DIR/build/hipamd/asan" || exit
      echo
      echo " -----Running hipamd-asan cmake -----"
      echo ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DCMAKE_CXX_FLAGS="$ASAN_FLAGS" $HIPAMD_DIR
@@ -150,19 +149,19 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
     if [ -d "$BUILD_DIR/build/hipamd_debug" ] ; then
        echo
        echo "FRESH START , CLEANING UP FROM PREVIOUS BUILD"
-       echo rm -rf $BUILD_DIR/build/hipamd_debug
-       rm -rf $BUILD_DIR/build/hipamd_debug
+       echo "rm -rf $BUILD_DIR/build/hipamd_debug"
+       rm -rf "$BUILD_DIR/build/hipamd_debug"
     fi
 
-     echo mkdir -p $BUILD_DIR/build/hipamd_debug
-     mkdir -p $BUILD_DIR/build/hipamd_debug
-     echo cd $BUILD_DIR/build/hipamd_debug
-     cd $BUILD_DIR/build/hipamd_debug || exit
+     echo "mkdir -p $BUILD_DIR/build/hipamd_debug"
+     mkdir -p "$BUILD_DIR/build/hipamd_debug"
+     echo "cd $BUILD_DIR/build/hipamd_debug"
+     cd "$BUILD_DIR/build/hipamd_debug" || exit
      echo
      echo " -----Running hipamd-debug cmake -----"
      _prefix_map="\""-fdebug-prefix-map=$HIPAMD_DIR=$_ompd_src_dir/clr"\""
-     echo ${AOMP_CMAKE} $HIPAMD_DEBUG_CMAKE_OPTS -DCMAKE_CXX_FLAGS="-g $_prefix_map" -DCMAKE_C_FLAGS="-g $_prefix_map" $HIPAMD_DIR
-     ${AOMP_CMAKE} $HIPAMD_DEBUG_CMAKE_OPTS -DCMAKE_CXX_FLAGS="-g $_prefix_map" -DCMAKE_C_FLAGS="-g $_prefix_map" $HIPAMD_DIR
+     echo "${AOMP_CMAKE} $HIPAMD_DEBUG_CMAKE_OPTS -DCMAKE_CXX_FLAGS=\"-g $_prefix_map\" -DCMAKE_C_FLAGS=\"-g $_prefix_map\" $HIPAMD_DIR"
+     ${AOMP_CMAKE} "$HIPAMD_DEBUG_CMAKE_OPTS" -DCMAKE_CXX_FLAGS="-g $_prefix_map" -DCMAKE_C_FLAGS="-g $_prefix_map" "$HIPAMD_DIR"
      if [ $? != 0 ] ; then
         echo "ERROR hipamd-debug cmake failed. Cmake flags"
         echo "      $HIPAMD_DEBUG_CMAKE_OPTS"
@@ -175,11 +174,11 @@ if [ "$1" = "cmake" ]; then
   exit 0
 fi
 
-cd $BUILD_DIR/build/hipamd || exit
+cd "$BUILD_DIR/build/hipamd" || exit
 
 echo
 echo " -----Running make for hipamd ---- "
-make -j $AOMP_JOB_THREADS 
+make -j "$AOMP_JOB_THREADS"
 if [ $? != 0 ] ; then
       echo " "
       echo "ERROR: make -j $AOMP_JOB_THREADS  FAILED"
@@ -197,10 +196,10 @@ else
 fi
 
 if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
-   cd $BUILD_DIR/build/hipamd/asan || exit
+   cd "$BUILD_DIR/build/hipamd/asan" || exit
    echo
    echo " -----Running make for hipamd-asan ----- "
-   make -j $AOMP_JOB_THREADS
+   make -j "$AOMP_JOB_THREADS"
    if [ $? != 0 ] ; then
       echo " "
       echo "ERROR: make -j $AOMP_JOB_THREADS FAILED"
@@ -218,10 +217,10 @@ if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
    fi
 fi
 if [ "$AOMP_BUILD_DEBUG" == 1 ] ; then
-   cd $BUILD_DIR/build/hipamd_debug || exit
+   cd "$BUILD_DIR/build/hipamd_debug" || exit
    echo
    echo " -----Running make for hipamd-debug ----- "
-   make -j $AOMP_JOB_THREADS amdhip64
+   make -j "$AOMP_JOB_THREADS" amdhip64
    if [ $? != 0 ] ; then
       echo " "
       echo "ERROR: make -j $AOMP_JOB_THREADS FAILED"
@@ -243,15 +242,15 @@ function edit_installed_hip_file(){
    if [ -f $installed_hip_file_to_edit ] ; then
       # In hipvars.pm HIP_PATH is determined by parent directory of hipcc location.
       # Set ROCM_PATH using HIP_PATH
-      $SUDO sed -i -e "s/\"\/opt\/rocm\"/\"\$HIP_PATH\"/" $installed_file_to_edit
+      $SUDO sed -i -e "s/\"\/opt\/rocm\"/\"\$HIP_PATH\"/" "$installed_file_to_edit"
       # Set HIP_CLANG_PATH using ROCM_PATH/bin
-      $SUDO sed -i -e "s/\"\$ROCM_PATH\/llvm\/bin\"/\"\$ROCM_PATH\/bin\"/" $installed_file_to_edit
+      $SUDO sed -i -e "s/\"\$ROCM_PATH\/llvm\/bin\"/\"\$ROCM_PATH\/bin\"/" "$installed_file_to_edit"
     fi
 }
 
 #  ----------- Install only if asked  ----------------------------
 if [ "$1" == "install" ] ; then
-   cd $BUILD_DIR/build/hipamd || exit
+   cd "$BUILD_DIR/build/hipamd" || exit
    echo
    echo " -----Installing to $AOMP_INSTALL_DIR ----- "
    $SUDO make install
@@ -261,7 +260,7 @@ if [ "$1" == "install" ] ; then
    fi
 
    if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
-      cd $BUILD_DIR/build/hipamd/asan || exit
+      cd "$BUILD_DIR/build/hipamd/asan" || exit
       echo
       echo " -----Installing to $AOMP_INSTALL_DIR/lib/asan"
       $SUDO make install
@@ -271,7 +270,7 @@ if [ "$1" == "install" ] ; then
       fi
    fi
    if [ "$AOMP_BUILD_DEBUG" == 1 ] ; then
-      cd $BUILD_DIR/build/hipamd_debug || exit
+      cd "$BUILD_DIR/build/hipamd_debug" || exit
       echo
       echo " -----Installing to $AOMP_INSTALL_DIR/lib-debug"
       $SUDO make install
@@ -279,17 +278,17 @@ if [ "$1" == "install" ] ; then
          echo "ERROR make install failed "
          exit 1
       fi
-      $SUDO mkdir -p $_ompd_src_dir
-      echo  cp -r $HIPAMD_DIR/hipamd $_ompd_src_dir
-      $SUDO cp -r $HIPAMD_DIR/hipamd $_ompd_src_dir
-      echo  cp -r $HIPAMD_DIR/opencl $_ompd_src_dir
-      $SUDO cp -r $HIPAMD_DIR/opencl $_ompd_src_dir
-      echo  cp -r $HIPAMD_DIR/rocclr $_ompd_src_dir
-      $SUDO cp -r $HIPAMD_DIR/rocclr $_ompd_src_dir
+      $SUDO mkdir -p "$_ompd_src_dir"
+      echo  "cp -r $HIPAMD_DIR/hipamd $_ompd_src_dir"
+      $SUDO cp -r "$HIPAMD_DIR/hipamd" "$_ompd_src_dir"
+      echo  "cp -r $HIPAMD_DIR/opencl $_ompd_src_dir"
+      $SUDO cp -r "$HIPAMD_DIR/opencl" "$_ompd_src_dir"
+      echo  cp -r "$HIPAMD_DIR/rocclr" "$_ompd_src_dir"
+      $SUDO cp -r "$HIPAMD_DIR/rocclr" "$_ompd_src_dir"
    fi
 
-   removepatch $AOMP_REPOS/hipamd
-   removepatch $AOMP_REPOS/clr
+   removepatch "$AOMP_REPOS/hipamd"
+   removepatch "$AOMP_REPOS/clr"
 
       # The hip perl scripts have /opt/rocm hardcoded, so fix them after then are installed
    # but only if not installing to rocm.

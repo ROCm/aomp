@@ -30,7 +30,7 @@
 # --- Start standard header to set AOMP environment variables ----
 realpath=$(realpath "$0")
 thisdir=$(dirname "$realpath")
-. $thisdir/aomp_common_vars
+. "$thisdir/aomp_common_vars"
 # --- end standard header ----
 
 REPO_DIR=$AOMP_REPOS/bolt
@@ -47,7 +47,7 @@ if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   exit
 fi
 
-if [ ! -d $REPO_DIR ] ; then
+if [ ! -d "$REPO_DIR" ] ; then
    echo "ERROR:  Missing repository $REPO_DIR/"
    echo "        Try these commands till bolt is part of the AOMP manifest:"
    echo
@@ -57,7 +57,7 @@ if [ ! -d $REPO_DIR ] ; then
    exit 1
 fi
 
-if [ ! -f $AOMP/bin/clang ] ; then
+if [ ! -f "$AOMP/bin/clang" ] ; then
    echo "ERROR:  Missing file $AOMP/bin/clang"
    echo "        Build the AOMP llvm compiler in $AOMP first"
    echo "        This is needed to build the bolt libraries"
@@ -67,14 +67,14 @@ fi
 
 check_writable_installdir "$1" "$BOLT_INSTALL_DIR"
 
-patchrepo $AOMP_REPOS/bolt
+patchrepo "$AOMP_REPOS/bolt"
 
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
   if [ -d "$BUILD_DIR/build/bolt" ] ; then
      echo
      echo "FRESH START , CLEANING UP FROM PREVIOUS BUILD"
-     echo rm -rf $BUILD_DIR/build/bolt
-     rm -rf $BUILD_DIR/build/bolt
+     echo "rm -rf $BUILD_DIR/build/bolt"
+     rm -rf "$BUILD_DIR/build/bolt"
   fi
 
 MYCMAKEOPTS=" \
@@ -90,11 +90,11 @@ $AOMP_ORIGIN_RPATH \
 -DLIBOMP_INSTALL_ALIASES=OFF \
 -DLIBOMP_USE_ARGOBOTS=on"
 
-  mkdir -p $BUILD_DIR/build/bolt
-  cd $BUILD_DIR/build/bolt || exit
+  mkdir -p "$BUILD_DIR/build/bolt"
+  cd "$BUILD_DIR/build/bolt" || exit
   echo
   echo " -----Running bolt cmake ---- "
-  echo ${AOMP_CMAKE} $MYCMAKEOPTS $REPO_DIR
+  echo "${AOMP_CMAKE} $MYCMAKEOPTS $REPO_DIR"
   ${AOMP_CMAKE} $MYCMAKEOPTS $REPO_DIR
   if [ $? != 0 ] ; then
       echo "ERROR bolt cmake failed. Cmake flags"
@@ -107,10 +107,10 @@ if [ "$1" = "cmake" ]; then
   exit 0
 fi
 
-cd $BUILD_DIR/build/bolt || exit
+cd "$BUILD_DIR/build/bolt" || exit
 echo
 echo " -----Running make for bolt ---- "
-make -j $AOMP_JOB_THREADS 
+make -j "$AOMP_JOB_THREADS"
 if [ $? != 0 ] ; then
       echo " "
       echo "ERROR: make -j $AOMP_JOB_THREADS  FAILED"
@@ -129,7 +129,7 @@ fi
 
 #  ----------- Install only if asked  ----------------------------
 if [ "$1" == "install" ] ; then
-      cd $BUILD_DIR/build/bolt || exit
+      cd "$BUILD_DIR/build/bolt" || exit
       echo
       echo " -----Installing to $BOLT_INSTALL_DIR ----- "
       $SUDO make install
@@ -137,5 +137,5 @@ if [ "$1" == "install" ] ; then
          echo "ERROR make install failed "
          exit 1
       fi
-      removepatch $AOMP_REPOS/bolt
+      removepatch "$AOMP_REPOS/bolt"
 fi

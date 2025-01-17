@@ -32,7 +32,7 @@
 # --- Start standard header to set AOMP environment variables ----
 realpath=$(realpath "$0")
 thisdir=$(dirname "$realpath")
-. $thisdir/aomp_common_vars
+. "$thisdir/aomp_common_vars"
 # --- end standard header ----
 
 AOMP_REPO_DIR=$AOMP_REPOS/$AOMP_REPO_NAME
@@ -42,7 +42,7 @@ BUILD_DIR=${BUILD_AOMP}
 INSTALL_EXTRAS=${INSTALL_EXTRAS:-$LLVM_INSTALL_LOC}
 export LLVM_DIR=$LLVM_INSTALL_LOC
 
-if [ $AOMP_STANDALONE_BUILD == 1 ] ; then
+if [ "$AOMP_STANDALONE_BUILD" == 1 ] ; then
   install_list="gpurun rebundle_hip_lib.sh raja_build.sh kokkos_build.sh aompversion blt.patch raja.patch modulefile"
 else
   install_list="gpurun"
@@ -64,38 +64,38 @@ if [ "$1" != "install" ] ; then
   if [ -d "$BUILD_DIR/build/extras" ] ; then
     echo
     echo "FRESH START , CLEANING UP FROM PREVIOUS BUILD"
-    echo rm -rf $BUILD_DIR/build/extras
-    rm -rf $BUILD_DIR/build/extras
+    echo "rm -rf $BUILD_DIR/build/extras"
+    rm -rf "$BUILD_DIR/build/extras"
   fi
 
-  if [ $AOMP_STANDALONE_BUILD == 0 ] ; then
+  if [ "$AOMP_STANDALONE_BUILD" == 0 ] ; then
     export AOMP_VERSION_STRING=$ROCM_VERSION
   fi
 
-  mkdir -p $BUILD_DIR/build/extras
-  cd $BUILD_DIR/build/extras || exit
+  mkdir -p "$BUILD_DIR/build/extras"
+  cd "$BUILD_DIR/build/extras" || exit
 
-  if [ $AOMP_STANDALONE_BUILD == 0 ] ; then
+  if [ "$AOMP_STANDALONE_BUILD" == 0 ] ; then
     SED_INSTALL_DIR=$(echo /opt/rocm/llvm | sed -e 's/\//\\\\\//g')
   else
-    SED_INSTALL_DIR=$(echo $INSTALL_EXTRAS | sed -e 's/\//\\\\\//g')
+    SED_INSTALL_DIR=$(echo "$INSTALL_EXTRAS" | sed -e 's/\//\\\\\//g')
   fi
 
   export SED_INSTALL_DIR
 
   echo "----- Copy util scripts to $BUILD_DIR/build/extras -----"
-  cp $AOMP_REPO_DIR/utils/* $BUILD_DIR/build/extras
+  cp "$AOMP_REPO_DIR"/utils/* "$BUILD_DIR"/build/extras
 
   for util in $install_list; do
     if [ "$util" == "rebundle_hip_lib.sh" ]; then
-      /bin/sed -i -e "s/X\\.Y\\-Z/${AOMP_VERSION_STRING}/g" -e "s/_LLVM_INSTALL_DIR_/${SED_INSTALL_DIR}/g" $util
+      /bin/sed -i -e "s/X\\.Y\\-Z/${AOMP_VERSION_STRING}/g" -e "s/_LLVM_INSTALL_DIR_/${SED_INSTALL_DIR}/g" "$util"
     else
-      /bin/sed -i -e "s/X\\.Y\\-Z/${AOMP_VERSION_STRING}/g" -e "s/_AOMP_INSTALL_DIR_/${SED_INSTALL_DIR}/g" $util
+      /bin/sed -i -e "s/X\\.Y\\-Z/${AOMP_VERSION_STRING}/g" -e "s/_AOMP_INSTALL_DIR_/${SED_INSTALL_DIR}/g" "$util"
     fi
   done
 fi
 
-cd $BUILD_DIR/build/extras || exit
+cd "$BUILD_DIR/build/extras" || exit
 echo
 if [ "$1" != "install" ] ; then
   echo
@@ -106,7 +106,7 @@ fi
 
 #  ----------- Install only if asked  ----------------------------
 if [ "$1" == "install" ] ; then
-  cd $BUILD_DIR/build/extras || exit
+  cd "$BUILD_DIR/build/extras" || exit
   echo " -----Installing to $INSTALL_EXTRAS/bin ----- "
   for util in $install_list; do
     echo "-- Installing: $INSTALL_EXTRAS/bin/$util"
