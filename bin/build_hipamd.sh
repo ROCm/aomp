@@ -96,7 +96,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
   if [ -f $LLVM_INSTALL_LOC/bin/amdgpu-arch ] ; then
      $LLVM_INSTALL_LOC/bin/amdgpu-arch >/dev/null
      if [ $? != 0 ] ; then
-	if [ ! -z "$GFXLIST" ] ; then
+	if [ -n "$GFXLIST" ] ; then
            amdgpu=$(echo $GFXLIST | cut -d" " -f1)
         else
            amdgpu=gfx90a
