@@ -54,10 +54,25 @@ else
   echo "No mpi found , not good. FAIL"
 fi
 
+# Find the latest version of FileCheck in a directory given as the first
+# argument.  (The highest-numbered FileCheck-nn, or just 'FileCheck' if that's
+# the only version in the directory).
+function latest_filecheck() {
+  local prev_nullglob
+  local indir="$1"
+  prev_nullglob="$(shopt -p nullglob)"
+  shopt -s nullglob
+  pushd "$indir" >& /dev/null || return
+  for FC in FileCheck*; do
+    realpath "$FC"
+  done | sort -t '-' -k 2 -n -r | head -n 1
+  popd >& /dev/null || return
+  eval "$prev_nullglob"
+}
 
 # Look for FileCheck on the system in various places.
 # Check local AOMP install first.
-SYSFILECHECK=$(ls /usr/bin | grep -m1 -e "FileCheck")
+SYSFILECHECK=$(latest_filecheck /usr/bin)
 if [ "$SYSFILECHECK" == "" ]; then
 	SYSFILECHECK="FileCheck"
 fi
