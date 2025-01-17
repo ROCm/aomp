@@ -41,7 +41,6 @@ BUILD_DIR=${BUILD_AOMP}
 BUILDTYPE="Release"
 
 INSTALL_RINFO=${INSTALL_RINFO:-$AOMP_INSTALL_DIR}
-LLVM_BUILD=$AOMP
 
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   echo " "

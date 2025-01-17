@@ -27,12 +27,6 @@ if [ $AOMP_BUILD_FLANG_CLASSIC == 0 ] ; then
 fi
 TARGETS_TO_BUILD="AMDGPU;${AOMP_NVPTX_TARGET}X86"
 
-if [ $AOMP_STANDALONE_BUILD == 1 ] ; then
-   standalone_word="_STANDALONE"
-else
-   standalone_word=""
-fi
-
 if [ "$AOMP_USE_NINJA" == 0 ] ; then
     AOMP_SET_NINJA_GEN=""
 else

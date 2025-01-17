@@ -25,13 +25,6 @@ if [ $AOMP_BUILD_FLANG_CLASSIC == 0 ] ; then
    fi
    exit
 fi
-TARGETS_TO_BUILD="AMDGPU;${AOMP_NVPTX_TARGET}X86"
-
-if [ $AOMP_STANDALONE_BUILD == 1 ] ; then
-   standalone_word="_STANDALONE"
-else
-   standalone_word=""
-fi
 
 if [ "$AOMP_USE_NINJA" == 0 ] ; then
     AOMP_SET_NINJA_GEN=""
@@ -49,9 +42,6 @@ fi
 # via the link from flang to clang.  rocm 5.5 would be best. 
 # This will enable removal of flang-classic driver support 
 # from clang to make way for flang  
-
-# Options for llvm-classic  cmake.
-TARGETS_TO_BUILD="AMDGPU;X86"
 
 # Do not change the AOMP_LFL_DIR default because it is the subdirectory
 # from where we build the flang-classic driver binary.  This is the
