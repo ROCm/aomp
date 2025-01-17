@@ -36,8 +36,6 @@ thisdir=$(dirname "$realpath")
 
 BUILD_DIR=${BUILD_AOMP}
 
-BUILDTYPE="Release"
-
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   echo " "
   echo "Example commands and actions: "

@@ -50,7 +50,6 @@ if [ "$1" != "noconfigure" ] && [ "$1" != "install" ] ; then
    echo " " 
    echo "This is a FRESH START. ERASING any previous builds in $BUILD_AOMP/build_rocgdb"
    echo "Use ""$0 noconfigure"" or ""$0 install"" to avoid FRESH START."
-   BUILDTYPE="Release"
    echo rm -rf $BUILD_AOMP/build/rocgdb
    rm -rf $BUILD_AOMP/build/rocgdb
    MYCONFIGOPTS="--prefix=$AOMP_INSTALL_DIR --srcdir=$AOMP_REPOS/$AOMP_GDB_REPO_NAME --program-prefix=roc \

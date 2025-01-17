@@ -61,7 +61,6 @@ fi
 # When building from release source (no git), turn off test items that are not distributed
 # also ubuntu 16.04 only has python 3.5 and lit testing needs 3.6 minimum, so turn off
 # testing with ubuntu 16.04 which goes EOL in April 2021.
-PN=$(cat /etc/os-release | grep "^PRETTY_NAME=" | cut -d= -f2)
 DO_TESTS=${DO_TESTS:-"-DLLVM_BUILD_TESTS=ON -DLLVM_INCLUDE_TESTS=ON -DCLANG_INCLUDE_TESTS=ON"}
 #-DCOMPILER_RT_INCLUDE_TESTS=OFF"
 
