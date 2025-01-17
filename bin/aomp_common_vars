@@ -136,7 +136,7 @@ CUDABIN=${CUDABIN:-$CUDA/bin}
 # unless overridden with AOMP_CMAKE, get CMAKE from the
 # prerequisite supplemental component cmake.
 AOMP_CMAKE=${AOMP_CMAKE:-$AOMP_SUPP/cmake/bin/cmake}
-if [ ! -f $AOMP_CMAKE ] ; then
+if [ ! -f "$AOMP_CMAKE" ] ; then
   AOMP_CMAKE=$(which cmake)
   if [ "$AOMP_CMAKE" == "" ] ; then
     echo "ERROR: finding cmake in aomp_common_vars."
@@ -191,8 +191,8 @@ fi
 # Otherwise default to installed AOMP. If not yet installed, try rocm clang.
 _clang_compiler=$LLVM_INSTALL_LOC/bin/clang
 _clangxx_compiler=$LLVM_INSTALL_LOC/bin/clang++
-[ ! -f $_clang_compiler ] && _clang_compiler=/opt/rocm/llvm/bin/clang
-[ ! -f $_clangxx_compiler ] && _clangxx_compiler=/opt/rocm/llvm/bin/clang++
+[ ! -f "$_clang_compiler" ] && _clang_compiler=/opt/rocm/llvm/bin/clang
+[ ! -f "$_clangxx_compiler" ] && _clangxx_compiler=/opt/rocm/llvm/bin/clang++
 AOMP_CLANG_COMPILER=${AOMP_CLANG_COMPILER:-$_clang_compiler}
 AOMP_CLANGXX_COMPILER=${AOMP_CLANGXX_COMPILER:-$_clangxx_compiler}
 
@@ -211,7 +211,7 @@ if [ "$AOMP_PROC" == "ppc64le" ] ; then
 fi
 AOMP_BUILD_DEBUG=${AOMP_BUILD_DEBUG:-1}
 
-if [ $AOMP_STANDALONE_BUILD == 1 ] ; then
+if [ "$AOMP_STANDALONE_BUILD" == 1 ] ; then
    # Default is to build nvptx for STANDALONE build
    AOMP_BUILD_CUDA=${AOMP_BUILD_CUDA:-1}
    AOMP_BUILD_PERF=${AOMP_BUILD_PERF:-1}
@@ -370,7 +370,7 @@ POWERINFER_REPO="https://github.com/SJTU-IPADS"
 if [ "$AOMP_STANDALONE_BUILD" == 1 ]; then
   AOMP_PROJECT_REPO_NAME=${AOMP_PROJECT_REPO_NAME:-llvm-project}
 else
-  AOMP_PROJECT_REPO_NAME=${AOMP_PROJECT_REPO_NAME:-$(basename $LLVM_PROJECT_ROOT)}
+  AOMP_PROJECT_REPO_NAME=${AOMP_PROJECT_REPO_NAME:-$(basename "$LLVM_PROJECT_ROOT")}
   if [ ! -d "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME" ]; then
     AOMP_PROJECT_REPO_NAME="../llvm-project"
   fi
@@ -380,7 +380,7 @@ AOMP_FLANG_REPO_NAME=${AOMP_FLANG_REPO_NAME:-flang}
 # Last version of rocm (5.5) that supports the legacy driver (command generation)
 # The archives are built during flang-classic.
 AOMP_FLANG_CLASSIC_REL=${AOMP_FLANG_CLASSIC_REL:-${AOMP_REPOS}/${AOMP_FLANG_REPO_NAME}/flang-classic}
-if [ -d $AOMP_FLANG_CLASSIC_REL/llvm-classic ] ; then
+if [ -d "$AOMP_FLANG_CLASSIC_REL/llvm-classic" ] ; then
    AOMP_BUILD_FLANG_CLASSIC=1
 else
    AOMP_BUILD_FLANG_CLASSIC=0
@@ -450,8 +450,8 @@ AOMP_UMT_REPO_NAME=${AOMP_UMT_REPO_NAME:-UMT}
 #  We dont use this yet, waiting for trunk merge
 AOMP_F18_REPO_NAME=${AOMP_F18_REPO_NAME:-f18}
 
-if [ -d $AOMP_REPOS/$AOMP_TRACE_REPO_NAME ] ; then
-   pushd $AOMP_REPOS/$AOMP_TRACE_REPO_NAME > /dev/null || exit
+if [ -d "$AOMP_REPOS/$AOMP_TRACE_REPO_NAME" ] ; then
+   pushd "$AOMP_REPOS/$AOMP_TRACE_REPO_NAME" > /dev/null || exit
    roctracer_branch=$(git branch --list | grep "\*" | cut -d" " -f2)
    if [ "$roctracer_branch" == "rocm-4.0.x" ] ; then
       AOMP_PATCH_CONTROL_FILE="${AOMP_REPOS}/${AOMP_REPO_NAME}/bin/patches/patch-control-file_4.0.txt"
@@ -480,7 +480,7 @@ BUILD_DIR=$BUILD_AOMP
 
 # Here is where we define different behaviors for STANDALONE build
 # and the new ROCm integrated build. The default is STANDALONE build.
-if [ $AOMP_STANDALONE_BUILD == 1 ] ; then
+if [ "$AOMP_STANDALONE_BUILD" == 1 ] ; then
    # Standalone build gets ROCm components from the AOMP Installation.
    # As a result their is an order to component builds.
    ROCM_DIR=${ROCM_DIR:-$AOMP_INSTALL_DIR}
@@ -498,7 +498,7 @@ if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
    if [ -f "${LLVM_INSTALL_LOC}/bin/clang" ]; then
       ASAN_LIB=$(${LLVM_INSTALL_LOC}/bin/clang --print-file-name=libclang_rt.asan-x86_64.so)
       ASAN_LIB_PATH=$(dirname "$ASAN_LIB")
-      if [ ! -d $ASAN_LIB_PATH ]; then
+      if [ ! -d "$ASAN_LIB_PATH" ]; then
         #Suppose above search path fails then via 'LLVM_ENABLE_PER_TARGET_RUNTIME_DIR=ON' the host asan library would lose the suffix
         ASAN_LIB=$(${LLVM_INSTALL_LOC}/bin/clang --print-file-name=libclang_rt.asan.so)
         ASAN_LIB_PATH=$(dirname "$ASAN_LIB")
@@ -534,9 +534,9 @@ function patchrepo(){
 patchdir=$1
 if [ "$AOMP_APPLY_ROCM_PATCHES" == 1 ] && [ -d "$patchdir" ] ; then
    patches=""
-   cd $patchdir || exit
+   cd "$patchdir" || exit
    if [[ "$2" =~ "postinstall" ]]; then
-     getpatchlist $2
+     getpatchlist "$2"
    else
      getpatchlist
    fi
@@ -544,10 +544,10 @@ if [ "$AOMP_APPLY_ROCM_PATCHES" == 1 ] && [ -d "$patchdir" ] ; then
    #loop through list of patches to apply
    if [ "$patches" != "" ] ; then
    patchloc=${AOMP_PATCH_CONTROL_FILE%/*}
-   echo patchloc=$patchloc
+   echo "patchloc=$patchloc"
    for patch in $patches; do
      patchfile=$patchloc/$patch
-     if [ ! -f $patchfile ] ; then
+     if [ ! -f "$patchfile" ] ; then
        echo
        echo "ERROR: Patch $patchfile does not exist"
        echo "       It is referenced in ${AOMP_PATCH_CONTROL_FILE}"
@@ -557,11 +557,11 @@ if [ "$AOMP_APPLY_ROCM_PATCHES" == 1 ] && [ -d "$patchdir" ] ; then
      echo "Testing patch $patchfile to $patchdir"
 
      applypatch="yes"
-     patch -p1 -t -N --dry-run <$patchfile >/dev/null
+     patch -p1 -t -N --dry-run <"$patchfile" >/dev/null
      if [ $? != 0 ] ; then
         applypatch="no"
         # Check to see if reverse patch applies cleanly
-        patch -p1 -R --dry-run -t <$patchfile >/dev/null
+        patch -p1 -R --dry-run -t <"$patchfile" >/dev/null
         if [ $? == 0 ] ; then
            echo "patch $patchfile was already applied to $patchdir"
         else
@@ -575,7 +575,7 @@ if [ "$AOMP_APPLY_ROCM_PATCHES" == 1 ] && [ -d "$patchdir" ] ; then
      fi
      if [ "$applypatch" == "yes" ] ; then
         echo "Applying patch $patchfile to $patchdir"
-        patch -p1 --no-backup-if-mismatch <$patchfile
+        patch -p1 --no-backup-if-mismatch <"$patchfile"
      fi
    done
    fi
@@ -587,7 +587,7 @@ function removepatch(){
 patchdir=$1
 if [ "$AOMP_APPLY_ROCM_PATCHES" == 1 ] && [ -d "$patchdir" ] ; then
    patches=""
-   cd $patchdir || exit
+   cd "$patchdir" || exit
    getpatchlist
    if [ "$patches" != "" ] ; then
       echo "Patchdir $patchdir"
@@ -600,14 +600,14 @@ if [ "$AOMP_APPLY_ROCM_PATCHES" == 1 ] && [ -d "$patchdir" ] ; then
      echo "Testing reverse patch $patchfile to $patchdir"
      reversepatch="yes"
      # Check to see if reverse patch applies cleanly
-     patch -p1 -R --dry-run -f <$patchfile  >/dev/null
+     patch -p1 -R --dry-run -f <"$patchfile"  >/dev/null
      if [ $? != 0 ] ; then
         echo "patch $patchfile was NOT applied $patchdir, no patch to reverse"
         reversepatch="no"
      fi
      if [ "$reversepatch" == "yes" ] ; then
         echo "Reversing patch $patchfile to $patchdir"
-        patch -p1 -R -f --no-backup-if-mismatch <$patchfile
+        patch -p1 -R -f --no-backup-if-mismatch <"$patchfile"
      fi
    done
    fi
@@ -616,14 +616,14 @@ fi
 
 function getpatchlist(){
    currdir=$(pwd)
-   basedir=$(basename $currdir)
+   basedir=$(basename "$currdir")
    if [[ "$1" =~ "postinstall" ]]; then
      reporegex="(^$1:\s)"
    else
      reporegex="(^$basedir:\s)"
    fi
-   echo FILE: $AOMP_PATCH_CONTROL_FILE
-   echo regex $reporegex
+   echo "FILE: $AOMP_PATCH_CONTROL_FILE"
+   echo "regex $reporegex"
    #read patch control file and look for correct patches
    while read -r line; do
    if [[ "$line" =~ $reporegex ]]; then
@@ -638,23 +638,23 @@ function getpatchlist(){
 function setaompgpu (){
   if [[ -e "$AOMP/../../bin/rocm_agent_enumerator" ]]; then
     echo Set AOMP_GPU with ../.. rocm_agent_enumerator.
-    detected_gpu=$($AOMP/../../bin/rocm_agent_enumerator | grep -m 1 -E gfx[^0]{1}.{2})
+    detected_gpu=$("$AOMP"/../../bin/rocm_agent_enumerator | grep -m 1 -E 'gfx[^0]{1}.{2}')
   elif [[ -e "$AOMP/../bin/rocm_agent_enumerator" ]]; then
     echo Set AOMP_GPU with .. rocm_agent_enumerator.
-    detected_gpu=$($AOMP/../bin/rocm_agent_enumerator | grep -m 1 -E gfx[^0]{1}.{2})
+    detected_gpu=$("$AOMP"/../bin/rocm_agent_enumerator | grep -m 1 -E 'gfx[^0]{1}.{2}')
   elif [[ "$AOMP" =~ "opt" ]]; then
     echo Set AOMP_GPU with rocm_agent_enumerator.
-    detected_gpu=$($AOMP/../bin/rocm_agent_enumerator | grep -m 1 -E gfx[^0]{1}.{2})
+    detected_gpu=$("$AOMP"/../bin/rocm_agent_enumerator | grep -m 1 -E 'gfx[^0]{1}.{2}')
   else
     echo Set AOMP_GPU with rocm_agent_enumerator.
-    if [ -a $AOMP/bin/rocm_agent_enumerator ]; then
-      detected_gpu=$($AOMP/bin/rocm_agent_enumerator | grep -m 1 -E gfx[^0]{1}.{2})
-    elif [ -a $AOMP/bin/amdgpu-arch ]; then
-      detected_gpu=$($AOMP/bin/amdgpu-arch)
-      detected_gpu=$(echo $detected_gpu | awk '{print $1,$5}')
+    if [ -a "$AOMP"/bin/rocm_agent_enumerator ]; then
+      detected_gpu=$("$AOMP"/bin/rocm_agent_enumerator | grep -m 1 -E 'gfx[^0]{1}.{2}')
+    elif [ -a "$AOMP"/bin/amdgpu-arch ]; then
+      detected_gpu=$("$AOMP"/bin/amdgpu-arch)
+      detected_gpu=$(echo "$detected_gpu" | awk '{print $1,$5}')
       detected_gpu=$(echo "$detected_gpu" | cut -d" " -f1) # pick first found
-    elif [ -e $AOMP/../bin/mygpu ]; then
-      detected_gpu=$($AOMP/../bin/mygpu)
+    elif [ -e "$AOMP"/../bin/mygpu ]; then
+      detected_gpu=$("$AOMP"/../bin/mygpu)
     else
       echo "Error: in setaompgpu, could not find rocm_agent_enumerator"
       echo "       Set AOMP_GPU, AOMP, or install ROCm"
@@ -664,8 +664,8 @@ function setaompgpu (){
 
   AOMP_GPU=${AOMP_GPU:-$detected_gpu}
   export AOMP_GPU
-  echo AOMP_GPU = $AOMP_GPU
-  echo AOMP     = $AOMP
+  echo "AOMP_GPU = $AOMP_GPU"
+  echo "AOMP     = $AOMP"
 
   if [ "$AOMP_GPU" == "" ] || [ "$AOMP_GPU" == "unknown" ]; then
     echo Error: AOMP_GPU not properly set...exiting.

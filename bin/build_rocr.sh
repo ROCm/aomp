@@ -8,7 +8,7 @@
 # --- Start standard header to set AOMP environment variables ----
 realpath=$(realpath "$0")
 thisdir=$(dirname "$realpath")
-. $thisdir/aomp_common_vars
+. "$thisdir/aomp_common_vars"
 # --- end standard header ----
 
 INSTALL_ROCM=${INSTALL_ROCM:-$AOMP_INSTALL_DIR}
@@ -30,7 +30,7 @@ if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   exit 
 fi
 
-if [ ! -d $AOMP_REPOS/$AOMP_ROCR_REPO_NAME ] ; then 
+if [ ! -d "$AOMP_REPOS/$AOMP_ROCR_REPO_NAME" ] ; then
    echo "ERROR:  Missing repository $AOMP_REPOS/$AOMP_ROCR_REPO_NAME"
    echo "        Are environment variables AOMP_REPOS and AOMP_ROCR_REPO_NAME set correctly?"
    exit 1
@@ -38,7 +38,7 @@ fi
 
 check_writable_installdir "$1" "$INSTALL_ROCM"
 
-patchrepo $AOMP_REPOS/$AOMP_ROCR_REPO_NAME
+patchrepo "$AOMP_REPOS/$AOMP_ROCR_REPO_NAME"
 
 if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
   LDFLAGS="-fuse-ld=lld $ASAN_FLAGS"
@@ -53,12 +53,12 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    echo "Use ""$0 nocmake"" or ""$0 install"" to avoid FRESH START."
 
    BUILDTYPE="Release"
-   echo rm -rf $BUILD_AOMP/build/rocr
-   rm -rf $BUILD_AOMP/build/rocr
+   echo "rm -rf $BUILD_AOMP/build/rocr"
+   rm -rf "$BUILD_AOMP/build/rocr"
    export PATH=/opt/rocm/llvm/bin:$PATH
    MYCMAKEOPTS="-DCMAKE_INSTALL_PREFIX=$INSTALL_ROCM -DCMAKE_BUILD_TYPE=$BUILDTYPE -DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR/lib -DIMAGE_SUPPORT=OFF $AOMP_ORIGIN_RPATH -DCMAKE_INSTALL_LIBDIR=lib -DCMAKE_C_COMPILER=${AOMP_INSTALL_DIR}/lib/llvm/bin/clang -DCMAKE_CXX_COMPILER=${AOMP_INSTALL_DIR}/lib/llvm/bin/clang++ -DLLVM_DIR=$AOMP_INSTALL_DIR/lib/llvm/bin -DBUILD_SHARED_LIBS=On"
-   mkdir -p $BUILD_AOMP/build/rocr
-   cd $BUILD_AOMP/build/rocr || exit
+   mkdir -p "$BUILD_AOMP/build/rocr"
+   cd "$BUILD_AOMP/build/rocr" || exit
    echo
    echo " -----Running rocr cmake ---- " 
    echo ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_ROCR_REPO_NAME
@@ -72,8 +72,8 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
       # unused prefix path :$ROCM_DIR/lib/asan/cmake;${AOMP_INSTALL_DIR}/lib/cmake 
       ASAN_CMAKE_OPTS="-DCMAKE_C_COMPILER=${AOMP_INSTALL_DIR}/lib/llvm/bin/clang -DCMAKE_CXX_COMPILER=${AOMP_INSTALL_DIR}/lib/llvm/bin/clang++ -DLLVM_DIR=$AOMP_INSTALL_DIR/lib/llvm/bin -DCMAKE_INSTALL_PREFIX=$AOMP_INSTALL_DIR  -DCMAKE_INSTALL_LIBDIR=lib/asan -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR/lib -DIMAGE_SUPPORT=OFF $AOMP_ASAN_ORIGIN_RPATH -DBUILD_SHARED_LIBS=On"
-      mkdir -p $BUILD_AOMP/build/rocr/asan
-      cd $BUILD_AOMP/build/rocr/asan || exit
+      mkdir -p "$BUILD_AOMP/build/rocr/asan"
+      cd "$BUILD_AOMP/build/rocr/asan" || exit
       echo
       echo " ----Running rocr-asan cmake ----- "
       echo ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DCMAKE_C_FLAGS="'$ASAN_FLAGS'" -DCMAKE_CXX_FLAGS="'$ASAN_FLAGS'" $AOMP_REPOS/$AOMP_ROCR_REPO_NAME
@@ -85,13 +85,13 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
       fi
    fi
    if [ "$AOMP_BUILD_DEBUG" == "1" ] ; then
-      echo rm -rf $BUILD_AOMP/build/rocr_debug
-      [ -d $BUILD_AOMP/build/rocr_debug ] && rm -rf $BUILD_AOMP/build/rocr_debug
+      echo "rm -rf $BUILD_AOMP/build/rocr_debug"
+      [ -d "$BUILD_AOMP/build/rocr_debug" ] && rm -rf "$BUILD_AOMP/build/rocr_debug"
       ROCR_CMAKE_OPTS="-DCMAKE_C_COMPILER=$AOMP_INSTALL_DIR/lib/llvm/bin/clang -DCMAKE_CXX_COMPILER=$AOMP_INSTALL_DIR/lib/llvm/bin/clang++ -DLLVM_DIR=$AOMP_INSTALL_DIR/lib/llvm/bin -DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR/lib -DCMAKE_INSTALL_PREFIX=$AOMP_INSTALL_DIR -DCMAKE_BUILD_TYPE=Debug $AOMP_DEBUG_ORIGIN_RPATH -DCMAKE_INSTALL_LIBDIR=lib-debug -DBUILD_SHARED_LIBS=On -DIMAGE_SUPPORT=OFF"
       echo  
       echo " -----Running rocr_debug cmake -----"
-      mkdir -p  $BUILD_AOMP/build/rocr_debug
-      cd $BUILD_AOMP/build/rocr_debug || exit
+      mkdir -p "$BUILD_AOMP/build/rocr_debug"
+      cd "$BUILD_AOMP/build/rocr_debug" || exit
       _prefix_map="\""-fdebug-prefix-map=$AOMP_REPOS/$AOMP_ROCR_REPO_NAME=$_ompd_src_dir/rocr"\""
       echo ${AOMP_CMAKE} $ROCR_CMAKE_OPTS -DCMAKE_C_FLAGS="-g $_prefix_map" -DCMAKE_CXX_FLAGS="-g $_prefix_map" $AOMP_REPOS/$AOMP_ROCR_REPO_NAME
       ${AOMP_CMAKE} $ROCR_CMAKE_OPTS -DCMAKE_C_FLAGS="-g $_prefix_map" -DCMAKE_CXX_FLAGS="-g $_prefix_map" $AOMP_REPOS/$AOMP_ROCR_REPO_NAME
@@ -107,11 +107,11 @@ if [ "$1" = "cmake" ]; then
    exit 0
 fi
 
-cd $BUILD_AOMP/build/rocr || exit
+cd "$BUILD_AOMP/build/rocr" || exit
 echo
 echo " -----Running make for rocr ---- " 
-echo make -j $AOMP_JOB_THREADS
-make -j $AOMP_JOB_THREADS
+echo "make -j $AOMP_JOB_THREADS"
+make -j "$AOMP_JOB_THREADS"
 if [ $? != 0 ] ; then 
       echo " "
       echo "ERROR: make -j $AOMP_JOB_THREADS  FAILED"
@@ -122,11 +122,11 @@ if [ $? != 0 ] ; then
 fi
 
 if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
-   cd $BUILD_AOMP/build/rocr/asan || exit
+   cd "$BUILD_AOMP/build/rocr/asan" || exit
    echo
    echo " -----Running make for rocr-asan ---- "
-   echo make -j $AOMP_JOB_THREADS
-   make -j $AOMP_JOB_THREADS
+   echo "make -j $AOMP_JOB_THREADS"
+   make -j "$AOMP_JOB_THREADS"
    if [ $? != 0 ] ; then
       echo " "
       echo "ERROR: make -j $AOMP_JOB_THREADS FAILED"
@@ -137,10 +137,10 @@ if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
    fi
 fi
 if [ "$AOMP_BUILD_DEBUG" == 1 ] ; then
-   cd $BUILD_AOMP/build/rocr_debug || exit
+   cd "$BUILD_AOMP/build/rocr_debug" || exit
    echo
    echo " ----- Running make for rocr_debug ----- "
-   make -j $AOMP_JOB_THREADS
+   make -j "$AOMP_JOB_THREADS"
    if [ $? != 0 ] ; then
      echo " "
      echo "ERROR: make -j $AOMP_JOB_THREADS FAILED"
@@ -152,9 +152,9 @@ if [ "$AOMP_BUILD_DEBUG" == 1 ] ; then
 fi
 #  ----------- Install only if asked  ----------------------------
 if [ "$1" == "install" ] ; then 
-      cd $BUILD_AOMP/build/rocr || exit
+      cd "$BUILD_AOMP/build/rocr" || exit
       echo " -----Installing to $INSTALL_ROCM/lib ----- " 
-      echo $SUDO make install 
+      echo "$SUDO make install "
       $SUDO make install 
       if [ $? != 0 ] ; then 
          echo "ERROR make install failed "
@@ -162,9 +162,9 @@ if [ "$1" == "install" ] ; then
       fi
 
       if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
-         cd $BUILD_AOMP/build/rocr/asan || exit
+         cd "$BUILD_AOMP/build/rocr/asan" || exit
          echo " ------Installing to $INSTALL_ROCM/lib/asan ------ "
-         echo $SUDO make install
+         echo "$SUDO make install"
          $SUDO make install
          if [ $? != 0 ] ; then
             echo "ERROR make install failed "
@@ -172,7 +172,7 @@ if [ "$1" == "install" ] ; then
          fi
       fi
       if [ "$AOMP_BUILD_DEBUG" == 1 ] ; then
-         cd $BUILD_AOMP/build/rocr_debug || exit
+         cd "$BUILD_AOMP/build/rocr_debug" || exit
          echo " -----Installing to $INSTALL_ROCM/lib-debug ----- "
          $SUDO make install
          if [ $? != 0 ] ; then
@@ -182,12 +182,12 @@ if [ "$1" == "install" ] ; then
 	 # copy rocr sources into the installation for runtime source debugging
 	 _dirs="runtime/hsa-runtime/image runtime/hsa-runtime/inc runtime/hsa-runtime/core runtime/hsa-runtime/loader runtime/hsa-runtime/pcs libhsakmt/src libhsakmt/include"
          for _dirname in $_dirs ; do
-            $SUDO mkdir -p $_ompd_src_dir/rocr/$_dirname
-            echo cp -r $AOMP_REPOS/$AOMP_ROCR_REPO_NAME/$_dirname/ $_ompd_src_dir/rocr/$_dirname/
-            $SUDO cp -r $AOMP_REPOS/$AOMP_ROCR_REPO_NAME/$_dirname/ $_ompd_src_dir/rocr/$_dirname/
+            $SUDO mkdir -p "$_ompd_src_dir/rocr/$_dirname"
+            echo "cp -r $AOMP_REPOS/$AOMP_ROCR_REPO_NAME/$_dirname/ $_ompd_src_dir/rocr/$_dirname/"
+            $SUDO cp -r "$AOMP_REPOS/$AOMP_ROCR_REPO_NAME/$_dirname/" "$_ompd_src_dir/rocr/$_dirname/"
          done
          # remove non-source files to save space
-         find $_ompd_src_dir/rocr  -type f  | grep  -v "\.cpp$\|\.h$\|\.hpp$\|\.c$\|\.s$" | xargs rm
+         find "$_ompd_src_dir/rocr"  -type f  | grep  -v "\.cpp$\|\.h$\|\.hpp$\|\.c$\|\.s$" | xargs rm
       fi
-      removepatch $AOMP_REPOS/$AOMP_ROCR_REPO_NAME
+      removepatch "$AOMP_REPOS/$AOMP_ROCR_REPO_NAME"
 fi

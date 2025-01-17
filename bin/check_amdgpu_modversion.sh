@@ -6,7 +6,7 @@
 # --- Start standard header to set AOMP environment variables ----
 realpath=$(realpath "$0")
 thisdir=$(dirname "$realpath")
-[ -f $thisdir/aomp_common_vars ] && . $thisdir/aomp_common_vars
+[ -f "$thisdir/aomp_common_vars" ] && . "$thisdir/aomp_common_vars"
 # --- end standard header ----
 
 which dpkg 2>/dev/null >/dev/null
@@ -26,8 +26,8 @@ if [ $? == 0 ] ; then
    _amdgpu_mod_version=$(modinfo -F version amdgpu)
    if [ -n "$_amdgpu_mod_version" ] ; then
      if [ "$_amdgpu_mod_version" != "$ROCM_EXPECTED_MODVERSION" ] ; then
-        if [ -f  $_llvm_install_dir/bin/aompversion ] ; then
-           _aomp_version_string=$($AOMP/bin/aompversion)
+        if [ -f "$_llvm_install_dir/bin/aompversion" ] ; then
+           _aomp_version_string=$("$AOMP"/bin/aompversion)
            _phrase="for AOMP version $_aomp_version_string"
         else
            _phrase="for $_llvm_install_dir"
@@ -36,7 +36,7 @@ if [ $? == 0 ] ; then
         echo "WARNING: Unexpected version of amdgpu kernel module found on this system: $_amdgpu_mod_version"
         echo "         The expected version $_phrase is $ROCM_EXPECTED_MODVERSION"
         echo "         Execution of compiled binaries may have issues on this system. For best results"
-        echo "         consider installing the latest "amdgpu-dkms" package from ROCm and reboot."
+        echo "         consider installing the latest \"amdgpu-dkms\" package from ROCm and reboot."
         echo "         Command to check amdgpu kernel module version:  modinfo -F version amdgpu"
         echo
 	exit 0  # returning non zero fails the run_rocm_test.sh

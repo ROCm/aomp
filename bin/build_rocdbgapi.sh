@@ -6,7 +6,7 @@
 # --- Start standard header to set AOMP environment variables ----
 realpath=$(realpath "$0")
 thisdir=$(dirname "$realpath")
-. $thisdir/aomp_common_vars
+. "$thisdir/aomp_common_vars"
 # --- end standard header ----
 
 INSTALL_ROCDBGAPI=${INSTALL_ROCDBGAPI:-$AOMP_INSTALL_DIR}
@@ -28,7 +28,7 @@ if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   exit 
 fi
 
-if [ ! -d $AOMP_REPOS/$AOMP_DBGAPI_REPO_NAME ] ; then 
+if [ ! -d "$AOMP_REPOS/$AOMP_DBGAPI_REPO_NAME" ] ; then 
    echo "ERROR:  Missing repository $AOMP_REPOS/$AOMP_DBGAPI_REPO_NAME"
    echo "        Are environment variables AOMP_REPOS and AOMP_DBGAPI_REPO_NAME set correctly?"
    exit 1
@@ -46,9 +46,9 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    echo "This is a FRESH START. ERASING any previous builds in $BUILD_AOMP/build_rocdbgapi"
    echo "Use ""$0 nocmake"" or ""$0 install"" to avoid FRESH START."
 
-   BUILDTYPE="Release"
-   echo rm -rf $BUILD_AOMP/build/rocdbgapi
-   rm -rf $BUILD_AOMP/build/rocdbgapi
+   BUILD_TYPE="Release"
+   echo rm -rf "$BUILD_AOMP/build/rocdbgapi"
+   rm -rf "$BUILD_AOMP/build/rocdbgapi"
    _cxx_flags="-DCMAKE_CXX_FLAGS=-I$AOMP_INSTALL_DIR/include/amd_comgr"
    if [ -d "/usr/include/c++/5/experimental" ] ; then
       _loc=$(which gcc)
@@ -65,8 +65,8 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
      -DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR;$INSTALL_ROCDBGAPI/include \
      $_cxx_flags \
      $AOMP_ORIGIN_RPATH"
-   mkdir -p $BUILD_AOMP/build/rocdbgapi
-   cd $BUILD_AOMP/build/rocdbgapi || exit
+   mkdir -p "$BUILD_AOMP/build/rocdbgapi"
+   cd "$BUILD_AOMP/build/rocdbgapi" || exit
    echo " -----Running rocdbgapi cmake ---- " 
    echo ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_DBGAPI_REPO_NAME
    ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_DBGAPI_REPO_NAME
@@ -81,11 +81,11 @@ if [ "$1" = "cmake" ]; then
    exit 0
 fi
 
-cd $BUILD_AOMP/build/rocdbgapi || exit
+cd "$BUILD_AOMP/build/rocdbgapi" || exit
 echo
 echo " -----Running make for rocdbgapi ---- " 
-echo make -j $AOMP_JOB_THREADS
-make -j $AOMP_JOB_THREADS
+echo "make -j $AOMP_JOB_THREADS"
+make -j "$AOMP_JOB_THREADS"
 if [ $? != 0 ] ; then 
       echo " "
       echo "ERROR: make -j $AOMP_JOB_THREADS  FAILED"
@@ -100,21 +100,21 @@ if [ -n "$doxygen" ] ; then
    # the ROCdbgapi CMakeLists.txt will prepare docs install if doxygen found.
    # However, the make doc has issues.  But if you dont make doc, the install
    # fails.  This 'make doc' will do enough so install does not fail.
-   echo make -j $AOMP_JOB_THREADS doc
-   make -j $AOMP_JOB_THREADS doc 2>/dev/null >/dev/null
+   echo "make -j $AOMP_JOB_THREADS doc"
+   make -j "$AOMP_JOB_THREADS" doc 2>/dev/null >/dev/null
 fi
 
 #  ----------- Install only if asked  ----------------------------
 if [ "$1" == "install" ] ; then 
-   cd $BUILD_AOMP/build/rocdbgapi || exit
-      echo " -----Installing to $INSTALL_ROCDBGAPI/lib ----- " 
-      echo $SUDO make install 
-      $SUDO make install 
-      if [ $? != 0 ] ; then 
-         echo "ERROR make install failed "
-         exit 1
-      fi
-        echo
+   cd "$BUILD_AOMP/build/rocdbgapi" || exit
+   echo " -----Installing to $INSTALL_ROCDBGAPI/lib ----- " 
+   echo "$SUDO make install "
+
+   if ! $SUDO make install; then 
+      echo "ERROR make install failed "
+      exit 1
+   fi
+   echo
 else
    echo
    echo "SUCCESSFUL BUILD, please run:  $0 install"

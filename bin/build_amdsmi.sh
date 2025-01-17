@@ -31,7 +31,7 @@
 # --- Start standard header to set AOMP environment variables ----
 realpath=$(realpath "$0")
 thisdir=$(dirname "$realpath")
-. $thisdir/aomp_common_vars
+. "$thisdir/aomp_common_vars"
 # --- end standard header ----
 
 RSMILIB_REPO_DIR=$AOMP_REPOS/amdsmi
@@ -50,12 +50,12 @@ if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   exit
 fi
 
-if [ ! -d $RSMILIB_REPO_DIR ] ; then
+if [ ! -d "$RSMILIB_REPO_DIR" ] ; then
    echo "ERROR:  Missing repository $RSMILIB_REPO_DIR/"
    exit 1
 fi
 
-if [ ! -f $LLVM_INSTALL_LOC/bin/clang ] ; then
+if [ ! -f "$LLVM_INSTALL_LOC/bin/clang" ] ; then
    echo "ERROR:  Missing file $AOMP/bin/clang"
    echo "        Build the AOMP llvm compiler in $AOMP first"
    echo "        This is needed to build the device libraries"
@@ -65,20 +65,20 @@ fi
 
 check_writable_installdir "$1" "$AOMP_INSTALL_DIR"
 
-patchrepo $AOMP_REPOS/amdsmi
+patchrepo "$AOMP_REPOS/amdsmi"
 
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
   if [ -d "$BUILD_DIR/build/amdsmi" ] ; then
      echo
      echo "FRESH START , CLEANING UP FROM PREVIOUS BUILD"
-     echo rm -rf $BUILD_DIR/build/amdsmi
-     rm -rf $BUILD_DIR/build/amdsmi
+     echo "rm -rf $BUILD_DIR/build/amdsmi"
+     rm -rf "$BUILD_DIR/build/amdsmi"
   fi
 
   MYCMAKEOPTS="$AOMP_ORIGIN_RPATH -DCMAKE_BUILD_TYPE=$BUILDTYPE -DCMAKE_INSTALL_PREFIX=$AOMP_INSTALL_DIR -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON -DCMAKE_INSTALL_RPATH='\$ORIGIN/../lib' -DCMAKE_EXE_LINKER_FLAGS='-Wl,--disable-new-dtags'"
 
-  mkdir -p $BUILD_DIR/build/amdsmi
-  cd $BUILD_DIR/build/amdsmi || exit
+  mkdir -p "$BUILD_DIR/build/amdsmi"
+  cd "$BUILD_DIR/build/amdsmi" || exit
   echo
   echo " -----Running amdsmi cmake ---- "
   echo ${AOMP_CMAKE} $MYCMAKEOPTS $RSMILIB_REPO_DIR
@@ -94,10 +94,10 @@ if [ "$1" = "cmake" ]; then
   exit 0
 fi
 
-cd $BUILD_DIR/build/amdsmi || exit
+cd "$BUILD_DIR/build/amdsmi" || exit
 echo
 echo " -----Running make for amdsmi ---- "
-make -j $AOMP_JOB_THREADS 
+make -j "$AOMP_JOB_THREADS"
 if [ $? != 0 ] ; then
       echo " "
       echo "ERROR: make -j $AOMP_JOB_THREADS  FAILED"
@@ -116,7 +116,7 @@ fi
 
 #  ----------- Install only if asked  ----------------------------
 if [ "$1" == "install" ] ; then
-      cd $BUILD_DIR/build/amdsmi || exit
+      cd "$BUILD_DIR/build/amdsmi" || exit
       echo
       echo " -----Installing to $AOMP_INSTALL_DIR ----- "
       $SUDO make install
@@ -124,5 +124,5 @@ if [ "$1" == "install" ] ; then
          echo "ERROR make install failed "
          exit 1
       fi
-      removepatch $AOMP_REPOS/amdsmi
+      removepatch "$AOMP_REPOS/amdsmi"
 fi

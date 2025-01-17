@@ -8,7 +8,7 @@ BUILD_TYPE=${BUILD_TYPE:-Release}
 # --- Start standard header to set AOMP environment variables ----
 realpath=$(realpath "$0")
 thisdir=$(dirname "$realpath")
-. $thisdir/aomp_common_vars
+. "$thisdir/aomp_common_vars"
 # --- end standard header ----
 
 INSTALL_FLANG=${INSTALL_FLANG:-$AOMP_INSTALL_DIR}
@@ -23,7 +23,7 @@ else
    fi
 fi
 
-COMP_INC_DIR=$(ls -d $AOMP_INSTALL_DIR/lib/clang/*/include )
+COMP_INC_DIR=$(ls -d "$AOMP_INSTALL_DIR"/lib/clang/*/include )
 
 if [ "$AOMP_PROC" == "ppc64le" ] ; then
     MYCMAKEOPTS="-DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX=$LLVM_INSTALL_LOC -DLLVM_ENABLE_ASSERTIONS=ON -DCMAKE_Fortran_COMPILER=$LLVM_INSTALL_LOC/bin/flang -DLLVM_TARGETS_TO_BUILD=$TARGETS_TO_BUILD "
@@ -60,18 +60,18 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    echo
    echo "This is a FRESH START. ERASING any previous builds in $BUILD_DIR/build/pgmath"
    echo "Use ""$0 nocmake"" or ""$0 install"" to avoid FRESH START."
-   rm -rf $BUILD_DIR/build/pgmath
-   mkdir -p $BUILD_DIR/build/pgmath
+   rm -rf "$BUILD_DIR/build/pgmath"
+   mkdir -p "$BUILD_DIR/build/pgmath"
    if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
-      mkdir -p $BUILD_DIR/build/pgmath/asan
+      mkdir -p "$BUILD_DIR/build/pgmath/asan"
    fi
 else
-   if [ ! -d $BUILD_DIR/build/pgmath ] ; then
+   if [ ! -d "$BUILD_DIR/build/pgmath" ] ; then
       echo "ERROR: The build directory $BUILD_DIR/build/pgmath does not exist"
       echo "       run $0 without nocmake or install options. "
       exit 1
    fi
-   if [ "$AOMP_BUILD_SANITIZER" == 1 ] && [ ! -d $BUILD_DIR/build/pgmath/asan ] ; then
+   if [ "$AOMP_BUILD_SANITIZER" == 1 ] && [ ! -d "$BUILD_DIR/build/pgmath/asan" ] ; then
       echo "ERROR: The build directory $BUILD_DIR/build/pgmath/asan does not exist"
       echo "       run $0 without nocmake or install options. "
       exit 1
@@ -79,12 +79,12 @@ else
 fi
 
 #  Need llvm-config to come from previous LLVM build
-export PATH=$LLVM_INSTALL_LOC/bin:$PATH
+export PATH="$LLVM_INSTALL_LOC/bin":$PATH
 
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    if [ "$SANITIZER" != 1 ]; then
       echo
-      cd $BUILD_DIR/build/pgmath || exit
+      cd "$BUILD_DIR/build/pgmath" || exit
       echo " -----Running cmake ---- "
       echo ${AOMP_CMAKE} $MYCMAKEOPTS  \
            -DCMAKE_C_FLAGS="$CFLAGS -I$COMP_INC_DIR" \
@@ -103,7 +103,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 
    if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
       echo
-      cd $BUILD_DIR/build/pgmath/asan || exit
+      cd "$BUILD_DIR/build/pgmath/asan" || exit
       echo " -----Running cmake pgmath-asan ---- "
       echo ${AOMP_CMAKE} $ASAN_CMAKE_OPTS \
       -DCMAKE_C_FLAGS="$CFLAGS $ASAN_FLAGS" \
@@ -127,10 +127,10 @@ fi
 
 if [ "$SANITIZER" != 1 ]; then
    echo
-   cd $BUILD_DIR/build/pgmath || exit
+   cd "$BUILD_DIR/build/pgmath" || exit
    echo " -----Running make ---- "
-   echo make -j $AOMP_JOB_THREADS
-   make -j $AOMP_JOB_THREADS
+   echo make -j "$AOMP_JOB_THREADS"
+   make -j "$AOMP_JOB_THREADS"
    if [ $? != 0 ] ; then
       echo "ERROR make -j $AOMP_JOB_THREADS failed"
       exit 1
@@ -139,10 +139,10 @@ fi
 
 if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
 echo
-   cd $BUILD_DIR/build/pgmath/asan || exit
+   cd "$BUILD_DIR/build/pgmath/asan" || exit
 echo " -----Running make ---- "
-echo make -j $AOMP_JOB_THREADS
-make -j $AOMP_JOB_THREADS
+echo "make -j $AOMP_JOB_THREADS"
+make -j "$AOMP_JOB_THREADS"
 if [ $? != 0 ] ; then
    echo "ERROR make -j $AOMP_JOB_THREADS failed"
    exit 1
@@ -151,7 +151,7 @@ fi
 
 if [ "$1" == "install" ] ; then
    if [ "$SANITIZER" != 1 ]; then
-      cd $BUILD_DIR/build/pgmath || exit
+      cd "$BUILD_DIR/build/pgmath" || exit
       echo " -----Installing to $INSTALL_FLANG ---- "
       $SUDO make install
       if [ $? != 0 ] ; then
@@ -162,7 +162,7 @@ if [ "$1" == "install" ] ; then
       echo
    fi
    if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
-      cd $BUILD_DIR/build/pgmath/asan || exit
+      cd "$BUILD_DIR/build/pgmath/asan" || exit
       echo " -----Installing to $INSTALL_FLANG/lib/asan ---- "
       $SUDO make install
       if [ $? != 0 ] ; then

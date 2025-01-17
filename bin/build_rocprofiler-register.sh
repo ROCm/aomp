@@ -6,7 +6,7 @@
 # --- Start standard header to set AOMP environment variables ----
 realpath=$(realpath "$0")
 thisdir=$(dirname "$realpath")
-. $thisdir/aomp_common_vars
+. "$thisdir/aomp_common_vars"
 # --- end standard header ----
 
 INSTALL_ROCPROF_REGISTER=${INSTALL_ROCPROF_REGISTER:-$AOMP_INSTALL_DIR}
@@ -29,7 +29,7 @@ if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   exit 
 fi
 
-if [ ! -d $AOMP_REPOS/$AOMP_PROF_REGISTER_REPO_NAME ] ; then 
+if [ ! -d "$AOMP_REPOS/$AOMP_PROF_REGISTER_REPO_NAME" ] ; then
    echo "ERROR:  Missing repository $AOMP_REPOS/$AOMP_PROF_REGISTER_REPO_NAME"
    echo "        Are environment variables AOMP_REPOS and AOMP_PROF_REGISTER_REPO_NAME set correctly?"
    exit 1
@@ -42,14 +42,14 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    echo "This is a FRESH START. ERASING any previous builds in $BUILD_AOMP/$AOMP_PROF_REGISTER_REPO_NAME"
    echo "Use ""$0 nocmake"" or ""$0 install"" to avoid FRESH START."
 
-   echo rm -rf $BUILD_AOMP/build/$AOMP_PROF_REGISTER_REPO_NAME
-   rm -rf $BUILD_AOMP/build/$AOMP_PROF_REGISTER_REPO_NAME
+   echo "rm -rf $BUILD_AOMP/build/$AOMP_PROF_REGISTER_REPO_NAME"
+   rm -rf "$BUILD_AOMP/build/$AOMP_PROF_REGISTER_REPO_NAME"
    BUILD_TYPE="Release"
    export CMAKE_BUILD_TYPE=$BUILD_TYPE
    CMAKE_PREFIX_PATH="$ROCM_DIR/include;$ROCM_DIR/lib;$ROCM_DIR"
    export CMAKE_PREFIX_PATH
-   mkdir -p $BUILD_AOMP/build/$AOMP_PROF_REGISTER_REPO_NAME
-   cd $BUILD_AOMP/build/$AOMP_PROF_REGISTER_REPO_NAME || exit
+   mkdir -p "$BUILD_AOMP/build/$AOMP_PROF_REGISTER_REPO_NAME"
+   cd "$BUILD_AOMP/build/$AOMP_PROF_REGISTER_REPO_NAME" || exit
    echo " -----Running $AOMP_PROF_REGISTER_REPO_NAME cmake ---- " 
    echo ${AOMP_CMAKE} -DCMAKE_INSTALL_LIBDIR=lib -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DROCM_PATH=$AOMP_INSTALL_DIR -DCMAKE_INSTALL_PREFIX=$INSTALL_ROCPROF_REGISTER -DCMAKE_PREFIX_PATH="""$CMAKE_PREFIX_PATH""" -DCMAKE_EXE_LINKER_FLAGS="-Wl,--disable-new-dtags" -DROCPROFILER_REGISTER_BUILD_TESTS=1 -DROCPROFILER_REGISTER_BUILD_SAMPLES=1 -DCMAKE_EXE_LINKER_FLAGS="-Wl,--disable-new-dtags" -DBUILD_SHARED_LIBS=ON -DENABLE_LDCONFIG=OFF -DROCPROFILER_REGISTER_BUILD_TESTS=1 -DROCPROFILER_REGISTER_BUILD_SAMPLES=1 $AOMP_ORIGIN_RPATH $AOMP_REPOS/$AOMP_PROF_REGISTER_REPO_NAME
    ${AOMP_CMAKE} -DCMAKE_INSTALL_LIBDIR=lib -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DROCM_PATH=$AOMP_INSTALL_DIR -DCMAKE_INSTALL_PREFIX=$INSTALL_ROCPROF_REGISTER -DCMAKE_PREFIX_PATH="""$CMAKE_PREFIX_PATH""" $AOMP_ORIGIN_RPATH -DCMAKE_EXE_LINKER_FLAGS="-Wl,--disable-new-dtags" -DBUILD_SHARED_LIBS=ON -DENABLE_LDCONFIG=OFF -DROCPROFILER_REGISTER_BUILD_TESTS=1 -DROCPROFILER_REGISTER_BUILD_SAMPLES=1 $AOMP_REPOS/$AOMP_PROF_REGISTER_REPO_NAME
@@ -65,11 +65,11 @@ if [ "$1" = "cmake" ]; then
    exit 0
 fi
 
-cd $BUILD_AOMP/build/$AOMP_PROF_REGISTER_REPO_NAME || exit
+cd "$BUILD_AOMP/build/$AOMP_PROF_REGISTER_REPO_NAME" || exit
 echo
 echo " -----Running make for $AOMP_PROF_REGISTER_REPO_NAME ---- " 
-echo make -j $AOMP_JOB_THREADS
-make -j $AOMP_JOB_THREADS
+echo "make -j $AOMP_JOB_THREADS"
+make -j "$AOMP_JOB_THREADS"
 if [ $? != 0 ] ; then 
       echo " "
       echo "ERROR: make -j $AOMP_JOB_THREADS  FAILED"
@@ -81,9 +81,9 @@ fi
 
 #  ----------- Install only if asked  ----------------------------
 if [ "$1" == "install" ] ; then 
-      cd $BUILD_AOMP/build/$AOMP_PROF_REGISTER_REPO_NAME || exit
+      cd "$BUILD_AOMP/build/$AOMP_PROF_REGISTER_REPO_NAME" || exit
       echo " -----Installing to $INSTALL_ROCPROF_REGISTER/lib ----- " 
-      echo $SUDO make install 
+      echo "$SUDO make install"
       $SUDO make install 
       if [ $? != 0 ] ; then 
          echo "ERROR make install failed "
