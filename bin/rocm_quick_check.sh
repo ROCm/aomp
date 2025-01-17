@@ -33,6 +33,8 @@ fi
 echo "Done checking for libnvidia"
 
 if [ -e ~/local/openmpi/lib/libmpi.so ]; then
+  # We don't care that the tilde isn't expanded
+  # shellcheck disable=2088
   echo "~/local/openmpi/lib/libmpi.so OK"
 elif [ -e /opt/openmpi-4.1.5/lib/libmpi.so ]; then
   echo "/opt/openmpi-4.1.5/lib/libmpi.so OK"
@@ -76,6 +78,8 @@ SYSFILECHECK=$(latest_filecheck /usr/bin)
 if [ "$SYSFILECHECK" == "" ]; then
 	SYSFILECHECK="FileCheck"
 fi
+# We don't care about non-alphanumeric filenames here.
+# shellcheck disable=2012
 AOMP=$(ls -d /opt/rocm-*/llvm | head -1)
 echo "$AOMP"
 SYSLLVM=$(ls /usr/lib | grep -m1 -e "llvm-[0-9]\+")

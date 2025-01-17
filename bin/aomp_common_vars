@@ -315,10 +315,12 @@ if [ "$AOMP_BUILD_CUDA" == 1 ] ; then
    NVPTXGPUS_DEFAULT="35,37,50,52,53,60,61,62,70,72,75,80,86"
    #  Developers should override NVPTXGPUS to shorten build time.
    NVPTXGPUS=${NVPTXGPUS:-"${NVPTXGPUS_DEFAULT}"}
+   # shellcheck disable=2034
    AOMP_NVPTX_TARGET="NVPTX;"
 else
    NVPTXGPUS_DEFAULT=""
    NVPTXGPUS=""
+   # shellcheck disable=2034
    AOMP_NVPTX_TARGET=""
 fi
 
@@ -374,9 +376,11 @@ AOMP_GIT_INTERNAL_IP="git@github-ent"
 GITROC="https://github.com/ROCm"
 GITGERRIT="ssh://$USER@gerrit-git.amd.com:29418"
 GITKHRONOS="https://github.com/KhronosGroup"
+# shellcheck disable=2034
 GITHWLOC="https://github.com/open-mpi"
 GITLIGHTNINGINTERNAL="$AOMP_GIT_INTERNAL_IP:AMD-Lightning-Internal"
 GITPROJECT=$GITROCDEV
+# shellcheck disable=2034
 POWERINFER_REPO="https://github.com/SJTU-IPADS"
 if [ "$AOMP_STANDALONE_BUILD" == 1 ]; then
   AOMP_PROJECT_REPO_NAME=${AOMP_PROJECT_REPO_NAME:-llvm-project}
@@ -429,32 +433,44 @@ AOMP_PROF_REGISTER_REPO_NAME=${AOMP_PROF_REGISTER_REPO_NAME:-rocprofiler-registe
 AOMP_TRACE_REPO_NAME=${AOMP_TRACE_REPO_NAME:-roctracer}
 
 # These are test repositories
+# shellcheck disable=2034
 GITNEKBONE="https://github.com/AMDComputeLibraries"
 AOMP_NEKBONE_REPO_NAME=${AOMP_NEKBONE_REPO_NAME:-Nekbone}
 AOMP_APPS_REPO_NAME=${AOMP_APPS_REPO_NAME:-openmpapps}
+# shellcheck disable=2034
 GITOPENMPVV="https://github.com/OpenMP-Validation-and-Verification"
 AOMP_OPENMPVV_REPO_NAME=${AOMP_OPENMPVV_REPO_NAME:-OpenMP_VV}
+# shellcheck disable=2034
 GITSOLVV="https://github.com/SOLLVE"
 AOMP_SOLVV_REPO_NAME=${AOMP_SOLVV_REPO_NAME:-sollve_vv}
 AOMP_APPS_REPO_NAME=${AOMP_APPS_REPO_NAME:-openmpapps}
+# shellcheck disable=2034
 GITLLNL="https://github.com/llnl"
 AOMP_RAJA_REPO_NAME=${AOMP_RAJA_REPO_NAME:-raja}
 AOMP_RAJAPERF_REPO_NAME=${AOMP_RAJAPERF_REPO_NAME:-RAJAPerf}
+# shellcheck disable=2034
 GITKOKKOS="https://github.com/kokkos"
 AOMP_KOKKOS_REPO_NAME=${AOMP_KOKKOS_REPO_NAME:-kokkos}
 AOMP_INTERNAL_IP="gitlab1.amd.com"
+# shellcheck disable=2034
 GITINTERNAL="http://${AOMP_INTERNAL_IP}/dmcdouga"  # This will change soon
+# shellcheck disable=2034
 GITOVO="https://github.com/TApplencourt"
 AOMP_OVO_REPO_NAME=${AOMP_OVO_REPO_NAME:-OvO}
+# shellcheck disable=2034
 GITOMPTESTS="https://github.com/doru1004"
 AOMP_OMPTESTS_REPO_NAME=${AOMP_OMPTESTS_REPO_NAME:-omptests}
+# shellcheck disable=2034
 GITQMCPACK="https://github.com/QMCPACK"
 AOMP_QMCPACK_REPO_NAME=${AOMP_QMCPACK_REPO_NAME:-qmcpack}
+# shellcheck disable=2034
 GITOPENLIBM="https://github.com/JuliaMath"
 AOMP_OPENLIBM_REPO_NAME=${AOMP_OPENLIBM_REPO_NAME:-openlibm}
+# shellcheck disable=2034
 GITLLNLGOULASH="https://github.com/LLNL"
 AOMP_GOULASH_REPO_NAME=${AOMP_GOULASH_REPO_NAME:-goulash}
 AOMP_BABELSTREAM_REPO_NAME=${AOMP_BABELSTREAM_REPO_NAME:-babelstream}
+# shellcheck disable=2034
 GITUMT="https://github.com/LLNL"
 AOMP_UMT_REPO_NAME=${AOMP_UMT_REPO_NAME:-UMT}
 
@@ -487,6 +503,7 @@ fi
 # The cmake and make builds are actually done in 
 # BUILD_AOMP/build, not the actual repos. 
 BUILD_AOMP=${BUILD_AOMP:-$AOMP_REPOS}
+# shellcheck disable=2034
 BUILD_DIR=$BUILD_AOMP
 
 # Here is where we define different behaviors for STANDALONE build
