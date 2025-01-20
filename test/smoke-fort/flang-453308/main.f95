@@ -68,5 +68,5 @@ SUBROUTINE TEST (NX,NY,NZ,AX,X
       ENDIF
  END
 
-// CHECK: ======= FORTRAN Test passed! =======
+! CHECK: ======= FORTRAN Test passed! =======
 

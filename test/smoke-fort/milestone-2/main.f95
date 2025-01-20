@@ -26,4 +26,4 @@ subroutine writeIndex(int_array, array_length)
 
 end subroutine writeIndex
 
-/// CHECK: Tripcount: 10
+! CHECK: Tripcount: 10

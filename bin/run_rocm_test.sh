@@ -64,7 +64,7 @@ else
 SUITE_LIST=${SUITE_LIST:-"examples smoke-limbo smoke smoke-asan omp5 openmpapps LLNL nekbone ovo sollve babelstream fortran-babelstream accel2023 hpc2021"}
 blockinglist="examples_fortran examples_openmp smoke smoke-limbo openmpapps sollve45 sollve50 babelstream ovo accel2023 hpc2021"
 fi
-EPSDB_LIST=${EPSDB_LIST:-"examples smoke-limbo smoke-dev smoke smoke-asan omp5 openmpapps LLNL nekbone ovo sollve babelstream fortran-babelstream accel2023 hpc2021 smoke-fort-limbo"}
+EPSDB_LIST=${EPSDB_LIST:-"examples smoke-limbo smoke-dev smoke smoke-asan omp5 openmpapps LLNL nekbone ovo sollve babelstream fortran-babelstream accel2023 hpc2021  smoke-fort smoke-fort-limbo"}
 
 export AOMP_USE_CCACHE=0
 
@@ -752,6 +752,23 @@ function smoke-fort-limbo(){
   fi
 }
 
+SMOKE_FORT=${SMOKE_FORT:-1}
+function smoke-fort(){
+  # Smoke-fails
+  if [ ! -e $AOMP/bin/flang-new ]; then
+    SMOKE_FORT=0
+  fi
+  if [ "$SMOKE_FORT" == "1" ]; then
+    mkdir -p "$resultsdir"/smoke-fort
+    cd "$aompdir"/test/smoke-fort
+    ./check_smoke_fort.sh
+    checkrc $?
+    copyresults smoke-fort "$aompdir"/test/smoke-fort
+  else
+    echo "Skipping smoke-fort."
+  fi
+}
+
 function omp5(){
   # Omp5
   mkdir -p "$resultsdir"/omp5
@@ -929,6 +946,7 @@ function hpc2021(){
     export MPI=/tmp/npsdb/openmpi-5.0.0
     mkdir -p "$resultsdir"/hpc2021
     cd "$aompdir"/bin
+    unset ROCR_VISIBLE_DEVICES
     ./run_hpc2021.sh -clean
     cd $AOMP_TEST_DIR/hpc2021-1.1.9
     grep ratio= result/*.log
