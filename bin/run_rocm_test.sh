@@ -164,6 +164,8 @@ if [ "$aomp" != 1 ]; then
   os_name=$(cat /etc/os-release | grep NAME)
   test_package_name="openmp-extras-tests"
   if [ "$SKIP_TEST_PACKAGE" != 1 ] && [ "$TEST_BRANCH" == "" ]; then
+    export debsupport=0
+    export rpmsupport=0
     git --no-pager log -1
     if [ ! -e "$ROCMINF/share/openmp-extras/tests/bin/run_rocm_test.sh" ]; then
       if [ "$EPSDB" == "1" ]; then
@@ -184,6 +186,7 @@ if [ "$aomp" != 1 ]; then
         dpkg -x $test_package .
         script=$(find . -type f -name 'run_rocm_test.sh')
         cd $(dirname $script)
+        export debsupport=1
       fi
       # dnf/yum support, CentOS 7 requires a different method.
       if [ $pkg_mgr_found -eq 0 ]; then
@@ -191,9 +194,10 @@ if [ "$aomp" != 1 ]; then
         dnf --version && pkg_mgr_found=1 || pkg_mgr_found=0
         if [ $pkg_mgr_found -eq 1 ]; then
           echo Using dnf package manager
-	  dnf download --destdir=$tmpdir openmp-extras-tests
-	  test_package=$(ls -lt $tmpdir | grep -Eo -m1 openmp-extras-tests.*)
-	  extract_rpm $test_package
+          dnf download --destdir=$tmpdir openmp-extras-tests
+          test_package=$(ls -lt $tmpdir | grep -Eo -m1 openmp-extras-tests.*)
+          extract_rpm $test_package
+          export rpmsupport=1
         fi
       fi
       if [ $pkg_mgr_found -eq 0 ]; then
@@ -209,6 +213,7 @@ if [ "$aomp" != 1 ]; then
           fi
           test_package=$(ls -lt $tmpdir | grep -Eo -m1 openmp-extras-tests.*)
           extract_rpm $test_package
+          export rpmsupport=1
         fi
       fi
       # zypper support
@@ -223,6 +228,7 @@ if [ "$aomp" != 1 ]; then
           test_package=$(ls -lt "$local_dir"/rocm/ | grep -Eo -m1 openmp-extras-tests.*)
           cp "$local_dir"/rocm/"$test_package" $tmpdir
           extract_rpm $test_package
+          export rpmsupport=1
         fi
       fi
       if [ $pkg_mgr_found -eq 0 ]; then
@@ -370,11 +376,11 @@ function getversion(){
     ompextrasregex="openmp-extras-?[a-z]*-?\s*[0-9]+\.([0-9]+)\.([0-9]+)"
     rpmregex="Red Hat|CentOS|SLES|Oracle Linux Server|Microsoft Azure Linux|Alibaba Linux Server"
     echo $osname
-    if [[ "$osname" =~ $rpmregex ]]; then
-      echo "Red Hat/CentOS/SLES/Oracle/Microsoft Azure/Alibaba Linux Server found"
+    if [ $rpmsupport -eq 1 ]; then
+      echo "OS with rpm support found"
       ompextraspkg=$(rpm -qa | grep openmp-extras | tail -1)
-    elif [[ "$os_name" =~ "Ubuntu" ]] || [[ "$os_name" =~ "Debian" ]]; then
-      echo "Ubuntu/Debian found"
+    elif [ $debsupport -eq 1 ]; then
+      echo "OS with deb support found"
       ompextraspkg=$(dpkg --list | grep openmp-extras | tail -1)
     fi
     if [[ "$ompextraspkg" =~ $ompextrasregex ]]; then
