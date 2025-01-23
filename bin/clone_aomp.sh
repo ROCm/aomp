@@ -195,8 +195,10 @@ if [[ "$AOMP_VERSION" == "13.1" ]] || [[ $AOMP_MAJOR_VERSION -gt 13 ]] ; then
    # For 13.1 and beyond, we use a manifest file to specify the repos to clone.
    # However, we gave up on using the repo command to clone the repos. 
    # That is all done here by parsing the manifest file.
-   ping -c 1 $AOMP_GIT_INTERNAL_IP 2> /dev/null >/dev/null
-   if [ $? == 0 ] && [ "$AOMP_EXTERNAL_MANIFEST" != 1 ]; then
+
+   # According to git documentation this ssh command should return 1 if authentication is successful
+   ssh -T $AOMP_GIT_INTERNAL_IP 2> /dev/null
+   if [ $? == 1 ] && [ "$AOMP_EXTERNAL_MANIFEST" != 1 ]; then
       # AMD internal repo file
       if [ "$AOMP_NEW" == "1" ]; then
          manifest_file=$thisdir/../manifests/aompi_new_${AOMP_VERSION}.xml
@@ -267,6 +269,8 @@ if [[ "$AOMP_VERSION" == "13.1" ]] || [[ $AOMP_MAJOR_VERSION -gt 13 ]] ; then
          repo_web_location=$GITGERRIT
       elif [ "$remote" == "hwloc" ] ; then
          repo_web_location=$GITHWLOC
+      elif [ "$remote" == "githubemu-lightning" ] ; then
+         repo_web_location=$GITLIGHTNINGINTERNAL
       else
          line_is_good=0
       fi

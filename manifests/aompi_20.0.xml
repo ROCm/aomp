@@ -2,15 +2,14 @@
 <manifest>
   <!-- Manifest for AOMP 20.0-x which uses ROCM 6.3 release branches of external repositories -->
 
-    <remote name="gerritgit" review="git.amd.com:8080" fetch="ssh://gerritgit/" />
     <default revision="release/rocm-rel-6.3" remote="gerritgit" sync-j="4" sync-c="true" />
     <remote name="roctools"  fetch="https://github.com/ROCm" />
     <remote name="roc"  fetch="https://github.com/ROCm" />
     <remote name="rocsw"  fetch="https://github.com/ROCm" />
 
 <!-- These first 4 repos are NOT rocm 6.3. They are compiler developer branches -->
-    <project remote="gerritgit" path="llvm-project" name="lightning/ec/llvm-project" revision="amd-staging" groups="unlocked" />
-    <project remote="gerritgit" path="SPIRV-LLVM-Translator" name="lightning/ec/spirv-llvm-translator" revision="amd-staging" groups="unlocked" />
+    <project remote="githubemu-lightning" path="llvm-project" name="llvm-project.git" revision="amd-staging" groups="unlocked" />
+    <project remote="githubemu-lightning" path="SPIRV-LLVM-Translator" name="spirv-llvm-translator.git" revision="amd-staging" groups="unlocked" />
 
     <project remote="roctools" path="flang" name="flang"               revision="aomp-dev" groups="unlocked" />
     <project remote="roctools" path="aomp-extras" name="aomp-extras"   revision="aomp-dev" groups="unlocked" />

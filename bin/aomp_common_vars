@@ -307,15 +307,15 @@ if [ "$AOMP_LIMIT_FLANG" == "1" ] ; then
 fi
 
 # These are the web sites where the AOMP git repos are pulled from
+AOMP_GIT_INTERNAL_IP="git@github-ent"
 GITROC="https://github.com/ROCm"
-GITROCINTERNAL="ssh://$USER@gerrit-git.amd.com:29418/lightning/ec"
 GITGERRIT="ssh://$USER@gerrit-git.amd.com:29418"
 GITROCDEV="https://github.com/ROCm"
 GITROCLIB="https://github.com/ROCm"
 GITROCSW="https://github.com/ROCm"
 GITKHRONOS="https://github.com/KhronosGroup"
 GITHWLOC="https://github.com/open-mpi"
-AOMP_GIT_INTERNAL_IP="gerrit-git.amd.com"
+GITLIGHTNINGINTERNAL="$AOMP_GIT_INTERNAL_IP:AMD-Lightning-Internal"
 GITPROJECT=$GITROCDEV
 POWERINFER_REPO="https://github.com/SJTU-IPADS"
 if [ "$AOMP_STANDALONE_BUILD" == 1 ]; then
