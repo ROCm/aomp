@@ -63,7 +63,14 @@ echo "--- PREPARING fake root directory $froot"
 if [ "$pkgname" == "aomp-hip-libraries" ]; then
   cat $BUILD_DIR/build/rocmlibs/installed_files.txt | xargs -I {} cp -d --parents {} $froot
 else
-  rsync -a $sourcedir"/" --exclude "\.git" $froot$installdir
+  # Create a temporary file to exclude math libraries if present
+  if [ -f $BUILD_DIR/build/rocmlibs/installed_files.txt ]; then
+    tmpfile=/tmp/tmp_installed_files.txt
+    rm -f $tmpfile
+    cp $BUILD_DIR/build/rocmlibs/installed_files.txt $tmpfile
+    sed -i -e "s/\/usr\/lib\/$dirname\///g" $tmpfile
+  fi
+  rsync -a $sourcedir"/" --exclude ".*" --exclude-from=$tmpfile $froot$installdir
 fi
 
 if [ "$pkgname" == "aomp-hip-libraries" ]; then
