@@ -908,6 +908,12 @@ function LLNL(){
 function ovo(){
   mkdir -p "$resultsdir"/ovo
   cd "$aompdir"/bin
+
+  # Increase OVO_TIMEOUT to 20s from default 10s to accomodate
+  # slower systems. As ovo is a functional test suite, this
+  # timeout increase is not related to performance testing.
+  export OVO_TIMEOUT=${OVO_TIMEOUT:-20s}
+
   ./run_ovo.sh log "$AOMP_TEST_DIR"/OvO
   "$scriptsdir"/parse_OvO.sh
   cd "$AOMP_TEST_DIR"/OvO

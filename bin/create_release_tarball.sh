@@ -20,8 +20,9 @@ function getmanifest(){
     if [ "$AOMP_MANIFEST_FILE"  != "" ]; then
       manifest_file=$AOMP_MANIFEST_FILE
     else
-      ping -c 1 $AOMP_GIT_INTERNAL_IP 2> /dev/null >/dev/null
-      if [ $? == 0 ] && [ "$AOMP_EXTERNAL_MANIFEST" != 1 ]; then
+      # According to git documentation this ssh command should return 1 if authentication is successful
+      ssh -T $AOMP_GIT_INTERNAL_IP 2> /dev/null
+      if [ $? == 1 ] && [ "$AOMP_EXTERNAL_MANIFEST" != 1 ]; then
         # AMD internal repo file
         manifest_file=$thisdir/../manifests/aompi_${AOMP_VERSION}.xml
       else
