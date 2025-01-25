@@ -47,6 +47,8 @@ if [ -d $repodirname  ] ; then
    if [ "$STASH_BEFORE_PULL" == "YES" ] ; then
      git stash -u
    fi
+   echo "git checkout $COBRANCH"
+   git checkout $COBRANCH
    echo "git pull "
    git pull
    if [ $? != 0 ] && [ "$IGNORE_GIT_ERROR" != 1 ] ; then

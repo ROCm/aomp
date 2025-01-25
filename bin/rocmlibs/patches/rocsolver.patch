@@ -7,13 +7,13 @@ index 0f88788..95d5ac6 100644
        gfx90a:xnack-
        gfx90a:xnack+
 +      gfx90c
-       gfx940
-       gfx941
        gfx942
        gfx1100
        gfx1101
        gfx1102
 +      gfx1103
        gfx1151
+       gfx1200
+       gfx1201
    )
    set(AMDGPU_TARGETS_INIT

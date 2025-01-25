@@ -8,3 +8,6 @@ override_dh_auto_configure:
 
 override_dh_shlibdeps:
 	dh_shlibdeps -Xlibhsa_runtime64 -- -l/usr/lib/aomp/hsa/lib -l/usr/lib/aomp/lib -l/usr/lib/aomp/rocprofiler/lib -l/home/release/local/rocmsmilib/lib -l/usr/lib/aomp/lib/llvm/lib --ignore-missing-info
+
+override_dh_strip:
+	-X.hsaco

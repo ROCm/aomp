@@ -14,17 +14,6 @@ thisdir=`dirname $realpath`
 _repo_dir=$AOMP_REPOS/rocmlibs/rocSPARSE
 patchrepo $_repo_dir
 
-_gfxlist=""
- _sep=""
-for _arch in $GFXLIST ; do 
- if [ $_arch == "gfx90a" ] ; then 
-     _gfxlist+="${_sep}gfx90a:xnack-"
-     _gfxlist+=";gfx90a:xnack+"
- else
-     _gfxlist+=${_sep}$_arch
- fi
- _sep=";"
-done
 export CC=$LLVM_INSTALL_LOC/bin/clang 
 export CXX=$LLVM_INSTALL_LOC/bin/clang++
 export ROCM_DIR=$AOMP_INSTALL_DIR
@@ -88,33 +77,45 @@ if [ "$1" != "install" ] ; then
    # Remember start directory to return on exit
    _curdir=$PWD
    echo
-   echo " -----Running python3 rmake.py ---"
-   # python rmake.py must be run from source directory.
-   echo cd $_repo_dir
-   cd $_repo_dir 
-   _cmd="python3 ./rmake.py \
---verbose \
---build_dir=$BUILD_DIR/build/rocmlibs/rocSPARSE \
---architecture=""$_gfxlist"" \
- "
-   echo
-   echo CMD:$_cmd
-   echo
-   $_cmd 2>&1
+   echo " -----Running cmake ---"
+   echo cd $AOMP_REPOS/build/rocmlibs/rocSPARSE
+   cd $AOMP_REPOS/build/rocmlibs/rocSPARSE
+   pwd
+   MYCMAKEOPTS="
+     -DCMAKE_CXX_COMPILER=$CXX
+     -DCMAKE_C_COMPILER=$CC
+     -DROCM_DIR:PATH=$AOMP_INSTALL_DIR
+     -DCPACK_PACKAGING_INSTALL_PREFIX=$AOMP_INSTALL_DIR
+     -DCMAKE_INSTALL_PREFIX=$AOMP_INSTALL_DIR
+     -DROCM_PATH=$AOMP_INSTALL_DIR
+     -DCMAKE_PREFIX_PATH:PATH=$AOMP_INSTALL_DIR
+     -DCPACK_SET_DESTDIR=OFF
+     -DCMAKE_BUILD_TYPE=Release
+     -DBUILD_WITH_ROCBLAS=ON
+     -DAMDGPU_TARGETS="""$_gfxlist"""
+   "
+   echo $AOMP_CMAKE $MYCMAKEOPTS $_repo_dir
+   $AOMP_CMAKE $MYCMAKEOPTS $_repo_dir
    if [ $? != 0 ] ; then 
-      echo "ERROR rmake.py failed."
-      echo "       cmd:$_cmd"
+      echo "ERROR cmake failed."
+      echo "       $MYCMAKEOPTS"
       cd $_curdir
+      exit 1
+   fi
+
+   make -j$AOMP_JOB_THREADS
+   if [ $? != 0 ] ; then
+      echo "ERROR make -j $AOMP_JOB_THREADS failed"
       exit 1
    fi
 fi
 
 if [ "$1" == "install" ] ; then
    echo " -----Installing to $AOMP_INSTALL_DIR ---- "
-   echo rsync -av $BUILD_DIR/build/rocmlibs/rocSPARSE/release/rocsparse-install/ $AOMP_INSTALL_DIR/
-   rsync -av $BUILD_DIR/build/rocmlibs/rocSPARSE/release/rocsparse-install/ $AOMP_INSTALL_DIR/
+   cd $AOMP_REPOS/build/rocmlibs/rocSPARSE
+   make -j$AOMP_JOB_THREADS install
    if [ $? != 0 ] ; then
-      echo "ERROR copy to $AOMP_INSTALL_DIR failed "
+      echo "ERROR install to $AOMP_INSTALL_DIR failed "
       exit 1
    fi
    echo

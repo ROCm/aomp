@@ -1,0 +1,7 @@
+[ROCm-6.3]
+name=ROCm6.3
+baseurl=https://repo.radeon.com/rocm/el9/6.3/main
+enabled=1
+priority=50
+gpgcheck=1
+gpgkey=https://repo.radeon.com/rocm/rocm.gpg.key

@@ -276,6 +276,24 @@ fi
 GFXLIST=${GFXLIST:-"gfx700 gfx701 gfx801 gfx803 gfx900 gfx902 gfx906 gfx908 gfx90a gfx90c gfx940 gfx941 gfx942 gfx1030 gfx1031 gfx1035 gfx1036 gfx1100 gfx1101 gfx1102 gfx1103 gfx1150 gfx1151 gfx1152 gfx1153 gfx1200 gfx1201 gfx9-generic gfx9-4-generic gfx10-1-generic gfx10-3-generic gfx11-generic gfx12-generic"}
 export GFXLIST
 
+# _gfxlist is used in the build of rocmlibs. Some of the hip math libraries do not support older architectures.
+_sep=""
+
+# May use this later to filter the gfxlist. For now rocblas only accepts the subset below
+#for _arch in $GFXLIST ; do
+#  if [[ $_arch =~ "gfx7" ]] || [[ $_arch =~ "generic" ]]; then
+#    continue
+#  elif [ $_arch == "gfx90a" ] ; then
+#    _gfxlist+="${_sep}gfx90a:xnack-"
+#    _gfxlist+=";gfx90a:xnack+"
+#  else
+#    _gfxlist+=${_sep}$_arch
+#  fi
+#  _sep=";"
+#done
+
+_gfxlist="gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a;gfx942;gfx1010;gfx1012;gfx1030;gfx1100;gfx1101;gfx1102;gfx1151;gfx1200;gfx1201"
+
 # Calculate the number of threads to use for make
 COMP_THREADS=1
 if [ ! -z `which "getconf"` ]; then

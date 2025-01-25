@@ -9,6 +9,12 @@ thisdir=`dirname $realpath`
 . $thisdir/aomp_common_vars
 # --- end standard header ----
 
+if [ "$1" == aomp-hip-libraries ]; then
+  pkgname=aomp-hip-libraries
+else
+  pkgname=aomp
+fi
+
 osname=$(cat /etc/os-release | grep -e ^NAME=)
 version=$(cat /etc/os-release | grep -e ^VERSION=)
 rpmname="Not_Found"
@@ -20,7 +26,7 @@ if [[ $osname =~ "Red Hat" ]]; then
     rpmname=${1:-aomp_REDHAT_8}
   fi
 elif [[ $osname =~ "SLES" ]]; then
-  echo "SLES15_SP4 found!!!"
+  echo "SLES15_SP5 found!!!"
   rpmname=${1:-aomp_SLES15_SP5}
 elif [[ $osname =~ "CentOS" ]]; then
   echo "CENTOS found!!!"
@@ -59,20 +65,41 @@ if [ -d "$tmphome/rpmbuild" ] ; then
   rm -rf $tmphome/rpmbuild
 fi
 
+dirname=aomp_${AOMP_VERSION_STRING}
 echo --- mkdir -p $tmphome/rpmbuild/SOURCES/$rpmname/usr/lib
-mkdir -p $tmphome/rpmbuild/SOURCES/$rpmname/usr/lib
-echo --- rsync -a --delete ${AOMP}_${AOMP_VERSION_STRING} ~/rpmbuild/SOURCES/$rpmname/usr/lib
-rsync -a --delete ${AOMP}_${AOMP_VERSION_STRING} ~/rpmbuild/SOURCES/$rpmname/usr/lib
+mkdir -p $tmphome/rpmbuild/SOURCES/$rpmname/usr/lib/$dirname
+if [ "$pkgname" == "aomp-hip-libraries" ]; then
+  echo cat $BUILD_DIR/build/rocmlibs/installed_files.txt | xargs -I {} cp -d --parents {} ~/rpmbuild/SOURCES/$rpmname/usr/lib/$dirname
+  cat $BUILD_DIR/build/rocmlibs/installed_files.txt | xargs -I {} cp -d --parents {} ~/rpmbuild/SOURCES/$rpmname/usr/lib/$dirname
+else
+  # Create a temporary file to exclude math libraries if present
+  if [ -f $BUILD_DIR/build/rocmlibs/installed_files.txt ]; then
+    tmpfile=/tmp/tmp_installed_files.txt
+    rm -f $tmpfile
+    cp $BUILD_DIR/build/rocmlibs/installed_files.txt $tmpfile
+    sed -i -e "s/\/usr\/lib\/$dirname\///g" $tmpfile
+    # Avoid copying empty rocblas folders
+    echo "rocblas" >> $tmpfile
+    echo "lib/rocblas" >> $tmpfile
+  fi
+  # Exclude hidden files and math libraries from aomp package
+  echo rsync -a --delete /usr/lib/$dirname/ --exclude ".*" --exclude-from=$tmpfile ~/rpmbuild/SOURCES/$rpmname/usr/lib/$dirname
+  rsync -a --delete /usr/lib/$dirname"/" --exclude ".*" --exclude-from=$tmpfile ~/rpmbuild/SOURCES/$rpmname/usr/lib/$dirname
+fi
+
 echo --- mkdir -p $tmphome/rpmbuild/SPECS
 mkdir -p $tmphome/rpmbuild/SPECS
 
-tmpspecfile=$tmphome/rpmbuild/SPECS/$rpmname.spec
-echo --- cp $thisdir/$rpmname.spec $tmpspecfile
-cp $thisdir/$rpmname.spec $tmpspecfile
+tmpspecfile=$tmphome/rpmbuild/SPECS/aomp.spec
+echo --- cp $thisdir/aomp.spec $tmpspecfile
+cp $thisdir/aomp.spec $tmpspecfile
 echo --- sed -ie "s/__VERSION1/$AOMP_VERSION/" $tmpspecfile
 sed -ie "s/__VERSION1/$AOMP_VERSION/" $tmpspecfile
 sed -ie "s/__VERSION2_STRING/$AOMP_VERSION_STRING/" $tmpspecfile
 sed -ie "s/__VERSION3_MOD/$AOMP_VERSION_MOD/" $tmpspecfile
+# Replace rpmname place holder with actual $rpmname
+sed -ie "s/Name: \$rpmname/Name: $rpmname/" $tmpspecfile
+sed -ie "s/\$rpmname.tar.gz/$rpmname.tar.gz/" $tmpspecfile
 cat $thisdir/debian/changelog | grep -v " --" | grep -v "UNRELEASED" >>$tmpspecfile
 
 echo --- cd ~/rpmbuild/SOURCES
@@ -100,8 +127,8 @@ echo --- done tar
 echo 
 echo ------ STARTING rpmbuild -----
 echo 
-echo --- rpmbuild -ba ../SPECS/${rpmname}.spec
-rpmbuild -ba ../SPECS/${rpmname}.spec
+echo rpmbuild --define "_topdir $tmphome/rpmbuild" -ba -v ../SPECS/aomp.spec
+rpmbuild --define "_topdir $tmphome/rpmbuild" -ba -v ../SPECS/aomp.spec
 rc=$?
 echo ------ DONE rpmbuild rc is $rc -----
 if [ $rc != 0 ] ; then 
