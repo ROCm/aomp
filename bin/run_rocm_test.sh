@@ -167,6 +167,38 @@ if [ "$aomp" != 1 ]; then
     export debsupport=0
     export rpmsupport=0
     git --no-pager log -1
+    #------- Begin testing for package manager -------
+    echo Testing apt...
+    apt --version && pkg_mgr_found=1 || pkg_mgr_found=0
+    if [ $pkg_mgr_found -eq 1 ]; then
+      export debsupport=1
+      apt=1
+    fi
+    if [ $pkg_mgr_found -eq 0 ]; then
+      echo Testing dnf...
+      dnf --version && pkg_mgr_found=1 || pkg_mgr_found=0
+      if [ $pkg_mgr_found -eq 1 ]; then
+        export rpmsupport=1
+	dnf=1
+      fi
+    fi
+    if [ $pkg_mgr_found -eq 0 ]; then
+      echo Testing yum...
+      yum --version && pkg_mgr_found=1 || pkg_mgr_found=0
+      if [ $pkg_mgr_found -eq 1 ]; then
+        yum=1
+        export rpmsupport=1
+      fi
+    fi
+    if [ $pkg_mgr_found -eq 0 ]; then
+      echo Testing zypper...
+      zypper --version && pkg_mgr_found=1 || pkg_mgr_found=0
+      if [ $pkg_mgr_found -eq 1 ]; then
+	zypper=1
+        export rpmsupport=1
+      fi
+    fi
+    #------- End testing for package manager -------
     if [ ! -e "$ROCMINF/share/openmp-extras/tests/bin/run_rocm_test.sh" ]; then
       if [ "$EPSDB" == "1" ]; then
         echo "Error: nPSDB should have the openmp-extras-tests package installed before this test step."
@@ -176,9 +208,7 @@ if [ "$aomp" != 1 ]; then
       mkdir -p $tmpdir
       # Determine package manager and download package not using sudo.
       # apt support
-      echo Testing apt...
-      apt --version && pkg_mgr_found=1 || pkg_mgr_found=0
-      if [ $pkg_mgr_found -eq 1 ]; then
+      if [ "$apt" == "1" ]; then
         echo Using apt package manager
         cd $tmpdir
         apt-get download $test_package_name
@@ -186,52 +216,32 @@ if [ "$aomp" != 1 ]; then
         dpkg -x $test_package .
         script=$(find . -type f -name 'run_rocm_test.sh')
         cd $(dirname $script)
-        export debsupport=1
-      fi
       # dnf/yum support, CentOS 7 requires a different method.
-      if [ $pkg_mgr_found -eq 0 ]; then
-        echo Testing dnf...
-        dnf --version && pkg_mgr_found=1 || pkg_mgr_found=0
-        if [ $pkg_mgr_found -eq 1 ]; then
-          echo Using dnf package manager
-          dnf download --destdir=$tmpdir openmp-extras-tests
-          test_package=$(ls -lt $tmpdir | grep -Eo -m1 openmp-extras-tests.*)
-          extract_rpm $test_package
-          export rpmsupport=1
+      elif [ "$dnf" == "1" ]; then
+        echo Using dnf package manager
+        dnf download --destdir=$tmpdir openmp-extras-tests
+        test_package=$(ls -lt $tmpdir | grep -Eo -m1 openmp-extras-tests.*)
+        extract_rpm $test_package
+      elif [ "$yum" == "1" ]; then
+        echo Using yum package manager
+        osversion=$(cat /etc/os-release | grep -e ^VERSION_ID)
+        if [[ $osversion =~ '"7' ]]; then
+          yumdownloader --destdir=$tmpdir $test_package_name
+        else
+          yum download --destdir $tmpdir $test_package_name
         fi
-      fi
-      if [ $pkg_mgr_found -eq 0 ]; then
-        echo Testing yum...
-        yum --version && pkg_mgr_found=1 || pkg_mgr_found=0
-        if [ $pkg_mgr_found -eq 1 ]; then
-          echo Using yum package manager
-          osversion=$(cat /etc/os-release | grep -e ^VERSION_ID)
-          if [[ $osversion =~ '"7' ]]; then
-            yumdownloader --destdir=$tmpdir $test_package_name
-          else
-            yum download --destdir $tmpdir $test_package_name
-          fi
-          test_package=$(ls -lt $tmpdir | grep -Eo -m1 openmp-extras-tests.*)
-          extract_rpm $test_package
-          export rpmsupport=1
-        fi
-      fi
+        test_package=$(ls -lt $tmpdir | grep -Eo -m1 openmp-extras-tests.*)
+        extract_rpm $test_package
       # zypper support
-      if [ $pkg_mgr_found -eq 0 ]; then
-        echo Testing zypper...
-        zypper --version && pkg_mgr_found=1 || pkg_mgr_found=0
-        if [ $pkg_mgr_found -eq 1 ]; then
-          echo Using zypper package manager
-          local_dir=~/openmp-extras-test
-          rm -f "$local_dir"/*
-          zypper --pkg-cache-dir $local_dir download $test_package_name
-          test_package=$(ls -lt "$local_dir"/rocm/ | grep -Eo -m1 openmp-extras-tests.*)
-          cp "$local_dir"/rocm/"$test_package" $tmpdir
-          extract_rpm $test_package
-          export rpmsupport=1
-        fi
-      fi
-      if [ $pkg_mgr_found -eq 0 ]; then
+      elif [ "$zypper" == "1" ]; then
+        echo Using zypper package manager
+        local_dir=~/openmp-extras-test
+        rm -f "$local_dir"/*
+        zypper --pkg-cache-dir $local_dir download $test_package_name
+        test_package=$(ls -lt "$local_dir"/rocm/ | grep -Eo -m1 openmp-extras-tests.*)
+        cp "$local_dir"/rocm/"$test_package" $tmpdir
+        extract_rpm $test_package
+      else
         echo "Error: Could not determine package manager type."
         exit 1
       fi
