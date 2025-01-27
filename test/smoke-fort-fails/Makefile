@@ -37,6 +37,7 @@ TESTS_DIR = \
     rocm-aomp-issue-1148 \
     rocm-issue-201 \
     rocm-issue-208 \
+    rocm-issue-241 \
     split-dist-f90 \
     split-dist-par-c \
     split-dist-par-f90 \
