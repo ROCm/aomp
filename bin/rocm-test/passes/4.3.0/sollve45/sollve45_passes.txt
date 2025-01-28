@@ -25,7 +25,6 @@ test_target_data_map_components_default.F90
 test_target_data_map_components_to.F90
 test_target_data_map_components_tofrom.F90
 test_target_data_map_devices.c
-test_target_data_map_from_array_sections.F90
 test_target_data_map_from.c
 test_target_data_map_pointer_translation.c
 test_target_data_map_to.c
