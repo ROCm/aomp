@@ -23,6 +23,16 @@ cat /etc/os-release
 rocm-smi
 rocminfo
 
+# Export SKIP_USM=1 if xnack can not be turned ON, even with HSA_XNACK=1.
+# Makefile.defs uses SKIP_USM env var to disable compilation and execution
+# of the tests which require USM support.
+SKIP_USM=0
+XNACK_PLUS=$(HSA_XNACK=1 rocminfo | grep -i "xnack+" | wc -l)
+if [ $XNACK_PLUS -eq 0 ]; then
+  SKIP_USM=1
+fi
+export SKIP_USM=$SKIP_USM
+
 if [ -e /usr/sbin/lspci ]; then
   lspci_loc=/usr/sbin/lspci
 else
@@ -44,24 +54,24 @@ if [ $? -eq 0 ] ; then
   export ISVIRT=1
 fi
 if [ $ISVIRT -eq 1 ] ; then
+  $lspci_loc 2>&1 | grep -qi Virtio
+  if [ $? -eq 0 ] ; then
+    export ISVIRT=1
+  fi
 
-$lspci_loc 2>&1 | grep -qi Virtio
-if [ $? -eq 0 ] ; then
-  export ISVIRT=1
-fi
+  export HSA_XNACK=${HSA_XNACK:-0}
 
-export HSA_XNACK=${HSA_XNACK:-0}
+  # Set this flag to 1 to report error instead of warning when USM tests are being
+  # run on configurations that do not support USM.
+  export OMPX_STRICT_SANITY_CHECKS={OMPX_STRICT_SANITY_CHECKS:-1}
 
-# Set this flag to 1 to report error instead of warning when USM tests are being
-# run on configurations that do not support USM.
-export OMPX_STRICT_SANITY_CHECKS={OMPX_STRICT_SANITY_CHECKS:-1}
-
-SUITE_LIST=${SUITE_LIST:-"examples smoke-limbo smoke smoke-asan omp5 openmpapps ovo sollve babelstream fortran-babelstream accel2023 hpc2021"}
-blockinglist="examples_fortran examples_openmp smoke smoke-limbo openmpapps sollve45 sollve50 babelstream ovo accel2023 hpc2021"
+  SUITE_LIST=${SUITE_LIST:-"examples smoke-limbo smoke smoke-asan omp5 openmpapps ovo sollve babelstream fortran-babelstream accel2023 hpc2021"}
+  blockinglist="examples_fortran examples_openmp smoke smoke-limbo openmpapps sollve45 sollve50 babelstream ovo accel2023 hpc2021"
 else
-SUITE_LIST=${SUITE_LIST:-"examples smoke-limbo smoke smoke-asan omp5 openmpapps LLNL nekbone ovo sollve babelstream fortran-babelstream accel2023 hpc2021"}
-blockinglist="examples_fortran examples_openmp smoke smoke-limbo openmpapps sollve45 sollve50 babelstream ovo accel2023 hpc2021"
+  SUITE_LIST=${SUITE_LIST:-"examples smoke-limbo smoke smoke-asan omp5 openmpapps LLNL nekbone ovo sollve babelstream fortran-babelstream accel2023 hpc2021"}
+  blockinglist="examples_fortran examples_openmp smoke smoke-limbo openmpapps sollve45 sollve50 babelstream ovo accel2023 hpc2021"
 fi
+
 EPSDB_LIST=${EPSDB_LIST:-"examples smoke-limbo smoke-dev smoke smoke-asan omp5 openmpapps LLNL nekbone ovo sollve babelstream fortran-babelstream accel2023 hpc2021  smoke-fort smoke-fort-limbo"}
 
 export AOMP_USE_CCACHE=0
@@ -688,20 +698,6 @@ function checkrc(){
 getversion
 echo "Included Versions: $finalvers"
 
-# Return 1 if xnack can not be turned ON, even with HSA_XNACK=1.
-# Returned value is passed to SKIP_USM env var by the caller which is
-# propagated to the check script of smoke family of suites.
-# Makefile.defs uses SKIP_USM env var to disable compilation and execution
-# of the tests which require USM support.
-function check_usm_support() {
-  SKIP_USM=0
-  XNACK_PLUS=$(HSA_XNACK=1 rocminfo | grep -i "xnack+" | wc -l)
-  if [ $XNACK_PLUS -eq 0 ]; then
-    SKIP_USM=1
-  fi
-  echo $SKIP_USM
-}
-
 function examples(){
   # Fortran Examples
   mkdir -p "$resultsdir"/examples_fortran
@@ -726,7 +722,7 @@ function smoke(){
   # Smoke
   mkdir -p "$resultsdir"/smoke
   cd "$aompdir"/test/smoke
-  SKIP_USM=$(check_usm_support) HIP_PATH="" AOMP_PARALLEL_SMOKE=1 CLEANUP=0 AOMPHIP=$AOMPROCM ./check_smoke.sh
+  HIP_PATH="" AOMP_PARALLEL_SMOKE=1 CLEANUP=0 AOMPHIP=$AOMPROCM ./check_smoke.sh
   checkrc $?
   copyresults smoke "$aompdir"/test/smoke
 }
@@ -736,7 +732,7 @@ function smoke-asan(){
   if [ "$AOMP_SANITIZER" == 1 ]; then
     mkdir -p "$resultsdir"/smoke-asan
     cd "$aompdir"/test/smoke-asan
-    SKIP_USM=$(check_usm_support) HIP_PATH="" AOMP_PARALLEL_SMOKE=1 CLEANUP=0 AOMPHIP=$AOMPROCM ./check_smoke_asan.sh
+    HIP_PATH="" AOMP_PARALLEL_SMOKE=1 CLEANUP=0 AOMPHIP=$AOMPROCM ./check_smoke_asan.sh
     checkrc $?
     copyresults smoke-asan "$aompdir"/test/smoke-asan
   else
@@ -750,7 +746,7 @@ function smokefails(){
   if [ "$SMOKE_FAILS" == "1" ]; then
     mkdir -p "$resultsdir"/smoke-fails
     cd "$aompdir"/test/smoke-fails
-    SKIP_USM=$(check_usm_support) ./check_smoke_fails.sh
+    ./check_smoke_fails.sh
     checkrc $?
     copyresults smoke-fails
   else
@@ -764,7 +760,7 @@ function smoke-dev(){
   if [ "$SMOKE_DEV" == "1" ]; then
     mkdir -p "$resultsdir"/smoke-dev
     cd "$aompdir"/test/smoke-dev
-    SKIP_USM=$(check_usm_support) ./check_smoke_dev.sh
+    ./check_smoke_dev.sh
     checkrc $?
     copyresults smoke-dev "$aompdir"/test/smoke-dev
   else
@@ -778,7 +774,7 @@ function smoke-limbo(){
   if [ "$SMOKE_LIMBO" == "1" ]; then
     mkdir -p "$resultsdir"/smoke-limbo
     cd "$aompdir"/test/smoke-limbo
-    SKIP_USM=$(check_usm_support) ./check_smoke_limbo.sh
+    ./check_smoke_limbo.sh
     checkrc $?
     copyresults smoke-limbo "$aompdir"/test/smoke-limbo
   else
@@ -795,7 +791,7 @@ function smoke-fort-limbo(){
   if [ "$SMOKE_FORT_LIMBO" == "1" ]; then
     mkdir -p "$resultsdir"/smoke-fort-limbo
     cd "$aompdir"/test/smoke-fort-limbo
-    SKIP_USM=$(check_usm_support) ./check_smoke_fort_limbo.sh
+    ./check_smoke_fort_limbo.sh
     checkrc $?
     copyresults smoke-fort-limbo "$aompdir"/test/smoke-fort-limbo
   else
@@ -812,7 +808,7 @@ function smoke-fort(){
   if [ "$SMOKE_FORT" == "1" ]; then
     mkdir -p "$resultsdir"/smoke-fort
     cd "$aompdir"/test/smoke-fort
-    SKIP_USM=$(check_usm_support) ./check_smoke_fort.sh
+    ./check_smoke_fort.sh
     checkrc $?
     copyresults smoke-fort "$aompdir"/test/smoke-fort
   else
@@ -861,7 +857,7 @@ function OpenMP_VV(){
     echo "Skipping USM 5.x tests."
     SKIP_USM=1 SKIP_SOLLVE51=1 SKIP_SOLLVE52=1 ./run_OpenMP_VV.sh
   else
-    SKIP_USM=$(check_usm_support) SKIP_SOLLVE51=1 SKIP_SOLLVE52=1 ./run_OpenMP_VV.sh
+    SKIP_SOLLVE51=1 SKIP_SOLLVE52=1 ./run_OpenMP_VV.sh
   fi
 
   ./check_sollve.sh
@@ -898,7 +894,7 @@ function sollve(){
     echo "Skipping USM 5.0 tests."
     SKIP_USM=1 SKIP_SOLLVE51=1 ./run_sollve.sh
   else
-    SKIP_USM=$(check_usm_support) SKIP_SOLLVE51=1 ./run_sollve.sh
+    SKIP_SOLLVE51=1 ./run_sollve.sh
   fi
 
   ./check_sollve.sh
