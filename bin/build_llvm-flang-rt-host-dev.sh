@@ -4,7 +4,7 @@
 #
 #   Standalone script to build the flang runtime with host-device support
 #   This script should only be run after build_aomp.sh
-#   Installs in: ${AOMP}/lib/libFortranRuntimeHostDevice.a
+#   Installs in: ${AOMP}/lib/libflang_rt.hostdevice.a
 #
 # References:
 #
