@@ -104,8 +104,8 @@ mystat=$?
 allstat=$(($allstat+$mystat))
 echo "status: $mystat"
 
-if [ -e "$BUILD_DIR_FRT/libFortranRuntime.a" ]; then
-    cmd="cp $BUILD_DIR_FRT/libFortranRuntime.a $INSTALL_DIR/lib/libFortranRuntimeHostDevice.a"
+if [ -e "$BUILD_DIR_FRT/libflang_rt.runtime.a" ]; then
+    cmd="cp $BUILD_DIR_FRT/libflang_rt.runtime.a $INSTALL_DIR/lib/libflang_rt.hostdevice.a"
     echo $cmd
     $cmd
     mystat=$?
