@@ -59,7 +59,7 @@ if [ ! -x $CMAKE_CXX_COMPILER ]; then
 fi
 
 BUILD_DIR=$BUILD_AOMP/build/llvm-project
-BUILD_DIR_FRT=$AOMP_REPOS/build/flang-runtime/
+BUILD_DIR_FRT=$BUILD_AOMP/build/flang-runtime/
 OMPRUNTIME_DIR=$BUILD_DIR/runtimes/runtimes-bins/openmp/runtime/src
 INSTALL_DIR=$AOMP
 
