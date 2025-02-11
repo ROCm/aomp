@@ -29,6 +29,7 @@ Note: If working on amd-staging, the following patch is currently needed:
 EOD
 echo "AOMP               = $AOMP"
 echo "AOMP_REPOS         = $AOMP_REPOS"
+echo "BUILD_AOMP         = $BUILD_AOMP"
 
 CMAKE_C_COMPILER="$AOMP/bin/clang"
 CMAKE_CXX_COMPILER="$AOMP/bin/clang++"
@@ -57,7 +58,7 @@ if [ ! -x $CMAKE_CXX_COMPILER ]; then
     exit 0
 fi
 
-BUILD_DIR=$AOMP_REPOS/build/llvm-project
+BUILD_DIR=$BUILD_AOMP/build/llvm-project
 BUILD_DIR_FRT=$AOMP_REPOS/build/flang-runtime/
 OMPRUNTIME_DIR=$BUILD_DIR/runtimes/runtimes-bins/openmp/runtime/src
 INSTALL_DIR=$AOMP
