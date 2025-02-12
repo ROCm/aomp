@@ -1,6 +1,7 @@
 program main
 
    use omp_lib
+       use iso_c_binding
    implicit none
    interface
      subroutine fortran_callable_init(a,N) bind(c)
@@ -26,7 +27,7 @@ program main
 
    !$OMP TARGET DATA MAP(tofrom:arr1) MAP(from:crr1)
 
-   !$OMP TARGET DATA USE_DEVICE_PTR(arr1)
+   !$OMP TARGET DATA USE_DEVICE_ADDR(arr1)
    call fortran_callable_init(c_loc(arr1),nx)
    !$OMP END TARGET DATA
 

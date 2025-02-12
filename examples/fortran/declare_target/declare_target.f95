@@ -1,6 +1,6 @@
 subroutine decrement_val(i, beta)
         !$omp declare target
-        integer, dimension(*), intent(out) :: beta
+        real, dimension(*), intent(out) :: beta
         integer, value :: i
         beta(i) = beta(i) - 1
 end subroutine
@@ -19,7 +19,7 @@ program main
   call foo(a,b,c)
 
   write(6,*)"a(1)=", a(1), "    a(2)=", a(2)
-  if (a(1).ne.11 .or. a(2).ne.22) then
+  if (a(1).ne.10 .or. a(2).ne.21) then
     write(6,*)"ERROR: wrong answers"
     stop 2
   endif
@@ -30,6 +30,13 @@ subroutine foo(a,b,c)
   parameter (nsize=1000000)
   real a(nsize), b(nsize), c(nsize)
   integer i
+ INTERFACE
+    SUBROUTINE decrement_val(i,beta)
+        real, dimension(*), intent(out) :: beta
+        integer, value :: i
+    END SUBROUTINE
+  END INTERFACE
+
 !$omp declare target(decrement_val)
 !$omp target map(from:a) map(to:b,c)
 !$omp parallel do
