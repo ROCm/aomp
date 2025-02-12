@@ -45,7 +45,7 @@ endif
 
 FORT   =$(LLVM_INSTALL_DIR)/bin/flang
 LFLAGS = 
-FFLAGS = -O3 -m64 -i8 -fopenmp 
+FFLAGS = -O3  -fopenmp
 
 # ----- Demo compile and link in one step, no object code saved
 $(TESTNAME): $(TESTSRC)
