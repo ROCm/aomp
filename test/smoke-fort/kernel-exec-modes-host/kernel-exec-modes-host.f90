@@ -32,7 +32,7 @@ program kernel_exec_modes_host
   use omp_lib
   implicit none
   integer :: i, j
-  integer, parameter :: teams=5, threads=10
+  integer, parameter :: teams=5, threads=4
   integer :: a(threads, teams)
 
   ! Combined SPMD

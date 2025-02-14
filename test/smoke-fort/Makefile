@@ -104,6 +104,9 @@ TESTS_DIR = \
     intrin-rename-sub \
     iso_flush \
     jacobi \
+    kernel-exec-modes \
+    kernel-exec-modes-host \
+    kernel-exec-modes-reductions \
     LaunchLatency \
     llvm-issue-82047 \
     math-acos \
