@@ -44,7 +44,7 @@ else
    RUN_OPTIONS=${RUN_OPTIONS:-"omp-default omp-fast omp-loop omp-loop-fast"}
 fi
 
-omp_target_flags="-O3 -fopenmp -fopenmp-targets=$TRIPLE -Xopenmp-target=$TRIPLE -march=$AOMP_GPU -DOMP -DVERSION_STRING=4.0"
+omp_target_flags="-O3 -fopenmp --offload-arch=$AOMP_GPU -DOMP -DVERSION_STRING=4.0"
 
 #  So this script runs with old comilers, we only use -fopenmp-target-fast
 #  for LLVM 16 or higher
