@@ -65,7 +65,6 @@ SUITE_LIST=${SUITE_LIST:-"examples smoke-limbo smoke smoke-asan omp5 openmpapps 
 blockinglist="examples_fortran examples_openmp smoke smoke-limbo openmpapps sollve45 sollve50 babelstream ovo accel2023 hpc2021"
 fi
 EPSDB_LIST=${EPSDB_LIST:-"examples smoke-limbo smoke-dev smoke smoke-asan omp5 openmpapps LLNL nekbone ovo sollve babelstream fortran-babelstream accel2023 hpc2021  smoke-fort smoke-fort-limbo"}
-blockinglist=$EPSDB_LIST
 
 export AOMP_USE_CCACHE=0
 
@@ -444,7 +443,7 @@ function getversion(){
     fi
   fi
 }
-allMustPass() {
+notAllMustPass() {
   #if [ "$1" != "smoke" ] && [ "$1" != "smoke-limbo" ] &&  [ "$1" != "smoke-fort" ] && [ "$1" != "smoke-fort-limbo" ]; then
   if [ "$1" != "smoke" ] && [ "$1" != "smoke-limbo" ] ; then
      false
@@ -481,7 +480,7 @@ function copyresults(){
   echo ===== $1 ===== | tee -a $summary $unexpresults
 
   # Sort expected passes
-  if allMustPass $1 ; then
+  if notAllMustPass $1 ; then
  #if [ "$1" != "smoke" ] && [ "$1" != "smoke-limbo" ]; then
     for ver in $finalvers; do
       if [ -e "$rocmtestdir"/passes/$ver/$1/"$1"_passes.txt ]; then
@@ -498,7 +497,7 @@ function copyresults(){
     sort -f -d "$1"_passing_tests.txt > "$1"_sorted_passes
 
     # Unexpected passes
-  if allMustPass $1 ; then
+  if notAllMustPass $1 ; then
       unexpectedpasses=$(diff "$1"_sorted_exp_passes "$1"_sorted_passes | grep '^>' | wc -l)
       echo Unexpected Passes: $unexpectedpasses | tee -a $summary $unexpresults
       diff "$1"_sorted_exp_passes "$1"_sorted_passes | grep '^>' | sed 's/> //' >> $summary
@@ -513,7 +512,7 @@ function copyresults(){
     if [ "$passlines" != 0 ]; then
       unexpectedfails=$(diff "$1"_sorted_exp_passes "$1"_sorted_passes | grep '^<' | wc -l)
     else
-  if allMustPass $1 ; then
+  if notAllMustPass $1 ; then
         if [ -e "$resultsdir/$1"/"$1"_failing_tests.txt ]; then
 	  runtimefails=$(cat "$resultsdir/$1"/"$1"_failing_tests.txt | wc -l)
 	  unexpectedfails=$((unexpectedfails + runtimefails))
@@ -527,7 +526,7 @@ function copyresults(){
 
     # Check unexpected fails for false negatives, i.e. tests that may have been deleted or unsupported tests.
     if [ "$unexpectedfails" != 0 ]; then
-  if allMustPass $1 ; then
+  if notAllMustPass $1 ; then
         fails=`diff $1_sorted_exp_passes $1_sorted_passes | grep '^<' | sed "s|< ||g"`
       else
         fails=$(cat "$resultsdir/$1"/"$1"_failing_tests_combined.txt)
@@ -628,7 +627,7 @@ function copyresults(){
     fi
 
     echo "Unexpected Fails: $unexpectedfails" | tee -a $summary $unexpresults
-  if allMustPass $1 ; then
+  if notAllMustPass $1 ; then
       diff "$1"_sorted_exp_passes "$1"_sorted_passes | grep '^<' | sed 's/< //' >> $summary
     else
       if [ -e "$resultsdir/$1"/"$1"_failing_tests_combined.txt ]; then
@@ -655,7 +654,7 @@ function copyresults(){
     if [ "$passlines" != 0 ]; then
       numtests=$(cat "$resultsdir"/"$1"/"$1"_sorted_exp_passes | wc -l)
     else
-  if allMustPass $1 ; then
+  if notAllMustPass $1 ; then
         if [ -e "$resultsdir/$1"/"$1"_failing_tests.txt ]; then
 	  runtimefails=$(cat "$resultsdir/$1"/"$1"_failing_tests.txt | wc -l)
 	  numtests=$((numtests + runtimefails))
@@ -669,7 +668,7 @@ function copyresults(){
       fi
     fi
     echo "Unexpected Fails: $numtests" | tee -a $summary $unexpresults
-  if allMustPass $1 ; then
+  if notAllMustPass $1 ; then
       cat "$1"_sorted_exp_passes >> $summary
     else
       cat "$1"_all_tests.txt >> $summary
