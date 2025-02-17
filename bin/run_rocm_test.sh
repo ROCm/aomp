@@ -446,9 +446,9 @@ function getversion(){
 notAllMustPass() {
   #if [ "$1" != "smoke" ] && [ "$1" != "smoke-limbo" ] &&  [ "$1" != "smoke-fort" ] && [ "$1" != "smoke-fort-limbo" ]; then
   if [ "$1" != "smoke" ] && [ "$1" != "smoke-limbo" ] ; then
-     false
-  else
      true
+  else
+     false
   fi
 }
 
