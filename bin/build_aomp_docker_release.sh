@@ -10,7 +10,7 @@
 
 set -e
 set -x
-AOMP_VERSION_STRING=${AOMP_VERSION_STRING:-20.0-1}
+AOMP_VERSION_STRING=${AOMP_VERSION_STRING:-20.0-2}
 AOMP_VERSION=${AOMP_VERSION:-20.0}
 #DOCKERX_HOST=${DOCKERX_HOST:-$HOME/dockerx}
 DOCKERX_HOST=$HOME/dockerx
@@ -69,9 +69,9 @@ prereq_array["ubuntu1804"]="apt-get -y update && apt-get install -y git cmake wg
 
 p2rereq_array["ubuntu2004"]="apt-get -y update && apt-get install -y git cmake wget vim openssl libssl-dev libelf-dev kmod pciutils gcc g++ pkg-config libpci-dev libnuma-dev libffi-dev git python libopenmpi-dev gawk mesa-common-dev libtool python3 texinfo libbison-dev bison flex libbabeltrace-dev python3-pip libncurses5-dev liblzma-dev python3-setuptools python3-dev libpython3.8-dev libudev-dev libgmp-dev debianutils devscripts cli-common-dev rsync libsystemd-dev libdw-dev libgtest-dev sudo ccache libgmp-dev libmpfr-dev && $pip_install"
 
-prereq_array["ubuntu2204"]="apt-get -y update && apt-get install -y git cmake wget vim openssl libssl-dev libelf-dev kmod pciutils gcc g++ pkg-config libpci-dev libnuma-dev libffi-dev git libopenmpi-dev gawk mesa-common-dev libtool python3 texinfo libbison-dev bison flex libbabeltrace-dev python3-pip libncurses5-dev liblzma-dev python3-setuptools python3-dev libpython3.10-dev libudev-dev libgmp-dev debianutils devscripts cli-common-dev rsync libsystemd-dev libdw-dev libgtest-dev libstdc++-12-dev sudo python3-lxml ccache libgmp-dev libmpfr-dev ocl-icd-opencl-dev && $pip_install_2204"
+prereq_array["ubuntu2204"]="apt-get -y update && apt-get install -y git cmake wget vim openssl libssl-dev libelf-dev kmod pciutils gcc g++ pkg-config libpci-dev libnuma-dev libffi-dev git libopenmpi-dev gawk mesa-common-dev libtool python3 texinfo libbison-dev bison flex libbabeltrace-dev python3-pip libncurses5-dev liblzma-dev python3-setuptools python3-dev libpython3.10-dev libudev-dev libgmp-dev debianutils devscripts cli-common-dev rsync libsystemd-dev libdw-dev libgtest-dev libstdc++-12-dev sudo python3-lxml ccache libgmp-dev libmpfr-dev ocl-icd-opencl-dev libfmt-dev libmsgpack-dev python3-venv && $pip_install_2204"
 
-prereq_array["ubuntu2404"]="apt-get -y update && apt-get install -y git cmake wget vim openssl libssl-dev libelf-dev kmod pciutils gcc g++ pkg-config libpci-dev libnuma-dev libffi-dev git libopenmpi-dev gawk mesa-common-dev libtool python3 texinfo libbison-dev bison flex libbabeltrace-dev python3-pip libncurses-dev liblzma-dev python3-setuptools python3-dev python3-barectf python3-pip python3-pip-whl python3-requests python3-venv python3-yaml libudev-dev libgmp-dev debianutils devscripts cli-common-dev rsync libsystemd-dev libdw-dev libgtest-dev libstdc++-12-dev sudo python3-lxml ccache libgmp-dev libmpfr-dev make ocl-icd-opencl-dev && $pip_install_2404"
+prereq_array["ubuntu2404"]="apt-get -y update && apt-get install -y git cmake wget vim openssl libssl-dev libelf-dev kmod pciutils gcc g++ pkg-config libpci-dev libnuma-dev libffi-dev git libopenmpi-dev gawk mesa-common-dev libtool python3 texinfo libbison-dev bison flex libbabeltrace-dev python3-pip libncurses-dev liblzma-dev python3-setuptools python3-dev python3-barectf python3-pip python3-pip-whl python3-requests python3-venv python3-yaml libudev-dev libgmp-dev debianutils devscripts cli-common-dev rsync libsystemd-dev libdw-dev libgtest-dev libstdc++-12-dev sudo python3-lxml ccache libgmp-dev libmpfr-dev make ocl-icd-opencl-dev libfmt-dev libmsgpack-dev && $pip_install_2404"
 
 prereq_array["centos7"]="yum install -y make gcc-c++ git cmake wget vim openssl-devel elfutils-libelf-devel pciutils-devel numactl-devel libffi-devel mesa-libGL-devel libtool texinfo bison flex ncurses-devel expat-devel xz-devel libbabeltrace-devel gmp-devel rpm-build rsync systemd-devel gtest-devel libpciaccess-devel elfutils-devel ccache libxml2-devel xz-lzma-compat devtoolset-9 devtoolset-9-libatomic-devel devtoolset-9-elfutils-libelf-devel scl-utils mpfr-devel gettext libcurl-devel ocl-icd-devel && yum remove -y python3*"
 
@@ -79,17 +79,17 @@ prereq_array["centos8"]="yum install -y dnf-plugins-core && yum config-manager -
 
 prereq_array["centos9"]="yum install -y dnf-plugins-core gcc-c++ git cmake wget vim openssl-devel elfutils-libelf-devel pciutils-devel numactl-devel libffi-devel mesa-libGL-devel libtool texinfo bison flex ncurses-devel expat-devel xz-devel libbabeltrace-devel gmp-devel rpm-build rsync systemd-devel gtest-devel ccache mpfr-devel ocl-icd-devel && $pip_install"
 
-prereq_array["rhel8"]="yum update -y && yum install -y dnf-plugins-core && yum install -y gcc-c++ git cmake wget vim openssl-devel elfutils-libelf-devel pciutils-devel numactl-devel libffi-devel mesa-libGL-devel libtool texinfo bison flex ncurses-devel expat-devel xz-devel libbabeltrace-devel gmp-devel rpm-build rsync systemd-devel gtest-devel elfutils-devel ccache python38 python38-devel mpfr-devel ocl-icd-devel libatomic libquadmath-devel && $pip_install"
+prereq_array["rhel8"]="yum update -y && yum install -y dnf-plugins-core && yum install -y gcc-c++ git cmake wget vim openssl-devel elfutils-libelf-devel pciutils-devel numactl-devel libffi-devel mesa-libGL-devel libtool texinfo bison flex ncurses-devel expat-devel xz-devel libbabeltrace-devel gmp-devel rpm-build rsync systemd-devel gtest-devel elfutils-devel ccache python38 python38-devel mpfr-devel ocl-icd-devel libatomic libquadmath-devel msgpack-devel fmt-devel && $pip_install"
 
-prereq_array["rhel9"]="dnf -y update && dnf -y install dnf-plugins-core && dnf -y install gdb gcc-c++ git cmake wget vim openssl-devel elfutils-libelf-devel pciutils-devel numactl-devel libffi-devel mesa-libGL-devel libtool texinfo bison flex ncurses-devel expat-devel xz-devel libbabeltrace-devel gmp-devel rpm-build rsync systemd-devel gtest-devel elfutils-devel ccache python3-devel mpfr-devel ocl-icd-devel libatomic libquadmath-devel && $pip_install"
+prereq_array["rhel9"]="dnf -y update && dnf -y install dnf-plugins-core && dnf -y install gdb gcc-c++ git cmake wget vim openssl-devel elfutils-libelf-devel pciutils-devel numactl-devel libffi-devel mesa-libGL-devel libtool texinfo bison flex ncurses-devel expat-devel xz-devel libbabeltrace-devel gmp-devel rpm-build rsync systemd-devel gtest-devel elfutils-devel ccache python3-devel mpfr-devel ocl-icd-devel libatomic libquadmath-devel msgpack-devel fmt-devel && $pip_install"
 
-prereq_array["sles15"]="zypper install -y which cmake wget vim libopenssl-devel elfutils libelf-devel git pciutils-devel libffi-devel gcc gcc-c++ libnuma-devel openmpi2-devel Mesa-libGL-devel libquadmath0 libtool texinfo bison flex babeltrace-devel python3 python3-pip python3-devel python3-setuptools makeinfo libexpat-devel xz-devel gmp-devel rpm-build rsync libdrm-devel libX11-devel systemd-devel libdw-devel hwdata unzip ccache mpfr-devel ocl-icd-devel; $pip_install"
+prereq_array["sles15"]="zypper install -y which cmake wget vim libopenssl-devel elfutils libelf-devel git pciutils-devel libffi-devel gcc gcc-c++ libnuma-devel openmpi2-devel Mesa-libGL-devel libquadmath0 libtool texinfo bison flex babeltrace-devel python3 python3-pip python3-devel python3-setuptools makeinfo libexpat-devel xz-devel gmp-devel rpm-build rsync libdrm-devel libX11-devel systemd-devel libdw-devel hwdata unzip ccache mpfr-devel ocl-icd-devel msgpack-devel fmt-devel gcc7-fortran; $pip_install"
 
 # Some prep
 default_os="ubuntu2404 ubuntu2204 rhel8 rhel9 sles15"
 OS=${OS:-$default_os}
 export DOCKER_HOME=/home/release; export DOCKER_AOMP=/usr/lib/aomp; export DOCKER_AOMP_REPOS=/home/release/git/aomp$AOMP_VERSION
-exports="export HOME=/home/release; export AOMP=/usr/lib/aomp; export AOMP_REPOS=/home/release/git/aomp$AOMP_VERSION; export AOMP_EXTERNAL_MANIFEST=1; export AOMP_JOB_THREADS=128; export AOMP_SKIP_FLANG_NEW=1"
+exports="export HOME=/home/release; export AOMP=/usr/lib/aomp; export AOMP_REPOS=/home/release/git/aomp$AOMP_VERSION; export AOMP_EXTERNAL_MANIFEST=1; export AOMP_JOB_THREADS=128; export AOMP_SKIP_FLANG_NEW=0"
 
 function getcontainer(){
   echo docker ps -aqf "name=$docker_name"
@@ -143,7 +143,9 @@ function setup(){
   if [ "$system" == "sles15" ]; then
     set +e
     docker exec -i $docker_name /bin/bash -c "zypper refresh"
-    docker exec -i $docker_name /bin/bash -c "zypper addrepo https://download.opensuse.org/repositories/science/SLE_15_SP4/science.repo && zypper --gpg-auto-import-keys refresh"
+    docker exec -i $docker_name /bin/bash -c "zypper addrepo https://download.opensuse.org/repositories/science/SLE_15_SP5/science.repo"
+    docker exec -i $docker_name /bin/bash -c "zypper addrepo https://download.opensuse.org/repositories/openSUSE:/Backports:/SLE-15-SP4/standard/openSUSE:Backports:SLE-15-SP4.repo"
+    docker exec -i $docker_name /bin/bash -c "zypper addrepo https://download.opensuse.org/repositories/openSUSE:/Backports:/SLE-15-SP3/standard/openSUSE:Backports:SLE-15-SP3.repo && zypper --gpg-auto-import-keys refresh"
     docker exec -i $docker_name /bin/bash -c "$exports; ${prereq_array[$system]} 2>&1 | tee $DOCKER_HOME/logs/$system-preq.out"
     set -e
     docker exec -i $docker_name /bin/bash -c "zypper install -y --force libncurses6=6.1-150000.5.15.1; zypper install -y ncurses-devel"
@@ -162,6 +164,9 @@ function setup(){
 
   # Clone repos
   docker exec -i $docker_name /bin/bash -c "$exports; cd $DOCKER_AOMP_REPOS/aomp/bin; SINGLE_BRANCH=1 ./clone_aomp.sh 2>&1 | tee $DOCKER_HOME/logs/$system-clone.out"
+  if [ "$AOMP_HIP_LIBRARIES" == "1" ]; then
+    docker exec -i $docker_name /bin/bash -c "$exports; cd $DOCKER_AOMP_REPOS/aomp/bin/rocmlibs; SINGLE_BRANCH=1 ./clone_rocmlibs.sh 2>&1 | tee $DOCKER_HOME/logs/$system-clone-rocmlibs.out"
+  fi
 }
 
 function build(){
@@ -169,6 +174,9 @@ function build(){
     exports="$exports; PATH=/opt/venv/bin:$PATH; python3 -m venv /opt/venv"
   fi
   docker exec -i $docker_name /bin/bash -c "$exports; cd $DOCKER_AOMP_REPOS/aomp/bin; ./build_aomp.sh 2>&1 | tee $DOCKER_HOME/logs/$system-build.out"
+  if [ "$AOMP_HIP_LIBRARIES" == "1" ]; then
+    docker exec -i $docker_name /bin/bash -c "$exports; cd $DOCKER_AOMP_REPOS/aomp/bin/rocmlibs; ./build_rocmlibs.sh 2>&1 | tee $DOCKER_HOME/logs/$system-build-rocmlibs.out"
+  fi
 }
 
 function package(){
@@ -178,21 +186,32 @@ function package(){
     if [[ "$system" =~ "ubuntu" ]]; then
       # Update changelog with user patch
       docker exec -i $docker_name /bin/bash -c "$exports; cd $DOCKER_AOMP_REPOS/aomp/bin; patch debian/changelog /dockerx/changelog.patch"
-      # Build debian
-      docker exec -i $docker_name /bin/bash -c "$exports; cd $DOCKER_AOMP_REPOS/aomp/bin; ./build_fixups.sh; DOCKER=1 ./build-deb-aomp.sh 2>&1 | tee $DOCKER_HOME/logs/$system-package.out"
+      # Build aomp debian
+      docker exec -i $docker_name /bin/bash -c "$exports; cd $DOCKER_AOMP_REPOS/aomp/bin; ./build_fixups.sh; DOCKER=1 ./build-deb-aomp.sh 2>&1 | tee $DOCKER_HOME/logs/$system-package.out; git checkout debian/changelog"
+
+      if [ "$AOMP_HIP_LIBRARIES" == "1" ]; then
+        # Build aomp-hip-libraries debian
+        docker exec -i $docker_name /bin/bash -c "$exports; cd $DOCKER_AOMP_REPOS/aomp/bin; ./build_fixups.sh; DOCKER=1 ./build-deb-aomp.sh aomp-hip-libraries 2>&1 | tee $DOCKER_HOME/logs/$system-package-hip-libraries.out"
+      fi
       # Copy to host
       docker cp $container:/tmp/build-deb/debs/. $host_packages
     else
       # Update changelog with user patch and change aomp version header
       docker exec -i $docker_name /bin/bash -c "$exports; cd $DOCKER_AOMP_REPOS/aomp/bin; patch debian/changelog /dockerx/changelog.patch; sed -i -e 's/aomp (.*)/aomp ($AOMP_VERSION_STRING)/g' debian/changelog"
-      # Build rpm
+      # Build aomp rpm
       if [ "$system" == "centos7" ]; then
         docker exec -i $docker_name /bin/bash -c "$exports; cd $DOCKER_AOMP_REPOS/aomp/bin; ./build_fixups.sh; DOCKER=1 ./build-rpm.sh aomp_CENTOS_7 2>&1 | tee $DOCKER_HOME/logs/$system-package.out"
       else
         docker exec -i $docker_name /bin/bash -c "$exports; cd $DOCKER_AOMP_REPOS/aomp/bin; ./build_fixups.sh; DOCKER=1 ./build-rpm.sh 2>&1 | tee $DOCKER_HOME/logs/$system-package.out"
+        # Copy to host
+        docker cp $container:/tmp/home/rpmbuild/RPMS/x86_64/. $host_packages
+        # Build aomp-hip-libraries rpm
+        if [ "$AOMP_HIP_LIBRARIES" == "1" ]; then
+          docker exec -i $docker_name /bin/bash -c "$exports; cd $DOCKER_AOMP_REPOS/aomp/bin; ./build_fixups.sh; DOCKER=1 ./build-rpm.sh aomp-hip-libraries 2>&1 | tee $DOCKER_HOME/logs/$system-package-hip-libraries.out"
+          # Copy to host
+          docker cp $container:/tmp/home/rpmbuild/RPMS/x86_64/. $host_packages
+        fi
       fi
-      # Copy to host
-      docker cp $container:/tmp/home/rpmbuild/RPMS/x86_64/. $host_packages
     fi
   fi
 }

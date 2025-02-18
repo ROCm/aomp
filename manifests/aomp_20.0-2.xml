@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest>
+  <!-- Manifest for AOMP 20.0-2 which uses ROCM 6.3.2 release branches of external repositories -->
+
+    <default revision="release/rocm-rel-6.3" remote="gerritgit" sync-j="4" sync-c="true" />
+    <remote name="roc"  fetch="https://github.com/ROCm/" />
+
+    <project remote="roc" path="llvm-project" name="llvm-project" revision="aomp-20.0-2" groups="unlocked" />
+    <project remote="roc" path="SPIRV-LLVM-Translator" name="SPIRV-LLVM-Translator"    revision="aomp-20.0-2" groups="unlocked" />
+
+    <project remote="roc" path="flang" name="flang"               revision="aomp-20.0-2" groups="unlocked" />
+    <project remote="roc" path="aomp-extras" name="aomp-extras"   revision="aomp-20.0-2" groups="unlocked" />
+    <project remote="roc" path="aomp" name="aomp"                 revision="aomp-20.0-2" groups="unlocked" />
+
+    <project remote="roc" path="rocprofiler" name="rocprofiler"              revision="rocm-6.3.2" groups="unlocked" />
+    <project remote="roc" path="roctracer" name="roctracer"                  revision="rocm-6.3.2" groups="unlocked" />
+    <project remote="roc" path="ROCdbgapi" name="ROCdbgapi"                  revision="rocm-6.3.2" groups="unlocked" />
+    <project remote="roc" path="ROCgdb" name="ROCgdb"                        revision="rocm-6.3.2" groups="unlocked" />
+    <project remote="roc" path="hip" name="hip"                        revision="rocm-6.3.2" groups="unlocked" />
+    <project remote="roc" path="clr" name="clr"                        revision="rocm-6.3.2" groups="unlocked" />
+    <project remote="roc" path="rocminfo" name="rocminfo"                         revision="rocm-6.3.2" groups="unlocked" />
+    <project remote="roc" path="rocm_smi_lib" name="rocm_smi_lib"                 revision="rocm-6.3.2" groups="unlocked" />
+    <project remote="roc" path="amdsmi" name="amdsmi"                             revision="rocm-6.3.2" groups="unlocked" />
+    <project remote="roc" path="rocm-cmake" name="rocm-cmake"                     revision="rocm-6.3.2" groups="unlocked" />
+    <project remote="roc" path="rocr-runtime" name="ROCR-Runtime"                 revision="rocm-6.3.2" groups="unlocked" />
+    <project remote="roc" path="rocprofiler-register" name="rocprofiler-register" revision="rocm-6.3.2" groups="unlocked" />
+    <project remote="roc" path="hipfort" name="hipfort"                         revision="rocm-6.3.2" groups="unlocked" />
+</manifest>

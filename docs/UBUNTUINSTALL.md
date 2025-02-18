@@ -3,13 +3,19 @@ AOMP will install to /usr/lib/aomp. The AOMP environment variable will automatic
 
 On Ubuntu 22.04,  run these commands:
 ```
-wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_20.0-1/aomp_Ubuntu2204_20.0-1_amd64.deb
-sudo dpkg -i aomp_Ubuntu2204_20.0-1_amd64.deb
+wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_20.0-2/aomp_Ubuntu2204_20.0-2_amd64.deb
+sudo dpkg -i aomp_Ubuntu2204_20.0-2_amd64.deb
+
+wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_20.0-2/aomp-hip-libraries_Ubuntu2204_20.0-2_amd64.deb
+sudo dpkg -i aomp-hip-libraries_Ubuntu2204_20.0-2_amd64.deb
 ```
 On Ubuntu 24.04,  run these commands:
 ```
-wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_20.0-1/aomp_Ubuntu2404_20.0-1_amd64.deb
-sudo dpkg -i aomp_Ubuntu2404_20.0-1_amd64.deb
+wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_20.0-2/aomp_Ubuntu2404_20.0-2_amd64.deb
+sudo dpkg -i aomp_Ubuntu2404_20.0-2_amd64.deb
+
+wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_20.0-2/aomp-hip-libraries_Ubuntu2404_20.0-2_amd64.deb
+sudo dpkg -i aomp-hip-libraries_Ubuntu2404_20.0-2_amd64.deb
 ```
 
 The AOMP bin directory (which includes the standard clang and llvm binaries) is not intended to be in your PATH for typical operation.

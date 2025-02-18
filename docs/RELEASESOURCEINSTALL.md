@@ -7,15 +7,15 @@ So if you are building from source either manually or building with spack, you m
 
 ## Source Build Prerequisites
 
-To build AOMP from source you must: 1. Install certain distribution packages, 2. Build CMake 3.22.1 from source, this can be done with build_prereq.sh 3. ensure the KFD kernel module is installed and operating, 4. create the Unix video group, and 5. install spack if required. [This link](SOURCEINSTALL_PREREQUISITE.md) provides instructions to satisfy all the AOMP source build dependencies.
+To build AOMP from source you must: 1. Install certain distribution packages, 2. Build CMake 3.25.2 from source, this can be done with build_prereq.sh 3. ensure the KFD kernel module is installed and operating, 4. create the Unix video group, and 5. install spack if required. [This link](SOURCEINSTALL_PREREQUISITE.md) provides instructions to satisfy all the AOMP source build dependencies.
 
 ## Build AOMP manually from release source tarball
 
 To build and install aomp from the release source tarball run these commands:
 
 ```
-   wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_20.0-1/aomp-20.0-1.tar.gz
-   tar -xzf aomp-20.0-1.tar.gz
+   wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_20.0-2/aomp-20.0-2.tar.gz
+   tar -xzf aomp-20.0-2.tar.gz
    cd aomp20.0
    nohup make &
 ```
@@ -30,17 +30,17 @@ If you set the environment variable AOMP, the Makefile will install to that dire
 Otherwise, the Makefile will install into /usr/local.
 So you must have authorization to write into /usr/local if you do not set the environment variable AOMP.
 Let's assume you set the environment variable AOMP to "$HOME/rocm/aomp" in .bash_profile.
-The build_aomp.sh script will install into $HOME/rocm/aomp_20.0-1 and create a symbolic link from $HOME/rocm/aomp to $HOME/rocm/aomp_20.0-1.
+The build_aomp.sh script will install into $HOME/rocm/aomp_20.0-2 and create a symbolic link from $HOME/rocm/aomp to $HOME/rocm/aomp_20.0-2.
 This feature allows multiple versions of AOMP to be installed concurrently.
-To enable a backlevel version of AOMP, simply set AOMP to $HOME/rocm/aomp_20.0-0.
+To enable a backlevel version of AOMP, simply set AOMP to $HOME/rocm/aomp_20.0-1.
 
 ## Build AOMP with spack
 
 Assuming your have installed the [prerequisites](SOURCEINSTALL_PREREQUISITE.md), use these commands to fetch the source and build aomp. Currently the aomp configuration is not yet in the spack git hub so you must create the spack package first.
 
 ```
-   wget https://github.com/ROCm-Developer-Tools/aomp/blob/aomp-20.0-1/bin/package.py
-   spack create -n aomp -t makefile --force https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_20.0-1/aomp-20.0-1.tar.gz
+   wget https://github.com/ROCm-Developer-Tools/aomp/blob/aomp-20.0-2/bin/package.py
+   spack create -n aomp -t makefile --force https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_20.0-2/aomp-20.0-2.tar.gz
    spack edit aomp
    spack install aomp
 ```

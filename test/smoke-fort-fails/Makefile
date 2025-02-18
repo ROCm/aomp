@@ -22,6 +22,7 @@ TESTS_DIR = \
     flang-485161 \
     flang-485265 \
     flang-491971 \
+    flang-502486 \
     flang-505726 \
     flang-gpu-stop-integer \
     flang-gpu-stop-string \
@@ -37,6 +38,7 @@ TESTS_DIR = \
     rocm-aomp-issue-1148 \
     rocm-issue-201 \
     rocm-issue-208 \
+    rocm-issue-241 \
     split-dist-f90 \
     split-dist-par-c \
     split-dist-par-f90 \

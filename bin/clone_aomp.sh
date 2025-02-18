@@ -149,11 +149,19 @@ function list_repo_from_manifest(){
    else
       printbranch=${REPO_RREV##*release/}
    fi
-   url=`grep url .git/config | cut -d":" -f2- | cut -d"/" -f3-`
+   url=`grep url .git/config | grep -v google | grep -v fmtlib | cut -d":" -f2- | cut -d"/" -f3-`
    project_name=`echo $url | cut -d"/" -f2- | tr '[:upper:]' '[:lower:]'`
+   REPO_PROJECT=${REPO_PROJECT%*\.git}
+   if [[ "$REPO_REMOTE" == "githubemu-lightning" ]] ; then
+      REPO_REMOTE="emu"
+   fi
    #website=`echo $url | cut -d"/" -f1`
    if [[ "$REPO_REMOTE" == "roc" ]] ; then
         manifest_project=`echo ROCm/$REPO_PROJECT | tr '[:upper:]' '[:lower:]'`
+   elif [[ "$REPO_REMOTE" == "emu" ]] ; then
+        url=`grep url .git/config | cut -d":" -f2- | cut -d"/" -f1- | cut -d"." -f1`
+        project_name=`echo $url | cut -d"/" -f2- | tr '[:upper:]' '[:lower:]'`
+        manifest_project=`echo $REPO_PROJECT | tr '[:upper:]' '[:lower:]' | cut -d"." -f1`
    elif [[ "$REPO_REMOTE" == "roctools" ]] ; then
         manifest_project=`echo ROCm/$REPO_PROJECT | tr '[:upper:]' '[:lower:]'`
    elif [[ "$REPO_REMOTE" == "rocsw" ]] ; then
@@ -171,7 +179,7 @@ function list_repo_from_manifest(){
       echo "        Manifest project: $manifest_project"
       WARNWORD="!REPO!"
    fi
-   printf "%10s %12s %20s %25s %12s %10s %18s %18s %8s\n" $REPO_REMOTE $printbranch $REPO_PATH ${REPO_PROJECT} $thiscommit $thisdatevar "$author" "$forauthor" "$WARNWORD"
+   printf "%6s %14s %21s %25s %12s %10s %18s %18s %8s\n" $REPO_REMOTE $printbranch $REPO_PATH ${REPO_PROJECT} $thiscommit $thisdatevar "$author" "$forauthor" "$WARNWORD"
 }
 
 function get_monthnumber() {
@@ -228,8 +236,9 @@ if [[ "$AOMP_VERSION" == "13.1" ]] || [[ $AOMP_MAJOR_VERSION -gt 13 ]] ; then
    cat $manifest_file | grep project > $tmpfile
    if [ "$1" == "list" ] ; then
       printf "MANIFEST FILE: %40s\n" $manifest_file
-      printf "%10s %12s %20s %25s %12s %10s %18s %18s\n" "repo src" "branch" "path" "repo name" "last hash" "updated" "commitor" "for author"
-      printf "%10s %12s %20s %25s %12s %10s %18s %18s\n" "--------" "------" "----" "---------" "---------" "-------" "--------" "----------"
+      printf "%6s %14s %21s %25s %12s %10s %18s %18s\n" "repo" "branch" "path" "repo name" "last hash" "updated" "commitor" "for author"
+      printf "%6s %14s %21s %25s %12s %10s %18s %18s\n" "----" "------" "----" "---------" "---------" "-------" "--------" "----------"
+  #   printf "%6s %14s %24s %25s %12s %10s %18s %18s %8s\n" $REPO_REMOTE $printbranch $REPO_PATH ${REPO_PROJECT} $thiscommit $thisdatevar "$author" "$forauthor" "$WARNWORD"
    fi
    while read line ; do 
       line_is_good=1
@@ -261,10 +270,6 @@ if [[ "$AOMP_VERSION" == "13.1" ]] || [[ $AOMP_MAJOR_VERSION -gt 13 ]] ; then
       repogitname=$name
       if [ "$remote" == "roc" ] ; then
          repo_web_location=$GITROC
-      elif [ "$remote" == "roctools" ] ; then
-         repo_web_location=$GITROCDEV
-      elif [ "$remote" == "rocsw" ] ; then
-         repo_web_location=$GITROCSW
       elif [ "$remote" == "gerritgit" ] ; then
          repo_web_location=$GITGERRIT
       elif [ "$remote" == "hwloc" ] ; then

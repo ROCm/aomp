@@ -3,7 +3,7 @@
 <!-- Manifest for rocmlibs -->
 
     <remote name="gerritgit" review="git.amd.com:8080" fetch="ssh://gerritgit/" />
-    <default revision="release/rocm-rel-6.1" remote="gerritgit" sync-j="4" sync-c="true" />
+    <default revision="release/rocm-rel-6.3" remote="gerritgit" sync-j="4" sync-c="true" />
     <remote name="rocm"  fetch="https://github.com/ROCm" />
     <remote name="SJTU"  fetch="https://github.com/SJTU-IPADS" />
 

@@ -13,6 +13,8 @@ _total_file_size=0
 _total_secs=0
 _total_start_date=`date`
 
+export PATH=${AOMP}/llvm/bin:$PATH
+
 function build_rocmlib_component() {
    _stats_dir=$AOMP_INSTALL_DIR/.aomp_component_stats
    mkdir -p $_stats_dir

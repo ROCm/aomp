@@ -60,8 +60,13 @@ else
    echo --- NEW CLONE of repo $repogitname to $repodirname ----
    mkdir -p $AOMP_REPOS/rocmlibs
    cd $AOMP_REPOS/rocmlibs
-   echo git clone -b $COBRANCH $repo_web_location/$repogitname $reponame
-   git clone -b $COBRANCH $repo_web_location/$repogitname $reponame
+   if [ "$SINGLE_BRANCH" == 1 ]; then
+     echo git clone -b $COBRANCH --depth=1 --single-branch $repo_web_location/$repogitname $reponame
+     git clone -b $COBRANCH --depth=1 --single-branch $repo_web_location/$repogitname $reponame
+   else
+     echo git clone -b $COBRANCH $repo_web_location/$repogitname $reponame
+     git clone -b $COBRANCH $repo_web_location/$repogitname $reponame
+   fi
    if [ $? != 0 ] ; then
      echo "git clone failed for: $repodirname"
      exit 1
@@ -180,7 +185,12 @@ function get_monthnumber() {
    if [ $? == 0 ] ; then
      manifest_file=$thisdir/rocmlibsi.xml
    else
-     manifest_file=$thisdir/rocmlibs.xml
+     abranch=`git branch | awk '/\*/ { print $2; }'`
+     if [ "$abranch" == "aomp-${AOMP_VERSION_STRING}" ]; then
+       manifest_file=$thisdir/rocmlibs_${AOMP_VERSION_STRING}.xml
+     else
+       manifest_file=$thisdir/rocmlibs.xml
+     fi
    fi
    if [ ! -f $manifest_file ] ; then 
       echo "ERROR manifest file missing: $manifest_file"

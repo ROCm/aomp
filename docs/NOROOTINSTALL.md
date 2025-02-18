@@ -8,13 +8,17 @@ To install the debian package without root access into your home directory, you 
 
 On Ubuntu 22.04:
 ```
-   wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_20.0-1/aomp_Ubuntu2204_20.0-1_amd64.deb
-   dpkg -x aomp_Ubuntu2204_20.0-1_amd64.deb /tmp/temproot
+   wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_20.0-2/aomp_Ubuntu2204_20.0-2_amd64.deb
+   dpkg -x aomp_Ubuntu2204_20.0-2_amd64.deb /tmp/temproot
+
+   Also can be done with aomp-hip-libraries_Ubuntu2204_20.0-2_amd64.deb
 ```
 On Ubuntu 24.04:
 ```
-   wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_20.0-1/aomp_Ubuntu2404_20.0-1_amd64.deb
-   dpkg -x aomp_Ubuntu2404_20.0-1_amd64.deb /tmp/temproot
+   wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_20.0-2/aomp_Ubuntu2404_20.0-2_amd64.deb
+   dpkg -x aomp_Ubuntu2404_20.0-2_amd64.deb /tmp/temproot
+
+   Also can be done with aomp-hip-libraries_Ubuntu2404_20.0-2_amd64.deb
 ```
 Move to $HOME and set variables:
 ```
@@ -31,18 +35,24 @@ To install the rpm package without root access into your home directory, you can
 ```
 For SLES15-SP5:
 ```
-   wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_20.0-1/aomp_SLES15_SP5-20.0-1.x86_64.rpm
-   rpm2cpio aomp_SLES15_SP5-20.0-1.x86_64.rpm | cpio -idmv
+   wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_20.0-2/aomp_SLES15_SP5-20.0-2.x86_64.rpm
+   rpm2cpio aomp_SLES15_SP5-20.0-2.x86_64.rpm | cpio -idmv
+
+   Also can be done with aomp-hip-libraries_SLES15_SP5-20.0-2.x86_64.rpm
 ```
 For RHEL 8:
 ```
-   wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_20.0-1/aomp_REDHAT_8-20.0-1.x86_64.rpm
-   rpm2cpio aomp_REDHAT_8-20.0-1.x86_64.rpm | cpio -idmv
+   wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_20.0-2/aomp_REDHAT_8-20.0-2.x86_64.rpm
+   rpm2cpio aomp_REDHAT_8-20.0-2.x86_64.rpm | cpio -idmv
+
+   Also can be done with aomp-hip-libraries_REDHAT_8-20.0-2.x86_64.rpm
 ```
 For RHEL 9:
 ```
-   wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_20.0-1/aomp_REDHAT_9-20.0-1.x86_64.rpm
-   rpm2cpio aomp_REDHAT_9-20.0-1.x86_64.rpm | cpio -idmv
+   wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_20.0-2/aomp_REDHAT_9-20.0-2.x86_64.rpm
+   rpm2cpio aomp_REDHAT_9-20.0-2.x86_64.rpm | cpio -idmv
+
+   Also can be done with aomp-hip-libraries_REDHAT_9-20.0-2.x86_64.rpm
 ```
 Move to $HOME and set variables:
 ```

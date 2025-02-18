@@ -49,7 +49,7 @@ export CXX=$LLVM_INSTALL_LOC/bin/amdclang++
 export FC=$LLVM_INSTALL_LOC/bin/amdflang
 export ROCM_DIR=$AOMP_INSTALL_DIR
 export ROCM_PATH=$AOMP_INSTALL_DIR
-export PATH=$AOMP_SUPP/cmake/bin:$AOMP_INSTALL_DIR/bin:$PATH
+export PATH=$AOMP_SUPP/cmake/bin:$AOMP_INSTALL_DIR/bin:$AOMP/llvm/bin:$PATH
 export HIP_USE_PERL_SCRIPTS=1
 export USE_PERL_SCRIPTS=1
 export CXXFLAGS="-I$AOMP_INSTALL_DIR/include -D__HIP_PLATFORM_AMD__=1"

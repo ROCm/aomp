@@ -9,6 +9,9 @@
 
   # Additional packages used by rocgdb
   sudo apt-get install texinfo libbison-dev bison flex libbabeltrace-dev python3-pip libncurses5-dev liblzma-dev python3-setuptools python3-dev libudev-dev libgmp-dev libmpfr-dev libdw-dev
+
+  # Additional packages used by math librares (aomp-hip-libraries)
+  sudo apt-get install libfmt-dev libmsgpack-dev python3-venv
 ```
 
 Ubuntu 22.04 Only
@@ -23,12 +26,15 @@ Ubuntu 24.04 Only
 
 #### SLES-15-SP5 Packages
 ```
-  sudo zypper install wget libopenssl-devel elfutils libelf-devel git pciutils-devel libffi-devel gcc gcc-c++ libnuma-devel openmpi2-devel Mesa-libGL-devel libquadmath0 libtool libX11-devel systemd-devel hwdata unzip mpfr-devel ocl-icd-devel
+  sudo zypper install wget libopenssl-devel elfutils libelf-devel git pciutils-devel libffi-devel gcc gcc-c++ libnuma-devel openmpi2-devel Mesa-libGL-devel libquadmath0 libtool libX11-devel systemd-devel hwdata unzip mpfr-devel ocl-icd-devel gcc7-fortran
 
   A symbolic link may be required at /usr/lib64: /usr/lib64/libquadmath.so -> /usr/lib64/libquadmath.so.0.
 
   # Additional packages used by rocgdb and rocprofiler
   sudo zypper install texinfo bison flex babeltrace-devel python3 python3-pip python3-devel python3-setuptools makeinfo ncurses-devel libexpat-devel xz-devel libgmp-devel libatomic libdwarf-devel gtest-devel libdw-devel
+
+  # Additional packages used by math librares (aomp-hip-libraries)
+  sudo zypper install libfmt-devel libmsgpack-devel
 ```
 
 #### RHEL Packages
@@ -38,6 +44,9 @@ RHEL 8
 
   # Additional packages used by rocgdb and roctracer
   sudo yum install texinfo bison flex ncurses-devel expat-devel xz-devel libbabeltrace-devel libatomic libdwarf-devel gtest-devel
+
+  # Additional packages used by math librares (aomp-hip-libraries)
+  sudo yum install libfmt-devel libmsgpack-devel
 ```
 
 RHEL 9
@@ -46,7 +55,10 @@ RHEL 9
 
   # Additional packages used by rocgdb and roctracer
   sudo dnf install texinfo bison flex ncurses-devel expat-devel xz-devel libbabeltrace-devel libatomic libdwarf-devel gtest-devel
-  
+
+  # Additional packages used by math librares (aomp-hip-libraries)
+  sudo dnf install libfmt-devel libmsgpack-devel
+
   # To build aomp with Ninja set AOMP_USE_NINJA=1 . You need this installed with dnf
   dnf install ninja-build
 ```

@@ -65,6 +65,7 @@ TESTS_DIR = \
     flang-479382-3 \
     flang-479382-4 \
     flang-479382-5 \
+    flang-511356 \
     flang-nested-parallel-do-loops \
     flang-use-device \
     flang-target-associate-ptr \

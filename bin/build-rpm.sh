@@ -21,21 +21,21 @@ rpmname="Not_Found"
 if [[ $osname =~ "Red Hat" ]]; then
   echo "Red Hat found!!!"
   if [[ $version =~ "9" ]]; then
-    rpmname=${1:-aomp_REDHAT_9}
+    rpmname=${pkgname}_REDHAT_9
   elif [[ $version =~ "8" ]]; then
-    rpmname=${1:-aomp_REDHAT_8}
+    rpmname=${pkgname}_REDHAT_8
   fi
 elif [[ $osname =~ "SLES" ]]; then
   echo "SLES15_SP5 found!!!"
-  rpmname=${1:-aomp_SLES15_SP5}
+  rpmname=${pkgname}_SLES15_SP5
 elif [[ $osname =~ "CentOS" ]]; then
   echo "CENTOS found!!!"
   if [[ $version =~ "9" ]]; then
-    rpmname=${1:-aomp_CENTOS_9}
+    rpmname=${pkgname}_CENTOS_9
   elif [[ $version =~ "8" ]]; then
-    rpmname=${1:-aomp_CENTOS_8}
+    rpmname=${pkgname}_CENTOS_8
   elif [[ $version =~ "7" ]]; then
-    rpmname=${1:-aomp_CENTOS_7}
+    rpmname=${pkgname}_CENTOS_7
   fi
 fi
 
@@ -69,8 +69,8 @@ dirname=aomp_${AOMP_VERSION_STRING}
 echo --- mkdir -p $tmphome/rpmbuild/SOURCES/$rpmname/usr/lib
 mkdir -p $tmphome/rpmbuild/SOURCES/$rpmname/usr/lib/$dirname
 if [ "$pkgname" == "aomp-hip-libraries" ]; then
-  echo cat $BUILD_DIR/build/rocmlibs/installed_files.txt | xargs -I {} cp -d --parents {} ~/rpmbuild/SOURCES/$rpmname/usr/lib/$dirname
-  cat $BUILD_DIR/build/rocmlibs/installed_files.txt | xargs -I {} cp -d --parents {} ~/rpmbuild/SOURCES/$rpmname/usr/lib/$dirname
+  echo "cat $BUILD_DIR/build/rocmlibs/installed_files.txt | xargs -I {} cp -d --parents {} ~/rpmbuild/SOURCES/$rpmname"
+  cat $BUILD_DIR/build/rocmlibs/installed_files.txt | xargs -I {} cp -d --parents {} ~/rpmbuild/SOURCES/$rpmname
 else
   # Create a temporary file to exclude math libraries if present
   if [ -f $BUILD_DIR/build/rocmlibs/installed_files.txt ]; then

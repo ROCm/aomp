@@ -11,23 +11,21 @@ bool hipCallSuccessfull(hipError_t error) {
   return error == hipSuccess;
 }
 
-__global__ void Initialize(int n, int *ptr) {
-  int index = blockDim.x * blockIdx.x + threadIdx.x;
-  if (index < n) {
-    ptr[index + 1] = 2 * (index + 1);
-  }
+__global__ void TestKernel(int n) {
+  size_t iX = blockDim.x * blockIdx.x + threadIdx.x;
+  int *dptr = (int *)malloc(n * sizeof(int));
+  dptr[iX + 1] = 2 * (iX + 1);
 }
 
 int main(int argc, char *argv[]) {
-  int N = 100;
+  int N = 1;
   size_t NBytes = N * sizeof(int);
   int *H_Ptr = new int[N];
   int *D_Ptr;
   int NumOfThreadBlocks = (N + 64 - 1) / 64;
   int ThreadBlockSize = 64;
   hipCallSuccessfull(hipMalloc(&D_Ptr, NBytes));
-  hipLaunchKernelGGL(Initialize, dim3(NumOfThreadBlocks), dim3(ThreadBlockSize),
-                     0, 0, N, D_Ptr);
+  hipLaunchKernelGGL(TestKernel,dim3(NumOfThreadBlocks),dim3(ThreadBlockSize),0, 0, N);
   hipCallSuccessfull(hipMemcpy(H_Ptr, D_Ptr, NBytes, hipMemcpyDeviceToHost));
   hipCallSuccessfull(hipFree(D_Ptr));
   delete[] H_Ptr;
@@ -35,6 +33,8 @@ int main(int argc, char *argv[]) {
 }
 
 /// CHECK:=================================================================
-/// CHECK-NEXT:=={{[0-9]+}}==ERROR: AddressSanitizer: heap-buffer-overflow on amdgpu device 0 at pc [[PC:.*]]
+/// CHECK-NEXT:=={{[0-9]+}}==ERROR: AddressSanitizer: heap-buffer-overflow on amdgpu device 0 at pc [[PC:0x[0-9a-fA-F]+]]
 /// CHECK-NEXT:WRITE of size 4 in workgroup id ({{[0-9]+}},0,0)
-/// CHECK-NEXT:  #0 [[PC]] in Initialize(int, int*) at {{.*}}aomp/test/smoke-asan/hip-heap-buffer-overflow/hip-heap-buffer-overflow.cpp:17:{{[0-9]+}}
+/// CHECK-NEXT:  #0 [[PC]] in TestKernel(int) at {{.*}}aomp/test/smoke-asan/hip-device-malloc-hbo/hip-device-malloc-hbo.cpp:17:{{[0-9]+}}
+/// CHECK:{{0x[0-9a-fA-F]+}} is 4 bytes above an address from a device malloc (or free) call of size 4 from
+/// CHECK-NEXT:  #0 {{0x[0-9a-fA-F]+}} in TestKernel(int) at {{.*}}aomp/test/smoke-asan/hip-device-malloc-hbo/hip-device-malloc-hbo.cpp:16:{{[0-9]+}}

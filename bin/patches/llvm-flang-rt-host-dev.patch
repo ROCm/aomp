@@ -1,0 +1,33 @@
+diff --git a/flang/include/flang/Runtime/freestanding-tools.h b/flang/include/flang/Runtime/freestanding-tools.h
+index 8a4fbcff31b4..de59f7b13ab1 100644
+--- a/flang/include/flang/Runtime/freestanding-tools.h
++++ b/flang/include/flang/Runtime/freestanding-tools.h
+@@ -110,12 +110,12 @@ using std::fill_n;
+ 
+ #if STD_MEMSET_USE_BUILTIN
+ static inline RT_API_ATTRS void memset(
+-    void *dest, uint8_t value, std::size_t count) {
++    void *dest, unsigned char value, std::size_t count) {
+   __builtin_memset(dest, value, count);
+ }
+ #elif STD_MEMSET_UNSUPPORTED
+ static inline RT_API_ATTRS void memset(
+-    void *dest, uint8_t value, std::size_t count) {
++    void *dest, unsigned char value, std::size_t count) {
+   char *to{reinterpret_cast<char *>(dest)};
+   while (count--) {
+     *to++ = value;
+diff --git a/flang/runtime/terminator.cpp b/flang/runtime/terminator.cpp
+index bab9edc64fa3..86770419ba9c 100644
+--- a/flang/runtime/terminator.cpp
++++ b/flang/runtime/terminator.cpp
+@@ -45,7 +45,8 @@ RT_API_ATTRS void Terminator::CrashHeader() const {
+ #if defined(RT_DEVICE_COMPILATION)
+   std::printf("\nfatal Fortran runtime error");
+   if (sourceFileName_) {
+-    std::printf("(%s", sourceFileName_);
++    // commenting out temporarily to avoid ICE seen with amd-staging
++    // std::printf("(%s", sourceFileName_);
+     if (sourceLine_) {
+       std::printf(":%d", sourceLine_);
+     }
