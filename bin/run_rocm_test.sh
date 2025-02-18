@@ -512,7 +512,7 @@ function copyresults(){
     if [ "$passlines" != 0 ]; then
       unexpectedfails=$(diff "$1"_sorted_exp_passes "$1"_sorted_passes | grep '^<' | wc -l)
     else
-  if notAllMustPass $1 ; then
+  if ! notAllMustPass $1 ; then
         if [ -e "$resultsdir/$1"/"$1"_failing_tests.txt ]; then
 	  runtimefails=$(cat "$resultsdir/$1"/"$1"_failing_tests.txt | wc -l)
 	  unexpectedfails=$((unexpectedfails + runtimefails))
@@ -654,7 +654,7 @@ function copyresults(){
     if [ "$passlines" != 0 ]; then
       numtests=$(cat "$resultsdir"/"$1"/"$1"_sorted_exp_passes | wc -l)
     else
-  if notAllMustPass $1 ; then
+  if ! notAllMustPass $1 ; then
         if [ -e "$resultsdir/$1"/"$1"_failing_tests.txt ]; then
 	  runtimefails=$(cat "$resultsdir/$1"/"$1"_failing_tests.txt | wc -l)
 	  numtests=$((numtests + runtimefails))
