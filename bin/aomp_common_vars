@@ -14,6 +14,9 @@
 realpath=`realpath $0`
 thisdir=`dirname $realpath`
 
+# Individual scripts will determine what generator to use
+unset CMAKE_GENERATOR
+
 # The AOMP_COMPILER_NAME is used whenever version is queried.
 # FIXME: More work is needed to propogate the use of AOMP_COMPILER_NAME.
 AOMP_COMPILER_NAME=${AOMP_COMPILER_NAME:-AOMP}
