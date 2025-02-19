@@ -475,10 +475,11 @@ if [ "$1" == "install" ] ; then
         echo "ERROR $AOMP_NINJA_BIN install failed "
         exit 1
      fi
-     if [ ! -h "$AOMP_INSTALL_DIR/lib-perf/$llvm_dylib" ] && [ "$llvm_dylib" != "" ]; then
-       cd "$AOMP_INSTALL_DIR/lib-perf" || exit
-       ln -s "../lib/$llvm_dylib" "$llvm_dylib"
-     fi
+     # FIXME: llvm_dylib is not set anywhere!
+     #if [ ! -h "$AOMP_INSTALL_DIR/lib-perf/$llvm_dylib" ] && [ "$llvm_dylib" != "" ]; then
+     #  cd "$AOMP_INSTALL_DIR/lib-perf" || exit
+     #  ln -s "../lib/$llvm_dylib" "$llvm_dylib"
+     #fi
 
      if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
         cd "$BUILD_DIR/build/openmp_perf/asan" || exit
@@ -502,10 +503,11 @@ if [ "$1" == "install" ] ; then
             echo "ERROR $AOMP_NINJA_BIN install failed "
             exit 1
          fi
-         if [ ! -h "$AOMP_INSTALL_DIR/lib-debug/$llvm_dylib" ] && [ "$llvm_dylib" != "" ]; then
-            cd "$AOMP_INSTALL_DIR/lib-debug" || exit
-            ln -s "../lib/$llvm_dylib" "$llvm_dylib"
-         fi
+         # FIXME: llvm_dylib is not set anywhere!
+         #if [ ! -h "$AOMP_INSTALL_DIR/lib-debug/$llvm_dylib" ] && [ "$llvm_dylib" != "" ]; then
+         #   cd "$AOMP_INSTALL_DIR/lib-debug" || exit
+         #   ln -s "../lib/$llvm_dylib" "$llvm_dylib"
+         #fi
       fi
 
       if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
