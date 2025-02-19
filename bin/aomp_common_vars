@@ -14,6 +14,9 @@
 realpath=`realpath $0`
 thisdir=`dirname $realpath`
 
+# Individual scripts will determine what generator to use
+unset CMAKE_GENERATOR
+
 # The AOMP_COMPILER_NAME is used whenever version is queried.
 # FIXME: More work is needed to propogate the use of AOMP_COMPILER_NAME.
 AOMP_COMPILER_NAME=${AOMP_COMPILER_NAME:-AOMP}
@@ -22,8 +25,8 @@ AOMP_COMPILER_NAME=${AOMP_COMPILER_NAME:-AOMP}
 ROCM_VERSION=${ROCM_VERSION:-6.0.0}
 
 # Set the AOMP VERSION STRING
-AOMP_VERSION=${AOMP_VERSION:-"20.0"}
-AOMP_VERSION_MOD=${AOMP_VERSION_MOD:-"2"}
+AOMP_VERSION=${AOMP_VERSION:-"21.0"}
+AOMP_VERSION_MOD=${AOMP_VERSION_MOD:-"0"}
 AOMP_VERSION_STRING=${AOMP_VERSION_STRING:-"$AOMP_VERSION-$AOMP_VERSION_MOD"}
 ROCM_EXPECTED_MODVERSION=${ROCM_EXPECTED_MODVERSION:-6.2.4}
 export AOMP_VERSION_STRING AOMP_VERSION AOMP_VERSION_MOD ROCM_VERSION ROCM_EXPECTED_MODVERSION
@@ -68,11 +71,11 @@ else
   AOMP_CCACHE_OPTS="-DCMAKE_C_COMPILER_LAUNCHER=$_ccache_bin -DCMAKE_CXX_COMPILER_LAUNCHER=$_ccache_bin"
 fi
 
-AOMP_SKIP_FLANG=${AOMP_SKIP_FLANG:-0}
+AOMP_SKIP_FLANG=${AOMP_SKIP_FLANG:-1}
 AOMP_SKIP_FLANG_NEW=${AOMP_SKIP_FLANG_NEW:-0}
-AOMP_FLANG_DRIVER=${AOMP_FLANG_DRIVER:-flang-classic}
+AOMP_FLANG_DRIVER=${AOMP_FLANG_DRIVER:-flang-new}
 
-if [ "$AOMP_SKIP_FLANG" == 1 ] || [ "$AOMP_SKIP_FLANG_NEW" == 1 ] ; then
+if [ "$AOMP_SKIP_FLANG_NEW" == 1 ] ; then
    AOMP_PROJECTS_LIST=${AOMP_PROJECTS_LIST:-"clang;lld;clang-tools-extra"}
 else
    AOMP_PROJECTS_LIST=${AOMP_PROJECTS_LIST:-"clang;lld;clang-tools-extra;flang"}
@@ -273,7 +276,7 @@ fi
 
 # Set list of default amdgcn subarchitectures to build
 # Developers may override GFXLIST to shorten build time.
-GFXLIST=${GFXLIST:-"gfx700 gfx701 gfx801 gfx803 gfx900 gfx902 gfx906 gfx908 gfx90a gfx90c gfx940 gfx941 gfx942 gfx1030 gfx1031 gfx1035 gfx1036 gfx1100 gfx1101 gfx1102 gfx1103 gfx1150 gfx1151 gfx1152 gfx1153 gfx1200 gfx1201 gfx9-generic gfx9-4-generic gfx10-1-generic gfx10-3-generic gfx11-generic gfx12-generic"}
+GFXLIST=${GFXLIST:-"gfx700 gfx701 gfx801 gfx803 gfx900 gfx902 gfx906 gfx908 gfx90a gfx90c gfx942 gfx1030 gfx1031 gfx1035 gfx1036 gfx1100 gfx1101 gfx1102 gfx1103 gfx1150 gfx1151 gfx1152 gfx1153 gfx1200 gfx1201 gfx9-generic gfx9-4-generic gfx10-1-generic gfx10-3-generic gfx11-generic gfx12-generic"}
 export GFXLIST
 
 # _gfxlist is used in the build of rocmlibs. Some of the hip math libraries do not support older architectures.
@@ -292,7 +295,8 @@ _sep=""
 #  _sep=";"
 #done
 
-_gfxlist="gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a;gfx942;gfx1010;gfx1012;gfx1030;gfx1100;gfx1101;gfx1102;gfx1151;gfx1200;gfx1201"
+ROCMLIBS_GFXLIST=${ROCMLIBS_GFXLIST:-"gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a;gfx942;gfx1010;gfx1012;gfx1030;gfx1100;gfx1101;gfx1102;gfx1151;gfx1200;gfx1201"}
+_gfxlist="$ROCMLIBS_GFXLIST"
 
 # Calculate the number of threads to use for make
 COMP_THREADS=1

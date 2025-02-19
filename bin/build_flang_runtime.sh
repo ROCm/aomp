@@ -23,7 +23,7 @@ else
    fi
 fi
 
-COMP_INC_DIR=$(ls -d $AOMP_INSTALL_DIR/lib/clang/*/include )
+COMP_INC_DIR=$(ls -d $AOMP_INSTALL_DIR/lib/llvm/lib/clang/*/include )
 
 REPO_DIR=$AOMP_REPOS/$AOMP_FLANG_REPO_NAME
 COMP_INC_DIR=$REPO_DIR/runtime/libpgmath/lib/common
@@ -53,7 +53,7 @@ MYCMAKEOPTS="-DCMAKE_BUILD_TYPE=$BUILD_TYPE \
   -DLLVM_CONFIG=$LLVM_INSTALL_LOC/bin/llvm-config \
   -DCMAKE_CXX_COMPILER=$LLVM_INSTALL_LOC/bin/clang++ \
   -DCMAKE_C_COMPILER=$LLVM_INSTALL_LOC/bin/clang \
-  -DCMAKE_Fortran_COMPILER=$LLVM_INSTALL_LOC/bin/flang \
+  -DCMAKE_Fortran_COMPILER=$LLVM_INSTALL_LOC/bin/flang-classic \
   -DLLVM_TARGETS_TO_BUILD=$TARGETS_TO_BUILD \
   -DLLVM_INSTALL_RUNTIME=ON \
   -DFLANG_BUILD_RUNTIME=ON \

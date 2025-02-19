@@ -9,7 +9,7 @@ TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 FLANG        ?= flang-new
 OMP_BIN      = $(AOMP)/bin/$(FLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
-OMP_FLAGS   += -lFortranRuntimeHostDevice
+OMP_FLAGS   += -lflang_rt.hostdevice
 #-ccc-print-phases
 #"-\#\#\#"
 

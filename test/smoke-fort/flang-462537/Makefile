@@ -16,4 +16,4 @@ flang-462537: $(TESTSRC_ALL)
 	$(CC) $(OMP_FLAGS) -c constants.f90
 	$(CC) $(OMP_FLAGS) -c flang-462537.f90
 	ar r constants.a constants.o
-	$(AOMP)/bin/$(CLANG) -lm -L$(AOMP)/lib -lFortranRuntime -lFortranDecimal -lomp -lomptarget $(OMP_FLAGS) -o flang-462537 flang-462537.o constants.a
+	$(AOMP)/bin/$(CLANG) -lm -L$(AOMP)/lib -lflang_rt.runtime -lomp -lomptarget $(OMP_FLAGS) -o flang-462537 flang-462537.o constants.a

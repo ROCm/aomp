@@ -1,7 +1,7 @@
 include ../../Makefile.defs
 
-TESTNAME     = hip-heap-buffer-overflow
-TESTSRC_MAIN = hip-heap-buffer-overflow.cpp
+TESTNAME     = hip-device-malloc-hbo
+TESTSRC_MAIN = hip-device-malloc-hbo.cpp
 TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 
@@ -11,7 +11,7 @@ ifeq ($(shell expr $(VERS) \>= 12.0), 1)
   LLIB = -L$(AOMPHIP)/lib/asan
 endif
 
-CFLAGS = -x hip -std=c++11 $(LLIB) -lamdhip64 $(RPTH)
+CFLAGS = -x hip -std=c++11 $(LLIB) $(RPTH)
 
 HSA_XNACK ?= 1
 RUNENV      += HSA_XNACK=$(HSA_XNACK)

@@ -19,8 +19,8 @@ AOMP_GPU=${AOMP_GPU:-`$AOMP/bin/mygpu`}
 PATH=$AOMP/bin:$PATH
 CXX=clang++
 FC=$FLANG
-FFLAGS="-O2  -target x86_64-pc-linux-gnu -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$AOMP_GPU"
-CXXFLAGS="-O2  -target x86_64-pc-linux-gnu -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$AOMP_GPU"
+FFLAGS="-O2  -fopenmp --offload-arch=$AOMP_GPU"
+CXXFLAGS="-O2  -fopenmp --offload-arch=$AOMP_GPU"
 OMP_TARGET_OFFLOAD=mandatory
 
 export AOMP AOMP_GPU PATH CXX FC FFLAGS CXXFLAGS OMP_TARGET_OFFLOAD

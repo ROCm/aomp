@@ -1,8 +1,11 @@
 # AOMP SUSE SLES-15-SP5 Install 
 AOMP will install to /usr/lib/aomp. The AOMP environment variable will automatically be set to the install location. This may require a new terminal to be launched to see the change.
 ```
-wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_20.0-1/aomp_SLES15_SP5-20.0-1.x86_64.rpm
-sudo rpm -i aomp_SLES15_SP5-20.0-1.x86_64.rpm
+wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_20.0-2/aomp_SLES15_SP5-20.0-2.x86_64.rpm
+sudo rpm -i aomp_SLES15_SP5-20.0-2.x86_64.rpm
+
+wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_20.0-2/aomp-hip-libraries_SLES15_SP5-20.0-2.x86_64.rpm
+sudo rpm -i aomp-hip-libraries_SLES15_SP5-20.0-2.x86_64.rpm
 ```
 
 ## Prerequisites

@@ -60,6 +60,7 @@ mkdir -p $froot$installdir
 mkdir -p $froot/usr/share/doc/$dirname
 echo 
 echo "--- PREPARING fake root directory $froot"
+sed -i -e "s|//|/|g" $BUILD_DIR/build/rocmlibs/installed_files.txt
 if [ "$pkgname" == "aomp-hip-libraries" ]; then
   cat $BUILD_DIR/build/rocmlibs/installed_files.txt | xargs -I {} cp -d --parents {} $froot
 else
@@ -69,8 +70,10 @@ else
     rm -f $tmpfile
     cp $BUILD_DIR/build/rocmlibs/installed_files.txt $tmpfile
     sed -i -e "s/\/usr\/lib\/$dirname\///g" $tmpfile
+    echo "rocblas" >> $tmpfile
+    echo "lib/rocblas" >> $tmpfile
   fi
-  rsync -a $sourcedir"/" --exclude ".*" --exclude-from=$tmpfile $froot$installdir
+  rsync -a $sourcedir"/" --exclude ".*" --exclude "rocblas" --exclude "rocsparse" --exclude "rocprim" --exclude "hipblas" --exclude "rocsolver" --exclude "hipblas-common" --exclude-from=$tmpfile $froot$installdir
 fi
 
 if [ "$pkgname" == "aomp-hip-libraries" ]; then

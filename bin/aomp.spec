@@ -9,6 +9,7 @@ Group: System/Base
 Vendor: AMD
 AutoReq: no
 
+%define debug_package %{nil}
 %define __os_install_post %{nil}
 %define __requires_exclude (^libcuda\\.so\\..*)|(^libhsa.*)|(^librocm_smi.*)
 

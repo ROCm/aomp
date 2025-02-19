@@ -15,7 +15,7 @@ TESTS_DIR = \
     omp-hbo \
     omp-uaf \
     omp-device-malloc-hbo \
-    omp-device-free-hbo \
+    omp-device-free-uaf \
     omp-static-direct-lbo \
     omp-dynamic-direct-lbo \
     omp-static-indirect-lbo \
