@@ -31,14 +31,25 @@ AOMP_VERSION_STRING=${AOMP_VERSION_STRING:-"$AOMP_VERSION-$AOMP_VERSION_MOD"}
 ROCM_EXPECTED_MODVERSION=${ROCM_EXPECTED_MODVERSION:-6.2.4}
 export AOMP_VERSION_STRING AOMP_VERSION AOMP_VERSION_MOD ROCM_VERSION ROCM_EXPECTED_MODVERSION
 
-# Set install directory and the link directory.
-# AOMP will be a symbolic link AOMP_INSTALL_DIR is the versioned dir name
-AOMP=${AOMP:-$HOME/rocm/aomp}
-AOMP_INSTALL_DIR=${AOMP}_${AOMP_VERSION_STRING}
+# Determine AOMP_INSTALL_DIR based on AOMP and if AOMP ends in lib/llvm
+# strip off the lib/llvm. BUILD scripts should only use AOMP_INSTALL_DIR, not AOMP.
 
-# For example, if AOMP_REPOS=$HOME/git/aomp11, then the primary aomp repo
-# is stored in $HOME/git/aomp11/aomp and the mono repo is stored in
-# $HOME/aomp/llvm-project.
+# NOTE regarding test scripts and test makefiles:
+# TEST scripts or Makefiles should use AOMP env variable to find the compiler
+# and runtimes. AOMP has a historic default to $HOME/rocm/aomp. But with the
+# new convention, that follows the ROCm directory structure, AOMP should really
+# be set to $HOME/rocm/aomp/lib/llvm. Some test scripts detect this historic
+# default and add the lib/llvm to find the compiler. Since AOMP uses the same
+# directory structure as /opt/rocm, setting AOMP=/opt/rocm/lib/llvm will use the
+# ROCm compiler.
+
+AOMP=${AOMP:-$HOME/rocm/aomp} # Assume test scripts will correct this.
+
+# In case AOMP ws preset and ends in lib/llvm (like most testers correctly do),
+# strip off the lib/llvm to determine AOMP_INSTALL_DIR.
+_aomp_libllvm_stripped=${AOMP%*\/lib\/llvm}
+AOMP_INSTALL_DIR=${AOMP_INSTALL_DIR:-${_aomp_libllvm_stripped}_${AOMP_VERSION_STRING}}
+
 AOMP_MAJOR_VERSION=${AOMP_VERSION%.*}
 export AOMP_MAJOR_VERSION
 AOMP_REPOS=${AOMP_REPOS:-${HOME}/git/aomp${AOMP_VERSION}}
@@ -170,6 +181,10 @@ AOMP_CXX_COMPILER=${AOMP_CXX_COMPILER:-$GCCXX}
 # Non standalone builds are done with ROCm builds.
 AOMP_STANDALONE_BUILD=${AOMP_STANDALONE_BUILD:-1}
 
+# BUILD scripts use the higher level AOMP_INSTALL_DIR for NON-compiler COMPONENTS
+# such as HIP, debugger, and profiler.  Compiler COMPONENTS are installed into
+# the lower level LLVM_INSTALL_LOC . If LLVM_INSTALL_LOC is not set, it defaults
+# to AOMP_INSTALL_DIR/lib/llvm. We strongly recommend NOT overriding LLVM_INSTALL_LOC.
 if [ "$AOMP_STANDALONE_BUILD" == 1 ] ; then
   LLVM_INSTALL_LOC=$AOMP_INSTALL_DIR/lib/llvm
 else

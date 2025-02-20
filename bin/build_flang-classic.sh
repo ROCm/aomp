@@ -84,14 +84,16 @@ if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   help_build_aomp
 fi
 
-if [ $AOMP_STANDALONE_BUILD == 1 ] ; then 
-   if [ ! -L $AOMP ] ; then 
-     if [ -d $AOMP ] ; then 
-        echo "ERROR: Directory $AOMP is a physical directory."
-        echo "       It must be a symbolic link or not exist"
-        exit 1
-     fi
-   fi
+if [ $AOMP_STANDALONE_BUILD == 1 ] ; then
+  _aomp_libllvm_stripped=${AOMP%*\/lib\/llvm}
+  if [ ! -L $_aomp_libllvm_stripped ] ; then
+    if [ -d $_aomp_libllvm_stripped ] ; then
+      echo "ERROR: Directory $_aomp_libllvm_stripped is a physical directory."
+      echo "       It must be a symbolic link or not exist"
+      echo "       Specify a different value for AOMP env variable"
+      exit 1
+    fi
+  fi
 fi
 
 # Make sure we can update the install directory
