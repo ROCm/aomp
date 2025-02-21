@@ -14,6 +14,9 @@
 realpath=`realpath $0`
 thisdir=`dirname $realpath`
 
+# Individual scripts will determine what generator to use
+unset CMAKE_GENERATOR
+
 # The AOMP_COMPILER_NAME is used whenever version is queried.
 # FIXME: More work is needed to propogate the use of AOMP_COMPILER_NAME.
 AOMP_COMPILER_NAME=${AOMP_COMPILER_NAME:-AOMP}
@@ -68,11 +71,11 @@ else
   AOMP_CCACHE_OPTS="-DCMAKE_C_COMPILER_LAUNCHER=$_ccache_bin -DCMAKE_CXX_COMPILER_LAUNCHER=$_ccache_bin"
 fi
 
-AOMP_SKIP_FLANG=${AOMP_SKIP_FLANG:-0}
+AOMP_SKIP_FLANG=${AOMP_SKIP_FLANG:-1}
 AOMP_SKIP_FLANG_NEW=${AOMP_SKIP_FLANG_NEW:-0}
-AOMP_FLANG_DRIVER=${AOMP_FLANG_DRIVER:-flang-classic}
+AOMP_FLANG_DRIVER=${AOMP_FLANG_DRIVER:-flang-new}
 
-if [ "$AOMP_SKIP_FLANG" == 1 ] || [ "$AOMP_SKIP_FLANG_NEW" == 1 ] ; then
+if [ "$AOMP_SKIP_FLANG_NEW" == 1 ] ; then
    AOMP_PROJECTS_LIST=${AOMP_PROJECTS_LIST:-"clang;lld;clang-tools-extra"}
 else
    AOMP_PROJECTS_LIST=${AOMP_PROJECTS_LIST:-"clang;lld;clang-tools-extra;flang"}

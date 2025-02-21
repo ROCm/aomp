@@ -96,7 +96,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    if [ "$AOMP_BUILD_DEBUG" == "1" ] ; then
       echo rm -rf $BUILD_AOMP/build/rocr_debug
       [ -d $BUILD_AOMP/build/rocr_debug ] && rm -rf $BUILD_AOMP/build/rocr_debug
-      ROCR_CMAKE_OPTS="-DCMAKE_C_COMPILER=$AOMP_INSTALL_DIR/lib/llvm/bin/clang -DCMAKE_CXX_COMPILER=$AOMP_INSTALL_DIR/lib/llvm/bin/clang++ -DLLVM_DIR=$AOMP_INSTALL_DIR/lib/llvm/bin -DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR/lib -DCMAKE_INSTALL_PREFIX=$AOMP_INSTALL_DIR -DCMAKE_BUILD_TYPE=Debug $AOMP_DEBUG_ORIGIN_RPATH -DCMAKE_INSTALL_LIBDIR=lib-debug -DBUILD_SHARED_LIBS=On"
+      ROCR_CMAKE_OPTS="-DCMAKE_C_COMPILER=$AOMP_INSTALL_DIR/lib/llvm/bin/clang -DCMAKE_CXX_COMPILER=$AOMP_INSTALL_DIR/lib/llvm/bin/clang++ -DLLVM_DIR=$AOMP_INSTALL_DIR/lib/llvm/bin -DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR/lib -DCMAKE_INSTALL_PREFIX=$AOMP_INSTALL_DIR -DCMAKE_BUILD_TYPE=Debug $AOMP_DEBUG_ORIGIN_RPATH -DCMAKE_INSTALL_LIBDIR=lib-debug -DBUILD_SHARED_LIBS=On -DIMAGE_SUPPORT=OFF"
       echo  
       echo " -----Running rocr_debug cmake -----"
       mkdir -p  $BUILD_AOMP/build/rocr_debug

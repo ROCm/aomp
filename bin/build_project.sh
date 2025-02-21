@@ -37,6 +37,7 @@ fi
 
 # End check-openmp prep
 
+_qmathopt="-DFLANG_RUNTIME_F128_MATH_LIB=libquadmath"
 if [ "$AOMP_PROC" == "ppc64le" ] ; then
    COMPILERS="-DCMAKE_C_COMPILER=/usr/bin/gcc-7 -DCMAKE_CXX_COMPILER=/usr/bin/g++-7"
    TARGETS_TO_BUILD="AMDGPU;${AOMP_NVPTX_TARGET}PowerPC"
@@ -44,6 +45,7 @@ else
    COMPILERS="-DCMAKE_C_COMPILER=$AOMP_CC_COMPILER -DCMAKE_CXX_COMPILER=$AOMP_CXX_COMPILER"
    if [ "$AOMP_PROC" == "aarch64" ] ; then
       TARGETS_TO_BUILD="AMDGPU;${AOMP_NVPTX_TARGET}AArch64"
+      _qmathopt=""
    else
       TARGETS_TO_BUILD="AMDGPU;${AOMP_NVPTX_TARGET}X86"
    fi
@@ -67,12 +69,6 @@ if [ "$AOMP_USE_NINJA" == 0 ] ; then
 else
     AOMP_SET_NINJA_GEN="-G Ninja"
 fi
-#  If offload-arch tool exists do not build amdgpu-arch
-if [ -d $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/llvm/lib/OffloadArch ] ; then 
-  enable_amdgpu_arch=""
-else
-  enable_amdgpu_arch="-DENABLE_AMDGPU_ARCH_TOOL=ON"
-fi
 
 if [ "$AOMP_LEGACY_OPENMP" != 0 ]; then
   LLVM_RUNTIMES="libcxx;libcxxabi;libunwind;compiler-rt"
@@ -91,14 +87,13 @@ MYCMAKEOPTS="-DCMAKE_BUILD_TYPE=$BUILD_TYPE
  -DLLVM_VERSION_SUFFIX=_AOMP${standalone_word}_$AOMP_VERSION_STRING
  -DCLANG_VENDOR=AOMP${standalone_word}_$AOMP_VERSION_STRING
  -DCLANG_DEFAULT_PIE_ON_LINUX=0
- $enable_amdgpu_arch
  -DBUG_REPORT_URL='https://github.com/ROCm-Developer-Tools/aomp'
  -DLLVM_ENABLE_BINDINGS=OFF
  -DLLVM_INCLUDE_BENCHMARKS=OFF
  $DO_TESTS $AOMP_ORIGIN_RPATH
  -DCLANG_DEFAULT_LINKER=lld
  $AOMP_SET_NINJA_GEN
- -DFLANG_RUNTIME_F128_MATH_LIB=libquadmath
+ $_qmathopt
  -DLIBOMPTARGET_BUILD_DEVICE_FORTRT=ON
  -DLLVM_BUILD_LLVM_DYLIB=ON
  -DLLVM_LINK_LLVM_DYLIB=ON

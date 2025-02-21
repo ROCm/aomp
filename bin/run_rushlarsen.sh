@@ -23,12 +23,12 @@ RUN_OPTIONS=${RUN_OPTIONS:-"openmp hip fomp"}
 
 # OMP options
 omp_cxx="$AOMP/bin/clang++"
-omp_flags="-O3 -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$AOMP_GPU -DOMP -DOMP_TARGET_GPU -fopenmp-target-fast"
+omp_flags="-O3 -fopenmp --offload-arch=$AOMP_GPU -DOMP -DOMP_TARGET_GPU -fopenmp-target-fast"
 omp_dir="tests/rush_larsen/rush_larsen_gpu_omp"
 omp_exec="rush_larsen_gpu_omp"
 
 fomp_f90="$AOMP/bin/$FLANG"
-fomp_flags="-O3 -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$AOMP_GPU -DOMP -DOMP_TARGET_GPU -g"
+fomp_flags="-O3 -fopenmp --offload-arch=$AOMP_GPU -DOMP -DOMP_TARGET_GPU -g"
 fomp_dir="tests/rush_larsen/rush_larsen_gpu_omp_fort"
 fomp_exec="rush_larsen_gpu_omp_fort"
 

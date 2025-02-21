@@ -1,0 +1,1238 @@
+diff --git a/libhsakmt/tests/kfdtest/scripts/kfdtest.exclude b/libhsakmt/tests/kfdtest/scripts/kfdtest.exclude
+index a3b61f1c..4b71b7ed 100644
+--- a/libhsakmt/tests/kfdtest/scripts/kfdtest.exclude
++++ b/libhsakmt/tests/kfdtest/scripts/kfdtest.exclude
+@@ -328,22 +328,6 @@ FILTER[gfx1036]=\
+ "$BLACKLIST_ALL_ASICS:"\
+ "$BLACKLIST_GFX10_NV2X"
+ 
+-FILTER[gfx940]=\
+-"$BLACKLIST_ALL_ASICS:"\
+-"KFDMemoryTest.LargestSysBufferTest:"\
+-"KFDMemoryTest.BigSysBufferStressTest:"\
+-"KFDMemoryTest.FlatScratchAccess:"\
+-"KFDIPCTest.BasicTest:"\
+-"KFDQMTest.QueueLatency"
+-
+-FILTER[gfx941]=\
+-"$BLACKLIST_ALL_ASICS:"\
+-"KFDMemoryTest.LargestSysBufferTest:"\
+-"KFDMemoryTest.BigSysBufferStressTest:"\
+-"KFDMemoryTest.FlatScratchAccess:"\
+-"KFDIPCTest.BasicTest:"\
+-"KFDQMTest.QueueLatency"
+-
+ FILTER[gfx942]=\
+ "$BLACKLIST_ALL_ASICS:"\
+ "KFDMemoryTest.LargestSysBufferTest:"\
+diff --git a/rocrtst/suites/test_common/CMakeLists.txt b/rocrtst/suites/test_common/CMakeLists.txt
+index 06ed8a36..a1028b9d 100755
+--- a/rocrtst/suites/test_common/CMakeLists.txt
++++ b/rocrtst/suites/test_common/CMakeLists.txt
+@@ -110,7 +110,7 @@ else()
+ endif()
+ 
+ set(DEFAULT_TARGETS "gfx700;gfx701;gfx702;gfx801;gfx802;gfx803;gfx805;gfx810"
+-                    "gfx900;gfx902;gfx904;gfx906;gfx908;gfx909;gfx90a;gfx90c;gfx940;gfx941;gfx942"
++                    "gfx900;gfx902;gfx904;gfx906;gfx908;gfx909;gfx90a;gfx90c;gfx942"
+                     "gfx1010;gfx1011;gfx1012;gfx1013;gfx1030;gfx1031;gfx1032;gfx1033;gfx1034;gfx1035;gfx1036"
+                     "gfx1100;gfx1101;gfx1102;gfx1103;gfx1150;gfx1151;gfx1152;gfx1200;gfx1201")
+ 
+diff --git a/runtime/hsa-runtime/core/inc/agent.h b/runtime/hsa-runtime/core/inc/agent.h
+index 4d745e90..d9a895a8 100644
+--- a/runtime/hsa-runtime/core/inc/agent.h
++++ b/runtime/hsa-runtime/core/inc/agent.h
+@@ -236,6 +236,18 @@ class Agent : public Checked<0xF6BC25EB17E6F917> {
+       hsa_status_t (*callback)(hsa_region_t region, void* data),
+       void* data) const = 0;
+ 
++  // @brief Invoke the user provided callback for each isa supported by
++  // this agent.
++  //
++  // @param [in] callback User provided callback function.
++  // @param [in] data User provided pointer as input for @p callback.
++  //
++  // @retval ::HSA_STATUS_SUCCESS if the callback function for each traversed
++  // isa returns ::HSA_STATUS_SUCCESS.
++  virtual hsa_status_t IterateSupportedIsas(
++      hsa_status_t (*callback)(hsa_isa_t isa, void* data),
++      void* data) const = 0;
++
+   // @brief Invoke the callback for each cache useable by this agent.
+   virtual hsa_status_t IterateCache(hsa_status_t (*callback)(hsa_cache_t cache, void* data),
+                                     void* data) const = 0;
+@@ -278,8 +290,11 @@ class Agent : public Checked<0xF6BC25EB17E6F917> {
+   // @brief Returns an array of regions owned by the agent.
+   virtual const std::vector<const core::MemoryRegion*>& regions() const = 0;
+ 
+-  // @details Returns the agent's instruction set architecture.
+-  virtual const Isa* isa() const = 0;
++  // @brief Returns the ISA's supported by the agent.
++  // @details The returned vector is a list of pointers to the supported ISA,
++  // ordered from most specific (and performant) to most generic. For CPU
++  // and AIE agents, this list will be empty.
++  virtual const std::vector<const core::Isa *>& supported_isas() const = 0;
+ 
+   virtual uint64_t HiveId() const { return 0; }
+ 
+@@ -343,6 +358,7 @@ protected:
+   }
+ 
+   hsa_agent_t public_handle_;
++  std::vector<const core::Isa *> supported_isas_;
+ 
+  private:
+   // @brief Node id.
+diff --git a/runtime/hsa-runtime/core/inc/amd_aie_agent.h b/runtime/hsa-runtime/core/inc/amd_aie_agent.h
+index 0925a206..e4086fc9 100644
+--- a/runtime/hsa-runtime/core/inc/amd_aie_agent.h
++++ b/runtime/hsa-runtime/core/inc/amd_aie_agent.h
+@@ -72,6 +72,10 @@ public:
+                                                      void *data),
+                             void *value) const override;
+ 
++  hsa_status_t IterateSupportedIsas(
++                    hsa_status_t (*callback)(hsa_isa_t isa, void* data),
++                                                  void* data) const override;
++
+   hsa_status_t GetInfo(hsa_agent_info_t attribute, void *value) const override;
+ 
+   hsa_status_t QueueCreate(size_t size, hsa_queue_type32_t queue_type,
+@@ -80,7 +84,10 @@ public:
+                            uint32_t group_segment_size,
+                            core::Queue **queue) override;
+ 
+-  const core::Isa *isa() const override { return nullptr; }
++  // @brief Override from core::Agent.
++  const std::vector<const core::Isa*>& supported_isas() const override {
++    return supported_isas_;
++  }
+ 
+   const std::vector<const core::MemoryRegion *> &regions() const override {
+     return regions_;
+diff --git a/runtime/hsa-runtime/core/inc/amd_cpu_agent.h b/runtime/hsa-runtime/core/inc/amd_cpu_agent.h
+index c81c6c6f..4ee5fa3a 100644
+--- a/runtime/hsa-runtime/core/inc/amd_cpu_agent.h
++++ b/runtime/hsa-runtime/core/inc/amd_cpu_agent.h
+@@ -90,6 +90,10 @@ class CpuAgent : public core::Agent {
+                                                       void* data),
+                              void* data) const override;
+ 
++  hsa_status_t IterateSupportedIsas(
++                    hsa_status_t (*callback)(hsa_isa_t isa, void* data),
++                                                  void* data) const override;
++
+   // @brief Override from core::Agent.
+   hsa_status_t IterateCache(hsa_status_t (*callback)(hsa_cache_t cache, void* data),
+                             void* value) const override;
+@@ -127,9 +131,10 @@ class CpuAgent : public core::Agent {
+     return regions_;
+   }
+ 
+-  // @brief OVerride from core::Agent.
+-  const core::Isa* isa() const override { return NULL; }
+-
++  // @brief Override from core::Agent.
++  const std::vector<const core::Isa*>& supported_isas() const override {
++    return supported_isas_;
++  }
+  private:
+   // @brief Query the driver to get the region list owned by this agent.
+   void InitRegionList();
+diff --git a/runtime/hsa-runtime/core/inc/amd_gpu_agent.h b/runtime/hsa-runtime/core/inc/amd_gpu_agent.h
+index a145980e..4d19b352 100644
+--- a/runtime/hsa-runtime/core/inc/amd_gpu_agent.h
++++ b/runtime/hsa-runtime/core/inc/amd_gpu_agent.h
+@@ -275,6 +275,10 @@ class GpuAgent : public GpuAgentInt {
+                                                       void* data),
+                              void* data) const override;
+ 
++  hsa_status_t IterateSupportedIsas(
++                    hsa_status_t (*callback)(hsa_isa_t isa, void* data),
++                                                  void* data) const override;
++
+   // @brief Override from core::Agent.
+   hsa_status_t IterateCache(hsa_status_t (*callback)(hsa_cache_t cache, void* data),
+                             void* value) const override;
+@@ -381,8 +385,8 @@ class GpuAgent : public GpuAgentInt {
+     return regions_;
+   }
+ 
+-  // @brief Override from core::Agent.
+-  const core::Isa* isa() const override { return isa_; }
++  const std::vector<const core::Isa *>& supported_isas() const override {
++                                                      return supported_isas_;}
+ 
+   // @brief Override from AMD::GpuAgentInt.
+   __forceinline bool is_kv_device() const override { return is_kv_device_; }
+@@ -432,7 +436,8 @@ class GpuAgent : public GpuAgentInt {
+   __forceinline bool AsyncScratchReclaimEnabled() const override {
+     // TODO: Need to update min CP FW ucode version once it is released
+     return (core::Runtime::runtime_singleton_->flag().enable_scratch_async_reclaim() &&
+-            isa()->GetMajorVersion() == 9 && isa()->GetMinorVersion() == 4 &&
++            supported_isas()[0]->GetMajorVersion() == 9 &&
++            supported_isas()[0]->GetMinorVersion() == 4 &&
+             properties_.EngineId.ui32.uCode > 999);
+   };
+ 
+diff --git a/runtime/hsa-runtime/core/inc/amd_hsa_loader.hpp b/runtime/hsa-runtime/core/inc/amd_hsa_loader.hpp
+index c63b7a96..1744ce77 100644
+--- a/runtime/hsa-runtime/core/inc/amd_hsa_loader.hpp
++++ b/runtime/hsa-runtime/core/inc/amd_hsa_loader.hpp
+@@ -163,11 +163,7 @@ public:
+ 
+   virtual hsa_isa_t IsaFromName(const char *name) = 0;
+ 
+-  // This function will be deleted in a future patch. Use the overload
+-  // that takes a generic version instead.
+-  virtual bool IsaSupportedByAgent(hsa_agent_t agent, hsa_isa_t isa) = 0;
+-
+-  virtual bool IsaSupportedByAgent(hsa_agent_t agent, hsa_isa_t isa, unsigned genericVersion) { return IsaSupportedByAgent(agent, isa); }
++  virtual bool IsaSupportedByAgent(hsa_agent_t agent, hsa_isa_t isa, unsigned genericVersion) = 0;
+ 
+   virtual void* SegmentAlloc(amdgpu_hsa_elf_segment_t segment, hsa_agent_t agent, size_t size, size_t align, bool zero) = 0;
+ 
+diff --git a/runtime/hsa-runtime/core/inc/amd_loader_context.hpp b/runtime/hsa-runtime/core/inc/amd_loader_context.hpp
+index 38666070..e218463b 100644
+--- a/runtime/hsa-runtime/core/inc/amd_loader_context.hpp
++++ b/runtime/hsa-runtime/core/inc/amd_loader_context.hpp
+@@ -56,7 +56,7 @@ class LoaderContext final : public rocr::amd::hsa::loader::Context {
+ 
+   hsa_isa_t IsaFromName(const char *name) override;
+ 
+-  bool IsaSupportedByAgent(hsa_agent_t agent, hsa_isa_t code_object_isa) override;
++  bool IsaSupportedByAgent(hsa_agent_t agent, hsa_isa_t code_object_isa, unsigned codeGenericVersion) override;
+ 
+   void* SegmentAlloc(amdgpu_hsa_elf_segment_t segment, hsa_agent_t agent, size_t size, size_t align, bool zero) override;
+ 
+diff --git a/runtime/hsa-runtime/core/inc/isa.h b/runtime/hsa-runtime/core/inc/isa.h
+index dfa3aee6..0ffe7944 100644
+--- a/runtime/hsa-runtime/core/inc/isa.h
++++ b/runtime/hsa-runtime/core/inc/isa.h
+@@ -117,12 +117,16 @@ class Isa final: public amd::hsa::common::Signed<0xB13594F2BD8F212D> {
+ 
+   /// @returns True if @p code_object_isa and @p agent_isa are compatible,
+   /// false otherwise.
+-  static bool IsCompatible(const Isa &code_object_isa, const Isa &agent_isa);
++  static bool IsCompatible(const Isa &code_object_isa,
++                      const Isa &agent_isa, unsigned int codeGenericVersion);
+ 
+   /// @returns This Isa's version.
+   const Version &GetVersion() const {
+     return version_;
+   }
++  /// @returns This Isa's generic target.
++  const std::string & GetIsaGeneric() const {return generic_;}
++
+ 
+   /// @returns SRAM ECC feature status.
+   IsaFeature GetSramecc() const {
+@@ -187,14 +191,16 @@ class Isa final: public amd::hsa::common::Signed<0xB13594F2BD8F212D> {
+ 
+   /// @brief Default constructor.
+   Isa()
+-      : targetid_(nullptr),
+-        version_(Version(-1, -1, -1)),
++      : version_(Version(-1, -1, -1)),
+         sramecc_(IsaFeature::Unsupported),
+         xnack_(IsaFeature::Unsupported) {}
+  private:
+ 
+   // @brief Isa's target ID name.
+-  const char* targetid_;
++  std::string targetid_;
++
++  // @brief Isa's generic version, if it exists. "" otherwise.
++  std::string generic_;
+ 
+   /// @brief Isa's version.
+   Version version_;
+@@ -223,7 +229,8 @@ class IsaRegistry final {
+   static const Isa *GetIsa(const Isa::Version &version,
+                            IsaFeature sramecc = IsaFeature::Any,
+                            IsaFeature xnack = IsaFeature::Any);
+-
++  static const std::unordered_map<std::string, unsigned int> &
++                                                GetSupportedGenericVersions();
+  private:
+   /// @brief IsaRegistry's map type.
+   typedef std::unordered_map<std::string, Isa> IsaMap;
+diff --git a/runtime/hsa-runtime/core/runtime/amd_aie_agent.cpp b/runtime/hsa-runtime/core/runtime/amd_aie_agent.cpp
+index 4d2d1f60..7239aba4 100644
+--- a/runtime/hsa-runtime/core/runtime/amd_aie_agent.cpp
++++ b/runtime/hsa-runtime/core/runtime/amd_aie_agent.cpp
+@@ -91,6 +91,17 @@ hsa_status_t AieAgent::IterateCache(hsa_status_t (*callback)(hsa_cache_t cache,
+   return HSA_STATUS_ERROR_INVALID_CACHE;
+ }
+ 
++hsa_status_t AieAgent::IterateSupportedIsas(
++                    hsa_status_t (*callback)(hsa_isa_t isa, void* data),
++                                                          void* data) const {
++  AMD::callback_t<decltype(callback)> call(callback);
++  for (const auto& isa : supported_isas()) {
++    hsa_status_t stat = call(core::Isa::Handle(isa), data);
++    if (stat != HSA_STATUS_SUCCESS) return stat;
++  }
++  return HSA_STATUS_SUCCESS;
++}
++
+ hsa_status_t AieAgent::GetInfo(hsa_agent_info_t attribute, void *value) const {
+   const size_t attribute_ = static_cast<size_t>(attribute);
+ 
+diff --git a/runtime/hsa-runtime/core/runtime/amd_aql_queue.cpp b/runtime/hsa-runtime/core/runtime/amd_aql_queue.cpp
+index f6a08c33..313d28da 100644
+--- a/runtime/hsa-runtime/core/runtime/amd_aql_queue.cpp
++++ b/runtime/hsa-runtime/core/runtime/amd_aql_queue.cpp
+@@ -100,7 +100,7 @@ AqlQueue::AqlQueue(GpuAgent* agent, size_t req_size_pkts, HSAuint32 node_id, Scr
+   // Values written to the HW doorbell are modulo the doubled size.
+   // This allows the HW to accept (doorbell == last_doorbell + queue_size).
+   // This workaround is required for GFXIP 7 and GFXIP 8 ASICs.
+-  const core::Isa* isa = agent_->isa();
++  const core::Isa* isa = agent_->supported_isas()[0];
+   queue_full_workaround_ =
+       (isa->GetMajorVersion() == 7 || isa->GetMajorVersion() == 8)
+           ? 1
+@@ -208,7 +208,7 @@ AqlQueue::AqlQueue(GpuAgent* agent, size_t req_size_pkts, HSAuint32 node_id, Scr
+     assert(amd_queue_.private_segment_aperture_base_hi != 0 && "No private region found.");
+   }
+ 
+-  if (agent_->isa()->GetMajorVersion() >= 11)
++  if (agent_->supported_isas()[0]->GetMajorVersion() >= 11)
+     queue_scratch_.mem_alignment_size = 256;
+   else
+     queue_scratch_.mem_alignment_size = 1024;
+@@ -998,8 +998,9 @@ void AqlQueue::HandleInsufficientScratch(hsa_signal_value_t& error_code,
+ 
+     // For gfx10+ devices we must attempt to assign the smaller of 256 lanes or 16 groups to each
+     // engine.
+-    if (agent_->isa()->GetMajorVersion() >= 10 && maxGroupsPerEngine < 16 &&
+-        lanes_per_group * maxGroupsPerEngine < 256) {
++    if (agent_->supported_isas()[0]->GetMajorVersion() >= 10 &&
++        maxGroupsPerEngine < 16 &&
++                              lanes_per_group * maxGroupsPerEngine < 256) {
+       uint64_t groups_per_interleave = (256 + lanes_per_group - 1) / lanes_per_group;
+       maxGroupsPerEngine = Min(groups_per_interleave, 16ul);
+     }
+@@ -1098,10 +1099,12 @@ void AqlQueue::HandleInsufficientScratch(hsa_signal_value_t& error_code,
+   if (scratch.large) {
+     amd_queue_.queue_properties |= AMD_QUEUE_PROPERTIES_USE_SCRATCH_ONCE;
+     // Set system release fence to flush scratch stores with older firmware versions.
+-    if ((agent_->isa()->GetMajorVersion() == 8) && (agent_->GetMicrocodeVersion() < 729)) {
+-      pkt.dispatch.header &= ~(((1 << HSA_PACKET_HEADER_WIDTH_SCRELEASE_FENCE_SCOPE) - 1)
+-                               << HSA_PACKET_HEADER_SCRELEASE_FENCE_SCOPE);
+-      pkt.dispatch.header |= (HSA_FENCE_SCOPE_SYSTEM << HSA_PACKET_HEADER_SCRELEASE_FENCE_SCOPE);
++    if ((agent_->supported_isas()[0]->GetMajorVersion() == 8) && (agent_->GetMicrocodeVersion() < 729)) {
++      pkt.dispatch.header &=
++          ~(((1 << HSA_PACKET_HEADER_WIDTH_SCRELEASE_FENCE_SCOPE) - 1)
++            << HSA_PACKET_HEADER_SCRELEASE_FENCE_SCOPE);
++      pkt.dispatch.header |=
++          (HSA_FENCE_SCOPE_SYSTEM << HSA_PACKET_HEADER_SCRELEASE_FENCE_SCOPE);
+     }
+   } else if (scratch.alt_size && scratch.main_size > scratch.alt_size) {
+     // Not using use-scratch-once, and dispatches that would fit in alt-scratch would also fit in
+@@ -1317,7 +1320,7 @@ bool AqlQueue::ExceptionHandler(hsa_signal_value_t error_code, void* arg) {
+   // Fallback if KFD does not support GPU core dump. In this case, there core dump is
+   // generated by hsa-runtime.
+   if (!core::Runtime::runtime_singleton_->KfdVersion().supports_core_dump &&
+-      queue->agent_->isa()->GetMajorVersion() != 11) {
++                queue->agent_->supported_isas()[0]->GetMajorVersion() != 11) {
+ 
+     if (pcs::PcsRuntime::instance()->SessionsActive())
+       fprintf(stderr, "GPU core dump skipped because PC Sampling active\n");
+@@ -1390,7 +1393,7 @@ hsa_status_t AqlQueue::SetCUMasking(uint32_t num_cu_mask_count, const uint32_t*
+   if ((!cu_mask_.empty()) || (num_cu_mask_count != 0) || (!global_mask.empty())) {
+ 
+     // Devices with WGPs must conform to even-indexed contiguous pairwise CU enablement.
+-    if (agent_->isa()->GetMajorVersion() >= 10) {
++    if (agent_->supported_isas()[0]->GetMajorVersion() >= 10) {
+       for (int i = 0; i < mask.size() * 32; i += 2) {
+         uint32_t cu_pair = (mask[i / 32] >> (i % 32)) & 0x3;
+         if (cu_pair && cu_pair != 0x3) return HSA_STATUS_ERROR_INVALID_ARGUMENT;
+@@ -1459,7 +1462,8 @@ void AqlQueue::ExecutePM4(uint32_t* cmd_data, size_t cmd_size_b, hsa_fence_scope
+   constexpr uint32_t ib_jump_size_dw = 4;
+ 
+   uint32_t ib_jump_cmd[ib_jump_size_dw] = {
+-      PM4_HDR(PM4_HDR_IT_OPCODE_INDIRECT_BUFFER, ib_jump_size_dw, agent_->isa()->GetMajorVersion()),
++      PM4_HDR(PM4_HDR_IT_OPCODE_INDIRECT_BUFFER, ib_jump_size_dw,
++                              agent_->supported_isas()[0]->GetMajorVersion()),
+       PM4_INDIRECT_BUFFER_DW1_IB_BASE_LO(uint32_t(uintptr_t(pm4_ib_buf_) >> 2)),
+       PM4_INDIRECT_BUFFER_DW2_IB_BASE_HI(uint32_t(uintptr_t(pm4_ib_buf_) >> 32)),
+       (PM4_INDIRECT_BUFFER_DW3_IB_SIZE(uint32_t(cmd_size_b / sizeof(uint32_t))) |
+@@ -1471,7 +1475,7 @@ void AqlQueue::ExecutePM4(uint32_t* cmd_data, size_t cmd_size_b, hsa_fence_scope
+   hsa_signal_t local_signal = {0};
+   hsa_status_t err;
+ 
+-  if (agent_->isa()->GetMajorVersion() <= 8) {
++  if (agent_->supported_isas()[0]->GetMajorVersion() <= 8) {
+     // Construct a set of PM4 to fit inside the AQL packet slot.
+     uint32_t slot_dw_idx = 0;
+ 
+@@ -1482,7 +1486,8 @@ void AqlQueue::ExecutePM4(uint32_t* cmd_data, size_t cmd_size_b, hsa_fence_scope
+     uint32_t* nop_pad = &slot_data[slot_dw_idx];
+     slot_dw_idx += nop_pad_size_dw;
+ 
+-    nop_pad[0] = PM4_HDR(PM4_HDR_IT_OPCODE_NOP, nop_pad_size_dw, agent_->isa()->GetMajorVersion());
++    nop_pad[0] = PM4_HDR(PM4_HDR_IT_OPCODE_NOP, nop_pad_size_dw,
++                              agent_->supported_isas()[0]->GetMajorVersion());
+ 
+     for (uint32_t i = 1; i < nop_pad_size_dw; ++i) {
+       nop_pad[i] = 0;
+@@ -1501,15 +1506,15 @@ void AqlQueue::ExecutePM4(uint32_t* cmd_data, size_t cmd_size_b, hsa_fence_scope
+     assert(slot_dw_idx + rel_mem_size_dw <= slot_size_dw && "PM4 exceeded queue slot size");
+     uint32_t* rel_mem = &slot_data[slot_dw_idx];
+ 
+-    rel_mem[0] =
+-        PM4_HDR(PM4_HDR_IT_OPCODE_RELEASE_MEM, rel_mem_size_dw, agent_->isa()->GetMajorVersion());
++    rel_mem[0] = PM4_HDR(PM4_HDR_IT_OPCODE_RELEASE_MEM, rel_mem_size_dw,
++                              agent_->supported_isas()[0]->GetMajorVersion());
+     rel_mem[1] = PM4_RELEASE_MEM_DW1_EVENT_INDEX(PM4_RELEASE_MEM_EVENT_INDEX_AQL);
+     rel_mem[2] = 0;
+     rel_mem[3] = 0;
+     rel_mem[4] = 0;
+     rel_mem[5] = 0;
+     rel_mem[6] = 0;
+-  } else if (agent_->isa()->GetMajorVersion() >= 9) {
++  } else if (agent_->supported_isas()[0]->GetMajorVersion() >= 9) {
+     // Construct an AQL packet to jump to the PM4 IB.
+     struct amd_aql_pm4_ib {
+       uint16_t header;
+@@ -1560,7 +1565,7 @@ void AqlQueue::ExecutePM4(uint32_t* cmd_data, size_t cmd_size_b, hsa_fence_scope
+   doorbell->StoreRelease(write_idx);
+ 
+   // Wait for the packet to be consumed.
+-  if (agent_->isa()->GetMajorVersion() <= 8) {
++  if (agent_->supported_isas()[0]->GetMajorVersion() <= 8) {
+     while (queue->LoadReadIndexRelaxed() <= write_idx)
+       os::YieldThread();
+ 
+@@ -1841,7 +1846,7 @@ void AqlQueue::FillComputeTmpRingSize_Gfx12() {
+ // @brief Define the Scratch Buffer Descriptor and related parameters
+ // that enable kernel access scratch memory
+ void AqlQueue::InitScratchSRD() {
+-  switch (agent_->isa()->GetMajorVersion()) {
++  switch (agent_->supported_isas()[0]->GetMajorVersion()) {
+     case 12:
+       FillBufRsrcWord0();
+       FillBufRsrcWord1_Gfx11();
+diff --git a/runtime/hsa-runtime/core/runtime/amd_blit_sdma.cpp b/runtime/hsa-runtime/core/runtime/amd_blit_sdma.cpp
+index 723054b3..8421af69 100644
+--- a/runtime/hsa-runtime/core/runtime/amd_blit_sdma.cpp
++++ b/runtime/hsa-runtime/core/runtime/amd_blit_sdma.cpp
+@@ -151,15 +151,16 @@ hsa_status_t BlitSdma<RingIndexTy, HwIndexMonotonic, SizeToCountOffset, useGCR>:
+   }
+ 
+   // Some GFX9 devices require a minimum of 64 DWORDS per ring buffer submission.
+-  if (agent_->isa()->GetVersion() >= core::Isa::Version(9, 0, 0) &&
+-      (agent_->isa()->GetVersion() <= core::Isa::Version(9, 0, 4) ||
+-       agent_->isa()->GetVersion() == core::Isa::Version(9, 0, 12))) {
++  if (agent_->supported_isas()[0]->GetVersion() >= core::Isa::Version(9, 0, 0) &&
++     (agent_->supported_isas()[0]->GetVersion() <= core::Isa::Version(9, 0, 4) ||
++     agent_->supported_isas()[0]->GetVersion() == core::Isa::Version(9, 0, 12))) {
+     min_submission_size_ = 256;
+   }
+ 
+-  const core::Runtime::LinkInfo& link = core::Runtime::runtime_singleton_->GetLinkInfo(
+-      agent_->node_id(), core::Runtime::runtime_singleton_->cpu_agents()[0]->node_id());
+-  if (agent_->isa()->GetVersion() == core::Isa::Version(7, 0, 1)) {
++  const core::Runtime::LinkInfo& link =
++            core::Runtime::runtime_singleton_->GetLinkInfo( agent_->node_id(),
++                core::Runtime::runtime_singleton_->cpu_agents()[0]->node_id());
++  if (agent_->supported_isas()[0]->GetVersion() == core::Isa::Version(7, 0, 1)) {
+     platform_atomic_support_ = false;
+   } else {
+     platform_atomic_support_ = link.info.atomic_support_64bit;
+@@ -169,8 +170,8 @@ hsa_status_t BlitSdma<RingIndexTy, HwIndexMonotonic, SizeToCountOffset, useGCR>:
+   // gfx90a can support xGMI host to device connections so bypass HDP flush
+   // in this case.
+   // gfx101x seems to have issues with HDP flushes
+-  if (agent_->isa()->GetMajorVersion() >= 9 &&
+-      !(agent_->isa()->GetMajorVersion() == 10 && agent_->isa()->GetMinorVersion() == 1)) {
++  if (agent_->supported_isas()[0]->GetMajorVersion() >= 9 &&
++      !(agent_->supported_isas()[0]->GetMajorVersion() == 10 && agent_->supported_isas()[0]->GetMinorVersion() == 1)) {
+     hdp_flush_support_ = link.info.link_type != HSA_AMD_LINK_INFO_TYPE_XGMI;
+   }
+ 
+@@ -556,7 +557,8 @@ BlitSdma<RingIndexTy, HwIndexMonotonic, SizeToCountOffset, useGCR>::SubmitCopyRe
+     throw AMD::hsa_exception(HSA_STATUS_ERROR_INVALID_ARGUMENT, "Copy rect slice needed.");
+ 
+   // GFX12 or later use a different packet format that is incompatible (fields changed in size and location).
+-  const bool isGFX12Plus = (agent_->isa()->GetMajorVersion() >= 12);
++  const bool isGFX12Plus =
++                        (agent_->supported_isas()[0]->GetMajorVersion() >= 12);
+ 
+   // Common and GFX12 packet must match in size to use same code for vector/append.
+   static_assert(sizeof(SDMA_PKT_COPY_LINEAR_RECT) == sizeof(SDMA_PKT_COPY_LINEAR_RECT_GFX12));
+@@ -777,7 +779,7 @@ void BlitSdma<RingIndexTy, HwIndexMonotonic, SizeToCountOffset, useGCR>::BuildFe
+ 
+   packet_addr->HEADER_UNION.op = SDMA_OP_FENCE;
+ 
+-  if (agent_->isa()->GetMajorVersion() >= 10) {
++  if (agent_->supported_isas()[0]->GetMajorVersion() >= 10) {
+     packet_addr->HEADER_UNION.mtype = 3;
+   }
+ 
+@@ -847,7 +849,8 @@ void BlitSdma<RingIndexTy, HwIndexMonotonic, SizeToCountOffset, useGCR>::BuildCo
+   };
+ 
+   // GFX12 or later use a different packet format that is incompatible (fields changed in size and location).
+-  const bool isGFX12Plus = (agent_->isa()->GetMajorVersion() >= 12);
++  const bool isGFX12Plus =
++                      (agent_->supported_isas()[0]->GetMajorVersion() >= 12);
+ 
+   // Limits in terms of element count
+   const uint32_t max_pitch = 1    << (isGFX12Plus ? SDMA_PKT_COPY_LINEAR_RECT_GFX12::pitch_bits   : SDMA_PKT_COPY_LINEAR_RECT::pitch_bits);
+diff --git a/runtime/hsa-runtime/core/runtime/amd_cpu_agent.cpp b/runtime/hsa-runtime/core/runtime/amd_cpu_agent.cpp
+index 06e332d2..7188c895 100644
+--- a/runtime/hsa-runtime/core/runtime/amd_cpu_agent.cpp
++++ b/runtime/hsa-runtime/core/runtime/amd_cpu_agent.cpp
+@@ -181,6 +181,17 @@ hsa_status_t CpuAgent::IterateCache(hsa_status_t (*callback)(hsa_cache_t cache,
+   return HSA_STATUS_SUCCESS;
+ }
+ 
++hsa_status_t CpuAgent::IterateSupportedIsas(
++                  hsa_status_t (*callback)(hsa_isa_t isa, void* data),
++                                                          void* data) const {
++  AMD::callback_t<decltype(callback)> call(callback);
++  for (const auto& isa : supported_isas()) {
++    hsa_status_t stat = call(core::Isa::Handle(isa), data);
++    if (stat != HSA_STATUS_SUCCESS) return stat;
++  }
++  return HSA_STATUS_SUCCESS;
++}
++
+ hsa_status_t CpuAgent::GetInfo(hsa_agent_info_t attribute, void* value) const {
+   
+   // agent, and vendor name size limit
+diff --git a/runtime/hsa-runtime/core/runtime/amd_gpu_agent.cpp b/runtime/hsa-runtime/core/runtime/amd_gpu_agent.cpp
+index 30b02121..52c5f60d 100644
+--- a/runtime/hsa-runtime/core/runtime/amd_gpu_agent.cpp
++++ b/runtime/hsa-runtime/core/runtime/amd_gpu_agent.cpp
+@@ -180,6 +180,11 @@ GpuAgent::GpuAgent(HSAuint32 node, const HsaNodeProperties& node_props, bool xna
+ 
+   assert(isa_ != nullptr && "ISA registry inconsistency.");
+ 
++  supported_isas_.push_back(isa_);
++  if (!isa_->GetIsaGeneric().empty()) {
++    supported_isas_.push_back(core::IsaRegistry::GetIsa(isa_->GetIsaGeneric()));
++  }
++
+   // Check if the device is Kaveri, only on GPU device.
+   if (isa_->GetMajorVersion() == 7 && isa_->GetMinorVersion() == 0 &&
+       isa_->GetStepping() == 0) {
+@@ -282,7 +287,6 @@ void GpuAgent::AssembleShader(const char* func_name, AssembleTarget assemble_tar
+     ASICShader compute_8;
+     ASICShader compute_9;
+     ASICShader compute_90a;
+-    ASICShader compute_940;
+     ASICShader compute_942;
+     ASICShader compute_1010;
+     ASICShader compute_10;
+@@ -297,7 +301,6 @@ void GpuAgent::AssembleShader(const char* func_name, AssembleTarget assemble_tar
+            {kCodeTrapHandler8, sizeof(kCodeTrapHandler8), 2, 4},            // gfx8
+            {kCodeTrapHandler9, sizeof(kCodeTrapHandler9), 2, 4},            // gfx9
+            {kCodeTrapHandler90a, sizeof(kCodeTrapHandler90a), 2, 4},        // gfx90a
+-           {NULL, 0, 0, 0},                                                 // gfx940
+            {NULL, 0, 0, 0},                                                 // gfx942
+            {kCodeTrapHandler1010, sizeof(kCodeTrapHandler1010), 2, 4},      // gfx1010
+            {kCodeTrapHandler10, sizeof(kCodeTrapHandler10), 2, 4},          // gfx10
+@@ -312,8 +315,7 @@ void GpuAgent::AssembleShader(const char* func_name, AssembleTarget assemble_tar
+            {kCodeTrapHandler8, sizeof(kCodeTrapHandler8), 2, 4},            // gfx8
+            {kCodeTrapHandlerV2_9, sizeof(kCodeTrapHandlerV2_9), 2, 4},      // gfx9
+            {kCodeTrapHandlerV2_9, sizeof(kCodeTrapHandlerV2_9), 2, 4},      // gfx90a
+-           {kCodeTrapHandlerV2_940, sizeof(kCodeTrapHandlerV2_940), 2, 4},  // gfx940
+-           {kCodeTrapHandlerV2_940, sizeof(kCodeTrapHandlerV2_940), 2, 4},  // gfx942
++           {kCodeTrapHandlerV2_942, sizeof(kCodeTrapHandlerV2_942), 2, 4},  // gfx942
+            {kCodeTrapHandlerV2_1010, sizeof(kCodeTrapHandlerV2_1010), 2, 4},// gfx1010
+            {kCodeTrapHandlerV2_10, sizeof(kCodeTrapHandlerV2_10), 2, 4},    // gfx10
+            {kCodeTrapHandlerV2_11, sizeof(kCodeTrapHandlerV2_11), 2, 4},    // gfx11
+@@ -325,7 +327,6 @@ void GpuAgent::AssembleShader(const char* func_name, AssembleTarget assemble_tar
+            {kCodeCopyAligned8, sizeof(kCodeCopyAligned8), 32, 12},          // gfx8
+            {kCodeCopyAligned9, sizeof(kCodeCopyAligned9), 32, 12},          // gfx9
+            {kCodeCopyAligned9, sizeof(kCodeCopyAligned9), 32, 12},          // gfx90a
+-           {kCodeCopyAligned940, sizeof(kCodeCopyAligned940), 32, 12},      // gfx940
+            {kCodeCopyAligned9, sizeof(kCodeCopyAligned9), 32, 12},          // gfx942
+            {kCodeCopyAligned10, sizeof(kCodeCopyAligned10), 32, 12},        // gfx1010
+            {kCodeCopyAligned10, sizeof(kCodeCopyAligned10), 32, 12},        // gfx10
+@@ -338,7 +339,6 @@ void GpuAgent::AssembleShader(const char* func_name, AssembleTarget assemble_tar
+            {kCodeCopyMisaligned8, sizeof(kCodeCopyMisaligned8), 23, 10},    // gfx8
+            {kCodeCopyMisaligned9, sizeof(kCodeCopyMisaligned9), 23, 10},    // gfx9
+            {kCodeCopyMisaligned9, sizeof(kCodeCopyMisaligned9), 23, 10},    // gfx90a
+-           {kCodeCopyMisaligned940, sizeof(kCodeCopyMisaligned940), 23, 10},// gfx940
+            {kCodeCopyMisaligned9, sizeof(kCodeCopyMisaligned9), 23, 10},    // gfx942
+            {kCodeCopyMisaligned10, sizeof(kCodeCopyMisaligned10), 23, 10},  // gfx1010
+            {kCodeCopyMisaligned10, sizeof(kCodeCopyMisaligned10), 23, 10},  // gfx10
+@@ -351,7 +351,6 @@ void GpuAgent::AssembleShader(const char* func_name, AssembleTarget assemble_tar
+            {kCodeFill8, sizeof(kCodeFill8), 19, 8},                         // gfx8
+            {kCodeFill9, sizeof(kCodeFill9), 19, 8},                         // gfx9
+            {kCodeFill9, sizeof(kCodeFill9), 19, 8},                         // gfx90a
+-           {kCodeFill940, sizeof(kCodeFill940), 19, 8},                     // gfx940
+            {kCodeFill9, sizeof(kCodeFill9), 19, 8},                         // gfx942
+            {kCodeFill10, sizeof(kCodeFill10), 19, 8},                       // gfx1010
+            {kCodeFill10, sizeof(kCodeFill10), 19, 8},                       // gfx10
+@@ -379,8 +378,6 @@ void GpuAgent::AssembleShader(const char* func_name, AssembleTarget assemble_tar
+         switch(isa_->GetStepping()) {
+           case 0:
+           case 1:
+-            asic_shader = &compiled_shader_it->second.compute_940;
+-            break;
+           case 2:
+           default:
+             asic_shader = &compiled_shader_it->second.compute_942;
+@@ -442,7 +439,7 @@ void GpuAgent::AssembleShader(const char* func_name, AssembleTarget assemble_tar
+     AMD_HSA_BITS_SET(header->compute_pgm_rsrc2,
+                      AMD_COMPUTE_PGM_RSRC_TWO_ENABLE_SGPR_WORKGROUP_ID_X, 1);
+ 
+-    // gfx90a, gfx940, gfx941, gfx942
++    // gfx90a, gfx942
+     if ((isa_->GetMajorVersion() == 9) &&
+         (((isa_->GetMinorVersion() == 0) && (isa_->GetStepping() == 10)) ||
+         (isa_->GetMinorVersion() == 4))) {
+@@ -657,6 +654,17 @@ hsa_status_t GpuAgent::IterateCache(hsa_status_t (*callback)(hsa_cache_t cache,
+   return HSA_STATUS_SUCCESS;
+ }
+ 
++hsa_status_t GpuAgent::IterateSupportedIsas(
++                    hsa_status_t (*callback)(hsa_isa_t isa, void* data),
++                                                          void* data) const {
++  AMD::callback_t<decltype(callback)> call(callback);
++  for (const auto& isa : supported_isas()) {
++    hsa_status_t stat = call(core::Isa::Handle(isa), data);
++    if (stat != HSA_STATUS_SUCCESS) return stat;
++  }
++  return HSA_STATUS_SUCCESS;
++}
++
+ hsa_status_t GpuAgent::VisitRegion(bool include_peer,
+                                    hsa_status_t (*callback)(hsa_region_t region,
+                                                             void* data),
+diff --git a/runtime/hsa-runtime/core/runtime/amd_loader_context.cpp b/runtime/hsa-runtime/core/runtime/amd_loader_context.cpp
+index ce4f6b39..0b027d77 100644
+--- a/runtime/hsa-runtime/core/runtime/amd_loader_context.cpp
++++ b/runtime/hsa-runtime/core/runtime/amd_loader_context.cpp
+@@ -385,30 +385,38 @@ hsa_isa_t LoaderContext::IsaFromName(const char *name) {
+ }
+ 
+ bool LoaderContext::IsaSupportedByAgent(hsa_agent_t agent,
+-                                        hsa_isa_t code_object_isa) {
+-  std::pair<hsa_isa_t, bool> comparison_data(code_object_isa, false);
++                                        hsa_isa_t code_object_isa,
++                                        unsigned codeGenericVersion) {
++  struct callBackData {
++    std::pair<hsa_isa_t, bool> comparison_data;
++    const unsigned int codeGenericV;
++  } cbData = {{code_object_isa, false}, codeGenericVersion};
++
+   auto IsIsaEquivalent = [](hsa_isa_t agent_isa_h, void *data) {
+     assert(data);
+ 
+-    std::pair<hsa_isa_t, bool> *data_pair =
+-        reinterpret_cast<decltype(&comparison_data)>(data);
++    struct callBackData *inOutCB = reinterpret_cast<decltype(&cbData)>(data);
++
++    std::pair<hsa_isa_t, bool> *data_pair = &inOutCB->comparison_data;
++    const unsigned int codeGenericV = inOutCB->codeGenericV;
++
+     assert(data_pair);
+-    assert(data_pair->second != true);
++    assert(!data_pair->second);
+ 
+     const core::Isa *agent_isa = core::Isa::Object(agent_isa_h);
+     assert(agent_isa);
+     const core::Isa *code_object_isa = core::Isa::Object(data_pair->first);
+     assert(code_object_isa);
+ 
+-    data_pair->second = core::Isa::IsCompatible(*code_object_isa, *agent_isa);
++    data_pair->second = core::Isa::IsCompatible(*code_object_isa, *agent_isa, codeGenericV);
+     return data_pair->second ? HSA_STATUS_INFO_BREAK : HSA_STATUS_SUCCESS;
+   };
+ 
+-  hsa_status_t status = HSA::hsa_agent_iterate_isas(agent, IsIsaEquivalent, &comparison_data);
++  hsa_status_t status = HSA::hsa_agent_iterate_isas(agent, IsIsaEquivalent, &cbData);
+   if (status != HSA_STATUS_SUCCESS && status != HSA_STATUS_INFO_BREAK) {
+     return false;
+   }
+-  return comparison_data.second;
++  return cbData.comparison_data.second;
+ }
+ 
+ void* LoaderContext::SegmentAlloc(amdgpu_hsa_elf_segment_t segment,
+diff --git a/runtime/hsa-runtime/core/runtime/amd_topology.cpp b/runtime/hsa-runtime/core/runtime/amd_topology.cpp
+index ee385ff9..c1ae81be 100644
+--- a/runtime/hsa-runtime/core/runtime/amd_topology.cpp
++++ b/runtime/hsa-runtime/core/runtime/amd_topology.cpp
+@@ -137,10 +137,11 @@ GpuAgent* DiscoverGpu(HSAuint32 node_id, HsaNodeProperties& node_prop, bool xnac
+ 
+     // Check for sramecc incompatibility due to sramecc not being reported correctly in kfd before
+     // 1.4.
+-    if (gpu->isa()->IsSrameccSupported() && (kfd_version.KernelInterfaceMajorVersion <= 1 &&
+-                                             kfd_version.KernelInterfaceMinorVersion < 4)) {
++    if (gpu->supported_isas()[0]->IsSrameccSupported() &&
++         (kfd_version.KernelInterfaceMajorVersion <= 1 &&
++              kfd_version.KernelInterfaceMinorVersion < 4)) {
+       // gfx906 has both sramecc modes in use.  Suppress the device.
+-      if ((gpu->isa()->GetProcessorName() == "gfx906") &&
++      if ((gpu->supported_isas()[0]->GetProcessorName() == "gfx906") &&
+           core::Runtime::runtime_singleton_->flag().check_sramecc_validity()) {
+         char name[64];
+         gpu->GetInfo((hsa_agent_info_t)HSA_AMD_AGENT_INFO_PRODUCT_NAME, name);
+@@ -153,7 +154,7 @@ GpuAgent* DiscoverGpu(HSAuint32 node_id, HsaNodeProperties& node_prop, bool xnac
+       }
+ 
+       // gfx908 always has sramecc set to on in vbios.  Set mode bit to on and recreate the device.
+-      if (gpu->isa()->GetProcessorName() == "gfx908") {
++      if (gpu->supported_isas()[0]->GetProcessorName() == "gfx908") {
+         node_prop.Capability.ui32.SRAM_EDCSupport = 1;
+         delete gpu;
+         gpu = new GpuAgent(node_id, node_prop, xnack_mode,
+@@ -260,7 +261,7 @@ void RegisterLinkInfo(uint32_t node_id, uint32_t num_link) {
+  */
+ static void SurfaceGpuList(std::vector<int32_t>& gpu_list, bool xnack_mode, bool enabled) {
+   // Process user visible Gpu devices
+-  int32_t invalidIdx = -1;
++  const int32_t invalidIdx = -1;
+   int32_t list_sz = gpu_list.size();
+   HsaNodeProperties node_prop = {0};
+   for (int32_t idx = 0; idx < list_sz; idx++) {
+diff --git a/runtime/hsa-runtime/core/runtime/blit_shaders/CMakeLists.txt b/runtime/hsa-runtime/core/runtime/blit_shaders/CMakeLists.txt
+index e63d380b..e1a973bb 100644
+--- a/runtime/hsa-runtime/core/runtime/blit_shaders/CMakeLists.txt
++++ b/runtime/hsa-runtime/core/runtime/blit_shaders/CMakeLists.txt
+@@ -49,10 +49,10 @@ find_package(Clang REQUIRED HINTS ${CMAKE_PREFIX_PATH}/llvm PATHS /opt/rocm/llvm
+ find_package(LLVM REQUIRED HINTS ${CMAKE_PREFIX_PATH}/llvm PATHS /opt/rocm/llvm )
+ 
+ # Set the target devices
+-set (TARGET_DEVS "gfx900;gfx940;gfx1010;gfx1030;gfx1100;gfx1200")
++set (TARGET_DEVS "gfx900;gfx1010;gfx1030;gfx1100;gfx1200")
+ 
+ # Set the postfix for each target device
+-set (POSTFIX "9;940;1010;10;11;12")
++set (POSTFIX "9;1010;10;11;12")
+ 
+ # If verbose output is enabled, print paths and target devices
+ if(${CMAKE_VERBOSE_MAKEFILE})
+diff --git a/runtime/hsa-runtime/core/runtime/blit_shaders/blit_copyAligned.s b/runtime/hsa-runtime/core/runtime/blit_shaders/blit_copyAligned.s
+index c861147a..50b1bf2a 100644
+--- a/runtime/hsa-runtime/core/runtime/blit_shaders/blit_copyAligned.s
++++ b/runtime/hsa-runtime/core/runtime/blit_shaders/blit_copyAligned.s
+@@ -71,7 +71,7 @@
+ 	.endif
+ .endm
+ 
+-//sc1 sc0 params are only needed for gfx940/gfx941. On gfx942, we use the compiled code for gfx9
++//On gfx942, we use the compiled code for gfx9
+ .macro FLAT_LOAD_DWORD dst, src
+   .if (.amdgcn.gfx_generation_number == 9 && .amdgcn.gfx_generation_minor == 4)
+     flat_load_dword      \dst, \src sc1 sc0
+diff --git a/runtime/hsa-runtime/core/runtime/blit_shaders/blit_copyMisaligned.s b/runtime/hsa-runtime/core/runtime/blit_shaders/blit_copyMisaligned.s
+index 48a5b3ec..fc6f22bd 100644
+--- a/runtime/hsa-runtime/core/runtime/blit_shaders/blit_copyMisaligned.s
++++ b/runtime/hsa-runtime/core/runtime/blit_shaders/blit_copyMisaligned.s
+@@ -71,7 +71,7 @@
+ 	.endif
+ .endm
+ 
+-//sc1 sc0 params are only needed for gfx940/gfx941. On gfx942, we use the compiled code for gfx9
++//On gfx942, we use the compiled code for gfx9
+ .macro FLAT_LOAD_UBYTE dst, src
+   .if (.amdgcn.gfx_generation_number == 9 && .amdgcn.gfx_generation_minor == 4)
+     flat_load_ubyte      \dst, \src sc1 sc0
+diff --git a/runtime/hsa-runtime/core/runtime/blit_shaders/blit_fill.s b/runtime/hsa-runtime/core/runtime/blit_shaders/blit_fill.s
+index 752499b4..16709d81 100644
+--- a/runtime/hsa-runtime/core/runtime/blit_shaders/blit_fill.s
++++ b/runtime/hsa-runtime/core/runtime/blit_shaders/blit_fill.s
+@@ -70,7 +70,7 @@
+ 	.endif
+ .endm
+ 
+-//sc1 sc0 params are only needed for gfx940/gfx941. On gfx942, we use the compiled code for gfx9
++//On gfx942, we use the compiled code for gfx9
+ .macro FLAT_STORE_DWORD dst, src
+   .if (.amdgcn.gfx_generation_number == 9 && .amdgcn.gfx_generation_minor == 4)
+     flat_store_dword      \dst, \src sc1 sc0
+diff --git a/runtime/hsa-runtime/core/runtime/hsa.cpp b/runtime/hsa-runtime/core/runtime/hsa.cpp
+index 8ad8ff26..675ef4a3 100644
+--- a/runtime/hsa-runtime/core/runtime/hsa.cpp
++++ b/runtime/hsa-runtime/core/runtime/hsa.cpp
+@@ -1573,12 +1573,7 @@ hsa_status_t hsa_agent_iterate_isas(
+   const core::Agent *agent_object = core::Agent::Convert(agent);
+   IS_VALID(agent_object);
+ 
+-  const Isa *isa_object = agent_object->isa();
+-  if (!isa_object) {
+-    return HSA_STATUS_SUCCESS;
+-  }
+-
+-  return callback(Isa::Handle(isa_object), data);
++  return agent_object->IterateSupportedIsas(callback, data);
+   CATCH;
+ }
+ 
+@@ -1708,7 +1703,7 @@ hsa_status_t hsa_isa_compatible(
+   const Isa *agent_isa_object = Isa::Object(agent_isa);
+   IS_VALID(agent_isa_object);
+ 
+-  *result = Isa::IsCompatible(*code_object_isa_object, *agent_isa_object);
++  *result = Isa::IsCompatible(*code_object_isa_object, *agent_isa_object, 0);
+   return HSA_STATUS_SUCCESS;
+   CATCH;
+ }
+diff --git a/runtime/hsa-runtime/core/runtime/isa.cpp b/runtime/hsa-runtime/core/runtime/isa.cpp
+index 1ff441a8..6dacfed7 100755
+--- a/runtime/hsa-runtime/core/runtime/isa.cpp
++++ b/runtime/hsa-runtime/core/runtime/isa.cpp
+@@ -72,11 +72,33 @@ bool Wavefront::GetInfo(
+ 
+ /* static */
+ bool Isa::IsCompatible(const Isa &code_object_isa,
+-                       const Isa &agent_isa) {
+-  if (code_object_isa.GetVersion() != agent_isa.GetVersion())
++                       const Isa &agent_isa, unsigned int codeGenericVersion) {
++
++  bool code_obj_isa_is_generic = false;
++  auto generic_it = IsaRegistry::GetSupportedGenericVersions().find(
++                                                 code_object_isa.GetIsaName());
++
++  if (generic_it != IsaRegistry::GetSupportedGenericVersions().end()) {
++    code_obj_isa_is_generic = true;
++  }
++
++  if (code_obj_isa_is_generic) {
++      // Verify the generic code object corresponds to the generic for
++      // this isa agent.
++      if (agent_isa.GetIsaGeneric() != code_object_isa.GetIsaName()) {
++        return false;
++      }
++      // Verify the generic code object version is greater than or equal to
++      // the generic version for this isa agent.
++      if (codeGenericVersion < generic_it->second) {
++        return false;
++      }
++  } else if (code_object_isa.GetVersion() != agent_isa.GetVersion()) {
+     return false;
++  }
+ 
+-  assert(code_object_isa.IsSrameccSupported() == agent_isa.IsSrameccSupported()  && agent_isa.GetSramecc() != IsaFeature::Any);
++  assert(code_object_isa.IsSrameccSupported() == agent_isa.IsSrameccSupported()
++                                 && agent_isa.GetSramecc() != IsaFeature::Any);
+   if ((code_object_isa.GetSramecc() == IsaFeature::Enabled ||
+         code_object_isa.GetSramecc() == IsaFeature::Disabled) &&
+       code_object_isa.GetSramecc() != agent_isa.GetSramecc())
+@@ -102,8 +124,7 @@ static __forceinline std::string prepend_isa_prefix(const std::string &isa_name)
+ }
+ 
+ std::string Isa::GetIsaName() const {
+-  constexpr char hsa_isa_name_prefix[] = "amdgcn-amd-amdhsa--";
+-  return std::string(hsa_isa_name_prefix) + targetid_;
++  return prepend_isa_prefix(targetid_);
+ }
+ 
+ bool Isa::GetInfo(const hsa_isa_info_t &attribute, void *value) const {
+@@ -225,6 +246,29 @@ const Isa *IsaRegistry::GetIsa(const Isa::Version &version, IsaFeature sramecc,
+ }
+ 
+ 
++const std::unordered_map<std::string, unsigned int> &
++IsaRegistry::GetSupportedGenericVersions() {
++  static const
++            std::unordered_map<std::string, unsigned int> min_gen_versions = {
++    {prepend_isa_prefix("gfx9-generic"), 1},
++    {prepend_isa_prefix("gfx9-generic:xnack-"), 1},
++    {prepend_isa_prefix("gfx9-generic:xnack+"), 1},
++    {prepend_isa_prefix("gfx9-generic:sramecc-"), 1},
++    {prepend_isa_prefix("gfx9-generic:sramecc+"), 1},
++    {prepend_isa_prefix("gfx9-generic:sramecc-:xnack-"), 1},
++    {prepend_isa_prefix("gfx9-generic:sramecc+:xnack+"), 1},
++    {prepend_isa_prefix("gfx9-generic:sramecc-:xnack-"), 1},
++    {prepend_isa_prefix("gfx9-generic:sramecc+:xnack+"), 1},
++    {prepend_isa_prefix("gfx10-1-generic"), 1},
++    {prepend_isa_prefix("gfx10-1-generic:xnack-"), 1},
++    {prepend_isa_prefix("gfx10-1-generic:xnack+"), 1},
++    {prepend_isa_prefix("gfx10-3-generic"), 1},
++    {prepend_isa_prefix("gfx11-generic"), 1},
++    {prepend_isa_prefix("gfx12-generic"), 1}
++  };
++  return min_gen_versions;
++}
++
+ const IsaRegistry::IsaMap& IsaRegistry::GetSupportedIsas() {
+ 
+   // agent, and vendor name length limit excluding terminating nul character.
+@@ -237,8 +281,24 @@ const IsaRegistry::IsaMap& IsaRegistry::GetSupportedIsas() {
+     return *supported_isas;
+   }
+ 
++  auto parse_out_minor_ver = [&](const std::string& genericname) -> int32_t {
++      size_t dot_pos = genericname.find('.');
++      int32_t min;
++      if (dot_pos != std::string::npos) {
++          std::string minor_version_str = genericname.substr(dot_pos + 1);
++          size_t dash_pos = minor_version_str.find('-');
++          if (dash_pos != std::string::npos) {
++              minor_version_str = minor_version_str.substr(0, dash_pos);
++          }
++          min = std::stoi(minor_version_str);
++      } else {
++          min = 0xFF;
++      }
++      return min;
++  };
++
+ // FIXME: Use static_assert when C++17 used.
+-#define ISAREG_ENTRY_GEN(name, maj, min, stp, sramecc, xnack, wavefrontsize)                                                              \
++#define ISAREG_ENTRY_GEN(name, maj, min, stp, sramecc, xnack, wavefrontsize, gen_name)                                                              \
+  {                                                                                     \
+   assert(std::char_traits<char>::length(name) <= hsa_name_size);                       \
+   std::string isa_name = prepend_isa_prefix(name);                                     \
+@@ -247,6 +307,18 @@ const IsaRegistry::IsaMap& IsaRegistry::GetSupportedIsas() {
+   (*supported_isas)[isa_name].sramecc_ = sramecc;                                         \
+   (*supported_isas)[isa_name].xnack_ = xnack;                                             \
+   (*supported_isas)[isa_name].wavefront_.num_threads_ = wavefrontsize;                    \
++  std::string genericname(gen_name);                                                      \
++  if (genericname.size() != 0) {                   \
++    std::string isa_generic_name = prepend_isa_prefix(genericname);                   \
++    (*supported_isas)[isa_name].generic_ = isa_generic_name; \
++    if (supported_isas -> find(genericname) == supported_isas->end()) { \
++      (*supported_isas)[isa_generic_name].targetid_ = genericname;     \
++      (*supported_isas)[isa_generic_name].version_ = Isa::Version(maj, parse_out_minor_ver(genericname), 0xFF); \
++      (*supported_isas)[isa_generic_name].sramecc_ = sramecc;          \
++      (*supported_isas)[isa_generic_name].xnack_ = xnack;              \
++      (*supported_isas)[isa_generic_name].wavefront_.num_threads_ = wavefrontsize; \
++    }                                              \
++  }                                                \
+  }
+ 
+   const IsaFeature unsupported = IsaFeature::Unsupported;
+@@ -255,115 +327,98 @@ const IsaRegistry::IsaMap& IsaRegistry::GetSupportedIsas() {
+   const IsaFeature enabled = IsaFeature::Enabled;
+ 
+   //               Target ID                 Version   SRAMECC      XNACK
+-  ISAREG_ENTRY_GEN("gfx700",                 7, 0, 0,  unsupported, unsupported, 64)
+-  ISAREG_ENTRY_GEN("gfx701",                 7, 0, 1,  unsupported, unsupported, 64)
+-  ISAREG_ENTRY_GEN("gfx702",                 7, 0, 2,  unsupported, unsupported, 64)
+-  ISAREG_ENTRY_GEN("gfx801",                 8, 0, 1,  unsupported, any,         64)
+-  ISAREG_ENTRY_GEN("gfx801:xnack-",          8, 0, 1,  unsupported, disabled,    64)
+-  ISAREG_ENTRY_GEN("gfx801:xnack+",          8, 0, 1,  unsupported, enabled,     64)
+-  ISAREG_ENTRY_GEN("gfx802",                 8, 0, 2,  unsupported, unsupported, 64)
+-  ISAREG_ENTRY_GEN("gfx803",                 8, 0, 3,  unsupported, unsupported, 64)
+-  ISAREG_ENTRY_GEN("gfx805",                 8, 0, 5,  unsupported, unsupported, 64)
+-  ISAREG_ENTRY_GEN("gfx810",                 8, 1, 0,  unsupported, any,         64)
+-  ISAREG_ENTRY_GEN("gfx810:xnack-",          8, 1, 0,  unsupported, disabled,    64)
+-  ISAREG_ENTRY_GEN("gfx810:xnack+",          8, 1, 0,  unsupported, enabled,     64)
+-  ISAREG_ENTRY_GEN("gfx900",                 9, 0, 0,  unsupported, any,         64)
+-  ISAREG_ENTRY_GEN("gfx900:xnack-",          9, 0, 0,  unsupported, disabled,    64)
+-  ISAREG_ENTRY_GEN("gfx900:xnack+",          9, 0, 0,  unsupported, enabled,     64)
+-  ISAREG_ENTRY_GEN("gfx902",                 9, 0, 2,  unsupported, any,         64)
+-  ISAREG_ENTRY_GEN("gfx902:xnack-",          9, 0, 2,  unsupported, disabled,    64)
+-  ISAREG_ENTRY_GEN("gfx902:xnack+",          9, 0, 2,  unsupported, enabled,     64)
+-  ISAREG_ENTRY_GEN("gfx904",                 9, 0, 4,  unsupported, any,         64)
+-  ISAREG_ENTRY_GEN("gfx904:xnack-",          9, 0, 4,  unsupported, disabled,    64)
+-  ISAREG_ENTRY_GEN("gfx904:xnack+",          9, 0, 4,  unsupported, enabled,     64)
+-  ISAREG_ENTRY_GEN("gfx906",                 9, 0, 6,  any,         any,         64)
+-  ISAREG_ENTRY_GEN("gfx906:xnack-",          9, 0, 6,  any,         disabled,    64)
+-  ISAREG_ENTRY_GEN("gfx906:xnack+",          9, 0, 6,  any,         enabled,     64)
+-  ISAREG_ENTRY_GEN("gfx906:sramecc-",        9, 0, 6,  disabled,    any,         64)
+-  ISAREG_ENTRY_GEN("gfx906:sramecc+",        9, 0, 6,  enabled,     any,         64)
+-  ISAREG_ENTRY_GEN("gfx906:sramecc-:xnack-", 9, 0, 6,  disabled,    disabled,    64)
+-  ISAREG_ENTRY_GEN("gfx906:sramecc-:xnack+", 9, 0, 6,  disabled,    enabled,     64)
+-  ISAREG_ENTRY_GEN("gfx906:sramecc+:xnack-", 9, 0, 6,  enabled,     disabled,    64)
+-  ISAREG_ENTRY_GEN("gfx906:sramecc+:xnack+", 9, 0, 6,  enabled,     enabled,     64)
+-  ISAREG_ENTRY_GEN("gfx908",                 9, 0, 8,  any,         any,         64)
+-  ISAREG_ENTRY_GEN("gfx908:xnack-",          9, 0, 8,  any,         disabled,    64)
+-  ISAREG_ENTRY_GEN("gfx908:xnack+",          9, 0, 8,  any,         enabled,     64)
+-  ISAREG_ENTRY_GEN("gfx908:sramecc-",        9, 0, 8,  disabled,    any,         64)
+-  ISAREG_ENTRY_GEN("gfx908:sramecc+",        9, 0, 8,  enabled,     any,         64)
+-  ISAREG_ENTRY_GEN("gfx908:sramecc-:xnack-", 9, 0, 8,  disabled,    disabled,    64)
+-  ISAREG_ENTRY_GEN("gfx908:sramecc-:xnack+", 9, 0, 8,  disabled,    enabled,     64)
+-  ISAREG_ENTRY_GEN("gfx908:sramecc+:xnack-", 9, 0, 8,  enabled,     disabled,    64)
+-  ISAREG_ENTRY_GEN("gfx908:sramecc+:xnack+", 9, 0, 8,  enabled,     enabled,     64)
+-  ISAREG_ENTRY_GEN("gfx909",                 9, 0, 9,  unsupported, any,         64)
+-  ISAREG_ENTRY_GEN("gfx909:xnack-",          9, 0, 9,  unsupported, disabled,    64)
+-  ISAREG_ENTRY_GEN("gfx909:xnack+",          9, 0, 9,  unsupported, enabled,     64)
+-  ISAREG_ENTRY_GEN("gfx90a",                 9, 0, 10, any,         any,         64)
+-  ISAREG_ENTRY_GEN("gfx90a:xnack-",          9, 0, 10, any,         disabled,    64)
+-  ISAREG_ENTRY_GEN("gfx90a:xnack+",          9, 0, 10, any,         enabled,     64)
+-  ISAREG_ENTRY_GEN("gfx90a:sramecc-",        9, 0, 10, disabled,    any,         64)
+-  ISAREG_ENTRY_GEN("gfx90a:sramecc+",        9, 0, 10, enabled,     any,         64)
+-  ISAREG_ENTRY_GEN("gfx90a:sramecc-:xnack-", 9, 0, 10, disabled,    disabled,    64)
+-  ISAREG_ENTRY_GEN("gfx90a:sramecc-:xnack+", 9, 0, 10, disabled,    enabled,     64)
+-  ISAREG_ENTRY_GEN("gfx90a:sramecc+:xnack-", 9, 0, 10, enabled,     disabled,    64)
+-  ISAREG_ENTRY_GEN("gfx90a:sramecc+:xnack+", 9, 0, 10, enabled,     enabled,     64)
+-  ISAREG_ENTRY_GEN("gfx90c",                 9, 0, 12, unsupported, any,         64)
+-  ISAREG_ENTRY_GEN("gfx90c:xnack-",          9, 0, 12, unsupported, disabled,    64)
+-  ISAREG_ENTRY_GEN("gfx90c:xnack+",          9, 0, 12, unsupported, enabled,     64)
+-  ISAREG_ENTRY_GEN("gfx940",                 9, 4, 0,  any,         any,         64)
+-  ISAREG_ENTRY_GEN("gfx940:xnack-",          9, 4, 0,  any,         disabled,    64)
+-  ISAREG_ENTRY_GEN("gfx940:xnack+",          9, 4, 0,  any,         enabled,     64)
+-  ISAREG_ENTRY_GEN("gfx940:sramecc-",        9, 4, 0,  disabled,    any,         64)
+-  ISAREG_ENTRY_GEN("gfx940:sramecc+",        9, 4, 0,  enabled,     any,         64)
+-  ISAREG_ENTRY_GEN("gfx940:sramecc-:xnack-", 9, 4, 0,  disabled,    disabled,    64)
+-  ISAREG_ENTRY_GEN("gfx940:sramecc-:xnack+", 9, 4, 0,  disabled,    enabled,     64)
+-  ISAREG_ENTRY_GEN("gfx940:sramecc+:xnack-", 9, 4, 0,  enabled,     disabled,    64)
+-  ISAREG_ENTRY_GEN("gfx940:sramecc+:xnack+", 9, 4, 0,  enabled,     enabled,     64)
+-  ISAREG_ENTRY_GEN("gfx941",                 9, 4, 1,  any,         any,         64)
+-  ISAREG_ENTRY_GEN("gfx941:xnack-",          9, 4, 1,  any,         disabled,    64)
+-  ISAREG_ENTRY_GEN("gfx941:xnack+",          9, 4, 1,  any,         enabled,     64)
+-  ISAREG_ENTRY_GEN("gfx941:sramecc-",        9, 4, 1,  disabled,    any,         64)
+-  ISAREG_ENTRY_GEN("gfx941:sramecc+",        9, 4, 1,  enabled,     any,         64)
+-  ISAREG_ENTRY_GEN("gfx941:sramecc-:xnack-", 9, 4, 1,  disabled,    disabled,    64)
+-  ISAREG_ENTRY_GEN("gfx941:sramecc-:xnack+", 9, 4, 1,  disabled,    enabled,     64)
+-  ISAREG_ENTRY_GEN("gfx941:sramecc+:xnack-", 9, 4, 1,  enabled,     disabled,    64)
+-  ISAREG_ENTRY_GEN("gfx941:sramecc+:xnack+", 9, 4, 1,  enabled,     enabled,     64)
+-  ISAREG_ENTRY_GEN("gfx942",                 9, 4, 2,  any,         any,         64)
+-  ISAREG_ENTRY_GEN("gfx942:xnack-",          9, 4, 2,  any,         disabled,    64)
+-  ISAREG_ENTRY_GEN("gfx942:xnack+",          9, 4, 2,  any,         enabled,     64)
+-  ISAREG_ENTRY_GEN("gfx942:sramecc-",        9, 4, 2,  disabled,    any,         64)
+-  ISAREG_ENTRY_GEN("gfx942:sramecc+",        9, 4, 2,  enabled,     any,         64)
+-  ISAREG_ENTRY_GEN("gfx942:sramecc-:xnack-", 9, 4, 2,  disabled,    disabled,    64)
+-  ISAREG_ENTRY_GEN("gfx942:sramecc-:xnack+", 9, 4, 2,  disabled,    enabled,     64)
+-  ISAREG_ENTRY_GEN("gfx942:sramecc+:xnack-", 9, 4, 2,  enabled,     disabled,    64)
+-  ISAREG_ENTRY_GEN("gfx942:sramecc+:xnack+", 9, 4, 2,  enabled,     enabled,     64)
+-  ISAREG_ENTRY_GEN("gfx1010",                10, 1, 0, unsupported, any,         32)
+-  ISAREG_ENTRY_GEN("gfx1010:xnack-",         10, 1, 0, unsupported, disabled,    32)
+-  ISAREG_ENTRY_GEN("gfx1010:xnack+",         10, 1, 0, unsupported, enabled,     32)
+-  ISAREG_ENTRY_GEN("gfx1011",                10, 1, 1, unsupported, any,         32)
+-  ISAREG_ENTRY_GEN("gfx1011:xnack-",         10, 1, 1, unsupported, disabled,    32)
+-  ISAREG_ENTRY_GEN("gfx1011:xnack+",         10, 1, 1, unsupported, enabled,     32)
+-  ISAREG_ENTRY_GEN("gfx1012",                10, 1, 2, unsupported, any,         32)
+-  ISAREG_ENTRY_GEN("gfx1012:xnack-",         10, 1, 2, unsupported, disabled,    32)
+-  ISAREG_ENTRY_GEN("gfx1012:xnack+",         10, 1, 2, unsupported, enabled,     32)
+-  ISAREG_ENTRY_GEN("gfx1013",                10, 1, 3, unsupported, any,         32)
+-  ISAREG_ENTRY_GEN("gfx1013:xnack-",         10, 1, 3, unsupported, disabled,    32)
+-  ISAREG_ENTRY_GEN("gfx1013:xnack+",         10, 1, 3, unsupported, enabled,     32)
+-  ISAREG_ENTRY_GEN("gfx1030",                10, 3, 0, unsupported, unsupported, 32)
+-  ISAREG_ENTRY_GEN("gfx1031",                10, 3, 1, unsupported, unsupported, 32)
+-  ISAREG_ENTRY_GEN("gfx1032",                10, 3, 2, unsupported, unsupported, 32)
+-  ISAREG_ENTRY_GEN("gfx1033",                10, 3, 3, unsupported, unsupported, 32)
+-  ISAREG_ENTRY_GEN("gfx1034",                10, 3, 4, unsupported, unsupported, 32)
+-  ISAREG_ENTRY_GEN("gfx1035",                10, 3, 5, unsupported, unsupported, 32)
+-  ISAREG_ENTRY_GEN("gfx1036",                10, 3, 6, unsupported, unsupported, 32)
+-  ISAREG_ENTRY_GEN("gfx1100",                11, 0, 0, unsupported, unsupported, 32)
+-  ISAREG_ENTRY_GEN("gfx1101",                11, 0, 1, unsupported, unsupported, 32)
+-  ISAREG_ENTRY_GEN("gfx1102",                11, 0, 2, unsupported, unsupported, 32)
+-  ISAREG_ENTRY_GEN("gfx1103",                11, 0, 3, unsupported, unsupported, 32)
+-  ISAREG_ENTRY_GEN("gfx1150",                11, 5, 0, unsupported, unsupported, 32)
+-  ISAREG_ENTRY_GEN("gfx1151",                11, 5, 1, unsupported, unsupported, 32)
+-  ISAREG_ENTRY_GEN("gfx1152",                11, 5, 2, unsupported, unsupported, 32)
+-  ISAREG_ENTRY_GEN("gfx1200",                12, 0, 0, unsupported, unsupported, 32)
+-  ISAREG_ENTRY_GEN("gfx1201",                12, 0, 1, unsupported, unsupported, 32)
++  ISAREG_ENTRY_GEN("gfx700",                 7, 0, 0,  unsupported, unsupported, 64, "")
++  ISAREG_ENTRY_GEN("gfx701",                 7, 0, 1,  unsupported, unsupported, 64, "")
++  ISAREG_ENTRY_GEN("gfx702",                 7, 0, 2,  unsupported, unsupported, 64, "")
++  ISAREG_ENTRY_GEN("gfx801",                 8, 0, 1,  unsupported, any,         64, "")
++  ISAREG_ENTRY_GEN("gfx801:xnack-",          8, 0, 1,  unsupported, disabled,    64, "")
++  ISAREG_ENTRY_GEN("gfx801:xnack+",          8, 0, 1,  unsupported, enabled,     64, "")
++  ISAREG_ENTRY_GEN("gfx802",                 8, 0, 2,  unsupported, unsupported, 64, "")
++  ISAREG_ENTRY_GEN("gfx803",                 8, 0, 3,  unsupported, unsupported, 64, "")
++  ISAREG_ENTRY_GEN("gfx805",                 8, 0, 5,  unsupported, unsupported, 64, "")
++  ISAREG_ENTRY_GEN("gfx810",                 8, 1, 0,  unsupported, any,         64, "")
++  ISAREG_ENTRY_GEN("gfx810:xnack-",          8, 1, 0,  unsupported, disabled,    64, "")
++  ISAREG_ENTRY_GEN("gfx810:xnack+",          8, 1, 0,  unsupported, enabled,     64, "")
++  ISAREG_ENTRY_GEN("gfx900",                 9, 0, 0,  unsupported, any,         64, "gfx9-generic")
++  ISAREG_ENTRY_GEN("gfx900:xnack-",          9, 0, 0,  unsupported, disabled,    64, "gfx9-generic:xnack-")
++  ISAREG_ENTRY_GEN("gfx900:xnack+",          9, 0, 0,  unsupported, enabled,     64, "gfx9-generic:xnack+")
++  ISAREG_ENTRY_GEN("gfx902",                 9, 0, 2,  unsupported, any,         64, "gfx9-generic")
++  ISAREG_ENTRY_GEN("gfx902:xnack-",          9, 0, 2,  unsupported, disabled,    64, "gfx9-generic:xnack-")
++  ISAREG_ENTRY_GEN("gfx902:xnack+",          9, 0, 2,  unsupported, enabled,     64, "gfx9-generic:xnack+")
++  ISAREG_ENTRY_GEN("gfx904",                 9, 0, 4,  unsupported, any,         64, "gfx9-generic")
++  ISAREG_ENTRY_GEN("gfx904:xnack-",          9, 0, 4,  unsupported, disabled,    64, "gfx9-generic:xnack-")
++  ISAREG_ENTRY_GEN("gfx904:xnack+",          9, 0, 4,  unsupported, enabled,     64, "gfx9-generic:xnack+")
++  ISAREG_ENTRY_GEN("gfx906",                 9, 0, 6,  any,         any,         64, "gfx9-generic")
++  ISAREG_ENTRY_GEN("gfx906:xnack-",          9, 0, 6,  any,         disabled,    64, "gfx9-generic:xnack-")
++  ISAREG_ENTRY_GEN("gfx906:xnack+",          9, 0, 6,  any,         enabled,     64, "gfx9-generic:xnack+")
++  ISAREG_ENTRY_GEN("gfx906:sramecc-",        9, 0, 6,  disabled,    any,         64, "gfx9-generic:sramecc-")
++  ISAREG_ENTRY_GEN("gfx906:sramecc+",        9, 0, 6,  enabled,     any,         64, "gfx9-generic:sramecc+")
++  ISAREG_ENTRY_GEN("gfx906:sramecc-:xnack-", 9, 0, 6,  disabled,    disabled,    64, "gfx9-generic:sramecc-:xnack-")
++  ISAREG_ENTRY_GEN("gfx906:sramecc-:xnack+", 9, 0, 6,  disabled,    enabled,     64, "gfx9-generic:sramecc-:xnack+")
++  ISAREG_ENTRY_GEN("gfx906:sramecc+:xnack-", 9, 0, 6,  enabled,     disabled,    64, "gfx9-generic:sramecc+:xnack-")
++  ISAREG_ENTRY_GEN("gfx906:sramecc+:xnack+", 9, 0, 6,  enabled,     enabled,     64, "gfx9-generic:sramecc+:xnack+")
++  ISAREG_ENTRY_GEN("gfx908",                 9, 0, 8,  any,         any,         64, "")
++  ISAREG_ENTRY_GEN("gfx908:xnack-",          9, 0, 8,  any,         disabled,    64, "")
++  ISAREG_ENTRY_GEN("gfx908:xnack+",          9, 0, 8,  any,         enabled,     64, "")
++  ISAREG_ENTRY_GEN("gfx908:sramecc-",        9, 0, 8,  disabled,    any,         64, "")
++  ISAREG_ENTRY_GEN("gfx908:sramecc+",        9, 0, 8,  enabled,     any,         64, "")
++  ISAREG_ENTRY_GEN("gfx908:sramecc-:xnack-", 9, 0, 8,  disabled,    disabled,    64, "")
++  ISAREG_ENTRY_GEN("gfx908:sramecc-:xnack+", 9, 0, 8,  disabled,    enabled,     64, "")
++  ISAREG_ENTRY_GEN("gfx908:sramecc+:xnack-", 9, 0, 8,  enabled,     disabled,    64, "")
++  ISAREG_ENTRY_GEN("gfx908:sramecc+:xnack+", 9, 0, 8,  enabled,     enabled,     64, "")
++  ISAREG_ENTRY_GEN("gfx909",                 9, 0, 9,  unsupported, any,         64, "gfx9-generic")
++  ISAREG_ENTRY_GEN("gfx909:xnack-",          9, 0, 9,  unsupported, disabled,    64, "gfx9-generic:xnack-")
++  ISAREG_ENTRY_GEN("gfx909:xnack+",          9, 0, 9,  unsupported, enabled,     64, "gfx9-generic:xnack+")
++  ISAREG_ENTRY_GEN("gfx90a",                 9, 0, 10, any,         any,         64, "")
++  ISAREG_ENTRY_GEN("gfx90a:xnack-",          9, 0, 10, any,         disabled,    64, "")
++  ISAREG_ENTRY_GEN("gfx90a:xnack+",          9, 0, 10, any,         enabled,     64, "")
++  ISAREG_ENTRY_GEN("gfx90a:sramecc-",        9, 0, 10, disabled,    any,         64, "")
++  ISAREG_ENTRY_GEN("gfx90a:sramecc+",        9, 0, 10, enabled,     any,         64, "")
++  ISAREG_ENTRY_GEN("gfx90a:sramecc-:xnack-", 9, 0, 10, disabled,    disabled,    64, "")
++  ISAREG_ENTRY_GEN("gfx90a:sramecc-:xnack+", 9, 0, 10, disabled,    enabled,     64, "")
++  ISAREG_ENTRY_GEN("gfx90a:sramecc+:xnack-", 9, 0, 10, enabled,     disabled,    64, "")
++  ISAREG_ENTRY_GEN("gfx90a:sramecc+:xnack+", 9, 0, 10, enabled,     enabled,     64, "")
++  ISAREG_ENTRY_GEN("gfx90c",                 9, 0, 12, unsupported, any,         64, "gfx9-generic")
++  ISAREG_ENTRY_GEN("gfx90c:xnack-",          9, 0, 12, unsupported, disabled,    64, "gfx9-generic:xnack-")
++  ISAREG_ENTRY_GEN("gfx90c:xnack+",          9, 0, 12, unsupported, enabled,     64, "gfx9-generic:xnack+")
++  ISAREG_ENTRY_GEN("gfx942",                 9, 4, 2,  any,         any,         64, "")
++  ISAREG_ENTRY_GEN("gfx942:xnack-",          9, 4, 2,  any,         disabled,    64, "")
++  ISAREG_ENTRY_GEN("gfx942:xnack+",          9, 4, 2,  any,         enabled,     64, "")
++  ISAREG_ENTRY_GEN("gfx942:sramecc-",        9, 4, 2,  disabled,    any,         64, "")
++  ISAREG_ENTRY_GEN("gfx942:sramecc+",        9, 4, 2,  enabled,     any,         64, "")
++  ISAREG_ENTRY_GEN("gfx942:sramecc-:xnack-", 9, 4, 2,  disabled,    disabled,    64, "")
++  ISAREG_ENTRY_GEN("gfx942:sramecc-:xnack+", 9, 4, 2,  disabled,    enabled,     64, "")
++  ISAREG_ENTRY_GEN("gfx942:sramecc+:xnack-", 9, 4, 2,  enabled,     disabled,    64, "")
++  ISAREG_ENTRY_GEN("gfx942:sramecc+:xnack+", 9, 4, 2,  enabled,     enabled,     64, "")
++  ISAREG_ENTRY_GEN("gfx1010",                10, 1, 0, unsupported, any,         32, "gfx10-1-generic")
++  ISAREG_ENTRY_GEN("gfx1010:xnack-",         10, 1, 0, unsupported, disabled,    32, "gfx10-1-generic:xnack-")
++  ISAREG_ENTRY_GEN("gfx1010:xnack+",         10, 1, 0, unsupported, enabled,     32, "gfx10-1-generic:xnack+")
++  ISAREG_ENTRY_GEN("gfx1011",                10, 1, 1, unsupported, any,         32, "gfx10-1-generic")
++  ISAREG_ENTRY_GEN("gfx1011:xnack-",         10, 1, 1, unsupported, disabled,    32, "gfx10-1-generic:xnack-")
++  ISAREG_ENTRY_GEN("gfx1011:xnack+",         10, 1, 1, unsupported, enabled,     32, "gfx10-1-generic:xnack+")
++  ISAREG_ENTRY_GEN("gfx1012",                10, 1, 2, unsupported, any,         32, "gfx10-1-generic")
++  ISAREG_ENTRY_GEN("gfx1012:xnack-",         10, 1, 2, unsupported, disabled,    32, "gfx10-1-generic:xnack-")
++  ISAREG_ENTRY_GEN("gfx1012:xnack+",         10, 1, 2, unsupported, enabled,     32, "gfx10-1-generic:xnack+")
++  ISAREG_ENTRY_GEN("gfx1013",                10, 1, 3, unsupported, any,         32, "gfx10-1-generic")
++  ISAREG_ENTRY_GEN("gfx1013:xnack-",         10, 1, 3, unsupported, disabled,    32, "gfx10-1-generic:xnack-")
++  ISAREG_ENTRY_GEN("gfx1013:xnack+",         10, 1, 3, unsupported, enabled,     32, "gfx10-1-generic:xnack+")
++  ISAREG_ENTRY_GEN("gfx1030",                10, 3, 0, unsupported, unsupported, 32, "gfx10-3-generic")
++  ISAREG_ENTRY_GEN("gfx1031",                10, 3, 1, unsupported, unsupported, 32, "gfx10-3-generic")
++  ISAREG_ENTRY_GEN("gfx1032",                10, 3, 2, unsupported, unsupported, 32, "gfx10-3-generic")
++  ISAREG_ENTRY_GEN("gfx1033",                10, 3, 3, unsupported, unsupported, 32, "gfx10-3-generic")
++  ISAREG_ENTRY_GEN("gfx1034",                10, 3, 4, unsupported, unsupported, 32, "gfx10-3-generic")
++  ISAREG_ENTRY_GEN("gfx1035",                10, 3, 5, unsupported, unsupported, 32, "gfx10-3-generic")
++  ISAREG_ENTRY_GEN("gfx1036",                10, 3, 6, unsupported, unsupported, 32, "gfx10-3-generic")
++  ISAREG_ENTRY_GEN("gfx1100",                11, 0, 0, unsupported, unsupported, 32, "gfx11-generic")
++  ISAREG_ENTRY_GEN("gfx1101",                11, 0, 1, unsupported, unsupported, 32, "gfx11-generic")
++  ISAREG_ENTRY_GEN("gfx1102",                11, 0, 2, unsupported, unsupported, 32, "gfx11-generic")
++  ISAREG_ENTRY_GEN("gfx1103",                11, 0, 3, unsupported, unsupported, 32, "gfx11-generic")
++  ISAREG_ENTRY_GEN("gfx1150",                11, 5, 0, unsupported, unsupported, 32, "gfx11-generic")
++  ISAREG_ENTRY_GEN("gfx1151",                11, 5, 1, unsupported, unsupported, 32, "gfx11-generic")
++  ISAREG_ENTRY_GEN("gfx1152",                11, 5, 2, unsupported, unsupported, 32, "gfx11-generic")
++  ISAREG_ENTRY_GEN("gfx1200",                12, 0, 0, unsupported, unsupported, 32, "gfx12-generic")
++  ISAREG_ENTRY_GEN("gfx1201",                12, 0, 1, unsupported, unsupported, 32, "gfx12-generic")
++
+ #undef ISAREG_ENTRY_GEN
+   return *supported_isas;
+ }
+diff --git a/runtime/hsa-runtime/core/runtime/runtime.cpp b/runtime/hsa-runtime/core/runtime/runtime.cpp
+index 59775e78..1e21e6af 100644
+--- a/runtime/hsa-runtime/core/runtime/runtime.cpp
++++ b/runtime/hsa-runtime/core/runtime/runtime.cpp
+@@ -787,7 +787,7 @@ hsa_status_t Runtime::GetSystemInfo(hsa_system_info_t attribute, void* value) {
+     case HSA_AMD_SYSTEM_INFO_SVM_ACCESSIBLE_BY_DEFAULT: {
+       bool ret = true;
+       for(auto agent : gpu_agents_)
+-        ret &= (agent->isa()->GetXnack() == IsaFeature::Enabled);
++        ret &= (agent->supported_isas()[0]->GetXnack() == IsaFeature::Enabled);
+       *(bool*)value = ret;
+       break;
+     }
+@@ -1955,8 +1955,9 @@ bool Runtime::VMFaultHandler(hsa_signal_value_t val, void* arg) {
+     }
+     // Fallback if KFD does not support GPU core dump. In this case, there core dump is
+     // generated by hsa-runtime.
+-    if (faulty_agent && faulty_agent->isa()->GetMajorVersion() != 11 &&
+-        !runtime_singleton_->KfdVersion().supports_core_dump) {
++    if (faulty_agent &&
++        faulty_agent->supported_isas()[0]->GetMajorVersion() != 11 &&
++                      !runtime_singleton_->KfdVersion().supports_core_dump) {
+ 
+       if (pcs::PcsRuntime::instance()->SessionsActive())
+         fprintf(stderr, "GPU core dump skipped because PC Sampling active\n");
+diff --git a/runtime/hsa-runtime/core/runtime/trap_handler/CMakeLists.txt b/runtime/hsa-runtime/core/runtime/trap_handler/CMakeLists.txt
+index 25157241..761830b8 100644
+--- a/runtime/hsa-runtime/core/runtime/trap_handler/CMakeLists.txt
++++ b/runtime/hsa-runtime/core/runtime/trap_handler/CMakeLists.txt
+@@ -46,9 +46,9 @@ cmake_minimum_required ( VERSION 3.7 )
+ find_package(Clang REQUIRED HINTS ${CMAKE_PREFIX_PATH}/llvm PATHS /opt/rocm/llvm )
+ find_package(LLVM REQUIRED HINTS ${CMAKE_PREFIX_PATH}/llvm PATHS /opt/rocm/llvm )
+ 
+-set (TARGET_DEVS "gfx900;gfx940;gfx941;gfx942;gfx1010;gfx1030;gfx1100;gfx1200")
+-set (POSTFIX "9;940;941;942;1010;10;11;12")
+-set (SOURCE_SUFFIX ";;;;;;;_gfx12")
++set (TARGET_DEVS "gfx900;gfx942;gfx1010;gfx1030;gfx1100;gfx1200")
++set (POSTFIX "9;942;1010;10;11;12")
++set (SOURCE_SUFFIX ";;;;;_gfx12")
+ 
+ if(${CMAKE_VERBOSE_MAKEFILE})
+   get_property(clang_path TARGET clang PROPERTY LOCATION)
+diff --git a/runtime/hsa-runtime/core/runtime/trap_handler/trap_handler.s b/runtime/hsa-runtime/core/runtime/trap_handler/trap_handler.s
+index 3db57409..c7678cbf 100644
+--- a/runtime/hsa-runtime/core/runtime/trap_handler/trap_handler.s
++++ b/runtime/hsa-runtime/core/runtime/trap_handler/trap_handler.s
+@@ -205,12 +205,12 @@
+ //   ttmp15 = TMA[63:32]
+ // gfx9:
+ //   ttmp1 = 0[2:0], PCRewind[3:0], HostTrap[0], TrapId[7:0], PC[47:32]
+-// all gfx9 (except gfx940, gfx941, gfx942):
++// all gfx9 (except gfx942):
+ //   ttmp6 = 0[6:0], DispatchPktIndx[24:0]
+ //   ttmp11 = SQ_WAVE_IB_STS[20:15], 0[1:0], DebugEnabled[0], 0[15:0], NoScratch[0], WaveInWg[5:0]
+ //            Note: Once stochastic sampling is implemented, L2 Trap Handler will use Bit 23
+ //            (TTMP11_PCS_IS_STOCHASTIC) to differentiate between stochastic and hosttrap
+-// gfx940/gfx941/gfx942:
++// gfx942:
+ //   ttmp11 = 0[0], DispatchPktIndx[24:0], WaveIdInWg[5:0]
+ //   ttmp13 = SQ_WAVE_IB_STS[20:15], 0[1:0], DebugEnabled[0], 0[22:0]
+ // gfx10:
+diff --git a/runtime/hsa-runtime/image/blit_kernel.cpp b/runtime/hsa-runtime/image/blit_kernel.cpp
+index 5ab2c0c9..f993d4d5 100644
+--- a/runtime/hsa-runtime/image/blit_kernel.cpp
++++ b/runtime/hsa-runtime/image/blit_kernel.cpp
+@@ -85,8 +85,6 @@ extern uint8_t ocl_blit_object_gfx908[];
+ extern uint8_t ocl_blit_object_gfx909[];
+ extern uint8_t ocl_blit_object_gfx90a[];
+ extern uint8_t ocl_blit_object_gfx90c[];
+-extern uint8_t ocl_blit_object_gfx940[];
+-extern uint8_t ocl_blit_object_gfx941[];
+ extern uint8_t ocl_blit_object_gfx942[];
+ extern uint8_t ocl_blit_object_gfx1010[];
+ extern uint8_t ocl_blit_object_gfx1011[];
+@@ -1015,10 +1013,6 @@ hsa_status_t BlitKernel::GetPatchedBlitObject(const char* agent_name,
+     *blit_code_object = ocl_blit_object_gfx90a;
+   } else if (sname == "gfx90c") {
+     *blit_code_object = ocl_blit_object_gfx90c;
+-  } else if (sname == "gfx940") {
+-    *blit_code_object = ocl_blit_object_gfx940;
+-  } else if (sname == "gfx941") {
+-    *blit_code_object = ocl_blit_object_gfx941;
+   } else if (sname == "gfx942") {
+     *blit_code_object = ocl_blit_object_gfx942;
+   } else if (sname == "gfx1010") {
+diff --git a/runtime/hsa-runtime/image/blit_src/CMakeLists.txt b/runtime/hsa-runtime/image/blit_src/CMakeLists.txt
+index 190b0c35..3d0aae27 100644
+--- a/runtime/hsa-runtime/image/blit_src/CMakeLists.txt
++++ b/runtime/hsa-runtime/image/blit_src/CMakeLists.txt
+@@ -48,7 +48,7 @@ find_package(Clang REQUIRED HINTS ${CMAKE_PREFIX_PATH}/llvm PATHS /opt/rocm/llvm
+ # Determine the target devices if not specified
+ if (NOT DEFINED TARGET_DEVICES)
+   set (TARGET_DEVICES "gfx700;gfx701;gfx702;gfx801;gfx802;gfx803;gfx805;gfx810"
+-                      "gfx900;gfx902;gfx904;gfx906;gfx908;gfx909;gfx90a;gfx90c;gfx940;gfx941;gfx942"
++                      "gfx900;gfx902;gfx904;gfx906;gfx908;gfx909;gfx90a;gfx90c;gfx942"
+                       "gfx1010;gfx1011;gfx1012;gfx1013;gfx1030;gfx1031;gfx1032;gfx1033;gfx1034;gfx1035;gfx1036"
+                       "gfx1100;gfx1101;gfx1102;gfx1103;gfx1150;gfx1151;gfx1152;gfx1200;gfx1201")
+ endif()
+diff --git a/runtime/hsa-runtime/libamdhsacode/amd_hsa_code.cpp b/runtime/hsa-runtime/libamdhsacode/amd_hsa_code.cpp
+index c336fc37..974a4e85 100644
+--- a/runtime/hsa-runtime/libamdhsacode/amd_hsa_code.cpp
++++ b/runtime/hsa-runtime/libamdhsacode/amd_hsa_code.cpp
+@@ -584,8 +584,6 @@ namespace code {
+       case ELF::EF_AMDGPU_MACH_AMDGCN_GFX909:  MI.Name = "gfx909";  MI.XnackSupported = true;  MI.SrameccSupported = false; break;
+       case ELF::EF_AMDGPU_MACH_AMDGCN_GFX90A:  MI.Name = "gfx90a";  MI.XnackSupported = true;  MI.SrameccSupported = true;  break;
+       case ELF::EF_AMDGPU_MACH_AMDGCN_GFX90C:  MI.Name = "gfx90c";  MI.XnackSupported = true;  MI.SrameccSupported = false; break;
+-      case ELF::EF_AMDGPU_MACH_AMDGCN_GFX940:  MI.Name = "gfx940";  MI.XnackSupported = true;  MI.SrameccSupported = true;  break;
+-      case ELF::EF_AMDGPU_MACH_AMDGCN_GFX941:  MI.Name = "gfx941";  MI.XnackSupported = true;  MI.SrameccSupported = true;  break;
+       case ELF::EF_AMDGPU_MACH_AMDGCN_GFX942:  MI.Name = "gfx942";  MI.XnackSupported = true;  MI.SrameccSupported = true;  break;
+       case ELF::EF_AMDGPU_MACH_AMDGCN_GFX1010: MI.Name = "gfx1010"; MI.XnackSupported = true;  MI.SrameccSupported = false; break;
+       case ELF::EF_AMDGPU_MACH_AMDGCN_GFX1011: MI.Name = "gfx1011"; MI.XnackSupported = true;  MI.SrameccSupported = false; break;
+diff --git a/runtime/hsa-runtime/loader/executable.cpp b/runtime/hsa-runtime/loader/executable.cpp
+index 80740296..65802032 100644
+--- a/runtime/hsa-runtime/loader/executable.cpp
++++ b/runtime/hsa-runtime/loader/executable.cpp
+@@ -74,10 +74,8 @@ using namespace rocr::amd::hsa::common;
+ // 5: New trap handler ABI. Save the PC in ttmp11[22:7] ttmp6[31:0], and park the wave if stopped
+ // 6: New trap handler ABI. ttmp6[25:0] contains dispatch index modulo queue size
+ // 7: New trap handler ABI. Send interrupts as a bitmask, coalescing concurrent exceptions.
+-// 8: New trap handler ABI. for gfx940: Initialize ttmp[4:5] if ttmp11[31] == 0.
+ // 9: New trap handler ABI. For gfx11: Save PC in ttmp11[22:7] ttmp6[31:0], and park the wave if stopped.
+ // 10: New trap handler ABI. Set status.skip_export when halting the wave.
+-//                           For gfx940, set ttmp6[31] = 0 if ttmp11[31] == 0.
+ 
+ HSA_API r_debug _amdgpu_r_debug;
+ static __forceinline link_map*& r_debug_tail() {

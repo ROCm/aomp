@@ -6,7 +6,7 @@ GenASiS_Basics: genasis_basics.patch
 hipamd: hipamd-rpath.patch
 hipfort: hipfort.patch
 bolt: bolt.patch
-rocr-runtime: rocr-runtime-combined-numa-genericISA.patch
+rocr-runtime: rocr-runtime-combined-numa-genericISA-remove-gfx940-gfx941.patch
 rocprofiler: rocprofiler-combined-no-aql-ok-fix-cov6.patch
 babelstream: babelstream-usm.patch
 llvm-project: ATD_ASO_full.patch
