@@ -11,7 +11,7 @@ FFLAGS="-Werror -fopenmp --offload-arch=$AOMP_GPU"
 CFLAGS="-Werror -fopenmp --offload-arch=$AOMP_GPU"
 
 set -x
-rm -f $EXE *.o *.mod *.log
+rm -f $EXE *.o *.mod
 $CC $CFLAGS -c helper.c
 $FC $FFLAGS -c descr.f90
 
