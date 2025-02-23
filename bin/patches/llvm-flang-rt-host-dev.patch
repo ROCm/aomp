@@ -1,3 +1,17 @@
+diff --git a/flang-rt/lib/runtime/terminator.cpp b/flang-rt/lib/runtime/terminator.cpp
+index 8a57ba06b130..719441062fa1 100644
+--- a/flang-rt/lib/runtime/terminator.cpp
++++ b/flang-rt/lib/runtime/terminator.cpp
+@@ -45,7 +45,8 @@ RT_API_ATTRS void Terminator::CrashHeader() const {
+ #if defined(RT_DEVICE_COMPILATION)
+   std::printf("\nfatal Fortran runtime error");
+   if (sourceFileName_) {
+-    std::printf("(%s", sourceFileName_);
++    // commenting out temporarily to avoid ICE seen with amd-staging
++    // std::printf("(%s", sourceFileName_);
+     if (sourceLine_) {
+       std::printf(":%d", sourceLine_);
+     }
 diff --git a/flang/include/flang/Runtime/freestanding-tools.h b/flang/include/flang/Runtime/freestanding-tools.h
 index 8a4fbcff31b4..de59f7b13ab1 100644
 --- a/flang/include/flang/Runtime/freestanding-tools.h
@@ -17,17 +31,3 @@ index 8a4fbcff31b4..de59f7b13ab1 100644
    char *to{reinterpret_cast<char *>(dest)};
    while (count--) {
      *to++ = value;
-diff --git a/flang/runtime/terminator.cpp b/flang/runtime/terminator.cpp
-index bab9edc64fa3..86770419ba9c 100644
---- a/flang/runtime/terminator.cpp
-+++ b/flang/runtime/terminator.cpp
-@@ -45,7 +45,8 @@ RT_API_ATTRS void Terminator::CrashHeader() const {
- #if defined(RT_DEVICE_COMPILATION)
-   std::printf("\nfatal Fortran runtime error");
-   if (sourceFileName_) {
--    std::printf("(%s", sourceFileName_);
-+    // commenting out temporarily to avoid ICE seen with amd-staging
-+    // std::printf("(%s", sourceFileName_);
-     if (sourceLine_) {
-       std::printf(":%d", sourceLine_);
-     }
