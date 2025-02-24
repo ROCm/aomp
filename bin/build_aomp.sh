@@ -136,10 +136,12 @@ else
   if [ -f "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload/CMakeLists.txt" ]; then
     components="$components offload"
   fi
-  if [ "$SANITIZER" == 1 ] && [ -f $AOMP/bin/flang-classic ] ; then
-    components="$components pgmath flang flang_runtime"
-  else
-    components="$components llvm-classic flang-classic pgmath flang flang_runtime"
+  if [ "$AOMP_SKIP_FLANG" == 0 ] ; then
+    if [ "$SANITIZER" == 1 ] && [ -f $AOMP/bin/flang-classic ] ; then
+      components="$components pgmath flang flang_runtime"
+    else
+      components="$components llvm-classic flang-classic pgmath flang flang_runtime"
+    fi
   fi
 fi
 echo "COMPONENTS:$components"
