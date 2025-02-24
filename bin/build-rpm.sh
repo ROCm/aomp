@@ -15,8 +15,8 @@ else
   pkgname=aomp
 fi
 
-osname=$(cat /etc/os-release | grep -e ^NAME=)
-version=$(cat /etc/os-release | grep -e ^VERSION=)
+osname=$(grep -e ^NAME= < /etc/os-release)
+version=$(grep -e ^VERSION= < /etc/os-release)
 rpmname="Not_Found"
 if [[ $osname =~ "Red Hat" ]]; then
   echo "Red Hat found!!!"
@@ -70,7 +70,7 @@ echo "--- mkdir -p $tmphome/rpmbuild/SOURCES/$rpmname/usr/lib"
 mkdir -p "$tmphome/rpmbuild/SOURCES/$rpmname/usr/lib/$dirname"
 if [ "$pkgname" == "aomp-hip-libraries" ]; then
   echo "cat $BUILD_DIR/build/rocmlibs/installed_files.txt | xargs -I {} cp -d --parents {} ~/rpmbuild/SOURCES/$rpmname"
-  cat "$BUILD_DIR/build/rocmlibs/installed_files.txt" | xargs -I {} cp -d --parents {} "$HOME/rpmbuild/SOURCES/$rpmname"
+  xargs -I {} cp -d --parents {} "$HOME/rpmbuild/SOURCES/$rpmname" < "$BUILD_DIR/build/rocmlibs/installed_files.txt"
 else
   # Create a temporary file to exclude math libraries if present
   if [ -f "$BUILD_DIR/build/rocmlibs/installed_files.txt" ]; then
@@ -100,7 +100,7 @@ sed -ie "s/__VERSION3_MOD/$AOMP_VERSION_MOD/" "$tmpspecfile"
 # Replace rpmname place holder with actual $rpmname
 sed -ie "s/Name: \$rpmname/Name: $rpmname/" "$tmpspecfile"
 sed -ie "s/\$rpmname.tar.gz/$rpmname.tar.gz/" "$tmpspecfile"
-cat "$thisdir/debian/changelog" | grep -v " --" | grep -v "UNRELEASED" >>"$tmpspecfile"
+grep -v " --" < "$thisdir/debian/changelog" | grep -v "UNRELEASED" >>"$tmpspecfile"
 
 echo "--- cd ~/rpmbuild/SOURCES"
 cd ~/rpmbuild/SOURCES || exit

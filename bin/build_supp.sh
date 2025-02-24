@@ -259,7 +259,7 @@ function getrocmpackage(){
   fi
   runcmd "mkdir -p $_builddir"
   runcmd "cd $_builddir"
-  osname=$(cat /etc/os-release | grep -e ^NAME=)
+  osname=$(grep -e ^NAME= < /etc/os-release)
   if [[ $osname =~ "Ubuntu" ]]; then
     # not sure if deb_version is 20 or 22
     deb_version="24"

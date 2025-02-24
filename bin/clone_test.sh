@@ -165,7 +165,7 @@ if [ "$1" == "list" ] ; then
 fi
 
 tmpfile=/tmp/mlines$$
-cat "$manifest_file" | grep project > "$tmpfile"
+grep project < "$manifest_file" > $tmpfile
 
 if [ ! -d "${AOMP_REPOS_TEST}" ]; then
   mkdir -p "${AOMP_REPOS_TEST}"

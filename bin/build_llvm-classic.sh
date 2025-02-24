@@ -32,7 +32,7 @@ if [ "$AOMP_USE_NINJA" == 0 ] ; then
 else
     AOMP_SET_NINJA_GEN=(-G Ninja)
 fi
-osversion=$(cat /etc/os-release | grep -e ^VERSION_ID)
+osversion=$(grep -e ^VERSION_ID < /etc/os-release)
 if [[ $osversion =~ \"7\. ]] || [[ $osversion =~ \"8\. ]]; then
   _cxx_flag=(-DCMAKE_CXX_FLAGS='-D_GLIBCXX_USE_CXX11_ABI=0')
 else
