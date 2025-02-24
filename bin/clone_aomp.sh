@@ -235,7 +235,7 @@ if [[ "$AOMP_VERSION" == "13.1" ]] || [[ $AOMP_MAJOR_VERSION -gt 13 ]] ; then
    fi
    tmpfile=/tmp/mlines$$
    # Manifest file must be one project line per repo
-   cat $manifest_file | grep project > $tmpfile
+   grep project < "$manifest_file" > "$tmpfile"
    if [ "$1" == "list" ] ; then
       printf "MANIFEST FILE: %40s\n" "$manifest_file"
       printf "%6s %14s %21s %25s %12s %10s %18s %18s\n" "repo" "branch" "path" "repo name" "last hash" "updated" "commitor" "for author"

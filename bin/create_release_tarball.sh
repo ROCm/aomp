@@ -51,7 +51,7 @@ function getreponame(){
   tarballremove="roctracer rocprofiler aomp build Makefile"
   # Manifest file must be one project line per repo
   #manifest_file=/home/release/git/aomp14/aomp/manifests/aomp_14.0-0.xml
-  cat "$manifest_file" | grep project > "$tmpfile"
+  grep project < "$manifest_file" > "$tmpfile"
   while read line ; do
     found=0
     for field in $(echo $line) ; do
