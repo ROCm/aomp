@@ -10,7 +10,7 @@ thisdir=$(dirname "$realpath")
 # --- end standard header ----
 
 function build_aomp_component() {
-   osversion=$(cat /etc/os-release | grep -e ^VERSION_ID)
+   osversion=$(grep -e ^VERSION_ID < /etc/os-release)
 
    if [[ $osversion =~ \"7\. ]]; then
      echo "OS version 7 found $(cat /etc/os-release)"
@@ -83,7 +83,7 @@ $TOPSUDO rm "$AOMP_INSTALL_DIR/testfile"
 
 #Check for gawk on Ubuntu, which is needed for the flang build.
 GAWK=$(gawk --version | grep "^GNU Awk")
-OS=$(cat /etc/os-release | grep "^NAME=")
+OS=$(grep "^NAME=" < /etc/os-release)
 
 if [[ -z "$GAWK" ]] && [[ "$OS" == *"Ubuntu"* ]] ; then
    echo

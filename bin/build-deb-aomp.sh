@@ -62,7 +62,7 @@ echo
 echo "--- PREPARING fake root directory $froot"
 sed -i -e "s|//|/|g" "$BUILD_DIR/build/rocmlibs/installed_files.txt"
 if [ "$pkgname" == "aomp-hip-libraries" ]; then
-  cat "$BUILD_DIR/build/rocmlibs/installed_files.txt" | xargs -I {} cp -d --parents {} "$froot"
+  xargs -I {} cp -d --parents {} "$froot" < "$BUILD_DIR/build/rocmlibs/installed_files.txt"
 else
   # Create a temporary file to exclude math libraries if present
   if [ -f "$BUILD_DIR/build/rocmlibs/installed_files.txt" ]; then

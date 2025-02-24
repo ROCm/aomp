@@ -35,7 +35,7 @@ echo
 http_filename=pull_${pr_status}_${date_since}
 wget "$REVIEW_URL" -O "$http_filename" 2>/dev/null >/dev/null
 
-cat "$http_filename" | grep llvm/llvm-project/pull | grep pull_request | cut -d"/" -f7- | while read -r line ; do 
+grep llvm/llvm-project/pull < "$http_filename" | grep pull_request | cut -d"/" -f7- | while read -r line ; do 
      dir=$(echo "$line" | cut -d"\"" -f1)
      comment=$(echo "$line" | cut -d">" -f2-)
      comment=$(echo "$comment" | sed "s/<code>//g" | sed "s/<\/code>//g" | sed "s/<\/a>//g")
