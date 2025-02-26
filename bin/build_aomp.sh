@@ -45,7 +45,7 @@ function build_aomp_component() {
        # gather stats on artifacts installed with this component build
        end_date=$(date)
        end_secs=$(date +%s)
-       find "$AOMP_INSTALL_DIR" -type f -newercc "$_stats_dir/.${COMPONENT}.ts" | xargs wc -c >"$_stats_dir/$COMPONENT.files"
+       find "$AOMP_INSTALL_DIR" -type f -newercc "$_stats_dir/.${COMPONENT}.ts" -exec wc -c {} \; > "$_stats_dir/$COMPONENT.files"
        echo "COMPONENT $COMPONENT START : $start_date " >"$_stats_dir/$COMPONENT.stats"
        echo "COMPONENT $COMPONENT END   : $end_date" >>"$_stats_dir/$COMPONENT.stats"
        echo "COMPONENT $COMPONENT TIME  : $(( end_secs - start_secs )) seconds" >> "$_stats_dir/$COMPONENT.stats"
