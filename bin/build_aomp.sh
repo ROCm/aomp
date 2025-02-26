@@ -155,6 +155,7 @@ echo "COMPONENTS:$components"
 #Partial build options. Check if argument was given.
 if [ -n "$1" ] ; then
   found=0
+  list=""
 #Start build from given component (./build_aomp.sh continue openmp)
   if [ "$1" == 'continue' ] ; then
     for COMPONENT in $components ; do
