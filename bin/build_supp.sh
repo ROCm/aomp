@@ -421,7 +421,7 @@ function buildcmake(){
     runcmd "rm -rf $_installdir"
   fi
   runcmd "mkdir -p $_installdir"
-  runcmd "./bootstrap --prefix=$_installdir"
+  runcmd "./bootstrap --parallel=8 --prefix=$_installdir"
   runcmd "make -j8"
   runcmd "make install"
   if [ -L $_linkfrom ] ; then 
