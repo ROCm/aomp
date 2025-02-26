@@ -47,8 +47,8 @@ if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   exit
 fi
 
-if [ ! -d $EXTRAS_REPO_DIR ] ; then
-   echo "ERROR:  Missing repository $EXTRAS_REPO_DIR/"
+if [ ! -d $HIPCC_REPO_DIR ] ; then
+   echo "ERROR:  Missing repository $HIPCC_REPO_DIR/"
    exit 1
 fi
 
