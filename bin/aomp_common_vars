@@ -346,8 +346,9 @@ done
 
 # Calculate the number of threads to use for make
 COMP_THREADS=1
-if [ -n "$(which getconf)" ]; then
-   COMP_THREADS=$($(which getconf) _NPROCESSORS_ONLN)
+GETCONF=$(which getconf)
+if [ -n "$GETCONF" ]; then
+   COMP_THREADS=$($GETCONF _NPROCESSORS_ONLN)
    if [ "$AOMP_PROC" == "ppc64le" ] ; then
       COMP_THREADS=$(( COMP_THREADS / 6))
    fi
