@@ -277,12 +277,12 @@ if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
   AOMP_ASAN_ORIGIN_RPATH="-DCMAKE_SHARED_LINKER_FLAGS='-Wl,--disable-new-dtags' -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=OFF -DCMAKE_INSTALL_RPATH=$AOMP_ASAN_ORIGIN_RPATH_LIST"
   # Please note below lines are only setup for ROCm ASan integration with AOMP.
   # Relative RUNPATH for ASAN binaries and libraries
-  OPENMP_EXTRAS_LIB_RPATH='$ORIGIN:$ORIGIN/../../../lib/asan:$ORIGIN/../../../lib:$ORIGIN/../../../../lib/asan:$ORIGIN/../../../../lib'
-  OPENMP_EXTRAS_EXE_RPATH='$ORIGIN/../lib/asan:$ORIGIN/../lib:$ORIGIN/../../lib/asan:$ORIGIN/../../lib:$ORIGIN/../../../lib/asan:$ORIGIN/../../../lib'
+  OPENMP_EXTRAS_LIB_RPATH="\$ORIGIN:\$ORIGIN/../../../lib/asan:\$ORIGIN/../../../lib:\$ORIGIN/../../../../lib/asan:\$ORIGIN/../../../../lib"
+  OPENMP_EXTRAS_EXE_RPATH="\$ORIGIN/../lib/asan:\$ORIGIN/../lib:\$ORIGIN/../../lib/asan:\$ORIGIN/../../lib:\$ORIGIN/../../../lib/asan:\$ORIGIN/../../../lib"
 else
   # Relative RUNPATH for non-ASAN binaries and libraries
-  OPENMP_EXTRAS_LIB_RPATH='$ORIGIN:$ORIGIN/../lib:$ORIGIN/../../lib:$ORIGIN/../../../lib'
-  OPENMP_EXTRAS_EXE_RPATH='$ORIGIN/../lib:$ORIGIN/../../lib:$ORIGIN/../../../lib'
+  OPENMP_EXTRAS_LIB_RPATH="\$ORIGIN:\$ORIGIN/../lib:\$ORIGIN/../../lib:\$ORIGIN/../../../lib"
+  OPENMP_EXTRAS_EXE_RPATH="\$ORIGIN/../lib:\$ORIGIN/../../lib:\$ORIGIN/../../../lib"
 fi
 
 OPENMP_EXTRAS_SHARED_LINKER_FLAGS="-Wl,--enable-new-dtags,--build-id=sha1,--rpath,$OPENMP_EXTRAS_LIB_RPATH"
