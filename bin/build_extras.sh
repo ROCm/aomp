@@ -76,9 +76,9 @@ if [ "$1" != "install" ] ; then
   cd "$BUILD_DIR/build/extras" || exit
 
   if [ "$AOMP_STANDALONE_BUILD" == 0 ] ; then
-    SED_INSTALL_DIR=$(echo /opt/rocm/llvm | sed -e 's/\//\\\\\//g')
+    SED_INSTALL_DIR=$(echo /opt/rocm/llvm | sed -e 's,/,\\/,g')
   else
-    SED_INSTALL_DIR=$(echo "$INSTALL_EXTRAS" | sed -e 's/\//\\\\\//g')
+    SED_INSTALL_DIR="${INSTALL_EXTRAS//\//\\/}"
   fi
 
   export SED_INSTALL_DIR
