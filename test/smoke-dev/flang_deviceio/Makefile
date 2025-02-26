@@ -5,7 +5,7 @@ TESTSRC_MAIN = flang_deviceio.f90
 TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 
-TARGET       = -fopenmp -O3 -w --offloard-arch=$(AOMP_GPU)$(AOMP_TARGET_FEATURES)
+TARGET       = -fopenmp -O3 -w --offload-arch=$(AOMP_GPU)$(AOMP_TARGET_FEATURES)
 
 FLANG        ?= flang
 OMP_BIN      = $(AOMP)/bin/$(FLANG)
