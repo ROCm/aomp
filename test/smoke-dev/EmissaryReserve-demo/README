@@ -1,0 +1,70 @@
+
+This is a demo of how to define an Emissary APIs for an arbitrary user defined
+host API. An Emissary API allows device code (target region) to use the
+identical host interface.  The function will execute directly on the host.  
+
+The file myHostAPI.cpp defines the host interface and the definition of the 
+device variant. This is used to create libmyHostAPI.a so that the
+application EmissaryReserve-demo.cpp can use the library in traditional 
+way.  That is, add the following to the application build " -L . -lmyHostAPI "
+
+The host library myHostAPI defines two functions foo and bar.
+The application (EmissaryReserve-demo.cpp) calls foo and bar from the host,
+then calls them from a target region, then calls them again after
+the target region.  Demo code is 
+
+//  ---------------------------------------------------------
+#include "omp.h"
+#include <stdio.h>
+#include <stdarg.h>
+
+//  Headers for myHostAPI
+extern "C" int foo(int *buf, int count, int tag ) ;
+extern "C" int bar(int *buf, int count, int source, int tag) ;
+
+int main(int argc, char *argv[]) {
+  int test_array[2];
+  test_array[0] = 10;
+  test_array[1] = 100;
+  int host_foo_result = foo(test_array, 1, 2);
+  int host_bar_result = bar(test_array, 1, 2, 3);
+  printf("PRE-TARGET results  host_foo_result:%d   host_bar_result:%d\n\n", 
+      host_foo_result,host_bar_result);
+
+#pragma omp target
+  {
+    printf("TARGET START\n");
+    int device_foo_result = foo(test_array, 1, 2);
+    int device_bar_result = bar(test_array, 1, 2, 3);
+    printf("TARGET results  device_foo_result:%d   device_bar_result:%d\n", 
+      device_foo_result,device_bar_result);
+    test_array[0] = 1000;
+    test_array[1] = 10000;
+    printf("TARGET END;  Setting test_array[0]=%d  test_array[1]=%d\n\n",
+      test_array[0],test_array[1]);
+  }
+
+  int post_target_foo_result = foo(test_array, 1, 2);
+  int post_target_bar_result = bar(test_array, 1, 2, 3);
+  printf("POST TARGET results  foo result:%d   bar result:%d\n\n", 
+      post_target_foo_result, post_target_bar_result);
+  return 0;
+}
+//  ---------------------------------------------------------
+
+The result ouput is...
+
+INSIDE HOST API FUNCTION foo &array:0x7ffdfe33dce8 ary_value:10 count:1 tag:2 
+INSIDE HOST API FUNCTION bar &array:0x7ffdfe33dce8 ary_value:100 count:1 tag:3 source:2
+PRE-TARGET results  host_foo_result:13   host_bar_result:106
+
+TARGET START
+INSIDE HOST API FUNCTION foo &array:0x7f2eb6420000 ary_value:10 count:1 tag:2 
+INSIDE HOST API FUNCTION bar &array:0x7f2eb6420000 ary_value:100 count:1 tag:3 source:2
+TARGET results  device_foo_result:13   device_bar_result:106
+TARGET END;  Setting test_array[0]=1000  test_array[1]=10000
+
+INSIDE HOST API FUNCTION foo &array:0x7ffdfe33dce8 ary_value:1000 count:1 tag:2 
+INSIDE HOST API FUNCTION bar &array:0x7ffdfe33dce8 ary_value:10000 count:1 tag:3 source:2
+POST TARGET results  foo result:1003   bar result:10006
+
