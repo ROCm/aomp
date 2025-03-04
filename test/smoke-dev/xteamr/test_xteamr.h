@@ -18,67 +18,67 @@ extern "C" {
 void _INLINE_ATTR_  __kmpc_xteamr_d_16x64
    (double v, double *r_ptr, double *tvs, uint32_t *td, void (*_rf)(double *, double),
       void (*_rf_lds)(_RF_LDS double *, _RF_LDS double *), const double iv,
-      const uint64_t k, const uint32_t numteams);
+      const uint64_t k, const uint32_t numteams, int32_t Scope = 1 /* device */);
 void _INLINE_ATTR_  __kmpc_xteamr_f_16x64
    (float v, float *r_ptr, float *tvs, uint32_t *td, void (*_rf)(float *, float),
       void (*_rf_lds)(_RF_LDS float *, _RF_LDS float *), const float iv,
-      const uint64_t k, const uint32_t numteams);
+      const uint64_t k, const uint32_t numteams, int32_t Scope = 1 /* device */);
 void _INLINE_ATTR_  __kmpc_xteamr_cd_16x64
    (_CD v, _CD *r_ptr, _CD *tvs, uint32_t *td, void (*_rf)(_CD *, _CD),
       void (*_rf_lds)(_RF_LDS _CD *, _RF_LDS _CD *), const _CD iv,
-      const uint64_t k, const uint32_t numteams);
+      const uint64_t k, const uint32_t numteams, int32_t Scope = 1 /* device */);
 void _INLINE_ATTR_  __kmpc_xteamr_cf_16x64
    (_CF v, _CF *r_ptr, _CF *tvs, uint32_t *td, void (*_rf)(_CF *, _CF),
       void (*_rf_lds)(_RF_LDS _CF *, _RF_LDS _CF *), const _CF iv,
-      const uint64_t k, const uint32_t numteams);
+      const uint64_t k, const uint32_t numteams, int32_t Scope = 1 /* device */);
 void _INLINE_ATTR_  __kmpc_xteamr_i_16x64
    (int v, int *r_ptr, int *tvs, uint32_t *td, void (*_rf)(int *, int),
       void (*_rf_lds)(_RF_LDS int *, _RF_LDS int *), const int iv,
-      const uint64_t k, const uint32_t numteams);
+      const uint64_t k, const uint32_t numteams, int32_t Scope = 1 /* device */);
 void _INLINE_ATTR_  __kmpc_xteamr_ui_16x64
    (_UI v, _UI *r_ptr, _UI *tvs, uint32_t *td, void (*_rf)(_UI *, _UI),
       void (*_rf_lds)(_RF_LDS _UI *, _RF_LDS _UI *), const _UI iv,
-      const uint64_t k, const uint32_t numteams);
+      const uint64_t k, const uint32_t numteams, int32_t Scope = 1 /* device */);
 void _INLINE_ATTR_  __kmpc_xteamr_l_16x64
    (long v, long *r_ptr, long *tvs, uint32_t *td, void (*_rf)(long *, long),
       void (*_rf_lds)(_RF_LDS long *, _RF_LDS long *), const long iv,
-      const uint64_t k, const uint32_t numteams);
+      const uint64_t k, const uint32_t numteams, int32_t Scope = 1 /* device */);
 void _INLINE_ATTR_  __kmpc_xteamr_ul_16x64
    (_UL v, _UL *r_ptr, _UL *tvs, uint32_t *td, void (*_rf)(_UL *, _UL),
       void (*_rf_lds)(_RF_LDS _UL *, _RF_LDS _UL *), const _UL iv,
-      const uint64_t k, const uint32_t numteams);
+      const uint64_t k, const uint32_t numteams, int32_t Scope = 1 /* device */);
 void _INLINE_ATTR_  __kmpc_xteamr_d_32x32
    (double v, double *r_ptr, double *tvs, uint32_t *td, void (*_rf)(double *, double),
       void (*_rf_lds)(_RF_LDS double *, _RF_LDS double *), const double iv,
-      const uint64_t k, const uint32_t numteams);
+      const uint64_t k, const uint32_t numteams, int32_t Scope = 1 /* device */);
 void _INLINE_ATTR_  __kmpc_xteamr_f_32x32
    (float v, float *r_ptr, float *tvs, uint32_t *td, void (*_rf)(float *, float),
       void (*_rf_lds)(_RF_LDS float *, _RF_LDS float *), const float iv,
-      const uint64_t k, const uint32_t numteams);
+      const uint64_t k, const uint32_t numteams, int32_t Scope = 1 /* device */);
 void _INLINE_ATTR_  __kmpc_xteamr_cd_32x32
    (_CD v, _CD *r_ptr, _CD *tvs, uint32_t *td, void (*_rf)(_CD *, _CD),
       void (*_rf_lds)(_RF_LDS _CD *, _RF_LDS _CD *), const _CD iv,
-      const uint64_t k, const uint32_t numteams);
+      const uint64_t k, const uint32_t numteams, int32_t Scope = 1 /* device */);
 void _INLINE_ATTR_  __kmpc_xteamr_cf_32x32
    (_CF v, _CF *r_ptr, _CF *tvs, uint32_t *td, void (*_rf)(_CF *, _CF),
       void (*_rf_lds)(_RF_LDS _CF *, _RF_LDS _CF *), const _CF iv,
-      const uint64_t k, const uint32_t numteams);
+      const uint64_t k, const uint32_t numteams, int32_t Scope = 1 /* device */);
 void _INLINE_ATTR_  __kmpc_xteamr_i_32x32
    (int v, int *r_ptr, int *tvs, uint32_t *td, void (*_rf)(int *, int),
       void (*_rf_lds)(_RF_LDS int *, _RF_LDS int *), const int iv,
-      const uint64_t k, const uint32_t numteams);
+      const uint64_t k, const uint32_t numteams, int32_t Scope = 1 /* device */);
 void _INLINE_ATTR_  __kmpc_xteamr_ui_32x32
    (_UI v, _UI *r_ptr, _UI *tvs, uint32_t *td, void (*_rf)(_UI *, _UI),
       void (*_rf_lds)(_RF_LDS _UI *, _RF_LDS _UI *), const _UI iv,
-      const uint64_t k, const uint32_t numteams);
+      const uint64_t k, const uint32_t numteams, int32_t Scope = 1 /* device */);
 void _INLINE_ATTR_  __kmpc_xteamr_l_32x32
    (long v, long *r_ptr, long *tvs, uint32_t *td, void (*_rf)(long *, long),
       void (*_rf_lds)(_RF_LDS long *, _RF_LDS long *), const long iv,
-      const uint64_t k, const uint32_t numteams);
+      const uint64_t k, const uint32_t numteams, int32_t Scope = 1 /* device */);
 void _INLINE_ATTR_  __kmpc_xteamr_ul_32x32
    (_UL v, _UL *r_ptr, _UL *tvs, uint32_t *td, void (*_rf)(_UL *, _UL),
       void (*_rf_lds)(_RF_LDS _UL *, _RF_LDS _UL *), const _UL iv,
-      const uint64_t k, const uint32_t numteams);
+      const uint64_t k, const uint32_t numteams, int32_t Scope = 1 /* device */);
 void __kmpc_rfun_sum_d(double *val, double otherval);
 void __kmpc_rfun_sum_lds_d(_RF_LDS double *val, _RF_LDS double *otherval);
 void __kmpc_rfun_sum_f(float *val, float otherval);
@@ -133,67 +133,67 @@ extern "C" {
 void  __kmpc_xteamr_d_16x64
    (double v, double *r_ptr, double *tvs, uint32_t *td, void (*_rf)(double *, double),
       void (*_rf_lds)(_RF_LDS double *, _RF_LDS double *), const double iv,
-      const uint64_t k, const uint32_t numteams){};
+      const uint64_t k, const uint32_t numteams, int32_t Scope = 1 /* device */){};
 void  __kmpc_xteamr_f_16x64
    (float v, float *r_ptr, float *tvs, uint32_t *td, void (*_rf)(float *, float),
       void (*_rf_lds)(_RF_LDS float *, _RF_LDS float *), const float iv,
-      const uint64_t k, const uint32_t numteams){};
+      const uint64_t k, const uint32_t numteams, int32_t Scope = 1 /* device */){};
 void  __kmpc_xteamr_cd_16x64
    (_CD v, _CD *r_ptr, _CD *tvs, uint32_t *td, void (*_rf)(_CD *, _CD),
       void (*_rf_lds)(_RF_LDS _CD *, _RF_LDS _CD *), const _CD iv,
-      const uint64_t k, const uint32_t numteams){};
+      const uint64_t k, const uint32_t numteams, int32_t Scope = 1 /* device */){};
 void  __kmpc_xteamr_cf_16x64
    (_CF v, _CF *r_ptr, _CF *tvs, uint32_t *td, void (*_rf)(_CF *, _CF),
       void (*_rf_lds)(_RF_LDS _CF *, _RF_LDS _CF *), const _CF iv,
-      const uint64_t k, const uint32_t numteams){};
+      const uint64_t k, const uint32_t numteams, int32_t Scope = 1 /* device */){};
 void  __kmpc_xteamr_i_16x64
    (int v, int *r_ptr, int *tvs, uint32_t *td, void (*_rf)(int *, int),
       void (*_rf_lds)(_RF_LDS int *, _RF_LDS int *), const int iv,
-      const uint64_t k, const uint32_t numteams){};
+      const uint64_t k, const uint32_t numteams, int32_t Scope = 1 /* device */){};
 void  __kmpc_xteamr_ui_16x64
    (_UI v, _UI *r_ptr, _UI *tvs, uint32_t *td, void (*_rf)(_UI *, _UI),
       void (*_rf_lds)(_RF_LDS _UI *, _RF_LDS _UI *), const _UI iv,
-      const uint64_t k, const uint32_t numteams){};
+      const uint64_t k, const uint32_t numteams, int32_t Scope = 1 /* device */){};
 void  __kmpc_xteamr_l_16x64
    (long v, long *r_ptr, long *tvs, uint32_t *td, void (*_rf)(long *, long),
       void (*_rf_lds)(_RF_LDS long *, _RF_LDS long *), const long iv,
-      const uint64_t k, const uint32_t numteams){};
+      const uint64_t k, const uint32_t numteams, int32_t Scope = 1 /* device */){};
 void  __kmpc_xteamr_ul_16x64
    (_UL v, _UL *r_ptr, _UL *tvs, uint32_t *td, void (*_rf)(_UL *, _UL),
       void (*_rf_lds)(_RF_LDS _UL *, _RF_LDS _UL *), const _UL iv,
-      const uint64_t k, const uint32_t numteams){};
+      const uint64_t k, const uint32_t numteams, int32_t Scope = 1 /* device */){};
 void  __kmpc_xteamr_d_32x32
    (double v, double *r_ptr, double *tvs, uint32_t *td, void (*_rf)(double *, double),
       void (*_rf_lds)(_RF_LDS double *, _RF_LDS double *), const double iv,
-      const uint64_t k, const uint32_t numteams){};
+      const uint64_t k, const uint32_t numteams, int32_t Scope = 1 /* device */){};
 void  __kmpc_xteamr_f_32x32
    (float v, float *r_ptr, float *tvs, uint32_t *td, void (*_rf)(float *, float),
       void (*_rf_lds)(_RF_LDS float *, _RF_LDS float *), const float iv,
-      const uint64_t k, const uint32_t numteams){};
+      const uint64_t k, const uint32_t numteams, int32_t Scope = 1 /* device */){};
 void  __kmpc_xteamr_cd_32x32
    (_CD v, _CD *r_ptr, _CD *tvs, uint32_t *td, void (*_rf)(_CD *, _CD),
       void (*_rf_lds)(_RF_LDS _CD *, _RF_LDS _CD *), const _CD iv,
-      const uint64_t k, const uint32_t numteams){};
+      const uint64_t k, const uint32_t numteams, int32_t Scope = 1 /* device */){};
 void  __kmpc_xteamr_cf_32x32
    (_CF v, _CF *r_ptr, _CF *tvs, uint32_t *td, void (*_rf)(_CF *, _CF),
       void (*_rf_lds)(_RF_LDS _CF *, _RF_LDS _CF *), const _CF iv,
-      const uint64_t k, const uint32_t numteams){};
+      const uint64_t k, const uint32_t numteams, int32_t Scope = 1 /* device */){};
 void  __kmpc_xteamr_i_32x32
    (int v, int *r_ptr, int *tvs, uint32_t *td, void (*_rf)(int *, int),
       void (*_rf_lds)(_RF_LDS int *, _RF_LDS int *), const int iv,
-      const uint64_t k, const uint32_t numteams){};
+      const uint64_t k, const uint32_t numteams, int32_t Scope = 1 /* device */){};
 void  __kmpc_xteamr_ui_32x32
    (_UI v, _UI *r_ptr, _UI *tvs, uint32_t *td, void (*_rf)(_UI *, _UI),
       void (*_rf_lds)(_RF_LDS _UI *, _RF_LDS _UI *), const _UI iv,
-      const uint64_t k, const uint32_t numteams){};
+      const uint64_t k, const uint32_t numteams, int32_t Scope = 1 /* device */){};
 void  __kmpc_xteamr_l_32x32
    (long v, long *r_ptr, long *tvs, uint32_t *td, void (*_rf)(long *, long),
       void (*_rf_lds)(_RF_LDS long *, _RF_LDS long *), const long iv,
-      const uint64_t k, const uint32_t numteams){};
+      const uint64_t k, const uint32_t numteams, int32_t Scope = 1 /* device */){};
 void  __kmpc_xteamr_ul_32x32
    (_UL v, _UL *r_ptr, _UL *tvs, uint32_t *td, void (*_rf)(_UL *, _UL),
       void (*_rf_lds)(_RF_LDS _UL *, _RF_LDS _UL *), const _UL iv,
-      const uint64_t k, const uint32_t numteams){};
+      const uint64_t k, const uint32_t numteams, int32_t Scope = 1 /* device */){};
 void __kmpc_rfun_sum_d(double *val, double otherval){}
 void __kmpc_rfun_sum_lds_d(_RF_LDS double *val, _RF_LDS double *otherval){}
 void __kmpc_rfun_sum_f(float *val, float otherval){}
