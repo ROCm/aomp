@@ -1,6 +1,6 @@
 #include "omp.h"
-#include <EmissaryMPI.h>
 #include <mpi.h>
+#include <EmissaryMPI.h>
 #include <stdio.h>
 
 #define _SECRET -123
