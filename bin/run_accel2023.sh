@@ -19,8 +19,8 @@ if [ "$1" == "-clean" ]; then
   mkdir -p ${ACCEL2023_SOURCE_DIR}
   cd ${ACCEL2023_SOURCE_DIR} || exit 1
   set -x
-  wget -q http://roclogin.amd.com/SPEC/accel2023-2.0.18.tar.xz
-  wget -q http://roclogin.amd.com/SPEC/Accel23-scripts.tar
+  wget --timeout 15 --tries=3 -q http://roclogin.amd.com/SPEC/accel2023-2.0.18.tar.xz
+  wget --timeout 15 --tries=3 -q http://roclogin.amd.com/SPEC/Accel23-scripts.tar
   tar xf accel2023-2.0.18.tar.xz
   tar xvf Accel23-scripts.tar
   set +x
