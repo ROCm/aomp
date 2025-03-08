@@ -1,18 +1,17 @@
 include ../../Makefile.defs
 
-TESTNAME     = flang_deviceio
-TESTSRC_MAIN = flang_deviceio.f90
+TESTNAME     = repro_present_map
+TESTSRC_MAIN = repro_present_map.F90
 TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 
-TARGET       = -fopenmp -O3 -w --offload-arch=$(AOMP_GPU)$(AOMP_TARGET_FEATURES)
-
-FLANG        ?= flang
+FLANG        ?= flang-new
+CFLAGS       =
 OMP_BIN      = $(AOMP)/bin/$(FLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
 #-ccc-print-phases
 #"-\#\#\#"
 
-UNSUPPORTED = ASAN_COMPILE
+RUNCMD       = ./doit.sh > ${TESTNAME}.out 2>&1 && ./chkit.sh ${TESTNAME}.out
 
 include ../Makefile.rules

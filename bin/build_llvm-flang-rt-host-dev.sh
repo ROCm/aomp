@@ -77,7 +77,8 @@ echo "GFXLIST            = $GFXLIST"
 echo "Sleeping 5 sec..."
 sleep 5
 
-cd $AOMP_REPOS
+mkdir -p $BUILD_AOMP
+cd $BUILD_AOMP
 mkdir -p build
 cd build
 rm -rf flang-runtime

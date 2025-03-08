@@ -1,18 +1,15 @@
 include ../../Makefile.defs
 
-TESTNAME     = flang_deviceio
-TESTSRC_MAIN = flang_deviceio.f90
+TESTNAME     = test
+TESTSRC_MAIN = test.f90
 TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 
-TARGET       = -fopenmp -O3 -w --offload-arch=$(AOMP_GPU)$(AOMP_TARGET_FEATURES)
-
-FLANG        ?= flang
+FLANG        ?= flang-new
+CFLAGS       = -fdo-concurrent-parallel=none
 OMP_BIN      = $(AOMP)/bin/$(FLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
 #-ccc-print-phases
 #"-\#\#\#"
-
-UNSUPPORTED = ASAN_COMPILE
 
 include ../Makefile.rules

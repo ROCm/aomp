@@ -1,6 +1,7 @@
 include ../Makefile.defs
 
 TESTS_DIR = \
+    distribute-parallel-do-if-host \
     f2018-select-rank \
     flang-315421 \
     flang-325095 \
@@ -24,6 +25,7 @@ TESTS_DIR = \
     flang-491971 \
     flang-502486 \
     flang-505726 \
+    flang-509589 \
     flang-gpu-stop-integer \
     flang-gpu-stop-string \
     flang-gpu-exit \
@@ -39,6 +41,10 @@ TESTS_DIR = \
     rocm-issue-201 \
     rocm-issue-208 \
     rocm-issue-241 \
+    rocm-issue-251 \
+    rocm-issue-253-device \
+    rocm-issue-253-host \
+    rocm-issue-253-none \
     split-dist-f90 \
     split-dist-par-c \
     split-dist-par-f90 \
