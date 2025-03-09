@@ -22,7 +22,7 @@ if [ "$1" == "-clean" ]; then
   #WLOC=http://roclogin.amd.com/SPEC
   WLOC=http://aomp-tr01.amd.com/SPEC
   wget --timeout 15 --tries=3 -q $WLOC/accel2023-2.0.18.tar.xz
-  wget --timeout 15 --tries=3 -q $WLOC/accel23-scripts.tar
+  wget --timeout 15 --tries=3 -q $WLOC/Accel23-scripts.tar
   tar xf accel2023-2.0.18.tar.xz
   tar xvf Accel23-scripts.tar
   set +x
