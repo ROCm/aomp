@@ -48,8 +48,11 @@ TESTS_DIR = \
     split-dist-f90 \
     split-dist-par-c \
     split-dist-par-f90 \
-    tgt-print \
     tgt-printf-c \
+    tgt-print-val \
+    tgt-print-val-lhostdev \
+    tgt-print-hello \
+    tgt-print-hello-lhostdev \
     tgt-stop \
     tgt-write
 

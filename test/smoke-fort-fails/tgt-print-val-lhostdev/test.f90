@@ -13,5 +13,9 @@ program main
     print *, "Hello OpenMP", ival
     print *, ival1, ival2, ival4, ival8
     print *, fval, dval, cfval, cdval
+    print *, fval
+    print *, dval
+    print *, cfval
+    print *, cdval
 !$omp end target
 end
