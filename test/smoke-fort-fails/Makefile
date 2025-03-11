@@ -2,53 +2,29 @@ include ../Makefile.defs
 
 TESTS_DIR = \
     distribute-parallel-do-if-host \
-    f2018-select-rank \
-    flang-315421 \
-    flang-325095 \
     flang-421111-3 \
     flang-444386-1 \
     flang-445999 \
-    flang-446033a_loop \
-    flang-446033a_ttdpd \
     flang-446033b_loop \
     flang-446033b_ttdpd \
-    flang-446033c_loop \
-    flang-446033d_loop \
     flang-463332 \
-    flang-464541 \
     flang-469194 \
-    flang-471982 \
     flang-476122a \
     flang-480581 \
-    flang-485161 \
-    flang-485265 \
     flang-491971 \
-    flang-502486 \
     flang-505726 \
     flang-509589 \
     flang-gpu-stop-integer \
     flang-gpu-stop-string \
     flang-gpu-exit \
     flang-gpu-abort \
-    hellofort-io \
-    mathdbl-tgt \
     mathquad-tgt \
-    math-acos \
-    math-erfc \
-    olcf-tf-7-loop-combined \
     rocm-aomp-issue-842 \
-    rocm-aomp-issue-1148 \
-    rocm-issue-201 \
     rocm-issue-208 \
     rocm-issue-241 \
     rocm-issue-251 \
     rocm-issue-253-device \
     rocm-issue-253-host \
-    rocm-issue-253-none \
-    split-dist-f90 \
-    split-dist-par-c \
-    split-dist-par-f90 \
-    tgt-printf-c \
     tgt-print-val \
     tgt-print-val-lhostdev \
     tgt-print-hello \
