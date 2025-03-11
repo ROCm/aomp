@@ -9,13 +9,13 @@ libatomic
 libffi-devel
 libquadmath-devel
 libtool
-ninja-build
 procps-ng
 python38
 python38-devel
 python38-pip
 rsync
 systemd-devel
+unzip
 vim
 wget
 xz-devel
