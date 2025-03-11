@@ -18,6 +18,7 @@ TESTS_DIR = \
     flang-gpu-stop-string \
     flang-gpu-exit \
     flang-gpu-abort \
+    flang_red_bug_51 \
     mathquad-tgt \
     rocm-aomp-issue-842 \
     rocm-issue-208 \
