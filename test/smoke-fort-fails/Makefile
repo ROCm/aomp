@@ -26,6 +26,7 @@ TESTS_DIR = \
     rocm-issue-251 \
     rocm-issue-253-device \
     rocm-issue-253-host \
+    split-outer2 \
     tgt-print-val \
     tgt-print-val-lhostdev \
     tgt-print-hello \
