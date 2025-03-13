@@ -3,7 +3,7 @@
 #include <climits>
 #include <omp.h>
 
-#define N 100000
+#define N 1000
 
 template<typename T>
 int compute_min_max() {
