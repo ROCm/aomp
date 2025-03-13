@@ -35,7 +35,7 @@ thisdir=`dirname $realpath`
 
 REPO_DIR=$AOMP_REPOS/hipfort
 BUILD_DIR=${BUILD_AOMP}
-HIPFORT_INSTALL_DIR=${HIPFORT_INSTALL_DIR:-$AOMP_INSTALL_DIR/hipfort}
+HIPFORT_INSTALL_DIR=${HIPFORT_INSTALL_DIR:-$AOMP_INSTALL_DIR}
 
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   echo " "
@@ -140,6 +140,4 @@ if [ "$1" == "install" ] ; then
          exit 1
       fi
       removepatch $AOMP_REPOS/hipfort
-      echo ln -sf $HIPFORT_INSTALL_DIR/bin/hipfc $AOMP_INSTALL_DIR/bin/hipfc
-      ln -sf $HIPFORT_INSTALL_DIR/bin/hipfc $AOMP_INSTALL_DIR/bin/hipfc
 fi
