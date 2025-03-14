@@ -32,7 +32,9 @@ TESTS_DIR = \
     tgt-print-hello \
     tgt-print-hello-lhostdev \
     tgt-stop \
-    tgt-write
+    tgt-stop-lhostdev \
+    tgt-write \
+    tgt-write-lhostdev
 
 all:
 	@for test_dir in $(TESTS_DIR); do \
