@@ -11,7 +11,6 @@ TESTS_DIR = \
     flang-469194 \
     flang-476122a \
     flang-480581 \
-    flang-491971 \
     flang-505726 \
     flang-509589 \
     flang-gpu-stop-integer \
@@ -27,14 +26,8 @@ TESTS_DIR = \
     rocm-issue-253-device \
     rocm-issue-253-host \
     split-outer2 \
-    tgt-print-val \
-    tgt-print-val-lhostdev \
-    tgt-print-hello \
-    tgt-print-hello-lhostdev \
     tgt-stop \
-    tgt-stop-lhostdev \
-    tgt-write \
-    tgt-write-lhostdev
+    tgt-stop-lhostdev
 
 all:
 	@for test_dir in $(TESTS_DIR); do \
