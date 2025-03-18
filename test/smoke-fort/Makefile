@@ -82,6 +82,7 @@ TESTS_DIR = \
     flang-485161 \
     flang-485265 \
     flang-489239 \
+    flang-491971 \
     flang-494405 \
     flang-495125 \
     flang-502486 \
@@ -141,7 +142,13 @@ TESTS_DIR = \
     target-cray-pointer \
     teams-distribute-no-parallel \
     teams-ditribute-collapse \
+    tgt-print-val \
+    tgt-print-val-lhostdev \
+    tgt-print-hello \
+    tgt-print-hello-lhostdev \
     tgt-printf-c \
+    tgt-write \
+    tgt-write-lhostdev \
     vmuln
 
 all:
