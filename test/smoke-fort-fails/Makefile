@@ -13,6 +13,10 @@ TESTS_DIR = \
     flang-480581 \
     flang-505726 \
     flang-509589 \
+    flang-522365-loop-1-1 \
+    flang-522365-loop-2a \
+    flang-522365-loop-2s \
+    flang-522365-ttdpd-2a \
     flang-gpu-stop-integer \
     flang-gpu-stop-string \
     flang-gpu-exit \

@@ -87,6 +87,8 @@ TESTS_DIR = \
     flang-495125 \
     flang-502486 \
     flang-511356 \
+    flang-522365-ttdpd-1-1 \
+    flang-522365-ttdpd-2s \
     flang-nested-parallel-do-loops \
     flang-nestRed \
     flang-pr-93 \
