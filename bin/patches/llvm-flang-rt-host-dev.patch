@@ -1,3 +1,17 @@
+diff --git a/flang-rt/include/flang-rt/runtime/terminator.h b/flang-rt/include/flang-rt/runtime/terminator.h
+index 4815f0674c84..4250c2886d4f 100644
+--- a/flang-rt/include/flang-rt/runtime/terminator.h
++++ b/flang-rt/include/flang-rt/runtime/terminator.h
+@@ -68,7 +68,8 @@ public:
+   template <typename... Args>
+   RT_API_ATTRS void PrintCrashArgs(const char *message, Args... args) const {
+ #if defined(RT_DEVICE_COMPILATION)
+-    std::printf(message, args...);
++    // commenting out temporarily to avoid "error: cannot compile this non-scalar arg in GPU vargs function yet"
++    // std::printf(message, args...);
+ #else
+     std::fprintf(stderr, message, args...);
+ #endif
 diff --git a/flang-rt/lib/runtime/io-api-minimal.cpp b/flang-rt/lib/runtime/io-api-minimal.cpp
 index fdf7183ed517..f84b62d63baa 100644
 --- a/flang-rt/lib/runtime/io-api-minimal.cpp
