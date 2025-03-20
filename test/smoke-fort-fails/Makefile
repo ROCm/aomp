@@ -13,6 +13,8 @@ TESTS_DIR = \
     flang-480581 \
     flang-505726 \
     flang-509589 \
+    flang-519158 \
+    flang-519158-par \
     flang-520127_loop-bind \
     flang-520127_loop-parbind \
     flang-522365-loop-1-1 \
