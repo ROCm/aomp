@@ -1,7 +1,6 @@
 program main
 
    use omp_lib
-       use iso_c_binding
    implicit none
    interface
      subroutine fortran_callable_init(a,N) bind(c)

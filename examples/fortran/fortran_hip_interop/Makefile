@@ -1,7 +1,6 @@
 #-----------------------------------------------------------------------
 #
-#  Makefile: demo Makefile for amdgcn target (for flang).
-#            amdgcn targets begin with gfx. 
+#  Makefile: demo Makefile for Compiler example fortran_hip_interop
 #
 #  Run "make help" to see how to use this Makefile
 #
@@ -29,92 +28,63 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-TESTNAME =fortran_hip_interop
-HIPOBJECT =fortran_callable_init
-FILETYPE =f95
-TESTSRC = $(TESTNAME).$(FILETYPE)
-TESTSRCHIP = fortran_callable_init.hip
-
 mkfile_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+include $(mkfile_dir)../../inc/find_gpu_and_install_dir.mk
+
+TESTNAME   := fortran_hip_interop
+HIPOBJECT  := fortran_callable_init
+FILETYPE   := f95
+TESTSRC    := $(TESTNAME).$(FILETYPE)
+TESTSRCHIP := fortran_callable_init.hip
+
 ifneq ($(CURDIR)/,$(mkfile_dir))
   TESTSRC := $(mkfile_dir)$(TESTSRC)
   TESTSRCHIP := $(mkfile_dir)$(TESTSRCHIP)
 endif
-include $(mkfile_dir)../../Makefile.find_gpu_and_install_dir
 
-ifeq ($(TARGETS),)
-TARGETS =--offload-arch=$(LLVM_GPU_ARCH)$(AOMP_TARGET_FEATURES)
+FORT       := $(LLVM_INSTALL_DIR)/bin/$(FLANG) -fPIC
+FFLAGS     := -O3 -fopenmp --offload-arch=$(LLVM_GPU_ARCH)
+LFLAGS     := $(FFLAGS)
+LFLAGS     += -L$(HIPDIR)/lib -lamdhip64 -Wl,-rpath,$(HIPDIR)/lib
+ifneq ($(LLVM_COMPILER_NAME),clang)
+  FORTENV := LIBOMPTARGET_KERNEL_TRACE=1
 endif
 
-FORT   =$(LLVM_INSTALL_DIR)/bin/flang -fPIC -O2
-LFLAGS = -L$(HIPDIR)/lib -lamdhip64 -Wl,-rpath,$(HIPDIR)/lib
-FFLAGS = -fopenmp
-
-# ----- Demo compile and link in one step, no object code saved
 $(TESTNAME): $(TESTSRC) fortran_callable_init.o
-	$(FORT) $(FFLAGS) $(TARGETS) $(LFLAGS) $^ -o $@
+	$(FORT) $(LFLAGS) $^ -o $@
 
 fortran_callable_init.o : $(TESTSRCHIP)
 	$(HIPCC) -c --offload-arch=$(LLVM_GPU_ARCH) -fPIC $^ -o $@
 
-run: .FORCE $(TESTNAME)
-	LIBOMPTARGET_KERNEL_TRACE=1 ./$(TESTNAME)
+run: $(TESTNAME)
+	$(FORTENV) ./$(TESTNAME)
 
-#  ----   Demo compile and link in two steps, object saved
-$(TESTNAME).o: $(TESTSRC)
-	$(FORT) -c $(FFLAGS) $(TARGETS) $^
-
-obin:	$(TESTNAME).o fortran_callable_init.o 
-	$(FORT) $(FFLAGS) $(TARGETS) $(LFLAGS) $^ -o obin
-
-run_obin: obin 
-	LIBOMPTARGET_KERNEL_TRACE=1 ./obin
-
-#  ----   Demo compile to intermediates LLVMIR or assembly
-$(TESTNAME).ll: $(TESTSRC) fortran_callable_init.ll
-	$(FORT) -c -S -emit-llvm $(FFLAGS) $(TARGETS) $(TESTSRC)
-
-fortran_callable_init.ll : $(TESTSRCHIP)
-	$(LLVM_INSTALL_DIR)/bin/hipcc -c -S -emit-llvm --offload-arch=$(LLVM_GPU_ARCH) $^
-
-$(TESTNAME).s: $(TESTSRC) fortran_callable_init.s
-	$(FORT)  -c -S $(FFLAGS) $(TARGETS) $(TESTSRC)
-
-fortran_callable_init.s : $(TESTSRCHIP)
-	$(LLVM_INSTALL_DIR)/bin/hipcc -c -S --offload-arch=$(LLVM_GPU_ARCH) $^
-
-.FORCE:
-	rm -f $(TESTNAME)
-
-help: 
+help:
 	@echo
-	@echo "Makefile Help:"
-	@echo "  Source:		$(TESTSRC)"
-	@echo "  Compiler: 		$(FORT)"
-	@echo "  Compiler flags: 	$(FFLAGS)"
+	@echo "FORTRAN Source:		$(TESTSRC)"
+	@echo "HIPSource:		$(TESTSRCHIP)"
+	@echo "Application binary:    	$(TESTNAME)"
+	@echo "Compiler install dir:	$(LLVM_INSTALL_DIR)"
+	@echo "Compiler name:		$(LLVM_COMPILER_NAME)"
+	@echo "Target GPU:		$(LLVM_GPU_ARCH)"
+	@echo "Target triple:		$(LLVM_GPU_TRIPLE)"
+	@echo "Compiler: 		$(FORT)"
+	@echo "Compile flags:		$(FFLAGS)"
+	@echo "Linkflags:		$(LFLAGS)"
 	@echo
-	@echo "Avalable Targets:"
-	@echo "  make			// build binary $(TESTNAME)"
-	@echo "  make run		// run $(TESTNAME)"
-	@echo "  make $(TESTNAME).o	// compile, be, & assemble : -c"
-	@echo "  make obin         	// link step only"
-	@echo "  make run_obin     	// run obin "
-	@echo "  make $(TESTNAME).s	// compile & backend steps : -c -S"
-	@echo "  make $(TESTNAME).ll	// compile step only       : -c -S -emit-llvm"
-	@echo "  make clean		// cleanup files"
-	@echo "  make help 		// this help"
+	@echo "This Makefile supports these targets:"
 	@echo
-	@echo "Environment Variables:"
-	@echo "  LLVM_INSTALL_DIR  value: $(LLVM_INSTALL_DIR)"
-	@echo "  LLVM_GPU_ARCH     value: $(LLVM_GPU_ARCH)"
-	@echo "  LLVM_GPU_TRIPLE   value: $(LLVM_GPU_TRIPLE)"
-	@echo "  CUDA      default: /usr/local/cuda       value: $(CUDA)"
-	@echo "  TARGETS   default: --offload-arch=$(LLVM_GPU_ARCH)"
-	@echo "              value: $(TARGETS)"
+	@echo " make			// Builds $(TESTNAME) "
+	@echo " make run		// Executes $(TESTNAME) "
 	@echo
-	@echo "Link Flags:"
-	@echo "  Link flags: $(LFLAGS)"
+	@echo " make clean"
+	@echo " make help"
 	@echo
+	@echo "Environment variables used by this Makefile:"
+	@echo "  LLVM_INSTALL_DIR     LLVM installation directory"
+	@echo "  LLVM_GPU_ARCH        Target GPU, e.g. sm_30, gfx90a"
+	@echo
+
 
 # Cleanup anything this makefile can create
 clean:
