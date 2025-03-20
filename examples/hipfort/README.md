@@ -1,35 +1,18 @@
-Compiler Examples
-=================
+hipfort Examples
+================
 
-The LLVM compiler supports several accelerated programming models
-including OpenMP, HIP, opencl, stdpar, hipfort, raja, and kokkos.
-Acceleration with OpenMP is available for FORTRAN, c, and C++.
-These Compiler examples demonstrate how to use the LLVM compiler to compile,
-link, and execute applications using different programming models and
-various utilities to support development. Each Compiler example uses
-'make' to clearly show the full commands to compile, link, and execute
-an application. The execution of make will also show any supporting commands
-and environment variable settings needed to support the example.
+The LLVM compiler supports several accelerated programming models.
+The hipfort model provides the HIP host API and the API for 
+several HIP math libraries.  These are the hipfort examples.
 
-## Compiler Example Categories
-
-The Compiler examples are divided into categories:
-
-- [OpenMP](openmp/README.md)  C++ and c examples of OpenMP target offload
-- [FORTRAN](fortran)  FORTRAN examples of OpenMP target offload
-- [hipfort](hipfort/README.md)  FORTRAN examples that use FORTRAN HIP bindings
-- [HIP](hip/README.md)  Acceleration with HIP
-- [stdpar](stdpar)  C++ stdpar examples
-- [Raja](raja/README.md)  Examples that use the RAJA programming model
-- [Kokkos](kokkos)  Examples that use the kokkos programming model
-- [tools](tools)  Examples on how to use profiling, debug, and address sanitizer tools
-- [stress](stress)  Examples that are complex or stress resources. CI is not run on these examples
-
-Eventually we will add these categories:
-
-- [opencl](opencl)  Examples of offloading with OpenCL
-
-Each category is a directory and each example is a subdirectory of the category directory.
+- [vecadd](vecadd/README.md)  a simple vecadd kernel compiled with hip but called from FORTRAN.
+- [hipblas](hipblas/README.md) an example of using hipblas math library. 
+- [hipfft](hipfft/README.md)  an example of using hipfft math library. 
+- [hipsolver](hipsolver/README.md)  an example of using hipsolver math library. 
+- [rocblas](rocblas/README.md)  an example of using rocblas math library.
+- [rocfft](rocfft/README.md)  an example of using rocfft library. 
+- [rocsolver](rocsolver/README.md)  an example of using rocsolver library.
+- [rocsparse](rocsparse/README.md)  an example of using rocsparse library. 
 
 
 ## Using Compiler Example Makefiles
@@ -39,7 +22,7 @@ with update access to the example directory where the Makefile and sources are
 found, "in-tree", OR from a different directory, "out-of-tree".
 These commands demonstrate how to test the example "in-tree":
 ```
-cd openmp/veccopy
+cd hipfort
 make run
 
 ```
@@ -49,9 +32,9 @@ veccopy example "out-of-tree" from a new /tmp directory run these commands:
 ```
 mkdir /tmp/demo ; cd /tmp/demo
 EXROOT=/opt/rocm/share/examples/Compiler  # The examples base directory.
-make -f $EXROOT/openmp/veccopy/Makefile run
+make -f $EXROOT/hipfort/Makefile run
 ```
-The above will compile and execute the openmp/veccopy example.
+The above will compile and execute all the hipfort examples.
 The Makefile will print the compile and execute commands to the console.
 
 If you plan to copy the sources for these examples, be sure to copy
@@ -59,7 +42,7 @@ the entire Compiler examples directory.  For example:
 ```
 EXROOT=/opt/rocm/share/examples/Compiler  # The examples base directory.
 cp -rp $EXROOT /tmp
-cd /tmp/Compiler/openmp/veccopy
+cd /tmp/Compiler/hipfort
 make run 
 ```
 ## Setting LLVM_INSTALL_DIR and LLVM_GPU_ARCH
@@ -113,22 +96,20 @@ Run ```make help``` to see various demos of each example.
 ## Hierarchical Makefiles
 
 Each category has a Makefile that will build and run all the examples for that category. 
-For example the Makefile for openmp is [openmp/Makefile](here).
-To test all the openmp examples with the AOMP compiler run these commands:
+For example the Makefile for hipfort is [hipfort/Makefile](here).
+To test all the hipfort examples with the ROCm compiler run these commands:
 ```
 EXROOT=~/git/rocm-examples/Compiler   # The examples base directory.
-cd $EXROOT/openmp
-env LLVM_INSTALL_DIR=$AOMP make run
+cd $EXROOT/hipfort
+env LLVM_INSTALL_DIR=/opt/rocm/lib/llvm make run
 ```
 The Compiler Examples has a root [Makefile](Makefile) that can be used to build and run all examples. 
-To test all Compiler Examples with the AOMP compiler run these commands:
+To test all Compiler Examples with the ROCm compiler run these commands:
 ```
 EXROOT=~/git/rocm-examples/Compiler   # The examples base directory.
 cd $EXROOT
-env LLVM_INSTALL_DIR=$AOMP make run
-```
-
+env LLVM_INSTALL_DIR=/opt/rocm/lib/llvm  make run
 
 ## Contributions
 
-If you want to contribute a Compiler example, please read these [rules](inc/contribute_rules.md).
+If you want to contribute a Compiler example, please read these [rules](../inc/contribute_rules.md).
