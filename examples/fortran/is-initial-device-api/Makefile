@@ -30,7 +30,7 @@
 mkfile_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 include $(mkfile_dir)../../inc/find_gpu_and_install_dir.mk
 
-TESTNAME := helloAcceptance
+TESTNAME := is-initial-device
 FILETYPE := f90
 TESTSRC := $(TESTNAME).$(FILETYPE)
 

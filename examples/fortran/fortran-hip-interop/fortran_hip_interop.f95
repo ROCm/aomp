@@ -1,5 +1,5 @@
 program main
-
+   use iso_c_binding
    use omp_lib
    implicit none
    interface

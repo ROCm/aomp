@@ -30,18 +30,18 @@ ifeq ($(LLVM_COMPILER_NAME),clang)
 fortran_examples := \
 	$(_in_prefix)bigloop \
 	$(_in_prefix)helloworld \
-	$(_in_prefix)helloAcceptance \
-	$(_in_prefix)gdb_simple \
-	$(_in_prefix)simple_offload
-$(info TRUNK DOES NOT YET SUPPORT EXAMPLE declare_target )
-$(info TRUNK DOES NOT YET SUPPORT EXAMPLE fortran_hip_interop)
+	$(_in_prefix)is-initial-device-api \
+	$(_in_prefix)gdb-simple \
+	$(_in_prefix)simple-offload
+$(info TRUNK DOES NOT YET SUPPORT EXAMPLE fortran-hip-interop)
 else
 fortran_examples := \
 	$(_in_prefix)bigloop \
 	$(_in_prefix)helloworld \
-	$(_in_prefix)helloAcceptance \
-	$(_in_prefix)gdb_simple \
-	$(_in_prefix)simple_offload
+	$(_in_prefix)is-initial-device-api \
+	$(_in_prefix)gdb-simple \
+	$(_in_prefix)simple-offload \
+	$(_in_prefix)fortran-hip-interop
 endif
 
 all: $(fortran_examples)
