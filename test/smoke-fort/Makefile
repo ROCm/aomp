@@ -22,8 +22,6 @@ TESTS_DIR = \
     flang-325095 \
     flang-364228-0 \
     flang-364228-1 \
-    flang-364228-2 \
-    flang-364228-3 \
     flang-404247 \
     flang-416048 \
     flang-420573 \

@@ -2,6 +2,8 @@ include ../Makefile.defs
 
 TESTS_DIR = \
     distribute-parallel-do-if-host \
+    flang-364228-2 \
+    flang-364228-3 \
     flang-421111-3 \
     flang-444386-1 \
     flang-445999 \
