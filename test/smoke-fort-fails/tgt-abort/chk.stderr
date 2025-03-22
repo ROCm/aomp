@@ -1,0 +1,3 @@
+OFFLOAD ERROR: Kernel 'xxx'
+OFFLOAD ERROR: execution interrupted by hardware trap instruction
+Use 'OFFLOAD_TRACK_NUM_KERNEL_LAUNCH_TRACES=1' to show the stack trace of the kernel
