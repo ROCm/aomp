@@ -6,7 +6,7 @@ TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 
 FLANG        ?= flang-new
-CFLAGS       = -DCHKTYPE='complex(4)' -DCHKBYTES=8
+CFLAGS       = -cpp -DCHKTYPE='complex(4)' -DCHKBYTES=8
 OMP_BIN      = $(AOMP)/bin/$(FLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
 #-ccc-print-phases
