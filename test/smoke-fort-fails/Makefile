@@ -26,6 +26,7 @@ TESTS_DIR = \
     flang-gpu-exit \
     flang-gpu-abort \
     flang_red_bug_51 \
+    kernel-exec-modes-host \
     mathquad-tgt \
     rocm-aomp-issue-842 \
     rocm-issue-208 \
