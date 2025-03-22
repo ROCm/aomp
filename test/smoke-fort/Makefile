@@ -154,6 +154,15 @@ TESTS_DIR = \
     tgt-printf-c \
     tgt-write \
     tgt-write-lhostdev \
+    vaddt-complex2 \
+    vaddt-complex4 \
+    vaddt-complex8 \
+    vaddt-integer2 \
+    vaddt-integer4 \
+    vaddt-integer8 \
+    vaddt-real2 \
+    vaddt-real4 \
+    vaddt-real8 \
     vmuln
 
 all:
