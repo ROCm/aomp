@@ -34,6 +34,8 @@ TESTS_DIR = \
     rocm-issue-253-device \
     rocm-issue-253-host \
     split-outer2 \
+    tgt-abort \
+    tgt-abort-lhostdev \
     tgt-stop \
     tgt-stop-lhostdev
 
