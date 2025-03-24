@@ -23,6 +23,7 @@ TESTS_DIR = \
     flang-522365-loop-2a \
     flang-522365-loop-2s \
     flang-522365-ttdpd-2a \
+    flang-523626 \
     flang-gpu-stop-integer \
     flang-gpu-stop-string \
     flang-gpu-exit \
