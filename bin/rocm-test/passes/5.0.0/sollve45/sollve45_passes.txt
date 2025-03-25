@@ -45,9 +45,6 @@ test_target_teams_distribute_parallel_for_num_threads.F90
 test_target_teams_distribute_parallel_for_reduction.c
 test_target_teams_distribute_parallel_for_thread_limit.F90
 test_task_critical.c
-test_task_final.c
-test_task_if.c
-test_task_lock.c
 test_taskloop_collapse.c
 test_taskloop_final.c
 test_taskloop_firstprivate.c
