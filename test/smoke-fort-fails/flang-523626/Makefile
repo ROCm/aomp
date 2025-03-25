@@ -14,7 +14,4 @@ CC           = $(OMP_BIN) $(VERBOSE)
 #-ccc-print-phases
 #"-\#\#\#"
 
-#RUNENV      += LIBOMPTARGET_INFO=-1
-RUNCMD       = ./doit.sh ${TESTNAME} && ./chkit.sh ${TESTNAME}
-
 include ../Makefile.rules
