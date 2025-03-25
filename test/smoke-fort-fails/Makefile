@@ -1,6 +1,7 @@
 include ../Makefile.defs
 
 TESTS_DIR = \
+    crayptr-default \
     distribute-parallel-do-if-host \
     flang-364228-2 \
     flang-364228-3 \
