@@ -11,9 +11,10 @@ program test_crayptr
     print *, var(1)
   !$omp end parallel
 
-  !$omp parallel num_threads(2) default(none) private(ivar)
-    print *, var(1)
-  !$omp end parallel
+  ! The following combination is not valid, will SEGV:
+  !$no-omp parallel num_threads(2) default(none) private(ivar)
+  !  print *, var(1)
+  !$no-omp end parallel
 
   !$omp parallel num_threads(2) default(private) shared(ivar)
     print *, var(1)
