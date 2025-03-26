@@ -20,13 +20,6 @@ thisdir=`dirname $realpath`
 
 echo "-----------------------------------------------------------------------------"
 echo "Building flang-runtime for device"
-cat <<EOD
-
-Note: If working on amd-staging, the following patch is currently needed:
-      cd $AOMP_REPOS/llvm-project
-      patch -p1 < $AOMP_REPOS/aomp/bin/patches/llvm-flang-rt-host-dev.patch
-
-EOD
 echo "AOMP               = $AOMP"
 echo "AOMP_REPOS         = $AOMP_REPOS"
 echo "BUILD_AOMP         = $BUILD_AOMP"
