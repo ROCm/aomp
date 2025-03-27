@@ -1,0 +1,13 @@
+#!/bin/bash
+
+types=(complex real integer)
+sizes=(2 4 8)
+
+for type in ${types[@]}; do
+  for size in ${sizes[@]}; do
+    cp -f vaddt.f90 ../vaddt-$type$size
+    cp -f allcp     ../vaddt-$type$size
+    cp -f alltest   ../vaddt-$type$size
+    cp -f allclean  ../vaddt-$type$size
+  done
+done

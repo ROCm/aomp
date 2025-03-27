@@ -12,11 +12,20 @@ TESTS_DIR = \
     declare-target-link-1 \
     declare-target-link-2 \
     declare-target-link-3 \
+    distribute-parallel-do-if-host \
+    end \
+    end-ffixed-form \
+    end-fopenmp \
     exp-real-map \
+    f2018-select-rank \
     fdefault-sizeof \
     fdefault-type-8 \
     flang-274768 \
     flang-274768-1 \
+    flang-315421 \
+    flang-325095 \
+    flang-364228-0 \
+    flang-364228-1 \
     flang-404247 \
     flang-416048 \
     flang-420573 \
@@ -30,10 +39,21 @@ TESTS_DIR = \
     flang-440121 \
     flang-441477 \
     flang-443915 \
+    flang-444386-1 \
     flang-445718 \
     flang-445718-fortran-intrinsic \
+    flang-445718-sign \
     flang-445882 \
     flang-445888 \
+    flang-446005a \
+    flang-446005b \
+    flang-446033a_loop \
+    flang-446033a_ttdpd \
+    flang-446033c_loop \
+    flang-446033c_ttdpd \
+    flang-446033d_loop \
+    flang-446033d_ttdpd \
+    flang-446034 \
     flang-446057a \
     flang-446057b \
     flang-446057c \
@@ -41,23 +61,19 @@ TESTS_DIR = \
     flang-446525 \
     flang-453308 \
     flang-453308a \
-    flang-446005a \
-    flang-446005b \
-    flang-446033c_ttdpd \
-    flang-446033d_ttdpd \
-    flang-446034 \
-    flang-445718-sign \
     flang-457354 \
     flang-458684 \
     flang-460740 \
     flang-462537 \
     flang-463690 \
+    flang-464541 \
     flang-464660 \
     flang-464660-1 \
-    flang-464660-2 \
     flang-471469 \
+    flang-471982 \
     flang-472452 \
     flang-476122 \
+    flang-476419 \
     flang-478281 \
     flang-479382 \
     flang-479382-1 \
@@ -65,18 +81,45 @@ TESTS_DIR = \
     flang-479382-3 \
     flang-479382-4 \
     flang-479382-5 \
+    flang-485161 \
+    flang-485265 \
+    flang-489239 \
+    flang-489863 \
+    flang-491971 \
+    flang-494405 \
+    flang-495125 \
+    flang-502486 \
     flang-511356 \
+    flang-520127_loop-bind \
+    flang-520127_loop-parbind \
+    flang-522365-ttdpd-1-1 \
+    flang-522365-ttdpd-2s \
     flang-nested-parallel-do-loops \
-    flang-use-device \
+    flang-nestRed \
+    flang-pr-93 \
     flang-target-associate-ptr \
+    flang-TL-0 \
+    flang-TL-1 \
+    flang-TP-0 \
+    flang-TP-1 \
+    flang-gpu-abort \
+    flang-gpu-stop-integer \
+    flang-gpu-stop-string \
+    flang-use-device \
+    hellofort-io \
     hellofort-nio \
     intrin-rename-func \
     intrin-rename-sub \
     iso_flush \
     jacobi \
+    kernel-exec-modes \
+    kernel-exec-modes-reductions \
     LaunchLatency \
     llvm-issue-82047 \
+    math-acos \
     mathdbl \
+    mathdbl-tgt \
+    math-erfc \
     mathquad \
     milestone-1 \
     milestone-2 \
@@ -99,11 +142,33 @@ TESTS_DIR = \
     olcf-tf-4-openmp-gpu-teams-parallel-data \
     olcf-tf-5-openmp-gpu-teams-parallel-implicit-map \
     olcf-tf-6-combined \
+    olcf-tf-7-loop-combined \
+    rocm-aomp-issue-1148 \
     rocm-issue-202 \
+    rocm-issue-253-none \
     single-value-map \
+    split-dist-f90 \
+    split-dist-par-c \
+    split-dist-par-f90 \
+    split-outer2 \
     target-cray-pointer \
     teams-distribute-no-parallel \
     teams-ditribute-collapse \
+    tgt-abort \
+    tgt-print-val \
+    tgt-print-hello \
+    tgt-printf-c \
+    tgt-stop \
+    tgt-write \
+    vaddt-complex2 \
+    vaddt-complex4 \
+    vaddt-complex8 \
+    vaddt-integer2 \
+    vaddt-integer4 \
+    vaddt-integer8 \
+    vaddt-real2 \
+    vaddt-real4 \
+    vaddt-real8 \
     vmuln
 
 all:

@@ -32,12 +32,12 @@ program kernel_exec_modes_host
   use omp_lib
   implicit none
   integer :: i, j
-  integer, parameter :: teams=5, threads=10
+  integer, parameter :: teams=5, threads=4
   integer :: a(threads, teams)
 
   ! Combined SPMD
   call init_arr(a, threads, teams)
-  !$omp target teams distribute parallel do num_teams(teams) thread_limit(threads) collapse(2)
+  !$omp target teams distribute parallel do num_teams(teams) thread_limit(threads) num_threads(threads) collapse(2)
   do i=1,teams
     do j=1,threads
       a(j, i) = omp_get_team_num() * omp_get_num_threads() + omp_get_thread_num()
@@ -48,7 +48,7 @@ program kernel_exec_modes_host
   ! Split SPMD
   call init_arr(a, threads, teams)
   !$omp target teams num_teams(teams) thread_limit(threads)
-  !$omp distribute parallel do collapse(2)
+  !$omp distribute parallel do num_threads(threads) collapse(2)
   do i=1,teams
     do j=1,threads
       a(j, i) = omp_get_team_num() * omp_get_num_threads() + omp_get_thread_num()
@@ -61,7 +61,7 @@ program kernel_exec_modes_host
   call init_arr(a, threads, teams)
   !$omp target teams distribute num_teams(teams) thread_limit(threads)
   do i=1,teams
-    !$omp parallel do
+    !$omp parallel do num_threads(threads)
     do j=1,threads
       a(j, i) = omp_get_team_num() * omp_get_num_threads() + omp_get_thread_num()
     end do
@@ -73,7 +73,7 @@ program kernel_exec_modes_host
   !$omp target teams num_teams(teams) thread_limit(threads)
   !$omp distribute
   do i=1,teams
-    !$omp parallel do
+    !$omp parallel do num_threads(threads)
     do j=1,threads
       a(j, i) = omp_get_team_num() * omp_get_num_threads() + omp_get_thread_num()
     end do
@@ -84,7 +84,7 @@ program kernel_exec_modes_host
   ! Generic
   call init_arr(a, threads, teams)
   !$omp target teams num_teams(teams) thread_limit(threads)
-  !$omp parallel
+  !$omp parallel num_threads(threads)
   a(omp_get_thread_num() + 1, omp_get_team_num() + 1) = omp_get_team_num() * omp_get_num_threads() + omp_get_thread_num()
   !$omp end parallel
   !$omp end target teams

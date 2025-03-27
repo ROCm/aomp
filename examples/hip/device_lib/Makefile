@@ -30,7 +30,7 @@ ifneq ($(CURDIR)/,$(mkfile_dir))
 else
   _in_dir :=
 endif
-include $(mkfile_dir)../../Makefile.find_gpu_and_install_dir
+include $(mkfile_dir)../../inc/find_gpu_and_install_dir.mk
 
 CLANG = $(LLVM_INSTALL_DIR)/bin/clang
 FLANG ?= $(LLVM_INSTALL_DIR)/bin/flang
@@ -43,12 +43,13 @@ DEVICE_LIB_PATH = $(HIPDIR)/amdgcn/bitcode
 
 OMPFLAGS = -O3 -fopenmp --offload-arch=$(LLVM_GPU_ARCH)$(AOMP_TARGET_FEATURES)
 
-writeIndex: $(_in_dir)writeIndex.hip lib_mylib.a bundled/lib_myomplib.a
+writeIndex: $(_in_dir)writeIndex.hip lib_mylib.a $(CURDIR)/bundled/lib_myomplib.a
 	@echo
-	@echo " ----------  3 Build HIP application using both SDLs ----------------"
+	@echo " ----------  3 Build HIP application using bundled SDLs _mylib and _myomplib --------"
+	        ----------
 	@echo
 	@echo " 3.1 Create HIP application using both _mylib and _myomplib SDLs.        $@"
-	DEVICE_LIB_PATH=$(DEVICE_LIB_PATH) $(HIPCC) -std=c++11 -fgpu-rdc -L$(PWD)/bundled -l_myomplib -L$(PWD) -l_mylib $(_in_dir)writeIndex.hip -o $@ -std=c++11 ${LD_FLAGS}
+	DEVICE_LIB_PATH=$(DEVICE_LIB_PATH) $(HIPCC) -std=c++11 -fgpu-rdc -L$(CURDIR)/bundled -l_myomplib -L$(CURDIR) -l_mylib $(_in_dir)writeIndex.hip -o $@ -std=c++11
 
 inc_arrayval.o: $(_in_dir)inc_arrayval.c
 	@echo
@@ -57,49 +58,53 @@ inc_arrayval.o: $(_in_dir)inc_arrayval.c
 
 dec_arrayval.o: $(_in_dir)dec_arrayval.f95
 	@echo
-	@echo " 1.2 Compile FORTRAN function to create 2nd host-only object . $@"
+	@echo " 1.2 Compile FORTRAN function to create 2nd host-only object.	$@"
 	$(FLANG) -c $^ -o $@
 
-inc_arrayval-amdgcn.bc: $(_in_dir)inc_arrayval.c 
+inc_arrayval-amdgcn.bc: $(_in_dir)inc_arrayval.c inc_arrayval.o 
 	@echo
 	@echo " 1.3 Re-Compile c library source to create a device bitcode with -fopenmp-host-ir-file-path host.bc  $@"
-	$(CLANG) -c -emit-llvm -mcpu=$(LLVM_GPU_ARCH)$(AOMP_TARGET_FEATURES) -target $(LLVM_GPU_TRIPLE) -nogpulib $^ -o $@
+	$(CLANG) -c -emit-llvm -mcpu=$(LLVM_GPU_ARCH)$(AOMP_TARGET_FEATURES) -target $(LLVM_GPU_TRIPLE) -nogpulib $(_in_dir)inc_arrayval.c  -o $@
 
 dec_arrayval-amdgcn.bc: $(_in_dir)dec_arrayval.c
 	@echo
 	@echo " 1.4 Re-Compile c Code to create a 2nd device bitcode file.		$@"
+	#$(FLANG) -fc1 -emit-llvm -target-cpu $(LLVM_GPU_ARCH) -triple $(LLVM_GPU_TRIPLE) $^ -o $@
 	$(CLANG) -c -emit-llvm -mcpu=$(LLVM_GPU_ARCH)$(AOMP_TARGET_FEATURES) -target $(LLVM_GPU_TRIPLE) -nogpulib $^ -o $@
 
 inc_arrayval-amdgcn.o: inc_arrayval-amdgcn.bc inc_arrayval.o
 	@echo
-	@echo " 1.5 create $@ from $^ using bundler. "
+	@echo " 1.5 Create heterogeneous object $@ from $^ using bundler. "
 	$(BUNDLER) -type=o -targets=openmp-$(LLVM_GPU_TRIPLE)-$(LLVM_GPU_ARCH),host-x86_64-unknown-linux-gnu -output=$@ -input=inc_arrayval-amdgcn.bc -input=inc_arrayval.o
 
 dec_arrayval-amdgcn.o: dec_arrayval-amdgcn.bc dec_arrayval.o
 	@echo
-	@echo " 1.6 create $@ from $^ using bundler."
+	@echo " 1.6 Create heterogeneous object $@ from $^ using bundler."
 	$(BUNDLER) -type=o -targets=openmp-$(LLVM_GPU_TRIPLE)-$(LLVM_GPU_ARCH),host-x86_64-unknown-linux-gnu -output=$@ -input=dec_arrayval-amdgcn.bc -input=dec_arrayval.o
 
 lib_mylib.a: inc_arrayval-amdgcn.o dec_arrayval-amdgcn.o
+	@echo
+	@echo " ----------  1 Build _mylib HIP SDL (single fat archive file) --------"
+	@echo "               with bundled (not packaged) heterogeneous objects"
 	@echo
 	@echo " 1.7 Use llvm-ar to create archive $@ from $^"
 	$(LLVM_INSTALL_DIR)/bin/llvm-ar rcs $@ $^
 
 _myomplib.o:  $(_in_dir)_myomplib.c
 	@echo
-	@echo " ----------  2 Build _myomplib SDL (single fat archive file) --------"
+	@echo " ----------  2 Build _myomplib OpenMP SDL (single fat archive file) --------"
 	@echo
-	@echo " 2.1 Compile heterogenous functions into a packaged object. 		$@"
+	@echo " 2.1 Compile heterogenous functions into a packaged objects.		$@"
 	$(CLANG) $(OMPFLAGS) -c $^ -o $@
 lib_myomplib.a:  _myomplib.o
 	@echo
-	@echo " 2.2 Create heterogeneous archive lib from packaged object.			$@"
+	@echo " 2.2 Create heterogeneous archive lib from packaged heterogeneous object.			$@"
 	$(LLVM_INSTALL_DIR)/bin/llvm-ar rcs $@ $^
 
-bundled/lib_myomplib.a: lib_myomplib.a
+$(CURDIR)/bundled/lib_myomplib.a: lib_myomplib.a
 	@echo
-	@echo " 2.3 Create bundled archive lib from packaged archive lib.			$@"
-	mkdir -p bundled ; LLVM_INSTALL_DIR=$(LLVM_INSTALL_DIR) $(mkfile_dir)../../rebundle_hip_lib.sh $(PWD)/$^ $(PWD)/$@
+	@echo " 2.3 Create HIP bundled archive lib from OpenMP packaged archive lib.			$@"
+	mkdir -p $(CURDIR)/bundled ; $(mkfile_dir)../../inc/rebundle_hip_lib.sh $^ $@
 
 run: writeIndex
 	./writeIndex
@@ -116,3 +121,4 @@ clean:
 	@[ -f ./dec_arrayval-amdgcn.bc ] && rm dec_arrayval-amdgcn.bc ; true
 	@[ -f ./dec_arrayval-amdgcn.o ] && rm dec_arrayval-amdgcn.o ; true
 	@[ -f ./_myomplib.o ] && rm _myomplib.o ; true
+	@[ -d ./bundled ] && rmdir bundled ; true

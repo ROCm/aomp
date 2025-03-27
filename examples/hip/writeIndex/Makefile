@@ -33,26 +33,27 @@ ifneq ($(CURDIR)/,$(mkfile_dir))
   TESTSRC1 := $(mkfile_dir)$(TESTSRC1)
   TESTSRC2 := $(mkfile_dir)$(TESTSRC2)
 endif
-include $(mkfile_dir)../../Makefile.find_gpu_and_install_dir
-DEVICE_LIB_PATH=$(HIPDIR)/amdgcn/bitcode/
+include $(mkfile_dir)../../inc/find_gpu_and_install_dir.mk
 
-CC   =  DEVICE_LIB_PATH=$(DEVICE_LIB_PATH) $(HIPCC)
+CC = $(HIPCC)
 
 # --- Demo compile and link in one step, no object code saved
+#     -std=c++11 avoids warning for ignoring return values
 writeIndex: $(TESTSRC1) $(TESTSRC2)
-	  $(CC) $^ -o $@ -std=c++11
+	@echo "# NOTE: Compiling with hipcc eliminates need to use arg --offload-arch=$(LLVM_GPU_ARCH)"
+	$(CC) $^ -o $@ -std=c++11
 run: writeIndex
-	LD_LIBRARY_PATH=$(LLVM_INSTALL_DIR)/lib ./writeIndex
+	./writeIndex
 
 # --- Demo compile and link in two steps, object saved
 writeIndex.o: $(TESTSRC1)
-	$(CC) -c $^
+	$(CC) -c $^ -std=c++11
 kernel.o: $(TESTSRC2)
 	$(CC) -c $^
 obin:	writeIndex.o  kernel.o
 	$(CC)  $^ -o obin
 run_obin: obin 
-	LD_LIBRARY_PATH=$(LLVM_INSTALL_DIR)/lib ./obin
+	./obin
 
 clean:
 	@[ -f ./writeIndex ] && rm ./writeIndex ; true

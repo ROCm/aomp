@@ -13,6 +13,12 @@ RUN yum install --disableplugin=subscription-manager -y $(cat /tmp/prerequisites
 # Install ROCm
 RUN yum install --disableplugin=subscription-manager -y rocm-device-libs rocm-core rocminfo hsa-rocr-dev
 
+# Install newer version of ninja-build (use same as downstream)
+RUN mkdir /tmp/ninja-build && cd /tmp/ninja-build && \
+      wget https://github.com/ninja-build/ninja/releases/download/v1.11.1/ninja-linux.zip \
+      && unzip ninja-linux.zip && mv ninja /usr/local/bin/ninja \
+      && cd / && rm -rf /tmp/ninja-build
+
 # Update the group id inside the container to match host (and get access to GPU)
 RUN groupmod -g 109 render
 

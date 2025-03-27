@@ -4,8 +4,6 @@
 
 #include "callbacks.h"
 
-ompt_device_t *my_device = 0;
-
 // Calls to start/stop/flush_trace to be injected by the tool
 
 int main()

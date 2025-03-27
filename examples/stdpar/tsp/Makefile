@@ -7,7 +7,7 @@ ifneq ($(CURDIR)/,$(mkfile_dir))
 endif
 
 # Set LLVM_INSTALL_DIR and LLVM_GPU_ARCH
-include $(mkfile_dir)../../Makefile.find_gpu_and_install_dir
+include $(mkfile_dir)../../inc/find_gpu_and_install_dir.mk
 
 HIPSTDPARPATH = /opt/rocm/include/thrust/system/hip
 ifeq ("$(wildcard $(HIPSTDPARPATH))","")
@@ -23,8 +23,7 @@ ifeq ("$(wildcard $(HIPSTDPARPRIMPATH)/rocprim)","")
 endif
 
 CC = $(LLVM_INSTALL_DIR)/bin/clang++
-#opts=-I. -DNDEBUG -O3 --hipstdpar --hipstdpar-path=$(HIPSTDPARPATH) --hipstdpar-thrust-path=$(HIPSTDPARTHRUSTPATH) --hipstdpar-prim-path=$(HIPSTDPARPRIMPATH) --offload-arch=$(LLVM_GPU_ARCH) -std=c++17
-opts=-I. -g -O0 --hipstdpar --hipstdpar-path=$(HIPSTDPARPATH) --hipstdpar-thrust-path=$(HIPSTDPARTHRUSTPATH) --hipstdpar-prim-path=$(HIPSTDPARPRIMPATH) --offload-arch=$(LLVM_GPU_ARCH) -std=c++20
+opts=-I. -DNDEBUG -O3 --hipstdpar --hipstdpar-path=$(HIPSTDPARPATH) --hipstdpar-thrust-path=$(HIPSTDPARTHRUSTPATH) --hipstdpar-prim-path=$(HIPSTDPARPRIMPATH) --offload-arch=$(LLVM_GPU_ARCH) -std=c++17
 
 # Build both babelstream stdpar binaries
 tsp:tsp.o

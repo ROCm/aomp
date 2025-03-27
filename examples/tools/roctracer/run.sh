@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ################################################################################
-# Copyright (c) 2018 Advanced Micro Devices, Inc. All rights reserved.
+# Copyright (c) 2024 Advanced Micro Devices, Inc. All rights reserved.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -35,21 +35,7 @@ RO_SHELL_DIR=$PWD
 TEST_DIR=/tmp/$USER/roctrace_test
 
 BIN_DIR=$TEST_DIR/bin
-mkdir -p $BIN_DIR
-echo
-echo "+===================================================+"
-echo "|    Building test binaries in directory:           |"
-echo "|    $BIN_DIR "
-echo "+===================================================+"
-echo
 
-cp -rp $RO_SHELL_DIR/MatrixTranspose $TEST_DIR/.
-cp -rp $RO_SHELL_DIR/MatrixTranspose_test $TEST_DIR/.
-cp -rp $RO_SHELL_DIR/../../Makefile.find_gpu_and_install_dir $TEST_DIR/.
-
-[ -z $AOMP ] && AOMP=/opt/rocm/lib/llvm
-[ -z $LLVM_INSTALL_DIR ] && LLVM_INSTALL_DIR=$AOMP
-#  For installed rocm llvm, avoid issues with symbolic link to old llvm install dir
 [ "$LLVM_INSTALL_DIR" == "/opt/rocm/llvm" ] && [ -L $LLVM_INSTALL_DIR ] && [ -d /opt/rocm/lib/llvm ] && export LLVM_INSTALL_DIR=/opt/rocm/lib/llvm
 
 AOMP=$LLVM_INSTALL_DIR
@@ -75,42 +61,10 @@ EXPORT_ENV="HIP_VDI=1 ROCM_PATH=${ROCM_PATH} HSA_PATH=${ROCM_PATH} INC_PATH=${IN
 echo export $EXPORT_ENV
 export $EXPORT_ENV
 
-# BIN 1 
-make -C $TEST_DIR/MatrixTranspose
-cp ${TEST_DIR}/MatrixTranspose/MatrixTranspose ${BIN_DIR}/MatrixTranspose
-
-# BIN 2  test
-make -C "${TEST_DIR}/MatrixTranspose_test"
-cp ${TEST_DIR}/MatrixTranspose_test/MatrixTranspose ${BIN_DIR}/MatrixTranspose_test
-
-# BIN 3  test
-HIP_API_ACTIVITY_ON=1 make -C "${TEST_DIR}/MatrixTranspose_test"
-cp ${TEST_DIR}/MatrixTranspose_test/MatrixTranspose ${BIN_DIR}/MatrixTranspose_hipaact_test
-
-# BIN 4  test 
-MGPU_TEST=1 make -C "${TEST_DIR}/MatrixTranspose_test"
-cp ${TEST_DIR}/MatrixTranspose_test/MatrixTranspose ${BIN_DIR}/MatrixTranspose_mgpu
-
-# BIN 5  test 
-C_TEST=1 make -C "${TEST_DIR}/MatrixTranspose_test"
-cp ${TEST_DIR}/MatrixTranspose_test/MatrixTranspose ${BIN_DIR}/MatrixTranspose_ctest
-
-cp ${RO_SHELL_DIR}/golden_traces/*_trace.txt ${BIN_DIR}/
-cp ${RO_SHELL_DIR}/golden_traces/tests_trace_cmp_levels.txt ${BIN_DIR}/
-
 # for now we do not check the traces and do not run hsa tests.
 check_trace_flag=0
 run_hsa_tests=0
-echo
-echo "+===================================================+"
-echo "|  Done building test binaries                      |"
-echo "|  (some binaries are reused)                       |"
-echo "|  Now Running tests with roctracer                 |"
-echo "|  check_trace_flag: $check_trace_flag                              |"
-echo "|  run_hsa_testsd:   $run_hsa_tests                              |"
-echo "|    cd $TEST_DIR  "
-echo "+===================================================+"
-echo
+
 cd $TEST_DIR
 
 # enable tools load failure reporting

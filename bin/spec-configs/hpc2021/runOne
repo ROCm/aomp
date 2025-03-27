@@ -20,6 +20,7 @@ ulimit -s unlimited
 
 export OMPX_FORCE_SYNC_REGIONS=1
 export LIBOMPTARGET_AMDGPU_USE_MULTIPLE_SDMA_ENGINES=1
+export LIBOMPTARGET_AMDGPU_TEAMS_PER_CU=6
 
 export OMP_TARGET_OFFLOAD=MANDATORY
 export LIBRARY_PATH=$AOMP/lib
@@ -29,5 +30,5 @@ export OMPI_CXX=clang++
 export LD_LIBRARY_PATH=$AOMP/lib:$MPI/lib/
 export PATH=$AOMP/bin:$MPI/bin:$PATH
 
-runhpc -c amdgpu_clang.cfg -I -l -n 1 -T base --define gputype=$GFX --define model=omp_target --threads=1 --ranks=$RKS   -i test,ref tiny --rebuild
+runhpc -c amdgpu_clang.cfg -I -l -n 1 -T base --define gputype=$GFX --define model=omp_target --threads=1 --ranks=$RKS   -i ref tiny --rebuild
 

@@ -35,7 +35,7 @@ thisdir=`dirname $realpath`
 
 REPO_DIR=$AOMP_REPOS/hipfort
 BUILD_DIR=${BUILD_AOMP}
-HIPFORT_INSTALL_DIR=${HIPFORT_INSTALL_DIR:-$AOMP_INSTALL_DIR/hipfort}
+HIPFORT_INSTALL_DIR=${HIPFORT_INSTALL_DIR:-$AOMP_INSTALL_DIR}
 
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   echo " "
@@ -53,11 +53,11 @@ if [ ! -d $REPO_DIR ] ; then
 fi
 
 if [ ! -f $AOMP/bin/clang ] ; then
-   echo "ERROR:  Missing file $AOMP/bin/clang"
-   echo "        Build the AOMP llvm compiler in $AOMP first"
-   echo "        This is needed to build the device libraries"
-   echo " "
-   exit 1
+   if [ ! -f $AOMP/lib/llvm/bin/clang ] ; then
+      echo "ERROR:  Missing file $AOMP/lib/llvm/bin/clang"
+      echo " "
+      exit 1
+  fi
 fi
 
 # Make sure we can update the install directory
@@ -84,18 +84,20 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
   MYCMAKEOPTS=" \
 -DCMAKE_INSTALL_PREFIX=$HIPFORT_INSTALL_DIR \
 -DCMAKE_BUILD_TYPE=Release \
--DHIPFORT_COMPILER=$AOMP_INSTALL_DIR/bin/flang \
+-DHIPFORT_COMPILER=$LLVM_INSTALL_LOC/bin/flang-new \
 -DHIPFORT_COMPILER_FLAGS="-cpp" \
 -DCMAKE_Fortran_FLAGS_DEBUG="" \
--DHIPFORT_AR=$AOMP_INSTALL_DIR/bin/llvm-ar \
--DHIPFORT_RANLIB=$AOMP_INSTALL_DIR/bin/llvm-ranlib "
+-DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR/lib/cmake \
+-DHIPFORT_AR=$LLVM_INSTALL_LOC/bin/llvm-ar \
+-DHIPFORT_RANLIB=$LLVM_INSTALL_LOC/bin/llvm-ranlib "
 
   mkdir -p $BUILD_DIR/build/hipfort
   cd $BUILD_DIR/build/hipfort
   echo
   echo " -----Running hipfort cmake ---- "
-  echo ${AOMP_CMAKE} $MYCMAKEOPTS $REPO_DIR
-  ${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_Fortran_FLAGS="-Mfree -fPIC" $REPO_DIR
+  echo ${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_Fortran_FLAGS="-ffree-form -fPIC" $REPO_DIR
+  ${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_Fortran_FLAGS="-ffree-form -fPIC" $REPO_DIR
+
   if [ $? != 0 ] ; then
       echo "ERROR hipfort cmake failed. Cmake flags"
       echo "      $MYCMAKEOPTS"
