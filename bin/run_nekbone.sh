@@ -42,11 +42,13 @@ fi
 ulimit -s unlimited
 PATH=$AOMP/bin/:$PATH make F77=$FLANG -f makefile.aomp  ${make_overrides}
 VERBOSE=${VERBOSE:-"1"}
+set -x
 if [ $VERBOSE -eq 0 ]; then
-  ./nekbone 2>&1 | tee nek.log > /dev/null
+  $GPURUN_BINDIR/gpurun -s ./nekbone 2>&1 | tee nek.log > /dev/null
 else
-  ./nekbone 2>&1 | tee nek.log
+  $GPURUN_BINDIR/gpurun -s ./nekbone 2>&1 | tee nek.log
 fi
+set +x
 grep -s Exitting nek.log
 ret=$?
 if [ $ret -ne 0 ]; then

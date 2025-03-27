@@ -2,7 +2,11 @@
 save_status() { tval=$? && (($tval!=0)) && rval=$tval; }; rval=0
 echo "ZZZZZZZZZZ BabelStream"   # marker for extract-tests
 set -x
-./milestone-3-babel -n 20               # 805.3 MB
+if [ -f $AOMP/bin/gpurun  ]; then
+  $AOMP/bin/gpurun -s ./milestone-3-babel -n 20               # 805.3 MB
+else
+  ./milestone-3-babel -n 20               # 805.3 MB
+fi
 save_status
 ./milestone-3-babel -n 20 -s 100000000  # 2400.0 MB
 save_status
