@@ -18,8 +18,13 @@ int main() {
   if (nteams == 0){
     printf("Error: Cannot determine number of teams.\n");
     return 1;
-  } else if (nteams != TOTAL_TEAMS)
-      printf("Warning: Requested Teams was %d, but %d was used.\n", TOTAL_TEAMS, nteams);
+  } else if (nteams != TOTAL_TEAMS) {
+    printf("Warning: Requested Teams was %d, but %d was used.\n", TOTAL_TEAMS, nteams);
+    // Handle the case where nteams isn't a factor of N
+    n = (n/nteams)*nteams;
+    if (n != N)
+      printf("n updated to %d\n", n);
+  }
 
   for (int i = 0; i < nteams; i++)
     team_counts[i] = 0;
@@ -40,7 +45,7 @@ int main() {
   }
 
   for (int i = 0; i < nteams; i++) {
-      if (team_counts[i] != N/nteams) {
+      if (team_counts[i] != n/nteams) {
           printf("Team id : %d is not shared with equal work. It is shared"
 			  " with %d iterations\n", i, team_counts[i]);
 	  err++;
