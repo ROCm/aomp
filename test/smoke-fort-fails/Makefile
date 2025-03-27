@@ -20,11 +20,16 @@ TESTS_DIR = \
     flang-519158-par \
     flang-520127_loop-bind \
     flang-520127_loop-parbind \
+    flang-522059 \
     flang-522365-loop-1-1 \
     flang-522365-loop-2a \
     flang-522365-loop-2s \
     flang-522365-ttdpd-2a \
+    flang-523313 \
     flang-523626 \
+    flang-523344-device \
+    flang-523344-host \
+    flang-524183 \
     flang-gpu-stop-integer \
     flang-gpu-stop-string \
     flang-gpu-exit \
