@@ -1,7 +1,14 @@
 include ../Makefile.defs
 
 TESTS_DIR = \
-    hipfort
+    flang-464660-2 \
+    hipfort \
+    rocm-issue-201 \
+    tgt-abort-lhostdev \
+    tgt-print-hello-lhostdev \
+    tgt-print-val-lhostdev \
+    tgt-stop-lhostdev \
+    tgt-write-lhostdev
 
 all:
 	@for test_dir in $(TESTS_DIR); do \
