@@ -90,7 +90,6 @@ TESTS_DIR = \
     flang-495125 \
     flang-502486 \
     flang-511356 \
-    flang-519158-par \
     flang-520127_loop-bind \
     flang-520127_loop-parbind \
     flang-522365-ttdpd-1-1 \

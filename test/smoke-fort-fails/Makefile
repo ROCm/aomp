@@ -15,6 +15,7 @@ TESTS_DIR = \
     flang-505726 \
     flang-509589 \
     flang-519158 \
+    flang-519158-par \
     flang-522059 \
     flang-522365-loop-1-1 \
     flang-522365-loop-2a \
