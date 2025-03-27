@@ -12,6 +12,7 @@ TESTS_DIR = \
     declare-target-link-1 \
     declare-target-link-2 \
     declare-target-link-3 \
+    distribute-parallel-do-if-host \
     end \
     end-ffixed-form \
     end-fopenmp \
@@ -38,6 +39,7 @@ TESTS_DIR = \
     flang-440121 \
     flang-441477 \
     flang-443915 \
+    flang-444386-1 \
     flang-445718 \
     flang-445718-fortran-intrinsic \
     flang-445718-sign \
@@ -83,11 +85,15 @@ TESTS_DIR = \
     flang-485161 \
     flang-485265 \
     flang-489239 \
+    flang-489863 \
     flang-491971 \
     flang-494405 \
     flang-495125 \
     flang-502486 \
     flang-511356 \
+    flang-519158-par \
+    flang-520127_loop-bind \
+    flang-520127_loop-parbind \
     flang-522365-ttdpd-1-1 \
     flang-522365-ttdpd-2s \
     flang-nested-parallel-do-loops \
@@ -98,6 +104,9 @@ TESTS_DIR = \
     flang-TL-1 \
     flang-TP-0 \
     flang-TP-1 \
+    flang-gpu-abort \
+    flang-gpu-stop-integer \
+    flang-gpu-stop-string \
     flang-use-device \
     hellofort-io \
     hellofort-nio \
@@ -144,14 +153,19 @@ TESTS_DIR = \
     split-dist-f90 \
     split-dist-par-c \
     split-dist-par-f90 \
+    split-outer2 \
     target-cray-pointer \
     teams-distribute-no-parallel \
     teams-ditribute-collapse \
+    tgt-abort \
+    tgt-abort-lhostdev \
     tgt-print-val \
     tgt-print-val-lhostdev \
     tgt-print-hello \
     tgt-print-hello-lhostdev \
     tgt-printf-c \
+    tgt-stop \
+    tgt-stop-lhostdev \
     tgt-write \
     tgt-write-lhostdev \
     vaddt-complex2 \
