@@ -12,6 +12,9 @@ TESTS_DIR = \
     declare-target-link-1 \
     declare-target-link-2 \
     declare-target-link-3 \
+    end \
+    end-ffixed-form \
+    end-fopenmp \
     exp-real-map \
     f2018-select-rank \
     fdefault-sizeof \
