@@ -2,11 +2,9 @@ include ../Makefile.defs
 
 TESTS_DIR = \
     crayptr-default \
-    distribute-parallel-do-if-host \
     flang-364228-2 \
     flang-364228-3 \
     flang-421111-3 \
-    flang-444386-1 \
     flang-445999 \
     flang-446033b_loop \
     flang-446033b_ttdpd \
@@ -17,9 +15,6 @@ TESTS_DIR = \
     flang-505726 \
     flang-509589 \
     flang-519158 \
-    flang-519158-par \
-    flang-520127_loop-bind \
-    flang-520127_loop-parbind \
     flang-522059 \
     flang-522365-loop-1-1 \
     flang-522365-loop-2a \
@@ -30,10 +25,7 @@ TESTS_DIR = \
     flang-523344-device \
     flang-523344-host \
     flang-524183 \
-    flang-gpu-stop-integer \
-    flang-gpu-stop-string \
     flang-gpu-exit \
-    flang-gpu-abort \
     flang_red_bug_51 \
     kernel-exec-modes-host \
     mathquad-tgt \
@@ -42,12 +34,7 @@ TESTS_DIR = \
     rocm-issue-241 \
     rocm-issue-251 \
     rocm-issue-253-device \
-    rocm-issue-253-host \
-    split-outer2 \
-    tgt-abort \
-    tgt-abort-lhostdev \
-    tgt-stop \
-    tgt-stop-lhostdev
+    rocm-issue-253-host
 
 all:
 	@for test_dir in $(TESTS_DIR); do \
