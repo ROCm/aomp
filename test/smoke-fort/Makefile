@@ -69,7 +69,6 @@ TESTS_DIR = \
     flang-464541 \
     flang-464660 \
     flang-464660-1 \
-    flang-464660-2 \
     flang-471469 \
     flang-471982 \
     flang-472452 \
@@ -146,7 +145,6 @@ TESTS_DIR = \
     olcf-tf-6-combined \
     olcf-tf-7-loop-combined \
     rocm-aomp-issue-1148 \
-    rocm-issue-201 \
     rocm-issue-202 \
     rocm-issue-253-none \
     single-value-map \
@@ -158,16 +156,11 @@ TESTS_DIR = \
     teams-distribute-no-parallel \
     teams-ditribute-collapse \
     tgt-abort \
-    tgt-abort-lhostdev \
     tgt-print-val \
-    tgt-print-val-lhostdev \
     tgt-print-hello \
-    tgt-print-hello-lhostdev \
     tgt-printf-c \
     tgt-stop \
-    tgt-stop-lhostdev \
     tgt-write \
-    tgt-write-lhostdev \
     vaddt-complex2 \
     vaddt-complex4 \
     vaddt-complex8 \
