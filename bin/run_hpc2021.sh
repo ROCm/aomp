@@ -19,8 +19,10 @@ if [ "$1" == "-clean" ]; then
   mkdir -p ${HPC2021_SOURCE_DIR}
   cd ${HPC2021_SOURCE_DIR} || exit 1
   set -x
-  wget --timeout 15 --tries=3 -q http://roclogin.amd.com/SPEC/hpc2021-1.1.9.tar.xz
-  wget --timeout 15 --tries=3 -q http://roclogin.amd.com/SPEC/Hpc21-scripts.tar
+  #WLOC=http://roclogin.amd.com/SPEC
+  WLOC=http://aomp-tr01.amd.com/SPEC
+  wget --timeout 15 --tries=3 -q $WLOC/hpc2021-1.1.9.tar.xz
+  wget --timeout 15 --tries=3 -q $WLOC/Hpc21-scripts.tar
   tar xf hpc2021-1.1.9.tar.xz
   tar xvf Hpc21-scripts.tar
   set +x

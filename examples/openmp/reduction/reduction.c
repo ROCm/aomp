@@ -1,38 +1,17 @@
 #include <stdio.h>
-
 #define N   1000000ll
 #define SUM (N * (N-1)/2)
-
-int main (void)
-{
+int main (void) {
   long long a, i;
+  a = 0;
+  #pragma omp target parallel for reduction(+:a)
+  for (i = 0; i < N; i++)
+    a += i;
 
-  #pragma omp target parallel map(tofrom: a) shared(a) private(i)
-  {
-    #pragma omp master
-    a = 0;
-
-    #pragma omp barrier
-
-    #pragma omp for reduction(+:a)
-    for (i = 0; i < N; i++) {
-        a += i;
-    }
-
-    // The Sum shall be sum:[0:N]
-    #pragma omp single
-    {
-      if (a != SUM)
-        printf ("Incorrect result on target = %lld, expected = %lld!\n", a, SUM);
-      else
-        printf ("The result is correct on target = %lld!\n", a);
-    }
-  }
-  if (a != SUM){
-    printf("Fail!\n");
+  if (a != SUM) {
+    printf("Incorrect result = %lld, expected = %lld!\nFail!\n", a, SUM);
     return 1;
   }
-  printf("Success!\n");
-
+  printf ("The result is correct %lld!\nSuccess!\n", a);
   return 0;
 }

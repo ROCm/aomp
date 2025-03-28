@@ -1,0 +1,38 @@
+
+This example shows how to use HIP and OpenMP target offload in the same application. 
+
+The file fortran_callable_init.hip is compiled with hipcc -c to build the heterogeneous object 
+fortran_callable_init.o. That file defines a hip kernel that is indirectly called from 
+the fortran main. This is somewhat like hipfort except the fortran does not directly use
+any of the hip or math library API.
+
+
+Then flang-new compiles fortran_hip_interop.f95 and links it to the heterogeneous object.
+The hip object must link to the amdhip64 library so -lamdhip64 is needed on the command line. 
+
+```
+flang-new -fPIC -O3 -fopenmp --offload-arch=gfx90a -L$LLVM_INSTALL_DIR/../../lib -lamdhip64 -Wl,-rpath,$LLVM_INSTALL_DIR/../../lib fortran_hip_interop.f95 fortran_callable_init.o -o fortran_hip_interop
+```
+
+The major difference between this example and hipfort examples is that this 
+example uses FORTRAN OpenMP offloading.  So this example uses two types of GPU kernels; HIP kernels, and OpenMP target offload kernels.  This code sets up the OpenMP data environment to 
+provide this interoperability. 
+
+```
+    !$OMP TARGET DATA MAP(tofrom:arr1) MAP(from:crr1)
+
+   !$OMP TARGET DATA USE_DEVICE_ADDR(arr1)
+   call fortran_callable_init(c_loc(arr1),nx)
+   !$OMP END TARGET DATA
+
+   !$OMP TARGET TEAMS DISTRIBUTE PARALLEL DO PRIVATE(x) &
+   !$OMP NOWAIT
+         do x=1,nx
+            crr1(x)=arr1(x)+1.0
+         end do
+   !$OMP END TARGET TEAMS DISTRIBUTE PARALLEL DO
+
+   !$OMP TASKWAIT
+
+   !$OMP END TARGET DATA
+```

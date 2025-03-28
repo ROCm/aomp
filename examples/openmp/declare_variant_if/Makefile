@@ -9,14 +9,14 @@
 #
 #  Run "make help" to see other options for this Makefile
 
-TESTNAME = declare_variant_if 
+TESTNAME = declare_variant_if
 TESTSRC  = declare_variant_if.c
 
 mkfile_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 ifneq ($(CURDIR)/,$(mkfile_dir))
   TESTSRC := $(mkfile_dir)$(TESTSRC)
 endif
-include $(mkfile_dir)../../Makefile.find_gpu_and_install_dir
+include $(mkfile_dir)../../inc/find_gpu_and_install_dir.mk
 
 CC = $(LLVM_INSTALL_DIR)/bin/clang
 # Sorry, clang openmp requires these complex options
@@ -47,7 +47,8 @@ $(TESTNAME): $(TESTSRC)
 run: $(TESTNAME)
 	$(RUNENV) ./$(TESTNAME)
 
-include $(mkfile_dir)../../Makefile.help
+include $(mkfile_dir)../../inc/help.mk
+include $(mkfile_dir)../../inc/obin.mk
 
 # Cleanup anything this makefile can create
 clean:

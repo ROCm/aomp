@@ -1,57 +1,41 @@
 include ../Makefile.defs
 
 TESTS_DIR = \
-    distribute-parallel-do-if-host \
-    f2018-select-rank \
-    flang-315421 \
-    flang-325095 \
+    crayptr-default \
+    flang-364228-2 \
+    flang-364228-3 \
     flang-421111-3 \
-    flang-444386-1 \
     flang-445999 \
-    flang-446033a_loop \
-    flang-446033a_ttdpd \
     flang-446033b_loop \
     flang-446033b_ttdpd \
-    flang-446033c_loop \
-    flang-446033d_loop \
     flang-463332 \
-    flang-464541 \
     flang-469194 \
-    flang-471982 \
     flang-476122a \
     flang-480581 \
-    flang-485161 \
-    flang-485265 \
-    flang-491971 \
-    flang-502486 \
     flang-505726 \
     flang-509589 \
-    flang-gpu-stop-integer \
-    flang-gpu-stop-string \
+    flang-519158 \
+    flang-519158-par \
+    flang-522059 \
+    flang-522365-loop-1-1 \
+    flang-522365-loop-2a \
+    flang-522365-loop-2s \
+    flang-522365-ttdpd-2a \
+    flang-523313 \
+    flang-523626 \
+    flang-523344-device \
+    flang-523344-host \
+    flang-524183 \
     flang-gpu-exit \
-    flang-gpu-abort \
-    hellofort-io \
-    mathdbl-tgt \
+    flang_red_bug_51 \
+    kernel-exec-modes-host \
     mathquad-tgt \
-    math-acos \
-    math-erfc \
-    olcf-tf-7-loop-combined \
     rocm-aomp-issue-842 \
-    rocm-aomp-issue-1148 \
-    rocm-issue-201 \
     rocm-issue-208 \
     rocm-issue-241 \
     rocm-issue-251 \
     rocm-issue-253-device \
-    rocm-issue-253-host \
-    rocm-issue-253-none \
-    split-dist-f90 \
-    split-dist-par-c \
-    split-dist-par-f90 \
-    tgt-print \
-    tgt-printf-c \
-    tgt-stop \
-    tgt-write
+    rocm-issue-253-host
 
 all:
 	@for test_dir in $(TESTS_DIR); do \

@@ -1004,7 +1004,9 @@ function hpc2021(){
   if [ "$?" -eq "0" ]; then
     echo "running on ubuntu"
     pushd /tmp;
-    wget -q http://roclogin.amd.com/SPEC/npsdbOmpi.tar
+    #WLOC=http://roclogin.amd.com/SPEC
+    WLOC=http://aomp-tr01.amd.com/SPEC
+    wget --timeout 15 --tries=3 -q $WLOC/npsdbOmpi.tar
     tar xf npsdbOmpi.tar
     rm -f npsdbOmpi.tar
     popd
