@@ -35,6 +35,7 @@ TESTS_DIR = \
     rocm-issue-208 \
     rocm-issue-241 \
     rocm-issue-251 \
+    rocm-issue-253-none \
     rocm-issue-253-device \
     rocm-issue-253-host
 
