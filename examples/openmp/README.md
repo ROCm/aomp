@@ -9,7 +9,7 @@ sources to use OpenMP target offload.
 These are the c and C++ examples in the [openmp](.) examples category:
 - [hello](hello/README.md) A printf demo showing various levels of parallelism
 - [veccopy](veccopy) A simple vector copy in c
-- [vmulsum](vmulsum/README) A simple vector multiply and sum in c
+- [vmulsum](vmulsum/README.md) A simple vector multiply and sum in c
 - [reduction](reduction/README) A simple parallel reduction in c
 - [print_device](print_device/README.md) Prints the number of GPUs and the value of ROCR_VISIBLE_DEVICES to demonstrate gpurun.
 - [driver_tests](driver_tests) Demo of various command line options
