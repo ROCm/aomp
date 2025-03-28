@@ -5,7 +5,7 @@
 
 ulimit -t 120
 
-AOMP_OPENMPVV_REPO_NAME=OpenMP_VV
+AOMP_OPENMPVV_REPO_NAME=${AOMP_OPENMPVV_REPO_NAME:-OpenMP_VV}
 
 # --- Start standard header to set AOMP environment variables ----
 realpath=`realpath $0`
