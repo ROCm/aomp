@@ -115,6 +115,7 @@ TESTS_DIR = \
     kernel-exec-modes \
     kernel-exec-modes-reductions \
     LaunchLatency \
+    lg-squaretri \
     llvm-issue-82047 \
     math-acos \
     mathdbl \
