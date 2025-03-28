@@ -17,6 +17,7 @@ TESTS_DIR = \
     flang-519158 \
     flang-519158-par \
     flang-522059 \
+    flang-522104 \
     flang-522365-loop-1-1 \
     flang-522365-loop-2a \
     flang-522365-loop-2s \
@@ -34,6 +35,7 @@ TESTS_DIR = \
     rocm-issue-208 \
     rocm-issue-241 \
     rocm-issue-251 \
+    rocm-issue-253-none \
     rocm-issue-253-device \
     rocm-issue-253-host
 
