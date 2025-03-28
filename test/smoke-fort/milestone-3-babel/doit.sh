@@ -8,7 +8,7 @@ if [ -f $AOMP/bin/gpurun  ]; then
 fi
 $PRECMD ./milestone-3-babel -n 20               # 805.3 MB
 save_status
-set +x
+
 $PRECMD ./milestone-3-babel -n 20 -s 100000000  # 2400.0 MB
 save_status
 $PRECMD ./milestone-3-babel -n 20 -s 200000000  # 4800.0 MB
