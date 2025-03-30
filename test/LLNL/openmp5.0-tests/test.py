@@ -35,16 +35,20 @@ def run(tests):
         cmd="./"+t
         cmd_s=cmd.split()
         p4=subprocess.Popen(cmd_s,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
-        for lines in p4.stdout.readlines():
+        stdout,stderr = p4.communicate()
+        stdout = stdout.decode('utf-8')
+        for lines in stdout.splitlines():
             #print(lines)
-            if b"error" in lines:
+            if "error" in lines:
                 print("Failed")
                 passs=False
                 break
-            if b"FAIL" in lines:
+            if "FAIL" in lines:
                 print("Failed")
                 passs=False
                 break
+        if p4.returncode != 0:
+            passs=False
         if passs: 
             print ("Passed")
             pass_count+=1
@@ -61,14 +65,18 @@ def compile(CC,LIBS, tests):
                 cmd=CC+" -c "+ v
                 cmd_s=cmd.split()
                 p2=subprocess.Popen(cmd_s,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
-                for lines in p2.stdout.readlines():
-                    efile.write(lines.decode('utf8'))
-                    if b"error" in lines:
+                stdout,stderr = p2.communicate()
+                stdout = stdout.decode('utf-8')
+                for lines in stdout.splitlines():
+                    efile.write(lines)
+                    if "error" in lines:
                         fail=True
                         print("Compilation of ",v," failed")
                         passs = passs and not fail
                         break
                     passs = passs and not fail
+                if p2.returncode != 0:
+                    passs=False
  
             if passs:
                 print("Compiling ",key)
@@ -79,12 +87,15 @@ def compile(CC,LIBS, tests):
                 #print("Final compile command is ",cmd)
                 cmd_s=cmd.split()
                 p3=subprocess.Popen(cmd_s,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
-                for lines in p3.stdout.readlines():
-                    print(lines.decode('utf8'))
-                    if b"error" in lines:
+                stdout, stderr = p3.communicate()
+                stdout = stdout.decode('utf-8')
+                for lines in stdout.splitlines():
+                    print(lines)
+                    if "error" in lines:
                         print("Linking of ",v," failed\n")
                         break
-                runnables.append(key)
+                if p3.returncode == 0:
+                    runnables.append(key)
     return runnables
 def main():
     tests=get_tests("test_list")

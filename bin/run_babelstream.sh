@@ -109,16 +109,6 @@ else
  omp_mi300_flags="$omp_fast_flags"
 fi
 
-GPURUN_BINDIR=${GPURUN_BINDIR:-$AOMP/bin}
-if [ ! -f "$GPURUN_BINDIR/gpurun" ] || [ ! -f "$GPURUN_BINDIR/rocminfo" ] ; then
-    # When using trunk, try to find gpurun and rocminfo in ROCm
-    _SILENT=""
-    GPURUN_BINDIR=/opt/rocm/llvm/bin
-    export ROCMINFO_BINARY=/opt/rocm/bin/rocminfo
-else
-    export ROCMINFO_BINARY=$GPURUN_BINDIR/rocminfo
-fi
-
 omp_cpu_flags="-O3 -fopenmp -DOMP"
 hip_flags="-O3 -Wno-unused-result -DHIP"
 stdpar_flags="-O3 -I. --offload-arch=$AOMP_GPU -DNDEBUG -O3 --hipstdpar --hipstdpar-path=/opt/rocm/include/thrust/system/hip --hipstdpar-thrust-path=/opt/rocm/include --hipstdpar-prim-path=/opt/rocm/include -std=c++17 "

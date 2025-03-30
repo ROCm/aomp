@@ -115,6 +115,7 @@ TESTS_DIR = \
     kernel-exec-modes \
     kernel-exec-modes-reductions \
     LaunchLatency \
+    lg-squaretri \
     llvm-issue-82047 \
     math-acos \
     mathdbl \
@@ -145,7 +146,6 @@ TESTS_DIR = \
     olcf-tf-7-loop-combined \
     rocm-aomp-issue-1148 \
     rocm-issue-202 \
-    rocm-issue-253-none \
     single-value-map \
     split-dist-f90 \
     split-dist-par-c \
