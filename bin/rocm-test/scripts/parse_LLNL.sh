@@ -8,7 +8,7 @@
 #  ./parse_LLNL.sh <optional: /prefix/for/output>
 
 realpath=`realpath $0`
-aomp_regex='(.*\/aomp)\/'
+aomp_regex='(.*)\/bin\/'
 [[ "$realpath" =~ $aomp_regex ]]
 aompdir=${BASH_REMATCH[1]}
 
