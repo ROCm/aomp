@@ -28,16 +28,22 @@
 # ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+
+TESTNAME = vectorAdd
+FILETYPE = cpp
+
+CFLAGS ?=
 mkfile_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 include $(mkfile_dir)../../inc/find_gpu_and_install_dir.mk
-
-TESTNAME =vectorAdd
-FILETYPE =cpp
-TESTSRC = $(TESTNAME).$(FILETYPE)
-
 ifneq ($(CURDIR)/,$(mkfile_dir))
-  TESTSRC := $(mkfile_dir)$(TESTSRC)
+  _in_dir := $(mkfile_dir)
+else
+  _in_dir :=
 endif
+# All inputs from example dir should be prefixed with $_in_dir
+GPUFLAGS ?= --offload-arch=$(LLVM_GPU_ARCH)
+
+TESTSRC = $(_in_dir)$(TESTNAME).$(FILETYPE)
 
 CC := $(LLVM_INSTALL_DIR)/bin/clang++
 
@@ -49,6 +55,29 @@ else
   CFLAGS += -x hip -std=c++11 --offload-arch=$(LLVM_GPU_ARCH)$(AOMP_TARGET_FEATURES)
   LFLAGS += -L$(HIPDIR)/lib -lamdhip64
 endif
+# If we use trunk, there might not be any amd device libs and we don't need
+# them for this example since it's not using any math libs.
+#ifeq ($(LLVM_COMPILER_NAME),clang)
+#  CFLAGS += -lomptarget.devicertl -nogpulib
+#endif
+
+ifeq ($(OFFLOAD_DEBUG),1)
+  $(info    # DEBUG Mode ON)
+  CCENV  = env LIBRARY_PATH=$(LLVM_INSTALL_DIR)/lib-debug
+  RUNENV += LIBOMPTARGET_DEBUG=1
+endif
+
+ifeq ($(VERBOSE),1)
+  $(info    # Compilation VERBOSE Mode ON)
+  CFLAGS += -v
+endif
+
+ifeq ($(TEMPS),1)
+  $(info    # Compilation and linking save-temp Mode ON)
+  CFLAGS += -save-temps
+endif
+
+CFLAGS += $(EXTRA_CFLAGS) $(GPUFLAGS)
 
 # ----- Demo compile and link in one step, no object code saved
 $(TESTNAME): $(TESTSRC)
