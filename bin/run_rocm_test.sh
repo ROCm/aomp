@@ -177,47 +177,56 @@ if [ "$aomp" != 1 ]; then
     export debsupport=0
     export rpmsupport=0
     git --no-pager log -1
-    #------- Begin testing for package manager -------
-    echo Testing apt...
-    pushd $tmpdir
-    apt-get download $test_package_name && pkg_mgr_found=1 || pkg_mgr_found=0
-    popd
-    if [ $pkg_mgr_found -eq 1 ]; then
-      export debsupport=1
-      apt=1
-    fi
-    if [ $pkg_mgr_found -eq 0 ]; then
-      echo Testing dnf...
-      dnf -y download --destdir=$tmpdir openmp-extras-tests && pkg_mgr_found=1 || pkg_mgr_found=0
-      if [ $pkg_mgr_found -eq 1 ]; then
-        export rpmsupport=1
-	dnf=1
-      fi
-    fi
-    if [ $pkg_mgr_found -eq 0 ]; then
-      echo Testing yum...
-      osversion=$(cat /etc/os-release | grep -e ^VERSION_ID)
-      if [[ $osversion =~ '"7' ]]; then
-        yumdownloader --destdir=$tmpdir $test_package_name && pkg_mgr_found=1 || pkg_mgr_found=0
+    if [ -e "$ROCMINF/share/openmp-extras/tests/bin/run_rocm_test.sh" ] && [ "$EPSDB" == "1" ] ; then
+      packages=$(dpkg --list | wc -l)
+      if [ $packages -ne 0 ]; then
+        export debsupport=1
       else
-        yum download --destdir $tmpdir $test_package_name && pkg_mgr_found=1 || pkg_mgr_found=0
-      fi
-      if [ $pkg_mgr_found -eq 1 ]; then
-        yum=1
         export rpmsupport=1
       fi
-    fi
-    if [ $pkg_mgr_found -eq 0 ]; then
-      echo Testing zypper...
-      local_dir=~/openmp-extras-test
-      rm -f "$local_dir"/*
-      zypper --pkg-cache-dir $local_dir download $test_package_name && pkg_mgr_found=1 || pkg_mgr_found=0
+    else
+      #------- Begin testing for package manager -------
+      echo Testing apt...
+      pushd $tmpdir
+      apt-get download $test_package_name && pkg_mgr_found=1 || pkg_mgr_found=0
+      popd
       if [ $pkg_mgr_found -eq 1 ]; then
-	zypper=1
-        export rpmsupport=1
+        export debsupport=1
+        apt=1
+      fi
+      if [ $pkg_mgr_found -eq 0 ]; then
+        echo Testing dnf...
+        dnf -y download --destdir=$tmpdir openmp-extras-tests && pkg_mgr_found=1 || pkg_mgr_found=0
+        if [ $pkg_mgr_found -eq 1 ]; then
+          export rpmsupport=1
+	  dnf=1
+        fi
+      fi
+      if [ $pkg_mgr_found -eq 0 ]; then
+        echo Testing yum...
+        osversion=$(cat /etc/os-release | grep -e ^VERSION_ID)
+        if [[ $osversion =~ '"7' ]]; then
+          yumdownloader --destdir=$tmpdir $test_package_name && pkg_mgr_found=1 || pkg_mgr_found=0
+        else
+          yum download --destdir $tmpdir $test_package_name && pkg_mgr_found=1 || pkg_mgr_found=0
+        fi
+        if [ $pkg_mgr_found -eq 1 ]; then
+          yum=1
+          export rpmsupport=1
+        fi
+      fi
+      if [ $pkg_mgr_found -eq 0 ]; then
+        echo Testing zypper...
+        local_dir=~/openmp-extras-test
+        rm -f "$local_dir"/*
+        zypper --pkg-cache-dir $local_dir download $test_package_name && pkg_mgr_found=1 || pkg_mgr_found=0
+        if [ $pkg_mgr_found -eq 1 ]; then
+	  zypper=1
+          export rpmsupport=1
+        fi
       fi
     fi
-    #------- End testing for package manager -------
+      #------- End testing for package manager -------
     if [ ! -e "$ROCMINF/share/openmp-extras/tests/bin/run_rocm_test.sh" ]; then
       if [ "$EPSDB" == "1" ]; then
         echo "Error: nPSDB should have the openmp-extras-tests package installed before this test step."
