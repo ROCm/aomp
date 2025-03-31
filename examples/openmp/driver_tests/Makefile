@@ -1,36 +1,58 @@
 #-----------------------------------------------------------------------
+# Makefile for OpenMP Driver Tests
 #
-#  Makefile: Cuda clang demo Makefile for both amdgcn and nvptx targets.
-#            amdgcn GPU targets begin with "gfx". nvptx targets begin
-#            with sm_.  Example: To build and run on k4000 do this:
+# This Makefile demonstrates various compiler options for building
+# OpenMP offloading applications targeting GPUs. It supports both
+# AMDGCN (e.g., gfx targets) and NVPTX (e.g., sm_ targets) architectures.
 #
-#            export LLVM_GPU_ARCH=sm_30
-#            make run
+# Usage:
+# 1. Set the target GPU architecture using the LLVM_GPU_ARCH variable.
+#    Example: export LLVM_GPU_ARCH=sm_30
+# 2. Run `make run` to compile and execute the application.
 #
-#  Run "make help" to see other options for this Makefile
+# Targets:
+# - `make`: Builds the application and generates intermediate files.
+# - `make run`: Runs the compiled application.
+# - `make clean`: Cleans up all generated files.
+#
+# Run `make help` to see additional options.
+#-----------------------------------------------------------------------
 
+# Define the test name and source file
 TESTNAME = driver_tests
 TESTSRC  = $(TESTNAME).c
 
+# Determine the directory of the Makefile
 mkfile_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 ifneq ($(CURDIR)/,$(mkfile_dir))
   TESTSRC := $(mkfile_dir)$(TESTSRC)
 endif
+
+# Include helper script to find GPU and installation directory
 include $(mkfile_dir)../../inc/find_gpu_and_install_dir.mk
 
+# Compiler and flags
 CC = $(LLVM_INSTALL_DIR)/bin/clang
 
+# Base compiler flags for OpenMP
 CFLAGS := -fopenmp
+
+# Offload architecture flag
 OAFLAG := --offload-arch=$(LLVM_GPU_ARCH)
 
+# Enable verbose mode if VERBOSE=1
 ifeq ($(VERBOSE),1)
   $(info    Compilation VERBOSE Mode ON)
   CFLAGS += -v
 endif
 
+# Allow additional flags to be appended
 CFLAGS += $(EXTRA_CFLAGS)
 
-# ----- Demo compile and link in one step, no object code saved
+#-----------------------------------------------------------------------
+# Build target: Compile and link in one step, demonstrating various
+# compiler options and generating intermediate files.
+#-----------------------------------------------------------------------
 $(TESTNAME): $(TESTSRC)
 	@echo 
 	@echo "------- DEMO VARIOUS COMPILER OPTIONS --------"
@@ -60,9 +82,14 @@ $(TESTNAME): $(TESTSRC)
 	file $(TESTNAME)
 	@echo 
 
+#-----------------------------------------------------------------------
+# Run target: Execute the compiled application.
+#-----------------------------------------------------------------------
 run: $(TESTNAME)
 	./$(TESTNAME)
 
-# Cleanup anything this makefile can create
+#-----------------------------------------------------------------------
+# Clean target: Remove all generated files.
+#-----------------------------------------------------------------------
 clean:
 	rm -f $(TESTNAME) obin *.i *.ii *.bc *.lk a.out-* *.ll *.s *.o *.cubin

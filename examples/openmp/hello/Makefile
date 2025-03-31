@@ -1,14 +1,9 @@
 #-----------------------------------------------------------------------
-#
-#  Makefile: Cuda clang demo Makefile for both amdgcn and nvptx targets.
-#            amdgcn GPU targets begin with "gfx". nvptx targets begin
-#            with sm_.  Example: To build and run on k4000 do this:
-#
-#            export LLVM_GPU_ARCH=sm_30
-#            make run
-#
-#  Run "make help" to see other options for this Makefile
+# Makefile for building and running OpenMP Hello World examples.
+# Demonstrates different modes of execution using OpenMP.
+#-----------------------------------------------------------------------
 
+# Define test names and source files
 TESTNAME1 = hello1
 TESTSRC1  = hello1.c
 
@@ -24,8 +19,10 @@ TESTSRC4  = hello4.c
 TESTNAME5 = hello5
 TESTSRC5  = hello5.c
 
-
+# Determine the directory of the Makefile
 mkfile_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+
+# Adjust source file paths if running out-of-tree
 ifneq ($(CURDIR)/,$(mkfile_dir))
   TESTSRC1 := $(mkfile_dir)$(TESTSRC1)
 endif
@@ -41,27 +38,32 @@ endif
 ifneq ($(CURDIR)/,$(mkfile_dir))
   TESTSRC5 := $(mkfile_dir)$(TESTSRC5)
 endif
+
+# Include helper Makefile for GPU and compiler setup
 include $(mkfile_dir)../../inc/find_gpu_and_install_dir.mk
 
+# Compiler and flags
 CC       = $(LLVM_INSTALL_DIR)/bin/clang
-
 CFLAGS1   = -O3 -fopenmp --offload-arch=$(LLVM_GPU_ARCH)$(AOMP_TARGET_FEATURES)
 CFLAGS2   = -O3 -fopenmp --offload-arch=$(LLVM_GPU_ARCH)$(AOMP_TARGET_FEATURES)
 CFLAGS3   = -O3 -fopenmp --offload-arch=$(LLVM_GPU_ARCH)$(AOMP_TARGET_FEATURES)
 CFLAGS4   = -O3 -fopenmp --offload-arch=$(LLVM_GPU_ARCH)$(AOMP_TARGET_FEATURES)
 CFLAGS5   = -O3 -fopenmp --offload-arch=$(LLVM_GPU_ARCH)$(AOMP_TARGET_FEATURES)
 
+# Enable debug mode if OFFLOAD_DEBUG is set
 ifeq ($(OFFLOAD_DEBUG),1)
   $(info    DEBUG Mode ON)
   CCENV  = env LIBRARY_PATH=$(LLVM_INSTALL_DIR)/lib-debug
   RUNENV = LIBOMPTARGET_DEBUG=1
 endif
 
+# Enable verbose mode if VERBOSE is set
 ifeq ($(VERBOSE),1)
   $(info    Compilation VERBOSE Mode ON)
   CFLAGS += -v
 endif
 
+# Enable saving temporary files if TEMPS is set
 ifeq ($(TEMPS),1)
   $(info    Compilation and linking save-temp Mode ON)
   CFLAGS += -save-temps 
@@ -69,10 +71,10 @@ endif
 
 CFLAGS += $(EXTRA_CFLAGS)
 
-#
-# ----- Demo compile and link of five variations
+# Build all examples
 all: $(TESTNAME1) $(TESTNAME2) $(TESTNAME3) $(TESTNAME4) $(TESTNAME5) 
 
+# Compile and link each example
 $(TESTNAME1): $(TESTSRC1)
 	$(CCENV) $(CC) $(CFLAGS1) $(LFLAGS) $^ -o $@
 
@@ -88,6 +90,7 @@ $(TESTNAME4): $(TESTSRC4)
 $(TESTNAME5): $(TESTSRC5)
 	$(CCENV) $(CC) $(CFLAGS5) $(LFLAGS) $^ -o $@
 
+# Run all examples
 run: $(TESTNAME1) $(TESTNAME2) $(TESTNAME3) $(TESTNAME4) $(TESTNAME5)
 	$(RUNENV) ./$(TESTNAME1)
 	$(RUNENV) ./$(TESTNAME2)
@@ -95,10 +98,11 @@ run: $(TESTNAME1) $(TESTNAME2) $(TESTNAME3) $(TESTNAME4) $(TESTNAME5)
 	$(RUNENV) ./$(TESTNAME4)
 	$(RUNENV) ./$(TESTNAME5)
 
+# Include additional helper Makefiles
 include $(mkfile_dir)../../inc/obin.mk
 include $(mkfile_dir)../../inc/help.mk
 
-# Cleanup anything this makefile can create
+# Cleanup generated files
 clean:
 	rm -f $(TESTNAME1) $(TESTNAME2) $(TESTNAME3) $(TESTNAME4) $(TESTNAME5) \
 		obin *.i *.ii *.bc *.lk a.out-* *.ll *.s *.o *.cubin
