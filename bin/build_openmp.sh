@@ -146,9 +146,9 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 
      if [ "$AOMP_BUILD_MODFILES_WITH_FLANG_NEW" == 1 ]; then
        echo "Building .mod files via:  $LLVM_INSTALL_LOC/bin/flang"
-       echo "Installing .mod files to: $LLVM_INSTALL_LOC/lib/llvm/include/flang/"
+       echo "Installing .mod files to: $LLVM_INSTALL_LOC/include/flang/"
        MYCMAKEOPTS="$MYCMAKEOPTS -DLIBOMP_FORTRAN_MODULES_COMPILER=$LLVM_INSTALL_LOC/bin/flang
-                    -DLIBOMP_MODULES_INSTALL_PATH=$LLVM_INSTALL_LOC/lib/llvm/include/flang/"
+                    -DLIBOMP_MODULES_INSTALL_PATH=$LLVM_INSTALL_LOC/include/flang/"
      fi
    fi
 
