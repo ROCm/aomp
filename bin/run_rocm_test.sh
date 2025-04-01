@@ -174,10 +174,10 @@ if [ "$aomp" != 1 ]; then
   tmpdir="$HOME/tmp/openmp-extras"
   os_name=$(cat /etc/os-release | grep NAME)
   test_package_name="openmp-extras-tests"
-  rm -rf $tmpdir
-  mkdir -p $tmpdir
 
   if [ "$SKIP_TEST_PACKAGE" != 1 ] && [ "$TEST_BRANCH" == "" ]; then
+    rm -rf $tmpdir
+    mkdir -p $tmpdir
     export debsupport=0
     export rpmsupport=0
     git --no-pager log -1

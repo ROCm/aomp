@@ -1,3 +1,4 @@
+AOMPSAVE := $(AOMP)
 include ../../Makefile.defs
 
 TESTNAME     = gdb_teams
@@ -14,7 +15,7 @@ CC           = $(OMP_BIN) $(VERBOSE)
 
 include ../Makefile.rules
 
-AOMPROCM ?= $(AOMP)
+AOMPROCM ?= $(AOMPSAVE)
 ifneq (,$(wildcard $(AOMPROCM)/bin/rocgdb))
 RUNPROF   = $(AOMPROCM)/bin/rocgdb
 else ifneq (,$(wildcard /opt/rocm/bin/rocgdb))
