@@ -3,7 +3,7 @@
 export AOMP=${AOMP:-/opt/rocm/llvm}
 export AOMP_GPU=${AOMP_GPU:-gfx90a}
 export ROCM_GPU=${ROCM_GPU:-$AOMP_GPU}
-export FLANG=${FLANG:-flang-new}
+export FLANG=${FLANG:-flang}
 export FC=${FC:-$AOMP/bin/$FLANG}
 
 make -f Makefile.jacobi clean

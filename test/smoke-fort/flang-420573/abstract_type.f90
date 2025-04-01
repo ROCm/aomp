@@ -1,6 +1,6 @@
 ! compile with
 !
-! flang-new -flang-experimental-hlfir -flang-experimental-polymorphism -o abstract_type.o -c abstract_type.f90
+! flang -flang-experimental-hlfir -flang-experimental-polymorphism -o abstract_type.o -c abstract_type.f90
 
 module my_mod
     implicit none

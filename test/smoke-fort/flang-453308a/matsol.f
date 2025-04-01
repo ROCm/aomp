@@ -1,4 +1,4 @@
-! compile with: flang-new  -O3  -fopenmp --offload-arch=gfx90a -Dundef -DPERF -c matsol.f
+! compile with: flang  -O3  -fopenmp --offload-arch=gfx90a -Dundef -DPERF -c matsol.f
 
       SUBROUTINE SOR13D (NX,NY,NZ,AX,B,CX,AY,CY,AZ,CZ,RHS,X
      &        ,OMEGA0,OMOLD,XSMIN,IDIR,ITOLD,ITmax,EPS0,IPRT,ICONVERGE

@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # Wrapper script around build_supp.sh for building local/llvm-flang
-# supplemental components with the flang-new driver.
+# supplemental components with the flang driver.
 #
 # --- Start standard header to set AOMP environment variables ----
 realpath=`realpath $0`
@@ -15,7 +15,7 @@ cd $AOMP_REPOS
 cd aomp
 
 export AOMP_SUPP=$HOME/local/llvm-flang
-export FLANG=flang-new
+export FLANG=flang
 echo "Settings:"
 echo "  AOMP=$AOMP"
 echo "  AOMP_SUPP=$AOMP_SUPP"

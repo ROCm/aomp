@@ -54,7 +54,7 @@ LLVM_VERSION_MAJOR=$(${LLVM_INSTALL_LOC}/bin/clang --version | grep -oP '(?<=cla
 # We need a version of ROCM llvm that supports flang-classic 
 # via the link from flang to clang.  rocm 5.5 would be best.
 # This will enable removal of flang-classic driver support
-# from clang to make way for flang-new.
+# from clang to make way for flang.
 
 # Options for llvm-classic cmake.
 TARGETS_TO_BUILD="AMDGPU;X86"
