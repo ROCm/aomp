@@ -5,7 +5,7 @@ TESTSRC_MAIN =
 TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 
-FLANG        ?= flang-new
+FLANG        ?= flang
 OMP_BIN      = $(AOMP)/bin/$(FLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
 OMP_FLAGS   += -gpulibc
@@ -15,7 +15,7 @@ OMP_FLAGS   += -gpulibc
 include ../Makefile.rules
 
 HIPCC           = ${AOMP}/bin/clang -x hip
-FC              = ${AOMP}/bin/flang-new
+FC              = ${AOMP}/bin/flang
 #HIP_LIB_PATH   ?= ${ROCM_PATH}/hip/lib
 #HIP_LIB_PATH   ?= /COD/LATEST/aomp/lib
 HIP_LIB_PATH   ?= /opt/rocm/lib

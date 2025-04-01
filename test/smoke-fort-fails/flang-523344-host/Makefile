@@ -8,7 +8,7 @@ TESTSRC_MAIN = saxpy_gpu_do_concurrent_host.F90
 TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 
-FLANG        ?= flang-new
+FLANG        ?= flang
 CFLAGS       = -fdo-concurrent-parallel=host
 OMP_BIN      = $(AOMP)/bin/$(FLANG)
 CC           = $(OMP_BIN) $(VERBOSE)

@@ -5,7 +5,7 @@ TESTSRC_MAIN = flang-440121.f95
 TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 
-FLANG        ?= flang-new
+FLANG        ?= flang
 OMP_BIN      = $(AOMP)/bin/$(FLANG)
 WRONG_LIB    = `pwd`/lib
 CC           = LIBRARY_PATH=$(WRONG_LIB):$(AOMP)/lib $(OMP_BIN) $(VERBOSE)

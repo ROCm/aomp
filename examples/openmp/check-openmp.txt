@@ -1,7 +1,7 @@
 ====== openmp ======
  Return Code for atomic_vs_reduction: 0
  Return Code for declare_variant_if: 0
- Return Code for demo_offload_types: 0
+ Return Code for demo_offload_types: 2
  Return Code for driver_tests: 0
  Return Code for hello: 0
  Return Code for print_device: 0
