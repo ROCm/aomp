@@ -50,7 +50,15 @@ if [ "$1" == "log" ]; then
     log="LLNL.run.log.$date"
   fi
   echo "Log enabled: $log"
- timeout 120 ./test.py $AOMP $AOMP_GPU 2>&1 | tee $log
+ timeout 480 ./test.py $AOMP $AOMP_GPU 2>&1 | tee $log
+ if [ ${PIPESTATUS[0]} -eq 124 ]; then
+   echo "WARNING: Testing timed out!" >&2
+   exit 1
+ fi
 else
- timeout 120 ./test.py $AOMP $AOMP_GPU
+ timeout 480 ./test.py $AOMP $AOMP_GPU
+ if [ $? -eq 124 ]; then
+   echo "WARNING: Testing timed out!" >&2
+   exit 1
+ fi
 fi

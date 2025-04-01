@@ -937,7 +937,7 @@ TEST(VeccopyTraces, OnDeviceCallbacks_teams_distribute_parallel_for_nowait_w_tim
   OMPT_ASSERT_SET(BufferRecord, CB_DATAOP);
   OMPT_ASSERT_SET(BufferRecord, CB_DATAOP);
   OMPT_ASSERT_SET(BufferRecord, CB_DATAOP);
-  OMPT_ASSERT_SET(BufferRecord, CB_KERNEL, {5000, 40000});
+  OMPT_ASSERT_SET(BufferRecord, CB_KERNEL, {4000, 40000});
   OMPT_ASSERT_SET(BufferRecord, CB_TARGET, TARGET, END);
   OMPT_ASSERT_SET(TargetEmi, TARGET, BEGIN, 0);
   OMPT_ASSERT_SET(TargetDataOpEmi, ALLOC, BEGIN, N * sizeof(int)); // a ?

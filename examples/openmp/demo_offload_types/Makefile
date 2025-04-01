@@ -1,21 +1,25 @@
-#-----------------------------------------------------------------------
-#
+# --- Makefile for OpenMP Offload Types Demo ---
+# This Makefile demonstrates the compilation and execution of binaries
+# with different OpenMP offloading configurations, including no offload,
+# host offload, and GPU offload.
 
 TESTNAME = demo_offload_types
 TESTSRC  = $(TESTNAME).c
 
+# Determine the directory of the Makefile
 mkfile_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 ifneq ($(CURDIR)/,$(mkfile_dir))
   TESTSRC := $(mkfile_dir)$(TESTSRC)
 endif
 include $(mkfile_dir)../../inc/find_gpu_and_install_dir.mk
 
+# Compiler and flags
 CC = $(LLVM_INSTALL_DIR)/bin/clang
-
 CFLAGS := -fopenmp
 OAFLAG := --offload-arch=$(LLVM_GPU_ARCH)
 OAQFLAG := --offload-arch=$(LLVM_GPU_ARCH):xnack+
 
+# Enable verbose mode if requested
 ifeq ($(VERBOSE),1)
   $(info    Compilation VERBOSE Mode ON)
   CFLAGS += -v
@@ -23,7 +27,8 @@ endif
 
 CFLAGS += $(EXTRA_CFLAGS)
 
-# ----- Demo compile and link in one step, no object code saved
+# --- Compilation and linking ---
+# Compile and link binaries for different offload configurations
 $(TESTNAME): $(TESTSRC)
 	@echo "------- DEMO BUILDS OF VARIOUS OFFLOAD TYPES --------"
 	@echo "1. Create binary that does not offload:	no-offload"
@@ -42,6 +47,8 @@ ifneq (sm_,$(findstring sm_,$(LLVM_GPU_ARCH)))
 	$(CC) $(CFLAGS) $(OAQFLAG) $^ -o $(TESTNAME)
 endif
 
+# --- Execution ---
+# Run the compiled binaries with different configurations
 run: $(TESTNAME)
 	@echo "------- DEMO DEFAULT EXECUTION -------"
 	@echo "1. no-offload"
@@ -103,6 +110,7 @@ else
 endif
 endif
 
-# Cleanup anything this makefile can create
+# --- Cleanup ---
+# Remove generated binaries and intermediate files
 clean:
 	rm -f $(TESTNAME) no-offload host-offload gpu-offload  obin *.i *.ii *.bc *.lk a.out-* *.ll *.s *.o *.cubin
