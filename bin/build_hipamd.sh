@@ -97,7 +97,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
  -DHIP_COMPILER=clang \
  -DCMAKE_HIP_ARCHITECTURES=OFF \
  -DCLR_BUILD_HIP=ON -DCLR_BUILD_OCL=ON \
- -DHIPCC_BIN_DIR=$AOMP_REPOS/build/hipcc \
+ -DHIPCC_BIN_DIR=$BUILD_DIR/build/hipcc \
  -DROCM_PATH=$ROCM_PATH"
 
   # If this machine does not have an actvie amd GPU, tell hipamd
