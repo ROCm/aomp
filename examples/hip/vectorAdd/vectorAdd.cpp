@@ -24,6 +24,7 @@
 
 #include "hip/hip_runtime.h"
 #include <stdio.h>
+#include <time.h>
 
 #define N 10
 
@@ -55,6 +56,12 @@ void printHipError(hipError_t error) {
 }
 
 void randomizeVector(int *vector) {
+  struct timespec ts;
+  if (clock_gettime(CLOCK_MONOTONIC, &ts) == -1) {
+    perror("clock_gettime");
+    exit(1);
+  }
+  srand(ts.tv_nsec);
   for (int i = 0; i < N; ++i)
     vector[i] = rand() % 10;
 }
@@ -64,11 +71,11 @@ void clearVector(int *vector) {
     vector[i] = 0;
 }
 
-int checkVector(int *vectorA, int *vectorB, int *vectorC){
+int checkVector(int *vectorA, int *vectorB, int *vectorC) {
   int errors = 0;
-  for (int i = 0; i < N; ++i){
-    if(vectorC[i] != (vectorA[i] + vectorB[i] + i + 1))
-       errors++;
+  for (int i = 0; i < N; ++i) {
+    if (vectorC[i] != (vectorA[i] + vectorB[i] + i + 1))
+      errors++;
   }
   return errors;
 }
@@ -159,12 +166,12 @@ int main() {
   if (vectorCAllocated)
     hipFree(deviceDstVec);
 
-  //Check final vector
+  // Check final vector
   int errors = checkVector(hostSrcVecA, hostSrcVecB, hostDstVec);
-  if (errors){
+  if (errors) {
     printf("Fail!\n");
     return 1;
   }
-  printf ("Success!\n");
+  printf("Success!\n");
   return 0;
 }
