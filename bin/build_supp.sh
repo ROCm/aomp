@@ -47,6 +47,7 @@ $ $AOMP_SUPP/build/cmdlog              File with log of all components built
 # Known issues:
 # - The _version name for each component must NOT have a "-" in it
 #   because that is used to parse the version from the symbolic link.
+# - One cannot build openmpi till one builds flang-new and installs into $AOMP. 
 #
 EOF
 }
@@ -59,7 +60,7 @@ realpath=`realpath $0`
 thisdir=`dirname $realpath`
 . $thisdir/aomp_common_vars
 # --- end standard header ----
-FLANG=${FLANG:-flang}
+FLANG=${FLANG:-flang-new}
 
 function runcmd(){
    THISCMD=$1
@@ -137,15 +138,24 @@ function checkversion(){
 }
 function buildopenmpi(){
   # Not all builds, trunk for example, install clang into lib/llvm/bin. Fall back on $AOMP/bin.
-  if [ ! -f $LLVM_INSTALL_LOC/bin/clang ]; then
+  if [ ! -f $LLVM_INSTALL_LOC/bin/${FLANG} ] ; then
     LLVM_INSTALL_LOC=$AOMP
-    if [ ! -f $LLVM_INSTALL_LOC/bin/clang ]; then
-      echo "Error: buildopenmpi cannot find clang executable. Set AOMP to one level above clang bin directory."
-      exit 1
-     fi
+    if [ ! -f $LLVM_INSTALL_LOC/bin/${FLANG} ] ; then
+      LLVM_INSTALL_LOC=$AOMP/lib/llvm
+      if [ ! -f $LLVM_INSTALL_LOC/bin/${FLANG} ] ; then
+        echo "Error: buildopenmpi cannot find ${FLANG} executable. Set AOMP to location of $FLANG "
+        exit 1
+      fi
+    fi
   fi
+  if [ ! -d $AOMP_SUPP/hwloc ] ; then
+    echo "Error: 'build_supp.sh openmpi' requires that hwloc is installed at $AOMP_SUPP/hwloc"
+    echo "       Please run 'build_supp.sh hwloc' "
+    exit 1
+  fi
+
   _cname="openmpi"
-  _version=5.0.0
+  _version=5.0.7
   _release=v5.0
   _installdir=$AOMP_SUPP_INSTALL/$_cname-$_version
   _linkfrom=$AOMP_SUPP/$_cname
@@ -169,11 +179,11 @@ function buildopenmpi(){
     runcmd "rm -rf $_installdir"
   fi
   runcmd "mkdir -p $_installdir"
-  ### update configure to recognize flang
+  ### update configure to recognize flang-new
   runcmd "cp configure configure-orig"
   runcmdout "sed -e s/flang\s*)/flang*)/ configure-orig" configure
   ###
-  runcmd "./configure --with-hwloc=$HOME/local/hwloc --with-hwloc-libdir=$HOME/local/hwloc/lib OMPI_CC=$LLVM_INSTALL_LOC/bin/clang OMPI_CXX=$LLVM_INSTALL_LOC/bin/clang++ OMPI_F90=$LLVM_INSTALL_LOC/bin/${FLANG} CXX=$LLVM_INSTALL_LOC/bin/clang++ CC=$LLVM_INSTALL_LOC/bin/clang FC=$LLVM_INSTALL_LOC/bin/${FLANG} --prefix=$_installdir"
+  runcmd "./configure --with-hwloc=$AOMP_SUPP/hwloc --with-hwloc-libdir=$AOMP_SUPP/hwloc/lib OMPI_CC=$LLVM_INSTALL_LOC/bin/clang OMPI_CXX=$LLVM_INSTALL_LOC/bin/clang++ OMPI_F90=$LLVM_INSTALL_LOC/bin/${FLANG} CXX=$LLVM_INSTALL_LOC/bin/clang++ CC=$LLVM_INSTALL_LOC/bin/clang FC=$LLVM_INSTALL_LOC/bin/${FLANG} --prefix=$_installdir"
   runcmd "make -j8"
   runcmd "make install"
   if [ -L $_linkfrom ] ; then 
@@ -570,5 +580,6 @@ for _component in $_components ; do
   _thisdate=`date`
   echo "# DONE: successful build of $_component on $_thisdate " >>$CMDLOGFILE
 done
-# restore the current directory
+
 cd $curdir
+
