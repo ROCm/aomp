@@ -14,5 +14,5 @@
     <project remote="rocm" path="rocSPARSE" name="rocSPARSE" revision="rocm-6.3.3" groups="unlocked" />
     <project remote="rocm" path="hipBLAS" name="hipBLAS" revision="rocm-6.3.3" groups="unlocked" />
     <project remote="rocm" path="hipBLAS-common" name="hipBLAS-common" revision="rocm-6.3.3" groups="unlocked" />
-    <project remote="SJTU" path="PowerInfer" name="PowerInfer" revision="6ae7e06dbe1032ec103e1a08ce126b3d1ed2d6e7" groups="unlocked" />
+    <project remote="SJTU" path="PowerInfer" name="PowerInfer" revision="6ae7e06dbe1032ec103e1a08ce126b3d1ed2d6e7" upstream="main" groups="unlocked" />
 </manifest>
