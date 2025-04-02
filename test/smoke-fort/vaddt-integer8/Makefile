@@ -5,7 +5,7 @@ TESTSRC_MAIN = vaddt.f90
 TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 
-FLANG        ?= flang-new
+FLANG        ?= flang
 CFLAGS       = -cpp -DCHKTYPE='integer(8)' -DCHKBYTES=8
 OMP_BIN      = $(AOMP)/bin/$(FLANG)
 CC           = $(OMP_BIN) $(VERBOSE)

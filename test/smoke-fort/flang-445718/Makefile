@@ -6,7 +6,7 @@ TESTSRC_MAIN = rush_larsen_gpu_omp_fort_noprivate.F90
 TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 
-FLANG        ?= flang-new
+FLANG        ?= flang
 OMP_BIN      = $(AOMP)/bin/$(FLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
 #-ccc-print-phases

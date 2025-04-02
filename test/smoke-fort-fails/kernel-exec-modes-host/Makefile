@@ -6,7 +6,7 @@ TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 RUNENV      += OMP_TARGET_OFFLOAD=DISABLED
 
-FLANG        ?= flang-new
+FLANG        ?= flang
 OMP_BIN      = $(AOMP)/bin/$(FLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
 #-ccc-print-phases

@@ -1,7 +1,7 @@
 program test_crayptr
   implicit none
   pointer(ivar,var)
-  real*8 var(*) !works with gfortran, but not accepted by flang-new
+  real*8 var(*) !works with gfortran, but not accepted by flang
   !pointer(ivar,var(*)) !alternative equivalent statement pair
   !real*8 var
   real*8, allocatable :: location(:)

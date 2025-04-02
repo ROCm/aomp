@@ -169,7 +169,7 @@ function buildopenmpi(){
     runcmd "rm -rf $_installdir"
   fi
   runcmd "mkdir -p $_installdir"
-  ### update configure to recognize flang-new
+  ### update configure to recognize flang
   runcmd "cp configure configure-orig"
   runcmdout "sed -e s/flang\s*)/flang*)/ configure-orig" configure
   ###

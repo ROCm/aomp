@@ -232,12 +232,12 @@ echo
 echo " -----Running make ---- " 
 
 if [ "$AOMP_LIMIT_FLANG" == "1" ] ; then
-   # Required for building flang-new on memory limited systems.
+   # Required for building flang on memory limited systems.
    echo ${AOMP_CMAKE} --build . -- -j $AOMP_JOB_THREADS clang lld compiler-rt
    ${AOMP_CMAKE} --build . -- -j $AOMP_JOB_THREADS clang lld compiler-rt
 
-   echo ${AOMP_CMAKE} --build . -- -j $AOMP_FLANG_THREADS flang-new
-   ${AOMP_CMAKE} --build . -- -j $AOMP_FLANG_THREADS flang-new
+   echo ${AOMP_CMAKE} --build . -- -j $AOMP_FLANG_THREADS flang
+   ${AOMP_CMAKE} --build . -- -j $AOMP_FLANG_THREADS flang
 fi
 
 # Build llvm-project in one step
@@ -287,18 +287,7 @@ if [ "$1" == "install" ] ; then
    fi
    removepatch $ROCR_REPO_DIR
    amd_compiler_symlinks=("amdclang" "amdclang++" "amdclang-cl" "amdclang-cpp" "amdflang" "amdlld")
-   if [ "$AOMP_SKIP_FLANG_NEW" == 1 ]; then
-     amd_compiler_cfg=("clang" "clang++" "clang-cpp" "clang-${AOMP_MAJOR_VERSION}" "clang-cl" "flang")
-     if [ -h $LLVM_INSTALL_LOC/bin/amdflang-new ]; then
-       rm -f $LLVM_INSTALL_LOC/bin/amdflang-new
-     fi
-   else
-     amd_compiler_cfg=("clang" "clang++" "clang-cpp" "clang-${AOMP_MAJOR_VERSION}" "clang-cl" "flang" "flang-new")
-     # amdflang-new -> amdllvm symlink
-     if [ ! -h "$LLVM_INSTALL_LOC/bin/amdflang-new" ] && [ -e "$LLVM_INSTALL_LOC/bin/flang-new" ]; then
-       ln -s amdllvm ${LLVM_INSTALL_LOC}/bin/amdflang-new
-     fi
-   fi
+   amd_compiler_cfg=("clang" "clang++" "clang-cpp" "clang-${AOMP_MAJOR_VERSION}" "clang-cl" "flang")
 
    # Leaving this in just in case we decide to add the amd* symlinks in the top level bin directory.
    #for i in "${amd_compiler_symlinks[@]}"; do

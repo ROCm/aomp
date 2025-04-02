@@ -5,7 +5,7 @@ TESTSRC_MAIN =
 TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 
-FLANG        ?= flang-new
+FLANG        ?= flang
 OMP_BIN      =
 CC           = AOMP=${AOMP} AOMP_GPU=${AOMP_GPU} FLANG=${FLANG} TESTNAME=${TESTNAME} ./wrapper.sh
 #-ccc-print-phases

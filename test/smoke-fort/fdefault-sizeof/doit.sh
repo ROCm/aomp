@@ -2,7 +2,7 @@
 
 SRC=sizeofdouble.f90
 EXE=sizeofdouble
-FLANG=${FLANG:-flang-new}
+FLANG=${FLANG:-flang}
 
 FC=$AOMP/bin/$FLANG
 FFLAGS=-fdefault-real-8

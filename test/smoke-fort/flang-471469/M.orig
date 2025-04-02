@@ -1,6 +1,6 @@
 # Compiler
 HIPCC           = ${AOMP}/bin/clang -x hip
-FC              = ${AOMP}/bin/flang-new
+FC              = ${AOMP}/bin/flang
 #HIP_LIB_PATH   ?= ${ROCM_PATH}/hip/lib
 #HIP_LIB_PATH   ?= /COD/LATEST/aomp/lib
 HIP_LIB_PATH   ?= /opt/rocm/lib

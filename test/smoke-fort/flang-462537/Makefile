@@ -5,7 +5,7 @@ TESTSRC_MAIN = flang-462537.f90
 TESTSRC_AUX  = constants.f90
 TESTSRC_ALL  =  $(TESTSRC_AUX) $(TESTSRC_MAIN)
 
-FLANG        ?= flang-new
+FLANG        ?= flang
 CLANG        ?= clang
 OMP_BIN      = $(AOMP)/bin/$(FLANG)
 CC           = $(OMP_BIN) $(VERBOSE)

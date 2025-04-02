@@ -5,7 +5,7 @@ TESTSRC_MAIN = flang-460740.f95
 TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 
-FLANG        ?= flang-new
+FLANG        ?= flang
 OMP_BIN      = $(AOMP)/bin/$(FLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
 #-ccc-print-phases
