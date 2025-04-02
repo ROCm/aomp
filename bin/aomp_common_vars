@@ -305,7 +305,7 @@ _sep=""
 #  _sep=";"
 #done
 
-ROCMLIBS_GFXLIST=${ROCMLIBS_GFXLIST:-"gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a;gfx942;gfx1010;gfx1012;gfx1030;gfx1100;gfx1101;gfx1102;gfx1151;gfx1200;gfx1201"}
+ROCMLIBS_GFXLIST=${ROCMLIBS_GFXLIST:-"gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a;gfx942;gfx1010;gfx1012;gfx1030;gfx1100;gfx1101;gfx1102;gfx1150;gfx1151;gfx1200;gfx1201"}
 _gfxlist="$ROCMLIBS_GFXLIST"
 
 # Calculate the number of threads to use for make

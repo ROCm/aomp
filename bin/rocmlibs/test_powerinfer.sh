@@ -26,8 +26,8 @@ pushd $MODEL_DIR
 pushd $MODEL_DIR
 
 # Install huggingface-cli to download the PowerInfer GGUF models
-pip install -U "huggingface_hub[cli]"
-export PATH=$PATH:$HOME/.local/bin
+pipx install -U "huggingface_hub[cli]"
+export PATH=$PATH:$HOME/.local/share/pipx/venvs/huggingface-hub/bin
 
 # Use huggingface-cli to download the PowerInfer GGUF version of LLaMA(ReLU)-2-7B model
 huggingface-cli download --resume-download --local-dir ReluLLaMA-7B --local-dir-use-symlinks False PowerInfer/ReluLLaMA-7B-PowerInfer-GGUF
