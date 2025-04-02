@@ -46,16 +46,11 @@ obj/
 out/
 
 # Generated files
-*.log
 *.tmp
 *.bak
 *.swp
 *.swo
 *.~*
-*.txt
-
-# Ignore executables without extensions
-*[!.]*
 
 # Makefile specific
 Makefile~
