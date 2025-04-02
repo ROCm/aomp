@@ -11,3 +11,4 @@ rocprofiler: rocprofiler-combined-no-aql-ok-fix-cov6.patch
 babelstream: babelstream-usm.patch
 llvm-project: ATD_ASO_full.patch
 UMT: umt.patch
+clr : clr.patch
