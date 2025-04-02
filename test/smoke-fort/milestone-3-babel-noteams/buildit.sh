@@ -2,7 +2,7 @@
 
 AOMP=${AOMP:-/opt/rocm/llvm}
 AOMP_GPU=${AOMP_GPU:-gfx90a}
-FLANG=${FLANG:-flang-new}
+FLANG=${FLANG:-flang}
 FC=${FC:-$AOMP/bin/$FLANG}
 EXE=milestone-3-babel-noteams
 

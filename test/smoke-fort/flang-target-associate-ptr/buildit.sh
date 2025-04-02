@@ -2,7 +2,7 @@
 
 AOMP=${AOMP:-/opt/rocm/llvm}
 AOMP_GPU=${AOMP_GPU:-gfx90a}
-FLANG=${FLANG:-flang-new}
+FLANG=${FLANG:-flang}
 CLANG=${CLANG:-clang}
 FC=${FC:-$AOMP/bin/$FLANG}
 CC=${CC:-$AOMP/bin/$CLANG}

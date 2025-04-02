@@ -4,7 +4,7 @@ TESTNAME     = flang-use-device
 TESTSRC_MAIN = use-device_fortran.f90 use-device_c.c
 TESTSRC_ALL  =  $(TESTSRC_AUX) $(TESTSRC_MAIN)
 
-FLANG        ?= flang-new
+FLANG        ?= flang
 CLANG        ?= clang
 OMP_BIN      ?= $(AOMP)/bin/$(FLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
