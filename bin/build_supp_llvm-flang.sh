@@ -32,4 +32,5 @@ mkdir -p $AOMP_SUPP
 # symlink to local prereqs that already exist, can be used
 if [ ! -r $AOMP_SUPP/cmake ]; then ln -sf ../cmake $AOMP_SUPP; fi
 if [ ! -r $AOMP_SUPP/ninja ]; then ln -sf ../ninja $AOMP_SUPP; fi
+if [ ! -r $AOMP_SUPP/hwloc ]; then ln -sf ../hwloc $AOMP_SUPP; fi
 AOMP_USE_CCACHE=0 bin/build_supp.sh
