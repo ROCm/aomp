@@ -144,7 +144,6 @@ if [ "$1" == "build_umt" ]; then
     popd
     popd
 
-# 7) if all works ...Ask Dan how the grep for success / check other runs / ask Dan for grep code  or if the check code is a seperate script/thing, seems to be, probably part of internal test harness
     exit 1
 fi
 
