@@ -107,7 +107,7 @@ if [ "$ENABLE_OMP_OFFLOAD" -eq "0" ] ; then
 fi
 
 export LD_LIBRARY_PATH=$AOMP/lib:$AOMPHIP/lib:$OPENMPI_DIR/lib:$LD_LIBRARY_PATH
-export FORTRAN_COMPILE="$AOMP/bin/$FLANG -c -fopenmp --offload-arch=$GPU_ID -fPIC -I$OPENMPI_DIR/lib -cpp $OMP_DEFINES"
+export FORTRAN_COMPILE="$AOMP/bin/$FLANG -c -fopenmp --offload-arch=$GPU_ID -fPIC -I$OPENMPI_DIR/lib -cpp $OMP_DEFINES -fstack-arrays"
 export CC_COMPILE="$AOMP/bin/clang -fPIC"
 export FORTDEV_LIBS=${FORTDEV_LIBS:-"-lflang_rt.hostdevice"}
 export FORTHOST_LIBS=${FORTHOST_LIBS:-"-lflang_rt.runtime"}
