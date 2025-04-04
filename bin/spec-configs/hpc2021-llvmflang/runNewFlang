@@ -13,7 +13,7 @@ set -x
 
 export OMP_TARGET_OFFLOAD=MANDATORY
 export LIBRARY_PATH=$AOMP/lib
-export OMPI_FC=flang-new
+export OMPI_FC=flang
 export OMPI_CC=clang
 export OMPI_CXX=clang++
 export C_INCLUDE_PATH=$AOMP//lib/clang/16.0.0/include

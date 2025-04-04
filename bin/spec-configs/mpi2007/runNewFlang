@@ -14,7 +14,7 @@ set -x
 
 export OMP_TARGET_OFFLOAD=MANDATORY
 export LIBRARY_PATH=$AOMP/lib
-export OMPI_FC=flang-new
+export OMPI_FC=flang
 export OMPI_CC=clang
 export OMPI_CXX=clang++
 export LD_LIBRARY_PATH=$AOMP/lib:$MPI/lib/:$FAOMP/lib:/opt/AMD/amd-libm/lib:/opt/AMD/jemalloc-5.1.0/lib:$LD_LIBRARY_PATH 
