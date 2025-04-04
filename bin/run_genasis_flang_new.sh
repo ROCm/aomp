@@ -35,7 +35,7 @@ AOMP=${AOMP:-$HOME/rocm/aomp/llvm}
 AOMPHIP=${AOMPHIP:-$(realpath -m $(realpath -m $AOMP)/../..)}
 # for ROCm utilities (e.g. rocm_agent_enumerator)
 ROCM=${ROCM:-$(realpath -m $(realpath -m $AOMP)/../..)}
-FLANG=${FLANG:-flang-new}
+FLANG=${FLANG:-flang}
 
 echo "AOMP    = $AOMP"
 echo "AOMPHIP = $AOMPHIP"
