@@ -1,6 +1,7 @@
 /*
  * Test min/max reduction using fmin/fmax with unrelated calls in
- * the kernels. Compile using -fopenmp-target-fast.
+ * the kernels. Compile using -fopenmp-target-fast, that will enable
+ * Xteam reduction even with calls inside.
 */
 #include <stdio.h>
 #include <stdlib.h>
@@ -64,4 +65,9 @@ int main()
   return rc;
 }
 
-
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:8
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:8
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:8
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:8

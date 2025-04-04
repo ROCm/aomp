@@ -36,13 +36,13 @@ int main()
   for (int j = 0; j < N; j = j + 1)
     compute_min(j, min1, a);
 printf("min1=%f\n", min1);
-rc = min1 != 3;
+rc = rc || (min1 != 3);
 
 #pragma omp target teams distribute parallel for reduction(max : max1)
   for (int j = 0; j < N; j = j + 1)
     compute_max(j, max1, a);
 printf("max1=%f\n", max1);
-rc = max1 != 10002;
+rc = rc || (max1 != 10002);
 
 max1 = 0;
 min1 = 100000;
@@ -53,7 +53,7 @@ for (int j = 0; j < N; j = j + 1)
   compute_max(j, max1, a);
 }
 printf("min1=%f max1=%f\n", min1, max1);
-rc = (min1 != 3) || (max1 != 10002);
+rc = rc || (min1 != 3) || (max1 != 10002);
 
 min1 = 100000;
 #pragma omp target teams distribute parallel for reduction(+ : sum1) reduction(min : min1)
@@ -63,7 +63,7 @@ for (int j = 0; j < N; j = j + 1)
   compute_min(j, min1, a);
 }
 printf("sum1=%f min1=%f\n", sum1, min1);
-rc = (sum1 != 50025000) || (min1 != 3);
+rc = rc || (sum1 != 50025000) || (min1 != 3);
 
 sum1 = max1 = 0;
 #pragma omp target teams distribute parallel for reduction(+ : sum1) reduction(max : max1)
@@ -73,7 +73,7 @@ for (int j = 0; j < N; j = j + 1)
   compute_max(j, max1, a);
 }
 printf("sum1=%f max1=%f\n", sum1, max1);
-rc = (sum1 != 50025000) || (max1 != 10002);
+rc = rc || (sum1 != 50025000) || (max1 != 10002);
 
 if (!rc)
   printf("Success\n");
@@ -83,4 +83,8 @@ else
 return rc;
 }
 
-
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:8
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:8
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2

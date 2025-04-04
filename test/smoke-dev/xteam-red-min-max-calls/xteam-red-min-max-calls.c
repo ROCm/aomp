@@ -1,6 +1,9 @@
 /*
  * Test min/max reduction using fmin/fmax with unrelated calls in
- * the kernels. Compile using -O3.
+ * the kernels. Compile using -O3. abs is not yet recognized as a
+ * math function and hence treated as a regular function call. In
+ * the presence of general function calls, specialized kernels are
+ * not generated at this point using vanilla -O2/-O3.
 */
 #include <stdio.h>
 #include <stdlib.h>
@@ -64,4 +67,9 @@ int main()
   return rc;
 }
 
-
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2
