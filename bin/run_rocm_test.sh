@@ -801,7 +801,7 @@ function smoke-limbo(){
 SMOKE_FORT_LIMBO=${SMOKE_FORT_LIMBO:-1}
 function smoke-fort-limbo(){
   # Smoke-fails
-  if [ ! -e $AOMP/bin/flang-new ]; then
+  if [ ! -e $AOMP/bin/flang ]; then
     SMOKE_FORT_LIMBO=0
   fi
   if [ "$SMOKE_FORT_LIMBO" == "1" ]; then
@@ -818,7 +818,7 @@ function smoke-fort-limbo(){
 SMOKE_FORT=${SMOKE_FORT:-1}
 function smoke-fort(){
   # Smoke-fails
-  if [ ! -e $AOMP/bin/flang-new ]; then
+  if [ ! -e $AOMP/bin/flang ]; then
     SMOKE_FORT=0
   fi
   if [ "$SMOKE_FORT" == "1" ]; then

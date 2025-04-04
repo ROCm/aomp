@@ -47,7 +47,7 @@ $ $AOMP_SUPP/build/cmdlog              File with log of all components built
 # Known issues:
 # - The _version name for each component must NOT have a "-" in it
 #   because that is used to parse the version from the symbolic link.
-# - One cannot build openmpi till one builds flang-new and installs into $AOMP. 
+# - One cannot build openmpi till one builds flang and installs into $AOMP. 
 #
 EOF
 }
@@ -60,7 +60,7 @@ realpath=`realpath $0`
 thisdir=`dirname $realpath`
 . $thisdir/aomp_common_vars
 # --- end standard header ----
-FLANG=${FLANG:-flang-new}
+FLANG=${FLANG:-flang}
 
 function runcmd(){
    THISCMD=$1
@@ -179,7 +179,7 @@ function buildopenmpi(){
     runcmd "rm -rf $_installdir"
   fi
   runcmd "mkdir -p $_installdir"
-  ### update configure to recognize flang-new
+  ### update configure to recognize flang
   runcmd "cp configure configure-orig"
   runcmdout "sed -e s/flang\s*)/flang*)/ configure-orig" configure
   ###
