@@ -4,6 +4,9 @@ TESTNAME     = xteam-red-min-max-fast-reduction
 TESTSRC_MAIN = xteam-red-min-max-fast-reduction.c
 TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
+RUNENV      += LIBOMPTARGET_KERNEL_TRACE=1
+
+RUNCMD      = ./$(TESTNAME) 2>&1 | $(FILECHECK) $(TESTSRC_MAIN)
 
 CFLAGS      += -fopenmp-target-fast-reduction
 EXTRA_LDFLAGS     += -lm
