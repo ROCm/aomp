@@ -83,7 +83,7 @@ fi
 
 AOMP_SKIP_FLANG=${AOMP_SKIP_FLANG:-1}
 AOMP_SKIP_FLANG_NEW=${AOMP_SKIP_FLANG_NEW:-0}
-AOMP_FLANG_DRIVER=${AOMP_FLANG_DRIVER:-flang-new}
+AOMP_FLANG_DRIVER=${AOMP_FLANG_DRIVER:-flang}
 
 if [ "$AOMP_SKIP_FLANG_NEW" == 1 ] ; then
    AOMP_PROJECTS_LIST=${AOMP_PROJECTS_LIST:-"clang;lld;clang-tools-extra"}
@@ -322,7 +322,7 @@ fi
 AOMP_JOB_THREADS=${AOMP_JOB_THREADS:-$COMP_THREADS}
 
 if [ "$AOMP_LIMIT_FLANG" == "1" ] ; then
-   # Limit build jobs for llvm flang-new build.
+   # Limit build jobs for llvm flang build.
    FLANG_THREADS=1
 
    # Third column of free is the amount of available memory

@@ -144,6 +144,12 @@ TESTS_DIR = \
     olcf-tf-5-openmp-gpu-teams-parallel-implicit-map \
     olcf-tf-6-combined \
     olcf-tf-7-loop-combined \
+    recursive-ack \
+    recursive-ackmemo \
+    recursive-fact \
+    recursive-factmemo \
+    recursive-fib \
+    recursive-fibmemo \
     rocm-aomp-issue-1148 \
     rocm-issue-202 \
     single-value-map \
