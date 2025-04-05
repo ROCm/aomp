@@ -23,7 +23,7 @@ fi
 
 # Setup AOMP variables
 AOMP=${AOMP:-/COD/LATEST/trunk-atd}
-FLANG=${FLANG:-flang-new}
+FLANG=${FLANG:-flang}
 
 # Use function to set and test AOMP_GPU
 setaompgpu

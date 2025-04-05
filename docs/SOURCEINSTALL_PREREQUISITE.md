@@ -24,17 +24,24 @@ Ubuntu 24.04 Only
   python3-barectf python3-pip python3-pip-whl python3-requests python3-venv python3-yaml
 ```
 
-#### SLES-15-SP5 Packages
+#### SLES-15-SP6 Packages
 ```
-  sudo zypper install wget libopenssl-devel elfutils libelf-devel git pciutils-devel libffi-devel gcc gcc-c++ libnuma-devel openmpi2-devel Mesa-libGL-devel libquadmath0 libtool libX11-devel systemd-devel hwdata unzip mpfr-devel ocl-icd-devel gcc7-fortran
+  sudo zypper install wget libopenssl-devel elfutils libelf-devel git pciutils-devel libffi-devel gcc gcc-c++ libnuma-devel openmpi4-devel Mesa-libGL-devel libquadmath0 libtool libX11-devel systemd-devel hwdata unzip mpfr-devel ocl-icd-devel gcc7-fortran ncurses-devel
 
   A symbolic link may be required at /usr/lib64: /usr/lib64/libquadmath.so -> /usr/lib64/libquadmath.so.0.
 
   # Additional packages used by rocgdb and rocprofiler
-  sudo zypper install texinfo bison flex babeltrace-devel python3 python3-pip python3-devel python3-setuptools makeinfo ncurses-devel libexpat-devel xz-devel libgmp-devel libatomic libdwarf-devel gtest-devel libdw-devel
+  sudo zypper install texinfo bison flex babeltrace-devel makeinfo ncurses-devel libexpat-devel xz-devel libgmp-devel libatomic libdwarf-devel gtest-devel libdw-devel
 
   # Additional packages used by math librares (aomp-hip-libraries)
   sudo zypper install libfmt-devel libmsgpack-devel
+
+  # LLVM has a minimum python requirement of 3.8 and SLES15-SP6 comes with 3.6. Download and install Python-3.8.13.
+  wget https://www.python.org/ftp/python/3.8.13/Python-3.8.13.tgz; tar xf Python-3.8.13.tgz; cd Python-3.8.13; ./configure --enable-optimizations --enable-shared; make altinstall
+  export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
+
+  # Optional: Update python3 symbolic link
+  rm /usr/bin/python3; ln -s /usr/local/bin/python3.8 /usr/bin/python3
 ```
 
 #### RHEL Packages

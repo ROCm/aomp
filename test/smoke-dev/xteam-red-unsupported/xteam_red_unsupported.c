@@ -50,6 +50,6 @@ int main()
 /// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:8
 /// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2
 /// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:8
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:8
 

@@ -149,13 +149,9 @@ if [ "$1" == "install" ] ; then
 EOD
    ln -sf rpath.cfg ${TRUNK_INSTALL_DIR}/bin/clang++.cfg
    ln -sf rpath.cfg ${TRUNK_INSTALL_DIR}/bin/clang.cfg
-   # Do not add -L option to flang-new because it's not currently allowed
+   ln -sf rpath.cfg ${TRUNK_INSTALL_DIR}/bin/flang.cfg
    # flang-new also appears to be reading flang.cfg
-   cat <<EOD > ${TRUNK_INSTALL_DIR}/bin/flang.cfg
--Wl,-rpath=<CFGDIR>/../lib
--Wl,-rpath=<CFGDIR>/../lib/x86_64-unknown-linux-gnu
-EOD
-   ln -sf flang.cfg ${TRUNK_INSTALL_DIR}/bin/flang-new.cfg
+   ln -sf rpath.cfg ${TRUNK_INSTALL_DIR}/bin/flang-new.cfg
    (
    # workaround for issue with triple subdir and shared builds
    # problem with libomptarget.so finding dependent libLLVM* libs
