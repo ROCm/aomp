@@ -8,7 +8,7 @@ TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 RUNCMD       = ./$(TESTNAME) | $(FILECHECK) $(TESTSRC_AUX)
 
 FLANG        ?= flang
-CFLAGS       = -DUSE_GPU -mcode-object-version=5
+CFLAGS       = -DUSE_GPU -mcode-object-version=6
 OMP_BIN      = $(AOMP)/bin/$(FLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
 

@@ -1,6 +1,5 @@
 atomic_vs_reduction
 declare_variant_if
-driver_tests
 hello
 print_device
 reduction
