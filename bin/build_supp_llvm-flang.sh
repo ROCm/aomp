@@ -22,8 +22,8 @@ echo "  AOMP_SUPP=$AOMP_SUPP"
 echo "  CLEAN_SUPP=$CLEAN_SUPP"
 echo "  FLANG=$FLANG"
 
-if [ ! -r "$AOMP/bin/$FLANG" ];  then
-    echo "Error: $AOMP/bin/$FLANG not present"
+if [ ! -r "$AOMP/llvm/bin/$FLANG" ];  then
+    echo "Error: $AOMP/llvm/bin/$FLANG not present"
     exit 1
 fi
 
