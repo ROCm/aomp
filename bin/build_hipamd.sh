@@ -74,6 +74,7 @@ if [ "$1" == "install" ] ; then
 fi
 
 patchrepo $AOMP_REPOS/hipamd
+patchrepo $AOMP_REPOS/clr
 
 if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
   LDFLAGS="-fuse-ld=lld $ASAN_FLAGS"
@@ -298,6 +299,7 @@ if [ "$1" == "install" ] ; then
    fi
 
    removepatch $AOMP_REPOS/hipamd
+   removepatch $AOMP_REPOS/clr
 
       # The hip perl scripts have /opt/rocm hardcoded, so fix them after then are installed
    # but only if not installing to rocm.
