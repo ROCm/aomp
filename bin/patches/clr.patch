@@ -1,0 +1,13 @@
+diff --git a/rocclr/cmake/ROCclrLC.cmake b/rocclr/cmake/ROCclrLC.cmake
+index 72f406210..6004cf325 100644
+--- a/rocclr/cmake/ROCclrLC.cmake
++++ b/rocclr/cmake/ROCclrLC.cmake
+@@ -18,7 +18,7 @@
+ # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ # THE SOFTWARE.
+ 
+-find_package(amd_comgr 2.8 REQUIRED CONFIG
++find_package(amd_comgr 3.0 REQUIRED CONFIG
+   PATHS
+     /opt/rocm/
+     ${ROCM_INSTALL_PATH}
