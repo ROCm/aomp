@@ -1,7 +1,7 @@
 ROCm Compiler Examples for FORTRAN OpenMP Offloading
 ====================================================
 
-This directory contains examples using flang-new to compile and execute examples that use FORTRAN OpenMP target offload.
+This directory contains examples using flang to compile and execute examples that use FORTRAN OpenMP target offload.
 FORTRAN OpenMP target offload uses OpenMP target pragmas in the source to designate code and data 
 that is intended to be accelerated on the GPU.   These are the examples in this category.
 

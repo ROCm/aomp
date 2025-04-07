@@ -35,7 +35,7 @@ include $(mkfile_dir)../../inc/find_gpu_and_install_dir.mk
 CLANG = $(LLVM_INSTALL_DIR)/bin/clang
 FLANG ?= $(LLVM_INSTALL_DIR)/bin/flang
 ifeq ("$(wildcard $(FLANG))","")
-  FLANG = $(LLVM_INSTALL_DIR)/bin/flang-new
+  FLANG = $(LLVM_INSTALL_DIR)/bin/flang
 endif
 BUNDLER = $(LLVM_INSTALL_DIR)/bin/clang-offload-bundler
 
