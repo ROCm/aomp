@@ -10,10 +10,11 @@ OMP_BIN      = $(AOMP)/bin/$(CLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
 
 include ../Makefile.rules
-LOCAL_OMP_FLAGS_NOARCH = $(filter-out -march=$(AOMP_GPU)$(AOMP_TARGET_FEATURES), $(OMP_FLAGS))
-LOCAL_OMP_FLAGS_NODEFINE = $(filter-out -D__OFFLOAD_ARCH_$(INSTALLED_GPU)__, $(LOCAL_OMP_FLAGS_NOARCH))
-LOCAL_OMP_FLAGS_NOTARGET = $(filter-out -fopenmp-targets=amdgcn-amd-amdhsa, $(LOCAL_OMP_FLAGS_NODEFINE))
-LOCAL_OMP_FLAGS = $(filter-out -Xopenmp-target=amdgcn-amd-amdhsa, $(LOCAL_OMP_FLAGS_NOTARGET))
+LOCAL_OMP_FLAGS_NO_OFFLOAD = $(filter-out --offload-arch=$(AOMP_GPU), $(OMP_FLAGS))
+LOCAL_OMP_FLAGS_NO_ARCH = $(filter-out -march=$(AOMP_GPU)$(AOMP_TARGET_FEATURES), $(LOCAL_OMP_FLAGS_NO_OFFLOAD))
+LOCAL_OMP_FLAGS_NO_DEFINE = $(filter-out -D__OFFLOAD_ARCH_$(INSTALLED_GPU)__, $(LOCAL_OMP_FLAGS_NO_ARCH))
+LOCAL_OMP_FLAGS_NO_TARGET = $(filter-out -fopenmp-targets=amdgcn-amd-amdhsa, $(LOCAL_OMP_FLAGS_NO_DEFINE))
+LOCAL_OMP_FLAGS = $(filter-out -Xopenmp-target=amdgcn-amd-amdhsa, $(LOCAL_OMP_FLAGS_NO_TARGET))
 
 # Process GFXLIST:
 #   (1) Replace double with single semicolons

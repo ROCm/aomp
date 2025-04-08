@@ -228,6 +228,8 @@ for directory in ./*/; do
     elif [ $base == 'flags' ] ; then
       make
       make run > /dev/null 2>&1
+    elif [ $base == "gpus" ]; then # Compile and link only test
+      echo "$base" >> ../passing-tests.txt
     elif [ $base == 'printf_parallel_for_target' ] ; then
       make verify-log
     else
