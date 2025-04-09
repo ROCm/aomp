@@ -1,0 +1,240 @@
+diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
+index 9d9c8f3..72b2c24 100644
+--- a/src/CMakeLists.txt
++++ b/src/CMakeLists.txt
+@@ -143,7 +143,31 @@ if(ENABLE_OPENMP)
+ 
+          target_link_options( OpenMP::OpenMP_Fortran INTERFACE $<$<COMPILE_LANGUAGE:Fortran>:--rocm-path=${HIP_ROOT_DIR} -target-accel=amd_${CMAKE_HIP_ARCHITECTURES}>)
+          target_compile_options( OpenMP::OpenMP_Fortran INTERFACE $<$<COMPILE_LANGUAGE:Fortran>:--rocm-path=${HIP_ROOT_DIR} -target-accel=amd_${CMAKE_HIP_ARCHITECTURES}>)
+-         target_link_libraries( OpenMP::OpenMP_Fortran INTERFACE hip::amdhip64)
++         target_link_libraries( OpenMP::OpenMP_Fortran INTERFACE hip::device)
++         target_include_directories( OpenMP::OpenMP_Fortran INTERFACE ${HIP_ROOT_DIR}/include)
++
++      elseif (${CMAKE_Fortran_COMPILER_ID} STREQUAL "LLVMFlang")
++
++         message( STATUS "Detected Flang Fortran OpenMP offload support requested.  Adding additional flags to pull in HIP backend needed by Cray Fortran compiler.")
++
++         if (DEFINED CMAKE_HIP_ARCHITECTURES)
++            message( STATUS "Setting target gpu architecture to ${CMAKE_HIP_ARCHITECTURES}")
++         else()
++            message( FATAL_ERROR " Must set CMAKE_HIP_ARCHITECTURES when using LLVM Flang compiler openmp offload functionality.")
++         endif()
++
++         if (DEFINED CMAKE_FORTRAN_OFFLOAD_LIB)
++            message( STATUS "Setting Fortran GPU offload library to ${CMAKE_FORTRAN_OFFLOAD_LIB}")
++         else()
++            message( FATAL_ERROR " Must set CMAKE_FORTRAN_OFFLOAD_LIB when using LLVM Flang compiler openmp offload functionality.")
++         endif()
++
++         find_package(hip REQUIRED)
++         add_compile_definitions( "TETON_ENABLE_HIP" )
++
++         target_link_options( OpenMP::OpenMP_Fortran INTERFACE $<$<COMPILE_LANGUAGE:Fortran>:--offload-arch=${CMAKE_HIP_ARCHITECTURES}>)
++         target_compile_options( OpenMP::OpenMP_Fortran INTERFACE $<$<COMPILE_LANGUAGE:Fortran>:--offload-arch=${CMAKE_HIP_ARCHITECTURES}>)
++         target_link_libraries( OpenMP::OpenMP_Fortran INTERFACE hip::device)
+          target_include_directories( OpenMP::OpenMP_Fortran INTERFACE ${HIP_ROOT_DIR}/include)
+ 
+       endif()
+diff --git a/src/teton/CMakeLists.txt b/src/teton/CMakeLists.txt
+index d78f861..61dd403 100644
+--- a/src/teton/CMakeLists.txt
++++ b/src/teton/CMakeLists.txt
+@@ -204,8 +204,10 @@ if(ENABLE_TESTS)
+                               ${CONDUIT_INCLUDE_DIR}/conduit
+                             )
+ 
++if ( ENABLE_OPENMP AND CMAKE_Fortran_COMPILER_ID STREQUAL LLVMFlang)
+   target_link_libraries( test_driver PUBLIC
+-                         teton
++                         $<LINK_LIBRARY:WHOLE_ARCHIVE,teton>
++                         -Wl,--no-nvptx-whole-archive
+                          ${CONDUIT_LIBRARIES}
+                          ${CONDUITRELAY_LIBRARIES}
+                          ${CONDUITBLUEPRINT_LIBRARIES}
+@@ -213,9 +215,25 @@ if(ENABLE_TESTS)
+                          ${CONDUITRELAYMPI_LIBRARIES}
+                          ${CONDUITRELAYMPIIO_LIBRARIES}
+                        )
++else()
++  target_link_libraries( test_driver PUBLIC
++                        teton
++                        ${CONDUIT_LIBRARIES}
++                        ${CONDUITRELAY_LIBRARIES}
++                        ${CONDUITBLUEPRINT_LIBRARIES}
++                        ${CONDUITBLUEPRINTMPI_LIBRARIES}
++                        ${CONDUITRELAYMPI_LIBRARIES}
++                        ${CONDUITRELAYMPIIO_LIBRARIES}
++                      )
++endif()
+ 
+   if( ENABLE_OPENMP )
+-    target_link_libraries( test_driver PUBLIC OpenMP::OpenMP_Fortran)
++    if (${CMAKE_Fortran_COMPILER_ID} STREQUAL "LLVMFlang")
++      target_link_libraries( test_driver PUBLIC OpenMP::OpenMP_Fortran
++                             ${CMAKE_FORTRAN_OFFLOAD_LIB})
++    else()
++      target_link_libraries( test_driver PUBLIC OpenMP::OpenMP_Fortran)
++    endif()
+ 
+     # The target_link_options command has trouble with adding flags if there is
+     # a space, it keeps putting quotes around the whole line.  Use the older
+@@ -247,7 +265,7 @@ if(ENABLE_TESTS)
+   if (ENABLE_UMPIRE)
+     target_include_directories( test_driver PUBLIC ${UMPIRE_INCLUDE_DIR} 
+                                                    ${UMPIRE_FORTRAN_MODULES_DIR})
+-    target_link_libraries( test_driver PUBLIC ${UMPIRE_LIBRARIES})
++    target_link_libraries( test_driver PUBLIC ${UMPIRE_LIBRARIES} rt)
+ 
+     if (FMT_ROOT)
+       target_include_directories( test_driver PUBLIC ${FMT_INCLUDE_DIR})
+diff --git a/src/teton/driver/test_driver.cc b/src/teton/driver/test_driver.cc
+index 3fcc51c..ede09b8 100644
+--- a/src/teton/driver/test_driver.cc
++++ b/src/teton/driver/test_driver.cc
+@@ -712,7 +712,10 @@ int TetonDriver::execute()
+                << std::endl;
+          }
+          options["iteration/incidentFluxMaxIt"] = 99;
+-         options["iteration/outerMaxIt"] = 1;
++
++         // A default of 1 outerMaxIt for LLVM Flang AMDGPU doesn't work, it currently requiress more
++         // outer iterations to converge. So set to 50 which was the default in v5.5.0.
++         options["iteration/outerMaxIt"] = 50;
+          if (!options.has_path("iteration/relativeTolerance"))
+          {
+             options["iteration/relativeTolerance"] = energy_check_tolerance / 10.0;
+diff --git a/src/teton/gpu/CornerSweepUCBrz_OMPOL.F90 b/src/teton/gpu/CornerSweepUCBrz_OMPOL.F90
+index 61bbc95..afc5fb0 100644
+--- a/src/teton/gpu/CornerSweepUCBrz_OMPOL.F90
++++ b/src/teton/gpu/CornerSweepUCBrz_OMPOL.F90
+@@ -145,7 +145,7 @@
+ 
+    TOMP(target teams distribute num_teams(nZoneSets) thread_limit(omp_device_team_thread_limit) default(none) &)
+    TOMPC(shared(nZoneSets, nAngleSets,Geom, angleList, Quad)&)
+-   TOMPC(private(ASet, angle))
++   TOMPC(private(ASet, angle, setID))
+ 
+    ZoneSetLoop0: do zSetID=1,nZoneSets
+ 
+@@ -177,7 +177,7 @@
+ 
+    TOMP(target teams distribute num_teams(nZoneSets) thread_limit(omp_device_team_thread_limit) default(none)&)
+    TOMPC(shared(nZoneSets, nAngleSets, Geom, angleList, Quad)&)
+-   TOMPC(private(ASet, angle, fac, R_afp, R_afp2, R, R2))
++   TOMPC(private(ASet, angle, fac, R_afp, R_afp2, R, R2, setID))
+ 
+    ZoneSetLoop1: do zSetID=1,nZoneSets
+ 
+diff --git a/src/teton/gpu/SweepGreyUCBrz_OMPOL.F90 b/src/teton/gpu/SweepGreyUCBrz_OMPOL.F90
+index 3548de8..0927dea 100644
+--- a/src/teton/gpu/SweepGreyUCBrz_OMPOL.F90
++++ b/src/teton/gpu/SweepGreyUCBrz_OMPOL.F90
+@@ -145,7 +145,7 @@
+ 
+    TOMP(target teams distribute num_teams(nZoneSets) thread_limit(omp_device_team_thread_limit) default(none) &)
+    TOMPC(shared(nZoneSets,nGTASets,Geom,nSets,Quad )&)
+-   TOMPC(private(Set))
++   TOMPC(private(Set, SetID))
+ 
+    ZoneSetLoop0: do zSetID=1,nZoneSets
+ 
+@@ -411,7 +411,7 @@
+ 
+    TOMP(target teams distribute num_teams(nZoneSets) thread_limit(omp_device_team_thread_limit) default(none)&)
+    TOMPC(shared(nZoneSets, nGTASets, Geom, GTA, Quad, angleList, nSets)&)
+-   TOMPC(private(Set, ASet, angle, angle0, quadwt, quadTauW1, quadTauW2))
++   TOMPC(private(Set, ASet, angle, angle0, quadwt, quadTauW1, quadTauW2, setID))
+ 
+    ZoneSetLoop2: do zSetID=1,nZoneSets
+      do setID=1,nGTASets
+diff --git a/src/teton/gpu/SweepGreyUCBxyz_OMPOL.F90 b/src/teton/gpu/SweepGreyUCBxyz_OMPOL.F90
+index 44e9098..ae35ab9 100644
+--- a/src/teton/gpu/SweepGreyUCBxyz_OMPOL.F90
++++ b/src/teton/gpu/SweepGreyUCBxyz_OMPOL.F90
+@@ -572,7 +572,7 @@
+ 
+    TOMP(target teams distribute num_teams(nZoneSets) thread_limit(omp_device_team_thread_limit) default(none) &)
+    TOMPC(shared(nZoneSets, nGTASets, nSets, GTA, angleList, Quad, Geom)&)
+-   TOMPC(private(Set, ASet, angle, quadwt)) 
++   TOMPC(private(Set, ASet, angle, quadwt, setID))
+ 
+    ZoneSetLoop3: do zSetID=1,nZoneSets
+ 
+diff --git a/src/teton/gpu/SweepUCBrz_OMPOL.F90 b/src/teton/gpu/SweepUCBrz_OMPOL.F90
+index bcfbbdb..1f540b2 100644
+--- a/src/teton/gpu/SweepUCBrz_OMPOL.F90
++++ b/src/teton/gpu/SweepUCBrz_OMPOL.F90
+@@ -139,7 +139,7 @@
+ 
+    TOMP(target teams distribute num_teams(nZoneSets) thread_limit(omp_device_team_thread_limit) default(none) &)
+    TOMPC(shared(nZoneSets, nAngleSets,Geom, angleList, Quad)&)
+-   TOMPC(private(ASet, angle))
++   TOMPC(private(ASet, angle, setID))
+ 
+    ZoneSetLoop: do zSetID=1,nZoneSets
+ 
+@@ -171,7 +171,7 @@
+ 
+    TOMP(target teams distribute num_teams(nZoneSets) thread_limit(omp_device_team_thread_limit) default(none)&)
+    TOMPC(shared(nZoneSets, nAngleSets, Geom, angleList, Quad)&)
+-   TOMPC(private(ASet, angle, fac, R_afp, R_afp2, R, R2))
++   TOMPC(private(ASet, angle, fac, R_afp, R_afp2, R, R2, setID))
+ 
+    ZoneSetLoop1: do zSetID=1,nZoneSets
+ 
+@@ -254,7 +254,6 @@
+ 
+ 
+    if ( nHyperDomains > 1 ) then
+-
+      TOMP(target teams distribute collapse(2) num_teams(nZoneSets*nSets) &)
+      TOMPC(thread_limit(omp_device_team_thread_limit) default(none) &)
+      TOMPC(shared(sendIndex, Quad, nZoneSets, nSets) &)
+diff --git a/src/teton/gpu/SweepUCBxyz_OMPOL.F90 b/src/teton/gpu/SweepUCBxyz_OMPOL.F90
+index 350ffcc..9c9c0dc 100644
+--- a/src/teton/gpu/SweepUCBxyz_OMPOL.F90
++++ b/src/teton/gpu/SweepUCBxyz_OMPOL.F90
+@@ -138,7 +138,7 @@
+    TOMP_MAP(target enter data map(to: tau, sendIndex, angleList))
+ 
+    TOMP(target teams distribute num_teams(nZoneSets) thread_limit(omp_device_team_thread_limit) default(none) &)
+-   TOMPC(private(ASet, angle) &)
++   TOMPC(private(ASet, angle, setID) &)
+    TOMPC(shared(nZoneSets, angleList, Quad, Geom, nAngleSets) )
+ 
+    ZoneSetLoop0: do zSetID=1,nZoneSets
+@@ -186,7 +186,7 @@
+ 
+    TOMP(target teams distribute num_teams(nZoneSets) thread_limit(omp_device_team_thread_limit) default(none) &)
+    TOMPC(shared(nZoneSets, nAngleSets, Quad, Geom) &)
+-   TOMPC(private(ASet))
++   TOMPC(private(ASet, setID))
+ 
+    ZoneSetLoop1: do zSetID=1,nZoneSets
+ 
+diff --git a/src/teton/mods/Datastore_mod.F90 b/src/teton/mods/Datastore_mod.F90
+index 0b12b3c..9d35b5c 100644
+--- a/src/teton/mods/Datastore_mod.F90
++++ b/src/teton/mods/Datastore_mod.F90
+@@ -101,7 +101,7 @@ contains
+       endif
+     endif
+     ! Get the value from the environment
+-    call getenv("TETON_PARTITION", str)
++    call get_environment_variable("TETON_PARTITION", str)
+     if (str .ne. " ") then
+       value = 0
+       read (str,*) value
+diff --git a/src/teton/rt/addGreyCorrections_OMPOL.F90 b/src/teton/rt/addGreyCorrections_OMPOL.F90
+index 4592199..a13d3aa 100644
+--- a/src/teton/rt/addGreyCorrections_OMPOL.F90
++++ b/src/teton/rt/addGreyCorrections_OMPOL.F90
+@@ -142,7 +142,7 @@
+      TOMP(target teams distribute collapse(2) num_teams(nZoneSets*nSets) &)
+      TOMPC(thread_limit(omp_device_team_thread_limit) default(none) &)
+      TOMPC(shared(nZoneSets, nSets, Quad, GTA, wtiso)&)
+-     TOMPC(private(Set, ASet, HypPlanePtr, Groups, NumAngles, c, g0))
++     TOMPC(private(Set, ASet, HypPlanePtr, Groups, NumAngles, c, g0, angle))
+ 
+      ZoneSetLoop1: do zSetID=1,nZoneSets
+        SetLoop1: do setID=1,nSets
