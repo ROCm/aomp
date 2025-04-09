@@ -1,0 +1,36 @@
+#!/usr/bin/perl
+#
+# Convert 'clone_aomp.sh list' output into git checkout commands
+#
+# 1) Save the clone_aomp.sh list at some point
+#    aomp/bin/clone_aomp.sh list > mylist
+#
+# 2) To checkout that version later, do:
+#    cd ~/git/aomp21.0
+#    aomp/bin/clone_list_checkout mylist > mychk
+#       or
+#    cat mylist | aomp/bin/clone_list_checkout > mychk
+#    cat mychk
+#    bash mychk
+#
+use strict;
+my @header;
+my $saw_manifest = 0;
+my @input = <>;
+while (@input) {                # process header
+    $_ = shift(@input);
+    if (/manifest/i) { $saw_manifest = 1; push(@header, "# $_"); }
+    last if (/----/);
+}
+die "Error: Input doesn't appear to be from 'clone_aomp.sh list'" if (!$saw_manifest);
+
+print "#!/bin/bash\n";
+print @header;
+while (@input) {
+    $_ = shift(@input);
+    my @col = split(/[ ]+/, $_);
+    printf "%-30s %s %s\n",
+        "pushd $col[3];",
+        "git checkout $col[5];",
+        "popd";
+}
