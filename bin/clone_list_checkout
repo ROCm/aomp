@@ -28,6 +28,7 @@ print "#!/bin/bash\n";
 print @header;
 while (@input) {
     $_ = shift(@input);
+    if (/^WARNING/) { print "# $_"; $_ = shift(@input); print "# $_"; next; }
     my @col = split(/[ ]+/, $_);
     printf "%-30s %s %s\n",
         "pushd $col[3];",
