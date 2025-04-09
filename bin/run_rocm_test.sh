@@ -71,7 +71,7 @@ SUITE_LIST=${SUITE_LIST:-"examples smoke-limbo smoke smoke-asan smoke-fort smoke
 fi
 blockinglist="examples smoke-limbo openmpapps sollve45 sollve50 babelstream ovo accel2023 hpc2021 nekbone smoke-fort smoke-fort-limbo"
 
-EPSDB_LIST=${EPSDB_LIST:-"examples_fortran examples_openmp smoke-limbo smoke-dev smoke smoke-asan omp5 openmpapps LLNL nekbone ovo sollve babelstream fortran-babelstream accel2023 hpc2021  smoke-fort smoke-fort-limbo smoke-fort-dev"}
+EPSDB_LIST=${EPSDB_LIST:-"examples smoke-limbo smoke-dev smoke smoke-asan omp5 openmpapps LLNL nekbone ovo sollve babelstream fortran-babelstream accel2023 hpc2021  smoke-fort smoke-fort-limbo smoke-fort-dev"}
 
 export AOMP_USE_CCACHE=0
 
