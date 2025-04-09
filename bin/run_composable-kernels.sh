@@ -39,20 +39,10 @@ else
   popd
 fi
 
-if [ ! -d ${CK_BENCHMARK_REPO} ]; then
-  git clone ${CKBenchmarkRepoURL} ${CK_BENCHMARK_REPO}
-else
-  pushd ${CK_BENCHMARK_REPO} || exit 1
-  git reset --hard origin/${CKBenchmarkRepoBranchName}
-  git pull
-  # TODO: Dump SHA somewhere
-  popd
-fi
-
 # TODO Fix / Finalize the cmake command
 CKCmakeCmd="cmake -GNinja -B ${CK_BUILD} -S ${CK_REPO} -DCMAKE_PREFIX_PATH=${ROCM_PATH} "
-CKCMakeCmd+="-DCMAKE_CXX_COMPILER=${AOMP}/bin/clang++ -DCMAKE_HIP_COMPILER=${AOMP}/bin/clang++ "
-CKCMakeCmd+="-DCMAKE_CXX_COMPILER_LAUNCHER=ccache "
+CKCmakeCmd+="-DCMAKE_CXX_COMPILER=${AOMP}/bin/clang++ -DCMAKE_HIP_COMPILER=${AOMP}/bin/clang++ "
+CKCmakeCmd+="-DCMAKE_CXX_COMPILER_LAUNCHER=ccache "
 CKCmakeCmd+="-DCMAKE_BUILD_TYPE=Release -DGPU_TARGETS=${CK_GPU_TARGETS}"
 
 # TODO: Run the Cmake command
@@ -74,6 +64,19 @@ fi
 popd
 
 # The CK benchmarks repo appears to be private (for the time being).
+
+if [ ! -d ${CK_BENCHMARK_REPO} ]; then
+  echo "CK Benchmarks repo not found. This is a private repo."
+  echo "Please clone with your preferred method into ${CK_BENCHMARK_REPO}"
+  exit 1
+else
+  pushd ${CK_BENCHMARK_REPO} || exit 1
+  git reset --hard origin/${CKBenchmarkRepoBranchName}
+  git pull
+  # TODO: Dump SHA somewhere
+  popd
+fi
+
 # This is the command. It requires the envar CK_PROFILER_DIR to be set to the directory
 # in the CK build tree that contains the CkProfiler binary.
 CKBenchmarkTest='../benchmarks/gemm/fa1.yaml'
