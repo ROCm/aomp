@@ -69,9 +69,9 @@ SUITE_LIST=${SUITE_LIST:-"examples smoke-limbo smoke smoke-asan smoke-fort smoke
 else
 SUITE_LIST=${SUITE_LIST:-"examples smoke-limbo smoke smoke-asan smoke-fort smoke-fort-limbo omp5 openmpapps LLNL nekbone ovo sollve babelstream fortran-babelstream accel2023 hpc2021"}
 fi
-blockinglist="examples_fortran examples_openmp smoke smoke-limbo openmpapps sollve45 sollve50 babelstream ovo accel2023 hpc2021 nekbone smoke-fort smoke-fort-limbo"
+blockinglist="examples smoke-limbo openmpapps sollve45 sollve50 babelstream ovo accel2023 hpc2021 nekbone smoke-fort smoke-fort-limbo"
 
-EPSDB_LIST=${EPSDB_LIST:-"examples_fortran examples_openmp smoke-limbo smoke-dev smoke smoke-asan omp5 openmpapps LLNL nekbone ovo sollve babelstream fortran-babelstream accel2023 hpc2021  smoke-fort smoke-fort-limbo"}
+EPSDB_LIST=${EPSDB_LIST:-"examples_fortran examples_openmp smoke-limbo smoke-dev smoke smoke-asan omp5 openmpapps LLNL nekbone ovo sollve babelstream fortran-babelstream accel2023 hpc2021  smoke-fort smoke-fort-limbo smoke-fort-dev"}
 
 export AOMP_USE_CCACHE=0
 
@@ -96,10 +96,11 @@ unexpresults="$resultsdir"/unexpresults.txt
 scriptfails=0
 totalunexpectedfails=0
 
-# make sure we see latest aomp dir
-#git pull
-#git clean -f -d
-#git log -1
+if [ "$EPSDB" == "1" ]; then
+ echo "Cleaning aomp/test/"
+ git clean -f -d ../test
+ git log -1
+fi
 
 EPSDB=1 ./clone_test.sh > /dev/null
 AOMP_TEST_DIR=${AOMP_TEST_DIR:-"$HOME/git/aomp-test"}
@@ -829,6 +830,23 @@ function smoke-fort(){
     copyresults smoke-fort "$aompdir"/test/smoke-fort
   else
     echo "Skipping smoke-fort."
+  fi
+}
+
+SMOKE_FORT_DEV=${SMOKE_FORT_DEV:-1}
+function smoke-fort-dev(){
+  # Smoke-fails
+  if [ ! -e $AOMP/bin/flang ]; then
+    SMOKE_FORT_DEV=0
+  fi
+  if [ "$SMOKE_FORT_DEV" == "1" ]; then
+    mkdir -p "$resultsdir"/smoke-fort-dev
+    cd "$aompdir"/test/smoke-fort-dev
+    ./check_smoke_fort_dev.sh
+    checkrc $?
+    copyresults smoke-fort-dev "$aompdir"/test/smoke-fort-dev
+  else
+    echo "Skipping smoke-fort-dev."
   fi
 }
 
