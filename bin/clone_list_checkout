@@ -51,6 +51,7 @@ die "Error: Input doesn't appear to be from 'clone_aomp.sh list'" if (!$saw_mani
 
 print "#!/bin/bash\n";
 print @header;
+my $allstat = 0;
 while (@input) {
     $_ = shift(@input);
     if (/^WARNING/) { print "# $_"; $_ = shift(@input); print "# $_"; next; }
@@ -60,5 +61,13 @@ while (@input) {
     my $cmd  = "git checkout $col[5];";
     my $pop  = "popd";
     printf "%-30s %s %s\n", $push, $cmd, $pop;
-    system("cd $dir; $cmd") if ($opt_doit);
+    my $mystat = system("cd $dir; $cmd") if ($opt_doit);
+    print "*** Error: exit status = $mystat\n" if ($mystat);
+    $allstat += $mystat;
 }
+
+if ($allstat) {
+    print "*** Error detected: see above for details\n";
+    exit(1);
+}
+exit(0);
