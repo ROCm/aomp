@@ -459,9 +459,9 @@ function getversion(){
     fi
   fi
 }
-notAllMustPass() {
+function notAllMustPass() {
   #if [ "$1" != "smoke" ] && [ "$1" != "smoke-limbo" ] &&  [ "$1" != "smoke-fort" ] && [ "$1" != "smoke-fort-limbo" ]; then
-  if [ "$1" != "smoke" ] && [ "$1" != "smoke-limbo" ] ; then
+  if [ "$1" != "smoke" ] && [ "$1" != "smoke-limbo" ] && [ "$1" != "smoke-fort" ] ; then
      true
   else
      false
@@ -513,7 +513,7 @@ function copyresults(){
     sort -f -d "$1"_passing_tests.txt > "$1"_sorted_passes
 
     # Unexpected passes
-  if notAllMustPass $1 ; then
+    if notAllMustPass $1 ; then
       unexpectedpasses=$(diff "$1"_sorted_exp_passes "$1"_sorted_passes | grep '^>' | wc -l)
       echo Unexpected Passes: $unexpectedpasses | tee -a $summary $unexpresults
       diff "$1"_sorted_exp_passes "$1"_sorted_passes | grep '^>' | sed 's/> //' >> $summary
@@ -528,7 +528,7 @@ function copyresults(){
     if [ "$passlines" != 0 ]; then
       unexpectedfails=$(diff "$1"_sorted_exp_passes "$1"_sorted_passes | grep '^<' | wc -l)
     else
-  if ! notAllMustPass $1 ; then
+      if ! notAllMustPass $1 ; then
         if [ -e "$resultsdir/$1"/"$1"_failing_tests.txt ]; then
 	  runtimefails=$(cat "$resultsdir/$1"/"$1"_failing_tests.txt | wc -l)
 	  unexpectedfails=$((unexpectedfails + runtimefails))
@@ -542,7 +542,7 @@ function copyresults(){
 
     # Check unexpected fails for false negatives, i.e. tests that may have been deleted or unsupported tests.
     if [ "$unexpectedfails" != 0 ]; then
-  if notAllMustPass $1 ; then
+      if notAllMustPass $1 ; then
         fails=`diff $1_sorted_exp_passes $1_sorted_passes | grep '^<' | sed "s|< ||g"`
       else
         fails=$(cat "$resultsdir/$1"/"$1"_failing_tests_combined.txt)
@@ -643,7 +643,7 @@ function copyresults(){
     fi
 
     echo "Unexpected Fails: $unexpectedfails" | tee -a $summary $unexpresults
-  if notAllMustPass $1 ; then
+    if notAllMustPass $1 ; then
       diff "$1"_sorted_exp_passes "$1"_sorted_passes | grep '^<' | sed 's/< //' >> $summary
     else
       if [ -e "$resultsdir/$1"/"$1"_failing_tests_combined.txt ]; then
@@ -663,17 +663,16 @@ function copyresults(){
       cat "$1"_make_fail.txt >> $summary
       echo >> $summary
     fi
-
   else
     # No passing-tests.txt found, count expected passes as fails.
     echo "Unexpected Passes: 0" | tee -a $summary $unexpresults
     if [ "$passlines" != 0 ]; then
       numtests=$(cat "$resultsdir"/"$1"/"$1"_sorted_exp_passes | wc -l)
     else
-  if ! notAllMustPass $1 ; then
+      if ! notAllMustPass $1 ; then
         if [ -e "$resultsdir/$1"/"$1"_failing_tests.txt ]; then
-	  runtimefails=$(cat "$resultsdir/$1"/"$1"_failing_tests.txt | wc -l)
-	  numtests=$((numtests + runtimefails))
+          runtimefails=$(cat "$resultsdir/$1"/"$1"_failing_tests.txt | wc -l)
+          numtests=$((numtests + runtimefails))
         fi
         if [ -e "$resultsdir/$1"/"$1"_make_fail.txt ]; then
           compilefails=$(cat "$resultsdir/$1"/"$1"_make_fail.txt | wc -l)
@@ -684,7 +683,7 @@ function copyresults(){
       fi
     fi
     echo "Unexpected Fails: $numtests" | tee -a $summary $unexpresults
-  if notAllMustPass $1 ; then
+    if notAllMustPass $1 ; then
       cat "$1"_sorted_exp_passes >> $summary
     else
       cat "$1"_all_tests.txt >> $summary
