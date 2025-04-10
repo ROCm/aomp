@@ -139,7 +139,7 @@ function list_repo_from_manifest(){
    else
       printbranch=${REPO_RREV##*release/}
    fi
-   url=`grep url .git/config | cut -d":" -f2- | cut -d"/" -f3-`
+   url=`grep -m 1 url .git/config | cut -d":" -f2- | cut -d"/" -f3-`
    project_name=`echo $url | cut -d"/" -f2- | tr '[:upper:]' '[:lower:]'`
    #website=`echo $url | cut -d"/" -f1`
    if [[ "$REPO_REMOTE" == "roc" ]] ; then

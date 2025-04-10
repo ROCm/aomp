@@ -5,3 +5,4 @@ rocSPARSE: rocsparse.patch
 rocSOLVER: rocsolver.patch
 hipBLAS: hipblas.patch
 PowerInfer: powerinfer.patch
+rccl: rccl.patch

@@ -1,0 +1,73 @@
+#!/usr/bin/perl
+#
+# Convert 'clone_aomp.sh list' output into git checkout commands
+#
+# 1) Save the clone_aomp.sh list at some point
+#    aomp/bin/clone_aomp.sh list > mylist
+#
+# 2) To checkout that version later, do:
+#    cd ~/git/aomp21.0
+#    aomp/bin/clone_list_checkout mylist > mychk
+#       or
+#    cat mylist | aomp/bin/clone_list_checkout > mychk
+#    cat mychk
+#    bash mychk
+#EOH
+use strict;
+use Getopt::Long qw(GetOptions);
+my @header;
+my ($opt_doit, $opt_help, $opt_helpv);
+my $saw_manifest = 0;
+
+sub usage {
+    my($arg) = @_;
+    print "Error: Invalid argument $arg\n" if (! ($arg =~ /^-h/));
+    print "Usage: clone_list_checkout [opts] [clone_list]
+        -h[elp]    print usage [verbose]
+        --doit     perform checkouts (default: generate script)
+";
+    if ($arg =~ /-help/) {
+        system("sed -e '/EOH/Q' -e '/^#\!/d' -e 's/^#//' $0");
+    }
+}
+
+Getopt::Long::Configure qw(gnu_getopt);
+GetOptions(
+    'doit'      => \$opt_doit,
+    'h'         => \$opt_help,
+    'help'      => \$opt_helpv,
+) or die usage ("");
+
+if ($opt_help)  { usage("-h"); exit(0); }
+if ($opt_helpv) { usage("--help"); exit(0); }
+
+my @input = <>;
+while (@input) {                # process header
+    $_ = shift(@input);
+    if (/manifest/i) { $saw_manifest = 1; push(@header, "# $_"); }
+    last if (/----/);
+}
+die "Error: Input doesn't appear to be from 'clone_aomp.sh list'" if (!$saw_manifest);
+
+print "#!/bin/bash\n";
+print @header;
+my $allstat = 0;
+while (@input) {
+    $_ = shift(@input);
+    if (/^WARNING/) { print "# $_"; $_ = shift(@input); print "# $_"; next; }
+    my @col = split(/[ ]+/, $_);
+    my $dir  = "$col[3]";
+    my $push = "pushd $dir;";
+    my $cmd  = "git checkout $col[5];";
+    my $pop  = "popd";
+    printf "%-30s %s %s\n", $push, $cmd, $pop;
+    my $mystat = system("cd $dir; $cmd") if ($opt_doit);
+    print "*** Error: exit status = $mystat\n" if ($mystat);
+    $allstat += $mystat;
+}
+
+if ($allstat) {
+    print "*** Error detected: see above for details\n";
+    exit(1);
+}
+exit(0);
