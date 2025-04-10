@@ -7,11 +7,11 @@ the fortran main. This is somewhat like hipfort except the fortran does not dire
 any of the hip or math library API.
 
 
-Then flang-new compiles fortran_hip_interop.f95 and links it to the heterogeneous object.
+Then flang compiles fortran_hip_interop.f95 and links it to the heterogeneous object.
 The hip object must link to the amdhip64 library so -lamdhip64 is needed on the command line. 
 
 ```
-flang-new -fPIC -O3 -fopenmp --offload-arch=gfx90a -L$LLVM_INSTALL_DIR/../../lib -lamdhip64 -Wl,-rpath,$LLVM_INSTALL_DIR/../../lib fortran_hip_interop.f95 fortran_callable_init.o -o fortran_hip_interop
+flang -fPIC -O3 -fopenmp --offload-arch=gfx90a -L$LLVM_INSTALL_DIR/../../lib -lamdhip64 -Wl,-rpath,$LLVM_INSTALL_DIR/../../lib fortran_hip_interop.f95 fortran_callable_init.o -o fortran_hip_interop
 ```
 
 The major difference between this example and hipfort examples is that this 

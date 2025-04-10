@@ -1,0 +1,106 @@
+diff --git a/install.sh b/install.sh
+index ab57e0e2..e94404cd 100755
+--- a/install.sh
++++ b/install.sh
+@@ -32,6 +32,9 @@ roctx_enabled=false
+ run_tests=false
+ run_tests_all=false
+ time_trace=false
++skip_cmake=false
++source_dir="../../."
++build_only=false
+ 
+ # #################################################
+ # helper functions
+@@ -50,6 +53,9 @@ function display_help()
+     echo "    -f|--fast                  Quick-build RCCL (local gpu arch only, no backtrace, and collective trace support)"
+     echo "    -h|--help                  Prints this help message"
+     echo "    -i|--install               Install RCCL library (see --prefix argument below)"
++    echo "      --noinstall              Run cmake and ninja but not install"
++    echo "      --nocmake                Skip cmake and install from previous cmake and noinstall"
++    echo "      --source_dir             Source directory: (default: ../../. assumes building from rccl/build subdirectory )"
+     echo "    -j|--jobs                  Specify how many parallel compilation jobs to run ($num_parallel_jobs by default)"
+     echo "    -l|--local_gpu_only        Only compile for local GPU architecture"
+     echo "       --amdgpu_targets        Only compile for specified GPU architecture(s). For multiple targets, separate by ';' (builds for all supported GPU architectures by default)"
+@@ -75,7 +81,7 @@ function display_help()
+ # check if we have a modern version of getopt that can handle whitespace and long parameters
+ getopt -T
+ if [[ "$?" -eq 4 ]]; then
+-    GETOPT_PARSE=$(getopt --name "${0}" --options dfhij:lprt --longoptions address-sanitizer,dependencies,debug,enable_backtrace,disable-colltrace,disable-msccl-kernel,disable-mscclpp,fast,help,install,jobs:,local_gpu_only,amdgpu_targets:,no_clean,npkit-enable,openmp-test-enable,roctx-enable,package_build,prefix:,rm-legacy-include-dir,run_tests_all,run_tests_quick,static,tests_build,time-trace,verbose -- "$@")
++    GETOPT_PARSE=$(getopt --name "${0}" --options dfhij:lprt --longoptions address-sanitizer,dependencies,debug,enable_backtrace,disable-colltrace,disable-msccl-kernel,disable-mscclpp,fast,help,install,noinstall,nocmake,jobs:,local_gpu_only,amdgpu_targets:,no_clean,npkit-enable,openmp-test-enable,roctx-enable,package_build,prefix:,source_dir:,rm-legacy-include-dir,run_tests_all,run_tests_quick,static,tests_build,time-trace,verbose -- "$@")
+ else
+     echo "Need a new version of getopt"
+     exit 1
+@@ -100,6 +106,9 @@ while true; do
+     -f | --fast)                     build_local_gpu_only=true; collective_trace=false; msccl_kernel_enabled=false;                    shift ;;
+     -h | --help)                     display_help;                                                                                     exit 0 ;;
+     -i | --install)                  install_library=true;                                                                             shift ;;
++         --noinstall)                install_library=false; build_only=true;                                                           shift ;;
++         --nocmake)                  skip_cmake=true;                                                                                  shift ;;
++         --source_dir)               source_dir=${2};                                                                                  shift 2 ;;
+     -j | --jobs)                     num_parallel_jobs=${2};                                                                           shift 2 ;;
+     -l | --local_gpu_only)           build_local_gpu_only=true;                                                                        shift ;;
+          --amdgpu_targets)           build_amdgpu_targets=${2};                                                                        shift 2 ;;
+@@ -189,6 +198,7 @@ if [[ "${build_release}" == true ]]; then
+ else
+     mkdir -p debug; cd debug
+ fi
++export build_dir=$PWD # for rccl-TimeTrace.sh
+ 
+ # build type
+ if [[ "${build_release}" == true ]]; then
+@@ -247,7 +257,7 @@ if [[ "${install_dependencies}" == true ]]; then
+ fi
+ 
+ # Install RCCL library
+-if [[ "${install_library}" == true ]]; then
++if [[ "${install_library}" == true ]] || [[ "${build_only}" == true ]]; then
+     cmake_common_options="${cmake_common_options} -DCMAKE_INSTALL_PREFIX=${install_prefix}"
+ fi
+ 
+@@ -395,11 +405,14 @@ if [[ "${build_tests}" == true ]] || ([[ "${run_tests}" == true ]] && [[ ! -x ./
+     cmake_common_options="${cmake_common_options} -DBUILD_TESTS=ON"
+ fi
+ 
++if [[ "${skip_cmake}" == false ]]; then
+ # Initiate RCCL CMake
+ # Passing NPKIT_FLAGS separately (not as part of ${cmake_common_options}) as
+ # ${npkit_options} need to be passed "as-is" i.e. with `-D` to CMakeLists.txt
+-${cmake_executable} ${cmake_common_options} -DNPKIT_FLAGS="${npkit_options}" -DONLY_FUNCS="${ONLY_FUNCS}" ../../.
+-check_exit_code "$?"
++   echo ${cmake_executable} ${cmake_common_options} -DNPKIT_FLAGS="${npkit_options}" -DONLY_FUNCS="${ONLY_FUNCS}" $source_dir
++   ${cmake_executable} ${cmake_common_options} -DNPKIT_FLAGS="${npkit_options}" -DONLY_FUNCS="${ONLY_FUNCS}" $source_dir
++   check_exit_code "$?"
++fi
+ 
+ # Enable verbose output from Makefile
+ if [[ "${build_verbose}" == true ]]; then
+@@ -436,7 +449,7 @@ fi
+ 
+ # Generate time trace for RCCL build using tools/time-trace
+ if [[ "${time_trace}" == true ]]; then
+-    search_dir="../../tools"
++    search_dir="$source_dir/tools"
+     time_trace_dir=$(find "${search_dir}" -type d -name "time-trace" -print -quit)
+ 
+     if [[ -n "${time_trace_dir}" ]]; then
+diff --git a/tools/time-trace/rccl-TimeTrace.sh b/tools/time-trace/rccl-TimeTrace.sh
+index 7f0dee6f..765b40b3 100755
+--- a/tools/time-trace/rccl-TimeTrace.sh
++++ b/tools/time-trace/rccl-TimeTrace.sh
+@@ -1,7 +1,7 @@
+ #!/bin/bash
+ 
+ # Directory path to search for JSON files
+-directory="../../build/release"
++directory=${build_dir:-"../../build/release"}
+ 
+ if command -v pip &>/dev/null; then
+     echo "pip is already installed."
+@@ -47,4 +47,4 @@ mv temp_file.txt "$directory/.ninja_log"
+ mv "$directory/.ninja_log" "$directory/time_trace.log"
+ 
+ # Run the python program
+-python3 time_trace_generator.py --min_val 5 --include_linking
+\ No newline at end of file
++python3 time_trace_generator.py --min_val 5 --include_linking --log_file_path $directory/time_trace.log

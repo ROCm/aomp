@@ -51,7 +51,7 @@ function build_rocmlib_component() {
        end_date=`date`
        end_secs=`date +%s`
        _component_secs=$(( $end_secs - $start_secs ))
-       find $AOMP_INSTALL_DIR -type f -newer $_stats_dir/.${COMPONENT}.ts | xargs wc -c >$_stats_dir/$COMPONENT.files
+       find $AOMP_INSTALL_DIR -type f -newercc $_stats_dir/.${COMPONENT}.ts | xargs wc -c >$_stats_dir/$COMPONENT.files
        echo "COMPONENT $COMPONENT START : $start_date " >$_stats_dir/$COMPONENT.stats
        echo "COMPONENT $COMPONENT END   : $end_date" >>$_stats_dir/$COMPONENT.stats
        echo "COMPONENT $COMPONENT TIME  : $_component_secs seconds" >> $_stats_dir/$COMPONENT.stats
@@ -99,7 +99,7 @@ echo
 components="prereq rocm-cmake"
 if [ "$AOMP_STANDALONE_BUILD" == 1 ] ; then
   # This ordered build is important when starting from scratch
-  components="$components rocblas rocprim rocsparse rocsolver hipblas-common hipblas"
+  components="$components rocblas rocPRIM rocSPARSE rocSOLVER hipblas-common hipblas rocRAND rccl half"
 else
   echo "ERROR: Cannot run $0 with AOMP_STANDALONE_BUILD=$AOMP_STANDALONE_BUILD"
   echo "       Please set $AOMP_STANDALONE_BUILD=1"

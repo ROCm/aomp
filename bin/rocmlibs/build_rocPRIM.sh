@@ -1,7 +1,6 @@
 #!/bin/bash
 # 
-#  build_rocprim.sh:  Script to build and install rocprim library
-#                     This build is classic  cmake, make, make install
+#  build_rocPRIM.sh:  Script to build and install rocPRIM library
 #
 BUILD_TYPE=${BUILD_TYPE:-Release}
 

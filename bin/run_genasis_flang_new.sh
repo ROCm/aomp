@@ -165,6 +165,7 @@ if [ "$1" != "buildonly" ] ; then
   # export LIBOMPTARGET_KERNEL_TRACE=1
   # export LIBOMPTARGET_INFO=1
   export OMP_TARGET_OFFLOAD=MANDATORY
+  ulimit -s unlimited
   cd $REPO_DIR/Programs/UnitTests/Basics/Runtime/Executables
   echo ./PROGRAM_HEADER_Singleton_Test_$GENASIS_MACHINE
   ./PROGRAM_HEADER_Singleton_Test_$GENASIS_MACHINE

@@ -32,7 +32,7 @@ hip_examples := \
 	$(_in_prefix)vectorAdd
 endif
 ifeq ($(LLVM_COMPILER_NAME),AMD)
-# Note: the device-lib example requires flang-new 
+# Note: the device-lib example requires flang
 # Currently this is only in AOMP
 hip_examples := \
 	$(_in_prefix)writeIndex \

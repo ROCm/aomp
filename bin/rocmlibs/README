@@ -1,6 +1,6 @@
 Notes on build and install of rocmlibs with the AOMP development compiler.
 
-- AOMP is the AMD development compiler based on upstream LLVM-20 and the
+- AOMP is the AMD development compiler based on upstream LLVM-21 and the
   amd-staging branch of llvm-project.  AOMP builds the full LLVM compiler stack
   and supporting components such as rocgdb, rocprofiler, and rocminfo.
   However, those components does not include any of the ROCm math libraries.
@@ -17,10 +17,13 @@ Notes on build and install of rocmlibs with the AOMP development compiler.
   ../build_prereq.sh
   ../build_rocm-cmake.sh
   build_rocblas.sh
-  build_rocprim.sh
-  build_rocsparse.sh
-  build_rocsolver.sh 
+  build_rocPRIM.sh
+  build_rocSPARSE.sh
+  build_rocSOLVER.sh
   build_hipblas.sh
+  build_rocRAND.sh
+  build_rccl.sh
+  build_half.sh
 
 - The build of all these libraries can take a long time.  It is recommended
   to run this command to build and install all the rocmlibs components:

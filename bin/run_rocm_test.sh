@@ -73,9 +73,9 @@ SUITE_LIST=${SUITE_LIST:-"examples smoke-limbo smoke smoke-asan smoke-fort smoke
 else
 SUITE_LIST=${SUITE_LIST:-"examples smoke-limbo smoke smoke-asan smoke-fort smoke-fort-limbo omp5 openmpapps LLNL nekbone ovo sollve babelstream fortran-babelstream accel2023 hpc2021"}
 fi
-blockinglist="examples_fortran examples_openmp smoke smoke-limbo openmpapps sollve45 sollve50 babelstream ovo accel2023 hpc2021 nekbone smoke-fort smoke-fort-limbo"
+blockinglist="examples smoke-limbo openmpapps sollve45 sollve50 babelstream ovo accel2023 hpc2021 nekbone smoke-fort smoke-fort-limbo"
 
-EPSDB_LIST=${EPSDB_LIST:-"examples_fortran examples_openmp smoke-limbo smoke-dev smoke smoke-asan omp5 openmpapps LLNL nekbone ovo sollve babelstream fortran-babelstream accel2023 hpc2021  smoke-fort smoke-fort-limbo"}
+EPSDB_LIST=${EPSDB_LIST:-"examples smoke-limbo smoke-dev smoke smoke-asan omp5 openmpapps LLNL nekbone ovo sollve babelstream fortran-babelstream accel2023 hpc2021  smoke-fort smoke-fort-limbo smoke-fort-dev"}
 
 export AOMP_USE_CCACHE=0
 
@@ -100,10 +100,11 @@ unexpresults="$resultsdir"/unexpresults.txt
 scriptfails=0
 totalunexpectedfails=0
 
-# make sure we see latest aomp dir
-#git pull
-#git clean -f -d
-#git log -1
+if [ "$EPSDB" == "1" ]; then
+ echo "Cleaning aomp/test/"
+ git clean -f -d ../test
+ git log -1
+fi
 
 EPSDB=1 ./clone_test.sh > /dev/null
 AOMP_TEST_DIR=${AOMP_TEST_DIR:-"$HOME/git/aomp-test"}
@@ -462,9 +463,9 @@ function getversion(){
     fi
   fi
 }
-notAllMustPass() {
+function notAllMustPass() {
   #if [ "$1" != "smoke" ] && [ "$1" != "smoke-limbo" ] &&  [ "$1" != "smoke-fort" ] && [ "$1" != "smoke-fort-limbo" ]; then
-  if [ "$1" != "smoke" ] && [ "$1" != "smoke-limbo" ] ; then
+  if [ "$1" != "smoke" ] && [ "$1" != "smoke-limbo" ] && [ "$1" != "smoke-fort" ] ; then
      true
   else
      false
@@ -516,7 +517,7 @@ function copyresults(){
     sort -f -d "$1"_passing_tests.txt > "$1"_sorted_passes
 
     # Unexpected passes
-  if notAllMustPass $1 ; then
+    if notAllMustPass $1 ; then
       unexpectedpasses=$(diff "$1"_sorted_exp_passes "$1"_sorted_passes | grep '^>' | wc -l)
       echo Unexpected Passes: $unexpectedpasses | tee -a $summary $unexpresults
       diff "$1"_sorted_exp_passes "$1"_sorted_passes | grep '^>' | sed 's/> //' >> $summary
@@ -531,7 +532,7 @@ function copyresults(){
     if [ "$passlines" != 0 ]; then
       unexpectedfails=$(diff "$1"_sorted_exp_passes "$1"_sorted_passes | grep '^<' | wc -l)
     else
-  if ! notAllMustPass $1 ; then
+      if ! notAllMustPass $1 ; then
         if [ -e "$resultsdir/$1"/"$1"_failing_tests.txt ]; then
 	  runtimefails=$(cat "$resultsdir/$1"/"$1"_failing_tests.txt | wc -l)
 	  unexpectedfails=$((unexpectedfails + runtimefails))
@@ -545,7 +546,7 @@ function copyresults(){
 
     # Check unexpected fails for false negatives, i.e. tests that may have been deleted or unsupported tests.
     if [ "$unexpectedfails" != 0 ]; then
-  if notAllMustPass $1 ; then
+      if notAllMustPass $1 ; then
         fails=`diff $1_sorted_exp_passes $1_sorted_passes | grep '^<' | sed "s|< ||g"`
       else
         fails=$(cat "$resultsdir/$1"/"$1"_failing_tests_combined.txt)
@@ -646,7 +647,7 @@ function copyresults(){
     fi
 
     echo "Unexpected Fails: $unexpectedfails" | tee -a $summary $unexpresults
-  if notAllMustPass $1 ; then
+    if notAllMustPass $1 ; then
       diff "$1"_sorted_exp_passes "$1"_sorted_passes | grep '^<' | sed 's/< //' >> $summary
     else
       if [ -e "$resultsdir/$1"/"$1"_failing_tests_combined.txt ]; then
@@ -666,17 +667,16 @@ function copyresults(){
       cat "$1"_make_fail.txt >> $summary
       echo >> $summary
     fi
-
   else
     # No passing-tests.txt found, count expected passes as fails.
     echo "Unexpected Passes: 0" | tee -a $summary $unexpresults
     if [ "$passlines" != 0 ]; then
       numtests=$(cat "$resultsdir"/"$1"/"$1"_sorted_exp_passes | wc -l)
     else
-  if ! notAllMustPass $1 ; then
+      if ! notAllMustPass $1 ; then
         if [ -e "$resultsdir/$1"/"$1"_failing_tests.txt ]; then
-	  runtimefails=$(cat "$resultsdir/$1"/"$1"_failing_tests.txt | wc -l)
-	  numtests=$((numtests + runtimefails))
+          runtimefails=$(cat "$resultsdir/$1"/"$1"_failing_tests.txt | wc -l)
+          numtests=$((numtests + runtimefails))
         fi
         if [ -e "$resultsdir/$1"/"$1"_make_fail.txt ]; then
           compilefails=$(cat "$resultsdir/$1"/"$1"_make_fail.txt | wc -l)
@@ -687,7 +687,7 @@ function copyresults(){
       fi
     fi
     echo "Unexpected Fails: $numtests" | tee -a $summary $unexpresults
-  if notAllMustPass $1 ; then
+    if notAllMustPass $1 ; then
       cat "$1"_sorted_exp_passes >> $summary
     else
       cat "$1"_all_tests.txt >> $summary
@@ -833,6 +833,23 @@ function smoke-fort(){
     copyresults smoke-fort "$aompdir"/test/smoke-fort
   else
     echo "Skipping smoke-fort."
+  fi
+}
+
+SMOKE_FORT_DEV=${SMOKE_FORT_DEV:-1}
+function smoke-fort-dev(){
+  # Smoke-fails
+  if [ ! -e $AOMP/bin/flang ]; then
+    SMOKE_FORT_DEV=0
+  fi
+  if [ "$SMOKE_FORT_DEV" == "1" ]; then
+    mkdir -p "$resultsdir"/smoke-fort-dev
+    cd "$aompdir"/test/smoke-fort-dev
+    ./check_smoke_fort_dev.sh
+    checkrc $?
+    copyresults smoke-fort-dev "$aompdir"/test/smoke-fort-dev
+  else
+    echo "Skipping smoke-fort-dev."
   fi
 }
 
