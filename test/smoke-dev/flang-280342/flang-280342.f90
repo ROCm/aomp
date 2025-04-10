@@ -1,3 +1,6 @@
+!Copyright @ Advanced Micro Devices, Inc., or its affliates.
+
+!SPDX-License-Identifier: MIT
 
 module unit_test_0
 

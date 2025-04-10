@@ -1,3 +1,7 @@
+!Copyright @ Advanced Micro Devices, Inc., or its affliates.
+
+!SPDX-License-Identifier: MIT
+
 program ftest
      use omp_lib
      use f90deviceio

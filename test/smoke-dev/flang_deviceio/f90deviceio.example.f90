@@ -1,3 +1,7 @@
+!Copyright @ Advanced Micro Devices, Inc., or its affliates.
+
+!SPDX-License-Identifier: MIT
+
 module f90deviceio
   interface
     subroutine f90print(N)
