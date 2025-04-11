@@ -461,7 +461,7 @@ function getversion(){
 }
 function notAllMustPass() {
   #if [ "$1" != "smoke" ] && [ "$1" != "smoke-limbo" ] &&  [ "$1" != "smoke-fort" ] && [ "$1" != "smoke-fort-limbo" ]; then
-  if [ "$1" != "smoke" ] && [ "$1" != "smoke-limbo" ] && [ "$1" != "smoke-fort" ] ; then
+  if [ "$1" != "smoke" ] && [ "$1" != "smoke-limbo" ] && [ "$1" != "smoke-fort" ] && [ "$1" != "examples_openmp" ] && [ "$1" != "examples_fortran" ]; then
      true
   else
      false
