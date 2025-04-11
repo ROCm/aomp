@@ -69,7 +69,6 @@ TESTS_DIR = \
     flang-464541 \
     flang-464660 \
     flang-464660-1 \
-    flang-471469 \
     flang-471982 \
     flang-472452 \
     flang-476122 \
@@ -92,6 +91,7 @@ TESTS_DIR = \
     flang-511356 \
     flang-520127_loop-bind \
     flang-520127_loop-parbind \
+    flang-522104 \
     flang-522365-ttdpd-1-1 \
     flang-522365-ttdpd-2s \
     flang-nested-parallel-do-loops \
