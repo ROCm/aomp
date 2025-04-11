@@ -13,14 +13,14 @@ export AOMP_USE_CCACHE=0
 # --- end standard header ----
 
 # Setup AOMP variables
-export AOMP=${AOMP:-$HOME/rocm/aomp}
-export AOMPHIP=${AOMP:-$HOME/rocm/aomp}
+AOMP=${AOMP:-$HOME/rocm/aomp/llvm}
+AOMPHIP=${AOMPHIP:-$(realpath -m $(realpath -m $AOMP)/../..)}
 # for ROCm utilities (e.g. rocm_agent_enumerator)
-export  ROCM=${AOMP:-$HOME/rocm/aomp}
+ROCM=${ROCM:-$(realpath -m $(realpath -m $AOMP)/../..)}
 
-CC=${AOMP}/llvm/bin/clang
-CXX=${AOMP}/llvm/bin/clang++
-FC=${AOMP}/llvm/bin/flang
+CC=${AOMP}/bin/clang
+CXX=${AOMP}/bin/clang++
+FC=${AOMP}/bin/flang
 
 echo "AOMP    = $AOMP"
 echo "AOMPHIP = $AOMPHIP"
@@ -39,9 +39,9 @@ export AOMP_SUPP=${AOMP_SUPP:-$HOME/local}
 
 export CMAKE=$AOMP_SUPP/cmake/bin
 export MPI=$AOMP_SUPP/llvm-flang/openmpi
-export LIBRARY_PATH=$AOMP/llvm/lib:$AOMP/lib:$MPI/bin:$MPI/include:$LIBRARY_PATH
-export LD_LIBRARY_PATH=$AOMP/llvm/lib:$AOMP/lib:$MPI/bin:$MPI/include:$LD_LIBRARY_PATH
-export PATH=$MPI:$AOMP/llvm/bin:$AOMP/bin:$MPI/bin:$MPI/include:$PATH
+export LIBRARY_PATH=$AOMP/lib:$AOMPHIP/lib:$MPI/bin:$MPI/include:$LIBRARY_PATH
+export LD_LIBRARY_PATH=$AOMP/lib:$AOMPHIP/lib:$MPI/bin:$MPI/include:$LD_LIBRARY_PATH
+export PATH=$MPI:$AOMP/bin:$AOMPHIP/bin:$MPI/bin:$MPI/include:$PATH
 
 function usage(){
   echo ""
@@ -72,6 +72,7 @@ if [ "$1" == "build_umt" ]; then
 
     pushd $AOMP_REPOS_TEST/$CAMP_SRC_DIR
     git clone https://github.com/LLNL/camp.git .
+    rm -rf build
     mkdir build
     pushd build
     $CMAKE/cmake -DCMAKE_INSTALL_PREFIX=$AOMP_REPOS_TEST/$CAMP_SRC_DIR/install \
@@ -80,18 +81,21 @@ if [ "$1" == "build_umt" ]; then
           -DCMAKE_CXX_COMPILER=$CXX \
           -DCMAKE_Fortran_COMPILER=$FC \
           ../
+    make clean
     make install
     popd
     popd
 
     pushd $AOMP_REPOS_TEST/$CONDUIT_SRC_DIR
     git clone https://github.com/LLNL/conduit.git .
+    rm -rf build
     mkdir build
     pushd build
     $CMAKE/cmake ../src -DCMAKE_INSTALL_PREFIX=$AOMP_REPOS_TEST/$CONDUIT_SRC_DIR/install \
     -DBLT_SOURCE_DIR=$AOMP_REPOS_TEST/$BLT_SRC_DIR -DENABLE_TESTS=OFF -DENABLE_EXAMPLES=OFF \
     -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX -DCMAKE_Fortran_COMPILER=$FC \
     -DENABLE_DOCS=OFF -DENABLE_FORTRAN=ON -DENABLE_MPI=ON -DENABLE_PYTHON=OFF
+    make clean
     make install
     popd
     popd
@@ -99,6 +103,7 @@ if [ "$1" == "build_umt" ]; then
     pushd $AOMP_REPOS_TEST/$UMPIRE_SRC_DIR
     git clone https://github.com/LLNL/Umpire.git .
     git submodule update --init
+    rm -rf build
     mkdir build
     pushd build
     $CMAKE/cmake ../ -DCMAKE_INSTALL_PREFIX=$AOMP_REPOS_TEST/$UMPIRE_SRC_DIR/install \
@@ -109,6 +114,7 @@ if [ "$1" == "build_umt" ]; then
     -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX -DCMAKE_Fortran_COMPILER=$FC \
     -DBUILD_SHARED_LIBS=OFF -DENABLE_TESTS=OFF -DENABLE_EXAMPLES=OFF \
     -DENABLE_DOCS=OFF -DENABLE_FORTRAN=ON -DENABLE_MPI=ON -DENABLE_HIP=ON
+    make clean
     make install
     popd
     popd
@@ -121,6 +127,7 @@ if [ "$1" == "build_umt" ]; then
     # one or two smaller flang bugs are squashed
     git apply $thisdir/patches/UMT-amdflang-mods.patch
 
+    rm -rf build
     mkdir build
     pushd build
 
@@ -130,7 +137,7 @@ if [ "$1" == "build_umt" ]; then
     -DUMPIRE_ROOT=$AOMP_REPOS_TEST/$UMPIRE_SRC_DIR/install \
     -DCAMP_ROOT=$AOMP_REPOS_TEST/$CAMP_SRC_DIR/install \
     -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX -DCMAKE_Fortran_COMPILER=$FC \
-    -DCMAKE_FORTRAN_OFFLOAD_LIB=$AOMP/llvm/lib/flang_rt.hostdevice.a \
+    -DCMAKE_FORTRAN_OFFLOAD_LIB=$AOMP/lib/libflang_rt.hostdevice.a \
     -DCMAKE_Fortran_LINKER_WRAPPER_FLAG="-Wl," \
     -DENABLE_CUDA=OFF \
     -DENABLE_OPENMP=ON -DOPENMP_HAS_FORTRAN_INTERFACE=ON \
@@ -140,6 +147,7 @@ if [ "$1" == "build_umt" ]; then
     -DCMAKE_HIP_ARCHITECTURES=$AOMP_GPU \
     -DENABLE_UMPIRE=TRUE
 
+    make clean
     make install
     popd
     popd
