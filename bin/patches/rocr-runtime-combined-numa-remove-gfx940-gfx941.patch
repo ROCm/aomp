@@ -38,6 +38,19 @@ index f40b7e73..2e973927 100755
                      "gfx1010;gfx1011;gfx1012;gfx1013;gfx1030;gfx1031;gfx1032;gfx1033;gfx1034;gfx1035;gfx1036"
                      "gfx1100;gfx1101;gfx1102;gfx1103;gfx1150;gfx1151;gfx1152;gfx1153;gfx1200;gfx1201")
  
+diff --git a/runtime/hsa-runtime/CMakeLists.txt b/runtime/hsa-runtime/CMakeLists.txt
+index 53c52ceb..9b14024e 100644
+--- a/runtime/hsa-runtime/CMakeLists.txt
++++ b/runtime/hsa-runtime/CMakeLists.txt
+@@ -298,7 +298,7 @@ if(${IMAGE_SUPPORT})
+ 
+ endif()
+ 
+-target_link_libraries ( ${CORE_RUNTIME_TARGET} PRIVATE elf::elf dl pthread rt )
++target_link_libraries ( ${CORE_RUNTIME_TARGET} PRIVATE elf::elf dl pthread rt numa drm_amdgpu drm)
+ # For static package rocprofiler-register dependency is not required
+ # Link to hsakmt target for shared library builds
+ # Link to hsakmt-staticdrm target for static library builds
 diff --git a/runtime/hsa-runtime/core/runtime/amd_gpu_agent.cpp b/runtime/hsa-runtime/core/runtime/amd_gpu_agent.cpp
 index 3dc734d9..a6349b3a 100644
 --- a/runtime/hsa-runtime/core/runtime/amd_gpu_agent.cpp
