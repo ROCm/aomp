@@ -1111,4 +1111,4 @@ fi
 echo ""
 echo >> $summary
 cat $summary
-exit $totalunexpectedfails
+exit $((totalunexpectedfails + scriptfails))
