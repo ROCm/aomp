@@ -3,9 +3,10 @@
 CKRepoURL='https://github.com/ROCm/composable_kernel.git'
 CKRepoBranchName='develop'
 CKBenchmarkRepoBranchName='main'
-# XXX: CK requires quite a bit of memory when compiling.
-#      Be aware! At least 6GB/core should be given
-CKBuildParallelism='64'
+
+# We grab the total system memory and assume a requirement of 10GB per process
+# when building CK. This is likely a bit conservative.
+CKBuildParallelism=$(free -g | grep Mem | awk '{print int($2/10)}')
 
 realpath=$(realpath $0)
 thisdir=$(dirname $realpath)
@@ -56,6 +57,11 @@ done
 # Get some info on the system
 : ${ROCM_PATH:=/opt/rocm}
 : ${CK_GPU_TARGETS:=$(amdgpu-arch)}
+
+# Check if user overrode number of parallel build jobs
+if [ ! -z ${CK_BUILD_PARALLELISM} ]; then
+  CKBuildParallelism=${CK_BUILD_PARALLELISM}
+fi
 
 if [ ! -d ${CK_TOP} ]; then
   mkdir -p ${CK_TOP} || exit 1
