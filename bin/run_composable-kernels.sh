@@ -28,7 +28,10 @@ ShouldRebuildCK='no'
 # While doing perf / other compiler work, keeping CK fix is useful.
 ShouldUpdateCKRepo='no'
 
-while getopts "hru" opt; do
+# CK Benchmarks is priate, maybe do not want to update it.
+ShouldUpdateCKBenchmarks='no'
+
+while getopts "hrub" opt; do
   case $opt in
   h)
     printHelp
@@ -40,6 +43,10 @@ while getopts "hru" opt; do
   u)
     # Update the CK repo
     ShouldUpdateCKRepo='yes'
+    ;;
+  b)
+    # Update the CK benchmarks repo
+    ShouldUpdateCKBenchmarks='yes'
     ;;
   *)
     echo "Unknown option: -$opt"
@@ -112,7 +119,7 @@ if [ ! -d ${CK_BENCHMARK_REPO} ]; then
   echo "CK Benchmarks repo not found. This is a private repo."
   echo "Please clone with your preferred method into ${CK_BENCHMARK_REPO}"
   exit 1
-else
+elif [ "${ShouldUpdateCKBenchmarks}" == 'yes' ]; then
   pushd ${CK_BENCHMARK_REPO} || exit 1
   git reset --hard origin/${CKBenchmarkRepoBranchName}
   git pull
