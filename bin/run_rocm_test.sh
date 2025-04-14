@@ -69,7 +69,7 @@ SUITE_LIST=${SUITE_LIST:-"examples smoke-limbo smoke smoke-asan smoke-fort smoke
 else
 SUITE_LIST=${SUITE_LIST:-"examples smoke-limbo smoke smoke-asan smoke-fort smoke-fort-limbo omp5 openmpapps LLNL nekbone ovo sollve babelstream fortran-babelstream accel2023 hpc2021"}
 fi
-blockinglist="examples smoke-limbo openmpapps sollve45 sollve50 babelstream ovo accel2023 hpc2021 nekbone smoke-fort smoke-fort-limbo"
+blockinglist="examples smoke smoke-limbo openmpapps sollve45 sollve50 babelstream ovo accel2023 hpc2021 nekbone smoke-fort smoke-fort-limbo"
 
 EPSDB_LIST=${EPSDB_LIST:-"examples smoke-limbo smoke-dev smoke smoke-asan omp5 openmpapps LLNL nekbone ovo sollve babelstream fortran-babelstream accel2023 hpc2021  smoke-fort smoke-fort-limbo smoke-fort-dev"}
 
@@ -461,7 +461,7 @@ function getversion(){
 }
 function notAllMustPass() {
   #if [ "$1" != "smoke" ] && [ "$1" != "smoke-limbo" ] &&  [ "$1" != "smoke-fort" ] && [ "$1" != "smoke-fort-limbo" ]; then
-  if [ "$1" != "smoke" ] && [ "$1" != "smoke-limbo" ] && [ "$1" != "smoke-fort" ] ; then
+  if [ "$1" != "smoke" ] && [ "$1" != "smoke-limbo" ] && [ "$1" != "smoke-fort" ] && [ "$1" != "examples_openmp" ] && [ "$1" != "examples_fortran" ]; then
      true
   else
      false
@@ -1111,4 +1111,4 @@ fi
 echo ""
 echo >> $summary
 cat $summary
-exit $totalunexpectedfails
+exit $((totalunexpectedfails + scriptfails))

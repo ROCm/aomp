@@ -83,16 +83,15 @@ The above command will produce output like this showing you the location and bra
        roc     aomp-dev                flang                     flang 88b81b0a8ead 2023-11-30             GitHub    Emma Pilkington
        roc     aomp-dev          aomp-extras               aomp-extras 7097f3e2ba36 2023-12-04      Ron Lieberman      Ron Lieberman
        roc     aomp-dev                 aomp                      aomp df5b5d8ddffa 2023-12-05 Dhruva Chakrabarti Dhruva Chakrabarti
-       roc   rocm-6.3.x          rocprofiler               rocprofiler 4e190a02e60e 2023-10-30             GitHub      Ammar ELWazir
-       roc   rocm-6.3.x            roctracer                 roctracer 6fbf7673aa7f 2023-07-13 Ranjith Ramakrishnan Ranjith Ramakrishnan
-       roc   rocm-6.3.x            ROCdbgapi                 ROCdbgapi df1a8df2be08 2023-07-28       Lancelot SIX       Lancelot SIX
-       roc   rocm-6.3.x               ROCgdb                    ROCgdb 157eed788288 2023-07-28       Lancelot SIX       Lancelot SIX
-       roc   rocm-6.3.x                  hip                       hip 80681169ae20 2023-08-15        Julia Jiang        Julia Jiang
-       roc   rocm-6.3.x                  clr                       clr 1949b1621a80 2023-09-21        Julia Jiang        Julia Jiang
-       roc   rocm-6.3.x             rocminfo                  rocminfo c8db38ede264 2023-06-02       Mark Searles       Mark Searles
-       roc rocm-rel-6.3           rocm-cmake                rocm-cmake 15cbb2e47f0b 2023-07-11   Lauren Wrubleski   Lauren Wrubleski
-       roc   rocm-6.3.x         rocr-runtime              ROCR-Runtime b2b6811571bf 2023-09-15      David Yat Sin      David Yat Sin
-       roc   rocm-6.3.x roct-thunk-interface      ROCT-Thunk-Interface 5268ea80e32a 2023-08-09     David Belanger     David Belanger
-     rocsw rocm-rel-6.3              hipfort                   hipfort 41f33eeaa3f7 2023-09-07             Sam Wu    dependabot[bot]
+       roc   release/rocm-rel-6.4 rocprofiler               rocprofiler 4e190a02e60e 2023-10-30             GitHub      Ammar ELWazir
+       roc   release/rocm-rel-6.4   roctracer                 roctracer 6fbf7673aa7f 2023-07-13 Ranjith Ramakrishnan Ranjith Ramakrishnan
+       roc   release/rocm-rel-6.4   ROCdbgapi                 ROCdbgapi df1a8df2be08 2023-07-28       Lancelot SIX       Lancelot SIX
+       roc   release/rocm-rel-6.4      ROCgdb                    ROCgdb 157eed788288 2023-07-28       Lancelot SIX       Lancelot SIX
+       roc   release/rocm-rel-6.4         hip                       hip 80681169ae20 2023-08-15        Julia Jiang        Julia Jiang
+       roc   release/rocm-rel-6.4         clr                       clr 1949b1621a80 2023-09-21        Julia Jiang        Julia Jiang
+       roc   release/rocm-rel-6.4    rocminfo                  rocminfo c8db38ede264 2023-06-02       Mark Searles       Mark Searles
+       roc   release/rocm-rel-6.4  rocm-cmake                rocm-cmake 15cbb2e47f0b 2023-07-11   Lauren Wrubleski   Lauren Wrubleski
+       roc   release/rocm-rel-6.4 rocr-runtime              ROCR-Runtime b2b6811571bf 2023-09-15      David Yat Sin      David Yat Sin
+       roc   release/rocm-rel-6.4      hipfort                   hipfort 41f33eeaa3f7 2023-09-07             Sam Wu    dependabot[bot]
 ```
 For more information, or if you are interested in joining the development of AOMP, please read the AOMP developers README file located here [README](../bin/README.md).

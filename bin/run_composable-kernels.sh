@@ -3,9 +3,10 @@
 CKRepoURL='https://github.com/ROCm/composable_kernel.git'
 CKRepoBranchName='develop'
 CKBenchmarkRepoBranchName='main'
-# XXX: CK requires quite a bit of memory when compiling.
-#      Be aware! At least 6GB/core should be given
-CKBuildParallelism='64'
+
+# We grab the total system memory and assume a requirement of 10GB per process
+# when building CK. This is likely a bit conservative.
+CKBuildParallelism=$(free -g | grep Mem | awk '{print int($2/10)}')
 
 realpath=$(realpath $0)
 thisdir=$(dirname $realpath)
@@ -13,6 +14,46 @@ thisdir=$(dirname $realpath)
 . $thisdir/aomp_common_vars
 
 export PATH=$AOMP/bin:$PATH
+
+function printHelp {
+  echo "Usage: run_composable-kernels.sh"
+  echo "  -h: Show this help message"
+  echo "  -r: Rebuild the CK repo"
+  echo "  -u: Update the CK repo"
+  exit 0
+}
+
+# For some situations during testing it may not be desired to rebuild the CK repo.
+ShouldRebuildCK='no'
+# While doing perf / other compiler work, keeping CK fix is useful.
+ShouldUpdateCKRepo='no'
+
+# CK Benchmarks is priate, maybe do not want to update it.
+ShouldUpdateCKBenchmarks='no'
+
+while getopts "hrub" opt; do
+  case $opt in
+  h)
+    printHelp
+    ;;
+  r)
+    # Rebuild the CK repo
+    ShouldRebuildCK='yes'
+    ;;
+  u)
+    # Update the CK repo
+    ShouldUpdateCKRepo='yes'
+    ;;
+  b)
+    # Update the CK benchmarks repo
+    ShouldUpdateCKBenchmarks='yes'
+    ;;
+  *)
+    echo "Unknown option: -$opt"
+    exit 1
+    ;;
+  esac
+done
 
 # Set the default build prefix, i.e., build-top-level
 : ${CK_TOP:=$AOMP_REPOS_TEST/composable-kernels}
@@ -24,13 +65,18 @@ export PATH=$AOMP/bin:$PATH
 : ${ROCM_PATH:=/opt/rocm}
 : ${CK_GPU_TARGETS:=$(amdgpu-arch)}
 
+# Check if user overrode number of parallel build jobs
+if [ ! -z ${CK_BUILD_PARALLELISM} ]; then
+  CKBuildParallelism=${CK_BUILD_PARALLELISM}
+fi
+
 if [ ! -d ${CK_TOP} ]; then
   mkdir -p ${CK_TOP} || exit 1
 fi
 
 if [ ! -d ${CK_REPO} ]; then
   git clone ${CKRepoURL} ${CK_REPO}
-else
+elif [ "${ShouldUpdateCKRepo}" == 'yes' ]; then
   pushd ${CK_REPO} || exit 1
   git reset --hard origin/${CKRepoBranchName}
   git pull
@@ -45,23 +91,27 @@ CKCmakeCmd+="-DCMAKE_CXX_COMPILER=${AOMP}/bin/clang++ -DCMAKE_HIP_COMPILER=${AOM
 CKCmakeCmd+="-DCMAKE_CXX_COMPILER_LAUNCHER=ccache "
 CKCmakeCmd+="-DCMAKE_BUILD_TYPE=Release -DGPU_TARGETS=${CK_GPU_TARGETS}"
 
-# TODO: Run the Cmake command
-echo "CMake Config Command:"
-echo "${CKCmakeCmd}"
+if [ "${ShouldRebuildCK}" == 'yes' ]; then
+  echo "Rebuilding the CK repo"
+  rm -rf ${CK_BUILD} || exit 1
 
-${CKCmakeCmd}
-if [ $? -ne 0 ]; then
-  exit 1
+  echo "CMake Config Command:"
+  echo "${CKCmakeCmd}"
+
+  ${CKCmakeCmd}
+  if [ $? -ne 0 ]; then
+    exit 1
+  fi
+
+  pushd ${CK_BUILD} || exit 1
+
+  time ninja -j ${CKBuildParallelism}
+  if [ $? -ne 0 ]; then
+    exit 1
+  fi
+
+  popd
 fi
-
-pushd ${CK_BUILD} || exit 1
-
-time ninja -j ${CKBuildParallelism}
-if [ $? -ne 0 ]; then
-  exit 1
-fi
-
-popd
 
 # The CK benchmarks repo appears to be private (for the time being).
 
@@ -69,7 +119,7 @@ if [ ! -d ${CK_BENCHMARK_REPO} ]; then
   echo "CK Benchmarks repo not found. This is a private repo."
   echo "Please clone with your preferred method into ${CK_BENCHMARK_REPO}"
   exit 1
-else
+elif [ "${ShouldUpdateCKBenchmarks}" == 'yes' ]; then
   pushd ${CK_BENCHMARK_REPO} || exit 1
   git reset --hard origin/${CKBenchmarkRepoBranchName}
   git pull
