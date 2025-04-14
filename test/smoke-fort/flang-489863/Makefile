@@ -1,6 +1,7 @@
 NOOPT        = 1
 include ../../Makefile.defs
 
+TIMEOUT = 90s
 TESTNAME     = omp
 TESTSRC_MAIN = omp.f90
 TESTSRC_AUX  =
