@@ -3,6 +3,7 @@ include ../Makefile.defs
 TESTS_DIR = \
     flang-464660-2 \
     flang-522104 \
+    flang-527219 \
     hipfort \
     rocm-issue-201 \
     tgt-abort-lhostdev \
