@@ -6,7 +6,7 @@ TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 
 FLANG        ?= flang
-CFLAGS       = -fdo-concurrent-parallel=none
+CFLAGS       = -fdo-concurrent-to-openmp=none
 OMP_BIN      = $(AOMP)/bin/$(FLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
 #-ccc-print-phases
