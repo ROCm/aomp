@@ -1,12 +1,11 @@
 #include "omp.h"
-#include <mpi.h>
 #include <EmissaryMPI.h>
+#include <mpi.h>
 #include <stdio.h>
 
 #define _K 10
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
   int rank, numranks;
   MPI_Init(&argc, &argv);
   MPI_Comm_size(MPI_COMM_WORLD, &numranks);
@@ -17,14 +16,11 @@ int main(int argc, char *argv[])
   int local_val = _K;
   int final_val = 0;
 
-#pragma omp target map(to: local_val) map(from: final_val)
-  {
-    MPI_Reduce(&local_val, &final_val, 1, _mpi_int, _mpi_sum, 0, _mpi_comm);
-  }
+#pragma omp target map(to : local_val) map(from : final_val)
+  { MPI_Reduce(&local_val, &final_val, 1, _mpi_int, _mpi_sum, 0, _mpi_comm); }
 
   MPI_Finalize();
-  if (rank == 0)
-  {
+  if (rank == 0) {
     printf("reduced value for rank %d: %d\n", rank, final_val);
     int expected_val;
     expected_val = numranks * _K;
