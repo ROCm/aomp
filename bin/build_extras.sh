@@ -1,12 +1,9 @@
 #!/bin/bash
 #
 #  File: build_extras.sh
-#        Build the extras host and device runtimes, 
-#        The install option will install components into the aomp installation. 
-#        The components include:
-#          gpusrv headers installed in $AOMP/include
-#          gpusrv host runtime installed in $AOMP/lib
-#          gpusrv device runtime installed in $AOMP/lib/libdevice
+#        Modify and copy former aomp-extras (now in aomp) utilities to aomp install.
+#        The install option will install components into the aomp installation.
+#        Note: this script does not use cmake or make steps.
 #
 # MIT License
 #
@@ -38,66 +35,49 @@ thisdir=`dirname $realpath`
 . $thisdir/aomp_common_vars
 # --- end standard header ----
 
-EXTRAS_REPO_DIR=$AOMP_REPOS/$AOMP_EXTRAS_REPO_NAME
+AOMP_REPO_DIR=$AOMP_REPOS/$AOMP_REPO_NAME
 
 BUILD_DIR=${BUILD_AOMP}
-
-BUILDTYPE="Release"
 
 INSTALL_EXTRAS=${INSTALL_EXTRAS:-$LLVM_INSTALL_LOC}
 export LLVM_DIR=$LLVM_INSTALL_LOC
 
+if [ $AOMP_STANDALONE_BUILD == 1 ] ; then
+  install_list="gpurun rebundle_hip_lib.sh raja_build.sh kokkos_build.sh aompversion blt.patch raja.patch modulefile"
+else
+  install_list="gpurun"
+fi
+
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   echo " "
   echo "Example commands and actions: "
-  echo "  ./build_extras.sh                   cmake, make, NO Install "
-  echo "  ./build_extras.sh nocmake           NO cmake, make,  NO install "
-  echo "  ./build_extras.sh install           NO Cmake, make install "
+  echo "  ./build_extras.sh                   copy to build location, NO Install "
+  echo "  ./build_extras.sh install           install "
   echo " "
   exit
 fi
 
-if [ ! -d $EXTRAS_REPO_DIR ] ; then
-   echo "ERROR:  Missing repository $EXTRAS_REPO_DIR/"
-   exit 1
-fi
-
-if [ ! -f $LLVM_INSTALL_LOC/bin/clang ] ; then
-   echo "ERROR:  Missing file $AOMP/bin/clang"
-   echo "        Build and install the AOMP clang compiler in $AOMP first"
-   echo "        This is needed to build extras "
-   echo " "
-   exit 1
-fi
-
 # Make sure we can update the install directory
 if [ "$1" == "install" ] ; then
-   $SUDO mkdir -p $INSTALL_EXTRAS
-   $SUDO touch $INSTALL_EXTRAS/testfile
-   if [ $? != 0 ] ; then
-      echo "ERROR: No update access to $INSTALL_EXTRAS"
-      exit 1
-   fi
-   $SUDO rm $INSTALL_EXTRAS/testfile
+  $SUDO mkdir -p $INSTALL_EXTRAS
+  $SUDO touch $INSTALL_EXTRAS/testfile
+  if [ $? != 0 ] ; then
+  echo "ERROR: No update access to $INSTALL_EXTRAS"
+  exit 1
+fi
+  $SUDO rm $INSTALL_EXTRAS/testfile
 fi
 
-if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
-
+if [ "$1" != "install" ] ; then
   if [ -d "$BUILD_DIR/build/extras" ] ; then
-     echo
-     echo "FRESH START , CLEANING UP FROM PREVIOUS BUILD"
-     echo rm -rf $BUILD_DIR/build/extras
-     rm -rf $BUILD_DIR/build/extras
+    echo
+    echo "FRESH START , CLEANING UP FROM PREVIOUS BUILD"
+    echo rm -rf $BUILD_DIR/build/extras
+    rm -rf $BUILD_DIR/build/extras
   fi
 
-  if [ $AOMP_STANDALONE_BUILD == 1 ] ; then
-    MYCMAKEOPTS="-DLLVM_DIR=$LLVM_DIR -DCMAKE_BUILD_TYPE=$BUILDTYPE -DCMAKE_INSTALL_PREFIX=$INSTALL_EXTRAS -DAOMP_VERSION_STRING=$AOMP_VERSION_STRING -DCMAKE_PREFIX_PATH=$BUILD_DIR/build/libdevice"
-  else
-    MYCMAKEOPTS="-DLLVM_DIR=$INSTALL_PREFIX/llvm \
-     -DCMAKE_BUILD_TYPE=$BUILDTYPE \
-     -DCMAKE_INSTALL_PREFIX=$INSTALL_EXTRAS \
-     -DAOMP_VERSION_STRING=$ROCM_VERSION \
-     -DAOMP_STANDALONE_BUILD=0 "
+  if [ $AOMP_STANDALONE_BUILD == 0 ] ; then
+    export AOMP_VERSION_STRING=$ROCM_VERSION
   fi
 
   mkdir -p $BUILD_DIR/build/extras
@@ -110,49 +90,36 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
   fi
 
   export SED_INSTALL_DIR
-  echo
-  echo " -----Running cmake ---- "
-  echo ${AOMP_CMAKE} $MYCMAKEOPTS $EXTRAS_REPO_DIR
-  ${AOMP_CMAKE} $MYCMAKEOPTS $EXTRAS_REPO_DIR 
-  if [ $? != 0 ] ; then
-      echo "ERROR extras cmake failed. Cmake flags"
-      echo "      $MYCMAKEOPTS"
-      exit 1
-  fi
-fi
 
-if [ "$1" = "cmake" ]; then
-  exit 0
+  echo "----- Copy util scripts to $BUILD_DIR/build/extras -----"
+  cp $AOMP_REPO_DIR/utils/* $BUILD_DIR/build/extras
+
+  for util in $install_list; do
+    if [ "$util" == "rebundle_hip_lib.sh" ]; then
+      /bin/sed -i -e "s/X\\.Y\\-Z/${AOMP_VERSION_STRING}/g" -e "s/_LLVM_INSTALL_DIR_/${SED_INSTALL_DIR}/g" $util
+    else
+      /bin/sed -i -e "s/X\\.Y\\-Z/${AOMP_VERSION_STRING}/g" -e "s/_AOMP_INSTALL_DIR_/${SED_INSTALL_DIR}/g" $util
+    fi
+  done
 fi
 
 cd $BUILD_DIR/build/extras
 echo
-echo " -----Running make for extras ---- "
-make -j $AOMP_JOB_THREADS 
-if [ $? != 0 ] ; then
-      echo " "
-      echo "ERROR: make -j $AOMP_JOB_THREADS  FAILED"
-      echo "To restart:"
-      echo "  cd $BUILD_DIR/build/extras"
-      echo "  make "
-      exit 1
-else
-  if [ "$1" != "install" ] ; then
-      echo
-      echo " BUILD COMPLETE! To install extras component run this command:"
-      echo "  $0 install"
-      echo
-  fi
+if [ "$1" != "install" ] ; then
+  echo
+  echo " BUILD COMPLETE! To install extras component run this command:"
+  echo "  $0 install"
+  echo
 fi
 
 #  ----------- Install only if asked  ----------------------------
 if [ "$1" == "install" ] ; then
-      cd $BUILD_DIR/build/extras
-      echo
-      echo " -----Installing to $INSTALL_EXTRAS ----- "
-      $SUDO make install
-      if [ $? != 0 ] ; then
-         echo "ERROR make install failed "
-         exit 1
-      fi
+  cd $BUILD_DIR/build/extras
+  echo
+  echo " -----Installing to $INSTALL_EXTRAS/bin ----- "
+  cp $BUILD_DIR/build/extras/* $INSTALL_EXTRAS/bin
+  for util in $install_list; do
+    echo "-- Installing: $INSTALL_EXTRAS/bin/$util"
+    echo "$INSTALL_EXTRAS/bin/$util" >> installed_manifest.txt
+  done
 fi
