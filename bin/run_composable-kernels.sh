@@ -20,6 +20,7 @@ function printHelp {
   echo "  -h: Show this help message"
   echo "  -r: Rebuild the CK repo"
   echo "  -u: Update the CK repo"
+  echo "  -b: Update the CK benchmarks repo"
   exit 0
 }
 
