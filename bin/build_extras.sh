@@ -115,11 +115,10 @@ fi
 #  ----------- Install only if asked  ----------------------------
 if [ "$1" == "install" ] ; then
   cd $BUILD_DIR/build/extras
-  echo
   echo " -----Installing to $INSTALL_EXTRAS/bin ----- "
-  cp $BUILD_DIR/build/extras/* $INSTALL_EXTRAS/bin
   for util in $install_list; do
     echo "-- Installing: $INSTALL_EXTRAS/bin/$util"
+    cp "$BUILD_DIR"/build/extras/"$util" "$INSTALL_EXTRAS"/bin
     echo "$INSTALL_EXTRAS/bin/$util" >> install_manifest.txt
   done
 fi
