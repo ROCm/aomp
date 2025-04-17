@@ -120,6 +120,6 @@ if [ "$1" == "install" ] ; then
   cp $BUILD_DIR/build/extras/* $INSTALL_EXTRAS/bin
   for util in $install_list; do
     echo "-- Installing: $INSTALL_EXTRAS/bin/$util"
-    echo "$INSTALL_EXTRAS/bin/$util" >> installed_manifest.txt
+    echo "$INSTALL_EXTRAS/bin/$util" >> install_manifest.txt
   done
 fi
