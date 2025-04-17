@@ -61,6 +61,8 @@ done
 : ${CK_REPO:=$CK_TOP/ck-src}
 : ${CK_BUILD:=$CK_TOP/ck-build}
 : ${CK_BENCHMARK_REPO:=$CK_TOP/ck-benchmark}
+# Move this to its own place, to avoid potential permission conflicts with certain setups.
+: ${CK_BENCHMARK_RESULT:=$CK_TOP/ck-benchmark-result}
 
 # Get some info on the system
 : ${ROCM_PATH:=/opt/rocm}
@@ -128,11 +130,16 @@ elif [ "${ShouldUpdateCKBenchmarks}" == 'yes' ]; then
   popd
 fi
 
+if [ ! -d ${CK_BENCHMARK_RESULT} ]; then
+  mkdir -p ${CK_BENCHMARK_RESULT} || exit 1
+fi
+
 # This is the command. It requires the envar CK_PROFILER_DIR to be set to the directory
 # in the CK build tree that contains the CkProfiler binary.
 CKBenchmarkTest='../benchmarks/gemm/fa1.yaml'
+CKBenchmarkName=$(basename ${CKBenchmarkTest})
 CKBenchmarkBackend='ck'
-CKBenchmarkCmd="./run_gemm.py ${CKBenchmarkBackend} ${CKBenchmarkTest} --output ${CKBenchmarkTest}.output"
+CKBenchmarkCmd="./run_gemm.py ${CKBenchmarkBackend} ${CKBenchmarkTest} --output ${CK_BENCHMARK_RESULT}/${CKBenchmarkName}.output"
 CKBenchmarkEnvAdditions="export CK_PROFILER_DIR=${CK_BUILD}/bin"
 
 pushd ${CK_BENCHMARK_REPO}/scripts || exit 1
