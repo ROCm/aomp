@@ -1,0 +1,48 @@
+MODULE MOD
+  IMPLICIT NONE
+CONTAINS
+  SUBROUTINE ROUTINE(A, B)
+    IMPLICIT NONE
+    REAL(4), ALLOCATABLE, OPTIONAL, INTENT(IN) :: A(:)
+    REAL(4), INTENT(OUT) :: B(:)
+    INTEGER(4) :: I, IA
+    IF(PRESENT(A)) THEN
+       IA = 1
+       write(*,*) "A is present"
+    ELSE
+       IA=0
+       write(*,*) "A is NOT present"
+    END IF
+    
+
+    !$OMP TARGET TEAMS DISTRIBUTE PARALLEL DO SHARED(A,B,IA)
+    DO I=1,10
+       IF (IA>0) THEN
+          B(I) = B(I) + A(I)
+       END IF
+    END DO
+
+  END SUBROUTINE ROUTINE
+
+END MODULE MOD
+
+PROGRAM MAIN
+  USE MOD
+  IMPLICIT NONE
+  REAL(4), ALLOCATABLE :: A(:)
+  REAL(4), ALLOCATABLE :: B(:)
+  INTEGER(4) :: I
+  ALLOCATE(B(10))
+  DO I=1,10
+     B(I)=0
+  END DO
+  !$OMP TARGET DATA MAP(FROM: B)
+
+  CALL ROUTINE(B=B)
+
+  !$OMP END TARGET DATA
+  DO I=1,10
+     WRITE(*,*), B(I)
+  ENDDO
+  DEALLOCATE(B)
+END PROGRAM MAIN
