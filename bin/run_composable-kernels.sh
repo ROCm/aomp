@@ -163,8 +163,9 @@ fi
 # in the CK build tree that contains the CkProfiler binary.
 CKBenchmarkTest='../benchmarks/gemm/fa1.yaml'
 CKBenchmarkName=$(basename ${CKBenchmarkTest})
+CKBenchmarkResultOutput="${CK_BENCHMARK_RESULT}/${CKBenchmarkName}.output"
 CKBenchmarkBackend='ck'
-CKBenchmarkCmd="./run_gemm.py ${CKBenchmarkBackend} ${CKBenchmarkTest} --output ${CK_BENCHMARK_RESULT}/${CKBenchmarkName}.output"
+CKBenchmarkCmd="./run_gemm.py ${CKBenchmarkBackend} ${CKBenchmarkTest} --output ${CKBenchmarkResultOutput}"
 CKBenchmarkEnvAdditions="export CK_PROFILER_DIR=${CK_BUILD}/bin"
 
 pushd ${CK_BENCHMARK_REPO}/scripts || exit 1
@@ -175,4 +176,4 @@ ${CKBenchmarkCmd}
 
 popd
 
-echo "Benchmark Output File: ${CKBenchmarkTest}.output"
+echo "Benchmark Output File: ${CKBenchmarkResultOutput}"
