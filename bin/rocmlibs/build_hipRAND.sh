@@ -1,7 +1,6 @@
 #!/bin/bash
 # 
-#  build_rocSOLVER.sh:  Script to build and install rocSOLVER library
-#
+#  build_hipRAND.sh.sh: script to build rocRAND
 #
 BUILD_TYPE=${BUILD_TYPE:-Release}
 
@@ -11,25 +10,20 @@ thisdir=`dirname $realpath`
 . $thisdir/../aomp_common_vars
 # --- end standard header ----
 
-_repo_dir=$AOMP_REPOS/rocmlibs/rocSOLVER
+_howcalled=${0##*/}
+_shname=${_howcalled#build_*}  # strip off build_
+_libname=${_shname%*.sh}       # strip off .sh to get component libname
+_repo_dir=$AOMP_REPOS/rocmlibs/$_libname
+
 patchrepo $_repo_dir
 
-export CC=$LLVM_INSTALL_LOC/bin/clang 
-export CXX=$LLVM_INSTALL_LOC/bin/clang++
+export CXX=$AOMP_INSTALL_DIR/bin/hipcc
 export ROCM_DIR=$AOMP_INSTALL_DIR
 export ROCM_PATH=$AOMP_INSTALL_DIR
 export PATH=$AOMP_SUPP/cmake/bin:$AOMP_INSTALL_DIR/bin:$PATH
-export HIP_USE_PERL_SCRIPTS=1
-export USE_PERL_SCRIPTS=1
-#  Reduce number of jobs because of large mem requirements for linking
-_num_procs=$(( $AOMP_JOB_THREADS / 2 ))
-export NUM_PROC=$_num_procs
-export CXXFLAGS="-I$AOMP_INSTALL_DIR/include -D__HIP_PLATFORM_AMD__=1" 
+#export HIP_USE_PERL_SCRIPTS=1
+#export USE_PERL_SCRIPTS=1
 export LDFLAGS="-fPIC"
-if [ "$AOMP_USE_CCACHE" != 0 ] ; then
-   _ccache_bin=`which ccache`
-  # export CMAKE_CXX_COMPILER_LAUNCHER=$_ccache_bin
-fi
 
 if [ $AOMP_STANDALONE_BUILD == 1 ] ; then 
    if [ ! -L $AOMP ] ; then 
@@ -62,14 +56,14 @@ fi
 
 if [ "$1" != "install" ] ; then
    echo 
-   echo "This is a FRESH START. ERASING any previous builds in $BUILD_DIR/build/rocmlibs/rocSOLVER"
+   echo "This is a FRESH START. ERASING any previous builds in $BUILD_DIR/build/rocmlibs/$_libname"
    echo "Use ""$0 install"" to avoid FRESH START."
-   echo rm -rf $BUILD_DIR/build/rocmlibs/rocSOLVER
-   rm -rf $BUILD_DIR/build/rocmlibs/rocSOLVER
-   mkdir -p $BUILD_DIR/build/rocmlibs/rocSOLVER
+   echo rm -rf $BUILD_DIR/build/rocmlibs/$_libname
+   rm -rf $BUILD_DIR/build/rocmlibs/$_libname
+   mkdir -p $BUILD_DIR/build/rocmlibs/$_libname
 else
-   if [ ! -d $BUILD_DIR/build/rocmlibs/rocSOLVER ] ; then 
-      echo "ERROR: The build directory $BUILD_DIR/build/rocmlibs/rocSOLVER does not exist"
+   if [ ! -d $BUILD_DIR/build/rocmlibs/$_libname ] ; then 
+      echo "ERROR: The build directory $BUILD_DIR/build/rocmlibs/$_libname does not exist"
       echo "       run $0 without install option. "
       exit 1
    fi
@@ -78,24 +72,25 @@ fi
 if [ "$1" != "install" ] ; then
    # Remember start directory to return on exit
    _curdir=$PWD
+   echo
    echo " -----Running cmake ---"
-   echo cd $AOMP_REPOS/build/rocmlibs/rocSOLVER
-   cd $AOMP_REPOS/build/rocmlibs/rocSOLVER
+   echo cd $AOMP_REPOS/build/rocmlibs/$_libname
+   cd $AOMP_REPOS/build/rocmlibs/$_libname
    pwd
-   MYCMAKEOPTS="
-     -DCMAKE_CXX_COMPILER=$CXX
-     -DCMAKE_C_COMPILER=$CC
-     -DROCM_DIR:PATH=$AOMP_INSTALL_DIR
-     -DCPACK_PACKAGING_INSTALL_PREFIX=$AOMP_INSTALL_DIR
-     -DCMAKE_INSTALL_PREFIX=$AOMP_INSTALL_DIR
-     -DROCM_PATH=$AOMP_INSTALL_DIR
-     -DCMAKE_PREFIX_PATH:PATH=$AOMP_INSTALL_DIR
-     -DCPACK_SET_DESTDIR=OFF
-     -DCMAKE_BUILD_TYPE=Release
-     -Drocblas_DIR=$AOMP_INSTALL_DIR/rocblas
-     -DAMDGPU_TARGETS="""$_gfxlist"""
-   "
-   echo $AOMP_CMAKE $MYCMAKEOPTS $_repo_dir
+   MYCMAKEOPTS="\
+-DCMAKE_CXX_COMPILER=$CXX \
+-DCMAKE_CXX_FLAGS=""-I$LLVM_INSTALL_LOC/include\;-D__HIP_PLATFORM_AMD__=1"" \
+-DROCM_DIR=$AOMP_INSTALL_DIR \
+-DBUILD_FORTRAN_WRAPPER=ON \
+-DROCM_PATH=$AOMP_INSTALL_DIR \
+-DHIP_ROOT_DIR=$AOMP_INSTALL_DIR \
+-DCPACK_PACKAGING_INSTALL_PREFIX=$AOMP_INSTALL_DIR \
+-DCMAKE_INSTALL_PREFIX=$AOMP_INSTALL_DIR \
+-DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR \
+-DCPACK_SET_DESTDIR=OFF \
+-DCMAKE_BUILD_TYPE=Release \
+-DAMDGPU_TARGETS="""$_gfxlist""" "
+   echo " ----- Running $AOMP_CMAKE $MYCMAKEOPTS $_repo_dir -----"
    $AOMP_CMAKE $MYCMAKEOPTS $_repo_dir
    if [ $? != 0 ] ; then 
       echo "ERROR cmake failed."
@@ -104,16 +99,17 @@ if [ "$1" != "install" ] ; then
       exit 1
    fi
 
-   make -j$AOMP_JOB_THREADS
+   echo " ----- Running ${AOMP_CMAKE} --build . -j $AOMP_JOB_THREADS -----"
+   ${AOMP_CMAKE} --build . -j $AOMP_JOB_THREADS
    if [ $? != 0 ] ; then
-      echo "ERROR make -j $AOMP_JOB_THREADS failed"
+      echo "ERROR: ${AOMP_CMAKE} --build . -j $AOMP_JOB_THREADS FAILED"
       exit 1
    fi
 fi
 
 if [ "$1" == "install" ] ; then
-   echo " -----Installing to $AOMP_INSTALL_DIR ---- "
-   cd $AOMP_REPOS/build/rocmlibs/rocSOLVER
+   echo " ----- Installing to $AOMP_INSTALL_DIR ----- "
+   cd $AOMP_REPOS/build/rocmlibs/$_libname
    make -j$AOMP_JOB_THREADS install
    if [ $? != 0 ] ; then
       echo "ERROR install to $AOMP_INSTALL_DIR failed "
