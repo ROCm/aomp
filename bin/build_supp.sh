@@ -241,10 +241,10 @@ function getrocmpackage(){
   _packagename="$2"
   _componentversion="$3"
   _directory=$(echo $2 | cut -b 1)
-  _version=6.3
-  _packageversion=6.3.0
-  _fullversion=60300
-  _buildnumber=39
+  _version=6.4
+  _packageversion=6.4.0
+  _fullversion=60400
+  _buildnumber=47
   _installdir=$AOMP_SUPP_INSTALL/$_cname-$_version
   _linkfrom=$AOMP_SUPP/$_cname
   _builddir=$AOMP_SUPP_BUILD/$_cname
@@ -443,7 +443,7 @@ function buildcmake(){
 
 function buildrocmsmilib(){
   _cname="rocmsmilib"
-  _version=6.3.x
+  _version=6.4.x
   _installdir=$AOMP_SUPP_INSTALL/rocmsmilib-$_version
   _linkfrom=$AOMP_SUPP/rocmsmilib
   _builddir=$AOMP_SUPP_BUILD/rocmsmilib
@@ -458,7 +458,7 @@ function buildrocmsmilib(){
   fi
   runcmd "mkdir -p $_builddir"
   runcmd "cd $_builddir"
-  runcmd "git clone -b rocm-$_version https://github.com/ROCm/rocm_smi_lib rocmsmilib-$_version"
+  runcmd "git clone -b release/rocm-rel-6.4 https://github.com/ROCm/rocm_smi_lib rocmsmilib-$_version"
   runcmd "cd rocmsmilib-$_version"
   runcmd "mkdir -p build"
   runcmd "cd build"
