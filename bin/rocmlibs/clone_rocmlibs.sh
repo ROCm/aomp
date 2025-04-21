@@ -180,18 +180,7 @@ function get_monthnumber() {
         DEC) monthnumber="12" ;;
     esac
 }
-
-   ping -c 1 $AOMP_GIT_INTERNAL_IP 2> /dev/null >/dev/null
-   if [ $? == 0 ] ; then
-     manifest_file=$thisdir/rocmlibsi.xml
-   else
-     abranch=`git branch | awk '/\*/ { print $2; }'`
-     if [ "$abranch" == "aomp-${AOMP_VERSION_STRING}" ]; then
-       manifest_file=$thisdir/rocmlibs_${AOMP_VERSION_STRING}.xml
-     else
-       manifest_file=$thisdir/rocmlibs.xml
-     fi
-   fi
+   manifest_file=$thisdir/rocmlibs.xml
    if [ ! -f $manifest_file ] ; then 
       echo "ERROR manifest file missing: $manifest_file"
       exit 1

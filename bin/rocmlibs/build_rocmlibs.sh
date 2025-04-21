@@ -99,7 +99,7 @@ echo
 components="prereq rocm-cmake"
 if [ "$AOMP_STANDALONE_BUILD" == 1 ] ; then
   # This ordered build is important when starting from scratch
-  components="$components rocblas rocPRIM rocSPARSE rocSOLVER hipblas-common hipblas rocRAND hipRAND rccl half hipSOLVER"
+  components="$components rocBLAS rocPRIM rocSPARSE rocSOLVER hipBLAS-common hipBLAS rocRAND hipRAND rccl half hipSOLVER"
 else
   echo "ERROR: Cannot run $0 with AOMP_STANDALONE_BUILD=$AOMP_STANDALONE_BUILD"
   echo "       Please set $AOMP_STANDALONE_BUILD=1"
@@ -110,7 +110,7 @@ echo "COMPONENTS:$components"
 #Partial build options. Check if argument was given.
 if [ -n "$1" ] ; then
   found=0
-#Start build from given component (./build_rocmlibs.sh continue rocblas)
+#Start build from given component (./build_rocmlibs.sh continue rocBLAS)
   if [ "$1" == 'continue' ] ; then
     for COMPONENT in $components ; do
       if [ $COMPONENT == "$2" ] ; then
@@ -127,7 +127,7 @@ if [ -n "$1" ] ; then
     #Remove arguments so they are not passed to build_rocmlib_component
     set --
 
-  #Select which components to build(./build_rocmlibs.sh select rocblas hipblas )
+  #Select which components to build(./build_rocmlibs.sh select rocBLAS hipBLAS )
   elif [ "$1" == 'select' ] ; then
     for ARGUMENT in $@ ; do
       if [ $ARGUMENT != "$1" ] ; then
