@@ -74,7 +74,21 @@ done
 
 # Get some info on the system
 : ${ROCM_PATH:=/opt/rocm}
-: ${CK_GPU_TARGETS:=$(amdgpu-arch)}
+: ${CK_GPU_TARGETS:=''}
+
+if [ -z ${CK_GPU_TARGETS} ]; then
+  NumGpuArchs=$(amdgpu-arch | sort | uniq | wc -l)
+  if [ ${NumGpuArchs} -gt 1 ]; then
+    echo "Error: More than one GPU architecture detected. This may cause issues."
+    echo "       Please set the CK_GPU_TARGETS variable to the desired GPU arch."
+    exit 1
+  else
+    # If only one GPU arch is detected, set it as the default.
+    CK_GPU_TARGETS=$(amdgpu-arch | uniq)
+  fi
+fi
+
+echo "Building for ${CK_GPU_TARGETS}"
 
 # Check if user overrode number of parallel build jobs
 if [ ! -z ${CK_BUILD_PARALLELISM} ]; then
@@ -103,7 +117,7 @@ CKCmakeCmd+="-DCMAKE_CXX_COMPILER_LAUNCHER=ccache "
 CKCmakeCmd+="-DCMAKE_BUILD_TYPE=Release -DGPU_TARGETS=${CK_GPU_TARGETS}"
 
 if [ "${ShouldRebuildCK}" == 'yes' ]; then
-  echo "Rebuilding the CK repo"
+  echo "Rebuilding the CK repo w/ ${CKBuildParallelism} parallel jobs."
   rm -rf ${CK_BUILD} || exit 1
 
   echo "CMake Config Command:"
