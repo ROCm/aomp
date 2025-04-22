@@ -22,6 +22,8 @@ function printHelp {
   echo "  -r: Rebuild the CK repo"
   echo "  -u: Update the CK repo"
   echo "  -b: Update the CK benchmarks repo"
+  echo "  -s <suite>: Select <suite> from:"                  \
+       "[benchmarks client-examples]. (Default: benchmarks)"
   exit 0
 }
 
@@ -35,8 +37,11 @@ ShouldUpdateCKRepo='no'
 # CK Benchmarks is priate, maybe do not want to update it.
 ShouldUpdateCKBenchmarks='no'
 
-while getopts "hirub" opt; do
-  case $opt in
+# CK may be run using different test- or benchmark-suites.
+SelectedSuite='benchmarks'
+
+while getopts "hirubs:" opt; do
+  case ${opt} in
   h)
     printHelp
     ;;
@@ -56,6 +61,30 @@ while getopts "hirub" opt; do
     # Update the CK benchmarks repo
     ShouldUpdateCKBenchmarks='yes'
     ;;
+  s)
+    # Select benchmark or test suite.
+    # To support this as an optional argument, we take a look at the next.
+    case ${OPTARG} in
+      benchmarks)
+        # Run the CK benchmarks.
+        SelectedSuite="${OPTARG}"
+        ;;
+      client-examples)
+        # Build and run the client examples provided by CK.
+        SelectedSuite="${OPTARG}"
+        # Requires an installed CK build (triggers incremental build)
+        ShouldInstallCK='yes'
+        ;;
+      *)
+        # If there's a following string which does not start with '-'
+        # we interpret it as an attempt at providing an unknown suite.
+        if [[ "${OPTARG}" =~ ^[^-].*$ ]]; then
+          echo "Unknown suite: ${OPTARG}"
+          printHelp
+        fi
+        ;;
+    esac
+    ;;
   *)
     echo "Unknown option: -$opt"
     exit 1
@@ -71,6 +100,8 @@ done
 # Move this to its own place, to avoid potential permission conflicts with certain setups.
 : ${CK_BENCHMARK_RESULT:=$CK_TOP/ck-benchmark-result}
 : ${CK_INSTALL:=$CK_TOP/ck-install}
+: ${CK_CLIENT_EXAMPLES_SOURCE:=$CK_REPO/client_example}
+: ${CK_CLIENT_EXAMPLES_BUILD:=$CK_TOP/ck-client-examples-build}
 
 # Get some info on the system
 : ${ROCM_PATH:=/opt/rocm}
@@ -141,39 +172,92 @@ if [ "${ShouldInstallCK}" == 'yes' ]; then
   popd
 fi
 
-# The CK benchmarks repo appears to be private (for the time being).
+echo "Run suite: ${SelectedSuite}"
 
-if [ ! -d ${CK_BENCHMARK_REPO} ]; then
-  echo "CK Benchmarks repo not found. This is a private repo."
-  echo "Please clone with your preferred method into ${CK_BENCHMARK_REPO}"
-  exit 1
-elif [ "${ShouldUpdateCKBenchmarks}" == 'yes' ]; then
-  pushd ${CK_BENCHMARK_REPO} || exit 1
-  git reset --hard origin/${CKBenchmarkRepoBranchName}
-  git pull
-  # TODO: Dump SHA somewhere
+# Handle CK benchmarks (also as default, if no suite has been explicitly selected)
+if [ "${SelectedSuite}" == 'benchmarks' ]; then
+  # The CK benchmarks repo appears to be private (for the time being).
+
+  if [ ! -d ${CK_BENCHMARK_REPO} ]; then
+    echo "CK Benchmarks repo not found. This is a private repo."
+    echo "Please clone with your preferred method into ${CK_BENCHMARK_REPO}"
+    exit 1
+  elif [ "${ShouldUpdateCKBenchmarks}" == 'yes' ]; then
+    pushd ${CK_BENCHMARK_REPO} || exit 1
+    git reset --hard origin/${CKBenchmarkRepoBranchName}
+    git pull
+    # TODO: Dump SHA somewhere
+    popd
+  fi
+
+  if [ ! -d ${CK_BENCHMARK_RESULT} ]; then
+    mkdir -p ${CK_BENCHMARK_RESULT} || exit 1
+  fi
+
+  # This is the command. It requires the envar CK_PROFILER_DIR to be set to the directory
+  # in the CK build tree that contains the CkProfiler binary.
+  CKBenchmarkTest='../benchmarks/gemm/fa1.yaml'
+  CKBenchmarkName=$(basename ${CKBenchmarkTest})
+  CKBenchmarkResultOutput="${CK_BENCHMARK_RESULT}/${CKBenchmarkName}.output"
+  CKBenchmarkBackend='ck'
+  CKBenchmarkCmd="./run_gemm.py ${CKBenchmarkBackend} ${CKBenchmarkTest} --output ${CKBenchmarkResultOutput}"
+  CKBenchmarkEnvAdditions="export CK_PROFILER_DIR=${CK_BUILD}/bin"
+
+  pushd ${CK_BENCHMARK_REPO}/scripts || exit 1
+
+  echo "Benchmark Command: ${CKBenchmarkEnvAdditions} ; ${CKBenchmarkCmd}"
+  ${CKBenchmarkEnvAdditions}
+  ${CKBenchmarkCmd}
+
+  popd
+
+  echo "Benchmark Output File: ${CKBenchmarkResultOutput}"
+fi
+
+# Handle CK client examples
+if [ "${SelectedSuite}" == 'client-examples' ]; then
+  # Configure and build the client examples
+  # Note: client_example needs hipcc, otherwise there may be assertion failures.
+  CKCmakeCmd="cmake -G Ninja "
+  CKCmakeCmd+="-B ${CK_CLIENT_EXAMPLES_BUILD} -S ${CK_CLIENT_EXAMPLES_SOURCE} "
+  CKCmakeCmd+="-DCMAKE_CXX_COMPILER=${AOMP}/../../bin/hipcc "
+  CKCmakeCmd+="-DCMAKE_CXX_COMPILER_LAUNCHER=ccache "
+  CKCmakeCmd+="-DCMAKE_PREFIX_PATH=${AOMP};${CK_INSTALL} "
+  CKCmakeCmd+="-DGPU_TARGETS=${CK_GPU_TARGETS} "
+
+  echo "Rebuilding the CK client-examples"
+  rm -rf ${CK_CLIENT_EXAMPLES_BUILD} || exit 1
+
+  echo "CMake Config Command:"
+  echo "${CKCmakeCmd}"
+
+  ${CKCmakeCmd}
+  if [ $? -ne 0 ]; then
+    exit 1
+  fi
+
+  pushd ${CK_CLIENT_EXAMPLES_BUILD} || exit 1
+
+  ninja
+  if [ $? -ne 0 ]; then
+    exit 1
+  fi
+
+  # Run each client example
+  for Example in $(find . -mindepth 1 -maxdepth 1 -type d -not -path "*CMakeFiles*" | sort); do
+    pushd ${Example} || exit 1
+
+    # Retrieve all executable files (subtests) within the directory
+    # Run each example's subtests and log the output in a corresponding file
+    for Subtest in $(find . -type f -executable | sort); do
+      SubtestName=$(basename ${Subtest})
+      SubtestLogfile="run_${SubtestName}.log"
+      echo "Running client example: ${Example}/${SubtestName}"
+      ${Subtest} | tee "${SubtestLogfile}"
+    done
+
+    popd
+  done
+
   popd
 fi
-
-if [ ! -d ${CK_BENCHMARK_RESULT} ]; then
-  mkdir -p ${CK_BENCHMARK_RESULT} || exit 1
-fi
-
-# This is the command. It requires the envar CK_PROFILER_DIR to be set to the directory
-# in the CK build tree that contains the CkProfiler binary.
-CKBenchmarkTest='../benchmarks/gemm/fa1.yaml'
-CKBenchmarkName=$(basename ${CKBenchmarkTest})
-CKBenchmarkResultOutput="${CK_BENCHMARK_RESULT}/${CKBenchmarkName}.output"
-CKBenchmarkBackend='ck'
-CKBenchmarkCmd="./run_gemm.py ${CKBenchmarkBackend} ${CKBenchmarkTest} --output ${CKBenchmarkResultOutput}"
-CKBenchmarkEnvAdditions="export CK_PROFILER_DIR=${CK_BUILD}/bin"
-
-pushd ${CK_BENCHMARK_REPO}/scripts || exit 1
-
-echo "Benchmark Command: ${CKBenchmarkEnvAdditions} ; ${CKBenchmarkCmd}"
-${CKBenchmarkEnvAdditions}
-${CKBenchmarkCmd}
-
-popd
-
-echo "Benchmark Output File: ${CKBenchmarkResultOutput}"
