@@ -103,6 +103,10 @@ done
 : ${CK_CLIENT_EXAMPLES_SOURCE:=$CK_REPO/client_example}
 : ${CK_CLIENT_EXAMPLES_BUILD:=$CK_TOP/ck-client-examples-build}
 
+# Some client-examples may take long, override this to skip tests
+# e.g. CK_CLIENT_EXAMPLES_TO_EXCLUDE=("10_grouped_convnd_bwd_data" "24_grouped_conv_activation")
+: ${CK_CLIENT_EXAMPLES_TO_EXCLUDE:=""}
+
 # Get some info on the system
 : ${ROCM_PATH:=/opt/rocm}
 : ${CK_GPU_TARGETS:=''}
@@ -257,8 +261,23 @@ if [ "${SelectedSuite}" == 'client-examples' ]; then
     exit 1
   fi
 
+  # Remove parentheses from directories to exclude
+  # These might be added when providing the array via commandline
+  DirsToExclude=$(sed 's/[()]//g' <<< "${CK_CLIENT_EXAMPLES_TO_EXCLUDE[@]}")
+
+  # Build argument list for find
+  FindArgs=(. -mindepth 1 -maxdepth 1 -type d \()
+  for ExcludedDir in ${DirsToExclude[@]}; do
+    FindArgs+=(-path "./${ExcludedDir}" -o)
+    echo "Excluding client examples: ./${ExcludedDir}"
+  done
+  # Also, we always want to prune "./CMakeFiles" from the results
+  # Finally, we want to print the remaining retrieved directories
+  FindArgs+=(-path "./CMakeFiles" \) -prune -o -type d -print)
+
   # Run each client example
-  for Example in $(find . -mindepth 1 -maxdepth 1 -type d -not -path "*CMakeFiles*" | sort); do
+  ExamplesToRun=$(find "${FindArgs[@]}" | sort)
+  for Example in ${ExamplesToRun[@]}; do
     pushd ${Example} || exit 1
 
     # Retrieve all executable files (subtests) within the directory
