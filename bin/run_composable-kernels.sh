@@ -174,45 +174,44 @@ fi
 
 echo "Run suite: ${SelectedSuite}"
 
-# TODO: Correct indentation! For now: keep "wrong" one for easier review :)
 # Handle CK benchmarks (also as default, if no suite has been explicitly selected)
 if [ "${SelectedSuite}" == 'benchmarks' ]; then
-# The CK benchmarks repo appears to be private (for the time being).
+  # The CK benchmarks repo appears to be private (for the time being).
 
-if [ ! -d ${CK_BENCHMARK_REPO} ]; then
-  echo "CK Benchmarks repo not found. This is a private repo."
-  echo "Please clone with your preferred method into ${CK_BENCHMARK_REPO}"
-  exit 1
-elif [ "${ShouldUpdateCKBenchmarks}" == 'yes' ]; then
-  pushd ${CK_BENCHMARK_REPO} || exit 1
-  git reset --hard origin/${CKBenchmarkRepoBranchName}
-  git pull
-  # TODO: Dump SHA somewhere
+  if [ ! -d ${CK_BENCHMARK_REPO} ]; then
+    echo "CK Benchmarks repo not found. This is a private repo."
+    echo "Please clone with your preferred method into ${CK_BENCHMARK_REPO}"
+    exit 1
+  elif [ "${ShouldUpdateCKBenchmarks}" == 'yes' ]; then
+    pushd ${CK_BENCHMARK_REPO} || exit 1
+    git reset --hard origin/${CKBenchmarkRepoBranchName}
+    git pull
+    # TODO: Dump SHA somewhere
+    popd
+  fi
+
+  if [ ! -d ${CK_BENCHMARK_RESULT} ]; then
+    mkdir -p ${CK_BENCHMARK_RESULT} || exit 1
+  fi
+
+  # This is the command. It requires the envar CK_PROFILER_DIR to be set to the directory
+  # in the CK build tree that contains the CkProfiler binary.
+  CKBenchmarkTest='../benchmarks/gemm/fa1.yaml'
+  CKBenchmarkName=$(basename ${CKBenchmarkTest})
+  CKBenchmarkResultOutput="${CK_BENCHMARK_RESULT}/${CKBenchmarkName}.output"
+  CKBenchmarkBackend='ck'
+  CKBenchmarkCmd="./run_gemm.py ${CKBenchmarkBackend} ${CKBenchmarkTest} --output ${CKBenchmarkResultOutput}"
+  CKBenchmarkEnvAdditions="export CK_PROFILER_DIR=${CK_BUILD}/bin"
+
+  pushd ${CK_BENCHMARK_REPO}/scripts || exit 1
+
+  echo "Benchmark Command: ${CKBenchmarkEnvAdditions} ; ${CKBenchmarkCmd}"
+  ${CKBenchmarkEnvAdditions}
+  ${CKBenchmarkCmd}
+
   popd
-fi
 
-if [ ! -d ${CK_BENCHMARK_RESULT} ]; then
-  mkdir -p ${CK_BENCHMARK_RESULT} || exit 1
-fi
-
-# This is the command. It requires the envar CK_PROFILER_DIR to be set to the directory
-# in the CK build tree that contains the CkProfiler binary.
-CKBenchmarkTest='../benchmarks/gemm/fa1.yaml'
-CKBenchmarkName=$(basename ${CKBenchmarkTest})
-CKBenchmarkResultOutput="${CK_BENCHMARK_RESULT}/${CKBenchmarkName}.output"
-CKBenchmarkBackend='ck'
-CKBenchmarkCmd="./run_gemm.py ${CKBenchmarkBackend} ${CKBenchmarkTest} --output ${CKBenchmarkResultOutput}"
-CKBenchmarkEnvAdditions="export CK_PROFILER_DIR=${CK_BUILD}/bin"
-
-pushd ${CK_BENCHMARK_REPO}/scripts || exit 1
-
-echo "Benchmark Command: ${CKBenchmarkEnvAdditions} ; ${CKBenchmarkCmd}"
-${CKBenchmarkEnvAdditions}
-${CKBenchmarkCmd}
-
-popd
-
-echo "Benchmark Output File: ${CKBenchmarkResultOutput}"
+  echo "Benchmark Output File: ${CKBenchmarkResultOutput}"
 fi
 
 # Handle CK client examples
