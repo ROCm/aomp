@@ -121,4 +121,10 @@ if [ "$1" == "install" ] ; then
     cp "$BUILD_DIR"/build/extras/"$util" "$INSTALL_EXTRAS"/bin
     echo "$INSTALL_EXTRAS/bin/$util" >> install_manifest.txt
   done
+  if [ "$AOMP_STANDALONE_BUILD" == 1 ] ; then
+    if [ -f "$LLVM_INSTALL_LOC/bin/gpurun" ] && [ ! -h "$AOMP_INSTALL_DIR/bin/gpurun" ]; then
+      echo "Creating gpurun symlink: ${AOMP_INSTALL_DIR}/bin/gpurun -> ${LLVM_INSTALL_LOC}/bin/gpurun"
+      ln -s ../lib/llvm/bin/gpurun "$AOMP_INSTALL_DIR"/bin/gpurun
+    fi
+  fi
 fi
