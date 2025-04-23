@@ -27,6 +27,35 @@ function printHelp {
   exit 0
 }
 
+# Given a target GPU architecture, this returns a list of available GPU indices.
+function getIndexListByTargetArch {
+  TargetArch=$1
+  if [ -z "${TargetArch}" ]; then
+    echo "Error: No target architecture was provided"
+    return 1
+  fi
+
+  # Build list of target arch indices
+  # First, get a detailed list of all available GPUs.
+  # Let awk only select lines which contain the target arch ($0 ~ arch).
+  # Then match and print the (previously bracketed) index.
+  # Finally, we need to translate newlines to spaces and
+  # trim / squeeze any surplus whitespace.
+  GPURegex='GPU\\[([0-9]+)\\]'
+  OnlyVisibleDevices=""
+  if [ ! -z "${ROCR_VISIBLE_DEVICES}" ]; then
+    OnlyVisibleDevices="-d ${ROCR_VISIBLE_DEVICES}"
+  fi
+  DetailedGPUList="$(rocm-smi --showproductname ${OnlyVisibleDevices})"
+  TargetArchIndexList=$(echo "${DetailedGPUList}"                              \
+                        | awk -v arch="${TargetArch}" -v regex="${GPURegex}"   \
+                          '$0 ~ arch { if(match($0, regex, m)) {print m[1]} }' \
+                        | tr '\n' ' ' | awk '{ $1=$1; print }')
+
+  # Return the space-separated index list string (e.g. "0 1 3 4")
+  echo "${TargetArchIndexList}"
+}
+
 # Some tests may require an installed instance of CK.
 ShouldInstallCK='no'
 # For some situations during testing it may not be desired to rebuild the CK repo.
