@@ -118,8 +118,6 @@ if [ "$1" == "install" ] ; then
    pushd $_repo_dir
    cd gguf-py
    echo "Installing gguf python package"
-   python3 -m venv $AOMP_INSTALL_DIR/../venv
-   source  $AOMP_INSTALL_DIR/../venv/bin/activate
    pip install .
    if [ $? != 0 ] ; then
       echo "ERROR pip install failed for PowerInfer/gguf-py package"
@@ -132,7 +130,6 @@ if [ "$1" == "install" ] ; then
       echo "ERROR pip install failed for PowerInfer/powerinfer-py package"
       exit 1
    fi
-   deactivate
    popd
    removepatch $_repo_dir
 else 
