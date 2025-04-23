@@ -261,35 +261,43 @@ if [ "${SelectedSuite}" == 'client-examples' ]; then
     exit 1
   fi
 
-  # Remove parentheses from directories to exclude
-  # These might be added when providing the array via commandline
-  DirsToExclude=$(sed 's/[()]//g' <<< "${CK_CLIENT_EXAMPLES_TO_EXCLUDE[@]}")
+  # Process directories to exclude
+  # Usage of here-string to avoid sub-shell and removal of potential parentheses
+  read -ra DirsToExclude <<< "${CK_CLIENT_EXAMPLES_TO_EXCLUDE//[()]/}"
 
   # Build argument list for find
-  FindArgs=(. -mindepth 1 -maxdepth 1 -type d \()
+  FindArgs=(. -mindepth 1 -maxdepth 2 -type d \()
   for ExcludedDir in ${DirsToExclude[@]}; do
     FindArgs+=(-path "./${ExcludedDir}" -o)
-    echo "Excluding client examples: ./${ExcludedDir}"
+    echo "Excluding client-examples: ./${ExcludedDir}"
   done
+  echo "Excluded ${#DirsToExclude[@]} client-examples"
   # Also, we always want to prune "./CMakeFiles" from the results
-  # Finally, we want to print the remaining retrieved directories
-  FindArgs+=(-path "./CMakeFiles" \) -prune -o -type d -print)
+  # Finally, we want to print the remaining retrieved executables
+  FindArgs+=(-path "*CMakeFiles*" \) -prune -o -type f -executable -print)
 
-  # Run each client example
+  # Gather client-example executables
   ExamplesToRun=$(find "${FindArgs[@]}" | sort)
-  for Example in ${ExamplesToRun[@]}; do
-    pushd ${Example} || exit 1
 
-    # Retrieve all executable files (subtests) within the directory
-    # Run each example's subtests and log the output in a corresponding file
-    for Subtest in $(find . -type f -executable | sort); do
-      SubtestName=$(basename ${Subtest})
-      SubtestLogfile="run_${SubtestName}.log"
-      echo "Running client example: ${Example}/${SubtestName}"
-      ${Subtest} | tee "${SubtestLogfile}"
-    done
+  # Build run command list
+  # Note: Usage of here-string to avoid sub-shell
+  declare -a ExampleRunCmds
+  while read -r ExamplePath; do
+    # Get directory and basename part, then construct the log file path
+    ExampleDir=$(dirname "${ExamplePath}")
+    ExampleName=$(basename "${ExamplePath}")
+    ExampleLogfile="${ExampleDir}/run_${ExampleName}.log"
+    # Construct and add the example run command with tee
+    RunCmd="echo \"Running client-example: ${ExamplePath}\";"
+    RunCmd+="\"${ExamplePath}\" | tee \"${ExampleLogfile}\""
+    ExampleRunCmds+=("${RunCmd}")
+  done <<< "${ExamplesToRun}"
 
-    popd
+  # Run each client-example
+  # Use 'bash -c' since simple string does not work
+  echo "Found ${#ExampleRunCmds[@]} client-examples to run"
+  for RunCmd in "${ExampleRunCmds[@]}"; do
+    bash -c "${RunCmd}"
   done
 
   popd
