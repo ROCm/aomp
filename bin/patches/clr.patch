@@ -11,19 +11,3 @@ index 72f406210..6004cf325 100644
    PATHS
      /opt/rocm/
      ${ROCM_INSTALL_PATH}
-diff --git a/rocclr/device/rocm/rocdevice.cpp b/rocclr/device/rocm/rocdevice.cpp
-index 751161a58..3271157b7 100644
---- a/rocclr/device/rocm/rocdevice.cpp
-+++ b/rocclr/device/rocm/rocdevice.cpp
-@@ -679,11 +679,6 @@ bool Device::create() {
-                    pciDeviceId_);
-     return false;
-   }
--  if (agent_isas.count != 1) {
--    LogPrintfError("HSA device %s (PCI ID %x) has %u ISAs but can only support a single ISA",
--                   agent_name, pciDeviceId_, agent_isas.count);
--    return false;
--  }
- 
-   uint32_t isa_name_length = 0;
-   if (HSA_STATUS_SUCCESS !=
