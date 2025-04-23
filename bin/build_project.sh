@@ -37,6 +37,13 @@ fi
 
 # End check-openmp prep
 
+# Enable AMD-specific Fortran runtime extensions if not skipped
+_amdflangrtopt="-DFLANG_RT_INCLUDE_AMD=ON"
+if [ "$AOMP_SKIP_AMD_FLANGRT" == "1" ]; then
+   _amdflangrtopt=""
+fi
+
+# Enable support for real(kind=16) via libquadmath
 _qmathopt="-DFLANG_RUNTIME_F128_MATH_LIB=libquadmath"
 if [ "$AOMP_PROC" == "ppc64le" ] ; then
    COMPILERS="-DCMAKE_C_COMPILER=/usr/bin/gcc-7 -DCMAKE_CXX_COMPILER=/usr/bin/g++-7"
@@ -95,6 +102,7 @@ MYCMAKEOPTS="-DCMAKE_BUILD_TYPE=$BUILD_TYPE
  -DCLANG_DEFAULT_LINKER=lld
  $AOMP_SET_NINJA_GEN
  $_qmathopt
+ $_amdflangrtopt
  -DLIBOMPTARGET_BUILD_DEVICE_FORTRT=ON
  -DLLVM_BUILD_LLVM_DYLIB=ON
  -DLLVM_LINK_LLVM_DYLIB=ON
