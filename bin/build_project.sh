@@ -73,7 +73,7 @@ fi
 if [ "$AOMP_LEGACY_OPENMP" != 0 ]; then
   LLVM_RUNTIMES="libcxx;libcxxabi;libunwind;compiler-rt"
 else
-  LLVM_RUNTIMES="libcxx;libcxxabi;libunwind;openmp;offload;compiler-rt"
+  LLVM_RUNTIMES="libcxx;libcxxabi;libunwind;openmp;offload;compiler-rt;flang-rt"
 fi
 
 rocmdevicelib_loc_new=lib/llvm/lib/clang/$AOMP_MAJOR_VERSION/lib/amdgcn
