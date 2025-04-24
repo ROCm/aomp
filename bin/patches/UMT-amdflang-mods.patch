@@ -35,6 +35,23 @@ index 9d9c8f3..72b2c24 100644
           target_include_directories( OpenMP::OpenMP_Fortran INTERFACE ${HIP_ROOT_DIR}/include)
  
        endif()
+diff --git a/src/cmake/GetGPUInfo.cmake b/src/cmake/GetGPUInfo.cmake
+index a558dce..16fb280 100644
+--- a/src/cmake/GetGPUInfo.cmake
++++ b/src/cmake/GetGPUInfo.cmake
+@@ -31,11 +31,11 @@ if (ENABLE_OPENMP_OFFLOAD)
+   elseif (CMAKE_HIP_ARCHITECTURES STREQUAL gfx942)
+     message(STATUS "-- Detected AMD MI300, setting device num processors to 228")
+     set(OMP_DEVICE_NUM_PROCESSORS 228)
++    add_compile_definitions(OMP_DEVICE_NUM_PROCESSORS=228)
+     set(OPENMP_UNIFIED_MEMORY TRUE)
+     set(GSET_MIN_SIZE 16)
+     set(MAX_NUM_HYPER_DOMAINS 40)
+     set(OMP_DEVICE_TEAM_THREAD_LIMIT 1024)
+-
+   else()
+     message(ERROR "-- Unrecogized or unset value for CUDA or HIP architecture.")
+   endif()
 diff --git a/src/teton/CMakeLists.txt b/src/teton/CMakeLists.txt
 index d78f861..61dd403 100644
 --- a/src/teton/CMakeLists.txt
@@ -88,7 +105,7 @@ index d78f861..61dd403 100644
      if (FMT_ROOT)
        target_include_directories( test_driver PUBLIC ${FMT_INCLUDE_DIR})
 diff --git a/src/teton/driver/test_driver.cc b/src/teton/driver/test_driver.cc
-index 3fcc51c..ede09b8 100644
+index 3fcc51c..bd8bc26 100644
 --- a/src/teton/driver/test_driver.cc
 +++ b/src/teton/driver/test_driver.cc
 @@ -712,7 +712,10 @@ int TetonDriver::execute()
@@ -103,6 +120,30 @@ index 3fcc51c..ede09b8 100644
           if (!options.has_path("iteration/relativeTolerance"))
           {
              options["iteration/relativeTolerance"] = energy_check_tolerance / 10.0;
+@@ -730,6 +733,15 @@ int TetonDriver::execute()
+             numAzimuthalUser = 3;
+             if (numGroupsUser <= 0)
+                numGroupsUser = 128;
++            // Setting any of the above to be equivelant to benchmark problem 2 works 
++            // for mi300, but having them as the current default doesn't allow the
++            // correct group partitioning (perfectly even, and UMT doesn't support uneven
++            // group partitions at the moment), for the moment I've selected 32 as 
++            // numGroupUser to be a little different to benchmark problem 2 while still
++            // allowing even group paritions with no remainder work. However, the original 
++            // LLNL authors will know best what the appropriate thing to do here is.
++            if (OMP_DEVICE_NUM_PROCESSORS == 228) // MI300 processor count
++               numGroupsUser = 32;
+          }
+          else if (benchmarkProblem == 2)
+          {
+@@ -1355,6 +1367,7 @@ void TetonDriver::setOptions()
+ 
+    if (numPhaseAngleSets != 0)
+    {
++      std::cout << "numPhaseAngleSets: " << numPhaseAngleSets << "\n";
+       options["quadrature/nSetsMaster"] = numPhaseAngleSets;
+    }
+ 
 diff --git a/src/teton/gpu/CornerSweepUCBrz_OMPOL.F90 b/src/teton/gpu/CornerSweepUCBrz_OMPOL.F90
 index 61bbc95..afc5fb0 100644
 --- a/src/teton/gpu/CornerSweepUCBrz_OMPOL.F90
