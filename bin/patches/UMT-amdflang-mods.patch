@@ -136,13 +136,6 @@ index 3fcc51c..bd8bc26 100644
           }
           else if (benchmarkProblem == 2)
           {
-@@ -1355,6 +1367,7 @@ void TetonDriver::setOptions()
- 
-    if (numPhaseAngleSets != 0)
-    {
-+      std::cout << "numPhaseAngleSets: " << numPhaseAngleSets << "\n";
-       options["quadrature/nSetsMaster"] = numPhaseAngleSets;
-    }
  
 diff --git a/src/teton/gpu/CornerSweepUCBrz_OMPOL.F90 b/src/teton/gpu/CornerSweepUCBrz_OMPOL.F90
 index 61bbc95..afc5fb0 100644
