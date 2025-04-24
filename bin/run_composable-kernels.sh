@@ -131,6 +131,7 @@ done
 : ${CK_INSTALL:=$CK_TOP/ck-install}
 : ${CK_CLIENT_EXAMPLES_SOURCE:=$CK_REPO/client_example}
 : ${CK_CLIENT_EXAMPLES_BUILD:=$CK_TOP/ck-client-examples-build}
+: ${CK_CLIENT_EXAMPLES_PARALLEL:='yes'}
 
 # Some client-examples may take long, override this to skip tests
 # e.g. CK_CLIENT_EXAMPLES_TO_EXCLUDE=("10_grouped_convnd_bwd_data" "24_grouped_conv_activation")
@@ -300,7 +301,7 @@ if [ "${SelectedSuite}" == 'client-examples' ]; then
     FindArgs+=(-path "./${ExcludedDir}" -o)
     echo "Excluding client-examples: ./${ExcludedDir}"
   done
-  echo "Excluded ${#DirsToExclude[@]} client-examples"
+  echo "Excluded ${#DirsToExclude[@]} client-example directories"
   # Also, we always want to prune "./CMakeFiles" from the results
   # Finally, we want to print the remaining retrieved executables
   FindArgs+=(-path "*CMakeFiles*" \) -prune -o -type f -executable -print)
@@ -321,13 +322,58 @@ if [ "${SelectedSuite}" == 'client-examples' ]; then
     RunCmd+="\"${ExamplePath}\" | tee \"${ExampleLogfile}\""
     ExampleRunCmds+=("${RunCmd}")
   done <<< "${ExamplesToRun}"
+  echo "Found ${#ExampleRunCmds[@]} client-examples to run"
 
   # Run each client-example
-  # Use 'bash -c' since simple string does not work
-  echo "Found ${#ExampleRunCmds[@]} client-examples to run"
-  for RunCmd in "${ExampleRunCmds[@]}"; do
-    bash -c "${RunCmd}"
-  done
+  if [ "${CK_CLIENT_EXAMPLES_PARALLEL}" == 'yes' ]; then
+    # Parallel execution, using multiple GPUs
+    # Get and count available GPUs (as list)
+    GPUList="$(getIndexListByTargetArch "${CK_GPU_TARGETS}")"
+    GPUCount=$(echo "${GPUList}" | wc -w)
+    if [ ${GPUCount} -le 0 ]; then
+      echo "No target GPUs available"
+      exit 1
+    fi
+
+    # Make the GPU index list available within the test sub shells
+    export GPUList
+
+    # Run the client examples, using GNU parallel
+    # Note: {%} provides the job index, {#} the command sequence index
+    echo "Running client-examples in parallel, using ${GPUCount} GPUs"
+    parallel -j ${GPUCount} --line-buffer \
+      ' read -ra AvailableGPUs <<< "${GPUList}"
+        GPUIndex=$(({%} - 1))
+        SelectedGPU=${AvailableGPUs[GPUIndex]}
+        echo "[GPU ${SelectedGPU}, Example {#}] Running: {}"
+        export ROCR_VISIBLE_DEVICES=${SelectedGPU}
+        # Execute the actual test command
+        bash -c {}
+        ReturnCode=$?
+        echo "[GPU ${SelectedGPU}, Example {#}] Finished: {} with exit code ${ReturnCode}"
+        exit ${ReturnCode}
+      ' ::: "${ExampleRunCmds[@]}"
+
+    # Check the overall exit status of parallel
+    ParallelExitCode=$?
+    if [ ${ParallelExitCode} -eq 0 ]; then
+      echo "All tests completed successfully."
+    elif [ ${ParallelExitCode} -eq 255 ]; then
+      echo "One or more tests failed (Parallel was signaled to stop)."
+      exit 1
+    else
+      # GNU Parallel exit codes 1-100 indicate number of failed jobs
+      echo "Warning: ${ParallelExitCode} tests failed."
+      exit 1
+    fi
+  else
+    # Sequential execution, using a single (default) GPU
+    # Use 'bash -c' since simple string does not work
+    echo "Running client-examples sequentially, using a single GPU"
+    for RunCmd in "${ExampleRunCmds[@]}"; do
+      bash -c "${RunCmd}"
+    done
+  fi
 
   popd
 fi
