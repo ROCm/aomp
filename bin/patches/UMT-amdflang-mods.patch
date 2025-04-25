@@ -160,6 +160,7 @@ index 3fcc51c..a29d2f7 100644
           }
           else if (benchmarkProblem == 2)
           {
+ 
 diff --git a/src/teton/gpu/CornerSweepUCBrz_OMPOL.F90 b/src/teton/gpu/CornerSweepUCBrz_OMPOL.F90
 index 61bbc95..afc5fb0 100644
 --- a/src/teton/gpu/CornerSweepUCBrz_OMPOL.F90
