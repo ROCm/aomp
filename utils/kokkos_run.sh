@@ -128,20 +128,20 @@ if [ $KOKKOS_RUN_UNIT_TEST == 'yes' ]; then
   fi
 
   cd $KOKKOS_BUILD_DIR || exit 1
-  
+
   cd core/unit_test || exit 1
-  
+
   # Run the top-level summary version of the tests
   if [ "$KOKKOS_RUN_TYPE" == "summary" ]; then
     OMP_NUM_THREADS=2 ctest --timeout 240 -j 4
     print_info "For more details, please set KOKKOS_RUN_TYPE to 'detail'"
- 
+
   elif [ "$KOKKOS_RUN_TYPE" == "detail" ]; then
     # For a detail run, we follow the procedure
     # 1. Search for all executables in the unit_test directory.
     # 2. Query each executable for its testsuites and the contained test cases.
     # 3. Run an executable separately for each testsuite.testcase to detect and cover individual hangs (and still generate results).
-    #    Put each individual result into its own file to merge them back afterwards. 
+    #    Put each individual result into its own file to merge them back afterwards.
 
     # Start with capturing a list of all executables.
     declare -a EXE_FILES
@@ -203,5 +203,5 @@ if [ $KOKKOS_RUN_CGSOVLE == 'yes' ]; then
   echo ""
 
   print_info "Running increased (large) problem"
-  ./cgsolve.ompt 400 300 0.000000001 
+  ./cgsolve.ompt 400 300 0.000000001
 fi
