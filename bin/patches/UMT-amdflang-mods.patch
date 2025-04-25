@@ -36,10 +36,26 @@ index 9d9c8f3..72b2c24 100644
  
        endif()
 diff --git a/src/cmake/GetGPUInfo.cmake b/src/cmake/GetGPUInfo.cmake
-index a558dce..16fb280 100644
+index a558dce..df8e874 100644
 --- a/src/cmake/GetGPUInfo.cmake
 +++ b/src/cmake/GetGPUInfo.cmake
-@@ -31,11 +31,11 @@ if (ENABLE_OPENMP_OFFLOAD)
+@@ -15,6 +15,7 @@ if (ENABLE_OPENMP_OFFLOAD)
+   if (CMAKE_CUDA_ARCHITECTURES STREQUAL 70)
+     message(STATUS "-- Detected NVIDIA Volta, setting device num processors to 80")
+     set(OMP_DEVICE_NUM_PROCESSORS 80)
++    add_compile_definitions(OMP_DEVICE_NUM_PROCESSORS=80)
+     set(GSET_MIN_SIZE 16)
+     set(MAX_NUM_HYPER_DOMAINS 40)
+     set(OMP_DEVICE_TEAM_THREAD_LIMIT 1024)
+@@ -23,6 +24,7 @@ if (ENABLE_OPENMP_OFFLOAD)
+ # AMD MI250X - 110 CUs
+     message(STATUS "-- Detected AMD MI250, setting device num processors to 110")
+     set(OMP_DEVICE_NUM_PROCESSORS 110)
++    add_compile_definitions(OMP_DEVICE_NUM_PROCESSORS=110)
+     set(GSET_MIN_SIZE 16)
+     set(MAX_NUM_HYPER_DOMAINS 40)
+     set(OMP_DEVICE_TEAM_THREAD_LIMIT 1024)
+@@ -31,11 +33,11 @@ if (ENABLE_OPENMP_OFFLOAD)
    elseif (CMAKE_HIP_ARCHITECTURES STREQUAL gfx942)
      message(STATUS "-- Detected AMD MI300, setting device num processors to 228")
      set(OMP_DEVICE_NUM_PROCESSORS 228)
@@ -52,6 +68,14 @@ index a558dce..16fb280 100644
    else()
      message(ERROR "-- Unrecogized or unset value for CUDA or HIP architecture.")
    endif()
+@@ -44,6 +46,7 @@ else()
+   message(STATUS "-- No GPU detected.")
+   # These are only used if running the GPU kernels on the CPU for testing purposes.
+   set(OMP_DEVICE_NUM_PROCESSORS 1)
++  add_compile_definitions(OMP_DEVICE_NUM_PROCESSORS=1)
+   set(OMP_DEVICE_TEAM_THREAD_LIMIT 1)
+   set(GSET_MIN_SIZE 1)
+   set(MAX_NUM_HYPER_DOMAINS 1)
 diff --git a/src/teton/CMakeLists.txt b/src/teton/CMakeLists.txt
 index d78f861..61dd403 100644
 --- a/src/teton/CMakeLists.txt
@@ -105,7 +129,7 @@ index d78f861..61dd403 100644
      if (FMT_ROOT)
        target_include_directories( test_driver PUBLIC ${FMT_INCLUDE_DIR})
 diff --git a/src/teton/driver/test_driver.cc b/src/teton/driver/test_driver.cc
-index 3fcc51c..bd8bc26 100644
+index 3fcc51c..a29d2f7 100644
 --- a/src/teton/driver/test_driver.cc
 +++ b/src/teton/driver/test_driver.cc
 @@ -712,7 +712,10 @@ int TetonDriver::execute()
