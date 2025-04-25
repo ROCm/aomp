@@ -266,8 +266,6 @@ if [ "${make_target}" == "all" ]; then
       echo "Turning on HSA_XNACK=1 for 5.1 to allow USM tests to pass."
     fi
     echo "--------------------------- START OMP 5.1 TESTING ---------------------"
-    # FIXME: Tests listed here are skipped to prevent GPUs crashing. Remove the test once issue is fixed.
-    openmpvv_test_filter="\" -type f ! \( -name *test_target_has_device_addr.c* \)\""
     # Run OpenMP 5.1 tests
     export openmpvv_compile_flags="${openmpvv_compile_flags} -fopenmp-version=51"
     perform_make OMP_VERSION=5.1 SOURCES="${openmpvv_test_filter}"
