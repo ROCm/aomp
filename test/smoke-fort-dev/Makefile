@@ -4,6 +4,7 @@ TESTS_DIR = \
     flang-464660-2 \
     flang-471469 \
     flang-527219 \
+    flang-529628 \
     hipfort \
     rocm-issue-201 \
     tgt-abort-lhostdev \
