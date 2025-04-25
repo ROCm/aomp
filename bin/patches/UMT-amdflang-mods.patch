@@ -1,8 +1,24 @@
 diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
-index 9d9c8f3..72b2c24 100644
+index 9d9c8f3..1861978 100644
 --- a/src/CMakeLists.txt
 +++ b/src/CMakeLists.txt
-@@ -143,7 +143,31 @@ if(ENABLE_OPENMP)
+@@ -102,7 +102,14 @@ if(ENABLE_OPENMP)
+          message( STATUS "OPENMP - Platform has unified memory, skip OpenMP host<->device maps and updates" )
+          add_compile_definitions( "TETON_OPENMP_HAS_UNIFIED_MEMORY" )
+       endif()
+-
++      
++      # ideally this would be runtime nad not require a recompile, but the
++      # presence of the omp_wrapper.h macros prevents this unfortunately
++      if ($ENV{HSA_XNACK})
++         add_compile_definitions(HSA_XNACK=$ENV{HSA_XNACK})
++      else()
++         add_compile_definitions(HSA_XNACK=0)
++      endif()
+    endif()
+ 
+    find_package(OpenMP REQUIRED COMPONENTS Fortran)
+@@ -143,7 +150,31 @@ if(ENABLE_OPENMP)
  
           target_link_options( OpenMP::OpenMP_Fortran INTERFACE $<$<COMPILE_LANGUAGE:Fortran>:--rocm-path=${HIP_ROOT_DIR} -target-accel=amd_${CMAKE_HIP_ARCHITECTURES}>)
           target_compile_options( OpenMP::OpenMP_Fortran INTERFACE $<$<COMPILE_LANGUAGE:Fortran>:--rocm-path=${HIP_ROOT_DIR} -target-accel=amd_${CMAKE_HIP_ARCHITECTURES}>)
@@ -36,10 +52,10 @@ index 9d9c8f3..72b2c24 100644
  
        endif()
 diff --git a/src/cmake/GetGPUInfo.cmake b/src/cmake/GetGPUInfo.cmake
-index a558dce..df8e874 100644
+index a558dce..99f0b7f 100644
 --- a/src/cmake/GetGPUInfo.cmake
 +++ b/src/cmake/GetGPUInfo.cmake
-@@ -15,6 +15,7 @@ if (ENABLE_OPENMP_OFFLOAD)
+@@ -15,27 +15,35 @@ if (ENABLE_OPENMP_OFFLOAD)
    if (CMAKE_CUDA_ARCHITECTURES STREQUAL 70)
      message(STATUS "-- Detected NVIDIA Volta, setting device num processors to 80")
      set(OMP_DEVICE_NUM_PROCESSORS 80)
@@ -47,7 +63,11 @@ index a558dce..df8e874 100644
      set(GSET_MIN_SIZE 16)
      set(MAX_NUM_HYPER_DOMAINS 40)
      set(OMP_DEVICE_TEAM_THREAD_LIMIT 1024)
-@@ -23,6 +24,7 @@ if (ENABLE_OPENMP_OFFLOAD)
+-
++    set(IS_AMDGPU FALSE)
++    add_compile_definitions(IS_AMDGPU=0)
++    set(OPENMP_UNIFIED_MEMORY FALSE)
+   elseif (CMAKE_HIP_ARCHITECTURES STREQUAL gfx90a)
  # AMD MI250X - 110 CUs
      message(STATUS "-- Detected AMD MI250, setting device num processors to 110")
      set(OMP_DEVICE_NUM_PROCESSORS 110)
@@ -55,7 +75,11 @@ index a558dce..df8e874 100644
      set(GSET_MIN_SIZE 16)
      set(MAX_NUM_HYPER_DOMAINS 40)
      set(OMP_DEVICE_TEAM_THREAD_LIMIT 1024)
-@@ -31,11 +33,11 @@ if (ENABLE_OPENMP_OFFLOAD)
+-
++    set(IS_AMDGPU TRUE)
++    add_compile_definitions(IS_AMDGPU=1)
++    set(OPENMP_UNIFIED_MEMORY TRUE)
+ # AMD MI300 - 228 CUs
    elseif (CMAKE_HIP_ARCHITECTURES STREQUAL gfx942)
      message(STATUS "-- Detected AMD MI300, setting device num processors to 228")
      set(OMP_DEVICE_NUM_PROCESSORS 228)
@@ -63,12 +87,14 @@ index a558dce..df8e874 100644
      set(OPENMP_UNIFIED_MEMORY TRUE)
      set(GSET_MIN_SIZE 16)
      set(MAX_NUM_HYPER_DOMAINS 40)
++    set(IS_AMDGPU TRUE)
++    add_compile_definitions(IS_AMDGPU=1)
      set(OMP_DEVICE_TEAM_THREAD_LIMIT 1024)
 -
    else()
      message(ERROR "-- Unrecogized or unset value for CUDA or HIP architecture.")
    endif()
-@@ -44,6 +46,7 @@ else()
+@@ -44,10 +52,14 @@ else()
    message(STATUS "-- No GPU detected.")
    # These are only used if running the GPU kernels on the CPU for testing purposes.
    set(OMP_DEVICE_NUM_PROCESSORS 1)
@@ -76,6 +102,13 @@ index a558dce..df8e874 100644
    set(OMP_DEVICE_TEAM_THREAD_LIMIT 1)
    set(GSET_MIN_SIZE 1)
    set(MAX_NUM_HYPER_DOMAINS 1)
+   set(OMP_DEVICE_TEAM_THREAD_LIMIT 1)
++  set(IS_AMDGPU FALSE)
++  add_compile_definitions(IS_AMDGPU=0)
++  set(OPENMP_UNIFIED_MEMORY FALSE)
+ endif()
+ 
+ mark_as_advanced(OMP_DEVICE_NUM_PROCESSORS OMP_DEVICE_TEAM_THREAD_LIMIT)
 diff --git a/src/teton/CMakeLists.txt b/src/teton/CMakeLists.txt
 index d78f861..61dd403 100644
 --- a/src/teton/CMakeLists.txt
@@ -129,38 +162,65 @@ index d78f861..61dd403 100644
      if (FMT_ROOT)
        target_include_directories( test_driver PUBLIC ${FMT_INCLUDE_DIR})
 diff --git a/src/teton/driver/test_driver.cc b/src/teton/driver/test_driver.cc
-index 3fcc51c..a29d2f7 100644
+index 3fcc51c..5c6b64c 100644
 --- a/src/teton/driver/test_driver.cc
 +++ b/src/teton/driver/test_driver.cc
-@@ -712,7 +712,10 @@ int TetonDriver::execute()
+@@ -712,7 +712,12 @@ int TetonDriver::execute()
                 << std::endl;
           }
           options["iteration/incidentFluxMaxIt"] = 99;
 -         options["iteration/outerMaxIt"] = 1;
 +
-+         // A default of 1 outerMaxIt for LLVM Flang AMDGPU doesn't work, it currently requiress more
-+         // outer iterations to converge. So set to 50 which was the default in v5.5.0.
++         // A default of 1 outerMaxIt for LLVM Flang AMDGPU doesn't work, it
++         // currently requiress more outer iterations to converge. So set to 50
++         // which was the default in v5.5.0.
 +         options["iteration/outerMaxIt"] = 50;
++
           if (!options.has_path("iteration/relativeTolerance"))
           {
              options["iteration/relativeTolerance"] = energy_check_tolerance / 10.0;
-@@ -730,6 +733,15 @@ int TetonDriver::execute()
+@@ -730,6 +735,16 @@ int TetonDriver::execute()
              numAzimuthalUser = 3;
              if (numGroupsUser <= 0)
                 numGroupsUser = 128;
-+            // Setting any of the above to be equivelant to benchmark problem 2 works 
-+            // for mi300, but having them as the current default doesn't allow the
-+            // correct group partitioning (perfectly even, and UMT doesn't support uneven
-+            // group partitions at the moment), for the moment I've selected 32 as 
-+            // numGroupUser to be a little different to benchmark problem 2 while still
-+            // allowing even group paritions with no remainder work. However, the original 
-+            // LLNL authors will know best what the appropriate thing to do here is.
++            // Setting any of the above to be equivelant to benchmark problem 2
++            // works for mi300, but having them as the current default doesn't
++            // allow the correct group partitioning (perfectly even, and UMT
++            // doesn't support uneven group partitions at the moment), for the
++            // moment I've selected 32 as numGroupUser to be a little different
++            // to benchmark problem 2 while still allowing even group paritions
++            // with no remainder work. However, the original LLNL authors will
++            // know best what the appropriate thing to do here is.
 +            if (OMP_DEVICE_NUM_PROCESSORS == 228) // MI300 processor count
-+               numGroupsUser = 32;
++              numGroupsUser = 32;
           }
           else if (benchmarkProblem == 2)
           {
- 
+@@ -1300,14 +1315,16 @@ void TetonDriver::setOptions()
+          }
+          else if (useUmpire == 3)
+          {
+-#if !defined(TETON_OPENMP_HAS_UNIFIED_MEMORY)
+-            if (myRank == 0)
+-            {
+-               std::cerr
+-                  << "Teton driver: Detected user selection of single Umpire device memory pool.  This is only supported on single memory architecture platforms."
+-                  << std::endl;
+-            }
+-            exit(1);
++#if !defined(TETON_OPENMP_HAS_UNIFIED_MEMORY) ||                               \
++    defined(TETON_OPENMP_HAS_UNIFIED_MEMORY) && defined(IS_AMDGPU) &&          \
++        HSA_XNACK == 0
++           if (myRank == 0) {
++             std::cerr << "Teton driver: Detected user selection of single "
++                          "Umpire device memory pool.  This is only supported "
++                          "on single memory architecture platforms."
++                       << std::endl;
++           }
++           exit(1);
+ #endif
+             if (myRank == 0)
+             {
 diff --git a/src/teton/gpu/CornerSweepUCBrz_OMPOL.F90 b/src/teton/gpu/CornerSweepUCBrz_OMPOL.F90
 index 61bbc95..afc5fb0 100644
 --- a/src/teton/gpu/CornerSweepUCBrz_OMPOL.F90
@@ -183,6 +243,37 @@ index 61bbc95..afc5fb0 100644
  
     ZoneSetLoop1: do zSetID=1,nZoneSets
  
+diff --git a/src/teton/gpu/SetSweep_OMPOL.F90 b/src/teton/gpu/SetSweep_OMPOL.F90
+index 359b9c8..a906972 100644
+--- a/src/teton/gpu/SetSweep_OMPOL.F90
++++ b/src/teton/gpu/SetSweep_OMPOL.F90
+@@ -93,7 +93,7 @@
+ !  If the CUDA solver is used the source needs to be mapped to the GPU
+ 
+ #if !defined(TETON_ENABLE_MINIAPP_BUILD)
+-#if !defined(TETON_OPENMP_HAS_UNIFIED_MEMORY)
++#if !defined(TETON_OPENMP_HAS_UNIFIED_MEMORY) || defined(TETON_OPENMP_HAS_UNIFIED_MEMORY) && defined(IS_AMDGPU) && HSA_XNACK == 0
+    if ( useBoltzmannCompton .and. Size% useCUDASolver .and. Size% ngr >= 16) then
+    START_RANGE("Teton_OpenMP_data_movement")
+      do setID=1,nGroupSets
+@@ -182,7 +182,7 @@
+ 
+ !  Map the latest boundary values
+ 
+-#if !defined(TETON_OPENMP_HAS_UNIFIED_MEMORY)
++#if !defined(TETON_OPENMP_HAS_UNIFIED_MEMORY) || defined(TETON_OPENMP_HAS_UNIFIED_MEMORY) && defined(IS_AMDGPU) && HSA_XNACK == 0
+          START_RANGE("Teton_OpenMP_data_movement")
+          TOMP_UPDATE(target update to( Set%PsiB(:,:,Angle) ) )
+          END_RANGE("Teton_OpenMP_data_movement")
+@@ -237,7 +237,7 @@
+          Set   => getSetData(Quad, setID)
+          Angle =  Set% AngleOrder(sendIndex)
+ 
+-#if !defined(TETON_OPENMP_HAS_UNIFIED_MEMORY)
++#if !defined(TETON_OPENMP_HAS_UNIFIED_MEMORY) || defined(TETON_OPENMP_HAS_UNIFIED_MEMORY) && defined(IS_AMDGPU) && HSA_XNACK == 0
+          START_RANGE("Teton_OpenMP_Updates")
+          TOMP_UPDATE(target update from( Set%PsiB(:,:,Angle) ))
+          END_RANGE("Teton_OpenMP_Updates")
 diff --git a/src/teton/gpu/SweepGreyUCBrz_OMPOL.F90 b/src/teton/gpu/SweepGreyUCBrz_OMPOL.F90
 index 3548de8..0927dea 100644
 --- a/src/teton/gpu/SweepGreyUCBrz_OMPOL.F90
@@ -270,6 +361,34 @@ index 350ffcc..9c9c0dc 100644
  
     ZoneSetLoop1: do zSetID=1,nZoneSets
  
+diff --git a/src/teton/include/omp_wrappers.h b/src/teton/include/omp_wrappers.h
+index 519bc26..07b86d5 100644
+--- a/src/teton/include/omp_wrappers.h
++++ b/src/teton/include/omp_wrappers.h
+@@ -19,7 +19,10 @@
+ #endif
+ 
+ ! Enable openmp data map and update pragmas, if openmp offloading enabled and not using unified cpu and gpu memory.
+-#if defined(TETON_ENABLE_OPENMP_OFFLOAD) && !defined(TETON_OPENMP_HAS_UNIFIED_MEMORY)
++#if defined(TETON_ENABLE_OPENMP_OFFLOAD) &&                                    \
++        !defined(TETON_OPENMP_HAS_UNIFIED_MEMORY) ||                           \
++    defined(TETON_OPENMP_HAS_UNIFIED_MEMORY) && defined(IS_AMDGPU) &&          \
++        HSA_XNACK == 0
+ #  define TOMP_MAP(source) !$omp source
+ #  define TOMP_UPDATE(source) !$omp source
+ #else
+@@ -28,7 +31,10 @@
+ #endif
+ 
+ ! Enable Umpire integration for host and device pools, if openmp offloading enabled and not using unified cpu and gpu memory.
+-#if defined(TETON_ENABLE_UMPIRE) && defined(TETON_ENABLE_OPENMP_OFFLOAD) && !defined(TETON_OPENMP_HAS_UNIFIED_MEMORY)
++#if defined(TETON_ENABLE_UMPIRE) && defined(TETON_ENABLE_OPENMP_OFFLOAD) &&    \
++        !defined(TETON_OPENMP_HAS_UNIFIED_MEMORY) ||                           \
++    defined(TETON_OPENMP_HAS_UNIFIED_MEMORY) && defined(IS_AMDGPU) &&          \
++        HSA_XNACK == 0
+ #  define UMPIRE_DEVICE_POOL_ALLOC(source) call target_alloc_and_pair_ptrs(source)
+ #  define UMPIRE_DEVICE_POOL_FREE(source) call target_free_and_unpair_ptrs(source)
+ #else
 diff --git a/src/teton/mods/Datastore_mod.F90 b/src/teton/mods/Datastore_mod.F90
 index 0b12b3c..9d35b5c 100644
 --- a/src/teton/mods/Datastore_mod.F90
@@ -283,6 +402,31 @@ index 0b12b3c..9d35b5c 100644
      if (str .ne. " ") then
        value = 0
        read (str,*) value
+diff --git a/src/teton/mods/MemoryAllocator_mod.F90 b/src/teton/mods/MemoryAllocator_mod.F90
+index b18017d..e41211c 100644
+--- a/src/teton/mods/MemoryAllocator_mod.F90
++++ b/src/teton/mods/MemoryAllocator_mod.F90
+@@ -82,7 +82,7 @@ contains
+       endif
+ 
+       if (umpire_device_allocator_id >= 0) then
+-#if defined(TETON_OPENMP_HAS_UNIFIED_MEMORY)
++#if defined(TETON_OPENMP_HAS_UNIFIED_MEMORY) || defined(TETON_OPENMP_HAS_UNIFIED_MEMORY) && defined(IS_AMDGPU) && HSA_XNACK == 1
+          if (Options%isRankVerbose() > 0 ) then
+             print *, "Teton: An umpire host allocator and device allocator were both provided.  Teton only requires one allocator on single memory architecture platforms.  The device allocator will be used."
+          endif
+diff --git a/src/teton/mods/cmake_defines_mod.F90.in b/src/teton/mods/cmake_defines_mod.F90.in
+index 456acec..2a2dfb4 100644
+--- a/src/teton/mods/cmake_defines_mod.F90.in
++++ b/src/teton/mods/cmake_defines_mod.F90.in
+@@ -15,5 +15,7 @@ implicit none
+    integer, parameter :: omp_device_team_thread_limit = @OMP_DEVICE_TEAM_THREAD_LIMIT@
+    integer, parameter :: min_groupset_size = @GSET_MIN_SIZE@
+    integer, parameter :: max_num_hyperdomains = @MAX_NUM_HYPER_DOMAINS@
++   logical, parameter :: omp_unified_memory = .@OPENMP_UNIFIED_MEMORY@.
++   logical, parameter :: omp_is_amdgpu = .@IS_AMDGPU@.
+ 
+ end module cmake_defines_mod
 diff --git a/src/teton/rt/addGreyCorrections_OMPOL.F90 b/src/teton/rt/addGreyCorrections_OMPOL.F90
 index 4592199..a13d3aa 100644
 --- a/src/teton/rt/addGreyCorrections_OMPOL.F90
