@@ -1,8 +1,3 @@
-Tensile: tensile_aca95d17.patch
-rocBLAS: rocblas.patch
-rocPRIM: rocprim.patch
-rocSPARSE: rocsparse.patch
-rocSOLVER: rocsolver.patch
 hipBLAS: hipblas.patch
 PowerInfer: powerinfer.patch
 rccl: rccl.patch

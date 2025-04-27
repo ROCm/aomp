@@ -29,6 +29,9 @@ if [ "$AOMP_USE_CCACHE" != 0 ] ; then
    export CMAKE_CXX_COMPILER_LAUNCHER=$_ccache_bin
 fi
 
+# rccl needs cmake 3.25, so put prereq cmake first in path
+export PATH=$AOMP_SUPP/cmake/bin:$PATH
+
 if [ $AOMP_STANDALONE_BUILD == 1 ] ; then 
    if [ ! -L $AOMP ] ; then 
      if [ -d $AOMP ] ; then 

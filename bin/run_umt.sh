@@ -157,19 +157,19 @@ fi
 
 # Run UMT
 if [ "$1" == "run_umt" ]; then
-    $AOMP_REPOS_TEST/$UMT_SRC_DIR/install/bin/test_driver -B global -g -c 10 -u 0 -d 3,3,3 -b 2
-    $AOMP_REPOS_TEST/$UMT_SRC_DIR/install/bin/test_driver -B global -g -c 10 -u 1 -d 3,3,3 -b 2
-    $AOMP_REPOS_TEST/$UMT_SRC_DIR/install/bin/test_driver -B global -g -c 10 -u 2 -d 3,3,3 -b 2
-    $AOMP_REPOS_TEST/$UMT_SRC_DIR/install/bin/test_driver -B global -g -c 10 -u 0 -d 3,3,3 -b 1
-    $AOMP_REPOS_TEST/$UMT_SRC_DIR/install/bin/test_driver -B global -g -c 10 -u 1 -d 3,3,3 -b 1
-    $AOMP_REPOS_TEST/$UMT_SRC_DIR/install/bin/test_driver -B global -g -c 10 -u 2 -d 3,3,3 -b 1
+    $AOMP_REPOS_TEST/$UMT_SRC_DIR/install/bin/test_driver -B global -g -c 20 -u 0 -d 3,3,3 -b 2
+    $AOMP_REPOS_TEST/$UMT_SRC_DIR/install/bin/test_driver -B global -g -c 20 -u 1 -d 3,3,3 -b 2
+    $AOMP_REPOS_TEST/$UMT_SRC_DIR/install/bin/test_driver -B global -g -c 20 -u 2 -d 3,3,3 -b 2
+    $AOMP_REPOS_TEST/$UMT_SRC_DIR/install/bin/test_driver -B global -g -c 20 -u 0 -d 3,3,3 -b 1
+    $AOMP_REPOS_TEST/$UMT_SRC_DIR/install/bin/test_driver -B global -g -c 20 -u 1 -d 3,3,3 -b 1
+    $AOMP_REPOS_TEST/$UMT_SRC_DIR/install/bin/test_driver -B global -g -c 20 -u 2 -d 3,3,3 -b 1
 
-    $AOMP_REPOS_TEST/$UMT_SRC_DIR/install/bin/test_driver -B local -g -c 10 -u 0 -d 3,3,3 -b 2
-    $AOMP_REPOS_TEST/$UMT_SRC_DIR/install/bin/test_driver -B local -g -c 10 -u 1 -d 3,3,3 -b 2
-    $AOMP_REPOS_TEST/$UMT_SRC_DIR/install/bin/test_driver -B local -g -c 10 -u 2 -d 3,3,3 -b 2
-    $AOMP_REPOS_TEST/$UMT_SRC_DIR/install/bin/test_driver -B local -g -c 10 -u 0 -d 3,3,3 -b 1
-    $AOMP_REPOS_TEST/$UMT_SRC_DIR/install/bin/test_driver -B local -g -c 10 -u 1 -d 3,3,3 -b 1
-    $AOMP_REPOS_TEST/$UMT_SRC_DIR/install/bin/test_driver -B local -g -c 10 -u 2 -d 3,3,3 -b 1
+    $AOMP_REPOS_TEST/$UMT_SRC_DIR/install/bin/test_driver -B local -g -c 20 -u 0 -d 3,3,3 -b 2
+    $AOMP_REPOS_TEST/$UMT_SRC_DIR/install/bin/test_driver -B local -g -c 20 -u 1 -d 3,3,3 -b 2
+    $AOMP_REPOS_TEST/$UMT_SRC_DIR/install/bin/test_driver -B local -g -c 20 -u 2 -d 3,3,3 -b 2
+    $AOMP_REPOS_TEST/$UMT_SRC_DIR/install/bin/test_driver -B local -g -c 20 -u 0 -d 3,3,3 -b 1
+    $AOMP_REPOS_TEST/$UMT_SRC_DIR/install/bin/test_driver -B local -g -c 20 -u 1 -d 3,3,3 -b 1
+    $AOMP_REPOS_TEST/$UMT_SRC_DIR/install/bin/test_driver -B local -g -c 20 -u 2 -d 3,3,3 -b 1
 
     exit 1
 fi

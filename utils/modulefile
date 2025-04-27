@@ -1,0 +1,24 @@
+#%Module1.0
+# Copyright(C) 2019 Advanced Micro Devices, Inc. All rights reserved.
+##
+## aomp@X.Y-Z
+##
+module-whatis "aomp @X.Y-Z"
+
+proc ModulesHelp { } {
+puts stderr "This version of AOMP contains C/C++/Flang."
+}
+
+prepend-path PATH "_AOMP_INSTALL_DIR_/bin"
+prepend-path CMAKE_PREFIX_PATH "_AOMP_INSTALL_DIR_"
+prepend-path LIBRARY_PATH "_AOMP_INSTALL_DIR_/lib"
+prepend-path LD_LIBRARY_PATH "_AOMP_INSTALL_DIR_/lib"
+prepend-path LD_RUN_PATH "_AOMP_INSTALL_DIR_/lib"
+# not sure what to put here: prepend-path PKG_CONFIG_PATH "_AOMP_INSTALL_DIR_/lib/pkgconfig"
+prepend-path MANPATH "_AOMP_INSTALL_DIR_/share/man"
+prepend-path CPATH "_AOMP_INSTALL_DIR_/include"
+setenv AOMP_ROOT "_AOMP_INSTALL_DIR_"
+setenv AOMP "_AOMP_INSTALL_DIR_"
+
+
+

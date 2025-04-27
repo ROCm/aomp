@@ -1,0 +1,47 @@
+# Copyright(C) 2019 Advanced Micro Devices, Inc. All rights reserved. 
+diff --git a/include/RAJA/policy/atomic_auto.hpp b/include/RAJA/policy/atomic_auto.hpp
+index 934bfc68..02789511 100644
+--- a/include/RAJA/policy/atomic_auto.hpp
++++ b/include/RAJA/policy/atomic_auto.hpp
+@@ -36,7 +36,7 @@
+  * Finally, we fallback on the seq_atomic, which performs non-atomic operations
+  * because we assume there is no thread safety issues (no parallel model)
+  */
+-#if defined(__CUDA_ARCH__)
++#if defined(RAJA_ENABLE_CUDA) && defined(__CUDA_ARCH__)
+ #define RAJA_AUTO_ATOMIC \
+   RAJA::cuda_atomic {}
+ #elif defined(__HIP_DEVICE_COMPILE__)
+diff --git a/include/RAJA/util/macros.hpp b/include/RAJA/util/macros.hpp
+index fffb9188..1a1e6b90 100644
+--- a/include/RAJA/util/macros.hpp
++++ b/include/RAJA/util/macros.hpp
+@@ -126,9 +126,12 @@ RAJA_HOST_DEVICE RAJA_INLINE void RAJA_UNUSED_VAR(T &&...) noexcept
+ RAJA_HOST_DEVICE
+ inline void RAJA_ABORT_OR_THROW(const char *str)
+ {
+-#if defined(__CUDA_ARCH__)
++#if defined(RAJA_ENABLE_CUDA) && defined(__CUDA_ARCH__)
+   asm ("trap;");
+
++#elif defined(RAJA_ENABLE_OPENMP)
++  __builtin_trap();
++
+ #elif defined(__HIP_DEVICE_COMPILE__)
+   abort();
+
+diff --git a/test/unit/workgroup/CMakeLists.txt b/test/unit/workgroup/CMakeLists.txt
+index d3228a9a..50d305c1 100644
+--- a/test/unit/workgroup/CMakeLists.txt
++++ b/test/unit/workgroup/CMakeLists.txt
+@@ -71,8 +71,8 @@ if(RAJA_TEST_EXHAUSTIVE OR NOT RAJA_COMPILER MATCHES "RAJA_COMPILER_Intel")
+   unset(Enqueue_SUBTESTS)
+ endif()
+
+-set(Vtable_SUBTESTS Single)
+-buildunitworkgrouptest(Vtable      "${Vtable_SUBTESTS}"      "${Vtable_BACKENDS}")
++#set(Vtable_SUBTESTS Single)
++#buildunitworkgrouptest(Vtable      "${Vtable_SUBTESTS}"      "${Vtable_BACKENDS}")
+
+ set(WorkStorage_SUBTESTS Constructor Iterator InsertCall Multiple)
+ buildunitworkgrouptest(WorkStorage "${WorkStorage_SUBTESTS}" "${WorkStorage_BACKENDS}")
