@@ -87,6 +87,7 @@ MYCMAKEOPTS="-DCMAKE_BUILD_TYPE=$BUILD_TYPE
  -DLLVM_VERSION_SUFFIX=_AOMP${standalone_word}_$AOMP_VERSION_STRING
  -DCLANG_VENDOR=AOMP${standalone_word}_$AOMP_VERSION_STRING
  -DCLANG_DEFAULT_PIE_ON_LINUX=0
+ -DLLVM_ENABLE_ZLIB=ON
  -DBUG_REPORT_URL='https://github.com/ROCm-Developer-Tools/aomp'
  -DLLVM_ENABLE_BINDINGS=OFF
  -DLLVM_INCLUDE_BENCHMARKS=OFF
@@ -291,14 +292,14 @@ if [ "$1" == "install" ] ; then
    amd_compiler_cfg=("clang" "clang++" "clang-cpp" "clang-${AOMP_MAJOR_VERSION}" "clang-cl" "flang")
 
    # Leaving this in just in case we decide to add the amd* symlinks in the top level bin directory.
-   #for i in "${amd_compiler_symlinks[@]}"; do
-   #   if [ -f "$LLVM_INSTALL_LOC/bin/$i" ] && [ ! -h $AOMP_INSTALL_DIR/bin/$i ]; then
-   #      echo "Creating $i symlink: ${AOMP_INSTALL_DIR}/bin/$i -> ${LLVM_INSTALL_LOC}/bin/$i"
-   #      cd ${AOMP_INSTALL_DIR}
-   #      mkdir -p bin
-   #      ln -s ../lib/llvm/bin/$i ${AOMP_INSTALL_DIR}/bin/$i
-   #   fi
-   #done
+   for i in "${amd_compiler_symlinks[@]}"; do
+      if [ -f "$LLVM_INSTALL_LOC/bin/$i" ] && [ ! -h "$AOMP_INSTALL_DIR/bin/$i" ]; then
+         echo "Creating $i symlink: ${AOMP_INSTALL_DIR}/bin/$i -> ${LLVM_INSTALL_LOC}/bin/$i"
+         mkdir -p "${AOMP_INSTALL_DIR}"/bin
+         ln -s ../lib/llvm/bin/"$i" "${AOMP_INSTALL_DIR}"/bin/"$i"
+      fi
+   done
+
    # rocm.cfg content
    {
       echo "--rocm-path='<CFGDIR>/../../..'"
