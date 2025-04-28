@@ -89,7 +89,7 @@ if [ "$1" != "install" ] ; then
 -DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR \
 -DCPACK_SET_DESTDIR=OFF \
 -DCMAKE_BUILD_TYPE=Release \
--DAMDGPU_TARGETS="""$_gfxlist""" "
+-DAMDGPU_TARGETS="""$ROCMLIBS_GFXLIST""" "
    echo " ----- Running $AOMP_CMAKE $MYCMAKEOPTS $_repo_dir -----"
    $AOMP_CMAKE $MYCMAKEOPTS $_repo_dir
    if [ $? != 0 ] ; then 

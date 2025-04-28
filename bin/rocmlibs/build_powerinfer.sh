@@ -30,7 +30,6 @@ export CXX=$AOMP/bin/clang++
 #export PATH=$AOMP/bin:$PATH
 export USE_PERL_SCRIPTS=1
 export NUM_PROC=$AOMP_JOB_THREADS
-export AMDGPU_TARGETS="$GFXSEMICOLONS"
 export CXXFLAGS="-I$AOMP_INSTALL_DIR/include -D__HIP_PLATFORM_AMD__=1"
 #export LDFLAGS="-fPIC"
 
@@ -41,7 +40,7 @@ MYCMAKEOPTS="-DCMAKE_BUILD_TYPE=$BUILD_TYPE \
 -DCMAKE_C_COMPILER=$LLVM_INSTALL_LOC/bin/clang \
 -DCMAKE_CXX_COMPILER=$LLVM_INSTALL_LOC/bin/clang++ \
 -DHIP_PLATFORM=amd \
--DAMDGPU_TARGETS="\'$GFXSEMICOLONS\'" \
+-DAMDGPU_TARGETS="""$ROCMLIBS_GFXLIST"""
 "
 # $AOMP_ORIGIN_RPATH \
 if [ $AOMP_STANDALONE_BUILD == 1 ] ; then 
@@ -118,6 +117,8 @@ if [ "$1" == "install" ] ; then
    pushd $_repo_dir
    cd gguf-py
    echo "Installing gguf python package"
+   python3 -m venv $AOMP_INSTALL_DIR/../venv
+   source  $AOMP_INSTALL_DIR/../venv/bin/activate
    pip install .
    if [ $? != 0 ] ; then
       echo "ERROR pip install failed for PowerInfer/gguf-py package"
@@ -130,6 +131,7 @@ if [ "$1" == "install" ] ; then
       echo "ERROR pip install failed for PowerInfer/powerinfer-py package"
       exit 1
    fi
+   deactivate
    popd
    removepatch $_repo_dir
 else 

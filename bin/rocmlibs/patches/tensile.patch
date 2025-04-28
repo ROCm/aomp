@@ -1,8 +1,8 @@
 diff --git a/Tensile/AsmCaps.py b/Tensile/AsmCaps.py
-index 548b31f2..de4c2dd5 100644
+index 548b31f2..09adb3ef 100644
 --- a/Tensile/AsmCaps.py
 +++ b/Tensile/AsmCaps.py
-@@ -771,6 +771,50 @@ CACHED_ASM_CAPS = \
+@@ -771,6 +771,94 @@ CACHED_ASM_CAPS = \
                'v_mov_b64': False,
                'v_pk_fma_f16': True,
                'v_pk_fmac_f16': False},
@@ -50,23 +50,69 @@ index 548b31f2..de4c2dd5 100644
 +              'v_mov_b64': False,
 +              'v_pk_fma_f16': True,
 +              'v_pk_fmac_f16': False},
++ (11, 5, 0): {'HasAddLshl': True,
++              'HasAtomicAdd': True,
++              'HasDirectToLdsDest': False,
++              'HasDirectToLdsNoDest': False,
++              'HasExplicitCO': True,
++              'HasExplicitNC': True,
++              'HasGLCModifier': True,
++              'HasNTModifier': False,
++              'HasLshlOr': True,
++              'HasMFMA': False,
++              'HasMFMA_b8': False,
++              'HasMFMA_bf16_1k': False,
++              'HasMFMA_bf16_original': False,
++              'HasMFMA_constSrc': False,
++              'HasMFMA_f64': False,
++              'HasMFMA_f8': False,
++              'HasMFMA_i8_908': False,
++              'HasMFMA_i8_940': False,
++              'HasMFMA_vgpr': False,
++              'HasMFMA_xf32': False,
++              'HasSMulHi': True,
++              'HasWMMA': True,
++              'KernargPreloading': False,
++              'MaxLgkmcnt': 15,
++              'MaxVmcnt': 63,
++              'SupportedISA': True,
++              'SupportedSource': True,
++              'VOP3v_dot4_i32_i8': False,
++              'v_dot2_f32_f16': True,
++              'v_dot2c_f32_f16': True,
++              'v_dot4_i32_i8': False,
++              'v_dot4c_i32_i8': False,
++              'v_fma_f16': True,
++              'v_fma_f32': True,
++              'v_fma_f64': True,
++              'v_fma_mix_f32': True,
++              'v_fmac_f16': False,
++              'v_fmac_f32': True,
++              'v_mac_f16': False,
++              'v_mac_f32': False,
++              'v_mad_mix_f32': False,
++              'v_mov_b64': False,
++              'v_pk_fma_f16': True,
++              'v_pk_fmac_f16': False},
   (11, 5, 1): {'HasAddLshl': True,
                'HasAtomicAdd': True,
                'HasDirectToLdsDest': False,
 diff --git a/Tensile/Common.py b/Tensile/Common.py
-index 66f2caa2..4a77df59 100644
+index 410c8365..a9f64c47 100644
 --- a/Tensile/Common.py
 +++ b/Tensile/Common.py
-@@ -253,7 +253,7 @@ globalParameters["SupportedISA"] = [(8,0,3),
+@@ -246,8 +246,8 @@ globalParameters["SupportedISA"] = [(8,0,3),
                                      (9,0,0), (9,0,6), (9,0,8), (9,0,10),
                                      (9,4,0), (9,4,1), (9,4,2),
                                      (10,1,0), (10,1,1), (10,1,2), (10,3,0), (10,3,1),
 -                                    (11,0,0), (11,0,1), (11,0,2),
+-                                    (11,5,1),
 +                                    (11,0,0), (11,0,1), (11,0,2), (11,0,3),
-                                     (11,5,1),
++                                    (11,5,0), (11,5,1),
                                      (12,0,0), (12,0,1)] # assembly kernels writer supports these architectures
  
-@@ -316,7 +316,7 @@ globalParameters["SeparateArchitectures"] = False # write Tensile library metada
+ globalParameters["KeepBuildTmp"] = True                           # Do not remove build artifacts during the build process or build_tmp after build completes
+@@ -305,7 +305,7 @@ globalParameters["SeparateArchitectures"] = False # write Tensile library metada
  
  globalParameters["LazyLibraryLoading"] = False # Load library and code object files when needed instead of at startup
  
@@ -75,31 +121,17 @@ index 66f2caa2..4a77df59 100644
  
  globalParameters["ExperimentalLogicDir"] = "/experimental/"
  
-@@ -328,13 +328,13 @@ architectureMap = {
-   'all':'_','gfx000':'none', 'gfx803':'r9nano', 'gfx900':'vega10', 'gfx900:xnack-':'vega10',
-   'gfx906':'vega20', 'gfx906:xnack+':'vega20', 'gfx906:xnack-':'vega20',
-   'gfx908':'arcturus','gfx908:xnack+':'arcturus', 'gfx908:xnack-':'arcturus',
--  'gfx90a':'aldebaran', 'gfx90a:xnack+':'aldebaran', 'gfx90a:xnack-':'aldebaran',
-+  'gfx90a':'aldebaran', 'gfx90a:xnack+':'aldebaran', 'gfx90a:xnack-':'aldebaran', 'gfx90c':'gfx90c',
-   'gfx940':'aquavanjaram', 'gfx940:xnack+':'aquavanjaram', 'gfx940:xnack-':'aquavanjaram',
-   'gfx941':'aquavanjaram941', 'gfx941:xnack+':'aquavanjaram941', 'gfx941:xnack-':'aquavanjaram941',
+@@ -323,8 +323,8 @@ architectureMap = {
    'gfx942':'aquavanjaram942', 'gfx942:xnack+':'aquavanjaram942', 'gfx942:xnack-':'aquavanjaram942',
    'gfx1010':'navi10', 'gfx1011':'navi12', 'gfx1012':'navi14',
    'gfx1030':'navi21', 'gfx1031':'navi22', 'gfx1032':'navi23', 'gfx1034':'navi24', 'gfx1035':'rembrandt',
 -  'gfx1100':'navi31', 'gfx1101':'navi32', 'gfx1102':'navi33',
+-  'gfx1151':'gfx1151',
 +  'gfx1100':'navi31', 'gfx1101':'navi32', 'gfx1102':'navi33', 'gfx1103':'phoenix',
-   'gfx1151':'gfx1151',
++  'gfx1150':'gfx1150', 'gfx1151':'gfx1151',
    'gfx1200':'gfx1200',
    'gfx1201':'gfx1201'
-@@ -2461,7 +2461,7 @@ def assignGlobalParameters( config ):
-     if os.name == "nt":
-       globalParameters["CurrentISA"] = (9,0,6)
-       printWarning("Failed to detect ISA so forcing (gfx906) on windows")
--  isasWithDisabledHWMonitor = ((9,4,1), (9,4,2), (11,0,0), (11,0,1), (11,0,2), (12,0,0), (12,0,1))
-+  isasWithDisabledHWMonitor = ((9,4,1), (9,4,2), (11,0,0), (11,0,1), (11,0,2), (11,0,3), (12,0,0), (12,0,1))
-   if globalParameters["CurrentISA"] in isasWithDisabledHWMonitor:
-     isaString = ', '.join(map(gfxName, isasWithDisabledHWMonitor))
-     printWarning(f"HardwareMonitor currently disabled for {isaString}")
+ }
 diff --git a/Tensile/Source/CMakeLists.txt b/Tensile/Source/CMakeLists.txt
 index e02b209a..4d13ade3 100644
 --- a/Tensile/Source/CMakeLists.txt
@@ -235,33 +267,7 @@ index 87fc0d24..f0c7fef4 100644
 +                iot::enumCase(io, value, "gfx1103", AMDGPU::Processor::gfx1103);
              }
          };
- 
-diff --git a/Tensile/Source/lib/source/ocl/OclUtils.cpp b/Tensile/Source/lib/source/ocl/OclUtils.cpp
-index 8ee6d217..bd67cfd7 100644
---- a/Tensile/Source/lib/source/ocl/OclUtils.cpp
-+++ b/Tensile/Source/lib/source/ocl/OclUtils.cpp
-@@ -148,6 +148,10 @@ namespace Tensile
-             {
-                 return AMDGPU::Processor::gfx90a;
-             }
-+            else if(deviceString.find("gfx90c") != std::string::npos)
-+            {
-+                return AMDGPU::Processor::gfx90c;
-+            }
-             else if(deviceString.find("gfx940") != std::string::npos)
-             {
-                 return AMDGPU::Processor::gfx940;
-@@ -188,6 +192,10 @@ namespace Tensile
-             {
-                 return AMDGPU::Processor::gfx1102;
-             }
-+            else if(deviceString.find("gfx1103") != std::string::npos)
-+            {
-+                return AMDGPU::Processor::gfx1103;
-+            }
-             else
-             {
-                 return static_cast<AMDGPU::Processor>(0);
+
 diff --git a/Tensile/TensileCreateLib/ParseArguments.py b/Tensile/TensileCreateLib/ParseArguments.py
 index 6970caba..5dc6406c 100644
 --- a/Tensile/TensileCreateLib/ParseArguments.py
@@ -275,24 +281,21 @@ index 6970caba..5dc6406c 100644
          help="Ignore ASM capabilities cache and derive the capabilities at runtime.",
      )
      parser.add_argument(
-diff --git a/docs/src/cli-reference/TensileCreateLibrary.rst b/docs/src/cli-reference/TensileCreateLibrary.rst
-index 6e22a2c7..09345113 100644
---- a/docs/src/cli-reference/TensileCreateLibrary.rst
-+++ b/docs/src/cli-reference/TensileCreateLibrary.rst
-@@ -35,9 +35,9 @@ When invoking *TensileCreateLibrary*, one can provide zero or more options.
-     Architectures to generate a library for. When specifying multiple options, use quoted, semicolon delimited 
-     architectures, e.g., --architecture='gfx908;gfx1012'.
-     Supported architectures include: all gfx000 gfx803 gfx900 gfx900:xnack- gfx906 gfx906:xnack+ gfx906:xnack- gfx908 gfx908:xnack+
--    gfx908:xnack- gfx90a gfx90a:xnack+ gfx90a:xnack- gfx940 gfx940:xnack+ gfx940:xnack- gfx941 gfx941:xnack+
-+    gfx908:xnack- gfx90a gfx90a:xnack+ gfx90a:xnack- gfx90c gfx940 gfx940:xnack+ gfx940:xnack- gfx941 gfx941:xnack+
-     gfx941:xnack- gfx942 gfx942:xnack+ gfx942:xnack- gfx1010 gfx1011 gfx1012 gfx1030 gfx1031 gfx1032 gfx1034 gfx1035
--    gfx1100 gfx1101 gfx1102.
-+    gfx1100 gfx1101 gfx1102 gfx1103.
- \-\-build-client
-     Build Tensile client executable; used for stand alone benchmarking (default).
- \-\-client-config 
+diff --git a/docs/src/cli-reference/tensile-create-library-cli.rst b/docs/src/cli-reference/tensile-create-library-cli.rst
+index 7b8f29e0..d4a66577 100644
+--- a/docs/src/cli-reference/tensile-create-library-cli.rst
++++ b/docs/src/cli-reference/tensile-create-library-cli.rst
+@@ -56,7 +56,7 @@ Here is the list of optional arguments for invoking the ``TensileCreateLibrary``
+       Supported architectures include: all; gfx000; gfx803; gfx900; gfx900:xnack-; gfx906; gfx906:xnack+; gfx906:xnack-; gfx908; gfx908:xnack+;
+       gfx908:xnack-; gfx90a; gfx90a:xnack+; gfx90a:xnack-; gfx940; gfx940:xnack+; gfx940:xnack-; gfx941; gfx941:xnack+;
+       gfx941:xnack-; gfx942; gfx942:xnack+; gfx942:xnack-; gfx1010; gfx1011; gfx1012; gfx1030; gfx1031; gfx1032; gfx1034; gfx1035;
+-      gfx1100; gfx1101; gfx1102.
++      gfx1100; gfx1101; gfx1102; gfx1103; gfx1150;
+ 
+   * - \-\-build-client
+     - Builds Tensile client executable that is used for stand alone benchmarking. This option is set by default.
 diff --git a/pytest.ini b/pytest.ini
-index 13c43039..23a53d35 100644
+index 13c43039..70ed7a3c 100644
 --- a/pytest.ini
 +++ b/pytest.ini
 @@ -92,6 +92,7 @@ markers =
@@ -317,9 +320,10 @@ index 13c43039..23a53d35 100644
   skip-gfx940:  architecture
   skip-gfx941:  architecture
   skip-gfx942:  architecture
-@@ -125,4 +128,5 @@ markers =
+@@ -125,4 +128,6 @@ markers =
   skip-gfx1100: architecture
   skip-gfx1101: architecture
   skip-gfx1102: architecture
 + skip-gfx1103: architecture
++ skip-gfx1150: architecture
   skip-gfx1151: architecture
