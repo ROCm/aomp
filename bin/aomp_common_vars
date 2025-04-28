@@ -236,7 +236,7 @@ AOMP_DEBUG_ORIGIN_RPATH="-DCMAKE_SHARED_LINKER_FLAGS='-Wl,--disable-new-dtags' -
 # Libraries and Binaries need different RUNPATH as below
 if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
   ## Below 3 lines are actually only required for AOMP ASan RPATH Cmake configuration.
-  AOMP_ASAN_ORIGIN_RPATH_LIST="\$ORIGIN:\$ORIGIN/../../lib:\$ORIGIN/../lib:\$ORIGIN/../lib64:\$ORIGIN/../../../../lib:\$ORIGIN/../lib/llvm"
+  AOMP_ASAN_ORIGIN_RPATH_LIST="\$ORIGIN:\$ORIGIN/../../lib:\$ORIGIN/../lib:\$ORIGIN/../lib64:\$ORIGIN/../../../../lib/asan:\$ORIGIN/../lib/llvm"
   AOMP_ASAN_ORIGIN_RPATH="-DCMAKE_SHARED_LINKER_FLAGS='-Wl,--disable-new-dtags' -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=OFF -DCMAKE_INSTALL_RPATH=$AOMP_ASAN_ORIGIN_RPATH_LIST"
   # Please note below lines are only setup for ROCm ASan integration with AOMP.
   # Relative RUNPATH for ASAN binaries and libraries
@@ -466,18 +466,16 @@ fi
 
 if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
    if [ -f "${LLVM_INSTALL_LOC}/bin/clang" ] ; then
-      ASAN_LIB_PATH=$(${LLVM_INSTALL_LOC}/bin/clang --print-runtime-dir)
+      ASAN_LIB_PATH=$(${LLVM_INSTALL_LOC}/bin/clang --print-file-name=libclang_rt.asan-x86_64.so)
       if [ ! -d $ASAN_LIB_PATH ] ; then
-         # --print-runtime-dir outputs the new lib directory that includes the host target.
-         # Workaround this for now until LLVM_ENABLE_PER_TARGET_RUNTIME_DIR is on by default.
-         RESOURCE_PATH=$(${LLVM_INSTALL_LOC}/bin/clang --print-resource-dir)
-         ASAN_LIB_PATH="$RESOURCE_PATH/lib/linux"
+        #Suppose above search path fails then via 'LLVM_ENABLE_PER_TARGET_RUNTIME_DIR=ON' the host asan library would lose the suffix
+        ASAN_LIB_PATH=$(${LLVM_INSTALL_LOC}/bin/clang --print-file-name=libclang_rt.asan.so)
       fi
-   else
+    else
       # no compiler at $AOMP so set where we expect ASAN_LIP_PATH to be
       ASAN_LIB_PATH=${LLVM_INSTALL_LOC}/lib/clang/${AOMP_MAJOR_VERSION}/lib/linux
    fi
-   ASAN_FLAGS="-g -fsanitize=address -shared-libasan -Wl,-rpath=$ASAN_LIB_PATH -L$ASAN_LIB_PATH"
+   ASAN_FLAGS="-fsanitize=address -shared-libasan -Wl,-rpath=$ASAN_LIB_PATH -L$ASAN_LIB_PATH"
    if [ "$AOMP_STANDALONE_BUILD" == 0 ]; then
      ASAN_FLAGS="$ASAN_FLAGS -I$ROCM_DIR/include -I$ROCM_DIR/include/hsa"
    fi
