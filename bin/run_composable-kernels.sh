@@ -296,12 +296,17 @@ if [ "${SelectedSuite}" == 'client-examples' ]; then
   read -ra DirsToExclude <<< "${CK_CLIENT_EXAMPLES_TO_EXCLUDE//[()]/}"
 
   # Build argument list for find
+  # If globbed directories are provided, the list is expanded correspondingly
+  # Hence, the argument list can become quite large and we count the excluded
+  # directories while traversing the resulting argument (path) list
+  NumExcludedDirs=0
   FindArgs=(. -mindepth 1 -maxdepth 2 -type d \()
   for ExcludedDir in ${DirsToExclude[@]}; do
     FindArgs+=(-path "./${ExcludedDir}" -o)
     echo "Excluding client-examples: ./${ExcludedDir}"
+    ((++NumExcludedDirs))
   done
-  echo "Excluded ${#DirsToExclude[@]} client-example directories"
+  echo "Excluded ${NumExcludedDirs} client-example directories"
   # Also, we always want to prune "./CMakeFiles" from the results
   # Finally, we want to print the remaining retrieved executables
   FindArgs+=(-path "*CMakeFiles*" \) -prune -o -type f -executable -print)
