@@ -329,8 +329,18 @@ if [ "${SelectedSuite}" == 'client-examples' ]; then
   done <<< "${ExamplesToRun}"
   echo "Found ${#ExampleRunCmds[@]} client-examples to run"
 
-  # Run each client-example
+  # Check if parallel execution is requested and possible
+  UseParallel=0
   if [ "${CK_CLIENT_EXAMPLES_PARALLEL}" == 'yes' ]; then
+    if [ ! -z "$(command -v parallel)" ]; then
+      UseParallel=1
+    else
+      echo "Warning: Parallel execution requested, but 'parallel' is not available"
+    fi
+  fi
+
+  # Run each client-example
+  if [ ${UseParallel} == 1 ]; then
     # Parallel execution, using multiple GPUs
     # Get and count available GPUs (as list)
     GPUList="$(getIndexListByTargetArch "${CK_GPU_TARGETS}")"
