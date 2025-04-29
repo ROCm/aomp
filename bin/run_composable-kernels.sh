@@ -52,6 +52,59 @@ function getIndexListByTargetArch {
   echo "${TargetArchIndexList}"
 }
 
+# Given an array of commands to execute, distribute them onto multiple GPUs.
+function distributeWorkToGPUs {
+  # Capture array argument
+  WorkItems=("$@")
+
+  # Sanity checks
+  if [ "${#WorkItems[@]}" -eq 0 ] ||
+    ([ "${#WorkItems[@]}" -eq 1 ] && [ -z "${WorkItems[@]}" ]); then
+    echo "Error: Received empty list of commands"
+    exit 1
+  fi
+
+  # Get and count available GPUs (as list)
+  GPUList="$(getIndexListByTargetArch "${CK_GPU_TARGETS}")"
+  GPUCount=$(echo "${GPUList}" | wc -w)
+  if [ ${GPUCount} -le 0 ]; then
+    echo "No target GPUs available"
+    exit 1
+  fi
+
+  # Make the GPU index list available within the test sub shells
+  export GPUList
+
+  # Run the work items, using GNU parallel
+  # Note: {%} provides the job slot (thread) index, {#} the job sequence index
+  echo "Running ${#WorkItems[@]} work items in parallel, using ${GPUCount} GPUs"
+  parallel -j ${GPUCount} --line-buffer \
+    ' read -ra AvailableGPUs <<< "${GPUList}"
+      GPUIndex=$(({%} - 1))
+      SelectedGPU=${AvailableGPUs[GPUIndex]}
+      echo "[GPU ${SelectedGPU}, JOB {#}] Running: {}"
+      export ROCR_VISIBLE_DEVICES=${SelectedGPU}
+      # Execute the actual work item
+      bash -c {}
+      ReturnCode=$?
+      echo "[GPU ${SelectedGPU}, JOB {#}] Finished with exit code ${ReturnCode}"
+      exit ${ReturnCode}
+    ' ::: "${WorkItems[@]}"
+
+  # Check the overall exit status of parallel
+  ParallelExitCode=$?
+  if [ ${ParallelExitCode} -eq 0 ]; then
+    echo "All tests completed successfully."
+  elif [ ${ParallelExitCode} -eq 255 ]; then
+    echo "One or more tests failed (Parallel was signaled to stop)."
+    exit 1
+  else
+    # GNU Parallel exit codes 1-100 indicate number of failed jobs
+    echo "Warning: ${ParallelExitCode} tests failed."
+    exit 1
+  fi
+}
+
 # Some tests may require an installed instance of CK.
 ShouldInstallCK='no'
 # For some situations during testing it may not be desired to rebuild the CK repo.
@@ -375,45 +428,7 @@ if [ "${SelectedSuite}" == 'client-examples' ]; then
   # Run each client-example
   if [ ${UseParallel} == 1 ]; then
     # Parallel execution, using multiple GPUs
-    # Get and count available GPUs (as list)
-    GPUList="$(getIndexListByTargetArch "${CK_GPU_TARGETS}")"
-    GPUCount=$(echo "${GPUList}" | wc -w)
-    if [ ${GPUCount} -le 0 ]; then
-      echo "No target GPUs available"
-      exit 1
-    fi
-
-    # Make the GPU index list available within the test sub shells
-    export GPUList
-
-    # Run the client examples, using GNU parallel
-    # Note: {%} provides the job index, {#} the command sequence index
-    echo "Running client-examples in parallel, using ${GPUCount} GPUs"
-    parallel -j ${GPUCount} --line-buffer \
-      ' read -ra AvailableGPUs <<< "${GPUList}"
-        GPUIndex=$(({%} - 1))
-        SelectedGPU=${AvailableGPUs[GPUIndex]}
-        echo "[GPU ${SelectedGPU}, Example {#}] Running: {}"
-        export ROCR_VISIBLE_DEVICES=${SelectedGPU}
-        # Execute the actual test command
-        bash -c {}
-        ReturnCode=$?
-        echo "[GPU ${SelectedGPU}, Example {#}] Finished: {} with exit code ${ReturnCode}"
-        exit ${ReturnCode}
-      ' ::: "${ExampleRunCmds[@]}"
-
-    # Check the overall exit status of parallel
-    ParallelExitCode=$?
-    if [ ${ParallelExitCode} -eq 0 ]; then
-      echo "All tests completed successfully."
-    elif [ ${ParallelExitCode} -eq 255 ]; then
-      echo "One or more tests failed (Parallel was signaled to stop)."
-      exit 1
-    else
-      # GNU Parallel exit codes 1-100 indicate number of failed jobs
-      echo "Warning: ${ParallelExitCode} tests failed."
-      exit 1
-    fi
+    distributeWorkToGPUs "${ExampleRunCmds[@]}"
   else
     # Sequential execution, using a single (default) GPU
     # Use 'bash -c' since simple string does not work
