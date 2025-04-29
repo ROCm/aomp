@@ -156,6 +156,10 @@ while getopts "hirubs:t:" opt; do
         # Requires an installed CK build (triggers incremental build)
         ShouldInstallCK='yes'
         ;;
+      examples)
+        # Build and run the examples provided by CK.
+        SelectedSuite="${OPTARG}"
+        ;;
       *)
         # If there's a following string which does not start with '-'
         # we interpret it as an attempt at providing an unknown suite.
@@ -186,7 +190,10 @@ done
 : ${CK_INSTALL:=$CK_TOP/ck-install}
 : ${CK_CLIENT_EXAMPLES_SOURCE:=$CK_REPO/client_example}
 : ${CK_CLIENT_EXAMPLES_BUILD:=$CK_TOP/ck-client-examples-build}
-: ${CK_CLIENT_EXAMPLES_PARALLEL:='yes'}
+# Run regular and client examples on multiple GPUs (if present)
+: ${CK_EXAMPLES_PARALLEL:='yes'}
+: ${CK_EXAMPLES_PREFIX:='example_'}
+: ${CK_EXAMPLES_LOG_LOCATION:=$CK_TOP/ck-examples-logs}
 
 # Some client-examples may take long, override this to skip tests
 # e.g. CK_CLIENT_EXAMPLES_TO_EXCLUDE=("10_grouped_convnd_bwd_data" "24_grouped_conv_activation")
@@ -276,6 +283,18 @@ if [ "${ShouldInstallCK}" == 'yes' ]; then
 fi
 
 echo "Run suite: ${SelectedSuite}"
+
+# Check if parallel execution is requested and possible
+UseParallel=0
+if ([ "${SelectedSuite}" == 'client-examples' ] ||
+    [ "${SelectedSuite}" == 'examples' ]) &&
+    [ "${CK_EXAMPLES_PARALLEL}" == 'yes' ]; then
+  if [ ! -z "$(command -v parallel)" ]; then
+    UseParallel=1
+  else
+    echo "Warning: Parallel execution requested, but 'parallel' is not available"
+  fi
+fi
 
 # Handle CK benchmarks (also as default, if no suite has been explicitly selected)
 if [ "${SelectedSuite}" == 'benchmarks' ]; then
@@ -415,16 +434,6 @@ if [ "${SelectedSuite}" == 'client-examples' ]; then
     exit 1
   fi
 
-  # Check if parallel execution is requested and possible
-  UseParallel=0
-  if [ "${CK_CLIENT_EXAMPLES_PARALLEL}" == 'yes' ]; then
-    if [ ! -z "$(command -v parallel)" ]; then
-      UseParallel=1
-    else
-      echo "Warning: Parallel execution requested, but 'parallel' is not available"
-    fi
-  fi
-
   # Run each client-example
   if [ ${UseParallel} == 1 ]; then
     # Parallel execution, using multiple GPUs
@@ -433,6 +442,76 @@ if [ "${SelectedSuite}" == 'client-examples' ]; then
     # Sequential execution, using a single (default) GPU
     # Use 'bash -c' since simple string does not work
     echo "Running client-examples sequentially, using a single GPU"
+    for RunCmd in "${ExampleRunCmds[@]}"; do
+      bash -c "${RunCmd}"
+    done
+  fi
+
+  popd
+fi
+
+# Handle CK's regular examples
+if [ "${SelectedSuite}" == 'examples' ]; then
+  # CK's examples require a CK build to be present
+  if [ ! -d "${CK_BUILD}" ]; then
+    echo "Error: Missing CK build directory: ${CK_BUILD}"
+    exit 1
+  fi
+
+  # Build argument list for find
+  FindArgs=(. -mindepth 1 -maxdepth 1 -type f)
+  if [ -z ${SelectedTest} ]; then
+    # No filtering requested: select all "*" tests
+    SelectedTest="*"
+  else
+    # Communicate filter to user
+    echo "Filtering examples: ${SelectedTest}"
+  fi
+  FindArgs+=(-name "${CK_EXAMPLES_PREFIX}${SelectedTest}")
+  FindArgs+=(-executable -print)
+
+  # Gather executables
+  pushd "${CK_BUILD}/bin" || exit 1
+  ExamplesToRun=$(find "${FindArgs[@]}" | sort)
+
+  # Build run command list
+  # Note: Usage of here-string to avoid sub-shell
+  declare -a ExampleRunCmds
+  while read -r ExamplePath; do
+    # Sanity check
+    if [ -z "${ExamplePath}" ]; then
+      continue
+    fi
+    # Construct the log file path
+    ExampleName=$(basename "${ExamplePath}")
+    ExampleLogfile="${CK_EXAMPLES_LOG_LOCATION}/run_${ExampleName}.log"
+    # Construct and add the example run command with tee
+    RunCmd="echo \"Running example: ${ExamplePath}\";"
+    RunCmd+="\"${ExamplePath}\" | tee \"${ExampleLogfile}\""
+    ExampleRunCmds+=("${RunCmd}")
+  done <<< "${ExamplesToRun}"
+
+  NumJobs=${#ExampleRunCmds[@]}
+  echo "Found ${NumJobs} examples to run"
+  if [ ${NumJobs} == 0 ]; then
+    # When running this script, we should expect to run something
+    # Exit silently, but indicate error via returncode
+    exit 1
+  fi
+
+  # Avoid picking up stale logs
+  echo "Purging CK examples logs"
+  rm -rf ${CK_EXAMPLES_LOG_LOCATION} || exit 1
+  mkdir -p ${CK_EXAMPLES_LOG_LOCATION} || exit 1
+
+  # Run each example
+  if [ ${UseParallel} == 1 ]; then
+    # Parallel execution, using multiple GPUs
+    distributeWorkToGPUs "${ExampleRunCmds[@]}"
+  else
+    # Sequential execution, using a single (default) GPU
+    # Use 'bash -c' since simple string does not work
+    echo "Running examples sequentially, using a single GPU"
     for RunCmd in "${ExampleRunCmds[@]}"; do
       bash -c "${RunCmd}"
     done
