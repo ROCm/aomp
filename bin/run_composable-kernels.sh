@@ -27,6 +27,30 @@ function printHelp {
   exit 0
 }
 
+# Given a target GPU architecture, this returns a list of available GPU indices.
+function getIndexListByTargetArch {
+  TargetArch=$1
+  if [ -z "${TargetArch}" ]; then
+    echo "Error: No target architecture was provided"
+    return 1
+  fi
+
+  # Build list of target arch indices
+  # First, get a detailed list of all available and visible GPUs.
+  # Then match lines containing the target arch and capture the bracketed index.
+  # Finally, we use xargs to format the results into a tidy, single-line list.
+  OnlyVisibleDevices=""
+  if [ ! -z "${ROCR_VISIBLE_DEVICES}" ]; then
+    OnlyVisibleDevices="-d ${ROCR_VISIBLE_DEVICES}"
+  fi
+  GPUList="$(rocm-smi --showproductname ${OnlyVisibleDevices})"
+  GPURegex="s/^GPU\[([0-9]+)\].*${TargetArch}$/\1/p"
+  TargetArchIndexList=$(echo "${GPUList}" | sed -En "${GPURegex}" | xargs echo)
+
+  # Return the space-separated index list string (e.g. "0 1 3 4")
+  echo "${TargetArchIndexList}"
+}
+
 # Some tests may require an installed instance of CK.
 ShouldInstallCK='no'
 # For some situations during testing it may not be desired to rebuild the CK repo.
@@ -102,6 +126,7 @@ done
 : ${CK_INSTALL:=$CK_TOP/ck-install}
 : ${CK_CLIENT_EXAMPLES_SOURCE:=$CK_REPO/client_example}
 : ${CK_CLIENT_EXAMPLES_BUILD:=$CK_TOP/ck-client-examples-build}
+: ${CK_CLIENT_EXAMPLES_PARALLEL:='yes'}
 
 # Some client-examples may take long, override this to skip tests
 # e.g. CK_CLIENT_EXAMPLES_TO_EXCLUDE=("10_grouped_convnd_bwd_data" "24_grouped_conv_activation")
@@ -261,36 +286,104 @@ if [ "${SelectedSuite}" == 'client-examples' ]; then
     exit 1
   fi
 
-  # Remove parentheses from directories to exclude
-  # These might be added when providing the array via commandline
-  DirsToExclude=$(sed 's/[()]//g' <<< "${CK_CLIENT_EXAMPLES_TO_EXCLUDE[@]}")
+  # Process directories to exclude
+  # Usage of here-string to avoid sub-shell and removal of potential parentheses
+  read -ra DirsToExclude <<< "${CK_CLIENT_EXAMPLES_TO_EXCLUDE//[()]/}"
 
   # Build argument list for find
-  FindArgs=(. -mindepth 1 -maxdepth 1 -type d \()
+  # If globbed directories are provided, the list is expanded correspondingly
+  # Hence, the argument list can become quite large and we count the excluded
+  # directories while traversing the resulting argument (path) list
+  NumExcludedDirs=0
+  FindArgs=(. -mindepth 1 -maxdepth 2 -type d \()
   for ExcludedDir in ${DirsToExclude[@]}; do
     FindArgs+=(-path "./${ExcludedDir}" -o)
-    echo "Excluding client examples: ./${ExcludedDir}"
+    echo "Excluding client-examples: ./${ExcludedDir}"
+    ((++NumExcludedDirs))
   done
+  echo "Excluded ${NumExcludedDirs} client-example directories"
   # Also, we always want to prune "./CMakeFiles" from the results
-  # Finally, we want to print the remaining retrieved directories
-  FindArgs+=(-path "./CMakeFiles" \) -prune -o -type d -print)
+  # Finally, we want to print the remaining retrieved executables
+  FindArgs+=(-path "*CMakeFiles*" \) -prune -o -type f -executable -print)
 
-  # Run each client example
+  # Gather client-example executables
   ExamplesToRun=$(find "${FindArgs[@]}" | sort)
-  for Example in ${ExamplesToRun[@]}; do
-    pushd ${Example} || exit 1
 
-    # Retrieve all executable files (subtests) within the directory
-    # Run each example's subtests and log the output in a corresponding file
-    for Subtest in $(find . -type f -executable | sort); do
-      SubtestName=$(basename ${Subtest})
-      SubtestLogfile="run_${SubtestName}.log"
-      echo "Running client example: ${Example}/${SubtestName}"
-      ${Subtest} | tee "${SubtestLogfile}"
+  # Build run command list
+  # Note: Usage of here-string to avoid sub-shell
+  declare -a ExampleRunCmds
+  while read -r ExamplePath; do
+    # Get directory and basename part, then construct the log file path
+    ExampleDir=$(dirname "${ExamplePath}")
+    ExampleName=$(basename "${ExamplePath}")
+    ExampleLogfile="${ExampleDir}/run_${ExampleName}.log"
+    # Construct and add the example run command with tee
+    RunCmd="echo \"Running client-example: ${ExamplePath}\";"
+    RunCmd+="\"${ExamplePath}\" | tee \"${ExampleLogfile}\""
+    ExampleRunCmds+=("${RunCmd}")
+  done <<< "${ExamplesToRun}"
+  echo "Found ${#ExampleRunCmds[@]} client-examples to run"
+
+  # Check if parallel execution is requested and possible
+  UseParallel=0
+  if [ "${CK_CLIENT_EXAMPLES_PARALLEL}" == 'yes' ]; then
+    if [ ! -z "$(command -v parallel)" ]; then
+      UseParallel=1
+    else
+      echo "Warning: Parallel execution requested, but 'parallel' is not available"
+    fi
+  fi
+
+  # Run each client-example
+  if [ ${UseParallel} == 1 ]; then
+    # Parallel execution, using multiple GPUs
+    # Get and count available GPUs (as list)
+    GPUList="$(getIndexListByTargetArch "${CK_GPU_TARGETS}")"
+    GPUCount=$(echo "${GPUList}" | wc -w)
+    if [ ${GPUCount} -le 0 ]; then
+      echo "No target GPUs available"
+      exit 1
+    fi
+
+    # Make the GPU index list available within the test sub shells
+    export GPUList
+
+    # Run the client examples, using GNU parallel
+    # Note: {%} provides the job index, {#} the command sequence index
+    echo "Running client-examples in parallel, using ${GPUCount} GPUs"
+    parallel -j ${GPUCount} --line-buffer \
+      ' read -ra AvailableGPUs <<< "${GPUList}"
+        GPUIndex=$(({%} - 1))
+        SelectedGPU=${AvailableGPUs[GPUIndex]}
+        echo "[GPU ${SelectedGPU}, Example {#}] Running: {}"
+        export ROCR_VISIBLE_DEVICES=${SelectedGPU}
+        # Execute the actual test command
+        bash -c {}
+        ReturnCode=$?
+        echo "[GPU ${SelectedGPU}, Example {#}] Finished: {} with exit code ${ReturnCode}"
+        exit ${ReturnCode}
+      ' ::: "${ExampleRunCmds[@]}"
+
+    # Check the overall exit status of parallel
+    ParallelExitCode=$?
+    if [ ${ParallelExitCode} -eq 0 ]; then
+      echo "All tests completed successfully."
+    elif [ ${ParallelExitCode} -eq 255 ]; then
+      echo "One or more tests failed (Parallel was signaled to stop)."
+      exit 1
+    else
+      # GNU Parallel exit codes 1-100 indicate number of failed jobs
+      echo "Warning: ${ParallelExitCode} tests failed."
+      exit 1
+    fi
+  else
+    # Sequential execution, using a single (default) GPU
+    # Use 'bash -c' since simple string does not work
+    echo "Running client-examples sequentially, using a single GPU"
+    for RunCmd in "${ExampleRunCmds[@]}"; do
+      bash -c "${RunCmd}"
     done
-
-    popd
-  done
+  fi
 
   popd
 fi
