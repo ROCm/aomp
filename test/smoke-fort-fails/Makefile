@@ -37,7 +37,8 @@ TESTS_DIR = \
     rocm-issue-251 \
     rocm-issue-253-none \
     rocm-issue-253-device \
-    rocm-issue-253-host
+    rocm-issue-253-host \
+    target-array-element-reduction
 
 all:
 	@for test_dir in $(TESTS_DIR); do \
