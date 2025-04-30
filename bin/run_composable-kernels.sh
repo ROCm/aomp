@@ -24,6 +24,7 @@ function printHelp {
   echo "  -b: Update the CK benchmarks repo"
   echo "  -s <suite>: Select <suite> from:"                  \
        "[benchmarks client-examples]. (Default: benchmarks)"
+  echo "  -t <test>: Run <test> from selected suite (e.g. 'gemm/fa1.yaml')"
   exit 0
 }
 
@@ -64,7 +65,10 @@ ShouldUpdateCKBenchmarks='no'
 # CK may be run using different test- or benchmark-suites.
 SelectedSuite='benchmarks'
 
-while getopts "hirubs:" opt; do
+# CK may be run using a specfic test from the selected suite.
+SelectedTest=''
+
+while getopts "hirubs:t:" opt; do
   case ${opt} in
   h)
     printHelp
@@ -108,6 +112,9 @@ while getopts "hirubs:" opt; do
         fi
         ;;
     esac
+    ;;
+  t)
+    SelectedTest="${OPTARG}"
     ;;
   *)
     echo "Unknown option: -$opt"
@@ -237,9 +244,23 @@ if [ "${SelectedSuite}" == 'benchmarks' ]; then
     mkdir -p ${CK_BENCHMARK_RESULT} || exit 1
   fi
 
+  # Check if a specific test was requested
+  # If yes: check if it exists
+  if [ ! -z ${SelectedTest} ]; then
+    if [ ! -f "${CK_BENCHMARK_REPO}/benchmarks/${SelectedTest}" ]; then
+      echo "Error: Selected benchmark does not exist:"
+      echo "       ${CK_BENCHMARK_REPO}/benchmarks/${SelectedTest}"
+      exit 1
+    fi
+    echo "Selected benchmark: ${CK_BENCHMARK_REPO}/benchmarks/${SelectedTest}"
+  else
+    # Default benchmark
+    SelectedTest="gemm/fa1.yaml"
+  fi
+
   # This is the command. It requires the envar CK_PROFILER_DIR to be set to the directory
   # in the CK build tree that contains the CkProfiler binary.
-  CKBenchmarkTest='../benchmarks/gemm/fa1.yaml'
+  CKBenchmarkTest="../benchmarks/${SelectedTest}"
   CKBenchmarkName=$(basename ${CKBenchmarkTest})
   CKBenchmarkResultOutput="${CK_BENCHMARK_RESULT}/${CKBenchmarkName}.output"
   CKBenchmarkBackend='ck'
@@ -303,8 +324,14 @@ if [ "${SelectedSuite}" == 'client-examples' ]; then
   done
   echo "Excluded ${NumExcludedDirs} client-example directories"
   # Also, we always want to prune "./CMakeFiles" from the results
+  FindArgs+=(-path "*CMakeFiles*" \) -prune -o)
+  # If requested, filter the selected tests
+  if [ ! -z ${SelectedTest} ]; then
+    echo "Filtering client-example paths: ./${SelectedTest}"
+    FindArgs+=(-path "./${SelectedTest}")
+  fi
   # Finally, we want to print the remaining retrieved executables
-  FindArgs+=(-path "*CMakeFiles*" \) -prune -o -type f -executable -print)
+  FindArgs+=(-type f -executable -print)
 
   # Gather client-example executables
   ExamplesToRun=$(find "${FindArgs[@]}" | sort)
@@ -313,6 +340,10 @@ if [ "${SelectedSuite}" == 'client-examples' ]; then
   # Note: Usage of here-string to avoid sub-shell
   declare -a ExampleRunCmds
   while read -r ExamplePath; do
+    # Sanity check
+    if [ -z "${ExamplePath}" ]; then
+      continue
+    fi
     # Get directory and basename part, then construct the log file path
     ExampleDir=$(dirname "${ExamplePath}")
     ExampleName=$(basename "${ExamplePath}")
@@ -322,7 +353,14 @@ if [ "${SelectedSuite}" == 'client-examples' ]; then
     RunCmd+="\"${ExamplePath}\" | tee \"${ExampleLogfile}\""
     ExampleRunCmds+=("${RunCmd}")
   done <<< "${ExamplesToRun}"
-  echo "Found ${#ExampleRunCmds[@]} client-examples to run"
+
+  NumJobs=${#ExampleRunCmds[@]}
+  echo "Found ${NumJobs} client-examples to run"
+  if [ ${NumJobs} == 0 ]; then
+    # When running this script, we should expect to run something
+    # Exit silently, but indicate error via returncode
+    exit 1
+  fi
 
   # Check if parallel execution is requested and possible
   UseParallel=0
