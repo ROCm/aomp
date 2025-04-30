@@ -36,21 +36,16 @@ function getIndexListByTargetArch {
   fi
 
   # Build list of target arch indices
-  # First, get a detailed list of all available GPUs.
-  # Let awk only select lines which contain the target arch ($0 ~ arch).
-  # Then match and print the (previously bracketed) index.
-  # Finally, we need to translate newlines to spaces and
-  # trim / squeeze any surplus whitespace.
-  GPURegex='GPU\\[([0-9]+)\\]'
+  # First, get a detailed list of all available and visible GPUs.
+  # Then match lines containing the target arch and capture the bracketed index.
+  # Finally, we use xargs to format the results into a tidy, single-line list.
   OnlyVisibleDevices=""
   if [ ! -z "${ROCR_VISIBLE_DEVICES}" ]; then
     OnlyVisibleDevices="-d ${ROCR_VISIBLE_DEVICES}"
   fi
-  DetailedGPUList="$(rocm-smi --showproductname ${OnlyVisibleDevices})"
-  TargetArchIndexList=$(echo "${DetailedGPUList}"                              \
-                        | awk -v arch="${TargetArch}" -v regex="${GPURegex}"   \
-                          '$0 ~ arch { if(match($0, regex, m)) {print m[1]} }' \
-                        | tr '\n' ' ' | awk '{ $1=$1; print }')
+  GPUList="$(rocm-smi --showproductname ${OnlyVisibleDevices})"
+  GPURegex="s/^GPU\[([0-9]+)\].*${TargetArch}$/\1/p"
+  TargetArchIndexList=$(echo "${GPUList}" | sed -En "${GPURegex}" | xargs echo)
 
   # Return the space-separated index list string (e.g. "0 1 3 4")
   echo "${TargetArchIndexList}"
