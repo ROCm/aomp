@@ -173,12 +173,23 @@ if [ $KOKKOS_RUN_UNIT_TEST == 'yes' ]; then
 
     # The AOMP_CI_ACCUMULATOR is a Python script to read the resulting GTest json files and transform them into extract-format files
     if [ ! -z "$AOMP_CI_ACCUMULATOR" ]; then
+      # Clean any left over files from previous run.
+      if [ -f ${initialDir}/accumulatedResults-pass-rate-${KOKKOS_TAG}.ext ]; then
+        rm ${initialDir}/accumulatedResults-pass-rate-${KOKKOS_TAG}.ext
+      fi
+      if [ -f ${initialDir}/accumulatedResults-corr-${KOKKOS_TAG}.ext ]; then
+        rm ${initialDir}/accumulatedResults-corr-${KOKKOS_TAG}.ext
+      fi
+
       tmpResFile=accuResult
       # Collect everything in the KOKKOS_INTERMEDIATE_FILE ${tmpResFile} is not touched during this command
       # I know that this looks a bit clumsy and it can sure be improved later.
       find . -iname "RESULT_*" -exec python3 ${AOMP_CI_ACCUMULATOR} --snapshot ${KOKKOS_FAILS_SNAPSHOT} --failfile ${KOKKOS_FAIL_FILE} --intermediate-file ${KOKKOS_INTERMEDIATE_FILE} {} ${tmpResFile} \;
+
       # Generate the extract from the KOKKOS_INTERMEDIATE_FILE
       python3 ${AOMP_CI_ACCUMULATOR} --snapshot ${KOKKOS_FAILS_SNAPSHOT} --failfile ${KOKKOS_FAIL_FILE} ${KOKKOS_INTERMEDIATE_FILE} ${tmpResFile}
+
+      # Place the final files into their target directory
       cp ${tmpResFile}-perf.ext ${initialDir}/accumulatedResults-pass-rate-${KOKKOS_TAG}.ext
       cp ${tmpResFile}-corr.ext ${initialDir}/accumulatedResults-corr-${KOKKOS_TAG}.ext
       rm ${tmpResFile}-corr.ext ${tmpResFile}-perf.ext ${KOKKOS_INTERMEDIATE_FILE}
