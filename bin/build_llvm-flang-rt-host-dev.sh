@@ -52,7 +52,7 @@ if [ ! -x $CMAKE_CXX_COMPILER ]; then
 fi
 
 BUILD_DIR=$BUILD_AOMP/build/llvm-project
-BUILD_DIR_FRT=$BUILD_AOMP/build/flang-runtime/
+BUILD_DIR_FRT=$BUILD_AOMP/build/flang-runtime/flang-rt/lib
 OMPRUNTIME_DIR=$BUILD_DIR/runtimes/runtimes-bins/openmp/runtime/src
 INSTALL_DIR=$AOMP
 
@@ -83,30 +83,32 @@ if [ "$AOMP_USE_NINJA" == 0 ] ; then
 else
     AOMP_SET_NINJA_GEN="-G Ninja"
 fi
+
+# Notes:
+#   -DFLANG_RT_INCLUDE_TESTS=OFF     # avoids needing CUDA toolchain
+#
 ${AOMP_CMAKE} $AOMP_SET_NINJA_GEN \
-    -DFLANG_EXPERIMENTAL_OMP_OFFLOAD_BUILD="host_device" \
+    -DLLVM_ENABLE_RUNTIMES=flang-rt \
+    -DFLANG_RT_EXPERIMENTAL_OFFLOAD_SUPPORT="OpenMP" \
+    -DFLANG_RT_INCLUDE_TESTS=OFF \
     -DCMAKE_C_COMPILER=$CMAKE_C_COMPILER \
     -DCMAKE_CXX_COMPILER=$CMAKE_CXX_COMPILER \
+    -DFLANG_RT_DEVICE_ARCHITECTURES="$ARCH_LIST" \
     -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
-    "-DCMAKE_C_FLAGS=-I$OMPRUNTIME_DIR" \
-    "-DCMAKE_CXX_FLAGS=-I$OMPRUNTIME_DIR" \
-    -DFLANG_OMP_DEVICE_ARCHITECTURES="$ARCH_LIST" \
-    $AOMP_REPOS/llvm-project/flang/runtime
+    $AOMP_REPOS/llvm-project/runtimes
 
 $AOMP_NINJA_BIN --version
-$AOMP_NINJA_BIN -j $AOMP_JOB_THREADS FortranRuntime
+$AOMP_NINJA_BIN -j $AOMP_JOB_THREADS flang-rt
 mystat=$?
 allstat=$(($allstat+$mystat))
 echo "status: $mystat"
 
-if [ -e "$BUILD_DIR_FRT/libflang_rt.runtime.a" ]; then
-    cmd="cp $BUILD_DIR_FRT/libflang_rt.runtime.a $INSTALL_DIR/lib/libflang_rt.hostdevice.a"
-    echo $cmd
-    $cmd
-    mystat=$?
-    allstat=$(($allstat+$mystat))
-    echo "status: $mystat"
-fi
+cmd="cp $BUILD_DIR_FRT/libflang_rt.runtime.a $INSTALL_DIR/lib/libflang_rt.hostdevice.a"
+echo $cmd
+$cmd
+mystat=$?
+allstat=$(($allstat+$mystat))
+echo "status: $mystat"
 
 echo "allstat: $allstat"
 # Note: Currently ignore build status of fortran-rt-host-dev
