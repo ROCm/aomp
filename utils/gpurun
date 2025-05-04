@@ -237,7 +237,7 @@ fi
 
 # Use rocminfo to find number number of CUs and gfxids for each GPU.
 _tfile="/tmp/rinfo_out$$"
-$ROCMINFO_BINARY 2>/dev/null | grep -E "    Name:| Compute Unit:| Device Type:| BDFID:| Uuid:" >$_tfile
+$ROCMINFO_BINARY 2>/dev/null | grep -E "    Name:| Compute Unit:| Device Type:| BDFID:| Uuid:" |grep -v generic >$_tfile
 _tfile_lines=`wc -l $_tfile | cut -d" " -f1`
 if [ $_tfile_lines == 0 ] ; then
   >&2 echo "ERROR: $ROCMINFO_BINARY failed to find GPU devices"
