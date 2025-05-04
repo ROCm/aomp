@@ -1,0 +1,17 @@
+include ../../Makefile.defs
+
+TESTNAME     = veccopy-ompt-target-emi-tracing
+TESTSRC_MAIN = veccopy-ompt-target-emi-tracing.cpp
+TESTSRC_AUX  =
+TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
+RUNENV      += LIBOMPTARGET_OMPT_FLUSH_ON_SHUTDOWN=false LIBOMPTARGET_OMPT_FLUSH_ON_BUFFER_FULL=false
+
+RUNCMD      = ./$(TESTNAME) | $(FILECHECK) $(TESTSRC_MAIN)
+
+CLANG        ?= clang++
+OMP_BIN      = $(AOMP)/bin/$(CLANG)
+CC           = $(OMP_BIN) $(VERBOSE)
+#-ccc-print-phases
+#"-\#\#\#"
+
+include ../Makefile.rules
