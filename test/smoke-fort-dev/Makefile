@@ -9,6 +9,7 @@ TESTS_DIR = \
     hipfort \
     rocm-issue-201 \
     tgt-abort-lhostdev \
+    tgt-firstprivate \
     tgt-print-hello-lhostdev \
     tgt-print-val-lhostdev \
     tgt-stop-lhostdev \
