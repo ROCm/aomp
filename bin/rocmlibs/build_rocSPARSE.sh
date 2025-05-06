@@ -92,7 +92,7 @@ if [ "$1" != "install" ] ; then
      -DCPACK_SET_DESTDIR=OFF
      -DCMAKE_BUILD_TYPE=Release
      -DBUILD_WITH_ROCBLAS=ON
-     -DAMDGPU_TARGETS="""$_gfxlist"""
+     -DAMDGPU_TARGETS="""$ROCMLIBS_GFXLIST"""
    "
    echo $AOMP_CMAKE $MYCMAKEOPTS $_repo_dir
    $AOMP_CMAKE $MYCMAKEOPTS $_repo_dir
