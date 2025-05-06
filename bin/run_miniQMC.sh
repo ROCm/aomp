@@ -17,7 +17,7 @@ export AOMP_USE_CCACHE=0
 # --- end standard header ----
 
 # Default ROCm installation
-: ${ROCM:=/opt/rocm-5.3.0}
+: ${ROCM:=/opt/rocm}
 
 # Control how many OpenMP threads are used by MiniQMCPack
 : ${MQMC_OMP_NUM_THREADS:=32}
@@ -43,7 +43,7 @@ export rocsolver_DIR=${ROCM}/lib/cmake/rocsolver/
 # how many threads should be used for building miniqmc
 : ${MQMC_NUM_BUILD_PROCS:=32}
 # We pin the version by default, so we have only AOMP as moving target
-: ${MQMC_GIT_TAG:=15edc605}
+: ${MQMC_GIT_TAG:=9d9d7d3}
 
 
 if [ ! -d $MQMC_SOURCE_DIR ]; then
