@@ -418,10 +418,10 @@ if [ "$1" == "install" ] ; then
       $SUDO mkdir -p $_ompd_src_dir/offload
       $SUDO mkdir -p $_ompd_src_dir/offload/plugins-nextgen
       if [ "$AOMP_STANDALONE_BUILD" == 1 ]; then
-         _from_dir_src="$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload/src"
+         _from_dir_src="$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload/libomptarget"
          _from_dir_plugins="$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload/plugins-nextgen"
       else
-         _from_dir_src="$LLVM_PROJECT_ROOT/offload/src"
+         _from_dir_src="$LLVM_PROJECT_ROOT/offload/libomptarget"
          _from_dir_plugins="$LLVM_PROJECT_ROOT/offload/plugins-nextgen"
       fi
       echo cp -rp $_from_dir_src $_ompd_src_dir/offload
