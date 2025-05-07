@@ -13,7 +13,9 @@ TESTS_DIR = \
     tgt-print-hello-lhostdev \
     tgt-print-val-lhostdev \
     tgt-stop-lhostdev \
-    tgt-write-lhostdev
+    tgt-write-lhostdev \
+    whole-archive \
+    whole-archive-module
 
 all:
 	@for test_dir in $(TESTS_DIR); do \
