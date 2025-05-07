@@ -1,0 +1,17 @@
+#NOOPT        = 1
+#NOOMP        = 1
+#OMP_FLAGS    = -fopenmp
+include ../../Makefile.defs
+
+TESTNAME     = test_ns3d_stackarray
+TESTSRC_MAIN = test_ns3d_stackarray.f90
+TESTSRC_AUX  =
+TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
+
+FLANG        ?= flang
+OMP_BIN      = $(AOMP)/bin/$(FLANG)
+CC           = $(OMP_BIN) $(VERBOSE)
+#-ccc-print-phases
+#"-\#\#\#"
+
+include ../Makefile.rules
