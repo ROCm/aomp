@@ -7,6 +7,7 @@ TESTS_DIR = \
     flang-527219 \
     flang-529628 \
     hipfort \
+    multi-generic \
     rocm-issue-201 \
     tgt-abort-lhostdev \
     tgt-firstprivate \
