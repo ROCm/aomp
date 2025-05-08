@@ -1,6 +1,8 @@
 include ../Makefile.defs
 
 TESTS_DIR = \
+    do-concurrent-device \
+    do-concurrent-host \
     flang-464660-2 \
     flang-471469 \
     flang-523587 \
