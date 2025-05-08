@@ -287,8 +287,13 @@ fi
 
 # Set list of default amdgcn subarchitectures to build
 # Developers may override GFXLIST to shorten build time.
-GFXLIST=${GFXLIST:-"gfx900 gfx902 gfx906 gfx908 gfx90a gfx90c gfx942 gfx950 gfx1030 gfx1031 gfx1035 gfx1036 gfx1100 gfx1101 gfx1102 gfx1103 gfx1150 gfx1151 gfx1152 gfx1153 gfx1200 gfx1201 gfx9-generic gfx9-4-generic gfx10-1-generic gfx10-3-generic gfx11-generic gfx12-generic"}
+GFXLIST=${GFXLIST:-"gfx900 gfx902 gfx906 gfx908 gfx90a gfx90c gfx942 gfx950 gfx1030 gfx1031 gfx1035 gfx1036 gfx1100 gfx1101 gfx1102 gfx1103 gfx1150 gfx1151 gfx1152 gfx1153 gfx1200 gfx1201"}
 export GFXLIST
+# Removed generic targets:
+#   gfx9-generic gfx9-4-generic gfx10-1-generic gfx10-3-generic gfx11-generic gfx12-generic
+# which will cause errors if the test is not compiled for the generic for the native arch:
+#   "PluginInterface" error: Failure to init kernel: Error in hsa_executable_get_symbol_by_name(__omp_offloading_fd00_19a2619_vadd__l6.kd): HSA_STATUS_ERROR_INVALID_SYMBOL_NAME: There is no symbol with the given name
+#   omptarget error: Failed to load kernel __omp_offloading_fd00_19a2619_vadd__l6
 
 # Keep a small list of architectures for ROCMLIBS to shorten build time.
 ROCMLIBS_GFXLIST=${ROCMLIBS_GFXLIST:-"gfx90a;gfx942;gfx1103;gfx1150"}
