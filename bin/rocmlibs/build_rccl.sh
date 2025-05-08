@@ -1,8 +1,8 @@
 #!/bin/bash
-# 
-#  build_rccl.sh: Script to build and install rccl.
-#                 This uses a slightly modified install.sh from rccl. 
 #
+#  build_rccl.sh: Script to build and install rccl.
+#                 This uses a slightly modified install.sh from rccl.
+#                 It has a dependency on rocm-core.
 BUILD_TYPE=${BUILD_TYPE:-Release}
 
 # --- Start standard header to set AOMP environment variables ----
@@ -10,6 +10,8 @@ realpath=`realpath $0`
 thisdir=`dirname $realpath`
 . $thisdir/../aomp_common_vars
 # --- end standard header ----
+
+export ROCM_PATH=$AOMP_INSTALL_DIR
 
 _howcalled=${0##*/}
 _shname=${_howcalled#build_*}  # strip off build_
@@ -32,9 +34,9 @@ fi
 # rccl needs cmake 3.25, so put prereq cmake first in path
 export PATH=$AOMP_SUPP/cmake/bin:$PATH
 
-if [ $AOMP_STANDALONE_BUILD == 1 ] ; then 
-   if [ ! -L $AOMP ] ; then 
-     if [ -d $AOMP ] ; then 
+if [ $AOMP_STANDALONE_BUILD == 1 ] ; then
+   if [ ! -L $AOMP ] ; then
+     if [ -d $AOMP ] ; then
         echo "ERROR: Directory $AOMP is a physical directory."
         echo "       It must be a symbolic link or not exist"
         exit 1
@@ -45,13 +47,13 @@ else
    exit 1
 fi
 
-if [ "$1" == "nocmake" ] ; then 
+if [ "$1" == "nocmake" ] ; then
   _nocmake_option="--nocmake"
 else
   _nocmake_option=""
 fi
 
-if [ "$BUILD_TYPE" == "Release" ] ; then 
+if [ "$BUILD_TYPE" == "Release" ] ; then
   _buildtype_option=""
   _build_dir_option="release"
 else
@@ -59,11 +61,11 @@ else
   _build_dir_option="debug"
 fi
 
-# Make sure we can update the install directory 
+# Make sure we can update the install directory
 if [ "$1" == "install" ] ; then
    $SUDO mkdir -p $AOMP_INSTALL_DIR
    $SUDO touch $AOMP_INSTALL_DIR/testfile
-   if [ $? != 0 ] ; then 
+   if [ $? != 0 ] ; then
       echo "ERROR: No update access to $AOMP_INSTALL_DIR"
       exit 1
    fi
@@ -78,7 +80,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    rm -rf $BUILD_DIR/build/rocmlibs/$_libname
    mkdir -p $BUILD_DIR/build/rocmlibs/$_libname
 else
-   if [ ! -d $BUILD_DIR/build/rocmlibs/$_libname ] ; then 
+   if [ ! -d $BUILD_DIR/build/rocmlibs/$_libname ] ; then
       echo "ERROR: The build directory $BUILD_DIR/build/rocmlibs/$_libname does not exist"
       echo "       run $0 without install and without nocmake option"
       exit 1
@@ -92,11 +94,12 @@ if [ "$1" != "install" ] ; then
    echo
    echo " -----Running cmake in install.sh ---"
    echo cd $AOMP_REPOS/build/rocmlibs/$_libname
-   cd $AOMP_REPOS/build/rocmlibs/$_libname 
+   cd $AOMP_REPOS/build/rocmlibs/$_libname
    # --noinstall must follow --prefix because --prefix sets install_library=true
-   echo $_source_dir/install.sh $_nocmake_option $_buildtype_option -j $AOMP_JOB_THREADS --prefix $AOMP_INSTALL_DIR $_set_ninja_gen --source_dir $_source_dir --noinstall --amdgpu_targets $RCCL_GFXLIST
-   $_source_dir/install.sh $_nocmake_option $_buildtype_option -j $AOMP_JOB_THREADS --prefix $AOMP_INSTALL_DIR $_set_ninja_gen --source_dir $_source_dir --noinstall --amdgpu_targets $RCCL_GFXLIST
-   if [ $? != 0 ] ; then 
+   # add --disable-colltrace because it is not supported on gfx1150
+   echo $_source_dir/install.sh $_nocmake_option $_buildtype_option -j $AOMP_JOB_THREADS --prefix $AOMP_INSTALL_DIR $_set_ninja_gen --source_dir $_source_dir --noinstall --amdgpu_targets $ROCMLIBS_GFXLIST --disable-colltrace
+   $_source_dir/install.sh $_nocmake_option $_buildtype_option -j $AOMP_JOB_THREADS --prefix $AOMP_INSTALL_DIR $_set_ninja_gen --source_dir $_source_dir --noinstall --amdgpu_targets $ROCMLIBS_GFXLIST --disable-colltrace
+   if [ $? != 0 ] ; then
       echo "ERROR install failed."
       echo "       $MYCMAKEOPTS"
       cd $_curdir
@@ -118,9 +121,9 @@ if [ "$1" == "install" ] ; then
    echo "SUCCESSFUL INSTALL to $AOMP_INSTALL_DIR"
    echo
    removepatch $_source_dir
-else 
-   echo 
+else
+   echo
    echo "SUCCESSFUL BUILD, please run:  $0 install"
    echo "  to install into $AOMP_INSTALL_DIR"
-   echo 
+   echo
 fi

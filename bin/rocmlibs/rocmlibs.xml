@@ -16,6 +16,7 @@
 <project remote="rocm" path="hipRAND" name="hipRAND" revision="release/rocm-rel-6.4" groups="unlocked"/>
 <project remote="rocm" path="hipSOLVER" name="hipSOLVER" revision="release/rocm-rel-6.4" groups="unlocked"/>
 <project remote="rocm" path="hipSPARSE" name="hipSPARSE" revision="release/rocm-rel-6.4" groups="unlocked"/>
+<project remote="rocm" path="rocm-core" name="rocm-core" revision="release/rocm-rel-6.4" groups="unlocked"/>
 <project remote="rocm" path="rccl" name="rccl" revision="release/rocm-rel-6.4" groups="unlocked"/>
 <project remote="rocm" path="rocBLAS" name="rocBLAS" revision="release/rocm-rel-6.4" groups="unlocked"/>
 <project remote="rocm" path="rocFFT" name="rocFFT" revision="release/rocm-rel-6.4" groups="unlocked"/>
