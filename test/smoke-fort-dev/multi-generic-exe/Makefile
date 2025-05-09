@@ -30,7 +30,7 @@ GENERIC ?= gfx9-generic,gfx9-4-generic,gfx10-1-generic,gfx10-3-generic,gfx11-gen
 OFFLOAD = -fopenmp --offload-arch
 
 test:
-	${OMP_BIN} -c ${OFFLOAD}=${AOMP_GPU} vadd.f90
+	${OMP_BIN} -c ${OFFLOAD}=${GENERIC} vadd.f90
 	${OMP_BIN} -c ${OFFLOAD}=${AOMP_GPU},${GENERIC} vmul.f90
 	${OMP_BIN} -c main.f90
 	${OMP_BIN} -o test ${OFFLOAD}=${GENERIC} main.o ${LDFLAGS} vadd.o vmul.o
