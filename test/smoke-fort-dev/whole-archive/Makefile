@@ -3,8 +3,6 @@
 #NOLINK       = 1
 include ../../Makefile.defs
 
-.PHONY: modules
-
 TESTNAME     = test
 TESTSRC_MAIN = main.f90
 TESTSRC_AUX  = vadd.f90
@@ -22,7 +20,6 @@ include ../Makefile.rules
 #LDFLAGS=-Wl,--whole-archive -Wl,--allow-multiple-definition -Wl,--no-nvptx-whole-archive
 LDFLAGS=-Wl,--whole-archive -Wl,--allow-multiple-definition
 
-# 446005 "works" version
 test:
 	${OMP_BIN} -c ${OMP_FLAGS} vadd.f90
 	rm -f vadd.a
