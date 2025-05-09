@@ -137,7 +137,7 @@ if [ "$1" != "install" ] ; then
      -DTensile_LAZY_LIBRARY_LOADING=ON
      -DTensile_LIBRARY_FORMAT=msgpack
      -DBUILD_WITH_HIPBLASLT=OFF
-     -DAMDGPU_TARGETS="""$_gfxlist"""
+     -DAMDGPU_TARGETS="""$ROCMLIBS_GFXLIST"""
     "
    echo "Beginning cmake for rocblas..."
    cd $BUILD_DIR/build/rocmlibs/rocBLAS

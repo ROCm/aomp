@@ -1,18 +1,25 @@
 include ../Makefile.defs
 
 TESTS_DIR = \
+    do-concurrent-device \
+    do-concurrent-host \
     flang-464660-2 \
     flang-471469 \
     flang-523587 \
     flang-527219 \
     flang-529628 \
     hipfort \
+    multi-generic \
+    multi-generic-exe \
     rocm-issue-201 \
     tgt-abort-lhostdev \
+    tgt-firstprivate \
     tgt-print-hello-lhostdev \
     tgt-print-val-lhostdev \
     tgt-stop-lhostdev \
-    tgt-write-lhostdev
+    tgt-write-lhostdev \
+    whole-archive \
+    whole-archive-module
 
 all:
 	@for test_dir in $(TESTS_DIR); do \

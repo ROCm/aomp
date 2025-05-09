@@ -94,8 +94,8 @@ if [ "$1" != "install" ] ; then
    echo cd $AOMP_REPOS/build/rocmlibs/$_libname
    cd $AOMP_REPOS/build/rocmlibs/$_libname 
    # --noinstall must follow --prefix because --prefix sets install_library=true
-   echo $_source_dir/install.sh $_nocmake_option $_buildtype_option -j $AOMP_JOB_THREADS --prefix $AOMP_INSTALL_DIR $_set_ninja_gen --source_dir $_source_dir --noinstall
-   $_source_dir/install.sh $_nocmake_option $_buildtype_option -j $AOMP_JOB_THREADS --prefix $AOMP_INSTALL_DIR $_set_ninja_gen --source_dir $_source_dir --noinstall
+   echo $_source_dir/install.sh $_nocmake_option $_buildtype_option -j $AOMP_JOB_THREADS --prefix $AOMP_INSTALL_DIR $_set_ninja_gen --source_dir $_source_dir --noinstall --amdgpu_targets $RCCL_GFXLIST
+   $_source_dir/install.sh $_nocmake_option $_buildtype_option -j $AOMP_JOB_THREADS --prefix $AOMP_INSTALL_DIR $_set_ninja_gen --source_dir $_source_dir --noinstall --amdgpu_targets $RCCL_GFXLIST
    if [ $? != 0 ] ; then 
       echo "ERROR install failed."
       echo "       $MYCMAKEOPTS"

@@ -149,8 +149,8 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
         echo " -----Running offload cmake for asan ---- "
         mkdir -p $BUILD_DIR/build/offload/asan
         cd $BUILD_DIR/build/offload/asan
-        echo ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DCMAKE_C_FLAGS="'$ASAN_FLAGS'" -DCMAKE_CXX_FLAGS="'$ASAN_FLAGS'" -DOFFLOAD_LIBDIR_SUFFIX="/asan" $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload
-        ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DCMAKE_C_FLAGS="'$ASAN_FLAGS'" -DCMAKE_CXX_FLAGS="'$ASAN_FLAGS'" -DOFFLOAD_LIBDIR_SUFFIX="/asan" $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload
+        echo ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DCMAKE_C_FLAGS="'$ASAN_FLAGS'" -DCMAKE_CXX_FLAGS="'$ASAN_FLAGS'" -DOFFLOAD_LIBDIR_SUFFIX="/asan" -DLLVM_LIBDIR_SUFFIX="/asan" $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload
+        ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DCMAKE_C_FLAGS="'$ASAN_FLAGS'" -DCMAKE_CXX_FLAGS="'$ASAN_FLAGS'" -DOFFLOAD_LIBDIR_SUFFIX="/asan" -DLLVM_LIBDIR_SUFFIX="/asan" $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload
         if [ $? != 0 ] ; then
            echo "ERROR offload cmake failed. Cmake flags"
            echo "      $ASAN_CMAKE_OPTS"
@@ -162,7 +162,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
   if [ "$AOMP_BUILD_PERF" == "1" ]; then
     echo rm -rf $BUILD_DIR/build/offload_perf
     rm -rf $BUILD_DIR/build/offload_perf
-    MYCMAKEOPTS="$COMMON_CMAKE_OPTS -DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR/lib/cmake;$AOMP_INSTALL_DIR/lib64/cmake -DLIBOMPTARGET_ENABLE_DEBUG=OFF -DCMAKE_BUILD_TYPE=Release -DLIBOMPTARGET_PERF=ON -DOFFLOAD_LIBDIR_SUFFIX=-perf"
+    MYCMAKEOPTS="$COMMON_CMAKE_OPTS -DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR/lib/cmake;$AOMP_INSTALL_DIR/lib64/cmake -DLIBOMPTARGET_ENABLE_DEBUG=OFF -DCMAKE_BUILD_TYPE=Release -DLIBOMPTARGET_PERF=ON -DOFFLOAD_LIBDIR_SUFFIX=-perf -DLLVM_LIBDIR_SUFFIX=-perf"
     mkdir -p $BUILD_DIR/build/offload_perf
     cd $BUILD_DIR/build/offload_perf
     echo " -----Running offload cmake for perf ---- "
@@ -178,8 +178,8 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
        echo " -----Running offload cmake for perf-asan ---- "
        mkdir -p $BUILD_DIR/build/offload_perf/asan
        cd $BUILD_DIR/build/offload_perf/asan
-       echo ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DCMAKE_C_FLAGS="'$ASAN_FLAGS'" -DCMAKE_CXX_FLAGS="'$ASAN_FLAGS'" -DOFFLOAD_LIBDIR_SUFFIX="-perf/asan" $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload
-       ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DCMAKE_C_FLAGS="'$ASAN_FLAGS'" -DCMAKE_CXX_FLAGS="'$ASAN_FLAGS'" -DOFFLOAD_LIBDIR_SUFFIX="-perf/asan" $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload
+       echo ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DCMAKE_C_FLAGS="'$ASAN_FLAGS'" -DCMAKE_CXX_FLAGS="'$ASAN_FLAGS'" -DOFFLOAD_LIBDIR_SUFFIX="-perf/asan" -DLLVM_LIBDIR_SUFFIX="-perf/asan" $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload
+       ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DCMAKE_C_FLAGS="'$ASAN_FLAGS'" -DCMAKE_CXX_FLAGS="'$ASAN_FLAGS'" -DOFFLOAD_LIBDIR_SUFFIX="-perf/asan" -DLLVM_LIBDIR_SUFFIX="-perf/asan" $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload
        if [ $? != 0 ] ; then
           echo "error offload cmake failed. cmake flags"
           echo "      $ASAN_CMAKE_OPTS"
@@ -230,7 +230,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
            PREFIX_PATH="-DCMAKE_PREFIX_PATH=$INSTALL_PREFIX/lib/cmake"
            MYCMAKEOPTS="$COMMON_CMAKE_OPTS $DEBUGCMAKEOPTS $OPENMP_EXTRAS_ORIGIN_RPATH"
          fi
-         ${AOMP_CMAKE} $MYCMAKEOPTS $PREFIX_PATH -DCMAKE_C_FLAGS="$CFLAGS -g" -DCMAKE_CXX_FLAGS="$CXXFLAGS -g $_prefix_map" -DOFFLOAD_LIBDIR_SUFFIX=-debug $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload
+         ${AOMP_CMAKE} $MYCMAKEOPTS $PREFIX_PATH -DCMAKE_C_FLAGS="$CFLAGS -g" -DCMAKE_CXX_FLAGS="$CXXFLAGS -g $_prefix_map" -DOFFLOAD_LIBDIR_SUFFIX="-debug" -DLLVM_LIBDIR_SUFFIX="-debug" $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload
 
          if [ $? != 0 ] ; then
             echo "ERROR offload debug cmake failed. Cmake flags"
@@ -248,8 +248,8 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
          echo " -----Running offload cmake for debug-asan ---- "
          mkdir -p $BUILD_DIR/build/offload_debug/asan
          cd $BUILD_DIR/build/offload_debug/asan
-         echo ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DCMAKE_C_FLAGS="'$ASAN_FLAGS'" -DCMAKE_CXX_FLAGS="'$ASAN_FLAGS'" -DOFFLOAD_LIBDIR_SUFFIX="-debug/asan" $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload
-         ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DCMAKE_C_FLAGS="'$ASAN_FLAGS'" -DCMAKE_CXX_FLAGS="'$ASAN_FLAGS'" -DOFFLOAD_LIBDIR_SUFFIX="-debug/asan" $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload
+         echo ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DCMAKE_C_FLAGS="'$ASAN_FLAGS'" -DCMAKE_CXX_FLAGS="'$ASAN_FLAGS'" -DOFFLOAD_LIBDIR_SUFFIX="-debug/asan" -DLLVM_LIBDIR_SUFFIX="-debug/asan" $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload
+         ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DCMAKE_C_FLAGS="'$ASAN_FLAGS'" -DCMAKE_CXX_FLAGS="'$ASAN_FLAGS'" -DOFFLOAD_LIBDIR_SUFFIX="-debug/asan" -DLLVM_LIBDIR_SUFFIX="-debug/asan" $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload
          if [ $? != 0 ] ; then
             echo "ERROR offload debug cmake failed. Cmake flags"
             echo "      $ASAN_CMAKE_OPTS"
@@ -418,10 +418,10 @@ if [ "$1" == "install" ] ; then
       $SUDO mkdir -p $_ompd_src_dir/offload
       $SUDO mkdir -p $_ompd_src_dir/offload/plugins-nextgen
       if [ "$AOMP_STANDALONE_BUILD" == 1 ]; then
-         _from_dir_src="$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload/src"
+         _from_dir_src="$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload/libomptarget"
          _from_dir_plugins="$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload/plugins-nextgen"
       else
-         _from_dir_src="$LLVM_PROJECT_ROOT/offload/src"
+         _from_dir_src="$LLVM_PROJECT_ROOT/offload/libomptarget"
          _from_dir_plugins="$LLVM_PROJECT_ROOT/offload/plugins-nextgen"
       fi
       echo cp -rp $_from_dir_src $_ompd_src_dir/offload
