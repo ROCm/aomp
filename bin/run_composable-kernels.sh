@@ -52,6 +52,59 @@ function getIndexListByTargetArch {
   echo "${TargetArchIndexList}"
 }
 
+# Given an array of commands to execute, distribute them onto multiple GPUs.
+function distributeWorkToGPUs {
+  # Capture array argument
+  WorkItems=("$@")
+
+  # Sanity checks
+  if [ "${#WorkItems[@]}" -eq 0 ] ||
+    ([ "${#WorkItems[@]}" -eq 1 ] && [ -z "${WorkItems[@]}" ]); then
+    echo "Error: Received empty list of commands"
+    exit 1
+  fi
+
+  # Get and count available GPUs (as list)
+  GPUList="$(getIndexListByTargetArch "${CK_GPU_TARGETS}")"
+  GPUCount=$(echo "${GPUList}" | wc -w)
+  if [ ${GPUCount} -le 0 ]; then
+    echo "No target GPUs available"
+    exit 1
+  fi
+
+  # Make the GPU index list available within the test sub shells
+  export GPUList
+
+  # Run the work items, using GNU parallel
+  # Note: {%} provides the job slot (thread) index, {#} the job sequence index
+  echo "Running ${#WorkItems[@]} work items in parallel, using ${GPUCount} GPUs"
+  parallel -j ${GPUCount} --line-buffer \
+    ' read -ra AvailableGPUs <<< "${GPUList}"
+      GPUIndex=$(({%} - 1))
+      SelectedGPU=${AvailableGPUs[GPUIndex]}
+      echo "[GPU ${SelectedGPU}, JOB {#}] Running: {}"
+      export ROCR_VISIBLE_DEVICES=${SelectedGPU}
+      # Execute the actual work item
+      bash -c {}
+      ReturnCode=$?
+      echo "[GPU ${SelectedGPU}, JOB {#}] Finished with exit code ${ReturnCode}"
+      exit ${ReturnCode}
+    ' ::: "${WorkItems[@]}"
+
+  # Check the overall exit status of parallel
+  ParallelExitCode=$?
+  if [ ${ParallelExitCode} -eq 0 ]; then
+    echo "All tests completed successfully."
+  elif [ ${ParallelExitCode} -eq 255 ]; then
+    echo "One or more tests failed (Parallel was signaled to stop)."
+    exit 1
+  else
+    # GNU Parallel exit codes 1-100 indicate number of failed jobs
+    echo "Warning: ${ParallelExitCode} tests failed."
+    exit 1
+  fi
+}
+
 # Some tests may require an installed instance of CK.
 ShouldInstallCK='no'
 # For some situations during testing it may not be desired to rebuild the CK repo.
@@ -103,6 +156,10 @@ while getopts "hirubs:t:" opt; do
         # Requires an installed CK build (triggers incremental build)
         ShouldInstallCK='yes'
         ;;
+      examples)
+        # Build and run the examples provided by CK.
+        SelectedSuite="${OPTARG}"
+        ;;
       *)
         # If there's a following string which does not start with '-'
         # we interpret it as an attempt at providing an unknown suite.
@@ -133,7 +190,10 @@ done
 : ${CK_INSTALL:=$CK_TOP/ck-install}
 : ${CK_CLIENT_EXAMPLES_SOURCE:=$CK_REPO/client_example}
 : ${CK_CLIENT_EXAMPLES_BUILD:=$CK_TOP/ck-client-examples-build}
-: ${CK_CLIENT_EXAMPLES_PARALLEL:='yes'}
+# Run regular and client examples on multiple GPUs (if present)
+: ${CK_EXAMPLES_PARALLEL:='yes'}
+: ${CK_EXAMPLES_PREFIX:='example_'}
+: ${CK_EXAMPLES_LOG_LOCATION:=$CK_TOP/ck-examples-logs}
 
 # Some client-examples may take long, override this to skip tests
 # e.g. CK_CLIENT_EXAMPLES_TO_EXCLUDE=("10_grouped_convnd_bwd_data" "24_grouped_conv_activation")
@@ -223,6 +283,18 @@ if [ "${ShouldInstallCK}" == 'yes' ]; then
 fi
 
 echo "Run suite: ${SelectedSuite}"
+
+# Check if parallel execution is requested and possible
+UseParallel=0
+if ([ "${SelectedSuite}" == 'client-examples' ] ||
+    [ "${SelectedSuite}" == 'examples' ]) &&
+    [ "${CK_EXAMPLES_PARALLEL}" == 'yes' ]; then
+  if [ ! -z "$(command -v parallel)" ]; then
+    UseParallel=1
+  else
+    echo "Warning: Parallel execution requested, but 'parallel' is not available"
+  fi
+fi
 
 # Handle CK benchmarks (also as default, if no suite has been explicitly selected)
 if [ "${SelectedSuite}" == 'benchmarks' ]; then
@@ -362,62 +434,84 @@ if [ "${SelectedSuite}" == 'client-examples' ]; then
     exit 1
   fi
 
-  # Check if parallel execution is requested and possible
-  UseParallel=0
-  if [ "${CK_CLIENT_EXAMPLES_PARALLEL}" == 'yes' ]; then
-    if [ ! -z "$(command -v parallel)" ]; then
-      UseParallel=1
-    else
-      echo "Warning: Parallel execution requested, but 'parallel' is not available"
-    fi
-  fi
-
   # Run each client-example
   if [ ${UseParallel} == 1 ]; then
     # Parallel execution, using multiple GPUs
-    # Get and count available GPUs (as list)
-    GPUList="$(getIndexListByTargetArch "${CK_GPU_TARGETS}")"
-    GPUCount=$(echo "${GPUList}" | wc -w)
-    if [ ${GPUCount} -le 0 ]; then
-      echo "No target GPUs available"
-      exit 1
-    fi
-
-    # Make the GPU index list available within the test sub shells
-    export GPUList
-
-    # Run the client examples, using GNU parallel
-    # Note: {%} provides the job index, {#} the command sequence index
-    echo "Running client-examples in parallel, using ${GPUCount} GPUs"
-    parallel -j ${GPUCount} --line-buffer \
-      ' read -ra AvailableGPUs <<< "${GPUList}"
-        GPUIndex=$(({%} - 1))
-        SelectedGPU=${AvailableGPUs[GPUIndex]}
-        echo "[GPU ${SelectedGPU}, Example {#}] Running: {}"
-        export ROCR_VISIBLE_DEVICES=${SelectedGPU}
-        # Execute the actual test command
-        bash -c {}
-        ReturnCode=$?
-        echo "[GPU ${SelectedGPU}, Example {#}] Finished: {} with exit code ${ReturnCode}"
-        exit ${ReturnCode}
-      ' ::: "${ExampleRunCmds[@]}"
-
-    # Check the overall exit status of parallel
-    ParallelExitCode=$?
-    if [ ${ParallelExitCode} -eq 0 ]; then
-      echo "All tests completed successfully."
-    elif [ ${ParallelExitCode} -eq 255 ]; then
-      echo "One or more tests failed (Parallel was signaled to stop)."
-      exit 1
-    else
-      # GNU Parallel exit codes 1-100 indicate number of failed jobs
-      echo "Warning: ${ParallelExitCode} tests failed."
-      exit 1
-    fi
+    distributeWorkToGPUs "${ExampleRunCmds[@]}"
   else
     # Sequential execution, using a single (default) GPU
     # Use 'bash -c' since simple string does not work
     echo "Running client-examples sequentially, using a single GPU"
+    for RunCmd in "${ExampleRunCmds[@]}"; do
+      bash -c "${RunCmd}"
+    done
+  fi
+
+  popd
+fi
+
+# Handle CK's regular examples
+if [ "${SelectedSuite}" == 'examples' ]; then
+  # CK's examples require a CK build to be present
+  if [ ! -d "${CK_BUILD}" ]; then
+    echo "Error: Missing CK build directory: ${CK_BUILD}"
+    exit 1
+  fi
+
+  # Build argument list for find
+  FindArgs=(. -mindepth 1 -maxdepth 1 -type f)
+  if [ -z ${SelectedTest} ]; then
+    # No filtering requested: select all "*" tests
+    SelectedTest="*"
+  else
+    # Communicate filter to user
+    echo "Filtering examples: ${SelectedTest}"
+  fi
+  FindArgs+=(-name "${CK_EXAMPLES_PREFIX}${SelectedTest}")
+  FindArgs+=(-executable -print)
+
+  # Gather executables
+  pushd "${CK_BUILD}/bin" || exit 1
+  ExamplesToRun=$(find "${FindArgs[@]}" | sort)
+
+  # Build run command list
+  # Note: Usage of here-string to avoid sub-shell
+  declare -a ExampleRunCmds
+  while read -r ExamplePath; do
+    # Sanity check
+    if [ -z "${ExamplePath}" ]; then
+      continue
+    fi
+    # Construct the log file path
+    ExampleName=$(basename "${ExamplePath}")
+    ExampleLogfile="${CK_EXAMPLES_LOG_LOCATION}/run_${ExampleName}.log"
+    # Construct and add the example run command with tee
+    RunCmd="echo \"Running example: ${ExamplePath}\";"
+    RunCmd+="\"${ExamplePath}\" | tee \"${ExampleLogfile}\""
+    ExampleRunCmds+=("${RunCmd}")
+  done <<< "${ExamplesToRun}"
+
+  NumJobs=${#ExampleRunCmds[@]}
+  echo "Found ${NumJobs} examples to run"
+  if [ ${NumJobs} == 0 ]; then
+    # When running this script, we should expect to run something
+    # Exit silently, but indicate error via returncode
+    exit 1
+  fi
+
+  # Avoid picking up stale logs
+  echo "Purging CK examples logs"
+  rm -rf ${CK_EXAMPLES_LOG_LOCATION} || exit 1
+  mkdir -p ${CK_EXAMPLES_LOG_LOCATION} || exit 1
+
+  # Run each example
+  if [ ${UseParallel} == 1 ]; then
+    # Parallel execution, using multiple GPUs
+    distributeWorkToGPUs "${ExampleRunCmds[@]}"
+  else
+    # Sequential execution, using a single (default) GPU
+    # Use 'bash -c' since simple string does not work
+    echo "Running examples sequentially, using a single GPU"
     for RunCmd in "${ExampleRunCmds[@]}"; do
       bash -c "${RunCmd}"
     done

@@ -48,7 +48,7 @@ build_targets="hip openmp"
 if [ "$2" == "build" ]; then
   # Begin configuration
   pushd $AOMP_REPOS_TEST/RAJAPerf
-  git reset --hard 73f73cfa1979bc9944d9f34ee0059873fb38d79d
+  git reset --hard abb07792a899f7417e77ea40015e7e1dfd52716e
   git submodule update --recursive
   
   rm -rf build_${BUILD_SUFFIX}

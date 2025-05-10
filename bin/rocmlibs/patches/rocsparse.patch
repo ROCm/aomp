@@ -1,22 +1,13 @@
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 6a4f9d21..ff9d3635 100644
+index 5e268039..58fd679b 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -162,14 +162,14 @@ if(COMMAND rocm_check_target_ids)
-         TARGETS "gfx908:xnack+;gfx90a:xnack+;gfx940:xnack+;gfx941:xnack+;gfx942:xnack+")
+@@ -162,7 +162,7 @@ if(COMMAND rocm_check_target_ids)
+         TARGETS "gfx908:xnack+;gfx90a:xnack+;gfx942:xnack+")
      else()
-       rocm_check_target_ids(DEFAULT_AMDGPU_TARGETS
+       rocm_check_target_ids(DEFAULT_GPU_TARGETS
 -          TARGETS "gfx803;gfx900:xnack-;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack-;gfx90a:xnack+;gfx942;gfx1030;gfx1100;gfx1101;gfx1102;gfx1151;gfx1200;gfx1201")
-+          TARGETS "gfx803;gfx900:xnack-;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack-;gfx90a:xnack+;gfx90c;gfx942;gfx1030;gfx1100;gfx1101;gfx1102;gfx1103;gfx1151;gfx1200;gfx1201")
++          TARGETS "gfx803;gfx900:xnack-;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack-;gfx90a:xnack+;gfx942;gfx1030;gfx1100;gfx1101;gfx1102;gfx1103;gfx1150;gfx1151;gfx1200;gfx1201")
      endif()
  else()
-     # Use target ID syntax if supported for AMDGPU_TARGETS
-     if(TARGET_ID_SUPPORT)
--        set(DEFAULT_AMDGPU_TARGETS "gfx803;gfx900:xnack-;gfx906:xnack-;gfx908:xnack-;gfx1030;gfx1100;gfx1101;gfx1102;gfx1151;gfx1200;gfx1201")
-+        set(DEFAULT_AMDGPU_TARGETS "gfx803;gfx900:xnack-;gfx906:xnack-;gfx908:xnack-;gfx90c;gfx1030;gfx1100;gfx1101;gfx1102;gfx1103;gfx1151;gfx1200;gfx1201")
-     else()
--        set(DEFAULT_AMDGPU_TARGETS "gfx803;gfx900;gfx906;gfx908")
-+        set(DEFAULT_AMDGPU_TARGETS "gfx803;gfx900;gfx906;gfx908;gfx90c;gfx1103")
-     endif()
- endif()
- 
+     # Use target ID syntax if supported for GPU_TARGETS

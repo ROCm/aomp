@@ -5,7 +5,6 @@ GenASis: genasis.patch
 GenASiS_Basics: genasis_basics.patch
 hipamd: hipamd-rpath.patch
 bolt: bolt.patch
-clr:
 rocr-runtime: rocr-runtime-combined-numa-remove-gfx940-gfx941.patch
 rocprofiler: rocprofiler-combined-no-aql-ok-fix-cov6.patch
 babelstream: babelstream-usm.patch

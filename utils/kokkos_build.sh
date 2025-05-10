@@ -195,10 +195,34 @@ EOF
   print_info "patch -p1 < $patchfile1"
   patch -p1 < $patchfile1
   if [[ $? -ne 0 ]]; then
-    print_error "Patching unsuccessful"
+    print_error "Patching 1 unsuccessful"
     exit -1
   fi
  rm $patchfile1
+
+patchfile2=/tmp/kokkos2_$$.patch
+/bin/cat >$patchfile2 <<"EOF"
+diff --git a/core/src/impl/Kokkos_MemoryPool.cpp b/core/src/impl/Kokkos_MemoryPool.cpp
+index f82e88fad..3b1bf75b2 100644
+--- a/core/src/impl/Kokkos_MemoryPool.cpp
++++ b/core/src/impl/Kokkos_MemoryPool.cpp
+@@ -48,6 +48,7 @@
+
+ #include <impl/Kokkos_Error.hpp>
+
++#include <cstdint>
+ #include <ostream>
+ #include <sstream>
+
+EOF
+
+  print_info "patch -p1 < $patchfile2"
+  patch -p1 < $patchfile2
+  if [[ $? -ne 0 ]]; then
+    print_error "Patching 2 unsuccessful"
+    exit -1
+  fi
+ rm $patchfile2
 }
 
 mkdir -p $KOKKOS_SOURCE_PREFIX

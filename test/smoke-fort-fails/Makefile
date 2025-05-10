@@ -27,6 +27,7 @@ TESTS_DIR = \
     flang-523344-device \
     flang-523344-host \
     flang-524183 \
+    flang-529634 \
     flang-gpu-exit \
     flang_red_bug_51 \
     kernel-exec-modes-host \
@@ -37,7 +38,8 @@ TESTS_DIR = \
     rocm-issue-251 \
     rocm-issue-253-none \
     rocm-issue-253-device \
-    rocm-issue-253-host
+    rocm-issue-253-host \
+    target-array-element-reduction
 
 all:
 	@for test_dir in $(TESTS_DIR); do \

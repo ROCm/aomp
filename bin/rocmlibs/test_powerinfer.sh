@@ -23,8 +23,7 @@ if [ ! -d $MODEL_DIR ]; then
 fi
 pushd $MODEL_DIR
 
-pushd $MODEL_DIR
-
+source  $AOMP_INSTALL_DIR/../venv/bin/activate
 # Install huggingface-cli to download the PowerInfer GGUF models
 pip install -U "huggingface_hub[cli]"
 export PATH=$PATH:$HOME/.local/bin
@@ -82,7 +81,11 @@ if [ -f $LOG_FILE_NAME ]; then
     LOG_FILE_NAME=$LOG_FILE_NAME.$i
 fi
 
+
 $POWERINFER_INSTALL_DIR/bin/main -m $MODEL_DIR/$MODEL_NAME -n $PREDICTION_LENGTH -t $THREAD_COUNT -p "$PROMPT" --vram-budget $VRAM_BUDGET 2>&1 | tee $LOG_FILE_NAME.log
+
+# deactivate the virtual environment
+deactivate
 
 set +x
 # Print the log file name and parameters with which the model was run
