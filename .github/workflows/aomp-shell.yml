@@ -1,0 +1,21 @@
+name: AOMP Lint
+
+on:
+  push:
+  pull_request:
+  
+jobs:
+  aomp-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Set up shellcheck
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y shellcheck
+
+      - name: Run shellcheck
+        run: | 
+          find . -name "*.sh" -exec shellcheck {} \;
