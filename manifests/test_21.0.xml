@@ -18,6 +18,7 @@
 <remote name="GenASis" fetch="https://github.com/GenASis/" />
 <remote name="GenASiS_Basics" fetch="https://github.com/GenASiS/" />
 <remote name="UMT" fetch="https://github.com/LLNL/" />
+<remote name="lcf" fetch="https://github.com/zjin-lcf/" />
 
 <!-- --- List of test repos and the path they are cloned to --- -->
 
@@ -39,5 +40,6 @@
 <project remote="GenASis"  path="GenASis"  name="GenASis" revision="master" groups="unlocked" />
 <project remote="GenASiS_Basics"  path="GenASiS_Basics"  name="GenASiS_Basics" revision="master" groups="unlocked" />
 <project remote="UMT"  path="UMT"  name="UMT" revision="develop" groups="unlocked" />
+<project remote="lcf"  path="HeCBench"  name="HeCBench" revision="master" groups="unlocked" />
 
 </manifest>
