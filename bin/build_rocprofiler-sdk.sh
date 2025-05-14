@@ -76,7 +76,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    echo "${AOMP_CMAKE}" "${MYCMAKEOPTS[@]}" "$AOMP_REPOS/$AOMP_PROF_SDK_REPO_NAME"
    if ! ${AOMP_CMAKE} "${MYCMAKEOPTS[@]}" "$AOMP_REPOS/$AOMP_PROF_SDK_REPO_NAME"; then
       echo "ERROR rocprofiler-sdk cmake failed. cmake flags"
-      echo "      ${MYCMAKEOPTS[@]}"
+      echo "      $(shquot "${MYCMAKEOPTS[@]}")"
       exit 1
    fi
 fi

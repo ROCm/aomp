@@ -23,7 +23,9 @@ export LLVM_BUILD=$AOMP_INSTALL_DIR
 
 REPO_DIR=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/amd/$AOMP_LIBDEVICE_REPO_NAME
 
-MYCMAKEOPTS="-DLLVM_DIR=$LLVM_DIR -DCMAKE_INSTALL_LIBDIR=lib"
+declare -a MYCMAKEOPTS
+
+MYCMAKEOPTS=(-DLLVM_DIR="$LLVM_DIR" -DCMAKE_INSTALL_LIBDIR=lib)
 
 if [ ! -d "$AOMP_INSTALL_DIR/lib" ]; then
   echo "ERROR: Directory $AOMP/lib is missing"
@@ -52,11 +54,15 @@ if [ "$1" != "install" && "$1" != "nocmake" ]; then
 
       CC="$LLVM_BUILD/bin/clang"
       export CC
-      echo "${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/amd/$AOMP_LIBDEVICE_REPO_NAME"
-      ${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/amd/$AOMP_LIBDEVICE_REPO_NAME
-      if [ $? != 0 ] ; then 
-         echo "ERROR cmake failed  command was \n"
-         echo "      ${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR $BUILD_DIR/$AOMP_LIBDEVICE_REPO_NAME"
+      echo "${AOMP_CMAKE}" "$(shquot "${MYCMAKEOPTS[@]}")" \
+           "-DCMAKE_INSTALL_PREFIX=$INSTALL_DIR" \
+           "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/amd/$AOMP_LIBDEVICE_REPO_NAME"
+
+      if ! ${AOMP_CMAKE} "${MYCMAKEOPTS[@]}" \
+                         -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
+                         "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/amd/$AOMP_LIBDEVICE_REPO_NAME"; then 
+         echo "ERROR cmake failed  command was:"
+         echo "      ${AOMP_CMAKE} $(shquot "${MYCMAKEOPTS[@]}") -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR $BUILD_DIR/$AOMP_LIBDEVICE_REPO_NAME"
          exit 1
       fi
 fi

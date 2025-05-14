@@ -136,10 +136,12 @@ fi
 # Backup the debian changelog to git repo, be sure to commit this 
 cp -p "$froot/debian/changelog" "$debdir/."
 
-debuildargs="-us -uc -rsudo --lintian-opts -X files,changelog-file,fields"
+declare -a debuildargs
+
+debuildargs=(-us -uc -rsudo --lintian-opts -X "files,changelog-file,fields")
 echo 
-echo "--- BUILDING DEB: debuild $debuildargs "
-debuild $debuildargs 
+echo "--- BUILDING DEB: debuild" "${debuildargs[@]}"
+debuild "${debuildargs[@]}"
 dbrc=$?
 echo "    DONE BUILDING DEB WITH RC: $dbrc"
 if [ "$dbrc" != "0" ] ; then 

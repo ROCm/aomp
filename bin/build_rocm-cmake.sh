@@ -61,18 +61,22 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
      rm -rf "$BUILD_DIR/build/rocm-cmake"
   fi
  
-  export CMAKE_PREFIX_PATH="""$AOMP_INSTALL_DIR"""
-  MYCMAKEOPTS="-DCMAKE_INSTALL_PREFIX=$AOMP_INSTALL_DIR"
+  declare -a MYCMAKEOPTS
+
+  export CMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR"
+  MYCMAKEOPTS=(-DCMAKE_INSTALL_PREFIX="$AOMP_INSTALL_DIR")
 
   mkdir -p "$BUILD_DIR/build/rocm-cmake"
   cd "$BUILD_DIR/build/rocm-cmake" || exit
   echo
   echo " -----Running rocm-cmake cmake ---- "
-  echo ${AOMP_CMAKE} $MYCMAKEOPTS $AOMP_REPOS/$AOMP_ROCMCMAKE_REPO_NAME
-  ${AOMP_CMAKE} $MYCMAKEOPTS $AOMP_REPOS/$AOMP_ROCMCMAKE_REPO_NAME
-  if [ $? != 0 ] ; then
+  echo "${AOMP_CMAKE}" "$(shquot "${MYCMAKEOPTS[@]}")" \
+                       "$AOMP_REPOS/$AOMP_ROCMCMAKE_REPO_NAME"
+  
+  if ! ${AOMP_CMAKE} "${MYCMAKEOPTS[@]}" \
+                     "$AOMP_REPOS/$AOMP_ROCMCMAKE_REPO_NAME"; then
       echo "ERROR rocm-cmake cmake failed. Cmake flags"
-      echo "      $MYCMAKEOPTS"
+      echo "      $(shquot "${MYCMAKEOPTS[@]}")"
       exit 1
   fi
 fi

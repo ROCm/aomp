@@ -39,7 +39,7 @@ check_writable_installdir "$1" "$INSTALL_ROCT"
 patchrepo "$AOMP_REPOS/$AOMP_ROCT_REPO_NAME"
 
 if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
-  LDFLAGS="-fuse-ld=lld $ASAN_FLAGS"
+  LDFLAGS=$(shquot '-fuse-ld=lld' "${ASAN_FLAGS[@]}")
 fi
 
 _ompd_src_dir="$LLVM_INSTALL_LOC/share/gdb/python/ompd/src"
@@ -53,46 +53,77 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    BUILDTYPE="Release"
    echo "$SUDO rm -rf $BUILD_AOMP/build/roct"
    $SUDO rm -rf "$BUILD_AOMP/build/roct"
-   MYCMAKEOPTS="-DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR/lib/cmake -DCMAKE_INSTALL_PREFIX=$INSTALL_ROCT -DCMAKE_BUILD_TYPE=$BUILDTYPE $AOMP_ORIGIN_RPATH -DCMAKE_INSTALL_LIBDIR=lib"
+   declare -a MYCMAKEOPTS
+   MYCMAKEOPTS=(-DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR/lib/cmake"
+                -DCMAKE_INSTALL_PREFIX="$INSTALL_ROCT"
+                -DCMAKE_BUILD_TYPE="$BUILDTYPE"
+                "${AOMP_ORIGIN_RPATH[@]}"
+                -DCMAKE_INSTALL_LIBDIR=lib)
    mkdir -p "$BUILD_AOMP/build/roct"
    cd "$BUILD_AOMP/build/roct" || exit
    echo " -----Running roct cmake ---- " 
-   echo ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_ROCT_REPO_NAME
-   ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_ROCT_REPO_NAME
-   if [ $? != 0 ] ; then 
+   echo "${AOMP_CMAKE}" "$(shquot "${MYCMAKEOPTS[@]}")" \
+                        "$AOMP_REPOS/$AOMP_ROCT_REPO_NAME"
+
+   if ! ${AOMP_CMAKE} "${MYCMAKEOPTS[@]}" \
+                      "$AOMP_REPOS/$AOMP_ROCT_REPO_NAME"; then
       echo "ERROR roct cmake failed. cmake flags"
-      echo "      $MYCMAKEOPTS"
+      echo "      $(shquot "${MYCMAKEOPTS[@]}")"
       exit 1
    fi
 
    if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
       mkdir -p "$BUILD_AOMP/build/roct/asan"
       cd "$BUILD_AOMP/build/roct/asan" || exit
-      ASAN_CMAKE_OPTS="-DCMAKE_C_COMPILER=$AOMP_CLANG_COMPILER -DCMAKE_CXX_COMPILER=$AOMP_CLANGXX_COMPILER -DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR/lib/asan/cmake -DCMAKE_INSTALL_PREFIX=$INSTALL_ROCT -DCMAKE_BUILD_TYPE=$BUILDTYPE $AOMP_ASAN_ORIGIN_RPATH -DCMAKE_INSTALL_LIBDIR=$AOMP_INSTALL_DIR/lib/asan"
+      declare -a ASAN_CMAKE_OPTS
+      ASAN_CMAKE_OPTS=(-DCMAKE_C_COMPILER="$AOMP_CLANG_COMPILER"
+                       -DCMAKE_CXX_COMPILER="$AOMP_CLANGXX_COMPILER"
+                       -DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR/lib/asan/cmake"
+                       -DCMAKE_INSTALL_PREFIX="$INSTALL_ROCT"
+                       -DCMAKE_BUILD_TYPE="$BUILDTYPE"
+                       "${AOMP_ASAN_ORIGIN_RPATH[@]}"
+                       -DCMAKE_INSTALL_LIBDIR="$AOMP_INSTALL_DIR/lib/asan")
       echo " -----Running roct-asan cmake -----"
-      echo ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DCMAKE_C_FLAGS="'$ASAN_FLAGS'" -DCMAKE_CXX_FLAGS="'$ASAN_FLAGS'" $AOMP_REPOS/$AOMP_ROCT_REPO_NAME
-      ${AOMP_CMAKE} $ASAN_CMAKE_OPTS -DCMAKE_C_FLAGS="'$ASAN_FLAGS'" -DCMAKE_CXX_FLAGS="'$ASAN_FLAGS'" $AOMP_REPOS/$AOMP_ROCT_REPO_NAME
-      if [ $? != 0 ] ; then
+      echo "${AOMP_CMAKE}" "$(shquot "${ASAN_CMAKE_OPTS[@]}")" \
+                           -DCMAKE_C_FLAGS="\"$(cmquot "${ASAN_FLAGS[@]}")\"" \
+                           -DCMAKE_CXX_FLAGS="\"$(cmquot "${ASAN_FLAGS[@]}")\"" \
+                           "$AOMP_REPOS/$AOMP_ROCT_REPO_NAME"
+
+      if ! ${AOMP_CMAKE} "${ASAN_CMAKE_OPTS[@]}" \
+                         -DCMAKE_C_FLAGS="$(cmquot "${ASAN_FLAGS[@]}")" \
+                         -DCMAKE_CXX_FLAGS="$(cmquot "${ASAN_FLAGS[@]}")" \
+                         "$AOMP_REPOS/$AOMP_ROCT_REPO_NAME"; then
          echo "ERROR roct-asan cmake failed.cmake flags"
-         echo "      $ASAN_CMAKE_OPTS"
+         echo "      $(shquot "${ASAN_CMAKE_OPTS[@]}")"
          exit 1
       fi
    fi
    if [ "$AOMP_BUILD_DEBUG" == "1" ] ; then
       echo "rm -rf $BUILD_AOMP/build/roct_debug"
       [ -d "$BUILD_AOMP/build/roct_debug" ] && rm -rf "$BUILD_AOMP/build/roct_debug"
-      ROCT_CMAKE_OPTS="-DCMAKE_C_COMPILER=$AOMP_CLANG_COMPILER -DCMAKE_CXX_COMPILER=$AOMP_CLANGXX_COMPILER -DCMAKE_INSTALL_PREFIX=$INSTALL_ROCT -DCMAKE_BUILD_TYPE=Debug $AOMP_DEBUG_ORIGIN_RPATH -DCMAKE_INSTALL_LIBDIR=lib-debug -DBUILD_SHARED_LIBS=ON"
+      declare -a ROCT_CMAKE_OPTS
+      ROCT_CMAKE_OPTS=(-DCMAKE_C_COMPILER="$AOMP_CLANG_COMPILER"
+                       -DCMAKE_CXX_COMPILER="$AOMP_CLANGXX_COMPILER"
+                       -DCMAKE_INSTALL_PREFIX="$INSTALL_ROCT"
+                       -DCMAKE_BUILD_TYPE=Debug
+                       "${AOMP_DEBUG_ORIGIN_RPATH[@]}"
+                       -DCMAKE_INSTALL_LIBDIR=lib-debug
+                       -DBUILD_SHARED_LIBS=ON)
       echo " -----Running roct_debug cmake -----"
       mkdir -p "$BUILD_AOMP/build/roct_debug"
       cd "$BUILD_AOMP/build/roct_debug" || exit
-      _prefix_map="\""-fdebug-prefix-map=$AOMP_REPOS/$AOMP_ROCT_REPO_NAME/src=$_ompd_src_dir/roct/src"\""
-      echo ${AOMP_CMAKE} $ROCT_CMAKE_OPTS -DCMAKE_C_FLAGS="-g $_prefix_map" -DCMAKE_CXX_FLAGS="-g $_prefix_map" $AOMP_REPOS/$AOMP_ROCT_REPO_NAME
+      _prefix_map=(-fdebug-prefix-map="$AOMP_REPOS/$AOMP_ROCT_REPO_NAME/src=$_ompd_src_dir/roct/src")
+      echo "${AOMP_CMAKE}" "$(shquot "${ROCT_CMAKE_OPTS[@]}")" \
+           -DCMAKE_C_FLAGS="\"$(cmquot -g "${_prefix_map[@]}")\"" \
+           -DCMAKE_CXX_FLAGS="\"$(cmquot -g "${_prefix_map[@]}")\"" \
+           "$AOMP_REPOS/$AOMP_ROCT_REPO_NAME"
 
-      if ! ${AOMP_CMAKE} $ROCT_CMAKE_OPTS -DCMAKE_C_FLAGS="-g $_prefix_map" \
-             -DCMAKE_CXX_FLAGS="-g $_prefix_map" \
-             $AOMP_REPOS/$AOMP_ROCT_REPO_NAME; then
+      if ! ${AOMP_CMAKE} "${ROCT_CMAKE_OPTS[@]}" \
+             -DCMAKE_C_FLAGS="$(cmquot -g "${_prefix_map[@]}")" \
+             -DCMAKE_CXX_FLAGS="$(cmquot -g "${_prefix_map[@]}")" \
+             "$AOMP_REPOS/$AOMP_ROCT_REPO_NAME"; then
          echo "ERROR roct_debug cmake failed.cmake flags"
-         echo "      $ROCT_CMAKE_OPTS"
+         echo "      $(shquot "${ROCT_CMAKE_OPTS[@]}")"
          exit 1
       fi
    fi

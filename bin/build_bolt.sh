@@ -77,28 +77,29 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
      rm -rf "$BUILD_DIR/build/bolt"
   fi
 
-MYCMAKEOPTS=" \
--DCMAKE_INSTALL_PREFIX=$BOLT_INSTALL_DIR \
-$AOMP_ORIGIN_RPATH \
--DCMAKE_C_COMPILER=$AOMP_CC_COMPILER \
--DCMAKE_CXX_COMPILER=$AOMP_CXX_COMPILER \
--DOPENMP_TEST_C_COMPILER=$AOMP_CC_COMPILER \
--DOPENMP_TEST_CXX_COMPILER=$AOMP_CXX_COMPILER \
--DCMAKE_BUILD_TYPE=Release \
--DOPENMP_ENABLE_LIBOMPTARGET=OFF \
--DLIBOMP_HEADERS_INSTALL_PATH=include/bolt \
--DLIBOMP_INSTALL_ALIASES=OFF \
--DLIBOMP_USE_ARGOBOTS=on"
+declare -a MYCMAKEOPTS
+
+MYCMAKEOPTS=(-DCMAKE_INSTALL_PREFIX="$BOLT_INSTALL_DIR"
+             "${AOMP_ORIGIN_RPATH[@]}"
+             -DCMAKE_C_COMPILER="$AOMP_CC_COMPILER"
+             -DCMAKE_CXX_COMPILER="$AOMP_CXX_COMPILER"
+             -DOPENMP_TEST_C_COMPILER="$AOMP_CC_COMPILER"
+             -DOPENMP_TEST_CXX_COMPILER="$AOMP_CXX_COMPILER"
+             -DCMAKE_BUILD_TYPE=Release
+             -DOPENMP_ENABLE_LIBOMPTARGET=OFF
+             -DLIBOMP_HEADERS_INSTALL_PATH=include/bolt
+             -DLIBOMP_INSTALL_ALIASES=OFF
+             -DLIBOMP_USE_ARGOBOTS=on)
 
   mkdir -p "$BUILD_DIR/build/bolt"
   cd "$BUILD_DIR/build/bolt" || exit
   echo
   echo " -----Running bolt cmake ---- "
-  echo "${AOMP_CMAKE} $MYCMAKEOPTS $REPO_DIR"
-  ${AOMP_CMAKE} $MYCMAKEOPTS $REPO_DIR
-  if [ $? != 0 ] ; then
+  echo "${AOMP_CMAKE} $(shquot "${MYCMAKEOPTS[@]}") $REPO_DIR"
+
+  if ! ${AOMP_CMAKE} "${MYCMAKEOPTS[@]}" "$REPO_DIR"; then
       echo "ERROR bolt cmake failed. Cmake flags"
-      echo "      $MYCMAKEOPTS"
+      echo "      $(shquot "${MYCMAKEOPTS[@]}")"
       exit 1
   fi
 fi

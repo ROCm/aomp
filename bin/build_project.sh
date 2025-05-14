@@ -37,22 +37,29 @@ fi
 
 # End check-openmp prep
 
+declare -a COMPILERS
+declare -a _qmathopt
+declare -a _amdflangrtopt
+
 # Enable AMD-specific Fortran runtime extensions if not skipped
-_amdflangrtopt="-DFLANG_RT_INCLUDE_AMD=ON"
+_amdflangrtopt=(-DFLANG_RT_INCLUDE_AMD=ON)
 if [ "$AOMP_SKIP_AMD_FLANGRT" == "1" ]; then
-   _amdflangrtopt=""
+   _amdflangrtopt=()
 fi
 
 # Enable support for real(kind=16) via libquadmath
-_qmathopt="-DFLANG_RUNTIME_F128_MATH_LIB=libquadmath"
+_qmathopt=(-DFLANG_RUNTIME_F128_MATH_LIB=libquadmath)
+
 if [ "$AOMP_PROC" == "ppc64le" ] ; then
-   COMPILERS="-DCMAKE_C_COMPILER=/usr/bin/gcc-7 -DCMAKE_CXX_COMPILER=/usr/bin/g++-7"
+   COMPILERS=(-DCMAKE_C_COMPILER=/usr/bin/gcc-7
+              -DCMAKE_CXX_COMPILER=/usr/bin/g++-7)
    TARGETS_TO_BUILD="AMDGPU;${AOMP_NVPTX_TARGET}PowerPC"
 else
-   COMPILERS="-DCMAKE_C_COMPILER=$AOMP_CC_COMPILER -DCMAKE_CXX_COMPILER=$AOMP_CXX_COMPILER"
+   COMPILERS=(-DCMAKE_C_COMPILER="$AOMP_CC_COMPILER"
+              -DCMAKE_CXX_COMPILER="$AOMP_CXX_COMPILER")
    if [ "$AOMP_PROC" == "aarch64" ] ; then
       TARGETS_TO_BUILD="AMDGPU;${AOMP_NVPTX_TARGET}AArch64"
-      _qmathopt=""
+      _qmathopt=()
    else
       TARGETS_TO_BUILD="AMDGPU;${AOMP_NVPTX_TARGET}X86"
    fi
@@ -61,7 +68,16 @@ fi
 # When building from release source (no git), turn off test items that are not distributed
 # also ubuntu 16.04 only has python 3.5 and lit testing needs 3.6 minimum, so turn off
 # testing with ubuntu 16.04 which goes EOL in April 2021.
-DO_TESTS=${DO_TESTS:-"-DLLVM_BUILD_TESTS=ON -DLLVM_INCLUDE_TESTS=ON -DCLANG_INCLUDE_TESTS=ON"}
+declare -a DO_TESTS_OPTS
+if [ -z ${DO_TESTS+x} ]; then
+  DO_TESTS_OPTS=(-DLLVM_BUILD_TESTS=ON
+                 -DLLVM_INCLUDE_TESTS=ON
+                 -DCLANG_INCLUDE_TESTS=ON)
+else
+  # Incoming DO_TESTS is a string with space-separated arguments.  Convert it
+  # to an array.
+  IFS=" " read -r -a DO_TESTS_OPTS <<< "$DO_TESTS"
+fi
 #-DCOMPILER_RT_INCLUDE_TESTS=OFF"
 
 if [ "$AOMP_STANDALONE_BUILD" == 1 ] ; then
@@ -71,9 +87,9 @@ else
 fi
 
 if [ "$AOMP_USE_NINJA" == 0 ] ; then
-    AOMP_SET_NINJA_GEN=""
+    AOMP_SET_NINJA_GEN=()
 else
-    AOMP_SET_NINJA_GEN="-G Ninja"
+    AOMP_SET_NINJA_GEN=(-G Ninja)
 fi
 
 if [ "$AOMP_LEGACY_OPENMP" != 0 ]; then
@@ -85,64 +101,70 @@ fi
 rocmdevicelib_loc_new=lib/llvm/lib/clang/$AOMP_MAJOR_VERSION/lib/amdgcn
 
 GFXSEMICOLONS=$(echo "$GFXLIST" | tr ' ' ';')
-MYCMAKEOPTS="-DCMAKE_BUILD_TYPE=$BUILD_TYPE
- -DCMAKE_INSTALL_PREFIX=$INSTALL_PROJECT
- -DLLVM_ENABLE_ASSERTIONS=ON
- -DLLVM_TARGETS_TO_BUILD=$TARGETS_TO_BUILD
- $COMPILERS
- -DLLVM_VERSION_SUFFIX=_AOMP${standalone_word}_$AOMP_VERSION_STRING
- -DCLANG_VENDOR=AOMP${standalone_word}_$AOMP_VERSION_STRING
- -DCLANG_DEFAULT_PIE_ON_LINUX=0
- -DLLVM_ENABLE_ZLIB=ON
- -DBUG_REPORT_URL='https://github.com/ROCm-Developer-Tools/aomp'
- -DLLVM_ENABLE_BINDINGS=OFF
- -DLLVM_INCLUDE_BENCHMARKS=OFF
- $DO_TESTS $AOMP_ORIGIN_RPATH
- -DCLANG_DEFAULT_LINKER=lld
- $AOMP_SET_NINJA_GEN
- $_qmathopt
- $_amdflangrtopt
- -DLIBOMPTARGET_BUILD_DEVICE_FORTRT=ON
- -DLLVM_BUILD_LLVM_DYLIB=ON
- -DLLVM_LINK_LLVM_DYLIB=ON
- -DCLANG_LINK_CLANG_DYLIB=ON
- -DLIBOMPTARGET_EXTERNAL_PROJECT_HSA_PATH=$AOMP_REPOS/$AOMP_ROCR_REPO_NAME
- -DOFFLOAD_EXTERNAL_PROJECT_UNIFIED_ROCR=On
- -DLIBOMPTARGET_EXTERNAL_PROJECT_ROCM_DEVICE_LIBS_PATH=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/amd/device-libs
- -DLLVM_EXTERNAL_PROJECTS=SPIRV_TRANSLATOR
- -DLLVM_EXTERNAL_SPIRV_TRANSLATOR_SOURCE_DIR=$AOMP_REPOS/SPIRV-LLVM-Translator
- -DROCM_DEVICE_LIBS_INSTALL_PREFIX_PATH=$AOMP_INSTALL_DIR
- -DROCM_DEVICE_LIBS_BITCODE_INSTALL_LOC=$rocmdevicelib_loc_new
- -DROCM_LLVM_BACKWARD_COMPAT_LINK="$AOMP_INSTALL_DIR/llvm"
- -DROCM_LLVM_BACKWARD_COMPAT_LINK_TARGET="./lib/llvm"
- -DLIBOMP_COPY_EXPORTS=OFF
- -DLIBOMPTARGET_ENABLE_DEBUG=ON
- -DLIBOMPTARGET_AMDGCN_GFXLIST=$GFXSEMICOLONS
- -DLIBOMP_USE_HWLOC=ON -DLIBOMP_HWLOC_INSTALL_DIR=$AOMP_SUPP/hwloc
- -DOPENMP_ENABLE_LIBOMPTARGET=1
- -DLIBOMP_SHARED_LINKER_FLAGS=-Wl,--disable-new-dtags
- -DLIBOMP_INSTALL_RPATH=$AOMP_ORIGIN_RPATH_LIST
- -DLIBOMPTARGET_INSTALL_RPATH=$AOMP_ORIGIN_RPATH_LIST
- -DLIBOMPTARGET_NO_SANITIZER_AMDGPU=1
- -DLIBOMPTARGET_BUILD_DEVICE_FORTRT=On
- -DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
+
+declare -a MYCMAKEOPTS
+
+MYCMAKEOPTS=(-DCMAKE_BUILD_TYPE="$BUILD_TYPE"
+             -DCMAKE_INSTALL_PREFIX="$INSTALL_PROJECT"
+             -DLLVM_ENABLE_ASSERTIONS=ON
+             -DLLVM_TARGETS_TO_BUILD="$TARGETS_TO_BUILD"
+             "${COMPILERS[@]}"
+             -DLLVM_VERSION_SUFFIX="_AOMP${standalone_word}_$AOMP_VERSION_STRING"
+             -DCLANG_VENDOR="AOMP${standalone_word}_$AOMP_VERSION_STRING"
+             -DCLANG_DEFAULT_PIE_ON_LINUX=0
+             -DLLVM_ENABLE_ZLIB=ON
+             -DBUG_REPORT_URL='https://github.com/ROCm-Developer-Tools/aomp'
+             -DLLVM_ENABLE_BINDINGS=OFF
+             -DLLVM_INCLUDE_BENCHMARKS=OFF
+             "${DO_TESTS_OPTS[@]}"
+             "${AOMP_ORIGIN_RPATH[@]}"
+             -DCLANG_DEFAULT_LINKER=lld
+             "${AOMP_SET_NINJA_GEN[@]}"
+             "${_qmathopt[@]}"
+             "${_amdflangrtopt[@]}"
+             -DLIBOMPTARGET_BUILD_DEVICE_FORTRT=ON
+             -DLLVM_BUILD_LLVM_DYLIB=ON
+             -DLLVM_LINK_LLVM_DYLIB=ON
+             -DCLANG_LINK_CLANG_DYLIB=ON
+             -DLIBOMPTARGET_EXTERNAL_PROJECT_HSA_PATH="$AOMP_REPOS/$AOMP_ROCR_REPO_NAME"
+             -DOFFLOAD_EXTERNAL_PROJECT_UNIFIED_ROCR=On
+             -DLIBOMPTARGET_EXTERNAL_PROJECT_ROCM_DEVICE_LIBS_PATH="$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/amd/device-libs"
+             -DLLVM_EXTERNAL_PROJECTS=SPIRV_TRANSLATOR
+             -DLLVM_EXTERNAL_SPIRV_TRANSLATOR_SOURCE_DIR="$AOMP_REPOS/SPIRV-LLVM-Translator"
+             -DROCM_DEVICE_LIBS_INSTALL_PREFIX_PATH="$AOMP_INSTALL_DIR"
+             -DROCM_DEVICE_LIBS_BITCODE_INSTALL_LOC="$rocmdevicelib_loc_new"
+             -DROCM_LLVM_BACKWARD_COMPAT_LINK="$AOMP_INSTALL_DIR/llvm"
+             -DROCM_LLVM_BACKWARD_COMPAT_LINK_TARGET="./lib/llvm"
+             -DLIBOMP_COPY_EXPORTS=OFF
+             -DLIBOMPTARGET_ENABLE_DEBUG=ON
+             -DLIBOMPTARGET_AMDGCN_GFXLIST="$GFXSEMICOLONS"
+             -DLIBOMP_USE_HWLOC=ON
+             -DLIBOMP_HWLOC_INSTALL_DIR="$AOMP_SUPP/hwloc"
+             -DOPENMP_ENABLE_LIBOMPTARGET=1
+             -DLIBOMP_SHARED_LINKER_FLAGS="-Wl,--disable-new-dtags"
+             -DLIBOMP_INSTALL_RPATH="$AOMP_ORIGIN_RPATH_LIST"
+             -DLIBOMPTARGET_INSTALL_RPATH="$AOMP_ORIGIN_RPATH_LIST"
+             -DLIBOMPTARGET_NO_SANITIZER_AMDGPU=1
+             -DLIBOMPTARGET_BUILD_DEVICE_FORTRT=On
+             -DCMAKE_EXPORT_COMPILE_COMMANDS=ON)
  
 # -DCLANG_LINK_FLANG_LEGACY=ON
 
 # Enable amdflang, amdclang, amdclang++, amdllvm.
 # clang-tools-extra added to LLVM_ENABLE_PROJECTS above.
-MYCMAKEOPTS="$MYCMAKEOPTS
-$AOMP_CCACHE_OPTS
--DLLVM_ENABLE_PROJECTS='$AOMP_PROJECTS_LIST'
--DCLANG_ENABLE_AMDCLANG=ON
--DLLVM_ENABLE_RUNTIMES=$LLVM_RUNTIMES
--DLIBCXX_ENABLE_STATIC=ON
--DLIBCXXABI_ENABLE_STATIC=ON
-"
+MYCMAKEOPTS=("${MYCMAKEOPTS[@]}"
+             "${AOMP_CCACHE_OPTS[@]}"
+             -DLLVM_ENABLE_PROJECTS="$AOMP_PROJECTS_LIST"
+             -DCLANG_ENABLE_AMDCLANG=ON
+             -DLLVM_ENABLE_RUNTIMES="$LLVM_RUNTIMES"
+             -DLIBCXX_ENABLE_STATIC=ON
+             -DLIBCXXABI_ENABLE_STATIC=ON)
 
 # Enable Compiler-rt Sanitizer Build
 if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
-    MYCMAKEOPTS="$MYCMAKEOPTS -DSANITIZER_AMDGPU=1 -DSANITIZER_HSA_INCLUDE_PATH=$AOMP_REPOS/$AOMP_ROCR_REPO_NAME/runtime/hsa-runtime/inc -DSANITIZER_COMGR_INCLUDE_PATH=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/amd/comgr/include"
+    MYCMAKEOPTS=("${MYCMAKEOPTS[@]}" -DSANITIZER_AMDGPU=1
+                 -DSANITIZER_HSA_INCLUDE_PATH="$AOMP_REPOS/$AOMP_ROCR_REPO_NAME/runtime/hsa-runtime/inc"
+                 -DSANITIZER_COMGR_INCLUDE_PATH="$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/amd/comgr/include")
 fi
 
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then 
@@ -212,12 +234,16 @@ cd "$BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME" || exit
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    echo
    echo " -----Running cmake ---- " 
-   MYLITOPTS=("-DLLVM_LIT_ARGS='-vv --show-unsupported --show-xfail -j 32'")
-   echo ${AOMP_CMAKE} "${MYLITOPTS[@]}" $MYCMAKEOPTS $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/llvm
-   ${AOMP_CMAKE} "${MYLITOPTS[@]}" $MYCMAKEOPTS $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/llvm 2>&1
-   if [ $? != 0 ] ; then 
+   MYLITOPTS=(-DLLVM_LIT_ARGS='-vv --show-unsupported --show-xfail -j 32')
+   echo "${AOMP_CMAKE}" "$(shquot "${MYLITOPTS[@]}")" \
+                        "$(shquot "${MYCMAKEOPTS[@]}")" \
+                        "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/llvm"
+   
+   if ! ${AOMP_CMAKE} "${MYLITOPTS[@]}" \
+                      "${MYCMAKEOPTS[@]}" \
+                      "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/llvm" 2>&1; then
       echo "ERROR cmake failed. Cmake flags"
-      echo "      $MYCMAKEOPTS"
+      echo "      $(shquot "${MYCMAKEOPTS[@]}")"
       exit 1
    fi
 fi
