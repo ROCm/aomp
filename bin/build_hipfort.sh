@@ -72,26 +72,28 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
      rm -rf "$BUILD_DIR/build/hipfort"
   fi
 
-  MYCMAKEOPTS=" \
--DCMAKE_INSTALL_PREFIX=$HIPFORT_INSTALL_DIR \
--DCMAKE_BUILD_TYPE=Release \
--DHIPFORT_COMPILER=$LLVM_INSTALL_LOC/bin/flang \
--DHIPFORT_COMPILER_FLAGS="-cpp" \
--DCMAKE_Fortran_FLAGS_DEBUG="" \
--DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR/lib/cmake \
--DHIPFORT_AR=$LLVM_INSTALL_LOC/bin/llvm-ar \
--DHIPFORT_RANLIB=$LLVM_INSTALL_LOC/bin/llvm-ranlib "
+  declare -a MYCMAKEOPTS
+
+  MYCMAKEOPTS=(-DCMAKE_INSTALL_PREFIX="$HIPFORT_INSTALL_DIR"
+               -DCMAKE_BUILD_TYPE=Release
+               -DHIPFORT_COMPILER="$LLVM_INSTALL_LOC/bin/flang"
+               -DHIPFORT_COMPILER_FLAGS="-cpp"
+               -DCMAKE_Fortran_FLAGS_DEBUG=""
+               -DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR/lib/cmake"
+               -DHIPFORT_AR="$LLVM_INSTALL_LOC/bin/llvm-ar"
+               -DHIPFORT_RANLIB="$LLVM_INSTALL_LOC/bin/llvm-ranlib")
 
   mkdir -p "$BUILD_DIR/build/hipfort"
   cd "$BUILD_DIR/build/hipfort" || exit
   echo
   echo " -----Running hipfort cmake ---- "
-  echo ${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_Fortran_FLAGS="-ffree-form -fPIC" $REPO_DIR
-  ${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_Fortran_FLAGS="-ffree-form -fPIC" $REPO_DIR
+  echo "${AOMP_CMAKE}" "$(shquot "${MYCMAKEOPTS[@]}")" -DCMAKE_Fortran_FLAGS=\"-ffree-form -fPIC\" "$REPO_DIR"
 
-  if [ $? != 0 ] ; then
+  if ! ${AOMP_CMAKE} "${MYCMAKEOPTS[@]}" \
+                     -DCMAKE_Fortran_FLAGS="-ffree-form -fPIC" \
+                     "$REPO_DIR"; then
       echo "ERROR hipfort cmake failed. Cmake flags"
-      echo "      $MYCMAKEOPTS"
+      echo "      $(shquot "${MYCMAKEOPTS[@]}")"
       exit 1
   fi
 fi

@@ -27,15 +27,15 @@ if [ "$AOMP_BUILD_FLANG_CLASSIC" == 0 ] ; then
 fi
 
 if [ "$AOMP_USE_NINJA" == 0 ] ; then
-    AOMP_SET_NINJA_GEN=""
+    AOMP_SET_NINJA_GEN=()
 else
-    AOMP_SET_NINJA_GEN="-G Ninja"
+    AOMP_SET_NINJA_GEN=(-G Ninja)
 fi
 osversion=$(cat /etc/os-release | grep -e ^VERSION_ID)
 if [[ $osversion =~ \"7\. ]] || [[ $osversion =~ \"8\. ]]; then
-  _cxx_flag="-DCMAKE_CXX_FLAGS='-D_GLIBCXX_USE_CXX11_ABI=0'"
+  _cxx_flag=(-DCMAKE_CXX_FLAGS='-D_GLIBCXX_USE_CXX11_ABI=0')
 else
-  _cxx_flag=""
+  _cxx_flag=()
 fi
 
 # We need a version of ROCM llvm that supports flang-classic 
@@ -53,20 +53,22 @@ AOMP_LFL_DIR=${AOMP_LFL_DIR:-"17.0-4"}
 # comment out above line and uncomment next line for new LFL
 #AOMP_LFL_DIR=${AOMP_LFL_DIR:-17.0-4}
 
-MYCMAKEOPTS="\
--DCMAKE_BUILD_TYPE=$BUILD_TYPE \
--DCMAKE_C_COMPILER=$LLVM_INSTALL_LOC/bin/clang \
--DCMAKE_CXX_COMPILER=$LLVM_INSTALL_LOC/bin/clang++ \
-$_cxx_flag \
--DCMAKE_CXX_STANDARD=17 \
--DCMAKE_INSTALL_PREFIX=$LLVM_INSTALL_LOC \
-$AOMP_SET_NINJA_GEN \
-"
+declare -a MYCMAKEOPTS
+
+MYCMAKEOPTS=(-DCMAKE_BUILD_TYPE="$BUILD_TYPE"
+             -DCMAKE_C_COMPILER="$LLVM_INSTALL_LOC/bin/clang"
+             -DCMAKE_CXX_COMPILER="$LLVM_INSTALL_LOC/bin/clang++"
+             "${_cxx_flag[@]}"
+             -DCMAKE_CXX_STANDARD=17
+             -DCMAKE_INSTALL_PREFIX="$LLVM_INSTALL_LOC"
+             "${AOMP_SET_NINJA_GEN[@]}")
 
 if [ "$AOMP_STANDALONE_BUILD" == 1 ] ; then
-  MYCMAKEOPTS="$MYCMAKEOPTS -DBUILD_SHARED_LIBS=ON $AOMP_ORIGIN_RPATH"
+  MYCMAKEOPTS=("${MYCMAKEOPTS[@]}" -DBUILD_SHARED_LIBS=ON
+               "${AOMP_ORIGIN_RPATH[@]}")
 else
-  MYCMAKEOPTS="$MYCMAKEOPTS -DBUILD_SHARED_LIBS=OFF $OPENMP_EXTRAS_ORIGIN_RPATH"
+  MYCMAKEOPTS=("${MYCMAKEOPTS[@]}" -DBUILD_SHARED_LIBS=OFF
+               "${OPENMP_EXTRAS_ORIGIN_RPATH[@]}")
 fi
 
 
@@ -112,11 +114,11 @@ echo
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    cd "$BUILD_DIR/build/flang-classic/$AOMP_LFL_DIR" || exit
    echo " -----Running cmake ---- " 
-   echo ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_FLANG_REPO_NAME/flang-classic/$AOMP_LFL_DIR
-   ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_FLANG_REPO_NAME/flang-classic/$AOMP_LFL_DIR 2>&1
-   if [ $? != 0 ] ; then 
+   echo "${AOMP_CMAKE}" "$(shquot "${MYCMAKEOPTS[@]}")" "$AOMP_REPOS/$AOMP_FLANG_REPO_NAME/flang-classic/$AOMP_LFL_DIR"
+
+   if ! ${AOMP_CMAKE} "${MYCMAKEOPTS[@]}" "$AOMP_REPOS/$AOMP_FLANG_REPO_NAME/flang-classic/$AOMP_LFL_DIR" 2>&1; then 
       echo "ERROR cmake failed. Cmake flags"
-      echo "      $MYCMAKEOPTS"
+      echo "      $(shquot "${MYCMAKEOPTS[@]}")"
       exit 1
    fi
 fi

@@ -59,20 +59,23 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
          fi
       fi
    fi
-   MYCMAKEOPTS="-DCMAKE_BUILD_TYPE=$BUILD_TYPE \
-     -DCMAKE_INSTALL_LIBDIR=lib \
-     -DCMAKE_INSTALL_PREFIX=$INSTALL_ROCDBGAPI \
-     -DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR;$INSTALL_ROCDBGAPI/include \
-     $_cxx_flags \
-     $AOMP_ORIGIN_RPATH"
+   declare -a MYCMAKEOPTS
+   MYCMAKEOPTS=(-DCMAKE_BUILD_TYPE="$BUILD_TYPE"
+                -DCMAKE_INSTALL_LIBDIR=lib
+                -DCMAKE_INSTALL_PREFIX="$INSTALL_ROCDBGAPI"
+                -DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR;$INSTALL_ROCDBGAPI/include"
+                "$_cxx_flags"
+                "${AOMP_ORIGIN_RPATH[@]}")
    mkdir -p "$BUILD_AOMP/build/rocdbgapi"
    cd "$BUILD_AOMP/build/rocdbgapi" || exit
    echo " -----Running rocdbgapi cmake ---- " 
-   echo ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_DBGAPI_REPO_NAME
-   ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_DBGAPI_REPO_NAME
-   if [ $? != 0 ] ; then 
+   echo "${AOMP_CMAKE}" "$(shquot "${MYCMAKEOPTS[@]}")" \
+                        "$AOMP_REPOS/$AOMP_DBGAPI_REPO_NAME"
+   
+   if ! ${AOMP_CMAKE} "${MYCMAKEOPTS[@]}" \
+                      "$AOMP_REPOS/$AOMP_DBGAPI_REPO_NAME"; then 
       echo "ERROR rocdbgapi cmake failed. cmake flags"
-      echo "      $MYCMAKEOPTS"
+      echo "      $(shquot "${MYCMAKEOPTS[@]}")"
       exit 1
    fi
 fi

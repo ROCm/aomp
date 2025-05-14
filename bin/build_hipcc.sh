@@ -71,7 +71,10 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
      rm -rf "$BUILD_DIR/build/hipcc"
   fi
 
-  MYCMAKEOPTS="-DCMAKE_BUILD_TYPE=$BUILDTYPE -DCMAKE_INSTALL_PREFIX=$AOMP_INSTALL_DIR"
+  declare -a MYCMAKEOPTS
+
+  MYCMAKEOPTS=(-DCMAKE_BUILD_TYPE="$BUILDTYPE"
+               -DCMAKE_INSTALL_PREFIX="$AOMP_INSTALL_DIR")
 
   mkdir -p "$BUILD_DIR/build/hipcc"
   cd "$BUILD_DIR/build/hipcc" || exit
@@ -79,11 +82,11 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
   export SED_INSTALL_DIR
   echo
   echo " -----Running cmake ---- "
-  echo ${AOMP_CMAKE} $MYCMAKEOPTS $HIPCC_REPO_DIR
-  ${AOMP_CMAKE} $MYCMAKEOPTS $HIPCC_REPO_DIR 
-  if [ $? != 0 ] ; then
+  echo "${AOMP_CMAKE}" "$(shquot "${MYCMAKEOPTS[@]}")" "$HIPCC_REPO_DIR"
+
+  if ! ${AOMP_CMAKE} "${MYCMAKEOPTS[@]}" "$HIPCC_REPO_DIR"; then
       echo "ERROR hipcc cmake failed. Cmake flags"
-      echo "      $MYCMAKEOPTS"
+      echo "      $(shquot "${MYCMAKEOPTS[@]}")"
       exit 1
   fi
 fi

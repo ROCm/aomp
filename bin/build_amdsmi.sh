@@ -75,17 +75,23 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
      rm -rf "$BUILD_DIR/build/amdsmi"
   fi
 
-  MYCMAKEOPTS="$AOMP_ORIGIN_RPATH -DCMAKE_BUILD_TYPE=$BUILDTYPE -DCMAKE_INSTALL_PREFIX=$AOMP_INSTALL_DIR -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON -DCMAKE_INSTALL_RPATH='\$ORIGIN/../lib' -DCMAKE_EXE_LINKER_FLAGS='-Wl,--disable-new-dtags'"
+  declare -a MYCMAKEOPTS
+
+  MYCMAKEOPTS=("${AOMP_ORIGIN_RPATH[@]}" -DCMAKE_BUILD_TYPE="$BUILDTYPE"
+              -DCMAKE_INSTALL_PREFIX="$AOMP_INSTALL_DIR"
+              -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON
+              -DCMAKE_INSTALL_RPATH="\$ORIGIN/../lib"
+              -DCMAKE_EXE_LINKER_FLAGS='-Wl,--disable-new-dtags')
 
   mkdir -p "$BUILD_DIR/build/amdsmi"
   cd "$BUILD_DIR/build/amdsmi" || exit
   echo
   echo " -----Running amdsmi cmake ---- "
-  echo ${AOMP_CMAKE} $MYCMAKEOPTS $RSMILIB_REPO_DIR
-  ${AOMP_CMAKE} $MYCMAKEOPTS $RSMILIB_REPO_DIR
-  if [ $? != 0 ] ; then
+  echo "${AOMP_CMAKE} $(shquot "${MYCMAKEOPTS[@]}") $RSMILIB_REPO_DIR"
+  
+  if ! ${AOMP_CMAKE} "${MYCMAKEOPTS[@]}" "$RSMILIB_REPO_DIR"; then
       echo "ERROR amdsmi cmake failed. Cmake flags"
-      echo "      $MYCMAKEOPTS"
+      echo "      $(shquot "${MYCMAKEOPTS[@]}")"
       exit 1
   fi
 fi
