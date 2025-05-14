@@ -16,7 +16,7 @@
 DISABLED_LIST="raja omptests"
 
 # Available Suites - Qmcpack will timeout at 20 minutes
-SUITE_LIST=${SUITE_LIST:-"ovo examples smoke hipopenmp omp5 openmpapps nekbone sollve llnl openlibm qmcpack"}
+SUITE_LIST=${SUITE_LIST:-"ovo examples smoke smokefails smokelimbo hipopenmp omp5 openmpapps nekbone sollve llnl openlibm qmcpack"}
 
 #Groups
 GROUP_LIST="epsdb"
@@ -153,12 +153,21 @@ function smoke(){
 }
 
 function smokefails(){
-  # -----Run Smoke-----
+  # -----Run Smoke Fails-----
   header SMOKEFAILS
   cd $AOMP_SRC/test/smoke-fails > /dev/null
   echo "Log file at: $log_dir/smoke-fails.log"
   ./check_smoke_fails.sh > $log_dir/smoke-fails.log 2>&1
   update_logs bin check_smoke_fails.sh gatherdata
+}
+
+function smokelimbo(){
+  # -----Run Smoke Limbo-----
+  header SMOKELIMBO
+  cd $AOMP_SRC/test/smoke-limbo > /dev/null
+  echo "Log file at: $log_dir/smoke-limbo.log"
+  AOMP_PARALLEL_SMOKE=1 ./check_smoke_limbo.sh > $log_dir/smoke-limbo.log 2>&1
+  update_logs bin check_smoke_limbo.sh gatherdata
 }
 
 function hipopenmp(){
