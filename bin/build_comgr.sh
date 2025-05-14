@@ -44,7 +44,7 @@ osversion=$(cat /etc/os-release)
 #fi
 
 if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
-  LDFLAGS="-fuse-ld=lld $ASAN_FLAGS"
+  LDFLAGS=$(shquot '-fuse-ld=lld' "${ASAN_FLAGS[@]}")
 fi
 
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
@@ -66,16 +66,22 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    DEVICELIBS_BUILD_PATH=$AOMP_REPOS/build/AOMP_LIBDEVICE_REPO_NAME
    PACKAGE_ROOT=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/amd/$AOMP_COMGR_REPO_NAME
    COMMON_PREFIX_PATH="$AOMP/include/amd_comgr;$DEVICELIBS_BUILD_PATH;$PACKAGE_ROOT;$LLVM_INSTALL_LOC"
-   MYCMAKEOPTS="
-      -DCMAKE_INSTALL_PREFIX='$INSTALL_COMGR'
-      -DCMAKE_BUILD_TYPE=$BUILDTYPE
+   MYCMAKEOPTS=(
+      -DCMAKE_INSTALL_PREFIX="$INSTALL_COMGR"
+      -DCMAKE_BUILD_TYPE="$BUILDTYPE"
       -DBUILD_TESTING=OFF
-      -DROCM_DIR=$AOMP_INSTALL_DIR
-      -DLLVM_DIR=$AOMP_INSTALL_DIR
-      -DClang_DIR=$AOMP_INSTALL_DIR"
-   echo ${AOMP_CMAKE} ${MYCMAKEOPTS} -DCMAKE_PREFIX_PATH="$AOMP/lib/cmake;$COMMON_PREFIX_PATH" -DCMAKE_INSTALL_LIBDIR=lib $AOMP_ORIGIN_RPATH $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/amd/$AOMP_COMGR_REPO_NAME
-   ${AOMP_CMAKE} ${MYCMAKEOPTS} -DCMAKE_PREFIX_PATH="$AOMP/lib/cmake;$COMMON_PREFIX_PATH" -DCMAKE_INSTALL_LIBDIR=lib $AOMP_ORIGIN_RPATH $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/amd/$AOMP_COMGR_REPO_NAME
-   if [ $? != 0 ] ; then 
+      -DROCM_DIR="$AOMP_INSTALL_DIR"
+      -DLLVM_DIR="$AOMP_INSTALL_DIR"
+      -DClang_DIR="$AOMP_INSTALL_DIR")
+   echo "${AOMP_CMAKE}" "$(shquot "${MYCMAKEOPTS[@]}")" \
+      -DCMAKE_PREFIX_PATH="$AOMP/lib/cmake;$COMMON_PREFIX_PATH" \
+      -DCMAKE_INSTALL_LIBDIR=lib "${AOMP_ORIGIN_RPATH[@]}" \
+      "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/amd/$AOMP_COMGR_REPO_NAME"
+
+   if ! ${AOMP_CMAKE} "${MYCMAKEOPTS[@]}" \
+          -DCMAKE_PREFIX_PATH="$AOMP/lib/cmake;$COMMON_PREFIX_PATH" \
+          -DCMAKE_INSTALL_LIBDIR=lib "${AOMP_ORIGIN_RPATH[@]}" \
+          "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/amd/$AOMP_COMGR_REPO_NAME"; then
       echo "ERROR comgr cmake failed. cmake flags"
       exit 1
    fi
@@ -84,10 +90,22 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
       mkdir -p "$BUILD_AOMP/build/comgr/asan"
       cd "$BUILD_AOMP/build/comgr/asan" || exit
       echo " -----Running comgr-asan cmake ----- "
-      ASAN_CMAKE_OPTS="$MYCMAKEOPTS -DCMAKE_C_COMPILER=$LLVM_INSTALL_LOC/bin/clang -DCMAKE_CXX_COMPILER=$LLVM_INSTALL_LOC/bin/clang++"
-      echo ${AOMP_CMAKE} ${ASAN_CMAKE_OPTS} -DCMAKE_PREFIX_PATH="$AOMP/lib/asan/cmake;$COMMON_PREFIX_PATH:$AOMP/lib/cmake" -DCMAKE_INSTALL_LIBDIR=lib/asan $AOMP_ASAN_ORIGIN_RPATH -DCMAKE_C_FLAGS="'$ASAN_FLAGS'" -DCMAKE_CXX_FLAGS="'$ASAN_FLAGS'" $AOMP_ASAN_ORIGIN_RPATH $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/amd/$AOMP_COMGR_REPO_NAME
-      ${AOMP_CMAKE} ${ASAN_CMAKE_OPTS} -DCMAKE_PREFIX_PATH="$AOMP/lib/asan/cmake;$COMMON_PREFIX_PATH;$AOMP/lib/cmake" -DCMAKE_INSTALL_LIBDIR=lib/asan $AOMP_ASAN_ORIGIN_RPATH -DCMAKE_C_FLAGS="'$ASAN_FLAGS'" -DCMAKE_CXX_FLAGS="'$ASAN_FLAGS'" $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/amd/$AOMP_COMGR_REPO_NAME
-      if [ $? != 0 ] ; then
+      ASAN_CMAKE_OPTS=("${MYCMAKEOPTS[@]}"
+                       -DCMAKE_C_COMPILER="$LLVM_INSTALL_LOC/bin/clang"
+                       -DCMAKE_CXX_COMPILER="$LLVM_INSTALL_LOC/bin/clang++")
+      echo "${AOMP_CMAKE}" "$(shquot "${ASAN_CMAKE_OPTS[@]}")" \
+        -DCMAKE_PREFIX_PATH="$AOMP/lib/asan/cmake;$COMMON_PREFIX_PATH:$AOMP/lib/cmake" \
+        -DCMAKE_INSTALL_LIBDIR=lib/asan "$(shquot "${AOMP_ASAN_ORIGIN_RPATH[@]}")" \
+        -DCMAKE_C_FLAGS="\"$(cmquot "${ASAN_FLAGS[@]}")\"" \
+        -DCMAKE_CXX_FLAGS="\"$(cmquot "${ASAN_FLAGS[@]}")\"" \
+        "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/amd/$AOMP_COMGR_REPO_NAME"
+
+      if ! ${AOMP_CMAKE} "${ASAN_CMAKE_OPTS[@]}" \
+            -DCMAKE_PREFIX_PATH="$AOMP/lib/asan/cmake;$COMMON_PREFIX_PATH;$AOMP/lib/cmake" \
+            -DCMAKE_INSTALL_LIBDIR=lib/asan "${AOMP_ASAN_ORIGIN_RPATH[@]}" \
+            -DCMAKE_C_FLAGS="$(cmquot "${ASAN_FLAGS[@]}")" \
+            -DCMAKE_CXX_FLAGS="$(cmquot "${ASAN_FLAGS[@]}")" \
+            "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/amd/$AOMP_COMGR_REPO_NAME"; then
          echo "ERROR comgr-asan cmake failed. cmake flags"
          exit 1
       fi

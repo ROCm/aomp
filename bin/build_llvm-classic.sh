@@ -28,15 +28,15 @@ fi
 TARGETS_TO_BUILD="AMDGPU;${AOMP_NVPTX_TARGET}X86"
 
 if [ "$AOMP_USE_NINJA" == 0 ] ; then
-    AOMP_SET_NINJA_GEN=""
+    AOMP_SET_NINJA_GEN=()
 else
-    AOMP_SET_NINJA_GEN="-G Ninja"
+    AOMP_SET_NINJA_GEN=(-G Ninja)
 fi
 osversion=$(cat /etc/os-release | grep -e ^VERSION_ID)
 if [[ $osversion =~ \"7\. ]] || [[ $osversion =~ \"8\. ]]; then
-  _cxx_flag="-DCMAKE_CXX_FLAGS='-D_GLIBCXX_USE_CXX11_ABI=0'"
+  _cxx_flag=(-DCMAKE_CXX_FLAGS='-D_GLIBCXX_USE_CXX11_ABI=0')
 else
-  _cxx_flag=""
+  _cxx_flag=()
 fi
 
 # Legacy Flang dosen't support building of compiler-rt so it
@@ -63,23 +63,24 @@ AOMP_LFL_DIR=${AOMP_LFL_DIR:-"17.0-4"}
 # comment out above line and uncomment next line for new LFL
 #AOMP_LFL_DIR=${AOMP_LFL_DIR:-17.0-4}
 
-LLVMCMAKEOPTS="\
--DLLVM_ENABLE_PROJECTS=clang \
--DCMAKE_BUILD_TYPE=Release \
--DLLVM_ENABLE_ASSERTIONS=ON \
--DLLVM_TARGETS_TO_BUILD=$TARGETS_TO_BUILD \
--DCLANG_DEFAULT_LINKER=lld \
--DLLVM_VERSION_MAJOR="$LLVM_VERSION_MAJOR" \
--DLLVM_INCLUDE_BENCHMARKS=0 \
--DLLVM_INCLUDE_RUNTIMES=0 \
--DLLVM_INCLUDE_EXAMPLES=0 \
--DLLVM_INCLUDE_TESTS=0 \
--DLLVM_INCLUDE_DOCS=0 \
--DLLVM_INCLUDE_UTILS=0 \
--DCLANG_DEFAULT_PIE_ON_LINUX=0 \
--DLLVM_ENABLE_ZSTD=OFF \
-$_cxx_flag \
-$AOMP_SET_NINJA_GEN"
+declare -a LLVMCMAKEOPTS
+
+LLVMCMAKEOPTS=(-DLLVM_ENABLE_PROJECTS=clang
+               -DCMAKE_BUILD_TYPE=Release
+               -DLLVM_ENABLE_ASSERTIONS=ON
+               -DLLVM_TARGETS_TO_BUILD="$TARGETS_TO_BUILD"
+               -DCLANG_DEFAULT_LINKER=lld
+               -DLLVM_VERSION_MAJOR="$LLVM_VERSION_MAJOR"
+               -DLLVM_INCLUDE_BENCHMARKS=0
+               -DLLVM_INCLUDE_RUNTIMES=0
+               -DLLVM_INCLUDE_EXAMPLES=0
+               -DLLVM_INCLUDE_TESTS=0
+               -DLLVM_INCLUDE_DOCS=0
+               -DLLVM_INCLUDE_UTILS=0
+               -DCLANG_DEFAULT_PIE_ON_LINUX=0
+               -DLLVM_ENABLE_ZSTD=OFF
+               "${_cxx_flag[@]}"
+               "${AOMP_SET_NINJA_GEN[@]}")
 
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   help_build_aomp
@@ -114,11 +115,12 @@ fi
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    cd "$BUILD_DIR/build/flang-classic/$AOMP_LFL_DIR/llvm-classic" || exit
    echo " -----Running cmake ---- "
-   echo ${AOMP_CMAKE} $LLVMCMAKEOPTS  $AOMP_REPOS/$AOMP_FLANG_REPO_NAME/flang-classic/$AOMP_LFL_DIR/llvm-classic/llvm
-   ${AOMP_CMAKE} $LLVMCMAKEOPTS  $AOMP_REPOS/$AOMP_FLANG_REPO_NAME/flang-classic/$AOMP_LFL_DIR/llvm-classic/llvm 2>&1
-   if [ $? != 0 ] ; then
+   echo "${AOMP_CMAKE}" "${LLVMCMAKEOPTS[@]}" "$AOMP_REPOS/$AOMP_FLANG_REPO_NAME/flang-classic/$AOMP_LFL_DIR/llvm-classic/llvm"
+
+   if ! ${AOMP_CMAKE} "${LLVMCMAKEOPTS[@]}" \
+                      "$AOMP_REPOS/$AOMP_FLANG_REPO_NAME/flang-classic/$AOMP_LFL_DIR/llvm-classic/llvm" 2>&1; then
       echo "ERROR cmake failed. Cmake flags"
-      echo "      $LLVMCMAKEOPTS"
+      echo "      $(shquot "${LLVMCMAKEOPTS[@]}")"
       exit 1
    fi
    echo

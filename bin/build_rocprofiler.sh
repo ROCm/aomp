@@ -47,13 +47,13 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 
    echo "rm -rf $BUILD_AOMP/build/rocprofiler"
    rm -rf "$BUILD_AOMP/build/rocprofiler"
-   CMAKE_WITH_EXPERIMENTAL=""
+   CMAKE_WITH_EXPERIMENTAL=()
    if [ -d "/usr/include/c++/5/experimental" ] ; then
       _loc=$(which gcc)
       if [ "$_loc" != "" ] ; then
          _gccver=$($_loc --version | grep gcc | cut -d")" -f2 | cut -d"." -f1)
          if [ "$_gccver" == "5" ] ; then
-            CMAKE_WITH_EXPERIMENTAL="-DCMAKE_CXX_FLAGS=-I/usr/include/c++/5/experimental"
+            CMAKE_WITH_EXPERIMENTAL=(-DCMAKE_CXX_FLAGS=-I/usr/include/c++/5/experimental)
          fi
       fi
    fi
@@ -70,9 +70,43 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    cd "$BUILD_AOMP/build/rocprofiler" || exit
    export PATH=$HOME/.local/bin:$INSTALL_ROCPROF/bin:$PATH
    echo " -----Running rocprofiler cmake ---- " 
-   echo ${AOMP_CMAKE} -DCMAKE_INSTALL_LIBDIR=lib -DENABLE_ASAN_PACKAGING=ON -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DROCM_PATH=$AOMP_INSTALL_DIR -DCMAKE_MODULE_PATH=$INSTALL_ROCPROF/lib/cmake/hip -DCMAKE_INSTALL_PREFIX=$INSTALL_ROCPROF -DCMAKE_PREFIX_PATH="""$CMAKE_PREFIX_PATH""" $CMAKE_WITH_EXPERIMENTAL $AOMP_ORIGIN_RPATH -DGPU_TARGETS="""$GFXSEMICOLONS""" -DPROF_API_HEADER_PATH=$INSTALL_ROCPROF/include/roctracer/ext  -DHIP_ROOT_DIR=$INSTALL_ROCPROF/hip $AOMP_REPOS/$AOMP_PROF_REPO_NAME -DAQLPROFILE_LIB=$AOMP_SUPP/aqlprofile/lib/libhsa-amd-aqlprofile64.so -DCMAKE_CXX_FLAGS=-I$HOME/local/rocmsmilib/include -DHIP_HIPCC_FLAGS="-I$HOME/local/rocmsmilib/include" -DCMAKE_EXE_LINKER_FLAGS="-L$HOME/local/rocmsmilib/lib -L$HOME/local/rocmsmilib/lib64 -Wl,--disable-new-dtags"
-   ${AOMP_CMAKE} -DCMAKE_INSTALL_LIBDIR=lib -DENABLE_ASAN_PACKAGING=ON -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DROCM_PATH=$AOMP_INSTALL_DIR -DCMAKE_MODULE_PATH=$INSTALL_ROCPROF/lib/cmake/hip -DCMAKE_INSTALL_PREFIX=$INSTALL_ROCPROF -DCMAKE_PREFIX_PATH="""$CMAKE_PREFIX_PATH""" $CMAKE_WITH_EXPERIMENTAL $AOMP_ORIGIN_RPATH -DGPU_TARGETS="""$GFXSEMICOLONS""" -DPROF_API_HEADER_PATH=$INSTALL_ROCPROF/include/roctracer/ext  -DHIP_ROOT_DIR=$INSTALL_ROCPROF/hip $AOMP_REPOS/$AOMP_PROF_REPO_NAME -DAQLPROFILE_LIB=$AOMP_SUPP/aqlprofile/lib/libhsa-amd-aqlprofile64.so -DCMAKE_CXX_FLAGS=-I$HOME/local/rocmsmilib/include -DHIP_HIPCC_FLAGS="-I$HOME/local/rocmsmilib/include" -DCMAKE_EXE_LINKER_FLAGS="-L$HOME/local/rocmsmilib/lib -L$HOME/local/rocmsmilib/lib64 -Wl,--disable-new-dtags"
-   if [ $? != 0 ] ; then 
+   echo "${AOMP_CMAKE}" "-DCMAKE_INSTALL_LIBDIR=lib" \
+                        "-DENABLE_ASAN_PACKAGING=ON" \
+                        "-DCMAKE_BUILD_TYPE=$BUILD_TYPE" \
+                        "-DROCM_PATH=$AOMP_INSTALL_DIR" \
+                        "-DCMAKE_MODULE_PATH=$INSTALL_ROCPROF/lib/cmake/hip" \
+                        "-DCMAKE_INSTALL_PREFIX=$INSTALL_ROCPROF" \
+                        "-DCMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH" \
+                        "${CMAKE_WITH_EXPERIMENTAL[@]}" \
+                        "${AOMP_ORIGIN_RPATH[@]}" \
+                        "-DGPU_TARGETS=$GFXSEMICOLONS" \
+                        "-DPROF_API_HEADER_PATH=$INSTALL_ROCPROF/include/roctracer/ext" \
+                        "-DHIP_ROOT_DIR=$INSTALL_ROCPROF/hip" \
+                        "$AOMP_REPOS/$AOMP_PROF_REPO_NAME" \
+                        "-DAQLPROFILE_LIB=$AOMP_SUPP/aqlprofile/lib/libhsa-amd-aqlprofile64.so" \
+                        "-DCMAKE_CXX_FLAGS=-I$HOME/local/rocmsmilib/include" \
+                        "-DHIP_HIPCC_FLAGS=-I$HOME/local/rocmsmilib/include" \
+                        "-DCMAKE_EXE_LINKER_FLAGS=-L$HOME/local/rocmsmilib/lib" \
+                        "-L$HOME/local/rocmsmilib/lib64" \
+                        "-Wl,--disable-new-dtags"
+
+   if ! ${AOMP_CMAKE} -DCMAKE_INSTALL_LIBDIR=lib \
+                      -DENABLE_ASAN_PACKAGING=ON \
+                      -DCMAKE_BUILD_TYPE="$BUILD_TYPE" \
+                      -DROCM_PATH="$AOMP_INSTALL_DIR" \
+                      -DCMAKE_MODULE_PATH="$INSTALL_ROCPROF/lib/cmake/hip" \
+                      -DCMAKE_INSTALL_PREFIX="$INSTALL_ROCPROF" \
+                      -DCMAKE_PREFIX_PATH="$CMAKE_PREFIX_PATH" \
+                      "${CMAKE_WITH_EXPERIMENTAL[@]}" \
+                      "${AOMP_ORIGIN_RPATH[@]}" \
+                      -DGPU_TARGETS="$GFXSEMICOLONS" \
+                      -DPROF_API_HEADER_PATH="$INSTALL_ROCPROF/include/roctracer/ext" \
+                      -DHIP_ROOT_DIR="$INSTALL_ROCPROF/hip" \
+                      "$AOMP_REPOS/$AOMP_PROF_REPO_NAME" \
+                      -DAQLPROFILE_LIB="$AOMP_SUPP/aqlprofile/lib/libhsa-amd-aqlprofile64.so" \
+                      -DCMAKE_CXX_FLAGS="-I$HOME/local/rocmsmilib/include" \
+                      -DHIP_HIPCC_FLAGS="-I$HOME/local/rocmsmilib/include" \
+                      -DCMAKE_EXE_LINKER_FLAGS="-L$HOME/local/rocmsmilib/lib -L$HOME/local/rocmsmilib/lib64 -Wl,--disable-new-dtags"; then 
       echo "ERROR rocprofiler cmake failed. cmake flags"
       echo "      $MYCMAKEOPTS"
       exit 1

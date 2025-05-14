@@ -53,13 +53,13 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 
    echo "rm -rf $BUILD_AOMP/build/roctracer"
    rm -rf "$BUILD_AOMP/build/roctracer"
-   CMAKE_WITH_EXPERIMENTAL=""
+   CMAKE_WITH_EXPERIMENTAL=()
    if [ -d "/usr/include/c++/5/experimental" ] ; then
       _loc=$(which gcc)
       if [ "$_loc" != "" ] ; then
          _gccver=$($_loc --version | grep gcc | cut -d")" -f2 | cut -d"." -f1)
          if [ "$_gccver" == "5" ] ; then
-            CMAKE_WITH_EXPERIMENTAL="-DCMAKE_CXX_FLAGS=-I/usr/include/c++/5/experimental"
+            CMAKE_WITH_EXPERIMENTAL=(-DCMAKE_CXX_FLAGS=-I/usr/include/c++/5/experimental)
          fi
       fi
    fi
@@ -73,10 +73,18 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    mkdir -p "$BUILD_AOMP/build/roctracer"
    cd "$BUILD_AOMP/build/roctracer" || exit
    echo " -----Running roctracer cmake ---- " 
-   ${AOMP_CMAKE} -DCMAKE_INSTALL_LIBDIR=lib -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX=$INSTALL_ROCTRACE -DCMAKE_PREFIX_PATH="""$CMAKE_PREFIX_PATH""" $CMAKE_WITH_EXPERIMENTAL $AOMP_ORIGIN_RPATH -DGPU_TARGETS="""$GFXSEMICOLONS""" -DROCM_PATH=$ROCM_DIR $AOMP_REPOS/$AOMP_TRACE_REPO_NAME
-   if [ $? != 0 ] ; then 
+
+   if ! ${AOMP_CMAKE} -DCMAKE_INSTALL_LIBDIR=lib \
+                      -DCMAKE_BUILD_TYPE="$BUILD_TYPE" \
+                      -DCMAKE_INSTALL_PREFIX="$INSTALL_ROCTRACE" \
+                      -DCMAKE_PREFIX_PATH="$CMAKE_PREFIX_PATH" \
+                      "${CMAKE_WITH_EXPERIMENTAL[@]}" \
+                      "${AOMP_ORIGIN_RPATH[@]}" \
+                      -DGPU_TARGETS="$GFXSEMICOLONS" \
+                      -DROCM_PATH="$ROCM_DIR" \
+                      "$AOMP_REPOS/$AOMP_TRACE_REPO_NAME"; then
       echo "ERROR roctracer cmake failed. cmake flags"
-      echo "      $MYCMAKEOPTS"
+      echo "      $(shquot "${MYCMAKEOPTS[@]}")"
       exit 1
    fi
 fi

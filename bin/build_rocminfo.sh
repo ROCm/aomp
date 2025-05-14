@@ -77,17 +77,24 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
      rm -rf "$BUILD_DIR/build/rocminfo"
   fi
 
-  MYCMAKEOPTS="$AOMP_ORIGIN_RPATH -DCMAKE_BUILD_TYPE=$BUILDTYPE -DCMAKE_INSTALL_PREFIX=$INSTALL_RINFO -DROCRTST_BLD_TYPE=$BUILDTYPE -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON -DCMAKE_INSTALL_RPATH='\$ORIGIN/../lib' -DCMAKE_EXE_LINKER_FLAGS='-Wl,--disable-new-dtags'"
+  declare -a MYCMAKEOPTS
+
+  MYCMAKEOPTS=("${AOMP_ORIGIN_RPATH[@]}" -DCMAKE_BUILD_TYPE="$BUILDTYPE"
+               -DCMAKE_INSTALL_PREFIX="$INSTALL_RINFO"
+               -DROCRTST_BLD_TYPE="$BUILDTYPE"
+               -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON
+               -DCMAKE_INSTALL_RPATH="\$ORIGIN/../lib"
+               -DCMAKE_EXE_LINKER_FLAGS='-Wl,--disable-new-dtags')
 
   mkdir -p "$BUILD_DIR/build/rocminfo"
   cd "$BUILD_DIR/build/rocminfo" || exit
   echo
   echo " -----Running rocminfo cmake ---- "
-  echo ${AOMP_CMAKE} $MYCMAKEOPTS $RINFO_REPO_DIR
-  ${AOMP_CMAKE} $MYCMAKEOPTS $RINFO_REPO_DIR
-  if [ $? != 0 ] ; then
+  echo "${AOMP_CMAKE} $(shquot "${MYCMAKEOPTS[@]}") $RINFO_REPO_DIR"
+  
+  if ! ${AOMP_CMAKE} "${MYCMAKEOPTS[@]}" "$RINFO_REPO_DIR"; then
       echo "ERROR rocminfo cmake failed. Cmake flags"
-      echo "      $MYCMAKEOPTS"
+      echo "      $(shquot "${MYCMAKEOPTS[@]}")"
       exit 1
   fi
 fi

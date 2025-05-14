@@ -157,10 +157,12 @@ do
   shift 1
 done
 
+declare -a custom_opts=()
+
 # Populate key/value into acceptable cmake option
 for option in "${!opts_array[@]}"; do
   val=${opts_array[$option]}
-  custom_opts="$custom_opts $option$val"
+  custom_opts+=("$option$val")
 done
 
 if [[ ! -e $OPENMPI_INSTALL/bin/mpicc ]] && [ "$mpi" == "1" ]; then
@@ -169,11 +171,12 @@ if [[ ! -e $OPENMPI_INSTALL/bin/mpicc ]] && [ "$mpi" == "1" ]; then
 fi
 
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
-$AOMP_CMAKE -DOFFLOAD_ARCH=$AOMP_GPU \
--DQMC_GPU=openmp -DOFFLOAD_TARGET="amdgcn-amd-amdhsa" \
--DENABLE_TIMERS=1 \
-$custom_opts \
-..
+  $AOMP_CMAKE -DOFFLOAD_ARCH="$AOMP_GPU" \
+              -DQMC_GPU=openmp \
+              -DOFFLOAD_TARGET="amdgcn-amd-amdhsa" \
+              -DENABLE_TIMERS=1 \
+              "${custom_opts[@]}" \
+              ..
 fi
 
 if [ "$1" = "cmake" ]; then

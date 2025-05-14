@@ -25,29 +25,47 @@ fi
 
 COMP_INC_DIR=$(ls -d "$AOMP_INSTALL_DIR"/lib/clang/*/include )
 
+declare -a MYCMAKEOPTS
+
 if [ "$AOMP_PROC" == "ppc64le" ] ; then
-    MYCMAKEOPTS="-DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX=$LLVM_INSTALL_LOC -DLLVM_ENABLE_ASSERTIONS=ON -DCMAKE_Fortran_COMPILER=$LLVM_INSTALL_LOC/bin/flang -DLLVM_TARGETS_TO_BUILD=$TARGETS_TO_BUILD "
+    MYCMAKEOPTS=(-DCMAKE_BUILD_TYPE="$BUILD_TYPE"
+                 -DCMAKE_INSTALL_PREFIX="$LLVM_INSTALL_LOC"
+                 -DLLVM_ENABLE_ASSERTIONS=ON
+                 -DCMAKE_Fortran_COMPILER="$LLVM_INSTALL_LOC/bin/flang"
+                 -DLLVM_TARGETS_TO_BUILD="$TARGETS_TO_BUILD")
 else
-    MYCMAKEOPTS="-DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX=$LLVM_INSTALL_LOC -DLLVM_ENABLE_ASSERTIONS=ON -DLLVM_CONFIG=$LLVM_INSTALL_LOC/bin/llvm-config -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang  -DLLVM_TARGETS_TO_BUILD=$TARGETS_TO_BUILD "
+    MYCMAKEOPTS=(-DCMAKE_BUILD_TYPE="$BUILD_TYPE"
+                 -DCMAKE_INSTALL_PREFIX="$LLVM_INSTALL_LOC"
+                 -DLLVM_ENABLE_ASSERTIONS=ON
+                 -DLLVM_CONFIG="$LLVM_INSTALL_LOC/bin/llvm-config"
+                 -DCMAKE_CXX_COMPILER=clang++
+                 -DCMAKE_C_COMPILER=clang
+                 -DLLVM_TARGETS_TO_BUILD="$TARGETS_TO_BUILD")
 fi
 
+declare -a ASAN_CMAKE_OPTS
+
 if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
-  ASAN_FLAGS="$ASAN_FLAGS -I$COMP_INC_DIR"
-  ASAN_CMAKE_OPTS="$MYCMAKEOPTS -DCMAKE_PREFIX_PATH=$AOMP/lib/asan/cmake -DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=OFF -DCMAKE_INSTALL_BINDIR=bin/asan -DCMAKE_INSTALL_LIBDIR=lib/asan"
+  ASAN_FLAGS=("${ASAN_FLAGS[@]}" "-I$COMP_INC_DIR")
+  ASAN_CMAKE_OPTS=("${MYCMAKEOPTS[@]}"
+                   -DCMAKE_PREFIX_PATH="$AOMP/lib/asan/cmake"
+                   -DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=OFF
+                   -DCMAKE_INSTALL_BINDIR=bin/asan
+                   -DCMAKE_INSTALL_LIBDIR=lib/asan)
   if [ "$AOMP_STANDALONE_BUILD" == 1 ]; then
-    ASAN_CMAKE_OPTS="$ASAN_CMAKE_OPTS $AOMP_ASAN_ORIGIN_RPATH"
+    ASAN_CMAKE_OPTS=("${ASAN_CMAKE_OPTS[@]}" "${AOMP_ASAN_ORIGIN_RPATH[@]}")
   else
-    ASAN_CMAKE_OPTS="$ASAN_CMAKE_OPTS $OPENMP_EXTRAS_ORIGIN_RPATH"
+    ASAN_CMAKE_OPTS=("${ASAN_CMAKE_OPTS[@]}" "${OPENMP_EXTRAS_ORIGIN_RPATH[@]}")
   fi
 fi
 
 if [ "$AOMP_STANDALONE_BUILD" == 1 ]; then
-  MYCMAKEOPTS="$MYCMAKEOPTS $AOMP_ORIGIN_RPATH"
+  MYCMAKEOPTS=("${MYCMAKEOPTS[@]}" "${AOMP_ORIGIN_RPATH[@]}")
 else
-  MYCMAKEOPTS="$MYCMAKEOPTS $OPENMP_EXTRAS_ORIGIN_RPATH"
+  MYCMAKEOPTS=("${MYCMAKEOPTS[@]}" "${OPENMP_EXTRAS_ORIGIN_RPATH[@]}")
 fi
 
-MYCMAKEOPTS="$MYCMAKEOPTS -DCMAKE_PREFIX_PATH=$AOMP/lib/cmake"
+MYCMAKEOPTS=("${MYCMAKEOPTS[@]}" -DCMAKE_PREFIX_PATH="$AOMP/lib/cmake")
 
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   help_build_aomp
@@ -86,17 +104,17 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
       echo
       cd "$BUILD_DIR/build/pgmath" || exit
       echo " -----Running cmake ---- "
-      echo ${AOMP_CMAKE} $MYCMAKEOPTS  \
+      echo "${AOMP_CMAKE}" "$(shquot "${MYCMAKEOPTS[@]}")" \
            -DCMAKE_C_FLAGS="$CFLAGS -I$COMP_INC_DIR" \
            -DCMAKE_CXX_FLAGS="$CXXFLAGS -I$COMP_INC_DIR" \
-           $AOMP_REPOS/$AOMP_FLANG_REPO_NAME/runtime/libpgmath
-      ${AOMP_CMAKE} $MYCMAKEOPTS  \
-      -DCMAKE_C_FLAGS="$CFLAGS -I$COMP_INC_DIR" \
-      -DCMAKE_CXX_FLAGS="$CXXFLAGS -I$COMP_INC_DIR" \
-      $AOMP_REPOS/$AOMP_FLANG_REPO_NAME/runtime/libpgmath  2>&1
-      if [ $? != 0 ] ; then
+           "$AOMP_REPOS/$AOMP_FLANG_REPO_NAME/runtime/libpgmath"
+
+      if ! ${AOMP_CMAKE} "${MYCMAKEOPTS[@]}"  \
+                         -DCMAKE_C_FLAGS="$CFLAGS -I$COMP_INC_DIR" \
+                         -DCMAKE_CXX_FLAGS="$CXXFLAGS -I$COMP_INC_DIR" \
+                         "$AOMP_REPOS/$AOMP_FLANG_REPO_NAME/runtime/libpgmath" 2>&1; then
          echo "ERROR cmake failed. Cmake flags"
-         echo "      $MYCMAKEOPTS"
+         echo "      $(shquot "${MYCMAKEOPTS[@]}")"
          exit 1
       fi
    fi
@@ -105,17 +123,17 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
       echo
       cd "$BUILD_DIR/build/pgmath/asan" || exit
       echo " -----Running cmake pgmath-asan ---- "
-      echo ${AOMP_CMAKE} $ASAN_CMAKE_OPTS \
-      -DCMAKE_C_FLAGS="$CFLAGS $ASAN_FLAGS" \
-      -DCMAKE_CXX_FLAGS="$CXXFLAGS $ASAN_FLAGS" \
-      $AOMP_REPOS/$AOMP_FLANG_REPO_NAME/runtime/libpgmath
-      ${AOMP_CMAKE} $ASAN_CMAKE_OPTS  \
-      -DCMAKE_C_FLAGS="$CFLAGS $ASAN_FLAGS" \
-      -DCMAKE_CXX_FLAGS="$CXXFLAGS $ASAN_FLAGS" \
-      $AOMP_REPOS/$AOMP_FLANG_REPO_NAME/runtime/libpgmath  2>&1
-      if [ $? != 0 ] ; then
+      echo "${AOMP_CMAKE}" "$(shquot "${ASAN_CMAKE_OPTS[@]}")" \
+                           -DCMAKE_C_FLAGS="\"$CFLAGS $(cmquot "${ASAN_FLAGS[@]}")\"" \
+                           -DCMAKE_CXX_FLAGS="\"$CXXFLAGS $(cmquot "${ASAN_FLAGS[@]}")\"" \
+                           "$AOMP_REPOS/$AOMP_FLANG_REPO_NAME/runtime/libpgmath"
+
+      if ! ${AOMP_CMAKE} "${ASAN_CMAKE_OPTS[@]}"  \
+                         -DCMAKE_C_FLAGS="$CFLAGS $(cmquot "${ASAN_FLAGS[@]}")" \
+                         -DCMAKE_CXX_FLAGS="$CXXFLAGS $(cmquot "${ASAN_FLAGS[@]}")" \
+                         "$AOMP_REPOS/$AOMP_FLANG_REPO_NAME/runtime/libpgmath" 2>&1; then
          echo "ERROR pgmath-asan cmake failed. Cmake flags"
-         echo "      $ASAN_CMAKE_OPTS"
+         echo "      $(shquot "${ASAN_CMAKE_OPTS[@]}")"
          exit 1
       fi
    fi

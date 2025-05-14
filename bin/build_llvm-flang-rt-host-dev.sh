@@ -79,15 +79,15 @@ mkdir flang-runtime
 cd flang-runtime || exit
 
 if [ "$AOMP_USE_NINJA" == 0 ] ; then
-    AOMP_SET_NINJA_GEN=""
+    AOMP_SET_NINJA_GEN=()
 else
-    AOMP_SET_NINJA_GEN="-G Ninja"
+    AOMP_SET_NINJA_GEN=(-G Ninja)
 fi
 
 # Notes:
 #   -DFLANG_RT_INCLUDE_TESTS=OFF     # avoids needing CUDA toolchain
 #
-${AOMP_CMAKE} $AOMP_SET_NINJA_GEN \
+${AOMP_CMAKE} "${AOMP_SET_NINJA_GEN[@]}" \
     -DLLVM_ENABLE_RUNTIMES=flang-rt \
     -DFLANG_RT_EXPERIMENTAL_OFFLOAD_SUPPORT="OpenMP" \
     -DFLANG_RT_INCLUDE_TESTS=OFF \

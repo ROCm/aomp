@@ -52,23 +52,30 @@ if [ "$1" != "noconfigure" ] && [ "$1" != "install" ] ; then
    echo "Use ""$0 noconfigure"" or ""$0 install"" to avoid FRESH START."
    echo "rm -rf $BUILD_AOMP/build/rocgdb"
    rm -rf "$BUILD_AOMP/build/rocgdb"
-   MYCONFIGOPTS="--prefix=$AOMP_INSTALL_DIR --srcdir=$AOMP_REPOS/$AOMP_GDB_REPO_NAME --program-prefix=roc \
-     --with-bugurl="$BUG_URL" --with-pkgversion="${AOMP_COMPILER_NAME}_${AOMP_VERSION_STRING}" \
-     --with-gdb-datadir="\${prefix}/share/rocgdb" \
-     --enable-64-bit-bfd --enable-targets="x86_64-linux-gnu,amdgcn-amd-amdhsa" \
-     --disable-ld --disable-gas --disable-gdbserver --disable-sim --enable-tui \
-     --disable-gdbtk --disable-shared  \
-     --disable-gdbtk --disable-gprofng --disable-shared --with-expat \
-     --with-system-zlib --without-guile --with-babeltrace --with-lzma \
-     --with-python=python3 --with-rocm-dbgapi=$AOMP_INSTALL_DIR PKG_CONFIG_PATH=$AOMP_INSTALL_DIR/share/pkgconfig"
+   declare -a MYCONFIGOPTS
+   MYCONFIGOPTS=(--prefix="$AOMP_INSTALL_DIR"
+                 --srcdir="$AOMP_REPOS/$AOMP_GDB_REPO_NAME"
+                 --program-prefix=roc
+                 --with-bugurl="$BUG_URL"
+                 --with-pkgversion="${AOMP_COMPILER_NAME}_${AOMP_VERSION_STRING}"
+                 --with-gdb-datadir="\${prefix}/share/rocgdb"
+                 --enable-64-bit-bfd
+                 --enable-targets="x86_64-linux-gnu,amdgcn-amd-amdhsa"
+                 --disable-ld --disable-gas --disable-gdbserver --disable-sim
+                 --enable-tui --disable-gdbtk --disable-shared --disable-gdbtk
+                 --disable-gprofng --disable-shared --with-expat
+                 --with-system-zlib --without-guile --with-babeltrace
+                 --with-lzma --with-python=python3
+                 --with-rocm-dbgapi="$AOMP_INSTALL_DIR"
+                 PKG_CONFIG_PATH="$AOMP_INSTALL_DIR/share/pkgconfig")
 
    mkdir -p "$BUILD_AOMP/build/rocgdb"
    export LDFLAGS="-Wl,-rpath=$AOMP_INSTALL_DIR/lib"
    cd "$BUILD_AOMP/build/rocgdb" || exit
    echo " -----Running gdb configure ---- " 
-   echo "$AOMP_REPOS/$AOMP_GDB_REPO_NAME/configure $MYCONFIGOPTS"
-   $AOMP_REPOS/$AOMP_GDB_REPO_NAME/configure $MYCONFIGOPTS
-   if [ $? != 0 ] ; then 
+   echo "$AOMP_REPOS/$AOMP_GDB_REPO_NAME/configure $(shquot "${MYCONFIGOPTS[@]}")"
+
+   if ! "$AOMP_REPOS/$AOMP_GDB_REPO_NAME"/configure "${MYCONFIGOPTS[@]}"; then 
       echo "ERROR gdb configure failed."
       exit 1
    fi

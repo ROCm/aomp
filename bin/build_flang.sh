@@ -26,34 +26,42 @@ fi
 REPO_DIR=$AOMP_REPOS/$AOMP_FLANG_REPO_NAME
 COMP_INC_DIR=$REPO_DIR/runtime/libpgmath/lib/common
 
-MYCMAKEOPTS="-DCMAKE_BUILD_TYPE=$BUILD_TYPE \
-  -DCMAKE_INSTALL_PREFIX=$LLVM_INSTALL_LOC \
-  -DLLVM_ENABLE_ASSERTIONS=ON \
-  -DLLVM_CONFIG=$LLVM_INSTALL_LOC/bin/llvm-config \
-  -DCMAKE_CXX_COMPILER=$LLVM_INSTALL_LOC/bin/clang++ \
-  -DCMAKE_C_COMPILER=$LLVM_INSTALL_LOC/bin/clang \
-  -DCMAKE_Fortran_COMPILER=gfortran \
-  -DLLVM_TARGETS_TO_BUILD=$TARGETS_TO_BUILD \
-  -DFLANG_OPENMP_GPU_AMD=ON \
-  -DFLANG_OPENMP_GPU_NVIDIA=ON \
-  -DLLVM_INSTALL_TOOLCHAIN_ONLY=ON \
-  -DFLANG_INCLUDE_TESTS=OFF"
+declare -a MYCMAKEOPTS
+
+MYCMAKEOPTS=(-DCMAKE_BUILD_TYPE="$BUILD_TYPE"
+             -DCMAKE_INSTALL_PREFIX="$LLVM_INSTALL_LOC"
+             -DLLVM_ENABLE_ASSERTIONS=ON
+             -DLLVM_CONFIG="$LLVM_INSTALL_LOC/bin/llvm-config"
+             -DCMAKE_CXX_COMPILER="$LLVM_INSTALL_LOC/bin/clang++"
+             -DCMAKE_C_COMPILER="$LLVM_INSTALL_LOC/bin/clang"
+             -DCMAKE_Fortran_COMPILER=gfortran
+             -DLLVM_TARGETS_TO_BUILD="$TARGETS_TO_BUILD"
+             -DFLANG_OPENMP_GPU_AMD=ON
+             -DFLANG_OPENMP_GPU_NVIDIA=ON
+             -DLLVM_INSTALL_TOOLCHAIN_ONLY=ON
+             -DFLANG_INCLUDE_TESTS=OFF)
+
+declare -a ASAN_CMAKE_OPTS
 
 if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
-   ASAN_FLAGS="$ASAN_FLAGS -I$COMP_INC_DIR"
-   ASAN_CMAKE_OPTS="$MYCMAKEOPTS -DCMAKE_PREFIX_PATH=$AOMP/lib/asan/cmake $AOMP_ASAN_ORIGIN_RPATH -DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=OFF -DCMAKE_INSTALL_LIBDIR=lib/asan"
+   ASAN_FLAGS=("${ASAN_FLAGS[@]}" "-I$COMP_INC_DIR")
+   ASAN_CMAKE_OPTS=("${MYCMAKEOPTS[@]}"
+                    -DCMAKE_PREFIX_PATH="$AOMP/lib/asan/cmake"
+                    "${AOMP_ASAN_ORIGIN_RPATH[@]}"
+                    -DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=OFF
+                    -DCMAKE_INSTALL_LIBDIR=lib/asan)
   if [ "$AOMP_STANDALONE_BUILD" == 1 ]; then
-    ASAN_CMAKE_OPTS="$ASAN_CMAKE_OPTS -DCMAKE_INSTALL_BINDIR=bin/asan"
+    ASAN_CMAKE_OPTS=("${ASAN_CMAKE_OPTS[@]}" -DCMAKE_INSTALL_BINDIR=bin/asan)
   fi
 fi
 
 if [ "$AOMP_STANDALONE_BUILD" == 1 ]; then
-  MYCMAKEOPTS="$MYCMAKEOPTS $AOMP_ORIGIN_RPATH"
+  MYCMAKEOPTS=("${MYCMAKEOPTS[@]}" "${AOMP_ORIGIN_RPATH[@]}")
 else
-  MYCMAKEOPTS="$MYCMAKEOPTS $OPENMP_EXTRAS_ORIGIN_RPATH"
+  MYCMAKEOPTS=("${MYCMAKEOPTS[@]}" "${OPENMP_EXTRAS_ORIGIN_RPATH[@]}")
 fi
 
-MYCMAKEOPTS="$MYCMAKEOPTS -DCMAKE_PREFIX_PATH=$AOMP/lib/cmake"
+MYCMAKEOPTS=("${MYCMAKEOPTS[@]}" "-DCMAKE_PREFIX_PATH=$AOMP/lib/cmake")
 
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   help_build_aomp
@@ -93,18 +101,17 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    if [ "$SANITIZER" != 1 ]; then
       echo
       echo " -----Running cmake ---- "
-      echo ${AOMP_CMAKE} $MYCMAKEOPTS \
+      echo "${AOMP_CMAKE}" "$(shquot "${MYCMAKEOPTS[@]}")" \
            -DCMAKE_C_FLAGS="$CFLAGS -I$COMP_INC_DIR" \
            -DCMAKE_CXX_FLAGS="$CXXFLAGS -I$COMP_INC_DIR" \
            "$AOMP_REPOS/$AOMP_FLANG_REPO_NAME"
 
-      ${AOMP_CMAKE} $MYCMAKEOPTS \
-      -DCMAKE_C_FLAGS="$CFLAGS -I$COMP_INC_DIR" \
-      -DCMAKE_CXX_FLAGS="$CXXFLAGS -I$COMP_INC_DIR" \
-      $AOMP_REPOS/$AOMP_FLANG_REPO_NAME 2>&1
-      if [ $? != 0 ] ; then
+      if ! ${AOMP_CMAKE} "${MYCMAKEOPTS[@]}" \
+                         -DCMAKE_C_FLAGS="$CFLAGS -I$COMP_INC_DIR" \
+                         -DCMAKE_CXX_FLAGS="$CXXFLAGS -I$COMP_INC_DIR" \
+                         "$AOMP_REPOS/$AOMP_FLANG_REPO_NAME" 2>&1; then
          echo "ERROR cmake failed. Cmake flags"
-         echo "      $MYCMAKEOPTS"
+         echo "      $(shquot "${MYCMAKEOPTS[@]}")"
          exit 1
       fi
    fi
@@ -113,18 +120,18 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
       cd "$BUILD_DIR/build/$AOMP_FLANG_REPO_NAME/asan" || exit
       echo
       echo " ----Running cmake for flang-asan ----- "
-      echo ${AOMP_CMAKE} $ASAN_CMAKE_OPTS \
-           -DCMAKE_C_FLAGS="$CFLAGS $ASAN_FLAGS" \
-           -DCMAKE_CXX_FLAGS="$CXXFLAGS $ASAN_FLAGS" \
-           $BUILD_DIR/build/$AOMP_FLANG_REPO_NAME
+      echo "${AOMP_CMAKE}" "$(shquot "${ASAN_CMAKE_OPTS[@]}")" \
+           -DCMAKE_C_FLAGS="\"$CFLAGS $(cmquot "${ASAN_FLAGS[@]}")\"" \
+           -DCMAKE_CXX_FLAGS="\"$CXXFLAGS $(cmquot "${ASAN_FLAGS[@]}")\"" \
+           "$BUILD_DIR/build/$AOMP_FLANG_REPO_NAME"
 
-      ${AOMP_CMAKE} $ASAN_CMAKE_OPTS  \
-      -DCMAKE_C_FLAGS="$CFLAGS $ASAN_FLAGS" \
-      -DCMAKE_CXX_FLAGS="$CXXFLAGS $ASAN_FLAGS" \
-      $AOMP_REPOS/$AOMP_FLANG_REPO_NAME 2>&1
-      if [ $? != 0 ] ; then
+      
+      if ! ${AOMP_CMAKE} "${ASAN_CMAKE_OPTS[@]}" \
+                         -DCMAKE_C_FLAGS="$CFLAGS $(cmquot "${ASAN_FLAGS[@]}")" \
+                         -DCMAKE_CXX_FLAGS="$CXXFLAGS $(cmquot "${ASAN_FLAGS[@]}")" \
+                         "$AOMP_REPOS/$AOMP_FLANG_REPO_NAME" 2>&1; then
          echo "ERROR flang-asan cmake failed. Cmake flags"
-         echo "      $ASAN_CMAKE_OPTS"
+         echo "      $(shquot "${ASAN_CMAKE_OPTS[@]}")"
          exit 1
       fi
    fi
