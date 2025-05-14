@@ -561,6 +561,48 @@ TEST(DataOpTests, ExplicitAllocatorAndUpdate_DataOpStack) {
   omp_target_free(d_a, omp_get_default_device());
 }
 
+TEST(DataOpTests, ExplicitAllocationTimeNonZero) {
+  OMPT_SUPPRESS_EVENT(EventTy::BufferRequest);
+  OMPT_SUPPRESS_EVENT(EventTy::BufferComplete);
+  OMPT_SUPPRESS_EVENT(EventTy::BufferRecordDeallocation);
+  OMPT_SUPPRESS_EVENT(EventTy::Target);
+  OMPT_SUPPRESS_EVENT(EventTy::TargetSubmit);
+  OMPT_SUPPRESS_EVENT(EventTy::TargetDataOp);
+
+  const int N = 1000;
+  int *d_a=nullptr;
+  auto DataSize = N * sizeof(int);
+
+  OMPT_ASSERT_SET(BufferRecord, CB_DATAOP, ALLOC, DataSize, 1);
+  OMPT_ASSERT_SET(BufferRecord, CB_DATAOP, DELETE, 0);
+
+  d_a = (int *)omp_target_alloc(DataSize, omp_get_default_device());
+  omp_target_free(d_a, omp_get_default_device());
+
+  OMPT_ASSERT_SYNC_POINT("After de-alloc");
+}
+
+TEST(DataOpTests, ExplicitDeallocationTimeNonZero) {
+  OMPT_SUPPRESS_EVENT(EventTy::BufferRequest);
+  OMPT_SUPPRESS_EVENT(EventTy::BufferComplete);
+  OMPT_SUPPRESS_EVENT(EventTy::BufferRecordDeallocation);
+  OMPT_SUPPRESS_EVENT(EventTy::Target);
+  OMPT_SUPPRESS_EVENT(EventTy::TargetSubmit);
+  OMPT_SUPPRESS_EVENT(EventTy::TargetDataOp);
+
+  const int N = 1000;
+  int *d_a=nullptr;
+  auto DataSize = N * sizeof(int);
+
+  OMPT_ASSERT_SET(BufferRecord, CB_DATAOP, ALLOC, DataSize);
+  OMPT_ASSERT_SET(BufferRecord, CB_DATAOP, DELETE, 0, 1);
+
+  d_a = (int *)omp_target_alloc(DataSize, omp_get_default_device());
+  omp_target_free(d_a, omp_get_default_device());
+
+  OMPT_ASSERT_SYNC_POINT("After de-alloc");
+}
+
 TEST_XFAIL(DataOpTests, ExplicitAllocatorMultiDevice) {
   OMPT_SUPPRESS_EVENT(EventTy::BufferRequest);
   OMPT_SUPPRESS_EVENT(EventTy::BufferComplete);
