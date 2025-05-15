@@ -106,8 +106,8 @@ if [ "$ENABLE_OMP_OFFLOAD" -eq "0" ] ; then
     OMP_DEFINES=
 fi
 
+FORTRAN_COMPILE_CMD="$AOMP/bin/$FLANG -c -fopenmp --offload-arch=$GPU_ID -fPIC -I$OPENMPI_DIR/lib -cpp $OMP_DEFINES -fstack-arrays"
 export LD_LIBRARY_PATH=$AOMP/lib:$AOMPHIP/lib:$OPENMPI_DIR/lib:$LD_LIBRARY_PATH
-export FORTRAN_COMPILE="$AOMP/bin/$FLANG -c -fopenmp --offload-arch=$GPU_ID -fPIC -I$OPENMPI_DIR/lib -cpp $OMP_DEFINES -fstack-arrays"
 export CC_COMPILE="$AOMP/bin/clang -fPIC"
 export FORTDEV_LIBS=${FORTDEV_LIBS:-"-lflang_rt.hostdevice"}
 export FORTHOST_LIBS=${FORTHOST_LIBS:-"-lflang_rt.runtime"}
@@ -117,6 +117,12 @@ export DEVICE_COMPILE="$AOMPHIP/bin/hipcc -D__HIP_PLATFORM_HCC__"
 export HIP_DIR=$ROCM
 export HIP_CLANG_PATH=$AOMP/bin
 cd $currdir
+
+if [ "$HSA_XNACK" -eq "1" ] ; then
+    export FORTRAN_COMPILE="$FORTRAN_COMPILE_CMD -fopenmp-force-usm"
+else
+    export FORTRAN_COMPILE="$FORTRAN_COMPILE_CMD"
+fi
 
 echo "LD_LIBRARY_PATH = $LD_LIBRARY_PATH"
 echo "FORTRAN_COMPILE = $FORTRAN_COMPILE"
