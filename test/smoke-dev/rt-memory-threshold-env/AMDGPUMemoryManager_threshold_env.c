@@ -34,5 +34,4 @@ int main() {
   return rc;
 }
 
-/// CHECK: TARGET AMDGPU RTL --> AMDGPUMemoryManager threshhold was set to:
-/// 1048576 B
+/// CHECK: TARGET AMDGPU RTL --> AMDGPUMemoryManager threshhold was set to: 1048576 B
