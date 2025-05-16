@@ -1041,5 +1041,49 @@ aomp (19.0-3) UNRELEASED; urgency=medium
   *   Moved to ROCm 6.3.2 sources for non-compiler related repositories.
   *
   * 21.0-0
+  *   In this release, the FORTRAN flang-classic compiler is replaced with the
+  *       new LLVM compiler (flang-new). Flang-new is built using the LLVM 21 trunk
+  *       plus changes in the amd-staging branch. In addition to improved performance
+  *       flang-new, supports print and write statements in the target region to support
+  *       user diagnostics. The existence of any print or write statement in the target
+  *       region will trigger a service thread that could impact performance, even if
+  *       the print or write statements are not executed.
+  *   The hipfort component built with flang-new has returned to aomp. Hipfort
+  *       provides FORTRAN module interfaces to the HIP API and to many other hip math
+  *       libraries. There are new examples in the examples directory to demonstrate hipfort.
+  *   Improved performance on min and max reductions using fmin and fmax functions to define the reduction.
+  *   Replacement of the amd-stging hostexec infrastructure with the upstream offload rpc mechanism.
+  *   A new infrastructure for executing host API's in target regions called
+  *       "Emissary APIs". Emissary APIs use the offload rpc mechanism to transparently
+  *       execute functions called from a target region on the host. Emissary APIs exist
+  *       for print, FORTRAN runtime, MPI, and HDF5. MPI and HDF5 are currently
+  *       placeholders requiring more development to make them functional. The Emissary
+  *       API for print includes printf, fprintf, and asan exception reporting. The
+  *       Emissary API for the FORTRAN runtime supports print, write, stop, and abort
+  *       FORTRAN statements.
+  *   In this release, all OpenMP toolchains (c, c++, and FORTRAN) use a tool called
+  *       clang-linker-wrapper as the default. This is a single command generated for
+  *       host and device linking. Previously a multi-step process was used by the LLVM
+  *       command driver. This multi-step process is still available with the
+  *       --opaque-offload-linker command line option. Since clang-linker-wrapper
+  *       obscures the process of device linking --opaque-offload-linker can be used to
+  *       see the transformations from heterogeneous objects to fully linked device and host executable.
+  *   This release uses the sources from ROCM 6.3 components for non-compiler components.
+  *       All llvm-project compiler components were built using the amd-staging branch with the
+  *       above-mentioned commit hash.
+  *   In this release, we started a process to cleanup the examples for the
+  *       different programming models supported by the ROCm compiler. The new examples
+  *       are 100% driven by Makefiles so that users can see the compiler commands and
+  *       environment that they are run in. Since the examples are typically in a
+  *       read-only installation directory. They can now be executed from an out-of-tree
+  *       directory to avoid the need to copy them. For example "make -f
+  *       /usr/lib/aomp/examples/openmp/reduction/Makefile run " will build and run the example.
+  *   A significant number of changes to the AOMP build infrastructure were done to
+  *       both add flang-new build and remove flang-classic build.
+  *   Merging non-upstream changes into the amd-staging branch now uses github pull requests. We no longer
+  *       use gerrit for this purpose. Merging of github PRs still requires successful passing of psdb tests.
+  *       Merging from upstream trunk is still possible and preferred.
+  *
+  * 21.0-1
 
  -- Greg Rodgers <Gregory.Rodgers@amd.com>  Thu, 19 May 2022 23:34:44 -0500
