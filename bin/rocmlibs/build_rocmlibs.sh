@@ -100,7 +100,7 @@ components="prereq rocm-cmake"
 if [ "$AOMP_STANDALONE_BUILD" == 1 ] ; then
   # This ordered build is important when starting from scratch
   #components="$components rocBLAS rocPRIM rocSPARSE rocSOLVER hipBLAS-common hipBLAS rocRAND hipRAND rccl half hipSOLVER"
-  components="$components rocBLAS rocPRIM rocSPARSE rocSOLVER hipBLAS-common hipBLAS rocRAND hipRAND rccl half "
+  components="$components rocBLAS rocPRIM rocSPARSE rocSOLVER hipBLAS-common hipBLAS rocRAND hipRAND half "
 else
   echo "ERROR: Cannot run $0 with AOMP_STANDALONE_BUILD=$AOMP_STANDALONE_BUILD"
   echo "       Please set $AOMP_STANDALONE_BUILD=1"
