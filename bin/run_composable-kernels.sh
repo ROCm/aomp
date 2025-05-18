@@ -202,6 +202,7 @@ done
 # Get some info on the system
 : ${ROCM_PATH:=/opt/rocm}
 : ${CK_GPU_TARGETS:=''}
+: ${AOMP_LIB_PATH:="${AOMP}/.."}
 
 if [ -z ${CK_GPU_TARGETS} ]; then
   NumGpuArchs=$(amdgpu-arch | sort | uniq | wc -l)
@@ -337,12 +338,20 @@ if [ "${SelectedSuite}" == 'benchmarks' ]; then
   CKBenchmarkResultOutput="${CK_BENCHMARK_RESULT}/${CKBenchmarkName}.output"
   CKBenchmarkBackend='ck'
   CKBenchmarkCmd="./run_gemm.py ${CKBenchmarkBackend} ${CKBenchmarkTest} --output ${CKBenchmarkResultOutput}"
-  CKBenchmarkEnvAdditions="export CK_PROFILER_DIR=${CK_BUILD}/bin"
+
+  # Make sure that we prefer the AOMP libraries over the system ones
+  CKBenchmarkLDLibraryPath="${AOMP_LIB_PATH}"
+  if [ ! -z ${LD_LIBRARY_PATH} ]; then
+    CKBenchmarkLDLibraryPath="${CKBenchmarkLDLibraryPath}:${LD_LIBRARY_PATH}"
+  fi
+  CKBenchmarkProfilerExport="export CK_PROFILER_DIR=${CK_BUILD}/bin"
+  CKBenchmarkLDLibraryPathExport="export LD_LIBRARY_PATH=${CKBenchmarkLDLibraryPath}"
 
   pushd ${CK_BENCHMARK_REPO}/scripts || exit 1
 
-  echo "Benchmark Command: ${CKBenchmarkEnvAdditions} ; ${CKBenchmarkCmd}"
-  ${CKBenchmarkEnvAdditions}
+  echo "Benchmark Command: ${CKBenchmarkProfilerExport} ; ${CKBenchmarkCmd}"
+  ${CKBenchmarkLDLibraryPathExport}
+  ${CKBenchmarkProfilerExport}
   ${CKBenchmarkCmd}
 
   popd
