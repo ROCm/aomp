@@ -5,6 +5,7 @@
 <remote name="gerritgit" review="git.amd.com:8080" fetch="ssh://gerritgit/" />
 <remote name="roctools"  fetch="https://github.com/ROCm-Developer-Tools/" />
 <remote name="roc"  fetch="https://github.com/RadeonOpenCompute/" />
+<remote name="rocm"  fetch="https://github.com/rocm/" />
 <remote name="llnl" fetch="https://github.com/LLNL/" />
 <remote name="kokkos" fetch="https://github.com/kokkos/" />
 <remote name="amdlibs" fetch="https://github.com/AMDComputeLibraries/" />
@@ -18,6 +19,7 @@
 <remote name="GenASis" fetch="https://github.com/GenASis/" />
 <remote name="GenASiS_Basics" fetch="https://github.com/GenASiS/" />
 <remote name="UMT" fetch="https://github.com/LLNL/" />
+<remote name="lcf" fetch="https://github.com/zjin-lcf/" />
 
 <!-- --- List of test repos and the path they are cloned to --- -->
 
@@ -39,5 +41,7 @@
 <project remote="GenASis"  path="GenASis"  name="GenASis" revision="master" groups="unlocked" />
 <project remote="GenASiS_Basics"  path="GenASiS_Basics"  name="GenASiS_Basics" revision="master" groups="unlocked" />
 <project remote="UMT"  path="UMT"  name="UMT" revision="develop" groups="unlocked" />
+<project remote="lcf"  path="HeCBench"  name="HeCBench" revision="master" groups="unlocked" />
+<project remote="rocm"  path="rccl-tests"  name="rccl-tests" revision="master" groups="unlocked" />
 
 </manifest>

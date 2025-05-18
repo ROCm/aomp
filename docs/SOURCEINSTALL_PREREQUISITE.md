@@ -12,6 +12,9 @@
 
   # Additional packages used by math librares (aomp-hip-libraries)
   sudo apt-get install libfmt-dev libmsgpack-dev python3-venv
+  
+  # Additional packages to support development and test
+  sudo apt-get install shellcheck
 ```
 
 Ubuntu 22.04 Only
@@ -42,6 +45,9 @@ Ubuntu 24.04 Only
 
   # Optional: Update python3 symbolic link
   rm /usr/bin/python3; ln -s /usr/local/bin/python3.8 /usr/bin/python3
+
+  # Additional packages to support development and test
+  sudo zypper install shellcheck
 ```
 
 #### RHEL Packages
@@ -54,6 +60,9 @@ RHEL 8
 
   # Additional packages used by math librares (aomp-hip-libraries)
   sudo yum install libfmt-devel libmsgpack-devel
+
+  # Additional packages to support development and test
+  sudo yum install shellcheck
 ```
 
 RHEL 9
@@ -68,6 +77,9 @@ RHEL 9
 
   # To build aomp with Ninja set AOMP_USE_NINJA=1 . You need this installed with dnf
   dnf install ninja-build
+
+  # Additional packages to support development and test
+  sudo dnf install shellcheck
 ```
 
 ### 2. User-installed Python Components
