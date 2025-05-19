@@ -53,7 +53,7 @@ EOF
 }
 
 SUPPLEMENTAL_COMPONENTS=${SUPPLEMENTAL_COMPONENTS:-openmpi silo hdf5 fftw ninja}
-PREREQUISITE_COMPONENTS=${PREREQUISITE_COMPONENTS:-cmake rocmsmilib hwloc aqlprofile}
+PREREQUISITE_COMPONENTS=${PREREQUISITE_COMPONENTS:-cmake rocmsmilib hwloc aqlprofile rocm-core}
 
 # --- Start standard header to set AOMP environment variables ----
 realpath=`realpath $0`
@@ -284,9 +284,14 @@ function getrocmpackage(){
   if [ -d $_installdir ] ; then
     runcmd "rm -rf $_installdir"
   fi
-  runcmd "mkdir -p $_installdir/lib"
-  runcmd "cd $_installdir"
-  runcmd "cp -rp $_builddir/opt/rocm-"$_packageversion"/lib  $_installdir"
+  if [ "$_cname" == "rocm-core" ] ; then
+    runcmd "mkdir -p $_installdir"
+    runcmd "cp -rp $_builddir/opt/rocm-"$_packageversion/." $_installdir"
+  else
+    runcmd "mkdir -p $_installdir/lib"
+    runcmd "cd $_installdir"
+    runcmd "cp -rp $_builddir/opt/rocm-"$_packageversion"/lib  $_installdir"
+  fi
 
   if [ -L $_linkfrom ] ; then
     runcmd "rm $_linkfrom"
@@ -567,6 +572,8 @@ for _component in $_components ; do
     getrocmpackage aqlprofile hsa-amd-aqlprofile 1.0.0
   elif [ $_component == "openclicdloader" ] ; then
     getrocmpackage openclicdloader rocm-opencl-icd-loader 1.2
+  elif [ $_component == "rocm-core" ] ; then
+    getrocmpackage rocm-core rocm-core 6.4.0
   else
     echo "ERROR:  Invalid component name $_component" >>$CMDLOGFILE
     echo "ERROR:  Invalid component name $_component"
