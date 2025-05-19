@@ -9,6 +9,7 @@
 <!-- These first 4 repos are NOT rocm 6.4. They are compiler developer branches -->
     <project remote="roc" path="llvm-project" name="llvm-project"    revision="amd-staging" groups="unlocked" />
     <project remote="roc" path="SPIRV-LLVM-Translator" name="SPIRV-LLVM-Translator"    revision="amd-staging" groups="unlocked" />
+    <project remote="roc" path="hipify" name="hipify"    revision="amd-staging" groups="unlocked" />
 
     <project remote="roc" path="flang" name="flang"               revision="aomp-dev" groups="unlocked" />
     <project remote="roc" path="aomp" name="aomp"                 revision="aomp-dev" groups="unlocked" />
