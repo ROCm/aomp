@@ -2,6 +2,7 @@ include ../Makefile.defs
 
 TESTS_DIR = \
     crayptr-default \
+    flang-325095 \
     flang-364228-2 \
     flang-364228-3 \
     flang-421111-3 \
