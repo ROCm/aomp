@@ -26,7 +26,7 @@ int main()
   for (i=0; i<N; i++)
     if (a[i] != b[i] ) {
       rc++;
-      printf ("Wrong varlue: a[%d]=%d\n", i, a[i]);
+      printf ("Wrong value: a[%d]=%d\n", i, a[i]);
     }
 
   if (!rc)
@@ -35,4 +35,4 @@ int main()
   return rc;
 }
 
-/// CHECK: Kernel Duration: {{[0-9]+}} ns
+/// CHECK: [Autotuning run] Kernel {{[^ ]+}} with {{[0-9]+}} teams and {{[0-9]+}} threads completed in {{[0-9]+}} ns.
