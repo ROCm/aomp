@@ -33,6 +33,7 @@ TESTS_DIR = \
     flang_red_bug_51 \
     kernel-exec-modes-host \
     mathquad-tgt \
+    multi-generic-exe \
     rocm-aomp-issue-842 \
     rocm-issue-208 \
     rocm-issue-241 \
