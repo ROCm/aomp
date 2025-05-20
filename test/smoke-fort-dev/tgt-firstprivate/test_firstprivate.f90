@@ -163,8 +163,8 @@ contains
     else
        print *, "FAIL: ", msg
     end if
-    
   end subroutine print_result
+
   function match_int(a, b, lb, ub) result(check_result)
     integer, intent(in) :: lb, ub
     integer, dimension(lb:ub), intent(in) :: a, b
