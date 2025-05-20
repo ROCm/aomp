@@ -29,6 +29,7 @@ TESTS_DIR = \
     flang-523344-host \
     flang-524183 \
     flang-529634 \
+    flang-533615 \
     flang-gpu-exit \
     flang_red_bug_51 \
     kernel-exec-modes-host \
