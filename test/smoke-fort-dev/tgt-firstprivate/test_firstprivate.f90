@@ -45,11 +45,11 @@ program test_firstprivate
   logical :: main_result
   
   main_result = .TRUE.
-  main_result = test_int_non_allocatable()
-  main_result = test_int_allocatable(10)
-  main_result = test_int_allocatable_with_bounds(-5, 5)
-  main_result = test_char_non_allocatable()
-  main_result = test_char_allocatable()
+  main_result = main_result .AND. test_int_non_allocatable()
+  main_result = main_result .AND. test_int_allocatable(10)
+  main_result = main_result .AND. test_int_allocatable_with_bounds(-5, 5)
+  main_result = main_result .AND. test_char_non_allocatable()
+  main_result = main_result .AND. test_char_allocatable()
   if (.not. main_result) then
      print *, "(test_firstprivate): FAIL"
      stop 1
@@ -65,6 +65,7 @@ contains
     
    call memcpy_int(a, b, 10)
    test_result = match_int(a, b, 1, 10)
+   call print_result(test_result, "test_int_non_allocatable")
   end function test_int_non_allocatable
 
   function test_int_allocatable(n) result(test_result)
@@ -84,6 +85,7 @@ contains
 
     deallocate(a)
     deallocate(b)
+    call print_result(test_result, "test_int_allocatable")
   end function test_int_allocatable
 
   function test_int_allocatable_with_bounds(lb, ub) result(test_result)
@@ -103,6 +105,7 @@ contains
 
     deallocate(a)
     deallocate(b)
+    call print_result(test_result, "test_int_allocatable_with_bounds")
   end function test_int_allocatable_with_bounds
 
   function test_char_non_allocatable() result(test_result)
@@ -113,6 +116,7 @@ contains
 
     call memcpy_char(a, b)
     test_result = match_char(a, b)
+    call print_result(test_result, "test_char_non_allocatable")
   end function test_char_non_allocatable
 
   function test_char_allocatable() result(test_result)
@@ -126,6 +130,11 @@ contains
     a = "john"
     call memcpy_char(a, b)
     test_result = match_char(a, b)
+
+    deallocate(a)
+    deallocate(b)
+    call print_result(test_result, "test_char_allocatable")
+
   end function test_char_allocatable
 
   subroutine initialize(arr, lb, ub, val)
@@ -145,6 +154,17 @@ contains
     end if
   end subroutine initialize
 
+  subroutine print_result(res, msg)
+    logical, intent(in) :: res
+    character(len=*), intent(in) :: msg
+
+    if (res) then
+       print *, "PASS: ", msg
+    else
+       print *, "FAIL: ", msg
+    end if
+    
+  end subroutine print_result
   function match_int(a, b, lb, ub) result(check_result)
     integer, intent(in) :: lb, ub
     integer, dimension(lb:ub), intent(in) :: a, b
