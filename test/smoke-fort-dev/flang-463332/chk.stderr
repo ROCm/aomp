@@ -1,0 +1,5 @@
+omptarget message: device mapping required by 'present' map type modifier does not exist for host address 0xXXXX (4000 bytes)
+omptarget error: Call to getTargetPointer returned null pointer ('present' map type modifier).
+omptarget error: Consult https://openmp.llvm.org/design/Runtimes.html for debugging options.
+omptarget error: Source location information not present. Compile with -g or -gline-tables-only.
+omptarget fatal error 1: failure of target construct while offloading is mandatory
