@@ -170,7 +170,7 @@ fi
 
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 $AOMP_CMAKE -DOFFLOAD_ARCH=$AOMP_GPU \
--DENABLE_OFFLOAD=ON -DOFFLOAD_TARGET="amdgcn-amd-amdhsa" \
+-DQMC_GPU=openmp -DOFFLOAD_TARGET="amdgcn-amd-amdhsa" \
 -DENABLE_TIMERS=1 \
 $custom_opts \
 ..
