@@ -168,14 +168,6 @@ if [ "$1" == "install" ] ; then
       echo "ERROR make install failed "
       exit 1
    fi
-   if [ $AOMP_BUILD_FLANG_CLASSIC == 1 ] ; then
-      echo "------ Linking flang-classic to flang -------"
-      if [ -L $AOMP_INSTALL_DIR/bin/flang ] ; then
-         $SUDO rm $AOMP_INSTALL_DIR/bin/flang
-      fi
-      cd $LLVM_INSTALL_LOC/bin
-      $SUDO ln -sf flang-classic flang
-   fi
    echo
    echo "SUCCESSFUL INSTALL to $AOMP_INSTALL_DIR"
    echo
