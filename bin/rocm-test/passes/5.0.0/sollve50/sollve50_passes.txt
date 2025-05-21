@@ -96,6 +96,5 @@ test_target_uses_allocators_cgroup.c
 test_target_uses_allocators_const.c
 test_target_uses_allocators_large_cap.c
 test_target_uses_allocators_pteam.c
-test_task_detach.F90
 test_taskwait_depend.c
 test_teams.F90

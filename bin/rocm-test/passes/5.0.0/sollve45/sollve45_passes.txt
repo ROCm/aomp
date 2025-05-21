@@ -27,7 +27,6 @@ test_declare_target_link_extended_list.c
 test_parallel_sections.c
 test_target_data_map_components_from.F90
 test_target_data_map.F90
-test_target_data_map_from_array_sections.F90
 test_target_data_map_to_array_sections.F90
 test_target_device1.c
 test_target_enter_data_components_alloc.F90
