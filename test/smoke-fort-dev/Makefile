@@ -8,6 +8,7 @@ TESTS_DIR = \
     flang-523587 \
     flang-527219 \
     flang-529628 \
+    flang-local-aa \
     hipfort \
     multi-generic \
     multi-generic-exe \
