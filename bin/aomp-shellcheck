@@ -15,25 +15,47 @@
 #         return 0
 #       
 
-_fixByHand="SC2050"
-_fixByHand="${_fixByHand},SC2046"
-_fixByHand="${_fixByHand},SC2291"
-_fixByHand="${_fixByHand},SC2181"
-_fixByHand="${_fixByHand},SC2236"
-_fixByHand="${_fixByHand},SC2086"
-_fixByHand="${_fixByHand},SC2034" # ignore unused vars
-_fixByHandOpts="--shell=bash --include=${_fixByHand}"
-#
-_patchable="SC2164"
-_patchable="${_patchable},SC2006"
-_patchableOpts="--shell=bash -f diff --include=${_patchable}"
+# Join list of arguments using separator passed as first argument.
+#   join ',' a b c
+# -> a,b,c
+join() {
+  local IFS=$1
+  shift
+  printf "%s" "$*"
+}
 
-_alwaysExclude="SC2016" # use double quote instead of single
-_alwaysExclude="${_alwaysExclude},SC1083" # TODO: consider this for fixByHand
-_alwaysExcludeOpts="--shell=bash --exclude=${_alwaysExclude}"
+_fixByHand=(SC2050   # Forgotten $ on variable
+            SC2046   # Quote to prevent word splitting
+            SC2291   # Quote repeated spaces
+            SC2181   # Check exit code directly not with $?
+            SC2236   # Use -n instead of ! -z
+            SC2086   # Double quote to prevent globbing and word splitting
+            SC2034   # Ignore unused vars
+            SC1083   # Accidentally literal braces
+            SC2076   # Regex syntax check
+            SC2038   # find -print0
+            SC2068)  # Avoid re-splitting array expansion
+_fixByHandOpts=(--shell=bash --include="$(join ',' "${_fixByHand[@]}")")
 
-_shellfile=$1
-if [ -z $_shellfile ] || [ ! -f $_shellfile ] ; then 
+_patchable=(SC2164   # Use cd ... || exit
+            SC2006)  # Use $(...) instead of legacy backticks
+_patchableOpts=(--shell=bash -f diff --include="$(join ',' "${_patchable[@]}")")
+
+_alwaysExclude=(SC2016  # Use double quote instead of single
+                SC2002  # Useless cat
+                SC2004) # '$' on arithmetic vars
+_alwaysExcludeOpts=(--shell=bash --exclude="$(join ',' "${_alwaysExclude[@]}")")
+
+declare -a _shellfiles=( "$@" )
+_missing=0
+for _shellfile in "${_shellfiles[@]}"; do
+  if [ ! -f "$_shellfile" ]; then
+    (( _missing++ ))
+  fi
+done
+unset _shellfile
+
+if [ "${#_shellfiles[@]}" -eq 0 ] || [ "$_missing" -gt 0 ] ; then
    echo "ERROR: please specify an existing input file as 1st argument"
    exit 1
 fi
@@ -45,40 +67,40 @@ if [ "$_shellcheck_bin" == "" ] ; then
 fi
 
 _patchfile=/tmp/patchfile$$
-touch $_patchfile
-if [ $? != 0 ] ; then
+
+if ! touch "$_patchfile"; then
    echo "ERROR: Could not create or update $_patchfile"
    exit 1
 fi
 echo
 echo "---- STEP 1 ---- Check for fixByHand fails -----"
-echo "$_shellcheck_bin $_fixByHandOpts $_shellfile" 
-$_shellcheck_bin $_fixByHandOpts $_shellfile 
+echo "$_shellcheck_bin -x ${_fixByHandOpts[*]} ${_shellfiles[*]}"
+
+$_shellcheck_bin -x "${_fixByHandOpts[@]}" "${_shellfiles[@]}"
 _rc=$?
-if [ $_rc != 0 ] ; then
+if [[ $_rc != 0 ]]; then
    echo
-   echo "ERROR: shellcheck found erros that must be fixed by hand. rc=$-rc"
+   echo "ERROR: shellcheck found errors that must be fixed by hand. rc=$_rc"
    exit 1
 fi
 echo
 echo "---- STEP 2 ---- Check and repair patchable fails -----"
-echo "$_shellcheck_bin $_patchableOpts $_shellfile \>$_patchfile"
-$_shellcheck_bin $_patchableOpts $_shellfile >$_patchfile
-patch -p1 --dry-run <$_patchfile
-_rc=$?
-if [ $_rc != 0 ] ; then
-   echo "ERROR: Could not dryrun patch in $_patchfile to file $_shellfile"
+echo "$_shellcheck_bin -x ${_patchableOpts[*]} ${_shellfiles[*]} \>$_patchfile"
+$_shellcheck_bin -x "${_patchableOpts[@]}" "${_shellfiles[@]}" >$_patchfile
+
+if ! patch -p1 --dry-run <"$_patchfile"; then
+   echo "ERROR: Could not dryrun patch in $_patchfile to file ${_shellfiles[*]}"
    exit 1
 fi
 echo
-echo "---- STEP 3 ---- Applying patch $_patchfile to $_shellfile"
-patch -p1 <$_patchfile
-echo rm $_patchfile
-rm $_patchfile # patch should work because of dryrun test above
+echo "---- STEP 3 ---- Applying patch $_patchfile to ${_shellfiles[*]}"
+patch -p1 <"$_patchfile"
+echo "rm $_patchfile"
+rm "$_patchfile" # patch should work because of dryrun test above
 echo
 echo "---- STEP 4 ---- Test for codes not handled in $0"
-echo "$_shellcheck_bin $_alwaysExcludeOpts $_shellfile"
-$_shellcheck_bin $_alwaysExcludeOpts $_shellfile
+echo "$_shellcheck_bin -x ${_alwaysExcludeOpts[*]} ${_shellfiles[*]}"
+$_shellcheck_bin -x "${_alwaysExcludeOpts[@]}" "${_shellfiles[@]}"
 _rc=$?
 if [ $_rc != 0 ] ; then
    echo
@@ -86,5 +108,9 @@ if [ $_rc != 0 ] ; then
    exit $_rc
 fi
 echo
-echo "DONE: script $_shellfile is clean"
+if [ "${#_shellfiles[@]}" -eq 1 ]; then
+  echo "DONE: script ${_shellfiles[*]} is clean"
+else
+  echo "DONE: scripts $(join ',' ${_shellfiles[@]}) are clean"
+fi
 exit 0
