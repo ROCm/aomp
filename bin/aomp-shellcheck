@@ -1,0 +1,90 @@
+#!/bin/bash
+#
+#  aomp-shell-format: Run shellcheck and shfmt to cleanup aomp shell script.
+#
+#  Process:
+#   1. RUn shellcheck --include $_fixByHand, fail if any found
+#   2. Run shellcheck --include $_patchable to generate patch
+#   3  Apply patch
+#   4. Run shellcheck --exclude $_alwaysExclude
+#      if any fails then 
+#        return 1
+#        proceed to update this aomp-shell-format utility by adding
+#        falled codes to either _fixByHand, _patchable, or _alwaysExclude
+#      else
+#         return 0
+#       
+
+_fixByHand="SC2050"
+_fixByHand="${_fixByHand},SC2046"
+_fixByHand="${_fixByHand},SC2291"
+_fixByHand="${_fixByHand},SC2181"
+_fixByHand="${_fixByHand},SC2236"
+_fixByHandOpts="--shell=bash --include=${_fixByHand}"
+#
+_patchable="SC2086"
+_patchable="${_patchable},SC2164"
+_patchable="${_patchable},SC2006"
+_patchableOpts="--shell=bash -f diff --include=${_patchable}"
+
+_alwaysExclude="SC2034"   # ignore unused vars 
+_alwaysExclude="${_alwaysExclude},SC2016" # use double quote instead of single
+_alwaysExclude="${_alwaysExclude},SC1083" # TODO: consider this for fixByHand
+_alwaysExcludeOpts="--shell=bash --exclude=${_alwaysExclude}"
+
+_shellfile=$1
+if [ -z $_shellfile ] || [ ! -f $_shellfile ] ; then 
+   echo "ERROR: please specify an existing input file as 1st argument"
+   exit 1
+fi
+
+_shellcheck_bin=$(which shellcheck)
+if [ "$_shellcheck_bin" == "" ] ; then
+   echo "ERROR: please install shellcheck"
+   exit 1
+fi
+
+_patchfile=/tmp/patchfile$$
+touch $_patchfile
+if [ $? != 0 ] ; then
+   echo "ERROR: Could not create or update $_patchfile"
+   exit 1
+fi
+echo
+echo "---- STEP 1 ---- Check for fixByHand fails -----"
+echo "$_shellcheck_bin $_fixByHandOpts $_shellfile" 
+$_shellcheck_bin $_fixByHandOpts $_shellfile 
+_rc=$?
+if [ $_rc != 0 ] ; then
+   echo
+   echo "ERROR: shellcheck found erros that must be fixed by hand. rc=$-rc"
+   exit 1
+fi
+echo
+echo "---- STEP 2 ---- Check and repair patchable fails -----"
+echo "$_shellcheck_bin $_patchableOpts $_shellfile \>$_patchfile"
+$_shellcheck_bin $_patchableOpts $_shellfile >$_patchfile
+patch -p1 --dry-run <$_patchfile
+_rc=$?
+if [ $_rc != 0 ] ; then
+   echo "ERROR: Could not dryrun patch in $_patchfile to file $_shellfile"
+   exit 1
+fi
+echo
+echo "---- STEP 3 ---- Applying patch $_patchfile to $_shellfile"
+patch -p1 <$_patchfile
+echo rm $_patchfile
+rm $_patchfile # patch should work because of dryrun test above
+echo
+echo "---- STEP 4 ---- Test for codes not handled in $0"
+echo "$_shellcheck_bin $_alwaysExcludeOpts $_shellfile"
+$_shellcheck_bin $_alwaysExcludeOpts $_shellfile
+_rc=$?
+if [ $_rc != 0 ] ; then
+   echo
+   echo "ERROR: shellcheck found codes not yet handled, must fix $0"
+   exit $_rc
+fi
+echo
+echo "DONE: script $_shellfile is clean"
+exit 0
