@@ -12,6 +12,7 @@ TESTS_DIR = \
     flang-524638-sO3 \
     flang-527219 \
     flang-529628 \
+    flang-local-aa \
     hipfort \
     multi-generic \
     rocm-issue-201 \
