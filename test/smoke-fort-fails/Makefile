@@ -1,7 +1,6 @@
 include ../Makefile.defs
 
 TESTS_DIR = \
-    crayptr-default \
     flang-325095 \
     flang-364228-2 \
     flang-364228-3 \
@@ -9,30 +8,19 @@ TESTS_DIR = \
     flang-445999 \
     flang-446033b_loop \
     flang-446033b_ttdpd \
-    flang-463332 \
     flang-469194 \
     flang-476122a \
     flang-480581 \
-    flang-505726 \
+    flang-509074 \
     flang-509589 \
-    flang-519158 \
     flang-519158-par \
+    flang-520335 \
     flang-522059 \
-    flang-523213 \
-    flang-522365-loop-1-1 \
     flang-522365-loop-2a \
-    flang-522365-loop-2s \
     flang-522365-ttdpd-2a \
     flang-523313 \
-    flang-523626 \
-    flang-523344-device \
-    flang-523344-host \
-    flang-524183 \
-    flang-529634 \
-    flang-533615 \
     flang-gpu-exit \
     flang_red_bug_51 \
-    kernel-exec-modes-host \
     mathquad-tgt \
     multi-generic-exe \
     rocm-aomp-issue-842 \
