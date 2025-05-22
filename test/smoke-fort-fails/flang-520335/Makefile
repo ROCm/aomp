@@ -1,8 +1,8 @@
-NOOPT        = 1
+#NOOPT        = 1
 include ../../Makefile.defs
 
-TESTNAME     = present
-TESTSRC_MAIN = present.F90
+TESTNAME     = real10
+TESTSRC_MAIN = real10.f90
 TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 
