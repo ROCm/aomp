@@ -165,20 +165,62 @@ if [ "$aomp" != 1 ]; then
   os_name=$(cat /etc/os-release | grep NAME)
   test_package_name="openmp-extras-tests"
   if [ "$SKIP_TEST_PACKAGE" != 1 ] && [ "$TEST_BRANCH" == "" ]; then
+    export debsupport=0
+    export rpmsupport=0
     git --no-pager log -1
+    #------- Begin testing for package manager -------
+    echo Testing apt...
+    apt --version && pkg_mgr_found=1 || pkg_mgr_found=0
+    if [ $pkg_mgr_found -eq 1 ]; then
+      export debsupport=1
+      apt=1
+    fi
+    if [ $pkg_mgr_found -eq 0 ]; then
+      echo Testing dnf...
+      dnf --version && pkg_mgr_found=1 || pkg_mgr_found=0
+      if [ $pkg_mgr_found -eq 1 ]; then
+        export rpmsupport=1
+	dnf=1
+      fi
+    fi
+    if [ $pkg_mgr_found -eq 0 ]; then
+      echo Testing yum...
+      yum --version && pkg_mgr_found=1 || pkg_mgr_found=0
+      if [ $pkg_mgr_found -eq 1 ]; then
+        yum=1
+        export rpmsupport=1
+      fi
+    fi
+    if [ $pkg_mgr_found -eq 0 ]; then
+      echo Testing zypper...
+      zypper --version && pkg_mgr_found=1 || pkg_mgr_found=0
+      if [ $pkg_mgr_found -eq 1 ]; then
+	zypper=1
+        export rpmsupport=1
+      fi
+    fi
+    #------- End testing for package manager -------
     if [ ! -e "$ROCMINF/share/openmp-extras/tests/bin/run_rocm_test.sh" ]; then
       rm -rf $tmpdir
       mkdir -p $tmpdir
-      # Determine OS and download package not using sudo.
-      if [[ "$os_name" =~ "Ubuntu" ]] || [[ "$os_name" =~ "Debian GNU/Linux" ]]; then
+      # Determine package manager and download package not using sudo.
+      # apt support
+      if [ "$apt" == "1" ]; then
+        echo Using apt package manager
         cd $tmpdir
         apt-get download $test_package_name
         test_package=$(ls -lt $tmpdir | grep -Eo -m1 openmp-extras-tests.*)
         dpkg -x $test_package .
         script=$(find . -type f -name 'run_rocm_test.sh')
         cd $(dirname $script)
-      # CentOS/RHEL support. CentOS 7 requires a different method.
-      elif [[ "$os_name" =~ "CentOS" ]] || [[ "$os_name" =~ "Red Hat" ]] || [[ "$os_name" =~ "Oracle Linux Server" ]]; then
+      # dnf/yum support, CentOS 7 requires a different method.
+      elif [ "$dnf" == "1" ]; then
+        echo Using dnf package manager
+        dnf download --destdir=$tmpdir openmp-extras-tests
+        test_package=$(ls -lt $tmpdir | grep -Eo -m1 openmp-extras-tests.*)
+        extract_rpm $test_package
+      elif [ "$yum" == "1" ]; then
+        echo Using yum package manager
         osversion=$(cat /etc/os-release | grep -e ^VERSION_ID)
         if [[ $osversion =~ '"7' ]]; then
           yumdownloader --destdir=$tmpdir $test_package_name
@@ -187,33 +229,30 @@ if [ "$aomp" != 1 ]; then
         fi
         test_package=$(ls -lt $tmpdir | grep -Eo -m1 openmp-extras-tests.*)
         extract_rpm $test_package
-      # SLES support.
-      elif [[ "$os_name" =~ "SLES" ]]; then
+      # zypper support
+      elif [ "$zypper" == "1" ]; then
+        echo Using zypper package manager
         local_dir=~/openmp-extras-test
         rm -f "$local_dir"/*
         zypper --pkg-cache-dir $local_dir download $test_package_name
         test_package=$(ls -lt "$local_dir"/rocm/ | grep -Eo -m1 openmp-extras-tests.*)
         cp "$local_dir"/rocm/"$test_package" $tmpdir
         extract_rpm $test_package
-      elif [[ "$os_name" =~ "Microsoft Azure Linux" ]]; then
-	dnf download --destdir=$tmpdir openmp-extras-tests
-	test_package=$(ls -lt $tmpdir | grep -Eo -m1 openmp-extras-tests.*)
-	extract_rpm $test_package
       else
-        echo "Error: Could not determine operating system package manager type."
+        echo "Error: Could not determine package manager type."
         exit 1
       fi
-    # Environment already has test package
+    # Environment already has test package, use it
     else
       rm -rf $tmpdir
       mkdir -p $tmpdir
       cp -ra "$ROCMINF"/share/openmp-extras/tests $tmpdir
       cd $tmpdir/tests/bin
     fi
-  ./rocm_quick_check.sh
-  export SKIP_TEST_PACKAGE=1
-  ./run_rocm_test.sh
-  exit $?
+    ./rocm_quick_check.sh
+    export SKIP_TEST_PACKAGE=1
+    ./run_rocm_test.sh
+    exit $?
   fi
 fi
 echo $AOMP $REAL_AOMP using test branch $TEST_BRANCH
@@ -338,11 +377,11 @@ function getversion(){
     ompextrasregex="openmp-extras-?[a-z]*-?\s*[0-9]+\.([0-9]+)\.([0-9]+)"
     rpmregex="Red Hat|CentOS|SLES|Oracle Linux Server|Microsoft Azure Linux|Alibaba Linux Server"
     echo $osname
-    if [[ "$osname" =~ $rpmregex ]]; then
-      echo "Red Hat/CentOS/SLES/Oracle/Microsoft Azure/Alibaba Linux Server found"
+    if [ $rpmsupport -eq 1 ]; then
+      echo "OS with rpm support found"
       ompextraspkg=$(rpm -qa | grep openmp-extras | tail -1)
-    elif [[ "$os_name" =~ "Ubuntu" ]] || [[ "$os_name" =~ "Debian" ]]; then
-      echo "Ubuntu/Debian found"
+    elif [ $debsupport -eq 1 ]; then
+      echo "OS with deb support found"
       ompextraspkg=$(dpkg --list | grep openmp-extras | tail -1)
     fi
     if [[ "$ompextraspkg" =~ $ompextrasregex ]]; then
