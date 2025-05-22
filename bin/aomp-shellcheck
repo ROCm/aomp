@@ -20,15 +20,15 @@ _fixByHand="${_fixByHand},SC2046"
 _fixByHand="${_fixByHand},SC2291"
 _fixByHand="${_fixByHand},SC2181"
 _fixByHand="${_fixByHand},SC2236"
+_fixByHand="${_fixByHand},SC2086"
+_fixByHand="${_fixByHand},SC2034" # ignore unused vars
 _fixByHandOpts="--shell=bash --include=${_fixByHand}"
 #
-_patchable="SC2086"
-_patchable="${_patchable},SC2164"
+_patchable="SC2164"
 _patchable="${_patchable},SC2006"
 _patchableOpts="--shell=bash -f diff --include=${_patchable}"
 
-_alwaysExclude="SC2034"   # ignore unused vars 
-_alwaysExclude="${_alwaysExclude},SC2016" # use double quote instead of single
+_alwaysExclude="SC2016" # use double quote instead of single
 _alwaysExclude="${_alwaysExclude},SC1083" # TODO: consider this for fixByHand
 _alwaysExcludeOpts="--shell=bash --exclude=${_alwaysExclude}"
 
