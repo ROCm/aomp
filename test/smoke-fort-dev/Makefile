@@ -6,6 +6,7 @@ TESTS_DIR = \
     do-concurrent-device \
     do-concurrent-host \
     flang-463332 \
+    flang-325095-2 \
     flang-464660-2 \
     flang-471469 \
     flang-505726 \
@@ -26,6 +27,7 @@ TESTS_DIR = \
     flang-527219 \
     flang-529628 \
     flang-529634 \
+    flang-local-aa \
     hipfort \
     kernel-exec-modes-host \
     multi-generic \
