@@ -2,6 +2,8 @@ program foo
     implicit none
     integer :: i
     i = 42
+    ! if(.false.) is intentional to execute the target region on the host
+    ! to see if it still adheres to OpenMP semantics and host execution
     !$omp target if(.false.)
         i = 21
     !$omp end target
