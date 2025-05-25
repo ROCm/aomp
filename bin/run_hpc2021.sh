@@ -20,7 +20,7 @@ if [ "$1" == "-clean" ]; then
   cd ${HPC2021_SOURCE_DIR} || exit 1
   set -x
   #WLOC=http://roclogin.amd.com/SPEC
-  WLOC=http://aomp-tr01.amd.com/SPEC
+  WLOC=https://compute-artifactory.amd.com/artifactory/rocm-generic-local/compiler-infra
   wget --timeout 15 --tries=3 -q $WLOC/hpc2021-1.1.9.tar.xz
   wget --timeout 15 --tries=3 -q $WLOC/Hpc21-scripts.tar
   tar xf hpc2021-1.1.9.tar.xz

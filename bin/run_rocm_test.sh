@@ -1026,7 +1026,7 @@ function hpc2021(){
     echo "running on ubuntu"
     pushd /tmp;
     #WLOC=http://roclogin.amd.com/SPEC
-    WLOC=http://aomp-tr01.amd.com/SPEC
+    WLOC=https://compute-artifactory.amd.com/artifactory/rocm-generic-local/compiler-infra
     wget --timeout 15 --tries=3 -q $WLOC/npsdbOmpi.tar
     tar xf npsdbOmpi.tar
     rm -f npsdbOmpi.tar
