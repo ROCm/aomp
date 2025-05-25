@@ -22,7 +22,7 @@ unset CMAKE_GENERATOR
 AOMP_COMPILER_NAME=${AOMP_COMPILER_NAME:-AOMP}
 
 # ROCM_VERSION may be set by Jenkins, if not guess a good number
-ROCM_VERSION=${ROCM_VERSION:-6.0.0}
+ROCM_VERSION=${ROCM_VERSION:-6.4.0}
 
 # Set the AOMP VERSION STRING
 AOMP_VERSION=${AOMP_VERSION:-"21.0"}
@@ -298,18 +298,6 @@ for arch in ${ROCMLIBS_GFXLIST//;/ }; do
   if [[ ! $GFXLIST =~ $arch ]]; then
     echo "ERROR: ROCMLIBS_GFXLIST architecture $arch not in GFXLIST $GFXLIST"
     echo "Please update ROCMLIBS_GFXLIST to be a subset of GFXLIST, or leave it undefined to use the default architecture list."
-    exit 1
-  fi
-done
-
-# rccl currently doesn't support gfx1103 and gfx1150.
-RCCL_GFXLIST=${RCCL_GFXLIST:-"gfx90a;gfx942"}
-
-# Do a sanity check for stanalone build that RCCL_GFXLIST is a subset of ROCMLIBS_GFXLIST
-for arch in ${RCCL_GFXLIST//;/ }; do
-  if [[ ! $ROCMLIBS_GFXLIST =~ $arch ]]; then
-    echo "ERROR: RCCL_GFXLIST architecture $arch not in ROCMLIBS_GFXLIST $ROCMLIBS_GFXLIST"
-    echo "Please update RCCL_GFXLIST to be a subset of ROCMLIBS_GFXLIST, or leave it undefined to use the default architecture list."
     exit 1
   fi
 done

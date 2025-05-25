@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-
+set -x
 CKRepoURL='https://github.com/ROCm/composable_kernel.git'
 CKRepoBranchName='develop'
 CKBenchmarkRepoBranchName='main'
@@ -367,7 +367,7 @@ if [ "${SelectedSuite}" == 'client-examples' ]; then
   CKCmakeCmd+="-B ${CK_CLIENT_EXAMPLES_BUILD} -S ${CK_CLIENT_EXAMPLES_SOURCE} "
   CKCmakeCmd+="-DCMAKE_CXX_COMPILER=${AOMP}/../../bin/hipcc "
   CKCmakeCmd+="-DCMAKE_CXX_COMPILER_LAUNCHER=ccache "
-  CKCmakeCmd+="-DCMAKE_PREFIX_PATH=${AOMP};${CK_INSTALL} "
+  CKCmakeCmd+="-DCMAKE_PREFIX_PATH=${AOMP}/../cmake;${CK_INSTALL} "
   CKCmakeCmd+="-DGPU_TARGETS=${CK_GPU_TARGETS} "
 
   echo "Rebuilding the CK client-examples"

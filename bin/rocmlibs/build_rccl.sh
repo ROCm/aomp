@@ -2,7 +2,9 @@
 # 
 #  build_rccl.sh: Script to build and install rccl.
 #                 This uses a slightly modified install.sh from rccl. 
+#                 It has a dependency on rocm-core.
 #
+
 BUILD_TYPE=${BUILD_TYPE:-Release}
 
 # --- Start standard header to set AOMP environment variables ----
@@ -24,17 +26,25 @@ fi
 
 patchrepo $_source_dir
 
+export CC=$LLVM_INSTALL_LOC/bin/clang
+export CXX=$LLVM_INSTALL_LOC/bin/clang++
+export FC=$LLVM_INSTALL_LOC/bin/flang
+export ROCM_DIR=$AOMP_INSTALL_DIR
+export ROCM_PATH=$AOMP_INSTALL_DIR
+# rccl needs cmake 3.25, so put prereq cmake first in path
+export PATH=$AOMP_SUPP/cmake/bin:$AOMP_INSTALL_DIR/bin:$PATH
+export NUM_PROC=$AOMP_JOB_THREADS
+export CXXFLAGS="-I$HOME/local/rocm-core/include"
+export LDFLAGS="-fPIC"
+
 if [ "$AOMP_USE_CCACHE" != 0 ] ; then
    _ccache_bin=`which ccache`
    export CMAKE_CXX_COMPILER_LAUNCHER=$_ccache_bin
 fi
 
-# rccl needs cmake 3.25, so put prereq cmake first in path
-export PATH=$AOMP_SUPP/cmake/bin:$PATH
-
-if [ $AOMP_STANDALONE_BUILD == 1 ] ; then 
-   if [ ! -L $AOMP ] ; then 
-     if [ -d $AOMP ] ; then 
+if [ $AOMP_STANDALONE_BUILD == 1 ] ; then
+   if [ ! -L $AOMP ] ; then
+     if [ -d $AOMP ] ; then
         echo "ERROR: Directory $AOMP is a physical directory."
         echo "       It must be a symbolic link or not exist"
         exit 1
@@ -45,13 +55,13 @@ else
    exit 1
 fi
 
-if [ "$1" == "nocmake" ] ; then 
+if [ "$1" == "nocmake" ] ; then
   _nocmake_option="--nocmake"
 else
   _nocmake_option=""
 fi
 
-if [ "$BUILD_TYPE" == "Release" ] ; then 
+if [ "$BUILD_TYPE" == "Release" ] ; then
   _buildtype_option=""
   _build_dir_option="release"
 else
@@ -63,7 +73,7 @@ fi
 if [ "$1" == "install" ] ; then
    $SUDO mkdir -p $AOMP_INSTALL_DIR
    $SUDO touch $AOMP_INSTALL_DIR/testfile
-   if [ $? != 0 ] ; then 
+   if [ $? != 0 ] ; then
       echo "ERROR: No update access to $AOMP_INSTALL_DIR"
       exit 1
    fi
@@ -71,14 +81,14 @@ if [ "$1" == "install" ] ; then
 fi
 
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
-   echo 
+   echo
    echo "This is a FRESH START. ERASING any previous builds in $BUILD_DIR/build/rocmlibs/$_libname"
    echo "Use ""$0 install"" to avoid FRESH START."
    echo rm -rf $BUILD_DIR/build/rocmlibs/$_libname
    rm -rf $BUILD_DIR/build/rocmlibs/$_libname
    mkdir -p $BUILD_DIR/build/rocmlibs/$_libname
 else
-   if [ ! -d $BUILD_DIR/build/rocmlibs/$_libname ] ; then 
+   if [ ! -d $BUILD_DIR/build/rocmlibs/$_libname ] ; then
       echo "ERROR: The build directory $BUILD_DIR/build/rocmlibs/$_libname does not exist"
       echo "       run $0 without install and without nocmake option"
       exit 1
@@ -92,24 +102,28 @@ if [ "$1" != "install" ] ; then
    echo
    echo " -----Running cmake in install.sh ---"
    echo cd $AOMP_REPOS/build/rocmlibs/$_libname
-   cd $AOMP_REPOS/build/rocmlibs/$_libname 
-   # --noinstall must follow --prefix because --prefix sets install_library=true
-   echo $_source_dir/install.sh $_nocmake_option $_buildtype_option -j $AOMP_JOB_THREADS --prefix $AOMP_INSTALL_DIR $_set_ninja_gen --source_dir $_source_dir --noinstall --amdgpu_targets $RCCL_GFXLIST
-   $_source_dir/install.sh $_nocmake_option $_buildtype_option -j $AOMP_JOB_THREADS --prefix $AOMP_INSTALL_DIR $_set_ninja_gen --source_dir $_source_dir --noinstall --amdgpu_targets $RCCL_GFXLIST
-   if [ $? != 0 ] ; then 
-      echo "ERROR install failed."
-      echo "       $MYCMAKEOPTS"
-      cd $_curdir
-      exit 1
-   fi
+   cd $AOMP_REPOS/build/rocmlibs/$_libname
+   echo ${AOMP_CMAKE} --toolchain=toolchain-linux.cmake -DCMAKE_BUILD_TYPE=Release -DGPU_TARGETS="$ROCMLIBS_GFXLIST" -DCMAKE_INSTALL_PREFIX=$AOMP_INSTALL_DIR -DROCM_PATH=$AOMP_INSTALL_DIR -DCOLLTRACE=OFF -DNPKIT_FLAGS="" -DONLY_FUNCS="" $_sour_dir
+   ${AOMP_CMAKE} --toolchain=toolchain-linux.cmake -DCMAKE_BUILD_TYPE=Release -DGPU_TARGETS="$ROCMLIBS_GFXLIST" -DCMAKE_INSTALL_PREFIX=$AOMP_INSTALL_DIR -DROCM_PATH=$AOMP_INSTALL_DIR -DCOLLTRACE=OFF -DNPKIT_FLAGS="" -DONLY_FUNCS="" $_source_dir
+  if [ $? != 0 ] ; then
+     echo "ERROR cmake failed."
+     echo "       $MYCMAKEOPTS"
+     cd $_curdir
+     exit 1
+  fi
+  make -j$AOMP_JOB_THREADS
+
+  if [ $? != 0 ] ; then
+     echo "ERROR make -j $AOMP_JOB_THREADS failed"
+     exit 1
+  fi
 fi
 
 if [ "$1" == "install" ] ; then
    echo " ----- Installing to $AOMP_INSTALL_DIR ----- "
    echo cd $AOMP_REPOS/build/rocmlibs/$_libname
    cd $AOMP_REPOS/build/rocmlibs/$_libname
-   echo "$_source_dir/install.sh --no_clean --nocmake -j $AOMP_JOB_THREADS --prefix $AOMP_INSTALL_DIR $_set_ninja_gen --source_dir $_source_dir"
-    $_source_dir/install.sh --no_clean --nocmake -j $AOMP_JOB_THREADS --prefix $AOMP_INSTALL_DIR $_set_ninja_gen --source_dir $_source_dir
+   make -j$AOMP_JOB_THREADS install
    if [ $? != 0 ] ; then
       echo "ERROR install to $AOMP_INSTALL_DIR failed "
       exit 1
@@ -118,9 +132,9 @@ if [ "$1" == "install" ] ; then
    echo "SUCCESSFUL INSTALL to $AOMP_INSTALL_DIR"
    echo
    removepatch $_source_dir
-else 
-   echo 
+else
+   echo
    echo "SUCCESSFUL BUILD, please run:  $0 install"
    echo "  to install into $AOMP_INSTALL_DIR"
-   echo 
+   echo
 fi
