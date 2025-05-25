@@ -1,16 +1,36 @@
 include ../Makefile.defs
 
 TESTS_DIR = \
+    crayptr-default \
+    crayptr-dsa \
     do-concurrent-device \
     do-concurrent-host \
+    flang-463332 \
+    flang-325095-2 \
     flang-464660-2 \
     flang-471469 \
+    flang-505726 \
+    flang-509074 \
+    flang-519158 \
+    flang-522365-loop-1-1 \
+    flang-522365-loop-2s \
+    flang-523213 \
+    flang-523344-device \
+    flang-523344-host \
     flang-523587 \
+    flang-523626 \
+    flang-524183 \
+    flang-524638-aO0 \
+    flang-524638-aO3 \
+    flang-524638-sO0 \
+    flang-524638-sO3 \
     flang-527219 \
     flang-529628 \
+    flang-529634 \
+    flang-local-aa \
     hipfort \
+    kernel-exec-modes-host \
     multi-generic \
-    multi-generic-exe \
     rocm-issue-201 \
     tgt-abort-lhostdev \
     tgt-firstprivate \

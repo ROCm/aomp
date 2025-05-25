@@ -53,7 +53,7 @@ EOF
 }
 
 SUPPLEMENTAL_COMPONENTS=${SUPPLEMENTAL_COMPONENTS:-openmpi silo hdf5 fftw ninja}
-PREREQUISITE_COMPONENTS=${PREREQUISITE_COMPONENTS:-cmake rocmsmilib hwloc aqlprofile}
+PREREQUISITE_COMPONENTS=${PREREQUISITE_COMPONENTS:-cmake rocmsmilib hwloc aqlprofile rocm-core}
 
 # --- Start standard header to set AOMP environment variables ----
 realpath=`realpath $0`
@@ -272,9 +272,9 @@ function getrocmpackage(){
     runcmd "dpkg -x "$_packagename$_packageversion"_"$_componentversion"."$_fullversion"-"$_buildnumber"~${deb_version}.04_amd64.deb $_builddir"
   elif [[ $osname =~ "SLES" ]]; then
     #https://repo.radeon.com/rocm/yum/6.1/main/hsa-amd-aqlprofile6.1.0-1.0.0.60100.60100-82.el7.x86_64.rpm
-    runcmd "wget https://repo.radeon.com/rocm/zyp/"$_version"/main/"$_packagename$_packageversion"-"$_componentversion"."$_fullversion"-sles155."$_buildnumber".x86_64.rpm"
-    echo ""$_packagename$_packageversion"-"$_componentversion"."$_fullversion"-sles155."$_buildnumber".x86_64.rpm | cpio -idm"
-    rpm2cpio "$_packagename$_packageversion"-"$_componentversion"."$_fullversion"-sles155."$_buildnumber".x86_64.rpm | cpio -idm
+    runcmd "wget https://repo.radeon.com/rocm/zyp/"$_version"/main/"$_packagename$_packageversion"-"$_componentversion"."$_fullversion"-sles156."$_buildnumber".x86_64.rpm"
+    echo ""$_packagename$_packageversion"-"$_componentversion"."$_fullversion"-sles156."$_buildnumber".x86_64.rpm | cpio -idm"
+    rpm2cpio "$_packagename$_packageversion"-"$_componentversion"."$_fullversion"-sles156."$_buildnumber".x86_64.rpm | cpio -idm
   else
     runcmd "wget https://repo.radeon.com/rocm/rhel8/"$_version"/main/"$_packagename$_packageversion"-"$_componentversion"."$_fullversion"-"$_buildnumber".el8.x86_64.rpm"
     echo ""$_packagename$_packageversion"-"$_componentversion"."$_fullversion"-"$_buildnumber".el8.x86_64.rpm | cpio -idm"
@@ -284,9 +284,14 @@ function getrocmpackage(){
   if [ -d $_installdir ] ; then
     runcmd "rm -rf $_installdir"
   fi
-  runcmd "mkdir -p $_installdir/lib"
-  runcmd "cd $_installdir"
-  runcmd "cp -rp $_builddir/opt/rocm-"$_packageversion"/lib  $_installdir"
+  if [ "$_cname" == "rocm-core" ] ; then
+    runcmd "mkdir -p $_installdir"
+    runcmd "cp -rp $_builddir/opt/rocm-"$_packageversion/." $_installdir"
+  else
+    runcmd "mkdir -p $_installdir/lib"
+    runcmd "cd $_installdir"
+    runcmd "cp -rp $_builddir/opt/rocm-"$_packageversion"/lib  $_installdir"
+  fi
 
   if [ -L $_linkfrom ] ; then
     runcmd "rm $_linkfrom"
@@ -567,6 +572,8 @@ for _component in $_components ; do
     getrocmpackage aqlprofile hsa-amd-aqlprofile 1.0.0
   elif [ $_component == "openclicdloader" ] ; then
     getrocmpackage openclicdloader rocm-opencl-icd-loader 1.2
+  elif [ $_component == "rocm-core" ] ; then
+    getrocmpackage rocm-core rocm-core 6.4.0
   else
     echo "ERROR:  Invalid component name $_component" >>$CMDLOGFILE
     echo "ERROR:  Invalid component name $_component"
