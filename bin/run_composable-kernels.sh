@@ -42,7 +42,7 @@ function getIndexListByTargetArch {
   # Finally, we use xargs to format the results into a tidy, single-line list.
   OnlyVisibleDevices=""
   if [ ! -z "${ROCR_VISIBLE_DEVICES}" ]; then
-    OnlyVisibleDevices="-d ${ROCR_VISIBLE_DEVICES}"
+    OnlyVisibleDevices="$(echo "-d ${ROCR_VISIBLE_DEVICES}" | tr ',' ' ')"
   fi
   GPUList="$(rocm-smi --showproductname ${OnlyVisibleDevices})"
   GPURegex="s/^GPU\[([0-9]+)\].*${TargetArch}$/\1/p"
