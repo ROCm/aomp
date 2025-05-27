@@ -66,188 +66,6 @@ index e2f7ae74..0ea9ace6 100644
  
    end subroutine CopyBigInteger_1D
    
-diff --git a/Modules/Basics/Devices/DeviceAddress_Function.f90 b/Modules/Basics/Devices/DeviceAddress_Function.f90
-index 5ceafe62..a4c7d39f 100644
---- a/Modules/Basics/Devices/DeviceAddress_Function.f90
-+++ b/Modules/Basics/Devices/DeviceAddress_Function.f90
-@@ -27,7 +27,6 @@ contains
- 
-     type ( c_ptr ) :: &
-       DA
--      
-     if ( OnDevice ( Value ) ) then
- #ifdef ENABLE_OMP_OFFLOAD
-       !$OMP target data use_device_ptr ( Value )
-diff --git a/Modules/Basics/Devices/Device_C_OMP.f90 b/Modules/Basics/Devices/Device_C_OMP.f90
-index 3e3fa4fb..57a2a8b9 100644
---- a/Modules/Basics/Devices/Device_C_OMP.f90
-+++ b/Modules/Basics/Devices/Device_C_OMP.f90
-@@ -25,7 +25,7 @@ module Device_C
-   interface 
-     
-     integer ( c_int ) function SetDevice ( iDevice ) &
--                                 bind ( c, name = 'SetDevice' )
-+                                 bind ( c, name = 'SetDevice_OMP' )
-       use iso_c_binding
-       implicit none
-       integer ( c_int ), value :: &
-@@ -34,7 +34,7 @@ module Device_C
-     
- 
-     integer ( c_int ) function GetDevice ( iDevice ) &
--                                 bind ( c, name = 'GetDevice' )
-+                                 bind ( c, name = 'GetDevice_OMP' )
-       use iso_c_binding
-       implicit none
-       integer ( c_int ) :: &
-@@ -119,7 +119,7 @@ module Device_C
-     
-     
-     type ( c_ptr ) function AllocateHostDouble ( nValues ) &
--                              bind ( c, name = 'AllocateHostDouble_Device' )
-+                              bind ( c, name = 'AllocateHostDouble_Device_OMP' )
-       use iso_c_binding
-       implicit none
-       integer ( c_int ), value :: &
-@@ -127,7 +127,7 @@ module Device_C
-     end function AllocateHostDouble
-     
-     
--    subroutine FreeHost ( Host ) bind ( c, name = 'FreeHost_Device' )
-+    subroutine FreeHost ( Host ) bind ( c, name = 'FreeHost_Device_OMP' )
-       use iso_c_binding
-       implicit none
-       type ( c_ptr ), value :: &
-@@ -176,7 +176,7 @@ module Device_C
-     
-     
-     integer ( c_int ) function DeviceMemGetInfo ( Free, Total ) &
--                        bind ( c, name = 'DeviceMemGetInfo_Device' )
-+                        bind ( c, name = 'DeviceMemGetInfo_Device_OMP' )
-       use iso_c_binding
-       implicit none
-       integer ( c_size_t ) :: &
-diff --git a/Modules/Basics/Devices/Device_OMP.c b/Modules/Basics/Devices/Device_OMP.c
-index abccbb8d..810753de 100644
---- a/Modules/Basics/Devices/Device_OMP.c
-+++ b/Modules/Basics/Devices/Device_OMP.c
-@@ -3,6 +3,13 @@
- #include <stdbool.h>
- #include <omp.h>
- 
-+#ifdef USE_LLVM_RUNTIME
-+void llvm_omp_target_free_host(void *DevicePtr, int DeviceNum);
-+void llvm_omp_target_free_device(void *DevicePtr, int DeviceNum);
-+void *llvm_omp_target_alloc_host(size_t Size, int DeviceNum);
-+void *llvm_omp_target_alloc_device(size_t Size, int DeviceNum);
-+#endif
-+
- int OnTarget_OMP ( void * Host )
-   {
-   int iDevice;
-@@ -28,9 +35,13 @@ void * AllocateTargetInteger_OMP ( int nValues )
-   /*
-   printf("nValues Alloc: %d\n", nValues );
-   printf("iDevice: %d\n", iDevice );
--  */ 
-+  */
-+  #ifdef USE_LLVM_RUNTIME
-+  D_Pointer = llvm_omp_target_alloc_device ( sizeof ( int ) * nValues, iDevice );
-+  #else
-   D_Pointer = omp_target_alloc ( sizeof ( int ) * nValues, iDevice );
--  
-+  #endif
-+
-   // printf("D_Pointer : %p\n", D_Pointer);
-   #endif 
-   
-@@ -53,8 +64,12 @@ void * AllocateTargetDouble_OMP ( int nValues )
-   printf("nValues Alloc: %d\n", nValues );
-   printf("pre iDevice: %d\n", iDevice );
-   */ 
-+  #ifdef USE_LLVM_RUNTIME
-+  D_Pointer = llvm_omp_target_alloc_device ( sizeof ( double ) * nValues, iDevice );
-+  #else
-   D_Pointer = omp_target_alloc ( sizeof ( double ) * nValues, iDevice );
--  
-+  #endif
-+
-   //printf("D_Pointer : %p\n", D_Pointer);
-   
-   //omp_set_default_device(iDevice);
-@@ -141,7 +156,11 @@ void FreeTarget_OMP ( void * D_Pointer )
-   
-   #ifdef ENABLE_OMP_OFFLOAD
-   iDevice = omp_get_default_device();
-+  #ifdef USE_LLVM_RUNTIME
-+  llvm_omp_target_free_device ( D_Pointer, iDevice );
-+  #else
-   omp_target_free ( D_Pointer, iDevice );
-+  #endif
-   #endif 
-   
-   }
-@@ -220,3 +239,60 @@ bool OffloadEnabled ( )
-   return false;
-   #endif
-   }
-+
-+int SetDevice_OMP ( int iDevice )
-+  {
-+  #ifdef ENABLE_OMP_OFFLOAD
-+  omp_set_default_device(iDevice);
-+  return 0;
-+  #else
-+  return -1;
-+  #endif
-+  }
-+
-+
-+int GetDevice_OMP ( int * iDevice )
-+  {
-+  #ifdef ENABLE_OMP_OFFLOAD
-+  *iDevice = omp_get_default_device();
-+  return 0;
-+  #else
-+  return -1;
-+  #endif
-+  }
-+
-+void * AllocateHostDouble_Device_OMP ( int nValues )
-+  {
-+  void * Host;
-+
-+  #ifdef ENABLE_OMP_OFFLOAD
-+  #ifdef USE_LLVM_RUNTIME
-+  Host = llvm_omp_target_alloc_host(sizeof ( double ) * nValues, omp_get_initial_device());
-+  #else
-+  Host = omp_target_alloc( sizeof ( double ) * nValues, omp_get_initial_device());
-+  #endif
-+  #else
-+  Host = malloc ( sizeof ( double ) * nValues );
-+  #endif
-+  return Host;
-+  }
-+
-+void FreeHost_Device_OMP ( void * Host )
-+  {
-+  #ifdef ENABLE_OMP_OFFLOAD
-+  #ifdef USE_LLVM_RUNTIME
-+  llvm_omp_target_free_host(Host, omp_get_initial_device());
-+  #else
-+  omp_target_free(Host, omp_get_initial_device());
-+  #endif
-+  #else
-+  free ( Host );
-+  #endif
-+  }
-+
-+int DeviceMemGetInfo_Device_OMP ( size_t * Free, size_t * Total )
-+  {
-+  Free  = 0;
-+  Total = 0;
-+  return -1;
-+  }
 diff --git a/Modules/Basics/Display/CONSOLE_Singleton.f90 b/Modules/Basics/Display/CONSOLE_Singleton.f90
 index 2f8cd18a..aa5b4ac0 100644
 --- a/Modules/Basics/Display/CONSOLE_Singleton.f90
@@ -290,3 +108,77 @@ index a2d813c..335e77b 100644
 
      !-- FIXME: Implicit do-loop array needed to workaround Cray compiler
      !          crashes for elemental function argument of array and scalar
+diff --git a/Modules/Basics/Devices/Device_HIP.c b/Modules/Basics/Devices/Device_HIP.c
+index cd2c80a4..1aaed77d 100644
+--- a/Modules/Basics/Devices/Device_HIP.c
++++ b/Modules/Basics/Devices/Device_HIP.c
+@@ -1,3 +1,4 @@
++#ifndef USE_OPENMP_RUNTIME
+ #include <stdlib.h>
+ #include <stdio.h>
+
+@@ -86,3 +87,4 @@ int DeviceMemGetInfo_Device ( size_t * Free, size_t * Total )
+   return -1;
+   #endif
+   }
++#endif
+diff --git a/Modules/Basics/Devices/Device_OMP.c b/Modules/Basics/Devices/Device_OMP.c
+index abccbb8d..0aca89fb 100644
+--- a/Modules/Basics/Devices/Device_OMP.c
++++ b/Modules/Basics/Devices/Device_OMP.c
+@@ -220,3 +220,54 @@ bool OffloadEnabled ( )
+   return false;
+   #endif
+   }
++
++#ifdef USE_OPENMP_RUNTIME
++int SetDevice ( int iDevice )
++  {
++  #ifdef ENABLE_OMP_OFFLOAD
++  omp_set_default_device(iDevice);
++  return 0;
++  #else
++  return -1;
++  #endif
++  }
++
++
++int GetDevice ( int * iDevice )
++  {
++  #ifdef ENABLE_OMP_OFFLOAD
++  *iDevice = omp_get_default_device();
++  return 0;
++  #else
++  return -1;
++  #endif
++  }
++
++void * AllocateHostDouble_Device ( int nValues )
++  {
++  void * Host;
++
++  #ifdef ENABLE_OMP_OFFLOAD
++  Host = omp_target_alloc( sizeof ( double ) * nValues, omp_get_initial_device());
++  #else
++  Host = malloc ( sizeof ( double ) * nValues );
++  #endif
++  return Host;
++  }
++
++void FreeHost_Device ( void * Host )
++  {
++  #ifdef ENABLE_OMP_OFFLOAD
++  omp_target_free(Host, omp_get_initial_device());
++  #else
++  free ( Host );
++  #endif
++  }
++
++int DeviceMemGetInfo_Device ( size_t * Free, size_t * Total )
++  {
++  Free  = 0;
++  Total = 0;
++  return -1;
++  }
++#endif
+
