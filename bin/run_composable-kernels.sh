@@ -105,6 +105,16 @@ function distributeWorkToGPUs {
   fi
 }
 
+# Return an export command, prefixing current LD_LIBRARY_PATH with AOMP_LIB_PATH
+function getLDLibraryPathExportCmd {
+  # Make sure that we prefer the AOMP libraries over the system ones
+  LDLibraryPath="${AOMP_LIB_PATH}"
+  if [ -n "${LD_LIBRARY_PATH}" ]; then
+    LDLibraryPath="${LDLibraryPath}:${LD_LIBRARY_PATH}"
+  fi
+  echo "export LD_LIBRARY_PATH=${LDLibraryPath}"
+}
+
 # Some tests may require an installed instance of CK.
 ShouldInstallCK='no'
 # For some situations during testing it may not be desired to rebuild the CK repo.
@@ -338,14 +348,8 @@ if [ "${SelectedSuite}" == 'benchmarks' ]; then
   CKBenchmarkResultOutput="${CK_BENCHMARK_RESULT}/${CKBenchmarkName}.output"
   CKBenchmarkBackend='ck'
   CKBenchmarkCmd="./run_gemm.py ${CKBenchmarkBackend} ${CKBenchmarkTest} --output ${CKBenchmarkResultOutput}"
-
-  # Make sure that we prefer the AOMP libraries over the system ones
-  CKBenchmarkLDLibraryPath="${AOMP_LIB_PATH}"
-  if [ ! -z ${LD_LIBRARY_PATH} ]; then
-    CKBenchmarkLDLibraryPath="${CKBenchmarkLDLibraryPath}:${LD_LIBRARY_PATH}"
-  fi
   CKBenchmarkProfilerExport="export CK_PROFILER_DIR=${CK_BUILD}/bin"
-  CKBenchmarkLDLibraryPathExport="export LD_LIBRARY_PATH=${CKBenchmarkLDLibraryPath}"
+  CKBenchmarkLDLibraryPathExport=$(getLDLibraryPathExportCmd)
 
   pushd ${CK_BENCHMARK_REPO}/scripts || exit 1
 
@@ -367,8 +371,10 @@ if [ "${SelectedSuite}" == 'client-examples' ]; then
   CKCmakeCmd+="-B ${CK_CLIENT_EXAMPLES_BUILD} -S ${CK_CLIENT_EXAMPLES_SOURCE} "
   CKCmakeCmd+="-DCMAKE_CXX_COMPILER=${AOMP}/../../bin/hipcc "
   CKCmakeCmd+="-DCMAKE_CXX_COMPILER_LAUNCHER=ccache "
-  CKCmakeCmd+="-DCMAKE_PREFIX_PATH=${AOMP}/../cmake;${CK_INSTALL} "
+  CKCmakeCmd+="-DCMAKE_PREFIX_PATH=${AOMP_LIB_PATH}/cmake;${CK_INSTALL} "
   CKCmakeCmd+="-DGPU_TARGETS=${CK_GPU_TARGETS} "
+
+  CKClientExLDLibraryPathExport=$(getLDLibraryPathExportCmd)
 
   echo "Rebuilding the CK client-examples"
   rm -rf ${CK_CLIENT_EXAMPLES_BUILD} || exit 1
@@ -442,6 +448,9 @@ if [ "${SelectedSuite}" == 'client-examples' ]; then
     # Exit silently, but indicate error via returncode
     exit 1
   fi
+
+  # Prepare library path
+  ${CKClientExLDLibraryPathExport}
 
   # Run each client-example
   if [ ${UseParallel} == 1 ]; then
