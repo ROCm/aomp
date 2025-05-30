@@ -288,7 +288,7 @@ fi
 # Set list of default amdgcn subarchitectures to build
 # Developers may override GFXLIST and ROCMLIBS_GFXLIST variables to shorten build time of aomp and rocmlibs, respectively.
 # | ROCMLIBS_GFXLIST defined | GFXLIST defined | Resulting GFXLIST and ROCMLIBS_GFXLIST |
-# |           Yes            |       Yes       | GFXLIST and ROCMLIBS_GFXLIST are both set to the defined value of GFXLIST |
+# |           Yes            |       Yes       | GFXLIST and ROCMLIBS_GFXLIST are both set to their defined values |
 # |           Yes            |       No        | GFXLIST is set to ROCMLIBS_GFXLIST, ROCMLIBS_GFXLIST remains unchanged |
 # |           No             |       Yes       | ROCMLIBS_GFXLIST is set to GFXLIST, GFXLIST remains unchanged |
 # |           No             |       No        | GFXLIST is set to a default list, ROCMLIBS_GFXLIST is set to a smaller subset of GFXLIST |
