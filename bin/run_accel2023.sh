@@ -20,7 +20,7 @@ if [ "$1" == "-clean" ]; then
   cd ${ACCEL2023_SOURCE_DIR} || exit 1
   set -x
   #WLOC=http://roclogin.amd.com/SPEC
-  WLOC=http://aomp-tr01.amd.com/SPEC
+  WLOC=https://compute-artifactory.amd.com/artifactory/rocm-generic-local/compiler-infra
   wget --timeout 15 --tries=3 -q $WLOC/accel2023-2.0.18.tar.xz
   wget --timeout 15 --tries=3 -q $WLOC/Accel23-scripts.tar
   tar xf accel2023-2.0.18.tar.xz
