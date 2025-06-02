@@ -253,6 +253,8 @@ CKCmakeCmd="cmake -GNinja -B ${CK_BUILD} -S ${CK_REPO} -DCMAKE_PREFIX_PATH=${ROC
 CKCmakeCmd+="-DCMAKE_CXX_COMPILER=${AOMP}/bin/clang++ -DCMAKE_HIP_COMPILER=${AOMP}/bin/clang++ "
 CKCmakeCmd+="-DCMAKE_CXX_COMPILER_LAUNCHER=ccache "
 CKCmakeCmd+="-DCMAKE_BUILD_TYPE=Release -DGPU_TARGETS=${CK_GPU_TARGETS}"
+# For some reason, CK on gfx12 wants this set.
+CKCMakeCmd+="-DBUILD_DEV=On"
 
 if [ "${ShouldRebuildCK}" == 'yes' ]; then
   echo "Rebuilding the CK repo w/ ${CKBuildParallelism} parallel jobs."
