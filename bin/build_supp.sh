@@ -52,7 +52,7 @@ $ $AOMP_SUPP/build/cmdlog              File with log of all components built
 EOF
 }
 
-SUPPLEMENTAL_COMPONENTS=${SUPPLEMENTAL_COMPONENTS:-openmpi silo hdf5 fftw ninja}
+SUPPLEMENTAL_COMPONENTS=${SUPPLEMENTAL_COMPONENTS:-openmpi silo hdf5 fftw ninja shunit2}
 PREREQUISITE_COMPONENTS=${PREREQUISITE_COMPONENTS:-cmake rocmsmilib hwloc aqlprofile rocm-core}
 
 # --- Start standard header to set AOMP environment variables ----
@@ -230,6 +230,30 @@ function buildninja(){
   fi
   runcmd "ln -sf $_installdir $_linkfrom"
   echo "# $_linkfrom is now symbolic link to $_installdir " >>"$CMDLOGFILE"
+}
+
+# add function to install shunit2
+function buildshunit2(){
+  _cname="shunit2"
+  _linkfrom=$AOMP_SUPP/$_cname
+  _builddir=$AOMP_SUPP_BUILD/$_cname
+  SKIPBUILD="FALSE"
+  checkversion
+  if [ "$SKIPBUILD" == "TRUE"  ] ; then 
+    return
+  fi
+  if [ -d $_builddir ] ; then
+    runcmd "rm -rf $_builddir"
+  fi
+  runcmd "mkdir -p $_builddir"
+  runcmd "cd $_builddir"
+  runcmd "git clone https://github.com/kward/shunit2.git"
+  runcmd "cd shunit2"
+  if [ -L $_linkfrom ] ; then
+    runcmd "rm $_linkfrom"
+  fi
+  runcmd "ln -sf $_builddir/shunit2 $_linkfrom"
+  echo "# $_linkfrom is now symbolic link to $_builddir " >>$CMDLOGFILE
 }
 
 function getrocmpackage(){
@@ -570,7 +594,9 @@ for _component in $_components ; do
     buildrocmsmilib
   elif [ "$_component" == "ninja" ] ; then
     buildninja
-  elif [ "$_component" == "aqlprofile" ] ; then
+  elif [ $_component == "shunit2" ] ; then
+    buildshunit2
+  elif [ $_component == "aqlprofile" ] ; then
     getrocmpackage aqlprofile hsa-amd-aqlprofile 1.0.0
   elif [ "$_component" == "openclicdloader" ] ; then
     getrocmpackage openclicdloader rocm-opencl-icd-loader 1.2
