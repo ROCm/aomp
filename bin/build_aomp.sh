@@ -16,12 +16,6 @@ function build_aomp_component() {
      echo "OS version 7 found $(cat /etc/os-release)"
      # shellcheck disable=1091
      [ -f /opt/rh/devtoolset-7/enable ] &&  . /opt/rh/devtoolset-7/enable
-   elif [[ $osversion =~ \"8\. ]]; then
-     echo "OS version 8 found $(cat /etc/os-release)"
-     echo
-     echo "Get updated gcc 8: export PATH=/usr/bin:\$PATH"
-     export PATH=/usr/bin:$PATH
-     gcc --version
    fi
 
    _stats_dir=$AOMP_INSTALL_DIR/.aomp_component_stats
