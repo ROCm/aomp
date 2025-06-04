@@ -39,12 +39,19 @@ _fixByHandOpts=(--shell=bash --include="$(join ',' "${_fixByHand[@]}")")
 
 _patchable=(SC2164   # Use cd ... || exit
             SC2006)  # Use $(...) instead of legacy backticks
-_patchableOpts=(--shell=bash -f diff --include="$(join ',' "${_patchable[@]}")")
+_patchableOpts=(--shell=bash --include="$(join ',' "${_patchable[@]}")")
 
 _alwaysExclude=(SC2016  # Use double quote instead of single
                 SC2002  # Useless cat
                 SC2004) # '$' on arithmetic vars
 _alwaysExcludeOpts=(--shell=bash --exclude="$(join ',' "${_alwaysExclude[@]}")")
+
+_check_only=false
+
+if [ $1 == "--check-only" ]; then
+  _check_only=true
+  shift
+fi
 
 declare -a _shellfiles=( "$@" )
 _missing=0
@@ -66,12 +73,6 @@ if [ "$_shellcheck_bin" == "" ] ; then
    exit 1
 fi
 
-_patchfile=/tmp/patchfile$$
-
-if ! touch "$_patchfile"; then
-   echo "ERROR: Could not create or update $_patchfile"
-   exit 1
-fi
 echo
 echo "---- STEP 1 ---- Check for fixByHand fails -----"
 echo "$_shellcheck_bin -x ${_fixByHandOpts[*]} ${_shellfiles[*]}"
@@ -83,25 +84,54 @@ if [[ $_rc != 0 ]]; then
    echo "ERROR: shellcheck found errors that must be fixed by hand. rc=$_rc"
    exit 1
 fi
-echo
-echo "---- STEP 2 ---- Check and repair patchable fails -----"
-echo "$_shellcheck_bin -x ${_patchableOpts[*]} ${_shellfiles[*]} \>$_patchfile"
-$_shellcheck_bin -x "${_patchableOpts[@]}" "${_shellfiles[@]}" >$_patchfile
 
-if ! patch -p1 --dry-run <"$_patchfile"; then
-   echo "ERROR: Could not dryrun patch in $_patchfile to file ${_shellfiles[*]}"
-   exit 1
+if $_check_only; then
+   echo
+   echo "---- STEP 2 ---- Check patchable fails -----"
+   echo "$_shellcheck_bin -x ${_patchableOpts[@]} ${_shellfiles[@]}"
+   $_shellcheck_bin -x "${_patchableOpts[@]}" "${_shellfiles[@]}"
+
+   echo
+   echo "---- STEP 3 ---- (Skipping for --check-only)"
+else
+   echo
+   echo "---- STEP 2 ---- Check and repair patchable fails -----"
+
+   _patchfile=/tmp/patchfile$$
+
+   if ! touch "$_patchfile"; then
+      echo "ERROR: Could not create or update $_patchfile"
+      exit 1
+   fi
+
+   echo "$_shellcheck_bin -x ${_patchableOpts[*]} -f diff ${_shellfiles[*]} \>$_patchfile"
+   $_shellcheck_bin -x "${_patchableOpts[@]}" -f diff "${_shellfiles[@]}" >$_patchfile
+
+   if ! patch -p1 --dry-run <"$_patchfile"; then
+      echo "ERROR: Could not dryrun patch in $_patchfile to file ${_shellfiles[*]}"
+      exit 1
+   fi
+   echo
+   echo "---- STEP 3 ---- Applying patch $_patchfile to ${_shellfiles[*]}"
+   patch -p1 <"$_patchfile"
+   echo "rm $_patchfile"
+   rm "$_patchfile" # patch should work because of dryrun test above
 fi
-echo
-echo "---- STEP 3 ---- Applying patch $_patchfile to ${_shellfiles[*]}"
-patch -p1 <"$_patchfile"
-echo "rm $_patchfile"
-rm "$_patchfile" # patch should work because of dryrun test above
+
 echo
 echo "---- STEP 4 ---- Test for codes not handled in $0"
-echo "$_shellcheck_bin -x ${_alwaysExcludeOpts[*]} ${_shellfiles[*]}"
-$_shellcheck_bin -x "${_alwaysExcludeOpts[@]}" "${_shellfiles[@]}"
-_rc=$?
+if $_check_only; then
+   # A non-check-only run would avoid triggering the patchable checks again
+   # in this invocation.  Mask them out for a check-only run.
+   _excludeOpts=(--shell=bash --exclude="$(join ',' "${_alwaysExclude[@]}" "${_patchable[@]}")")
+   echo "$_shellcheck_bin -x ${_excludeOpts[*]} ${_shellfiles[*]}"
+   $_shellcheck_bin -x "${_excludeOpts[@]}" "${_shellfiles[@]}"
+   _rc=$?
+else
+   echo "$_shellcheck_bin -x ${_alwaysExcludeOpts[*]} ${_shellfiles[*]}"
+   $_shellcheck_bin -x "${_alwaysExcludeOpts[@]}" "${_shellfiles[@]}"
+   _rc=$?
+fi
 if [ $_rc != 0 ] ; then
    echo
    echo "ERROR: shellcheck found codes not yet handled, must fix $0"
