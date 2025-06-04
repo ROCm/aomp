@@ -28,7 +28,7 @@ omp_dir="tests/rush_larsen/rush_larsen_gpu_omp"
 omp_exec="rush_larsen_gpu_omp"
 
 fomp_f90="$AOMP/bin/$FLANG"
-fomp_flags="-O3 -fopenmp --offload-arch=$AOMP_GPU -DOMP -DOMP_TARGET_GPU -g"
+fomp_flags="-O3 -fopenmp --offload-arch=$AOMP_GPU -DOMP -DOMP_TARGET_GPU -g -save-temps"
 fomp_dir="tests/rush_larsen/rush_larsen_gpu_omp_fort"
 fomp_exec="rush_larsen_gpu_omp_fort"
 
