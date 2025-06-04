@@ -132,7 +132,7 @@ if [ "$1" != "runonly" ] ; then
   cd $REPO_DIR/Programs/UnitTests/Basics/Runtime/Executables
   echo "=================  STARTING 1st MAKE in $PWD ========"
   make clean
-  make PURPOSE=OPTIMIZE all
+  make PURPOSE=OPTIMIZE all -j 20
   rc=$?
   if [ $rc != 0 ] ; then
      echo "ERROR in Make"
@@ -142,7 +142,7 @@ if [ "$1" != "runonly" ] ; then
   cd $REPO_DIR/Programs/Examples/Basics/FluidDynamics/Executables
   echo "=================  STARTING 2nd  MAKE in $PWD ========"
   make clean
-  make PURPOSE=OPTIMIZE all
+  make PURPOSE=OPTIMIZE all -j 20
   rc=$?
   if [ $rc != 0 ] ; then
      echo "ERROR in 2nd Make"
@@ -152,7 +152,7 @@ if [ "$1" != "runonly" ] ; then
   cd $REPO_DIR/Programs/UnitTests/Basics/Devices/Executables
   echo "=================  STARTING 3rd  MAKE in $PWD ========"
   make clean
-  make PURPOSE=OPTIMIZE all
+  make PURPOSE=OPTIMIZE all -j 20
   rc=$?
   if [ $rc != 0 ] ; then
      echo "ERROR in 3rd Make"
