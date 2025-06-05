@@ -37,7 +37,7 @@ ifeq ($(LLVM_COMPILER_NAME),clang)
 	@echo "2 Skipping host-offload because this is broken in trunk"
 else
 	@echo "2. Create binary for host offloading:	host-offload"
-	$(CC) $(CFLAGS) -fopenmp-targets=x86_64-pc-linux-gnu -Xopenmp-target=x86_64-pc-linux-gnu --march=znver1 $^ -o host-offload 
+	$(CC) $(CFLAGS) -fopenmp-targets=$(CLANG_HOST_TARGET) -Xopenmp-target=$(CLANG_HOST_TARGET) --march=znver1 $^ -o host-offload
 endif
 	@echo "3. Create binary that does GPU offload:	gpu-offload"
 	$(CC) $(CFLAGS) $(OAFLAG) $^ -o gpu-offload 
