@@ -92,7 +92,8 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
                -DCMAKE_HIP_ARCHITECTURES=OFF
                -DCLR_BUILD_HIP=ON -DCLR_BUILD_OCL=ON
                -DHIPCC_BIN_DIR="$BUILD_DIR/build/hipcc"
-               -DROCM_PATH="$ROCM_PATH")
+               -DROCM_PATH="$ROCM_PATH"
+               -DBUILD_ICD=ON)
 
   # If this machine does not have an actvie amd GPU, tell hipamd
   # to use first in GFXLIST or gfx90a if no GFXLIST
@@ -110,7 +111,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
   if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
      ASAN_FLAGS=("${ASAN_FLAGS[@]}" -I"$SANITIZER_COMGR_INCLUDE_PATH" -Wno-error=deprecated-declarations)
      ASAN_CMAKE_OPTS=("${MYCMAKEOPTS[@]}" "${AOMP_ASAN_ORIGIN_RPATH[@]}"
-                      -DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR/lib/asan/cmake;$AOMP_INSTALL_DIR;$HOME/local/openclicdloader"
+                      -DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR/lib/asan/cmake;$AOMP_INSTALL_DIR;$HOME/local/openclicdloader;$BUILD_DIR/build/hipamd/opencl/khronos/icd"
                       -DCMAKE_INSTALL_LIBDIR=lib/asan
                       -DCMAKE_C_COMPILER="$LLVM_INSTALL_LOC/bin/clang"
                       -DCMAKE_CXX_COMPILER="$LLVM_INSTALL_LOC/bin/clang++"
@@ -121,7 +122,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
      HIPAMD_DEBUG_CMAKE_OPTS=("${MYCMAKEOPTS[@]}"
                               "${AOMP_DEBUG_ORIGIN_RPATH[@]}"
                               -DCMAKE_BUILD_TYPE=DEBUG
-                              -DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR;$HOME/local/openclicdloader"
+                              -DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR;$HOME/local/openclicdloader;$BUILD_DIR/build/hipamd/opencl/khronos/icd"
                               -DCMAKE_INSTALL_LIBDIR=lib-debug
                               -DCMAKE_C_COMPILER="$LLVM_INSTALL_LOC/bin/clang"
                               -DCMAKE_CXX_COMPILER="$LLVM_INSTALL_LOC/bin/clang++"
@@ -129,7 +130,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
   fi
 
   HIPAMD_CMAKE_OPTS=("${MYCMAKEOPTS[@]}"
-                     -DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR;$HOME/local/openclicdloader"
+                     -DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR;$HOME/local/openclicdloader;$BUILD_DIR/build/hipamd/opencl/khronos/icd"
                      -DCMAKE_INSTALL_LIBDIR=lib
                      -DCMAKE_CXX_FLAGS=-I"${AOMP_INSTALL_DIR}/include/amd_comgr"
                      -DCMAKE_CXX_FLAGS=-Wno-error=deprecated-declarations
