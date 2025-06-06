@@ -28,9 +28,9 @@
 # SOFTWARE.
 
 # --- Start standard header to set AOMP environment variables ----
-realpath=`realpath $0`
-thisdir=`dirname $realpath`
-. $thisdir/aomp_common_vars
+realpath=$(realpath "$0")
+thisdir=$(dirname "$realpath")
+. "$thisdir/aomp_common_vars"
 # --- end standard header ----
 
 REPO_DIR=$AOMP_REPOS/bolt
@@ -47,7 +47,7 @@ if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   exit
 fi
 
-if [ ! -d $REPO_DIR ] ; then
+if [ ! -d "$REPO_DIR" ] ; then
    echo "ERROR:  Missing repository $REPO_DIR/"
    echo "        Try these commands till bolt is part of the AOMP manifest:"
    echo
@@ -57,7 +57,7 @@ if [ ! -d $REPO_DIR ] ; then
    exit 1
 fi
 
-if [ ! -f $AOMP/bin/clang ] ; then
+if [ ! -f "$AOMP/bin/clang" ] ; then
    echo "ERROR:  Missing file $AOMP/bin/clang"
    echo "        Build the AOMP llvm compiler in $AOMP first"
    echo "        This is needed to build the bolt libraries"
@@ -65,49 +65,41 @@ if [ ! -f $AOMP/bin/clang ] ; then
    exit 1
 fi
 
-# Make sure we can update the install directory
-if [ "$1" == "install" ] ; then
-   $SUDO mkdir -p $BOLT_INSTALL_DIR
-   $SUDO touch $BOLT_INSTALL_DIR/testfile
-   if [ $? != 0 ] ; then
-      echo "ERROR: No update access to $BOLT_INSTALL_DIR"
-      exit 1
-   fi
-   $SUDO rm $BOLT_INSTALL_DIR/testfile
-fi
+check_writable_installdir "$1" "$BOLT_INSTALL_DIR"
 
-patchrepo $AOMP_REPOS/bolt
+patchrepo "$AOMP_REPOS/bolt"
 
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
   if [ -d "$BUILD_DIR/build/bolt" ] ; then
      echo
      echo "FRESH START , CLEANING UP FROM PREVIOUS BUILD"
-     echo rm -rf $BUILD_DIR/build/bolt
-     rm -rf $BUILD_DIR/build/bolt
+     echo "rm -rf $BUILD_DIR/build/bolt"
+     rm -rf "$BUILD_DIR/build/bolt"
   fi
 
-MYCMAKEOPTS=" \
--DCMAKE_INSTALL_PREFIX=$BOLT_INSTALL_DIR \
-$AOMP_ORIGIN_RPATH \
--DCMAKE_C_COMPILER=$AOMP_CC_COMPILER \
--DCMAKE_CXX_COMPILER=$AOMP_CXX_COMPILER \
--DOPENMP_TEST_C_COMPILER=$AOMP_CC_COMPILER \
--DOPENMP_TEST_CXX_COMPILER=$AOMP_CXX_COMPILER \
--DCMAKE_BUILD_TYPE=Release \
--DOPENMP_ENABLE_LIBOMPTARGET=OFF \
--DLIBOMP_HEADERS_INSTALL_PATH=include/bolt \
--DLIBOMP_INSTALL_ALIASES=OFF \
--DLIBOMP_USE_ARGOBOTS=on"
+declare -a MYCMAKEOPTS
 
-  mkdir -p $BUILD_DIR/build/bolt
-  cd $BUILD_DIR/build/bolt
+MYCMAKEOPTS=(-DCMAKE_INSTALL_PREFIX="$BOLT_INSTALL_DIR"
+             "${AOMP_ORIGIN_RPATH[@]}"
+             -DCMAKE_C_COMPILER="$AOMP_CC_COMPILER"
+             -DCMAKE_CXX_COMPILER="$AOMP_CXX_COMPILER"
+             -DOPENMP_TEST_C_COMPILER="$AOMP_CC_COMPILER"
+             -DOPENMP_TEST_CXX_COMPILER="$AOMP_CXX_COMPILER"
+             -DCMAKE_BUILD_TYPE=Release
+             -DOPENMP_ENABLE_LIBOMPTARGET=OFF
+             -DLIBOMP_HEADERS_INSTALL_PATH=include/bolt
+             -DLIBOMP_INSTALL_ALIASES=OFF
+             -DLIBOMP_USE_ARGOBOTS=on)
+
+  mkdir -p "$BUILD_DIR/build/bolt"
+  cd "$BUILD_DIR/build/bolt" || exit
   echo
   echo " -----Running bolt cmake ---- "
-  echo ${AOMP_CMAKE} $MYCMAKEOPTS $REPO_DIR
-  ${AOMP_CMAKE} $MYCMAKEOPTS $REPO_DIR
-  if [ $? != 0 ] ; then
+  echo "${AOMP_CMAKE} $(shquot "${MYCMAKEOPTS[@]}") $REPO_DIR"
+
+  if ! ${AOMP_CMAKE} "${MYCMAKEOPTS[@]}" "$REPO_DIR"; then
       echo "ERROR bolt cmake failed. Cmake flags"
-      echo "      $MYCMAKEOPTS"
+      echo "      $(shquot "${MYCMAKEOPTS[@]}")"
       exit 1
   fi
 fi
@@ -116,11 +108,11 @@ if [ "$1" = "cmake" ]; then
   exit 0
 fi
 
-cd $BUILD_DIR/build/bolt
+cd "$BUILD_DIR/build/bolt" || exit
 echo
 echo " -----Running make for bolt ---- "
-make -j $AOMP_JOB_THREADS 
-if [ $? != 0 ] ; then
+
+if ! make -j "$AOMP_JOB_THREADS"; then
       echo " "
       echo "ERROR: make -j $AOMP_JOB_THREADS  FAILED"
       echo "To restart:"
@@ -138,13 +130,13 @@ fi
 
 #  ----------- Install only if asked  ----------------------------
 if [ "$1" == "install" ] ; then
-      cd $BUILD_DIR/build/bolt
+      cd "$BUILD_DIR/build/bolt" || exit
       echo
       echo " -----Installing to $BOLT_INSTALL_DIR ----- "
-      $SUDO make install
-      if [ $? != 0 ] ; then
+
+      if ! $SUDO make install; then
          echo "ERROR make install failed "
          exit 1
       fi
-      removepatch $AOMP_REPOS/bolt
+      removepatch "$AOMP_REPOS/bolt"
 fi

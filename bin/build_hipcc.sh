@@ -24,9 +24,9 @@
 # SOFTWARE.
 
 # --- Start standard header to set AOMP environment variables ----
-realpath=`realpath $0`
-thisdir=`dirname $realpath`
-. $thisdir/aomp_common_vars
+realpath=$(realpath "$0")
+thisdir=$(dirname "$realpath")
+. "$thisdir/aomp_common_vars"
 # --- end standard header ----
 
 HIPCC_REPO_DIR=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/amd/hipcc
@@ -47,12 +47,12 @@ if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   exit
 fi
 
-if [ ! -d $EXTRAS_REPO_DIR ] ; then
-   echo "ERROR:  Missing repository $EXTRAS_REPO_DIR/"
+if [ ! -d "$HIPCC_REPO_DIR" ] ; then
+   echo "ERROR:  Missing repository $HIPCC_REPO_DIR/"
    exit 1
 fi
 
-if [ ! -f $LLVM_INSTALL_LOC/bin/clang ] ; then
+if [ ! -f "$LLVM_INSTALL_LOC/bin/clang" ] ; then
    echo "ERROR:  Missing file $LLVM_INSTALL_LOC/bin/clang"
    echo "        Build and install the AOMP clang compiler in $AOMP first"
    echo "        This is needed to build hipcc "
@@ -60,39 +60,33 @@ if [ ! -f $LLVM_INSTALL_LOC/bin/clang ] ; then
    exit 1
 fi
 
-# Make sure we can update the install directory
-if [ "$1" == "install" ] ; then
-   $SUDO mkdir -p $INSTALL_HIPCC
-   $SUDO touch $INSTALL_HIPCC/testfile
-   if [ $? != 0 ] ; then
-      echo "ERROR: No update access to $INSTALL_HIPCC"
-      exit 1
-   fi
-   $SUDO rm $INSTALL_HIPCC/testfile
-fi
+check_writable_installdir "$1" "$INSTALL_HIPCC"
 
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 
   if [ -d "$BUILD_DIR/build/hipcc" ] ; then
      echo
      echo "FRESH START , CLEANING UP FROM PREVIOUS BUILD"
-     echo rm -rf $BUILD_DIR/build/hipcc
-     rm -rf $BUILD_DIR/build/hipcc
+     echo "rm -rf $BUILD_DIR/build/hipcc"
+     rm -rf "$BUILD_DIR/build/hipcc"
   fi
 
-  MYCMAKEOPTS="-DCMAKE_BUILD_TYPE=$BUILDTYPE -DCMAKE_INSTALL_PREFIX=$AOMP_INSTALL_DIR"
+  declare -a MYCMAKEOPTS
 
-  mkdir -p $BUILD_DIR/build/hipcc
-  cd $BUILD_DIR/build/hipcc
+  MYCMAKEOPTS=(-DCMAKE_BUILD_TYPE="$BUILDTYPE"
+               -DCMAKE_INSTALL_PREFIX="$AOMP_INSTALL_DIR")
+
+  mkdir -p "$BUILD_DIR/build/hipcc"
+  cd "$BUILD_DIR/build/hipcc" || exit
 
   export SED_INSTALL_DIR
   echo
   echo " -----Running cmake ---- "
-  echo ${AOMP_CMAKE} $MYCMAKEOPTS $HIPCC_REPO_DIR
-  ${AOMP_CMAKE} $MYCMAKEOPTS $HIPCC_REPO_DIR 
-  if [ $? != 0 ] ; then
+  echo "${AOMP_CMAKE}" "$(shquot "${MYCMAKEOPTS[@]}")" "$HIPCC_REPO_DIR"
+
+  if ! ${AOMP_CMAKE} "${MYCMAKEOPTS[@]}" "$HIPCC_REPO_DIR"; then
       echo "ERROR hipcc cmake failed. Cmake flags"
-      echo "      $MYCMAKEOPTS"
+      echo "      $(shquot "${MYCMAKEOPTS[@]}")"
       exit 1
   fi
 fi
@@ -101,11 +95,11 @@ if [ "$1" = "cmake" ]; then
   exit 0
 fi
 
-cd $BUILD_DIR/build/hipcc
+cd "$BUILD_DIR/build/hipcc" || exit
 echo
 echo " -----Running make for hipcc ---- "
-make -j $AOMP_JOB_THREADS 
-if [ $? != 0 ] ; then
+
+if ! make -j "$AOMP_JOB_THREADS"; then
       echo " "
       echo "ERROR: make -j $AOMP_JOB_THREADS  FAILED"
       echo "To restart:"
@@ -123,11 +117,11 @@ fi
 
 #  ----------- Install only if asked  ----------------------------
 if [ "$1" == "install" ] ; then
-      cd $BUILD_DIR/build/hipcc
+      cd "$BUILD_DIR/build/hipcc" || exit
       echo
       echo " -----Installing to $INSTALL_HIPCC ----- "
-      $SUDO make install
-      if [ $? != 0 ] ; then
+
+      if ! $SUDO make install; then
          echo "ERROR make install failed "
          exit 1
       fi

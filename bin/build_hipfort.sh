@@ -28,9 +28,9 @@
 # SOFTWARE.
 
 # --- Start standard header to set AOMP environment variables ----
-realpath=`realpath $0`
-thisdir=`dirname $realpath`
-. $thisdir/aomp_common_vars
+realpath=$(realpath "$0")
+thisdir=$(dirname "$realpath")
+. "$thisdir/aomp_common_vars"
 # --- end standard header ----
 
 REPO_DIR=$AOMP_REPOS/hipfort
@@ -47,60 +47,53 @@ if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   exit
 fi
 
-if [ ! -d $REPO_DIR ] ; then
+if [ ! -d "$REPO_DIR" ] ; then
    echo "ERROR:  Missing repository $REPO_DIR/"
    exit 1
 fi
 
-if [ ! -f $AOMP/bin/clang ] ; then
-   if [ ! -f $AOMP/lib/llvm/bin/clang ] ; then
+if [ ! -f "$AOMP/bin/clang" ] ; then
+   if [ ! -f "$AOMP/lib/llvm/bin/clang" ] ; then
       echo "ERROR:  Missing file $AOMP/lib/llvm/bin/clang"
       echo " "
       exit 1
   fi
 fi
 
-# Make sure we can update the install directory
-if [ "$1" == "install" ] ; then
-   $SUDO mkdir -p $HIPFORT_INSTALL_DIR
-   $SUDO touch $HIPFORT_INSTALL_DIR/testfile
-   if [ $? != 0 ] ; then
-      echo "ERROR: No update access to $HIPFORT_INSTALL_DIR"
-      exit 1
-   fi
-   $SUDO rm $HIPFORT_INSTALL_DIR/testfile
-fi
+check_writable_installdir "$1" "$HIPFORT_INSTALL_DIR"
 
-patchrepo $AOMP_REPOS/hipfort
+patchrepo "$AOMP_REPOS/hipfort"
 
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
   if [ -d "$BUILD_DIR/build/hipfort" ] ; then
      echo
      echo "FRESH START , CLEANING UP FROM PREVIOUS BUILD"
-     echo rm -rf $BUILD_DIR/build/hipfort
-     rm -rf $BUILD_DIR/build/hipfort
+     echo "rm -rf $BUILD_DIR/build/hipfort"
+     rm -rf "$BUILD_DIR/build/hipfort"
   fi
 
-  MYCMAKEOPTS=" \
--DCMAKE_INSTALL_PREFIX=$HIPFORT_INSTALL_DIR \
--DCMAKE_BUILD_TYPE=Release \
--DHIPFORT_COMPILER=$LLVM_INSTALL_LOC/bin/flang \
--DHIPFORT_COMPILER_FLAGS="-cpp" \
--DCMAKE_Fortran_FLAGS_DEBUG="" \
--DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR/lib/cmake \
--DHIPFORT_AR=$LLVM_INSTALL_LOC/bin/llvm-ar \
--DHIPFORT_RANLIB=$LLVM_INSTALL_LOC/bin/llvm-ranlib "
+  declare -a MYCMAKEOPTS
 
-  mkdir -p $BUILD_DIR/build/hipfort
-  cd $BUILD_DIR/build/hipfort
+  MYCMAKEOPTS=(-DCMAKE_INSTALL_PREFIX="$HIPFORT_INSTALL_DIR"
+               -DCMAKE_BUILD_TYPE=Release
+               -DHIPFORT_COMPILER="$LLVM_INSTALL_LOC/bin/flang"
+               -DHIPFORT_COMPILER_FLAGS="-cpp"
+               -DCMAKE_Fortran_FLAGS_DEBUG=""
+               -DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR/lib/cmake"
+               -DHIPFORT_AR="$LLVM_INSTALL_LOC/bin/llvm-ar"
+               -DHIPFORT_RANLIB="$LLVM_INSTALL_LOC/bin/llvm-ranlib")
+
+  mkdir -p "$BUILD_DIR/build/hipfort"
+  cd "$BUILD_DIR/build/hipfort" || exit
   echo
   echo " -----Running hipfort cmake ---- "
-  echo ${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_Fortran_FLAGS="-ffree-form -fPIC" $REPO_DIR
-  ${AOMP_CMAKE} $MYCMAKEOPTS -DCMAKE_Fortran_FLAGS="-ffree-form -fPIC" $REPO_DIR
+  echo "${AOMP_CMAKE}" "$(shquot "${MYCMAKEOPTS[@]}")" -DCMAKE_Fortran_FLAGS=\"-ffree-form -fPIC\" "$REPO_DIR"
 
-  if [ $? != 0 ] ; then
+  if ! ${AOMP_CMAKE} "${MYCMAKEOPTS[@]}" \
+                     -DCMAKE_Fortran_FLAGS="-ffree-form -fPIC" \
+                     "$REPO_DIR"; then
       echo "ERROR hipfort cmake failed. Cmake flags"
-      echo "      $MYCMAKEOPTS"
+      echo "      $(shquot "${MYCMAKEOPTS[@]}")"
       exit 1
   fi
 fi
@@ -109,11 +102,11 @@ if [ "$1" = "cmake" ]; then
   exit 0
 fi
 
-cd $BUILD_DIR/build/hipfort
+cd "$BUILD_DIR/build/hipfort" || exit
 echo
 echo " -----Running make for hipfort ---- "
-make -j $AOMP_JOB_THREADS 
-if [ $? != 0 ] ; then
+
+if ! make -j "$AOMP_JOB_THREADS"; then
       echo " "
       echo "ERROR: make -j $AOMP_JOB_THREADS  FAILED"
       echo "To restart:"
@@ -131,13 +124,12 @@ fi
 
 #  ----------- Install only if asked  ----------------------------
 if [ "$1" == "install" ] ; then
-      cd $BUILD_DIR/build/hipfort
+      cd "$BUILD_DIR/build/hipfort" || exit
       echo
       echo " -----Installing to $HIPFORT_INSTALL_DIR ----- "
-      $SUDO make install
-      if [ $? != 0 ] ; then
+      if ! $SUDO make install; then
          echo "ERROR make install failed "
          exit 1
       fi
-      removepatch $AOMP_REPOS/hipfort
+      removepatch "$AOMP_REPOS/hipfort"
 fi

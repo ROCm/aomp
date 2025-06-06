@@ -12,12 +12,12 @@
 BUILD_TYPE=${BUILD_TYPE:-Release}
 
 # --- Start standard header to set AOMP environment variables ----
-realpath=`realpath $0`
-thisdir=`dirname $realpath`
-. $thisdir/aomp_common_vars
+realpath=$(realpath "$0")
+thisdir=$(dirname "$realpath")
+. "$thisdir/aomp_common_vars"
 # --- end standard header ----
 
-if [ $AOMP_BUILD_FLANG_CLASSIC == 0 ] ; then
+if [ "$AOMP_BUILD_FLANG_CLASSIC" == 0 ] ; then
    if [ "$1" != "install" ] ; then
       echo "WARNING:  ROCM install for $AOMP_FLANG_CLASSIC_REL/llvm-classic not found."
       echo "          This build will skip build of flang-classic."
@@ -25,33 +25,23 @@ if [ $AOMP_BUILD_FLANG_CLASSIC == 0 ] ; then
    fi
    exit
 fi
-TARGETS_TO_BUILD="AMDGPU;${AOMP_NVPTX_TARGET}X86"
-
-if [ $AOMP_STANDALONE_BUILD == 1 ] ; then
-   standalone_word="_STANDALONE"
-else
-   standalone_word=""
-fi
 
 if [ "$AOMP_USE_NINJA" == 0 ] ; then
-    AOMP_SET_NINJA_GEN=""
+    AOMP_SET_NINJA_GEN=()
 else
-    AOMP_SET_NINJA_GEN="-G Ninja"
+    AOMP_SET_NINJA_GEN=(-G Ninja)
 fi
-osversion=$(cat /etc/os-release | grep -e ^VERSION_ID)
-if [[ $osversion =~ '"7.' ]] || [[ $osversion =~ '"8' ]]; then
-  _cxx_flag="-DCMAKE_CXX_FLAGS='-D_GLIBCXX_USE_CXX11_ABI=0'"
+osversion=$(grep -e ^VERSION_ID < /etc/os-release)
+if [[ $osversion =~ \"7\. ]] || [[ $osversion =~ \"8\. ]]; then
+  _cxx_flag=(-DCMAKE_CXX_FLAGS='-D_GLIBCXX_USE_CXX11_ABI=0')
 else
-  _cxx_flag=""
+  _cxx_flag=()
 fi
 
 # We need a version of ROCM llvm that supports flang-classic 
 # via the link from flang to clang.  rocm 5.5 would be best. 
 # This will enable removal of flang-classic driver support 
 # from clang to make way for flang  
-
-# Options for llvm-classic  cmake.
-TARGETS_TO_BUILD="AMDGPU;X86"
 
 # Do not change the AOMP_LFL_DIR default because it is the subdirectory
 # from where we build the flang-classic driver binary.  This is the
@@ -63,20 +53,22 @@ AOMP_LFL_DIR=${AOMP_LFL_DIR:-"17.0-4"}
 # comment out above line and uncomment next line for new LFL
 #AOMP_LFL_DIR=${AOMP_LFL_DIR:-17.0-4}
 
-MYCMAKEOPTS="\
--DCMAKE_BUILD_TYPE=$BUILD_TYPE \
--DCMAKE_C_COMPILER=$LLVM_INSTALL_LOC/bin/clang \
--DCMAKE_CXX_COMPILER=$LLVM_INSTALL_LOC/bin/clang++ \
-$_cxx_flag \
--DCMAKE_CXX_STANDARD=17 \
--DCMAKE_INSTALL_PREFIX=$LLVM_INSTALL_LOC \
-$AOMP_SET_NINJA_GEN \
-"
+declare -a MYCMAKEOPTS
 
-if [ $AOMP_STANDALONE_BUILD == 1 ] ; then
-  MYCMAKEOPTS="$MYCMAKEOPTS -DBUILD_SHARED_LIBS=ON $AOMP_ORIGIN_RPATH"
+MYCMAKEOPTS=(-DCMAKE_BUILD_TYPE="$BUILD_TYPE"
+             -DCMAKE_C_COMPILER="$LLVM_INSTALL_LOC/bin/clang"
+             -DCMAKE_CXX_COMPILER="$LLVM_INSTALL_LOC/bin/clang++"
+             "${_cxx_flag[@]}"
+             -DCMAKE_CXX_STANDARD=17
+             -DCMAKE_INSTALL_PREFIX="$LLVM_INSTALL_LOC"
+             "${AOMP_SET_NINJA_GEN[@]}")
+
+if [ "$AOMP_STANDALONE_BUILD" == 1 ] ; then
+  MYCMAKEOPTS=("${MYCMAKEOPTS[@]}" -DBUILD_SHARED_LIBS=ON
+               "${AOMP_ORIGIN_RPATH[@]}")
 else
-  MYCMAKEOPTS="$MYCMAKEOPTS -DBUILD_SHARED_LIBS=OFF $OPENMP_EXTRAS_ORIGIN_RPATH"
+  MYCMAKEOPTS=("${MYCMAKEOPTS[@]}" -DBUILD_SHARED_LIBS=OFF
+               "${OPENMP_EXTRAS_ORIGIN_RPATH[@]}")
 fi
 
 
@@ -84,26 +76,15 @@ if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   help_build_aomp
 fi
 
-if [ $AOMP_STANDALONE_BUILD == 1 ] ; then 
-   if [ ! -L $AOMP ] ; then 
-     if [ -d $AOMP ] ; then 
-        echo "ERROR: Directory $AOMP is a physical directory."
-        echo "       It must be a symbolic link or not exist"
-        exit 1
-     fi
+if [ "$AOMP_STANDALONE_BUILD" == 1 ] ; then 
+   if [ ! -L "$AOMP" ] && [ -d "$AOMP" ] ; then 
+      echo "ERROR: Directory $AOMP is a physical directory."
+      echo "       It must be a symbolic link or not exist"
+      exit 1
    fi
 fi
 
-# Make sure we can update the install directory
-if [ "$1" == "install" ] ; then 
-   $SUDO mkdir -p $AOMP_INSTALL_DIR
-   $SUDO touch $AOMP_INSTALL_DIR/testfile
-   if [ $? != 0 ] ; then 
-      echo "ERROR: No update access to $AOMP_INSTALL_DIR"
-      exit 1
-   fi
-   $SUDO rm $AOMP_INSTALL_DIR/testfile
-fi
+check_writable_installdir "$1" "$AOMP_INSTALL_DIR"
 
 # Allow extglobs -- seems like this must be set before bash starts parsing
 # the 'if' block below.
@@ -121,7 +102,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
      exit 1
    fi
 else
-   if [ ! -d $BUILD_DIR/build/flang-classic/$AOMP_LFL_DIR ] ; then
+   if [ ! -d "$BUILD_DIR/build/flang-classic/$AOMP_LFL_DIR" ] ; then
       echo "ERROR: The build directory $BUILD_DIR/build/flang-classic/$AOMP_LFL_DIR does not exist"
       echo "       run $0 without nocmake or install options. "
       exit 1
@@ -131,13 +112,13 @@ fi
 echo
 # Cmake flang-classic.
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
-   cd $BUILD_DIR/build/flang-classic/$AOMP_LFL_DIR
+   cd "$BUILD_DIR/build/flang-classic/$AOMP_LFL_DIR" || exit
    echo " -----Running cmake ---- " 
-   echo ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_FLANG_REPO_NAME/flang-classic/$AOMP_LFL_DIR
-   ${AOMP_CMAKE} $MYCMAKEOPTS  $AOMP_REPOS/$AOMP_FLANG_REPO_NAME/flang-classic/$AOMP_LFL_DIR 2>&1
-   if [ $? != 0 ] ; then 
+   echo "${AOMP_CMAKE}" "$(shquot "${MYCMAKEOPTS[@]}")" "$AOMP_REPOS/$AOMP_FLANG_REPO_NAME/flang-classic/$AOMP_LFL_DIR"
+
+   if ! ${AOMP_CMAKE} "${MYCMAKEOPTS[@]}" "$AOMP_REPOS/$AOMP_FLANG_REPO_NAME/flang-classic/$AOMP_LFL_DIR" 2>&1; then 
       echo "ERROR cmake failed. Cmake flags"
-      echo "      $MYCMAKEOPTS"
+      echo "      $(shquot "${MYCMAKEOPTS[@]}")"
       exit 1
    fi
 fi
@@ -150,9 +131,9 @@ echo
 
 # Build flang-classic.
 echo " ---  Running $AOMP_NINJA_BIN for $BUILD_DIR/build/flang-classic/$AOMP_LFL_DIR ---- "
-cd $BUILD_DIR/build/flang-classic/$AOMP_LFL_DIR
-$AOMP_NINJA_BIN -j $AOMP_JOB_THREADS
-if [ $? != 0 ] ; then
+cd "$BUILD_DIR/build/flang-classic/$AOMP_LFL_DIR" || exit
+
+if ! $AOMP_NINJA_BIN -j "$AOMP_JOB_THREADS"; then
       echo " "
       echo "ERROR: $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS  FAILED"
       echo "To restart:"
@@ -163,8 +144,8 @@ fi
 
 if [ "$1" == "install" ] ; then
    echo " -----Installing to $AOMP_INSTALL_DIR ---- "
-   $SUDO ${AOMP_CMAKE} --build . -j $AOMP_JOB_THREADS --target install
-   if [ $? != 0 ] ; then
+
+   if ! $SUDO "${AOMP_CMAKE}" --build . -j "$AOMP_JOB_THREADS" --target install; then
       echo "ERROR make install failed "
       exit 1
    fi

@@ -5,25 +5,25 @@
 #
 
 # --- Start standard header to set AOMP environment variables ----
-realpath=`realpath $0`
-thisdir=`dirname $realpath`
-. $thisdir/aomp_common_vars
+realpath=$(realpath "$0")
+thisdir=$(dirname "$realpath")
+. "$thisdir/aomp_common_vars"
 # --- end standard header ----
 
 function clone_or_pull(){
 repodirname=$AOMP_REPOS_TEST/$reponame
 echo
-if [ -d $repodirname  ] ; then 
+if [ -d "$repodirname" ]; then
    echo "--- Pulling updates to existing dir $repodirname ----"
    echo "    We assume this came from an earlier clone of $repo_web_location/$reponame"
    # FIXME look in $repodir/.git/config to be sure 
-   cd $repodirname
+   cd "$repodirname" || exit
    #   undo the patches to RAJA
    if [ "$reponame" == "$AOMP_RAJA_REPO_NAME" ] ; then
       git checkout include/RAJA/policy/atomic_auto.hpp
-      cd blt
+      cd blt || exit
       git checkout cmake/SetupCompilerOptions.cmake
-      cd $repodirname
+      cd "$repodirname" || exit
    fi
    if [ "$STASH_BEFORE_PULL" == "YES" ] ; then
       if [ "$reponame" != "$AOMP_RAJA_REPO_NAME" ] ; then
@@ -33,7 +33,7 @@ if [ -d $repodirname  ] ; then
    echo "git pull "
    git pull 
    echo "cd $repodirname ; git checkout $COBRANCH"
-   git checkout $COBRANCH
+   git checkout "$COBRANCH"
    #echo "git pull "
    #git pull 
    if [ "$reponame" == "$AOMP_RAJA_REPO_NAME" ] ; then
@@ -43,24 +43,24 @@ if [ -d $repodirname  ] ; then
      git pull
    fi
 else 
-   echo --- NEW CLONE of repo $reponame to $repodirname ----
-   cd $AOMP_REPOS_TEST
+   echo "--- NEW CLONE of repo $reponame to $repodirname ----"
+   cd "$AOMP_REPOS_TEST" || exit
    if [[ "$reponame" == "$AOMP_RAJA_REPO_NAME" || "$reponame" == "$AOMP_RAJAPERF_REPO_NAME" ]]; then
-     git clone --recursive -b $COBRANCH $repo_web_location/$reponame $reponame
+     git clone --recursive -b "$COBRANCH" "$repo_web_location/$reponame" "$reponame"
    else
-     echo git clone $repo_web_location/$reponame
-     git clone $repo_web_location/$reponame $reponame
+     echo "git clone $repo_web_location/$reponame"
+     git clone "$repo_web_location/$reponame" "$reponame"
      echo "cd $repodirname ; git checkout $COBRANCH"
-     cd $repodirname
-     git checkout $COBRANCH
+     cd "$repodirname" || exit
+     git checkout "$COBRANCH"
    fi
 fi
-cd $repodirname
+cd "$repodirname" || exit
 echo git status
 git status
 }
 
-mkdir -p $AOMP_REPOS_TEST
+mkdir -p "$AOMP_REPOS_TEST"
 
 # ---------------------------------------
 # The following repos is in AMDComputeLibraries
