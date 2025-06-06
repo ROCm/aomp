@@ -66,7 +66,7 @@ ifeq ("$(wildcard $(AOMP)/bin/clang)","")
 endif
 # --- End Standard Makefile check for AOMP installation ---
 
-CLANG_HOST_TARGET=$(shell awk '/LLVM_TARGET_TRIPLE/ {print substr($$2,1,length($$2)-1)}' $(AOMP)/lib/cmake/llvm/LLVMConfig.cmake | tr -d \")
+CLANG_HOST_TARGET=$(shell $(AOMP)/bin/clang --version | grep Target: | cut -d" " -f2)
 
 ifeq ($(CLANG_HOST_TARGET),)
   $(error Error Could not determine LLVM_TARGET_TRIPLE from $(AOMP)/lib/cmake/llvm/LLVMConfig.cmake)
