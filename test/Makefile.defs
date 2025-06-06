@@ -1,6 +1,5 @@
 SHELL=/bin/bash -o pipefail
 
-
 # Set the value of SKIP_USM to 1 if the system is a VM, else sets SKIP_USM to 0.
 # a system is considered a VM if it has the HyperV or VMWare names present in
 # output of lspci or /usr/sbin/lspci or /sbin/lspci commands.
@@ -66,6 +65,12 @@ ifeq ("$(wildcard $(AOMP)/bin/clang)","")
   endif
 endif
 # --- End Standard Makefile check for AOMP installation ---
+
+CLANG_HOST_TARGET=$(shell awk '/LLVM_TARGET_TRIPLE/ {print substr($$2,1,length($$2)-1)}' $(AOMP)/lib/cmake/llvm/LLVMConfig.cmake | tr -d \")
+
+ifeq ($(CLANG_HOST_TARGET),)
+  $(error Error Could not determine LLVM_TARGET_TRIPLE from $(AOMP)/lib/cmake/llvm/LLVMConfig.cmake)
+endif
 
 ifneq ($(TIMEOUT),)
   TKILL= timeout $(TIMEOUT)
