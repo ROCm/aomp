@@ -15,7 +15,6 @@ all: $(TESTNAME)
 $(TESTNAME): $(TESTSRC_ALL)
 	@./run_options.sh $(AOMP_GPU)
 
-
 compile:
 ifdef nvidia_targets
 	$(CC) $(make_options) $(nvidia_targets) $(march) $(cuda) -o $(TESTNAME)
