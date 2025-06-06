@@ -72,7 +72,7 @@ while read -r line; do
       march_match=${BASH_REMATCH[1]}
       # Remove march from command and replace with correct version
       line=${line/"-$march_match"}
-      CLANG_HOST_TARGET_DIR=$(awk '/LLVM_TARGET_TRIPLE/ {print substr($2,1,length($2)-1)}' "$AOMP"/lib/cmake/llvm/LLVMConfig.cmake | tr -d \")
+      CLANG_HOST_TARGET_DIR=$("$AOMP"/bin/clang --version | grep Target: | cut -d" " -f2)
       host_target_str="-fopenmp-targets=$CLANG_HOST_TARGET_DIR"
     fi
 
