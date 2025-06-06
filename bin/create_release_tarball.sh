@@ -7,9 +7,9 @@
 #
 
 # --- Start standard header to set AOMP environment variables ----
-realpath=`realpath $0`
-thisdir=`dirname $realpath`
-. $thisdir/aomp_common_vars
+realpath=$(realpath "$0")
+thisdir=$(dirname "$realpath")
+. "$thisdir/aomp_common_vars"
 # --- end standard header ----
 
 function getmanifest(){
@@ -26,7 +26,7 @@ function getmanifest(){
         # AMD internal repo file
         manifest_file=$thisdir/../manifests/aompi_${AOMP_VERSION}.xml
       else
-        abranch=`git branch | awk '/\*/ { print $2; }'`
+        abranch=$(git branch | awk '/\*/ { print $2; }')
         # Use release manifest if on release branch
         if [ "$abranch" == "aomp-${AOMP_VERSION_STRING}" ]; then
           manifest_file=$thisdir/../manifests/aomp_${AOMP_VERSION_STRING}.xml
@@ -35,11 +35,11 @@ function getmanifest(){
         fi
       fi
     fi
-    if [ ! -f $manifest_file ] ; then
+    if [ ! -f "$manifest_file" ] ; then
       echo "ERROR manifest file missing: $manifest_file"
       exit 1
     fi
-     echo Using: $manifest_file
+     echo "Using: $manifest_file"
   else
     echo Error: This AOMP version does not have a manifest file.
   fi
@@ -51,28 +51,28 @@ function getreponame(){
   tarballremove="roctracer rocprofiler aomp build Makefile"
   # Manifest file must be one project line per repo
   #manifest_file=/home/release/git/aomp14/aomp/manifests/aomp_14.0-0.xml
-  cat $manifest_file | grep project > $tmpfile
-  while read line ; do
+  grep project < "$manifest_file" > "$tmpfile"
+  while read -r line; do
     found=0
-    for field in `echo $line` ; do
-      if [ -z "${field##*path=*}" ]  ; then
-        path=$(eval echo `echo $field | cut -d= -f2 `)
+    for field in $line; do
+      if [[ "$field" =~ path=\"([^\"]*)\" ]]; then
+        path=${BASH_REMATCH[1]}
       fi
     done
-  reponame=$path
-  for component in $tarballremove; do
-    if [ "$reponame" == "$component" ]; then
-      found=1
-      break
+    reponame=$path
+    for component in $tarballremove; do
+      if [ "$reponame" == "$component" ]; then
+        found=1
+        break
+      fi
+    done
+    if [ "$found" == 0 ]; then
+      repos="$repos $reponame"
     fi
-  done
-  if [ "$found" == 0 ]; then
-    repos="$repos $reponame"
-  fi
-  done <$tmpfile
+  done < "$tmpfile"
 
-  echo $repos
-  rm $tmpfile
+  echo "$repos"
+  rm "$tmpfile"
 }
 
 # Get repos from manifest
@@ -81,7 +81,7 @@ getreponame
 REPO_NAMES=$repos
 ALL_NAMES="$REPO_NAMES Makefile build aomp"
 # Check for extra directories.  Note build is in the exclude list
-for dir_name in `ls $AOMP_REPOS` ; do
+for dir_name in "$AOMP_REPOS"/*; do
    found=0
    for repo_name in $ALL_NAMES ; do
       if [ "$repo_name" == "$dir_name" ] ; then
@@ -96,7 +96,7 @@ for dir_name in `ls $AOMP_REPOS` ; do
       echo "          $dir_name WILL NOT BE ADDED TO SOURCE TARBALL."
       echo "          CHECK DIRECTORY $AOMP_REPOS ."
       echo "          HIT ENTER TO CONTINUE or CTRL-C TO CANCEL"
-      read
+      read -r
    fi
 done
 
@@ -104,9 +104,9 @@ patchloc=$thisdir/patches
 export IFS=" "
 echo "----------------- PRE-PATCH STATUS -----------------"
 for repo_name in $REPO_NAMES ; do
-   cd $AOMP_REPOS/$repo_name
+   cd "$AOMP_REPOS/$repo_name" || exit
    echo
-   echo $repo_name: git status
+   echo "$repo_name: git status"
    git status
 done
 echo "----------------- PATCHING REPOS -----------------"
@@ -115,15 +115,15 @@ for repo_name in $REPO_NAMES ; do
    if [ "$repo_name" == "llvm-project" ] && [ "$AOMP_APPLY_ATD_AMD_STAGING_PATCH"  == 0 ] ; then
      continue
    else
-     echo patchrepo $AOMP_REPOS/$repo_name
-     patchrepo $AOMP_REPOS/$repo_name
+     echo "patchrepo $AOMP_REPOS/$repo_name"
+     patchrepo "$AOMP_REPOS/$repo_name"
    fi
 done
 echo "----------------- POST-PATCH STATUS -----------------"
 for repo_name in $REPO_NAMES ; do
-   cd $AOMP_REPOS/$repo_name
+   cd "$AOMP_REPOS/$repo_name" || exit
    echo
-   echo $repo_name: git status
+   echo "$repo_name: git status"
    git status
 done
 
@@ -133,51 +133,51 @@ tmpdir=/tmp/create_tarball$$
 majorver=${AOMP_VERSION}
 tardir=$tmpdir/aomp$majorver
 echo "----- Building symbolic temp dir $tardir------------"
-echo mkdir -p $tardir
-mkdir -p $tardir
-cd $tardir
+echo "mkdir -p $tardir"
+mkdir -p "$tardir"
+cd "$tardir" || exit
 #  Copy makefile to $tardir
-echo cp -p $AOMP_REPOS/$AOMP_REPO_NAME/Makefile $tardir/Makefile
-cp -p $AOMP_REPOS/aomp/Makefile $tardir/Makefile
+echo "cp -p $AOMP_REPOS/$AOMP_REPO_NAME/Makefile $tardir/Makefile"
+cp -p "$AOMP_REPOS/aomp/Makefile" "$tardir/Makefile"
 for repo_name in $REPO_NAMES ; do
-   echo ln -sf $AOMP_REPOS/$repo_name $repo_name
-   ln -sf $AOMP_REPOS/$repo_name $repo_name
+   echo "ln -sf $AOMP_REPOS/$repo_name $repo_name"
+   ln -sf "$AOMP_REPOS/$repo_name" "$repo_name"
 done
-echo ln -sf $AOMP_REPOS/$AOMP_REPO_NAME $AOMP_REPO_NAME
-ln -sf $AOMP_REPOS/$AOMP_REPO_NAME $AOMP_REPO_NAME
-cd $tmpdir
+echo "ln -sf $AOMP_REPOS/$AOMP_REPO_NAME $AOMP_REPO_NAME"
+ln -sf "$AOMP_REPOS/$AOMP_REPO_NAME" "$AOMP_REPO_NAME"
+cd "$tmpdir" || exit
 cmd="tar --exclude-from $thisdir/create_release_tarball_excludes -h -czf $tarball aomp$majorver "
 echo "----------------- START tar COMMAND -----------------"
-echo time $cmd
+echo "time $cmd"
 time $cmd
 echo 
-echo done creating $PWD/$tarball
+echo "done creating $PWD/$tarball"
 echo
 echo "----- Cleanup symbolic temp dir $tardir------------"
-echo cd $tardir
-cd $tardir
+echo "cd $tardir"
+cd "$tardir" || exit
 echo "rm *"
-rm *
-echo rmdir $tardir
-rmdir $tardir
-cd /tmp
-echo rmdir $tmpdir
-rmdir $tmpdir
+rm -- *
+echo "rmdir $tardir"
+rmdir "$tardir"
+cd /tmp || exit
+echo "rmdir $tmpdir"
+rmdir "$tmpdir"
 
 echo "----------------- REVERSE PATCHING -----------------"
 for repo_name in $REPO_NAMES ; do
-   removepatch $AOMP_REPOS/$repo_name
+   removepatch "$AOMP_REPOS/$repo_name"
 done
 
 echo "----------------- POST REVERSE PATCH STATUS -----------------"
 for repo_name in $REPO_NAMES ; do
-   cd $AOMP_REPOS/$repo_name
+   cd "$AOMP_REPOS/$repo_name" || exit
    echo
-   echo $repo_name: git status
+   echo "$repo_name: git status"
    git status
 done
 
 echo 
-cd $AOMP_REPOS/..
+cd "$AOMP_REPOS/.." || exit
 echo "------ DONE! CMD:$0  FILE:$tarball ------"
-ls -lh $tarball
+ls -lh "$tarball"

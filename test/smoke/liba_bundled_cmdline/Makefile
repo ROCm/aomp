@@ -13,7 +13,7 @@ EXTRA_OMP_FLAGS =
 
 CC        = $(AOMP)/bin/clang
 UNAMEP    = $(shell uname -m)
-HOST_TARGET = $(UNAMEP)-pc-linux-gnu
+HOST_TARGET = $(CLANG_HOST_TARGET)
 EXTRA_CFLAGS = -target $(HOST_TARGET)
 
 ifeq (sm_,$(findstring sm_,$(AOMP_GPU)))

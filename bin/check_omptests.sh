@@ -4,12 +4,12 @@
 #  Assumes run_omptests.sh has been executed.
 #
 # --- Start standard header to set AOMP environment variables ----
-realpath=`realpath $0`
-thisdir=`dirname $realpath`
-. $thisdir/aomp_common_vars
+realpath=$(realpath "$0")
+thisdir=$(dirname "$realpath")
+. "$thisdir/aomp_common_vars"
 # --- end standard header ----
 
-pushd $AOMP_REPOS_TEST/$AOMP_OMPTESTS_REPO_NAME
+pushd "$AOMP_REPOS_TEST/$AOMP_OMPTESTS_REPO_NAME" || exit
 rm -f runtime-fails.txt
 rm -f compile-fails.txt
 rm -f passing-tests.txt
@@ -19,25 +19,25 @@ compile_fails=0
 runtime_fails=0
 
 # Count tests that start with t- or test-
-total_tests=$(ls | grep "\(^t\-*\|^test\-\)" | wc -l)
+# shellcheck disable=SC2010 # 'ls' is OK here
+total_tests=$(ls -U1q | grep -Ec '^t-|^test-')
 
 # Count compile/runtime fails and successful tests
 for directory in ./t-*/; do
-  pushd $directory > /dev/null
-  testname=`basename $(pwd)`
-  diff results/stdout expected > /dev/null
-  return_code=$?
-  if [ $return_code != 0 ] && [ -e results/a.out ]; then
-    reason=`grep -E 'Killed' results/stderr`
-    echo $testname $reason >> $AOMP_REPOS_TEST/$AOMP_OMPTESTS_REPO_NAME/runtime-fails.txt
+  pushd "$directory" > /dev/null || exit
+  testname=$(basename "$(pwd)")
+
+  if ! diff results/stdout expected > /dev/null && [ -e results/a.out ]; then
+    reason=$(grep -E 'Killed' results/stderr)
+    echo "$testname $reason" >> "$AOMP_REPOS_TEST/$AOMP_OMPTESTS_REPO_NAME/runtime-fails.txt"
   elif ! [[ -e results/a.out ]]; then
-    echo $testname >> $AOMP_REPOS_TEST/$AOMP_OMPTESTS_REPO_NAME/compile-fails.txt
+    echo "$testname" >> "$AOMP_REPOS_TEST/$AOMP_OMPTESTS_REPO_NAME/compile-fails.txt"
   else
     if [ -e results/a.out ]; then
-      echo $testname >> $AOMP_REPOS_TEST/$AOMP_OMPTESTS_REPO_NAME/passing-tests.txt
+      echo "$testname" >> "$AOMP_REPOS_TEST/$AOMP_OMPTESTS_REPO_NAME/passing-tests.txt"
     fi
   fi
-  popd > /dev/null
+  popd > /dev/null || exit
 done
 
 # Add skip_list tests to runtime fails
@@ -55,7 +55,8 @@ fi
 # Add tests that were skipped to avoid soft hang
 echo
 echo -----Runtime Fails-----
-runtime_fails=$(ls | grep "^test\-" | wc -l)
+# shellcheck disable=SC2010 # 'ls' is OK here
+runtime_fails=$(ls -U1q | grep -Ec '^test-')
 if [ -e runtime-fails.txt ]; then
   echo
   cat runtime-fails.txt
@@ -76,29 +77,34 @@ if [ "$passing_tests" == "$total_tests" ]; then
   pass_rate=100
 else
   # The calculation results in extra zeros that can be removed with sed
-  pass_rate=`bc -l <<< "scale=4; ($passing_tests/$total_tests) * 100" | sed -E "s/([0-9]+\.[0-9]+)00/\1/g"`
+  pass_rate=$(bc -l <<< "scale=4; ($passing_tests/$total_tests) * 100" | sed -E "s/([0-9]+\.[0-9]+)00/\1/g")
 fi
 
 echo
-echo ----- Results -----
-echo Compile Fails: $compile_fails
-echo Runtime Fails: $runtime_fails
+echo "----- Results -----"
+echo "Compile Fails: $compile_fails"
+echo "Runtime Fails: $runtime_fails"
 
-echo Successful Tests: $passing_tests/$total_tests
-echo Pass Rate: $pass_rate%
-echo -------------------
+echo "Successful Tests: $passing_tests/$total_tests"
+echo "Pass Rate: $pass_rate%"
+echo "-------------------"
 echo
+
+if [ -z "$log" ]; then
+   echo "Log file not set! Exiting." >&2
+   exit 1
+fi
 
 # Log Results
 {
   echo
-  echo ----- Results -----
-  echo Compile Fails: $compile_fails
-  echo Runtime Fails: $runtime_fails
+  echo "----- Results -----"
+  echo "Compile Fails: $compile_fails"
+  echo "Runtime Fails: $runtime_fails"
 
-  echo Successful Tests: $passing_tests/$total_tests
-  echo Pass Rate: $pass_rate%
-  echo -------------------
+  echo "Successful Tests: $passing_tests/$total_tests"
+  echo "Pass Rate: $pass_rate%"
+  echo "-------------------"
   echo
-} >> omptests_run_$log
-popd
+} >> "omptests_run_$log"
+popd || exit

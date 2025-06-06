@@ -11,11 +11,14 @@
 #     already set. If not, it assigns it the value following the :-
 
 # --- Start standard header to set AOMP environment variables ----
-realpath=`realpath $0`
-thisdir=`dirname $realpath`
+realpath=$(realpath "$0")
+thisdir=$(dirname "$realpath")
 
 # Individual scripts will determine what generator to use
 unset CMAKE_GENERATOR
+
+# If running under osh, set strict options.
+shopt -s strict:all 2>/dev/null || true
 
 # The AOMP_COMPILER_NAME is used whenever version is queried.
 # FIXME: More work is needed to propogate the use of AOMP_COMPILER_NAME.
@@ -62,23 +65,25 @@ fi
 # all the test repositories in a different directory.
 AOMP_REPOS_TEST=${AOMP_REPOS_TEST:-$HOME/git/aomp-test}
 
-_ccache_bin=`which ccache`
+_ccache_bin=$(which ccache)
 if [ "$_ccache_bin" == "" ] ; then
 AOMP_USE_CCACHE=${AOMP_USE_CCACHE:-0}
 else
 AOMP_USE_CCACHE=${AOMP_USE_CCACHE:-1}
 fi
+declare -a AOMP_CCACHE_OPTS
 if [ "$AOMP_USE_CCACHE" == 0 ] ; then
-  AOMP_CCACHE_OPTS=""
+  AOMP_CCACHE_OPTS=()
 else
-  _ccache_bin=`which ccache`
+  _ccache_bin=$(which ccache)
   if [ "$_ccache_bin" == "" ] ; then
     echo "ERROR: AOMP_USE_CCACHE is $AOMP_USE_CCACHE but no ccache bin found in PATH"
     echo "       Either fix path,  install ccache, or set AOMP_USE_CCACHE=0"
     echo
     exit 1
   fi
-  AOMP_CCACHE_OPTS="-DCMAKE_C_COMPILER_LAUNCHER=$_ccache_bin -DCMAKE_CXX_COMPILER_LAUNCHER=$_ccache_bin"
+  AOMP_CCACHE_OPTS=(-DCMAKE_C_COMPILER_LAUNCHER="$_ccache_bin"
+                    -DCMAKE_CXX_COMPILER_LAUNCHER="$_ccache_bin")
 fi
 
 AOMP_SKIP_FLANG=${AOMP_SKIP_FLANG:-1}
@@ -136,8 +141,8 @@ CUDABIN=${CUDABIN:-$CUDA/bin}
 # unless overridden with AOMP_CMAKE, get CMAKE from the
 # prerequisite supplemental component cmake.
 AOMP_CMAKE=${AOMP_CMAKE:-$AOMP_SUPP/cmake/bin/cmake}
-if [ ! -f $AOMP_CMAKE ] ; then
-  AOMP_CMAKE=`which cmake`
+if [ ! -f "$AOMP_CMAKE" ] ; then
+  AOMP_CMAKE=$(which cmake)
   if [ "$AOMP_CMAKE" == "" ] ; then
     echo "ERROR: finding cmake in aomp_common_vars."
     echo "       Missing prerequisite supplemental component cmake."
@@ -160,21 +165,21 @@ AOMP_USE_NINJA=${AOMP_USE_NINJA:-0}
 if [ "$AOMP_USE_NINJA" == 0 ] ; then
   AOMP_NINJA_BIN="make"
 else
-  AOMP_NINJA_BIN=`which ninja`
-  if [ AOMP_NINJA_BIN == "" ] ; then
+  AOMP_NINJA_BIN=$(which ninja)
+  if [ "$AOMP_NINJA_BIN" == "" ] ; then
     echo "ERROR: AOMP_USE_NINJA is $AOMP_USE_NINJA but no ninja bin found in PATH"
     echo "       Either install ninja in PATH or set AOMP_USE_NINJA=0"
     echo
     exit 1
   fi
 fi
-AOMP_PROC=`uname -m`
+AOMP_PROC=$(uname -m)
 if [ "$AOMP_PROC" == "unknown" ] ; then
-   AOMP_PROC=`uname -a | awk '{print $(NF-1)}'`
+   AOMP_PROC=$(uname -a | awk '{print $(NF-1)}')
 fi
 
-GCC=`which gcc`
-GCCXX=`which g++`
+GCC=$(which gcc)
+GCCXX=$(which g++)
 AOMP_CC_COMPILER=${AOMP_CC_COMPILER:-$GCC}
 AOMP_CXX_COMPILER=${AOMP_CXX_COMPILER:-$GCCXX}
 
@@ -191,8 +196,8 @@ fi
 # Otherwise default to installed AOMP. If not yet installed, try rocm clang.
 _clang_compiler=$LLVM_INSTALL_LOC/bin/clang
 _clangxx_compiler=$LLVM_INSTALL_LOC/bin/clang++
-[ ! -f $_clang_compiler ] && _clang_compiler=/opt/rocm/llvm/bin/clang
-[ ! -f $_clangxx_compiler ] && _clangxx_compiler=/opt/rocm/llvm/bin/clang++
+[ ! -f "$_clang_compiler" ] && _clang_compiler=/opt/rocm/llvm/bin/clang
+[ ! -f "$_clangxx_compiler" ] && _clangxx_compiler=/opt/rocm/llvm/bin/clang++
 AOMP_CLANG_COMPILER=${AOMP_CLANG_COMPILER:-$_clang_compiler}
 AOMP_CLANGXX_COMPILER=${AOMP_CLANGXX_COMPILER:-$_clangxx_compiler}
 
@@ -211,7 +216,7 @@ if [ "$AOMP_PROC" == "ppc64le" ] ; then
 fi
 AOMP_BUILD_DEBUG=${AOMP_BUILD_DEBUG:-1}
 
-if [ $AOMP_STANDALONE_BUILD == 1 ] ; then
+if [ "$AOMP_STANDALONE_BUILD" == 1 ] ; then
    # Default is to build nvptx for STANDALONE build
    AOMP_BUILD_CUDA=${AOMP_BUILD_CUDA:-1}
    AOMP_BUILD_PERF=${AOMP_BUILD_PERF:-1}
@@ -228,6 +233,32 @@ else
    fi
 fi
 
+# Quote argument list suitable for passing as a single (string) argument to
+# cmake.  Result can be used within a double-quoted string, i.e. using
+# "$(cmquot ...)".
+function cmquot() {
+   local escaped_flags
+   local escaped_flag
+   local flag
+   escaped_flags=()
+   for flag in "$@"; do
+      escaped_flag=$(printf "%s" "$flag" | sed 's/\\/\\\\/g; s/\$/\\$/g; s/ /\\ /g; s/"/\\"/g')
+      escaped_flags+=("$escaped_flag")
+   done
+   echo "${escaped_flags[*]}"
+}
+
+# Quote argument list suitable for passing back to the shell as a string.
+# Useful for e.g. dumping argument lists in such a way that they can be safely
+# copy & pasted into the user's terminal.  Output should not be further quoted.
+function shquot() {
+  local -a output
+  output=()
+  for arg in "$@"; do
+    output+=(\'${arg//\'/\'\\\'\'}\')
+  done
+  printf '%s' "${output[*]}"
+}
 
 # AOMP uses RPATH (not) RUNPATH because LD_LIBRARY_PATH is a user feature for
 # user lib development. We do not want the compiler runtime to search user paths
@@ -240,28 +271,37 @@ fi
 # Spliting options with AOMP_ORIGIN_NO_DTAGS is no longer necessary.
 
 AOMP_ORIGIN_RPATH_LIST="\$ORIGIN:\$ORIGIN/../lib:\$ORIGIN/../lib64:\$ORIGIN/../../../lib:\$ORIGIN/../llvm/lib"
-AOMP_ORIGIN_RPATH="-DCMAKE_SHARED_LINKER_FLAGS='-Wl,--disable-new-dtags' -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON -DCMAKE_INSTALL_RPATH=$AOMP_ORIGIN_RPATH_LIST"
+AOMP_ORIGIN_RPATH=(-DCMAKE_SHARED_LINKER_FLAGS='-Wl,--disable-new-dtags'
+                   -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON
+                   -DCMAKE_INSTALL_RPATH="$AOMP_ORIGIN_RPATH_LIST")
 AOMP_DEBUG_ORIGIN_RPATH_LIST="\$ORIGIN:\$ORIGIN/../lib-debug:\$ORIGIN/../lib64:\$ORIGIN/../../../lib-debug"
-AOMP_DEBUG_ORIGIN_RPATH="-DCMAKE_SHARED_LINKER_FLAGS='-Wl,--disable-new-dtags' -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON -DCMAKE_INSTALL_RPATH=$AOMP_DEBUG_ORIGIN_RPATH_LIST"
+AOMP_DEBUG_ORIGIN_RPATH=(-DCMAKE_SHARED_LINKER_FLAGS='-Wl,--disable-new-dtags'
+                         -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON
+                         -DCMAKE_INSTALL_RPATH="$AOMP_DEBUG_ORIGIN_RPATH_LIST")
 
 # Libraries and Binaries need different RUNPATH as below
 if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
   ## Below 3 lines are actually only required for AOMP ASan RPATH Cmake configuration.
   AOMP_ASAN_ORIGIN_RPATH_LIST="\$ORIGIN:\$ORIGIN/../../lib:\$ORIGIN/../lib:\$ORIGIN/../lib64:\$ORIGIN/../../../../lib/asan:\$ORIGIN/../lib/llvm"
-  AOMP_ASAN_ORIGIN_RPATH="-DCMAKE_SHARED_LINKER_FLAGS='-Wl,--disable-new-dtags' -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=OFF -DCMAKE_INSTALL_RPATH=$AOMP_ASAN_ORIGIN_RPATH_LIST"
+  AOMP_ASAN_ORIGIN_RPATH=(-DCMAKE_SHARED_LINKER_FLAGS='-Wl,--disable-new-dtags'
+                          -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=OFF
+                          -DCMAKE_INSTALL_RPATH="$AOMP_ASAN_ORIGIN_RPATH_LIST")
   # Please note below lines are only setup for ROCm ASan integration with AOMP.
   # Relative RUNPATH for ASAN binaries and libraries
-  OPENMP_EXTRAS_LIB_RPATH='$ORIGIN:$ORIGIN/../../../lib/asan:$ORIGIN/../../../lib:$ORIGIN/../../../../lib/asan:$ORIGIN/../../../../lib'
-  OPENMP_EXTRAS_EXE_RPATH='$ORIGIN/../lib/asan:$ORIGIN/../lib:$ORIGIN/../../lib/asan:$ORIGIN/../../lib:$ORIGIN/../../../lib/asan:$ORIGIN/../../../lib'
+  OPENMP_EXTRAS_LIB_RPATH="\$ORIGIN:\$ORIGIN/../../../lib/asan:\$ORIGIN/../../../lib:\$ORIGIN/../../../../lib/asan:\$ORIGIN/../../../../lib"
+  OPENMP_EXTRAS_EXE_RPATH="\$ORIGIN/../lib/asan:\$ORIGIN/../lib:\$ORIGIN/../../lib/asan:\$ORIGIN/../../lib:\$ORIGIN/../../../lib/asan:\$ORIGIN/../../../lib"
 else
   # Relative RUNPATH for non-ASAN binaries and libraries
-  OPENMP_EXTRAS_LIB_RPATH='$ORIGIN:$ORIGIN/../lib:$ORIGIN/../../lib:$ORIGIN/../../../lib'
-  OPENMP_EXTRAS_EXE_RPATH='$ORIGIN/../lib:$ORIGIN/../../lib:$ORIGIN/../../../lib'
+  OPENMP_EXTRAS_LIB_RPATH="\$ORIGIN:\$ORIGIN/../lib:\$ORIGIN/../../lib:\$ORIGIN/../../../lib"
+  OPENMP_EXTRAS_EXE_RPATH="\$ORIGIN/../lib:\$ORIGIN/../../lib:\$ORIGIN/../../../lib"
 fi
 
-OPENMP_EXTRAS_SHARED_LINKER_FLAGS="-Wl,--enable-new-dtags,--build-id=sha1,--rpath,$OPENMP_EXTRAS_LIB_RPATH"
-OPENMP_EXTRAS_EXE_LINKER_FLAGS="-Wl,--enable-new-dtags,--build-id=sha1,--rpath,$OPENMP_EXTRAS_EXE_RPATH"
-OPENMP_EXTRAS_ORIGIN_RPATH="-DCMAKE_SKIP_INSTALL_RPATH=TRUE -DCMAKE_SHARED_LINKER_FLAGS_INIT=${OPENMP_EXTRAS_SHARED_LINKER_FLAGS} -DCMAKE_EXE_LINKER_FLAGS_INIT=${OPENMP_EXTRAS_EXE_LINKER_FLAGS} -DCMAKE_MODULE_LINKER_FLAGS_INIT=${OPENMP_EXTRAS_SHARED_LINKER_FLAGS}"
+OPENMP_EXTRAS_SHARED_LINKER_FLAGS=("-Wl,--enable-new-dtags,--build-id=sha1,--rpath,$OPENMP_EXTRAS_LIB_RPATH")
+OPENMP_EXTRAS_EXE_LINKER_FLAGS=("-Wl,--enable-new-dtags,--build-id=sha1,--rpath,$OPENMP_EXTRAS_EXE_RPATH")
+OPENMP_EXTRAS_ORIGIN_RPATH=(-DCMAKE_SKIP_INSTALL_RPATH=TRUE
+                            -DCMAKE_SHARED_LINKER_FLAGS_INIT="$(cmquot "${OPENMP_EXTRAS_SHARED_LINKER_FLAGS[@]}")"
+                            -DCMAKE_EXE_LINKER_FLAGS_INIT="$(cmquot "${OPENMP_EXTRAS_EXE_LINKER_FLAGS[@]}")"
+                            -DCMAKE_MODULE_LINKER_FLAGS_INIT="$(cmquot "${OPENMP_EXTRAS_SHARED_LINKER_FLAGS[@]}")")
 
 # Regardless, turn off AOMP_BUILD_CUDA if CUDA not available
 if [ ! -d "$CUDABIN" ] ; then
@@ -278,10 +318,12 @@ if [ "$AOMP_BUILD_CUDA" == 1 ] ; then
    NVPTXGPUS_DEFAULT="35,37,50,52,53,60,61,62,70,72,75,80,86"
    #  Developers should override NVPTXGPUS to shorten build time.
    NVPTXGPUS=${NVPTXGPUS:-"${NVPTXGPUS_DEFAULT}"}
+   # shellcheck disable=2034
    AOMP_NVPTX_TARGET="NVPTX;"
 else
    NVPTXGPUS_DEFAULT=""
    NVPTXGPUS=""
+   # shellcheck disable=2034
    AOMP_NVPTX_TARGET=""
 fi
 
@@ -304,8 +346,9 @@ done
 
 # Calculate the number of threads to use for make
 COMP_THREADS=1
-if [ ! -z `which "getconf"` ]; then
-   COMP_THREADS=$(`which "getconf"` _NPROCESSORS_ONLN)
+GETCONF=$(which getconf)
+if [ -n "$GETCONF" ]; then
+   COMP_THREADS=$($GETCONF _NPROCESSORS_ONLN)
    if [ "$AOMP_PROC" == "ppc64le" ] ; then
       COMP_THREADS=$(( COMP_THREADS / 6))
    fi
@@ -337,14 +380,16 @@ AOMP_GIT_INTERNAL_IP="git@github-ent"
 GITROC="https://github.com/ROCm"
 GITGERRIT="ssh://$USER@gerrit-git.amd.com:29418"
 GITKHRONOS="https://github.com/KhronosGroup"
+# shellcheck disable=2034
 GITHWLOC="https://github.com/open-mpi"
 GITLIGHTNINGINTERNAL="$AOMP_GIT_INTERNAL_IP:AMD-Lightning-Internal"
 GITPROJECT=$GITROCDEV
+# shellcheck disable=2034
 POWERINFER_REPO="https://github.com/SJTU-IPADS"
 if [ "$AOMP_STANDALONE_BUILD" == 1 ]; then
   AOMP_PROJECT_REPO_NAME=${AOMP_PROJECT_REPO_NAME:-llvm-project}
 else
-  AOMP_PROJECT_REPO_NAME=${AOMP_PROJECT_REPO_NAME:-$(basename $LLVM_PROJECT_ROOT)}
+  AOMP_PROJECT_REPO_NAME=${AOMP_PROJECT_REPO_NAME:-$(basename "$LLVM_PROJECT_ROOT")}
   if [ ! -d "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME" ]; then
     AOMP_PROJECT_REPO_NAME="../llvm-project"
   fi
@@ -354,7 +399,7 @@ AOMP_FLANG_REPO_NAME=${AOMP_FLANG_REPO_NAME:-flang}
 # Last version of rocm (5.5) that supports the legacy driver (command generation)
 # The archives are built during flang-classic.
 AOMP_FLANG_CLASSIC_REL=${AOMP_FLANG_CLASSIC_REL:-${AOMP_REPOS}/${AOMP_FLANG_REPO_NAME}/flang-classic}
-if [ -d $AOMP_FLANG_CLASSIC_REL/llvm-classic ] ; then
+if [ -d "$AOMP_FLANG_CLASSIC_REL/llvm-classic" ] ; then
    AOMP_BUILD_FLANG_CLASSIC=1
 else
    AOMP_BUILD_FLANG_CLASSIC=0
@@ -392,45 +437,57 @@ AOMP_PROF_REGISTER_REPO_NAME=${AOMP_PROF_REGISTER_REPO_NAME:-rocprofiler-registe
 AOMP_TRACE_REPO_NAME=${AOMP_TRACE_REPO_NAME:-roctracer}
 
 # These are test repositories
+# shellcheck disable=2034
 GITNEKBONE="https://github.com/AMDComputeLibraries"
 AOMP_NEKBONE_REPO_NAME=${AOMP_NEKBONE_REPO_NAME:-Nekbone}
 AOMP_APPS_REPO_NAME=${AOMP_APPS_REPO_NAME:-openmpapps}
+# shellcheck disable=2034
 GITOPENMPVV="https://github.com/OpenMP-Validation-and-Verification"
 AOMP_OPENMPVV_REPO_NAME=${AOMP_OPENMPVV_REPO_NAME:-OpenMP_VV}
+# shellcheck disable=2034
 GITSOLVV="https://github.com/SOLLVE"
 AOMP_SOLVV_REPO_NAME=${AOMP_SOLVV_REPO_NAME:-sollve_vv}
 AOMP_APPS_REPO_NAME=${AOMP_APPS_REPO_NAME:-openmpapps}
+# shellcheck disable=2034
 GITLLNL="https://github.com/llnl"
 AOMP_RAJA_REPO_NAME=${AOMP_RAJA_REPO_NAME:-raja}
 AOMP_RAJAPERF_REPO_NAME=${AOMP_RAJAPERF_REPO_NAME:-RAJAPerf}
+# shellcheck disable=2034
 GITKOKKOS="https://github.com/kokkos"
 AOMP_KOKKOS_REPO_NAME=${AOMP_KOKKOS_REPO_NAME:-kokkos}
 AOMP_INTERNAL_IP="gitlab1.amd.com"
+# shellcheck disable=2034
 GITINTERNAL="http://${AOMP_INTERNAL_IP}/dmcdouga"  # This will change soon
+# shellcheck disable=2034
 GITOVO="https://github.com/TApplencourt"
 AOMP_OVO_REPO_NAME=${AOMP_OVO_REPO_NAME:-OvO}
+# shellcheck disable=2034
 GITOMPTESTS="https://github.com/doru1004"
 AOMP_OMPTESTS_REPO_NAME=${AOMP_OMPTESTS_REPO_NAME:-omptests}
+# shellcheck disable=2034
 GITQMCPACK="https://github.com/QMCPACK"
 AOMP_QMCPACK_REPO_NAME=${AOMP_QMCPACK_REPO_NAME:-qmcpack}
+# shellcheck disable=2034
 GITOPENLIBM="https://github.com/JuliaMath"
 AOMP_OPENLIBM_REPO_NAME=${AOMP_OPENLIBM_REPO_NAME:-openlibm}
+# shellcheck disable=2034
 GITLLNLGOULASH="https://github.com/LLNL"
 AOMP_GOULASH_REPO_NAME=${AOMP_GOULASH_REPO_NAME:-goulash}
 AOMP_BABELSTREAM_REPO_NAME=${AOMP_BABELSTREAM_REPO_NAME:-babelstream}
+# shellcheck disable=2034
 GITUMT="https://github.com/LLNL"
 AOMP_UMT_REPO_NAME=${AOMP_UMT_REPO_NAME:-UMT}
 
 #  We dont use this yet, waiting for trunk merge
 AOMP_F18_REPO_NAME=${AOMP_F18_REPO_NAME:-f18}
 
-if [ -d $AOMP_REPOS/$AOMP_TRACE_REPO_NAME ] ; then
-   pushd $AOMP_REPOS/$AOMP_TRACE_REPO_NAME > /dev/null
-   roctracer_branch=`git branch --list | grep "\*" | cut -d" " -f2`
+if [ -d "$AOMP_REPOS/$AOMP_TRACE_REPO_NAME" ] ; then
+   pushd "$AOMP_REPOS/$AOMP_TRACE_REPO_NAME" > /dev/null || exit
+   roctracer_branch=$(git branch --list | grep "\*" | cut -d" " -f2)
    if [ "$roctracer_branch" == "rocm-4.0.x" ] ; then
       AOMP_PATCH_CONTROL_FILE="${AOMP_REPOS}/${AOMP_REPO_NAME}/bin/patches/patch-control-file_4.0.txt"
    fi
-   popd > /dev/null
+   popd > /dev/null || exit
 fi
 AOMP_PATCH_CONTROL_FILE=${AOMP_PATCH_CONTROL_FILE:-${AOMP_REPOS}/${AOMP_REPO_NAME}/bin/patches/patch-control-file.txt}
 
@@ -450,11 +507,12 @@ fi
 # The cmake and make builds are actually done in 
 # BUILD_AOMP/build, not the actual repos. 
 BUILD_AOMP=${BUILD_AOMP:-$AOMP_REPOS}
+# shellcheck disable=2034
 BUILD_DIR=$BUILD_AOMP
 
 # Here is where we define different behaviors for STANDALONE build
 # and the new ROCm integrated build. The default is STANDALONE build.
-if [ $AOMP_STANDALONE_BUILD == 1 ] ; then
+if [ "$AOMP_STANDALONE_BUILD" == 1 ] ; then
    # Standalone build gets ROCm components from the AOMP Installation.
    # As a result their is an order to component builds.
    ROCM_DIR=${ROCM_DIR:-$AOMP_INSTALL_DIR}
@@ -468,11 +526,13 @@ else
    AOMP_INSTALL_DIR=${AOMP}
 fi
 
+declare -a ASAN_FLAGS
+
 if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
    if [ -f "${LLVM_INSTALL_LOC}/bin/clang" ]; then
       ASAN_LIB=$(${LLVM_INSTALL_LOC}/bin/clang --print-file-name=libclang_rt.asan-x86_64.so)
       ASAN_LIB_PATH=$(dirname "$ASAN_LIB")
-      if [ ! -d $ASAN_LIB_PATH ]; then
+      if [ ! -d "$ASAN_LIB_PATH" ]; then
         #Suppose above search path fails then via 'LLVM_ENABLE_PER_TARGET_RUNTIME_DIR=ON' the host asan library would lose the suffix
         ASAN_LIB=$(${LLVM_INSTALL_LOC}/bin/clang --print-file-name=libclang_rt.asan.so)
         ASAN_LIB_PATH=$(dirname "$ASAN_LIB")
@@ -481,20 +541,37 @@ if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
       # no compiler at $AOMP so set where we expect ASAN_LIP_PATH to be
       ASAN_LIB_PATH=${LLVM_INSTALL_LOC}/lib/clang/${AOMP_MAJOR_VERSION}/lib/linux
    fi
-   ASAN_FLAGS="-g -fsanitize=address -shared-libasan -Wl,-rpath=$ASAN_LIB_PATH -L$ASAN_LIB_PATH"
+   ASAN_FLAGS=(-g -fsanitize=address -shared-libasan
+               "-Wl,-rpath=$ASAN_LIB_PATH" -L"$ASAN_LIB_PATH")
    if [ "$AOMP_STANDALONE_BUILD" == 0 ]; then
-     ASAN_FLAGS="$ASAN_FLAGS -I$ROCM_DIR/include -I$ROCM_DIR/include/hsa"
+     ASAN_FLAGS+=(-I"$ROCM_DIR/include" -I"$ROCM_DIR/include/hsa")
    fi
 fi
+
+function check_writable_installdir() {
+   local action=$1
+   local installdir=$2
+
+   # Make sure we can update the install directory
+   if [ "$action" == "install" ] ; then
+      $SUDO mkdir -p "$installdir"
+
+      if ! $SUDO touch "$installdir/testfile"; then
+         echo "ERROR: No update access to $installdir"
+         exit 1
+      fi
+      $SUDO rm "$installdir/testfile"
+   fi
+}
 
 #  TO use this function set variables patchdir and patchfile
 function patchrepo(){
 patchdir=$1
 if [ "$AOMP_APPLY_ROCM_PATCHES" == 1 ] && [ -d "$patchdir" ] ; then
    patches=""
-   cd $patchdir
+   cd "$patchdir" || exit
    if [[ "$2" =~ "postinstall" ]]; then
-     getpatchlist $2
+     getpatchlist "$2"
    else
      getpatchlist
    fi
@@ -502,10 +579,10 @@ if [ "$AOMP_APPLY_ROCM_PATCHES" == 1 ] && [ -d "$patchdir" ] ; then
    #loop through list of patches to apply
    if [ "$patches" != "" ] ; then
    patchloc=${AOMP_PATCH_CONTROL_FILE%/*}
-   echo patchloc=$patchloc
+   echo "patchloc=$patchloc"
    for patch in $patches; do
      patchfile=$patchloc/$patch
-     if [ ! -f $patchfile ] ; then
+     if [ ! -f "$patchfile" ] ; then
        echo
        echo "ERROR: Patch $patchfile does not exist"
        echo "       It is referenced in ${AOMP_PATCH_CONTROL_FILE}"
@@ -515,12 +592,10 @@ if [ "$AOMP_APPLY_ROCM_PATCHES" == 1 ] && [ -d "$patchdir" ] ; then
      echo "Testing patch $patchfile to $patchdir"
 
      applypatch="yes"
-     patch -p1 -t -N --dry-run <$patchfile >/dev/null
-     if [ $? != 0 ] ; then
+     if ! patch -p1 -t -N --dry-run <"$patchfile" >/dev/null; then
         applypatch="no"
         # Check to see if reverse patch applies cleanly
-        patch -p1 -R --dry-run -t <$patchfile >/dev/null
-        if [ $? == 0 ] ; then
+        if patch -p1 -R --dry-run -t <"$patchfile" >/dev/null; then
            echo "patch $patchfile was already applied to $patchdir"
         else
            echo
@@ -533,7 +608,7 @@ if [ "$AOMP_APPLY_ROCM_PATCHES" == 1 ] && [ -d "$patchdir" ] ; then
      fi
      if [ "$applypatch" == "yes" ] ; then
         echo "Applying patch $patchfile to $patchdir"
-        patch -p1 --no-backup-if-mismatch <$patchfile
+        patch -p1 --no-backup-if-mismatch <"$patchfile"
      fi
    done
    fi
@@ -545,7 +620,7 @@ function removepatch(){
 patchdir=$1
 if [ "$AOMP_APPLY_ROCM_PATCHES" == 1 ] && [ -d "$patchdir" ] ; then
    patches=""
-   cd $patchdir
+   cd "$patchdir" || exit
    getpatchlist
    if [ "$patches" != "" ] ; then
       echo "Patchdir $patchdir"
@@ -558,14 +633,14 @@ if [ "$AOMP_APPLY_ROCM_PATCHES" == 1 ] && [ -d "$patchdir" ] ; then
      echo "Testing reverse patch $patchfile to $patchdir"
      reversepatch="yes"
      # Check to see if reverse patch applies cleanly
-     patch -p1 -R --dry-run -f <$patchfile  >/dev/null
-     if [ $? != 0 ] ; then
+
+     if ! patch -p1 -R --dry-run -f <"$patchfile"  >/dev/null; then
         echo "patch $patchfile was NOT applied $patchdir, no patch to reverse"
         reversepatch="no"
      fi
      if [ "$reversepatch" == "yes" ] ; then
         echo "Reversing patch $patchfile to $patchdir"
-        patch -p1 -R -f --no-backup-if-mismatch <$patchfile
+        patch -p1 -R -f --no-backup-if-mismatch <"$patchfile"
      fi
    done
    fi
@@ -574,14 +649,14 @@ fi
 
 function getpatchlist(){
    currdir=$(pwd)
-   basedir=$(basename $currdir)
+   basedir=$(basename "$currdir")
    if [[ "$1" =~ "postinstall" ]]; then
      reporegex="(^$1:\s)"
    else
      reporegex="(^$basedir:\s)"
    fi
-   echo FILE: $AOMP_PATCH_CONTROL_FILE
-   echo regex $reporegex
+   echo "FILE: $AOMP_PATCH_CONTROL_FILE"
+   echo "regex $reporegex"
    #read patch control file and look for correct patches
    while read -r line; do
    if [[ "$line" =~ $reporegex ]]; then
@@ -596,23 +671,23 @@ function getpatchlist(){
 function setaompgpu (){
   if [[ -e "$AOMP/../../bin/rocm_agent_enumerator" ]]; then
     echo Set AOMP_GPU with ../.. rocm_agent_enumerator.
-    detected_gpu=$($AOMP/../../bin/rocm_agent_enumerator | grep -m 1 -E gfx[^0]{1}.{2})
+    detected_gpu=$("$AOMP"/../../bin/rocm_agent_enumerator | grep -m 1 -E 'gfx[^0]{1}.{2}')
   elif [[ -e "$AOMP/../bin/rocm_agent_enumerator" ]]; then
     echo Set AOMP_GPU with .. rocm_agent_enumerator.
-    detected_gpu=$($AOMP/../bin/rocm_agent_enumerator | grep -m 1 -E gfx[^0]{1}.{2})
+    detected_gpu=$("$AOMP"/../bin/rocm_agent_enumerator | grep -m 1 -E 'gfx[^0]{1}.{2}')
   elif [[ "$AOMP" =~ "opt" ]]; then
     echo Set AOMP_GPU with rocm_agent_enumerator.
-    detected_gpu=$($AOMP/../bin/rocm_agent_enumerator | grep -m 1 -E gfx[^0]{1}.{2})
+    detected_gpu=$("$AOMP"/../bin/rocm_agent_enumerator | grep -m 1 -E 'gfx[^0]{1}.{2}')
   else
     echo Set AOMP_GPU with rocm_agent_enumerator.
-    if [ -a $AOMP/bin/rocm_agent_enumerator ]; then
-      detected_gpu=$($AOMP/bin/rocm_agent_enumerator | grep -m 1 -E gfx[^0]{1}.{2})
-    elif [ -a $AOMP/bin/amdgpu-arch ]; then
-      detected_gpu=$($AOMP/bin/amdgpu-arch)
-      detected_gpu=$(echo $detected_gpu | awk '{print $1,$5}')
-      detected_gpu=`echo $detected_gpu | cut -d" " -f1` # pick first found
-    elif [ -e $AOMP/../bin/mygpu ]; then
-      detected_gpu=$($AOMP/../bin/mygpu)
+    if [ -a "$AOMP"/bin/rocm_agent_enumerator ]; then
+      detected_gpu=$("$AOMP"/bin/rocm_agent_enumerator | grep -m 1 -E 'gfx[^0]{1}.{2}')
+    elif [ -a "$AOMP"/bin/amdgpu-arch ]; then
+      detected_gpu=$("$AOMP"/bin/amdgpu-arch)
+      detected_gpu=$(echo "$detected_gpu" | awk '{print $1,$5}')
+      detected_gpu=$(echo "$detected_gpu" | cut -d" " -f1) # pick first found
+    elif [ -e "$AOMP"/../bin/mygpu ]; then
+      detected_gpu=$("$AOMP"/../bin/mygpu)
     else
       echo "Error: in setaompgpu, could not find rocm_agent_enumerator"
       echo "       Set AOMP_GPU, AOMP, or install ROCm"
@@ -622,8 +697,8 @@ function setaompgpu (){
 
   AOMP_GPU=${AOMP_GPU:-$detected_gpu}
   export AOMP_GPU
-  echo AOMP_GPU = $AOMP_GPU
-  echo AOMP     = $AOMP
+  echo "AOMP_GPU = $AOMP_GPU"
+  echo "AOMP     = $AOMP"
 
   if [ "$AOMP_GPU" == "" ] || [ "$AOMP_GPU" == "unknown" ]; then
     echo Error: AOMP_GPU not properly set...exiting.
