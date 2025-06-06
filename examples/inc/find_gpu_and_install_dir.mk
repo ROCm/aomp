@@ -43,7 +43,7 @@ ifeq ("$(wildcard $(LLVM_INSTALL_DIR))","")
 endif
 
 # Determine clang host target
-CLANG_HOST_TARGET=$(shell awk '/LLVM_HOST_TRIPLE/ {print substr($$2,1,length($$2)-1)}' $(LLVM_INSTALL_DIR)/lib/cmake/llvm/LLVMConfig.cmake | tr -d \")
+CLANG_HOST_TARGET=$(shell $(LLVM_INSTALL_DIR)/bin/clang --version | grep Target: | cut -d" " -f2)
 
 # Determine COMPILER_NAME (AMD, AOMP, or clang)
 LLVM_COMPILER_NAME := $(shell $(LLVM_INSTALL_DIR)/bin/clang --version | head -n1 | cut -d" " -f1  | cut -d"_" -f1 )
