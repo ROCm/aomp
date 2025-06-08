@@ -169,6 +169,7 @@ cleanup
 
 if [ "$1" == "-clean" ]; then
   for directory in $SMOKE_DIRS; do
+    if [ ! -r $directory/Makefile ]; then continue; fi
     pushd $directory > /dev/null
     if [ $? -ne 0 ]; then continue; fi
     make clean
@@ -246,6 +247,7 @@ if [ "$AOMP_PARALLEL_SMOKE" == 1 ]; then
 
     # Parallel Make
     for directory in $SMOKE_DIRS; do
+      if [ ! -r $directory/Makefile ]; then continue; fi
       pushd $directory > /dev/null
       if [ $? -ne 0 ]; then continue; fi
       base=$(basename `pwd`)
@@ -282,6 +284,7 @@ if [ "$AOMP_PARALLEL_SMOKE" == 1 ]; then
     while [ $lrun -lt $SMOKE_LRUN ]; do
     #---
     for directory in $SMOKE_DIRS; do
+      if [ ! -r $directory/Makefile ]; then continue; fi
       pushd $directory > /dev/null
       if [ $? -ne 0 ]; then continue; fi
       base=$(basename `pwd`)
@@ -353,6 +356,7 @@ lrun=0
 while [ $lrun -lt $SMOKE_LRUN ]; do
 #---
 for directory in $SMOKE_DIRS; do
+  if [ ! -r $directory/Makefile ]; then continue; fi
   pushd $directory > /dev/null
   if [ $? -ne 0 ]; then continue; fi
   if [ $lrun -eq 0 ]; then
@@ -446,6 +450,7 @@ done
 
 # Print run.log for all tests that need visual inspection
 for directory in $SMOKE_DIRS; do
+  if [ ! -r $directory/Makefile ]; then continue; fi
   pushd $directory > /dev/null
   if [ $? -ne 0 ]; then continue; fi
   path=$(pwd)
