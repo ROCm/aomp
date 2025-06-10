@@ -1,14 +1,14 @@
 #!/bin/bash
 
 # --- Start standard header to set AOMP environment variables ----
-realpath=`realpath $0`
-thisdir=`dirname $realpath`
+realpath=$(realpath "$0")
+thisdir=$(dirname "$realpath")
 export AOMP_USE_CCACHE=0
 
-. $thisdir/aomp_common_vars
+. "${thisdir}/aomp_common_vars"
 # --- end standard header ----
 
-function usage(){
+function usage() {
   echo ""
   echo "------------ Usage ------------"
   echo "./run_rajaperf.sh [backend] [option]"
@@ -26,38 +26,34 @@ setaompgpu
 
 # Check cmake version
 cmake_regex="(([0-9])+\.([0-9]+)\.[0-9]+)"
-cmake_ver_str=$($AOMP_CMAKE  --version)
+cmake_ver_str=$($AOMP_CMAKE --version)
 if [[ "$cmake_ver_str" =~ $cmake_regex ]]; then
   cmake_ver=${BASH_REMATCH[1]}
-  cmake_major_ver=${BASH_REMATCH[2]}
-  cmake_minor_ver=${BASH_REMATCH[3]}
   echo "Cmake found: version $cmake_ver"
 else
   echo "ERROR: No cmake found, exiting..."
   return 1
 fi
 
-
-if [ "$1" == "hip" ]; then
+if [[ "$1" = "hip" ]]; then
   BUILD_SUFFIX=hip
 else
   BUILD_SUFFIX=omptarget
 fi
 
 build_targets="hip openmp"
-if [ "$2" == "build" ]; then
+if [[ "$2" == "build" ]]; then
   # Begin configuration
-  pushd $AOMP_REPOS_TEST/RAJAPerf
-  git reset --hard abb07792a899f7417e77ea40015e7e1dfd52716e
+  pushd "$AOMP_REPOS_TEST"/RAJAPerf || exit
+  git reset --hard 6054ecd30c681b45ce3cf0e2dc486ade7152db29
   git submodule update --recursive
-  
+
   rm -rf build_${BUILD_SUFFIX}
   mkdir build_${BUILD_SUFFIX}
-  pushd build_${BUILD_SUFFIX}
+  pushd build_${BUILD_SUFFIX} || exit
 
-  if [ "$1" == "hip" ]; then
-    $AOMP/bin/clang --version | grep AOMP
-    if [ $? -eq 0 ]; then
+  if [[ "$1" = "hip" ]]; then
+    if "$AOMP"/bin/clang --version | grep -q AOMP; then 
       export HIP_PATH="$AOMP"
       export HIP_CLANG_PATH=$AOMP/bin
     else
@@ -67,13 +63,13 @@ if [ "$2" == "build" ]; then
     export ROCM_PATH=$HIP_PATH
     $AOMP_CMAKE \
       -DCMAKE_BUILD_TYPE=Release \
-      -DCMAKE_CXX_COMPILER=${AOMP}/bin/clang++ \
+      -DCMAKE_CXX_COMPILER="${AOMP}"/bin/clang++ \
       -DENABLE_CUDA=Off \
       -DENABLE_HIP=On \
       -DCMAKE_PREFIX_PATH="$AOMP;$AOMP/..;/opt/rocm" \
       -DENABLE_ALL_WARNINGS=Off \
       -DCMAKE_INSTALL_PREFIX=../install_${BUILD_SUFFIX} \
-      -DCMAKE_HIP_ARCHITECTURES=$AOMP_GPU \
+      -DCMAKE_HIP_ARCHITECTURES="$AOMP_GPU" \
       -DENABLE_TESTS=On \
       "$@" \
       ..
@@ -81,7 +77,7 @@ if [ "$2" == "build" ]; then
     $AOMP_CMAKE \
       -DCMAKE_FIND_DEBUG_MODE=OFF \
       -DCMAKE_BUILD_TYPE=Release \
-      -DCMAKE_CXX_COMPILER=${AOMP}/bin/clang++ \
+      -DCMAKE_CXX_COMPILER="${AOMP}"/bin/clang++ \
       -DENABLE_CUDA=OFF \
       -DRAJA_ENABLE_CUDA=OFF \
       -DENABLE_HIP=OFF \
@@ -102,40 +98,39 @@ if [ "$2" == "build" ]; then
     usage
   fi
 
-  LESS_THREADS=$(( AOMP_JOB_THREADS/2 ))
-  LESS_THREADS=$(( $LESS_THREADS > 32 ? 32 : $LESS_THREADS ))
+  LESS_THREADS=$((AOMP_JOB_THREADS / 2))
+  LESS_THREADS=$((LESS_THREADS > 32 ? 32 : LESS_THREADS))
   MAKE_THREADS=${MAKE_THREADS:-$LESS_THREADS}
   echo "Using $MAKE_THREADS threads for make."
-  make -j $MAKE_THREADS
   # Do not continue if build fails
-  if [ $? != 0 ]; then
+   if ! make -j "$MAKE_THREADS"; then
     echo "ERROR: Make returned non-zero, exiting..."
     exit 1
   fi
-  
-  popd
+
+  popd || exit
   exit 0
 fi
 
 # Run performance tests or unit tests
-pushd $AOMP_REPOS_TEST/RAJAPerf
+pushd "$AOMP_REPOS_TEST"/RAJAPerf || exit
 if [ -d build_${BUILD_SUFFIX} ] && [ "$2" != "build" ]; then
   if [ "$2" == "perf" ]; then
     if [ "$1" == "hip" ]; then
       build_${BUILD_SUFFIX}/bin/raja-perf.exe --show-progress --refvar Base_HIP
-    elif [ "$1" == "openmp" ] ; then
-      if [ ! -f build_${BUILD_SUFFIX}/bin/raja-perf-omptarget.exe ] ; then
+    elif [ "$1" == "openmp" ]; then
+      if [ ! -f build_${BUILD_SUFFIX}/bin/raja-perf-omptarget.exe ]; then
         echo "ERROR file build_${BUILD_SUFFIX}/bin/raja-perf-omptarget.exe not found"
         echo "      please build raja first"
-	exit 1
+        exit 1
       fi
       build_${BUILD_SUFFIX}/bin/raja-perf-omptarget.exe --show-progress --refvar Base_OMPTarget
     fi
   elif [ "$2" == "unit" ]; then
-      cd build_${BUILD_SUFFIX}
-      make test
+    cd build_${BUILD_SUFFIX} || exit
+    make test
   else
-    echo Error: $2 not a recognized option.
+    echo Error: "$2" not a recognized option.
     usage
     exit 1
   fi
@@ -144,4 +139,4 @@ else
   usage
   exit 1
 fi
-popd
+popd || exit
