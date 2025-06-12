@@ -19,6 +19,7 @@ TESTS_DIR = \
     flang-522365-loop-2a \
     flang-522365-ttdpd-2a \
     flang-523313 \
+    flang-537934 \
     flang-gpu-exit \
     flang_red_bug_51 \
     mathquad-tgt \
