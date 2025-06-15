@@ -95,7 +95,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
   echo "${AOMP_CMAKE}" "${MYCMAKEOPTS[@]}" "$HIPIFY_REPO_DIR"
   if ! ${AOMP_CMAKE} "${MYCMAKEOPTS[@]}" "$HIPIFY_REPO_DIR"; then
       echo "ERROR hipify cmake failed. Cmake flags"
-      echo "      $(shquote "${MYCMAKEOPTS[@]}")"
+      echo "      $(shquot "${MYCMAKEOPTS[@]}")"
       exit 1
   fi
 fi

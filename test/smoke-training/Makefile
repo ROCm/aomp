@@ -1,37 +1,8 @@
 include ../Makefile.defs
 
 TESTS_DIR = \
-    flang-325095 \
-    flang-364228-2 \
-    flang-364228-3 \
-    flang-421111-3 \
-    flang-445999 \
-    flang-446033b_loop \
-    flang-446033b_ttdpd \
-    flang-469194 \
-    flang-476122a \
-    flang-480581 \
-    flang-509074 \
-    flang-509589 \
-    flang-519158-par \
-    flang-520335 \
-    flang-522059 \
-    flang-522365-loop-2a \
-    flang-522365-ttdpd-2a \
-    flang-523313 \
-    flang-537934 \
-    flang-gpu-exit \
-    flang_red_bug_51 \
-    mathquad-tgt \
-    multi-generic-exe \
-    rocm-aomp-issue-842 \
-    rocm-issue-208 \
-    rocm-issue-241 \
-    rocm-issue-251 \
-    rocm-issue-253-none \
-    rocm-issue-253-device \
-    rocm-issue-253-host \
-    target-array-element-reduction
+    hellofort \
+    helloworld
 
 all:
 	@for test_dir in $(TESTS_DIR); do \
@@ -66,37 +37,37 @@ check:
 	done
 
 help:
-	@echo 
+	@echo
 	@echo "LLVM Tool Chain:	$(AOMP)/bin"
 	@echo "Offload Targets:	$(TARGET)"
 	@echo "Host Target:		$(AOMP_CPUTARGET)"
 	@echo "Application Dirs:	$(TESTS_DIR)"
-	@echo 
+	@echo
 	@echo "This Makefile supports the following flags:"
-	@echo 
+	@echo
 	@echo "	make llbin      // Link pass only"
 	@echo "	make run_llbin  // Execute llbin"
-	@echo 
+	@echo
 	@echo "	make sbin       // Link pass only"
 	@echo "	make run_sbin   // Execute sbin"
-	@echo 
+	@echo
 	@echo "	make obin       // Link pass only"
 	@echo "	make run_obin   // Execute obin"
-	@echo 
+	@echo
 	@echo "	make .ll        // Compile pass only             : -c -S -emit-llvm"
 	@echo "	make .ll.s      // Backend pass only             : -c -S"
 	@echo "	make .ll.o      // Assemble pass only            : -c"
 	@echo "	make .s         // Compile & Backend passes      : -c -S"
 	@echo "	make .s.o       // Assemble pass only            : -c"
 	@echo "	make .o         // Compile, Backend, Assemble    : -c"
-	@echo 
+	@echo
 	@echo "	make            // All passes, build all examples from Application Dirs"
 	@echo "	make run        // Execute all binaries from Application Dirs"
-	@echo 
+	@echo
 	@echo "	make clean"
 	@echo "	make clean_log"
 	@echo "	make help"
-	@echo 
+	@echo
 	@echo " Environment variables to control compilation & execution"
 	@echo "    VERBOSE=1        See lots of compiler messages and driver actions"
 	@echo "    TEMPS=1          Do not delete intermediate files"
