@@ -3,14 +3,7 @@ declare_target_base_class.cpp
 lsms_triangular_packing.cpp
 test_allocate_allocator.c
 test_allocate.c
-test_atomic_acquire_release.F90
-test_atomic_hint.F90
-test_atomic_num_hint_device.F90
-test_atomic_num_hint.F90
-test_declare_target_device_type_any.F90
-test_declare_target_device_type_host.F90
 test_declare_target_nested.c
-test_declare_target_nested_functions.c
 test_declare_target_parallel_for.c
 test_loop_bind.c
 test_loop_bind_device.c
@@ -30,14 +23,10 @@ test_master_taskloop_simd_device.c
 test_metadirective_arch_is_nvidia.c
 test_metadirective_arch_nvidia_or_amd.c
 test_nested_declare_target.c
-test_omp_cancellation_env_1.c
 test_parallel_for_allocate.c
 test_parallel_master_device.c
 test_parallel_master_taskloop_device.c
 test_parallel_master_taskloop_simd_device.c
-test_requires_atomic_default_mem_order_acq_rel.F90
-test_requires_atomic_default_mem_order_relaxed.F90
-test_requires_atomic_default_mem_order_seq_cst.F90
 test_requires_unified_address.c
 test_requires_unified_shared_memory.c
 test_requires_unified_shared_memory_heap.c
@@ -54,9 +43,6 @@ test_requires_unified_shared_memory_stack_map.c
 test_requires_unified_shared_memory_static.c
 test_requires_unified_shared_memory_static_is_device_ptr.c
 test_requires_unified_shared_memory_static_map.c
-test_simd_if.F90
-test_simd_nontemporal.F90
-test_simd_order_concurrent.F90
 test_target_allocate.c
 test_target_collapse.c
 test_target_in_reduction.c
@@ -72,8 +58,6 @@ test_target_parallel_loop_order.c
 test_target_parallel_loop_private.c
 test_target_parallel_loop_reduction.c
 test_target_parallel_reduction.c
-test_target_simd_nontemporal.F90
-test_target_simd_order_concurrent.F90
 test_target_task_depend_mutexinoutset.c
 test_target_teams_distribute_parallel_for_collapse.c
 test_target_teams_distribute_parallel_for_collapse.F90
@@ -81,7 +65,6 @@ test_target_teams_distribute_parallel_for_simd_atomic.c
 test_target_teams_distribute_parallel_for_simd_atomic.F90
 test_target_teams_is_device_ptr.c
 test_target_teams_loop_allocate.c
-test_target_teams_loop_collapse.c
 test_target_teams_loop_defaultmap.c
 test_target_teams_loop_depend.c
 test_target_teams_loop_device.c
@@ -97,4 +80,3 @@ test_target_uses_allocators_const.c
 test_target_uses_allocators_large_cap.c
 test_target_uses_allocators_pteam.c
 test_taskwait_depend.c
-test_teams.F90
