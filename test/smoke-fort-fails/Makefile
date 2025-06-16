@@ -22,6 +22,7 @@ TESTS_DIR = \
     flang-537934 \
     flang-gpu-exit \
     flang_red_bug_51 \
+    inc_omp_lib_h \
     mathquad-tgt \
     multi-generic-exe \
     rocm-aomp-issue-842 \
