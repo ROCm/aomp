@@ -11,6 +11,7 @@ CKBuildParallelism=$(free -g | grep Mem | awk '{print int($2/10)}')
 realpath=$(realpath $0)
 thisdir=$(dirname $realpath)
 
+. "$thisdir/aomp_utils"
 . $thisdir/aomp_common_vars
 
 export PATH=$AOMP/bin:$PATH

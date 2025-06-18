@@ -1,0 +1,305 @@
+#!/bin/bash
+
+# Quote argument list suitable for passing as a single (string) argument to
+# cmake.  Result can be used within a double-quoted string, i.e. using
+# "$(cmquot ...)".
+function cmquot() {
+   local escaped_flags
+   local escaped_flag
+   local flag
+   escaped_flags=()
+   for flag in "$@"; do
+      escaped_flag=$(printf "%s" "$flag" | sed 's/\\/\\\\/g; s/\$/\\$/g; s/ /\\ /g; s/"/\\"/g')
+      escaped_flags+=("$escaped_flag")
+   done
+   echo "${escaped_flags[*]}"
+}
+
+# Quote argument list suitable for passing back to the shell as a string.
+# Useful for e.g. dumping argument lists in such a way that they can be safely
+# copy & pasted into the user's terminal.  Output should not be further quoted.
+function shquot() {
+  local -a output
+  output=()
+  for arg in "$@"; do
+    output+=(\'"${arg//\'/\'\\\'\'}"\')
+  done
+  printf '%s' "${output[*]}"
+}
+
+function check_writable_installdir() {
+   local action=$1
+   local installdir=$2
+
+   # Make sure we can update the install directory
+   if [ "$action" == "install" ] ; then
+      $SUDO mkdir -p "$installdir"
+
+      if ! $SUDO touch "$installdir/testfile"; then
+         echo "ERROR: No update access to $installdir"
+         exit 1
+      fi
+      $SUDO rm "$installdir/testfile"
+   fi
+}
+
+#  TO use this function set variables patchdir and patchfile
+function patchrepo(){
+patchdir=$1
+if [ "$AOMP_APPLY_ROCM_PATCHES" == 1 ] && [ -d "$patchdir" ] ; then
+   patches=""
+   cd "$patchdir" || exit
+   if [[ "$2" =~ "postinstall" ]]; then
+     getpatchlist "$2"
+   else
+     getpatchlist
+   fi
+
+   #loop through list of patches to apply
+   if [ "$patches" != "" ] ; then
+   patchloc=${AOMP_PATCH_CONTROL_FILE%/*}
+   echo "patchloc=$patchloc"
+   for patch in $patches; do
+     patchfile=$patchloc/$patch
+     if [ ! -f "$patchfile" ] ; then
+       echo
+       echo "ERROR: Patch $patchfile does not exist"
+       echo "       It is referenced in ${AOMP_PATCH_CONTROL_FILE}"
+       exit 1
+     fi
+
+     echo "Testing patch $patchfile to $patchdir"
+
+     applypatch="yes"
+     if ! patch -p1 -t -N --dry-run <"$patchfile" >/dev/null; then
+        applypatch="no"
+        # Check to see if reverse patch applies cleanly
+        if patch -p1 -R --dry-run -t <"$patchfile" >/dev/null; then
+           echo "patch $patchfile was already applied to $patchdir"
+        else
+           echo
+           echo "ERROR: Patch $patchfile will not apply"
+           echo "       cleanly to directory $patchdir"
+           echo "       Check if it was already applied."
+           echo
+           exit 1
+        fi
+     fi
+     if [ "$applypatch" == "yes" ] ; then
+        echo "Applying patch $patchfile to $patchdir"
+        patch -p1 --no-backup-if-mismatch <"$patchfile"
+     fi
+   done
+   fi
+fi
+
+}
+
+function removepatch(){
+patchdir=$1
+if [ "$AOMP_APPLY_ROCM_PATCHES" == 1 ] && [ -d "$patchdir" ] ; then
+   patches=""
+   cd "$patchdir" || exit
+   getpatchlist
+   if [ "$patches" != "" ] ; then
+      echo "Patchdir $patchdir"
+      echo "PATCHES TO REMOVE: $patches"
+   fi
+   patchloc=${AOMP_PATCH_CONTROL_FILE%/*}
+   if [ "$patches" != "" ] ; then
+   for patch in $patches; do
+     patchfile=$patchloc/$patch
+     echo "Testing reverse patch $patchfile to $patchdir"
+     reversepatch="yes"
+     # Check to see if reverse patch applies cleanly
+
+     if ! patch -p1 -R --dry-run -f <"$patchfile"  >/dev/null; then
+        echo "patch $patchfile was NOT applied $patchdir, no patch to reverse"
+        reversepatch="no"
+     fi
+     if [ "$reversepatch" == "yes" ] ; then
+        echo "Reversing patch $patchfile to $patchdir"
+        patch -p1 -R -f --no-backup-if-mismatch <"$patchfile"
+     fi
+   done
+   fi
+fi
+}
+
+function getpatchlist(){
+   currdir=$(pwd)
+   basedir=$(basename "$currdir")
+   if [[ "$1" =~ "postinstall" ]]; then
+     reporegex="(^$1:\s)"
+   else
+     reporegex="(^$basedir:\s)"
+   fi
+   echo "FILE: $AOMP_PATCH_CONTROL_FILE"
+   echo "regex $reporegex"
+   #read patch control file and look for correct patches
+   while read -r line; do
+   if [[ "$line" =~ $reporegex ]]; then
+     #remove basename from list of patches
+     patches=${line/"${BASH_REMATCH[1]}"}
+     echo "patches: $patches"
+     break
+   fi
+   done < "$AOMP_PATCH_CONTROL_FILE"
+}
+
+function setaompgpu (){
+  if [[ -e "$AOMP/../../bin/rocm_agent_enumerator" ]]; then
+    echo Set AOMP_GPU with ../.. rocm_agent_enumerator.
+    detected_gpu=$("$AOMP"/../../bin/rocm_agent_enumerator | grep -m 1 -E 'gfx[^0]{1}.{2}')
+  elif [[ -e "$AOMP/../bin/rocm_agent_enumerator" ]]; then
+    echo Set AOMP_GPU with .. rocm_agent_enumerator.
+    detected_gpu=$("$AOMP"/../bin/rocm_agent_enumerator | grep -m 1 -E 'gfx[^0]{1}.{2}')
+  elif [[ "$AOMP" =~ "opt" ]]; then
+    echo Set AOMP_GPU with rocm_agent_enumerator.
+    detected_gpu=$("$AOMP"/../bin/rocm_agent_enumerator | grep -m 1 -E 'gfx[^0]{1}.{2}')
+  else
+    echo Set AOMP_GPU with rocm_agent_enumerator.
+    if [ -a "$AOMP"/bin/rocm_agent_enumerator ]; then
+      detected_gpu=$("$AOMP"/bin/rocm_agent_enumerator | grep -m 1 -E 'gfx[^0]{1}.{2}')
+    elif [ -a "$AOMP"/bin/amdgpu-arch ]; then
+      detected_gpu=$("$AOMP"/bin/amdgpu-arch)
+      detected_gpu=$(echo "$detected_gpu" | awk '{print $1,$5}')
+      detected_gpu=$(echo "$detected_gpu" | cut -d" " -f1) # pick first found
+    elif [ -e "$AOMP"/../bin/mygpu ]; then
+      detected_gpu=$("$AOMP"/../bin/mygpu)
+    else
+      echo "Error: in setaompgpu, could not find rocm_agent_enumerator"
+      echo "       Set AOMP_GPU, AOMP, or install ROCm"
+      exit 1
+    fi
+  fi
+
+  AOMP_GPU=${AOMP_GPU:-$detected_gpu}
+  export AOMP_GPU
+  echo "AOMP_GPU = $AOMP_GPU"
+  echo "AOMP     = $AOMP"
+
+  if [ "$AOMP_GPU" == "" ] || [ "$AOMP_GPU" == "unknown" ]; then
+    echo Error: AOMP_GPU not properly set...exiting.
+    exit 1
+  fi
+}
+
+# GPUs which need HSA_XNACK=1 to be set for USM to work.  The canonical place
+# this info is stored in these scripts is in test/Makefile.defs (SUPPORTS_USM).
+# We use a tiny custom makefile to extract the info.
+# Usage:
+# if gpu_needs_xnack_for_usm "$GPU"; then ...; fi
+
+function gpu_needs_xnack_for_usm(){
+  local needs_usm
+  # $thisdir is always set by aomp_common_vars.
+  # shellcheck disable=SC2154
+  needs_usm=$(make -s -C "$thisdir"/../test -f USM_check.make GPU="$1")
+  case "$needs_usm" in
+    true)
+      return 0
+      ;;
+    false)
+      return 1
+      ;;
+    *)
+      return 2
+      ;;
+  esac
+}
+
+# Return success (0) if ROCR_VISIBLE_DEVICES (or the first GPU if it is unset)
+# refers to an APU, as indicated by rocminfo returning
+# "Coherent Host Access: TRUE" for the device, else return failure (1).
+
+function is_apu(){
+  local device_num=${ROCR_VISIBLE_DEVICES:-0}
+  local cha
+  cha=$(ROCR_VISIBLE_DEVICES="$device_num" rocminfo | grep -m 1 -F "Coherent Host Access:")
+  if [[ "$cha" =~ Coherent\ Host\ Access:[[:blank:]]+(TRUE|FALSE) ]]; then
+    case "${BASH_REMATCH[1]}" in
+      TRUE)
+        return 0
+        ;;
+      FALSE)
+        return 1
+        ;;
+     esac
+  else
+    # If we don't see the above pattern in rocminfo output, it's probably not
+    # an APU.
+    return 1
+  fi
+}
+
+function help_build_aomp(){
+   /bin/cat 2>&1 <<"EOF"
+
+  The build scripts in this directory are used to build AOMP.
+  
+  Repositories:
+     Many repositories are used to build AOMP.  The script clone_aomp.sh will
+     clone all the necessary repositories as subdirectories of the directory
+     $HOME/git/aomp11. The web repository locations and the required branches
+     are set with the file aomp_common_vars
+  
+  Build all components:
+     To build all components, run these commands:
+
+        ./clone_aomp.sh
+        unset LD_LIBRARY_PATH
+        ./build_aomp.sh
+
+  Component builds:
+     Developers can rebuild individual components by running the build script for
+     that component. Make sure dependent components are built first. You can run
+     build_aomp.sh to build call components in the correct order orsee the README.md
+     file in this directory for the required order.
+
+     Each build script can run with no arguments or with a single argument
+     "install" or "nocmake".  Running  with no options starts fresh with an empty
+     component build directory.  It then runs cmake with the correct cmake options
+     then it runs make with a proper -j option.
+  
+  Optional Arguments 'nocmake' and 'install' :
+     The 'nocmake' or 'install' options can only be used after your initial build
+     with no options. The 'nocmake' option is intended to restart make after 
+     you fix code following a failed build. The 'install' option will run 'make' 
+     and 'make install' causing installation into the directory $AOMP_INSTALL_DIR. 
+     The 'install' option will also create a symbolic link to directory $AOMP.
+  
+  Environment Variables:
+     You can set environment variables to override behavior of the build scripts
+     NAME             DEFAULT             DESCRIPTION
+     ----             -------             -----------
+     AOMP             $HOME/rocm/aomp     Where the compiler will be installed
+     AOMP_REPOS       $HOME/git/aomp11    Location of all aomp repos
+     BUILD_TYPE       Release             The CMAKE build type
+     BUILD_AOMP       same as AOMP_REPOS  Set a different build location than AOMP_REPOS
+     AOMP_USE_NINJA   0                   Use ninja if possible
+  
+  To build a debug version of the compiler, run this command before the build:
+     export BUILD_TYPE=debug
+  
+  The BUILD_AOMP Envronment Variable:
+     The build scripts will always build with cmake and make outside your source git trees.
+     By default (without BUILD_AOMP) the build will occur in the "build" subdirectory of
+     AOMP_REPOS. For example build_llvm will build in $AOMP_REPOS/build/llvm
+  
+     The BUILD_AOMP environment variable enables source development outside your git
+     repositories. By default, this feature is OFF.  The BUILD_AOMP environment variable 
+     can be used if access to your git repositories is very slow or you want to test 
+     changes outside of your local git repositories (specified by AOMP_REPOS env var). 
+     If BUILD_AOMP is set, your git repositories (specifed by AOMP_REPOS) will be
+     replicated to subdirectories of BUILD_AOMP using rsync.  The subsequent build 
+     (cmake and make) will occur in subdirectory BUILD_AOMP/build/llvm.
+     This replication only happens on your initial build, that is, if you specify no arguments.
+     The option 'nocmake' skips replication and then restarts make in the build directory.
+     The install option skips replication, skips cmake, runs 'make' and 'make install'. 
+     Be careful to always use options nocmake or install if you made local changes in
+     BUILD_AOMP or your changes will be lost by a new replica of your git repositories.
+  
+EOF
+   exit 0
+}
