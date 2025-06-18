@@ -14,6 +14,7 @@ realpath=`realpath $0`
 thisdir=`dirname $realpath`
 export AOMP_USE_CCACHE=0
 
+. "$thisdir/aomp_utils"
 . $thisdir/aomp_common_vars
 
 : ${ACCEL2023_SOURCE_DIR:=$AOMP_REPOS_TEST/accel2023-2.0.18}

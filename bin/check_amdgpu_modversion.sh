@@ -6,6 +6,7 @@
 # --- Start standard header to set AOMP environment variables ----
 realpath=$(realpath "$0")
 thisdir=$(dirname "$realpath")
+. "$thisdir/aomp_utils"
 [ -f "$thisdir/aomp_common_vars" ] && . "$thisdir/aomp_common_vars"
 # --- end standard header ----
 
