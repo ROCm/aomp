@@ -893,24 +893,24 @@ function OpenMP_VV(){
     SKIP_SOLLVE51=1 SKIP_SOLLVE52=1 ./run_OpenMP_VV.sh
   fi
 
-  ./check_sollve.sh
+  ./check_openmpvv.sh
   checkrc $?
 
   # 4.5 Results
-  cd "$AOMP_TEST_DIR"/sollve_vv/results_report45
-  copyresults sollve45
+  cd "$AOMP_TEST_DIR"/OpenMP_VV/results_report45
+  copyresults openmpvv45
 
   # 5.0 Results
-  cd "$AOMP_TEST_DIR"/sollve_vv/results_report50
-  copyresults sollve50
+  cd "$AOMP_TEST_DIR"/OpenMP_VV/results_report50
+  copyresults openmpvv50
 
   # 5.1 Results
-  cd "$AOMP_TEST_DIR"/sollve_vv/results_report51
-  copyresults sollve51
+  cd "$AOMP_TEST_DIR"/OpenMP_VV/results_report51
+  copyresults openmpvv51
 
   # 5.2 Results
-  cd "$AOMP_TEST_DIR"/sollve_vv/results_report52
-  copyresults sollve52
+  cd "$AOMP_TEST_DIR"/OpenMP_VV/results_report52
+  copyresults openmpvv52
 }
 
 function sollve(){
