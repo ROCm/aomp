@@ -1,40 +1,5 @@
 include ../Makefile.defs
 
-TESTS_DIR = \
-    flang-325095 \
-    flang-364228-2 \
-    flang-364228-3 \
-    flang-421111-3 \
-    flang-445999 \
-    flang-446033b_loop \
-    flang-446033b_ttdpd \
-    flang-469194 \
-    flang-476122a \
-    flang-480581 \
-    flang-509074 \
-    flang-509589 \
-    flang-519158-par \
-    flang-520335 \
-    flang-522059 \
-    flang-522365-loop-2a \
-    flang-522365-ttdpd-2a \
-    flang-523313 \
-    flang-537934 \
-    flang-524208 \
-    flang-gpu-exit \
-    flang_red_bug_51 \
-    inc_omp_lib_h \
-    mathquad-tgt \
-    multi-generic-exe \
-    rocm-aomp-issue-842 \
-    rocm-issue-208 \
-    rocm-issue-241 \
-    rocm-issue-251 \
-    rocm-issue-253-none \
-    rocm-issue-253-device \
-    rocm-issue-253-host \
-    target-array-element-reduction
-
 all:
 	@for test_dir in $(TESTS_DIR); do \
 	  echo; \
