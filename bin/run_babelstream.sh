@@ -111,7 +111,7 @@ fi
 
 omp_cpu_flags="-O3 -fopenmp -DOMP"
 hip_flags="-O3 -Wno-unused-result -DHIP"
-stdpar_flags="-O3 -I. --offload-arch=$AOMP_GPU -DNDEBUG -O3 --hipstdpar --hipstdpar-path=/opt/rocm/include/thrust/system/hip --hipstdpar-thrust-path=/opt/rocm/include --hipstdpar-prim-path=/opt/rocm/include -std=c++17 "
+stdpar_flags="-O3 -I. --offload-arch=$AOMP_GPU -DNDEBUG -O3 --hipstdpar --hipstdpar-path=/opt/rocm/include/thrust/system/hip/hipstdpar --hipstdpar-thrust-path=/opt/rocm/include --hipstdpar-prim-path=/opt/rocm/include -std=c++17 "
 
 omp_src="main.cpp OMPStream.cpp"
 hip_src="main.cpp HIPStream.cpp"

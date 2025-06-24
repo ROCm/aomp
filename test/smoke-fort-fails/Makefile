@@ -19,9 +19,11 @@ TESTS_DIR = \
     flang-522365-loop-2a \
     flang-522365-ttdpd-2a \
     flang-523313 \
-    flang-539854 \
+    flang-537934 \
+    flang-524208 \
     flang-gpu-exit \
     flang_red_bug_51 \
+    inc_omp_lib_h \
     mathquad-tgt \
     multi-generic-exe \
     rocm-aomp-issue-842 \

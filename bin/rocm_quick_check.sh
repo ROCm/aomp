@@ -33,6 +33,8 @@ fi
 echo "Done checking for libnvidia"
 
 if [ -e ~/local/openmpi/lib/libmpi.so ]; then
+  # We don't care that the tilde isn't expanded
+  # shellcheck disable=2088
   echo "~/local/openmpi/lib/libmpi.so OK"
 elif [ -e /opt/openmpi-4.1.5/lib/libmpi.so ]; then
   echo "/opt/openmpi-4.1.5/lib/libmpi.so OK"
@@ -54,17 +56,34 @@ else
   echo "No mpi found , not good. FAIL"
 fi
 
+# Find the latest version of FileCheck in a directory given as the first
+# argument.  (The highest-numbered FileCheck-nn, or just 'FileCheck' if that's
+# the only version in the directory).
+function latest_filecheck() {
+  local prev_nullglob
+  local indir="$1"
+  prev_nullglob="$(shopt -p nullglob)"
+  shopt -s nullglob
+  pushd "$indir" >& /dev/null || return
+  for FC in FileCheck*; do
+    realpath "$FC"
+  done | sort -t '-' -k 2 -n -r | head -n 1
+  popd >& /dev/null || return
+  eval "$prev_nullglob"
+}
 
 # Look for FileCheck on the system in various places.
 # Check local AOMP install first.
-SYSFILECHECK=`ls /usr/bin | grep -m1 -e "FileCheck"`
+SYSFILECHECK=$(latest_filecheck /usr/bin)
 if [ "$SYSFILECHECK" == "" ]; then
 	SYSFILECHECK="FileCheck"
 fi
-AOMP=`ls -d /opt/rocm-*/llvm | head -1`
-echo $AOMP
-SYSLLVM=`ls /usr/lib | grep -m1 -e "llvm-[0-9]\+"`
-TESTPACKAGE_BINDIR=`find "$HOME/tmp/openmp-extras" -type f -name 'aomp_common_vars' | xargs dirname`
+# We don't care about non-alphanumeric filenames here.
+# shellcheck disable=2012
+AOMP=$(ls -d /opt/rocm-*/llvm | head -1)
+echo "$AOMP"
+SYSLLVM=$(ls /usr/lib | grep -m1 -e "llvm-[0-9]\+")
+TESTPACKAGE_BINDIR=$(find "$HOME/tmp/openmp-extras" -type f -name 'aomp_common_vars' | xargs dirname)
 
 if [ -e "$TESTPACKAGE_BINDIR/FileCheck" ]; then
   echo "$TESTPACKAGE_BINDIR/FileCheck OK"
@@ -75,13 +94,13 @@ elif [ -e "$AOMP/bin/FileCheck" ]; then
 elif [ -e /usr/lib/aomp/bin/FileCheck ]; then
   echo "/usr/lib/aomp/bin/FileCheck OK"
   /usr/lib/aomp/bin/FileCheck --version
-elif [ -e $HOME/git/aomp-test/FileCheck ]; then
+elif [ -e "$HOME"/git/aomp-test/FileCheck ]; then
   echo "$HOME/git/aomp-test/FileCheck OK"
   $HOME/git/aomp-test/FileCheck --version
-elif [ -e /usr/lib/$SYSLLVM/bin/FileCheck ]; then
+elif [ -e /usr/lib/"$SYSLLVM"/bin/FileCheck ]; then
   echo "/usr/lib/$SYSLLVM/bin/FileCheck OK"
   /usr/lib/$SYSLLVM/bin/FileCheck --version
-elif [ -e /usr/bin/$SYSFILECHECK ]; then
+elif [ -e /usr/bin/"$SYSFILECHECK" ]; then
   echo "/usr/bin/$SYSFILECHECK OK"
   /usr/bin/$SYSFILECHECK --version
 else

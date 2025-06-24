@@ -65,13 +65,13 @@ if [ $ISVIRT -eq 1 ] ; then
   # run on configurations that do not support USM.
   export OMPX_STRICT_SANITY_CHECKS={OMPX_STRICT_SANITY_CHECKS:-1}
 
-SUITE_LIST=${SUITE_LIST:-"examples smoke-limbo smoke smoke-asan smoke-fort smoke-fort-limbo omp5 openmpapps ovo sollve babelstream fortran-babelstream accel2023 hpc2021"}
+SUITE_LIST=${SUITE_LIST:-"examples smoke-limbo smoke smoke-asan smoke-fort smoke-fort-limbo omp5 openmpapps ovo OpenMP_VV babelstream fortran-babelstream accel2023 hpc2021"}
 else
-SUITE_LIST=${SUITE_LIST:-"examples smoke-limbo smoke smoke-asan smoke-fort smoke-fort-limbo omp5 openmpapps LLNL nekbone ovo sollve babelstream fortran-babelstream accel2023 hpc2021"}
+SUITE_LIST=${SUITE_LIST:-"examples smoke-limbo smoke smoke-asan smoke-fort smoke-fort-limbo omp5 openmpapps LLNL nekbone ovo OpenMP_VV  babelstream fortran-babelstream accel2023 hpc2021"}
 fi
-blockinglist="examples smoke smoke-limbo openmpapps sollve45 sollve50 babelstream ovo accel2023 hpc2021 nekbone smoke-fort smoke-fort-limbo"
+blockinglist="examples smoke smoke-limbo openmpapps sollve45 sollve50 sollve51 sollve52 babelstream ovo accel2023 hpc2021 nekbone smoke-fort smoke-fort-limbo"
 
-EPSDB_LIST=${EPSDB_LIST:-"examples smoke-limbo smoke-dev smoke smoke-asan omp5 openmpapps LLNL nekbone ovo sollve babelstream fortran-babelstream accel2023 hpc2021  smoke-fort smoke-fort-limbo smoke-fort-dev"}
+EPSDB_LIST=${EPSDB_LIST:-"examples smoke-limbo smoke-dev smoke smoke-asan omp5 openmpapps LLNL nekbone ovo OpenMP_VV babelstream fortran-babelstream accel2023 hpc2021  smoke-fort smoke-fort-limbo smoke-fort-dev"}
 
 export AOMP_USE_CCACHE=0
 
@@ -599,7 +599,7 @@ function copyresults(){
 	    fi
           done
         fi
-      elif [[ "$1" =~ sollve|ovo|LLNL|openmpapps ]]; then
+      elif [[ "$1" =~ sollve|OpenMP_VV|ovo|LLNL|openmpapps ]]; then
         # Combine passing/failing tests, which shows all tests that tried to build/run.
         # If the unexpected failure is not on that list, warn the user that test may be missing
         # from suite.
@@ -893,24 +893,24 @@ function OpenMP_VV(){
     SKIP_SOLLVE51=1 SKIP_SOLLVE52=1 ./run_OpenMP_VV.sh
   fi
 
-  ./check_sollve.sh
+  ./check_openmpvv.sh
   checkrc $?
 
   # 4.5 Results
-  cd "$AOMP_TEST_DIR"/sollve_vv/results_report45
-  copyresults sollve45
+  cd "$AOMP_TEST_DIR"/OpenMP_VV/results_report45
+  copyresults openmpvv45
 
   # 5.0 Results
-  cd "$AOMP_TEST_DIR"/sollve_vv/results_report50
-  copyresults sollve50
+  cd "$AOMP_TEST_DIR"/OpenMP_VV/results_report50
+  copyresults openmpvv50
 
   # 5.1 Results
-  cd "$AOMP_TEST_DIR"/sollve_vv/results_report51
-  copyresults sollve51
+  cd "$AOMP_TEST_DIR"/OpenMP_VV/results_report51
+  copyresults openmpvv51
 
   # 5.2 Results
-  cd "$AOMP_TEST_DIR"/sollve_vv/results_report52
-  copyresults sollve52
+  cd "$AOMP_TEST_DIR"/OpenMP_VV/results_report52
+  copyresults openmpvv52
 }
 
 function sollve(){
@@ -1026,7 +1026,7 @@ function hpc2021(){
     echo "running on ubuntu"
     pushd /tmp;
     #WLOC=http://roclogin.amd.com/SPEC
-    WLOC=http://aomp-tr01.amd.com/SPEC
+    WLOC=https://compute-artifactory.amd.com/artifactory/rocm-generic-local/compiler-infra
     wget --timeout 15 --tries=3 -q $WLOC/npsdbOmpi.tar
     tar xf npsdbOmpi.tar
     rm -f npsdbOmpi.tar

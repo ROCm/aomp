@@ -9,8 +9,8 @@ _iters=${2:-100}
 _compiler_bin_dir=${3:-/opt/rocm/llvm/bin}
 
 # Check default gfxid using offload-arch
-if [ -f $_compiler_bin_dir/offload-arch ] ; then 
-  _oa_gfxid=`$_compiler_bin_dir/offload-arch`
+if [ -f "$_compiler_bin_dir/offload-arch" ] ; then 
+  _oa_gfxid=$("$_compiler_bin_dir/offload-arch")
   if [ "$_oa_gfxid" != "$_gfxid" ] ; then 
     echo "WARNING: changing gfxid to $_oa_gfxid"
     _gfxid=$_oa_gfxid
@@ -20,10 +20,10 @@ fi
 # Cleanup old source and binary files
 _source_file="/tmp/fprintf.c"
 _binary="/tmp/fprintf"
-[ -f $_binary ] && rm $_binary
-[ -f $_source_file ] && rm $_source_file
+[ -f "$_binary" ] && rm "$_binary"
+[ -f "$_source_file" ] && rm "$_source_file"
 # Recreate source file from this embedded source
-/bin/cat >$_source_file  <<"EOF"
+/bin/cat > "$_source_file"  <<"EOF"
 #include <stdio.h>
 #include <omp.h>
 
@@ -74,16 +74,22 @@ EOF
 function run_tests() {
    _log=stdout.log
    _rc0=0
-   for i in `seq 1 $_iters` ; do $_binary ; [ $? == 0 ] && _rc0=$(( $_rc0 + 1 )) ; done >$_log
-   _fails=$(( $_iters - $_rc0 ))
-   _failrate=$(( ( $_fails * 100 ) / $_iters ))
+   # Disable warning for unused 'i' variable
+   # shellcheck disable=2034
+   for i in $(seq 1 "$_iters") ; do
+      if $_binary ; then
+         _rc0=$(( _rc0 + 1 ))
+      fi
+   done > "$_log"
+   _fails=$(( _iters - _rc0 ))
+   _failrate=$(( ( _fails * 100 ) / _iters ))
 }
 
 _compile_cmd="$_compiler_bin_dir/clang -O2 -fopenmp --offload-arch=$_gfxid $_source_file -o $_binary"
 echo
-echo $_compile_cmd
+echo "$_compile_cmd"
 $_compile_cmd
-[ ! -f $_binary ] && echo "compile fail" && exit 1 
+[ ! -f "$_binary" ] && echo "compile fail" && exit 1 
 
 echo
 echo "Testing $_binary for $_iters iterations ..."

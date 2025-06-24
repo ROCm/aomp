@@ -56,19 +56,19 @@ SUPPLEMENTAL_COMPONENTS=${SUPPLEMENTAL_COMPONENTS:-openmpi silo hdf5 fftw ninja}
 PREREQUISITE_COMPONENTS=${PREREQUISITE_COMPONENTS:-cmake rocmsmilib hwloc aqlprofile rocm-core}
 
 # --- Start standard header to set AOMP environment variables ----
-realpath=`realpath $0`
-thisdir=`dirname $realpath`
-. $thisdir/aomp_common_vars
+realpath=$(realpath "$0")
+thisdir=$(dirname "$realpath")
+. "$thisdir/aomp_common_vars"
 # --- end standard header ----
 FLANG=${FLANG:-flang}
 
 function runcmd(){
    THISCMD=$1
-   if [ $DRYRUN ] ; then
+   if [ "$DRYRUN" ] ; then
       echo "$THISCMD"
    else
       echo "$THISCMD" 
-      echo "$THISCMD" >>$CMDLOGFILE
+      echo "$THISCMD" >>"$CMDLOGFILE"
       $THISCMD
       rc=$?
       if [ $rc != 0 ] ; then
@@ -82,12 +82,12 @@ function runcmd(){
 function runcmdout(){
    THISCMD=$1
    OUTFILE=$2
-   if [ $DRYRUN ] ; then
+   if [ "$DRYRUN" ] ; then
       echo "$THISCMD > $OUTFILE"
    else
       echo "$THISCMD > $OUTFILE"
-      echo "$THISCMD > $OUTFILE" >>$CMDLOGFILE
-      $THISCMD > $OUTFILE
+      echo "$THISCMD > $OUTFILE" >>"$CMDLOGFILE"
+      $THISCMD > "$OUTFILE"
       rc=$?
       if [ $rc != 0 ] ; then
          echo "ERROR:  The following command failed with return code $rc: "
@@ -100,12 +100,12 @@ function runcmdout(){
 function runcmdin(){
    THISCMD=$1
    INFILE=$2
-   if [ $DRYRUN ] ; then
+   if [ "$DRYRUN" ] ; then
       echo "$THISCMD < $INFILE"
    else
       echo "$THISCMD < $INFILE"
-      echo "$THISCMD < $INFILE" >>$CMDLOGFILE
-      $THISCMD < $INFILE
+      echo "$THISCMD < $INFILE" >>"$CMDLOGFILE"
+      $THISCMD < "$INFILE"
       rc=$?
       if [ $rc != 0 ] ; then
          echo "ERROR:  The following command failed with return code $rc: "
@@ -118,37 +118,37 @@ function runcmdin(){
 function checkversion(){
   # inputs: $_linkfrom, $_cname, $CMDLOGFILE, $_version
   # output: $SKIPBUILD
-  if [ -L $_linkfrom ] ; then 
-    existing_install_dir=`ls -l $_linkfrom | grep $_cname | awk '{print $NF}'`
-    if [ -d $existing_install_dir ] ; then 
+  if [ -L "$_linkfrom" ] ; then 
+    existing_install_dir=$(readlink "$_linkfrom")
+    if [ -d "$existing_install_dir" ] ; then 
       existing_version=${existing_install_dir##*-} 
       if [ "$existing_version" == "$_version" ] ; then 
         echo "Info: Skipping build for $_cname, version $_version already exists" 
-        echo "# skipping build for $_cname, version $_version already exists" >>$CMDLOGFILE
+        echo "# skipping build for $_cname, version $_version already exists" >>"$CMDLOGFILE"
         SKIPBUILD=TRUE
       else
         echo "Info: creating new version of $_cname $_version"
-        echo "Info: creating new version of $_cname $_version" >>$CMDLOGFILE
+        echo "Info: creating new version of $_cname $_version" >>"$CMDLOGFILE"
       fi
     else
       echo "Info: Missing existing_install_dir $existing_install_dir, creating version of $_cname $_version"
-      echo "# Missing existing_install_dir $existing_install_dir, creating version of $_cname $_version" >>$CMDLOGFILE
+      echo "# Missing existing_install_dir $existing_install_dir, creating version of $_cname $_version" >>"$CMDLOGFILE"
     fi
   fi
 }
 function buildopenmpi(){
   # Not all builds, trunk for example, install clang into lib/llvm/bin. Fall back on $AOMP/bin.
-  if [ ! -f $LLVM_INSTALL_LOC/bin/${FLANG} ] ; then
+  if [ ! -f "$LLVM_INSTALL_LOC/bin/${FLANG}" ] ; then
     LLVM_INSTALL_LOC=$AOMP
-    if [ ! -f $LLVM_INSTALL_LOC/bin/${FLANG} ] ; then
+    if [ ! -f "$LLVM_INSTALL_LOC/bin/${FLANG}" ] ; then
       LLVM_INSTALL_LOC=$AOMP/lib/llvm
-      if [ ! -f $LLVM_INSTALL_LOC/bin/${FLANG} ] ; then
+      if [ ! -f "$LLVM_INSTALL_LOC/bin/${FLANG}" ] ; then
         echo "Error: buildopenmpi cannot find ${FLANG} executable. Set AOMP to location of $FLANG "
         exit 1
       fi
     fi
   fi
-  if [ ! -d $AOMP_SUPP/hwloc ] ; then
+  if [ ! -d "$AOMP_SUPP/hwloc" ] ; then
     echo "Error: 'build_supp.sh openmpi' requires that hwloc is installed at $AOMP_SUPP/hwloc"
     echo "       Please run 'build_supp.sh hwloc' "
     exit 1
@@ -166,7 +166,7 @@ function buildopenmpi(){
   if [ "$SKIPBUILD" == "TRUE"  ] ; then 
     return
   fi
-  if [ -d $_builddir ] ; then 
+  if [ -d "$_builddir" ] ; then
     runcmd "rm -rf $_builddir"
   fi
   runcmd "mkdir -p $_builddir"
@@ -175,7 +175,7 @@ function buildopenmpi(){
   runcmd "bzip2 -d openmpi-$_version.tar.bz2"
   runcmd "tar -xf openmpi-$_version.tar"
   runcmd "cd openmpi-$_version"
-  if [ -d $_installdir ] ; then 
+  if [ -d "$_installdir" ] ; then
     runcmd "rm -rf $_installdir"
   fi
   runcmd "mkdir -p $_installdir"
@@ -186,11 +186,11 @@ function buildopenmpi(){
   runcmd "./configure --with-hwloc=$AOMP_SUPP/hwloc --with-hwloc-libdir=$AOMP_SUPP/hwloc/lib OMPI_CC=$LLVM_INSTALL_LOC/bin/clang OMPI_CXX=$LLVM_INSTALL_LOC/bin/clang++ OMPI_F90=$LLVM_INSTALL_LOC/bin/${FLANG} CXX=$LLVM_INSTALL_LOC/bin/clang++ CC=$LLVM_INSTALL_LOC/bin/clang FC=$LLVM_INSTALL_LOC/bin/${FLANG} --prefix=$_installdir"
   runcmd "make -j8"
   runcmd "make install"
-  if [ -L $_linkfrom ] ; then 
+  if [ -L "$_linkfrom" ] ; then
     runcmd "rm $_linkfrom"
   fi
   runcmd "ln -sf $_installdir $_linkfrom"
-  echo "# $_linkfrom is now symbolic link to $_installdir " >>$CMDLOGFILE
+  echo "# $_linkfrom is now symbolic link to $_installdir " >>"$CMDLOGFILE"
 }
 
 function buildninja(){
@@ -205,7 +205,7 @@ function buildninja(){
   if [ "$SKIPBUILD" == "TRUE"  ] ; then
     return
   fi
-  if [ -d $_builddir ] ; then
+  if [ -d "$_builddir" ] ; then
     runcmd "rm -rf $_builddir"
   fi
   runcmd "mkdir -p $_builddir"
@@ -214,22 +214,22 @@ function buildninja(){
   runcmd "tar -xzf v${_version}.tar.gz"
   runcmd "cd ninja-$_version"
   _patch_file="$thisdir/patches/ninja-nprocs-v${_version}.patch"
-  if [ -r $_patch_file ]; then
+  if [ -r "$_patch_file" ]; then
     runcmd   "cp $_patch_file $_builddir"
     runcmdin "patch --merge -p1" "$_patch_file"
   fi
-  if [ -d $_installdir ] ; then
+  if [ -d "$_installdir" ] ; then
     runcmd "rm -rf $_installdir"
   fi
   runcmd "mkdir -p $_installdir/bin"
   runcmd "$AOMP_SUPP/cmake/bin/cmake -Bbuild-cmake"
   runcmd "$AOMP_SUPP/cmake/bin/cmake --build build-cmake"
   runcmd "cp -p build-cmake/ninja $_installdir/bin/."
-  if [ -L $_linkfrom ] ; then
+  if [ -L "$_linkfrom" ] ; then
     runcmd "rm $_linkfrom"
   fi
   runcmd "ln -sf $_installdir $_linkfrom"
-  echo "# $_linkfrom is now symbolic link to $_installdir " >>$CMDLOGFILE
+  echo "# $_linkfrom is now symbolic link to $_installdir " >>"$CMDLOGFILE"
 }
 
 function getrocmpackage(){
@@ -240,7 +240,7 @@ function getrocmpackage(){
   _cname="$1"
   _packagename="$2"
   _componentversion="$3"
-  _directory=$(echo $2 | cut -b 1)
+  _directory=$(echo "$2" | cut -b 1)
   _version=6.4
   _packageversion=6.4.0
   _fullversion=60400
@@ -254,51 +254,51 @@ function getrocmpackage(){
   if [ "$SKIPBUILD" == "TRUE"  ] ; then
     return
   fi
-  if [ -d $_builddir ] ; then
+  if [ -d "$_builddir" ] ; then
     runcmd "rm -rf $_builddir"
   fi
   runcmd "mkdir -p $_builddir"
   runcmd "cd $_builddir"
-  osname=$(cat /etc/os-release | grep -e ^NAME=)
+  osname=$(grep -e ^NAME= < /etc/os-release)
   if [[ $osname =~ "Ubuntu" ]]; then
     # not sure if deb_version is 20 or 22
     deb_version="24"
-    os_version=`grep VERSION_ID /etc/os-release | cut -d"\"" -f2`
-    [ $os_version == "22.04" ] && deb_version="22"
+    os_version=$(grep VERSION_ID /etc/os-release | cut -d"\"" -f2)
+    [ "$os_version" == "22.04" ] && deb_version="22"
     #https://repo.radeon.com/rocm/apt/6.1/pool/main/h/hsa-amd-aqlprofile6.1.0/hsa-amd-aqlprofile6.1.0_1.0.0.60100.60100-82~${deb_version}_amd64.deb
     #https://repo.radeon.com/rocm/apt/6.1/pool/main/h/hsa-amd-aqlprofile6.1.0/hsa-amd-aqlprofile6.1.0_1.0.0.60100.60100-82~22.04_amd64.deb
-    runcmd "wget https://repo.radeon.com/rocm/apt/"$_version"/pool/main/$_directory/"$_packagename$_packageversion"/"$_packagename$_packageversion"_"$_componentversion"."$_fullversion"-"$_buildnumber"~${deb_version}.04_amd64.deb"
+    runcmd "wget https://repo.radeon.com/rocm/apt/$_version/pool/main/$_directory/$_packagename$_packageversion/$_packagename${_packageversion}_${_componentversion}.${_fullversion}-${_buildnumber}~${deb_version}.04_amd64.deb"
 
-    runcmd "dpkg -x "$_packagename$_packageversion"_"$_componentversion"."$_fullversion"-"$_buildnumber"~${deb_version}.04_amd64.deb $_builddir"
+    runcmd "dpkg -x $_packagename${_packageversion}_${_componentversion}.${_fullversion}-${_buildnumber}~${deb_version}.04_amd64.deb $_builddir"
   elif [[ $osname =~ "SLES" ]]; then
     #https://repo.radeon.com/rocm/yum/6.1/main/hsa-amd-aqlprofile6.1.0-1.0.0.60100.60100-82.el7.x86_64.rpm
-    runcmd "wget https://repo.radeon.com/rocm/zyp/"$_version"/main/"$_packagename$_packageversion"-"$_componentversion"."$_fullversion"-sles156."$_buildnumber".x86_64.rpm"
-    echo ""$_packagename$_packageversion"-"$_componentversion"."$_fullversion"-sles156."$_buildnumber".x86_64.rpm | cpio -idm"
-    rpm2cpio "$_packagename$_packageversion"-"$_componentversion"."$_fullversion"-sles156."$_buildnumber".x86_64.rpm | cpio -idm
+    runcmd "wget https://repo.radeon.com/rocm/zyp/$_version/main/$_packagename$_packageversion-$_componentversion.$_fullversion-sles156.$_buildnumber.x86_64.rpm"
+    echo "$_packagename$_packageversion-$_componentversion.$_fullversion-sles156.$_buildnumber.x86_64.rpm | cpio -idm"
+    rpm2cpio "$_packagename$_packageversion-$_componentversion.$_fullversion-sles156.$_buildnumber.x86_64.rpm" | cpio -idm
   else
-    runcmd "wget https://repo.radeon.com/rocm/rhel8/"$_version"/main/"$_packagename$_packageversion"-"$_componentversion"."$_fullversion"-"$_buildnumber".el8.x86_64.rpm"
-    echo ""$_packagename$_packageversion"-"$_componentversion"."$_fullversion"-"$_buildnumber".el8.x86_64.rpm | cpio -idm"
-    rpm2cpio "$_packagename$_packageversion"-"$_componentversion"."$_fullversion"-"$_buildnumber".el8.x86_64.rpm | cpio -idm
+    runcmd "wget https://repo.radeon.com/rocm/rhel8/$_version/main/$_packagename$_packageversion-$_componentversion.$_fullversion-$_buildnumber.el8.x86_64.rpm"
+    echo "$_packagename$_packageversion-$_componentversion.$_fullversion-$_buildnumber.el8.x86_64.rpm | cpio -idm"
+    rpm2cpio "$_packagename$_packageversion-$_componentversion.$_fullversion-$_buildnumber.el8.x86_64.rpm" | cpio -idm
   fi
 
-  if [ -d $_installdir ] ; then
+  if [ -d "$_installdir" ] ; then
     runcmd "rm -rf $_installdir"
   fi
   if [ "$_cname" == "rocm-core" ] ; then
     runcmd "mkdir -p $_installdir"
-    runcmd "cp -rp $_builddir/opt/rocm-"$_packageversion/." $_installdir"
+    runcmd "cp -rp $_builddir/opt/rocm-$_packageversion/. $_installdir"
   else
     runcmd "mkdir -p $_installdir/lib"
     runcmd "cd $_installdir"
-    runcmd "cp -rp $_builddir/opt/rocm-"$_packageversion"/lib  $_installdir"
+    runcmd "cp -rp $_builddir/opt/rocm-$_packageversion/lib  $_installdir"
   fi
 
-  if [ -L $_linkfrom ] ; then
+  if [ -L "$_linkfrom" ] ; then
     runcmd "rm $_linkfrom"
   fi
   runcmd "ln -sf $_installdir $_linkfrom"
   #runcmd "rm -rf $_builddir"
-  echo "# $_linkfrom is now symbolic link to $_installdir " >>$CMDLOGFILE
+  echo "# $_linkfrom is now symbolic link to $_installdir " >>"$CMDLOGFILE"
 }
 
 function buildhdf5(){
@@ -314,7 +314,7 @@ function buildhdf5(){
     return
   fi
 
-  if [ -d $_builddir ] ; then 
+  if [ -d "$_builddir" ] ; then 
     runcmd "rm -rf $_builddir"
   fi
   runcmd "mkdir -p $_builddir"
@@ -323,18 +323,18 @@ function buildhdf5(){
   runcmd "bzip2 -d hdf5-$_version.tar.bz2"
   runcmd "tar -xf hdf5-$_version.tar"
   runcmd "cd hdf5-$_version"
-  if [ -d $_installdir ] ; then 
+  if [ -d "$_installdir" ] ; then 
     runcmd "rm -rf $_installdir"
   fi
   runcmd "mkdir -p $_installdir"
   runcmd "./configure --enable-fortran --prefix=$_installdir"
   runcmd "make -j8"
   runcmd "make install"
-  if [ -L $_linkfrom ] ; then 
+  if [ -L "$_linkfrom" ] ; then 
     runcmd "rm $_linkfrom"
   fi
   runcmd "ln -sf $_installdir $_linkfrom"
-  echo "# $_linkfrom is now symbolic link to $_installdir " >>$CMDLOGFILE
+  echo "# $_linkfrom is now symbolic link to $_installdir " >>"$CMDLOGFILE"
 }
 
 function buildsilo(){
@@ -349,7 +349,7 @@ function buildsilo(){
     return
   fi
 
-  if [ -d $_builddir ] ; then 
+  if [ -d "$_builddir" ] ; then 
     runcmd "rm -rf $_builddir"
   fi
   runcmd "mkdir -p $_builddir"
@@ -359,18 +359,18 @@ function buildsilo(){
   runcmd "wget https://software.llnl.gov/Silo/ghpages/releases/silo-$_version.tar.xz"
   runcmd "tar -x --xz -f silo-$_version.tar.xz"
   runcmd "cd silo-$_version"
-  if [ -d $_installdir ] ; then 
+  if [ -d "$_installdir" ] ; then
     runcmd "rm -rf $_installdir"
   fi
   runcmd "mkdir -p $_installdir"
   runcmd "./configure --prefix=$_installdir"
   runcmd "make -j8"
   runcmd "make install"
-  if [ -L $_linkfrom ] ; then 
+  if [ -L "$_linkfrom" ] ; then
     runcmd "rm $_linkfrom"
   fi
   runcmd "ln -sf $_installdir $_linkfrom"
-  echo "# $_linkfrom is now symbolic link to $_installdir " >>$CMDLOGFILE
+  echo "# $_linkfrom is now symbolic link to $_installdir " >>"$CMDLOGFILE"
 }
 
 function buildfftw(){
@@ -385,7 +385,7 @@ function buildfftw(){
     return
   fi
 
-  if [ -d $_builddir ] ; then
+  if [ -d "$_builddir" ] ; then
     runcmd "rm -rf $_builddir"
   fi
   runcmd "mkdir -p $_builddir"
@@ -393,7 +393,7 @@ function buildfftw(){
   runcmd "wget http://www.fftw.org/fftw-$_version.tar.gz"
   runcmd "tar -xzf fftw-$_version.tar.gz"
   runcmd "cd fftw-$_version"
-  if [ -d $_installdir ] ; then
+  if [ -d "$_installdir" ] ; then
     runcmd "rm -rf $_installdir"
   fi
   runcmd "mkdir -p $_installdir"
@@ -404,11 +404,11 @@ function buildfftw(){
   runcmd "./configure --prefix=$_installdir --enable-shared --enable-threads --enable-sse2 --enable-avx --enable-float"
   runcmd "make -j8"
   runcmd "make install"
-  if [ -L $_linkfrom ] ; then
+  if [ -L "$_linkfrom" ] ; then
     runcmd "rm $_linkfrom"
   fi
   runcmd "ln -sf $_installdir $_linkfrom"
-  echo "# $_linkfrom is now symbolic link to $_installdir " >>$CMDLOGFILE
+  echo "# $_linkfrom is now symbolic link to $_installdir " >>"$CMDLOGFILE"
 }
 
 
@@ -424,7 +424,7 @@ function buildcmake(){
     return
   fi
 
-  if [ -d $_builddir ] ; then 
+  if [ -d "$_builddir" ] ; then
     runcmd "rm -rf $_builddir"
   fi
   runcmd "mkdir -p $_builddir"
@@ -432,18 +432,18 @@ function buildcmake(){
   runcmd "wget https://github.com/Kitware/CMake/releases/download/v$_version/cmake-$_version.tar.gz"
   runcmd "tar -xzf cmake-$_version.tar.gz"
   runcmd "cd cmake-$_version"
-  if [ -d $_installdir ] ; then 
+  if [ -d "$_installdir" ] ; then
     runcmd "rm -rf $_installdir"
   fi
   runcmd "mkdir -p $_installdir"
   runcmd "./bootstrap --parallel=8 --prefix=$_installdir"
   runcmd "make -j8"
   runcmd "make install"
-  if [ -L $_linkfrom ] ; then 
+  if [ -L "$_linkfrom" ] ; then
     runcmd "rm $_linkfrom"
   fi
   runcmd "ln -sf $_installdir $_linkfrom"
-  echo "# $_linkfrom is now symbolic link to $_installdir " >>$CMDLOGFILE
+  echo "# $_linkfrom is now symbolic link to $_installdir " >>"$CMDLOGFILE"
 }
 
 function buildrocmsmilib(){
@@ -458,7 +458,7 @@ function buildrocmsmilib(){
     return
   fi
 
-  if [ -d $_builddir ] ; then 
+  if [ -d "$_builddir" ] ; then
     runcmd "rm -rf $_builddir"
   fi
   runcmd "mkdir -p $_builddir"
@@ -468,17 +468,17 @@ function buildrocmsmilib(){
   runcmd "mkdir -p build"
   runcmd "cd build"
   runcmd "$AOMP_SUPP/cmake/bin/cmake -DCMAKE_INSTALL_PREFIX=$_installdir .."
-  if [ -d $_installdir ] ; then 
+  if [ -d "$_installdir" ] ; then
     runcmd "rm -rf $_installdir"
   fi
   runcmd "mkdir -p $_installdir"
   runcmd "make -j8"
   runcmd "make install"
-  if [ -L $_linkfrom ] ; then 
+  if [ -L "$_linkfrom" ] ; then
     runcmd "rm $_linkfrom"
   fi
   runcmd "ln -sf $_installdir $_linkfrom"
-  echo "# $_linkfrom is now symbolic link to $_installdir " >>$CMDLOGFILE
+  echo "# $_linkfrom is now symbolic link to $_installdir " >>"$CMDLOGFILE"
 }
 
 function buildhwloc(){
@@ -493,13 +493,13 @@ function buildhwloc(){
     return
   fi
 
-  if [ ! -d $AOMP_SUPP/rocmsmilib/lib ] && [ ! -d $AOMP_SUPP/rocmsmilib/lib64 ]; then
+  if [ ! -d "$AOMP_SUPP/rocmsmilib/lib" ] && [ ! -d "$AOMP_SUPP/rocmsmilib/lib64" ]; then
     echo "ERROR: Must build rocmsmilib before hwloc. Try:"
     echo "       $0 rocmsmilib"
-    echo "#ERROR: You must build rocmsmilib before hwloc because static build of hwloc depends on rocsmilib">>$CMDLOGFILE
+    echo "#ERROR: You must build rocmsmilib before hwloc because static build of hwloc depends on rocsmilib">>"$CMDLOGFILE"
     exit 1
   fi
-  if [ -d $_builddir ] ; then 
+  if [ -d "$_builddir" ] ; then
     runcmd "rm -rf $_builddir"
   fi
   runcmd "mkdir -p $_builddir"
@@ -509,23 +509,23 @@ function buildhwloc(){
   runcmd "git checkout v$_version"
   runcmd "./autogen.sh"
   runcmd "./configure --prefix=$_installdir --with-pic=yes --enable-static=yes --enable-shared=no --disable-io --disable-libudev --disable-libxml2 --with-rocm=$AOMP_SUPP/rocsmilib"
-  if [ -d $_installdir ] ; then 
+  if [ -d "$_installdir" ] ; then
     runcmd "rm -rf $_installdir"
   fi
   runcmd "mkdir -p $_installdir"
   runcmd "make -j8"
   runcmd "make install"
-  if [ -L $_linkfrom ] ; then 
+  if [ -L "$_linkfrom" ] ; then
     runcmd "rm $_linkfrom"
   fi
   runcmd "ln -sf $_installdir $_linkfrom"
-  echo "# $_linkfrom is now symbolic link to $_installdir " >>$CMDLOGFILE
+  echo "# $_linkfrom is now symbolic link to $_installdir " >>"$CMDLOGFILE"
 }
 
 #---------------------------   Main script starts here -----------------------
 sname=${0##*/} 
 CMDLOGFILE=$AOMP_SUPP_BUILD/cmdlog
-mkdir -p $AOMP_SUPP_BUILD
+mkdir -p "$AOMP_SUPP_BUILD"
 if [ "$1" == "-h" ] ; then 
   build_supp_help
   exit 0
@@ -543,39 +543,41 @@ if [ "$1" == "" ] ; then
     _components="$SUPPLEMENTAL_COMPONENTS"
   fi
 else
-  _components=$@
+  _components=$*
 fi
 # save the current directory
 curdir=$PWD
 for _component in $_components ; do 
-  _thisdate=`date`
-  echo "" >>$CMDLOGFILE
-  echo "# -------------------------------------------------" >>$CMDLOGFILE
-  echo "# $_component build started on $_thisdate" >>$CMDLOGFILE
-  if [ $_component == "openmpi" ] ; then
+  _thisdate=$(date)
+  {
+    echo ""
+    echo "# -------------------------------------------------"
+    echo "# $_component build started on $_thisdate"
+  } >> "$CMDLOGFILE"
+  if [ "$_component" == "openmpi" ] ; then
     buildopenmpi
-  elif [ $_component == "silo" ] ; then
+  elif [ "$_component" == "silo" ] ; then
     buildsilo
-  elif [ $_component == "hdf5" ] ; then
+  elif [ "$_component" == "hdf5" ] ; then
     buildhdf5
-  elif [ $_component == "fftw" ] ; then
+  elif [ "$_component" == "fftw" ] ; then
     buildfftw
-  elif [ $_component == "hwloc" ] ; then
+  elif [ "$_component" == "hwloc" ] ; then
     buildhwloc
-  elif [ $_component == "cmake" ] ; then
+  elif [ "$_component" == "cmake" ] ; then
     buildcmake
-  elif [ $_component == "rocmsmilib" ] ; then
+  elif [ "$_component" == "rocmsmilib" ] ; then
     buildrocmsmilib
-  elif [ $_component == "ninja" ] ; then
+  elif [ "$_component" == "ninja" ] ; then
     buildninja
-  elif [ $_component == "aqlprofile" ] ; then
+  elif [ "$_component" == "aqlprofile" ] ; then
     getrocmpackage aqlprofile hsa-amd-aqlprofile 1.0.0
-  elif [ $_component == "openclicdloader" ] ; then
+  elif [ "$_component" == "openclicdloader" ] ; then
     getrocmpackage openclicdloader rocm-opencl-icd-loader 1.2
-  elif [ $_component == "rocm-core" ] ; then
+  elif [ "$_component" == "rocm-core" ] ; then
     getrocmpackage rocm-core rocm-core 6.4.0
   else
-    echo "ERROR:  Invalid component name $_component" >>$CMDLOGFILE
+    echo "ERROR:  Invalid component name $_component" >>"$CMDLOGFILE"
     echo "ERROR:  Invalid component name $_component"
     if [ "$sname" == "build_prereq.sh" ] ; then
        echo "        Must be a subset of: $PREREQUISITE_COMPONENTS"
@@ -584,9 +586,8 @@ for _component in $_components ; do
     fi
     exit 0
   fi
-  _thisdate=`date`
-  echo "# DONE: successful build of $_component on $_thisdate " >>$CMDLOGFILE
+  _thisdate=$(date)
+  echo "# DONE: successful build of $_component on $_thisdate " >>"$CMDLOGFILE"
 done
 
-cd $curdir
-
+cd "$curdir" || exit

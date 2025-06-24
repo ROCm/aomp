@@ -29,9 +29,9 @@
 # SOFTWARE.
 
 # --- Start standard header to set AOMP environment variables ----
-realpath=`realpath $0`
-thisdir=`dirname $realpath`
-. $thisdir/aomp_common_vars
+realpath=$(realpath "$0")
+thisdir=$(dirname "$realpath")
+. "$thisdir/aomp_common_vars"
 # --- end standard header ----
 
 RSMILIB_REPO_DIR=$AOMP_REPOS/rocm_smi_lib
@@ -50,12 +50,12 @@ if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   exit
 fi
 
-if [ ! -d $RSMILIB_REPO_DIR ] ; then
+if [ ! -d "$RSMILIB_REPO_DIR" ] ; then
    echo "ERROR:  Missing repository $RSMILIB_REPO_DIR/"
    exit 1
 fi
 
-if [ ! -f $LLVM_INSTALL_LOC/bin/clang ] ; then
+if [ ! -f "$LLVM_INSTALL_LOC/bin/clang" ] ; then
    echo "ERROR:  Missing file $AOMP/bin/clang"
    echo "        Build the AOMP llvm compiler in $AOMP first"
    echo "        This is needed to build the device libraries"
@@ -63,38 +63,35 @@ if [ ! -f $LLVM_INSTALL_LOC/bin/clang ] ; then
    exit 1
 fi
 
-# Make sure we can update the install directory
-if [ "$1" == "install" ] ; then
-   $SUDO mkdir -p $AOMP_INSTALL_DIR
-   $SUDO touch $AOMP_INSTALL_DIR/testfile
-   if [ $? != 0 ] ; then
-      echo "ERROR: No update access to $AOMP_INSTALL_DIR"
-      exit 1
-   fi
-   $SUDO rm $AOMP_INSTALL_DIR/testfile
-fi
+check_writable_installdir "$1" "$AOMP_INSTALL_DIR"
 
-patchrepo $AOMP_REPOS/rocm_smi_lib
+patchrepo "$AOMP_REPOS/rocm_smi_lib"
 
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
   if [ -d "$BUILD_DIR/build/rocm_smi_lib" ] ; then
      echo
      echo "FRESH START , CLEANING UP FROM PREVIOUS BUILD"
-     echo rm -rf $BUILD_DIR/build/rocm_smi_lib
-     rm -rf $BUILD_DIR/build/rocm_smi_lib
+     echo "rm -rf $BUILD_DIR/build/rocm_smi_lib"
+     rm -rf "$BUILD_DIR/build/rocm_smi_lib"
   fi
 
-  MYCMAKEOPTS="$AOMP_ORIGIN_RPATH -DCMAKE_BUILD_TYPE=$BUILDTYPE -DCMAKE_INSTALL_PREFIX=$AOMP_INSTALL_DIR -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON -DCMAKE_INSTALL_RPATH='\$ORIGIN/../lib' -DCMAKE_EXE_LINKER_FLAGS='-Wl,--disable-new-dtags'"
+  declare -a MYCMAKEOPTS
 
-  mkdir -p $BUILD_DIR/build/rocm_smi_lib
-  cd $BUILD_DIR/build/rocm_smi_lib
+  MYCMAKEOPTS=("${AOMP_ORIGIN_RPATH[@]}" -DCMAKE_BUILD_TYPE="$BUILDTYPE"
+               -DCMAKE_INSTALL_PREFIX="$AOMP_INSTALL_DIR"
+               -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON
+               -DCMAKE_INSTALL_RPATH="\$ORIGIN/../lib"
+               -DCMAKE_EXE_LINKER_FLAGS='-Wl,--disable-new-dtags')
+
+  mkdir -p "$BUILD_DIR/build/rocm_smi_lib"
+  cd "$BUILD_DIR/build/rocm_smi_lib" || exit
   echo
   echo " -----Running rocm_smi_lib cmake ---- "
-  echo ${AOMP_CMAKE} $MYCMAKEOPTS $RSMILIB_REPO_DIR
-  ${AOMP_CMAKE} $MYCMAKEOPTS $RSMILIB_REPO_DIR
-  if [ $? != 0 ] ; then
+  echo "${AOMP_CMAKE} $(shquot "${MYCMAKEOPTS[@]}") $RSMILIB_REPO_DIR"
+
+  if ! ${AOMP_CMAKE} "${MYCMAKEOPTS[@]}" "$RSMILIB_REPO_DIR"; then
       echo "ERROR rocm_smi_lib cmake failed. Cmake flags"
-      echo "      $MYCMAKEOPTS"
+      echo "      $(shquot "${MYCMAKEOPTS[@]}")"
       exit 1
   fi
 fi
@@ -103,11 +100,11 @@ if [ "$1" = "cmake" ]; then
    exit 0
 fi
 
-cd $BUILD_DIR/build/rocm_smi_lib
+cd "$BUILD_DIR/build/rocm_smi_lib" || exit
 echo
 echo " -----Running make for rocm_smi_lib ---- "
-make -j $AOMP_JOB_THREADS 
-if [ $? != 0 ] ; then
+
+if ! make -j "$AOMP_JOB_THREADS"; then
       echo " "
       echo "ERROR: make -j $AOMP_JOB_THREADS  FAILED"
       echo "To restart:"
@@ -125,13 +122,13 @@ fi
 
 #  ----------- Install only if asked  ----------------------------
 if [ "$1" == "install" ] ; then
-      cd $BUILD_DIR/build/rocm_smi_lib
+      cd "$BUILD_DIR/build/rocm_smi_lib" || exit
       echo
       echo " -----Installing to $AOMP_INSTALL_DIR ----- "
-      $SUDO make install
-      if [ $? != 0 ] ; then
+
+      if ! $SUDO make install; then
          echo "ERROR make install failed "
          exit 1
       fi
-      removepatch $AOMP_REPOS/rocm_smi_lib
+      removepatch "$AOMP_REPOS/rocm_smi_lib"
 fi

@@ -29,9 +29,9 @@
 # SOFTWARE.
 
 # --- Start standard header to set AOMP environment variables ----
-realpath=`realpath $0`
-thisdir=`dirname $realpath`
-. $thisdir/aomp_common_vars
+realpath=$(realpath "$0")
+thisdir=$(dirname "$realpath")
+. "$thisdir/aomp_common_vars"
 # --- end standard header ----
 
 RINFO_REPO_DIR=$AOMP_REPOS/$AOMP_RINFO_REPO_NAME
@@ -41,7 +41,6 @@ BUILD_DIR=${BUILD_AOMP}
 BUILDTYPE="Release"
 
 INSTALL_RINFO=${INSTALL_RINFO:-$AOMP_INSTALL_DIR}
-LLVM_BUILD=$AOMP
 
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   echo " "
@@ -53,12 +52,12 @@ if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   exit
 fi
 
-if [ ! -d $RINFO_REPO_DIR ] ; then
+if [ ! -d "$RINFO_REPO_DIR" ] ; then
    echo "ERROR:  Missing repository $RINFO_REPO_DIR/"
    exit 1
 fi
 
-if [ ! -f $LLVM_INSTALL_LOC/bin/clang ] ; then
+if [ ! -f "$LLVM_INSTALL_LOC/bin/clang" ] ; then
    echo "ERROR:  Missing file $LLVM_INSTALL_LOC/bin/clang"
    echo "        Build the AOMP llvm compiler in $AOMP first"
    echo "        This is needed to build the device libraries"
@@ -66,38 +65,36 @@ if [ ! -f $LLVM_INSTALL_LOC/bin/clang ] ; then
    exit 1
 fi
 
-# Make sure we can update the install directory
-if [ "$1" == "install" ] ; then
-   $SUDO mkdir -p $INSTALL_RINFO
-   $SUDO touch $INSTALL_RINFO/testfile
-   if [ $? != 0 ] ; then
-      echo "ERROR: No update access to $INSTALL_RINFO"
-      exit 1
-   fi
-   $SUDO rm $INSTALL_RINFO/testfile
-fi
+check_writable_installdir "$1" "$INSTALL_RINFO"
 
-patchrepo $AOMP_REPOS/$AOMP_RINFO_REPO_NAME
+patchrepo "$AOMP_REPOS/$AOMP_RINFO_REPO_NAME"
 
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
   if [ -d "$BUILD_DIR/build/rocminfo" ] ; then
      echo
      echo "FRESH START , CLEANING UP FROM PREVIOUS BUILD"
-     echo rm -rf $BUILD_DIR/build/rocminfo
-     rm -rf $BUILD_DIR/build/rocminfo
+     echo "rm -rf $BUILD_DIR/build/rocminfo"
+     rm -rf "$BUILD_DIR/build/rocminfo"
   fi
 
-  MYCMAKEOPTS="$AOMP_ORIGIN_RPATH -DCMAKE_BUILD_TYPE=$BUILDTYPE -DCMAKE_INSTALL_PREFIX=$INSTALL_RINFO -DROCRTST_BLD_TYPE=$BUILDTYPE -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON -DCMAKE_INSTALL_RPATH='\$ORIGIN/../lib' -DCMAKE_EXE_LINKER_FLAGS='-Wl,--disable-new-dtags'"
+  declare -a MYCMAKEOPTS
 
-  mkdir -p $BUILD_DIR/build/rocminfo
-  cd $BUILD_DIR/build/rocminfo
+  MYCMAKEOPTS=("${AOMP_ORIGIN_RPATH[@]}" -DCMAKE_BUILD_TYPE="$BUILDTYPE"
+               -DCMAKE_INSTALL_PREFIX="$INSTALL_RINFO"
+               -DROCRTST_BLD_TYPE="$BUILDTYPE"
+               -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON
+               -DCMAKE_INSTALL_RPATH="\$ORIGIN/../lib"
+               -DCMAKE_EXE_LINKER_FLAGS='-Wl,--disable-new-dtags')
+
+  mkdir -p "$BUILD_DIR/build/rocminfo"
+  cd "$BUILD_DIR/build/rocminfo" || exit
   echo
   echo " -----Running rocminfo cmake ---- "
-  echo ${AOMP_CMAKE} $MYCMAKEOPTS $RINFO_REPO_DIR
-  ${AOMP_CMAKE} $MYCMAKEOPTS $RINFO_REPO_DIR
-  if [ $? != 0 ] ; then
+  echo "${AOMP_CMAKE} $(shquot "${MYCMAKEOPTS[@]}") $RINFO_REPO_DIR"
+  
+  if ! ${AOMP_CMAKE} "${MYCMAKEOPTS[@]}" "$RINFO_REPO_DIR"; then
       echo "ERROR rocminfo cmake failed. Cmake flags"
-      echo "      $MYCMAKEOPTS"
+      echo "      $(shquot "${MYCMAKEOPTS[@]}")"
       exit 1
   fi
 fi
@@ -106,11 +103,11 @@ if [ "$1" = "cmake" ]; then
    exit 0
 fi
 
-cd $BUILD_DIR/build/rocminfo
+cd "$BUILD_DIR/build/rocminfo" || exit
 echo
 echo " -----Running make for rocminfo ---- "
-make -j $AOMP_JOB_THREADS 
-if [ $? != 0 ] ; then
+
+if ! make -j "$AOMP_JOB_THREADS"; then
       echo " "
       echo "ERROR: make -j $AOMP_JOB_THREADS  FAILED"
       echo "To restart:"
@@ -128,13 +125,13 @@ fi
 
 #  ----------- Install only if asked  ----------------------------
 if [ "$1" == "install" ] ; then
-      cd $BUILD_DIR/build/rocminfo
-      echo
-      echo " -----Installing to $INSTALL_RINFO ----- "
-      $SUDO make install
-      if [ $? != 0 ] ; then
-         echo "ERROR make install failed "
-         exit 1
-      fi
-      removepatch $AOMP_REPOS/$AOMP_RINFO_REPO_NAME
+   cd "$BUILD_DIR/build/rocminfo" || exit
+   echo
+   echo " -----Installing to $INSTALL_RINFO ----- "
+
+   if ! $SUDO make install; then
+      echo "ERROR make install failed "
+      exit 1
+   fi
+   removepatch "$AOMP_REPOS/$AOMP_RINFO_REPO_NAME"
 fi

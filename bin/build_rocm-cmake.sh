@@ -29,14 +29,12 @@
 # SOFTWARE.
 
 # --- Start standard header to set AOMP environment variables ----
-realpath=`realpath $0`
-thisdir=`dirname $realpath`
-. $thisdir/aomp_common_vars
+realpath=$(realpath "$0")
+thisdir=$(dirname "$realpath")
+. "$thisdir/aomp_common_vars"
 # --- end standard header ----
 
 BUILD_DIR=${BUILD_AOMP}
-
-BUILDTYPE="Release"
 
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   echo " "
@@ -47,43 +45,38 @@ if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   exit
 fi
 
-echo checking for $AOMP_REPOS/$AOMP_ROCMCMAKE_REPO_NAME 
-if [ ! -d $AOMP_REPOS/$AOMP_ROCMCMAKE_REPO_NAME ] ; then
+echo "checking for $AOMP_REPOS/$AOMP_ROCMCMAKE_REPO_NAME"
+if [ ! -d "$AOMP_REPOS/$AOMP_ROCMCMAKE_REPO_NAME" ] ; then
    echo "ERROR:  Missing repository $AOMP_REPOS/$AOMP_ROCMCMAKE_REPO_NAME"
    exit 1
 fi
 
-# Make sure we can update the install directory
-if [ "$1" == "install" ] ; then
-   $SUDO mkdir -p $AOMP_INSTALL_DIR
-   $SUDO touch $AOMP_INSTALL_DIR/testfile
-   if [ $? != 0 ] ; then
-      echo "ERROR: No update access to $AOMP_INSTALL_DIR"
-      exit 1
-   fi
-   $SUDO rm $AOMP_INSTALL_DIR/testfile
-fi
+check_writable_installdir "$1" "$AOMP_INSTALL_DIR"
 
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
   if [ -d "$BUILD_DIR/build/rocm-cmake" ] ; then
      echo
      echo "FRESH START , CLEANING UP FROM PREVIOUS BUILD"
-     echo rm -rf $BUILD_DIR/build/rocm-cmake
-     rm -rf $BUILD_DIR/build/rocm-cmake
+     echo rm -rf "$BUILD_DIR/build/rocm-cmake"
+     rm -rf "$BUILD_DIR/build/rocm-cmake"
   fi
  
-  export CMAKE_PREFIX_PATH="""$AOMP_INSTALL_DIR"""
-  MYCMAKEOPTS="-DCMAKE_INSTALL_PREFIX=$AOMP_INSTALL_DIR"
+  declare -a MYCMAKEOPTS
 
-  mkdir -p $BUILD_DIR/build/rocm-cmake
-  cd $BUILD_DIR/build/rocm-cmake
+  export CMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR"
+  MYCMAKEOPTS=(-DCMAKE_INSTALL_PREFIX="$AOMP_INSTALL_DIR")
+
+  mkdir -p "$BUILD_DIR/build/rocm-cmake"
+  cd "$BUILD_DIR/build/rocm-cmake" || exit
   echo
   echo " -----Running rocm-cmake cmake ---- "
-  echo ${AOMP_CMAKE} $MYCMAKEOPTS $AOMP_REPOS/$AOMP_ROCMCMAKE_REPO_NAME
-  ${AOMP_CMAKE} $MYCMAKEOPTS $AOMP_REPOS/$AOMP_ROCMCMAKE_REPO_NAME
-  if [ $? != 0 ] ; then
+  echo "${AOMP_CMAKE}" "$(shquot "${MYCMAKEOPTS[@]}")" \
+                       "$AOMP_REPOS/$AOMP_ROCMCMAKE_REPO_NAME"
+  
+  if ! ${AOMP_CMAKE} "${MYCMAKEOPTS[@]}" \
+                     "$AOMP_REPOS/$AOMP_ROCMCMAKE_REPO_NAME"; then
       echo "ERROR rocm-cmake cmake failed. Cmake flags"
-      echo "      $MYCMAKEOPTS"
+      echo "      $(shquot "${MYCMAKEOPTS[@]}")"
       exit 1
   fi
 fi
@@ -92,17 +85,17 @@ if [ "$1" = "cmake" ]; then
    exit 0
 fi
 
-cd $BUILD_DIR/build/rocm-cmake
+cd "$BUILD_DIR/build/rocm-cmake" || exit
 
 #  ----------- no make for this component
 
 #  ----------- Install only if asked  ----------------------------
 if [ "$1" == "install" ] ; then
-   cd $BUILD_DIR/build/rocm-cmake
+   cd "$BUILD_DIR/build/rocm-cmake" || exit
    echo
    echo " -----Installing to $AOMP_INSTALL_DIR ----- "
-   $SUDO make install
-   if [ $? != 0 ] ; then
+
+   if ! $SUDO make install; then
       echo "ERROR make install failed "
       exit 1
    fi
