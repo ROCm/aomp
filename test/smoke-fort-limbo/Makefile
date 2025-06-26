@@ -5,8 +5,7 @@ TESTS_DIR = \
     flang-444386 \
     flang-474712 \
     iso_fortran_env_impl \
-    iso_fortran_env_impl2 \
-    openmp-ver
+    iso_fortran_env_impl2
 
 all:
 	@for test_dir in $(TESTS_DIR); do \
