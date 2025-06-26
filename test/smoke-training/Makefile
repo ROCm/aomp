@@ -1,9 +1,5 @@
 include ../Makefile.defs
 
-TESTS_DIR = \
-    hellofort \
-    helloworld
-
 all:
 	@for test_dir in $(TESTS_DIR); do \
 	  echo; \

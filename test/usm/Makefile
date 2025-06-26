@@ -1,8 +1,6 @@
 #include ../Makefile.defs
 
-TESTS_DIR = \
-    OmpHipMallocManaged \
-    flang-off-arch-xnack
+TESTS_DIR=$(shell find . -maxdepth 1 -name \* -type d -and -not -name .)
 
 all:
 	@for test_dir in $(TESTS_DIR); do \
