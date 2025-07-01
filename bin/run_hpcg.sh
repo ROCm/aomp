@@ -32,6 +32,8 @@ cd omptarget/hpcg || exit 1
 mkdir build
 cd build || exit 1
 
+export OFFLOAD_ARCH=${AOMP_GPU}
+
 ../configure LLVM_OMP_TARGET
 
 make --output-sync -j${HPCG_BUILD_NUM_THREADS}
@@ -48,4 +50,3 @@ fi
 
 # The script does full rebuilds every time, so only one .txt file here.
 cat HPCG-*.txt
-
