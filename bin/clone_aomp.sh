@@ -150,17 +150,17 @@ function list_repo_from_manifest(){
       printbranch=${REPO_RREV##*release/}
    fi
    url=$(grep url .git/config | grep -v google | grep -v fmtlib | cut -d":" -f2- | cut -d"/" -f3-)
-   project_name=$(echo $url | cut -d"/" -f2- | tr '[:upper:]' '[:lower:]')
+   project_name=$(echo $url | cut -d"/" -f2- | cut -d" " -f1 | tr '[:upper:]' '[:lower:]')
    REPO_PROJECT=${REPO_PROJECT%*\.git}
    if [[ "$REPO_REMOTE" == "githubemu-lightning" ]] ; then
       REPO_REMOTE="emu"
    fi
-   #website=`echo $url | cut -d"/" -f1`
    if [[ "$REPO_REMOTE" == "roc" ]] ; then
         manifest_project=$(echo ROCm/$REPO_PROJECT | tr '[:upper:]' '[:lower:]')
    elif [[ "$REPO_REMOTE" == "emu" ]] ; then
-        url=$(grep url .git/config | cut -d":" -f2- | cut -d"/" -f1- | cut -d"." -f1)
-        project_name=$(echo $url | cut -d"/" -f2- | tr '[:upper:]' '[:lower:]')
+        url=$(grep url .git/config)
+        nogit=${url%*.git}
+        project_name=${nogit##*/}
         manifest_project=$(echo $REPO_PROJECT | tr '[:upper:]' '[:lower:]' | cut -d"." -f1)
    elif [[ "$REPO_REMOTE" == "roctools" ]] ; then
         manifest_project=$(echo "ROCm/$REPO_PROJECT" | tr '[:upper:]' '[:lower:]')
