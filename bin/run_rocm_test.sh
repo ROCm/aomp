@@ -1006,7 +1006,8 @@ function accel2023(){
   ./run_accel2023.sh -clean
   cd $AOMP_TEST_DIR/accel2023-2.0.18
   grep ratio= result/*.log
-  echo "" > make-fail.txt
+  grep "Error building" result/*.log | awk '{print $4}' >  "$resultsdir"/accel2023/make-fail.txt
+  cat "$resultsdir"/accel2023/make-fail.txt > make-fail.txt
   grep ratio= result/*.log | grep Succ | awk '{print $2}' > "$resultsdir"/accel2023/passing-tests.txt
   cat "$resultsdir"/accel2023/passing-tests.txt | tee passing-tests.txt
   grep ratio= result/*.log | grep -v Succ | awk '{print $2}' > "$resultsdir"/accel2023/failing-tests.txt
@@ -1038,7 +1039,8 @@ function hpc2021(){
     ./run_hpc2021.sh -clean
     cd $AOMP_TEST_DIR/hpc2021-1.1.9
     grep ratio= result/*.log
-    echo "" > make-fail.txt
+    grep "Error building" result/*.log | awk '{print $4}' >  "$resultsdir"/hpc2021/make-fail.txt
+    cat "$resultsdir"/hpc2021/make-fail.txt > make-fail.txt
     grep ratio= result/*.log | grep Succ | awk '{print $2}' > "$resultsdir"/hpc2021/passing-tests.txt
     cat "$resultsdir"/hpc2021/passing-tests.txt | tee passing-tests.txt
     grep ratio= result/*.log | grep -v Succ | awk '{print $2}' > "$resultsdir"/hpc2021/failing-tests.txt
