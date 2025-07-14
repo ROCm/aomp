@@ -67,7 +67,7 @@ if [ $ISVIRT -eq 1 ] ; then
 
 SUITE_LIST=${SUITE_LIST:-"examples smoke-limbo smoke smoke-asan smoke-fort smoke-fort-limbo omp5 openmpapps ovo OpenMP_VV babelstream fortran-babelstream accel2023 hpc2021"}
 else
-SUITE_LIST=${SUITE_LIST:-"examples smoke-limbo smoke smoke-asan smoke-fort smoke-fort-limbo omp5 openmpapps LLNL nekbone ovo OpenMP_VV  babelstream fortran-babelstream accel2023 hpc2021"}
+SUITE_LIST=${SUITE_LIST:-"examples smoke-limbo smoke-dev smoke-fort-dev smoke smoke-asan smoke-fort smoke-fort-limbo omp5 openmpapps LLNL nekbone ovo OpenMP_VV  babelstream fortran-babelstream accel2023 hpc2021"}
 fi
 blockinglist="examples smoke smoke-limbo openmpapps sollve45 sollve50 sollve51 sollve52 babelstream ovo accel2023 hpc2021 nekbone smoke-fort smoke-fort-limbo"
 
