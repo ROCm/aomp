@@ -1,5 +1,6 @@
 #include "hip/hip_runtime.h"
 #include "support.h"
+#include "stdio.h"
 
 void printHipError(hipError_t error) {
   fprintf(stderr,"Hip Error: %s\n", hipGetErrorString(error));
