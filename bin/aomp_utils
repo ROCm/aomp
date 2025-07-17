@@ -233,6 +233,170 @@ function is_apu(){
   fi
 }
 
+valid_config() {
+  local thiscfg=$1
+  local -a configs
+  local oldlastpipe
+  local cfg
+  oldlastpipe="$(shopt -p lastpipe)"
+  shopt -s lastpipe
+  do_list_configs | mapfile -t configs
+  for cfg in "${configs[@]}"; do
+    if [ "$cfg" = "$thiscfg" ]; then
+      eval "$oldlastpipe"
+      return 0
+    fi
+  done
+  eval "$oldlastpipe"
+  return 1
+}
+
+runcmd() {
+  "$@"
+}
+
+aomp_tasks_filtered() {
+  local filter
+  local cfg
+  local task
+  local cmd
+  if [ "$1" = "--dryrun" ]; then
+    cmd="echo"
+    shift
+  else
+    cmd="runcmd"
+  fi
+  filter=$1
+  do_list_init | while read -r initfn; do
+    $cmd "task_${initfn}"
+  done
+  do_list_configs | while read -r cfg; do
+    do_list_tasks "$cfg" | while read -r task; do
+      if [[ "$task" =~ $filter ]]; then
+        $cmd "task_${task}" "$cfg"
+      fi
+    done
+  done
+  do_list_fini | while read -r finifn; do
+    $cmd "task_${finifn}"
+  done
+}
+
+get_config_var_string() {
+  #local component=$1
+  local -n _varname=$2
+  case "$2" in
+    BUILD_DIR)
+      printf "%s/build" "$_varname"
+      return
+      ;;
+    LLVM_INSTALL_LOC|AOMP_PROC|CUDABIN|CUDAT|CUDAINCLUDE|REPO_DIR|\
+    AOMP_NINJA_BIN|AOMP_JOB_THREADS|LLVM_PROJECT_ROOT)
+      ;;
+    *)
+      >&2 echo "Unknown string configuration variable '$2'"
+      exit 1
+      ;;
+  esac
+  printf "%s" "$_varname"
+}
+
+get_config_var_bool() {
+  #local component=$1
+  local -n _varname=$2
+  case "$2" in
+    AOMP_BUILD_CUDA|AOMP_APPLY_ATD_AMD_STAGING_PATCH|AOMP_USE_NINJA|\
+    AOMP_STANDALONE_BUILD|SANITIZER|AOMP_LEGACY_OPENMP|AOMP_BUILD_SANITIZER|\
+    AOMP_BUILD_PERF|AOMP_BUILD_DEBUG)
+      ;;
+    *)
+      >&2 echo "Unknown bool configuration variable '$2'"
+      exit 1
+      ;;
+  esac
+  if [[ $_varname = 1 ]]; then
+    echo "true"
+  else
+    echo "false"
+  fi
+}
+
+do_aomp_all() {
+  aomp_tasks_filtered '.*'
+}
+
+do_cmake() {
+  aomp_tasks_filtered '^(clean|cmake)'
+}
+
+do_nocmake() {
+  aomp_tasks_filtered 'build'
+}
+
+do_install() {
+  aomp_tasks_filtered '^(install|postinstall)'
+}
+
+do_show_src_dir() {
+  if [ $# -eq 0 ]; then
+    printf "%s\n" "$(get_src_dir)"
+  else
+    local WhichComp=$1
+    "$thisdir/build_${WhichComp}.sh" show_src_dir
+  fi
+}
+
+do_show_build_dir() {
+  local WhichComp
+  local Cfg
+  if [ $# -eq 1 ]; then
+    Cfg=$1
+    printf "%s\n" "$(get_build_dir "$Cfg")"
+  elif [ $# -eq 2 ]; then
+    WhichComp=$1
+    Cfg=$2
+    "$thisdir/build_${WhichComp}.sh" show_build_dir "$Cfg"
+  else
+    >&2 echo "Usage: show_build_dir [<component>] <cfg>"
+    exit 1
+  fi
+}
+
+do_show_install_dir() {
+  local WhichComp
+  local Cfg
+  if [ $# -eq 1 ]; then
+    Cfg=$1
+    printf "%s\n" "$(get_install_dir "$Cfg")"
+  elif [ $# -eq 2 ]; then
+    WhichComp=$1
+    Cfg=$2
+    "$thisdir/build_${WhichComp}.sh" show_install_dir "$Cfg"
+  else
+    >&2 echo "Usage: show_install_dir [<component>] <cfg>"
+    exit 1
+  fi
+}
+
+do_list() {
+  aomp_tasks_filtered --dryrun '.*'
+}
+
+command_dispatcher() {
+  local _proc
+  _proc=$1
+  if [ "$_proc" ]; then
+    shift
+    if [[ $_proc =~ ^task_ ]]; then
+      "$_proc" "$@"
+    else
+      "do_${_proc}" "$@"
+    fi
+  else
+    do_aomp_all
+  fi
+}
+
 function help_build_aomp(){
    /bin/cat 2>&1 <<"EOF"
 
