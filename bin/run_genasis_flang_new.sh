@@ -172,6 +172,24 @@ if [ "$1" != "buildonly" ] ; then
   echo
   cd $REPO_DIR/Programs/Examples/Basics/FluidDynamics/Executables
   echo
+  echo "================= Now running Unitests related to offloading ========"
+  cd $REPO_DIR/Programs/UnitTests/Basics/Devices/Executables
+  ./AllocateDevice_Command_Test_$GENASIS_MACHINE
+  echo "AllocateDevice_Command_Test_$GENASIS_MACHINE done!"
+  ./AllocateHost_Command_Test_$GENASIS_MACHINE
+  echo "AllocateHost_Command_Test_$GENASIS_MACHINE done!"
+  ./AssociateHost_Command_Test_$GENASIS_MACHINE
+  echo "AssociateHost_Command_Test_$GENASIS_MACHINE done!"
+  ./DeallocateDevice_Command_Test_$GENASIS_MACHINE
+  echo "DeallocateDevice_Command_Test_$GENASIS_MACHINE done!"
+  ./DeviceAddress_Function_Test_$GENASIS_MACHINE
+  echo "DeviceAddress_Function_Test_$GENASIS_MACHINE done!"
+  ./DeviceInterface_Test_$GENASIS_MACHINE
+  echo "DeviceInterface_Test_$GENASIS_MACHINE done!"
+  ./DisassociateHost_Command_Test_$GENASIS_MACHINE
+  echo "DisassociateHost_Command_Test_$GENASIS_MACHINE done!"
+  ./UpdateDevice_Command_Test_$GENASIS_MACHINE
+  echo "UpdateDevice_Command_Test_$GENASIS_MACHINE done!"
   echo "=================  2D RiemannProblem ========"
   _cmd="./RiemannProblem_$GENASIS_MACHINE Verbosity=INFO_2 nCells=256,256 \ Dimensionality=2D FinishTime=0.25 nWrite=10"
   echo $_cmd
@@ -193,22 +211,4 @@ if [ "$1" != "buildonly" ] ; then
   echo $_cmd
   time $_cmd
   echo "=================  end mpirun  ========"
-  echo "================= Now running Unitests related to offloading ========"
-  cd $REPO_DIR/Programs/UnitTests/Basics/Devices/Executables
-  ./AllocateDevice_Command_Test_$GENASIS_MACHINE
-  echo "AllocateDevice_Command_Test_$GENASIS_MACHINE done!"
-  ./AllocateHost_Command_Test_$GENASIS_MACHINE
-  echo "AllocateHost_Command_Test_$GENASIS_MACHINE done!"
-  ./AssociateHost_Command_Test_$GENASIS_MACHINE
-  echo "AssociateHost_Command_Test_$GENASIS_MACHINE done!"
-  ./DeallocateDevice_Command_Test_$GENASIS_MACHINE
-  echo "DeallocateDevice_Command_Test_$GENASIS_MACHINE done!"
-  ./DeviceAddress_Function_Test_$GENASIS_MACHINE
-  echo "DeviceAddress_Function_Test_$GENASIS_MACHINE done!"
-  ./DeviceInterface_Test_$GENASIS_MACHINE
-  echo "DeviceInterface_Test_$GENASIS_MACHINE done!"
-  ./DisassociateHost_Command_Test_$GENASIS_MACHINE
-  echo "DisassociateHost_Command_Test_$GENASIS_MACHINE done!"
-  ./UpdateDevice_Command_Test_$GENASIS_MACHINE
-  echo "UpdateDevice_Command_Test_$GENASIS_MACHINE done!"
 fi
