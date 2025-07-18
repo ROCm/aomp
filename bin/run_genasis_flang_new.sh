@@ -170,8 +170,6 @@ if [ "$1" != "buildonly" ] ; then
   echo ./PROGRAM_HEADER_Singleton_Test_$GENASIS_MACHINE
   ./PROGRAM_HEADER_Singleton_Test_$GENASIS_MACHINE
   echo
-  cd $REPO_DIR/Programs/Examples/Basics/FluidDynamics/Executables
-  echo
   echo "================= Now running Unitests related to offloading ========"
   cd $REPO_DIR/Programs/UnitTests/Basics/Devices/Executables
   ./AllocateDevice_Command_Test_$GENASIS_MACHINE
@@ -190,6 +188,8 @@ if [ "$1" != "buildonly" ] ; then
   echo "DisassociateHost_Command_Test_$GENASIS_MACHINE done!"
   ./UpdateDevice_Command_Test_$GENASIS_MACHINE
   echo "UpdateDevice_Command_Test_$GENASIS_MACHINE done!"
+  cd $REPO_DIR/Programs/Examples/Basics/FluidDynamics/Executables
+  echo
   echo "=================  2D RiemannProblem ========"
   _cmd="./RiemannProblem_$GENASIS_MACHINE Verbosity=INFO_2 nCells=256,256 \ Dimensionality=2D FinishTime=0.25 nWrite=10"
   echo $_cmd
