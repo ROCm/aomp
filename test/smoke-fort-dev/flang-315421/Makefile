@@ -8,6 +8,7 @@ TESTSRC_ALL  =  $(TESTSRC_AUX) $(TESTSRC_MAIN)
 FLANG        ?= flang
 OMP_BIN      = $(AOMP)/bin/$(FLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
+CFLAGS       = -lflang_rt.hostdevice
 OMP_FLAGS   += -DFAIL
 
 include ../Makefile.rules
