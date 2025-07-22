@@ -1,12 +1,38 @@
-! Test case is taken from Fujitsu test suite:
+! The initial version of the test case was taken from Fujitsu test suite:
 ! https://github.com/fujitsu/compiler-test-suite/blob/main/Fortran/0614/0614_0005.f
 ! Fujitsu test suite is ARM-focused open source test suite:
 ! https://github.com/fujitsu/compiler-test-suite
-! It fails on ARM platform if we turn on local alias analysis
-! for -O2 or higher optimization.
-! See: https://github.com/llvm/llvm-project/pull/139682
+! The original version does not explicitly state that the Cray pointer
+! from sub2 can alias, leading to miscompilation on the ARM platform
+! because Flang assumes that Cray pointers never alias.
+! This version includes the target attribute for the variable 'a',
+! which prevents miscompilation on ARM platforms.
+! See https://github.com/llvm/llvm-project/issues/141928 for more details.
+
+module mymodule
+contains
+      subroutine sub2(a,b)
+      integer, target:: a(10)
+      integer b(10),pa,pb
+      pointer (p1 ,pa)
+      pointer (p2 ,pb)
+
+      p1 = loc(a(1))
+      p2 = loc(b(1))
+
+      do i = 1,9
+         pa = pa + a(i+1)
+         p1 = p1 + 4
+      end do
+
+      b(1:10) = a(1:10) + b(1:10)
+
+      return
+      end
+end module mymodule
 
       program main
+      use mymodule
       structure /str1/
         integer*4  ia(10)/10,9,8,7,6,5,4,3,2,1/
         integer*4  ib(10)/1,2,3,4,5,6,7,8,9,10/
@@ -72,20 +98,3 @@
       return
       end
 
-      subroutine sub2(a,b)
-      integer a(10),b(10),pa,pb
-      pointer (p1 ,pa)
-      pointer (p2 ,pb)
-
-      p1 = loc(a(1))
-      p2 = loc(b(1))
-
-      do i = 1,9
-         pa = pa + a(i+1)
-         p1 = p1 + 4
-      end do
-
-      b(1:10) = a(1:10) + b(1:10)
-
-      return
-      end

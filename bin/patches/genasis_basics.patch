@@ -30,3 +30,76 @@ index a2d813c..580d9ab 100644
 
      !-- FIXME: Implicit do-loop array needed to workaround Cray compiler
      !          crashes for elemental function argument of array and scalar
+diff --git a/Modules/Basics/Devices/Device_HIP.c b/Modules/Basics/Devices/Device_HIP.c
+index cd2c80a..2c0c6e8 100644
+--- a/Modules/Basics/Devices/Device_HIP.c
++++ b/Modules/Basics/Devices/Device_HIP.c
+@@ -1,3 +1,4 @@
++#ifndef USE_OPENMP_RUNTIME
+ #include <stdlib.h>
+ #include <stdio.h>
+
+@@ -86,3 +87,4 @@ int DeviceMemGetInfo_Device ( size_t * Free, size_t * Total )
+   return -1;
+   #endif
+   }
++#endif
+diff --git a/Modules/Basics/Devices/Device_OMP.c b/Modules/Basics/Devices/Device_OMP.c
+index 541eb3f..04bce5b 100644
+--- a/Modules/Basics/Devices/Device_OMP.c
++++ b/Modules/Basics/Devices/Device_OMP.c
+@@ -277,3 +277,54 @@ bool OffloadEnabled ( )
+   return false;
+   #endif
+   }
++
++#ifdef USE_OPENMP_RUNTIME
++int SetDevice ( int iDevice )
++  {
++  #ifdef ENABLE_OMP_OFFLOAD
++  omp_set_default_device(iDevice);
++  return 0;
++  #else
++  return -1;
++  #endif
++  }
++
++
++int GetDevice ( int * iDevice )
++  {
++  #ifdef ENABLE_OMP_OFFLOAD
++  *iDevice = omp_get_default_device();
++  return 0;
++  #else
++  return -1;
++  #endif
++  }
++
++void * AllocateHostDouble_Device ( int nValues )
++  {
++  void * Host;
++
++  #ifdef ENABLE_OMP_OFFLOAD
++  Host = omp_target_alloc( sizeof ( double ) * nValues, omp_get_initial_device());
++  #else
++  Host = malloc ( sizeof ( double ) * nValues );
++  #endif
++  return Host;
++  }
++
++void FreeHost_Device ( void * Host )
++  {
++  #ifdef ENABLE_OMP_OFFLOAD
++  omp_target_free(Host, omp_get_initial_device());
++  #else
++  free ( Host );
++  #endif
++  }
++
++int DeviceMemGetInfo_Device ( size_t * Free, size_t * Total )
++  {
++  Free  = 0;
++  Total = 0;
++  return -1;
++  }
++#endif

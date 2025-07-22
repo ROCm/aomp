@@ -59,6 +59,9 @@ ifeq ($(ENABLE_OMP_OFFLOAD), 1)
 endif
 ifeq ($(ENABLE_HIP), 1)
   DEVICE_COMPILE ?= $(HIP_DIR)/bin/hipcc -c -D__HIP_PLATFORM_AMD__
+  ifeq ($(USE_OPENMP_RUNTIME), 1)
+    DEVICE_COMPILE += -DUSE_OPENMP_RUNTIME
+  endif
   LIBRARY_DEVICE = -L$(HIP_DIR)/lib -lamdhip64
   Device_Interface = Device_HIP
 endif
@@ -71,6 +74,9 @@ ifeq ($(ENABLE_MPI), 1)
   #CC_COMPILE = $(ROCM_DIR)/bin/clang -v
   FCFLAGS =  $(DEFINES) 
   CC_COMPILE =  $(HIP_DIR)/bin/hipcc -c -D__HIP_PLATFORM_AMD__
+  ifeq ($(USE_OPENMP_RUNTIME), 1)
+    CC_COMPILE += -DUSE_OPENMP_RUNTIME
+  endif
   FCFLAGS += $(LIBRARY_OPENMPI)
   #LINK = $(OPENMPI_DIR)/bin/mpifort
   LINK = $(FORTRAN_LINK)

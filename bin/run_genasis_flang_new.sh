@@ -106,6 +106,10 @@ if [ "$ENABLE_OMP_OFFLOAD" -eq "0" ] ; then
     OMP_DEFINES=
 fi
 
+if [ "$USE_OPENMP_RUNTIME" -eq "1" ] ; then
+    OMP_DEFINES+=" -DUSE_OPENMP_RUNTIME"
+fi
+
 export LD_LIBRARY_PATH=$AOMP/lib:$AOMPHIP/lib:$OPENMPI_DIR/lib:$LD_LIBRARY_PATH
 export FORTRAN_COMPILE="$AOMP/bin/$FLANG -c -fopenmp --offload-arch=$GPU_ID -fPIC -I$OPENMPI_DIR/lib -cpp $OMP_DEFINES -fstack-arrays"
 export CC_COMPILE="$AOMP/bin/clang -fPIC"
@@ -170,6 +174,24 @@ if [ "$1" != "buildonly" ] ; then
   echo ./PROGRAM_HEADER_Singleton_Test_$GENASIS_MACHINE
   ./PROGRAM_HEADER_Singleton_Test_$GENASIS_MACHINE
   echo
+  echo "================= Now running Unitests related to offloading ========"
+  cd $REPO_DIR/Programs/UnitTests/Basics/Devices/Executables
+  ./AllocateDevice_Command_Test_$GENASIS_MACHINE
+  echo "AllocateDevice_Command_Test_$GENASIS_MACHINE done!"
+  ./AllocateHost_Command_Test_$GENASIS_MACHINE
+  echo "AllocateHost_Command_Test_$GENASIS_MACHINE done!"
+  ./AssociateHost_Command_Test_$GENASIS_MACHINE
+  echo "AssociateHost_Command_Test_$GENASIS_MACHINE done!"
+  ./DeallocateDevice_Command_Test_$GENASIS_MACHINE
+  echo "DeallocateDevice_Command_Test_$GENASIS_MACHINE done!"
+  ./DeviceAddress_Function_Test_$GENASIS_MACHINE
+  echo "DeviceAddress_Function_Test_$GENASIS_MACHINE done!"
+  ./DeviceInterface_Test_$GENASIS_MACHINE
+  echo "DeviceInterface_Test_$GENASIS_MACHINE done!"
+  ./DisassociateHost_Command_Test_$GENASIS_MACHINE
+  echo "DisassociateHost_Command_Test_$GENASIS_MACHINE done!"
+  ./UpdateDevice_Command_Test_$GENASIS_MACHINE
+  echo "UpdateDevice_Command_Test_$GENASIS_MACHINE done!"
   cd $REPO_DIR/Programs/Examples/Basics/FluidDynamics/Executables
   echo
   echo "=================  2D RiemannProblem ========"
@@ -193,22 +215,4 @@ if [ "$1" != "buildonly" ] ; then
   echo $_cmd
   time $_cmd
   echo "=================  end mpirun  ========"
-  echo "================= Now running Unitests related to offloading ========"
-  cd $REPO_DIR/Programs/UnitTests/Basics/Devices/Executables
-  ./AllocateDevice_Command_Test_$GENASIS_MACHINE
-  echo "AllocateDevice_Command_Test_$GENASIS_MACHINE done!"
-  ./AllocateHost_Command_Test_$GENASIS_MACHINE
-  echo "AllocateHost_Command_Test_$GENASIS_MACHINE done!"
-  ./AssociateHost_Command_Test_$GENASIS_MACHINE
-  echo "AssociateHost_Command_Test_$GENASIS_MACHINE done!"
-  ./DeallocateDevice_Command_Test_$GENASIS_MACHINE
-  echo "DeallocateDevice_Command_Test_$GENASIS_MACHINE done!"
-  ./DeviceAddress_Function_Test_$GENASIS_MACHINE
-  echo "DeviceAddress_Function_Test_$GENASIS_MACHINE done!"
-  ./DeviceInterface_Test_$GENASIS_MACHINE
-  echo "DeviceInterface_Test_$GENASIS_MACHINE done!"
-  ./DisassociateHost_Command_Test_$GENASIS_MACHINE
-  echo "DisassociateHost_Command_Test_$GENASIS_MACHINE done!"
-  ./UpdateDevice_Command_Test_$GENASIS_MACHINE
-  echo "UpdateDevice_Command_Test_$GENASIS_MACHINE done!"
 fi
