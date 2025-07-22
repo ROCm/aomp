@@ -40,12 +40,14 @@ if [ ! -d ${AOMP_DIR} ]; then
 fi
 
 echo " >>> Clean ..."
-git clean -fdx ./${BUILD_DIR}
+rm -rf ./${BUILD_DIR}
 
 echo " >>> Configure ..."
 cmake -B ${BUILD_DIR} -S .                                                     \
 -DAOMP_DIR=${AOMP_DIR}                                                         \
--DTGT_OFFLOAD_ARCH=${TGT_OFFLOAD_ARCH}
+-DTGT_OFFLOAD_ARCH=${TGT_OFFLOAD_ARCH} \
+-DCMAKE_C_COMPILER=${AOMP_DIR}/bin/clang \
+-DCMAKE_CXX_COMPILER=${AOMP_DIR}/bin/clang++
 
 echo " >>> Build ..."
 cmake --build ${BUILD_DIR} --clean-first --parallel || exit 1
