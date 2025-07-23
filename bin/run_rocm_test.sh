@@ -344,6 +344,13 @@ if [[ $AOMP_GPU == gfx1* ]]; then
 fi
 # Run quick sanity test
 echo
+echo "check-xnack test"
+cd "$aompdir"/test/smoke-dev/check-xnack
+make clean > /dev/null
+VERBOSE=1 make
+./check-xnack
+HSA_XNACK=1 OMPX_APU_MAPS=1 ./check-xnack
+echo
 echo "Helloworld sanity test:"
 cd "$aompdir"/test/smoke/helloworld
 make clean > /dev/null
