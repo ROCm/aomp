@@ -3,18 +3,18 @@ AOMP will install to /usr/lib/aomp. The AOMP environment variable will automatic
 
 On Ubuntu 22.04,  run these commands:
 ```
-wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_21.0-1/aomp_Ubuntu2204_21.0-1_amd64.deb
+wget https://github.com/ROCm/aomp/releases/download/rel_21.0-1/aomp_Ubuntu2204_21.0-1_amd64.deb
 sudo dpkg -i aomp_Ubuntu2204_21.0-1_amd64.deb
 
-wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_21.0-1/aomp-hip-libraries_Ubuntu2204_21.0-1_amd64.deb
+wget https://github.com/ROCm/aomp/releases/download/rel_21.0-1/aomp-hip-libraries_Ubuntu2204_21.0-1_amd64.deb
 sudo dpkg -i aomp-hip-libraries_Ubuntu2204_21.0-1_amd64.deb
 ```
 On Ubuntu 24.04,  run these commands:
 ```
-wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_21.0-1/aomp_Ubuntu2404_21.0-1_amd64.deb
+wget https://github.com/ROCm/aomp/releases/download/rel_21.0-1/aomp_Ubuntu2404_21.0-1_amd64.deb
 sudo dpkg -i aomp_Ubuntu2404_21.0-1_amd64.deb
 
-wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_21.0-1/aomp-hip-libraries_Ubuntu2404_21.0-1_amd64.deb
+wget https://github.com/ROCm/aomp/releases/download/rel_21.0-1/aomp-hip-libraries_Ubuntu2404_21.0-1_amd64.deb
 sudo dpkg -i aomp-hip-libraries_Ubuntu2404_21.0-1_amd64.deb
 ```
 

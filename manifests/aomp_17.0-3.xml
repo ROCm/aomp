@@ -4,9 +4,9 @@
 
     <remote name="gerritgit" review="git.amd.com:8080" fetch="ssh://gerritgit/" />
     <default revision="release/rocm-rel-5.6" remote="gerritgit" sync-j="4" sync-c="true" />
-    <remote name="roctools"  fetch="https://github.com/ROCm-Developer-Tools/" />
-    <remote name="roc"  fetch="https://github.com/RadeonOpenCompute/" />
-    <remote name="rocsw"  fetch="https://github.com/ROCmSoftwarePlatform/" />
+    <remote name="roctools"  fetch="https://github.com/ROCm/" />
+    <remote name="roc"  fetch="https://github.com/ROCm/" />
+    <remote name="rocsw"  fetch="https://github.com/ROCm/" />
 
     <project remote="roc" path="llvm-project" name="llvm-project" revision="aomp-17.0-3" groups="unlocked" />
 

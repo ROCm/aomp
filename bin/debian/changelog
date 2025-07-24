@@ -903,7 +903,7 @@ aomp (19.0-3) UNRELEASED; urgency=medium
   *      to be isolated from ROCm stack with the exception of rocm-dkms which
   *      installs the correct kernel driver.
   *   The following issues were resolved in this release:
-  *      [#601](https://github.com/ROCm-Developer-Tools/aomp/issues/601) AOMP
+  *      [#601](https://github.com/ROCm/aomp/issues/601) AOMP
   *      17.0.3 crashes at compile time with conjunction in if clause.
   *   While the source build of aomp, supports ASAN (address sanitizer), the
   *      release build does not due to complexities in packaging asan.  Therefore,

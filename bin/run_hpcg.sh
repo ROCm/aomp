@@ -22,7 +22,7 @@ cd ${HPCG_SOURCE_DIR} || exit 1
 
 if [ ! -d ./rocHPCG ]; then
   # Get the sources
-  git clone --depth 1 --single-branch -b omptarget https://github.com/ROCmSoftwarePlatform/rocHPCG || exit 1
+  git clone --depth 1 --single-branch -b omptarget https://github.com/ROCm/rocHPCG || exit 1
   cd rocHPCG || exit 1
   git checkout omptarget || exit 1
 fi

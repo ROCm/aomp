@@ -119,7 +119,7 @@ fi
 
 # These are the web sites where the F18 git repos are pulled from
 GITROC="https://github.com/radeonopencompute"
-GITROCDEV="https://github.com/ROCm-Developer-Tools"
+GITROCDEV="https://github.com/ROCm"
 GITROCLIB="https://github.com/AMDComputeLibraries"
 GITKHRONOS="https://github.com/KhronosGroup"
 
