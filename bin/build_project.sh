@@ -19,7 +19,7 @@ thisdir=$(dirname "$realpath")
 echo "LLVM PROJECTS TO BUILD:$AOMP_PROJECTS_LIST"
 INSTALL_PROJECT=${INSTALL_PROJECT:-$LLVM_INSTALL_LOC}
 
-WEBSITE="http\:\/\/github.com\/ROCm-Developer-Tools\/aomp"
+WEBSITE="http\:\/\/github.com\/ROCm\/aomp"
 
 # Check-openmp prep
 # Patch rocr
@@ -113,7 +113,7 @@ MYCMAKEOPTS=(-DCMAKE_BUILD_TYPE="$BUILD_TYPE"
              -DCLANG_VENDOR="AOMP${standalone_word}_$AOMP_VERSION_STRING"
              -DCLANG_DEFAULT_PIE_ON_LINUX=0
              -DLLVM_ENABLE_ZLIB=ON
-             -DBUG_REPORT_URL='https://github.com/ROCm-Developer-Tools/aomp'
+             -DBUG_REPORT_URL='https://github.com/ROCm/aomp'
              -DLLVM_ENABLE_BINDINGS=OFF
              -DLLVM_INCLUDE_BENCHMARKS=OFF
              "${DO_TESTS_OPTS[@]}"

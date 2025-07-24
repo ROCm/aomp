@@ -42,7 +42,7 @@ fi
 
 check_writable_installdir "$1" "$AOMP_INSTALL_DIR"
 
-BUG_URL="https://github.com/ROCm-Developer-Tools/ROCgdb/issues"
+BUG_URL="https://github.com/ROCm/ROCgdb/issues"
 export CXXFLAGS_FOR_BUILD="-O2"
 export CFLAGS_FOR_BUILD="-O2"
 #patchrepo "$AOMP_REPOS/$AOMP_GDB_REPO_NAME"

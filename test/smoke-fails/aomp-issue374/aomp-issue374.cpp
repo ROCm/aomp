@@ -1,4 +1,4 @@
-/* Based on https://github.com/ROCm-Developer-Tools/aomp/issues/374 */
+/* Based on https://github.com/ROCm/aomp/issues/374 */
 
 #include <stdio.h>
 #include <assert.h>

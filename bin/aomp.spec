@@ -3,7 +3,7 @@ Name: $rpmname
 Version: __VERSION1
 Release: __VERSION3_MOD
 Source: /tmp/home/rpmbuild/SOURCES/$rpmname.tar.gz
-URL: https://github.com/ROCm-Developer-Tools/aomp
+URL: https://github.com/ROCm/aomp
 License: MIT and ASL 2.0
 Group: System/Base
 Vendor: AMD

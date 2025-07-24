@@ -5,18 +5,18 @@ AOMP will install to /usr/lib/aomp. The AOMP environment variable will automatic
 
 ### Download and Install (RHEL 9)
 ```
-wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_21.0-1/aomp_REDHAT_9-21.0-1.x86_64.rpm
+wget https://github.com/ROCm/aomp/releases/download/rel_21.0-1/aomp_REDHAT_9-21.0-1.x86_64.rpm
 sudo rpm -i aomp_REDHAT_9-21.0-1.x86_64.rpm
 
-wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_21.0-1/aomp-hip-libraries_REDHAT_9-21.0-1.x86_64.rpm
+wget https://github.com/ROCm/aomp/releases/download/rel_21.0-1/aomp-hip-libraries_REDHAT_9-21.0-1.x86_64.rpm
 sudo rpm -i aomp-hip-libraries_REDHAT_9-21.0-1.x86_64.rpm
 ```
 ### Download and Install (RHEL 8)
 ```
-wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_21.0-1/aomp_REDHAT_8-21.0-1.x86_64.rpm
+wget https://github.com/ROCm/aomp/releases/download/rel_21.0-1/aomp_REDHAT_8-21.0-1.x86_64.rpm
 sudo rpm -i aomp_REDHAT_8-21.0-1.x86_64.rpm
 
-wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_21.0-1/aomp-hip-libraries_REDHAT_8-21.0-1.x86_64.rpm
+wget https://github.com/ROCm/aomp/releases/download/rel_21.0-1/aomp-hip-libraries_REDHAT_8-21.0-1.x86_64.rpm
 sudo rpm -i aomp-hip-libraries_REDHAT_8-21.0-1.x86_64.rpm
 ```
 

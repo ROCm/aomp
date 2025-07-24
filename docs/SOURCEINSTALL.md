@@ -36,7 +36,7 @@ Here are the commands to do a source build of AOMP:
    export AOMP_REPOS=$HOME/git/aomp${AOMP_VERSION}
    mkdir -p $AOMP_REPOS
    cd $AOMP_REPOS
-   git clone -b aomp-dev https://github.com/ROCm-Developer-Tools/aomp
+   git clone -b aomp-dev https://github.com/ROCm/aomp
 ```
 
 The development version is the next version to be released.  It is possible that the development version is broken due to regressions that often occur during development.
@@ -47,7 +47,7 @@ These commands will build a previous release of AOMP such as aomp-21.0-1.<br>
    export AOMP_REPOS=$HOME/git/aomp${AOMP_VERSION}
    mkdir -p $AOMP_REPOS
    cd $AOMP_REPOS
-   git clone -b aomp-21.0-1 https://github.com/ROCm-Developer-Tools/aomp
+   git clone -b aomp-21.0-1 https://github.com/ROCm/aomp
 ```
 <b>Clone and build:</b>
 ```
