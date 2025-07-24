@@ -119,7 +119,7 @@ COBRANCH=$F18_FLANG_REPO_BRANCH
 clone_or_pull
 
 # ---------------------------------------
-# The following repos are in RadeonOpenCompute
+# The following repos are in ROCm
 # ---------------------------------------
 repo_web_location=$GITROC
 

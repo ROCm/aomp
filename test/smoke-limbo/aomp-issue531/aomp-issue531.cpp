@@ -1,4 +1,4 @@
-// Test case from https://github.com/ROCm-Developer-Tools/aomp/issues/531
+// Test case from https://github.com/ROCm/aomp/issues/531
 // [OMPT] Device tracing interface buffer records have fixed thread_id of 0
 
 #include <omp.h>
