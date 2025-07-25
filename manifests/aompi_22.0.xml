@@ -4,11 +4,13 @@
 
     <default revision="release/rocm-rel-6.4" remote="gerritgit" sync-j="4" sync-c="true" />
     <remote name="roc"  fetch="https://github.com/ROCm" />
+    <remote name="simde"  fetch="https://github.com/simd-everywhere" />
 
 <!-- These first 4 repos are NOT rocm 6.4. They are compiler developer branches -->
     <project remote="githubemu-lightning" path="llvm-project" name="llvm-project.git" revision="amd-staging" groups="unlocked" />
     <project remote="githubemu-lightning" path="SPIRV-LLVM-Translator" name="spirv-llvm-translator.git" revision="amd-staging" groups="unlocked" />
     <project remote="githubemu-lightning" path="hipify" name="hipify.git" revision="amd-staging" groups="unlocked" />
+    <project remote="simde" path="simde" name="simde" revision="master" groups="unlocked" />
 
     <project remote="roc" path="flang" name="flang"               revision="aomp-dev" groups="unlocked" />
     <project remote="roc" path="aomp" name="aomp"                 revision="aomp-dev" groups="unlocked" />
