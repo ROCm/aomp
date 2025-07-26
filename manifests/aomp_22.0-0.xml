@@ -7,6 +7,7 @@
 
     <project remote="roc" path="llvm-project" name="llvm-project" revision="aomp-22.0-0" groups="unlocked" />
     <project remote="roc" path="SPIRV-LLVM-Translator" name="SPIRV-LLVM-Translator"    revision="aomp-22.0-0" groups="unlocked" />
+    <project remote="roc" path="hipify" name="hipify"    revision="aomp-22.0-0" groups="unlocked" />
 
     <project remote="roc" path="aomp" name="aomp"                 revision="aomp-22.0-0" groups="unlocked" />
 
