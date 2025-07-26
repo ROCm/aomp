@@ -12,6 +12,7 @@
     <project remote="roc" path="aomp" name="aomp"                 revision="aomp-22.0-0" groups="unlocked" />
 
     <project remote="roc" path="rocprofiler" name="rocprofiler"              revision="rocm-6.4.2" groups="unlocked" />
+    <project remote="roc" path="rocprofiler-sdk" name="rocprofiler-sdk"      revision="rocm-6.4.2" groups="unlocked" />
     <project remote="roc" path="roctracer" name="roctracer"                  revision="rocm-6.4.2" groups="unlocked" />
     <project remote="roc" path="ROCdbgapi" name="ROCdbgapi"                  revision="rocm-6.4.2" groups="unlocked" />
     <project remote="roc" path="ROCgdb" name="ROCgdb"                        revision="rocm-6.4.2" groups="unlocked" />
