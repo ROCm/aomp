@@ -5,18 +5,18 @@
     <remote name="gerritgit" review="git.amd.com:8080" fetch="ssh://gerritgit/" />
     <default revision="release/rocm-rel-6.4" remote="gerritgit" sync-j="4" sync-c="true" />
     <remote name="roc"  fetch="https://github.com/ROCm" />
+    <remote name="simde"  fetch="https://github.com/simd-everywhere" />
 
 <!-- These first 4 repos are NOT rocm 6.4. They are compiler developer branches -->
     <project remote="roc" path="llvm-project" name="llvm-project"    revision="amd-staging" groups="unlocked" />
     <project remote="roc" path="SPIRV-LLVM-Translator" name="SPIRV-LLVM-Translator"    revision="amd-staging" groups="unlocked" />
     <project remote="roc" path="hipify" name="hipify"    revision="amd-staging" groups="unlocked" />
+    <project remote="simde" path="simde" name="simde" revision="master" groups="unlocked" />
 
     <project remote="roc" path="flang" name="flang"               revision="aomp-dev" groups="unlocked" />
     <project remote="roc" path="aomp" name="aomp"                 revision="aomp-dev" groups="unlocked" />
 
-    <project remote="roc" path="rocprofiler" name="rocprofiler"              revision="release/rocm-rel-6.4" groups="unlocked" />
     <project remote="roc" path="rocprofiler-sdk" name="rocprofiler-sdk"              revision="release/rocm-rel-6.4" groups="unlocked" />
-    <project remote="roc" path="roctracer" name="roctracer"                  revision="release/rocm-rel-6.4" groups="unlocked" />
     <project remote="roc" path="ROCdbgapi" name="ROCdbgapi"                  revision="release/rocm-rel-6.4" groups="unlocked" />
     <project remote="roc" path="ROCgdb" name="ROCgdb"                        revision="release/rocm-rel-6.4" groups="unlocked" />
     <project remote="roc" path="hip"    name="hip"                           revision="release/rocm-rel-6.4" groups="unlocked" />

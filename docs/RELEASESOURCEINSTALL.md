@@ -14,7 +14,7 @@ To build AOMP from source you must: 1. Install certain distribution packages, 2.
 To build and install aomp from the release source tarball run these commands:
 
 ```
-   wget https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_21.0-1/aomp-21.0-1.tar.gz
+   wget https://github.com/ROCm/aomp/releases/download/rel_21.0-1/aomp-21.0-1.tar.gz
    tar -xzf aomp-21.0-1.tar.gz
    cd aomp21.0
    nohup make &
@@ -39,8 +39,8 @@ To enable a backlevel version of AOMP, simply set AOMP to $HOME/rocm/aomp_21.0-0
 Assuming your have installed the [prerequisites](SOURCEINSTALL_PREREQUISITE.md), use these commands to fetch the source and build aomp. Currently the aomp configuration is not yet in the spack git hub so you must create the spack package first.
 
 ```
-   wget https://github.com/ROCm-Developer-Tools/aomp/blob/aomp-21.0-1/bin/package.py
-   spack create -n aomp -t makefile --force https://github.com/ROCm-Developer-Tools/aomp/releases/download/rel_21.0-1/aomp-21.0-1.tar.gz
+   wget https://github.com/ROCm/aomp/blob/aomp-21.0-1/bin/package.py
+   spack create -n aomp -t makefile --force https://github.com/ROCm/aomp/releases/download/rel_21.0-1/aomp-21.0-1.tar.gz
    spack edit aomp
    spack install aomp
 ```

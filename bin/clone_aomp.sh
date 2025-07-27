@@ -170,6 +170,8 @@ function list_repo_from_manifest(){
         manifest_project=$(echo "$REPO_PROJECT" | tr '[:upper:]' '[:lower:]')
    elif [[ "$REPO_REMOTE" == "hwloc" ]] ; then
         manifest_project=$(echo "open-mpi/$REPO_PROJECT" | tr '[:upper:]' '[:lower:]')
+   elif [[ "$REPO_REMOTE" == "simde" ]] ; then
+        manifest_project=$(echo "simd-everywhere/$REPO_PROJECT" | tr '[:upper:]' '[:lower:]')
    else
         manifest_project=$(echo "$REPO_REMOTE/$REPO_PROJECT" | tr '[:upper:]' '[:lower:]')
    fi
@@ -277,6 +279,8 @@ if [[ "$AOMP_VERSION" == "13.1" ]] || [[ $AOMP_MAJOR_VERSION -gt 13 ]] ; then
          repo_web_location=$GITHWLOC
       elif [ "$remote" == "githubemu-lightning" ] ; then
          repo_web_location=$GITLIGHTNINGINTERNAL
+      elif [ "$remote" == "simde" ] ; then
+         repo_web_location="https://github.com/simd-everywhere"
       else
          line_is_good=0
       fi

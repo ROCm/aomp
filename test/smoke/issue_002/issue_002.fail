@@ -45,7 +45,7 @@ HCC clang version 6.0.0  (based on HCC 0.3-6 )
 Target: x86_64-pc-linux-gnu
 Thread model: posix
 InstalledDir: /srv/akasauro/git/hcc2/install/llvm/bin
-clang-6.0: note: diagnostic msg: PLEASE open an issue in to https://github.com/ROCm-Developer-Tools/hcc2/ and include the crash backtrace, preprocessed source, and associated run script.
+clang-6.0: note: diagnostic msg: PLEASE open an issue in to https://github.com/ROCm/hcc2/ and include the crash backtrace, preprocessed source, and associated run script.
 clang-6.0: note: diagnostic msg: Error generating preprocessed source(s).
 ../Makefile.rules:9: recipe for target 'issue_002' failed
 make: *** [issue_002] Error 254

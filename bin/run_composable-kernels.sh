@@ -163,8 +163,6 @@ while getopts "hirubs:t:" opt; do
       client-examples)
         # Build and run the client examples provided by CK.
         SelectedSuite="${OPTARG}"
-        # Requires an installed CK build (triggers incremental build)
-        ShouldInstallCK='yes'
         ;;
       examples)
         # Build and run the examples provided by CK.
@@ -256,6 +254,7 @@ CKCmakeCmd+="-DCMAKE_BUILD_TYPE=Release -DGPU_TARGETS=${CK_GPU_TARGETS} "
 # For some reason, CK on gfx12 wants this set.
 CKCMakeCmd+="-DBUILD_DEV=On"
 
+# Ensure CK build directory is cleaned.
 if [ "${ShouldRebuildCK}" == 'yes' ]; then
   echo "Rebuilding the CK repo w/ ${CKBuildParallelism} parallel jobs."
   rm -rf ${CK_BUILD} || exit 1
@@ -267,7 +266,16 @@ if [ "${ShouldRebuildCK}" == 'yes' ]; then
   if [ $? -ne 0 ]; then
     exit 1
   fi
+fi
 
+# Ensure CK install directory is cleaned.
+if [ "${ShouldInstallCK}" == 'yes' ]; then
+  echo "Purging previous CK installation directory."
+  rm -rf ${CK_INSTALL} || exit 1
+fi
+
+# Perform (incremental) CK build
+if [ "${ShouldRebuildCK}" == 'yes' ] || [ "${ShouldInstallCK}" == 'yes' ]; then
   pushd ${CK_BUILD} || exit 1
 
   time ninja -j ${CKBuildParallelism}
@@ -278,13 +286,9 @@ if [ "${ShouldRebuildCK}" == 'yes' ]; then
   popd
 fi
 
+# Perform CK installation
 if [ "${ShouldInstallCK}" == 'yes' ]; then
   pushd ${CK_BUILD} || exit 1
-
-  time ninja -j ${CKBuildParallelism}
-  if [ $? -ne 0 ]; then
-    exit 1
-  fi
 
   # TODO: Check parallelism. This may use all available threads.
   time ninja install
@@ -378,6 +382,11 @@ if [ "${SelectedSuite}" == 'client-examples' ]; then
 
   CKClientExLDLibraryPathExport=$(getLDLibraryPathExportCmd)
 
+  if [ "${ShouldInstallCK}" != 'yes' ]; then
+    echo "Warning: client-examples selected without required CK installation."
+    echo "         Please, make sure CK is properly installed."
+  fi
+
   echo "Rebuilding the CK client-examples"
   rm -rf ${CK_CLIENT_EXAMPLES_BUILD} || exit 1
 
@@ -406,7 +415,7 @@ if [ "${SelectedSuite}" == 'client-examples' ]; then
   # directories while traversing the resulting argument (path) list
   NumExcludedDirs=0
   FindArgs=(. -mindepth 1 -maxdepth 2 -type d \()
-  for ExcludedDir in ${DirsToExclude[@]}; do
+  for ExcludedDir in "${DirsToExclude[@]}"; do
     FindArgs+=(-path "./${ExcludedDir}" -o)
     echo "Excluding client-examples: ./${ExcludedDir}"
     ((++NumExcludedDirs))

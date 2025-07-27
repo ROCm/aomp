@@ -241,10 +241,10 @@ function getrocmpackage(){
   _packagename="$2"
   _componentversion="$3"
   _directory=$(echo "$2" | cut -b 1)
-  _version=6.4
-  _packageversion=6.4.0
-  _fullversion=60400
-  _buildnumber=47
+  _version=6.4.2
+  _packageversion=6.4.2
+  _fullversion=60402
+  _buildnumber=120
   _installdir=$AOMP_SUPP_INSTALL/$_cname-$_version
   _linkfrom=$AOMP_SUPP/$_cname
   _builddir=$AOMP_SUPP_BUILD/$_cname
@@ -575,7 +575,7 @@ for _component in $_components ; do
   elif [ "$_component" == "openclicdloader" ] ; then
     getrocmpackage openclicdloader rocm-opencl-icd-loader 1.2
   elif [ "$_component" == "rocm-core" ] ; then
-    getrocmpackage rocm-core rocm-core 6.4.0
+    getrocmpackage rocm-core rocm-core 6.4.2
   else
     echo "ERROR:  Invalid component name $_component" >>"$CMDLOGFILE"
     echo "ERROR:  Invalid component name $_component"
