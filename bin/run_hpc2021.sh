@@ -14,9 +14,13 @@ export AOMP_USE_CCACHE=0
 : ${HPC2021_SOURCE_DIR:=$AOMP_REPOS_TEST/hpc2021-1.1.9}
 : ${HPC2021_BUILD_NUM_THREADS:=32}
 
-rm -rf /tmp/ompi
-mkdir -p /tmp/ompi
-cd /tmp/ompi
+export WORK=/tmp/ompi$$
+export COMP=$AOMP
+export INST=$WORK/openmpi-5.0.8-flang
+
+rm -rf $WORK
+mkdir -p $WORK
+cd $WORK
 wget https://download.open-mpi.org/release/open-mpi/v5.0/openmpi-5.0.8.tar.gz
 tar xf openmpi-5.0.8.tar.gz
 cd  openmpi-5.0.8
@@ -24,16 +28,12 @@ rm -rf build
 mkdir build
 cd build
 
-export WORK=/tmp/ompi
-export COMP=$AOMP
-export INST=/tmp/openmpi-5.0.8-flang
-
 export LD_LIBRARY_PATH=$COMP/lib
 export PATH=$COMP/bin:$PATH
 ../configure --prefix=$INST OMPI_CC=clang OMPI_CXX=clang++ OMPI_F90=flang CXX=clang++ CC=clang FC=flang -enable-mpi1-compatibility
-
 make -j 32
 LD_LIBRARY_PATH=$COMP/lib PATH=$COMP/bin:$PATH make -j 32 install
+
 
 if [ "$1" == "-clean" ]; then
   rm -rf ${HPC2021_SOURCE_DIR}
@@ -52,6 +52,7 @@ else
   cd ${HPC2021_SOURCE_DIR} || exit 1
 fi
 export PATH=$AOMP/../bin:$AOMP/../../bin:$PATH
-export MPI=/tmp/openmpi-5.0.8-flang
+export MPI=$INST
 ./runOne
+rm -rf $WORK
 #grep ratio= result/*.log
