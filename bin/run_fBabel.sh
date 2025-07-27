@@ -52,9 +52,9 @@ LLVM_VERSION_STR=`$AOMP/bin/$FLANG --version`
 LLVM_VERSION=`echo $LLVM_VERSION_STR | sed -e 's/^.*version[ ]*//' | cut -d"." -f1`
 echo "LLVM_VERSION_STR=$LLVM_VERSION_STR"
 echo "LLVM_VERSION=$LLVM_VERSION"
-echo $LLVM_VERSION_STR | grep -q "ROCm-Developer-Tools"
+echo $LLVM_VERSION_STR | grep -q "ROCm"
 if [ $? -eq 0 ] ; then   # AMD build
-  echo "Detected: ROCm-Developer-Tools build"
+  echo "Detected: ROCm build"
   special_aso_flags="-O3 -fopenmp-target-fast"
   #special_aso_flags="-fopenmp-gpu-threads-per-team=256 -fopenmp-target-fast"
 else

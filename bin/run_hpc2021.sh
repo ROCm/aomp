@@ -14,6 +14,16 @@ export AOMP_USE_CCACHE=0
 : ${HPC2021_SOURCE_DIR:=$AOMP_REPOS_TEST/hpc2021-1.1.9}
 : ${HPC2021_BUILD_NUM_THREADS:=32}
 
+export INST=/tmp/npsdbInst$$/openmpi-5-flang
+./npsdb_bld_ompi.sh
+
+export LD_LIBRARY_PATH=$AOMP/lib
+export PATH=$AOMP/bin:$PATH
+../configure --prefix=$INST OMPI_CC=clang OMPI_CXX=clang++ OMPI_F90=flang CXX=clang++ CC=clang FC=flang -enable-mpi1-compatibility
+make -j 32
+LD_LIBRARY_PATH=$AOMP/lib PATH=$AOMP/bin:$PATH make -j 32 install
+
+
 if [ "$1" == "-clean" ]; then
   rm -rf ${HPC2021_SOURCE_DIR}
   mkdir -p ${HPC2021_SOURCE_DIR}
@@ -31,5 +41,9 @@ else
   cd ${HPC2021_SOURCE_DIR} || exit 1
 fi
 export PATH=$AOMP/../bin:$AOMP/../../bin:$PATH
+export MPI=$INST
+# strange UCX warnings in dockers using openmpi, this suppresses
+export UCX_LOG_LEVEL=error
 ./runOne
+rm -rf $INST
 #grep ratio= result/*.log

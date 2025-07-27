@@ -165,7 +165,7 @@ function setup(){
   fi
 
   # Run build_prerequisites.sh to build cmake, hwloc, rocmsmi, etc
-  docker exec -i "$docker_name" /bin/bash -c "$exports; cd $DOCKER_AOMP_REPOS; git clone -b aomp-$AOMP_VERSION_STRING https://github.com/ROCm-Developer-Tools/aomp; cd aomp/bin; ./build_prereq.sh 2>&1 | tee $DOCKER_HOME/logs/$system-prereq.out"
+  docker exec -i "$docker_name" /bin/bash -c "$exports; cd $DOCKER_AOMP_REPOS; git clone -b aomp-$AOMP_VERSION_STRING https://github.com/ROCm/aomp; cd aomp/bin; ./build_prereq.sh 2>&1 | tee $DOCKER_HOME/logs/$system-prereq.out"
 
   # Clone repos
   docker exec -i "$docker_name" /bin/bash -c "$exports; cd $DOCKER_AOMP_REPOS/aomp/bin; SINGLE_BRANCH=1 ./clone_aomp.sh 2>&1 | tee $DOCKER_HOME/logs/$system-clone.out"

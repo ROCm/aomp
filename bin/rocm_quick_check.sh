@@ -1,4 +1,7 @@
 #!/bin/bash
+if [ -e /proc/cmdline ]; then
+  cat /proc/cmdline
+fi
 if [ -e /usr/lib/aomp ]; then
   echo "bad version of aomp installed, please uninstall: /usr/lib/aomp"
 fi
