@@ -107,6 +107,10 @@ if [ "$1" == "install" ] ; then
          echo "ERROR make install failed "
          exit 1
       fi
+      if [ -d "$HOME/local/aqlprofile" ]; then
+        echo Copying aqlprofile libraries from $HOME/local/aqlprofile/lib to $INSTALL_ROCPROF_SDK/lib
+        cp -r $HOME/local/aqlprofile/lib/* $INSTALL_ROCPROF_SDK/lib
+      fi
 else
    echo
    echo "SUCCESSFUL BUILD, please run:  $0 install"
