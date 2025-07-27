@@ -42,6 +42,8 @@ else
 fi
 export PATH=$AOMP/../bin:$AOMP/../../bin:$PATH
 export MPI=$INST
+# strange UCX warnings in dockers using openmpi, this suppresses
+export UCX_LOG_LEVEL=error
 ./runOne
 rm -rf $INST
 #grep ratio= result/*.log
