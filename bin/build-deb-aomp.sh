@@ -60,7 +60,9 @@ mkdir -p "$froot$installdir"
 mkdir -p "$froot/usr/share/doc/$dirname"
 echo 
 echo "--- PREPARING fake root directory $froot"
-sed -i -e "s|//|/|g" "$BUILD_DIR/build/rocmlibs/installed_files.txt"
+if [ -f "$BUILD_DIR/build/rocmlibs/installed_files.txt" ]; then
+  sed -i -e "s|//|/|g" "$BUILD_DIR/build/rocmlibs/installed_files.txt"
+fi
 if [ "$pkgname" == "aomp-hip-libraries" ]; then
   xargs -I {} cp -d --parents {} "$froot" < "$BUILD_DIR/build/rocmlibs/installed_files.txt"
 else
@@ -73,7 +75,7 @@ else
     echo "rocblas" >> "$tmpfile"
     echo "lib/rocblas" >> "$tmpfile"
   fi
-  rsync -a "$sourcedir/" --exclude ".*" --exclude "rocblas" --exclude "rocsparse" --exclude "rocprim" --exclude "hipblas" --exclude "rocsolver" --exclude "hipblas-common" --exclude-from="$tmpfile" "$froot$installdir"
+  rsync -a "$sourcedir/" --exclude ".*" --exclude "rocblas" --exclude "rocsparse" --exclude "rocprim" --exclude "hipblas" --exclude "rocsolver" --exclude "hipblas-common" --exclude "hiprand" --exclude "rocrand" --exclude-from="$tmpfile" "$froot$installdir"
 fi
 
 if [ "$pkgname" == "aomp-hip-libraries" ]; then
@@ -107,12 +109,7 @@ if [ "$pkgname" == "aomp-hip-libraries" ]; then
 else
   {
     echo "usr/lib/$dirname usr/lib/aomp"
-    echo "usr/lib/$dirname/bin/aompExtractRegion /usr/bin/aompExtractRegion"
-    echo "usr/lib/$dirname/bin/cloc.sh /usr/bin/cloc.sh"
-    echo "usr/lib/$dirname/bin/mymcpu  /usr/bin/mymcpu"
-    echo "usr/lib/$dirname/bin/mygpu  /usr/bin/mygpu"
     echo "usr/lib/$dirname/bin/aompversion /usr/bin/aompversion"
-    echo "usr/lib/$dirname/bin/aompcc /usr/bin/aompcc"
     echo "usr/lib/$dirname/bin/gpurun /usr/bin/gpurun"
   } > "$froot/debian/$pkgname.links"
   {
