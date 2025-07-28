@@ -163,60 +163,107 @@ if [ "$aomp" != 1 ]; then
   tmpdir="$HOME/tmp/openmp-extras"
   os_name=$(cat /etc/os-release | grep NAME)
   test_package_name="openmp-extras-tests"
+
   if [ "$SKIP_TEST_PACKAGE" != 1 ] && [ "$TEST_BRANCH" == "" ]; then
+    rm -rf $tmpdir
+    mkdir -p $tmpdir
+    export debsupport=0
+    export rpmsupport=0
     git --no-pager log -1
+    if [ -e "$ROCMINF/share/openmp-extras/tests/bin/run_rocm_test.sh" ] && [ "$EPSDB" == "1" ] ; then
+      packages=$(dpkg --list | wc -l)
+      if [ $packages -ne 0 ]; then
+        export debsupport=1
+      else
+        export rpmsupport=1
+      fi
+    else
+      #------- Begin testing for package manager -------
+      echo Testing apt...
+      pushd $tmpdir
+      apt-get download $test_package_name && pkg_mgr_found=1 || pkg_mgr_found=0
+      popd
+      if [ $pkg_mgr_found -eq 1 ]; then
+        export debsupport=1
+        apt=1
+      fi
+      if [ $pkg_mgr_found -eq 0 ]; then
+        echo Testing dnf...
+        dnf -y download --destdir=$tmpdir openmp-extras-tests && pkg_mgr_found=1 || pkg_mgr_found=0
+        if [ $pkg_mgr_found -eq 1 ]; then
+          export rpmsupport=1
+	  dnf=1
+        fi
+      fi
+      if [ $pkg_mgr_found -eq 0 ]; then
+        echo Testing yum...
+        osversion=$(cat /etc/os-release | grep -e ^VERSION_ID)
+        if [[ $osversion =~ '"7' ]]; then
+          yumdownloader --destdir=$tmpdir $test_package_name && pkg_mgr_found=1 || pkg_mgr_found=0
+        else
+          yum download --destdir $tmpdir $test_package_name && pkg_mgr_found=1 || pkg_mgr_found=0
+        fi
+        if [ $pkg_mgr_found -eq 1 ]; then
+          yum=1
+          export rpmsupport=1
+        fi
+      fi
+      if [ $pkg_mgr_found -eq 0 ]; then
+        echo Testing zypper...
+        local_dir=~/openmp-extras-test
+        rm -f "$local_dir"/*
+        zypper --pkg-cache-dir $local_dir download $test_package_name && pkg_mgr_found=1 || pkg_mgr_found=0
+        if [ $pkg_mgr_found -eq 1 ]; then
+	  zypper=1
+          export rpmsupport=1
+        fi
+      fi
+    fi
+      #------- End testing for package manager -------
     if [ ! -e "$ROCMINF/share/openmp-extras/tests/bin/run_rocm_test.sh" ]; then
       if [ "$EPSDB" == "1" ]; then
         echo "Error: nPSDB should have the openmp-extras-tests package installed before this test step."
         exit 1
       fi
-      rm -rf $tmpdir
-      mkdir -p $tmpdir
-      # Determine OS and download package not using sudo.
-      if [[ "$os_name" =~ "Ubuntu" ]] || [[ "$os_name" =~ "Debian" ]]; then
+      # Determine package manager and download package not using sudo.
+      # apt support
+      if [ "$apt" == "1" ]; then
+        echo Using apt package manager
         cd $tmpdir
-        apt-get download $test_package_name
         test_package=$(ls -lt $tmpdir | grep -Eo -m1 openmp-extras-tests.*)
         dpkg -x $test_package .
         script=$(find . -type f -name 'run_rocm_test.sh')
         cd $(dirname $script)
-      # CentOS/RHEL support. CentOS 7 requires a different method.
-      elif [[ "$os_name" =~ "CentOS" ]] || [[ "$os_name" =~ "Red Hat" ]] || [[ "$os_name" =~ "Oracle Linux Server" ]] || [[ "$os_name" =~ "Alibaba Linux Server" ]]; then
-        osversion=$(cat /etc/os-release | grep -e ^VERSION_ID)
-        if [[ $osversion =~ '"7' ]]; then
-          yumdownloader --destdir=$tmpdir $test_package_name
-        else
-          yum download --destdir $tmpdir $test_package_name
-        fi
+      # dnf/yum support, CentOS 7 requires a different method.
+      elif [ "$dnf" == "1" ]; then
+        echo Using dnf package manager
         test_package=$(ls -lt $tmpdir | grep -Eo -m1 openmp-extras-tests.*)
         extract_rpm $test_package
-      # SLES support.
-      elif [[ "$os_name" =~ "SLES" ]]; then
-        local_dir=~/openmp-extras-test
-        rm -f "$local_dir"/*
-        zypper --pkg-cache-dir $local_dir download $test_package_name
+      elif [ "$yum" == "1" ]; then
+        echo Using yum package manager
+        test_package=$(ls -lt $tmpdir | grep -Eo -m1 openmp-extras-tests.*)
+        extract_rpm $test_package
+      # zypper support
+      elif [ "$zypper" == "1" ]; then
+        echo Using zypper package manager
         test_package=$(ls -lt "$local_dir"/rocm/ | grep -Eo -m1 openmp-extras-tests.*)
         cp "$local_dir"/rocm/"$test_package" $tmpdir
         extract_rpm $test_package
-      elif [[ "$os_name" =~ "Microsoft Azure Linux" ]]; then
-	dnf download --destdir=$tmpdir openmp-extras-tests
-	test_package=$(ls -lt $tmpdir | grep -Eo -m1 openmp-extras-tests.*)
-	extract_rpm $test_package
       else
-        echo "Error: Could not determine operating system package manager type."
+        echo "Error: Could not determine package manager type."
         exit 1
       fi
-    # Environment already has test package
+    # Environment already has test package, use it
     else
       rm -rf $tmpdir
       mkdir -p $tmpdir
       cp -ra "$ROCMINF"/share/openmp-extras/tests $tmpdir
       cd $tmpdir/tests/bin
     fi
-  ./rocm_quick_check.sh
-  export SKIP_TEST_PACKAGE=1
-  ./run_rocm_test.sh
-  exit $?
+    ./rocm_quick_check.sh
+    export SKIP_TEST_PACKAGE=1
+    ./run_rocm_test.sh
+    exit $?
   fi
 fi
 echo $AOMP $REAL_AOMP using test branch $TEST_BRANCH
@@ -347,11 +394,11 @@ function getversion(){
     ompextrasregex="openmp-extras-?[a-z]*-?\s*[0-9]+\.([0-9]+)\.([0-9]+)"
     rpmregex="Red Hat|CentOS|SLES|Oracle Linux Server|Microsoft Azure Linux|Alibaba Linux Server"
     echo $osname
-    if [[ "$osname" =~ $rpmregex ]]; then
-      echo "Red Hat/CentOS/SLES/Oracle/Microsoft Azure/Alibaba Linux Server found"
+    if [ $rpmsupport -eq 1 ]; then
+      echo "OS with rpm support found"
       ompextraspkg=$(rpm -qa | grep openmp-extras | tail -1)
-    elif [[ "$os_name" =~ "Ubuntu" ]] || [[ "$os_name" =~ "Debian" ]]; then
-      echo "Ubuntu/Debian found"
+    elif [ $debsupport -eq 1 ]; then
+      echo "OS with deb support found"
       ompextraspkg=$(dpkg --list | grep openmp-extras | tail -1)
     fi
     if [[ "$ompextraspkg" =~ $ompextrasregex ]]; then
