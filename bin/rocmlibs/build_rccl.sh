@@ -103,7 +103,7 @@ if [ "$1" != "install" ] ; then
    echo " -----Running cmake in install.sh ---"
    echo cd $AOMP_REPOS/build/rocmlibs/$_libname
    cd $AOMP_REPOS/build/rocmlibs/$_libname
-   echo ${AOMP_CMAKE} --toolchain=toolchain-linux.cmake -DCMAKE_BUILD_TYPE=Release -DGPU_TARGETS="$ROCMLIBS_GFXLIST" -DCMAKE_INSTALL_PREFIX=$AOMP_INSTALL_DIR -DROCM_PATH=$AOMP_INSTALL_DIR -DCOLLTRACE=OFF -DNPKIT_FLAGS="" -DONLY_FUNCS="" $_sour_dir
+   echo ${AOMP_CMAKE} --toolchain=toolchain-linux.cmake -DCMAKE_BUILD_TYPE=Release -DGPU_TARGETS="$ROCMLIBS_GFXLIST" -DCMAKE_INSTALL_PREFIX=$AOMP_INSTALL_DIR -DROCM_PATH=$AOMP_INSTALL_DIR -DCOLLTRACE=OFF -DNPKIT_FLAGS="" -DONLY_FUNCS="" $_source_dir
    ${AOMP_CMAKE} --toolchain=toolchain-linux.cmake -DCMAKE_BUILD_TYPE=Release -DGPU_TARGETS="$ROCMLIBS_GFXLIST" -DCMAKE_INSTALL_PREFIX=$AOMP_INSTALL_DIR -DROCM_PATH=$AOMP_INSTALL_DIR -DCOLLTRACE=OFF -DNPKIT_FLAGS="" -DONLY_FUNCS="" $_source_dir
   if [ $? != 0 ] ; then
      echo "ERROR cmake failed."
