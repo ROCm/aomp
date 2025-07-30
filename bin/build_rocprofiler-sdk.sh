@@ -107,9 +107,12 @@ if [ "$1" == "install" ] ; then
          echo "ERROR make install failed "
          exit 1
       fi
-      if [ -d "$HOME/local/aqlprofile" ]; then
+      if [ -d "$HOME/local/aqlprofile/lib" ]; then
         echo Copying aqlprofile libraries from $HOME/local/aqlprofile/lib to $INSTALL_ROCPROF_SDK/lib
         cp -r $HOME/local/aqlprofile/lib/* $INSTALL_ROCPROF_SDK/lib
+      else
+        echo "Error: rocprofiler-sdk needs aqlprofile libraries to exist in $INSTALL_ROCPROF_SDK/lib. Please run ./build_prereq.sh first."
+        exit 1
       fi
 else
    echo
