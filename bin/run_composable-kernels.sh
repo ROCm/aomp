@@ -372,10 +372,10 @@ fi
 # Handle CK client examples
 if [ "${SelectedSuite}" == 'client-examples' ]; then
   # Configure and build the client examples
-  # Note: client_example needs hipcc, otherwise there may be assertion failures.
   CKCmakeCmd="cmake -G Ninja "
   CKCmakeCmd+="-B ${CK_CLIENT_EXAMPLES_BUILD} -S ${CK_CLIENT_EXAMPLES_SOURCE} "
-  CKCmakeCmd+="-DCMAKE_CXX_COMPILER=${AOMP}/../../bin/hipcc "
+  CKCmakeCmd+="-DCMAKE_CXX_COMPILER=${AOMP}/bin/clang++ "
+  CKCmakeCmd+="-DCMAKE_HIP_COMPILER=${AOMP}/bin/clang++ "
   CKCmakeCmd+="-DCMAKE_CXX_COMPILER_LAUNCHER=ccache "
   CKCmakeCmd+="-DCMAKE_PREFIX_PATH=${AOMP_LIB_PATH}/cmake;${CK_INSTALL} "
   CKCmakeCmd+="-DGPU_TARGETS=${CK_GPU_TARGETS} "
