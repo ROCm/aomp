@@ -27,11 +27,6 @@ each component build script with the name build_\<component name\>.sh .
 | hipify    |amd-staging| $HOME/git/aomp22.0/hipify              | [hipify](https://github.com/ROCm/hipify)
 | rocprofiler-register   | Latest ROCm | $HOME/git/aomp22.0/rocprofiler-register     | [rocprofiler-register](https://github.com/ROCm/rocprofiler-register)
 | openmp    | amd-staging | $HOME/git/aomp22.0/llvm-project/openmp | [llvm-project/openmp](https://github.com/ROCm/llvm-project)
-| flang     | aomp-dev   | $HOME/git/aomp22.0/flang               | [flang](https://github.com/ROCm/flang)
-| pgmath    | aomp-dev   | $HOME/git/aomp22.0/flang/runtime/libpgmath | [flang](https://github.com/ROCm/flang)
-| llvm-classic  | aomp-dev | $HOME/git/aomp22.0/flang/flang-classic/17.0-4/llvm-classic | [flang](https://github.com/ROCm/flang/flang-classic/17.0-4/llvm-classic)
-| flang-classic | aomp-dev | $HOME/git/aomp22.0/flang/flang-classic/17.0-4 | [flang](https://github.com/ROCm/flang/flang-classic/17.0-4)
-| flang_runtime | aomp-dev | $HOME/git/aomp22.0/flang             | [flang](https://github.com/ROCm/flang)
 ||           |                                        |
 | rocr       |Latest ROCm| $HOME/git/aomp22.0/rocr-runtime        | [rocr-runtime](https://github.com/ROCm/rocr-runtime)
 | hip        |Latest ROCm| $HOME/git/aomp22.0/hip              | [hipamd](https://github.com/ROCm/hip)
@@ -43,19 +38,17 @@ each component build script with the name build_\<component name\>.sh .
 | rocdbgapi  |Latest ROCm| $HOME/git/aomp22.0/ROCdbgapi           | [rocdbgapi](https://github.com/ROCm/ROCdbgapi)
 | rocgdb     |Latest ROCm| $HOME/git/aomp22.0/ROCgdb              | [rocgdb](https://github.com/ROCm/ROCgdb)
 | roctracer  |Latest ROCm| $HOME/git/aomp22.0/roctracer           | [roctracer](https://github.com/ROCm/roctracer)
+| rocprofiler  |Latest ROCm| $HOME/git/aomp22.0/rocprofiler           | [rocprofiler](https://github.com/ROCm/rocprofiler)
+| rocprofiler-sdk  |Latest ROCm| $HOME/git/aomp22.0/rocprofiler-sdk           | [rocprofiler-sdk](https://github.com/ROCm/rocprofiler-sdk)
 
 Notice that some components are built with different parts of the same repository.
 
-The [llvm-project](https://github.com/ROCm/llvm-project) repository is a mirror of the gerrit-managed internal AMD repository.
-The updates to the mirror are done at least daily.
-If you are internal to AMD you will pick up the llvm-project repository directly from the gerrit
- [llvm-project](ssh://git.amd.com:29418/lightning/ec/llvm-project) repository.
+The following repos use the "amd-staging" branch [llvm-project](https://github.com/ROCm/llvm-project),
+[spirv-llvm-translator](https://github.com/ROCm/spirv-llvm-translator), and
+[hipify](https://github.com/ROCm/hipify).
 
-In addition to the gerrit-managed llvm-project repository, the three repositories
-[aomp](https://github.com/ROCm/aomp) ,
-[aomp-extras](https://github.com/ROCm/aomp-extras) , and
-[flang](https://github.com/ROCm/flang) make up the core aomp development repositories.
-These three use the branch "aomp-dev" and are managed completely on external github.
+In addition to the above repos, the "aomp-dev" branch is used for the,
+[aomp](https://github.com/ROCm/aomp) repo, which houses the build scripts and tests.
 The default branch name for other non-core components is typically the name of the latest ROCm release in the external source repository.
 
 The clone_aomp.sh script, described in the "Quick Start" below, uses a manfest file from the
@@ -77,7 +70,7 @@ These are some important environment variables and their default values.
 | AOMP_REPOS            | $HOME/git/aomp22.0   | The base directory for all AOMP build repositories
 | AOMP_STANDALONE_BUILD | 1                  | Build all components, do NOT use installed ROCm
 | AOMP_VERSION          | 22.0               | Clang version.
-| AOMP_VERSION_MOD      | 0                  | This implies the next release will be AOMP_22.0-0.
+| AOMP_VERSION_MOD      | 1                  | This implies the next release will be AOMP_22.0-1.
 | AOMP_VERSION_STRING   | $AOMP_VERSION-$AOMP_VERSION_MOD |
 | AOMP_USE_NINJA        | 0                  | Use ninja instead of make to build certain components
 | GFXLIST               | gfx700 gfx701 gfx801 gfx803     | List of AMDGPU gpus to build for
@@ -122,7 +115,7 @@ For testing purposes, you will often change the value of AOMP when not testing y
 AOMP build.  For example, to test the latest  packaged aomp release, set AOMP=/usr/lib/aomp.
 To test against the ROCM installed compiler, set AOMP=/opt/rocm/lib/llvm. To test one of your
 previous AOMP source builds, set AOMP to an older physical installation directory, such as
-AOMP=$HOME/rocm/aomp_21.0-1. BE CAREFUL! If you set AOMP for testing purposes,
+AOMP=$HOME/rocm/aomp_22.0-0. BE CAREFUL! If you set AOMP for testing purposes,
 remember to set it back before rebuilding aomp from source.
 
 ## Quick Start to AOMP Development
@@ -276,17 +269,17 @@ The install location is defined by the $AOMP environment variable. The value of 
 That is, the physical installation will be in directory name formed by concatonating the version string to the value of $AOMP.
 The "build_project.sh install" script will make a symbolic link from the physical directory to the symbolic directory $AOMP.
 The default value for AOMP is $HOME/rocm/aomp.
-For example, when building AOMP version 22.0-0 the install scripts will put all files and directories
-in $HOME/rocm/aomp_22.0-0 and create a symbolic link as follows:
+For example, when building AOMP version 22.0-1 the install scripts will put all files and directories
+in $HOME/rocm/aomp_22.0-1 and create a symbolic link as follows:
 
 ```
-ln -sf ${AOMP}_22.0-0 ${AOMP}
+ln -sf ${AOMP}_22.0-1 ${AOMP}
 ```
 All testing for AOMP uses the environment variable AOMP to locate the installation. This makes it easy to switch between versions of AOMP for testing by simply changing the environment variable AOMP. You do NOT need to change the symbolic link.
-For example, if the aomp symbolic link currently points to aomp_22.0-0 and you want to test aomp_21.0-1, do this:
+For example, if the aomp symbolic link currently points to aomp_22.0-1 and you want to test aomp_22.0-1, do this:
 
 ```
-export AOMP=$HOME/rocm/aomp_21.0-1
+export AOMP=$HOME/rocm/aomp_22.0-1
 ```
 
 The aomp package installs in /usr/lib/aomp_\<version_string\> and symlinks /usr/lib/aomp to the versioned directory. To test the installed package, set AOMP to /usr/lib/aomp or /usr/lib/aomp_\<version_string\>.

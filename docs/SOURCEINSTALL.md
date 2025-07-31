@@ -1,4 +1,4 @@
-# Source Install V 21.0-2
+# Source Install V 22.0-1
 
 Build and install from sources is possible.  However, the source build for AOMP is complex for several reasons.
 - Many repos are required.
@@ -32,7 +32,7 @@ Here are the commands to do a source build of AOMP:
 
 <b>Development Branch:</b>
 ```
-   export AOMP_VERSION=21.0
+   export AOMP_VERSION=22.0
    export AOMP_REPOS=$HOME/git/aomp${AOMP_VERSION}
    mkdir -p $AOMP_REPOS
    cd $AOMP_REPOS
@@ -40,14 +40,14 @@ Here are the commands to do a source build of AOMP:
 ```
 
 The development version is the next version to be released.  It is possible that the development version is broken due to regressions that often occur during development.
-These commands will build a previous release of AOMP such as aomp-21.0-1.<br>
+These commands will build a previous release of AOMP such as aomp-22.0-0.<br>
 <b>Release Branch:</b>
 ```
-   export AOMP_VERSION=21.0
+   export AOMP_VERSION=22.0
    export AOMP_REPOS=$HOME/git/aomp${AOMP_VERSION}
    mkdir -p $AOMP_REPOS
    cd $AOMP_REPOS
-   git clone -b aomp-21.0-1 https://github.com/ROCm-Developer-Tools/aomp
+   git clone -b aomp-22.0-0 https://github.com/ROCm-Developer-Tools/aomp
 ```
 <b>Clone and build:</b>
 ```
@@ -74,23 +74,26 @@ There is a "list" option on the clone\_aomp.sh that provides useful information 
 ```
 The above command will produce output like this showing you the location and branch of the repos in the AOMP\_REPOS directory and if there are any discrepencies with respect to the manifest file.<br>
 
-<b>USED manifest file: /work/grodgers/git/aomp21.0/aomp/bin/../manifests/aompi_21.0.xml</b><br>
+<b>USED manifest file: /work/grodgers/git/aomp22.0/aomp/bin/../manifests/aompi_22.0.xml</b><br>
 ```
   repo src       branch                 path                 repo name    last hash    updated           commitor         for author
   --------       ------                 ----                 ---------    ---------    -------           --------         ----------
-       emu  amd-staging         llvm-project lightning/ec/llvm-project f986706166c9 2023-12-06      Ron Lieberman            JP Lehr
-       emu  amd-staging   SPIRV-LLVM-Translator  SPIRV-LLVM-Translator 0659e45216b2 2024-12-04            AlexVlx            AlexVlx
-       roc     aomp-dev                flang                     flang 88b81b0a8ead 2023-11-30             GitHub    Emma Pilkington
-       roc     aomp-dev                 aomp                      aomp df5b5d8ddffa 2023-12-05 Dhruva Chakrabarti Dhruva Chakrabarti
-       roc   release/rocm-rel-6.4 rocprofiler               rocprofiler 4e190a02e60e 2023-10-30             GitHub      Ammar ELWazir
-       roc   release/rocm-rel-6.4   roctracer                 roctracer 6fbf7673aa7f 2023-07-13 Ranjith Ramakrishnan Ranjith Ramakrishnan
-       roc   release/rocm-rel-6.4   ROCdbgapi                 ROCdbgapi df1a8df2be08 2023-07-28       Lancelot SIX       Lancelot SIX
-       roc   release/rocm-rel-6.4      ROCgdb                    ROCgdb 157eed788288 2023-07-28       Lancelot SIX       Lancelot SIX
-       roc   release/rocm-rel-6.4         hip                       hip 80681169ae20 2023-08-15        Julia Jiang        Julia Jiang
-       roc   release/rocm-rel-6.4         clr                       clr 1949b1621a80 2023-09-21        Julia Jiang        Julia Jiang
-       roc   release/rocm-rel-6.4    rocminfo                  rocminfo c8db38ede264 2023-06-02       Mark Searles       Mark Searles
-       roc   release/rocm-rel-6.4  rocm-cmake                rocm-cmake 15cbb2e47f0b 2023-07-11   Lauren Wrubleski   Lauren Wrubleski
-       roc   release/rocm-rel-6.4 rocr-runtime              ROCR-Runtime b2b6811571bf 2023-09-15      David Yat Sin      David Yat Sin
-       roc   release/rocm-rel-6.4      hipfort                   hipfort 41f33eeaa3f7 2023-09-07             Sam Wu    dependabot[bot]
+       emu    amd-staging          llvm-project              llvm-project 295b2c16cf3e 2025-07-25             GitHub     Lambert, Jacob
+       emu    amd-staging SPIRV-LLVM-Translator     spirv-llvm-translator 735c75e91ea4 2025-07-23             GitHub Zhuravlyov, Konstantin
+       emu    amd-staging                hipify                    hipify 8198c42a05d1 2025-07-23             GitHub Zhuravlyov, Konstantin
+       roc       aomp-dev                  aomp                      aomp 2d3d7e32df30 2025-07-25      Ethan Stewart      Ethan Stewart
+       roc   rocm-rel-6.4       rocprofiler-sdk           rocprofiler-sdk e8e49fe76971 2025-03-25             GitHub Mallya, Ameya Keshava
+       roc   rocm-rel-6.4             ROCdbgapi                 ROCdbgapi 59be7ff0aaaf 2025-03-31       Lancelot SIX       Lancelot SIX
+       roc   rocm-rel-6.4                ROCgdb                    ROCgdb 401bb21f2f3c 2025-03-31       Lancelot SIX       Lancelot SIX
+       roc   rocm-rel-6.4                   hip                       hip 3d568a1ba58c 2025-07-07             GitHub    rocm_devops, a1
+       roc   rocm-rel-6.4                   clr                       clr 123eb5128769 2025-07-07             GitHub    rocm_devops, a1
+       roc   rocm-rel-6.4              rocminfo                  rocminfo 6ea2ba38c8e1 2025-02-17             GitHub   Choudhary, Rahul
+       roc   rocm-rel-6.4          rocm_smi_lib              rocm_smi_lib 1603a3281d44 2025-06-12 Harrymanoharan, Jessey Ranjith Ramakrishnan
+       roc   rocm-rel-6.4                amdsmi                    amdsmi 41065ee69f01 2025-07-07             GitHub    rocm_devops, a1
+       roc   rocm-rel-6.4            rocm-cmake                rocm-cmake ecc716b97c22 2024-11-30             GitHub      Paul Fultz II
+       roc   rocm-rel-6.4          rocr-runtime              ROCR-Runtime 044c4226baf2 2025-06-12 Harrymanoharan, Jessey         Eric Huang
+       roc   rocm-rel-6.4  rocprofiler-register      rocprofiler-register 7c6cd44f637d 2025-02-17             GitHub   Choudhary, Rahul
+       roc   rocm-rel-6.4               hipfort                   hipfort af63249d5e29 2025-06-04             GitHub ROCm CI Service Account
+
 ```
 For more information, or if you are interested in joining the development of AOMP, please read the AOMP developers README file located here [README](../bin/README.md).

@@ -10,8 +10,8 @@
 
 set -e
 set -x
-AOMP_VERSION_STRING=${AOMP_VERSION_STRING:-21.0-1}
-AOMP_VERSION=${AOMP_VERSION:-21.0}
+AOMP_VERSION_STRING=${AOMP_VERSION_STRING:-22.0-0}
+AOMP_VERSION=${AOMP_VERSION:-22.0}
 #DOCKERX_HOST=${DOCKERX_HOST:-$HOME/dockerx}
 DOCKERX_HOST=$HOME/dockerx
 #DOCKERX=${DOCKERX:-/dockerx}
@@ -135,7 +135,7 @@ function setup(){
   fi
 
   # Setup directory structure
-  docker exec -i "$docker_name"/bin/bash -c "$exports; mkdir -p $DOCKER_AOMP_REPOS; mkdir -p $DOCKER_HOME/logs"
+  docker exec -i "$docker_name" /bin/bash -c "$exports; mkdir -p $DOCKER_AOMP_REPOS; mkdir -p $DOCKER_HOME/logs"
 
   # Hardcode timezone for tzdata install to avoid an interactive prompt
   docker exec -i "$docker_name" /bin/bash -c "$exports; ln -fs /usr/share/zoneinfo/America/Chicago /etc/localtime"
