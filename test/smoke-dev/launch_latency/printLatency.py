@@ -1,43 +1,92 @@
-# Python program to print the launch latency in file: result.csv.
-#
-# Example:
-# 
-# lstringe@r7:~/git/aomp18.0/aomp/test/smoke/launch_latency$ head results.csv
-# "Index","KernelName","gpu-id","queue-id","queue-index","pid","tid","grd","wgr","lds","scr","arch_vgpr","accum_vgpr","sgpr","wave_size","sig","obj","DispatchNs","BeginNs","EndNs","CompleteNs","DurationNs"
-# 0,"__omp_offloading_fd00_5871764_main_l19.kd",2,1,0,3495164,3495164,256,256,512,0,4,4,16,64,"0x153e64afca00","0x153d64770ec0",5323868593531200,5323868593552306,5323868593554226,5323868593566416,1920
-# 1,"__omp_offloading_fd00_5871764_main_l28.kd",2,2,0,3495164,3495164,257,257,512,0,4,4,16,64,"0x153e64afca00","0x153d64770f00",5323868597609543,5323868597625664,5323868597648223,5323868597650689,22559
-# 2,"__omp_offloading_fd00_5871764_main_l28.kd",2,3,0,3495164,3495164,257,257,512,0,4,4,16,64,"0x153e64afca00","0x153d64770f00",5323868601572039,5323868601587825,5323868601610545,5323868601613071,22720
-# 3,"__omp_offloading_fd00_5871764_main_l28.kd",2,0,0,3495164,3495164,257,257,512,0,4,4,16,64,"0x153e64afca00","0x153d64770f00",5323868601623008,5323868601645584,5323868601668144,5323868601669341,22560
-#
+#!/usr/bin/env python3
+# LLM: Nabu (GPT-4, June 2024) - 2024-06-09
 
-dict = {}
-f = open("results.csv", "r")
-for line in f:
-    line = line.rstrip()  # strip off the carriage return and line feed at the end of line
-    # print (line)
-    pList = line.split(",")
-    grd = pList[7]
-    if grd == "\"grd\"": 
-        continue
-    durationNS = int(pList[-1])
-    if grd in dict:
-        count, sum = dict[grd] 
-        count = count + 1
-        sum = sum + durationNS
-        dict[grd] = (count, sum)
-    else:
-        dict[grd] = (1, durationNS)
+"""
+Query:
 
-count,sum = dict["256"]
-latencyaverage = (float(sum) / count) * 1e-9
-print ("1st kernel Time", "{:11.9f} seconds".format(latencyaverage))
-dict.pop("256")
+In the directory where this program was executed, there is a directory with the current machine's name.
+In that directory, there is a file called: "*_kernel_trace.csv", for example: "759776_kernel_trace.csv".  Read that file.
+This CSV file has the following format (for example):
 
-j = 1
-for key in dict:
-    count, sum = dict[key]
-    latencyaverage = (float(sum) / count) * 1e-9
-    # "avg kernel Time %12.8f TEAMS=%d\n"
-    print ("avg kernel Time", "{:11.9f} seconds".format(latencyaverage), "TEAMS=", j)
-    j = j * 2
+"Kind","Agent_Id","Queue_Id","Stream_Id","Thread_Id","Dispatch_Id","Kernel_Id","Kernel_Name",
+ "Correlation_Id","Start_Timestamp","End_Timestamp","LDS_Block_Size","Scratch_Size","VGPR_Count",
+ "Accum_VGPR_Count","SGPR_Count","Workgroup_Size_X","Workgroup_Size_Y","Workgroup_Size_Z",
+ "Grid_Size_X","Grid_Size_Y","Grid_Size_Z"
+"KERNEL_DISPATCH","Agent 1",1,0,759776,1,1,"__omp_offloading_10302_2d86c1c_main_l19",1,
+ 1147738380281408,1147738380284052,0,0,4,4,16,256,1,1,256,1,1
+...
 
+Group all the different Grid_Size_X's together.  Maintain the order that the groups were encountered in the "*_kernel_trace.csv" file.  
+For each different Grid_Size_X groups, sum their execution times.  
+Each execution time is End_Timestamp - Start_Timestamp.  These units are nano-seconds.
+The 1st group is the "1st kernel Time" referenced below.
+The 2nd group is "TEAMS= 1"
+The 3rd group is "TEAMS= 2"
+and so on.
+
+Print out the information collected in the following format.  Note the units are now in seconds.  What follows is an example:
+
+1st kernel Time 0.000003680 seconds
+avg kernel Time 0.000002235 seconds TEAMS= 1
+avg kernel Time 0.000002284 seconds TEAMS= 2
+avg kernel Time 0.000002293 seconds TEAMS= 4
+...
+avg kernel Time 0.000003024 seconds TEAMS= 512
+avg kernel Time 0.000003670 seconds TEAMS= 1024
+avg kernel Time 0.000005049 seconds TEAMS= 2048
+"""
+
+import os
+import platform
+import csv
+import glob
+from collections import OrderedDict
+
+def find_machine_kernel_trace():
+    machine = platform.node()
+    # Look for files "*_kernel_trace.csv" inside the machine-named subdir
+    kernel_trace_files = glob.glob(os.path.join(machine, "*_kernel_trace.csv"))
+    if not kernel_trace_files:
+        raise FileNotFoundError(f"No *_kernel_trace.csv found in directory '{machine}'")
+    return kernel_trace_files[0]
+
+def main():
+    try:
+        trace_csv = find_machine_kernel_trace()
+    except Exception as e:
+        print(e)
+        return
+
+    groups = OrderedDict()  # { Grid_Size_X: [duration_ns, count] }
+    group_order = []
+    with open(trace_csv, newline='') as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            try:
+                grid_x = int(row['Grid_Size_X'])
+                start = int(row['Start_Timestamp'])
+                end = int(row['End_Timestamp'])
+            except Exception:
+                continue
+            duration_ns = end - start
+            if grid_x not in groups:
+                groups[grid_x] = {"sum": 0, "count": 0}
+                group_order.append(grid_x)
+            groups[grid_x]["sum"] += duration_ns
+            groups[grid_x]["count"] += 1
+
+    if not group_order:
+        print("No valid records found in file.")
+        return
+
+    for idx, grid_x in enumerate(group_order):
+        total_ns = groups[grid_x]["sum"]
+        cnt = groups[grid_x]["count"]
+        avg_sec = total_ns / cnt / 1e9
+        if idx == 0:
+            print(f"1st kernel Time {avg_sec:.9f} seconds")
+        else:
+            print(f"avg kernel Time {avg_sec:.9f} seconds GRID_X = {grid_x}")
+
+if __name__ == '__main__':
+    main()
