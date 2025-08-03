@@ -6,10 +6,10 @@ TESTSRC_AUX  = empty-sink.c
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 
 AOMPROCM     ?= $(AOMPHIP)
-ifneq (,$(wildcard $(AOMPROCM)/bin/rocprof))
-	RUNPROF   = $(AOMPROCM)/bin/rocprof
+ifneq (,$(wildcard $(AOMPROCM)/bin/rocprofv3))
+	RUNPROF   = $(AOMPROCM)/bin/rocprofv3
 else
-	RUNPROF   = $(AOMPROCM)/../bin/rocprof
+	RUNPROF   = $(AOMPROCM)/../bin/rocprofv3
 endif
 
 # If 'ROCR_VISIBLE_DEVICES' is empty, default to zero. Otherwise, split on ','
@@ -23,7 +23,7 @@ else
     RUNENV    = ROCR_VISIBLE_DEVICES=$(DEVICE)
 endif
 
-RUNPROF_FLAGS = --hsa-trace
+RUNPROF_FLAGS = -o results.json --output-format json --hsa-trace True --stats True --
 
 RUNENV       += OMP_NUM_THREADS=2 LIBOMPTARGET_AMDGPU_HSA_QUEUE_BUSY_TRACKING=1
 RUNCMD       = ./$(TESTNAME) && python3 countQueueCreateEvents.py 2
