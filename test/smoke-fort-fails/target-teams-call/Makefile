@@ -2,8 +2,8 @@ NOOPT        = 1
 NOOMP        = 1
 include ../../Makefile.defs
 
-TESTNAME     = kareem
-TESTSRC_MAIN = kareem.f90
+TESTNAME     = target-teams-call
+TESTSRC_MAIN = target-teams-call.f90
 TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 
