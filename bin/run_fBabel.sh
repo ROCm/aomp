@@ -18,6 +18,7 @@ export AOMP_USE_CCACHE=0
 
 export ROCR_VISIBLE_DEVICES=0
 
+. "$thisdir/aomp_utils"
 . $thisdir/aomp_common_vars
 # --- end standard header ----
 
