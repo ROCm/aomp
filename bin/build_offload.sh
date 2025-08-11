@@ -18,9 +18,9 @@ REPO_DIR=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME
 _ompd_src_dir="$LLVM_INSTALL_LOC/share/gdb/python/ompd/src"
 
 if [ "$AOMP_BUILD_CUDA" == 1 ] ; then
-   CUDAH=$(find "$CUDAT" -type f -name "cuda.h" 2>/dev/null)
+   CUDAH=$(find "$CUDAT" -type f,l -name "cuda.h" 2>/dev/null)
    if [ "$CUDAH" == "" ] ; then
-      CUDAH=$(find "$CUDAINCLUDE" -type f -name "cuda.h" 2>/dev/null)
+      CUDAH=$(find "$CUDAINCLUDE" -type f,l -name "cuda.h" 2>/dev/null)
    fi
    if [ "$CUDAH" == "" ] ; then
       echo
