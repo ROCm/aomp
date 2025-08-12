@@ -14,5 +14,5 @@ CC           = $(OMP_BIN) $(VERBOSE)
 include ../Makefile.rules
 run: $(TESTNAME)
 	ulimit -s unlimited ; \
-	rocprof --stats ./$(TESTNAME) > run.log 2>&1 ; \
-	column -t -s  ,  < results.stats.csv
+	rocprofv3 --output-format csv --kernel-trace --stats -- ./$(TESTNAME) > run.log 2>&1 ; \
+	python3 flang-494405.py
