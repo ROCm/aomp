@@ -107,7 +107,7 @@ if [ "$AOMP_STANDALONE_BUILD" == 1 ] ; then
     if [ "$AOMP_SKIP_FLANG" == 0 ] ; then
       components="$components llvm-classic flang-classic pgmath flang flang_runtime"
     fi
-    components="$components hipcc hipamd hipify"
+    components="$components hipcc hipamd"
   fi
   if [ "$AOMP_SKIP_FLANG_NEW" == 0 ] && [ "$AOMP_SKIP_FLANG" == 1 ] ; then
     # We can only build hipfort for flang
