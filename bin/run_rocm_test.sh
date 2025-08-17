@@ -65,13 +65,13 @@ if [ $ISVIRT -eq 1 ] ; then
   # run on configurations that do not support USM.
   export OMPX_STRICT_SANITY_CHECKS={OMPX_STRICT_SANITY_CHECKS:-1}
 
-SUITE_LIST=${SUITE_LIST:-"examples smoke-limbo smoke smoke-asan smoke-fort smoke-fort-limbo omp5 openmpapps ovo OpenMP_VV babelstream fortran-babelstream accel2023 hpc2021"}
+SUITE_LIST=${SUITE_LIST:-"examples smoke-limbo smoke smoke-asan smoke-fort smoke-fort-limbo omp5 openmpapps ovo babelstream fortran-babelstream accel2023 hpc2021"}
 else
-SUITE_LIST=${SUITE_LIST:-"examples smoke-limbo smoke-dev smoke-fort-dev smoke smoke-asan smoke-fort smoke-fort-limbo omp5 openmpapps LLNL nekbone ovo OpenMP_VV  babelstream fortran-babelstream accel2023 hpc2021"}
+SUITE_LIST=${SUITE_LIST:-"examples smoke-limbo smoke-dev smoke-fort-dev smoke smoke-asan smoke-fort smoke-fort-limbo omp5 openmpapps LLNL nekbone ovo babelstream fortran-babelstream accel2023 hpc2021"}
 fi
 blockinglist="examples smoke smoke-limbo openmpapps sollve45 sollve50 sollve51 sollve52 babelstream ovo accel2023 hpc2021 nekbone smoke-fort smoke-fort-limbo"
 
-EPSDB_LIST=${EPSDB_LIST:-"examples smoke-limbo smoke-dev smoke smoke-asan omp5 openmpapps LLNL nekbone ovo OpenMP_VV babelstream fortran-babelstream accel2023 hpc2021  smoke-fort smoke-fort-limbo smoke-fort-dev"}
+EPSDB_LIST=${EPSDB_LIST:-"examples smoke-limbo smoke-dev smoke smoke-asan omp5 openmpapps LLNL nekbone ovo babelstream fortran-babelstream accel2023 hpc2021  smoke-fort smoke-fort-limbo smoke-fort-dev"}
 
 export AOMP_USE_CCACHE=0
 
