@@ -36,4 +36,4 @@ int main()
   return rc;
 }
 
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:5
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:7
