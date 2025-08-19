@@ -34,6 +34,9 @@ int main()
       }
   }
 
+  if (!DeviceMapPtr)
+    return 0;
+
   for (auto Dev : *DeviceMapPtr)
     flush_trace(Dev);
 
@@ -42,8 +45,3 @@ int main()
 
 /// CHECK: Callback Target
 /// CHECK-SAME: device_num=0
-
-
-
-
-
