@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest>
+  <!-- Manifest for AOMP 21.0-x which uses ROCM 6.4 release branches of external repositories -->
+
+    <default revision="release/rocm-rel-6.4" remote="gerritgit" sync-j="4" sync-c="true" />
+    <remote name="roc"  fetch="https://github.com/ROCm" />
+    <remote name="SJTU"  fetch="https://github.com/SJTU-IPADS" />
+
+<!-- These first 4 repos are NOT rocm 6.4. They are compiler developer branches -->
+    <project remote="githubemu-lightning" path="llvm-project" name="llvm-project.git" revision="amd-staging" groups="unlocked" />
+    <project remote="githubemu-lightning" path="SPIRV-LLVM-Translator" name="spirv-llvm-translator.git" revision="amd-staging" groups="unlocked" />
+    <project remote="githubemu-lightning" path="hipify" name="hipify.git" revision="amd-staging" groups="unlocked" />
+
+    <project remote="roc" path="flang" name="flang"               revision="aomp-dev" groups="unlocked" />
+    <project remote="roc" path="aomp" name="aomp"                 revision="aomp-dev" groups="unlocked" />
+
+    <project remote="roc" path="rocprofiler" name="rocprofiler"              revision="release/rocm-rel-6.4" groups="unlocked" />
+    <project remote="roc" path="rocprofiler-sdk" name="rocprofiler-sdk"              revision="release/rocm-rel-6.4" groups="unlocked" />
+    <project remote="roc" path="roctracer" name="roctracer"                  revision="release/rocm-rel-6.4" groups="unlocked" />
+    <project remote="roc" path="ROCdbgapi" name="ROCdbgapi"                  revision="release/rocm-rel-6.4" groups="unlocked" />
+    <project remote="roc" path="ROCgdb" name="ROCgdb"                        revision="release/rocm-rel-6.4" groups="unlocked" />
+    <project remote="roc" path="hip"    name="hip"                           revision="release/rocm-rel-6.4" groups="unlocked" />
+    <project remote="roc" path="clr" name="clr"                        revision="release/rocm-rel-6.4" groups="unlocked" />
+    <project remote="roc" path="rocminfo" name="rocminfo"                         revision="release/rocm-rel-6.4" groups="unlocked" />
+    <project remote="roc" path="rocm_smi_lib" name="rocm_smi_lib"                 revision="release/rocm-rel-6.4" groups="unlocked" />
+    <project remote="roc" path="amdsmi" name="amdsmi"                             revision="release/rocm-rel-6.4" groups="unlocked" />
+    <project remote="roc" path="rocm-cmake" name="rocm-cmake"                     revision="release/rocm-rel-6.4" groups="unlocked" />
+    <project remote="roc" path="rocr-runtime" name="ROCR-Runtime"                 revision="release/rocm-rel-6.4" groups="unlocked" />
+    <project remote="roc" path="rocprofiler-register" name="rocprofiler-register" revision="release/rocm-rel-6.4" groups="unlocked" />
+    <project remote="roc" path="hipfort" name="hipfort"                 revision="release/rocm-rel-6.4" groups="unlocked" />
+    <project remote="roc" path="half" name="half" revision="release/rocm-rel-6.4" groups="unlocked"/>
+    <project remote="roc" path="hipBLAS-common" name="hipBLAS-common" revision="release/rocm-rel-6.4" groups="unlocked"/>
+    <project remote="roc" path="hipBLAS" name="hipBLAS" revision="release/rocm-rel-6.4" groups="unlocked"/>
+    <project remote="roc" path="hipBLASLt" name="hipBLASLt" revision="release/rocm-rel-6.4" groups="unlocked"/>
+    <project remote="roc" path="hipCUB" name="hipCUB" revision="release/rocm-rel-6.4" groups="unlocked"/>
+    <project remote="roc" path="hipFFT" name="hipFFT" revision="release/rocm-rel-6.4" groups="unlocked"/>
+    <project remote="roc" path="hipRAND" name="hipRAND" revision="release/rocm-rel-6.4" groups="unlocked"/>
+    <project remote="roc" path="hipSOLVER" name="hipSOLVER" revision="release/rocm-rel-6.4" groups="unlocked"/>
+    <project remote="roc" path="hipSPARSE" name="hipSPARSE" revision="release/rocm-rel-6.4" groups="unlocked"/>
+    <project remote="roc" path="rccl" name="rccl" revision="release/rocm-rel-6.4" groups="unlocked"/>
+    <project remote="roc" path="rocBLAS" name="rocBLAS" revision="release/rocm-rel-6.4" groups="unlocked"/>
+    <project remote="roc" path="rocFFT" name="rocFFT" revision="release/rocm-rel-6.4" groups="unlocked"/>
+    <project remote="roc" path="rocPRIM" name="rocPRIM" revision="release/rocm-rel-6.4" groups="unlocked"/>
+    <project remote="roc" path="rocRAND" name="rocRAND" revision="release/rocm-rel-6.4" groups="unlocked"/>
+    <project remote="roc" path="rocSOLVER" name="rocSOLVER" revision="release/rocm-rel-6.4" groups="unlocked"/>
+    <project remote="roc" path="rocSPARSE" name="rocSPARSE" revision="release/rocm-rel-6.4" groups="unlocked"/>
+    <project remote="roc" path="rocThrust" name="rocThrust" revision="release/rocm-rel-6.4" groups="unlocked"/>
+    <project remote="roc" path="Tensile" name="Tensile" revision="release/rocm-rel-6.4" groups="unlocked"/>
+    <project remote="roc" path="rocMLIR" name="rocMLIR" revision="release/rocm-rel-6.4" groups="unlocked"/>
+    <project remote="roc" path="MIOpen" name="MIOpen" revision="release/rocm-rel-6.4" groups="unlocked"/>
+    <project remote="roc" path="rocm-core" name="rocm-core" revision="release/rocm-rel-6.4" groups="unlocked"/>
+    <project remote="roc" path="rccl-tests" name="rccl-tests" revision="develop" groups="unlocked"/>
+    <project remote="roc" path="rocRoller" name="rocRoller" revision="develop" groups="unlocked"/>
+    <project remote="roc" path="mxDataGenerator" name="mxDataGenerator" revision="main" groups="unlocked"/>
+    <project remote="roc" path="amdgpu-windows-interop" name="amdgpu-windows-interop" revision="main" groups="unlocked"/>
+    <project remote="roc" path="composable_kernel" name="composable_kernel" revision="release/rocm-rel-6.4" groups="unlocked"/>
+    <project remote="roc" path="aqlprofile" name="aqlprofile" revision="amd-staging" groups="unlocked"/>
+    <project remote="roc" path="rocprof-trace-decoder/binaries" name="rocprof-trace-decoder" revision="amd-mainline" groups="unlocked"/>
+    <project remote="SJTU" path="PowerInfer" name="PowerInfer" revision="main" groups="unlocked" />
+</manifest>
