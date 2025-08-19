@@ -30,4 +30,4 @@ float matE[N][N];
   return 0;
 }
 
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:4
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:6
