@@ -1,0 +1,42 @@
+
+AOMP is a development build of ROCm for the ROCm-compiler.
+AOMP builds the amd-staging branch of the ROCm llvm-compliler with
+the latest stable release branches of supporting components. 
+
+This directory (aomp/tr_aomp) contains all the support to build AOMP
+using TheRock. This includes the manifest file tr_aomp.xml.
+The manifest file is used by tr_set_aomp_branches.sh to change
+the submodule branch from some set of hashes determined by 
+TheRock oligarchs to branches needed by AOMP. 
+
+Currently, building AOMP with TheRock is experimental. 
+
+The current build process is:
+
+1) ./tr_clone_aomp.sh
+2) ./tr_set_aomp_branches.sh 
+3) apply an evolving custom patch to TheRock and all of its submodules. 
+      cd /work/$USER/git/tr_aomp/TheRock 
+      patch -p1 --dry-run </work/$USER/git/tr_aomp/aomp/tr_aomp/patches/tr_aomp.patch
+      patch -p1 </work/$USER/git/tr_aomp/aomp/tr_aomp/patches/tr_aomp.patch
+4) nohup ./tr_build_aomp.sh &
+
+Eventually we will merge 1), 2), and 3) into a fully automated script tr_clone_aomp.sh 
+
+Currently tr_build_aomp.sh builds rocm into /work/$USER/git/tr_aomp/TheRock/build/dist/rocm.
+tr_build_aomp.sh will eventually be modified to copy
+    /work/$USER/git/tr_aomp/TheRock/build/dist/rocm to $AOMP (~/rocm/aomp).
+
+Till then, set AOMP=/work/$USER/git/tr_aomp/TheRock/build/dist/rocm to test your build with AOMP tests.
+that expect AOMP to point to the compiler. 
+
+How to update the AOMP patch of TheRock (tr_aomp.patch).
+   cd /work/$USER/git/tr_aomp
+   pfile=/work/$USER/git/tr_aomp/aomp/tr_aomp/patches/tr_aomp.patch
+   diff -Naur -x .git -x __pycache__ -x amd-llvm TheRock.orig TheRock > $pfile
+   cd /work/$USER/git/tr_aomp/aomp
+   git add tr_aomp/patches/tr_aomp.patch
+   git commit -m "Update to tr_aomp.patch"
+   git push
+
+This README file was last updated on 8/19/2025
