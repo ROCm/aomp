@@ -125,8 +125,8 @@ int main() {
   return errors != 0;
 }
 
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:4
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:4
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:4
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:4
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:6
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:6
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:6
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:6
 /// CHECK: SUCCESS
