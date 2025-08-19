@@ -9,12 +9,13 @@ _curdir=$PWD
 
 cd $_therockdir
 
-_config_out=config.out
-_build_out=build.out
-_build_dist_out=$PWD/build_dist.out
-_setup_ccache_out=setup_ccache.out
+_config_out=$_therockdir/build/config.out
+_build_out=$_therockdir/build/build.out
+_build_dist_out= $_therockdir/build/build_dist.out
+_setup_ccache_out=$_therockdir/build/setup_ccache.out
 
 [ -d build ] && rm -rf build
+mkdir -p $_therockdir/build
 [ -f $_setup_ccache_out ] && rm $_setup_ccache_out
 [ -f $_build_out ] && rm  $_build_out
 [ -f $_config_out ] && rm $_config_out
@@ -23,7 +24,7 @@ _setup_ccache_out=setup_ccache.out
 #_cmd="cmake -B build -GNinja -DTHEROCK_AMDGPU_TARGETS=gfx90a -DTHEROCK_ENABLE_COMPOSABLE_KERNEL=OFF -DTHEROCK_ENABLE_FFT=OFF -DTHEROCK_ENABLE_RAND=OFF -DTHEROCK_ENABLE_PRIM=OFF -DTHEROCK_ENABLE_BLAS=OFF -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache $PWD"
 #_cmd="cmake -B build -GNinja -DTHEROCK_AMDGPU_TARGETS=gfx90a -DTHEROCK_ENABLE_COMPOSABLE_KERNEL=OFF -DTHEROCK_ENABLE_MATH_LIBS=OFF -DTHEROCK_ENABLE_ML_LIBS=OFF -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DTHEROCK_BUNDLE_SYSDEPS=OFF $PWD"
 #
-_cmd="cmake -B build -GNinja -DTHEROCK_AMDGPU_TARGETS=gfx90a -DTHEROCK_ENABLE_COMPOSABLE_KERNEL=OFF -DTHEROCK_ENABLE_MATH_LIBS=OFF -DTHEROCK_ENABLE_ML_LIBS=OFF -DTHEROCK_BUNDLE_SYSDEPS=OFF $PWD"
+_cmd="cmake -B build -GNinja -DTHEROCK_AMDGPU_TARGETS=gfx90a -DTHEROCK_ENABLE_COMPOSABLE_KERNEL=OFF -DTHEROCK_ENABLE_MATH_LIBS=OFF -DTHEROCK_ENABLE_ML_LIBS=OFF -DTHEROCK_BUNDLE_SYSDEPS=OFF -DTHEROCK_BUILD_TESTING=OFF $_therockdir"
 eval "$(python3 ./build_tools/setup_ccache.py)" 2>&1 >>$_setup_ccache_out
 echo "===> CMD:$_cmd" >> $_config_out
 date >> $_config_out
