@@ -4,28 +4,24 @@
 #                    using TheRock repo and its submodules. unlike clone_aomp.sh
 #                    this script is NOT (yet) reusable to refresh all the repos. 
 #
-#  WARNING:  This script is experimental. 
-#
+# --- Start standard header to set AOMP environment variables ----
+realpath=$(realpath "$0")
+thisdir=$(dirname "$realpath")
+. "$thisdir/tr_aomp_common_vars"
+# --- end standard header ----
 
-_workdir=${1:-/work}
-_aomprepodir=$_workdir/$USER/git/tr_aomp
-_therockdir=$_aomprepodir/TheRock
+_therockdir=$TR_AOMP_REPOS/TheRock
 _curdir=$PWD
 
-if [ ! -d $_workdir ] ; then 
-   echo "ERROR: $0 needs directory $_workdir"
+mkdir -p $TR_AOMP_REPOS
+if [ ! -d $TR_AOMP_REPOS ] ; then 
+   echo "ERROR: $0 could not create directory $TR_AOMP_REPOS"
    exit 
 fi
 
-mkdir -p $_aomprepodir
-if [ ! -d $_aomprepodir ] ; then 
-   echo "ERROR: $0 could not create directory $_aomprepodir"
-   exit 
-fi
-
-cd $_aomprepodir
-if [ -d $_aomprepodir/aomp ] ; then 
-   echo "WARNING:  Skipping clone of aomp , $_aomprepodir/aomp already exists"
+cd $TR_AOMP_REPOS
+if [ -d $TR_AOMP_REPOS/aomp ] ; then 
+   echo "WARNING:  Skipping clone of aomp , $TR_AOMP_REPOS/aomp already exists"
 else
    echo git clone -b aomp-dev https://github.com/ROCm/aomp
    git clone -b aomp-dev https://github.com/ROCm/aomp
@@ -42,6 +38,8 @@ cd $_therockdir
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 python ./build_tools/fetch_sources.py 2>&1 | tee fetch_sources.out
+
+ln -sf $TR_AOMP_REPOS/TheRock/compiler/amd-llvm $TR_AOMP_REPOS/llvm-project
 
 # At this point we can run tr_set_aomp_branches.sh
 # But for now we run tr_set_aomp_branches.sh manually  

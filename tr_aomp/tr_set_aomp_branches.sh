@@ -2,14 +2,19 @@
 #
 #  tr_set_aomp_branches.sh 
 #     
-_workdir=${1:-/work}
-_aomprepodir=$_workdir/$USER/git/tr_aomp
-_therockdir=$_aomprepodir/TheRock
+# --- Start standard header to set AOMP environment variables ----
+realpath=$(realpath "$0")
+thisdir=$(dirname "$realpath")
+. "$thisdir/tr_aomp_common_vars"
+# --- end standard header ----
+ 
+_therockdir=$TR_AOMP_REPOS/TheRock
+
 _curdir=$PWD
 
 cd $_therockdir
 _aomp_repos_temp=()
-for _line in `$_aomprepodir/aomp/tr_aomp/tr_list_aomp_branches.sh | awk '{print $2 ":" $4}' | tr -d '"' ` ; do 
+for _line in `$TR_AOMP_REPOS/aomp/tr_aomp/tr_list_aomp_branches.sh | awk '{print $2 ":" $4}' | tr -d '"' ` ; do 
    _aomp_repos_temp+=($_line)
 done
 

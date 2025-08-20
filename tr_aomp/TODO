@@ -1,0 +1,35 @@
+TODO
+---- 
+_X_ Add tr_common_aomp_vars with new TR_AOMP_REPOS variable
+    version string is set to build future aomp_22.0-4
+_X_ Update README
+_X_ Add rsync capability to install TheRock/build/dist/rocm into $AOMP_INSTALL_DIR
+_X_ Patch TheRock/compiler/CMakeLists.txt to pick up AOMP_VERSION_STRING
+_X_ Create tr_create_patch_from_orig.sh to creat tr_aomp.patch
+___ Fixes to tr_clone_aomp.sh 
+   ___ add tr_set_aomp_branches.sh to tr_clone_aomp.sh
+   ___ Always create TheRock.orig after tr_set_aomp_branch.sh 
+        to facilitate creating the tr_aomp.patch
+   ___ Apply tr_aomp.patch after saving TheRock.orig
+___ Remove math libs from manifest where no submodule is found
+___ create manifest entry for  rocm-libraries.  
+    Why dont we get some error when a submodule has no branch listed in manifest?
+___ Update README
+___ fix THEROCK build list which currently only builds for gfx90a
+___ Document Always use [tr_aomp] tag for tr_aomp updates to aomp repo
+___ Fix problem with hip_device_compile not seeing include hip/hip_runtime.h
+___ Fix Ignoring extra path from command line: "flang-rt" 
+    when compiler/amd-llvm is built.  See logs/amd-llvm_configure.log 
+___ Expand THEROCK set of targets to include everything. 
+___ Add these symlinks 
+    ln -sf $TR_AOMP_REPOS/TheRock/compiler/amd-llvm $TR_AOMP_REPOS/llvm-project
+    ln -sf $TR_AOMP_REPOS/TheRock/build/compiler/amd-llvm/build $TR_AOMP_REPOS/llvm-project/build
+___ Answer Ron's question in README. Is there a continue option like we had with build_aomp.sh?
+    No because we expect it never to fail and after a successful completion .
+    Also TheRock does not use a serial ordering of component builds to maximize 
+    parallel build. TheRock enforces component dependencies for proper ordering. 
+    The only iteration is to amd-staging branch of llvm-project. 
+    The README already explains the dev cycle , edit-build-install-test
+
+
+
