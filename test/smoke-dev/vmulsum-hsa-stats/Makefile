@@ -8,8 +8,7 @@ TESTSRC_ALL    = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 CLANG          ?= clang
 OMP_BIN        = $(AOMP)/bin/$(CLANG)
 CC             = $(OMP_BIN) $(VERBOSE)
-RUNPROF = $(AOMPHIP)/bin/rocprof
-RUNPROF_FLAGS = --hsa-trace
+RUNPROF = $(AOMPHIP)/bin/rocprofv3 --output-format csv --hsa-trace --stats -- 
 
 #-ccc-print-phases
 #"-\#\#\#"
