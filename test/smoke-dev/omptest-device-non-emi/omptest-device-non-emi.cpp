@@ -11,6 +11,32 @@ using namespace internal;
 int c[X];
 #pragma omp end declare target
 
+TEST(InitFiniSuite, DeviceLoad) {
+  OMPT_SUPPRESS_EVENT(EventTy::Target)
+  OMPT_SUPPRESS_EVENT(EventTy::TargetDataOp)
+  OMPT_SUPPRESS_EVENT(EventTy::TargetSubmit)
+  OMPT_SUPPRESS_EVENT(EventTy::BufferRequest);
+  OMPT_SUPPRESS_EVENT(EventTy::BufferComplete);
+  OMPT_SUPPRESS_EVENT(EventTy::BufferRecord);
+  OMPT_SUPPRESS_EVENT(EventTy::BufferRecordDeallocation);
+
+  int N = 128;
+  int a[N];
+
+  for (int DeviceNum = 0; DeviceNum < omp_get_num_devices(); ++DeviceNum) {
+    // Even on multi-GPU systems, only default-device is immediately initialized
+    OMPT_ASSERT_SEQUENCE(DeviceLoad, /*DeviceNum=*/DeviceNum);
+
+#pragma omp target parallel for device(DeviceNum)
+    {
+      for (int j = 0; j < N; j++)
+        a[j] = 0;
+    }
+
+    OMPT_ASSERT_SYNC_POINT("After DeviceLoad " + std::to_string(DeviceNum));
+  }
+}
+
 TEST(VeccopyCallbacks, OnDeviceDefaultTeams_Sequenced) {
   OMPT_SUPPRESS_EVENT(EventTy::BufferRequest);
   OMPT_SUPPRESS_EVENT(EventTy::BufferComplete);
@@ -582,7 +608,7 @@ TEST(DataOpTests, ExplicitAllocationTimeNonZero) {
   OMPT_ASSERT_SYNC_POINT("After de-alloc");
 }
 
-TEST(DataOpTests, ExplicitDeallocationTimeNonZero) {
+TEST(DataOpTestsPass, ExplicitDeallocationTimeNonZero) {
   OMPT_SUPPRESS_EVENT(EventTy::BufferRequest);
   OMPT_SUPPRESS_EVENT(EventTy::BufferComplete);
   OMPT_SUPPRESS_EVENT(EventTy::BufferRecordDeallocation);
@@ -603,7 +629,7 @@ TEST(DataOpTests, ExplicitDeallocationTimeNonZero) {
   OMPT_ASSERT_SYNC_POINT("After de-alloc");
 }
 
-TEST_XFAIL(DataOpTests, ExplicitAllocatorMultiDevice) {
+TEST_XFAIL(DataOpTestsFail, ExplicitAllocatorMultiDevice) {
   OMPT_SUPPRESS_EVENT(EventTy::BufferRequest);
   OMPT_SUPPRESS_EVENT(EventTy::BufferComplete);
   OMPT_SUPPRESS_EVENT(EventTy::BufferRecord);
@@ -955,34 +981,4 @@ TEST(VeccopyTraces, OnDeviceCallbacks_teams_distribute_parallel_for_nowait_w_tim
   }
 }
 
-// FIXME: Leave this suite here, so it gets discovered last and executed first.
-TEST(InitFiniSuite, DeviceLoad) {
-  OMPT_SUPPRESS_EVENT(EventTy::Target)
-  OMPT_SUPPRESS_EVENT(EventTy::TargetDataOp)
-  OMPT_SUPPRESS_EVENT(EventTy::TargetSubmit)
-  OMPT_SUPPRESS_EVENT(EventTy::BufferRequest);
-  OMPT_SUPPRESS_EVENT(EventTy::BufferComplete);
-  OMPT_SUPPRESS_EVENT(EventTy::BufferRecord);
-  OMPT_SUPPRESS_EVENT(EventTy::BufferRecordDeallocation);
-
-  int N = 128;
-  int a[N];
-
-  for (int DeviceNum = 0; DeviceNum < omp_get_num_devices(); ++DeviceNum) {
-    // Even on multi-GPU systems, only default-device is immediately initialized
-    OMPT_ASSERT_SEQUENCE(DeviceLoad, /*DeviceNum=*/DeviceNum);
-
-#pragma omp target parallel for device(DeviceNum)
-    {
-      for (int j = 0; j < N; j++)
-        a[j] = 0;
-    }
-
-    OMPT_ASSERT_SYNC_POINT("After DeviceLoad " + std::to_string(DeviceNum));
-  }
-}
-
-int main(int argc, char **argv) {
-  Runner R;
-  return R.run();
-}
+OMPTEST_TESTSUITE_MAIN()

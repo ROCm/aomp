@@ -18,15 +18,6 @@ message(STATUS "AOMP directory: '${AOMP_DIR}'")
 # Retrieve package information from omptest
 find_package(omptest REQUIRED)
 
-# Use default compiler values of omptest.
-set(CMAKE_C_COMPILER   ${omptest_C_COMPILER})
-set(CMAKE_CXX_COMPILER ${omptest_CXX_COMPILER})
-message(STATUS "  CMAKE_C_COMPILER: '${CMAKE_C_COMPILER}'")
-message(STATUS "CMAKE_CXX_COMPILER: '${CMAKE_CXX_COMPILER}'")
-
-# Make sure to include and esp. link directories before 'add_executable'
-include_directories(${omptest_INCLUDE_DIR})
-link_directories(${omptest_LIBRARY_ROOT})
 add_executable(${PROJECT_NAME}
                ${PROJECT_NAME}.cpp)
 
@@ -37,7 +28,8 @@ target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_17)
 
 # Link
 # Note: omp[target] will be linked automatically because of the offload options
-target_link_libraries(${PROJECT_NAME} PRIVATE ${OFFLOAD_OPTIONS} omptest)
+target_link_libraries(${PROJECT_NAME} PRIVATE
+                      ${OFFLOAD_OPTIONS} omptest::omptest)
 
-# Notify: this test does not use GoogleTest
-message(STATUS "GoogleTest: OFF")
+# Notify: Test either uses GoogleTest-based ompTest or 'standalone'
+message(STATUS "Standalone: ${LIBOMPTEST_BUILD_STANDALONE}")
