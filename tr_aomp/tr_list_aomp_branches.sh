@@ -2,13 +2,17 @@
 #
 #  tr_list_aomp_branches.sh: list key information about all the repos found
 #                            in the tr_aompi_$AOMP_VERSION.xml file
-#
-_workdir=${1:-/work}
-_aomprepodir=$_workdir/$USER/git/tr_aomp
-_therockdir=$_aomprepodir/TheRock
+ 
+# --- Start standard header to set AOMP environment variables ----
+realpath=$(realpath "$0")
+thisdir=$(dirname "$realpath")
+. "$thisdir/tr_aomp_common_vars"
+# --- end standard header ----
+ 
+_therockdir=$TR_AOMP_REPOS/TheRock
 _curdir=$PWD
 
-_manifest_file=$_aomprepodir/aomp/tr_aomp/tr_aomp.xml
+_manifest_file=$TR_AOMP_REPOS/aomp/tr_aomp/tr_aomp.xml
 
 HEADERS=0
 
