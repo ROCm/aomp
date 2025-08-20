@@ -16,8 +16,7 @@ CC           = $(OMP_BIN) $(VERBOSE)
 
 LIBPATH = $(AOMPHIP)/lib:/opt/rocm/lib
 RUNENV += PATH=$(ROCM)/bin:$(PATH) LD_LIBRARY_PATH=$(LIBPATH):$(LD_LIBRARY_PATH) LIBOMPTARGET_KERNEL_TRACE=2
-RUNPROF = $(AOMPHIP)/bin/rocprof
-RUNPROF_FLAGS = --roctx-trace --sys-trace
+RUNPROF = $(AOMPHIP)/bin/rocprofv3 --output-format csv --marker-trace --runtime-trace --stats --
 
 UNSUPPORTED = ASAN_COMPILE
 
