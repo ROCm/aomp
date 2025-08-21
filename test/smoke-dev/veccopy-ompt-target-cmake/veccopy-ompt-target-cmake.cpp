@@ -5,6 +5,24 @@
 using namespace omptest;
 using namespace internal;
 
+TEST(InitialTestSuite, uut_device_init_load) {
+  /* The Test Body */
+  OMPT_SUPPRESS_EVENT(EventTy::Target)
+  OMPT_SUPPRESS_EVENT(EventTy::TargetDataOp)
+  OMPT_SUPPRESS_EVENT(EventTy::TargetSubmit)
+
+  int N = 128;
+  int a[N];
+
+  OMPT_ASSERT_SEQUENCE(DeviceLoad, /*DeviceNum=*/0)
+
+#pragma omp target parallel for
+  {
+    for (int j = 0; j < N; j++)
+      a[j] = 0;
+  }
+}
+
 TEST_XFAIL(SequenceSuiteXFail, uut_target_xfail_wrong_order) {
   /* The Test Body */
   OMPT_SUPPRESS_EVENT(EventTy::TargetDataOp)
@@ -216,28 +234,4 @@ TEST(SequenceSuite, veccopy_ompt_target) {
     printf("Success\n");
 }
 
-// FIXME: Leave this suite here, so it gets discovered last and executed first.
-TEST(InitialTestSuite, uut_device_init_load) {
-  /* The Test Body */
-  OMPT_SUPPRESS_EVENT(EventTy::Target)
-  OMPT_SUPPRESS_EVENT(EventTy::TargetDataOp)
-  OMPT_SUPPRESS_EVENT(EventTy::TargetSubmit)
-
-  int N = 128;
-  int a[N];
-
-  OMPT_ASSERT_SEQUENCE(DeviceLoad, /*DeviceNum=*/0)
-
-#pragma omp target parallel for
-  {
-    for (int j = 0; j < N; j++)
-      a[j] = 0;
-  }
-}
-
-int main(int argc, char **argv) {
-  Runner R;
-  R.run();
-
-  return 0;
-}
+OMPTEST_TESTSUITE_MAIN()
