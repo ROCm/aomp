@@ -375,8 +375,12 @@ else
    RUNENV = env $(SET_DEVICE_DEBUG) $(TKILL) $(CBL_ENV)
 endif
 
-# Header include path + linker flag for libomptest based OMPT tests
-OMPTEST = -I$(AOMP)/lib/omptest/include -lomptest
+# ompTest: Set header include path + linker flag for corresponding OMPT tests
+OMPTEST     = -I$(AOMP)/include/omptest/include -lomptest
+
+# ompTest: Set and export CMake config path
+omptest_DIR = $(AOMP)/lib/cmake/openmp/omptest/
+export omptest_DIR
 
 # Individual tests need to set OVERFLOW_GUARD=1 to enable available memory
 # computation at the runtime and passing it to the test as the first argument.

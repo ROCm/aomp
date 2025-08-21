@@ -1,0 +1,78 @@
+#!/bin/bash
+#
+#  tr_build_aomp.sh : Build aomp using TheRock 
+#
+# --- Start standard header to set AOMP environment variables ----
+realpath=$(realpath "$0")
+thisdir=$(dirname "$realpath")
+. "$thisdir/tr_aomp_common_vars"
+# --- end standard header ----
+#
+if [ -z $AOMP_INSTALL_DIR ] ; then
+   echo "ERROR: Env VAR AOMP_INSTALL_DIR is not set "
+   cd $_curdir
+   exit 1
+fi
+
+_therockdir=$TR_AOMP_REPOS/TheRock
+_curdir=$PWD
+
+cd $_therockdir
+
+_config_out=$_therockdir/build/config.out
+_build_out=$_therockdir/build/build.out
+_dist_out=$_therockdir/build/build_dist.out
+_setup_ccache_out=$_therockdir/build/setup_ccache.out
+
+[ -d build ] && rm -rf build
+mkdir -p $_therockdir/build
+[ -f $_setup_ccache_out ] && rm $_setup_ccache_out
+[ -f $_build_out ] && rm  $_build_out
+[ -f $_config_out ] && rm $_config_out
+[ -f $_dist_out ] && rm $_dist_out
+
+#_cmd="cmake -B build -GNinja -DTHEROCK_AMDGPU_TARGETS=gfx90a -DTHEROCK_ENABLE_COMPOSABLE_KERNEL=OFF -DTHEROCK_ENABLE_FFT=OFF -DTHEROCK_ENABLE_RAND=OFF -DTHEROCK_ENABLE_PRIM=OFF -DTHEROCK_ENABLE_BLAS=OFF -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache $PWD"
+#_cmd="cmake -B build -GNinja -DTHEROCK_AMDGPU_TARGETS=gfx90a -DTHEROCK_ENABLE_COMPOSABLE_KERNEL=OFF -DTHEROCK_ENABLE_MATH_LIBS=OFF -DTHEROCK_ENABLE_ML_LIBS=OFF -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DTHEROCK_BUNDLE_SYSDEPS=OFF $PWD"
+#
+_cmd="cmake -B build -GNinja -DTHEROCK_AMDGPU_TARGETS=gfx90a -DTHEROCK_ENABLE_COMPOSABLE_KERNEL=OFF -DTHEROCK_ENABLE_MATH_LIBS=OFF -DTHEROCK_ENABLE_ML_LIBS=OFF -DTHEROCK_BUNDLE_SYSDEPS=OFF -DTHEROCK_BUILD_TESTING=OFF $_therockdir"
+eval "$(python3 ./build_tools/setup_ccache.py)" 2>&1 >>$_setup_ccache_out
+echo "===> CMD:$_cmd" >> $_config_out
+date >> $_config_out
+$_cmd 2>&1 >> $_config_out
+[ $? != 0 ] && cd $_curdir && exit 1 
+
+_cmd="cmake --build build"
+echo "===> CMD:$_cmd" >>  $_build_out
+date >> $_build_out
+$_cmd 2>&1 >> $_build_out
+[ $? != 0 ] && cd $_curdir && exit 1 
+date >> $_build_out
+
+cd build
+_cmd="ninja therock-dist"
+pwd >> $_dist_out
+echo "===> CMD:$_cmd" >> $_dist_out
+date >> $_dist_out
+$_cmd 2>&1 >> $_dist_out
+[ $? != 0 ] && cd $_curdir && exit 1 
+date >> $_dist_out
+
+if [ -z $AOMP_INSTALL_DIR ] ; then
+   echo "ERROR: Env VAR AOMP_INSTALL_DIR is not set "
+   cd $_curdir
+   exit 1
+else
+   if [ -d $AOMP_INSTALL_DIR ] ; then
+      rm -rf $AOMP_INSTALL_DIR
+   fi
+fi
+echo mkdir -p $AOMP_INSTALL_DIR
+mkdir -p $AOMP_INSTALL_DIR
+echo rsync -a dist/rocm/ $AOMP_INSTALL_DIR/
+rsync -a dist/rocm/ $AOMP_INSTALL_DIR/
+echo ln -sf $AOMP_INSTALL_DIR $AOMP
+ln -sf $AOMP_INSTALL_DIR $AOMP
+
+echo "DONE see $_config_out and $_build_out and $_dist_out " | tee -a  $_dist_out
+
+
