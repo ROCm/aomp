@@ -1,0 +1,40 @@
+
+AOMP is a development build of ROCm for the ROCm-compiler.
+AOMP builds the amd-staging branch of the ROCm llvm-compliler with
+the latest stable release branches of supporting components. 
+
+This directory (aomp/tr_aomp) contains all the support to build AOMP
+using TheRock. This includes the manifest file tr_aomp.xml.
+The manifest file is used by tr_set_aomp_branches.sh to change
+the submodule branch from some set of hashes determined by 
+TheRock oligarchs to branches needed by AOMP. 
+
+Currently, building AOMP with TheRock is experimental. 
+
+The current build process is:
+
+1) ./tr_clone_aomp.sh
+2) ./tr_set_aomp_branches.sh 
+3) apply an evolving custom patch to TheRock and all of its submodules. 
+      cd $TR_AOMP_REPOS/TheRock
+      patch -p1 --dry-run < $TR_AOMP_REPOS/aomp/tr_aomp/patches/tr_aomp.patch
+      patch -p1 < $TR_AOMP_REPOS/aomp/tr_aomp/patches/tr_aomp.patch
+4) nohup ./tr_build_aomp.sh &
+
+Eventually we will merge 1), 2), and 3) into a fully automated script tr_clone_aomp.sh 
+
+tr_build_aomp.sh builds rocm into $TR_AOMP_REPOS/TheRock/build/dist/rocm.
+then copies using rsync from $TR_AOMP_REPOS/TheRock/build/dist/rocm 
+to $AOMP_INSTALL_DIR.
+
+These two symlinks help to iterate development of llvm-project. 
+ln -sf $TR_AOMP_REPOS/TheRock/compiler/amd-llvm $TR_AOMP_REPOS/llvm-project
+ln -sf $TR_AOMP_REPOS/TheRock/build/compiler/amd-llvm/build $TR_AOMP_REPOS/llvm-project/build
+
+llvm-project dev flow: edit, build, install, test
+  - cd tr_aomp/llvm-project ; edit llvm-project compiler or runtime sources
+  - cd tr_aomp/llvm-project/build ; ninja therock-dist
+  - cd tr_aomp/TheRock/build/dist/rocm ;  rsync -a TheRock/build/dist/rocm/ $AOMP_INSTALL_DIR/
+  - test AOMP=$HOME/rocm/aomp which is a symlink to $AOMP_INSTALL_DIR 
+
+This README file was last updated on 8/20/2025
