@@ -54,10 +54,13 @@ fi
 BUILD_DIR=$BUILD_AOMP/build/llvm-project
 BUILD_DIR_FRT=$BUILD_AOMP/build/flang-runtime/flang-rt/lib
 OMPRUNTIME_DIR=$BUILD_DIR/runtimes/runtimes-bins/openmp/runtime/src
-INSTALL_DIR=$AOMP
+INSTALL_DIR=${INSTALL_DIR:-$AOMP}
+SUFFIX=${SUFFIX:-}
 
 # generate ARCH_LIST from GFXLIST
 ARCH_LIST=$(echo "$GFXLIST" | tr ' ' ',')
+#BUILD_TYPE=${BUILD_TYPE:-Release}    # note: hits backend assert
+BUILD_TYPE=${BUILD_TYPE:-}
 
 echo "BUILD_DIR          = $BUILD_DIR"
 echo "BUILD_DIR_FRT      = $BUILD_DIR_FRT"
@@ -66,6 +69,8 @@ echo "INSTALL_DIR        = $INSTALL_DIR"
 echo "CMAKE_C_COMPILER   = $CMAKE_C_COMPILER"
 echo "CMAKE_CXX_COMPILER = $CMAKE_CXX_COMPILER"
 echo "GFXLIST            = $GFXLIST"
+echo "BUILD_TYPE         = $BUILD_TYPE"
+echo "SUFFIX             = $SUFFIX"
 
 echo "Sleeping 5 sec..."
 sleep 5
@@ -87,7 +92,10 @@ fi
 # Notes:
 #   -DFLANG_RT_INCLUDE_TESTS=OFF     # avoids needing CUDA toolchain
 #
-${AOMP_CMAKE} "${AOMP_SET_NINJA_GEN[@]}" \
+if [ ${BUILD_TYPE+x} ]; then
+    CM_BUILD_TYPE="-DCMAKE_BUILD_TYPE='$BUILD_TYPE'"
+fi
+${AOMP_CMAKE} "${AOMP_SET_NINJA_GEN[@]}" $CM_BUILD_TYPE \
     -DLLVM_ENABLE_RUNTIMES=flang-rt \
     -DFLANG_RT_EXPERIMENTAL_OFFLOAD_SUPPORT="OpenMP" \
     -DFLANG_RT_INCLUDE_TESTS=OFF \
@@ -103,7 +111,7 @@ mystat=$?
 allstat=$((allstat+mystat))
 echo "status: $mystat"
 
-cmd="cp $BUILD_DIR_FRT/libflang_rt.runtime.a $INSTALL_DIR/lib/libflang_rt.hostdevice.a"
+cmd="cp $BUILD_DIR_FRT/libflang_rt.runtime.a $INSTALL_DIR/lib/libflang_rt.hostdevice${SUFFIX}.a"
 echo "$cmd"
 $cmd
 mystat=$?
