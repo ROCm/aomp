@@ -15,6 +15,20 @@ ompt_set_result_t libomptarget_ompt_set_trace_ompt(int DeviceId,
 using namespace omptest;
 using namespace internal;
 
+// Place this suite at the top, so it gets discovered and executed first.
+TEST(InitialTestSuite, uut_device_init_load_multi_gpu) {
+  // We only want to assert on DeviceLoads: ignore other events
+  OMPT_ASSERT_SET_MODE_RELAXED()
+
+  for (int i = 0; i < omp_get_num_devices(); ++i) {
+    OMPT_ASSERT_SET(DeviceLoad, /*DeviceNum=*/i)
+#pragma omp target device(i)
+    {
+      ;
+    }
+  }
+}
+
 TEST(MultiGPUTracingSuite, uut_device_set_trace_disabled) {
   int N = 128;
   int a[N];
@@ -251,9 +265,9 @@ TEST(MultiGPUTracingSuite, uut_device_set_trace_target_submit) {
   }
 }
 
-TEST(DisabledSuite, DISABLED_uut_target_disabled) {
-  assert(false && "This test should have been disabled");
-}
+// TEST(DisabledSuite, DISABLED_uut_target_disabled) {
+//   assert(false && "This test should have been disabled");
+// }
 
 TEST(SequenceAssertion, uut_target_sequence) {
   int N = 128;
@@ -532,23 +546,4 @@ TEST(MixedAssertionSuite, uut_target_sequence_and_set) {
     printf("Success\n");
 }
 
-// Leave this suite down here so it gets discovered last and executed first.
-TEST(InitialTestSuite, uut_device_init_load_multi_gpu) {
-  // We only want to assert on DeviceLoads: ignore other events
-  OMPT_ASSERT_SET_MODE_RELAXED()
-
-  for (int i = 0; i < omp_get_num_devices(); ++i) {
-    OMPT_ASSERT_SET(DeviceLoad, /*DeviceNum=*/i)
-#pragma omp target device(i)
-    {
-      ;
-    }
-  }
-}
-
-#ifndef LIBOFFLOAD_LIBOMPTEST_USE_GOOGLETEST
-int main(int argc, char **argv) {
-  Runner R;
-  return R.run();
-}
-#endif
+OMPTEST_TESTSUITE_MAIN()
