@@ -5,6 +5,25 @@
 using namespace omptest;
 using namespace internal;
 
+// Place this suite at the top, so it gets discovered and executed first.
+TEST(InitialTestSuite, uut_device_init_load) {
+  /* The Test Body */
+  OMPT_SUPPRESS_EVENT(EventTy::TargetEmi)
+  OMPT_SUPPRESS_EVENT(EventTy::TargetDataOpEmi)
+  OMPT_SUPPRESS_EVENT(EventTy::TargetSubmitEmi)
+
+  int N = 128;
+  int a[N];
+
+  OMPT_ASSERT_SET(DeviceLoad, /*DeviceNum=*/0)
+
+#pragma omp target parallel for
+  {
+    for (int j = 0; j < N; j++)
+      a[j] = 0;
+  }
+}
+
 TEST(SequenceSuite, uut_target) {
   /* The Test Body */
   OMPT_SUPPRESS_EVENT(EventTy::TargetDataOpEmi)
@@ -111,7 +130,7 @@ TEST(SetSuite, uut_target) {
   }
 }
 
-TEST_XFAIL(SetSuite, uut_target_xfail_banned_begin_end) {
+TEST_XFAIL(SetSuiteFail, uut_target_xfail_banned_begin_end) {
   /* The Test Body */
   int N = 128;
   int a[N];
@@ -382,26 +401,4 @@ TEST(SequenceSuite, veccopy_ompt_target) {
     printf("Success\n");
 }
 
-// Leave this suite down here so it gets discovered last and executed first.
-TEST(InitialTestSuite, uut_device_init_load) {
-  /* The Test Body */
-  OMPT_SUPPRESS_EVENT(EventTy::TargetEmi)
-  OMPT_SUPPRESS_EVENT(EventTy::TargetDataOpEmi)
-  OMPT_SUPPRESS_EVENT(EventTy::TargetSubmitEmi)
-
-  int N = 128;
-  int a[N];
-
-  OMPT_ASSERT_SET(DeviceLoad, /*DeviceNum=*/0)
-
-#pragma omp target parallel for
-  {
-    for (int j = 0; j < N; j++)
-      a[j] = 0;
-  }
-}
-
-int main(int argc, char **argv) {
-  Runner R;
-  return R.run();
-}
+OMPTEST_TESTSUITE_MAIN()
