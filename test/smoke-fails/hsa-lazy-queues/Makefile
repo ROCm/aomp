@@ -5,12 +5,7 @@ TESTSRC_MAIN = async-events.cpp
 TESTSRC_AUX  = empty-sink.c
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 
-AOMPROCM     ?= $(AOMPHIP)
-ifneq (,$(wildcard $(AOMPROCM)/bin/rocprofv3))
-	RUNPROF   = $(AOMPROCM)/bin/rocprofv3
-else
-	RUNPROF   = $(AOMPROCM)/../bin/rocprofv3
-endif
+RUNPROF      = $(AOMPHIP)/bin/rocprofv3
 
 # If 'ROCR_VISIBLE_DEVICES' is empty, default to zero. Otherwise, split on ','
 # and use the first device marked visible by the environmental variable. The

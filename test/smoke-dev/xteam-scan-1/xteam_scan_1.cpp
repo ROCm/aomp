@@ -17,7 +17,7 @@ void run_test() {
 
   T sum1 = T(0);
 
-#pragma omp target teams distribute parallel for reduction(inscan, +:sum1) map(tofrom: in[0:N], out1[0:N])
+#pragma omp target teams distribute parallel for reduction(inscan, +:sum1) map(tofrom: in[0:N], out1[0:N]) num_threads(1024)
   for (int i = 0; i < N; i++) {
     sum1 += in[i]; // input phase
 #pragma omp scan inclusive(sum1)
@@ -37,7 +37,7 @@ void run_test() {
 
   T sum2 = T(0);
 
-#pragma omp target teams distribute parallel for reduction(inscan, +:sum2) map(tofrom: in[0:N], out2[0:N])
+#pragma omp target teams distribute parallel for reduction(inscan, +:sum2) map(tofrom: in[0:N], out2[0:N]) num_threads(1024)
   for (int i = 0; i < N; i++) {
     out2[i] = sum2; // scan phase
 #pragma omp scan exclusive(sum2)

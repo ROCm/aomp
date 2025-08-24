@@ -6,13 +6,13 @@ TEST(ManualSuite, ParallelFor) {
   /* The Test Body */
   int arr[10] = {0};
   SequenceAsserter->insert(omptest::OmptAssertEvent::ParallelBegin(
-      "User Parallel Begin", "Group", omptest::ObserveState::always,
+      "User Parallel Begin", "Group", omptest::ObserveState::Always,
       /*NumThreads=*/2));
   SequenceAsserter->insert(omptest::OmptAssertEvent::ThreadBegin(
-      "User Thread Begin", "Group", omptest::ObserveState::always,
+      "User Thread Begin", "Group", omptest::ObserveState::Always,
       ompt_thread_initial));
   SequenceAsserter->insert(omptest::OmptAssertEvent::ParallelEnd(
-      "User Parallel End", "Group", omptest::ObserveState::always));
+      "User Parallel End", "Group", omptest::ObserveState::Always));
 
   SequenceAsserter->permitEvent(omptest::internal::EventTy::ParallelBegin);
   SequenceAsserter->permitEvent(omptest::internal::EventTy::ParallelEnd);
@@ -33,18 +33,18 @@ TEST(ManualSuite, ParallelForActivation) {
   /* The Test Body */
   int arr[10] = {0};
   SequenceAsserter->insert(omptest::OmptAssertEvent::ParallelBegin(
-      "User Parallel Begin", "Group", omptest::ObserveState::always,
+      "User Parallel Begin", "Group", omptest::ObserveState::Always,
       /*NumThreads=*/2));
   SequenceAsserter->insert(omptest::OmptAssertEvent::ParallelEnd(
-      "User Parallel End", "Group", omptest::ObserveState::always));
+      "User Parallel End", "Group", omptest::ObserveState::Always));
 
   // The last sequence we want to observe does not contain
   // another thread begin.
   SequenceAsserter->insert(omptest::OmptAssertEvent::ParallelBegin(
-      "User Parallel Begin", "Group", omptest::ObserveState::always,
+      "User Parallel Begin", "Group", omptest::ObserveState::Always,
       /*NumThreads=*/2));
   SequenceAsserter->insert(omptest::OmptAssertEvent::ParallelEnd(
-      "User Parallel End", "Group", omptest::ObserveState::always));
+      "User Parallel End", "Group", omptest::ObserveState::Always));
 
   SequenceAsserter->permitEvent(omptest::internal::EventTy::ParallelBegin);
   SequenceAsserter->permitEvent(omptest::internal::EventTy::ParallelEnd);
@@ -174,7 +174,4 @@ TEST(ManualSuite, veccopy_ompt_target) {
   OMPT_ASSERT_SEQUENCE_ENABLE();
 }
 
-int main(int argc, char **argv) {
-  Runner R;
-  return R.run();
-}
+OMPTEST_TESTSUITE_MAIN()

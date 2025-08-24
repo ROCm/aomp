@@ -1,6 +1,7 @@
 #!/bin/bash
 #
-#  tr_set_aomp_branches.sh 
+#  tr_set_aomp_branches_orig.sh: Change branches of submodules on original 
+#                                clone of TheRock. 
 #     
 # --- Start standard header to set AOMP environment variables ----
 realpath=$(realpath "$0")
@@ -8,11 +9,11 @@ thisdir=$(dirname "$realpath")
 . "$thisdir/tr_aomp_common_vars"
 # --- end standard header ----
  
-_therockdir=$TR_AOMP_REPOS/TheRock
+_therockorig=$TR_AOMP_REPOS/TheRock.orig
 
 _curdir=$PWD
 
-cd $_therockdir
+cd $_therockorig
 _aomp_repos_temp=()
 for _line in `$TR_AOMP_REPOS/aomp/tr_aomp/tr_list_aomp_branches.sh | awk '{print $2 ":" $4}' | tr -d '"' ` ; do 
    _aomp_repos_temp+=($_line)
@@ -81,8 +82,8 @@ for _submodule in ${submodules[@]} ; do
    _aomp_branch_name=`echo $_submodule | cut -d":" -f4`
    echo
    echo "====== $_reponame $_dir $_aomp_branch_name"
-   echo cd $_therockdir/$_dir
-   cd $_therockdir/$_dir
+   echo cd $_therockorig/$_dir
+   cd $_therockorig/$_dir
    _full_branch_name=`git branch -a | grep -v "HEAD" | grep -v "release-staging" | grep -v "\*" | grep -m1 $_aomp_branch_name | xargs`
    echo " === _full_branch_name=$_full_branch_name"
    _full_name=${_full_branch_name#remotes\/origin\/*}
@@ -90,36 +91,13 @@ for _submodule in ${submodules[@]} ; do
    git checkout $_full_name
    echo git pull
    git pull
-   if [ "$_reponame" == "rocprofiler-register" ] ; then 
-      # rocprofiler-register has submodules so add and commit changes to the local branch"
-      echo git add -A --sparse
-      git add -A --sparse
-      echo git commit -m "Switch to branch $_full_name. Do NOT push this commit"
-      git commit -m "Switch to branch $_full_name. Do NOT push this commit"
-   fi
-   echo cd $_therockdir
-   cd $_therockdir
+   echo cd $_therockorig
+   cd $_therockorig
    echo git submodule set-branch -b $_full_name $_dir 
    git submodule set-branch -b $_full_name $_dir
    echo git add $_dir --sparse
    git add $_dir --sparse
    echo "====== DONE WITH $_reponame"
 done
-
-cd $_therockdir
-echo git add .gitmodules
-git add .gitmodules
-echo git commit -m "local changes to switch to aomp branches.  Do not push this commit"
-git commit -m "local changes to switch to aomp branches.  Do not push this commit"
-echo git log -1
-git log -1
-echo
-echo DONE $0
-echo
-
-# TODO: 
-#    - Apply patch to TheRock including Ron's PR for building flang
-#    - Apply ROCR patches and maybe all patches from aomp/bin/patches
-#    - Fix cmake files that drive component builds, especially amd-llvm
 
 cd $_curdir

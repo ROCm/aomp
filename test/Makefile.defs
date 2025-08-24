@@ -376,7 +376,7 @@ else
 endif
 
 # ompTest: Set header include path + linker flag for corresponding OMPT tests
-OMPTEST     = -I$(AOMP)/include/omptest/include -lomptest
+OMPTEST     = -I$(AOMP)/include/omptest -lomptest
 
 # ompTest: Set and export CMake config path
 omptest_DIR = $(AOMP)/lib/cmake/openmp/omptest/
