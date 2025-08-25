@@ -23,5 +23,6 @@ fi
 
 # Important avoid development changes to llvm-project aka amd-llvm
 # Also skip .git diffs and python cache 
-diff -Naur -x .git -x amd-llvm -x __pycache__ -x build TheRock.orig TheRock > $_patchfile
+echo "diff -aur -x .git -x amd-llvm -x hipify -x __pycache__ -x build  -x .ccache TheRock.orig TheRock > $_patchfile" 
+diff -aur -x .git -x amd-llvm -x hipify -x __pycache__ -x build  -x .ccache TheRock.orig TheRock > $_patchfile
 

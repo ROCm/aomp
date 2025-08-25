@@ -41,8 +41,6 @@ cd $TR_AOMP_REPOS
 echo git clone https://github.com/ROCm/TheRock.git -b main --remote-submodules TheRock.orig
 git clone https://github.com/ROCm/TheRock.git -b main --remote-submodules TheRock.orig
 cd TheRock.orig
-_shakey=`cat $thisdir/tr_aomp_hash.txt`
-git checkout $_shakey
 
 #  Do TheRock initialization, 3 steps
 echo "python3 -m venv .venv && source .venv/bin/activate"
@@ -52,9 +50,32 @@ pip install -r requirements.txt
 echo "python ./build_tools/fetch_sources.py"
 python ./build_tools/fetch_sources.py 2>&1 | tee fetch_sources.out
 
-# set the AOMP branches in TheRock.orig
-echo $thisdir/tr_set_aomp_branches_orig.sh
-$thisdir/tr_set_aomp_branches_orig.sh
+echo cd $TR_AOMP_REPOS/TheRock.orig
+cd $TR_AOMP_REPOS/TheRock.orig
+if [ $AOMP_BUILD_FROZEN_ROCK == 1 ] ; then 
+   _shakey=`cat $thisdir/tr_aomp_hash_$AOMP_VERSION_STRING.txt`
+   echo git checkout $_shakey
+   git checkout $_shakey
+else
+   echo "WARNING: AOMP_BUILD_FROZEN_ROCK=0 is for starting new AOMP release."
+   echo git checkout main
+   git checkout main
+   echo git pull
+   git pull
+   # Save the main shakey that identifies this AOMP release.
+   _shakey=`git log -1 | grep commit | cut -d" " -f2`
+   echo $_shakey > $thisdir/tr_aomp_hash.txt
+   echo "REMINDER: Copy $thisdir/tr_aomp_hash.txt to $thisdir/tr_aomp_hash_$AOMP_VERSION_STRING.txt"
+fi
+
+# Regardless of new or frozen TheRock, AOMP needs lastest amd-staging branch of
+# both llvm-project and hipify  amd-staging branch.
+cd $TR_AOMP_REPOS/TheRock.orig/compiler/amd-llvm
+git checkout amd-staging
+git pull
+cd $TR_AOMP_REPOS/TheRock.orig/compiler/hipify
+git checkout amd-staging
+git pull
 
 # Copy TheRock.orig to TheRock
 cd $TR_AOMP_REPOS
@@ -62,11 +83,17 @@ mkdir -p TheRock
 echo rsync -a TheRock.orig/ TheRock/
 rsync -a TheRock.orig/ TheRock/
 
-# Patch TheRock with fixes needed for working on current ammd-staging
+# Patch TheRock with fixes needed for amd-staging
 # and stable/released non-compiler branches. 
 cd TheRock
-echo "patch -p1 < $TR_AOMP_REPOS/aomp/tr_aomp/patches/tr_aomp.patch"
-patch -p1 < $TR_AOMP_REPOS/aomp/tr_aomp/patches/tr_aomp.patch
+if [ $AOMP_BUILD_FROZEN_ROCK == 1 ] ; then 
+   echo "patch -p1 < $TR_AOMP_REPOS/aomp/tr_aomp/patches/tr_aomp_$AOMP_VERSION_STRING.patch"
+   patch -p1 < $TR_AOMP_REPOS/aomp/tr_aomp/patches/tr_aomp_$AOMP_VERSION_STRING.patch
+else
+   echo "WARNING: AOMP_BUILD_FROZEN_ROCK=0 is for starting new AOMP release."
+   echo "         Apply old AOMP release patch, correct issues, then create new patch in:"
+   echo "         $TR_AOMP_REPOS/aomp/tr_aomp/patches/tr_aomp_$AOMP_VERSION_STRING.patch"
+fi
 
 # Create convenience link for developers
 ln -sf $TR_AOMP_REPOS/TheRock/compiler/amd-llvm $TR_AOMP_REPOS/llvm-project

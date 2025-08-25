@@ -1,0 +1,215 @@
+Only in TheRock/base/rocm_smi_lib/include/rocm_smi: rocm_smi64Config.h
+Only in TheRock/base/rocm_smi_lib/oam/include/oam: oamConfig.h
+Only in TheRock/base/rocm_smi_lib/python_smi_tools: rsmiBindingsInit.py
+diff -aur -x .git -x amd-llvm -x hipify -x __pycache__ -x build -x .ccache TheRock.orig/comm-libs/rccl/CMakeLists.txt TheRock/comm-libs/rccl/CMakeLists.txt
+--- TheRock.orig/comm-libs/rccl/CMakeLists.txt	2025-08-25 11:01:12.701344187 -0500
++++ TheRock/comm-libs/rccl/CMakeLists.txt	2025-08-25 11:28:54.295487859 -0500
+@@ -181,6 +181,9 @@
+ message(STATUS "${COMPILER_EXE_NAME} HIP version:    ${hip_version_string}")
+ 
+ ## Check for ROCm version
++if(NOT ROCM_PATH)
++  set(ROCM_PATH "${CMAKE_BINARY_DIR}/../../../dist/rocm")
++endif()
+ set(EXPLICIT_ROCM_VERSION "" CACHE STRING "Explicit ROCM version to compile to (auto detect if empty)")
+ if(EXPLICIT_ROCM_VERSION)
+   set(rocm_version_string "${EXPLICIT_ROCM_VERSION}")
+diff -aur -x .git -x amd-llvm -x hipify -x __pycache__ -x build -x .ccache TheRock.orig/comm-libs/rccl/test/CMakeLists.txt TheRock/comm-libs/rccl/test/CMakeLists.txt
+--- TheRock.orig/comm-libs/rccl/test/CMakeLists.txt	2025-08-25 11:01:12.736344929 -0500
++++ TheRock/comm-libs/rccl/test/CMakeLists.txt	2025-08-25 11:28:54.296487881 -0500
+@@ -92,6 +92,7 @@
+ 
+     add_dependencies(rccl-UnitTestsFixtures replace_static_in_hipify)
+   endif()
++  target_link_libraries(rccl-UnitTests PRIVATE -L ${CMAKE_BINARY_DIR})
+ 
+   ## Set include directories for the target(s)
+   foreach(target ${RCCL_TEST_EXECUTABLES})
+Only in TheRock: compile_commands.json
+diff -aur -x .git -x amd-llvm -x hipify -x __pycache__ -x build -x .ccache TheRock.orig/compiler/CMakeLists.txt TheRock/compiler/CMakeLists.txt
+--- TheRock.orig/compiler/CMakeLists.txt	2025-08-25 10:55:19.728876813 -0500
++++ TheRock/compiler/CMakeLists.txt	2025-08-25 11:28:54.296487881 -0500
+@@ -10,6 +10,11 @@
+   if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+     list(APPEND _extra_llvm_cmake_args "-DLLVM_ENABLE_PEDANTIC=OFF")
+   endif()
++  list(APPEND _extra_llvm_cmake_args "-DLLVM_ENABLE_PROJECTS=clang;lld;clang-tools-extra;flang")
++  list(APPEND _extra_llvm_cmake_args "-DLLVM_ENABLE_RUNTIMES=libcxx;libcxxabi;libunwind;openmp;offload;compiler-rt;flang-rt;")
++  if (DEFINED ENV{AOMP_VERSION_STRING})
++    list(APPEND _extra_llvm_cmake_args "-DLLVM_VERSION_SUFFIX=_AOMP_$ENV{AOMP_VERSION_STRING}")
++  endif()
+ 
+   # If the compiler is not pristine (i.e. has patches), then there will be a
+   # ".amd-llvm.smrev" file present which must be used instead of the auto
+@@ -67,6 +72,9 @@
+       -DCLANG_ENABLE_STATIC_ANALYZER=OFF
+       -DCLANG_ENABLE_CLANGD=OFF
+       -DCLANG_TIDY_ENABLE_STATIC_ANALYZER=OFF
++      -DCLANG_TOOL_CLANG_LINKER_WRAPPER_BUILD=ON
++      -DOPENMP_ENABLE_LIBOMPTARGET=ON
++      -DLIBOMPTARGET_BUILD_DEVICE_FORTRT=ON
+ 
+       ${_extra_llvm_cmake_args}
+     BUILD_DEPS
+diff -aur -x .git -x amd-llvm -x hipify -x __pycache__ -x build -x .ccache TheRock.orig/compiler/pre_hook_amd-llvm.cmake TheRock/compiler/pre_hook_amd-llvm.cmake
+--- TheRock.orig/compiler/pre_hook_amd-llvm.cmake	2025-08-25 10:55:19.728876813 -0500
++++ TheRock/compiler/pre_hook_amd-llvm.cmake	2025-08-25 11:28:54.296487881 -0500
+@@ -14,12 +14,28 @@
+   #     Should they be supported? What depends on them?
+   set(LLVM_ENABLE_LIBCXX OFF)
+   set(LLVM_ENABLE_RUNTIMES "compiler-rt" CACHE STRING "Enabled runtimes" FORCE)
++  set(LLVM_ENABLE_PROJECTS "clang;lld;clang-tools-extra;flang" CACHE STRING "Enable LLVM projects" FORCE)
+ else()
+   set(LLVM_BUILD_LLVM_DYLIB ON)
+   set(LLVM_LINK_LLVM_DYLIB ON)
+   set(LLVM_ENABLE_LIBCXX ON)
+-  set(LLVM_ENABLE_RUNTIMES "compiler-rt;libunwind;libcxx;libcxxabi;openmp" CACHE STRING "Enabled runtimes" FORCE)
+-  # Settinng "LIBOMP_COPY_EXPORTS" to `OFF` "aids parallel builds to not interfere
++  set(LLVM_ENABLE_PROJECTS "clang;lld;clang-tools-extra;flang" CACHE STRING "Enable LLVM projects" FORCE)
++  set(LLVM_ENABLE_RUNTIMES "libcxx;libcxxabi;libunwind;openmp;offload;compiler-rt;flang-rt" CACHE STRING "Enabled runtimes" FORCE)
++
++  if("offload" IN_LIST LLVM_ENABLE_RUNTIMES)
++    set(OPENMP_ENABLE_LIBOMPTARGET ON)
++    set(LIBOMPTARGET_BUILD_DEVICE_FORTRT ON)
++    set(LIBOMPTARGET_ENABLE_DEBUG ON)
++    set(LIBOMPTARGET_NO_SANITIZER_AMDGPU ON)
++    set(LIBOMP_INSTALL_RPATH "\$ORIGIN:\$ORIGIN/../lib:\$ORIGIN/../../lib:\$ORIGIN/../../../lib")
++    # Disable building rocr-runtime as external project until libnuma-dev dependency can be satisifed
++    #set(LIBOMPTARGET_EXTERNAL_PROJECT_HSA_PATH "${THEROCK_SOURCE_DIR}/core/ROCR-Runtime")
++    #set(OFFLOAD_EXTERNAL_PROJECT_UNIFIED_ROCR ON)
++
++    # Disable ZSTD until dependency is resolved
++    set(LLVM_ENABLE_ZLIB OFF)
++  endif()
++  # Setting "LIBOMP_COPY_EXPORTS" to `OFF` "aids parallel builds to not interfere
+   # with each other" as libomp and generated headers are copied into the original
+   # source otherwise. Defaults to `ON`.
+   set(LIBOMP_COPY_EXPORTS OFF)
+@@ -27,7 +43,6 @@
+ 
+ # Set the LLVM_ENABLE_PROJECTS variable before including LLVM's CMakeLists.txt
+ set(BUILD_TESTING OFF CACHE BOOL "DISABLE BUILDING TESTS IN SUBPROJECTS" FORCE)
+-set(LLVM_ENABLE_PROJECTS "clang;lld;clang-tools-extra" CACHE STRING "Enable LLVM projects" FORCE)
+ set(LLVM_TARGETS_TO_BUILD "AMDGPU;X86" CACHE STRING "Enable LLVM Targets" FORCE)
+ 
+ # Packaging.
+@@ -35,8 +50,8 @@
+ 
+ # Build the device-libs as part of the core compiler so that clang works by
+ # default (as opposed to other components that are *users* of the compiler).
+-set(LLVM_EXTERNAL_AMDDEVICE_LIBS_SOURCE_DIR "${THEROCK_SOURCE_DIR}/compiler/amd-llvm/amd/device-libs")
+-set(LLVM_EXTERNAL_PROJECTS "amddevice-libs" CACHE STRING "Enable extra projects" FORCE)
++set(LLVM_EXTERNAL_ROCM_DEVICE_LIBS_SOURCE_DIR "${THEROCK_SOURCE_DIR}/compiler/amd-llvm/amd/device-libs")
++set(LLVM_EXTERNAL_PROJECTS "rocm-device-libs" CACHE STRING "Enable extra projects" FORCE)
+ 
+ # TODO2: This mechanism has races in certain situations, failing to create a
+ # symlink. Revisit once devicemanager code is made more robust.
+@@ -106,14 +121,14 @@
+     OPT
+     YAML2OBJ
+   )
+-  if(WIN32)
++  # if(WIN32)
+     # These can be provided by the "C++ Clang tools for Windows" in MSVC, but
+     # we might as well build them from source ourselves.
+     list(APPEND _llvm_required_tools "LLVM_AR")
+     list(APPEND _llvm_required_tools "LLVM_DLLTOOL")
+     list(APPEND _llvm_required_tools "LLVM_LIB")
+     list(APPEND _llvm_required_tools "LLVM_RANLIB")
+-  endif()
++  # endif()
+   therock_set_implicit_llvm_options(LLVM "${CMAKE_CURRENT_SOURCE_DIR}/tools" "${_llvm_required_tools}")
+ 
+   # Clang tools that are required.
+@@ -123,6 +138,7 @@
+     CLANG_OFFLOAD_BUNDLER
+     CLANG_OFFLOAD_PACKAGER
+     CLANG_OFFLOAD_WRAPPER
++    CLANG_LINKER_WRAPPER
+     CLANG_SHLIB
+     DRIVER
+   )
+diff -aur -x .git -x amd-llvm -x hipify -x __pycache__ -x build -x .ccache TheRock.orig/core/CMakeLists.txt TheRock/core/CMakeLists.txt
+--- TheRock.orig/core/CMakeLists.txt	2025-08-25 10:55:19.728876813 -0500
++++ TheRock/core/CMakeLists.txt	2025-08-25 15:17:23.224812406 -0500
+@@ -105,9 +105,11 @@
+       "-DHIP_PLATFORM=amd"
+       "-DHIP_COMMON_DIR=${CMAKE_CURRENT_SOURCE_DIR}/HIP"
+       "-DCLR_BUILD_HIP=ON"
++      "-DBUILD_ICD=ON"
+       # Legacy: Disable various auto-detection logic that breaks out of jail
+       # and can use local machine tools.
+       "-DHIPCC_BIN_DIR="
++      #      "-DHIPCC_BIN_DIR=${CMAKE_CURRENT_BINARY_DIR}/../compiler/hipcc/dist/bin"
+       ${HIP_CLR_CMAKE_ARGS}
+     BUILD_DEPS
+       rocm-cmake
+diff -aur -x .git -x amd-llvm -x hipify -x __pycache__ -x build -x .ccache TheRock.orig/core/rocminfo/CMakeLists.txt TheRock/core/rocminfo/CMakeLists.txt
+--- TheRock.orig/core/rocminfo/CMakeLists.txt	2025-08-25 11:01:23.396570765 -0500
++++ TheRock/core/rocminfo/CMakeLists.txt	2025-08-25 11:28:54.297487902 -0500
+@@ -57,7 +57,7 @@
+ ## Set default module path if not already set
+ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules/")
+ ## Include common cmake modules
+-include(utils)
++include(cmake_modules/utils.cmake)
+ 
+ #
+ # Process input variables
+diff -aur -x .git -x amd-llvm -x hipify -x __pycache__ -x build -x .ccache TheRock.orig/core/ROCR-Runtime/libhsakmt/tests/kfdtest/scripts/kfdtest.exclude TheRock/core/ROCR-Runtime/libhsakmt/tests/kfdtest/scripts/kfdtest.exclude
+--- TheRock.orig/core/ROCR-Runtime/libhsakmt/tests/kfdtest/scripts/kfdtest.exclude	2025-08-25 11:01:23.112564749 -0500
++++ TheRock/core/ROCR-Runtime/libhsakmt/tests/kfdtest/scripts/kfdtest.exclude	2025-08-25 11:28:54.298487923 -0500
+@@ -326,22 +326,6 @@
+ "$BLACKLIST_ALL_ASICS:"\
+ "$BLACKLIST_GFX10_NV2X"
+ 
+-FILTER[gfx940]=\
+-"$BLACKLIST_ALL_ASICS:"\
+-"KFDMemoryTest.LargestSysBufferTest:"\
+-"KFDMemoryTest.BigSysBufferStressTest:"\
+-"KFDMemoryTest.FlatScratchAccess:"\
+-"KFDIPCTest.BasicTest:"\
+-"KFDQMTest.QueueLatency"
+-
+-FILTER[gfx941]=\
+-"$BLACKLIST_ALL_ASICS:"\
+-"KFDMemoryTest.LargestSysBufferTest:"\
+-"KFDMemoryTest.BigSysBufferStressTest:"\
+-"KFDMemoryTest.FlatScratchAccess:"\
+-"KFDIPCTest.BasicTest:"\
+-"KFDQMTest.QueueLatency"
+-
+ FILTER[gfx942]=\
+ "$BLACKLIST_ALL_ASICS:"\
+ "KFDMemoryTest.LargestSysBufferTest:"\
+diff -aur -x .git -x amd-llvm -x hipify -x __pycache__ -x build -x .ccache TheRock.orig/profiler/rocprofiler-sdk/source/lib/common/CMakeLists.txt TheRock/profiler/rocprofiler-sdk/source/lib/common/CMakeLists.txt
+--- TheRock.orig/profiler/rocprofiler-sdk/source/lib/common/CMakeLists.txt	2025-08-25 11:01:24.010583773 -0500
++++ TheRock/profiler/rocprofiler-sdk/source/lib/common/CMakeLists.txt	2025-08-25 15:36:08.384364695 -0500
+@@ -49,6 +49,7 @@
+ target_sources(rocprofiler-sdk-common-library PRIVATE ${common_sources} ${common_headers})
+ target_include_directories(rocprofiler-sdk-common-library
+                            PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/source>)
++target_include_directories(rocprofiler-sdk-common-library PRIVATE ${PROJECT_BINARY_DIR}/../../../dist/rocm/include)
+ 
+ target_link_libraries(
+     rocprofiler-sdk-common-library
+diff -aur -x .git -x amd-llvm -x hipify -x __pycache__ -x build -x .ccache TheRock.orig/profiler/rocprofiler-sdk/source/lib/output/CMakeLists.txt TheRock/profiler/rocprofiler-sdk/source/lib/output/CMakeLists.txt
+--- TheRock.orig/profiler/rocprofiler-sdk/source/lib/output/CMakeLists.txt	2025-08-25 11:04:19.056290714 -0500
++++ TheRock/profiler/rocprofiler-sdk/source/lib/output/CMakeLists.txt	2025-08-25 15:36:54.311363832 -0500
+@@ -76,4 +76,5 @@
+ target_compile_definitions(rocprofiler-sdk-output-library
+                            PRIVATE PROJECT_BINARY_DIR="${PROJECT_BINARY_DIR}")
+ 
++target_include_directories(rocprofiler-sdk-common-library PRIVATE ${PROJECT_BINARY_DIR}/../../../dist/rocm/include)
+ add_subdirectory(sql)
+diff -aur -x .git -x amd-llvm -x hipify -x __pycache__ -x build -x .ccache TheRock.orig/profiler/roctracer/test/CMakeLists.txt TheRock/profiler/roctracer/test/CMakeLists.txt
+--- TheRock.orig/profiler/roctracer/test/CMakeLists.txt	2025-08-25 11:01:24.088585425 -0500
++++ TheRock/profiler/roctracer/test/CMakeLists.txt	2025-08-25 11:28:54.299487944 -0500
+@@ -124,6 +124,7 @@
+ ## Build the ROCTX test
+ set_source_files_properties(app/roctx_test.cpp PROPERTIES HIP_SOURCE_PROPERTY_FORMAT 1)
+ hip_add_executable(roctx_test app/roctx_test.cpp)
++target_include_directories(roctx_test PRIVATE ${PROJECT_BINARY_DIR}/../../../dist/rocm/include)
+ ## Adding generated build-id as hip_add_executable doesn't generate automatically
+ target_link_options(roctx_test PRIVATE "-Wl,--build-id=md5")
+ target_link_libraries(roctx_test Threads::Threads roctx)
