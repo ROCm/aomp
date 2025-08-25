@@ -1,13 +1,10 @@
 
 AOMP is a development build of ROCm for the ROCm-compiler.
-AOMP builds the amd-staging branch of the ROCm llvm-compliler with
-the latest stable release branches of supporting components. 
+AOMP builds the amd-staging branch of llvm-compliler and hipify with
+some set of git checkouts for TheRock submodules.
 
 This directory (aomp/tr_aomp) contains all the support to build AOMP
-using TheRock. This includes the manifest file tr_aomp.xml.
-The manifest file is used by tr_set_aomp_branches.sh to change
-the submodule branch from some set of hashes determined by 
-TheRock oligarchs to branches needed by AOMP. 
+using TheRock.
 
 Currently, building AOMP with TheRock is experimental. 
 
@@ -32,4 +29,4 @@ llvm-project dev flow: edit, build, install, test
   - cd tr_aomp/TheRock/build ; rsync -a dist/rocm/ $AOMP_INSTALL_DIR/
   - test AOMP=$HOME/rocm/aomp which is a symlink to $AOMP_INSTALL_DIR 
 
-This README file was last updated on 8/2r20/2025
+This README file was last updated on 8/25/2025
