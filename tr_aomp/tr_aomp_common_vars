@@ -27,5 +27,32 @@ if [ ! -d $TR_AOMP_REPOS ] ; then
   [ $? != 0 ] && echo "ERROR: could not create $TR_AOMP_REPOS" && exit 1
 fi
 
-export AOMP_VERSION_STRING AOMP_VERSION AOMP_VERSION_MOD AOMP_MAJOR_VERSION AOMP AOMP_INSTALL_DIR TR_AOMP_REPOS
+# Set AOMP_BUILD_FROZEN_ROCK to 0 when AOMP build manager wants to start 
+# new AOMP release. All developers use default 1 to clone and build AOMP
+# using a frozen set of submodules except for llvm-project which builds
+# with branch amd-staging. 
+# Attention AOMP Build Manager: When building new AOMP release,  don't 
+#                               forget to update new AOMP release above.
+AOMP_BUILD_FROZEN_ROCK=${AOMP_BUILD_FROZEN_ROCK:-1} 
+if [ $AOMP_BUILD_FROZEN_ROCK == 0 ] ; then 
+   if [ -f $TR_AOMP_REPOS/aomp/tr_aomp_hash_$AOMP_VERSION_STRING.txt ] ; then 
+      echo "ERROR: AOMP_BUILD_FROZEN_ROCK=0 BUT file $TR_AOMP_REPOS/aomp/tr_aomp_hash_$AOMP_VERSION_STRING.txt ALREADY EXISTS!" 
+      exit 1
+   fi
+else
+   if [ ! -f $TR_AOMP_REPOS/aomp/tr_aomp/tr_aomp_hash_$AOMP_VERSION_STRING.txt ] ; then 
+      echo "ERROR: AOMP_BUILD_FROZEN_ROCK=1 BUT file $TR_AOMP_REPOS/aomp/tr_aomp/tr_aomp_hash_$AOMP_VERSION_STRING.txt DOES NOT EXISTS!" 
+      exit 1
+   fi
+   if [ ! -f $TR_AOMP_REPOS/aomp/tr_aomp/patches/tr_aomp_$AOMP_VERSION_STRING.patch ] ; then 
+      echo "ERROR: AOMP_BUILD_FROZEN_ROCK=1 BUT file $TR_AOMP_REPOS/aomp/tr_aomp/tr_aomp_hash_$AOMP_VERSION_STRING.txt DOES NOT EXISTS!" 
+      exit 1
+   fi
+fi
+
+# to speedup build one can skip rccl build
+AOMP_SKIP_RCCL=${AOMP_SKIP_RCCL:-0}
+AOMP_SKIP_MATH_LIBS=${AOMP_SKIP_MATH_LIBS:-0}
+
+export AOMP_VERSION_STRING AOMP_VERSION AOMP_VERSION_MOD AOMP_MAJOR_VERSION AOMP AOMP_INSTALL_DIR TR_AOMP_REPOS AOMP_BUILD_FROZEN_ROCK AOMP_SKIP_RCCL
 

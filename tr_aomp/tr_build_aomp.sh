@@ -31,11 +31,21 @@ mkdir -p $_therockdir/build
 [ -f $_config_out ] && rm $_config_out
 [ -f $_dist_out ] && rm $_dist_out
 
-#_cmd="cmake -B build -GNinja -DTHEROCK_AMDGPU_TARGETS=gfx90a -DTHEROCK_ENABLE_COMPOSABLE_KERNEL=OFF -DTHEROCK_ENABLE_FFT=OFF -DTHEROCK_ENABLE_RAND=OFF -DTHEROCK_ENABLE_PRIM=OFF -DTHEROCK_ENABLE_BLAS=OFF -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache $PWD"
-#_cmd="cmake -B build -GNinja -DTHEROCK_AMDGPU_TARGETS=gfx90a -DTHEROCK_ENABLE_COMPOSABLE_KERNEL=OFF -DTHEROCK_ENABLE_MATH_LIBS=OFF -DTHEROCK_ENABLE_ML_LIBS=OFF -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DTHEROCK_BUNDLE_SYSDEPS=OFF $PWD"
-#
-_cmd="cmake -B build -GNinja -DTHEROCK_AMDGPU_TARGETS=gfx90a -DTHEROCK_ENABLE_COMPOSABLE_KERNEL=OFF -DTHEROCK_ENABLE_MATH_LIBS=OFF -DTHEROCK_ENABLE_ML_LIBS=OFF -DTHEROCK_BUNDLE_SYSDEPS=OFF -DTHEROCK_BUILD_TESTING=OFF $_therockdir"
+if [ ${AOMP_SKIP_RCCL} == 1 ] ; then
+   _rccl_opt="-DTHEROCK_ENABLE_RCCL=OFF"
+else
+   _rccl_opt="-DTHEROCK_ENABLE_RCCL=ON"
+fi
+if [ ${AOMP_SKIP_MATH_LIBS} == 1 ] ; then
+   _mathlibs_opt="-DTHEROCK_ENABLE_MATH_LIBS=OFF"
+else
+   _mathlibs_opt="-DTHEROCK_ENABLE_MATH_LIBS=ON"
+fi
+
+_cmd="cmake -B build -GNinja -DTHEROCK_AMDGPU_TARGETS=gfx90a -DTHEROCK_ENABLE_COMPOSABLE_KERNEL=OFF $_mathlibs_opt  -DTHEROCK_ENABLE_ML_LIBS=OFF -DTHEROCK_BUNDLE_SYSDEPS=ON -DTHEROCK_BUILD_TESTING=OFF $_rccl_opt $_therockdir"
+
 eval "$(python3 ./build_tools/setup_ccache.py)" 2>&1 >>$_setup_ccache_out
+echo "===> CMAKE CMD:$_cmd"
 echo "===> CMD:$_cmd" >> $_config_out
 date >> $_config_out
 $_cmd 2>&1 >> $_config_out
