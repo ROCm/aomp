@@ -19,7 +19,7 @@ FC              = ${AOMP}/bin/flang
 #HIP_LIB_PATH   ?= ${ROCM_PATH}/hip/lib
 #HIP_LIB_PATH   ?= /COD/LATEST/aomp/lib
 #HIP_LIB_PATH   ?= /opt/rocm/lib
-HIP_LIB_PATH    = $(realpath $(realpath ${AOMP})/../../lib)
+HIP_LIB_PATH    ?= $(realpath $(realpath ${AOMP})/../../lib)
 
 # Compiler flags
 HIP_FLAGS       = -O3 --offload-arch=${AOMP_GPU}
