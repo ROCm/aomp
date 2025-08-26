@@ -114,7 +114,8 @@ else
 fi
 
 # Create convenience link for developers
-ln -sf $TR_AOMP_REPOS/TheRock/compiler/amd-llvm $TR_AOMP_REPOS/llvm-project
+cd $TR_AOMP_REPOS
+ln -sr TheRock/compiler/amd-llvm llvm-project
 
 cd $_curdir
 echo "DONE $0"
