@@ -23,10 +23,17 @@ These two symlinks help to iterate development of llvm-project.
 ln -sf $TR_AOMP_REPOS/TheRock/compiler/amd-llvm $TR_AOMP_REPOS/llvm-project
 ln -sf $TR_AOMP_REPOS/TheRock/build/compiler/amd-llvm/build $TR_AOMP_REPOS/llvm-project/build
 
-llvm-project dev flow: edit, build, install, test
-  - cd tr_aomp/llvm-project ; edit llvm-project compiler or runtime sources
-  - cd tr_aomp/llvm-project/build ; ninja therock-dist
-  - cd tr_aomp/TheRock/build ; rsync -a dist/rocm/ $AOMP_INSTALL_DIR/
-  - test AOMP=$HOME/rocm/aomp which is a symlink to $AOMP_INSTALL_DIR 
+Compiler development flow: edit, build, install, test
+EDIT
+  - cd git/tr_aomp/llvm-project ; edit files in the llvm source tree
 
-This README file was last updated on 8/25/2025
+UPDATE BUILD
+  - cd $TR_AOMP_REPOS/llvm-project/build
+    run ./build_install_aomp_from_therock.sh which does these two steps:
+      ninja therock-dist
+      rsync -av $TR_AOMP_REPOS/TheRock/build/dist/rocm/ $AOMP_INSTALL_DIR/
+TEST
+  - test with AOMP=$AOMP_INSTALL_DIR or
+    AOMP=/work/$USER/rocm/aomp which is a symlink to $AOMP_INSTALL_DIR
+
+This README file was last updated on 8/26/2025

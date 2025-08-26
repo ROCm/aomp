@@ -83,6 +83,10 @@ rsync -a dist/rocm/ $AOMP_INSTALL_DIR/
 echo ln -sf $AOMP_INSTALL_DIR $AOMP
 ln -sf $AOMP_INSTALL_DIR $AOMP
 
+# Convenience link for rebuilding the compiler.
+ln -sf $TR_AOMP_REPOS/TheRock/build/compiler/amd-llvm/build $TR_AOMP_REPOS/llvm-project/build
+ln -sf $TR_AOMP_REPOS/aomp/tr_aomp/build_install_aomp_from_therock.sh $TR_AOMP_REPOS/llvm-project/build/.
+
 echo "DONE see $_config_out and $_build_out and $_dist_out " | tee -a  $_dist_out
 
 

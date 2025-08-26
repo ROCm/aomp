@@ -23,17 +23,40 @@ ___ Fix Ignoring extra path from command line: "flang-rt"
     when compiler/amd-llvm is built.  See logs/amd-llvm_configure.log 
 ___ fix all smoke test fails
 ___ Expand THEROCK set of targets to include everything. 
-___ Add these symlinks 
+_X_ Create and link build_install_aomp_from_therock.sh for incremental llvm-project updates
+_X_ Add these symlinks 
     ln -sf $TR_AOMP_REPOS/TheRock/build/compiler/amd-llvm/build $TR_AOMP_REPOS/llvm-project/build
+    ln -sf $TR_AOMP_REPOS/aomp/tr_aomp/build_install_aomp_from_therock.sh $TR_AOMP_REPOS/llvm-project/build/.
 ___ Answer Ron's question in README. Is there a continue option like we had with build_aomp.sh?
-    No because we expect it never to fail and after a successful completion .
+    No because we expect it never to fail and after a successful completion, developer
+    only updates llvm-project and only rebuilds the compiler.
     Also TheRock does not use a serial ordering of component builds to maximize 
     parallel build. TheRock enforces component dependencies for proper ordering. 
     The only iteration is to amd-staging branch of llvm-project. 
-    The README already explains the dev cycle , edit-build-install-test
+    The README already explains the dev cycle: edit-build-install-test
 _X_ Delete use of manifest file
 _X_ Delete use of tr_list* scripts
 _X_ Delete use of tr_set_aomp_branch_orig script
+___ Create an aomp_<AOMP_VERSION_STRING>.info file. Use this to find
+    Therock shakey and record other useful information. 
+    tr_add_to_info <name> <values>
+    Potential fields:
+       info_file_name: aomp_<AOMP_VERSION_STRING>.info
+       aomp_version: <AOMP_VERSION_STRING>
+       start_date: <Date when shakey was made>
+       release_date: <Date of build>
+       patch_file: patches/<AOMP_VERSION_STING>.patch
+       therock_shakey:
+       user:
+       hostname:
+       staging_repos: llvm-project hipify
+       staging_shakeys: 
+       staging_branches: amd-staging amd-staging
+       therock_config: The TheRock cmake command .
+       Copy info file to AOMP_INSTALL_DIR 
+   
+
+        
 
 
 
