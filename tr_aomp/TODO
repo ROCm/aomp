@@ -44,7 +44,7 @@ ___ Create an aomp_<AOMP_VERSION_STRING>.info file. Use this to find
        info_file_name: aomp_<AOMP_VERSION_STRING>.info
        aomp_version: <AOMP_VERSION_STRING>
        start_date: <Date when shakey was made>
-       release_date: <Date of build>
+       build_date: <Date of build>
        patch_file: patches/<AOMP_VERSION_STING>.patch
        therock_shakey:
        user:

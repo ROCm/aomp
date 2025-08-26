@@ -1,0 +1,11 @@
+therock_shakey: 03e87b2e688e72a12a4c68107ee0146a22435a09
+start_date: Mon Aug 18 07:31:10 2025 -0700
+info_file: aomp_22.0-4.info
+aomp_version: 22.0-4
+build_date: Tue Aug 26 09:33:12 AM CDT 2025
+patch_file: patches/tr_aomp_22.0-4.patch
+user: grodgers
+hostname: r17
+staging_repos: llvm-project hipify
+staging_branches: amd-staging amd-staging
+therock_config: -GNinja -DTHEROCK_AMDGPU_TARGETS=gfx90a -DTHEROCK_ENABLE_COMPOSABLE_KERNEL=OFF -DTHEROCK_ENABLE_MATH_LIBS=ON -DTHEROCK_ENABLE_ML_LIBS=OFF -DTHEROCK_BUNDLE_SYSDEPS=ON -DTHEROCK_BUILD_TESTING=OFF -DTHEROCK_ENABLE_RCCL=ON

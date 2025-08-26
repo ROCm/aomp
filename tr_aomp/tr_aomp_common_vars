@@ -27,6 +27,8 @@ if [ ! -d $TR_AOMP_REPOS ] ; then
   [ $? != 0 ] && echo "ERROR: could not create $TR_AOMP_REPOS" && exit 1
 fi
 
+AOMP_INFO_FILE=$TR_AOMP_REPOS/aomp/tr_aomp/aomp_$AOMP_VERSION_STRING.info
+
 # Set AOMP_BUILD_FROZEN_ROCK to 0 when AOMP build manager wants to start 
 # new AOMP release. All developers use default 1 to clone and build AOMP
 # using a frozen set of submodules except for llvm-project which builds
@@ -35,17 +37,16 @@ fi
 #                               forget to update new AOMP release above.
 AOMP_BUILD_FROZEN_ROCK=${AOMP_BUILD_FROZEN_ROCK:-1} 
 if [ $AOMP_BUILD_FROZEN_ROCK == 0 ] ; then 
-   if [ -f $TR_AOMP_REPOS/aomp/tr_aomp_hash_$AOMP_VERSION_STRING.txt ] ; then 
-      echo "ERROR: AOMP_BUILD_FROZEN_ROCK=0 BUT file $TR_AOMP_REPOS/aomp/tr_aomp_hash_$AOMP_VERSION_STRING.txt ALREADY EXISTS!" 
+   if [ -f $AOMP_INFO_FILE ] ; then 
+      echo "ERROR: AOMP_BUILD_FROZEN_ROCK=0 BUT file $AOMP_INFO_FILE AREADY EXISTS"
       exit 1
    fi
+   echo "ERROR: Support for AOMP_BUILD_FROZEN_ROCK==0 is not complete"
+   echo "       In the future, this will be used to initialize AOMP release"
+   exit 1
 else
-   if [ ! -f $TR_AOMP_REPOS/aomp/tr_aomp/tr_aomp_hash_$AOMP_VERSION_STRING.txt ] ; then 
-      echo "ERROR: AOMP_BUILD_FROZEN_ROCK=1 BUT file $TR_AOMP_REPOS/aomp/tr_aomp/tr_aomp_hash_$AOMP_VERSION_STRING.txt DOES NOT EXISTS!" 
-      exit 1
-   fi
-   if [ ! -f $TR_AOMP_REPOS/aomp/tr_aomp/patches/tr_aomp_$AOMP_VERSION_STRING.patch ] ; then 
-      echo "ERROR: AOMP_BUILD_FROZEN_ROCK=1 BUT file $TR_AOMP_REPOS/aomp/tr_aomp/tr_aomp_hash_$AOMP_VERSION_STRING.txt DOES NOT EXISTS!" 
+   if [ ! -f $AOMP_INFO_FILE ] ; then 
+      echo "ERROR: AOMP_BUILD_FROZEN_ROCK=1 BUT file $AOMP_INFO_FILE DOES NOT EXIST"
       exit 1
    fi
 fi
@@ -53,6 +54,7 @@ fi
 # to speedup build one can skip rccl build
 AOMP_SKIP_RCCL=${AOMP_SKIP_RCCL:-0}
 AOMP_SKIP_MATH_LIBS=${AOMP_SKIP_MATH_LIBS:-0}
+
 
 export AOMP_VERSION_STRING AOMP_VERSION AOMP_VERSION_MOD AOMP_MAJOR_VERSION AOMP AOMP_INSTALL_DIR TR_AOMP_REPOS AOMP_BUILD_FROZEN_ROCK AOMP_SKIP_RCCL
 

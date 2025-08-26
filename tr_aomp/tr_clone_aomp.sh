@@ -21,6 +21,7 @@ if [ ! -d $TR_AOMP_REPOS ] ; then
    exit 
 fi
 
+cd $TR_AOMP_REPOS
 if [ -d $TR_AOMP_REPOS/aomp ] ; then 
    echo "WARNING:  Skipping clone of aomp , $TR_AOMP_REPOS/aomp already exists"
 else
@@ -39,8 +40,16 @@ fi
 cd $TR_AOMP_REPOS
 
 echo git clone https://github.com/ROCm/TheRock.git -b main --remote-submodules TheRock.orig
-git clone https://github.com/ROCm/TheRock.git -b main --remote-submodules TheRock.orig
+#git clone https://github.com/ROCm/TheRock.git -b main --remote-submodules TheRock.orig
+git clone https://github.com/ROCm/TheRock.git -b main TheRock.orig
 cd TheRock.orig
+_shakey=`grep "^therock_shakey:" $AOMP_INFO_FILE | cut -d":" -f2- | xargs`
+echo git checkout $_shakey
+git checkout $_shakey
+echo git submodule init
+git submodule init
+echo git submodule update
+git submodule update
 
 #  Do TheRock initialization, 3 steps
 echo "python3 -m venv .venv && source .venv/bin/activate"
@@ -53,7 +62,7 @@ python ./build_tools/fetch_sources.py 2>&1 | tee fetch_sources.out
 echo cd $TR_AOMP_REPOS/TheRock.orig
 cd $TR_AOMP_REPOS/TheRock.orig
 if [ $AOMP_BUILD_FROZEN_ROCK == 1 ] ; then 
-   _shakey=`cat $thisdir/tr_aomp_hash_$AOMP_VERSION_STRING.txt`
+   _shakey=`grep "^therock_shakey:" $AOMP_INFO_FILE | cut -d":" -f2- | xargs`
    echo git checkout $_shakey
    git checkout $_shakey
 else
@@ -64,8 +73,17 @@ else
    git pull
    # Save the main shakey that identifies this AOMP release.
    _shakey=`git log -1 | grep commit | cut -d" " -f2`
-   echo $_shakey > $thisdir/tr_aomp_hash.txt
-   echo "REMINDER: Copy $thisdir/tr_aomp_hash.txt to $thisdir/tr_aomp_hash_$AOMP_VERSION_STRING.txt"
+   echo "$thisdir/tr_add_info.sh therock_shakey $_shakey"
+   $thisdir/tr_add_info.sh therock_shakey $_shakey 
+   _date=`date`
+   $thisdir/tr_add_info.sh start_date $_date
+   $thisdir/tr_add_info.sh aomp_version $AOMP_VERSION_STRING
+   $thisdir/tr_add_info.sh patch_file patches/tr_aomp_/$AOMP_VERSION_STRING.patch
+   $thisdir/tr_add_info.sh user $USER
+   _hostname=`hostname`
+   $thisdir/tr_add_info.sh hostname $_hostname
+   $thisdir/tr_add_info.sh staging_repos llvm-project hipify
+   $thisdir/tr_add_info.sh staging_branches amd-staging amd-staging
 fi
 
 # Regardless of new or frozen TheRock, AOMP needs lastest amd-staging branch of
