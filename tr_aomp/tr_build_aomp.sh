@@ -43,6 +43,8 @@ else
 fi
 
 _cmd="cmake -B build -GNinja -DTHEROCK_AMDGPU_TARGETS=gfx90a -DTHEROCK_ENABLE_COMPOSABLE_KERNEL=OFF $_mathlibs_opt  -DTHEROCK_ENABLE_ML_LIBS=OFF -DTHEROCK_BUNDLE_SYSDEPS=ON -DTHEROCK_BUILD_TESTING=OFF $_rccl_opt $_therockdir"
+$thisdir/tr_add_info therock_config $_cmd
+$thisdir/tr_add_info build_path $PATH
 
 eval "$(python3 ./build_tools/setup_ccache.py)" 2>&1 >>$_setup_ccache_out
 echo "===> CMAKE CMD:$_cmd"
@@ -87,6 +89,8 @@ ln -sf $AOMP_INSTALL_DIR $AOMP
 ln -sf $TR_AOMP_REPOS/TheRock/build/compiler/amd-llvm/build $TR_AOMP_REPOS/llvm-project/build
 ln -sf $TR_AOMP_REPOS/aomp/tr_aomp/build_install_aomp_from_therock.sh $TR_AOMP_REPOS/llvm-project/build/.
 
+_date=`date`
+$thisdir/tr_add_info build_date $_date
 echo "DONE see $_config_out and $_build_out and $_dist_out " | tee -a  $_dist_out
 
 
