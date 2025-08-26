@@ -15,6 +15,11 @@ The current build process is:
 2) ./tr_build_aomp.sh
    check TheRock/build/build.out
 
+TO SAVE LOTS OF TIME:  if you are not interested in rccl or the math libraries
+set these env vars before running tr_build_aomp.sh. 
+AOMP_SKIP_RCCL=1
+AOMP_SKIP_MATH_LIBS=1
+
 tr_build_aomp.sh builds rocm into $TR_AOMP_REPOS/TheRock/build/dist/rocm.
 then copies using rsync from $TR_AOMP_REPOS/TheRock/build/dist/rocm 
 to $AOMP_INSTALL_DIR.
