@@ -55,7 +55,7 @@ ___ Create an aomp_<AOMP_VERSION_STRING>.info file. Use this to find
        therock_config: The TheRock cmake command .
        Copy info file to AOMP_INSTALL_DIR 
    
-
+___ Eliminate brakout file logging in tr_build_aomp.sh
         
 
 
