@@ -1,0 +1,194 @@
+diff --git a/runtime/hsa-runtime/CMakeLists.txt b/runtime/hsa-runtime/CMakeLists.txt
+index 53c52ceb..3d5b2810 100644
+--- a/runtime/hsa-runtime/CMakeLists.txt
++++ b/runtime/hsa-runtime/CMakeLists.txt
+@@ -122,6 +122,7 @@ target_include_directories( ${CORE_RUNTIME_TARGET}
+   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+   PRIVATE
+   ${CMAKE_CURRENT_SOURCE_DIR}
++  ${CMAKE_CURRENT_SOURCE_DIR}/../../../simde
+   ${CMAKE_CURRENT_SOURCE_DIR}/libamdhsacode
+   ${CMAKE_CURRENT_BINARY_DIR}/core/runtime/trap_handler
+   ${CMAKE_CURRENT_BINARY_DIR}/core/runtime/blit_shaders)
+diff --git a/runtime/hsa-runtime/core/driver/kfd/amd_kfd_driver.cpp b/runtime/hsa-runtime/core/driver/kfd/amd_kfd_driver.cpp
+index 248a7917..b75df9ef 100644
+--- a/runtime/hsa-runtime/core/driver/kfd/amd_kfd_driver.cpp
++++ b/runtime/hsa-runtime/core/driver/kfd/amd_kfd_driver.cpp
+@@ -54,6 +54,7 @@
+ #include "core/inc/amd_gpu_agent.h"
+ #include "core/inc/amd_memory_region.h"
+ #include "core/inc/runtime.h"
++#include <simde/x86/sse2.h>
+ 
+ extern r_debug _amdgpu_r_debug;
+ 
+diff --git a/runtime/hsa-runtime/core/inc/amd_gpu_agent.h b/runtime/hsa-runtime/core/inc/amd_gpu_agent.h
+index 0045289e..1d2a182e 100644
+--- a/runtime/hsa-runtime/core/inc/amd_gpu_agent.h
++++ b/runtime/hsa-runtime/core/inc/amd_gpu_agent.h
+@@ -435,9 +435,9 @@ class GpuAgent : public GpuAgentInt {
+   /// @brief Force a WC flush on PCIe devices by doing a write and then read-back
+   __forceinline void PcieWcFlush(void *ptr, size_t size) const {
+     if (!xgmi_cpu_gpu_) {
+-      _mm_sfence();
++      simde_mm_sfence();
+       *((uint8_t*)ptr + size - 1) = *((uint8_t*)ptr + size - 1);
+-      _mm_mfence();
++      simde_mm_mfence();
+       auto readback = *(reinterpret_cast<volatile uint8_t*>(ptr) + size - 1);
+     }
+   }
+diff --git a/runtime/hsa-runtime/core/inc/signal.h b/runtime/hsa-runtime/core/inc/signal.h
+index 46476042..8c9dff2e 100644
+--- a/runtime/hsa-runtime/core/inc/signal.h
++++ b/runtime/hsa-runtime/core/inc/signal.h
+@@ -108,6 +108,9 @@ inline void DoMwaitx(int64_t* addr, uint32_t timeout, bool timer_enable = false)
+ #if defined(__i386__) || defined(__x86_64__)
+   _mm_monitorx(addr, 0, 0);
+   _mm_mwaitx(0, timeout, timer_enable ? MWAITX_ECX_TIMER_ENABLE : 0);
++#else
++  // TODO:  Find arm64 test case that generates this warning and verify correct action.
++  fprintf(stderr," WARNING! DoMwaitx called for non-x86 system with timeout:%d \n",timeout);
+ #endif
+ }
+ } // namespace timer
+diff --git a/runtime/hsa-runtime/core/runtime/amd_aql_queue.cpp b/runtime/hsa-runtime/core/runtime/amd_aql_queue.cpp
+index f8613dbb..81a0c67d 100644
+--- a/runtime/hsa-runtime/core/runtime/amd_aql_queue.cpp
++++ b/runtime/hsa-runtime/core/runtime/amd_aql_queue.cpp
+@@ -1665,7 +1665,7 @@ void AqlQueue::ExecutePM4(uint32_t* cmd_data, size_t cmd_size_b, hsa_fence_scope
+   memcpy(&queue_slot[1], &slot_data[1], slot_size_b - sizeof(uint32_t));
+   if (core::Runtime::runtime_singleton_->flag().dev_mem_queue() && !agent_->is_xgmi_cpu_gpu()) {
+     // Ensure the packet body is written as header may get reordered when writing over PCIE
+-    _mm_sfence();
++    simde_mm_sfence();
+   }
+   atomic::Store(&queue_slot[0], slot_data[0], std::memory_order_release);
+ 
+diff --git a/runtime/hsa-runtime/core/runtime/amd_blit_kernel.cpp b/runtime/hsa-runtime/core/runtime/amd_blit_kernel.cpp
+index 36d21fa1..7885b3cb 100644
+--- a/runtime/hsa-runtime/core/runtime/amd_blit_kernel.cpp
++++ b/runtime/hsa-runtime/core/runtime/amd_blit_kernel.cpp
+@@ -1274,7 +1274,7 @@ void BlitKernel::PopulateQueue(uint64_t index, uint64_t code_handle, void* args,
+   std::atomic_thread_fence(std::memory_order_release);
+   if (core::Runtime::runtime_singleton_->flag().dev_mem_queue() && !queue_->needsPcieOrdering()) {
+     // Ensure the packet body is written as header may get reordered when writing over PCIE
+-    _mm_sfence();
++    simde_mm_sfence();
+   }
+   queue_buffer[index & queue_bitmask_].header = kDispatchPacketHeader;
+ 
+diff --git a/runtime/hsa-runtime/core/runtime/intercept_queue.cpp b/runtime/hsa-runtime/core/runtime/intercept_queue.cpp
+index a86dabb3..fcfc24b7 100644
+--- a/runtime/hsa-runtime/core/runtime/intercept_queue.cpp
++++ b/runtime/hsa-runtime/core/runtime/intercept_queue.cpp
+@@ -258,7 +258,7 @@ uint64_t InterceptQueue::Submit(const AqlPacket* packets, uint64_t count) {
+       ring[barrier & mask].barrier_and.completion_signal = Signal::Convert(async_doorbell_);
+       if (Runtime::runtime_singleton_->flag().dev_mem_queue() && !needsPcieOrdering()) {
+         // Ensure the packet body is written as header may get reordered when writing over PCIE
+-        _mm_sfence();
++        simde_mm_sfence();
+       }
+       atomic::Store(&ring[barrier & mask].barrier_and.header, kBarrierHeader,
+                     std::memory_order_release);
+@@ -305,7 +305,7 @@ uint64_t InterceptQueue::Submit(const AqlPacket* packets, uint64_t count) {
+       if (write_index != 0) {
+         if (Runtime::runtime_singleton_->flag().dev_mem_queue() && !needsPcieOrdering()) {
+           // Ensure the packet body is written as header may get reordered when writing over PCIE
+-          _mm_sfence();
++          simde_mm_sfence();
+         }
+         atomic::Store(&ring[write & mask].packet.header, packets[first_written_packet_index].packet.header,
+                       std::memory_order_release);
+@@ -374,7 +374,7 @@ void InterceptQueue::StoreRelaxed(hsa_signal_value_t value) {
+     handler.first(&ring[i & mask], 1, i, handler.second, PacketWriter);
+     if (Runtime::runtime_singleton_->flag().dev_mem_queue() && !needsPcieOrdering()) {
+       // Ensure the packet body is written as header may get reordered when writing over PCIE
+-      _mm_sfence();
++      simde_mm_sfence();
+     }
+     // Invalidate consumed packet.
+     atomic::Store(&ring[i & mask].packet.header, kInvalidHeader, std::memory_order_release);
+diff --git a/runtime/hsa-runtime/core/util/atomic_helpers.h b/runtime/hsa-runtime/core/util/atomic_helpers.h
+index 89cef6a6..ebf6cfe5 100644
+--- a/runtime/hsa-runtime/core/util/atomic_helpers.h
++++ b/runtime/hsa-runtime/core/util/atomic_helpers.h
+@@ -98,7 +98,7 @@ static __forceinline void PreFence(std::memory_order order) {
+     case std::memory_order_release:
+     case std::memory_order_seq_cst:
+     case std::memory_order_acq_rel:
+-      _mm_sfence();
++      simde_mm_sfence();
+     default:;
+   }
+ #endif
+@@ -116,10 +116,10 @@ static __forceinline void PostFence(std::memory_order order) {
+ #elif X64_ORDER_WC
+   switch (order) {
+     case std::memory_order_seq_cst:
+-      return _mm_mfence();
++      return simde_mm_mfence();
+     case std::memory_order_acq_rel:
+     case std::memory_order_acquire:
+-      return _mm_lfence();
++      return simde_mm_lfence();
+     default:;
+   }
+ #endif
+@@ -132,11 +132,11 @@ static __forceinline void Fence(std::memory_order order=std::memory_order_seq_cs
+   switch (order) {
+     case std::memory_order_seq_cst:
+     case std::memory_order_acq_rel:
+-      return _mm_mfence();
++      return simde_mm_mfence();
+     case std::memory_order_acquire:
+-      return _mm_lfence();
++      return simde_mm_lfence();
+     case std::memory_order_release:
+-      return _mm_sfence();
++      return simde_mm_sfence();
+     default:;
+   }
+ #else
+diff --git a/runtime/hsa-runtime/core/util/locks.h b/runtime/hsa-runtime/core/util/locks.h
+index 6c0de49a..5d5b9e1a 100644
+--- a/runtime/hsa-runtime/core/util/locks.h
++++ b/runtime/hsa-runtime/core/util/locks.h
+@@ -47,6 +47,7 @@
+ 
+ #include "utils.h"
+ #include "os.h"
++#include <simde/x86/sse2.h>
+ 
+ namespace rocr {
+ 
+@@ -72,7 +73,7 @@ class HybridMutex {
+     while (!lock_.compare_exchange_strong(old, 1)) {
+       cnt--;
+       if (cnt > maxSpinIterPause) {
+-        _mm_pause();
++        simde_mm_pause();
+       } else if (cnt-- > maxSpinIterYield) {
+         os::YieldThread();
+       } else {
+diff --git a/runtime/hsa-runtime/core/util/utils.h b/runtime/hsa-runtime/core/util/utils.h
+index 66c2028a..6ad3ce43 100644
+--- a/runtime/hsa-runtime/core/util/utils.h
++++ b/runtime/hsa-runtime/core/util/utils.h
+@@ -56,6 +56,7 @@
+ #include <algorithm>
+ #include <sstream>
+ #include <thread>
++#include <simde/x86/sse2.h>
+ 
+ namespace rocr {
+ extern FILE* log_file;
+@@ -366,7 +367,7 @@ inline void FlushCpuCache(const void* base, size_t offset, size_t len) {
+   cur += offset;
+   uintptr_t lastline = (uintptr_t)(cur + len - 1) | (cacheline_size - 1);
+   do {
+-    _mm_clflush((const void*)cur);
++    simde_mm_clflush((const void*)cur);
+     cur += cacheline_size;
+   } while (cur <= (const char*)lastline);
+ }

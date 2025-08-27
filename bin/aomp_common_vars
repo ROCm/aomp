@@ -579,7 +579,7 @@ function check_writable_installdir() {
 function patchrepo(){
 patchdir=$1
 if [ "$AOMP_APPLY_ROCM_PATCHES" == 1 ] && [ -d "$patchdir" ] ; then
-   patches=""
+   patches=()
    cd "$patchdir" || exit
    if [[ "$2" =~ "postinstall" ]]; then
      getpatchlist "$2"
@@ -588,10 +588,11 @@ if [ "$AOMP_APPLY_ROCM_PATCHES" == 1 ] && [ -d "$patchdir" ] ; then
    fi
 
    #loop through list of patches to apply
-   if [ "$patches" != "" ] ; then
+   if [ ${#patches[@]} != 0 ] ; then
    patchloc=${AOMP_PATCH_CONTROL_FILE%/*}
    echo "patchloc=$patchloc"
-   for patch in $patches; do
+   for patch in ${patches[@]}; do
+     echo "Processing patch $patch"
      patchfile=$patchloc/$patch
      if [ ! -f "$patchfile" ] ; then
        echo
@@ -630,7 +631,7 @@ fi
 function removepatch(){
 patchdir=$1
 if [ "$AOMP_APPLY_ROCM_PATCHES" == 1 ] && [ -d "$patchdir" ] ; then
-   patches=""
+   patches=()
    cd "$patchdir" || exit
    getpatchlist
    if [ "$patches" != "" ] ; then
@@ -638,8 +639,9 @@ if [ "$AOMP_APPLY_ROCM_PATCHES" == 1 ] && [ -d "$patchdir" ] ; then
       echo "PATCHES TO REMOVE: $patches"
    fi
    patchloc=${AOMP_PATCH_CONTROL_FILE%/*}
-   if [ "$patches" != "" ] ; then
-   for patch in $patches; do
+   if [ ${#patches[@]} != 0 ] ; then
+   for patch in ${patches[@]}; do
+     echo "Processing patch $patch"
      patchfile=$patchloc/$patch
      echo "Testing reverse patch $patchfile to $patchdir"
      reversepatch="yes"
@@ -672,9 +674,7 @@ function getpatchlist(){
    while read -r line; do
    if [[ "$line" =~ $reporegex ]]; then
      #remove basename from list of patches
-     patches=${line/"${BASH_REMATCH[1]}"}
-     echo "patches: $patches"
-     break
+     patches+=(${line/"${BASH_REMATCH[1]}"})
    fi
    done < "$AOMP_PATCH_CONTROL_FILE"
 }
