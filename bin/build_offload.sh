@@ -136,7 +136,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
       cd "$BUILD_DIR/build/offload" || exit
       echo "${AOMP_CMAKE}" "$(shquot "${MYCMAKEOPTS[@]}")" \
                            "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload"
-      
+
       if ! ${AOMP_CMAKE} "${MYCMAKEOPTS[@]}" \
                          "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload"; then
          echo "ERROR offload cmake failed. Cmake flags"
