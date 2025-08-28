@@ -1,12 +1,10 @@
 
 AOMP is a development build of ROCm for the ROCm-compiler.
 AOMP builds the amd-staging branch of llvm-compliler and hipify with
-some set of git checkouts for TheRock submodules.
+TheRock and TheRock submodules.
 
 This directory (aomp/tr_aomp) contains all the support to build AOMP
 using TheRock.
-
-Currently, building AOMP with TheRock is experimental. 
 
 The current build process is:
 
@@ -15,13 +13,24 @@ The current build process is:
 2) ./tr_build_aomp.sh
    check TheRock/build/build.out
 
-TO SAVE LOTS OF TIME:  if you are not interested in rccl or the math libraries
-set these env vars before running tr_build_aomp.sh. 
-AOMP_SKIP_RCCL=1
-AOMP_SKIP_MATH_LIBS=1
+Each AOMP release has an associated shakey from TheRock repo.
+This is stored in the release info file managed in this directory.
 
-tr_build_aomp.sh builds rocm into $TR_AOMP_REPOS/TheRock/build/dist/rocm.
-then copies using rsync from $TR_AOMP_REPOS/TheRock/build/dist/rocm 
+If no info file is present, the build process will initialize a new
+AOMP release by creating the info file for the release with the current
+tip of TheRock repo. Subsequent builds will remain on the shakey
+found when the release is initialized.  Creating new AOMP releases will
+be how the AOMP team keeps pace with TheRock while insulating developers
+from ROCm churn other than the amd-staging branch of llvm-project. 
+
+Any changes or fixes to TheRock repo or its submodules during the development
+of the AOMP release, can be shared with the team by creating a patch
+file with the script tr_create_patch_from_orig.sh. The patchfile for
+a new release is initialzed to empty.  So a new AOMP release is as if
+you were building TheRock native.
+
+tr_build_aomp.sh builds ROCm into $TR_AOMP_REPOS/TheRock/build/dist/rocm.
+Then copies using rsync from $TR_AOMP_REPOS/TheRock/build/dist/rocm 
 to $AOMP_INSTALL_DIR.
 
 These two symlinks help to iterate development of llvm-project. 
@@ -41,4 +50,4 @@ TEST
   - test with AOMP=$AOMP_INSTALL_DIR or
     AOMP=/work/$USER/rocm/aomp which is a symlink to $AOMP_INSTALL_DIR
 
-This README file was last updated on 8/26/2025
+This README file was last updated on 8/28/2025
