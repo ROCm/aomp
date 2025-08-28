@@ -18,18 +18,13 @@ _therockdir=$TR_AOMP_REPOS/TheRock
 _curdir=$PWD
 
 cd $_therockdir
-
-_config_out=$_therockdir/build/config.out
-_build_out=$_therockdir/build/build.out
-_dist_out=$_therockdir/build/build_dist.out
-_setup_ccache_out=$_therockdir/build/setup_ccache.out
+if [ -d $_therockdir/.venv/bin ] ; then
+   PATH=$_therockdir/.venv/bin:$PATH
+   export PATH
+fi
 
 [ -d build ] && rm -rf build
 mkdir -p $_therockdir/build
-[ -f $_setup_ccache_out ] && rm $_setup_ccache_out
-[ -f $_build_out ] && rm  $_build_out
-[ -f $_config_out ] && rm $_config_out
-[ -f $_dist_out ] && rm $_dist_out
 
 if [ ${AOMP_SKIP_RCCL} == 1 ] ; then
    _rccl_opt="-DTHEROCK_ENABLE_RCCL=OFF"
@@ -43,34 +38,37 @@ else
 fi
 
 _cmd="cmake -B build -GNinja -DTHEROCK_AMDGPU_TARGETS=gfx90a -DTHEROCK_ENABLE_COMPOSABLE_KERNEL=OFF $_mathlibs_opt  -DTHEROCK_ENABLE_ML_LIBS=OFF -DTHEROCK_BUNDLE_SYSDEPS=ON -DTHEROCK_BUILD_TESTING=OFF $_rccl_opt $_therockdir"
-$thisdir/tr_add_info therock_config $_cmd
-$thisdir/tr_add_info build_path $PATH
 
-eval "$(python3 ./build_tools/setup_ccache.py)" 2>&1 >>$_setup_ccache_out
-echo "===> CMAKE CMD:$_cmd"
-echo "===> CMD:$_cmd" >> $_config_out
-date >> $_config_out
-$_cmd 2>&1 >> $_config_out
+#Record config and PATH in AOMP release info file"
+$thisdir/tr_add_info.sh therock_config $_cmd
+$thisdir/tr_add_info.sh build_path $PATH
+
+eval "$(python3 ./build_tools/setup_ccache.py)"
+echo 
+echo "===== CMD:$_cmd"
+date
+$_cmd 2>&1
 [ $? != 0 ] && cd $_curdir && exit 1 
 
 _cmd="cmake --build build"
-echo "===> CMD:$_cmd" >>  $_build_out
-date >> $_build_out
-$_cmd 2>&1 >> $_build_out
+echo 
+echo "===== CMD:$_cmd"
+date
+$_cmd 2>&1
 [ $? != 0 ] && cd $_curdir && exit 1 
-date >> $_build_out
+date
 
 cd build
 _cmd="ninja therock-dist"
-pwd >> $_dist_out
-echo "===> CMD:$_cmd" >> $_dist_out
-date >> $_dist_out
-$_cmd 2>&1 >> $_dist_out
+echo 
+echo "===== CMD:$_cmd"
+date
+$_cmd
 [ $? != 0 ] && cd $_curdir && exit 1 
-date >> $_dist_out
+date
 
 if [ -z $AOMP_INSTALL_DIR ] ; then
-   echo "ERROR: Env VAR AOMP_INSTALL_DIR is not set "
+   echo "ERROR: Env variable AOMP_INSTALL_DIR is not set."
    cd $_curdir
    exit 1
 else
@@ -78,19 +76,19 @@ else
       rm -rf $AOMP_INSTALL_DIR
    fi
 fi
+echo
+echo "===== copying ROCm build from $_therockdir/build/dest/rocm to $AOMP_INSTALL_DIR" 
 echo mkdir -p $AOMP_INSTALL_DIR
 mkdir -p $AOMP_INSTALL_DIR
 echo rsync -a dist/rocm/ $AOMP_INSTALL_DIR/
 rsync -a dist/rocm/ $AOMP_INSTALL_DIR/
 echo ln -sf $AOMP_INSTALL_DIR $AOMP
-ln -sf $AOMP_INSTALL_DIR $AOMP
+ln -sr $AOMP_INSTALL_DIR $AOMP
 
 # Convenience link for rebuilding the compiler.
-ln -sf $TR_AOMP_REPOS/TheRock/build/compiler/amd-llvm/build $TR_AOMP_REPOS/llvm-project/build
-ln -sf $TR_AOMP_REPOS/aomp/tr_aomp/build_install_aomp_from_therock.sh $TR_AOMP_REPOS/llvm-project/build/.
+ln -sr $TR_AOMP_REPOS/TheRock/build/compiler/amd-llvm/build $TR_AOMP_REPOS/llvm-project/build
+ln -sr $TR_AOMP_REPOS/aomp/tr_aomp/build_install_aomp_from_therock.sh $TR_AOMP_REPOS/llvm-project/build/.
 
 _date=`date`
-$thisdir/tr_add_info build_date $_date
-echo "DONE see $_config_out and $_build_out and $_dist_out " | tee -a  $_dist_out
-
-
+$thisdir/tr_add_info.sh build_date $_date
+echo "DONE $0"
