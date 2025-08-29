@@ -1,0 +1,25 @@
+BEGIN	1756496082.1819336
+EXEC	/work1/grodgers/git/tr_aomp/TheRock/build/base/rocprofiler-register/build	/usr/bin/cmake -E env --unset=ROCM_PATH --unset=ROCM_DIR --unset=HIP_PATH --unset=HIP_DIR -- /usr/bin/cmake --build /work/grodgers/git/tr_aomp/TheRock/build/base/rocprofiler-register/build
+0.0	[1/22] cd /work/grodgers/git/tr_aomp/TheRock/build/base/rocprofiler-register/build && /usr/bin/cmake -E rm -f /work/grodgers/git/tr_aomp/TheRock/build/base/rocprofiler-register/stamp/stage.stamp
+0.0	[2/22] Building CXX object external/glog/CMakeFiles/glog_internal.dir/src/stacktrace.cc.o
+0.2	[3/22] Building CXX object external/glog/CMakeFiles/glog_internal.dir/src/demangle.cc.o
+0.3	[4/22] Building CXX object external/glog/CMakeFiles/glog_internal.dir/src/vlog_is_on.cc.o
+0.4	[5/22] Building CXX object external/glog/CMakeFiles/glog_internal.dir/src/flags.cc.o
+0.4	[6/22] Building CXX object external/fmt/CMakeFiles/fmt.dir/src/os.cc.o
+0.4	[7/22] Building CXX object external/glog/CMakeFiles/glog_internal.dir/src/symbolize.cc.o
+0.4	[8/22] Building CXX object external/glog/CMakeFiles/glog_internal.dir/src/utilities.cc.o
+0.4	[9/22] Building CXX object external/glog/CMakeFiles/glog_internal.dir/src/raw_logging.cc.o
+0.5	[10/22] Building CXX object external/glog/CMakeFiles/glog_internal.dir/src/signalhandler.cc.o
+2.6	[11/22] Building CXX object external/fmt/CMakeFiles/fmt.dir/src/format.cc.o
+2.7	[12/22] Linking CXX static library lib/libfmt.a
+3.6	[13/22] Building CXX object external/glog/CMakeFiles/glog_internal.dir/src/logging.cc.o
+3.6	[14/22] Generating CMakeFiles/glog.cc
+3.6	[15/22] Building CXX object external/glog/CMakeFiles/glog.dir/CMakeFiles/glog.cc.o
+3.7	[16/22] Linking CXX static library lib/libglog.a
+4.0	[17/22] Building CXX object source/lib/rocprofiler-register/CMakeFiles/rocprofiler-register.dir/details/utility.cpp.o
+4.3	[18/22] Building CXX object source/lib/rocprofiler-register/CMakeFiles/rocprofiler-register.dir/details/dl.cpp.o
+5.0	[19/22] Building CXX object source/lib/rocprofiler-register/CMakeFiles/rocprofiler-register.dir/details/logging.cpp.o
+6.7	[20/22] Building CXX object source/lib/rocprofiler-register/CMakeFiles/rocprofiler-register.dir/rocprofiler_register.cpp.o
+6.8	[21/22] Linking CXX shared library lib/librocprofiler-register.so.0.5.0
+6.8	[22/22] Creating library symlink lib/librocprofiler-register.so.0 lib/librocprofiler-register.so
+END	1756496088.9477766	6.765842914581299

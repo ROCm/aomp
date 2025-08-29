@@ -1,0 +1,384 @@
+BEGIN	1756496651.318735
+EXEC	/work1/grodgers/git/tr_aomp/TheRock/build/core/ROCR-Runtime/build	/usr/bin/cmake -E env --unset=ROCM_PATH --unset=ROCM_DIR --unset=HIP_PATH --unset=HIP_DIR -- /usr/bin/cmake -GNinja -B/work/grodgers/git/tr_aomp/TheRock/build/core/ROCR-Runtime/build -S/work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/rocr-runtime -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/work/grodgers/git/tr_aomp/TheRock/build/core/ROCR-Runtime/stage -DTHEROCK_STAGE_INSTALL_ROOT=/work/grodgers/git/tr_aomp/TheRock/build/core/ROCR-Runtime/stage -DCMAKE_TOOLCHAIN_FILE=/work/grodgers/git/tr_aomp/TheRock/build/core/ROCR-Runtime/_toolchain.cmake -DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=/work/grodgers/git/tr_aomp/TheRock/build/core/ROCR-Runtime/_init.cmake -DBUILD_SHARED_LIBS=ON
+0.0	-- Sub-project PKG_CONFIG_PATH: /work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/bzip2/build/stage/lib/rocm_sysdeps/lib/pkgconfig:/work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zlib/build/stage/lib/rocm_sysdeps/lib/pkgconfig:/work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zstd/build/stage/lib/rocm_sysdeps/lib/pkgconfig:/work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/elfutils/build/stage/lib/rocm_sysdeps/lib/pkgconfig:/work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/libdrm/build/stage/lib/rocm_sysdeps/lib/pkgconfig:/work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/stage/lib/rocm_sysdeps/lib/pkgconfig:
+0.0	-- Resolving packages from super-project: rocprofiler-register;BZip2;ZLIB;zstd;LibElf;libdw;NUMA;AMDDeviceLibs;Clang;LLD;LLVM
+0.0	-- Resolving super-project find_package(LibElf REQUIRED CONFIG BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/elfutils/build/dist/lib/rocm_sysdeps/lib/cmake/LibElf)
+0.0	CMake Warning (dev) at /work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/elfutils/build/dist/lib/rocm_sysdeps/lib/cmake/LibElf/libelf-config.cmake:10 (add_library):
+0.0	  ADD_LIBRARY called with SHARED option but the target platform does not
+0.0	  support dynamic linking.  Building a STATIC library instead.  This may lead
+0.0	  to problems.
+0.0	Call Stack (most recent call first):
+0.0	  /work/grodgers/git/tr_aomp/TheRock/cmake/therock_subproject_dep_provider.cmake:54 (find_package)
+0.0	  /work/grodgers/git/tr_aomp/TheRock/core/pre_hook_ROCR-Runtime.cmake:4 (find_package)
+0.0	  /work/grodgers/git/tr_aomp/TheRock/build/core/ROCR-Runtime/_init.cmake:69 (include)
+0.0	  CMakeLists.txt:47 (project)
+0.0	This warning is for project developers.  Use -Wno-dev to suppress it.
+0.0	
+0.1	-- The C compiler identification is GNU 13.3.0
+0.1	-- The CXX compiler identification is GNU 13.3.0
+0.2	-- Detecting C compiler ABI info
+0.3	-- Detecting C compiler ABI info - done
+0.3	-- Check for working C compiler: /usr/bin/cc - skipped
+0.3	-- Detecting C compile features
+0.3	-- Detecting C compile features - done
+0.3	-- Detecting CXX compiler ABI info
+0.4	-- Detecting CXX compiler ABI info - done
+0.4	-- Check for working CXX compiler: /usr/bin/c++ - skipped
+0.4	-- Detecting CXX compile features
+0.4	-- Detecting CXX compile features - done
+0.6	add_rocm_subdir() -- libhsakmt
+0.6	  subdir_assigns:EOM
+0.6	fatal: No names found, cannot describe anything.
+0.6	-- Resolving system find_package(PkgConfig) (not found in super-project rocprofiler-register;BZip2;ZLIB;zstd;LibElf;libdw;NUMA;AMDDeviceLibs;Clang;LLD;LLVM)
+0.6	-- Found PkgConfig: /usr/bin/pkg-config (found version "1.8.1") 
+0.6	-- Detected distribution: ubuntu:"24.04"
+0.6	-- Resolving system find_package(PkgConfig) (not found in super-project rocprofiler-register;BZip2;ZLIB;zstd;LibElf;libdw;NUMA;AMDDeviceLibs;Clang;LLD;LLVM)
+0.6	-- Resolving super-project find_package(NUMA BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/dist/lib/rocm_sysdeps/lib/cmake/NUMA)
+0.6	-- LIBC: /usr/lib/x86_64-linux-gnu/libc.so
+0.6	-- NUMA: numa::numa
+0.6	-- Checking for module 'libdrm'
+0.6	--   Found libdrm, version 2.4.124
+0.7	-- Checking for module 'libdrm_amdgpu'
+0.7	--   Found libdrm_amdgpu, version 2.4.124
+0.8	-- Looking for memfd_create
+0.9	-- Looking for memfd_create - found
+0.9	add_rocm_subdir() -- runtime/hsa-runtime
+0.9	  subdir_assigns:EOM
+0.9	-- Resolving system find_package(PkgConfig) (not found in super-project rocprofiler-register;BZip2;ZLIB;zstd;LibElf;libdw;NUMA;AMDDeviceLibs;Clang;LLD;LLVM)
+0.9	-- Resolving super-project find_package(LibElf REQUIRED BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/elfutils/build/dist/lib/rocm_sysdeps/lib/cmake/LibElf)
+0.9	-- Resolving super-project find_package(LibElf CONFIG BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/elfutils/build/dist/lib/rocm_sysdeps/lib/cmake/LibElf)
+0.9	-- Checking for module 'libdrm'
+0.9	--   Found libdrm, version 2.4.124
+1.0	-- Looking for pthread_attr_setaffinity_np
+1.1	-- Looking for pthread_attr_setaffinity_np - found
+1.1	-- Looking for pthread_rwlockattr_setkind_np
+1.2	-- Looking for pthread_rwlockattr_setkind_np - found
+1.2	-- Resolving super-project find_package(Clang REQUIRED BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr_aomp/TheRock/build/compiler/amd-llvm/dist/lib/llvm/lib/cmake/clang)
+1.2	-- Resolving super-project find_package(LLVM 22.0.0 EXACT REQUIRED CONFIG BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr_aomp/TheRock/build/compiler/amd-llvm/dist/lib/llvm/lib/cmake/llvm)
+1.2	-- Resolving system find_package(LibEdit) (not found in super-project rocprofiler-register;BZip2;ZLIB;zstd;LibElf;libdw;NUMA;AMDDeviceLibs;Clang;LLD;LLVM)
+1.2	-- Resolving system find_package(PkgConfig) (not found in super-project rocprofiler-register;BZip2;ZLIB;zstd;LibElf;libdw;NUMA;AMDDeviceLibs;Clang;LLD;LLVM)
+1.2	-- Looking for histedit.h
+1.2	CMake Warning (dev) at /usr/share/cmake-3.28/Modules/CheckIncludeFile.cmake:77 (message):
+1.2	  Policy CMP0075 is not set: Include file check macros honor
+1.2	  CMAKE_REQUIRED_LIBRARIES.  Run "cmake --help-policy CMP0075" for policy
+1.2	  details.  Use the cmake_policy command to set the policy and suppress this
+1.2	  warning.
+1.2	
+1.2	  CMAKE_REQUIRED_LIBRARIES is set to:
+1.2	
+1.2	    /usr/lib/x86_64-linux-gnu/libedit.so
+1.2	
+1.2	  For compatibility with CMake 3.11 and below this check is ignoring it.
+1.2	Call Stack (most recent call first):
+1.2	  /work/grodgers/git/tr_aomp/TheRock/build/compiler/amd-llvm/dist/lib/llvm/lib/cmake/llvm/FindLibEdit.cmake:28 (check_include_file)
+1.2	  /work/grodgers/git/tr_aomp/TheRock/cmake/therock_subproject_dep_provider.cmake:63 (find_package)
+1.2	  /work/grodgers/git/tr_aomp/TheRock/build/compiler/amd-llvm/dist/lib/llvm/lib/cmake/llvm/LLVMConfig.cmake:175 (find_package)
+1.2	  /work/grodgers/git/tr_aomp/TheRock/cmake/therock_subproject_dep_provider.cmake:54 (find_package)
+1.2	  /work/grodgers/git/tr_aomp/TheRock/build/compiler/amd-llvm/dist/lib/llvm/lib/cmake/clang/ClangConfig.cmake:11 (find_package)
+1.2	  /work/grodgers/git/tr_aomp/TheRock/cmake/therock_subproject_dep_provider.cmake:54 (find_package)
+1.2	  runtime/hsa-runtime/core/runtime/trap_handler/CMakeLists.txt:46 (find_package)
+1.2	This warning is for project developers.  Use -Wno-dev to suppress it.
+1.2	
+1.3	-- Looking for histedit.h - found
+1.3	-- Found LibEdit: /usr/include (found version "2.11") 
+1.3	-- Resolving super-project find_package(ZLIB BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zlib/build/dist/lib/rocm_sysdeps/lib/cmake/ZLIB)
+1.3	-- Resolving super-project find_package(zstd BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zstd/build/dist/lib/rocm_sysdeps/lib/cmake/zstd)
+1.3	-- Resolving system find_package(Threads) (not found in super-project rocprofiler-register;BZip2;ZLIB;zstd;LibElf;libdw;NUMA;AMDDeviceLibs;Clang;LLD;LLVM)
+1.3	-- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+1.4	-- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
+1.4	-- Found Threads: TRUE  
+1.4	-- Resolving super-project find_package(LLVM REQUIRED BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr_aomp/TheRock/build/compiler/amd-llvm/dist/lib/llvm/lib/cmake/llvm)
+1.4	-- Resolving system find_package(LibEdit) (not found in super-project rocprofiler-register;BZip2;ZLIB;zstd;LibElf;libdw;NUMA;AMDDeviceLibs;Clang;LLD;LLVM)
+1.4	-- Resolving system find_package(PkgConfig) (not found in super-project rocprofiler-register;BZip2;ZLIB;zstd;LibElf;libdw;NUMA;AMDDeviceLibs;Clang;LLD;LLVM)
+1.4	-- Resolving super-project find_package(ZLIB BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zlib/build/dist/lib/rocm_sysdeps/lib/cmake/ZLIB)
+1.4	-- Resolving super-project find_package(zstd BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zstd/build/dist/lib/rocm_sysdeps/lib/cmake/zstd)
+1.4	Using clang from: /work/grodgers/git/tr_aomp/TheRock/build/compiler/amd-llvm/dist/lib/llvm/bin/clang-22
+1.4	Using llvm-objcopy from: /work/grodgers/git/tr_aomp/TheRock/build/compiler/amd-llvm/dist/lib/llvm/bin/llvm-objcopy
+1.4	Trap handlers assembled for: gfx900;gfx942;gfx950;gfx1010;gfx1030;gfx1100;gfx1200
+1.4	
+1.4	  Generating: gfx900 ...
+1.4	     Trap Handler Source: /work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/trap_handler/trap_handler.s
+1.4	     Trap Handler Binary: kCodeTrapHandlerV2_9
+1.4	
+1.4	  Generating: gfx942 ...
+1.4	     Trap Handler Source: /work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/trap_handler/trap_handler.s
+1.4	     Trap Handler Binary: kCodeTrapHandlerV2_942
+1.4	
+1.4	  Generating: gfx950 ...
+1.4	     Trap Handler Source: /work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/trap_handler/trap_handler.s
+1.4	     Trap Handler Binary: kCodeTrapHandlerV2_950
+1.4	
+1.4	  Generating: gfx1010 ...
+1.4	     Trap Handler Source: /work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/trap_handler/trap_handler.s
+1.4	     Trap Handler Binary: kCodeTrapHandlerV2_1010
+1.4	
+1.4	  Generating: gfx1030 ...
+1.4	     Trap Handler Source: /work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/trap_handler/trap_handler.s
+1.4	     Trap Handler Binary: kCodeTrapHandlerV2_10
+1.4	
+1.4	  Generating: gfx1100 ...
+1.4	     Trap Handler Source: /work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/trap_handler/trap_handler.s
+1.4	     Trap Handler Binary: kCodeTrapHandlerV2_11
+1.4	
+1.4	  Generating: gfx1200 ...
+1.4	     Trap Handler Source: /work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/trap_handler/trap_handler_gfx12.s
+1.4	     Trap Handler Binary: kCodeTrapHandlerV2_12
+1.4	-- Resolving super-project find_package(Clang REQUIRED BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr_aomp/TheRock/build/compiler/amd-llvm/dist/lib/llvm/lib/cmake/clang)
+1.4	-- Resolving super-project find_package(LLVM 22.0.0 EXACT REQUIRED CONFIG BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr_aomp/TheRock/build/compiler/amd-llvm/dist/lib/llvm/lib/cmake/llvm)
+1.4	-- Resolving system find_package(LibEdit) (not found in super-project rocprofiler-register;BZip2;ZLIB;zstd;LibElf;libdw;NUMA;AMDDeviceLibs;Clang;LLD;LLVM)
+1.4	-- Resolving system find_package(PkgConfig) (not found in super-project rocprofiler-register;BZip2;ZLIB;zstd;LibElf;libdw;NUMA;AMDDeviceLibs;Clang;LLD;LLVM)
+1.4	-- Resolving super-project find_package(ZLIB BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zlib/build/dist/lib/rocm_sysdeps/lib/cmake/ZLIB)
+1.4	-- Resolving super-project find_package(zstd BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zstd/build/dist/lib/rocm_sysdeps/lib/cmake/zstd)
+1.4	-- Resolving system find_package(Threads) (not found in super-project rocprofiler-register;BZip2;ZLIB;zstd;LibElf;libdw;NUMA;AMDDeviceLibs;Clang;LLD;LLVM)
+1.4	-- Resolving super-project find_package(LLVM REQUIRED BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr_aomp/TheRock/build/compiler/amd-llvm/dist/lib/llvm/lib/cmake/llvm)
+1.4	-- Resolving system find_package(LibEdit) (not found in super-project rocprofiler-register;BZip2;ZLIB;zstd;LibElf;libdw;NUMA;AMDDeviceLibs;Clang;LLD;LLVM)
+1.4	-- Resolving system find_package(PkgConfig) (not found in super-project rocprofiler-register;BZip2;ZLIB;zstd;LibElf;libdw;NUMA;AMDDeviceLibs;Clang;LLD;LLVM)
+1.4	-- Resolving super-project find_package(ZLIB BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zlib/build/dist/lib/rocm_sysdeps/lib/cmake/ZLIB)
+1.4	-- Resolving super-project find_package(zstd BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zstd/build/dist/lib/rocm_sysdeps/lib/cmake/zstd)
+1.4	Using clang from: /work/grodgers/git/tr_aomp/TheRock/build/compiler/amd-llvm/dist/lib/llvm/bin/clang-22
+1.4	Using llvm-objcopy from: /work/grodgers/git/tr_aomp/TheRock/build/compiler/amd-llvm/dist/lib/llvm/bin/llvm-objcopy
+1.4	Blit Shaders assembled for: gfx900;gfx1010;gfx1030;gfx1100;gfx1200
+1.4	
+1.4	  Generating: gfx900 for kCodeCopyAligned ...
+1.4	     Blit Shader Source: /work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/blit_shaders/blit_copyAligned.s
+1.4	     Blit Shader Binary: kCodeCopyAligned9
+1.4	
+1.4	  Generating: gfx1010 for kCodeCopyAligned ...
+1.4	     Blit Shader Source: /work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/blit_shaders/blit_copyAligned.s
+1.4	     Blit Shader Binary: kCodeCopyAligned1010
+1.4	
+1.4	  Generating: gfx1030 for kCodeCopyAligned ...
+1.4	     Blit Shader Source: /work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/blit_shaders/blit_copyAligned.s
+1.4	     Blit Shader Binary: kCodeCopyAligned10
+1.4	
+1.4	  Generating: gfx1100 for kCodeCopyAligned ...
+1.4	     Blit Shader Source: /work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/blit_shaders/blit_copyAligned.s
+1.4	     Blit Shader Binary: kCodeCopyAligned11
+1.4	
+1.4	  Generating: gfx1200 for kCodeCopyAligned ...
+1.4	     Blit Shader Source: /work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/blit_shaders/blit_copyAligned.s
+1.4	     Blit Shader Binary: kCodeCopyAligned12
+1.4	
+1.4	  Generating: gfx900 for kCodeCopyMisaligned ...
+1.4	     Blit Shader Source: /work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/blit_shaders/blit_copyMisaligned.s
+1.4	     Blit Shader Binary: kCodeCopyMisaligned9
+1.4	
+1.4	  Generating: gfx1010 for kCodeCopyMisaligned ...
+1.4	     Blit Shader Source: /work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/blit_shaders/blit_copyMisaligned.s
+1.4	     Blit Shader Binary: kCodeCopyMisaligned1010
+1.4	
+1.4	  Generating: gfx1030 for kCodeCopyMisaligned ...
+1.4	     Blit Shader Source: /work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/blit_shaders/blit_copyMisaligned.s
+1.4	     Blit Shader Binary: kCodeCopyMisaligned10
+1.4	
+1.4	  Generating: gfx1100 for kCodeCopyMisaligned ...
+1.4	     Blit Shader Source: /work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/blit_shaders/blit_copyMisaligned.s
+1.4	     Blit Shader Binary: kCodeCopyMisaligned11
+1.4	
+1.4	  Generating: gfx1200 for kCodeCopyMisaligned ...
+1.4	     Blit Shader Source: /work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/blit_shaders/blit_copyMisaligned.s
+1.4	     Blit Shader Binary: kCodeCopyMisaligned12
+1.4	
+1.4	  Generating: gfx900 for kCodeFill ...
+1.4	     Blit Shader Source: /work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/blit_shaders/blit_fill.s
+1.4	     Blit Shader Binary: kCodeFill9
+1.4	
+1.4	  Generating: gfx1010 for kCodeFill ...
+1.4	     Blit Shader Source: /work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/blit_shaders/blit_fill.s
+1.4	     Blit Shader Binary: kCodeFill1010
+1.4	
+1.4	  Generating: gfx1030 for kCodeFill ...
+1.4	     Blit Shader Source: /work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/blit_shaders/blit_fill.s
+1.4	     Blit Shader Binary: kCodeFill10
+1.4	
+1.4	  Generating: gfx1100 for kCodeFill ...
+1.4	     Blit Shader Source: /work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/blit_shaders/blit_fill.s
+1.4	     Blit Shader Binary: kCodeFill11
+1.4	
+1.4	  Generating: gfx1200 for kCodeFill ...
+1.4	     Blit Shader Source: /work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/blit_shaders/blit_fill.s
+1.4	     Blit Shader Binary: kCodeFill12
+1.4	-- Resolving super-project find_package(Clang REQUIRED BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr_aomp/TheRock/build/compiler/amd-llvm/dist/lib/llvm/lib/cmake/clang)
+1.4	-- Resolving super-project find_package(LLVM 22.0.0 EXACT REQUIRED CONFIG BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr_aomp/TheRock/build/compiler/amd-llvm/dist/lib/llvm/lib/cmake/llvm)
+1.4	-- Resolving system find_package(LibEdit) (not found in super-project rocprofiler-register;BZip2;ZLIB;zstd;LibElf;libdw;NUMA;AMDDeviceLibs;Clang;LLD;LLVM)
+1.4	-- Resolving system find_package(PkgConfig) (not found in super-project rocprofiler-register;BZip2;ZLIB;zstd;LibElf;libdw;NUMA;AMDDeviceLibs;Clang;LLD;LLVM)
+1.4	-- Resolving super-project find_package(ZLIB BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zlib/build/dist/lib/rocm_sysdeps/lib/cmake/ZLIB)
+1.4	-- Resolving super-project find_package(zstd BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zstd/build/dist/lib/rocm_sysdeps/lib/cmake/zstd)
+1.4	-- Resolving system find_package(Threads) (not found in super-project rocprofiler-register;BZip2;ZLIB;zstd;LibElf;libdw;NUMA;AMDDeviceLibs;Clang;LLD;LLVM)
+1.4	Using clang from: /work/grodgers/git/tr_aomp/TheRock/build/compiler/amd-llvm/dist/lib/llvm/bin/clang-22
+1.4	Build Setting:
+1.4	  Target Devices*: gfx700;gfx701;gfx702;gfx801;gfx802;gfx803;gfx805;gfx810;gfx900;gfx902;gfx904;gfx906;gfx908;gfx909;gfx90a;gfx90c;gfx942;gfx950;gfx1010;gfx1011;gfx1012;gfx1013;gfx1030;gfx1031;gfx1032;gfx1033;gfx1034;gfx1035;gfx1036;gfx1100;gfx1101;gfx1102;gfx1103;gfx1150;gfx1151;gfx1152;gfx1153;gfx1200;gfx1201
+1.4	  (Specify ";" separated list of target IDs.)
+1.4	       Clang path: /work/grodgers/git/tr_aomp/TheRock/build/compiler/amd-llvm/dist/lib/llvm/bin/clang-22
+1.4	
+1.4	  Generating: gfx700 ...
+1.4	      Kernel Source: /work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/blit_src/imageblit_kernels.cl
+1.4	     Kernel Bitcode: ocl_blit_object_gfx700
+1.4	
+1.4	  Generating: gfx701 ...
+1.4	      Kernel Source: /work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/blit_src/imageblit_kernels.cl
+1.4	     Kernel Bitcode: ocl_blit_object_gfx701
+1.4	
+1.4	  Generating: gfx702 ...
+1.4	      Kernel Source: /work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/blit_src/imageblit_kernels.cl
+1.4	     Kernel Bitcode: ocl_blit_object_gfx702
+1.4	
+1.4	  Generating: gfx801 ...
+1.4	      Kernel Source: /work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/blit_src/imageblit_kernels.cl
+1.4	     Kernel Bitcode: ocl_blit_object_gfx801
+1.4	
+1.4	  Generating: gfx802 ...
+1.4	      Kernel Source: /work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/blit_src/imageblit_kernels.cl
+1.4	     Kernel Bitcode: ocl_blit_object_gfx802
+1.4	
+1.4	  Generating: gfx803 ...
+1.4	      Kernel Source: /work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/blit_src/imageblit_kernels.cl
+1.4	     Kernel Bitcode: ocl_blit_object_gfx803
+1.4	
+1.4	  Generating: gfx805 ...
+1.4	      Kernel Source: /work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/blit_src/imageblit_kernels.cl
+1.4	     Kernel Bitcode: ocl_blit_object_gfx805
+1.4	
+1.4	  Generating: gfx810 ...
+1.4	      Kernel Source: /work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/blit_src/imageblit_kernels.cl
+1.4	     Kernel Bitcode: ocl_blit_object_gfx810
+1.4	
+1.4	  Generating: gfx900 ...
+1.4	      Kernel Source: /work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/blit_src/imageblit_kernels.cl
+1.4	     Kernel Bitcode: ocl_blit_object_gfx900
+1.4	
+1.4	  Generating: gfx902 ...
+1.4	      Kernel Source: /work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/blit_src/imageblit_kernels.cl
+1.4	     Kernel Bitcode: ocl_blit_object_gfx902
+1.4	
+1.4	  Generating: gfx904 ...
+1.4	      Kernel Source: /work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/blit_src/imageblit_kernels.cl
+1.4	     Kernel Bitcode: ocl_blit_object_gfx904
+1.4	
+1.4	  Generating: gfx906 ...
+1.4	      Kernel Source: /work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/blit_src/imageblit_kernels.cl
+1.4	     Kernel Bitcode: ocl_blit_object_gfx906
+1.4	
+1.4	  Generating: gfx908 ...
+1.4	      Kernel Source: /work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/blit_src/imageblit_kernels.cl
+1.4	     Kernel Bitcode: ocl_blit_object_gfx908
+1.4	
+1.4	  Generating: gfx909 ...
+1.4	      Kernel Source: /work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/blit_src/imageblit_kernels.cl
+1.4	     Kernel Bitcode: ocl_blit_object_gfx909
+1.4	
+1.4	  Generating: gfx90a ...
+1.4	      Kernel Source: /work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/blit_src/imageblit_kernels.cl
+1.4	     Kernel Bitcode: ocl_blit_object_gfx90a
+1.4	
+1.4	  Generating: gfx90c ...
+1.4	      Kernel Source: /work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/blit_src/imageblit_kernels.cl
+1.4	     Kernel Bitcode: ocl_blit_object_gfx90c
+1.4	
+1.4	  Generating: gfx942 ...
+1.4	      Kernel Source: /work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/blit_src/imageblit_kernels.cl
+1.4	     Kernel Bitcode: ocl_blit_object_gfx942
+1.4	
+1.4	  Generating: gfx950 ...
+1.4	      Kernel Source: /work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/blit_src/imageblit_kernels.cl
+1.4	     Kernel Bitcode: ocl_blit_object_gfx950
+1.4	
+1.4	  Generating: gfx1010 ...
+1.4	      Kernel Source: /work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/blit_src/imageblit_kernels.cl
+1.4	     Kernel Bitcode: ocl_blit_object_gfx1010
+1.4	
+1.4	  Generating: gfx1011 ...
+1.4	      Kernel Source: /work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/blit_src/imageblit_kernels.cl
+1.4	     Kernel Bitcode: ocl_blit_object_gfx1011
+1.4	
+1.4	  Generating: gfx1012 ...
+1.4	      Kernel Source: /work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/blit_src/imageblit_kernels.cl
+1.4	     Kernel Bitcode: ocl_blit_object_gfx1012
+1.4	
+1.4	  Generating: gfx1013 ...
+1.4	      Kernel Source: /work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/blit_src/imageblit_kernels.cl
+1.4	     Kernel Bitcode: ocl_blit_object_gfx1013
+1.4	
+1.4	  Generating: gfx1030 ...
+1.4	      Kernel Source: /work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/blit_src/imageblit_kernels.cl
+1.4	     Kernel Bitcode: ocl_blit_object_gfx1030
+1.4	
+1.4	  Generating: gfx1031 ...
+1.4	      Kernel Source: /work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/blit_src/imageblit_kernels.cl
+1.4	     Kernel Bitcode: ocl_blit_object_gfx1031
+1.4	
+1.4	  Generating: gfx1032 ...
+1.4	      Kernel Source: /work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/blit_src/imageblit_kernels.cl
+1.4	     Kernel Bitcode: ocl_blit_object_gfx1032
+1.4	
+1.4	  Generating: gfx1033 ...
+1.4	      Kernel Source: /work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/blit_src/imageblit_kernels.cl
+1.4	     Kernel Bitcode: ocl_blit_object_gfx1033
+1.4	
+1.4	  Generating: gfx1034 ...
+1.4	      Kernel Source: /work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/blit_src/imageblit_kernels.cl
+1.4	     Kernel Bitcode: ocl_blit_object_gfx1034
+1.4	
+1.4	  Generating: gfx1035 ...
+1.4	      Kernel Source: /work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/blit_src/imageblit_kernels.cl
+1.4	     Kernel Bitcode: ocl_blit_object_gfx1035
+1.4	
+1.4	  Generating: gfx1036 ...
+1.4	      Kernel Source: /work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/blit_src/imageblit_kernels.cl
+1.4	     Kernel Bitcode: ocl_blit_object_gfx1036
+1.4	
+1.4	  Generating: gfx1100 ...
+1.4	      Kernel Source: /work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/blit_src/imageblit_kernels.cl
+1.4	     Kernel Bitcode: ocl_blit_object_gfx1100
+1.4	
+1.4	  Generating: gfx1101 ...
+1.4	      Kernel Source: /work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/blit_src/imageblit_kernels.cl
+1.4	     Kernel Bitcode: ocl_blit_object_gfx1101
+1.4	
+1.4	  Generating: gfx1102 ...
+1.4	      Kernel Source: /work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/blit_src/imageblit_kernels.cl
+1.4	     Kernel Bitcode: ocl_blit_object_gfx1102
+1.4	
+1.4	  Generating: gfx1103 ...
+1.4	      Kernel Source: /work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/blit_src/imageblit_kernels.cl
+1.4	     Kernel Bitcode: ocl_blit_object_gfx1103
+1.4	
+1.4	  Generating: gfx1150 ...
+1.4	      Kernel Source: /work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/blit_src/imageblit_kernels.cl
+1.4	     Kernel Bitcode: ocl_blit_object_gfx1150
+1.4	
+1.4	  Generating: gfx1151 ...
+1.4	      Kernel Source: /work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/blit_src/imageblit_kernels.cl
+1.4	     Kernel Bitcode: ocl_blit_object_gfx1151
+1.4	
+1.4	  Generating: gfx1152 ...
+1.4	      Kernel Source: /work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/blit_src/imageblit_kernels.cl
+1.4	     Kernel Bitcode: ocl_blit_object_gfx1152
+1.4	
+1.4	  Generating: gfx1153 ...
+1.4	      Kernel Source: /work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/blit_src/imageblit_kernels.cl
+1.4	     Kernel Bitcode: ocl_blit_object_gfx1153
+1.4	
+1.4	  Generating: gfx1200 ...
+1.4	      Kernel Source: /work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/blit_src/imageblit_kernels.cl
+1.4	     Kernel Bitcode: ocl_blit_object_gfx1200
+1.4	
+1.4	  Generating: gfx1201 ...
+1.4	      Kernel Source: /work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/blit_src/imageblit_kernels.cl
+1.4	     Kernel Bitcode: ocl_blit_object_gfx1201
+1.4	-- Resolving super-project find_package(rocprofiler-register BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr_aomp/TheRock/build/base/rocprofiler-register/dist/lib/cmake/rocprofiler-register)
+1.4	-- Found rocprofiler-register: /work/grodgers/git/tr_aomp/TheRock/build/base/rocprofiler-register/dist (found version "0.5.0")  
+1.4	Using CPACK_DEBIAN_PACKAGE_RELEASE local
+1.4	RESULT_VARIABLE 0 OUTPUT_VARIABLE: 
+1.4	CPACK_RPM_PACKAGE_RELEASE: local%{?dist}
+1.5	-- Set RPATH $ORIGIN;$ORIGIN/rocm_sysdeps/lib on hsa-runtime64
+1.5	-- Configuring done (1.4s)
+1.5	-- Generating done (0.0s)
+1.5	CMake Warning:
+1.5	  Manually-specified variables were not used by the project:
+1.5	
+1.5	    THEROCK_STAGE_INSTALL_ROOT
+1.5	
+1.5	
+1.5	-- Build files have been written to: /work/grodgers/git/tr_aomp/TheRock/build/core/ROCR-Runtime/build
+END	1756496652.8366206	1.517885684967041

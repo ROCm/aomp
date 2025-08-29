@@ -1,0 +1,4 @@
+BEGIN	1756496077.0225072
+EXEC	/work1/grodgers/git/tr_aomp/TheRock/build/base/half/build	/usr/bin/cmake -E env --unset=ROCM_PATH --unset=ROCM_DIR --unset=HIP_PATH --unset=HIP_DIR -- /usr/bin/cmake --build /work/grodgers/git/tr_aomp/TheRock/build/base/half/build
+0.0	[1/1] cd /work/grodgers/git/tr_aomp/TheRock/build/base/half/build && /usr/bin/cmake -E rm -f /work/grodgers/git/tr_aomp/TheRock/build/base/half/stamp/stage.stamp
+END	1756496077.0515826	0.02907538414001465

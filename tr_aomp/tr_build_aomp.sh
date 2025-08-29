@@ -83,12 +83,19 @@ mkdir -p $AOMP_INSTALL_DIR
 echo rsync -a dist/rocm/ $AOMP_INSTALL_DIR/
 rsync -a dist/rocm/ $AOMP_INSTALL_DIR/
 echo ln -sf $AOMP_INSTALL_DIR $AOMP
-ln -sr $AOMP_INSTALL_DIR $AOMP
+ln -sf $AOMP_INSTALL_DIR $AOMP
 
 # Convenience link for rebuilding the compiler.
+echo ln -sr $TR_AOMP_REPOS/TheRock/build/compiler/amd-llvm/build $TR_AOMP_REPOS/llvm-project/build
 ln -sr $TR_AOMP_REPOS/TheRock/build/compiler/amd-llvm/build $TR_AOMP_REPOS/llvm-project/build
+echo ln -sr $TR_AOMP_REPOS/aomp/tr_aomp/build_install_aomp_from_therock.sh $TR_AOMP_REPOS/llvm-project/build/.
 ln -sr $TR_AOMP_REPOS/aomp/tr_aomp/build_install_aomp_from_therock.sh $TR_AOMP_REPOS/llvm-project/build/.
 
 _date=`date`
 $thisdir/tr_add_info.sh build_date $_date
-echo "DONE $0"
+[ -d $AOMP_BUILD_LOGS ] && rm -rf $AOMP_BUILD_LOGS
+rsync -a $_therockdir/build/logs/ $AOMP_BUILD_LOGS/
+
+echo
+echo "===== DONE $0 for AOMP release $AOMP_VERSION_STRING"
+echo

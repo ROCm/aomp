@@ -1,0 +1,16 @@
+BEGIN	1756496663.9460561
+EXEC	/work1/grodgers/git/tr_aomp/TheRock/build/compiler/hipify/build	/usr/bin/cmake --install /work/grodgers/git/tr_aomp/TheRock/build/compiler/hipify/build
+0.0	-- Install configuration: "Release"
+0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/compiler/hipify/stage/bin/hipify-clang
+0.1	-- Set non-toolchain portion of runtime path of "/work/grodgers/git/tr_aomp/TheRock/build/compiler/hipify/stage/bin/hipify-clang" to ""
+0.1	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/compiler/hipify/stage/libexec/hipify/hipify-perl
+0.1	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/compiler/hipify/stage/libexec/hipify/findcode.sh
+0.1	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/compiler/hipify/stage/libexec/hipify/findcode_headers.sh
+0.1	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/compiler/hipify/stage/libexec/hipify/findcode_sources.sh
+0.1	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/compiler/hipify/stage/libexec/hipify/findcode_custom.sh
+0.1	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/compiler/hipify/stage/libexec/hipify/finduncodep.sh
+0.1	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/compiler/hipify/stage/libexec/hipify/hipconvertinplace.sh
+0.1	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/compiler/hipify/stage/libexec/hipify/hipconvertinplace-perl.sh
+0.1	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/compiler/hipify/stage/libexec/hipify/hipexamine.sh
+0.1	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/compiler/hipify/stage/libexec/hipify/hipexamine-perl.sh
+END	1756496664.0169137	0.07085752487182617

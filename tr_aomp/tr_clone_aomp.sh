@@ -9,24 +9,45 @@ realpath=$(realpath "$0")
 thisdir=$(dirname "$realpath")
 . "$thisdir/tr_aomp_common_vars"
 # --- end standard header ----
+#
+function test_apply_patch() {
+   if ! patch -p1 -t -N --dry-run < $_patch_file  >/dev/null; then
+      echo "ERROR:  patch --dry-run failed.  Could not apply $_patch_file "
+      $thisdir/tr_add_info.sh patch_applied FAILED
+      cd $_curdir
+      exit 1
+   else
+      echo "patch -p1 --no-backup-if-mismatch < $_patch_file"
+      patch -p1 --no-backup-if-mismatch < $_patch_file 
+      $thisdir/tr_add_info.sh patch_applied YES
+   fi
+}
 
 _therockdir=$TR_AOMP_REPOS/TheRock
 _curdir=$PWD
 
-# When AOMP release info file does NOT exist, automatically initialize a new release
-# with the tip of TheRock.  tr_clone_aomp.sh will create the info file for subsequent
+# When AOMP release info file does NOT exist, we initialize a new release with
+# the tip of TheRock. This script will create the info file for subsequent
 # executions of tr_clone_aomp.sh. AOMP_INIT_THEROCK_TIP is only used in this scrpt. 
+# This is typically only done by the AOMP release manager. 
 if [ -f $AOMP_INFO_FILE ] ; then
    AOMP_INIT_THEROCK_TIP=0
+   _releaseshakey=`grep "^therock_shakey:" $AOMP_INFO_FILE | cut -d":" -f2- | xargs`
 else
+   echo
+   echo "===== WARNING: Starting the new AOMP release $AOMP_VERSION_STRING."
+   echo "      It is assumed you are the AOMP release manager or you just want to build"
+   echo "      the tip of TheRock using the amd-staging branch of amd-llvm and hipify."
+   echo 
    AOMP_INIT_THEROCK_TIP=1
+   mkdir -p $AOMP_VERSION_DIR
 fi
 
 # tr_aomp_common_vars ensures that TR_AOMP_REPOS is created
 mkdir -p $TR_AOMP_REPOS
 if [ ! -d $TR_AOMP_REPOS ] ; then 
    echo "ERROR: $0 could not create directory $TR_AOMP_REPOS"
-   exit 
+   exit 1
 fi
 
 cd $TR_AOMP_REPOS
@@ -44,7 +65,6 @@ echo git checkout aomp-dev
 git checkout aomp-dev
 echo git pull
 git pull
-echo
 
 if [ -d $_therockdir ] ; then 
    echo
@@ -76,158 +96,169 @@ else
 fi
 
 if [ $AOMP_INIT_THEROCK_TIP == 1 ] ; then
-   echo
-   echo "WARNING: AOMP_INIT_THEROCK_TIP=1,  starting new AOMP release $AOMP_VERSION_STRING."
-   echo "===== Removing residual updates to checkout TheRock main"
-   _tmpfile=/tmp/submod$$
-   git submodule > $_tmpfile
-   while read _line ; do
-      _subdir=`echo $_line | cut -d" " -f2`
-      cd $_therockdir/$_subdir
-      if [ "$_subdir" != "compiler/amd-llvm" ] && [ "$_subdir" != "compiler/hipify" ] ; then
-         git checkout .
-      fi
-   done < $_tmpfile
-   rm $_tmpfile
-   cd $_therockdir
-   echo git checkout .
-   git checkout .
-   echo git checkout main
+   if [ $_new_rock_repo == 0 ] ; then
+      echo
+      echo "===== Removing residual updates to support checking out TheRock main"
+      echo "      checking out main could also wipeout changes to amd-staging branches."
+      _tmpfile=/tmp/submod$$
+      git submodule > $_tmpfile
+      while read _line ; do
+         _subdir=`echo $_line | cut -d" " -f2`
+         cd $_therockdir/$_subdir
+         if [ "$_subdir" != "compiler/amd-llvm" ] && [ "$_subdir" != "compiler/hipify" ] ; then
+            git checkout .
+         fi
+      done < $_tmpfile
+      rm $_tmpfile
+      cd $_therockdir
+      echo git checkout .
+      git checkout .
+   fi
+   
+   echo "git checkout main"
    git checkout main
    if [ $? != 0 ] ; then
       echo "ERROR: Could not checkout main"
+      cd $_curdir
       exit 1
    fi
    echo git pull
    git pull
 
    echo
-   echo "===== Creating aomp_$AOMP_VERSION_STRING.info"
+   echo "===== Creating new $AOMP_INFO_FILE"
    # Save the main (tip) shakey that identifies this AOMP release.
-   _shakey=`git log -1 | grep commit | cut -d" " -f2`
-   echo "$thisdir/tr_add_info.sh therock_shakey $_shakey"
-   $thisdir/tr_add_info.sh therock_shakey $_shakey
+   _releaseshakey=`git log -1 | grep commit | cut -d" " -f2`
+   $thisdir/tr_add_info.sh therock_shakey $_releaseshakey
    _date=`date`
    $thisdir/tr_add_info.sh start_date $_date
    $thisdir/tr_add_info.sh aomp_version $AOMP_VERSION_STRING
    # Make initial patch empty.
-   echo touch $thisdir/patches/tr_aomp_/$AOMP_VERSION_STRING.patch
-   touch $thisdir/patches/tr_aomp_$AOMP_VERSION_STRING.patch
-   $thisdir/tr_add_info.sh patch_file patches/tr_aomp_$AOMP_VERSION_STRING.patch
+   mkdir $AOMP_PATCH_DIR
    $thisdir/tr_add_info.sh user $USER
    _hostname=`hostname`
    $thisdir/tr_add_info.sh hostname $_hostname
    $thisdir/tr_add_info.sh amd-llvm_branch amd-staging
    $thisdir/tr_add_info.sh hipify_branch amd-staging
-   echo cat aomp_$AOMP_VERSION_STRING.info
-   cat aomp_$AOMP_VERSION_STRING.info
+   $thisdir/tr_add_info.sh sources_fetched FALSE
 fi
 
-echo
-_shakey=`grep "^therock_shakey:" $AOMP_INFO_FILE | cut -d":" -f2- | xargs`
+_first_time_on_an_initialized_release=0
 if [ $_new_rock_repo == 1 ] ; then
    echo
-   echo "===== Now using frozen shakey $_shakey for AOMP $AOMP_VERSION_STRING"
-   echo git checkout $_shakey
-   git checkout $_shakey
+   echo "===== Now using frozen shakey $_releaseshakey for AOMP $AOMP_VERSION_STRING"
+   git checkout $_releaseshakey
+   $thisdir/tr_add_info.sh sources_fetched FALSE
 else
    _current_shakey=`git log -1 | grep commit | cut -d" " -f2`
-   if [ $_shakey != $_current_shakey ] ; then
+   if [ $_releaseshakey != $_current_shakey ] ; then
+      # THIS IS FIRST TIME ON NEW BUT INITIALIZED RELEASE
+      # THis is first time on new release that has been initialized. 
+      # So we must reset from _current_shakey to _releaseshakey
       echo
       echo "===== WARNING: Your current TheRock repo is at shakey $_current_shakey but "
-      echo "      $AOMP_INFO_FILE requires $_shakey"
-      echo "      Running git checkout $_shakey"
-      git checkout $_shakey
-      echo "--- git status"
-      git status
-      echo "--- done git status"
-      echo "NOTE: You may need to reapply patch tr_aomp_$AOMP_VERSION_STRING.patch"
+      echo "      $AOMP_INFO_FILE requires $_releaseshakey"
+      echo "      Assuming this is first time on an already initialized new release"
+      echo "      Removing all residual changes from last release ... "
+      echo
+      _tmpfile=/tmp/submod$$
+      git submodule > $_tmpfile
+      while read _line ; do
+         _subdir=`echo $_line | cut -d" " -f2`
+         if [ "$_subdir" != "compiler/amd-llvm" ] && [ "$_subdir" != "compiler/hipify" ] ; then
+            echo cd $_therockdir/$_subdir
+            cd $_therockdir/$_subdir
+            echo git checkout .
+            git checkout .
+         fi
+      done < $_tmpfile
+      rm $_tmpfile
+      echo cd $_therockdir
+      cd $_therockdir
+      echo git checkout .
+      git checkout .
+      git " Running: git checkout $_releaseshakey"
+      git checkout $_releaseshakey
+      _first_time_on_an_initialized_release=1
+      $thisdir/tr_add_info.sh sources_fetched FALSE
    fi
 fi
 
-echo
-echo "=====  running python ./build_tools/fetch_sources.py"
-python ./build_tools/fetch_sources.py
-
-# Regardless of tip or frozen shakey, AOMP needs specified branches of
-# certain submodules, typically llvm-project(amd-llvm) and hipify.
-# FIXME:  Getrepo_branch entries from info file.
-echo 
-echo "====== checking out amd-staging for amd-llvm and hipify"
-cd $TR_AOMP_REPOS/TheRock/compiler/amd-llvm
-echo git status for amd-llvm
-git status
-echo git checkout amd-staging
-git checkout amd-staging
-echo git pull
-git pull
-
-cd $TR_AOMP_REPOS/TheRock/compiler/hipify
-echo git status for hipify
-git status
-echo git checkout amd-staging
-git checkout amd-staging
-echo git pull
-git pull
-
-if [ $_new_rock_repo == 1 ] || [ $AOMP_INIT_THEROCK_TIP == 1 ] ; then
-   # save the current state of each submodule and parent to be used
-   # when creating patch. See tr_create_patch_from_orig.sh
+_sources_fetched=`grep "^sources_fetched:" $AOMP_INFO_FILE | cut -d":" -f2- | xargs`
+if [ "$_sources_fetched" != "TRUE" ] ; then 
    echo
-   echo "===== Creating original branches of each submodule to support patch creation"
-   echo cd $_therockdir
-   cd $_therockdir
-   git submodule > $_tmpfile
-   while read _line ; do
-      #echo "LINE=$_line"
-      _subdir=`echo $_line | cut -d" " -f2`
-      cd $_therockdir/$_subdir
-      if [ "$_subdir" != "compiler/amd-llvm" ] && [ "$_subdir" != "compiler/hipify" ] ; then
-         echo "DIR:$PWD "
-         echo git switch -c tr_aomp_orig_$AOMP_VERSION_STRING
-         git switch -c tr_aomp_orig_$AOMP_VERSION_STRING
-         echo git add -A
-         git add -A
-         echo "git commit -m Creation of branch tr_aomp_orig_$AOMP_VERSION_STRING"
-         git commit -m "Creation of branch tr_aomp_orig_$AOMP_VERSION_STRING"
-         echo git switch - --detach
-         git switch - --detach
-      fi
-   done < $_tmpfile
-   rm $_tmpfile
-   cd $_therockdir
-   echo git switch -c tr_aomp_orig_$AOMP_VERSION_STRING
-   git switch -c tr_aomp_orig_$AOMP_VERSION_STRING
-   echo git add -A
-   git add -A
-   echo "git commit -m Creation of branch tr_aomp_orig_$AOMP_VERSION_STRING"
-   git commit -m "Creation of branch tr_aomp_orig_$AOMP_VERSION_STRING"
-   echo git switch - --detach
-   git switch - --detach
+   echo "=====  _sources_fetched=$_sources_fetched. Running python ./build_tools/fetch_sources.py"
+   python ./build_tools/fetch_sources.py
+   echo "=====  Done running python ./build_tools/fetch_sources.py"
+   $thisdir/tr_add_info.sh sources_fetched TRUE
+else
+   echo
+   echo "=====  _sources_fetched=$_sources_fetched. Sources have already been fetched"
 fi
 
-if [ $_new_rock_repo == 1 ] && [ $AOMP_INIT_THEROCK_TIP == 0 ] ; then
+# AOMP needs amd-staging branches of amd-llvm and hipify
+echo 
+echo "===== Checking out amd-staging for amd-llvm and hipify"
+cd $TR_AOMP_REPOS/TheRock/compiler/amd-llvm
+echo git checkout amd-staging
+git checkout amd-staging
+echo git pull
+git pull
+cd $TR_AOMP_REPOS/TheRock/compiler/hipify
+echo git checkout amd-staging
+git checkout amd-staging
+echo git pull
+git pull
+echo "===== DONE checking out amd-staging for amd-llvm and hipify ===== "
+
+_do_aomp_patches="$(( $_first_time_on_an_initialized_release == 1 || $(( $_new_rock_repo == 1 && $AOMP_INIT_THEROCK_TIP == 0 )) ))"
+if [[ $_do_aomp_patches == 1 ]] ; then 
    echo
-   echo "===== Applying tr_aomp_$AOMP_VERSION_STRING.patch ====="
-   echo cd $TR_AOMP_REPOS/TheRock
-   cd $TR_AOMP_REPOS/TheRock
-   echo "patch -p1 < $TR_AOMP_REPOS/aomp/tr_aomp/patches/tr_aomp_$AOMP_VERSION_STRING.patch"
-   patch -p1 < $TR_AOMP_REPOS/aomp/tr_aomp/patches/tr_aomp_$AOMP_VERSION_STRING.patch
+   echo "===== Attempting to apply patches in $AOMP_PATCH_DIR ====="
+   $thisdir/tr_add_info.sh patch_dir $AOMP_PATCH_DIR
+   echo cd $_therockdir
+   cd $_therockdir
+   _patch_file=$AOMP_PATCH_DIR/_TheRock.patch
+   test_apply_patch
+   _tmpfile=/tmp/submod$$
+   git submodule > $_tmpfile
+   while read _line ; do
+      _subdir=`echo $_line | cut -d" " -f2`
+      cd $_therockdir/$_subdir
+      _subdirname=`echo $_subdir | tr "/" "_"`
+      _patch_file=$AOMP_PATCH_DIR/$_subdirname.patch
+      test_apply_patch
+   done < $_tmpfile
+   rm $_tmpfile
+else
+   echo
+   echo "===== Skipping patch $AOMP_PATCH_DIR ====="
 fi
 
 if [ $AOMP_INIT_THEROCK_TIP == 1 ] ; then
+   cd $_therockdir
+   git submodule >$AOMP_SUBMODS_FILE
    echo
-   echo "=====  AOMP_INIT_THEROCK_TIP=1 started the new AOMP release $AOMP_VERSION_STRING"
-   echo "       No AOMP patch applied. Please consider the following steps NOW:"
+   echo "=====  Initialization of new AOMP release $AOMP_VERSION_STRING COMPLETE!"
+   echo "       No AOMP patch has been applied. "
+   echo "       Please consider doing the following steps NOW:"
    echo "  1. Try apply last AOMP release patch to TheRock repo."
    echo "  2. Try TheRock patches left behind at $_therockdir/patches/amd-mainline/llvm-project"
-   echo "  3. correct issues by testing build and updating TheRock or its submodles"
-   echo "  4. Create new patch with tr_create_patch_from_orig.sh"
-   echo "     and review it, see patches/tr_aomp.patch"
-   echo "  5. Review aomp_$AOMP_VERSION_STRING.info"
-   echo "  6. copy tr_aomp.patch to tr_aomp_$AOMP_VERSION_STRING.patch"
-   echo "  7. add, commit and push 3 files: tr_aomp_common_vars,"
-   echo "     aomp_$AOMP_VERSION_STRING.info,  and tr_aomp_$AOMP_VERSION_STRING.patch "
+   echo "     It would be better if these patches were made upstream or merged in amd-staging."
+   echo "  3. correct issues by testing build and updating TheRock or its submodles. DO NOT"
+   echo "     CHECK ANYTHING IN because tr_create_patch.sh uses git diff"
+   echo "  4. Only after last successful build, create new patch with tr_create_patch.sh"
+   echo "     and review files in $AOMP_PATCH_DIR"
+   echo "  5. Review $AOMP_INFO_FILE"
+   echo "  6. To start team development of $AOMP_VERSION_STRING add, commit,"
+   echo "     and push the following to start development"
+   echo "       $TR_AOMP_REPOS/aomp/tr_aomp/tr_aomp_common_vars"
+   echo "       $AOMP_INFO_FILE"
+   echo "       All files in $AOMP_PATCH_DIR"
+   echo "       $AOMP_SUBMODS_FILE"
+   echo "       all files in $AOMP_BUILD_LOGS"
+   echo "  7. Email/chat team to pull updates, run tr_clone_aomp.sh and tr_build_aomp.sh"
+   echo "     Any existing local changes to llvm-project or hipify will not be lost"
    echo
 fi
 
@@ -238,4 +269,5 @@ if [ ! -L llvm-project ] ; then
 fi
 
 cd $_curdir
-echo "DONE $0"
+echo
+echo "===== DONE $0 for AOMP release $AOMP_VERSION_STRING"
