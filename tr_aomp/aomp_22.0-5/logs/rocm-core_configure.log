@@ -1,0 +1,50 @@
+BEGIN	1756496076.1279993
+EXEC	/work1/grodgers/git/tr_aomp/TheRock/build/base/rocm-core/build	/usr/bin/cmake -E env --unset=ROCM_PATH --unset=ROCM_DIR --unset=HIP_PATH --unset=HIP_DIR -- /usr/bin/cmake -GNinja -B/work/grodgers/git/tr_aomp/TheRock/build/base/rocm-core/build -S/work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/rocm-core -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/work/grodgers/git/tr_aomp/TheRock/build/base/rocm-core/stage -DTHEROCK_STAGE_INSTALL_ROOT=/work/grodgers/git/tr_aomp/TheRock/build/base/rocm-core/stage -DCMAKE_TOOLCHAIN_FILE=/work/grodgers/git/tr_aomp/TheRock/build/base/rocm-core/_toolchain.cmake -DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=/work/grodgers/git/tr_aomp/TheRock/build/base/rocm-core/_init.cmake -DBUILD_SHARED_LIBS=ON -DROCM_VERSION=7.0.0
+0.1	-- The CXX compiler identification is GNU 13.3.0
+0.1	-- Detecting CXX compiler ABI info
+0.2	-- Detecting CXX compiler ABI info - done
+0.2	-- Check for working CXX compiler: /usr/bin/c++ - skipped
+0.2	-- Detecting CXX compile features
+0.2	-- Detecting CXX compile features - done
+0.2	-- ROCM_VERSION = 7.0.0
+0.6	-- VERSION_MAJOR : 7
+0.6	-- VERSION_MINOR : 0
+0.6	-- VERSION_PATCH : 0
+0.6	-- VERSION_POINT : 
+0.6	-- ROCM_LIBPATCH_VERSION : 70000
+0.6	-- VERSION_COMMIT_COUNT : 9
+0.6	-- VERSION_HASH : 415734d2b2
+0.6	-- VERSION_BUILD : 
+0.6	-- CPACK_DEBIAN_PACKAGE_RELEASE : 
+0.6	-- CPACK_RPM_PACKAGE_RELEASE : 
+0.6	-- Using CPACK_PACKAGE_VERSION 7.0.0.70000
+0.6	-- Using CPACK_DEBIAN_PACKAGE_RELEASE local
+0.6	-- DEB_PACKAGE_NAME             : rocm-core
+0.6	-- DEB_PACKAGE_VERSION          : 7.0.0.70000
+0.6	-- DEB_MAINTAINER_NAME          : ROCm Dev Support
+0.6	-- DEB_MAINTAINER_EMAIL         : rocm-dev.support@amd.com
+0.6	-- DEB_COPYRIGHT_YEAR           : 2025
+0.6	-- DEB_LICENSE                  : MIT
+0.6	-- DEB_TIMESTAMP                : Fri, 29 Aug 2025 14:34:36 -0500
+0.6	
+0.6	-- DEB_CHANGELOG_INSTALL_FILENM : changelog.Debian.gz
+0.6	-- Using CPACK_RPM_PACKAGE_RELEASE: local
+0.6	-- Set RPATH  on rocm-core
+0.6	-- Configuring done (0.6s)
+0.6	CMake Warning:
+0.6	  Value of DEB_TIMESTAMP contained a newline; truncating
+0.6	
+0.6	
+0.6	-- Generating done (0.0s)
+0.6	CMake Warning:
+0.6	  Manually-specified variables were not used by the project:
+0.6	
+0.6	    THEROCK_STAGE_INSTALL_ROOT
+0.6	
+0.6	
+0.6	CMake Warning:
+0.6	  Value of DEB_TIMESTAMP contained a newline; truncating
+0.6	
+0.6	
+0.6	-- Build files have been written to: /work/grodgers/git/tr_aomp/TheRock/build/base/rocm-core/build
+END	1756496076.7587247	0.6307253837585449

@@ -1,0 +1,121 @@
+diff --git a/compiler/CMakeLists.txt b/compiler/CMakeLists.txt
+index cdd56f8..6b386ac 100644
+--- a/compiler/CMakeLists.txt
++++ b/compiler/CMakeLists.txt
+@@ -10,6 +10,11 @@ if(THEROCK_ENABLE_COMPILER)
+   if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+     list(APPEND _extra_llvm_cmake_args "-DLLVM_ENABLE_PEDANTIC=OFF")
+   endif()
++  list(APPEND _extra_llvm_cmake_args "-DLLVM_ENABLE_PROJECTS=clang;lld;clang-tools-extra;flang")
++  list(APPEND _extra_llvm_cmake_args "-DLLVM_ENABLE_RUNTIMES=libcxx;libcxxabi;libunwind;openmp;offload;compiler-rt;flang-rt;")
++  if (DEFINED ENV{AOMP_VERSION_STRING})
++    list(APPEND _extra_llvm_cmake_args "-DLLVM_VERSION_SUFFIX=_AOMP_$ENV{AOMP_VERSION_STRING}")
++  endif()
+ 
+   # If the compiler is not pristine (i.e. has patches), then there will be a
+   # ".amd-llvm.smrev" file present which must be used instead of the auto
+@@ -67,6 +72,9 @@ if(THEROCK_ENABLE_COMPILER)
+       -DCLANG_ENABLE_STATIC_ANALYZER=OFF
+       -DCLANG_ENABLE_CLANGD=OFF
+       -DCLANG_TIDY_ENABLE_STATIC_ANALYZER=OFF
++      -DCLANG_TOOL_CLANG_LINKER_WRAPPER_BUILD=ON
++      -DOPENMP_ENABLE_LIBOMPTARGET=ON
++      -DLIBOMPTARGET_BUILD_DEVICE_FORTRT=ON
+ 
+       ${_extra_llvm_cmake_args}
+     BUILD_DEPS
+diff --git a/compiler/pre_hook_amd-llvm.cmake b/compiler/pre_hook_amd-llvm.cmake
+index a01d500..111fce3 100644
+--- a/compiler/pre_hook_amd-llvm.cmake
++++ b/compiler/pre_hook_amd-llvm.cmake
+@@ -14,12 +14,28 @@ if(WIN32)
+   #     Should they be supported? What depends on them?
+   set(LLVM_ENABLE_LIBCXX OFF)
+   set(LLVM_ENABLE_RUNTIMES "compiler-rt" CACHE STRING "Enabled runtimes" FORCE)
++  set(LLVM_ENABLE_PROJECTS "clang;lld;clang-tools-extra;flang" CACHE STRING "Enable LLVM projects" FORCE)
+ else()
+   set(LLVM_BUILD_LLVM_DYLIB ON)
+   set(LLVM_LINK_LLVM_DYLIB ON)
+   set(LLVM_ENABLE_LIBCXX ON)
+-  set(LLVM_ENABLE_RUNTIMES "compiler-rt;libunwind;libcxx;libcxxabi;openmp" CACHE STRING "Enabled runtimes" FORCE)
+-  # Settinng "LIBOMP_COPY_EXPORTS" to `OFF` "aids parallel builds to not interfere
++  set(LLVM_ENABLE_PROJECTS "clang;lld;clang-tools-extra;flang" CACHE STRING "Enable LLVM projects" FORCE)
++  set(LLVM_ENABLE_RUNTIMES "libcxx;libcxxabi;libunwind;openmp;offload;compiler-rt;flang-rt" CACHE STRING "Enabled runtimes" FORCE)
++
++  if("offload" IN_LIST LLVM_ENABLE_RUNTIMES)
++    set(OPENMP_ENABLE_LIBOMPTARGET ON)
++    set(LIBOMPTARGET_BUILD_DEVICE_FORTRT ON)
++    set(LIBOMPTARGET_ENABLE_DEBUG ON)
++    set(LIBOMPTARGET_NO_SANITIZER_AMDGPU ON)
++    set(LIBOMP_INSTALL_RPATH "\$ORIGIN:\$ORIGIN/../lib:\$ORIGIN/../../lib:\$ORIGIN/../../../lib")
++    # Disable building rocr-runtime as external project until libnuma-dev dependency can be satisifed
++    #set(LIBOMPTARGET_EXTERNAL_PROJECT_HSA_PATH "${THEROCK_SOURCE_DIR}/core/ROCR-Runtime")
++    #set(OFFLOAD_EXTERNAL_PROJECT_UNIFIED_ROCR ON)
++
++    # Disable ZSTD until dependency is resolved
++    set(LLVM_ENABLE_ZLIB OFF)
++  endif()
++  # Setting "LIBOMP_COPY_EXPORTS" to `OFF` "aids parallel builds to not interfere
+   # with each other" as libomp and generated headers are copied into the original
+   # source otherwise. Defaults to `ON`.
+   set(LIBOMP_COPY_EXPORTS OFF)
+@@ -27,7 +43,6 @@ endif()
+ 
+ # Set the LLVM_ENABLE_PROJECTS variable before including LLVM's CMakeLists.txt
+ set(BUILD_TESTING OFF CACHE BOOL "DISABLE BUILDING TESTS IN SUBPROJECTS" FORCE)
+-set(LLVM_ENABLE_PROJECTS "clang;lld;clang-tools-extra" CACHE STRING "Enable LLVM projects" FORCE)
+ set(LLVM_TARGETS_TO_BUILD "AMDGPU;X86" CACHE STRING "Enable LLVM Targets" FORCE)
+ 
+ # Packaging.
+@@ -35,8 +50,8 @@ set(PACKAGE_VENDOR "AMD" CACHE STRING "Vendor" FORCE)
+ 
+ # Build the device-libs as part of the core compiler so that clang works by
+ # default (as opposed to other components that are *users* of the compiler).
+-set(LLVM_EXTERNAL_AMDDEVICE_LIBS_SOURCE_DIR "${THEROCK_SOURCE_DIR}/compiler/amd-llvm/amd/device-libs")
+-set(LLVM_EXTERNAL_PROJECTS "amddevice-libs" CACHE STRING "Enable extra projects" FORCE)
++set(LLVM_EXTERNAL_ROCM_DEVICE_LIBS_SOURCE_DIR "${THEROCK_SOURCE_DIR}/compiler/amd-llvm/amd/device-libs")
++set(LLVM_EXTERNAL_PROJECTS "rocm-device-libs" CACHE STRING "Enable extra projects" FORCE)
+ 
+ # TODO2: This mechanism has races in certain situations, failing to create a
+ # symlink. Revisit once devicemanager code is made more robust.
+@@ -106,14 +121,14 @@ block()
+     OPT
+     YAML2OBJ
+   )
+-  if(WIN32)
++  # if(WIN32)
+     # These can be provided by the "C++ Clang tools for Windows" in MSVC, but
+     # we might as well build them from source ourselves.
+     list(APPEND _llvm_required_tools "LLVM_AR")
+     list(APPEND _llvm_required_tools "LLVM_DLLTOOL")
+     list(APPEND _llvm_required_tools "LLVM_LIB")
+     list(APPEND _llvm_required_tools "LLVM_RANLIB")
+-  endif()
++  # endif()
+   therock_set_implicit_llvm_options(LLVM "${CMAKE_CURRENT_SOURCE_DIR}/tools" "${_llvm_required_tools}")
+ 
+   # Clang tools that are required.
+@@ -123,6 +138,7 @@ block()
+     CLANG_OFFLOAD_BUNDLER
+     CLANG_OFFLOAD_PACKAGER
+     CLANG_OFFLOAD_WRAPPER
++    CLANG_LINKER_WRAPPER
+     CLANG_SHLIB
+     DRIVER
+   )
+diff --git a/core/CMakeLists.txt b/core/CMakeLists.txt
+index 6b917f0..9b66f04 100644
+--- a/core/CMakeLists.txt
++++ b/core/CMakeLists.txt
+@@ -108,9 +108,11 @@ if(THEROCK_ENABLE_HIP_RUNTIME)
+       "-DHIP_PLATFORM=amd"
+       "-DHIP_COMMON_DIR=${THEROCK_ROCM_SYSTEMS_SOURCE_DIR}/projects/hip"
+       "-DCLR_BUILD_HIP=ON"
++      "-DBUILD_ICD=ON"
+       # Legacy: Disable various auto-detection logic that breaks out of jail
+       # and can use local machine tools.
+       "-DHIPCC_BIN_DIR="
++      #      "-DHIPCC_BIN_DIR=${CMAKE_CURRENT_BINARY_DIR}/../compiler/hipcc/dist/bin"
+       ${HIP_CLR_CMAKE_ARGS}
+     BUILD_DEPS
+       rocm-cmake

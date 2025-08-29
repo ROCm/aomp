@@ -37,7 +37,7 @@ ___ Answer Ron's question in README. Is there a continue option like we had with
 _X_ Delete use of manifest file
 _X_ Delete use of tr_list* scripts
 _X_ Delete use of tr_set_aomp_branch_orig script
-___ Create an aomp_<AOMP_VERSION_STRING>.info file. Use this to find
+_X_ Create an aomp_<AOMP_VERSION_STRING>.info file. Use this to find
     Therock shakey and record other useful information. 
     tr_add_to_info <name> <values>
     Potential fields:
@@ -56,6 +56,16 @@ ___ Create an aomp_<AOMP_VERSION_STRING>.info file. Use this to find
        Copy info file to AOMP_INSTALL_DIR 
    
 ___ Eliminate brakout file logging in tr_build_aomp.sh
+_X_ Move all release specific stuff to directory aomp_$AOMP_VERSION_STRING
+_X_ Simplify patch creation to use git diff instead of saving orig branches. 
+_X_ Only run fetch_sources one time and record it was done. 
+_X_ Only apply the aomp patches one time. 
+_X_ instead of a single aomp patch , we now create a patch for each submodule and the parent 
+___ Test release to release without being the originator of the release. 
+    In other words, if I am at aomp_22.0-4 and the release manager moved to aoomp_22.0-5 
+    in the aomp repo, This should set the condition  _first_time_on_an_initialized_release=1
+    and trigger patching. It will also cause fetch_sources.py to be run. 
+
         
 
 

@@ -24,9 +24,9 @@ be how the AOMP team keeps pace with TheRock while insulating developers
 from ROCm churn other than the amd-staging branch of llvm-project. 
 
 Any changes or fixes to TheRock repo or its submodules during the development
-of the AOMP release, can be shared with the team by creating a patch
-file with the script tr_create_patch_from_orig.sh. The patchfile for
-a new release is initialzed to empty.  So a new AOMP release is as if
+of the AOMP release, can be shared with the team by creating a set of patches
+with the script tr_create_patch.sh. The patchfile set for
+a new release is initialzed to empty. So a new AOMP release is as if
 you were building TheRock native.
 
 tr_build_aomp.sh builds ROCm into $TR_AOMP_REPOS/TheRock/build/dist/rocm.
@@ -50,4 +50,4 @@ TEST
   - test with AOMP=$AOMP_INSTALL_DIR or
     AOMP=/work/$USER/rocm/aomp which is a symlink to $AOMP_INSTALL_DIR
 
-This README file was last updated on 8/28/2025
+This README file was last updated on 8/29/2025
