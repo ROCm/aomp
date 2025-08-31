@@ -1,0 +1,4 @@
+BEGIN	1756496084.8482273
+EXEC	/work1/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zstd/build/build	/usr/bin/cmake --install /work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zstd/build/build
+0.0	-- Install configuration: "Release"
+END	1756496084.8561609	0.007933616638183594

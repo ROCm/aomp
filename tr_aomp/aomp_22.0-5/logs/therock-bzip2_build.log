@@ -1,0 +1,30 @@
+BEGIN	1756496077.229394
+EXEC	/work1/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/bzip2/build/build	/usr/bin/cmake -E env --unset=ROCM_PATH --unset=ROCM_DIR --unset=HIP_PATH --unset=HIP_DIR -- /usr/bin/cmake --build /work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/bzip2/build/build
+0.0	[1/15] cd /work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/bzip2/build/build && /usr/bin/cmake -E rm -f /work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/bzip2/build/stamp/stage.stamp
+0.0	[2/15] Building C object CMakeFiles/bz2_objects.dir/work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/bzip2/source/crctable.c.o
+0.1	[3/15] Building C object CMakeFiles/bz2_objects.dir/work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/bzip2/source/randtable.c.o
+0.1	[4/15] Building C object CMakeFiles/bz2_objects.dir/work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/bzip2/source/huffman.c.o
+0.3	[5/15] Building C object CMakeFiles/bzip2.dir/work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/bzip2/source/bzip2.c.o
+0.3	/work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/bzip2/source/bzip2.c: In function ‘applySavedFileAttrToOutputFile’:
+0.3	/work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/bzip2/source/bzip2.c:1073:11: warning: ignoring return value of ‘fchown’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+0.3	 1073 |    (void) fchown ( fd, fileMetaInfo.st_uid, fileMetaInfo.st_gid );
+0.3	      |           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+0.3	[6/15] Building C object CMakeFiles/bzcat.dir/work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/bzip2/source/bzip2.c.o
+0.3	/work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/bzip2/source/bzip2.c: In function ‘applySavedFileAttrToOutputFile’:
+0.3	/work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/bzip2/source/bzip2.c:1073:11: warning: ignoring return value of ‘fchown’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+0.3	 1073 |    (void) fchown ( fd, fileMetaInfo.st_uid, fileMetaInfo.st_gid );
+0.3	      |           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+0.3	[7/15] Building C object CMakeFiles/bunzip2.dir/work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/bzip2/source/bzip2.c.o
+0.3	/work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/bzip2/source/bzip2.c: In function ‘applySavedFileAttrToOutputFile’:
+0.3	/work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/bzip2/source/bzip2.c:1073:11: warning: ignoring return value of ‘fchown’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+0.3	 1073 |    (void) fchown ( fd, fileMetaInfo.st_uid, fileMetaInfo.st_gid );
+0.3	      |           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+0.3	[8/15] Building C object CMakeFiles/bz2_objects.dir/work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/bzip2/source/bzlib.c.o
+0.4	[9/15] Building C object CMakeFiles/bz2_objects.dir/work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/bzip2/source/blocksort.c.o
+0.5	[10/15] Building C object CMakeFiles/bz2_objects.dir/work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/bzip2/source/decompress.c.o
+1.0	[11/15] Building C object CMakeFiles/bz2_objects.dir/work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/bzip2/source/compress.c.o
+1.0	[12/15] Linking C shared library librocm_sysdeps_bz2.so
+1.0	[13/15] Linking C executable bzcat
+1.0	[14/15] Linking C executable bzip2
+1.0	[15/15] Linking C executable bunzip2
+END	1756496078.2778	1.0484061241149902

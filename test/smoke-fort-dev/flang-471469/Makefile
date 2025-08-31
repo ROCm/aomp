@@ -18,7 +18,8 @@ HIPCC           = ${AOMP}/bin/clang -x hip
 FC              = ${AOMP}/bin/flang
 #HIP_LIB_PATH   ?= ${ROCM_PATH}/hip/lib
 #HIP_LIB_PATH   ?= /COD/LATEST/aomp/lib
-HIP_LIB_PATH   ?= /opt/rocm/lib
+#HIP_LIB_PATH   ?= /opt/rocm/lib
+HIP_LIB_PATH    ?= $(realpath $(realpath ${AOMP})/../../lib)
 
 # Compiler flags
 HIP_FLAGS       = -O3 --offload-arch=${AOMP_GPU}
@@ -30,6 +31,8 @@ LD_FLAGS        = -O3 -L${HIP_LIB_PATH} -lamdhip64 -lstdc++
 #   AMD_LOG_LEVEL=3 ...
 test:
 	mkdir -p obj
+	echo AOMP=${AOMP}
+	echo HIP_LIB_PATH=${HIP_LIB_PATH}
 	${HIPCC} ${HIP_FLAGS} -c kernel.cpp -o obj/kernel.o
 	${FC} ${F_FLAGS} -c driver.f90 -o obj/driver.o
 	${FC} ${F_FLAGS} ${LD_FLAGS} -o test obj/driver.o obj/kernel.o

@@ -1,0 +1,20 @@
+BEGIN	1756496076.747697
+EXEC	/work1/grodgers/git/tr_aomp/TheRock/build/base/aux-overlay/build	/usr/bin/cmake --install /work/grodgers/git/tr_aomp/TheRock/build/base/aux-overlay/build
+0.0	-- Install configuration: "Release"
+0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/base/aux-overlay/stage/./llvm
+0.0	-- Up-to-date: /work/grodgers/git/tr_aomp/TheRock/build/base/aux-overlay/stage/.
+0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/base/aux-overlay/stage/./lib
+0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/base/aux-overlay/stage/./lib/cmake
+0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/base/aux-overlay/stage/./lib/cmake/llvm
+0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/base/aux-overlay/stage/./lib/cmake/llvm/LLVMConfig.cmake
+0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/base/aux-overlay/stage/./lib/cmake/llvm/LLVMConfigVersion.cmake
+0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/base/aux-overlay/stage/./lib/cmake/lld
+0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/base/aux-overlay/stage/./lib/cmake/lld/LLDConfigVersion.cmake
+0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/base/aux-overlay/stage/./lib/cmake/lld/LLDConfig.cmake
+0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/base/aux-overlay/stage/./lib/cmake/clang
+0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/base/aux-overlay/stage/./lib/cmake/clang/ClangConfig.cmake
+0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/base/aux-overlay/stage/./lib/cmake/clang/ClangConfigVersion.cmake
+0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/base/aux-overlay/stage/./lib/cmake/AMDDeviceLibs
+0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/base/aux-overlay/stage/./lib/cmake/AMDDeviceLibs/AMDDeviceLibsConfig.cmake
+0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/base/aux-overlay/stage/share/therock/dist_info.json
+END	1756496076.7579482	0.010251045227050781

@@ -1,0 +1,14 @@
+therock_shakey: 4b059ebcc564d77dc0339df7bc8ebc62dabe6d8c
+start_date: Thu Aug 28 06:08:18 PM CDT 2025
+aomp_version: 22.0-5
+patch_file: patches/tr_aomp_22.0-5.patch
+user: grodgers
+hostname: r17
+amd-llvm_branch: amd-staging
+hipify_branch: amd-staging
+sources_fetched: TRUE
+patch_dir: /work/grodgers/git/tr_aomp/aomp/tr_aomp/aomp_22.0-5/patches
+patch_applied: YES
+therock_config: cmake -B build -GNinja -DTHEROCK_AMDGPU_TARGETS=gfx90a -DTHEROCK_ENABLE_COMPOSABLE_KERNEL=OFF -DTHEROCK_ENABLE_MATH_LIBS=OFF -DTHEROCK_ENABLE_ML_LIBS=OFF -DTHEROCK_BUNDLE_SYSDEPS=ON -DTHEROCK_BUILD_TESTING=OFF -DTHEROCK_ENABLE_RCCL=OFF /work/grodgers/git/tr_aomp/TheRock
+build_path: /work/grodgers/git/tr_aomp/TheRock/.venv/bin:/home/grodgers/bin:/home/grodgers/.local/bin:/usr/local/go/bin:/usr/local/gh-cli/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
+build_date: Fri Aug 29 02:46:18 PM CDT 2025

@@ -1,0 +1,16 @@
+BEGIN	1756496656.4362338
+EXEC	/work1/grodgers/git/tr_aomp/TheRock/build/compiler/hipcc/build	/usr/bin/cmake --install /work/grodgers/git/tr_aomp/TheRock/build/compiler/hipcc/build
+0.0	-- Install configuration: "Release"
+0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/compiler/hipcc/stage/./bin/hipvars.pm
+0.0	-- Up-to-date: /work/grodgers/git/tr_aomp/TheRock/build/compiler/hipcc/stage/./bin/hipvars.pm
+0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/compiler/hipcc/stage/share/doc/hipcc/LICENSE.txt
+0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/compiler/hipcc/stage/share/doc/hipcc/README.md
+0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/compiler/hipcc/stage/bin/hipcc
+0.0	-- Set non-toolchain portion of runtime path of "/work/grodgers/git/tr_aomp/TheRock/build/compiler/hipcc/stage/bin/hipcc" to "$ORIGIN/../lib/rocm_sysdeps/lib:$ORIGIN/../lib/llvm/lib"
+0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/compiler/hipcc/stage/bin/hipconfig
+0.0	-- Set non-toolchain portion of runtime path of "/work/grodgers/git/tr_aomp/TheRock/build/compiler/hipcc/stage/bin/hipconfig" to "$ORIGIN/../lib/rocm_sysdeps/lib:$ORIGIN/../lib/llvm/lib"
+0.0	-- Up-to-date: /work/grodgers/git/tr_aomp/TheRock/build/compiler/hipcc/stage/share/doc/hipcc/LICENSE.txt
+0.0	-- Up-to-date: /work/grodgers/git/tr_aomp/TheRock/build/compiler/hipcc/stage/share/doc/hipcc/README.md
+0.0	-- Up-to-date: /work/grodgers/git/tr_aomp/TheRock/build/compiler/hipcc/stage/bin/hipcc
+0.0	-- Up-to-date: /work/grodgers/git/tr_aomp/TheRock/build/compiler/hipcc/stage/bin/hipconfig
+END	1756496656.4561203	0.019886493682861328

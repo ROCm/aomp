@@ -1,0 +1,6 @@
+BEGIN	1756496077.0974448
+EXEC	/work1/grodgers/git/tr_aomp/TheRock/build/base/half/build	/usr/bin/cmake --install /work/grodgers/git/tr_aomp/TheRock/build/base/half/build
+0.0	-- Install configuration: "Release"
+0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/base/half/stage/include/half/half.hpp
+0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/base/half/stage/share/doc/half/LICENSE.txt
+END	1756496077.106748	0.00930333137512207
