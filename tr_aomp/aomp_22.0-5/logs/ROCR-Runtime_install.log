@@ -1,0 +1,45 @@
+BEGIN	1756496660.3879726
+EXEC	/work1/grodgers/git/tr_aomp/TheRock/build/core/ROCR-Runtime/build	/usr/bin/cmake --install /work/grodgers/git/tr_aomp/TheRock/build/core/ROCR-Runtime/build
+0.0	-- Install configuration: "Release"
+0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/core/ROCR-Runtime/stage/lib/libhsakmt.a
+0.0	-- Up-to-date: /work/grodgers/git/tr_aomp/TheRock/build/core/ROCR-Runtime/stage/lib/libhsakmt.a
+0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/core/ROCR-Runtime/stage/include/hsakmt
+0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/core/ROCR-Runtime/stage/include/hsakmt/hsakmt.h
+0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/core/ROCR-Runtime/stage/include/hsakmt/hsakmtmodeliface.h
+0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/core/ROCR-Runtime/stage/include/hsakmt/hsakmtmodel.h
+0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/core/ROCR-Runtime/stage/include/hsakmt/hsakmttypes.h
+0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/core/ROCR-Runtime/stage/lib/cmake/hsakmt/hsakmtTargets.cmake
+0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/core/ROCR-Runtime/stage/lib/cmake/hsakmt/hsakmtTargets-release.cmake
+0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/core/ROCR-Runtime/stage/lib/cmake/hsakmt/hsakmt-config.cmake
+0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/core/ROCR-Runtime/stage/lib/cmake/hsakmt/hsakmt-config-version.cmake
+0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/core/ROCR-Runtime/stage/lib/pkgconfig/libhsakmt.pc
+0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/core/ROCR-Runtime/stage/lib/libhsa-runtime64.so.1.18.0
+0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/core/ROCR-Runtime/stage/lib/libhsa-runtime64.so.1
+0.0	-- Set non-toolchain portion of runtime path of "/work/grodgers/git/tr_aomp/TheRock/build/core/ROCR-Runtime/stage/lib/libhsa-runtime64.so.1.18.0" to "$ORIGIN:$ORIGIN/rocm_sysdeps/lib"
+0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/core/ROCR-Runtime/stage/lib/libhsa-runtime64.so
+0.0	-- Up-to-date: /work/grodgers/git/tr_aomp/TheRock/build/core/ROCR-Runtime/stage/lib/libhsa-runtime64.so.1.18.0
+0.0	-- Up-to-date: /work/grodgers/git/tr_aomp/TheRock/build/core/ROCR-Runtime/stage/lib/libhsa-runtime64.so.1
+0.0	-- Up-to-date: /work/grodgers/git/tr_aomp/TheRock/build/core/ROCR-Runtime/stage/lib/libhsa-runtime64.so
+0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/core/ROCR-Runtime/stage/share/doc/hsa-runtime64/LICENSE.md
+0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/core/ROCR-Runtime/stage/include/hsa
+0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/core/ROCR-Runtime/stage/include/hsa/Brig.h
+0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/core/ROCR-Runtime/stage/include/hsa/hsa_api_trace_version.h
+0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/core/ROCR-Runtime/stage/include/hsa/amd_hsa_kernel_code.h
+0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/core/ROCR-Runtime/stage/include/hsa/amd_hsa_common.h
+0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/core/ROCR-Runtime/stage/include/hsa/hsa_ext_finalize.h
+0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/core/ROCR-Runtime/stage/include/hsa/amd_hsa_signal.h
+0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/core/ROCR-Runtime/stage/include/hsa/amd_hsa_queue.h
+0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/core/ROCR-Runtime/stage/include/hsa/hsa.h
+0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/core/ROCR-Runtime/stage/include/hsa/hsa_ven_amd_loader.h
+0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/core/ROCR-Runtime/stage/include/hsa/hsa_ven_amd_aqlprofile.h
+0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/core/ROCR-Runtime/stage/include/hsa/hsa_amd_tool.h
+0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/core/ROCR-Runtime/stage/include/hsa/hsa_ext_image.h
+0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/core/ROCR-Runtime/stage/include/hsa/hsa_ven_amd_pc_sampling.h
+0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/core/ROCR-Runtime/stage/include/hsa/hsa_ext_amd.h
+0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/core/ROCR-Runtime/stage/include/hsa/amd_hsa_elf.h
+0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/core/ROCR-Runtime/stage/include/hsa/hsa_api_trace.h
+0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/core/ROCR-Runtime/stage/lib/cmake/hsa-runtime64/hsa-runtime64Targets.cmake
+0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/core/ROCR-Runtime/stage/lib/cmake/hsa-runtime64/hsa-runtime64Targets-release.cmake
+0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/core/ROCR-Runtime/stage/lib/cmake/hsa-runtime64/hsa-runtime64-config.cmake
+0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/core/ROCR-Runtime/stage/lib/cmake/hsa-runtime64/hsa-runtime64-config-version.cmake
+END	1756496660.4168313	0.028858661651611328

@@ -1,0 +1,43 @@
+BEGIN	1756496652.227894
+EXEC	/work1/grodgers/git/tr_aomp/TheRock/build/compiler/hipify/build	/usr/bin/cmake -E env --unset=ROCM_PATH --unset=ROCM_DIR --unset=HIP_PATH --unset=HIP_DIR -- /usr/bin/cmake --build /work/grodgers/git/tr_aomp/TheRock/build/compiler/hipify/build
+0.1	[1/40] cd /work/grodgers/git/tr_aomp/TheRock/build/compiler/hipify/build && /usr/bin/cmake -E rm -f /work/grodgers/git/tr_aomp/TheRock/build/compiler/hipify/stamp/stage.stamp
+0.6	[2/40] Building CXX object CMakeFiles/hipify-clang.dir/src/CUDA2HIP_CUB_API_functions.cpp.o
+0.6	[3/40] Building CXX object CMakeFiles/hipify-clang.dir/src/CUDA2HIP_CAFFE2_API_types.cpp.o
+0.7	[4/40] Building CXX object CMakeFiles/hipify-clang.dir/src/CUDA2HIP_Complex_API_types.cpp.o
+0.7	[5/40] Building CXX object CMakeFiles/hipify-clang.dir/src/CUDA2HIP_CAFFE2_API_functions.cpp.o
+0.7	[6/40] Building CXX object CMakeFiles/hipify-clang.dir/src/CUDA2HIP_RTC_API_types.cpp.o
+0.7	[7/40] Building CXX object CMakeFiles/hipify-clang.dir/src/CUDA2HIP_Complex_API_functions.cpp.o
+0.7	[8/40] Building CXX object CMakeFiles/hipify-clang.dir/src/CUDA2HIP_CUB_API_types.cpp.o
+0.8	[9/40] Building CXX object CMakeFiles/hipify-clang.dir/src/CUDA2HIP_Device_types.cpp.o
+0.8	[10/40] Building CXX object CMakeFiles/hipify-clang.dir/src/CUDA2HIP_FFT_API_types.cpp.o
+0.8	[11/40] Building CXX object CMakeFiles/hipify-clang.dir/src/CUDA2HIP_RAND_API_types.cpp.o
+0.8	[12/40] Building CXX object CMakeFiles/hipify-clang.dir/src/CUDA2HIP.cpp.o
+0.8	[13/40] Building CXX object CMakeFiles/hipify-clang.dir/src/CUDA2HIP_RAND_API_functions.cpp.o
+0.8	[14/40] Building CXX object CMakeFiles/hipify-clang.dir/src/CUDA2HIP_FFT_API_functions.cpp.o
+0.8	[15/40] Building CXX object CMakeFiles/hipify-clang.dir/src/CUDA2HIP_SOLVER_API_types.cpp.o
+0.9	[16/40] Building CXX object CMakeFiles/hipify-clang.dir/src/CUDA2HIP_RTC_API_functions.cpp.o
+0.9	[17/40] Building CXX object CMakeFiles/hipify-clang.dir/src/CUDA2HIP_SPARSE_API_types.cpp.o
+1.0	[18/40] Building CXX object CMakeFiles/hipify-clang.dir/src/CUDA2HIP_TENSOR_API_types.cpp.o
+1.0	[19/40] Building CXX object CMakeFiles/hipify-clang.dir/src/CUDA2HIP_TENSOR_API_functions.cpp.o
+1.0	[20/40] Building CXX object CMakeFiles/hipify-clang.dir/src/CUDA2HIP_DNN_API_functions.cpp.o
+1.2	[21/40] Building CXX object CMakeFiles/hipify-clang.dir/src/CUDA2HIP_Runtime_API_functions.cpp.o
+1.2	[22/40] Building CXX object CMakeFiles/hipify-clang.dir/src/CUDA2HIP_SOLVER_API_functions.cpp.o
+1.4	[23/40] Building CXX object CMakeFiles/hipify-clang.dir/src/CUDA2HIP_Driver_API_functions.cpp.o
+1.4	[24/40] Building CXX object CMakeFiles/hipify-clang.dir/src/ArgParse.cpp.o
+1.4	[25/40] Building CXX object CMakeFiles/hipify-clang.dir/src/CUDA2HIP_Device_functions.cpp.o
+1.5	[26/40] Building CXX object CMakeFiles/hipify-clang.dir/src/CUDA2HIP_Runtime_API_types.cpp.o
+1.5	[27/40] Building CXX object CMakeFiles/hipify-clang.dir/src/CUDA2HIP_BLAS_API_types.cpp.o
+1.5	[28/40] Building CXX object CMakeFiles/hipify-clang.dir/src/CUDA2HIP_DNN_API_types.cpp.o
+1.6	[29/40] Building CXX object CMakeFiles/hipify-clang.dir/src/Statistics.cpp.o
+1.8	[30/40] Building CXX object CMakeFiles/hipify-clang.dir/src/CUDA2HIP_Driver_API_types.cpp.o
+1.9	[31/40] Building CXX object CMakeFiles/hipify-clang.dir/src/CUDA2HIP_SPARSE_API_functions.cpp.o
+2.1	[32/40] Building CXX object CMakeFiles/hipify-clang.dir/src/CUDA2HIP_BLAS_API_functions.cpp.o
+5.0	[33/40] Building CXX object CMakeFiles/hipify-clang.dir/src/StringUtils.cpp.o
+5.1	[34/40] Building CXX object CMakeFiles/hipify-clang.dir/src/CUDA2HIP_Python.cpp.o
+5.1	[35/40] Building CXX object CMakeFiles/hipify-clang.dir/src/LLVMCompat.cpp.o
+6.0	[36/40] Building CXX object CMakeFiles/hipify-clang.dir/src/CUDA2HIP_Doc.cpp.o
+7.9	[37/40] Building CXX object CMakeFiles/hipify-clang.dir/src/main.cpp.o
+8.1	[38/40] Building CXX object CMakeFiles/hipify-clang.dir/src/CUDA2HIP_Perl.cpp.o
+11.4	[39/40] Building CXX object CMakeFiles/hipify-clang.dir/src/HipifyAction.cpp.o
+11.7	[40/40] Linking CXX executable hipify-clang
+END	1756496663.8887653	11.660871267318726

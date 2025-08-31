@@ -1,0 +1,5 @@
+BEGIN	1756496076.8468273
+EXEC	/work1/grodgers/git/tr_aomp/TheRock/build/profiler/rocprof-trace-decoder/build	/usr/bin/cmake --install /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprof-trace-decoder/build
+0.0	-- Install configuration: "Release"
+0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprof-trace-decoder/stage/lib/librocprof-trace-decoder.so
+END	1756496076.8551764	0.008349180221557617

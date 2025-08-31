@@ -1,12 +1,12 @@
 #!/bin/bash
-# 
-#  build_project.sh:  Script to build the llvm, clang , and lld components of the AOMP compiler. 
+#
+#  build_project.sh:  Script to build the llvm, clang , and lld components of the AOMP compiler.
 #                  This clang 9.0 compiler supports clang hip, OpenMP, and clang cuda
 #                  offloading languages for BOTH nvidia and Radeon accelerator cards.
 #                  This compiler has both the NVPTX and AMDGPU LLVM backends.
 #                  The AMDGPU LLVM backend is referred to as the Lightning Compiler.
 #
-# See the help text below, run 'build_project.sh -h' for more information. 
+# See the help text below, run 'build_project.sh -h' for more information.
 #
 BUILD_TYPE=${BUILD_TYPE:-Release}
 
@@ -137,6 +137,7 @@ MYCMAKEOPTS=(-DCMAKE_BUILD_TYPE="$BUILD_TYPE"
              -DROCM_LLVM_BACKWARD_COMPAT_LINK_TARGET="./lib/llvm"
              -DLIBOMP_COPY_EXPORTS=OFF
              -DLIBOMPTARGET_ENABLE_DEBUG=ON
+             -DLIBOMPTEST_INSTALL_COMPONENTS=ON
              -DLIBOMPTARGET_AMDGCN_GFXLIST="$GFXSEMICOLONS"
              -DLIBOMP_USE_HWLOC=ON
              -DLIBOMP_HWLOC_INSTALL_DIR="$AOMP_SUPP/hwloc"
@@ -147,7 +148,7 @@ MYCMAKEOPTS=(-DCMAKE_BUILD_TYPE="$BUILD_TYPE"
              -DLIBOMPTARGET_NO_SANITIZER_AMDGPU=1
              -DLIBOMPTARGET_BUILD_DEVICE_FORTRT=On
              -DCMAKE_EXPORT_COMPILE_COMMANDS=ON)
- 
+
 # -DCLANG_LINK_FLANG_LEGACY=ON
 
 # Enable amdflang, amdclang, amdclang++, amdllvm.
@@ -167,12 +168,12 @@ if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
                  -DSANITIZER_COMGR_INCLUDE_PATH="$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/amd/comgr/include")
 fi
 
-if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then 
+if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   help_build_aomp
 fi
 
-if [ "$AOMP_STANDALONE_BUILD" == 1 ] ; then 
-   if [ ! -L "$AOMP" ] && [ -d "$AOMP" ] ; then 
+if [ "$AOMP_STANDALONE_BUILD" == 1 ] ; then
+   if [ ! -L "$AOMP" ] && [ -d "$AOMP" ] ; then
       echo "ERROR: Directory $AOMP is a physical directory."
       echo "       It must be a symbolic link or not exist"
       exit 1
@@ -181,7 +182,7 @@ fi
 
 check_writable_installdir "$1" "$INSTALL_PROJECT"
 
-# Fix the banner to print the AOMP version string. 
+# Fix the banner to print the AOMP version string.
 if [ "$AOMP_STANDALONE_BUILD" == 1 ] ; then
    cd "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME" || exit
    MONO_REPO_ID=$(git log | grep -m1 commit | cut -d" " -f2)
@@ -198,7 +199,7 @@ fi
 
 # Skip synchronization from git repos if nocmake or install are specified
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
-   echo 
+   echo
    echo "This is a FRESH START. ERASING any previous builds in $BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME"
    echo "Use ""$0 nocmake"" or ""$0 install"" to avoid FRESH START."
    rm -rf "$BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME"
@@ -233,12 +234,12 @@ cd "$BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME" || exit
 
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    echo
-   echo " -----Running cmake ---- " 
+   echo " -----Running cmake ---- "
    MYLITOPTS=(-DLLVM_LIT_ARGS='-vv --show-unsupported --show-xfail -j 32')
    echo "${AOMP_CMAKE}" "$(shquot "${MYLITOPTS[@]}")" \
                         "$(shquot "${MYCMAKEOPTS[@]}")" \
                         "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/llvm"
-   
+
    if ! ${AOMP_CMAKE} "${MYLITOPTS[@]}" \
                       "${MYCMAKEOPTS[@]}" \
                       "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/llvm" 2>&1; then
@@ -253,7 +254,7 @@ if [ "$1" = "cmake" ]; then
 fi
 
 echo
-echo " -----Running make ---- " 
+echo " -----Running make ---- "
 
 if [ "$AOMP_LIMIT_FLANG" == "1" ] ; then
    # Required for building flang on memory limited systems.
@@ -280,10 +281,10 @@ if [ "$1" == "install" ] ; then
       echo "ERROR make install failed "
       exit 1
    fi
-   if [ "$AOMP_STANDALONE_BUILD" == 1 ] ; then 
+   if [ "$AOMP_STANDALONE_BUILD" == 1 ] ; then
       echo " "
       echo "------ Linking $INSTALL_PROJECT to $AOMP -------"
-      if [ -L "$AOMP" ] ; then 
+      if [ -L "$AOMP" ] ; then
          $SUDO rm "$AOMP"
       fi
       $SUDO ln -sf "$AOMP_INSTALL_DIR" "$AOMP"
@@ -336,9 +337,9 @@ if [ "$1" == "install" ] ; then
          #cp ${LLVM_INSTALL_LOC}/bin/rocm.cfg $config_file
       fi
    done
-else 
-   echo 
+else
+   echo
    echo "SUCCESSFUL BUILD, please run:  $0 install"
    echo "  to install into $AOMP"
-   echo 
+   echo
 fi

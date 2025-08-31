@@ -1,0 +1,5 @@
+BEGIN	1756496076.65774
+EXEC	/work1/grodgers/git/tr_aomp/TheRock/build/base/aux-overlay/build	/usr/bin/cmake -E env --unset=ROCM_PATH --unset=ROCM_DIR --unset=HIP_PATH --unset=HIP_DIR -- /usr/bin/cmake --build /work/grodgers/git/tr_aomp/TheRock/build/base/aux-overlay/build
+0.0	[1/2] cd /work/grodgers/git/tr_aomp/TheRock/build/base/aux-overlay/build && /usr/bin/cmake -E create_symlink lib/llvm /work/grodgers/git/tr_aomp/TheRock/build/base/aux-overlay/build/llvm
+0.0	[2/2] cd /work/grodgers/git/tr_aomp/TheRock/build/base/aux-overlay/build && /usr/bin/cmake -E rm -f /work/grodgers/git/tr_aomp/TheRock/build/base/aux-overlay/stamp/stage.stamp
+END	1756496076.707634	0.049893856048583984
