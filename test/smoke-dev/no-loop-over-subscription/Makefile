@@ -1,0 +1,18 @@
+include ../../Makefile.defs
+
+TESTNAME     = no_loop_over_subscription
+TESTSRC_MAIN = no_loop_over_subscription.c
+TESTSRC_AUX  =
+TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
+RUNENV      += LIBOMPTARGET_KERNEL_TRACE=1
+
+RUNCMD      = ./$(TESTNAME) 2>&1 | $(FILECHECK) $(TESTSRC_MAIN)
+
+CFLAGS       += -fopenmp-assume-teams-oversubscription -fopenmp-assume-threads-oversubscription
+CLANG        = clang
+OMP_BIN      = $(AOMP)/bin/$(CLANG)
+CC           = $(OMP_BIN) $(VERBOSE)
+#-ccc-print-phases
+#"-\#\#\#"
+
+include ../Makefile.rules
