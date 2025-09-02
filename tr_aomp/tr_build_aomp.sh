@@ -37,7 +37,10 @@ else
    _mathlibs_opt="-DTHEROCK_ENABLE_MATH_LIBS=ON"
 fi
 
-_cmd="cmake -B build -GNinja -DTHEROCK_AMDGPU_TARGETS=gfx90a -DTHEROCK_ENABLE_COMPOSABLE_KERNEL=OFF $_mathlibs_opt  -DTHEROCK_ENABLE_ML_LIBS=OFF -DTHEROCK_BUNDLE_SYSDEPS=ON -DTHEROCK_BUILD_TESTING=OFF $_rccl_opt $_therockdir"
+GFXLIST=${GFXLIST:-"gfx900 gfx902 gfx906 gfx908 gfx90a gfx90c gfx942 gfx950 gfx1030 gfx1031 gfx1035 gfx1036 gfx1100 gfx1101 gfx1102 gfx1103 gfx1150 gfx1151 gfx1152 gfx1153 gfx1200 gfx1201 gfx9-generic gfx9-4-generic gfx10-1-generic gfx10-3-generic gfx11-generic gfx12-generic"}
+
+_gfxsemicolons=$(echo "$GFXLIST" | tr ' ' ';')
+_cmd="cmake -B build -GNinja -DTHEROCK_AMDGPU_TARGETS='$_gfxsemicolons' -DTHEROCK_AMDGPU_DIST_BUNDLE_NAME=gfx9 -DTHEROCK_ENABLE_COMPOSABLE_KERNEL=OFF $_mathlibs_opt  -DTHEROCK_ENABLE_ML_LIBS=OFF -DTHEROCK_BUNDLE_SYSDEPS=ON -DTHEROCK_BUILD_TESTING=OFF $_rccl_opt $_therockdir"
 
 #Record config and PATH in AOMP release info file"
 $thisdir/tr_add_info.sh therock_config $_cmd

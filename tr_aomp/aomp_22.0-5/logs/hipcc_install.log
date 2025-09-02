@@ -1,4 +1,4 @@
-BEGIN	1756496656.4362338
+BEGIN	1756837594.960015
 EXEC	/work1/grodgers/git/tr_aomp/TheRock/build/compiler/hipcc/build	/usr/bin/cmake --install /work/grodgers/git/tr_aomp/TheRock/build/compiler/hipcc/build
 0.0	-- Install configuration: "Release"
 0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/compiler/hipcc/stage/./bin/hipvars.pm
@@ -13,4 +13,4 @@ EXEC	/work1/grodgers/git/tr_aomp/TheRock/build/compiler/hipcc/build	/usr/bin/cma
 0.0	-- Up-to-date: /work/grodgers/git/tr_aomp/TheRock/build/compiler/hipcc/stage/share/doc/hipcc/README.md
 0.0	-- Up-to-date: /work/grodgers/git/tr_aomp/TheRock/build/compiler/hipcc/stage/bin/hipcc
 0.0	-- Up-to-date: /work/grodgers/git/tr_aomp/TheRock/build/compiler/hipcc/stage/bin/hipconfig
-END	1756496656.4561203	0.019886493682861328
+END	1756837594.9704537	0.010438680648803711

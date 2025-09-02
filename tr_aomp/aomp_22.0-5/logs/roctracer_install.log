@@ -1,4 +1,4 @@
-BEGIN	1756496705.596355
+BEGIN	1756837644.1501045
 EXEC	/work1/grodgers/git/tr_aomp/TheRock/build/profiler/roctracer/build	/usr/bin/cmake --install /work/grodgers/git/tr_aomp/TheRock/build/profiler/roctracer/build
 0.0	-- Install configuration: "Release"
 0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/roctracer/stage/include/roctracer/roctx.h
@@ -36,6 +36,9 @@ EXEC	/work1/grodgers/git/tr_aomp/TheRock/build/profiler/roctracer/build	/usr/bin
 0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/roctracer/stage/share/roctracer/test/libcodeobj_test.so
 0.0	-- Set non-toolchain portion of runtime path of "/work/grodgers/git/tr_aomp/TheRock/build/profiler/roctracer/stage/share/roctracer/test/libcodeobj_test.so" to "$ORIGIN/rocm_sysdeps/lib:$ORIGIN/llvm/lib:$ORIGIN"
 0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/roctracer/stage/share/roctracer/gfx90a_copy.hsaco
+0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/roctracer/stage/share/roctracer/gfx942_copy.hsaco
+0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/roctracer/stage/share/roctracer/gfx906_copy.hsaco
+0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/roctracer/stage/share/roctracer/gfx908_copy.hsaco
 0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/roctracer/stage/share/roctracer/run_tests.sh
 0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/roctracer/stage/share/roctracer/test/check_trace.py
 0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/roctracer/stage/share/roctracer/test/golden_traces
@@ -91,4 +94,4 @@ EXEC	/work1/grodgers/git/tr_aomp/TheRock/build/profiler/roctracer/build	/usr/bin
 0.0	-- Up-to-date: /work/grodgers/git/tr_aomp/TheRock/build/profiler/roctracer/stage/lib/roctracer/libfile_plugin.so
 0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/roctracer/stage/share/doc/roctracer/LICENSE
 0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/roctracer/stage/share/doc/roctracer-asan/LICENSE
-END	1756496705.6244898	0.028134822845458984
+END	1756837644.1787016	0.028597116470336914

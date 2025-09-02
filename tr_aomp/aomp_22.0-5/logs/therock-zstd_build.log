@@ -1,4 +1,4 @@
-BEGIN	1756496077.3132527
+BEGIN	1756837037.0836613
 EXEC	/work1/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zstd/build/build	/usr/bin/cmake -E env --unset=ROCM_PATH --unset=ROCM_DIR --unset=HIP_PATH --unset=HIP_DIR -- /usr/bin/cmake --build /work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zstd/build/build
 0.0	[1/2] cd /work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zstd/build/build && /usr/bin/cmake -E rm -f /work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zstd/build/stamp/stage.stamp
 7.5	[2/2] cd /work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zstd/build/build && /usr/bin/cmake -E rm -rf -- /work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zstd/build/stage/lib/rocm_sysdeps && /usr/bin/cmake -GNinja -S/work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zstd/source/build/cmake -B/work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zstd/build/build/b -DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=/work/grodgers/git/tr_aomp/TheRock/third-party/sysdeps/common/zstd/zstd_include.cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=/usr/bin/cc -DCMAKE_CXX_COMPILER=/usr/bin/c++ -DCMAKE_INSTALL_PREFIX=/work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zstd/build/stage/lib/rocm_sysdeps -DZSTD_BUILD_TESTS=OFF -DZSTD_LEGACY_SUPPORT=OFF -DZSTD_BUILD_PROGRAMS=OFF -DZSTD_BUILD_STATIC=OFF -DZSTD_BUILD_SHARED=ON -DCMAKE_SHARED_LINKER_FLAGS=-Wl,--version-script=/work/grodgers/git/tr_aomp/TheRock/third-party/sysdeps/common/zstd/version.lds && /usr/bin/cmake --build /work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zstd/build/build/b && /usr/bin/cmake --install /work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zstd/build/build/b && /usr/bin/cmake -E env PATCHELF=/home/grodgers/.local/bin/patchelf THEROCK_SOURCE_DIR=/work/grodgers/git/tr_aomp/TheRock Python3_EXECUTABLE=/work/grodgers/git/tr_aomp/TheRock/.venv/bin/python3 -- bash /work/grodgers/git/tr_aomp/TheRock/third-party/sysdeps/common/zstd/patch_install.sh /work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zstd/build/stage/lib/rocm_sysdeps
@@ -69,24 +69,24 @@ EXEC	/work1/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zstd/bu
 7.5	-- Configuring done (1.8s)
 7.5	-- Generating done (0.0s)
 7.5	-- Build files have been written to: /work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zstd/build/build/b
-7.5	[1/33] Building C object lib/CMakeFiles/libzstd_shared.dir/work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zstd/source/lib/common/debug.c.o
-7.5	[2/33] Building C object lib/CMakeFiles/libzstd_shared.dir/work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zstd/source/lib/common/threading.c.o
+7.5	[1/33] Building C object lib/CMakeFiles/libzstd_shared.dir/work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zstd/source/lib/common/threading.c.o
+7.5	[2/33] Building C object lib/CMakeFiles/libzstd_shared.dir/work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zstd/source/lib/common/debug.c.o
 7.5	[3/33] Building ASM object lib/CMakeFiles/libzstd_shared.dir/work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zstd/source/lib/decompress/huf_decompress_amd64.S.o
 7.5	[4/33] Building C object lib/CMakeFiles/libzstd_shared.dir/work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zstd/source/lib/common/error_private.c.o
 7.5	[5/33] Building C object lib/CMakeFiles/libzstd_shared.dir/work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zstd/source/lib/common/zstd_common.c.o
 7.5	[6/33] Building C object lib/CMakeFiles/libzstd_shared.dir/work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zstd/source/lib/compress/hist.c.o
 7.5	[7/33] Building C object lib/CMakeFiles/libzstd_shared.dir/work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zstd/source/lib/compress/zstd_compress_literals.c.o
-7.5	[8/33] Building C object lib/CMakeFiles/libzstd_shared.dir/work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zstd/source/lib/decompress/zstd_ddict.c.o
-7.5	[9/33] Building C object lib/CMakeFiles/libzstd_shared.dir/work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zstd/source/lib/compress/zstd_preSplit.c.o
+7.5	[8/33] Building C object lib/CMakeFiles/libzstd_shared.dir/work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zstd/source/lib/compress/zstd_preSplit.c.o
+7.5	[9/33] Building C object lib/CMakeFiles/libzstd_shared.dir/work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zstd/source/lib/decompress/zstd_ddict.c.o
 7.5	[10/33] Building C object lib/CMakeFiles/libzstd_shared.dir/work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zstd/source/lib/common/pool.c.o
 7.5	[11/33] Building C object lib/CMakeFiles/libzstd_shared.dir/work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zstd/source/lib/common/entropy_common.c.o
 7.5	[12/33] Building C object lib/CMakeFiles/libzstd_shared.dir/work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zstd/source/lib/common/xxhash.c.o
-7.5	[13/33] Building C object lib/CMakeFiles/libzstd_shared.dir/work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zstd/source/lib/compress/zstd_compress_superblock.c.o
-7.5	[14/33] Building C object lib/CMakeFiles/libzstd_shared.dir/work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zstd/source/lib/dictBuilder/fastcover.c.o
-7.5	[15/33] Building C object lib/CMakeFiles/libzstd_shared.dir/work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zstd/source/lib/compress/fse_compress.c.o
+7.5	[13/33] Building C object lib/CMakeFiles/libzstd_shared.dir/work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zstd/source/lib/compress/fse_compress.c.o
+7.5	[14/33] Building C object lib/CMakeFiles/libzstd_shared.dir/work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zstd/source/lib/compress/zstd_compress_superblock.c.o
+7.5	[15/33] Building C object lib/CMakeFiles/libzstd_shared.dir/work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zstd/source/lib/dictBuilder/fastcover.c.o
 7.5	[16/33] Building C object lib/CMakeFiles/libzstd_shared.dir/work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zstd/source/lib/compress/zstd_compress_sequences.c.o
-7.5	[17/33] Building C object lib/CMakeFiles/libzstd_shared.dir/work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zstd/source/lib/compress/zstd_ldm.c.o
-7.5	[18/33] Building C object lib/CMakeFiles/libzstd_shared.dir/work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zstd/source/lib/common/fse_decompress.c.o
+7.5	[17/33] Building C object lib/CMakeFiles/libzstd_shared.dir/work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zstd/source/lib/common/fse_decompress.c.o
+7.5	[18/33] Building C object lib/CMakeFiles/libzstd_shared.dir/work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zstd/source/lib/compress/zstd_ldm.c.o
 7.5	[19/33] Building C object lib/CMakeFiles/libzstd_shared.dir/work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zstd/source/lib/dictBuilder/cover.c.o
 7.5	[20/33] Building C object lib/CMakeFiles/libzstd_shared.dir/work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zstd/source/lib/dictBuilder/zdict.c.o
 7.5	[21/33] Building C object lib/CMakeFiles/libzstd_shared.dir/work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zstd/source/lib/compress/zstdmt_compress.c.o
@@ -95,9 +95,9 @@ EXEC	/work1/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zstd/bu
 7.5	[24/33] Building C object lib/CMakeFiles/libzstd_shared.dir/work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zstd/source/lib/dictBuilder/divsufsort.c.o
 7.5	[25/33] Building C object lib/CMakeFiles/libzstd_shared.dir/work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zstd/source/lib/decompress/zstd_decompress_block.c.o
 7.5	[26/33] Building C object lib/CMakeFiles/libzstd_shared.dir/work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zstd/source/lib/compress/zstd_fast.c.o
-7.5	[27/33] Building C object lib/CMakeFiles/libzstd_shared.dir/work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zstd/source/lib/decompress/huf_decompress.c.o
-7.5	[28/33] Building C object lib/CMakeFiles/libzstd_shared.dir/work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zstd/source/lib/compress/zstd_compress.c.o
-7.5	[29/33] Building C object lib/CMakeFiles/libzstd_shared.dir/work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zstd/source/lib/compress/zstd_opt.c.o
+7.5	[27/33] Building C object lib/CMakeFiles/libzstd_shared.dir/work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zstd/source/lib/compress/zstd_opt.c.o
+7.5	[28/33] Building C object lib/CMakeFiles/libzstd_shared.dir/work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zstd/source/lib/decompress/huf_decompress.c.o
+7.5	[29/33] Building C object lib/CMakeFiles/libzstd_shared.dir/work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zstd/source/lib/compress/zstd_compress.c.o
 7.5	[30/33] Building C object lib/CMakeFiles/libzstd_shared.dir/work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zstd/source/lib/compress/zstd_double_fast.c.o
 7.5	[31/33] Building C object lib/CMakeFiles/libzstd_shared.dir/work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zstd/source/lib/compress/zstd_lazy.c.o
 7.5	[32/33] Linking C shared library lib/libzstd.so.1.5.7
@@ -120,4 +120,4 @@ EXEC	/work1/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zstd/bu
 7.5	Removing original link: /work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zstd/build/stage/lib/rocm_sysdeps/lib/libzstd.so
 7.5	Removing original link: /work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zstd/build/stage/lib/rocm_sysdeps/lib/libzstd.so.1
 7.5	++ Exec [/work1/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zstd/build/build]$ /home/grodgers/.local/bin/patchelf --replace-needed libzstd.so.1 librocm_sysdeps_zstd.so.1 /work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zstd/build/stage/lib/rocm_sysdeps/lib/librocm_sysdeps_zstd.so.1
-END	1756496084.792025	7.478772401809692
+END	1756837044.6198928	7.536231517791748

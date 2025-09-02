@@ -1,4 +1,4 @@
-BEGIN	1756496076.1392064
+BEGIN	1756837035.8510704
 EXEC	/work1/grodgers/git/tr_aomp/TheRock/build/profiler/rocprof-trace-decoder/build	/usr/bin/cmake -E env --unset=ROCM_PATH --unset=ROCM_DIR --unset=HIP_PATH --unset=HIP_DIR -- /usr/bin/cmake -GNinja -B/work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprof-trace-decoder/build -S/work/grodgers/git/tr_aomp/TheRock/profiler/rocprof-trace-decoder -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprof-trace-decoder/stage -DTHEROCK_STAGE_INSTALL_ROOT=/work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprof-trace-decoder/stage -DCMAKE_TOOLCHAIN_FILE=/work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprof-trace-decoder/_toolchain.cmake -DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=/work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprof-trace-decoder/_init.cmake
 0.1	-- The C compiler identification is GNU 13.3.0
 0.1	-- The CXX compiler identification is GNU 13.3.0
@@ -15,11 +15,11 @@ EXEC	/work1/grodgers/git/tr_aomp/TheRock/build/profiler/rocprof-trace-decoder/bu
 0.5	-- Detected librocprof-trace-decoder release arch: linux_glibc_2_28_x86_64
 0.5	-- Configuring done (0.5s)
 0.5	-- Generating done (0.0s)
-0.5	CMake Warning:
-0.5	  Manually-specified variables were not used by the project:
-0.5	
-0.5	    THEROCK_STAGE_INSTALL_ROOT
-0.5	
-0.5	
-0.5	-- Build files have been written to: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprof-trace-decoder/build
-END	1756496076.6707034	0.5314970016479492
+0.6	CMake Warning:
+0.6	  Manually-specified variables were not used by the project:
+0.6	
+0.6	    THEROCK_STAGE_INSTALL_ROOT
+0.6	
+0.6	
+0.6	-- Build files have been written to: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprof-trace-decoder/build
+END	1756837036.413748	0.5626776218414307

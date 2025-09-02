@@ -1,4 +1,4 @@
-BEGIN	1756496771.0979447
+BEGIN	1756837710.3342352
 EXEC	/work1/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build	/usr/bin/cmake --install /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build
 0.0	-- Install configuration: "Release"
 0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/lib/rocprofiler-sdk/libgotcha.so.2.4.2
@@ -117,19 +117,19 @@ EXEC	/work1/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build	/u
 0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/lib/librocprofiler-sdk.so.1
 0.0	-- Set non-toolchain portion of runtime path of "/work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/lib/librocprofiler-sdk.so.1.0.0" to "$ORIGIN/rocm_sysdeps/lib:$ORIGIN/llvm/lib:$ORIGIN"
 0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/lib/librocprofiler-sdk.so
-0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/lib/rocprofiler-sdk/librocprofv3-list-avail.so.1.0.0
-0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/lib/rocprofiler-sdk/librocprofv3-list-avail.so.1
-0.0	-- Set non-toolchain portion of runtime path of "/work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/lib/rocprofiler-sdk/librocprofv3-list-avail.so.1.0.0" to "$ORIGIN/rocm_sysdeps/lib:$ORIGIN/llvm/lib:$ORIGIN"
-0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/lib/rocprofiler-sdk/librocprofv3-list-avail.so
-0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/lib/librocprofiler-sdk-roctx.so.1.0.0
-0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/lib/librocprofiler-sdk-roctx.so.1
-0.0	-- Set non-toolchain portion of runtime path of "/work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/lib/librocprofiler-sdk-roctx.so.1.0.0" to "$ORIGIN/rocm_sysdeps/lib:$ORIGIN/llvm/lib:$ORIGIN"
-0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/lib/librocprofiler-sdk-roctx.so
-0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/lib/librocprofiler-sdk-rocpd.so.1.0.0
-0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/lib/librocprofiler-sdk-rocpd.so.1
-0.0	-- Set non-toolchain portion of runtime path of "/work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/lib/librocprofiler-sdk-rocpd.so.1.0.0" to "$ORIGIN/rocm_sysdeps/lib:$ORIGIN/llvm/lib:$ORIGIN"
-0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/lib/librocprofiler-sdk-rocpd.so
-0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/lib/rocprofiler-sdk/librocprofiler-sdk-tool.so.1.0.0
+0.1	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/lib/rocprofiler-sdk/librocprofv3-list-avail.so.1.0.0
+0.1	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/lib/rocprofiler-sdk/librocprofv3-list-avail.so.1
+0.1	-- Set non-toolchain portion of runtime path of "/work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/lib/rocprofiler-sdk/librocprofv3-list-avail.so.1.0.0" to "$ORIGIN/rocm_sysdeps/lib:$ORIGIN/llvm/lib:$ORIGIN"
+0.1	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/lib/rocprofiler-sdk/librocprofv3-list-avail.so
+0.1	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/lib/librocprofiler-sdk-roctx.so.1.0.0
+0.1	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/lib/librocprofiler-sdk-roctx.so.1
+0.1	-- Set non-toolchain portion of runtime path of "/work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/lib/librocprofiler-sdk-roctx.so.1.0.0" to "$ORIGIN/rocm_sysdeps/lib:$ORIGIN/llvm/lib:$ORIGIN"
+0.1	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/lib/librocprofiler-sdk-roctx.so
+0.1	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/lib/librocprofiler-sdk-rocpd.so.1.0.0
+0.1	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/lib/librocprofiler-sdk-rocpd.so.1
+0.1	-- Set non-toolchain portion of runtime path of "/work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/lib/librocprofiler-sdk-rocpd.so.1.0.0" to "$ORIGIN/rocm_sysdeps/lib:$ORIGIN/llvm/lib:$ORIGIN"
+0.1	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/lib/librocprofiler-sdk-rocpd.so
+0.1	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/lib/rocprofiler-sdk/librocprofiler-sdk-tool.so.1.0.0
 0.1	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/lib/rocprofiler-sdk/librocprofiler-sdk-tool.so.1
 0.1	-- Set non-toolchain portion of runtime path of "/work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/lib/rocprofiler-sdk/librocprofiler-sdk-tool.so.1.0.0" to "$ORIGIN/../rocm_sysdeps/lib:$ORIGIN/../llvm/lib:$ORIGIN/.."
 0.1	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/lib/rocprofiler-sdk/librocprofiler-sdk-tool.so
@@ -690,31 +690,31 @@ EXEC	/work1/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build	/u
 0.1	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/share/rocprofiler-sdk/tests/async-copy-tracing/validate.py
 0.1	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/share/rocprofiler-sdk/tests/async-copy-tracing/pytest.ini
 0.1	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/share/rocprofiler-sdk/tests/async-copy-tracing/conftest.py
-0.1	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/share/rocprofiler-sdk/tests/requirements.txt
-0.1	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/lib/cmake/rocprofiler-sdk/rocprofiler-sdk-targets.cmake
-0.1	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/lib/cmake/rocprofiler-sdk/rocprofiler-sdk-targets-release.cmake
-0.1	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/lib/cmake/rocprofiler-sdk/Modules/rocprofiler-sdk-custom-compilation.cmake
-0.1	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/lib/cmake/rocprofiler-sdk/Modules/rocprofiler-sdk-utilities.cmake
-0.1	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/lib/cmake/rocprofiler-sdk/Modules/Findlibdw.cmake
-0.1	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/lib/cmake/rocprofiler-sdk/Modules/FindrocDecode.cmake
-0.1	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/lib/cmake/rocprofiler-sdk/Modules/FindrocJPEG.cmake
-0.1	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/share/rocprofiler-sdk/setup-env.sh
-0.1	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/share/modulefiles/rocprofiler-sdk/1.0.0
-0.1	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/lib/cmake/rocprofiler-sdk/rocprofiler-sdk-config.cmake
-0.1	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/lib/cmake/rocprofiler-sdk/rocprofiler-sdk-config-version.cmake
-0.1	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/lib/cmake/rocprofiler-sdk/rocprofiler-sdk-config-nolink-target.cmake
-0.1	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/lib/cmake/rocprofiler-sdk-roctx/rocprofiler-sdk-roctx-targets.cmake
-0.1	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/lib/cmake/rocprofiler-sdk-roctx/rocprofiler-sdk-roctx-targets-release.cmake
-0.1	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/share/rocprofiler-sdk-roctx/setup-env.sh
-0.1	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/share/modulefiles/rocprofiler-sdk-roctx/1.0.0
-0.1	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/lib/cmake/rocprofiler-sdk-roctx/rocprofiler-sdk-roctx-config.cmake
-0.1	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/lib/cmake/rocprofiler-sdk-roctx/rocprofiler-sdk-roctx-config-version.cmake
-0.1	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/share/doc/rocprofiler-sdk-roctx/LICENSE
-0.1	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/lib/cmake/rocprofiler-sdk-rocpd/rocprofiler-sdk-rocpd-targets.cmake
-0.1	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/lib/cmake/rocprofiler-sdk-rocpd/rocprofiler-sdk-rocpd-targets-release.cmake
-0.1	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/share/rocprofiler-sdk-rocpd/setup-env.sh
-0.1	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/share/modulefiles/rocprofiler-sdk-rocpd/1.0.0
-0.1	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/lib/cmake/rocprofiler-sdk-rocpd/rocprofiler-sdk-rocpd-config.cmake
-0.1	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/lib/cmake/rocprofiler-sdk-rocpd/rocprofiler-sdk-rocpd-config-version.cmake
-0.1	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/share/doc/rocprofiler-sdk-rocpd/LICENSE
-END	1756496771.238663	0.1407182216644287
+0.2	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/share/rocprofiler-sdk/tests/requirements.txt
+0.2	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/lib/cmake/rocprofiler-sdk/rocprofiler-sdk-targets.cmake
+0.2	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/lib/cmake/rocprofiler-sdk/rocprofiler-sdk-targets-release.cmake
+0.2	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/lib/cmake/rocprofiler-sdk/Modules/rocprofiler-sdk-custom-compilation.cmake
+0.2	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/lib/cmake/rocprofiler-sdk/Modules/rocprofiler-sdk-utilities.cmake
+0.2	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/lib/cmake/rocprofiler-sdk/Modules/Findlibdw.cmake
+0.2	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/lib/cmake/rocprofiler-sdk/Modules/FindrocDecode.cmake
+0.2	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/lib/cmake/rocprofiler-sdk/Modules/FindrocJPEG.cmake
+0.2	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/share/rocprofiler-sdk/setup-env.sh
+0.2	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/share/modulefiles/rocprofiler-sdk/1.0.0
+0.2	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/lib/cmake/rocprofiler-sdk/rocprofiler-sdk-config.cmake
+0.2	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/lib/cmake/rocprofiler-sdk/rocprofiler-sdk-config-version.cmake
+0.2	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/lib/cmake/rocprofiler-sdk/rocprofiler-sdk-config-nolink-target.cmake
+0.2	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/lib/cmake/rocprofiler-sdk-roctx/rocprofiler-sdk-roctx-targets.cmake
+0.2	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/lib/cmake/rocprofiler-sdk-roctx/rocprofiler-sdk-roctx-targets-release.cmake
+0.2	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/share/rocprofiler-sdk-roctx/setup-env.sh
+0.2	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/share/modulefiles/rocprofiler-sdk-roctx/1.0.0
+0.2	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/lib/cmake/rocprofiler-sdk-roctx/rocprofiler-sdk-roctx-config.cmake
+0.2	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/lib/cmake/rocprofiler-sdk-roctx/rocprofiler-sdk-roctx-config-version.cmake
+0.2	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/share/doc/rocprofiler-sdk-roctx/LICENSE
+0.2	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/lib/cmake/rocprofiler-sdk-rocpd/rocprofiler-sdk-rocpd-targets.cmake
+0.2	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/lib/cmake/rocprofiler-sdk-rocpd/rocprofiler-sdk-rocpd-targets-release.cmake
+0.2	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/share/rocprofiler-sdk-rocpd/setup-env.sh
+0.2	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/share/modulefiles/rocprofiler-sdk-rocpd/1.0.0
+0.2	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/lib/cmake/rocprofiler-sdk-rocpd/rocprofiler-sdk-rocpd-config.cmake
+0.2	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/lib/cmake/rocprofiler-sdk-rocpd/rocprofiler-sdk-rocpd-config-version.cmake
+0.2	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stage/share/doc/rocprofiler-sdk-rocpd/LICENSE
+END	1756837710.4912252	0.15699005126953125
