@@ -1,4 +1,4 @@
-BEGIN	1756496086.3697338
+BEGIN	1756837046.1246765
 EXEC	/work1/grodgers/git/tr_aomp/TheRock/build/base/rocm_smi_lib/build	/usr/bin/cmake --install /work/grodgers/git/tr_aomp/TheRock/build/base/rocm_smi_lib/build
 0.0	-- Install configuration: "Release"
 0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/base/rocm_smi_lib/stage/lib/librocm_smi64.so.1.0
@@ -29,4 +29,4 @@ EXEC	/work1/grodgers/git/tr_aomp/TheRock/build/base/rocm_smi_lib/build	/usr/bin/
 0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/base/rocm_smi_lib/stage/lib/cmake/rocm_smi/rocm_smiTargets.cmake
 0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/base/rocm_smi_lib/stage/lib/cmake/rocm_smi/rocm_smiTargets-release.cmake
 0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/base/rocm_smi_lib/stage/share/doc/rocm-smi-lib/LICENSE.txt
-END	1756496086.392016	0.022282123565673828
+END	1756837046.139947	0.015270471572875977

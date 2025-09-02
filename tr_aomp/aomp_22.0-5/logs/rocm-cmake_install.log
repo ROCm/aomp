@@ -1,4 +1,4 @@
-BEGIN	1756496076.4045308
+BEGIN	1756837036.1783366
 EXEC	/work1/grodgers/git/tr_aomp/TheRock/build/base/rocm-cmake/build	/usr/bin/cmake --install /work/grodgers/git/tr_aomp/TheRock/build/base/rocm-cmake/build
 0.0	-- Install configuration: "Release"
 0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/base/rocm-cmake/stage/./share
@@ -30,4 +30,4 @@ EXEC	/work1/grodgers/git/tr_aomp/TheRock/build/base/rocm-cmake/build	/usr/bin/cm
 0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/base/rocm-cmake/stage/./share/rocmcmakebuildtools/cmake/ROCMChecks.cmake
 0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/base/rocm-cmake/stage/share/rocmcmakebuildtools/cmake/ROCmCMakeBuildToolsConfigVersion.cmake
 0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/base/rocm-cmake/stage/share/doc/rocm-cmake/LICENSE
-END	1756496076.4259162	0.02138543128967285
+END	1756837036.200072	0.021735429763793945

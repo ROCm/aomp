@@ -1,4 +1,4 @@
-BEGIN	1756496651.308358
+BEGIN	1756837589.8867633
 EXEC	/work1/grodgers/git/tr_aomp/TheRock/build/compiler/hipify/build	/usr/bin/cmake -E env --unset=ROCM_PATH --unset=ROCM_DIR --unset=HIP_PATH --unset=HIP_DIR -- /usr/bin/cmake -GNinja -B/work/grodgers/git/tr_aomp/TheRock/build/compiler/hipify/build -S/work/grodgers/git/tr_aomp/TheRock/compiler/hipify -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/work/grodgers/git/tr_aomp/TheRock/build/compiler/hipify/stage -DTHEROCK_STAGE_INSTALL_ROOT=/work/grodgers/git/tr_aomp/TheRock/build/compiler/hipify/stage -DCMAKE_TOOLCHAIN_FILE=/work/grodgers/git/tr_aomp/TheRock/build/compiler/hipify/_toolchain.cmake -DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=/work/grodgers/git/tr_aomp/TheRock/build/compiler/hipify/_init.cmake -DHIPIFY_INSTALL_CLANG_HEADERS=OFF
 0.0	-- Sub-project PKG_CONFIG_PATH: /work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zlib/build/stage/lib/rocm_sysdeps/lib/pkgconfig:/work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zstd/build/stage/lib/rocm_sysdeps/lib/pkgconfig:
 0.0	-- Resolving packages from super-project: ZLIB;zstd;AMDDeviceLibs;Clang;LLD;LLVM;ROCmCMakeBuildTools;ROCM
@@ -46,7 +46,7 @@ EXEC	/work1/grodgers/git/tr_aomp/TheRock/build/compiler/hipify/build	/usr/bin/cm
 0.8	-- Performing Test LLVM_LINKER_SUPPORTS_B_SYMBOLIC_FUNCTIONS
 0.8	-- Performing Test LLVM_LINKER_SUPPORTS_B_SYMBOLIC_FUNCTIONS - Success
 0.8	-- Configuring done (0.8s)
-0.8	-- Generating done (0.0s)
+0.9	-- Generating done (0.0s)
 0.9	CMake Warning:
 0.9	  Manually-specified variables were not used by the project:
 0.9	
@@ -54,4 +54,4 @@ EXEC	/work1/grodgers/git/tr_aomp/TheRock/build/compiler/hipify/build	/usr/bin/cm
 0.9	
 0.9	
 0.9	-- Build files have been written to: /work/grodgers/git/tr_aomp/TheRock/build/compiler/hipify/build
-END	1756496652.1700685	0.8617105484008789
+END	1756837590.7569637	0.8702003955841064

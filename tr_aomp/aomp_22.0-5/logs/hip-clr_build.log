@@ -1,4 +1,4 @@
-BEGIN	1756496667.4458995
+BEGIN	1756837606.1828167
 EXEC	/work1/grodgers/git/tr_aomp/TheRock/build/core/clr/build	/usr/bin/cmake -E env --unset=ROCM_PATH --unset=ROCM_DIR --unset=HIP_PATH --unset=HIP_DIR -- /usr/bin/cmake --build /work/grodgers/git/tr_aomp/TheRock/build/core/clr/build
 0.1	[1/94] cd /work/grodgers/git/tr_aomp/TheRock/build/core/clr/build && /usr/bin/cmake -E rm -f /work/grodgers/git/tr_aomp/TheRock/build/core/clr/stamp/stage.stamp
 0.1	[2/94] Building CXX object rocclr/CMakeFiles/rocclr.dir/device/blitcl.cpp.o
@@ -152,87 +152,87 @@ EXEC	/work1/grodgers/git/tr_aomp/TheRock/build/core/clr/build	/usr/bin/cmake -E 
 0.1	type lookup cache used 0/65536 hits=0 misses=0
 0.1	symbol lookup cache used 0/65536 hits=0 misses=0
 0.1	finished...
-0.1	[8/94] Generating hip_rtc_gen/hipRTC
+0.1	[8/94] Generating new header from hip_runtime_api.h
+0.1	[9/94] Generating hip_rtc_gen/hipRTC
 0.1	-- Appending hiprtc macros to /work/grodgers/git/tr_aomp/TheRock/build/core/clr/build/hipamd/src/hiprtc/hip_rtc_gen/hipRTC.
-0.1	[9/94] Generating new header from hip_runtime_api.h
 0.1	[10/94] Generating hip_rtc_gen/hipRTC_header.o
 0.1	[11/94] Linking CXX shared library hipamd/lib/libhiprtc-builtins.so.7.1.25345-415734d2b2
-0.2	[12/94] Creating library symlink hipamd/lib/libhiprtc-builtins.so.7 hipamd/lib/libhiprtc-builtins.so
-0.2	[13/94] Building CXX object rocclr/CMakeFiles/rocclr.dir/device/rocm/rocsignal.cpp.o
-0.3	[14/94] Building CXX object rocclr/CMakeFiles/rocclr.dir/platform/ndrange.cpp.o
-0.3	[15/94] Building CXX object rocclr/CMakeFiles/rocclr.dir/os/alloc.cpp.o
+0.2	[12/94] Building CXX object rocclr/CMakeFiles/rocclr.dir/device/rocm/rocsignal.cpp.o
+0.2	[13/94] Creating library symlink hipamd/lib/libhiprtc-builtins.so.7 hipamd/lib/libhiprtc-builtins.so
+0.3	[14/94] Building CXX object rocclr/CMakeFiles/rocclr.dir/os/alloc.cpp.o
+0.3	[15/94] Building CXX object rocclr/CMakeFiles/rocclr.dir/platform/ndrange.cpp.o
 0.3	[16/94] Building CXX object rocclr/CMakeFiles/rocclr.dir/device/devhcmessages.cpp.o
-0.3	[17/94] Building CXX object rocclr/CMakeFiles/rocclr.dir/os/os.cpp.o
-0.4	[18/94] Building CXX object rocclr/CMakeFiles/rocclr.dir/device/rocm/rocglinterop.cpp.o
+0.3	[17/94] Building CXX object rocclr/CMakeFiles/rocclr.dir/device/rocm/rocglinterop.cpp.o
+0.3	[18/94] Building CXX object rocclr/CMakeFiles/rocclr.dir/os/os.cpp.o
 0.4	[19/94] Building CXX object rocclr/CMakeFiles/rocclr.dir/device/appprofile.cpp.o
-0.5	[20/94] Building CXX object rocclr/CMakeFiles/rocclr.dir/thread/thread.cpp.o
-0.5	In file included from /work1/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/clr/rocclr/include/top.hpp:57,
-0.5	                 from /work1/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/clr/rocclr/thread/thread.hpp:24,
-0.5	                 from /work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/clr/rocclr/thread/thread.cpp:21:
-0.5	In member function ‘_Tp std::atomic<_Tp>::load(std::memory_order) const [with _Tp = amd::Monitor::notifyState]’,
-0.5	    inlined from ‘void amd::Monitor::notify()’ at /work1/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/clr/rocclr/thread/monitor.hpp:148:26,
-0.5	    inlined from ‘bool amd::Thread::start(void*)’ at /work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/clr/rocclr/thread/thread.cpp:107:29:
-0.5	/usr/include/c++/13/atomic:297:22: warning: ‘unsigned int __atomic_load_4(const volatile void*, int)’ writing 4 bytes into a region of size 0 overflows the destination [-Wstringop-overflow=]
-0.5	  297 |         __atomic_load(std::__addressof(_M_i), __ptr, int(__m));
-0.5	      |         ~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-0.5	In member function ‘bool amd::Thread::start(void*)’:
-0.5	cc1plus: note: destination object is likely at address zero
-0.5	In file included from /usr/include/c++/13/atomic:41:
-0.5	In member function ‘std::__atomic_base<_IntTp>::__int_type std::__atomic_base<_IntTp>::load(std::memory_order) const [with _ITp = int]’,
-0.5	    inlined from ‘void amd::Monitor::notify()’ at /work1/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/clr/rocclr/thread/monitor.hpp:149:20,
-0.5	    inlined from ‘bool amd::Thread::start(void*)’ at /work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/clr/rocclr/thread/thread.cpp:107:29:
-0.5	/usr/include/c++/13/bits/atomic_base.h:505:31: warning: ‘unsigned int __atomic_load_4(const volatile void*, int)’ writing 4 bytes into a region of size 0 overflows the destination [-Wstringop-overflow=]
-0.5	  505 |         return __atomic_load_n(&_M_i, int(__m));
-0.5	      |                ~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~
-0.5	In member function ‘bool amd::Thread::start(void*)’:
-0.5	cc1plus: note: destination object is likely at address zero
-0.5	In member function ‘_Tp std::atomic<_Tp>::load(std::memory_order) const [with _Tp = amd::Monitor::notifyState]’,
-0.5	    inlined from ‘void amd::Monitor::notify()’ at /work1/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/clr/rocclr/thread/monitor.hpp:148:26,
-0.5	    inlined from ‘void amd::Thread::resume()’ at /work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/clr/rocclr/thread/thread.cpp:115:27:
-0.5	/usr/include/c++/13/atomic:297:22: warning: ‘unsigned int __atomic_load_4(const volatile void*, int)’ writing 4 bytes into a region of size 0 overflows the destination [-Wstringop-overflow=]
-0.5	  297 |         __atomic_load(std::__addressof(_M_i), __ptr, int(__m));
-0.5	      |         ~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-0.5	In member function ‘void amd::Thread::resume()’:
-0.5	cc1plus: note: destination object is likely at address zero
-0.5	In member function ‘std::__atomic_base<_IntTp>::__int_type std::__atomic_base<_IntTp>::load(std::memory_order) const [with _ITp = int]’,
-0.5	    inlined from ‘void amd::Monitor::notify()’ at /work1/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/clr/rocclr/thread/monitor.hpp:149:20,
-0.5	    inlined from ‘void amd::Thread::resume()’ at /work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/clr/rocclr/thread/thread.cpp:115:27:
-0.5	/usr/include/c++/13/bits/atomic_base.h:505:31: warning: ‘unsigned int __atomic_load_4(const volatile void*, int)’ writing 4 bytes into a region of size 0 overflows the destination [-Wstringop-overflow=]
-0.5	  505 |         return __atomic_load_n(&_M_i, int(__m));
-0.5	      |                ~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~
-0.5	In member function ‘void amd::Thread::resume()’:
-0.5	cc1plus: note: destination object is likely at address zero
-0.5	In member function ‘void std::atomic<_Tp>::store(_Tp, std::memory_order) [with _Tp = amd::Monitor::notifyState]’,
-0.5	    inlined from ‘void amd::Monitor::notify()’ at /work1/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/clr/rocclr/thread/monitor.hpp:150:25,
-0.5	    inlined from ‘void amd::Thread::resume()’ at /work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/clr/rocclr/thread/thread.cpp:115:27:
-0.5	/usr/include/c++/13/atomic:279:23: warning: ‘void __atomic_store_4(volatile void*, unsigned int, int)’ writing 4 bytes into a region of size 0 overflows the destination [-Wstringop-overflow=]
-0.5	  279 |         __atomic_store(std::__addressof(_M_i),
-0.5	      |         ~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~
-0.5	  280 |                        __atomic_impl::__clear_padding(__i),
-0.5	      |                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-0.5	  281 |                        int(__m));
-0.5	      |                        ~~~~~~~~~
-0.5	In member function ‘void amd::Thread::resume()’:
-0.5	cc1plus: note: destination object is likely at address zero
-0.5	In member function ‘_Tp std::atomic<_Tp>::load(std::memory_order) const [with _Tp = amd::Monitor::notifyState]’,
-0.5	    inlined from ‘void amd::Monitor::notify()’ at /work1/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/clr/rocclr/thread/monitor.hpp:148:26,
-0.5	    inlined from ‘void* amd::Thread::main()’ at /work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/clr/rocclr/thread/thread.cpp:75:29:
-0.5	/usr/include/c++/13/atomic:297:22: warning: ‘unsigned int __atomic_load_4(const volatile void*, int)’ writing 4 bytes into a region of size 0 overflows the destination [-Wstringop-overflow=]
-0.5	  297 |         __atomic_load(std::__addressof(_M_i), __ptr, int(__m));
-0.5	      |         ~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-0.5	In member function ‘void* amd::Thread::main()’:
-0.5	cc1plus: note: destination object is likely at address zero
-0.5	In member function ‘std::__atomic_base<_IntTp>::__int_type std::__atomic_base<_IntTp>::load(std::memory_order) const [with _ITp = int]’,
-0.5	    inlined from ‘void amd::Monitor::notify()’ at /work1/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/clr/rocclr/thread/monitor.hpp:149:20,
-0.5	    inlined from ‘void* amd::Thread::main()’ at /work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/clr/rocclr/thread/thread.cpp:75:29:
-0.5	/usr/include/c++/13/bits/atomic_base.h:505:31: warning: ‘unsigned int __atomic_load_4(const volatile void*, int)’ writing 4 bytes into a region of size 0 overflows the destination [-Wstringop-overflow=]
-0.5	  505 |         return __atomic_load_n(&_M_i, int(__m));
-0.5	      |                ~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~
-0.5	In member function ‘void* amd::Thread::main()’:
-0.5	cc1plus: note: destination object is likely at address zero
+0.4	[20/94] Building CXX object rocclr/CMakeFiles/rocclr.dir/thread/thread.cpp.o
+0.4	In file included from /work1/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/clr/rocclr/include/top.hpp:57,
+0.4	                 from /work1/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/clr/rocclr/thread/thread.hpp:24,
+0.4	                 from /work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/clr/rocclr/thread/thread.cpp:21:
+0.4	In member function ‘_Tp std::atomic<_Tp>::load(std::memory_order) const [with _Tp = amd::Monitor::notifyState]’,
+0.4	    inlined from ‘void amd::Monitor::notify()’ at /work1/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/clr/rocclr/thread/monitor.hpp:148:26,
+0.4	    inlined from ‘bool amd::Thread::start(void*)’ at /work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/clr/rocclr/thread/thread.cpp:107:29:
+0.4	/usr/include/c++/13/atomic:297:22: warning: ‘unsigned int __atomic_load_4(const volatile void*, int)’ writing 4 bytes into a region of size 0 overflows the destination [-Wstringop-overflow=]
+0.4	  297 |         __atomic_load(std::__addressof(_M_i), __ptr, int(__m));
+0.4	      |         ~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+0.4	In member function ‘bool amd::Thread::start(void*)’:
+0.4	cc1plus: note: destination object is likely at address zero
+0.4	In file included from /usr/include/c++/13/atomic:41:
+0.4	In member function ‘std::__atomic_base<_IntTp>::__int_type std::__atomic_base<_IntTp>::load(std::memory_order) const [with _ITp = int]’,
+0.4	    inlined from ‘void amd::Monitor::notify()’ at /work1/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/clr/rocclr/thread/monitor.hpp:149:20,
+0.4	    inlined from ‘bool amd::Thread::start(void*)’ at /work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/clr/rocclr/thread/thread.cpp:107:29:
+0.4	/usr/include/c++/13/bits/atomic_base.h:505:31: warning: ‘unsigned int __atomic_load_4(const volatile void*, int)’ writing 4 bytes into a region of size 0 overflows the destination [-Wstringop-overflow=]
+0.4	  505 |         return __atomic_load_n(&_M_i, int(__m));
+0.4	      |                ~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~
+0.4	In member function ‘bool amd::Thread::start(void*)’:
+0.4	cc1plus: note: destination object is likely at address zero
+0.4	In member function ‘_Tp std::atomic<_Tp>::load(std::memory_order) const [with _Tp = amd::Monitor::notifyState]’,
+0.4	    inlined from ‘void amd::Monitor::notify()’ at /work1/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/clr/rocclr/thread/monitor.hpp:148:26,
+0.4	    inlined from ‘void amd::Thread::resume()’ at /work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/clr/rocclr/thread/thread.cpp:115:27:
+0.4	/usr/include/c++/13/atomic:297:22: warning: ‘unsigned int __atomic_load_4(const volatile void*, int)’ writing 4 bytes into a region of size 0 overflows the destination [-Wstringop-overflow=]
+0.4	  297 |         __atomic_load(std::__addressof(_M_i), __ptr, int(__m));
+0.4	      |         ~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+0.4	In member function ‘void amd::Thread::resume()’:
+0.4	cc1plus: note: destination object is likely at address zero
+0.4	In member function ‘std::__atomic_base<_IntTp>::__int_type std::__atomic_base<_IntTp>::load(std::memory_order) const [with _ITp = int]’,
+0.4	    inlined from ‘void amd::Monitor::notify()’ at /work1/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/clr/rocclr/thread/monitor.hpp:149:20,
+0.4	    inlined from ‘void amd::Thread::resume()’ at /work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/clr/rocclr/thread/thread.cpp:115:27:
+0.4	/usr/include/c++/13/bits/atomic_base.h:505:31: warning: ‘unsigned int __atomic_load_4(const volatile void*, int)’ writing 4 bytes into a region of size 0 overflows the destination [-Wstringop-overflow=]
+0.4	  505 |         return __atomic_load_n(&_M_i, int(__m));
+0.4	      |                ~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~
+0.4	In member function ‘void amd::Thread::resume()’:
+0.4	cc1plus: note: destination object is likely at address zero
+0.4	In member function ‘void std::atomic<_Tp>::store(_Tp, std::memory_order) [with _Tp = amd::Monitor::notifyState]’,
+0.4	    inlined from ‘void amd::Monitor::notify()’ at /work1/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/clr/rocclr/thread/monitor.hpp:150:25,
+0.4	    inlined from ‘void amd::Thread::resume()’ at /work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/clr/rocclr/thread/thread.cpp:115:27:
+0.4	/usr/include/c++/13/atomic:279:23: warning: ‘void __atomic_store_4(volatile void*, unsigned int, int)’ writing 4 bytes into a region of size 0 overflows the destination [-Wstringop-overflow=]
+0.4	  279 |         __atomic_store(std::__addressof(_M_i),
+0.4	      |         ~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~
+0.4	  280 |                        __atomic_impl::__clear_padding(__i),
+0.4	      |                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+0.4	  281 |                        int(__m));
+0.4	      |                        ~~~~~~~~~
+0.4	In member function ‘void amd::Thread::resume()’:
+0.4	cc1plus: note: destination object is likely at address zero
+0.4	In member function ‘_Tp std::atomic<_Tp>::load(std::memory_order) const [with _Tp = amd::Monitor::notifyState]’,
+0.4	    inlined from ‘void amd::Monitor::notify()’ at /work1/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/clr/rocclr/thread/monitor.hpp:148:26,
+0.4	    inlined from ‘void* amd::Thread::main()’ at /work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/clr/rocclr/thread/thread.cpp:75:29:
+0.4	/usr/include/c++/13/atomic:297:22: warning: ‘unsigned int __atomic_load_4(const volatile void*, int)’ writing 4 bytes into a region of size 0 overflows the destination [-Wstringop-overflow=]
+0.4	  297 |         __atomic_load(std::__addressof(_M_i), __ptr, int(__m));
+0.4	      |         ~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+0.4	In member function ‘void* amd::Thread::main()’:
+0.4	cc1plus: note: destination object is likely at address zero
+0.4	In member function ‘std::__atomic_base<_IntTp>::__int_type std::__atomic_base<_IntTp>::load(std::memory_order) const [with _ITp = int]’,
+0.4	    inlined from ‘void amd::Monitor::notify()’ at /work1/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/clr/rocclr/thread/monitor.hpp:149:20,
+0.4	    inlined from ‘void* amd::Thread::main()’ at /work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/clr/rocclr/thread/thread.cpp:75:29:
+0.4	/usr/include/c++/13/bits/atomic_base.h:505:31: warning: ‘unsigned int __atomic_load_4(const volatile void*, int)’ writing 4 bytes into a region of size 0 overflows the destination [-Wstringop-overflow=]
+0.4	  505 |         return __atomic_load_n(&_M_i, int(__m));
+0.4	      |                ~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~
+0.4	In member function ‘void* amd::Thread::main()’:
+0.4	cc1plus: note: destination object is likely at address zero
 0.5	[21/94] Building CXX object rocclr/CMakeFiles/rocclr.dir/device/comgrctx.cpp.o
-0.5	[22/94] Building CXX object rocclr/CMakeFiles/rocclr.dir/utils/flags.cpp.o
-0.5	[23/94] Building CXX object rocclr/CMakeFiles/rocclr.dir/utils/debug.cpp.o
+0.5	[22/94] Building CXX object rocclr/CMakeFiles/rocclr.dir/utils/debug.cpp.o
+0.5	[23/94] Building CXX object rocclr/CMakeFiles/rocclr.dir/utils/flags.cpp.o
 0.7	[24/94] Generating profiling primitives: /work/grodgers/git/tr_aomp/TheRock/build/core/clr/build/hipamd/include/hip/amd_detail/hip_prof_str.h
 0.7	/work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/clr/hipamd/src/hip_prof_gen.py:73: SyntaxWarning: invalid escape sequence '\s'
 0.7	  record = re.sub("\s__dparm\([^\)]*\)", r'', record);
@@ -1233,43 +1233,43 @@ EXEC	/work1/grodgers/git/tr_aomp/TheRock/build/core/clr/build	/usr/bin/cmake -E 
 0.7	Warning: "/work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/clr/hipamd/include/hip/amd_detail/hip_prof_str.h" needs to be re-generated and checked-in with the current changes
 0.8	[25/94] Building CXX object rocclr/CMakeFiles/rocclr.dir/device/rocm/rocappprofile.cpp.o
 0.8	[26/94] Building CXX object rocclr/CMakeFiles/rocclr.dir/os/os_posix.cpp.o
-0.8	[27/94] Building CXX object rocclr/CMakeFiles/rocclr.dir/device/rocm/rocsettings.cpp.o
+0.9	[27/94] Building CXX object rocclr/CMakeFiles/rocclr.dir/device/rocm/rocsettings.cpp.o
 0.9	[28/94] Building CXX object rocclr/CMakeFiles/rocclr.dir/device/devhcprintf.cpp.o
 1.0	[29/94] Building CXX object rocclr/CMakeFiles/rocclr.dir/device/devhostcall.cpp.o
-1.0	[30/94] Building CXX object hipamd/src/CMakeFiles/amdhip64.dir/hip_activity.cpp.o
-1.0	[31/94] Building CXX object hipamd/src/CMakeFiles/amdhip64.dir/hip_table_interface_c.cpp.o
-1.0	[32/94] Building CXX object rocclr/CMakeFiles/rocclr.dir/platform/activity.cpp.o
+1.0	[30/94] Building CXX object hipamd/src/CMakeFiles/amdhip64.dir/hip_table_interface_c.cpp.o
+1.0	[31/94] Building CXX object hipamd/src/CMakeFiles/amdhip64.dir/hip_activity.cpp.o
+1.1	[32/94] Building CXX object rocclr/CMakeFiles/rocclr.dir/platform/activity.cpp.o
 1.1	[33/94] Building CXX object rocclr/CMakeFiles/rocclr.dir/platform/agent.cpp.o
 1.1	[34/94] Building CXX object rocclr/CMakeFiles/rocclr.dir/platform/runtime.cpp.o
-1.1	[35/94] Building CXX object rocclr/CMakeFiles/rocclr.dir/device/rocm/rockernel.cpp.o
-1.1	[36/94] Building CXX object rocclr/CMakeFiles/rocclr.dir/platform/interop_gl.cpp.o
-1.1	[37/94] Building CXX object rocclr/CMakeFiles/rocclr.dir/device/blit.cpp.o
-1.2	[38/94] Building CXX object rocclr/CMakeFiles/rocclr.dir/device/rocm/rocprogram.cpp.o
-1.2	[39/94] Building CXX object rocclr/CMakeFiles/rocclr.dir/platform/context.cpp.o
+1.1	[35/94] Building CXX object rocclr/CMakeFiles/rocclr.dir/platform/interop_gl.cpp.o
+1.1	[36/94] Building CXX object rocclr/CMakeFiles/rocclr.dir/device/rocm/rockernel.cpp.o
+1.2	[37/94] Building CXX object rocclr/CMakeFiles/rocclr.dir/device/blit.cpp.o
+1.2	[38/94] Building CXX object rocclr/CMakeFiles/rocclr.dir/platform/context.cpp.o
+1.2	[39/94] Building CXX object rocclr/CMakeFiles/rocclr.dir/device/rocm/rocprogram.cpp.o
 1.2	[40/94] Building CXX object rocclr/CMakeFiles/rocclr.dir/platform/kernel.cpp.o
 1.2	[41/94] Building CXX object rocclr/CMakeFiles/rocclr.dir/device/rocm/roccounters.cpp.o
-1.2	[42/94] Building CXX object rocclr/CMakeFiles/rocclr.dir/platform/vmheap.cpp.o
+1.3	[42/94] Building CXX object rocclr/CMakeFiles/rocclr.dir/platform/vmheap.cpp.o
 1.3	[43/94] Building CXX object rocclr/CMakeFiles/rocclr.dir/platform/commandqueue.cpp.o
-1.3	[44/94] Building CXX object rocclr/CMakeFiles/rocclr.dir/device/rocm/rocprintf.cpp.o
-1.4	[45/94] Building CXX object hipamd/src/CMakeFiles/amdhip64.dir/hip_table_interface.cpp.o
+1.4	[44/94] Building CXX object rocclr/CMakeFiles/rocclr.dir/device/rocm/rocprintf.cpp.o
+1.5	[45/94] Building CXX object hipamd/src/CMakeFiles/amdhip64.dir/hip_table_interface.cpp.o
 1.5	[46/94] Building CXX object rocclr/CMakeFiles/rocclr.dir/platform/command.cpp.o
-1.5	[47/94] Building CXX object rocclr/CMakeFiles/rocclr.dir/device/rocm/rocmemory.cpp.o
-1.5	[48/94] Building CXX object rocclr/CMakeFiles/rocclr.dir/platform/program.cpp.o
+1.5	[47/94] Building CXX object rocclr/CMakeFiles/rocclr.dir/platform/program.cpp.o
+1.5	[48/94] Building CXX object rocclr/CMakeFiles/rocclr.dir/device/rocm/rocmemory.cpp.o
 1.6	[49/94] Building CXX object rocclr/CMakeFiles/rocclr.dir/platform/memory.cpp.o
 1.6	[50/94] Building CXX object hipamd/src/CMakeFiles/amdhip64.dir/fixme.cpp.o
 1.7	[51/94] Building CXX object rocclr/CMakeFiles/rocclr.dir/device/devkernel.cpp.o
-1.7	[52/94] Building CXX object hipamd/src/hiprtc/CMakeFiles/hiprtc.dir/hiprtcInternal.cpp.o
+1.8	[52/94] Building CXX object hipamd/src/hiprtc/CMakeFiles/hiprtc.dir/hiprtcInternal.cpp.o
 2.0	[53/94] Building CXX object hipamd/src/CMakeFiles/amdhip64.dir/hip_profile.cpp.o
-2.0	[54/94] Building CXX object rocclr/CMakeFiles/rocclr.dir/device/device.cpp.o
-2.0	[55/94] Building CXX object hipamd/src/CMakeFiles/amdhip64.dir/hip_error.cpp.o
-2.0	[56/94] Building CXX object hipamd/src/CMakeFiles/amdhip64.dir/hip_api_trace.cpp.o
-2.0	[57/94] Building CXX object hipamd/src/CMakeFiles/amdhip64.dir/hip_intercept.cpp.o
+2.1	[54/94] Building CXX object hipamd/src/CMakeFiles/amdhip64.dir/hip_error.cpp.o
+2.1	[55/94] Building CXX object rocclr/CMakeFiles/rocclr.dir/device/device.cpp.o
+2.1	[56/94] Building CXX object hipamd/src/CMakeFiles/amdhip64.dir/hip_intercept.cpp.o
+2.1	[57/94] Building CXX object hipamd/src/CMakeFiles/amdhip64.dir/hip_api_trace.cpp.o
 2.1	[58/94] Building CXX object rocclr/CMakeFiles/rocclr.dir/elf/elf.cpp.o
-2.1	[59/94] Building CXX object hipamd/src/hiprtc/CMakeFiles/hiprtc.dir/__/hip_comgr_helper.cpp.o
-2.1	[60/94] Building CXX object hipamd/src/CMakeFiles/amdhip64.dir/hip_surface.cpp.o
+2.1	[59/94] Building CXX object hipamd/src/CMakeFiles/amdhip64.dir/hip_surface.cpp.o
+2.2	[60/94] Building CXX object hipamd/src/hiprtc/CMakeFiles/hiprtc.dir/__/hip_comgr_helper.cpp.o
 2.2	[61/94] Building CXX object hipamd/src/CMakeFiles/amdhip64.dir/hip_global.cpp.o
 2.2	[62/94] Building CXX object hipamd/src/CMakeFiles/amdhip64.dir/hip_event_ipc.cpp.o
-2.2	[63/94] Building CXX object rocclr/CMakeFiles/rocclr.dir/device/rocm/rocblit.cpp.o
+2.3	[63/94] Building CXX object rocclr/CMakeFiles/rocclr.dir/device/rocm/rocblit.cpp.o
 2.3	[64/94] Building CXX object hipamd/src/hiprtc/CMakeFiles/hiprtc.dir/hiprtc.cpp.o
 2.3	[65/94] Building CXX object hipamd/src/CMakeFiles/amdhip64.dir/hip_mempool_impl.cpp.o
 2.6	[66/94] Building CXX object rocclr/CMakeFiles/rocclr.dir/device/devprogram.cpp.o
@@ -1286,31 +1286,31 @@ EXEC	/work1/grodgers/git/tr_aomp/TheRock/build/core/clr/build	/usr/bin/cmake -E 
 2.6	 1617 |   AMD_COMGR_ACTION_ADD_PRECOMPILED_HEADERS
 2.6	      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 2.6	[67/94] Building CXX object hipamd/src/CMakeFiles/amdhip64.dir/hip_stream_ops.cpp.o
-2.7	[68/94] Building CXX object hipamd/src/CMakeFiles/amdhip64.dir/hip_comgr_helper.cpp.o
-2.8	[69/94] Building CXX object rocclr/CMakeFiles/rocclr.dir/device/rocm/rocvirtual.cpp.o
-2.8	[70/94] Building CXX object rocclr/CMakeFiles/rocclr.dir/device/rocm/rocdevice.cpp.o
+2.8	[68/94] Building CXX object hipamd/src/CMakeFiles/amdhip64.dir/hip_comgr_helper.cpp.o
+2.8	[69/94] Building CXX object rocclr/CMakeFiles/rocclr.dir/device/rocm/rocdevice.cpp.o
+2.8	[70/94] Building CXX object rocclr/CMakeFiles/rocclr.dir/device/rocm/rocvirtual.cpp.o
 2.9	[71/94] Building CXX object hipamd/src/CMakeFiles/amdhip64.dir/hip_code_object.cpp.o
-3.0	[72/94] Building CXX object hipamd/src/CMakeFiles/amdhip64.dir/hip_hmm.cpp.o
-3.1	[73/94] Building CXX object hipamd/src/CMakeFiles/amdhip64.dir/hip_peer.cpp.o
-3.1	[74/94] Building CXX object hipamd/src/CMakeFiles/amdhip64.dir/hip_fatbin.cpp.o
+3.1	[72/94] Building CXX object hipamd/src/CMakeFiles/amdhip64.dir/hip_hmm.cpp.o
+3.2	[73/94] Building CXX object hipamd/src/CMakeFiles/amdhip64.dir/hip_peer.cpp.o
+3.2	[74/94] Building CXX object hipamd/src/CMakeFiles/amdhip64.dir/hip_fatbin.cpp.o
 3.3	[75/94] Building CXX object rocclr/CMakeFiles/rocclr.dir/compiler/lib/utils/options.cpp.o
-3.4	[76/94] Building CXX object hipamd/src/CMakeFiles/amdhip64.dir/hip_vm.cpp.o
-3.4	[77/94] Linking CXX static library rocclr/librocclr.a
-3.4	[78/94] Linking CXX shared library hipamd/lib/libhiprtc.so.7.1.25345-415734d2b2
-3.4	[79/94] Building CXX object hipamd/src/CMakeFiles/amdhip64.dir/hip_gl.cpp.o
-3.4	[80/94] Creating library symlink hipamd/lib/libhiprtc.so.7 hipamd/lib/libhiprtc.so
-3.5	[81/94] Building CXX object hipamd/src/CMakeFiles/amdhip64.dir/hip_graph_internal.cpp.o
-3.5	[82/94] Building CXX object hipamd/src/CMakeFiles/amdhip64.dir/hip_device.cpp.o
-3.7	[83/94] Building CXX object hipamd/src/CMakeFiles/amdhip64.dir/hip_event.cpp.o
+3.4	[76/94] Linking CXX static library rocclr/librocclr.a
+3.4	[77/94] Building CXX object hipamd/src/CMakeFiles/amdhip64.dir/hip_vm.cpp.o
+3.5	[78/94] Linking CXX shared library hipamd/lib/libhiprtc.so.7.1.25345-415734d2b2
+3.5	[79/94] Building CXX object hipamd/src/CMakeFiles/amdhip64.dir/hip_gl.cpp.o
+3.5	[80/94] Creating library symlink hipamd/lib/libhiprtc.so.7 hipamd/lib/libhiprtc.so
+3.6	[81/94] Building CXX object hipamd/src/CMakeFiles/amdhip64.dir/hip_device.cpp.o
+3.7	[82/94] Building CXX object hipamd/src/CMakeFiles/amdhip64.dir/hip_event.cpp.o
+3.7	[83/94] Building CXX object hipamd/src/CMakeFiles/amdhip64.dir/hip_graph_internal.cpp.o
 3.7	[84/94] Building CXX object hipamd/src/CMakeFiles/amdhip64.dir/hip_mempool.cpp.o
-3.7	[85/94] Building CXX object hipamd/src/CMakeFiles/amdhip64.dir/hip_context.cpp.o
-4.1	[86/94] Building CXX object hipamd/src/CMakeFiles/amdhip64.dir/hip_device_runtime.cpp.o
-4.1	[87/94] Building CXX object hipamd/src/CMakeFiles/amdhip64.dir/hip_platform.cpp.o
-4.4	[88/94] Building CXX object hipamd/src/CMakeFiles/amdhip64.dir/hip_stream.cpp.o
-5.8	[89/94] Building CXX object hipamd/src/CMakeFiles/amdhip64.dir/hip_module.cpp.o
-6.4	[90/94] Building CXX object hipamd/src/CMakeFiles/amdhip64.dir/hip_texture.cpp.o
-14.5	[91/94] Building CXX object hipamd/src/CMakeFiles/amdhip64.dir/hip_memory.cpp.o
-15.2	[92/94] Building CXX object hipamd/src/CMakeFiles/amdhip64.dir/hip_graph.cpp.o
-15.4	[93/94] Linking CXX shared library hipamd/lib/libamdhip64.so.7.1.25345-415734d2b2
-15.6	[94/94] Creating library symlink hipamd/lib/libamdhip64.so.7 hipamd/lib/libamdhip64.so
-END	1756496683.0770695	15.63117003440857
+3.8	[85/94] Building CXX object hipamd/src/CMakeFiles/amdhip64.dir/hip_context.cpp.o
+4.1	[86/94] Building CXX object hipamd/src/CMakeFiles/amdhip64.dir/hip_platform.cpp.o
+4.2	[87/94] Building CXX object hipamd/src/CMakeFiles/amdhip64.dir/hip_device_runtime.cpp.o
+4.5	[88/94] Building CXX object hipamd/src/CMakeFiles/amdhip64.dir/hip_stream.cpp.o
+6.0	[89/94] Building CXX object hipamd/src/CMakeFiles/amdhip64.dir/hip_module.cpp.o
+6.5	[90/94] Building CXX object hipamd/src/CMakeFiles/amdhip64.dir/hip_texture.cpp.o
+14.7	[91/94] Building CXX object hipamd/src/CMakeFiles/amdhip64.dir/hip_memory.cpp.o
+15.3	[92/94] Building CXX object hipamd/src/CMakeFiles/amdhip64.dir/hip_graph.cpp.o
+15.5	[93/94] Linking CXX shared library hipamd/lib/libamdhip64.so.7.1.25345-415734d2b2
+15.7	[94/94] Creating library symlink hipamd/lib/libamdhip64.so.7 hipamd/lib/libamdhip64.so
+END	1756837621.8588607	15.67604398727417

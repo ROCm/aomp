@@ -1,116 +1,116 @@
-BEGIN	1756496660.5228636
+BEGIN	1756837599.19459
 EXEC	/work1/grodgers/git/tr_aomp/TheRock/build/core/rocminfo/build	/usr/bin/cmake -E env --unset=ROCM_PATH --unset=ROCM_DIR --unset=HIP_PATH --unset=HIP_DIR -- /usr/bin/cmake -GNinja -B/work/grodgers/git/tr_aomp/TheRock/build/core/rocminfo/build -S/work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/rocminfo -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/work/grodgers/git/tr_aomp/TheRock/build/core/rocminfo/stage -DTHEROCK_STAGE_INSTALL_ROOT=/work/grodgers/git/tr_aomp/TheRock/build/core/rocminfo/stage -DCMAKE_TOOLCHAIN_FILE=/work/grodgers/git/tr_aomp/TheRock/build/core/rocminfo/_toolchain.cmake -DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=/work/grodgers/git/tr_aomp/TheRock/build/core/rocminfo/_init.cmake
 0.0	-- Sub-project PKG_CONFIG_PATH: /work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/bzip2/build/stage/lib/rocm_sysdeps/lib/pkgconfig:/work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zlib/build/stage/lib/rocm_sysdeps/lib/pkgconfig:/work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zstd/build/stage/lib/rocm_sysdeps/lib/pkgconfig:/work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/elfutils/build/stage/lib/rocm_sysdeps/lib/pkgconfig:/work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/libdrm/build/stage/lib/rocm_sysdeps/lib/pkgconfig:/work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/stage/lib/rocm_sysdeps/lib/pkgconfig:
 0.0	-- Resolving packages from super-project: rocprofiler-register;BZip2;ZLIB;zstd;LibElf;libdw;NUMA;hsakmt;hsa-runtime64
 0.1	-- The C compiler identification is GNU 13.3.0
-0.1	-- The CXX compiler identification is GNU 13.3.0
-0.1	-- Detecting C compiler ABI info
+0.2	-- The CXX compiler identification is GNU 13.3.0
+0.2	-- Detecting C compiler ABI info
 0.3	-- Detecting C compiler ABI info - done
 0.3	-- Check for working C compiler: /usr/bin/cc - skipped
 0.3	-- Detecting C compile features
 0.3	-- Detecting C compile features - done
 0.3	-- Detecting CXX compiler ABI info
 0.4	-- Detecting CXX compiler ABI info - done
-0.4	-- Check for working CXX compiler: /usr/bin/c++ - skipped
-0.4	-- Detecting CXX compile features
-0.4	-- Detecting CXX compile features - done
-0.4	-- Resolving super-project find_package(hsa-runtime64 1.0 REQUIRED BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr_aomp/TheRock/build/core/ROCR-Runtime/dist/lib/cmake/hsa-runtime64)
-0.4	fatal: No names found, cannot describe anything.
-0.4	usage: git rev-list [<options>] <commit>... [--] [<path>...]
-0.4	
-0.4	  limiting output:
-0.4	    --max-count=<n>
-0.4	    --max-age=<epoch>
-0.4	    --min-age=<epoch>
-0.4	    --sparse
-0.4	    --no-merges
-0.4	    --min-parents=<n>
-0.4	    --no-min-parents
-0.4	    --max-parents=<n>
-0.4	    --no-max-parents
-0.4	    --remove-empty
-0.4	    --all
-0.4	    --branches
-0.4	    --tags
-0.4	    --remotes
-0.4	    --stdin
-0.4	    --exclude-hidden=[fetch|receive|uploadpack]
-0.4	    --quiet
-0.4	  ordering output:
-0.4	    --topo-order
-0.4	    --date-order
-0.4	    --reverse
-0.4	  formatting output:
-0.4	    --parents
-0.4	    --children
-0.4	    --objects | --objects-edge
-0.4	    --disk-usage[=human]
-0.4	    --unpacked
-0.4	    --header | --pretty
-0.4	    --[no-]object-names
-0.4	    --abbrev=<n> | --no-abbrev
-0.4	    --abbrev-commit
-0.4	    --left-right
-0.4	    --count
-0.4	  special purpose:
-0.4	    --bisect
-0.4	    --bisect-vars
-0.4	    --bisect-all
-0.4	usage: git rev-list [<options>] <commit>... [--] [<path>...]
-0.4	
-0.4	  limiting output:
-0.4	    --max-count=<n>
-0.4	    --max-age=<epoch>
-0.4	    --min-age=<epoch>
-0.4	    --sparse
-0.4	    --no-merges
-0.4	    --min-parents=<n>
-0.4	    --no-min-parents
-0.4	    --max-parents=<n>
-0.4	    --no-max-parents
-0.4	    --remove-empty
-0.4	    --all
-0.4	    --branches
-0.4	    --tags
-0.4	    --remotes
-0.4	    --stdin
-0.4	    --exclude-hidden=[fetch|receive|uploadpack]
-0.4	    --quiet
-0.4	  ordering output:
-0.4	    --topo-order
-0.4	    --date-order
-0.4	    --reverse
-0.4	  formatting output:
-0.4	    --parents
-0.4	    --children
-0.4	    --objects | --objects-edge
-0.4	    --disk-usage[=human]
-0.4	    --unpacked
-0.4	    --header | --pretty
-0.4	    --[no-]object-names
-0.4	    --abbrev=<n> | --no-abbrev
-0.4	    --abbrev-commit
-0.4	    --left-right
-0.4	    --count
-0.4	  special purpose:
-0.4	    --bisect
-0.4	    --bisect-vars
-0.4	    --bisect-all
-0.4	0 were found since previous release
-0.5	Package version: 1.0.0.0.local_build-0-415734d2b2
+0.5	-- Check for working CXX compiler: /usr/bin/c++ - skipped
+0.5	-- Detecting CXX compile features
+0.5	-- Detecting CXX compile features - done
+0.5	-- Resolving super-project find_package(hsa-runtime64 1.0 REQUIRED BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr_aomp/TheRock/build/core/ROCR-Runtime/dist/lib/cmake/hsa-runtime64)
+0.5	fatal: No names found, cannot describe anything.
+0.5	usage: git rev-list [<options>] <commit>... [--] [<path>...]
 0.5	
-0.5	Build Configuration:
-0.5	-----------BuildType: Release
-0.5	------------Compiler: /usr/bin/c++
-0.5	-------------Version: 13.3.0
-0.5	--------Proj Src Dir: /work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/rocminfo
-0.5	--------Proj Bld Dir: /work/grodgers/git/tr_aomp/TheRock/build/core/rocminfo/build
-0.5	--------Proj Lib Dir: /work/grodgers/git/tr_aomp/TheRock/build/core/rocminfo/build/lib
-0.5	--------Proj Exe Dir: /work/grodgers/git/tr_aomp/TheRock/build/core/rocminfo/build/bin
+0.5	  limiting output:
+0.5	    --max-count=<n>
+0.5	    --max-age=<epoch>
+0.5	    --min-age=<epoch>
+0.5	    --sparse
+0.5	    --no-merges
+0.5	    --min-parents=<n>
+0.5	    --no-min-parents
+0.5	    --max-parents=<n>
+0.5	    --no-max-parents
+0.5	    --remove-empty
+0.5	    --all
+0.5	    --branches
+0.5	    --tags
+0.5	    --remotes
+0.5	    --stdin
+0.5	    --exclude-hidden=[fetch|receive|uploadpack]
+0.5	    --quiet
+0.5	  ordering output:
+0.5	    --topo-order
+0.5	    --date-order
+0.5	    --reverse
+0.5	  formatting output:
+0.5	    --parents
+0.5	    --children
+0.5	    --objects | --objects-edge
+0.5	    --disk-usage[=human]
+0.5	    --unpacked
+0.5	    --header | --pretty
+0.5	    --[no-]object-names
+0.5	    --abbrev=<n> | --no-abbrev
+0.5	    --abbrev-commit
+0.5	    --left-right
+0.5	    --count
+0.5	  special purpose:
+0.5	    --bisect
+0.5	    --bisect-vars
+0.5	    --bisect-all
+0.5	usage: git rev-list [<options>] <commit>... [--] [<path>...]
 0.5	
+0.5	  limiting output:
+0.5	    --max-count=<n>
+0.5	    --max-age=<epoch>
+0.5	    --min-age=<epoch>
+0.5	    --sparse
+0.5	    --no-merges
+0.5	    --min-parents=<n>
+0.5	    --no-min-parents
+0.5	    --max-parents=<n>
+0.5	    --no-max-parents
+0.5	    --remove-empty
+0.5	    --all
+0.5	    --branches
+0.5	    --tags
+0.5	    --remotes
+0.5	    --stdin
+0.5	    --exclude-hidden=[fetch|receive|uploadpack]
+0.5	    --quiet
+0.5	  ordering output:
+0.5	    --topo-order
+0.5	    --date-order
+0.5	    --reverse
+0.5	  formatting output:
+0.5	    --parents
+0.5	    --children
+0.5	    --objects | --objects-edge
+0.5	    --disk-usage[=human]
+0.5	    --unpacked
+0.5	    --header | --pretty
+0.5	    --[no-]object-names
+0.5	    --abbrev=<n> | --no-abbrev
+0.5	    --abbrev-commit
+0.5	    --left-right
+0.5	    --count
+0.5	  special purpose:
+0.5	    --bisect
+0.5	    --bisect-vars
+0.5	    --bisect-all
+0.5	0 were found since previous release
+0.6	Package version: 1.0.0.0.local_build-0-415734d2b2
+0.6	
+0.6	Build Configuration:
+0.6	-----------BuildType: Release
+0.6	------------Compiler: /usr/bin/c++
+0.6	-------------Version: 13.3.0
+0.6	--------Proj Src Dir: /work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/rocminfo
+0.6	--------Proj Bld Dir: /work/grodgers/git/tr_aomp/TheRock/build/core/rocminfo/build
+0.6	--------Proj Lib Dir: /work/grodgers/git/tr_aomp/TheRock/build/core/rocminfo/build/lib
+0.6	--------Proj Exe Dir: /work/grodgers/git/tr_aomp/TheRock/build/core/rocminfo/build/bin
+0.6	
 0.6	RESULT_VARIABLE 0 OUTPUT_VARIABLE: 
 0.6	-- Set RPATH $ORIGIN/../lib;$ORIGIN/../lib/rocm_sysdeps/lib on rocminfo
-0.6	-- Configuring done (0.5s)
+0.6	-- Configuring done (0.6s)
 0.6	-- Generating done (0.0s)
 0.6	CMake Warning:
 0.6	  Manually-specified variables were not used by the project:
@@ -119,4 +119,4 @@ EXEC	/work1/grodgers/git/tr_aomp/TheRock/build/core/rocminfo/build	/usr/bin/cmak
 0.6	
 0.6	
 0.6	-- Build files have been written to: /work/grodgers/git/tr_aomp/TheRock/build/core/rocminfo/build
-END	1756496661.1169481	0.5940845012664795
+END	1756837599.8462293	0.6516392230987549
