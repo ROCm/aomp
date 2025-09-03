@@ -1,13 +1,9 @@
-// Copyright © Advanced Micro Devices, Inc., or its affiliates.
-//
-// SPDX-License-Identifier:  MIT
-
 #include <stdio.h>
 #include <omp.h>
 
 int main()
 {
-  int N = 10;
+  int N = 100000;
 
   int a[N];
   int b[N];
@@ -15,14 +11,15 @@ int main()
   int i;
 
   for (i=0; i<N; i++)
-    a[i]=0;
-
-  for (i=0; i<N; i++)
     b[i]=i;
 
-#pragma omp target parallel for
+  for (i=0; i<N; i++)
+    a[i]=0;
+
+  int j;
+#pragma omp target teams distribute parallel for
   {
-    for (int j = 0; j< N; j++)
+    for (j = 0; j< N; j++)
       a[j]=b[j];
   }
 
@@ -30,7 +27,7 @@ int main()
   for (i=0; i<N; i++)
     if (a[i] != b[i] ) {
       rc++;
-      printf ("Wrong varlue: a[%d]=%d\n", i, a[i]);
+      printf ("Wrong value: a[%d]=%d\n", i, a[i]);
     }
 
   if (!rc)
@@ -39,3 +36,4 @@ int main()
   return rc;
 }
 
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:6

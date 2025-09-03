@@ -1,4 +1,4 @@
-BEGIN	1756496652.4148004
+BEGIN	1756837590.9876428
 EXEC	/work1/grodgers/git/tr_aomp/TheRock/build/compiler/amd-comgr/build	/usr/bin/cmake -E env --unset=ROCM_PATH --unset=ROCM_DIR --unset=HIP_PATH --unset=HIP_DIR -- /usr/bin/cmake --build /work/grodgers/git/tr_aomp/TheRock/build/compiler/amd-comgr/build
 0.0	[1/92] cd /work/grodgers/git/tr_aomp/TheRock/build/compiler/amd-comgr/build && /usr/bin/cmake -E rm -f /work/grodgers/git/tr_aomp/TheRock/build/compiler/amd-comgr/stamp/stage.stamp
 0.1	[2/92] Building C object CMakeFiles/bc2h.dir/bc2h.c.o
@@ -64,32 +64,32 @@ EXEC	/work1/grodgers/git/tr_aomp/TheRock/build/compiler/amd-comgr/build	/usr/bin
 0.1	[62/92] Generating oclc_isa_version_942.inc
 0.1	[63/92] Generating oclc_isa_version_950.inc
 0.1	[64/92] Generating oclc_unsafe_math_off.inc
-0.1	[65/92] Generating oclc_wavefrontsize64_on.inc
-0.1	[66/92] Generating oclc_unsafe_math_on.inc
-0.1	[67/92] Generating oclc_wavefrontsize64_off.inc
+0.1	[65/92] Generating oclc_unsafe_math_on.inc
+0.1	[66/92] Generating oclc_wavefrontsize64_off.inc
+0.1	[67/92] Generating oclc_wavefrontsize64_on.inc
 0.1	[68/92] Generating hip.inc
-0.1	[69/92] Generating asanrtl.inc
-0.1	[70/92] Generating opencl-c-base.inc
+0.1	[69/92] Generating opencl-c-base.inc
+0.1	[70/92] Generating asanrtl.inc
 0.1	[71/92] Generating ockl.inc
 0.1	[72/92] Generating ocml.inc
 0.2	[73/92] Generating opencl.inc
 0.3	[74/92] Generating /work/grodgers/git/tr_aomp/TheRock/build/compiler/amd-comgr/build/include/libraries_sha.inc
-1.0	[75/92] Building CXX object CMakeFiles/amd_comgr.dir/src/comgr-diagnostic-handler.cpp.o
+0.9	[75/92] Building CXX object CMakeFiles/amd_comgr.dir/src/comgr-diagnostic-handler.cpp.o
 1.0	[76/92] Building CXX object CMakeFiles/amd_comgr.dir/src/comgr-signal.cpp.o
-1.1	[77/92] Building CXX object CMakeFiles/amd_comgr.dir/src/comgr-env.cpp.o
-1.1	[78/92] Building CXX object CMakeFiles/amd_comgr.dir/src/comgr-unbundle-command.cpp.o
-1.2	[79/92] Building CXX object CMakeFiles/amd_comgr.dir/src/time-stat/time-stat.cpp.o
-1.2	[80/92] Building CXX object CMakeFiles/amd_comgr.dir/src/comgr-spirv-command.cpp.o
-1.3	[81/92] Building CXX object CMakeFiles/amd_comgr.dir/src/comgr-cache-command.cpp.o
+1.0	[77/92] Building CXX object CMakeFiles/amd_comgr.dir/src/comgr-unbundle-command.cpp.o
+1.1	[78/92] Building CXX object CMakeFiles/amd_comgr.dir/src/comgr-env.cpp.o
+1.1	[79/92] Building CXX object CMakeFiles/amd_comgr.dir/src/comgr-spirv-command.cpp.o
+1.1	[80/92] Building CXX object CMakeFiles/amd_comgr.dir/src/time-stat/time-stat.cpp.o
+1.2	[81/92] Building CXX object CMakeFiles/amd_comgr.dir/src/comgr-cache-command.cpp.o
 1.3	[82/92] Building CXX object CMakeFiles/amd_comgr.dir/src/comgr-clang-command.cpp.o
-1.5	[83/92] Building CXX object CMakeFiles/amd_comgr.dir/src/comgr-cache.cpp.o
+1.4	[83/92] Building CXX object CMakeFiles/amd_comgr.dir/src/comgr-cache.cpp.o
 1.8	[84/92] Building CXX object CMakeFiles/amd_comgr.dir/src/comgr-symbol.cpp.o
 1.9	[85/92] Building CXX object CMakeFiles/amd_comgr.dir/src/comgr-symbolizer.cpp.o
 2.0	[86/92] Building CXX object CMakeFiles/amd_comgr.dir/src/comgr-disassembly.cpp.o
 3.3	[87/92] Building CXX object CMakeFiles/amd_comgr.dir/src/comgr-metadata.cpp.o
-4.2	[88/92] Building CXX object CMakeFiles/amd_comgr.dir/src/comgr-device-libs.cpp.o
-5.8	[89/92] Building CXX object CMakeFiles/amd_comgr.dir/src/comgr.cpp.o
-9.5	[90/92] Building CXX object CMakeFiles/amd_comgr.dir/src/comgr-compiler.cpp.o
-11.3	[91/92] Linking CXX shared library libamd_comgr.so.3.0.0
-11.6	[92/92] Creating library symlink libamd_comgr.so.3 libamd_comgr.so
-END	1756496664.0156374	11.600836992263794
+4.4	[88/92] Building CXX object CMakeFiles/amd_comgr.dir/src/comgr-device-libs.cpp.o
+5.6	[89/92] Building CXX object CMakeFiles/amd_comgr.dir/src/comgr.cpp.o
+9.7	[90/92] Building CXX object CMakeFiles/amd_comgr.dir/src/comgr-compiler.cpp.o
+11.5	[91/92] Linking CXX shared library libamd_comgr.so.3.0.0
+11.8	[92/92] Creating library symlink libamd_comgr.so.3 libamd_comgr.so
+END	1756837602.7639594	11.77631664276123

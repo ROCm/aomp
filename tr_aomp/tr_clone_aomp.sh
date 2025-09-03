@@ -52,7 +52,7 @@ fi
 
 cd $TR_AOMP_REPOS
 echo
-echo "===== Cloning or updating aomp repo"
+echo "===== Cloning and updating aomp repo"
 if [ -d $TR_AOMP_REPOS/aomp ] ; then 
    echo "WARNING: Skipping clone of aomp, $TR_AOMP_REPOS/aomp already exists"
 else
@@ -152,7 +152,6 @@ if [ $_new_rock_repo == 1 ] ; then
 else
    _current_shakey=`git log -1 | grep commit | cut -d" " -f2`
    if [ $_releaseshakey != $_current_shakey ] ; then
-      # THIS IS FIRST TIME ON NEW BUT INITIALIZED RELEASE
       # THis is first time on new release that has been initialized. 
       # So we must reset from _current_shakey to _releaseshakey
       echo
@@ -181,24 +180,27 @@ else
       git checkout $_releaseshakey
       _first_time_on_an_initialized_release=1
       $thisdir/tr_add_info.sh sources_fetched FALSE
+   else
+      echo
+      echo "===== Using TheRock at frozen shakey $_releaseshakey for AOMP $AOMP_VERSION_STRING ====="
    fi
 fi
 
 _sources_fetched=`grep "^sources_fetched:" $AOMP_INFO_FILE | cut -d":" -f2- | xargs`
 if [ "$_sources_fetched" != "TRUE" ] ; then 
    echo
-   echo "=====  _sources_fetched=$_sources_fetched. Running python ./build_tools/fetch_sources.py"
+   echo "===== Running python ./build_tools/fetch_sources.py ====="
    python ./build_tools/fetch_sources.py
    echo "=====  Done running python ./build_tools/fetch_sources.py"
    $thisdir/tr_add_info.sh sources_fetched TRUE
 else
    echo
-   echo "=====  _sources_fetched=$_sources_fetched. Sources have already been fetched"
+   echo "===== Sources for $AOMP_VERSION_STRING  have already been fetched with fetch_sources.py  ====="
 fi
 
 # AOMP needs amd-staging branches of amd-llvm and hipify
 echo 
-echo "===== Checking out amd-staging for amd-llvm and hipify"
+echo "===== Checking out and pulling updates to amd-staging for amd-llvm and hipify ====="
 cd $TR_AOMP_REPOS/TheRock/compiler/amd-llvm
 echo git checkout amd-staging
 git checkout amd-staging
@@ -209,7 +211,7 @@ echo git checkout amd-staging
 git checkout amd-staging
 echo git pull
 git pull
-echo "===== DONE checking out amd-staging for amd-llvm and hipify ===== "
+echo "===== DONE checking out and pulling updates to amd-staging for amd-llvm and hipify ===== "
 
 _do_aomp_patches="$(( $_first_time_on_an_initialized_release == 1 || $(( $_new_rock_repo == 1 && $AOMP_INIT_THEROCK_TIP == 0 )) ))"
 if [[ $_do_aomp_patches == 1 ]] ; then 
@@ -232,7 +234,7 @@ if [[ $_do_aomp_patches == 1 ]] ; then
    rm $_tmpfile
 else
    echo
-   echo "===== Skipping patch $AOMP_PATCH_DIR ====="
+   echo "===== AOMP $AOMP_VERSION_STRING patches allready patched, skipping patches in $AOMP_PATCH_DIR ====="
 fi
 
 if [ $AOMP_INIT_THEROCK_TIP == 1 ] ; then

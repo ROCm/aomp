@@ -1,4 +1,4 @@
-BEGIN	1756496078.3216038
+BEGIN	1756837038.076458
 EXEC	/work1/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/bzip2/build/build	/usr/bin/cmake --install /work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/bzip2/build/build
 0.0	-- Install configuration: "Release"
 0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/bzip2/build/stage/lib/rocm_sysdeps/bin/bzip2
@@ -12,4 +12,4 @@ EXEC	/work1/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/bzip2/b
 0.0	-- Set non-toolchain portion of runtime path of "/work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/bzip2/build/stage/lib/rocm_sysdeps/lib/librocm_sysdeps_bz2.so" to "$ORIGIN/../lib/rocm_sysdeps/lib"
 0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/bzip2/build/stage/lib/rocm_sysdeps/include/bzlib.h
 0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/bzip2/build/stage/lib/rocm_sysdeps/lib/cmake/BZip2/bzip2-config.cmake
-END	1756496078.3315792	0.009975433349609375
+END	1756837038.0877748	0.011316776275634766

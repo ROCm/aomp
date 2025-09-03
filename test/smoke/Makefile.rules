@@ -104,7 +104,7 @@ og11run: $(TESTNAME)_og11
 gpurun: $(TESTNAME)
 	$(AOMP)/bin/gpurun $(RUNENV) $(RUNPROF) ./$(TESTNAME) 2>&1 | tee $@.log
 valgrind: $(TESTNAME)
-	valgrind $(RUNENV) $(RUNPROF) ./$(TESTNAME) 2>&1 | tee $@.log
+	$(RUNENV) valgrind $(RUNPROF) ./$(TESTNAME) 2>&1 | tee $@.log
 
 # Just verify output
 verify: run

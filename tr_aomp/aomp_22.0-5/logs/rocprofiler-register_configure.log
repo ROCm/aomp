@@ -1,25 +1,25 @@
-BEGIN	1756496076.1294968
+BEGIN	1756837035.8594856
 EXEC	/work1/grodgers/git/tr_aomp/TheRock/build/base/rocprofiler-register/build	/usr/bin/cmake -E env --unset=ROCM_PATH --unset=ROCM_DIR --unset=HIP_PATH --unset=HIP_DIR -- /usr/bin/cmake -GNinja -B/work/grodgers/git/tr_aomp/TheRock/build/base/rocprofiler-register/build -S/work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/rocprofiler-register -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/work/grodgers/git/tr_aomp/TheRock/build/base/rocprofiler-register/stage -DTHEROCK_STAGE_INSTALL_ROOT=/work/grodgers/git/tr_aomp/TheRock/build/base/rocprofiler-register/stage -DCMAKE_TOOLCHAIN_FILE=/work/grodgers/git/tr_aomp/TheRock/build/base/rocprofiler-register/_toolchain.cmake -DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=/work/grodgers/git/tr_aomp/TheRock/build/base/rocprofiler-register/_init.cmake
 0.1	-- The C compiler identification is GNU 13.3.0
-0.1	-- The CXX compiler identification is GNU 13.3.0
-0.1	-- Detecting C compiler ABI info
+0.2	-- The CXX compiler identification is GNU 13.3.0
+0.2	-- Detecting C compiler ABI info
 0.3	-- Detecting C compiler ABI info - done
 0.3	-- Check for working C compiler: /usr/bin/cc - skipped
 0.3	-- Detecting C compile features
 0.3	-- Detecting C compile features - done
 0.3	-- Detecting CXX compiler ABI info
 0.4	-- Detecting CXX compiler ABI info - done
-0.4	-- Check for working CXX compiler: /usr/bin/c++ - skipped
-0.4	-- Detecting CXX compile features
-0.4	-- Detecting CXX compile features - done
-0.4	-- Found Git: /usr/bin/git (found version "2.43.0") 
-0.4	-- [rocprofiler-register] version 0.5.0 (0.5.0)
-0.4	-- [rocprofiler-register] git revision: 
-0.4	-- [rocprofiler-register] git describe: v0.5.0
-0.4	-- Found dl-library: /usr/lib/x86_64-linux-gnu/libdl.a  
+0.5	-- Check for working CXX compiler: /usr/bin/c++ - skipped
+0.5	-- Detecting CXX compile features
+0.5	-- Detecting CXX compile features - done
+0.5	-- Found Git: /usr/bin/git (found version "2.43.0") 
+0.5	-- [rocprofiler-register] version 0.5.0 (0.5.0)
+0.5	-- [rocprofiler-register] git revision: 
+0.5	-- [rocprofiler-register] git describe: v0.5.0
+0.5	-- Found dl-library: /usr/lib/x86_64-linux-gnu/libdl.a  
 0.5	-- Performing Test c_rocprofiler_register_werror
-0.5	-- Performing Test c_rocprofiler_register_werror - Success
-0.5	-- Performing Test cxx_rocprofiler_register_werror
+0.6	-- Performing Test c_rocprofiler_register_werror - Success
+0.6	-- Performing Test cxx_rocprofiler_register_werror
 0.6	-- Performing Test cxx_rocprofiler_register_werror - Success
 0.6	-- Performing Test c_rocprofiler_register_dl_rdynamic
 0.7	-- Performing Test c_rocprofiler_register_dl_rdynamic - Success
@@ -27,184 +27,184 @@ EXEC	/work1/grodgers/git/tr_aomp/TheRock/build/base/rocprofiler-register/build	/
 0.8	-- Performing Test cxx_rocprofiler_register_dl_rdynamic - Success
 0.8	-- Found rt-library: /usr/lib/x86_64-linux-gnu/librt.a  
 0.8	-- Performing Test c_rocprofiler_register_build_flags_W
-0.8	-- Performing Test c_rocprofiler_register_build_flags_W - Success
-0.8	-- Performing Test cxx_rocprofiler_register_build_flags_W
-0.9	-- Performing Test cxx_rocprofiler_register_build_flags_W - Success
-0.9	-- Performing Test c_rocprofiler_register_build_flags_Wall
+0.9	-- Performing Test c_rocprofiler_register_build_flags_W - Success
+0.9	-- Performing Test cxx_rocprofiler_register_build_flags_W
+1.0	-- Performing Test cxx_rocprofiler_register_build_flags_W - Success
+1.0	-- Performing Test c_rocprofiler_register_build_flags_Wall
 1.0	-- Performing Test c_rocprofiler_register_build_flags_Wall - Success
 1.0	-- Performing Test cxx_rocprofiler_register_build_flags_Wall
-1.0	-- Performing Test cxx_rocprofiler_register_build_flags_Wall - Success
-1.0	-- Performing Test c_rocprofiler_register_build_flags_Wno_unknown_pragmas
-1.1	-- Performing Test c_rocprofiler_register_build_flags_Wno_unknown_pragmas - Success
-1.1	-- Performing Test cxx_rocprofiler_register_build_flags_Wno_unknown_pragmas
-1.2	-- Performing Test cxx_rocprofiler_register_build_flags_Wno_unknown_pragmas - Success
-1.2	-- Performing Test c_rocprofiler_register_build_flags_fstack_protector_strong
-1.2	-- Performing Test c_rocprofiler_register_build_flags_fstack_protector_strong - Success
-1.2	-- Performing Test cxx_rocprofiler_register_build_flags_fstack_protector_strong
-1.3	-- Performing Test cxx_rocprofiler_register_build_flags_fstack_protector_strong - Success
-1.3	-- Performing Test c_rocprofiler_register_build_flags_Wstack_protector
+1.1	-- Performing Test cxx_rocprofiler_register_build_flags_Wall - Success
+1.1	-- Performing Test c_rocprofiler_register_build_flags_Wno_unknown_pragmas
+1.2	-- Performing Test c_rocprofiler_register_build_flags_Wno_unknown_pragmas - Success
+1.2	-- Performing Test cxx_rocprofiler_register_build_flags_Wno_unknown_pragmas
+1.3	-- Performing Test cxx_rocprofiler_register_build_flags_Wno_unknown_pragmas - Success
+1.3	-- Performing Test c_rocprofiler_register_build_flags_fstack_protector_strong
+1.3	-- Performing Test c_rocprofiler_register_build_flags_fstack_protector_strong - Success
+1.3	-- Performing Test cxx_rocprofiler_register_build_flags_fstack_protector_strong
+1.4	-- Performing Test cxx_rocprofiler_register_build_flags_fstack_protector_strong - Success
+1.4	-- Performing Test c_rocprofiler_register_build_flags_Wstack_protector
 1.4	-- Performing Test c_rocprofiler_register_build_flags_Wstack_protector - Success
 1.4	-- Performing Test cxx_rocprofiler_register_build_flags_Wstack_protector
-1.4	-- Performing Test cxx_rocprofiler_register_build_flags_Wstack_protector - Success
-1.4	-- Performing Test c_rocprofiler_register_build_flags_Wstack_usage_8192
-1.5	-- Performing Test c_rocprofiler_register_build_flags_Wstack_usage_8192 - Success
-1.5	-- Performing Test cxx_rocprofiler_register_build_flags_Wstack_usage_8192
-1.6	-- Performing Test cxx_rocprofiler_register_build_flags_Wstack_usage_8192 - Success
-1.6	-- Performing Test cxx_rocprofiler_register_build_flags_faligned_new
-1.7	-- Performing Test cxx_rocprofiler_register_build_flags_faligned_new - Success
-1.7	-- Performing Test c_rocprofiler_register_developer_flags_Werror
-1.7	-- Performing Test c_rocprofiler_register_developer_flags_Werror - Success
-1.7	-- Performing Test cxx_rocprofiler_register_developer_flags_Werror
-1.8	-- Performing Test cxx_rocprofiler_register_developer_flags_Werror - Success
-1.8	-- Performing Test c_rocprofiler_register_developer_flags_Wdouble_promotion
-1.9	-- Performing Test c_rocprofiler_register_developer_flags_Wdouble_promotion - Success
-1.9	-- Performing Test cxx_rocprofiler_register_developer_flags_Wdouble_promotion
-2.0	-- Performing Test cxx_rocprofiler_register_developer_flags_Wdouble_promotion - Success
-2.0	-- Performing Test c_rocprofiler_register_developer_flags_Wshadow
-2.0	-- Performing Test c_rocprofiler_register_developer_flags_Wshadow - Success
-2.0	-- Performing Test cxx_rocprofiler_register_developer_flags_Wshadow
-2.1	-- Performing Test cxx_rocprofiler_register_developer_flags_Wshadow - Success
-2.1	-- Performing Test c_rocprofiler_register_developer_flags_Wextra
-2.1	-- Performing Test c_rocprofiler_register_developer_flags_Wextra - Success
-2.1	-- Performing Test cxx_rocprofiler_register_developer_flags_Wextra
-2.2	-- Performing Test cxx_rocprofiler_register_developer_flags_Wextra - Success
-2.2	-- Performing Test c_rocprofiler_register_developer_flags_Wno_deprecated_declarations
-2.3	-- Performing Test c_rocprofiler_register_developer_flags_Wno_deprecated_declarations - Success
-2.3	-- Performing Test cxx_rocprofiler_register_developer_flags_Wno_deprecated_declarations
-2.4	-- Performing Test cxx_rocprofiler_register_developer_flags_Wno_deprecated_declarations - Success
-2.4	-- Performing Test CMAKE_HAVE_LIBC_PTHREAD
-2.5	-- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
-2.5	-- Found Threads: TRUE  
-2.5	-- Could NOT find stdcxxfs-library (missing: stdcxxfs_LIBRARY) 
-2.9	-- Looking for C++ include dlfcn.h
-2.9	-- Looking for C++ include dlfcn.h - found
-2.9	-- Looking for C++ include elf.h
-3.0	-- Looking for C++ include elf.h - found
-3.0	-- Looking for C++ include glob.h
-3.1	-- Looking for C++ include glob.h - found
-3.1	-- Looking for C++ include link.h
-3.2	-- Looking for C++ include link.h - found
-3.2	-- Looking for C++ include pwd.h
-3.3	-- Looking for C++ include pwd.h - found
-3.3	-- Looking for C++ include sys/exec_elf.h
-3.3	-- Looking for C++ include sys/exec_elf.h - not found
-3.3	-- Looking for C++ include sys/syscall.h
-3.4	-- Looking for C++ include sys/syscall.h - found
-3.4	-- Looking for C++ include sys/time.h
-3.4	-- Looking for C++ include sys/time.h - found
-3.4	-- Looking for C++ include sys/types.h
-3.5	-- Looking for C++ include sys/types.h - found
-3.5	-- Looking for C++ include sys/utsname.h
-3.6	-- Looking for C++ include sys/utsname.h - found
-3.6	-- Looking for C++ include sys/wait.h
-3.7	-- Looking for C++ include sys/wait.h - found
-3.7	-- Looking for C++ include syscall.h
-3.7	-- Looking for C++ include syscall.h - found
-3.7	-- Looking for C++ include syslog.h
-3.8	-- Looking for C++ include syslog.h - found
-3.8	-- Looking for C++ include ucontext.h
-3.9	-- Looking for C++ include ucontext.h - found
-3.9	-- Looking for C++ include unistd.h
-3.9	-- Looking for C++ include unistd.h - found
-3.9	-- Looking for C++ include stdint.h
-4.0	-- Looking for C++ include stdint.h - found
-4.0	-- Looking for C++ include stddef.h
-4.1	-- Looking for C++ include stddef.h - found
-4.1	-- Check size of mode_t
-4.2	-- Check size of mode_t - done
-4.2	-- Check size of ssize_t
-4.3	-- Check size of ssize_t - done
-4.3	-- Looking for dladdr
-4.3	-- Looking for dladdr - found
-4.3	-- Looking for fcntl
-4.4	-- Looking for fcntl - found
-4.4	-- Looking for posix_fadvise
-4.5	-- Looking for posix_fadvise - found
-4.5	-- Looking for pread
-4.6	-- Looking for pread - found
-4.6	-- Looking for pwrite
-4.7	-- Looking for pwrite - found
-4.7	-- Looking for sigaction
-4.7	-- Looking for sigaction - found
-4.7	-- Looking for sigaltstack
-4.8	-- Looking for sigaltstack - found
-4.8	-- Looking for backtrace
-4.9	-- Looking for backtrace - found
-4.9	-- Looking for backtrace_symbols
-5.0	-- Looking for backtrace_symbols - found
-5.0	-- Looking for _chsize_s
-5.0	-- Looking for _chsize_s - not found
-5.0	-- Looking for UnDecorateSymbolName
-5.0	-- Looking for UnDecorateSymbolName - not found
-5.0	-- Looking for abi::__cxa_demangle
-5.1	-- Looking for abi::__cxa_demangle - found
-5.1	-- Looking for __argv
-5.2	-- Looking for __argv - not found
-5.2	-- Looking for getprogname
-5.2	-- Looking for getprogname - not found
-5.2	-- Looking for program_invocation_short_name
-5.3	-- Looking for program_invocation_short_name - found
-5.3	-- Performing Test HAVE___PROGNAME
-5.4	-- Performing Test HAVE___PROGNAME - Success
-5.4	-- Performing Test HAVE_PC_FROM_UCONTEXT_uc_mcontext_gregs_REG_PC
-5.4	-- Performing Test HAVE_PC_FROM_UCONTEXT_uc_mcontext_gregs_REG_PC - Failed
-5.5	-- Performing Test HAVE_PC_FROM_UCONTEXT_uc_mcontext_gregs_REG_EIP
-5.5	-- Performing Test HAVE_PC_FROM_UCONTEXT_uc_mcontext_gregs_REG_EIP - Failed
-5.5	-- Performing Test HAVE_PC_FROM_UCONTEXT_uc_mcontext_gregs_REG_RIP
-5.6	-- Performing Test HAVE_PC_FROM_UCONTEXT_uc_mcontext_gregs_REG_RIP - Success
-5.6	-- Looking for gmtime_r
-5.7	-- Looking for gmtime_r - found
-5.7	-- Looking for localtime_r
-5.7	-- Looking for localtime_r - found
-5.7	-- Performing Test COMPILER_HAS_HIDDEN_VISIBILITY
-5.8	-- Performing Test COMPILER_HAS_HIDDEN_VISIBILITY - Success
-5.8	-- Performing Test COMPILER_HAS_HIDDEN_INLINE_VISIBILITY
-5.9	-- Performing Test COMPILER_HAS_HIDDEN_INLINE_VISIBILITY - Success
-5.9	-- Performing Test COMPILER_HAS_DEPRECATED_ATTR
-5.9	-- Performing Test COMPILER_HAS_DEPRECATED_ATTR - Success
-5.9	-- {fmt} version: 11.1.4
-5.9	-- Build type: Release
-5.9	-- [rocprofiler-register] BUILD_SHARED_LIBS :: ON
-5.9	-- [rocprofiler-register] BUILD_STATIC_LIBS :: OFF
-5.9	-- [rocprofiler-register] CMAKE_POSITION_INDEPENDENT_CODE :: ON
-5.9	-- [rocprofiler-register] ROCPROFILER_REGISTER_BUILD_CI :: OFF
-5.9	-- [rocprofiler-register] ROCPROFILER_REGISTER_BUILD_DEVELOPER :: OFF
-5.9	-- [rocprofiler-register] ROCPROFILER_REGISTER_BUILD_FMT :: ON
-5.9	-- [rocprofiler-register] ROCPROFILER_REGISTER_BUILD_GLOG :: ON
-5.9	-- [rocprofiler-register] ROCPROFILER_REGISTER_BUILD_SAMPLES :: OFF
-5.9	-- [rocprofiler-register] ROCPROFILER_REGISTER_BUILD_TESTS :: OFF
-5.9	-- [rocprofiler-register] ROCPROFILER_REGISTER_DEP_ROCMCORE :: OFF
-5.9	-- [rocprofiler-register] ROCPROFILER_REGISTER_ENABLE_CLANG_TIDY :: OFF
-5.9	-- [rocprofiler-register] ROCPROFILER_REGISTER_PACKAGE_FILE_NAME :: rocprofiler-register-0.5.0-Linux
-5.9	-- [rocprofiler-register] ROCPROFILER_REGISTER_PACKAGING_COMPONENTS :: core;tests
-5.9	-- The following features are defined/enabled (+):
-5.9	     BUILD_SHARED_LIBS: Build shared libraries
-5.9	     CMAKE_POSITION_INDEPENDENT_CODE: Build position independent code
-5.9	     ROCPROFILER_REGISTER_BUILD_FMT: Build FMT
-5.9	     ROCPROFILER_REGISTER_BUILD_GLOG: Build GLOG
-5.9	     ROCPROFILER_REGISTER_PACKAGE_FILE_NAME: CPack filename -- ["rocprofiler-register-0.5.0-Linux"]
-5.9	     ROCPROFILER_REGISTER_PACKAGING_COMPONENTS: Packaging components -- ["core;tests"]
-5.9	
-5.9	-- The following features are NOT defined/enabled (-):
-5.9	     BUILD_STATIC_LIBS: Build static libraries
-5.9	     CPACK_DEBIAN_PACKAGE_DEPENDS: Debian package dependencies
-5.9	     CPACK_RPM_PACKAGE_REQUIRES: RPM package dependencies
-5.9	     ROCPROFILER_REGISTER_BUILD_CI: Enable continuous integration additions
-5.9	     ROCPROFILER_REGISTER_BUILD_DEVELOPER: Extra build flags for development like -Werror
-5.9	     ROCPROFILER_REGISTER_BUILD_SAMPLES: Enable building the code samples
-5.9	     ROCPROFILER_REGISTER_BUILD_TESTS: Enable building the tests
-5.9	     ROCPROFILER_REGISTER_DEP_ROCMCORE: DEB and RPM package depend on rocm-core package
-5.9	     ROCPROFILER_REGISTER_ENABLE_CLANG_TIDY: Enable clang-tidy checks
-5.9	     ROCPROFILER_REGISTER_MEMCHECK: Memory checker type
-5.9	
-5.9	-- Set RPATH $ORIGIN on rocprofiler-register
-5.9	-- Configuring done (5.9s)
-6.0	-- Generating done (0.0s)
-6.0	CMake Warning:
-6.0	  Manually-specified variables were not used by the project:
-6.0	
-6.0	    THEROCK_STAGE_INSTALL_ROOT
-6.0	
-6.0	
-6.0	-- Build files have been written to: /work/grodgers/git/tr_aomp/TheRock/build/base/rocprofiler-register/build
-END	1756496082.1047213	5.975224494934082
+1.5	-- Performing Test cxx_rocprofiler_register_build_flags_Wstack_protector - Success
+1.5	-- Performing Test c_rocprofiler_register_build_flags_Wstack_usage_8192
+1.6	-- Performing Test c_rocprofiler_register_build_flags_Wstack_usage_8192 - Success
+1.6	-- Performing Test cxx_rocprofiler_register_build_flags_Wstack_usage_8192
+1.7	-- Performing Test cxx_rocprofiler_register_build_flags_Wstack_usage_8192 - Success
+1.7	-- Performing Test cxx_rocprofiler_register_build_flags_faligned_new
+1.8	-- Performing Test cxx_rocprofiler_register_build_flags_faligned_new - Success
+1.8	-- Performing Test c_rocprofiler_register_developer_flags_Werror
+1.8	-- Performing Test c_rocprofiler_register_developer_flags_Werror - Success
+1.8	-- Performing Test cxx_rocprofiler_register_developer_flags_Werror
+1.9	-- Performing Test cxx_rocprofiler_register_developer_flags_Werror - Success
+1.9	-- Performing Test c_rocprofiler_register_developer_flags_Wdouble_promotion
+2.0	-- Performing Test c_rocprofiler_register_developer_flags_Wdouble_promotion - Success
+2.0	-- Performing Test cxx_rocprofiler_register_developer_flags_Wdouble_promotion
+2.1	-- Performing Test cxx_rocprofiler_register_developer_flags_Wdouble_promotion - Success
+2.1	-- Performing Test c_rocprofiler_register_developer_flags_Wshadow
+2.1	-- Performing Test c_rocprofiler_register_developer_flags_Wshadow - Success
+2.1	-- Performing Test cxx_rocprofiler_register_developer_flags_Wshadow
+2.2	-- Performing Test cxx_rocprofiler_register_developer_flags_Wshadow - Success
+2.2	-- Performing Test c_rocprofiler_register_developer_flags_Wextra
+2.3	-- Performing Test c_rocprofiler_register_developer_flags_Wextra - Success
+2.3	-- Performing Test cxx_rocprofiler_register_developer_flags_Wextra
+2.4	-- Performing Test cxx_rocprofiler_register_developer_flags_Wextra - Success
+2.4	-- Performing Test c_rocprofiler_register_developer_flags_Wno_deprecated_declarations
+2.5	-- Performing Test c_rocprofiler_register_developer_flags_Wno_deprecated_declarations - Success
+2.5	-- Performing Test cxx_rocprofiler_register_developer_flags_Wno_deprecated_declarations
+2.6	-- Performing Test cxx_rocprofiler_register_developer_flags_Wno_deprecated_declarations - Success
+2.6	-- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+2.7	-- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
+2.7	-- Found Threads: TRUE  
+2.7	-- Could NOT find stdcxxfs-library (missing: stdcxxfs_LIBRARY) 
+3.1	-- Looking for C++ include dlfcn.h
+3.2	-- Looking for C++ include dlfcn.h - found
+3.2	-- Looking for C++ include elf.h
+3.2	-- Looking for C++ include elf.h - found
+3.2	-- Looking for C++ include glob.h
+3.3	-- Looking for C++ include glob.h - found
+3.3	-- Looking for C++ include link.h
+3.4	-- Looking for C++ include link.h - found
+3.4	-- Looking for C++ include pwd.h
+3.4	-- Looking for C++ include pwd.h - found
+3.4	-- Looking for C++ include sys/exec_elf.h
+3.5	-- Looking for C++ include sys/exec_elf.h - not found
+3.5	-- Looking for C++ include sys/syscall.h
+3.5	-- Looking for C++ include sys/syscall.h - found
+3.5	-- Looking for C++ include sys/time.h
+3.6	-- Looking for C++ include sys/time.h - found
+3.6	-- Looking for C++ include sys/types.h
+3.7	-- Looking for C++ include sys/types.h - found
+3.7	-- Looking for C++ include sys/utsname.h
+3.8	-- Looking for C++ include sys/utsname.h - found
+3.8	-- Looking for C++ include sys/wait.h
+3.9	-- Looking for C++ include sys/wait.h - found
+3.9	-- Looking for C++ include syscall.h
+3.9	-- Looking for C++ include syscall.h - found
+3.9	-- Looking for C++ include syslog.h
+4.0	-- Looking for C++ include syslog.h - found
+4.0	-- Looking for C++ include ucontext.h
+4.1	-- Looking for C++ include ucontext.h - found
+4.1	-- Looking for C++ include unistd.h
+4.2	-- Looking for C++ include unistd.h - found
+4.2	-- Looking for C++ include stdint.h
+4.3	-- Looking for C++ include stdint.h - found
+4.3	-- Looking for C++ include stddef.h
+4.3	-- Looking for C++ include stddef.h - found
+4.3	-- Check size of mode_t
+4.4	-- Check size of mode_t - done
+4.4	-- Check size of ssize_t
+4.5	-- Check size of ssize_t - done
+4.5	-- Looking for dladdr
+4.6	-- Looking for dladdr - found
+4.6	-- Looking for fcntl
+4.7	-- Looking for fcntl - found
+4.7	-- Looking for posix_fadvise
+4.8	-- Looking for posix_fadvise - found
+4.8	-- Looking for pread
+4.9	-- Looking for pread - found
+4.9	-- Looking for pwrite
+5.0	-- Looking for pwrite - found
+5.0	-- Looking for sigaction
+5.1	-- Looking for sigaction - found
+5.1	-- Looking for sigaltstack
+5.2	-- Looking for sigaltstack - found
+5.2	-- Looking for backtrace
+5.3	-- Looking for backtrace - found
+5.3	-- Looking for backtrace_symbols
+5.4	-- Looking for backtrace_symbols - found
+5.4	-- Looking for _chsize_s
+5.4	-- Looking for _chsize_s - not found
+5.4	-- Looking for UnDecorateSymbolName
+5.5	-- Looking for UnDecorateSymbolName - not found
+5.5	-- Looking for abi::__cxa_demangle
+5.6	-- Looking for abi::__cxa_demangle - found
+5.6	-- Looking for __argv
+5.6	-- Looking for __argv - not found
+5.6	-- Looking for getprogname
+5.7	-- Looking for getprogname - not found
+5.7	-- Looking for program_invocation_short_name
+5.8	-- Looking for program_invocation_short_name - found
+5.8	-- Performing Test HAVE___PROGNAME
+5.9	-- Performing Test HAVE___PROGNAME - Success
+5.9	-- Performing Test HAVE_PC_FROM_UCONTEXT_uc_mcontext_gregs_REG_PC
+5.9	-- Performing Test HAVE_PC_FROM_UCONTEXT_uc_mcontext_gregs_REG_PC - Failed
+5.9	-- Performing Test HAVE_PC_FROM_UCONTEXT_uc_mcontext_gregs_REG_EIP
+5.9	-- Performing Test HAVE_PC_FROM_UCONTEXT_uc_mcontext_gregs_REG_EIP - Failed
+5.9	-- Performing Test HAVE_PC_FROM_UCONTEXT_uc_mcontext_gregs_REG_RIP
+6.0	-- Performing Test HAVE_PC_FROM_UCONTEXT_uc_mcontext_gregs_REG_RIP - Success
+6.0	-- Looking for gmtime_r
+6.1	-- Looking for gmtime_r - found
+6.1	-- Looking for localtime_r
+6.2	-- Looking for localtime_r - found
+6.2	-- Performing Test COMPILER_HAS_HIDDEN_VISIBILITY
+6.3	-- Performing Test COMPILER_HAS_HIDDEN_VISIBILITY - Success
+6.3	-- Performing Test COMPILER_HAS_HIDDEN_INLINE_VISIBILITY
+6.4	-- Performing Test COMPILER_HAS_HIDDEN_INLINE_VISIBILITY - Success
+6.4	-- Performing Test COMPILER_HAS_DEPRECATED_ATTR
+6.5	-- Performing Test COMPILER_HAS_DEPRECATED_ATTR - Success
+6.5	-- {fmt} version: 11.1.4
+6.5	-- Build type: Release
+6.5	-- [rocprofiler-register] BUILD_SHARED_LIBS :: ON
+6.5	-- [rocprofiler-register] BUILD_STATIC_LIBS :: OFF
+6.5	-- [rocprofiler-register] CMAKE_POSITION_INDEPENDENT_CODE :: ON
+6.5	-- [rocprofiler-register] ROCPROFILER_REGISTER_BUILD_CI :: OFF
+6.5	-- [rocprofiler-register] ROCPROFILER_REGISTER_BUILD_DEVELOPER :: OFF
+6.5	-- [rocprofiler-register] ROCPROFILER_REGISTER_BUILD_FMT :: ON
+6.5	-- [rocprofiler-register] ROCPROFILER_REGISTER_BUILD_GLOG :: ON
+6.5	-- [rocprofiler-register] ROCPROFILER_REGISTER_BUILD_SAMPLES :: OFF
+6.5	-- [rocprofiler-register] ROCPROFILER_REGISTER_BUILD_TESTS :: OFF
+6.5	-- [rocprofiler-register] ROCPROFILER_REGISTER_DEP_ROCMCORE :: OFF
+6.5	-- [rocprofiler-register] ROCPROFILER_REGISTER_ENABLE_CLANG_TIDY :: OFF
+6.5	-- [rocprofiler-register] ROCPROFILER_REGISTER_PACKAGE_FILE_NAME :: rocprofiler-register-0.5.0-Linux
+6.5	-- [rocprofiler-register] ROCPROFILER_REGISTER_PACKAGING_COMPONENTS :: core;tests
+6.5	-- The following features are defined/enabled (+):
+6.5	     BUILD_SHARED_LIBS: Build shared libraries
+6.5	     CMAKE_POSITION_INDEPENDENT_CODE: Build position independent code
+6.5	     ROCPROFILER_REGISTER_BUILD_FMT: Build FMT
+6.5	     ROCPROFILER_REGISTER_BUILD_GLOG: Build GLOG
+6.5	     ROCPROFILER_REGISTER_PACKAGE_FILE_NAME: CPack filename -- ["rocprofiler-register-0.5.0-Linux"]
+6.5	     ROCPROFILER_REGISTER_PACKAGING_COMPONENTS: Packaging components -- ["core;tests"]
+6.5	
+6.5	-- The following features are NOT defined/enabled (-):
+6.5	     BUILD_STATIC_LIBS: Build static libraries
+6.5	     CPACK_DEBIAN_PACKAGE_DEPENDS: Debian package dependencies
+6.5	     CPACK_RPM_PACKAGE_REQUIRES: RPM package dependencies
+6.5	     ROCPROFILER_REGISTER_BUILD_CI: Enable continuous integration additions
+6.5	     ROCPROFILER_REGISTER_BUILD_DEVELOPER: Extra build flags for development like -Werror
+6.5	     ROCPROFILER_REGISTER_BUILD_SAMPLES: Enable building the code samples
+6.5	     ROCPROFILER_REGISTER_BUILD_TESTS: Enable building the tests
+6.5	     ROCPROFILER_REGISTER_DEP_ROCMCORE: DEB and RPM package depend on rocm-core package
+6.5	     ROCPROFILER_REGISTER_ENABLE_CLANG_TIDY: Enable clang-tidy checks
+6.5	     ROCPROFILER_REGISTER_MEMCHECK: Memory checker type
+6.5	
+6.5	-- Set RPATH $ORIGIN on rocprofiler-register
+6.5	-- Configuring done (6.5s)
+6.5	-- Generating done (0.0s)
+6.6	CMake Warning:
+6.6	  Manually-specified variables were not used by the project:
+6.6	
+6.6	    THEROCK_STAGE_INSTALL_ROOT
+6.6	
+6.6	
+6.6	-- Build files have been written to: /work/grodgers/git/tr_aomp/TheRock/build/base/rocprofiler-register/build
+END	1756837042.435004	6.575518369674683

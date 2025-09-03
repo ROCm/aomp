@@ -9,6 +9,6 @@ hipify_branch: amd-staging
 sources_fetched: TRUE
 patch_dir: /work/grodgers/git/tr_aomp/aomp/tr_aomp/aomp_22.0-5/patches
 patch_applied: YES
-therock_config: cmake -B build -GNinja -DTHEROCK_AMDGPU_TARGETS=gfx90a -DTHEROCK_ENABLE_COMPOSABLE_KERNEL=OFF -DTHEROCK_ENABLE_MATH_LIBS=OFF -DTHEROCK_ENABLE_ML_LIBS=OFF -DTHEROCK_BUNDLE_SYSDEPS=ON -DTHEROCK_BUILD_TESTING=OFF -DTHEROCK_ENABLE_RCCL=OFF /work/grodgers/git/tr_aomp/TheRock
+therock_config: cmake -B build -GNinja -DTHEROCK_AMDGPU_TARGETS='gfx90a;gfx942;gfx906;gfx908' -DTHEROCK_AMDGPU_DIST_BUNDLE_NAME=gfx9 -DTHEROCK_ENABLE_COMPOSABLE_KERNEL=OFF -DTHEROCK_ENABLE_MATH_LIBS=OFF -DTHEROCK_ENABLE_ML_LIBS=OFF -DTHEROCK_BUNDLE_SYSDEPS=ON -DTHEROCK_BUILD_TESTING=OFF -DTHEROCK_ENABLE_RCCL=OFF /work/grodgers/git/tr_aomp/TheRock
 build_path: /work/grodgers/git/tr_aomp/TheRock/.venv/bin:/home/grodgers/bin:/home/grodgers/.local/bin:/usr/local/go/bin:/usr/local/gh-cli/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
-build_date: Fri Aug 29 02:46:18 PM CDT 2025
+build_date: Tue Sep 2 01:28:37 PM CDT 2025

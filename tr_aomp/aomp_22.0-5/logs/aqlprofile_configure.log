@@ -1,4 +1,4 @@
-BEGIN	1756496660.517978
+BEGIN	1756837599.203604
 EXEC	/work1/grodgers/git/tr_aomp/TheRock/build/profiler/aqlprofile/build	/usr/bin/cmake -E env --unset=ROCM_PATH --unset=ROCM_DIR --unset=HIP_PATH --unset=HIP_DIR -- /usr/bin/cmake -GNinja -B/work/grodgers/git/tr_aomp/TheRock/build/profiler/aqlprofile/build -S/work/grodgers/git/tr_aomp/TheRock/rocm-systems/projects/aqlprofile -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/work/grodgers/git/tr_aomp/TheRock/build/profiler/aqlprofile/stage -DTHEROCK_STAGE_INSTALL_ROOT=/work/grodgers/git/tr_aomp/TheRock/build/profiler/aqlprofile/stage -DCMAKE_TOOLCHAIN_FILE=/work/grodgers/git/tr_aomp/TheRock/build/profiler/aqlprofile/_toolchain.cmake -DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=/work/grodgers/git/tr_aomp/TheRock/build/profiler/aqlprofile/_init.cmake
 0.0	-- Sub-project PKG_CONFIG_PATH: /work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zlib/build/stage/lib/rocm_sysdeps/lib/pkgconfig:/work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zstd/build/stage/lib/rocm_sysdeps/lib/pkgconfig:/work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/bzip2/build/stage/lib/rocm_sysdeps/lib/pkgconfig:/work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/elfutils/build/stage/lib/rocm_sysdeps/lib/pkgconfig:/work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/libdrm/build/stage/lib/rocm_sysdeps/lib/pkgconfig:/work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/stage/lib/rocm_sysdeps/lib/pkgconfig:
 0.0	-- Resolving packages from super-project: ZLIB;zstd;AMDDeviceLibs;Clang;LLD;LLVM;rocprofiler-register;BZip2;LibElf;libdw;NUMA;hsakmt;hsa-runtime64
@@ -11,20 +11,20 @@ EXEC	/work1/grodgers/git/tr_aomp/TheRock/build/profiler/aqlprofile/build	/usr/bi
 0.3	-- Detecting C compile features - done
 0.3	-- Detecting CXX compiler ABI info
 0.4	-- Detecting CXX compiler ABI info - done
-0.5	-- Check for working CXX compiler: /usr/bin/c++ - skipped
-0.5	-- Detecting CXX compile features
-0.5	-- Detecting CXX compile features - done
-0.5	-- Resolving super-project find_package(hsa-runtime64 REQUIRED BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr_aomp/TheRock/build/core/ROCR-Runtime/dist/lib/cmake/hsa-runtime64)
-0.5	----------------NBIT: 64
-0.5	-----------BuildType: release
-0.5	------------Compiler: /usr/bin/c++
-0.5	----Compiler-Version: 13.3.0
-0.5	------------API-path: 
-0.5	-----CMAKE_CXX_FLAGS:  -fvisibility=hidden -fno-math-errno -fno-threadsafe-statics -fms-extensions -fmerge-all-constants -fPIC -m64  -msse -msse2
-0.5	---CMAKE_PREFIX_PATH: /work/grodgers/git/tr_aomp/TheRock/build/profiler/aqlprofile/prefix
-0.5	-CMAKE_CXX_COMPILER_ID: GNU
-0.5	-CMAKE_CXX_COMPILER_VERSION: 13.3.0
-0.5	---------GPU_TARGETS: 
+0.4	-- Check for working CXX compiler: /usr/bin/c++ - skipped
+0.4	-- Detecting CXX compile features
+0.4	-- Detecting CXX compile features - done
+0.4	-- Resolving super-project find_package(hsa-runtime64 REQUIRED BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr_aomp/TheRock/build/core/ROCR-Runtime/dist/lib/cmake/hsa-runtime64)
+0.4	----------------NBIT: 64
+0.4	-----------BuildType: release
+0.4	------------Compiler: /usr/bin/c++
+0.4	----Compiler-Version: 13.3.0
+0.4	------------API-path: 
+0.4	-----CMAKE_CXX_FLAGS:  -fvisibility=hidden -fno-math-errno -fno-threadsafe-statics -fms-extensions -fmerge-all-constants -fPIC -m64  -msse -msse2
+0.4	---CMAKE_PREFIX_PATH: /work/grodgers/git/tr_aomp/TheRock/build/profiler/aqlprofile/prefix
+0.4	-CMAKE_CXX_COMPILER_ID: GNU
+0.4	-CMAKE_CXX_COMPILER_VERSION: 13.3.0
+0.4	---------GPU_TARGETS: 
 0.5	-- BUILD-VERSION: 1.0.0
 0.5	-- Set RPATH $ORIGIN/rocm_sysdeps/lib;$ORIGIN/llvm/lib;$ORIGIN on hsa-amd-aqlprofile64
 0.5	-- Configuring done (0.5s)
@@ -36,4 +36,4 @@ EXEC	/work1/grodgers/git/tr_aomp/TheRock/build/profiler/aqlprofile/build	/usr/bi
 0.5	
 0.5	
 0.5	-- Build files have been written to: /work/grodgers/git/tr_aomp/TheRock/build/profiler/aqlprofile/build
-END	1756496661.0558033	0.537825345993042
+END	1756837599.7107592	0.507155179977417
