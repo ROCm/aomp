@@ -1,3 +1,7 @@
+// Copyright © Advanced Micro Devices, Inc., or its affiliates.
+//
+// SPDX-License-Identifier:  MIT
+
 #include <cstdio>
 
 // When OMPX_DGPU_MAPS=1 and HSA_XNACK=1, it performs copy on APU.
