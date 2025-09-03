@@ -1,4 +1,8 @@
 #!/bin/bash
+#
+#Copyright © Advanced Micro Devices, Inc., or its affiliates.
+#
+#SPDX-License-Identifier:  MIT
 # 
 #  diff_driver.sh : show the diff between llvm driver code in trunk vs amd-staging
 #     This checks both llvm-project/clang/lib/Driver and llvm-project/clang/include/clang/Driver
