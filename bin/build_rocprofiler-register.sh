@@ -1,5 +1,9 @@
 #!/bin/bash
 #
+#Copyright © Advanced Micro Devices, Inc., or its affiliates.
+#
+#SPDX-License-Identifier:  MIT
+# 
 #  build_rocprofiler-register.sh:  Script to build rocprofiler-register for AOMP standalone build
 #
 

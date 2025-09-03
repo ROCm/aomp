@@ -1,3 +1,7 @@
+# Copyright © Advanced Micro Devices, Inc., or its affiliates.
+
+# SPDX-License-Identifier:  MIT
+
 # Python program to check the gpurun -m and -l options.
 
 import subprocess

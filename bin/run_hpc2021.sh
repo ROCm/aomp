@@ -1,4 +1,9 @@
 #! /usr/bin/env bash
+#
+#Copyright © Advanced Micro Devices, Inc., or its affiliates.
+#
+#SPDX-License-Identifier:  MIT
+# 
 
 # HPC2021_SOURCE_DIR           where to clone sources to. Default: AOMP_REPOS_TEST
 # HPC2021_BUILD_NUM_THREADS    Number of parallel compile processes. Default: 32
