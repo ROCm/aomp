@@ -39,7 +39,7 @@ ln -sf $TR_AOMP_REPOS/TheRock/build/compiler/amd-llvm/build $TR_AOMP_REPOS/llvm-
 
 Compiler development flow: edit, build, install, test
 EDIT
-  - cd git/tr_aomp/llvm-project ; edit files in the llvm source tree
+  - cd git/tr-aomp/llvm-project ; edit files in the llvm source tree
 
 UPDATE BUILD
   - cd $TR_AOMP_REPOS/llvm-project/build
