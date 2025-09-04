@@ -149,6 +149,13 @@ MYCMAKEOPTS=(-DCMAKE_BUILD_TYPE="$BUILD_TYPE"
              -DLIBOMPTARGET_BUILD_DEVICE_FORTRT=On
              -DCMAKE_EXPORT_COMPILE_COMMANDS=ON)
 
+if [ -f "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/device/CMakeLists.txt" ]; then
+  MYCMAKEOPTS=("${MYCMAKEOPTS[@]}"
+               -DLLVM_RUNTIME_TARGETS='default;amdgcn-amd-amdhsa'
+               -DRUNTIMES_amdgcn-amd-amdhsa_LLVM_ENABLE_RUNTIMES='openmp'
+               -DRUNTIMES_amdgcn-amd-amdhsa_LLVM_ENABLE_PER_TARGET_RUNTIME_DIR=ON)
+fi
+
 # -DCLANG_LINK_FLANG_LEGACY=ON
 
 # Enable amdflang, amdclang, amdclang++, amdllvm.
