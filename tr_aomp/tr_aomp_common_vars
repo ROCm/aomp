@@ -17,11 +17,11 @@ AOMP_MAJOR_VERSION=${AOMP_VERSION%.*}
 # tr_build_aomp.sh will copy TheRock/build/dist/rocm to $AOMP_INSTALL_DIR
 # and create a link from aomp to $AOMP_INSTALL_DIR.
 # AOMP will be a symbolic link AOMP_INSTALL_DIR is the versioned dir name
-AOMP=${TR_AOMP:-$HOME/rocm/tr_aomp}
+AOMP=${TR_AOMP:-$HOME/rocm/tr-aomp}
 AOMP_INSTALL_DIR=${AOMP}_${AOMP_VERSION_STRING}
 
 # TR_AOMP_REPOS is the parent directory for TheRock and aomp repos.  
-TR_AOMP_REPOS=${TR_AOMP_REPOS:-/work/$USER/git/tr_aomp}
+TR_AOMP_REPOS=${TR_AOMP_REPOS:-/work/$USER/git/tr-aomp}
 if [ ! -d $TR_AOMP_REPOS ] ; then
   mkdir -p $TR_AOMP_REPOS
   [ $? != 0 ] && echo "ERROR: could not create $TR_AOMP_REPOS" && exit 1
