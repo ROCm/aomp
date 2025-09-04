@@ -1,4 +1,4 @@
-BEGIN	1756496651.8939118
+BEGIN	1756837590.4709175
 EXEC	/work1/grodgers/git/tr_aomp/TheRock/build/compiler/hipcc/build	/usr/bin/cmake -E env --unset=ROCM_PATH --unset=ROCM_DIR --unset=HIP_PATH --unset=HIP_DIR -- /usr/bin/cmake --build /work/grodgers/git/tr_aomp/TheRock/build/compiler/hipcc/build
 0.0	[1/7] cd /work/grodgers/git/tr_aomp/TheRock/build/compiler/hipcc/build && /usr/bin/cmake -E rm -f /work/grodgers/git/tr_aomp/TheRock/build/compiler/hipcc/stamp/stage.stamp
 0.5	[2/7] Building CXX object CMakeFiles/hipcc.dir/src/utils.cpp.o
@@ -68,8 +68,7 @@ EXEC	/work1/grodgers/git/tr_aomp/TheRock/build/compiler/hipcc/build	/usr/bin/cma
 4.4	/work/grodgers/git/tr_aomp/TheRock/compiler/amd-llvm/amd/hipcc/src/hipBin_nvidia.h:398:11: warning: ignoring return value of ‘int system(const char*)’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
 4.4	  398 |     system(ISACMD.c_str());
 4.4	      |     ~~~~~~^~~~~~~~~~~~~~~~
-4.4	[5/7] Linking CXX executable hipcc
-4.4	[6/7] Building CXX object CMakeFiles/hipconfig.dir/src/hipconfig.cpp.o
+4.4	[5/7] Building CXX object CMakeFiles/hipconfig.dir/src/hipconfig.cpp.o
 4.4	In file included from /work/grodgers/git/tr_aomp/TheRock/compiler/amd-llvm/amd/hipcc/src/hipBin_amd.h:26,
 4.4	                 from /work/grodgers/git/tr_aomp/TheRock/compiler/amd-llvm/amd/hipcc/src/hipBin.h:24,
 4.4	                 from /work/grodgers/git/tr_aomp/TheRock/compiler/amd-llvm/amd/hipcc/src/hipconfig.cpp:23:
@@ -134,5 +133,6 @@ EXEC	/work1/grodgers/git/tr_aomp/TheRock/build/compiler/hipcc/build	/usr/bin/cma
 4.4	/work/grodgers/git/tr_aomp/TheRock/compiler/amd-llvm/amd/hipcc/src/hipBin_nvidia.h:398:11: warning: ignoring return value of ‘int system(const char*)’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
 4.4	  398 |     system(ISACMD.c_str());
 4.4	      |     ~~~~~~^~~~~~~~~~~~~~~~
-4.5	[7/7] Linking CXX executable hipconfig
-END	1756496656.3842037	4.4902918338775635
+4.4	[6/7] Linking CXX executable hipconfig
+4.4	[7/7] Linking CXX executable hipcc
+END	1756837594.8953168	4.424399375915527

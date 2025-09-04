@@ -1,456 +1,456 @@
-BEGIN	1756496701.199476
+BEGIN	1756837639.7645516
 EXEC	/work1/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build	/usr/bin/cmake -E env --unset=ROCM_PATH --unset=ROCM_DIR --unset=HIP_PATH --unset=HIP_DIR -- /usr/bin/cmake --build /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build
-0.0	[0/2] Re-checking globbed directories...
+0.1	[0/2] Re-checking globbed directories...
 0.1	[1/243] cd /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build && /usr/bin/cmake -E rm -f /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/stamp/stage.stamp
 0.1	[2/243] Building CXX object external/glog/CMakeFiles/glog_internal.dir/src/stacktrace.cc.o
 0.1	[3/243] Creating directories for 'otf2-build'
 0.1	[4/243] No download step for 'otf2-build'
-0.1	[5/243] Building C object external/gotcha/src/CMakeFiles/gotcha.dir/translations.c.o
-0.1	[6/243] Building C object external/gotcha/src/CMakeFiles/gotcha.dir/library_filters.c.o
+0.1	[5/243] Building C object external/gotcha/src/CMakeFiles/gotcha.dir/library_filters.c.o
+0.1	[6/243] Building C object external/gotcha/src/CMakeFiles/gotcha.dir/translations.c.o
 0.1	[7/243] Building C object external/gotcha/src/CMakeFiles/gotcha.dir/gotcha_utils.c.o
-0.1	[8/243] Building C object external/gotcha/src/CMakeFiles/gotcha.dir/elf_ops.c.o
-0.1	[9/243] No update step for 'otf2-build'
-0.1	[10/243] Building C object external/gotcha/src/CMakeFiles/gotcha.dir/gotcha_dl.c.o
-0.1	[11/243] Building C object external/gotcha/src/CMakeFiles/gotcha.dir/tool.c.o
-0.2	[12/243] Building C object external/gotcha/src/CMakeFiles/gotcha.dir/hash.c.o
+0.2	[8/243] Building C object external/gotcha/src/CMakeFiles/gotcha.dir/elf_ops.c.o
+0.2	[9/243] No update step for 'otf2-build'
+0.2	[10/243] Building C object external/gotcha/src/CMakeFiles/gotcha.dir/gotcha_dl.c.o
+0.2	[11/243] Building C object external/gotcha/src/CMakeFiles/gotcha.dir/hash.c.o
+0.2	[12/243] Building C object external/gotcha/src/CMakeFiles/gotcha.dir/tool.c.o
 0.2	[13/243] No patch step for 'otf2-build'
 0.2	[14/243] Building C object external/gotcha/src/CMakeFiles/gotcha.dir/gotcha_auxv.c.o
-0.2	[15/243] Building CXX object external/yaml-cpp/CMakeFiles/yaml-cpp.dir/src/null.cpp.o
-0.3	[16/243] Building CXX object external/yaml-cpp/CMakeFiles/yaml-cpp.dir/src/directives.cpp.o
-0.3	[17/243] Building C object external/gotcha/src/CMakeFiles/gotcha.dir/gotcha.c.o
+0.3	[15/243] Building CXX object external/yaml-cpp/CMakeFiles/yaml-cpp.dir/src/null.cpp.o
+0.3	[16/243] Building C object external/gotcha/src/CMakeFiles/gotcha.dir/gotcha.c.o
+0.3	[17/243] Building CXX object external/yaml-cpp/CMakeFiles/yaml-cpp.dir/src/directives.cpp.o
 0.3	[18/243] Building C object external/gotcha/src/CMakeFiles/gotcha.dir/libc_wrappers.c.o
-0.3	[19/243] Building CXX object external/glog/CMakeFiles/glog_internal.dir/src/demangle.cc.o
-0.3	[20/243] Building CXX object external/yaml-cpp/CMakeFiles/yaml-cpp.dir/src/binary.cpp.o
-0.3	[21/243] Linking C shared library lib/rocprofiler-sdk/libgotcha.so.2.4.2
-0.3	[22/243] Creating library symlink lib/rocprofiler-sdk/libgotcha.so.2 lib/rocprofiler-sdk/libgotcha.so
-0.3	[23/243] Building CXX object external/yaml-cpp/CMakeFiles/yaml-cpp.dir/src/exceptions.cpp.o
-0.3	[24/243] Building CXX object external/yaml-cpp/CMakeFiles/yaml-cpp.dir/src/depthguard.cpp.o
-0.3	[25/243] Building CXX object external/yaml-cpp/CMakeFiles/yaml-cpp.dir/src/node.cpp.o
-0.3	[26/243] Building CXX object external/glog/CMakeFiles/glog_internal.dir/src/vlog_is_on.cc.o
+0.3	[19/243] Building CXX object external/yaml-cpp/CMakeFiles/yaml-cpp.dir/src/binary.cpp.o
+0.3	[20/243] Building CXX object external/glog/CMakeFiles/glog_internal.dir/src/demangle.cc.o
+0.4	[21/243] Linking C shared library lib/rocprofiler-sdk/libgotcha.so.2.4.2
+0.4	[22/243] Creating library symlink lib/rocprofiler-sdk/libgotcha.so.2 lib/rocprofiler-sdk/libgotcha.so
+0.4	[23/243] Building CXX object external/yaml-cpp/CMakeFiles/yaml-cpp.dir/src/depthguard.cpp.o
+0.4	[24/243] Building CXX object external/yaml-cpp/CMakeFiles/yaml-cpp.dir/src/exceptions.cpp.o
+0.4	[25/243] Building CXX object external/yaml-cpp/CMakeFiles/yaml-cpp.dir/src/node.cpp.o
+0.4	[26/243] Building CXX object external/glog/CMakeFiles/glog_internal.dir/src/vlog_is_on.cc.o
 0.4	[27/243] Building CXX object external/yaml-cpp/CMakeFiles/yaml-cpp.dir/src/contrib/graphbuilder.cpp.o
-0.4	[28/243] Building CXX object external/yaml-cpp/CMakeFiles/yaml-cpp.dir/src/contrib/graphbuilderadapter.cpp.o
-0.4	[29/243] Building CXX object external/yaml-cpp/CMakeFiles/yaml-cpp.dir/src/ostream_wrapper.cpp.o
+0.4	[28/243] Building CXX object external/yaml-cpp/CMakeFiles/yaml-cpp.dir/src/ostream_wrapper.cpp.o
+0.4	[29/243] Building CXX object external/yaml-cpp/CMakeFiles/yaml-cpp.dir/src/contrib/graphbuilderadapter.cpp.o
 0.4	[30/243] Building CXX object external/yaml-cpp/CMakeFiles/yaml-cpp.dir/src/tag.cpp.o
-0.4	[31/243] Building CXX object external/glog/CMakeFiles/glog_internal.dir/src/flags.cc.o
-0.4	[32/243] Building CXX object external/yaml-cpp/CMakeFiles/yaml-cpp.dir/src/stream.cpp.o
-0.4	[33/243] Building CXX object external/glog/CMakeFiles/glog_internal.dir/src/symbolize.cc.o
-0.4	[34/243] Building CXX object external/yaml-cpp/CMakeFiles/yaml-cpp.dir/src/regex_yaml.cpp.o
-0.4	[35/243] Building CXX object external/glog/CMakeFiles/glog_internal.dir/src/utilities.cc.o
-0.5	[36/243] Building CXX object external/glog/CMakeFiles/glog_internal.dir/src/raw_logging.cc.o
+0.5	[31/243] Building CXX object external/glog/CMakeFiles/glog_internal.dir/src/flags.cc.o
+0.5	[32/243] Building CXX object external/yaml-cpp/CMakeFiles/yaml-cpp.dir/src/stream.cpp.o
+0.5	[33/243] Building CXX object external/yaml-cpp/CMakeFiles/yaml-cpp.dir/src/regex_yaml.cpp.o
+0.5	[34/243] Building CXX object external/glog/CMakeFiles/glog_internal.dir/src/symbolize.cc.o
+0.5	[35/243] Building CXX object external/glog/CMakeFiles/glog_internal.dir/src/raw_logging.cc.o
+0.5	[36/243] Building CXX object external/glog/CMakeFiles/glog_internal.dir/src/utilities.cc.o
 0.5	[37/243] Building CXX object external/yaml-cpp/CMakeFiles/yaml-cpp.dir/src/memory.cpp.o
 0.5	[38/243] Building CXX object external/yaml-cpp/CMakeFiles/yaml-cpp.dir/src/emit.cpp.o
-0.5	[39/243] Building CXX object external/yaml-cpp/CMakeFiles/yaml-cpp.dir/src/exp.cpp.o
-0.5	[40/243] Building CXX object external/yaml-cpp/CMakeFiles/yaml-cpp.dir/src/simplekey.cpp.o
+0.5	[39/243] Building CXX object external/yaml-cpp/CMakeFiles/yaml-cpp.dir/src/simplekey.cpp.o
+0.5	[40/243] Building CXX object external/yaml-cpp/CMakeFiles/yaml-cpp.dir/src/exp.cpp.o
 0.5	[41/243] Building CXX object external/fmt/CMakeFiles/fmt.dir/src/os.cc.o
-0.5	[42/243] Building CXX object external/yaml-cpp/CMakeFiles/yaml-cpp.dir/src/emitfromevents.cpp.o
-0.5	[43/243] Building CXX object external/ptl/source/CMakeFiles/ptl-static.dir/Threading.cc.o
-0.5	[44/243] Building CXX object external/glog/CMakeFiles/glog_internal.dir/src/signalhandler.cc.o
-0.6	[45/243] Building CXX object external/ptl/source/CMakeFiles/ptl-static.dir/TaskGroup.cc.o
-0.6	[46/243] Building CXX object external/yaml-cpp/CMakeFiles/yaml-cpp.dir/src/nodeevents.cpp.o
+0.6	[42/243] Building CXX object external/yaml-cpp/CMakeFiles/yaml-cpp.dir/src/emitfromevents.cpp.o
+0.6	[43/243] Building CXX object external/ptl/source/CMakeFiles/ptl-static.dir/Threading.cc.o
+0.6	[44/243] Building CXX object external/glog/CMakeFiles/glog_internal.dir/src/signalhandler.cc.o
+0.6	[45/243] Building CXX object external/yaml-cpp/CMakeFiles/yaml-cpp.dir/src/nodeevents.cpp.o
+0.6	[46/243] Building CXX object external/ptl/source/CMakeFiles/ptl-static.dir/TaskGroup.cc.o
 0.6	[47/243] Building CXX object external/ptl/source/CMakeFiles/ptl-static.dir/VUserTaskQueue.cc.o
-0.6	[48/243] Building CXX object external/ptl/source/CMakeFiles/ptl-static.dir/TaskRunManager.cc.o
-0.6	[49/243] Building CXX object external/yaml-cpp/CMakeFiles/yaml-cpp.dir/src/emitterstate.cpp.o
-0.6	[50/243] Building CXX object external/ptl/source/CMakeFiles/ptl-static.dir/ThreadData.cc.o
-0.6	[51/243] Building CXX object external/yaml-cpp/CMakeFiles/yaml-cpp.dir/src/parser.cpp.o
+0.7	[48/243] Building CXX object external/ptl/source/CMakeFiles/ptl-static.dir/ThreadData.cc.o
+0.7	[49/243] Building CXX object external/yaml-cpp/CMakeFiles/yaml-cpp.dir/src/emitterstate.cpp.o
+0.7	[50/243] Building CXX object external/yaml-cpp/CMakeFiles/yaml-cpp.dir/src/parser.cpp.o
+0.7	[51/243] Building CXX object external/ptl/source/CMakeFiles/ptl-static.dir/TaskRunManager.cc.o
 0.7	[52/243] Building CXX object external/yaml-cpp/CMakeFiles/yaml-cpp.dir/src/parse.cpp.o
-0.7	[53/243] Building CXX object external/yaml-cpp/CMakeFiles/yaml-cpp.dir/src/node_data.cpp.o
-0.7	[54/243] Building CXX object external/yaml-cpp/CMakeFiles/yaml-cpp.dir/src/nodebuilder.cpp.o
-0.7	[55/243] Building CXX object external/yaml-cpp/CMakeFiles/yaml-cpp.dir/src/emitter.cpp.o
-0.7	[56/243] Building CXX object external/yaml-cpp/CMakeFiles/yaml-cpp.dir/src/convert.cpp.o
+0.7	[53/243] Building CXX object external/yaml-cpp/CMakeFiles/yaml-cpp.dir/src/nodebuilder.cpp.o
+0.7	[54/243] Building CXX object external/yaml-cpp/CMakeFiles/yaml-cpp.dir/src/convert.cpp.o
+0.7	[55/243] Building CXX object external/yaml-cpp/CMakeFiles/yaml-cpp.dir/src/node_data.cpp.o
+0.7	[56/243] Building CXX object external/yaml-cpp/CMakeFiles/yaml-cpp.dir/src/emitter.cpp.o
 0.8	[57/243] Building CXX object external/yaml-cpp/CMakeFiles/yaml-cpp.dir/src/scanscalar.cpp.o
-0.8	[58/243] Building CXX object external/yaml-cpp/CMakeFiles/yaml-cpp.dir/src/singledocparser.cpp.o
-0.9	[59/243] Building CXX object external/yaml-cpp/CMakeFiles/yaml-cpp.dir/src/scantag.cpp.o
-1.4	[60/243] Building CXX object external/yaml-cpp/CMakeFiles/yaml-cpp.dir/src/scanner.cpp.o
+0.9	[58/243] Building CXX object external/yaml-cpp/CMakeFiles/yaml-cpp.dir/src/singledocparser.cpp.o
+1.0	[59/243] Building CXX object external/yaml-cpp/CMakeFiles/yaml-cpp.dir/src/scantag.cpp.o
+1.5	[60/243] Building CXX object external/yaml-cpp/CMakeFiles/yaml-cpp.dir/src/scanner.cpp.o
 1.7	[61/243] Building CXX object external/yaml-cpp/CMakeFiles/yaml-cpp.dir/src/scantoken.cpp.o
-1.7	[62/243] Building CXX object external/ptl/source/CMakeFiles/ptl-static.dir/UserTaskQueue.cc.o
-1.7	[63/243] Building CXX object external/ptl/source/CMakeFiles/ptl-static.dir/ThreadPool.cc.o
-1.8	[64/243] Linking CXX static library lib/libptl.a
+1.8	[62/243] Building CXX object external/ptl/source/CMakeFiles/ptl-static.dir/UserTaskQueue.cc.o
+1.8	[63/243] Building CXX object external/ptl/source/CMakeFiles/ptl-static.dir/ThreadPool.cc.o
+1.9	[64/243] Linking CXX static library lib/libptl.a
 2.0	[65/243] Building CXX object external/yaml-cpp/CMakeFiles/yaml-cpp.dir/src/emitterutils.cpp.o
-2.0	[66/243] Linking CXX static library lib/libyaml-cpp.a
-2.7	[67/243] Building CXX object external/fmt/CMakeFiles/fmt.dir/src/format.cc.o
+2.1	[66/243] Linking CXX static library lib/libyaml-cpp.a
+2.8	[67/243] Building CXX object external/fmt/CMakeFiles/fmt.dir/src/format.cc.o
 2.8	[68/243] Linking CXX static library lib/libfmt.a
-3.6	[69/243] Building CXX object external/glog/CMakeFiles/glog_internal.dir/src/logging.cc.o
+3.7	[69/243] Building CXX object external/glog/CMakeFiles/glog_internal.dir/src/logging.cc.o
 3.7	[70/243] Generating CMakeFiles/glog.cc
-3.7	[71/243] Building CXX object external/glog/CMakeFiles/glog.dir/CMakeFiles/glog.cc.o
-3.7	[72/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/hsa/abi.cpp.o
-3.7	[73/243] Building CXX object source/lib/rocprofiler-sdk-roctx/CMakeFiles/rocprofiler-sdk-roctx-shared-library.dir/abi.cpp.o
+3.8	[71/243] Building CXX object external/glog/CMakeFiles/glog.dir/CMakeFiles/glog.cc.o
+3.8	[72/243] Building CXX object source/lib/rocprofiler-sdk-roctx/CMakeFiles/rocprofiler-sdk-roctx-shared-library.dir/abi.cpp.o
+3.8	[73/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/hsa/abi.cpp.o
 3.8	[74/243] Linking CXX static library lib/libglog.a
-3.9	[75/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/kernel_dispatch/kernel_dispatch.cpp.o
+4.0	[75/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/kernel_dispatch/kernel_dispatch.cpp.o
 4.1	[76/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/context/domain.cpp.o
 4.1	[77/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/hip/abi.cpp.o
-4.1	[78/243] Building CXX object source/lib/common/CMakeFiles/rocprofiler-sdk-common-library.dir/container/small_vector.cpp.o
-4.2	[79/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/rccl/abi.cpp.o
-4.2	[80/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/rocjpeg/abi.cpp.o
-4.2	[81/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/rocdecode/abi.cpp.o
-4.3	[82/243] Building CXX object source/lib/rocprofiler-sdk-tool/kokkosp/CMakeFiles/rocprofiler-sdk-tool-kokkosp.dir/kokkosp.cpp.o
-4.3	[83/243] Building CXX object source/lib/common/CMakeFiles/rocprofiler-sdk-common-library.dir/md5sum.cpp.o
-4.3	[84/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/pc_sampling/utils.cpp.o
-4.3	[85/243] Building CXX object source/lib/common/CMakeFiles/rocprofiler-sdk-common-library.dir/demangle.cpp.o
-4.3	[86/243] Building CXX object source/lib/rocprofiler-sdk-rocpd/CMakeFiles/rocprofiler-sdk-rocpd-shared-library.dir/rocpd.cpp.o
-4.3	[87/243] Building CXX object source/lib/common/CMakeFiles/rocprofiler-sdk-common-library.dir/static_object.cpp.o
-4.3	[88/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-shared-library.dir/shared_library.cpp.o
-4.3	[89/243] Building CXX object source/lib/common/CMakeFiles/rocprofiler-sdk-common-library.dir/static_tl_object.cpp.o
-4.3	[90/243] Building CXX object source/lib/common/CMakeFiles/rocprofiler-sdk-common-library.dir/simple_timer.cpp.o
-4.3	[91/243] Building CXX object source/lib/rocprofiler-sdk-roctx/CMakeFiles/rocprofiler-sdk-roctx-shared-library.dir/roctx.cpp.o
+4.2	[78/243] Building CXX object source/lib/common/CMakeFiles/rocprofiler-sdk-common-library.dir/container/small_vector.cpp.o
+4.2	[79/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/rocjpeg/abi.cpp.o
+4.2	[80/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/rccl/abi.cpp.o
+4.3	[81/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/rocdecode/abi.cpp.o
+4.3	[82/243] Building CXX object source/lib/common/CMakeFiles/rocprofiler-sdk-common-library.dir/md5sum.cpp.o
+4.3	[83/243] Building CXX object source/lib/rocprofiler-sdk-tool/kokkosp/CMakeFiles/rocprofiler-sdk-tool-kokkosp.dir/kokkosp.cpp.o
+4.3	[84/243] Building CXX object source/lib/common/CMakeFiles/rocprofiler-sdk-common-library.dir/static_object.cpp.o
+4.3	[85/243] Building CXX object source/lib/rocprofiler-sdk-rocpd/CMakeFiles/rocprofiler-sdk-rocpd-shared-library.dir/rocpd.cpp.o
+4.3	[86/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/pc_sampling/utils.cpp.o
+4.3	[87/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-shared-library.dir/shared_library.cpp.o
+4.3	[88/243] Building CXX object source/lib/common/CMakeFiles/rocprofiler-sdk-common-library.dir/demangle.cpp.o
+4.4	[89/243] Building CXX object source/lib/common/CMakeFiles/rocprofiler-sdk-common-library.dir/simple_timer.cpp.o
+4.4	[90/243] Building CXX object source/lib/common/CMakeFiles/rocprofiler-sdk-common-library.dir/static_tl_object.cpp.o
+4.4	[91/243] Building CXX object source/lib/rocprofiler-sdk-roctx/CMakeFiles/rocprofiler-sdk-roctx-shared-library.dir/roctx.cpp.o
 4.4	[92/243] Building CXX object source/lib/common/CMakeFiles/rocprofiler-sdk-common-library.dir/sha256.cpp.o
 4.4	[93/243] Building CXX object source/lib/common/CMakeFiles/rocprofiler-sdk-common-library.dir/string_entry.cpp.o
 4.4	[94/243] Building CXX object source/lib/common/CMakeFiles/rocprofiler-sdk-common-library.dir/utility.cpp.o
-4.5	[95/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/hsa/aql_packet.cpp.o
-4.5	[96/243] Building CXX object source/lib/common/CMakeFiles/rocprofiler-sdk-common-library.dir/container/ring_buffer.cpp.o
-4.5	[97/243] Building CXX object source/lib/common/CMakeFiles/rocprofiler-sdk-common-library.dir/container/record_header_buffer.cpp.o
-4.5	[98/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/kfd/abi.cpp.o
-4.5	[99/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/hsa/pc_sampling.cpp.o
-4.6	[100/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/counters/id_decode.cpp.o
-4.6	[101/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/rocprofiler.cpp.o
-4.6	[102/243] Building CXX object source/lib/common/CMakeFiles/rocprofiler-sdk-common-library.dir/uuid_v7.cpp.o
+4.6	[95/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/hsa/aql_packet.cpp.o
+4.6	[96/243] Building CXX object source/lib/common/CMakeFiles/rocprofiler-sdk-common-library.dir/container/ring_buffer.cpp.o
+4.6	[97/243] Building CXX object source/lib/common/CMakeFiles/rocprofiler-sdk-common-library.dir/container/record_header_buffer.cpp.o
+4.6	[98/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/counters/id_decode.cpp.o
+4.6	[99/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/hsa/pc_sampling.cpp.o
+4.6	[100/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/kfd/abi.cpp.o
+4.6	[101/243] Building CXX object source/lib/common/CMakeFiles/rocprofiler-sdk-common-library.dir/uuid_v7.cpp.o
+4.6	[102/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/rocprofiler.cpp.o
 4.6	[103/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/tracing/profiling_time.cpp.o
 4.7	[104/243] Building CXX object source/lib/rocprofiler-sdk/counters/parser/CMakeFiles/rocprofiler-sdk-expr-parser.dir/scanner.cpp.o
-4.7	[105/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/kernel_dispatch/profiling_time.cpp.o
-4.7	[106/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/thread_trace/dl.cpp.o
+4.8	[105/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/kernel_dispatch/profiling_time.cpp.o
+4.8	[106/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/thread_trace/dl.cpp.o
 4.8	[107/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/ompt.cpp.o
-4.8	[108/243] Building CXX object source/lib/common/CMakeFiles/rocprofiler-sdk-common-library.dir/environment.cpp.o
-4.9	[109/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/hsa/hsa_barrier.cpp.o
-5.0	[110/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/aql/helpers.cpp.o
-5.0	[111/243] Building CXX object source/lib/att-tool/CMakeFiles/rocprofiler-sdk-att-parser.dir/waitcnt/analysis.cpp.o
+4.9	[108/243] Building CXX object source/lib/common/CMakeFiles/rocprofiler-sdk-common-library.dir/environment.cpp.o
+5.0	[109/243] Building CXX object source/lib/att-tool/CMakeFiles/rocprofiler-sdk-att-parser.dir/waitcnt/analysis.cpp.o
+5.0	[110/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/hsa/hsa_barrier.cpp.o
+5.0	[111/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/aql/helpers.cpp.o
 5.0	[112/243] Building CXX object source/lib/att-tool/CMakeFiles/rocprofiler-sdk-att-parser.dir/waitcnt/gfx9.cpp.o
 5.1	[113/243] Building CXX object source/lib/att-tool/CMakeFiles/rocprofiler-sdk-att-parser.dir/waitcnt/gfx10.cpp.o
-5.1	[114/243] Building CXX object source/lib/att-tool/CMakeFiles/rocprofiler-sdk-att-parser.dir/waitcnt/gfx12.cpp.o
-5.1	[115/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/dispatch_counting_service.cpp.o
-5.1	[116/243] Building CXX object source/lib/rocprofiler-sdk/counters/parser/CMakeFiles/rocprofiler-sdk-expr-parser.dir/parser.cpp.o
+5.2	[114/243] Building CXX object source/lib/att-tool/CMakeFiles/rocprofiler-sdk-att-parser.dir/waitcnt/gfx12.cpp.o
+5.2	[115/243] Building CXX object source/lib/rocprofiler-sdk/counters/parser/CMakeFiles/rocprofiler-sdk-expr-parser.dir/parser.cpp.o
+5.2	[116/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/dispatch_counting_service.cpp.o
 5.3	[117/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/hsa/profile_serializer.cpp.o
 5.3	[118/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/pc_sampling/cid_manager.cpp.o
-5.5	[119/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/counter_config.cpp.o
-5.6	[120/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/aql/packet_construct.cpp.o
-5.9	[121/243] Building CXX object source/lib/att-tool/CMakeFiles/rocprofiler-sdk-att-parser.dir/profile_interface.cpp.o
-5.9	[122/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/counters/dimensions.cpp.o
-5.9	[123/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/pc_sampling.cpp.o
-5.9	[124/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/code_object/hsa/kernel_symbol.cpp.o
-5.9	[125/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/context.cpp.o
-5.9	[126/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/code_object/hsa/code_object.cpp.o
-6.0	[127/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/device_counting_service.cpp.o
+5.6	[119/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/counter_config.cpp.o
+5.7	[120/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/aql/packet_construct.cpp.o
+6.0	[121/243] Building CXX object source/lib/att-tool/CMakeFiles/rocprofiler-sdk-att-parser.dir/profile_interface.cpp.o
+6.0	[122/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/counters/dimensions.cpp.o
+6.0	[123/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/pc_sampling.cpp.o
+6.0	[124/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/hsa/agent_cache.cpp.o
+6.0	[125/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/context.cpp.o
+6.0	[126/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/device_counting_service.cpp.o
+6.0	[127/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/code_object/hsa/kernel_symbol.cpp.o
 6.0	[128/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/counters/ioctl.cpp.o
-6.0	[129/243] Building CXX object source/lib/common/CMakeFiles/rocprofiler-sdk-common-library.dir/elf_utils.cpp.o
-6.0	[130/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/hsa/agent_cache.cpp.o
-6.0	[131/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/kernel_dispatch/tracing.cpp.o
-6.1	[132/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/pc_sampling/ioctl/ioctl_adapter.cpp.o
-6.1	[133/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/callback_tracing.cpp.o
-6.1	[134/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/buffer_tracing.cpp.o
-6.1	[135/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/external_correlation.cpp.o
-6.1	[136/243] Building CXX object source/lib/common/CMakeFiles/rocprofiler-sdk-common-library.dir/logging.cpp.o
-6.1	[137/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/runtime_initialization.cpp.o
-6.1	[138/243] Building CXX object source/lib/rocprofiler-sdk-rocpd/CMakeFiles/rocprofiler-sdk-rocpd-shared-library.dir/sql.cpp.o
-6.1	[139/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/pc_sampling/code_object.cpp.o
-6.1	[140/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/thread_trace/code_object.cpp.o
-6.2	[141/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/thread_trace/service.cpp.o
-6.2	[142/243] Linking CXX static library lib/librocprofiler-sdk-common.a
-6.2	[143/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/pc_sampling/service.cpp.o
-6.2	[144/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/pc_sampling/hsa_adapter.cpp.o
-6.2	[145/243] Linking CXX shared library lib/librocprofiler-sdk-roctx.so.1.0.0
-6.2	[146/243] Linking CXX shared library lib/librocprofiler-sdk-rocpd.so.1.0.0
-6.2	[147/243] Creating library symlink lib/librocprofiler-sdk-rocpd.so.1 lib/librocprofiler-sdk-rocpd.so
-6.3	[148/243] Creating library symlink lib/librocprofiler-sdk-roctx.so.1 lib/librocprofiler-sdk-roctx.so
-6.3	[149/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/counters/controller.cpp.o
-6.3	[150/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/code_object/hip/code_object.cpp.o
-6.3	[151/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/context/correlation_id.cpp.o
-6.3	[152/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/counters/dispatch_handlers.cpp.o
-6.3	[153/243] Linking CXX shared library lib/rocprofiler-sdk/librocprofiler-sdk-tool-kokkosp.so.1.0.0
-6.3	[154/243] Creating library symlink lib/rocprofiler-sdk/librocprofiler-sdk-tool-kokkosp.so.1 lib/rocprofiler-sdk/librocprofiler-sdk-tool-kokkosp.so
-6.4	[155/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/pc_sampling/parser/pc_record_interface.cpp.o
-6.4	[156/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/counters.cpp.o
+6.0	[129/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/code_object/hsa/code_object.cpp.o
+6.1	[130/243] Building CXX object source/lib/common/CMakeFiles/rocprofiler-sdk-common-library.dir/elf_utils.cpp.o
+6.1	[131/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/buffer_tracing.cpp.o
+6.1	[132/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/kernel_dispatch/tracing.cpp.o
+6.2	[133/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/pc_sampling/ioctl/ioctl_adapter.cpp.o
+6.2	[134/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/callback_tracing.cpp.o
+6.2	[135/243] Building CXX object source/lib/common/CMakeFiles/rocprofiler-sdk-common-library.dir/logging.cpp.o
+6.2	[136/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/runtime_initialization.cpp.o
+6.2	[137/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/thread_trace/code_object.cpp.o
+6.2	[138/243] Building CXX object source/lib/rocprofiler-sdk-rocpd/CMakeFiles/rocprofiler-sdk-rocpd-shared-library.dir/sql.cpp.o
+6.2	[139/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/external_correlation.cpp.o
+6.2	[140/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/pc_sampling/code_object.cpp.o
+6.3	[141/243] Linking CXX static library lib/librocprofiler-sdk-common.a
+6.3	[142/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/code_object/hip/code_object.cpp.o
+6.3	[143/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/thread_trace/service.cpp.o
+6.3	[144/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/context/correlation_id.cpp.o
+6.3	[145/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/pc_sampling/service.cpp.o
+6.3	[146/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/pc_sampling/hsa_adapter.cpp.o
+6.3	[147/243] Linking CXX shared library lib/librocprofiler-sdk-rocpd.so.1.0.0
+6.3	[148/243] Linking CXX shared library lib/librocprofiler-sdk-roctx.so.1.0.0
+6.3	[149/243] Creating library symlink lib/librocprofiler-sdk-rocpd.so.1 lib/librocprofiler-sdk-rocpd.so
+6.3	[150/243] Creating library symlink lib/librocprofiler-sdk-roctx.so.1 lib/librocprofiler-sdk-roctx.so
+6.3	[151/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/counters/dispatch_handlers.cpp.o
+6.3	[152/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/counters/controller.cpp.o
+6.4	[153/243] Linking CXX shared library lib/rocprofiler-sdk/librocprofiler-sdk-tool-kokkosp.so.1.0.0
+6.4	[154/243] Creating library symlink lib/rocprofiler-sdk/librocprofiler-sdk-tool-kokkosp.so.1 lib/rocprofiler-sdk/librocprofiler-sdk-tool-kokkosp.so
+6.5	[155/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/pc_sampling/parser/pc_record_interface.cpp.o
+6.5	[156/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/counters.cpp.o
 6.5	[157/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/buffer.cpp.o
-6.6	[158/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/context/context.cpp.o
-6.6	[159/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/counters/sample_processing.cpp.o
-6.7	[160/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/intercept_table.cpp.o
+6.7	[158/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/context/context.cpp.o
+6.7	[159/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/counters/sample_processing.cpp.o
+6.8	[160/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/intercept_table.cpp.o
 6.8	[161/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/hsa/scratch_memory.cpp.o
-6.8	[162/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/counters/core.cpp.o
-6.8	[163/243] Building CXX object source/lib/att-tool/CMakeFiles/rocprofiler-sdk-att-parser.dir/wstates.cpp.o
-6.8	[164/243] Building CXX object source/lib/att-tool/CMakeFiles/rocprofiler-sdk-att-parser.dir/filenames.cpp.o
-6.8	[165/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/hsa/queue_controller.cpp.o
-6.9	[166/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/counters/metrics.cpp.o
+6.9	[162/243] Building CXX object source/lib/att-tool/CMakeFiles/rocprofiler-sdk-att-parser.dir/wstates.cpp.o
+6.9	[163/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/counters/core.cpp.o
+6.9	[164/243] Building CXX object source/lib/att-tool/CMakeFiles/rocprofiler-sdk-att-parser.dir/filenames.cpp.o
+6.9	[165/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/counters/metrics.cpp.o
+6.9	[166/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/hsa/queue_controller.cpp.o
 6.9	[167/243] Building CXX object source/lib/att-tool/CMakeFiles/rocprofiler-sdk-att-parser.dir/perfcounter.cpp.o
 6.9	[168/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/hsa/async_copy.cpp.o
-6.9	[169/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/internal_threading.cpp.o
-7.0	[170/243] Building CXX object source/lib/att-tool/CMakeFiles/rocprofiler-sdk-att-parser.dir/occupancy.cpp.o
-7.0	[171/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/marker/range_marker.cpp.o
-7.1	[172/243] Building CXX object source/lib/python/roctx/CMakeFiles/rocprofiler-sdk-roctx-python-bindings-3.12.dir/libpyroctx.cpp.o
+7.0	[169/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/internal_threading.cpp.o
+7.1	[170/243] Building CXX object source/lib/python/roctx/CMakeFiles/rocprofiler-sdk-roctx-python-bindings-3.12.dir/libpyroctx.cpp.o
+7.1	[171/243] Building CXX object source/lib/att-tool/CMakeFiles/rocprofiler-sdk-att-parser.dir/occupancy.cpp.o
+7.1	[172/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/marker/range_marker.cpp.o
 7.1	[173/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/hsa/memory_allocation.cpp.o
-7.1	[174/243] Building CXX object source/lib/att-tool/CMakeFiles/rocprofiler-sdk-att-parser.dir/att_lib_wrapper.cpp.o
-7.1	[175/243] Linking CXX shared module lib/python3.12/site-packages/roctx/libpyroctx.cpython-312-x86_64-linux-gnu.so
-7.1	[176/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/thread_trace/core.cpp.o
-7.3	[177/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/code_object/code_object.cpp.o
-7.3	[178/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/rocjpeg/rocjpeg.cpp.o
-7.3	[179/243] Building CXX object source/lib/att-tool/CMakeFiles/rocprofiler-sdk-att-parser.dir/wave.cpp.o
-7.4	[180/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/marker/marker.cpp.o
+7.1	[174/243] Linking CXX shared module lib/python3.12/site-packages/roctx/libpyroctx.cpython-312-x86_64-linux-gnu.so
+7.2	[175/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/thread_trace/core.cpp.o
+7.2	[176/243] Building CXX object source/lib/att-tool/CMakeFiles/rocprofiler-sdk-att-parser.dir/att_lib_wrapper.cpp.o
+7.4	[177/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/code_object/code_object.cpp.o
+7.4	[178/243] Building CXX object source/lib/att-tool/CMakeFiles/rocprofiler-sdk-att-parser.dir/wave.cpp.o
+7.4	[179/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/rocjpeg/rocjpeg.cpp.o
+7.5	[180/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/marker/marker.cpp.o
 7.5	[181/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/kfd/kfd.cpp.o
-7.5	[182/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/counters/evaluate_ast.cpp.o
-7.5	[183/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/agent.cpp.o
-7.5	[184/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/thread_trace/decode.cpp.o
-7.7	[185/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/counters/device_counting.cpp.o
+7.5	[182/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/thread_trace/decode.cpp.o
+7.6	[183/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/counters/evaluate_ast.cpp.o
+7.6	[184/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/agent.cpp.o
+7.8	[185/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/counters/device_counting.cpp.o
 7.8	[186/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/hsa/queue.cpp.o
-8.3	[187/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/registration.cpp.o
+8.4	[187/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/registration.cpp.o
 8.5	[188/243] Building CXX object source/lib/att-tool/CMakeFiles/rocprofiler-sdk-att-parser.dir/code.cpp.o
-8.5	[189/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/rocdecode/rocdecode.cpp.o
-8.8	[190/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/rccl/rccl.cpp.o
-9.5	[191/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/ompt/ompt.cpp.o
-10.5	[192/243] Performing configure step for 'otf2-build'
-10.5	configure: info: creating ./config.status
-10.5	configure: info: running /bin/bash ./configure --disable-option-checking --silent '--prefix=/work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2'  'FFLAGS=-g -O2' 'LDFLAGS=' '--libdir=/work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/lib' 'SPHINX=:' 'FC=gfortran' 'F77=gfortran' 'CC=gcc' 'CXX=g++' 'FCFLAGS=-g -O2' 'PYTHON=:' 'CFLAGS=-fPIC -O3 -g' 'CXXFLAGS=-fPIC -O3 -g' '--enable-silent-rules' '-q' 'ac_scorep_platform=linux' 'ac_scorep_cross_compiling=no' --cache-file=/dev/null --srcdir=.
-10.5	configure: info: creating ./config.lt
-10.5	config.lt: info: creating libtool
-10.5	configure: info: creating ./config.status
-10.5	config.status: info: creating run_otf2_buffer_test.sh
-10.5	config.status: info: creating run_otf2_integrity_test.sh
-10.5	config.status: info: creating ../src/tools/otf2_config/otf2_config_data_backend.cpp
-10.5	config.status: info: creating ../otf2-mini-config-data-backend.sh
-10.5	config.status: info: creating ../otf2-backend.pc
-10.5	config.status: info: creating Makefile
-10.5	config.status: info: creating ../src/config-backend.h
-10.5	config.status: info: executing depfiles commands
-10.5	config.status: info: executing libtool commands
-10.5	config.status: info: creating Makefile
-10.5	config.status: info: creating src/config-common.h
-10.5	config.status: info: creating share/otf2/__version__.py
-10.5	config.status: info: creating doc/doxygen-user/main.dox
-10.5	config.status: info: creating include/otf2/OTF2_ErrorCodes.h
-10.5	config.status: info: creating otf2-mini-config.sh
-10.5	config.status: info: creating otf2.pc
-10.5	
-10.5	Configure command:
-10.5	  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/packages/otf2-source-src/configure \
-10.5	                                '--enable-silent-rules' \
-10.5	                                '--prefix=/work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2' \
-10.5	                                '--libdir=/work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/lib' \
-10.5	                                'CFLAGS=-fPIC -O3 -g' \
-10.5	                                'CXXFLAGS=-fPIC -O3 -g' \
-10.5	                                'LDFLAGS=' \
-10.5	                                'PYTHON=:' \
-10.5	                                'SPHINX=:'
-10.5	
-10.5	Loaded modules:
-10.5	  No modules loaded
-10.5	
-10.5	Configuration summary:
-10.5	  OTF2 3.0.3:
-10.5	    Platform:                   linux (auto detected)
-10.5	    Cross compiling:            no (auto detected)
-10.5	
-10.5	    OTF2 (backend):
-10.5	      C99 compiler:             /usr/bin/gcc (gnu 13.3.0)
-10.5	      Link mode:                static=yes, shared=yes
-10.5	      SIONlib support:          no, missing sionconfig
-10.5	      GCC atomic builtins:      yes
-10.5	      TLS support:              yes, using __thread and the initial-exec model
-10.5	      Entropy sources:          clock_gettime getpid sysinfo gethostid
-10.5	      Python bindings support:  no, missing python
-10.5	      Running tests:            no
-10.5	        Parallel tests:         yes
+8.6	[189/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/rocdecode/rocdecode.cpp.o
+9.0	[190/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/rccl/rccl.cpp.o
+9.6	[191/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/ompt/ompt.cpp.o
+10.8	[192/243] Performing configure step for 'otf2-build'
+10.8	configure: info: creating ./config.status
+10.8	configure: info: running /bin/bash ./configure --disable-option-checking --silent '--prefix=/work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2'  'FFLAGS=-g -O2' 'LDFLAGS=' '--libdir=/work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/lib' 'SPHINX=:' 'FC=gfortran' 'F77=gfortran' 'CC=gcc' 'CXX=g++' 'FCFLAGS=-g -O2' 'PYTHON=:' 'CFLAGS=-fPIC -O3 -g' 'CXXFLAGS=-fPIC -O3 -g' '--enable-silent-rules' '-q' 'ac_scorep_platform=linux' 'ac_scorep_cross_compiling=no' --cache-file=/dev/null --srcdir=.
+10.8	configure: info: creating ./config.lt
+10.8	config.lt: info: creating libtool
+10.8	configure: info: creating ./config.status
+10.8	config.status: info: creating run_otf2_buffer_test.sh
+10.8	config.status: info: creating run_otf2_integrity_test.sh
+10.8	config.status: info: creating ../src/tools/otf2_config/otf2_config_data_backend.cpp
+10.8	config.status: info: creating ../otf2-mini-config-data-backend.sh
+10.8	config.status: info: creating ../otf2-backend.pc
+10.8	config.status: info: creating Makefile
+10.8	config.status: info: creating ../src/config-backend.h
+10.8	config.status: info: executing depfiles commands
+10.8	config.status: info: executing libtool commands
+10.8	config.status: info: creating Makefile
+10.8	config.status: info: creating src/config-common.h
+10.8	config.status: info: creating share/otf2/__version__.py
+10.8	config.status: info: creating doc/doxygen-user/main.dox
+10.8	config.status: info: creating include/otf2/OTF2_ErrorCodes.h
+10.8	config.status: info: creating otf2-mini-config.sh
+10.8	config.status: info: creating otf2.pc
+10.8	
+10.8	Configure command:
+10.8	  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/packages/otf2-source-src/configure \
+10.8	                                '--enable-silent-rules' \
+10.8	                                '--prefix=/work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2' \
+10.8	                                '--libdir=/work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/lib' \
+10.8	                                'CFLAGS=-fPIC -O3 -g' \
+10.8	                                'CXXFLAGS=-fPIC -O3 -g' \
+10.8	                                'LDFLAGS=' \
+10.8	                                'PYTHON=:' \
+10.8	                                'SPHINX=:'
+10.8	
+10.8	Loaded modules:
+10.8	  No modules loaded
+10.8	
+10.8	Configuration summary:
+10.8	  OTF2 3.0.3:
+10.8	    Platform:                   linux (auto detected)
+10.8	    Cross compiling:            no (auto detected)
+10.8	
+10.8	    OTF2 (backend):
+10.8	      C99 compiler:             /usr/bin/gcc (gnu 13.3.0)
+10.8	      Link mode:                static=yes, shared=yes
+10.8	      SIONlib support:          no, missing sionconfig
+10.8	      GCC atomic builtins:      yes
+10.8	      TLS support:              yes, using __thread and the initial-exec model
+10.8	      Entropy sources:          clock_gettime getpid sysinfo gethostid
+10.8	      Python bindings support:  no, missing python
+10.8	      Running tests:            no
+10.8	        Parallel tests:         yes
 13.2	[193/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/hip/stream.cpp.o
-30.5	[194/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/hsa/hsa.cpp.o
-48.4	[195/243] Building CXX object external/CMakeFiles/rocprofiler-sdk-perfetto-static-library.dir/perfetto/sdk/perfetto.cc.o
-48.5	[196/243] Linking CXX static library lib/librocprofiler-sdk-perfetto.a
-52.7	[197/243] Performing build step for 'otf2-build'
-52.7	  GEN      src/otf2_print_usage.h
-52.7	  GEN      src/otf2_config_usage.h
-52.7	  GEN      src/otf2_snapshots_usage.h
-52.7	  GEN      src/otf2_estimator_usage.h
-52.7	  GEN      src/otf2_marker_usage.h
-52.7	/work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/packages/otf2-source-src
-52.7	/work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/packages/otf2-source-src
-52.7	/work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/packages/otf2-source-src
-52.7	  MKDIR    /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/share/doc/otf2/examples
-52.7	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/share/doc/otf2/examples/Makefile
-52.7	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/share/doc/otf2/examples/otf2_reader_example.c
-52.7	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/share/doc/otf2/examples/otf2_writer_example.c
-52.7	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/share/doc/otf2/examples/otf2_mpi_reader_example.c
-52.7	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/share/doc/otf2/examples/otf2_mpi_reader_example.cc
-52.7	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/share/doc/otf2/examples/otf2_mpi_writer_example.c
-52.7	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/share/doc/otf2/examples/otf2_openmp_reader_example.c
-52.7	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/share/doc/otf2/examples/otf2_openmp_writer_example.c
-52.7	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/share/doc/otf2/examples/otf2_pthread_writer_example.c
-52.7	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/share/doc/otf2/examples/otf2_high_level_reader_example.py
-52.7	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/share/doc/otf2/examples/otf2_high_level_writer_example.py
-52.7	  MKDIR    /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/share/doc/otf2
-52.7	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/share/doc/otf2/OPEN_ISSUES
-52.7	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/share/doc/otf2/ChangeLog
-52.7	  MKDIR    /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/include/otf2
-52.7	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/include/otf2/OTF2_ErrorCodes.h
-52.7	  MKDIR    /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/share/otf2/python/otf2
-52.7	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/share/otf2/python/otf2/__version__.py
-52.7	  MKDIR    /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/lib/pkgconfig
-52.7	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/lib/pkgconfig/otf2.pc
-52.7	  MKDIR    /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/include/otf2
-52.7	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/include/otf2/otf2.h
-52.7	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/include/otf2/otf2_compiler.h
-52.7	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/include/otf2/OTF2_GeneralDefinitions.h
-52.7	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/include/otf2/OTF2_Events.h
-52.7	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/include/otf2/OTF2_Definitions.h
-52.7	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/include/otf2/OTF2_AttributeValue.h
-52.7	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/include/otf2/OTF2_AttributeList.h
-52.7	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/include/otf2/OTF2_IdMap.h
-52.7	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/include/otf2/OTF2_Archive.h
-52.7	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/include/otf2/OTF2_Callbacks.h
-52.7	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/include/otf2/OTF2_Reader.h
-52.7	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/include/otf2/OTF2_EvtWriter.h
-52.7	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/include/otf2/OTF2_GlobalDefWriter.h
-52.7	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/include/otf2/OTF2_DefWriter.h
-52.7	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/include/otf2/OTF2_GlobalEvtReader.h
-52.7	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/include/otf2/OTF2_GlobalEvtReaderCallbacks.h
-52.7	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/include/otf2/OTF2_EvtReader.h
-52.7	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/include/otf2/OTF2_EvtReaderCallbacks.h
-52.7	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/include/otf2/OTF2_GlobalDefReader.h
-52.7	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/include/otf2/OTF2_GlobalDefReaderCallbacks.h
-52.7	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/include/otf2/OTF2_DefReader.h
-52.7	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/include/otf2/OTF2_DefReaderCallbacks.h
-52.7	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/include/otf2/OTF2_SnapWriter.h
-52.7	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/include/otf2/OTF2_SnapReader.h
-52.7	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/include/otf2/OTF2_SnapReaderCallbacks.h
-52.7	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/include/otf2/OTF2_GlobalSnapReader.h
-52.7	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/include/otf2/OTF2_GlobalSnapReaderCallbacks.h
-52.7	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/include/otf2/OTF2_Thumbnail.h
-52.7	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/include/otf2/OTF2_Marker.h
-52.7	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/include/otf2/OTF2_MarkerReader.h
-52.7	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/include/otf2/OTF2_MarkerReaderCallbacks.h
-52.7	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/include/otf2/OTF2_MarkerWriter.h
-52.7	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/include/otf2/OTF2_EventSizeEstimator.h
-52.7	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/include/otf2/OTF2_MPI_Collectives.h
-52.7	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/include/otf2/OTF2_OpenMP_Locks.h
-52.7	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/include/otf2/OTF2_Pthread_Locks.h
-52.7	  MKDIR    /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/share/otf2/python/otf2
-52.7	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/share/otf2/python/otf2/otf2.types
-52.7	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/share/otf2/python/otf2/otf2.enums
-52.7	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/share/otf2/python/otf2/otf2.defs
-52.7	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/share/otf2/python/otf2/otf2.events
-52.7	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/share/otf2/python/otf2/otf2.snaps
-52.7	  MKDIR    /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/share/otf2/python/otf2
-52.7	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/share/otf2/python/otf2/__init__.py
-52.7	  MKDIR    /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/share/otf2
-52.7	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/share/otf2/otf2.summary
-52.7	  CC       lib_otf2_la-otf2_events.lo
-52.7	  CC       lib_otf2_la-OTF2_Reader.lo
-52.7	  CC       lib_otf2_la-OTF2_AttributeValue.lo
-52.7	  CC       lib_otf2_la-OTF2_AttributeList.lo
-52.7	  CC       lib_otf2_la-OTF2_IdMap.lo
-52.7	  CC       lib_otf2_la-otf2_id_map.lo
-52.7	  CC       lib_otf2_la-otf2_collectives.lo
-52.7	  CC       lib_otf2_la-otf2_collectives_serial.lo
-52.7	  CC       lib_otf2_la-otf2_lock.lo
-52.7	  CC       lib_otf2_la-OTF2_EvtWriter.lo
-52.7	  CC       lib_otf2_la-OTF2_GlobalDefWriter.lo
-52.7	  CC       lib_otf2_la-OTF2_DefWriter.lo
-52.7	  CC       lib_otf2_la-OTF2_SnapWriter.lo
-52.7	  CC       lib_otf2_la-OTF2_MarkerWriter.lo
-52.7	  CC       lib_otf2_la-OTF2_MarkerReader.lo
-52.7	  CC       lib_otf2_la-OTF2_Archive.lo
-52.7	  CC       lib_otf2_la-otf2_archive_int.lo
-52.7	  CC       lib_otf2_la-otf2_archive_location.lo
-52.7	  CC       lib_otf2_la-OTF2_Buffer.lo
-52.7	  CC       lib_otf2_la-OTF2_AnchorFile.lo
-52.7	  CC       lib_otf2_la-otf2_anchor_file_timestamp.lo
-52.7	  CC       lib_otf2_la-otf2_anchor_file_hostid.lo
-52.7	  CC       lib_otf2_la-otf2_anchor_file_sysinfo.lo
-52.7	  CC       lib_otf2_la-otf2_file_substrate.lo
-52.7	  CC       lib_otf2_la-otf2_file_substrate_none.lo
-52.7	  CC       lib_otf2_la-otf2_file_substrate_posix.lo
-52.7	  CC       lib_otf2_la-OTF2_File.lo
-52.7	  CC       lib_otf2_la-otf2_file_posix.lo
-52.7	  CC       lib_otf2_la-otf2_file_none.lo
-52.7	  CC       lib_otf2_la-OTF2_GlobalEvtReader.lo
-52.7	  CC       lib_otf2_la-OTF2_EvtReader.lo
-52.7	  CC       lib_otf2_la-OTF2_GlobalDefReader.lo
-52.7	  CC       lib_otf2_la-OTF2_DefReader.lo
-52.7	  CC       lib_otf2_la-OTF2_GlobalSnapReader.lo
-52.7	  CC       lib_otf2_la-OTF2_SnapReader.lo
-52.7	  CC       lib_otf2_la-OTF2_Thumbnail.lo
-52.7	  CC       lib_otf2_la-otf2_attic.lo
-52.7	  CC       lib_otf2_la-otf2_python.lo
-52.7	  CC       lib_otf2_la-OTF2_EventSizeEstimator.lo
-52.7	  CC       libutils_cstr_la-UTILS_CStr.lo
-52.7	  CCLD     libutils_cstr.la
-52.7	  CC       libutils_exception_la-UTILS_Debug.lo
-52.7	  CC       libutils_exception_la-UTILS_Error.lo
-52.7	  CCLD     libutils_exception.la
-52.7	  CC       libutils_io_la-UTILS_IO_GetExe.lo
-52.7	  CC       libutils_io_la-UTILS_IO_Tools.lo
-52.7	  CCLD     libutils_io.la
-52.7	  CCLD     libutils.la
-52.7	  CC       libjenkins_hash_la-jenkins_hash.lo
-52.7	  CCLD     libjenkins_hash.la
-52.7	  CCLD     lib_otf2.la
-52.7	  CCLD     libotf2.la
-52.7	  GEN      ../src/tools/otf2_config/otf2_config_library_dependencies_backend_inc.hpp
-52.7	  GEN      scorep_tests
-52.7	  CC       otf2_print-otf2_print.o
-52.7	  CC       otf2_print-otf2_vector.o
-52.7	  CC       otf2_print-otf2_hash_table.o
-52.7	  CCLD     otf2-print
-52.7	  CXX      otf2_marker-otf2_marker.o
-52.7	  CXXLD    otf2-marker
-52.7	  CXX      otf2_config-otf2_config.o
-52.7	  CXX      otf2_config-otf2_config_data.o
-52.7	  CXX      otf2_config-otf2_config_helper.o
-52.7	  CXX      otf2_config-otf2_config_data_backend.o
-52.7	  CXXLD    otf2-config
-52.7	  CXX      otf2_estimator-otf2_estimator.o
-52.7	  CXXLD    otf2-estimator
-52.7	  CXX      otf2_snapshots-otf2_snapshots_parameters.o
-52.7	  CXX      otf2_snapshots-otf2_snapshots_events.o
-52.7	  CXX      otf2_snapshots-otf2_snapshots_callbacks.o
-52.7	  CXX      otf2_snapshots-otf2_snapshots.o
-52.7	  CXXLD    otf2-snapshots
-52.7	  MKDIR    /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/lib
-52.7	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/lib/libotf2.la
-52.7	  MKDIR    /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/bin
-52.7	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/bin/otf2-print
-52.7	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/bin/otf2-marker
-52.7	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/bin/otf2-config
-52.7	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/bin/otf2-estimator
-52.7	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/bin/otf2-snapshots
-52.7	  MKDIR    /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/lib/pkgconfig
-52.7	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/lib/pkgconfig/otf2-backend.pc
-52.7	[198/243] No install step for 'otf2-build'
-52.8	[199/243] Completed 'otf2-build'
-52.9	[200/243] Building C object source/lib/rocprofiler-sdk-tool/CMakeFiles/rocprofiler-sdk-tool.dir/main.c.o
-52.9	[201/243] Building CXX object source/lib/output/CMakeFiles/rocprofiler-sdk-output-library.dir/domain_type.cpp.o
-53.6	[202/243] Building CXX object source/lib/output/CMakeFiles/rocprofiler-sdk-output-library.dir/sql/deferred_transaction.cpp.o
-53.6	[203/243] Building CXX object source/lib/rocprofiler-sdk-tool/CMakeFiles/rocprofiler-sdk-tool.dir/stream_stack.cpp.o
-54.0	[204/243] Building CXX object source/lib/output/CMakeFiles/rocprofiler-sdk-output-library.dir/statistics.cpp.o
-54.4	[205/243] Building CXX object source/lib/python/rocpd/CMakeFiles/rocprofiler-sdk-rocpd-python-bindings-3.12.dir/source/interop.cpp.o
-54.5	[206/243] Building CXX object source/lib/output/CMakeFiles/rocprofiler-sdk-output-library.dir/tmp_file.cpp.o
-54.7	[207/243] Building CXX object source/lib/python/rocpd/CMakeFiles/rocprofiler-sdk-rocpd-python-bindings-3.12.dir/source/serialization/sql.cpp.o
-54.8	[208/243] Building CXX object source/lib/python/rocpd/CMakeFiles/rocprofiler-sdk-rocpd-python-bindings-3.12.dir/source/functions.cpp.o
-54.9	[209/243] Building CXX object source/lib/output/CMakeFiles/rocprofiler-sdk-output-library.dir/csv_output_file.cpp.o
-55.0	[210/243] Building CXX object source/lib/output/CMakeFiles/rocprofiler-sdk-output-library.dir/tmp_file_buffer.cpp.o
-55.0	[211/243] Building CXX object source/lib/output/CMakeFiles/rocprofiler-sdk-output-library.dir/counter_info.cpp.o
-55.1	[212/243] Building CXX object source/lib/output/CMakeFiles/rocprofiler-sdk-output-library.dir/output_key.cpp.o
-55.1	[213/243] Building CXX object source/lib/output/CMakeFiles/rocprofiler-sdk-output-library.dir/sql/common.cpp.o
-55.4	[214/243] Building CXX object source/lib/output/CMakeFiles/rocprofiler-sdk-output-library.dir/output_config.cpp.o
-55.5	[215/243] Building CXX object source/lib/output/CMakeFiles/rocprofiler-sdk-output-library.dir/node_info.cpp.o
-55.7	[216/243] Building CXX object source/lib/output/CMakeFiles/rocprofiler-sdk-output-library.dir/output_stream.cpp.o
-56.3	[217/243] Building CXX object source/lib/python/rocpd/CMakeFiles/rocprofiler-sdk-rocpd-python-bindings-3.12.dir/source/types.cpp.o
-56.8	[218/243] Building CXX object source/lib/python/rocpd/CMakeFiles/rocprofiler-sdk-rocpd-python-bindings-3.12.dir/source/csv.cpp.o
-56.8	[219/243] Building CXX object source/lib/output/CMakeFiles/rocprofiler-sdk-output-library.dir/format_path.cpp.o
-56.9	[220/243] Building CXX object source/lib/output/CMakeFiles/rocprofiler-sdk-output-library.dir/generateCSV.cpp.o
-57.1	[221/243] Building CXX object source/lib/rocprofiler-sdk/rocprofiler-avail/CMakeFiles/rocprofv3-list-avail.dir/rocprofv3_avail.cpp.o
-58.0	[222/243] Building CXX object source/lib/rocprofiler-sdk-tool/CMakeFiles/rocprofiler-sdk-tool.dir/config.cpp.o
-58.5	[223/243] Building CXX object source/lib/output/CMakeFiles/rocprofiler-sdk-output-library.dir/metadata.cpp.o
-58.6	[224/243] Building CXX object source/lib/output/CMakeFiles/rocprofiler-sdk-output-library.dir/generateStats.cpp.o
-59.2	[225/243] Building CXX object source/lib/output/CMakeFiles/rocprofiler-sdk-output-library.dir/generateJSON.cpp.o
-60.7	[226/243] Building CXX object source/lib/python/rocpd/CMakeFiles/rocprofiler-sdk-rocpd-python-bindings-3.12.dir/source/otf2.cpp.o
-60.7	[227/243] Building CXX object source/lib/output/CMakeFiles/rocprofiler-sdk-output-library.dir/generateOTF2.cpp.o
-62.4	[228/243] Building CXX object source/lib/python/rocpd/CMakeFiles/rocprofiler-sdk-rocpd-python-bindings-3.12.dir/source/perfetto.cpp.o
-62.6	[229/243] Building CXX object source/lib/output/CMakeFiles/rocprofiler-sdk-output-library.dir/generateRocpd.cpp.o
-63.3	[230/243] Building CXX object source/lib/output/CMakeFiles/rocprofiler-sdk-output-library.dir/generatePerfetto.cpp.o
-63.4	[231/243] Linking CXX static library lib/librocprofiler-sdk-output-library.a
-67.8	[232/243] Building CXX object source/lib/rocprofiler-sdk-tool/CMakeFiles/rocprofiler-sdk-tool.dir/tool.cpp.o
-68.2	[233/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/hip/hip.cpp.o
-68.4	[234/243] Linking CXX shared library lib/librocprofiler-sdk.so.1.0.0
-68.4	[235/243] Creating library symlink lib/librocprofiler-sdk.so.1 lib/librocprofiler-sdk.so
-68.4	[236/243] Linking CXX static library lib/librocprofiler-sdk.a
-68.5	[237/243] Linking CXX shared library lib/rocprofiler-sdk/librocprofv3-list-avail.so.1.0.0
-68.5	[238/243] Linking CXX static library lib/librocprofiler-sdk-att-parser.a
-68.5	[239/243] Creating library symlink lib/rocprofiler-sdk/librocprofv3-list-avail.so.1 lib/rocprofiler-sdk/librocprofv3-list-avail.so
-68.7	[240/243] Linking CXX shared library lib/rocprofiler-sdk/librocprofiler-sdk-tool.so.1.0.0
-68.7	[241/243] Creating library symlink lib/rocprofiler-sdk/librocprofiler-sdk-tool.so.1 lib/rocprofiler-sdk/librocprofiler-sdk-tool.so
-69.5	[242/243] Building CXX object source/lib/python/rocpd/CMakeFiles/rocprofiler-sdk-rocpd-python-bindings-3.12.dir/libpyrocpd.cpp.o
-69.8	[243/243] Linking CXX shared module lib/python3.12/site-packages/rocpd/libpyrocpd.cpython-312-x86_64-linux-gnu.so
-END	1756496771.053312	69.85383605957031
+30.7	[194/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/hsa/hsa.cpp.o
+48.9	[195/243] Building CXX object external/CMakeFiles/rocprofiler-sdk-perfetto-static-library.dir/perfetto/sdk/perfetto.cc.o
+49.0	[196/243] Linking CXX static library lib/librocprofiler-sdk-perfetto.a
+53.2	[197/243] Performing build step for 'otf2-build'
+53.2	  GEN      src/otf2_print_usage.h
+53.2	  GEN      src/otf2_config_usage.h
+53.2	  GEN      src/otf2_snapshots_usage.h
+53.2	  GEN      src/otf2_estimator_usage.h
+53.2	  GEN      src/otf2_marker_usage.h
+53.2	/work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/packages/otf2-source-src
+53.2	/work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/packages/otf2-source-src
+53.2	/work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/packages/otf2-source-src
+53.2	  MKDIR    /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/share/doc/otf2/examples
+53.2	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/share/doc/otf2/examples/Makefile
+53.2	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/share/doc/otf2/examples/otf2_reader_example.c
+53.2	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/share/doc/otf2/examples/otf2_writer_example.c
+53.2	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/share/doc/otf2/examples/otf2_mpi_reader_example.c
+53.2	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/share/doc/otf2/examples/otf2_mpi_reader_example.cc
+53.2	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/share/doc/otf2/examples/otf2_mpi_writer_example.c
+53.2	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/share/doc/otf2/examples/otf2_openmp_reader_example.c
+53.2	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/share/doc/otf2/examples/otf2_openmp_writer_example.c
+53.2	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/share/doc/otf2/examples/otf2_pthread_writer_example.c
+53.2	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/share/doc/otf2/examples/otf2_high_level_reader_example.py
+53.2	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/share/doc/otf2/examples/otf2_high_level_writer_example.py
+53.2	  MKDIR    /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/share/doc/otf2
+53.2	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/share/doc/otf2/OPEN_ISSUES
+53.2	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/share/doc/otf2/ChangeLog
+53.2	  MKDIR    /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/include/otf2
+53.2	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/include/otf2/OTF2_ErrorCodes.h
+53.2	  MKDIR    /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/share/otf2/python/otf2
+53.2	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/share/otf2/python/otf2/__version__.py
+53.2	  MKDIR    /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/lib/pkgconfig
+53.2	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/lib/pkgconfig/otf2.pc
+53.2	  MKDIR    /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/include/otf2
+53.2	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/include/otf2/otf2.h
+53.2	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/include/otf2/otf2_compiler.h
+53.2	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/include/otf2/OTF2_GeneralDefinitions.h
+53.2	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/include/otf2/OTF2_Events.h
+53.2	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/include/otf2/OTF2_Definitions.h
+53.2	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/include/otf2/OTF2_AttributeValue.h
+53.2	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/include/otf2/OTF2_AttributeList.h
+53.2	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/include/otf2/OTF2_IdMap.h
+53.2	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/include/otf2/OTF2_Archive.h
+53.2	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/include/otf2/OTF2_Callbacks.h
+53.2	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/include/otf2/OTF2_Reader.h
+53.2	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/include/otf2/OTF2_EvtWriter.h
+53.2	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/include/otf2/OTF2_GlobalDefWriter.h
+53.2	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/include/otf2/OTF2_DefWriter.h
+53.2	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/include/otf2/OTF2_GlobalEvtReader.h
+53.2	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/include/otf2/OTF2_GlobalEvtReaderCallbacks.h
+53.2	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/include/otf2/OTF2_EvtReader.h
+53.2	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/include/otf2/OTF2_EvtReaderCallbacks.h
+53.2	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/include/otf2/OTF2_GlobalDefReader.h
+53.2	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/include/otf2/OTF2_GlobalDefReaderCallbacks.h
+53.2	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/include/otf2/OTF2_DefReader.h
+53.2	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/include/otf2/OTF2_DefReaderCallbacks.h
+53.2	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/include/otf2/OTF2_SnapWriter.h
+53.2	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/include/otf2/OTF2_SnapReader.h
+53.2	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/include/otf2/OTF2_SnapReaderCallbacks.h
+53.2	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/include/otf2/OTF2_GlobalSnapReader.h
+53.2	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/include/otf2/OTF2_GlobalSnapReaderCallbacks.h
+53.2	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/include/otf2/OTF2_Thumbnail.h
+53.2	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/include/otf2/OTF2_Marker.h
+53.2	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/include/otf2/OTF2_MarkerReader.h
+53.2	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/include/otf2/OTF2_MarkerReaderCallbacks.h
+53.2	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/include/otf2/OTF2_MarkerWriter.h
+53.2	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/include/otf2/OTF2_EventSizeEstimator.h
+53.2	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/include/otf2/OTF2_MPI_Collectives.h
+53.2	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/include/otf2/OTF2_OpenMP_Locks.h
+53.2	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/include/otf2/OTF2_Pthread_Locks.h
+53.2	  MKDIR    /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/share/otf2/python/otf2
+53.2	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/share/otf2/python/otf2/otf2.types
+53.2	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/share/otf2/python/otf2/otf2.enums
+53.2	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/share/otf2/python/otf2/otf2.defs
+53.2	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/share/otf2/python/otf2/otf2.events
+53.2	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/share/otf2/python/otf2/otf2.snaps
+53.2	  MKDIR    /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/share/otf2/python/otf2
+53.2	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/share/otf2/python/otf2/__init__.py
+53.2	  MKDIR    /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/share/otf2
+53.2	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/share/otf2/otf2.summary
+53.2	  CC       lib_otf2_la-otf2_events.lo
+53.2	  CC       lib_otf2_la-OTF2_Reader.lo
+53.2	  CC       lib_otf2_la-OTF2_AttributeValue.lo
+53.2	  CC       lib_otf2_la-OTF2_AttributeList.lo
+53.2	  CC       lib_otf2_la-OTF2_IdMap.lo
+53.2	  CC       lib_otf2_la-otf2_id_map.lo
+53.2	  CC       lib_otf2_la-otf2_collectives.lo
+53.2	  CC       lib_otf2_la-otf2_collectives_serial.lo
+53.2	  CC       lib_otf2_la-otf2_lock.lo
+53.2	  CC       lib_otf2_la-OTF2_EvtWriter.lo
+53.2	  CC       lib_otf2_la-OTF2_GlobalDefWriter.lo
+53.2	  CC       lib_otf2_la-OTF2_DefWriter.lo
+53.2	  CC       lib_otf2_la-OTF2_SnapWriter.lo
+53.2	  CC       lib_otf2_la-OTF2_MarkerWriter.lo
+53.2	  CC       lib_otf2_la-OTF2_MarkerReader.lo
+53.2	  CC       lib_otf2_la-OTF2_Archive.lo
+53.2	  CC       lib_otf2_la-otf2_archive_int.lo
+53.2	  CC       lib_otf2_la-otf2_archive_location.lo
+53.2	  CC       lib_otf2_la-OTF2_Buffer.lo
+53.2	  CC       lib_otf2_la-OTF2_AnchorFile.lo
+53.2	  CC       lib_otf2_la-otf2_anchor_file_timestamp.lo
+53.2	  CC       lib_otf2_la-otf2_anchor_file_hostid.lo
+53.2	  CC       lib_otf2_la-otf2_anchor_file_sysinfo.lo
+53.2	  CC       lib_otf2_la-otf2_file_substrate.lo
+53.2	  CC       lib_otf2_la-otf2_file_substrate_none.lo
+53.2	  CC       lib_otf2_la-otf2_file_substrate_posix.lo
+53.2	  CC       lib_otf2_la-OTF2_File.lo
+53.2	  CC       lib_otf2_la-otf2_file_posix.lo
+53.2	  CC       lib_otf2_la-otf2_file_none.lo
+53.2	  CC       lib_otf2_la-OTF2_GlobalEvtReader.lo
+53.2	  CC       lib_otf2_la-OTF2_EvtReader.lo
+53.2	  CC       lib_otf2_la-OTF2_GlobalDefReader.lo
+53.2	  CC       lib_otf2_la-OTF2_DefReader.lo
+53.2	  CC       lib_otf2_la-OTF2_GlobalSnapReader.lo
+53.2	  CC       lib_otf2_la-OTF2_SnapReader.lo
+53.2	  CC       lib_otf2_la-OTF2_Thumbnail.lo
+53.2	  CC       lib_otf2_la-otf2_attic.lo
+53.2	  CC       lib_otf2_la-otf2_python.lo
+53.2	  CC       lib_otf2_la-OTF2_EventSizeEstimator.lo
+53.2	  CC       libutils_cstr_la-UTILS_CStr.lo
+53.2	  CCLD     libutils_cstr.la
+53.2	  CC       libutils_exception_la-UTILS_Debug.lo
+53.2	  CC       libutils_exception_la-UTILS_Error.lo
+53.2	  CCLD     libutils_exception.la
+53.2	  CC       libutils_io_la-UTILS_IO_GetExe.lo
+53.2	  CC       libutils_io_la-UTILS_IO_Tools.lo
+53.2	  CCLD     libutils_io.la
+53.2	  CCLD     libutils.la
+53.2	  CC       libjenkins_hash_la-jenkins_hash.lo
+53.2	  CCLD     libjenkins_hash.la
+53.2	  CCLD     lib_otf2.la
+53.2	  CCLD     libotf2.la
+53.2	  GEN      ../src/tools/otf2_config/otf2_config_library_dependencies_backend_inc.hpp
+53.2	  GEN      scorep_tests
+53.2	  CC       otf2_print-otf2_print.o
+53.2	  CC       otf2_print-otf2_vector.o
+53.2	  CC       otf2_print-otf2_hash_table.o
+53.2	  CCLD     otf2-print
+53.2	  CXX      otf2_marker-otf2_marker.o
+53.2	  CXXLD    otf2-marker
+53.2	  CXX      otf2_config-otf2_config.o
+53.2	  CXX      otf2_config-otf2_config_data.o
+53.2	  CXX      otf2_config-otf2_config_helper.o
+53.2	  CXX      otf2_config-otf2_config_data_backend.o
+53.2	  CXXLD    otf2-config
+53.2	  CXX      otf2_estimator-otf2_estimator.o
+53.2	  CXXLD    otf2-estimator
+53.2	  CXX      otf2_snapshots-otf2_snapshots_parameters.o
+53.2	  CXX      otf2_snapshots-otf2_snapshots_events.o
+53.2	  CXX      otf2_snapshots-otf2_snapshots_callbacks.o
+53.2	  CXX      otf2_snapshots-otf2_snapshots.o
+53.2	  CXXLD    otf2-snapshots
+53.2	  MKDIR    /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/lib
+53.2	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/lib/libotf2.la
+53.2	  MKDIR    /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/bin
+53.2	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/bin/otf2-print
+53.2	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/bin/otf2-marker
+53.2	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/bin/otf2-config
+53.2	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/bin/otf2-estimator
+53.2	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/bin/otf2-snapshots
+53.2	  MKDIR    /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/lib/pkgconfig
+53.2	  INSTALL  /work/grodgers/git/tr_aomp/TheRock/build/profiler/rocprofiler-sdk/build/external/otf2/lib/pkgconfig/otf2-backend.pc
+53.3	[198/243] No install step for 'otf2-build'
+53.3	[199/243] Completed 'otf2-build'
+53.4	[200/243] Building C object source/lib/rocprofiler-sdk-tool/CMakeFiles/rocprofiler-sdk-tool.dir/main.c.o
+53.4	[201/243] Building CXX object source/lib/output/CMakeFiles/rocprofiler-sdk-output-library.dir/domain_type.cpp.o
+54.1	[202/243] Building CXX object source/lib/output/CMakeFiles/rocprofiler-sdk-output-library.dir/sql/deferred_transaction.cpp.o
+54.1	[203/243] Building CXX object source/lib/rocprofiler-sdk-tool/CMakeFiles/rocprofiler-sdk-tool.dir/stream_stack.cpp.o
+54.5	[204/243] Building CXX object source/lib/output/CMakeFiles/rocprofiler-sdk-output-library.dir/statistics.cpp.o
+54.9	[205/243] Building CXX object source/lib/python/rocpd/CMakeFiles/rocprofiler-sdk-rocpd-python-bindings-3.12.dir/source/interop.cpp.o
+54.9	[206/243] Building CXX object source/lib/output/CMakeFiles/rocprofiler-sdk-output-library.dir/tmp_file.cpp.o
+55.2	[207/243] Building CXX object source/lib/python/rocpd/CMakeFiles/rocprofiler-sdk-rocpd-python-bindings-3.12.dir/source/serialization/sql.cpp.o
+55.3	[208/243] Building CXX object source/lib/python/rocpd/CMakeFiles/rocprofiler-sdk-rocpd-python-bindings-3.12.dir/source/functions.cpp.o
+55.4	[209/243] Building CXX object source/lib/output/CMakeFiles/rocprofiler-sdk-output-library.dir/csv_output_file.cpp.o
+55.5	[210/243] Building CXX object source/lib/output/CMakeFiles/rocprofiler-sdk-output-library.dir/tmp_file_buffer.cpp.o
+55.5	[211/243] Building CXX object source/lib/output/CMakeFiles/rocprofiler-sdk-output-library.dir/output_key.cpp.o
+55.6	[212/243] Building CXX object source/lib/output/CMakeFiles/rocprofiler-sdk-output-library.dir/counter_info.cpp.o
+55.6	[213/243] Building CXX object source/lib/output/CMakeFiles/rocprofiler-sdk-output-library.dir/sql/common.cpp.o
+55.9	[214/243] Building CXX object source/lib/output/CMakeFiles/rocprofiler-sdk-output-library.dir/output_config.cpp.o
+56.0	[215/243] Building CXX object source/lib/output/CMakeFiles/rocprofiler-sdk-output-library.dir/node_info.cpp.o
+56.2	[216/243] Building CXX object source/lib/output/CMakeFiles/rocprofiler-sdk-output-library.dir/output_stream.cpp.o
+56.8	[217/243] Building CXX object source/lib/python/rocpd/CMakeFiles/rocprofiler-sdk-rocpd-python-bindings-3.12.dir/source/types.cpp.o
+57.3	[218/243] Building CXX object source/lib/python/rocpd/CMakeFiles/rocprofiler-sdk-rocpd-python-bindings-3.12.dir/source/csv.cpp.o
+57.4	[219/243] Building CXX object source/lib/output/CMakeFiles/rocprofiler-sdk-output-library.dir/format_path.cpp.o
+57.4	[220/243] Building CXX object source/lib/output/CMakeFiles/rocprofiler-sdk-output-library.dir/generateCSV.cpp.o
+57.5	[221/243] Building CXX object source/lib/rocprofiler-sdk/rocprofiler-avail/CMakeFiles/rocprofv3-list-avail.dir/rocprofv3_avail.cpp.o
+58.5	[222/243] Building CXX object source/lib/rocprofiler-sdk-tool/CMakeFiles/rocprofiler-sdk-tool.dir/config.cpp.o
+59.0	[223/243] Building CXX object source/lib/output/CMakeFiles/rocprofiler-sdk-output-library.dir/metadata.cpp.o
+59.1	[224/243] Building CXX object source/lib/output/CMakeFiles/rocprofiler-sdk-output-library.dir/generateStats.cpp.o
+59.7	[225/243] Building CXX object source/lib/output/CMakeFiles/rocprofiler-sdk-output-library.dir/generateJSON.cpp.o
+61.1	[226/243] Building CXX object source/lib/python/rocpd/CMakeFiles/rocprofiler-sdk-rocpd-python-bindings-3.12.dir/source/otf2.cpp.o
+61.3	[227/243] Building CXX object source/lib/output/CMakeFiles/rocprofiler-sdk-output-library.dir/generateOTF2.cpp.o
+62.8	[228/243] Building CXX object source/lib/python/rocpd/CMakeFiles/rocprofiler-sdk-rocpd-python-bindings-3.12.dir/source/perfetto.cpp.o
+63.1	[229/243] Building CXX object source/lib/output/CMakeFiles/rocprofiler-sdk-output-library.dir/generateRocpd.cpp.o
+63.8	[230/243] Building CXX object source/lib/output/CMakeFiles/rocprofiler-sdk-output-library.dir/generatePerfetto.cpp.o
+63.9	[231/243] Linking CXX static library lib/librocprofiler-sdk-output-library.a
+68.2	[232/243] Building CXX object source/lib/rocprofiler-sdk-tool/CMakeFiles/rocprofiler-sdk-tool.dir/tool.cpp.o
+68.3	[233/243] Building CXX object source/lib/rocprofiler-sdk/CMakeFiles/rocprofiler-sdk-object-library.dir/hip/hip.cpp.o
+68.6	[234/243] Linking CXX shared library lib/librocprofiler-sdk.so.1.0.0
+68.6	[235/243] Creating library symlink lib/librocprofiler-sdk.so.1 lib/librocprofiler-sdk.so
+68.6	[236/243] Linking CXX static library lib/librocprofiler-sdk.a
+68.6	[237/243] Linking CXX shared library lib/rocprofiler-sdk/librocprofv3-list-avail.so.1.0.0
+68.6	[238/243] Linking CXX static library lib/librocprofiler-sdk-att-parser.a
+68.7	[239/243] Creating library symlink lib/rocprofiler-sdk/librocprofv3-list-avail.so.1 lib/rocprofiler-sdk/librocprofv3-list-avail.so
+68.8	[240/243] Linking CXX shared library lib/rocprofiler-sdk/librocprofiler-sdk-tool.so.1.0.0
+68.8	[241/243] Creating library symlink lib/rocprofiler-sdk/librocprofiler-sdk-tool.so.1 lib/rocprofiler-sdk/librocprofiler-sdk-tool.so
+70.1	[242/243] Building CXX object source/lib/python/rocpd/CMakeFiles/rocprofiler-sdk-rocpd-python-bindings-3.12.dir/libpyrocpd.cpp.o
+70.5	[243/243] Linking CXX shared module lib/python3.12/site-packages/rocpd/libpyrocpd.cpython-312-x86_64-linux-gnu.so
+END	1756837710.2698448	70.50529313087463

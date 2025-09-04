@@ -1,7 +1,7 @@
-BEGIN	1756496661.1158183
+BEGIN	1756837599.7676039
 EXEC	/work1/grodgers/git/tr_aomp/TheRock/build/profiler/aqlprofile/build	/usr/bin/cmake -E env --unset=ROCM_PATH --unset=ROCM_DIR --unset=HIP_PATH --unset=HIP_DIR -- /usr/bin/cmake --build /work/grodgers/git/tr_aomp/TheRock/build/profiler/aqlprofile/build
-0.0	[1/22] cd /work/grodgers/git/tr_aomp/TheRock/build/profiler/aqlprofile/build && /usr/bin/cmake -E rm -f /work/grodgers/git/tr_aomp/TheRock/build/profiler/aqlprofile/stamp/stage.stamp
-0.2	[2/22] Building CXX object CMakeFiles/hsa-amd-aqlprofile64.dir/src/core/spm_data.cpp.o
+0.1	[1/22] cd /work/grodgers/git/tr_aomp/TheRock/build/profiler/aqlprofile/build && /usr/bin/cmake -E rm -f /work/grodgers/git/tr_aomp/TheRock/build/profiler/aqlprofile/stamp/stage.stamp
+0.3	[2/22] Building CXX object CMakeFiles/hsa-amd-aqlprofile64.dir/src/core/spm_data.cpp.o
 0.3	[3/22] Building CXX object CMakeFiles/hsa-amd-aqlprofile64.dir/src/core/vega20_reg_init.cpp.o
 0.4	[4/22] Building CXX object CMakeFiles/hsa-amd-aqlprofile64.dir/src/core/populate_aql.cpp.o
 0.4	[5/22] Building CXX object CMakeFiles/hsa-amd-aqlprofile64.dir/src/core/ip_offset_table_init.cpp.o
@@ -11,15 +11,15 @@ EXEC	/work1/grodgers/git/tr_aomp/TheRock/build/profiler/aqlprofile/build	/usr/bi
 0.6	[9/22] Building CXX object CMakeFiles/hsa-amd-aqlprofile64.dir/src/util/hsa_rsrc_factory.cpp.o
 0.6	[10/22] Building CXX object CMakeFiles/hsa-amd-aqlprofile64.dir/src/core/gfx90a_factory.cpp.o
 0.6	[11/22] Building CXX object CMakeFiles/hsa-amd-aqlprofile64.dir/src/core/gfx908_factory.cpp.o
-0.6	[12/22] Building CXX object CMakeFiles/hsa-amd-aqlprofile64.dir/src/core/gfx940_factory.cpp.o
+0.7	[12/22] Building CXX object CMakeFiles/hsa-amd-aqlprofile64.dir/src/core/gfx940_factory.cpp.o
 1.1	[13/22] Building CXX object CMakeFiles/hsa-amd-aqlprofile64.dir/src/core/parse_ip_discovery.cpp.o
-1.7	[14/22] Building CXX object CMakeFiles/hsa-amd-aqlprofile64.dir/src/core/threadtrace.cpp.o
-1.8	[15/22] Building CXX object CMakeFiles/hsa-amd-aqlprofile64.dir/src/core/counters.cpp.o
-1.9	[16/22] Building CXX object CMakeFiles/hsa-amd-aqlprofile64.dir/src/core/gfx10_factory.cpp.o
-1.9	[17/22] Building CXX object CMakeFiles/hsa-amd-aqlprofile64.dir/src/core/gfx11_factory.cpp.o
-1.9	[18/22] Building CXX object CMakeFiles/hsa-amd-aqlprofile64.dir/src/core/gfx12_factory.cpp.o
-1.9	[19/22] Building CXX object CMakeFiles/hsa-amd-aqlprofile64.dir/src/core/gfx9_factory.cpp.o
+1.8	[14/22] Building CXX object CMakeFiles/hsa-amd-aqlprofile64.dir/src/core/threadtrace.cpp.o
+1.9	[15/22] Building CXX object CMakeFiles/hsa-amd-aqlprofile64.dir/src/core/counters.cpp.o
+1.9	[16/22] Building CXX object CMakeFiles/hsa-amd-aqlprofile64.dir/src/core/gfx11_factory.cpp.o
+1.9	[17/22] Building CXX object CMakeFiles/hsa-amd-aqlprofile64.dir/src/core/gfx12_factory.cpp.o
+1.9	[18/22] Building CXX object CMakeFiles/hsa-amd-aqlprofile64.dir/src/core/gfx10_factory.cpp.o
+2.0	[19/22] Building CXX object CMakeFiles/hsa-amd-aqlprofile64.dir/src/core/gfx9_factory.cpp.o
 2.1	[20/22] Building CXX object CMakeFiles/hsa-amd-aqlprofile64.dir/src/core/aql_profile.cpp.o
-2.1	[21/22] Linking CXX shared library libhsa-amd-aqlprofile64.so.1.0.0
+2.2	[21/22] Linking CXX shared library libhsa-amd-aqlprofile64.so.1.0.0
 2.2	[22/22] Creating library symlink libhsa-amd-aqlprofile64.so.1 libhsa-amd-aqlprofile64.so
-END	1756496663.2817056	2.1658873558044434
+END	1756837602.0001018	2.2324979305267334

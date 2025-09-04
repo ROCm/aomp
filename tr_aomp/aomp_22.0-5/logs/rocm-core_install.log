@@ -1,4 +1,4 @@
-BEGIN	1756496077.0201573
+BEGIN	1756837036.5531223
 EXEC	/work1/grodgers/git/tr_aomp/TheRock/build/base/rocm-core/build	/usr/bin/cmake --install /work/grodgers/git/tr_aomp/TheRock/build/base/rocm-core/build
 0.0	-- Install configuration: "Release"
 0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/base/rocm-core/stage/.info/version
@@ -15,4 +15,4 @@ EXEC	/work1/grodgers/git/tr_aomp/TheRock/build/base/rocm-core/build	/usr/bin/cma
 0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/base/rocm-core/stage/lib/cmake/rocm-core/rocmCoreTargets-release.cmake
 0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/base/rocm-core/stage/share/doc/rocm-core/copyright
 0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/base/rocm-core/stage/share/doc/rocm-core/changelog.Debian.gz
-END	1756496077.040605	0.020447731018066406
+END	1756837036.5663698	0.013247489929199219

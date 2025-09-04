@@ -1,4 +1,4 @@
-BEGIN	1756496663.9460561
+BEGIN	1756837602.6037197
 EXEC	/work1/grodgers/git/tr_aomp/TheRock/build/compiler/hipify/build	/usr/bin/cmake --install /work/grodgers/git/tr_aomp/TheRock/build/compiler/hipify/build
 0.0	-- Install configuration: "Release"
 0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/compiler/hipify/stage/bin/hipify-clang
@@ -13,4 +13,4 @@ EXEC	/work1/grodgers/git/tr_aomp/TheRock/build/compiler/hipify/build	/usr/bin/cm
 0.1	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/compiler/hipify/stage/libexec/hipify/hipconvertinplace-perl.sh
 0.1	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/compiler/hipify/stage/libexec/hipify/hipexamine.sh
 0.1	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/compiler/hipify/stage/libexec/hipify/hipexamine-perl.sh
-END	1756496664.0169137	0.07085752487182617
+END	1756837602.6838	0.08008027076721191
