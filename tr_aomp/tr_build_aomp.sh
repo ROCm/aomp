@@ -22,6 +22,14 @@ if [ -d $_therockdir/.venv/bin ] ; then
    PATH=$_therockdir/.venv/bin:$PATH
    export PATH
 fi
+(
+# reconstruct .amd-llvm.smrev using the current SHA
+cd compiler/amd-llvm
+smrev="../.amd-llvm.smrev"
+head -1 $smrev     >  "${smrev}.new"
+git rev-parse HEAD >> "${smrev}.new"
+cp "${smrev}.new" $smrev
+)
 
 [ -d build ] && rm -rf build
 mkdir -p $_therockdir/build
