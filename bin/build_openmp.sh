@@ -17,6 +17,8 @@ fi
 REPO_DIR=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME
 _ompd_src_dir="$LLVM_INSTALL_LOC/share/gdb/python/ompd/src"
 _ompd_dir="$LLVM_INSTALL_LOC/share/gdb/python/ompd"
+OPENMP_BUILD_DEVICERTL=${OPENMP_BUILD_DEVICERTL:-0}
+OPENMP_BUILD_DIR=${OPENMP_BUILD_DIR:-"openmp"}
 
 if [ "$AOMP_BUILD_CUDA" == 1 ] ; then
    CUDAH=$(find "$CUDAT" -type f,l -name "cuda.h" 2>/dev/null)
@@ -73,6 +75,13 @@ COMMON_CMAKE_OPTS=("${AOMP_SET_NINJA_GEN[@]}" -DOPENMP_ENABLE_LIBOMPTARGET=1
                    -DLIBOMPTEST_INSTALL_COMPONENTS=ON
                    -DLLVM_DIR="$LLVM_DIR")
 
+if [ "$OPENMP_BUILD_DEVICERTL" -eq 1 ]; then
+  if [ -f "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/device/CMakeLists.txt" ]; then
+    COMMON_CMAKE_OPTS=("${COMMON_CMAKE_OPTS[@]}"
+                       -DLLVM_DEFAULT_TARGET_TRIPLE=amdgcn-amd-amdhsa)
+  fi
+fi
+
 if [ "$AOMP_STANDALONE_BUILD" == 0 ]; then
   # For static package builds, set BUILD_SHARED_LIBS to OFF
   if [ "$STATIC_PKG_DEPS" == "ON" ]; then
@@ -126,8 +135,8 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    echo " "
    echo "This is a FRESH START. ERASING any previous builds in $BUILD_DIR/openmp."
    echo "Use ""$0 nocmake"" or ""$0 install"" to avoid FRESH START."
-   echo "rm -rf $BUILD_DIR/build/openmp"
-   rm -rf "$BUILD_DIR/build/openmp"
+   echo "rm -rf $BUILD_DIR/build/$OPENMP_BUILD_DIR"
+   rm -rf "$BUILD_DIR/build/$OPENMP_BUILD_DIR"
    declare -a MYCMAKEOPTS
    if [ "$AOMP_STANDALONE_BUILD" == 1 ]; then
      MYCMAKEOPTS=("${COMMON_CMAKE_OPTS[@]}"
@@ -158,8 +167,8 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 
    if [ "$AOMP_LEGACY_OPENMP" == "1" ] && [ "$SANITIZER" != 1 ]; then
       echo " -----Running openmp cmake ---- "
-      mkdir -p "$BUILD_DIR/build/openmp"
-      cd "$BUILD_DIR/build/openmp" || exit
+      mkdir -p "$BUILD_DIR/build/$OPENMP_BUILD_DIR"
+      cd "$BUILD_DIR/build/$OPENMP_BUILD_DIR" || exit
       echo "${AOMP_CMAKE}" "${MYCMAKEOPTS[@]}" \
                            "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp"
 
@@ -186,8 +195,8 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
                             "${OPENMP_EXTRAS_ORIGIN_RPATH[@]}")
 	     fi
         echo " -----Running openmp cmake for asan ---- "
-        mkdir -p "$BUILD_DIR/build/openmp/asan"
-        cd "$BUILD_DIR/build/openmp/asan" || exit
+        mkdir -p "$BUILD_DIR/build/$OPENMP_BUILD_DIR/asan"
+        cd "$BUILD_DIR/build/$OPENMP_BUILD_DIR/asan" || exit
         echo "${AOMP_CMAKE}" "$(shquot "${ASAN_CMAKE_OPTS[@]}")" \
                              -DCMAKE_C_FLAGS="\"$(cmquot "${ASAN_FLAGS[@]}")\"" \
                              -DCMAKE_CXX_FLAGS="\"$(cmquot "${ASAN_FLAGS[@]}")\"" \
@@ -207,13 +216,13 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 
   # Build a dedicatd "performance" version of libomptarget
   if [ "$AOMP_BUILD_PERF" == "1" ]; then
-    echo "rm -rf $BUILD_DIR/build/openmp_perf"
-    rm -rf "$BUILD_DIR/build/openmp_perf"
+    echo "rm -rf $BUILD_DIR/build/${OPENMP_BUILD_DIR}_perf"
+    rm -rf "$BUILD_DIR/build/${OPENMP_BUILD_DIR}_perf"
     MYCMAKEOPTS=("${COMMON_CMAKE_OPTS[@]}" -DLIBOMPTARGET_ENABLE_DEBUG=OFF
                  -DCMAKE_BUILD_TYPE=Release -DLIBOMPTARGET_PERF=ON
                  -DLLVM_LIBDIR_SUFFIX=-perf)
-    mkdir -p "$BUILD_DIR/build/openmp_perf"
-    cd "$BUILD_DIR/build/openmp_perf" || exit
+    mkdir -p "$BUILD_DIR/build/${OPENMP_BUILD_DIR}_perf"
+    cd "$BUILD_DIR/build/${OPENMP_BUILD_DIR}_perf" || exit
     echo " -----Running openmp cmake for perf ---- "
     echo "${AOMP_CMAKE}" "$(shquot "${MYCMAKEOPTS[@]}")" \
                          -DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR/lib/cmake" \
@@ -234,8 +243,8 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
                         -DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=OFF
                         -DSANITIZER_AMDGPU=1)
        echo " -----Running openmp cmake for perf-asan ---- "
-       mkdir -p "$BUILD_DIR/build/openmp_perf/asan"
-       cd "$BUILD_DIR/build/openmp_perf/asan" || exit
+       mkdir -p "$BUILD_DIR/build/${OPENMP_BUILD_DIR}_perf/asan"
+       cd "$BUILD_DIR/build/${OPENMP_BUILD_DIR}_perf/asan" || exit
        echo "${AOMP_CMAKE}" "${ASAN_CMAKE_OPTS[@]}" \
                             -DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR/lib/asan/cmake" \
                             "${AOMP_ASAN_ORIGIN_RPATH[@]}" \
@@ -259,8 +268,8 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
   fi
 
    if [ "$AOMP_BUILD_DEBUG" == "1" ] ; then
-      echo "rm -rf $BUILD_DIR/build/openmp_debug"
-      rm -rf "$BUILD_DIR/build/openmp_debug"
+      echo "rm -rf $BUILD_DIR/build/${OPENMP_BUILD_DIR}_debug"
+      rm -rf "$BUILD_DIR/build/${OPENMP_BUILD_DIR}_debug"
 
       declare -a DEBUGCMAKEOPTS
 
@@ -293,8 +302,8 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
       if [ "$SANITIZER" != 1 ]; then
          echo
          echo " -----Running openmp cmake for debug ---- "
-         mkdir -p "$BUILD_DIR/build/openmp_debug"
-         cd "$BUILD_DIR/build/openmp_debug" || exit
+         mkdir -p "$BUILD_DIR/build/${OPENMP_BUILD_DIR}_debug"
+         cd "$BUILD_DIR/build/${OPENMP_BUILD_DIR}_debug" || exit
          if [ "$AOMP_STANDALONE_BUILD" == 1 ]; then
            PREFIX_PATH="-DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR/lib/cmake"
            MYCMAKEOPTS=("${COMMON_CMAKE_OPTS[@]}" "${DEBUGCMAKEOPTS[@]}"
@@ -326,8 +335,8 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
                           -DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=OFF
                           -DSANITIZER_AMDGPU=1)
          echo " -----Running openmp cmake for debug-asan ---- "
-         mkdir -p "$BUILD_DIR/build/openmp_debug/asan"
-         cd "$BUILD_DIR/build/openmp_debug/asan" || exit
+         mkdir -p "$BUILD_DIR/build/${OPENMP_BUILD_DIR}_debug/asan"
+         cd "$BUILD_DIR/build/${OPENMP_BUILD_DIR}_debug/asan" || exit
          if [ "$AOMP_STANDALONE_BUILD" == 1 ]; then
             ASAN_CMAKE_OPTS=("${ASAN_CMAKE_OPTS[@]}"
                              -DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR/lib/asan/cmake"
@@ -362,47 +371,47 @@ fi
 
 if [ "$1" != "install" ] ; then
 if [ "$AOMP_LEGACY_OPENMP" == "1" ] && [ "$SANITIZER" != 1 ] ; then
-  cd "$BUILD_DIR/build/openmp" || exit
-  echo " -----Running $AOMP_NINJA_BIN for $BUILD_DIR/build/openmp ---- "
+  cd "$BUILD_DIR/build/$OPENMP_BUILD_DIR" || exit
+  echo " -----Running $AOMP_NINJA_BIN for $BUILD_DIR/build/$OPENMP_BUILD_DIR ---- "
 
   if ! $AOMP_NINJA_BIN -j "$AOMP_JOB_THREADS"; then
         echo " "
         echo "ERROR: $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS  FAILED"
         echo "To restart:"
-        echo "  cd $BUILD_DIR/build/openmp"
+        echo "  cd $BUILD_DIR/build/$OPENMP_BUILD_DIR"
         echo "  $AOMP_NINJA_BIN"
         exit 1
   fi
 fi
 
 if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
-   cd "$BUILD_DIR/build/openmp/asan" || exit
-   echo " -----Running $AOMP_NINJA_BIN for $BUILD_DIR/build/openmp/asan ---- "
+   cd "$BUILD_DIR/build/$OPENMP_BUILD_DIR/asan" || exit
+   echo " -----Running $AOMP_NINJA_BIN for $BUILD_DIR/build/$OPENMP_BUILD_DIR/asan ---- "
 
    if ! $AOMP_NINJA_BIN -j "$AOMP_JOB_THREADS"; then
       echo " "
       echo "ERROR: $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS  FAILED"
       echo "To restart:"
-      echo "  cd $BUILD_DIR/build/openmp/asan"
+      echo "  cd $BUILD_DIR/build/$OPENMP_BUILD_DIR/asan"
       echo "  $AOMP_NINJA_BIN"
       exit 1
    fi
 fi
 
 if [ "$AOMP_BUILD_PERF" == "1" ] ; then
-   cd "$BUILD_DIR/build/openmp_perf" || exit
+   cd "$BUILD_DIR/build/${OPENMP_BUILD_DIR}_perf" || exit
    echo
    echo
-   echo " -----Running $AOMP_NINJA_BIN for $BUILD_DIR/build/openmp_perf ---- "
+   echo " -----Running $AOMP_NINJA_BIN for $BUILD_DIR/build/${OPENMP_BUILD_DIR}_perf ---- "
    if ! $AOMP_NINJA_BIN -j "$AOMP_JOB_THREADS"; then
          echo "ERROR $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS failed"
          exit 1
    fi
    if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
-      cd "$BUILD_DIR/build/openmp_perf/asan" || exit
+      cd "$BUILD_DIR/build/${OPENMP_BUILD_DIR}_perf/asan" || exit
       echo
       echo
-      echo " ----- Running $AOMP_NINJA_BIN for $BUILD_DIR/build/openmp_perf/asan ----- "
+      echo " ----- Running $AOMP_NINJA_BIN for $BUILD_DIR/build/${OPENMP_BUILD_DIR}_perf/asan ----- "
 
       if ! $AOMP_NINJA_BIN -j "$AOMP_JOB_THREADS"; then
          echo "ERROR $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS failed"
@@ -413,10 +422,10 @@ fi
 
 if [ "$AOMP_BUILD_DEBUG" == "1" ] ; then
    if [ "$SANITIZER" != 1 ] ; then
-      cd "$BUILD_DIR/build/openmp_debug" || exit
+      cd "$BUILD_DIR/build/${OPENMP_BUILD_DIR}_debug" || exit
       echo
       echo
-      echo " -----Running $AOMP_NINJA_BIN for $BUILD_DIR/build/openmp_debug ---- "
+      echo " -----Running $AOMP_NINJA_BIN for $BUILD_DIR/build/${OPENMP_BUILD_DIR}_debug ---- "
 
       if ! $AOMP_NINJA_BIN -j "$AOMP_JOB_THREADS"; then
          echo "ERROR $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS failed"
@@ -425,10 +434,10 @@ if [ "$AOMP_BUILD_DEBUG" == "1" ] ; then
    fi
 
    if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
-      cd "$BUILD_DIR/build/openmp_debug/asan" || exit
+      cd "$BUILD_DIR/build/${OPENMP_BUILD_DIR}_debug/asan" || exit
       echo
       echo
-      echo " -----Running $AOMP_NINJA_BIN for $BUILD_DIR/build/openmp_debug/asan ---- "
+      echo " -----Running $AOMP_NINJA_BIN for $BUILD_DIR/build/${OPENMP_BUILD_DIR}_debug/asan ---- "
 
       if ! $AOMP_NINJA_BIN -j "$AOMP_JOB_THREADS"; then
          echo "ERROR $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS failed"
@@ -446,7 +455,7 @@ fi
 #  ----------- Install only if asked  ----------------------------
 if [ "$1" == "install" ] ; then
    if [ "$AOMP_LEGACY_OPENMP" == "1" ] && [ "$SANITIZER" != 1 ] ; then
-      cd "$BUILD_DIR/build/openmp" || exit
+      cd "$BUILD_DIR/build/$OPENMP_BUILD_DIR" || exit
       echo
       echo " -----Installing to $LLVM_INSTALL_LOC/lib ----- "
 
@@ -457,7 +466,7 @@ if [ "$1" == "install" ] ; then
    fi
 
    if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
-      cd "$BUILD_DIR/build/openmp/asan" || exit
+      cd "$BUILD_DIR/build/$OPENMP_BUILD_DIR/asan" || exit
       echo
       echo " -----Installing to $LLVM_INSTALL_LOC/lib/asan ----- "
 
@@ -468,7 +477,7 @@ if [ "$1" == "install" ] ; then
    fi
 
    if [ "$AOMP_BUILD_PERF" == "1" ]; then
-     cd "$BUILD_DIR/build/openmp_perf" || exit
+     cd "$BUILD_DIR/build/${OPENMP_BUILD_DIR}_perf" || exit
      echo
      echo " -----Installing to $LLVM_INSTALL_LOC/lib-perf ----- "
 
@@ -483,7 +492,7 @@ if [ "$1" == "install" ] ; then
      #fi
 
      if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
-        cd "$BUILD_DIR/build/openmp_perf/asan" || exit
+        cd "$BUILD_DIR/build/${OPENMP_BUILD_DIR}_perf/asan" || exit
         echo
         echo " ----- Installing to $LLVM_INSTALL_LOC/lib-perf/asan ----- "
 
@@ -496,7 +505,7 @@ if [ "$1" == "install" ] ; then
 
    if [ "$AOMP_BUILD_DEBUG" == "1" ] ; then
       if [ "$SANITIZER" != 1 ] ; then
-         cd "$BUILD_DIR/build/openmp_debug" || exit
+         cd "$BUILD_DIR/build/${OPENMP_BUILD_DIR}_debug" || exit
          echo
          echo " -----Installing to $LLVM_INSTALL_LOC/lib-debug ---- "
 
@@ -512,7 +521,7 @@ if [ "$1" == "install" ] ; then
       fi
 
       if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
-         cd "$BUILD_DIR/build/openmp_debug/asan" || exit
+         cd "$BUILD_DIR/build/${OPENMP_BUILD_DIR}_debug/asan" || exit
          echo " -----Installing to $LLVM_INSTALL_LOC/lib-debug/asan ---- "
 
          if ! $SUDO "$AOMP_NINJA_BIN" -j "$AOMP_JOB_THREADS" install; then
@@ -530,12 +539,15 @@ if [ "$1" == "install" ] ; then
       # to satisfy the above -fdebug-prefix-map.
       $SUDO mkdir -p "$_ompd_src_dir/openmp/runtime"
       $SUDO mkdir -p "$_ompd_src_dir/openmp/libompd"
+      $SUDO mkdir -p "$_ompd_src_dir/openmp/device"
       if [ "$AOMP_STANDALONE_BUILD" == 1 ]; then
         $SUDO cp -rp "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/runtime/src" "$_ompd_src_dir/openmp/runtime"
         $SUDO cp -rp "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/libompd/src" "$_ompd_src_dir/openmp/libompd"
+        $SUDO cp -rp "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/device/src" "$_ompd_src_dir/openmp/device"
       else
         $SUDO cp -rp "$LLVM_PROJECT_ROOT/openmp/runtime/src" "$_ompd_src_dir/openmp/runtime"
         $SUDO cp -rp "$LLVM_PROJECT_ROOT/openmp/libompd/src" "$_ompd_src_dir/openmp/libompd"
+        $SUDO cp -rp "$LLVM_PROJECT_ROOT/openmp/device/src" "$_ompd_src_dir/openmp/device"
       fi
    fi
 
@@ -543,4 +555,11 @@ if [ "$1" == "install" ] ; then
       removepatch "$REPO_DIR"
    fi
 
+fi
+
+if [ "$1" != "install" ] && [ "$OPENMP_BUILD_DEVICERTL" == 0 ] ; then
+  OPENMP_BUILD_DIR="openmp-devicertl" OPENMP_BUILD_DEVICERTL=1 $thisdir/build_openmp.sh
+fi
+if [ "$1" == "install" ] && [ "$OPENMP_BUILD_DEVICERTL" == 0 ]; then
+  OPENMP_BUILD_DIR="openmp-devicertl" OPENMP_BUILD_DEVICERTL=1 $thisdir/build_openmp.sh install
 fi
