@@ -44,6 +44,16 @@ if [ ${AOMP_SKIP_MATH_LIBS} == 1 ] ; then
 else
    _mathlibs_opt="-DTHEROCK_ENABLE_MATH_LIBS=ON"
 fi
+if [ ${AOMP_SKIP_ML_LIBS} == 1 ] ; then
+   _mllibs_opt="-DTHEROCK_ENABLE_ML_LIBS=OFF"
+else
+   _mllibs_opt="-DTHEROCK_ENABLE_ML_LIBS=ON"
+fi
+if [ ${AOMP_SKIP_COMPOSABLE_KERNEL} == 1 ] ; then
+   _composablek_opt="-DTHEROCK_ENABLE_COMPOSABLE_KERNEL=OFF"
+else
+   _composablek_opt="-DTHEROCK_ENABLE_COMPOSABLE_KERNEL=ON"
+fi
 
 # Specify target GFXLIST
 # gfx not currently supported by TheRock:
@@ -52,7 +62,7 @@ fi
 GFXLIST=${GFXLIST:-"gfx906 gfx908 gfx90a gfx942 gfx950 gfx1010 gfx1011 gfx1012 gfx1030 gfx1032 gfx1035 gfx1036 gfx1100 gfx1101 gfx1102 gfx1103 gfx1150 gfx1151 gfx1200 gfx1201"}
 
 _gfxsemicolons=$(echo "$GFXLIST" | tr ' ' ';')
-_cmd="cmake -B build -GNinja -DTHEROCK_AMDGPU_TARGETS='$_gfxsemicolons' -DTHEROCK_AMDGPU_DIST_BUNDLE_NAME=gfx9 -DTHEROCK_ENABLE_COMPOSABLE_KERNEL=OFF $_mathlibs_opt  -DTHEROCK_ENABLE_ML_LIBS=OFF -DTHEROCK_BUNDLE_SYSDEPS=ON -DTHEROCK_BUILD_TESTING=OFF $_rccl_opt $_therockdir"
+_cmd="cmake -B build -GNinja -DTHEROCK_AMDGPU_TARGETS='$_gfxsemicolons' -DTHEROCK_AMDGPU_DIST_BUNDLE_NAME=gfx9 $_composablek_opt $_mathlibs_opt $_mllibs_opt -DTHEROCK_BUNDLE_SYSDEPS=ON -DTHEROCK_BUILD_TESTING=OFF $_rccl_opt $_therockdir"
 
 #Record config and PATH in AOMP release info file"
 $thisdir/tr_add_info.sh therock_config $_cmd
