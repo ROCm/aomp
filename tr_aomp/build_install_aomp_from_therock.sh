@@ -14,18 +14,22 @@ thisdir=$(dirname "$realpath")
 # --- end standard header ----
 _curdir=$PWD
 
+_therockdir=$TR_AOMP_REPOS/TheRock
+PATH=$_therockdir/.venv/bin:$PATH
+export PATH
+
 if [ ! -d $TR_AOMP_REPOS/TheRock/build/dist/rocm ] ; then 
   echo "ERROR: Missing directory $TR_AOMP_REPOS/TheRock/build/dist/rocm "
   echo "       Did you get a successful full build with ./tr_build_aomp.sh"
   exit 1
 fi
-if [ ! -d $AOMP_INSTALL_DIR ] ; then 
-  echo "ERROR: Missing directory $AOMP_INSTALL_DIR"
-  echo "       Did you get a successful full build with ./tr_build_aomp.sh"
-  exit 1
-fi
-echo cd $TR_AOMP_REPOS/llvm-project/build
-cd $TR_AOMP_REPOS/llvm-project/build
+#if [ ! -d $AOMP_INSTALL_DIR ] ; then 
+#  echo "ERROR: Missing directory $AOMP_INSTALL_DIR"
+#  echo "       Did you get a successful full build with ./tr_build_aomp.sh"
+#  exit 1
+#fi
+echo cd $TR_AOMP_REPOS/TheRock/build
+cd $TR_AOMP_REPOS/TheRock/build
 echo ninja therock-dist
 echo
 ninja therock-dist
