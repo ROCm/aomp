@@ -1,5 +1,10 @@
 #!/bin/bash
 #
+#Copyright © Advanced Micro Devices, Inc., or its affiliates.
+#
+#SPDX-License-Identifier:  MIT
+# 
+#
 #  run_openmpvv.sh:
 #    Script for running the OpenMP_VV suite found at
 #    https://github.com/OpenMP-Validation-and-Verification/OpenMP_VV

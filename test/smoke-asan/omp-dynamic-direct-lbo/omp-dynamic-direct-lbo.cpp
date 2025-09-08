@@ -1,3 +1,7 @@
+// Copyright © Advanced Micro Devices, Inc., or its affiliates.
+//
+// SPDX-License-Identifier:  MIT
+
 #include <omp.h>
 
 #define LDS_ATTR __attribute__((address_space(3)))
