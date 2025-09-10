@@ -54,12 +54,6 @@ else
    _composablek_opt="-DTHEROCK_ENABLE_COMPOSABLE_KERNEL=ON"
 fi
 
-# Specify target GFXLIST
-# gfx not currently supported by TheRock:
-#   gfx900 gfx902 gfx90c gfx1031 gfx1052 gfx1053
-#   gfx9-generic gfx9-4-generic gfx10-1-generic gfx10-3-generic gfx11-generic gfx12-generic
-GFXLIST=${GFXLIST:-"gfx906 gfx908 gfx90a gfx942 gfx950 gfx1010 gfx1011 gfx1012 gfx1030 gfx1032 gfx1035 gfx1036 gfx1100 gfx1101 gfx1102 gfx1103 gfx1150 gfx1151 gfx1200 gfx1201"}
-
 _gfxsemicolons=$(echo "$GFXLIST" | tr ' ' ';')
 _cmd="cmake -B build -GNinja -DTHEROCK_AMDGPU_TARGETS='$_gfxsemicolons' -DTHEROCK_AMDGPU_DIST_BUNDLE_NAME=gfx9 $_composablek_opt $_mathlibs_opt $_mllibs_opt -DTHEROCK_BUNDLE_SYSDEPS=ON -DTHEROCK_BUILD_TESTING=OFF $_rccl_opt $_therockdir"
 
