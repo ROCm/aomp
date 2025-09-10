@@ -43,3 +43,10 @@ AOMP_SKIP_COMPOSABLE_KERNEL=${AOMP_SKIP_COMPOSABLE_KERNEL:-1}
 
 export AOMP_VERSION_STRING AOMP_VERSION AOMP_VERSION_MOD AOMP_MAJOR_VERSION AOMP AOMP_INSTALL_DIR TR_AOMP_REPOS AOMP_INIT_THEROCK_TIP AOMP_SKIP_RCCL
 
+# Specify target GFXLIST
+# gfx not currently supported by TheRock:
+#   gfx900 gfx902 gfx90c gfx1031 gfx1052 gfx1053
+#   gfx9-generic gfx9-4-generic gfx10-1-generic gfx10-3-generic gfx11-generic gfx12-generic
+GFXLIST=${GFXLIST:-"gfx906 gfx908 gfx90a gfx942 gfx950 gfx1010 gfx1011 gfx1012 gfx1030 gfx1032 gfx1035 gfx1036 gfx1100 gfx1101 gfx1102 gfx1103 gfx1150 gfx1151 gfx1200 gfx1201"}
+
+export GFXLIST
