@@ -1,0 +1,138 @@
+BEGIN	1757694023.2356544
+EXEC	/work1/grodgers/git/tr-aomp/TheRock/build/compiler/hipcc/build	/usr/bin/cmake -E env --unset=ROCM_PATH --unset=ROCM_DIR --unset=HIP_PATH --unset=HIP_DIR -- /usr/bin/cmake --build /work/grodgers/git/tr-aomp/TheRock/build/compiler/hipcc/build
+0.0	[1/7] cd /work/grodgers/git/tr-aomp/TheRock/build/compiler/hipcc/build && /usr/bin/cmake -E rm -f /work/grodgers/git/tr-aomp/TheRock/build/compiler/hipcc/stamp/stage.stamp
+0.5	[2/7] Building CXX object CMakeFiles/hipconfig.dir/src/utils.cpp.o
+0.5	[3/7] Building CXX object CMakeFiles/hipcc.dir/src/utils.cpp.o
+4.2	[4/7] Building CXX object CMakeFiles/hipcc.dir/src/hipcc.cpp.o
+4.2	In file included from /work/grodgers/git/tr-aomp/TheRock/compiler/amd-llvm/amd/hipcc/src/hipBin_amd.h:26,
+4.2	                 from /work/grodgers/git/tr-aomp/TheRock/compiler/amd-llvm/amd/hipcc/src/hipBin.h:24,
+4.2	                 from /work/grodgers/git/tr-aomp/TheRock/compiler/amd-llvm/amd/hipcc/src/hipcc.cpp:23:
+4.2	/work/grodgers/git/tr-aomp/TheRock/compiler/amd-llvm/amd/hipcc/src/hipBin_base.h: In member function ‘void HipBinBase::getSystemInfo() const’:
+4.2	/work/grodgers/git/tr-aomp/TheRock/compiler/amd-llvm/amd/hipcc/src/hipBin_base.h:411:11: warning: ignoring return value of ‘int system(const char*)’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+4.2	  411 |     system("hostname");
+4.2	      |     ~~~~~~^~~~~~~~~~~~
+4.2	/work/grodgers/git/tr-aomp/TheRock/compiler/amd-llvm/amd/hipcc/src/hipBin_base.h:412:11: warning: ignoring return value of ‘int system(const char*)’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+4.2	  412 |     system("wmic path win32_VideoController get AdapterCompatibility,"
+4.2	      |     ~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4.2	  413 |     "InstalledDisplayDrivers,Name | findstr /B /C:\"Advanced Micro Devices\"");
+4.2	      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4.2	/work/grodgers/git/tr-aomp/TheRock/compiler/amd-llvm/amd/hipcc/src/hipBin_base.h:418:11: warning: ignoring return value of ‘int system(const char*)’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+4.2	  418 |     system("hostname");
+4.2	      |     ~~~~~~^~~~~~~~~~~~
+4.2	/work/grodgers/git/tr-aomp/TheRock/compiler/amd-llvm/amd/hipcc/src/hipBin_base.h:419:11: warning: ignoring return value of ‘int system(const char*)’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+4.2	  419 |     system("uname -a");
+4.2	      |     ~~~~~~^~~~~~~~~~~~
+4.2	/work/grodgers/git/tr-aomp/TheRock/compiler/amd-llvm/amd/hipcc/src/hipBin_base.h: In member function ‘void HipBinBase::printEnvironmentVariables() const’:
+4.2	/work/grodgers/git/tr-aomp/TheRock/compiler/amd-llvm/amd/hipcc/src/hipBin_base.h:428:11: warning: ignoring return value of ‘int system(const char*)’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+4.2	  428 |     system("set | findstr"
+4.2	      |     ~~~~~~^~~~~~~~~~~~~~~~
+4.2	  429 |     " /B /C:\"HIP\" /C:\"HSA\" /C:\"CUDA\" /C:\"LD_LIBRARY_PATH\"");
+4.2	      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4.2	/work/grodgers/git/tr-aomp/TheRock/compiler/amd-llvm/amd/hipcc/src/hipBin_base.h:433:11: warning: ignoring return value of ‘int system(const char*)’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+4.2	  433 |     system(cmd.c_str());
+4.2	      |     ~~~~~~^~~~~~~~~~~~~
+4.2	/work/grodgers/git/tr-aomp/TheRock/compiler/amd-llvm/amd/hipcc/src/hipBin_base.h:434:11: warning: ignoring return value of ‘int system(const char*)’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+4.2	  434 |     system("env | egrep '^HIP|^HSA|^CUDA|^LD_LIBRARY_PATH'");
+4.2	      |     ~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4.2	/work/grodgers/git/tr-aomp/TheRock/compiler/amd-llvm/amd/hipcc/src/hipBin_amd.h: In member function ‘virtual void HipBinAmd::printCompilerInfo() const’:
+4.2	/work/grodgers/git/tr-aomp/TheRock/compiler/amd-llvm/amd/hipcc/src/hipBin_amd.h:225:9: warning: ignoring return value of ‘int system(const char*)’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+4.2	  225 |   system(cmd.c_str());  // hipclang version
+4.2	      |   ~~~~~~^~~~~~~~~~~~~
+4.2	/work/grodgers/git/tr-aomp/TheRock/compiler/amd-llvm/amd/hipcc/src/hipBin_amd.h:227:9: warning: ignoring return value of ‘int system(const char*)’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+4.2	  227 |   system(cmd.c_str());  // llc version
+4.2	      |   ~~~~~~^~~~~~~~~~~~~
+4.2	/work/grodgers/git/tr-aomp/TheRock/compiler/amd-llvm/amd/hipcc/src/hipBin_amd.h:230:9: warning: ignoring return value of ‘int system(const char*)’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+4.2	  230 |   system(cmd.c_str());  // cxx flags
+4.2	      |   ~~~~~~^~~~~~~~~~~~~
+4.2	/work/grodgers/git/tr-aomp/TheRock/compiler/amd-llvm/amd/hipcc/src/hipBin_amd.h:233:9: warning: ignoring return value of ‘int system(const char*)’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+4.2	  233 |   system(cmd.c_str());  // ldflags version
+4.2	      |   ~~~~~~^~~~~~~~~~~~~
+4.2	/work/grodgers/git/tr-aomp/TheRock/compiler/amd-llvm/amd/hipcc/src/hipBin_amd.h: In member function ‘virtual void HipBinAmd::printFull()’:
+4.2	/work/grodgers/git/tr-aomp/TheRock/compiler/amd-llvm/amd/hipcc/src/hipBin_amd.h:434:11: warning: ignoring return value of ‘int system(const char*)’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+4.2	  434 |     system("/usr/bin/lsb_release -a");
+4.2	      |     ~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~
+4.2	In file included from /work/grodgers/git/tr-aomp/TheRock/compiler/amd-llvm/amd/hipcc/src/hipBin.h:25:
+4.2	/work/grodgers/git/tr-aomp/TheRock/compiler/amd-llvm/amd/hipcc/src/hipBin_nvidia.h: In member function ‘virtual void HipBinNvidia::printFull()’:
+4.2	/work/grodgers/git/tr-aomp/TheRock/compiler/amd-llvm/amd/hipcc/src/hipBin_nvidia.h:166:11: warning: ignoring return value of ‘int system(const char*)’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+4.2	  166 |     system("/usr/bin/lsb_release -a");
+4.2	      |     ~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~
+4.2	/work/grodgers/git/tr-aomp/TheRock/compiler/amd-llvm/amd/hipcc/src/hipBin_nvidia.h: In member function ‘virtual void HipBinNvidia::printCompilerInfo() const’:
+4.2	/work/grodgers/git/tr-aomp/TheRock/compiler/amd-llvm/amd/hipcc/src/hipBin_nvidia.h:264:9: warning: ignoring return value of ‘int system(const char*)’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+4.2	  264 |   system(cmd.c_str());
+4.2	      |   ~~~~~~^~~~~~~~~~~~~
+4.2	/work/grodgers/git/tr-aomp/TheRock/compiler/amd-llvm/amd/hipcc/src/hipBin_nvidia.h: In member function ‘virtual std::string HipBinNvidia::getCompilerVersion()’:
+4.2	/work/grodgers/git/tr-aomp/TheRock/compiler/amd-llvm/amd/hipcc/src/hipBin_nvidia.h:277:9: warning: ignoring return value of ‘int system(const char*)’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+4.2	  277 |   system(cmd.c_str());
+4.2	      |   ~~~~~~^~~~~~~~~~~~~
+4.2	/work/grodgers/git/tr-aomp/TheRock/compiler/amd-llvm/amd/hipcc/src/hipBin_nvidia.h: In member function ‘virtual void HipBinNvidia::executeHipCCCmd(std::vector<std::__cxx11::basic_string<char> >)’:
+4.2	/work/grodgers/git/tr-aomp/TheRock/compiler/amd-llvm/amd/hipcc/src/hipBin_nvidia.h:398:11: warning: ignoring return value of ‘int system(const char*)’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+4.2	  398 |     system(ISACMD.c_str());
+4.2	      |     ~~~~~~^~~~~~~~~~~~~~~~
+4.3	[5/7] Building CXX object CMakeFiles/hipconfig.dir/src/hipconfig.cpp.o
+4.3	In file included from /work/grodgers/git/tr-aomp/TheRock/compiler/amd-llvm/amd/hipcc/src/hipBin_amd.h:26,
+4.3	                 from /work/grodgers/git/tr-aomp/TheRock/compiler/amd-llvm/amd/hipcc/src/hipBin.h:24,
+4.3	                 from /work/grodgers/git/tr-aomp/TheRock/compiler/amd-llvm/amd/hipcc/src/hipconfig.cpp:23:
+4.3	/work/grodgers/git/tr-aomp/TheRock/compiler/amd-llvm/amd/hipcc/src/hipBin_base.h: In member function ‘void HipBinBase::getSystemInfo() const’:
+4.3	/work/grodgers/git/tr-aomp/TheRock/compiler/amd-llvm/amd/hipcc/src/hipBin_base.h:411:11: warning: ignoring return value of ‘int system(const char*)’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+4.3	  411 |     system("hostname");
+4.3	      |     ~~~~~~^~~~~~~~~~~~
+4.3	/work/grodgers/git/tr-aomp/TheRock/compiler/amd-llvm/amd/hipcc/src/hipBin_base.h:412:11: warning: ignoring return value of ‘int system(const char*)’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+4.3	  412 |     system("wmic path win32_VideoController get AdapterCompatibility,"
+4.3	      |     ~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4.3	  413 |     "InstalledDisplayDrivers,Name | findstr /B /C:\"Advanced Micro Devices\"");
+4.3	      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4.3	/work/grodgers/git/tr-aomp/TheRock/compiler/amd-llvm/amd/hipcc/src/hipBin_base.h:418:11: warning: ignoring return value of ‘int system(const char*)’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+4.3	  418 |     system("hostname");
+4.3	      |     ~~~~~~^~~~~~~~~~~~
+4.3	/work/grodgers/git/tr-aomp/TheRock/compiler/amd-llvm/amd/hipcc/src/hipBin_base.h:419:11: warning: ignoring return value of ‘int system(const char*)’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+4.3	  419 |     system("uname -a");
+4.3	      |     ~~~~~~^~~~~~~~~~~~
+4.3	/work/grodgers/git/tr-aomp/TheRock/compiler/amd-llvm/amd/hipcc/src/hipBin_base.h: In member function ‘void HipBinBase::printEnvironmentVariables() const’:
+4.3	/work/grodgers/git/tr-aomp/TheRock/compiler/amd-llvm/amd/hipcc/src/hipBin_base.h:428:11: warning: ignoring return value of ‘int system(const char*)’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+4.3	  428 |     system("set | findstr"
+4.3	      |     ~~~~~~^~~~~~~~~~~~~~~~
+4.3	  429 |     " /B /C:\"HIP\" /C:\"HSA\" /C:\"CUDA\" /C:\"LD_LIBRARY_PATH\"");
+4.3	      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4.3	/work/grodgers/git/tr-aomp/TheRock/compiler/amd-llvm/amd/hipcc/src/hipBin_base.h:433:11: warning: ignoring return value of ‘int system(const char*)’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+4.3	  433 |     system(cmd.c_str());
+4.3	      |     ~~~~~~^~~~~~~~~~~~~
+4.3	/work/grodgers/git/tr-aomp/TheRock/compiler/amd-llvm/amd/hipcc/src/hipBin_base.h:434:11: warning: ignoring return value of ‘int system(const char*)’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+4.3	  434 |     system("env | egrep '^HIP|^HSA|^CUDA|^LD_LIBRARY_PATH'");
+4.3	      |     ~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4.3	/work/grodgers/git/tr-aomp/TheRock/compiler/amd-llvm/amd/hipcc/src/hipBin_amd.h: In member function ‘virtual void HipBinAmd::printCompilerInfo() const’:
+4.3	/work/grodgers/git/tr-aomp/TheRock/compiler/amd-llvm/amd/hipcc/src/hipBin_amd.h:225:9: warning: ignoring return value of ‘int system(const char*)’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+4.3	  225 |   system(cmd.c_str());  // hipclang version
+4.3	      |   ~~~~~~^~~~~~~~~~~~~
+4.3	/work/grodgers/git/tr-aomp/TheRock/compiler/amd-llvm/amd/hipcc/src/hipBin_amd.h:227:9: warning: ignoring return value of ‘int system(const char*)’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+4.3	  227 |   system(cmd.c_str());  // llc version
+4.3	      |   ~~~~~~^~~~~~~~~~~~~
+4.3	/work/grodgers/git/tr-aomp/TheRock/compiler/amd-llvm/amd/hipcc/src/hipBin_amd.h:230:9: warning: ignoring return value of ‘int system(const char*)’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+4.3	  230 |   system(cmd.c_str());  // cxx flags
+4.3	      |   ~~~~~~^~~~~~~~~~~~~
+4.3	/work/grodgers/git/tr-aomp/TheRock/compiler/amd-llvm/amd/hipcc/src/hipBin_amd.h:233:9: warning: ignoring return value of ‘int system(const char*)’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+4.3	  233 |   system(cmd.c_str());  // ldflags version
+4.3	      |   ~~~~~~^~~~~~~~~~~~~
+4.3	/work/grodgers/git/tr-aomp/TheRock/compiler/amd-llvm/amd/hipcc/src/hipBin_amd.h: In member function ‘virtual void HipBinAmd::printFull()’:
+4.3	/work/grodgers/git/tr-aomp/TheRock/compiler/amd-llvm/amd/hipcc/src/hipBin_amd.h:434:11: warning: ignoring return value of ‘int system(const char*)’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+4.3	  434 |     system("/usr/bin/lsb_release -a");
+4.3	      |     ~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~
+4.3	In file included from /work/grodgers/git/tr-aomp/TheRock/compiler/amd-llvm/amd/hipcc/src/hipBin.h:25:
+4.3	/work/grodgers/git/tr-aomp/TheRock/compiler/amd-llvm/amd/hipcc/src/hipBin_nvidia.h: In member function ‘virtual void HipBinNvidia::printFull()’:
+4.3	/work/grodgers/git/tr-aomp/TheRock/compiler/amd-llvm/amd/hipcc/src/hipBin_nvidia.h:166:11: warning: ignoring return value of ‘int system(const char*)’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+4.3	  166 |     system("/usr/bin/lsb_release -a");
+4.3	      |     ~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~
+4.3	/work/grodgers/git/tr-aomp/TheRock/compiler/amd-llvm/amd/hipcc/src/hipBin_nvidia.h: In member function ‘virtual void HipBinNvidia::printCompilerInfo() const’:
+4.3	/work/grodgers/git/tr-aomp/TheRock/compiler/amd-llvm/amd/hipcc/src/hipBin_nvidia.h:264:9: warning: ignoring return value of ‘int system(const char*)’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+4.3	  264 |   system(cmd.c_str());
+4.3	      |   ~~~~~~^~~~~~~~~~~~~
+4.3	/work/grodgers/git/tr-aomp/TheRock/compiler/amd-llvm/amd/hipcc/src/hipBin_nvidia.h: In member function ‘virtual std::string HipBinNvidia::getCompilerVersion()’:
+4.3	/work/grodgers/git/tr-aomp/TheRock/compiler/amd-llvm/amd/hipcc/src/hipBin_nvidia.h:277:9: warning: ignoring return value of ‘int system(const char*)’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+4.3	  277 |   system(cmd.c_str());
+4.3	      |   ~~~~~~^~~~~~~~~~~~~
+4.3	/work/grodgers/git/tr-aomp/TheRock/compiler/amd-llvm/amd/hipcc/src/hipBin_nvidia.h: In member function ‘virtual void HipBinNvidia::executeHipCCCmd(std::vector<std::__cxx11::basic_string<char> >)’:
+4.3	/work/grodgers/git/tr-aomp/TheRock/compiler/amd-llvm/amd/hipcc/src/hipBin_nvidia.h:398:11: warning: ignoring return value of ‘int system(const char*)’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+4.3	  398 |     system(ISACMD.c_str());
+4.3	      |     ~~~~~~^~~~~~~~~~~~~~~~
+4.3	[6/7] Linking CXX executable hipcc
+4.3	[7/7] Linking CXX executable hipconfig
+END	1757694027.5769103	4.3412559032440186	0

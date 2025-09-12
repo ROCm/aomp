@@ -1,0 +1,287 @@
+BEGIN	1757693420.8400483
+EXEC	/work1/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/build	/usr/bin/cmake -E env --unset=ROCM_PATH --unset=ROCM_DIR --unset=HIP_PATH --unset=HIP_DIR -- /usr/bin/cmake -GNinja -B/work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/build -S/work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/source -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/stage/lib/host-math -DTHEROCK_STAGE_INSTALL_ROOT=/work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/stage -DCMAKE_TOOLCHAIN_FILE=/work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/_toolchain.cmake -DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=/work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/_init.cmake '-DSUITESPARSE_ENABLE_PROJECTS=suitesparse_config;cholmod' -DBLA_VENDOR=OpenBLAS -DBUILD_STATIC_LIBS=OFF -DSUITESPARSE_USE_CUDA=OFF -DSUITESPARSE_USE_OPENMP=OFF -DSUITESPARSE_USE_FORTRAN=OFF
+0.0	-- Resolving packages from super-project: OpenBLAS;cblas
+0.1	-- The C compiler identification is GNU 13.3.0
+0.1	-- The CXX compiler identification is GNU 13.3.0
+0.1	-- Detecting C compiler ABI info
+0.2	-- Detecting C compiler ABI info - done
+0.2	-- Check for working C compiler: /usr/bin/cc - skipped
+0.2	-- Detecting C compile features
+0.2	-- Detecting C compile features - done
+0.2	-- Detecting CXX compiler ABI info
+0.3	-- Detecting CXX compiler ABI info - done
+0.3	-- Check for working CXX compiler: /usr/bin/c++ - skipped
+0.3	-- Detecting CXX compile features
+0.3	-- Detecting CXX compile features - done
+0.3	-- Source:           /work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/source 
+0.3	-- Build:            /work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/build 
+0.3	-- Install lib:      lib
+0.3	-- Install include:  include/suitesparse
+0.3	-- Install bin:      bin
+0.3	-- Install pkg-file: lib
+0.3	-- Install rpath:    $ORIGIN
+0.3	-- Build   rpath:    
+0.3	-- Build type:       Release 
+0.3	-- Fortran:          not enabled
+0.3	-- CUDA:             not enabled
+0.3	-- Adding "amd" to the list of built targets.
+0.3	-- Adding "colamd" to the list of built targets.
+0.3	-- Adding "camd" to the list of built targets.
+0.3	-- Adding "ccolamd" to the list of built targets.
+0.3	-- Building SuiteSparse_config version: v7.8.3 (Oct 10, 2024)
+0.3	-- Source:           /work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/source 
+0.3	-- Build:            /work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/build 
+0.3	-- Install lib:      lib
+0.3	-- Install include:  include/suitesparse
+0.3	-- Install bin:      bin
+0.3	-- Install pkg-file: lib
+0.3	-- Install rpath:    $ORIGIN
+0.3	-- Build   rpath:    
+0.3	-- Build type:       Release 
+0.3	-- Fortran:          not enabled
+0.3	-- CUDA:             not enabled
+0.3	-- C to Fortran calling protocol: 
+0.3	--     SUITESPARSE_HAS_FORTRAN  : OFF
+0.3	--     FortranCInterface_GLOBAL_MACRO  : (name,NAME) name##_
+0.3	--     FortranCInterface_GLOBAL__MACRO : (name,NAME) name##_
+0.3	-- SuiteSparse_config has OpenMP: OFF
+0.3	-- Looking for clock_gettime
+0.3	-- Looking for clock_gettime - found
+0.3	-- Using clock_gettime without librt
+0.3	-- Looking for 32-BLAS: OpenBLAS
+0.3	-- Resolving system find_package(BLAS) (not found in super-project OpenBLAS;cblas)
+0.3	-- Resolving bundled host-blas library from super-project
+0.3	-- Resolving super-project find_package(OpenBLAS REQUIRED CONFIG BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr-aomp/TheRock/build/third-party/host-blas/./dist/lib/host-math/lib/cmake/OpenBLAS)
+0.3	-- Found OpenBLAS 32-bit BLAS
+0.3	-- Specific BLAS: OpenBLAS found: TRUE
+0.3	-- BLAS integer size: 4
+0.3	-- Looking for fmax
+0.4	-- Looking for fmax - not found
+0.4	-- BLAS libraries:      OpenBLAS::OpenBLAS 
+0.4	-- BLAS linker flags:    
+0.4	-- BLAS include:         
+0.4	-- ------------------------------------------------------------------------
+0.4	-- SuiteSparse CMAKE report for: SuiteSparseConfig
+0.4	-- ------------------------------------------------------------------------
+0.4	-- build type:           Release
+0.4	-- BUILD_SHARED_LIBS:    ON
+0.4	-- BUILD_STATIC_LIBS:    OFF
+0.4	-- C compiler:           /usr/bin/cc 
+0.4	-- C flags:              
+0.4	-- C++ compiler:         /usr/bin/c++
+0.4	-- C++ flags:            
+0.4	-- C Flags release:      -O3 -DNDEBUG 
+0.4	-- C++ Flags release:    -O3 -DNDEBUG 
+0.4	-- Fortran compiler:     none
+0.4	-- compile definitions:  BLAS_OpenBLAS
+0.4	-- BLAS integer:         int32_t
+0.4	-- ------------------------------------------------------------------------
+0.4	-- Building AMD version: v3.3.3 (June 20, 2024)
+0.4	-- Source:           /work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/source 
+0.4	-- Build:            /work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/build 
+0.4	-- Install lib:      lib
+0.4	-- Install include:  include/suitesparse
+0.4	-- Install bin:      bin
+0.4	-- Install pkg-file: lib
+0.4	-- Install rpath:    $ORIGIN
+0.4	-- Build   rpath:    
+0.4	-- Build type:       Release 
+0.4	-- Fortran:          not enabled
+0.4	-- CUDA:             not enabled
+0.4	-- Skipping the demos in AMD/Demo
+0.4	-- ------------------------------------------------------------------------
+0.4	-- SuiteSparse CMAKE report for: AMD
+0.4	-- ------------------------------------------------------------------------
+0.4	-- build type:           Release
+0.4	-- BUILD_SHARED_LIBS:    ON
+0.4	-- BUILD_STATIC_LIBS:    OFF
+0.4	-- C compiler:           /usr/bin/cc 
+0.4	-- C flags:              
+0.4	-- C++ compiler:         /usr/bin/c++
+0.4	-- C++ flags:            
+0.4	-- C Flags release:      -O3 -DNDEBUG 
+0.4	-- C++ Flags release:    -O3 -DNDEBUG 
+0.4	-- Fortran compiler:     none
+0.4	-- compile definitions:  
+0.4	-- ------------------------------------------------------------------------
+0.4	-- Building CAMD version: v3.3.3 (June 20, 2024)
+0.4	-- Source:           /work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/source 
+0.4	-- Build:            /work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/build 
+0.4	-- Install lib:      lib
+0.4	-- Install include:  include/suitesparse
+0.4	-- Install bin:      bin
+0.4	-- Install pkg-file: lib
+0.4	-- Install rpath:    $ORIGIN
+0.4	-- Build   rpath:    
+0.4	-- Build type:       Release 
+0.4	-- Fortran:          not enabled
+0.4	-- CUDA:             not enabled
+0.4	-- Skipping the demos in CAMD/Demo
+0.4	-- ------------------------------------------------------------------------
+0.4	-- SuiteSparse CMAKE report for: CAMD
+0.4	-- ------------------------------------------------------------------------
+0.4	-- build type:           Release
+0.4	-- BUILD_SHARED_LIBS:    ON
+0.4	-- BUILD_STATIC_LIBS:    OFF
+0.4	-- C compiler:           /usr/bin/cc 
+0.4	-- C flags:              
+0.4	-- C++ compiler:         /usr/bin/c++
+0.4	-- C++ flags:            
+0.4	-- C Flags release:      -O3 -DNDEBUG 
+0.4	-- C++ Flags release:    -O3 -DNDEBUG 
+0.4	-- Fortran compiler:     none
+0.4	-- compile definitions:  
+0.4	-- ------------------------------------------------------------------------
+0.4	-- Building CCOLAMD version: v3.3.4 (June 20, 2024)
+0.4	-- Source:           /work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/source 
+0.4	-- Build:            /work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/build 
+0.4	-- Install lib:      lib
+0.4	-- Install include:  include/suitesparse
+0.4	-- Install bin:      bin
+0.4	-- Install pkg-file: lib
+0.4	-- Install rpath:    $ORIGIN
+0.4	-- Build   rpath:    
+0.4	-- Build type:       Release 
+0.4	-- Fortran:          not enabled
+0.4	-- CUDA:             not enabled
+0.4	-- Skipping the demos in CCOLAMD/Demo
+0.4	-- ------------------------------------------------------------------------
+0.4	-- SuiteSparse CMAKE report for: CCOLAMD
+0.4	-- ------------------------------------------------------------------------
+0.4	-- build type:           Release
+0.4	-- BUILD_SHARED_LIBS:    ON
+0.4	-- BUILD_STATIC_LIBS:    OFF
+0.4	-- C compiler:           /usr/bin/cc 
+0.4	-- C flags:              
+0.4	-- C++ compiler:         /usr/bin/c++
+0.4	-- C++ flags:            
+0.4	-- C Flags release:      -O3 -DNDEBUG 
+0.4	-- C++ Flags release:    -O3 -DNDEBUG 
+0.4	-- Fortran compiler:     none
+0.4	-- compile definitions:  
+0.4	-- ------------------------------------------------------------------------
+0.4	-- Building COLAMD version: v3.3.4 (June 20, 2024)
+0.4	-- Source:           /work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/source 
+0.4	-- Build:            /work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/build 
+0.5	-- Install lib:      lib
+0.5	-- Install include:  include/suitesparse
+0.5	-- Install bin:      bin
+0.5	-- Install pkg-file: lib
+0.5	-- Install rpath:    $ORIGIN
+0.5	-- Build   rpath:    
+0.5	-- Build type:       Release 
+0.5	-- Fortran:          not enabled
+0.5	-- CUDA:             not enabled
+0.5	-- Skipping the demos in COLAMD/Demo
+0.5	-- ------------------------------------------------------------------------
+0.5	-- SuiteSparse CMAKE report for: COLAMD
+0.5	-- ------------------------------------------------------------------------
+0.5	-- build type:           Release
+0.5	-- BUILD_SHARED_LIBS:    ON
+0.5	-- BUILD_STATIC_LIBS:    OFF
+0.5	-- C compiler:           /usr/bin/cc 
+0.5	-- C flags:              
+0.5	-- C++ compiler:         /usr/bin/c++
+0.5	-- C++ flags:            
+0.5	-- C Flags release:      -O3 -DNDEBUG 
+0.5	-- C++ Flags release:    -O3 -DNDEBUG 
+0.5	-- Fortran compiler:     none
+0.5	-- compile definitions:  
+0.5	-- ------------------------------------------------------------------------
+0.5	-- Building CHOLMOD version: v5.3.0 (June 20, 2024)
+0.5	-- Source:           /work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/source 
+0.5	-- Build:            /work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/build 
+0.5	-- Install lib:      lib
+0.5	-- Install include:  include/suitesparse
+0.5	-- Install bin:      bin
+0.5	-- Install pkg-file: lib
+0.5	-- Install rpath:    $ORIGIN
+0.5	-- Build   rpath:    
+0.5	-- Build type:       Release 
+0.5	-- Fortran:          not enabled
+0.5	-- CUDA:             not enabled
+0.5	-- Looking for sys/types.h
+0.5	-- Looking for sys/types.h - found
+0.5	-- Looking for stdint.h
+0.6	-- Looking for stdint.h - found
+0.6	-- Looking for stddef.h
+0.6	-- Looking for stddef.h - found
+0.6	-- Check size of ssize_t
+0.7	-- Check size of ssize_t - done
+0.7	-- CHOLMOD has OpenMP: OFF
+0.7	-- Looking for 32-BLAS: OpenBLAS
+0.7	-- Resolving system find_package(BLAS) (not found in super-project OpenBLAS;cblas)
+0.7	-- Resolving bundled host-blas library from super-project
+0.7	-- Resolving super-project find_package(OpenBLAS REQUIRED CONFIG BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr-aomp/TheRock/build/third-party/host-blas/./dist/lib/host-math/lib/cmake/OpenBLAS)
+0.7	-- Found OpenBLAS 32-bit BLAS
+0.7	-- Specific BLAS: OpenBLAS found: TRUE
+0.7	-- BLAS integer size: 4
+0.7	-- Resolving system find_package(LAPACK) (not found in super-project OpenBLAS;cblas)
+0.7	-- Resolving bundled host-blas library from super-project
+0.7	-- Resolving super-project find_package(OpenBLAS REQUIRED CONFIG BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr-aomp/TheRock/build/third-party/host-blas/./dist/lib/host-math/lib/cmake/OpenBLAS)
+0.7	-- Performing Test HAVE_KEYWORD__DECLSPEC_THREAD
+0.8	-- Performing Test HAVE_KEYWORD__DECLSPEC_THREAD - Failed
+0.8	-- Performing Test HAVE_KEYWORD__THREAD
+0.8	-- Performing Test HAVE_KEYWORD__THREAD - Success
+0.8	-- Performing Test HAVE_KEYWORD__THREAD_LOCAL
+0.9	-- Performing Test HAVE_KEYWORD__THREAD_LOCAL - Success
+0.9	-- __declspec(thread) keyword: not available
+0.9	-- __thread keyword: available
+0.9	-- _Thread_local keyword: available
+0.9	-- LAPACK libraries:    OpenBLAS::OpenBLAS
+0.9	-- LAPACK include:      
+0.9	-- LAPACK linker flags: 
+0.9	-- BLAS libraries:      OpenBLAS::OpenBLAS
+0.9	-- BLAS include:        
+0.9	-- BLAS linker flags:   
+1.2	-- ------------------------------------------------------------------------
+1.2	-- SuiteSparse CMAKE report for: CHOLMOD
+1.2	-- ------------------------------------------------------------------------
+1.2	-- build type:           Release
+1.2	-- BUILD_SHARED_LIBS:    ON
+1.2	-- BUILD_STATIC_LIBS:    OFF
+1.2	-- C compiler:           /usr/bin/cc 
+1.2	-- C flags:              
+1.2	-- C++ compiler:         /usr/bin/c++
+1.2	-- C++ flags:            
+1.2	-- C Flags release:      -O3 -DNDEBUG 
+1.2	-- C++ Flags release:    -O3 -DNDEBUG 
+1.2	-- Fortran compiler:     none
+1.2	-- compile definitions:  BLAS_OpenBLAS;HAVE_KEYWORD__THREAD;HAVE_KEYWORD__THREAD_LOCAL
+1.2	-- BLAS integer:         int32_t
+1.2	-- ------------------------------------------------------------------------
+1.2	-- ------------------------------------------------------------------------
+1.2	-- SuiteSparse CMAKE report for: SuiteSparse
+1.2	-- ------------------------------------------------------------------------
+1.2	-- build type:           Release
+1.2	-- BUILD_SHARED_LIBS:    ON
+1.2	-- BUILD_STATIC_LIBS:    OFF
+1.2	-- C compiler:           /usr/bin/cc 
+1.2	-- C flags:              
+1.2	-- C++ compiler:         /usr/bin/c++
+1.2	-- C++ flags:            
+1.2	-- C Flags release:      -O3 -DNDEBUG 
+1.2	-- C++ Flags release:    -O3 -DNDEBUG 
+1.2	-- Fortran compiler:     none
+1.2	-- compile definitions:  
+1.2	-- ------------------------------------------------------------------------
+1.2	-- Set RPATH $ORIGIN/../lib on cholmod_di_demo
+1.2	-- Set RPATH $ORIGIN/../lib on cholmod_dl_demo
+1.2	-- Set RPATH $ORIGIN/../lib on cholmod_si_demo
+1.2	-- Set RPATH $ORIGIN/../lib on cholmod_sl_demo
+1.2	-- Set RPATH $ORIGIN on SuiteSparseConfig
+1.2	-- Set RPATH $ORIGIN on AMD
+1.2	-- Set RPATH $ORIGIN on CAMD
+1.2	-- Set RPATH $ORIGIN on CCOLAMD
+1.2	-- Set RPATH $ORIGIN on COLAMD
+1.2	-- Set RPATH $ORIGIN on CHOLMOD
+1.2	-- Configuring done (1.2s)
+1.3	-- Generating done (0.0s)
+1.3	CMake Warning:
+1.3	  Manually-specified variables were not used by the project:
+1.3	
+1.3	    THEROCK_STAGE_INSTALL_ROOT
+1.3	
+1.3	
+1.3	-- Build files have been written to: /work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/build
+END	1757693422.1400526	1.300004243850708	0

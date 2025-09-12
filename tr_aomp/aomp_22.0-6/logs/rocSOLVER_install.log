@@ -1,0 +1,31 @@
+BEGIN	1757699180.7276816
+EXEC	/work1/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/rocSOLVER/build	/usr/bin/cmake --install /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/rocSOLVER/build
+0.0	-- Install configuration: "Release"
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/rocSOLVER/stage/share/doc/rocsolver/LICENSE.md
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/rocSOLVER/stage/include/rocsolver
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/rocSOLVER/stage/include/rocsolver/rocsolver-extra-types.h
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/rocSOLVER/stage/include/rocsolver/rocsolver.h
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/rocSOLVER/stage/include/rocsolver/rocsolver-aliases.h
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/rocSOLVER/stage/include/rocsolver/rocsolver-functions.h
+0.0	-- Up-to-date: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/rocSOLVER/stage/include/rocsolver
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/rocSOLVER/stage/include/rocsolver/rocsolver-version.h
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/rocSOLVER/stage/include/rocsolver/rocsolver-export.h
+0.0	-- Up-to-date: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/rocSOLVER/stage/include
+0.0	-- Up-to-date: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/rocSOLVER/stage/include/rocsolver
+0.0	-- Up-to-date: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/rocSOLVER/stage/include/rocsolver/rocsolver-extra-types.h
+0.0	-- Up-to-date: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/rocSOLVER/stage/include/rocsolver/rocsolver.h
+0.0	-- Up-to-date: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/rocSOLVER/stage/include/rocsolver/rocsolver-aliases.h
+0.0	-- Up-to-date: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/rocSOLVER/stage/include/rocsolver/rocsolver-functions.h
+0.0	-- Up-to-date: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/rocSOLVER/stage/include
+0.0	-- Up-to-date: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/rocSOLVER/stage/include/rocsolver
+0.0	-- Up-to-date: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/rocSOLVER/stage/include/rocsolver/rocsolver-version.h
+0.0	-- Up-to-date: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/rocSOLVER/stage/include/rocsolver/rocsolver-export.h
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/rocSOLVER/stage/lib/librocsolver.so.0.7
+0.1	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/rocSOLVER/stage/lib/librocsolver.so.0
+0.1	-- Set non-toolchain portion of runtime path of "/work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/rocSOLVER/stage/lib/librocsolver.so.0.7" to "$ORIGIN/rocm_sysdeps/lib:$ORIGIN/llvm/lib:$ORIGIN:$ORIGIN/host-math/lib"
+0.1	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/rocSOLVER/stage/lib/librocsolver.so
+0.1	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/rocSOLVER/stage/lib/cmake/rocsolver/rocsolver-targets.cmake
+0.1	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/rocSOLVER/stage/lib/cmake/rocsolver/rocsolver-targets-release.cmake
+0.1	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/rocSOLVER/stage/lib/cmake/rocsolver/rocsolver-config.cmake
+0.1	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/rocSOLVER/stage/lib/cmake/rocsolver/rocsolver-config-version.cmake
+END	1757699180.8176794	0.08999776840209961	0

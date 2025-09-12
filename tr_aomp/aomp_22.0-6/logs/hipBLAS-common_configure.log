@@ -1,0 +1,42 @@
+BEGIN	1757694055.1771822
+EXEC	/work1/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/hipBLAS-common/build	/usr/bin/cmake -E env --unset=ROCM_PATH --unset=ROCM_DIR --unset=HIP_PATH --unset=HIP_DIR -- /usr/bin/cmake -GNinja -B/work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/hipBLAS-common/build -S/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/hipblas-common -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/hipBLAS-common/stage -DTHEROCK_STAGE_INSTALL_ROOT=/work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/hipBLAS-common/stage -DCMAKE_TOOLCHAIN_FILE=/work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/hipBLAS-common/_toolchain.cmake -DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=/work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/hipBLAS-common/_init.cmake
+0.0	-- Sub-project PKG_CONFIG_PATH: /work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/zlib/build/stage/lib/rocm_sysdeps/lib/pkgconfig:/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/zstd/build/stage/lib/rocm_sysdeps/lib/pkgconfig:/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/bzip2/build/stage/lib/rocm_sysdeps/lib/pkgconfig:/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/elfutils/build/stage/lib/rocm_sysdeps/lib/pkgconfig:/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/libdrm/build/stage/lib/rocm_sysdeps/lib/pkgconfig:/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/stage/lib/rocm_sysdeps/lib/pkgconfig:
+0.0	-- Resolving packages from super-project: ZLIB;zstd;AMDDeviceLibs;Clang;LLD;LLVM;amd_comgr;rocm-core;rocprofiler-register;BZip2;LibElf;libdw;NUMA;hsakmt;hsa-runtime64;hip;HIP;hip-lang;hiprtc;ROCmCMakeBuildTools;ROCM
+0.1	-- The CXX compiler identification is Clang 22.0.6
+0.2	-- Detecting CXX compiler ABI info
+0.3	-- Detecting CXX compiler ABI info - done
+0.3	-- Check for working CXX compiler: /work/grodgers/git/tr-aomp/TheRock/build/core/clr/dist/lib/llvm/bin/clang++ - skipped
+0.3	-- Detecting CXX compile features
+0.3	-- Detecting CXX compile features - done
+0.3	-- Resolving super-project find_package(ROCM 0.11.0 QUIET CONFIG BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr-aomp/TheRock/build/base/rocm-cmake/dist/share/rocm/cmake)
+0.3	CMake Deprecation Warning at /work/grodgers/git/tr-aomp/TheRock/build/base/rocm-cmake/dist/share/rocm/cmake/ROCMConfig.cmake:12 (message):
+0.3	  Use of find_package(ROCM) is deprecated as of ROCm 6.4.  Please use
+0.3	  find_package(ROCmCMakeBuildTools)
+0.3	Call Stack (most recent call first):
+0.3	  /work/grodgers/git/tr-aomp/TheRock/cmake/therock_subproject_dep_provider.cmake:54 (find_package)
+0.3	  cmake/dependencies.cmake:29 (find_package)
+0.3	  CMakeLists.txt:9 (include)
+0.3	
+0.3	
+0.3	-- Resolving super-project find_package(ROCmCMakeBuildTools BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr-aomp/TheRock/build/base/rocm-cmake/dist/share/rocmcmakebuildtools/cmake)
+0.3	-- Resolving super-project find_package(ROCM 0.11.0 REQUIRED CONFIG BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr-aomp/TheRock/build/base/rocm-cmake/dist/share/rocm/cmake)
+0.3	CMake Deprecation Warning at /work/grodgers/git/tr-aomp/TheRock/build/base/rocm-cmake/dist/share/rocm/cmake/ROCMConfig.cmake:12 (message):
+0.3	  Use of find_package(ROCM) is deprecated as of ROCm 6.4.  Please use
+0.3	  find_package(ROCmCMakeBuildTools)
+0.3	Call Stack (most recent call first):
+0.3	  /work/grodgers/git/tr-aomp/TheRock/cmake/therock_subproject_dep_provider.cmake:54 (find_package)
+0.3	  cmake/dependencies.cmake:44 (find_package)
+0.3	  CMakeLists.txt:9 (include)
+0.3	
+0.3	
+0.3	-- Resolving super-project find_package(ROCmCMakeBuildTools BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr-aomp/TheRock/build/base/rocm-cmake/dist/share/rocmcmakebuildtools/cmake)
+0.8	-- Configuring done (0.8s)
+0.8	-- Generating done (0.0s)
+0.8	CMake Warning:
+0.8	  Manually-specified variables were not used by the project:
+0.8	
+0.8	    THEROCK_STAGE_INSTALL_ROOT
+0.8	
+0.8	
+0.8	-- Build files have been written to: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/hipBLAS-common/build
+END	1757694056.0294273	0.8522450923919678	0

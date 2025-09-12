@@ -1,0 +1,17 @@
+therock_shakey: 075c0c0d12dcf991f943cd04cde572ab546541c4
+start_date: Thu Sep 11 05:47:47 PM CDT 2025
+aomp_version: 22.0-6
+user: grodgers
+hostname: r17
+amd-llvm_branch: amd-staging
+hipify_branch: amd-staging
+sources_fetched: TRUE
+build_date: Thu Sep 11 11:29:20 PM CDT 2025
+therock_config: cmake -B build -GNinja -DTHEROCK_AMDGPU_TARGETS='gfx90a;gfx942;gfx908' -DTHEROCK_AMDGPU_DIST_BUNDLE_NAME=aomp -DTHEROCK_ENABLE_COMPOSABLE_KERNEL=ON -DTHEROCK_ENABLE_MATH_LIBS=ON -DTHEROCK_ENABLE_ML_LIBS=ON -DTHEROCK_BUNDLE_SYSDEPS=ON -DTHEROCK_BUILD_TESTING=OFF -DTHEROCK_ENABLE_RCCL=ON -DTHEROCK_ENABLE_FFT=OFF /work/grodgers/git/tr-aomp/TheRock
+build_path: /work/grodgers/git/tr-aomp/TheRock/.venv/bin:/home/grodgers/bin:/home/grodgers/.local/bin:/usr/local/go/bin:/usr/local/gh-cli/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
+start_build_date: Fri Sep 12 11:09:55 AM CDT 2025
+end_build_date: Fri Sep 12 12:49:32 PM CDT 2025
+secs_to_build: 5977
+file_count: 13702
+size: 11G
+restart: NO

@@ -1,0 +1,5 @@
+BEGIN	1757693405.0607927
+EXEC	/work1/grodgers/git/tr-aomp/TheRock/build/base/rocm-cmake/build	/usr/bin/cmake -E env --unset=ROCM_PATH --unset=ROCM_DIR --unset=HIP_PATH --unset=HIP_DIR -- /usr/bin/cmake --build /work/grodgers/git/tr-aomp/TheRock/build/base/rocm-cmake/build
+0.0	[0/2] Re-checking globbed directories...
+0.1	[1/1] cd /work/grodgers/git/tr-aomp/TheRock/build/base/rocm-cmake/build && /usr/bin/cmake -E rm -f /work/grodgers/git/tr-aomp/TheRock/build/base/rocm-cmake/stamp/stage.stamp
+END	1757693405.1208189	0.06002616882324219	0

@@ -1,0 +1,264 @@
+BEGIN	1757694281.6303
+EXEC	/work1/grodgers/git/tr-aomp/TheRock/build/ml-libs/composable_kernel/build	/usr/bin/cmake -E env --unset=ROCM_PATH --unset=ROCM_DIR --unset=HIP_PATH --unset=HIP_DIR -- /usr/bin/cmake -GNinja -B/work/grodgers/git/tr-aomp/TheRock/build/ml-libs/composable_kernel/build -S/work/grodgers/git/tr-aomp/TheRock/ml-libs/composable_kernel -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/work/grodgers/git/tr-aomp/TheRock/build/ml-libs/composable_kernel/stage -DTHEROCK_STAGE_INSTALL_ROOT=/work/grodgers/git/tr-aomp/TheRock/build/ml-libs/composable_kernel/stage -DCMAKE_TOOLCHAIN_FILE=/work/grodgers/git/tr-aomp/TheRock/build/ml-libs/composable_kernel/_toolchain.cmake -DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=/work/grodgers/git/tr-aomp/TheRock/build/ml-libs/composable_kernel/_init.cmake -DHIP_PLATFORM=amd -DROCM_PATH= -DROCM_DIR= -DBUILD_TESTING=OFF -DMIOPEN_REQ_LIBS_ONLY=ON
+0.0	-- Sub-project PKG_CONFIG_PATH: /work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/zlib/build/stage/lib/rocm_sysdeps/lib/pkgconfig:/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/zstd/build/stage/lib/rocm_sysdeps/lib/pkgconfig:/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/bzip2/build/stage/lib/rocm_sysdeps/lib/pkgconfig:/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/elfutils/build/stage/lib/rocm_sysdeps/lib/pkgconfig:/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/libdrm/build/stage/lib/rocm_sysdeps/lib/pkgconfig:/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/stage/lib/rocm_sysdeps/lib/pkgconfig:/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/sqlite3/build/stage/lib/rocm_sysdeps/lib/pkgconfig:
+0.0	-- Resolving packages from super-project: ZLIB;zstd;AMDDeviceLibs;Clang;LLD;LLVM;amd_comgr;rocm-core;rocprofiler-register;BZip2;LibElf;libdw;NUMA;hsakmt;hsa-runtime64;hip;HIP;hip-lang;hiprtc;rocrand;SQLite3;rocprofiler-sdk;rocprofiler-sdk-roctx;ROCmCMakeBuildTools;ROCM
+0.0	-- Including TheRock explicit overrides for find_library and find_path
+0.0	--   Libraries that must resolve from super-project: hsa-amd-aqlprofile64;hsa-amd-aqlprofile;roctx64
+0.0	--   Paths that must resolve from super-project: half/half.hpp;roctracer/roctx.h
+0.1	-- The CXX compiler identification is Clang 22.0.6
+1.4	-- The HIP compiler identification is Clang 20.0.0
+1.5	-- Detecting CXX compiler ABI info
+1.7	-- Detecting CXX compiler ABI info - done
+1.7	-- Check for working CXX compiler: /work/grodgers/git/tr-aomp/TheRock/build/core/clr/dist/lib/llvm/bin/clang++ - skipped
+1.7	-- Detecting CXX compile features
+1.7	-- Detecting CXX compile features - done
+1.7	-- Resolving super-project find_package(hip-lang QUIET REQUIRED CONFIG BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr-aomp/TheRock/build/core/clr/dist/lib/cmake/hip-lang)
+1.8	-- Detecting HIP compiler ABI info
+2.5	-- Detecting HIP compiler ABI info - done
+2.5	-- Check for working HIP compiler: /opt/rocm-7.0.0/lib/llvm/bin/clang++ - skipped
+2.5	-- Detecting HIP compile features
+2.5	-- Detecting HIP compile features - done
+2.5	-- Resolving system find_package(Python3) (not found in super-project ZLIB;zstd;AMDDeviceLibs;Clang;LLD;LLVM;amd_comgr;rocm-core;rocprofiler-register;BZip2;LibElf;libdw;NUMA;hsakmt;hsa-runtime64;hip;HIP;hip-lang;hiprtc;rocrand;SQLite3;rocprofiler-sdk;rocprofiler-sdk-roctx;ROCmCMakeBuildTools;ROCM)
+2.6	-- Found Python3: /work/grodgers/git/tr-aomp/TheRock/.venv/bin/python3 (found suitable version "3.12.3", minimum required is "3.8") found components: Interpreter 
+2.6	-- Resolving system find_package(Git) (not found in super-project ZLIB;zstd;AMDDeviceLibs;Clang;LLD;LLVM;amd_comgr;rocm-core;rocprofiler-register;BZip2;LibElf;libdw;NUMA;hsakmt;hsa-runtime64;hip;HIP;hip-lang;hiprtc;rocrand;SQLite3;rocprofiler-sdk;rocprofiler-sdk-roctx;ROCmCMakeBuildTools;ROCM)
+2.6	-- Found Git: /usr/bin/git (found version "2.43.0") 
+2.7	-- Resolving super-project find_package(ROCM REQUIRED BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr-aomp/TheRock/build/base/rocm-cmake/dist/share/rocm/cmake)
+2.7	CMake Deprecation Warning at /work/grodgers/git/tr-aomp/TheRock/build/base/rocm-cmake/dist/share/rocm/cmake/ROCMConfig.cmake:12 (message):
+2.7	  Use of find_package(ROCM) is deprecated as of ROCm 6.4.  Please use
+2.7	  find_package(ROCmCMakeBuildTools)
+2.7	Call Stack (most recent call first):
+2.7	  /work/grodgers/git/tr-aomp/TheRock/cmake/therock_subproject_dep_provider.cmake:54 (find_package)
+2.7	  CMakeLists.txt:149 (find_package)
+2.7	
+2.7	
+2.7	-- Resolving super-project find_package(ROCmCMakeBuildTools BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr-aomp/TheRock/build/base/rocm-cmake/dist/share/rocmcmakebuildtools/cmake)
+2.7	-- GPU_TARGETS= gfx90a;gfx942;gfx908
+2.7	-- GPU_ARCHS= 
+2.7	-- Resolving super-project find_package(hip REQUIRED BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr-aomp/TheRock/build/core/clr/dist/lib/cmake/hip)
+2.7	-- Resolving super-project find_package(AMDDeviceLibs BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr-aomp/TheRock/build/compiler/amd-llvm/dist/lib/llvm/lib/cmake/AMDDeviceLibs)
+2.7	-- Resolving super-project find_package(amd_comgr BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr-aomp/TheRock/build/compiler/amd-comgr/dist/lib/cmake/amd_comgr)
+2.7	-- Resolving super-project find_package(hsa-runtime64 BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr-aomp/TheRock/build/core/ROCR-Runtime/dist/lib/cmake/hsa-runtime64)
+2.7	-- Resolving system find_package(Threads) (not found in super-project ZLIB;zstd;AMDDeviceLibs;Clang;LLD;LLVM;amd_comgr;rocm-core;rocprofiler-register;BZip2;LibElf;libdw;NUMA;hsakmt;hsa-runtime64;hip;HIP;hip-lang;hiprtc;rocrand;SQLite3;rocprofiler-sdk;rocprofiler-sdk-roctx;ROCmCMakeBuildTools;ROCM)
+2.7	-- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+2.9	-- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
+2.9	-- Found Threads: TRUE  
+2.9	-- Performing Test HIP_CLANG_SUPPORTS_PARALLEL_JOBS
+3.0	-- Performing Test HIP_CLANG_SUPPORTS_PARALLEL_JOBS - Success
+3.0	-- hip_version_flat=700125364
+3.0	-- checking which targets are supported
+3.0	-- Performing Test COMPILER_HAS_TARGET_ID_gfx90a
+4.0	-- Performing Test COMPILER_HAS_TARGET_ID_gfx90a - Success
+4.0	-- Performing Test COMPILER_HAS_TARGET_ID_gfx942
+4.9	-- Performing Test COMPILER_HAS_TARGET_ID_gfx942 - Success
+4.9	-- Performing Test COMPILER_HAS_TARGET_ID_gfx908
+5.8	-- Performing Test COMPILER_HAS_TARGET_ID_gfx908 - Success
+5.8	-- Building CK for the following targets: gfx90a;gfx942;gfx908
+5.8	-- Enabling XDL instances
+5.8	-- Enabling XDL FP8 gemms on native architectures
+5.8	-- Performing Test HAS_NO_OFFLOAD_UNIFORM_BLOCK
+6.0	-- Performing Test HAS_NO_OFFLOAD_UNIFORM_BLOCK - Success
+6.0	-- Adding the fno-offload-uniform-block compiler flag
+6.0	-- Performing Test HAS_LSR_DROP_SOLUTION
+6.1	-- Performing Test HAS_LSR_DROP_SOLUTION - Success
+6.1	-- Adding the lsr-drop-solution=1 compiler flag
+6.1	-- Performing Test HAS_ENABLE_POST_MISCHED
+6.2	-- Performing Test HAS_ENABLE_POST_MISCHED - Success
+6.2	-- Adding the enable-post-misched=0 compiler flag
+6.2	-- Performing Test check-coerce
+6.3	-- Performing Test check-coerce - Failed
+6.3	-- Adding -amdgpu-early-inline-all=true and -amdgpu-function-calls=false
+6.3	-- Resolving system find_package(Threads) (not found in super-project ZLIB;zstd;AMDDeviceLibs;Clang;LLD;LLVM;amd_comgr;rocm-core;rocprofiler-register;BZip2;LibElf;libdw;NUMA;hsakmt;hsa-runtime64;hip;HIP;hip-lang;hiprtc;rocrand;SQLite3;rocprofiler-sdk;rocprofiler-sdk-roctx;ROCmCMakeBuildTools;ROCM)
+6.3	-- CMAKE_CXX_COMPILER: /work/grodgers/git/tr-aomp/TheRock/build/core/clr/dist/lib/llvm/bin/clang++
+6.3	-- CMAKE_HIP_COMPILER: /work/grodgers/git/tr-aomp/TheRock/build/core/clr/dist/lib/llvm/bin/clang++
+6.3	-- OpenMP_CXX_LIB_NAMES: libomp;libgomp;libiomp5
+6.3	-- OpenMP_gomp_LIBRARY: 
+6.3	-- OpenMP_pthread_LIBRARY: 
+6.3	-- OpenMP_CXX_FLAGS: -fopenmp=libomp -Wno-unused-command-line-argument
+6.3	-- Build with HIP 
+6.3	PLEASE submit a bug report to https://github.com/llvm/llvm-project/issues/ and include the crash backtrace and instructions to reproduce the bug.
+6.3	Stack dump:
+6.3	0.	Program arguments: /work/grodgers/git/tr-aomp/TheRock/build/compiler/amd-llvm/dist/lib/llvm/bin/clang-tidy -version
+7.3	#0 0x0000745e432f3b02 llvm::sys::PrintStackTrace(llvm::raw_ostream&, int) (/work1/grodgers/git/tr-aomp/TheRock/build/compiler/amd-llvm/dist/lib/llvm/bin/../lib/libLLVM.so.22.0_AOMP_22.0-6+0x8f3b02)
+7.3	#1 0x0000745e432f07e2 SignalHandler(int, siginfo_t*, void*) Signals.cpp:0:0
+7.3	#2 0x0000745e42245330 (/lib/x86_64-linux-gnu/libc.so.6+0x45330)
+7.3	#3 0x0000745e49da1326 llvm::StringSet<llvm::MallocAllocator>::~StringSet() (/work1/grodgers/git/tr-aomp/TheRock/build/compiler/amd-llvm/dist/lib/llvm/bin/../lib/libclang-cpp.so.22.0_AOMP_22.0-6+0x9a1326)
+7.3	#4 0x0000745e42247382 __cxa_finalize ./stdlib/cxa_finalize.c:83:6
+7.3	#5 0x0000745e49ca0b37 __do_global_dtors_aux crtstuff.c:0:0
+8.4	-- Clang tidy found: 22.0.6_AOMP_22.0-6
+8.4	-- Clang tidy checks: *,-abseil-*,-android-cloexec-fopen,-cert-msc30-c,-bugprone-exception-escape,-bugprone-macro-parentheses,-cert-env33-c,-cert-msc32-c,-cert-msc50-cpp,-cert-msc51-cpp,-cert-dcl37-c,-cert-dcl51-cpp,-clang-analyzer-alpha.core.CastToStruct,-clang-analyzer-optin.performance.Padding,-clang-diagnostic-deprecated-declarations,-clang-diagnostic-extern-c-compat,-clang-diagnostic-unused-command-line-argument,-cppcoreguidelines-avoid-c-arrays,-cppcoreguidelines-avoid-magic-numbers,-cppcoreguidelines-explicit-virtual-functions,-cppcoreguidelines-init-variables,-cppcoreguidelines-macro-usage,-cppcoreguidelines-non-private-member-variables-in-classes,-cppcoreguidelines-pro-bounds-array-to-pointer-decay,-cppcoreguidelines-pro-bounds-constant-array-index,-cppcoreguidelines-pro-bounds-pointer-arithmetic,-cppcoreguidelines-pro-type-member-init,-cppcoreguidelines-pro-type-reinterpret-cast,-cppcoreguidelines-pro-type-union-access,-cppcoreguidelines-pro-type-vararg,-cppcoreguidelines-special-member-functions,-fuchsia-*,-google-explicit-constructor,-google-readability-braces-around-statements,-google-readability-todo,-google-runtime-int,-google-runtime-references,-hicpp-vararg,-hicpp-braces-around-statements,-hicpp-explicit-conversions,-hicpp-named-parameter,-hicpp-no-array-decay,-hicpp-avoid-c-arrays,-hicpp-signed-bitwise,-hicpp-special-member-functions,-hicpp-uppercase-literal-suffix,-hicpp-use-auto,-hicpp-use-equals-default,-hicpp-use-override,-llvm-header-guard,-llvm-include-order,-llvmlibc-restrict-system-libc-headers,-llvmlibc-callee-namespace,-llvmlibc-implementation-in-namespace,-llvm-else-after-return,-llvm-qualified-auto,-misc-misplaced-const,-misc-non-private-member-variables-in-classes,-misc-no-recursion,-modernize-avoid-bind,-modernize-avoid-c-arrays,-modernize-pass-by-value,-modernize-use-auto,-modernize-use-default-member-init,-modernize-use-equals-default,-modernize-use-trailing-return-type,-modernize-use-transparent-functors,-performance-unnecessary-value-param,-readability-braces-around-statements,-readability-else-after-return,-readability-function-cognitive-complexity,-readability-isolate-declaration,-readability-magic-numbers,-readability-named-parameter,-readability-uppercase-literal-suffix,-readability-convert-member-functions-to-static,-readability-qualified-auto,-readability-redundant-string-init,-bugprone-narrowing-conversions,-cppcoreguidelines-narrowing-conversions,-altera-struct-pack-align,-cppcoreguidelines-prefer-member-initializer,-modernize-use-override,-readability-non-const-parameter
+8.5	-- CMAKE_CXX_FLAGS: -Wno-documentation-unknown-command -Wno-documentation-pedantic -Wno-unused-command-line-argument -Wno-explicit-specialization-storage-class --hip-path=/work/grodgers/git/tr-aomp/TheRock/build/core/clr/dist --hip-device-lib-path=/work/grodgers/git/tr-aomp/TheRock/build/core/clr/dist/lib/llvm/amdgcn/bitcode
+8.5	-- Removing all sources that are not required for MIOpen
+8.5	-- Removing all sources that are not required for MIOpen
+8.5	-- Removing all sources that are not required for MIOpen
+8.5	-- Removing all sources that are not required for MIOpen
+8.5	-- Removing all sources that are not required for MIOpen
+8.5	-- Removing all sources that are not required for MIOpen
+8.5	-- Removing all sources that are not required for MIOpen
+8.5	-- Removing all sources that are not required for MIOpen
+8.6	-- Removing all sources that are not required for MIOpen
+8.6	-- Removing all sources that are not required for MIOpen
+8.6	-- Removing all sources that are not required for MIOpen
+8.6	-- Removing all sources that are not required for MIOpen
+8.6	-- Removing all sources that are not required for MIOpen
+8.6	-- Removing all sources that are not required for MIOpen
+8.6	-- Removing all sources that are not required for MIOpen
+8.6	-- Removing all sources that are not required for MIOpen
+8.6	-- Removing all sources that are not required for MIOpen
+8.6	-- Removing all sources that are not required for MIOpen
+8.6	-- Removing all sources that are not required for MIOpen
+8.6	-- Removing all sources that are not required for MIOpen
+8.6	-- Removing all sources that are not required for MIOpen
+8.6	-- Removing all sources that are not required for MIOpen
+8.6	-- Removing all sources that are not required for MIOpen
+8.6	-- Removing all sources that are not required for MIOpen
+8.6	-- Removing all sources that are not required for MIOpen
+8.6	-- Removing all sources that are not required for MIOpen
+8.6	-- Removing all sources that are not required for MIOpen
+8.6	-- Removing all sources that are not required for MIOpen
+8.6	-- Removing all sources that are not required for MIOpen
+8.6	-- Removing all sources that are not required for MIOpen
+8.6	-- Removing all sources that are not required for MIOpen
+8.6	-- Removing all sources that are not required for MIOpen
+8.6	-- Removing all sources that are not required for MIOpen
+8.6	-- Removing all sources that are not required for MIOpen
+8.6	-- Removing all sources that are not required for MIOpen
+8.6	-- Removing all sources that are not required for MIOpen
+8.6	-- Removing all sources that are not required for MIOpen
+8.6	-- Removing all sources that are not required for MIOpen
+8.6	-- Removing all sources that are not required for MIOpen
+8.6	-- Removing all sources that are not required for MIOpen
+8.6	-- Removing all sources that are not required for MIOpen
+8.6	-- Removing all sources that are not required for MIOpen
+8.6	-- Removing all sources that are not required for MIOpen
+8.6	-- Removing all sources that are not required for MIOpen
+8.6	-- Removing all sources that are not required for MIOpen
+8.6	-- Removing all sources that are not required for MIOpen
+8.6	-- Removing all sources that are not required for MIOpen
+8.6	-- Removing all sources that are not required for MIOpen
+8.6	-- Removing all sources that are not required for MIOpen
+8.6	-- Removing all sources that are not required for MIOpen
+8.6	-- Removing all sources that are not required for MIOpen
+8.6	-- Removing all sources that are not required for MIOpen
+8.6	-- Removing all sources that are not required for MIOpen
+8.6	-- Removing all sources that are not required for MIOpen
+8.6	-- Removing all sources that are not required for MIOpen
+8.6	-- Generating sharded instantiations for target: device_grouped_conv2d_fwd_xdl_ngchw_gkcyx_ngkhw_bf16_instances
+8.6	-- Generating sharded instantiations for target: device_grouped_conv2d_fwd_xdl_ngchw_gkcyx_ngkhw_f16_instances
+8.6	-- Generating sharded instantiations for target: device_grouped_conv2d_fwd_xdl_ngchw_gkcyx_ngkhw_bf16_comp_instances
+8.6	-- Generating sharded instantiations for target: device_grouped_conv2d_fwd_xdl_nhwgc_gkyxc_nhwgk_int8_mem_inter_instances
+8.6	-- Generating sharded instantiations for target: device_grouped_conv2d_fwd_xdl_nhwgc_gkyxc_nhwgk_int8_mem_intra_instances
+8.6	-- Removing all sources that are not required for MIOpen
+8.6	-- Generating sharded instantiations for target: device_grouped_conv2d_fwd_bias_bn_clamp_xdl_nhwgc_gkyxc_nhwgk_bf16_instances
+8.7	-- Generating sharded instantiations for target: device_grouped_conv2d_fwd_bias_bn_clamp_xdl_nhwgc_gkyxc_nhwgk_f16_instances
+8.7	-- Generating sharded instantiations for target: device_grouped_conv2d_fwd_bias_bn_clamp_xdl_nhwgc_gkyxc_nhwgk_f32_instances
+8.7	-- Generating sharded instantiations for target: device_grouped_conv2d_fwd_bias_bn_clamp_xdl_nhwgc_gkyxc_nhwgk_bf16_16x16_instances
+8.7	-- Generating sharded instantiations for target: device_grouped_conv2d_fwd_bias_bn_clamp_xdl_nhwgc_gkyxc_nhwgk_f16_16x16_instances
+8.7	-- Generating sharded instantiations for target: device_grouped_conv2d_fwd_bias_bn_clamp_xdl_nhwgc_gkyxc_nhwgk_f32_16x16_instances
+8.7	-- Generating sharded instantiations for target: device_grouped_conv2d_fwd_bias_bn_clamp_xdl_large_tensor_nhwgc_gkyxc_nhwgk_bf16_instances
+8.7	-- Generating sharded instantiations for target: device_grouped_conv2d_fwd_bias_bn_clamp_xdl_large_tensor_nhwgc_gkyxc_nhwgk_f16_instances
+8.7	-- Generating sharded instantiations for target: device_grouped_conv2d_fwd_bias_bn_clamp_xdl_large_tensor_nhwgc_gkyxc_nhwgk_f32_instances
+8.7	-- Generating sharded instantiations for target: device_grouped_conv2d_fwd_bias_bn_clamp_xdl_merged_groups_nhwgc_gkyxc_nhwgk_bf16_instances
+8.7	-- Generating sharded instantiations for target: device_grouped_conv2d_fwd_bias_bn_clamp_xdl_merged_groups_nhwgc_gkyxc_nhwgk_f16_instances
+8.7	-- Generating sharded instantiations for target: device_grouped_conv2d_fwd_bias_bn_clamp_xdl_merged_groups_nhwgc_gkyxc_nhwgk_f32_instances
+8.7	-- Generating sharded instantiations for target: device_grouped_conv2d_fwd_bias_bn_clamp_xdl_nhwgc_gkyxc_nhwgk_bf16_mem_intra_instances
+8.7	-- Generating sharded instantiations for target: device_grouped_conv2d_fwd_bias_bn_clamp_xdl_nhwgc_gkyxc_nhwgk_f16_mem_intra_instances
+8.7	-- Generating sharded instantiations for target: device_grouped_conv2d_fwd_bias_bn_clamp_xdl_nhwgc_gkyxc_nhwgk_f32_mem_intra_instances
+8.7	-- Generating sharded instantiations for target: device_grouped_conv2d_fwd_bias_bn_clamp_xdl_nhwgc_gkyxc_nhwgk_bf16_mem_inter_instances
+8.7	-- Generating sharded instantiations for target: device_grouped_conv2d_fwd_bias_bn_clamp_xdl_nhwgc_gkyxc_nhwgk_f16_mem_inter_instances
+8.7	-- Generating sharded instantiations for target: device_grouped_conv2d_fwd_bias_bn_clamp_xdl_nhwgc_gkyxc_nhwgk_f32_mem_inter_instances
+8.7	-- Generating sharded instantiations for target: device_grouped_conv2d_fwd_bias_bn_clamp_xdl_nhwgc_gkyxc_nhwgk_bf16_comp_instances
+8.7	-- Generating sharded instantiations for target: device_grouped_conv2d_fwd_bias_bn_clamp_xdl_nhwgc_gkyxc_nhwgk_f16_comp_instances
+8.7	-- Generating sharded instantiations for target: device_grouped_conv2d_fwd_bias_bn_clamp_xdl_nhwgc_gkyxc_nhwgk_f32_comp_instances
+8.7	-- Generating sharded instantiations for target: device_grouped_conv2d_fwd_bias_bn_clamp_xdl_nhwgc_gkyxc_nhwgk_bf16_comp_2x_instances
+8.7	-- Generating sharded instantiations for target: device_grouped_conv2d_fwd_bias_bn_clamp_xdl_nhwgc_gkyxc_nhwgk_f16_comp_2x_instances
+8.7	-- Generating sharded instantiations for target: device_grouped_conv2d_fwd_bias_bn_clamp_xdl_nhwgc_gkyxc_nhwgk_bf16_comp_part2_instances
+8.7	-- Generating sharded instantiations for target: device_grouped_conv2d_fwd_bias_bn_clamp_xdl_nhwgc_gkyxc_nhwgk_f16_comp_part2_instances
+8.7	-- Removing all sources that are not required for MIOpen
+8.7	-- Removing all sources that are not required for MIOpen
+8.8	-- Removing all sources that are not required for MIOpen
+8.8	-- Removing all sources that are not required for MIOpen
+8.8	-- Removing all sources that are not required for MIOpen
+8.8	-- Removing all sources that are not required for MIOpen
+8.8	-- Removing all sources that are not required for MIOpen
+8.8	-- Removing all sources that are not required for MIOpen
+8.8	-- Removing all sources that are not required for MIOpen
+8.8	-- Removing all sources that are not required for MIOpen
+8.8	-- Generating sharded instantiations for target: device_grouped_conv3d_fwd_xdl_ngcdhw_gkczyx_ngkdhw_bf16_instances
+8.8	-- Generating sharded instantiations for target: device_grouped_conv3d_fwd_xdl_ngcdhw_gkczyx_ngkdhw_f16_instances
+8.8	-- Generating sharded instantiations for target: device_grouped_conv3d_fwd_xdl_ngcdhw_gkczyx_ngkdhw_bf16_mem_inter_instances
+8.8	-- Generating sharded instantiations for target: device_grouped_conv3d_fwd_xdl_ngcdhw_gkczyx_ngkdhw_f16_mem_inter_instances
+8.8	-- Generating sharded instantiations for target: device_grouped_conv3d_fwd_xdl_ngcdhw_gkczyx_ngkdhw_f32_mem_inter_instances
+8.8	-- Generating sharded instantiations for target: device_grouped_conv3d_fwd_xdl_ngcdhw_gkczyx_ngkdhw_bf16_mem_intra_instances
+8.8	-- Generating sharded instantiations for target: device_grouped_conv3d_fwd_xdl_ngcdhw_gkczyx_ngkdhw_f16_mem_intra_instances
+8.8	-- Generating sharded instantiations for target: device_grouped_conv3d_fwd_xdl_ngcdhw_gkczyx_ngkdhw_f32_mem_intra_instances
+8.8	-- Generating sharded instantiations for target: device_grouped_conv3d_fwd_xdl_ndhwgc_gkzyxc_ndhwgk_bf16_comp_instances
+8.8	-- Generating sharded instantiations for target: device_grouped_conv3d_fwd_xdl_ndhwgc_gkzyxc_ndhwgk_f16_comp_instances
+8.8	-- Generating sharded instantiations for target: device_grouped_conv3d_fwd_xdl_ngcdhw_gkczyx_ngkdhw_bf16_comp_instances
+8.8	-- Generating sharded instantiations for target: device_grouped_conv3d_fwd_xdl_ngcdhw_gkczyx_ngkdhw_f16_comp_instances
+8.8	-- Removing all sources that are not required for MIOpen
+8.8	-- Generating sharded instantiations for target: device_grouped_conv3d_fwd_bias_bn_clamp_xdl_ndhwgc_gkzyxc_ndhwgk_bf16_instances
+8.8	-- Generating sharded instantiations for target: device_grouped_conv3d_fwd_bias_bn_clamp_xdl_ndhwgc_gkzyxc_ndhwgk_f16_instances
+8.8	-- Generating sharded instantiations for target: device_grouped_conv3d_fwd_bias_bn_clamp_xdl_ndhwgc_gkzyxc_ndhwgk_f32_instances
+8.8	-- Generating sharded instantiations for target: device_grouped_conv3d_fwd_bias_bn_clamp_xdl_ndhwgc_gkzyxc_ndhwgk_bf16_16x16_instances
+8.8	-- Generating sharded instantiations for target: device_grouped_conv3d_fwd_bias_bn_clamp_xdl_ndhwgc_gkzyxc_ndhwgk_f16_16x16_instances
+8.8	-- Generating sharded instantiations for target: device_grouped_conv3d_fwd_bias_bn_clamp_xdl_ndhwgc_gkzyxc_ndhwgk_f32_16x16_instances
+8.8	-- Generating sharded instantiations for target: device_grouped_conv3d_fwd_bias_bn_clamp_xdl_large_tensor_ndhwgc_gkzyxc_ndhwgk_bf16_instances
+8.8	-- Generating sharded instantiations for target: device_grouped_conv3d_fwd_bias_bn_clamp_xdl_large_tensor_ndhwgc_gkzyxc_ndhwgk_f16_instances
+8.8	-- Generating sharded instantiations for target: device_grouped_conv3d_fwd_bias_bn_clamp_xdl_large_tensor_ndhwgc_gkzyxc_ndhwgk_f32_instances
+8.8	-- Generating sharded instantiations for target: device_grouped_conv3d_fwd_bias_bn_clamp_xdl_merged_groups_ndhwgc_gkzyxc_ndhwgk_bf16_instances
+8.9	-- Generating sharded instantiations for target: device_grouped_conv3d_fwd_bias_bn_clamp_xdl_merged_groups_ndhwgc_gkzyxc_ndhwgk_f16_instances
+8.9	-- Generating sharded instantiations for target: device_grouped_conv3d_fwd_bias_bn_clamp_xdl_merged_groups_ndhwgc_gkzyxc_ndhwgk_f32_instances
+8.9	-- Generating sharded instantiations for target: device_grouped_conv3d_fwd_bias_bn_clamp_xdl_ndhwgc_gkzyxc_ndhwgk_bf16_mem_intra_instances
+8.9	-- Generating sharded instantiations for target: device_grouped_conv3d_fwd_bias_bn_clamp_xdl_ndhwgc_gkzyxc_ndhwgk_f16_mem_intra_instances
+8.9	-- Generating sharded instantiations for target: device_grouped_conv3d_fwd_bias_bn_clamp_xdl_ndhwgc_gkzyxc_ndhwgk_f32_mem_intra_instances
+8.9	-- Generating sharded instantiations for target: device_grouped_conv3d_fwd_bias_bn_clamp_xdl_ndhwgc_gkzyxc_ndhwgk_bf16_mem_inter_instances
+8.9	-- Generating sharded instantiations for target: device_grouped_conv3d_fwd_bias_bn_clamp_xdl_ndhwgc_gkzyxc_ndhwgk_f16_mem_inter_instances
+8.9	-- Generating sharded instantiations for target: device_grouped_conv3d_fwd_bias_bn_clamp_xdl_ndhwgc_gkzyxc_ndhwgk_f32_mem_inter_instances
+8.9	-- Generating sharded instantiations for target: device_grouped_conv3d_fwd_bias_bn_clamp_xdl_ndhwgc_gkzyxc_ndhwgk_bf16_comp_instances
+8.9	-- Generating sharded instantiations for target: device_grouped_conv3d_fwd_bias_bn_clamp_xdl_ndhwgc_gkzyxc_ndhwgk_f16_comp_instances
+8.9	-- Generating sharded instantiations for target: device_grouped_conv3d_fwd_bias_bn_clamp_xdl_ndhwgc_gkzyxc_ndhwgk_f32_comp_instances
+8.9	-- Generating sharded instantiations for target: device_grouped_conv3d_fwd_bias_bn_clamp_xdl_ndhwgc_gkzyxc_ndhwgk_bf16_comp_2x_instances
+8.9	-- Generating sharded instantiations for target: device_grouped_conv3d_fwd_bias_bn_clamp_xdl_ndhwgc_gkzyxc_ndhwgk_f16_comp_2x_instances
+8.9	-- Generating sharded instantiations for target: device_grouped_conv3d_fwd_bias_bn_clamp_xdl_ndhwgc_gkzyxc_ndhwgk_bf16_comp_part2_instances
+8.9	-- Generating sharded instantiations for target: device_grouped_conv3d_fwd_bias_bn_clamp_xdl_ndhwgc_gkzyxc_ndhwgk_f16_comp_part2_instances
+8.9	-- Removing all sources that are not required for MIOpen
+8.9	-- Removing all sources that are not required for MIOpen
+8.9	-- Removing all sources that are not required for MIOpen
+8.9	-- Removing all sources that are not required for MIOpen
+8.9	-- Removing all sources that are not required for MIOpen
+8.9	-- Removing all sources that are not required for MIOpen
+8.9	-- Removing all sources that are not required for MIOpen
+8.9	-- Removing all sources that are not required for MIOpen
+8.9	-- Removing all sources that are not required for MIOpen
+8.9	-- Removing all sources that are not required for MIOpen
+8.9	-- Removing all sources that are not required for MIOpen
+8.9	-- Removing all sources that are not required for MIOpen
+9.0	-- Removing all sources that are not required for MIOpen
+9.0	-- Removing all sources that are not required for MIOpen
+9.0	-- Removing all sources that are not required for MIOpen
+9.0	-- Removing all sources that are not required for MIOpen
+9.0	-- Removing all sources that are not required for MIOpen
+9.0	-- Removing all sources that are not required for MIOpen
+9.0	-- Removing all sources that are not required for MIOpen
+9.0	-- Removing all sources that are not required for MIOpen
+9.0	-- Removing all sources that are not required for MIOpen
+9.0	-- Removing all sources that are not required for MIOpen
+9.0	-- Removing all sources that are not required for MIOpen
+9.0	-- Removing all sources that are not required for MIOpen
+9.0	-- Removing all sources that are not required for MIOpen
+9.0	-- Removing all sources that are not required for MIOpen
+9.0	-- Removing all sources that are not required for MIOpen
+9.0	-- Removing all sources that are not required for MIOpen
+9.0	-- Removing all sources that are not required for MIOpen
+9.0	-- Removing all sources that are not required for MIOpen
+9.0	-- Removing all sources that are not required for MIOpen
+9.0	-- Configuring done (9.0s)
+9.4	-- Generating done (0.2s)
+9.5	CMake Warning:
+9.5	  Manually-specified variables were not used by the project:
+9.5	
+9.5	    THEROCK_STAGE_INSTALL_ROOT
+9.5	
+9.5	
+9.5	-- Build files have been written to: /work/grodgers/git/tr-aomp/TheRock/build/ml-libs/composable_kernel/build
+END	1757694291.1498199	9.519519805908203	0

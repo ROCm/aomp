@@ -1,0 +1,4 @@
+BEGIN	1757693406.9444816
+EXEC	/work1/grodgers/git/tr-aomp/TheRock/build/third-party/libdivide/build	/usr/bin/cmake -E env --unset=ROCM_PATH --unset=ROCM_DIR --unset=HIP_PATH --unset=HIP_DIR -- /usr/bin/cmake --build /work/grodgers/git/tr-aomp/TheRock/build/third-party/libdivide/build
+0.0	[1/1] cd /work/grodgers/git/tr-aomp/TheRock/build/third-party/libdivide/build && /usr/bin/cmake -E rm -f /work/grodgers/git/tr-aomp/TheRock/build/third-party/libdivide/stamp/stage.stamp
+END	1757693406.9826784	0.03819680213928223	0

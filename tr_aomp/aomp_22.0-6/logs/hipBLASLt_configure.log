@@ -1,0 +1,193 @@
+BEGIN	1757694226.3008714
+EXEC	/work1/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/hipBLASLt/build	/usr/bin/cmake -E env --unset=ROCM_PATH --unset=ROCM_DIR --unset=HIP_PATH --unset=HIP_DIR -- /usr/bin/cmake -GNinja -B/work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/hipBLASLt/build -S/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/hipblaslt -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/hipBLASLt/stage -DTHEROCK_STAGE_INSTALL_ROOT=/work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/hipBLASLt/stage -DCMAKE_TOOLCHAIN_FILE=/work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/hipBLASLt/_toolchain.cmake -DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=/work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/hipBLASLt/_init.cmake -DHIP_PLATFORM=amd -DHIPBLASLT_ENABLE_BLIS=OFF -DTENSILELITE_BUILD_TESTING=OFF -DHIPBLASLT_BUILD_TESTING=OFF -DHIPBLASLT_ENABLE_ROCROLLER=ON -DHIPBLASLT_ENABLE_FETCH=OFF
+0.0	-- Sub-project PKG_CONFIG_PATH: /work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/zlib/build/stage/lib/rocm_sysdeps/lib/pkgconfig:/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/zstd/build/stage/lib/rocm_sysdeps/lib/pkgconfig:/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/bzip2/build/stage/lib/rocm_sysdeps/lib/pkgconfig:/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/elfutils/build/stage/lib/rocm_sysdeps/lib/pkgconfig:/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/libdrm/build/stage/lib/rocm_sysdeps/lib/pkgconfig:/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/stage/lib/rocm_sysdeps/lib/pkgconfig:/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/sqlite3/build/stage/lib/rocm_sysdeps/lib/pkgconfig:
+0.0	-- Resolving packages from super-project: ZLIB;zstd;AMDDeviceLibs;Clang;LLD;LLVM;amd_comgr;rocm-core;rocprofiler-register;BZip2;LibElf;libdw;NUMA;hsakmt;hsa-runtime64;hip;HIP;hip-lang;hiprtc;OpenBLAS;cblas;SQLite3;rocprofiler-sdk;rocprofiler-sdk-roctx;rocroller;rocm_smi;hipblas-common;ROCmCMakeBuildTools;ROCM;GTest;msgpack-cxx;mxDataGenerator;Boost;boost_atomic;boost_filesystem;boost_headers;boost_system;fmt;yaml-cpp
+0.0	-- Augmented toolchain PATH=/work/grodgers/git/tr-aomp/TheRock/build/compiler/amd-llvm/dist/lib/llvm/bin:/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/bzip2/build/dist/lib/rocm_sysdeps/bin:/work/grodgers/git/tr-aomp/TheRock/build/core/clr/dist/bin:/work/grodgers/git/tr-aomp/TheRock/build/base/rocm_smi_lib/dist/bin:/work/grodgers/git/tr-aomp/TheRock/.venv/bin:/home/grodgers/bin:/home/grodgers/.local/bin:/usr/local/go/bin:/usr/local/gh-cli/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
+0.0	-- Including TheRock explicit overrides for find_library and find_path
+0.0	--   Libraries that must resolve from super-project: hsa-amd-aqlprofile64;hsa-amd-aqlprofile;roctx64
+0.0	--   Paths that must resolve from super-project: half/half.hpp;roctracer/roctx.h
+0.1	-- The CXX compiler identification is Clang 22.0.6
+0.2	-- The C compiler identification is Clang 22.0.6
+0.2	-- The ASM compiler identification is Clang with GNU-like command-line
+0.3	-- Found assembler: /work/grodgers/git/tr-aomp/TheRock/build/core/clr/dist/lib/llvm/bin/clang
+0.3	-- Detecting CXX compiler ABI info
+0.5	-- Detecting CXX compiler ABI info - done
+0.5	-- Check for working CXX compiler: /work/grodgers/git/tr-aomp/TheRock/build/core/clr/dist/lib/llvm/bin/clang++ - skipped
+0.5	-- Detecting CXX compile features
+0.5	-- Detecting CXX compile features - done
+0.6	-- Detecting C compiler ABI info
+0.7	-- Detecting C compiler ABI info - done
+0.7	-- Check for working C compiler: /work/grodgers/git/tr-aomp/TheRock/build/core/clr/dist/lib/llvm/bin/clang - skipped
+0.7	-- Detecting C compile features
+0.7	-- Detecting C compile features - done
+0.7	-- Resolving system find_package(Git) (not found in super-project ZLIB;zstd;AMDDeviceLibs;Clang;LLD;LLVM;amd_comgr;rocm-core;rocprofiler-register;BZip2;LibElf;libdw;NUMA;hsakmt;hsa-runtime64;hip;HIP;hip-lang;hiprtc;OpenBLAS;cblas;SQLite3;rocprofiler-sdk;rocprofiler-sdk-roctx;rocroller;rocm_smi;hipblas-common;ROCmCMakeBuildTools;ROCM;GTest;msgpack-cxx;mxDataGenerator;Boost;boost_atomic;boost_filesystem;boost_headers;boost_system;fmt;yaml-cpp)
+0.7	-- Found Git: /usr/bin/git (found version "2.43.0") 
+0.7	-- Resolving super-project find_package(ROCmCMakeBuildTools 0.11.0 QUIET CONFIG BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr-aomp/TheRock/build/base/rocm-cmake/dist/share/rocmcmakebuildtools/cmake)
+1.6	-- rocm-cmake: Set license file to /work1/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/hipBLASLt/build/extern/rocm-cmake-rocm-6.4.1/LICENSE.
+1.6	-- Configuring done (0.1s)
+1.6	-- Generating done (0.0s)
+1.6	-- Build files have been written to: /work1/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/hipBLASLt/build/extern/rocm-cmake-rocm-6.4.1
+1.6	-- GLOB mismatch!
+1.7	-- rocm-cmake: Set license file to /work1/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/hipBLASLt/build/extern/rocm-cmake-rocm-6.4.1/LICENSE.
+1.7	-- Configuring done (0.1s)
+1.7	-- Generating done (0.0s)
+1.7	-- Build files have been written to: /work1/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/hipBLASLt/build/extern/rocm-cmake-rocm-6.4.1
+1.8	Install the project...
+1.8	-- Install configuration: ""
+1.8	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/hipBLASLt/build/extern/rocm-cmake/./share
+1.8	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/hipBLASLt/build/extern/rocm-cmake/./share/rocm
+1.8	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/hipBLASLt/build/extern/rocm-cmake/./share/rocm/cmake
+1.8	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/hipBLASLt/build/extern/rocm-cmake/./share/rocm/cmake/ROCMConfig.cmake
+1.8	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/hipBLASLt/build/extern/rocm-cmake/./share/rocm/cmake/ROCMConfigVersion.cmake
+1.8	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/hipBLASLt/build/extern/rocm-cmake/./share/rocmcmakebuildtools
+1.8	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/hipBLASLt/build/extern/rocm-cmake/./share/rocmcmakebuildtools/cmake
+1.8	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/hipBLASLt/build/extern/rocm-cmake/./share/rocmcmakebuildtools/cmake/ROCMInstallSymlinks.cmake
+1.8	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/hipBLASLt/build/extern/rocm-cmake/./share/rocmcmakebuildtools/cmake/ROCMHeaderWrapper.cmake
+1.8	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/hipBLASLt/build/extern/rocm-cmake/./share/rocmcmakebuildtools/cmake/ROCMCreatePackage.cmake
+1.8	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/hipBLASLt/build/extern/rocm-cmake/./share/rocmcmakebuildtools/cmake/ROCMCheckTargetIds.cmake
+1.8	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/hipBLASLt/build/extern/rocm-cmake/./share/rocmcmakebuildtools/cmake/ROCMSphinxDoc.cmake
+1.8	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/hipBLASLt/build/extern/rocm-cmake/./share/rocmcmakebuildtools/cmake/ROCMTest.cmake
+1.8	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/hipBLASLt/build/extern/rocm-cmake/./share/rocmcmakebuildtools/cmake/ROCMInstallTargets.cmake
+1.8	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/hipBLASLt/build/extern/rocm-cmake/./share/rocmcmakebuildtools/cmake/ROCMSetupVersion.cmake
+1.8	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/hipBLASLt/build/extern/rocm-cmake/./share/rocmcmakebuildtools/cmake/ROCMClients.cmake
+1.8	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/hipBLASLt/build/extern/rocm-cmake/./share/rocmcmakebuildtools/cmake/ROCMUtilities.cmake
+1.8	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/hipBLASLt/build/extern/rocm-cmake/./share/rocmcmakebuildtools/cmake/ROCMClangTidy.cmake
+1.8	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/hipBLASLt/build/extern/rocm-cmake/./share/rocmcmakebuildtools/cmake/ROCMCppCheck.cmake
+1.8	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/hipBLASLt/build/extern/rocm-cmake/./share/rocmcmakebuildtools/cmake/ROCMDoxygenDoc.cmake
+1.8	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/hipBLASLt/build/extern/rocm-cmake/./share/rocmcmakebuildtools/cmake/ROCMDocs.cmake
+1.8	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/hipBLASLt/build/extern/rocm-cmake/./share/rocmcmakebuildtools/cmake/ROCMPackageConfigHelpers.cmake
+1.8	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/hipBLASLt/build/extern/rocm-cmake/./share/rocmcmakebuildtools/cmake/ROCmCMakeBuildToolsConfig.cmake
+1.8	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/hipBLASLt/build/extern/rocm-cmake/./share/rocmcmakebuildtools/cmake/ROCMProperty.cmake
+1.8	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/hipBLASLt/build/extern/rocm-cmake/./share/rocmcmakebuildtools/cmake/header_template.h.in
+1.8	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/hipBLASLt/build/extern/rocm-cmake/./share/rocmcmakebuildtools/cmake/ROCMAnalyzers.cmake
+1.8	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/hipBLASLt/build/extern/rocm-cmake/./share/rocmcmakebuildtools/cmake/ROCMChecks.cmake
+1.8	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/hipBLASLt/build/extern/rocm-cmake/share/rocmcmakebuildtools/cmake/ROCmCMakeBuildToolsConfigVersion.cmake
+1.8	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/hipBLASLt/build/extern/rocm-cmake/share/doc/rocm-cmake/LICENSE
+1.8	-- Resolving super-project find_package(ROCmCMakeBuildTools 0.6 REQUIRED CONFIG BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr-aomp/TheRock/build/base/rocm-cmake/dist/share/rocmcmakebuildtools/cmake)
+2.3	-- Building for GPU targets: gfx90a;gfx942;gfx908
+2.3	-- Resolving super-project find_package(hip REQUIRED BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr-aomp/TheRock/build/core/clr/dist/lib/cmake/hip)
+2.3	-- Resolving super-project find_package(AMDDeviceLibs BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr-aomp/TheRock/build/compiler/amd-llvm/dist/lib/llvm/lib/cmake/AMDDeviceLibs)
+2.3	-- Resolving super-project find_package(amd_comgr BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr-aomp/TheRock/build/compiler/amd-comgr/dist/lib/cmake/amd_comgr)
+2.3	-- Resolving super-project find_package(hsa-runtime64 BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr-aomp/TheRock/build/core/ROCR-Runtime/dist/lib/cmake/hsa-runtime64)
+2.3	-- Resolving system find_package(Threads) (not found in super-project ZLIB;zstd;AMDDeviceLibs;Clang;LLD;LLVM;amd_comgr;rocm-core;rocprofiler-register;BZip2;LibElf;libdw;NUMA;hsakmt;hsa-runtime64;hip;HIP;hip-lang;hiprtc;OpenBLAS;cblas;SQLite3;rocprofiler-sdk;rocprofiler-sdk-roctx;rocroller;rocm_smi;hipblas-common;ROCmCMakeBuildTools;ROCM;GTest;msgpack-cxx;mxDataGenerator;Boost;boost_atomic;boost_filesystem;boost_headers;boost_system;fmt;yaml-cpp)
+2.3	-- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+2.4	-- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
+2.4	-- Found Threads: TRUE  
+2.4	-- Performing Test HIP_CLANG_SUPPORTS_PARALLEL_JOBS
+2.5	-- Performing Test HIP_CLANG_SUPPORTS_PARALLEL_JOBS - Success
+2.6	-- Resolving super-project find_package(hipblas-common REQUIRED BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/hipBLAS-common/dist/lib/cmake/hipblas-common)
+2.6	-- Resolving super-project find_library(rocTracer NAMES roctx64): /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/lib/libroctx64.so
+2.6	-- Resolving super-project find_package(rocm_smi REQUIRED BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr-aomp/TheRock/build/base/rocm_smi_lib/dist/lib/cmake/rocm_smi)
+2.6	-- Resolving system find_package(LAPACK) (not found in super-project ZLIB;zstd;AMDDeviceLibs;Clang;LLD;LLVM;amd_comgr;rocm-core;rocprofiler-register;BZip2;LibElf;libdw;NUMA;hsakmt;hsa-runtime64;hip;HIP;hip-lang;hiprtc;OpenBLAS;cblas;SQLite3;rocprofiler-sdk;rocprofiler-sdk-roctx;rocroller;rocm_smi;hipblas-common;ROCmCMakeBuildTools;ROCM;GTest;msgpack-cxx;mxDataGenerator;Boost;boost_atomic;boost_filesystem;boost_headers;boost_system;fmt;yaml-cpp)
+2.6	-- Resolving bundled host-blas library from super-project
+2.6	-- Resolving super-project find_package(OpenBLAS REQUIRED CONFIG BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr-aomp/TheRock/build/third-party/host-blas/./dist/lib/host-math/lib/cmake/OpenBLAS)
+2.6	-- Resolving system find_package(OpenMP) (not found in super-project ZLIB;zstd;AMDDeviceLibs;Clang;LLD;LLVM;amd_comgr;rocm-core;rocprofiler-register;BZip2;LibElf;libdw;NUMA;hsakmt;hsa-runtime64;hip;HIP;hip-lang;hiprtc;OpenBLAS;cblas;SQLite3;rocprofiler-sdk;rocprofiler-sdk-roctx;rocroller;rocm_smi;hipblas-common;ROCmCMakeBuildTools;ROCM;GTest;msgpack-cxx;mxDataGenerator;Boost;boost_atomic;boost_filesystem;boost_headers;boost_system;fmt;yaml-cpp)
+2.7	-- Resolving system find_library(OpenMP_omp_LIBRARY NAMES omp;DOC;Path to the omp library for OpenMP;HINTS;/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/zlib/build/stage/lib/rocm_sysdeps/lib;/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/zstd/build/stage/lib/rocm_sysdeps/lib;/work/grodgers/git/tr-aomp/TheRock/build/compiler/amd-llvm/stage/lib/llvm/lib;/work/grodgers/git/tr-aomp/TheRock/build/base/rocprofiler-register/stage/lib;/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/bzip2/build/stage/lib/rocm_sysdeps/lib;/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/elfutils/build/stage/lib/rocm_sysdeps/lib;/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/libdrm/build/stage/lib/rocm_sysdeps/lib;/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/stage/lib/rocm_sysdeps/lib;/work/grodgers/git/tr-aomp/TheRock/build/core/ROCR-Runtime/stage/lib;/work/grodgers/git/tr-aomp/TheRock/build/core/clr/stage/lib;/work/grodgers/git/tr-aomp/TheRock/build/third-party/host-blas/stage/lib/host-math/lib;/work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/lib;/work/grodgers/git/tr-aomp/TheRock/build/profiler/aqlprofile/stage/lib;/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/sqlite3/build/stage/lib/rocm_sysdeps/lib;/work/grodgers/git/tr-aomp/TheRock/build/base/rocm_smi_lib/stage/lib;/work/grodgers/git/tr-aomp/TheRock/build/core/clr/dist/lib/llvm/lib/clang/22/lib/x86_64-unknown-linux-gnu;/usr/lib/gcc/x86_64-linux-gnu/14;/usr/lib64;/lib/x86_64-linux-gnu;/lib64;/usr/lib/x86_64-linux-gnu;/lib;/usr/lib;/work/grodgers/git/tr-aomp/TheRock/build/core/clr/dist/lib/llvm/lib;CMAKE_FIND_ROOT_PATH_BOTH;NO_PACKAGE_ROOT_PATH;NO_CMAKE_PATH;NO_CMAKE_ENVIRONMENT_PATH ): /work/grodgers/git/tr-aomp/TheRock/build/compiler/amd-llvm/stage/lib/llvm/lib/libomp.so
+2.7	-- Resolving system find_library(OpenMP_pthread_LIBRARY NAMES pthread;DOC;Path to the pthread library for OpenMP;HINTS;/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/zlib/build/stage/lib/rocm_sysdeps/lib;/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/zstd/build/stage/lib/rocm_sysdeps/lib;/work/grodgers/git/tr-aomp/TheRock/build/compiler/amd-llvm/stage/lib/llvm/lib;/work/grodgers/git/tr-aomp/TheRock/build/base/rocprofiler-register/stage/lib;/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/bzip2/build/stage/lib/rocm_sysdeps/lib;/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/elfutils/build/stage/lib/rocm_sysdeps/lib;/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/libdrm/build/stage/lib/rocm_sysdeps/lib;/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/stage/lib/rocm_sysdeps/lib;/work/grodgers/git/tr-aomp/TheRock/build/core/ROCR-Runtime/stage/lib;/work/grodgers/git/tr-aomp/TheRock/build/core/clr/stage/lib;/work/grodgers/git/tr-aomp/TheRock/build/third-party/host-blas/stage/lib/host-math/lib;/work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/lib;/work/grodgers/git/tr-aomp/TheRock/build/profiler/aqlprofile/stage/lib;/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/sqlite3/build/stage/lib/rocm_sysdeps/lib;/work/grodgers/git/tr-aomp/TheRock/build/base/rocm_smi_lib/stage/lib;/work/grodgers/git/tr-aomp/TheRock/build/core/clr/dist/lib/llvm/lib/clang/22/lib/x86_64-unknown-linux-gnu;/usr/lib/gcc/x86_64-linux-gnu/14;/usr/lib64;/lib/x86_64-linux-gnu;/lib64;/usr/lib/x86_64-linux-gnu;/lib;/usr/lib;/work/grodgers/git/tr-aomp/TheRock/build/core/clr/dist/lib/llvm/lib;CMAKE_FIND_ROOT_PATH_BOTH;NO_PACKAGE_ROOT_PATH;NO_CMAKE_PATH;NO_CMAKE_ENVIRONMENT_PATH ): /lib/x86_64-linux-gnu/libpthread.a
+2.9	-- Resolving system find_library(OpenMP_omp_LIBRARY NAMES omp;DOC;Path to the omp library for OpenMP;HINTS;/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/zlib/build/stage/lib/rocm_sysdeps/lib;/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/zstd/build/stage/lib/rocm_sysdeps/lib;/work/grodgers/git/tr-aomp/TheRock/build/compiler/amd-llvm/stage/lib/llvm/lib;/work/grodgers/git/tr-aomp/TheRock/build/base/rocprofiler-register/stage/lib;/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/bzip2/build/stage/lib/rocm_sysdeps/lib;/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/elfutils/build/stage/lib/rocm_sysdeps/lib;/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/libdrm/build/stage/lib/rocm_sysdeps/lib;/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/stage/lib/rocm_sysdeps/lib;/work/grodgers/git/tr-aomp/TheRock/build/core/ROCR-Runtime/stage/lib;/work/grodgers/git/tr-aomp/TheRock/build/core/clr/stage/lib;/work/grodgers/git/tr-aomp/TheRock/build/third-party/host-blas/stage/lib/host-math/lib;/work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/lib;/work/grodgers/git/tr-aomp/TheRock/build/profiler/aqlprofile/stage/lib;/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/sqlite3/build/stage/lib/rocm_sysdeps/lib;/work/grodgers/git/tr-aomp/TheRock/build/base/rocm_smi_lib/stage/lib;/work/grodgers/git/tr-aomp/TheRock/build/core/clr/dist/lib/llvm/lib/clang/22/lib/x86_64-unknown-linux-gnu;/usr/lib/gcc/x86_64-linux-gnu/14;/usr/lib64;/lib/x86_64-linux-gnu;/lib64;/usr/lib/x86_64-linux-gnu;/lib;/usr/lib;/work/grodgers/git/tr-aomp/TheRock/build/core/clr/dist/lib/llvm/lib;CMAKE_FIND_ROOT_PATH_BOTH;NO_PACKAGE_ROOT_PATH;NO_CMAKE_PATH;NO_CMAKE_ENVIRONMENT_PATH ): /work/grodgers/git/tr-aomp/TheRock/build/compiler/amd-llvm/stage/lib/llvm/lib/libomp.so
+2.9	-- Resolving system find_library(OpenMP_pthread_LIBRARY NAMES pthread;DOC;Path to the pthread library for OpenMP;HINTS;/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/zlib/build/stage/lib/rocm_sysdeps/lib;/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/zstd/build/stage/lib/rocm_sysdeps/lib;/work/grodgers/git/tr-aomp/TheRock/build/compiler/amd-llvm/stage/lib/llvm/lib;/work/grodgers/git/tr-aomp/TheRock/build/base/rocprofiler-register/stage/lib;/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/bzip2/build/stage/lib/rocm_sysdeps/lib;/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/elfutils/build/stage/lib/rocm_sysdeps/lib;/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/libdrm/build/stage/lib/rocm_sysdeps/lib;/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/stage/lib/rocm_sysdeps/lib;/work/grodgers/git/tr-aomp/TheRock/build/core/ROCR-Runtime/stage/lib;/work/grodgers/git/tr-aomp/TheRock/build/core/clr/stage/lib;/work/grodgers/git/tr-aomp/TheRock/build/third-party/host-blas/stage/lib/host-math/lib;/work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/lib;/work/grodgers/git/tr-aomp/TheRock/build/profiler/aqlprofile/stage/lib;/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/sqlite3/build/stage/lib/rocm_sysdeps/lib;/work/grodgers/git/tr-aomp/TheRock/build/base/rocm_smi_lib/stage/lib;/work/grodgers/git/tr-aomp/TheRock/build/core/clr/dist/lib/llvm/lib/clang/22/lib/x86_64-unknown-linux-gnu;/usr/lib/gcc/x86_64-linux-gnu/14;/usr/lib64;/lib/x86_64-linux-gnu;/lib64;/usr/lib/x86_64-linux-gnu;/lib;/usr/lib;/work/grodgers/git/tr-aomp/TheRock/build/core/clr/dist/lib/llvm/lib;CMAKE_FIND_ROOT_PATH_BOTH;NO_PACKAGE_ROOT_PATH;NO_CMAKE_PATH;NO_CMAKE_ENVIRONMENT_PATH ): /lib/x86_64-linux-gnu/libpthread.a
+3.0	-- Found OpenMP_C: -fopenmp=libomp (found version "5.1") 
+3.1	-- Found OpenMP_CXX: -fopenmp=libomp (found version "5.1") 
+3.1	-- Found OpenMP: TRUE (found version "5.1")  
+3.1	-- Resolving system find_package(Python3) (not found in super-project ZLIB;zstd;AMDDeviceLibs;Clang;LLD;LLVM;amd_comgr;rocm-core;rocprofiler-register;BZip2;LibElf;libdw;NUMA;hsakmt;hsa-runtime64;hip;HIP;hip-lang;hiprtc;OpenBLAS;cblas;SQLite3;rocprofiler-sdk;rocprofiler-sdk-roctx;rocroller;rocm_smi;hipblas-common;ROCmCMakeBuildTools;ROCM;GTest;msgpack-cxx;mxDataGenerator;Boost;boost_atomic;boost_filesystem;boost_headers;boost_system;fmt;yaml-cpp)
+3.3	-- Resolving system find_path(_Python3_INCLUDE_DIR NAMES Python.h;HINTS;/usr/include/python3.12;NO_SYSTEM_ENVIRONMENT_PATH;NO_CMAKE_SYSTEM_PATH ): /usr/include/python3.12
+3.3	-- Resolving system find_path(_Python3_INCLUDE_DIR NAMES Python.h ): /usr/include/python3.12
+3.3	-- Found Python3: /work/grodgers/git/tr-aomp/TheRock/.venv/bin/python3 (found suitable version "3.12.3", minimum required is "3.8") found components: Interpreter Development.Module 
+3.3	-- Resolving system find_package(Python) (not found in super-project ZLIB;zstd;AMDDeviceLibs;Clang;LLD;LLVM;amd_comgr;rocm-core;rocprofiler-register;BZip2;LibElf;libdw;NUMA;hsakmt;hsa-runtime64;hip;HIP;hip-lang;hiprtc;OpenBLAS;cblas;SQLite3;rocprofiler-sdk;rocprofiler-sdk-roctx;rocroller;rocm_smi;hipblas-common;ROCmCMakeBuildTools;ROCM;GTest;msgpack-cxx;mxDataGenerator;Boost;boost_atomic;boost_filesystem;boost_headers;boost_system;fmt;yaml-cpp)
+3.4	-- Resolving system find_path(_Python_INCLUDE_DIR NAMES Python.h;HINTS;/usr/include/python3.12;NO_SYSTEM_ENVIRONMENT_PATH;NO_CMAKE_SYSTEM_PATH ): /usr/include/python3.12
+3.4	-- Resolving system find_path(_Python_INCLUDE_DIR NAMES Python.h ): /usr/include/python3.12
+3.4	-- Found Python: /work/grodgers/git/tr-aomp/TheRock/.venv/bin/python3 (found suitable version "3.12.3", minimum required is "3.8") found components: Interpreter Development.Module 
+3.4	-- Resolving super-project find_package(rocroller REQUIRED BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/rocRoller/dist/lib/cmake/rocroller)
+3.4	-- Resolving super-project find_package(yaml-cpp REQUIRED BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr-aomp/TheRock/build/third-party/yaml-cpp/dist/lib/cmake)
+3.4	-- Resolving super-project find_package(Boost REQUIRED BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr-aomp/TheRock/build/third-party/boost/cmake_project/dist/lib/cmake/Boost-1.87.0)
+3.4	-- Resolving super-project find_package(boost_headers 1.87.0 EXACT REQUIRED CONFIG BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr-aomp/TheRock/build/third-party/boost/cmake_project/dist/lib/cmake/boost_headers-1.87.0)
+3.4	-- Resolving super-project find_package(fmt REQUIRED BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr-aomp/TheRock/build/third-party/fmt/dist/lib/cmake/fmt)
+3.5	-- Resolving super-project find_package(hip REQUIRED BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr-aomp/TheRock/build/core/clr/dist/lib/cmake/hip)
+3.5	-- Resolving super-project find_package(msgpack-cxx CONFIG BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr-aomp/TheRock/build/third-party/msgpack-cxx/dist/lib/cmake/msgpack-cxx)
+3.5	-- Found msgpack-cxx (>=6.x)
+3.5	-- Resolving system find_package(Git) (not found in super-project ZLIB;zstd;AMDDeviceLibs;Clang;LLD;LLVM;amd_comgr;rocm-core;rocprofiler-register;BZip2;LibElf;libdw;NUMA;hsakmt;hsa-runtime64;hip;HIP;hip-lang;hiprtc;OpenBLAS;cblas;SQLite3;rocprofiler-sdk;rocprofiler-sdk-roctx;rocroller;rocm_smi;hipblas-common;ROCmCMakeBuildTools;ROCM;GTest;msgpack-cxx;mxDataGenerator;Boost;boost_atomic;boost_filesystem;boost_headers;boost_system;fmt;yaml-cpp)
+5.7	-- Performing Test COMPILER_HAS_HIDDEN_VISIBILITY
+5.8	-- Performing Test COMPILER_HAS_HIDDEN_VISIBILITY - Success
+5.8	-- Performing Test COMPILER_HAS_HIDDEN_INLINE_VISIBILITY
+5.9	-- Performing Test COMPILER_HAS_HIDDEN_INLINE_VISIBILITY - Success
+5.9	-- Performing Test COMPILER_HAS_DEPRECATED_ATTR
+6.1	-- Performing Test COMPILER_HAS_DEPRECATED_ATTR - Success
+6.1	-- Device lib build command: /usr/bin/cmake -E env PYTHONPATH=/work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/hipBLASLt/build/tensilelite/rocisa/lib:/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/hipblaslt/tensilelite PATH=/work/grodgers/git/tr-aomp/TheRock/build/compiler/amd-llvm/dist/lib/llvm/bin:/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/bzip2/build/dist/lib/rocm_sysdeps/bin:/work/grodgers/git/tr-aomp/TheRock/build/core/clr/dist/bin:/work/grodgers/git/tr-aomp/TheRock/build/base/rocm_smi_lib/dist/bin:/work/grodgers/git/tr-aomp/TheRock/.venv/bin:/home/grodgers/bin:/home/grodgers/.local/bin:/usr/local/go/bin:/usr/local/gh-cli/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin -- /work/grodgers/git/tr-aomp/TheRock/.venv/bin/python3 -m Tensile.TensileCreateLibrary --architecture=gfx90a$<SEMICOLON>gfx942$<SEMICOLON>gfx908 --cxx-compiler=/work/grodgers/git/tr-aomp/TheRock/build/core/clr/dist/lib/llvm/bin/clang++ /work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/hipblaslt/library /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/hipBLASLt/build/Tensile HIP
+6.1	-- Resolving super-project find_package(mxDataGenerator REQUIRED BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr-aomp/TheRock/build/math-libs/support/mxDataGenerator/dist/lib/cmake)
+6.1	-- Resolving system find_package(OpenMP) (not found in super-project ZLIB;zstd;AMDDeviceLibs;Clang;LLD;LLVM;amd_comgr;rocm-core;rocprofiler-register;BZip2;LibElf;libdw;NUMA;hsakmt;hsa-runtime64;hip;HIP;hip-lang;hiprtc;OpenBLAS;cblas;SQLite3;rocprofiler-sdk;rocprofiler-sdk-roctx;rocroller;rocm_smi;hipblas-common;ROCmCMakeBuildTools;ROCM;GTest;msgpack-cxx;mxDataGenerator;Boost;boost_atomic;boost_filesystem;boost_headers;boost_system;fmt;yaml-cpp)
+6.1	-- Found OpenMP_C: -fopenmp=libomp (found version "5.1") 
+6.1	-- Found OpenMP_CXX: -fopenmp=libomp (found version "5.1") 
+6.1	-- Resolving super-project find_package(LLVM REQUIRED BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr-aomp/TheRock/build/compiler/amd-llvm/dist/lib/llvm/lib/cmake/llvm)
+6.1	-- Resolving system find_package(LibEdit) (not found in super-project ZLIB;zstd;AMDDeviceLibs;Clang;LLD;LLVM;amd_comgr;rocm-core;rocprofiler-register;BZip2;LibElf;libdw;NUMA;hsakmt;hsa-runtime64;hip;HIP;hip-lang;hiprtc;OpenBLAS;cblas;SQLite3;rocprofiler-sdk;rocprofiler-sdk-roctx;rocroller;rocm_smi;hipblas-common;ROCmCMakeBuildTools;ROCM;GTest;msgpack-cxx;mxDataGenerator;Boost;boost_atomic;boost_filesystem;boost_headers;boost_system;fmt;yaml-cpp)
+6.1	-- Resolving system find_package(PkgConfig) (not found in super-project ZLIB;zstd;AMDDeviceLibs;Clang;LLD;LLVM;amd_comgr;rocm-core;rocprofiler-register;BZip2;LibElf;libdw;NUMA;hsakmt;hsa-runtime64;hip;HIP;hip-lang;hiprtc;OpenBLAS;cblas;SQLite3;rocprofiler-sdk;rocprofiler-sdk-roctx;rocroller;rocm_smi;hipblas-common;ROCmCMakeBuildTools;ROCM;GTest;msgpack-cxx;mxDataGenerator;Boost;boost_atomic;boost_filesystem;boost_headers;boost_system;fmt;yaml-cpp)
+6.2	-- Resolving system find_library(pkgcfg_lib_PC_LIBEDIT_edit NAMES edit;HINTS;/usr/lib/x86_64-linux-gnu;NO_DEFAULT_PATH ): /usr/lib/x86_64-linux-gnu/libedit.so
+6.2	-- Resolving system find_library(pkgcfg_lib_PC_LIBEDIT_edit NAMES edit ): /usr/lib/x86_64-linux-gnu/libedit.so
+6.2	-- Resolving system find_path(LibEdit_INCLUDE_DIRS NAMES histedit.h;HINTS;/usr/include;/usr/include/editline ): /usr/include
+6.2	-- Resolving system find_library(LibEdit_LIBRARIES NAMES edit;HINTS;/usr/lib/x86_64-linux-gnu ): /usr/lib/x86_64-linux-gnu/libedit.so
+6.2	-- Looking for histedit.h
+6.3	-- Looking for histedit.h - found
+6.3	-- Found LibEdit: /usr/include (found version "2.11") 
+6.3	-- Resolving super-project find_package(ZLIB BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/zlib/build/dist/lib/rocm_sysdeps/lib/cmake/ZLIB)
+6.3	-- Resolving super-project find_package(zstd BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/zstd/build/dist/lib/rocm_sysdeps/lib/cmake/zstd)
+6.3	-- Resolving system find_package(Threads) (not found in super-project ZLIB;zstd;AMDDeviceLibs;Clang;LLD;LLVM;amd_comgr;rocm-core;rocprofiler-register;BZip2;LibElf;libdw;NUMA;hsakmt;hsa-runtime64;hip;HIP;hip-lang;hiprtc;OpenBLAS;cblas;SQLite3;rocprofiler-sdk;rocprofiler-sdk-roctx;rocroller;rocm_smi;hipblas-common;ROCmCMakeBuildTools;ROCM;GTest;msgpack-cxx;mxDataGenerator;Boost;boost_atomic;boost_filesystem;boost_headers;boost_system;fmt;yaml-cpp)
+6.4	-- Set RPATH $ORIGIN/../lib/rocm_sysdeps/lib;$ORIGIN/../lib/llvm/lib;$ORIGIN/../lib;$ORIGIN/../lib/host-math/lib on hipblaslt-bench
+6.4	-- Set RPATH $ORIGIN/../lib/rocm_sysdeps/lib;$ORIGIN/../lib/llvm/lib;$ORIGIN/../lib;$ORIGIN/../lib/host-math/lib on hipblaslt-api-overhead
+6.4	-- Set RPATH $ORIGIN/../lib/rocm_sysdeps/lib;$ORIGIN/../lib/llvm/lib;$ORIGIN/../lib;$ORIGIN/../lib/host-math/lib on hipblaslt-bench-groupedgemm-fixed-mk
+6.4	-- Set RPATH $ORIGIN/../lib/rocm_sysdeps/lib;$ORIGIN/../lib/llvm/lib;$ORIGIN/../lib;$ORIGIN/../lib/host-math/lib on hipblaslt-bench-extop-layernorm
+6.4	-- Set RPATH $ORIGIN/../lib/rocm_sysdeps/lib;$ORIGIN/../lib/llvm/lib;$ORIGIN/../lib;$ORIGIN/../lib/host-math/lib on hipblaslt-bench-extop-matrixtransform
+6.4	-- Set RPATH $ORIGIN/../lib/rocm_sysdeps/lib;$ORIGIN/../lib/llvm/lib;$ORIGIN/../lib;$ORIGIN/../lib/host-math/lib on hipblaslt-bench-extop-softmax
+6.4	-- Set RPATH $ORIGIN/../lib/rocm_sysdeps/lib;$ORIGIN/../lib/llvm/lib;$ORIGIN/../lib;$ORIGIN/../lib/host-math/lib on hipblaslt-bench-extop-amax
+6.4	-- Set RPATH $ORIGIN/../lib/rocm_sysdeps/lib;$ORIGIN/../lib/llvm/lib;$ORIGIN/../lib;$ORIGIN/../lib/host-math/lib on hipblaslt-sequence
+6.4	-- Set RPATH $ORIGIN/../lib/rocm_sysdeps/lib;$ORIGIN/../lib/llvm/lib;$ORIGIN/../lib;$ORIGIN/../lib/host-math/lib on sample_hipblaslt_gemm
+6.4	-- Set RPATH $ORIGIN/../lib/rocm_sysdeps/lib;$ORIGIN/../lib/llvm/lib;$ORIGIN/../lib;$ORIGIN/../lib/host-math/lib on sample_hipblaslt_gemm_ext
+6.4	-- Set RPATH $ORIGIN/../lib/rocm_sysdeps/lib;$ORIGIN/../lib/llvm/lib;$ORIGIN/../lib;$ORIGIN/../lib/host-math/lib on sample_hipblaslt_gemm_batched
+6.4	-- Set RPATH $ORIGIN/../lib/rocm_sysdeps/lib;$ORIGIN/../lib/llvm/lib;$ORIGIN/../lib;$ORIGIN/../lib/host-math/lib on sample_hipblaslt_gemm_batched_ext
+6.4	-- Set RPATH $ORIGIN/../lib/rocm_sysdeps/lib;$ORIGIN/../lib/llvm/lib;$ORIGIN/../lib;$ORIGIN/../lib/host-math/lib on sample_hipblaslt_gemm_tuning_splitk_ext
+6.4	-- Set RPATH $ORIGIN/../lib/rocm_sysdeps/lib;$ORIGIN/../lib/llvm/lib;$ORIGIN/../lib;$ORIGIN/../lib/host-math/lib on sample_hipblaslt_gemm_bias
+6.4	-- Set RPATH $ORIGIN/../lib/rocm_sysdeps/lib;$ORIGIN/../lib/llvm/lib;$ORIGIN/../lib;$ORIGIN/../lib/host-math/lib on sample_hipblaslt_gemm_bias_ext
+6.4	-- Set RPATH $ORIGIN/../lib/rocm_sysdeps/lib;$ORIGIN/../lib/llvm/lib;$ORIGIN/../lib;$ORIGIN/../lib/host-math/lib on sample_hipblaslt_gemm_get_all_algos
+6.4	-- Set RPATH $ORIGIN/../lib/rocm_sysdeps/lib;$ORIGIN/../lib/llvm/lib;$ORIGIN/../lib;$ORIGIN/../lib/host-math/lib on sample_hipblaslt_gemm_get_all_algos_ext
+6.4	-- Set RPATH $ORIGIN/../lib/rocm_sysdeps/lib;$ORIGIN/../lib/llvm/lib;$ORIGIN/../lib;$ORIGIN/../lib/host-math/lib on sample_hipblaslt_gemm_get_algo_by_index_ext
+6.4	-- Set RPATH $ORIGIN/../lib/rocm_sysdeps/lib;$ORIGIN/../lib/llvm/lib;$ORIGIN/../lib;$ORIGIN/../lib/host-math/lib on sample_hipblaslt_gemm_alphavec_ext
+6.4	-- Set RPATH $ORIGIN/../lib/rocm_sysdeps/lib;$ORIGIN/../lib/llvm/lib;$ORIGIN/../lib;$ORIGIN/../lib/host-math/lib on sample_hipblaslt_gemm_gelu_aux_bias
+6.4	-- Set RPATH $ORIGIN/../lib/rocm_sysdeps/lib;$ORIGIN/../lib/llvm/lib;$ORIGIN/../lib;$ORIGIN/../lib/host-math/lib on sample_hipblaslt_gemm_gelu_aux_bias_ext
+6.4	-- Set RPATH $ORIGIN/../lib/rocm_sysdeps/lib;$ORIGIN/../lib/llvm/lib;$ORIGIN/../lib;$ORIGIN/../lib/host-math/lib on sample_hipblaslt_gemm_amax
+6.4	-- Set RPATH $ORIGIN/../lib/rocm_sysdeps/lib;$ORIGIN/../lib/llvm/lib;$ORIGIN/../lib;$ORIGIN/../lib/host-math/lib on sample_hipblaslt_gemm_amax_ext
+6.4	-- Set RPATH $ORIGIN/../lib/rocm_sysdeps/lib;$ORIGIN/../lib/llvm/lib;$ORIGIN/../lib;$ORIGIN/../lib/host-math/lib on sample_hipblaslt_gemm_amax_with_scale
+6.4	-- Set RPATH $ORIGIN/../lib/rocm_sysdeps/lib;$ORIGIN/../lib/llvm/lib;$ORIGIN/../lib;$ORIGIN/../lib/host-math/lib on sample_hipblaslt_gemm_amax_with_scale_ext
+6.4	-- Set RPATH $ORIGIN/../lib/rocm_sysdeps/lib;$ORIGIN/../lib/llvm/lib;$ORIGIN/../lib;$ORIGIN/../lib/host-math/lib on sample_hipblaslt_gemm_bgradb
+6.4	-- Set RPATH $ORIGIN/../lib/rocm_sysdeps/lib;$ORIGIN/../lib/llvm/lib;$ORIGIN/../lib;$ORIGIN/../lib/host-math/lib on sample_hipblaslt_gemm_ext_bgradb
+6.4	-- Set RPATH $ORIGIN/../lib/rocm_sysdeps/lib;$ORIGIN/../lib/llvm/lib;$ORIGIN/../lib;$ORIGIN/../lib/host-math/lib on sample_hipblaslt_gemm_dgelu_bgrad
+6.4	-- Set RPATH $ORIGIN/../lib/rocm_sysdeps/lib;$ORIGIN/../lib/llvm/lib;$ORIGIN/../lib;$ORIGIN/../lib/host-math/lib on sample_hipblaslt_gemm_dgelu_bgrad_ext
+6.4	-- Set RPATH $ORIGIN/../lib/rocm_sysdeps/lib;$ORIGIN/../lib/llvm/lib;$ORIGIN/../lib;$ORIGIN/../lib/host-math/lib on sample_hipblaslt_gemm_is_tuned_ext
+6.4	-- Set RPATH $ORIGIN/../lib/rocm_sysdeps/lib;$ORIGIN/../lib/llvm/lib;$ORIGIN/../lib;$ORIGIN/../lib/host-math/lib on sample_hipblaslt_gemm_tuning_wgm_ext
+6.4	-- Set RPATH $ORIGIN/../lib/rocm_sysdeps/lib;$ORIGIN/../lib/llvm/lib;$ORIGIN/../lib;$ORIGIN/../lib/host-math/lib on sample_hipblaslt_gemm_with_scale_a_b
+6.4	-- Set RPATH $ORIGIN/../lib/rocm_sysdeps/lib;$ORIGIN/../lib/llvm/lib;$ORIGIN/../lib;$ORIGIN/../lib/host-math/lib on sample_hipblaslt_gemm_with_scale_a_b_ext
+6.4	-- Set RPATH $ORIGIN/../lib/rocm_sysdeps/lib;$ORIGIN/../lib/llvm/lib;$ORIGIN/../lib;$ORIGIN/../lib/host-math/lib on sample_hipblaslt_gemm_with_scale_a_b_vector
+6.4	-- Set RPATH $ORIGIN/../lib/rocm_sysdeps/lib;$ORIGIN/../lib/llvm/lib;$ORIGIN/../lib;$ORIGIN/../lib/host-math/lib on sample_hipblaslt_gemm_swizzleA_with_scale_a_b_vector
+6.4	-- Set RPATH $ORIGIN/../lib/rocm_sysdeps/lib;$ORIGIN/../lib/llvm/lib;$ORIGIN/../lib;$ORIGIN/../lib/host-math/lib on sample_hipblaslt_groupedgemm_ext
+6.4	-- Set RPATH $ORIGIN/../lib/rocm_sysdeps/lib;$ORIGIN/../lib/llvm/lib;$ORIGIN/../lib;$ORIGIN/../lib/host-math/lib on sample_hipblaslt_groupedgemm_fixed_mk_ext
+6.4	-- Set RPATH $ORIGIN/../lib/rocm_sysdeps/lib;$ORIGIN/../lib/llvm/lib;$ORIGIN/../lib;$ORIGIN/../lib/host-math/lib on sample_hipblaslt_groupedgemm_get_all_algos_ext
+6.4	-- Set RPATH $ORIGIN/../lib/rocm_sysdeps/lib;$ORIGIN/../lib/llvm/lib;$ORIGIN/../lib;$ORIGIN/../lib/host-math/lib on sample_hipblaslt_gemm_mix_precision
+6.4	-- Set RPATH $ORIGIN/../lib/rocm_sysdeps/lib;$ORIGIN/../lib/llvm/lib;$ORIGIN/../lib;$ORIGIN/../lib/host-math/lib on sample_hipblaslt_gemm_mix_precision_ext
+6.4	-- Set RPATH $ORIGIN/../lib/rocm_sysdeps/lib;$ORIGIN/../lib/llvm/lib;$ORIGIN/../lib;$ORIGIN/../lib/host-math/lib on sample_hipblaslt_gemm_mix_precision_with_amax_ext
+6.4	-- Set RPATH $ORIGIN/../lib/rocm_sysdeps/lib;$ORIGIN/../lib/llvm/lib;$ORIGIN/../lib;$ORIGIN/../lib/host-math/lib on sample_hipblaslt_gemm_attr_tciA_tciB
+6.4	-- Set RPATH $ORIGIN/../lib/rocm_sysdeps/lib;$ORIGIN/../lib/llvm/lib;$ORIGIN/../lib;$ORIGIN/../lib/host-math/lib on sample_hipblaslt_ext_op_layernorm
+6.4	-- Set RPATH $ORIGIN/../lib/rocm_sysdeps/lib;$ORIGIN/../lib/llvm/lib;$ORIGIN/../lib;$ORIGIN/../lib/host-math/lib on sample_hipblaslt_ext_op_amax
+6.4	-- Set RPATH $ORIGIN/../lib/rocm_sysdeps/lib;$ORIGIN/../lib/llvm/lib;$ORIGIN/../lib;$ORIGIN/../lib/host-math/lib on sample_hipblaslt_gemm_with_TF32
+6.4	-- Set RPATH $ORIGIN/../lib/rocm_sysdeps/lib;$ORIGIN/../lib/llvm/lib;$ORIGIN/../lib;$ORIGIN/../lib/host-math/lib on sample_hipblaslt_gemm_swizzle_a
+6.4	-- Set RPATH $ORIGIN/../lib/rocm_sysdeps/lib;$ORIGIN/../lib/llvm/lib;$ORIGIN/../lib;$ORIGIN/../lib/host-math/lib on sample_hipblaslt_gemm_bias_swizzle_a_ext
+6.4	-- Set RPATH $ORIGIN/../lib/rocm_sysdeps/lib;$ORIGIN/../lib/llvm/lib;$ORIGIN/../lib;$ORIGIN/../lib/host-math/lib on sample_hipblaslt_weight_swizzle_padding
+6.4	-- Set RPATH $ORIGIN/../lib/rocm_sysdeps/lib;$ORIGIN/../lib/llvm/lib;$ORIGIN/../lib;$ORIGIN/../lib/host-math/lib on sample_hipblaslt_gemm_swish_bias
+6.4	-- Set RPATH $ORIGIN/../lib/rocm_sysdeps/lib;$ORIGIN/../lib/llvm/lib;$ORIGIN/../lib;$ORIGIN/../lib/host-math/lib on sample_hipblaslt_gemm_clamp_bias
+6.4	-- Set RPATH $ORIGIN/rocm_sysdeps/lib;$ORIGIN/llvm/lib;$ORIGIN;$ORIGIN/host-math/lib on hipblaslt
+6.4	-- Configuring done (6.4s)
+6.6	-- Generating done (0.1s)
+6.6	CMake Warning:
+6.6	  Manually-specified variables were not used by the project:
+6.6	
+6.6	    THEROCK_STAGE_INSTALL_ROOT
+6.6	
+6.6	
+6.6	-- Build files have been written to: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/hipBLASLt/build
+END	1757694232.953031	6.652159690856934	0
