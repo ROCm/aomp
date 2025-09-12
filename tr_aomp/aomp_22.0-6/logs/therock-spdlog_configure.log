@@ -1,0 +1,29 @@
+BEGIN	1757693408.796662
+EXEC	/work1/grodgers/git/tr-aomp/TheRock/build/third-party/spdlog/build	/usr/bin/cmake -E env --unset=ROCM_PATH --unset=ROCM_DIR --unset=HIP_PATH --unset=HIP_DIR -- /usr/bin/cmake -GNinja -B/work/grodgers/git/tr-aomp/TheRock/build/third-party/spdlog/build -S/work/grodgers/git/tr-aomp/TheRock/build/third-party/spdlog/source -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/work/grodgers/git/tr-aomp/TheRock/build/third-party/spdlog/stage -DTHEROCK_STAGE_INSTALL_ROOT=/work/grodgers/git/tr-aomp/TheRock/build/third-party/spdlog/stage -DCMAKE_TOOLCHAIN_FILE=/work/grodgers/git/tr-aomp/TheRock/build/third-party/spdlog/_toolchain.cmake -DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=/work/grodgers/git/tr-aomp/TheRock/build/third-party/spdlog/_init.cmake -DSPDLOG_BUILD_EXAMPLE=OFF -DSPDLOG_INSTALL=ON -DSPDLOG_FMT_EXTERNAL=ON
+0.0	-- Resolving packages from super-project: fmt
+0.1	-- The CXX compiler identification is GNU 13.3.0
+0.1	-- Detecting CXX compiler ABI info
+0.2	-- Detecting CXX compiler ABI info - done
+0.2	-- Check for working CXX compiler: /usr/bin/c++ - skipped
+0.2	-- Detecting CXX compile features
+0.2	-- Detecting CXX compile features - done
+0.2	-- Build spdlog: 1.15.3
+0.2	-- Resolving system find_package(Threads) (not found in super-project fmt)
+0.2	-- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+0.3	-- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
+0.3	-- Found Threads: TRUE  
+0.3	-- Build type: Release
+0.3	-- Resolving super-project find_package(fmt REQUIRED CONFIG BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr-aomp/TheRock/build/third-party/fmt/dist/lib/cmake/fmt)
+0.3	-- Looking for fwrite_unlocked
+0.4	-- Looking for fwrite_unlocked - found
+0.4	-- Generating install
+0.4	-- Configuring done (0.4s)
+0.4	-- Generating done (0.0s)
+0.4	CMake Warning:
+0.4	  Manually-specified variables were not used by the project:
+0.4	
+0.4	    THEROCK_STAGE_INSTALL_ROOT
+0.4	
+0.4	
+0.4	-- Build files have been written to: /work/grodgers/git/tr-aomp/TheRock/build/third-party/spdlog/build
+END	1757693409.198058	0.4013957977294922	0

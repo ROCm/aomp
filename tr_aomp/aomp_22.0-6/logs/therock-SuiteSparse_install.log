@@ -1,0 +1,71 @@
+BEGIN	1757693427.5348992
+EXEC	/work1/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/build	/usr/bin/cmake --install /work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/build
+0.0	-- Install configuration: "Release"
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/stage/lib/host-math/lib/libsuitesparseconfig.so.7.8.3
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/stage/lib/host-math/lib/libsuitesparseconfig.so.7
+0.0	-- Set non-toolchain portion of runtime path of "/work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/stage/lib/host-math/lib/libsuitesparseconfig.so.7.8.3" to "$ORIGIN"
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/stage/lib/host-math/lib/libsuitesparseconfig.so
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/stage/lib/host-math/include/suitesparse/SuiteSparse_config.h
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/stage/lib/host-math/lib/cmake/SuiteSparse/SuiteSparseBLAS.cmake
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/stage/lib/host-math/lib/cmake/SuiteSparse/SuiteSparseBLAS32.cmake
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/stage/lib/host-math/lib/cmake/SuiteSparse/SuiteSparseBLAS64.cmake
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/stage/lib/host-math/lib/cmake/SuiteSparse/SuiteSparseLAPACK.cmake
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/stage/lib/host-math/lib/cmake/SuiteSparse/SuiteSparsePolicy.cmake
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/stage/lib/host-math/lib/cmake/SuiteSparse/SuiteSparseReport.cmake
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/stage/lib/host-math/lib/cmake/SuiteSparse/SuiteSparse__thread.cmake
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/stage/lib/host-math/lib/cmake/SuiteSparse_config/SuiteSparse_configTargets.cmake
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/stage/lib/host-math/lib/cmake/SuiteSparse_config/SuiteSparse_configTargets-release.cmake
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/stage/lib/host-math/lib/cmake/SuiteSparse_config/SuiteSparse_configConfig.cmake
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/stage/lib/host-math/lib/cmake/SuiteSparse_config/SuiteSparse_configConfigVersion.cmake
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/stage/lib/host-math/lib/pkgconfig/SuiteSparse_config.pc
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/stage/lib/host-math/lib/libamd.so.3.3.3
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/stage/lib/host-math/lib/libamd.so.3
+0.0	-- Set non-toolchain portion of runtime path of "/work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/stage/lib/host-math/lib/libamd.so.3.3.3" to "$ORIGIN"
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/stage/lib/host-math/lib/libamd.so
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/stage/lib/host-math/include/suitesparse/amd.h
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/stage/lib/host-math/lib/cmake/AMD/AMDTargets.cmake
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/stage/lib/host-math/lib/cmake/AMD/AMDTargets-release.cmake
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/stage/lib/host-math/lib/cmake/AMD/AMDConfig.cmake
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/stage/lib/host-math/lib/cmake/AMD/AMDConfigVersion.cmake
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/stage/lib/host-math/lib/pkgconfig/AMD.pc
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/stage/lib/host-math/lib/libcamd.so.3.3.3
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/stage/lib/host-math/lib/libcamd.so.3
+0.0	-- Set non-toolchain portion of runtime path of "/work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/stage/lib/host-math/lib/libcamd.so.3.3.3" to "$ORIGIN"
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/stage/lib/host-math/lib/libcamd.so
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/stage/lib/host-math/include/suitesparse/camd.h
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/stage/lib/host-math/lib/cmake/CAMD/CAMDTargets.cmake
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/stage/lib/host-math/lib/cmake/CAMD/CAMDTargets-release.cmake
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/stage/lib/host-math/lib/cmake/CAMD/CAMDConfig.cmake
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/stage/lib/host-math/lib/cmake/CAMD/CAMDConfigVersion.cmake
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/stage/lib/host-math/lib/pkgconfig/CAMD.pc
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/stage/lib/host-math/lib/libccolamd.so.3.3.4
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/stage/lib/host-math/lib/libccolamd.so.3
+0.0	-- Set non-toolchain portion of runtime path of "/work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/stage/lib/host-math/lib/libccolamd.so.3.3.4" to "$ORIGIN"
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/stage/lib/host-math/lib/libccolamd.so
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/stage/lib/host-math/include/suitesparse/ccolamd.h
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/stage/lib/host-math/lib/cmake/CCOLAMD/CCOLAMDTargets.cmake
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/stage/lib/host-math/lib/cmake/CCOLAMD/CCOLAMDTargets-release.cmake
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/stage/lib/host-math/lib/cmake/CCOLAMD/CCOLAMDConfig.cmake
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/stage/lib/host-math/lib/cmake/CCOLAMD/CCOLAMDConfigVersion.cmake
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/stage/lib/host-math/lib/pkgconfig/CCOLAMD.pc
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/stage/lib/host-math/lib/libcolamd.so.3.3.4
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/stage/lib/host-math/lib/libcolamd.so.3
+0.0	-- Set non-toolchain portion of runtime path of "/work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/stage/lib/host-math/lib/libcolamd.so.3.3.4" to "$ORIGIN"
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/stage/lib/host-math/lib/libcolamd.so
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/stage/lib/host-math/include/suitesparse/colamd.h
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/stage/lib/host-math/lib/cmake/COLAMD/COLAMDTargets.cmake
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/stage/lib/host-math/lib/cmake/COLAMD/COLAMDTargets-release.cmake
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/stage/lib/host-math/lib/cmake/COLAMD/COLAMDConfig.cmake
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/stage/lib/host-math/lib/cmake/COLAMD/COLAMDConfigVersion.cmake
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/stage/lib/host-math/lib/pkgconfig/COLAMD.pc
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/stage/lib/host-math/lib/libcholmod.so.5.3.0
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/stage/lib/host-math/lib/libcholmod.so.5
+0.0	-- Set non-toolchain portion of runtime path of "/work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/stage/lib/host-math/lib/libcholmod.so.5.3.0" to "$ORIGIN"
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/stage/lib/host-math/lib/libcholmod.so
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/stage/lib/host-math/include/suitesparse/cholmod.h
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/stage/lib/host-math/lib/cmake/CHOLMOD/CHOLMODTargets.cmake
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/stage/lib/host-math/lib/cmake/CHOLMOD/CHOLMODTargets-release.cmake
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/stage/lib/host-math/lib/cmake/CHOLMOD/CHOLMODConfig.cmake
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/stage/lib/host-math/lib/cmake/CHOLMOD/CHOLMODConfigVersion.cmake
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/SuiteSparse/stage/lib/host-math/lib/pkgconfig/CHOLMOD.pc
+END	1757693427.5569673	0.022068023681640625	0

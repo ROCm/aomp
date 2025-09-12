@@ -1,0 +1,30 @@
+BEGIN	1757694056.4723158
+EXEC	/work1/grodgers/git/tr-aomp/TheRock/build/math-libs/support/mxDataGenerator/build	/usr/bin/cmake --install /work/grodgers/git/tr-aomp/TheRock/build/math-libs/support/mxDataGenerator/build
+0.0	-- Install configuration: "Release"
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/support/mxDataGenerator/stage/lib/cmake/mxDataGenerator/mxDataGenerator-targets.cmake
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/support/mxDataGenerator/stage/lib/cmake/mxDataGenerator/mxDataGeneratorConfig-version.cmake
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/support/mxDataGenerator/stage/lib/cmake/mxDataGenerator/mxDataGeneratorConfig.cmake
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/support/mxDataGenerator/stage/include/DataGenerator.hpp
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/support/mxDataGenerator/stage/include/bf16.hpp
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/support/mxDataGenerator/stage/include/bf16_impl.hpp
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/support/mxDataGenerator/stage/include/dataTypeInfo.hpp
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/support/mxDataGenerator/stage/include/dataTypeInfo_impl.hpp
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/support/mxDataGenerator/stage/include/data_generation_utils.hpp
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/support/mxDataGenerator/stage/include/f32.hpp
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/support/mxDataGenerator/stage/include/f32_impl.hpp
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/support/mxDataGenerator/stage/include/fp16.hpp
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/support/mxDataGenerator/stage/include/fp16_impl.hpp
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/support/mxDataGenerator/stage/include/fp6.hpp
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/support/mxDataGenerator/stage/include/ocp_e2m1_mxfp4.hpp
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/support/mxDataGenerator/stage/include/ocp_e2m1_mxfp4_impl.hpp
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/support/mxDataGenerator/stage/include/ocp_e2m3_mxfp6.hpp
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/support/mxDataGenerator/stage/include/ocp_e2m3_mxfp6_impl.hpp
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/support/mxDataGenerator/stage/include/ocp_e3m2_mxfp6.hpp
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/support/mxDataGenerator/stage/include/ocp_e3m2_mxfp6_impl.hpp
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/support/mxDataGenerator/stage/include/ocp_e4m3_mxfp8.hpp
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/support/mxDataGenerator/stage/include/ocp_e4m3_mxfp8_impl.hpp
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/support/mxDataGenerator/stage/include/ocp_e5m2_mxfp8.hpp
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/support/mxDataGenerator/stage/include/ocp_e5m2_mxfp8_impl.hpp
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/support/mxDataGenerator/stage/include/packing.hpp
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/support/mxDataGenerator/stage/share/doc/mxDataGenerator/LICENSE.md
+END	1757694056.486303	0.013987302780151367	0

@@ -1,0 +1,135 @@
+BEGIN	1757694023.767702
+EXEC	/work1/grodgers/git/tr-aomp/TheRock/build/compiler/amd-comgr/build	/usr/bin/cmake -E env --unset=ROCM_PATH --unset=ROCM_DIR --unset=HIP_PATH --unset=HIP_DIR -- /usr/bin/cmake --build /work/grodgers/git/tr-aomp/TheRock/build/compiler/amd-comgr/build
+0.1	[1/92] cd /work/grodgers/git/tr-aomp/TheRock/build/compiler/amd-comgr/build && /usr/bin/cmake -E rm -f /work/grodgers/git/tr-aomp/TheRock/build/compiler/amd-comgr/stamp/stage.stamp
+0.1	[2/92] Building C object CMakeFiles/bc2h.dir/bc2h.c.o
+0.1	[3/92] Linking C executable bc2h
+0.1	[4/92] Generating oclc_abi_version_400.inc
+0.1	[5/92] Generating oclc_abi_version_500.inc
+0.1	[6/92] Generating oclc_abi_version_600.inc
+0.1	[7/92] Generating oclc_correctly_rounded_sqrt_off.inc
+0.1	[8/92] Generating oclc_correctly_rounded_sqrt_on.inc
+0.1	[9/92] Generating oclc_daz_opt_off.inc
+0.1	[10/92] Generating oclc_daz_opt_on.inc
+0.1	[11/92] Generating oclc_finite_only_off.inc
+0.1	[12/92] Generating oclc_finite_only_on.inc
+0.1	[13/92] Generating oclc_isa_version_10-1-generic.inc
+0.1	[14/92] Generating oclc_isa_version_10-3-generic.inc
+0.1	[15/92] Generating oclc_isa_version_1010.inc
+0.1	[16/92] Generating oclc_isa_version_1011.inc
+0.1	[17/92] Generating oclc_isa_version_1012.inc
+0.1	[18/92] Generating oclc_isa_version_1013.inc
+0.1	[19/92] Generating oclc_isa_version_1030.inc
+0.1	[20/92] Generating oclc_isa_version_1031.inc
+0.1	[21/92] Generating oclc_isa_version_1032.inc
+0.1	[22/92] Generating oclc_isa_version_1033.inc
+0.1	[23/92] Generating oclc_isa_version_1034.inc
+0.1	[24/92] Generating oclc_isa_version_1035.inc
+0.1	[25/92] Generating oclc_isa_version_1036.inc
+0.1	[26/92] Generating oclc_isa_version_11-generic.inc
+0.1	[27/92] Generating oclc_isa_version_1100.inc
+0.1	[28/92] Generating oclc_isa_version_1101.inc
+0.1	[29/92] Generating oclc_isa_version_1102.inc
+0.1	[30/92] Generating oclc_isa_version_1103.inc
+0.1	[31/92] Generating oclc_isa_version_1150.inc
+0.1	[32/92] Generating oclc_isa_version_1151.inc
+0.1	[33/92] Generating oclc_isa_version_1152.inc
+0.1	[34/92] Generating oclc_isa_version_1153.inc
+0.1	[35/92] Generating oclc_isa_version_12-generic.inc
+0.1	[36/92] Generating oclc_isa_version_1200.inc
+0.1	[37/92] Generating oclc_isa_version_1201.inc
+0.1	[38/92] Generating oclc_isa_version_600.inc
+0.1	[39/92] Generating oclc_isa_version_601.inc
+0.1	[40/92] Generating oclc_isa_version_602.inc
+0.1	[41/92] Generating oclc_isa_version_700.inc
+0.1	[42/92] Generating oclc_isa_version_701.inc
+0.1	[43/92] Generating oclc_isa_version_702.inc
+0.1	[44/92] Generating oclc_isa_version_703.inc
+0.1	[45/92] Generating oclc_isa_version_704.inc
+0.1	[46/92] Generating oclc_isa_version_705.inc
+0.1	[47/92] Generating oclc_isa_version_801.inc
+0.1	[48/92] Generating oclc_isa_version_802.inc
+0.1	[49/92] Generating oclc_isa_version_803.inc
+0.1	[50/92] Generating oclc_isa_version_805.inc
+0.1	[51/92] Generating oclc_isa_version_810.inc
+0.1	[52/92] Generating oclc_isa_version_9-4-generic.inc
+0.1	[53/92] Generating oclc_isa_version_9-generic.inc
+0.1	[54/92] Generating oclc_isa_version_900.inc
+0.1	[55/92] Generating oclc_isa_version_902.inc
+0.1	[56/92] Generating oclc_isa_version_904.inc
+0.1	[57/92] Generating oclc_isa_version_906.inc
+0.1	[58/92] Generating oclc_isa_version_908.inc
+0.1	[59/92] Generating oclc_isa_version_909.inc
+0.1	[60/92] Generating oclc_isa_version_90a.inc
+0.1	[61/92] Generating oclc_isa_version_90c.inc
+0.1	[62/92] Generating oclc_isa_version_942.inc
+0.1	[63/92] Generating oclc_isa_version_950.inc
+0.1	[64/92] Generating oclc_unsafe_math_off.inc
+0.1	[65/92] Generating oclc_wavefrontsize64_off.inc
+0.1	[66/92] Generating oclc_wavefrontsize64_on.inc
+0.1	[67/92] Generating oclc_unsafe_math_on.inc
+0.1	[68/92] Generating hip.inc
+0.1	[69/92] Generating opencl-c-base.inc
+0.1	[70/92] Generating asanrtl.inc
+0.1	[71/92] Generating ockl.inc
+0.1	[72/92] Generating ocml.inc
+0.2	[73/92] Generating opencl.inc
+0.3	[74/92] Generating /work/grodgers/git/tr-aomp/TheRock/build/compiler/amd-comgr/build/include/libraries_sha.inc
+0.9	[75/92] Building CXX object CMakeFiles/amd_comgr.dir/src/comgr-diagnostic-handler.cpp.o
+0.9	[76/92] Building CXX object CMakeFiles/amd_comgr.dir/src/comgr-signal.cpp.o
+1.0	[77/92] Building CXX object CMakeFiles/amd_comgr.dir/src/comgr-unbundle-command.cpp.o
+1.0	[78/92] Building CXX object CMakeFiles/amd_comgr.dir/src/comgr-env.cpp.o
+1.1	[79/92] Building CXX object CMakeFiles/amd_comgr.dir/src/comgr-spirv-command.cpp.o
+1.1	[80/92] Building CXX object CMakeFiles/amd_comgr.dir/src/time-stat/time-stat.cpp.o
+1.2	[81/92] Building CXX object CMakeFiles/amd_comgr.dir/src/comgr-cache-command.cpp.o
+1.2	[82/92] Building CXX object CMakeFiles/amd_comgr.dir/src/comgr-clang-command.cpp.o
+1.4	[83/92] Building CXX object CMakeFiles/amd_comgr.dir/src/comgr-cache.cpp.o
+1.7	[84/92] Building CXX object CMakeFiles/amd_comgr.dir/src/comgr-symbol.cpp.o
+1.8	[85/92] Building CXX object CMakeFiles/amd_comgr.dir/src/comgr-symbolizer.cpp.o
+1.9	[86/92] Building CXX object CMakeFiles/amd_comgr.dir/src/comgr-disassembly.cpp.o
+1.9	/work/grodgers/git/tr-aomp/TheRock/compiler/amd-llvm/amd/comgr/src/comgr-disassembly.cpp: In static member function ‘static amd_comgr_status_t COMGR::DisassemblyInfo::create(const COMGR::TargetIdentifier&, COMGR::ReadMemoryCallback, COMGR::PrintInstructionCallback, COMGR::PrintAddressAnnotationCallback, amd_comgr_disassembly_info_t*)’:
+1.9	/work/grodgers/git/tr-aomp/TheRock/compiler/amd-llvm/amd/comgr/src/comgr-disassembly.cpp:49:71: warning: ‘llvm::MCRegisterInfo* llvm::Target::createMCRegInfo(llvm::StringRef) const’ is deprecated: Use overload accepting Triple instead [-Wdeprecated-declarations]
+1.9	   49 |   std::unique_ptr<const MCRegisterInfo> MRI(TheTarget->createMCRegInfo(TT));
+1.9	      |                                             ~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~
+1.9	In file included from /work/grodgers/git/tr-aomp/TheRock/compiler/amd-llvm/amd/comgr/src/comgr-disassembly.cpp:19:
+1.9	/work1/grodgers/git/tr-aomp/TheRock/build/compiler/amd-llvm/dist/lib/llvm/include/llvm/MC/TargetRegistry.h:444:19: note: declared here
+1.9	  444 |   MCRegisterInfo *createMCRegInfo(StringRef TT) const {
+1.9	      |                   ^~~~~~~~~~~~~~~
+1.9	/work/grodgers/git/tr-aomp/TheRock/compiler/amd-llvm/amd/comgr/src/comgr-disassembly.cpp:56:33: warning: ‘llvm::MCAsmInfo* llvm::Target::createMCAsmInfo(const llvm::MCRegisterInfo&, llvm::StringRef, const llvm::MCTargetOptions&) const’ is deprecated: Use overload accepting Triple instead [-Wdeprecated-declarations]
+1.9	   56 |       TheTarget->createMCAsmInfo(*MRI, TT, MCOptions));
+1.9	      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~
+1.9	/work1/grodgers/git/tr-aomp/TheRock/build/compiler/amd-llvm/dist/lib/llvm/include/llvm/MC/TargetRegistry.h:393:14: note: declared here
+1.9	  393 |   MCAsmInfo *createMCAsmInfo(const MCRegisterInfo &MRI, StringRef TheTriple,
+1.9	      |              ^~~~~~~~~~~~~~~
+1.9	/work/grodgers/git/tr-aomp/TheRock/compiler/amd-llvm/amd/comgr/src/comgr-disassembly.cpp:67:39: warning: ‘llvm::MCSubtargetInfo* llvm::Target::createMCSubtargetInfo(llvm::StringRef, llvm::StringRef, llvm::StringRef) const’ is deprecated: Use overload accepting Triple instead [-Wdeprecated-declarations]
+1.9	   67 |       TheTarget->createMCSubtargetInfo(TT, Ident.Processor, Features));
+1.9	      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1.9	/work1/grodgers/git/tr-aomp/TheRock/build/compiler/amd-llvm/dist/lib/llvm/include/llvm/MC/TargetRegistry.h:458:20: note: declared here
+1.9	  458 |   MCSubtargetInfo *createMCSubtargetInfo(StringRef TheTriple, StringRef CPU,
+1.9	      |                    ^~~~~~~~~~~~~~~~~~~~~
+3.2	[87/92] Building CXX object CMakeFiles/amd_comgr.dir/src/comgr-metadata.cpp.o
+4.2	[88/92] Building CXX object CMakeFiles/amd_comgr.dir/src/comgr-device-libs.cpp.o
+5.5	[89/92] Building CXX object CMakeFiles/amd_comgr.dir/src/comgr.cpp.o
+9.4	[90/92] Building CXX object CMakeFiles/amd_comgr.dir/src/comgr-compiler.cpp.o
+9.4	/work/grodgers/git/tr-aomp/TheRock/compiler/amd-llvm/amd/comgr/src/comgr-compiler.cpp: In function ‘bool COMGR::{anonymous}::executeAssemblerImpl(AssemblerInvocation&, clang::DiagnosticsEngine&, llvm::raw_ostream&)’:
+9.4	/work/grodgers/git/tr-aomp/TheRock/compiler/amd-llvm/amd/comgr/src/comgr-compiler.cpp:379:65: warning: ‘llvm::MCRegisterInfo* llvm::Target::createMCRegInfo(llvm::StringRef) const’ is deprecated: Use overload accepting Triple instead [-Wdeprecated-declarations]
+9.4	  379 |   std::unique_ptr<MCRegisterInfo> MRI(TheTarget->createMCRegInfo(Opts.Triple));
+9.4	      |                                       ~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~
+9.4	In file included from /work/grodgers/git/tr-aomp/TheRock/compiler/amd-llvm/amd/comgr/src/comgr-compiler.cpp:58:
+9.4	/work1/grodgers/git/tr-aomp/TheRock/build/compiler/amd-llvm/dist/lib/llvm/include/llvm/MC/TargetRegistry.h:444:19: note: declared here
+9.4	  444 |   MCRegisterInfo *createMCRegInfo(StringRef TT) const {
+9.4	      |                   ^~~~~~~~~~~~~~~
+9.4	/work/grodgers/git/tr-aomp/TheRock/compiler/amd-llvm/amd/comgr/src/comgr-compiler.cpp:386:33: warning: ‘llvm::MCAsmInfo* llvm::Target::createMCAsmInfo(const llvm::MCRegisterInfo&, llvm::StringRef, const llvm::MCTargetOptions&) const’ is deprecated: Use overload accepting Triple instead [-Wdeprecated-declarations]
+9.4	  386 |       TheTarget->createMCAsmInfo(*MRI, Opts.Triple, MCOptions));
+9.4	      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9.4	/work1/grodgers/git/tr-aomp/TheRock/build/compiler/amd-llvm/dist/lib/llvm/include/llvm/MC/TargetRegistry.h:393:14: note: declared here
+9.4	  393 |   MCAsmInfo *createMCAsmInfo(const MCRegisterInfo &MRI, StringRef TheTriple,
+9.4	      |              ^~~~~~~~~~~~~~~
+9.4	/work/grodgers/git/tr-aomp/TheRock/compiler/amd-llvm/amd/comgr/src/comgr-compiler.cpp:409:39: warning: ‘llvm::MCSubtargetInfo* llvm::Target::createMCSubtargetInfo(llvm::StringRef, llvm::StringRef, llvm::StringRef) const’ is deprecated: Use overload accepting Triple instead [-Wdeprecated-declarations]
+9.4	  409 |       TheTarget->createMCSubtargetInfo(Opts.Triple, Opts.CPU, FS));
+9.4	      |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~
+9.4	/work1/grodgers/git/tr-aomp/TheRock/build/compiler/amd-llvm/dist/lib/llvm/include/llvm/MC/TargetRegistry.h:458:20: note: declared here
+9.4	  458 |   MCSubtargetInfo *createMCSubtargetInfo(StringRef TheTriple, StringRef CPU,
+9.4	      |                    ^~~~~~~~~~~~~~~~~~~~~
+11.2	[91/92] Linking CXX shared library libamd_comgr.so.3.0.0
+11.5	[92/92] Creating library symlink libamd_comgr.so.3 libamd_comgr.so
+END	1757694035.2385821	11.470880031585693	0

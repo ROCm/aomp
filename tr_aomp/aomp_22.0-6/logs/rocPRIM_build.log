@@ -1,0 +1,4 @@
+BEGIN	1757694058.7188156
+EXEC	/work1/grodgers/git/tr-aomp/TheRock/build/math-libs/rocPRIM/build	/usr/bin/cmake -E env --unset=ROCM_PATH --unset=ROCM_DIR --unset=HIP_PATH --unset=HIP_DIR -- /usr/bin/cmake --build /work/grodgers/git/tr-aomp/TheRock/build/math-libs/rocPRIM/build
+0.0	[1/1] cd /work/grodgers/git/tr-aomp/TheRock/build/math-libs/rocPRIM/build && /usr/bin/cmake -E rm -f /work/grodgers/git/tr-aomp/TheRock/build/math-libs/rocPRIM/stamp/stage.stamp
+END	1757694058.7478747	0.029059171676635742	0

@@ -1,0 +1,118 @@
+BEGIN	1757694035.7256472
+EXEC	/work1/grodgers/git/tr-aomp/TheRock/build/core/clr/build	/usr/bin/cmake -E env --unset=ROCM_PATH --unset=ROCM_DIR --unset=HIP_PATH --unset=HIP_DIR -- /usr/bin/cmake -GNinja -B/work/grodgers/git/tr-aomp/TheRock/build/core/clr/build -S/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/clr -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/work/grodgers/git/tr-aomp/TheRock/build/core/clr/stage -DTHEROCK_STAGE_INSTALL_ROOT=/work/grodgers/git/tr-aomp/TheRock/build/core/clr/stage -DCMAKE_TOOLCHAIN_FILE=/work/grodgers/git/tr-aomp/TheRock/build/core/clr/_toolchain.cmake -DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=/work/grodgers/git/tr-aomp/TheRock/build/core/clr/_init.cmake -DHIP_PLATFORM=amd -DHIP_COMMON_DIR=/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/hip -DCLR_BUILD_HIP=ON -DBUILD_ICD=ON -DHIPCC_BIN_DIR=
+0.0	-- Sub-project PKG_CONFIG_PATH: /work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/zlib/build/stage/lib/rocm_sysdeps/lib/pkgconfig:/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/zstd/build/stage/lib/rocm_sysdeps/lib/pkgconfig:/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/bzip2/build/stage/lib/rocm_sysdeps/lib/pkgconfig:/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/elfutils/build/stage/lib/rocm_sysdeps/lib/pkgconfig:/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/libdrm/build/stage/lib/rocm_sysdeps/lib/pkgconfig:/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/stage/lib/rocm_sysdeps/lib/pkgconfig:
+0.0	-- Resolving packages from super-project: ZLIB;zstd;AMDDeviceLibs;Clang;LLD;LLVM;amd_comgr;rocm-core;rocprofiler-register;BZip2;LibElf;libdw;NUMA;hsakmt;hsa-runtime64;ROCmCMakeBuildTools;ROCM
+0.1	-- The C compiler identification is GNU 13.3.0
+0.2	-- The CXX compiler identification is GNU 13.3.0
+0.2	-- Detecting C compiler ABI info
+0.3	-- Detecting C compiler ABI info - done
+0.3	-- Check for working C compiler: /usr/bin/cc - skipped
+0.3	-- Detecting C compile features
+0.3	-- Detecting C compile features - done
+0.3	-- Detecting CXX compiler ABI info
+0.4	-- Detecting CXX compiler ABI info - done
+0.4	-- Check for working CXX compiler: /usr/bin/c++ - skipped
+0.4	-- Detecting CXX compile features
+0.4	-- Detecting CXX compile features - done
+0.4	-- HIP Common Directory: /work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/hip
+0.4	-- Resolving system find_package(Threads) (not found in super-project ZLIB;zstd;AMDDeviceLibs;Clang;LLD;LLVM;amd_comgr;rocm-core;rocprofiler-register;BZip2;LibElf;libdw;NUMA;hsakmt;hsa-runtime64;ROCmCMakeBuildTools;ROCM)
+0.4	-- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+0.5	-- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
+0.5	-- Found Threads: TRUE  
+0.5	-- Resolving system find_package(AMD_OPENCL) (not found in super-project ZLIB;zstd;AMDDeviceLibs;Clang;LLD;LLVM;amd_comgr;rocm-core;rocprofiler-register;BZip2;LibElf;libdw;NUMA;hsakmt;hsa-runtime64;ROCmCMakeBuildTools;ROCM)
+0.6	-- Found AMD_OPENCL: /work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/clr/opencl/khronos/headers/opencl2.2/CL  
+0.6	-- Resolving system find_package(Git) (not found in super-project ZLIB;zstd;AMDDeviceLibs;Clang;LLD;LLVM;amd_comgr;rocm-core;rocprofiler-register;BZip2;LibElf;libdw;NUMA;hsakmt;hsa-runtime64;ROCmCMakeBuildTools;ROCM)
+0.6	-- Found Git: /usr/bin/git (found version "2.43.0") 
+0.6	-- Resolving super-project find_package(amd_comgr 2.9 CONFIG BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr-aomp/TheRock/build/compiler/amd-comgr/dist/lib/cmake/amd_comgr)
+0.6	CMake Warning at /work/grodgers/git/tr-aomp/TheRock/cmake/therock_subproject_dep_provider.cmake:54 (find_package):
+0.6	  Could not find a configuration file for package "amd_comgr" that is
+0.6	  compatible with requested version "2.9".
+0.6	
+0.6	  The following configuration files were considered but not accepted:
+0.6	
+0.6	    /work/grodgers/git/tr-aomp/TheRock/build/compiler/amd-comgr/dist/lib/cmake/amd_comgr/amd_comgr-config.cmake, version: 3.0.0
+0.6	
+0.6	Call Stack (most recent call first):
+0.6	  rocclr/cmake/ROCclrLC.cmake:21 (find_package)
+0.6	  rocclr/cmake/ROCclr.cmake:150 (include)
+0.6	  rocclr/CMakeLists.txt:28 (include)
+0.6	
+0.6	
+0.6	-- Super-project find_package(amd_comgr VERSION 2.9) -> /work/grodgers/git/tr-aomp/TheRock/build/compiler/amd-comgr/dist/lib/cmake/amd_comgr/amd_comgr-config-version.cmake
+1.0	CMake Warning at rocclr/cmake/ROCclrLC.cmake:21 (find_package):
+1.0	  Could not find a configuration file for package "amd_comgr" that is
+1.0	  compatible with requested version "2.9".
+1.0	
+1.0	  The following configuration files were considered but not accepted:
+1.0	
+1.0	    /work/grodgers/git/tr-aomp/TheRock/build/core/clr/prefix/amd_comgrConfig.cmake, version: 3.0.0
+1.0	    /opt/rocm/lib/cmake/amd_comgr/amd_comgr-config.cmake, version: 3.0.0
+1.0	
+1.0	Call Stack (most recent call first):
+1.0	  rocclr/cmake/ROCclr.cmake:150 (include)
+1.0	  rocclr/CMakeLists.txt:28 (include)
+1.0	
+1.0	
+1.0	-- Resolving super-project find_package(amd_comgr 3.0 REQUIRED CONFIG BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr-aomp/TheRock/build/compiler/amd-comgr/dist/lib/cmake/amd_comgr)
+1.0	-- Resolving super-project find_package(hsa-runtime64 1.11 REQUIRED CONFIG BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr-aomp/TheRock/build/core/ROCR-Runtime/dist/lib/cmake/hsa-runtime64)
+1.0	-- Resolving super-project find_package(NUMA BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/dist/lib/rocm_sysdeps/lib/cmake/NUMA)
+1.0	-- Resolving system find_package(OpenGL) (not found in super-project ZLIB;zstd;AMDDeviceLibs;Clang;LLD;LLVM;amd_comgr;rocm-core;rocprofiler-register;BZip2;LibElf;libdw;NUMA;hsakmt;hsa-runtime64;ROCmCMakeBuildTools;ROCM)
+1.1	-- Found OpenGL: /usr/lib/x86_64-linux-gnu/libOpenGL.so   
+1.1	-- HIPCC_BIN_DIR found at 
+1.1	-- HIP_COMMON_DIR found at /work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/hip
+1.1	-- HIPNV_DIR found at 
+1.1	-- Resolving system find_package(Perl) (not found in super-project ZLIB;zstd;AMDDeviceLibs;Clang;LLD;LLVM;amd_comgr;rocm-core;rocprofiler-register;BZip2;LibElf;libdw;NUMA;hsakmt;hsa-runtime64;ROCmCMakeBuildTools;ROCM)
+1.1	-- Found Perl: /usr/bin/perl (found version "5.38.2") 
+1.1	-- Resolving system find_package(Git) (not found in super-project ZLIB;zstd;AMDDeviceLibs;Clang;LLD;LLVM;amd_comgr;rocm-core;rocprofiler-register;BZip2;LibElf;libdw;NUMA;hsakmt;hsa-runtime64;ROCmCMakeBuildTools;ROCM)
+1.1	-- Using CPACK_DEBIAN_PACKAGE_RELEASE local
+1.1	-- CPACK_RPM_PACKAGE_RELEASE: local
+1.1	-- HIP Platform: amd
+1.1	-- HIP Runtime: rocclr
+1.1	-- HIP Compiler: clang
+1.1	-- ROCM Installation path(ROCM_PATH): /opt/rocm
+1.1	-- HIP will be installed in: /work/grodgers/git/tr-aomp/TheRock/build/core/clr/stage
+1.1	-- Resolving super-project find_package(LLVM REQUIRED CONFIG BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr-aomp/TheRock/build/compiler/amd-llvm/dist/lib/llvm/lib/cmake/llvm)
+1.1	-- Resolving system find_package(LibEdit) (not found in super-project ZLIB;zstd;AMDDeviceLibs;Clang;LLD;LLVM;amd_comgr;rocm-core;rocprofiler-register;BZip2;LibElf;libdw;NUMA;hsakmt;hsa-runtime64;ROCmCMakeBuildTools;ROCM)
+1.1	-- Resolving system find_package(PkgConfig) (not found in super-project ZLIB;zstd;AMDDeviceLibs;Clang;LLD;LLVM;amd_comgr;rocm-core;rocprofiler-register;BZip2;LibElf;libdw;NUMA;hsakmt;hsa-runtime64;ROCmCMakeBuildTools;ROCM)
+1.2	-- Looking for histedit.h
+1.3	-- Looking for histedit.h - found
+1.3	-- Found LibEdit: /usr/include (found version "2.11") 
+1.3	-- Resolving super-project find_package(ZLIB BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/zlib/build/dist/lib/rocm_sysdeps/lib/cmake/ZLIB)
+1.3	-- Resolving super-project find_package(zstd BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/zstd/build/dist/lib/rocm_sysdeps/lib/cmake/zstd)
+1.3	-- Resolving system find_package(Threads) (not found in super-project ZLIB;zstd;AMDDeviceLibs;Clang;LLD;LLVM;amd_comgr;rocm-core;rocprofiler-register;BZip2;LibElf;libdw;NUMA;hsakmt;hsa-runtime64;ROCmCMakeBuildTools;ROCM)
+1.3	'sh' '-c' '/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/clr/hipamd/src/hip_embed_pch.sh /work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/hip/include /work/grodgers/git/tr-aomp/TheRock/build/core/clr/build/hipamd/include /work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/clr/hipamd/include /work/grodgers/git/tr-aomp/TheRock/build/compiler/amd-llvm/dist/lib/llvm/lib/cmake/llvm/../../..'
+1.4	+ /work/grodgers/git/tr-aomp/TheRock/build/compiler/amd-llvm/dist/lib/llvm/lib/cmake/llvm/../../../bin/clang -O3 --hip-path=/work/grodgers/git/tr-aomp/TheRock/build/core/clr/build/hipamd/include/.. -std=c++17 -nogpulib -isystem /work/grodgers/git/tr-aomp/TheRock/build/core/clr/build/hipamd/include -isystem /work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/hip/include -isystem /work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/clr/hipamd/include --cuda-device-only --cuda-gpu-arch=gfx1030 -x hip /tmp/hip_pch.895496/hip_pch.h -E
+1.4	+ cat /tmp/hip_pch.895496/hip_macros.h
+1.4	+ /work/grodgers/git/tr-aomp/TheRock/build/compiler/amd-llvm/dist/lib/llvm/lib/cmake/llvm/../../../bin/clang -cc1 -O3 -emit-pch -triple amdgcn-amd-amdhsa -aux-triple x86_64-unknown-linux-gnu -fcuda-is-device -std=c++17 -fgnuc-version=4.2.1 -o /tmp/hip_pch.895496/hip_wave32.pch -x hip-cpp-output -
+2.1	+ /work/grodgers/git/tr-aomp/TheRock/build/compiler/amd-llvm/dist/lib/llvm/lib/cmake/llvm/../../../bin/clang -O3 --hip-path=/work/grodgers/git/tr-aomp/TheRock/build/core/clr/build/hipamd/include/.. -std=c++17 -nogpulib -isystem /work/grodgers/git/tr-aomp/TheRock/build/core/clr/build/hipamd/include -isystem /work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/hip/include -isystem /work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/clr/hipamd/include --cuda-device-only -x hip /tmp/hip_pch.895496/hip_pch.h -E
+2.2	+ cat /tmp/hip_pch.895496/hip_macros.h
+2.2	+ /work/grodgers/git/tr-aomp/TheRock/build/compiler/amd-llvm/dist/lib/llvm/lib/cmake/llvm/../../../bin/clang -cc1 -O3 -emit-pch -triple amdgcn-amd-amdhsa -aux-triple x86_64-unknown-linux-gnu -fcuda-is-device -std=c++17 -fgnuc-version=4.2.1 -o /tmp/hip_pch.895496/hip_wave64.pch -x hip-cpp-output -
+2.9	+ /work/grodgers/git/tr-aomp/TheRock/build/compiler/amd-llvm/dist/lib/llvm/lib/cmake/llvm/../../../bin/llvm-mc -o hip_pch.o /tmp/hip_pch.895496/hip_pch.mcin --filetype=obj
+2.9	+ rm -rf /tmp/hip_pch.895496
+2.9	-- Resolving system find_package(Python3) (not found in super-project ZLIB;zstd;AMDDeviceLibs;Clang;LLD;LLVM;amd_comgr;rocm-core;rocprofiler-register;BZip2;LibElf;libdw;NUMA;hsakmt;hsa-runtime64;ROCmCMakeBuildTools;ROCM)
+3.1	-- Found Python3: /work/grodgers/git/tr-aomp/TheRock/.venv/bin/python3 (found version "3.12.3") found components: Interpreter 
+3.1	CMake Warning at hipamd/src/CMakeLists.txt:268 (message):
+3.1	  Profiling API header not found.  Disabling roctracer integration.  Use
+3.1	  -DPROF_API_HEADER_PATH=<path to prof_protocol.h header>
+3.1	
+3.1	
+3.1	-- Resolving super-project find_package(rocprofiler-register REQUIRED BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr-aomp/TheRock/build/base/rocprofiler-register/dist/lib/cmake/rocprofiler-register)
+3.1	-- Found rocprofiler-register: /work/grodgers/git/tr-aomp/TheRock/build/base/rocprofiler-register/dist (found version "0.5.0")  
+3.1	CMake Warning (dev) at hipamd/packaging/CMakeLists.txt:59 (install):
+3.1	  Target amdhip64 has PUBLIC_HEADER files but no PUBLIC_HEADER DESTINATION.
+3.1	This warning is for project developers.  Use -Wno-dev to suppress it.
+3.1	
+3.2	-- Set RPATH $ORIGIN/rocm_sysdeps/lib;$ORIGIN/llvm/lib;$ORIGIN on amdhip64
+3.2	-- Set RPATH $ORIGIN/rocm_sysdeps/lib;$ORIGIN/llvm/lib;$ORIGIN on hiprtc
+3.2	-- Set RPATH $ORIGIN/rocm_sysdeps/lib;$ORIGIN/llvm/lib;$ORIGIN on hiprtc-builtins
+3.2	-- Configuring done (3.2s)
+3.2	-- Generating done (0.0s)
+3.2	CMake Warning:
+3.2	  Manually-specified variables were not used by the project:
+3.2	
+3.2	    BUILD_ICD
+3.2	    THEROCK_STAGE_INSTALL_ROOT
+3.2	
+3.2	
+3.2	-- Build files have been written to: /work/grodgers/git/tr-aomp/TheRock/build/core/clr/build
+END	1757694038.959357	3.2337098121643066	0
