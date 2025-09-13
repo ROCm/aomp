@@ -60,6 +60,9 @@ $_cuda_plugin \
 $AOMP_GFXLIST_OPT \
 $AOMP_NVPTX_CAPS_OPT \
 $ENABLE_DEBUG_OPT \
+-DLLVM_RUNTIME_TARGETS='default;amdgcn-amd-amdhsa' \
+-DRUNTIMES_amdgcn-amd-amdhsa_LLVM_ENABLE_RUNTIMES='openmp' \
+-DRUNTIMES_amdgcn-amd-amdhsa_LLVM_ENABLE_PER_TARGET_RUNTIME_DIR=ON \
 "
 
 # -DFLANG_RUNTIME_F128_MATH_LIB=libquadmath \
