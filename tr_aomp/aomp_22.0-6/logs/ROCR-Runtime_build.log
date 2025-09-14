@@ -1,0 +1,531 @@
+BEGIN	1757694024.358911
+EXEC	/work1/grodgers/git/tr-aomp/TheRock/build/core/ROCR-Runtime/build	/usr/bin/cmake -E env --unset=ROCM_PATH --unset=ROCM_DIR --unset=HIP_PATH --unset=HIP_DIR -- /usr/bin/cmake --build /work/grodgers/git/tr-aomp/TheRock/build/core/ROCR-Runtime/build
+0.1	[1/182] cd /work/grodgers/git/tr-aomp/TheRock/build/core/ROCR-Runtime/build && /usr/bin/cmake -E rm -f /work/grodgers/git/tr-aomp/TheRock/build/core/ROCR-Runtime/stamp/stage.stamp
+0.1	[2/182] Building C object libhsakmt/CMakeFiles/hsakmt.dir/src/globals.c.o
+0.1	[3/182] Building C object libhsakmt/CMakeFiles/hsakmt.dir/src/version.c.o
+0.1	[4/182] Building C object libhsakmt/CMakeFiles/hsakmt.dir/src/time.c.o
+0.1	[5/182] Building C object libhsakmt/CMakeFiles/hsakmt.dir/src/libhsakmt.c.o
+0.1	[6/182] BUILDING bitcode for kCodeTrapHandlerV2_942...
+0.1	[7/182] BUILDING bitcode for kCodeTrapHandlerV2_950...
+0.1	[8/182] Building C object libhsakmt/CMakeFiles/hsakmt.dir/src/spm.c.o
+0.1	[9/182] BUILDING bitcode for kCodeTrapHandlerV2_9...
+0.1	[10/182] BUILDING bitcode for kCodeTrapHandlerV2_12...
+0.1	[11/182] BUILDING bitcode for kCodeCopyMisaligned10...
+0.1	[12/182] BUILDING bitcode for kCodeTrapHandlerV2_1010...
+0.1	[13/182] BUILDING bitcode for kCodeCopyMisaligned9...
+0.1	[14/182] BUILDING bitcode for kCodeCopyMisaligned11...
+0.1	[15/182] BUILDING bitcode for kCodeTrapHandlerV2_11...
+0.1	[16/182] BUILDING bitcode for kCodeCopyMisaligned12...
+0.1	[17/182] BUILDING bitcode for kCodeCopyAligned12...
+0.1	[18/182] BUILDING bitcode for kCodeTrapHandlerV2_10...
+0.1	[19/182] Extracting binary for kCodeTrapHandlerV2_942...
+0.1	[20/182] BUILDING bitcode for kCodeCopyAligned9...
+0.1	[21/182] BUILDING bitcode for kCodeCopyAligned11...
+0.1	[22/182] Extracting binary for kCodeTrapHandlerV2_950...
+0.1	[23/182] BUILDING bitcode for kCodeCopyAligned1010...
+0.1	[24/182] Extracting binary for kCodeCopyMisaligned10...
+0.1	[25/182] Extracting binary for kCodeTrapHandlerV2_9...
+0.1	[26/182] Extracting binary for kCodeTrapHandlerV2_12...
+0.1	[27/182] BUILDING bitcode for kCodeFill1010...
+0.1	[28/182] BUILDING bitcode for kCodeCopyAligned10...
+0.1	[29/182] BUILDING bitcode for kCodeFill9...
+0.1	[30/182] BUILDING bitcode for kCodeFill11...
+0.1	[31/182] BUILDING bitcode for kCodeCopyMisaligned1010...
+0.1	[32/182] BUILDING bitcode for kCodeFill10...
+0.1	[33/182] Extracting binary for kCodeCopyMisaligned11...
+0.1	[34/182] Extracting binary for kCodeCopyMisaligned9...
+0.1	[35/182] Extracting binary for kCodeTrapHandlerV2_1010...
+0.1	[36/182] Extracting binary for kCodeTrapHandlerV2_11...
+0.1	[37/182] Extracting binary for kCodeCopyMisaligned12...
+0.1	[38/182] BUILDING bitcode for kCodeFill12...
+0.1	[39/182] Extracting binary for kCodeCopyAligned12...
+0.1	[40/182] Extracting binary for kCodeTrapHandlerV2_10...
+0.1	[41/182] Extracting binary for kCodeCopyAligned9...
+0.1	[42/182] Extracting binary for kCodeCopyAligned11...
+0.1	[43/182] Extracting binary for kCodeCopyAligned1010...
+0.1	[44/182] Extracting binary for kCodeFill1010...
+0.1	[45/182] Extracting binary for kCodeCopyAligned10...
+0.1	[46/182] Extracting binary for kCodeCopyMisaligned1010...
+0.1	[47/182] Building C object libhsakmt/CMakeFiles/hsakmt.dir/src/pmc_table.c.o
+0.1	[48/182] Extracting binary for kCodeFill10...
+0.1	[49/182] Extracting binary for kCodeFill9...
+0.1	[50/182] Building C object libhsakmt/CMakeFiles/hsakmt.dir/src/pc_sampling.c.o
+0.1	[51/182] Extracting binary for kCodeFill11...
+0.1	[52/182] Extracting binary for kCodeFill12...
+0.1	[53/182] Collating trap handlers...
+0.1	[54/182] Building C object libhsakmt/CMakeFiles/hsakmt.dir/src/svm.c.o
+0.1	[55/182] Building C object libhsakmt/CMakeFiles/hsakmt.dir/src/rbtree.c.o
+0.1	[56/182] Building C object libhsakmt/CMakeFiles/hsakmt.dir/src/openclose.c.o
+0.1	[57/182] Collating blit shaders...
+0.1	[58/182] Building C object libhsakmt/CMakeFiles/hsakmt.dir/src/debug.c.o
+0.2	[59/182] Building C object libhsakmt/CMakeFiles/hsakmt.dir/src/events.c.o
+0.2	[60/182] Building C object libhsakmt/CMakeFiles/hsakmt.dir/src/memory.c.o
+0.2	[61/182] Building C object libhsakmt/CMakeFiles/hsakmt.dir/src/perfctr.c.o
+0.2	[62/182] Building C object libhsakmt/CMakeFiles/hsakmt.dir/src/hsakmtmodel.c.o
+0.2	[63/182] Building C object libhsakmt/CMakeFiles/hsakmt.dir/src/queues.c.o
+0.4	[64/182] BUILDING bitcode for ocl_blit_object_gfx701...
+0.4	[65/182] BUILDING bitcode for ocl_blit_object_gfx902...
+0.4	[66/182] BUILDING bitcode for ocl_blit_object_gfx801...
+0.4	[67/182] BUILDING bitcode for ocl_blit_object_gfx805...
+0.4	[68/182] BUILDING bitcode for ocl_blit_object_gfx1013...
+0.4	[69/182] BUILDING bitcode for ocl_blit_object_gfx1032...
+0.4	[70/182] BUILDING bitcode for ocl_blit_object_gfx1036...
+0.4	[71/182] BUILDING bitcode for ocl_blit_object_gfx1103...
+0.4	[72/182] BUILDING bitcode for ocl_blit_object_gfx1011...
+0.4	[73/182] BUILDING bitcode for ocl_blit_object_gfx900...
+0.4	[74/182] BUILDING bitcode for ocl_blit_object_gfx1035...
+0.4	[75/182] BUILDING bitcode for ocl_blit_object_gfx1012...
+0.4	[76/182] BUILDING bitcode for ocl_blit_object_gfx1201...
+0.4	[77/182] BUILDING bitcode for ocl_blit_object_gfx803...
+0.4	[78/182] BUILDING bitcode for ocl_blit_object_gfx1151...
+0.4	[79/182] BUILDING bitcode for ocl_blit_object_gfx802...
+0.4	[80/182] BUILDING bitcode for ocl_blit_object_gfx1031...
+0.4	[81/182] BUILDING bitcode for ocl_blit_object_gfx1100...
+0.4	[82/182] BUILDING bitcode for ocl_blit_object_gfx909...
+0.4	[83/182] BUILDING bitcode for ocl_blit_object_gfx1030...
+0.5	[84/182] BUILDING bitcode for ocl_blit_object_gfx906...
+0.5	[85/182] BUILDING bitcode for ocl_blit_object_gfx1101...
+0.5	[86/182] BUILDING bitcode for ocl_blit_object_gfx1034...
+0.5	[87/182] BUILDING bitcode for ocl_blit_object_gfx1153...
+0.5	[88/182] BUILDING bitcode for ocl_blit_object_gfx1102...
+0.5	[89/182] BUILDING bitcode for ocl_blit_object_gfx90c...
+0.5	[90/182] BUILDING bitcode for ocl_blit_object_gfx1152...
+0.5	[91/182] BUILDING bitcode for ocl_blit_object_gfx1150...
+0.5	[92/182] BUILDING bitcode for ocl_blit_object_gfx1010...
+0.5	[93/182] BUILDING bitcode for ocl_blit_object_gfx904...
+0.5	[94/182] BUILDING bitcode for ocl_blit_object_gfx1200...
+0.5	[95/182] BUILDING bitcode for ocl_blit_object_gfx700...
+0.5	[96/182] BUILDING bitcode for ocl_blit_object_gfx702...
+0.5	[97/182] BUILDING bitcode for ocl_blit_object_gfx1033...
+0.5	[98/182] BUILDING bitcode for ocl_blit_object_gfx908...
+0.5	[99/182] BUILDING bitcode for ocl_blit_object_gfx810...
+0.5	[100/182] Building C object libhsakmt/CMakeFiles/hsakmt.dir/src/topology.c.o
+0.5	[101/182] BUILDING bitcode for ocl_blit_object_gfx942...
+0.5	[102/182] BUILDING bitcode for ocl_blit_object_gfx90a...
+0.5	[103/182] BUILDING bitcode for ocl_blit_object_gfx950...
+0.7	[104/182] Building C object libhsakmt/CMakeFiles/hsakmt.dir/src/fmm.c.o
+0.7	[105/182] Linking C static library libhsakmt/archive/libhsakmt.a
+0.8	[106/182] Generating opencl_blit_objects.cpp
+0.8	[107/182] Building CXX object runtime/hsa-runtime/CMakeFiles/hsa-runtime64.dir/image/blit_object_gfx7xx.cpp.o
+0.8	[108/182] Building CXX object runtime/hsa-runtime/CMakeFiles/hsa-runtime64.dir/image/blit_object_gfx8xx.cpp.o
+0.8	[109/182] Building CXX object runtime/hsa-runtime/CMakeFiles/hsa-runtime64.dir/image/blit_object_gfx9xx.cpp.o
+0.9	[110/182] Building CXX object runtime/hsa-runtime/CMakeFiles/hsa-runtime64.dir/image/addrlib/src/core/addrobject.cpp.o
+0.9	[111/182] Building CXX object runtime/hsa-runtime/CMakeFiles/hsa-runtime64.dir/image/addrlib/src/core/addrlib.cpp.o
+0.9	[112/182] Building CXX object runtime/hsa-runtime/CMakeFiles/hsa-runtime64.dir/image/addrlib/src/addrinterface.cpp.o
+0.9	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/addrlib/src/addrinterface.cpp: In function ‘int rocr::ElemGetExportNorm(ADDR_HANDLE, const ELEM_GETEXPORTNORM_INPUT*)’:
+0.9	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/addrlib/src/addrinterface.cpp:820:23: warning: variable ‘returnCode’ set but not used [-Wunused-but-set-variable]
+0.9	  820 |     ADDR_E_RETURNCODE returnCode = ADDR_OK;
+0.9	      |                       ^~~~~~~~~~
+1.0	[113/182] Building CXX object runtime/hsa-runtime/CMakeFiles/hsa-runtime64.dir/core/common/hsa_table_interface.cpp.o
+1.0	[114/182] Building CXX object runtime/hsa-runtime/CMakeFiles/hsa-runtime64.dir/image/addrlib/src/core/addrlib3.cpp.o
+1.0	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/addrlib/src/core/addrlib3.cpp: In static member function ‘static rocr::Addr::V3::Lib* rocr::Addr::V3::Lib::GetLib(rocr::ADDR_HANDLE)’:
+1.0	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/addrlib/src/core/addrlib3.cpp:134:16: warning: unused variable ‘pAddrLib’ [-Wunused-variable]
+1.0	  134 |     Addr::Lib* pAddrLib = Addr::Lib::GetLib(hLib);
+1.0	      |                ^~~~~~~~
+1.0	[115/182] Building CXX object runtime/hsa-runtime/CMakeFiles/hsa-runtime64.dir/libamdhsacode/amd_hsa_locks.cpp.o
+1.0	[116/182] Building CXX object runtime/hsa-runtime/CMakeFiles/hsa-runtime64.dir/image/device_info.cpp.o
+1.1	[117/182] Building CXX object runtime/hsa-runtime/CMakeFiles/hsa-runtime64.dir/image/addrlib/src/core/addrlib2.cpp.o
+1.1	[118/182] Building CXX object runtime/hsa-runtime/CMakeFiles/hsa-runtime64.dir/image/addrlib/src/core/addrelemlib.cpp.o
+1.1	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/addrlib/src/core/addrelemlib.cpp: In member function ‘VOID rocr::Addr::ElemLib::RestoreSurfaceInfo(rocr::Addr::ElemMode, unsigned int, unsigned int, unsigned int*, unsigned int*, unsigned int*)’:
+1.1	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/addrlib/src/core/addrelemlib.cpp:1258:13: warning: variable ‘bBCnFormat’ set but not used [-Wunused-but-set-variable]
+1.1	 1258 |     BOOL_32 bBCnFormat = FALSE;
+1.1	      |             ^~~~~~~~~~
+1.1	[119/182] Building CXX object runtime/hsa-runtime/CMakeFiles/hsa-runtime64.dir/image/addrlib/src/core/coord.cpp.o
+1.2	[120/182] Building CXX object runtime/hsa-runtime/CMakeFiles/hsa-runtime64.dir/image/addrlib/src/gfx12/gfx12addrlib.cpp.o
+1.2	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/addrlib/src/gfx12/gfx12addrlib.cpp: In member function ‘VOID rocr::Addr::V3::Gfx12Lib::GetMipOffset(const rocr::ADDR3_COMPUTE_SURFACE_INFO_INPUT*, rocr::ADDR3_COMPUTE_SURFACE_INFO_OUTPUT*) const’:
+1.2	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/addrlib/src/gfx12/gfx12addrlib.cpp:473:20: warning: unused variable ‘tailMaxDepth’ [-Wunused-variable]
+1.2	  473 |            UINT_32 tailMaxDepth   = 0;
+1.2	      |                    ^~~~~~~~~~~~
+1.2	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/addrlib/src/gfx12/gfx12addrlib.cpp:380:26: warning: unused variable ‘log2Bpp’ [-Wunused-variable]
+1.2	  380 |     const UINT_32        log2Bpp       = Log2(bytesPerPixel);
+1.2	      |                          ^~~~~~~
+1.2	[121/182] Building CXX object runtime/hsa-runtime/CMakeFiles/hsa-runtime64.dir/image/addrlib/src/core/addrlib1.cpp.o
+1.2	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/addrlib/src/core/addrlib1.cpp: In member function ‘virtual VOID rocr::Addr::V1::Lib::HwlComputeXmaskCoordFromAddr(long long unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, int, int, int, rocr::ADDR_TILEINFO*, unsigned int*, unsigned int*, unsigned int*) const’:
+1.2	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/addrlib/src/core/addrlib1.cpp:2176:13: warning: variable ‘numGroupBits’ set but not used [-Wunused-but-set-variable]
+1.2	 2176 |     UINT_32 numGroupBits;
+1.2	      |             ^~~~~~~~~~~~
+1.2	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/addrlib/src/core/addrlib1.cpp: In member function ‘VOID rocr::Addr::V1::Lib::ComputeMipLevel(rocr::ADDR_COMPUTE_SURFACE_INFO_INPUT*) const’:
+1.2	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/addrlib/src/core/addrlib1.cpp:3522:13: warning: variable ‘hwlHandled’ set but not used [-Wunused-but-set-variable]
+1.2	 3522 |     BOOL_32 hwlHandled = FALSE;
+1.2	      |             ^~~~~~~~~~
+1.5	[122/182] Building CXX object runtime/hsa-runtime/CMakeFiles/hsa-runtime64.dir/image/image_lut_kv.cpp.o
+1.5	[123/182] Building CXX object runtime/hsa-runtime/CMakeFiles/hsa-runtime64.dir/image/image_lut_gfx11.cpp.o
+1.6	[124/182] Building CXX object runtime/hsa-runtime/CMakeFiles/hsa-runtime64.dir/libamdhsacode/amd_options.cpp.o
+1.6	[125/182] Building CXX object runtime/hsa-runtime/CMakeFiles/hsa-runtime64.dir/core/runtime/cache.cpp.o
+1.6	[126/182] Building CXX object runtime/hsa-runtime/CMakeFiles/hsa-runtime64.dir/core/driver/driver.cpp.o
+1.6	[127/182] Building CXX object runtime/hsa-runtime/CMakeFiles/hsa-runtime64.dir/core/util/timer.cpp.o
+1.7	[128/182] Building CXX object runtime/hsa-runtime/CMakeFiles/hsa-runtime64.dir/image/hsa_ext_image.cpp.o
+1.7	[129/182] Building CXX object runtime/hsa-runtime/CMakeFiles/hsa-runtime64.dir/libamdhsacode/amd_hsa_code_util.cpp.o
+1.7	[130/182] Building CXX object runtime/hsa-runtime/CMakeFiles/hsa-runtime64.dir/image/addrlib/src/gfx11/gfx11addrlib.cpp.o
+1.7	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/addrlib/src/gfx11/gfx11addrlib.cpp: In member function ‘virtual ADDR_E_RETURNCODE rocr::Addr::V2::Gfx11Lib::HwlComputeDccInfo(const rocr::ADDR2_COMPUTE_DCCINFO_INPUT*, rocr::ADDR2_COMPUTE_DCCINFO_OUTPUT*) const’:
+1.7	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/addrlib/src/gfx11/gfx11addrlib.cpp:377:27: warning: unused variable ‘numPipeLog2’ [-Wunused-variable]
+1.7	  377 |             const UINT_32 numPipeLog2 = m_pipesLog2;
+1.7	      |                           ^~~~~~~~~~~
+1.7	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/addrlib/src/gfx11/gfx11addrlib.cpp: In member function ‘VOID rocr::Addr::V2::Gfx11Lib::ConvertSwizzlePatternToEquation(unsigned int, AddrResourceType, AddrSwizzleMode, const rocr::Addr::V2::ADDR_SW_PATINFO*, rocr::ADDR_EQUATION*) const’:
+1.7	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/addrlib/src/gfx11/gfx11addrlib.cpp:1152:23: warning: unused variable ‘blkXLog2’ [-Wunused-variable]
+1.7	 1152 |         const UINT_32 blkXLog2 = Log2(dim.w);
+1.7	      |                       ^~~~~~~~
+1.7	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/addrlib/src/gfx11/gfx11addrlib.cpp:1153:23: warning: unused variable ‘blkYLog2’ [-Wunused-variable]
+1.7	 1153 |         const UINT_32 blkYLog2 = Log2(dim.h);
+1.7	      |                       ^~~~~~~~
+1.7	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/addrlib/src/gfx11/gfx11addrlib.cpp:1257:23: warning: unused variable ‘pipeIntMask’ [-Wunused-variable]
+1.7	 1257 |         const UINT_32 pipeIntMask = (1 << m_pipeInterleaveLog2) - 1;
+1.7	      |                       ^~~~~~~~~~~
+1.7	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/addrlib/src/gfx11/gfx11addrlib.cpp:1490:23: warning: unused variable ‘pipeIntMask’ [-Wunused-variable]
+1.7	 1490 |         const UINT_32 pipeIntMask = (1 << m_pipeInterleaveLog2) - 1;
+1.7	      |                       ^~~~~~~~~~~
+1.7	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/addrlib/src/gfx11/gfx11addrlib.cpp: In member function ‘unsigned int rocr::Addr::V2::Gfx11Lib::GetValidDisplaySwizzleModes(unsigned int) const’:
+1.7	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/addrlib/src/gfx11/gfx11addrlib.cpp:1737:27: warning: unused variable ‘family’ [-Wunused-variable]
+1.7	 1737 |         const ChipFamily  family = GetChipFamily();
+1.7	      |                           ^~~~~~
+1.7	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/addrlib/src/gfx11/gfx11addrlib.cpp: In member function ‘int rocr::Addr::V2::Gfx11Lib::ValidateSwModeParams(const rocr::ADDR2_COMPUTE_SURFACE_INFO_INPUT*) const’:
+1.7	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/addrlib/src/gfx11/gfx11addrlib.cpp:2229:31: warning: unused variable ‘isNonPrtXor’ [-Wunused-variable]
+1.7	 2229 |     const BOOL_32             isNonPrtXor = IsNonPrtXor(swizzle);
+1.7	      |                               ^~~~~~~~~~~
+1.7	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/addrlib/src/gfx11/gfx11addrlib.cpp: In member function ‘virtual ADDR_E_RETURNCODE rocr::Addr::V2::Gfx11Lib::HwlGetPreferredSurfaceSetting(const rocr::ADDR2_GET_PREFERRED_SURF_SETTING_INPUT*, rocr::ADDR2_GET_PREFERRED_SURF_SETTING_OUTPUT*) const’:
+1.7	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/addrlib/src/gfx11/gfx11addrlib.cpp:2640:39: warning: unused variable ‘sizeAlignInElement’ [-Wunused-variable]
+1.7	 2640 |                         const UINT_64 sizeAlignInElement = Max(NextPow2(pIn->minSizeAlign) / (bpp >> 3), 1u);
+1.7	      |                                       ^~~~~~~~~~~~~~~~~~
+1.7	[131/182] Building CXX object runtime/hsa-runtime/CMakeFiles/hsa-runtime64.dir/core/util/small_heap.cpp.o
+1.8	[132/182] Building CXX object runtime/hsa-runtime/CMakeFiles/hsa-runtime64.dir/image/image_manager.cpp.o
+1.8	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/image_manager.cpp: In static member function ‘static void rocr::image::Image::Destroy(const rocr::image::Image*)’:
+1.8	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/image_manager.cpp:90:16: warning: unused variable ‘status’ [-Wunused-variable]
+1.8	   90 |   hsa_status_t status = AMD::hsa_amd_memory_pool_free(const_cast<Image*>(image));
+1.8	      |                ^~~~~~
+1.8	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/image_manager.cpp: In static member function ‘static void rocr::image::Sampler::Destroy(const rocr::image::Sampler*)’:
+1.8	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/image_manager.cpp:121:16: warning: unused variable ‘status’ [-Wunused-variable]
+1.8	  121 |   hsa_status_t status = AMD::hsa_amd_memory_pool_free(const_cast<Sampler*>(sampler));
+1.8	      |                ^~~~~~
+1.8	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/image_manager.cpp: In member function ‘virtual hsa_status_t rocr::image::ImageManager::CopyImage(const rocr::image::Image&, const rocr::image::Image&, const hsa_dim3_t&, const hsa_dim3_t&, hsa_dim3_t)’:
+1.8	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/image_manager.cpp:188:16: warning: unused variable ‘dst_element_size’ [-Wunused-variable]
+1.8	  188 |   const size_t dst_element_size = dst_image_prop.element_size;
+1.8	      |                ^~~~~~~~~~~~~~~~
+1.8	[133/182] Building CXX object runtime/hsa-runtime/CMakeFiles/hsa-runtime64.dir/image/addrlib/src/gfx10/gfx10addrlib.cpp.o
+1.8	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/addrlib/src/gfx10/gfx10addrlib.cpp: In member function ‘VOID rocr::Addr::V2::Gfx10Lib::ConvertSwizzlePatternToEquation(unsigned int, AddrResourceType, AddrSwizzleMode, const rocr::Addr::V2::ADDR_SW_PATINFO*, rocr::ADDR_EQUATION*) const’:
+1.8	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/addrlib/src/gfx10/gfx10addrlib.cpp:1508:23: warning: unused variable ‘blkXLog2’ [-Wunused-variable]
+1.8	 1508 |         const UINT_32 blkXLog2 = Log2(dim.w);
+1.8	      |                       ^~~~~~~~
+1.8	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/addrlib/src/gfx10/gfx10addrlib.cpp:1509:23: warning: unused variable ‘blkYLog2’ [-Wunused-variable]
+1.8	 1509 |         const UINT_32 blkYLog2 = Log2(dim.h);
+1.8	      |                       ^~~~~~~~
+1.8	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/addrlib/src/gfx10/gfx10addrlib.cpp:1613:23: warning: unused variable ‘pipeIntMask’ [-Wunused-variable]
+1.8	 1613 |         const UINT_32 pipeIntMask = (1 << m_pipeInterleaveLog2) - 1;
+1.8	      |                       ^~~~~~~~~~~
+1.8	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/addrlib/src/gfx10/gfx10addrlib.cpp:1842:23: warning: unused variable ‘pipeIntMask’ [-Wunused-variable]
+1.8	 1842 |         const UINT_32 pipeIntMask = (1 << m_pipeInterleaveLog2) - 1;
+1.8	      |                       ^~~~~~~~~~~
+1.8	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/addrlib/src/gfx10/gfx10addrlib.cpp: In member function ‘int rocr::Addr::V2::Gfx10Lib::ValidateSwModeParams(const rocr::ADDR2_COMPUTE_SURFACE_INFO_INPUT*) const’:
+1.8	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/addrlib/src/gfx10/gfx10addrlib.cpp:2598:31: warning: unused variable ‘isNonPrtXor’ [-Wunused-variable]
+1.8	 2598 |     const BOOL_32             isNonPrtXor = IsNonPrtXor(swizzle);
+1.8	      |                               ^~~~~~~~~~~
+1.8	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/addrlib/src/gfx10/gfx10addrlib.cpp: In member function ‘virtual ADDR_E_RETURNCODE rocr::Addr::V2::Gfx10Lib::HwlGetPreferredSurfaceSetting(const rocr::ADDR2_GET_PREFERRED_SURF_SETTING_INPUT*, rocr::ADDR2_GET_PREFERRED_SURF_SETTING_OUTPUT*) const’:
+1.8	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/addrlib/src/gfx10/gfx10addrlib.cpp:3115:39: warning: unused variable ‘sizeAlignInElement’ [-Wunused-variable]
+1.8	 3115 |                         const UINT_64 sizeAlignInElement = Max(NextPow2(pIn->minSizeAlign) / (bpp >> 3), 1u);
+1.8	      |                                       ^~~~~~~~~~~~~~~~~~
+1.9	[134/182] Building CXX object runtime/hsa-runtime/CMakeFiles/hsa-runtime64.dir/image/addrlib/src/gfx9/gfx9addrlib.cpp.o
+1.9	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/addrlib/src/gfx9/gfx9addrlib.cpp: In member function ‘virtual ADDR_E_RETURNCODE rocr::Addr::V2::Gfx9Lib::HwlComputeCmaskInfo(const rocr::ADDR2_COMPUTE_CMASK_INFO_INPUT*, rocr::ADDR2_COMPUTE_CMASK_INFO_OUTPUT*) const’:
+1.9	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/addrlib/src/gfx9/gfx9addrlib.cpp:349:10: warning: unused variable ‘checked’ [-Wunused-variable]
+1.9	  349 |     bool checked = false;
+1.9	      |          ^~~~~~~
+1.9	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/addrlib/src/gfx9/gfx9addrlib.cpp: In member function ‘virtual ADDR_E_RETURNCODE rocr::Addr::V2::Gfx9Lib::HwlComputeDccInfo(const rocr::ADDR2_COMPUTE_DCCINFO_INPUT*, rocr::ADDR2_COMPUTE_DCCINFO_OUTPUT*) const’:
+1.9	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/addrlib/src/gfx9/gfx9addrlib.cpp:714:14: warning: unused variable ‘checked’ [-Wunused-variable]
+1.9	  714 |         bool checked = false;
+1.9	      |              ^~~~~~~
+1.9	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/addrlib/src/gfx9/gfx9addrlib.cpp: In member function ‘virtual ADDR_E_RETURNCODE rocr::Addr::V2::Gfx9Lib::HwlComputeBlock256Equation(AddrResourceType, AddrSwizzleMode, unsigned int, rocr::ADDR_EQUATION*) const’:
+1.9	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/addrlib/src/gfx9/gfx9addrlib.cpp:2571:15: warning: variable ‘microBlockDim’ set but not used [-Wunused-but-set-variable]
+1.9	 2571 |         Dim2d microBlockDim = Block256_2d[elementBytesLog2];
+1.9	      |               ^~~~~~~~~~~~~
+1.9	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/addrlib/src/gfx9/gfx9addrlib.cpp: In member function ‘virtual ADDR_E_RETURNCODE rocr::Addr::V2::Gfx9Lib::HwlGetPreferredSurfaceSetting(const rocr::ADDR2_GET_PREFERRED_SURF_SETTING_INPUT*, rocr::ADDR2_GET_PREFERRED_SURF_SETTING_OUTPUT*) const’:
+1.9	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/addrlib/src/gfx9/gfx9addrlib.cpp:3756:35: warning: unused variable ‘sizeAlignInElement’ [-Wunused-variable]
+1.9	 3756 |                     const UINT_64 sizeAlignInElement = Max(NextPow2(pIn->minSizeAlign) / (bpp >> 3), 1u);
+1.9	      |                                   ^~~~~~~~~~~~~~~~~~
+1.9	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/addrlib/src/gfx9/gfx9addrlib.cpp: In member function ‘ADDR_E_RETURNCODE rocr::Addr::V2::Gfx9Lib::ComputeStereoInfo(const rocr::ADDR2_COMPUTE_SURFACE_INFO_INPUT*, rocr::ADDR2_COMPUTE_SURFACE_INFO_OUTPUT*, unsigned int*) const’:
+1.9	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/addrlib/src/gfx9/gfx9addrlib.cpp:4017:34: warning: unused variable ‘pEqToCheck’ [-Wunused-variable]
+1.9	 4017 |             const ADDR_EQUATION *pEqToCheck        = &m_equationTable[eqIndex];
+1.9	      |                                  ^~~~~~~~~~
+1.9	[135/182] Building CXX object runtime/hsa-runtime/CMakeFiles/hsa-runtime64.dir/image/blit_kernel.cpp.o
+1.9	In file included from /usr/include/string.h:548,
+1.9	                 from /usr/include/c++/13/cstring:42,
+1.9	                 from /work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/resource.h:48,
+1.9	                 from /work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/blit_kernel.h:52,
+1.9	                 from /work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/blit_kernel.cpp:43:
+1.9	In function ‘void* memset(void*, int, size_t)’,
+1.9	    inlined from ‘hsa_status_t rocr::image::BlitKernel::CopyBufferToImage(rocr::image::BlitQueue&, const std::vector<rocr::image::BlitCodeInfo>&, const void*, size_t, size_t, const rocr::image::Image&, const hsa_ext_image_region_t&)’ at /work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/blit_kernel.cpp:293:9:
+1.9	/usr/include/x86_64-linux-gnu/bits/string_fortified.h:59:33: warning: ‘void* __builtin_memset(void*, int, long unsigned int)’ offset [0, 143] is out of the bounds [0, 0] [-Warray-bounds=]
+1.9	   59 |   return __builtin___memset_chk (__dest, __ch, __len,
+1.9	      |          ~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~
+1.9	   60 |                                  __glibc_objsize0 (__dest));
+1.9	      |                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~
+2.0	[136/182] Building CXX object runtime/hsa-runtime/CMakeFiles/hsa-runtime64.dir/core/runtime/queue.cpp.o
+2.0	[137/182] Building CXX object runtime/hsa-runtime/CMakeFiles/hsa-runtime64.dir/image/image_manager_ai.cpp.o
+2.0	[138/182] Building CXX object runtime/hsa-runtime/CMakeFiles/hsa-runtime64.dir/core/runtime/hsa_ven_amd_loader.cpp.o
+2.1	[139/182] Building CXX object runtime/hsa-runtime/CMakeFiles/hsa-runtime64.dir/image/image_manager_nv.cpp.o
+2.1	[140/182] Building CXX object runtime/hsa-runtime/CMakeFiles/hsa-runtime64.dir/core/runtime/host_queue.cpp.o
+2.1	[141/182] Building CXX object runtime/hsa-runtime/CMakeFiles/hsa-runtime64.dir/image/image_manager_gfx11.cpp.o
+2.1	[142/182] Building CXX object runtime/hsa-runtime/CMakeFiles/hsa-runtime64.dir/core/runtime/ipc_signal.cpp.o
+2.1	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/ipc_signal.cpp: In destructor ‘rocr::core::SharedMemory::~SharedMemory()’:
+2.1	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/ipc_signal.cpp:67:8: warning: unused variable ‘err’ [-Wunused-variable]
+2.1	   67 |   auto err = Runtime::runtime_singleton_->IPCDetach(ptr_);
+2.1	      |        ^~~
+2.1	[143/182] Building CXX object runtime/hsa-runtime/CMakeFiles/hsa-runtime64.dir/image/image_manager_kv.cpp.o
+2.1	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/image_manager_kv.cpp: In member function ‘virtual hsa_status_t rocr::image::ImageManagerKv::Initialize(hsa_agent_t)’:
+2.1	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/image_manager_kv.cpp:94:16: warning: variable ‘status’ set but not used [-Wunused-but-set-variable]
+2.1	   94 |   hsa_status_t status = GetGPUAsicID(agent_, &chip_id_);
+2.1	      |                ^~~~~~
+2.1	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/image_manager_kv.cpp:113:16: warning: unused variable ‘stat’ [-Wunused-variable]
+2.1	  113 |   hsa_status_t stat = HSA::hsa_get_tile_config(agent_handle, &tileConfig);
+2.1	      |                ^~~~
+2.1	[144/182] Building CXX object runtime/hsa-runtime/CMakeFiles/hsa-runtime64.dir/core/runtime/thunk_loader.cpp.o
+2.1	[145/182] Building CXX object runtime/hsa-runtime/CMakeFiles/hsa-runtime64.dir/image/image_manager_gfx12.cpp.o
+2.1	[146/182] Building CXX object runtime/hsa-runtime/CMakeFiles/hsa-runtime64.dir/image/image_runtime.cpp.o
+2.1	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/image_runtime.cpp: In function ‘hsa_status_t rocr::image::FindKernelArgPool(hsa_amd_memory_pool_t, void*)’:
+2.1	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/image/image_runtime.cpp:67:16: warning: variable ‘err’ set but not used [-Wunused-but-set-variable]
+2.1	   67 |   hsa_status_t err;
+2.1	      |                ^~~
+2.1	[147/182] Building CXX object runtime/hsa-runtime/CMakeFiles/hsa-runtime64.dir/core/runtime/default_signal.cpp.o
+2.1	[148/182] Building CXX object runtime/hsa-runtime/CMakeFiles/hsa-runtime64.dir/core/runtime/amd_aie_aql_queue.cpp.o
+2.1	[149/182] Building CXX object runtime/hsa-runtime/CMakeFiles/hsa-runtime64.dir/pcs/hsa_ven_amd_pc_sampling.cpp.o
+2.1	[150/182] Building CXX object runtime/hsa-runtime/CMakeFiles/hsa-runtime64.dir/core/runtime/hsa_ext_interface.cpp.o
+2.2	[151/182] Building CXX object runtime/hsa-runtime/CMakeFiles/hsa-runtime64.dir/core/util/flag.cpp.o
+2.2	[152/182] Building CXX object runtime/hsa-runtime/CMakeFiles/hsa-runtime64.dir/core/runtime/hsa_api_trace.cpp.o
+2.2	[153/182] Building CXX object runtime/hsa-runtime/CMakeFiles/hsa-runtime64.dir/core/runtime/interrupt_signal.cpp.o
+2.2	[154/182] Building CXX object runtime/hsa-runtime/CMakeFiles/hsa-runtime64.dir/image/blit_src/opencl_blit_objects.cpp.o
+2.2	[155/182] Building CXX object runtime/hsa-runtime/CMakeFiles/hsa-runtime64.dir/core/runtime/amd_aie_agent.cpp.o
+2.2	In file included from /work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/inc/amd_memory_region.h:53,
+2.2	                 from /work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/amd_aie_agent.cpp:50:
+2.2	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/util/simple_heap.h: In instantiation of ‘void* rocr::SimpleHeap<Allocator>::alloc(size_t) [with Allocator = rocr::AMD::MemoryRegion::BlockAllocator; size_t = long unsigned int]’:
+2.2	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/inc/amd_memory_region.h:169:37:   required from here
+2.2	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/util/simple_heap.h:192:12: warning: unused variable ‘err’ [-Wunused-variable]
+2.2	  192 |       bool err = discardBlock(reinterpret_cast<void*>(base));
+2.2	      |            ^~~
+2.2	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/amd_aie_agent.cpp: In member function ‘virtual hsa_status_t rocr::AMD::AieAgent::GetInfo(hsa_agent_info_t, void*) const’:
+2.2	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/amd_aie_agent.cpp:235:17: warning: ‘char* __builtin_strncat(char*, const char*, long unsigned int)’ output truncated before terminating nul copying 6 bytes from a string of the same length [-Wstringop-truncation]
+2.2	  235 |     std::strncat(reinterpret_cast<char *>(value), product_name_info_.c_str(),
+2.2	      |                 ^
+2.2	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/amd_aie_agent.cpp:126:17: warning: ‘char* __builtin_strncat(char*, const char*, long unsigned int)’ output truncated before terminating nul copying 3 bytes from a string of the same length [-Wstringop-truncation]
+2.2	  126 |     std::strncat(reinterpret_cast<char *>(value), vendor_name_info_.c_str(),
+2.2	      |                 ^
+2.2	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/amd_aie_agent.cpp:118:17: warning: ‘char* __builtin_strncat(char*, const char*, long unsigned int)’ output truncated before terminating nul copying 4 bytes from a string of the same length [-Wstringop-truncation]
+2.2	  118 |     std::strncat(reinterpret_cast<char *>(value), name_info_.c_str(),
+2.2	      |                 ^
+2.3	[156/182] Building CXX object runtime/hsa-runtime/CMakeFiles/hsa-runtime64.dir/core/util/lnx/os_linux.cpp.o
+2.3	[157/182] Building CXX object runtime/hsa-runtime/CMakeFiles/hsa-runtime64.dir/core/runtime/amd_hsa_loader.cpp.o
+2.3	[158/182] Building CXX object runtime/hsa-runtime/CMakeFiles/hsa-runtime64.dir/core/runtime/amd_loader_context.cpp.o
+2.3	In file included from /work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/inc/amd_memory_region.h:53,
+2.3	                 from /work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/amd_loader_context.cpp:50:
+2.3	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/util/simple_heap.h: In instantiation of ‘void* rocr::SimpleHeap<Allocator>::alloc(size_t) [with Allocator = rocr::AMD::MemoryRegion::BlockAllocator; size_t = long unsigned int]’:
+2.3	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/inc/amd_memory_region.h:169:37:   required from here
+2.3	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/util/simple_heap.h:192:12: warning: unused variable ‘err’ [-Wunused-variable]
+2.3	  192 |       bool err = discardBlock(reinterpret_cast<void*>(base));
+2.3	      |            ^~~
+2.3	[159/182] Building CXX object runtime/hsa-runtime/CMakeFiles/hsa-runtime64.dir/pcs/pcs_runtime.cpp.o
+2.4	[160/182] Building CXX object runtime/hsa-runtime/CMakeFiles/hsa-runtime64.dir/libamdhsacode/amd_core_dump.cpp.o
+2.4	[161/182] Building CXX object runtime/hsa-runtime/CMakeFiles/hsa-runtime64.dir/libamdhsacode/amd_hsa_code.cpp.o
+2.4	[162/182] Building CXX object runtime/hsa-runtime/CMakeFiles/hsa-runtime64.dir/core/runtime/intercept_queue.cpp.o
+2.5	[163/182] Building CXX object runtime/hsa-runtime/CMakeFiles/hsa-runtime64.dir/core/runtime/amd_cpu_agent.cpp.o
+2.5	In file included from /work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/inc/amd_memory_region.h:53,
+2.5	                 from /work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/amd_cpu_agent.cpp:49:
+2.5	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/util/simple_heap.h: In instantiation of ‘void* rocr::SimpleHeap<Allocator>::alloc(size_t) [with Allocator = rocr::AMD::MemoryRegion::BlockAllocator; size_t = long unsigned int]’:
+2.5	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/inc/amd_memory_region.h:169:37:   required from here
+2.5	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/util/simple_heap.h:192:12: warning: unused variable ‘err’ [-Wunused-variable]
+2.5	  192 |       bool err = discardBlock(reinterpret_cast<void*>(base));
+2.5	      |            ^~~
+2.5	[164/182] Building CXX object runtime/hsa-runtime/CMakeFiles/hsa-runtime64.dir/core/runtime/amd_blit_kernel.cpp.o
+2.5	[165/182] Building CXX object runtime/hsa-runtime/CMakeFiles/hsa-runtime64.dir/core/driver/kfd/amd_kfd_driver.cpp.o
+2.5	In file included from /work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/inc/amd_memory_region.h:53,
+2.5	                 from /work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/driver/kfd/amd_kfd_driver.cpp:55:
+2.5	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/util/simple_heap.h: In instantiation of ‘void* rocr::SimpleHeap<Allocator>::alloc(size_t) [with Allocator = rocr::AMD::MemoryRegion::BlockAllocator; size_t = long unsigned int]’:
+2.5	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/inc/amd_memory_region.h:169:37:   required from here
+2.5	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/util/simple_heap.h:192:12: warning: unused variable ‘err’ [-Wunused-variable]
+2.5	  192 |       bool err = discardBlock(reinterpret_cast<void*>(base));
+2.5	      |            ^~~
+2.5	[166/182] Building CXX object runtime/hsa-runtime/CMakeFiles/hsa-runtime64.dir/core/runtime/amd_filter_device.cpp.o
+2.5	In file included from /work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/inc/amd_memory_region.h:53,
+2.5	                 from /work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/amd_filter_device.cpp:59:
+2.5	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/util/simple_heap.h: In instantiation of ‘void* rocr::SimpleHeap<Allocator>::alloc(size_t) [with Allocator = rocr::AMD::MemoryRegion::BlockAllocator; size_t = long unsigned int]’:
+2.5	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/inc/amd_memory_region.h:169:37:   required from here
+2.5	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/util/simple_heap.h:192:12: warning: unused variable ‘err’ [-Wunused-variable]
+2.5	  192 |       bool err = discardBlock(reinterpret_cast<void*>(base));
+2.5	      |            ^~~
+2.6	[167/182] Building CXX object runtime/hsa-runtime/CMakeFiles/hsa-runtime64.dir/core/runtime/signal.cpp.o
+2.6	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/signal.cpp: In member function ‘void rocr::core::SharedSignalPool_t::free(rocr::core::SharedSignal*)’:
+2.6	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/signal.cpp:112:10: warning: variable ‘valid’ set but not used [-Wunused-but-set-variable]
+2.6	  112 |     bool valid = false;
+2.6	      |          ^~~~~
+2.6	[168/182] Building CXX object runtime/hsa-runtime/CMakeFiles/hsa-runtime64.dir/core/runtime/svm_profiler.cpp.o
+2.6	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/svm_profiler.cpp: In member function ‘void rocr::AMD::SvmProfileControl::PollSmi()’:
+2.6	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/svm_profiler.cpp:145:10: warning: unused variable ‘err’ [-Wunused-variable]
+2.6	  145 |     auto err = gpu_agent->driver().OpenSMI(gpu_agent->node_id(), &files[i + 1].fd);
+2.6	      |          ^~~
+2.6	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/svm_profiler.cpp:150:10: warning: unused variable ‘wrote’ [-Wunused-variable]
+2.6	  150 |     auto wrote = write(files[i + 1].fd, &events, sizeof(events));
+2.6	      |          ^~~~~
+2.6	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/svm_profiler.cpp:210:17: warning: variable ‘args’ set but not used [-Wunused-but-set-variable]
+2.6	  210 |             int args = sscanf(cursor, "%x %lu -%u%n", &event_id, &time, &pid, &offset);
+2.6	      |                 ^~~~
+2.6	[169/182] Building CXX object runtime/hsa-runtime/CMakeFiles/hsa-runtime64.dir/core/runtime/amd_topology.cpp.o
+2.6	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/amd_topology.cpp: In function ‘void rocr::AMD::{anonymous}::SurfaceGpuList(std::vector<int>&, bool, bool)’:
+2.6	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/amd_topology.cpp:279:20: warning: unused variable ‘ret’ [-Wunused-variable]
+2.6	  279 |       hsa_status_t ret = gpu_driver->GetNodeProperties(node_prop, gpu_list[idx]);
+2.6	      |                    ^~~
+2.6	In file included from /work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/inc/amd_memory_region.h:53,
+2.6	                 from /work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/amd_topology.cpp:68:
+2.6	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/util/simple_heap.h: In instantiation of ‘void* rocr::SimpleHeap<Allocator>::alloc(size_t) [with Allocator = rocr::AMD::MemoryRegion::BlockAllocator; size_t = long unsigned int]’:
+2.6	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/inc/amd_memory_region.h:169:37:   required from here
+2.6	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/util/simple_heap.h:192:12: warning: unused variable ‘err’ [-Wunused-variable]
+2.6	  192 |       bool err = discardBlock(reinterpret_cast<void*>(base));
+2.6	      |            ^~~
+2.6	[170/182] Building CXX object runtime/hsa-runtime/CMakeFiles/hsa-runtime64.dir/libamdhsacode/amd_elf_image.cpp.o
+2.6	[171/182] Building CXX object runtime/hsa-runtime/CMakeFiles/hsa-runtime64.dir/core/driver/xdna/amd_xdna_driver.cpp.o
+2.6	In file included from /work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/inc/amd_memory_region.h:53,
+2.6	                 from /work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/driver/xdna/amd_xdna_driver.cpp:53:
+2.6	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/util/simple_heap.h: In instantiation of ‘void* rocr::SimpleHeap<Allocator>::alloc(size_t) [with Allocator = rocr::AMD::MemoryRegion::BlockAllocator; size_t = long unsigned int]’:
+2.6	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/inc/amd_memory_region.h:169:37:   required from here
+2.6	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/util/simple_heap.h:192:12: warning: unused variable ‘err’ [-Wunused-variable]
+2.6	  192 |       bool err = discardBlock(reinterpret_cast<void*>(base));
+2.6	      |            ^~~
+2.7	[172/182] Building CXX object runtime/hsa-runtime/CMakeFiles/hsa-runtime64.dir/core/runtime/amd_memory_region.cpp.o
+2.7	In file included from /work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/inc/amd_memory_region.h:53,
+2.7	                 from /work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/amd_memory_region.cpp:43:
+2.7	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/util/simple_heap.h: In instantiation of ‘void* rocr::SimpleHeap<Allocator>::alloc(size_t) [with Allocator = rocr::AMD::MemoryRegion::BlockAllocator; size_t = long unsigned int]’:
+2.7	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/inc/amd_memory_region.h:169:37:   required from here
+2.7	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/util/simple_heap.h:192:12: warning: unused variable ‘err’ [-Wunused-variable]
+2.7	  192 |       bool err = discardBlock(reinterpret_cast<void*>(base));
+2.7	      |            ^~~
+2.8	[173/182] Building CXX object runtime/hsa-runtime/CMakeFiles/hsa-runtime64.dir/core/runtime/amd_aql_queue.cpp.o
+2.8	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/amd_aql_queue.cpp: In member function ‘void rocr::AMD::AqlQueue::Suspend()’:
+2.8	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/amd_aql_queue.cpp:607:8: warning: unused variable ‘err’ [-Wunused-variable]
+2.8	  607 |   auto err =
+2.8	      |        ^~~
+2.8	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/amd_aql_queue.cpp: In member function ‘void rocr::AMD::AqlQueue::Resume()’:
+2.8	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/amd_aql_queue.cpp:615:10: warning: unused variable ‘err’ [-Wunused-variable]
+2.8	  615 |     auto err = agent_->driver().UpdateQueue(queue_id_, 100, priority_, ring_buf_,
+2.8	      |          ^~~
+2.8	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/amd_aql_queue.cpp: In member function ‘virtual hsa_status_t rocr::AMD::AqlQueue::Inactivate()’:
+2.8	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/amd_aql_queue.cpp:624:10: warning: unused variable ‘err’ [-Wunused-variable]
+2.8	  624 |     auto err = agent_->driver().DestroyQueue(queue_id_);
+2.8	      |          ^~~
+2.8	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/amd_aql_queue.cpp: In member function ‘virtual void rocr::AMD::AqlQueue::ExecutePM4(uint32_t*, size_t, hsa_fence_scope_t, hsa_fence_scope_t, hsa_signal_t*)’:
+2.8	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/amd_aql_queue.cpp:1574:24: warning: variable ‘ret’ set but not used [-Wunused-but-set-variable]
+2.8	 1574 |     hsa_signal_value_t ret;
+2.8	      |                        ^~~
+2.8	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/amd_aql_queue.cpp:1475:16: warning: variable ‘err’ set but not used [-Wunused-but-set-variable]
+2.8	 1475 |   hsa_status_t err;
+2.8	      |                ^~~
+2.8	In file included from /work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/inc/amd_memory_region.h:53,
+2.8	                 from /work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/amd_aql_queue.cpp:61:
+2.8	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/util/simple_heap.h: In instantiation of ‘void* rocr::SimpleHeap<Allocator>::alloc(size_t) [with Allocator = rocr::AMD::MemoryRegion::BlockAllocator; size_t = long unsigned int]’:
+2.8	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/inc/amd_memory_region.h:169:37:   required from here
+2.8	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/util/simple_heap.h:192:12: warning: unused variable ‘err’ [-Wunused-variable]
+2.8	  192 |       bool err = discardBlock(reinterpret_cast<void*>(base));
+2.8	      |            ^~~
+2.9	[174/182] Building CXX object runtime/hsa-runtime/CMakeFiles/hsa-runtime64.dir/core/runtime/hsa.cpp.o
+2.9	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/hsa.cpp: In function ‘hsa_status_t rocr::HSA::hsa_system_extension_supported(uint16_t, uint16_t, uint16_t, bool*)’:
+2.9	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/hsa.cpp:282:16: warning: unused variable ‘status’ [-Wunused-variable]
+2.9	  282 |   hsa_status_t status = core::Runtime::runtime_singleton_->GetSystemInfo(
+2.9	      |                ^~~~~~
+2.9	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/hsa.cpp: In function ‘hsa_status_t rocr::HSA::hsa_agent_extension_supported(uint16_t, hsa_agent_t, uint16_t, uint16_t, bool*)’:
+2.9	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/hsa.cpp:652:18: warning: unused variable ‘status’ [-Wunused-variable]
+2.9	  652 |     hsa_status_t status =
+2.9	      |                  ^~~~~~
+2.9	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/hsa.cpp: In function ‘hsa_status_t rocr::HSA::hsa_agent_major_extension_supported(uint16_t, hsa_agent_t, uint16_t, uint16_t*, bool*)’:
+2.9	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/hsa.cpp:687:18: warning: unused variable ‘status’ [-Wunused-variable]
+2.9	  687 |     hsa_status_t status = agent->GetInfo(HSA_AGENT_INFO_VERSION_MAJOR, &agent_version_major);
+2.9	      |                  ^~~~~~
+2.9	[175/182] Building CXX object runtime/hsa-runtime/CMakeFiles/hsa-runtime64.dir/core/runtime/hsa_ext_amd.cpp.o
+2.9	In file included from /work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/inc/amd_memory_region.h:53,
+2.9	                 from /work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/hsa_ext_amd.cpp:57:
+2.9	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/util/simple_heap.h: In instantiation of ‘void* rocr::SimpleHeap<Allocator>::alloc(size_t) [with Allocator = rocr::AMD::MemoryRegion::BlockAllocator; size_t = long unsigned int]’:
+2.9	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/inc/amd_memory_region.h:169:37:   required from here
+2.9	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/util/simple_heap.h:192:12: warning: unused variable ‘err’ [-Wunused-variable]
+2.9	  192 |       bool err = discardBlock(reinterpret_cast<void*>(base));
+2.9	      |            ^~~
+3.0	[176/182] Building CXX object runtime/hsa-runtime/CMakeFiles/hsa-runtime64.dir/core/runtime/amd_blit_sdma.cpp.o
+3.0	In file included from /work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/inc/amd_memory_region.h:53,
+3.0	                 from /work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/amd_blit_sdma.cpp:52:
+3.0	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/util/simple_heap.h: In instantiation of ‘void* rocr::SimpleHeap<Allocator>::alloc(size_t) [with Allocator = rocr::AMD::MemoryRegion::BlockAllocator; size_t = long unsigned int]’:
+3.0	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/inc/amd_memory_region.h:169:37:   required from here
+3.0	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/util/simple_heap.h:192:12: warning: unused variable ‘err’ [-Wunused-variable]
+3.0	  192 |       bool err = discardBlock(reinterpret_cast<void*>(base));
+3.0	      |            ^~~
+3.0	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/amd_blit_sdma.cpp: In instantiation of ‘hsa_status_t rocr::AMD::BlitSdma<useGCR>::Destroy() [with bool useGCR = false]’:
+3.0	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/amd_blit_sdma.cpp:1121:16:   required from here
+3.0	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/amd_blit_sdma.cpp:216:10: warning: unused variable ‘err’ [-Wunused-variable]
+3.0	  216 |     auto err = agent_->driver().DestroyQueue(queue_resource_.QueueId);
+3.0	      |          ^~~
+3.0	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/amd_blit_sdma.cpp: In instantiation of ‘hsa_status_t rocr::AMD::BlitSdma<useGCR>::Destroy() [with bool useGCR = true]’:
+3.0	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/amd_blit_sdma.cpp:1122:16:   required from here
+3.0	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/amd_blit_sdma.cpp:216:10: warning: unused variable ‘err’ [-Wunused-variable]
+3.3	[177/182] Building CXX object runtime/hsa-runtime/CMakeFiles/hsa-runtime64.dir/loader/executable.cpp.o
+3.6	[178/182] Building CXX object runtime/hsa-runtime/CMakeFiles/hsa-runtime64.dir/core/runtime/isa.cpp.o
+3.6	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/isa.cpp: In static member function ‘static const rocr::core::IsaRegistry::IsaMap& rocr::core::IsaRegistry::GetSupportedIsas()’:
+3.6	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/isa.cpp:283:20: warning: unused variable ‘hsa_name_size’ [-Wunused-variable]
+3.6	  283 |   constexpr size_t hsa_name_size = 63;
+3.6	      |                    ^~~~~~~~~~~~~
+4.3	[179/182] Building CXX object runtime/hsa-runtime/CMakeFiles/hsa-runtime64.dir/core/runtime/amd_gpu_agent.cpp.o
+4.3	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/amd_gpu_agent.cpp: In constructor ‘rocr::AMD::GpuAgent::GpuAgent(HSAuint32, const HsaNodeProperties&, bool, uint32_t, rocr::core::DriverType)’:
+4.3	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/amd_gpu_agent.cpp:215:16: warning: unused variable ‘status’ [-Wunused-variable]
+4.3	  215 |   hsa_status_t status = driver().IsModelEnabled(&model_enabled);
+4.3	      |                ^~~~~~
+4.3	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/amd_gpu_agent.cpp: In member function ‘void rocr::AMD::GpuAgent::ReserveScratch()’:
+4.3	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/amd_gpu_agent.cpp:557:16: warning: unused variable ‘err’ [-Wunused-variable]
+4.3	  557 |   hsa_status_t err = driver().AvailableMemory(node_id(), &available);
+4.3	      |                ^~~
+4.3	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/amd_gpu_agent.cpp: In member function ‘virtual void rocr::AMD::GpuAgent::ReleaseResources()’:
+4.3	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/amd_gpu_agent.cpp:925:22: warning: unused variable ‘status’ [-Wunused-variable]
+4.3	  925 |         hsa_status_t status = blit->Destroy();
+4.3	      |                      ^~~~~~
+4.3	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/amd_gpu_agent.cpp: In member function ‘virtual hsa_status_t rocr::AMD::GpuAgent::GetInfo(hsa_agent_info_t, void*) const’:
+4.3	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/amd_gpu_agent.cpp:1626:22: warning: unused variable ‘err’ [-Wunused-variable]
+4.3	 1626 |         hsa_status_t err = GetInfo((hsa_agent_info_t)HSA_AMD_AGENT_INFO_COMPUTE_UNIT_COUNT, &count);
+4.3	      |                      ^~~
+4.3	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/amd_gpu_agent.cpp: In member function ‘void rocr::AMD::GpuAgent::SyncClocks()’:
+4.3	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/amd_gpu_agent.cpp:2222:16: warning: unused variable ‘err’ [-Wunused-variable]
+4.3	 2222 |   hsa_status_t err = driver().GetClockCounters(node_id(), &t1_);
+4.3	      |                ^~~
+4.3	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/amd_gpu_agent.cpp: In member function ‘hsa_status_t rocr::AMD::GpuAgent::UpdateTrapHandlerWithPCS(pcs_sampling_data_t*, pcs_sampling_data_t*)’:
+4.3	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/amd_gpu_agent.cpp:2255:20: warning: unused variable ‘ret’ [-Wunused-variable]
+4.3	 2255 |       hsa_status_t ret =
+4.3	      |                    ^~~
+4.3	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/amd_gpu_agent.cpp: In member function ‘void rocr::AMD::GpuAgent::BindTrapHandler()’:
+4.3	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/amd_gpu_agent.cpp:2313:16: warning: unused variable ‘err’ [-Wunused-variable]
+4.3	 2313 |   hsa_status_t err =
+4.3	      |                ^~~
+4.3	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/amd_gpu_agent.cpp: In member function ‘void rocr::AMD::GpuAgent::PcSamplingThread(pcs_data_t&, const char*)’:
+4.3	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/amd_gpu_agent.cpp:3333:14: warning: unused variable ‘host_buffer_end’ [-Wunused-variable]
+4.3	 3333 |     uint8_t* host_buffer_end = pcs_data.host_buffer + pcs_data.host_buffer_size;
+4.3	      |              ^~~~~~~~~~~~~~~
+4.3	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/amd_gpu_agent.cpp: In member function ‘virtual hsa_status_t rocr::AMD::GpuAgent::PcSamplingFlush(rocr::pcs::PcsRuntime::PcSamplingSession&)’:
+4.3	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/amd_gpu_agent.cpp:3432:12: warning: unused variable ‘host_buffer_end’ [-Wunused-variable]
+4.3	 3432 |   uint8_t* host_buffer_end = pcs_data->host_buffer + pcs_data->host_buffer_size;
+4.3	      |            ^~~~~~~~~~~~~~~
+4.3	In file included from /work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/inc/amd_memory_region.h:53,
+4.3	                 from /work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/amd_gpu_agent.cpp:61:
+4.3	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/util/simple_heap.h: In instantiation of ‘void* rocr::SimpleHeap<Allocator>::alloc(size_t) [with Allocator = rocr::AMD::MemoryRegion::BlockAllocator; size_t = long unsigned int]’:
+4.3	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/inc/amd_memory_region.h:169:37:   required from here
+4.3	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/util/simple_heap.h:192:12: warning: unused variable ‘err’ [-Wunused-variable]
+4.3	  192 |       bool err = discardBlock(reinterpret_cast<void*>(base));
+4.3	      |            ^~~
+7.3	[180/182] Building CXX object runtime/hsa-runtime/CMakeFiles/hsa-runtime64.dir/core/runtime/runtime.cpp.o
+7.3	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/runtime.cpp: In lambda function:
+7.3	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/runtime.cpp:3070:19: warning: unused variable ‘error’ [-Wunused-variable]
+7.3	 3070 |     HSAKMT_STATUS error = HSAKMT_CALL(hsaKmtSVMSetAttr(op->base, op->size, 1, &attrib));
+7.3	      |                   ^~~~~
+7.3	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/runtime.cpp: In member function ‘rocr::core::Agent* rocr::core::Runtime::GetSVMPrefetchAgent(void*, size_t)’:
+7.3	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/runtime.cpp:3139:19: warning: unused variable ‘error’ [-Wunused-variable]
+7.3	 3139 |     HSAKMT_STATUS error =
+7.3	      |                   ^~~~~
+7.3	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/runtime.cpp: In destructor ‘rocr::core::Runtime::MappedHandleAllowedAgent::~MappedHandleAllowedAgent()’:
+7.3	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/runtime.cpp:3503:16: warning: unused variable ‘status’ [-Wunused-variable]
+7.3	 3503 |   hsa_status_t status =
+7.3	      |                ^~~~~~
+7.3	In file included from /work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/inc/amd_memory_region.h:53,
+7.3	                 from /work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/runtime/runtime.cpp:70:
+7.3	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/util/simple_heap.h: In instantiation of ‘void* rocr::SimpleHeap<Allocator>::alloc(size_t) [with Allocator = rocr::AMD::MemoryRegion::BlockAllocator; size_t = long unsigned int]’:
+7.3	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/inc/amd_memory_region.h:169:37:   required from here
+7.3	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocr-runtime/runtime/hsa-runtime/core/util/simple_heap.h:192:12: warning: unused variable ‘err’ [-Wunused-variable]
+7.3	  192 |       bool err = discardBlock(reinterpret_cast<void*>(base));
+7.3	      |            ^~~
+7.4	[181/182] Linking CXX shared library rocr/lib/libhsa-runtime64.so.1.18.0
+7.4	[182/182] Creating library symlink rocr/lib/libhsa-runtime64.so.1 rocr/lib/libhsa-runtime64.so
+END	1757694031.815592	7.4566810131073	0

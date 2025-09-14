@@ -1,0 +1,141 @@
+BEGIN	1757693409.2364717
+EXEC	/work1/grodgers/git/tr-aomp/TheRock/build/base/rocm_smi_lib/build	/usr/bin/cmake -E env --unset=ROCM_PATH --unset=ROCM_DIR --unset=HIP_PATH --unset=HIP_DIR -- /usr/bin/cmake --build /work/grodgers/git/tr-aomp/TheRock/build/base/rocm_smi_lib/build
+0.0	[1/39] cd /work/grodgers/git/tr-aomp/TheRock/build/base/rocm_smi_lib/build && /usr/bin/cmake -E rm -f /work/grodgers/git/tr-aomp/TheRock/build/base/rocm_smi_lib/stamp/stage.stamp
+0.0	[2/39] cd /work/grodgers/git/tr-aomp/TheRock/build/base/rocm_smi_lib/build/rocm_smi && /usr/bin/cmake -E create_symlink ../libexec/rocm_smi/rocm_smi.py /work/grodgers/git/tr-aomp/TheRock/build/base/rocm_smi_lib/build/rocm_smi/bin/rocm-smi
+0.1	[3/39] Building C object oam/CMakeFiles/oam_ex.dir/example/oam_example.c.o
+0.3	[4/39] Building CXX object oam/CMakeFiles/oam.dir/__/src/rocm_smi_lib_loader.cc.o
+0.3	[5/39] Building CXX object rocm_smi/CMakeFiles/rocm_smi64.dir/__/src/rocm_smi_lib_loader.cc.o
+0.8	[6/39] Building CXX object oam/CMakeFiles/oam.dir/__/src/rocm_smi_power_mon.cc.o
+0.9	[7/39] Building CXX object rocm_smi/CMakeFiles/rocm_smi64.dir/__/src/rocm_smi_power_mon.cc.o
+0.9	[8/39] Building CXX object oam/CMakeFiles/oam.dir/__/third_party/shared_mutex/shared_mutex.cc.o
+0.9	[9/39] Building CXX object rocm_smi/CMakeFiles/rocm_smi64.dir/__/third_party/shared_mutex/shared_mutex.cc.o
+1.0	[10/39] Building CXX object oam/CMakeFiles/oam.dir/__/src/rocm_smi_logger.cc.o
+1.0	[11/39] Building CXX object rocm_smi/CMakeFiles/rocm_smi64.dir/__/src/rocm_smi_logger.cc.o
+1.2	[12/39] Building CXX object oam/CMakeFiles/oam.dir/__/src/rocm_smi_counters.cc.o
+1.2	[13/39] Building CXX object rocm_smi/CMakeFiles/rocm_smi64.dir/__/src/rocm_smi_counters.cc.o
+1.2	[14/39] Building CXX object rocm_smi/CMakeFiles/rocm_smi64.dir/__/src/rocm_smi_properties.cc.o
+1.2	[15/39] Building CXX object oam/CMakeFiles/oam.dir/__/src/rocm_smi_properties.cc.o
+1.3	[16/39] Building CXX object rocm_smi/CMakeFiles/rocm_smi64.dir/__/src/rocm_smi_io_link.cc.o
+1.3	[17/39] Building CXX object oam/CMakeFiles/oam.dir/__/src/rocm_smi_io_link.cc.o
+1.8	[18/39] Building CXX object rocm_smi/CMakeFiles/rocm_smi_ex.dir/example/rocm_smi_example.cc.o
+1.8	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocm-smi-lib/rocm_smi/example/rocm_smi_example.cc: In function ‘rsmi_status_t test_set_compute_partitioning(uint32_t)’:
+1.8	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocm-smi-lib/rocm_smi/example/rocm_smi_example.cc:634:44: warning: the address of ‘originalComputePartition’ will never be NULL [-Waddress]
+1.8	  634 |             << (((originalComputePartition == nullptr)
+1.8	      |                   ~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~
+1.8	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocm-smi-lib/rocm_smi/example/rocm_smi_example.cc:622:8: note: ‘originalComputePartition’ declared here
+1.8	  622 |   char originalComputePartition[kLength];
+1.8	      |        ^~~~~~~~~~~~~~~~~~~~~~~~
+1.8	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocm-smi-lib/rocm_smi/example/rocm_smi_example.cc:635:47: warning: the address of ‘originalComputePartition’ will never be NULL [-Waddress]
+1.8	  635 |                 || ((originalComputePartition != nullptr)
+1.8	      |                      ~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~
+1.8	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocm-smi-lib/rocm_smi/example/rocm_smi_example.cc:622:8: note: ‘originalComputePartition’ declared here
+1.8	  622 |   char originalComputePartition[kLength];
+1.8	      |        ^~~~~~~~~~~~~~~~~~~~~~~~
+1.8	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocm-smi-lib/rocm_smi/example/rocm_smi_example.cc: In function ‘rsmi_status_t test_set_memory_partition(uint32_t)’:
+1.8	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocm-smi-lib/rocm_smi/example/rocm_smi_example.cc:682:43: warning: the address of ‘originalMemoryPartition’ will never be NULL [-Waddress]
+1.8	  682 |             << (((originalMemoryPartition == nullptr)
+1.8	      |                   ~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~
+1.8	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocm-smi-lib/rocm_smi/example/rocm_smi_example.cc:671:8: note: ‘originalMemoryPartition’ declared here
+1.8	  671 |   char originalMemoryPartition[kLength];
+1.8	      |        ^~~~~~~~~~~~~~~~~~~~~~~
+1.8	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocm-smi-lib/rocm_smi/example/rocm_smi_example.cc:683:46: warning: the address of ‘originalMemoryPartition’ will never be NULL [-Waddress]
+1.8	  683 |                 || ((originalMemoryPartition != nullptr)
+1.8	      |                      ~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~
+1.8	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocm-smi-lib/rocm_smi/example/rocm_smi_example.cc:671:8: note: ‘originalMemoryPartition’ declared here
+1.8	  671 |   char originalMemoryPartition[kLength];
+1.8	      |        ^~~~~~~~~~~~~~~~~~~~~~~
+1.8	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocm-smi-lib/rocm_smi/example/rocm_smi_example.cc: In function ‘int main()’:
+1.8	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocm-smi-lib/rocm_smi/example/rocm_smi_example.cc:784:47: warning: the address of ‘current_compute_partition’ will never be NULL [-Waddress]
+1.8	  784 |               << (((current_compute_partition == nullptr)
+1.8	      |                     ~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~
+1.8	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocm-smi-lib/rocm_smi/example/rocm_smi_example.cc:780:10: note: ‘current_compute_partition’ declared here
+1.8	  780 |     char current_compute_partition[256];
+1.8	      |          ^~~~~~~~~~~~~~~~~~~~~~~~~
+1.8	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocm-smi-lib/rocm_smi/example/rocm_smi_example.cc:785:50: warning: the address of ‘current_compute_partition’ will never be NULL [-Waddress]
+1.8	  785 |                   || ((current_compute_partition != nullptr)
+1.8	      |                        ~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~
+1.8	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocm-smi-lib/rocm_smi/example/rocm_smi_example.cc:780:10: note: ‘current_compute_partition’ declared here
+1.8	  780 |     char current_compute_partition[256];
+1.8	      |          ^~~~~~~~~~~~~~~~~~~~~~~~~
+1.8	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocm-smi-lib/rocm_smi/example/rocm_smi_example.cc:800:38: warning: the address of ‘memory_partition’ will never be NULL [-Waddress]
+1.8	  800 |               << (((memory_partition == nullptr)
+1.8	      |                     ~~~~~~~~~~~~~~~~~^~~~~~~~~~
+1.8	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocm-smi-lib/rocm_smi/example/rocm_smi_example.cc:796:10: note: ‘memory_partition’ declared here
+1.8	  796 |     char memory_partition[kLength];
+1.8	      |          ^~~~~~~~~~~~~~~~
+1.8	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocm-smi-lib/rocm_smi/example/rocm_smi_example.cc:801:41: warning: the address of ‘memory_partition’ will never be NULL [-Waddress]
+1.8	  801 |                   || ((memory_partition != nullptr)
+1.8	      |                        ~~~~~~~~~~~~~~~~~^~~~~~~~~~
+1.8	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocm-smi-lib/rocm_smi/example/rocm_smi_example.cc:796:10: note: ‘memory_partition’ declared here
+1.8	  796 |     char memory_partition[kLength];
+1.8	      |          ^~~~~~~~~~~~~~~~
+1.8	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocm-smi-lib/rocm_smi/example/rocm_smi_example.cc:1205:49: warning: conversion from ‘uint64_t’ {aka ‘long unsigned int’} to ‘float’ may change value [-Wconversion]
+1.8	 1205 |       std::cout << (static_cast<float>(val_i64)/val_ui64) * 100;
+1.8	      |                                                 ^~~~~~~~
+1.8	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocm-smi-lib/rocm_smi/example/rocm_smi_example.cc: In instantiation of ‘constexpr float convert_mw_to_w(T) [with T = long unsigned int]’:
+1.8	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocm-smi-lib/rocm_smi/example/rocm_smi_example.cc:1236:35:   required from here
+1.8	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocm-smi-lib/rocm_smi/example/rocm_smi_example.cc:721:31: warning: conversion from ‘long unsigned int’ to ‘double’ may change value [-Wconversion]
+1.8	  721 |     return static_cast<float>(mw / 1000.0);
+1.8	      |                               ^~
+2.5	[19/39] Building CXX object oam/CMakeFiles/oam.dir/__/src/rocm_smi_kfd.cc.o
+2.5	[20/39] Building CXX object rocm_smi/CMakeFiles/rocm_smi64.dir/__/src/rocm_smi_kfd.cc.o
+2.6	[21/39] Building CXX object rocm_smi/CMakeFiles/rocm_smi64.dir/__/src/rocm_smi_main.cc.o
+2.6	[22/39] Building CXX object oam/CMakeFiles/oam.dir/__/src/rocm_smi_main.cc.o
+2.8	[23/39] Building CXX object oam/CMakeFiles/oam.dir/__/src/rocm_smi_device.cc.o
+2.8	[24/39] Building CXX object rocm_smi/CMakeFiles/rocm_smi64.dir/__/src/rocm_smi_device.cc.o
+4.5	[25/39] Building CXX object oam/CMakeFiles/oam.dir/src/amd_oam.cc.o
+5.9	[26/39] Building CXX object rocm_smi/CMakeFiles/rocm_smi64.dir/__/src/rocm_smi_monitor.cc.o
+5.9	[27/39] Building CXX object oam/CMakeFiles/oam.dir/__/src/rocm_smi_monitor.cc.o
+6.5	[28/39] Building CXX object rocm_smi/CMakeFiles/rocm_smi64.dir/__/src/rocm_smi_gpu_metrics.cc.o
+6.5	[29/39] Building CXX object oam/CMakeFiles/oam.dir/__/src/rocm_smi_utils.cc.o
+6.5	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocm-smi-lib/src/rocm_smi_utils.cc: In function ‘std::string amd::smi::find_file_in_folder(const std::string&, const std::string&)’:
+6.5	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocm-smi-lib/src/rocm_smi_utils.cc:1274:59: warning: ignoring attributes on template argument ‘int (*)(DIR*)’ [-Wignored-attributes]
+6.5	 1274 |   using dir_ptr = std::unique_ptr<DIR, decltype(&closedir)>;
+6.5	      |                                                           ^
+6.6	[30/39] Building CXX object rocm_smi/CMakeFiles/rocm_smi64.dir/__/src/rocm_smi_utils.cc.o
+6.6	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocm-smi-lib/src/rocm_smi_utils.cc: In function ‘std::string amd::smi::find_file_in_folder(const std::string&, const std::string&)’:
+6.6	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocm-smi-lib/src/rocm_smi_utils.cc:1274:59: warning: ignoring attributes on template argument ‘int (*)(DIR*)’ [-Wignored-attributes]
+6.6	 1274 |   using dir_ptr = std::unique_ptr<DIR, decltype(&closedir)>;
+6.6	      |                                                           ^
+6.6	[31/39] Building CXX object oam/CMakeFiles/oam.dir/__/src/rocm_smi_gpu_metrics.cc.o
+7.9	[32/39] Building CXX object rocm_smi/CMakeFiles/rocm_smi64.dir/__/src/rocm_smi.cc.o
+7.9	In file included from /work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocm-smi-lib/src/rocm_smi.cc:74:
+7.9	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocm-smi-lib/include/rocm_smi/rocm_smi_utils.h: In instantiation of ‘decltype(auto) amd::smi::TagTextContents_t<PrimaryKeyType, PrimaryDataType, SecondaryKeyType, SecondaryDataType>::get_structured_data_subkey_last(const PrimaryKeyType&) [with PrimaryKeyType = std::__cxx11::basic_string<char>; PrimaryDataType = std::__cxx11::basic_string<char>; SecondaryKeyType = std::__cxx11::basic_string<char>; SecondaryDataType = std::__cxx11::basic_string<char>]’:
+7.9	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocm-smi-lib/src/rocm_smi.cc:1440:87:   required from here
+7.9	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocm-smi-lib/include/rocm_smi/rocm_smi_utils.h:453:138: warning: conversion from ‘long unsigned int’ to ‘uint32_t’ {aka ‘unsigned int’} may change value [-Wconversion]
+7.9	  453 |                                                                                                   (get_structured_subkeys_size(prim_key) - 1))));
+7.9	      |                                                                                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~
+7.9	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocm-smi-lib/src/rocm_smi.cc: In lambda function:
+7.9	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocm-smi-lib/src/rocm_smi.cc:6356:24: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+7.9	 6356 |             char *rw = "\0";
+7.9	      |                        ^~~~
+7.9	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocm-smi-lib/src/rocm_smi.cc:6375:36: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+7.9	 6375 |             char *migrate_update = "\0";
+7.9	      |                                    ^~~~
+7.9	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocm-smi-lib/src/rocm_smi.cc:6410:33: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+7.9	 6410 |             char *rescheduled = "\0";
+7.9	      |                                 ^~~~
+7.9	[33/39] Building CXX object oam/CMakeFiles/oam.dir/__/src/rocm_smi.cc.o
+7.9	In file included from /work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocm-smi-lib/src/rocm_smi.cc:74:
+7.9	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocm-smi-lib/include/rocm_smi/rocm_smi_utils.h: In instantiation of ‘decltype(auto) amd::smi::TagTextContents_t<PrimaryKeyType, PrimaryDataType, SecondaryKeyType, SecondaryDataType>::get_structured_data_subkey_last(const PrimaryKeyType&) [with PrimaryKeyType = std::__cxx11::basic_string<char>; PrimaryDataType = std::__cxx11::basic_string<char>; SecondaryKeyType = std::__cxx11::basic_string<char>; SecondaryDataType = std::__cxx11::basic_string<char>]’:
+7.9	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocm-smi-lib/src/rocm_smi.cc:1440:87:   required from here
+7.9	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocm-smi-lib/include/rocm_smi/rocm_smi_utils.h:453:138: warning: conversion from ‘long unsigned int’ to ‘uint32_t’ {aka ‘unsigned int’} may change value [-Wconversion]
+7.9	  453 |                                                                                                   (get_structured_subkeys_size(prim_key) - 1))));
+7.9	      |                                                                                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~
+7.9	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocm-smi-lib/src/rocm_smi.cc: In lambda function:
+7.9	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocm-smi-lib/src/rocm_smi.cc:6356:24: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+7.9	 6356 |             char *rw = "\0";
+7.9	      |                        ^~~~
+7.9	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocm-smi-lib/src/rocm_smi.cc:6375:36: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+7.9	 6375 |             char *migrate_update = "\0";
+7.9	      |                                    ^~~~
+7.9	/work/grodgers/git/tr-aomp/TheRock/rocm-systems/projects/rocm-smi-lib/src/rocm_smi.cc:6410:33: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+7.9	 6410 |             char *rescheduled = "\0";
+7.9	      |                                 ^~~~
+8.1	[34/39] Linking CXX shared library rocm_smi/librocm_smi64.so.1.0
+8.1	[35/39] Creating library symlink rocm_smi/librocm_smi64.so.1 rocm_smi/librocm_smi64.so
+8.2	[36/39] Linking CXX shared library oam/liboam.so.1.0
+8.2	[37/39] Creating library symlink oam/liboam.so.1 oam/liboam.so
+8.3	[38/39] Linking CXX executable rocm_smi/rocm_smi_ex
+8.4	[39/39] Linking C executable oam/oam_ex
+END	1757693417.603571	8.367099285125732	0

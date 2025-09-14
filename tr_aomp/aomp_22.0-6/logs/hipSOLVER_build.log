@@ -1,0 +1,33 @@
+BEGIN	1757699183.0375373
+EXEC	/work1/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/hipSOLVER/build	/usr/bin/cmake -E env --unset=ROCM_PATH --unset=ROCM_DIR --unset=HIP_PATH --unset=HIP_DIR -- /usr/bin/cmake --build /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/hipSOLVER/build
+0.0	[1/15] cd /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/hipSOLVER/build && /usr/bin/cmake -E rm -f /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/hipSOLVER/stamp/stage.stamp
+0.1	[2/15] Building Fortran preprocessed library/src/CMakeFiles/hipsolver_fortran.dir/hipsolver_module.f90-pp.f90
+0.1	[3/15] Generating Fortran dyndep file library/src/CMakeFiles/hipsolver_fortran.dir/Fortran.dd
+0.2	[4/15] Building Fortran object library/src/CMakeFiles/hipsolver_fortran.dir/hipsolver_module.f90.o
+0.3	[5/15] Linking Fortran shared library library/src/libhipsolver_fortran.so.1.0
+0.3	[6/15] Creating library symlink library/src/libhipsolver_fortran.so.1 library/src/libhipsolver_fortran.so
+0.3	[7/15] Building CXX object library/src/CMakeFiles/hipsolver.dir/amd_detail/hipsolver_conversions.cpp.o
+0.4	[8/15] Building CXX object library/src/CMakeFiles/hipsolver.dir/common/hipsolver_dense_common.cpp.o
+0.5	[9/15] Building CXX object library/src/CMakeFiles/hipsolver.dir/amd_detail/hipsolver_dense.cpp.o
+0.6	[10/15] Building CXX object library/src/CMakeFiles/hipsolver.dir/amd_detail/hipsolver_dense64.cpp.o
+0.6	[11/15] Building CXX object library/src/CMakeFiles/hipsolver.dir/amd_detail/hipsolver_refactor.cpp.o
+0.6	/work/grodgers/git/tr-aomp/TheRock/math-libs/BLAS/hipSOLVER/library/src/amd_detail/hipsolver_refactor.cpp:259:13: warning: ignoring return value of type 'hipError_t' declared with 'nodiscard' attribute [-Wunused-value]
+0.6	  259 |             hipFree(this->d_buffer);
+0.6	      |             ^~~~~~~~~~~~~~~~~~~~~~~
+0.6	1 warning generated.
+0.8	[12/15] Building CXX object library/src/CMakeFiles/hipsolver.dir/amd_detail/hipsolver_sparse.cpp.o
+0.8	/work/grodgers/git/tr-aomp/TheRock/math-libs/BLAS/hipSOLVER/library/src/amd_detail/hipsolver_sparse.cpp:198:9: warning: ignoring return value of type 'hipError_t' declared with 'nodiscard' attribute [-Wunused-value]
+0.8	  198 |         hipFree(this->d_buffer);
+0.8	      |         ^~~~~~~~~~~~~~~~~~~~~~~
+0.8	1 warning generated.
+1.6	[13/15] Building CXX object library/src/CMakeFiles/hipsolver.dir/amd_detail/hipsolver.cpp.o
+1.6	/work/grodgers/git/tr-aomp/TheRock/math-libs/BLAS/hipSOLVER/library/src/amd_detail/hipsolver.cpp:701:13: warning: ignoring return value of type 'hipError_t' declared with 'nodiscard' attribute [-Wunused-value]
+1.6	  701 |             hipFree(n_sweeps);
+1.6	      |             ^~~~~~~~~~~~~~~~~
+1.6	/work/grodgers/git/tr-aomp/TheRock/math-libs/BLAS/hipSOLVER/library/src/amd_detail/hipsolver.cpp:913:13: warning: ignoring return value of type 'hipError_t' declared with 'nodiscard' attribute [-Wunused-value]
+1.6	  913 |             hipFree(n_sweeps);
+1.6	      |             ^~~~~~~~~~~~~~~~~
+1.6	2 warnings generated.
+1.6	[14/15] Linking CXX shared library library/src/libhipsolver.so.1.0
+1.7	[15/15] Creating library symlink library/src/libhipsolver.so.1 library/src/libhipsolver.so
+END	1757699184.7025723	1.6650350093841553	0

@@ -1,0 +1,8 @@
+BEGIN	1757694033.6608484
+EXEC	/work1/grodgers/git/tr-aomp/TheRock/build/core/rocminfo/build	/usr/bin/cmake --install /work/grodgers/git/tr-aomp/TheRock/build/core/rocminfo/build
+0.0	-- Install configuration: "Release"
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/core/rocminfo/stage/bin/rocminfo
+0.0	-- Set non-toolchain portion of runtime path of "/work/grodgers/git/tr-aomp/TheRock/build/core/rocminfo/stage/bin/rocminfo" to "$ORIGIN/../lib:$ORIGIN/../lib/rocm_sysdeps/lib"
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/core/rocminfo/stage/bin/rocm_agent_enumerator
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/core/rocminfo/stage/share/doc/rocminfo/License.txt
+END	1757694033.6794991	0.01865077018737793	0

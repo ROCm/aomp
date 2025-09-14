@@ -1,0 +1,5 @@
+BEGIN	1757693406.1640291
+EXEC	/work1/grodgers/git/tr-aomp/TheRock/build/third-party/FunctionalPlus/build	/usr/bin/cmake -E env --unset=ROCM_PATH --unset=ROCM_DIR --unset=HIP_PATH --unset=HIP_DIR -- /usr/bin/cmake --build /work/grodgers/git/tr-aomp/TheRock/build/third-party/FunctionalPlus/build
+0.0	[1/2] cd /work/grodgers/git/tr-aomp/TheRock/build/third-party/FunctionalPlus/build && /usr/bin/cmake -E rm -f /work/grodgers/git/tr-aomp/TheRock/build/third-party/FunctionalPlus/stamp/stage.stamp
+0.1	[2/2] cd /work/grodgers/git/tr-aomp/TheRock/build/third-party/FunctionalPlus/build && /work/grodgers/git/tr-aomp/TheRock/.venv/bin/python3 /work/grodgers/git/tr-aomp/TheRock/build/third-party/FunctionalPlus/source/generate/auto_generate.py
+END	1757693406.233593	0.0695638656616211	0

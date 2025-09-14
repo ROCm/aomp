@@ -1,0 +1,27 @@
+BEGIN	1757693415.5837653
+EXEC	/work1/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/elfutils/build/build	/usr/bin/cmake -E env --unset=ROCM_PATH --unset=ROCM_DIR --unset=HIP_PATH --unset=HIP_DIR -- /usr/bin/cmake -GNinja -B/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/elfutils/build/build -S/work/grodgers/git/tr-aomp/TheRock/third-party/sysdeps/linux/elfutils/. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/elfutils/build/stage/lib/rocm_sysdeps -DTHEROCK_STAGE_INSTALL_ROOT=/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/elfutils/build/stage -DCMAKE_TOOLCHAIN_FILE=/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/elfutils/build/_toolchain.cmake -DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/elfutils/build/_init.cmake -DSOURCE_DIR=/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/elfutils/source -DPATCHELF=/home/grodgers/.local/bin/patchelf -DPython3_EXECUTABLE=/work/grodgers/git/tr-aomp/TheRock/.venv/bin/python3
+0.1	-- Sub-project PKG_CONFIG_PATH: /work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/bzip2/build/stage/lib/rocm_sysdeps/lib/pkgconfig:/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/zlib/build/stage/lib/rocm_sysdeps/lib/pkgconfig:/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/zstd/build/stage/lib/rocm_sysdeps/lib/pkgconfig:
+0.1	-- Resolving packages from super-project: BZip2;ZLIB;zstd
+0.2	-- The C compiler identification is GNU 13.3.0
+0.4	-- The CXX compiler identification is GNU 13.3.0
+0.5	-- Detecting C compiler ABI info
+0.7	-- Detecting C compiler ABI info - done
+0.7	-- Check for working C compiler: /usr/bin/cc - skipped
+0.7	-- Detecting C compile features
+0.7	-- Detecting C compile features - done
+0.7	-- Detecting CXX compiler ABI info
+1.0	-- Detecting CXX compiler ABI info - done
+1.0	-- Check for working CXX compiler: /usr/bin/c++ - skipped
+1.0	-- Detecting CXX compile features
+1.0	-- Detecting CXX compile features - done
+1.1	-- EXTRA_CPPFLAGS= -I/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/bzip2/build/stage/lib/rocm_sysdeps/include -I/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/zlib/build/stage/lib/rocm_sysdeps/include -I/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/zstd/build/stage/lib/rocm_sysdeps/include
+1.1	-- Configuring done (1.0s)
+1.1	-- Generating done (0.0s)
+1.1	CMake Warning:
+1.1	  Manually-specified variables were not used by the project:
+1.1	
+1.1	    THEROCK_STAGE_INSTALL_ROOT
+1.1	
+1.1	
+1.1	-- Build files have been written to: /work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/elfutils/build/build
+END	1757693416.7050395	1.1212742328643799	0

@@ -1,0 +1,92 @@
+BEGIN	1757694059.268509
+EXEC	/work1/grodgers/git/tr-aomp/TheRock/build/math-libs/rocThrust/build	/usr/bin/cmake -E env --unset=ROCM_PATH --unset=ROCM_DIR --unset=HIP_PATH --unset=HIP_DIR -- /usr/bin/cmake -GNinja -B/work/grodgers/git/tr-aomp/TheRock/build/math-libs/rocThrust/build -S/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocthrust -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/work/grodgers/git/tr-aomp/TheRock/build/math-libs/rocThrust/stage -DTHEROCK_STAGE_INSTALL_ROOT=/work/grodgers/git/tr-aomp/TheRock/build/math-libs/rocThrust/stage -DCMAKE_TOOLCHAIN_FILE=/work/grodgers/git/tr-aomp/TheRock/build/math-libs/rocThrust/_toolchain.cmake -DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=/work/grodgers/git/tr-aomp/TheRock/build/math-libs/rocThrust/_init.cmake -DHIP_PLATFORM=amd -DROCM_PATH= -DROCM_DIR= -DBUILD_TEST=OFF
+0.0	-- Sub-project PKG_CONFIG_PATH: /work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/zlib/build/stage/lib/rocm_sysdeps/lib/pkgconfig:/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/zstd/build/stage/lib/rocm_sysdeps/lib/pkgconfig:/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/bzip2/build/stage/lib/rocm_sysdeps/lib/pkgconfig:/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/elfutils/build/stage/lib/rocm_sysdeps/lib/pkgconfig:/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/libdrm/build/stage/lib/rocm_sysdeps/lib/pkgconfig:/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/stage/lib/rocm_sysdeps/lib/pkgconfig:
+0.0	-- Resolving packages from super-project: ZLIB;zstd;AMDDeviceLibs;Clang;LLD;LLVM;amd_comgr;rocm-core;rocprofiler-register;BZip2;LibElf;libdw;NUMA;hsakmt;hsa-runtime64;hip;HIP;hip-lang;hiprtc;ROCmCMakeBuildTools;ROCM;rocprim;GTest
+0.1	-- The CXX compiler identification is Clang 22.0.6
+0.2	-- The C compiler identification is Clang 22.0.6
+0.2	-- Detecting CXX compiler ABI info
+0.4	-- Detecting CXX compiler ABI info - done
+0.4	-- Check for working CXX compiler: /work/grodgers/git/tr-aomp/TheRock/build/core/clr/dist/lib/llvm/bin/clang++ - skipped
+0.4	-- Detecting CXX compile features
+0.4	-- Detecting CXX compile features - done
+0.4	-- Detecting C compiler ABI info
+0.5	-- Detecting C compiler ABI info - done
+0.5	-- Check for working C compiler: /work/grodgers/git/tr-aomp/TheRock/build/core/clr/dist/lib/llvm/bin/clang - skipped
+0.5	-- Detecting C compile features
+0.5	-- Detecting C compile features - done
+0.5	-- Looking for a HIP compiler
+2.6	-- Looking for a HIP compiler - /opt/rocm-7.0.0/lib/llvm/bin/clang++
+2.6	-- Resolving super-project find_package(ROCM 0.7.3 QUIET CONFIG BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr-aomp/TheRock/build/base/rocm-cmake/dist/share/rocm/cmake)
+2.6	CMake Deprecation Warning at /work/grodgers/git/tr-aomp/TheRock/build/base/rocm-cmake/dist/share/rocm/cmake/ROCMConfig.cmake:12 (message):
+2.6	  Use of find_package(ROCM) is deprecated as of ROCm 6.4.  Please use
+2.6	  find_package(ROCmCMakeBuildTools)
+2.6	Call Stack (most recent call first):
+2.6	  /work/grodgers/git/tr-aomp/TheRock/cmake/therock_subproject_dep_provider.cmake:54 (find_package)
+2.6	  cmake/FindROCMCmake.cmake:20 (find_package)
+2.6	  CMakeLists.txt:94 (include)
+2.6	
+2.6	
+2.6	-- Resolving super-project find_package(ROCmCMakeBuildTools BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr-aomp/TheRock/build/base/rocm-cmake/dist/share/rocmcmakebuildtools/cmake)
+2.7	-- Checking git version
+2.7	-- Found git at: /usr/bin/git, version: 2.43.0
+2.7	-- Searching for rocprim package
+2.7	-- Resolving super-project find_package(rocprim 4.0.0 QUIET CONFIG BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr-aomp/TheRock/build/math-libs/rocPRIM/dist/lib/cmake/rocprim)
+2.7	-- Resolving super-project find_package(hip QUIET BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr-aomp/TheRock/build/core/clr/dist/lib/cmake/hip)
+2.7	-- Resolving super-project find_package(AMDDeviceLibs BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr-aomp/TheRock/build/compiler/amd-llvm/dist/lib/llvm/lib/cmake/AMDDeviceLibs)
+2.7	-- Resolving super-project find_package(amd_comgr BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr-aomp/TheRock/build/compiler/amd-comgr/dist/lib/cmake/amd_comgr)
+2.7	-- Resolving super-project find_package(hsa-runtime64 BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr-aomp/TheRock/build/core/ROCR-Runtime/dist/lib/cmake/hsa-runtime64)
+2.7	-- Resolving system find_package(Threads) (not found in super-project ZLIB;zstd;AMDDeviceLibs;Clang;LLD;LLVM;amd_comgr;rocm-core;rocprofiler-register;BZip2;LibElf;libdw;NUMA;hsakmt;hsa-runtime64;hip;HIP;hip-lang;hiprtc;ROCmCMakeBuildTools;ROCM;rocprim;GTest)
+2.8	-- Performing Test HIP_CLANG_SUPPORTS_PARALLEL_JOBS
+2.9	-- Performing Test HIP_CLANG_SUPPORTS_PARALLEL_JOBS - Success
+3.0	-- Package found (/work/grodgers/git/tr-aomp/TheRock/build/math-libs/rocPRIM/dist/lib/cmake/rocprim)
+3.0	-- Resolving super-project find_package(hip REQUIRED CONFIG BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr-aomp/TheRock/build/core/clr/dist/lib/cmake/hip)
+3.0	-- Resolving super-project find_package(AMDDeviceLibs BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr-aomp/TheRock/build/compiler/amd-llvm/dist/lib/llvm/lib/cmake/AMDDeviceLibs)
+3.0	-- Resolving super-project find_package(amd_comgr BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr-aomp/TheRock/build/compiler/amd-comgr/dist/lib/cmake/amd_comgr)
+3.0	-- Resolving super-project find_package(hsa-runtime64 BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr-aomp/TheRock/build/core/ROCR-Runtime/dist/lib/cmake/hsa-runtime64)
+3.0	-- Resolving system find_package(Threads) (not found in super-project ZLIB;zstd;AMDDeviceLibs;Clang;LLD;LLVM;amd_comgr;rocm-core;rocprofiler-register;BZip2;LibElf;libdw;NUMA;hsakmt;hsa-runtime64;hip;HIP;hip-lang;hiprtc;ROCmCMakeBuildTools;ROCM;rocprim;GTest)
+3.0	-- Found Threads: TRUE  
+3.5	-- Resolving system find_package(Git) (not found in super-project ZLIB;zstd;AMDDeviceLibs;Clang;LLD;LLVM;amd_comgr;rocm-core;rocprofiler-register;BZip2;LibElf;libdw;NUMA;hsakmt;hsa-runtime64;hip;HIP;hip-lang;hiprtc;ROCmCMakeBuildTools;ROCM;rocprim;GTest)
+3.5	-- Found Git: /usr/bin/git (found version "2.43.0") 
+3.5	-- 
+3.5	-- ******** Summary ********
+3.5	-- General:
+3.5	--   System                : Linux
+3.5	--   HIP ROOT              : 
+3.5	--   C++ compiler          : /work/grodgers/git/tr-aomp/TheRock/build/core/clr/dist/lib/llvm/bin/clang++
+3.5	--   C++ compiler version  : 22.0.6
+3.5	--   CXX flags             : -Wno-documentation-unknown-command -Wno-documentation-pedantic -Wno-unused-command-line-argument -Wno-explicit-specialization-storage-class --hip-path=/work/grodgers/git/tr-aomp/TheRock/build/core/clr/dist --hip-device-lib-path=/work/grodgers/git/tr-aomp/TheRock/build/core/clr/dist/lib/llvm/amdgcn/bitcode -Wall -Wextra
+3.5	--   Build type            : Release
+3.5	--   Install prefix        : /work/grodgers/git/tr-aomp/TheRock/build/math-libs/rocThrust/stage
+3.5	--   Device targets        : gfx90a;gfx942;gfx908
+3.5	-- 
+3.5	--   DISABLE_WERROR                  : ON
+3.5	--   ROCPRIM_FETCH_METHOD            : PACKAGE
+3.5	--   BUILD_TEST                      : OFF
+3.5	--   BUILD_HIPSTDPAR_TEST            : OFF
+3.5	--   BUILD_HIPSTDPAR_TEST_WITH_TBB   : OFF
+3.5	--   BUILD_EXAMPLE                   : OFF
+3.5	--   BUILD_BENCHMARK                 : OFF
+3.5	--   SQLITE_USE_SYSTEM_PACKAGE       : OFF
+3.5	--   USE_SYSTEM_LIB                  : OFF
+3.5	--   BUILD_ADDRESS_SANITIZER         : OFF
+3.5	--   EXTERNAL_DEPS_FORCE_DOWNLOAD    : OFF
+3.5	-- 
+3.5	-- Detailed:
+3.5	--   C++ compiler details            : 
+3.5	--     AMD clang version 22.0.6_AOMP_22.0-6 (https://github.com/ROCm/llvm-project.git e9b13a08222a0f620cc55d29041c31078fb92906)
+3.5	--     Target: x86_64-unknown-linux-gnu
+3.5	--     Thread model: posix
+3.5	--     InstalledDir: /work1/grodgers/git/tr-aomp/TheRock/build/core/clr/dist/lib/llvm/bin
+3.5	--   Commit                          : f5679e5e206f4f7e2541843c21657937f2571d18
+3.5	--                                     Run gentest.py with 'python' on Windows across `_parse_data.cpp` files.
+3.5	--   Unix name                       : Linux r17 6.8.0-57-generic #59-Ubuntu SMP PREEMPT_DYNAMIC Sat Mar 15 17:40:59 UTC 2025 x86_64 x86_64 x86_64 GNU/Linux
+3.5	-- Configuring done (3.5s)
+3.5	-- Generating done (0.0s)
+3.6	CMake Warning:
+3.6	  Manually-specified variables were not used by the project:
+3.6	
+3.6	    THEROCK_STAGE_INSTALL_ROOT
+3.6	
+3.6	
+3.6	-- Build files have been written to: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/rocThrust/build
+END	1757694062.8345819	3.566072940826416	0

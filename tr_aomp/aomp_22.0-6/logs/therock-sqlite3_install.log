@@ -1,0 +1,9 @@
+BEGIN	1757693431.4122396
+EXEC	/work1/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/sqlite3/build/build	/usr/bin/cmake --install /work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/sqlite3/build/build
+0.0	-- Install configuration: "Release"
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/sqlite3/build/stage/lib/rocm_sysdeps/lib/librocm_sysdeps_sqlite3.so
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/sqlite3/build/stage/lib/rocm_sysdeps/lib/libsqlite3.so
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/sqlite3/build/stage/lib/rocm_sysdeps/include/sqlite3.h
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/sqlite3/build/stage/lib/rocm_sysdeps/include/sqlite3ext.h
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/sqlite3/build/stage/lib/rocm_sysdeps/lib/cmake/SQLite3/sqlite3-config.cmake
+END	1757693431.4244323	0.012192726135253906	0
