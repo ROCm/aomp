@@ -1,0 +1,92 @@
+BEGIN	1757698165.447119
+EXEC	/work1/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/rocSPARSE/build	/usr/bin/cmake -E env --unset=ROCM_PATH --unset=ROCM_DIR --unset=HIP_PATH --unset=HIP_DIR -- /usr/bin/cmake -GNinja -B/work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/rocSPARSE/build -S/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/rocSPARSE/stage -DTHEROCK_STAGE_INSTALL_ROOT=/work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/rocSPARSE/stage -DCMAKE_TOOLCHAIN_FILE=/work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/rocSPARSE/_toolchain.cmake -DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=/work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/rocSPARSE/_init.cmake -DHIP_PLATFORM=amd -DROCM_PATH= -DROCM_DIR= -DBUILD_WITH_ROCBLAS=ON -DBUILD_CLIENTS_TESTS=OFF -DBUILD_CLIENTS_BENCHMARKS=OFF -DBUILD_CLIENTS_SAMPLES=OFF
+0.0	-- Sub-project PKG_CONFIG_PATH: /work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/zlib/build/stage/lib/rocm_sysdeps/lib/pkgconfig:/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/zstd/build/stage/lib/rocm_sysdeps/lib/pkgconfig:/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/bzip2/build/stage/lib/rocm_sysdeps/lib/pkgconfig:/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/elfutils/build/stage/lib/rocm_sysdeps/lib/pkgconfig:/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/libdrm/build/stage/lib/rocm_sysdeps/lib/pkgconfig:/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/stage/lib/rocm_sysdeps/lib/pkgconfig:/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/sqlite3/build/stage/lib/rocm_sysdeps/lib/pkgconfig:
+0.0	-- Resolving packages from super-project: ZLIB;zstd;AMDDeviceLibs;Clang;LLD;LLVM;amd_comgr;rocm-core;rocprofiler-register;BZip2;LibElf;libdw;NUMA;hsakmt;hsa-runtime64;hip;HIP;hip-lang;hiprtc;SQLite3;rocprofiler-sdk;rocprofiler-sdk-roctx;ROCmCMakeBuildTools;ROCM;rocblas;rocprim;GTest
+0.0	-- Including TheRock explicit overrides for find_library and find_path
+0.0	--   Libraries that must resolve from super-project: hsa-amd-aqlprofile64;hsa-amd-aqlprofile;roctx64
+0.0	--   Paths that must resolve from super-project: half/half.hpp;roctracer/roctx.h
+0.1	-- The CXX compiler identification is Clang 22.0.6
+0.2	-- The C compiler identification is Clang 22.0.6
+0.2	-- Detecting CXX compiler ABI info
+0.4	-- Detecting CXX compiler ABI info - done
+0.4	-- Check for working CXX compiler: /work/grodgers/git/tr-aomp/TheRock/build/core/clr/dist/lib/llvm/bin/clang++ - skipped
+0.4	-- Detecting CXX compile features
+0.4	-- Detecting CXX compile features - done
+0.5	-- Detecting C compiler ABI info
+0.7	-- Detecting C compiler ABI info - done
+0.7	-- Check for working C compiler: /work/grodgers/git/tr-aomp/TheRock/build/core/clr/dist/lib/llvm/bin/clang - skipped
+0.7	-- Detecting C compile features
+0.7	-- Detecting C compile features - done
+0.7	-- Using hip-clang to build for amdgpu backend
+0.7	-- Performing Test CXX_COMPILER_SUPPORTS_OFFLOAD_COMPRESS
+0.8	-- Performing Test CXX_COMPILER_SUPPORTS_OFFLOAD_COMPRESS - Success
+0.8	-- Resolving super-project find_package(ROCmCMakeBuildTools 0.11.0 QUIET CONFIG BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr-aomp/TheRock/build/base/rocm-cmake/dist/share/rocmcmakebuildtools/cmake)
+0.9	-- Performing Test COMPILER_HAS_TARGET_ID_gfx803
+1.9	-- Performing Test COMPILER_HAS_TARGET_ID_gfx803 - Success
+1.9	-- Performing Test COMPILER_HAS_TARGET_ID_gfx900_xnack_off
+2.8	-- Performing Test COMPILER_HAS_TARGET_ID_gfx900_xnack_off - Success
+2.8	-- Performing Test COMPILER_HAS_TARGET_ID_gfx906_xnack_off
+3.8	-- Performing Test COMPILER_HAS_TARGET_ID_gfx906_xnack_off - Success
+3.8	-- Performing Test COMPILER_HAS_TARGET_ID_gfx908_xnack_off
+5.3	-- Performing Test COMPILER_HAS_TARGET_ID_gfx908_xnack_off - Success
+5.3	-- Performing Test COMPILER_HAS_TARGET_ID_gfx90a_xnack_off
+7.0	-- Performing Test COMPILER_HAS_TARGET_ID_gfx90a_xnack_off - Success
+7.0	-- Performing Test COMPILER_HAS_TARGET_ID_gfx90a_xnack_on
+8.7	-- Performing Test COMPILER_HAS_TARGET_ID_gfx90a_xnack_on - Success
+8.7	-- Performing Test COMPILER_HAS_TARGET_ID_gfx942
+10.5	-- Performing Test COMPILER_HAS_TARGET_ID_gfx942 - Success
+10.5	-- Performing Test COMPILER_HAS_TARGET_ID_gfx950
+12.3	-- Performing Test COMPILER_HAS_TARGET_ID_gfx950 - Success
+12.3	-- Performing Test COMPILER_HAS_TARGET_ID_gfx1030
+14.2	-- Performing Test COMPILER_HAS_TARGET_ID_gfx1030 - Success
+14.2	-- Performing Test COMPILER_HAS_TARGET_ID_gfx1100
+15.7	-- Performing Test COMPILER_HAS_TARGET_ID_gfx1100 - Success
+15.7	-- Performing Test COMPILER_HAS_TARGET_ID_gfx1101
+17.2	-- Performing Test COMPILER_HAS_TARGET_ID_gfx1101 - Success
+17.2	-- Performing Test COMPILER_HAS_TARGET_ID_gfx1102
+19.0	-- Performing Test COMPILER_HAS_TARGET_ID_gfx1102 - Success
+19.0	-- Performing Test COMPILER_HAS_TARGET_ID_gfx1151
+20.8	-- Performing Test COMPILER_HAS_TARGET_ID_gfx1151 - Success
+20.8	-- Performing Test COMPILER_HAS_TARGET_ID_gfx1200
+22.2	-- Performing Test COMPILER_HAS_TARGET_ID_gfx1200 - Success
+22.2	-- Performing Test COMPILER_HAS_TARGET_ID_gfx1201
+23.2	-- Performing Test COMPILER_HAS_TARGET_ID_gfx1201 - Success
+23.2	-- GPU_TARGETS: gfx90a;gfx942;gfx908
+23.2	-- Resolving super-project find_package(rocprim 4.0.0 REQUIRED BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr-aomp/TheRock/build/math-libs/rocPRIM/dist/lib/cmake/rocprim)
+23.2	-- Resolving super-project find_package(hip REQUIRED BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr-aomp/TheRock/build/core/clr/dist/lib/cmake/hip)
+23.2	-- Resolving super-project find_package(AMDDeviceLibs BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr-aomp/TheRock/build/compiler/amd-llvm/dist/lib/llvm/lib/cmake/AMDDeviceLibs)
+23.3	-- Resolving super-project find_package(amd_comgr BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr-aomp/TheRock/build/compiler/amd-comgr/dist/lib/cmake/amd_comgr)
+23.3	-- Resolving super-project find_package(hsa-runtime64 BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr-aomp/TheRock/build/core/ROCR-Runtime/dist/lib/cmake/hsa-runtime64)
+23.3	-- Resolving system find_package(Threads) (not found in super-project ZLIB;zstd;AMDDeviceLibs;Clang;LLD;LLVM;amd_comgr;rocm-core;rocprofiler-register;BZip2;LibElf;libdw;NUMA;hsakmt;hsa-runtime64;hip;HIP;hip-lang;hiprtc;SQLite3;rocprofiler-sdk;rocprofiler-sdk-roctx;ROCmCMakeBuildTools;ROCM;rocblas;rocprim;GTest)
+23.3	-- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+23.4	-- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
+23.4	-- Found Threads: TRUE  
+23.4	-- Performing Test HIP_CLANG_SUPPORTS_PARALLEL_JOBS
+23.5	-- Performing Test HIP_CLANG_SUPPORTS_PARALLEL_JOBS - Success
+23.5	-- Resolving super-project find_package(rocblas 4.1.0 QUIET BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/rocBLAS/dist/lib/cmake/rocblas)
+23.5	-- Super-project find_package(rocblas VERSION 4.1.0) -> /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/rocBLAS/dist/lib/cmake/rocblas/rocblas-config-version.cmake
+23.6	-- Resolving super-project find_package(hip REQUIRED CONFIG BYPASS_PROVIDER NO_DEFAULT_PATH PATHS /work/grodgers/git/tr-aomp/TheRock/build/core/clr/dist/lib/cmake/hip)
+24.1	-- Resolving super-project find_path(ROCTRACER_INCLUDE_DIR NAMES roctracer/roctx.h;HINTS;/include;/opt/rocm/include;/../include;DOC;Path to the roctracer include directory containing roctx.h): /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/include/
+24.1	-- Resolving super-project find_library(ROCTX_LIBRARY NAMES roctx64;HINTS;/lib;/lib64;PATHS;/opt/rocm/lib): /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/lib/libroctx64.so
+24.1	-- Found roctracer include directory: /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/include/
+24.1	-- Found roctx library: /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/lib/libroctx64.so
+24.1	-- ROCTX tracing support enabled for target rocsparse.
+24.1	-- Performing Test COMPILER_HAS_HIDDEN_VISIBILITY
+24.2	-- Performing Test COMPILER_HAS_HIDDEN_VISIBILITY - Success
+24.2	-- Performing Test COMPILER_HAS_HIDDEN_INLINE_VISIBILITY
+24.3	-- Performing Test COMPILER_HAS_HIDDEN_INLINE_VISIBILITY - Success
+24.3	-- Performing Test COMPILER_HAS_DEPRECATED_ATTR
+24.4	-- Performing Test COMPILER_HAS_DEPRECATED_ATTR - Success
+24.4	-- Build rocSPARSE with rocBLAS is disabled since rocBLAS is not found
+24.5	-- Patching targets: rocsparse;rocsparse_headers
+24.5	-- Set RPATH $ORIGIN/rocm_sysdeps/lib;$ORIGIN/llvm/lib;$ORIGIN on rocsparse
+24.5	-- Configuring done (24.4s)
+24.5	-- Generating done (0.0s)
+24.5	CMake Warning:
+24.5	  Manually-specified variables were not used by the project:
+24.5	
+24.5	    THEROCK_STAGE_INSTALL_ROOT
+24.5	
+24.5	
+24.5	-- Build files have been written to: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/rocSPARSE/build
+END	1757698189.9629009	24.51578187942505	0

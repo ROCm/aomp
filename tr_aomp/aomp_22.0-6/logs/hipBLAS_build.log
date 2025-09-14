@@ -1,0 +1,47 @@
+BEGIN	1757699183.3788996
+EXEC	/work1/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/hipBLAS/build	/usr/bin/cmake -E env --unset=ROCM_PATH --unset=ROCM_DIR --unset=HIP_PATH --unset=HIP_DIR -- /usr/bin/cmake --build /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/hipBLAS/build
+0.0	[1/5] cd /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/hipBLAS/build && /usr/bin/cmake -E rm -f /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/hipBLAS/stamp/stage.stamp
+0.3	[2/5] Building CXX object library/src/CMakeFiles/hipblas.dir/hipblas_auxiliary.cpp.o
+4.7	[3/5] Building CXX object library/src/CMakeFiles/hipblas.dir/amd_detail/hipblas.cpp.o
+4.7	AMD clang version 22.0.6_AOMP_22.0-6 (https://github.com/ROCm/llvm-project.git e9b13a08222a0f620cc55d29041c31078fb92906)
+4.7	Target: x86_64-unknown-linux-gnu
+4.7	Thread model: posix
+4.7	InstalledDir: /work1/grodgers/git/tr-aomp/TheRock/build/core/clr/dist/lib/llvm/bin
+4.7	Found candidate GCC installation: /usr/lib/gcc/x86_64-linux-gnu/10
+4.7	Found candidate GCC installation: /usr/lib/gcc/x86_64-linux-gnu/11
+4.7	Found candidate GCC installation: /usr/lib/gcc/x86_64-linux-gnu/12
+4.7	Found candidate GCC installation: /usr/lib/gcc/x86_64-linux-gnu/13
+4.7	Found candidate GCC installation: /usr/lib/gcc/x86_64-linux-gnu/14
+4.7	Selected GCC installation: /usr/lib/gcc/x86_64-linux-gnu/14
+4.7	Candidate multilib: .;@m64
+4.7	Selected multilib: .;@m64
+4.7	Found CUDA installation: /usr/local/cuda, version 12.4
+4.7	Found HIP installation: /work/grodgers/git/tr-aomp/TheRock/build/core/clr/dist, version 7.1.25364
+4.7	 (in-process)
+4.7	 "/work1/grodgers/git/tr-aomp/TheRock/build/core/clr/dist/lib/llvm/bin/clang-22" -cc1 -triple x86_64-unknown-linux-gnu -O3 -emit-obj -disable-free -clear-ast-before-backend -disable-llvm-verifier -discard-value-names -main-file-name hipblas.cpp -mrelocation-model pic -pic-level 2 -fhalf-no-semantic-interposition -mframe-pointer=none -fmath-errno -ffp-contract=on -fno-rounding-math -mconstructor-aliases -funwind-tables=2 -target-cpu x86-64 -tune-cpu generic -debugger-tuning=gdb -fdebug-compilation-dir=/work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/hipBLAS/build -v -fcoverage-compilation-dir=/work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/hipBLAS/build -resource-dir /work1/grodgers/git/tr-aomp/TheRock/build/core/clr/dist/lib/llvm/bin/../lib/clang/22 -dependency-file library/src/CMakeFiles/hipblas.dir/amd_detail/hipblas.cpp.o.d -MT library/src/CMakeFiles/hipblas.dir/amd_detail/hipblas.cpp.o -sys-header-deps -isystem /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/rocBLAS/dist/include -isystem /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/rocSOLVER/dist/include -isystem /work/grodgers/git/tr-aomp/TheRock/build/core/clr/dist/include -isystem /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/hipBLAS-common/dist/include -D USE_PROF_API=1 -D __HIP_PLATFORM_AMD__=1 -D __HIP_PLATFORM_SOLVER__ -D hipblas_EXPORTS -I /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/include -I /work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/hipblas/library/include -I /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/hipBLAS/build/include/hipblas -I /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/hipBLAS/build/include -I /work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/hipblas/library/src/include -I /work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/hipblas/library/src -D NDEBUG -internal-isystem /usr/lib/gcc/x86_64-linux-gnu/14/../../../../include/c++/14 -internal-isystem /usr/lib/gcc/x86_64-linux-gnu/14/../../../../include/x86_64-linux-gnu/c++/14 -internal-isystem /usr/lib/gcc/x86_64-linux-gnu/14/../../../../include/c++/14/backward -internal-isystem /work1/grodgers/git/tr-aomp/TheRock/build/core/clr/dist/lib/llvm/bin/../lib/clang/22/include -internal-isystem /usr/local/include -internal-isystem /usr/lib/gcc/x86_64-linux-gnu/14/../../../../x86_64-linux-gnu/include -internal-externc-isystem /usr/include/x86_64-linux-gnu -internal-externc-isystem /include -internal-externc-isystem /usr/include -Wno-documentation-unknown-command -Wno-documentation-pedantic -Wno-unused-command-line-argument -Wno-explicit-specialization-storage-class -std=c++17 -fdeprecated-macro -ferror-limit 19 -fvisibility=hidden -fvisibility-inlines-hidden -fgnuc-version=4.2.1 -fskip-odr-check-in-gmf -fcxx-exceptions -fexceptions -vectorize-loops -vectorize-slp -faddrsig -D__GCC_HAVE_DWARF2_CFI_ASM=1 -o library/src/CMakeFiles/hipblas.dir/amd_detail/hipblas.cpp.o -x c++ /work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/hipblas/library/src/amd_detail/hipblas.cpp
+4.7	clang -cc1 version 22.0.6_AOMP_22.0-6 based upon LLVM 22.0.6_AOMP_22.0-6 default target x86_64-unknown-linux-gnu
+4.7	ignoring nonexistent directory "/usr/lib/gcc/x86_64-linux-gnu/14/../../../../x86_64-linux-gnu/include"
+4.7	ignoring nonexistent directory "/include"
+4.7	#include "..." search starts here:
+4.7	#include <...> search starts here:
+4.7	 /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/include
+4.7	 /work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/hipblas/library/include
+4.7	 /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/hipBLAS/build/include/hipblas
+4.7	 /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/hipBLAS/build/include
+4.7	 /work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/hipblas/library/src/include
+4.7	 /work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/hipblas/library/src
+4.7	 /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/rocBLAS/dist/include
+4.7	 /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/rocSOLVER/dist/include
+4.7	 /work/grodgers/git/tr-aomp/TheRock/build/core/clr/dist/include
+4.7	 /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/hipBLAS-common/dist/include
+4.7	 /usr/lib/gcc/x86_64-linux-gnu/14/../../../../include/c++/14
+4.7	 /usr/lib/gcc/x86_64-linux-gnu/14/../../../../include/x86_64-linux-gnu/c++/14
+4.7	 /usr/lib/gcc/x86_64-linux-gnu/14/../../../../include/c++/14/backward
+4.7	 /work1/grodgers/git/tr-aomp/TheRock/build/core/clr/dist/lib/llvm/bin/../lib/clang/22/include
+4.7	 /usr/local/include
+4.7	 /usr/include/x86_64-linux-gnu
+4.7	 /usr/include
+4.7	End of search list.
+4.8	[4/5] Linking CXX shared library library/src/libhipblas.so.3.1
+4.8	[5/5] Creating library symlink library/src/libhipblas.so.3 library/src/libhipblas.so
+END	1757699188.1699536	4.791054010391235	0

@@ -1,0 +1,11 @@
+BEGIN	1757693409.2616658
+EXEC	/work1/grodgers/git/tr-aomp/TheRock/build/third-party/spdlog/build	/usr/bin/cmake -E env --unset=ROCM_PATH --unset=ROCM_DIR --unset=HIP_PATH --unset=HIP_DIR -- /usr/bin/cmake --build /work/grodgers/git/tr-aomp/TheRock/build/third-party/spdlog/build
+0.0	[1/8] cd /work/grodgers/git/tr-aomp/TheRock/build/third-party/spdlog/build && /usr/bin/cmake -E rm -f /work/grodgers/git/tr-aomp/TheRock/build/third-party/spdlog/stamp/stage.stamp
+0.7	[2/8] Building CXX object CMakeFiles/spdlog.dir/src/cfg.cpp.o
+1.0	[3/8] Building CXX object CMakeFiles/spdlog.dir/src/file_sinks.cpp.o
+1.0	[4/8] Building CXX object CMakeFiles/spdlog.dir/src/async.cpp.o
+1.0	[5/8] Building CXX object CMakeFiles/spdlog.dir/src/stdout_sinks.cpp.o
+1.2	[6/8] Building CXX object CMakeFiles/spdlog.dir/src/color_sinks.cpp.o
+6.6	[7/8] Building CXX object CMakeFiles/spdlog.dir/src/spdlog.cpp.o
+6.8	[8/8] Linking CXX static library libspdlog.a
+END	1757693416.134124	6.872458219528198	0

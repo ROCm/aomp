@@ -1,0 +1,7 @@
+BEGIN	1757694282.9638937
+EXEC	/work1/grodgers/git/tr-aomp/TheRock/build/math-libs/hipRAND/build	/usr/bin/cmake -E env --unset=ROCM_PATH --unset=ROCM_DIR --unset=HIP_PATH --unset=HIP_DIR -- /usr/bin/cmake --build /work/grodgers/git/tr-aomp/TheRock/build/math-libs/hipRAND/build
+0.0	[1/4] cd /work/grodgers/git/tr-aomp/TheRock/build/math-libs/hipRAND/build && /usr/bin/cmake -E rm -f /work/grodgers/git/tr-aomp/TheRock/build/math-libs/hipRAND/stamp/stage.stamp
+2.7	[2/4] Building CXX object library/CMakeFiles/hiprand.dir/src/amd_detail/hiprand.cpp.o
+2.8	[3/4] Linking CXX shared library library/libhiprand.so.1.1
+2.8	[4/4] Creating library symlink library/libhiprand.so.1 library/libhiprand.so
+END	1757694285.7762558	2.8123621940612793	0

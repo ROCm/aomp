@@ -1,0 +1,96 @@
+BEGIN	1757694076.8364437
+EXEC	/work1/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/build	/usr/bin/cmake --install /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/build
+0.0	-- Install configuration: "Release"
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/include/roctracer/roctx.h
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/include/roctracer/roctracer.h
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/include/roctracer/roctracer_ext.h
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/include/roctracer/roctracer_hip.h
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/include/roctracer/roctracer_hcc.h
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/include/roctracer/roctracer_hsa.h
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/include/roctracer/roctracer_roctx.h
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/include/roctracer/roctracer_plugin.h
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/include/roctracer/ext/prof_protocol.h
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/include/roctracer/hip_ostream_ops.h
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/include/roctracer/hsa_prof_str.h
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/include/roctracer/hsa_ostream_ops.h
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/lib/libroctracer64.so.4.1.0
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/lib/libroctracer64.so.4
+0.0	-- Set non-toolchain portion of runtime path of "/work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/lib/libroctracer64.so.4.1.0" to "$ORIGIN/rocm_sysdeps/lib:$ORIGIN/llvm/lib:$ORIGIN"
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/lib/libroctracer64.so
+0.0	-- Up-to-date: /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/lib/libroctracer64.so.4.1.0
+0.0	-- Up-to-date: /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/lib/libroctracer64.so.4
+0.0	-- Up-to-date: /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/lib/libroctracer64.so
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/lib/libroctx64.so.4.1.0
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/lib/libroctx64.so.4
+0.0	-- Set non-toolchain portion of runtime path of "/work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/lib/libroctx64.so.4.1.0" to "$ORIGIN/rocm_sysdeps/lib:$ORIGIN/llvm/lib:$ORIGIN"
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/lib/libroctx64.so
+0.0	-- Up-to-date: /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/lib/libroctx64.so.4.1.0
+0.0	-- Up-to-date: /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/lib/libroctx64.so.4
+0.0	-- Up-to-date: /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/lib/libroctx64.so
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/lib/roctracer/libroctracer_tool.so
+0.0	-- Set non-toolchain portion of runtime path of "/work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/lib/roctracer/libroctracer_tool.so" to "$ORIGIN/rocm_sysdeps/lib:$ORIGIN/llvm/lib:$ORIGIN"
+0.0	-- Up-to-date: /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/lib/roctracer/libroctracer_tool.so
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/lib/roctracer/libhip_stats.so
+0.0	-- Set non-toolchain portion of runtime path of "/work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/lib/roctracer/libhip_stats.so" to "$ORIGIN/rocm_sysdeps/lib:$ORIGIN/llvm/lib:$ORIGIN"
+0.0	-- Up-to-date: /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/lib/roctracer/libhip_stats.so
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/share/roctracer/test/libcodeobj_test.so
+0.0	-- Set non-toolchain portion of runtime path of "/work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/share/roctracer/test/libcodeobj_test.so" to "$ORIGIN/rocm_sysdeps/lib:$ORIGIN/llvm/lib:$ORIGIN"
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/share/roctracer/gfx90a_copy.hsaco
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/share/roctracer/gfx942_copy.hsaco
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/share/roctracer/gfx908_copy.hsaco
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/share/roctracer/run_tests.sh
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/share/roctracer/test/check_trace.py
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/share/roctracer/test/golden_traces
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/share/roctracer/test/golden_traces/multi_pool_activities_trace.txt
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/share/roctracer/test/golden_traces/load_unload_reload_trace.txt
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/share/roctracer/test/golden_traces/MatrixTranspose_test_trace.txt
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/share/roctracer/test/golden_traces/MatrixTranspose_kfd_trace.txt
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/share/roctracer/test/golden_traces/MatrixTranspose_hip_input_trace.txt
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/share/roctracer/test/golden_traces/MatrixTranspose_sys_trace.txt
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/share/roctracer/test/golden_traces/MatrixTranspose_sys_hsa_trace.txt
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/share/roctracer/test/golden_traces/copy_dryrun_trace.txt
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/share/roctracer/test/golden_traces/activity_and_callback_trace.txt
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/share/roctracer/test/golden_traces/copy_hsa_input_trace.txt
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/share/roctracer/test/golden_traces/MatrixTranspose_hip_period_trace.txt
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/share/roctracer/test/golden_traces/roctx_test_trace.txt
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/share/roctracer/test/golden_traces/MatrixTranspose_hip_flush_trace.txt
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/share/roctracer/test/golden_traces/MatrixTranspose_mgpu_trace.txt
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/share/roctracer/test/golden_traces/tests_trace_cmp_levels.txt
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/share/roctracer/test/golden_traces/copy_hsa_trace.txt
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/share/roctracer/test/golden_traces/MatrixTranspose_ctest_trace.txt
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/share/roctracer/test/golden_traces/MatrixTranspose_dryrun_trace.txt
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/share/roctracer/test/golden_traces/MatrixTranspose_hipaact_test_trace.txt
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/share/roctracer/test/MatrixTranspose
+0.0	-- Set non-toolchain portion of runtime path of "/work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/share/roctracer/test/MatrixTranspose" to "$ORIGIN/../lib/rocm_sysdeps/lib:$ORIGIN/../lib/llvm/lib:$ORIGIN/../lib"
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/share/roctracer/test/MatrixTranspose_test
+0.0	-- Set non-toolchain portion of runtime path of "/work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/share/roctracer/test/MatrixTranspose_test" to "$ORIGIN/../lib/rocm_sysdeps/lib:$ORIGIN/../lib/llvm/lib:$ORIGIN/../lib"
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/share/roctracer/test/MatrixTranspose_hipaact_test
+0.0	-- Set non-toolchain portion of runtime path of "/work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/share/roctracer/test/MatrixTranspose_hipaact_test" to "$ORIGIN/../lib/rocm_sysdeps/lib:$ORIGIN/../lib/llvm/lib:$ORIGIN/../lib"
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/share/roctracer/test/MatrixTranspose_mgpu
+0.0	-- Set non-toolchain portion of runtime path of "/work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/share/roctracer/test/MatrixTranspose_mgpu" to "$ORIGIN/../lib/rocm_sysdeps/lib:$ORIGIN/../lib/llvm/lib:$ORIGIN/../lib"
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/share/roctracer/test/MatrixTranspose_ctest
+0.0	-- Set non-toolchain portion of runtime path of "/work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/share/roctracer/test/MatrixTranspose_ctest" to "$ORIGIN/../lib/rocm_sysdeps/lib:$ORIGIN/../lib/llvm/lib:$ORIGIN/../lib"
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/share/roctracer/test/copy
+0.0	-- Set non-toolchain portion of runtime path of "/work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/share/roctracer/test/copy" to "$ORIGIN/../lib/rocm_sysdeps/lib:$ORIGIN/../lib/llvm/lib:$ORIGIN/../lib"
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/share/roctracer/test/roctx_test
+0.0	-- Set non-toolchain portion of runtime path of "/work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/share/roctracer/test/roctx_test" to "$ORIGIN/../lib/rocm_sysdeps/lib:$ORIGIN/../lib/llvm/lib:$ORIGIN/../lib"
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/share/roctracer/test/backward_compat_test
+0.0	-- Set non-toolchain portion of runtime path of "/work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/share/roctracer/test/backward_compat_test" to "$ORIGIN/../lib/rocm_sysdeps/lib:$ORIGIN/../lib/llvm/lib:$ORIGIN/../lib"
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/share/roctracer/test/load_unload_reload_test
+0.0	-- Set non-toolchain portion of runtime path of "/work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/share/roctracer/test/load_unload_reload_test" to "$ORIGIN/../lib/rocm_sysdeps/lib:$ORIGIN/../lib/llvm/lib:$ORIGIN/../lib"
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/share/roctracer/test/trace_buffer
+0.0	-- Set non-toolchain portion of runtime path of "/work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/share/roctracer/test/trace_buffer" to "$ORIGIN/../lib/rocm_sysdeps/lib:$ORIGIN/../lib/llvm/lib:$ORIGIN/../lib"
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/share/roctracer/test/memory_pool
+0.0	-- Set non-toolchain portion of runtime path of "/work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/share/roctracer/test/memory_pool" to "$ORIGIN/../lib/rocm_sysdeps/lib:$ORIGIN/../lib/llvm/lib:$ORIGIN/../lib"
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/share/roctracer/test/activity_and_callback
+0.0	-- Set non-toolchain portion of runtime path of "/work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/share/roctracer/test/activity_and_callback" to "$ORIGIN/../lib/rocm_sysdeps/lib:$ORIGIN/../lib/llvm/lib:$ORIGIN/../lib"
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/share/roctracer/test/multi_pool_activities
+0.0	-- Set non-toolchain portion of runtime path of "/work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/share/roctracer/test/multi_pool_activities" to "$ORIGIN/../lib/rocm_sysdeps/lib:$ORIGIN/../lib/llvm/lib:$ORIGIN/../lib"
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/share/roctracer/test/dlopen
+0.0	-- Set non-toolchain portion of runtime path of "/work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/share/roctracer/test/dlopen" to "$ORIGIN/../lib/rocm_sysdeps/lib:$ORIGIN/../lib/llvm/lib:$ORIGIN/../lib"
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/lib/roctracer/libfile_plugin.so
+0.0	-- Set non-toolchain portion of runtime path of "/work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/lib/roctracer/libfile_plugin.so" to "$ORIGIN/rocm_sysdeps/lib:$ORIGIN/llvm/lib:$ORIGIN"
+0.0	-- Up-to-date: /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/lib/roctracer/libfile_plugin.so
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/share/doc/roctracer/LICENSE
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/profiler/roctracer/stage/share/doc/roctracer-asan/LICENSE
+END	1757694076.8643858	0.027942180633544922	0

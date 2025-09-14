@@ -1,7 +1,14 @@
 
-AOMP is a development build of ROCm for the ROCm-compiler.
-AOMP builds the amd-staging branch of llvm-compliler and hipify with
-TheRock and TheRock submodules.
+AOMP is a build of the ROCm stack for the compiler development team.
+AOMP uses TheRock to build all ROCm components from source.
+AOMP is different than building the tip of TheRock in 2 ways.
+
+1) It builds the main branch of TheRock on a specific frozen hash
+   key associated with the next release of the AOMP compiler. This
+   TheRock hash key implies a set of hash keys for each of TheRock
+   submodules with the exception of submodule amd-llvm and hipify.
+2) The submodules amd-llvm and hipify use the latest amd-staging
+   branch which is the integration branch for compiler development.
 
 This directory (aomp/tr_aomp) contains all the support to build AOMP
 using TheRock.
@@ -13,23 +20,35 @@ The current build process is:
 2) ./tr_build_aomp.sh
    check TheRock/build/build.out
 
-Each AOMP release has an associated shakey from TheRock repo.
-This is stored in the release info file managed in this directory.
+The default for the env variable TR_AOMP_REPOS is /work/$USER/git/tr-aomp.
+tr_clone_aomp.sh will clone the aomp repo to $TR_AOMP_REPOS/aomp
+and pull most recent updates.
+Unless TheRock repo already exists, tr_clone_aomp.sh will then clone
+TheRock repo into $TR_AOMP_REPOS/TheRock and initialize it.
 
+It then checks out amd-staging branch of submodules amd-llvm
+and hipify and pulls recent updates to just those two submodules.
+It is always safe to run tr_clone_aomp.sh. Typically, all that
+happens is an update to amd-staging branch of llvm-project and hipify.
+
+It is rare that no info file for the current release exists.
+This occurs when the release manager starts a new AOMP release.
+Most developers will use the info file provided by the release manager
+at the beginning of an AOMP release.
 If no info file is present, the build process will initialize a new
 AOMP release by creating the info file for the release with the current
 tip of TheRock repo. Subsequent builds will remain on the shakey
 found when the release is initialized.  Creating new AOMP releases will
 be how the AOMP team keeps pace with TheRock while insulating developers
-from ROCm churn other than the amd-staging branch of llvm-project. 
+from other ROCm development churn. Of course, AOMP developers are always
+exposed to the churn in the llvm-project compiler repository.
 
 Any changes or fixes to TheRock repo or its submodules during the development
 of the AOMP release, can be shared with the team by creating a set of patches
-with the script tr_create_patch.sh. The patchfile set for
-a new release is initialzed to empty. So a new AOMP release is as if
-you were building TheRock native.
+with the script tr_create_patch.sh.
 
 tr_build_aomp.sh builds ROCm into $TR_AOMP_REPOS/TheRock/build/dist/rocm.
+using the standard TheRock build process with cmake and ninja.
 Then copies using rsync from $TR_AOMP_REPOS/TheRock/build/dist/rocm 
 to $AOMP_INSTALL_DIR.
 

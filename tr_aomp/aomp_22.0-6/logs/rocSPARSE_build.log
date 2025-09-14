@@ -1,0 +1,1011 @@
+BEGIN	1757698190.028503
+EXEC	/work1/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/rocSPARSE/build	/usr/bin/cmake -E env --unset=ROCM_PATH --unset=ROCM_DIR --unset=HIP_PATH --unset=HIP_DIR -- /usr/bin/cmake --build /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/rocSPARSE/build
+0.0	[1/492] cd /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/rocSPARSE/build && /usr/bin/cmake -E rm -f /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/rocSPARSE/stamp/stage.stamp
+0.1	[2/492] Copying rocSPARSE headers to build directory
+5.4	[3/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/common/rocsparse_envariables.cpp.o
+5.5	[4/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/common/rocsparse_message.cpp.o
+5.6	[5/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level1/rocsparse_rot.cpp.o
+5.6	[6/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/common/rocsparse_blas_rocblas.cpp.o
+5.6	[7/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level2/rocsparse_csritsv_info.cpp.o
+5.6	[8/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/common/rocsparse_assign_async.cpp.o
+5.7	[9/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level2/rocsparse_csrmv_lrb_info.cpp.o
+5.7	[10/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level2/rocsparse_bsrsv.cpp.o
+5.8	[11/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level2/rocsparse_v2_spmv.cpp.o
+5.8	[12/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/common/rocsparse_determine_indextype.cpp.o
+5.8	[13/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level2/rocsparse_csritsv.cpp.o
+5.9	[14/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/common/rocsparse_mat_info.cpp.o
+5.9	[15/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level1/rocsparse_sctr.cpp.o
+5.9	[16/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level2/rocsparse_csrmv_info.cpp.o
+6.0	[17/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/common/rocsparse_debug.cpp.o
+6.0	[18/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level1/rocsparse_gather.cpp.o
+6.1	[19/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level2/rocsparse_spitsv.cpp.o
+6.2	[20/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/common/rocsparse_trm_info.cpp.o
+6.3	[21/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level2/rocsparse_bsrsv_buffer_size.cpp.o
+6.3	[22/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level2/rocsparse_cscmv_analysis.cpp.o
+6.3	[23/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level2/rocsparse_hybmv.cpp.o
+6.4	[24/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level2/rocsparse_csrmv_analysis.cpp.o
+6.5	[25/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/common/rocsparse_roctx.cpp.o
+6.5	[26/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level1/rocsparse_spvv.cpp.o
+6.5	[27/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/common/rocsparse_memstat.cpp.o
+6.6	[28/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level2/rocsparse_gebsrmv.cpp.o
+6.6	[29/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/rocsparse_bsrmm_template_bsralg.cpp.o
+6.6	[30/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level2/rocsparse_csrsv_buffer_size.cpp.o
+6.7	[31/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level2/rocsparse_csrmv.cpp.o
+6.7	[32/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/common/rocsparse_blas.cpp.o
+6.7	[33/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/common/rocsparse_indextype_utils.cpp.o
+6.9	[34/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level1/rocsparse_axpyi.cpp.o
+7.1	[35/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level2/rocsparse_spsv.cpp.o
+7.2	[36/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level2/rocsparse_coomv.cpp.o
+7.2	[37/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level2/rocsparse_csritsv_solve.cpp.o
+7.2	[38/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level2/rocsparse_cscmv_impl.cpp.o
+7.2	[39/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level2/rocsparse_spmv.cpp.o
+7.3	[40/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/rocsparse_bsrmm.cpp.o
+7.4	[41/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/common/rocsparse_datatype_utils.cpp.o
+7.4	[42/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level1/rocsparse_roti.cpp.o
+7.5	[43/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/atomic/coommtn_device_atomic_main_256_0.cpp.o
+7.7	[44/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/auxiliary/rocsparse_error.cpp.o
+8.0	[45/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level2/rocsparse_bsrsv_analysis.cpp.o
+8.1	[46/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level2/rocsparse_csrmv_adaptive_info.cpp.o
+8.1	[47/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/common/rocsparse_sorted_coo2csr_info.cpp.o
+8.5	[48/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level2/rocsparse_bsrmv_impl.cpp.o
+8.7	[49/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level2/rocsparse_csritsv_buffer_size.cpp.o
+8.8	[50/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level1/rocsparse_gthrz.cpp.o
+8.9	[51/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level2/rocsparse_bsrmv_analysis.cpp.o
+9.0	[52/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level1/rocsparse_scatter.cpp.o
+9.0	[53/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/common/rocsparse_argdescr.cpp.o
+9.1	[54/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level1/rocsparse_gthr_impl.cpp.o
+9.6	[55/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/segmented_atomic/coommnn_device_segmented_atomic_32_16_1_0.cpp.o
+10.1	[56/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level2/rocsparse_bsrmv.cpp.o
+10.1	[57/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level2/rocsparse_bsrxmv.cpp.o
+10.1	[58/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level1/rocsparse_gthr.cpp.o
+10.1	[59/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/common/rocsparse_one.cpp.o
+10.1	[60/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level1/rocsparse_axpby.cpp.o
+10.1	[61/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level2/rocsparse_coomv_analysis.cpp.o
+10.2	[62/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/rocsparse_bellmm.cpp.o
+10.3	[63/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/row_split/csrmm_device_row_split_256_16_8_1.cpp.o
+10.3	[64/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level2/rocsparse_coomv_aos.cpp.o
+10.6	[65/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/atomic/coommnn_device_atomic_main_256_64_3_1.cpp.o
+10.7	[66/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level2/rocsparse_ellmv.cpp.o
+10.7	[67/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level2/rocsparse_gemvi.cpp.o
+10.7	[68/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/atomic/coommnn_device_atomic_remainder_256_4_0.cpp.o
+10.8	[69/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level2/rocsparse_csrsv.cpp.o
+10.8	[70/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/atomic/coommnn_device_atomic_remainder_256_16_1.cpp.o
+10.8	[71/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/atomic/coommnn_device_atomic_main_256_64_4_0.cpp.o
+10.9	[72/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level2/rocsparse_csritsv_analysis.cpp.o
+10.9	[73/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level1/rocsparse_dotci.cpp.o
+11.0	[74/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level2/rocsparse_cscmv.cpp.o
+11.1	[75/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level1/rocsparse_sctr_impl.cpp.o
+11.2	[76/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/row_split/csrmm_device_row_split_256_16_8_2.cpp.o
+11.5	[77/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level2/rocsparse_coosv.cpp.o
+11.5	[78/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/atomic/coommnn_device_atomic_remainder_256_32_1.cpp.o
+11.6	[79/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/common/rocsparse_handle.cpp.o
+11.8	[80/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level2/rocsparse_csrmv_impl.cpp.o
+11.8	[81/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level2/rocsparse_gebsrmv_template_row_block_dim_17_inf.cpp.o
+11.8	[82/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/atomic/coommtn_device_atomic_main_256_1.cpp.o
+12.0	[83/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/nnz_split/csrmmnt_device_nnz_split_main_256_64_2.cpp.o
+12.0	[84/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/rocsparse_gebsrmm.cpp.o
+12.3	[85/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/nnz_split/csrmmnt_device_nnz_split_main_256_64_1.cpp.o
+12.3	[86/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/row_split/csrmm_device_row_split_256_16_8_2_1.cpp.o
+12.5	[87/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/atomic/coommnn_device_atomic_main_256_64_1_0.cpp.o
+12.6	[88/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/row_split/csrmm_device_row_split_256_16_8_4.cpp.o
+12.8	[89/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/atomic/coommnn_device_atomic_main_256_32_2_0.cpp.o
+12.8	[90/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/nnz_split/csrmmnt_device_nnz_split_remainder_256_1.cpp.o
+12.8	[91/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/nnz_split/csrmmnn_device_nnz_split_remainder_256_1.cpp.o
+12.9	[92/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/row_split/csrmm_device_row_split_256_16_8_3_1.cpp.o
+13.1	[93/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/row_split/csrmmtt_device_row_split_256_4.cpp.o
+13.1	[94/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/rocsparse_csrmm_buffer_size.cpp.o
+13.2	[95/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/row_split/csrmm_device_row_split_256_16_8_5.cpp.o
+13.3	[96/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/nnz_split/csrmmnt_device_nnz_split_main_256_32_6.cpp.o
+13.3	[97/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/atomic/coommnn_device_atomic_remainder_256_1_0.cpp.o
+13.3	[98/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/rocsparse_coomm_analysis.cpp.o
+13.5	[99/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/atomic/coommnn_device_atomic_main_256_64_2_1.cpp.o
+13.6	[100/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/rocsparse_csrmm_analysis.cpp.o
+13.6	[101/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/atomic/coommnn_device_atomic_remainder_256_4_1.cpp.o
+13.7	[102/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/row_split/csrmm_device_row_split_256_16_8_2_2_1.cpp.o
+13.7	[103/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/atomic/coommnn_device_atomic_main_256_32_6_0.cpp.o
+13.7	[104/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/row_split/csrmmtn_device_row_split_256_4.cpp.o
+13.7	[105/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/atomic/coommnn_device_atomic_main_256_64_2_0.cpp.o
+13.9	[106/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/row_split/csrmm_device_row_split_256_16_8_2_4_2.cpp.o
+14.0	[107/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/common/rocsparse_common.cpp.o
+14.0	[108/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/row_split/csrmm_device_row_split_256_16_8_4_1.cpp.o
+14.0	[109/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/atomic/coommnn_device_atomic_main_256_64_4_1.cpp.o
+14.1	[110/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/row_split/csrmmnn_device_row_split_shared_256_8.cpp.o
+14.2	[111/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/atomic/coommnn_device_atomic_main_256_32_4_0.cpp.o
+14.2	[112/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/segmented_atomic/coommnn_device_segmented_atomic_32_16_1_1.cpp.o
+14.2	[113/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/atomic/coommnn_device_atomic_main_256_64_1_1.cpp.o
+14.3	[114/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/segmented_atomic/coommnn_device_segmented_atomic_32_16_3_0.cpp.o
+14.3	[115/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/segmented_atomic/coommnn_device_segmented_atomic_64_16_1_0.cpp.o
+14.4	[116/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/row_split/csrmm_device_row_split_remainder_256_8_8.cpp.o
+14.4	[117/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/atomic/coommnn_device_atomic_main_256_64_3_0.cpp.o
+14.4	[118/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/rocsparse_cscmm.cpp.o
+14.5	[119/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/atomic/coommnn_device_atomic_main_256_32_4_1.cpp.o
+14.5	[120/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/row_split/csrmm_device_row_split_256_16_8_2_2.cpp.o
+14.6	[121/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/atomic/coommnn_device_atomic_remainder_256_16_0.cpp.o
+14.6	[122/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/atomic/coommnn_device_atomic_remainder_256_64_1.cpp.o
+14.6	[123/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/rocsparse_coomm.cpp.o
+14.7	[124/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/atomic/coommnn_device_atomic_main_256_32_2_1.cpp.o
+14.7	[125/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/row_split/csrmmnn_device_row_split_256_8_1.cpp.o
+14.7	[126/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/row_split/csrmm_device_row_split_256_16_8_5_1.cpp.o
+14.8	[127/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/rocsparse_gebsrmm_template_general.cpp.o
+14.8	[128/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/atomic/coommnn_device_atomic_main_256_32_6_1.cpp.o
+14.9	[129/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/rocsparse_gebsrmm_template_large_ext.cpp.o
+14.9	[130/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/atomic/coommnn_device_atomic_main_256_32_8_0.cpp.o
+15.0	[131/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level2/rocsparse_csritsv_solve_ex.cpp.o
+15.1	[132/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/row_split/csrmm_device_row_split_256_16_8_3_4_2.cpp.o
+15.1	[133/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/atomic/coommnn_device_atomic_remainder_256_64_0.cpp.o
+15.2	[134/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/row_split/csrmm_device_row_split_256_16_8_3_4_2_1.cpp.o
+15.2	[135/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/segmented_atomic/coommnn_device_segmented_atomic_32_16_2_1.cpp.o
+15.2	[136/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/segmented_atomic/coommnn_device_segmented_atomic_64_16_2_1.cpp.o
+15.3	[137/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/atomic/coommnn_device_atomic_main_256_32_8_1.cpp.o
+15.3	[138/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/atomic/coommnn_device_atomic_remainder_256_2_1.cpp.o
+15.4	[139/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/atomic/coommnn_device_atomic_remainder_256_2_0.cpp.o
+15.4	[140/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/rocsparse_csrmm.cpp.o
+15.4	[141/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/nnz_split/csrmmnt_device_nnz_split_main_256_32_4.cpp.o
+15.4	[142/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/row_split/csrmm_device_row_split_256_16_8_6_2.cpp.o
+15.4	[143/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/rocsparse_csrsm_analysis.cpp.o
+15.5	[144/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/merge_path/csrmmnt_device_merge_path_main_64_256_1.cpp.o
+15.5	[145/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/nnz_split/csrmmnt_device_nnz_split_main_256_64_4.cpp.o
+15.6	[146/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/row_split/csrmm_device_row_split_256_16_8_4_4_2.cpp.o
+15.6	[147/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/rocsparse_csrsm.cpp.o
+15.7	[148/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/atomic/coommnn_device_atomic_remainder_256_32_0.cpp.o
+15.7	[149/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/segmented_atomic/coommnn_device_segmented_atomic_32_16_4_1.cpp.o
+15.7	[150/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/row_split/csrmm_device_row_split_256_16_8_3_4.cpp.o
+15.8	[151/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/segmented_atomic/coommnn_device_segmented_atomic_64_16_2_0.cpp.o
+16.0	[152/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/rocsparse_csrsm_buffer_size.cpp.o
+16.1	[153/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/nnz_split/csrmmnt_device_nnz_split_remainder_256_16.cpp.o
+16.1	[154/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/row_split/csrmm_device_row_split_256_16_8_4_4.cpp.o
+16.2	[155/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/row_split/csrmm_device_row_split_256_16_8_7_1.cpp.o
+16.2	[156/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/rocsparse_coomm_buffer_size.cpp.o
+16.2	[157/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/nnz_split/csrmmnn_device_nnz_split_main_256_1.cpp.o
+16.2	[158/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level1/rocsparse_doti.cpp.o
+16.3	[159/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/merge_path/csrmmnt_device_merge_path_remainder_256_8_256.cpp.o
+16.3	[160/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/segmented/coommnn_device_segmented_remainder_256_1_4_0.cpp.o
+16.3	[161/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/auxiliary/rocsparse_auxiliary.cpp.o
+16.3	[162/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/segmented/coommnn_device_segmented_main_256_2_4_0.cpp.o
+16.4	[163/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/nnz_split/csrmmnt_device_nnz_split_main_256_32_2.cpp.o
+16.4	[164/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/rocsparse_coosm.cpp.o
+16.4	[165/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/merge_path/csrmmnt_device_merge_path_main_128_256_1.cpp.o
+16.4	[166/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/segmented_atomic/coommnn_device_segmented_atomic_32_16_2_0.cpp.o
+16.5	[167/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/atomic/coommnn_device_atomic_remainder_256_1_1.cpp.o
+16.5	[168/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/segmented/coommnn_device_segmented_main_256_2_4_1.cpp.o
+16.5	[169/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/nnz_split/csrmmnt_device_nnz_split_remainder_256_2.cpp.o
+16.6	[170/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/nnz_split/csrmmnt_device_nnz_split_main_256_64_3.cpp.o
+16.7	[171/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level2/rocsparse_csrsv_solve.cpp.o
+16.8	[172/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/segmented_atomic/coommnn_device_segmented_atomic_64_16_3_1.cpp.o
+16.8	[173/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/row_split/csrmm_device_row_split_256_16_8_4_2_1.cpp.o
+16.8	[174/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/segmented_atomic/coommnn_device_segmented_atomic_32_16_3_1.cpp.o
+16.9	[175/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/nnz_split/csrmmnt_device_nnz_split_remainder_256_32.cpp.o
+17.0	[176/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/nnz_split/csrmmnt_device_nnz_split_remainder_256_64.cpp.o
+17.0	[177/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/rocsparse_bsrsm.cpp.o
+17.1	[178/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/row_split/csrmm_device_row_split_256_16_8_5_4_1.cpp.o
+17.1	[179/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/row_split/csrmm_device_row_split_256_16_8_7_4.cpp.o
+17.1	[180/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/segmented_atomic/coommnn_device_segmented_atomic_32_16_4_0.cpp.o
+17.2	[181/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/nnz_split/csrmmnn_device_nnz_split_main_256_2.cpp.o
+17.3	[182/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/row_split/csrmm_device_row_split_remainder_256_16_16.cpp.o
+17.3	[183/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/nnz_split/csrmmnt_device_nnz_split_main_256_32_8.cpp.o
+17.3	[184/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level2/rocsparse_csrsv_analysis.cpp.o
+17.4	[185/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/segmented/coommnn_device_segmented_remainder_256_2_4_1.cpp.o
+17.7	[186/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level2/rocsparse_bsrxmv_spzl_8x8.cpp.o
+17.7	[187/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/segmented/coommnn_device_segmented_remainder_256_2_4_0.cpp.o
+17.7	[188/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/segmented_atomic/coommnn_device_segmented_atomic_64_16_3_0.cpp.o
+17.7	[189/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/rocsparse_coosm_buffer_size.cpp.o
+17.7	[190/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/rocsparse_coosm_analysis.cpp.o
+17.8	[191/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/row_split/csrmm_device_row_split_256_16_8_6_4_1.cpp.o
+17.8	[192/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/row_split/csrmm_device_row_split_256_16_8_6_4_2.cpp.o
+17.9	[193/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/nnz_split/csrmmnn_device_nnz_split_remainder_256_4.cpp.o
+17.9	[194/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/extra/rocsparse_csrgemm_mult_nnz.cpp.o
+17.9	[195/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/merge_path/csrmmnt_device_merge_path_remainder_256_128_256.cpp.o
+18.0	[196/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/segmented_atomic/coommnn_device_segmented_atomic_64_16_4_0.cpp.o
+18.0	[197/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/merge_path/csrmmnn_device_merge_path_256_32_256.cpp.o
+18.0	[198/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/extra/rocsparse_csrgemm_scal_buffer_size.cpp.o
+18.1	[199/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/row_split/csrmm_device_row_split_256_16_8_3_2.cpp.o
+18.1	[200/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/row_split/csrmm_device_row_split_256_16_8_7_4_2.cpp.o
+18.2	[201/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/merge_path/csrmmnt_device_merge_path_remainder_256_256_256.cpp.o
+18.2	[202/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/extra/rocsparse_csrgemm_info.cpp.o
+18.2	[203/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/segmented/coommnn_device_segmented_main_256_4_4_0.cpp.o
+18.2	[204/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/rocsparse_bsrsm_buffer_size.cpp.o
+18.3	[205/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/segmented/coommnn_device_segmented_main_256_4_4_1.cpp.o
+18.3	[206/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/nnz_split/csrmmnt_device_nnz_split_remainder_256_4.cpp.o
+18.4	[207/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/atomic/coommnn_device_atomic_remainder_256_8_1.cpp.o
+18.4	[208/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/row_split/csrmm_device_row_split_256_16_8_4_4_2_1.cpp.o
+18.5	[209/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level2/rocsparse_ellmv_impl.cpp.o
+18.5	[210/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/merge_path/csrmmnn_device_merge_path_256_64_256.cpp.o
+18.5	[211/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/extra/rocsparse_csrgeam_nnz.cpp.o
+18.6	[212/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/atomic/coommnn_device_atomic_remainder_256_8_0.cpp.o
+18.6	[213/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/nnz_split/csrmmnt_device_nnz_split_remainder_256_8.cpp.o
+18.6	[214/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/extra/rocsparse_csrgemm_symbolic_mult.cpp.o
+18.6	[215/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level2/rocsparse_bsrxmv_spzl_5x5.cpp.o
+18.7	[216/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/segmented_atomic/coommnn_device_segmented_atomic_64_16_4_1.cpp.o
+18.7	[217/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/row_split/csrmm_device_row_split_256_16_8_2_4.cpp.o
+18.7	[218/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/extra/rocsparse_csrgeam_buffer_size.cpp.o
+18.8	[219/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/merge_path/csrmmnn_device_merge_path_256_16_256.cpp.o
+18.8	[220/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/extra/rocsparse_csrgeam_symbolic.cpp.o
+18.8	[221/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/row_split/csrmm_device_row_split_256_16_8_2_4_1.cpp.o
+18.8	[222/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/rocsparse_gebsrmm_template_small.cpp.o
+18.8	[223/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/segmented_atomic/coommnn_device_segmented_atomic_32_16_6_0.cpp.o
+18.9	[224/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/extra/rocsparse_bsrgeam_nnzb.cpp.o
+19.0	[225/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/extra/rocsparse_csrgemm_multadd_buffer_size.cpp.o
+19.0	[226/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/row_split/csrmm_device_row_split_256_16_8_2_4_2_1.cpp.o
+19.1	[227/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/segmented_atomic/coommnn_device_segmented_atomic_64_16_5_1.cpp.o
+19.1	[228/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/nnz_split/csrmmnn_device_nnz_split_remainder_256_2.cpp.o
+19.1	[229/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/segmented_atomic/coommnn_device_segmented_atomic_64_16_1_1.cpp.o
+19.2	[230/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level2/rocsparse_bsrxmv_spzl_16x16.cpp.o
+19.2	[231/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/merge_path/csrmmnn_device_merge_path_256_128_256.cpp.o
+19.2	[232/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/segmented_atomic/coommnn_device_segmented_atomic_32_16_5_1.cpp.o
+19.2	[233/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/extra/rocsparse_csrgemm_numeric_multadd.cpp.o
+19.2	[234/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/segmented/coommnn_device_segmented_remainder_256_1_4_1.cpp.o
+19.3	[235/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/nnz_split/csrmmnn_device_nnz_split_main_256_8.cpp.o
+19.4	[236/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/row_split/csrmm_device_row_split_256_16_8_7_4_2_1.cpp.o
+19.4	[237/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/rocsparse_bsrsm_solve.cpp.o
+19.4	[238/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/extra/rocsparse_bsrgemm_multadd_buffer_size.cpp.o
+19.4	[239/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/segmented_atomic/coommnn_device_segmented_atomic_32_16_5_0.cpp.o
+19.4	[240/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/row_split/csrmm_device_row_split_256_16_8_3.cpp.o
+19.4	[241/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/segmented_atomic/coommnn_device_segmented_atomic_32_16_6_1.cpp.o
+19.4	[242/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/segmented/coommnn_device_segmented_remainder_256_4_4_0.cpp.o
+19.5	[243/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/merge_path/csrmmnt_device_merge_path_remainder_256_32_256.cpp.o
+19.5	[244/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/extra/rocsparse_csrgemm_multadd.cpp.o
+19.6	[245/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/segmented_atomic/coommnn_device_segmented_atomic_64_16_6_0.cpp.o
+19.6	[246/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/row_split/csrmmnn_device_row_split_256_8_8.cpp.o
+19.7	[247/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/segmented/coommnn_device_segmented_remainder_256_4_4_1.cpp.o
+19.8	[248/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/extra/rocsparse_csrgemm_symbolic.cpp.o
+19.8	[249/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/segmented/coommnn_device_segmented_main_256_1_4_0.cpp.o
+19.8	[250/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/segmented_atomic/coommnn_device_segmented_atomic_64_16_6_1.cpp.o
+19.9	[251/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/rocsparse_bsrsm_analysis.cpp.o
+19.9	[252/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/merge_path/csrmmnt_device_merge_path_main_256_256_1.cpp.o
+19.9	[253/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/extra/rocsparse_csrgemm_nnz.cpp.o
+20.0	[254/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/row_split/csrmm_device_row_split_256_16_8_3_2_1.cpp.o
+20.0	[255/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/extra/rocsparse_bsrgemm_mult_buffer_size.cpp.o
+20.1	[256/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/segmented_atomic/coommnn_device_segmented_atomic_64_16_7_0.cpp.o
+20.1	[257/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/extra/rocsparse_csrgemm_symbolic_multadd.cpp.o
+20.2	[258/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/extra/rocsparse_csrgemm_mult_buffer_size.cpp.o
+20.3	[259/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/extra/rocsparse_csrgeam_nnz_impl.cpp.o
+20.4	[260/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/rocsparse_spmm.cpp.o
+20.5	[261/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/segmented_atomic/coommnn_device_segmented_atomic_64_16_5_0.cpp.o
+20.6	[262/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/extra/rocsparse_csrgemm_multadd_nnz.cpp.o
+20.6	[263/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/extra/rocsparse_csrgemm_scal_nnz.cpp.o
+20.6	[264/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/nnz_split/csrmmnn_device_nnz_split_main_256_4.cpp.o
+20.6	[265/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/extra/rocsparse_csrgemm_mult.cpp.o
+20.7	[266/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/segmented/coommnn_device_segmented_main_256_1_4_1.cpp.o
+20.7	[267/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/extra/rocsparse_csrgemm.cpp.o
+20.7	[268/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/segmented_atomic/coommnn_device_segmented_atomic_64_16_7_1.cpp.o
+20.8	[269/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/row_split/csrmm_device_row_split_256_16_8_4_2.cpp.o
+20.9	[270/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/precond/itilu0/rocsparse_csritilu0_sync_split_fusion.cpp.o
+21.0	[271/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/extra/rocsparse_csrgemm_numeric_mult.cpp.o
+21.0	[272/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/conversion/rocsparse_calculate_nnz.cpp.o
+21.1	[273/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/rocsparse_gemmi.cpp.o
+21.1	[274/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/segmented_atomic/coommnn_device_segmented_atomic_32_16_7_0.cpp.o
+21.1	[275/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/extra/rocsparse_csrgeam.cpp.o
+21.1	[276/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/extra/rocsparse_csrgemm_symbolic_scal.cpp.o
+21.1	[277/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/extra/rocsparse_bsrgemm_mult.cpp.o
+21.2	[278/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/merge_path/csrmmnt_device_merge_path_remainder_256_64_256.cpp.o
+21.2	[279/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/row_split/csrmm_device_row_split_256_16_8_6.cpp.o
+21.2	[280/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/segmented_atomic/coommnn_device_segmented_atomic_32_16_8_1.cpp.o
+21.3	[281/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/segmented_atomic/coommnn_device_segmented_atomic_32_16_8_0.cpp.o
+21.3	[282/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/segmented_atomic/coommnn_device_segmented_atomic_32_16_7_1.cpp.o
+21.4	[283/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/conversion/rocsparse_csxsldu_buffer_size.cpp.o
+21.4	[284/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/row_split/csrmm_device_row_split_256_16_8_3_4_1.cpp.o
+21.4	[285/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/merge_path/csrmmnn_device_merge_path_256_256_256.cpp.o
+21.5	[286/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/segmented/coommnn_device_segmented_main_256_8_4_0.cpp.o
+21.5	[287/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/extra/rocsparse_spgemm.cpp.o
+21.5	[288/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/extra/rocsparse_bsrgemm_multadd.cpp.o
+21.5	[289/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/precond/itilu0/rocsparse_csritilu0_preprocess.cpp.o
+21.5	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0_preprocess.cpp:59:14: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations-switch-case]
+21.5	   59 |         case rocsparse_itilu0_alg_sync_split_fusion:
+21.5	      |              ^
+21.5	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+21.5	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+21.5	      |                                              ^
+21.5	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0_preprocess.cpp:63:21: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations]
+21.5	   63 |                     rocsparse_itilu0_alg_sync_split_fusion>::preprocess<I, J>::run(parameters...)));
+21.5	      |                     ^
+21.5	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+21.5	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+21.5	      |                                              ^
+21.5	2 warnings generated when compiling for gfx908.
+21.5	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0_preprocess.cpp:59:14: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations-switch-case]
+21.5	   59 |         case rocsparse_itilu0_alg_sync_split_fusion:
+21.5	      |              ^
+21.5	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+21.5	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+21.5	      |                                              ^
+21.5	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0_preprocess.cpp:63:21: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations]
+21.5	   63 |                     rocsparse_itilu0_alg_sync_split_fusion>::preprocess<I, J>::run(parameters...)));
+21.5	      |                     ^
+21.5	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+21.5	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+21.5	      |                                              ^
+21.5	2 warnings generated when compiling for gfx90a.
+21.5	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0_preprocess.cpp:59:14: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations-switch-case]
+21.5	   59 |         case rocsparse_itilu0_alg_sync_split_fusion:
+21.5	      |              ^
+21.5	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+21.5	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+21.5	      |                                              ^
+21.5	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0_preprocess.cpp:63:21: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations]
+21.5	   63 |                     rocsparse_itilu0_alg_sync_split_fusion>::preprocess<I, J>::run(parameters...)));
+21.5	      |                     ^
+21.5	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+21.5	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+21.5	      |                                              ^
+21.5	2 warnings generated when compiling for gfx942.
+21.5	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0_preprocess.cpp:59:14: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations-switch-case]
+21.5	   59 |         case rocsparse_itilu0_alg_sync_split_fusion:
+21.5	      |              ^
+21.5	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+21.5	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+21.5	      |                                              ^
+21.5	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0_preprocess.cpp:63:21: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations]
+21.5	   63 |                     rocsparse_itilu0_alg_sync_split_fusion>::preprocess<I, J>::run(parameters...)));
+21.5	      |                     ^
+21.5	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+21.5	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+21.5	      |                                              ^
+21.5	2 warnings generated when compiling for host.
+21.6	[290/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/row_split/csrmm_device_row_split_256_16_8_6_4.cpp.o
+21.6	[291/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/row_split/csrmm_device_row_split_256_16_8_5_2_1.cpp.o
+21.6	[292/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/extra/rocsparse_csrgeam_numeric.cpp.o
+21.7	[293/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/extra/rocsparse_bsrgemm_scal_buffer_size.cpp.o
+21.7	[294/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/precond/itilu0/rocsparse_csritilu0_buffer_size.cpp.o
+21.7	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0_buffer_size.cpp:44:14: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations-switch-case]
+21.7	   44 |         CASE(rocsparse_itilu0_alg_sync_split_fusion);
+21.7	      |              ^
+21.7	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+21.7	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+21.7	      |                                              ^
+21.7	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0_buffer_size.cpp:61:10: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations-switch-case]
+21.7	   61 |     case rocsparse_itilu0_alg_sync_split_fusion:
+21.7	      |          ^
+21.7	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+21.7	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+21.7	      |                                              ^
+21.7	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0_buffer_size.cpp:100:14: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations-switch-case]
+21.7	  100 |         case rocsparse_itilu0_alg_sync_split_fusion:
+21.7	      |              ^
+21.7	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+21.7	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+21.7	      |                                              ^
+21.7	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0_buffer_size.cpp:103:48: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations]
+21.7	  103 |                 (rocsparse::csritilu0_driver_t<rocsparse_itilu0_alg_sync_split_fusion>::
+21.7	      |                                                ^
+21.7	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+21.7	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+21.7	      |                                              ^
+21.7	4 warnings generated when compiling for gfx908.
+21.7	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0_buffer_size.cpp:44:14: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations-switch-case]
+21.7	   44 |         CASE(rocsparse_itilu0_alg_sync_split_fusion);
+21.7	      |              ^
+21.7	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+21.7	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+21.7	      |                                              ^
+21.7	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0_buffer_size.cpp:61:10: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations-switch-case]
+21.7	   61 |     case rocsparse_itilu0_alg_sync_split_fusion:
+21.7	      |          ^
+21.7	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+21.7	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+21.7	      |                                              ^
+21.7	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0_buffer_size.cpp:100:14: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations-switch-case]
+21.7	  100 |         case rocsparse_itilu0_alg_sync_split_fusion:
+21.7	      |              ^
+21.7	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+21.7	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+21.7	      |                                              ^
+21.7	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0_buffer_size.cpp:103:48: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations]
+21.7	  103 |                 (rocsparse::csritilu0_driver_t<rocsparse_itilu0_alg_sync_split_fusion>::
+21.7	      |                                                ^
+21.7	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+21.7	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+21.7	      |                                              ^
+21.7	4 warnings generated when compiling for gfx90a.
+21.7	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0_buffer_size.cpp:44:14: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations-switch-case]
+21.7	   44 |         CASE(rocsparse_itilu0_alg_sync_split_fusion);
+21.7	      |              ^
+21.7	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+21.7	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+21.7	      |                                              ^
+21.7	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0_buffer_size.cpp:61:10: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations-switch-case]
+21.7	   61 |     case rocsparse_itilu0_alg_sync_split_fusion:
+21.7	      |          ^
+21.7	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+21.7	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+21.7	      |                                              ^
+21.7	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0_buffer_size.cpp:100:14: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations-switch-case]
+21.7	  100 |         case rocsparse_itilu0_alg_sync_split_fusion:
+21.7	      |              ^
+21.7	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+21.7	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+21.7	      |                                              ^
+21.7	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0_buffer_size.cpp:103:48: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations]
+21.7	  103 |                 (rocsparse::csritilu0_driver_t<rocsparse_itilu0_alg_sync_split_fusion>::
+21.7	      |                                                ^
+21.7	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+21.7	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+21.7	      |                                              ^
+21.7	4 warnings generated when compiling for gfx942.
+21.7	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0_buffer_size.cpp:44:14: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations-switch-case]
+21.7	   44 |         CASE(rocsparse_itilu0_alg_sync_split_fusion);
+21.7	      |              ^
+21.7	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+21.7	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+21.7	      |                                              ^
+21.7	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0_buffer_size.cpp:61:10: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations-switch-case]
+21.7	   61 |     case rocsparse_itilu0_alg_sync_split_fusion:
+21.7	      |          ^
+21.7	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+21.7	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+21.7	      |                                              ^
+21.7	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0_buffer_size.cpp:100:14: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations-switch-case]
+21.7	  100 |         case rocsparse_itilu0_alg_sync_split_fusion:
+21.7	      |              ^
+21.7	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+21.7	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+21.7	      |                                              ^
+21.7	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0_buffer_size.cpp:103:48: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations]
+21.7	  103 |                 (rocsparse::csritilu0_driver_t<rocsparse_itilu0_alg_sync_split_fusion>::
+21.7	      |                                                ^
+21.7	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+21.7	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+21.7	      |                                              ^
+21.7	4 warnings generated when compiling for host.
+21.7	[295/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/merge_path/csrmmnt_device_merge_path_remainder_256_16_256.cpp.o
+21.9	[296/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/row_split/csrmm_device_row_split_256_16_8_6_2_1.cpp.o
+22.0	[297/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/precond/itilu0/rocsparse_csritilu0x_buffer_size.cpp.o
+22.0	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0x_buffer_size.cpp:56:14: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations-switch-case]
+22.0	   56 |         case rocsparse_itilu0_alg_sync_split_fusion:
+22.0	      |              ^
+22.0	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+22.0	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+22.0	      |                                              ^
+22.0	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0x_buffer_size.cpp:59:49: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations]
+22.0	   59 |                 (rocsparse::csritilu0x_driver_t<rocsparse_itilu0_alg_sync_split_fusion>::
+22.0	      |                                                 ^
+22.0	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+22.0	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+22.0	      |                                              ^
+22.0	2 warnings generated when compiling for gfx908.
+22.0	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0x_buffer_size.cpp:56:14: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations-switch-case]
+22.0	   56 |         case rocsparse_itilu0_alg_sync_split_fusion:
+22.0	      |              ^
+22.0	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+22.0	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+22.0	      |                                              ^
+22.0	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0x_buffer_size.cpp:59:49: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations]
+22.0	   59 |                 (rocsparse::csritilu0x_driver_t<rocsparse_itilu0_alg_sync_split_fusion>::
+22.0	      |                                                 ^
+22.0	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+22.0	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+22.0	      |                                              ^
+22.0	2 warnings generated when compiling for gfx90a.
+22.0	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0x_buffer_size.cpp:56:14: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations-switch-case]
+22.0	   56 |         case rocsparse_itilu0_alg_sync_split_fusion:
+22.0	      |              ^
+22.0	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+22.0	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+22.0	      |                                              ^
+22.0	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0x_buffer_size.cpp:59:49: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations]
+22.0	   59 |                 (rocsparse::csritilu0x_driver_t<rocsparse_itilu0_alg_sync_split_fusion>::
+22.0	      |                                                 ^
+22.0	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+22.0	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+22.0	      |                                              ^
+22.0	2 warnings generated when compiling for gfx942.
+22.0	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0x_buffer_size.cpp:56:14: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations-switch-case]
+22.0	   56 |         case rocsparse_itilu0_alg_sync_split_fusion:
+22.0	      |              ^
+22.0	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+22.0	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+22.0	      |                                              ^
+22.0	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0x_buffer_size.cpp:59:49: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations]
+22.0	   59 |                 (rocsparse::csritilu0x_driver_t<rocsparse_itilu0_alg_sync_split_fusion>::
+22.0	      |                                                 ^
+22.0	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+22.0	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+22.0	      |                                              ^
+22.0	2 warnings generated when compiling for host.
+22.0	[298/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/extra/rocsparse_spgeam.cpp.o
+22.0	[299/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/segmented_atomic/coommnn_device_segmented_atomic_64_16_8_0.cpp.o
+22.0	[300/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/segmented_atomic/coommnn_device_segmented_atomic_64_16_8_1.cpp.o
+22.1	[301/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/row_split/csrmm_device_row_split_256_16_8_5_4.cpp.o
+22.1	[302/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/precond/itilu0/rocsparse_csritilu0_compute_ex.cpp.o
+22.1	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0_compute_ex.cpp:58:14: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations-switch-case]
+22.1	   58 |         case rocsparse_itilu0_alg_sync_split_fusion:
+22.1	      |              ^
+22.1	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/internal/precond/../../rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+22.1	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+22.1	      |                                              ^
+22.1	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0_compute_ex.cpp:62:21: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations]
+22.1	   62 |                     rocsparse_itilu0_alg_sync_split_fusion>::compute<T, I, J>::run(parameters...)));
+22.1	      |                     ^
+22.1	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/internal/precond/../../rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+22.1	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+22.1	      |                                              ^
+22.1	2 warnings generated when compiling for gfx908.
+22.1	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0_compute_ex.cpp:58:14: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations-switch-case]
+22.1	   58 |         case rocsparse_itilu0_alg_sync_split_fusion:
+22.1	      |              ^
+22.1	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/internal/precond/../../rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+22.1	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+22.1	      |                                              ^
+22.1	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0_compute_ex.cpp:62:21: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations]
+22.1	   62 |                     rocsparse_itilu0_alg_sync_split_fusion>::compute<T, I, J>::run(parameters...)));
+22.1	      |                     ^
+22.1	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/internal/precond/../../rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+22.1	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+22.1	      |                                              ^
+22.1	2 warnings generated when compiling for gfx90a.
+22.1	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0_compute_ex.cpp:58:14: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations-switch-case]
+22.1	   58 |         case rocsparse_itilu0_alg_sync_split_fusion:
+22.1	      |              ^
+22.1	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/internal/precond/../../rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+22.1	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+22.1	      |                                              ^
+22.1	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0_compute_ex.cpp:62:21: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations]
+22.1	   62 |                     rocsparse_itilu0_alg_sync_split_fusion>::compute<T, I, J>::run(parameters...)));
+22.1	      |                     ^
+22.1	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/internal/precond/../../rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+22.1	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+22.1	      |                                              ^
+22.1	2 warnings generated when compiling for gfx942.
+22.1	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0_compute_ex.cpp:58:14: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations-switch-case]
+22.1	   58 |         case rocsparse_itilu0_alg_sync_split_fusion:
+22.1	      |              ^
+22.1	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/internal/precond/../../rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+22.1	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+22.1	      |                                              ^
+22.1	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0_compute_ex.cpp:62:21: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations]
+22.1	   62 |                     rocsparse_itilu0_alg_sync_split_fusion>::compute<T, I, J>::run(parameters...)));
+22.1	      |                     ^
+22.1	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/internal/precond/../../rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+22.1	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+22.1	      |                                              ^
+22.1	2 warnings generated when compiling for host.
+22.1	[303/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/row_split/csrmm_device_row_split_256_16_8_7.cpp.o
+22.1	[304/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/extra/rocsparse_csrgeam_symbolic_impl.cpp.o
+22.2	[305/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/precond/rocsparse_csrilu0_analysis.cpp.o
+22.2	[306/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/precond/rocsparse_csrilu0_buffer_size.cpp.o
+22.2	[307/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/extra/rocsparse_csrgemm_scal.cpp.o
+22.2	[308/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/precond/itilu0/rocsparse_csritilu0_history.cpp.o
+22.2	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0_history.cpp:59:14: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations-switch-case]
+22.2	   59 |         case rocsparse_itilu0_alg_sync_split_fusion:
+22.2	      |              ^
+22.2	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+22.2	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+22.2	      |                                              ^
+22.2	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0_history.cpp:62:48: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations]
+22.2	   62 |                 (rocsparse::csritilu0_driver_t<rocsparse_itilu0_alg_sync_split_fusion>::
+22.2	      |                                                ^
+22.2	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+22.2	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+22.2	      |                                              ^
+22.2	2 warnings generated when compiling for gfx908.
+22.2	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0_history.cpp:59:14: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations-switch-case]
+22.2	   59 |         case rocsparse_itilu0_alg_sync_split_fusion:
+22.2	      |              ^
+22.2	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+22.2	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+22.2	      |                                              ^
+22.2	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0_history.cpp:62:48: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations]
+22.2	   62 |                 (rocsparse::csritilu0_driver_t<rocsparse_itilu0_alg_sync_split_fusion>::
+22.2	      |                                                ^
+22.2	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+22.2	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+22.2	      |                                              ^
+22.2	2 warnings generated when compiling for gfx90a.
+22.2	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0_history.cpp:59:14: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations-switch-case]
+22.2	   59 |         case rocsparse_itilu0_alg_sync_split_fusion:
+22.2	      |              ^
+22.2	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+22.2	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+22.2	      |                                              ^
+22.2	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0_history.cpp:62:48: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations]
+22.2	   62 |                 (rocsparse::csritilu0_driver_t<rocsparse_itilu0_alg_sync_split_fusion>::
+22.2	      |                                                ^
+22.2	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+22.2	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+22.2	      |                                              ^
+22.2	2 warnings generated when compiling for gfx942.
+22.2	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0_history.cpp:59:14: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations-switch-case]
+22.2	   59 |         case rocsparse_itilu0_alg_sync_split_fusion:
+22.2	      |              ^
+22.2	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+22.2	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+22.2	      |                                              ^
+22.2	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0_history.cpp:62:48: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations]
+22.2	   62 |                 (rocsparse::csritilu0_driver_t<rocsparse_itilu0_alg_sync_split_fusion>::
+22.2	      |                                                ^
+22.2	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+22.2	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+22.2	      |                                              ^
+22.2	2 warnings generated when compiling for host.
+22.2	[309/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/precond/itilu0/rocsparse_csritilu0_sync_split.cpp.o
+22.3	[310/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/precond/itilu0/rocsparse_csritilu0_compute.cpp.o
+22.3	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0_compute.cpp:58:14: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations-switch-case]
+22.3	   58 |         case rocsparse_itilu0_alg_sync_split_fusion:
+22.3	      |              ^
+22.3	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/internal/precond/../../rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+22.3	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+22.3	      |                                              ^
+22.3	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0_compute.cpp:62:21: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations]
+22.3	   62 |                     rocsparse_itilu0_alg_sync_split_fusion>::compute<T, I, J>::run(parameters...)));
+22.3	      |                     ^
+22.3	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/internal/precond/../../rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+22.3	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+22.3	      |                                              ^
+22.3	2 warnings generated when compiling for gfx908.
+22.3	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0_compute.cpp:58:14: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations-switch-case]
+22.3	   58 |         case rocsparse_itilu0_alg_sync_split_fusion:
+22.3	      |              ^
+22.3	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/internal/precond/../../rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+22.3	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+22.3	      |                                              ^
+22.3	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0_compute.cpp:62:21: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations]
+22.3	   62 |                     rocsparse_itilu0_alg_sync_split_fusion>::compute<T, I, J>::run(parameters...)));
+22.3	      |                     ^
+22.3	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/internal/precond/../../rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+22.3	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+22.3	      |                                              ^
+22.3	2 warnings generated when compiling for gfx90a.
+22.3	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0_compute.cpp:58:14: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations-switch-case]
+22.3	   58 |         case rocsparse_itilu0_alg_sync_split_fusion:
+22.3	      |              ^
+22.3	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/internal/precond/../../rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+22.3	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+22.3	      |                                              ^
+22.3	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0_compute.cpp:62:21: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations]
+22.3	   62 |                     rocsparse_itilu0_alg_sync_split_fusion>::compute<T, I, J>::run(parameters...)));
+22.3	      |                     ^
+22.3	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/internal/precond/../../rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+22.3	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+22.3	      |                                              ^
+22.3	2 warnings generated when compiling for gfx942.
+22.3	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0_compute.cpp:58:14: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations-switch-case]
+22.3	   58 |         case rocsparse_itilu0_alg_sync_split_fusion:
+22.3	      |              ^
+22.3	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/internal/precond/../../rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+22.3	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+22.3	      |                                              ^
+22.3	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0_compute.cpp:62:21: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations]
+22.3	   62 |                     rocsparse_itilu0_alg_sync_split_fusion>::compute<T, I, J>::run(parameters...)));
+22.3	      |                     ^
+22.3	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/internal/precond/../../rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+22.3	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+22.3	      |                                              ^
+22.3	2 warnings generated when compiling for host.
+22.3	[311/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/extra/rocsparse_csrgemm_numeric_scal.cpp.o
+22.3	[312/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/row_split/csrmm_device_row_split_256_16_8_5_4_2_1.cpp.o
+22.4	[313/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/row_split/csrmm_device_row_split_256_16_8_5_2.cpp.o
+22.5	[314/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/conversion/rocsparse_csxsldu_preprocess.cpp.o
+22.5	[315/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/extra/rocsparse_bsrgemm_nnz.cpp.o
+22.5	[316/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/precond/itilu0/rocsparse_csritilu0_async_split.cpp.o
+22.5	[317/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/rocsparse_bellmm_template_general.cpp.o
+22.7	[318/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/precond/itilu0/rocsparse_csritilu0x_preprocess.cpp.o
+22.7	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0x_preprocess.cpp:56:14: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations-switch-case]
+22.7	   56 |         case rocsparse_itilu0_alg_sync_split_fusion:
+22.7	      |              ^
+22.7	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+22.7	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+22.7	      |                                              ^
+22.7	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0x_preprocess.cpp:60:21: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations]
+22.7	   60 |                     rocsparse_itilu0_alg_sync_split_fusion>::preprocess<I, J>::run(parameters...)));
+22.7	      |                     ^
+22.7	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+22.7	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+22.7	      |                                              ^
+22.7	2 warnings generated when compiling for gfx908.
+22.7	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0x_preprocess.cpp:56:14: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations-switch-case]
+22.7	   56 |         case rocsparse_itilu0_alg_sync_split_fusion:
+22.7	      |              ^
+22.7	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+22.7	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+22.7	      |                                              ^
+22.7	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0x_preprocess.cpp:60:21: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations]
+22.7	   60 |                     rocsparse_itilu0_alg_sync_split_fusion>::preprocess<I, J>::run(parameters...)));
+22.7	      |                     ^
+22.7	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+22.7	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+22.7	      |                                              ^
+22.7	2 warnings generated when compiling for gfx90a.
+22.7	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0x_preprocess.cpp:56:14: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations-switch-case]
+22.7	   56 |         case rocsparse_itilu0_alg_sync_split_fusion:
+22.7	      |              ^
+22.7	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+22.7	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+22.7	      |                                              ^
+22.7	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0x_preprocess.cpp:60:21: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations]
+22.7	   60 |                     rocsparse_itilu0_alg_sync_split_fusion>::preprocess<I, J>::run(parameters...)));
+22.7	      |                     ^
+22.7	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+22.7	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+22.7	      |                                              ^
+22.7	2 warnings generated when compiling for gfx942.
+22.7	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0x_preprocess.cpp:56:14: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations-switch-case]
+22.7	   56 |         case rocsparse_itilu0_alg_sync_split_fusion:
+22.7	      |              ^
+22.7	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+22.7	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+22.7	      |                                              ^
+22.7	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0x_preprocess.cpp:60:21: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations]
+22.7	   60 |                     rocsparse_itilu0_alg_sync_split_fusion>::preprocess<I, J>::run(parameters...)));
+22.7	      |                     ^
+22.7	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+22.7	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+22.7	      |                                              ^
+22.7	2 warnings generated when compiling for host.
+22.7	[319/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/precond/itilu0/rocsparse_csritilu0x_history.cpp.o
+22.7	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0x_history.cpp:43:14: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations-switch-case]
+22.7	   43 |         case rocsparse_itilu0_alg_sync_split_fusion:
+22.7	      |              ^
+22.7	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+22.7	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+22.7	      |                                              ^
+22.7	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0x_history.cpp:47:21: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations]
+22.7	   47 |                     rocsparse_itilu0_alg_sync_split_fusion>::history<T, J>::run(parameters...)));
+22.7	      |                     ^
+22.7	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+22.7	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+22.7	      |                                              ^
+22.7	2 warnings generated when compiling for gfx908.
+22.7	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0x_history.cpp:43:14: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations-switch-case]
+22.7	   43 |         case rocsparse_itilu0_alg_sync_split_fusion:
+22.7	      |              ^
+22.7	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+22.7	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+22.7	      |                                              ^
+22.7	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0x_history.cpp:47:21: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations]
+22.7	   47 |                     rocsparse_itilu0_alg_sync_split_fusion>::history<T, J>::run(parameters...)));
+22.7	      |                     ^
+22.7	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+22.7	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+22.7	      |                                              ^
+22.7	2 warnings generated when compiling for gfx90a.
+22.7	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0x_history.cpp:43:14: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations-switch-case]
+22.7	   43 |         case rocsparse_itilu0_alg_sync_split_fusion:
+22.7	      |              ^
+22.7	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+22.7	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+22.7	      |                                              ^
+22.7	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0x_history.cpp:47:21: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations]
+22.7	   47 |                     rocsparse_itilu0_alg_sync_split_fusion>::history<T, J>::run(parameters...)));
+22.7	      |                     ^
+22.7	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+22.7	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+22.7	      |                                              ^
+22.7	2 warnings generated when compiling for gfx942.
+22.7	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0x_history.cpp:43:14: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations-switch-case]
+22.7	   43 |         case rocsparse_itilu0_alg_sync_split_fusion:
+22.7	      |              ^
+22.7	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+22.7	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+22.7	      |                                              ^
+22.7	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0x_history.cpp:47:21: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations]
+22.7	   47 |                     rocsparse_itilu0_alg_sync_split_fusion>::history<T, J>::run(parameters...)));
+22.7	      |                     ^
+22.7	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+22.7	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+22.7	      |                                              ^
+22.7	2 warnings generated when compiling for host.
+22.9	[320/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/extra/rocsparse_csrgemm_buffer_size.cpp.o
+22.9	[321/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/conversion/rocsparse_coo2csr.cpp.o
+22.9	[322/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/conversion/rocsparse_cscsort.cpp.o
+23.0	[323/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/row_split/csrmm_device_row_split_256_16_8_4_4_1.cpp.o
+23.0	[324/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/extra/rocsparse_csrgemm_numeric.cpp.o
+23.0	[325/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/row_split/csrmm_device_row_split_256_16_8_5_4_2.cpp.o
+23.0	[326/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/precond/itilu0/rocsparse_csritilu0x_compute.cpp.o
+23.0	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0x_compute.cpp:56:14: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations-switch-case]
+23.0	   56 |         case rocsparse_itilu0_alg_sync_split_fusion:
+23.0	      |              ^
+23.0	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+23.0	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+23.0	      |                                              ^
+23.0	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0x_compute.cpp:60:21: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations]
+23.0	   60 |                     rocsparse_itilu0_alg_sync_split_fusion>::compute<T, I, J>::run(parameters...)));
+23.0	      |                     ^
+23.0	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+23.0	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+23.0	      |                                              ^
+23.0	2 warnings generated when compiling for gfx908.
+23.0	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0x_compute.cpp:56:14: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations-switch-case]
+23.0	   56 |         case rocsparse_itilu0_alg_sync_split_fusion:
+23.0	      |              ^
+23.0	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+23.0	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+23.0	      |                                              ^
+23.0	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0x_compute.cpp:60:21: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations]
+23.0	   60 |                     rocsparse_itilu0_alg_sync_split_fusion>::compute<T, I, J>::run(parameters...)));
+23.0	      |                     ^
+23.0	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+23.0	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+23.0	      |                                              ^
+23.0	2 warnings generated when compiling for gfx90a.
+23.0	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0x_compute.cpp:56:14: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations-switch-case]
+23.0	   56 |         case rocsparse_itilu0_alg_sync_split_fusion:
+23.0	      |              ^
+23.0	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+23.0	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+23.0	      |                                              ^
+23.0	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0x_compute.cpp:60:21: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations]
+23.0	   60 |                     rocsparse_itilu0_alg_sync_split_fusion>::compute<T, I, J>::run(parameters...)));
+23.0	      |                     ^
+23.0	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+23.0	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+23.0	      |                                              ^
+23.0	2 warnings generated when compiling for gfx942.
+23.0	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0x_compute.cpp:56:14: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations-switch-case]
+23.0	   56 |         case rocsparse_itilu0_alg_sync_split_fusion:
+23.0	      |              ^
+23.0	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+23.0	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+23.0	      |                                              ^
+23.0	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/src/precond/itilu0/rocsparse_csritilu0x_compute.cpp:60:21: warning: 'rocsparse_itilu0_alg_sync_split_fusion' is deprecated [-Wdeprecated-declarations]
+23.0	   60 |                     rocsparse_itilu0_alg_sync_split_fusion>::compute<T, I, J>::run(parameters...)));
+23.0	      |                     ^
+23.0	/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/projects/rocsparse/library/include/rocsparse-types.h:650:46: note: 'rocsparse_itilu0_alg_sync_split_fusion' has been explicitly marked deprecated here
+23.0	  650 |     rocsparse_itilu0_alg_sync_split_fusion [[deprecated]]
+23.0	      |                                              ^
+23.0	2 warnings generated when compiling for host.
+23.1	[327/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/extra/rocsparse_bsrgemm_buffer_size.cpp.o
+23.1	[328/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/conversion/rocsparse_gebsr2gebsc.cpp.o
+23.3	[329/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/conversion/rocsparse_gcoo2coo_aos.cpp.o
+23.3	[330/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/conversion/rocsparse_gcoo_aos2coo.cpp.o
+23.3	[331/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/row_split/csrmm_device_row_split_256_16_8_7_2.cpp.o
+23.3	[332/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/conversion/rocsparse_gcsr2bsr_nnz.cpp.o
+23.3	[333/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/conversion/rocsparse_gcoo_aos2csr.cpp.o
+23.3	[334/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/conversion/rocsparse_gcsr2coo.cpp.o
+23.3	[335/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/conversion/rocsparse_gcoo2csr.cpp.o
+23.4	[336/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/rocsparse_sddmm.cpp.o
+23.4	[337/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/conversion/rocsparse_prune_dense2csr.cpp.o
+23.4	[338/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/nnz_split/csrmmnn_device_nnz_split_remainder_256_8.cpp.o
+23.5	[339/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/row_split/csrmm_device_row_split_256_16_8_6_1.cpp.o
+23.5	[340/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/conversion/rocsparse_prune_dense2csr_by_percentage.cpp.o
+23.5	[341/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/conversion/rocsparse_gcsc2csr.cpp.o
+23.5	[342/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/extra/rocsparse_bsrgemm_scal.cpp.o
+23.6	[343/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/conversion/rocsparse_gcsr2bsr.cpp.o
+23.6	[344/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/extra/rocsparse_csrgeam_impl.cpp.o
+23.6	[345/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/conversion/rocsparse_gcsr2coo_aos.cpp.o
+23.6	[346/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/primitives/rocsparse_exclusive_scan.cpp.o
+23.7	[347/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/conversion/rocsparse_inverse_permutation.cpp.o
+23.7	[348/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/conversion/rocsparse_gcsr2csc.cpp.o
+23.7	[349/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/conversion/rocsparse_sparse_to_sparse.cpp.o
+23.8	[350/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/conversion/rocsparse_identity.cpp.o
+23.8	[351/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/conversion/rocsparse_hyb2csr.cpp.o
+23.9	[352/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/rocsparse_bsrmm_template_general.cpp.o
+23.9	[353/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/conversion/rocsparse_coosort.cpp.o
+23.9	[354/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/conversion/rocsparse_csr2ell_width.cpp.o
+23.9	[355/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/conversion/rocsparse_sparse_to_sparse_buffer_size.cpp.o
+24.0	[356/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/conversion/rocsparse_convert_scalar.cpp.o
+24.0	[357/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/conversion/rocsparse_coo2dense_aos.cpp.o
+24.1	[358/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/conversion/rocsparse_gcsr2ell.cpp.o
+24.1	[359/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/conversion/rocsparse_extract.cpp.o
+24.1	[360/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/conversion/rocsparse_gcoosort.cpp.o
+24.1	[361/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/conversion/rocsparse_gbsr2csr.cpp.o
+24.1	[362/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/conversion/rocsparse_destroy_extract_descr.cpp.o
+24.2	[363/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/rocsparse_spsm.cpp.o
+24.2	[364/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/conversion/rocsparse_sparse_to_csr_to_sparse.cpp.o
+24.3	[365/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/util/rocsparse_check_matrix_hyb_buffer_size.cpp.o
+24.3	[366/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/conversion/rocsparse_gcreate_identity_permutation.cpp.o
+24.4	[367/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/conversion/rocsparse_create_extract_descr.cpp.o
+24.4	[368/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/precond/rocsparse_gtsv_interleaved_batch.cpp.o
+24.4	[369/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/conversion/rocsparse_spmat_transfer_from.cpp.o
+24.4	[370/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/conversion/rocsparse_ggthr.cpp.o
+24.4	[371/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/conversion/rocsparse_extract_nnz.cpp.o
+24.4	[372/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/conversion/rocsparse_extract_buffer_size.cpp.o
+24.4	[373/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/extra/rocsparse_bsrgemm.cpp.o
+24.4	[374/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/conversion/rocsparse_gell2csr.cpp.o
+24.4	[375/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/row_split/csrmm_device_row_split_256_16_8_8.cpp.o
+24.4	[376/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/row_split/csrmm_device_row_split_256_16_8_6_4_2_1.cpp.o
+24.5	[377/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/conversion/rocsparse_coo2dense.cpp.o
+24.5	[378/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/extra/rocsparse_csrgeam_numeric_impl.cpp.o
+24.7	[379/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/conversion/rocsparse_csrsort.cpp.o
+24.7	[380/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/util/rocsparse_check_matrix_gebsr_buffer_size.cpp.o
+24.7	[381/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/conversion/rocsparse_sparse_to_sparse_compute.cpp.o
+24.7	[382/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/conversion/rocsparse_csxsldu_compute.cpp.o
+24.7	[383/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/conversion/rocsparse_csr2hyb.cpp.o
+24.8	[384/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/rocsparse_csrmm_template_merge.cpp.o
+24.8	[385/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/conversion/rocsparse_csc2dense.cpp.o
+24.8	[386/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level2/rocsparse_gebsrmv_template_row_block_dim_9_12.cpp.o
+24.9	[387/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/conversion/rocsparse_prune_csr2csr.cpp.o
+24.9	[388/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/row_split/csrmm_device_row_split_256_16_8_7_4_1.cpp.o
+24.9	[389/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/conversion/rocsparse_bsrpad_value.cpp.o
+24.9	[390/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/conversion/rocsparse_internal_spmat_print.cpp.o
+25.0	[391/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/csrmm/row_split/csrmm_device_row_split_256_16_8_7_2_1.cpp.o
+25.0	[392/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/segmented/coommnn_device_segmented_main_256_8_4_1.cpp.o
+25.0	[393/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/util/rocsparse_check_matrix_ell_buffer_size.cpp.o
+25.1	[394/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/primitives/rocsparse_inclusive_scan.cpp.o
+25.1	[395/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/util/rocsparse_check_matrix_hyb.cpp.o
+25.1	[396/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/conversion/rocsparse_ell2dense.cpp.o
+25.1	[397/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/conversion/rocsparse_csr2ell_strided_batched.cpp.o
+25.2	[398/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/precond/rocsparse_gpsv_interleaved_batch.cpp.o
+25.3	[399/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/util/rocsparse_check_matrix_csc_buffer_size.cpp.o
+25.3	[400/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/conversion/rocsparse_nnz_compress.cpp.o
+25.3	[401/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/conversion/rocsparse_ell2csr.cpp.o
+25.3	[402/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/util/rocsparse_check_matrix_csr_buffer_size.cpp.o
+25.4	[403/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/conversion/rocsparse_prune_csr2csr_by_percentage.cpp.o
+25.4	[404/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/util/rocsparse_check_matrix_gebsc_buffer_size.cpp.o
+25.4	[405/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level2/rocsparse_gebsrmv_template_row_block_dim_13_16.cpp.o
+25.4	[406/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/util/rocsparse_check_spmat.cpp.o
+25.4	[407/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/util/rocsparse_check_matrix_csc.cpp.o
+25.5	[408/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/conversion/rocsparse_csr2csr_compress.cpp.o
+25.5	[409/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/util/rocsparse_check_matrix_coo_buffer_size.cpp.o
+25.6	[410/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/conversion/rocsparse_csr2dense.cpp.o
+25.7	[411/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/rocsparse_sddmm_coo_aos.cpp.o
+25.7	[412/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/conversion/rocsparse_csr2ell.cpp.o
+25.7	[413/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/util/rocsparse_check_matrix_gebsc.cpp.o
+25.9	[414/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/util/rocsparse_check_matrix_coo.cpp.o
+25.9	[415/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/reordering/rocsparse_csrcolor.cpp.o
+26.0	[416/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/rocsparse_coomm_template_segmented.cpp.o
+26.2	[417/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/conversion/rocsparse_dense2coo.cpp.o
+26.5	[418/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/extra/rocsparse_csrgemm_nnz_calc.cpp.o
+26.5	[419/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/conversion/rocsparse_csr2csc.cpp.o
+26.5	[420/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/util/rocsparse_check_matrix_ell.cpp.o
+26.5	[421/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/primitives/rocsparse_find_max.cpp.o
+26.5	[422/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/precond/itilu0/common.cpp.o
+26.7	[423/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level2/rocsparse_bsrxmv_spzl_general.cpp.o
+26.7	[424/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/segmented/coommnn_device_segmented_remainder_256_8_4_0.cpp.o
+26.7	[425/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/rocsparse_sddmm_coo.cpp.o
+26.8	[426/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/coomm/segmented/coommnn_device_segmented_remainder_256_8_4_1.cpp.o
+26.9	[427/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/conversion/rocsparse_dense2csr.cpp.o
+27.2	[428/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/rocsparse_bsrsm_template_large.cpp.o
+27.2	[429/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/util/rocsparse_check_matrix_gebsr.cpp.o
+27.2	[430/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/conversion/rocsparse_csr2coo.cpp.o
+27.3	[431/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/conversion/rocsparse_csr2bsr_nnz.cpp.o
+27.4	[432/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/conversion/rocsparse_dense2csc.cpp.o
+27.4	[433/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/extra/rocsparse_bsrgeam.cpp.o
+28.0	[434/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level2/rocsparse_coomv_aos_impl.cpp.o
+28.4	[435/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/precond/rocsparse_csric0.cpp.o
+28.5	[436/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/conversion/rocsparse_gebsr2gebsr.cpp.o
+28.5	[437/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/conversion/rocsparse_extract_alg_default.cpp.o
+28.6	[438/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/rocsparse_sddmm_ell.cpp.o
+29.2	[439/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/primitives/rocsparse_run_length_encode.cpp.o
+29.5	[440/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level2/rocsparse_gebsrmv_template_row_block_dim_5_8.cpp.o
+29.6	[441/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/rocsparse_bsrmm_template_small.cpp.o
+29.6	[442/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/conversion/rocsparse_sparse_to_dense.cpp.o
+29.8	[443/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/primitives/rocsparse_radix_sort_keys.cpp.o
+29.9	[444/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/rocsparse_coomm_template_segmented_atomic.cpp.o
+30.1	[445/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/precond/itilu0/rocsparse_csritilu0x_async.cpp.o
+30.2	[446/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/precond/itilu0/rocsparse_csritilu0x_sync.cpp.o
+30.3	[447/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/precond/rocsparse_csrilu0.cpp.o
+30.7	[448/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/util/rocsparse_check_matrix_csr.cpp.o
+30.7	[449/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/primitives/rocsparse_find_sum.cpp.o
+30.7	[450/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/conversion/rocsparse_convert_array.cpp.o
+30.7	[451/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level2/rocsparse_coomv_impl.cpp.o
+30.7	[452/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/conversion/rocsparse_dense_to_sparse.cpp.o
+31.3	[453/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/precond/itilu0/rocsparse_csritilu0_async_inplace.cpp.o
+31.3	[454/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level2/rocsparse_bsrsv_solve.cpp.o
+31.4	[455/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/rocsparse_bsrmm_template_large_ext.cpp.o
+31.7	[456/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/conversion/rocsparse_nnz.cpp.o
+31.9	[457/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/rocsparse_csrmm_template_nnz_split.cpp.o
+32.0	[458/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/precond/rocsparse_gtsv_no_pivot_strided_batch.cpp.o
+32.0	[459/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/extra/rocsparse_csrgemm_symbolic_calc.cpp.o
+32.3	[460/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/precond/rocsparse_gtsv_no_pivot.cpp.o
+33.2	[461/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/precond/rocsparse_bsrilu0.cpp.o
+33.7	[462/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/rocsparse_coomm_template_atomic.cpp.o
+33.8	[463/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/rocsparse_csrsm_solve.cpp.o
+34.0	[464/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level2/rocsparse_csrmv_template_lrb.cpp.o
+34.5	[465/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/precond/itilu0/rocsparse_csritilu0x_sync_fusion.cpp.o
+34.6	[466/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/conversion/rocsparse_gebsr2csr.cpp.o
+34.7	[467/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level2/rocsparse_bsrxmv_spzl_3x3.cpp.o
+36.6	[468/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level2/rocsparse_bsrxmv_spzl_2x2.cpp.o
+37.4	[469/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level2/rocsparse_gebsrmv_template_row_block_dim_3.cpp.o
+38.6	[470/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/primitives/rocsparse_radix_sort_pairs.cpp.o
+39.2	[471/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level2/rocsparse_csrmv_template_rowsplit.cpp.o
+39.3	[472/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level2/rocsparse_gebsrmv_template_row_block_dim_1.cpp.o
+39.4	[473/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/rocsparse_sddmm_csr.cpp.o
+39.4	[474/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/rocsparse_sddmm_csc.cpp.o
+40.9	[475/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/conversion/rocsparse_csr2bsr.cpp.o
+40.9	[476/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level2/rocsparse_gebsrmv_template_row_block_dim_4.cpp.o
+41.8	[477/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/precond/rocsparse_bsric0.cpp.o
+42.9	[478/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level2/rocsparse_csrmv_template_adaptive.cpp.o
+44.3	[479/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/conversion/rocsparse_csr2gebsr.cpp.o
+44.6	[480/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level3/rocsparse_csrmm_template_row_split.cpp.o
+50.1	[481/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/conversion/rocsparse_bsr2csr.cpp.o
+55.7	[482/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/primitives/rocsparse_segmented_radix_sort_pairs.cpp.o
+61.6	[483/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/primitives/rocsparse_segmented_radix_sort_keys.cpp.o
+61.9	[484/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level2/rocsparse_gebsrmv_template_row_block_dim_2.cpp.o
+63.2	[485/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level2/rocsparse_bsrxmv_spzl_17_32.cpp.o
+66.2	[486/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/level2/rocsparse_bsrxmv_spzl_4x4.cpp.o
+66.3	[487/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/extra/rocsparse_csrgemm_calc.cpp.o
+67.9	[488/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/precond/rocsparse_gtsv.cpp.o
+70.2	[489/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/extra/rocsparse_csrgemm_numeric_calc.cpp.o
+75.0	[490/492] Building CXX object library/CMakeFiles/rocsparse.dir/src/extra/rocsparse_bsrgemm_calc.cpp.o
+75.2	[491/492] Linking CXX shared library library/librocsparse.so.1.0
+75.3	[492/492] Creating library symlink library/librocsparse.so.1 library/librocsparse.so
+END	1757698265.2962713	75.26776838302612	0

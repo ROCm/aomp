@@ -1,0 +1,29 @@
+BEGIN	1757694055.1762805
+EXEC	/work1/grodgers/git/tr-aomp/TheRock/build/math-libs/support/mxDataGenerator/build	/usr/bin/cmake -E env --unset=ROCM_PATH --unset=ROCM_DIR --unset=HIP_PATH --unset=HIP_DIR -- /usr/bin/cmake -GNinja -B/work/grodgers/git/tr-aomp/TheRock/build/math-libs/support/mxDataGenerator/build -S/work/grodgers/git/tr-aomp/TheRock/rocm-libraries/shared/mxdatagenerator -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/work/grodgers/git/tr-aomp/TheRock/build/math-libs/support/mxDataGenerator/stage -DTHEROCK_STAGE_INSTALL_ROOT=/work/grodgers/git/tr-aomp/TheRock/build/math-libs/support/mxDataGenerator/stage -DCMAKE_TOOLCHAIN_FILE=/work/grodgers/git/tr-aomp/TheRock/build/math-libs/support/mxDataGenerator/_toolchain.cmake -DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=/work/grodgers/git/tr-aomp/TheRock/build/math-libs/support/mxDataGenerator/_init.cmake
+0.0	-- Resolving packages from super-project: GTest
+0.1	-- The C compiler identification is Clang 22.0.6
+0.2	-- The CXX compiler identification is Clang 22.0.6
+0.3	-- Detecting C compiler ABI info
+0.4	-- Detecting C compiler ABI info - done
+0.4	-- Check for working C compiler: /work/grodgers/git/tr-aomp/TheRock/build/core/clr/dist/lib/llvm/bin/clang - skipped
+0.4	-- Detecting C compile features
+0.4	-- Detecting C compile features - done
+0.5	-- Detecting CXX compiler ABI info
+0.6	-- Detecting CXX compiler ABI info - done
+0.6	-- Check for working CXX compiler: /work/grodgers/git/tr-aomp/TheRock/build/core/clr/dist/lib/llvm/bin/clang++ - skipped
+0.6	-- Detecting CXX compile features
+0.6	-- Detecting CXX compile features - done
+0.6	-- Resolving system find_package(OpenMP) (not found in super-project GTest)
+1.0	-- Found OpenMP_C: -fopenmp=libomp (found version "5.1") 
+1.1	-- Found OpenMP_CXX: -fopenmp=libomp (found version "5.1") 
+1.1	-- Found OpenMP: TRUE (found version "5.1")  
+1.1	-- Configuring done (1.1s)
+1.1	-- Generating done (0.0s)
+1.2	CMake Warning:
+1.2	  Manually-specified variables were not used by the project:
+1.2	
+1.2	    THEROCK_STAGE_INSTALL_ROOT
+1.2	
+1.2	
+1.2	-- Build files have been written to: /work/grodgers/git/tr-aomp/TheRock/build/math-libs/support/mxDataGenerator/build
+END	1757694056.3343804	1.158099889755249	0

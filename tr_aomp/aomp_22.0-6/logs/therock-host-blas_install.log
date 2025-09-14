@@ -1,0 +1,24 @@
+BEGIN	1757693420.7357607
+EXEC	/work1/grodgers/git/tr-aomp/TheRock/build/third-party/host-blas/build	/usr/bin/cmake --install /work/grodgers/git/tr-aomp/TheRock/build/third-party/host-blas/./build
+0.0	-- Install configuration: "Release"
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/host-blas/stage/lib/host-math/lib/librocm-openblas.so.0.3
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/host-blas/stage/lib/host-math/lib/librocm-openblas.so.0
+0.0	-- Set non-toolchain portion of runtime path of "/work/grodgers/git/tr-aomp/TheRock/build/third-party/host-blas/stage/lib/host-math/lib/librocm-openblas.so.0.3" to "$ORIGIN"
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/host-blas/stage/lib/host-math/lib/librocm-openblas.so
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/host-blas/stage/lib/host-math/include/openblas/openblas_config.h
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/host-blas/stage/lib/host-math/include/openblas/f77blas.h
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/host-blas/stage/lib/host-math/include/openblas/cblas.h
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/host-blas/stage/lib/host-math/include/openblas/lapacke_example_aux.h
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/host-blas/stage/lib/host-math/include/openblas/lapack.h
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/host-blas/stage/lib/host-math/include/openblas/lapacke.h
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/host-blas/stage/lib/host-math/include/openblas/lapacke_config.h
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/host-blas/stage/lib/host-math/include/openblas/lapacke_mangling.h
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/host-blas/stage/lib/host-math/include/openblas/lapacke_utils.h
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/host-blas/stage/lib/host-math/include/openblas/lapacke_mangling.h
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/host-blas/stage/lib/host-math/lib/pkgconfig/openblas.pc
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/host-blas/stage/lib/host-math/lib/cmake/OpenBLAS/OpenBLASConfig.cmake
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/host-blas/stage/lib/host-math/lib/cmake/OpenBLAS/OpenBLASConfigVersion.cmake
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/host-blas/stage/lib/host-math/lib/cmake/OpenBLAS/OpenBLASTargets.cmake
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/host-blas/stage/lib/host-math/lib/cmake/OpenBLAS/OpenBLASTargets-release.cmake
+0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/host-blas/stage/lib/host-math/lib/cmake/OpenBLAS/cblas-config.cmake
+END	1757693420.767089	0.03132820129394531	0

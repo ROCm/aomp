@@ -1,0 +1,244 @@
+BEGIN	1757693406.01283
+EXEC	/work1/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build	/usr/bin/cmake -E env --unset=ROCM_PATH --unset=ROCM_DIR --unset=HIP_PATH --unset=HIP_DIR -- /usr/bin/cmake --build /work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build
+0.0	[1/2] cd /work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build && /usr/bin/cmake -E rm -f /work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/stamp/stage.stamp
+10.8	[2/2] cd /work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build && /usr/bin/cmake -E rm -rf -- /work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/stage/lib/rocm_sysdeps /work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build/s && /usr/bin/cmake -E copy_directory /work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/source /work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build/s && bash /work/grodgers/git/tr-aomp/TheRock/third-party/sysdeps/linux/numactl/patch_source.sh /work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build/s && autoreconf -f -i /work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build/s && /work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build/s/configure --prefix /work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/stage/lib/rocm_sysdeps --disable-static && make -j 256 V=1 && make install && /usr/bin/cmake -E env PATCHELF=/home/grodgers/.local/bin/patchelf THEROCK_SOURCE_DIR=/work/grodgers/git/tr-aomp/TheRock Python3_EXECUTABLE=/work/grodgers/git/tr-aomp/TheRock/.venv/bin/python3 -- bash /work/grodgers/git/tr-aomp/TheRock/third-party/sysdeps/linux/numactl/patch_install.sh /work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/stage/lib/rocm_sysdeps
+10.8	Patching sources...
+10.8	libtoolize: putting auxiliary files in AC_CONFIG_AUX_DIR, 'build-aux'.
+10.8	libtoolize: copying file 'build-aux/ltmain.sh'
+10.8	libtoolize: putting macros in AC_CONFIG_MACRO_DIRS, 'm4'.
+10.8	libtoolize: copying file 'm4/libtool.m4'
+10.8	libtoolize: copying file 'm4/ltoptions.m4'
+10.8	libtoolize: copying file 'm4/ltsugar.m4'
+10.8	libtoolize: copying file 'm4/ltversion.m4'
+10.8	libtoolize: copying file 'm4/lt~obsolete.m4'
+10.8	configure.ac:23: warning: The macro `AC_TRY_COMPILE' is obsolete.
+10.8	configure.ac:23: You should run autoupdate.
+10.8	./lib/autoconf/general.m4:2847: AC_TRY_COMPILE is expanded from...
+10.8	lib/m4sugar/m4sh.m4:594: AS_CASE is expanded from...
+10.8	lib/m4sugar/m4sh.m4:692: _AS_IF_ELSE is expanded from...
+10.8	lib/m4sugar/m4sh.m4:699: AS_IF is expanded from...
+10.8	./lib/autoconf/general.m4:2249: AC_CACHE_VAL is expanded from...
+10.8	m4/ax_tls.m4:49: AX_TLS is expanded from...
+10.8	configure.ac:23: the top level
+10.8	configure.ac:13: installing 'build-aux/compile'
+10.8	configure.ac:9: installing 'build-aux/missing'
+10.8	Makefile.am: installing 'build-aux/depcomp'
+10.8	checking for a BSD-compatible install... /usr/bin/install -c
+10.8	checking whether build environment is sane... yes
+10.8	checking for a race-free mkdir -p... /usr/bin/mkdir -p
+10.8	checking for gawk... gawk
+10.8	checking whether make sets $(MAKE)... yes
+10.8	checking whether make supports nested variables... yes
+10.8	checking whether make supports nested variables... (cached) yes
+10.8	checking build system type... x86_64-pc-linux-gnu
+10.8	checking host system type... x86_64-pc-linux-gnu
+10.8	checking how to print strings... printf
+10.8	checking whether make supports the include directive... yes (GNU style)
+10.8	checking for gcc... gcc
+10.8	checking whether the C compiler works... yes
+10.8	checking for C compiler default output file name... a.out
+10.8	checking for suffix of executables... 
+10.8	checking whether we are cross compiling... no
+10.8	checking for suffix of object files... o
+10.8	checking whether the compiler supports GNU C... yes
+10.8	checking whether gcc accepts -g... yes
+10.8	checking for gcc option to enable C11 features... none needed
+10.8	checking whether gcc understands -c and -o together... yes
+10.8	checking dependency style of gcc... gcc3
+10.8	checking for a sed that does not truncate output... /usr/bin/sed
+10.8	checking for grep that handles long lines and -e... /usr/bin/grep
+10.8	checking for egrep... /usr/bin/grep -E
+10.8	checking for fgrep... /usr/bin/grep -F
+10.8	checking for ld used by gcc... /usr/bin/ld
+10.8	checking if the linker (/usr/bin/ld) is GNU ld... yes
+10.8	checking for BSD- or MS-compatible name lister (nm)... /usr/bin/nm -B
+10.8	checking the name lister (/usr/bin/nm -B) interface... BSD nm
+10.8	checking whether ln -s works... yes
+10.8	checking the maximum length of command line arguments... 1572864
+10.8	checking how to convert x86_64-pc-linux-gnu file names to x86_64-pc-linux-gnu format... func_convert_file_noop
+10.8	checking how to convert x86_64-pc-linux-gnu file names to toolchain format... func_convert_file_noop
+10.8	checking for /usr/bin/ld option to reload object files... -r
+10.8	checking for file... file
+10.8	checking for objdump... objdump
+10.8	checking how to recognize dependent libraries... pass_all
+10.8	checking for dlltool... no
+10.8	checking how to associate runtime and link libraries... printf %s\n
+10.8	checking for ar... ar
+10.8	checking for archiver @FILE support... @
+10.8	checking for strip... strip
+10.8	checking for ranlib... ranlib
+10.8	checking command to parse /usr/bin/nm -B output from gcc object... ok
+10.8	checking for sysroot... no
+10.8	checking for a working dd... /usr/bin/dd
+10.8	checking how to truncate binary pipes... /usr/bin/dd bs=4096 count=1
+10.8	checking for mt... mt
+10.8	checking if mt is a manifest tool... no
+10.8	checking for stdio.h... yes
+10.8	checking for stdlib.h... yes
+10.8	checking for string.h... yes
+10.8	checking for inttypes.h... yes
+10.8	checking for stdint.h... yes
+10.8	checking for strings.h... yes
+10.8	checking for sys/stat.h... yes
+10.8	checking for sys/types.h... yes
+10.8	checking for unistd.h... yes
+10.8	checking for dlfcn.h... yes
+10.8	checking for objdir... .libs
+10.8	checking if gcc supports -fno-rtti -fno-exceptions... no
+10.8	checking for gcc option to produce PIC... -fPIC -DPIC
+10.8	checking if gcc PIC flag -fPIC -DPIC works... yes
+10.8	checking if gcc static flag -static works... yes
+10.8	checking if gcc supports -c -o file.o... yes
+10.8	checking if gcc supports -c -o file.o... (cached) yes
+10.8	checking whether the gcc linker (/usr/bin/ld -m elf_x86_64) supports shared libraries... yes
+10.8	checking whether -lc should be explicitly linked in... no
+10.8	checking dynamic linker characteristics... GNU/Linux ld.so
+10.8	checking how to hardcode library paths into programs... immediate
+10.8	checking whether stripping libraries is possible... yes
+10.8	checking if libtool supports shared libraries... yes
+10.8	checking whether to build shared libraries... yes
+10.8	checking whether to build static libraries... no
+10.8	checking for gcc... (cached) gcc
+10.8	checking whether the compiler supports GNU C... (cached) yes
+10.8	checking whether gcc accepts -g... (cached) yes
+10.8	checking for gcc option to enable C11 features... (cached) none needed
+10.8	checking whether gcc understands -c and -o together... (cached) yes
+10.8	checking dependency style of gcc... (cached) gcc3
+10.8	checking for special C compiler options needed for large files... no
+10.8	checking for _FILE_OFFSET_BITS value needed for large files... no
+10.8	checking for thread local storage (TLS) class... __thread
+10.8	checking whether C compiler accepts -ftree-vectorize... yes
+10.8	checking for library containing __atomic_fetch_and_1... -latomic
+10.8	checking that generated files are newer than configure... done
+10.8	configure: creating ./config.status
+10.8	config.status: creating Makefile
+10.8	config.status: creating config.h
+10.8	config.status: executing depfiles commands
+10.8	config.status: executing libtool commands
+10.8	make  all-am
+10.8	make[1]: Entering directory '/work1/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build'
+10.8	gcc -DHAVE_CONFIG_H -I. -I/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build/s  -Wall  -g -O2 -DVERSION=\"2.0.19\"  -MT numactl-numactl.o -MD -MP -MF .deps/numactl-numactl.Tpo -c -o numactl-numactl.o `test -f 'numactl.c' || echo '/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build/s/'`numactl.c
+10.8	gcc -DHAVE_CONFIG_H -I. -I/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build/s  -Wall  -g -O2 -DVERSION=\"2.0.19\"  -MT numactl-util.o -MD -MP -MF .deps/numactl-util.Tpo -c -o numactl-util.o `test -f 'util.c' || echo '/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build/s/'`util.c
+10.8	gcc -DHAVE_CONFIG_H -I. -I/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build/s  -Wall  -g -O2 -DVERSION=\"2.0.19\"  -MT numactl-shm.o -MD -MP -MF .deps/numactl-shm.Tpo -c -o numactl-shm.o `test -f 'shm.c' || echo '/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build/s/'`shm.c
+10.8	depbase=`echo libnuma.lo | sed 's|[^/]*$|.deps/&|;s|\.lo$||'`;\
+10.8	/bin/bash ./libtool  --tag=CC   --mode=compile gcc -DHAVE_CONFIG_H -I. -I/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build/s  -Wall  -g -O2  -MT libnuma.lo -MD -MP -MF $depbase.Tpo -c -o libnuma.lo /work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build/s/libnuma.c &&\
+10.8	mv -f $depbase.Tpo $depbase.Plo
+10.8	depbase=`echo syscall.lo | sed 's|[^/]*$|.deps/&|;s|\.lo$||'`;\
+10.8	/bin/bash ./libtool  --tag=CC   --mode=compile gcc -DHAVE_CONFIG_H -I. -I/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build/s  -Wall  -g -O2  -MT syscall.lo -MD -MP -MF $depbase.Tpo -c -o syscall.lo /work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build/s/syscall.c &&\
+10.8	mv -f $depbase.Tpo $depbase.Plo
+10.8	depbase=`echo distance.lo | sed 's|[^/]*$|.deps/&|;s|\.lo$||'`;\
+10.8	/bin/bash ./libtool  --tag=CC   --mode=compile gcc -DHAVE_CONFIG_H -I. -I/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build/s  -Wall  -g -O2  -MT distance.lo -MD -MP -MF $depbase.Tpo -c -o distance.lo /work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build/s/distance.c &&\
+10.8	mv -f $depbase.Tpo $depbase.Plo
+10.8	depbase=`echo affinity.lo | sed 's|[^/]*$|.deps/&|;s|\.lo$||'`;\
+10.8	/bin/bash ./libtool  --tag=CC   --mode=compile gcc -DHAVE_CONFIG_H -I. -I/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build/s  -Wall  -g -O2  -MT affinity.lo -MD -MP -MF $depbase.Tpo -c -o affinity.lo /work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build/s/affinity.c &&\
+10.8	mv -f $depbase.Tpo $depbase.Plo
+10.8	depbase=`echo sysfs.lo | sed 's|[^/]*$|.deps/&|;s|\.lo$||'`;\
+10.8	/bin/bash ./libtool  --tag=CC   --mode=compile gcc -DHAVE_CONFIG_H -I. -I/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build/s  -Wall  -g -O2  -MT sysfs.lo -MD -MP -MF $depbase.Tpo -c -o sysfs.lo /work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build/s/sysfs.c &&\
+10.8	mv -f $depbase.Tpo $depbase.Plo
+10.8	depbase=`echo rtnetlink.lo | sed 's|[^/]*$|.deps/&|;s|\.lo$||'`;\
+10.8	/bin/bash ./libtool  --tag=CC   --mode=compile gcc -DHAVE_CONFIG_H -I. -I/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build/s  -Wall  -g -O2  -MT rtnetlink.lo -MD -MP -MF $depbase.Tpo -c -o rtnetlink.lo /work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build/s/rtnetlink.c &&\
+10.8	mv -f $depbase.Tpo $depbase.Plo
+10.8	gcc -DHAVE_CONFIG_H -I. -I/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build/s  -Wall  -g -O2 -std=gnu99 -DVERSION=\"2.0.19\"  -MT numastat-numastat.o -MD -MP -MF .deps/numastat-numastat.Tpo -c -o numastat-numastat.o `test -f 'numastat.c' || echo '/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build/s/'`numastat.c
+10.8	gcc -DHAVE_CONFIG_H -I. -I/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build/s  -Wall -DHAVE_STREAM_LIB -DHAVE_MT -DHAVE_CLEAR_CACHE  -g -O2 -O3 -ffast-math -funroll-loops -ftree-vectorize  -MT numademo-numademo.o -MD -MP -MF .deps/numademo-numademo.Tpo -c -o numademo-numademo.o `test -f 'numademo.c' || echo '/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build/s/'`numademo.c
+10.8	gcc -DHAVE_CONFIG_H -I. -I/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build/s  -Wall -DHAVE_STREAM_LIB -DHAVE_MT -DHAVE_CLEAR_CACHE  -g -O2 -O3 -ffast-math -funroll-loops -ftree-vectorize  -MT numademo-stream_lib.o -MD -MP -MF .deps/numademo-stream_lib.Tpo -c -o numademo-stream_lib.o `test -f 'stream_lib.c' || echo '/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build/s/'`stream_lib.c
+10.8	gcc -DHAVE_CONFIG_H -I. -I/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build/s  -Wall -DHAVE_STREAM_LIB -DHAVE_MT -DHAVE_CLEAR_CACHE  -g -O2 -O3 -ffast-math -funroll-loops -ftree-vectorize  -MT numademo-mt.o -MD -MP -MF .deps/numademo-mt.Tpo -c -o numademo-mt.o `test -f 'mt.c' || echo '/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build/s/'`mt.c
+10.8	gcc -DHAVE_CONFIG_H -I. -I/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build/s  -Wall -DHAVE_STREAM_LIB -DHAVE_MT -DHAVE_CLEAR_CACHE  -g -O2 -O3 -ffast-math -funroll-loops -ftree-vectorize  -MT numademo-clearcache.o -MD -MP -MF .deps/numademo-clearcache.Tpo -c -o numademo-clearcache.o `test -f 'clearcache.c' || echo '/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build/s/'`clearcache.c
+10.8	gcc -DHAVE_CONFIG_H -I. -I/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build/s  -Wall -DHAVE_STREAM_LIB -DHAVE_MT -DHAVE_CLEAR_CACHE  -g -O2 -O3 -ffast-math -funroll-loops -ftree-vectorize  -MT numademo-util.o -MD -MP -MF .deps/numademo-util.Tpo -c -o numademo-util.o `test -f 'util.c' || echo '/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build/s/'`util.c
+10.8	depbase=`echo migratepages.o | sed 's|[^/]*$|.deps/&|;s|\.o$||'`;\
+10.8	gcc -DHAVE_CONFIG_H -I. -I/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build/s  -Wall  -g -O2  -MT migratepages.o -MD -MP -MF $depbase.Tpo -c -o migratepages.o /work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build/s/migratepages.c &&\
+10.8	mv -f $depbase.Tpo $depbase.Po
+10.8	depbase=`echo util.o | sed 's|[^/]*$|.deps/&|;s|\.o$||'`;\
+10.8	gcc -DHAVE_CONFIG_H -I. -I/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build/s  -Wall  -g -O2  -MT util.o -MD -MP -MF $depbase.Tpo -c -o util.o /work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build/s/util.c &&\
+10.8	mv -f $depbase.Tpo $depbase.Po
+10.8	depbase=`echo migspeed.o | sed 's|[^/]*$|.deps/&|;s|\.o$||'`;\
+10.8	gcc -DHAVE_CONFIG_H -I. -I/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build/s  -Wall  -g -O2  -MT migspeed.o -MD -MP -MF $depbase.Tpo -c -o migspeed.o /work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build/s/migspeed.c &&\
+10.8	mv -f $depbase.Tpo $depbase.Po
+10.8	depbase=`echo memhog.o | sed 's|[^/]*$|.deps/&|;s|\.o$||'`;\
+10.8	gcc -DHAVE_CONFIG_H -I. -I/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build/s  -Wall  -g -O2  -MT memhog.o -MD -MP -MF $depbase.Tpo -c -o memhog.o /work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build/s/memhog.c &&\
+10.8	mv -f $depbase.Tpo $depbase.Po
+10.8	/usr/bin/sed -e 's,@VERSION\@,2.0.19,g' -e 's,@prefix\@,/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/stage/lib/rocm_sysdeps,g' -e 's,@exec_prefix\@,/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/stage/lib/rocm_sysdeps,g' -e 's,@libdir\@,/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/stage/lib/rocm_sysdeps/lib,g' -e 's,@includedir\@,/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/stage/lib/rocm_sysdeps/include,g' -e 's,@LIBS\@,-latomic ,g' < /work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build/s/numa.pc.in > numa.pc || rm numa.pc
+10.8	mv -f .deps/numactl-util.Tpo .deps/numactl-util.Po
+10.8	mv -f .deps/numademo-mt.Tpo .deps/numademo-mt.Po
+10.8	mv -f .deps/numademo-clearcache.Tpo .deps/numademo-clearcache.Po
+10.8	libtool: compile:  gcc -DHAVE_CONFIG_H -I. -I/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build/s -Wall -g -O2 -MT libnuma.lo -MD -MP -MF .deps/libnuma.Tpo -c /work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build/s/libnuma.c  -fPIC -DPIC -o .libs/libnuma.o
+10.8	libtool: compile:  gcc -DHAVE_CONFIG_H -I. -I/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build/s -Wall -g -O2 -MT distance.lo -MD -MP -MF .deps/distance.Tpo -c /work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build/s/distance.c  -fPIC -DPIC -o .libs/distance.o
+10.8	libtool: compile:  gcc -DHAVE_CONFIG_H -I. -I/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build/s -Wall -g -O2 -MT rtnetlink.lo -MD -MP -MF .deps/rtnetlink.Tpo -c /work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build/s/rtnetlink.c  -fPIC -DPIC -o .libs/rtnetlink.o
+10.8	libtool: compile:  gcc -DHAVE_CONFIG_H -I. -I/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build/s -Wall -g -O2 -MT syscall.lo -MD -MP -MF .deps/syscall.Tpo -c /work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build/s/syscall.c  -fPIC -DPIC -o .libs/syscall.o
+10.8	libtool: compile:  gcc -DHAVE_CONFIG_H -I. -I/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build/s -Wall -g -O2 -MT affinity.lo -MD -MP -MF .deps/affinity.Tpo -c /work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build/s/affinity.c  -fPIC -DPIC -o .libs/affinity.o
+10.8	libtool: compile:  gcc -DHAVE_CONFIG_H -I. -I/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build/s -Wall -g -O2 -MT sysfs.lo -MD -MP -MF .deps/sysfs.Tpo -c /work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build/s/sysfs.c  -fPIC -DPIC -o .libs/sysfs.o
+10.8	mv -f .deps/numademo-util.Tpo .deps/numademo-util.Po
+10.8	mv -f .deps/numactl-shm.Tpo .deps/numactl-shm.Po
+10.8	mv -f .deps/numactl-numactl.Tpo .deps/numactl-numactl.Po
+10.8	mv -f .deps/numademo-stream_lib.Tpo .deps/numademo-stream_lib.Po
+10.8	mv -f .deps/numademo-numademo.Tpo .deps/numademo-numademo.Po
+10.8	mv -f .deps/numastat-numastat.Tpo .deps/numastat-numastat.Po
+10.8	/bin/bash ./libtool  --tag=CC   --mode=link gcc -g -O2 -std=gnu99 -DVERSION=\"2.0.19\"    -o numastat numastat-numastat.o  -latomic 
+10.8	libtool: link: gcc -g -O2 -std=gnu99 -DVERSION=\"2.0.19\" -o numastat numastat-numastat.o  -latomic
+10.8	/bin/bash ./libtool  --tag=CC   --mode=link gcc -g -O2  -version-info 1:0:0 -Wl,--version-script,/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build/s/versions.ldscript -Wl,-init,numa_init -Wl,-fini,numa_fini  -o libnuma.la -rpath /work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/stage/lib/rocm_sysdeps/lib libnuma.lo syscall.lo distance.lo affinity.lo sysfs.lo rtnetlink.lo  -latomic 
+10.8	libtool: link: gcc -shared  -fPIC -DPIC  .libs/libnuma.o .libs/syscall.o .libs/distance.o .libs/affinity.o .libs/sysfs.o .libs/rtnetlink.o   -latomic  -g -O2 -Wl,--version-script -Wl,/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build/s/versions.ldscript -Wl,-init -Wl,numa_init -Wl,-fini -Wl,numa_fini   -Wl,-soname -Wl,libnuma.so.1 -o .libs/libnuma.so.1.0.0
+10.8	libtool: link: (cd ".libs" && rm -f "libnuma.so.1" && ln -s "libnuma.so.1.0.0" "libnuma.so.1")
+10.8	libtool: link: (cd ".libs" && rm -f "libnuma.so" && ln -s "libnuma.so.1.0.0" "libnuma.so")
+10.8	libtool: link: ( cd ".libs" && rm -f "libnuma.la" && ln -s "../libnuma.la" "libnuma.la" )
+10.8	/bin/bash ./libtool  --tag=CC   --mode=link gcc -g -O2 -DVERSION=\"2.0.19\"    -o numactl numactl-numactl.o numactl-util.o numactl-shm.o libnuma.la -latomic 
+10.8	/bin/bash ./libtool  --tag=CC   --mode=link gcc -g -O2 -O3 -ffast-math -funroll-loops -ftree-vectorize    -o numademo numademo-numademo.o numademo-stream_lib.o numademo-mt.o numademo-clearcache.o numademo-util.o libnuma.la -lm -latomic 
+10.8	/bin/bash ./libtool  --tag=CC   --mode=link gcc -g -O2    -o migspeed migspeed.o util.o libnuma.la  -latomic 
+10.8	/bin/bash ./libtool  --tag=CC   --mode=link gcc -g -O2    -o migratepages migratepages.o util.o libnuma.la -latomic 
+10.8	/bin/bash ./libtool  --tag=CC   --mode=link gcc -g -O2    -o memhog memhog.o util.o libnuma.la -latomic 
+10.8	libtool: link: gcc -g -O2 -DVERSION=\"2.0.19\" -o .libs/numactl numactl-numactl.o numactl-util.o numactl-shm.o  ./.libs/libnuma.so -latomic -Wl,-rpath -Wl,/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/stage/lib/rocm_sysdeps/lib
+10.8	libtool: link: gcc -g -O2 -o .libs/memhog memhog.o util.o  ./.libs/libnuma.so -latomic -Wl,-rpath -Wl,/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/stage/lib/rocm_sysdeps/lib
+10.8	libtool: link: gcc -g -O2 -o .libs/migspeed migspeed.o util.o  ./.libs/libnuma.so -latomic -Wl,-rpath -Wl,/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/stage/lib/rocm_sysdeps/lib
+10.8	libtool: link: gcc -g -O2 -O3 -ffast-math -funroll-loops -ftree-vectorize -o .libs/numademo numademo-numademo.o numademo-stream_lib.o numademo-mt.o numademo-clearcache.o numademo-util.o  ./.libs/libnuma.so -lm -latomic -Wl,-rpath -Wl,/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/stage/lib/rocm_sysdeps/lib
+10.8	libtool: link: gcc -g -O2 -o .libs/migratepages migratepages.o util.o  ./.libs/libnuma.so -latomic -Wl,-rpath -Wl,/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/stage/lib/rocm_sysdeps/lib
+10.8	make[1]: Leaving directory '/work1/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build'
+10.8	make[1]: Entering directory '/work1/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build'
+10.8	 /usr/bin/mkdir -p '/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/stage/lib/rocm_sysdeps/lib'
+10.8	 /bin/bash ./libtool   --mode=install /usr/bin/install -c   libnuma.la '/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/stage/lib/rocm_sysdeps/lib'
+10.8	libtool: install: /usr/bin/install -c .libs/libnuma.so.1.0.0 /work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/stage/lib/rocm_sysdeps/lib/libnuma.so.1.0.0
+10.8	libtool: install: (cd /work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/stage/lib/rocm_sysdeps/lib && { ln -s -f libnuma.so.1.0.0 libnuma.so.1 || { rm -f libnuma.so.1 && ln -s libnuma.so.1.0.0 libnuma.so.1; }; })
+10.8	libtool: install: (cd /work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/stage/lib/rocm_sysdeps/lib && { ln -s -f libnuma.so.1.0.0 libnuma.so || { rm -f libnuma.so && ln -s libnuma.so.1.0.0 libnuma.so; }; })
+10.8	libtool: install: /usr/bin/install -c .libs/libnuma.lai /work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/stage/lib/rocm_sysdeps/lib/libnuma.la
+10.8	libtool: finish: PATH="/work/grodgers/git/tr-aomp/TheRock/.venv/bin:/home/grodgers/bin:/home/grodgers/.local/bin:/usr/local/go/bin:/usr/local/gh-cli/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/sbin" ldconfig -n /work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/stage/lib/rocm_sysdeps/lib
+10.8	----------------------------------------------------------------------
+10.8	Libraries have been installed in:
+10.8	   /work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/stage/lib/rocm_sysdeps/lib
+10.8	
+10.8	If you ever happen to want to link against installed libraries
+10.8	in a given directory, LIBDIR, you must either use libtool, and
+10.8	specify the full pathname of the library, or use the '-LLIBDIR'
+10.8	flag during linking and do at least one of the following:
+10.8	   - add LIBDIR to the 'LD_LIBRARY_PATH' environment variable
+10.8	     during execution
+10.8	   - add LIBDIR to the 'LD_RUN_PATH' environment variable
+10.8	     during linking
+10.8	   - use the '-Wl,-rpath -Wl,LIBDIR' linker flag
+10.8	   - have your system administrator add LIBDIR to '/etc/ld.so.conf'
+10.8	
+10.8	See any operating system documentation about shared libraries for
+10.8	more information, such as the ld(1) and ld.so(8) manual pages.
+10.8	----------------------------------------------------------------------
+10.8	 /usr/bin/mkdir -p '/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/stage/lib/rocm_sysdeps/bin'
+10.8	  /bin/bash ./libtool   --mode=install /usr/bin/install -c numactl numastat numademo migratepages migspeed memhog '/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/stage/lib/rocm_sysdeps/bin'
+10.8	libtool: install: /usr/bin/install -c .libs/numactl /work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/stage/lib/rocm_sysdeps/bin/numactl
+10.8	libtool: install: /usr/bin/install -c numastat /work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/stage/lib/rocm_sysdeps/bin/numastat
+10.8	libtool: install: /usr/bin/install -c .libs/numademo /work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/stage/lib/rocm_sysdeps/bin/numademo
+10.8	libtool: install: /usr/bin/install -c .libs/migratepages /work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/stage/lib/rocm_sysdeps/bin/migratepages
+10.8	libtool: install: /usr/bin/install -c .libs/migspeed /work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/stage/lib/rocm_sysdeps/bin/migspeed
+10.8	libtool: install: /usr/bin/install -c .libs/memhog /work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/stage/lib/rocm_sysdeps/bin/memhog
+10.8	 /usr/bin/mkdir -p '/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/stage/lib/rocm_sysdeps/include'
+10.8	 /usr/bin/install -c -m 644 /work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build/s/numa.h /work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build/s/numacompat1.h /work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build/s/numaif.h '/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/stage/lib/rocm_sysdeps/include'
+10.8	 /usr/bin/mkdir -p '/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/stage/lib/rocm_sysdeps/share/man/man2'
+10.8	 /usr/bin/install -c -m 644 /work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build/s/move_pages.2 '/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/stage/lib/rocm_sysdeps/share/man/man2'
+10.8	 /usr/bin/mkdir -p '/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/stage/lib/rocm_sysdeps/share/man/man3'
+10.8	 /usr/bin/install -c -m 644 /work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build/s/numa.3 '/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/stage/lib/rocm_sysdeps/share/man/man3'
+10.8	 /usr/bin/mkdir -p '/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/stage/lib/rocm_sysdeps/share/man/man8'
+10.8	 /usr/bin/install -c -m 644 /work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build/s/numactl.8 /work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build/s/numastat.8 /work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build/s/migratepages.8 /work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build/s/migspeed.8 /work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build/s/memhog.8 '/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/stage/lib/rocm_sysdeps/share/man/man8'
+10.8	 /usr/bin/mkdir -p '/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/stage/lib/rocm_sysdeps/lib/pkgconfig'
+10.8	 /usr/bin/install -c -m 644 numa.pc '/work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/stage/lib/rocm_sysdeps/lib/pkgconfig'
+10.8	make[1]: Leaving directory '/work1/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build'
+10.8	++ Exec [/work1/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build]$ /home/grodgers/.local/bin/patchelf --print-soname /work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/stage/lib/rocm_sysdeps/lib/libnuma.so
+10.8	Prefixing SONAME libnuma.so.1 -> librocm_sysdeps_numa.so.1 for /work1/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/stage/lib/rocm_sysdeps/lib/libnuma.so.1.0.0
+10.8	++ Exec [/work1/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build]$ /home/grodgers/.local/bin/patchelf --set-soname librocm_sysdeps_numa.so.1 /work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/stage/lib/rocm_sysdeps/lib/librocm_sysdeps_numa.so.1
+10.8	Removing original link: /work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/stage/lib/rocm_sysdeps/lib/libnuma.so
+10.8	Removing original link: /work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/stage/lib/rocm_sysdeps/lib/libnuma.so.1
+10.8	++ Exec [/work1/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build]$ /home/grodgers/.local/bin/patchelf --replace-needed libnuma.so.1 librocm_sysdeps_numa.so.1 /work/grodgers/git/tr-aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/stage/lib/rocm_sysdeps/lib/librocm_sysdeps_numa.so.1
+END	1757693416.783486	10.770655870437622	0
