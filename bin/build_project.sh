@@ -95,7 +95,16 @@ fi
 if [ "$AOMP_LEGACY_OPENMP" != 0 ]; then
   LLVM_RUNTIMES="libcxx;libcxxabi;libunwind;compiler-rt"
 else
-  LLVM_RUNTIMES="libcxx;libcxxabi;libunwind;openmp;offload;compiler-rt;flang-rt"
+  LLVM_RUNTIMES="libcxx;libcxxabi;libunwind;openmp;offload;compiler-rt"
+  if [ "$AOMP_SKIP_FLANG_NEW" = 0 ]; then
+    LLVM_RUNTIMES="$LLVM_RUNTIMES;flang-rt"
+  fi
+fi
+
+declare -a _omptarget_fortrt_opt
+
+if [ "$AOMP_SKIP_FLANG_NEW" = 0 ]; then
+   _omptarget_fortrt_opt=(-DLIBOMPTARGET_BUILD_DEVICE_FORTRT=ON)
 fi
 
 rocmdevicelib_loc_new=lib/llvm/lib/clang/$AOMP_MAJOR_VERSION/lib/amdgcn
@@ -122,7 +131,7 @@ MYCMAKEOPTS=(-DCMAKE_BUILD_TYPE="$BUILD_TYPE"
              "${AOMP_SET_NINJA_GEN[@]}"
              "${_qmathopt[@]}"
              "${_amdflangrtopt[@]}"
-             -DLIBOMPTARGET_BUILD_DEVICE_FORTRT=ON
+             "${_omptarget_fortrt_opt[@]}"
              -DLLVM_BUILD_LLVM_DYLIB=ON
              -DLLVM_LINK_LLVM_DYLIB=ON
              -DCLANG_LINK_CLANG_DYLIB=ON
@@ -146,7 +155,6 @@ MYCMAKEOPTS=(-DCMAKE_BUILD_TYPE="$BUILD_TYPE"
              -DLIBOMP_INSTALL_RPATH="$AOMP_ORIGIN_RPATH_LIST"
              -DLIBOMPTARGET_INSTALL_RPATH="$AOMP_ORIGIN_RPATH_LIST"
              -DLIBOMPTARGET_NO_SANITIZER_AMDGPU=1
-             -DLIBOMPTARGET_BUILD_DEVICE_FORTRT=On
              -DCMAKE_EXPORT_COMPILE_COMMANDS=ON)
 
 if [ -f "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/device/CMakeLists.txt" ]; then

@@ -105,7 +105,10 @@ if [ "$AOMP_STANDALONE_BUILD" == 1 ] ; then
   if [ "$_hostarch" == "x86_64" ] ; then
     # These components build on x86_64, so add them to components list
     if [ "$AOMP_SKIP_FLANG" == 0 ] ; then
-      components="$components llvm-classic flang-classic pgmath flang flang_runtime"
+      components="$components llvm-classic flang-classic pgmath flang"
+    fi
+    if [ "$AOMP_SKIP_FLANG" == 0 ] && [ "$AOMP_SKIP_FLANG_NEW" == 0 ]; then
+      components="$components flang_runtime"
     fi
     components="$components hipcc hipamd hipify"
   fi
