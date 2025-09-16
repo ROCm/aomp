@@ -6,7 +6,7 @@
 #include <stdio.h>
 
 int main() {
-  int N = 10;
+  int N = 1000000;
 
   int a[N];
   int b[N];
