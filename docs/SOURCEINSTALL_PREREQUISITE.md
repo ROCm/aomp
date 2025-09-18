@@ -5,7 +5,7 @@
 #### Debian or Ubuntu Packages
 
 ```
-  sudo apt-get install wget gcc g++ pkg-config libpci-dev libnuma-dev libffi-dev git python3 libopenmpi-dev gawk mesa-common-dev libtool libdrm-amdgpu1 libdrm-dev ccache libdw-dev libgtest-dev libsystemd-dev cmake openssl libssl-dev libgmp-dev libmpfr-dev libelf-dev patchelf pciutils python3.10-dev libudev-dev libgtest-dev libstdc++-12-dev python3-lxml ocl-icd-opencl-dev libsystemd-dev
+  sudo apt-get install wget gcc g++ pkg-config libpci-dev libnuma-dev libffi-dev git python3 libopenmpi-dev gawk mesa-common-dev libtool libdrm-amdgpu1 libdrm-dev ccache libdw-dev libgtest-dev libsystemd-dev cmake openssl libssl-dev libgmp-dev libmpfr-dev libelf-dev patchelf pciutils python3.10-dev libudev-dev libgtest-dev libstdc++-12-dev python3-lxml ocl-icd-opencl-dev libsystemd-dev libsqlite3-dev
 
   # Additional packages used by rocgdb
   sudo apt-get install texinfo libbison-dev bison flex libbabeltrace-dev python3-pip libncurses5-dev liblzma-dev python3-setuptools python3-dev libudev-dev libgmp-dev libmpfr-dev libdw-dev
@@ -29,7 +29,7 @@ Ubuntu 24.04 Only
 
 #### SLES-15-SP6 Packages
 ```
-  sudo zypper install wget libopenssl-devel elfutils libelf-devel git pciutils-devel libffi-devel gcc gcc-c++ libnuma-devel openmpi4-devel Mesa-libGL-devel libquadmath0 libtool libX11-devel systemd-devel hwdata unzip mpfr-devel ocl-icd-devel gcc7-fortran ncurses-devel
+  sudo zypper install wget libopenssl-devel elfutils libelf-devel git pciutils-devel libffi-devel gcc gcc-c++ libnuma-devel openmpi4-devel Mesa-libGL-devel libquadmath0 libtool libX11-devel systemd-devel hwdata unzip mpfr-devel ocl-icd-devel gcc7-fortran ncurses-devel sqlite-devel
 
   A symbolic link may be required at /usr/lib64: /usr/lib64/libquadmath.so -> /usr/lib64/libquadmath.so.0.
 
@@ -53,7 +53,7 @@ Ubuntu 24.04 Only
 #### RHEL Packages
 RHEL 8
 ```
-  sudo yum install dnf-plugins-core gcc-c++ git wget openssl-devel elfutils-libelf-devel elfutils-devel ccache pciutils-devel numactl-devel libffi-devel mesa-libGL-devel libtool libdrm libdrm-devel gmp-devel rpm-build gcc-gfortran libdw-devel libgtest-devel systemd-devel mpfr-devel python38 python38-devel ocl-icd-devel libatomic libquadmath-devel
+  sudo yum install dnf-plugins-core gcc-c++ git wget openssl-devel elfutils-libelf-devel elfutils-devel ccache pciutils-devel numactl-devel libffi-devel mesa-libGL-devel libtool libdrm libdrm-devel gmp-devel rpm-build gcc-gfortran libdw-devel libgtest-devel systemd-devel mpfr-devel python38 python38-devel ocl-icd-devel libatomic libquadmath-devel sqlite-devel
 
   # Additional packages used by rocgdb and roctracer
   sudo yum install texinfo bison flex ncurses-devel expat-devel xz-devel libbabeltrace-devel libatomic libdwarf-devel gtest-devel
@@ -67,7 +67,7 @@ RHEL 8
 
 RHEL 9
 ```
-  sudo dnf install dnf-plugins-core gcc-c++ git wget openssl-devel elfutils-libelf-devel elfutils-devel ccache pciutils-devel numactl-devel libffi-devel mesa-libGL-devel libtool libdrm libdrm-devel gmp-devel rpm-build gcc-gfortran libdw-devel libgtest-devel systemd-devel mpfr-devel python3-devel ocl-icd-devel libatomic libquadmath-devel
+  sudo dnf install dnf-plugins-core gcc-c++ git wget openssl-devel elfutils-libelf-devel elfutils-devel ccache pciutils-devel numactl-devel libffi-devel mesa-libGL-devel libtool libdrm libdrm-devel gmp-devel rpm-build gcc-gfortran libdw-devel libgtest-devel systemd-devel mpfr-devel python3-devel ocl-icd-devel libatomic libquadmath-devel sqlite-devel
 
   # Additional packages used by rocgdb and roctracer
   sudo dnf install texinfo bison flex ncurses-devel expat-devel xz-devel libbabeltrace-devel libatomic libdwarf-devel gtest-devel
