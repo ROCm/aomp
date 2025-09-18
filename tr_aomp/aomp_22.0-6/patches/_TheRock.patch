@@ -1,5 +1,5 @@
 diff --git a/compiler/CMakeLists.txt b/compiler/CMakeLists.txt
-index cdd56f8..37071c6 100644
+index cdd56f8..d48e8af 100644
 --- a/compiler/CMakeLists.txt
 +++ b/compiler/CMakeLists.txt
 @@ -10,6 +10,20 @@ if(THEROCK_ENABLE_COMPILER)
@@ -23,10 +23,13 @@ index cdd56f8..37071c6 100644
  
    # If the compiler is not pristine (i.e. has patches), then there will be a
    # ".amd-llvm.smrev" file present which must be used instead of the auto
-@@ -68,6 +82,17 @@ if(THEROCK_ENABLE_COMPILER)
+@@ -66,8 +80,18 @@ if(THEROCK_ENABLE_COMPILER)
+       -DCLANG_ENABLE_ARCMT=OFF
+       -DCLANG_ENABLE_STATIC_ANALYZER=OFF
        -DCLANG_ENABLE_CLANGD=OFF
-       -DCLANG_TIDY_ENABLE_STATIC_ANALYZER=OFF
- 
+-      -DCLANG_TIDY_ENABLE_STATIC_ANALYZER=OFF
+-
++      -DCLANG_TIDY_ENABLE_STATIC_ANALYZER=ON
 +      -DCLANG_TOOL_CLANG_LINKER_WRAPPER_BUILD=ON
 +      -DOPENMP_ENABLE_LIBOMPTARGET=ON
 +      -DLIBOMPTARGET_BUILD_DEVICE_FORTRT=ON
@@ -42,7 +45,7 @@ index cdd56f8..37071c6 100644
      BUILD_DEPS
        rocm-cmake
 diff --git a/compiler/pre_hook_amd-llvm.cmake b/compiler/pre_hook_amd-llvm.cmake
-index a01d500..da9c1eb 100644
+index a01d500..3296cfe 100644
 --- a/compiler/pre_hook_amd-llvm.cmake
 +++ b/compiler/pre_hook_amd-llvm.cmake
 @@ -14,12 +14,28 @@ if(WIN32)
@@ -98,7 +101,7 @@ index a01d500..da9c1eb 100644
  
  # TODO2: This mechanism has races in certain situations, failing to create a
  # symlink. Revisit once devicemanager code is made more robust.
-@@ -47,9 +65,10 @@ set(LLVM_EXTERNAL_PROJECTS "amddevice-libs" CACHE STRING "Enable extra projects"
+@@ -47,9 +65,9 @@ set(LLVM_EXTERNAL_PROJECTS "amddevice-libs" CACHE STRING "Enable extra projects"
  # options to manage this transition but they require knowing the clange resource
  # dir. In order to avoid drift, we just fixate that too. This can all be
  # removed in a future version.
@@ -108,11 +111,10 @@ index a01d500..da9c1eb 100644
 +set(CLANG_RESOURCE_DIR "../lib/clang/${LLVM_VERSION_MAJOR}" CACHE STRING "Resource dir" FORCE)
 +set(ROCM_DEVICE_LIBS_BITCODE_INSTALL_LOC_NEW "lib/clang/${LLVM_VERSION_MAJOR}/lib/amdgcn" CACHE STRING "New devicelibs loc" FORCE)
 +set(ROCM_DEVICE_LIBS_BITCODE_INSTALL_LOC_OLD "amdgcn" CACHE STRING "Old devicelibs loc" FORCE)
-+message("= = = = = = ROCM_DEVICE_LIBS_BITCODE_INSTALL_LOC_NEW=${ROCM_DEVICE_LIBS_BITCODE_INSTALL_LOC_NEW}")
  
  # Setup the install rpath (let CMake handle build RPATH per usual):
  # * Executables and libraries can always search their adjacent lib directory
-@@ -106,14 +125,14 @@ block()
+@@ -106,14 +124,14 @@ block()
      OPT
      YAML2OBJ
    )
@@ -129,7 +131,7 @@ index a01d500..da9c1eb 100644
    therock_set_implicit_llvm_options(LLVM "${CMAKE_CURRENT_SOURCE_DIR}/tools" "${_llvm_required_tools}")
  
    # Clang tools that are required.
-@@ -123,6 +142,7 @@ block()
+@@ -123,6 +141,7 @@ block()
      CLANG_OFFLOAD_BUNDLER
      CLANG_OFFLOAD_PACKAGER
      CLANG_OFFLOAD_WRAPPER
