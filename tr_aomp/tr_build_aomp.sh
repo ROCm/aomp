@@ -155,10 +155,9 @@ for ii in "${amd_compiler_cfg[@]}" ; do
 done
 
 echo
-echo "===== Saving TheRock build logs to $AOMP_BUILD_LOGS"
-echo "rsync -a --delete $_therockdir/build/logs/ $AOMP_BUILD_LOGS/"
-rsync -a --delete "$_therockdir"/build/logs/ "$AOMP_BUILD_LOGS"/
-echo
+echo "===== Saving TheRock build stats to $AOMP_INFO_FILE"
+#echo "rsync -a --delete $_therockdir/build/logs/ $AOMP_BUILD_LOGS/"
+#rsync -a --delete "$_therockdir"/build/logs/ "$AOMP_BUILD_LOGS"/
 _end_date=$(date)
 _end_secs=$(date +%s)
 echo
