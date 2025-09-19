@@ -1,5 +1,9 @@
 #!/bin/bash
 #
+#Copyright © Advanced Micro Devices, Inc., or its affiliates.
+#
+#SPDX-License-Identifier:  MIT
+# 
 #  build_llvm-classic.sh:  Script to build the classic LLVM used by flang-classic. binary driver
 #         This driver will never call flang -fc1, it only calls binaries
 #             clang, flang1, flang2, built elsewhere

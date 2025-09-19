@@ -1,5 +1,9 @@
 #!/bin/bash
 # 
+#Copyright © Advanced Micro Devices, Inc., or its affiliates.
+#
+#SPDX-License-Identifier:  MIT
+# 
 #  build_hipblas.sh:  Script to build and install hipblas library
 #
 #

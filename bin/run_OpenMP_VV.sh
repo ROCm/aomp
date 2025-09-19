@@ -1,6 +1,18 @@
 #!/bin/bash
 # 
-#  run_OpenMP_VV.sh: 
+#Copyright © Advanced Micro Devices, Inc., or its affiliates.
+#
+#SPDX-License-Identifier:  MIT
+# 
+#
+#  run_OpenMP_VV.sh:
+#    Script for running the OpenMP_VV suite found at
+#    https://github.com/OpenMP-Validation-and-Verification/OpenMP_VV
+#    We expect the repository to be located within 'AOMP_REPOS_TEST'
+#
+#    By default, all test cases will be compiled & executed. Then the results
+#    will be processed into reports for further evaluation. Some tests might
+#    get excluded automatically, depending on the available hardware.
 #
 
 ulimit -t 120

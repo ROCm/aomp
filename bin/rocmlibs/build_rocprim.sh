@@ -1,4 +1,9 @@
 #!/bin/bash
+#
+#Copyright © Advanced Micro Devices, Inc., or its affiliates.
+#
+#SPDX-License-Identifier:  MIT
+# 
 # 
 #  build_rocprim.sh:  Script to build and install rocprim library
 #                     This build is classic  cmake, make, make install
