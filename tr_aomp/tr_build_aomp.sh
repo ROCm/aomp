@@ -123,10 +123,14 @@ date
 
 echo
 echo "===== copying ROCm build from $_therockdir/build/dest/rocm to $AOMP_INSTALL_DIR" 
+cd "$_therockdir/build" || exit
 echo "mkdir -p $AOMP_INSTALL_DIR"
 mkdir -p "$AOMP_INSTALL_DIR"
 echo "rsync -a$_rsync_v --delete dist/rocm/ $AOMP_INSTALL_DIR/"
 rsync -a$_rsync_v --delete dist/rocm/ "$AOMP_INSTALL_DIR"/
+# FileCheck binary not found in dist/rocm, so get it from amd-llvm build
+echo cp -p  ./compiler/amd-llvm/build/bin/FileCheck "$AOMP_INSTALL_DIR/lib/llvm/bin/FileCheck"
+cp -p  ./compiler/amd-llvm/build/bin/FileCheck "$AOMP_INSTALL_DIR/lib/llvm/bin/FileCheck"
 
 echo
 echo "===== Linking $AOMP_INSTALL_DIR to $AOMP ====="
@@ -151,10 +155,9 @@ for ii in "${amd_compiler_cfg[@]}" ; do
 done
 
 echo
-echo "===== Saving TheRock build logs to $AOMP_BUILD_LOGS"
-echo "rsync -a --delete $_therockdir/build/logs/ $AOMP_BUILD_LOGS/"
-rsync -a --delete "$_therockdir"/build/logs/ "$AOMP_BUILD_LOGS"/
-echo
+echo "===== Saving TheRock build stats to $AOMP_INFO_FILE"
+#echo "rsync -a --delete $_therockdir/build/logs/ $AOMP_BUILD_LOGS/"
+#rsync -a --delete "$_therockdir"/build/logs/ "$AOMP_BUILD_LOGS"/
 _end_date=$(date)
 _end_secs=$(date +%s)
 echo

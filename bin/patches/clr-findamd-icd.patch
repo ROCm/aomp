@@ -24,18 +24,3 @@ index 0af9f1eab..b2bcb7904 100644
  
  INSTALL(TARGETS clinfo
    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
-diff --git a/hipamd/CMakeLists.txt b/hipamd/CMakeLists.txt
-index 98f37b9d1..0546d7783 100755
---- a/hipamd/CMakeLists.txt
-+++ b/hipamd/CMakeLists.txt
-@@ -415,8 +415,8 @@ if (NOT ${HIPCC_BIN_DIR} STREQUAL "")
-   if(EXISTS ${HIPCC_BIN_DIR})
-     install(PROGRAMS ${HIPCC_BIN_DIR}/${HIPCC_EXECUTABLE} DESTINATION bin)
-     install(PROGRAMS ${HIPCC_BIN_DIR}/${HIPCONFIG_EXECUTABLE} DESTINATION bin)
--    install(PROGRAMS ${HIPCC_BIN_DIR}/hipcc.pl DESTINATION bin)
--    install(PROGRAMS ${HIPCC_BIN_DIR}/hipconfig.pl DESTINATION bin)
-+#    install(PROGRAMS ${HIPCC_BIN_DIR}/hipcc.pl DESTINATION bin)
-+#    install(PROGRAMS ${HIPCC_BIN_DIR}/hipconfig.pl DESTINATION bin)
-     install(PROGRAMS ${HIPCC_BIN_DIR}/hipvars.pm DESTINATION bin)
- 
-     if(NOT UNIX)

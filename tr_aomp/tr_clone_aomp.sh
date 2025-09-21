@@ -23,6 +23,52 @@ function test_apply_patch() {
    fi
 }
 
+function get_current_main_branch_of_local_therock_repo() {
+   echo "===== Getting the current main branch of local TheROck repo ====="
+   echo "      1st) remove all residual changes to existing TheRock"
+   echo "  Running: cd $_therockdir"
+   cd $_therockdir
+   echo "  Running: git checkout ."
+   git checkout .
+   _tmpfile=/tmp/submod$$
+   git submodule > $_tmpfile
+   while read _line ; do
+      _subdir=`echo $_line | cut -d" " -f2`
+      cd $_therockdir
+      _origkey=`git diff $_subdir | grep "\-Subproject" | cut -d" " -f3`
+      echo "  Running: cd $_therockdir/$_subdir"
+      cd $_therockdir/$_subdir
+      echo "  Running: git checkout . (for $_subdir)"
+      git checkout .
+      if [ "$_subdir" == "compiler/amd-llvm" ] || [ "$_subdir" == "compiler/hipify" ] ; then
+	 _realkey=`git log -1 | grep -m1 "^commit" |  cut -d" " -f2`
+	 if [ "$_realkey" != "$_origkey" ] && [ "$_origkey" != "" ] ; then
+	    echo "  Running: git checkout $_origkey"
+	    git checkout $_origkey
+	 fi
+      fi
+   done < $_tmpfile
+   rm $_tmpfile
+   echo "  Running: cd $_therockdir"
+   cd $_therockdir
+   echo "  Running: git checkout ."
+   git checkout .
+   echo "  Running: git reset --hard"
+   git reset --hard
+   echo "  Running: git clean -fdx (cleanout changes on old hash key)"
+   git clean -fdx
+   echo "      2nd) checkout main and pull updates"
+   echo "  Running: git checkout main"
+   git checkout main
+   echo "  Running: git clean -fdx (cleanout old changes applied to main so pull always works)"
+   git clean -fdx
+   echo "  Running: git pull (to get remote updates to main/tip of TheRock)"
+   git pull
+   # we will need a fresh build after this cleanup so remove build
+   echo "  Running: rm -rf build"
+   rm -rf build
+}
+
 _therockdir=$TR_AOMP_REPOS/TheRock
 _curdir=$PWD
 
@@ -32,6 +78,7 @@ _curdir=$PWD
 # This is typically only done by the AOMP release manager. 
 if [ -f $AOMP_INFO_FILE ] ; then
    AOMP_INIT_THEROCK_TIP=0
+   cd $_therockdir
    _releaseshakey=`grep "^therock_shakey:" $AOMP_INFO_FILE | cut -d":" -f2- | xargs`
 else
    echo
@@ -80,19 +127,7 @@ else
    git submodule init
    echo git submodule update
    git submodule update
-   # Initialization the environment without fetch_sources.py
-   echo "python3 -m venv .venv && source .venv/bin/activate"
-   python3 -m venv .venv && source .venv/bin/activate
-   echo "pip install -r requirements.txt"
-   pip install -r requirements.txt
    _new_rock_repo=1
-fi
-
-cd $_therockdir
-if [ -d $_therockdir/.venv/bin ] ; then
-   export PATH=$_therockdir/.venv/bin:$PATH
-else
-   echo "WARNING: .venv/bin directory is missing"
 fi
 
 if [ $AOMP_INIT_THEROCK_TIP == 1 ] ; then
@@ -143,6 +178,7 @@ if [ $AOMP_INIT_THEROCK_TIP == 1 ] ; then
    $thisdir/tr_add_info.sh sources_fetched FALSE
 fi
 
+cd $_therockdir
 _first_time_on_an_initialized_release=0
 if [ $_new_rock_repo == 1 ] ; then
    echo
@@ -152,32 +188,20 @@ if [ $_new_rock_repo == 1 ] ; then
 else
    _current_shakey=`git log -1 | grep commit | cut -d" " -f2`
    if [ $_releaseshakey != $_current_shakey ] ; then
-      # THis is first time on new release that has been initialized. 
+      # This is first time on new release that has been initialized
       # So we must reset from _current_shakey to _releaseshakey
       echo
       echo "===== WARNING: Your current TheRock repo is at shakey $_current_shakey but "
-      echo "      $AOMP_INFO_FILE requires $_releaseshakey"
-      echo "      Assuming this is first time on an already initialized new release"
-      echo "      Removing all residual changes from last release ... "
-      echo
-      _tmpfile=/tmp/submod$$
-      git submodule > $_tmpfile
-      while read _line ; do
-         _subdir=`echo $_line | cut -d" " -f2`
-         if [ "$_subdir" != "compiler/amd-llvm" ] && [ "$_subdir" != "compiler/hipify" ] ; then
-            echo cd $_therockdir/$_subdir
-            cd $_therockdir/$_subdir
-            echo git checkout .
-            git checkout .
-         fi
-      done < $_tmpfile
-      rm $_tmpfile
-      echo cd $_therockdir
-      cd $_therockdir
-      echo git checkout .
-      git checkout .
-      git " Running: git checkout $_releaseshakey"
+      echo "      $AOMP_VERSION_STRING requires $_releaseshakey"
+      echo "      We assume this is 1st time on an already initialized new AOMP release"
+      get_current_main_branch_of_local_therock_repo
+      echo " Running: git checkout $_releaseshakey"
       git checkout $_releaseshakey
+      _rc=$? && [ "$_rc" != 0 ] && echo "git checkout fail" && cd "$_curdir" && exit "$_rc"
+      echo " Running: git submodule init"
+      git submodule init
+      echo " Running: git submodule update"
+      git submodule update
       _first_time_on_an_initialized_release=1
       $thisdir/tr_add_info.sh sources_fetched FALSE
    else
@@ -185,6 +209,18 @@ else
       echo "===== Using TheRock at frozen shakey $_releaseshakey for AOMP $AOMP_VERSION_STRING ====="
    fi
 fi
+
+cd $_therockdir
+if [ ! -d $_therockdir/.venv/bin ] ; then
+   echo
+   echo "===== Building virtual environment in .venv and updating PATH ====="
+   cd $_therockdir
+   echo "python3 -m venv .venv && source .venv/bin/activate"
+   python3 -m venv .venv && source .venv/bin/activate
+   echo "pip install -r requirements.txt"
+   pip install -r requirements.txt
+fi
+export PATH=$_therockdir/.venv/bin:$PATH
 
 _sources_fetched=`grep "^sources_fetched:" $AOMP_INFO_FILE | cut -d":" -f2- | xargs`
 if [ "$_sources_fetched" != "TRUE" ] ; then 
@@ -213,6 +249,14 @@ echo git pull
 git pull
 echo "===== DONE checking out and pulling updates to amd-staging for amd-llvm and hipify ===== "
 
+# ------------------------------------------------------------------------------
+# Apply the aomp patches if this is first time on an AOMP release that was
+# initialized by AOMP release manager OR (this is a newly cloned repo but NOT
+# a new aomp release being created by the AOMP release manager). A new AOMP
+# release being created by the AOMP release manager will need to create a new
+# set of patches to upload with the release information when starting the
+# development of a new release in tr_aomp_common_vars.
+# ------------------------------------------------------------------------------
 _do_aomp_patches="$(( $_first_time_on_an_initialized_release == 1 || $(( $_new_rock_repo == 1 && $AOMP_INIT_THEROCK_TIP == 0 )) ))"
 if [[ $_do_aomp_patches == 1 ]] ; then 
    echo
