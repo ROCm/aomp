@@ -61,12 +61,10 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
                         "-DCMAKE_INSTALL_PREFIX=$INSTALL_ROCPROF_REGISTER" \
                         "-DCMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH" \
                         "-DCMAKE_EXE_LINKER_FLAGS=-Wl,--disable-new-dtags" \
-                        "-DROCPROFILER_REGISTER_BUILD_TESTS=1" \
+                        "-DROCPROFILER_REGISTER_BUILD_TESTS=0" \
                         "-DROCPROFILER_REGISTER_BUILD_SAMPLES=1" \
                         "-DCMAKE_EXE_LINKER_FLAGS=-Wl,--disable-new-dtags" \
                         "-DBUILD_SHARED_LIBS=ON -DENABLE_LDCONFIG=OFF" \
-                        "-DROCPROFILER_REGISTER_BUILD_TESTS=1" \
-                        "-DROCPROFILER_REGISTER_BUILD_SAMPLES=1" \
                         "$(shquot "${AOMP_ORIGIN_RPATH[@]}")" \
                         "$AOMP_REPOS/$AOMP_PROF_REGISTER_REPO_NAME"
 
@@ -78,7 +76,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
                       "${AOMP_ORIGIN_RPATH[@]}" \
                       -DCMAKE_EXE_LINKER_FLAGS="-Wl,--disable-new-dtags" \
                       -DBUILD_SHARED_LIBS=ON -DENABLE_LDCONFIG=OFF \
-                      -DROCPROFILER_REGISTER_BUILD_TESTS=1 \
+                      -DROCPROFILER_REGISTER_BUILD_TESTS=0 \
                       -DROCPROFILER_REGISTER_BUILD_SAMPLES=1 \
                       "$AOMP_REPOS/$AOMP_PROF_REGISTER_REPO_NAME"; then 
       echo "ERROR $AOMP_PROF_REGISTER_REPO_NAME cmake failed. cmake flags"
