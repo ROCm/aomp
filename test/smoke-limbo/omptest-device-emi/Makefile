@@ -23,4 +23,4 @@ CC           = $(DUMMYSRC) | $(OMP_BIN) $(DUMMYOPT)
 include ../Makefile.rules
 
 clean::
-	git clean -dfx ./build
+	rm -rf ./build
