@@ -70,7 +70,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 	        -DBUILD_SHARED_LIBS=On
 	        -DGPU_TARGETS="$GFXSEMICOLONS"
 	        -DROCPROFILER_BUILD_SAMPLES=ON
-		-DROCPROFILER_BUILD_TESTS=ON)
+		-DROCPROFILER_BUILD_TESTS=OFF)
 
    echo " -----Running rocprofiler-sdk cmake ---- "
    echo "${AOMP_CMAKE}" "${MYCMAKEOPTS[@]}" "$AOMP_REPOS/$AOMP_PROF_SDK_REPO_NAME"
