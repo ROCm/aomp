@@ -1,7 +1,7 @@
 /*
  * This test is run with LIBOMPTARGET_OMPT_FLUSH_ON_BUFFER_FULL=false and
  * ompt_flush_trace is not invoked by the user/tool. The intention is to check
- * whether trace records are properly flushed on shutdown. 22 trace records
+ * whether trace records are properly flushed on shutdown. 23 trace records
  * should be flushed during shutdown.
  */
 #include <assert.h>
@@ -56,6 +56,7 @@ int main() {
 
 /// CHECK-NOT: host_op_id=0x0
 
+/// CHECK-DAG: rec=
 /// CHECK-DAG: rec=
 /// CHECK-DAG: rec=
 /// CHECK-DAG: rec=

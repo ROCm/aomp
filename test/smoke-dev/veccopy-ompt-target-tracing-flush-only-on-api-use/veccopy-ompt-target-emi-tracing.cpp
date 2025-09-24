@@ -3,7 +3,7 @@
  * LIBOMPTARGET_OMPT_FLUSH_ON_BUFFER_FULL=false while doing explicit flushing
  * using ompt_flush_trace. The intention is to check whether trace records are
  * properly flushed when the program/tool uses the ompt_flush_trace API. There
- * should be 22 trace records returned to the tool.
+ * should be 23 trace records returned to the tool.
  */
 #include <assert.h>
 #include <omp.h>
@@ -85,9 +85,13 @@ int main() {
 /// CHECK-DAG: rec=
 /// CHECK-DAG: rec=
 /// CHECK-DAG: rec=
+/// CHECK-DAG: rec=
 /// CHECK-NOT: rec=
 
 /// CHECK-DAG: Success
+
+/// The user calls flush before printing success, so 
+/// no more records should be returned here.
 
 /// CHECK-NOT: rec=
 /// CHECK-NOT: host_op_id=0x0
