@@ -125,7 +125,7 @@ if [ "$1" == "build_umt" ]; then
     # This applies specific tweaks to UMT required for Flang, we can likely
     # remove this in the near future once it's incorporated into UMT and
     # one or two smaller flang bugs are squashed
-    git apply $thisdir/patches/UMT-amdflang-mods.patch
+    git apply $thisdir/patches/UMT-5-9-0-amdflang-mods.patch
 
     rm -rf build
     mkdir build
