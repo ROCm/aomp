@@ -1,0 +1,115 @@
+#!/bin/bash
+#
+#  prebuild_srock.sh: Source this file from build_srock.sh
+#     update the srock repo
+#     clone or update hipfort repo
+#     clone or update rocdbgapi repo 
+#     clone or update rocgdb repo 
+#     builds cmake if necessary in ~/local/cmake using
+#
+# --- Start standard header to set SROCK environment variables ----
+realpath=$(realpath "$0")
+thisdir=$(dirname "$realpath")
+. "$thisdir/srock_common_vars"
+# --- end standard header ----
+
+echo "= 1 = Checking if suitable cmake is available"
+SROCK_CMAKE=`which cmake`
+_build_cmake=1
+_cmake_ver=`cmake --version 2>/dev/null | grep version | cut -d" " -f3`
+if [ "$_cmake_ver" != "" ] ; then
+   _cmake_major=${_cmake_ver%%.*}
+   _cmake_rel=`echo $_cmake_ver | cut -d"." -f2`
+   if [ $_cmake_major -ge 3 ] && [ $_cmake_rel -ge 25 ] ; then
+      # Default cmake is ok
+      echo "      Default cmake is ok"
+      _build_cmake=0
+   fi
+fi
+# Check the local build of cmake
+_cmake_local=$HOME/local/cmake/bin/cmake
+if [ $_build_cmake == 1 ] && [ -f $_cmake_local ] ; then 
+   _cmake_ver=`$_cmake_local --version 2>/dev/null | grep version | cut -d" " -f3`
+   _cmake_major=${_cmake_ver%%.*}
+   _cmake_rel=`echo $_cmake_ver | cut -d"." -f2`
+   if [ $_cmake_major -ge 3 ] && [ $_cmake_rel -ge 25 ] ; then
+      _build_cmake=0
+      export PATH=$HOME/local/cmake/bin:$PATH
+      echo "      $_cmake_local cmake is ok"
+      SROCK_CMAKE=$_cmake_local
+   fi
+fi
+if [ $_build_cmake == 1 ] ; then
+   $thisdir/build_cmake.sh
+   export PATH=$HOME/local/cmake/bin:$PATH
+   SROCK_CMAKE=$_cmake_local
+fi
+echo "      The cmake for srock is $SROCK_CMAKE"
+export SROCK_CMAKE
+
+# Skip these updates if this is a restart
+if [ "$_build_srock_mode" == "restart" ] ; then
+   return
+fi
+
+cd $SROCK_REPOS
+echo "= 2 = Updating aomp repo"
+if [ -d $SROCK_REPOS/aomp ] ; then
+   echo "      Skipping aomp clone, $SROCK_REPOS/srock already exists"
+else
+   echo "      git clone -b $SROCK_DEV_BRANCH https://github.com/ROCm/aomp"
+   git clone -b $SROCK_DEV_BRANCH  https://github.com/ROCm/aomp 2>/dev/null >/dev/null
+fi
+echo "      cd $SROCK_REPOS/aomp"
+cd $SROCK_REPOS/aomp
+echo "      git checkout $SROCK_DEV_BRANCH"
+git checkout $SROCK_DEV_BRANCH
+echo "      git pull"
+git pull
+
+cd $SROCK_REPOS
+echo "= 3 = Updating hipfort repo"
+if [ -d $SROCK_REPOS/hipfort ] ; then
+   echo "      Skipping hipfort clone, $SROCK_REPOS/hipfort already exists"
+else
+   echo "      git clone -b $SROCK_HIPFORT_BRANCH https://github.com/ROCm/hipfort"
+   git clone -b $SROCK_HIPFORT_BRANCH  https://github.com/ROCm/hipfort 2>/dev/null >/dev/null
+fi
+echo "      cd $SROCK_REPOS/hipfort"
+cd $SROCK_REPOS/hipfort
+echo "      git checkout $SROCK_HIPFORT_BRANCH"
+git checkout $SROCK_HIPFORT_BRANCH
+echo "      git pull"
+git pull
+
+cd $SROCK_REPOS
+echo "= 4 = Cloning or updating rocgdb repo"
+if [ -d $SROCK_REPOS/rocgdb ] ; then
+   echo "      Skipping rocgdb clone, $SROCK_REPOS/rocgdb already exists"
+else
+   echo "      git clone -b $SROCK_ROCGDB_BRANCH https://github.com/ROCm/rocgdb"
+   git clone -b $SROCK_ROCGDB_BRANCH https://github.com/ROCm/rocgdb 2>/dev/null >/dev/null
+fi
+echo "      cd $SROCK_REPOS/rocgdb"
+cd $SROCK_REPOS/rocgdb
+echo "      git checkout $SROCK_ROCGDB_BRANCH"
+git checkout $SROCK_ROCGDB_BRANCH
+echo "      git pull"
+git pull
+
+cd $SROCK_REPOS
+echo "= 5 = Cloning or updating rocdbgapi repo"
+if [ -d $SROCK_REPOS/rocdbgapi ] ; then
+   echo "      Skipping rocdbgapi clone, $SROCK_REPOS/rocdbgapi already exists"
+else
+   echo "      git clone -b $SROCK_ROCDBGAPI_BRANCH https://github.com/ROCm/rocdbgapi"
+   git clone -b $SROCK_ROCDBGAPI_BRANCH https://github.com/ROCm/rocdbgapi 2>/dev/null >/dev/null
+fi
+echo "      cd $SROCK_REPOS/rocdbgapi"
+cd $SROCK_REPOS/rocdbgapi
+echo "      git checkout $SROCK_ROCDBGAPI_BRANCH"
+git checkout $SROCK_ROCGDBGAPI_BRANCH
+echo "      git pull"
+git pull
+
+
