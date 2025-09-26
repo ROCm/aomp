@@ -1,0 +1,114 @@
+
+Q: What is srock?
+A: Srock is a scripted download and build of the complete ROCm software stack using TheRock;
+where the content of the ROCm compiler components is taken from the amd-staging branches
+of compiler github repos llvm-project and hipify. This builds a software stack where AMD
+compiler developers can test the impact of development changes to the compiler in the
+amd-staging branch. The amd-staging branch is where LLVM upstream and LLVM local
+enhancements are merged on a daily basis.  
+
+Q: How to run build_srock.sh
+A: These commands. 
+   export SROCK_REPOS=/work/$USER/git/srock-repos 
+   mkdir -p $SROCK_REPOS ; cd $SROCK_REPOS
+   git clone https://github.com/ROCm/aomp
+   nohup ./aomp/srock-bin/build_srock.sh &
+
+Q: How is this different than aomp?
+A: Aomp used a set of bash scripts that performed the cmake, make, and make install of 
+each component.  Srock only has a single script (build_srock.sh) that automates the
+TheRock instructions for downloading and building TheRock. TheRock has a single
+hierarhical github repository with submodules for bringing together all ROCm components.
+Like the classical ROCm build system, aomp built individual components from a linear
+list of github repositories with bash scripts.
+
+Q: Will srock replace aomp?
+A: Yes, srock will replace aomp. Developers that used aomp will switch to using
+the script build_srock.sh. The aomp repository, which includes significant compiler
+testing based on AOMP environment variable will remain. The build_srock.sh
+script and all support for srock will be managed in the aomp repo in the srock-bin
+subdirectory.
+
+Q: Why not just change the submodule file to point compiler repos to amd-staging branch?
+A: TheRock has frequent changes including submodule updates. The build_srock.sh 
+script correctly reintegrates these changes and then refixes the llvm-project and
+hipify repos to amd-staging branch.  Furthermore, the tip of TheRock is building
+a "release" compiler. Srock builds a development compiler with debug features and/or
+changes to components to work correctly with a more-recent amd-staging compiler.
+These differences may require patching of TheRock and component submodules.
+The build_srock.sh script automates the consistent maintenance and sharing of
+patches that make the ROCm stack build correctly with the amd-staging compiler.
+It also automates consistent configurations of different sets of components
+of TheRock. Because some may work while others are in development or need repair. 
+The default srock configuration is minimal to speed build time for compiler 
+developers. 
+
+Q: TheRock would like all components that it builds with to use the "develop" branch.
+How do changes from amd-staging llvm-project get to the develop branch?
+A: The amd-staging branch is a rapidly moving target rooted in LLVM upstream.
+Compiler (LLVM) developers want these updates merged into the amd-staging branch
+since they are somewhat verified. Merging amd-staging to TheRock develop branch 
+will be managed by the compiler leaders and should occur at least every other week.
+Every user (compiler developer) of build_srock.sh will get the tip of TheRock
+unless they specifically avoid it. So Compiler developers will witness merge
+and build problems with srock and resolve them before compiler leadership pushes
+ amd-staging to develop. 
+
+Q: Can I use build_srock.sh to build TheRock with develop branch?
+A: YES, but why would you, since this is the same as building the tip of TheRock
+with no changes.
+
+Q: How will TheRock team update the develop branch of llvm-project?
+A: Assuming srock is in a stable state, a simple merge from amd-staging to develop
+might be enough. But recall that srock has a set of patches to TheRock and other
+components to make the amd-staging compiler work. So in addition to the amd-staging
+merge, some additional patch or PRs taken from srocks patches might be necessary.
+
+Q: How do I use the ROCm toolchain created by build_srock.sh 
+A: The default installation will be in $HOME/rocm/srock which 
+   will be a symbolic link to $HOME/rocm/srock_$SROCK_VERSION_STRING
+   Depending on your test or dev environment, you can set 
+   AOMP=~/rocm/srock or ROCM_PATH=~/rocm/srock
+
+Q: How can I customize my build of srock?
+A: Use these environment variables: 
+   To change the location of SROCK_REPOS set
+      SROCK_REPOS=$HOME/git/srock-repos
+      The default value is /work/$USER/git/srock-repos
+   To change from a minimal THEROCK config set
+      SROCK_CONFIG=all 
+      THe default value is minimal. 
+   To change where the build is installed set these two variables
+      SROCK_LINK=/work/$USER/rocm/srock
+      SROCK_INSTALL_DIR=/work/$USER/rocm/my_srock_42
+   Note that SROCK_LINK will be made a symbolic link to SROCK_INSTALL_DIR
+   To change the compiler branch set
+      SROCK_COMPILER_BRANCH=develop
+      "develop" is a special value that will cause build_srock.sh to 
+      do a native build of the tip of TheROCK.  That is it will not
+      checkout any branch of the compiler submodules. 
+   To cause srock to get a fresh new clone of TheRock on next build.
+      rm -rf $SROCK_REPOS/TheRock
+Q: How do I get ROCm-like packages from srock?
+A: You cannot. srock is for build and install direct, 
+   srock does no packaging of ROCm components. 
+   But we do use TheRock artifact descriptors to control what 
+   gets installed from the build. 
+
+Q: In addtion to TheRock repo, I see other repos populated in SROCK_REPOS.
+   What are aomp, hipfort, rocdbgapi, and rocgdb repos?
+A: aomp contains the build_srock.sh script as well as the legacy aomp
+   build system.  It also contains detailed compiler tests. 
+   hipfort, rocdbgapi, and rocgdb are three components that have 
+   not yet been integrated into TheRock.  These repos will go away
+   when thes components are integrated.  build_srock.sh does the 
+   cloning and building of these components so that an srock installation 
+   is as complete as aomp. 
+--------------------------  
+More customization controls are being developed, such as 
+building TheRock with last known good sha key(LKG). 
+Another control will be the ability to restart build_srock.sh
+from a previous fail or minor component changes. 
+   
+ 
+

@@ -1,0 +1,209 @@
+diff --git a/compiler/CMakeLists.txt b/compiler/CMakeLists.txt
+index e90608a..475f7fa 100644
+--- a/compiler/CMakeLists.txt
++++ b/compiler/CMakeLists.txt
+@@ -10,6 +10,10 @@ if(THEROCK_ENABLE_COMPILER)
+   if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+     list(APPEND _extra_llvm_cmake_args "-DLLVM_ENABLE_PEDANTIC=OFF")
+   endif()
++  if (DEFINED ENV{SROCK_VERSION_MOD})
++    list(APPEND _extra_llvm_cmake_args "-DLLVM_VERSION_SUFFIX=_SROCK")
++    list(APPEND _extra_llvm_cmake_args "-DLLVM_VERSION_PATCH=$ENV{SROCK_VERSION_MOD}")
++  endif()
+ 
+   # If the compiler is not pristine (i.e. has patches), then there will be a
+   # ".amd-llvm.smrev" file present which must be used instead of the auto
+@@ -67,7 +71,16 @@ if(THEROCK_ENABLE_COMPILER)
+       -DCLANG_ENABLE_STATIC_ANALYZER=OFF
+       -DCLANG_ENABLE_CLANGD=OFF
+       -DCLANG_TIDY_ENABLE_STATIC_ANALYZER=OFF
+-
++      -DCLANG_TOOL_CLANG_LINKER_WRAPPER_BUILD=ON
++      -DOPENMP_ENABLE_LIBOMPTARGET=ON
++      -DLIBOMPTARGET_BUILD_DEVICE_FORTRT=ON
++      -DOFFLOAD_EXTERNAL_PROJECT_UNIFIED_ROCR=ON
++      -DLIBOMP_USE_HWLOC=ON
++      -DLIBOMPTARGET_EXTERNAL_PROJECT_HSA_PATH=${CMAKE_CURRENT_SOURCE_DIR}/../rocm-systems/projects/rocr-runtime
++      -DFLANG_RUNTIME_F128_MATH_LIB=libquadmath
++      -DROCM_DEVICE_LIBS_BITCODE_INSTALL_LOC_NEW=${CMAKE_CURRENT_BINARY_DIR}/lib/clang/${LLVM_VERSION_MAJOR}/lib/amdgcn
++      -DRUNTIMES_amdgcn-amd-amdhsa_LLVM_ENABLE_PER_TARGET_RUNTIME_DIR=ON
++      -DRUNTIMES_amdgcn-amd-amdhsa_LLVM_ENABLE_RUNTIMES=openmp
+       ${_extra_llvm_cmake_args}
+     BUILD_DEPS
+       rocm-cmake
+diff --git a/compiler/artifact-amd-llvm.toml b/compiler/artifact-amd-llvm.toml
+index b0645eb..54755ad 100644
+--- a/compiler/artifact-amd-llvm.toml
++++ b/compiler/artifact-amd-llvm.toml
+@@ -7,6 +7,7 @@ unmatched_exclude = [
+   # Various docs or utilities we don't care about.
+   "lib/llvm/share/clang-doc/**",
+   "lib/llvm/share/clang/**",
++  "lib/llvm/lib/amdgcn-amd-amdhsa/**"
+ ]
+ 
+ # LLVM deviates from the defaults in some key ways:
+diff --git a/compiler/pre_hook_amd-llvm.cmake b/compiler/pre_hook_amd-llvm.cmake
+index e651769..9f05de8 100644
+--- a/compiler/pre_hook_amd-llvm.cmake
++++ b/compiler/pre_hook_amd-llvm.cmake
+@@ -13,7 +13,7 @@ if(WIN32)
+   # TODO(#36): Enable libunwind, libcxx, and libcxxabi on Windows?
+   #     Should they be supported? What depends on them?
+   set(LLVM_ENABLE_LIBCXX OFF)
+-  set(LLVM_ENABLE_RUNTIMES "compiler-rt" CACHE STRING "Enabled runtimes" FORCE)
++  set(LLVM_ENABLE_RUNTIMES "libcxx;libcxxabi;libunwind;openmp;offload;compiler-rt;flang-rt" CACHE STRING "Enabled runtimes" FORCE)
+   set(LLVM_ENABLE_PROJECTS "clang;lld;clang-tools-extra" CACHE STRING "Enable LLVM projects" FORCE)
+ else()
+   set(LLVM_BUILD_LLVM_DYLIB ON)
+@@ -45,6 +45,7 @@ endif()
+ # Set the LLVM_ENABLE_PROJECTS variable before including LLVM's CMakeLists.txt
+ set(BUILD_TESTING OFF CACHE BOOL "DISABLE BUILDING TESTS IN SUBPROJECTS" FORCE)
+ set(LLVM_TARGETS_TO_BUILD "AMDGPU;X86" CACHE STRING "Enable LLVM Targets" FORCE)
++set(LLVM_RUNTIME_TARGETS "default;amdgcn-amd-amdhsa")
+ 
+ # Packaging.
+ set(PACKAGE_VENDOR "AMD" CACHE STRING "Vendor" FORCE)
+@@ -52,7 +53,8 @@ set(PACKAGE_VENDOR "AMD" CACHE STRING "Vendor" FORCE)
+ # Build the device-libs as part of the core compiler so that clang works by
+ # default (as opposed to other components that are *users* of the compiler).
+ set(LLVM_EXTERNAL_ROCM_DEVICE_LIBS_SOURCE_DIR "${THEROCK_SOURCE_DIR}/compiler/amd-llvm/amd/device-libs")
+-set(LLVM_EXTERNAL_PROJECTS "rocm-device-libs" CACHE STRING "Enable extra projects" FORCE)
++set(LLVM_EXTERNAL_PROJECTS "rocm-device-libs;SPIRV_TRANSLATOR" CACHE STRING "Enable extra projects" FORCE)
++set(DLLVM_EXTERNAL_SPIRV_TRANSLATOR_SOURCE_DIR "${THEROCK_SOURCE_DIR}/compiler/spirv-llvm-translator")
+ 
+ # TODO2: This mechanism has races in certain situations, failing to create a
+ # symlink. Revisit once devicemanager code is made more robust.
+@@ -63,9 +65,11 @@ set(LLVM_EXTERNAL_PROJECTS "rocm-device-libs" CACHE STRING "Enable extra project
+ # options to manage this transition but they require knowing the clange resource
+ # dir. In order to avoid drift, we just fixate that too. This can all be
+ # removed in a future version.
+-# set(CLANG_RESOURCE_DIR "../lib/clang/${LLVM_VERSION_MAJOR}" CACHE STRING "Resource dir" FORCE)
+-# set(ROCM_DEVICE_LIBS_BITCODE_INSTALL_LOC_NEW "lib/clang/${LLVM_VERSION_MAJOR}/amdgcn" CACHE STRING "New devicelibs loc" FORCE)
+-# set(ROCM_DEVICE_LIBS_BITCODE_INSTALL_LOC_OLD "amdgcn" CACHE STRING "Old devicelibs loc" FORCE)
++set(CLANG_RESOURCE_DIR "../lib/clang/${LLVM_VERSION_MAJOR}" CACHE STRING "Resource dir" FORCE)
++set(ROCM_DEVICE_LIBS_BITCODE_INSTALL_LOC_NEW "lib/clang/${LLVM_VERSION_MAJOR}/lib/amdgcn" CACHE STRING "New devicelibs loc" FORCE)
++set(ROCM_DEVICE_LIBS_BITCODE_INSTALL_LOC_OLD "amdgcn" CACHE STRING "Old devicelibs loc" FORCE)
++
++
+ 
+ # Setup the install rpath (let CMake handle build RPATH per usual):
+ # * Executables and libraries can always search their adjacent lib directory
+@@ -122,14 +126,12 @@ block()
+     OPT
+     YAML2OBJ
+   )
+-  if(WIN32)
+     # These can be provided by the "C++ Clang tools for Windows" in MSVC, but
+     # we might as well build them from source ourselves.
+     list(APPEND _llvm_required_tools "LLVM_AR")
+     list(APPEND _llvm_required_tools "LLVM_DLLTOOL")
+     list(APPEND _llvm_required_tools "LLVM_LIB")
+     list(APPEND _llvm_required_tools "LLVM_RANLIB")
+-  endif()
+   therock_set_implicit_llvm_options(LLVM "${CMAKE_CURRENT_SOURCE_DIR}/tools" "${_llvm_required_tools}")
+ 
+   # Clang tools that are required.
+diff --git a/core/CMakeLists.txt b/core/CMakeLists.txt
+index 3414e4b..67fce51 100644
+--- a/core/CMakeLists.txt
++++ b/core/CMakeLists.txt
+@@ -108,6 +108,7 @@ if(THEROCK_ENABLE_HIP_RUNTIME)
+       "-DHIP_PLATFORM=amd"
+       "-DHIP_COMMON_DIR=${THEROCK_ROCM_SYSTEMS_SOURCE_DIR}/projects/hip"
+       "-DCLR_BUILD_HIP=ON"
++      "-DBUILD_ICD=ON"
+       # Legacy: Disable various auto-detection logic that breaks out of jail
+       # and can use local machine tools.
+       "-DHIPCC_BIN_DIR="
+diff --git a/math-libs/BLAS/artifact-blas.toml b/math-libs/BLAS/artifact-blas.toml
+index f92eff4..3845d2d 100644
+--- a/math-libs/BLAS/artifact-blas.toml
++++ b/math-libs/BLAS/artifact-blas.toml
+@@ -166,8 +166,8 @@ include = [
+   "bin/*_rtest.xml",
+   "bin/rocsparse-bench*",
+   "bin/rocsparse-test*",
+-  "share/rocsparse/test/**",
+-  "clients/matrices/**"
++  "share/rocsparse/test/**"
++#  "clients/matrices/**"
+ ]
+ optional = true
+ 
+@@ -192,7 +192,7 @@ include = [
+ include = [
+   "bin/*_rtest.xml",
+   "bin/hipsparse-bench*",
+-  "bin/hipsparse-test*",
+-  "clients/matrices/**"
++  "bin/hipsparse-test*"
++#  "clients/matrices/**"
+ ]
+ optional = true
+diff --git a/math-libs/BLAS/pre_hook_hipSPARSE.cmake b/math-libs/BLAS/pre_hook_hipSPARSE.cmake
+index e0b10dd..190b51c 100644
+--- a/math-libs/BLAS/pre_hook_hipSPARSE.cmake
++++ b/math-libs/BLAS/pre_hook_hipSPARSE.cmake
+@@ -1,6 +1,6 @@
+ # See the artifact descriptor where we require these matrices for the test
+ # artifact. Consider installing as part of the main project.
+-install(
+-  DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/clients/matrices"
+-  DESTINATION "clients"
+-)
++#install(
++#  DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/clients/matrices"
++#  DESTINATION "clients"
++#)
+diff --git a/math-libs/BLAS/pre_hook_rocSPARSE.cmake b/math-libs/BLAS/pre_hook_rocSPARSE.cmake
+index 697bba2..3856a68 100644
+--- a/math-libs/BLAS/pre_hook_rocSPARSE.cmake
++++ b/math-libs/BLAS/pre_hook_rocSPARSE.cmake
+@@ -11,7 +11,7 @@ endif()
+ 
+ # See the artifact descriptor where we require these matrices for the test
+ # artifact. Consider installing as part of the main project.
+-install(
+-  DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/clients/matrices"
+-  DESTINATION "clients"
+-)
++#install(
++#  DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/clients/matrices"
++#  DESTINATION "clients"
++#)
+diff --git a/profiler/CMakeLists.txt b/profiler/CMakeLists.txt
+index 29b9a40..6947a64 100644
+--- a/profiler/CMakeLists.txt
++++ b/profiler/CMakeLists.txt
+@@ -50,10 +50,15 @@ if(THEROCK_ENABLE_ROCPROFV3)
+     EXTERNAL_SOURCE_DIR "${THEROCK_ROCM_SYSTEMS_SOURCE_DIR}/projects/rocprofiler-sdk"
+     BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/rocprofiler-sdk"
+     BACKGROUND_BUILD
++    # INTERFACE_INCLUDE_DIRS not working as expected so add compiler flags
+     CMAKE_ARGS
+       -DHIP_PLATFORM=amd
++      -DCMAKE_CXX_FLAGS=-I${THEROCK_SOURCE_DIR}/build/dist/rocm/include
++      -DCMAKE_C_FLAGS=-I${THEROCK_SOURCE_DIR}/build/dist/rocm/include
+     CMAKE_INCLUDES
+       therock_explicit_finders.cmake
++    INTERFACE_INCLUDE_DIRS
++      ${THEROCK_SOURCE_DIR}/build/dist/rocm/include
+     RUNTIME_DEPS
+       aqlprofile
+       hip-clr
+@@ -89,10 +94,14 @@ if(THEROCK_ENABLE_ROCPROFV3)
+       amd-hip
+     CMAKE_ARGS
+       -DHIP_PLATFORM=amd
++      -DCMAKE_CXX_FLAGS=-I${THEROCK_SOURCE_DIR}/build/dist/rocm/include
++      -DCMAKE_C_FLAGS=-I${THEROCK_SOURCE_DIR}/build/dist/rocm/include
+     INTERFACE_INCLUDE_DIRS
+       # All old clients of roctx64 expect to just be able to find its include
+       # with no further qualification. Bad design, but also deprecated, so meh.
+       include
++      # to include hip/* stuff
++      ${THEROCK_SOURCE_DIR}/build/dist/rocm/include
+     INTERFACE_LINK_DIRS
+       # So that dependents can find the roctx library via find_library()
+       lib
