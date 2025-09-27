@@ -111,8 +111,8 @@ cd $BUILD_TRUNK/build/$LLVMPROJECT
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    echo
    echo " -----Running cmake ---- " 
-   echo ${AOMP_CMAKE} $_set_ninja_gan $TRUNK_REPOS/$LLVMPROJECT/llvm -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DLLVM_ENABLE_ASSERTIONS=ON '-DLLVM_LIT_ARGS=-vv --show-unsupported --show-xfail -j 32' $MYCMAKEOPTS
-   ${AOMP_CMAKE} $_set_ninja_gan $TRUNK_REPOS/$LLVMPROJECT/llvm -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DLLVM_ENABLE_ASSERTIONS=ON '-DLLVM_LIT_ARGS=-vv --show-unsupported --show-xfail -j 32' $MYCMAKEOPTS 2>&1
+   echo ${AOMP_CMAKE} $_set_ninja_gan $TRUNK_REPOS/$LLVMPROJECT/llvm -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DLLVM_ENABLE_ASSERTIONS=ON '-DLLVM_LIT_ARGS=-vv --show-unsupported --show-xfail -j 16' $MYCMAKEOPTS
+   ${AOMP_CMAKE} $_set_ninja_gan $TRUNK_REPOS/$LLVMPROJECT/llvm -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DLLVM_ENABLE_ASSERTIONS=ON '-DLLVM_LIT_ARGS=-vv --show-unsupported --show-xfail -j 16' $MYCMAKEOPTS 2>&1
    if [ $? != 0 ] ; then 
       echo "ERROR cmake failed. Cmake flags"
       echo "      $MYCMAKEOPTS"
