@@ -242,7 +242,7 @@ cd "$BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME" || exit
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    echo
    echo " -----Running cmake ---- "
-   MYLITOPTS=(-DLLVM_LIT_ARGS='-vv --show-unsupported --show-xfail -j 32')
+   MYLITOPTS=(-DLLVM_LIT_ARGS='-vv --show-unsupported --show-xfail -j 16')
    echo "${AOMP_CMAKE}" "$(shquot "${MYLITOPTS[@]}")" \
                         "$(shquot "${MYCMAKEOPTS[@]}")" \
                         "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/llvm"

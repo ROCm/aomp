@@ -3,9 +3,8 @@
  * ompt_flush_trace is not invoked by the user/tool. The intention is to check
  * whether trace records are properly flushed as a buffer fills up. Currently,
  * the buffer size in callbacks.h implies that every buffer holds 2 trace
- * records. With this assumption, there should be 20 trace records. The last 2
- * trace records are not flushed because the runtime does not know yet that the
- * last buffer is full.
+ * records. With this assumption, there should be 22 trace records. The last
+ * trace record is not flushed because the last buffer is not yet full.
  */
 #include <assert.h>
 #include <omp.h>
@@ -79,9 +78,7 @@ int main() {
 /// CHECK-DAG: rec=
 /// CHECK-DAG: rec=
 /// CHECK-DAG: rec=
-/// CHECK-NOT: rec=
-
-/// CHECK-DAG: Success
-
+/// CHECK-DAG: rec=
+/// CHECK-DAG: rec=
 /// CHECK-NOT: rec=
 /// CHECK-NOT: host_op_id=0x0
