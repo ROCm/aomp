@@ -52,6 +52,15 @@ function usage(){
   echo ""
 }
 
+mystat=0
+allstat=0
+save_status() {
+    mystat=$?
+    allstat=$((allstat+mystat))
+    echo "status: $mystat, allstat: $allstat"
+    return $mystat
+}
+
 # Clone and Build UMT and dependencies
 # NOTE: May wish to add fixed release/tag versions of each repository rather
 # than most recent dev branch. But catching errors as they come seems helpful
@@ -68,7 +77,14 @@ if [ "$1" == "build_umt" ]; then
     # no build required for BLT
     pushd $AOMP_REPOS_TEST/$BLT_SRC_DIR
     git clone https://github.com/LLNL/blt.git .
+    save_status
     popd
+    if [[ $mystat -eq 0 ]]; then
+        echo "PATCH SUCCESS BLT"
+    else
+        echo "PATCH FAILED BLT, mystat: $mystat"
+        exit $mystat
+    fi
 
     pushd $AOMP_REPOS_TEST/$CAMP_SRC_DIR
     git clone https://github.com/LLNL/camp.git .
@@ -83,6 +99,7 @@ if [ "$1" == "build_umt" ]; then
           ../
     make clean
     make install
+    save_status
     popd
     popd
 
@@ -116,6 +133,7 @@ if [ "$1" == "build_umt" ]; then
     -DENABLE_DOCS=OFF -DENABLE_FORTRAN=ON -DENABLE_MPI=ON -DENABLE_HIP=ON
     make clean
     make install
+    save_status
     popd
     popd
 
@@ -125,7 +143,14 @@ if [ "$1" == "build_umt" ]; then
     # This applies specific tweaks to UMT required for Flang, we can likely
     # remove this in the near future once it's incorporated into UMT and
     # one or two smaller flang bugs are squashed
-    git apply $thisdir/patches/UMT-amdflang-mods.patch
+    git apply $thisdir/patches/UMT-5-9-0-amdflang-mods.patch
+    save_status
+    if [[ $mystat -eq 0 ]]; then
+        echo "PATCH SUCCESS UMT"
+    else
+        echo "PATCH FAILED UMT, mystat: $mystat"
+        exit $mystat
+    fi
 
     rm -rf build
     mkdir build
@@ -149,29 +174,54 @@ if [ "$1" == "build_umt" ]; then
 
     make clean
     make install
+    save_status
     popd
     popd
 
-    exit 1
+    if [[ $allstat -eq 0 ]]; then
+        echo "BUILD SUCCESS"
+    else
+        echo "BUILD FAILED, allstat: $allstat"
+    fi
+    [[ $allstat -eq 0 ]]
+    exit $?
 fi
 
 # Run UMT
 if [ "$1" == "run_umt" ]; then
     $AOMP_REPOS_TEST/$UMT_SRC_DIR/install/bin/test_driver -B global -g -c 20 -u 0 -d 3,3,3 -b 2
+    save_status
     $AOMP_REPOS_TEST/$UMT_SRC_DIR/install/bin/test_driver -B global -g -c 20 -u 1 -d 3,3,3 -b 2
+    save_status
     $AOMP_REPOS_TEST/$UMT_SRC_DIR/install/bin/test_driver -B global -g -c 20 -u 2 -d 3,3,3 -b 2
+    save_status
     $AOMP_REPOS_TEST/$UMT_SRC_DIR/install/bin/test_driver -B global -g -c 20 -u 0 -d 3,3,3 -b 1
+    save_status
     $AOMP_REPOS_TEST/$UMT_SRC_DIR/install/bin/test_driver -B global -g -c 20 -u 1 -d 3,3,3 -b 1
+    save_status
     $AOMP_REPOS_TEST/$UMT_SRC_DIR/install/bin/test_driver -B global -g -c 20 -u 2 -d 3,3,3 -b 1
+    save_status
 
     $AOMP_REPOS_TEST/$UMT_SRC_DIR/install/bin/test_driver -B local -g -c 20 -u 0 -d 3,3,3 -b 2
+    save_status
     $AOMP_REPOS_TEST/$UMT_SRC_DIR/install/bin/test_driver -B local -g -c 20 -u 1 -d 3,3,3 -b 2
+    save_status
     $AOMP_REPOS_TEST/$UMT_SRC_DIR/install/bin/test_driver -B local -g -c 20 -u 2 -d 3,3,3 -b 2
+    save_status
     $AOMP_REPOS_TEST/$UMT_SRC_DIR/install/bin/test_driver -B local -g -c 20 -u 0 -d 3,3,3 -b 1
+    save_status
     $AOMP_REPOS_TEST/$UMT_SRC_DIR/install/bin/test_driver -B local -g -c 20 -u 1 -d 3,3,3 -b 1
+    save_status
     $AOMP_REPOS_TEST/$UMT_SRC_DIR/install/bin/test_driver -B local -g -c 20 -u 2 -d 3,3,3 -b 1
+    save_status
 
-    exit 1
+    if [[ $allstat -eq 0 ]]; then
+        echo "TESTS PASSED"
+    else
+        echo "TESTS FAILED, allstat: $allstat"
+    fi
+    [[ $allstat -eq 0 ]]
+    exit $?
 fi
 
 usage

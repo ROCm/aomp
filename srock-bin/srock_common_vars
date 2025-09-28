@@ -1,0 +1,59 @@
+#!/bin/bash
+#
+#  srock_common_vars: This file is sourced by srock scripts to set
+#                     set common SROCK environment variables.
+#
+#  The bash syntax ENVNAME=${ENVNAME:-value} checks if ENVNAME is
+#  already set. If not, it assigns it the value following the :-
+#  So, if you preset any SROCK env vars such as in .bashrc, 
+#  you override the default specified here. Most importantly, 
+#  You should set SROCK_REPOS to an updateable high performance and
+#  large capacity (100GB+) directory 100GB+
+
+SROCK="NEVER_USE_'\$SROCK'_ENV_VARIABLE" # Use SROCK_LINK
+
+#  SROCK_REPOS is the parent directory for TheRock and srock repos.  
+SROCK_REPOS=${SROCK_REPOS:-/work/$USER/git/srock-repos}
+if [ ! -d $SROCK_REPOS ] ; then
+  mkdir -p $SROCK_REPOS
+  [ $? != 0 ] && echo "ERROR: Could not create $SROCK_REPOS" && exit 1
+fi
+
+SROCK_VERSION=${SROCK_VERSION:-"22.0"}
+SROCK_VERSION_MOD=${SROCK_VERSION_MOD:-"4"}
+SROCK_VERSION_STRING=${SROCK_VERSION_STRING:-"$SROCK_VERSION-$SROCK_VERSION_MOD"}
+SROCK_MAJOR_VERSION=${SROCK_VERSION%.*}
+
+# Set SROCK_COMPILER_BRANCH to develop to get a native TheRock build
+SROCK_COMPILER_BRANCH=${SROCK_COMPILER_BRANCH:-amd-staging}
+SROCK_CONFIG=${SROCK_CONFIG:-minimal}
+
+# Set default value for ROCm install directory SROCK_INSTALL_DIR.
+# Unlike aomp, which installs each component after build, build_srock.sh
+# will install into $SROCK_INSTALL_DIR only after a fully successful
+# build of all TheRock configured components.  It will then create  
+# a symbolic link from $SROCK to the versioned name $SROCK_INSTALL_DIR.
+SROCK_LINK=${SROCK_LINK:-$HOME/rocm/srock}
+SROCK_INSTALL_DIR=${SROCK_LINK}_${SROCK_VERSION_STRING}
+
+SROCK_THEROCK_DIR=$SROCK_REPOS/TheRock
+
+export SROCK_REPOS SROCK_VERSION_STRING SROCK_VERSION SROCK_VERSION_MOD SROCK_MAJOR_VERSION SROCK_LINK SROCK_INSTALL_DIR SROCK_THEROCK_DIR
+
+SROCK_REPO_NAME=${SROCK_REPO_NAME:-aomp}
+# These local variables are only used during build to log important information.
+SROCK_VERSION_INFO_DIR=$SROCK_REPOS/$SROCK_REPO_NAME/srock-bin/srock_$SROCK_VERSION_STRING
+SROCK_INFO_FILE=$SROCK_VERSION_INFO_DIR/srock_$SROCK_VERSION_STRING.info
+SROCK_SUBMOD_FILE=$SROCK_VERSION_INFO_DIR/srock_$SROCK_VERSION_STRING.submodules
+
+# Specify target GFXLIST
+# gfx not currently supported by TheRock:
+#   gfx900 gfx902 gfx90c gfx1031 gfx1052 gfx1053
+#   gfx9-generic gfx9-4-generic gfx10-1-generic gfx10-3-generic gfx11-generic gfx12-generic
+GFXLIST=${GFXLIST:-"gfx906 gfx908 gfx90a gfx942 gfx950 gfx1010 gfx1011 gfx1012 gfx1030 gfx1032 gfx1035 gfx1036 gfx1100 gfx1101 gfx1102 gfx1103 gfx1150 gfx1151 gfx1200 gfx1201"}
+export GFXLIST
+
+SROCK_DEV_BRANCH=${SROCK_DEV_BRANCH:-aomp-dev}
+SROCK_HIPFORT_BRANCH=${SROCK_HIPFORT_BRANCH:-release/rocm-rel-7.0}
+SROCK_ROCGDB_BRANCH=${SROCK_ROCGDB_BRANCH:-release/rocm-rel-7.0}
+SROCK_ROCDBGAPI_BRANCH=${SROCK_ROCDBGAPI_BRANCH:-release/rocm-rel-7.0}
