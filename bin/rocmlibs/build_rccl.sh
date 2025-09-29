@@ -44,6 +44,7 @@ export PATH=$AOMP_SUPP/cmake/bin:$AOMP_INSTALL_DIR/bin:$PATH
 export NUM_PROC=$AOMP_JOB_THREADS
 export CXXFLAGS="-I$HOME/local/rocm-core/include"
 export LDFLAGS="-fPIC"
+export EXPLICIT_ROCM_VERSION=$(grep -E "[0-9]+\.[0-9]+\.[0-9]+" < $HOME/local/rocm-core/.info/version)
 
 if [ "$AOMP_USE_CCACHE" != 0 ] ; then
    _ccache_bin=`which ccache`
@@ -111,8 +112,8 @@ if [ "$1" != "install" ] ; then
    echo " -----Running cmake in install.sh ---"
    echo cd $AOMP_REPOS/build/rocmlibs/$_libname
    cd $AOMP_REPOS/build/rocmlibs/$_libname
-   echo ${AOMP_CMAKE} --toolchain=toolchain-linux.cmake -DCMAKE_BUILD_TYPE=Release -DGPU_TARGETS="$ROCMLIBS_GFXLIST" -DCMAKE_INSTALL_PREFIX=$AOMP_INSTALL_DIR -DROCM_PATH=$AOMP_INSTALL_DIR -DCOLLTRACE=OFF -DNPKIT_FLAGS="" -DONLY_FUNCS="" $_sourcedir
-   ${AOMP_CMAKE} --toolchain=toolchain-linux.cmake -DCMAKE_BUILD_TYPE=Release -DGPU_TARGETS="$ROCMLIBS_GFXLIST" -DCMAKE_INSTALL_PREFIX=$AOMP_INSTALL_DIR -DROCM_PATH=$AOMP_INSTALL_DIR -DCOLLTRACE=OFF -DNPKIT_FLAGS="" -DONLY_FUNCS="" $_source_dir
+   echo ${AOMP_CMAKE} --toolchain=toolchain-linux.cmake -DCMAKE_BUILD_TYPE=Release -DGPU_TARGETS="$ROCMLIBS_GFXLIST" -DCMAKE_INSTALL_PREFIX=$AOMP_INSTALL_DIR -DROCM_PATH=$AOMP_INSTALL_DIR -DCOLLTRACE=OFF -DNPKIT_FLAGS="" -DONLY_FUNCS="" -DEXPLICIT_ROCM_VERSION=$EXPLICIT_ROCM_VERSION $_source_dir
+   ${AOMP_CMAKE} --toolchain=toolchain-linux.cmake -DCMAKE_BUILD_TYPE=Release -DGPU_TARGETS="$ROCMLIBS_GFXLIST" -DCMAKE_INSTALL_PREFIX=$AOMP_INSTALL_DIR -DROCM_PATH=$AOMP_INSTALL_DIR -DCOLLTRACE=OFF -DNPKIT_FLAGS="" -DONLY_FUNCS="" -DEXPLICIT_ROCM_VERSION=$EXPLICIT_ROCM_VERSION $_source_dir
   if [ $? != 0 ] ; then
      echo "ERROR cmake failed."
      echo "       $MYCMAKEOPTS"
