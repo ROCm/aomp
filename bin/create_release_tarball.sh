@@ -48,7 +48,7 @@ function getmanifest(){
 function getreponame(){
   getmanifest
   tmpfile=/tmp/mlines$$
-  tarballremove="roctracer rocprofiler aomp build Makefile"
+  tarballremove="roctracer rocprofiler aomp build Makefile rocprofiler-sdk"
   # Manifest file must be one project line per repo
   #manifest_file=/home/release/git/aomp14/aomp/manifests/aomp_14.0-0.xml
   grep project < "$manifest_file" > "$tmpfile"
@@ -82,6 +82,7 @@ REPO_NAMES=$repos
 ALL_NAMES="$REPO_NAMES Makefile build aomp"
 # Check for extra directories.  Note build is in the exclude list
 for dir_name in "$AOMP_REPOS"/*; do
+   dir_name=$(basename $dir_name)
    found=0
    for repo_name in $ALL_NAMES ; do
       if [ "$repo_name" == "$dir_name" ] ; then

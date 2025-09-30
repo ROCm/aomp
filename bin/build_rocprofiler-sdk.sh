@@ -63,7 +63,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 
    declare -a MYCMAKEOPTS
 
-   MYCMAKEOPTS=(-DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR"
+   MYCMAKEOPTS=(-DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR;$HOME/local/aqlprofile"
                 -DCMAKE_INSTALL_PREFIX="$INSTALL_ROCPROF_SDK"
 	        -DCMAKE_BUILD_TYPE="$BUILD_TYPE"
 	        -DROCM_ROOT_DIR="$AOMP_INSTALL_DIR"
@@ -106,6 +106,13 @@ if [ "$1" == "install" ] ; then
       if ! $SUDO make install; then
          echo "ERROR make install failed "
          exit 1
+      fi
+      if [ -d "$HOME/local/aqlprofile/lib" ]; then
+        echo Copying aqlprofile libraries from $HOME/local/aqlprofile/lib to $INSTALL_ROCPROF_SDK/lib
+        cp -r $HOME/local/aqlprofile/lib/* $INSTALL_ROCPROF_SDK/lib
+      else
+        echo "Error: rocprofiler-sdk needs aqlprofile libraries to exist in $INSTALL_ROCPROF_SDK/lib. Please run ./build_prereq.sh first."
+        exit 1
       fi
 else
    echo
