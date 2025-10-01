@@ -1,3 +1,7 @@
+// Copyright © Advanced Micro Devices, Inc., or its affiliates.
+//
+// SPDX-License-Identifier:  MIT
+
 // Copy of helloworld smoke test to verify compile/link for all GPUs
 // in the GFXLIST located in aomp_common_vars.
 
