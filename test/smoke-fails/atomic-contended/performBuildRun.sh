@@ -1,3 +1,8 @@
+#
+#Copyright © Advanced Micro Devices, Inc., or its affiliates.
+#
+#SPDX-License-Identifier:  MIT
+# 
 #!/bin/bash
 
 usage() { echo "Usage: $0 [-a <AOMP directory>]"                               \
