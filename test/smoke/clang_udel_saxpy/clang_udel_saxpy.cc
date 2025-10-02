@@ -1,3 +1,7 @@
+// Copyright © Advanced Micro Devices, Inc., or its affiliates.
+//
+// SPDX-License-Identifier:  MIT
+
 #include <chrono>
 #include <iomanip>
 #include <iostream>
