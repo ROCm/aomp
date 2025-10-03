@@ -1,21 +1,21 @@
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 2cb3b303..ad442656 100644
+index 9ea8cd03..95b5bbb8 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -112,7 +112,7 @@ if (NOT BUILD_ADDRESS_SANITIZER)
-   set( TARGET_LIST_ROCM_5.6 "gfx803;gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack+;gfx90a:xnack-;gfx1010;gfx1012;gfx1030;gfx1100;gfx1101;gfx1102")
-   set( TARGET_LIST_ROCM_5.7 "gfx803;gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack+;gfx90a:xnack-;gfx940;gfx941;gfx942;gfx1010;gfx1012;gfx1030;gfx1100;gfx1101;gfx1102")
-   set( TARGET_LIST_ROCM_6.0 "gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack+;gfx90a:xnack-;gfx940;gfx941;gfx942;gfx1010;gfx1012;gfx1030;gfx1100;gfx1101;gfx1102")
--  set( TARGET_LIST_ROCM_6.3 "gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a;gfx942;gfx1010;gfx1012;gfx1030;gfx1100;gfx1101;gfx1102;gfx1151;gfx1200;gfx1201")
-+  set( TARGET_LIST_ROCM_6.3 "gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a;gfx942;gfx1010;gfx1012;gfx1030;gfx1100;gfx1101;gfx1102;gfx1150;gfx1151;gfx1200;gfx1201;gfx1103;gfx90c")
+@@ -85,7 +85,7 @@ if (NOT BUILD_ADDRESS_SANITIZER)
+   set( TARGET_LIST_ROCM_5.7 "gfx803;gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack+;gfx90a:xnack-;gfx942;gfx1010;gfx1012;gfx1030;gfx1100;gfx1101;gfx1102")
+   set( TARGET_LIST_ROCM_6.0 "gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack+;gfx90a:xnack-;gfx942;gfx1010;gfx1012;gfx1030;gfx1100;gfx1101;gfx1102")
+   set( TARGET_LIST_ROCM_6.3 "gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a;gfx942;gfx1010;gfx1012;gfx1030;gfx1100;gfx1101;gfx1102;gfx1151;gfx1200;gfx1201")
+-  set( TARGET_LIST_ROCM_7.0 "gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a;gfx942;gfx950;gfx1010;gfx1012;gfx1030;gfx1100;gfx1101;gfx1102;gfx1150;gfx1151;gfx1200;gfx1201")
++  set( TARGET_LIST_ROCM_7.0 "gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a;gfx90c;gfx942;gfx950;gfx1010;gfx1012;gfx1030;gfx1100;gfx1101;gfx1102;gfx1103;gfx1150;gfx1151;gfx1200;gfx1201")
  else()
    set( TARGET_LIST_ROCM_5.6 "gfx908:xnack+;gfx90a:xnack+")
    set( TARGET_LIST_ROCM_5.7 "gfx908:xnack+;gfx90a:xnack+;gfx942:xnack+")
 diff --git a/library/src/handle.cpp b/library/src/handle.cpp
-index ea1fa1a7..7d2a05c3 100644
+index dcf0469c..a8b11ddc 100644
 --- a/library/src/handle.cpp
 +++ b/library/src/handle.cpp
-@@ -106,6 +106,10 @@ static Processor getActiveArch(int deviceId)
+@@ -354,6 +354,10 @@ Processor _rocblas_handle::getActiveArch()
      {
          return Processor::gfx90a;
      }
@@ -23,26 +23,11 @@ index ea1fa1a7..7d2a05c3 100644
 +    {
 +        return Processor::gfx90c;
 +    }
-     else if(deviceString.find("gfx940") != std::string::npos)
+     else if(deviceString.find("gfx942") != std::string::npos)
      {
-         return Processor::gfx940;
-@@ -146,6 +150,14 @@ static Processor getActiveArch(int deviceId)
-     {
-         return Processor::gfx1102;
-     }
-+    else if(deviceString.find("gfx1103") != std::string::npos)
-+    {
-+        return Processor::gfx1103;
-+    }
-+    else if(deviceString.find("gfx1150") != std::string::npos)
-+    {
-+        return Processor::gfx1150;
-+    }
-     else if(deviceString.find("gfx1151") != std::string::npos)
-     {
-         return Processor::gfx1151;
+         return Processor::gfx942;
 diff --git a/library/src/include/handle.hpp b/library/src/include/handle.hpp
-index 70844136..6532c78e 100644
+index c3a0fb52..608bdd20 100644
 --- a/library/src/include/handle.hpp
 +++ b/library/src/include/handle.hpp
 @@ -82,6 +82,7 @@ enum class Processor : int
@@ -50,23 +35,14 @@ index 70844136..6532c78e 100644
      gfx908  = 908,
      gfx90a  = 910,
 +    gfx90c  = 912,
-     gfx940  = 940,
-     gfx941  = 941,
      gfx942  = 942,
-@@ -96,6 +97,8 @@ enum class Processor : int
-     gfx1100 = 1100,
-     gfx1101 = 1101,
-     gfx1102 = 1102,
-+    gfx1103 = 1103,
-+    gfx1150 = 1150,
-     gfx1151 = 1151,
-     gfx1200 = 1200,
-     gfx1201 = 1201
+     gfx950  = 950,
+     gfx1010 = 1010,
 diff --git a/library/src/tensile_host.cpp b/library/src/tensile_host.cpp
-index f7d4bdb1..47d69c0d 100644
+index a87bace8..a3c2dfdf 100644
 --- a/library/src/tensile_host.cpp
 +++ b/library/src/tensile_host.cpp
-@@ -271,6 +271,10 @@ namespace
+@@ -257,6 +257,10 @@ namespace
          {
              return Tensile::LazyLoadingInit::gfx90a;
          }
@@ -74,17 +50,6 @@ index f7d4bdb1..47d69c0d 100644
 +        {
 +            return Tensile::LazyLoadingInit::gfx90c;
 +        }
-         else if(deviceString.find("gfx940") != std::string::npos)
+         else if(deviceString.find("gfx942") != std::string::npos)
          {
-             return Tensile::LazyLoadingInit::gfx940;
-@@ -311,6 +315,10 @@ namespace
-         {
-             return Tensile::LazyLoadingInit::gfx1102;
-         }
-+        else if(deviceString.find("gfx1103") != std::string::npos)
-+        {
-+            return Tensile::LazyLoadingInit::gfx1103;
-+        }
-         return Tensile::LazyLoadingInit::None;
-     }
- 
+             return Tensile::LazyLoadingInit::gfx942;

@@ -1,8 +1,9 @@
-/* Copyright © Advanced Micro Devices, Inc., or its affiliates.
-
-   SPDX-License-Identifier:  MIT */
+// Copyright © Advanced Micro Devices, Inc., or its affiliates.
+//
+// SPDX-License-Identifier:  MIT
 
 #include "omp.h"
+
 #include "OmptTester.h"
 
 using namespace omptest;

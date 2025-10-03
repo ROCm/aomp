@@ -115,6 +115,7 @@ MYCMAKEOPTS=(-DCMAKE_BUILD_TYPE="$BUILD_TYPE"
              -DLLVM_ENABLE_ZLIB=ON
              -DBUG_REPORT_URL='https://github.com/ROCm/aomp'
              -DLLVM_ENABLE_BINDINGS=OFF
+          -DCMAKE_PREFIX_PATH=$BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME/lib/cmake
              -DLLVM_INCLUDE_BENCHMARKS=OFF
              "${DO_TESTS_OPTS[@]}"
              "${AOMP_ORIGIN_RPATH[@]}"
