@@ -152,6 +152,16 @@ if [ "$SROCK_COMPILER_BRANCH" != "develop" ] ; then
    git checkout $SROCK_COMPILER_BRANCH 
    echo "      --- git pull (gets most recent updates to $SROCK_COMPILER_BRANCH)"
    git pull
+
+   echo "      --- cd $SROCK_THEROCK_DIR/compiler/spirv-llvm-translator"
+   cd $SROCK_THEROCK_DIR/compiler/spirv-llvm-translator
+   echo "      --- git checkout ."
+   git checkout .
+   echo "      --- git checkout $SROCK_COMPILER_BRANCH"
+   git checkout $SROCK_COMPILER_BRANCH
+   echo "      --- git pull (gets most recent updates to $SROCK_COMPILER_BRANCH)"
+   git pull
+
    echo "      --- cd $SROCK_THEROCK_DIR/compiler/amd-llvm"
    cd $SROCK_THEROCK_DIR/compiler/amd-llvm
    echo "      --- git checkout ."
