@@ -44,7 +44,7 @@ index b0645eb..54755ad 100644
  
  # LLVM deviates from the defaults in some key ways:
 diff --git a/compiler/pre_hook_amd-llvm.cmake b/compiler/pre_hook_amd-llvm.cmake
-index e651769..9f05de8 100644
+index 8d5cec1..1ec1e37 100644
 --- a/compiler/pre_hook_amd-llvm.cmake
 +++ b/compiler/pre_hook_amd-llvm.cmake
 @@ -13,7 +13,7 @@ if(WIN32)
@@ -64,17 +64,7 @@ index e651769..9f05de8 100644
  
  # Packaging.
  set(PACKAGE_VENDOR "AMD" CACHE STRING "Vendor" FORCE)
-@@ -52,7 +53,8 @@ set(PACKAGE_VENDOR "AMD" CACHE STRING "Vendor" FORCE)
- # Build the device-libs as part of the core compiler so that clang works by
- # default (as opposed to other components that are *users* of the compiler).
- set(LLVM_EXTERNAL_ROCM_DEVICE_LIBS_SOURCE_DIR "${THEROCK_SOURCE_DIR}/compiler/amd-llvm/amd/device-libs")
--set(LLVM_EXTERNAL_PROJECTS "rocm-device-libs" CACHE STRING "Enable extra projects" FORCE)
-+set(LLVM_EXTERNAL_PROJECTS "rocm-device-libs;SPIRV_TRANSLATOR" CACHE STRING "Enable extra projects" FORCE)
-+set(DLLVM_EXTERNAL_SPIRV_TRANSLATOR_SOURCE_DIR "${THEROCK_SOURCE_DIR}/compiler/spirv-llvm-translator")
- 
- # TODO2: This mechanism has races in certain situations, failing to create a
- # symlink. Revisit once devicemanager code is made more robust.
-@@ -63,9 +65,11 @@ set(LLVM_EXTERNAL_PROJECTS "rocm-device-libs" CACHE STRING "Enable extra project
+@@ -65,9 +66,9 @@ set(LLVM_EXTERNAL_PROJECTS "rocm-device-libs;spirv-llvm-translator" CACHE STRING
  # options to manage this transition but they require knowing the clange resource
  # dir. In order to avoid drift, we just fixate that too. This can all be
  # removed in a future version.
@@ -84,12 +74,10 @@ index e651769..9f05de8 100644
 +set(CLANG_RESOURCE_DIR "../lib/clang/${LLVM_VERSION_MAJOR}" CACHE STRING "Resource dir" FORCE)
 +set(ROCM_DEVICE_LIBS_BITCODE_INSTALL_LOC_NEW "lib/clang/${LLVM_VERSION_MAJOR}/lib/amdgcn" CACHE STRING "New devicelibs loc" FORCE)
 +set(ROCM_DEVICE_LIBS_BITCODE_INSTALL_LOC_OLD "amdgcn" CACHE STRING "Old devicelibs loc" FORCE)
-+
-+
  
  # Setup the install rpath (let CMake handle build RPATH per usual):
  # * Executables and libraries can always search their adjacent lib directory
-@@ -122,14 +126,12 @@ block()
+@@ -124,14 +125,12 @@ block()
      OPT
      YAML2OBJ
    )
