@@ -1,5 +1,0 @@
-BEGIN	1756837044.9622757
-EXEC	/work1/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build	/usr/bin/cmake --install /work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/build
-0.0	-- Install configuration: "Release"
-0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/numactl/build/stage/lib/rocm_sysdeps/lib/cmake/NUMA/numa-config.cmake
-END	1756837044.9809756	0.01869988441467285
