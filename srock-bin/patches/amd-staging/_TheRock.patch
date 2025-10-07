@@ -92,43 +92,6 @@ index 8d508cb..35e5ae8 100644
    therock_set_implicit_llvm_options(LLVM "${CMAKE_CURRENT_SOURCE_DIR}/tools" "${_llvm_required_tools}")
  
    # Clang tools that are required.
-diff --git a/core/CMakeLists.txt b/core/CMakeLists.txt
-index b06ea18..aba1677 100644
---- a/core/CMakeLists.txt
-+++ b/core/CMakeLists.txt
-@@ -125,6 +125,7 @@ if(THEROCK_ENABLE_HIP_RUNTIME)
-       "-DHIP_PLATFORM=amd"
-       "-DHIP_COMMON_DIR=${THEROCK_ROCM_SYSTEMS_SOURCE_DIR}/projects/hip"
-       "-DCLR_BUILD_HIP=ON"
-+      "-DBUILD_ICD=ON"
-       # Legacy: Disable various auto-detection logic that breaks out of jail
-       # and can use local machine tools.
-       "-DHIPCC_BIN_DIR="
-diff --git a/math-libs/BLAS/artifact-blas.toml b/math-libs/BLAS/artifact-blas.toml
-index f92eff4..3845d2d 100644
---- a/math-libs/BLAS/artifact-blas.toml
-+++ b/math-libs/BLAS/artifact-blas.toml
-@@ -166,8 +166,8 @@ include = [
-   "bin/*_rtest.xml",
-   "bin/rocsparse-bench*",
-   "bin/rocsparse-test*",
--  "share/rocsparse/test/**",
--  "clients/matrices/**"
-+  "share/rocsparse/test/**"
-+#  "clients/matrices/**"
- ]
- optional = true
- 
-@@ -192,7 +192,7 @@ include = [
- include = [
-   "bin/*_rtest.xml",
-   "bin/hipsparse-bench*",
--  "bin/hipsparse-test*",
--  "clients/matrices/**"
-+  "bin/hipsparse-test*"
-+#  "clients/matrices/**"
- ]
- optional = true
 diff --git a/math-libs/BLAS/pre_hook_hipSPARSE.cmake b/math-libs/BLAS/pre_hook_hipSPARSE.cmake
 index e0b10dd..190b51c 100644
 --- a/math-libs/BLAS/pre_hook_hipSPARSE.cmake
