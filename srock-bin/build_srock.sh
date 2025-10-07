@@ -90,14 +90,6 @@ echo "===== Running python ./build_tools/fetch_sources.py ====="
 python ./build_tools/fetch_sources.py
 echo "=====  Done running python ./build_tools/fetch_sources.py"
 
-(
-# reconstruct .amd-llvm.smrev using the current SHA
-cd compiler/amd-llvm || exit
-smrev="../.amd-llvm.smrev"
-git config --get remote.origin.url > "$smrev"
-git rev-parse HEAD >> "$smrev"
-)
-
 echo "cd $SROCK_THEROCK_DIR" 
 cd "$SROCK_THEROCK_DIR" || exit
 [ -d build ] && echo "rm -rf build" && rm -rf build
@@ -193,6 +185,15 @@ if [ "$SROCK_COMPILER_BRANCH" != "develop" ] ; then
    fi
 echo "      --- end compiler submodule updates for $SROCK_COMPILER_BRANCH"
 fi #  END compiler submodule updates
+
+(
+cd $SROCK_THEROCK_DIR
+# reconstruct .amd-llvm.smrev using the current SHA
+cd compiler/amd-llvm || exit
+smrev="../.amd-llvm.smrev"
+git config --get remote.origin.url > "$smrev"
+git rev-parse HEAD >> "$smrev"
+)
 
 cd $SROCK_THEROCK_DIR
 echo 
