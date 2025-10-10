@@ -1,4 +1,9 @@
 #!/bin/bash
+#
+#Copyright © Advanced Micro Devices, Inc., or its affiliates.
+#
+#SPDX-License-Identifier:  MIT
+# 
 
 echo "Verifying initial test"
 exp=202111                      # OpenMP 5.2 release date
