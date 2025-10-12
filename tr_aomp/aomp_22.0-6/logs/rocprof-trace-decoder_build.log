@@ -1,4 +1,0 @@
-BEGIN	1757693405.4168525
-EXEC	/work1/grodgers/git/tr-aomp/TheRock/build/profiler/rocprof-trace-decoder/build	/usr/bin/cmake -E env --unset=ROCM_PATH --unset=ROCM_DIR --unset=HIP_PATH --unset=HIP_DIR -- /usr/bin/cmake --build /work/grodgers/git/tr-aomp/TheRock/build/profiler/rocprof-trace-decoder/build
-0.0	[1/1] cd /work/grodgers/git/tr-aomp/TheRock/build/profiler/rocprof-trace-decoder/build && /usr/bin/cmake -E rm -f /work/grodgers/git/tr-aomp/TheRock/build/profiler/rocprof-trace-decoder/stamp/stage.stamp
-END	1757693405.4517863	0.03493380546569824	0

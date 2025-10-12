@@ -1,4 +1,0 @@
-BEGIN	1757693411.9069674
-EXEC	/work1/grodgers/git/tr-aomp/TheRock/build/third-party/eigen/build	/usr/bin/cmake -E env --unset=ROCM_PATH --unset=ROCM_DIR --unset=HIP_PATH --unset=HIP_DIR -- /usr/bin/cmake --build /work/grodgers/git/tr-aomp/TheRock/build/third-party/eigen/build
-0.1	[1/1] cd /work/grodgers/git/tr-aomp/TheRock/build/third-party/eigen/build && /usr/bin/cmake -E rm -f /work/grodgers/git/tr-aomp/TheRock/build/third-party/eigen/stamp/stage.stamp
-END	1757693412.0284376	0.12147021293640137	0

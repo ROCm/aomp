@@ -1,8 +1,0 @@
-BEGIN	1756837036.3695557
-EXEC	/work1/grodgers/git/tr_aomp/TheRock/build/base/rocm-core/build	/usr/bin/cmake -E env --unset=ROCM_PATH --unset=ROCM_DIR --unset=HIP_PATH --unset=HIP_DIR -- /usr/bin/cmake --build /work/grodgers/git/tr_aomp/TheRock/build/base/rocm-core/build
-0.0	[1/5] cd /work/grodgers/git/tr_aomp/TheRock/build/base/rocm-core/build && /usr/bin/cmake -E rm -f /work/grodgers/git/tr_aomp/TheRock/build/base/rocm-core/stamp/stage.stamp
-0.1	[2/5] Building CXX object CMakeFiles/rocm-core.dir/rocm_getpath.cpp.o
-0.1	[3/5] Building CXX object CMakeFiles/rocm-core.dir/rocm_version.cpp.o
-0.1	[4/5] Linking CXX shared library librocm-core.so.1.0.70000
-0.1	[5/5] Creating library symlink librocm-core.so.1 librocm-core.so
-END	1756837036.491612	0.12205624580383301

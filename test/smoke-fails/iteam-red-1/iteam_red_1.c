@@ -35,11 +35,15 @@ void vmul_omp(double*a, double*b, double*c, int N) {
 }
 
 void vmul_sim(double*a, double*b, double*c, int N) {
-#pragma omp target map(to: a[0:N], b[0:N]) map(from:c[0:N]) 
+// The number of threads launched must match the tripcount of the k-loop.
+// The best way to (almost) guarantee that is to use the thread_limit clause
+// on the target construct. The num_threads clause on the inner parallel construct has
+// no effect since the OpenMP runtime is not fed that information from the inner parallel.
+#pragma omp target map(to: a[0:N], b[0:N]) map(from:c[0:N]) thread_limit(NUM_THREADS)
 #pragma omp teams distribute
   for(int i=0; i<N; i++) {
     double sum = 0;
-#pragma omp parallel for num_threads(NUM_THREADS)
+#pragma omp parallel for 
     for (uint64_t k = 0; k < NUM_THREADS; ++k) {
       double val0 = 0;
       for (int64_t j = k; j < N; j += NUM_THREADS)

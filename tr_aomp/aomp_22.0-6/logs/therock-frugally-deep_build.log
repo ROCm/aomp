@@ -1,4 +1,0 @@
-BEGIN	1757693413.3421922
-EXEC	/work1/grodgers/git/tr-aomp/TheRock/build/third-party/frugally-deep/build	/usr/bin/cmake -E env --unset=ROCM_PATH --unset=ROCM_DIR --unset=HIP_PATH --unset=HIP_DIR -- /usr/bin/cmake --build /work/grodgers/git/tr-aomp/TheRock/build/third-party/frugally-deep/build
-0.1	[1/1] cd /work/grodgers/git/tr-aomp/TheRock/build/third-party/frugally-deep/build && /usr/bin/cmake -E rm -f /work/grodgers/git/tr-aomp/TheRock/build/third-party/frugally-deep/stamp/stage.stamp
-END	1757693413.4762437	0.13405156135559082	0
