@@ -1,7 +1,0 @@
-BEGIN	1757693407.0209963
-EXEC	/work1/grodgers/git/tr-aomp/TheRock/build/third-party/libdivide/build	/usr/bin/cmake --install /work/grodgers/git/tr-aomp/TheRock/build/third-party/libdivide/build
-0.0	-- Install configuration: "Release"
-0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/libdivide/stage/include/libdivide.h
-0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/libdivide/stage/lib/cmake/libdivide/libdivideConfig.cmake
-0.0	-- Installing: /work/grodgers/git/tr-aomp/TheRock/build/third-party/libdivide/stage/lib/cmake/libdivide/libdivideConfigVersion.cmake
-END	1757693407.0396426	0.018646240234375	0

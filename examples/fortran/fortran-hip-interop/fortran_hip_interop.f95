@@ -30,8 +30,8 @@ program main
    call fortran_callable_init(c_loc(arr1),nx)
    !$OMP END TARGET DATA
 
-   !$OMP TARGET TEAMS DISTRIBUTE PARALLEL DO PRIVATE(x) &
-   !$OMP NOWAIT
+   !$OMP TARGET TEAMS DISTRIBUTE PARALLEL DO PRIVATE(x)
+   !!$OMP NOWAIT   NOWAIT NOT YET IMPLEMENTED ON TTDPD
          do x=1,nx
             crr1(x)=arr1(x)+1.0
          end do

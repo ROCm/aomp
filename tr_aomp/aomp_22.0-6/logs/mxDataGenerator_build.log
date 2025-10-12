@@ -1,4 +1,0 @@
-BEGIN	1757694056.401656
-EXEC	/work1/grodgers/git/tr-aomp/TheRock/build/math-libs/support/mxDataGenerator/build	/usr/bin/cmake -E env --unset=ROCM_PATH --unset=ROCM_DIR --unset=HIP_PATH --unset=HIP_DIR -- /usr/bin/cmake --build /work/grodgers/git/tr-aomp/TheRock/build/math-libs/support/mxDataGenerator/build
-0.0	[1/1] cd /work/grodgers/git/tr-aomp/TheRock/build/math-libs/support/mxDataGenerator/build && /usr/bin/cmake -E rm -f /work/grodgers/git/tr-aomp/TheRock/build/math-libs/support/mxDataGenerator/stamp/stage.stamp
-END	1757694056.4330142	0.03135824203491211	0

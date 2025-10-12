@@ -44,7 +44,7 @@ index b0645eb..54755ad 100644
  
  # LLVM deviates from the defaults in some key ways:
 diff --git a/compiler/pre_hook_amd-llvm.cmake b/compiler/pre_hook_amd-llvm.cmake
-index e651769..9f05de8 100644
+index 8d508cb..35e5ae8 100644
 --- a/compiler/pre_hook_amd-llvm.cmake
 +++ b/compiler/pre_hook_amd-llvm.cmake
 @@ -13,7 +13,7 @@ if(WIN32)
@@ -56,7 +56,7 @@ index e651769..9f05de8 100644
    set(LLVM_ENABLE_PROJECTS "clang;lld;clang-tools-extra" CACHE STRING "Enable LLVM projects" FORCE)
  else()
    set(LLVM_BUILD_LLVM_DYLIB ON)
-@@ -45,6 +45,7 @@ endif()
+@@ -57,6 +57,7 @@ endif()
  # Set the LLVM_ENABLE_PROJECTS variable before including LLVM's CMakeLists.txt
  set(BUILD_TESTING OFF CACHE BOOL "DISABLE BUILDING TESTS IN SUBPROJECTS" FORCE)
  set(LLVM_TARGETS_TO_BUILD "AMDGPU;X86" CACHE STRING "Enable LLVM Targets" FORCE)
@@ -64,17 +64,7 @@ index e651769..9f05de8 100644
  
  # Packaging.
  set(PACKAGE_VENDOR "AMD" CACHE STRING "Vendor" FORCE)
-@@ -52,7 +53,8 @@ set(PACKAGE_VENDOR "AMD" CACHE STRING "Vendor" FORCE)
- # Build the device-libs as part of the core compiler so that clang works by
- # default (as opposed to other components that are *users* of the compiler).
- set(LLVM_EXTERNAL_ROCM_DEVICE_LIBS_SOURCE_DIR "${THEROCK_SOURCE_DIR}/compiler/amd-llvm/amd/device-libs")
--set(LLVM_EXTERNAL_PROJECTS "rocm-device-libs" CACHE STRING "Enable extra projects" FORCE)
-+set(LLVM_EXTERNAL_PROJECTS "rocm-device-libs;SPIRV_TRANSLATOR" CACHE STRING "Enable extra projects" FORCE)
-+set(DLLVM_EXTERNAL_SPIRV_TRANSLATOR_SOURCE_DIR "${THEROCK_SOURCE_DIR}/compiler/spirv-llvm-translator")
- 
- # TODO2: This mechanism has races in certain situations, failing to create a
- # symlink. Revisit once devicemanager code is made more robust.
-@@ -63,9 +65,11 @@ set(LLVM_EXTERNAL_PROJECTS "rocm-device-libs" CACHE STRING "Enable extra project
+@@ -77,9 +78,9 @@ set(LLVM_EXTERNAL_PROJECTS "rocm-device-libs;spirv-llvm-translator" CACHE STRING
  # options to manage this transition but they require knowing the clange resource
  # dir. In order to avoid drift, we just fixate that too. This can all be
  # removed in a future version.
@@ -84,12 +74,10 @@ index e651769..9f05de8 100644
 +set(CLANG_RESOURCE_DIR "../lib/clang/${LLVM_VERSION_MAJOR}" CACHE STRING "Resource dir" FORCE)
 +set(ROCM_DEVICE_LIBS_BITCODE_INSTALL_LOC_NEW "lib/clang/${LLVM_VERSION_MAJOR}/lib/amdgcn" CACHE STRING "New devicelibs loc" FORCE)
 +set(ROCM_DEVICE_LIBS_BITCODE_INSTALL_LOC_OLD "amdgcn" CACHE STRING "Old devicelibs loc" FORCE)
-+
-+
  
  # Setup the install rpath (let CMake handle build RPATH per usual):
  # * Executables and libraries can always search their adjacent lib directory
-@@ -122,14 +126,12 @@ block()
+@@ -136,14 +137,12 @@ block()
      OPT
      YAML2OBJ
    )
@@ -104,43 +92,6 @@ index e651769..9f05de8 100644
    therock_set_implicit_llvm_options(LLVM "${CMAKE_CURRENT_SOURCE_DIR}/tools" "${_llvm_required_tools}")
  
    # Clang tools that are required.
-diff --git a/core/CMakeLists.txt b/core/CMakeLists.txt
-index 3414e4b..67fce51 100644
---- a/core/CMakeLists.txt
-+++ b/core/CMakeLists.txt
-@@ -108,6 +108,7 @@ if(THEROCK_ENABLE_HIP_RUNTIME)
-       "-DHIP_PLATFORM=amd"
-       "-DHIP_COMMON_DIR=${THEROCK_ROCM_SYSTEMS_SOURCE_DIR}/projects/hip"
-       "-DCLR_BUILD_HIP=ON"
-+      "-DBUILD_ICD=ON"
-       # Legacy: Disable various auto-detection logic that breaks out of jail
-       # and can use local machine tools.
-       "-DHIPCC_BIN_DIR="
-diff --git a/math-libs/BLAS/artifact-blas.toml b/math-libs/BLAS/artifact-blas.toml
-index f92eff4..3845d2d 100644
---- a/math-libs/BLAS/artifact-blas.toml
-+++ b/math-libs/BLAS/artifact-blas.toml
-@@ -166,8 +166,8 @@ include = [
-   "bin/*_rtest.xml",
-   "bin/rocsparse-bench*",
-   "bin/rocsparse-test*",
--  "share/rocsparse/test/**",
--  "clients/matrices/**"
-+  "share/rocsparse/test/**"
-+#  "clients/matrices/**"
- ]
- optional = true
- 
-@@ -192,7 +192,7 @@ include = [
- include = [
-   "bin/*_rtest.xml",
-   "bin/hipsparse-bench*",
--  "bin/hipsparse-test*",
--  "clients/matrices/**"
-+  "bin/hipsparse-test*"
-+#  "clients/matrices/**"
- ]
- optional = true
 diff --git a/math-libs/BLAS/pre_hook_hipSPARSE.cmake b/math-libs/BLAS/pre_hook_hipSPARSE.cmake
 index e0b10dd..190b51c 100644
 --- a/math-libs/BLAS/pre_hook_hipSPARSE.cmake
