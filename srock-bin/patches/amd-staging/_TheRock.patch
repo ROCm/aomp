@@ -44,7 +44,7 @@ index b0645eb..54755ad 100644
  
  # LLVM deviates from the defaults in some key ways:
 diff --git a/compiler/pre_hook_amd-llvm.cmake b/compiler/pre_hook_amd-llvm.cmake
-index 8d508cb..35e5ae8 100644
+index 0b457d6..156f31d 100644
 --- a/compiler/pre_hook_amd-llvm.cmake
 +++ b/compiler/pre_hook_amd-llvm.cmake
 @@ -13,7 +13,7 @@ if(WIN32)
@@ -77,21 +77,6 @@ index 8d508cb..35e5ae8 100644
  
  # Setup the install rpath (let CMake handle build RPATH per usual):
  # * Executables and libraries can always search their adjacent lib directory
-@@ -136,14 +137,12 @@ block()
-     OPT
-     YAML2OBJ
-   )
--  if(WIN32)
-     # These can be provided by the "C++ Clang tools for Windows" in MSVC, but
-     # we might as well build them from source ourselves.
-     list(APPEND _llvm_required_tools "LLVM_AR")
-     list(APPEND _llvm_required_tools "LLVM_DLLTOOL")
-     list(APPEND _llvm_required_tools "LLVM_LIB")
-     list(APPEND _llvm_required_tools "LLVM_RANLIB")
--  endif()
-   therock_set_implicit_llvm_options(LLVM "${CMAKE_CURRENT_SOURCE_DIR}/tools" "${_llvm_required_tools}")
- 
-   # Clang tools that are required.
 diff --git a/math-libs/BLAS/pre_hook_hipSPARSE.cmake b/math-libs/BLAS/pre_hook_hipSPARSE.cmake
 index e0b10dd..190b51c 100644
 --- a/math-libs/BLAS/pre_hook_hipSPARSE.cmake
