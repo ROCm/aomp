@@ -1,5 +1,5 @@
 diff --git a/compiler/CMakeLists.txt b/compiler/CMakeLists.txt
-index e90608a..475f7fa 100644
+index 4df4bca..12fe8e3 100644
 --- a/compiler/CMakeLists.txt
 +++ b/compiler/CMakeLists.txt
 @@ -10,6 +10,10 @@ if(THEROCK_ENABLE_COMPILER)
@@ -28,9 +28,9 @@ index e90608a..475f7fa 100644
 +      -DROCM_DEVICE_LIBS_BITCODE_INSTALL_LOC_NEW=${CMAKE_CURRENT_BINARY_DIR}/lib/clang/${LLVM_VERSION_MAJOR}/lib/amdgcn
 +      -DRUNTIMES_amdgcn-amd-amdhsa_LLVM_ENABLE_PER_TARGET_RUNTIME_DIR=ON
 +      -DRUNTIMES_amdgcn-amd-amdhsa_LLVM_ENABLE_RUNTIMES=openmp
-       ${_extra_llvm_cmake_args}
-     BUILD_DEPS
-       rocm-cmake
+       # ASAN features.
+       # Note that building AMDGPU ASAN extensions depends on various runtime headers
+       # (since it instruments them). These paths must line up and will be an error
 diff --git a/compiler/artifact-amd-llvm.toml b/compiler/artifact-amd-llvm.toml
 index b0645eb..54755ad 100644
 --- a/compiler/artifact-amd-llvm.toml
