@@ -1085,5 +1085,39 @@ aomp (19.0-3) UNRELEASED; urgency=medium
   *       Merging from upstream trunk is still possible and preferred.
   *
   * 21.0-1
+  *   Integrated ROCm components are built with ROCM 6.4 sources whereas in
+  *       AOMP 21.0-0 they were built with ROCM 6.3
+  *   The binary name for the LLVM Fortran compiler driver is flang-21 whereas in
+  *       AOMP 21.0-0, it was flang-new. The symbolic link flang now links to the new binary name flang-21.
+  *   The AOMP hip-libraries package now includes rocRAND, hipRAND, and half.
+  *   AOMP testing has been expanded to include HeCBench
+  *   MI300 xnack issues have been resolved.
+  *   Updates to ROCr patch for deprecated gfx ids.
+  *   Fixed Kokkos build ver v3.7.01
+  *   Added smoke tests for target firstprivate
+  *   Limited release build of hip-libraries to gfx90a, gfx942, gfx1103, and gfx1150.
+  *   Several flang (LLVM 21) updates and fixes:
+  *      Fix do-concurrent
+  *      Fix reduction of a single element
+  *      Fix parallel regions with live-out values
+  *      Fix combined target parallel
+  *      Add support for pooled memory allocator
+  *      Replace cmake FLANG_INCLUDE_RUNTIME option with LLVM_ENABLE_RUNTIMES=flang-rt
+  *      Device side Fortran runtime available via -lflang_rt.hostdevice (previously -lFortranRuntimeHostDevice)
+  *      Add hipfort support
+  *      I/O from device supported
+  *      Debug supported on host, initial support provided for target routines
+  *      Support bind clause on loop and teams loop
+  *      Support reduction on loop directives
+  *      Added support for target firstprivate for included target tasks
+  *      Generate math ops for non-precise acos, acosh, asin, asinh, atan, atanh, erfc intrinsic calls
+  *      Allow declare target to be used on functions external to the declare targets scope
+  *      Moved the gpurun utility from the aomp-extras repository to the utils
+  *         directory of aomp. Eventually we will eliminate the aomp-extras repository.
+  *      Restored optimization options for build of OpenMP Device RTL.
+  *      Added environment variables for controlling buffer flush, OMPX_FlushOnBufferFull and OMPX_FlushOnShutdown
+  *      Replaced libomptarget.devicertl.a with target specific bitcode libraries.
+  *
+  *  22.0-1
 
  -- Greg Rodgers <Gregory.Rodgers@amd.com>  Thu, 19 May 2022 23:34:44 -0500
