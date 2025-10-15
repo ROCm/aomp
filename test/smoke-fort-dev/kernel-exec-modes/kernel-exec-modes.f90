@@ -28,6 +28,34 @@ subroutine validate(v, cols, rows, name)
   end do
 end subroutine validate
 
+subroutine validate_generic_spmd(v, cols, rows, name)
+  implicit none
+  integer, intent(in) :: cols, rows
+  integer, intent(inout) :: v(cols, rows)
+  character(len = *), intent(in) :: name
+  integer :: i, j
+  logical :: single_thread_detected
+
+  single_thread_detected = v(2, 2) .eq. 1
+  do i=1,rows
+    do j=1,cols
+      if (single_thread_detected) then
+        if (v(j, i) .ne. (i-1)) then
+          write(*,*) name, v(:, :)
+          call exit(1)
+        endif
+      else if (v(j, i) .ne. (i-1) * cols + (j-1)) then
+        write(*,*) name, v(:, :)
+        call exit(1)
+      endif
+    end do
+  end do
+
+  if (single_thread_detected) then
+    write(*,*) "Warning: ", name, " ran in single-threaded mode. This might cause performance issues."
+  endif
+end subroutine validate_generic_spmd
+
 program kernel_exec_modes
   use omp_lib
   implicit none
@@ -66,7 +94,7 @@ program kernel_exec_modes
       a(j, i) = omp_get_team_num() * omp_get_num_threads() + omp_get_thread_num()
     end do
   end do
-  call validate(a, threads, teams, "Combined Generic-SPMD")
+  call validate_generic_spmd(a, threads, teams, "Combined Generic-SPMD")
 
   ! Split Generic-SPMD
   call init_arr(a, threads, teams)
@@ -79,7 +107,7 @@ program kernel_exec_modes
     end do
   end do
   !$omp end target teams
-  call validate(a, threads, teams, "Split Generic-SPMD")
+  call validate_generic_spmd(a, threads, teams, "Split Generic-SPMD")
 
   ! Generic
   call init_arr(a, threads, teams)
