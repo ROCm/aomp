@@ -155,7 +155,7 @@ function buildopenmpi(){
   fi
 
   _cname="openmpi"
-  _version=5.0.7
+  _version=5.0.8
   _release=v5.0
   _installdir=$AOMP_SUPP_INSTALL/$_cname-$_version
   _linkfrom=$AOMP_SUPP/$_cname
@@ -303,8 +303,8 @@ function getrocmpackage(){
 
 function buildhdf5(){
   _cname="hdf5"
-  _version=1.12.0
-  _release=hdf5-1.12
+  _version=1.14.0
+  _release=hdf5-1.14
   _installdir=$AOMP_SUPP_INSTALL/hdf5-$_version
   _linkfrom=$AOMP_SUPP/hdf5
   _builddir=$AOMP_SUPP_BUILD/hdf5
@@ -339,7 +339,7 @@ function buildhdf5(){
 
 function buildsilo(){
   _cname="silo"
-  _version=4.10.2
+  _version=4.11.1
   _installdir=$AOMP_SUPP_INSTALL/silo-$_version
   _linkfrom=$AOMP_SUPP/silo
   _builddir=$AOMP_SUPP_BUILD/silo
@@ -356,7 +356,8 @@ function buildsilo(){
   runcmd "cd $_builddir"
   # runcmd "wget https://wci.llnl.gov/sites/wci/files/2021-01/silo-$_version.tgz"
   # runcmd "tar -xzf silo-$_version.tgz"
-  runcmd "wget https://software.llnl.gov/Silo/ghpages/releases/silo-$_version.tar.xz"
+  #runcmd "wget https://software.llnl.gov/Silo/ghpages/releases/silo-$_version.tar.xz"
+  runcmd "wget https://github.com/LLNL/Silo/releases/download/$_version/silo-$_version.tar.xz"
   runcmd "tar -x --xz -f silo-$_version.tar.xz"
   runcmd "cd silo-$_version"
   if [ -d "$_installdir" ] ; then
