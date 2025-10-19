@@ -5,7 +5,7 @@
 #### Debian or Ubuntu Packages
 
 ```
-  sudo apt-get install wget gcc g++ pkg-config libpci-dev libnuma-dev libffi-dev git python3 libopenmpi-dev gawk mesa-common-dev libtool libdrm-amdgpu1 libdrm-dev ccache libdw-dev libgtest-dev libsystemd-dev cmake openssl libssl-dev libgmp-dev libmpfr-dev libelf-dev patchelf pciutils python3.10-dev libudev-dev libgtest-dev libstdc++-12-dev python3-lxml ocl-icd-opencl-dev libsystemd-dev libsqlite3-dev
+  sudo apt-get install wget gcc g++ pkg-config libpci-dev libnuma-dev libffi-dev git python3 libopenmpi-dev gawk mesa-common-dev libtool libdrm-amdgpu1 libdrm-dev ccache libdw-dev libgtest-dev libsystemd-dev cmake openssl libssl-dev libgmp-dev libmpfr-dev libelf-dev patchelf pciutils python3.10-dev libudev-dev libgtest-dev libstdc++-12-dev python3-lxml ocl-icd-opencl-dev libsystemd-dev libfmt-dev libmsgpack-dev libsqlite3-dev
 
   # Additional packages used by rocgdb
   sudo apt-get install texinfo libbison-dev bison flex libbabeltrace-dev python3-pip libncurses5-dev liblzma-dev python3-setuptools python3-dev libudev-dev libgmp-dev libmpfr-dev libdw-dev
@@ -29,7 +29,7 @@ Ubuntu 24.04 Only
 
 #### SLES-15-SP6 Packages
 ```
-  sudo zypper install wget libopenssl-devel elfutils libelf-devel git pciutils-devel libffi-devel gcc gcc-c++ libnuma-devel openmpi4-devel Mesa-libGL-devel libquadmath0 libtool libX11-devel systemd-devel hwdata unzip mpfr-devel ocl-icd-devel gcc7-fortran ncurses-devel sqlite-devel
+  sudo zypper install wget libopenssl-devel elfutils libelf-devel git pciutils-devel libffi-devel gcc gcc-c++ libnuma-devel openmpi4-devel Mesa-libGL-devel libquadmath0 libtool libX11-devel systemd-devel hwdata unzip mpfr-devel ocl-icd-devel gcc7-fortran ncurses-devel gcc13-c++ gcc13 libstdc++6-devel-gcc13 libc++-devel sqlite-devel
 
   A symbolic link may be required at /usr/lib64: /usr/lib64/libquadmath.so -> /usr/lib64/libquadmath.so.0.
 
@@ -48,6 +48,14 @@ Ubuntu 24.04 Only
 
   # Additional packages to support development and test
   sudo zypper install shellcheck
+
+  # Enable gcc-13
+  sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-13 10
+  sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-13 10
+  sudo update-alternatives --install /usr/bin/cc cc /usr/bin/gcc 10
+  sudo update-alternatives --set cc /usr/bin/gcc
+  sudo update-alternatives --install /usr/bin/c++ c++ /usr/bin/g++ 10
+  sudo update-alternatives --set c++ /usr/bin/g++
 ```
 
 #### RHEL Packages

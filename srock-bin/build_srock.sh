@@ -197,7 +197,9 @@ if [ "$SROCK_COMPILER_BRANCH" != "develop" ] ; then
    if [ -d "$thisdir/patches/$SROCK_COMPILER_BRANCH" ] ; then 
       cd $SROCK_THEROCK_DIR
       _patch_file=$thisdir/patches/$SROCK_COMPILER_BRANCH/_TheRock.patch
-      test_apply_patch
+      if [ -f "$_patch_file" ] ; then
+         test_apply_patch
+      fi
       _tmpfile=/tmp/submod$$
       git submodule > $_tmpfile
       while read _line ; do
