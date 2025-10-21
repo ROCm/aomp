@@ -85,6 +85,7 @@ if [ "$1" != "install" ] ; then
 
   echo "----- Copy util scripts to $BUILD_DIR/build/extras -----"
   cp "$AOMP_REPO_DIR"/utils/* "$BUILD_DIR"/build/extras
+  cp "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME"/offload/utils/gpurun "$BUILD_DIR"/build/extras
 
   for util in $install_list; do
     if [ "$util" == "rebundle_hip_lib.sh" ]; then
