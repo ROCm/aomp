@@ -1,5 +1,9 @@
 #!/usr/bin/perl
 #
+#Copyright © Advanced Micro Devices, Inc., or its affiliates.
+#
+#SPDX-License-Identifier:  MIT
+# 
 # Convert 'clone_aomp.sh list' output into git checkout commands
 #
 # 1) Save the clone_aomp.sh list at some point

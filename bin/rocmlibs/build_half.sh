@@ -1,4 +1,8 @@
 #!/bin/bash
+#
+#Copyright © Advanced Micro Devices, Inc., or its affiliates.
+#
+#SPDX-License-Identifier:  MIT
 # 
 #  build_half.sh: script to build and install half
 #

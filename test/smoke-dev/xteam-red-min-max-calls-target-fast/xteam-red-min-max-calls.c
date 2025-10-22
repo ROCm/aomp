@@ -1,4 +1,7 @@
-/*
+/* Copyright © Advanced Micro Devices, Inc., or its affiliates.
+ *
+ *  SPDX-License-Identifier:  MIT 
+ *
  * Test min/max reduction using fmin/fmax with unrelated calls in
  * the kernels. Compile using -fopenmp-target-fast, that will enable
  * Xteam reduction even with calls inside.
