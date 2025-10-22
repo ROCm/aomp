@@ -1,5 +1,10 @@
 #!/bin/bash
 #
+#Copyright © Advanced Micro Devices, Inc., or its affiliates.
+#
+#SPDX-License-Identifier:  MIT
+# 
+#
 # run_gpurun_rocprof_env.sh : compare environments with different process launchers
 #                            
 # Rule1: Always run rocprof, rocgdb binaries from gpurun and not the opposite.
