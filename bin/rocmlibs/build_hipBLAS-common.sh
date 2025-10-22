@@ -1,4 +1,9 @@
 #!/bin/bash
+#
+#Copyright © Advanced Micro Devices, Inc., or its affiliates.
+#
+#SPDX-License-Identifier:  MIT
+# 
 # 
 #  build_hipprim-common.sh:  Script to build and install hipprim-common library
 #                     This build is classic  cmake, make, make install
