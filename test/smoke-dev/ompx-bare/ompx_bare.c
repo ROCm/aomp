@@ -1,3 +1,8 @@
+// 
+// Copyright © Advanced Micro Devices, Inc., or its affiliates.
+//
+// SPDX-License-Identifier:  MIT
+
 // Check that the bare kernel has SGN 0, 64 teams, and 64 threads.
 // Based on existing test offload/test/offloading/ompx_bare.c.
 //
