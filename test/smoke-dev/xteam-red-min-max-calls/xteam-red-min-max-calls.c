@@ -1,4 +1,7 @@
-/*
+/* Copyright © Advanced Micro Devices, Inc., or its affiliates.
+ *
+ * SPDX-License-Identifier:  MIT 
+ *
  * Test min/max reduction using fmin/fmax with unrelated calls in
  * the kernels. Compile using -O3. fabs is not yet recognized as a
  * math function by specialized kernel analysis in clang and 

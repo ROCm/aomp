@@ -1,5 +1,10 @@
 #!/bin/bash
 #
+#Copyright © Advanced Micro Devices, Inc., or its affiliates.
+#
+#SPDX-License-Identifier:  MIT
+# 
+#
 # build_llvm-flang-rt-host-dev.sh
 #
 #   Standalone script to build the flang runtime with host-device support
