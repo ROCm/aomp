@@ -1,5 +1,5 @@
 diff --git a/compiler/CMakeLists.txt b/compiler/CMakeLists.txt
-index 4df4bca..12fe8e3 100644
+index 4df4bcab..52569d0f 100644
 --- a/compiler/CMakeLists.txt
 +++ b/compiler/CMakeLists.txt
 @@ -10,6 +10,10 @@ if(THEROCK_ENABLE_COMPILER)
@@ -13,12 +13,13 @@ index 4df4bca..12fe8e3 100644
  
    # If the compiler is not pristine (i.e. has patches), then there will be a
    # ".amd-llvm.smrev" file present which must be used instead of the auto
-@@ -67,7 +71,16 @@ if(THEROCK_ENABLE_COMPILER)
+@@ -67,7 +71,17 @@ if(THEROCK_ENABLE_COMPILER)
        -DCLANG_ENABLE_STATIC_ANALYZER=OFF
        -DCLANG_ENABLE_CLANGD=OFF
        -DCLANG_TIDY_ENABLE_STATIC_ANALYZER=OFF
 -
 +      -DCLANG_TOOL_CLANG_LINKER_WRAPPER_BUILD=ON
++      -DCLANG_TOOL_OFFLOAD_ARCH_BUILD=ON
 +      -DOPENMP_ENABLE_LIBOMPTARGET=ON
 +      -DLIBOMPTARGET_BUILD_DEVICE_FORTRT=ON
 +      -DOFFLOAD_EXTERNAL_PROJECT_UNIFIED_ROCR=ON
@@ -32,7 +33,7 @@ index 4df4bca..12fe8e3 100644
        # Note that building AMDGPU ASAN extensions depends on various runtime headers
        # (since it instruments them). These paths must line up and will be an error
 diff --git a/compiler/artifact-amd-llvm.toml b/compiler/artifact-amd-llvm.toml
-index b0645eb..54755ad 100644
+index b0645ebe..54755ad2 100644
 --- a/compiler/artifact-amd-llvm.toml
 +++ b/compiler/artifact-amd-llvm.toml
 @@ -7,6 +7,7 @@ unmatched_exclude = [
@@ -44,7 +45,7 @@ index b0645eb..54755ad 100644
  
  # LLVM deviates from the defaults in some key ways:
 diff --git a/compiler/pre_hook_amd-llvm.cmake b/compiler/pre_hook_amd-llvm.cmake
-index 0b457d6..156f31d 100644
+index 0b457d61..38973bd7 100644
 --- a/compiler/pre_hook_amd-llvm.cmake
 +++ b/compiler/pre_hook_amd-llvm.cmake
 @@ -13,7 +13,7 @@ if(WIN32)
@@ -77,8 +78,16 @@ index 0b457d6..156f31d 100644
  
  # Setup the install rpath (let CMake handle build RPATH per usual):
  # * Executables and libraries can always search their adjacent lib directory
+@@ -154,6 +155,7 @@ block()
+     CLANG_OFFLOAD_PACKAGER
+     CLANG_OFFLOAD_WRAPPER
+     CLANG_LINKER_WRAPPER
++    OFFLOAD_ARCH
+     CLANG_SHLIB
+     DRIVER
+   )
 diff --git a/math-libs/BLAS/pre_hook_hipSPARSE.cmake b/math-libs/BLAS/pre_hook_hipSPARSE.cmake
-index e0b10dd..190b51c 100644
+index e0b10dd5..190b51c8 100644
 --- a/math-libs/BLAS/pre_hook_hipSPARSE.cmake
 +++ b/math-libs/BLAS/pre_hook_hipSPARSE.cmake
 @@ -1,6 +1,6 @@
@@ -93,7 +102,7 @@ index e0b10dd..190b51c 100644
 +#  DESTINATION "clients"
 +#)
 diff --git a/math-libs/BLAS/pre_hook_rocSPARSE.cmake b/math-libs/BLAS/pre_hook_rocSPARSE.cmake
-index 697bba2..3856a68 100644
+index 697bba2b..3856a68c 100644
 --- a/math-libs/BLAS/pre_hook_rocSPARSE.cmake
 +++ b/math-libs/BLAS/pre_hook_rocSPARSE.cmake
 @@ -11,7 +11,7 @@ endif()
@@ -109,7 +118,7 @@ index 697bba2..3856a68 100644
 +#  DESTINATION "clients"
 +#)
 diff --git a/profiler/CMakeLists.txt b/profiler/CMakeLists.txt
-index 29b9a40..6947a64 100644
+index 29b9a404..6947a640 100644
 --- a/profiler/CMakeLists.txt
 +++ b/profiler/CMakeLists.txt
 @@ -50,10 +50,15 @@ if(THEROCK_ENABLE_ROCPROFV3)
