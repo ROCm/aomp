@@ -32,6 +32,9 @@ int main() {
     printf("Device pointer for k = %p, k[3] = %d\n", k, k[3]);
   }
   #pragma omp target update from(z[:10])
+  // Note separate the two DAGs to ensure that retrieving is happening after
+  // submitting.
+  /// CHECK: launch_kernel:
   /// CHECK-DAG: data_retrieve_async: {{.*}} 0 ({{.*}} 40, {{.*}})
   /// CHECK-DAG: data_retrieve_async: {{.*}} 0 ({{.*}} 4, {{.*}})
   /// CHECK-DAG: data_retrieve_async: {{.*}} 0 ({{.*}} 4, {{.*}})
