@@ -1,5 +1,5 @@
 AOMP Developer README.md
-========================
+=========================
 
 AOMP is a scripted build of LLVM and supporting software. It has support for OpenMP target offload on amdgcn GPUs.
 This is the AOMP developer README stored at:
