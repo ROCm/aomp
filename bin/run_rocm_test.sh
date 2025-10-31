@@ -144,11 +144,12 @@ export REAL_AOMP=`realpath $AOMP`
 echo ROCMINF=$ROCMINF
 rocm=$(cat "$ROCMINF"/.info/version*|head -1)
 rocmregex="([0-9]+\.[0-9]+\.[0-9]+)"
+therock=0
+rocmver=0
 if [[ "$rocm" =~ $rocmregex ]]; then
   rocmver=$(echo ${BASH_REMATCH[1]} | sed "s/\.//g")
   echo rocmver: $rocmver
-  therock=0
-  if [ "$rocmver" -ge "7100" ]; then
+  if [ $rocmver -ge 7100 ]; then
     echo "--- Using TheRock Compiler ---"
     therock=1
   fi
