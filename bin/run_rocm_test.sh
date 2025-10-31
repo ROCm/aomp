@@ -65,13 +65,15 @@ if [ $ISVIRT -eq 1 ] ; then
   # run on configurations that do not support USM.
   export OMPX_STRICT_SANITY_CHECKS={OMPX_STRICT_SANITY_CHECKS:-1}
 
-SUITE_LIST=${SUITE_LIST:-"examples smoke-limbo smoke smoke-asan smoke-fort smoke-fort-limbo omp5 openmpapps ovo babelstream fortran-babelstream accel2023 hpc2021"}
+  SUITE_LIST=${SUITE_LIST:-"examples smoke-limbo smoke smoke-asan smoke-fort smoke-fort-limbo omp5 openmpapps ovo babelstream fortran-babelstream accel2023 hpc2021"}
 else
-SUITE_LIST=${SUITE_LIST:-"examples smoke-limbo smoke-dev smoke-fort-dev smoke smoke-asan smoke-fort smoke-fort-limbo omp5 openmpapps LLNL nekbone ovo babelstream fortran-babelstream accel2023 hpc2021"}
+  SUITE_LIST=${SUITE_LIST:-"examples smoke-limbo smoke-dev smoke-fort-dev smoke smoke-asan smoke-fort smoke-fort-limbo omp5 openmpapps LLNL nekbone ovo babelstream fortran-babelstream accel2023 hpc2021"}
 fi
+
 blockinglist="examples smoke smoke-limbo openmpapps sollve45 sollve50 sollve51 sollve52 babelstream ovo accel2023 hpc2021 nekbone smoke-fort smoke-fort-limbo"
 
 EPSDB_LIST=${EPSDB_LIST:-"examples smoke-limbo smoke-dev smoke smoke-asan omp5 openmpapps LLNL nekbone ovo babelstream fortran-babelstream accel2023 hpc2021  smoke-fort smoke-fort-limbo smoke-fort-dev"}
+THEROCK_LIST=${THEROCK_LIST:-"smoke smoke-fort accel2023"}
 
 export AOMP_USE_CCACHE=0
 
@@ -138,6 +140,23 @@ export AOMP
 echo "AOMP = $AOMP"
 export REAL_AOMP=`realpath $AOMP`
 
+# Determine ROCm version.
+echo ROCMINF=$ROCMINF
+rocm=$(cat "$ROCMINF"/.info/version*|head -1)
+rocmregex="([0-9]+\.[0-9]+\.[0-9]+)"
+if [[ "$rocm" =~ $rocmregex ]]; then
+  rocmver=$(echo ${BASH_REMATCH[1]} | sed "s/\.//g")
+  echo rocmver: $rocmver
+  therock=0
+  if [ "$rocmver" -ge "7100" ]; then
+    echo "--- Using TheRock Compiler ---"
+    therock=1
+  fi
+else
+  echo Unable to determine rocm version.
+  exit 1
+fi
+
 function extract_rpm(){
   local test_package=$1
   cd $tmpdir
@@ -172,7 +191,7 @@ if [ "$aomp" != 1 ]; then
   os_name=$(cat /etc/os-release | grep NAME)
   test_package_name="openmp-extras-tests"
 
-  if [ "$SKIP_TEST_PACKAGE" != 1 ] && [ "$TEST_BRANCH" == "" ]; then
+  if [ $therock -eq 0 ] && [ "$SKIP_TEST_PACKAGE" != 1 ] && [ "$TEST_BRANCH" == "" ]; then
     rm -rf $tmpdir
     mkdir -p $tmpdir
     export debsupport=0
@@ -379,30 +398,18 @@ function getversion(){
   versions[543]=5.4.3
   versions[550]=5.5.0
 
-  if [ $aomp -eq 1 ]; then
-    echo "AOMP detected at $AOMP, skipping ROCm version detections"
+  if [ $aomp -eq 1 ] || [ $therock -eq 1 ]; then
     maxvers=`echo $supportedvers | grep -o "[0-9].[0-9].[0-9]$" | sed -e 's/\.//g'`
     versionregex="(.*${versions[$maxvers]})"
     if [[ "$supportedvers" =~ $versionregex ]]; then
       finalvers=${BASH_REMATCH[1]}
     else
-      echo "AOMP - Cannot select proper version list."
+      echo "Error: Cannot select proper version list."
       exit 1
     fi
+    echo "AOMP or TheRock detected at $AOMP, skipping ROCm version detections"
     echo "Selecting highest supported version: ${versions[$maxvers]}"
   else
-    # Determine ROCm version.
-    echo ROCMINF=$ROCMINF
-    rocm=$(cat "$ROCMINF"/.info/version*|head -1)
-    rocmregex="([0-9]+\.[0-9]+\.[0-9]+)"
-    if [[ "$rocm" =~ $rocmregex ]]; then
-      rocmver=$(echo ${BASH_REMATCH[1]} | sed "s/\.//g")
-      echo rocmver: $rocmver
-    else
-      echo Unable to determine rocm version.
-      exit 1
-    fi
-
     # Determine OS flavor to properly query openmp-extras version.
     osname=$(cat /etc/os-release | grep -e ^NAME=)
     # Regex to cover single/multi version installs for deb/rpm.
@@ -466,6 +473,7 @@ function getversion(){
     fi
   fi
 }
+
 function notAllMustPass() {
   #if [ "$1" != "smoke" ] && [ "$1" != "smoke-limbo" ] &&  [ "$1" != "smoke-fort" ] && [ "$1" != "smoke-fort-limbo" ]; then
   if [ "$1" != "smoke" ] && [ "$1" != "smoke-limbo" ] && [ "$1" != "smoke-fort" ] && [ "$1" != "examples_openmp" ] && [ "$1" != "examples_fortran" ]; then
@@ -1068,7 +1076,9 @@ rm -rf $resultsdir
 mkdir -p $resultsdir
 
 # Run Tests
-if [ "$EPSDB" == "1" ]; then
+if [ $therock -eq 1 ]; then
+  SUITE_LIST="$THEROCK_LIST"
+elif [ "$EPSDB" == "1" ]; then
   SUITE_LIST="$EPSDB_LIST"
 fi
 echo Running List: $SUITE_LIST
