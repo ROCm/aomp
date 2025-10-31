@@ -23,7 +23,8 @@ ifeq ("$(wildcard $(HIPSTDPARPRIMPATH)/rocprim)","")
 endif
 
 CC = $(LLVM_INSTALL_DIR)/bin/clang++
-opts=-I. -DNDEBUG -O3 --hipstdpar --hipstdpar-path=$(HIPSTDPARPATH) --hipstdpar-thrust-path=$(HIPSTDPARTHRUSTPATH) --hipstdpar-prim-path=$(HIPSTDPARPRIMPATH) --offload-arch=$(LLVM_GPU_ARCH) -std=c++17
+#opts=-I. -DNDEBUG -O3 --hipstdpar --hipstdpar-path=$(HIPSTDPARPATH) --hipstdpar-thrust-path=$(HIPSTDPARTHRUSTPATH) --hipstdpar-prim-path=$(HIPSTDPARPRIMPATH) --offload-arch=$(LLVM_GPU_ARCH) -std=c++17
+opts=-I. -g -O0 --hipstdpar --hipstdpar-path=$(HIPSTDPARPATH) --hipstdpar-thrust-path=$(HIPSTDPARTHRUSTPATH) --hipstdpar-prim-path=$(HIPSTDPARPRIMPATH) --offload-arch=$(LLVM_GPU_ARCH) -std=c++20
 
 # Build both babelstream stdpar binaries
 tsp:tsp.o
