@@ -38,7 +38,7 @@ export UMPIRE_SRC_DIR=${UMPIRE_SRC_DIR:-UMPIRE}
 export AOMP_SUPP=${AOMP_SUPP:-$HOME/local}
 
 export CMAKE=$AOMP_SUPP/cmake/bin
-export MPI=$AOMP_SUPP/llvm-flang/openmpi
+export MPI=$AOMP_SUPP/openmpi
 export LIBRARY_PATH=$AOMP/lib:$AOMPHIP/lib:$MPI/bin:$MPI/include:$LIBRARY_PATH
 export LD_LIBRARY_PATH=$AOMP/lib:$AOMPHIP/lib:$MPI/bin:$MPI/include:$LD_LIBRARY_PATH
 export PATH=$MPI:$AOMP/bin:$AOMPHIP/bin:$MPI/bin:$MPI/include:$PATH
