@@ -19,7 +19,7 @@
 #    AOMP=<path-to-compiler-install>/llvm ./build_supp_llvm-flang.sh
 #
 # To run:
-#    AOMP_SUPP=$HOME/local/llvm-flang \
+#    AOMP_SUPP=$HOME/local \
 #    AOMP=<path-to-compiler-install>/llvm ./run_genasis_flang_new.sh
 #
 # --- Start standard header to set AOMP environment variables ----
