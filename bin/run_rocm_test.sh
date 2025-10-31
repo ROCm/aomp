@@ -140,22 +140,30 @@ export AOMP
 echo "AOMP = $AOMP"
 export REAL_AOMP=`realpath $AOMP`
 
-# Determine ROCm version.
-echo ROCMINF=$ROCMINF
-rocm=$(cat "$ROCMINF"/.info/version*|head -1)
-rocmregex="([0-9]+\.[0-9]+\.[0-9]+)"
-therock=0
-rocmver=0
-if [[ "$rocm" =~ $rocmregex ]]; then
-  rocmver=$(echo ${BASH_REMATCH[1]} | sed "s/\.//g")
-  echo rocmver: $rocmver
-  if [ $rocmver -ge 7100 ]; then
-    echo "--- Using TheRock Compiler ---"
-    therock=1
+clangversion=`$AOMP/bin/clang --version`
+aomp=0
+if [[ "$clangversion" =~ "AOMP_STANDALONE" ]]; then
+  aomp=1
+fi
+
+if [ $aomp -eq 0 ]; then
+  # Determine ROCm version.
+  echo ROCMINF=$ROCMINF
+  rocm=$(cat "$ROCMINF"/.info/version*|head -1)
+  rocmregex="([0-9]+\.[0-9]+\.[0-9]+)"
+  therock=0
+  rocmver=0
+  if [[ "$rocm" =~ $rocmregex ]]; then
+    rocmver=$(echo ${BASH_REMATCH[1]} | sed "s/\.//g")
+    echo rocmver: $rocmver
+    if [ $rocmver -ge 7100 ]; then
+      echo "--- Using TheRock Compiler ---"
+      therock=1
+    fi
+  else
+    echo Unable to determine rocm version.
+    exit 1
   fi
-else
-  echo Unable to determine rocm version.
-  exit 1
 fi
 
 function extract_rpm(){
@@ -178,12 +186,6 @@ if [[ $REAL_AOMP =~ "/opt/rocm-6.0" ]] || [[ $REAL_AOMP =~ "/opt/rocm-6.1" ]]; t
   sleep 5
   ./run_rocm_test.sh
   exit $?
-fi
-
-clangversion=`$AOMP/bin/clang --version`
-aomp=0
-if [[ "$clangversion" =~ "AOMP_STANDALONE" ]]; then
-  aomp=1
 fi
 
 # Support for using openmp-extras-tests package.
