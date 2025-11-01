@@ -1,0 +1,280 @@
+#!/bin/bash
+#
+#  run_mini_apps.sh
+#    runs nekbone babelstream fortran-babelstream accel2023 hpc2021 openmpapps
+#    override with SUITE_LIST
+#  Please check with Ron or Ethan for script modifications.
+
+SUITE_LIST=${SUITE_LIST:-"nekbone babelstream fortran-babelstream accel2023 hpc2021 openmpapps"}
+
+export INST=/tmp/npsdbInst$$/openmpi-5-npsdb
+export MPI=$INST
+echo rocmMPI=$MPI
+
+export ROCR_VISIBLE_DEVICES=0
+
+# whats the OS ?
+cat /etc/os-release
+rocm-smi
+rocminfo
+./rocm_quick_check.sh
+
+export AOMP_USE_CCACHE=0
+
+echo $SUITE_LIST
+
+TLOG=/tmp/log$$
+echo "================"  >$TLOG
+
+# Use bogus path to avoid using target.lst, a user-defined target list
+# used by rocm_agent_enumerator.
+export ROCM_TARGET_LST=/opt/nowhere
+
+#ulimit -t 1000
+
+realpath=`realpath $0`
+scriptdir=`dirname $realpath`
+parentdir=`eval "cd $scriptdir;pwd;cd - > /dev/null"`
+aompdir="$(dirname "$parentdir")"
+resultsdir="$aompdir/bin/rocm-test/results"
+scriptsdir="$aompdir/bin/rocm-test/scripts"
+rocmtestdir="$aompdir"/bin/rocm-test
+summary="$resultsdir"/summary.txt
+unexpresults="$resultsdir"/unexpresults.txt
+scriptfails=0
+
+EPSDB=1 ./clone_test.sh  
+AOMP_TEST_DIR=${AOMP_TEST_DIR:-"$HOME/git/aomp-test"}
+echo AOMP before : $AOMP
+if [ ! -e $AOMP/bin ]; then
+  echo $AOMP does not point to valid location, unsetting
+  unset AOMP
+fi
+# Set AOMP to point to rocm symlink or newest version.
+if [ -e /opt/rocm/lib/llvm/bin ]; then
+  AOMP=${AOMP:-"/opt/rocm/lib/llvm"}
+  ROCMINF=/opt/rocm
+  ROCMDIR=/opt/rocm/lib
+  echo setting 1 $AOMP
+elif [ -e /opt/rocm/llvm/bin ]; then
+  AOMP=${AOMP:-"/opt/rocm/llvm"}
+  ROCMINF=/opt/rocm
+  ROCMDIR=/opt/rocm
+  echo setting 2 $AOMP
+else
+echo "error 1"
+exit
+fi
+export AOMP
+echo "AOMP = $AOMP"
+export REAL_AOMP=`realpath $AOMP`
+
+clangversion=`$AOMP/bin/clang --version`
+aomp=0
+if [[ "$clangversion" =~ "AOMP_STANDALONE" ]]; then
+  aomp=1
+fi
+echo $AOMP $REAL_AOMP using test branch $TEST_BRANCH
+
+# Make sure clang is present.
+$AOMP/bin/clang --version
+if [ $? -ne 0 ]; then
+  echo "Error: Clang not found at "$AOMP"/bin/clang."
+  exit 1
+fi
+
+$AOMP/bin/flang --version
+
+# Parent dir should be ROCm base dir.
+if [ $aomp -eq 1 ]; then
+  AOMPROCM=$AOMP
+else
+  AOMPROCM=$AOMP/../..
+fi
+export AOMPROCM
+echo AOMPROCM=$AOMPROCM
+
+# Set ROCM_LLVM for examples
+export ROCM_LLVM=$AOMP
+
+#unset ROCM_PATH
+
+# Use bogus path to avoid using target.lst, a user-defined target list
+# used by rocm_agent_enumerator.
+export ROCM_TARGET_LST=/opt/nowhere
+
+echo "RAE devices:"
+$ROCMINF/bin/rocm_agent_enumerator
+
+# Set AOMP_GPU.
+# Regex skips first result 'gfx000' and selects second id.
+if [ "$AOMP_GPU" == "" ]; then
+  AOMP_GPU=$($ROCMINF/bin/rocm_agent_enumerator | grep -m 1 -E gfx[^0]{1}.{2})
+fi
+
+# mygpu will eventually relocate to /opt/rocm/bin, support both cases for now.
+if [ "$AOMP_GPU" != "" ]; then
+  echo "AOMP_GPU set with rocm_agent_enumerator."
+else
+  echo "AOMP_GPU is empty, use mygpu."
+  if [ -a $AOMP/bin/mygpu ]; then
+    AOMP_GPU=$($AOMP/bin/mygpu)
+  else
+    AOMP_GPU=$($AOMP/../bin/mygpu)
+  fi
+fi
+if [ "$AOMP_GPU" == "" ]; then
+  echo "Error: AOMP_GPU was not able to be set with RAE or mygpu."
+  exit 1
+fi
+echo AOMP_GPU=$AOMP_GPU
+export AOMP_GPU
+
+# Run quick sanity test
+echo
+echo "check-xnack test"
+cd "$aompdir"/test/smoke-dev/check-xnack
+make clean > /dev/null
+VERBOSE=1 make
+./check-xnack
+HSA_XNACK=1 OMPX_APU_MAPS=1 ./check-xnack
+echo
+echo "Helloworld sanity test:"
+cd "$aompdir"/test/smoke/helloworld
+make clean > /dev/null
+OMP_TARGET_OFFLOAD=MANDATORY VERBOSE=1 make run > hello.log 2>&1
+sed -n -e '/ld.lld/,$p' hello.log
+echo
+echo "Checking plugin"
+LIBOMPTARGET_DEBUG=1 OMP_TARGET_OFFLOAD=MANDATORY make run 2>&1 | grep "libomptarget.rtl.amdgpu"
+echo
+
+function openmpapps(){
+  echo "%================ openmpapps"
+  # -----Run Openmpapps-----
+  mkdir -p "$resultsdir"/openmpapps
+  cd "$AOMP_TEST_DIR"/openmpapps
+  echo rockMPI=$MPI
+  ./check_openmpapps.sh
+  if [ "$?" -eq "0" ]; then
+     echo "Passed openmpapps" >> $TLOG
+  else 
+     echo "FAILED openmpapps" >> $TLOG
+     scriptfails=1  
+  fi
+}
+
+function nekbone(){
+  echo "%================ nekbone"
+  # -----Run Nekbone-----
+  mkdir -p "$resultsdir"/nekbone
+  cd "$aompdir"/bin
+  ( VERBOSE=0 ./run_nekbone.sh ) 
+  if [ "$?" -eq "0" ]; then
+     echo "Passed Nekbone" >> $TLOG
+  else 
+     echo "FAILED Nekbone" >> $TLOG
+     scriptfails=1  
+  fi
+}
+
+function babelstream(){
+  echo "%================ baelstream"
+  export AOMPHIP=$ROCMDIR
+  mkdir -p "$resultsdir"/babelstream
+  cd "$aompdir"/bin
+  if [ $aomp -eq 0 ]; then
+    export ROCMINFO_BINARY=$ROCMINF/bin/rocminfo
+  fi
+  export RUN_OPTIONS="omp-default omp-fast"
+  ./run_babelstream.sh
+  if [ "$?" -eq "0" ]; then
+     echo "Passed Babelstream" >> $TLOG
+  else 
+     echo "FAILED Babelstream" >> $TLOG
+     scriptfails=1  
+  fi
+}
+
+function fortran-babelstream(){
+  echo "%================ fortran-babelstream"
+  export AOMPHIP=$ROCMDIR
+  mkdir -p "$resultsdir"/fortran-babelstream
+  cd "$aompdir"/bin
+  if [ $aomp -eq 0 ]; then
+    export ROCMINFO_BINARY=$ROCMINF/bin/rocminfo
+  fi
+  ./run_fBabel.sh
+  if [ "$?" -eq "0" ]; then
+     echo "Passed fortran-babelstream" >> $TLOG
+  else 
+     echo "FAILED fortran-babelstream" >> $TLOG
+     scriptfails=1  
+  fi
+}
+
+
+function accel2023(){
+echo "%================ accel2023"
+  mkdir -p "$resultsdir"/accel2023
+  cd "$aompdir"/bin
+  ./run_accel2023.sh -clean
+  cd $AOMP_TEST_DIR/accel2023-2.0.18
+  grep ratio= result/*.log  | tail -12
+  nsucc=$(grep ratio= result/*.log  | grep Succ | wc -l)
+  if [ $nsucc -eq 12 ]; then
+    echo "Passed accel2023 $nsucc passes"  >> $TLOG
+  else
+    echo "FAILED accel2023 $nsucc passes"  >> $TLOG
+     scriptfails=1  
+  fi
+}
+
+function hpc2021(){
+echo "%================ hpc2021"
+  grep -q Ubuntu /etc/os-release
+  if [ "$?" -eq "0" ]; then
+    echo "running on ubuntu"
+    mkdir -p "$resultsdir"/hpc2021
+    cd "$aompdir"/bin
+    unset ROCR_VISIBLE_DEVICES
+    echo rockMPI=$MPI
+    ./run_hpc2021.sh -clean
+    cd $AOMP_TEST_DIR/hpc2021-1.1.9
+    grep ratio= result/*.log  | tail -9
+    nsucc=$(grep ratio= result/*.log  | grep Succ | wc -l)
+    if [ $nsucc -eq 9 ]; then
+      echo "Passed hpc2021 $nsucc passes"  >> $TLOG
+    else
+      echo "FAILED hpc2021 $nsucc passes"  >> $TLOG
+       scriptfails=1  
+    fi
+  fi
+}
+
+# Clean Results
+cd "$aompdir"/bin
+rm -rf $resultsdir
+mkdir -p $resultsdir
+
+echo Running List: $SUITE_LIST
+
+declare -A warnings
+warningcount=0
+for suite in $SUITE_LIST; do
+  $suite
+done
+
+echo "************************************" >> $summary
+if [ "$scriptfails" != 0 ]; then
+  echo FAIL >> $summary
+  echo "EPSDB Status:  red" >> $summary
+else
+  echo PASS >> $summary
+  echo "EPSDB Status:  green" >> $summary
+fi
+cat $TLOG
+echo ""
+echo >> $summary
+cat $summary
+exit $((scriptfails))
