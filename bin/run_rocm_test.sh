@@ -20,18 +20,7 @@ export CLEANUP=0
 
 # whats the OS ?
 cat /etc/os-release
-rocm-smi
-rocminfo
 
-# Export SKIP_USM=1 if xnack can not be turned ON, even with HSA_XNACK=1.
-# Makefile.defs uses SKIP_USM env var to disable compilation and execution
-# of the tests which require USM support.
-SKIP_USM=0
-XNACK_PLUS=$(HSA_XNACK=1 rocminfo | grep -i "xnack+" | wc -l)
-if [ $XNACK_PLUS -eq 0 ]; then
-  SKIP_USM=1
-fi
-export SKIP_USM=$SKIP_USM
 
 if [ -e /usr/sbin/lspci ]; then
   lspci_loc=/usr/sbin/lspci
@@ -114,13 +103,13 @@ fi
 # Set AOMP to point to rocm symlink or newest version.
 if [ -e /opt/rocm/lib/llvm/bin ]; then
   AOMP=${AOMP:-"/opt/rocm/lib/llvm"}
-  ROCMINF=/opt/rocm
-  ROCMDIR=/opt/rocm/lib
+  ROCMINF="$AOMP/../../"
+  ROCMDIR="$AOMP/../../"
   echo setting 1 $AOMP
 elif [ -e /opt/rocm/llvm/bin ]; then
   AOMP=${AOMP:-"/opt/rocm/llvm"}
-  ROCMINF=/opt/rocm
-  ROCMDIR=/opt/rocm
+  ROCMINF="$AOMP/../"
+  ROCMDIR="$AOMP/../"
   echo setting 2 $AOMP
 else
   newestrocm=$(ls --sort=time /opt | grep -m 1 rocm)
@@ -139,6 +128,23 @@ fi
 export AOMP
 echo "AOMP = $AOMP"
 export REAL_AOMP=`realpath $AOMP`
+"$ROCMINF/bin/rocm-smi"
+"$ROCMINF/bin/rocminfo"
+
+# Export SKIP_USM=1 if xnack can not be turned ON, even with HSA_XNACK=1.
+# Makefile.defs uses SKIP_USM env var to disable compilation and execution
+# of the tests which require USM support.
+SKIP_USM=0
+XNACK_PLUS=$(HSA_XNACK=1 "$ROCMINFO/binrocminfo" | grep -i "xnack+" | wc -l)
+if [ $XNACK_PLUS -eq 0 ]; then
+  SKIP_USM=1
+fi
+export SKIP_USM=$SKIP_USM
+
+# Download FileCheck if not present
+if [ ! -f "$AOMP/bin/FileCheck" ]; then
+  wget -P $HOME Fileheck https://compute-artifactory.amd.com/artifactory/rocm-generic-local/compiler-infra/FileCheck
+fi
 
 clangversion=`$AOMP/bin/clang --version`
 aomp=0
