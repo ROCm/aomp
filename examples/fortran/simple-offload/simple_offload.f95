@@ -1,3 +1,8 @@
+!
+!Copyright © Advanced Micro Devices, Inc., or its affiliates.
+!
+!SPDX-License-Identifier:  MIT
+! 
 ! example of simple Fortran AMD GPU offloading
 program main
   parameter (nsize=1000000)
