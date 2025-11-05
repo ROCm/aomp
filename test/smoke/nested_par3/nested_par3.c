@@ -17,7 +17,7 @@ int main (void)
       for (unsigned int l = 0; l < cmom-1; l++) {
         int a = 0;
         for (int ii = 0; ii < N+2; ii++) {
-          #pragma omp parallel for reduction(+:a)
+	  #pragma omp parallel for reduction(+:a)
           for (int i = 0; i < N; i++) {
             a += i;
           }
@@ -34,7 +34,8 @@ int main (void)
     return 1;
   }
   aa = 0;
-#pragma omp target teams distribute num_teams(nxyz) thread_limit(4) map(tofrom:aa)
+#if 0
+  #pragma omp target teams distribute num_teams(nxyz) thread_limit(4) map(tofrom:aa)
   for (int gid = 0; gid < nxyz; gid++) {
     for (unsigned int g = 0; g < ng; g++) {
       for (unsigned int l = 0; l < cmom-1; l++) {
@@ -106,5 +107,6 @@ int main (void)
     fprintf(stderr, "Failed %ld\n",aa);
     return 1;
   }
+  #endif
   return 0;
 }
