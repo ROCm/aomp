@@ -241,10 +241,10 @@ function getrocmpackage(){
   _packagename="$2"
   _componentversion="$3"
   _directory=$(echo "$2" | cut -b 1)
-  _version=7.0
-  _packageversion=7.0.0
-  _fullversion=70000
-  _buildnumber=38
+  _version=7.1
+  _packageversion=7.1.0
+  _fullversion=70100
+  _buildnumber=20
   _installdir=$AOMP_SUPP_INSTALL/$_cname-$_version
   _linkfrom=$AOMP_SUPP/$_cname
   _builddir=$AOMP_SUPP_BUILD/$_cname
@@ -449,7 +449,7 @@ function buildcmake(){
 
 function buildrocmsmilib(){
   _cname="rocmsmilib"
-  _version=7.0.x
+  _version=7.1.x
   _installdir=$AOMP_SUPP_INSTALL/rocmsmilib-$_version
   _linkfrom=$AOMP_SUPP/rocmsmilib
   _builddir=$AOMP_SUPP_BUILD/rocmsmilib
@@ -464,7 +464,7 @@ function buildrocmsmilib(){
   fi
   runcmd "mkdir -p $_builddir"
   runcmd "cd $_builddir"
-  runcmd "git clone -b release/rocm-rel-7.0 https://github.com/ROCm/rocm_smi_lib rocmsmilib-$_version"
+  runcmd "git clone -b release/rocm-rel-7.1 https://github.com/ROCm/rocm_smi_lib rocmsmilib-$_version"
   runcmd "cd rocmsmilib-$_version"
   runcmd "mkdir -p build"
   runcmd "cd build"
@@ -576,7 +576,7 @@ for _component in $_components ; do
   elif [ "$_component" == "openclicdloader" ] ; then
     getrocmpackage openclicdloader rocm-opencl-icd-loader 1.2
   elif [ "$_component" == "rocm-core" ] ; then
-    getrocmpackage rocm-core rocm-core 7.0.0
+    getrocmpackage rocm-core rocm-core 7.1.0
   else
     echo "ERROR:  Invalid component name $_component" >>"$CMDLOGFILE"
     echo "ERROR:  Invalid component name $_component"
