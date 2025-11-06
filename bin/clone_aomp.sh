@@ -156,7 +156,15 @@ function list_repo_from_manifest(){
       REPO_REMOTE="emu"
    fi
    if [[ "$REPO_REMOTE" == "roc" ]] ; then
-        manifest_project=$(echo ROCm/$REPO_PROJECT | tr '[:upper:]' '[:lower:]')
+	repo_git_list="llvm-project hipify spirv-llvm-translator"
+	if echo "$repo_git_list" | grep -w "$REPO_PROJECT"; then
+          url=$(grep url .git/config)
+          nogit=${url%*.git}
+          project_name=${nogit##*/}
+          manifest_project=$(echo $REPO_PROJECT | tr '[:upper:]' '[:lower:]' | cut -d"." -f1)
+	else
+          manifest_project=$(echo ROCm/$REPO_PROJECT | tr '[:upper:]' '[:lower:]')
+	fi
    elif [[ "$REPO_REMOTE" == "emu" ]] ; then
         url=$(grep url .git/config)
         nogit=${url%*.git}
