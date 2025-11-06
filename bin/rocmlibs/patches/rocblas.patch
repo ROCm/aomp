@@ -1,21 +1,43 @@
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 9ea8cd03..95b5bbb8 100644
+index 2e5638682..6d3a067cb 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
 @@ -85,7 +85,7 @@ if (NOT BUILD_ADDRESS_SANITIZER)
-   set( TARGET_LIST_ROCM_5.7 "gfx803;gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack+;gfx90a:xnack-;gfx942;gfx1010;gfx1012;gfx1030;gfx1100;gfx1101;gfx1102")
    set( TARGET_LIST_ROCM_6.0 "gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack+;gfx90a:xnack-;gfx942;gfx1010;gfx1012;gfx1030;gfx1100;gfx1101;gfx1102")
    set( TARGET_LIST_ROCM_6.3 "gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a;gfx942;gfx1010;gfx1012;gfx1030;gfx1100;gfx1101;gfx1102;gfx1151;gfx1200;gfx1201")
--  set( TARGET_LIST_ROCM_7.0 "gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a;gfx942;gfx950;gfx1010;gfx1012;gfx1030;gfx1100;gfx1101;gfx1102;gfx1150;gfx1151;gfx1200;gfx1201")
-+  set( TARGET_LIST_ROCM_7.0 "gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a;gfx90c;gfx942;gfx950;gfx1010;gfx1012;gfx1030;gfx1100;gfx1101;gfx1102;gfx1103;gfx1150;gfx1151;gfx1200;gfx1201")
+   set( TARGET_LIST_ROCM_7.0 "gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a;gfx942;gfx950;gfx1010;gfx1012;gfx1030;gfx1100;gfx1101;gfx1102;gfx1150;gfx1151;gfx1200;gfx1201")
+-  set( TARGET_LIST_ROCM_7.1 "gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a;gfx942;gfx950;gfx1010;gfx1012;gfx1030;gfx1100;gfx1101;gfx1102;gfx1103;gfx1150;gfx1151;gfx1200;gfx1201")
++  set( TARGET_LIST_ROCM_7.1 "gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a;gfx90c;gfx942;gfx950;gfx1010;gfx1012;gfx1030;gfx1100;gfx1101;gfx1102;gfx1103;gfx1150;gfx1151;gfx1200;gfx1201")
  else()
    set( TARGET_LIST_ROCM_5.6 "gfx908:xnack+;gfx90a:xnack+")
    set( TARGET_LIST_ROCM_5.7 "gfx908:xnack+;gfx90a:xnack+;gfx942:xnack+")
+diff --git a/library/CMakeLists.txt b/library/CMakeLists.txt
+index e39c61926..c48ba9b0d 100644
+--- a/library/CMakeLists.txt
++++ b/library/CMakeLists.txt
+@@ -87,7 +87,7 @@ function( rocblas_library_settings lib_target_ )
+       set(ROCTX_PATH "" CACHE STRING "Path to the roctx library (directory containing libroctx64.so)")
+ 
+       find_path(ROCTRACER_INCLUDE_DIR
+-        NAMES roctracer/roctx.h
++        NAMES rocprofiler-sdk-roctx/roctx.h
+         HINTS
+         ${ROCTX_PATH}
+         ${ROCTX_PATH}/include
+@@ -96,7 +96,7 @@ function( rocblas_library_settings lib_target_ )
+         DOC "Path to the roctracer include directory containing roctx.h")
+ 
+       find_library(ROCTX_LIBRARY
+-        NAMES roctx64
++        NAMES rocprofiler-sdk-roctx
+         HINTS
+         ${ROCTX_PATH} # User-provided path
+         ${ROCTX_PATH}/lib
 diff --git a/library/src/handle.cpp b/library/src/handle.cpp
-index dcf0469c..a8b11ddc 100644
+index 7731691ff..4585a58ea 100644
 --- a/library/src/handle.cpp
 +++ b/library/src/handle.cpp
-@@ -354,6 +354,10 @@ Processor _rocblas_handle::getActiveArch()
+@@ -255,6 +255,10 @@ Processor _rocblas_handle::getActiveArch()
      {
          return Processor::gfx90a;
      }
@@ -27,10 +49,10 @@ index dcf0469c..a8b11ddc 100644
      {
          return Processor::gfx942;
 diff --git a/library/src/include/handle.hpp b/library/src/include/handle.hpp
-index c3a0fb52..608bdd20 100644
+index f0668632f..a8fe57e75 100644
 --- a/library/src/include/handle.hpp
 +++ b/library/src/include/handle.hpp
-@@ -82,6 +82,7 @@ enum class Processor : int
+@@ -75,6 +75,7 @@ enum class Processor : int
      gfx906  = 906,
      gfx908  = 908,
      gfx90a  = 910,
@@ -38,8 +60,21 @@ index c3a0fb52..608bdd20 100644
      gfx942  = 942,
      gfx950  = 950,
      gfx1010 = 1010,
+diff --git a/library/src/logging.cpp b/library/src/logging.cpp
+index 20b5d244c..d673bd93e 100644
+--- a/library/src/logging.cpp
++++ b/library/src/logging.cpp
+@@ -24,7 +24,7 @@
+ 
+ #ifndef DISABLE_ROCTX
+ #if !defined(ROCBLAS_STATIC_LIB) && !defined(WIN32)
+-#include <roctracer/roctx.h>
++#include <rocprofiler-sdk-roctx/roctx.h>
+ #endif
+ #endif
+ 
 diff --git a/library/src/tensile_host.cpp b/library/src/tensile_host.cpp
-index a87bace8..a3c2dfdf 100644
+index b0e72cc3d..f1b5ed8d3 100644
 --- a/library/src/tensile_host.cpp
 +++ b/library/src/tensile_host.cpp
 @@ -257,6 +257,10 @@ namespace
