@@ -6,6 +6,10 @@ set -x
 save_status
 ./milestone-3-babel -n 20 -s 100000000  # 2400.0 MB
 save_status
+if [[ "$AOMP_GPU" =~ ^gfx12.* ]]; then
+    echo "$AOMP_GPU: Skipping remaining larger memory tests"
+    exit $rval
+fi
 ./milestone-3-babel -n 20 -s 200000000  # 4800.0 MB
 save_status
 if [[ "$AOMP_GPU" =~ ^gfx900 ]] ||
