@@ -62,12 +62,12 @@ fi
 blockinglist="examples smoke smoke-limbo openmpapps sollve45 sollve50 sollve51 sollve52 babelstream ovo accel2023 hpc2021 nekbone smoke-fort smoke-fort-limbo"
 
 EPSDB_LIST=${EPSDB_LIST:-"examples smoke-limbo smoke-dev smoke smoke-asan omp5 openmpapps LLNL nekbone ovo babelstream fortran-babelstream accel2023 hpc2021  smoke-fort smoke-fort-limbo smoke-fort-dev"}
-THEROCK_LIST=${THEROCK_LIST:-"smoke smoke-fort accel2023"}
+THEROCK_LIST=${THEROCK_LIST:-"smoke smoke-fort nekbone babelstream fortran-babelstream accel2023 hpc2021"}
 
 export AOMP_USE_CCACHE=0
 
-echo $SUITE_LIST
-echo $blockinglist
+echo Initial SUITE_LIST: $SUITE_LIST
+echo Blocking List: $blockinglist
 
 # Use bogus path to avoid using target.lst, a user-defined target list
 # used by rocm_agent_enumerator.
@@ -142,10 +142,25 @@ fi
 export SKIP_USM=$SKIP_USM
 
 # Download FileCheck if not present
+mkdir -p "$HOME/openmp-utils/bin"
 if [ ! -f "$AOMP/bin/FileCheck" ]; then
-  wget -P $HOME Fileheck https://compute-artifactory.amd.com/artifactory/rocm-generic-local/compiler-infra/FileCheck
+  rm -f "$HOME/openmp-utils/bin/FileCheck"
+  if ! wget -P "$HOME/openmp-utils/bin" https://compute-artifactory.amd.com/artifactory/rocm-generic-local/compiler-infra/FileCheck ; then
+    echo "Error: Could not download FileCheck"
+    exit 1
+  fi
+  chmod 755 "$HOME/openmp-utils/bin/FileCheck"
 fi
 
+if [ ! -f "$AOMP/bin/gpurun" ]; then
+  rm -f "$HOME/openmp-utils/bin/gpurun"
+  if ! wget -P "$HOME/openmp-utils/bin" https://compute-artifactory.amd.com/artifactory/rocm-generic-local/compiler-infra/gpurun ; then
+    echo "Error: Could not download gpurun"
+    exit 1
+  fi
+  chmod 755 "$HOME/openmp-utils/bin/gpurun"
+  export GPURUN_BINDIR="$HOME/openmp-utils/bin"
+fi
 clangversion=`$AOMP/bin/clang --version`
 aomp=0
 if [[ "$clangversion" =~ "AOMP_STANDALONE" ]]; then
@@ -180,19 +195,32 @@ function extract_rpm(){
   cd $(dirname $script)
 }
 
-# Keep support for older release testing that will not have release branch
-# updated. From 6.2 onwards the openmp-extras-tests package will be used for testing.
-if [[ $REAL_AOMP =~ "/opt/rocm-6.0" ]] || [[ $REAL_AOMP =~ "/opt/rocm-6.1" ]]; then
-  if [ "$TEST_BRANCH" == "" ]; then
-    git reset --hard
-    export TEST_BRANCH="aomp-test-6.0-6.1"
-    git checkout 080e9bc62ad8501defc4ec9124c90e28a1f749db
-  fi
-  echo "+++ Using $TEST_BRANCH +++"
-  sleep 5
-  ./run_rocm_test.sh
-  exit $?
-fi
+#if [ $therock -eq 1 ] && [ "$EPSDB" != "1"  ] ; then
+#  if [ "$TEST_BRANCH" == "" ]; then
+#    if ! aomprev=$(grep -Po "OPENMP_TEST_REVISION \K\w+" "$AOMP/include/llvm/Config/llvm-config.h"); then
+#      echo "Error: Cannot determine aomp revision from llvm-config.h"
+#      exit 1
+#    else
+#      echo "Using aomp hash: $aomprev"
+#    fi
+
+    #if ! git checkout $aomprev ; then
+    #  if ! git stash
+    #    git reset --hard
+    #  fi
+    #  if ! git checkout $aomprev; then
+    #    echo "Fatal Error: Cannot checkout $aomprev for aomp."
+#      exit 1
+#      fi
+#    fi
+#    export TEST_BRANCH=$aomprev
+#  fi
+#  echo "+++ Using $TEST_BRANCH +++"
+#  sleep 5
+#  ./run_rocm_test.sh
+#  exit $?
+#fi
+
 
 # Support for using openmp-extras-tests package.
 if [ "$aomp" != 1 ]; then
@@ -848,7 +876,7 @@ function smoke-fort(){
   if [ "$SMOKE_FORT" == "1" ]; then
     mkdir -p "$resultsdir"/smoke-fort
     cd "$aompdir"/test/smoke-fort
-    ./check_smoke_fort.sh
+    AOMP_PARALLEL_SMOKE=1 ./check_smoke_fort.sh
     checkrc $?
     copyresults smoke-fort "$aompdir"/test/smoke-fort
   else

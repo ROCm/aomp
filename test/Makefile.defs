@@ -107,7 +107,7 @@ endif
 FILECHECK=$(AOMP)/bin/FileCheck
 FILECHECK_RT=$(shell ls $(FILECHECK) 2>/dev/null || echo error)
 ifeq ($(FILECHECK_RT),error)
-FILECHECK=$(HOME)/FileCheck
+FILECHECK=$(HOME)/openmp-utils/bin/FileCheck
 FILECHECK_RT=$(shell ls $(FILECHECK) 2>/dev/null || echo error)
 endif
 ifeq ($(FILECHECK_RT),error)
