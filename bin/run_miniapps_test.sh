@@ -36,11 +36,7 @@ realpath=`realpath $0`
 scriptdir=`dirname $realpath`
 parentdir=`eval "cd $scriptdir;pwd;cd - > /dev/null"`
 aompdir="$(dirname "$parentdir")"
-resultsdir="$aompdir/bin/rocm-test/results"
-scriptsdir="$aompdir/bin/rocm-test/scripts"
-rocmtestdir="$aompdir"/bin/rocm-test
-summary="$resultsdir"/summary.txt
-unexpresults="$resultsdir"/unexpresults.txt
+summary=`pwd`"/summary.txt"
 scriptfails=0
 
 EPSDB=1 ./clone_test.sh  
@@ -67,14 +63,23 @@ exit
 fi
 export AOMP
 echo "AOMP = $AOMP"
-export REAL_AOMP=`realpath $AOMP`
+
+if [ ! -f "$AOMP/bin/gpurun" ]; then
+  rm -f "$HOME/openmp-utils/bin/gpurun"
+  if ! wget -P "$HOME/openmp-utils/bin" https://compute-artifactory.amd.com/artifactory/rocm-generic-local/compiler-infra/gpurun ; then
+    echo "Error: Could not download gpurun"
+    exit 1
+  fi
+  chmod 755 "$HOME/openmp-utils/bin/gpurun"
+  export GPURUN_BINDIR="$HOME/openmp-utils/bin"
+  export PATH=$PATH:$GPURUN_BINDIR
+fi
 
 clangversion=`$AOMP/bin/clang --version`
 aomp=0
 if [[ "$clangversion" =~ "AOMP_STANDALONE" ]]; then
   aomp=1
 fi
-echo $AOMP $REAL_AOMP using test branch $TEST_BRANCH
 
 # Make sure clang is present.
 $AOMP/bin/clang --version
@@ -84,15 +89,10 @@ if [ $? -ne 0 ]; then
 fi
 
 $AOMP/bin/flang --version
-
-# Parent dir should be ROCm base dir.
-if [ $aomp -eq 1 ]; then
-  AOMPROCM=$AOMP
-else
-  AOMPROCM=$AOMP/../..
+if [ $? -ne 0 ]; then
+  echo "Error: flang not found at "$AOMP"/bin/flang."
+  exit 1
 fi
-export AOMPROCM
-echo AOMPROCM=$AOMPROCM
 
 # Set ROCM_LLVM for examples
 export ROCM_LLVM=$AOMP
@@ -152,7 +152,6 @@ echo
 function openmpapps(){
   echo "%================ openmpapps"
   # -----Run Openmpapps-----
-  mkdir -p "$resultsdir"/openmpapps
   cd "$AOMP_TEST_DIR"/openmpapps
   echo rockMPI=$MPI
   ./check_openmpapps.sh
@@ -167,7 +166,6 @@ function openmpapps(){
 function nekbone(){
   echo "%================ nekbone"
   # -----Run Nekbone-----
-  mkdir -p "$resultsdir"/nekbone
   cd "$aompdir"/bin
   ( VERBOSE=0 ./run_nekbone.sh ) 
   if [ "$?" -eq "0" ]; then
@@ -181,7 +179,6 @@ function nekbone(){
 function babelstream(){
   echo "%================ baelstream"
   export AOMPHIP=$ROCMDIR
-  mkdir -p "$resultsdir"/babelstream
   cd "$aompdir"/bin
   if [ $aomp -eq 0 ]; then
     export ROCMINFO_BINARY=$ROCMINF/bin/rocminfo
@@ -199,7 +196,6 @@ function babelstream(){
 function fortran-babelstream(){
   echo "%================ fortran-babelstream"
   export AOMPHIP=$ROCMDIR
-  mkdir -p "$resultsdir"/fortran-babelstream
   cd "$aompdir"/bin
   if [ $aomp -eq 0 ]; then
     export ROCMINFO_BINARY=$ROCMINF/bin/rocminfo
@@ -216,7 +212,6 @@ function fortran-babelstream(){
 
 function accel2023(){
 echo "%================ accel2023"
-  mkdir -p "$resultsdir"/accel2023
   cd "$aompdir"/bin
   ./run_accel2023.sh -clean
   cd $AOMP_TEST_DIR/accel2023-2.0.18
@@ -235,7 +230,6 @@ echo "%================ hpc2021"
   grep -q Ubuntu /etc/os-release
   if [ "$?" -eq "0" ]; then
     echo "running on ubuntu"
-    mkdir -p "$resultsdir"/hpc2021
     cd "$aompdir"/bin
     unset ROCR_VISIBLE_DEVICES
     echo rockMPI=$MPI
@@ -252,11 +246,6 @@ echo "%================ hpc2021"
   fi
 }
 
-# Clean Results
-cd "$aompdir"/bin
-rm -rf $resultsdir
-mkdir -p $resultsdir
-
 echo Running List: $SUITE_LIST
 
 declare -A warnings
@@ -265,7 +254,7 @@ for suite in $SUITE_LIST; do
   $suite
 done
 
-echo "************************************" >> $summary
+echo "************************************" > $summary
 if [ "$scriptfails" != 0 ]; then
   echo FAIL >> $summary
   echo "EPSDB Status:  red" >> $summary
