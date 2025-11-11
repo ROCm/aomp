@@ -222,7 +222,8 @@ cd $SROCK_THEROCK_DIR
 cd compiler/amd-llvm || exit
 smrev="../.amd-llvm.smrev"
 git config --get remote.origin.url > "$smrev"
-git rev-parse HEAD >> "$smrev"
+smsha=$(git rev-parse HEAD)
+echo "${smsha}${LLVM_SHA_EXTRA}" >> "$smrev"
 )
 
 cd $SROCK_THEROCK_DIR
