@@ -1,0 +1,12 @@
+diff --git a/rocclr/cmake/ROCclrLC.cmake b/rocclr/cmake/ROCclrLC.cmake
+index d8ecf4a..f41d605 100644
+--- a/rocclr/cmake/ROCclrLC.cmake
++++ b/rocclr/cmake/ROCclrLC.cmake
+@@ -20,7 +20,6 @@
+ 
+ find_package(amd_comgr 2.9 CONFIG
+   PATHS
+-    /opt/rocm/
+     ${ROCM_INSTALL_PATH}
+   PATH_SUFFIXES
+     cmake/amd_comgr
