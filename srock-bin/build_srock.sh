@@ -8,13 +8,13 @@ thisdir=$(dirname "$realpath")
 . "$thisdir/srock_common_vars"
 # --- end standard header ----
 function test_apply_patch() {
-   if ! patch -p1 -t -N --dry-run < $_patch_file  >/dev/null; then
+   if ! patch -p1 -t -N --merge --dry-run < $_patch_file  >/dev/null; then
       echo "ERROR:  patch --dry-run failed.  Could not apply $_patch_file "
       cd $_curdir
       exit 1
    else
-      echo "patch -p1 --no-backup-if-mismatch < $_patch_file"
-      patch -p1 --no-backup-if-mismatch < $_patch_file
+      echo "patch -p1 --no-backup-if-mismatch --merge < $_patch_file"
+      patch -p1 --no-backup-if-mismatch --merge < $_patch_file
    fi
 }
 
