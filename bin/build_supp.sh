@@ -119,7 +119,7 @@ function checkversion(){
   # inputs: $_linkfrom, $_cname, $CMDLOGFILE, $_version
   # output: $SKIPBUILD
   if [ -L "$_linkfrom" ] ; then 
-    existing_install_dir=$(readlink "$_linkfrom")
+    existing_install_dir=$(readlink -f "$_linkfrom")
     if [ -d "$existing_install_dir" ] ; then 
       existing_version=${existing_install_dir##*-} 
       if [ "$existing_version" == "$_version" ] ; then 
@@ -184,12 +184,12 @@ function buildopenmpi(){
   runcmdout "sed -e s/flang\s*)/flang*)/ configure-orig" configure
   ###
   runcmd "./configure --with-hwloc=$AOMP_SUPP/hwloc --with-hwloc-libdir=$AOMP_SUPP/hwloc/lib OMPI_CC=$LLVM_INSTALL_LOC/bin/clang OMPI_CXX=$LLVM_INSTALL_LOC/bin/clang++ OMPI_F90=$LLVM_INSTALL_LOC/bin/${FLANG} CXX=$LLVM_INSTALL_LOC/bin/clang++ CC=$LLVM_INSTALL_LOC/bin/clang FC=$LLVM_INSTALL_LOC/bin/${FLANG} --prefix=$_installdir"
-  runcmd "make -j8"
+  runcmd "make -j${AOMP_JOB_THREADS}"
   runcmd "make install"
   if [ -L "$_linkfrom" ] ; then
     runcmd "rm $_linkfrom"
   fi
-  runcmd "ln -sf $_installdir $_linkfrom"
+  runcmd "ln -sfr $_installdir $_linkfrom"
   echo "# $_linkfrom is now symbolic link to $_installdir " >>"$CMDLOGFILE"
 }
 
@@ -228,7 +228,7 @@ function buildninja(){
   if [ -L "$_linkfrom" ] ; then
     runcmd "rm $_linkfrom"
   fi
-  runcmd "ln -sf $_installdir $_linkfrom"
+  runcmd "ln -sfr $_installdir $_linkfrom"
   echo "# $_linkfrom is now symbolic link to $_installdir " >>"$CMDLOGFILE"
 }
 
@@ -296,7 +296,7 @@ function getrocmpackage(){
   if [ -L "$_linkfrom" ] ; then
     runcmd "rm $_linkfrom"
   fi
-  runcmd "ln -sf $_installdir $_linkfrom"
+  runcmd "ln -sfr $_installdir $_linkfrom"
   #runcmd "rm -rf $_builddir"
   echo "# $_linkfrom is now symbolic link to $_installdir " >>"$CMDLOGFILE"
 }
@@ -328,12 +328,12 @@ function buildhdf5(){
   fi
   runcmd "mkdir -p $_installdir"
   runcmd "./configure --enable-fortran --prefix=$_installdir"
-  runcmd "make -j8"
+  runcmd "make -j${AOMP_JOB_THREADS}"
   runcmd "make install"
   if [ -L "$_linkfrom" ] ; then 
     runcmd "rm $_linkfrom"
   fi
-  runcmd "ln -sf $_installdir $_linkfrom"
+  runcmd "ln -sfr $_installdir $_linkfrom"
   echo "# $_linkfrom is now symbolic link to $_installdir " >>"$CMDLOGFILE"
 }
 
@@ -365,12 +365,12 @@ function buildsilo(){
   fi
   runcmd "mkdir -p $_installdir"
   runcmd "./configure --prefix=$_installdir"
-  runcmd "make -j8"
+  runcmd "make -j${AOMP_JOB_THREADS}"
   runcmd "make install"
   if [ -L "$_linkfrom" ] ; then
     runcmd "rm $_linkfrom"
   fi
-  runcmd "ln -sf $_installdir $_linkfrom"
+  runcmd "ln -sfr $_installdir $_linkfrom"
   echo "# $_linkfrom is now symbolic link to $_installdir " >>"$CMDLOGFILE"
 }
 
@@ -399,16 +399,16 @@ function buildfftw(){
   fi
   runcmd "mkdir -p $_installdir"
   runcmd "./configure --prefix=$_installdir --enable-shared --enable-threads --enable-sse2 --enable-avx"
-  runcmd "make -j8"
+  runcmd "make -j${AOMP_JOB_THREADS}"
   runcmd "make install"
   runcmd "make clean"
   runcmd "./configure --prefix=$_installdir --enable-shared --enable-threads --enable-sse2 --enable-avx --enable-float"
-  runcmd "make -j8"
+  runcmd "make -j${AOMP_JOB_THREADS}"
   runcmd "make install"
   if [ -L "$_linkfrom" ] ; then
     runcmd "rm $_linkfrom"
   fi
-  runcmd "ln -sf $_installdir $_linkfrom"
+  runcmd "ln -sfr $_installdir $_linkfrom"
   echo "# $_linkfrom is now symbolic link to $_installdir " >>"$CMDLOGFILE"
 }
 
@@ -438,12 +438,12 @@ function buildcmake(){
   fi
   runcmd "mkdir -p $_installdir"
   runcmd "./bootstrap --parallel=8 --prefix=$_installdir"
-  runcmd "make -j8"
+  runcmd "make -j${AOMP_JOB_THREADS}"
   runcmd "make install"
   if [ -L "$_linkfrom" ] ; then
     runcmd "rm $_linkfrom"
   fi
-  runcmd "ln -sf $_installdir $_linkfrom"
+  runcmd "ln -sfr $_installdir $_linkfrom"
   echo "# $_linkfrom is now symbolic link to $_installdir " >>"$CMDLOGFILE"
 }
 
@@ -473,12 +473,12 @@ function buildrocmsmilib(){
     runcmd "rm -rf $_installdir"
   fi
   runcmd "mkdir -p $_installdir"
-  runcmd "make -j8"
+  runcmd "make -j${AOMP_JOB_THREADS}"
   runcmd "make install"
   if [ -L "$_linkfrom" ] ; then
     runcmd "rm $_linkfrom"
   fi
-  runcmd "ln -sf $_installdir $_linkfrom"
+  runcmd "ln -sfr $_installdir $_linkfrom"
   echo "# $_linkfrom is now symbolic link to $_installdir " >>"$CMDLOGFILE"
 }
 
@@ -514,12 +514,12 @@ function buildhwloc(){
     runcmd "rm -rf $_installdir"
   fi
   runcmd "mkdir -p $_installdir"
-  runcmd "make -j8"
+  runcmd "make -j${AOMP_JOB_THREADS}"
   runcmd "make install"
   if [ -L "$_linkfrom" ] ; then
     runcmd "rm $_linkfrom"
   fi
-  runcmd "ln -sf $_installdir $_linkfrom"
+  runcmd "ln -sfr $_installdir $_linkfrom"
   echo "# $_linkfrom is now symbolic link to $_installdir " >>"$CMDLOGFILE"
 }
 

@@ -127,9 +127,9 @@ index 29b9a404..6947a640 100644
      BACKGROUND_BUILD
 +    # INTERFACE_INCLUDE_DIRS not working as expected so add compiler flags
      CMAKE_ARGS
-       -DHIP_PLATFORM=amd
 +      -DCMAKE_CXX_FLAGS=-I${THEROCK_SOURCE_DIR}/build/dist/rocm/include
 +      -DCMAKE_C_FLAGS=-I${THEROCK_SOURCE_DIR}/build/dist/rocm/include
+       -DHIP_PLATFORM=amd
      CMAKE_INCLUDES
        therock_explicit_finders.cmake
 +    INTERFACE_INCLUDE_DIRS
@@ -140,9 +140,9 @@ index 29b9a404..6947a640 100644
 @@ -89,10 +94,14 @@ if(THEROCK_ENABLE_ROCPROFV3)
        amd-hip
      CMAKE_ARGS
-       -DHIP_PLATFORM=amd
 +      -DCMAKE_CXX_FLAGS=-I${THEROCK_SOURCE_DIR}/build/dist/rocm/include
 +      -DCMAKE_C_FLAGS=-I${THEROCK_SOURCE_DIR}/build/dist/rocm/include
+       -DHIP_PLATFORM=amd
      INTERFACE_INCLUDE_DIRS
        # All old clients of roctx64 expect to just be able to find its include
        # with no further qualification. Bad design, but also deprecated, so meh.
