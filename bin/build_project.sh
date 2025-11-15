@@ -111,6 +111,8 @@ MYCMAKEOPTS=(-DCMAKE_BUILD_TYPE="$BUILD_TYPE"
              "${COMPILERS[@]}"
              -DLLVM_VERSION_SUFFIX="_AOMP${standalone_word}_$AOMP_VERSION_STRING"
              -DCLANG_VENDOR="AOMP${standalone_word}_$AOMP_VERSION_STRING"
+             "$LLVM_FORCE_VC_REVISION_OPT"
+             "$LLVM_FORCE_VC_REPOSITORY_OPT"
              -DCLANG_DEFAULT_PIE_ON_LINUX=0
              -DLLVM_ENABLE_ZLIB=ON
              -DBUG_REPORT_URL='https://github.com/ROCm/aomp'
