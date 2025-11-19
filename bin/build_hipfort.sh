@@ -76,6 +76,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 
   MYCMAKEOPTS=(-DCMAKE_INSTALL_PREFIX="$HIPFORT_INSTALL_DIR"
                -DCMAKE_BUILD_TYPE=Release
+               -DCMAKE_POLICY_VERSION_MINIMUM=3.5
                -DHIPFORT_COMPILER="$LLVM_INSTALL_LOC/bin/flang"
                -DHIPFORT_COMPILER_FLAGS="-cpp"
                -DCMAKE_Fortran_FLAGS_DEBUG=""

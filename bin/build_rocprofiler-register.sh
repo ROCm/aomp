@@ -57,6 +57,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    echo " -----Running $AOMP_PROF_REGISTER_REPO_NAME cmake ---- " 
    echo "${AOMP_CMAKE}" "-DCMAKE_INSTALL_LIBDIR=lib" \
                         "-DCMAKE_BUILD_TYPE=$BUILD_TYPE" \
+                        "-DCMAKE_POLICY_VERSION_MINIMUM=3.5" \
                         "-DROCM_PATH=$AOMP_INSTALL_DIR" \
                         "-DCMAKE_INSTALL_PREFIX=$INSTALL_ROCPROF_REGISTER" \
                         "-DCMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH" \
