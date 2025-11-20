@@ -37,6 +37,12 @@ elif [[ $osname =~ "CentOS" ]]; then
   elif [[ $version =~ "7" ]]; then
     rpmname=${pkgname}_CENTOS_7
   fi
+  elif [[ $osname =~ "AlmaLinux" ]]; then
+    if [[ $version =~ "8" ]]; then
+      rpmname=${pkgname}_ALMALINUX_8
+    else
+      rpmname=${pkgname}_ALMALINUX
+    fi
 fi
 
 echo "rpmname: $rpmname"
