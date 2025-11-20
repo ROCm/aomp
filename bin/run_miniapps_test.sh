@@ -213,6 +213,7 @@ function fortran-babelstream(){
 function accel2023(){
 echo "%================ accel2023"
   cd "$aompdir"/bin
+  export GPURUN_BYPASS=1
   ./run_accel2023.sh -clean
   cd $AOMP_TEST_DIR/accel2023-2.0.18
   grep ratio= result/*.log  | tail -12
@@ -232,6 +233,7 @@ echo "%================ hpc2021"
     echo "running on ubuntu"
     cd "$aompdir"/bin
     unset ROCR_VISIBLE_DEVICES
+    export GPURUN_BYPASS=1
     echo rockMPI=$MPI
     ./run_hpc2021.sh -clean
     cd $AOMP_TEST_DIR/hpc2021-1.1.9
