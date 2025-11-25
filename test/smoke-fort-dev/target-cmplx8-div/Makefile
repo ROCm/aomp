@@ -9,10 +9,9 @@ TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 
 FLANG        = flang
-CFLAGS       = -lflang_rt.hostdevice
+CFLAGS       = $(FLANG_GPU_LINK_FLAGS)
 OMP_BIN      = $(AOMP)/bin/$(FLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
-CFLAGS       = -lflang_rt.hostdevice
 #-ccc-print-phases
 #"-\#\#\#"
 
