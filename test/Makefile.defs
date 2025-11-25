@@ -353,6 +353,12 @@ ifeq ($(TEMPS),1)
   VERBOSE += -save-temps 
 endif
 
+ifeq ($(IMPLICIT_GPU_FLANG_RT),1)
+  FLANG_GPU_LINK_FLAGS =
+else
+  FLANG_GPU_LINK_FLAGS = -lflang_rt.hostdevice
+endif
+
 ifeq ($(NOOPT),1)
 CFLAGS =
 else
