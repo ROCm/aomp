@@ -213,8 +213,21 @@ if [ "${make_target}" != "all" ]; then
   elif [ "${testcase_omp_version}" == "4.5" ]; then
      export openmpvv_compile_flags="${openmpvv_compile_flags} -fopenmp-version=45"
   fi
+
+  if gpu_needs_xnack_for_usm "${AOMP_GPU}" && ! is_apu && [ "${HSA_XNACK}" == "" ]; then
+    export HSA_XNACK=1
+    enable_xnack=1
+    echo "Turning on HSA_XNACK=1 to allow USM tests to pass."
+  fi
+
+  # Perform single-test make and run
   perform_make OMP_VERSION="${testcase_omp_version}" SOURCES="${testcase}"
   rc=$?
+
+  if [ "${enable_xnack}" == 1 ]; then
+    unset HSA_XNACK
+  fi
+
   echo
   echo "DONE:  Single OPENMP_VV test case: ${testcase}"
   echo "       Source file:  ${testcase_file_path}"
