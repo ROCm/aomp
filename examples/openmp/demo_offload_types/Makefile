@@ -41,7 +41,7 @@ else
 endif
 	@echo "3. Create binary that does GPU offload:	gpu-offload"
 	$(CC) $(CFLAGS) $(OAFLAG) $^ -o gpu-offload 
-ifneq (sm_,$(findstring sm_,$(LLVM_GPU_ARCH)))
+ifeq ($(LLVM_GPU_IS_XNACKABLE),1)
 	@echo "4. Create binary for GPU offload compiled with :xnack+"
 	@echo "   The image will require HSA_XNACK=1 at runtime."
 	$(CC) $(CFLAGS) $(OAQFLAG) $^ -o $(TESTNAME)
@@ -61,7 +61,7 @@ else
 endif
 	@echo "3. gpu-offload"
 	./gpu-offload
-ifneq (sm_,$(findstring sm_,$(LLVM_GPU_ARCH)))
+ifeq ($(LLVM_GPU_IS_XNACKABLE),1)
 	@echo "4. GPU offload compiled with :xnack+,  Runtime fail will disable offloading."
 ifeq ($(LLVM_COMPILER_NAME),AMD)
 	@echo "   SKIPPING SINCE ROCm 6.1 has runtime fail here:  env HSA_XNACK=0 ./$(TESTNAME) "
@@ -84,7 +84,7 @@ ifneq ($(LLVM_COMPILER_NAME),clang)
 endif
 	@echo "3. gpu-offload"
 	env OMP_TARGET_OFFLOAD=DISABLED ./gpu-offload
-ifneq (sm_,$(findstring sm_,$(LLVM_GPU_ARCH)))
+ifeq ($(LLVM_GPU_IS_XNACKABLE),1)
 	@echo "4. GPU offload compiled with :xnack+ but run with HSA_XNACK=0"
 	env OMP_TARGET_OFFLOAD=DISABLED HSA_XNACK=0 ./$(TESTNAME) 
 	@echo "5. GPU offload compiled with :xnack+"
@@ -99,7 +99,7 @@ ifneq ($(LLVM_COMPILER_NAME),clang)
 endif
 	@echo "3. GPU offload"
 	env OMP_TARGET_OFFLOAD=MANDATORY ./gpu-offload
-ifneq (sm_,$(findstring sm_,$(LLVM_GPU_ARCH)))
+ifeq ($(LLVM_GPU_IS_XNACKABLE),1)
 	@echo "4. SKIPPING execution of binary compiled with xnack+ with OMP_TARGET_OFFLOAD=MANDATORY"
 	@echo "   and run with HSA_XNACK=0 because this always creates expected fatal runtime error."
 	@echo "5. GPU offload compiled with :xnack+ and run with HSA_XNACK=1"

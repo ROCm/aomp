@@ -70,6 +70,23 @@ else
   LLVM_GPU_TRIPLE = amdgcn-amd-amdhsa
 endif
 
+_supports_xnack= gfx90a, gfx90a:xnack+,\
+              gfx90c, gfx90c:xnack+,\
+              gfx940, gfx940:xnack+,\
+              gfx941, gfx941:xnack+,\
+              gfx942, gfx942:xnack+,\
+              gfx950, gfx950:xnack+,\
+              gfx1010, gfx1010:xnack+\
+              gfx1011, gfx1011:xnack+\
+              gfx1012, gfx1012:xnack+\
+              gfx1013, gfx1013:xnack+
+
+ifeq ($(findstring $(LLVM_GPU_ARCH), $(_supports_xnack)),)
+  LLVM_GPU_IS_XNACKABLE=0
+else
+  LLVM_GPU_IS_XNACKABLE=1
+endif
+
 # Find where HIP is installed and set HIPDIR and HIPCC
 HIPDIR ?= $(LLVM_INSTALL_DIR)
 ifeq ("$(wildcard $(HIPDIR)/bin/hipcc)","")
