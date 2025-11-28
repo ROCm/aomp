@@ -54,9 +54,7 @@ fi
 log=$(date --iso-8601=minutes).log
 
 # Show latest git commit
-echo ""
-git show -s
-echo ""
+echo -e "\n$(git show -s)\n"
 
 echo "env DEVICE_TYPE=amd DEVICE_TARGET=$DEVICE_TARGET DEVICE_ARCH=$DEVICE_ARCH HOSTRTL=$AOMP/lib/libdevice TARGETRTL=$AOMP/lib GLOMPRTL=$AOMP/lib LLVMBIN=$AOMP/bin make -i"
 
