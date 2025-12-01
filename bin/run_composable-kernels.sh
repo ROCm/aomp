@@ -256,8 +256,15 @@ elif [ "${ShouldUpdateCKRepo}" == 'yes' ]; then
   popd
 fi
 
+if ! command -v ninja >/dev/null ; then
+  echo "Ninja not found, falling back to make"
+  CmakeGenerator="Unix Makefiles"
+else
+  CmakeGenerator="Ninja"
+fi
+
 # TODO Fix / Finalize the cmake command
-CKCmakeCmd="cmake -GNinja -B ${CK_BUILD} -S ${CK_REPO} -DCMAKE_PREFIX_PATH=${ROCM_PATH} -DCMAKE_INSTALL_PREFIX=${CK_INSTALL} "
+CKCmakeCmd="cmake -G${CmakeGenerator} -B ${CK_BUILD} -S ${CK_REPO} -DCMAKE_PREFIX_PATH=${ROCM_PATH} -DCMAKE_INSTALL_PREFIX=${CK_INSTALL} "
 CKCmakeCmd+="-DCMAKE_CXX_COMPILER=${AOMP}/bin/clang++ -DCMAKE_HIP_COMPILER=${AOMP}/bin/clang++ "
 CKCmakeCmd+="-DCMAKE_BUILD_TYPE=Release -DGPU_TARGETS=${CK_GPU_TARGETS} "
 # For some reason, CK on gfx12 wants this set.
@@ -403,7 +410,7 @@ fi
 # Handle CK client examples
 if [ "${SelectedSuite}" == 'client-examples' ]; then
   # Configure and build the client examples
-  CKCmakeCmd="cmake -G Ninja "
+  CKCmakeCmd="cmake -G ${CmakeGenerator} "
   CKCmakeCmd+="-B ${CK_CLIENT_EXAMPLES_BUILD} -S ${CK_CLIENT_EXAMPLES_SOURCE} "
   CKCmakeCmd+="-DCMAKE_CXX_COMPILER=${AOMP}/bin/clang++ "
   CKCmakeCmd+="-DCMAKE_HIP_COMPILER=${AOMP}/bin/clang++ "
