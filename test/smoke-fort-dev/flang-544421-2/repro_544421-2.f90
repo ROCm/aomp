@@ -1,3 +1,8 @@
+!
+!Copyright © Advanced Micro Devices, Inc., or its affiliates.
+!
+!SPDX-License-Identifier:  MIT
+! 
 module reproducer_mod
 contains
    subroutine branching_target_call(dt, dt2, dt3, switch, switch2, switch3)

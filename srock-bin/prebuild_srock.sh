@@ -1,5 +1,9 @@
 #!/bin/bash
 #
+#Copyright © Advanced Micro Devices, Inc., or its affiliates.
+#
+#SPDX-License-Identifier:  MIT
+# 
 #  prebuild_srock.sh: Source this file from build_srock.sh
 #     update the srock repo
 #     clone or update hipfort repo

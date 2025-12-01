@@ -1,3 +1,7 @@
+# Copyright © Advanced Micro Devices, Inc., or its affiliates.
+
+# SPDX-License-Identifier:  MIT
+
 # flang-494405.py
 # LLM: ChatGPT-4o (OpenAI), 2024-06-08
 #

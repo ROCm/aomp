@@ -1,3 +1,8 @@
+!
+!Copyright © Advanced Micro Devices, Inc., or its affiliates.
+!
+!SPDX-License-Identifier:  MIT
+! 
 ! mimic NWChem tgt_sd_t_s1_1 kernel
 ! RL: do not redefine simd clause to be schedule(static, 1)
 ! RL: make the schedule clause usage be explicit
