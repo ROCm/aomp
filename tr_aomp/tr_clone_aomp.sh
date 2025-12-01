@@ -1,5 +1,9 @@
 #!/bin/bash
 #
+#Copyright © Advanced Micro Devices, Inc., or its affiliates.
+#
+#SPDX-License-Identifier:  MIT
+
 #  tr_clone_aomp.sh: Clone TheRock repository to use to build aomp.sh
 #                    using TheRock repo and its submodules. unlike clone_aomp.sh
 #                    this script is NOT (yet) reusable to refresh all the repos. 

@@ -1,5 +1,9 @@
 #!/bin/bash
 #
+#Copyright © Advanced Micro Devices, Inc., or its affiliates.
+#
+#SPDX-License-Identifier:  MIT
+#
 #  tr_create_patch.sh : Build set of patches to TheRock including submodules
 #
 # --- Start standard header to set AOMP environment variables ----

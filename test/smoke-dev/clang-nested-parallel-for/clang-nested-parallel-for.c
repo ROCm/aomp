@@ -1,5 +1,8 @@
-#include <stdio.h>
+/* Copyright © Advanced Micro Devices, Inc., or its affiliates.
 
+   SPDX-License-Identifier:  MIT */
+
+#include <stdio.h>
 int main () {
   int a[1024];
   int i,j;
