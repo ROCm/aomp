@@ -1,3 +1,7 @@
+
+/* Copyright © Advanced Micro Devices, Inc., or its affiliates.
+
+   SPDX-License-Identifier:  MIT */
 #include <assert.h>
 #include <omp.h>
 #include <stdio.h>
