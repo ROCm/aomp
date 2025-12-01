@@ -1,5 +1,10 @@
 #!/bin/bash
 #
+#Copyright © Advanced Micro Devices, Inc., or its affiliates.
+#
+#SPDX-License-Identifier:  MIT
+# 
+#
 #  build_srock.sh: Clone and build TheRock with amd-staging compiler.
 #
 # --- Start standard header to set SROCK environment variables ----

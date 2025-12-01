@@ -1,3 +1,8 @@
+!
+!Copyright © Advanced Micro Devices, Inc., or its affiliates.
+!
+!SPDX-License-Identifier:  MIT
+! 
 ! compile with:
 !
 ! amdflang -O2 -fopenmp --offload-arch=gfx90a -o split_teams_distribute_parallel_do split_teams_distribute_parallel_do.f90
