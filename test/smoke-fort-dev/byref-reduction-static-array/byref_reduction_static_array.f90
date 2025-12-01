@@ -24,16 +24,14 @@ program main
   end if
 
 contains
-subroutine foo(arr)
-  implicit none
-  integer :: i
-  real, intent(inout) :: arr(arr_size)
+  subroutine foo(arr)
+    implicit none
+    integer :: i
+    real, intent(inout) :: arr(arr_size)
 
-  !$omp parallel do reduction(+: arr)
-  do i = 1, num_iters
-    arr = arr + 1
-  end do
-end subroutine
-
-
+    !$omp parallel do reduction(+: arr)
+    do i = 1, num_iters
+      arr = arr + 1
+    end do
+  end subroutine
 end program

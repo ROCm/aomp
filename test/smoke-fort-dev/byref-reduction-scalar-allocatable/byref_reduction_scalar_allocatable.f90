@@ -20,16 +20,14 @@ program main
   end if
 
 contains
-subroutine foo(scalar_alloc)
-  implicit none
-  integer :: i
-  real, allocatable, intent(inout) :: scalar_alloc
+  subroutine foo(scalar_alloc)
+    implicit none
+    integer :: i
+    real, allocatable, intent(inout) :: scalar_alloc
 
-  !$omp parallel do reduction(+: scalar_alloc)
-  do i = 1, num_iters
-    scalar_alloc = scalar_alloc + 1
-  end do
-end subroutine
-
-
+    !$omp parallel do reduction(+: scalar_alloc)
+    do i = 1, num_iters
+      scalar_alloc = scalar_alloc + 1
+    end do
+  end subroutine
 end program
