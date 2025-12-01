@@ -1,3 +1,8 @@
+!
+!Copyright © Advanced Micro Devices, Inc., or its affiliates.
+!
+!SPDX-License-Identifier:  MIT
+! 
       function glsc3_acc(a,b,mult,n)
       real a(n),b(n),mult(n)
       real tmp,work(1)

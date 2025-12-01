@@ -1,3 +1,8 @@
+!
+!Copyright © Advanced Micro Devices, Inc., or its affiliates.
+!
+!SPDX-License-Identifier:  MIT
+! 
 ! Reproducer for tickets SWDEV-523229 and SWDEV-540611.
 ! Compilation would fail while lowering to LLVM IR due to leftover host
 ! operations in the device MLIR module.
