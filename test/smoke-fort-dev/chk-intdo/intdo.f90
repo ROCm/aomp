@@ -1,4 +1,8 @@
-
+!
+!Copyright © Advanced Micro Devices, Inc., or its affiliates.
+!
+!SPDX-License-Identifier:  MIT
+! 
 ! RUN: %flang %flags %openmp_flags -fopenmp-version=60 %s -o %t.exe
 ! RUN: %t.exe | FileCheck %s --match-full-lines
 

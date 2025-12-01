@@ -1,3 +1,7 @@
+// Copyright © Advanced Micro Devices, Inc., or its affiliates.
+//
+// SPDX-License-Identifier:  MIT
+
 #define __HIP_PLATFORM_AMD__ 1
 #include <hip/hip_runtime.h>
 
