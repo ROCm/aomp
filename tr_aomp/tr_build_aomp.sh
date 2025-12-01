@@ -1,5 +1,9 @@
 #!/bin/bash
 #
+#Copyright © Advanced Micro Devices, Inc., or its affiliates.
+#
+#SPDX-License-Identifier:  MIT
+#
 #  tr_build_aomp.sh : Build aomp using TheRock 
 #
 # --- Start standard header to set AOMP environment variables ----
