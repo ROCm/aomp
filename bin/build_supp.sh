@@ -195,7 +195,7 @@ function buildopenmpi(){
 
 function buildninja(){
   _cname="ninja"
-  _version=1.11.1
+  _version=1.13.2
   _installdir=$AOMP_SUPP_INSTALL/$_cname-$_version
   _linkfrom=$AOMP_SUPP/$_cname
   _builddir=$AOMP_SUPP_BUILD/$_cname
