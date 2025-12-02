@@ -1,3 +1,7 @@
+/* Copyright © Advanced Micro Devices, Inc., or its affiliates.
+
+   SPDX-License-Identifier:  MIT */
+
 /* Based on https://github.com/ROCm/aomp/issues/376 */
 
 #include <stdio.h>

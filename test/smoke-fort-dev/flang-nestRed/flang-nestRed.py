@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+# Copyright © Advanced Micro Devices, Inc., or its affiliates.
+
+# SPDX-License-Identifier:  MIT
+
 """
 LLM: Claude 3.5 Sonnet
 Date: December 2024

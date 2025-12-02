@@ -1,3 +1,8 @@
+!
+!Copyright © Advanced Micro Devices, Inc., or its affiliates.
+!
+!SPDX-License-Identifier:  MIT
+! 
 MODULE rep2
         implicit none
         public :: nvars

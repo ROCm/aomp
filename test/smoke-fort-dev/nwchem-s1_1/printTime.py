@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+# Copyright © Advanced Micro Devices, Inc., or its affiliates.
+
+# SPDX-License-Identifier:  MIT
+
 # flang-494405.py
 # LLM: GPT-4
 # Date: 2025-08-20
