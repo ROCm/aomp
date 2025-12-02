@@ -14,6 +14,9 @@
 #   COMPONENT     - Index into list of paths (default: "" for entire repo)
 #   LLVM_BRANCH   - LLVM branch to compare (default: main)
 #   ROCm_BRANCH   - ROCm branch to compare (default: amd-staging)
+#   RESULTS_DIR   - Path to results dir (default: <current_dir>/results)
+#   PER_FILE      - Creates per-file diffs (default: 0)
+#   FILE_GROUPS   - Used for per-file diffs to group files together (default: 1)
 ################################################################################
 
 timestamp="$(date +"%Y-%m-%d_%H-%M")"
@@ -34,7 +37,7 @@ declare -A components=(
 declare -A directories=(
     [llvm]=${LLVM_REPO_DIR:=${HOME}/git/llvm-project.diff}
     [path]=${LLVM_PATH:=""}
-    [results]="$(pwd)/results"
+    [results]=${RESULTS_DIR:="$(pwd)/results"}
 )
 
 declare -A diff_args=(
@@ -235,19 +238,60 @@ update_sources() {
 }
 
 ################################################################################
-#   Calculates the divergence between source and target branches using git's
-#   merge-base comparison. Generates diff output files in multiple formats
-#   (stat and patch by default) and saves them to the results directory with
-#   timestamped filenames. Optionally limits analysis to a specific paths.
+#   Takes the set of changed files and produces one or more Git patch files
+#   per logical unit. When FILE_GROUPS is disabled emits on patch per file
+#   otherwise groups files by their shared base name allowing for combined
+#   patches for example header and related source files. Each patch is generated 
+#   via `git diff --merge-base` and written into a dedicated, timestamped 
+#   subdirectory under the main results folder, using a sanitized base name for 
+#   the filename.
+################################################################################
+create_file_patches() {
+    if [[ ${#changed_files[@]} -eq 0 ]]; then
+        return 0
+    fi
+    
+    print_step "Generating file based git diff --$op"
+    local results_dir="${directories[results]}/$1"
+    mkdir -p $results_dir
+
+    local -A groups
+    for cf in "${changed_files[@]}"; do
+        if [[ "$FILE_GROUPS" -eq 0 ]]; then
+            git diff --merge-base --$op $a_ref $b_ref -- $cf > "$results_dir/${cf//[\/.]/_}.$op"
+        else
+            groups["$(basename "${cf%.*}")"]+=" $cf"
+        fi
+    done
+
+    if [[ "$FILE_GROUPS" -eq 0 ]]; then
+        return 0
+    fi
+
+    for key in "${!groups[@]}"; do
+        cf="${groups[$key]}"
+        IFS=' ' read -r -a grouped_files <<< "${groups[$key]}"
+        if [[ ${#grouped_files[@]} > 1 ]]; then
+            print_info "processing as one:${cf// /$'\n'}"
+        else
+            print_info "processing$cf"
+        fi
+        git diff --merge-base --$op $a_ref $b_ref --$cf> "$results_dir/${key//[\/.]/_}.$op"
+    done
+}
+
+################################################################################
+#   Determines the common ancestor (merge-base) of two Git references and
+#   produces diff outputs between them. Based on configured options, it will
+#   generate summary statistics and full diffs, saving each to timestamped
+#   files in the results directory. Optionally limits analysis to specified
+#   paths. When per-file patching is enabled, it splits the overall patch into 
+#   individual files.
 ################################################################################
 calculate_differences() {
-    local -n a="$source_config"
-    local -n b="$target_config"
-    local a_ref="${a[ref]}"
-    local b_ref="${b[ref]}"
     local path_arg="${diff_args[path]}"
 
-    local filename="${a[file]}-${b[file]}${diff_args[file_suffix]}[$timestamp]"
+    local filename="${timestamp}_${a[file]}-${b[file]}${diff_args[file_suffix]}"
     filename="${filename//\//_}"
 
     print_step "Calculating difference"
@@ -261,11 +305,35 @@ calculate_differences() {
     fi
 
     print_info "$(git diff --merge-base --shortstat $a_ref $b_ref $path_arg)"
+    local per_file_ops=("patch")
 
     IFS=' ' read -ra operations  <<< "${diff_args[options]}"
     for op in "${operations[@]}"; do
-        print_info "calculating git diff --$op"
-        git diff --merge-base --$op $a_ref $b_ref $path_arg > "${directories[results]}/$filename.$op"
+        if [[ "$PER_FILE" -eq 0 ]] || ! printf "%s\n" "${per_file_ops[@]}" | grep -qx "$op"; then
+            print_info "calculating git diff --$op"
+            git diff --merge-base --$op $a_ref $b_ref $path_arg > "${directories[results]}/$filename.$op"
+        else
+            mapfile -t changed_files < <(git diff --merge-base --name-only "$a_ref" "$b_ref" $path_arg)
+            create_file_patches $filename
+        fi
+    done
+}
+
+################################################################################
+#  Outputs the script relevant environment variables and the values they are
+#  set to after they were assigned their default values if not set.
+################################################################################
+print_environment() {
+    if [[ "$SILENT" -eq 1 ]]; then
+        return 0
+    fi
+
+    print_step "Processed environment"
+    local other_vars=("LLVM_REPO_DIR" "LLVM_PATH" "COMPONENT" "LLVM_BRANCH" "ROCm_BRANCH" "RESULTS_DIR")
+
+    for var_name in "${other_vars[@]}" "${default_false[@]}" "${default_true[@]}"; do
+        local -n var="$var_name"
+        print_info "$var_name=$var"
     done
 }
 
@@ -280,12 +348,16 @@ calculate_differences() {
 #   an unrecognized value, it defaults to 0 (false).
 ################################################################################
 process_environment() {
-    print_step "Process environment"
-    local boolean_vars=("SKIP_FETCH" "SILENT" "SETUP_ONLY" "SKIP_SETUP")
+    default_false=("SKIP_FETCH" "SILENT" "SETUP_ONLY" "SKIP_SETUP" "PER_FILE")
+    default_true=("FILE_GROUPS")
 
-    for var_name in "${boolean_vars[@]}"; do
+    for var_name in "${default_false[@]}" "${default_true[@]}"; do
         local -n var="$var_name"
-        var=${var:-0}
+        if printf '%s\n' "${default_true[@]}" | grep -qx "$var_name"; then
+            var=${var:-1}
+        else
+            var=${var:-0}
+        fi
 
         case "${var,,}" in
             true|1|yes|y)
@@ -295,11 +367,9 @@ process_environment() {
                 var=0
                 ;;
             *)
-                var=0
+                var=-
                 ;;
         esac
-
-        print_info "$var_name=$var"
     done
 }
 
@@ -313,6 +383,7 @@ main() {
     exec > >(tee -a "$log_file") 2>&1
 
     process_environment
+    print_environment
 
     if [[ "$SKIP_SETUP" -eq 0 ]]; then
         setup_directory
@@ -327,6 +398,12 @@ main() {
 
     update_configs
     update_sources
+
+    declare -g -n a="$source_config"
+    declare -g -n b="$target_config"
+    a_ref="${a[ref]}"
+    b_ref="${b[ref]}"
+
     calculate_differences
 
     print_step "Cleaning up"
