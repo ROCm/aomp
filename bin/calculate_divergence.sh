@@ -38,7 +38,7 @@ declare -A directories=(
 )
 
 declare -A diff_args=(
-    [component]=${COMPONENT:="driver"}
+    [component]=${COMPONENT:=""}
     [options]="stat patch"
 )
 
