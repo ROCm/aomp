@@ -256,8 +256,10 @@ elif [ "${ShouldUpdateCKRepo}" == 'yes' ]; then
   popd
 fi
 
+CKBuildTool='make'
 if command -v ninja >/dev/null ; then
   CmakeGenerator="-GNinja"
+  CKBuildTool='ninja'
 fi
 
 # TODO Fix / Finalize the cmake command
@@ -291,7 +293,7 @@ fi
 if [ "${ShouldRebuildCK}" == 'yes' ] || [ "${ShouldInstallCK}" == 'yes' ]; then
   pushd ${CK_BUILD} || exit 1
 
-  time ninja -j ${CKBuildParallelism}
+  time ${CKBuildTool} -j ${CKBuildParallelism}
   if [ $? -ne 0 ]; then
     exit 1
   fi
@@ -304,7 +306,7 @@ if [ "${ShouldInstallCK}" == 'yes' ]; then
   pushd ${CK_BUILD} || exit 1
 
   # TODO: Check parallelism. This may use all available threads.
-  time ninja install
+  time ${CKBuildTool} install
   if [ $? -ne 0 ]; then
     exit 1
   fi
@@ -332,7 +334,7 @@ if [ "${SelectedSuite}" == 'smoke' ]; then
     mkdir -p "${CK_TESTS_LOG_LOCATION}" || exit 1
   fi
   pushd ${CK_BUILD} || exit 1
-  ninja -j 16 smoke 2>&1 | tee "${CK_TESTS_LOG_LOCATION}/smoke_tests.log"
+  ${CKBuildTool} -j 16 smoke 2>&1 | tee "${CK_TESTS_LOG_LOCATION}/smoke_tests.log"
   echo "Log at ${CK_TESTS_LOG_LOCATION}/smoke_tests.log"
   popd
 fi
@@ -343,7 +345,7 @@ if [ "${SelectedSuite}" == 'regression' ]; then
     mkdir -p "${CK_TESTS_LOG_LOCATION}" || exit 1
   fi
   pushd ${CK_BUILD} || exit 1
-  ninja -j 16 regression 2>&1 | tee "${CK_TESTS_LOG_LOCATION}/regression_tests.log"
+  ${CKBuildTool} -j 16 regression 2>&1 | tee "${CK_TESTS_LOG_LOCATION}/regression_tests.log"
   echo "Log at ${CK_TESTS_LOG_LOCATION}/regression_tests.log"
   popd
 fi
@@ -435,7 +437,7 @@ if [ "${SelectedSuite}" == 'client-examples' ]; then
 
   pushd ${CK_CLIENT_EXAMPLES_BUILD} || exit 1
 
-  ninja
+  ${CKBuildTool}
   if [ $? -ne 0 ]; then
     exit 1
   fi
