@@ -155,7 +155,9 @@ MYCMAKEOPTS=(-DCMAKE_BUILD_TYPE="$BUILD_TYPE"
 if [ -f "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/device/CMakeLists.txt" ]; then
   MYCMAKEOPTS=("${MYCMAKEOPTS[@]}"
                -DLLVM_RUNTIME_TARGETS='default;amdgcn-amd-amdhsa'
-               -DRUNTIMES_amdgcn-amd-amdhsa_LLVM_ENABLE_RUNTIMES='openmp'
+               -DRUNTIMES_amdgcn-amd-amdhsa_LLVM_ENABLE_RUNTIMES='flang-rt;openmp'
+               -DRUNTIMES_amdgcn-amd-amdhsa_FLANG_RT_ENABLE_STATIC=OFF
+               -DRUNTIMES_amdgcn-amd-amdhsa_FLANG_RT_ENABLE_SHARED=OFF
                -DRUNTIMES_amdgcn-amd-amdhsa_LLVM_ENABLE_PER_TARGET_RUNTIME_DIR=ON)
 fi
 
