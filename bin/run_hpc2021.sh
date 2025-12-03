@@ -38,7 +38,7 @@ if [ "$1" == "-clean" ]; then
 else
   cd ${HPC2021_SOURCE_DIR} || exit 1
 fi
-export PATH=$AOMP/../bin:$AOMP/../../bin:$PATH
+export PATH=$HOME/openmp-utils/bin:$AOMP/../bin:$AOMP/../../bin:$PATH
 export MPI=$INST
 ./runOne
 rm -rf $INST
