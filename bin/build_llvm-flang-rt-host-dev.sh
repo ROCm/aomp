@@ -18,6 +18,10 @@ thisdir=$(dirname "$realpath")
 . "$thisdir/aomp_common_vars"
 # --- end standard header ----
 
+# for TheRock to override with amd-llvm
+export AOMP_NAME_LLVM_PROJECT=${AOMP_NAME_LLVM_PROJECT:-llvm-project}
+export BUILD_AOMP_SUBDIR=${BUILD_AOMP_SUBDIR:-build/llvm-project}
+
 echo "-----------------------------------------------------------------------------"
 echo "Building flang-runtime for device"
 echo "AOMP               = $AOMP"
@@ -51,7 +55,7 @@ if [ ! -x "$CMAKE_CXX_COMPILER" ]; then
     exit 0
 fi
 
-BUILD_DIR=$BUILD_AOMP/build/llvm-project
+BUILD_DIR=$BUILD_AOMP/$BUILD_AOMP_SUBDIR
 BUILD_DIR_FRT=$BUILD_AOMP/build/flang-runtime/flang-rt/lib
 OMPRUNTIME_DIR=$BUILD_DIR/runtimes/runtimes-bins/openmp/runtime/src
 INSTALL_DIR=${INSTALL_DIR:-$AOMP}
@@ -103,7 +107,7 @@ ${AOMP_CMAKE} "${AOMP_SET_NINJA_GEN[@]}" $CM_BUILD_TYPE \
     -DCMAKE_CXX_COMPILER="$CMAKE_CXX_COMPILER" \
     -DFLANG_RT_DEVICE_ARCHITECTURES="$ARCH_LIST" \
     -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
-    "$AOMP_REPOS/llvm-project/runtimes"
+    "$AOMP_REPOS/$AOMP_NAME_LLVM_PROJECT/runtimes"
 
 $AOMP_NINJA_BIN --version
 $AOMP_NINJA_BIN -j "$AOMP_JOB_THREADS" flang-rt
