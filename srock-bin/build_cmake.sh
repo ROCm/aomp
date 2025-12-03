@@ -14,12 +14,6 @@ thisdir=$(dirname "$realpath")
 # --- end standard header ----
 FLANG=${FLANG:-flang}
 
-SROCK_SUPP=${SROCK_SUPP:-$HOME/local}
-# SROCK_SUPP_BUILD could be a temp directory but defaults to $SROCK_SUPP/build
-SROCK_SUPP_BUILD=${SROCK_SUPP_BUILD:-$SROCK_SUPP/build}
-# SROCK_SUPP_INSTALL must be permanent directory.
-SROCK_SUPP_INSTALL=${SROCK_SUPP_INSTALL:-$SROCK_SUPP/install}
-
 function runcmd(){
    THISCMD=$1
    if [ "$DRYRUN" ] ; then
@@ -153,7 +147,7 @@ function buildopenmpi(){
 
 function buildninja(){
   _cname="ninja"
-  _version=1.11.1
+  _version=1.13.2
   _installdir=$SROCK_SUPP_INSTALL/$_cname-$_version
   _linkfrom=$SROCK_SUPP/$_cname
   _builddir=$SROCK_SUPP_BUILD/$_cname
@@ -486,7 +480,11 @@ CMDLOGFILE=$SROCK_SUPP_BUILD/cmdlog
 
 mkdir -p "$SROCK_SUPP_BUILD"
 buildcmake
+buildninja
 
+echo "SROCK_SUPP=$SROCK_SUPP"
+echo "SROCK_JOB_THREADS=$SROCK_JOB_THREADS"
+echo "NINJA_NPROCS=$NINJA_NPROCS"
 _thisdate=$(date)
 echo "# DONE: successful build of cmake on $_thisdate " >>"$CMDLOGFILE"
 
