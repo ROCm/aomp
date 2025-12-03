@@ -261,15 +261,14 @@ elif [ "${ShouldUpdateCKRepo}" == 'yes' ]; then
   popd
 fi
 
-if ! command -v ninja >/dev/null ; then
-  echo "Ninja not found, falling back to make"
-  CmakeGenerator="Unix Makefiles"
-else
-  CmakeGenerator="Ninja"
+CKBuildTool='make'
+if command -v ninja >/dev/null ; then
+  CmakeGenerator="-GNinja"
+  CKBuildTool='ninja'
 fi
 
 # TODO Fix / Finalize the cmake command
-CKCmakeCmd="cmake -G${CmakeGenerator} -B ${CK_BUILD} -S ${CK_REPO} -DCMAKE_PREFIX_PATH=${ROCM_PATH} -DCMAKE_INSTALL_PREFIX=${CK_INSTALL} "
+CKCmakeCmd="cmake ${CmakeGenerator} -B ${CK_BUILD} -S ${CK_REPO} -DCMAKE_PREFIX_PATH=${ROCM_PATH} -DCMAKE_INSTALL_PREFIX=${CK_INSTALL} "
 CKCmakeCmd+="-DCMAKE_CXX_COMPILER=${AOMP}/bin/clang++ -DCMAKE_HIP_COMPILER=${AOMP}/bin/clang++ "
 CKCmakeCmd+="-DCMAKE_BUILD_TYPE=Release -DGPU_TARGETS=${CK_GPU_TARGETS} "
 # For some reason, CK on gfx12 wants this set.
@@ -299,7 +298,7 @@ fi
 if [ "${ShouldRebuildCK}" == 'yes' ] || [ "${ShouldInstallCK}" == 'yes' ]; then
   pushd ${CK_BUILD} || exit 1
 
-  time ninja -j ${CKBuildParallelism}
+  time ${CKBuildTool} -j ${CKBuildParallelism}
   if [ $? -ne 0 ]; then
     exit 1
   fi
@@ -312,7 +311,7 @@ if [ "${ShouldInstallCK}" == 'yes' ]; then
   pushd ${CK_BUILD} || exit 1
 
   # TODO: Check parallelism. This may use all available threads.
-  time ninja install
+  time ${CKBuildTool} install
   if [ $? -ne 0 ]; then
     exit 1
   fi
@@ -340,7 +339,7 @@ if [ "${SelectedSuite}" == 'smoke' ]; then
     mkdir -p "${CK_TESTS_LOG_LOCATION}" || exit 1
   fi
   pushd ${CK_BUILD} || exit 1
-  ninja -j 16 smoke 2>&1 | tee "${CK_TESTS_LOG_LOCATION}/smoke_tests.log"
+  ${CKBuildTool} -j 16 smoke 2>&1 | tee "${CK_TESTS_LOG_LOCATION}/smoke_tests.log"
   echo "Log at ${CK_TESTS_LOG_LOCATION}/smoke_tests.log"
   popd
 fi
@@ -351,7 +350,7 @@ if [ "${SelectedSuite}" == 'regression' ]; then
     mkdir -p "${CK_TESTS_LOG_LOCATION}" || exit 1
   fi
   pushd ${CK_BUILD} || exit 1
-  ninja -j 16 regression 2>&1 | tee "${CK_TESTS_LOG_LOCATION}/regression_tests.log"
+  ${CKBuildTool} -j 16 regression 2>&1 | tee "${CK_TESTS_LOG_LOCATION}/regression_tests.log"
   echo "Log at ${CK_TESTS_LOG_LOCATION}/regression_tests.log"
   popd
 fi
@@ -415,7 +414,7 @@ fi
 # Handle CK client examples
 if [ "${SelectedSuite}" == 'client-examples' ]; then
   # Configure and build the client examples
-  CKCmakeCmd="cmake -G ${CmakeGenerator} "
+  CKCmakeCmd="cmake ${CmakeGenerator} "
   CKCmakeCmd+="-B ${CK_CLIENT_EXAMPLES_BUILD} -S ${CK_CLIENT_EXAMPLES_SOURCE} "
   CKCmakeCmd+="-DCMAKE_CXX_COMPILER=${AOMP}/bin/clang++ "
   CKCmakeCmd+="-DCMAKE_HIP_COMPILER=${AOMP}/bin/clang++ "
@@ -443,7 +442,7 @@ if [ "${SelectedSuite}" == 'client-examples' ]; then
 
   pushd ${CK_CLIENT_EXAMPLES_BUILD} || exit 1
 
-  ninja
+  ${CKBuildTool}
   if [ $? -ne 0 ]; then
     exit 1
   fi
