@@ -37,8 +37,14 @@ echo RUN_OPTIONS: $RUN_OPTIONS
 for option in $RUN_OPTIONS; do
   if [ "$option" == "openmp" ]; then
     cd openmp-offload
+    # Update Makefile with detected GPU architecture
+    if [ -f Makefile ]; then
+      sed -i "s/-fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=gfx[0-9a-zA-Z]*/--offload-arch=$AOMP_GPU/g" Makefile
+      echo "Updated Makefile: --offload-arch=$AOMP_GPU"
+    fi
     make clean
     export PATH=$AOMP/bin:$PATH
+    export LD_LIBRARY_PATH=$AOMP/lib:$LD_LIBRARY_PATH
     make COMPILER=amd
     if [ $? -ne 1 ]; then
       ./rsbench -m event 2>&1 | tee -a results.txt
