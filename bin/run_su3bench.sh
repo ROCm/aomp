@@ -39,8 +39,14 @@ fi
 echo RUN_OPTIONS: $RUN_OPTIONS
 for option in $RUN_OPTIONS; do
   if [ "$option" == "openmp" ]; then
+    # Update Makefile with detected GPU architecture
+    if [ -f Makefile.openmp ]; then
+      sed -i "s/-march=gfx[0-9a-zA-Z]*/-march=$AOMP_GPU/g" Makefile.openmp
+      echo "Updated Makefile.openmp: -march=$AOMP_GPU"
+    fi
     make -f Makefile.openmp clean
     export PATH=$AOMP/bin:$PATH
+    export LD_LIBRARY_PATH=$AOMP/lib:$LD_LIBRARY_PATH
     make -f Makefile.openmp VENDOR=amd ARCH=MI200 all
     if [ $? -ne 1 ]; then
       ./bench_f32_openmp.exe 2>&1 | tee -a results.txt
