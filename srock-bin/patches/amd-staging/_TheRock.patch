@@ -152,3 +152,59 @@ index 29b9a404..6947a640 100644
      INTERFACE_LINK_DIRS
        # So that dependents can find the roctx library via find_library()
        lib
+diff --git a/compiler/pre_hook_amd-llvm.cmake b/compiler/pre_hook_amd-llvm.cmake
+index 0b457d61..d83c2afd 100644
+--- a/compiler/pre_hook_amd-llvm.cmake
++++ b/compiler/pre_hook_amd-llvm.cmake
+@@ -134,6 +135,7 @@ block()
+     LLVM_SHLIB
+     LLVM_OBJCOPY
+     LLVM_OBJDUMP
++    LLVM_OFFLOAD_BINARY
+     OPT
+     YAML2OBJ
+   )
+@@ -151,7 +153,6 @@ block()
+     AMDGPU_ARCH
+     CLANG_HIP
+     CLANG_OFFLOAD_BUNDLER
+-    CLANG_OFFLOAD_PACKAGER
+     CLANG_OFFLOAD_WRAPPER
+     CLANG_LINKER_WRAPPER
+     CLANG_SHLIB
+diff --git a/compiler/CMakeLists.txt b/compiler/CMakeLists.txt
+index 4df4bcab..00aef662 100644
+--- a/compiler/CMakeLists.txt
++++ b/compiler/CMakeLists.txt
+@@ -51,7 +55,10 @@ if(THEROCK_ENABLE_COMPILER)
+       -DLIBCXXABI_ENABLE_STATIC=ON
+ 
+       # Features
+-      -DLLVM_INCLUDE_TESTS=OFF
++      -DLLVM_BUILD_TESTS=ON
++      -DLLVM_INCLUDE_TESTS=ON
++      -DCLANG_INCLUDE_TESTS=ON
++      -DLLVM_LIT_ARGS='-vv --show-unsupported --show-xfail -j 16'
+       -DLLVM_ENABLE_ZLIB=FORCE_ON
+       -DLLVM_ENABLE_Z3_SOLVER=OFF
+       -DLLVM_ENABLE_LIBXML2=OFF
+diff --git a/compiler/pre_hook_amd-llvm.cmake b/compiler/pre_hook_amd-llvm.cmake
+index 0b457d61..2fcfab64 100644
+--- a/compiler/pre_hook_amd-llvm.cmake
++++ b/compiler/pre_hook_amd-llvm.cmake
+@@ -144,7 +145,7 @@ block()
+     list(APPEND _llvm_required_tools "LLVM_LIB")
+     list(APPEND _llvm_required_tools "LLVM_RANLIB")
+   endif()
+-  therock_set_implicit_llvm_options(LLVM "${CMAKE_CURRENT_SOURCE_DIR}/tools" "${_llvm_required_tools}")
++  # therock_set_implicit_llvm_options(LLVM "${CMAKE_CURRENT_SOURCE_DIR}/tools" "${_llvm_required_tools}")
+ 
+   # Clang tools that are required.
+   set(_clang_required_tools
+@@ -162,5 +163,5 @@ block()
+     # we might as well build them from source ourselves.
+     list(APPEND _clang_required_tools "CLANG_SCAN_DEPS")
+   endif()
+-  therock_set_implicit_llvm_options(CLANG "${CMAKE_CURRENT_SOURCE_DIR}/../clang/tools" "${_clang_required_tools}")
++  # therock_set_implicit_llvm_options(CLANG "${CMAKE_CURRENT_SOURCE_DIR}/../clang/tools" "${_clang_required_tools}")
+ endblock()
