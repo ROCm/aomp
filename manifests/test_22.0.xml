@@ -20,6 +20,9 @@
 <remote name="GenASiS_Basics" fetch="https://github.com/GenASiS/" />
 <remote name="UMT" fetch="https://github.com/LLNL/" />
 <remote name="lcf" fetch="https://github.com/zjin-lcf/" />
+<remote name="RSBench" fetch="https://github.com/ANL-CESAR/" />
+<remote name="XSBench" fetch="https://github.com/ANL-CESAR/" />
+<remote name="su3_bench" fetch="https://github.com/NERSC/nersc-proxies/" />
 
 <!-- --- List of test repos and the path they are cloned to --- -->
 
@@ -43,5 +46,8 @@
 <project remote="UMT"  path="UMT"  name="UMT" revision="develop" groups="unlocked" />
 <project remote="lcf"  path="HeCBench"  name="HeCBench" revision="master" groups="unlocked" />
 <project remote="rocm"  path="rccl-tests"  name="rccl-tests" revision="master" groups="unlocked" />
+<project remote="RSBench"  path="RSBench"  name="RSBench" revision="master" groups="unlocked" />
+<project remote="XSBench"  path="XSBench"  name="XSBench" revision="master" groups="unlocked" />
+<project remote="su3bench"  path="su3bench"  name="su3bench" revision="master" groups="unlocked" />
 
 </manifest>
