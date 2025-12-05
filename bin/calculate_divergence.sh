@@ -390,7 +390,7 @@ calculate_nfc() {
         hunk = hunk $0 "\n"
         # Check if this added/removed line is NON-functional:
         # allowed forms are:
-        #   +{   -{   +}   -}   +<spaces>   -<spaces> 
+        #   +{   -{   +}   -}   +<spaces>   -<spaces>
         if ($0 ~ /^[+-][[:space:]]*[\{\}]?[[:space:]]*$/) {
         # still ok
         } else {
@@ -422,7 +422,7 @@ calculate_differences() {
     a_ref="${a[ref]}"
     b_ref="${b[ref]}"
     path_arg="${diff_args[path]}"
-    
+
     local merge_base=$(git merge-base $a_ref $b_ref)
 
     local filename="${timestamp}_${a[file]}-${b[file]}${diff_args[file_suffix]}"
@@ -442,7 +442,7 @@ calculate_differences() {
     local per_file_ops=("patch")
 
     git log --pretty=format:"%h %s%n%an <%ae> | %ad" --date=format:'%Y-%m-%d %H:%M:%S' --stat --no-merges $merge_base...$b_ref $path_arg > "${directories[results]}/$filename.commits"
-    
+
     if [[ "$NFC" -eq 1 ]]; then
         calculate_nfc $filename
     fi
