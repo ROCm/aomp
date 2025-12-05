@@ -20,18 +20,7 @@ export CLEANUP=0
 
 # whats the OS ?
 cat /etc/os-release
-rocm-smi
-rocminfo
 
-# Export SKIP_USM=1 if xnack can not be turned ON, even with HSA_XNACK=1.
-# Makefile.defs uses SKIP_USM env var to disable compilation and execution
-# of the tests which require USM support.
-SKIP_USM=0
-XNACK_PLUS=$(HSA_XNACK=1 rocminfo | grep -i "xnack+" | wc -l)
-if [ $XNACK_PLUS -eq 0 ]; then
-  SKIP_USM=1
-fi
-export SKIP_USM=$SKIP_USM
 
 if [ -e /usr/sbin/lspci ]; then
   lspci_loc=/usr/sbin/lspci
@@ -65,18 +54,20 @@ if [ $ISVIRT -eq 1 ] ; then
   # run on configurations that do not support USM.
   export OMPX_STRICT_SANITY_CHECKS={OMPX_STRICT_SANITY_CHECKS:-1}
 
-SUITE_LIST=${SUITE_LIST:-"examples smoke-limbo smoke smoke-asan smoke-fort smoke-fort-limbo omp5 openmpapps ovo babelstream fortran-babelstream accel2023 hpc2021"}
+  SUITE_LIST=${SUITE_LIST:-"examples smoke-limbo smoke smoke-asan smoke-fort smoke-fort-limbo omp5 openmpapps ovo babelstream fortran-babelstream accel2023 hpc2021"}
 else
-SUITE_LIST=${SUITE_LIST:-"examples smoke-limbo smoke-dev smoke-fort-dev smoke smoke-asan smoke-fort smoke-fort-limbo omp5 openmpapps LLNL nekbone ovo babelstream fortran-babelstream accel2023 hpc2021"}
+  SUITE_LIST=${SUITE_LIST:-"examples smoke-limbo smoke-dev smoke-fort-dev smoke smoke-asan smoke-fort smoke-fort-limbo omp5 openmpapps LLNL nekbone ovo babelstream fortran-babelstream accel2023 hpc2021"}
 fi
+
 blockinglist="examples smoke smoke-limbo openmpapps sollve45 sollve50 sollve51 sollve52 babelstream ovo accel2023 hpc2021 nekbone smoke-fort smoke-fort-limbo"
 
 EPSDB_LIST=${EPSDB_LIST:-"examples smoke-limbo smoke-dev smoke smoke-asan omp5 openmpapps LLNL nekbone ovo babelstream fortran-babelstream accel2023 hpc2021  smoke-fort smoke-fort-limbo smoke-fort-dev"}
+THEROCK_LIST=${THEROCK_LIST:-"smoke smoke-fort nekbone babelstream fortran-babelstream accel2023 hpc2021"}
 
 export AOMP_USE_CCACHE=0
 
-echo $SUITE_LIST
-echo $blockinglist
+echo Initial SUITE_LIST: $SUITE_LIST
+echo Blocking List: $blockinglist
 
 # Use bogus path to avoid using target.lst, a user-defined target list
 # used by rocm_agent_enumerator.
@@ -112,13 +103,13 @@ fi
 # Set AOMP to point to rocm symlink or newest version.
 if [ -e /opt/rocm/lib/llvm/bin ]; then
   AOMP=${AOMP:-"/opt/rocm/lib/llvm"}
-  ROCMINF=/opt/rocm
-  ROCMDIR=/opt/rocm/lib
+  ROCMINF="$AOMP/../../"
+  ROCMDIR="$AOMP/../../"
   echo setting 1 $AOMP
 elif [ -e /opt/rocm/llvm/bin ]; then
   AOMP=${AOMP:-"/opt/rocm/llvm"}
-  ROCMINF=/opt/rocm
-  ROCMDIR=/opt/rocm
+  ROCMINF="$AOMP/../"
+  ROCMDIR="$AOMP/../"
   echo setting 2 $AOMP
 else
   newestrocm=$(ls --sort=time /opt | grep -m 1 rocm)
@@ -137,6 +128,64 @@ fi
 export AOMP
 echo "AOMP = $AOMP"
 export REAL_AOMP=`realpath $AOMP`
+"$ROCMINF/bin/rocm-smi"
+"$ROCMINF/bin/rocminfo"
+
+# Export SKIP_USM=1 if xnack can not be turned ON, even with HSA_XNACK=1.
+# Makefile.defs uses SKIP_USM env var to disable compilation and execution
+# of the tests which require USM support.
+SKIP_USM=0
+XNACK_PLUS=$(HSA_XNACK=1 "$ROCMINFO/binrocminfo" | grep -i "xnack+" | wc -l)
+if [ $XNACK_PLUS -eq 0 ]; then
+  SKIP_USM=1
+fi
+export SKIP_USM=$SKIP_USM
+
+# Download FileCheck if not present
+mkdir -p "$HOME/openmp-utils/bin"
+if [ ! -f "$AOMP/bin/FileCheck" ]; then
+  rm -f "$HOME/openmp-utils/bin/FileCheck"
+  if ! wget -P "$HOME/openmp-utils/bin" https://compute-artifactory.amd.com/artifactory/rocm-generic-local/compiler-infra/FileCheck ; then
+    echo "Error: Could not download FileCheck"
+    exit 1
+  fi
+  chmod 755 "$HOME/openmp-utils/bin/FileCheck"
+fi
+
+if [ ! -f "$AOMP/bin/gpurun" ]; then
+  rm -f "$HOME/openmp-utils/bin/gpurun"
+  if ! wget -P "$HOME/openmp-utils/bin" https://compute-artifactory.amd.com/artifactory/rocm-generic-local/compiler-infra/gpurun ; then
+    echo "Error: Could not download gpurun"
+    exit 1
+  fi
+  chmod 755 "$HOME/openmp-utils/bin/gpurun"
+  export GPURUN_BINDIR="$HOME/openmp-utils/bin"
+fi
+clangversion=`$AOMP/bin/clang --version`
+aomp=0
+if [[ "$clangversion" =~ "AOMP_STANDALONE" ]]; then
+  aomp=1
+fi
+
+if [ $aomp -eq 0 ]; then
+  # Determine ROCm version.
+  echo ROCMINF=$ROCMINF
+  rocm=$(cat "$ROCMINF"/.info/version*|head -1)
+  rocmregex="([0-9]+\.[0-9]+\.[0-9]+)"
+  therock=0
+  rocmver=0
+  if [[ "$rocm" =~ $rocmregex ]]; then
+    rocmver=$(echo ${BASH_REMATCH[1]} | sed "s/\.//g")
+    echo rocmver: $rocmver
+    if [ $rocmver -ge 7100 ]; then
+      echo "--- Using TheRock Compiler ---"
+      therock=1
+    fi
+  else
+    echo Unable to determine rocm version.
+    exit 1
+  fi
+fi
 
 function extract_rpm(){
   local test_package=$1
@@ -146,25 +195,32 @@ function extract_rpm(){
   cd $(dirname $script)
 }
 
-# Keep support for older release testing that will not have release branch
-# updated. From 6.2 onwards the openmp-extras-tests package will be used for testing.
-if [[ $REAL_AOMP =~ "/opt/rocm-6.0" ]] || [[ $REAL_AOMP =~ "/opt/rocm-6.1" ]]; then
-  if [ "$TEST_BRANCH" == "" ]; then
-    git reset --hard
-    export TEST_BRANCH="aomp-test-6.0-6.1"
-    git checkout 080e9bc62ad8501defc4ec9124c90e28a1f749db
-  fi
-  echo "+++ Using $TEST_BRANCH +++"
-  sleep 5
-  ./run_rocm_test.sh
-  exit $?
-fi
+#if [ $therock -eq 1 ] && [ "$EPSDB" != "1"  ] ; then
+#  if [ "$TEST_BRANCH" == "" ]; then
+#    if ! aomprev=$(grep -Po "OPENMP_TEST_REVISION \K\w+" "$AOMP/include/llvm/Config/llvm-config.h"); then
+#      echo "Error: Cannot determine aomp revision from llvm-config.h"
+#      exit 1
+#    else
+#      echo "Using aomp hash: $aomprev"
+#    fi
 
-clangversion=`$AOMP/bin/clang --version`
-aomp=0
-if [[ "$clangversion" =~ "AOMP_STANDALONE" ]]; then
-  aomp=1
-fi
+    #if ! git checkout $aomprev ; then
+    #  if ! git stash
+    #    git reset --hard
+    #  fi
+    #  if ! git checkout $aomprev; then
+    #    echo "Fatal Error: Cannot checkout $aomprev for aomp."
+#      exit 1
+#      fi
+#    fi
+#    export TEST_BRANCH=$aomprev
+#  fi
+#  echo "+++ Using $TEST_BRANCH +++"
+#  sleep 5
+#  ./run_rocm_test.sh
+#  exit $?
+#fi
+
 
 # Support for using openmp-extras-tests package.
 if [ "$aomp" != 1 ]; then
@@ -172,7 +228,7 @@ if [ "$aomp" != 1 ]; then
   os_name=$(cat /etc/os-release | grep NAME)
   test_package_name="openmp-extras-tests"
 
-  if [ "$SKIP_TEST_PACKAGE" != 1 ] && [ "$TEST_BRANCH" == "" ]; then
+  if [ $therock -eq 0 ] && [ "$SKIP_TEST_PACKAGE" != 1 ] && [ "$TEST_BRANCH" == "" ]; then
     rm -rf $tmpdir
     mkdir -p $tmpdir
     export debsupport=0
@@ -379,30 +435,18 @@ function getversion(){
   versions[543]=5.4.3
   versions[550]=5.5.0
 
-  if [ $aomp -eq 1 ]; then
-    echo "AOMP detected at $AOMP, skipping ROCm version detections"
+  if [ $aomp -eq 1 ] || [ $therock -eq 1 ]; then
     maxvers=`echo $supportedvers | grep -o "[0-9].[0-9].[0-9]$" | sed -e 's/\.//g'`
     versionregex="(.*${versions[$maxvers]})"
     if [[ "$supportedvers" =~ $versionregex ]]; then
       finalvers=${BASH_REMATCH[1]}
     else
-      echo "AOMP - Cannot select proper version list."
+      echo "Error: Cannot select proper version list."
       exit 1
     fi
+    echo "AOMP or TheRock detected at $AOMP, skipping ROCm version detections"
     echo "Selecting highest supported version: ${versions[$maxvers]}"
   else
-    # Determine ROCm version.
-    echo ROCMINF=$ROCMINF
-    rocm=$(cat "$ROCMINF"/.info/version*|head -1)
-    rocmregex="([0-9]+\.[0-9]+\.[0-9]+)"
-    if [[ "$rocm" =~ $rocmregex ]]; then
-      rocmver=$(echo ${BASH_REMATCH[1]} | sed "s/\.//g")
-      echo rocmver: $rocmver
-    else
-      echo Unable to determine rocm version.
-      exit 1
-    fi
-
     # Determine OS flavor to properly query openmp-extras version.
     osname=$(cat /etc/os-release | grep -e ^NAME=)
     # Regex to cover single/multi version installs for deb/rpm.
@@ -466,6 +510,7 @@ function getversion(){
     fi
   fi
 }
+
 function notAllMustPass() {
   #if [ "$1" != "smoke" ] && [ "$1" != "smoke-limbo" ] &&  [ "$1" != "smoke-fort" ] && [ "$1" != "smoke-fort-limbo" ]; then
   if [ "$1" != "smoke" ] && [ "$1" != "smoke-limbo" ] && [ "$1" != "smoke-fort" ] && [ "$1" != "examples_openmp" ] && [ "$1" != "examples_fortran" ]; then
@@ -831,7 +876,7 @@ function smoke-fort(){
   if [ "$SMOKE_FORT" == "1" ]; then
     mkdir -p "$resultsdir"/smoke-fort
     cd "$aompdir"/test/smoke-fort
-    ./check_smoke_fort.sh
+    AOMP_PARALLEL_SMOKE=1 ./check_smoke_fort.sh
     checkrc $?
     copyresults smoke-fort "$aompdir"/test/smoke-fort
   else
@@ -1068,7 +1113,9 @@ rm -rf $resultsdir
 mkdir -p $resultsdir
 
 # Run Tests
-if [ "$EPSDB" == "1" ]; then
+if [ $therock -eq 1 ]; then
+  SUITE_LIST="$THEROCK_LIST"
+elif [ "$EPSDB" == "1" ]; then
   SUITE_LIST="$EPSDB_LIST"
 fi
 echo Running List: $SUITE_LIST
