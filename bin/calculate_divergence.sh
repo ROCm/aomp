@@ -17,6 +17,7 @@
 #   RESULTS_DIR   - Path to results dir (default: <current_dir>/results)
 #   PER_FILE      - Creates per-file diffs (default: 0)
 #   FILE_GROUPS   - Used for per-file diffs to group files together (default: 1)
+#   NFC           - Create patch for non-functional changes (default: 0)
 ################################################################################
 
 timestamp="$(date +"%Y-%m-%d_%H-%M")"
@@ -56,6 +57,60 @@ declare -A ROCm=(
     [remote]="ROCm"
     [branch]=${ROCm_BRANCH:=amd-staging}
 )
+
+################################################################################
+#  Outputs the script relevant environment variables and the values they are
+#  set to after they were assigned their default values if not set.
+################################################################################
+print_environment() {
+    if [[ "$SILENT" -eq 1 ]]; then
+        return 0
+    fi
+
+    print_step "Processed environment"
+    local other_vars=("LLVM_REPO_DIR" "LLVM_PATH" "COMPONENT" "LLVM_BRANCH" "ROCm_BRANCH" "RESULTS_DIR")
+
+    for var_name in "${other_vars[@]}" "${default_false[@]}" "${default_true[@]}"; do
+        local -n var="$var_name"
+        print_info "$var_name=$var"
+    done
+}
+
+################################################################################
+#   Normalizes a predefined list of boolean-like environment variables into a
+#   consistent integer format (1 for true, 0 for false). It reads each variable
+#   name from the `boolean_vars` array, interprets its value, and overwrites
+#   the global variable with either a 1 or a 0.
+#
+#   This function handles case-insensitive "true" values (e.g., true, 1, yes, y)
+#   and "false" values (e.g., false, 0, no, n). If a variable is unset or has
+#   an unrecognized value, it defaults to 0 (false).
+################################################################################
+process_environment() {
+    default_false=("SKIP_FETCH" "SILENT" "SETUP_ONLY" "SKIP_SETUP" "PER_FILE" "NFC")
+    default_true=("FILE_GROUPS")
+
+    for var_name in "${default_false[@]}" "${default_true[@]}"; do
+        local -n var="$var_name"
+        if printf '%s\n' "${default_true[@]}" | grep -qx "$var_name"; then
+            var=${var:-1}
+        else
+            var=${var:-0}
+        fi
+
+        case "${var,,}" in
+            true|1|yes|y)
+                var=1
+                ;;
+            false|0|no|n)
+                var=0
+                ;;
+            *)
+                var=-
+                ;;
+        esac
+    done
+}
 
 ################################################################################
 #   Utility functions for consistent, formatted console output throughout the
@@ -237,6 +292,10 @@ update_sources() {
     done
 }
 
+diff_merge_base() {
+    git diff --src-prefix="$a_ref/" --dst-prefix="$b_ref/" --merge-base "$@" $a_ref $b_ref $path_arg
+}
+
 ################################################################################
 #   Takes the set of changed files and produces one or more Git patch files
 #   per logical unit. When FILE_GROUPS is disabled emits on patch per file
@@ -258,7 +317,8 @@ create_file_patches() {
     local -A groups
     for cf in "${changed_files[@]}"; do
         if [[ "$FILE_GROUPS" -eq 0 ]]; then
-            git diff --merge-base --$op $a_ref $b_ref -- $cf > "$results_dir/${cf//[\/.]/_}.$op"
+            path_arg="-- $cf"
+            diff_merge_base --$op > "$results_dir/${cf//[\/.]/_}.$op"
         else
             groups["$(basename "${cf%.*}")"]+=" $cf"
         fi
@@ -276,8 +336,76 @@ create_file_patches() {
         else
             print_info "processing$cf"
         fi
-        git diff --merge-base --$op $a_ref $b_ref --$cf> "$results_dir/${key//[\/.]/_}.$op"
+        path_arg="--$cf"
+        diff_merge_base --$op > "$results_dir/${key//[\/.]/_}.$op"
     done
+}
+
+################################################################################
+#   Creates a patch file of changes that are considered "non-functional", which
+#   include lines that only add or remove:
+#   - whitespaces/newlines
+#   - braces
+################################################################################
+calculate_nfc() {
+    print_info "calculating non functional changes"
+    local out="$1.nfc.patch"
+    local tmp full
+
+    tmp="$(mktemp /tmp/divergence_nfc.XXXXXX)" || return 1
+    full="$tmp.full"
+    grep_only="$tmp.grep"
+
+    # Grab a zero-context diff of all changes
+    diff_merge_base -U0 --no-color > "$full"
+
+    # Filter hunks: we include a hunk only if EVERY '+' or '–' line
+    # contains only whitespace and/or braces.
+    awk -v out="$grep_only" '
+    BEGIN {
+        printing = 0
+        header = ""
+        hunk   = ""
+    }
+    # Collect the diff headers until the first hunk
+    /^diff --git/    { header = $0 "\n"; next }
+    /^index /        { header = header $0 "\n"; next }
+    /^--- /          { header = header $0 "\n"; next }
+    /^\+\+\+ /       { header = header $0 "\n"; next }
+
+    # Beginning of a new hunk
+    /^@@/ {
+        # flush the prior hunk if it qualified
+        if (hunk && printing) {
+        print header hunk
+        }
+        # start a new hunk
+        printing = 1
+        hunk = $0 "\n"
+        next
+    }
+
+    # Collect lines within a hunk
+    /^[ +-]/ {
+        hunk = hunk $0 "\n"
+        # Check if this added/removed line is NON-functional:
+        # allowed forms are:
+        #   +{   -{   +}   -}   +<spaces>   -<spaces> 
+        if ($0 ~ /^[+-][[:space:]]*[\{\}]?[[:space:]]*$/) {
+        # still ok
+        } else {
+        printing = 0
+        }
+    }
+
+    END {
+        if (hunk && printing) {
+        print header hunk
+        }
+    }
+    ' "$full" > "${directories[results]}/$out"
+
+    rm -f "$full" "$grep_only"
 }
 
 ################################################################################
@@ -289,13 +417,19 @@ create_file_patches() {
 #   individual files.
 ################################################################################
 calculate_differences() {
-    local path_arg="${diff_args[path]}"
+    declare -g -n a="$source_config"
+    declare -g -n b="$target_config"
+    a_ref="${a[ref]}"
+    b_ref="${b[ref]}"
+    path_arg="${diff_args[path]}"
+    
+    local merge_base=$(git merge-base $a_ref $b_ref)
 
     local filename="${timestamp}_${a[file]}-${b[file]}${diff_args[file_suffix]}"
     filename="${filename//\//_}"
 
     print_step "Calculating difference"
-    print_info "based on: $(git show -s $(git merge-base $a_ref $b_ref))"
+    print_info "based on: $(git show -s $merge_base)"
     print_info "between: ${a[name]}
     and: ${b[name]}"
 
@@ -304,72 +438,25 @@ calculate_differences() {
         print_info "only including files from:${cleaned_path_arg// /$'\n'}"
     fi
 
-    print_info "$(git diff --merge-base --shortstat $a_ref $b_ref $path_arg)"
+    print_info "$(diff_merge_base --shortstat)"
     local per_file_ops=("patch")
+
+    git log --pretty=format:"%h %s%n%an <%ae> | %ad" --date=format:'%Y-%m-%d %H:%M:%S' --stat --no-merges $merge_base...$b_ref $path_arg > "${directories[results]}/$filename.commits"
+    
+    if [[ "$NFC" -eq 1 ]]; then
+        calculate_nfc $filename
+    fi
 
     IFS=' ' read -ra operations  <<< "${diff_args[options]}"
     for op in "${operations[@]}"; do
-        if [[ "$PER_FILE" -eq 0 ]] || ! printf "%s\n" "${per_file_ops[@]}" | grep -qx "$op"; then
             print_info "calculating git diff --$op"
-            git diff --merge-base --$op $a_ref $b_ref $path_arg > "${directories[results]}/$filename.$op"
-        else
-            mapfile -t changed_files < <(git diff --merge-base --name-only "$a_ref" "$b_ref" $path_arg)
+            diff_merge_base --$op > "${directories[results]}/$filename.$op"
+        if [[ "$PER_FILE" -eq 1 ]] && printf "%s\n" "${per_file_ops[@]}" | grep -qx "$op"; then
+            local path_arg_tmp=$path_arg
+            mapfile -t changed_files < <(diff_merge_base --name-only)
             create_file_patches $filename
+            path_arg=$path_arg_tmp
         fi
-    done
-}
-
-################################################################################
-#  Outputs the script relevant environment variables and the values they are
-#  set to after they were assigned their default values if not set.
-################################################################################
-print_environment() {
-    if [[ "$SILENT" -eq 1 ]]; then
-        return 0
-    fi
-
-    print_step "Processed environment"
-    local other_vars=("LLVM_REPO_DIR" "LLVM_PATH" "COMPONENT" "LLVM_BRANCH" "ROCm_BRANCH" "RESULTS_DIR")
-
-    for var_name in "${other_vars[@]}" "${default_false[@]}" "${default_true[@]}"; do
-        local -n var="$var_name"
-        print_info "$var_name=$var"
-    done
-}
-
-################################################################################
-#   Normalizes a predefined list of boolean-like environment variables into a
-#   consistent integer format (1 for true, 0 for false). It reads each variable
-#   name from the `boolean_vars` array, interprets its value, and overwrites
-#   the global variable with either a 1 or a 0.
-#
-#   This function handles case-insensitive "true" values (e.g., true, 1, yes, y)
-#   and "false" values (e.g., false, 0, no, n). If a variable is unset or has
-#   an unrecognized value, it defaults to 0 (false).
-################################################################################
-process_environment() {
-    default_false=("SKIP_FETCH" "SILENT" "SETUP_ONLY" "SKIP_SETUP" "PER_FILE")
-    default_true=("FILE_GROUPS")
-
-    for var_name in "${default_false[@]}" "${default_true[@]}"; do
-        local -n var="$var_name"
-        if printf '%s\n' "${default_true[@]}" | grep -qx "$var_name"; then
-            var=${var:-1}
-        else
-            var=${var:-0}
-        fi
-
-        case "${var,,}" in
-            true|1|yes|y)
-                var=1
-                ;;
-            false|0|no|n)
-                var=0
-                ;;
-            *)
-                var=-
-                ;;
-        esac
     done
 }
 
@@ -378,7 +465,7 @@ main() {
     local results_dir="${directories[results]}"
     mkdir -p $results_dir
     
-    local log_file="${directories[results]}/$(basename "${0%.*}")[$timestamp].log"
+    local log_file="${directories[results]}/${timestamp}_$(basename "${0%.*}").log"
 
     exec > >(tee -a "$log_file") 2>&1
 
@@ -398,11 +485,6 @@ main() {
 
     update_configs
     update_sources
-
-    declare -g -n a="$source_config"
-    declare -g -n b="$target_config"
-    a_ref="${a[ref]}"
-    b_ref="${b[ref]}"
 
     calculate_differences
 
