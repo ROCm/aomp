@@ -35,6 +35,6 @@ if [ "$1" == "-clean" ]; then
 else
   cd ${ACCEL2023_SOURCE_DIR} || exit 1
 fi
-export PATH=$HOME/openmp-utils/bin:$AOMP/../bin:$AOMP/../../bin:$AOMP/lib/llvm/bin:$PATH
+export PATH=$AOMP/../bin:$AOMP/../../bin:$AOMP/lib/llvm/bin:$PATH
 ./runOne
 #grep ratio= result/*.log

@@ -40,13 +40,13 @@ AOMP=${AOMP:-$HOME/rocm/aomp}
 AOMP_INSTALL_DIR=${AOMP}_${AOMP_VERSION_STRING}
 
 GPURUN_BINDIR=${GPURUN_BINDIR:-$AOMP/bin}
-if [ ! -f "$GPURUN_BINDIR/gpurun" ] ; then
+if [ ! -f "$GPURUN_BINDIR/gpurun" ] || [ ! -f "$GPURUN_BINDIR/rocminfo" ] ; then
     # When using trunk, try to find gpurun and rocminfo in ROCm
     _SILENT=""
     GPURUN_BINDIR=/opt/rocm/llvm/bin
-fi
-if [ ! -f "$AOMP/bin/rocminfo" ] ; then
-  export ROCMINFO_BINARY=/opt/rocm/bin/rocminfo
+    export ROCMINFO_BINARY=/opt/rocm/bin/rocminfo
+else
+    export ROCMINFO_BINARY=$GPURUN_BINDIR/rocminfo
 fi
 
 # For example, if AOMP_REPOS=$HOME/git/aomp11, then the primary aomp repo
