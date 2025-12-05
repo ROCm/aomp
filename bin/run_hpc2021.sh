@@ -38,8 +38,10 @@ if [ "$1" == "-clean" ]; then
 else
   cd ${HPC2021_SOURCE_DIR} || exit 1
 fi
-export PATH=$AOMP/../bin:$AOMP/../../bin:$PATH
+export PATH=$HOME/openmp-utils/bin:$AOMP/../bin:$AOMP/../../bin:$PATH
 export MPI=$INST
+# strange UCX warnings in dockers using openmpi, this suppresses
+export UCX_LOG_LEVEL=error
 ./runOne
 rm -rf $INST
 #grep ratio= result/*.log
