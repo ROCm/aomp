@@ -27,8 +27,6 @@ _curdir=$PWD
 _start_date=$(date)
 _start_secs=$(date +%s)
 
-_gfxsemicolons=$(echo "$GFXLIST" | tr ' ' ';')
-
 # build_srock.sh Modes:
 #   The default mode "fullupdate" will
 #     - if TheRock repo exists, remove all previous updates 
@@ -49,46 +47,53 @@ _gfxsemicolons=$(echo "$GFXLIST" | tr ' ' ';')
 # FIXME: Add support for build modes: newclone and newbuild
 #
 _build_srock_mode=${1:-fullupdate} 
+_cmake_enable=""
 
 # This TheRock config is full build minus failing components
 if [ "$SROCK_CONFIG" == "all" ] ; then
-   _cmake_args="-B build -GNinja -DTHEROCK_AMDGPU_TARGETS='$_gfxsemicolons' \
--DTHEROCK_AMDGPU_DIST_BUNDLE_NAME=srock \
+   _cmake_enable="\
 -DTHEROCK_ENABLE_ALL=ON \
 -DTHEROCK_ENABLE_MIOPEN=OFF \
 -DTHEROCK_ENABLE_COMPOSABLE_KERNEL=OFF \
 -DTHEROCK_ENABLE_FFT=OFF \
--DTHEROCK_BACKGROUND_BUILD_JOBS=1 \
-$SROCK_THEROCK_DIR"
+"
 fi
 
 # This is full build which could include failing components
 if [ "$SROCK_CONFIG" == "all-debug" ] ; then
-   _cmake_args"-B build -GNinja -DTHEROCK_AMDGPU_TARGETS='$_gfxsemicolons' \
--DTHEROCK_AMDGPU_DIST_BUNDLE_NAME=srock \
+   _cmake_enable="\
 -DTHEROCK_ENABLE_ALL=ON \
--DTHEROCK_BACKGROUND_BUILD_JOBS=1 \
-$SROCK_THEROCK_DIR"
+"
 fi
 
 # Default is minimal for compiler developers
 if [ "$SROCK_CONFIG" == "minimal" ] ; then
-   _cmake_args="-B build -GNinja -DTHEROCK_AMDGPU_TARGETS='$_gfxsemicolons' \
--DTHEROCK_AMDGPU_DIST_BUNDLE_NAME=srock \
+   _cmake_enable="\
 -DTHEROCK_ENABLE_ALL=OFF \
 -DTHEROCK_ENABLE_HIP=ON \
 -DTHEROCK_ENABLE_HIP_RUNTIME=ON \
 -DTHEROCK_ENABLE_HIPIFY=ON \
 -DTHEROCK_BUNDLE_SYSDEPS=ON \
 -DTHEROCK_ENABLE_COMPILER=ON \
--DTHEROCK_BACKGROUND_BUILD_JOBS=1 \
-$SROCK_THEROCK_DIR"
+"
 fi
+
+_gfxsemicolons=$(echo "$GFXLIST" | tr ' ' ';')
+_gfamsemicolons=$(echo "$GFXFAM" | tr ' ' ';')
+
+_cmake_args="-B build -GNinja \
+-DTHEROCK_AMDGPU_TARGETS='$_gfxsemicolons' \
+-DTHEROCK_AMDGPU_FAMILIES='$_gfamsemicolons' \
+-DTHEROCK_AMDGPU_DIST_BUNDLE_NAME=srock \
+-DTHEROCK_BACKGROUND_BUILD_JOBS=1 \
+$_cmake_enable \
+$SROCK_THEROCK_DIR"
 
 # Print the start banner similar to DONE banner, useful if fails
 echo
 echo "===== START $0 on $_start_date"
 echo "      THEROCK targets:   $_gfxsemicolons"
+echo "      THEROCK families:  $_gfamsemicolons"
 echo "      ROCm install dir:  $SROCK_INSTALL_DIR"
 echo "      TheRock Dir:       $SROCK_THEROCK_DIR"
 echo "      Compiler branch:   $SROCK_COMPILER_BRANCH"

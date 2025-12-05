@@ -61,12 +61,14 @@ SROCK_SUPP_INSTALL=${SROCK_SUPP_INSTALL:-$SROCK_SUPP/install}
 export SROCK_SUPP SROCK_SUPP_BUILD SROCK_SUPP_INSTALL
 export PATH=$SROCK_SUPP/cmake/bin:$SROCK_SUPP/ninja/bin:$PATH
 
-# Specify target GFXLIST
+# Specify target GFXLIST/GFXFAM
 # gfx not currently supported by TheRock:
 #   gfx900 gfx902 gfx90c gfx1031 gfx1052 gfx1053
 #   gfx9-generic gfx9-4-generic gfx10-1-generic gfx10-3-generic gfx11-generic gfx12-generic
 GFXLIST=${GFXLIST:-"gfx906 gfx908 gfx90a gfx942 gfx950 gfx1010 gfx1011 gfx1012 gfx1030 gfx1032 gfx1035 gfx1036 gfx1100 gfx1101 gfx1102 gfx1103 gfx1150 gfx1151 gfx1200 gfx1201"}
 export GFXLIST
+GFXFAM=${GFXFAM:-"dcgpu-all dgpu-all igpu-all"}
+export GFXFAM
 
 # Calculate the number of threads to use for make
 COMP_THREADS=1
