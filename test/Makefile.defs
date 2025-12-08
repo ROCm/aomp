@@ -352,6 +352,7 @@ ifeq ($(TEMPS),1)
   VERBOSE += -save-temps 
 endif
 
+IMPLICIT_GPU_FLANG_RT ?= 1
 ifeq ($(IMPLICIT_GPU_FLANG_RT),1)
   FLANG_GPU_LINK_FLAGS =
 else
