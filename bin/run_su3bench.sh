@@ -28,8 +28,8 @@ RUN_OPTIONS=${RUN_OPTIONS:-"openmp"}
 #hip_src="main.cpp HIPStream.cpp"
 #std="-std=c++11"
 
-if [ -d $AOMP_REPOS_TEST/su3_bench ]; then
-  cd $AOMP_REPOS_TEST/su3_bench
+if [ -d $AOMP_REPOS_TEST/su3bench ]; then
+  cd $AOMP_REPOS_TEST/su3bench
   rm -f results.txt
 else
   echo "ERROR: su3bench found in $AOMP_REPOS_TEST."
