@@ -110,10 +110,11 @@ if [[ "$USE_OPENMP_RUNTIME" -eq "1" ]] ; then
     OMP_DEFINES+=" -DUSE_OPENMP_RUNTIME"
 fi
 
+IMPLICIT_GPU_FLANG_RT=${IMPLICIT_GPU_FLANG_RT:-1}
 if [[ "$IMPLICIT_GPU_FLANG_RT" -eq "1" ]]; then
     FORTRAN_OFFLOAD_LIB=
 else
-    FORTRAN_OFFLOAD_LIB=-lflang_rt.hostdevice
+    FORTRAN_OFFLOAD_LIB="-fno-gpu-flang-rt -lflang_rt.hostdevice"
 fi
 
 export LD_LIBRARY_PATH=$AOMP/lib:$AOMPHIP/lib:$OPENMPI_DIR/lib:$LD_LIBRARY_PATH
