@@ -1,4 +1,0 @@
-BEGIN	1757693405.873968
-EXEC	/work1/grodgers/git/tr-aomp/TheRock/build/third-party/msgpack-cxx/build	/usr/bin/cmake -E env --unset=ROCM_PATH --unset=ROCM_DIR --unset=HIP_PATH --unset=HIP_DIR -- /usr/bin/cmake --build /work/grodgers/git/tr-aomp/TheRock/build/third-party/msgpack-cxx/build
-0.0	[1/1] cd /work/grodgers/git/tr-aomp/TheRock/build/third-party/msgpack-cxx/build && /usr/bin/cmake -E rm -f /work/grodgers/git/tr-aomp/TheRock/build/third-party/msgpack-cxx/stamp/stage.stamp
-END	1757693405.902511	0.02854299545288086	0

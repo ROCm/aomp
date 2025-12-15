@@ -21,6 +21,7 @@ thisdir=$(dirname $realpath)
 export PATH=$AOMP/bin:$PATH
 
 function printHelp {
+  set +x
   echo "Usage: run_composable-kernels.sh"
   echo "  -h: Show this help message"
   echo "  -i: Install the (incremental) CK build"
@@ -28,7 +29,7 @@ function printHelp {
   echo "  -u: Update the CK repo"
   echo "  -b: Update the CK benchmarks repo"
   echo "  -s <suite>: Select <suite> from:"                  \
-       "[benchmarks client-examples]. (Default: benchmarks)"
+       "[benchmarks client-examples smoke regression]. (Default: benchmarks)"
   echo "  -t <test>: Run <test> from selected suite (e.g. 'gemm/fa1.yaml')"
   exit 0
 }
@@ -173,6 +174,14 @@ while getopts "hirubs:t:" opt; do
         # Build and run the examples provided by CK.
         SelectedSuite="${OPTARG}"
         ;;
+      smoke)
+        # A minimal smoke test suite.
+        SelectedSuite="${OPTARG}"
+        ;;
+      regression)
+        # A minimal regression test suite.
+        SelectedSuite="${OPTARG}"
+        ;;
       *)
         # If there's a following string which does not start with '-'
         # we interpret it as an attempt at providing an unknown suite.
@@ -207,6 +216,7 @@ done
 : ${CK_EXAMPLES_PARALLEL:='yes'}
 : ${CK_EXAMPLES_PREFIX:='example_'}
 : ${CK_EXAMPLES_LOG_LOCATION:=$CK_TOP/ck-examples-logs}
+: ${CK_TESTS_LOG_LOCATION:=$CK_TOP/ck-tests-logs}
 
 # Some client-examples may take long, override this to skip tests
 # e.g. CK_CLIENT_EXAMPLES_TO_EXCLUDE=("10_grouped_convnd_bwd_data" "24_grouped_conv_activation")
@@ -254,7 +264,6 @@ fi
 # TODO Fix / Finalize the cmake command
 CKCmakeCmd="cmake -GNinja -B ${CK_BUILD} -S ${CK_REPO} -DCMAKE_PREFIX_PATH=${ROCM_PATH} -DCMAKE_INSTALL_PREFIX=${CK_INSTALL} "
 CKCmakeCmd+="-DCMAKE_CXX_COMPILER=${AOMP}/bin/clang++ -DCMAKE_HIP_COMPILER=${AOMP}/bin/clang++ "
-CKCmakeCmd+="-DCMAKE_CXX_COMPILER_LAUNCHER=ccache "
 CKCmakeCmd+="-DCMAKE_BUILD_TYPE=Release -DGPU_TARGETS=${CK_GPU_TARGETS} "
 # For some reason, CK on gfx12 wants this set.
 CKCmakeCmd+="-DBUILD_DEV=On"
@@ -316,6 +325,28 @@ if ([ "${SelectedSuite}" == 'client-examples' ] ||
   else
     echo "Warning: Parallel execution requested, but 'parallel' is not available"
   fi
+fi
+
+if [ "${SelectedSuite}" == 'smoke' ]; then
+  echo "Running CK smoke tests"
+  if [ ! -d "${CK_TESTS_LOG_LOCATION}" ]; then
+    mkdir -p "${CK_TESTS_LOG_LOCATION}" || exit 1
+  fi
+  pushd ${CK_BUILD} || exit 1
+  ninja -j 16 smoke 2>&1 | tee "${CK_TESTS_LOG_LOCATION}/smoke_tests.log"
+  echo "Log at ${CK_TESTS_LOG_LOCATION}/smoke_tests.log"
+  popd
+fi
+
+if [ "${SelectedSuite}" == 'regression' ]; then
+  echo "Running CK regression tests"
+  if [ ! -d "${CK_TESTS_LOG_LOCATION}" ]; then
+    mkdir -p "${CK_TESTS_LOG_LOCATION}" || exit 1
+  fi
+  pushd ${CK_BUILD} || exit 1
+  ninja -j 16 regression 2>&1 | tee "${CK_TESTS_LOG_LOCATION}/regression_tests.log"
+  echo "Log at ${CK_TESTS_LOG_LOCATION}/regression_tests.log"
+  popd
 fi
 
 # Handle CK benchmarks (also as default, if no suite has been explicitly selected)

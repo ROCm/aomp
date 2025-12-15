@@ -1,4 +1,0 @@
-BEGIN	1757694056.1135774
-EXEC	/work1/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/hipBLAS-common/build	/usr/bin/cmake -E env --unset=ROCM_PATH --unset=ROCM_DIR --unset=HIP_PATH --unset=HIP_DIR -- /usr/bin/cmake --build /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/hipBLAS-common/build
-0.0	[1/1] cd /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/hipBLAS-common/build && /usr/bin/cmake -E rm -f /work/grodgers/git/tr-aomp/TheRock/build/math-libs/BLAS/hipBLAS-common/stamp/stage.stamp
-END	1757694056.1573913	0.04381394386291504	0

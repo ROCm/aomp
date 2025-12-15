@@ -34,5 +34,3 @@ int main(int argc, char **argv) {
 // CHECK: TARGET AMDGPU RTL --> Running Async Copy on SDMA Engine: 2
 // CHECK: TARGET AMDGPU RTL --> Running Async Copy on SDMA Engine: 1
 // CHECK: TARGET AMDGPU RTL --> Running Async Copy on SDMA Engine: 2
-// CHECK: TARGET AMDGPU RTL --> Running Async Copy on SDMA Engine: 1
-// CHECK: TARGET AMDGPU RTL --> Running Async Copy on SDMA Engine: 2

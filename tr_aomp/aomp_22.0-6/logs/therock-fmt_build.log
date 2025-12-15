@@ -1,7 +1,0 @@
-BEGIN	1757693405.9112692
-EXEC	/work1/grodgers/git/tr-aomp/TheRock/build/third-party/fmt/build	/usr/bin/cmake -E env --unset=ROCM_PATH --unset=ROCM_DIR --unset=HIP_PATH --unset=HIP_DIR -- /usr/bin/cmake --build /work/grodgers/git/tr-aomp/TheRock/build/third-party/fmt/build
-0.0	[1/4] cd /work/grodgers/git/tr-aomp/TheRock/build/third-party/fmt/build && /usr/bin/cmake -E rm -f /work/grodgers/git/tr-aomp/TheRock/build/third-party/fmt/stamp/stage.stamp
-0.4	[2/4] Building CXX object CMakeFiles/fmt.dir/src/os.cc.o
-2.7	[3/4] Building CXX object CMakeFiles/fmt.dir/src/format.cc.o
-2.7	[4/4] Linking CXX static library libfmt.a
-END	1757693408.6544704	2.74320125579834	0

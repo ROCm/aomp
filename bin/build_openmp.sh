@@ -184,7 +184,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
         if [ "$AOMP_STANDALONE_BUILD" == 1 ]; then
           ASAN_CMAKE_OPTS=("${COMMON_CMAKE_OPTS[@]}"
                            -DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=OFF
-                           -DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR/lib/asan/cmake"
+                           -DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR/lib/asan/cmake;$AOMP_INSTALL_DIR/lib/cmake/AMDDeviceLibs"
                            -DSANITIZER_AMDGPU=1 -DCMAKE_BUILD_TYPE=Release
                            "${AOMP_ASAN_ORIGIN_RPATH[@]}")
 	     else
@@ -246,7 +246,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
        mkdir -p "$BUILD_DIR/build/${OPENMP_BUILD_DIR}_perf/asan"
        cd "$BUILD_DIR/build/${OPENMP_BUILD_DIR}_perf/asan" || exit
        echo "${AOMP_CMAKE}" "${ASAN_CMAKE_OPTS[@]}" \
-                            -DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR/lib/asan/cmake" \
+                            -DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR/lib/asan/cmake;$AOMP_INSTALL_DIR/lib/cmake/AMDDeviceLibs" \
                             "${AOMP_ASAN_ORIGIN_RPATH[@]}" \
                             -DCMAKE_C_FLAGS="\"$(cmquot "${ASAN_FLAGS[@]}")\"" \
                             -DCMAKE_CXX_FLAGS="\"$(cmquot "${ASAN_FLAGS[@]}")\"" \
@@ -254,7 +254,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
                             "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp"
 
        if ! ${AOMP_CMAKE} "${ASAN_CMAKE_OPTS[@]}" \
-                          -DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR/lib/asan/cmake" \
+                          -DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR/lib/asan/cmake;$AOMP_INSTALL_DIR/lib/cmake/AMDDeviceLibs" \
                           "${AOMP_ASAN_ORIGIN_RPATH[@]}" \
                           -DCMAKE_C_FLAGS="$(cmquot "${ASAN_FLAGS[@]}")" \
                           -DCMAKE_CXX_FLAGS="$(cmquot "${ASAN_FLAGS[@]}")" \
@@ -339,7 +339,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
          cd "$BUILD_DIR/build/${OPENMP_BUILD_DIR}_debug/asan" || exit
          if [ "$AOMP_STANDALONE_BUILD" == 1 ]; then
             ASAN_CMAKE_OPTS=("${ASAN_CMAKE_OPTS[@]}"
-                             -DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR/lib/asan/cmake"
+                             -DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR/lib/asan/cmake;$AOMP_INSTALL_DIR/lib/cmake/AMDDeviceLibs"
                              "${AOMP_ASAN_ORIGIN_RPATH[@]}")
          else
             ASAN_CMAKE_OPTS=("${ASAN_CMAKE_OPTS[@]}"

@@ -1,6 +1,0 @@
-BEGIN	1756837038.200359
-EXEC	/work1/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zlib/build/build	/usr/bin/cmake --install /work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zlib/build/build
-0.0	-- Install configuration: "Release"
-0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zlib/build/stage/lib/rocm_sysdeps/lib/cmake/ZLIB/zlib-config.cmake
-0.0	-- Installing: /work/grodgers/git/tr_aomp/TheRock/build/third-party/sysdeps/linux/zlib/build/stage/lib/rocm_sysdeps/lib/pkgconfig/zlib.pc
-END	1756837038.2098706	0.009511470794677734

@@ -13,17 +13,6 @@ index a575664..d27a35f 100644
      else if(deviceString.find("gfx942") != std::string::npos)
      {
          return hipblasClientProcessor::gfx942;
-@@ -495,6 +499,10 @@ hipblasClientProcessor getArch()
-     {
-         return hipblasClientProcessor::gfx1102;
-     }
-+    else if(deviceString.find("gfx1103") != std::string::npos)
-+    {
-+        return hipblasClientProcessor::gfx1103;
-+    }
-     else if(deviceString.find("gfx1150") != std::string::npos)
-     {
-         return hipblasClientProcessor::gfx1150;
 diff --git a/clients/include/utility.h b/clients/include/utility.h
 index bb9e362..3a50954 100644
 --- a/clients/include/utility.h
@@ -36,11 +25,3 @@ index bb9e362..3a50954 100644
      gfx942  = 942,
      gfx950  = 950,
      gfx1010 = 1010,
-@@ -507,6 +508,7 @@ typedef enum hipblasClientProcessor
-     gfx1100 = 1100,
-     gfx1101 = 1101,
-     gfx1102 = 1102,
-+    gfx1103 = 1103,
-     gfx1150 = 1150,
-     gfx1151 = 1151,
-     gfx1200 = 1200,
