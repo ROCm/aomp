@@ -1,5 +1,5 @@
 diff --git a/compiler/CMakeLists.txt b/compiler/CMakeLists.txt
-index 4df4bcab..52569d0f 100644
+index db4070cb..ba866495 100644
 --- a/compiler/CMakeLists.txt
 +++ b/compiler/CMakeLists.txt
 @@ -10,6 +10,10 @@ if(THEROCK_ENABLE_COMPILER)
@@ -11,9 +11,21 @@ index 4df4bcab..52569d0f 100644
 +    list(APPEND _extra_llvm_cmake_args "-DLLVM_VERSION_PATCH=$ENV{SROCK_VERSION_MOD}")
 +  endif()
  
-   # If the compiler is not pristine (i.e. has patches), then there will be a
-   # ".amd-llvm.smrev" file present which must be used instead of the auto
-@@ -67,7 +71,17 @@ if(THEROCK_ENABLE_COMPILER)
+   # Building Flang is very memory-intensive on systems with many cores. Allow
+   # users to specify the level of concurrency for these tasks so they can
+@@ -61,7 +65,10 @@ if(THEROCK_ENABLE_COMPILER)
+       -DLIBCXXABI_ENABLE_STATIC=ON
+ 
+       # Features
+-      -DLLVM_INCLUDE_TESTS=OFF
++      -DLLVM_BUILD_TESTS=ON
++      -DLLVM_INCLUDE_TESTS=ON
++      -DCLANG_INCLUDE_TESTS=ON
++      -DLLVM_LIT_ARGS='-vv --show-unsupported --show-xfail -j 16'
+       -DLLVM_ENABLE_ZLIB=FORCE_ON
+       -DLLVM_ENABLE_Z3_SOLVER=OFF
+       -DLLVM_ENABLE_LIBXML2=OFF
+@@ -77,7 +84,17 @@ if(THEROCK_ENABLE_COMPILER)
        -DCLANG_ENABLE_STATIC_ANALYZER=OFF
        -DCLANG_ENABLE_CLANGD=OFF
        -DCLANG_TIDY_ENABLE_STATIC_ANALYZER=OFF
@@ -45,7 +57,7 @@ index b0645ebe..54755ad2 100644
  
  # LLVM deviates from the defaults in some key ways:
 diff --git a/compiler/pre_hook_amd-llvm.cmake b/compiler/pre_hook_amd-llvm.cmake
-index 0b457d61..38973bd7 100644
+index 7c89c4d9..8be05d5c 100644
 --- a/compiler/pre_hook_amd-llvm.cmake
 +++ b/compiler/pre_hook_amd-llvm.cmake
 @@ -13,7 +13,7 @@ if(WIN32)
@@ -57,7 +69,20 @@ index 0b457d61..38973bd7 100644
    set(LLVM_ENABLE_PROJECTS "clang;lld;clang-tools-extra" CACHE STRING "Enable LLVM projects" FORCE)
  else()
    set(LLVM_BUILD_LLVM_DYLIB ON)
-@@ -57,6 +57,7 @@ endif()
+@@ -40,8 +40,11 @@ else()
+     if(EXISTS "${THEROCK_SOURCE_DIR}/compiler/amd-llvm/openmp/device/CMakeLists.txt")
+       list(APPEND LLVM_ENABLE_RUNTIMES "flang-rt")
+       set(LLVM_RUNTIME_TARGETS "default;amdgcn-amd-amdhsa")
+-      set(RUNTIMES_amdgcn-amd-amdhsa_LLVM_ENABLE_RUNTIMES "openmp")
++      set(RUNTIMES_amdgcn-amd-amdhsa_LLVM_ENABLE_RUNTIMES "compiler-rt;libc;libcxx;libcxxabi;flang-rt;openmp")
+       set(RUNTIMES_amdgcn-amd-amdhsa_LLVM_ENABLE_PER_TARGET_RUNTIME_DIR ON)
++      set(RUNTIMES_amdgcn-amd-amdhsa_FLANG_RT_LIBC_PROVIDER "llvm")
++      set(RUNTIMES_amdgcn-amd-amdhsa_FLANG_RT_LIBCXX_PROVIDER "llvm")
++      set(RUNTIMES_amdgcn-amd-amdhsa_CACHE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/../libcxx/cmake/caches/AMDGPU.cmake")
+       set(FLANG_RUNTIME_F128_MATH_LIB "libquadmath")
+       set(LIBOMPTARGET_BUILD_DEVICE_FORTRT ON)
+       #TODO: Enable when HWLOC dependency is figured out
+@@ -57,6 +60,7 @@ endif()
  # Set the LLVM_ENABLE_PROJECTS variable before including LLVM's CMakeLists.txt
  set(BUILD_TESTING OFF CACHE BOOL "DISABLE BUILDING TESTS IN SUBPROJECTS" FORCE)
  set(LLVM_TARGETS_TO_BUILD "AMDGPU;X86" CACHE STRING "Enable LLVM Targets" FORCE)
@@ -65,7 +90,7 @@ index 0b457d61..38973bd7 100644
  
  # Packaging.
  set(PACKAGE_VENDOR "AMD" CACHE STRING "Vendor" FORCE)
-@@ -77,9 +78,9 @@ set(LLVM_EXTERNAL_PROJECTS "rocm-device-libs;spirv-llvm-translator" CACHE STRING
+@@ -77,9 +81,9 @@ set(LLVM_EXTERNAL_PROJECTS "rocm-device-libs;spirv-llvm-translator" CACHE STRING
  # options to manage this transition but they require knowing the clange resource
  # dir. In order to avoid drift, we just fixate that too. This can all be
  # removed in a future version.
@@ -78,14 +103,39 @@ index 0b457d61..38973bd7 100644
  
  # Setup the install rpath (let CMake handle build RPATH per usual):
  # * Executables and libraries can always search their adjacent lib directory
-@@ -154,6 +155,7 @@ block()
-     CLANG_OFFLOAD_PACKAGER
+@@ -134,6 +138,7 @@ block()
+     LLVM_SHLIB
+     LLVM_OBJCOPY
+     LLVM_OBJDUMP
++    LLVM_OFFLOAD_BINARY
+     OPT
+     YAML2OBJ
+   )
+@@ -144,15 +149,15 @@ block()
+     list(APPEND _llvm_required_tools "LLVM_LIB")
+     list(APPEND _llvm_required_tools "LLVM_RANLIB")
+   endif()
+-  therock_set_implicit_llvm_options(LLVM "${CMAKE_CURRENT_SOURCE_DIR}/tools" "${_llvm_required_tools}")
++  # therock_set_implicit_llvm_options(LLVM "${CMAKE_CURRENT_SOURCE_DIR}/tools" "${_llvm_required_tools}")
+ 
+   # Clang tools that are required.
+   set(_clang_required_tools
+     CLANG_HIP
+     CLANG_OFFLOAD_BUNDLER
+-    CLANG_OFFLOAD_PACKAGER
      CLANG_OFFLOAD_WRAPPER
      CLANG_LINKER_WRAPPER
 +    OFFLOAD_ARCH
      CLANG_SHLIB
      DRIVER
-   )
+     OFFLOAD_ARCH
+@@ -162,5 +167,5 @@ block()
+     # we might as well build them from source ourselves.
+     list(APPEND _clang_required_tools "CLANG_SCAN_DEPS")
+   endif()
+-  therock_set_implicit_llvm_options(CLANG "${CMAKE_CURRENT_SOURCE_DIR}/../clang/tools" "${_clang_required_tools}")
++  # therock_set_implicit_llvm_options(CLANG "${CMAKE_CURRENT_SOURCE_DIR}/../clang/tools" "${_clang_required_tools}")
+ endblock()
 diff --git a/math-libs/BLAS/pre_hook_hipSPARSE.cmake b/math-libs/BLAS/pre_hook_hipSPARSE.cmake
 index e0b10dd5..190b51c8 100644
 --- a/math-libs/BLAS/pre_hook_hipSPARSE.cmake
@@ -118,10 +168,10 @@ index 697bba2b..3856a68c 100644
 +#  DESTINATION "clients"
 +#)
 diff --git a/profiler/CMakeLists.txt b/profiler/CMakeLists.txt
-index 29b9a404..6947a640 100644
+index 69e685d8..e907983a 100644
 --- a/profiler/CMakeLists.txt
 +++ b/profiler/CMakeLists.txt
-@@ -50,10 +50,15 @@ if(THEROCK_ENABLE_ROCPROFV3)
+@@ -66,11 +66,16 @@ if(THEROCK_ENABLE_ROCPROFV3)
      EXTERNAL_SOURCE_DIR "${THEROCK_ROCM_SYSTEMS_SOURCE_DIR}/projects/rocprofiler-sdk"
      BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/rocprofiler-sdk"
      BACKGROUND_BUILD
@@ -130,6 +180,7 @@ index 29b9a404..6947a640 100644
 +      -DCMAKE_CXX_FLAGS=-I${THEROCK_SOURCE_DIR}/build/dist/rocm/include
 +      -DCMAKE_C_FLAGS=-I${THEROCK_SOURCE_DIR}/build/dist/rocm/include
        -DHIP_PLATFORM=amd
+       -DROCPROFILER_PYTHON_VERSIONS:STRING="${_detected_python_versions_str}"
      CMAKE_INCLUDES
        therock_explicit_finders.cmake
 +    INTERFACE_INCLUDE_DIRS
@@ -137,7 +188,8 @@ index 29b9a404..6947a640 100644
      RUNTIME_DEPS
        aqlprofile
        hip-clr
-@@ -89,10 +94,14 @@ if(THEROCK_ENABLE_ROCPROFV3)
+@@ -143,11 +148,15 @@ if(THEROCK_ENABLE_ROCPROFV3)
+       # Must build with the HIP compiler.
        amd-hip
      CMAKE_ARGS
 +      -DCMAKE_CXX_FLAGS=-I${THEROCK_SOURCE_DIR}/build/dist/rocm/include
@@ -152,59 +204,3 @@ index 29b9a404..6947a640 100644
      INTERFACE_LINK_DIRS
        # So that dependents can find the roctx library via find_library()
        lib
-diff --git a/compiler/pre_hook_amd-llvm.cmake b/compiler/pre_hook_amd-llvm.cmake
-index 0b457d61..d83c2afd 100644
---- a/compiler/pre_hook_amd-llvm.cmake
-+++ b/compiler/pre_hook_amd-llvm.cmake
-@@ -134,6 +135,7 @@ block()
-     LLVM_SHLIB
-     LLVM_OBJCOPY
-     LLVM_OBJDUMP
-+    LLVM_OFFLOAD_BINARY
-     OPT
-     YAML2OBJ
-   )
-@@ -151,7 +153,6 @@ block()
-     AMDGPU_ARCH
-     CLANG_HIP
-     CLANG_OFFLOAD_BUNDLER
--    CLANG_OFFLOAD_PACKAGER
-     CLANG_OFFLOAD_WRAPPER
-     CLANG_LINKER_WRAPPER
-     CLANG_SHLIB
-diff --git a/compiler/CMakeLists.txt b/compiler/CMakeLists.txt
-index 4df4bcab..00aef662 100644
---- a/compiler/CMakeLists.txt
-+++ b/compiler/CMakeLists.txt
-@@ -51,7 +55,10 @@ if(THEROCK_ENABLE_COMPILER)
-       -DLIBCXXABI_ENABLE_STATIC=ON
- 
-       # Features
--      -DLLVM_INCLUDE_TESTS=OFF
-+      -DLLVM_BUILD_TESTS=ON
-+      -DLLVM_INCLUDE_TESTS=ON
-+      -DCLANG_INCLUDE_TESTS=ON
-+      -DLLVM_LIT_ARGS='-vv --show-unsupported --show-xfail -j 16'
-       -DLLVM_ENABLE_ZLIB=FORCE_ON
-       -DLLVM_ENABLE_Z3_SOLVER=OFF
-       -DLLVM_ENABLE_LIBXML2=OFF
-diff --git a/compiler/pre_hook_amd-llvm.cmake b/compiler/pre_hook_amd-llvm.cmake
-index 0b457d61..2fcfab64 100644
---- a/compiler/pre_hook_amd-llvm.cmake
-+++ b/compiler/pre_hook_amd-llvm.cmake
-@@ -144,7 +145,7 @@ block()
-     list(APPEND _llvm_required_tools "LLVM_LIB")
-     list(APPEND _llvm_required_tools "LLVM_RANLIB")
-   endif()
--  therock_set_implicit_llvm_options(LLVM "${CMAKE_CURRENT_SOURCE_DIR}/tools" "${_llvm_required_tools}")
-+  # therock_set_implicit_llvm_options(LLVM "${CMAKE_CURRENT_SOURCE_DIR}/tools" "${_llvm_required_tools}")
- 
-   # Clang tools that are required.
-   set(_clang_required_tools
-@@ -162,5 +163,5 @@ block()
-     # we might as well build them from source ourselves.
-     list(APPEND _clang_required_tools "CLANG_SCAN_DEPS")
-   endif()
--  therock_set_implicit_llvm_options(CLANG "${CMAKE_CURRENT_SOURCE_DIR}/../clang/tools" "${_clang_required_tools}")
-+  # therock_set_implicit_llvm_options(CLANG "${CMAKE_CURRENT_SOURCE_DIR}/../clang/tools" "${_clang_required_tools}")
- endblock()
