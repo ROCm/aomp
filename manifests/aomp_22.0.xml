@@ -13,7 +13,6 @@
     <project remote="roc" path="hipify" name="hipify"    revision="amd-staging" groups="unlocked" />
     <project remote="simde" path="simde" name="simde" revision="master" groups="unlocked" />
 
-    <project remote="roc" path="flang" name="flang"               revision="aomp-dev" groups="unlocked" />
     <project remote="roc" path="aomp" name="aomp"                 revision="aomp-dev" groups="unlocked" />
 
     <project remote="roc" path="rocprofiler-sdk" name="rocprofiler-sdk"              revision="release/rocm-rel-7.1" groups="unlocked" />
