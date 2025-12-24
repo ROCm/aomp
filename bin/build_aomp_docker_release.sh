@@ -10,8 +10,8 @@
 
 set -e
 set -x
-AOMP_VERSION_STRING=${AOMP_VERSION_STRING:-21.0-1}
-AOMP_VERSION=${AOMP_VERSION:-21.0}
+AOMP_VERSION_STRING=${AOMP_VERSION_STRING:-22.0-2}
+AOMP_VERSION=${AOMP_VERSION:-22.0}
 #DOCKERX_HOST=${DOCKERX_HOST:-$HOME/dockerx}
 DOCKERX_HOST=$HOME/dockerx
 #DOCKERX=${DOCKERX:-/dockerx}
@@ -49,6 +49,8 @@ if [ -f "$DOCKERX_HOST/docker-urls.txt" ]; then
       url_array["rhel9"]=$line
     elif [[ "$line" =~ "suse" ]]; then
       url_array["sles15"]=$line
+    elif [[ "$line" =~ "manylinux" ]]; then
+      url_array["alma8"]=$line
     fi
   done < "$DOCKERX_HOST/docker-urls.txt"
 else
@@ -62,6 +64,8 @@ pip_install_sles15="python3.8 -m pip install CppHeaderParser argparse wheel lit 
 # 22.04 workaround for cython/PyYAML bug.
 pip_install_2204="python3 -m pip install --ignore-installed --no-cache-dir barectf==3.1.2 PyYAML==5.3.1; python3 -m pip install CppHeaderParser argparse wheel lit lxml pandas"
 
+pip_install_alma="python3.10 -m pip install --ignore-installed --no-cache-dir barectf==3.1.2 PyYAML==5.3.1; python3.10 -m pip install CppHeaderParser argparse wheel lit lxml pandas"
+
 # 24.04 uses python virtual environment
 pip_install_2404="python3 -m venv /opt/venv; PATH=/opt/venv/bin:$PATH python3 -m pip install CppHeaderParser argparse lxml pandas setuptools PyYAML pandas"
 
@@ -70,21 +74,23 @@ prereq_array["ubuntu1804"]="apt-get -y update && apt-get install -y git cmake wg
 
 prereq_array["ubuntu2004"]="apt-get -y update && apt-get install -y git cmake wget vim openssl libssl-dev libelf-dev kmod pciutils gcc g++ pkg-config libpci-dev libnuma-dev libffi-dev git python libopenmpi-dev gawk mesa-common-dev libtool python3 texinfo libbison-dev bison flex libbabeltrace-dev python3-pip libncurses5-dev liblzma-dev python3-setuptools python3-dev libpython3.8-dev libudev-dev libgmp-dev debianutils devscripts cli-common-dev rsync libsystemd-dev libdw-dev libgtest-dev sudo ccache libgmp-dev libmpfr-dev && $pip_install"
 
-prereq_array["ubuntu2204"]="apt-get -y update && apt-get install -y git cmake wget vim openssl libssl-dev libelf-dev kmod pciutils gcc g++ pkg-config libpci-dev libnuma-dev libffi-dev git libopenmpi-dev gawk mesa-common-dev libtool python3 texinfo libbison-dev bison flex libbabeltrace-dev python3-pip libncurses5-dev liblzma-dev python3-setuptools python3-dev libpython3.10-dev libudev-dev libgmp-dev debianutils devscripts cli-common-dev rsync libsystemd-dev libdw-dev libgtest-dev libstdc++-12-dev sudo python3-lxml ccache libgmp-dev libmpfr-dev ocl-icd-opencl-dev libfmt-dev libmsgpack-dev python3-venv && $pip_install_2204"
+prereq_array["ubuntu2204"]="apt-get -y update && apt-get install -y git cmake wget vim openssl libssl-dev libelf-dev kmod pciutils gcc g++ pkg-config libpci-dev libnuma-dev libffi-dev git libopenmpi-dev gawk mesa-common-dev libtool python3 texinfo libbison-dev bison flex libbabeltrace-dev python3-pip libncurses5-dev liblzma-dev python3-setuptools python3-dev libpython3.10-dev libudev-dev libgmp-dev debianutils devscripts cli-common-dev rsync libsystemd-dev libdw-dev libgtest-dev libstdc++-12-dev sudo python3-lxml ccache libgmp-dev libmpfr-dev ocl-icd-opencl-dev libfmt-dev libmsgpack-dev python3-venv libsqlite3-dev && $pip_install_2204"
 
-prereq_array["ubuntu2404"]="apt-get -y update && apt-get install -y git cmake wget vim openssl libssl-dev libelf-dev kmod pciutils gcc g++ pkg-config libpci-dev libnuma-dev libffi-dev git libopenmpi-dev gawk mesa-common-dev libtool python3 texinfo libbison-dev bison flex libbabeltrace-dev python3-pip libncurses-dev liblzma-dev python3-setuptools python3-dev python3-barectf python3-pip python3-pip-whl python3-requests python3-venv python3-yaml libudev-dev libgmp-dev debianutils devscripts cli-common-dev rsync libsystemd-dev libdw-dev libgtest-dev libstdc++-12-dev sudo python3-lxml ccache libgmp-dev libmpfr-dev make ocl-icd-opencl-dev libfmt-dev libmsgpack-dev && $pip_install_2404"
+prereq_array["ubuntu2404"]="apt-get -y update && apt-get install -y git cmake wget vim openssl libssl-dev libelf-dev kmod pciutils gcc g++ pkg-config libpci-dev libnuma-dev libffi-dev git libopenmpi-dev gawk mesa-common-dev libtool python3 texinfo libbison-dev bison flex libbabeltrace-dev python3-pip libncurses-dev liblzma-dev python3-setuptools python3-dev python3-barectf python3-pip python3-pip-whl python3-requests python3-venv python3-yaml libudev-dev libgmp-dev debianutils devscripts cli-common-dev rsync libsystemd-dev libdw-dev libgtest-dev libstdc++-12-dev sudo python3-lxml ccache libgmp-dev libmpfr-dev make ocl-icd-opencl-dev libfmt-dev libmsgpack-dev libsqlite3-dev && $pip_install_2404"
 
 prereq_array["centos7"]="yum install -y make gcc-c++ git cmake wget vim openssl-devel elfutils-libelf-devel pciutils-devel numactl-devel libffi-devel mesa-libGL-devel libtool texinfo bison flex ncurses-devel expat-devel xz-devel libbabeltrace-devel gmp-devel rpm-build rsync systemd-devel gtest-devel libpciaccess-devel elfutils-devel ccache libxml2-devel xz-lzma-compat devtoolset-9 devtoolset-9-libatomic-devel devtoolset-9-elfutils-libelf-devel scl-utils mpfr-devel gettext libcurl-devel ocl-icd-devel && yum remove -y python3*"
 
-prereq_array["centos8"]="yum install -y dnf-plugins-core && yum config-manager --set-enabled PowerTools && yum install -y gcc-c++ git cmake wget vim openssl-devel elfutils-libelf-devel pciutils-devel numactl-devel libffi-devel mesa-libGL-devel libtool texinfo bison flex ncurses-devel expat-devel xz-devel libbabeltrace-devel gmp-devel rpm-build rsync systemd-devel gtest-devel elfutils-devel ccache python38 python38-devel mpfr-devel ocl-icd-devel && yum remove -y python36* && $pip_install"
+prereq_array["centos8"]="yum install -y dnf-plugins-core && yum config-manager --set-enabled PowerTools && yum install -y gcc-c++ git cmake wget vim openssl-devel elfutils-libelf-devel pciutils-devel numactl-devel libffi-devel mesa-libGL-devel libtool texinfo bison flex ncurses-devel expat-devel xz-devel libbabeltrace-devel gmp-devel rpm-build rsync systemd-devel gtest-devel elfutils-devel ccache python38 python38-devel mpfr-devel ocl-icd-devel sqlite-devel && yum remove -y python36* && $pip_install"
 
-prereq_array["centos9"]="yum install -y dnf-plugins-core gcc-c++ git cmake wget vim openssl-devel elfutils-libelf-devel pciutils-devel numactl-devel libffi-devel mesa-libGL-devel libtool texinfo bison flex ncurses-devel expat-devel xz-devel libbabeltrace-devel gmp-devel rpm-build rsync systemd-devel gtest-devel ccache mpfr-devel ocl-icd-devel && $pip_install"
+prereq_array["centos9"]="yum install -y dnf-plugins-core gcc-c++ git cmake wget vim openssl-devel elfutils-libelf-devel pciutils-devel numactl-devel libffi-devel mesa-libGL-devel libtool texinfo bison flex ncurses-devel expat-devel xz-devel libbabeltrace-devel gmp-devel rpm-build rsync systemd-devel gtest-devel ccache mpfr-devel ocl-icd-devel sqlite-devel && $pip_install"
 
-prereq_array["rhel8"]="yum update -y && yum install -y dnf-plugins-core && yum install -y gcc-c++ git cmake wget vim openssl-devel elfutils-libelf-devel pciutils-devel numactl-devel libffi-devel mesa-libGL-devel libtool texinfo bison flex ncurses-devel expat-devel xz-devel libbabeltrace-devel gmp-devel rpm-build rsync systemd-devel gtest-devel elfutils-devel ccache python38 python38-devel mpfr-devel ocl-icd-devel libatomic libquadmath-devel msgpack-devel fmt-devel && $pip_install"
+prereq_array["rhel8"]="yum update -y && yum install -y dnf-plugins-core && yum install -y gcc-c++ git cmake wget vim openssl-devel elfutils-libelf-devel pciutils-devel numactl-devel libffi-devel mesa-libGL-devel libtool texinfo bison flex ncurses-devel expat-devel xz-devel libbabeltrace-devel gmp-devel rpm-build rsync systemd-devel gtest-devel elfutils-devel ccache python38 python38-devel mpfr-devel ocl-icd-devel libatomic libquadmath-devel msgpack-devel fmt-devel sqlite-devel && $pip_install"
 
-prereq_array["rhel9"]="dnf -y update && dnf -y install dnf-plugins-core && dnf -y install gdb gcc-c++ git cmake wget vim openssl-devel elfutils-libelf-devel pciutils-devel numactl-devel libffi-devel mesa-libGL-devel libtool texinfo bison flex ncurses-devel expat-devel xz-devel libbabeltrace-devel gmp-devel rpm-build rsync systemd-devel gtest-devel elfutils-devel ccache python3-devel mpfr-devel ocl-icd-devel libatomic libquadmath-devel msgpack-devel fmt-devel && $pip_install"
+prereq_array["rhel9"]="dnf -y update && dnf -y install dnf-plugins-core && dnf -y install gdb gcc-c++ git cmake wget vim openssl-devel elfutils-libelf-devel pciutils-devel numactl-devel libffi-devel mesa-libGL-devel libtool texinfo bison flex ncurses-devel expat-devel xz-devel libbabeltrace-devel gmp-devel rpm-build rsync systemd-devel gtest-devel elfutils-devel ccache python3-devel mpfr-devel ocl-icd-devel libatomic libquadmath-devel msgpack-devel fmt-devel sqlite-devel && $pip_install"
 
-prereq_array["sles15"]="zypper install -y which cmake wget vim libopenssl-devel elfutils libelf-devel git pciutils-devel libffi-devel gcc gcc-c++ libnuma-devel openmpi4-devel Mesa-libGL-devel libquadmath0 libtool texinfo bison flex babeltrace-devel makeinfo libexpat-devel xz-devel gmp-devel rpm-build rsync libdrm-devel libX11-devel systemd-devel libdw-devel hwdata unzip ccache mpfr-devel ocl-icd-devel msgpack-devel fmt-devel gcc7-fortran ncurses-devel"
+prereq_array["alma8"]="dnf -y update && dnf -y install gdb gcc-c++ git cmake wget vim openssl-devel elfutils-libelf-devel pciutils-devel numactl-devel libffi-devel mesa-libGL-devel libtool texinfo bison flex ncurses-devel expat-devel xz-devel libbabeltrace-devel gmp-devel rpm-build rsync systemd-devel gtest-devel elfutils-devel ccache python3-devel mpfr-devel ocl-icd-devel libatomic libquadmath-devel msgpack-devel fmt-devel sqlite-devel gcc-toolset-12-libatomic-devel gcc-toolset-12-libstdc++-devel gcc-toolset-12-gcc gcc-toolset-12-gcc-c++ gcc-toolset-12-gcc-gfortran && dnf remove -y python3.11*"
+
+prereq_array["sles15"]="zypper install -y which cmake wget vim libopenssl-devel elfutils libelf-devel git pciutils-devel libffi-devel gcc gcc-c++ libnuma-devel openmpi4-devel Mesa-libGL-devel libquadmath0 libtool texinfo bison flex babeltrace-devel makeinfo libexpat-devel xz-devel gmp-devel rpm-build rsync libdrm-devel libX11-devel systemd-devel libdw-devel hwdata unzip ccache mpfr-devel ocl-icd-devel msgpack-devel fmt-devel gcc13-fortran ncurses-devel sqlite-devel gcc13-c++ gcc13 libstdc++6-devel-gcc13 libc++-devel"
 
 # Some prep
 default_os="ubuntu2404 ubuntu2204 rhel8 rhel9 sles15"
@@ -99,8 +105,8 @@ function getcontainer(){
 }
 
 function setup(){
-  if [ "$system" == "centos7" ] || [ "$system" == "sles15" ]; then
-    exports="$exports; export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH"
+  if [ "$system" == "centos7" ] || [ "$system" == "sles15" ] || [ "$system" == "alma8" ]; then
+    exports="$exports; export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH; PATH=/usr/local/bin:$PATH"
   fi
 
   # Pull docker and start
@@ -109,6 +115,9 @@ function setup(){
   getcontainer
   docker exec -i "$docker_name" /bin/bash -c "mkdir -p /home/release/git/aomp$AOMP_VERSION"
 
+  if [ "$system" == "alma8" ]; then
+    docker exec -i "$docker_name" /bin/bash -c "mv /usr/local/bin/python3.11 /usr/local/bin/python3.11-save; mv /usr/local/bin/python3.12 /usr/local/bin/python3.12-save; rm -f /usr/bin/python3"
+  fi
   if [ "$system" == "centos7" ]; then
     # Support for centos7 has reached EOL. Many of the repos no longer use the mirror list url and need switched to baseurl with vault url.
     docker exec -i "$docker_name" /bin/bash -c "sed -i 's/mirrorlist=/#mirrorlist=/g' /etc/yum.repos.d/CentOS-*.repo; sed -i 's/#\s*baseurl=/baseurl=/g' /etc/yum.repos.d/CentOS-*.repo; sed -i 's/mirror\./vault\./g' /etc/yum.repos.d/CentOS-*.repo"
@@ -135,7 +144,7 @@ function setup(){
   fi
 
   # Setup directory structure
-  docker exec -i "$docker_name"/bin/bash -c "$exports; mkdir -p $DOCKER_AOMP_REPOS; mkdir -p $DOCKER_HOME/logs"
+  docker exec -i "$docker_name" /bin/bash -c "$exports; mkdir -p $DOCKER_AOMP_REPOS; mkdir -p $DOCKER_HOME/logs"
 
   # Hardcode timezone for tzdata install to avoid an interactive prompt
   docker exec -i "$docker_name" /bin/bash -c "$exports; ln -fs /usr/share/zoneinfo/America/Chicago /etc/localtime"
@@ -159,9 +168,19 @@ function setup(){
     docker exec -i "$docker_name" /bin/bash -c "$exports; cd /home/release; wget https://www.python.org/ftp/python/3.8.13/Python-3.8.13.tgz; tar xf Python-3.8.13.tgz; cd Python-3.8.13; ./configure --enable-optimizations --enable-shared; make altinstall; ln -s /usr/local/bin/python3.8 /usr/bin/python3; $pip_install_centos7"
     docker exec -i "$docker_name" /bin/bash -c "$exports; cd /home/release; wget https://github.com/git/git/archive/refs/tags/v2.19.0.tar.gz; tar xzf v2.19.0.tar.gz; cd git-2.19.0; make -j16 prefix=/usr/local install"
   fi
+  if [ "$system" == "alma8" ]; then
+    exports="$exports; source /opt/rh/gcc-toolset-12/enable"
+    docker exec -i "$docker_name" /bin/bash -c "$exports; cd /home/release; wget https://www.python.org/ftp/python/3.10.18/Python-3.10.18.tgz; tar xf Python-3.10.18.tgz; cd Python-3.10.18; ./configure --enable-optimizations --enable-shared; make altinstall; ln -s /usr/local/bin/python3.10 /usr/bin/python3; $pip_install_alma"
+  fi
 
   if [ "$system" == "sles15" ]; then
     docker exec -i "$docker_name" /bin/bash -c "$exports; cd /home/release; wget https://www.python.org/ftp/python/3.8.13/Python-3.8.13.tgz; tar xf Python-3.8.13.tgz; cd Python-3.8.13; ./configure --enable-optimizations --enable-shared; make altinstall; rm /usr/bin/python3; ln -s /usr/local/bin/python3.8 /usr/bin/python3; $pip_install_sles15"
+    docker exec -i "$docker_name" /bin/bash -c "update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-13 10"
+    docker exec -i "$docker_name" /bin/bash -c "update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-13 10"
+    docker exec -i "$docker_name" /bin/bash -c "update-alternatives --install /usr/bin/cc cc /usr/bin/gcc 10"
+    docker exec -i "$docker_name" /bin/bash -c "update-alternatives --set cc /usr/bin/gcc"
+    docker exec -i "$docker_name" /bin/bash -c "update-alternatives --install /usr/bin/c++ c++ /usr/bin/g++ 10"
+    docker exec -i "$docker_name" /bin/bash -c "update-alternatives --set c++ /usr/bin/g++"
   fi
 
   # Run build_prerequisites.sh to build cmake, hwloc, rocmsmi, etc

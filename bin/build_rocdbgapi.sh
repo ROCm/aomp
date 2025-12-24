@@ -64,6 +64,8 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
                 -DCMAKE_INSTALL_LIBDIR=lib
                 -DCMAKE_INSTALL_PREFIX="$INSTALL_ROCDBGAPI"
                 -DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR;$INSTALL_ROCDBGAPI/include"
+                -DCMAKE_C_COMPILER="$LLVM_INSTALL_LOC/bin/clang"
+                -DCMAKE_CXX_COMPILER="$LLVM_INSTALL_LOC/bin/clang++"
                 "$_cxx_flags"
                 "${AOMP_ORIGIN_RPATH[@]}")
    mkdir -p "$BUILD_AOMP/build/rocdbgapi"

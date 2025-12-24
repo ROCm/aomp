@@ -13,13 +13,13 @@ thisdir=$(dirname "$realpath")
 . "$thisdir/srock_common_vars"
 # --- end standard header ----
 function test_apply_patch() {
-   if ! patch -p1 -t -N --dry-run < $_patch_file  >/dev/null; then
+   if ! patch -p1 -t -N --merge --dry-run < $_patch_file  >/dev/null; then
       echo "ERROR:  patch --dry-run failed.  Could not apply $_patch_file "
       cd $_curdir
       exit 1
    else
-      echo "patch -p1 --no-backup-if-mismatch < $_patch_file"
-      patch -p1 --no-backup-if-mismatch < $_patch_file
+      echo "patch -p1 --no-backup-if-mismatch --merge < $_patch_file"
+      patch -p1 --no-backup-if-mismatch --merge < $_patch_file
    fi
 }
 
@@ -27,18 +27,80 @@ _curdir=$PWD
 _start_date=$(date)
 _start_secs=$(date +%s)
 
-# FIXME: Add support for build modes: newclone, newbuild
-_build_srock_mode=${1:-fullupdate} 
-# The build mode restart is working.
-# The default mode of fullupdate will move TheRock to the tip 
-# and get fresh updates to amd-staging and remove previous build.
+_gfxsemicolons=$(echo "$GFXLIST" | tr ' ' ';')
 
-echo 
+# build_srock.sh Modes:
+#   The default mode "fullupdate" will
+#     - if TheRock repo exists, remove all previous updates 
+#       and update TheRock and submodules to the tip
+#       else clone TheRock
+#     - if not develop, get fresh amd-staging updates to compiler repos
+#     - rerun fetch_sources.py
+#     - if not develop, apply srock patches/amd-staging/* patches
+#     - remove previous build dir completely
+#     - Run TheRock cmake configuration. 
+#     - do full build 
+#   The restart mode
+#     - assumes TheRock repo exists
+#     - assumes TheRocke/build dir exists
+#     - assumes TheRock config has been run
+#     - assumes all data preparation has been run
+#     - restarts build in TheRock dir with cmake --build build
+# FIXME: Add support for build modes: newclone and newbuild
+#
+_build_srock_mode=${1:-fullupdate} 
+
+# This TheRock config is full build minus failing components
+if [ "$SROCK_CONFIG" == "all" ] ; then
+   _cmake_args="-B build -GNinja -DTHEROCK_AMDGPU_TARGETS='$_gfxsemicolons' \
+-DTHEROCK_AMDGPU_DIST_BUNDLE_NAME=srock \
+-DTHEROCK_ENABLE_ALL=ON \
+-DTHEROCK_ENABLE_MIOPEN=OFF \
+-DTHEROCK_ENABLE_COMPOSABLE_KERNEL=OFF \
+-DTHEROCK_ENABLE_FFT=OFF \
+$SROCK_THEROCK_DIR"
+fi
+
+# This is full build which could include failing components
+if [ "$SROCK_CONFIG" == "all-debug" ] ; then
+   _cmake_args"-B build -GNinja -DTHEROCK_AMDGPU_TARGETS='$_gfxsemicolons' \
+-DTHEROCK_AMDGPU_DIST_BUNDLE_NAME=srock \
+-DTHEROCK_ENABLE_ALL=ON \
+$SROCK_THEROCK_DIR"
+fi
+
+# Default is minimal for compiler developers
+if [ "$SROCK_CONFIG" == "minimal" ] ; then
+   _cmake_args="-B build -GNinja -DTHEROCK_AMDGPU_TARGETS='$_gfxsemicolons' \
+-DTHEROCK_AMDGPU_DIST_BUNDLE_NAME=srock \
+-DTHEROCK_ENABLE_ALL=OFF \
+-DTHEROCK_ENABLE_HIP=ON \
+-DTHEROCK_ENABLE_HIP_RUNTIME=ON \
+-DTHEROCK_ENABLE_HIPIFY=ON \
+-DTHEROCK_BUNDLE_SYSDEPS=ON \
+-DTHEROCK_ENABLE_COMPILER=ON \
+$SROCK_THEROCK_DIR"
+fi
+
+# Print the start banner similar to DONE banner, useful if fails
+echo
+echo "===== START $0 on $_start_date"
+echo "      THEROCK targets:   $_gfxsemicolons"
+echo "      ROCm install dir:  $SROCK_INSTALL_DIR"
+echo "      TheRock Dir:       $SROCK_THEROCK_DIR"
+echo "      Compiler branch:   $SROCK_COMPILER_BRANCH"
+echo "      Build Mode:        $_build_srock_mode"
+echo "      SROCK config name: $SROCK_CONFIG"
+echo "      cmake args:        $_cmake_args"
+
+# Run srock prebuild which includes finding suitable cmake
+echo
 echo "===== Sourcing prebuild_srock.sh"
 . $thisdir/prebuild_srock.sh
 echo "===== DONE Sourcing prebuild_srock.sh"
 
 if [ "$_build_srock_mode" != "restart" ] ; then 
+# ------------  BEGINNING of NOT restart mode ------------
 
 # srock_common_vars ensures that SROCK_REPOS is created
 mkdir -p $SROCK_REPOS
@@ -53,7 +115,7 @@ fi
 
 if [ -d $SROCK_THEROCK_DIR ] ; then 
    echo
-   echo "===== Skipping clone of https://github.com/ROCm/TheRock.git to $SROCK_THEROCK_DIR"
+   echo "===== Updating existing TheRock clone in $SROCK_THEROCK_DIR"
    echo "      --- cd $SROCK_THEROCK_DIR/compiler/amd-llvm"
    cd $SROCK_THEROCK_DIR/compiler/amd-llvm
    echo "      --- git checkout . (clean previous amd-llvm local patches)"
@@ -95,48 +157,9 @@ echo "===== Running python ./build_tools/fetch_sources.py ====="
 python ./build_tools/fetch_sources.py
 echo "=====  Done running python ./build_tools/fetch_sources.py"
 
-(
-# reconstruct .amd-llvm.smrev using the current SHA
-cd compiler/amd-llvm || exit
-smrev="../.amd-llvm.smrev"
-git config --get remote.origin.url > "$smrev"
-git rev-parse HEAD >> "$smrev"
-)
-
 echo "cd $SROCK_THEROCK_DIR" 
 cd "$SROCK_THEROCK_DIR" || exit
 [ -d build ] && echo "rm -rf build" && rm -rf build
-
-_gfxsemicolons=$(echo "$GFXLIST" | tr ' ' ';')
-
-# This is full build minus failing components
-if [ "$SROCK_CONFIG" == "all" ] ; then 
-   _cmake_cmd="$SROCK_CMAKE -B build -GNinja -DTHEROCK_AMDGPU_TARGETS='$_gfxsemicolons' \
--DTHEROCK_AMDGPU_DIST_BUNDLE_NAME=srock \
--DTHEROCK_ENABLE_ALL=ON \
--DTHEROCK_ENABLE_MIOPEN=OFF \
--DTHEROCK_ENABLE_COMPOSABLE_KERNEL=OFF \
--DTHEROCK_ENABLE_FFT=OFF \
-$SROCK_THEROCK_DIR"
-fi
-
-# This is full build which could include failing components
-if [ "$SROCK_CONFIG" == "all-debug" ] ; then 
-   _cmake_cmd="$SROCK_CMAKE -B build -GNinja -DTHEROCK_AMDGPU_TARGETS='$_gfxsemicolons' \
--DTHEROCK_AMDGPU_DIST_BUNDLE_NAME=srock \
--DTHEROCK_ENABLE_ALL=ON \
-$SROCK_THEROCK_DIR"
-fi
-
-# Default is minimal for compiler developers
-if [ "$SROCK_CONFIG" == "minimal" ] ; then 
-   _cmake_cmd="$SROCK_CMAKE -B build -GNinja -DTHEROCK_AMDGPU_TARGETS='$_gfxsemicolons' \
--DTHEROCK_AMDGPU_DIST_BUNDLE_NAME=srock \
--DTHEROCK_ENABLE_ALL=OFF \
--DTHEROCK_BUNDLE_SYSDEPS=ON \
--DTHEROCK_ENABLE_COMPILER=ON \
-$SROCK_THEROCK_DIR"
-fi
 
 echo 
 echo "===== Running build_tools/setup_ccache.py"
@@ -157,6 +180,16 @@ if [ "$SROCK_COMPILER_BRANCH" != "develop" ] ; then
    git checkout $SROCK_COMPILER_BRANCH 
    echo "      --- git pull (gets most recent updates to $SROCK_COMPILER_BRANCH)"
    git pull
+
+   echo "      --- cd $SROCK_THEROCK_DIR/compiler/spirv-llvm-translator"
+   cd $SROCK_THEROCK_DIR/compiler/spirv-llvm-translator
+   echo "      --- git checkout ."
+   git checkout .
+   echo "      --- git checkout $SROCK_COMPILER_BRANCH"
+   git checkout $SROCK_COMPILER_BRANCH
+   echo "      --- git pull (gets most recent updates to $SROCK_COMPILER_BRANCH)"
+   git pull
+
    echo "      --- cd $SROCK_THEROCK_DIR/compiler/amd-llvm"
    cd $SROCK_THEROCK_DIR/compiler/amd-llvm
    echo "      --- git checkout ."
@@ -169,7 +202,9 @@ if [ "$SROCK_COMPILER_BRANCH" != "develop" ] ; then
    if [ -d "$thisdir/patches/$SROCK_COMPILER_BRANCH" ] ; then 
       cd $SROCK_THEROCK_DIR
       _patch_file=$thisdir/patches/$SROCK_COMPILER_BRANCH/_TheRock.patch
-      test_apply_patch
+      if [ -f "$_patch_file" ] ; then
+         test_apply_patch
+      fi
       _tmpfile=/tmp/submod$$
       git submodule > $_tmpfile
       while read _line ; do
@@ -186,15 +221,28 @@ if [ "$SROCK_COMPILER_BRANCH" != "develop" ] ; then
 echo "      --- end compiler submodule updates for $SROCK_COMPILER_BRANCH"
 fi #  END compiler submodule updates
 
+(
+cd $SROCK_THEROCK_DIR
+# reconstruct .amd-llvm.smrev using the current SHA
+cd compiler/amd-llvm || exit
+smrev="../.amd-llvm.smrev"
+git config --get remote.origin.url > "$smrev"
+smsha=$(git rev-parse HEAD)
+echo "${smsha}${LLVM_SHA_EXTRA}" >> "$smrev"
+)
+
 cd $SROCK_THEROCK_DIR
 echo 
-echo "===== cmake CMD: $_cmake_cmd"
+echo "===== cmake CMD: $SROCK_CMAKE $_cmake_args"
 # shellcheck disable=SC2090
-$_cmake_cmd
+$SROCK_CMAKE $_cmake_args
 _rc=$? && [ "$_rc" != 0 ] && cd "$_curdir" && exit "$_rc"
-fi # end of not restart
+# ------------  end of NOT restart mode ------------
+fi
 
-# restart starts here
+_prep_secs=$(date +%s)
+
+# restart mode starts here
 cd $SROCK_THEROCK_DIR
 _cmd="cmake --build build"
 echo 
@@ -247,7 +295,8 @@ done
 # Gather some build stats
 _end_date=$(date)
 _end_secs=$(date +%s)
-_secs_to_build=$(( _end_secs - _start_secs ))
+_secs_to_prep=$(( _prep_secs - _start_secs ))
+_secs_to_build=$(( _end_secs - _prep_secs ))
 _filecount=$(find "$SROCK_INSTALL_DIR" -type f | wc -l)
 _size=$(du -hs "$SROCK_INSTALL_DIR" | cut -f1)
 
@@ -260,12 +309,17 @@ echo ln -sf "$SROCK_INSTALL_DIR" "$SROCK_LINK"
 ln -sf "$SROCK_INSTALL_DIR" "$SROCK_LINK"
 
 echo
-echo "===== DONE $0 at $_end_date with THEROCK_AMDGPU_TARGETS=$_gfxsemicolons"
-echo "      ROCm installation: $SROCK_INSTALL_DIR"
-echo "      TheRock config:    $SROCK_CONFIG"
+echo "===== DONE $0 on $_end_date"
+echo "      THEROCK targets:   $_gfxsemicolons"
+echo "      ROCm install dir:  $SROCK_INSTALL_DIR"
+echo "      TheRock Dir:       $SROCK_THEROCK_DIR"
 echo "      Compiler branch:   $SROCK_COMPILER_BRANCH"
 echo "      Build Mode:        $_build_srock_mode"
-echo "      Prep & Build time: $_secs_to_build (seconds)"
+echo "      SROCK config name: $SROCK_CONFIG"
+echo "      cmake command:     $SROCK_CMAKE"
+echo "      cmake args:        $_cmake_args"
+echo "      Data prep time:    $_secs_to_prep (seconds)"
+echo "      Build time:        $_secs_to_build (seconds)"
 echo "      Files:             $_filecount"
 echo "      Size:              $_size"
 echo

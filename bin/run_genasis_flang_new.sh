@@ -19,7 +19,7 @@
 #    AOMP=<path-to-compiler-install>/llvm ./build_supp_llvm-flang.sh
 #
 # To run:
-#    AOMP_SUPP=$HOME/local/llvm-flang \
+#    AOMP_SUPP=$HOME/local \
 #    AOMP=<path-to-compiler-install>/llvm ./run_genasis_flang_new.sh
 #
 # --- Start standard header to set AOMP environment variables ----
@@ -80,21 +80,21 @@ fi
 export GPU_ID=$($ROCM/bin/rocm_agent_enumerator | grep -m 1 -E gfx[^0]{1}.{2})
 currdir=$(pwd)
 if [ -d "$SILO_DIR" ] ; then
-    echo "SILO 4.10.2 exists."
+    echo "SILO 4.11.1 exists."
 else
-    echo "SILO 4.10.2 does not exist. Please run ./build_supp.sh silo in $thisdir"
+    echo "SILO 4.11.1 does not exist. Please run ./build_supp.sh silo in $thisdir"
     exit
 fi
 if [ -d "$HDF5_DIR" ] ; then
-    echo "HDF5-1.12.0 exists."
+    echo "HDF5-1.14.0 exists."
     export INCLUDE_HDF5="-I$HDF5_DIR/include"
     export LIBRARY_HDF5="-L$HDF5_DIR/lib -lhdf5_fortran -lhdf5"
 else
-    echo "HDF5-1.12.0 does not exist. Please run ./build_supp.sh hdf5 in $thisdir"
+    echo "HDF5-1.14.0 does not exist. Please run ./build_supp.sh hdf5 in $thisdir"
     exit
 fi
 if [ -d "$OPENMPI_DIR" ] ; then
-    echo "OpenMPI-4.1.1 exists."
+    echo "OpenMPI-5.0.8 exists."
     export MPI=${OPENMPI_DIR}
 else
     echo "OpenMPI does not exist. Please run ./build_supp.sh openmpi in $thisdir"
@@ -102,11 +102,11 @@ else
 fi
 
 OMP_DEFINES="-DENABLE_OMP_OFFLOAD"
-if [ "$ENABLE_OMP_OFFLOAD" -eq "0" ] ; then
+if [[ "$ENABLE_OMP_OFFLOAD" -eq "0" ]] ; then
     OMP_DEFINES=
 fi
 
-if [ "$USE_OPENMP_RUNTIME" -eq "1" ] ; then
+if [[ "$USE_OPENMP_RUNTIME" -eq "1" ]] ; then
     OMP_DEFINES+=" -DUSE_OPENMP_RUNTIME"
 fi
 

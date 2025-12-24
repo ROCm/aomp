@@ -119,7 +119,7 @@ function checkversion(){
   # inputs: $_linkfrom, $_cname, $CMDLOGFILE, $_version
   # output: $SKIPBUILD
   if [ -L "$_linkfrom" ] ; then 
-    existing_install_dir=$(readlink "$_linkfrom")
+    existing_install_dir=$(readlink -f "$_linkfrom")
     if [ -d "$existing_install_dir" ] ; then 
       existing_version=${existing_install_dir##*-} 
       if [ "$existing_version" == "$_version" ] ; then 
@@ -155,7 +155,7 @@ function buildopenmpi(){
   fi
 
   _cname="openmpi"
-  _version=5.0.7
+  _version=5.0.8
   _release=v5.0
   _installdir=$AOMP_SUPP_INSTALL/$_cname-$_version
   _linkfrom=$AOMP_SUPP/$_cname
@@ -184,12 +184,12 @@ function buildopenmpi(){
   runcmdout "sed -e s/flang\s*)/flang*)/ configure-orig" configure
   ###
   runcmd "./configure --with-hwloc=$AOMP_SUPP/hwloc --with-hwloc-libdir=$AOMP_SUPP/hwloc/lib OMPI_CC=$LLVM_INSTALL_LOC/bin/clang OMPI_CXX=$LLVM_INSTALL_LOC/bin/clang++ OMPI_F90=$LLVM_INSTALL_LOC/bin/${FLANG} CXX=$LLVM_INSTALL_LOC/bin/clang++ CC=$LLVM_INSTALL_LOC/bin/clang FC=$LLVM_INSTALL_LOC/bin/${FLANG} --prefix=$_installdir"
-  runcmd "make -j8"
+  runcmd "make -j${AOMP_JOB_THREADS}"
   runcmd "make install"
   if [ -L "$_linkfrom" ] ; then
     runcmd "rm $_linkfrom"
   fi
-  runcmd "ln -sf $_installdir $_linkfrom"
+  runcmd "ln -sfr $_installdir $_linkfrom"
   echo "# $_linkfrom is now symbolic link to $_installdir " >>"$CMDLOGFILE"
 }
 
@@ -228,7 +228,7 @@ function buildninja(){
   if [ -L "$_linkfrom" ] ; then
     runcmd "rm $_linkfrom"
   fi
-  runcmd "ln -sf $_installdir $_linkfrom"
+  runcmd "ln -sfr $_installdir $_linkfrom"
   echo "# $_linkfrom is now symbolic link to $_installdir " >>"$CMDLOGFILE"
 }
 
@@ -241,10 +241,10 @@ function getrocmpackage(){
   _packagename="$2"
   _componentversion="$3"
   _directory=$(echo "$2" | cut -b 1)
-  _version=7.0
-  _packageversion=7.0.0
-  _fullversion=70000
-  _buildnumber=38
+  _version=7.1
+  _packageversion=7.1.0
+  _fullversion=70100
+  _buildnumber=20
   _installdir=$AOMP_SUPP_INSTALL/$_cname-$_version
   _linkfrom=$AOMP_SUPP/$_cname
   _builddir=$AOMP_SUPP_BUILD/$_cname
@@ -296,15 +296,15 @@ function getrocmpackage(){
   if [ -L "$_linkfrom" ] ; then
     runcmd "rm $_linkfrom"
   fi
-  runcmd "ln -sf $_installdir $_linkfrom"
+  runcmd "ln -sfr $_installdir $_linkfrom"
   #runcmd "rm -rf $_builddir"
   echo "# $_linkfrom is now symbolic link to $_installdir " >>"$CMDLOGFILE"
 }
 
 function buildhdf5(){
   _cname="hdf5"
-  _version=1.12.0
-  _release=hdf5-1.12
+  _version=1.14.0
+  _release=hdf5-1.14
   _installdir=$AOMP_SUPP_INSTALL/hdf5-$_version
   _linkfrom=$AOMP_SUPP/hdf5
   _builddir=$AOMP_SUPP_BUILD/hdf5
@@ -328,18 +328,18 @@ function buildhdf5(){
   fi
   runcmd "mkdir -p $_installdir"
   runcmd "./configure --enable-fortran --prefix=$_installdir"
-  runcmd "make -j8"
+  runcmd "make -j${AOMP_JOB_THREADS}"
   runcmd "make install"
   if [ -L "$_linkfrom" ] ; then 
     runcmd "rm $_linkfrom"
   fi
-  runcmd "ln -sf $_installdir $_linkfrom"
+  runcmd "ln -sfr $_installdir $_linkfrom"
   echo "# $_linkfrom is now symbolic link to $_installdir " >>"$CMDLOGFILE"
 }
 
 function buildsilo(){
   _cname="silo"
-  _version=4.10.2
+  _version=4.11.1
   _installdir=$AOMP_SUPP_INSTALL/silo-$_version
   _linkfrom=$AOMP_SUPP/silo
   _builddir=$AOMP_SUPP_BUILD/silo
@@ -356,7 +356,8 @@ function buildsilo(){
   runcmd "cd $_builddir"
   # runcmd "wget https://wci.llnl.gov/sites/wci/files/2021-01/silo-$_version.tgz"
   # runcmd "tar -xzf silo-$_version.tgz"
-  runcmd "wget https://software.llnl.gov/Silo/ghpages/releases/silo-$_version.tar.xz"
+  #runcmd "wget https://software.llnl.gov/Silo/ghpages/releases/silo-$_version.tar.xz"
+  runcmd "wget https://github.com/LLNL/Silo/releases/download/$_version/silo-$_version.tar.xz"
   runcmd "tar -x --xz -f silo-$_version.tar.xz"
   runcmd "cd silo-$_version"
   if [ -d "$_installdir" ] ; then
@@ -364,12 +365,12 @@ function buildsilo(){
   fi
   runcmd "mkdir -p $_installdir"
   runcmd "./configure --prefix=$_installdir"
-  runcmd "make -j8"
+  runcmd "make -j${AOMP_JOB_THREADS}"
   runcmd "make install"
   if [ -L "$_linkfrom" ] ; then
     runcmd "rm $_linkfrom"
   fi
-  runcmd "ln -sf $_installdir $_linkfrom"
+  runcmd "ln -sfr $_installdir $_linkfrom"
   echo "# $_linkfrom is now symbolic link to $_installdir " >>"$CMDLOGFILE"
 }
 
@@ -398,16 +399,16 @@ function buildfftw(){
   fi
   runcmd "mkdir -p $_installdir"
   runcmd "./configure --prefix=$_installdir --enable-shared --enable-threads --enable-sse2 --enable-avx"
-  runcmd "make -j8"
+  runcmd "make -j${AOMP_JOB_THREADS}"
   runcmd "make install"
   runcmd "make clean"
   runcmd "./configure --prefix=$_installdir --enable-shared --enable-threads --enable-sse2 --enable-avx --enable-float"
-  runcmd "make -j8"
+  runcmd "make -j${AOMP_JOB_THREADS}"
   runcmd "make install"
   if [ -L "$_linkfrom" ] ; then
     runcmd "rm $_linkfrom"
   fi
-  runcmd "ln -sf $_installdir $_linkfrom"
+  runcmd "ln -sfr $_installdir $_linkfrom"
   echo "# $_linkfrom is now symbolic link to $_installdir " >>"$CMDLOGFILE"
 }
 
@@ -437,18 +438,18 @@ function buildcmake(){
   fi
   runcmd "mkdir -p $_installdir"
   runcmd "./bootstrap --parallel=8 --prefix=$_installdir"
-  runcmd "make -j8"
+  runcmd "make -j${AOMP_JOB_THREADS}"
   runcmd "make install"
   if [ -L "$_linkfrom" ] ; then
     runcmd "rm $_linkfrom"
   fi
-  runcmd "ln -sf $_installdir $_linkfrom"
+  runcmd "ln -sfr $_installdir $_linkfrom"
   echo "# $_linkfrom is now symbolic link to $_installdir " >>"$CMDLOGFILE"
 }
 
 function buildrocmsmilib(){
   _cname="rocmsmilib"
-  _version=7.0.x
+  _version=7.1.x
   _installdir=$AOMP_SUPP_INSTALL/rocmsmilib-$_version
   _linkfrom=$AOMP_SUPP/rocmsmilib
   _builddir=$AOMP_SUPP_BUILD/rocmsmilib
@@ -463,7 +464,7 @@ function buildrocmsmilib(){
   fi
   runcmd "mkdir -p $_builddir"
   runcmd "cd $_builddir"
-  runcmd "git clone -b release/rocm-rel-7.0 https://github.com/ROCm/rocm_smi_lib rocmsmilib-$_version"
+  runcmd "git clone -b release/rocm-rel-7.1 https://github.com/ROCm/rocm_smi_lib rocmsmilib-$_version"
   runcmd "cd rocmsmilib-$_version"
   runcmd "mkdir -p build"
   runcmd "cd build"
@@ -472,12 +473,12 @@ function buildrocmsmilib(){
     runcmd "rm -rf $_installdir"
   fi
   runcmd "mkdir -p $_installdir"
-  runcmd "make -j8"
+  runcmd "make -j${AOMP_JOB_THREADS}"
   runcmd "make install"
   if [ -L "$_linkfrom" ] ; then
     runcmd "rm $_linkfrom"
   fi
-  runcmd "ln -sf $_installdir $_linkfrom"
+  runcmd "ln -sfr $_installdir $_linkfrom"
   echo "# $_linkfrom is now symbolic link to $_installdir " >>"$CMDLOGFILE"
 }
 
@@ -513,12 +514,12 @@ function buildhwloc(){
     runcmd "rm -rf $_installdir"
   fi
   runcmd "mkdir -p $_installdir"
-  runcmd "make -j8"
+  runcmd "make -j${AOMP_JOB_THREADS}"
   runcmd "make install"
   if [ -L "$_linkfrom" ] ; then
     runcmd "rm $_linkfrom"
   fi
-  runcmd "ln -sf $_installdir $_linkfrom"
+  runcmd "ln -sfr $_installdir $_linkfrom"
   echo "# $_linkfrom is now symbolic link to $_installdir " >>"$CMDLOGFILE"
 }
 
@@ -575,7 +576,7 @@ for _component in $_components ; do
   elif [ "$_component" == "openclicdloader" ] ; then
     getrocmpackage openclicdloader rocm-opencl-icd-loader 1.2
   elif [ "$_component" == "rocm-core" ] ; then
-    getrocmpackage rocm-core rocm-core 7.0.0
+    getrocmpackage rocm-core rocm-core 7.1.0
   else
     echo "ERROR:  Invalid component name $_component" >>"$CMDLOGFILE"
     echo "ERROR:  Invalid component name $_component"
