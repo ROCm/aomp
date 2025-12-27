@@ -160,7 +160,7 @@ echo RUN_OPTIONS: $RUN_OPTIONS
 thisdate=`date`
 echo >>results.txt
 echo "=========> RUNDATE:  $thisdate" >>results.txt
-COMPILER=`$AOMP/bin/llc --version  | grep version`
+COMPILER=`$AOMP/bin/clang --version  | grep version`
 echo "=========> COMPILER: $COMPILER" >>results.txt
 echo "=========> GPU:      $AOMP_GPU" >>results.txt
 compile_error=0
