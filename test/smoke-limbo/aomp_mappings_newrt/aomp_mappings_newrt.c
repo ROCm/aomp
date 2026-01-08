@@ -314,17 +314,20 @@ int main()
 #pragma omp target teams
   {
        int j = omp_get_team_num();
-       thread_num[j] = omp_get_thread_num();
-       num_threads[j] = omp_get_num_threads();
-       team_num[j] = omp_get_team_num();
-       num_teams[j] = omp_get_num_teams();
-       default_dev[j] = omp_get_default_device();
-       warp_id[j] = omp_ext_get_warp_id();
-       lane_id[j] = omp_ext_get_lane_id();
-       active_mask[j] = omp_ext_get_active_threads_mask();
-       smid[j] = omp_ext_get_smid();
-       master_thread_id[j] = omp_ext_get_master_thread_id();
-       is_spmd_mode[j] = omp_ext_is_spmd_mode();
+       // Number of teams on a GPU might exceed array size, e.g., gfx942.
+       if (j < N) {
+         thread_num[j] = omp_get_thread_num();
+         num_threads[j] = omp_get_num_threads();
+         team_num[j] = omp_get_team_num();
+         num_teams[j] = omp_get_num_teams();
+         default_dev[j] = omp_get_default_device();
+         warp_id[j] = omp_ext_get_warp_id();
+         lane_id[j] = omp_ext_get_lane_id();
+         active_mask[j] = omp_ext_get_active_threads_mask();
+         smid[j] = omp_ext_get_smid();
+         master_thread_id[j] = omp_ext_get_master_thread_id();
+         is_spmd_mode[j] = omp_ext_is_spmd_mode();
+       }
   }
 
 
