@@ -29,7 +29,7 @@ function printHelp {
   echo "  -u: Update the CK repo"
   echo "  -b: Update the CK benchmarks repo"
   echo "  -s <suite>: Select <suite> from:"                  \
-       "[benchmarks client-examples smoke regression]. (Default: benchmarks)"
+       "[benchmarks client-examples smoke regression skip]. (Default: skip)"
   echo "  -t <test>: Run <test> from selected suite (e.g. 'gemm/fa1.yaml')"
   exit 0
 }
@@ -132,7 +132,7 @@ ShouldUpdateCKRepo='no'
 ShouldUpdateCKBenchmarks='no'
 
 # CK may be run using different test- or benchmark-suites.
-SelectedSuite='benchmarks'
+SelectedSuite='skip'
 
 # CK may be run using a specfic test from the selected suite.
 SelectedTest=''
@@ -162,6 +162,10 @@ while getopts "hirubs:t:" opt; do
     # Select benchmark or test suite.
     # To support this as an optional argument, we take a look at the next.
     case ${OPTARG} in
+      skip)
+        # Skip running any suite.
+        SelectedSuite='skip'
+        ;;
       benchmarks)
         # Run the CK benchmarks.
         SelectedSuite="${OPTARG}"
@@ -298,7 +302,7 @@ fi
 if [ "${ShouldRebuildCK}" == 'yes' ] || [ "${ShouldInstallCK}" == 'yes' ]; then
   pushd ${CK_BUILD} || exit 1
 
-  time ${CKBuildTool} -j ${CKBuildParallelism}
+  /usr/bin/time -o build-times.tlog ${CKBuildTool} -j ${CKBuildParallelism}
   if [ $? -ne 0 ]; then
     exit 1
   fi
@@ -311,7 +315,7 @@ if [ "${ShouldInstallCK}" == 'yes' ]; then
   pushd ${CK_BUILD} || exit 1
 
   # TODO: Check parallelism. This may use all available threads.
-  time ${CKBuildTool} install
+  /usr/bin/time -o install-times.tlog ${CKBuildTool} install
   if [ $? -ne 0 ]; then
     exit 1
   fi
