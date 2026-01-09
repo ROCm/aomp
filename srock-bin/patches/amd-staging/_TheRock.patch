@@ -57,7 +57,7 @@ index b0645ebe..54755ad2 100644
  
  # LLVM deviates from the defaults in some key ways:
 diff --git a/compiler/pre_hook_amd-llvm.cmake b/compiler/pre_hook_amd-llvm.cmake
-index 7c89c4d9..8be05d5c 100644
+index 1604bc69..24206d73 100644
 --- a/compiler/pre_hook_amd-llvm.cmake
 +++ b/compiler/pre_hook_amd-llvm.cmake
 @@ -13,7 +13,7 @@ if(WIN32)
@@ -82,15 +82,15 @@ index 7c89c4d9..8be05d5c 100644
        set(FLANG_RUNTIME_F128_MATH_LIB "libquadmath")
        set(LIBOMPTARGET_BUILD_DEVICE_FORTRT ON)
        #TODO: Enable when HWLOC dependency is figured out
-@@ -57,6 +60,7 @@ endif()
- # Set the LLVM_ENABLE_PROJECTS variable before including LLVM's CMakeLists.txt
- set(BUILD_TESTING OFF CACHE BOOL "DISABLE BUILDING TESTS IN SUBPROJECTS" FORCE)
+@@ -60,6 +63,7 @@ set(BUILD_TESTING OFF CACHE BOOL "DISABLE BUILDING TESTS IN SUBPROJECTS" FORCE)
+ # disabling more explicitly after a bug fix enabled.
+ set(LLVM_INCLUDE_BENCHMARKS OFF)
  set(LLVM_TARGETS_TO_BUILD "AMDGPU;X86" CACHE STRING "Enable LLVM Targets" FORCE)
 +set(LLVM_RUNTIME_TARGETS "default;amdgcn-amd-amdhsa")
  
  # Packaging.
  set(PACKAGE_VENDOR "AMD" CACHE STRING "Vendor" FORCE)
-@@ -77,9 +81,9 @@ set(LLVM_EXTERNAL_PROJECTS "rocm-device-libs;spirv-llvm-translator" CACHE STRING
+@@ -80,9 +84,9 @@ set(LLVM_EXTERNAL_PROJECTS "rocm-device-libs;spirv-llvm-translator" CACHE STRING
  # options to manage this transition but they require knowing the clange resource
  # dir. In order to avoid drift, we just fixate that too. This can all be
  # removed in a future version.
@@ -103,7 +103,7 @@ index 7c89c4d9..8be05d5c 100644
  
  # Setup the install rpath (let CMake handle build RPATH per usual):
  # * Executables and libraries can always search their adjacent lib directory
-@@ -134,6 +138,7 @@ block()
+@@ -138,6 +142,7 @@ block()
      LLVM_SHLIB
      LLVM_OBJCOPY
      LLVM_OBJDUMP
@@ -111,7 +111,7 @@ index 7c89c4d9..8be05d5c 100644
      OPT
      YAML2OBJ
    )
-@@ -144,15 +149,15 @@ block()
+@@ -148,15 +153,15 @@ block()
      list(APPEND _llvm_required_tools "LLVM_LIB")
      list(APPEND _llvm_required_tools "LLVM_RANLIB")
    endif()
@@ -129,7 +129,7 @@ index 7c89c4d9..8be05d5c 100644
      CLANG_SHLIB
      DRIVER
      OFFLOAD_ARCH
-@@ -162,5 +167,5 @@ block()
+@@ -166,5 +171,5 @@ block()
      # we might as well build them from source ourselves.
      list(APPEND _clang_required_tools "CLANG_SCAN_DEPS")
    endif()
@@ -168,7 +168,7 @@ index 697bba2b..3856a68c 100644
 +#  DESTINATION "clients"
 +#)
 diff --git a/profiler/CMakeLists.txt b/profiler/CMakeLists.txt
-index 69e685d8..e907983a 100644
+index e1fee712..72b2ea0b 100644
 --- a/profiler/CMakeLists.txt
 +++ b/profiler/CMakeLists.txt
 @@ -66,11 +66,16 @@ if(THEROCK_ENABLE_ROCPROFV3)
@@ -185,10 +185,10 @@ index 69e685d8..e907983a 100644
        therock_explicit_finders.cmake
 +    INTERFACE_INCLUDE_DIRS
 +      ${THEROCK_SOURCE_DIR}/build/dist/rocm/include
+     COMPILER_TOOLCHAIN
+       amd-hip
      RUNTIME_DEPS
-       aqlprofile
-       hip-clr
-@@ -143,11 +148,15 @@ if(THEROCK_ENABLE_ROCPROFV3)
+@@ -145,11 +150,15 @@ if(THEROCK_ENABLE_ROCPROFV3)
        # Must build with the HIP compiler.
        amd-hip
      CMAKE_ARGS
