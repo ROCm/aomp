@@ -152,6 +152,7 @@ if [ "$1" == "build_umt" ]; then
         exit $mystat
     fi
 
+    IMPLICIT_GPU_FLANG_RT=${IMPLICIT_GPU_FLANG_RT:-1}
     if [[ $IMPLICIT_GPU_FLANG_RT -eq 1 ]]; then
         FORTRAN_OFFLOAD_LIB=
     else
