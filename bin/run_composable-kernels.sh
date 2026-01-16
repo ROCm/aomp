@@ -25,6 +25,7 @@ function printHelp {
   echo "Usage: run_composable-kernels.sh"
   echo "  -h: Show this help message"
   echo "  -i: Install the (incremental) CK build"
+  echo "  -l: Library-only build (no examples or tests)"
   echo "  -r: Rebuild the CK repo"
   echo "  -u: Update the CK repo"
   echo "  -b: Update the CK benchmarks repo"
@@ -123,6 +124,8 @@ function getLDLibraryPathExportCmd {
 
 # Some tests may require an installed instance of CK.
 ShouldInstallCK='no'
+# It my be desired to build the CK library only, without any examples or tests.
+ShouldBuildLibraryOnly='no'
 # For some situations during testing it may not be desired to rebuild the CK repo.
 ShouldRebuildCK='no'
 # While doing perf / other compiler work, keeping CK fix is useful.
@@ -137,7 +140,7 @@ SelectedSuite='skip'
 # CK may be run using a specfic test from the selected suite.
 SelectedTest=''
 
-while getopts "hirubs:t:" opt; do
+while getopts "hilrubs:t:" opt; do
   case ${opt} in
   h)
     printHelp
@@ -145,6 +148,10 @@ while getopts "hirubs:t:" opt; do
   i)
     # Install the CK build
     ShouldInstallCK='yes'
+    ;;
+  l)
+    # Build the CK library only
+    ShouldBuildLibraryOnly='yes'
     ;;
   r)
     # Rebuild the CK repo
@@ -274,7 +281,16 @@ fi
 # TODO Fix / Finalize the cmake command
 CKCmakeCmd="cmake ${CmakeGenerator} -B ${CK_BUILD} -S ${CK_REPO} -DCMAKE_PREFIX_PATH=${ROCM_PATH} -DCMAKE_INSTALL_PREFIX=${CK_INSTALL} "
 CKCmakeCmd+="-DCMAKE_CXX_COMPILER=${AOMP}/bin/clang++ -DCMAKE_HIP_COMPILER=${AOMP}/bin/clang++ "
-CKCmakeCmd+="-DCMAKE_BUILD_TYPE=Release -DGPU_TARGETS=${CK_GPU_TARGETS} "
+CKCmakeCmd+="-DCMAKE_BUILD_TYPE=Release "
+
+# Handle library-only build for CK
+# Note: GPU_ARCHS takes precedence over GPU_TARGETS and omits examples & tests
+if [ "${ShouldBuildLibraryOnly}" == 'yes' ]; then
+  CKCmakeCmd+="-DGPU_ARCHS=${CK_GPU_TARGETS} "
+else
+  CKCmakeCmd+="-DGPU_TARGETS=${CK_GPU_TARGETS} "
+fi
+
 # For some reason, CK on gfx12 wants this set.
 CKCmakeCmd+="-DBUILD_DEV=On"
 
