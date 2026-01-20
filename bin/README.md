@@ -115,7 +115,7 @@ For testing purposes, you will often change the value of AOMP when not testing y
 AOMP build.  For example, to test the latest  packaged aomp release, set AOMP=/usr/lib/aomp.
 To test against the ROCM installed compiler, set AOMP=/opt/rocm/lib/llvm. To test one of your
 previous AOMP source builds, set AOMP to an older physical installation directory, such as
-AOMP=$HOME/rocm/aomp_22.0-1. BE CAREFUL! If you set AOMP for testing purposes,
+AOMP=$HOME/rocm/aomp_22.0-2. BE CAREFUL! If you set AOMP for testing purposes,
 remember to set it back before rebuilding aomp from source.
 
 ## Quick Start to AOMP Development
@@ -276,10 +276,10 @@ in $HOME/rocm/aomp_23.0-0 and create a symbolic link as follows:
 ln -sf ${AOMP}_23.0-0 ${AOMP}
 ```
 All testing for AOMP uses the environment variable AOMP to locate the installation. This makes it easy to switch between versions of AOMP for testing by simply changing the environment variable AOMP. You do NOT need to change the symbolic link.
-For example, if the aomp symbolic link currently points to aomp_23.0-0 and you want to test aomp_22.0-1, do this:
+For example, if the aomp symbolic link currently points to aomp_23.0-0 and you want to test aomp_22.0-2, do this:
 
 ```
-export AOMP=$HOME/rocm/aomp_22.0-1
+export AOMP=$HOME/rocm/aomp_22.0-2
 ```
 
 The aomp package installs in /usr/lib/aomp_\<version_string\> and symlinks /usr/lib/aomp to the versioned directory. To test the installed package, set AOMP to /usr/lib/aomp or /usr/lib/aomp_\<version_string\>.

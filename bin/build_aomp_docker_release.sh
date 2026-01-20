@@ -60,7 +60,8 @@ fi
 
 pip_install="python3 -m pip install CppHeaderParser argparse wheel lit lxml barectf pandas"
 pip_install_centos7="python3.8 -m pip install CppHeaderParser argparse wheel lit lxml barectf pandas"
-pip_install_sles15="python3.8 -m pip install CppHeaderParser argparse wheel lit lxml barectf pandas"
+pip_install_sles15="python3.10 -m pip install --ignore-installed --no-cache-dir barectf==3.1.2 PyYAML==5.3.1; python3.10 -m pip install CppHeaderParser argparse wheel lit lxml pandas"
+pip_install_rhel8="python3.10 -m pip install --ignore-installed --no-cache-dir barectf==3.1.2 PyYAML==5.3.1; python3.10 -m pip install CppHeaderParser argparse wheel lit lxml pandas"
 # 22.04 workaround for cython/PyYAML bug.
 pip_install_2204="python3 -m pip install --ignore-installed --no-cache-dir barectf==3.1.2 PyYAML==5.3.1; python3 -m pip install CppHeaderParser argparse wheel lit lxml pandas"
 
@@ -84,7 +85,7 @@ prereq_array["centos8"]="yum install -y dnf-plugins-core && yum config-manager -
 
 prereq_array["centos9"]="yum install -y dnf-plugins-core gcc-c++ git cmake wget vim openssl-devel elfutils-libelf-devel pciutils-devel numactl-devel libffi-devel mesa-libGL-devel libtool texinfo bison flex ncurses-devel expat-devel xz-devel libbabeltrace-devel gmp-devel rpm-build rsync systemd-devel gtest-devel ccache mpfr-devel ocl-icd-devel sqlite-devel && $pip_install"
 
-prereq_array["rhel8"]="yum update -y && yum install -y dnf-plugins-core && yum install -y gcc-c++ git cmake wget vim openssl-devel elfutils-libelf-devel pciutils-devel numactl-devel libffi-devel mesa-libGL-devel libtool texinfo bison flex ncurses-devel expat-devel xz-devel libbabeltrace-devel gmp-devel rpm-build rsync systemd-devel gtest-devel elfutils-devel ccache python38 python38-devel mpfr-devel ocl-icd-devel libatomic libquadmath-devel msgpack-devel fmt-devel sqlite-devel && $pip_install"
+prereq_array["rhel8"]="yum update -y && yum install -y dnf-plugins-core && yum install -y gcc-c++ git cmake wget vim openssl-devel elfutils-libelf-devel pciutils-devel numactl-devel libffi-devel mesa-libGL-devel libtool texinfo bison flex ncurses-devel expat-devel xz-devel libbabeltrace-devel gmp-devel rpm-build rsync systemd-devel gtest-devel elfutils-devel ccache python38 python38-devel mpfr-devel ocl-icd-devel libatomic libquadmath-devel msgpack-devel fmt-devel sqlite-devel && $pip_install_rhel8"
 
 prereq_array["rhel9"]="dnf -y update && dnf -y install dnf-plugins-core && dnf -y install gdb gcc-c++ git cmake wget vim openssl-devel elfutils-libelf-devel pciutils-devel numactl-devel libffi-devel mesa-libGL-devel libtool texinfo bison flex ncurses-devel expat-devel xz-devel libbabeltrace-devel gmp-devel rpm-build rsync systemd-devel gtest-devel elfutils-devel ccache python3-devel mpfr-devel ocl-icd-devel libatomic libquadmath-devel msgpack-devel fmt-devel sqlite-devel && $pip_install"
 
@@ -105,7 +106,7 @@ function getcontainer(){
 }
 
 function setup(){
-  if [ "$system" == "centos7" ] || [ "$system" == "sles15" ] || [ "$system" == "alma8" ]; then
+  if [ "$system" == "centos7" ] || [ "$system" == "sles15" ] || [ "$system" == "alma8" ] || [ "$system" == "rhel8" ]; then
     exports="$exports; export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH; PATH=/usr/local/bin:$PATH"
   fi
 
@@ -174,13 +175,16 @@ function setup(){
   fi
 
   if [ "$system" == "sles15" ]; then
-    docker exec -i "$docker_name" /bin/bash -c "$exports; cd /home/release; wget https://www.python.org/ftp/python/3.8.13/Python-3.8.13.tgz; tar xf Python-3.8.13.tgz; cd Python-3.8.13; ./configure --enable-optimizations --enable-shared; make altinstall; rm /usr/bin/python3; ln -s /usr/local/bin/python3.8 /usr/bin/python3; $pip_install_sles15"
+    docker exec -i "$docker_name" /bin/bash -c "$exports; cd /home/release; wget https://www.python.org/ftp/python/3.10.12/Python-3.10.12.tgz; tar xf Python-3.10.12.tgz; cd Python-3.10.12; ./configure --enable-optimizations --enable-shared; make altinstall; rm /usr/bin/python3; ln -s /usr/local/bin/python3.10 /usr/bin/python3; $pip_install_sles15"
     docker exec -i "$docker_name" /bin/bash -c "update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-13 10"
     docker exec -i "$docker_name" /bin/bash -c "update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-13 10"
     docker exec -i "$docker_name" /bin/bash -c "update-alternatives --install /usr/bin/cc cc /usr/bin/gcc 10"
     docker exec -i "$docker_name" /bin/bash -c "update-alternatives --set cc /usr/bin/gcc"
     docker exec -i "$docker_name" /bin/bash -c "update-alternatives --install /usr/bin/c++ c++ /usr/bin/g++ 10"
     docker exec -i "$docker_name" /bin/bash -c "update-alternatives --set c++ /usr/bin/g++"
+  fi
+  if [ "$system" == "rhel8" ]; then
+    docker exec -i "$docker_name" /bin/bash -c "$exports; cd /home/release; wget https://www.python.org/ftp/python/3.10.12/Python-3.10.12.tgz; tar xf Python-3.10.12.tgz; cd Python-3.10.12; ./configure --enable-optimizations --enable-shared; make altinstall; rm /usr/bin/python3; ln -s /usr/local/bin/python3.10 /usr/bin/python3; $pip_install_sles15"
   fi
 
   # Run build_prerequisites.sh to build cmake, hwloc, rocmsmi, etc
@@ -196,6 +200,9 @@ function setup(){
 function build(){
   if [ "$system" == "ubuntu2404" ]; then
     exports="$exports; PATH=/opt/venv/bin:$PATH; python3 -m venv /opt/venv"
+  fi
+  if [ "$system" == "centos7" ] || [ "$system" == "sles15" ] || [ "$system" == "alma8" ]; then
+    exports="$exports; export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH; PATH=/usr/local/bin:$PATH"
   fi
   docker exec -i "$docker_name" /bin/bash -c "$exports; cd $DOCKER_AOMP_REPOS/aomp/bin; ./build_aomp.sh 2>&1 | tee $DOCKER_HOME/logs/$system-build.out"
   docker exec -i "$docker_name" /bin/bash -c "$exports; cd $DOCKER_AOMP_REPOS/aomp/bin; AOMP=/usr/lib/aomp/llvm ./build_llvm-flang-rt-host-dev.sh 2>&1 | tee -a $DOCKER_HOME/logs/$system-build.out"
