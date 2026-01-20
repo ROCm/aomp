@@ -1,3 +1,4 @@
+OVERFLOW_GUARD=1
 include ../../Makefile.defs
 
 TESTNAME     = clang_udel_saxpy

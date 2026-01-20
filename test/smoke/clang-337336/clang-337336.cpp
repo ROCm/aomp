@@ -12,18 +12,32 @@
 const size_t SIZE = 3 * 1024L * 1024L;
 const unsigned int NUM_TEAMS = 3;
 
-int main()
+int main(int argc, char * argv[])
 {
+    unsigned int NKERNELS = 10;
+    if (argc > 1){
+      float memSize = atof(argv[1]);
+      float sizeGiB;
+      float reservedMemPercent = 10;
+      for (int i = NKERNELS; i > 0; i--) {
+        sizeGiB = (i * (double)SIZE * sizeof(double) / GB);
+        printf("sizeGiB: %f, memSize: %f, reservedMemPercent: %f\n", sizeGiB, memSize, reservedMemPercent);
+        if (sizeGiB < (memSize * (1 - reservedMemPercent/100))) {
+          NKERNELS = i;
+          break;
+       }
+    }
+      printf("NKERNELS reduced to: %d\n", NKERNELS);
+    }
     int dummy = 0;
 
-    printf("TOtal Memory = %.6lf GB\n\n", (double)SIZE * sizeof(double) / GB);
+    printf("Total Memory = %.6lf GB\n\n", NKERNELS * (double)SIZE * sizeof(double) / GB);
 
 #pragma omp target
     {
         dummy += 1;
     }
     {
-        unsigned int const NKERNELS = 10;
         double *p[NKERNELS];
         unsigned const check = 9;
 

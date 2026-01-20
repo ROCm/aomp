@@ -73,6 +73,23 @@ string to_string(nanoseconds ns) {
 
 int main(int argc, char **argv) {
   int n = 500000000;
+  int numArrays = 2;
+  if (argc > 1){
+    float memSize = atof(argv[1]);
+    float sizeGiB;
+    float GiB = 1 << 30;
+    float reservedMemPercent = 5;
+    for (int i = n; i > 0; i -= n/10) {
+      sizeGiB = (i * numArrays * sizeof(double) / GiB);
+      printf("sizeGiB: %f, memSize: %f, reservedMemPercent: %f\n", sizeGiB, memSize, reservedMemPercent);
+      if (sizeGiB < (memSize * (1 - reservedMemPercent/100))) {
+        n = i;
+        break;
+      }
+    }
+      printf("n reduced to: %d\n", n);
+    }
+
   double a = 3.;
   vector<double> x(n, 1.), y(n, 2.);
   vector<double> xcpu(x), xgpu(x), xloop(x);
