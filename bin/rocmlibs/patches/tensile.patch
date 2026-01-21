@@ -1,5 +1,18 @@
+diff --git a/Tensile/Code.py b/Tensile/Code.py
+index eefccff..da321cd 100644
+--- a/Tensile/Code.py
++++ b/Tensile/Code.py
+@@ -632,7 +632,7 @@ class  MacInst (Inst):
+             cStr = "v[%s+%u+%u*%u]" % ("vgprValuC", self.aIdx, self.bIdx, self.kernel["ThreadTile0"])
+             aStr = "v[%s+%u]"       % ("vgprValuA_X%u_I%u"%(self.PLR,iui), self.aIdx)
+             bStr = "v[%s+%u]"       % ("vgprValuB_X%u_I%u"%(self.PLR,iui), self.bIdx)
+-            kStr += "v_dot4_i32_i8  %s, %s, %s, %s op_sel:[0,0] op_sel_hi:[1,1] //valuC[%u]%s" % (cStr, aStr, bStr, cStr, cidx, self.endLine)
++            kStr += "v_dot4_i32_i8  %s, %s, %s, %s //valuC[%u]%s" % (cStr, aStr, bStr, cStr, cidx, self.endLine)
+       # single precision
+       elif self.kernel["ProblemType"]["DataType"].isSingle():
+         for iui in range(0, self.innerUnroll):
 diff --git a/Tensile/Common.py b/Tensile/Common.py
-index 86c6c577..376afc47 100644
+index 86c6c57..376afc4 100644
 --- a/Tensile/Common.py
 +++ b/Tensile/Common.py
 @@ -307,7 +307,7 @@ globalParameters["SeparateArchitectures"] = False # write Tensile library metada
@@ -11,8 +24,21 @@ index 86c6c577..376afc47 100644
  
  globalParameters["ExperimentalLogicDir"] = "/experimental/"
  
+diff --git a/Tensile/Components/MAC_I8X4.py b/Tensile/Components/MAC_I8X4.py
+index 72cf802..e8bb772 100644
+--- a/Tensile/Components/MAC_I8X4.py
++++ b/Tensile/Components/MAC_I8X4.py
+@@ -49,7 +49,7 @@ class MAC_I8X4_Plain(MAC):
+                     vars["cStr"] = "v[vgprValuC+{a}+{b}*{ThreadTile0}]".format_map(vars)
+                     vars["aStr"] = "v[vgprValuA_X{m}_I{iui}+{a}]".format_map(vars)
+                     vars["bStr"] = "v[vgprValuB_X{m}_I{iui}+{b}]".format_map(vars)
+-                    kStr += "v_dot4_i32_i8 {cStr}, {aStr}, {bStr}, {cStr} op_sel:[0,0] op_sel_hi:[1,1] //valuC[{cidx}]{endLine}".format_map(vars)
++                    kStr += "v_dot4_i32_i8 {cStr}, {aStr}, {bStr}, {cStr} //valuC[{cidx}]{endLine}".format_map(vars)
+                     kStr += priority(writer, 1, "Raise priority while processing macs")
+ 
+         kStr += priority(writer, 0, "Reset priority after macs")
 diff --git a/Tensile/Source/lib/include/Tensile/AMDGPU.hpp b/Tensile/Source/lib/include/Tensile/AMDGPU.hpp
-index 317250db..66eb5336 100644
+index 317250d..66eb533 100644
 --- a/Tensile/Source/lib/include/Tensile/AMDGPU.hpp
 +++ b/Tensile/Source/lib/include/Tensile/AMDGPU.hpp
 @@ -60,6 +60,7 @@ namespace Tensile
@@ -44,7 +70,7 @@ index 317250db..66eb5336 100644
              {
                  return AMDGPU::Processor::gfx942;
 diff --git a/Tensile/Source/lib/include/Tensile/PlaceholderLibrary.hpp b/Tensile/Source/lib/include/Tensile/PlaceholderLibrary.hpp
-index a21e584d..c941f831 100644
+index a21e584..c941f83 100644
 --- a/Tensile/Source/lib/include/Tensile/PlaceholderLibrary.hpp
 +++ b/Tensile/Source/lib/include/Tensile/PlaceholderLibrary.hpp
 @@ -44,6 +44,7 @@ namespace Tensile
@@ -65,7 +91,7 @@ index a21e584d..c941f831 100644
              return "TensileLibrary_*_gfx942";
          case LazyLoadingInit::gfx950:
 diff --git a/Tensile/Source/lib/include/Tensile/Serialization/Predicates.hpp b/Tensile/Source/lib/include/Tensile/Serialization/Predicates.hpp
-index 361a0e14..b8b41723 100644
+index 361a0e1..b8b4172 100644
 --- a/Tensile/Source/lib/include/Tensile/Serialization/Predicates.hpp
 +++ b/Tensile/Source/lib/include/Tensile/Serialization/Predicates.hpp
 @@ -220,6 +220,7 @@ namespace Tensile
@@ -77,7 +103,7 @@ index 361a0e14..b8b41723 100644
                  iot::enumCase(io, value, "gfx950", AMDGPU::Processor::gfx950);
                  iot::enumCase(io, value, "gfx1010", AMDGPU::Processor::gfx1010);
 diff --git a/Tensile/TensileCreateLib/ParseArguments.py b/Tensile/TensileCreateLib/ParseArguments.py
-index f19dab13..be76194a 100644
+index f19dab1..be76194 100644
 --- a/Tensile/TensileCreateLib/ParseArguments.py
 +++ b/Tensile/TensileCreateLib/ParseArguments.py
 @@ -259,7 +259,7 @@ def parseArguments(input: Optional[List[str]] = None) -> Dict[str, Any]:
@@ -90,7 +116,7 @@ index f19dab13..be76194a 100644
      )
      parser.add_argument(
 diff --git a/docs/src/cli-reference/tensile-create-library-cli.rst b/docs/src/cli-reference/tensile-create-library-cli.rst
-index 4826f944..78ec17c5 100644
+index 4826f94..78ec17c 100644
 --- a/docs/src/cli-reference/tensile-create-library-cli.rst
 +++ b/docs/src/cli-reference/tensile-create-library-cli.rst
 @@ -54,7 +54,7 @@ Here is the list of optional arguments for invoking the ``TensileCreateLibrary``
@@ -103,7 +129,7 @@ index 4826f944..78ec17c5 100644
        gfx1100; gfx1101; gfx1102; gfx1103; gfx1150; gfx1151; gfx1200; gfx1201.
  
 diff --git a/pytest.ini b/pytest.ini
-index 93384c4b..13d9e054 100644
+index 93384c4..13d9e05 100644
 --- a/pytest.ini
 +++ b/pytest.ini
 @@ -92,6 +92,7 @@ markers =
