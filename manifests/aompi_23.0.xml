@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <manifest>
-  <!-- Manifest for AOMP 23.0-x which uses ROCM 7.1 release branches of external repositories -->
+  <!-- Manifest for AOMP 23.0-x which uses ROCM 7.2 release branches of external repositories -->
 
-    <default revision="release/rocm-rel-7.1" remote="gerritgit" sync-j="4" sync-c="true" />
+    <default revision="release/rocm-rel-7.2" remote="gerritgit" sync-j="4" sync-c="true" />
     <remote name="roc"  fetch="https://github.com/ROCm" />
     <remote name="simde"  fetch="https://github.com/simd-everywhere" />
 
-<!-- These first 4 repos are NOT rocm 7.1. They are compiler developer branches -->
+<!-- These first 4 repos are NOT rocm 7.2. They are compiler developer branches -->
     <project remote="roc" path="llvm-project" name="llvm-project.git" revision="amd-staging" groups="unlocked" />
     <project remote="roc" path="SPIRV-LLVM-Translator" name="spirv-llvm-translator.git" revision="amd-staging" groups="unlocked" />
     <project remote="roc" path="hipify" name="hipify.git" revision="amd-staging" groups="unlocked" />
@@ -14,16 +14,16 @@
 
     <project remote="roc" path="aomp" name="aomp"                 revision="aomp-dev" groups="unlocked" />
 
-    <project remote="roc" path="rocprofiler-sdk" name="rocprofiler-sdk"              revision="release/rocm-rel-7.1" groups="unlocked" />
-    <project remote="roc" path="ROCdbgapi" name="ROCdbgapi"                  revision="release/rocm-rel-7.1" groups="unlocked" />
-    <project remote="roc" path="ROCgdb" name="ROCgdb"                        revision="release/rocm-rel-7.1" groups="unlocked" />
-    <project remote="roc" path="hip"    name="hip"                           revision="release/rocm-rel-7.1" groups="unlocked" />
-    <project remote="roc" path="clr" name="clr"                        revision="release/rocm-rel-7.1" groups="unlocked" />
-    <project remote="roc" path="rocminfo" name="rocminfo"                         revision="release/rocm-rel-7.1" groups="unlocked" />
-    <project remote="roc" path="rocm_smi_lib" name="rocm_smi_lib"                 revision="release/rocm-rel-7.1" groups="unlocked" />
-    <project remote="roc" path="amdsmi" name="amdsmi"                             revision="release/rocm-rel-7.1" groups="unlocked" />
-    <project remote="roc" path="rocm-cmake" name="rocm-cmake"                     revision="release/rocm-rel-7.1" groups="unlocked" />
-    <project remote="roc" path="rocr-runtime" name="ROCR-Runtime"                 revision="release/rocm-rel-7.1" groups="unlocked" />
-    <project remote="roc" path="rocprofiler-register" name="rocprofiler-register" revision="release/rocm-rel-7.1" groups="unlocked" />
-    <project remote="roc" path="hipfort" name="hipfort"                 revision="release/rocm-rel-7.1" groups="unlocked" />
+    <project remote="roc" path="rocprofiler-sdk" name="rocprofiler-sdk"              revision="release/rocm-rel-7.2" groups="unlocked" />
+    <project remote="roc" path="ROCdbgapi" name="ROCdbgapi"                  revision="release/rocm-rel-7.2" groups="unlocked" />
+    <project remote="roc" path="ROCgdb" name="ROCgdb"                        revision="release/rocm-rel-7.2" groups="unlocked" />
+    <project remote="roc" path="hip"    name="hip"                           revision="release/rocm-rel-7.2" groups="unlocked" />
+    <project remote="roc" path="clr" name="clr"                        revision="release/rocm-rel-7.2" groups="unlocked" />
+    <project remote="roc" path="rocminfo" name="rocminfo"                         revision="release/rocm-rel-7.2" groups="unlocked" />
+    <project remote="roc" path="rocm_smi_lib" name="rocm_smi_lib"                 revision="release/rocm-rel-7.2" groups="unlocked" />
+    <project remote="roc" path="amdsmi" name="amdsmi"                             revision="release/rocm-rel-7.2" groups="unlocked" />
+    <project remote="roc" path="rocm-cmake" name="rocm-cmake"                     revision="release/rocm-rel-7.2" groups="unlocked" />
+    <project remote="roc" path="rocr-runtime" name="ROCR-Runtime"                 revision="release/rocm-rel-7.2" groups="unlocked" />
+    <project remote="roc" path="rocprofiler-register" name="rocprofiler-register" revision="release/rocm-rel-7.2" groups="unlocked" />
+    <project remote="roc" path="hipfort" name="hipfort"                 revision="release/rocm-rel-7.2" groups="unlocked" />
 </manifest>
