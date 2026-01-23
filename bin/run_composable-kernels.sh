@@ -13,6 +13,12 @@ CKBenchmarkRepoBranchName='main'
 # when building CK. This is likely a bit conservative.
 CKBuildParallelism=$(free -g | grep Mem | awk '{print int($2/10)}')
 
+# Check if the user overrode number of parallel build jobs
+# via env var
+if [ ! -z ${CK_BUILD_PARALLELISM} ];then
+  CKBuildParallelism=${CK_BUILD_PARALLELISM}
+fi
+
 realpath=$(realpath $0)
 thisdir=$(dirname $realpath)
 
@@ -140,8 +146,12 @@ SelectedSuite='skip'
 # CK may be run using a specfic test from the selected suite.
 SelectedTest=''
 
-while getopts "hilrubs:t:" opt; do
+while getopts "j:hilrubs:t:" opt; do
   case ${opt} in
+  j)
+    # User-defined parallelism for CK build via argument
+    CKBuildParallelism="${OPTARG}"
+    ;;
   h)
     printHelp
     ;;
