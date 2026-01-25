@@ -9,6 +9,14 @@
 
 SUITE_LIST=${SUITE_LIST:-"smoke-limbo smoke-fort-limbo smoke smoke0firt nekbone babelstream fortran-babelstream accel2023 hpc2021 openmpapps"}
 
+echo "PATH=" $PATH
+set +x
+which lspci
+which rocm-smi
+which rocminfo
+which make
+set -x
+
 pip install --no-warn-script-location filecheck
 export PATH=$PATH:/home/$USER/.local/bin
 which filecheck
