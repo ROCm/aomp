@@ -16,6 +16,8 @@ which lspci
 which rocm-smi
 which rocminfo
 which make
+find /opt/rocm/ -name libompdevice\*
+echo "LD_LIBRARY_PATH="$LD_LIBRARY_PATH
 set -x
 pip install --no-warn-script-location filecheck
 export PATH=$PATH:/home/$USER/.local/bin
