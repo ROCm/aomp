@@ -87,11 +87,11 @@ if [[ -z ${LLVMIR} && -z ${ASSEMBLY} ]]; then
   # Generate AMDGPU assembly files, format output and then filecheck for the
   # expected instructions within the embedded object.
   echo " > FileChecks"
-  ${GEN_ASM_DPP}  -o - | ${EXTRACT_EMBEDDED} | ${AOMP}/bin/FileCheck $TESTSRC  \
+  ${GEN_ASM_DPP}  -o - | ${EXTRACT_EMBEDDED} | $FILECHECK $TESTSRC  \
     --check-prefix=DPP || exit 1
-  ${GEN_ASM_ITER} -o - | ${EXTRACT_EMBEDDED} | ${AOMP}/bin/FileCheck $TESTSRC  \
+  ${GEN_ASM_ITER} -o - | ${EXTRACT_EMBEDDED} | $FILECHECK $TESTSRC  \
     --check-prefix=ITERATIVE || exit 1
-  ${GEN_ASM_NONE} -o - | ${EXTRACT_EMBEDDED} | ${AOMP}/bin/FileCheck $TESTSRC  \
+  ${GEN_ASM_NONE} -o - | ${EXTRACT_EMBEDDED} | $FILECHECK $TESTSRC  \
     --check-prefix=NONE || exit 1
 
   # Compile and execute. Performing a simple check for an expected result.

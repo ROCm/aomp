@@ -12,6 +12,6 @@ TESTSRC_ALL  = link-missing-file.c
 # Since llvm-link would return a non-zero exit-code, use the dummy program to
 # indicate 'success'.
 RUNCMD       = $(AOMP)/bin/llvm-link MissingFile.bc 2>&1 | \
-               $(AOMP)/bin/FileCheck $(TESTSRC_ALL); ./$(TESTNAME)
+               $(FILECHECK) $(TESTSRC_ALL); ./$(TESTNAME)
 
 include ../Makefile.rules
