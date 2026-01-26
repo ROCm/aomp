@@ -6,12 +6,11 @@
 #    babelstream fortran-babelstream accel2023 hpc2021 openmpapps
 #    override with SUITE_LIST
 #  Please check with Ron or Ethan for script modifications.
-
-SUITE_LIST=${SUITE_LIST:-"smoke-limbo smoke-fort-limbo smoke smoke0firt nekbone babelstream fortran-babelstream accel2023 hpc2021 openmpapps"}
+date
+SUITE_LIST=${SUITE_LIST:-"smoke-limbo smoke-fort-limbo smoke smoke-firt nekbone babelstream fortran-babelstream accel2023 hpc2021 openmpapps"}
 
 export PATH=$PATH:/opt/rocm/bin
 echo "PATH=" $PATH
-set +x
 which lspci
 which rocm-smi
 which rocminfo
@@ -19,7 +18,6 @@ which make
 
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/rocm/llvm/lib
 echo "LD_LIBRARY_PATH="$LD_LIBRARY_PATH
-set -x
 pip install --no-warn-script-location filecheck
 export PATH=$PATH:/home/$USER/.local/bin
 which filecheck
@@ -323,7 +321,12 @@ echo Running List: $SUITE_LIST
 declare -A warnings
 warningcount=0
 for suite in $SUITE_LIST; do
-  $suite
+  echo "=== Running $suite `date` ==="
+  if [[ "$suite" =~ "smoke" ]]; then
+    $suite 2>&1 |tail -100
+  else
+    $suite
+  fi
 done
 
 echo "************************************" > $summary
@@ -338,4 +341,5 @@ cat $TLOG
 echo ""
 echo >> $summary
 cat $summary
+date
 exit $((scriptfails))
