@@ -278,7 +278,7 @@ function accel2023(){
 echo "%================ accel2023"
   if [ "$RUN_SPEC" -eq 0 ]; then
     echo "Skipping accel2023, runners external to AMD"
-    exit 0
+    return 0
   fi
   cd "$aompdir"/bin
   export GPURUN_BYPASS=1
@@ -298,7 +298,7 @@ function hpc2021(){
 echo "%================ hpc2021"
   if [ "$RUN_SPEC" -eq 0 ]; then
     echo "Skipping hpc2021, runners external to AMD"
-    exit 0
+    return 0
   fi
   cd "$aompdir"/bin
   unset ROCR_VISIBLE_DEVICES
