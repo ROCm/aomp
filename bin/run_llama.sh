@@ -69,7 +69,7 @@ fi
 
 if [ "${DoCompile}" == "yes" ]; then
   echo "Building LLaMA..."
-  cmake --build ${LLAMA_BUILD_DIR} --parallel
+  cmake --build ${LLAMA_BUILD_DIR} --parallel -j ${AOMP_BUILD_JOBS}
 fi
 
 if [ "${DoCTest}" == "yes" ]; then
