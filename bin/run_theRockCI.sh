@@ -7,7 +7,20 @@
 #    override with SUITE_LIST
 #  Please check with Ron or Ethan for script modifications.
 date
-SUITE_LIST=${SUITE_LIST:-"smoke-limbo smoke-fort-limbo smoke smoke-firt nekbone babelstream fortran-babelstream accel2023 hpc2021 openmpapps"}
+SUITE_LIST=${SUITE_LIST:-"smoke-limbo smoke-fort-limbo smoke smoke-fort nekbone babelstream fortran-babelstream accel2023 bldopenmpi hpc2021 openmpapps"}
+declare -A assocSuite=(
+["smoke-limbo"]=" 5 minutes"
+["smoke-fort-limbo"]=" 2 minutes"
+["smoke"]=" 14 minutes"
+["smoke-fort"]=" 5 minutes"
+["nekbone"]=" 1 minute"
+["babelstream"]=" 1 minute"
+["fortran-babelstream"]=" 1 minute"
+["accel2023"]=" 3 minutes"
+["bldopenmpi"]=" 6 minutes"
+["hpc2021"]=" 4 minutes"
+["openmpapps"]=" 2 minutes"
+)
 
 export PATH=$PATH:/opt/rocm/bin
 echo "PATH=" $PATH
@@ -22,13 +35,9 @@ pip install --no-warn-script-location filecheck
 export PATH=$PATH:/home/$USER/.local/bin
 which filecheck
 
-export INST=/tmp/npsdbInst$$/openmpi-5-npsdb
-export MPI=$INST
-echo rocmMPI=$MPI
-
 RUN_SPEC=1
 WLOC=https://compute-artifactory.amd.com/artifactory/rocm-generic-local/compiler-infra
-wget --timeout 15 --tries=3  $WLOC/Accel23-scripts.tar
+wget --timeout 5 $WLOC/Accel23-scripts.tar
 if [ "$?" -ne 0 ]; then
   echo "SPECScripts not accessible " $?
   RUN_SPEC=0
@@ -36,7 +45,9 @@ else
   echo "SPECscripts are available"
 fi
  
+if [ "$SKIP_QUICK" == "" ]; then
 ./rocm_quick_check.sh
+fi
 export ROCR_VISIBLE_DEVICES=0
 export AOMP_USE_CCACHE=0
 
@@ -58,7 +69,9 @@ aompdir="$(dirname "$parentdir")"
 summary=`pwd`"/summary.txt"
 scriptfails=0
 
-EPSDB=1 ./clone_test.sh  
+if [ "$SKIP_CLONE" == "" ]; then
+  EPSDB=1 ./clone_test.sh
+fi
 AOMP_TEST_DIR=${AOMP_TEST_DIR:-"$HOME/git/aomp-test"}
 echo AOMP before : $AOMP
 if [ ! -e $AOMP/bin ]; then
@@ -241,7 +254,7 @@ function nekbone(){
 }
 
 function babelstream(){
-  echo "%================ baelstream"
+  echo "%================ babelestream"
   export AOMPHIP=$ROCMDIR
   cd "$aompdir"/bin
   if [ $aomp -eq 0 ]; then
@@ -275,7 +288,7 @@ function fortran-babelstream(){
 
 
 function accel2023(){
-echo "%================ accel2023"
+  echo "%================ accel2023"
   if [ "$RUN_SPEC" -eq 0 ]; then
     echo "Skipping accel2023, runners external to AMD"
     return 0
@@ -295,7 +308,7 @@ echo "%================ accel2023"
 }
 
 function hpc2021(){
-echo "%================ hpc2021"
+  echo "%================ hpc2021"
   if [ "$RUN_SPEC" -eq 0 ]; then
     echo "Skipping hpc2021, runners external to AMD"
     return 0
@@ -316,12 +329,24 @@ echo "%================ hpc2021"
   fi
 }
 
+function bldopenmpi(){
+  echo "%================ OpenMPI"
+  export NO_HPC2021_MPI_BLD=1
+  export INST=${INST:-/tmp/npsdbInst$$/openmpi-5-flang}
+  export MPI=$INST
+  echo rocmMPI=$MPI
+  pushd $aompdir/bin
+  ./npsdb_bld_ompi.sh
+  popd
+}
+
 echo Running List: $SUITE_LIST
 
 declare -A warnings
 warningcount=0
 for suite in $SUITE_LIST; do
   echo "=== Running $suite `date` ==="
+  echo "--- expected time: ${assocSuite[$suite]}"
   if [[ "$suite" =~ "smoke" ]]; then
     $suite 2>&1 |tail -100
   else
