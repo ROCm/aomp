@@ -105,8 +105,6 @@ endif
 FILECHECK=/home/$(USER)/.local/bin/filecheck
 FILECHECK_RT=$(shell ls $(FILECHECK) 2>/dev/null || echo error)
 ifeq ($(FILECHECK_RT),error)
- echo checking for filecheck: $(FILECHECK)
- echo $(FILECHECK_RT)
 # Look for FileCheck on the system in various places.
 # Check local AOMP install first.
  FILECHECK=$(AOMP)/bin/FileCheck
