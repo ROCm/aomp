@@ -364,7 +364,7 @@ for suite in $SUITE_LIST; do
   echo "=== Running $suite `date` ==="
   echo "--- expected time: ${assocSuite[$suite]}"
   if [[ "$suite" =~ "smoke" ]]; then
-    $suite # 2>&1 |tail -100
+    $suite  2>&1 |tail -200
   else
     $suite
   fi
