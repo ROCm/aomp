@@ -4,7 +4,7 @@
 !SPDX-License-Identifier:  MIT
 ! 
 ! RUN: %flang %flags %openmp_flags -fopenmp-version=60 %s -o %t.exe
-! RUN: %t.exe | FileCheck %s --match-full-lines
+! RUN: %t.exe | $FILECHECK %s --match-full-lines
 
 program interchange_intdo
   integer :: i, j
