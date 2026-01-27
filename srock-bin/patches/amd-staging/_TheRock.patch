@@ -1,5 +1,5 @@
 diff --git a/compiler/CMakeLists.txt b/compiler/CMakeLists.txt
-index 3a1a41f7..71635e7b 100644
+index d16992fd..3f94343d 100644
 --- a/compiler/CMakeLists.txt
 +++ b/compiler/CMakeLists.txt
 @@ -10,6 +10,10 @@ if(THEROCK_ENABLE_COMPILER)
@@ -55,7 +55,7 @@ index b0645ebe..54755ad2 100644
  
  # LLVM deviates from the defaults in some key ways:
 diff --git a/compiler/pre_hook_amd-llvm.cmake b/compiler/pre_hook_amd-llvm.cmake
-index 78f79e41..e9dc42b9 100644
+index 57144ecf..6138226b 100644
 --- a/compiler/pre_hook_amd-llvm.cmake
 +++ b/compiler/pre_hook_amd-llvm.cmake
 @@ -13,7 +13,7 @@ if(WIN32)
@@ -80,7 +80,7 @@ index 78f79e41..e9dc42b9 100644
        set(FLANG_RUNTIME_F128_MATH_LIB "libquadmath")
        set(LIBOMPTARGET_BUILD_DEVICE_FORTRT ON)
        #TODO: Enable when HWLOC dependency is figured out
-@@ -67,6 +70,7 @@ endif()
+@@ -98,6 +101,7 @@ endif()
  # disabling more explicitly after a bug fix enabled.
  set(LLVM_INCLUDE_BENCHMARKS OFF)
  set(LLVM_TARGETS_TO_BUILD "AMDGPU;X86" CACHE STRING "Enable LLVM Targets" FORCE)
@@ -88,7 +88,7 @@ index 78f79e41..e9dc42b9 100644
  
  # Packaging.
  set(PACKAGE_VENDOR "AMD" CACHE STRING "Vendor" FORCE)
-@@ -87,9 +91,9 @@ set(LLVM_EXTERNAL_PROJECTS "rocm-device-libs;spirv-llvm-translator" CACHE STRING
+@@ -118,9 +122,9 @@ set(LLVM_EXTERNAL_PROJECTS "rocm-device-libs;spirv-llvm-translator" CACHE STRING
  # options to manage this transition but they require knowing the clange resource
  # dir. In order to avoid drift, we just fixate that too. This can all be
  # removed in a future version.
@@ -101,39 +101,8 @@ index 78f79e41..e9dc42b9 100644
  
  # Setup the install rpath (let CMake handle build RPATH per usual):
  # * Executables and libraries can always search their adjacent lib directory
-diff --git a/math-libs/BLAS/pre_hook_hipSPARSE.cmake b/math-libs/BLAS/pre_hook_hipSPARSE.cmake
-index e0b10dd5..190b51c8 100644
---- a/math-libs/BLAS/pre_hook_hipSPARSE.cmake
-+++ b/math-libs/BLAS/pre_hook_hipSPARSE.cmake
-@@ -1,6 +1,6 @@
- # See the artifact descriptor where we require these matrices for the test
- # artifact. Consider installing as part of the main project.
--install(
--  DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/clients/matrices"
--  DESTINATION "clients"
--)
-+#install(
-+#  DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/clients/matrices"
-+#  DESTINATION "clients"
-+#)
-diff --git a/math-libs/BLAS/pre_hook_rocSPARSE.cmake b/math-libs/BLAS/pre_hook_rocSPARSE.cmake
-index 697bba2b..3856a68c 100644
---- a/math-libs/BLAS/pre_hook_rocSPARSE.cmake
-+++ b/math-libs/BLAS/pre_hook_rocSPARSE.cmake
-@@ -11,7 +11,7 @@ endif()
- 
- # See the artifact descriptor where we require these matrices for the test
- # artifact. Consider installing as part of the main project.
--install(
--  DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/clients/matrices"
--  DESTINATION "clients"
--)
-+#install(
-+#  DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/clients/matrices"
-+#  DESTINATION "clients"
-+#)
 diff --git a/profiler/CMakeLists.txt b/profiler/CMakeLists.txt
-index 4b6b6004..04f8fa1f 100644
+index e021e707..f9589897 100644
 --- a/profiler/CMakeLists.txt
 +++ b/profiler/CMakeLists.txt
 @@ -81,11 +81,16 @@ endif(THEROCK_BUILD_TESTING)
