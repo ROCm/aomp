@@ -58,15 +58,8 @@ unsigned int ignore_times = 2; // ignore this many timings first
 #define _XTEAM_NUM_TEAMS 104
 #endif
 
-#if (_XTEAM_NUM_THREADS <= 1024) && \
-  ((_XTEAM_NUM_THREADS & (_XTEAM_NUM_THREADS - 1)) == 0)
-#define _SUM_OVERLOAD_64_FCT _overload_to_extern_sum_16x64
-#define _SUM_OVERLOAD_32_FCT _overload_to_extern_sum_32x32
-#define _MAX_OVERLOAD_64_FCT _overload_to_extern_max_16x64
-#define _MAX_OVERLOAD_32_FCT _overload_to_extern_max_32x32
-#define _MIN_OVERLOAD_64_FCT _overload_to_extern_min_16x64
-#define _MIN_OVERLOAD_32_FCT _overload_to_extern_min_32x32
-#else
+#if (_XTEAM_NUM_THREADS > 1024) || \
+  ((_XTEAM_NUM_THREADS & (_XTEAM_NUM_THREADS - 1)) != 0)
 #error Invalid value for _XTEAM_NUM_THREADS. Expected upper limit: 1024 and a power of 2.
 #endif
 
@@ -411,8 +404,8 @@ T sim_dot(T *a, T *b, int warp_size) {
       T val0 = lc0.rnv;
       _BIG_JUMP_LOOP(_XTEAM_NUM_TEAMS, lc0.size, lc0.stride, lc0.offset)
       val0 += a[i] * b[i];
-      _SUM_OVERLOAD_64_FCT(val0, &sum, lc0.team_vals, lc0.td_ptr, lc0.rnv, k,
-                           _XTEAM_NUM_TEAMS);
+      _overload_to_extern_sum(val0, &sum, lc0.team_vals, lc0.td_ptr, lc0.rnv, k,
+                              _XTEAM_NUM_TEAMS);
     }
   } else {
 #pragma omp target teams distribute parallel for num_teams(_XTEAM_NUM_TEAMS)   \
@@ -424,8 +417,8 @@ T sim_dot(T *a, T *b, int warp_size) {
       _BIG_JUMP_LOOP(_XTEAM_NUM_TEAMS, lc0.size, lc0.stride, lc0.offset)
       val0 += a[i] * b[i];
       _LIMIT_JUMP_TO_CUDA_REDUCED_THREADS(_XTEAM_NUM_TEAMS)
-      _SUM_OVERLOAD_32_FCT(val0, &sum, lc0.team_vals, lc0.td_ptr, lc0.rnv, k,
-                           _XTEAM_NUM_TEAMS);
+      _overload_to_extern_sum(val0, &sum, lc0.team_vals, lc0.td_ptr, lc0.rnv, k,
+                              _XTEAM_NUM_TEAMS);
     }
   }
   return sum;
@@ -468,8 +461,8 @@ T sim_dot_extended(T *a, T *b, int warp_size) {
 	EXT_T valb = b[i];
         val0 += vala * valb;
       }
-      _SUM_OVERLOAD_64_FCT(val0, &sum, lc0.team_vals, lc0.td_ptr, lc0.rnv, k,
-                           _XTEAM_NUM_TEAMS);
+      _overload_to_extern_sum(val0, &sum, lc0.team_vals, lc0.td_ptr, lc0.rnv, k,
+                              _XTEAM_NUM_TEAMS);
     }
   } else {
 #pragma omp target teams distribute parallel for num_teams(_XTEAM_NUM_TEAMS)   \
@@ -479,8 +472,8 @@ T sim_dot_extended(T *a, T *b, int warp_size) {
       _BIG_JUMP_LOOP(_XTEAM_NUM_TEAMS, lc0.size, lc0.stride, lc0.offset)
       val0 += a[i] * b[i];
       _LIMIT_JUMP_TO_CUDA_REDUCED_THREADS(_XTEAM_NUM_TEAMS)
-      _SUM_OVERLOAD_32_FCT(val0, &sum, lc0.team_vals, lc0.td_ptr, lc0.rnv, k,
-                           _XTEAM_NUM_TEAMS);
+      _overload_to_extern_sum(val0, &sum, lc0.team_vals, lc0.td_ptr, lc0.rnv, k,
+                              _XTEAM_NUM_TEAMS);
     }
   }
   return (T) sum;
@@ -521,7 +514,7 @@ T sim_max(T *c, int warp_size) {
       T val1 = lc1.rnv;
       _BIG_JUMP_LOOP(_XTEAM_NUM_TEAMS, lc1.size, lc1.stride, lc1.offset)
       val1 = (c[i] > val1) ? c[i] : val1;
-      _MAX_OVERLOAD_64_FCT(val1, &retval, lc1.team_vals, lc1.td_ptr, lc1.rnv, k,
+      _overload_to_extern_max(val1, &retval, lc1.team_vals, lc1.td_ptr, lc1.rnv, k,
                            _XTEAM_NUM_TEAMS);
     }
   } else {
@@ -534,7 +527,7 @@ T sim_max(T *c, int warp_size) {
       _BIG_JUMP_LOOP(_XTEAM_NUM_TEAMS, lc1.size, lc1.stride, lc1.offset)
       val1 = (c[i] > val1) ? c[i] : val1;
       _LIMIT_JUMP_TO_CUDA_REDUCED_THREADS(_XTEAM_NUM_TEAMS)
-      _MAX_OVERLOAD_32_FCT(val1, &retval, lc1.team_vals, lc1.td_ptr, lc1.rnv, k,
+      _overload_to_extern_max(val1, &retval, lc1.team_vals, lc1.td_ptr, lc1.rnv, k,
                            _XTEAM_NUM_TEAMS);
     }
   }
@@ -576,7 +569,7 @@ T sim_max_extended(T *c, int warp_size) {
       EXT_T val1 = lc1.rnv;
       _BIG_JUMP_LOOP(_XTEAM_NUM_TEAMS, lc1.size, lc1.stride, lc1.offset)
       val1 = ((EXT_T) c[i] > val1) ? c[i] : val1;
-      _MAX_OVERLOAD_64_FCT(val1, &retval, lc1.team_vals, lc1.td_ptr, lc1.rnv, k,
+      _overload_to_extern_max(val1, &retval, lc1.team_vals, lc1.td_ptr, lc1.rnv, k,
                            _XTEAM_NUM_TEAMS);
     }
   } else {
@@ -589,7 +582,7 @@ T sim_max_extended(T *c, int warp_size) {
       _BIG_JUMP_LOOP(_XTEAM_NUM_TEAMS, lc1.size, lc1.stride, lc1.offset)
       val1 = ((EXT_T) c[i] > val1) ? c[i] : val1;
       _LIMIT_JUMP_TO_CUDA_REDUCED_THREADS(_XTEAM_NUM_TEAMS)
-      _MAX_OVERLOAD_32_FCT(val1, &retval, lc1.team_vals, lc1.td_ptr, lc1.rnv, k,
+      _overload_to_extern_max(val1, &retval, lc1.team_vals, lc1.td_ptr, lc1.rnv, k,
                            _XTEAM_NUM_TEAMS);
     }
   }
@@ -631,7 +624,7 @@ T sim_min(T *c, int warp_size) {
       T val2 = lc2.rnv;
       _BIG_JUMP_LOOP(_XTEAM_NUM_TEAMS, lc2.size, lc2.stride, lc2.offset)
       val2 = (c[i] < val2) ? c[i] : val2;
-      _MIN_OVERLOAD_64_FCT(val2, &retval, lc2.team_vals, lc2.td_ptr, lc2.rnv, k,
+      _overload_to_extern_min(val2, &retval, lc2.team_vals, lc2.td_ptr, lc2.rnv, k,
                            _XTEAM_NUM_TEAMS);
     }
   } else {
@@ -644,7 +637,7 @@ T sim_min(T *c, int warp_size) {
       _BIG_JUMP_LOOP(_XTEAM_NUM_TEAMS, lc2.size, lc2.stride, lc2.offset)
       val2 = (c[i] < val2) ? c[i] : val2;
       _LIMIT_JUMP_TO_CUDA_REDUCED_THREADS(_XTEAM_NUM_TEAMS)
-      _MIN_OVERLOAD_32_FCT(val2, &retval, lc2.team_vals, lc2.td_ptr, lc2.rnv, k,
+      _overload_to_extern_min(val2, &retval, lc2.team_vals, lc2.td_ptr, lc2.rnv, k,
                            _XTEAM_NUM_TEAMS);
     }
   }
@@ -685,7 +678,7 @@ T sim_min_extended(T *c, int warp_size) {
       EXT_T val2 = lc2.rnv;
       _BIG_JUMP_LOOP(_XTEAM_NUM_TEAMS, lc2.size, lc2.stride, lc2.offset)
       val2 = ((EXT_T) c[i] < val2) ? c[i] : val2;
-      _MIN_OVERLOAD_64_FCT(val2, &retval, lc2.team_vals, lc2.td_ptr, lc2.rnv, k,
+      _overload_to_extern_min(val2, &retval, lc2.team_vals, lc2.td_ptr, lc2.rnv, k,
                            _XTEAM_NUM_TEAMS);
     }
   } else {
@@ -696,7 +689,7 @@ T sim_min_extended(T *c, int warp_size) {
       _BIG_JUMP_LOOP(_XTEAM_NUM_TEAMS, lc2.size, lc2.stride, lc2.offset)
       val2 = ((EXT_T)c[i] < val2) ? c[i] : val2;
       _LIMIT_JUMP_TO_CUDA_REDUCED_THREADS(_XTEAM_NUM_TEAMS)
-      _MIN_OVERLOAD_32_FCT(val2, &retval, lc2.team_vals, lc2.td_ptr, lc2.rnv, k,
+      _overload_to_extern_min(val2, &retval, lc2.team_vals, lc2.td_ptr, lc2.rnv, k,
                            _XTEAM_NUM_TEAMS);
     }
   }
@@ -1169,8 +1162,8 @@ template <typename T> T sim_dot_complex(T *a, T *b, int warp_size) {
       T val3 = lc3.rnv;
       _BIG_JUMP_LOOP(_XTEAM_NUM_TEAMS, lc3.size, lc3.stride, lc3.offset)
       val3 += a[i] * b[i];
-      _SUM_OVERLOAD_64_FCT(val3, &sum, lc3.team_vals, lc3.td_ptr, lc3.rnv, k,
-                           _XTEAM_NUM_TEAMS);
+      _overload_to_extern_sum(val3, &sum, lc3.team_vals, lc3.td_ptr, lc3.rnv, k,
+                              _XTEAM_NUM_TEAMS);
     }
   } else {
 #pragma omp target teams distribute parallel for num_teams(_XTEAM_NUM_TEAMS)   \
@@ -1182,8 +1175,8 @@ template <typename T> T sim_dot_complex(T *a, T *b, int warp_size) {
       _BIG_JUMP_LOOP(_XTEAM_NUM_TEAMS, lc3.size, lc3.stride, lc3.offset)
       val3 += a[i] * b[i];
       _LIMIT_JUMP_TO_CUDA_REDUCED_THREADS(_XTEAM_NUM_TEAMS)
-      _SUM_OVERLOAD_32_FCT(val3, &sum, lc3.team_vals, lc3.td_ptr, lc3.rnv, k,
-                           _XTEAM_NUM_TEAMS);
+      _overload_to_extern_sum(val3, &sum, lc3.team_vals, lc3.td_ptr, lc3.rnv, k,
+                              _XTEAM_NUM_TEAMS);
     }
   }
   return sum;

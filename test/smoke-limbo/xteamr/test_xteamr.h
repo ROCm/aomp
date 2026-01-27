@@ -18,67 +18,35 @@
 #if defined(__AMDGCN__) || defined(__NVPTX__)
 extern "C" {
 #define _RF_LDS volatile __attribute__((address_space(3)))
-void _INLINE_ATTR_  __kmpc_xteamr_d_16x64
+void _INLINE_ATTR_  __kmpc_xteamr_d
    (double v, double *r_ptr, double *tvs, uint32_t *td, void (*_rf)(double *, double),
       void (*_rf_lds)(_RF_LDS double *, _RF_LDS double *), const double iv,
       const uint64_t k, const uint32_t numteams, int32_t Scope = 1 /* device */);
-void _INLINE_ATTR_  __kmpc_xteamr_f_16x64
+void _INLINE_ATTR_  __kmpc_xteamr_f
    (float v, float *r_ptr, float *tvs, uint32_t *td, void (*_rf)(float *, float),
       void (*_rf_lds)(_RF_LDS float *, _RF_LDS float *), const float iv,
       const uint64_t k, const uint32_t numteams, int32_t Scope = 1 /* device */);
-void _INLINE_ATTR_  __kmpc_xteamr_cd_16x64
+void _INLINE_ATTR_  __kmpc_xteamr_cd
    (_CD v, _CD *r_ptr, _CD *tvs, uint32_t *td, void (*_rf)(_CD *, _CD),
       void (*_rf_lds)(_RF_LDS _CD *, _RF_LDS _CD *), const _CD iv,
       const uint64_t k, const uint32_t numteams, int32_t Scope = 1 /* device */);
-void _INLINE_ATTR_  __kmpc_xteamr_cf_16x64
+void _INLINE_ATTR_  __kmpc_xteamr_cf
    (_CF v, _CF *r_ptr, _CF *tvs, uint32_t *td, void (*_rf)(_CF *, _CF),
       void (*_rf_lds)(_RF_LDS _CF *, _RF_LDS _CF *), const _CF iv,
       const uint64_t k, const uint32_t numteams, int32_t Scope = 1 /* device */);
-void _INLINE_ATTR_  __kmpc_xteamr_i_16x64
+void _INLINE_ATTR_  __kmpc_xteamr_i
    (int v, int *r_ptr, int *tvs, uint32_t *td, void (*_rf)(int *, int),
       void (*_rf_lds)(_RF_LDS int *, _RF_LDS int *), const int iv,
       const uint64_t k, const uint32_t numteams, int32_t Scope = 1 /* device */);
-void _INLINE_ATTR_  __kmpc_xteamr_ui_16x64
+void _INLINE_ATTR_  __kmpc_xteamr_ui
    (_UI v, _UI *r_ptr, _UI *tvs, uint32_t *td, void (*_rf)(_UI *, _UI),
       void (*_rf_lds)(_RF_LDS _UI *, _RF_LDS _UI *), const _UI iv,
       const uint64_t k, const uint32_t numteams, int32_t Scope = 1 /* device */);
-void _INLINE_ATTR_  __kmpc_xteamr_l_16x64
+void _INLINE_ATTR_  __kmpc_xteamr_l
    (long v, long *r_ptr, long *tvs, uint32_t *td, void (*_rf)(long *, long),
       void (*_rf_lds)(_RF_LDS long *, _RF_LDS long *), const long iv,
       const uint64_t k, const uint32_t numteams, int32_t Scope = 1 /* device */);
-void _INLINE_ATTR_  __kmpc_xteamr_ul_16x64
-   (_UL v, _UL *r_ptr, _UL *tvs, uint32_t *td, void (*_rf)(_UL *, _UL),
-      void (*_rf_lds)(_RF_LDS _UL *, _RF_LDS _UL *), const _UL iv,
-      const uint64_t k, const uint32_t numteams, int32_t Scope = 1 /* device */);
-void _INLINE_ATTR_  __kmpc_xteamr_d_32x32
-   (double v, double *r_ptr, double *tvs, uint32_t *td, void (*_rf)(double *, double),
-      void (*_rf_lds)(_RF_LDS double *, _RF_LDS double *), const double iv,
-      const uint64_t k, const uint32_t numteams, int32_t Scope = 1 /* device */);
-void _INLINE_ATTR_  __kmpc_xteamr_f_32x32
-   (float v, float *r_ptr, float *tvs, uint32_t *td, void (*_rf)(float *, float),
-      void (*_rf_lds)(_RF_LDS float *, _RF_LDS float *), const float iv,
-      const uint64_t k, const uint32_t numteams, int32_t Scope = 1 /* device */);
-void _INLINE_ATTR_  __kmpc_xteamr_cd_32x32
-   (_CD v, _CD *r_ptr, _CD *tvs, uint32_t *td, void (*_rf)(_CD *, _CD),
-      void (*_rf_lds)(_RF_LDS _CD *, _RF_LDS _CD *), const _CD iv,
-      const uint64_t k, const uint32_t numteams, int32_t Scope = 1 /* device */);
-void _INLINE_ATTR_  __kmpc_xteamr_cf_32x32
-   (_CF v, _CF *r_ptr, _CF *tvs, uint32_t *td, void (*_rf)(_CF *, _CF),
-      void (*_rf_lds)(_RF_LDS _CF *, _RF_LDS _CF *), const _CF iv,
-      const uint64_t k, const uint32_t numteams, int32_t Scope = 1 /* device */);
-void _INLINE_ATTR_  __kmpc_xteamr_i_32x32
-   (int v, int *r_ptr, int *tvs, uint32_t *td, void (*_rf)(int *, int),
-      void (*_rf_lds)(_RF_LDS int *, _RF_LDS int *), const int iv,
-      const uint64_t k, const uint32_t numteams, int32_t Scope = 1 /* device */);
-void _INLINE_ATTR_  __kmpc_xteamr_ui_32x32
-   (_UI v, _UI *r_ptr, _UI *tvs, uint32_t *td, void (*_rf)(_UI *, _UI),
-      void (*_rf_lds)(_RF_LDS _UI *, _RF_LDS _UI *), const _UI iv,
-      const uint64_t k, const uint32_t numteams, int32_t Scope = 1 /* device */);
-void _INLINE_ATTR_  __kmpc_xteamr_l_32x32
-   (long v, long *r_ptr, long *tvs, uint32_t *td, void (*_rf)(long *, long),
-      void (*_rf_lds)(_RF_LDS long *, _RF_LDS long *), const long iv,
-      const uint64_t k, const uint32_t numteams, int32_t Scope = 1 /* device */);
-void _INLINE_ATTR_  __kmpc_xteamr_ul_32x32
+void _INLINE_ATTR_  __kmpc_xteamr_ul
    (_UL v, _UL *r_ptr, _UL *tvs, uint32_t *td, void (*_rf)(_UL *, _UL),
       void (*_rf_lds)(_RF_LDS _UL *, _RF_LDS _UL *), const _UL iv,
       const uint64_t k, const uint32_t numteams, int32_t Scope = 1 /* device */);
@@ -133,67 +101,35 @@ int __kmpc_get_warp_size();
 extern "C" {
 #undef _RF_LDS
 #define _RF_LDS
-void  __kmpc_xteamr_d_16x64
+void  __kmpc_xteamr_d
    (double v, double *r_ptr, double *tvs, uint32_t *td, void (*_rf)(double *, double),
       void (*_rf_lds)(_RF_LDS double *, _RF_LDS double *), const double iv,
       const uint64_t k, const uint32_t numteams, int32_t Scope = 1 /* device */){};
-void  __kmpc_xteamr_f_16x64
+void  __kmpc_xteamr_f
    (float v, float *r_ptr, float *tvs, uint32_t *td, void (*_rf)(float *, float),
       void (*_rf_lds)(_RF_LDS float *, _RF_LDS float *), const float iv,
       const uint64_t k, const uint32_t numteams, int32_t Scope = 1 /* device */){};
-void  __kmpc_xteamr_cd_16x64
+void  __kmpc_xteamr_cd
    (_CD v, _CD *r_ptr, _CD *tvs, uint32_t *td, void (*_rf)(_CD *, _CD),
       void (*_rf_lds)(_RF_LDS _CD *, _RF_LDS _CD *), const _CD iv,
       const uint64_t k, const uint32_t numteams, int32_t Scope = 1 /* device */){};
-void  __kmpc_xteamr_cf_16x64
+void  __kmpc_xteamr_cf
    (_CF v, _CF *r_ptr, _CF *tvs, uint32_t *td, void (*_rf)(_CF *, _CF),
       void (*_rf_lds)(_RF_LDS _CF *, _RF_LDS _CF *), const _CF iv,
       const uint64_t k, const uint32_t numteams, int32_t Scope = 1 /* device */){};
-void  __kmpc_xteamr_i_16x64
+void  __kmpc_xteamr_i
    (int v, int *r_ptr, int *tvs, uint32_t *td, void (*_rf)(int *, int),
       void (*_rf_lds)(_RF_LDS int *, _RF_LDS int *), const int iv,
       const uint64_t k, const uint32_t numteams, int32_t Scope = 1 /* device */){};
-void  __kmpc_xteamr_ui_16x64
+void  __kmpc_xteamr_ui
    (_UI v, _UI *r_ptr, _UI *tvs, uint32_t *td, void (*_rf)(_UI *, _UI),
       void (*_rf_lds)(_RF_LDS _UI *, _RF_LDS _UI *), const _UI iv,
       const uint64_t k, const uint32_t numteams, int32_t Scope = 1 /* device */){};
-void  __kmpc_xteamr_l_16x64
+void  __kmpc_xteamr_l
    (long v, long *r_ptr, long *tvs, uint32_t *td, void (*_rf)(long *, long),
       void (*_rf_lds)(_RF_LDS long *, _RF_LDS long *), const long iv,
       const uint64_t k, const uint32_t numteams, int32_t Scope = 1 /* device */){};
-void  __kmpc_xteamr_ul_16x64
-   (_UL v, _UL *r_ptr, _UL *tvs, uint32_t *td, void (*_rf)(_UL *, _UL),
-      void (*_rf_lds)(_RF_LDS _UL *, _RF_LDS _UL *), const _UL iv,
-      const uint64_t k, const uint32_t numteams, int32_t Scope = 1 /* device */){};
-void  __kmpc_xteamr_d_32x32
-   (double v, double *r_ptr, double *tvs, uint32_t *td, void (*_rf)(double *, double),
-      void (*_rf_lds)(_RF_LDS double *, _RF_LDS double *), const double iv,
-      const uint64_t k, const uint32_t numteams, int32_t Scope = 1 /* device */){};
-void  __kmpc_xteamr_f_32x32
-   (float v, float *r_ptr, float *tvs, uint32_t *td, void (*_rf)(float *, float),
-      void (*_rf_lds)(_RF_LDS float *, _RF_LDS float *), const float iv,
-      const uint64_t k, const uint32_t numteams, int32_t Scope = 1 /* device */){};
-void  __kmpc_xteamr_cd_32x32
-   (_CD v, _CD *r_ptr, _CD *tvs, uint32_t *td, void (*_rf)(_CD *, _CD),
-      void (*_rf_lds)(_RF_LDS _CD *, _RF_LDS _CD *), const _CD iv,
-      const uint64_t k, const uint32_t numteams, int32_t Scope = 1 /* device */){};
-void  __kmpc_xteamr_cf_32x32
-   (_CF v, _CF *r_ptr, _CF *tvs, uint32_t *td, void (*_rf)(_CF *, _CF),
-      void (*_rf_lds)(_RF_LDS _CF *, _RF_LDS _CF *), const _CF iv,
-      const uint64_t k, const uint32_t numteams, int32_t Scope = 1 /* device */){};
-void  __kmpc_xteamr_i_32x32
-   (int v, int *r_ptr, int *tvs, uint32_t *td, void (*_rf)(int *, int),
-      void (*_rf_lds)(_RF_LDS int *, _RF_LDS int *), const int iv,
-      const uint64_t k, const uint32_t numteams, int32_t Scope = 1 /* device */){};
-void  __kmpc_xteamr_ui_32x32
-   (_UI v, _UI *r_ptr, _UI *tvs, uint32_t *td, void (*_rf)(_UI *, _UI),
-      void (*_rf_lds)(_RF_LDS _UI *, _RF_LDS _UI *), const _UI iv,
-      const uint64_t k, const uint32_t numteams, int32_t Scope = 1 /* device */){};
-void  __kmpc_xteamr_l_32x32
-   (long v, long *r_ptr, long *tvs, uint32_t *td, void (*_rf)(long *, long),
-      void (*_rf_lds)(_RF_LDS long *, _RF_LDS long *), const long iv,
-      const uint64_t k, const uint32_t numteams, int32_t Scope = 1 /* device */){};
-void  __kmpc_xteamr_ul_32x32
+void  __kmpc_xteamr_ul
    (_UL v, _UL *r_ptr, _UL *tvs, uint32_t *td, void (*_rf)(_UL *, _UL),
       void (*_rf_lds)(_RF_LDS _UL *, _RF_LDS _UL *), const _UL iv,
       const uint64_t k, const uint32_t numteams, int32_t Scope = 1 /* device */){};
@@ -248,165 +184,85 @@ int __kmpc_get_warp_size(){
 // These overloaded function definitions are for this test framework 
 // (xteamr.cpp) to invoke the extern DexviceRTL helper functions.
 
-void _INLINE_ATTR_ _overload_to_extern_sum_16x64
+void _INLINE_ATTR_ _overload_to_extern_sum
    (double val, double *rv, double *tvs, uint32_t *td, const double iv, const uint64_t k, const uint32_t numteams)
-   { __kmpc_xteamr_d_16x64(val, rv, tvs, td,
+   { __kmpc_xteamr_d(val, rv, tvs, td,
       __kmpc_rfun_sum_d, __kmpc_rfun_sum_lds_d, iv, k, numteams);}
-void _INLINE_ATTR_ _overload_to_extern_sum_16x64
+void _INLINE_ATTR_ _overload_to_extern_sum
    (float val, float *rv, float *tvs, uint32_t *td, const float iv, const uint64_t k, const uint32_t numteams)
-   { __kmpc_xteamr_f_16x64(val, rv, tvs, td,
+   { __kmpc_xteamr_f(val, rv, tvs, td,
       __kmpc_rfun_sum_f, __kmpc_rfun_sum_lds_f, iv, k, numteams);}
-void _INLINE_ATTR_ _overload_to_extern_sum_16x64
+void _INLINE_ATTR_ _overload_to_extern_sum
    (_CD val, _CD *rv, _CD *tvs, uint32_t *td, const _CD iv, const uint64_t k, const uint32_t numteams)
-   { __kmpc_xteamr_cd_16x64(val, rv, tvs, td,
+   { __kmpc_xteamr_cd(val, rv, tvs, td,
       __kmpc_rfun_sum_cd, __kmpc_rfun_sum_lds_cd, iv, k, numteams);}
-void _INLINE_ATTR_ _overload_to_extern_sum_16x64
+void _INLINE_ATTR_ _overload_to_extern_sum
    (_CF val, _CF *rv, _CF *tvs, uint32_t *td, const _CF iv, const uint64_t k, const uint32_t numteams)
-   { __kmpc_xteamr_cf_16x64(val, rv, tvs, td,
+   { __kmpc_xteamr_cf(val, rv, tvs, td,
       __kmpc_rfun_sum_cf, __kmpc_rfun_sum_lds_cf, iv, k, numteams);}
-void _INLINE_ATTR_ _overload_to_extern_sum_16x64
+void _INLINE_ATTR_ _overload_to_extern_sum
    (int val, int *rv, int *tvs, uint32_t *td, const int iv, const uint64_t k, const uint32_t numteams)
-   { __kmpc_xteamr_i_16x64(val, rv, tvs, td,
+   { __kmpc_xteamr_i(val, rv, tvs, td,
       __kmpc_rfun_sum_i, __kmpc_rfun_sum_lds_i, iv, k, numteams);}
-void _INLINE_ATTR_ _overload_to_extern_sum_16x64
+void _INLINE_ATTR_ _overload_to_extern_sum
    (_UI val, _UI *rv, _UI *tvs, uint32_t *td, const _UI iv, const uint64_t k, const uint32_t numteams)
-   { __kmpc_xteamr_ui_16x64(val, rv, tvs, td,
+   { __kmpc_xteamr_ui(val, rv, tvs, td,
       __kmpc_rfun_sum_ui, __kmpc_rfun_sum_lds_ui, iv, k, numteams);}
-void _INLINE_ATTR_ _overload_to_extern_sum_16x64
+void _INLINE_ATTR_ _overload_to_extern_sum
    (long val, long *rv, long *tvs, uint32_t *td, const long iv, const uint64_t k, const uint32_t numteams)
-   { __kmpc_xteamr_l_16x64(val, rv, tvs, td,
+   { __kmpc_xteamr_l(val, rv, tvs, td,
       __kmpc_rfun_sum_l, __kmpc_rfun_sum_lds_l, iv, k, numteams);}
-void _INLINE_ATTR_ _overload_to_extern_sum_16x64
+void _INLINE_ATTR_ _overload_to_extern_sum
    (_UL val, _UL *rv, _UL *tvs, uint32_t *td, const _UL iv, const uint64_t k, const uint32_t numteams)
-   { __kmpc_xteamr_ul_16x64(val, rv, tvs, td,
+   { __kmpc_xteamr_ul(val, rv, tvs, td,
       __kmpc_rfun_sum_ul, __kmpc_rfun_sum_lds_ul, iv, k, numteams);}
-void _INLINE_ATTR_ _overload_to_extern_sum_32x32
+void _INLINE_ATTR_ _overload_to_extern_max
    (double val, double *rv, double *tvs, uint32_t *td, const double iv, const uint64_t k, const uint32_t numteams)
-   { __kmpc_xteamr_d_32x32(val, rv, tvs, td,
-      __kmpc_rfun_sum_d, __kmpc_rfun_sum_lds_d, iv, k, numteams);}
-void _INLINE_ATTR_ _overload_to_extern_sum_32x32
-   (float val, float *rv, float *tvs, uint32_t *td, const float iv, const uint64_t k, const uint32_t numteams)
-   { __kmpc_xteamr_f_32x32(val, rv, tvs, td,
-      __kmpc_rfun_sum_f, __kmpc_rfun_sum_lds_f, iv, k, numteams);}
-void _INLINE_ATTR_ _overload_to_extern_sum_32x32
-   (_CD val, _CD *rv, _CD *tvs, uint32_t *td, const _CD iv, const uint64_t k, const uint32_t numteams)
-   { __kmpc_xteamr_cd_32x32(val, rv, tvs, td,
-      __kmpc_rfun_sum_cd, __kmpc_rfun_sum_lds_cd, iv, k, numteams);}
-void _INLINE_ATTR_ _overload_to_extern_sum_32x32
-   (_CF val, _CF *rv, _CF *tvs, uint32_t *td, const _CF iv, const uint64_t k, const uint32_t numteams)
-   { __kmpc_xteamr_cf_32x32(val, rv, tvs, td,
-      __kmpc_rfun_sum_cf, __kmpc_rfun_sum_lds_cf, iv, k, numteams);}
-void _INLINE_ATTR_ _overload_to_extern_sum_32x32
-   (int val, int *rv, int *tvs, uint32_t *td, const int iv, const uint64_t k, const uint32_t numteams)
-   { __kmpc_xteamr_i_32x32(val, rv, tvs, td,
-      __kmpc_rfun_sum_i, __kmpc_rfun_sum_lds_i, iv, k, numteams);}
-void _INLINE_ATTR_ _overload_to_extern_sum_32x32
-   (_UI val, _UI *rv, _UI *tvs, uint32_t *td, const _UI iv, const uint64_t k, const uint32_t numteams)
-   { __kmpc_xteamr_ui_32x32(val, rv, tvs, td,
-      __kmpc_rfun_sum_ui, __kmpc_rfun_sum_lds_ui, iv, k, numteams);}
-void _INLINE_ATTR_ _overload_to_extern_sum_32x32
-   (long val, long *rv, long *tvs, uint32_t *td, const long iv, const uint64_t k, const uint32_t numteams)
-   { __kmpc_xteamr_l_32x32(val, rv, tvs, td,
-      __kmpc_rfun_sum_l, __kmpc_rfun_sum_lds_l, iv, k, numteams);}
-void _INLINE_ATTR_ _overload_to_extern_sum_32x32
-   (_UL val, _UL *rv, _UL *tvs, uint32_t *td, const _UL iv, const uint64_t k, const uint32_t numteams)
-   { __kmpc_xteamr_ul_32x32(val, rv, tvs, td,
-      __kmpc_rfun_sum_ul, __kmpc_rfun_sum_lds_ul, iv, k, numteams);}
-void _INLINE_ATTR_ _overload_to_extern_max_16x64
-   (double val, double *rv, double *tvs, uint32_t *td, const double iv, const uint64_t k, const uint32_t numteams)
-   { __kmpc_xteamr_d_16x64(val, rv, tvs, td,
+   { __kmpc_xteamr_d(val, rv, tvs, td,
       __kmpc_rfun_max_d, __kmpc_rfun_max_lds_d, iv, k, numteams);}
-void _INLINE_ATTR_ _overload_to_extern_max_16x64
+void _INLINE_ATTR_ _overload_to_extern_max
    (float val, float *rv, float *tvs, uint32_t *td, const float iv, const uint64_t k, const uint32_t numteams)
-   { __kmpc_xteamr_f_16x64(val, rv, tvs, td,
+   { __kmpc_xteamr_f(val, rv, tvs, td,
       __kmpc_rfun_max_f, __kmpc_rfun_max_lds_f, iv, k, numteams);}
-void _INLINE_ATTR_ _overload_to_extern_max_16x64
+void _INLINE_ATTR_ _overload_to_extern_max
    (int val, int *rv, int *tvs, uint32_t *td, const int iv, const uint64_t k, const uint32_t numteams)
-   { __kmpc_xteamr_i_16x64(val, rv, tvs, td,
+   { __kmpc_xteamr_i(val, rv, tvs, td,
       __kmpc_rfun_max_i, __kmpc_rfun_max_lds_i, iv, k, numteams);}
-void _INLINE_ATTR_ _overload_to_extern_max_16x64
+void _INLINE_ATTR_ _overload_to_extern_max
    (_UI val, _UI *rv, _UI *tvs, uint32_t *td, const _UI iv, const uint64_t k, const uint32_t numteams)
-   { __kmpc_xteamr_ui_16x64(val, rv, tvs, td,
+   { __kmpc_xteamr_ui(val, rv, tvs, td,
       __kmpc_rfun_max_ui, __kmpc_rfun_max_lds_ui, iv, k, numteams);}
-void _INLINE_ATTR_ _overload_to_extern_max_16x64
+void _INLINE_ATTR_ _overload_to_extern_max
    (long val, long *rv, long *tvs, uint32_t *td, const long iv, const uint64_t k, const uint32_t numteams)
-   { __kmpc_xteamr_l_16x64(val, rv, tvs, td,
+   { __kmpc_xteamr_l(val, rv, tvs, td,
       __kmpc_rfun_max_l, __kmpc_rfun_max_lds_l, iv, k, numteams);}
-void _INLINE_ATTR_ _overload_to_extern_max_16x64
+void _INLINE_ATTR_ _overload_to_extern_max
    (_UL val, _UL *rv, _UL *tvs, uint32_t *td, const _UL iv, const uint64_t k, const uint32_t numteams)
-   { __kmpc_xteamr_ul_16x64(val, rv, tvs, td,
+   { __kmpc_xteamr_ul(val, rv, tvs, td,
       __kmpc_rfun_max_ul, __kmpc_rfun_max_lds_ul, iv, k, numteams);}
-void _INLINE_ATTR_ _overload_to_extern_max_32x32
+void _INLINE_ATTR_ _overload_to_extern_min
    (double val, double *rv, double *tvs, uint32_t *td, const double iv, const uint64_t k, const uint32_t numteams)
-   { __kmpc_xteamr_d_32x32(val, rv, tvs, td,
-      __kmpc_rfun_max_d, __kmpc_rfun_max_lds_d, iv, k, numteams);}
-void _INLINE_ATTR_ _overload_to_extern_max_32x32
-   (float val, float *rv, float *tvs, uint32_t *td, const float iv, const uint64_t k, const uint32_t numteams)
-   { __kmpc_xteamr_f_32x32(val, rv, tvs, td,
-      __kmpc_rfun_max_f, __kmpc_rfun_max_lds_f, iv, k, numteams);}
-void _INLINE_ATTR_ _overload_to_extern_max_32x32
-   (int val, int *rv, int *tvs, uint32_t *td, const int iv, const uint64_t k, const uint32_t numteams)
-   { __kmpc_xteamr_i_32x32(val, rv, tvs, td,
-      __kmpc_rfun_max_i, __kmpc_rfun_max_lds_i, iv, k, numteams);}
-void _INLINE_ATTR_ _overload_to_extern_max_32x32
-   (_UI val, _UI *rv, _UI *tvs, uint32_t *td, const _UI iv, const uint64_t k, const uint32_t numteams)
-   { __kmpc_xteamr_ui_32x32(val, rv, tvs, td,
-      __kmpc_rfun_max_ui, __kmpc_rfun_max_lds_ui, iv, k, numteams);}
-void _INLINE_ATTR_ _overload_to_extern_max_32x32
-   (long val, long *rv, long *tvs, uint32_t *td, const long iv, const uint64_t k, const uint32_t numteams)
-   { __kmpc_xteamr_l_32x32(val, rv, tvs, td,
-      __kmpc_rfun_max_l, __kmpc_rfun_max_lds_l, iv, k, numteams);}
-void _INLINE_ATTR_ _overload_to_extern_max_32x32
-   (_UL val, _UL *rv, _UL *tvs, uint32_t *td, const _UL iv, const uint64_t k, const uint32_t numteams)
-   { __kmpc_xteamr_ul_32x32(val, rv, tvs, td,
-      __kmpc_rfun_max_ul, __kmpc_rfun_max_lds_ul, iv, k, numteams);}
-void _INLINE_ATTR_ _overload_to_extern_min_16x64
-   (double val, double *rv, double *tvs, uint32_t *td, const double iv, const uint64_t k, const uint32_t numteams)
-   { __kmpc_xteamr_d_16x64(val, rv, tvs, td,
+   { __kmpc_xteamr_d(val, rv, tvs, td,
       __kmpc_rfun_min_d, __kmpc_rfun_min_lds_d, iv, k, numteams);}
-void _INLINE_ATTR_ _overload_to_extern_min_16x64
+void _INLINE_ATTR_ _overload_to_extern_min
    (float val, float *rv, float *tvs, uint32_t *td, const float iv, const uint64_t k, const uint32_t numteams)
-   { __kmpc_xteamr_f_16x64(val, rv, tvs, td,
+   { __kmpc_xteamr_f(val, rv, tvs, td,
       __kmpc_rfun_min_f, __kmpc_rfun_min_lds_f, iv, k, numteams);}
-void _INLINE_ATTR_ _overload_to_extern_min_16x64
+void _INLINE_ATTR_ _overload_to_extern_min
    (int val, int *rv, int *tvs, uint32_t *td, const int iv, const uint64_t k, const uint32_t numteams)
-   { __kmpc_xteamr_i_16x64(val, rv, tvs, td,
+   { __kmpc_xteamr_i(val, rv, tvs, td,
       __kmpc_rfun_min_i, __kmpc_rfun_min_lds_i, iv, k, numteams);}
-void _INLINE_ATTR_ _overload_to_extern_min_16x64
+void _INLINE_ATTR_ _overload_to_extern_min
    (_UI val, _UI *rv, _UI *tvs, uint32_t *td, const _UI iv, const uint64_t k, const uint32_t numteams)
-   { __kmpc_xteamr_ui_16x64(val, rv, tvs, td,
+   { __kmpc_xteamr_ui(val, rv, tvs, td,
       __kmpc_rfun_min_ui, __kmpc_rfun_min_lds_ui, iv, k, numteams);}
-void _INLINE_ATTR_ _overload_to_extern_min_16x64
+void _INLINE_ATTR_ _overload_to_extern_min
    (long val, long *rv, long *tvs, uint32_t *td, const long iv, const uint64_t k, const uint32_t numteams)
-   { __kmpc_xteamr_l_16x64(val, rv, tvs, td,
+   { __kmpc_xteamr_l(val, rv, tvs, td,
       __kmpc_rfun_min_l, __kmpc_rfun_min_lds_l, iv, k, numteams);}
-void _INLINE_ATTR_ _overload_to_extern_min_16x64
+void _INLINE_ATTR_ _overload_to_extern_min
    (_UL val, _UL *rv, _UL *tvs, uint32_t *td, const _UL iv, const uint64_t k, const uint32_t numteams)
-   { __kmpc_xteamr_ul_16x64(val, rv, tvs, td,
-      __kmpc_rfun_min_ul, __kmpc_rfun_min_lds_ul, iv, k, numteams);}
-void _INLINE_ATTR_ _overload_to_extern_min_32x32
-   (double val, double *rv, double *tvs, uint32_t *td, const double iv, const uint64_t k, const uint32_t numteams)
-   { __kmpc_xteamr_d_32x32(val, rv, tvs, td,
-      __kmpc_rfun_min_d, __kmpc_rfun_min_lds_d, iv, k, numteams);}
-void _INLINE_ATTR_ _overload_to_extern_min_32x32
-   (float val, float *rv, float *tvs, uint32_t *td, const float iv, const uint64_t k, const uint32_t numteams)
-   { __kmpc_xteamr_f_32x32(val, rv, tvs, td,
-      __kmpc_rfun_min_f, __kmpc_rfun_min_lds_f, iv, k, numteams);}
-void _INLINE_ATTR_ _overload_to_extern_min_32x32
-   (int val, int *rv, int *tvs, uint32_t *td, const int iv, const uint64_t k, const uint32_t numteams)
-   { __kmpc_xteamr_i_32x32(val, rv, tvs, td,
-      __kmpc_rfun_min_i, __kmpc_rfun_min_lds_i, iv, k, numteams);}
-void _INLINE_ATTR_ _overload_to_extern_min_32x32
-   (_UI val, _UI *rv, _UI *tvs, uint32_t *td, const _UI iv, const uint64_t k, const uint32_t numteams)
-   { __kmpc_xteamr_ui_32x32(val, rv, tvs, td,
-      __kmpc_rfun_min_ui, __kmpc_rfun_min_lds_ui, iv, k, numteams);}
-void _INLINE_ATTR_ _overload_to_extern_min_32x32
-   (long val, long *rv, long *tvs, uint32_t *td, const long iv, const uint64_t k, const uint32_t numteams)
-   { __kmpc_xteamr_l_32x32(val, rv, tvs, td,
-      __kmpc_rfun_min_l, __kmpc_rfun_min_lds_l, iv, k, numteams);}
-void _INLINE_ATTR_ _overload_to_extern_min_32x32
-   (_UL val, _UL *rv, _UL *tvs, uint32_t *td, const _UL iv, const uint64_t k, const uint32_t numteams)
-   { __kmpc_xteamr_ul_32x32(val, rv, tvs, td,
+   { __kmpc_xteamr_ul(val, rv, tvs, td,
       __kmpc_rfun_min_ul, __kmpc_rfun_min_lds_ul, iv, k, numteams);}
 #undef _CD
 #undef _CF
