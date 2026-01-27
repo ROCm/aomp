@@ -22,6 +22,7 @@ declare -A assocSuite=(
 ["openmpapps"]=" 2 minutes"
 )
 
+tmpfile=/tmp/smoke-$$
 export PATH=$PATH:/opt/rocm/bin
 echo "PATH=" $PATH
 which lspci
@@ -44,7 +45,7 @@ if [ "$?" -ne 0 ]; then
 else
   echo "SPECscripts are available"
 fi
- 
+
 if [ "$SKIP_QUICK" == "" ]; then
 ./rocm_quick_check.sh
 fi
@@ -178,51 +179,66 @@ echo "Checking plugin"
 LIBOMPTARGET_DEBUG=1 OMP_TARGET_OFFLOAD=MANDATORY make run 2>&1 | grep "libomptarget.rtl.amdgpu"
 echo
 
+function checkRes() {
+  tail -100 $1
+  actual=`grep "Passing tests: " $1 | awk -F'[ /]' '{print $3}'`
+  expect=`grep "Passing tests: " $1 | awk -F'[ /]' '{print $4}'`
+  if [ "$actual" == "$expect" ]; then
+    return 0;
+  else
+    return 1;
+  fi
+}
+
 function smoke-fort(){
   echo "%================ smoke-fort"
   cd "$aompdir"/test/smoke-fort
-  ./check_smoke_fort.sh
-  if [ "$?" -eq "0" ]; then
+  ./check_smoke_fort.sh > $tmpfile 2>&1
+  checkRes $tmpfile
+  if [ "$?" == 0 ]; then
      echo "Passed smoke-fort">> $TLOG
-  else 
+  else
      echo "FAILED smoke-fort">> $TLOG
-     scriptfails=1  
+     scriptfails=1
   fi
 }
 
 function smoke(){
   echo "%================ smoke"
   cd "$aompdir"/test/smoke
-  ./check_smoke.sh
-  if [ "$?" -eq "0" ]; then
+  ./check_smoke.sh > $tmpfile 2>&1
+  checkRes $tmpfile
+  if [ "$?" == 0 ]; then
      echo "Passed smoke" >> $TLOG
-  else 
+  else
      echo "FAILED smoke" >> $TLOG
-     scriptfails=1  
+     scriptfails=1
   fi
 }
 
 function smoke-fort-limbo(){
   echo "%================ smoke-fort-limbo"
   cd "$aompdir"/test/smoke-fort-limbo
-  ./check_smoke_fort_limbo.sh
-  if [ "$?" -eq "0" ]; then
+  ./check_smoke_fort_limbo.sh > $tmpfile 2>&1
+  checkRes $tmpfile
+  if [ "$?" == 0 ]; then
      echo "Passed smoke-fort_limbo" >> $TLOG
-  else 
+  else
      echo "FAILED smoke-fort_limbo" >> $TLOG
-     scriptfails=1  
+     scriptfails=1
   fi
 }
 
 function smoke-limbo(){
   echo "%================ smoke-limbo"
   cd "$aompdir"/test/smoke-limbo
-  ./check_smoke_limbo.sh
-  if [ "$?" -eq "0" ]; then
+  ./check_smoke_limbo.sh > $tmpfile 2>&1
+  checkRes $tmpfile
+  if [ "$?" == 0 ]; then
      echo "Passed smoke-limbo" >> $TLOG
-  else 
+  else
      echo "FAILED smoke-limbo" >> $TLOG
-     scriptfails=1  
+     scriptfails=1
   fi
 }
 
@@ -232,11 +248,11 @@ function openmpapps(){
   cd "$AOMP_TEST_DIR"/openmpapps
   echo rockMPI=$MPI
   ./check_openmpapps.sh
-  if [ "$?" -eq "0" ]; then
+  if [ "$?" == 0 ]; then
      echo "Passed openmpapps" >> $TLOG
-  else 
+  else
      echo "FAILED openmpapps" >> $TLOG
-     scriptfails=1  
+     scriptfails=1
   fi
 }
 
@@ -244,12 +260,12 @@ function nekbone(){
   echo "%================ nekbone"
   # -----Run Nekbone-----
   cd "$aompdir"/bin
-  ( VERBOSE=0 ./run_nekbone.sh ) 
-  if [ "$?" -eq "0" ]; then
+  ( VERBOSE=0 ./run_nekbone.sh )
+  if [ "$?" == 0 ]; then
      echo "Passed Nekbone" >> $TLOG
-  else 
+  else
      echo "FAILED Nekbone" >> $TLOG
-     scriptfails=1  
+     scriptfails=1
   fi
 }
 
@@ -262,11 +278,11 @@ function babelstream(){
   fi
   export RUN_OPTIONS="omp-default omp-fast"
   ./run_babelstream.sh
-  if [ "$?" -eq "0" ]; then
+  if [ "$?" == 0 ]; then
      echo "Passed Babelstream" >> $TLOG
-  else 
+  else
      echo "FAILED Babelstream" >> $TLOG
-     scriptfails=1  
+     scriptfails=1
   fi
 }
 
@@ -274,15 +290,15 @@ function fortran-babelstream(){
   echo "%================ fortran-babelstream"
   export AOMPHIP=$ROCMDIR
   cd "$aompdir"/bin
-  if [ $aomp -eq 0 ]; then
+  if [ "$?" != 0 ]; then
     export ROCMINFO_BINARY=$ROCMINF/bin/rocminfo
   fi
   ./run_fBabel.sh
-  if [ "$?" -eq "0" ]; then
+  if [ "$?" == 0 ]; then
      echo "Passed fortran-babelstream" >> $TLOG
-  else 
+  else
      echo "FAILED fortran-babelstream" >> $TLOG
-     scriptfails=1  
+     scriptfails=1
   fi
 }
 
@@ -303,7 +319,7 @@ function accel2023(){
     echo "Passed accel2023 $nsucc passes"  >> $TLOG
   else
     echo "FAILED accel2023 $nsucc passes"  >> $TLOG
-     scriptfails=1  
+     scriptfails=1
   fi
 }
 
@@ -325,7 +341,7 @@ function hpc2021(){
     echo "Passed hpc2021 $nsucc passes"  >> $TLOG
   else
     echo "FAILED hpc2021 $nsucc passes"  >> $TLOG
-     scriptfails=1  
+     scriptfails=1
   fi
 }
 
@@ -348,7 +364,7 @@ for suite in $SUITE_LIST; do
   echo "=== Running $suite `date` ==="
   echo "--- expected time: ${assocSuite[$suite]}"
   if [[ "$suite" =~ "smoke" ]]; then
-    $suite 2>&1 |tail -100
+    $suite # 2>&1 |tail -100
   else
     $suite
   fi
