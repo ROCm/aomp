@@ -30,6 +30,12 @@ else
   echo "/usr/bin/python is missing FAIL"
 fi
 
+if [ -e /usr/bin/python3 ]; then
+  echo "/usr/bin/python3 OK"
+else
+  echo "/usr/bin/python3 is missing FAIL"
+fi
+
 echo "Checking for libnvida compute pieces "
 if [ -e /usr/bin/dpkg ]; then
   dpkg -l | grep -i nvid
