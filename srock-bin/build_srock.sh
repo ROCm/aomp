@@ -97,6 +97,7 @@ echo "      THEROCK targets:   $_gfxsemicolons"
 echo "      THEROCK families:  $_gfamsemicolons"
 echo "      ROCm install dir:  $SROCK_INSTALL_DIR"
 echo "      TheRock Dir:       $SROCK_THEROCK_DIR"
+echo "      TheRock branch:    $SROCK_THEROCK_BRANCH"
 echo "      Compiler branch:   $SROCK_COMPILER_BRANCH"
 echo "      Build Mode:        $_build_srock_mode"
 echo "      SROCK config name: $SROCK_CONFIG"
@@ -133,6 +134,8 @@ if [ -d $SROCK_THEROCK_DIR ] ; then
    cd $SROCK_THEROCK_DIR
    echo "      --- git checkout . (clean TheRock repo for update and to be patched)"
    git checkout .
+   echo "      --- git checkout $SROCK_THEROCK_BRANCH"
+   git checkout $SROCK_THEROCK_BRANCH
    echo "      --- git pull"
    git pull
    echo "      --- git submodule update --remote --recursive"
@@ -144,8 +147,8 @@ if [ -d $SROCK_THEROCK_DIR ] ; then
 else
    cd $SROCK_REPOS
    echo
-   echo "===== git clone https://github.com/ROCm/TheRock.git -b main TheRock"
-   git clone https://github.com/ROCm/TheRock.git -b main TheRock
+   echo "===== git clone https://github.com/ROCm/TheRock.git -b $SROCK_THEROCK_BRANCH TheRock"
+   git clone https://github.com/ROCm/TheRock.git -b $SROCK_THEROCK_BRANCH TheRock
 fi
 
 cd $SROCK_THEROCK_DIR
@@ -322,6 +325,7 @@ echo "===== DONE $0 on $_end_date"
 echo "      THEROCK targets:   $_gfxsemicolons"
 echo "      ROCm install dir:  $SROCK_INSTALL_DIR"
 echo "      TheRock Dir:       $SROCK_THEROCK_DIR"
+echo "      TheRock branch:    $SROCK_THEROCK_BRANCH"
 echo "      Compiler branch:   $SROCK_COMPILER_BRANCH"
 echo "      Build Mode:        $_build_srock_mode"
 echo "      SROCK config name: $SROCK_CONFIG"
