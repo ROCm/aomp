@@ -86,6 +86,7 @@ int main() {
 /// CHECK-DAG: rec=
 /// CHECK-DAG: rec=
 /// CHECK-DAG: rec=
+/// CHECK-DAG: rec=
 /// CHECK-NOT: rec=
 
 /// CHECK-DAG: Success
