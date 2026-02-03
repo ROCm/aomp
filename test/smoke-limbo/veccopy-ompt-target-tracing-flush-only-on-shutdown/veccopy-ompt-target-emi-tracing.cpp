@@ -1,9 +1,8 @@
 /*
- * This test is run with LIBOMPTARGET_OMPT_FLUSH_ON_SHUTDOWN=false and
- * LIBOMPTARGET_OMPT_FLUSH_ON_BUFFER_FULL=false while doing explicit flushing
- * using ompt_flush_trace. The intention is to check whether trace records are
- * properly flushed when the program/tool uses the ompt_flush_trace API. There
- * should be 23 trace records returned to the tool.
+ * This test is run with LIBOMPTARGET_OMPT_FLUSH_ON_BUFFER_FULL=false and
+ * ompt_flush_trace is not invoked by the user/tool. The intention is to check
+ * whether trace records are properly flushed on shutdown. 23 trace records
+ * should be flushed during shutdown.
  */
 #include <assert.h>
 #include <omp.h>
@@ -34,17 +33,11 @@ int main() {
       a[j] = b[j];
   }
 
-  for (auto Dev : *DeviceMapPtr)
-    flush_trace(Dev);
-
 #pragma omp target teams distribute parallel for
   {
     for (int j = 0; j < N; j++)
       a[j] = b[j];
   }
-
-  for (auto Dev : *DeviceMapPtr)
-    flush_trace(Dev);
 
   int rc = 0;
   for (i = 0; i < N; i++)
@@ -86,12 +79,7 @@ int main() {
 /// CHECK-DAG: rec=
 /// CHECK-DAG: rec=
 /// CHECK-DAG: rec=
+/// CHECK-DAG: rec=
 /// CHECK-NOT: rec=
 
-/// CHECK-DAG: Success
-
-/// The user calls flush before printing success, so 
-/// no more records should be returned here.
-
-/// CHECK-NOT: rec=
 /// CHECK-NOT: host_op_id=0x0
