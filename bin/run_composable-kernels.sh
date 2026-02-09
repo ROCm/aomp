@@ -323,7 +323,9 @@ fi
 if [ "${ShouldRebuildCK}" == 'yes' ] || [ "${ShouldInstallCK}" == 'yes' ]; then
   pushd ${CK_BUILD} || exit 1
 
-  /usr/bin/time -o build-times.tlog ${CKBuildTool} -j ${CKBuildParallelism}
+  # -k parameter avoids stopping at first error
+  # ckProfiler target seems to depend on all library targets, which we want to build first
+  /usr/bin/time -o build-times.tlog ${CKBuildTool} -j ${CKBuildParallelism} -k 0 ckProfiler
   if [ $? -ne 0 ]; then
     exit 1
   fi
