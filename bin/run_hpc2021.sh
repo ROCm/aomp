@@ -44,6 +44,7 @@ export PATH=$HOME/openmp-utils/bin:$AOMP/../bin:$AOMP/../../bin:$PATH
 export MPI=$INST
 # strange UCX warnings in dockers using openmpi, this suppresses
 export UCX_LOG_LEVEL=error
+ulimit -t 200
 ./runOne
 rm -rf $INST
 #grep ratio= result/*.log
