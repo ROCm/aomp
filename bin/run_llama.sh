@@ -29,13 +29,15 @@ IsVerbose='no'
 
 while getopts "j:cbtv" opt; do
   case ${opt} in
-    j ) AOMP_BUILD_JOBS=${OPTARG} ;;
-    c ) DoConfigure='yes' ;;
-    b ) DoCompile='yes' ;;
-    t ) DoCTest='yes' ;;
-    v ) IsVerbose='yes' ;;
-    \? ) echo "Usage: cmd [-j build_jobs] [-c configure] [-b build] [-t ctest]"
-         exit 1 ;;
+  j) AOMP_BUILD_JOBS=${OPTARG} ;;
+  c) DoConfigure='yes' ;;
+  b) DoCompile='yes' ;;
+  t) DoCTest='yes' ;;
+  v) IsVerbose='yes' ;;
+  \?)
+    echo "Usage: cmd [-j build_jobs] [-c configure] [-b build] [-t ctest]"
+    exit 1
+    ;;
   esac
 done
 
