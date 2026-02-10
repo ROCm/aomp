@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -x
-CKRepoURL='https://github.com/ROCm/composable_kernel.git'
+CKRepoURL='https://github.com/ROCm/rocm-libraries.git'
 CKRepoBranchName='develop'
 CKBenchmarkRepoBranchName='main'
 
@@ -220,13 +220,14 @@ done
 
 # Set the default build prefix, i.e., build-top-level
 : ${CK_TOP:=$AOMP_REPOS_TEST/composable-kernels}
-: ${CK_REPO:=$CK_TOP/ck-src}
+: ${CK_REPO:=$CK_TOP/rocm-libraries}
+: ${CK_SRC:=$CK_REPO/projects/composablekernel}
 : ${CK_BUILD:=$CK_TOP/ck-build}
 : ${CK_BENCHMARK_REPO:=$CK_TOP/ck-benchmark}
 # Move this to its own place, to avoid potential permission conflicts with certain setups.
 : ${CK_BENCHMARK_RESULT:=$CK_TOP/ck-benchmark-result}
 : ${CK_INSTALL:=$CK_TOP/ck-install}
-: ${CK_CLIENT_EXAMPLES_SOURCE:=$CK_REPO/client_example}
+: ${CK_CLIENT_EXAMPLES_SOURCE:=$CK_SRC/client_example}
 : ${CK_CLIENT_EXAMPLES_BUILD:=$CK_TOP/ck-client-examples-build}
 # Run regular and client examples on multiple GPUs (if present)
 : ${CK_EXAMPLES_PARALLEL:='yes'}
@@ -267,7 +268,7 @@ if [ ! -d ${CK_TOP} ]; then
 fi
 
 if [ ! -d ${CK_REPO} ]; then
-  git clone ${CKRepoURL} ${CK_REPO}
+  git clone --single-branch --depth 1 ${CKRepoURL} ${CK_REPO}
 elif [ "${ShouldUpdateCKRepo}" == 'yes' ]; then
   pushd ${CK_REPO} || exit 1
   git reset --hard origin/${CKRepoBranchName}
@@ -284,7 +285,7 @@ if command -v ninja >/dev/null ; then
 fi
 
 # TODO Fix / Finalize the cmake command
-CKCmakeCmd="cmake ${CmakeGenerator} -B ${CK_BUILD} -S ${CK_REPO} -DCMAKE_PREFIX_PATH=${ROCM_PATH} -DCMAKE_INSTALL_PREFIX=${CK_INSTALL} "
+CKCmakeCmd="cmake ${CmakeGenerator} -B ${CK_BUILD} -S ${CK_SRC} -DCMAKE_PREFIX_PATH=${ROCM_PATH} -DCMAKE_INSTALL_PREFIX=${CK_INSTALL} "
 CKCmakeCmd+="-DCMAKE_CXX_COMPILER=${AOMP}/bin/clang++ -DCMAKE_HIP_COMPILER=${AOMP}/bin/clang++ "
 CKCmakeCmd+="-DCMAKE_BUILD_TYPE=Release "
 
