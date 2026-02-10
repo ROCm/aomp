@@ -80,7 +80,7 @@ fi
 if [ "${DoCTest}" == "yes" ]; then
   echo "Running tests..."
   cd ${LLAMA_BUILD_DIR}
-  echo "Log in ${LLAMA_TESTS_LOG_LOCATION/ctest.log}"
+  echo "Log in ${LLAMA_TESTS_LOG_LOCATION}/ctest.log"
   ctest --output-on-failure 2>&1 | tee "${LLAMA_TESTS_LOG_LOCATION}/ctest.log"
 fi
 
