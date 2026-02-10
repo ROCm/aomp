@@ -331,6 +331,9 @@ if [ "${ShouldRebuildCK}" == 'yes' ] || [ "${ShouldInstallCK}" == 'yes' ]; then
     exit 1
   fi
 
+  # Find build success in the build log
+  echo "CK-BUILD-SUCCESS"
+
   popd
 fi
 
