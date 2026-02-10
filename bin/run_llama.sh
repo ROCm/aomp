@@ -11,6 +11,7 @@
 : ${LLAMA_BUILD_DIR:=$LLAMA_TLDIR/build}
 : ${LLAMA_SRC_DIR:=$LLAMA_TLDIR/src}
 : ${LLAMA_BUILD_MODE:=Release}
+: ${LLAMA_TESTS_LOG_LOCATION:=$LLAMA_TLDIR/logs}
 
 pushd ${AOMP_REPOS_TEST}
 mkdir -p ${LLAMA_TLDIR} && cd ${LLAMA_TLDIR}
@@ -40,6 +41,10 @@ done
 
 if [ "${IsVerbose}" == "yes" ]; then
   set -x
+fi
+
+if [ ! -d ${LLAMA_TESTS_LOG_LOCATION} ]; then
+  mkdir -p ${LLAMA_TESTS_LOG_LOCATION}
 fi
 
 if [ ! -d ${LLAMA_SRC_DIR} ]; then
@@ -75,7 +80,8 @@ fi
 if [ "${DoCTest}" == "yes" ]; then
   echo "Running tests..."
   cd ${LLAMA_BUILD_DIR}
-  ctest --output-on-failure
+  echo "Log in ${LLAMA_TESTS_LOG_LOCATION/ctest.log}"
+  ctest --output-on-failure 2>&1 | tee "${LLAMA_TESTS_LOG_LOCATION}/ctest.log"
 fi
 
 popd
