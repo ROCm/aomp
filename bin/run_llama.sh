@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
 
+#
+#Copyright © Advanced Micro Devices, Inc., or its affiliates.
+#
+#SPDX-License-Identifier:  MIT
+#
+
 # Build script for LLaMA with HIP support using AOMP compiler
 
 . aomp_common_vars
