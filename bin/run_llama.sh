@@ -59,6 +59,12 @@ if [ "${IsVerbose}" == "yes" ]; then
   set -x
 fi
 
+TestBuildTool='make'
+if command -v ninja >/dev/null; then
+  CmakeGenerator="-GNinja"
+  TestBuildTool='ninja'
+fi
+
 if [ ! -d ${LLAMA_TESTS_LOG_LOCATION} ]; then
   mkdir -p ${LLAMA_TESTS_LOG_LOCATION}
 fi
@@ -82,7 +88,7 @@ if [ "${DoConfigure}" == "yes" ]; then
     -DGGML_HIP=On \
     -DCMAKE_BUILD_TYPE=${LLAMA_BUILD_MODE} \
     -DGPU_TARGETS=${LLAMA_GPU} \
-    -GNinja \
+    ${CmakeGenerator} \
     -DCMAKE_C_COMPILER=${AOMP}/bin/clang \
     -DCMAKE_CXX_COMPILER=${AOMP}/bin/clang++ \
     -DCMAKE_HIP_COMPILER=${AOMP}/bin/clang++
