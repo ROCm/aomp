@@ -38,9 +38,12 @@ DoCTest='no'
 # Run benchmark (llama-bench)
 DoBenchmark='no'
 
+# Update llama sources
+DoUpdate='no'
+
 IsVerbose='no'
 
-while getopts "j:cbtve" opt; do
+while getopts "j:cbtveu" opt; do
   case ${opt} in
   j) AOMP_BUILD_JOBS=${OPTARG} ;;
   c) DoConfigure='yes' ;;
@@ -48,8 +51,9 @@ while getopts "j:cbtve" opt; do
   t) DoCTest='yes' ;;
   v) IsVerbose='yes' ;;
   e) DoBenchmark='yes' ;;
+  u) DoUpdate='yes' ;;
   \?)
-    echo "Usage: cmd [-j build_jobs] [-c configure] [-b build] [-t ctest] [-e benchmark]"
+    echo "Usage: cmd [-j build_jobs] [-c configure] [-b build] [-t ctest] [-e benchmark] [-v verbose] [-u update_sources]"
     exit 1
     ;;
   esac
@@ -72,7 +76,7 @@ fi
 if [ ! -d ${LLAMA_SRC_DIR} ]; then
   echo "Cloning llama.cpp repository..."
   git clone https://github.com/ggml-org/llama.cpp.git src
-else
+elif [ "${DoUpdate}" == "yes" ]; then
   echo "Updating llama.cpp repository..."
   cd ${LLAMA_SRC_DIR}
   git pull
