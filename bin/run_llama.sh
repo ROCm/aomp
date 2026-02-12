@@ -65,6 +65,10 @@ if command -v ninja >/dev/null; then
   TestBuildTool='ninja'
 fi
 
+if ! command -v git-lfs >/dev/null; then
+  echo "WARNING: git-lfs is not installed. Expect some tests to fail."
+fi
+
 if [ ! -d ${LLAMA_TESTS_LOG_LOCATION} ]; then
   mkdir -p ${LLAMA_TESTS_LOG_LOCATION}
 fi
@@ -103,6 +107,8 @@ if [ "${DoCTest}" == "yes" ]; then
   echo "Running tests..."
   cd ${LLAMA_BUILD_DIR}
   echo "Log in ${LLAMA_TESTS_LOG_LOCATION}/ctest.log"
+
+  # Some model files are git-lfs and come from huggingface. They will auto-download during test
   ctest --output-on-failure 2>&1 | tee "${LLAMA_TESTS_LOG_LOCATION}/ctest.log"
 fi
 
