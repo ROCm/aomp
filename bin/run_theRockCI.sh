@@ -91,8 +91,12 @@ elif [ -e /opt/rocm/llvm/bin ]; then
   ROCMDIR=/opt/rocm
   echo setting 2 $AOMP
 else
-echo "error 1"
-exit
+  pushd $AOMP
+  cd `realpath .`
+  cd ../..
+  ROCMINF=`pwd`/
+  ROCMDIR=`pwd`
+  popd
 fi
 export AOMP
 echo "AOMP = $AOMP"
