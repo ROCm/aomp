@@ -357,6 +357,10 @@ while [ $lrun -lt $SMOKE_LRUN ]; do
 #---
 for directory in $SMOKE_DIRS; do
   if [ ! -r $directory/Makefile ]; then continue; fi
+  if [ "$SKIP_OMPT" == "1" ]; then
+    if [[ $directory =~ "ompt" ]]; then continue; fi
+    if [[ $directory =~ "lib-debug" ]]; then continue; fi
+  fi
   pushd $directory > /dev/null
   if [ $? -ne 0 ]; then continue; fi
   if [ $lrun -eq 0 ]; then
