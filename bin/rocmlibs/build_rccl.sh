@@ -1,9 +1,4 @@
 #!/bin/bash
-#
-#Copyright © Advanced Micro Devices, Inc., or its affiliates.
-#
-#SPDX-License-Identifier:  MIT
-# 
 # 
 #  build_rccl.sh: Script to build and install rccl.
 #                 This uses a slightly modified install.sh from rccl. 

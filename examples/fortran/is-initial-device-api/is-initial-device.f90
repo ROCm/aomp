@@ -1,8 +1,3 @@
-!
-!Copyright © Advanced Micro Devices, Inc., or its affiliates.
-!
-!SPDX-License-Identifier:  MIT
-! 
      program simple
      use omp_lib, ONLY : omp_is_initial_device
      integer onGPU
