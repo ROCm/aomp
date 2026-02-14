@@ -1,6 +1,13 @@
 #!/usr/bin/env bash
+
+#
+#Copyright © Advanced Micro Devices, Inc., or its affiliates.
+#
+#SPDX-License-Identifier:  MIT
+#
+
 set -x
-CKRepoURL='https://github.com/ROCm/composable_kernel.git'
+CKRepoURL='https://github.com/ROCm/rocm-libraries.git'
 CKRepoBranchName='develop'
 CKBenchmarkRepoBranchName='main'
 
@@ -10,7 +17,7 @@ CKBuildParallelism=$(free -g | grep Mem | awk '{print int($2/10)}')
 
 # Check if the user overrode number of parallel build jobs
 # via env var
-if [ ! -z ${CK_BUILD_PARALLELISM} ];then
+if [ ! -z ${CK_BUILD_PARALLELISM} ]; then
   CKBuildParallelism=${CK_BUILD_PARALLELISM}
 fi
 
@@ -30,8 +37,8 @@ function printHelp {
   echo "  -r: Rebuild the CK repo"
   echo "  -u: Update the CK repo"
   echo "  -b: Update the CK benchmarks repo"
-  echo "  -s <suite>: Select <suite> from:"                  \
-       "[benchmarks client-examples smoke regression skip]. (Default: skip)"
+  echo "  -s <suite>: Select <suite> from:" \
+    "[benchmarks client-examples smoke regression skip]. (Default: skip)"
   echo "  -t <test>: Run <test> from selected suite (e.g. 'gemm/fa1.yaml')"
   exit 0
 }
@@ -174,38 +181,38 @@ while getopts "j:hilrubs:t:" opt; do
     # Select benchmark or test suite.
     # To support this as an optional argument, we take a look at the next.
     case ${OPTARG} in
-      skip)
-        # Skip running any suite.
-        SelectedSuite='skip'
-        ;;
-      benchmarks)
-        # Run the CK benchmarks.
-        SelectedSuite="${OPTARG}"
-        ;;
-      client-examples)
-        # Build and run the client examples provided by CK.
-        SelectedSuite="${OPTARG}"
-        ;;
-      examples)
-        # Build and run the examples provided by CK.
-        SelectedSuite="${OPTARG}"
-        ;;
-      smoke)
-        # A minimal smoke test suite.
-        SelectedSuite="${OPTARG}"
-        ;;
-      regression)
-        # A minimal regression test suite.
-        SelectedSuite="${OPTARG}"
-        ;;
-      *)
-        # If there's a following string which does not start with '-'
-        # we interpret it as an attempt at providing an unknown suite.
-        if [[ "${OPTARG}" =~ ^[^-].*$ ]]; then
-          echo "Unknown suite: ${OPTARG}"
-          printHelp
-        fi
-        ;;
+    skip)
+      # Skip running any suite.
+      SelectedSuite='skip'
+      ;;
+    benchmarks)
+      # Run the CK benchmarks.
+      SelectedSuite="${OPTARG}"
+      ;;
+    client-examples)
+      # Build and run the client examples provided by CK.
+      SelectedSuite="${OPTARG}"
+      ;;
+    examples)
+      # Build and run the examples provided by CK.
+      SelectedSuite="${OPTARG}"
+      ;;
+    smoke)
+      # A minimal smoke test suite.
+      SelectedSuite="${OPTARG}"
+      ;;
+    regression)
+      # A minimal regression test suite.
+      SelectedSuite="${OPTARG}"
+      ;;
+    *)
+      # If there's a following string which does not start with '-'
+      # we interpret it as an attempt at providing an unknown suite.
+      if [[ "${OPTARG}" =~ ^[^-].*$ ]]; then
+        echo "Unknown suite: ${OPTARG}"
+        printHelp
+      fi
+      ;;
     esac
     ;;
   t)
@@ -220,13 +227,14 @@ done
 
 # Set the default build prefix, i.e., build-top-level
 : ${CK_TOP:=$AOMP_REPOS_TEST/composable-kernels}
-: ${CK_REPO:=$CK_TOP/ck-src}
+: ${CK_REPO:=$CK_TOP/rocm-libraries}
+: ${CK_SRC:=$CK_REPO/projects/composablekernel}
 : ${CK_BUILD:=$CK_TOP/ck-build}
 : ${CK_BENCHMARK_REPO:=$CK_TOP/ck-benchmark}
 # Move this to its own place, to avoid potential permission conflicts with certain setups.
 : ${CK_BENCHMARK_RESULT:=$CK_TOP/ck-benchmark-result}
 : ${CK_INSTALL:=$CK_TOP/ck-install}
-: ${CK_CLIENT_EXAMPLES_SOURCE:=$CK_REPO/client_example}
+: ${CK_CLIENT_EXAMPLES_SOURCE:=$CK_SRC/client_example}
 : ${CK_CLIENT_EXAMPLES_BUILD:=$CK_TOP/ck-client-examples-build}
 # Run regular and client examples on multiple GPUs (if present)
 : ${CK_EXAMPLES_PARALLEL:='yes'}
@@ -267,7 +275,7 @@ if [ ! -d ${CK_TOP} ]; then
 fi
 
 if [ ! -d ${CK_REPO} ]; then
-  git clone ${CKRepoURL} ${CK_REPO}
+  git clone --single-branch --depth 1 ${CKRepoURL} ${CK_REPO}
 elif [ "${ShouldUpdateCKRepo}" == 'yes' ]; then
   pushd ${CK_REPO} || exit 1
   git reset --hard origin/${CKRepoBranchName}
@@ -278,13 +286,13 @@ elif [ "${ShouldUpdateCKRepo}" == 'yes' ]; then
 fi
 
 CKBuildTool='make'
-if command -v ninja >/dev/null ; then
+if command -v ninja >/dev/null; then
   CmakeGenerator="-GNinja"
   CKBuildTool='ninja'
 fi
 
 # TODO Fix / Finalize the cmake command
-CKCmakeCmd="cmake ${CmakeGenerator} -B ${CK_BUILD} -S ${CK_REPO} -DCMAKE_PREFIX_PATH=${ROCM_PATH} -DCMAKE_INSTALL_PREFIX=${CK_INSTALL} "
+CKCmakeCmd="cmake ${CmakeGenerator} -B ${CK_BUILD} -S ${CK_SRC} -DCMAKE_PREFIX_PATH=${ROCM_PATH} -DCMAKE_INSTALL_PREFIX=${CK_INSTALL} "
 CKCmakeCmd+="-DCMAKE_CXX_COMPILER=${AOMP}/bin/clang++ -DCMAKE_HIP_COMPILER=${AOMP}/bin/clang++ "
 CKCmakeCmd+="-DCMAKE_BUILD_TYPE=Release "
 
@@ -330,6 +338,9 @@ if [ "${ShouldRebuildCK}" == 'yes' ] || [ "${ShouldInstallCK}" == 'yes' ]; then
     exit 1
   fi
 
+  # Find build success in the build log
+  echo "CK-BUILD-SUCCESS"
+
   popd
 fi
 
@@ -351,8 +362,8 @@ echo "Run suite: ${SelectedSuite}"
 # Check if parallel execution is requested and possible
 UseParallel=0
 if ([ "${SelectedSuite}" == 'client-examples' ] ||
-    [ "${SelectedSuite}" == 'examples' ]) &&
-    [ "${CK_EXAMPLES_PARALLEL}" == 'yes' ]; then
+  [ "${SelectedSuite}" == 'examples' ]) &&
+  [ "${CK_EXAMPLES_PARALLEL}" == 'yes' ]; then
   if [ ! -z "$(command -v parallel)" ]; then
     UseParallel=1
   else
@@ -476,7 +487,7 @@ if [ "${SelectedSuite}" == 'client-examples' ]; then
 
   # Process directories to exclude
   # Usage of here-string to avoid sub-shell and removal of potential parentheses
-  read -ra DirsToExclude <<< "${CK_CLIENT_EXAMPLES_TO_EXCLUDE//[()]/}"
+  read -ra DirsToExclude <<<"${CK_CLIENT_EXAMPLES_TO_EXCLUDE//[()]/}"
 
   # Build argument list for find
   # If globbed directories are provided, the list is expanded correspondingly
@@ -519,7 +530,7 @@ if [ "${SelectedSuite}" == 'client-examples' ]; then
     RunCmd="echo \"Running client-example: ${ExamplePath}\";"
     RunCmd+="\"${ExamplePath}\" | tee \"${ExampleLogfile}\""
     ExampleRunCmds+=("${RunCmd}")
-  done <<< "${ExamplesToRun}"
+  done <<<"${ExamplesToRun}"
 
   NumJobs=${#ExampleRunCmds[@]}
   echo "Found ${NumJobs} client-examples to run"
@@ -587,7 +598,7 @@ if [ "${SelectedSuite}" == 'examples' ]; then
     RunCmd="echo \"Running example: ${ExamplePath}\";"
     RunCmd+="\"${ExamplePath}\" | tee \"${ExampleLogfile}\""
     ExampleRunCmds+=("${RunCmd}")
-  done <<< "${ExamplesToRun}"
+  done <<<"${ExamplesToRun}"
 
   NumJobs=${#ExampleRunCmds[@]}
   echo "Found ${NumJobs} examples to run"
