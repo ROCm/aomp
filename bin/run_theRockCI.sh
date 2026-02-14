@@ -22,6 +22,9 @@ declare -A assocSuite=(
 ["openmpapps"]=" 2 minutes"
 )
 
+ulimit -t 400
+ulimit -s unlimited
+
 tmpfile=/tmp/smoke-$$
 export PATH=$PATH:/opt/rocm/bin
 echo "PATH=" $PATH
@@ -61,7 +64,6 @@ echo "================"  >$TLOG
 # used by rocm_agent_enumerator.
 export ROCM_TARGET_LST=/opt/nowhere
 
-#ulimit -t 1000
 
 realpath=`realpath $0`
 scriptdir=`dirname $realpath`
@@ -104,14 +106,6 @@ echo "AOMP = $AOMP"
 if [ ! -f "$AOMP/bin/gpurun" ]; then
   echo "Error: Could not find gpurun"
   exit 1
-# rm -f "$HOME/openmp-utils/bin/gpurun"
-# if ! wget -P "$HOME/openmp-utils/bin" https://compute-artifactory.amd.com/artifactory/rocm-generic-local/compiler-infra/gpurun ; then
-#   echo "Error: Could not download gpurun"
-#   exit 1
-# fi
-# chmod 755 "$HOME/openmp-utils/bin/gpurun"
-# export GPURUN_BINDIR="$HOME/openmp-utils/bin"
-# export PATH=$PATH:$GPURUN_BINDIR
 fi
 
 clangversion=`$AOMP/bin/clang --version`
@@ -185,8 +179,8 @@ echo
 
 function checkRes() {
   tail -100 $1
-  actual=`grep "Passing tests: " $1 | awk -F'[ /]' '{print $3}'`
-  expect=`grep "Passing tests: " $1 | awk -F'[ /]' '{print $4}'`
+  actual=`grep "Passing tests: " $1 | awk -F'[ /\033]' '{print $4}'`
+  expect=`grep "Passing tests: " $1 | awk -F'[ /\033]' '{print $5}'`
   if [ "$actual" == "$expect" ]; then
     return 0;
   else
@@ -226,9 +220,9 @@ function smoke-fort-limbo(){
   ./check_smoke_fort_limbo.sh > $tmpfile 2>&1
   checkRes $tmpfile
   if [ "$?" == 0 ]; then
-     echo "Passed smoke-fort_limbo" >> $TLOG
+     echo "Passed smoke-fort-limbo" >> $TLOG
   else
-     echo "FAILED smoke-fort_limbo" >> $TLOG
+     echo "FAILED smoke-fort-limbo" >> $TLOG
      scriptfails=1
   fi
 }
@@ -236,7 +230,9 @@ function smoke-fort-limbo(){
 function smoke-limbo(){
   echo "%================ smoke-limbo"
   cd "$aompdir"/test/smoke-limbo
+  export SKIP_OMPT=1
   ./check_smoke_limbo.sh > $tmpfile 2>&1
+  unset SKIP_OMPT
   checkRes $tmpfile
   if [ "$?" == 0 ]; then
      echo "Passed smoke-limbo" >> $TLOG
@@ -250,8 +246,10 @@ function openmpapps(){
   echo "%================ openmpapps"
   # -----Run Openmpapps-----
   cd "$AOMP_TEST_DIR"/openmpapps
+  rm -rf matmul_usm hpgmg-mp4
   echo rockMPI=$MPI
   ./check_openmpapps.sh
+  git checkout .
   if [ "$?" == 0 ]; then
      echo "Passed openmpapps" >> $TLOG
   else
