@@ -197,7 +197,6 @@ function smoke-fort(){
      echo "Passed smoke-fort">> $TLOG
   else
      echo "FAILED smoke-fort">> $TLOG
-     scriptfails=1
   fi
 }
 
@@ -210,7 +209,6 @@ function smoke(){
      echo "Passed smoke" >> $TLOG
   else
      echo "FAILED smoke" >> $TLOG
-     scriptfails=1
   fi
 }
 
@@ -223,7 +221,6 @@ function smoke-fort-limbo(){
      echo "Passed smoke-fort-limbo" >> $TLOG
   else
      echo "FAILED smoke-fort-limbo" >> $TLOG
-     scriptfails=1
   fi
 }
 
@@ -238,7 +235,6 @@ function smoke-limbo(){
      echo "Passed smoke-limbo" >> $TLOG
   else
      echo "FAILED smoke-limbo" >> $TLOG
-     scriptfails=1
   fi
 }
 
@@ -254,7 +250,6 @@ function openmpapps(){
      echo "Passed openmpapps" >> $TLOG
   else
      echo "FAILED openmpapps" >> $TLOG
-     scriptfails=1
   fi
 }
 
@@ -267,7 +262,6 @@ function nekbone(){
      echo "Passed Nekbone" >> $TLOG
   else
      echo "FAILED Nekbone" >> $TLOG
-     scriptfails=1
   fi
 }
 
@@ -284,7 +278,6 @@ function babelstream(){
      echo "Passed Babelstream" >> $TLOG
   else
      echo "FAILED Babelstream" >> $TLOG
-     scriptfails=1
   fi
 }
 
@@ -300,7 +293,6 @@ function fortran-babelstream(){
      echo "Passed fortran-babelstream" >> $TLOG
   else
      echo "FAILED fortran-babelstream" >> $TLOG
-     scriptfails=1
   fi
 }
 
@@ -321,7 +313,6 @@ function accel2023(){
     echo "Passed accel2023 $nsucc passes"  >> $TLOG
   else
     echo "FAILED accel2023 $nsucc passes"  >> $TLOG
-     scriptfails=1
   fi
 }
 
@@ -343,7 +334,6 @@ function hpc2021(){
     echo "Passed hpc2021 $nsucc passes"  >> $TLOG
   else
     echo "FAILED hpc2021 $nsucc passes"  >> $TLOG
-     scriptfails=1
   fi
 }
 
@@ -373,7 +363,9 @@ for suite in $SUITE_LIST; do
 done
 
 echo "************************************" > $summary
-if [ "$scriptfails" != 0 ]; then
+grep -i -q fail $TLOG
+scriptfails=$?
+if [ "$scriptfails" == 0 ]; then
   echo FAIL >> $summary
   echo "EPSDB Status:  red" >> $summary
 else
