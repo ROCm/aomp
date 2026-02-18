@@ -37,6 +37,18 @@ export hip_DIR=${ROCM}/lib/cmake/hip
 export AMDDeviceLibs_DIR=${ROCM}/lib/cmake/AMDDeviceLibs/
 export amd_comgr_DIR=${ROCM}/lib/cmake/amd_comgr/
 
+# Determine clang major version for device libs path
+CLANG_VERSION=$("${AOMP}/bin/clang" --version | head -1 | grep -o 'version [0-9]*' | awk '{print $2}')
+if [ -z "${CLANG_VERSION}" ]; then
+  echo "WARNING: Could not determine clang version, defaulting to 23"
+  CLANG_VERSION=23
+fi
+
+# Set AMD device libs path for HIP compilation
+# HIP tests need to find device bitcode libraries
+HIP_DEVICE_LIB_PATH="${AOMP}/lib/clang/${CLANG_VERSION}/lib/amdgcn/bitcode"
+export HIP_DEVICE_LIB_PATH
+
 pushd "${AOMP_REPOS_TEST}" || exit
 mkdir -p "${LLVMTS_TLDIR}" && cd "${LLVMTS_TLDIR}" || exit
 
