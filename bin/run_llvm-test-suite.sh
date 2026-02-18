@@ -28,7 +28,7 @@ export AOMP_USE_CCACHE=0
 : "${LLVMTS_LOGS_DIR:=$LLVMTS_TLDIR/logs}"
 : "${LLVMTS_GPU:=$AOMP_GPU}"
 : "${LLVMTS_BUILD_TYPE:=Release}"
-: "${LLVMTS_TEST_TIMEOUT:=1800}"
+: "${LLVMTS_TEST_TIMEOUT:=840}"
 
 # Export ROCm CMake directories
 export hsaruntime64_DIR=${ROCM}/lib/cmake/hsa-runtime64/
@@ -71,7 +71,7 @@ while getopts "j:cbtvhu" opt; do
     echo "  LLVMTS_TLDIR         - Top-level directory (default: \$AOMP_REPOS_TEST/llvm-test-suite)"
     echo "  LLVMTS_GPU           - Target GPU(s) (default: \$AOMP_GPU)"
     echo "  LLVMTS_BUILD_TYPE    - CMake build type (default: Release)"
-    echo "  LLVMTS_TEST_TIMEOUT  - Test timeout in seconds (default: 1800)"
+    echo "  LLVMTS_TEST_TIMEOUT  - Test timeout in seconds (default: 800)"
     echo "  AOMP                 - AOMP compiler location (default: \$HOME/rocm/aomp)"
     echo "  ROCM                 - ROCm installation path (default: /opt/rocm)"
     exit 0
@@ -156,10 +156,12 @@ if [ "${DoConfigure}" == "yes" ]; then
     -DTEST_SUITE_COLLECT_CODE_SIZE=OFF \
     -DTEST_SUITE_COLLECT_COMPILE_TIME=OFF \
     -DTEST_SUITE_LIT="${AOMP}/bin/llvm-lit" \
+    -DCMAKE_STRIP="" \
     -DAMDGPU_ARCHS="${LLVMTS_GPU}" \
     -DCMAKE_BUILD_TYPE="${LLVMTS_BUILD_TYPE}" \
     -DCMAKE_C_COMPILER="${AOMP}/bin/clang" \
-    -DCMAKE_CXX_COMPILER="${AOMP}/bin/clang++"
+    -DCMAKE_CXX_COMPILER="${AOMP}/bin/clang++" \
+    -DCMAKE_BUILD_TYPE="Release"
 fi
 
 # Build
@@ -176,18 +178,20 @@ if [ "${DoTest}" == "yes" ]; then
   echo "Log in ${LLVMTS_LOGS_DIR}/test-output.log"
 
   # Use timeout to prevent tests from hanging
-  # Note: llvm-strip may show permission denied errors for /bin/bash.stripped
-  # This is expected - the test suite tries to strip system binaries for verification
-  # but lacks write permissions to /bin/. These errors can be safely ignored.
+  # -k 30: Send SIGKILL after 30 seconds if SIGTERM doesn't terminate the process
+  # This ensures even completely hung processes are killed
   if command -v timeout >/dev/null; then
-    timeout "${LLVMTS_TEST_TIMEOUT}" "${TestBuildTool}" check-hip-simple 2>&1 | tee "${LLVMTS_LOGS_DIR}/test-output.log"
+    timeout -k 30 "${LLVMTS_TEST_TIMEOUT}" "${TestBuildTool}" check-hip-simple 2>&1 | tee "${LLVMTS_LOGS_DIR}/test-output.log"
     test_exit_code="${PIPESTATUS[0]}"
     if [ "${test_exit_code}" -eq 124 ]; then
       echo "WARNING: Tests timed out after ${LLVMTS_TEST_TIMEOUT} seconds"
+    elif [ "${test_exit_code}" -eq 137 ]; then
+      echo "WARNING: Tests were forcefully killed (SIGKILL) after timeout grace period"
     fi
   else
-    echo "WARNING: timeout command not found, running tests without timeout"
-    "${TestBuildTool}" check-hip-simple 2>&1 | tee "${LLVMTS_LOGS_DIR}/test-output.log"
+    echo "WARNING: timeout command not found. Not running tests"
+    popd
+    exit 1
   fi
 fi
 
