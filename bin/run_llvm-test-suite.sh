@@ -140,8 +140,28 @@ if [ ! -d "${LLVMTS_EXTERNAL_DIR}/hip" ]; then
   mkdir -p "${LLVMTS_EXTERNAL_DIR}/hip"
 fi
 
+# Determine ROCm path for HIP tests
+# Prefer using AOMP's root directory (which contains HIP runtime and libraries)
+# over system ROCm installation. AOMP root is typically $AOMP/../.. when AOMP points
+# to lib/llvm subdirectory
+AOMP_ROOT_DIR=$(cd "${AOMP}/../.." && pwd)
+if [ -f "${AOMP_ROOT_DIR}/lib/libamdhip64.so" ]; then
+  ROCM_FOR_TESTS="${AOMP_ROOT_DIR}"
+  echo "Using AOMP installation for HIP tests: ${ROCM_FOR_TESTS}"
+elif [ -f "${AOMP}/../lib/libamdhip64.so" ]; then
+  # Handle case where AOMP points directly to root (e.g., /opt/rocm/llvm)
+  AOMP_ROOT_DIR=$(cd "${AOMP}/.." && pwd)
+  ROCM_FOR_TESTS="${AOMP_ROOT_DIR}"
+  echo "Using AOMP installation for HIP tests: ${ROCM_FOR_TESTS}"
+else
+  ROCM_FOR_TESTS="${ROCM}"
+  echo "Using system ROCm for HIP tests: ${ROCM_FOR_TESTS}"
+fi
+
 # Get ROCm version and create symlink
-if [ -f "${ROCM}/.info/version" ]; then
+if [ -f "${ROCM_FOR_TESTS}/.info/version" ]; then
+  ROCM_VERSION_FILE=$(cat "${ROCM_FOR_TESTS}/.info/version")
+elif [ -f "${ROCM}/.info/version" ]; then
   ROCM_VERSION_FILE=$(cat "${ROCM}/.info/version")
 elif command -v dpkg >/dev/null && dpkg -l rocm-core >/dev/null 2>&1; then
   ROCM_VERSION_FILE=$(dpkg -l rocm-core | grep rocm-core | awk '{print $3}' | cut -d- -f1)
@@ -152,8 +172,8 @@ fi
 
 ROCM_LINK="${LLVMTS_EXTERNAL_DIR}/hip/rocm-${ROCM_VERSION_FILE}"
 if [ ! -L "${ROCM_LINK}" ] && [ ! -d "${ROCM_LINK}" ]; then
-  echo "Creating symlink: ${ROCM_LINK} -> ${ROCM}"
-  ln -sf "${ROCM}" "${ROCM_LINK}"
+  echo "Creating symlink: ${ROCM_LINK} -> ${ROCM_FOR_TESTS}"
+  ln -sf "${ROCM_FOR_TESTS}" "${ROCM_LINK}"
 fi
 
 # Configure with CMake
