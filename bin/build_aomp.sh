@@ -98,7 +98,7 @@ echo
 components="$AOMP_COMPONENT_LIST"
 
 if [ "$AOMP_STANDALONE_BUILD" == 1 ] ; then
-  components="$components rocprofiler-register rocr openmp offload extras comgr rocminfo rocm_smi_lib amdsmi"
+  components="$components rocprofiler-register rocr llvm_runtimes_standalone offload extras comgr rocminfo rocm_smi_lib amdsmi"
   _hostarch=$(uname -m)
   # The rocclr architecture is very x86 centric so it will not build on ppc64. Without
   # rocclr, we have no HIP or OpenCL for ppc64 :-( However, rocr works for ppc64 so AOMP works.
@@ -132,10 +132,7 @@ else
   # libdevice, project, comgr, rocminfo, hipamd, rocdbgapi, rocgdb,
   # roctracer, rocprofiler, rocm_smi_lib, and amdsmi should be found
   # in ROCM in /opt/rocm.  The ROCM build only needs these components:
-  components="extras openmp"
-  if [ -f "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload/CMakeLists.txt" ]; then
-    components="$components offload"
-  fi
+  components="llvm_runtimes_standalone offload"
   if [ "$AOMP_SKIP_FLANG" == 0 ] ; then
     if [ "$SANITIZER" == 1 ] && [ -f "$AOMP/bin/flang-classic" ] ; then
       components="$components pgmath flang flang_runtime"
