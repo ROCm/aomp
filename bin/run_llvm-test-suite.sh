@@ -17,9 +17,6 @@ export AOMP_USE_CCACHE=0
 . "$thisdir/aomp_common_vars"
 # --- end standard header ----
 
-# Default ROCm installation
-: "${ROCM:=/opt/rocm}"
-
 # Environment variable defaults
 : "${LLVMTS_TLDIR:=$AOMP_REPOS_TEST/llvm-test-suite}"
 : "${LLVMTS_SRC_DIR:=$LLVMTS_TLDIR/src}"
@@ -29,13 +26,6 @@ export AOMP_USE_CCACHE=0
 : "${LLVMTS_GPU:=$AOMP_GPU}"
 : "${LLVMTS_BUILD_TYPE:=Release}"
 : "${LLVMTS_TEST_TIMEOUT:=840}"
-
-# Export ROCm CMake directories
-export hsaruntime64_DIR=${ROCM}/lib/cmake/hsa-runtime64/
-export hipblas_DIR=${ROCM}/lib/cmake/hipblas/
-export hip_DIR=${ROCM}/lib/cmake/hip
-export AMDDeviceLibs_DIR=${ROCM}/lib/cmake/AMDDeviceLibs/
-export amd_comgr_DIR=${ROCM}/lib/cmake/amd_comgr/
 
 # Determine clang major version for device libs path
 CLANG_VERSION=$("${AOMP}/bin/clang" --version | head -1 | grep -o 'version [0-9]*' | awk '{print $2}')
@@ -85,7 +75,8 @@ while getopts "j:cbtvhu" opt; do
     echo "  LLVMTS_BUILD_TYPE    - CMake build type (default: Release)"
     echo "  LLVMTS_TEST_TIMEOUT  - Test timeout in seconds (default: 800)"
     echo "  AOMP                 - AOMP compiler location (default: \$HOME/rocm/aomp)"
-    echo "  ROCM                 - ROCm installation path (default: /opt/rocm)"
+    echo "  ROCM                 - ROCm installation path (fallback, default: /opt/rocm)"
+    echo "                         Only needed if AOMP doesn't contain HIP libraries"
     exit 0
     ;;
   \?)
@@ -154,15 +145,27 @@ elif [ -f "${AOMP}/../lib/libamdhip64.so" ]; then
   ROCM_FOR_TESTS="${AOMP_ROOT_DIR}"
   echo "Using AOMP installation for HIP tests: ${ROCM_FOR_TESTS}"
 else
+  # Fallback to system ROCm if AOMP doesn't have HIP libraries
+  : "${ROCM:=/opt/rocm}"
+  if [ ! -d "${ROCM}" ]; then
+    echo "ERROR: AOMP installation does not contain HIP libraries and system ROCm not found at ${ROCM}"
+    echo "       Please set ROCM environment variable to a valid ROCm installation"
+    exit 1
+  fi
   ROCM_FOR_TESTS="${ROCM}"
   echo "Using system ROCm for HIP tests: ${ROCM_FOR_TESTS}"
 fi
 
+# Export ROCm CMake directories based on selected ROCm path
+export hsaruntime64_DIR=${ROCM_FOR_TESTS}/lib/cmake/hsa-runtime64/
+export hipblas_DIR=${ROCM_FOR_TESTS}/lib/cmake/hipblas/
+export hip_DIR=${ROCM_FOR_TESTS}/lib/cmake/hip
+export AMDDeviceLibs_DIR=${ROCM_FOR_TESTS}/lib/cmake/AMDDeviceLibs/
+export amd_comgr_DIR=${ROCM_FOR_TESTS}/lib/cmake/amd_comgr/
+
 # Get ROCm version and create symlink
 if [ -f "${ROCM_FOR_TESTS}/.info/version" ]; then
   ROCM_VERSION_FILE=$(cat "${ROCM_FOR_TESTS}/.info/version")
-elif [ -f "${ROCM}/.info/version" ]; then
-  ROCM_VERSION_FILE=$(cat "${ROCM}/.info/version")
 elif command -v dpkg >/dev/null && dpkg -l rocm-core >/dev/null 2>&1; then
   ROCM_VERSION_FILE=$(dpkg -l rocm-core | grep rocm-core | awk '{print $3}' | cut -d- -f1)
 else
