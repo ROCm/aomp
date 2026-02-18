@@ -69,10 +69,6 @@ if command -v ninja >/dev/null; then
   TestBuildTool='ninja'
 fi
 
-if ! command -v git-lfs >/dev/null; then
-  echo "WARNING: git-lfs is not installed. Expect some tests to fail."
-fi
-
 if [ ! -d ${LLAMA_TESTS_LOG_LOCATION} ]; then
   mkdir -p ${LLAMA_TESTS_LOG_LOCATION}
 fi
@@ -84,6 +80,16 @@ elif [ "${DoUpdate}" == "yes" ]; then
   echo "Updating llama.cpp repository..."
   cd ${LLAMA_SRC_DIR}
   git pull
+  cd ..
+fi
+
+if ! command -v git-lfs >/dev/null; then
+  echo "WARNING: git-lfs is not installed. Expect some tests to fail."
+else
+  # Ensure git-lfs is initialized and pulls any large files
+  cd ${LLAMA_SRC_DIR}
+  git lfs install
+  git lfs pull
   cd ..
 fi
 

@@ -1,5 +1,5 @@
 diff --git a/compiler/CMakeLists.txt b/compiler/CMakeLists.txt
-index d16992fd..3f94343d 100644
+index 9db31320..8552b77c 100644
 --- a/compiler/CMakeLists.txt
 +++ b/compiler/CMakeLists.txt
 @@ -10,6 +10,10 @@ if(THEROCK_ENABLE_COMPILER)
@@ -13,7 +13,7 @@ index d16992fd..3f94343d 100644
  
    # Building Flang is very memory-intensive on systems with many cores. Allow
    # users to specify the level of concurrency for these tasks so they can
-@@ -62,6 +66,9 @@ if(THEROCK_ENABLE_COMPILER)
+@@ -71,6 +75,9 @@ if(THEROCK_ENABLE_COMPILER)
  
        # Features
        -DLLVM_INCLUDE_TESTS=${THEROCK_ENABLE_LLVM_TESTS}
@@ -23,25 +23,16 @@ index d16992fd..3f94343d 100644
        -DLLVM_ENABLE_ZLIB=FORCE_ON
        -DLLVM_ENABLE_Z3_SOLVER=OFF
        -DLLVM_ENABLE_LIBXML2=OFF
-@@ -82,7 +89,17 @@ if(THEROCK_ENABLE_COMPILER)
-       -DCLANG_ENABLE_STATIC_ANALYZER=OFF
+@@ -92,6 +99,9 @@ if(THEROCK_ENABLE_COMPILER)
        -DCLANG_ENABLE_CLANGD=OFF
        -DCLANG_TIDY_ENABLE_STATIC_ANALYZER=OFF
--
-+      -DCLANG_TOOL_CLANG_LINKER_WRAPPER_BUILD=ON
-+      -DCLANG_TOOL_OFFLOAD_ARCH_BUILD=ON
-+      -DOPENMP_ENABLE_LIBOMPTARGET=ON
-+      -DLIBOMPTARGET_BUILD_DEVICE_FORTRT=ON
-+      -DOFFLOAD_EXTERNAL_PROJECT_UNIFIED_ROCR=ON
+ 
 +      -DLIBOMP_USE_HWLOC=ON
-+      -DLIBOMPTARGET_EXTERNAL_PROJECT_HSA_PATH=${CMAKE_CURRENT_SOURCE_DIR}/../rocm-systems/projects/rocr-runtime
-+      -DFLANG_RUNTIME_F128_MATH_LIB=libquadmath
 +      -DROCM_DEVICE_LIBS_BITCODE_INSTALL_LOC_NEW=${CMAKE_CURRENT_BINARY_DIR}/lib/clang/${LLVM_VERSION_MAJOR}/lib/amdgcn
-+      -DRUNTIMES_amdgcn-amd-amdhsa_LLVM_ENABLE_PER_TARGET_RUNTIME_DIR=ON
-+      -DRUNTIMES_amdgcn-amd-amdhsa_LLVM_ENABLE_RUNTIMES=openmp
-       # ASAN features.
-       # Note that building AMDGPU ASAN extensions depends on various runtime headers
-       # (since it instruments them). These paths must line up and will be an error
++
+       -DCLANG_TOOL_CLANG_LINKER_WRAPPER_BUILD=${THEROCK_CONDITION_IS_NON_WINDOWS}
+       -DCLANG_TOOL_OFFLOAD_ARCH_BUILD=${THEROCK_CONDITION_IS_NON_WINDOWS}
+       -DOPENMP_ENABLE_LIBOMPTARGET=${THEROCK_CONDITION_IS_NON_WINDOWS}
 diff --git a/compiler/artifact-amd-llvm.toml b/compiler/artifact-amd-llvm.toml
 index b0645ebe..54755ad2 100644
 --- a/compiler/artifact-amd-llvm.toml
@@ -55,40 +46,10 @@ index b0645ebe..54755ad2 100644
  
  # LLVM deviates from the defaults in some key ways:
 diff --git a/compiler/pre_hook_amd-llvm.cmake b/compiler/pre_hook_amd-llvm.cmake
-index 57144ecf..6138226b 100644
+index 48aa6a8b..20ea73f1 100644
 --- a/compiler/pre_hook_amd-llvm.cmake
 +++ b/compiler/pre_hook_amd-llvm.cmake
-@@ -13,7 +13,7 @@ if(WIN32)
-   # TODO(#36): Enable libunwind, libcxx, and libcxxabi on Windows?
-   #     Should they be supported? What depends on them?
-   set(LLVM_ENABLE_LIBCXX OFF)
--  set(LLVM_ENABLE_RUNTIMES "compiler-rt" CACHE STRING "Enabled runtimes" FORCE)
-+  set(LLVM_ENABLE_RUNTIMES "libcxx;libcxxabi;libunwind;openmp;offload;compiler-rt;flang-rt" CACHE STRING "Enabled runtimes" FORCE)
-   set(LLVM_ENABLE_PROJECTS "clang;lld;clang-tools-extra" CACHE STRING "Enable LLVM projects" FORCE)
- else()
-   set(LLVM_BUILD_LLVM_DYLIB ON)
-@@ -40,8 +40,11 @@ else()
-     if(EXISTS "${THEROCK_SOURCE_DIR}/compiler/amd-llvm/openmp/device/CMakeLists.txt")
-       list(APPEND LLVM_ENABLE_RUNTIMES "flang-rt")
-       set(LLVM_RUNTIME_TARGETS "default;amdgcn-amd-amdhsa")
--      set(RUNTIMES_amdgcn-amd-amdhsa_LLVM_ENABLE_RUNTIMES "openmp")
-+      set(RUNTIMES_amdgcn-amd-amdhsa_LLVM_ENABLE_RUNTIMES "compiler-rt;libc;libcxx;libcxxabi;flang-rt;openmp")
-       set(RUNTIMES_amdgcn-amd-amdhsa_LLVM_ENABLE_PER_TARGET_RUNTIME_DIR ON)
-+      set(RUNTIMES_amdgcn-amd-amdhsa_FLANG_RT_LIBC_PROVIDER "llvm")
-+      set(RUNTIMES_amdgcn-amd-amdhsa_FLANG_RT_LIBCXX_PROVIDER "llvm")
-+      set(RUNTIMES_amdgcn-amd-amdhsa_CACHE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/../libcxx/cmake/caches/AMDGPU.cmake")
-       set(FLANG_RUNTIME_F128_MATH_LIB "libquadmath")
-       set(LIBOMPTARGET_BUILD_DEVICE_FORTRT ON)
-       #TODO: Enable when HWLOC dependency is figured out
-@@ -98,6 +101,7 @@ endif()
- # disabling more explicitly after a bug fix enabled.
- set(LLVM_INCLUDE_BENCHMARKS OFF)
- set(LLVM_TARGETS_TO_BUILD "AMDGPU;X86" CACHE STRING "Enable LLVM Targets" FORCE)
-+set(LLVM_RUNTIME_TARGETS "default;amdgcn-amd-amdhsa")
- 
- # Packaging.
- set(PACKAGE_VENDOR "AMD" CACHE STRING "Vendor" FORCE)
-@@ -118,9 +122,9 @@ set(LLVM_EXTERNAL_PROJECTS "rocm-device-libs;spirv-llvm-translator" CACHE STRING
+@@ -121,9 +121,9 @@ set(LLVM_EXTERNAL_PROJECTS "rocm-device-libs;spirv-llvm-translator" CACHE STRING
  # options to manage this transition but they require knowing the clange resource
  # dir. In order to avoid drift, we just fixate that too. This can all be
  # removed in a future version.
@@ -102,7 +63,7 @@ index 57144ecf..6138226b 100644
  # Setup the install rpath (let CMake handle build RPATH per usual):
  # * Executables and libraries can always search their adjacent lib directory
 diff --git a/profiler/CMakeLists.txt b/profiler/CMakeLists.txt
-index e021e707..f9589897 100644
+index 4b1f02ef..fef7efed 100644
 --- a/profiler/CMakeLists.txt
 +++ b/profiler/CMakeLists.txt
 @@ -81,11 +81,16 @@ endif(THEROCK_BUILD_TESTING)
