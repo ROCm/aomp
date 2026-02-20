@@ -256,8 +256,3 @@ However, to build AOMP from source, you SHOULD have the Nvidia CUDA SDK version 
 
 See [these install instructions](https://developer.nvidia.com/cuda-toolkit-archive)
 
-
-### 7. Optional Install of Spack
-
-If you expect to install AOMP sources using the release source tarball with spack, you must install Spack. Refer to [these install instructions](https://spack.readthedocs.io/en/latest/getting_started.html#installation) for instructions on installing spack.
-The AOMP spack configuration file is currently missing proper dependencies, so be sure to install the packages listed above before proceeding with source install via spack.
