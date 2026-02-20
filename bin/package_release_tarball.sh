@@ -30,4 +30,4 @@ rsync -a "$sourcedir/" --exclude ".*" "$froot$installdir"
 
 cd "$froot$installdir/../" || exit
 tarball="$AOMP_REPOS/../aomp-${AOMP_VERSION_STRING}.tar.gz"
-tar -h -czf $tarball $dirname
+tar -czf $tarball $dirname

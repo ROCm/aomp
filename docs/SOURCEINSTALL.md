@@ -40,14 +40,14 @@ Here are the commands to do a source build of AOMP:
 ```
 
 The development version is the next version to be released.  It is possible that the development version is broken due to regressions that often occur during development.
-These commands will build a previous release of AOMP such as aomp-22.0-1.<br>
+These commands will build a previous release of AOMP such as aomp-23.0-0.<br>
 <b>Release Branch:</b>
 ```
-   export AOMP_VERSION=22.0
+   export AOMP_VERSION=23.0
    export AOMP_REPOS=$HOME/git/aomp${AOMP_VERSION}
    mkdir -p $AOMP_REPOS
    cd $AOMP_REPOS
-   git clone -b aomp-22.0-1 https://github.com/ROCm/aomp
+   git clone -b aomp-23.0-0 https://github.com/ROCm/aomp
 ```
 <b>Clone and build:</b>
 ```
@@ -74,7 +74,7 @@ There is a "list" option on the clone\_aomp.sh that provides useful information 
 ```
 The above command will produce output like this showing you the location and branch of the repos in the AOMP\_REPOS directory and if there are any discrepencies with respect to the manifest file.<br>
 
-<b>USED manifest file: /work/grodgers/git/aomp23.0/aomp/bin/../manifests/aompi_22.0.xml</b><br>
+<b>USED manifest file: /work/grodgers/git/aomp23.0/aomp/bin/../manifests/aompi_23.0.xml</b><br>
 ```
   repo src       branch                 path                 repo name    last hash    updated           commitor         for author
   --------       ------                 ----                 ---------    ---------    -------           --------         ----------
@@ -82,15 +82,15 @@ The above command will produce output like this showing you the location and bra
        emu  amd-staging   SPIRV-LLVM-Translator  SPIRV-LLVM-Translator 0659e45216b2 2024-12-04            AlexVlx            AlexVlx
        roc     aomp-dev                flang                     flang 88b81b0a8ead 2023-11-30             GitHub    Emma Pilkington
        roc     aomp-dev                 aomp                      aomp df5b5d8ddffa 2023-12-05 Dhruva Chakrabarti Dhruva Chakrabarti
-       roc   release/rocm-rel-7.1   rocprofiler-sdk    rocprofiler-sdk 7283f62b2c16 2025-09-22             GitHub      Ammar ELWazir
-       roc   release/rocm-rel-7.1   roctracer                roctracer 6fbf7673aa7f 2023-07-13 Ranjith Ramakrishnan Ranjith Ramakrishnan
-       roc   release/rocm-rel-7.1   ROCdbgapi                ROCdbgapi df1a8df2be08 2023-07-28       Lancelot SIX       Lancelot SIX
-       roc   release/rocm-rel-7.1      ROCgdb                   ROCgdb 157eed788288 2023-07-28       Lancelot SIX       Lancelot SIX
-       roc   release/rocm-rel-7.1         hip                      hip 80681169ae20 2023-08-15        Julia Jiang        Julia Jiang
-       roc   release/rocm-rel-7.1         clr                      clr 1949b1621a80 2023-09-21        Julia Jiang        Julia Jiang
-       roc   release/rocm-rel-7.1    rocminfo                 rocminfo c8db38ede264 2023-06-02       Mark Searles       Mark Searles
-       roc   release/rocm-rel-7.1  rocm-cmake               rocm-cmake 15cbb2e47f0b 2023-07-11   Lauren Wrubleski   Lauren Wrubleski
-       roc   release/rocm-rel-7.1 rocr-runtime            ROCR-Runtime b2b6811571bf 2023-09-15      David Yat Sin      David Yat Sin
-       roc   release/rocm-rel-7.1      hipfort                 hipfort 41f33eeaa3f7 2023-09-07             Sam Wu    dependabot[bot]
+       roc   release/rocm-rel-7.2   rocprofiler-sdk    rocprofiler-sdk 7283f62b2c16 2025-09-22             GitHub      Ammar ELWazir
+       roc   release/rocm-rel-7.2   roctracer                roctracer 6fbf7673aa7f 2023-07-13 Ranjith Ramakrishnan Ranjith Ramakrishnan
+       roc   release/rocm-rel-7.2   ROCdbgapi                ROCdbgapi df1a8df2be08 2023-07-28       Lancelot SIX       Lancelot SIX
+       roc   release/rocm-rel-7.2      ROCgdb                   ROCgdb 157eed788288 2023-07-28       Lancelot SIX       Lancelot SIX
+       roc   release/rocm-rel-7.2         hip                      hip 80681169ae20 2023-08-15        Julia Jiang        Julia Jiang
+       roc   release/rocm-rel-7.2         clr                      clr 1949b1621a80 2023-09-21        Julia Jiang        Julia Jiang
+       roc   release/rocm-rel-7.2    rocminfo                 rocminfo c8db38ede264 2023-06-02       Mark Searles       Mark Searles
+       roc   release/rocm-rel-7.2  rocm-cmake               rocm-cmake 15cbb2e47f0b 2023-07-11   Lauren Wrubleski   Lauren Wrubleski
+       roc   release/rocm-rel-7.2 rocr-runtime            ROCR-Runtime b2b6811571bf 2023-09-15      David Yat Sin      David Yat Sin
+       roc   release/rocm-rel-7.2      hipfort                 hipfort 41f33eeaa3f7 2023-09-07             Sam Wu    dependabot[bot]
 ```
 For more information, or if you are interested in joining the development of AOMP, please read the AOMP developers README file located here [README](../bin/README.md).
