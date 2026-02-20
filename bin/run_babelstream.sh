@@ -34,6 +34,9 @@ export ROCR_VISIBLE_DEVICES=0
 # --- end standard header ----
 
 if [ "$1" != "nocopy" ] ; then
+pushd $AOMP_REPOS_TEST/$AOMP_BABELSTREAM_REPO_NAME
+git checkout 2f00dfb
+popd
 patchrepo $AOMP_REPOS_TEST/$AOMP_BABELSTREAM_REPO_NAME
 fi
 
