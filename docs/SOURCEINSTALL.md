@@ -12,9 +12,8 @@ To build and test AOMP from source you must:
 ```
 1. Install certain distribution packages,
 2. Build CMake 3.25.2 from source. This can be done with ./build_prereq.sh,
-3. Ensure the KFD kernel module is installed and operating,
-4. Create the Unix video group, and
-5. Install spack if required.
+3. Ensure the KFD kernel module is installed and operating, and
+4. Create the Unix video group
 ```
 [This link](SOURCEINSTALL_PREREQUISITE.md) provides detailed instructions to satisfy all the AOMP source build requirements.
 
