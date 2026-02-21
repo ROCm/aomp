@@ -37,12 +37,11 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/rocm/llvm/lib
 echo "LD_LIBRARY_PATH="$LD_LIBRARY_PATH
 pip install --no-warn-script-location filecheck
 export PATH=$PATH:/home/$USER/.local/bin
-which filecheck
-if [ ! -e /home/$USER/.local/bin/filecheck ]; then
-  ln -s `which filecheck` /home/$USER/.local/bin/filecheck
-  echo "creating symlink for filecheck"
-  ls -l /home/$USER/.local/bin/filecheck
-fi
+FCP=`which filecheck`
+echo filecheck: $FCP
+FCPATH=`dirname $FCP`
+export PATH=$PATH:$FCPATH
+echo PATH=$PATH
 
 RUN_SPEC=1
 WLOC=https://compute-artifactory.amd.com/artifactory/rocm-generic-local/compiler-infra
