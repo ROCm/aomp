@@ -2,6 +2,22 @@
 
 ### 1. Required Distribution Packages
 
+#### ManyLinux (AlmaLinux 8)
+```
+  sudo dnf -y install bison ccache cmake elfutils-libelf-devel elfutis-devel expat-devel flex fmt-devel gcc-c++ gcc-toolset-12-gcc gcc-toolset-12-gcc-c++ gcc-toolset-12-gcc-gfortran gcc-toolset-12-libatomic-devel gcc-toolset-12-libstdc++-devel gdb git gmp-devel gtest-devel libatomic libbabeltrace-devel libffi-devel libquadmath-devel libtool mesa-libGL-devel mpfr-devel msgpack-devel ncurses-devel numactl-devel openssl-devel ocl-icd-devel pciutils-devel python3-devel rpm-build rsync sqlite-devel systemd-devel texinfo vim wget xz-devel
+
+  # Download and install Python 3.10.18
+  wget https://www.python.org/ftp/python/3.10.18/Python-3.10.18.tgz; tar xf Python-3.10.18.tgz; cd Python-3.10.18; ./configure --enable-optimizations --enable-shared; make altinstall; --prefix=$HOME/local/Python-3.10.18;  ln -s $HOME/local/Python-3.10.18/bin/python3.10 $HOME/local/Python-3.10.18/bin/python3
+
+  # Configure environemnt
+  export PATH=$HOME/local/Python-3.10.18/bin:$PATH
+  export LD_LIBRARY_PATH=$HOME/local/Python-3.10.18/lib:$LD_LIBRARY_PATH
+  export LIBRARY_PATH=$HOME/local/Python-3.10.18/lib:$LIBRARY_PATH
+
+  # Finally source the gcc-toolset-12
+  source /opt/rh/gcc-toolset-12/enable
+
+```
 #### Debian or Ubuntu Packages
 
 ```
@@ -93,6 +109,11 @@ RHEL 9
 ### 2. User-installed Python Components
 
 After all the required system package from section 1 are installed, there are some python packages that must be locally installed by the user building AOMP. Use this command to install these.  Do not install these as root.  
+
+ManyLinux (AlmaLinux 8)
+```
+  python3 -m pip install --ignore-installed --no-cache-dir barectf==3.1.2 PyYAML==5.3.1; python3.10 -m pip install CppHeaderParser argparse wheel lit lxml pandas
+```
 
 Ubuntu 22.04
 ```
@@ -235,8 +256,3 @@ However, to build AOMP from source, you SHOULD have the Nvidia CUDA SDK version 
 
 See [these install instructions](https://developer.nvidia.com/cuda-toolkit-archive)
 
-
-### 7. Optional Install of Spack
-
-If you expect to install AOMP sources using the release source tarball with spack, you must install Spack. Refer to [these install instructions](https://spack.readthedocs.io/en/latest/getting_started.html#installation) for instructions on installing spack.
-The AOMP spack configuration file is currently missing proper dependencies, so be sure to install the packages listed above before proceeding with source install via spack.

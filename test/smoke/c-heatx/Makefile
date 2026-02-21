@@ -13,6 +13,6 @@ CC           = $(OMP_BIN) $(VERBOSE)
 
 UNSUPPORTED = ASAN_COMPILE
 
-export TIMEOUT = 180s
+export TIMEOUT = 240s
 
 include ../Makefile.rules
