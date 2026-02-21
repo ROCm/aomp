@@ -38,10 +38,15 @@ echo "LD_LIBRARY_PATH="$LD_LIBRARY_PATH
 pip install --no-warn-script-location filecheck
 export PATH=$PATH:/home/$USER/.local/bin
 which filecheck
+if [ ! -e /home/$USER/.local/bin/filecheck ]; then
+  ln -s `which filecheck` /home/$USER/.local/bin/filecheck
+  echo "creating symlink for filecheck"
+  ls -l /home/$USER/.local/bin/filecheck
+fi
 
 RUN_SPEC=1
 WLOC=https://compute-artifactory.amd.com/artifactory/rocm-generic-local/compiler-infra
-wget --timeout 5 $WLOC/Accel23-scripts.tar
+wget --timeout 5 --tries=2  $WLOC/Accel23-scripts.tar
 if [ "$?" -ne 0 ]; then
   echo "SPECScripts not accessible " $?
   RUN_SPEC=0
