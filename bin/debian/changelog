@@ -1175,5 +1175,8 @@ aomp (19.0-3) UNRELEASED; urgency=medium
   *   Add SPMD-No-Loop mode to OpenMP offload runtime requires setting both of the following flags:
   *      -fopenmp-assume-teams-oversubscription
   *      -fopenmp-assume-threads-oversubscription
+  * 22.0-2
+  *
+  * 22.0-3
 
  -- Greg Rodgers <Gregory.Rodgers@amd.com>  Thu, 19 May 2022 23:34:44 -0500

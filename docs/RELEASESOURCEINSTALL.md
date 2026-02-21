@@ -1,22 +1,20 @@
 # Build and Install From Release Source Tarball
 
-The AOMP build and install from the release source tarball can be done manually or with spack.
+The AOMP build and install from the release source tarball can be done manually.
 Building from source requires a number of platform dependencies.
-These dependencies are not yet provided with the spack configuration file.
-So if you are building from source either manually or building with spack, you must install the prerequisites for the platforms listed below.
 
 ## Source Build Prerequisites
 
-To build AOMP from source you must: 1. Install certain distribution packages, 2. Build CMake 3.25.2 from source, this can be done with build_prereq.sh 3. ensure the KFD kernel module is installed and operating, 4. create the Unix video group, and 5. install spack if required. [This link](SOURCEINSTALL_PREREQUISITE.md) provides instructions to satisfy all the AOMP source build dependencies.
+To build AOMP from source you must: 1. Install certain distribution packages, 2. Build CMake 3.25.2 from source, this can be done with build_prereq.sh 3. ensure the KFD kernel module is installed and operating, and 4. create the Unix video group. [This link](SOURCEINSTALL_PREREQUISITE.md) provides instructions to satisfy all the AOMP source build dependencies.
 
 ## Build AOMP manually from release source tarball
 
 To build and install aomp from the release source tarball run these commands:
 
 ```
-   wget https://github.com/ROCm/aomp/releases/download/rel_22.0-2/aomp-22.0-2.tar.gz
-   tar -xzf aomp-22.0-2.tar.gz
-   cd aomp22.0
+   wget https://github.com/ROCm/aomp/releases/download/rel_23.0-0/aomp-23.0-0-source.tar.gz
+   tar -xzf aomp-23.0-0-source.tar.gz
+   cd aomp23.0
    nohup make &
 ```
 Depending on your system, the last command could take a very long time.  So it is recommended to use nohup and background the process.  The simple Makefile that make will use runs build script "build_aomp.sh" and sets some flags to avoid git checks and applying ROCm patches. Here is that Makefile:
@@ -30,24 +28,6 @@ If you set the environment variable AOMP, the Makefile will install to that dire
 Otherwise, the Makefile will install into /usr/local.
 So you must have authorization to write into /usr/local if you do not set the environment variable AOMP.
 Let's assume you set the environment variable AOMP to "$HOME/rocm/aomp" in .bash_profile.
-The build_aomp.sh script will install into $HOME/rocm/aomp_22.0-2 and create a symbolic link from $HOME/rocm/aomp to $HOME/rocm/aomp_22.0-2.
+The build_aomp.sh script will install into $HOME/rocm/aomp_23.0-0 and create a symbolic link from $HOME/rocm/aomp to $HOME/rocm/aomp_23.0-0.
 This feature allows multiple versions of AOMP to be installed concurrently.
-To enable a backlevel version of AOMP, simply set AOMP to $HOME/rocm/aomp_22.0-1.
-
-## Build AOMP with spack
-
-Assuming your have installed the [prerequisites](SOURCEINSTALL_PREREQUISITE.md), use these commands to fetch the source and build aomp. Currently the aomp configuration is not yet in the spack git hub so you must create the spack package first.
-
-```
-   wget https://github.com/ROCm/aomp/blob/aomp-22.0-2/bin/package.py
-   spack create -n aomp -t makefile --force https://github.com/ROCm/aomp/releases/download/rel_22.0-2/aomp-22.0-2.tar.gz
-   spack edit aomp
-   spack install aomp
-```
-The "spack create" command will download and start an editor of a newly created spack config file.
-With the exception of the sha256 value, copy the contents of the downloaded package.py file into
-into the spack configuration file. You may restart this editor with the command "spack edit aomp"
-
-Depending on your system, the "spack install aomp" command could take a very long time.
-Unless you set the AOMP environment variable, AOMP will be installed in /usr/local/aomp_<RELEASE> with a symbolic link from /usr/local/aomp to /usr/local/aomp_<RELEASE>.
-Be sure you have write access to /usr/local or set AOMP to a location where you have write access.
+To enable a backlevel version of AOMP, simply set AOMP to $HOME/rocm/aomp_22.0-2.
