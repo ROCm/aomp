@@ -61,6 +61,15 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    cd "$BUILD_AOMP"/build/rocprofiler-sdk || exit
    export PATH=$HOME/.local/bin:$INSTALL_ROCPROF_SDK/bin:$PATH
 
+   pythonbinary=$(which python3) || exit
+   pythonversion=$("$pythonbinary" --version) || exit
+   if [[ $pythonversion =~ ([Pp]ython)[[:space:]]*([0-9]+)\.([0-9]+) ]]; then
+      pythonversion="${BASH_REMATCH[2]}.${BASH_REMATCH[3]}"
+   else
+     echo "Error: cannot determine python version"
+     exit 1
+   fi
+
    declare -a MYCMAKEOPTS
 
    MYCMAKEOPTS=(-DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR;$HOME/local/aqlprofile"
@@ -70,7 +79,9 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 	        -DBUILD_SHARED_LIBS=On
 	        -DGPU_TARGETS="$GFXSEMICOLONS"
 	        -DROCPROFILER_BUILD_SAMPLES=ON
-		-DROCPROFILER_BUILD_TESTS=OFF)
+		-DROCPROFILER_BUILD_TESTS=OFF
+		-DPython3_EXECUTABLE=$(which python3)
+		-DROCPROFILER_PYTHON_VERSIONS="$pythonversion")
 
    echo " -----Running rocprofiler-sdk cmake ---- "
    echo "${AOMP_CMAKE}" "${MYCMAKEOPTS[@]}" "$AOMP_REPOS/$AOMP_PROF_SDK_REPO_NAME"

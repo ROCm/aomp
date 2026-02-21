@@ -129,7 +129,7 @@ for repo_name in $REPO_NAMES ; do
 done
 
 # This file will be uploaded to the release directory
-tarball="$AOMP_REPOS/../aomp-${AOMP_VERSION_STRING}.tar.gz"
+tarball="$AOMP_REPOS/../aomp-${AOMP_VERSION_STRING}-source.tar.gz"
 tmpdir=/tmp/create_tarball$$
 majorver=${AOMP_VERSION}
 tardir=$tmpdir/aomp$majorver
@@ -147,7 +147,7 @@ done
 echo "ln -sf $AOMP_REPOS/$AOMP_REPO_NAME $AOMP_REPO_NAME"
 ln -sf "$AOMP_REPOS/$AOMP_REPO_NAME" "$AOMP_REPO_NAME"
 cd "$tmpdir" || exit
-cmd="tar --exclude-from $thisdir/create_release_tarball_excludes -h -czf $tarball aomp$majorver "
+cmd="tar --exclude-from $thisdir/create_release_tarball_excludes -h -czf $tarball aomp$majorver"
 echo "----------------- START tar COMMAND -----------------"
 echo "time $cmd"
 time $cmd
