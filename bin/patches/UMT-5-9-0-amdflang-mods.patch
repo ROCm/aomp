@@ -61,10 +61,10 @@ index b348b26..ff000f1 100644
  
        endif()
 diff --git a/src/cmake/GetGPUInfo.cmake b/src/cmake/GetGPUInfo.cmake
-index 2a337a9..fac34e0 100644
+index 2a337a9..b15ced1 100644
 --- a/src/cmake/GetGPUInfo.cmake
 +++ b/src/cmake/GetGPUInfo.cmake
-@@ -14,28 +14,40 @@ if (ENABLE_OPENMP_OFFLOAD)
+@@ -14,28 +14,52 @@ if (ENABLE_OPENMP_OFFLOAD)
    message(STATUS "Checking for GPU...")
    if (CMAKE_CUDA_ARCHITECTURES STREQUAL 70)
      message(STATUS "-- Detected NVIDIA Volta, setting device num processors to 80")
@@ -78,6 +78,18 @@ index 2a337a9..fac34e0 100644
 +    set(IS_AMDGPU FALSE)
 +    add_compile_definitions(IS_AMDGPU=0)
 +    set(OPENMP_UNIFIED_MEMORY FALSE)
++  elseif (CMAKE_HIP_ARCHITECTURES STREQUAL gfx1100)
++# AMD RX7900XT* - 96 CUs
++message(STATUS "-- Detected AMD RX7900XT*, setting device num processors to 96")
++    set(OMP_DEVICE_NUM_PROCESSORS 96)
++    add_compile_definitions(OMP_DEVICE_NUM_PROCESSORS=96)
++    set(GSET_MIN_SIZE 16)
++    set(MAX_NUM_SWEEP_HYPER_DOMAINS 1)
++    set(MAX_NUM_GTA_HYPER_DOMAINS 96)
++    set(OMP_DEVICE_TEAM_THREAD_LIMIT 512)
++    set(IS_AMDGPU TRUE)
++    add_compile_definitions(IS_AMDGPU=1)
++    set(OPENMP_UNIFIED_MEMORY FALSE)
    elseif (CMAKE_HIP_ARCHITECTURES STREQUAL gfx90a)
  # AMD MI250X - 110 CUs
      message(STATUS "-- Detected AMD MI250, setting device num processors to 110")
@@ -86,8 +98,9 @@ index 2a337a9..fac34e0 100644
      set(GSET_MIN_SIZE 16)
      set(MAX_NUM_SWEEP_HYPER_DOMAINS 1)
      set(MAX_NUM_GTA_HYPER_DOMAINS 110)
-     set(OMP_DEVICE_TEAM_THREAD_LIMIT 1024)
+-    set(OMP_DEVICE_TEAM_THREAD_LIMIT 1024)
 -
++    set(OMP_DEVICE_TEAM_THREAD_LIMIT 512)
 +    set(IS_AMDGPU TRUE)
 +    add_compile_definitions(IS_AMDGPU=1)
 +    set(OPENMP_UNIFIED_MEMORY TRUE)
@@ -101,14 +114,15 @@ index 2a337a9..fac34e0 100644
      set(MAX_NUM_SWEEP_HYPER_DOMAINS 1)
 +    set(MAX_NUM_HYPER_DOMAINS 40)
      set(MAX_NUM_GTA_HYPER_DOMAINS 228)
+-    set(OMP_DEVICE_TEAM_THREAD_LIMIT 1024)
+-
 +    set(IS_AMDGPU TRUE)
 +    add_compile_definitions(IS_AMDGPU=1)
-     set(OMP_DEVICE_TEAM_THREAD_LIMIT 1024)
--
++    set(OMP_DEVICE_TEAM_THREAD_LIMIT 512)
    else()
      message(ERROR "-- Unrecogized or unset value for CUDA or HIP architecture.")
    endif()
-@@ -43,11 +55,16 @@ if (ENABLE_OPENMP_OFFLOAD)
+@@ -43,11 +67,16 @@ if (ENABLE_OPENMP_OFFLOAD)
  else()
    message(STATUS "-- No GPU detected.")
    # These are only used if running the GPU kernels on the CPU for testing purposes.

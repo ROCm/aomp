@@ -24,7 +24,7 @@ HIP_LIB_PATH    ?= $(realpath $(realpath ${AOMP})/../../lib)
 # Compiler flags
 HIP_FLAGS       = -O3 --offload-arch=${AOMP_GPU}
 F_FLAGS         = -O2 -fopenmp -fopenmp-version=50 --offload-arch=${AOMP_GPU}
-LD_FLAGS        = -O3 -L${HIP_LIB_PATH} -lamdhip64 -lstdc++
+LD_FLAGS        = -O3 -L${HIP_LIB_PATH} -lamdhip64 -lstdc++ -Wl,-rpath,${HIP_LIB_PATH}
 
 # To verify HIP runs, use:
 #   AMD_LOG_LEVEL=1 ...
