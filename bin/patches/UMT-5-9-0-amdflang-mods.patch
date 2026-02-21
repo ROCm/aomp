@@ -61,7 +61,7 @@ index b348b26..ff000f1 100644
  
        endif()
 diff --git a/src/cmake/GetGPUInfo.cmake b/src/cmake/GetGPUInfo.cmake
-index 2a337a9..fac34e0 100644
+index 2a337a9..66f0f55 100644
 --- a/src/cmake/GetGPUInfo.cmake
 +++ b/src/cmake/GetGPUInfo.cmake
 @@ -14,28 +14,40 @@ if (ENABLE_OPENMP_OFFLOAD)
@@ -86,8 +86,9 @@ index 2a337a9..fac34e0 100644
      set(GSET_MIN_SIZE 16)
      set(MAX_NUM_SWEEP_HYPER_DOMAINS 1)
      set(MAX_NUM_GTA_HYPER_DOMAINS 110)
-     set(OMP_DEVICE_TEAM_THREAD_LIMIT 1024)
+-    set(OMP_DEVICE_TEAM_THREAD_LIMIT 1024)
 -
++    set(OMP_DEVICE_TEAM_THREAD_LIMIT 512)
 +    set(IS_AMDGPU TRUE)
 +    add_compile_definitions(IS_AMDGPU=1)
 +    set(OPENMP_UNIFIED_MEMORY TRUE)
@@ -101,10 +102,11 @@ index 2a337a9..fac34e0 100644
      set(MAX_NUM_SWEEP_HYPER_DOMAINS 1)
 +    set(MAX_NUM_HYPER_DOMAINS 40)
      set(MAX_NUM_GTA_HYPER_DOMAINS 228)
+-    set(OMP_DEVICE_TEAM_THREAD_LIMIT 1024)
+-
 +    set(IS_AMDGPU TRUE)
 +    add_compile_definitions(IS_AMDGPU=1)
-     set(OMP_DEVICE_TEAM_THREAD_LIMIT 1024)
--
++    set(OMP_DEVICE_TEAM_THREAD_LIMIT 512)
    else()
      message(ERROR "-- Unrecogized or unset value for CUDA or HIP architecture.")
    endif()
