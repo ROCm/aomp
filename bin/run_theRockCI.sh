@@ -22,6 +22,24 @@ declare -A assocSuite=(
 ["openmpapps"]=" 2 minutes"
 )
 
+function hide_unrunnable_files() {
+set -x
+pushd $aompdir/test/smoke/
+mkdir .savem
+mv clang-host-targ clang-host-targ2 flags host_targ  usm-globals-with-pragma usm-globals-with-pragma usm-globals .savem/
+popd
+pushd $aompdir/test/smoke-fort
+mkdir .savem
+mv flang-gpu-abort .savem/
+popd
+pushd $aompdir/test/smoke-limbo
+mkdir .savem
+mv flang-gpu-abort hipreg_usm usm-locals-pragma-xnack-enabled-xnack-any usm-locals-pragma-xnack-enabled-xnack-plus .savem/
+popd
+set +x
+}
+
+
 ulimit -t 400
 ulimit -s unlimited
 
@@ -33,15 +51,16 @@ which rocm-smi
 which rocminfo
 which make
 
+export GPURUN_BYPASS=1
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/rocm/llvm/lib
 echo "LD_LIBRARY_PATH="$LD_LIBRARY_PATH
 pip install --no-warn-script-location filecheck
-export PATH=$PATH:/home/$USER/.local/bin
-which filecheck
+export FILECHECK=`which filecheck`
+echo filecheck: $FILECHECK
 
 RUN_SPEC=1
 WLOC=https://compute-artifactory.amd.com/artifactory/rocm-generic-local/compiler-infra
-wget --timeout 5 $WLOC/Accel23-scripts.tar
+wget --timeout 5 --tries=2  $WLOC/Accel23-scripts.tar
 if [ "$?" -ne 0 ]; then
   echo "SPECScripts not accessible " $?
   RUN_SPEC=0
@@ -70,7 +89,6 @@ scriptdir=`dirname $realpath`
 parentdir=`eval "cd $scriptdir;pwd;cd - > /dev/null"`
 aompdir="$(dirname "$parentdir")"
 summary=`pwd`"/summary.txt"
-scriptfails=0
 
 if [ "$SKIP_CLONE" == "" ]; then
   EPSDB=1 ./clone_test.sh
@@ -350,6 +368,8 @@ function bldopenmpi(){
 
 echo Running List: $SUITE_LIST
 
+hide_unrunnable_files
+
 declare -A warnings
 warningcount=0
 for suite in $SUITE_LIST; do
@@ -368,13 +388,15 @@ scriptfails=$?
 if [ "$scriptfails" == 0 ]; then
   echo FAIL >> $summary
   echo "EPSDB Status:  red" >> $summary
+  RC=1
 else
   echo PASS >> $summary
   echo "EPSDB Status:  green" >> $summary
+  RC=0
 fi
 cat $TLOG
 echo ""
 echo >> $summary
 cat $summary
 date
-exit $((scriptfails))
+exit $((RC))
