@@ -102,7 +102,7 @@ else
  endif
 endif
 # look file pip installed filecheck first
-FILECHECK=/home/$(USER)/.local/bin/filecheck
+FILECHECK?=/home/$(USER)/.local/bin/filecheck
 FILECHECK_RT=$(shell ls $(FILECHECK) 2>/dev/null || echo error)
 ifeq ($(FILECHECK_RT),error)
 # Look for FileCheck on the system in various places.
