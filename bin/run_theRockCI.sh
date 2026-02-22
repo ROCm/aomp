@@ -33,15 +33,12 @@ which rocm-smi
 which rocminfo
 which make
 
+export GPURUN_BYPASS=1
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/rocm/llvm/lib
 echo "LD_LIBRARY_PATH="$LD_LIBRARY_PATH
 pip install --no-warn-script-location filecheck
-export PATH=$PATH:/home/$USER/.local/bin
-FCP=`which filecheck`
-echo filecheck: $FCP
-FCPATH=`dirname $FCP`
-export PATH=$PATH:$FCPATH
-echo PATH=$PATH
+export FILECHECK=`which filecheck`
+echo filecheck: $FILECHECK
 
 RUN_SPEC=1
 WLOC=https://compute-artifactory.amd.com/artifactory/rocm-generic-local/compiler-infra
