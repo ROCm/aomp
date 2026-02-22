@@ -25,7 +25,8 @@ declare -A assocSuite=(
 function hide_unrunnable_files() {
 pushd $aompdir/test/smoke/
 mkdir .savem
-mv clang-host-targ clang-host-targ2 flags host_targ .savem/
+mv clang-host-targ clang-host-targ2 flags host_targ  usm-globals-with-pragma
+ .savem/
 popd
 pushd $aompdir/test/smoke-fort
 mkdir .savem
