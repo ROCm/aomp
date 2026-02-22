@@ -349,10 +349,13 @@ if [ "${ShouldInstallCK}" == 'yes' ]; then
   pushd ${CK_BUILD} || exit 1
 
   # TODO: Check parallelism. This may use all available threads.
-  /usr/bin/time -o install-times.tlog ${CKBuildTool} install
+  /usr/bin/time -o install-times.tlog ${CKBuildTool} -k 0 install
   if [ $? -ne 0 ]; then
     exit 1
   fi
+
+  # Find install success in the log
+  echo "CK-INSTALL-SUCCESS"
 
   popd
 fi
