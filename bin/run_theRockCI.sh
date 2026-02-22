@@ -27,7 +27,7 @@ pushd $aompdir/test/smoke/
 mkdir .savem
 mv clang-host-targ clang-host-targ2 flags host_targ .savem/
 popd
-pushd $aompdir/test/smoke-limbo
+pushd $aompdir/test/smoke-fort
 mkdir .savem
 mv flang-gpu-abort .savem/
 popd
