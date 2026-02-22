@@ -83,7 +83,6 @@ scriptdir=`dirname $realpath`
 parentdir=`eval "cd $scriptdir;pwd;cd - > /dev/null"`
 aompdir="$(dirname "$parentdir")"
 summary=`pwd`"/summary.txt"
-scriptfails=0
 
 if [ "$SKIP_CLONE" == "" ]; then
   EPSDB=1 ./clone_test.sh
@@ -383,13 +382,15 @@ scriptfails=$?
 if [ "$scriptfails" == 0 ]; then
   echo FAIL >> $summary
   echo "EPSDB Status:  red" >> $summary
+  RC=1
 else
   echo PASS >> $summary
   echo "EPSDB Status:  green" >> $summary
+  RC=0
 fi
 cat $TLOG
 echo ""
 echo >> $summary
 cat $summary
 date
-exit $((scriptfails))
+exit $((RC))
