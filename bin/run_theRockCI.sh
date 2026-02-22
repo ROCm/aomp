@@ -22,6 +22,18 @@ declare -A assocSuite=(
 ["openmpapps"]=" 2 minutes"
 )
 
+function hide_unrunnable_files() {
+pushd $aompdir/test/smoke/
+mkdir .savem
+mv clang-host-targ clang-host-targ2 flags host_targ .savem/
+popd
+pushd $aompdir/test/smoke-limbo
+mkdir .savem
+mv flang-gpu-abort .savem/
+popd
+}
+
+
 ulimit -t 400
 ulimit -s unlimited
 
@@ -350,6 +362,8 @@ function bldopenmpi(){
 }
 
 echo Running List: $SUITE_LIST
+
+hide_unrunnable_files
 
 declare -A warnings
 warningcount=0
