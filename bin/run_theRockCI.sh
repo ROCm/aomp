@@ -34,7 +34,7 @@ mv flang-gpu-abort .savem/
 popd
 pushd $aompdir/test/smoke-limbo
 mkdir .savem
-mv flang-gpu-abort hipreg_usm usm-locals-pragma-xnack-enabled-xnack-any usm-locals-pragma-xnack-enabled-xnack-plus .savem/
+mv hipreg_usm usm-locals-pragma-xnack-enabled-xnack-any usm-locals-pragma-xnack-enabled-xnack-plus .savem/
 popd
 set +x
 }
