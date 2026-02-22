@@ -23,15 +23,20 @@ declare -A assocSuite=(
 )
 
 function hide_unrunnable_files() {
+set -x
 pushd $aompdir/test/smoke/
 mkdir .savem
-mv clang-host-targ clang-host-targ2 flags host_targ  usm-globals-with-pragma
- .savem/
+mv clang-host-targ clang-host-targ2 flags host_targ  usm-globals-with-pragma usm-globals-with-pragma usm-globals .savem/
 popd
 pushd $aompdir/test/smoke-fort
 mkdir .savem
 mv flang-gpu-abort .savem/
 popd
+pushd $aompdir/test/smoke-limbo
+mkdir .savem
+mv flang-gpu-abort hipreg_usm usm-locals-pragma-xnack-enabled-xnack-any usm-locals-pragma-xnack-enabled-xnack-plus .savem/
+popd
+set +x
 }
 
 
