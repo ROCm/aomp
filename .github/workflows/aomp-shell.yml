@@ -3,7 +3,7 @@ name: AOMP Lint
 on:
   push:
   pull_request:
-  
+
 jobs:
   aomp-lint:
     runs-on: ubuntu-latest
@@ -12,5 +12,5 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Run shellcheck
-        run: | 
-          find . -name "*.sh" | xargs shellcheck -S info {} \;
+        run: |
+          find . -name "*.sh" -exec shellcheck -S info {} +
