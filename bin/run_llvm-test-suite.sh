@@ -26,6 +26,8 @@ export AOMP_USE_CCACHE=0
 : "${LLVMTS_GPU:=$AOMP_GPU}"
 : "${LLVMTS_BUILD_TYPE:=Release}"
 : "${LLVMTS_TEST_TIMEOUT:=840}"
+# Fallback to system ROCm if AOMP doesn't have HIP libraries
+: "${ROCM:=/opt/rocm}"
 
 # Determine clang major version for device libs path
 CLANG_VERSION=$("${AOMP}/bin/clang" --version | head -1 | grep -o 'version [0-9]*' | awk '{print $2}')
@@ -120,17 +122,6 @@ if [ -d "${LLVMTS_SRC_DIR}" ] && [ ! -d "${LLVMTS_SRC_DIR}/External/HIP" ]; then
   echo "         The test suite may not have HIP tests available"
 fi
 
-# Create External directory structure for HIP tests
-# HIP tests expect TEST_SUITE_EXTERNALS_DIR/hip/rocm-* directories
-if [ ! -d "${LLVMTS_EXTERNAL_DIR}" ]; then
-  mkdir -p "${LLVMTS_EXTERNAL_DIR}"
-fi
-
-# Create hip subdirectory and symlink to ROCm installation
-if [ ! -d "${LLVMTS_EXTERNAL_DIR}/hip" ]; then
-  mkdir -p "${LLVMTS_EXTERNAL_DIR}/hip"
-fi
-
 # Determine ROCm path for HIP tests
 # Prefer using AOMP's root directory (which contains HIP runtime and libraries)
 # over system ROCm installation. AOMP root is typically $AOMP/../.. when AOMP points
@@ -145,8 +136,6 @@ elif [ -f "${AOMP}/../lib/libamdhip64.so" ]; then
   ROCM_FOR_TESTS="${AOMP_ROOT_DIR}"
   echo "Using AOMP installation for HIP tests: ${ROCM_FOR_TESTS}"
 else
-  # Fallback to system ROCm if AOMP doesn't have HIP libraries
-  : "${ROCM:=/opt/rocm}"
   if [ ! -d "${ROCM}" ]; then
     echo "ERROR: AOMP installation does not contain HIP libraries and system ROCm not found at ${ROCM}"
     echo "       Please set ROCM environment variable to a valid ROCm installation"
@@ -171,6 +160,12 @@ elif command -v dpkg >/dev/null && dpkg -l rocm-core >/dev/null 2>&1; then
 else
   # Default fallback version
   ROCM_VERSION_FILE="6.0.0"
+fi
+
+# Create hip subdirectory and symlink to ROCm installation
+# This is a prerequisite / assumption that the LLVM test suite makes
+if [ ! -d "${LLVMTS_EXTERNAL_DIR}/hip" ]; then
+  mkdir -p "${LLVMTS_EXTERNAL_DIR}/hip"
 fi
 
 ROCM_LINK="${LLVMTS_EXTERNAL_DIR}/hip/rocm-${ROCM_VERSION_FILE}"
