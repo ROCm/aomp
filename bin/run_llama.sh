@@ -23,8 +23,8 @@
 : ${LLAMA_BENCH_HF_ID:="ggml-org/gemma-3-1b-it-GGUF"}
 : ${LLAMA_CACHE:="$HOME/.cache/llama.cpp"}
 
-pushd ${AOMP_REPOS_TEST}
-mkdir -p ${LLAMA_TLDIR} && cd ${LLAMA_TLDIR}
+pushd "${AOMP_REPOS_TEST}" || exit
+mkdir -p "${LLAMA_TLDIR}" && cd "${LLAMA_TLDIR}" || exit
 
 # Run CMake configuration
 DoConfigure='no'
@@ -63,22 +63,20 @@ if [ "${IsVerbose}" == "yes" ]; then
   set -x
 fi
 
-TestBuildTool='make'
 if command -v ninja >/dev/null; then
   CmakeGenerator="-GNinja"
-  TestBuildTool='ninja'
 fi
 
-if [ ! -d ${LLAMA_TESTS_LOG_LOCATION} ]; then
-  mkdir -p ${LLAMA_TESTS_LOG_LOCATION}
+if [ ! -d "${LLAMA_TESTS_LOG_LOCATION}" ]; then
+  mkdir -p "${LLAMA_TESTS_LOG_LOCATION}"
 fi
 
-if [ ! -d ${LLAMA_SRC_DIR} ]; then
+if [ ! -d "${LLAMA_SRC_DIR}" ]; then
   echo "Cloning llama.cpp repository..."
   git clone https://github.com/ggml-org/llama.cpp.git src
 elif [ "${DoUpdate}" == "yes" ]; then
   echo "Updating llama.cpp repository..."
-  cd ${LLAMA_SRC_DIR}
+  cd "${LLAMA_SRC_DIR}" || exit
   git pull
   cd ..
 fi
@@ -87,7 +85,7 @@ if ! command -v git-lfs >/dev/null; then
   echo "WARNING: git-lfs is not installed. Expect some tests to fail."
 else
   # Ensure git-lfs is initialized and pulls any large files
-  cd ${LLAMA_SRC_DIR}
+  cd "${LLAMA_SRC_DIR}" || exit
   git lfs install
   git lfs pull
   cd ..
@@ -95,27 +93,27 @@ fi
 
 echo "Configuring build with CMake..."
 if [ "${DoConfigure}" == "yes" ]; then
-  rm -rf ${LLAMA_BUILD_DIR}
+  rm -rf "${LLAMA_BUILD_DIR}"
   cmake -B build \
     -S src \
-    -DCMAKE_PREFIX_PATH=${AOMP}/lib/cmake \
+    -DCMAKE_PREFIX_PATH="${AOMP}"/lib/cmake \
     -DGGML_HIP=On \
     -DCMAKE_BUILD_TYPE=${LLAMA_BUILD_MODE} \
     -DGPU_TARGETS=${LLAMA_GPU} \
     ${CmakeGenerator} \
-    -DCMAKE_C_COMPILER=${AOMP}/bin/clang \
-    -DCMAKE_CXX_COMPILER=${AOMP}/bin/clang++ \
-    -DCMAKE_HIP_COMPILER=${AOMP}/bin/clang++
+    -DCMAKE_C_COMPILER="${AOMP}"/bin/clang \
+    -DCMAKE_CXX_COMPILER="${AOMP}"/bin/clang++ \
+    -DCMAKE_HIP_COMPILER="${AOMP}"/bin/clang++
 fi
 
 if [ "${DoCompile}" == "yes" ]; then
   echo "Building LLaMA..."
-  cmake --build ${LLAMA_BUILD_DIR} --parallel -j ${AOMP_BUILD_JOBS}
+  cmake --build "${LLAMA_BUILD_DIR}" --parallel -j "${AOMP_BUILD_JOBS}"
 fi
 
 if [ "${DoCTest}" == "yes" ]; then
   echo "Running tests..."
-  cd ${LLAMA_BUILD_DIR}
+  cd "${LLAMA_BUILD_DIR}" || exit
   echo "Log in ${LLAMA_TESTS_LOG_LOCATION}/ctest.log"
 
   # Some model files are git-lfs and come from huggingface. They will auto-download during test
@@ -124,7 +122,7 @@ fi
 
 if [ "${DoBenchmark}" == "yes" ]; then
   echo "Running benchmark..."
-  cd ${LLAMA_BUILD_DIR}
+  cd "${LLAMA_BUILD_DIR}" || exit
   # Download model from HF (this will make it avail in local cache); bench call requires local model file
   # llama-cli will turn on interactive mode, so echo /exit to it immediately
   echo "/exit" | ./bin/llama-cli -hf ${LLAMA_BENCH_HF_ID}
@@ -140,4 +138,4 @@ if [ "${DoBenchmark}" == "yes" ]; then
   ./bin/llama-bench -ngl 999 -fa 1 -ub 2048 -m "$LlamaModelPath" 2>&1 | tee -a "${LLAMA_TESTS_LOG_LOCATION}/llama-bench.log"
 fi
 
-popd
+popd || exit
