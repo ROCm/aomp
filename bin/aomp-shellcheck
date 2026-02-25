@@ -1,0 +1,146 @@
+#!/bin/bash
+#
+#  aomp-shell-format: Run shellcheck and shfmt to cleanup aomp shell script.
+#
+#  Process:
+#   1. RUn shellcheck --include $_fixByHand, fail if any found
+#   2. Run shellcheck --include $_patchable to generate patch
+#   3  Apply patch
+#   4. Run shellcheck --exclude $_alwaysExclude
+#      if any fails then 
+#        return 1
+#        proceed to update this aomp-shell-format utility by adding
+#        falled codes to either _fixByHand, _patchable, or _alwaysExclude
+#      else
+#         return 0
+#       
+
+# Join list of arguments using separator passed as first argument.
+#   join ',' a b c
+# -> a,b,c
+join() {
+  local IFS=$1
+  shift
+  printf "%s" "$*"
+}
+
+_fixByHand=(SC2050   # Forgotten $ on variable
+            SC2046   # Quote to prevent word splitting
+            SC2291   # Quote repeated spaces
+            SC2181   # Check exit code directly not with $?
+            SC2236   # Use -n instead of ! -z
+            SC2086   # Double quote to prevent globbing and word splitting
+            SC2034   # Ignore unused vars
+            SC1083   # Accidentally literal braces
+            SC2076   # Regex syntax check
+            SC2038   # find -print0
+            SC2068)  # Avoid re-splitting array expansion
+_fixByHandOpts=(--shell=bash --include="$(join ',' "${_fixByHand[@]}")")
+
+_patchable=(SC2164   # Use cd ... || exit
+            SC2006)  # Use $(...) instead of legacy backticks
+_patchableOpts=(--shell=bash --include="$(join ',' "${_patchable[@]}")")
+
+_alwaysExclude=(SC2016  # Use double quote instead of single
+                SC2002  # Useless cat
+                SC2004) # '$' on arithmetic vars
+_alwaysExcludeOpts=(--shell=bash --exclude="$(join ',' "${_alwaysExclude[@]}")")
+
+_check_only=false
+
+if [ $1 == "--check-only" ]; then
+  _check_only=true
+  shift
+fi
+
+declare -a _shellfiles=( "$@" )
+_missing=0
+for _shellfile in "${_shellfiles[@]}"; do
+  if [ ! -f "$_shellfile" ]; then
+    (( _missing++ ))
+  fi
+done
+unset _shellfile
+
+if [ "${#_shellfiles[@]}" -eq 0 ] || [ "$_missing" -gt 0 ] ; then
+   echo "ERROR: please specify an existing input file as 1st argument"
+   exit 1
+fi
+
+_shellcheck_bin=$(which shellcheck)
+if [ "$_shellcheck_bin" == "" ] ; then
+   echo "ERROR: please install shellcheck"
+   exit 1
+fi
+
+echo
+echo "---- STEP 1 ---- Check for fixByHand fails -----"
+echo "$_shellcheck_bin -x ${_fixByHandOpts[*]} ${_shellfiles[*]}"
+
+$_shellcheck_bin -x "${_fixByHandOpts[@]}" "${_shellfiles[@]}"
+_rc=$?
+if [[ $_rc != 0 ]]; then
+   echo
+   echo "ERROR: shellcheck found errors that must be fixed by hand. rc=$_rc"
+   exit 1
+fi
+
+if $_check_only; then
+   echo
+   echo "---- STEP 2 ---- Check patchable fails -----"
+   echo "$_shellcheck_bin -x ${_patchableOpts[@]} ${_shellfiles[@]}"
+   $_shellcheck_bin -x "${_patchableOpts[@]}" "${_shellfiles[@]}"
+
+   echo
+   echo "---- STEP 3 ---- (Skipping for --check-only)"
+else
+   echo
+   echo "---- STEP 2 ---- Check and repair patchable fails -----"
+
+   _patchfile=/tmp/patchfile$$
+
+   if ! touch "$_patchfile"; then
+      echo "ERROR: Could not create or update $_patchfile"
+      exit 1
+   fi
+
+   echo "$_shellcheck_bin -x ${_patchableOpts[*]} -f diff ${_shellfiles[*]} \>$_patchfile"
+   $_shellcheck_bin -x "${_patchableOpts[@]}" -f diff "${_shellfiles[@]}" >$_patchfile
+
+   if ! patch -p1 --dry-run <"$_patchfile"; then
+      echo "ERROR: Could not dryrun patch in $_patchfile to file ${_shellfiles[*]}"
+      exit 1
+   fi
+   echo
+   echo "---- STEP 3 ---- Applying patch $_patchfile to ${_shellfiles[*]}"
+   patch -p1 <"$_patchfile"
+   echo "rm $_patchfile"
+   rm "$_patchfile" # patch should work because of dryrun test above
+fi
+
+echo
+echo "---- STEP 4 ---- Test for codes not handled in $0"
+if $_check_only; then
+   # A non-check-only run would avoid triggering the patchable checks again
+   # in this invocation.  Mask them out for a check-only run.
+   _excludeOpts=(--shell=bash --exclude="$(join ',' "${_alwaysExclude[@]}" "${_patchable[@]}")")
+   echo "$_shellcheck_bin -x ${_excludeOpts[*]} ${_shellfiles[*]}"
+   $_shellcheck_bin -x "${_excludeOpts[@]}" "${_shellfiles[@]}"
+   _rc=$?
+else
+   echo "$_shellcheck_bin -x ${_alwaysExcludeOpts[*]} ${_shellfiles[*]}"
+   $_shellcheck_bin -x "${_alwaysExcludeOpts[@]}" "${_shellfiles[@]}"
+   _rc=$?
+fi
+if [ $_rc != 0 ] ; then
+   echo
+   echo "ERROR: shellcheck found codes not yet handled, must fix $0"
+   exit $_rc
+fi
+echo
+if [ "${#_shellfiles[@]}" -eq 1 ]; then
+  echo "DONE: script ${_shellfiles[*]} is clean"
+else
+  echo "DONE: scripts $(join ',' ${_shellfiles[@]}) are clean"
+fi
+exit 0
