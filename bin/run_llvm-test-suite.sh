@@ -208,7 +208,7 @@ if [ "${DoTest}" == "yes" ]; then
 
   echo "Log in ${LLVMTS_LOGS_DIR}/test-output.log"
 
-  for test_target in check-hip-simple check-hip-catch; do
+  for TestTarget in check-hip-simple check-hip-catch; do
   # Use timeout to prevent tests from hanging
   # -k 30: Send SIGKILL after 30 seconds if SIGTERM doesn't terminate the process
   # This ensures even completely hung processes are killed
