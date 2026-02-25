@@ -213,7 +213,7 @@ if [ "${DoTest}" == "yes" ]; then
   # -k 30: Send SIGKILL after 30 seconds if SIGTERM doesn't terminate the process
   # This ensures even completely hung processes are killed
   if command -v timeout >/dev/null; then
-    timeout -k 30 "${LLVMTS_TEST_TIMEOUT}" "${TestBuildTool}" "${test_target}" 2>&1 | tee "${LLVMTS_LOGS_DIR}/test-output.log"
+    timeout -k 30 "${LLVMTS_TEST_TIMEOUT}" "${TestBuildTool}" "${TestTarget}" 2>&1 | tee "${LLVMTS_LOGS_DIR}/test-output.log"
     test_exit_code="${PIPESTATUS[0]}"
     if [ "${test_exit_code}" -eq 124 ]; then
       echo "WARNING: Tests timed out after ${LLVMTS_TEST_TIMEOUT} seconds"
