@@ -2,6 +2,7 @@
 save_status() { tval=$? && (($tval!=0)) && rval=$tval; }; rval=0
 echo "ZZZZZZZZZZ BabelStream"   # marker for extract-tests
 set -x
+ulimit -s 500
 ./milestone-3-babel -n 20               # 805.3 MB
 save_status
 ./milestone-3-babel -n 20 -s 100000000  # 2400.0 MB
