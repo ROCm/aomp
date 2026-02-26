@@ -2,7 +2,6 @@
 save_status() { tval=$? && (($tval!=0)) && rval=$tval; }; rval=0
 echo "ZZZZZZZZZZ BabelStream"   # marker for extract-tests
 set -x
-ulimit -s 500
 PRECMD=""
 if [ -f $AOMP/bin/gpurun  ]; then
   PRECMD="$AOMP/bin/gpurun -s"
