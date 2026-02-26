@@ -1119,5 +1119,64 @@ aomp (19.0-3) UNRELEASED; urgency=medium
   *      Replaced libomptarget.devicertl.a with target specific bitcode libraries.
   *
   *  22.0-1
+  *
+  *   Switch to ROCm 7.0.1 sources
+  *   Add BUILD_ICD to build_hipamd.sh to support OpenCL
+  *   Use of aomp-shellcheck on build scripts
+  *   Merge aomp-shell-format
+  *   Rename aomp-shell-format to aomp-shellcheck
+  *   Run aomp-shellcheck on aomp_common_vars and dependent build scripts
+  *   Unit testing for shell scripts
+  *   Change RCCL build from install.sh to traditional build
+  *   Cleanup to remove AOMP_APPLY_ATD_AMD_STAGING_PATCH
+  *   Deprecated rocprof and rocprofv2 in favor of rocprofv3 from rocprofiler-sdk
+  *
+  *  flang updates:
+  *
+  *   Support for complex math intrinsics in target offload regions
+  *   Reduction support for do concurrent
+  *   Mapping improvements
+  *   Add canonical loop operations
+  *   Allow cycle in target teams distribute [simd]
+  *   Additional support for debug in target regions
+  *   Improved alias analysis
+  *   Support directive spellings introduced in OpenMP 6.0
+  *   Added atomic controls options for OpenMP offload:
+  *   -f[no-]atomic-remote-memory
+  *   -f[no-]atomic-fine-grained-memory
+  *   -f[no-]atomic-ignore-denormal-mode
+  *   -f[no-]ignore-denormal-mode
+  *   -m[no-]unsafe-fp-atomics (alias for -f[no-]ignore-denormal-mode)
+  *   Added support for complex pow
+  *   Add 6.1 as a valid OpenMP version
+  *   Implement LOWER= argument for C_F_POINTER (Fortran 2023)
+  *   Implement !$omp unroll using omp.unroll_heuristic
+  *   For do concurrent enable delayed localization by default
+  *   Fixed issue with named constants in SHARED and FIRSTPRIVATE clauses
+  *   Don't privatize implicit symbols declare by nested BLOCKs
+  *   Reassociate ATOMIC update expressions (currently integer type only)
+  *   Parse OpenMP 6.0 map modifiers
+  *   Add -fintrinsic-modules-path= alias
+  *   Support -gsplit-dwarf
+  *   Add support for -ffast-real-mod
+  *   Implicitly map nested allocatable components in derived types
+  *   do concurrent: support reduce on device
+  *   do concurrent: support local on device
+  *   Preserve to/from flags in mapper base entry for mappers
+  *   Add new ConvertComplexPow pass for Flang
+  *   Support -flto-partitions=N and -f[no]fat-lto-objects
+  *   Support -gdwarf-N option
+  *   Extend do concurrent mapping to device
+  *   Enable tiling - supports tripcount not a multiple of tile size
+  *   Fix mapping of character type with LEN > 1 specified
+  *   Fix default firstprivatization miscategorization of mod file symbols
+  *   Reassociate logical ATOMIC update expressions
+  *   Reassociate floating-point ATOMIC update expressions (with -ffast-math)
+  *   Add SPMD-No-Loop mode to OpenMP offload runtime requires setting both of the following flags:
+  *      -fopenmp-assume-teams-oversubscription
+  *      -fopenmp-assume-threads-oversubscription
+  * 22.0-2
+  *
+  * 22.0-3
 
  -- Greg Rodgers <Gregory.Rodgers@amd.com>  Thu, 19 May 2022 23:34:44 -0500

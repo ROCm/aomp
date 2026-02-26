@@ -34,6 +34,9 @@ export ROCR_VISIBLE_DEVICES=0
 # --- end standard header ----
 
 if [ "$1" != "nocopy" ] ; then
+pushd $AOMP_REPOS_TEST/$AOMP_BABELSTREAM_REPO_NAME
+git checkout 2f00dfb
+popd
 patchrepo $AOMP_REPOS_TEST/$AOMP_BABELSTREAM_REPO_NAME
 fi
 
@@ -160,7 +163,7 @@ echo RUN_OPTIONS: $RUN_OPTIONS
 thisdate=`date`
 echo >>results.txt
 echo "=========> RUNDATE:  $thisdate" >>results.txt
-COMPILER=`$AOMP/bin/llc --version  | grep version`
+COMPILER=`$AOMP/bin/clang --version  | grep version`
 echo "=========> COMPILER: $COMPILER" >>results.txt
 echo "=========> GPU:      $AOMP_GPU" >>results.txt
 compile_error=0

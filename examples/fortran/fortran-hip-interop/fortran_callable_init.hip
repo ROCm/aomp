@@ -1,7 +1,3 @@
-// Copyright © Advanced Micro Devices, Inc., or its affiliates.
-//
-// SPDX-License-Identifier:  MIT
-
 #include "hip/hip_runtime.h"
 #include <stdio.h>
 __global__ void init_array(float *arr1){

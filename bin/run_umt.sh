@@ -152,6 +152,13 @@ if [ "$1" == "build_umt" ]; then
         exit $mystat
     fi
 
+    IMPLICIT_GPU_FLANG_RT=${IMPLICIT_GPU_FLANG_RT:-1}
+    if [[ $IMPLICIT_GPU_FLANG_RT -eq 1 ]]; then
+        FORTRAN_OFFLOAD_LIB=
+    else
+        FORTRAN_OFFLOAD_LIB=$AOMP/lib/libflang_rt.hostdevice.a
+    fi
+
     rm -rf build
     mkdir build
     pushd build
@@ -162,7 +169,7 @@ if [ "$1" == "build_umt" ]; then
     -DUMPIRE_ROOT=$AOMP_REPOS_TEST/$UMPIRE_SRC_DIR/install \
     -DCAMP_ROOT=$AOMP_REPOS_TEST/$CAMP_SRC_DIR/install \
     -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX -DCMAKE_Fortran_COMPILER=$FC \
-    -DCMAKE_FORTRAN_OFFLOAD_LIB=$AOMP/lib/libflang_rt.hostdevice.a \
+    -DCMAKE_FORTRAN_OFFLOAD_LIB=$FORTRAN_OFFLOAD_LIB \
     -DCMAKE_Fortran_LINKER_WRAPPER_FLAG="-Wl," \
     -DENABLE_CUDA=OFF \
     -DENABLE_OPENMP=ON -DOPENMP_HAS_FORTRAN_INTERFACE=ON \

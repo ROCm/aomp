@@ -1,17 +1,25 @@
 #!/usr/bin/env bash
+
 #
 #Copyright © Advanced Micro Devices, Inc., or its affiliates.
 #
 #SPDX-License-Identifier:  MIT
-# 
+#
+
 set -x
-CKRepoURL='https://github.com/ROCm/composable_kernel.git'
+CKRepoURL='https://github.com/ROCm/rocm-libraries.git'
 CKRepoBranchName='develop'
 CKBenchmarkRepoBranchName='main'
 
 # We grab the total system memory and assume a requirement of 10GB per process
 # when building CK. This is likely a bit conservative.
 CKBuildParallelism=$(free -g | grep Mem | awk '{print int($2/10)}')
+
+# Check if the user overrode number of parallel build jobs
+# via env var
+if [ ! -z ${CK_BUILD_PARALLELISM} ]; then
+  CKBuildParallelism=${CK_BUILD_PARALLELISM}
+fi
 
 realpath=$(realpath $0)
 thisdir=$(dirname $realpath)
@@ -25,11 +33,12 @@ function printHelp {
   echo "Usage: run_composable-kernels.sh"
   echo "  -h: Show this help message"
   echo "  -i: Install the (incremental) CK build"
+  echo "  -l: Library-only build (no examples or tests)"
   echo "  -r: Rebuild the CK repo"
   echo "  -u: Update the CK repo"
   echo "  -b: Update the CK benchmarks repo"
-  echo "  -s <suite>: Select <suite> from:"                  \
-       "[benchmarks client-examples smoke regression]. (Default: benchmarks)"
+  echo "  -s <suite>: Select <suite> from:" \
+    "[benchmarks client-examples smoke regression skip]. (Default: skip)"
   echo "  -t <test>: Run <test> from selected suite (e.g. 'gemm/fa1.yaml')"
   exit 0
 }
@@ -123,6 +132,8 @@ function getLDLibraryPathExportCmd {
 
 # Some tests may require an installed instance of CK.
 ShouldInstallCK='no'
+# It my be desired to build the CK library only, without any examples or tests.
+ShouldBuildLibraryOnly='no'
 # For some situations during testing it may not be desired to rebuild the CK repo.
 ShouldRebuildCK='no'
 # While doing perf / other compiler work, keeping CK fix is useful.
@@ -132,19 +143,27 @@ ShouldUpdateCKRepo='no'
 ShouldUpdateCKBenchmarks='no'
 
 # CK may be run using different test- or benchmark-suites.
-SelectedSuite='benchmarks'
+SelectedSuite='skip'
 
 # CK may be run using a specfic test from the selected suite.
 SelectedTest=''
 
-while getopts "hirubs:t:" opt; do
+while getopts "j:hilrubs:t:" opt; do
   case ${opt} in
+  j)
+    # User-defined parallelism for CK build via argument
+    CKBuildParallelism="${OPTARG}"
+    ;;
   h)
     printHelp
     ;;
   i)
     # Install the CK build
     ShouldInstallCK='yes'
+    ;;
+  l)
+    # Build the CK library only
+    ShouldBuildLibraryOnly='yes'
     ;;
   r)
     # Rebuild the CK repo
@@ -162,34 +181,38 @@ while getopts "hirubs:t:" opt; do
     # Select benchmark or test suite.
     # To support this as an optional argument, we take a look at the next.
     case ${OPTARG} in
-      benchmarks)
-        # Run the CK benchmarks.
-        SelectedSuite="${OPTARG}"
-        ;;
-      client-examples)
-        # Build and run the client examples provided by CK.
-        SelectedSuite="${OPTARG}"
-        ;;
-      examples)
-        # Build and run the examples provided by CK.
-        SelectedSuite="${OPTARG}"
-        ;;
-      smoke)
-        # A minimal smoke test suite.
-        SelectedSuite="${OPTARG}"
-        ;;
-      regression)
-        # A minimal regression test suite.
-        SelectedSuite="${OPTARG}"
-        ;;
-      *)
-        # If there's a following string which does not start with '-'
-        # we interpret it as an attempt at providing an unknown suite.
-        if [[ "${OPTARG}" =~ ^[^-].*$ ]]; then
-          echo "Unknown suite: ${OPTARG}"
-          printHelp
-        fi
-        ;;
+    skip)
+      # Skip running any suite.
+      SelectedSuite='skip'
+      ;;
+    benchmarks)
+      # Run the CK benchmarks.
+      SelectedSuite="${OPTARG}"
+      ;;
+    client-examples)
+      # Build and run the client examples provided by CK.
+      SelectedSuite="${OPTARG}"
+      ;;
+    examples)
+      # Build and run the examples provided by CK.
+      SelectedSuite="${OPTARG}"
+      ;;
+    smoke)
+      # A minimal smoke test suite.
+      SelectedSuite="${OPTARG}"
+      ;;
+    regression)
+      # A minimal regression test suite.
+      SelectedSuite="${OPTARG}"
+      ;;
+    *)
+      # If there's a following string which does not start with '-'
+      # we interpret it as an attempt at providing an unknown suite.
+      if [[ "${OPTARG}" =~ ^[^-].*$ ]]; then
+        echo "Unknown suite: ${OPTARG}"
+        printHelp
+      fi
+      ;;
     esac
     ;;
   t)
@@ -204,13 +227,14 @@ done
 
 # Set the default build prefix, i.e., build-top-level
 : ${CK_TOP:=$AOMP_REPOS_TEST/composable-kernels}
-: ${CK_REPO:=$CK_TOP/ck-src}
+: ${CK_REPO:=$CK_TOP/rocm-libraries}
+: ${CK_SRC:=$CK_REPO/projects/composablekernel}
 : ${CK_BUILD:=$CK_TOP/ck-build}
 : ${CK_BENCHMARK_REPO:=$CK_TOP/ck-benchmark}
 # Move this to its own place, to avoid potential permission conflicts with certain setups.
 : ${CK_BENCHMARK_RESULT:=$CK_TOP/ck-benchmark-result}
 : ${CK_INSTALL:=$CK_TOP/ck-install}
-: ${CK_CLIENT_EXAMPLES_SOURCE:=$CK_REPO/client_example}
+: ${CK_CLIENT_EXAMPLES_SOURCE:=$CK_SRC/client_example}
 : ${CK_CLIENT_EXAMPLES_BUILD:=$CK_TOP/ck-client-examples-build}
 # Run regular and client examples on multiple GPUs (if present)
 : ${CK_EXAMPLES_PARALLEL:='yes'}
@@ -251,7 +275,7 @@ if [ ! -d ${CK_TOP} ]; then
 fi
 
 if [ ! -d ${CK_REPO} ]; then
-  git clone ${CKRepoURL} ${CK_REPO}
+  git clone --single-branch --depth 1 ${CKRepoURL} ${CK_REPO}
 elif [ "${ShouldUpdateCKRepo}" == 'yes' ]; then
   pushd ${CK_REPO} || exit 1
   git reset --hard origin/${CKRepoBranchName}
@@ -261,10 +285,25 @@ elif [ "${ShouldUpdateCKRepo}" == 'yes' ]; then
   popd
 fi
 
+CKBuildTool='make'
+if command -v ninja >/dev/null; then
+  CmakeGenerator="-GNinja"
+  CKBuildTool='ninja'
+fi
+
 # TODO Fix / Finalize the cmake command
-CKCmakeCmd="cmake -GNinja -B ${CK_BUILD} -S ${CK_REPO} -DCMAKE_PREFIX_PATH=${ROCM_PATH} -DCMAKE_INSTALL_PREFIX=${CK_INSTALL} "
+CKCmakeCmd="cmake ${CmakeGenerator} -B ${CK_BUILD} -S ${CK_SRC} -DCMAKE_PREFIX_PATH=${ROCM_PATH} -DCMAKE_INSTALL_PREFIX=${CK_INSTALL} "
 CKCmakeCmd+="-DCMAKE_CXX_COMPILER=${AOMP}/bin/clang++ -DCMAKE_HIP_COMPILER=${AOMP}/bin/clang++ "
-CKCmakeCmd+="-DCMAKE_BUILD_TYPE=Release -DGPU_TARGETS=${CK_GPU_TARGETS} "
+CKCmakeCmd+="-DCMAKE_BUILD_TYPE=Release "
+
+# Handle library-only build for CK
+# Note: GPU_ARCHS takes precedence over GPU_TARGETS and omits examples & tests
+if [ "${ShouldBuildLibraryOnly}" == 'yes' ]; then
+  CKCmakeCmd+="-DGPU_ARCHS=${CK_GPU_TARGETS} "
+else
+  CKCmakeCmd+="-DGPU_TARGETS=${CK_GPU_TARGETS} "
+fi
+
 # For some reason, CK on gfx12 wants this set.
 CKCmakeCmd+="-DBUILD_DEV=On"
 
@@ -292,10 +331,15 @@ fi
 if [ "${ShouldRebuildCK}" == 'yes' ] || [ "${ShouldInstallCK}" == 'yes' ]; then
   pushd ${CK_BUILD} || exit 1
 
-  time ninja -j ${CKBuildParallelism}
+  # -k parameter avoids stopping at first error
+  # ckProfiler target seems to depend on all library targets, which we want to build first
+  /usr/bin/time -o build-times.tlog ${CKBuildTool} -j ${CKBuildParallelism} -k 0 ckProfiler
   if [ $? -ne 0 ]; then
     exit 1
   fi
+
+  # Find build success in the build log
+  echo "CK-BUILD-SUCCESS"
 
   popd
 fi
@@ -305,10 +349,13 @@ if [ "${ShouldInstallCK}" == 'yes' ]; then
   pushd ${CK_BUILD} || exit 1
 
   # TODO: Check parallelism. This may use all available threads.
-  time ninja install
+  /usr/bin/time -o install-times.tlog ${CKBuildTool} -k 0 install
   if [ $? -ne 0 ]; then
     exit 1
   fi
+
+  # Find install success in the log
+  echo "CK-INSTALL-SUCCESS"
 
   popd
 fi
@@ -318,8 +365,8 @@ echo "Run suite: ${SelectedSuite}"
 # Check if parallel execution is requested and possible
 UseParallel=0
 if ([ "${SelectedSuite}" == 'client-examples' ] ||
-    [ "${SelectedSuite}" == 'examples' ]) &&
-    [ "${CK_EXAMPLES_PARALLEL}" == 'yes' ]; then
+  [ "${SelectedSuite}" == 'examples' ]) &&
+  [ "${CK_EXAMPLES_PARALLEL}" == 'yes' ]; then
   if [ ! -z "$(command -v parallel)" ]; then
     UseParallel=1
   else
@@ -333,7 +380,7 @@ if [ "${SelectedSuite}" == 'smoke' ]; then
     mkdir -p "${CK_TESTS_LOG_LOCATION}" || exit 1
   fi
   pushd ${CK_BUILD} || exit 1
-  ninja -j 16 smoke 2>&1 | tee "${CK_TESTS_LOG_LOCATION}/smoke_tests.log"
+  ${CKBuildTool} -j 16 smoke 2>&1 | tee "${CK_TESTS_LOG_LOCATION}/smoke_tests.log"
   echo "Log at ${CK_TESTS_LOG_LOCATION}/smoke_tests.log"
   popd
 fi
@@ -344,7 +391,7 @@ if [ "${SelectedSuite}" == 'regression' ]; then
     mkdir -p "${CK_TESTS_LOG_LOCATION}" || exit 1
   fi
   pushd ${CK_BUILD} || exit 1
-  ninja -j 16 regression 2>&1 | tee "${CK_TESTS_LOG_LOCATION}/regression_tests.log"
+  ${CKBuildTool} -j 16 regression 2>&1 | tee "${CK_TESTS_LOG_LOCATION}/regression_tests.log"
   echo "Log at ${CK_TESTS_LOG_LOCATION}/regression_tests.log"
   popd
 fi
@@ -408,7 +455,7 @@ fi
 # Handle CK client examples
 if [ "${SelectedSuite}" == 'client-examples' ]; then
   # Configure and build the client examples
-  CKCmakeCmd="cmake -G Ninja "
+  CKCmakeCmd="cmake ${CmakeGenerator} "
   CKCmakeCmd+="-B ${CK_CLIENT_EXAMPLES_BUILD} -S ${CK_CLIENT_EXAMPLES_SOURCE} "
   CKCmakeCmd+="-DCMAKE_CXX_COMPILER=${AOMP}/bin/clang++ "
   CKCmakeCmd+="-DCMAKE_HIP_COMPILER=${AOMP}/bin/clang++ "
@@ -436,14 +483,14 @@ if [ "${SelectedSuite}" == 'client-examples' ]; then
 
   pushd ${CK_CLIENT_EXAMPLES_BUILD} || exit 1
 
-  ninja
+  ${CKBuildTool}
   if [ $? -ne 0 ]; then
     exit 1
   fi
 
   # Process directories to exclude
   # Usage of here-string to avoid sub-shell and removal of potential parentheses
-  read -ra DirsToExclude <<< "${CK_CLIENT_EXAMPLES_TO_EXCLUDE//[()]/}"
+  read -ra DirsToExclude <<<"${CK_CLIENT_EXAMPLES_TO_EXCLUDE//[()]/}"
 
   # Build argument list for find
   # If globbed directories are provided, the list is expanded correspondingly
@@ -486,7 +533,7 @@ if [ "${SelectedSuite}" == 'client-examples' ]; then
     RunCmd="echo \"Running client-example: ${ExamplePath}\";"
     RunCmd+="\"${ExamplePath}\" | tee \"${ExampleLogfile}\""
     ExampleRunCmds+=("${RunCmd}")
-  done <<< "${ExamplesToRun}"
+  done <<<"${ExamplesToRun}"
 
   NumJobs=${#ExampleRunCmds[@]}
   echo "Found ${NumJobs} client-examples to run"
@@ -554,7 +601,7 @@ if [ "${SelectedSuite}" == 'examples' ]; then
     RunCmd="echo \"Running example: ${ExamplePath}\";"
     RunCmd+="\"${ExamplePath}\" | tee \"${ExampleLogfile}\""
     ExampleRunCmds+=("${RunCmd}")
-  done <<< "${ExamplesToRun}"
+  done <<<"${ExamplesToRun}"
 
   NumJobs=${#ExampleRunCmds[@]}
   echo "Found ${NumJobs} examples to run"

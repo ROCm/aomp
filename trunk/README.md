@@ -1,9 +1,9 @@
-# How to Build the _trunk22_ Compiler
+# How to Build the _trunk23_ Compiler
 
 Add the following to your environment in either `.bash_profile` or `.bashrc`:
 
 ``` bash
-export TRUNK_REPOS=$HOME/git/trunk22.0
+export TRUNK_REPOS=$HOME/git/trunk23.0
 ```
 
 Or set `TRUNK_REPOS` to a location with a fast file system. Then log in again
@@ -32,17 +32,17 @@ override.
 
 ## TRUNK_REPOS
 
-See the discussion above for building _trunk22_ on the use of `TRUNK_REPOS`.
+See the discussion above for building _trunk23_ on the use of `TRUNK_REPOS`.
 
 
 ## TRUNK_LINK
 
 The default value for `TRUNK_LINK` is `"$HOME/rocm/trunk"`. The `build_trunk.sh`
-script will install into directory `${TRUNK_LINK}_22.0-0`.
+script will install into directory `${TRUNK_LINK}_23.0-0`.
 
 Furthermore, it creates a symbolic link from `$TRUNK_LINK` to the install dir.
 So `$TRUNK_LINK` **MUST NOT** be a physical directory. This symbolic link makes
-it easy to switch between future qualifed releases of _trunk22_. If you are on a
+it easy to switch between future qualifed releases of _trunk23_. If you are on a
 system where `$HOME` is in a slow filesystem, set `TRUNK_LINK` to where you want
 the install directory to be. For example set the following in your
 `.bash_profile` or `.bashrc` then relogin:
@@ -51,7 +51,7 @@ the install directory to be. For example set the following in your
 export TRUNK_LINK=/work/$USER/rocm/trunk
 ```
 
-Then the install scripts will install into `/work/$USER/rocm/trunk_22.0-0` and
+Then the install scripts will install into `/work/$USER/rocm/trunk_23.0-0` and
 a symlink will be created from `$TRUNK_LINK`.
 
 
@@ -160,16 +160,16 @@ The default for `BUILD_TYPE` is "Release". This sets the value for
 `CMAKE_BUILD_TYPE`. See CMake documentation for different possible values.
 
 
-# Releases of _trunk22_
+# Releases of _trunk23_
 
-At various development check points we will qualify releases of _trunk22_ and
+At various development check points we will qualify releases of _trunk23_ and
 increment the development version in `trunk_common_vars`. For example, after the
-release of `trunk_22.0-0`, development will move to `trunk_22.0-1`. The build
-scripts will then install into directory `$HOME/rocm/trunk_22.0-1`. The symbolic
+release of `trunk_23.0-0`, development will move to `trunk_23.0-1`. The build
+scripts will then install into directory `$HOME/rocm/trunk_23.0-1`. The symbolic
 link from `$HOME/rocm/trunk` will also change to the new install directory.
 
-After a _trunk22_ release, a static release branch will be created. such as
-`trunk_22.0-0`. This branch will be created by interactive rebasing all the
+After a _trunk23_ release, a static release branch will be created. such as
+`trunk_23.0-0`. This branch will be created by interactive rebasing all the
 local commits in `amd-trunk-dev`. Development will continue in the branch
 `amd-trunk-dev`.
 
@@ -183,7 +183,7 @@ similar to the `clone_aomp.sh` script used for AOMP. For now, simply run
 merges from main.
 
 
-# Testing _trunk22_
+# Testing _trunk23_
  
 To use the various AOMP testing infrastructure in `$TRUNK_REPOS/aomp/test`:
 

@@ -1,4 +1,7 @@
 #!/bin/bash
+# Copyright © Advanced Micro Devices, Inc., or its affiliates.
+cat /etc/os-release
+
 if [ -e /proc/cmdline ]; then
   cat /proc/cmdline
 fi
@@ -25,6 +28,12 @@ if [ -e /usr/bin/python ]; then
   echo "/usr/bin/python OK"
 else
   echo "/usr/bin/python is missing FAIL"
+fi
+
+if [ -e /usr/bin/python3 ]; then
+  echo "/usr/bin/python3 OK"
+else
+  echo "/usr/bin/python3 is missing FAIL"
 fi
 
 echo "Checking for libnvida compute pieces "
@@ -110,7 +119,8 @@ else
   echo "Warning ----Warning---- FileCheck was not found and is needed by smoke tests."
   echo "FileCheck notfound. May need to install llvm-XY-tools (where XY is llvm version)."
 fi
-
+echo python file check:
+which filecheck
 
 echo "Checking for SRIOV "
 if [ -e /sbin/lspci ]; then

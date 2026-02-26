@@ -4,9 +4,10 @@ TESTNAME     = libgomp-292348
 TESTSRC_MAIN = libgomp-292348.c
 TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
+RPTH = -Wl,-rpath,$(AOMPHIP)/lib
 
 CLANG        ?= hipcc
-OMP_FLAGS    = -lgomp
+OMP_FLAGS    = -lgomp $(RPTH)
 CFLAGS      = -g -O0 -m64 -fopenmp -lgomp -lstdc++
 
 ifeq ($(EPSDB),1)

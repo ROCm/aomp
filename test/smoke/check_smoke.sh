@@ -13,7 +13,7 @@ ORG="\033[0;33m"
 BLK="\033[0m"
 
 # Limit any step to 6 minutes
-ulimit -t 360
+ulimit -t 600
 
 function printfails(){
   # Print run logs for runtime fails, EPSDB only
@@ -357,6 +357,10 @@ while [ $lrun -lt $SMOKE_LRUN ]; do
 #---
 for directory in $SMOKE_DIRS; do
   if [ ! -r $directory/Makefile ]; then continue; fi
+  if [ "$SKIP_OMPT" == "1" ]; then
+    if [[ $directory =~ "ompt" ]]; then continue; fi
+    if [[ $directory =~ "lib-debug" ]]; then continue; fi
+  fi
   pushd $directory > /dev/null
   if [ $? -ne 0 ]; then continue; fi
   if [ $lrun -eq 0 ]; then

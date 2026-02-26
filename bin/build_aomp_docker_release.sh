@@ -10,8 +10,8 @@
 
 set -e
 set -x
-AOMP_VERSION_STRING=${AOMP_VERSION_STRING:-22.0-2}
-AOMP_VERSION=${AOMP_VERSION:-22.0}
+AOMP_VERSION_STRING=${AOMP_VERSION_STRING:-23.0-0}
+AOMP_VERSION=${AOMP_VERSION:-23.0}
 #DOCKERX_HOST=${DOCKERX_HOST:-$HOME/dockerx}
 DOCKERX_HOST=$HOME/dockerx
 #DOCKERX=${DOCKERX:-/dockerx}
@@ -60,7 +60,8 @@ fi
 
 pip_install="python3 -m pip install CppHeaderParser argparse wheel lit lxml barectf pandas"
 pip_install_centos7="python3.8 -m pip install CppHeaderParser argparse wheel lit lxml barectf pandas"
-pip_install_sles15="python3.8 -m pip install CppHeaderParser argparse wheel lit lxml barectf pandas"
+pip_install_sles15="python3.10 -m pip install --ignore-installed --no-cache-dir barectf==3.1.2 PyYAML==5.3.1; python3.10 -m pip install CppHeaderParser argparse wheel lit lxml pandas"
+pip_install_rhel8="python3.10 -m pip install --ignore-installed --no-cache-dir barectf==3.1.2 PyYAML==5.3.1; python3.10 -m pip install CppHeaderParser argparse wheel lit lxml pandas"
 # 22.04 workaround for cython/PyYAML bug.
 pip_install_2204="python3 -m pip install --ignore-installed --no-cache-dir barectf==3.1.2 PyYAML==5.3.1; python3 -m pip install CppHeaderParser argparse wheel lit lxml pandas"
 
@@ -84,7 +85,7 @@ prereq_array["centos8"]="yum install -y dnf-plugins-core && yum config-manager -
 
 prereq_array["centos9"]="yum install -y dnf-plugins-core gcc-c++ git cmake wget vim openssl-devel elfutils-libelf-devel pciutils-devel numactl-devel libffi-devel mesa-libGL-devel libtool texinfo bison flex ncurses-devel expat-devel xz-devel libbabeltrace-devel gmp-devel rpm-build rsync systemd-devel gtest-devel ccache mpfr-devel ocl-icd-devel sqlite-devel && $pip_install"
 
-prereq_array["rhel8"]="yum update -y && yum install -y dnf-plugins-core && yum install -y gcc-c++ git cmake wget vim openssl-devel elfutils-libelf-devel pciutils-devel numactl-devel libffi-devel mesa-libGL-devel libtool texinfo bison flex ncurses-devel expat-devel xz-devel libbabeltrace-devel gmp-devel rpm-build rsync systemd-devel gtest-devel elfutils-devel ccache python38 python38-devel mpfr-devel ocl-icd-devel libatomic libquadmath-devel msgpack-devel fmt-devel sqlite-devel && $pip_install"
+prereq_array["rhel8"]="yum update -y && yum install -y dnf-plugins-core && yum install -y gcc-c++ git cmake wget vim openssl-devel elfutils-libelf-devel pciutils-devel numactl-devel libffi-devel mesa-libGL-devel libtool texinfo bison flex ncurses-devel expat-devel xz-devel libbabeltrace-devel gmp-devel rpm-build rsync systemd-devel gtest-devel elfutils-devel ccache python38 python38-devel mpfr-devel ocl-icd-devel libatomic libquadmath-devel msgpack-devel fmt-devel sqlite-devel && $pip_install_rhel8"
 
 prereq_array["rhel9"]="dnf -y update && dnf -y install dnf-plugins-core && dnf -y install gdb gcc-c++ git cmake wget vim openssl-devel elfutils-libelf-devel pciutils-devel numactl-devel libffi-devel mesa-libGL-devel libtool texinfo bison flex ncurses-devel expat-devel xz-devel libbabeltrace-devel gmp-devel rpm-build rsync systemd-devel gtest-devel elfutils-devel ccache python3-devel mpfr-devel ocl-icd-devel libatomic libquadmath-devel msgpack-devel fmt-devel sqlite-devel && $pip_install"
 
@@ -93,7 +94,7 @@ prereq_array["alma8"]="dnf -y update && dnf -y install gdb gcc-c++ git cmake wge
 prereq_array["sles15"]="zypper install -y which cmake wget vim libopenssl-devel elfutils libelf-devel git pciutils-devel libffi-devel gcc gcc-c++ libnuma-devel openmpi4-devel Mesa-libGL-devel libquadmath0 libtool texinfo bison flex babeltrace-devel makeinfo libexpat-devel xz-devel gmp-devel rpm-build rsync libdrm-devel libX11-devel systemd-devel libdw-devel hwdata unzip ccache mpfr-devel ocl-icd-devel msgpack-devel fmt-devel gcc13-fortran ncurses-devel sqlite-devel gcc13-c++ gcc13 libstdc++6-devel-gcc13 libc++-devel"
 
 # Some prep
-default_os="ubuntu2404 ubuntu2204 rhel8 rhel9 sles15"
+default_os="ubuntu2404 ubuntu2204 rhel8 rhel9 sles15 alma8"
 OS=${OS:-$default_os}
 export DOCKER_HOME=/home/release; export DOCKER_AOMP=/usr/lib/aomp; export DOCKER_AOMP_REPOS=/home/release/git/aomp$AOMP_VERSION
 exports="export HOME=/home/release; export AOMP=/usr/lib/aomp; export AOMP_REPOS=/home/release/git/aomp$AOMP_VERSION; export AOMP_EXTERNAL_MANIFEST=1; export AOMP_JOB_THREADS=128; export AOMP_SKIP_FLANG_NEW=0"
@@ -105,8 +106,11 @@ function getcontainer(){
 }
 
 function setup(){
-  if [ "$system" == "centos7" ] || [ "$system" == "sles15" ] || [ "$system" == "alma8" ]; then
+  if [ "$system" == "centos7" ] || [ "$system" == "sles15" ] || [ "$system" == "rhel8" ]; then
     exports="$exports; export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH; PATH=/usr/local/bin:$PATH"
+  fi
+  if [ "$system" == "alma8" ]; then
+    exports="$exports; export LD_LIBRARY_PATH=/opt/Python-3.10.18/lib:/opt/rh/gcc-toolset-12/root/usr/lib64:/opt/rh/gcc-toolset-12/root/usr/lib:/opt/rh/gcc-toolset-14/root/usr/lib64:/opt/rh/gcc-toolset-14/root/usr/lib:/opt/rh/gcc-toolset-14/root/usr/lib64/dyninst:/opt/rh/gcc-toolset-14/root/usr/lib/dyninst; export PATH=/opt/Python-3.10.18/bin:/opt/rh/gcc-toolset-12/root/usr/bin:/usr/share/Modules/bin:/opt/rh/gcc-toolset-14/root/usr/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin; export LIBRARY_PATH=/opt/Python-3.10.18/lib"
   fi
 
   # Pull docker and start
@@ -115,9 +119,6 @@ function setup(){
   getcontainer
   docker exec -i "$docker_name" /bin/bash -c "mkdir -p /home/release/git/aomp$AOMP_VERSION"
 
-  if [ "$system" == "alma8" ]; then
-    docker exec -i "$docker_name" /bin/bash -c "mv /usr/local/bin/python3.11 /usr/local/bin/python3.11-save; mv /usr/local/bin/python3.12 /usr/local/bin/python3.12-save; rm -f /usr/bin/python3"
-  fi
   if [ "$system" == "centos7" ]; then
     # Support for centos7 has reached EOL. Many of the repos no longer use the mirror list url and need switched to baseurl with vault url.
     docker exec -i "$docker_name" /bin/bash -c "sed -i 's/mirrorlist=/#mirrorlist=/g' /etc/yum.repos.d/CentOS-*.repo; sed -i 's/#\s*baseurl=/baseurl=/g' /etc/yum.repos.d/CentOS-*.repo; sed -i 's/mirror\./vault\./g' /etc/yum.repos.d/CentOS-*.repo"
@@ -170,17 +171,22 @@ function setup(){
   fi
   if [ "$system" == "alma8" ]; then
     exports="$exports; source /opt/rh/gcc-toolset-12/enable"
-    docker exec -i "$docker_name" /bin/bash -c "$exports; cd /home/release; wget https://www.python.org/ftp/python/3.10.18/Python-3.10.18.tgz; tar xf Python-3.10.18.tgz; cd Python-3.10.18; ./configure --enable-optimizations --enable-shared; make altinstall; ln -s /usr/local/bin/python3.10 /usr/bin/python3; $pip_install_alma"
+    docker exec -i "$docker_name" /bin/bash -c "$exports; cd /home/release; wget https://www.python.org/ftp/python/3.10.18/Python-3.10.18.tgz; tar xf Python-3.10.18.tgz; cd Python-3.10.18; ./configure --enable-optimizations --enable-shared --prefix=/opt/Python-3.10.18; make altinstall; ln -s /opt/Python-3.10.18/bin/python3.10 /opt/Python-3.10.18/bin/python3; $pip_install_alma"
+    # Install libffi from source so that we can use libffi.a to help with portability.
+    docker exec -i "$docker_name" /bin/bash -c "$exports; cd /tmp && wget ftp://sourceware.org/pub/libffi/libffi-3.1.tar.gz && tar -xvf libffi-3.1.tar.gz && cd libffi-3.1 && CFLAGS="-fPIC" ./configure --prefix=/usr/local && make && make install && cd .. &&  rm -rf libffi-3.1 libffi-3.1.tar.gz"
   fi
 
   if [ "$system" == "sles15" ]; then
-    docker exec -i "$docker_name" /bin/bash -c "$exports; cd /home/release; wget https://www.python.org/ftp/python/3.8.13/Python-3.8.13.tgz; tar xf Python-3.8.13.tgz; cd Python-3.8.13; ./configure --enable-optimizations --enable-shared; make altinstall; rm /usr/bin/python3; ln -s /usr/local/bin/python3.8 /usr/bin/python3; $pip_install_sles15"
+    docker exec -i "$docker_name" /bin/bash -c "$exports; cd /home/release; wget https://www.python.org/ftp/python/3.10.12/Python-3.10.12.tgz; tar xf Python-3.10.12.tgz; cd Python-3.10.12; ./configure --enable-optimizations --enable-shared; make altinstall; rm /usr/bin/python3; ln -s /usr/local/bin/python3.10 /usr/bin/python3; $pip_install_sles15"
     docker exec -i "$docker_name" /bin/bash -c "update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-13 10"
     docker exec -i "$docker_name" /bin/bash -c "update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-13 10"
     docker exec -i "$docker_name" /bin/bash -c "update-alternatives --install /usr/bin/cc cc /usr/bin/gcc 10"
     docker exec -i "$docker_name" /bin/bash -c "update-alternatives --set cc /usr/bin/gcc"
     docker exec -i "$docker_name" /bin/bash -c "update-alternatives --install /usr/bin/c++ c++ /usr/bin/g++ 10"
     docker exec -i "$docker_name" /bin/bash -c "update-alternatives --set c++ /usr/bin/g++"
+  fi
+  if [ "$system" == "rhel8" ]; then
+    docker exec -i "$docker_name" /bin/bash -c "$exports; cd /home/release; wget https://www.python.org/ftp/python/3.10.12/Python-3.10.12.tgz; tar xf Python-3.10.12.tgz; cd Python-3.10.12; ./configure --enable-optimizations --enable-shared; make altinstall; rm /usr/bin/python3; ln -s /usr/local/bin/python3.10 /usr/bin/python3; $pip_install_sles15"
   fi
 
   # Run build_prerequisites.sh to build cmake, hwloc, rocmsmi, etc
@@ -196,6 +202,12 @@ function setup(){
 function build(){
   if [ "$system" == "ubuntu2404" ]; then
     exports="$exports; PATH=/opt/venv/bin:$PATH; python3 -m venv /opt/venv"
+  fi
+  if [ "$system" == "centos7" ] || [ "$system" == "sles15" ]; then
+    exports="$exports; export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH; PATH=/usr/local/bin:$PATH"
+  fi
+  if [ "$system" == "alma8" ]; then
+    exports="$exports; source /opt/rh/gcc-toolset-12/enable; export LD_LIBRARY_PATH=/opt/Python-3.10.18/lib:/opt/rh/gcc-toolset-12/root/usr/lib64:/opt/rh/gcc-toolset-12/root/usr/lib:/opt/rh/gcc-toolset-14/root/usr/lib64:/opt/rh/gcc-toolset-14/root/usr/lib:/opt/rh/gcc-toolset-14/root/usr/lib64/dyninst:/opt/rh/gcc-toolset-14/root/usr/lib/dyninst; export PATH=/opt/Python-3.10.18/bin:/opt/rh/gcc-toolset-12/root/usr/bin:/usr/share/Modules/bin:/opt/rh/gcc-toolset-14/root/usr/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin; export LIBRARY_PATH=/opt/Python-3.10.18/lib"
   fi
   docker exec -i "$docker_name" /bin/bash -c "$exports; cd $DOCKER_AOMP_REPOS/aomp/bin; ./build_aomp.sh 2>&1 | tee $DOCKER_HOME/logs/$system-build.out"
   docker exec -i "$docker_name" /bin/bash -c "$exports; cd $DOCKER_AOMP_REPOS/aomp/bin; AOMP=/usr/lib/aomp/llvm ./build_llvm-flang-rt-host-dev.sh 2>&1 | tee -a $DOCKER_HOME/logs/$system-build.out"
@@ -226,14 +238,20 @@ function package(){
       if [ "$system" == "centos7" ]; then
         docker exec -i "$docker_name" /bin/bash -c "$exports; cd $DOCKER_AOMP_REPOS/aomp/bin; ./build_fixups.sh; DOCKER=1 ./build-rpm.sh aomp_CENTOS_7 2>&1 | tee $DOCKER_HOME/logs/$system-package.out"
       else
-        docker exec -i "$docker_name" /bin/bash -c "$exports; cd $DOCKER_AOMP_REPOS/aomp/bin; ./build_fixups.sh; DOCKER=1 ./build-rpm.sh 2>&1 | tee $DOCKER_HOME/logs/$system-package.out"
-        # Copy to host
-        docker cp "$container:/tmp/home/rpmbuild/RPMS/x86_64/." "$host_packages"
-        # Build aomp-hip-libraries rpm
-        if [ "$AOMP_HIP_LIBRARIES" == "1" ]; then
-          docker exec -i "$docker_name" /bin/bash -c "$exports; cd $DOCKER_AOMP_REPOS/aomp/bin; ./build_fixups.sh; DOCKER=1 ./build-rpm.sh aomp-hip-libraries 2>&1 | tee $DOCKER_HOME/logs/$system-package-hip-libraries.out"
+        if [ "$OS" == "alma8" ]; then
+          docker exec -i "$docker_name" /bin/bash -c "$exports; cd $DOCKER_AOMP_REPOS/aomp/bin; ./build_fixups.sh; ./package_release_tarball.sh 2>&1 | tee $DOCKER_HOME/logs/$system-package.out"
+          # Copy to host
+          docker cp "$container:$DOCKER_AOMP_REPOS/../aomp-$AOMP_VERSION_STRING.tar.gz" "$host_packages"
+        else
+          docker exec -i "$docker_name" /bin/bash -c "$exports; cd $DOCKER_AOMP_REPOS/aomp/bin; ./build_fixups.sh; DOCKER=1 ./build-rpm.sh 2>&1 | tee $DOCKER_HOME/logs/$system-package.out"
           # Copy to host
           docker cp "$container:/tmp/home/rpmbuild/RPMS/x86_64/." "$host_packages"
+          # Build aomp-hip-libraries rpm
+          if [ "$AOMP_HIP_LIBRARIES" == "1" ]; then
+            docker exec -i "$docker_name" /bin/bash -c "$exports; cd $DOCKER_AOMP_REPOS/aomp/bin; ./build_fixups.sh; DOCKER=1 ./build-rpm.sh aomp-hip-libraries 2>&1 | tee $DOCKER_HOME/logs/$system-package-hip-libraries.out"
+            # Copy to host
+            docker cp "$container:/tmp/home/rpmbuild/RPMS/x86_64/." "$host_packages"
+	  fi
         fi
       fi
     fi

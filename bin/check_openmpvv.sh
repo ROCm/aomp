@@ -1,9 +1,5 @@
 #!/bin/bash
 #
-#Copyright © Advanced Micro Devices, Inc., or its affiliates.
-#
-#SPDX-License-Identifier:  MIT
-# 
 #  check_openmpvv.sh
 #  Assumes run_openmpvv.sh has been executed.
 #

@@ -110,10 +110,17 @@ if [[ "$USE_OPENMP_RUNTIME" -eq "1" ]] ; then
     OMP_DEFINES+=" -DUSE_OPENMP_RUNTIME"
 fi
 
+IMPLICIT_GPU_FLANG_RT=${IMPLICIT_GPU_FLANG_RT:-1}
+if [[ "$IMPLICIT_GPU_FLANG_RT" -eq "1" ]]; then
+    FORTRAN_OFFLOAD_LIB=
+else
+    FORTRAN_OFFLOAD_LIB="-fno-gpu-flang-rt -lflang_rt.hostdevice"
+fi
+
 export LD_LIBRARY_PATH=$AOMP/lib:$AOMPHIP/lib:$OPENMPI_DIR/lib:$LD_LIBRARY_PATH
 export FORTRAN_COMPILE="$AOMP/bin/$FLANG -c -fopenmp --offload-arch=$GPU_ID -fPIC -I$OPENMPI_DIR/lib -cpp $OMP_DEFINES -fstack-arrays"
 export CC_COMPILE="$AOMP/bin/clang -fPIC"
-export FORTDEV_LIBS=${FORTDEV_LIBS:-"-lflang_rt.hostdevice"}
+export FORTDEV_LIBS=${FORTDEV_LIBS:-"$FORTRAN_OFFLOAD_LIB"}
 export FORTHOST_LIBS=${FORTHOST_LIBS:-"-lflang_rt.runtime"}
 export OTHER_LIBS="-lm -L$AOMP/lib $FORTHOST_LIBS $FORTDEV_LIBS -lomp -lomptarget -z muldefs "
 export FORTRAN_LINK="$AOMP/bin/clang $OTHER_LIBS"

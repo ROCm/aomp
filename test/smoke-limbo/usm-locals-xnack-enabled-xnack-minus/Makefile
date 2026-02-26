@@ -14,7 +14,7 @@ CLANG        = clang++
 OMP_BIN      = $(AOMP)/bin/$(CLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
 
-SUPPORTED    = gfx90a,gfx940,gfx941,gfx942
+SUPPORTED    = $(SUPPORTS_USM)
 
 #-ccc-print-phases
 #"-\#\#\#"
