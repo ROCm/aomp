@@ -20,12 +20,12 @@ else
 fi
 if [ "$TRUNK_BUILD_CUDA" == 0 ] ; then
    _cuda_plugin="-DLIBOMPTARGET_BUILD_CUDA_PLUGIN=OFF"
-   _targets_to_build="-DLLVM_TARGETS_TO_BUILD='X86;AMDGPU'"
+   _targets_to_build="-DLLVM_TARGETS_TO_BUILD='X86;AMDGPU;SPIRV'"
    _plugins_to_build="-DLIBOMPTARGET_PLUGINS_TO_BUILD='amdgpu;host'"
    AOMP_NVPTX_CAPS_OPT=""
 else
    _cuda_plugin="-DLIBOMPTARGET_BUILD_CUDA_PLUGIN=ON"
-   _targets_to_build="-DLLVM_TARGETS_TO_BUILD='X86;AMDGPU;NVPTX'"
+   _targets_to_build="-DLLVM_TARGETS_TO_BUILD='X86;AMDGPU;NVPTX;SPIRV'"
    _plugins_to_build="-DLIBOMPTARGET_PLUGINS_TO_BUILD='amdgpu;cuda;host'"
 fi
 
