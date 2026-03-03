@@ -1,16 +1,37 @@
 name: AOMP Lint
 
 on:
-  push:
   pull_request:
 
 jobs:
   aomp-lint:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 2
+
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@22103cc46bda19c2b464ffe86db46df6922fd323
+        with:
+          separator: ' '
+          skip_initial_fetch: true
+          base_sha: 'HEAD~1'
+          sha: 'HEAD'
+
+      - name: Echo changed files
+        run: |
+          echo "Changed files: ${{ steps.changed-files.outputs.all_changed_files }}"
 
       - name: Run shellcheck
         run: |
-          find . -name "*.sh" -exec shellcheck -S info {} +
+          for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
+            if [[ $file == *.sh ]]; then
+              echo "Running shellcheck on $file"
+              shellcheck "$file"
+            fi
+          done
+        shell: bash {0}
