@@ -218,32 +218,32 @@ for option in $RUN_OPTIONS; do
     set -o pipefail
     if [ -f "$GPURUN_BINDIR"/gpurun ] ; then
       if [ "$option" == "omp-usm" ]; then
-         echo HSA_XNACK=1 "$GPURUN_BINDIR"/gpurun $_SILENT ./"$EXEC" -n "$BABELSTREAM_REPEATS" "${BABELSTREAM_ARRAY_SIZE}" | tee -a results.txt
-         HSA_XNACK=1 "$GPURUN_BINDIR"/gpurun $_SILENT ./"$EXEC" -n "$BABELSTREAM_REPEATS" "${BABELSTREAM_ARRAY_SIZE}" 2>&1 | tee -a results.txt
+         echo HSA_XNACK=1 "$GPURUN_BINDIR"/gpurun $_SILENT ./"$EXEC" -n "$BABELSTREAM_REPEATS" ${BABELSTREAM_ARRAY_SIZE} | tee -a results.txt
+         HSA_XNACK=1 "$GPURUN_BINDIR"/gpurun $_SILENT ./"$EXEC" -n "$BABELSTREAM_REPEATS" ${BABELSTREAM_ARRAY_SIZE} 2>&1 | tee -a results.txt
       elif [ "$option" == "hip-um" ]; then
-         echo HSA_XNACK=1 HIP_UM=1 "$GPURUN_BINDIR"/gpurun $_SILENT ./"$EXEC" -n "$BABELSTREAM_REPEATS" "${BABELSTREAM_ARRAY_SIZE}" | tee -a results.txt
-         HSA_XNACK=1 HIP_UM=1 "$GPURUN_BINDIR"/gpurun $_SILENT ./"$EXEC" -n "$BABELSTREAM_REPEATS" "${BABELSTREAM_ARRAY_SIZE}" 2>&1 | tee -a results.txt
+         echo HSA_XNACK=1 HIP_UM=1 "$GPURUN_BINDIR"/gpurun $_SILENT ./"$EXEC" -n "$BABELSTREAM_REPEATS" ${BABELSTREAM_ARRAY_SIZE} | tee -a results.txt
+         HSA_XNACK=1 HIP_UM=1 "$GPURUN_BINDIR"/gpurun $_SILENT ./"$EXEC" -n "$BABELSTREAM_REPEATS" ${BABELSTREAM_ARRAY_SIZE} 2>&1 | tee -a results.txt
       elif [ "$option" == "stdpar" ]; then
-         echo HSA_XNACK=1 "$GPURUN_BINDIR"/gpurun $_SILENT ./"$EXEC" -n "$BABELSTREAM_REPEATS" "${BABELSTREAM_ARRAY_SIZE}" | tee -a results.txt
-         HSA_XNACK=1 "$GPURUN_BINDIR"/gpurun $_SILENT ./"$EXEC" -n "$BABELSTREAM_REPEATS" "${BABELSTREAM_ARRAY_SIZE}" | tee -a results.txt
+         echo HSA_XNACK=1 "$GPURUN_BINDIR"/gpurun $_SILENT ./"$EXEC" -n "$BABELSTREAM_REPEATS" ${BABELSTREAM_ARRAY_SIZE} | tee -a results.txt
+         HSA_XNACK=1 "$GPURUN_BINDIR"/gpurun $_SILENT ./"$EXEC" -n "$BABELSTREAM_REPEATS" ${BABELSTREAM_ARRAY_SIZE} | tee -a results.txt
       elif [ "$option" == "stdind" ]; then
-         echo HSA_XNACK=1 "$GPURUN_BINDIR"/gpurun $_SILENT ./"$EXEC" -n "$BABELSTREAM_REPEATS" "${BABELSTREAM_ARRAY_SIZE}" | tee -a results.txt
-         HSA_XNACK=1 "$GPURUN_BINDIR"/gpurun $_SILENT ./"$EXEC" -n "$BABELSTREAM_REPEATS" "${BABELSTREAM_ARRAY_SIZE}" | tee -a results.txt
+         echo HSA_XNACK=1 "$GPURUN_BINDIR"/gpurun $_SILENT ./"$EXEC" -n "$BABELSTREAM_REPEATS" ${BABELSTREAM_ARRAY_SIZE} | tee -a results.txt
+         HSA_XNACK=1 "$GPURUN_BINDIR"/gpurun $_SILENT ./"$EXEC" -n "$BABELSTREAM_REPEATS" ${BABELSTREAM_ARRAY_SIZE} | tee -a results.txt
       elif [ "$option" == "omp-fast" ]; then
          echo echo OMPX_FORCE_SYNC_REGIONS=1 \
-                "$GPURUN_BINDIR"/gpurun $_SILENT ./"$EXEC" -n "$BABELSTREAM_REPEATS" "${BABELSTREAM_ARRAY_SIZE}" 2>&1 | tee -a results.txt
+                "$GPURUN_BINDIR"/gpurun $_SILENT ./"$EXEC" -n "$BABELSTREAM_REPEATS" ${BABELSTREAM_ARRAY_SIZE} 2>&1 | tee -a results.txt
          OMPX_FORCE_SYNC_REGIONS=1 \
-                "$GPURUN_BINDIR"/gpurun $_SILENT ./"$EXEC" -n "$BABELSTREAM_REPEATS" "${BABELSTREAM_ARRAY_SIZE}" 2>&1 | tee -a results.txt
+                "$GPURUN_BINDIR"/gpurun $_SILENT ./"$EXEC" -n "$BABELSTREAM_REPEATS" ${BABELSTREAM_ARRAY_SIZE} 2>&1 | tee -a results.txt
       else
-         echo "$GPURUN_BINDIR"/gpurun $_SILENT ./"$EXEC" -n "$BABELSTREAM_REPEATS" "${BABELSTREAM_ARRAY_SIZE}" | tee -a results.txt
-         "$GPURUN_BINDIR"/gpurun $_SILENT ./"$EXEC" -n "$BABELSTREAM_REPEATS" "${BABELSTREAM_ARRAY_SIZE}" 2>&1 | tee -a results.txt
+         echo "$GPURUN_BINDIR"/gpurun $_SILENT ./"$EXEC" -n "$BABELSTREAM_REPEATS" ${BABELSTREAM_ARRAY_SIZE} | tee -a results.txt
+         "$GPURUN_BINDIR"/gpurun $_SILENT ./"$EXEC" -n "$BABELSTREAM_REPEATS" ${BABELSTREAM_ARRAY_SIZE} 2>&1 | tee -a results.txt
       fi
       if [ $? -ne 0 ]; then
         runtime_error=1
       fi
     else
-      echo ./"$EXEC" -n "$BABELSTREAM_REPEATS" "${BABELSTREAM_ARRAY_SIZE}" | tee -a results.txt
-      ./"$EXEC" -n "$BABELSTREAM_REPEATS" "${BABELSTREAM_ARRAY_SIZE}" 2>&1 | tee -a results.txt
+      echo ./"$EXEC" -n "$BABELSTREAM_REPEATS" ${BABELSTREAM_ARRAY_SIZE} | tee -a results.txt
+      ./"$EXEC" -n "$BABELSTREAM_REPEATS" ${BABELSTREAM_ARRAY_SIZE} 2>&1 | tee -a results.txt
       if [ $? -ne 0 ]; then
         runtime_error=1
       fi
