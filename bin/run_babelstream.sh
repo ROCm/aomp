@@ -184,8 +184,9 @@ for option in $RUN_OPTIONS; do
   elif [ "$option" == "omp-usm" ]; then
     compile_cmd="$AOMP/bin/clang++ -DOMP_USM $std $omp_fast_flags   $omp_src -o $EXEC"
   elif [ "$option" == "hip" ] || [ "$option" == "hip-um" ] || [ "$option" == "stdpar" ] || [ "$option" == "stdind" ] ; then
-    if [ ! -f $AOMPHIP/bin/hipcc ] ; then 
-      AOMPHIP="$AOMPHIP/.."
+    if [ ! -f $AOMPHIP/bin/hipcc ] ; then
+      # bin directory is two levels up from the "new" place that we pass to scripts as AOMP
+      AOMPHIP="$AOMPHIP/../.."
       if [ ! -f $AOMPHIP/bin/hipcc ] ; then
         # if $AOMP is trunk, try to use hipcc from rocm
         if [ -f /opt/rocm/bin/hipcc ] ; then
