@@ -121,7 +121,7 @@ hip_src="main.cpp HIPStream.cpp"
 stdpar_src="main.cpp STDDataStream.cpp"
 stdind_src="main.cpp STDIndicesStream.cpp"
 
-gccver=$(gcc --version | grep gcc | cut -d")" -f2 | cut -d"." -f1)
+# gccver=$(gcc --version | grep gcc | cut -d")" -f2 | cut -d"." -f1)
 std="-std=c++20"
 
 if [ ! -d "$BABELSTREAM_REPO" ]; then
@@ -203,7 +203,6 @@ for option in $RUN_OPTIONS; do
     else
       compile_cmd="$AOMPHIP/bin/hipcc $std $hip_flags $hip_src -o $EXEC"
     fi
-    HIP_PATH=$AOMPHIP
   else
     echo "ERROR: Option not recognized: $option."
     exit 1
@@ -217,6 +216,7 @@ for option in $RUN_OPTIONS; do
   else
     set -o pipefail
     if [ -f "$GPURUN_BINDIR"/gpurun ] ; then
+      #shellcheck disable=SC2086
       if [ "$option" == "omp-usm" ]; then
          echo HSA_XNACK=1 "$GPURUN_BINDIR"/gpurun $_SILENT ./"$EXEC" -n "$BABELSTREAM_REPEATS" ${BABELSTREAM_ARRAY_SIZE} | tee -a results.txt
          HSA_XNACK=1 "$GPURUN_BINDIR"/gpurun $_SILENT ./"$EXEC" -n "$BABELSTREAM_REPEATS" ${BABELSTREAM_ARRAY_SIZE} 2>&1 | tee -a results.txt
@@ -242,7 +242,9 @@ for option in $RUN_OPTIONS; do
         runtime_error=1
       fi
     else
+      #shellcheck disable=SC2086
       echo ./"$EXEC" -n "$BABELSTREAM_REPEATS" ${BABELSTREAM_ARRAY_SIZE} | tee -a results.txt
+      #shellcheck disable=SC2086
       ./"$EXEC" -n "$BABELSTREAM_REPEATS" ${BABELSTREAM_ARRAY_SIZE} 2>&1 | tee -a results.txt
       if [ $? -ne 0 ]; then
         runtime_error=1
