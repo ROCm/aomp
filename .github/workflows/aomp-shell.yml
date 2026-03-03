@@ -34,3 +34,4 @@ jobs:
               shellcheck "$file"
             fi
           done
+        shell: bash {0}
