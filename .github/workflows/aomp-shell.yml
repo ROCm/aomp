@@ -1,4 +1,4 @@
-name: AOMP Lint
+name: AOMP shellcheck lint
 
 on:
   pull_request:
