@@ -282,7 +282,7 @@ elif [ "${ShouldUpdateCKRepo}" == 'yes' ]; then
   git pull
   # TODO: Write current SHA to somewhere such that it is known which SHA
   #       was tested in this nightly run.
-  popd
+  popd || exit 1
 fi
 
 CKBuildTool='make'
@@ -341,7 +341,7 @@ if [ "${ShouldRebuildCK}" == 'yes' ] || [ "${ShouldInstallCK}" == 'yes' ]; then
   # Find build success in the build log
   echo "CK-BUILD-SUCCESS"
 
-  popd
+  popd || exit 1
 fi
 
 # Perform CK installation
@@ -357,7 +357,7 @@ if [ "${ShouldInstallCK}" == 'yes' ]; then
   # Find install success in the log
   echo "CK-INSTALL-SUCCESS"
 
-  popd
+  popd || exit 1
 fi
 
 echo "Run suite: ${SelectedSuite}"
@@ -382,7 +382,7 @@ if [ "${SelectedSuite}" == 'smoke' ]; then
   pushd ${CK_BUILD} || exit 1
   ${CKBuildTool} -j 16 smoke 2>&1 | tee "${CK_TESTS_LOG_LOCATION}/smoke_tests.log"
   echo "Log at ${CK_TESTS_LOG_LOCATION}/smoke_tests.log"
-  popd
+  popd || exit 1
 fi
 
 if [ "${SelectedSuite}" == 'regression' ]; then
@@ -393,7 +393,7 @@ if [ "${SelectedSuite}" == 'regression' ]; then
   pushd ${CK_BUILD} || exit 1
   ${CKBuildTool} -j 16 regression 2>&1 | tee "${CK_TESTS_LOG_LOCATION}/regression_tests.log"
   echo "Log at ${CK_TESTS_LOG_LOCATION}/regression_tests.log"
-  popd
+  popd || exit 1
 fi
 
 # Handle CK benchmarks (also as default, if no suite has been explicitly selected)
@@ -409,7 +409,7 @@ if [ "${SelectedSuite}" == 'benchmarks' ]; then
     git reset --hard origin/${CKBenchmarkRepoBranchName}
     git pull
     # TODO: Dump SHA somewhere
-    popd
+    popd || exit 1
   fi
 
   if [ ! -d ${CK_BENCHMARK_RESULT} ]; then
@@ -447,7 +447,7 @@ if [ "${SelectedSuite}" == 'benchmarks' ]; then
   ${CKBenchmarkProfilerExport}
   ${CKBenchmarkCmd}
 
-  popd
+  popd || exit 1
 
   echo "Benchmark Output File: ${CKBenchmarkResultOutput}"
 fi
@@ -559,7 +559,7 @@ if [ "${SelectedSuite}" == 'client-examples' ]; then
     done
   fi
 
-  popd
+  popd || exit 1
 fi
 
 # Handle CK's regular examples
@@ -629,5 +629,5 @@ if [ "${SelectedSuite}" == 'examples' ]; then
     done
   fi
 
-  popd
+  popd || exit 1
 fi
