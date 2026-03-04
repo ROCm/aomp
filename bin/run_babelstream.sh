@@ -24,20 +24,20 @@
 #   ENABLE_USM=1        - run variants "omp-default omp-fast omp-mi300 omp-usm hip hip-um"
 #
 # --- Start standard header to set AOMP environment variables ----
-realpath=`realpath $0`
-thisdir=`dirname $realpath`
+realpath=$(realpath "$0")
+thisdir=$(dirname "$realpath")
 export AOMP_USE_CCACHE=0
 
 export ROCR_VISIBLE_DEVICES=0
 
-. $thisdir/aomp_common_vars
+. "$thisdir"/aomp_common_vars
 # --- end standard header ----
 
 if [ "$1" != "nocopy" ] ; then
-pushd $AOMP_REPOS_TEST/$AOMP_BABELSTREAM_REPO_NAME
+pushd "$AOMP_REPOS_TEST"/"$AOMP_BABELSTREAM_REPO_NAME" || exit
 git checkout 2f00dfb
-popd
-patchrepo $AOMP_REPOS_TEST/$AOMP_BABELSTREAM_REPO_NAME
+popd || exit
+patchrepo "$AOMP_REPOS_TEST"/"$AOMP_BABELSTREAM_REPO_NAME"
 fi
 
 # Set defaults for environment variables
@@ -50,7 +50,7 @@ BABELSTREAM_BUILD=${BABELSTREAM_BUILD:-/tmp/$USER/babelstream}
 BABELSTREAM_REPEATS=${BABELSTREAM_REPEATS:-10}
 BABELSTREAM_ARRAY_NUM_ELEMS=${BABELSTREAM_ARRAY_NUM_ELEMS:-''}
 
-if [ ! -z ${BABELSTREAM_ARRAY_NUM_ELEMS} ]; then
+if [ ! -z "${BABELSTREAM_ARRAY_NUM_ELEMS}" ]; then
   BABELSTREAM_ARRAY_SIZE_COMPUTED=$(( $BABELSTREAM_ARRAY_NUM_ELEMS * 1024))
   BABELSTREAM_ARRAY_SIZE="-s ${BABELSTREAM_ARRAY_SIZE_COMPUTED}"
 fi
@@ -76,10 +76,10 @@ fi
 omp_target_flags="-O3 -fopenmp -fopenmp-targets=$TRIPLE -Xopenmp-target=$TRIPLE -march=$AOMP_GPU -DOMP -DOMP_TARGET_GPU -Dsimd="
 #  So this script runs with old comilers, we only use -fopenmp-target-fast
 #  for LLVM 16 or higher
-LLVM_VERSION=`$AOMP/bin/clang++ --version | grep version | cut -d" " -f 3 | cut -d"." -f1`
+LLVM_VERSION=$("$AOMP"/bin/clang++ --version | grep version | cut -d" " -f 3 | cut -d"." -f1)
 if [ "$LLVM_VERSION" == "version" ]  ; then
   # If 3rd  arg is version, must be aomp or rocm compiler, so get version from 4th field.
-  LLVM_VERSION=`$AOMP/bin/clang++ --version | grep version | cut -d" " -f 4 | cut -d"." -f1`
+  LLVM_VERSION=$("$AOMP"/bin/clang++ --version | grep version | cut -d" " -f 4 | cut -d"." -f1)
   special_aso_flags="-fopenmp-target-fast"
   special_mi300_flags="-fopenmp-target-fast -fopenmp-target-fast-reduction"
 else
@@ -121,10 +121,10 @@ hip_src="main.cpp HIPStream.cpp"
 stdpar_src="main.cpp STDDataStream.cpp"
 stdind_src="main.cpp STDIndicesStream.cpp"
 
-gccver=`gcc --version | grep gcc | cut -d")" -f2 | cut -d"." -f1`
+# gccver=$(gcc --version | grep gcc | cut -d")" -f2 | cut -d"." -f1)
 std="-std=c++20"
 
-if [ ! -d $BABELSTREAM_REPO ]; then
+if [ ! -d "$BABELSTREAM_REPO" ]; then
   echo "ERROR: BabelStream not found in $BABELSTREAM_REPO"
   echo "       Consider running these commands:"
   echo
@@ -135,35 +135,35 @@ if [ ! -d $BABELSTREAM_REPO ]; then
   exit 1
 fi
 curdir=$PWD
-mkdir -p $BABELSTREAM_BUILD
-echo cd $BABELSTREAM_BUILD
-cd $BABELSTREAM_BUILD
+mkdir -p "$BABELSTREAM_BUILD"
+echo cd "$BABELSTREAM_BUILD"
+cd "$BABELSTREAM_BUILD" || exit
 if [ "$1" != "nocopy" ] ; then
-   cp $BABELSTREAM_REPO/src/main.cpp .
-   cp $BABELSTREAM_REPO/src/Stream.h .
-   cp $BABELSTREAM_REPO/src/omp/OMPStream.cpp .
-   cp $BABELSTREAM_REPO/src/omp/OMPStream.h .
-   cp $BABELSTREAM_REPO/src/hip/HIPStream.cpp .
-   cp $BABELSTREAM_REPO/src/hip/HIPStream.h .
-   cp $BABELSTREAM_REPO/src/std-data/STDDataStream.cpp .
-   cp $BABELSTREAM_REPO/src/std-data/STDDataStream.h .
-   cp $BABELSTREAM_REPO/src/std-indices/STDIndicesStream.cpp .
-   cp $BABELSTREAM_REPO/src/std-indices/STDIndicesStream.h .
-   cp $BABELSTREAM_REPO/src/dpl_shim.h .
+   cp "$BABELSTREAM_REPO"/src/main.cpp .
+   cp "$BABELSTREAM_REPO"/src/Stream.h .
+   cp "$BABELSTREAM_REPO"/src/omp/OMPStream.cpp .
+   cp "$BABELSTREAM_REPO"/src/omp/OMPStream.h .
+   cp "$BABELSTREAM_REPO"/src/hip/HIPStream.cpp .
+   cp "$BABELSTREAM_REPO"/src/hip/HIPStream.h .
+   cp "$BABELSTREAM_REPO"/src/std-data/STDDataStream.cpp .
+   cp "$BABELSTREAM_REPO"/src/std-data/STDDataStream.h .
+   cp "$BABELSTREAM_REPO"/src/std-indices/STDIndicesStream.cpp .
+   cp "$BABELSTREAM_REPO"/src/std-indices/STDIndicesStream.h .
+   cp "$BABELSTREAM_REPO"/src/dpl_shim.h .
 else
    # for nocopy option, ensure temp sources exist (possibly edited),
    # AND save a copies of unpatched upstream code in temp dir for easy compare.
-   [ ! -f OMPStream.cpp ] && echo missing $BABELSTREAM_BUILD/OMPStream.cpp && exit 1
-   cp $BABELSTREAM_REPO/src/omp/OMPStream.cpp OMPStream.cpp.orig
-   [ ! -f HIPStream.cpp ] && echo missing $BABELSTREAM_BUILD/HIPStream.cpp && exit 1
-   cp $BABELSTREAM_REPO/src/hip/HIPStream.cpp HIPStream.cpp.orig
+   [ ! -f OMPStream.cpp ] && echo missing "$BABELSTREAM_BUILD"/OMPStream.cpp && exit 1
+   cp "$BABELSTREAM_REPO"/src/omp/OMPStream.cpp OMPStream.cpp.orig
+   [ ! -f HIPStream.cpp ] && echo missing "$BABELSTREAM_BUILD"/HIPStream.cpp && exit 1
+   cp "$BABELSTREAM_REPO"/src/hip/HIPStream.cpp HIPStream.cpp.orig
 fi
 
-echo RUN_OPTIONS: $RUN_OPTIONS
-thisdate=`date`
+echo RUN_OPTIONS: "$RUN_OPTIONS"
+thisdate=$(date)
 echo >>results.txt
 echo "=========> RUNDATE:  $thisdate" >>results.txt
-COMPILER=`$AOMP/bin/clang --version  | grep version`
+COMPILER=$("$AOMP"/bin/clang --version  | grep version)
 echo "=========> COMPILER: $COMPILER" >>results.txt
 echo "=========> GPU:      $AOMP_GPU" >>results.txt
 compile_error=0
@@ -172,7 +172,7 @@ runtime_error=0
 for option in $RUN_OPTIONS; do
   echo ; echo >>results.txt
   EXEC=stream-$option
-  rm -f $EXEC
+  rm -f "$EXEC"
   if [ "$option" == "omp-default" ]; then
     compile_cmd="$AOMP/bin/clang++ $std $omp_target_flags $omp_src -o $EXEC"
   elif [ "$option" == "omp-fast" ]; then
@@ -184,9 +184,9 @@ for option in $RUN_OPTIONS; do
   elif [ "$option" == "omp-usm" ]; then
     compile_cmd="$AOMP/bin/clang++ -DOMP_USM $std $omp_fast_flags   $omp_src -o $EXEC"
   elif [ "$option" == "hip" ] || [ "$option" == "hip-um" ] || [ "$option" == "stdpar" ] || [ "$option" == "stdind" ] ; then
-    if [ ! -f $AOMPHIP/bin/hipcc ] ; then 
-      AOMPHIP="$AOMPHIP/.."
-      if [ ! -f $AOMPHIP/bin/hipcc ] ; then
+    if [ ! -f "$AOMPHIP"/bin/hipcc ] ; then
+      AOMPHIP="$AOMPHIP/../.."
+      if [ ! -f "$AOMPHIP"/bin/hipcc ] ; then
         # if $AOMP is trunk, try to use hipcc from rocm
         if [ -f /opt/rocm/bin/hipcc ] ; then
           AOMPHIP=/opt/rocm
@@ -203,12 +203,11 @@ for option in $RUN_OPTIONS; do
     else
       compile_cmd="$AOMPHIP/bin/hipcc $std $hip_flags $hip_src -o $EXEC"
     fi
-    HIP_PATH=$AOMPHIP
   else
     echo "ERROR: Option not recognized: $option."
     exit 1
   fi
-  echo $compile_cmd | tee -a results.txt
+  echo "$compile_cmd" | tee -a results.txt
   $compile_cmd
   if [ $? -ne 0 ]; then
     compile_error=1
@@ -216,34 +215,37 @@ for option in $RUN_OPTIONS; do
     break
   else
     set -o pipefail
-    if [ -f $GPURUN_BINDIR/gpurun ] ; then
+    if [ -f "$GPURUN_BINDIR"/gpurun ] ; then
+      #shellcheck disable=SC2086
       if [ "$option" == "omp-usm" ]; then
-         echo HSA_XNACK=1 $GPURUN_BINDIR/gpurun $_SILENT ./$EXEC -n $BABELSTREAM_REPEATS ${BABELSTREAM_ARRAY_SIZE} | tee -a results.txt
-         HSA_XNACK=1 $GPURUN_BINDIR/gpurun $_SILENT ./$EXEC -n $BABELSTREAM_REPEATS ${BABELSTREAM_ARRAY_SIZE} 2>&1 | tee -a results.txt
+         echo HSA_XNACK=1 "$GPURUN_BINDIR"/gpurun $_SILENT ./"$EXEC" -n "$BABELSTREAM_REPEATS" ${BABELSTREAM_ARRAY_SIZE} | tee -a results.txt
+         HSA_XNACK=1 "$GPURUN_BINDIR"/gpurun $_SILENT ./"$EXEC" -n "$BABELSTREAM_REPEATS" ${BABELSTREAM_ARRAY_SIZE} 2>&1 | tee -a results.txt
       elif [ "$option" == "hip-um" ]; then
-         echo HSA_XNACK=1 HIP_UM=1 $GPURUN_BINDIR/gpurun $_SILENT ./$EXEC -n $BABELSTREAM_REPEATS ${BABELSTREAM_ARRAY_SIZE} | tee -a results.txt
-         HSA_XNACK=1 HIP_UM=1 $GPURUN_BINDIR/gpurun $_SILENT ./$EXEC -n $BABELSTREAM_REPEATS ${BABELSTREAM_ARRAY_SIZE} 2>&1 | tee -a results.txt
+         echo HSA_XNACK=1 HIP_UM=1 "$GPURUN_BINDIR"/gpurun $_SILENT ./"$EXEC" -n "$BABELSTREAM_REPEATS" ${BABELSTREAM_ARRAY_SIZE} | tee -a results.txt
+         HSA_XNACK=1 HIP_UM=1 "$GPURUN_BINDIR"/gpurun $_SILENT ./"$EXEC" -n "$BABELSTREAM_REPEATS" ${BABELSTREAM_ARRAY_SIZE} 2>&1 | tee -a results.txt
       elif [ "$option" == "stdpar" ]; then
-         echo HSA_XNACK=1 $GPURUN_BINDIR/gpurun $_SILENT ./$EXEC -n $BABELSTREAM_REPEATS ${BABELSTREAM_ARRAY_SIZE} | tee -a results.txt
-         HSA_XNACK=1 $GPURUN_BINDIR/gpurun $_SILENT ./$EXEC -n $BABELSTREAM_REPEATS ${BABELSTREAM_ARRAY_SIZE} | tee -a results.txt
+         echo HSA_XNACK=1 "$GPURUN_BINDIR"/gpurun $_SILENT ./"$EXEC" -n "$BABELSTREAM_REPEATS" ${BABELSTREAM_ARRAY_SIZE} | tee -a results.txt
+         HSA_XNACK=1 "$GPURUN_BINDIR"/gpurun $_SILENT ./"$EXEC" -n "$BABELSTREAM_REPEATS" ${BABELSTREAM_ARRAY_SIZE} | tee -a results.txt
       elif [ "$option" == "stdind" ]; then
-         echo HSA_XNACK=1 $GPURUN_BINDIR/gpurun $_SILENT ./$EXEC -n $BABELSTREAM_REPEATS ${BABELSTREAM_ARRAY_SIZE} | tee -a results.txt
-         HSA_XNACK=1 $GPURUN_BINDIR/gpurun $_SILENT ./$EXEC -n $BABELSTREAM_REPEATS ${BABELSTREAM_ARRAY_SIZE} | tee -a results.txt
+         echo HSA_XNACK=1 "$GPURUN_BINDIR"/gpurun $_SILENT ./"$EXEC" -n "$BABELSTREAM_REPEATS" ${BABELSTREAM_ARRAY_SIZE} | tee -a results.txt
+         HSA_XNACK=1 "$GPURUN_BINDIR"/gpurun $_SILENT ./"$EXEC" -n "$BABELSTREAM_REPEATS" ${BABELSTREAM_ARRAY_SIZE} | tee -a results.txt
       elif [ "$option" == "omp-fast" ]; then
          echo echo OMPX_FORCE_SYNC_REGIONS=1 \
-                $GPURUN_BINDIR/gpurun $_SILENT ./$EXEC -n $BABELSTREAM_REPEATS ${BABELSTREAM_ARRAY_SIZE} 2>&1 | tee -a results.txt
+                "$GPURUN_BINDIR"/gpurun $_SILENT ./"$EXEC" -n "$BABELSTREAM_REPEATS" ${BABELSTREAM_ARRAY_SIZE} 2>&1 | tee -a results.txt
          OMPX_FORCE_SYNC_REGIONS=1 \
-                $GPURUN_BINDIR/gpurun $_SILENT ./$EXEC -n $BABELSTREAM_REPEATS ${BABELSTREAM_ARRAY_SIZE} 2>&1 | tee -a results.txt
+                "$GPURUN_BINDIR"/gpurun $_SILENT ./"$EXEC" -n "$BABELSTREAM_REPEATS" ${BABELSTREAM_ARRAY_SIZE} 2>&1 | tee -a results.txt
       else
-         echo $GPURUN_BINDIR/gpurun $_SILENT ./$EXEC -n $BABELSTREAM_REPEATS ${BABELSTREAM_ARRAY_SIZE} | tee -a results.txt
-         $GPURUN_BINDIR/gpurun $_SILENT ./$EXEC -n $BABELSTREAM_REPEATS ${BABELSTREAM_ARRAY_SIZE} 2>&1 | tee -a results.txt
+         echo "$GPURUN_BINDIR"/gpurun $_SILENT ./"$EXEC" -n "$BABELSTREAM_REPEATS" ${BABELSTREAM_ARRAY_SIZE} | tee -a results.txt
+         "$GPURUN_BINDIR"/gpurun $_SILENT ./"$EXEC" -n "$BABELSTREAM_REPEATS" ${BABELSTREAM_ARRAY_SIZE} 2>&1 | tee -a results.txt
       fi
       if [ $? -ne 0 ]; then
         runtime_error=1
       fi
     else
-      echo ./$EXEC -n $BABELSTREAM_REPEATS ${BABELSTREAM_ARRAY_SIZE} | tee -a results.txt
-      ./$EXEC -n $BABELSTREAM_REPEATS ${BABELSTREAM_ARRAY_SIZE} 2>&1 | tee -a results.txt
+      #shellcheck disable=SC2086
+      echo ./"$EXEC" -n "$BABELSTREAM_REPEATS" ${BABELSTREAM_ARRAY_SIZE} | tee -a results.txt
+      #shellcheck disable=SC2086
+      ./"$EXEC" -n "$BABELSTREAM_REPEATS" ${BABELSTREAM_ARRAY_SIZE} 2>&1 | tee -a results.txt
       if [ $? -ne 0 ]; then
         runtime_error=1
       fi
@@ -260,9 +262,9 @@ else
   echo "babelstream" >> "$BABELSTREAM_REPO"/passing-tests.txt
 fi
 
-cd $curdir
+cd "$curdir" || exit
 echo
 echo "DONE. See results at end of file $BABELSTREAM_BUILD/results.txt"
 if [ "$1" != "nocopy" ] ; then
-removepatch $AOMP_REPOS_TEST/$AOMP_BABELSTREAM_REPO_NAME
+removepatch "$AOMP_REPOS_TEST"/"$AOMP_BABELSTREAM_REPO_NAME"
 fi
