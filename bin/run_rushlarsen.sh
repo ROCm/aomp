@@ -13,7 +13,7 @@ export AOMP_USE_CCACHE=0
 
 # Setup AOMP variables
 AOMP=${AOMP:-/usr/lib/aomp}
-AOMPHIP=${AOMPHIP:-$AOMP}
+AOMPHIP=${AOMPHIP:-$AOMP/../..}
 FLANG=${FLANG:-flang}
 
 # Use function to set and test AOMP_GPU
