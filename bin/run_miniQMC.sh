@@ -9,8 +9,8 @@
 # ROCM_INSTALL_PATH       top-level ROCm install directory (default: /opt/rocm-5.3.0)
 
 # --- Start standard header to set AOMP environment variables ----
-realpath=`realpath "$0"`
-thisdir=`dirname "$realpath"`
+realpath=$(realpath "$0")
+thisdir=$(dirname "$realpath")
 export AOMP_USE_CCACHE=0
 
 . "$thisdir"/aomp_common_vars
