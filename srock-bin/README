@@ -82,9 +82,9 @@ might be enough. But recall that srock has a set of patches to TheRock and other
 components to make the amd-staging compiler work. So in addition to the amd-staging
 merge, some additional patch or PRs taken from srocks patches might be necessary.
 
-Q: How do I use the ROCm toolchain created by build_srock.sh 
-A: The default installation will be in $HOME/rocm/srock which 
-   will be a symbolic link to $HOME/rocm/srock_$SROCK_VERSION_STRING
+Q: How do I use the ROCm created by setup_srock.sh & post_setup_build_srock.sh
+A: The default installation will be in $HOME/rocm/srock which is
+   a symbolic link to $HOME/rocm/srock_$SROCK_VERSION_STRING
    Depending on your test or dev environment, you can set 
    AOMP=~/rocm/srock or ROCM_PATH=~/rocm/srock
 
@@ -114,19 +114,11 @@ A: You cannot. srock is for build and install direct,
    gets installed from the build. 
 
 Q: In addtion to TheRock repo, I see other repos populated in SROCK_REPOS.
-   What are aomp, hipfort, rocdbgapi, and rocgdb repos?
-A: aomp contains the build_srock.sh script as well as the legacy aomp
-   build system.  It also contains detailed compiler tests. 
-   hipfort, rocdbgapi, and rocgdb are three components that have 
-   not yet been integrated into TheRock.  These repos will go away
-   when thes components are integrated.  build_srock.sh does the 
+   What are the aomp, hipfort, rocdbgapi, and rocgdb repos?
+A: aomp contains the srock scripts as well as the legacy aomp build system.
+   It also contains detailed compiler tests. The repos hipfort, rocdbgapi,
+   and rocgdb are three components that have not yet been integrated into
+   TheRock. These repos will go away when thes components are integrated.
+   The two srock scripts setup_srock.sh and post_setup_build_srock.sh do the
    cloning and building of these components so that an srock installation 
-   is as complete as aomp. 
---------------------------  
-More customization controls are being developed, such as 
-building TheRock with last known good sha key(LKG). 
-Another control will be the ability to restart build_srock.sh
-from a previous fail or minor component changes. 
-   
- 
-
+   is as complete as aomp.
