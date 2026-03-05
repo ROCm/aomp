@@ -9,13 +9,14 @@ A: Srock is a scripted download and build of the complete ROCm software stack
    LLVM upstream and LLVM local enhancements are merged on a daily basis.
 
 Q: How to build srock? 2 steps: setup_srock.sh & post_setup_build_srock.sh
-A: These commands. 
+A: Run these commands:
    export SROCK_REPOS=/work/$USER/git/srock-repos 
+   # consider setting SROCK_REPOS in your login script (.bashrc)
    mkdir -p $SROCK_REPOS ; cd $SROCK_REPOS
    git clone https://github.com/ROCm/aomp
    cd aomp/srock-bin
    nohup ./setup_srock.sh &
-   # setup takes awhile so nohup is nice
+   # setup takes awhile (10-20 mins) so using nohup is nice
    mv nohup.out nohup.out.setup
    nohup ./post_setup_srock_build.sh &
 
@@ -34,6 +35,14 @@ testing based on AOMP environment variable will remain. The build_srock.sh
 script and all support for srock will be managed in the aomp repo in the srock-bin
 subdirectory.
 
+Q: Can one rerun setup_srock.sh ?
+A: NO. If you want to start from scratch, completely remove SROCK_THEROCK_DIR
+   which by default is /work/$USER/git/srock-repos/TheRock
+
+Q: Can one rerun post_setup_build_srock.sh ?
+A: YES.  This is useful if you have made development changes to any repository.
+   Naturally, this is much faster the 2nd time following setup_srock.sh
+
 Q: Why not just change the submodule file to point compiler repos to amd-staging branch?
 A: TheRock has frequent changes including submodule updates. The build_srock.sh 
 script correctly reintegrates these changes and then refixes the llvm-project and
@@ -47,7 +56,7 @@ It also automates consistent configurations of different sets of components
 of TheRock. Because some may work while others are in development or need repair. 
 The default srock configuration is minimal to speed build time for compiler 
 developers. 
-NOTE: THE POLICY INFERED HERE MAY CHANGE.
+NOTE: THE POLICY INFERRED HERE MAY CHANGE.
 
 Q: TheRock would like all components that it builds to use the "develop" branch.
 How do changes from amd-staging llvm-project get to the develop branch?
@@ -59,13 +68,13 @@ Every user (compiler developer) of build_srock.sh will get the tip of TheRock
 unless they specifically avoid it. So Compiler developers will witness merge
 and build problems with srock and resolve them before compiler leadership pushes
  amd-staging to develop. 
-NOTE: AGAIN, THE POLICY INFERED HERE MAY CHANGE.
+NOTE: AGAIN, THE POLICY INFERRED HERE MAY CHANGE.
 
 Q: Can I use the two scripts to build TheRock with develop branch?
 A: YES, this is the same as building the tip of TheRock with no changes.
    set SROCK_COMPILER_BRANCH=develop and no updates will be made to
-   compiler submodules.  It is advised to get a fresh copy of TheRock
-   when switching SROCK_COMPILER_BRANCH.
+   compiler submodules. You must remove the existing SROCK_THEROCK_DIR
+   when switching SROCK_COMPILER_BRANCH to develop.
 
 Q: How will TheRock team update the develop branch of llvm-project?
 A: Assuming srock is in a stable state, a simple merge from amd-staging to develop
