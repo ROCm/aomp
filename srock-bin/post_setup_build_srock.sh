@@ -71,8 +71,8 @@ _gfamsemicolons=$(echo "$GFXFAM" | tr ' ' ';')
 
 declare -a _cmake_args
 _cmake_args=(-B build -GNinja
-   -DTHEROCK_AMDGPU_TARGETS='$_gfxsemicolons'
-   -DTHEROCK_AMDGPU_FAMILIES='$_gfamsemicolons'
+   -DTHEROCK_AMDGPU_TARGETS=\'"$_gfxsemicolons"\'
+   -DTHEROCK_AMDGPU_FAMILIES=\'"$_gfamsemicolons"\'
    -DTHEROCK_AMDGPU_DIST_BUNDLE_NAME=srock
    -DTHEROCK_BACKGROUND_BUILD_JOBS=1
    -DTHEROCK_ENABLE_LLVM_TESTS=1
