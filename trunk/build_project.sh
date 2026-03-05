@@ -42,7 +42,7 @@ MYCMAKEOPTS="\
 $DO_TESTS \
 $_targets_to_build \
 -DLLVM_ENABLE_ASSERTIONS=ON \
--DLLVM_ENABLE_RUNTIMES='openmp;compiler-rt;offload' \
+-DLLVM_ENABLE_RUNTIMES='compiler-rt;flang-rt;libunwind;libcxx;libcxxabi;openmp;offload' \
 $_plugins_to_build \
 -DCOMPILER_RT_BUILD_ORC=OFF \
 -DCOMPILER_RT_BUILD_XRAY=OFF \
@@ -62,10 +62,27 @@ $AOMP_NVPTX_CAPS_OPT \
 $ENABLE_DEBUG_OPT \
 $LLVM_FORCE_VC_REVISION_OPT \
 $LLVM_FORCE_VC_REPOSITORY_OPT \
--DLLVM_RUNTIME_TARGETS='default;amdgcn-amd-amdhsa' \
--DRUNTIMES_amdgcn-amd-amdhsa_LLVM_ENABLE_RUNTIMES='openmp' \
+-DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=ON \
+-DRUNTIMES_amdgcn-amd-amdhsa_LLVM_ENABLE_RUNTIMES='compiler-rt;libc;libcxx;libcxxabi;openmp;flang-rt' \
 -DRUNTIMES_amdgcn-amd-amdhsa_LLVM_ENABLE_PER_TARGET_RUNTIME_DIR=ON \
+-DRUNTIMES_amdgcn-amd-amdhsa_CACHE_FILES='$TRUNK_REPOS/$LLVMPROJECT/libcxx/cmake/caches/AMDGPU.cmake' \
+-DRUNTIMES_amdgcn-amd-amdhsa_FLANG_RT_LIBC_PROVIDER=llvm \
+-DRUNTIMES_amdgcn-amd-amdhsa_FLANG_RT_LIBCXX_PROVIDER=llvm \
 "
+if [ "$TRUNK_BUILD_CUDA" == 0 ] ; then
+   MYCMAKEOPTS+="\
+    -DLLVM_RUNTIME_TARGETS='default;amdgcn-amd-amdhsa' \
+   "
+else
+   MYCMAKEOPTS+="\
+    -DLLVM_RUNTIME_TARGETS='default;amdgcn-amd-amdhsa;nvptx64-nvidia-cuda' \
+    -DRUNTIMES_nvptx64-nvidia-cuda_LLVM_ENABLE_RUNTIMES="compiler-rt;libc;openmp;libcxx;libcxxabi;flang-rt" \
+    -DRUNTIMES_nvptx64-nvidia-cuda_LLVM_ENABLE_PER_TARGET_RUNTIME_DIR=ON \
+    -DRUNTIMES_nvptx64-nvidia-cuda_CACHE_FILES='$TRUNK_REPOS/$LLVMPROJECT/libcxx/cmake/caches/NVPTX.cmake' \
+    -DRUNTIMES_nvptx64-nvidia-cuda_FLANG_RT_LIBC_PROVIDER=llvm \
+    -DRUNTIMES_nvptx64-nvidia-cuda_FLANG_RT_LIBCXX_PROVIDER=llvm \
+   "
+fi
 
 # -DFLANG_RUNTIME_F128_MATH_LIB=libquadmath \
 
