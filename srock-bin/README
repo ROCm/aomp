@@ -1,26 +1,31 @@
 
 Q: What is srock?
-A: Srock is a scripted download and build of the complete ROCm software stack using TheRock;
-where the content of the ROCm compiler components is taken from the amd-staging branches
-of compiler github repos llvm-project and hipify. This builds a software stack where AMD
-compiler developers can test the impact of development changes to the compiler in the
-amd-staging branch. The amd-staging branch is where LLVM upstream and LLVM local
-enhancements are merged on a daily basis.  
+A: Srock is a scripted download and build of the complete ROCm software stack
+   using TheRock.  In the default mode, the content of the ROCm compiler
+   components is taken from the amd-staging branches for repos llvm-project,
+   hipify, and spirv-llvm-translator. This builds a software stack where AMD
+   compiler developers can test the impact of development changes to the
+   compiler in the amd-staging branch. The amd-staging branch is where
+   LLVM upstream and LLVM local enhancements are merged on a daily basis.
 
-Q: How to run build_srock.sh
+Q: How to build srock? 2 steps: setup_srock.sh & post_setup_build_srock.sh
 A: These commands. 
    export SROCK_REPOS=/work/$USER/git/srock-repos 
    mkdir -p $SROCK_REPOS ; cd $SROCK_REPOS
    git clone https://github.com/ROCm/aomp
-   nohup ./aomp/srock-bin/build_srock.sh &
+   cd aomp/srock-bin
+   nohup ./setup_srock.sh &
+   # setup takes awhile so nohup is nice
+   mv nohup.out nohup.out.setup
+   nohup ./post_setup_srock_build.sh &
 
 Q: How is this different than aomp?
-A: Aomp used a set of bash scripts that performed the cmake, make, and make install of 
-each component.  Srock only has a single script (build_srock.sh) that automates the
-TheRock instructions for downloading and building TheRock. TheRock has a single
-hierarhical github repository with submodules for bringing together all ROCm components.
-Like the classical ROCm build system, aomp built individual components from a linear
-list of github repositories with bash scripts.
+A: Aomp used a set of bash scripts that performed the cmake, make, and make install
+of each component. Srock has two scripts setup_srock.sh and post_setup_build.sh.
+These 2 scripts automate the web instructions for downloading and building TheRock. 
+TheRock has a single hierarhical github repository with submodules for bringing
+together all ROCm components. Whereas aomp built individual components from a
+linear list of github repositories with bash scripts.
 
 Q: Will srock replace aomp?
 A: Yes, srock will replace aomp. Developers that used aomp will switch to using
@@ -42,8 +47,9 @@ It also automates consistent configurations of different sets of components
 of TheRock. Because some may work while others are in development or need repair. 
 The default srock configuration is minimal to speed build time for compiler 
 developers. 
+NOTE: THE POLICY INFERED HERE MAY CHANGE.
 
-Q: TheRock would like all components that it builds with to use the "develop" branch.
+Q: TheRock would like all components that it builds to use the "develop" branch.
 How do changes from amd-staging llvm-project get to the develop branch?
 A: The amd-staging branch is a rapidly moving target rooted in LLVM upstream.
 Compiler (LLVM) developers want these updates merged into the amd-staging branch
@@ -53,10 +59,13 @@ Every user (compiler developer) of build_srock.sh will get the tip of TheRock
 unless they specifically avoid it. So Compiler developers will witness merge
 and build problems with srock and resolve them before compiler leadership pushes
  amd-staging to develop. 
+NOTE: AGAIN, THE POLICY INFERED HERE MAY CHANGE.
 
-Q: Can I use build_srock.sh to build TheRock with develop branch?
-A: YES, but why would you, since this is the same as building the tip of TheRock
-with no changes.
+Q: Can I use the two scripts to build TheRock with develop branch?
+A: YES, this is the same as building the tip of TheRock with no changes.
+   set SROCK_COMPILER_BRANCH=develop and no updates will be made to
+   compiler submodules.  It is advised to get a fresh copy of TheRock
+   when switching SROCK_COMPILER_BRANCH.
 
 Q: How will TheRock team update the develop branch of llvm-project?
 A: Assuming srock is in a stable state, a simple merge from amd-staging to develop
