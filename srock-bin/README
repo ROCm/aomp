@@ -30,10 +30,10 @@ linear list of github repositories with bash scripts.
 
 Q: Will srock replace aomp?
 A: Yes, srock will replace aomp. Developers that used aomp will switch to using
-the script build_srock.sh. The aomp repository, which includes significant compiler
-testing based on AOMP environment variable will remain. The build_srock.sh
-script and all support for srock will be managed in the aomp repo in the srock-bin
-subdirectory.
+the two scripts mentioned above. The aomp repository, which includes significant compiler
+testing based on AOMP environment variable will remain. The srock scripts
+and all support for srock will be managed in the srock-bin subdirectory of
+the aomp repo.
 
 Q: Can one rerun setup_srock.sh ?
 A: NO. If you want to start from scratch, completely remove SROCK_THEROCK_DIR
@@ -44,30 +44,32 @@ A: YES.  This is useful if you have made development changes to any repository.
    Naturally, this is much faster the 2nd time following setup_srock.sh
 
 Q: Why not just change the submodule file to point compiler repos to amd-staging branch?
-A: TheRock has frequent changes including submodule updates. The build_srock.sh 
+A: TheRock has frequent changes including submodule updates. The setup_srock.sh
 script correctly reintegrates these changes and then refixes the llvm-project and
 hipify repos to amd-staging branch.  Furthermore, the tip of TheRock is building
 a "release" compiler. Srock builds a development compiler with debug features and/or
 changes to components to work correctly with a more-recent amd-staging compiler.
 These differences may require patching of TheRock and component submodules.
-The build_srock.sh script automates the consistent maintenance and sharing of
+The setup_srock.sh script automates the consistent maintenance and sharing of
 patches that make the ROCm stack build correctly with the amd-staging compiler.
 It also automates consistent configurations of different sets of components
 of TheRock. Because some may work while others are in development or need repair. 
-The default srock configuration is minimal to speed build time for compiler 
+The default srock configuration is "minimal" to speed build time for compiler
 developers. 
 NOTE: THE POLICY INFERRED HERE MAY CHANGE.
 
 Q: TheRock would like all components that it builds to use the "develop" branch.
 How do changes from amd-staging llvm-project get to the develop branch?
-A: The amd-staging branch is a rapidly moving target rooted in LLVM upstream.
-Compiler (LLVM) developers want these updates merged into the amd-staging branch
-since they are somewhat verified. Merging amd-staging to TheRock develop branch 
-will be managed by the compiler leaders and should occur at least every other week.
-Every user (compiler developer) of build_srock.sh will get the tip of TheRock
-unless they specifically avoid it. So Compiler developers will witness merge
-and build problems with srock and resolve them before compiler leadership pushes
- amd-staging to develop. 
+A: The amd-staging branch is a rapidly changing branch rooted in LLVM upstream
+main branch (trunk). Compiler (LLVM) developers want these updates merged into the
+amd-staging branch since they are somewhat verified upstream. Merging amd-staging
+into TheRock develop branch will be managed by the compiler leaders and should
+occur at least every other week. So LLVM developers using setup_srock.sh will
+see trunk merge and build problems with srock and resolve them before compiler
+leadership pushes amd-staging updates to the develop branch. With the execption
+of repos llvm-project, hipify, and spirv-llvm-translator, The setup_srock.sh
+script  will use the default tip of the Rock (typically develop branches).
+(unless they specifically avoid it).
 NOTE: AGAIN, THE POLICY INFERRED HERE MAY CHANGE.
 
 Q: Can I use the two scripts to build TheRock with develop branch?
@@ -102,16 +104,17 @@ A: Use these environment variables:
    Note that SROCK_LINK will be made a symbolic link to SROCK_INSTALL_DIR
    To change the compiler branch set
       SROCK_COMPILER_BRANCH=develop
-      "develop" is a special value that will cause build_srock.sh to 
-      do a native build of the tip of TheROCK.  That is it will not
-      checkout any branch of the compiler submodules. 
+      "develop" is a special value that will cause srock to do a native
+       build of the tip of TheROCK.  That is, it will not checkout amd-staging
+       branches of the compiler submodules.
    To cause srock to get a fresh new clone of TheRock on next build.
       rm -rf $SROCK_REPOS/TheRock
+
 Q: How do I get ROCm-like packages from srock?
-A: You cannot. srock is for build and install direct, 
+A: Currently, you cannot. srock is for build and install only.
    srock does no packaging of ROCm components. 
    But we do use TheRock artifact descriptors to control what 
-   gets installed from the build. 
+   gets installed from the build.
 
 Q: In addtion to TheRock repo, I see other repos populated in SROCK_REPOS.
    What are the aomp, hipfort, rocdbgapi, and rocgdb repos?
