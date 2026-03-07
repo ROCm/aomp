@@ -13,14 +13,15 @@ realpath=$(realpath "$0")
 thisdir=$(dirname "$realpath")
 export AOMP_USE_CCACHE=0
 
+# shellcheck source-path=SCRIPTDIR
 . "$thisdir"/aomp_common_vars
 # --- end standard header ----
 
 # Default ROCm installation
-: ${ROCM:=/opt/rocm}
+: "${ROCM:=/opt/rocm}"
 
 # Control how many OpenMP threads are used by MiniQMCPack
-: ${MQMC_OMP_NUM_THREADS:=32}
+: "${MQMC_OMP_NUM_THREADS:=32}"
 
 export PATH=$AOMP/bin:$PATH
 #export PATH=/home/janplehr/rocm/trunk/bin:$PATH
@@ -35,15 +36,15 @@ export rocblas_DIR=${ROCM}/lib/cmake/rocblas/
 export rocsolver_DIR=${ROCM}/lib/cmake/rocsolver/
 
 # Set the default build prefix, i.e., build-top-level
-: ${MQMC_BUILD_PREFIX:=$AOMP_REPOS_TEST/miniqmc_build}
+: "${MQMC_BUILD_PREFIX:=$AOMP_REPOS_TEST/miniqmc_build}"
 # Set the default build directory name
-: ${MQMC_BUILD_DIR:=${MQMC_BUILD_PREFIX}/build_aomp_clang}
+: "${MQMC_BUILD_DIR:=${MQMC_BUILD_PREFIX}/build_aomp_clang}"
 # Path to the miniqmc source directory
-: ${MQMC_SOURCE_DIR:=$AOMP_REPOS_TEST/miniqmc_src}
+: "${MQMC_SOURCE_DIR:=$AOMP_REPOS_TEST/miniqmc_src}"
 # how many threads should be used for building miniqmc
-: ${MQMC_NUM_BUILD_PROCS:=32}
+: "${MQMC_NUM_BUILD_PROCS:=32}"
 # We pin the version by default, so we have only AOMP as moving target
-: ${MQMC_GIT_TAG:=9d9d7d3}
+: "${MQMC_GIT_TAG:=9d9d7d3}"
 
 
 if [ ! -d "$MQMC_SOURCE_DIR" ]; then
