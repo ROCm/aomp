@@ -3,7 +3,7 @@
 #Copyright © Advanced Micro Devices, Inc., or its affiliates.
 #
 #SPDX-License-Identifier:  MIT
-# 
+#
 #  list_srock.sh: List the version of TheRock and submodules
 #
 # --- Start standard header to set SROCK environment variables ----
@@ -41,7 +41,7 @@ done
 declare -a tr_dtop
 declare -a tr_dsub
 # shellcheck disable=SC2116 # echo intended
-# shellcheck disable=SC2046 # word splitting in subcommands is acceptable 
+# shellcheck disable=SC2046 # word splitting in subcommands is acceptable
 tr_dtop=( "$(echo $(git branch --show-current)\|TheRock\|TheRock\|parent\|$(git log -1 --format="%H|%as|%cn|%an"))" )
 # shellcheck disable=SC2016 # single quotes intended
 # shellcheck disable=SC2207 # intended split on newline
