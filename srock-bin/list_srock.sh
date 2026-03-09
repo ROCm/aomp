@@ -76,7 +76,6 @@ fi
 
 # formatted output
 if [[ $show_fmt -ne 0 ]]; then
-    echo "TheRock submodules:"
     fmt="%-20.20s %-44.44s %-21.21s %-10.10s %-10.10s %-10.10s %-12.12s %-19.19s %s\n"
     # shellcheck disable=SC2059 # variable format intended
     printf "$fmt" "${tr_fields[@]}"
@@ -100,7 +99,6 @@ fi
 
 # unformatted output
 if [[ $show_unfmt -ne 0 ]]; then
-    echo "TheRock submodules versions (unformatted):"
     fmt="%s|%s|%s|%s|%s|%s|%s|%s|%s|%s\n"
     # shellcheck disable=SC2059 # variable format intended
     printf "$fmt" "${tr_fields[@]}"
