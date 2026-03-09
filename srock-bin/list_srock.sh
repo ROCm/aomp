@@ -12,13 +12,15 @@ thisdir=$(dirname "$realpath")
 . "$thisdir/srock_common_vars"
 # --- end standard header ----
 
-cd "$SROCK_THEROCK_DIR" || exit
-
+do_cur_dir=0
 do_sub_status=0
 show_fmt=1
 show_unfmt=0
 while [ $# -gt 0 ]; do		# check arguments
    case "$1" in
+      -c)
+         do_cur_dir=1
+         ;;
       -u)
          show_fmt=0
          show_unfmt=1
@@ -31,6 +33,7 @@ while [ $# -gt 0 ]; do		# check arguments
 	 ;;
       *)
 	 echo "Usage: srock-list [OPTION]" >& 2
+	 echo "    -c  current dir (default dir: $SROCK_THEROCK_DIR)" >& 2
 	 echo "    -q  quick   (exclude 'submodule status')" >& 2
 	 echo "    -v  verbose (include 'submodule status')" >& 2
 	 echo "    -u  show as unformatted CSV" >& 2
@@ -38,6 +41,16 @@ while [ $# -gt 0 ]; do		# check arguments
    esac
    shift
 done
+
+if [[ $do_cur_dir -eq 0 ]]; then
+    cd "$SROCK_THEROCK_DIR" || exit
+else
+    if [[ ! -d .git ]]; then
+       echo "Error: .git not found"
+       exit 1
+    fi
+fi
+
 declare -a tr_dtop
 declare -a tr_dsub
 # shellcheck disable=SC2116 # echo intended
