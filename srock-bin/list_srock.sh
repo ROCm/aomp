@@ -53,9 +53,11 @@ fi
 
 declare -a tr_dtop
 declare -a tr_dsub
+dirname=${PWD##*/}
 # shellcheck disable=SC2116 # echo intended
 # shellcheck disable=SC2046 # word splitting in subcommands is acceptable
-tr_dtop=( "$(echo $(git branch --show-current)\|TheRock\|TheRock\|parent\|$(git log -1 --format="%H|%as|%cn|%an"))" )
+# shellcheck disable=SC2086 # word splitting in substrings is acceptable
+tr_dtop=( "$(echo $(git branch --show-current)\|$dirname\|$dirname\|parent\|$(git log -1 --format="%H|%as|%cn|%an"))" )
 # shellcheck disable=SC2016 # single quotes intended
 # shellcheck disable=SC2207 # intended split on newline
 IFS=$'\n' tr_dsub=( $(git submodule -q foreach 'echo $(git branch --show-current)\|$sm_path\|$name\|$sha1\|$(git log -1 --format="%H|%as|%cn|%an")') )
