@@ -361,7 +361,7 @@ IMPLICIT_GPU_FLANG_RT ?= 1
 ifeq ($(IMPLICIT_GPU_FLANG_RT),1)
   FLANG_GPU_LINK_FLAGS =
 else
-  FLANG_GPU_LINK_FLAGS = -fno-gpu-flang-rt -lflang_rt.hostdevice
+  FLANG_GPU_LINK_FLAGS = -fno-gpu-flang-rt
 endif
 
 ifeq ($(NOOPT),1)
