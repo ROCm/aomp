@@ -95,6 +95,16 @@ echo "      Compiler branch:   $SROCK_COMPILER_BRANCH"
 echo "      SROCK config name: $SROCK_CONFIG"
 echo "      cmake args:        ${_cmake_args[*]}"
 
+(
+cd "$SROCK_THEROCK_DIR" || exit
+# reconstruct .amd-llvm.smrev using the current SHA
+cd compiler/amd-llvm || exit
+smrev="../.amd-llvm.smrev"
+git config --get remote.origin.url > "$smrev"
+smsha=$(git rev-parse HEAD)
+echo "${smsha}${LLVM_SHA_EXTRA}" >> "$smrev"
+)
+
 cd "$SROCK_THEROCK_DIR" || exit
 _cmd="cmake --build build"
 echo 

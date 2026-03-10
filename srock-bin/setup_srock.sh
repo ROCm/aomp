@@ -202,16 +202,6 @@ if [ "$SROCK_COMPILER_BRANCH" != "develop" ] ; then
 
 echo "      --- end compiler submodule updates for $SROCK_COMPILER_BRANCH"
 
-(
-cd "$SROCK_THEROCK_DIR" || exit
-# reconstruct .amd-llvm.smrev using the current SHA
-cd compiler/amd-llvm || exit
-smrev="../.amd-llvm.smrev"
-git config --get remote.origin.url > "$smrev"
-smsha=$(git rev-parse HEAD)
-echo "${smsha}${LLVM_SHA_EXTRA}" >> "$smrev"
-)
-
 cd "$SROCK_THEROCK_DIR" || exit
 echo 
 echo "===== cmake CMD: $SROCK_CMAKE ${_cmake_args[*]}"
