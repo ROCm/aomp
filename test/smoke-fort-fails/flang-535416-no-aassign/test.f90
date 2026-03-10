@@ -48,6 +48,7 @@ MODULE rep
 
   IF(ANY(ABS(b-2.0_8)>1.0e-9_8)) THEN
     WRITE(*,*) "failed",b(1,1,1), b(2,1,1)
+    STOP 1
   ELSE
     WRITE(*,*) "success"
   END IF
