@@ -40,5 +40,6 @@ int main(int argc, char* argv[])
     }
 
     delete[] result;
+    return 0;
 }
 
