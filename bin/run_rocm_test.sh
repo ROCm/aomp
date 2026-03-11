@@ -339,7 +339,7 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-$AOMP/bin/flang1 --version
+$AOMP/bin/flang --version
 
 # Parent dir should be ROCm base dir.
 if [ $aomp -eq 1 ]; then

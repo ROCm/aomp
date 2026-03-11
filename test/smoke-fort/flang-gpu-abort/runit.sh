@@ -1,5 +1,5 @@
 #!/bin/bash
-
+ulimit -c 0
 {
     ./flang-gpu-abort
 } 2>&1
