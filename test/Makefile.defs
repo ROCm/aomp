@@ -387,7 +387,8 @@ else
 endif
 
 # ompTest: Set header include path + linker flag for corresponding OMPT tests
-OMPTEST     = -I$(AOMP)/include/omptest -lomptest
+CLANG_VERSION := $(lastword $(sort $(notdir $(patsubst %/,%,$(dir $(wildcard $(AOMP)/lib/clang/*/))))))
+OMPTEST = -I$(AOMP)/lib/clang/$(CLANG_VERSION)/include/omptest -lomptest
 
 # ompTest: Set and export CMake config path
 omptest_DIR = $(AOMP)/lib/cmake/openmp/omptest/
