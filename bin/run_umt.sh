@@ -31,7 +31,7 @@ setaompgpu
 
 export BLT_SRC_DIR=${BLT_SRC_DIR:-BLT}
 export UMT_SRC_DIR=${UMT_SRC_DIR:-UMT}
-export  CAMP_SRC_DIR=${CAMP_SRC_DIR:-CAMP}
+export CAMP_SRC_DIR=${CAMP_SRC_DIR:-CAMP}
 export CONDUIT_SRC_DIR=${CONDUIT_SRC_DIR:-CONDUIT}
 export UMPIRE_SRC_DIR=${UMPIRE_SRC_DIR:-UMPIRE}
 
@@ -143,7 +143,7 @@ if [ "$1" == "build_umt" ]; then
     # This applies specific tweaks to UMT required for Flang, we can likely
     # remove this in the near future once it's incorporated into UMT and
     # one or two smaller flang bugs are squashed
-    git apply $thisdir/patches/UMT-5-9-0-amdflang-mods.patch
+    git apply $thisdir/patches/UMT-5-9-0-amdflang-mods-with-fexceptions-disabled.patch
     save_status
     if [[ $mystat -eq 0 ]]; then
         echo "PATCH SUCCESS UMT"
