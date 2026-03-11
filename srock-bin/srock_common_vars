@@ -85,3 +85,34 @@ SROCK_DEV_BRANCH=${SROCK_DEV_BRANCH:-aomp-dev}
 SROCK_HIPFORT_BRANCH=${SROCK_HIPFORT_BRANCH:-release/rocm-rel-7.2}
 SROCK_ROCGDB_BRANCH=${SROCK_ROCGDB_BRANCH:-release/rocm-rel-7.2}
 SROCK_ROCDBGAPI_BRANCH=${SROCK_ROCDBGAPI_BRANCH:-release/rocm-rel-7.2}
+
+SROCK_CMAKE=`which cmake`
+_build_cmake=1
+_cmake_ver=`cmake --version 2>/dev/null | grep version | cut -d" " -f3`
+if [ "$_cmake_ver" != "" ] ; then
+   _cmake_major=${_cmake_ver%%.*}
+   _cmake_rel=`echo $_cmake_ver | cut -d"." -f2`
+   if [ $_cmake_major -ge 3 ] && [ $_cmake_rel -ge 25 ] ; then
+      # Default cmake is ok
+      # echo "      Default PATH $SROCK_CMAKE is ok"
+      _build_cmake=0
+   fi
+fi
+# Check the local build of cmake
+_cmake_local=$HOME/local/cmake/bin/cmake
+if [ $_build_cmake == 1 ] && [ -f $_cmake_local ] ; then
+   _cmake_ver=`$_cmake_local --version 2>/dev/null | grep version | cut -d" " -f3`
+   _cmake_major=${_cmake_ver%%.*}
+   _cmake_rel=`echo $_cmake_ver | cut -d"." -f2`
+   if [ $_cmake_major -ge 3 ] && [ $_cmake_rel -ge 25 ] ; then
+      _build_cmake=0
+      export PATH=$HOME/local/cmake/bin:$PATH
+      # echo "      $_cmake_local cmake is ok"
+      SROCK_CMAKE=$_cmake_local
+   fi
+fi
+if [ $_build_cmake == 1 ] ; then
+   export PATH=$HOME/local/cmake/bin:$PATH
+   SROCK_CMAKE=$_cmake_local
+fi
+export SROCK_CMAKE

@@ -17,39 +17,14 @@ thisdir=$(dirname "$realpath")
 . "$thisdir/srock_common_vars"
 # --- end standard header ----
 
-echo "= 1 = Checking if suitable cmake is available"
-SROCK_CMAKE=`which cmake`
-_build_cmake=1
-_cmake_ver=`cmake --version 2>/dev/null | grep version | cut -d" " -f3`
-if [ "$_cmake_ver" != "" ] ; then
-   _cmake_major=${_cmake_ver%%.*}
-   _cmake_rel=`echo $_cmake_ver | cut -d"." -f2`
-   if [ $_cmake_major -ge 3 ] && [ $_cmake_rel -ge 25 ] ; then
-      # Default cmake is ok
-      echo "      Default cmake is ok"
-      _build_cmake=0
-   fi
-fi
-# Check the local build of cmake
-_cmake_local=$HOME/local/cmake/bin/cmake
-if [ $_build_cmake == 1 ] && [ -f $_cmake_local ] ; then 
-   _cmake_ver=`$_cmake_local --version 2>/dev/null | grep version | cut -d" " -f3`
-   _cmake_major=${_cmake_ver%%.*}
-   _cmake_rel=`echo $_cmake_ver | cut -d"." -f2`
-   if [ $_cmake_major -ge 3 ] && [ $_cmake_rel -ge 25 ] ; then
-      _build_cmake=0
-      export PATH=$HOME/local/cmake/bin:$PATH
-      echo "      $_cmake_local cmake is ok"
-      SROCK_CMAKE=$_cmake_local
-   fi
-fi
+echo "= 1 = Checking if cmake needs to be built"
 if [ $_build_cmake == 1 ] ; then
+   echo "      building $_cmake_local"
    $thisdir/build_cmake.sh
-   export PATH=$HOME/local/cmake/bin:$PATH
-   SROCK_CMAKE=$_cmake_local
+else
+   echo "      using existing $_cmake_local"
 fi
 echo "      The cmake for srock is $SROCK_CMAKE"
-export SROCK_CMAKE
 
 # Skip these updates if this is a restart
 if [ "$_build_srock_mode" == "restart" ] ; then
