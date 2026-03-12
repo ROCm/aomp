@@ -361,7 +361,7 @@ IMPLICIT_GPU_FLANG_RT ?= 1
 ifeq ($(IMPLICIT_GPU_FLANG_RT),1)
   FLANG_GPU_LINK_FLAGS =
 else
-  FLANG_GPU_LINK_FLAGS = -fno-gpu-flang-rt -lflang_rt.hostdevice
+  FLANG_GPU_LINK_FLAGS = -fno-gpu-flang-rt
 endif
 
 ifeq ($(NOOPT),1)
@@ -387,7 +387,8 @@ else
 endif
 
 # ompTest: Set header include path + linker flag for corresponding OMPT tests
-OMPTEST     = -I$(AOMP)/include/omptest -lomptest
+CLANG_VERSION := $(lastword $(sort $(notdir $(patsubst %/,%,$(dir $(wildcard $(AOMP)/lib/clang/*/))))))
+OMPTEST = -I$(AOMP)/lib/clang/$(CLANG_VERSION)/include/omptest -lomptest
 
 # ompTest: Set and export CMake config path
 omptest_DIR = $(AOMP)/lib/cmake/openmp/omptest/
