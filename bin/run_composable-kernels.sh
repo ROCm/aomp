@@ -380,7 +380,7 @@ if [ "${SelectedSuite}" == 'smoke' ]; then
     mkdir -p "${CK_TESTS_LOG_LOCATION}" || exit 1
   fi
   pushd ${CK_BUILD} || exit 1
-  ${CKBuildTool} -j 16 smoke 2>&1 | tee "${CK_TESTS_LOG_LOCATION}/smoke_tests.log"
+  ${CKBuildTool} -j ${CKBuildParallelism} smoke 2>&1 | tee "${CK_TESTS_LOG_LOCATION}/smoke_tests.log"
   echo "Log at ${CK_TESTS_LOG_LOCATION}/smoke_tests.log"
   popd || exit 1
 fi
@@ -391,7 +391,7 @@ if [ "${SelectedSuite}" == 'regression' ]; then
     mkdir -p "${CK_TESTS_LOG_LOCATION}" || exit 1
   fi
   pushd ${CK_BUILD} || exit 1
-  ${CKBuildTool} -j 16 regression 2>&1 | tee "${CK_TESTS_LOG_LOCATION}/regression_tests.log"
+  ${CKBuildTool} -j ${CKBuildParallelism} regression 2>&1 | tee "${CK_TESTS_LOG_LOCATION}/regression_tests.log"
   echo "Log at ${CK_TESTS_LOG_LOCATION}/regression_tests.log"
   popd || exit 1
 fi
