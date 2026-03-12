@@ -13,7 +13,7 @@ CKBenchmarkRepoBranchName='main'
 
 # We grab the total system memory and assume a requirement of 10GB per process
 # when building CK. This is likely a bit conservative.
-CKBuildParallelism=$(free -g | grep Mem | awk '{print int($2/10)}')
+CKBuildParallelism=$(free -g | grep Mem | awk '{print int($2/8)}')
 
 # Check if the user overrode number of parallel build jobs
 # via env var
