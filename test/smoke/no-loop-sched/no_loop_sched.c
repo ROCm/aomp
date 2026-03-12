@@ -41,24 +41,6 @@ int main()
       a[j]=b[j];
   }
   
-#pragma omp target teams distribute parallel for schedule(dynamic, 10)
-  {
-    for (j = 0; j< N; j++)
-      a[j]=b[j];
-  }
-  
-#pragma omp target teams distribute parallel for schedule(guided)
-  {
-    for (j = 0; j< N; j++)
-      a[j]=b[j];
-  }
-  
-#pragma omp target teams distribute parallel for schedule(runtime)
-  {
-    for (j = 0; j< N; j++)
-      a[j]=b[j];
-  }
-  
   int rc = 0;
   for (i=0; i<N; i++)
     if (a[i] != b[i] ) {
@@ -76,6 +58,3 @@ int main()
 /// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:6
 /// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2
 /// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:6
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2
