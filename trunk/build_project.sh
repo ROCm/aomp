@@ -22,9 +22,19 @@ echo "LLVM PROJECTS TO BUILD:$TRUNK_PROJECTS_LIST"
 if [ "$TRUNK_BUILD_CUDA" == 0 ] ; then
    _targets_to_build="-DLLVM_TARGETS_TO_BUILD='X86;AMDGPU;SPIRV'"
    _plugins_to_build="-DLIBOMPTARGET_PLUGINS_TO_BUILD='amdgpu;host'"
+   _nv_cmake_args=()
+   _rt_targets=(-DLLVM_RUNTIME_TARGETS='default;amdgcn-amd-amdhsa')
 else
    _targets_to_build="-DLLVM_TARGETS_TO_BUILD='X86;AMDGPU;NVPTX;SPIRV'"
    _plugins_to_build="-DLIBOMPTARGET_PLUGINS_TO_BUILD='amdgpu;cuda;host'"
+   _nv_cmake_args=(
+-DRUNTIMES_nvptx64-nvidia-cuda_LLVM_ENABLE_PER_TARGET_RUNTIME_DIR=ON
+-DRUNTIMES_nvptx64-nvidia-cuda_LLVM_ENABLE_RUNTIMES='compiler-rt;libc;libcxx;libcxxabi;flang-rt;openmp'
+-DRUNTIMES_nvptx64-nvidia-cuda_FLANG_RT_LIBC_PROVIDER=llvm
+-DRUNTIMES_nvptx64-nvidia-cuda_FLANG_RT_LIBCXX_PROVIDER=llvm
+-DRUNTIMES_nvptx64-nvidia-cuda_CACHE_FILES="'$TRUNK_REPOS/${LLVMPROJECT}/compiler-rt/cmake/caches/GPU.cmake;$TRUNK_REPOS/${LLVMPROJECT}/libcxx/cmake/caches/NVPTX.cmake'")
+   _rt_targets=(
+	   -DLLVM_RUNTIME_TARGETS='default;amdgcn-amd-amdhsa;nvptx64-nvidia-cuda')
 fi
 
 if [ "$AOMP_USE_NINJA" == 0 ] ; then
@@ -58,17 +68,14 @@ MYCMAKEOPTS=(-DCMAKE_BUILD_TYPE="$BUILD_TYPE"
 -DLLVM_ENABLE_RUNTIMES='libcxx;libcxxabi;libunwind;openmp;offload;compiler-rt;flang-rt'
 -DLIBCXX_ENABLE_STATIC=ON
 -DLIBCXXABI_ENABLE_STATIC=ON
--DLLVM_RUNTIME_TARGETS='default;amdgcn-amd-amdhsa;nvptx64-nvidia-cuda'
+"${_rt_targets[@]}"
 -DRUNTIMES_amdgcn-amd-amdhsa_LLVM_ENABLE_PER_TARGET_RUNTIME_DIR=ON
 -DRUNTIMES_amdgcn-amd-amdhsa_LLVM_ENABLE_RUNTIMES='compiler-rt;libc;libcxx;libcxxabi;flang-rt;openmp'
 -DRUNTIMES_amdgcn-amd-amdhsa_FLANG_RT_LIBC_PROVIDER=llvm
 -DRUNTIMES_amdgcn-amd-amdhsa_FLANG_RT_LIBCXX_PROVIDER=llvm
 -DRUNTIMES_amdgcn-amd-amdhsa_CACHE_FILES="'$TRUNK_REPOS/${LLVMPROJECT}/compiler-rt/cmake/caches/GPU.cmake;$TRUNK_REPOS/${LLVMPROJECT}/libcxx/cmake/caches/AMDGPU.cmake'"
--DRUNTIMES_nvptx64-nvidia-cuda_LLVM_ENABLE_PER_TARGET_RUNTIME_DIR=ON
--DRUNTIMES_nvptx64-nvidia-cuda_LLVM_ENABLE_RUNTIMES='compiler-rt;libc;libcxx;libcxxabi;flang-rt;openmp'
--DRUNTIMES_nvptx64-nvidia-cuda_FLANG_RT_LIBC_PROVIDER=llvm
--DRUNTIMES_nvptx64-nvidia-cuda_FLANG_RT_LIBCXX_PROVIDER=llvm
--DRUNTIMES_nvptx64-nvidia-cuda_CACHE_FILES="'$TRUNK_REPOS/${LLVMPROJECT}/compiler-rt/cmake/caches/GPU.cmake;$TRUNK_REPOS/${LLVMPROJECT}/libcxx/cmake/caches/NVPTX.cmake'")
+"${_nv_cmake_args[@]}")
+
 
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then 
   help_build_trunk
