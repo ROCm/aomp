@@ -1,0 +1,126 @@
+! Copyright © Advanced Micro Devices, Inc., or its affiliates.
+!
+! SPDX-License-Identifier:  MIT
+
+program prog_a
+    type :: dtype_a
+    real(4) :: var_a
+    real(4) :: var_b
+    real(4) :: var_c
+    end type dtype_a
+
+    type :: dtype_b
+      integer(4) :: var_d
+      integer(4) :: var_e
+      integer(4) :: var_f
+    end type dtype_b
+
+    type :: dtype_c
+     real(4) :: var_g(10)
+     real(4) :: var_h
+     real(4) :: var_i(10)
+     type(dtype_a) :: var_j
+     type(dtype_b) :: var_k
+    end type dtype_c
+
+    type :: dtype_d
+    real(4) :: var_l
+    integer(4) :: var_m(10)
+    real(4) :: var_n
+    integer, allocatable :: var_o(:)
+    integer(4) :: var_p
+    type(dtype_c) :: var_q
+    end type dtype_d
+
+    type(dtype_d) :: var_r
+    type(dtype_d) :: var_s
+    integer :: var_t
+
+    var_s%var_q%var_j%var_a = 10
+    var_s%var_q%var_j%var_b = 12
+    var_s%var_q%var_j%var_c = 54
+
+    var_s%var_q%var_k%var_d = 20
+    var_s%var_q%var_k%var_e = 40
+    var_s%var_q%var_k%var_f = 60
+
+    var_s%var_q%var_h = 200
+
+      do var_t = 1, 10
+        var_s%var_m(var_t) = var_t
+      end do
+
+!$omp target map(from: var_r%var_q%var_j%var_b, var_r%var_q%var_j%var_a, var_r%var_q%var_j%var_c, var_r%var_m, var_r%var_q%var_k%var_d, var_r%var_q%var_h, var_r%var_q%var_k%var_f, var_r%var_q%var_k%var_e) &
+!$omp map(to: var_s%var_q%var_j%var_b, var_s%var_q%var_j%var_a, var_s%var_q%var_j%var_c, var_s%var_m, var_s%var_q%var_k%var_d, var_s%var_q%var_h, var_s%var_q%var_k%var_f, var_s%var_q%var_k%var_e)
+
+    var_r%var_q%var_j%var_a = var_s%var_q%var_j%var_a
+    var_r%var_q%var_j%var_b = var_s%var_q%var_j%var_b 
+    var_r%var_q%var_j%var_c = var_s%var_q%var_j%var_c
+
+    var_r%var_q%var_k%var_d = var_s%var_q%var_k%var_d
+    var_r%var_q%var_k%var_e = var_s%var_q%var_k%var_e
+    var_r%var_q%var_k%var_f = var_s%var_q%var_k%var_f
+
+    var_r%var_q%var_h = var_s%var_q%var_h
+
+    do var_t = 1, 10
+      var_r%var_m(var_t) = var_s%var_m(var_t)
+    end do
+!$omp end target
+
+  print *, var_r%var_q%var_j%var_a
+  print *, var_r%var_q%var_j%var_b
+  print *, var_r%var_q%var_j%var_c
+
+  print *, var_r%var_q%var_k%var_d
+  print *, var_r%var_q%var_k%var_e
+  print *, var_r%var_q%var_k%var_f
+
+  print *, var_r%var_q%var_h
+
+  print *, var_r%var_m
+
+  if (var_r%var_q%var_j%var_a /= 10) then
+    print*, "======= FORTRAN Test Failed! ======="
+    stop 1
+  end if
+
+  if (var_r%var_q%var_j%var_b /= 12) then
+    print*, "======= FORTRAN Test Failed! ======="
+    stop 1
+  end if
+
+  if (var_r%var_q%var_j%var_c /= 54) then
+    print*, "======= FORTRAN Test Failed! ======="
+    stop 1
+  end if
+
+  if (var_r%var_q%var_k%var_d /= 20) then
+    print*, "======= FORTRAN Test Failed! ======="
+    stop 1
+  end if
+
+  if (var_r%var_q%var_k%var_e /= 40) then
+    print*, "======= FORTRAN Test Failed! ======="
+    stop 1
+  end if
+
+  if (var_r%var_q%var_k%var_f /= 60) then
+    print*, "======= FORTRAN Test Failed! ======="
+    stop 1
+  end if
+
+  if (var_r%var_q%var_h /= 200) then
+    print*, "======= FORTRAN Test Failed! ======="
+    stop 1
+  end if
+
+  do var_t = 1, 10
+    if (var_r%var_m(var_t) /= var_t) then
+        print*, "======= FORTRAN Test Failed! ======="
+        stop 1
+    end if
+  end do
+
+  print*, "======= FORTRAN test passed! ======="
+end program prog_a
