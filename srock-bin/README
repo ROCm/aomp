@@ -62,8 +62,10 @@ Link to install dir             $HOME/rocm/aomp                         $HOME/ro
 Install env var                 $AOMP_INSTALL_DIR                       $SROCK_INSTALL_DIR
 
 Q: Can one rerun setup_srock.sh ?
-A: NO. If you want to start from scratch, completely remove SROCK_THEROCK_DIR
-   which by default is /work/$USER/git/srock-repos/TheRock
+A: YES, with the 'restart' option.  If you want to start from scratch, including
+   re-fetching all sources, completely remove SROCK_THEROCK_DIR which by default
+   is /work/$USER/git/srock-repos/TheRock.  To reconfigure with existing
+   downloaded sources instead, use "setup_srock.sh restart".
 
 Q: Can one rerun build_srock.sh ?
 A: YES.  This is useful if you have made development changes to any repository.
