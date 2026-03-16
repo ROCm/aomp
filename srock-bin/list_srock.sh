@@ -9,7 +9,9 @@
 # --- Start standard header to set SROCK environment variables ----
 realpath=$(realpath "$0")
 thisdir=$(dirname "$realpath")
-. "$thisdir/srock_common_vars"
+if [ -r "$thisdir/srock_common_vars" ]; then
+    . "$thisdir/srock_common_vars"
+fi
 # --- end standard header ----
 
 do_cur_dir=0
@@ -44,12 +46,8 @@ done
 
 if [[ $do_cur_dir -eq 0 ]]; then
     cd "$SROCK_THEROCK_DIR" || exit
-else
-    if [[ ! -d .git ]]; then
-       echo "Error: .git not found"
-       exit 1
-    fi
 fi
+git rev-parse --show-toplevel || exit
 
 declare -a tr_dtop
 declare -a tr_dsub
@@ -57,18 +55,18 @@ dirname=${PWD##*/}
 # shellcheck disable=SC2116 # echo intended
 # shellcheck disable=SC2046 # word splitting in subcommands is acceptable
 # shellcheck disable=SC2086 # word splitting in substrings is acceptable
-tr_dtop=( "$(echo $(git branch --show-current)\|$dirname\|$dirname\|parent\|$(git log -1 --format="%H|%as|%cn|%an"))" )
+tr_dtop=( "$(echo $(git branch --show-current)\|$dirname\|$dirname\|\|\|$(git log -1 --format="%H|%as|%cn|%an"))" )
 # shellcheck disable=SC2016 # single quotes intended
 # shellcheck disable=SC2207 # intended split on newline
-IFS=$'\n' tr_dsub=( $(git submodule -q foreach 'echo $(git branch --show-current)\|$sm_path\|$name\|$sha1\|$(git log -1 --format="%H|%as|%cn|%an")') )
+IFS=$'\n' tr_dsub=( $(git submodule -q foreach 'echo $(git branch --show-current)\|$sm_path\|$name\|$sha1\|$(git log -1 --format="%as" $sha1)\|$(git log -1 --format="%H|%as|%cn|%an")') )
 # shellcheck disable=SC2207 # intended split on newline
 declare -a tr_data
 tr_data=( "${tr_dtop[@]}" "${tr_dsub[@]}" )
 
 declare -a tr_fields
 declare -a tr_unders
-tr_fields=("branch" "path" "repo name" "sub SHA" "head SHA" "updated" "commitor" "for author")
-tr_unders=("------" "----" "---------" "-------" "--------" "-------" "--------" "----------")
+tr_fields=("branch" "path" "repo name" "sub SHA" "sub date" "head SHA" "updated" "commitor" "for author")
+tr_unders=("------" "----" "---------" "-------" "--------" "--------" "-------" "--------" "----------")
 if [[ $do_sub_status -ne 0 ]]; then
     tr_fields+=("sub SHA tag")
     tr_unders+=("-----------")
@@ -91,7 +89,7 @@ fi
 
 # formatted output
 if [[ $show_fmt -ne 0 ]]; then
-    fmt="%-20.20s %-44.44s %-21.21s %-10.10s %-10.10s %-10.10s %-12.12s %-19.19s %s\n"
+    fmt="%-20.20s %-44.44s %-21.21s %-10.10s %-10.10s %-10.10s %-10.10s %-12.12s %-19.19s %s\n"
     # shellcheck disable=SC2059 # variable format intended
     printf "$fmt" "${tr_fields[@]}"
     # shellcheck disable=SC2059 # variable format intended
@@ -99,9 +97,9 @@ if [[ $show_fmt -ne 0 ]]; then
     for entry in "${tr_data[@]}"; do
         IFS='|' read -r -a en_split <<< "$entry"
         sub_sha=${en_split[3]}
-        head_sha=${en_split[4]}
+        head_sha=${en_split[5]}
         if [ "$sub_sha" == "$head_sha" ]; then
-            en_split[4]="same"
+            en_split[5]="same"
         fi
         tag=""
         if [[ -v tr_htags[$sub_sha] ]]; then
