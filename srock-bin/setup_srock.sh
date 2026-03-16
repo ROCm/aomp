@@ -14,9 +14,14 @@ thisdir=$(dirname "$realpath")
 # --- end standard header ----
 #
 
-if [ -d "$SROCK_THEROCK_DIR" ] ; then
+# Accept a single command as an argument.  Only "restart" is accepted so far.
+ARG=$1
+
+if [ -d "$SROCK_THEROCK_DIR" ] && [ "$ARG" != "restart" ]; then
    echo " ERROR:  $0 requires that $SROCK_THEROCK_DIR NOT exist"
    echo "         Delete or move that directory to run $0"
+   echo "         Alternatively, try '$0 restart' to reconfigure with"
+   echo "         existing sources."
    exit 1
 fi
 
@@ -42,35 +47,51 @@ echo "===== Sourcing prebuild_srock.sh"
 . "$thisdir/prebuild_srock.sh"
 echo "===== DONE Sourcing prebuild_srock.sh"
 
-cd "$SROCK_REPOS" || exit
-echo
-echo "===== git clone https://github.com/ROCm/TheRock.git -b $SROCK_THEROCK_BRANCH TheRock"
-git clone https://github.com/ROCm/TheRock.git -b "$SROCK_THEROCK_BRANCH" TheRock
-if [ -f TheRock/version.json ] ; then 
-   _quoted=$(cat TheRock/version.json | grep rocm-version | cut -d: -f2)
-   _rocm_version=${_quoted//\"/}
-   echo " ROCm components version : $_rocm_version"
-   echo " SROCK_VERSION_STRING    :  $SROCK_VERSION_STRING (Compiler dev version)"
+if [ "$ARG" != "restart" ]; then
+   cd "$SROCK_REPOS" || exit
+   echo
+   echo "===== git clone https://github.com/ROCm/TheRock.git -b $SROCK_THEROCK_BRANCH TheRock"
+   git clone https://github.com/ROCm/TheRock.git -b "$SROCK_THEROCK_BRANCH" TheRock
+   if [ -f TheRock/version.json ] ; then
+      _quoted=$(cat TheRock/version.json | grep rocm-version | cut -d: -f2)
+      _rocm_version=${_quoted//\"/}
+      echo " ROCm components version : $_rocm_version"
+      echo " SROCK_VERSION_STRING    :  $SROCK_VERSION_STRING (Compiler dev version)"
+   fi
 fi
 
 cd "$SROCK_THEROCK_DIR" || exit
 
-if [ ! -d "$SROCK_THEROCK_DIR/.venv/bin" ] ; then
+if [ -d "$SROCK_THEROCK_DIR/.venv/bin" ] ; then
+   echo
+   echo "===== Activating virtual environment ====="
+   cd "$SROCK_THEROCK_DIR" || exit
+   echo "source .venv/bin/activate"
+   source ".venv/bin/activate"
+else
    echo
    echo "===== Building virtual environment in .venv and updating PATH ====="
    cd "$SROCK_THEROCK_DIR" || exit
    echo "python3 -m venv .venv && source .venv/bin/activate"
    # shellcheck disable=1091
    python3 -m venv .venv && source ".venv/bin/activate"
-   echo "pip install -r requirements.txt"
-   pip install -r requirements.txt
 fi
+echo "pip install -r requirements.txt"
+pip install -r requirements.txt
 export PATH=$SROCK_THEROCK_DIR/.venv/bin:$PATH
 
-echo
-echo "===== Running python ./build_tools/fetch_sources.py ====="
-python ./build_tools/fetch_sources.py
-echo "=====  Done running python ./build_tools/fetch_sources.py"
+if [ "$ARG" != "restart" ]; then
+   echo
+   echo "===== Running python ./build_tools/fetch_sources.py ====="
+   python ./build_tools/fetch_sources.py
+   echo "=====  Done running python ./build_tools/fetch_sources.py"
+fi
+
+if [ "$ARG" = "restart" ]; then
+   echo "==== Removing build dir for restart ====="
+   echo "rm -rf $SROCK_THEROCK_DIR/build"
+   rm -rf "$SROCK_THEROCK_DIR/build"
+fi
 
 echo "cd $SROCK_THEROCK_DIR" 
 cd "$SROCK_THEROCK_DIR" || exit
@@ -81,7 +102,7 @@ echo "===== Running build_tools/setup_ccache.py"
 eval "$(python3 ./build_tools/setup_ccache.py)"
 
 # Make updates to compiler submodules unless this is native TheRock build 
-if [ "$SROCK_COMPILER_BRANCH" != "develop" ] ; then 
+if [ "$SROCK_COMPILER_BRANCH" != "develop" ] && [ "$ARG" != "restart" ]; then
    # FIXME: Before wiping out current amd-staging changes, 
    #        to save current changes in the patches directory. 
    #        Otherwise, this is not a real development environment"
@@ -147,13 +168,13 @@ if [ "$SROCK_COMPILER_BRANCH" != "develop" ] ; then
    fi
 
 echo "      --- end compiler submodule updates for $SROCK_COMPILER_BRANCH"
+fi
 
 cd "$SROCK_THEROCK_DIR" || exit
 echo 
 echo "===== cmake CMD: $SROCK_CMAKE ${_cmake_args[*]}"
 $SROCK_CMAKE "${_cmake_args[@]}"
 _rc=$? && [ "$_rc" != 0 ] && cd "$_curdir" && exit "$_rc"
-fi
 
 _setup_secs=$(date +%s)
 _secs_to_setup=$(( _setup_secs - _start_secs ))
