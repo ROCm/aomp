@@ -16,16 +16,6 @@ _curdir=$PWD
 _start_date=$(date)
 _start_secs=$(date +%s)
 
-# TWO QUICK CHECKS, MUST HAVE SROCK_REPOS and SROCK_THEROCK_DIR MUST EXIST
-mkdir -p "$SROCK_REPOS"
-if [ ! -d "$SROCK_REPOS" ] ; then
-   echo
-   echo "ERROR: $0 could not create directory $SROCK_REPOS"
-   echo "       Consider setting SROCK_REPOS to use a large fast fileystem."
-   echo "       or $HOME/git/srock-repos"
-   echo
-   exit 1
-fi
 if [ ! -d "$SROCK_THEROCK_DIR" ] ; then
    echo " ERROR:  $0 requires that $SROCK_THEROCK_DIR exist and has "
    echo "         been setup with $thisdir/setup_srock.sh. Please run"
@@ -34,54 +24,6 @@ if [ ! -d "$SROCK_THEROCK_DIR" ] ; then
    echo
    exit 1
 fi
-
-declare -a _cmake_enable
-_cmake_enable=()
-
-# This TheRock config is full build minus failing components
-if [ "$SROCK_CONFIG" == "all" ] ; then
-   _cmake_enable=("${_cmake_enable[@]}"
-      -DTHEROCK_ENABLE_ALL=ON
-      -DTHEROCK_ENABLE_MIOPEN=OFF
-      -DTHEROCK_ENABLE_COMPOSABLE_KERNEL=OFF
-      -DTHEROCK_ENABLE_FFT=OFF
-   )
-fi
-
-# This is full build which could include failing components
-if [ "$SROCK_CONFIG" == "all-debug" ] ; then
-   _cmake_enable=("${_cmake_enable[@]}"
-           -DTHEROCK_ENABLE_ALL=ON )
-fi
-
-# Default is minimal for compiler developers
-if [ "$SROCK_CONFIG" == "minimal" ] ; then
-   _cmake_enable=("${_cmake_enable[@]}"
-      -DTHEROCK_ENABLE_ALL=OFF
-      -DTHEROCK_ENABLE_HIP=ON
-      -DTHEROCK_ENABLE_HIP_RUNTIME=ON
-      -DTHEROCK_ENABLE_HIPIFY=ON
-      -DTHEROCK_BUNDLE_SYSDEPS=ON
-      -DTHEROCK_ENABLE_COMPILER=ON
-   )
-fi
-
-_gfxsemicolons=$(echo "$GFXLIST" | tr ' ' ';')
-_gfamsemicolons=$(echo "$GFXFAM" | tr ' ' ';')
-
-declare -a _cmake_args
-_cmake_args=(-B build -GNinja
-   -DTHEROCK_AMDGPU_TARGETS=\'"$_gfxsemicolons"\'
-   -DTHEROCK_AMDGPU_FAMILIES=\'"$_gfamsemicolons"\'
-   -DTHEROCK_AMDGPU_DIST_BUNDLE_NAME=srock
-   -DTHEROCK_BACKGROUND_BUILD_JOBS=1
-   -DTHEROCK_ENABLE_LLVM_TESTS=1
-   "${_cmake_enable[@]}"
-   "$SROCK_THEROCK_DIR"
-)
-
-#  _cmake_enable and _cmake_args are not used in post_setup_build_srock.sh
-#  above is repeated from setup_srock.sh to make the start and end banner useful.
 
 # Print the start banner similar to DONE banner, useful if fails
 echo
@@ -113,33 +55,23 @@ $_cmd
 _rc=$? && [ "$_rc" != 0 ] && cd "$_curdir" && exit "$_rc"
 date
 
-# Usually nothing to do for therock-dist
-cd build || exit
-_cmd="ninja therock-dist"
-echo 
-echo "===== dist CMD: $_cmd"
+echo
+echo "===== Install into $SROCK_INSTALL_DIR"
+cd "$SROCK_THEROCK_DIR/build" || exit
+echo "mkdir -p $SROCK_INSTALL_DIR"
+mkdir -p "$SROCK_INSTALL_DIR"
+_cmd="ninja install"
 $_cmd
 _rc=$? && [ "$_rc" != 0 ] && cd "$_curdir" && exit "$_rc"
 date
 
-echo
-echo "===== copying ROCm build from $SROCK_THEROCK_DIR/build/dest/rocm to $SROCK_INSTALL_DIR" 
-# FIXME: instead of rsync --delete consider using artifact descriptors to copy files to installation
-cd "$SROCK_THEROCK_DIR/build" || exit
-echo "mkdir -p $SROCK_INSTALL_DIR"
-mkdir -p "$SROCK_INSTALL_DIR"
-echo "rsync -a --delete dist/rocm/ $SROCK_INSTALL_DIR/"
-rsync -a --delete dist/rocm/ "$SROCK_INSTALL_DIR"/
-# FileCheck binary not found in dist/rocm, so get it from amd-llvm build
-echo cp -p  ./compiler/amd-llvm/build/bin/FileCheck "$SROCK_INSTALL_DIR/lib/llvm/bin/FileCheck"
-cp -p  ./compiler/amd-llvm/build/bin/FileCheck "$SROCK_INSTALL_DIR/lib/llvm/bin/FileCheck"
-
+# TheRock does not yet build hipfort.
+# FIXME:  remove this stanza and the build_hipfort.sh script when it does
 if [ ! -d "${SROCK_REPOS}/hipfort/build" ] ; then 
    echo
    echo "===== Sourcing build_hipfort.sh to build and install hipfort"
    . "$thisdir/build_hipfort.sh"
 fi
-# FIXME: Add builds for rocdbgapi and rocgdb here 
 
 echo
 echo "===== Creating compiler cfg files "
@@ -180,10 +112,10 @@ echo "      TheRock branch:    $SROCK_THEROCK_BRANCH"
 echo "      Compiler branch:   $SROCK_COMPILER_BRANCH"
 echo "      SROCK config name: $SROCK_CONFIG"
 echo "      cmake command:     $SROCK_CMAKE"
-echo "      cmake args:        ${_cmake_args[*]}"
 echo "      Build time:        $_secs_to_build (seconds)"
 echo "      Files:             $_filecount"
 echo "      Size:              $_size"
+echo "      cmake args:        ${_cmake_args[*]}"
 echo
 echo "      For aomp testing, set AOMP=$SROCK_LINK"
 echo "         or AOMP=$SROCK_INSTALL_DIR"
