@@ -12,27 +12,8 @@ thisdir=$(dirname "$realpath")
 # shellcheck disable=1091
 . "$thisdir/srock_common_vars"
 # --- end standard header ----
-function test_apply_patch() {
-   if ! patch -p1 -t -N --merge --dry-run < "$_patch_file"  >/dev/null; then
-      echo "ERROR:  patch --dry-run failed.  Could not apply $_patch_file "
-      cd "$_curdir" || exit 1
-      exit 1
-   else
-      echo "patch -p1 --no-backup-if-mismatch --merge < $_patch_file"
-      patch -p1 --no-backup-if-mismatch --merge < "$_patch_file"
-   fi
-}
+#
 
-# TWO QUICK CHECKS, MUST HAVE SROCK_REPOS and SROCK_THEROCK_DIR MUST NOT EXIST
-mkdir -p "$SROCK_REPOS"
-if [ ! -d "$SROCK_REPOS" ] ; then
-   echo
-   echo "ERROR: $0 could not create directory $SROCK_REPOS"
-   echo "       Consider setting SROCK_REPOS to use a large fast fileystem."
-   echo "       or $HOME/git/srock-repos"
-   echo
-   exit 1
-fi
 if [ -d "$SROCK_THEROCK_DIR" ] ; then
    echo " ERROR:  $0 requires that $SROCK_THEROCK_DIR NOT exist"
    echo "         Delete or move that directory to run $0"
@@ -42,51 +23,6 @@ fi
 _curdir=$PWD
 _start_date=$(date)
 _start_secs=$(date +%s)
-
-declare -a _cmake_enable
-_cmake_enable=()
-
-# This TheRock config is full build minus failing components
-if [ "$SROCK_CONFIG" == "all" ] ; then
-   _cmake_enable=("${_cmake_enable[@]}"
-      -DTHEROCK_ENABLE_ALL=ON
-      -DTHEROCK_ENABLE_MIOPEN=OFF
-      -DTHEROCK_ENABLE_COMPOSABLE_KERNEL=OFF
-      -DTHEROCK_ENABLE_FFT=OFF
-   )
-fi
-
-# This is full build which could include failing components
-if [ "$SROCK_CONFIG" == "all-debug" ] ; then
-   _cmake_enable=("${_cmake_enable[@]}"
-	   -DTHEROCK_ENABLE_ALL=ON )
-fi
-
-# Default is minimal for compiler developers
-if [ "$SROCK_CONFIG" == "minimal" ] ; then
-   _cmake_enable=("${_cmake_enable[@]}"
-      -DTHEROCK_ENABLE_ALL=OFF
-      -DTHEROCK_ENABLE_HIP=ON
-      -DTHEROCK_ENABLE_HIP_RUNTIME=ON
-      -DTHEROCK_ENABLE_HIPIFY=ON
-      -DTHEROCK_BUNDLE_SYSDEPS=ON
-      -DTHEROCK_ENABLE_COMPILER=ON
-   )
-fi
-
-_gfxsemicolons=$(echo "$GFXLIST" | tr ' ' ';')
-_gfamsemicolons=$(echo "$GFXFAM" | tr ' ' ';')
-
-declare -a _cmake_args
-_cmake_args=(-B build -GNinja
-   -DTHEROCK_AMDGPU_TARGETS=\'"$_gfxsemicolons"\'
-   -DTHEROCK_AMDGPU_FAMILIES=\'"$_gfamsemicolons"\'
-   -DTHEROCK_AMDGPU_DIST_BUNDLE_NAME=srock
-   -DTHEROCK_BACKGROUND_BUILD_JOBS=1
-   -DTHEROCK_ENABLE_LLVM_TESTS=1
-   "${_cmake_enable[@]}"
-   "$SROCK_THEROCK_DIR"
-)
 
 # Print the start banner similar to DONE banner, useful if fails
 echo
@@ -110,6 +46,12 @@ cd "$SROCK_REPOS" || exit
 echo
 echo "===== git clone https://github.com/ROCm/TheRock.git -b $SROCK_THEROCK_BRANCH TheRock"
 git clone https://github.com/ROCm/TheRock.git -b "$SROCK_THEROCK_BRANCH" TheRock
+if [ -f TheRock/version.json ] ; then 
+   _quoted=$(cat TheRock/version.json | grep rocm-version | cut -d: -f2)
+   _rocm_version=${_quoted//\"/}
+   echo " ROCm components version : $_rocm_version"
+   echo " SROCK_VERSION_STRING    :  $SROCK_VERSION_STRING (Compiler dev version)"
+fi
 
 cd "$SROCK_THEROCK_DIR" || exit
 
@@ -214,16 +156,18 @@ _secs_to_setup=$(( _setup_secs - _start_secs ))
 
 echo
 echo "===== DONE $0 on $_start_date"
-echo "      THEROCK targets:   $_gfxsemicolons"
-echo "      THEROCK families:  $_gfamsemicolons"
-echo "      ROCm install dir:  $SROCK_INSTALL_DIR"
-echo "      TheRock Dir:       $SROCK_THEROCK_DIR"
-echo "      TheRock branch:    $SROCK_THEROCK_BRANCH"
-echo "      Compiler branch:   $SROCK_COMPILER_BRANCH"
-echo "      SROCK config name: $SROCK_CONFIG"
-echo "      Setup time:        $_secs_to_setup (seconds)"
-echo "      cmake args:        ${_cmake_args[*]}"
+echo "   THEROCK targets:      $_gfxsemicolons"
+echo "   ROCm comp version:    $_rocm_version"
+echo "   SROCK_VERSION_STRING: $SROCK_VERSION_STRING (Compiler dev version)"
+echo "   THEROCK families:     $_gfamsemicolons"
+echo "   ROCm install dir:     $SROCK_INSTALL_DIR"
+echo "   TheRock Dir:          $SROCK_THEROCK_DIR"
+echo "   TheRock branch:       $SROCK_THEROCK_BRANCH"
+echo "   Compiler branch:      $SROCK_COMPILER_BRANCH"
+echo "   SROCK config name:    $SROCK_CONFIG"
+echo "   Setup time:           $_secs_to_setup (seconds)"
+echo "   cmake args:           ${_cmake_args[*]}"
 echo 
-echo " Next step, run: $thisdir/post_setup_build_srock.sh" 
+echo " Next step, run this command: $thisdir/build_srock.sh" 
 echo 
 
