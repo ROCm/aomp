@@ -11,9 +11,13 @@ CKRepoURL='https://github.com/ROCm/rocm-libraries.git'
 CKRepoBranchName='develop'
 CKBenchmarkRepoBranchName='main'
 
-# We grab the total system memory and assume a requirement of 10GB per process
+# We grab the total system memory and assume a requirement of 8GB per process
 # when building CK. This is likely a bit conservative.
-CKBuildParallelism=$(free -g | grep Mem | awk '{print int($2/8)}')
+# However, this should not exceed the number of reported CPU cores.
+MaxParallelismCpu=$(nproc)
+MaxParallelismMem=$(free -g | grep Mem | awk '{print int($2/8)}')
+CKBuildParallelism=$((MaxParallelismMem > MaxParallelismCpu ? \
+                      MaxParallelismCpu : MaxParallelismMem))
 
 # Check if the user overrode number of parallel build jobs
 # via env var
