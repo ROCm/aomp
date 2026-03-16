@@ -10,6 +10,7 @@
 realpath=$(realpath "$0")
 thisdir=$(dirname "$realpath")
 if [ -r "$thisdir/srock_common_vars" ]; then
+    # shellcheck disable=SC1091 # optional
     . "$thisdir/srock_common_vars"
 fi
 # --- end standard header ----
@@ -52,13 +53,17 @@ git rev-parse --show-toplevel || exit
 declare -a tr_dtop
 declare -a tr_dsub
 dirname=${PWD##*/}
+# show branch name, HEAD if detached
+#     git rev-parse --abbrev-ref HEAD
+# show branch name, empty if detached
+#     git branch --show-current
 # shellcheck disable=SC2116 # echo intended
 # shellcheck disable=SC2046 # word splitting in subcommands is acceptable
 # shellcheck disable=SC2086 # word splitting in substrings is acceptable
-tr_dtop=( "$(echo $(git branch --show-current)\|$dirname\|$dirname\|\|\|$(git log -1 --format="%H|%as|%cn|%an"))" )
+tr_dtop=( "$(echo $(git rev-parse --abbrev-ref HEAD)\|$dirname\|$dirname\|\|\|$(git log -1 --format="%H|%as|%cn|%an"))" )
 # shellcheck disable=SC2016 # single quotes intended
 # shellcheck disable=SC2207 # intended split on newline
-IFS=$'\n' tr_dsub=( $(git submodule -q foreach 'echo $(git branch --show-current)\|$sm_path\|$name\|$sha1\|$(git log -1 --format="%as" $sha1)\|$(git log -1 --format="%H|%as|%cn|%an")') )
+IFS=$'\n' tr_dsub=( $(git submodule -q foreach 'echo $(git rev-parse --abbrev-ref HEAD)\|$sm_path\|$name\|$sha1\|$(git log -1 --format="%as" $sha1)\|$(git log -1 --format="%H|%as|%cn|%an")') )
 # shellcheck disable=SC2207 # intended split on newline
 declare -a tr_data
 tr_data=( "${tr_dtop[@]}" "${tr_dsub[@]}" )
