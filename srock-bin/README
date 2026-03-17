@@ -71,7 +71,8 @@ A: YES.  This is useful if you have made development changes to any repository.
 
 Q: Is there a more incremental and faster way to rebuild the compiler?
 A: YES.  One of the reasons build_srock.sh can be slow is that compiler changes
-   force a rebuild of rocgdb. To aovid this use ninja install, see step 8 and 9 below.
+   force a rebuild of rocgdb. To avoid this use ninja therock-dist from the
+   component build directory, see step 8 and 9 below.
 
 Q: What is the compiler development flow with srock?
 A:
@@ -82,11 +83,11 @@ A:
 5    cd $SROCK_REPOS/TheRock/compiler/amd-llvm
 6    < make desired changes >
 7    < Try incremental compile and install>
-8    cd  $SROCK_REPOS/TheRock/build/compiler/amd-llvm/build
-9    ninja install
+8    cd $SROCK_REPOS/TheRock/build/compiler/amd-llvm/build
+9    ninja therock-dist
 10   < if build fails, go to step 4>
 11   < test your srock compiler. e.g.>
-12      export AOMP=$HOME/rocm/srock
+12      export AOMP=$SROCK_REPOS/TheRock/build/dist/rocm
 13      cd $SROCK_REPOS/aomp/test/smoke
 14      ./check_smoke.sh
 15   < if fail, go to step 4>
@@ -97,6 +98,11 @@ A:
 20      cd $SROCK_REPOS/TheRock/compiler/amd-llvm
 21      git diff >$HOME/my.patch
 22      < Apply my.patch to either trunk or downstream amd-staging branch >
+
+Pay special attention to step 12: after an incremental rebuild, you should
+set the AOMP environment variable to the build/dist/rocm directory in
+TheRock's build tree, NOT to $HOME/rocm/srock as you may do after a full
+"build_srock.sh" build.
 
 Q: Why not just change the submodule file to point compiler repos to amd-staging branch?
 A: TheRock has frequent changes including submodule updates. The setup_srock.sh
