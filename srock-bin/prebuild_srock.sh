@@ -7,8 +7,6 @@
 #  prebuild_srock.sh: Source this file from build_srock.sh
 #     update the srock repo
 #     clone or update hipfort repo
-#     clone or update rocdbgapi repo 
-#     clone or update rocgdb repo 
 #     builds cmake if necessary in ~/local/cmake using
 #
 # --- Start standard header to set SROCK environment variables ----
@@ -60,35 +58,4 @@ echo "      git checkout $SROCK_HIPFORT_BRANCH"
 git checkout $SROCK_HIPFORT_BRANCH
 echo "      git pull"
 git pull
-
-cd $SROCK_REPOS
-echo "= 4 = Cloning or updating rocgdb repo"
-if [ -d $SROCK_REPOS/rocgdb ] ; then
-   echo "      Skipping rocgdb clone, $SROCK_REPOS/rocgdb already exists"
-else
-   echo "      git clone -b $SROCK_ROCGDB_BRANCH https://github.com/ROCm/rocgdb"
-   git clone -b $SROCK_ROCGDB_BRANCH https://github.com/ROCm/rocgdb 2>/dev/null >/dev/null
-fi
-echo "      cd $SROCK_REPOS/rocgdb"
-cd $SROCK_REPOS/rocgdb
-echo "      git checkout $SROCK_ROCGDB_BRANCH"
-git checkout $SROCK_ROCGDB_BRANCH
-echo "      git pull"
-git pull
-
-cd $SROCK_REPOS
-echo "= 5 = Cloning or updating rocdbgapi repo"
-if [ -d $SROCK_REPOS/rocdbgapi ] ; then
-   echo "      Skipping rocdbgapi clone, $SROCK_REPOS/rocdbgapi already exists"
-else
-   echo "      git clone -b $SROCK_ROCDBGAPI_BRANCH https://github.com/ROCm/rocdbgapi"
-   git clone -b $SROCK_ROCDBGAPI_BRANCH https://github.com/ROCm/rocdbgapi 2>/dev/null >/dev/null
-fi
-echo "      cd $SROCK_REPOS/rocdbgapi"
-cd $SROCK_REPOS/rocdbgapi
-echo "      git checkout $SROCK_ROCDBGAPI_BRANCH"
-git checkout $SROCK_ROCGDBGAPI_BRANCH
-echo "      git pull"
-git pull
-
 

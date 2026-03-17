@@ -85,4 +85,6 @@ program prog_a
     call sub_c()
     call sub_f(10)
     call sub_b()
+
+    print*, "======= FORTRAN Test passed! ======="
 end program
