@@ -26,6 +26,11 @@ program equiv
             chk = 42
         !$omp end masked
 
+        !$omp masked filter(2)
+            y = 10
+            chk = 10
+        !$omp end masked
+
         !$omp barrier
 
         a = a + omp_get_thread_num()
