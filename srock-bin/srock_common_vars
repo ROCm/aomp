@@ -14,6 +14,17 @@
 #  You should set SROCK_REPOS to an updateable high performance and
 #  large capacity (100GB+) directory 100GB+
 
+function test_apply_patch() {
+   if ! patch -p1 -t -N --merge --dry-run < "$_patch_file"  >/dev/null; then
+      echo "ERROR:  patch --dry-run failed.  Could not apply $_patch_file "
+      cd "$_curdir" || exit 1
+      exit 1
+   else
+      echo "patch -p1 --no-backup-if-mismatch --merge < $_patch_file"
+      patch -p1 --no-backup-if-mismatch --merge < "$_patch_file"
+   fi
+}
+
 SROCK="NEVER_USE_'\$SROCK'_ENV_VARIABLE" # Use SROCK_LINK
 
 #  SROCK_REPOS is the parent directory for TheRock and srock repos.  
@@ -23,8 +34,8 @@ if [ ! -d $SROCK_REPOS ] ; then
   [ $? != 0 ] && echo "ERROR: Could not create $SROCK_REPOS" && exit 1
 fi
 
-SROCK_VERSION=${SROCK_VERSION:-"23.0"}
-SROCK_VERSION_MOD=${SROCK_VERSION_MOD:-"3"}
+SROCK_VERSION=${SROCK_VERSION:-"7.13"}
+SROCK_VERSION_MOD=${SROCK_VERSION_MOD:-"0"}
 SROCK_VERSION_STRING=${SROCK_VERSION_STRING:-"$SROCK_VERSION-$SROCK_VERSION_MOD"}
 SROCK_MAJOR_VERSION=${SROCK_VERSION%.*}
 
@@ -116,3 +127,62 @@ if [ $_build_cmake == 1 ] ; then
    SROCK_CMAKE=$_cmake_local
 fi
 export SROCK_CMAKE
+
+# TWO QUICK CHECKS, MUST HAVE SROCK_REPOS and SROCK_THEROCK_DIR MUST NOT EXIST
+mkdir -p "$SROCK_REPOS"
+if [ ! -d "$SROCK_REPOS" ] ; then
+   echo
+   echo "ERROR: $0 could not create directory $SROCK_REPOS"
+   echo "       Consider setting SROCK_REPOS to use a large fast fileystem."
+   echo "       or $HOME/git/srock-repos"
+   echo
+   exit 1
+fi
+
+declare -a _cmake_enable
+_cmake_enable=()
+
+# This TheRock config is full build minus failing components
+if [ "$SROCK_CONFIG" == "all" ] ; then
+   _cmake_enable=("${_cmake_enable[@]}"
+      -DTHEROCK_ENABLE_ALL=ON
+      -DTHEROCK_ENABLE_MIOPEN=OFF
+      -DTHEROCK_ENABLE_COMPOSABLE_KERNEL=OFF
+      -DTHEROCK_ENABLE_FFT=OFF
+   )
+fi
+
+# This is full build which could include failing components
+if [ "$SROCK_CONFIG" == "all-debug" ] ; then
+   _cmake_enable=("${_cmake_enable[@]}"
+	   -DTHEROCK_ENABLE_ALL=ON )
+fi
+
+# Default is minimal for compiler developers
+if [ "$SROCK_CONFIG" == "minimal" ] ; then
+   _cmake_enable=("${_cmake_enable[@]}"
+      -DTHEROCK_ENABLE_ALL=OFF
+      -DTHEROCK_ENABLE_HIP_RUNTIME=ON
+      -DTHEROCK_ENABLE_HIPIFY=ON
+      -DTHEROCK_BUNDLE_SYSDEPS=ON
+      -DTHEROCK_ENABLE_COMPILER=ON
+      -DTHEROCK_ENABLE_AMD_DBGAPI=ON
+      -DTHEROCK_ENABLE_ROCGDB=ON
+   )
+fi
+
+_gfxsemicolons=$(echo "$GFXLIST" | tr ' ' ';')
+_gfamsemicolons=$(echo "$GFXFAM" | tr ' ' ';')
+
+declare -a _cmake_args
+_cmake_args=(-B build -GNinja
+   -DCMAKE_INSTALL_PREFIX="$SROCK_INSTALL_DIR"
+   -DTHEROCK_AMDGPU_TARGETS=\'"$_gfxsemicolons"\'
+   -DTHEROCK_AMDGPU_FAMILIES=\'"$_gfamsemicolons"\'
+   -DTHEROCK_AMDGPU_DIST_BUNDLE_NAME=srock
+   -DTHEROCK_BACKGROUND_BUILD_JOBS=1
+   -DTHEROCK_ENABLE_LLVM_TESTS=1
+   "${_cmake_enable[@]}"
+   "$SROCK_THEROCK_DIR"
+)
+
