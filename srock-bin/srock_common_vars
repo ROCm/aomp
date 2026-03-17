@@ -28,7 +28,7 @@ function test_apply_patch() {
 SROCK="NEVER_USE_'\$SROCK'_ENV_VARIABLE" # Use SROCK_LINK
 
 #  SROCK_REPOS is the parent directory for TheRock and srock repos.  
-SROCK_REPOS=${SROCK_REPOS:-/work/$USER/git/srock-repos}
+SROCK_REPOS=${SROCK_REPOS:-${HOME}/git/srock-repos}
 if [ ! -d $SROCK_REPOS ] ; then
   mkdir -p $SROCK_REPOS
   [ $? != 0 ] && echo "ERROR: Could not create $SROCK_REPOS" && exit 1

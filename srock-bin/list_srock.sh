@@ -70,8 +70,8 @@ tr_data=( "${tr_dtop[@]}" "${tr_dsub[@]}" )
 
 declare -a tr_fields
 declare -a tr_unders
-tr_fields=("branch" "path" "repo name" "sub SHA" "sub date" "head SHA" "updated" "commitor" "for author")
-tr_unders=("------" "----" "---------" "-------" "--------" "--------" "-------" "--------" "----------")
+tr_fields=("branch" "path" "repo name" "sub SHA" "sub date" "HEAD SHA" "HEAD date" "commitor" "for author")
+tr_unders=("------" "----" "---------" "-------" "--------" "--------" "---------" "--------" "----------")
 if [[ $do_sub_status -ne 0 ]]; then
     tr_fields+=("sub SHA tag")
     tr_unders+=("-----------")
@@ -94,7 +94,7 @@ fi
 
 # formatted output
 if [[ $show_fmt -ne 0 ]]; then
-    fmt="%-20.20s %-44.44s %-21.21s %-10.10s %-10.10s %-10.10s %-10.10s %-12.12s %-19.19s %s\n"
+    fmt="%-20.20s %-30.30s %-21.21s %-10.10s %-10.10s %-10.10s %-10.10s %-12.12s %-19.19s %s\n"
     # shellcheck disable=SC2059 # variable format intended
     printf "$fmt" "${tr_fields[@]}"
     # shellcheck disable=SC2059 # variable format intended
