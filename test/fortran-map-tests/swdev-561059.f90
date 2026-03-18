@@ -113,5 +113,5 @@ program prog_a
 
   deallocate(var_l)
 
-  print *, "======= FORTRAN Test Success! ======="
+  print *, "======= FORTRAN Test Passed! ======="
 end program prog_a
