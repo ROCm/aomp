@@ -132,7 +132,7 @@ else
   # libdevice, project, comgr, rocminfo, hipamd, rocdbgapi, rocgdb,
   # roctracer, rocprofiler, rocm_smi_lib, and amdsmi should be found
   # in ROCM in /opt/rocm.  The ROCM build only needs these components:
-  components="llvm_runtimes_standalone offload"
+  components="llvm_runtimes_standalone"
   if [ "$AOMP_SKIP_FLANG" == 0 ] ; then
     if [ "$SANITIZER" == 1 ] && [ -f "$AOMP/bin/flang-classic" ] ; then
       components="$components pgmath flang flang_runtime"
