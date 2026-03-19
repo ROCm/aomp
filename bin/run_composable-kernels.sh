@@ -292,9 +292,11 @@ elif [ "${ShouldUpdateCKRepo}" == 'yes' ]; then
 fi
 
 CKBuildTool='make'
+DashKArg='-k'
 if command -v ninja >/dev/null; then
   CmakeGenerator="-GNinja"
   CKBuildTool='ninja'
+  DashKArg='-k 0'
 fi
 
 # TODO Fix / Finalize the cmake command
@@ -336,7 +338,8 @@ if [ "${ShouldRebuildCK}" == 'yes' ] || [ "${ShouldInstallCK}" == 'yes' ]; then
 
   # -k parameter avoids stopping at first error
   # ckProfiler target seems to depend on all library targets, which we want to build first
-  /usr/bin/time -o build-times.tlog ${CKBuildTool} -j "${CKBuildParallelism}" -k 0 ckProfiler || exit 1
+  # It seems that make takes just -k and ninja -j 0 to build targets even when errors occur.
+  /usr/bin/time -o build-times.tlog ${CKBuildTool} -j "${CKBuildParallelism}" "${DashKArg}" ckProfiler || exit 1
 
   # Find build success in the build log
   echo "CK-BUILD-SUCCESS"
@@ -349,7 +352,7 @@ if [ "${ShouldInstallCK}" == 'yes' ]; then
   pushd "${CK_BUILD}" || exit 1
 
   # TODO: Check parallelism. This may use all available threads.
-  /usr/bin/time -o install-times.tlog ${CKBuildTool} -k 0 install || exit 1
+  /usr/bin/time -o install-times.tlog ${CKBuildTool} "${DashKArg}" install || exit 1
 
   # Find install success in the log
   echo "CK-INSTALL-SUCCESS"
@@ -377,7 +380,7 @@ if [ "${SelectedSuite}" == 'smoke' ]; then
     mkdir -p "${CK_TESTS_LOG_LOCATION}" || exit 1
   fi
   pushd "${CK_BUILD}" || exit 1
-  ${CKBuildTool} -j "${CKBuildParallelism}" smoke 2>&1 | tee "${CK_TESTS_LOG_LOCATION}/smoke_tests.log"
+  ${CKBuildTool} -j "${CKBuildParallelism}" "${DashKArg}" smoke 2>&1 | tee "${CK_TESTS_LOG_LOCATION}/smoke_tests.log"
   echo "Log at ${CK_TESTS_LOG_LOCATION}/smoke_tests.log"
   popd || exit 1
 fi
@@ -388,7 +391,7 @@ if [ "${SelectedSuite}" == 'regression' ]; then
     mkdir -p "${CK_TESTS_LOG_LOCATION}" || exit 1
   fi
   pushd "${CK_BUILD}" || exit 1
-  ${CKBuildTool} -j "${CKBuildParallelism}" regression 2>&1 | tee "${CK_TESTS_LOG_LOCATION}/regression_tests.log"
+  ${CKBuildTool} -j "${CKBuildParallelism}" "${DashKArg}" regression 2>&1 | tee "${CK_TESTS_LOG_LOCATION}/regression_tests.log"
   echo "Log at ${CK_TESTS_LOG_LOCATION}/regression_tests.log"
   popd || exit 1
 fi
@@ -475,7 +478,7 @@ if [ "${SelectedSuite}" == 'client-examples' ]; then
   ${CKCmakeCmd} || exit 1
 
   pushd "${CK_CLIENT_EXAMPLES_BUILD}" || exit 1
-  ${CKBuildTool} || exit 1
+  ${CKBuildTool} "{DashKArg}" || exit 1
 
   # Process directories to exclude
   # Usage of here-string to avoid sub-shell and removal of potential parentheses
