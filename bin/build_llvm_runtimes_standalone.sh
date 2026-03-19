@@ -79,7 +79,7 @@ COMMON_CMAKE_OPTS=("${AOMP_SET_NINJA_GEN[@]}" -DOPENMP_ENABLE_LIBOMPTARGET=1
                    -DLLVM_DIR="$LLVM_DIR"
                    -DLIBOMPTEST_BUILD_STANDALONE=1 -DLIBOMPTARGET_BUILD_DEVICE_FORTRT=On)
 
-LLVM_RUNTIMES="openmp"
+LLVM_RUNTIMES="openmp;offload"
 if [ "$OPENMP_BUILD_DEVICERTL" -eq 1 ]; then
   if [ -f "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/device/CMakeLists.txt" ]; then
     LLVM_RUNTIMES=openmp
@@ -526,8 +526,8 @@ fi # end of install block
 
 # We have to build the deviceRTL by itself as it requires a different target
 if [ "$1" != "install" ] && [ "$OPENMP_BUILD_DEVICERTL" == 0 ] ; then
-  RUNTIMES_BUILD_DIR="llvm_runtimes_standalone-devicertl" OPENMP_BUILD_DEVICERTL=1 $thisdir/build_llvm_runtimes_standalone.sh
+  RUNTIMES_BUILD_DIR="llvm_runtimes_standalone-devicertl" OPENMP_BUILD_DEVICERTL=1 "$thisdir"/build_llvm_runtimes_standalone.sh
 fi
 if [ "$1" == "install" ] && [ "$OPENMP_BUILD_DEVICERTL" == 0 ]; then
-  RUNTIMES_BUILD_DIR="llvm_runtimes_standalone-devicertl" OPENMP_BUILD_DEVICERTL=1 $thisdir/build_llvm_runtimes_standalone.sh install
+  RUNTIMES_BUILD_DIR="llvm_runtimes_standalone-devicertl" OPENMP_BUILD_DEVICERTL=1 "$thisdir"/build_llvm_runtimes_standalone.sh install
 fi
