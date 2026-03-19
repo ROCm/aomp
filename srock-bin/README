@@ -35,13 +35,68 @@ testing based on AOMP environment variable will remain. The srock scripts
 and all support for srock will be managed in the srock-bin subdirectory of
 the aomp repo.
 
+Q:  Can you compare srock operation to aomp operation?
+
+                               AOMP                                    SROCK
+                               ----                                    -----
+REPOS env var                  AOMP_REPOS                              SROCK_REPOS
+
+Default value of
+Repo env var                   $HOME/git/aomp<VERSION>                 /work/$USER/git/srock-repos
+
+Number of RepoS                20+                                     2 (aomp,TheRock)
+
+llvm-project directory         $AOMP_REPOS/llvm-project                $SROCK_REPOS/TheRock/compiler/amd-llvm
+
+llvm-project build dir         $AOMP_REPOS/build/llvm-project          $SROCK_REPOS/build/compiler/amd-llvm/build
+
+How test scripts
+find the compiler               $AOMP                                   $AOMP
+
+setup/clone scripts             aomp/bin/clone_aomp.sh                  aomp/srock-bin/setup_srock.sh
+Build script                    aomp/bin/build_aomp.sh                  aomp/srock-bin/build_srock.sh
+common header script            aomp/bin/aomp_common_vars               aomp/srock-bin/srock_common_vars
+
+Install Dir                     $HOME/rocm/aomp_<VERSION x.y-z>         $HOME/rocm/srock_<VERSION x.y-z>
+Link to install dir             $HOME/rocm/aomp                         $HOME/rocm/srock
+Install env var                 $AOMP_INSTALL_DIR                       $SROCK_INSTALL_DIR
+
 Q: Can one rerun setup_srock.sh ?
 A: NO. If you want to start from scratch, completely remove SROCK_THEROCK_DIR
    which by default is /work/$USER/git/srock-repos/TheRock
 
-Q: Can one rerun post_setup_build_srock.sh ?
+Q: Can one rerun build_srock.sh ?
 A: YES.  This is useful if you have made development changes to any repository.
    Naturally, this is much faster the 2nd time following setup_srock.sh
+
+Q: Is there a more incremental and faster way to rebuild the compiler?
+A: YES.  One of the reasons build_srock.sh can be slow is that compiler changes
+   force a rebuild of rocgdb. To aovid this use ninja install, see step 8 and 9 below.
+
+Q: What is the compiler development flow with srock?
+A:
+1    cd $SROCK_REPOS/aomp/srock-bin
+2      ./setup_srock.sh
+3      ./build_srock.sh
+4    < cd to llvm-project repo >
+5    cd $SROCK_REPOS/TheRock/compiler/amd-llvm
+6    < make desired changes >
+7    < Try incremental compile and install>
+8    cd  $SROCK_REPOS/TheRock/build/compiler/amd-llvm/build
+9    ninja install
+10   < if build fails, go to step 4>
+11   < test your srock compiler. e.g.>
+12      export AOMP=$HOME/rocm/srock
+13      cd $SROCK_REPOS/aomp/test/smoke
+14      ./check_smoke.sh
+15   < if fail, go to step 4>
+16   < update all components including those that use the compiler>
+17   cd $SROCK_REPOS/aomp/srock-bin
+18      ./build_srock.sh
+19   < Prepare and test trunk or amd-staging PR >
+20      cd $SROCK_REPOS/TheRock/compiler/amd-llvm
+21      git diff >$HOME/my.patch
+22      < Apply my.patch to either trunk or downstream amd-staging branch >
 
 Q: Why not just change the submodule file to point compiler repos to amd-staging branch?
 A: TheRock has frequent changes including submodule updates. The setup_srock.sh
