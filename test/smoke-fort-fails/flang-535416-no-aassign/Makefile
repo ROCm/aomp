@@ -9,7 +9,7 @@ TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 
 FLANG        = flang
-CFLAGS       = -O2
+CFLAGS       = -O2 -mmlir -enable-gpu-heap-alloc
 OMP_BIN      = $(AOMP)/bin/$(FLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
 #-ccc-print-phases

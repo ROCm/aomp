@@ -36,5 +36,15 @@ program prog_a
 
     !$omp target exit data map(release:var_d)
 
+    do var_f = 1,1024
+        var_d%var_c(var_f) = var_f
+      if (var_d%var_c(var_f) /= var_f) then
+          print *, "======= FORTRAN Test Failed! ======="
+          stop 1
+      end if
+    end do
+
     deallocate(var_d%var_c)
+
+    print*, "======= FORTRAN Test Passed! ======="
 end program
