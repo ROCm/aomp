@@ -8,7 +8,7 @@ A: Srock is a scripted download and build of the complete ROCm software stack
    compiler in the amd-staging branch. The amd-staging branch is where
    LLVM upstream and LLVM local enhancements are merged on a daily basis.
 
-Q: How to build srock? 2 steps: setup_srock.sh & post_setup_build_srock.sh
+Q: How to build srock? 2 steps: setup_srock.sh & build_srock.sh
 A: Run these commands:
    export SROCK_REPOS=/work/$USER/git/srock-repos 
    # consider setting SROCK_REPOS in your login script (.bashrc)
@@ -22,7 +22,7 @@ A: Run these commands:
 
 Q: How is this different than aomp?
 A: Aomp used a set of bash scripts that performed the cmake, make, and make install
-of each component. Srock has two scripts setup_srock.sh and post_setup_build.sh.
+of each component. Srock has two scripts setup_srock.sh and build_srock.sh.
 These 2 scripts automate the web instructions for downloading and building TheRock. 
 TheRock has a single hierarhical github repository with submodules for bringing
 together all ROCm components. Whereas aomp built individual components from a
@@ -139,7 +139,7 @@ might be enough. But recall that srock has a set of patches to TheRock and other
 components to make the amd-staging compiler work. So in addition to the amd-staging
 merge, some additional patch or PRs taken from srocks patches might be necessary.
 
-Q: How do I use the ROCm created by setup_srock.sh & post_setup_build_srock.sh
+Q: How do I use the ROCm created by setup_srock.sh & build_srock.sh
 A: The default installation will be in $HOME/rocm/srock which is
    a symbolic link to $HOME/rocm/srock_$SROCK_VERSION_STRING
    Depending on your test or dev environment, you can set 
@@ -177,6 +177,6 @@ A: aomp contains the srock scripts as well as the legacy aomp build system.
    It also contains detailed compiler tests. The repos hipfort, rocdbgapi,
    and rocgdb are three components that have not yet been integrated into
    TheRock. These repos will go away when thes components are integrated.
-   The two srock scripts setup_srock.sh and post_setup_build_srock.sh do the
+   The two srock scripts setup_srock.sh and build_srock.sh do the
    cloning and building of these components so that an srock installation 
    is as complete as aomp.
