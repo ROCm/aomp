@@ -16,12 +16,8 @@ thisdir=$(dirname "$realpath")
 # --- end standard header ----
 
 echo "= 1 = Checking if cmake needs to be built"
-if [ $_build_cmake == 1 ] ; then
-   echo "      building $_cmake_local"
-   $thisdir/build_cmake.sh
-else
-   echo "      using existing $_cmake_local"
-fi
+echo "      building $_cmake_local"
+$thisdir/build_cmake.sh         # check is performed within build_cmake.sh
 echo "      The cmake for srock is $SROCK_CMAKE"
 
 # Skip these updates if this is a restart
