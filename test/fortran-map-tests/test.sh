@@ -445,6 +445,10 @@ echo "compiling michael-map-example.f90"
 
 $AOMP/bin/flang    --offload-arch=$AOMP_GPU -fopenmp  michael-map-example.f90 -o michael-map-example.out
 
+echo "compiling michael-map-example-2.f90"
+
+$AOMP/bin/flang    --offload-arch=$AOMP_GPU -fopenmp  michael-map-example-2.f90 -o michael-map-example-2.out
+
 echo "compiling target_map_common_block_1.f90"
 
 $AOMP/bin/flang    --offload-arch=$AOMP_GPU -fopenmp  target_map_common_block_1.f90 -o target_map_common_block_1.out
@@ -805,6 +809,26 @@ echo "compiling SWDEV-579431.f90"
 
 $AOMP/bin/flang -fopenmp -fopenmp-version=60 --offload-arch=$AOMP_GPU SWDEV-579431.f90 -o SWDEV-579431.out
 
+echo "compiling lcompiler-1621-v1.f90"
+
+$AOMP/bin/flang -fopenmp --offload-arch=$AOMP_GPU lcompiler-1621-v1.f90 -o lcompiler-1621-v1.out
+
+echo "compiling lcompiler-1621-v1.f90 for usm"
+
+$AOMP/bin/flang -fopenmp -fopenmp-force-usm --offload-arch=$AOMP_GPU lcompiler-1621-v1.f90 -o lcompiler-1621-v1-usm.out
+
+echo "compiling lcompiler-1621-v2.f90"
+
+$AOMP/bin/flang -fopenmp --offload-arch=$AOMP_GPU lcompiler-1621-v2.f90 -o lcompiler-1621-v2.out
+
+echo "compiling lcompiler-1621-v2.f90 for usm"
+
+$AOMP/bin/flang -fopenmp -fopenmp-force-usm --offload-arch=$AOMP_GPU lcompiler-1621-v2.f90 -o lcompiler-1621-v2-usm.out
+
+echo "compiling lcompiler-1645.f90"
+
+$AOMP/bin/flang -fopenmp --offload-arch=$AOMP_GPU lcompiler-1645.f90 -o lcompiler-1645.out
+
 echo "basic exp map"
 
 echo "RUNNING TEST: basic-exp-map"
@@ -868,7 +892,7 @@ echo "RUNNING TEST: constant-index-in-target"
 echo "Use of from to to map arrays and transfer values"
 
 echo "RUNNING TEST: from-to"
-./from-to.out 
+./from-to.out
 
 echo "Use of complex value map from host to device"
 
@@ -908,22 +932,22 @@ echo "RUNNING TEST: simple-full-struct-implicit-2"
 echo "Passing Fort pointer to Fort target and doing a simple loop assign"
 
 echo "RUNNING TEST: pointer-target-map"
-./pointer-target-map.out 
+./pointer-target-map.out
 
 echo "Passing Fort pointer and doing a simple loop assign"
 
 echo "RUNNING TEST: pointer-map"
-./pointer-map.out 
+./pointer-map.out
 
 echo "Passing Fort allocatable and doing a simple loop assign"
 
 echo "RUNNING TEST: allocatable-map"
-./allocatable-map.out 
+./allocatable-map.out
 
 echo "Check array section with upper bound (write off end of array on device)"
 
 echo "RUNNING TEST: array-section-1d-upperbound"
-./array-section-1d-upperbound.out 
+./array-section-1d-upperbound.out
 
 echo "N-D Bounds (3 dimensions) map syntax"
 
@@ -1083,12 +1107,12 @@ echo "RUNNING TEST: target-alloca-from-map"
 echo "Target allocatable map with enter+exit binding, remap of same variable and function invocation "
 
 echo "RUNNING TEST: enter-exit-break-test"
-./enter-exit-break-test.out 
+./enter-exit-break-test.out
 
 echo "Target allocatable map with enter+exit binding and re-map of same variable"
 
 echo "RUNNING TEST: enter-exit-break-test-2"
-./enter-exit-break-test-2.out 
+./enter-exit-break-test-2.out
 
 echo "Target in function with allocatable in parameter allocated then assigned to inside of function utilising target"
 
@@ -1438,6 +1462,11 @@ echo "Example from Michael, arrays specified with dimensions contained in derive
 
 echo "RUNNING TEST: michael-map-example"
 ./michael-map-example.out
+
+echo "Example from Michael, usage of associate that add extra layers of obfuscation to the mappings, should return all 42"
+
+echo "RUNNING TEST: michael-map-example-2"
+./michael-map-example-2.out
 
 echo "Map of full common block over multiple subroutines"
 
@@ -1793,6 +1822,26 @@ echo "Actually tests that derived type allcoatable storage is correctly released
 echo "RUNNING TEST: test_map_types_omp60"
 ./test_map_types_omp60.out
 
+echo "lcompiler-1621-v1"
+
+echo "RUNNING TEST: lcompiler-1621-v1"
+./lcompiler-1621-v1.out
+
+echo "lcompiler-1621-v2"
+
+echo "RUNNING TEST: lcompiler-1621-v2"
+./lcompiler-1621-v2.out
+
+echo "lcompiler-1645, assertion trigger in MapInfoFinalization pass"
+
+echo "RUNNING TEST: lcompiler-1645"
+./lcompiler-1645.out
+
+echo "SWDEV-579431 write-back issue caused by inter-mixing of implicit declare mapper"
+
+echo "RUNNING TEST: SWDEV-579431"
+./SWDEV-579431.out
+
 # Tests that require XNACK/USM to pass
 
 echo "test declare target enter/to usm works reasonably in simple cases"
@@ -1802,9 +1851,14 @@ export HSA_XNACK=1
 echo "RUNNING TEST: declare-target-enter-usm"
 ./declare-target-enter-usm.out
 
+echo "lcompiler-1621-v1-usm"
+
+echo "RUNNING TEST: lcompiler-1621-v1-usm"
+./lcompiler-1621-v1-usm.out
+
+echo "lcompiler-1621-v2-usm"
+
+echo "RUNNING TEST: lcompiler-1621-v2-usm"
+./lcompiler-1621-v2-usm.out
+
 unset HSA_XNACK
-
-echo "SWDEV-579431 write-back issue caused by inter-mixing of implicit declare mapper"
-
-echo "RUNNING TEST: SWDEV-579431"
-./SWDEV-579431.out
