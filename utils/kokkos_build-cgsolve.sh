@@ -25,8 +25,7 @@
 #
 #  Written by Jan-Patrick Lehr <JanPatrick.Lehr@amd.com>
 #
-PROGVERSION="X.Y-Z"
-#
+
 
 function print_info() {
   toPrint="$1"
@@ -55,19 +54,19 @@ NUM_THREADS=${NUM_THREADS:-8}
 COMPILERNAME_TO_USE=${_COMPILER_TO_USE_:-clang++}
 # AOMP_VERSION=$($AOMP/bin/${COMPILERNAME_TO_USE} --version | head -n 1)
 
-cd $GIT_DIR || exit 1
+cd "$GIT_DIR" || exit 1
 
 if [ "$1" == "clean" ]; then
   print_info "Removing $KOKKOS_EXAMPLES_SOURCE_DIR"
-  rm -rf $KOKKOS_EXAMPLES_SOURCE_DIR
+  rm -rf "$KOKKOS_EXAMPLES_SOURCE_DIR"
   exit 0
 fi
 
 # Get the source code
-git clone $KOKKOS_EXAMPLES_REPO $KOKKOS_EXAMPLES_SOURCE_DIR
+git clone "$KOKKOS_EXAMPLES_REPO" "$KOKKOS_EXAMPLES_SOURCE_DIR"
 
 # Change to the directory
-cd $KOKKOS_EXAMPLES_SOURCE_DIR || exit 1
+cd "$KOKKOS_EXAMPLES_SOURCE_DIR" || exit 1
 
 cd cgsolve || exit 1
 
@@ -85,5 +84,4 @@ sed -i "s/-march=gfx90a/-march=$AOMP_GPU/" ../Makefile.inc
 cmd="PATH=$AOMP/bin:$PATH CXX=clang++ make KOKKOS_PATH=$KOKKOS_SOURCE_DIR arch=MI250x backend=ompt comp=rocmclang"
 
 print_info "$cmd"
-PATH=$AOMP/bin:$PATH CXX=clang++ make KOKKOS_PATH=$KOKKOS_SOURCE_DIR arch=MI250x backend=ompt comp=rocmclang -j${NUM_THREADS}
-#OFFLOAD_FLAGS='-ffast-math -fopenmp-target-fast'
+PATH=$AOMP/bin:$PATH CXX=clang++ make KOKKOS_PATH="$KOKKOS_SOURCE_DIR" arch=MI250x backend=ompt comp=rocmclang -j"${NUM_THREADS}"
