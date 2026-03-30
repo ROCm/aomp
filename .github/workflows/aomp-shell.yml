@@ -28,14 +28,22 @@ jobs:
 
       - name: Run shellcheck
         run: |
+          shellcheck_status=0
           for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
-            file_dir=$(dirname "$file")
-            file_name=$(basename "$file")
             if [[ $file == *.sh ]]; then
+              file_dir=$(dirname "$file")
+              file_name=$(basename "$file")
+
               echo "Running shellcheck on $file in directory $file_dir"
               pushd "$file_dir"
+
               shellcheck -x "$file_name"
+              if [ $? -ne 0 ]; then
+                shellcheck_status=1
+              fi
+
               popd
             fi
           done
+          exit $shellcheck_status
         shell: bash {0}

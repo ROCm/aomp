@@ -53,7 +53,7 @@ KOKKOS_EXAMPLES_REPO=https://github.com/kokkos/kokkos-openmptarget-examples.git
 NUM_THREADS=${NUM_THREADS:-8}
 
 COMPILERNAME_TO_USE=${_COMPILER_TO_USE_:-clang++}
-AOMP_VERSION=$($AOMP/bin/${COMPILERNAME_TO_USE} --version | head -n 1)
+# AOMP_VERSION=$($AOMP/bin/${COMPILERNAME_TO_USE} --version | head -n 1)
 
 cd $GIT_DIR || exit 1
 
