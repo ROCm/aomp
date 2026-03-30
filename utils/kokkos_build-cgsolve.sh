@@ -41,7 +41,7 @@ function print_error() {
 
 AOMP="${AOMP:-_AOMP_INSTALL_DIR_}"
 
-if [ ! -d $AOMP ] ; then
+if [ ! -d "${AOMP}" ] ; then
    print_error "AOMP is not installed in ${AOMP}. Please set the environment variable."
    exit 1
 fi
