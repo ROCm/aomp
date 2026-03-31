@@ -25,8 +25,7 @@
 #
 #  Written by Jan-Patrick Lehr <JanPatrick.Lehr@amd.com>
 #
-PROGVERSION="X.Y-Z"
-#
+
 
 function print_info() {
   toPrint="$1"
@@ -41,7 +40,7 @@ function print_error() {
 
 AOMP="${AOMP:-_AOMP_INSTALL_DIR_}"
 
-if [ ! -d $AOMP ] ; then
+if [ ! -d "${AOMP}" ] ; then
    print_error "AOMP is not installed in ${AOMP}. Please set the environment variable."
    exit 1
 fi
@@ -53,21 +52,21 @@ KOKKOS_EXAMPLES_REPO=https://github.com/kokkos/kokkos-openmptarget-examples.git
 NUM_THREADS=${NUM_THREADS:-8}
 
 COMPILERNAME_TO_USE=${_COMPILER_TO_USE_:-clang++}
-AOMP_VERSION=$($AOMP/bin/${COMPILERNAME_TO_USE} --version | head -n 1)
+# AOMP_VERSION=$($AOMP/bin/${COMPILERNAME_TO_USE} --version | head -n 1)
 
-cd $GIT_DIR || exit 1
+cd "$GIT_DIR" || exit 1
 
 if [ "$1" == "clean" ]; then
   print_info "Removing $KOKKOS_EXAMPLES_SOURCE_DIR"
-  rm -rf $KOKKOS_EXAMPLES_SOURCE_DIR
+  rm -rf "$KOKKOS_EXAMPLES_SOURCE_DIR"
   exit 0
 fi
 
 # Get the source code
-git clone $KOKKOS_EXAMPLES_REPO $KOKKOS_EXAMPLES_SOURCE_DIR
+git clone "$KOKKOS_EXAMPLES_REPO" "$KOKKOS_EXAMPLES_SOURCE_DIR"
 
 # Change to the directory
-cd $KOKKOS_EXAMPLES_SOURCE_DIR || exit 1
+cd "$KOKKOS_EXAMPLES_SOURCE_DIR" || exit 1
 
 cd cgsolve || exit 1
 
@@ -85,5 +84,4 @@ sed -i "s/-march=gfx90a/-march=$AOMP_GPU/" ../Makefile.inc
 cmd="PATH=$AOMP/bin:$PATH CXX=clang++ make KOKKOS_PATH=$KOKKOS_SOURCE_DIR arch=MI250x backend=ompt comp=rocmclang"
 
 print_info "$cmd"
-PATH=$AOMP/bin:$PATH CXX=clang++ make KOKKOS_PATH=$KOKKOS_SOURCE_DIR arch=MI250x backend=ompt comp=rocmclang -j${NUM_THREADS}
-#OFFLOAD_FLAGS='-ffast-math -fopenmp-target-fast'
+PATH=$AOMP/bin:$PATH CXX=clang++ make KOKKOS_PATH="$KOKKOS_SOURCE_DIR" arch=MI250x backend=ompt comp=rocmclang -j"${NUM_THREADS}"
