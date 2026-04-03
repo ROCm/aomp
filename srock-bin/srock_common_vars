@@ -12,7 +12,7 @@
 #  So, if you preset any SROCK env vars such as in .bashrc, 
 #  you override the default specified here. Most importantly, 
 #  You should set SROCK_REPOS to an updateable high performance and
-#  large capacity (100GB+) directory 100GB+
+#  large capacity (100GB+) directory
 
 function test_apply_patch() {
    if ! patch -p1 -t -N --merge --dry-run < "$_patch_file"  >/dev/null; then
