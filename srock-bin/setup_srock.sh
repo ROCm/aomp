@@ -116,10 +116,12 @@ if [ "$SROCK_COMPILER_BRANCH" != "develop" ] ; then
 
    if [ -d "$thisdir/patches/$SROCK_COMPILER_BRANCH" ] ; then 
       cd "$SROCK_THEROCK_DIR" || exit
-         _patch_file=$thisdir/patches/$SROCK_COMPILER_BRANCH/_TheRock.patch
-      if [ -f "$_patch_file" ] ; then
+      shopt -s nullglob
+      _patches=( $thisdir/patches/$SROCK_COMPILER_BRANCH/_TheRock*.patch )
+      shopt -u nullglob
+      for _patch_file in "${_patches[@]}"; do
          test_apply_patch
-      fi
+      done
       _tmpfile=/tmp/submod$$
       git submodule > "$_tmpfile"
       echo "tmpfile:$_tmpfile"
@@ -131,12 +133,12 @@ if [ "$SROCK_COMPILER_BRANCH" != "develop" ] ; then
          else 
             cd "$_subdirfull" || exit
 	    _subdirname=$(echo "$_subdir" | tr "/" "_")
-            _patch_file=$thisdir/patches/$SROCK_COMPILER_BRANCH/$_subdirname.patch
-            if [ -f "$_patch_file" ] ; then
+            shopt -s nullglob
+            _patches=( $thisdir/patches/$SROCK_COMPILER_BRANCH/${_subdirname}*.patch )
+            shopt -u nullglob
+            for _patch_file in "${_patches[@]}"; do
                test_apply_patch
-            else
-               echo "PATCHFILE $_patch_file DOES NOT EXIST"
-            fi
+            done
 	 fi
       done < $_tmpfile
       rm "$_tmpfile"
