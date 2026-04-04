@@ -117,7 +117,7 @@ if [ "$SROCK_COMPILER_BRANCH" != "develop" ] ; then
    if [ -d "$thisdir/patches/$SROCK_COMPILER_BRANCH" ] ; then 
       cd "$SROCK_THEROCK_DIR" || exit
       shopt -s nullglob
-      # shellcheck disable=2206 # word splitting on file glob intended
+      # shellcheck disable=SC2206 # word splitting on file glob intended
       _patches=( $thisdir/patches/$SROCK_COMPILER_BRANCH/_TheRock*.patch )
       shopt -u nullglob
       for _patch_file in "${_patches[@]}"; do
@@ -135,7 +135,7 @@ if [ "$SROCK_COMPILER_BRANCH" != "develop" ] ; then
             cd "$_subdirfull" || exit
 	    _subdirname=$(echo "$_subdir" | tr "/" "_")
             shopt -s nullglob
-            # shellcheck disable=2206 # word splitting on file glob intended
+            # shellcheck disable=SC2206 # word splitting on file glob intended
             _patches=( $thisdir/patches/$SROCK_COMPILER_BRANCH/${_subdirname}*.patch )
             shopt -u nullglob
             for _patch_file in "${_patches[@]}"; do
