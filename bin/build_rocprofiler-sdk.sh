@@ -82,7 +82,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 	        -DGPU_TARGETS="$GFXSEMICOLONS"
 	        -DROCPROFILER_BUILD_SAMPLES=ON
 		-DROCPROFILER_BUILD_TESTS=OFF
-		-DPython3_EXECUTABLE=$(which python3)
+		-DPython3_EXECUTABLE="$(which python3)"
 		-DROCPROFILER_PYTHON_VERSIONS="$pythonversion")
 
    echo " -----Running rocprofiler-sdk cmake ---- "
@@ -121,8 +121,8 @@ if [ "$1" == "install" ] ; then
          exit 1
       fi
       if [ -d "$HOME/local/aqlprofile/lib" ]; then
-        echo Copying aqlprofile libraries from $HOME/local/aqlprofile/lib to $INSTALL_ROCPROF_SDK/lib
-        cp -r $HOME/local/aqlprofile/lib/* $INSTALL_ROCPROF_SDK/lib
+        echo "Copying aqlprofile libraries from $HOME/local/aqlprofile/lib to $INSTALL_ROCPROF_SDK/lib"
+        cp -r "$HOME"/local/aqlprofile/lib/* "$INSTALL_ROCPROF_SDK"/lib
       else
         echo "Error: rocprofiler-sdk needs aqlprofile libraries to exist in $INSTALL_ROCPROF_SDK/lib. Please run ./build_prereq.sh first."
         exit 1
