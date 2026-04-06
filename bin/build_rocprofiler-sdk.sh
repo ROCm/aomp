@@ -46,6 +46,8 @@ if [ "$1" == "install" ] ; then
    $SUDO rm "$INSTALL_ROCPROF_SDK"/testfile
 fi
 
+patchrepo "$AOMP_REPOS/rocprofiler-sdk"
+
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    echo " "
    echo "This is a FRESH START. ERASING any previous builds in $BUILD_AOMP/build_rocprofiler-sdk"
@@ -80,7 +82,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 	        -DGPU_TARGETS="$GFXSEMICOLONS"
 	        -DROCPROFILER_BUILD_SAMPLES=ON
 		-DROCPROFILER_BUILD_TESTS=OFF
-		-DPython3_EXECUTABLE=$(which python3)
+		-DPython3_EXECUTABLE="$(which python3)"
 		-DROCPROFILER_PYTHON_VERSIONS="$pythonversion")
 
    echo " -----Running rocprofiler-sdk cmake ---- "
@@ -119,12 +121,14 @@ if [ "$1" == "install" ] ; then
          exit 1
       fi
       if [ -d "$HOME/local/aqlprofile/lib" ]; then
-        echo Copying aqlprofile libraries from $HOME/local/aqlprofile/lib to $INSTALL_ROCPROF_SDK/lib
-        cp -r $HOME/local/aqlprofile/lib/* $INSTALL_ROCPROF_SDK/lib
+        echo "Copying aqlprofile libraries from $HOME/local/aqlprofile/lib to $INSTALL_ROCPROF_SDK/lib"
+        cp -r "$HOME"/local/aqlprofile/lib/* "$INSTALL_ROCPROF_SDK"/lib
       else
         echo "Error: rocprofiler-sdk needs aqlprofile libraries to exist in $INSTALL_ROCPROF_SDK/lib. Please run ./build_prereq.sh first."
         exit 1
       fi
+
+      removepatch "$AOMP_REPOS/rocprofiler-sdk"
 else
    echo
    echo "SUCCESSFUL BUILD, please run:  $0 install"
