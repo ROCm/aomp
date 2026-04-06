@@ -46,6 +46,8 @@ if [ "$1" == "install" ] ; then
    $SUDO rm "$INSTALL_ROCPROF_SDK"/testfile
 fi
 
+patchrepo "$AOMP_REPOS/rocprofiler-sdk"
+
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    echo " "
    echo "This is a FRESH START. ERASING any previous builds in $BUILD_AOMP/build_rocprofiler-sdk"
@@ -125,6 +127,8 @@ if [ "$1" == "install" ] ; then
         echo "Error: rocprofiler-sdk needs aqlprofile libraries to exist in $INSTALL_ROCPROF_SDK/lib. Please run ./build_prereq.sh first."
         exit 1
       fi
+
+      removepatch "$AOMP_REPOS/rocprofiler-sdk"
 else
    echo
    echo "SUCCESSFUL BUILD, please run:  $0 install"
