@@ -2,12 +2,10 @@ diff --git a/compiler/CMakeLists.txt b/compiler/CMakeLists.txt
 index bf625919..25ebeb62 100644
 --- a/compiler/CMakeLists.txt
 +++ b/compiler/CMakeLists.txt
-@@ -74,6 +74,9 @@ if(THEROCK_ENABLE_COMPILER)
+@@ -74,6 +74,7 @@ if(THEROCK_ENABLE_COMPILER)
  
        # Features
        -DLLVM_INCLUDE_TESTS=${THEROCK_BUILD_LLVM_TESTS}
-+      -DLLVM_BUILD_TESTS=${THEROCK_BUILD_LLVM_TESTS}
-+      -DCLANG_INCLUDE_TESTS=${THEROCK_BUILD_LLVM_TESTS}
 +      -DLLVM_LIT_ARGS='-vv --show-unsupported --show-xfail -j 16'
        -DLLVM_ENABLE_ZLIB=FORCE_ON
        -DLLVM_ENABLE_Z3_SOLVER=OFF
