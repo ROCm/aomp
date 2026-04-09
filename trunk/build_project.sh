@@ -31,7 +31,7 @@ else
 -DRUNTIMES_nvptx64-nvidia-cuda_LLVM_ENABLE_RUNTIMES='compiler-rt;libc;libcxx;libcxxabi;flang-rt;openmp'
 -DRUNTIMES_nvptx64-nvidia-cuda_FLANG_RT_LIBC_PROVIDER=llvm
 -DRUNTIMES_nvptx64-nvidia-cuda_FLANG_RT_LIBCXX_PROVIDER=llvm
--DRUNTIMES_nvptx64-nvidia-cuda_CACHE_FILES="'$TRUNK_REPOS/${LLVMPROJECT}/compiler-rt/cmake/caches/GPU.cmake;$TRUNK_REPOS/${LLVMPROJECT}/libcxx/cmake/caches/NVPTX.cmake'")
+-DRUNTIMES_nvptx64-nvidia-cuda_CACHE_FILES="'$TRUNK_REPOS/${LLVMPROJECT}/compiler-rt/cmake/caches/NVPTX.cmake;$TRUNK_REPOS/${LLVMPROJECT}/libcxx/cmake/caches/NVPTX.cmake'")
    _rt_targets=(
 	   -DLLVM_RUNTIME_TARGETS='default;amdgcn-amd-amdhsa;nvptx64-nvidia-cuda')
 fi
@@ -74,7 +74,7 @@ MYCMAKEOPTS=(-DCMAKE_BUILD_TYPE="$BUILD_TYPE"
 -DRUNTIMES_amdgcn-amd-amdhsa_LLVM_ENABLE_RUNTIMES='compiler-rt;libc;libcxx;libcxxabi;flang-rt;openmp'
 -DRUNTIMES_amdgcn-amd-amdhsa_FLANG_RT_LIBC_PROVIDER=llvm
 -DRUNTIMES_amdgcn-amd-amdhsa_FLANG_RT_LIBCXX_PROVIDER=llvm
--DRUNTIMES_amdgcn-amd-amdhsa_CACHE_FILES="'$TRUNK_REPOS/${LLVMPROJECT}/compiler-rt/cmake/caches/GPU.cmake;$TRUNK_REPOS/${LLVMPROJECT}/libcxx/cmake/caches/AMDGPU.cmake'"
+-DRUNTIMES_amdgcn-amd-amdhsa_CACHE_FILES="'$TRUNK_REPOS/${LLVMPROJECT}/compiler-rt/cmake/caches/AMDGPU.cmake;$TRUNK_REPOS/${LLVMPROJECT}/libcxx/cmake/caches/AMDGPU.cmake'"
 "${_nv_cmake_args[@]}")
 
 
