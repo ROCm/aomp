@@ -1,40 +1,7 @@
-diff --git a/cmake/therock_subproject.cmake b/cmake/therock_subproject.cmake
-index 3985c872..d5ebc862 100644
---- a/cmake/therock_subproject.cmake
-+++ b/cmake/therock_subproject.cmake
-@@ -1429,6 +1429,7 @@ function(_therock_cmake_subproject_setup_toolchain
-     string(APPEND _toolchain_contents "set(AMDGPU_TARGETS @_filtered_gpu_targets@ CACHE STRING \"From super-project\" FORCE)\n")
-     string(APPEND _toolchain_contents "set(GPU_TARGETS @_filtered_gpu_targets@ CACHE STRING \"From super-project\" FORCE)\n")
-     string(APPEND _toolchain_contents "set(CMAKE_HIP_ARCHITECTURES @_filtered_gpu_targets@ CACHE STRING \"From super-project\" FORCE)\n")
-+    string(APPEND _toolchain_contents "set(CMAKE_HIP_COMPILER \"@AMD_LLVM_CXX_COMPILER@\")\n")
-   endif()
- 
-   # General settings applicable to all toolchains.
 diff --git a/compiler/CMakeLists.txt b/compiler/CMakeLists.txt
-index eee0b5d5..dfabe601 100644
+index bf625919..31c4ceb5 100644
 --- a/compiler/CMakeLists.txt
 +++ b/compiler/CMakeLists.txt
-@@ -13,6 +13,10 @@ if(THEROCK_ENABLE_COMPILER)
-   if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-     list(APPEND _extra_llvm_cmake_args "-DLLVM_ENABLE_PEDANTIC=OFF")
-   endif()
-+  if (DEFINED ENV{SROCK_VERSION_MOD})
-+    list(APPEND _extra_llvm_cmake_args "-DLLVM_VERSION_SUFFIX=_SROCK")
-+    list(APPEND _extra_llvm_cmake_args "-DLLVM_VERSION_PATCH=$ENV{SROCK_VERSION_MOD}")
-+  endif()
- 
-   # Building Flang is very memory-intensive on systems with many cores. Allow
-   # users to specify the level of concurrency for these tasks so they can
-@@ -74,6 +78,9 @@ if(THEROCK_ENABLE_COMPILER)
- 
-       # Features
-       -DLLVM_INCLUDE_TESTS=${THEROCK_ENABLE_LLVM_TESTS}
-+      -DLLVM_BUILD_TESTS=${THEROCK_ENABLE_LLVM_TESTS}
-+      -DCLANG_INCLUDE_TESTS=${THEROCK_ENABLE_LLVM_TESTS}
-+      -DLLVM_LIT_ARGS='-vv --show-unsupported --show-xfail -j 16'
-       -DLLVM_ENABLE_ZLIB=FORCE_ON
-       -DLLVM_ENABLE_Z3_SOLVER=OFF
-       -DLLVM_ENABLE_LIBXML2=OFF
 @@ -95,6 +102,9 @@ if(THEROCK_ENABLE_COMPILER)
        -DCLANG_ENABLE_CLANGD=OFF
        -DCLANG_TIDY_ENABLE_STATIC_ANALYZER=OFF
@@ -46,7 +13,7 @@ index eee0b5d5..dfabe601 100644
        -DCLANG_TOOL_OFFLOAD_ARCH_BUILD=${THEROCK_CONDITION_IS_NON_WINDOWS}
        -DOPENMP_ENABLE_LIBOMPTARGET=${THEROCK_CONDITION_IS_NON_WINDOWS}
 diff --git a/compiler/artifact-amd-llvm.toml b/compiler/artifact-amd-llvm.toml
-index 6b3ba876..54bc1b14 100644
+index c74d02a9..7e0b24f3 100644
 --- a/compiler/artifact-amd-llvm.toml
 +++ b/compiler/artifact-amd-llvm.toml
 @@ -7,6 +7,7 @@ unmatched_exclude = [
@@ -58,10 +25,10 @@ index 6b3ba876..54bc1b14 100644
  
  # LLVM deviates from the defaults in some key ways:
 diff --git a/compiler/pre_hook_amd-llvm.cmake b/compiler/pre_hook_amd-llvm.cmake
-index f84f7f21..aa0af2c2 100644
+index 28dc936b..8fede131 100644
 --- a/compiler/pre_hook_amd-llvm.cmake
 +++ b/compiler/pre_hook_amd-llvm.cmake
-@@ -124,9 +124,9 @@ set(LLVM_EXTERNAL_PROJECTS "rocm-device-libs;spirv-llvm-translator" CACHE STRING
+@@ -128,9 +128,9 @@ set(LLVM_EXTERNAL_PROJECTS "rocm-device-libs;spirv-llvm-translator" CACHE STRING
  # options to manage this transition but they require knowing the clange resource
  # dir. In order to avoid drift, we just fixate that too. This can all be
  # removed in a future version.

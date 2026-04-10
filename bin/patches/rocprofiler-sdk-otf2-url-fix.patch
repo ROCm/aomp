@@ -1,0 +1,13 @@
+diff --git a/external/otf2/CMakeLists.txt b/external/otf2/CMakeLists.txt
+index 65ea4837d0..0fba032398 100644
+--- a/external/otf2/CMakeLists.txt
++++ b/external/otf2/CMakeLists.txt
+@@ -29,7 +29,7 @@ set(FETCHCONTENT_BASE_DIR ${ROCPROFILER_BINARY_DIR}/external/packages)
+ 
+ fetchcontent_declare(
+     otf2-source
+-    URL https://perftools.pages.jsc.fz-juelich.de/cicd/otf2/tags/otf2-${OTF2_VERSION}/otf2-${OTF2_VERSION}.tar.gz
++    URL https://rocm-third-party-deps.s3.us-east-2.amazonaws.com/otf2-${OTF2_VERSION}.tar.gz
+     URL_HASH ${OTF2_URL_HASH})
+ 
+ fetchcontent_makeavailable(otf2-source)
