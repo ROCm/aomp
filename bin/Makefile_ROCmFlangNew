@@ -55,7 +55,7 @@ endif
 ifeq ($(ENABLE_OMP_OFFLOAD), 1)
   OFFLOAD_TRIPLE = amdgcn-amd-amdhsa
   OFFLOAD_ARCH = $(GPU_ID)
-  DEFINES += -DENABLE_OMP_OFFLOAD --offload-arch=$(OFFLOAD_ARCH)
+  DEFINES += -DENABLE_OMP_OFFLOAD --offload-arch=$(OFFLOAD_ARCH) -DOMP_SCHEDULE_HOST=runtime -DOMP_SCHEDULE_TARGET=auto
 endif
 ifeq ($(ENABLE_HIP), 1)
   DEVICE_COMPILE ?= $(HIP_DIR)/bin/hipcc -c -D__HIP_PLATFORM_AMD__

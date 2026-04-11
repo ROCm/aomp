@@ -1,32 +1,8 @@
 diff --git a/Modules/Basics/DataManagement/ArrayOperations/Clear_Command.f90 b/Modules/Basics/DataManagement/ArrayOperations/Clear_Command.f90
-index eba18541..6d430130 100644
+index 50c61e0d..642deea9 100644
 --- a/Modules/Basics/DataManagement/ArrayOperations/Clear_Command.f90
 +++ b/Modules/Basics/DataManagement/ArrayOperations/Clear_Command.f90
-@@ -49,9 +49,9 @@ contains
-     integer ( KDI ), dimension ( : ), intent ( out ) :: &
-       A
- 
--    !$OMP parallel workshare
-+!    !$OMP parallel workshare
-     A = 0_KDI
--    !$OMP end parallel workshare
-+!    !$OMP end parallel workshare
- 
-   end subroutine ClearInteger_1D
- 
-@@ -61,9 +61,9 @@ contains
-     integer ( KDI ), dimension ( :, : ), intent ( out ) :: &
-       A
- 
--    !$OMP parallel workshare
-+!    !$OMP parallel workshare
-     A = 0_KDI
--    !$OMP end parallel workshare
-+!    !$OMP end parallel workshare
- 
-   end subroutine ClearInteger_2D
- 
-@@ -73,9 +73,9 @@ contains
+@@ -108,9 +108,9 @@ contains
      integer ( KDI ), dimension ( :, :, : ), intent ( out ) :: &
        A
  
@@ -39,22 +15,10 @@ index eba18541..6d430130 100644
    end subroutine ClearInteger_3D
  
 diff --git a/Modules/Basics/DataManagement/ArrayOperations/Copy_Command.f90 b/Modules/Basics/DataManagement/ArrayOperations/Copy_Command.f90
-index e2f7ae74..0ea9ace6 100644
+index 780f5efe..aef1f570 100644
 --- a/Modules/Basics/DataManagement/ArrayOperations/Copy_Command.f90
 +++ b/Modules/Basics/DataManagement/ArrayOperations/Copy_Command.f90
-@@ -63,9 +63,9 @@ contains
-     integer ( KDI ), dimension ( : ), intent ( out ) :: &
-       B
- 
--    !$OMP parallel workshare
-+!    !$OMP parallel workshare
-     B = A
--    !$OMP end parallel workshare
-+!    !$OMP end parallel workshare
- 
-   end subroutine CopyInteger_1D
-   
-@@ -183,9 +183,9 @@ contains
+@@ -217,9 +217,9 @@ contains
      integer ( KBI ), dimension ( : ), intent ( out ) :: &
        B
  
@@ -66,48 +30,6 @@ index e2f7ae74..0ea9ace6 100644
  
    end subroutine CopyBigInteger_1D
    
-diff --git a/Modules/Basics/Display/CONSOLE_Singleton.f90 b/Modules/Basics/Display/CONSOLE_Singleton.f90
-index 2f8cd18a..aa5b4ac0 100644
---- a/Modules/Basics/Display/CONSOLE_Singleton.f90
-+++ b/Modules/Basics/Display/CONSOLE_Singleton.f90
-@@ -18,7 +18,7 @@ module CONSOLE_Singleton
-     logical ( KDL ) :: &
-       Muted = .false.
-     procedure ( AbortInterface ), nopass, pointer :: &
--      Abort => null ( )
-+      Abort
-   contains
-     procedure, public, nopass :: &
-       Initialize
-@@ -180,7 +180,7 @@ contains
-   end subroutine Unmute
-   
- 
--  elemental subroutine Finalize ( C )
-+  impure elemental subroutine Finalize ( C )
- 
-     type ( ConsoleSingleton ), intent ( inout ) :: &
-       C
-diff --git a/Programs/Examples/Basics/FluidDynamics/PlaneWaveAdvection_Template.f90 b/Programs/Examples/Basics/FluidDynamics/PlaneWaveAdvection_Template.f90
-index a2d813c..335e77b 100644
---- a/Programs/Examples/Basics/FluidDynamics/PlaneWaveAdvection_Template.f90
-+++ b/Programs/Examples/Basics/FluidDynamics/PlaneWaveAdvection_Template.f90
-@@ -104,8 +104,14 @@ contains
-     VZ = K ( 3 ) / ( dot_product ( K, K ) * Period )
-
-     end associate !-- K
-
-+#ifdef ENABLE_OMP_OFFLOAD
-+      call PF % UpdateDevice ( )
-+#endif
-     call PF % ComputeAuxiliary ( PF % Value )
-     call PF % ComputeConserved ( PF % Value )
-+#ifdef ENABLE_OMP_OFFLOAD
-+      call PF % UpdateHost ( )
-+#endif
-
-     !-- FIXME: Implicit do-loop array needed to workaround Cray compiler
-     !          crashes for elemental function argument of array and scalar
 diff --git a/Modules/Basics/Devices/Device_HIP.c b/Modules/Basics/Devices/Device_HIP.c
 index cd2c80a4..1aaed77d 100644
 --- a/Modules/Basics/Devices/Device_HIP.c
@@ -116,17 +38,17 @@ index cd2c80a4..1aaed77d 100644
 +#ifndef USE_OPENMP_RUNTIME
  #include <stdlib.h>
  #include <stdio.h>
-
+ 
 @@ -86,3 +87,4 @@ int DeviceMemGetInfo_Device ( size_t * Free, size_t * Total )
    return -1;
    #endif
    }
 +#endif
 diff --git a/Modules/Basics/Devices/Device_OMP.c b/Modules/Basics/Devices/Device_OMP.c
-index abccbb8d..0aca89fb 100644
+index 7e1cd61a..3524170f 100644
 --- a/Modules/Basics/Devices/Device_OMP.c
 +++ b/Modules/Basics/Devices/Device_OMP.c
-@@ -220,3 +220,54 @@ bool OffloadEnabled ( )
+@@ -277,3 +277,54 @@ bool OffloadEnabled ( )
    return false;
    #endif
    }
@@ -181,4 +103,71 @@ index abccbb8d..0aca89fb 100644
 +  return -1;
 +  }
 +#endif
-
+diff --git a/Modules/Basics/Display/CONSOLE_Singleton.f90 b/Modules/Basics/Display/CONSOLE_Singleton.f90
+index 2f8cd18a..aa5b4ac0 100644
+--- a/Modules/Basics/Display/CONSOLE_Singleton.f90
++++ b/Modules/Basics/Display/CONSOLE_Singleton.f90
+@@ -18,7 +18,7 @@ module CONSOLE_Singleton
+     logical ( KDL ) :: &
+       Muted = .false.
+     procedure ( AbortInterface ), nopass, pointer :: &
+-      Abort => null ( )
++      Abort
+   contains
+     procedure, public, nopass :: &
+       Initialize
+@@ -180,7 +180,7 @@ contains
+   end subroutine Unmute
+   
+ 
+-  elemental subroutine Finalize ( C )
++  impure elemental subroutine Finalize ( C )
+ 
+     type ( ConsoleSingleton ), intent ( inout ) :: &
+       C
+diff --git a/Programs/Examples/Basics/FluidDynamics/DistributedMesh_Form.f90 b/Programs/Examples/Basics/FluidDynamics/DistributedMesh_Form.f90
+index ae459491..79f1ce92 100644
+--- a/Programs/Examples/Basics/FluidDynamics/DistributedMesh_Form.f90
++++ b/Programs/Examples/Basics/FluidDynamics/DistributedMesh_Form.f90
+@@ -478,6 +478,8 @@ contains
+       nGhostOuter, &
+       nExteriorInner, &
+       nExteriorOuter
++    integer ( KDI ), dimension ( 1 ) :: &
++      nProperCellsBrickCurve
+     type ( Real_1D_Form ), dimension ( MAX_N_DIMENSIONS ) :: &
+       Edge
+     character ( LDF ) :: &
+@@ -527,10 +529,12 @@ contains
+ 
+     case ( 1 ) 
+       
++      nProperCellsBrickCurve ( 1 ) = DM % nCellsPerBrick ( 1 )
+       associate ( CI => DM % CurveImage )
+       call CI % Initialize ( GIS )
+       call CI % SetGridWrite &
+-             ( 'Curves', Edge ( 1 ), DM % nProperCells, &
++             ( 'Curves', Edge ( 1 ), nProperCellsBrickCurve, &
++               DM % nProperCells, &
+                oValue = nGhostInner ( 1 ) + nExteriorInner ( 1 ), &
+                CoordinateUnitOption = DM % CoordinateUnit ( 1 ) )
+       do iS = 1, size ( Output )
+diff --git a/Programs/Examples/Basics/FluidDynamics/PlaneWaveAdvection_Template.f90 b/Programs/Examples/Basics/FluidDynamics/PlaneWaveAdvection_Template.f90
+index a2d813c4..580d9abc 100644
+--- a/Programs/Examples/Basics/FluidDynamics/PlaneWaveAdvection_Template.f90
++++ b/Programs/Examples/Basics/FluidDynamics/PlaneWaveAdvection_Template.f90
+@@ -103,8 +103,14 @@ contains
+ 
+     end associate !-- K
+ 
++#ifdef ENABLE_OMP_OFFLOAD
++      call PF % UpdateDevice ( )
++#endif
+     call PF % ComputeAuxiliary ( PF % Value )
+     call PF % ComputeConserved ( PF % Value )
++#ifdef ENABLE_OMP_OFFLOAD
++      call PF % UpdateHost ( )
++#endif
+ 
+     !-- FIXME: Implicit do-loop array needed to workaround Cray compiler
+     !          crashes for elemental function argument of array and scalar 
