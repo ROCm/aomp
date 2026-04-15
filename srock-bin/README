@@ -18,7 +18,7 @@ A: Run these commands:
    nohup ./setup_srock.sh &
    # setup takes awhile (10-20 mins) so using nohup is nice
    mv nohup.out nohup.out.setup
-   nohup ./post_setup_srock_build.sh &
+   nohup ./build_srock.sh &
 
 Q: How is this different than aomp?
 A: Aomp used a set of bash scripts that performed the cmake, make, and make install
