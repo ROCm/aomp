@@ -142,19 +142,23 @@ function derive_rocm_path(){
   # Check if AOMP has ROCm headers (include/hip, include/rocm-core, etc.)
   if [ -d "$AOMP/include/hip" ] || [ -d "$AOMP/include/rocm-core" ] ; then
     ROCM_PATH=$AOMP
+  elif [ -d "$AOMPHIP/include/hip" ] || [ -d "$AOMPHIP/include/rocm-core" ] ; then
+    ROCM_PATH=$AOMPHIP
   elif [ -n "$LLVM_INSTALL_LOC" ] && [ -d "$LLVM_INSTALL_LOC/../../../include/hip" ] ; then
     # For standard ROCm installations: LLVM at $ROCM/lib/llvm
     ROCM_PATH=$(realpath "$LLVM_INSTALL_LOC/../../..")
-  elif [ -d "$AOMP/../include/hip" ] ; then
+  elif [ -d "$(realpath -m "$AOMP")/../../include/hip" ] ; then
     # Fallback: check parent of AOMP
-    ROCM_PATH=$(realpath "$AOMP/..")
+    ROCM_PATH=$(realpath -m "$(realpath -m "$AOMP")"/../..)
   else
     echo "Error: Cannot determine ROCM_PATH."
     echo "       Expected ROCm headers at \$AOMP/include/hip or similar."
     echo "       AOMP=$AOMP"
-    exit 1
+    return 1
   fi
   ROCM_PATH=$(realpath "$ROCM_PATH")
+  export HIPCC="$ROCM_PATH/bin/amdclang"
+  return 0
 }
 
 ################################################################################
@@ -205,7 +209,13 @@ function builducx(){
   _linkfrom=$AOMP_SUPP/$_cname
   _builddir=$AOMP_SUPP_BUILD/$_cname
 
-  derive_rocm_path
+  SKIPBUILD="FALSE"
+  checkversion
+  if [ "$SKIPBUILD" == "TRUE"  ] ; then
+    return
+  fi
+
+  derive_rocm_path || return
 
   # Check if XPMEM is available
   if [ ! -d "$AOMP_SUPP/xpmem" ] ; then
@@ -267,7 +277,13 @@ function builducc(){
   _linkfrom=$AOMP_SUPP/$_cname
   _builddir=$AOMP_SUPP_BUILD/$_cname
 
-  derive_rocm_path
+  SKIPBUILD="FALSE"
+  checkversion
+  if [ "$SKIPBUILD" == "TRUE"  ] ; then
+    return
+  fi
+
+  derive_rocm_path || return
 
   # Check if UCX is available
   if [ ! -d "$AOMP_SUPP/ucx" ] ; then
@@ -403,7 +419,17 @@ function buildopenmpi(){
 function buildrocmopenmpi(){
   _cname="rocmopenmpi"
   _version=5.0.9
-  derive_rocm_path
+  _installdir=$AOMP_SUPP_INSTALL/$_cname-$_version
+  _linkfrom=$AOMP_SUPP/$_cname
+  _builddir=$AOMP_SUPP_BUILD/$_cname
+
+  SKIPBUILD="FALSE"
+  checkversion
+  if [ "$SKIPBUILD" == "TRUE"  ] ; then
+    return
+  fi
+
+  derive_rocm_path || return
   echo "Info: Using ROCM_PATH=$ROCM_PATH"
 
   # Check and build dependencies if needed
