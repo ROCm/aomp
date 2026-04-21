@@ -1,0 +1,75 @@
+MODULE foo
+  USE iso_c_binding
+  USE omp_lib
+  IMPLICIT NONE
+  PRIVATE
+  PUBLIC :: bar_device_ptr, bar_device_addr
+
+  INTERFACE
+    SUBROUTINE bar(x, y, z) BIND(C, name="bar_GPU")
+      USE iso_c_binding
+      TYPE(C_PTR),    VALUE, INTENT(IN)    :: x, y, z
+    END SUBROUTINE
+
+  END INTERFACE
+
+CONTAINS
+
+  SUBROUTINE bar_device_addr(x,y,z)
+    INTEGER, TARGET, INTENT(IN)    :: x(:), y(:)
+    INTEGER, TARGET, INTENT(INOUT) :: z(:)
+    !$omp target data use_device_addr (x, y, z)
+    CALL bar(c_loc(x), c_loc(y), c_loc(z))
+    !$omp end target data
+  END SUBROUTINE
+
+  SUBROUTINE bar_device_ptr(x,y,z)
+    INTEGER, TARGET, INTENT(IN)    :: x(:), y(:)
+    INTEGER, TARGET, INTENT(INOUT) :: z(:)
+    TYPE(C_PTR)                    :: x_ptr, y_ptr, z_ptr
+    
+    x_ptr = omp_get_mapped_ptr(c_loc(x),  omp_get_default_device())
+    y_ptr = omp_get_mapped_ptr(c_loc(y),  omp_get_default_device())
+    z_ptr = omp_get_mapped_ptr(c_loc(z),  omp_get_default_device())
+    CALL bar(x_ptr, y_ptr, z_ptr)
+  END SUBROUTINE
+
+END MODULE foo
+
+PROGRAM test_ptr
+  USE iso_c_binding
+  USE omp_lib
+  USE foo
+  IMPLICIT NONE
+
+  INTEGER, ALLOCATABLE, TARGET :: x(:), y(:), z(:)
+  INTEGER, ALLOCATABLE, TARGET :: x1(:), y1(:), z1(:)
+  INTEGER :: i
+  ALLOCATE(x(1000), y(1000), z(1000))
+  ALLOCATE(x1(1000), y1(1000), z1(1000))
+  z = 0
+  z1 = 0
+  x = 1
+  y = 2
+  x1 = 1
+  y1 = 2
+  i = 1
+  !$omp target enter data map(to: x,y,z,x1,y1,z1)
+
+  CALL bar_device_addr(x,y,z)
+  CALL bar_device_ptr(x1,y1,z1)
+  !$omp target exit data map(from: x,y,z,x1,y1,z1)
+  DO i = 1,1000
+     IF (z(i) .ne. 3) then
+       PRINT *, "Bad result for use_device_addr!"
+       STOP 1
+     ENDIF
+     IF (z1(i) .ne. 3) then
+       PRINT *, "Bad result for omp_get_mapped_ptr!"
+       STOP 1
+     ENDIF
+  END DO
+  DEALLOCATE(x,y,z,x1,y1,z1)
+  PRINT *, "Success"
+END PROGRAM test_ptr
+
