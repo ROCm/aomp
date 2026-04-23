@@ -1,0 +1,17 @@
+# One-time build; point LD_LIBRARY_PATH at different $ROCM/lib to reproduce Tensile layout issues.
+ROCM_PATH ?= ${AMDFLANG_PATH}#/opt/rocm
+#HIPCC     ?= hipcc #$(ROCM_PATH)/bin/hipcc
+HIPCC     ?= $(ROCM_PATH)/bin/hipcc
+
+CXXFLAGS  = -O2 -std=c++17 -Wall -Wextra
+CPPFLAGS  = -I$(ROCM_PATH)/include
+LDFLAGS   = -L$(ROCM_PATH)/lib -Wl,-rpath,$(ROCM_PATH)/lib
+LDLIBS    = -lrocblas -lamdhip64
+
+.PHONY: reproducer
+reproducer: reproducer.cpp
+	$(HIPCC) $(CPPFLAGS) $(CXXFLAGS) -o $@ $< $(LDFLAGS) $(LDLIBS)
+
+.PHONY: clean
+clean:
+	rm -f reproducer
