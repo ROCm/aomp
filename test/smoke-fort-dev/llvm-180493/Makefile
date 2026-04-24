@@ -7,7 +7,7 @@ TESTNAME     = equiv
 TESTSRC_MAIN = equiv.f90
 TESTSRC_ALL  = $(TESTSRC_MAIN)
 
-FLANG        = flang
+FLANG        ?= amdflang
 CFLAGS       = -fopenmp
 OMP_BIN      = $(AOMP)/bin/$(FLANG)
 CC           = $(OMP_BIN) $(VERBOSE)

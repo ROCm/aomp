@@ -18,7 +18,7 @@ program equiv
 
     failed = .false.
 
-    !$omp parallel num_threads(nthreads) shared(failed) private(chk)
+    !$omp parallel num_threads(nthreads) shared(failed) private(i,chk)
         x = 21
         chk = 21
         !$omp masked filter(1)
