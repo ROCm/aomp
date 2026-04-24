@@ -6,32 +6,35 @@ MODULE foo
   PUBLIC :: bar_device_ptr, bar_device_addr
 
   INTERFACE
-    SUBROUTINE bar(x, y, z) BIND(C, name="bar_GPU")
+    SUBROUTINE bar(x, y, z, n) BIND(C, name="bar_GPU")
       USE iso_c_binding
       TYPE(C_PTR),    VALUE, INTENT(IN)    :: x, y, z
+      INTEGER(C_INT), VALUE, INTENT(IN)    :: n
     END SUBROUTINE
 
   END INTERFACE
 
 CONTAINS
 
-  SUBROUTINE bar_device_addr(x,y,z)
+  SUBROUTINE bar_device_addr(x,y,z,n)
     INTEGER, TARGET, INTENT(IN)    :: x(:), y(:)
     INTEGER, TARGET, INTENT(INOUT) :: z(:)
+    INTEGER(C_INT), INTENT(IN)     :: n
     !$omp target data use_device_addr (x, y, z)
-    CALL bar(c_loc(x), c_loc(y), c_loc(z))
+    CALL bar(c_loc(x), c_loc(y), c_loc(z), n)
     !$omp end target data
   END SUBROUTINE
 
-  SUBROUTINE bar_device_ptr(x,y,z)
+  SUBROUTINE bar_device_ptr(x,y,z,n)
     INTEGER, TARGET, INTENT(IN)    :: x(:), y(:)
     INTEGER, TARGET, INTENT(INOUT) :: z(:)
+    INTEGER(C_INT), INTENT(IN)     :: n
     TYPE(C_PTR)                    :: x_ptr, y_ptr, z_ptr
     
     x_ptr = omp_get_mapped_ptr(c_loc(x),  omp_get_default_device())
     y_ptr = omp_get_mapped_ptr(c_loc(y),  omp_get_default_device())
     z_ptr = omp_get_mapped_ptr(c_loc(z),  omp_get_default_device())
-    CALL bar(x_ptr, y_ptr, z_ptr)
+    CALL bar(x_ptr, y_ptr, z_ptr, n)
   END SUBROUTINE
 
 END MODULE foo
@@ -44,9 +47,10 @@ PROGRAM test_ptr
 
   INTEGER, ALLOCATABLE, TARGET :: x(:), y(:), z(:)
   INTEGER, ALLOCATABLE, TARGET :: x1(:), y1(:), z1(:)
-  INTEGER :: i
-  ALLOCATE(x(1000), y(1000), z(1000))
-  ALLOCATE(x1(1000), y1(1000), z1(1000))
+  INTEGER(C_INT) :: i, n
+  n = 1000
+  ALLOCATE(x(n), y(n), z(n))
+  ALLOCATE(x1(n), y1(n), z1(n))
   z = 0
   z1 = 0
   x = 1
@@ -56,10 +60,10 @@ PROGRAM test_ptr
   i = 1
   !$omp target enter data map(to: x,y,z,x1,y1,z1)
 
-  CALL bar_device_addr(x,y,z)
-  CALL bar_device_ptr(x1,y1,z1)
+  CALL bar_device_addr(x,y,z,n)
+  CALL bar_device_ptr(x1,y1,z1,n)
   !$omp target exit data map(from: x,y,z,x1,y1,z1)
-  DO i = 1,1000
+  DO i = 1,n
      IF (z(i) .ne. 3) then
        PRINT *, "Bad result for use_device_addr!"
        STOP 1
