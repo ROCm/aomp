@@ -16,7 +16,7 @@ contains
         integer i,j,k,l,m
         real(rstd), dimension(nsize,nsize,nsize) :: tmp
 
-!$omp target teams
+!$omp target teams distribute
         do i=1,nsize
 #define PRIVATE_ARRAY 1
 #ifdef PRIVATE_ARRAY
@@ -35,7 +35,7 @@ contains
                 end do
             end do
         end do
-!$omp end target teams
+!$omp end target teams distribute
     end subroutine _compute_dev
 
     subroutine compute_dev()
