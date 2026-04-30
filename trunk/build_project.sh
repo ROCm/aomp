@@ -1,6 +1,6 @@
 #!/bin/bash
 # 
-#  build_project.sh:  Script to build the trunk compiler. 
+#  build_project.sh : Script to build the trunk compiler.
 #
 BUILD_TYPE=${BUILD_TYPE:-Release}
 # --- Start standard header to set AOMP environment variables ----
