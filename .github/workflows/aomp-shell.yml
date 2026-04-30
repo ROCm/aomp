@@ -29,8 +29,8 @@ jobs:
       - name: Run shellcheck
         run: |
           shellcheck_status=0
-          for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
-            if [[ $file == *.sh ]] || [[ $(file "$file") =~ "shell script" ]]; then
+          while read -r file; do
+            if [[ "$file" == *.sh ]] || [[ $(file "$file") =~ "shell script" ]]; then
               file_dir=$(dirname "$file")
               file_name=$(basename "$file")
 
@@ -43,6 +43,6 @@ jobs:
 
               popd || exit 1
             fi
-          done
+          done <<< "${{ steps.changed-files.outputs.all_changed_files }}"
           exit $shellcheck_status
         shell: bash {0}
