@@ -25,7 +25,7 @@ jobs:
       - name: Echo changed files
         run: |
           echo "Changed files: ${{ steps.changed-files.outputs.all_changed_files }}"
-          echo "Git diff files: $(git diff --name-only HEAD~1 HEAD)
+          echo "Git diff files: $(git diff --name-only HEAD~1 HEAD)"
 
       - name: Run shellcheck
         run: |
