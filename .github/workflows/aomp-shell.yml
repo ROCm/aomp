@@ -17,7 +17,7 @@ jobs:
         id: changed-files
         uses: tj-actions/changed-files@22103cc46bda19c2b464ffe86db46df6922fd323
         with:
-          separator: '\n'
+          separator: ' '
           skip_initial_fetch: true
           base_sha: 'HEAD~1'
           sha: 'HEAD'
@@ -25,6 +25,7 @@ jobs:
       - name: Echo changed files
         run: |
           echo "Changed files: ${{ steps.changed-files.outputs.all_changed_files }}"
+          echo "Git diff files: $(git diff --name-only HEAD~1 HEAD)"
 
       - name: Run shellcheck
         run: |
@@ -43,6 +44,6 @@ jobs:
 
               popd || exit 1
             fi
-          done <<< "${{ steps.changed-files.outputs.all_changed_files }}"
+          done <<< $(git diff --name-only HEAD~1 HEAD)
           exit $shellcheck_status
         shell: bash {0}
