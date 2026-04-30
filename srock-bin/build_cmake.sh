@@ -1,5 +1,7 @@
 #!/bin/bash
 #
+# build_cmake.sh : build cmake and ninja
+#
 #Copyright © Advanced Micro Devices, Inc., or its affiliates.
 #
 #SPDX-License-Identifier:  MIT
