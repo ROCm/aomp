@@ -1,6 +1,6 @@
 #!/bin/bash
 # 
-#   build_trunk.sh : Build all trunk components.
+#   build_trunk.sh : Script to build all trunk components.
 #
 # --- Start standard header ----
 realpath=`realpath $0`
