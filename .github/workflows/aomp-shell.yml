@@ -25,12 +25,13 @@ jobs:
       - name: Echo changed files
         run: |
           echo "Changed files: ${{ steps.changed-files.outputs.all_changed_files }}"
+          echo "Git diff files: $(git diff --name-only HEAD~1 HEAD)"
 
       - name: Run shellcheck
         run: |
           shellcheck_status=0
-          for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
-            if [[ $file == *.sh ]] || [[ $(file "$file") =~ "shell script" ]]; then
+          while read -r file; do
+            if [[ "$file" == *.sh ]] || [[ $(file "$file") =~ "shell script" ]]; then
               file_dir=$(dirname "$file")
               file_name=$(basename "$file")
 
@@ -43,6 +44,6 @@ jobs:
 
               popd || exit 1
             fi
-          done
+          done <<< $(git diff --name-only HEAD~1 HEAD)
           exit $shellcheck_status
         shell: bash {0}
