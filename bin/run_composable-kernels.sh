@@ -62,12 +62,14 @@ function getIndexListByTargetArch {
   OnlyVisibleDevices=()
   if [ -n "${ROCR_VISIBLE_DEVICES}" ]; then
     IFS=',' read -ra RocrDevices <<< "${ROCR_VISIBLE_DEVICES}"
-    OnlyVisibleDevices=("-d" "${RocrDevices[@]}")
+    OnlyVisibleDevices=("-g" "${RocrDevices[@]}")
   fi
-  # FIXME: Transition to 'amd-smi static' at some point
-  GPUList="$(rocm-smi --showproductname "${OnlyVisibleDevices[@]}")"
-  GPURegex="s/^GPU\[([0-9]+)\].*${TargetArch}$/\1/p"
-  TargetArchIndexList=$(echo "${GPUList}" | sed -En "${GPURegex}" | xargs echo)
+  # Use amd-smi to get GPU info and filter by target architecture
+  GPUInfo="$(amd-smi static --asic "${OnlyVisibleDevices[@]}")"
+  TargetArchIndexList=$(echo "${GPUInfo}" | awk -v arch="${TargetArch}" '
+    /^GPU:/ { gpu = $2 }
+    /TARGET_GRAPHICS_VERSION:/ && $2 == arch { print gpu }
+  ' | xargs echo)
 
   # Return the space-separated index list string (e.g. "0 1 3 4")
   echo "${TargetArchIndexList}"
