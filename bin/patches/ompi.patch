@@ -1,0 +1,21 @@
+diff -Naur openmpi-5.0.10.orig/oshmem/mca/memheap/base/memheap_base_mkey.c openmpi-5.0.10/oshmem/mca/memheap/base/memheap_base_mkey.c
+--- openmpi-5.0.10.orig/oshmem/mca/memheap/base/memheap_base_mkey.c	2026-02-23 14:21:11.043280469 -0600
++++ openmpi-5.0.10/oshmem/mca/memheap/base/memheap_base_mkey.c	2026-04-17 13:57:40.309512230 -0500
+@@ -444,7 +444,7 @@
+ 
+ static int send_buffer(int pe, pmix_data_buffer_t *msg)
+ {
+-    void *buffer;
++    char *buffer;
+     size_t size;
+     int rc;
+ 
+@@ -521,7 +521,7 @@
+     int j;
+     int nprocs, my_pe;
+     pmix_data_buffer_t *msg = NULL;
+-    void *send_buffer = NULL;
++    char *send_buffer = NULL;
+     char *rcv_buffer = NULL;
+     size_t size;
+     int *rcv_size = NULL;
