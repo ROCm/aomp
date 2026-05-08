@@ -394,6 +394,12 @@ function _buildopenmpi_impl(){
     FC=$LLVM_INSTALL_LOC/bin/${FLANG} \
     $_extra_configure_opts"
 
+  if [[ "$_version" == "5.0.10" ]] ; then
+    if [ -f "$thisdir/patches/ompi.patch" ] ; then
+       runcmdin "patch --merge -p1" "$thisdir/patches/ompi.patch"
+    fi
+  fi
+
   runcmd "make -j${AOMP_JOB_THREADS}"
   runcmd "make install"
   if [ -L "$_linkfrom" ] ; then
@@ -418,7 +424,7 @@ function buildopenmpi(){
 ################################################################################
 function buildrocmopenmpi(){
   _cname="rocmopenmpi"
-  _version=5.0.9
+  _version=5.0.10
   _installdir=$AOMP_SUPP_INSTALL/$_cname-$_version
   _linkfrom=$AOMP_SUPP/$_cname
   _builddir=$AOMP_SUPP_BUILD/$_cname
@@ -456,7 +462,7 @@ function buildrocmopenmpi(){
     "--disable-debug"
 
   # Configure default MCA parameters for UCX
-  local _installdir=$AOMP_SUPP_INSTALL/rocmopenmpi-5.0.9
+  local _installdir=$AOMP_SUPP_INSTALL/rocmopenmpi-5.0.10
   if [ -d "$_installdir/etc" ] ; then
     echo "# Setting UCX as default point-to-point and one-sided communication"
     {
