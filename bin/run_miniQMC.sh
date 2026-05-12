@@ -52,7 +52,7 @@ export rocsolver_DIR=${ROCM}/lib/cmake/rocsolver/
 
 
 if [ ! -d "$MQMC_SOURCE_DIR" ]; then
-  git clone https://github.com/ye-luo/miniqmc "$MQMC_SOURCE_DIR"
+  git clone https://github.com/QMCPACK/miniqmc.git "$MQMC_SOURCE_DIR"
   git checkout "${MQMC_GIT_TAG}"
 fi
 
