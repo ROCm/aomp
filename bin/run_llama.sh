@@ -127,15 +127,37 @@ if [ "${DoBenchmark}" == "yes" ]; then
   # llama-cli will turn on interactive mode, so echo /exit to it immediately
   ./bin/llama-cli -hf ${LLAMA_BENCH_HF_ID} --prompt "/exit"
 
-  # For the find command, we need to replace '/' with '_' in the LLAMA_BENCH_HF_ID
-  ModelSearchPattern=${LLAMA_BENCH_HF_ID/\//\_}
-  # Pick up first model with that name. Basically, pick up first quantization of that model
-  LlamaModelPath=$(find "$LLAMA_CACHE" -maxdepth 1 -name "${ModelSearchPattern}*.gguf" 2>/dev/null | head -1)
+  # Get cache directory from llama-cli
+  CacheListOutput=$(./bin/llama-cli --cache-list 2>&1)
+  CacheDir=$(echo "${CacheListOutput}" | grep "model cache directory:" | sed 's/.*: //')
+  : "${CacheDir:=${LLAMA_CACHE}}"
+
+  # Find requested model by converting HF ID to filename pattern (user/model -> user_model)
+  SearchPattern="${LLAMA_BENCH_HF_ID//\//_}"
+  LlamaModelPath=$(find "${CacheDir}" -maxdepth 1 -type f -name "${SearchPattern}*.gguf" 2>/dev/null | head -1)
+
+  # Fallback: use all available .gguf files in cache
+  if [ -z "${LlamaModelPath}" ]; then
+    echo "Requested model not found, using all cached models"
+    mapfile -t ModelPaths < <(find "${CacheDir}" -maxdepth 1 -type f -name "*.gguf" 2>/dev/null)
+  else
+    ModelPaths=("${LlamaModelPath}")
+  fi
+
+  if [ ${#ModelPaths[@]} -eq 0 ]; then
+    echo "ERROR: No model files found in cache directory: ${CacheDir}"
+    ls -la "${CacheDir}" 2>/dev/null || echo "Directory does not exist"
+    exit 1
+  fi
 
   # Marker for external scripts
   echo "LLAMA_BENCHMARK_BEGIN" | tee "${LLAMA_TESTS_LOG_LOCATION}/llama-bench.log"
-  # Run benchmark
-  ./bin/llama-bench -ngl 999 -fa 1 -ub 2048 -m "$LlamaModelPath" 2>&1 | tee -a "${LLAMA_TESTS_LOG_LOCATION}/llama-bench.log"
+
+  # Run benchmark for each model
+  for LlamaModelPath in "${ModelPaths[@]}"; do
+    echo "Benchmarking: ${LlamaModelPath}"
+    ./bin/llama-bench -ngl 999 -fa 1 -ub 2048 -m "${LlamaModelPath}" 2>&1 | tee -a "${LLAMA_TESTS_LOG_LOCATION}/llama-bench.log"
+  done
 fi
 
 popd || exit
