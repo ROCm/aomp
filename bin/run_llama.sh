@@ -125,7 +125,7 @@ if [ "${DoBenchmark}" == "yes" ]; then
   cd "${LLAMA_BUILD_DIR}" || exit
   # Download model from HF (this will make it avail in local cache); bench call requires local model file
   # llama-cli will turn on interactive mode, so echo /exit to it immediately
-  echo "/exit" | ./bin/llama-cli -hf ${LLAMA_BENCH_HF_ID}
+  ./bin/llama-cli -hf ${LLAMA_BENCH_HF_ID} --prompt "/exit"
 
   # For the find command, we need to replace '/' with '_' in the LLAMA_BENCH_HF_ID
   ModelSearchPattern=${LLAMA_BENCH_HF_ID/\//\_}
