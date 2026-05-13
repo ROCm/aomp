@@ -25,6 +25,9 @@ OMP_TARGET_OFFLOAD=mandatory
 
 export AOMP AOMP_GPU PATH CXX FC FFLAGS CXXFLAGS OMP_TARGET_OFFLOAD
 
+# Apply OvO patch before running tests
+patchrepo "$AOMP_REPOS_TEST/$AOMP_OVO_REPO_NAME"
+
 cd $AOMP_REPOS_TEST/$AOMP_OVO_REPO_NAME
 rm -f ovo.run.log*
 HALF_THREADS=$(( AOMP_JOB_THREADS/2 ))
@@ -46,3 +49,6 @@ if [ "$1" == "log" ]; then
   ./ovo.sh report --failed 2>&1 | tee $log
   ./ovo.sh report --passed 2>&1 | tee -a $log
 fi
+
+# Remove patch after test execution
+removepatch "$AOMP_REPOS_TEST/$AOMP_OVO_REPO_NAME"
