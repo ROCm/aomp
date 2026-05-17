@@ -34,6 +34,7 @@ USE_HIP_OPENMP="${USE_HIP_OPENMP:0}"
 
 USE_MODULES=${USE_MODULES:-0}
 if [ "$USE_MODULES" == "1" ] && [ -e /etc/profile.d/modules.sh ] ; then
+   # shellcheck disable=SC1091
    source /etc/profile.d/modules.sh
    # This script assumes modules setup on poplar cluster
    module load cmake
@@ -174,7 +175,6 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
   $AOMP_CMAKE -DOFFLOAD_ARCH="$AOMP_GPU" \
               -DQMC_GPU=openmp \
               -DOFFLOAD_TARGET="amdgcn-amd-amdhsa" \
-              -DENABLE_TIMERS=1 \
               "${custom_opts[@]}" \
               ..
 fi
