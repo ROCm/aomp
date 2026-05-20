@@ -124,8 +124,10 @@ if [ "${DoBenchmark}" == "yes" ]; then
   echo "Running benchmark..."
   cd "${LLAMA_BUILD_DIR}" || exit
   # Download model from HF (this will make it avail in local cache); bench call requires local model file
-  # llama-cli will turn on interactive mode, so echo /exit to it immediately
-  ./bin/llama-cli -hf ${LLAMA_BENCH_HF_ID} --prompt "/exit"
+  # Use -st (single-turn) to exit after the first response instead of blocking in
+  # conversation mode, which is auto-enabled for chat/instruction-tuned models.
+  # Redirect stdin from /dev/null as a safety net against interactive hangs.
+  ./bin/llama-cli -hf "${LLAMA_BENCH_HF_ID}" --prompt "/exit" -st < /dev/null
 
   # Get cache directory from llama-cli
   CacheListOutput=$(./bin/llama-cli --cache-list 2>&1)
