@@ -58,10 +58,10 @@ else
    COMPILERS=(-DCMAKE_C_COMPILER="$AOMP_CC_COMPILER"
               -DCMAKE_CXX_COMPILER="$AOMP_CXX_COMPILER")
    if [ "$AOMP_PROC" == "aarch64" ] ; then
-      TARGETS_TO_BUILD="AMDGPU;${AOMP_NVPTX_TARGET}AArch64"
+      TARGETS_TO_BUILD="AMDGPU;${AOMP_NVPTX_TARGET}AArch64;SPIRV"
       _qmathopt=()
    else
-      TARGETS_TO_BUILD="AMDGPU;${AOMP_NVPTX_TARGET}X86"
+      TARGETS_TO_BUILD="AMDGPU;${AOMP_NVPTX_TARGET}X86;SPIRV"
    fi
 fi
 
@@ -173,7 +173,7 @@ MYCMAKEOPTS=("${MYCMAKEOPTS[@]}"
              -DLLVM_RUNTIME_TARGETS="default;amdgcn-amd-amdhsa"
              -DRUNTIMES_amdgcn-amd-amdhsa_FLANG_RT_LIBC_PROVIDER=llvm
              -DRUNTIMES_amdgcn-amd-amdhsa_FLANG_RT_LIBCXX_PROVIDER=llvm
-             -DRUNTIMES_amdgcn-amd-amdhsa_CACHE_FILES="$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/libcxx/cmake/caches/AMDGPU.cmake"
+             -DRUNTIMES_amdgcn-amd-amdhsa_CACHE_FILES="$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/compiler-rt/cmake/caches/AMDGPU.cmake;$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/libcxx/cmake/caches/AMDGPU.cmake"
              )
 
 # Enable Compiler-rt Sanitizer Build

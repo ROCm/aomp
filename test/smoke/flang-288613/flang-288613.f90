@@ -21,7 +21,7 @@ contains
         real(rstd) :: tmp
 #endif
 
-!$omp target teams
+!$omp target teams distribute
         do i=1,nsize
 !$omp parallel do simd private(tmp)
             do j=1,nsize
@@ -44,7 +44,7 @@ contains
                 end do
             end do
         end do
-!$omp end target teams
+!$omp end target teams distribute
     end subroutine _compute_dev
 
     subroutine compute_dev()

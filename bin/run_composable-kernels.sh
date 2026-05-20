@@ -11,20 +11,24 @@ CKRepoURL='https://github.com/ROCm/rocm-libraries.git'
 CKRepoBranchName='develop'
 CKBenchmarkRepoBranchName='main'
 
-# We grab the total system memory and assume a requirement of 10GB per process
+# We grab the total system memory and assume a requirement of 8GB per process
 # when building CK. This is likely a bit conservative.
-CKBuildParallelism=$(free -g | grep Mem | awk '{print int($2/10)}')
+# However, this should not exceed the number of reported CPU cores.
+MaxParallelismCpu=$(nproc)
+MaxParallelismMem=$(free -g | grep Mem | awk '{print int($2/8)}')
+CKBuildParallelism=$((MaxParallelismMem > MaxParallelismCpu ? \
+                      MaxParallelismCpu : MaxParallelismMem))
 
-# Check if the user overrode number of parallel build jobs
-# via env var
-if [ ! -z ${CK_BUILD_PARALLELISM} ]; then
+# Check if the user overrode number of parallel build jobs via env var
+if [ -n "${CK_BUILD_PARALLELISM}" ]; then
   CKBuildParallelism=${CK_BUILD_PARALLELISM}
 fi
 
-realpath=$(realpath $0)
-thisdir=$(dirname $realpath)
+realpath=$(realpath "$0")
+thisdir=$(dirname "$realpath")
 
-. $thisdir/aomp_common_vars
+# shellcheck disable=SC1091
+. "$thisdir"/aomp_common_vars
 
 export PATH=$AOMP/bin:$PATH
 
@@ -55,13 +59,17 @@ function getIndexListByTargetArch {
   # First, get a detailed list of all available and visible GPUs.
   # Then match lines containing the target arch and capture the bracketed index.
   # Finally, we use xargs to format the results into a tidy, single-line list.
-  OnlyVisibleDevices=""
-  if [ ! -z "${ROCR_VISIBLE_DEVICES}" ]; then
-    OnlyVisibleDevices="$(echo "-d ${ROCR_VISIBLE_DEVICES}" | tr ',' ' ')"
+  OnlyVisibleDevices=()
+  if [ -n "${ROCR_VISIBLE_DEVICES}" ]; then
+    IFS=',' read -ra RocrDevices <<< "${ROCR_VISIBLE_DEVICES}"
+    OnlyVisibleDevices=("-g" "${RocrDevices[@]}")
   fi
-  GPUList="$(rocm-smi --showproductname ${OnlyVisibleDevices})"
-  GPURegex="s/^GPU\[([0-9]+)\].*${TargetArch}$/\1/p"
-  TargetArchIndexList=$(echo "${GPUList}" | sed -En "${GPURegex}" | xargs echo)
+  # Use amd-smi to get GPU info and filter by target architecture
+  GPUInfo="$(amd-smi static --asic "${OnlyVisibleDevices[@]}")"
+  TargetArchIndexList=$(echo "${GPUInfo}" | awk -v arch="${TargetArch}" '
+    /^GPU:/ { gpu = $2 }
+    /TARGET_GRAPHICS_VERSION:/ && $2 == arch { print gpu }
+  ' | xargs echo)
 
   # Return the space-separated index list string (e.g. "0 1 3 4")
   echo "${TargetArchIndexList}"
@@ -74,7 +82,7 @@ function distributeWorkToGPUs {
 
   # Sanity checks
   if [ "${#WorkItems[@]}" -eq 0 ] ||
-    ([ "${#WorkItems[@]}" -eq 1 ] && [ -z "${WorkItems[@]}" ]); then
+    { [ "${#WorkItems[@]}" -eq 1 ] && [ -z "${WorkItems[0]}" ]; }; then
     echo "Error: Received empty list of commands"
     exit 1
   fi
@@ -82,7 +90,7 @@ function distributeWorkToGPUs {
   # Get and count available GPUs (as list)
   GPUList="$(getIndexListByTargetArch "${CK_GPU_TARGETS}")"
   GPUCount=$(echo "${GPUList}" | wc -w)
-  if [ ${GPUCount} -le 0 ]; then
+  if [ "${GPUCount}" -le 0 ]; then
     echo "No target GPUs available"
     exit 1
   fi
@@ -93,7 +101,7 @@ function distributeWorkToGPUs {
   # Run the work items, using GNU parallel
   # Note: {%} provides the job slot (thread) index, {#} the job sequence index
   echo "Running ${#WorkItems[@]} work items in parallel, using ${GPUCount} GPUs"
-  parallel -j ${GPUCount} --line-buffer \
+  parallel -j "${GPUCount}" --line-buffer \
     ' read -ra AvailableGPUs <<< "${GPUList}"
       GPUIndex=$(({%} - 1))
       SelectedGPU=${AvailableGPUs[GPUIndex]}
@@ -226,34 +234,34 @@ while getopts "j:hilrubs:t:" opt; do
 done
 
 # Set the default build prefix, i.e., build-top-level
-: ${CK_TOP:=$AOMP_REPOS_TEST/composable-kernels}
-: ${CK_REPO:=$CK_TOP/rocm-libraries}
-: ${CK_SRC:=$CK_REPO/projects/composablekernel}
-: ${CK_BUILD:=$CK_TOP/ck-build}
-: ${CK_BENCHMARK_REPO:=$CK_TOP/ck-benchmark}
+: "${CK_TOP:=$AOMP_REPOS_TEST/composable-kernels}"
+: "${CK_REPO:=$CK_TOP/rocm-libraries}"
+: "${CK_SRC:=$CK_REPO/projects/composablekernel}"
+: "${CK_BUILD:=$CK_TOP/ck-build}"
+: "${CK_BENCHMARK_REPO:=$CK_TOP/ck-benchmark}"
 # Move this to its own place, to avoid potential permission conflicts with certain setups.
-: ${CK_BENCHMARK_RESULT:=$CK_TOP/ck-benchmark-result}
-: ${CK_INSTALL:=$CK_TOP/ck-install}
-: ${CK_CLIENT_EXAMPLES_SOURCE:=$CK_SRC/client_example}
-: ${CK_CLIENT_EXAMPLES_BUILD:=$CK_TOP/ck-client-examples-build}
+: "${CK_BENCHMARK_RESULT:=$CK_TOP/ck-benchmark-result}"
+: "${CK_INSTALL:=$CK_TOP/ck-install}"
+: "${CK_CLIENT_EXAMPLES_SOURCE:=$CK_SRC/client_example}"
+: "${CK_CLIENT_EXAMPLES_BUILD:=$CK_TOP/ck-client-examples-build}"
 # Run regular and client examples on multiple GPUs (if present)
-: ${CK_EXAMPLES_PARALLEL:='yes'}
-: ${CK_EXAMPLES_PREFIX:='example_'}
-: ${CK_EXAMPLES_LOG_LOCATION:=$CK_TOP/ck-examples-logs}
-: ${CK_TESTS_LOG_LOCATION:=$CK_TOP/ck-tests-logs}
+: "${CK_EXAMPLES_PARALLEL:="yes"}"
+: "${CK_EXAMPLES_PREFIX:="example_"}"
+: "${CK_EXAMPLES_LOG_LOCATION:=$CK_TOP/ck-examples-logs}"
+: "${CK_TESTS_LOG_LOCATION:=$CK_TOP/ck-tests-logs}"
 
 # Some client-examples may take long, override this to skip tests
 # e.g. CK_CLIENT_EXAMPLES_TO_EXCLUDE=("10_grouped_convnd_bwd_data" "24_grouped_conv_activation")
-: ${CK_CLIENT_EXAMPLES_TO_EXCLUDE:=""}
+: "${CK_CLIENT_EXAMPLES_TO_EXCLUDE:=""}"
 
 # Get some info on the system
-: ${ROCM_PATH:=/opt/rocm}
-: ${CK_GPU_TARGETS:=''}
-: ${AOMP_LIB_PATH:="${AOMP}/.."}
+: "${ROCM_PATH:=/opt/rocm}"
+: "${CK_GPU_TARGETS:=""}"
+: "${AOMP_LIB_PATH:="${AOMP}/.."}"
 
-if [ -z ${CK_GPU_TARGETS} ]; then
+if [ -z "${CK_GPU_TARGETS}" ]; then
   NumGpuArchs=$(amdgpu-arch | sort | uniq | wc -l)
-  if [ ${NumGpuArchs} -gt 1 ]; then
+  if [ "${NumGpuArchs}" -gt 1 ]; then
     echo "Error: More than one GPU architecture detected. This may cause issues."
     echo "       Please set the CK_GPU_TARGETS variable to the desired GPU arch."
     exit 1
@@ -266,29 +274,31 @@ fi
 echo "Building for ${CK_GPU_TARGETS}"
 
 # Check if user overrode number of parallel build jobs
-if [ ! -z ${CK_BUILD_PARALLELISM} ]; then
+if [ -n "${CK_BUILD_PARALLELISM}" ]; then
   CKBuildParallelism=${CK_BUILD_PARALLELISM}
 fi
 
-if [ ! -d ${CK_TOP} ]; then
-  mkdir -p ${CK_TOP} || exit 1
+if [ ! -d "${CK_TOP}" ]; then
+  mkdir -p "${CK_TOP}" || exit 1
 fi
 
-if [ ! -d ${CK_REPO} ]; then
-  git clone --single-branch --depth 1 ${CKRepoURL} ${CK_REPO}
+if [ ! -d "${CK_REPO}" ]; then
+  git clone --single-branch --depth 1 ${CKRepoURL} "${CK_REPO}"
 elif [ "${ShouldUpdateCKRepo}" == 'yes' ]; then
-  pushd ${CK_REPO} || exit 1
+  pushd "${CK_REPO}" || exit 1
   git reset --hard origin/${CKRepoBranchName}
   git pull
   # TODO: Write current SHA to somewhere such that it is known which SHA
   #       was tested in this nightly run.
-  popd
+  popd || exit 1
 fi
 
 CKBuildTool='make'
+DashKArg='-k'
 if command -v ninja >/dev/null; then
   CmakeGenerator="-GNinja"
   CKBuildTool='ninja'
+  DashKArg='-k 0'
 fi
 
 # TODO Fix / Finalize the cmake command
@@ -310,64 +320,58 @@ CKCmakeCmd+="-DBUILD_DEV=On"
 # Ensure CK build directory is cleaned.
 if [ "${ShouldRebuildCK}" == 'yes' ]; then
   echo "Rebuilding the CK repo w/ ${CKBuildParallelism} parallel jobs."
-  rm -rf ${CK_BUILD} || exit 1
+  rm -rf "${CK_BUILD}" || exit 1
 
   echo "CMake Config Command:"
   echo "${CKCmakeCmd}"
+  ${CKCmakeCmd} || exit 1
 
-  ${CKCmakeCmd}
-  if [ $? -ne 0 ]; then
-    exit 1
-  fi
 fi
 
 # Ensure CK install directory is cleaned.
 if [ "${ShouldInstallCK}" == 'yes' ]; then
   echo "Purging previous CK installation directory."
-  rm -rf ${CK_INSTALL} || exit 1
+  rm -rf "${CK_INSTALL}" || exit 1
 fi
 
 # Perform (incremental) CK build
 if [ "${ShouldRebuildCK}" == 'yes' ] || [ "${ShouldInstallCK}" == 'yes' ]; then
-  pushd ${CK_BUILD} || exit 1
+  pushd "${CK_BUILD}" || exit 1
 
   # -k parameter avoids stopping at first error
   # ckProfiler target seems to depend on all library targets, which we want to build first
-  /usr/bin/time -o build-times.tlog ${CKBuildTool} -j ${CKBuildParallelism} -k 0 ckProfiler
-  if [ $? -ne 0 ]; then
-    exit 1
-  fi
+  # It seems that make takes just -k and ninja -j 0 to build targets even when errors occur.
+  # shellcheck disable=SC2086
+  /usr/bin/time -o build-times.tlog ${CKBuildTool} -j "${CKBuildParallelism}" ${DashKArg} ckProfiler || exit 1
 
   # Find build success in the build log
   echo "CK-BUILD-SUCCESS"
 
-  popd
+  popd || exit 1
 fi
 
 # Perform CK installation
 if [ "${ShouldInstallCK}" == 'yes' ]; then
-  pushd ${CK_BUILD} || exit 1
+  pushd "${CK_BUILD}" || exit 1
 
   # TODO: Check parallelism. This may use all available threads.
-  /usr/bin/time -o install-times.tlog ${CKBuildTool} -k 0 install
-  if [ $? -ne 0 ]; then
-    exit 1
-  fi
+  # shellcheck disable=SC2086
+  /usr/bin/time -o install-times.tlog ${CKBuildTool} ${DashKArg} install || exit 1
 
   # Find install success in the log
   echo "CK-INSTALL-SUCCESS"
 
-  popd
+  popd || exit 1
 fi
 
 echo "Run suite: ${SelectedSuite}"
 
 # Check if parallel execution is requested and possible
 UseParallel=0
-if ([ "${SelectedSuite}" == 'client-examples' ] ||
-  [ "${SelectedSuite}" == 'examples' ]) &&
+if { [ "${SelectedSuite}" == 'client-examples' ] ||
+  [ "${SelectedSuite}" == 'examples' ]; } &&
   [ "${CK_EXAMPLES_PARALLEL}" == 'yes' ]; then
-  if [ ! -z "$(command -v parallel)" ]; then
+  if [ -n "$(command -v parallel)" ]; then
     UseParallel=1
   else
     echo "Warning: Parallel execution requested, but 'parallel' is not available"
@@ -379,10 +383,11 @@ if [ "${SelectedSuite}" == 'smoke' ]; then
   if [ ! -d "${CK_TESTS_LOG_LOCATION}" ]; then
     mkdir -p "${CK_TESTS_LOG_LOCATION}" || exit 1
   fi
-  pushd ${CK_BUILD} || exit 1
-  ${CKBuildTool} -j 16 smoke 2>&1 | tee "${CK_TESTS_LOG_LOCATION}/smoke_tests.log"
+  pushd "${CK_BUILD}" || exit 1
+  # shellcheck disable=SC2086
+  ${CKBuildTool} -j "${CKBuildParallelism}" ${DashKArg} smoke 2>&1 | tee "${CK_TESTS_LOG_LOCATION}/smoke_tests.log"
   echo "Log at ${CK_TESTS_LOG_LOCATION}/smoke_tests.log"
-  popd
+  popd || exit 1
 fi
 
 if [ "${SelectedSuite}" == 'regression' ]; then
@@ -390,35 +395,36 @@ if [ "${SelectedSuite}" == 'regression' ]; then
   if [ ! -d "${CK_TESTS_LOG_LOCATION}" ]; then
     mkdir -p "${CK_TESTS_LOG_LOCATION}" || exit 1
   fi
-  pushd ${CK_BUILD} || exit 1
-  ${CKBuildTool} -j 16 regression 2>&1 | tee "${CK_TESTS_LOG_LOCATION}/regression_tests.log"
+  pushd "${CK_BUILD}" || exit 1
+  # shellcheck disable=SC2086
+  ${CKBuildTool} -j "${CKBuildParallelism}" ${DashKArg} regression 2>&1 | tee "${CK_TESTS_LOG_LOCATION}/regression_tests.log"
   echo "Log at ${CK_TESTS_LOG_LOCATION}/regression_tests.log"
-  popd
+  popd || exit 1
 fi
 
 # Handle CK benchmarks (also as default, if no suite has been explicitly selected)
 if [ "${SelectedSuite}" == 'benchmarks' ]; then
   # The CK benchmarks repo appears to be private (for the time being).
 
-  if [ ! -d ${CK_BENCHMARK_REPO} ]; then
+  if [ ! -d "${CK_BENCHMARK_REPO}" ]; then
     echo "CK Benchmarks repo not found. This is a private repo."
     echo "Please clone with your preferred method into ${CK_BENCHMARK_REPO}"
     exit 1
   elif [ "${ShouldUpdateCKBenchmarks}" == 'yes' ]; then
-    pushd ${CK_BENCHMARK_REPO} || exit 1
+    pushd "${CK_BENCHMARK_REPO}" || exit 1
     git reset --hard origin/${CKBenchmarkRepoBranchName}
     git pull
     # TODO: Dump SHA somewhere
-    popd
+    popd || exit 1
   fi
 
-  if [ ! -d ${CK_BENCHMARK_RESULT} ]; then
-    mkdir -p ${CK_BENCHMARK_RESULT} || exit 1
+  if [ ! -d "${CK_BENCHMARK_RESULT}" ]; then
+    mkdir -p "${CK_BENCHMARK_RESULT}" || exit 1
   fi
 
   # Check if a specific test was requested
   # If yes: check if it exists
-  if [ ! -z ${SelectedTest} ]; then
+  if [ -n "${SelectedTest}" ]; then
     if [ ! -f "${CK_BENCHMARK_REPO}/benchmarks/${SelectedTest}" ]; then
       echo "Error: Selected benchmark does not exist:"
       echo "       ${CK_BENCHMARK_REPO}/benchmarks/${SelectedTest}"
@@ -433,21 +439,21 @@ if [ "${SelectedSuite}" == 'benchmarks' ]; then
   # This is the command. It requires the envar CK_PROFILER_DIR to be set to the directory
   # in the CK build tree that contains the CkProfiler binary.
   CKBenchmarkTest="../benchmarks/${SelectedTest}"
-  CKBenchmarkName=$(basename ${CKBenchmarkTest})
+  CKBenchmarkName=$(basename "${CKBenchmarkTest}")
   CKBenchmarkResultOutput="${CK_BENCHMARK_RESULT}/${CKBenchmarkName}.output"
   CKBenchmarkBackend='ck'
   CKBenchmarkCmd="./run_gemm.py ${CKBenchmarkBackend} ${CKBenchmarkTest} --output ${CKBenchmarkResultOutput}"
   CKBenchmarkProfilerExport="export CK_PROFILER_DIR=${CK_BUILD}/bin"
   CKBenchmarkLDLibraryPathExport=$(getLDLibraryPathExportCmd)
 
-  pushd ${CK_BENCHMARK_REPO}/scripts || exit 1
+  pushd "${CK_BENCHMARK_REPO}"/scripts || exit 1
 
   echo "Benchmark Command: ${CKBenchmarkProfilerExport} ; ${CKBenchmarkCmd}"
   ${CKBenchmarkLDLibraryPathExport}
   ${CKBenchmarkProfilerExport}
   ${CKBenchmarkCmd}
 
-  popd
+  popd || exit 1
 
   echo "Benchmark Output File: ${CKBenchmarkResultOutput}"
 fi
@@ -471,22 +477,15 @@ if [ "${SelectedSuite}" == 'client-examples' ]; then
   fi
 
   echo "Rebuilding the CK client-examples"
-  rm -rf ${CK_CLIENT_EXAMPLES_BUILD} || exit 1
+  rm -rf "${CK_CLIENT_EXAMPLES_BUILD}" || exit 1
 
   echo "CMake Config Command:"
   echo "${CKCmakeCmd}"
+  ${CKCmakeCmd} || exit 1
 
-  ${CKCmakeCmd}
-  if [ $? -ne 0 ]; then
-    exit 1
-  fi
-
-  pushd ${CK_CLIENT_EXAMPLES_BUILD} || exit 1
-
-  ${CKBuildTool}
-  if [ $? -ne 0 ]; then
-    exit 1
-  fi
+  pushd "${CK_CLIENT_EXAMPLES_BUILD}" || exit 1
+  # shellcheck disable=SC2086
+  ${CKBuildTool} ${DashKArg} || exit 1
 
   # Process directories to exclude
   # Usage of here-string to avoid sub-shell and removal of potential parentheses
@@ -507,7 +506,7 @@ if [ "${SelectedSuite}" == 'client-examples' ]; then
   # Also, we always want to prune "./CMakeFiles" from the results
   FindArgs+=(-path "*CMakeFiles*" \) -prune -o)
   # If requested, filter the selected tests
-  if [ ! -z ${SelectedTest} ]; then
+  if [ -n "${SelectedTest}" ]; then
     echo "Filtering client-example paths: ./${SelectedTest}"
     FindArgs+=(-path "./${SelectedTest}")
   fi
@@ -537,7 +536,7 @@ if [ "${SelectedSuite}" == 'client-examples' ]; then
 
   NumJobs=${#ExampleRunCmds[@]}
   echo "Found ${NumJobs} client-examples to run"
-  if [ ${NumJobs} == 0 ]; then
+  if [ "${NumJobs}" == 0 ]; then
     # When running this script, we should expect to run something
     # Exit silently, but indicate error via returncode
     exit 1
@@ -559,7 +558,7 @@ if [ "${SelectedSuite}" == 'client-examples' ]; then
     done
   fi
 
-  popd
+  popd || exit 1
 fi
 
 # Handle CK's regular examples
@@ -572,7 +571,7 @@ if [ "${SelectedSuite}" == 'examples' ]; then
 
   # Build argument list for find
   FindArgs=(. -mindepth 1 -maxdepth 1 -type f)
-  if [ -z ${SelectedTest} ]; then
+  if [ -z "${SelectedTest}" ]; then
     # No filtering requested: select all "*" tests
     SelectedTest="*"
   else
@@ -605,7 +604,7 @@ if [ "${SelectedSuite}" == 'examples' ]; then
 
   NumJobs=${#ExampleRunCmds[@]}
   echo "Found ${NumJobs} examples to run"
-  if [ ${NumJobs} == 0 ]; then
+  if [ "${NumJobs}" == 0 ]; then
     # When running this script, we should expect to run something
     # Exit silently, but indicate error via returncode
     exit 1
@@ -613,8 +612,8 @@ if [ "${SelectedSuite}" == 'examples' ]; then
 
   # Avoid picking up stale logs
   echo "Purging CK examples logs"
-  rm -rf ${CK_EXAMPLES_LOG_LOCATION} || exit 1
-  mkdir -p ${CK_EXAMPLES_LOG_LOCATION} || exit 1
+  rm -rf "${CK_EXAMPLES_LOG_LOCATION}" || exit 1
+  mkdir -p "${CK_EXAMPLES_LOG_LOCATION}" || exit 1
 
   # Run each example
   if [ ${UseParallel} == 1 ]; then
@@ -629,5 +628,5 @@ if [ "${SelectedSuite}" == 'examples' ]; then
     done
   fi
 
-  popd
+  popd || exit 1
 fi

@@ -1,0 +1,43 @@
+diff --git a/compiler/CMakeLists.txt b/compiler/CMakeLists.txt
+index bf625919..31c4ceb5 100644
+--- a/compiler/CMakeLists.txt
++++ b/compiler/CMakeLists.txt
+@@ -95,6 +102,9 @@ if(THEROCK_ENABLE_COMPILER)
+       -DCLANG_ENABLE_CLANGD=OFF
+       -DCLANG_TIDY_ENABLE_STATIC_ANALYZER=OFF
+ 
++      -DLIBOMP_USE_HWLOC=ON
++      -DROCM_DEVICE_LIBS_BITCODE_INSTALL_LOC_NEW=${CMAKE_CURRENT_BINARY_DIR}/lib/clang/${LLVM_VERSION_MAJOR}/lib/amdgcn
++
+       -DCLANG_TOOL_CLANG_LINKER_WRAPPER_BUILD=${THEROCK_CONDITION_IS_NON_WINDOWS}
+       -DCLANG_TOOL_OFFLOAD_ARCH_BUILD=${THEROCK_CONDITION_IS_NON_WINDOWS}
+       -DOPENMP_ENABLE_LIBOMPTARGET=${THEROCK_CONDITION_IS_NON_WINDOWS}
+diff --git a/compiler/artifact-amd-llvm.toml b/compiler/artifact-amd-llvm.toml
+index c74d02a9..7e0b24f3 100644
+--- a/compiler/artifact-amd-llvm.toml
++++ b/compiler/artifact-amd-llvm.toml
+@@ -7,6 +7,7 @@ unmatched_exclude = [
+   # Various docs or utilities we don't care about.
+   "lib/llvm/share/clang-doc/**",
+   "lib/llvm/share/clang/**",
++  "lib/llvm/lib/amdgcn-amd-amdhsa/**"
+ ]
+ 
+ # LLVM deviates from the defaults in some key ways:
+diff --git a/compiler/pre_hook_amd-llvm.cmake b/compiler/pre_hook_amd-llvm.cmake
+index 28dc936b..8fede131 100644
+--- a/compiler/pre_hook_amd-llvm.cmake
++++ b/compiler/pre_hook_amd-llvm.cmake
+@@ -128,9 +128,9 @@ set(LLVM_EXTERNAL_PROJECTS "rocm-device-libs;spirv-llvm-translator" CACHE STRING
+ # options to manage this transition but they require knowing the clange resource
+ # dir. In order to avoid drift, we just fixate that too. This can all be
+ # removed in a future version.
+-# set(CLANG_RESOURCE_DIR "../lib/clang/${LLVM_VERSION_MAJOR}" CACHE STRING "Resource dir" FORCE)
+-# set(ROCM_DEVICE_LIBS_BITCODE_INSTALL_LOC_NEW "lib/clang/${LLVM_VERSION_MAJOR}/amdgcn" CACHE STRING "New devicelibs loc" FORCE)
+-# set(ROCM_DEVICE_LIBS_BITCODE_INSTALL_LOC_OLD "amdgcn" CACHE STRING "Old devicelibs loc" FORCE)
++set(CLANG_RESOURCE_DIR "../lib/clang/${LLVM_VERSION_MAJOR}" CACHE STRING "Resource dir" FORCE)
++set(ROCM_DEVICE_LIBS_BITCODE_INSTALL_LOC_NEW "lib/clang/${LLVM_VERSION_MAJOR}/lib/amdgcn" CACHE STRING "New devicelibs loc" FORCE)
++set(ROCM_DEVICE_LIBS_BITCODE_INSTALL_LOC_OLD "amdgcn" CACHE STRING "Old devicelibs loc" FORCE)
+ 
+ # Setup the install rpath (let CMake handle build RPATH per usual):
+ # * Executables and libraries can always search their adjacent lib directory

@@ -52,7 +52,7 @@ $ $AOMP_SUPP/build/cmdlog              File with log of all components built
 EOF
 }
 
-SUPPLEMENTAL_COMPONENTS=${SUPPLEMENTAL_COMPONENTS:-openmpi silo hdf5 fftw ninja}
+SUPPLEMENTAL_COMPONENTS=${SUPPLEMENTAL_COMPONENTS:-openmpi silo hdf5 fftw ninja rocmopenmpi xpmem ucx ucc}
 PREREQUISITE_COMPONENTS=${PREREQUISITE_COMPONENTS:-cmake rocmsmilib hwloc aqlprofile rocm-core}
 
 # --- Start standard header to set AOMP environment variables ----
@@ -136,36 +136,233 @@ function checkversion(){
     fi
   fi
 }
-function buildopenmpi(){
-  # Not all builds, trunk for example, install clang into lib/llvm/bin. Fall back on $AOMP/bin.
-  if [ ! -f "$LLVM_INSTALL_LOC/bin/${FLANG}" ] ; then
-    LLVM_INSTALL_LOC=$AOMP
-    if [ ! -f "$LLVM_INSTALL_LOC/bin/${FLANG}" ] ; then
-      LLVM_INSTALL_LOC=$AOMP/lib/llvm
-      if [ ! -f "$LLVM_INSTALL_LOC/bin/${FLANG}" ] ; then
-        echo "Error: buildopenmpi cannot find ${FLANG} executable. Set AOMP to location of $FLANG "
-        exit 1
-      fi
-    fi
-  fi
-  if [ ! -d "$AOMP_SUPP/hwloc" ] ; then
-    echo "Error: 'build_supp.sh openmpi' requires that hwloc is installed at $AOMP_SUPP/hwloc"
-    echo "       Please run 'build_supp.sh hwloc' "
-    exit 1
-  fi
 
-  _cname="openmpi"
-  _version=5.0.8
-  _release=v5.0
+function derive_rocm_path(){
+  # Derive ROCM_PATH - for AOMP installations, AOMP itself is the ROCm root
+  # Check if AOMP has ROCm headers (include/hip, include/rocm-core, etc.)
+  if [ -d "$AOMP/include/hip" ] || [ -d "$AOMP/include/rocm-core" ] ; then
+    ROCM_PATH=$AOMP
+  elif [ -d "$AOMPHIP/include/hip" ] || [ -d "$AOMPHIP/include/rocm-core" ] ; then
+    ROCM_PATH=$AOMPHIP
+  elif [ -n "$LLVM_INSTALL_LOC" ] && [ -d "$LLVM_INSTALL_LOC/../../../include/hip" ] ; then
+    # For standard ROCm installations: LLVM at $ROCM/lib/llvm
+    ROCM_PATH=$(realpath "$LLVM_INSTALL_LOC/../../..")
+  elif [ -d "$(realpath -m "$AOMP")/../../include/hip" ] ; then
+    # Fallback: check parent of AOMP
+    ROCM_PATH=$(realpath -m "$(realpath -m "$AOMP")"/../..)
+  else
+    echo "Error: Cannot determine ROCM_PATH."
+    echo "       Expected ROCm headers at \$AOMP/include/hip or similar."
+    echo "       AOMP=$AOMP"
+    return 1
+  fi
+  ROCM_PATH=$(realpath "$ROCM_PATH")
+  export HIPCC="$ROCM_PATH/bin/amdclang"
+  return 0
+}
+
+################################################################################
+# XPMEM - Cross-Process Memory Access for high-performance shared memory
+################################################################################
+function buildxpmem(){
+  _cname="xpmem"
+  _version=2.7.4
   _installdir=$AOMP_SUPP_INSTALL/$_cname-$_version
   _linkfrom=$AOMP_SUPP/$_cname
   _builddir=$AOMP_SUPP_BUILD/$_cname
 
   SKIPBUILD="FALSE"
   checkversion
-  if [ "$SKIPBUILD" == "TRUE"  ] ; then 
+  if [ "$SKIPBUILD" == "TRUE" ] ; then
     return
   fi
+  if [ -d "$_builddir" ] ; then
+    runcmd "rm -rf $_builddir"
+  fi
+  runcmd "mkdir -p $_builddir"
+  runcmd "cd $_builddir"
+  runcmd "wget https://github.com/openucx/xpmem/archive/refs/tags/v$_version.tar.gz"
+  runcmd "tar -xzf v$_version.tar.gz"
+  runcmd "cd xpmem-$_version"
+  if [ -d "$_installdir" ] ; then
+    runcmd "rm -rf $_installdir"
+  fi
+  runcmd "mkdir -p $_installdir"
+  runcmd "./autogen.sh"
+  runcmd "./configure --prefix=$_installdir"
+  runcmd "make -j${AOMP_JOB_THREADS}"
+  runcmd "make install"
+  if [ -L "$_linkfrom" ] ; then
+    runcmd "rm $_linkfrom"
+  fi
+  runcmd "ln -sfr $_installdir $_linkfrom"
+  echo "# $_linkfrom is now symbolic link to $_installdir " >>"$CMDLOGFILE"
+}
+
+################################################################################
+# UCX - Unified Communication X for high-performance networking
+################################################################################
+function builducx(){
+  _cname="ucx"
+  _version=1.20.0
+  _installdir=$AOMP_SUPP_INSTALL/$_cname-$_version
+  _linkfrom=$AOMP_SUPP/$_cname
+  _builddir=$AOMP_SUPP_BUILD/$_cname
+
+  SKIPBUILD="FALSE"
+  checkversion
+  if [ "$SKIPBUILD" == "TRUE"  ] ; then
+    return
+  fi
+
+  derive_rocm_path || return
+
+  # Check if XPMEM is available
+  if [ ! -d "$AOMP_SUPP/xpmem" ] ; then
+    echo "Info: XPMEM not found at $AOMP_SUPP/xpmem, building it first..."
+    buildxpmem
+  fi
+  XPMEM_PATH=$AOMP_SUPP/xpmem
+
+  SKIPBUILD="FALSE"
+  checkversion
+  if [ "$SKIPBUILD" == "TRUE" ] ; then
+    return
+  fi
+  if [ -d "$_builddir" ] ; then
+    runcmd "rm -rf $_builddir"
+  fi
+  runcmd "mkdir -p $_builddir"
+  runcmd "cd $_builddir"
+  runcmd "wget https://github.com/openucx/ucx/releases/download/v$_version/ucx-$_version.tar.gz"
+  runcmd "tar -xzf ucx-$_version.tar.gz"
+  runcmd "cd ucx-$_version"
+  runcmd "mkdir -p build"
+  runcmd "cd build"
+  if [ -d "$_installdir" ] ; then
+    runcmd "rm -rf $_installdir"
+  fi
+  runcmd "mkdir -p $_installdir"
+
+  # Configure UCX with ROCm and XPMEM support
+  runcmd "../contrib/configure-release \
+    --prefix=$_installdir \
+    --with-rocm=$ROCM_PATH \
+    --with-xpmem=$XPMEM_PATH \
+    --without-cuda \
+    --enable-mt \
+    --enable-optimizations \
+    --disable-logging \
+    --disable-debug \
+    --enable-assertions \
+    --enable-params-check \
+    --enable-examples"
+
+  runcmd "make -j${AOMP_JOB_THREADS}"
+  runcmd "make install"
+  if [ -L "$_linkfrom" ] ; then
+    runcmd "rm $_linkfrom"
+  fi
+  runcmd "ln -sfr $_installdir $_linkfrom"
+  echo "# $_linkfrom is now symbolic link to $_installdir " >>"$CMDLOGFILE"
+}
+
+################################################################################
+# UCC - Unified Collective Communication for collective operations
+################################################################################
+function builducc(){
+  _cname="ucc"
+  _version=1.6.0
+  _installdir=$AOMP_SUPP_INSTALL/$_cname-$_version
+  _linkfrom=$AOMP_SUPP/$_cname
+  _builddir=$AOMP_SUPP_BUILD/$_cname
+
+  SKIPBUILD="FALSE"
+  checkversion
+  if [ "$SKIPBUILD" == "TRUE"  ] ; then
+    return
+  fi
+
+  derive_rocm_path || return
+
+  # Check if UCX is available
+  if [ ! -d "$AOMP_SUPP/ucx" ] ; then
+    echo "Info: UCX not found at $AOMP_SUPP/ucx, building it first..."
+    builducx
+  fi
+  UCX_PATH=$AOMP_SUPP/ucx
+
+  SKIPBUILD="FALSE"
+  checkversion
+  if [ "$SKIPBUILD" == "TRUE" ] ; then
+    return
+  fi
+  if [ -d "$_builddir" ] ; then
+    runcmd "rm -rf $_builddir"
+  fi
+  runcmd "mkdir -p $_builddir"
+  runcmd "cd $_builddir"
+  runcmd "wget https://github.com/openucx/ucc/archive/refs/tags/v$_version.tar.gz"
+  runcmd "tar -xzf v$_version.tar.gz"
+  runcmd "cd ucc-$_version"
+  if [ -d "$_installdir" ] ; then
+    runcmd "rm -rf $_installdir"
+  fi
+  runcmd "mkdir -p $_installdir"
+  runcmd "./autogen.sh"
+
+  # Configure UCC with ROCm and UCX support
+  runcmd "./configure \
+    --prefix=$_installdir \
+    --with-rocm=$ROCM_PATH \
+    --with-ucx=$UCX_PATH"
+
+  runcmd "make -j${AOMP_JOB_THREADS}"
+  runcmd "make install"
+  if [ -L "$_linkfrom" ] ; then
+    runcmd "rm $_linkfrom"
+  fi
+  runcmd "ln -sfr $_installdir $_linkfrom"
+  echo "# $_linkfrom is now symbolic link to $_installdir " >>"$CMDLOGFILE"
+}
+
+################################################################################
+# OpenMPI build helper - shared infrastructure for openmpi and rocmopenmpi
+# Usage: _buildopenmpi_impl <cname> <version> [extra_configure_opts...]
+################################################################################
+function _buildopenmpi_impl(){
+  local _cname="$1"
+  local _version="$2"
+  shift 2
+  local _extra_configure_opts="$*"
+  local _release=v5.0
+  local _installdir=$AOMP_SUPP_INSTALL/$_cname-$_version
+  local _linkfrom=$AOMP_SUPP/$_cname
+  local _builddir=$AOMP_SUPP_BUILD/$_cname
+
+  # Not all builds, trunk for example, install clang into lib/llvm/bin. Fall back on $AOMP/bin.
+  if [ ! -f "$LLVM_INSTALL_LOC/bin/${FLANG}" ] ; then
+    LLVM_INSTALL_LOC=$AOMP
+    if [ ! -f "$LLVM_INSTALL_LOC/bin/${FLANG}" ] ; then
+      LLVM_INSTALL_LOC=$AOMP/lib/llvm
+      if [ ! -f "$LLVM_INSTALL_LOC/bin/${FLANG}" ] ; then
+        echo "Error: $_cname build cannot find ${FLANG} executable. Set AOMP to location of $FLANG "
+        exit 1
+      fi
+    fi
+  fi
+  if [ ! -d "$AOMP_SUPP/hwloc" ] ; then
+    echo "Error: 'build_supp.sh $_cname' requires that hwloc is installed at $AOMP_SUPP/hwloc"
+    echo "       Please run 'build_supp.sh hwloc' "
+    exit 1
+  fi
+
+  SKIPBUILD="FALSE"
+  checkversion
+  if [ "$SKIPBUILD" == "TRUE" ] ; then
+    return
+  fi
+
   if [ -d "$_builddir" ] ; then
     runcmd "rm -rf $_builddir"
   fi
@@ -179,11 +376,30 @@ function buildopenmpi(){
     runcmd "rm -rf $_installdir"
   fi
   runcmd "mkdir -p $_installdir"
-  ### update configure to recognize flang
+
+  # Update configure to recognize flang
   runcmd "cp configure configure-orig"
   runcmdout "sed -e s/flang\s*)/flang*)/ configure-orig" configure
-  ###
-  runcmd "./configure --with-hwloc=$AOMP_SUPP/hwloc --with-hwloc-libdir=$AOMP_SUPP/hwloc/lib OMPI_CC=$LLVM_INSTALL_LOC/bin/clang OMPI_CXX=$LLVM_INSTALL_LOC/bin/clang++ OMPI_F90=$LLVM_INSTALL_LOC/bin/${FLANG} CXX=$LLVM_INSTALL_LOC/bin/clang++ CC=$LLVM_INSTALL_LOC/bin/clang FC=$LLVM_INSTALL_LOC/bin/${FLANG} --prefix=$_installdir"
+
+  # Configure with common options plus any extra options
+  runcmd "./configure \
+    --prefix=$_installdir \
+    --with-hwloc=$AOMP_SUPP/hwloc \
+    --with-hwloc-libdir=$AOMP_SUPP/hwloc/lib \
+    OMPI_CC=$LLVM_INSTALL_LOC/bin/clang \
+    OMPI_CXX=$LLVM_INSTALL_LOC/bin/clang++ \
+    OMPI_F90=$LLVM_INSTALL_LOC/bin/${FLANG} \
+    CXX=$LLVM_INSTALL_LOC/bin/clang++ \
+    CC=$LLVM_INSTALL_LOC/bin/clang \
+    FC=$LLVM_INSTALL_LOC/bin/${FLANG} \
+    $_extra_configure_opts"
+
+  if [[ "$_version" == "5.0.10" ]] ; then
+    if [ -f "$thisdir/patches/ompi.patch" ] ; then
+       runcmdin "patch --merge -p1" "$thisdir/patches/ompi.patch"
+    fi
+  fi
+
   runcmd "make -j${AOMP_JOB_THREADS}"
   runcmd "make install"
   if [ -L "$_linkfrom" ] ; then
@@ -193,6 +409,71 @@ function buildopenmpi(){
   echo "# $_linkfrom is now symbolic link to $_installdir " >>"$CMDLOGFILE"
 }
 
+################################################################################
+# OpenMPI (standard build without ROCm support)
+################################################################################
+function buildopenmpi(){
+  _cname="openmpi"
+  _version=5.0.8
+  _buildopenmpi_impl $_cname $_version
+}
+
+################################################################################
+# ROCm OpenMPI - OpenMPI with ROCm/GPU-aware MPI support
+# This builds OpenMPI with UCX, UCC, and ROCm support for GPU-aware MPI
+################################################################################
+function buildrocmopenmpi(){
+  _cname="rocmopenmpi"
+  _version=5.0.10
+  _installdir=$AOMP_SUPP_INSTALL/$_cname-$_version
+  _linkfrom=$AOMP_SUPP/$_cname
+  _builddir=$AOMP_SUPP_BUILD/$_cname
+
+  SKIPBUILD="FALSE"
+  checkversion
+  if [ "$SKIPBUILD" == "TRUE"  ] ; then
+    return
+  fi
+
+  derive_rocm_path || return
+  echo "Info: Using ROCM_PATH=$ROCM_PATH"
+
+  # Check and build dependencies if needed
+  if [ ! -d "$AOMP_SUPP/ucx" ] ; then
+    echo "Info: UCX not found at $AOMP_SUPP/ucx, building it first..."
+    builducx
+  fi
+  UCX_PATH=$AOMP_SUPP/ucx
+
+  if [ ! -d "$AOMP_SUPP/ucc" ] ; then
+    echo "Info: UCC not found at $AOMP_SUPP/ucc, building it first..."
+    builducc
+  fi
+  UCC_PATH=$AOMP_SUPP/ucc
+
+  # Build OpenMPI with ROCm-specific configure options
+  _buildopenmpi_impl $_cname $_version \
+    "--with-rocm=$ROCM_PATH" \
+    "--with-ucx=$UCX_PATH" \
+    "--with-ucc=$UCC_PATH" \
+    "--enable-mca-no-build=btl-uct" \
+    "--enable-mpi" \
+    "--enable-mpi-fortran" \
+    "--disable-debug"
+
+  # Configure default MCA parameters for UCX
+  local _installdir=$AOMP_SUPP_INSTALL/rocmopenmpi-5.0.10
+  if [ -d "$_installdir/etc" ] ; then
+    echo "# Setting UCX as default point-to-point and one-sided communication"
+    {
+      echo "pml = ucx"
+      echo "osc = ucx"
+      echo "coll_ucc_enable = 1"
+      echo "coll_ucc_priority = 100"
+    } >> "${_installdir}/etc/openmpi-mca-params.conf"
+    echo "# MCA params configured for UCX default" >>"$CMDLOGFILE"
+  fi
+}
 function buildninja(){
   _cname="ninja"
   _version=1.13.2
@@ -265,13 +546,9 @@ function getrocmpackage(){
     deb_version="24"
     os_version=$(grep VERSION_ID /etc/os-release | cut -d"\"" -f2)
     [ "$os_version" == "22.04" ] && deb_version="22"
-    #https://repo.radeon.com/rocm/apt/6.1/pool/main/h/hsa-amd-aqlprofile6.1.0/hsa-amd-aqlprofile6.1.0_1.0.0.60100.60100-82~${deb_version}_amd64.deb
-    #https://repo.radeon.com/rocm/apt/6.1/pool/main/h/hsa-amd-aqlprofile6.1.0/hsa-amd-aqlprofile6.1.0_1.0.0.60100.60100-82~22.04_amd64.deb
     runcmd "wget https://repo.radeon.com/rocm/apt/$_version/pool/main/$_directory/$_packagename$_packageversion/$_packagename${_packageversion}_${_componentversion}.${_fullversion}-${_buildnumber}~${deb_version}.04_amd64.deb"
-
     runcmd "dpkg -x $_packagename${_packageversion}_${_componentversion}.${_fullversion}-${_buildnumber}~${deb_version}.04_amd64.deb $_builddir"
   elif [[ $osname =~ "SLES" ]]; then
-    #https://repo.radeon.com/rocm/yum/6.1/main/hsa-amd-aqlprofile6.1.0-1.0.0.60100.60100-82.el7.x86_64.rpm
     runcmd "wget https://repo.radeon.com/rocm/zyp/$_version/main/$_packagename$_packageversion-$_componentversion.$_fullversion-sles156.$_buildnumber.x86_64.rpm"
     echo "$_packagename$_packageversion-$_componentversion.$_fullversion-sles156.$_buildnumber.x86_64.rpm | cpio -idm"
     rpm2cpio "$_packagename$_packageversion-$_componentversion.$_fullversion-sles156.$_buildnumber.x86_64.rpm" | cpio -idm
@@ -297,7 +574,6 @@ function getrocmpackage(){
     runcmd "rm $_linkfrom"
   fi
   runcmd "ln -sfr $_installdir $_linkfrom"
-  #runcmd "rm -rf $_builddir"
   echo "# $_linkfrom is now symbolic link to $_installdir " >>"$CMDLOGFILE"
 }
 
@@ -354,9 +630,6 @@ function buildsilo(){
   fi
   runcmd "mkdir -p $_builddir"
   runcmd "cd $_builddir"
-  # runcmd "wget https://wci.llnl.gov/sites/wci/files/2021-01/silo-$_version.tgz"
-  # runcmd "tar -xzf silo-$_version.tgz"
-  #runcmd "wget https://software.llnl.gov/Silo/ghpages/releases/silo-$_version.tar.xz"
   runcmd "wget https://github.com/LLNL/Silo/releases/download/$_version/silo-$_version.tar.xz"
   runcmd "tar -x --xz -f silo-$_version.tar.xz"
   runcmd "cd silo-$_version"
@@ -557,6 +830,14 @@ for _component in $_components ; do
   } >> "$CMDLOGFILE"
   if [ "$_component" == "openmpi" ] ; then
     buildopenmpi
+  elif [ "$_component" == "rocmopenmpi" ] ; then
+    buildrocmopenmpi
+  elif [ "$_component" == "xpmem" ] ; then
+    buildxpmem
+  elif [ "$_component" == "ucx" ] ; then
+    builducx
+  elif [ "$_component" == "ucc" ] ; then
+    builducc
   elif [ "$_component" == "silo" ] ; then
     buildsilo
   elif [ "$_component" == "hdf5" ] ; then

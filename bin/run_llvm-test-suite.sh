@@ -188,10 +188,11 @@ if [ "${DoConfigure}" == "yes" ]; then
     -DTEST_SUITE_LIT="${AOMP}/bin/llvm-lit" \
     -DCMAKE_STRIP="" \
     -DAMDGPU_ARCHS="${LLVMTS_GPU}" \
+    -DHIP_EXPORT_XUNIT_XML=ON \
+    -DENABLE_HIP_CATCH_TESTS=ON \
     -DCMAKE_BUILD_TYPE="${LLVMTS_BUILD_TYPE}" \
     -DCMAKE_C_COMPILER="${AOMP}/bin/clang" \
-    -DCMAKE_CXX_COMPILER="${AOMP}/bin/clang++" \
-    -DCMAKE_BUILD_TYPE="Release"
+    -DCMAKE_CXX_COMPILER="${AOMP}/bin/clang++"
 fi
 
 # Build
@@ -207,11 +208,12 @@ if [ "${DoTest}" == "yes" ]; then
 
   echo "Log in ${LLVMTS_LOGS_DIR}/test-output.log"
 
+  for TestTarget in check-hip-simple check-hip-catch; do
   # Use timeout to prevent tests from hanging
   # -k 30: Send SIGKILL after 30 seconds if SIGTERM doesn't terminate the process
   # This ensures even completely hung processes are killed
   if command -v timeout >/dev/null; then
-    timeout -k 30 "${LLVMTS_TEST_TIMEOUT}" "${TestBuildTool}" check-hip-simple 2>&1 | tee "${LLVMTS_LOGS_DIR}/test-output.log"
+    timeout -k 30 "${LLVMTS_TEST_TIMEOUT}" "${TestBuildTool}" "${TestTarget}" 2>&1 | tee -a "${LLVMTS_LOGS_DIR}/test-output.log"
     test_exit_code="${PIPESTATUS[0]}"
     if [ "${test_exit_code}" -eq 124 ]; then
       echo "WARNING: Tests timed out after ${LLVMTS_TEST_TIMEOUT} seconds"
@@ -220,9 +222,10 @@ if [ "${DoTest}" == "yes" ]; then
     fi
   else
     echo "WARNING: timeout command not found. Not running tests"
-    popd
+    popd || exit 1
     exit 1
   fi
+  done
 fi
 
 popd || exit

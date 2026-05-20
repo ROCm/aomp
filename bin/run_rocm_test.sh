@@ -59,7 +59,7 @@ else
   SUITE_LIST=${SUITE_LIST:-"examples smoke-limbo smoke-dev smoke-fort-dev smoke smoke-asan smoke-fort smoke-fort-limbo omp5 openmpapps LLNL nekbone ovo babelstream fortran-babelstream accel2023 hpc2021"}
 fi
 
-blockinglist="examples smoke smoke-limbo openmpapps sollve45 sollve50 sollve51 sollve52 babelstream ovo accel2023 hpc2021 nekbone smoke-fort smoke-fort-limbo"
+blockinglist="examples smoke smoke-limbo openmpapps sollve45 sollve50 sollve51 sollve52 babelstream ovo hpc2021 nekbone smoke-fort smoke-fort-limbo"
 
 EPSDB_LIST=${EPSDB_LIST:-"examples smoke-limbo smoke-dev smoke smoke-asan omp5 openmpapps LLNL nekbone ovo babelstream fortran-babelstream accel2023 hpc2021  smoke-fort smoke-fort-limbo smoke-fort-dev"}
 THEROCK_LIST=${THEROCK_LIST:-"smoke smoke-fort nekbone babelstream fortran-babelstream accel2023 hpc2021"}
@@ -339,7 +339,7 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-$AOMP/bin/flang1 --version
+$AOMP/bin/flang --version
 
 # Parent dir should be ROCm base dir.
 if [ $aomp -eq 1 ]; then

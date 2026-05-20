@@ -8,7 +8,9 @@ bolt: bolt.patch
 rocr-runtime: rocr-runtime-numa.patch
 clr: clr-findamd-icd.patch clr-amd-comgr-find-package.patch
 rocprofiler: rocprofiler-combined-no-aql-ok-fix-cov6.patch
+rocprofiler-sdk: rocprofiler-sdk-otf2-url-fix.patch
 babelstream: babelstream-usm.patch
 llvm-project: ATD_ASO_full.patch
 UMT: umt.patch
 OvO: ovo.patch
+rocm-xio: xio.patch
