@@ -81,6 +81,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 
   MYCMAKEOPTS=("${AOMP_ORIGIN_RPATH[@]}" -DCMAKE_BUILD_TYPE="$BUILDTYPE"
                -DCMAKE_INSTALL_PREFIX="$INSTALL_RINFO"
+               -DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR/lib/cmake;$AOMP_INSTALL_DIR/lib64/cmake"
                -DROCRTST_BLD_TYPE="$BUILDTYPE"
                -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON
                -DCMAKE_INSTALL_RPATH="\$ORIGIN/../lib"
