@@ -1,0 +1,16 @@
+diff --git a/src/common/xio-common.hip b/src/common/xio-common.hip
+index fc49156..c265c44 100644
+--- a/src/common/xio-common.hip
++++ b/src/common/xio-common.hip
+@@ -745,8 +745,9 @@ hsa_status_t exportDmabuf(const void* ptr, size_t size, int* fd_out,
+   *offset_out = 0;
+ 
+   if (flags != 0) {
+-    return hsa_amd_portable_export_dmabuf_v2(ptr, size, fd_out, offset_out,
+-                                             flags);
++fprintf(stderr, " ERROR:  nonzero flags needs dmabuf_v2  flags:%p\n",(void*) flags);
++    //return hsa_amd_portable_export_dmabuf_v2(ptr, size, fd_out, offset_out,
++    //                                         flags);
+   }
+ 
+   return hsa_amd_portable_export_dmabuf(ptr, size, fd_out, offset_out);
