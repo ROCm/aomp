@@ -34,10 +34,11 @@ thisdir=$(dirname "$realpath")
 
 _sname=${0##*/}
 BUILD_DIR=${BUILD_AOMP}
+declare -a extra_cmake_opts=()
 
 if [ "$_sname" == "build_emissary_mpi.sh" ] ; then 
   EMISSARY_REPO_DIR=$AOMP_REPOS/emissary/MPI
-  _extra_cmake_opts="-DLLVM_EXTERNAL_EMISSARY_MPI_INSTALL=$HOME/local/rocmopenmpi"
+  extra_cmake_opts+=("-DLLVM_EXTERNAL_EMISSARY_MPI_INSTALL=$HOME/local/rocmopenmpi")
   BUILD_EMISSARY_DIR="$BUILD_DIR/build/emissary_mpi"
 elif [ "$_sname" == "build_emissary_hdf5.sh" ] ; then 
   EMISSARY_REPO_DIR=$AOMP_REPOS/emissary/HDF5
@@ -47,7 +48,7 @@ else
   echo "        or build_emissary_hdf5.sh"
   exit
 fi
-echo BUILD_EMISSARY_DIR=$BUILD_EMISSARY_DIR
+echo "BUILD_EMISSARY_DIR=$BUILD_EMISSARY_DIR"
 
 echo "INFO: Getting latest sources for emissary in dir \"$EMISSARY_REPO_DIR\""
 if [ -d "$EMISSARY_REPO_DIR" ] ; then
@@ -116,8 +117,8 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 
   MYCMAKEOPTS=(
     -DCMAKE_BUILD_TYPE="$BUILDTYPE"
-    $_extra_cmake_opts
-    -DLLVM_MAIN_SRC_DIR=$AOMP_REPOS/llvm-project
+    "${extra_cmake_opts[@]}"
+    "-DLLVM_MAIN_SRC_DIR=$AOMP_REPOS/llvm-project"
     -DCMAKE_INSTALL_PREFIX="$INSTALL_EMISSARY")
 
 
@@ -125,7 +126,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
   cd "$BUILD_EMISSARY_DIR" || exit
   echo
   echo " ---- Running ${AOMP_CMAKE} for emissary ---- "
-  echo ${AOMP_CMAKE} -B . "${MYCMAKEOPTS[@]}" -S "$EMISSARY_REPO_DIR"
+  echo "${AOMP_CMAKE}" -B . "${MYCMAKEOPTS[@]}" -S "$EMISSARY_REPO_DIR"
   
   if ! ${AOMP_CMAKE} -B . "${MYCMAKEOPTS[@]}" -S "$EMISSARY_REPO_DIR" ; then
       echo "ERROR emissary cmake failed. Cmake flags"
