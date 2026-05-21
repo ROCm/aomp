@@ -12,3 +12,4 @@ rocprofiler-sdk: rocprofiler-sdk-otf2-url-fix.patch
 babelstream: babelstream-usm.patch
 llvm-project: ATD_ASO_full.patch
 UMT: umt.patch
+rocm-xio: xio.patch
