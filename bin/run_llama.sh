@@ -8,20 +8,21 @@
 
 # Build script for LLaMA with HIP support using AOMP compiler
 
+# shellcheck source=/dev/null
 . aomp_common_vars
 
-: AOMP_GPU=${AOMP_GPU:=gfx90a}
-: ${LLAMA_GPU:=$AOMP_GPU}
+: "${AOMP_GPU:=gfx90a}"
+: "${LLAMA_GPU:=$AOMP_GPU}"
 
-: ${LLAMA_TLDIR:=$AOMP_REPOS_TEST/llama}
-: ${LLAMA_BUILD_DIR:=$LLAMA_TLDIR/build}
-: ${LLAMA_SRC_DIR:=$LLAMA_TLDIR/src}
-: ${LLAMA_BUILD_MODE:=Release}
-: ${LLAMA_TESTS_LOG_LOCATION:=$LLAMA_TLDIR/logs}
+: "${LLAMA_TLDIR:=$AOMP_REPOS_TEST/llama}"
+: "${LLAMA_BUILD_DIR:=$LLAMA_TLDIR/build}"
+: "${LLAMA_SRC_DIR:=$LLAMA_TLDIR/src}"
+: "${LLAMA_BUILD_MODE:=Release}"
+: "${LLAMA_TESTS_LOG_LOCATION:=$LLAMA_TLDIR/logs}"
 
 # Model to use in benchmarks (default is a smaller model)
-: ${LLAMA_BENCH_HF_ID:="ggml-org/gemma-3-1b-it-GGUF"}
-: ${LLAMA_CACHE:="$HOME/.cache/llama.cpp"}
+: "${LLAMA_BENCH_HF_ID:=ggml-org/gemma-3-1b-it-GGUF}"
+: "${LLAMA_CACHE:=$HOME/.cache/llama.cpp}"
 
 pushd "${AOMP_REPOS_TEST}" || exit
 mkdir -p "${LLAMA_TLDIR}" && cd "${LLAMA_TLDIR}" || exit
@@ -98,9 +99,9 @@ if [ "${DoConfigure}" == "yes" ]; then
     -S src \
     -DCMAKE_PREFIX_PATH="${AOMP}"/lib/cmake \
     -DGGML_HIP=On \
-    -DCMAKE_BUILD_TYPE=${LLAMA_BUILD_MODE} \
-    -DGPU_TARGETS=${LLAMA_GPU} \
-    ${CmakeGenerator} \
+    -DCMAKE_BUILD_TYPE="${LLAMA_BUILD_MODE}" \
+    -DGPU_TARGETS="${LLAMA_GPU}" \
+    ${CmakeGenerator:+"${CmakeGenerator}"} \
     -DCMAKE_C_COMPILER="${AOMP}"/bin/clang \
     -DCMAKE_CXX_COMPILER="${AOMP}"/bin/clang++ \
     -DCMAKE_HIP_COMPILER="${AOMP}"/bin/clang++
