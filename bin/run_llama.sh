@@ -121,6 +121,16 @@ if [ "${DoCTest}" == "yes" ]; then
   ctest --output-on-failure 2>&1 | tee "${LLAMA_TESTS_LOG_LOCATION}/ctest.log"
 fi
 
+run_llama_bench() {
+  ./bin/llama-bench "$@" 2>&1 | tee -a "${LLAMA_TESTS_LOG_LOCATION}/llama-bench.log"
+  BenchStatus=${PIPESTATUS[0]}
+
+  if [ "${BenchStatus}" -ne 0 ]; then
+    echo "ERROR: llama-bench failed with exit code ${BenchStatus}" | tee -a "${LLAMA_TESTS_LOG_LOCATION}/llama-bench.log"
+    return "${BenchStatus}"
+  fi
+}
+
 if [ "${DoBenchmark}" == "yes" ]; then
   echo "Running benchmark..."
   cd "${LLAMA_BUILD_DIR}" || exit
@@ -148,8 +158,7 @@ if [ "${DoBenchmark}" == "yes" ]; then
   if [ ${#ModelPaths[@]} -eq 0 ] && ./bin/llama-bench --help 2>&1 | grep -q -- "--hf-repo"; then
     # Let llama-bench resolve/download the HF model directly.  Using llama-cli as
     # a prefetch step can hang in ROCm/KFD waits on cold cache.
-    ./bin/llama-bench -hf "${LLAMA_BENCH_HF_ID}" -ngl 999 -fa 1 -ub 2048 \
-      2>&1 | tee -a "${LLAMA_TESTS_LOG_LOCATION}/llama-bench.log"
+    run_llama_bench -hf "${LLAMA_BENCH_HF_ID}" -ngl 999 -fa 1 -ub 2048 || exit $?
   else
     if [ ${#ModelPaths[@]} -eq 0 ]; then
       echo "ERROR: No model files found in cache directory: ${CacheDir}"
@@ -159,7 +168,7 @@ if [ "${DoBenchmark}" == "yes" ]; then
     # Run benchmark for each model
     for LlamaModelPath in "${ModelPaths[@]}"; do
       echo "Benchmarking: ${LlamaModelPath}" | tee -a "${LLAMA_TESTS_LOG_LOCATION}/llama-bench.log"
-      ./bin/llama-bench -ngl 999 -fa 1 -ub 2048 -m "${LlamaModelPath}" 2>&1 | tee -a "${LLAMA_TESTS_LOG_LOCATION}/llama-bench.log"
+      run_llama_bench -ngl 999 -fa 1 -ub 2048 -m "${LlamaModelPath}" || exit $?
     done
   fi
 fi
