@@ -387,8 +387,8 @@ else
 endif
 
 # ompTest: Set header include path + linker flag for corresponding OMPT tests
-CLANG_RESOURCE_DIR ?= $(shell $(AOMP)/bin/clang -print-resource-dir)
-OMPTEST            ?= -I$(CLANG_RESOURCE_DIR)/include/omptest -lomptest
+CLANG_RESOURCE_DIR := $(shell $(AOMP)/bin/clang -print-resource-dir)
+OMPTEST             = -I$(CLANG_RESOURCE_DIR)/include/omptest -lomptest
 
 # ompTest: Set and export CMake config path
 omptest_DIR = $(AOMP)/lib/cmake/openmp/omptest/
