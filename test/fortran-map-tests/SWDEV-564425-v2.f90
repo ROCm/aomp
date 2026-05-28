@@ -98,12 +98,14 @@ else
    stop 1
 endif
 
+! Need to decide on the semantics of what should/should not happen to the parent
+! when we do ref_ptr/ptee maps.
 if(omp_target_is_present(C_LOC(var_l), omp_get_default_device()) == 0) then
    print *, "After enter: var_l parent structure NOT on device"
-else
-   print *, "After enter: var_l parent structure on device"
    print*, "======= FORTRAN Test Failed! ======="
    stop 1
+else
+   print *, "After enter: var_l parent structure on device"
 endif
 
 !$omp target enter data map(ref_ptee, to: var_l%var_j, var_l%var_k%var_c, var_l%var_k%var_b, var_l%var_h%var_f, var_l%var_h%var_g%var_c, var_l%var_h%var_g%var_b)

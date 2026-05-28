@@ -653,10 +653,6 @@ echo "compiling UMT-reproducer-5.f90"
 
 $AOMP/bin/flang --offload-arch=$AOMP_GPU -fopenmp  UMT-reproducer-5.f90 -o UMT-reproducer-5.out
 
-echo "compiling UMT-reproducer-6.f90"
-
-$AOMP/bin/flang --offload-arch=$AOMP_GPU -fopenmp  UMT-reproducer-6.f90 -o UMT-reproducer-6.out
-
 echo "compiling reproducer-3-47779-v2.f90"
 
 $AOMP/bin/flang  --offload-arch=$AOMP_GPU -fopenmp  reproducer-3-47779-v2.f90 -o reproducer-3-47779-v2.out
@@ -828,6 +824,26 @@ $AOMP/bin/flang -fopenmp -fopenmp-force-usm --offload-arch=$AOMP_GPU lcompiler-1
 echo "compiling lcompiler-1645.f90"
 
 $AOMP/bin/flang -fopenmp --offload-arch=$AOMP_GPU lcompiler-1645.f90 -o lcompiler-1645.out
+
+echo "compiling implicit-allocatable-member-map-test-1.f90"
+
+$AOMP/bin/flang --offload-arch=$AOMP_GPU -fopenmp  implicit-allocatable-member-map-test-1.f90 -o implicit-allocatable-member-map-test-1.out
+
+echo "compiling implicit-allocatable-member-map-test-2.f90"
+
+$AOMP/bin/flang --offload-arch=$AOMP_GPU -fopenmp  implicit-allocatable-member-map-test-2.f90 -o implicit-allocatable-member-map-test-2.out
+
+echo "compiling implicit-allocatable-member-map-test-3.f90"
+
+$AOMP/bin/flang --offload-arch=$AOMP_GPU -fopenmp  implicit-allocatable-member-map-test-3.f90 -o implicit-allocatable-member-map-test-3.out
+
+echo "compiling implicit-allocatable-member-map-test-4.f90"
+
+$AOMP/bin/flang --offload-arch=$AOMP_GPU -fopenmp  implicit-allocatable-member-map-test-4.f90 -o implicit-allocatable-member-map-test-4.out
+
+echo "compiling implicit-allocatable-member-map-test-5.f90"
+
+$AOMP/bin/flang --offload-arch=$AOMP_GPU -fopenmp  implicit-allocatable-member-map-test-5.f90 -o implicit-allocatable-member-map-test-5.out
 
 echo "basic exp map"
 
@@ -1638,11 +1654,6 @@ echo "UMT Reproducer 5, make sure data is appropriately passed across over multi
 echo "RUNNING TEST: UMT-reproducer-5"
 ./UMT-reproducer-5.out
 
-echo "UMT Reproducer 6 map back re-associate bug"
-
-echo "RUNNING TEST: UMT-reproducer-6"
-./UMT-reproducer-6.out
-
 echo "Test mapping of allocatable char array in derived type"
 
 echo "RUNNING TEST: char-array-map-test-v1"
@@ -1841,6 +1852,31 @@ echo "SWDEV-579431 write-back issue caused by inter-mixing of implicit declare m
 
 echo "RUNNING TEST: SWDEV-579431"
 ./SWDEV-579431.out
+
+echo "Test that we correctly apply implicit allocatable member/component mapping for allocatable derived types"
+
+echo "RUNNING TEST: implicit-allocatable-member-map-test-1"
+./implicit-allocatable-member-map-test-1.out
+
+echo "Test that we correctly apply implicit allocatable member/component mapping for derived types"
+
+echo "RUNNING TEST: implicit-allocatable-member-map-test-2"
+./implicit-allocatable-member-map-test-2.out
+
+echo "Test that we correctly apply implicit allocatable member/component mapping for allocatable derived types in target data directives"
+
+echo "RUNNING TEST: implicit-allocatable-member-map-test-3"
+./implicit-allocatable-member-map-test-3.out
+
+echo "Test that we correctly apply implicit allocatable member/component mapping for pointer derived types in target data directives"
+
+echo "RUNNING TEST: implicit-allocatable-member-map-test-4"
+./implicit-allocatable-member-map-test-4.out
+
+echo "Test that we correctly apply implicit allocatable member/component mapping for pointer types in target data directives"
+
+echo "RUNNING TEST: implicit-allocatable-member-map-test-5"
+./implicit-allocatable-member-map-test-5.out
 
 # Tests that require XNACK/USM to pass
 

@@ -148,12 +148,14 @@ else
    print *, "After enter: var_l%var_h%var_g%var_b ref_ptee on device"
 endif
 
-if(omp_target_is_present(C_LOC(var_l), omp_get_default_device()) == 0) then
+! Need to decide on the semantics of what should/should not happen to the parent
+! when we do ref_ptr/ptee maps.
+if (omp_target_is_present(C_LOC(var_l), omp_get_default_device()) == 0) then
    print *, "After enter: var_l parent structure NOT on device"
-else
-   print *, "After enter: var_l parent structure on device"
    print*, "======= FORTRAN Test Failed! ======="
    stop 1
+else
+   print *, "After enter: var_l parent structure on device"
 endif
 
  !$omp target
