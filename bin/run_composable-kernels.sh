@@ -292,9 +292,9 @@ elif [ "${ShouldUpdateCKRepo}" == 'yes' ]; then
 fi
 
 # Print branch and SHA of the rocm-libraries repository, followed by CK's SHA
-echo "rocm-libraries branch:     $(git -C ${CK_REPO} branch --show-current)"
-echo "rocm-libraries repo SHA:   $(git -C ${CK_REPO} rev-parse HEAD)"
-echo "composablekernel repo SHA: $(git -C ${CK_SRC} log -1 --format=%H -- .)"
+echo "rocm-libraries branch:     $(git -C "${CK_REPO}" branch --show-current)"
+echo "rocm-libraries repo SHA:   $(git -C "${CK_REPO}" rev-parse HEAD)"
+echo "composablekernel repo SHA: $(git -C "${CK_SRC}" log -1 --format=%H -- .)"
 
 CKBuildTool='make'
 DashKArg='-k'
