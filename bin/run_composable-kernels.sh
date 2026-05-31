@@ -288,10 +288,13 @@ elif [ "${ShouldUpdateCKRepo}" == 'yes' ]; then
   pushd "${CK_REPO}" || exit 1
   git reset --hard origin/${CKRepoBranchName}
   git pull
-  # TODO: Write current SHA to somewhere such that it is known which SHA
-  #       was tested in this nightly run.
   popd || exit 1
 fi
+
+# Print branch and SHA of the rocm-libraries repository, followed by CK's SHA
+echo "rocm-libraries branch:     $(git -C "${CK_REPO}" branch --show-current)"
+echo "rocm-libraries repo SHA:   $(git -C "${CK_REPO}" rev-parse HEAD)"
+echo "composablekernel repo SHA: $(git -C "${CK_SRC}" log -1 --format=%H -- .)"
 
 CKBuildTool='make'
 DashKArg='-k'
