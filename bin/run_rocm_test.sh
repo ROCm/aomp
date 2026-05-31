@@ -1088,6 +1088,7 @@ function hpc2021(){
     mkdir -p "$resultsdir"/hpc2021
     cd "$aompdir"/bin
     unset ROCR_VISIBLE_DEVICES
+    export PMIX_MCA_pcompress_base_silence_warning=1
     ./run_hpc2021.sh -clean
     cd $AOMP_TEST_DIR/hpc2021-1.1.9
     grep ratio= result/*.log
