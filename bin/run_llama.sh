@@ -8,20 +8,21 @@
 
 # Build script for LLaMA with HIP support using AOMP compiler
 
+# shellcheck source=/dev/null
 . aomp_common_vars
 
-: AOMP_GPU=${AOMP_GPU:=gfx90a}
-: ${LLAMA_GPU:=$AOMP_GPU}
+: "${AOMP_GPU:=gfx90a}"
+: "${LLAMA_GPU:=$AOMP_GPU}"
 
-: ${LLAMA_TLDIR:=$AOMP_REPOS_TEST/llama}
-: ${LLAMA_BUILD_DIR:=$LLAMA_TLDIR/build}
-: ${LLAMA_SRC_DIR:=$LLAMA_TLDIR/src}
-: ${LLAMA_BUILD_MODE:=Release}
-: ${LLAMA_TESTS_LOG_LOCATION:=$LLAMA_TLDIR/logs}
+: "${LLAMA_TLDIR:=$AOMP_REPOS_TEST/llama}"
+: "${LLAMA_BUILD_DIR:=$LLAMA_TLDIR/build}"
+: "${LLAMA_SRC_DIR:=$LLAMA_TLDIR/src}"
+: "${LLAMA_BUILD_MODE:=Release}"
+: "${LLAMA_TESTS_LOG_LOCATION:=$LLAMA_TLDIR/logs}"
 
 # Model to use in benchmarks (default is a smaller model)
-: ${LLAMA_BENCH_HF_ID:="ggml-org/gemma-3-1b-it-GGUF"}
-: ${LLAMA_CACHE:="$HOME/.cache/llama.cpp"}
+: "${LLAMA_BENCH_HF_ID:=ggml-org/gemma-3-1b-it-GGUF}"
+: "${LLAMA_CACHE:=$HOME/.cache/llama.cpp}"
 
 pushd "${AOMP_REPOS_TEST}" || exit
 mkdir -p "${LLAMA_TLDIR}" && cd "${LLAMA_TLDIR}" || exit
@@ -98,9 +99,9 @@ if [ "${DoConfigure}" == "yes" ]; then
     -S src \
     -DCMAKE_PREFIX_PATH="${AOMP}"/lib/cmake \
     -DGGML_HIP=On \
-    -DCMAKE_BUILD_TYPE=${LLAMA_BUILD_MODE} \
-    -DGPU_TARGETS=${LLAMA_GPU} \
-    ${CmakeGenerator} \
+    -DCMAKE_BUILD_TYPE="${LLAMA_BUILD_MODE}" \
+    -DGPU_TARGETS="${LLAMA_GPU}" \
+    ${CmakeGenerator:+"${CmakeGenerator}"} \
     -DCMAKE_C_COMPILER="${AOMP}"/bin/clang \
     -DCMAKE_CXX_COMPILER="${AOMP}"/bin/clang++ \
     -DCMAKE_HIP_COMPILER="${AOMP}"/bin/clang++
@@ -120,46 +121,56 @@ if [ "${DoCTest}" == "yes" ]; then
   ctest --output-on-failure 2>&1 | tee "${LLAMA_TESTS_LOG_LOCATION}/ctest.log"
 fi
 
+run_llama_bench() {
+  ./bin/llama-bench "$@" 2>&1 | tee -a "${LLAMA_TESTS_LOG_LOCATION}/llama-bench.log"
+  BenchStatus=${PIPESTATUS[0]}
+
+  if [ "${BenchStatus}" -ne 0 ]; then
+    echo "ERROR: llama-bench failed with exit code ${BenchStatus}" | tee -a "${LLAMA_TESTS_LOG_LOCATION}/llama-bench.log"
+    return "${BenchStatus}"
+  fi
+}
+
 if [ "${DoBenchmark}" == "yes" ]; then
   echo "Running benchmark..."
   cd "${LLAMA_BUILD_DIR}" || exit
-  # Download model from HF (this will make it avail in local cache); bench call requires local model file
-  # Use -st (single-turn) to exit after the first response instead of blocking in
-  # conversation mode, which is auto-enabled for chat/instruction-tuned models.
-  # Redirect stdin from /dev/null as a safety net against interactive hangs.
-  ./bin/llama-cli -hf "${LLAMA_BENCH_HF_ID}" --prompt "/exit" -st < /dev/null
 
-  # Get cache directory from llama-cli
-  CacheListOutput=$(./bin/llama-cli --cache-list 2>&1)
+  # Get cache directory from llama-cli if supported by the local build.
+  CacheListOutput=$(./bin/llama-cli --cache-list 2>&1 || true)
   CacheDir=$(echo "${CacheListOutput}" | grep "model cache directory:" | sed 's/.*: //')
   : "${CacheDir:=${LLAMA_CACHE}}"
 
   # Find requested model by converting HF ID to filename pattern (user/model -> user_model)
   SearchPattern="${LLAMA_BENCH_HF_ID//\//_}"
-  LlamaModelPath=$(find "${CacheDir}" -maxdepth 1 -type f -name "${SearchPattern}*.gguf" 2>/dev/null | head -1)
+  LlamaModelPath=$(find "${CacheDir}" \( -type f -o -xtype f \) -name "${SearchPattern}*.gguf" 2>/dev/null | head -1)
 
   # Fallback: use all available .gguf files in cache
   if [ -z "${LlamaModelPath}" ]; then
     echo "Requested model not found, using all cached models"
-    mapfile -t ModelPaths < <(find "${CacheDir}" -maxdepth 1 -type f -name "*.gguf" 2>/dev/null)
+    mapfile -t ModelPaths < <(find "${CacheDir}" \( -type f -o -xtype f \) -name "*.gguf" 2>/dev/null)
   else
     ModelPaths=("${LlamaModelPath}")
-  fi
-
-  if [ ${#ModelPaths[@]} -eq 0 ]; then
-    echo "ERROR: No model files found in cache directory: ${CacheDir}"
-    ls -la "${CacheDir}" 2>/dev/null || echo "Directory does not exist"
-    exit 1
   fi
 
   # Marker for external scripts
   echo "LLAMA_BENCHMARK_BEGIN" | tee "${LLAMA_TESTS_LOG_LOCATION}/llama-bench.log"
 
-  # Run benchmark for each model
-  for LlamaModelPath in "${ModelPaths[@]}"; do
-    echo "Benchmarking: ${LlamaModelPath}"
-    ./bin/llama-bench -ngl 999 -fa 1 -ub 2048 -m "${LlamaModelPath}" 2>&1 | tee -a "${LLAMA_TESTS_LOG_LOCATION}/llama-bench.log"
-  done
+  if [ ${#ModelPaths[@]} -eq 0 ] && ./bin/llama-bench --help 2>&1 | grep -q -- "--hf-repo"; then
+    # Let llama-bench resolve/download the HF model directly.  Using llama-cli as
+    # a prefetch step can hang in ROCm/KFD waits on cold cache.
+    run_llama_bench -hf "${LLAMA_BENCH_HF_ID}" -ngl 999 -fa 1 -ub 2048 || exit $?
+  else
+    if [ ${#ModelPaths[@]} -eq 0 ]; then
+      echo "ERROR: No model files found in cache directory: ${CacheDir}"
+      exit 1
+    fi
+
+    # Run benchmark for each model
+    for LlamaModelPath in "${ModelPaths[@]}"; do
+      echo "Benchmarking: ${LlamaModelPath}" | tee -a "${LLAMA_TESTS_LOG_LOCATION}/llama-bench.log"
+      run_llama_bench -ngl 999 -fa 1 -ub 2048 -m "${LlamaModelPath}" || exit $?
+    done
+  fi
 fi
 
 popd || exit
