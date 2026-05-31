@@ -343,6 +343,7 @@ function hpc2021(){
   cd "$aompdir"/bin
   unset ROCR_VISIBLE_DEVICES
   export GPURUN_BYPASS=1
+  export PMIX_MCA_pcompress_base_silence_warning=1
   echo rockMPI=$MPI
   ./run_hpc2021.sh -clean
   cd $AOMP_TEST_DIR/hpc2021-1.1.9
