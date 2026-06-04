@@ -12,19 +12,19 @@ index 4edea369..4cc2d16b 100644
    THEROCK_USE_SAFE_DEPENDENCY_PROVIDER
    ROCM_SYMLINK_LIBS
 diff --git a/compiler/CMakeLists.txt b/compiler/CMakeLists.txt
-index bf625919..cdc6c493 100644
+index 2bdfe0ee..b772b4bc 100644
 --- a/compiler/CMakeLists.txt
 +++ b/compiler/CMakeLists.txt
-@@ -73,7 +77,7 @@ if(THEROCK_ENABLE_COMPILER)
+@@ -77,7 +77,7 @@ if(THEROCK_ENABLE_COMPILER)
        -DLIBCXXABI_ENABLE_STATIC=ON
  
        # Features
 -      -DLLVM_INCLUDE_TESTS=${THEROCK_ENABLE_LLVM_TESTS}
 +      -DLLVM_INCLUDE_TESTS=${THEROCK_BUILD_LLVM_TESTS}
+       -DTHEROCK_BUILD_COMGR_TESTS=${THEROCK_BUILD_COMGR_TESTS}
        -DLLVM_ENABLE_ZLIB=FORCE_ON
        -DLLVM_ENABLE_Z3_SOLVER=OFF
-       -DLLVM_ENABLE_LIBXML2=OFF
-@@ -85,9 +89,9 @@ if(THEROCK_ENABLE_COMPILER)
+@@ -90,9 +90,9 @@ if(THEROCK_ENABLE_COMPILER)
        -DLLVM_BUILD_LLVM_C_DYLIB=OFF
  
        # Build optimizations
