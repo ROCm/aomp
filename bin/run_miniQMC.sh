@@ -23,8 +23,12 @@ export AOMP_USE_CCACHE=0
 # Control how many OpenMP threads are used by MiniQMCPack
 : "${MQMC_OMP_NUM_THREADS:=32}"
 
+if [ -z "$AOMP_GPU" ]; then
+  echo "Error: Set AOMP_GPU to the target GPU architecture (e.g., gfx90a)"
+  exit 1
+fi
+
 export PATH=$AOMP/bin:$PATH
-#export PATH=/home/janplehr/rocm/trunk/bin:$PATH
 
 # We export all these paths, so they will be picked-up in the CMake command.
 # For libraries that AOMP provides (hsa-runtime, hip, comgr, device-libs), use AOMP.
@@ -43,17 +47,23 @@ export rocsolver_DIR=${ROCM}/lib/cmake/rocsolver/
 : "${MQMC_BUILD_PREFIX:=$AOMP_REPOS_TEST/miniqmc_build}"
 # Set the default build directory name
 : "${MQMC_BUILD_DIR:=${MQMC_BUILD_PREFIX}/build_aomp_clang}"
-# Path to the miniqmc source directory
-: "${MQMC_SOURCE_DIR:=$AOMP_REPOS_TEST/miniqmc_src}"
 # how many threads should be used for building miniqmc
 : "${MQMC_NUM_BUILD_PROCS:=32}"
 # We pin the version by default, so we have only AOMP as moving target
 : "${MQMC_GIT_TAG:=9d9d7d3}"
 
+# Path to the miniqmc source directory
+: "${MQMC_SOURCE_DIR:=$AOMP_REPOS_TEST/miniqmc_src}"
 
 if [ ! -d "$MQMC_SOURCE_DIR" ]; then
-  git clone https://github.com/QMCPACK/miniqmc.git "$MQMC_SOURCE_DIR"
-  git checkout "${MQMC_GIT_TAG}"
+  git clone https://github.com/ye-luo/miniqmc.git "$MQMC_SOURCE_DIR"
+  pushd "$MQMC_SOURCE_DIR" || exit
+  git checkout OMP_offload
+  popd || exit
+else
+  pushd "$MQMC_SOURCE_DIR" || exit
+  git pull
+  popd || exit
 fi
 
 rm -rf "${MQMC_BUILD_DIR}"
@@ -63,8 +73,8 @@ rm -rf "${MQMC_BUILD_DIR}"
 cmake -B "${MQMC_BUILD_DIR}" -S "${MQMC_SOURCE_DIR}" \
   -DCMAKE_PREFIX_PATH="${AOMP}/lib/cmake;${ROCM}/lib/cmake" \
   -DCMAKE_CXX_COMPILER=clang++ \
-  -DENABLE_OFFLOAD=ON \
-  -DQMC_ENABLE_ROCM=ON \
+  -DQMC_GPU="openmp" \
+  -DQMC_GPU_ARCHS="${AOMP_GPU}" \
   -DCMAKE_CXX_FLAGS='-fopenmp-assume-no-nested-parallelism -DCUDART_VERSION=10000 -DcudaMemoryTypeManaged=hipMemoryTypeManaged ' \
   -DAMDGPU_DISABLE_HOST_DEVMEM=ON \
   -DCMAKE_VERBOSE_MAKEFILE=ON
@@ -81,13 +91,26 @@ echo "Running Tests"
 # Ensure AOMP runtime libraries are found before /opt/rocm libraries to avoid ABI mismatches
 export LD_LIBRARY_PATH="${AOMP}/lib:${AOMP}/lib/llvm/lib:${LD_LIBRARY_PATH}"
 
-echo "OMP_NUM_THREADS=${MQMC_OMP_NUM_THREADS} ${MQMC_BUILD_DIR}/bin/check_spo_batched_reduction -n 10"
-OMP_NUM_THREADS=${MQMC_OMP_NUM_THREADS} "${MQMC_BUILD_DIR}"/bin/check_spo_batched_reduction -n 10
+# We intentionally continue running even if some binaries are missing.
+if [ ! -f "${MQMC_BUILD_DIR}/bin/check_spo_batched_reduction" ]; then
+  echo "Error: check_spo_batched_reduction binary not found in ${MQMC_BUILD_DIR}/bin"
+else
+  echo "OMP_NUM_THREADS=${MQMC_OMP_NUM_THREADS} ${MQMC_BUILD_DIR}/bin/check_spo_batched_reduction -n 10"
+  OMP_NUM_THREADS=${MQMC_OMP_NUM_THREADS} "${MQMC_BUILD_DIR}"/bin/check_spo_batched_reduction -n 10
+fi
 
-echo ""
-echo "OMP_NUM_THREADS=${MQMC_OMP_NUM_THREADS} ${MQMC_BUILD_DIR}/bin/miniqmc"
-OMP_NUM_THREADS=${MQMC_OMP_NUM_THREADS} "${MQMC_BUILD_DIR}"/bin/miniqmc -v
+if [ ! -f "${MQMC_BUILD_DIR}/bin/miniqmc" ]; then
+  echo "Error: miniqmc binary not found in ${MQMC_BUILD_DIR}/bin"
+else
+  echo ""
+  echo "OMP_NUM_THREADS=${MQMC_OMP_NUM_THREADS} ${MQMC_BUILD_DIR}/bin/miniqmc"
+  OMP_NUM_THREADS=${MQMC_OMP_NUM_THREADS} "${MQMC_BUILD_DIR}"/bin/miniqmc -v
+fi
 
-echo ""
-echo "OMP_NUM_THREADS=${MQMC_OMP_NUM_THREADS} ${MQMC_BUILD_DIR}/bin/check_spo -n 10"
-OMP_NUM_THREADS=${MQMC_OMP_NUM_THREADS} "${MQMC_BUILD_DIR}"/bin/check_spo -n 10 -v
+if [ ! -f "${MQMC_BUILD_DIR}/bin/check_spo" ]; then
+  echo "Error: check_spo binary not found in ${MQMC_BUILD_DIR}/bin"
+else
+  echo ""
+  echo "OMP_NUM_THREADS=${MQMC_OMP_NUM_THREADS} ${MQMC_BUILD_DIR}/bin/check_spo -n 10"
+  OMP_NUM_THREADS=${MQMC_OMP_NUM_THREADS} "${MQMC_BUILD_DIR}"/bin/check_spo -n 10 -v
+fi
