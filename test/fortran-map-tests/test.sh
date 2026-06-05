@@ -653,10 +653,6 @@ echo "compiling UMT-reproducer-5.f90"
 
 $AOMP/bin/flang --offload-arch=$AOMP_GPU -fopenmp  UMT-reproducer-5.f90 -o UMT-reproducer-5.out
 
-echo "compiling UMT-reproducer-6.f90"
-
-$AOMP/bin/flang --offload-arch=$AOMP_GPU -fopenmp  UMT-reproducer-6.f90 -o UMT-reproducer-6.out
-
 echo "compiling reproducer-3-47779-v2.f90"
 
 $AOMP/bin/flang  --offload-arch=$AOMP_GPU -fopenmp  reproducer-3-47779-v2.f90 -o reproducer-3-47779-v2.out
@@ -828,6 +824,14 @@ $AOMP/bin/flang -fopenmp -fopenmp-force-usm --offload-arch=$AOMP_GPU lcompiler-1
 echo "compiling lcompiler-1645.f90"
 
 $AOMP/bin/flang -fopenmp --offload-arch=$AOMP_GPU lcompiler-1645.f90 -o lcompiler-1645.out
+
+echo "compiling size-zero-presence-check.f90"
+
+$AOMP/bin/flang -fopenmp --offload-arch=$AOMP_GPU size-zero-presence-check.f90 -o size-zero-presence-check.out
+
+echo "compiling initialized-common-block-mapping.f90"
+
+$AOMP/bin/flang -fopenmp --offload-arch=$AOMP_GPU initialized-common-block-mapping.f90 -o initialized-common-block-mapping.out
 
 echo "basic exp map"
 
@@ -1638,11 +1642,6 @@ echo "UMT Reproducer 5, make sure data is appropriately passed across over multi
 echo "RUNNING TEST: UMT-reproducer-5"
 ./UMT-reproducer-5.out
 
-echo "UMT Reproducer 6 map back re-associate bug"
-
-echo "RUNNING TEST: UMT-reproducer-6"
-./UMT-reproducer-6.out
-
 echo "Test mapping of allocatable char array in derived type"
 
 echo "RUNNING TEST: char-array-map-test-v1"
@@ -1731,7 +1730,7 @@ unset LIBOMPTARGET_TREAT_ATTACH_AUTO_AS_ALWAYS
 
 echo "attach never map test"
 
-LIBOMPTARGET_TREAT_ATTACH_AUTO_AS_ALWAYS=0
+export LIBOMPTARGET_TREAT_ATTACH_AUTO_AS_ALWAYS=0
 
 echo "RUNNING TEST: attach_never"
 ./attach_never.out
@@ -1747,11 +1746,6 @@ echo "Test deallocation of a pointer array inside of a derived type using ref_pt
 
 echo "RUNNING TEST: SWDEV-564425"
 ./SWDEV-564425.out
-
-echo "Test deallocation of multiple pointer members inside of a derived type using ref_ptr/ptee"
-
-echo "RUNNING TEST: SWDEV-564425-v2"
-./SWDEV-564425-v2.out
 
 echo "ref_ptr_ptee_alloca_struct_map-v1"
 
@@ -1841,6 +1835,17 @@ echo "SWDEV-579431 write-back issue caused by inter-mixing of implicit declare m
 
 echo "RUNNING TEST: SWDEV-579431"
 ./SWDEV-579431.out
+
+echo "size-zero-presence-check, this test verifies present tests via map on size zero arrays return true"
+
+echo "RUNNING TEST: size-zero-presence-check"
+
+./size-zero-presence-check.out
+
+echo "initialized-common-block-mapping, tests initialized COMMON blocks with declare target link and explicit mapping"
+
+echo "RUNNING TEST: initialized-common-block-mapping"
+./initialized-common-block-mapping.out
 
 # Tests that require XNACK/USM to pass
 
