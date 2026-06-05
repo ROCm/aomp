@@ -99,6 +99,11 @@ export OPENMPI_DIR=$HOME/local/rocmopenmpi
 
 patchrepo "$AOMP_REPOS/emissary"
 
+EMISSARY_LLVM_PATCH_SCRIPT="$AOMP_REPOS/emissary/patches/apply_llvm_patch.sh"
+if [ -f "$EMISSARY_LLVM_PATCH_SCRIPT" ] ; then
+  "$EMISSARY_LLVM_PATCH_SCRIPT" apply "$AOMP_REPOS/llvm-project" "$AOMP_REPOS/emissary"
+fi
+
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
   if [ -d "$BUILD_EMISSARY_DIR" ] ; then
      echo
@@ -170,4 +175,7 @@ if [ "$1" == "install" ] ; then
       exit 1
    fi
    removepatch "$AOMP_REPOS/emissary"
+   if [ -f "$EMISSARY_LLVM_PATCH_SCRIPT" ] ; then
+     "$EMISSARY_LLVM_PATCH_SCRIPT" remove "$AOMP_REPOS/llvm-project" "$AOMP_REPOS/emissary"
+   fi
 fi
