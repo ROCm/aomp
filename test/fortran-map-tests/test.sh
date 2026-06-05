@@ -829,6 +829,10 @@ echo "compiling size-zero-presence-check.f90"
 
 $AOMP/bin/flang -fopenmp --offload-arch=$AOMP_GPU size-zero-presence-check.f90 -o size-zero-presence-check.out
 
+echo "compiling initialized-common-block-mapping.f90"
+
+$AOMP/bin/flang -fopenmp --offload-arch=$AOMP_GPU initialized-common-block-mapping.f90 -o initialized-common-block-mapping.out
+
 echo "basic exp map"
 
 echo "RUNNING TEST: basic-exp-map"
@@ -1837,6 +1841,11 @@ echo "size-zero-presence-check, this test verifies present tests via map on size
 echo "RUNNING TEST: size-zero-presence-check"
 
 ./size-zero-presence-check.out
+
+echo "initialized-common-block-mapping, tests initialized COMMON blocks with declare target link and explicit mapping"
+
+echo "RUNNING TEST: initialized-common-block-mapping"
+./initialized-common-block-mapping.out
 
 # Tests that require XNACK/USM to pass
 
