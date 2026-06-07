@@ -7,7 +7,9 @@
 #    override with SUITE_LIST
 #  Please check with Ron or Ethan for script modifications.
 date
-SUITE_LIST=${SUITE_LIST:-"smoke-limbo smoke-fort-limbo smoke smoke-fort nekbone babelstream fortran-babelstream accel2023 bldopenmpi hpc2021 openmpapps"}
+SUITE_LIST=${SUITE_LIST:-"smoke-limbo smoke-fort-limbo smoke smoke-fort nekbone babelstream fortran-babelstream bldopenmpi openmpapps"}
+echo "Removed hpc2021 and accel2023 for CI since external runners are not supposed to be able to access artifactory"
+#SUITE_LIST=${SUITE_LIST:-"smoke-limbo smoke-fort-limbo smoke smoke-fort nekbone babelstream fortran-babelstream accel2023 bldopenmpi hpc2021 openmpapps"}
 declare -A assocSuite=(
 ["smoke-limbo"]=" 5 minutes"
 ["smoke-fort-limbo"]=" 2 minutes"
