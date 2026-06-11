@@ -1,4 +1,4 @@
-subroutine _compute_dev(sum_dev, a_dev, b_dev, c_dev)
+subroutine compute_dev(sum_dev, a_dev, b_dev, c_dev)
     integer i,j,k
     REAL(8), dimension(100,100,100), intent(in) :: b_dev, c_dev
     REAL(8), dimension(100,100,100), intent(out) :: a_dev
@@ -17,13 +17,13 @@ subroutine _compute_dev(sum_dev, a_dev, b_dev, c_dev)
             end do
         end do
     end do
-end subroutine _compute_dev
+end subroutine compute_dev
 
 program main
     REAL(8) :: sum_dev = 0
     REAL(8), dimension(100,100,100) :: a_dev, b_dev, c_dev, E_dev
     integer :: nsize = 100
-!$omp declare target(_compute_dev)
+!$omp declare target(compute_dev)
     do i=1,nsize
         do j=1,nsize
             do k=1,nsize
@@ -35,7 +35,7 @@ program main
 
 !$omp target update to(b_dev,c_dev,sum_dev,nsize)
 !$omp target
-    CALL _compute_dev(sum_dev, a_dev, b_dev, c_dev)
+    CALL compute_dev(sum_dev, a_dev, b_dev, c_dev)
 !$omp end target
 !$omp target update from(a_dev,sum_dev)
 

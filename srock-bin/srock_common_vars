@@ -176,6 +176,7 @@ _gfxsemicolons=$(echo "$GFXLIST" | tr ' ' ';')
 _gfamsemicolons=$(echo "$GFXFAM" | tr ' ' ';')
 
 declare -a _cmake_args
+# shellcheck disable=SC2206 # word splitting intended on $SROCK_CMAKE_EXTRA
 _cmake_args=(-B build -GNinja
    -DCMAKE_INSTALL_PREFIX="$SROCK_INSTALL_DIR"
    -DTHEROCK_AMDGPU_TARGETS=\'"$_gfxsemicolons"\'
@@ -184,6 +185,7 @@ _cmake_args=(-B build -GNinja
    -DTHEROCK_BACKGROUND_BUILD_JOBS=1
    -DTHEROCK_BUILD_LLVM_TESTS=1
    "${_cmake_enable[@]}"
+   $SROCK_CMAKE_EXTRA
    "$SROCK_THEROCK_DIR"
 )
 

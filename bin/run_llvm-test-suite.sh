@@ -51,39 +51,69 @@ DoTest='no'
 DoUpdate='no'
 IsVerbose='no'
 
-while getopts "j:cbtvhu" opt; do
-  case ${opt} in
-  j) AOMP_BUILD_JOBS=${OPTARG} ;;
-  c) DoConfigure='yes' ;;
-  b) DoCompile='yes' ;;
-  t) DoTest='yes' ;;
-  v) IsVerbose='yes' ;;
-  u) DoUpdate='yes' ;;
-  h)
-    echo "Usage: $(basename "$0") [-j build_jobs] [-c configure] [-b build] [-t test] [-v verbose] [-u update_sources]"
-    echo ""
-    echo "Options:"
-    echo "  -c  Run CMake configuration"
-    echo "  -b  Build the test suite"
-    echo "  -t  Run tests"
-    echo "  -u  Update sources (git pull)"
-    echo "  -j  Number of parallel build jobs (default: $AOMP_BUILD_JOBS)"
-    echo "  -v  Verbose mode (set -x)"
-    echo "  -h  Show this help message"
-    echo ""
-    echo "Environment Variables:"
-    echo "  LLVMTS_TLDIR         - Top-level directory (default: \$AOMP_REPOS_TEST/llvm-test-suite)"
-    echo "  LLVMTS_GPU           - Target GPU(s) (default: \$AOMP_GPU)"
-    echo "  LLVMTS_BUILD_TYPE    - CMake build type (default: Release)"
-    echo "  LLVMTS_TEST_TIMEOUT  - Test timeout in seconds (default: 800)"
-    echo "  AOMP                 - AOMP compiler location (default: \$HOME/rocm/aomp)"
-    echo "  ROCM                 - ROCm installation path (fallback, default: /opt/rocm)"
-    echo "                         Only needed if AOMP doesn't contain HIP libraries"
+usage() {
+  echo "Usage: $(basename "$0") [-j build_jobs] [-c configure] [-b build] [-t test] [-v verbose] [-u update_sources]"
+  echo ""
+  echo "Options:"
+  echo "  -c  Run CMake configuration"
+  echo "  -b  Build the test suite"
+  echo "  -t  Run tests"
+  echo "  -u  Update sources (git pull)"
+  echo "  -j  Number of parallel build jobs (default: $AOMP_BUILD_JOBS)"
+  echo "  -v  Verbose mode (set -x)"
+  echo "  -h  Show this help message"
+  echo ""
+  echo "Environment Variables:"
+  echo "  LLVMTS_TLDIR         - Top-level directory (default: \$AOMP_REPOS_TEST/llvm-test-suite)"
+  echo "  LLVMTS_GPU           - Target GPU(s) (default: \$AOMP_GPU)"
+  echo "  LLVMTS_BUILD_TYPE    - CMake build type (default: Release)"
+  echo "  LLVMTS_TEST_TIMEOUT  - Test timeout in seconds (default: 800)"
+  echo "  AOMP                 - AOMP compiler location (default: \$HOME/rocm/aomp)"
+  echo "  ROCM                 - ROCm installation path (fallback, default: /opt/rocm)"
+  echo "                         Only needed if AOMP doesn't contain HIP libraries"
+}
+
+# Parse options with GNU getopt, which supports long options (added later) and
+# the bundled/short forms (-cbt, -j8, -j 8) the script already accepted.
+if ! ParsedArgs=$(getopt -o j:cbtvhu -n "$(basename "$0")" -- "$@"); then
+  usage >&2
+  exit 1
+fi
+eval set -- "${ParsedArgs}"
+
+while true; do
+  case "$1" in
+  -j)
+    AOMP_BUILD_JOBS="$2"
+    shift 2
+    ;;
+  -c)
+    DoConfigure='yes'
+    shift
+    ;;
+  -b)
+    DoCompile='yes'
+    shift
+    ;;
+  -t)
+    DoTest='yes'
+    shift
+    ;;
+  -v)
+    IsVerbose='yes'
+    shift
+    ;;
+  -u)
+    DoUpdate='yes'
+    shift
+    ;;
+  -h)
+    usage
     exit 0
     ;;
-  \?)
-    echo "Usage: $(basename "$0") [-j build_jobs] [-c configure] [-b build] [-t test] [-v verbose] [-u update_sources] [-h help]"
-    exit 1
+  --)
+    shift
+    break
     ;;
   esac
 done
