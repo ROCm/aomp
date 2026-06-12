@@ -1,7 +1,0 @@
-[rocm]
-name=ROCm 7.1.1 repository
-baseurl=https://repo.radeon.com/rocm/el8/7.1.1/main
-enabled=1
-priority=50
-gpgcheck=1
-gpgkey=https://repo.radeon.com/rocm/rocm.gpg.key
