@@ -6,22 +6,21 @@ FROM localhost/manylinux:base
 
 ARG WORKBASE="/opt"
 
-# Add ROCm repository.
-COPY rocm.repo /etc/yum.repos.d/rocm.repo
-RUN yum clean packages && yum clean all
+# Install ROCm from a TheRock nightly dist tarball.
+# The full dist tarball already contains the HIP runtime, rocblas, rocthrust,
+# etc., so no extra ROCm packages are needed here.
+# By default the most recent nightly for the given base version + gfx is used;
+# pin a specific build with --build-arg ROCM_NIGHTLY_DATE=YYYYMMDD.
+ARG ROCM_BASE_VERSION=7.14
+ARG ROCM_GFX=gfx90a
+ARG ROCM_NIGHTLY_DATE=
 
-# Install minimal ROCm components for buildbot.
-RUN yum install -y \
-    rocm-device-libs \
-    rocm-core \
-    rocminfo \
-    hsa-rocr-devel7.1.1 \
-    rocm-hip-runtime7.1.1.x86_64 \
-    rocm-hip-runtime-devel7.1.1.x86_64 \
-    rocthrust-devel \
-    rocblas \
-    && yum clean all && \
-    rm -rf /var/cache/yum
+COPY install-rocm-nightly.sh /tmp/install-rocm-nightly.sh
+RUN ROCM_BASE_VERSION="${ROCM_BASE_VERSION}" \
+    ROCM_GFX="${ROCM_GFX}" \
+    ROCM_NIGHTLY_DATE="${ROCM_NIGHTLY_DATE}" \
+    bash /tmp/install-rocm-nightly.sh && \
+    rm -f /tmp/install-rocm-nightly.sh
 
 # Update render group GID to match host for GPU access.
 RUN groupmod -g 109 render
