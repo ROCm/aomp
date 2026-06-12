@@ -318,7 +318,13 @@ else
 fi
 
 # For some reason, CK on gfx12 wants this set.
-CKCmakeCmd+="-DBUILD_DEV=On"
+CKCmakeCmd+="-DBUILD_DEV=On "
+
+# TODO: Remove this workaround when possible.
+# As of 2026-JUN-12 this is needed to bypass DPP-related build errors:
+#   error: cannot compile inline asm
+#   <inline asm>:2:33: error: not a valid operand.
+CKCmakeCmd+="-DDISABLE_DPP_KERNELS=ON"
 
 # Ensure CK build directory is cleaned.
 if [ "${ShouldRebuildCK}" == 'yes' ]; then
