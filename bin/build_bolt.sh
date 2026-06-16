@@ -27,16 +27,30 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+# Without these options, we can lose error status from command subtitutions,
+# etc.
+set -e
+shopt -s inherit_errexit
+
 # --- Start standard header to set AOMP environment variables ----
-realpath=$(realpath "$0")
+realpath=$(realpath -- "$0")
 thisdir=$(dirname "$realpath")
 . "$thisdir/aomp_utils"
 . "$thisdir/aomp_common_vars"
 # --- end standard header ----
 
-REPO_DIR=$AOMP_REPOS/bolt
-BUILD_DIR=${BUILD_AOMP}
+# All user-controllable (environment) values are read through these wrappers so
+# that they can later be driven by an orchestration layer.
+cfgvar() {
+  get_config_var_string bolt "$1"
+}
+
+cfgbool() {
+  get_config_var_bool bolt "$1"
+}
+
 BOLT_INSTALL_DIR=${BOLT_INSTALL_DIR:-$AOMP_INSTALL_DIR}
+REPO_DIR="$(cfgvar AOMP_REPOS)/bolt"
 
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   echo " "
@@ -45,99 +59,175 @@ if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   echo "  ./build_bolt.sh nocmake           NO cmake, make,  NO install "
   echo "  ./build_bolt.sh install           NO Cmake, make install "
   echo " "
-  exit
-fi
-
-if [ ! -d "$REPO_DIR" ] ; then
-   echo "ERROR:  Missing repository $REPO_DIR/"
-   echo "        Try these commands till bolt is part of the AOMP manifest:"
-   echo
-   echo "  cd $AOMP_REPOS"
-   echo "  git clone https://github.com/pmodels/bolt"
-   echo
-   exit 1
-fi
-
-if [ ! -f "$AOMP/bin/clang" ] ; then
-   echo "ERROR:  Missing file $AOMP/bin/clang"
-   echo "        Build the AOMP llvm compiler in $AOMP first"
-   echo "        This is needed to build the bolt libraries"
-   echo " "
-   exit 1
-fi
-
-check_writable_installdir "$1" "$BOLT_INSTALL_DIR"
-
-patchrepo "$AOMP_REPOS/bolt"
-
-if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
-  if [ -d "$BUILD_DIR/build/bolt" ] ; then
-     echo
-     echo "FRESH START , CLEANING UP FROM PREVIOUS BUILD"
-     echo "rm -rf $BUILD_DIR/build/bolt"
-     rm -rf "$BUILD_DIR/build/bolt"
-  fi
-
-declare -a MYCMAKEOPTS
-
-MYCMAKEOPTS=(-DCMAKE_INSTALL_PREFIX="$BOLT_INSTALL_DIR"
-             "${AOMP_ORIGIN_RPATH[@]}"
-             -DCMAKE_C_COMPILER="$AOMP_CC_COMPILER"
-             -DCMAKE_CXX_COMPILER="$AOMP_CXX_COMPILER"
-             -DOPENMP_TEST_C_COMPILER="$AOMP_CC_COMPILER"
-             -DOPENMP_TEST_CXX_COMPILER="$AOMP_CXX_COMPILER"
-             -DCMAKE_BUILD_TYPE=Release
-             -DOPENMP_ENABLE_LIBOMPTARGET=OFF
-             -DLIBOMP_HEADERS_INSTALL_PATH=include/bolt
-             -DLIBOMP_INSTALL_ALIASES=OFF
-             -DLIBOMP_USE_ARGOBOTS=on)
-
-  mkdir -p "$BUILD_DIR/build/bolt"
-  cd "$BUILD_DIR/build/bolt" || exit
-  echo
-  echo " -----Running bolt cmake ---- "
-  echo "${AOMP_CMAKE} $(shquot "${MYCMAKEOPTS[@]}") $REPO_DIR"
-
-  if ! ${AOMP_CMAKE} "${MYCMAKEOPTS[@]}" "$REPO_DIR"; then
-      echo "ERROR bolt cmake failed. Cmake flags"
-      echo "      $(shquot "${MYCMAKEOPTS[@]}")"
-      exit 1
-  fi
-fi
-
-if [ "$1" = "cmake" ]; then
   exit 0
 fi
 
-cd "$BUILD_DIR/build/bolt" || exit
-echo
-echo " -----Running make for bolt ---- "
+get_src_dir() {
+   echo "$REPO_DIR"
+}
 
-if ! make -j "$AOMP_JOB_THREADS"; then
+# Print the build dir for a given config, passed as $1.
+get_build_dir() {
+   local Cfg=$1
+   local BuildDir
+   BuildDir="$(cfgvar BUILD_DIR)"
+
+   case "$Cfg" in
+   "default")
+     echo -n "$BuildDir/bolt"
+     ;;
+   *)
+     >&2 echo "Unknown config '$Cfg'"
+     exit 1
+     ;;
+   esac
+}
+
+# Print the install dir for a given config, passed as $1.
+get_install_dir() {
+   cfgvar BOLT_INSTALL_DIR
+}
+
+task_precheck() {
+   local SrcDir
+   SrcDir="$(get_src_dir)"
+
+   if [ ! -d "$SrcDir" ] ; then
+      echo "ERROR:  Missing repository $SrcDir/"
+      echo "        Try these commands till bolt is part of the AOMP manifest:"
+      echo
+      echo "  cd $(cfgvar AOMP_REPOS)"
+      echo "  git clone https://github.com/pmodels/bolt"
+      echo
+      exit 1
+   fi
+
+   if [ ! -f "$AOMP/bin/clang" ] ; then
+      echo "ERROR:  Missing file $AOMP/bin/clang"
+      echo "        Build the AOMP llvm compiler in $AOMP first"
+      echo "        This is needed to build the bolt libraries"
       echo " "
-      echo "ERROR: make -j $AOMP_JOB_THREADS  FAILED"
+      exit 1
+   fi
+
+   check_writable_installdir "$1" "$(cfgvar BOLT_INSTALL_DIR)"
+}
+
+task_patch() {
+   patchrepo "$REPO_DIR"
+}
+
+task_unpatch() {
+   removepatch "$REPO_DIR"
+}
+
+task_clean() {
+   local Cfg=$1
+   local BuildDir
+   BuildDir=$(get_build_dir "$Cfg")
+   echo "rm -rf $(shquot "$BuildDir")"
+   rm -rf "$BuildDir"
+}
+
+task_cmake() {
+   local Cfg=$1
+   local BuildDir
+   local SrcDir
+   local AompCmake
+   local -a MYCMAKEOPTS
+
+   SrcDir="$(get_src_dir)"
+   BuildDir="$(get_build_dir "$Cfg")"
+   AompCmake="$(cfgvar AOMP_CMAKE)"
+
+   MYCMAKEOPTS=(-DCMAKE_INSTALL_PREFIX="$(cfgvar BOLT_INSTALL_DIR)"
+                "${AOMP_ORIGIN_RPATH[@]}"
+                -DCMAKE_C_COMPILER="$(cfgvar AOMP_CC_COMPILER)"
+                -DCMAKE_CXX_COMPILER="$(cfgvar AOMP_CXX_COMPILER)"
+                -DOPENMP_TEST_C_COMPILER="$(cfgvar AOMP_CC_COMPILER)"
+                -DOPENMP_TEST_CXX_COMPILER="$(cfgvar AOMP_CXX_COMPILER)"
+                -DCMAKE_BUILD_TYPE=Release
+                -DOPENMP_ENABLE_LIBOMPTARGET=OFF
+                -DLIBOMP_HEADERS_INSTALL_PATH=include/bolt
+                -DLIBOMP_INSTALL_ALIASES=OFF
+                -DLIBOMP_USE_ARGOBOTS=on)
+
+   mkdir -p "$BuildDir"
+   pushd "$BuildDir" >& /dev/null || exit
+   echo " -----Running cmake for bolt $Cfg ---- "
+   echo "$AompCmake $(shquot "${MYCMAKEOPTS[@]}") $SrcDir"
+
+   if ! "$AompCmake" "${MYCMAKEOPTS[@]}" "$SrcDir"; then
+      echo "ERROR bolt $Cfg cmake failed. Cmake flags"
+      echo "      $(shquot "${MYCMAKEOPTS[@]}")"
+      exit 1
+   fi
+   popd >& /dev/null || exit
+}
+
+task_build() {
+   local Cfg=$1
+   local BuildDir
+   local Jobs
+   BuildDir="$(get_build_dir "$Cfg")"
+   Jobs="$(cfgvar AOMP_JOB_THREADS)"
+
+   pushd "$BuildDir" >& /dev/null || exit
+   echo " -----Running make for bolt $Cfg ---- "
+   echo "make -j $Jobs"
+   if ! make -j "$Jobs"; then
+      echo " "
+      echo "ERROR: make -j $Jobs  FAILED"
       echo "To restart:"
-      echo "  cd $BUILD_DIR/build/bolt"
+      echo "  cd $BuildDir"
       echo "  make "
       exit 1
-else
-  if [ "$1" != "install" ] ; then
-      echo
-      echo " BUILD COMPLETE! To install bolt component run this command:"
-      echo "  $0 install"
-      echo
+   fi
+   popd >& /dev/null || exit
+}
+
+task_install() {
+   local Cfg=$1
+   local BuildDir
+   local InstallDir
+   BuildDir="$(get_build_dir "$Cfg")"
+   InstallDir="$(get_install_dir "$Cfg")"
+
+   pushd "$BuildDir" >& /dev/null || exit
+   echo " -----Installing to $InstallDir ----- "
+   echo "$SUDO make install "
+
+   if ! $SUDO make install; then
+      echo "ERROR make install failed "
+      exit 1
+   fi
+   popd >& /dev/null || exit
+}
+
+do_list_configs() {
+  echo "default"
+}
+
+do_list_init() {
+  echo "precheck"
+  echo "patch"
+}
+
+do_list_fini() {
+  echo "unpatch"
+}
+
+# List of tasks per config.
+do_list_tasks() {
+  local Cfg=$1
+  if valid_config "$Cfg"; then
+    echo "clean"
+    echo "cmake"
+    echo "build"
+    echo "install"
+  else
+    echo "Unknown config '$Cfg'"
   fi
-fi
+}
 
-#  ----------- Install only if asked  ----------------------------
-if [ "$1" == "install" ] ; then
-      cd "$BUILD_DIR/build/bolt" || exit
-      echo
-      echo " -----Installing to $BOLT_INSTALL_DIR ----- "
-
-      if ! $SUDO make install; then
-         echo "ERROR make install failed "
-         exit 1
-      fi
-      removepatch "$AOMP_REPOS/bolt"
-fi
+command_dispatcher "$@"
