@@ -21,12 +21,8 @@ thisdir=$(dirname "$realpath")
 . "$thisdir/aomp_common_vars"
 # --- end standard header ----
 
-BUILD_TYPE=${BUILD_TYPE:-Release}
-INSTALL_PROJECT=${INSTALL_PROJECT:-$LLVM_INSTALL_LOC}
-WEBSITE="http\:\/\/github.com\/ROCm\/aomp"
-ROCR_REPO_DIR=$AOMP_REPOS/$AOMP_ROCR_REPO_NAME
-REPO_DIR=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME
-
+# All user-controllable (environment) values are read through these wrappers so
+# that they can later be driven by an orchestration layer.
 cfgvar() {
   get_config_var_string project "$1"
 }
@@ -35,12 +31,18 @@ cfgbool() {
   get_config_var_bool project "$1"
 }
 
+BUILD_TYPE=${BUILD_TYPE:-Release}
+INSTALL_PROJECT=${INSTALL_PROJECT:-$LLVM_INSTALL_LOC}
+WEBSITE="http\:\/\/github.com\/ROCm\/aomp"
+ROCR_REPO_DIR="$(cfgvar AOMP_REPOS)/$(cfgvar AOMP_ROCR_REPO_NAME)"
+REPO_DIR="$(cfgvar AOMP_REPOS)/$(cfgvar AOMP_PROJECT_REPO_NAME)"
+
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   help_build_aomp
 fi
 
 get_src_dir() {
-   echo "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/llvm"
+   echo "$REPO_DIR/llvm"
 }
 
 # Print the build dir for a given config, passed as $1.
@@ -48,7 +50,7 @@ get_build_dir() {
    local Cfg=$1
    case "$Cfg" in
    "default")
-     echo -n "$(cfgvar BUILD_DIR)/$AOMP_PROJECT_REPO_NAME"
+     echo -n "$(cfgvar BUILD_DIR)/$(cfgvar AOMP_PROJECT_REPO_NAME)"
      ;;
    *)
      >&2 echo "Unknown config '$Cfg'"
@@ -66,15 +68,16 @@ get_install_dir() {
 # string.  This edits the (git-tracked) source file in place; task_install
 # reverts it with "git checkout".
 fixup_source_banner() {
-   local MONO_REPO_ID SOURCEID TEMPCLFILE ORIGCLFILE BUILDCLFILE
-   cd "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME" || exit
+   local MONO_REPO_ID SOURCEID TEMPCLFILE ORIGCLFILE BUILDCLFILE VersionString
+   VersionString="$(cfgvar AOMP_VERSION_STRING)"
+   cd "$REPO_DIR" || exit
    MONO_REPO_ID=$(git log | grep -m1 commit | cut -d" " -f2)
-   SOURCEID="Source ID:$AOMP_VERSION_STRING-$MONO_REPO_ID"
+   SOURCEID="Source ID:$VersionString-$MONO_REPO_ID"
    TEMPCLFILE="/tmp/clfile$$.cpp"
-   ORIGCLFILE="$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/llvm/lib/Support/CommandLine.cpp"
+   ORIGCLFILE="$REPO_DIR/llvm/lib/Support/CommandLine.cpp"
    BUILDCLFILE=$ORIGCLFILE
 
-   if ! sed "s/LLVM (http:\/\/llvm\.org\/):/AOMP-${AOMP_VERSION_STRING} ($WEBSITE):\\\n $SOURCEID/" "$ORIGCLFILE" > "$TEMPCLFILE"; then
+   if ! sed "s/LLVM (http:\/\/llvm\.org\/):/AOMP-${VersionString} ($WEBSITE):\\\n $SOURCEID/" "$ORIGCLFILE" > "$TEMPCLFILE"; then
       echo "ERROR sed command to fix CommandLine.cpp failed."
       exit 1
    fi
@@ -96,8 +99,10 @@ fixup_source_banner() {
 
 task_precheck() {
    if "$(cfgbool AOMP_STANDALONE_BUILD)"; then
-      if [ ! -L "$AOMP" ] && [ -d "$AOMP" ] ; then
-         echo "ERROR: Directory $AOMP is a physical directory."
+      local Aomp
+      Aomp="$(cfgvar AOMP)"
+      if [ ! -L "$Aomp" ] && [ -d "$Aomp" ] ; then
+         echo "ERROR: Directory $Aomp is a physical directory."
          echo "       It must be a symbolic link or not exist"
          exit 1
       fi
@@ -138,6 +143,15 @@ task_cmake() {
    local Cfg=$1
    local BuildDir
    local SrcDir
+   local Repos
+   local AompCmake
+   local AompSupp
+   local BuildType
+   local ProjectsList
+   local VersionString
+   local CcComp
+   local CxxComp
+   local Gfxlist
    local standalone_word
    local TARGETS_TO_BUILD
    local LLVM_RUNTIMES
@@ -151,14 +165,22 @@ task_cmake() {
    local -a MYCMAKEOPTS
    local -a MYLITOPTS
 
-   echo "LLVM PROJECTS TO BUILD:$AOMP_PROJECTS_LIST"
-
    BuildDir="$(get_build_dir "$Cfg")"
    SrcDir="$(get_src_dir)"
+   Repos="$(cfgvar AOMP_REPOS)"
+   AompCmake="$(cfgvar AOMP_CMAKE)"
+   AompSupp="$(cfgvar AOMP_SUPP)"
+   BuildType="$(cfgvar BUILD_TYPE)"
+   ProjectsList="$(cfgvar AOMP_PROJECTS_LIST)"
+   VersionString="$(cfgvar AOMP_VERSION_STRING)"
+   CcComp="$(cfgvar AOMP_CC_COMPILER)"
+   CxxComp="$(cfgvar AOMP_CXX_COMPILER)"
+
+   echo "LLVM PROJECTS TO BUILD:$ProjectsList"
 
    # Enable AMD-specific Fortran runtime extensions if not skipped
    _amdflangrtopt=(-DFLANG_RT_INCLUDE_AMD=ON)
-   if [ "$AOMP_SKIP_AMD_FLANGRT" == "1" ]; then
+   if "$(cfgbool AOMP_SKIP_AMD_FLANGRT)"; then
       _amdflangrtopt=()
    fi
 
@@ -170,8 +192,8 @@ task_cmake() {
                  -DCMAKE_CXX_COMPILER=/usr/bin/g++-7)
       TARGETS_TO_BUILD="AMDGPU;${AOMP_NVPTX_TARGET}PowerPC"
    else
-      COMPILERS=(-DCMAKE_C_COMPILER="$AOMP_CC_COMPILER"
-                 -DCMAKE_CXX_COMPILER="$AOMP_CXX_COMPILER")
+      COMPILERS=(-DCMAKE_C_COMPILER="$CcComp"
+                 -DCMAKE_CXX_COMPILER="$CxxComp")
       if [ "$AOMP_PROC" == "aarch64" ] ; then
          TARGETS_TO_BUILD="AMDGPU;${AOMP_NVPTX_TARGET}AArch64;SPIRV"
          _qmathopt=()
@@ -200,13 +222,13 @@ task_cmake() {
       standalone_word=""
    fi
 
-   if [ "$AOMP_USE_NINJA" == 0 ] ; then
+   if ! "$(cfgbool AOMP_USE_NINJA)" ; then
        AOMP_SET_NINJA_GEN=()
    else
        AOMP_SET_NINJA_GEN=(-G Ninja)
    fi
 
-   if [ "$AOMP_LEGACY_OPENMP" != 0 ]; then
+   if "$(cfgbool AOMP_LEGACY_OPENMP)"; then
      LLVM_RUNTIMES="libcxx;libcxxabi;libunwind;compiler-rt"
    else
      LLVM_RUNTIMES="libcxx;libcxxabi;libunwind;openmp;offload;compiler-rt;flang-rt"
@@ -214,22 +236,24 @@ task_cmake() {
 
    rocmdevicelib_loc_new=lib/llvm/lib/clang/$AOMP_MAJOR_VERSION/lib/amdgcn
 
-   GFXSEMICOLONS=$(echo "$GFXLIST" | tr ' ' ';')
+   Gfxlist="$(cfgvar GFXLIST)"
+   GFXSEMICOLONS=$(echo "$Gfxlist" | tr ' ' ';')
 
-   MYCMAKEOPTS=(-DCMAKE_BUILD_TYPE="$BUILD_TYPE"
-                -DCMAKE_INSTALL_PREFIX="$INSTALL_PROJECT"
+   # Settings common to every config.
+   MYCMAKEOPTS=(-DCMAKE_BUILD_TYPE="$BuildType"
+                -DCMAKE_INSTALL_PREFIX="$(cfgvar INSTALL_PROJECT)"
                 -DLLVM_ENABLE_ASSERTIONS=ON
                 -DLLVM_TARGETS_TO_BUILD="$TARGETS_TO_BUILD"
                 "${COMPILERS[@]}"
-                -DLLVM_VERSION_SUFFIX="_AOMP${standalone_word}_$AOMP_VERSION_STRING"
-                -DCLANG_VENDOR="AOMP${standalone_word}_$AOMP_VERSION_STRING"
+                -DLLVM_VERSION_SUFFIX="_AOMP${standalone_word}_$VersionString"
+                -DCLANG_VENDOR="AOMP${standalone_word}_$VersionString"
                 "${LLVM_FORCE_VC_REVISION_OPT:-}"
                 "${LLVM_FORCE_VC_REPOSITORY_OPT:-}"
                 -DCLANG_DEFAULT_PIE_ON_LINUX=0
                 -DLLVM_ENABLE_ZLIB=ON
                 -DBUG_REPORT_URL='https://github.com/ROCm/aomp'
                 -DLLVM_ENABLE_BINDINGS=OFF
-                -DCMAKE_PREFIX_PATH="$BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME/lib/cmake"
+                -DCMAKE_PREFIX_PATH="$BuildDir/lib/cmake"
                 -DLLVM_INCLUDE_BENCHMARKS=OFF
                 "${DO_TESTS_OPTS[@]}"
                 "${AOMP_ORIGIN_RPATH[@]}"
@@ -241,11 +265,11 @@ task_cmake() {
                 -DLLVM_BUILD_LLVM_DYLIB=ON
                 -DLLVM_LINK_LLVM_DYLIB=ON
                 -DCLANG_LINK_CLANG_DYLIB=ON
-                -DLIBOMPTARGET_EXTERNAL_PROJECT_HSA_PATH="$AOMP_REPOS/$AOMP_ROCR_REPO_NAME"
+                -DLIBOMPTARGET_EXTERNAL_PROJECT_HSA_PATH="$ROCR_REPO_DIR"
                 -DOFFLOAD_EXTERNAL_PROJECT_UNIFIED_ROCR=On
-                -DLIBOMPTARGET_EXTERNAL_PROJECT_ROCM_DEVICE_LIBS_PATH="$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/amd/device-libs"
+                -DLIBOMPTARGET_EXTERNAL_PROJECT_ROCM_DEVICE_LIBS_PATH="$REPO_DIR/amd/device-libs"
                 -DLLVM_EXTERNAL_PROJECTS=SPIRV_TRANSLATOR
-                -DLLVM_EXTERNAL_SPIRV_TRANSLATOR_SOURCE_DIR="$AOMP_REPOS/SPIRV-LLVM-Translator"
+                -DLLVM_EXTERNAL_SPIRV_TRANSLATOR_SOURCE_DIR="$Repos/SPIRV-LLVM-Translator"
                 -DROCM_DEVICE_LIBS_INSTALL_PREFIX_PATH="$AOMP_INSTALL_DIR"
                 -DROCM_DEVICE_LIBS_BITCODE_INSTALL_LOC="$rocmdevicelib_loc_new"
                 -DROCM_LLVM_BACKWARD_COMPAT_LINK="$AOMP_INSTALL_DIR/llvm"
@@ -255,7 +279,7 @@ task_cmake() {
                 -DLIBOMPTEST_INSTALL_COMPONENTS=ON
                 -DLIBOMPTARGET_AMDGCN_GFXLIST="$GFXSEMICOLONS"
                 -DLIBOMP_USE_HWLOC=ON
-                -DLIBOMP_HWLOC_INSTALL_DIR="$AOMP_SUPP/hwloc"
+                -DLIBOMP_HWLOC_INSTALL_DIR="$AompSupp/hwloc"
                 -DOPENMP_ENABLE_LIBOMPTARGET=1
                 -DLIBOMP_SHARED_LINKER_FLAGS="-Wl,--disable-new-dtags"
                 -DLIBOMP_INSTALL_RPATH="$AOMP_ORIGIN_RPATH_LIST"
@@ -264,7 +288,7 @@ task_cmake() {
                 -DLIBOMPTARGET_BUILD_DEVICE_FORTRT=On
                 -DCMAKE_EXPORT_COMPILE_COMMANDS=ON)
 
-   if [ -f "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/device/CMakeLists.txt" ]; then
+   if [ -f "$REPO_DIR/openmp/device/CMakeLists.txt" ]; then
      MYCMAKEOPTS=("${MYCMAKEOPTS[@]}"
                   -DLLVM_RUNTIME_TARGETS='default;amdgcn-amd-amdhsa'
                   -DRUNTIMES_amdgcn-amd-amdhsa_LLVM_ENABLE_RUNTIMES='compiler-rt;libc;libcxx;libcxxabi;flang-rt;openmp'
@@ -277,7 +301,7 @@ task_cmake() {
    # clang-tools-extra added to LLVM_ENABLE_PROJECTS above.
    MYCMAKEOPTS=("${MYCMAKEOPTS[@]}"
                 "${AOMP_CCACHE_OPTS[@]}"
-                -DLLVM_ENABLE_PROJECTS="$AOMP_PROJECTS_LIST"
+                -DLLVM_ENABLE_PROJECTS="$ProjectsList"
                 -DCLANG_ENABLE_AMDCLANG=ON
                 -DLLVM_ENABLE_RUNTIMES="$LLVM_RUNTIMES"
                 -DLIBCXX_ENABLE_STATIC=ON
@@ -285,14 +309,14 @@ task_cmake() {
                 -DLLVM_RUNTIME_TARGETS="default;amdgcn-amd-amdhsa"
                 -DRUNTIMES_amdgcn-amd-amdhsa_FLANG_RT_LIBC_PROVIDER=llvm
                 -DRUNTIMES_amdgcn-amd-amdhsa_FLANG_RT_LIBCXX_PROVIDER=llvm
-                -DRUNTIMES_amdgcn-amd-amdhsa_CACHE_FILES="$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/compiler-rt/cmake/caches/AMDGPU.cmake;$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/libcxx/cmake/caches/AMDGPU.cmake"
+                -DRUNTIMES_amdgcn-amd-amdhsa_CACHE_FILES="$REPO_DIR/compiler-rt/cmake/caches/AMDGPU.cmake;$REPO_DIR/libcxx/cmake/caches/AMDGPU.cmake"
                 )
 
-   # Enable Compiler-rt Sanitizer Build
-   if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
+   # Variant-specific settings: enable Compiler-rt Sanitizer Build.
+   if "$(cfgbool AOMP_BUILD_SANITIZER)"; then
        MYCMAKEOPTS=("${MYCMAKEOPTS[@]}" -DSANITIZER_AMDGPU=1
-                    -DSANITIZER_HSA_INCLUDE_PATH="$AOMP_REPOS/$AOMP_ROCR_REPO_NAME/runtime/hsa-runtime/inc"
-                    -DSANITIZER_COMGR_INCLUDE_PATH="$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/amd/comgr/include")
+                    -DSANITIZER_HSA_INCLUDE_PATH="$ROCR_REPO_DIR/runtime/hsa-runtime/inc"
+                    -DSANITIZER_COMGR_INCLUDE_PATH="$REPO_DIR/amd/comgr/include")
    fi
 
    # Fix the banner to print the AOMP version string.
@@ -305,13 +329,13 @@ task_cmake() {
    echo
    echo " -----Running cmake ---- "
    MYLITOPTS=(-DLLVM_LIT_ARGS='-vv --show-unsupported --show-xfail -j 16')
-   echo "${AOMP_CMAKE}" "$(shquot "${MYLITOPTS[@]}")" \
-                        "$(shquot "${MYCMAKEOPTS[@]}")" \
-                        "$SrcDir"
+   echo "$AompCmake" "$(shquot "${MYLITOPTS[@]}")" \
+                     "$(shquot "${MYCMAKEOPTS[@]}")" \
+                     "$SrcDir"
 
-   if ! ${AOMP_CMAKE} "${MYLITOPTS[@]}" \
-                      "${MYCMAKEOPTS[@]}" \
-                      "$SrcDir" 2>&1; then
+   if ! "$AompCmake" "${MYLITOPTS[@]}" \
+                     "${MYCMAKEOPTS[@]}" \
+                     "$SrcDir" 2>&1; then
       echo "ERROR cmake failed. Cmake flags"
       echo "      $(shquot "${MYCMAKEOPTS[@]}")"
       exit 1
@@ -322,28 +346,32 @@ task_cmake() {
 task_build() {
    local Cfg=$1
    local BuildDir
+   local AompCmake
    local Jobs
+   local FlangJobs
    BuildDir="$(get_build_dir "$Cfg")"
+   AompCmake="$(cfgvar AOMP_CMAKE)"
    Jobs="$(cfgvar AOMP_JOB_THREADS)"
 
    pushd "$BuildDir" >& /dev/null || exit
    echo
    echo " -----Running make ---- "
 
-   if [ "$AOMP_LIMIT_FLANG" == "1" ] ; then
+   if "$(cfgbool AOMP_LIMIT_FLANG)"; then
       # Required for building flang on memory limited systems.
-      echo "${AOMP_CMAKE} --build . -- -j $Jobs clang lld compiler-rt"
-      ${AOMP_CMAKE} --build . -- -j "$Jobs" clang lld compiler-rt || true
+      FlangJobs="$(cfgvar AOMP_FLANG_THREADS)"
+      echo "$AompCmake --build . -- -j $Jobs clang lld compiler-rt"
+      "$AompCmake" --build . -- -j "$Jobs" clang lld compiler-rt || true
 
-      echo "${AOMP_CMAKE} --build . -- -j $AOMP_FLANG_THREADS flang"
-      ${AOMP_CMAKE} --build . -- -j "$AOMP_FLANG_THREADS" flang || true
+      echo "$AompCmake --build . -- -j $FlangJobs flang"
+      "$AompCmake" --build . -- -j "$FlangJobs" flang || true
    fi
 
    # Build llvm-project in one step
    echo "Running CMAKE in ${PWD}"
-   echo "${AOMP_CMAKE} --build . -j $Jobs"
+   echo "$AompCmake --build . -j $Jobs"
 
-   if ! ${AOMP_CMAKE} --build . -j "$Jobs"; then
+   if ! "$AompCmake" --build . -j "$Jobs"; then
       echo "ERROR make -j $Jobs failed"
       exit 1
    fi
@@ -354,6 +382,9 @@ task_install() {
    local Cfg=$1
    local BuildDir
    local InstallDir
+   local AompCmake
+   local Aomp
+   local Repos
    local SED_AOMP_REPOS
    local i
    local config_file
@@ -362,11 +393,14 @@ task_install() {
 
    BuildDir="$(get_build_dir "$Cfg")"
    InstallDir="$(get_install_dir "$Cfg")"
+   AompCmake="$(cfgvar AOMP_CMAKE)"
+   Aomp="$(cfgvar AOMP)"
+   Repos="$(cfgvar AOMP_REPOS)"
 
    pushd "$BuildDir" >& /dev/null || exit
    echo " -----Installing to $InstallDir ---- "
 
-   if ! $SUDO "$AOMP_CMAKE" --install .; then
+   if ! $SUDO "$AompCmake" --install .; then
       echo "ERROR make install failed "
       exit 1
    fi
@@ -374,27 +408,27 @@ task_install() {
 
    if "$(cfgbool AOMP_STANDALONE_BUILD)"; then
       echo " "
-      echo "------ Linking $InstallDir to $AOMP -------"
-      if [ -L "$AOMP" ] ; then
-         $SUDO rm "$AOMP"
+      echo "------ Linking $InstallDir to $Aomp -------"
+      if [ -L "$Aomp" ] ; then
+         $SUDO rm "$Aomp"
       fi
-      $SUDO ln -sf "$AOMP_INSTALL_DIR" "$AOMP"
+      $SUDO ln -sf "$AOMP_INSTALL_DIR" "$Aomp"
    fi
 
    # add executables forgot by make install but needed for testing
    $SUDO cp -p "$BuildDir/bin/llvm-lit" "$LLVM_INSTALL_LOC/bin/llvm-lit"
    # update map_config and llvm_source_root paths in the copied llvm-lit file
-   SED_AOMP_REPOS=$(echo "$AOMP_REPOS" | sed -e 's/\//\\\\\//g')
+   SED_AOMP_REPOS=$(echo "$Repos" | sed -e 's/\//\\\\\//g')
    sed -ie "s/..\/..\/..\//$SED_AOMP_REPOS\//g" "$LLVM_INSTALL_LOC/bin/llvm-lit"
 
    $SUDO cp -p "$BuildDir/bin/FileCheck" "$LLVM_INSTALL_LOC/bin/FileCheck"
    $SUDO cp -p "$BuildDir/bin/count" "$LLVM_INSTALL_LOC/bin/count"
    $SUDO cp -p "$BuildDir/bin/not" "$LLVM_INSTALL_LOC/bin/not"
    $SUDO cp -p "$BuildDir/bin/yaml-bench" "$LLVM_INSTALL_LOC/bin/yaml-bench"
-   cd "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME" || exit
+   cd "$REPO_DIR" || exit
    git checkout llvm/lib/Support/CommandLine.cpp
    echo
-   echo "SUCCESSFUL INSTALL to $InstallDir with link to $AOMP"
+   echo "SUCCESSFUL INSTALL to $InstallDir with link to $Aomp"
    echo
 
    amd_compiler_symlinks=("amdclang" "amdclang++" "amdclang-cl" "amdclang-cpp" "amdflang" "amdlld")
