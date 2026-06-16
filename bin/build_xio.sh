@@ -28,33 +28,31 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+# Without these options, we can lose error status from command subtitutions,
+# etc.
+set -e
+shopt -s inherit_errexit
+
 # --- Start standard header to set AOMP environment variables ----
-realpath=$(realpath "$0")
+realpath=$(realpath -- "$0")
 thisdir=$(dirname "$realpath")
+. "$thisdir/aomp_utils"
 . "$thisdir/aomp_common_vars"
 # --- end standard header ----
 
-XIO_REPO_DIR=$AOMP_REPOS/rocm-xio
-echo "INFO: Getting latest sources for rocm-xio in dir \"$XIO_REPO_DIR\""
-if [ -d "$XIO_REPO_DIR" ] ; then
-  echo cd "$XIO_REPO_DIR"
-  cd "$XIO_REPO_DIR" || exit
-  echo git pull https://github.com/ROCm/rocm-xio.git
-  git pull https://github.com/ROCm/rocm-xio.git
-else 
-  echo cd "$AOMP_REPOS"
-  cd "$AOMP_REPOS" || exit
-  echo git clone https://github.com/ROCm/rocm-xio.git
-  git clone https://github.com/ROCm/rocm-xio.git
-  cd "$XIO_REPO_DIR" || exit
-fi
+# All user-controllable (environment) values are read through these wrappers so
+# that they can later be driven by an orchestration layer.
+cfgvar() {
+  get_config_var_string xio "$1"
+}
 
-BUILD_DIR=${BUILD_AOMP}
-
-BUILDTYPE="Release"
+cfgbool() {
+  get_config_var_bool xio "$1"
+}
 
 # Install XIO in the compiler directory of ROCm
 INSTALL_XIO=${INSTALL_XIO:-$AOMP_INSTALL_DIR}/lib/llvm
+REPO_DIR="$(cfgvar AOMP_REPOS)/rocm-xio"
 
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   echo " "
@@ -63,88 +61,184 @@ if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   echo "  ./build_xio.sh nocmake           NO cmake, make,  NO install "
   echo "  ./build_xio.sh install           NO Cmake, make install "
   echo " "
-  exit
+  exit 0
 fi
 
-if [ ! -d "$XIO_REPO_DIR" ] ; then
-   echo "ERROR:  Missing repository $XIO_REPO_DIR/"
-   exit 1
-fi
+get_src_dir() {
+   echo "$REPO_DIR"
+}
 
-if [ ! -f "$LLVM_INSTALL_LOC/bin/clang" ] ; then
-   echo "ERROR:  Missing file $LLVM_INSTALL_LOC/bin/clang"
-   echo "        Build the AOMP llvm compiler in $AOMP first"
-   echo "        This is needed to build the xio libraries"
-   echo " "
-   exit 1
-fi
+# Print the build dir for a given config, passed as $1.
+get_build_dir() {
+   local Cfg=$1
+   local BuildDir
+   BuildDir="$(cfgvar BUILD_DIR)"
 
-check_writable_installdir "$1" "$INSTALL_XIO"
+   case "$Cfg" in
+   "default")
+     echo -n "$BuildDir/rocm-xio"
+     ;;
+   *)
+     >&2 echo "Unknown config '$Cfg'"
+     exit 1
+     ;;
+   esac
+}
 
-patchrepo "$AOMP_REPOS/rocm-xio"
+# Print the install dir for a given config, passed as $1.
+get_install_dir() {
+   cfgvar INSTALL_XIO
+}
 
-if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
-  if [ -d "$BUILD_DIR/build/rocm-xio" ] ; then
-     echo
-     echo "FRESH START , CLEANING UP FROM PREVIOUS BUILD"
-     echo "rm -rf $BUILD_DIR/build/rocm-xio"
-     rm -rf "$BUILD_DIR/build/rocm-xio"
-  fi
+task_fetch() {
+   local SrcDir
+   SrcDir="$(get_src_dir)"
+   echo "INFO: Getting latest sources for rocm-xio in dir \"$SrcDir\""
+   if [ -d "$SrcDir" ] ; then
+      echo cd "$SrcDir"
+      cd "$SrcDir" || exit
+      echo git pull https://github.com/ROCm/rocm-xio.git
+      git pull https://github.com/ROCm/rocm-xio.git
+   else
+      echo cd "$(cfgvar AOMP_REPOS)"
+      cd "$(cfgvar AOMP_REPOS)" || exit
+      echo git clone https://github.com/ROCm/rocm-xio.git
+      git clone https://github.com/ROCm/rocm-xio.git
+   fi
+}
 
-  declare -a MYCMAKEOPTS
+task_precheck() {
+   local SrcDir
+   SrcDir="$(get_src_dir)"
 
-  MYCMAKEOPTS=("${AOMP_ORIGIN_RPATH[@]}" -DCMAKE_BUILD_TYPE="$BUILDTYPE"
-               -DCMAKE_INSTALL_PREFIX="$INSTALL_XIO"
-               -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON
-               -DCMAKE_INSTALL_RPATH="\$ORIGIN/../lib"
-               -DCMAKE_EXE_LINKER_FLAGS='-Wl,--disable-new-dtags')
+   if [ ! -d "$SrcDir" ] ; then
+      echo "ERROR:  Missing repository $SrcDir/"
+      exit 1
+   fi
 
-  mkdir -p "$BUILD_DIR/build/rocm-xio"
-  cd "$BUILD_DIR/build/rocm-xio" || exit
-  echo
-  echo " -----Running ${AOMP_CMAKE} for xio ---- "
-  echo "${AOMP_CMAKE} -B . $(shquot "${MYCMAKEOPTS[@]}") -S $XIO_REPO_DIR"
-  
-  if ! ${AOMP_CMAKE} -B . "${MYCMAKEOPTS[@]}" -S "$XIO_REPO_DIR" ; then
-      echo "ERROR xio cmake failed. Cmake flags"
+   if [ ! -f "$LLVM_INSTALL_LOC/bin/clang" ] ; then
+      echo "ERROR:  Missing file $LLVM_INSTALL_LOC/bin/clang"
+      echo "        Build the AOMP llvm compiler in $AOMP first"
+      echo "        This is needed to build the xio libraries"
+      echo " "
+      exit 1
+   fi
+
+   check_writable_installdir "$1" "$(cfgvar INSTALL_XIO)"
+}
+
+task_patch() {
+   patchrepo "$REPO_DIR"
+}
+
+task_unpatch() {
+   removepatch "$REPO_DIR"
+}
+
+task_clean() {
+   local Cfg=$1
+   local BuildDir
+   BuildDir=$(get_build_dir "$Cfg")
+   echo "rm -rf $(shquot "$BuildDir")"
+   rm -rf "$BuildDir"
+}
+
+task_cmake() {
+   local Cfg=$1
+   local BuildDir
+   local SrcDir
+   local AompCmake
+   local -a MYCMAKEOPTS
+
+   SrcDir="$(get_src_dir)"
+   BuildDir="$(get_build_dir "$Cfg")"
+   AompCmake="$(cfgvar AOMP_CMAKE)"
+
+   MYCMAKEOPTS=("${AOMP_ORIGIN_RPATH[@]}"
+                -DCMAKE_BUILD_TYPE=Release
+                -DCMAKE_INSTALL_PREFIX="$(cfgvar INSTALL_XIO)"
+                -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON
+                -DCMAKE_INSTALL_RPATH="\$ORIGIN/../lib"
+                -DCMAKE_EXE_LINKER_FLAGS='-Wl,--disable-new-dtags')
+
+   mkdir -p "$BuildDir"
+   pushd "$BuildDir" >& /dev/null || exit
+   echo " -----Running $AompCmake for xio $Cfg ---- "
+   echo "$AompCmake -B . $(shquot "${MYCMAKEOPTS[@]}") -S $SrcDir"
+
+   if ! "$AompCmake" -B . "${MYCMAKEOPTS[@]}" -S "$SrcDir" ; then
+      echo "ERROR xio $Cfg cmake failed. Cmake flags"
       echo "      $(shquot "${MYCMAKEOPTS[@]}")"
       exit 1
-  fi
-fi
+   fi
+   popd >& /dev/null || exit
+}
 
-if [ "$1" = "cmake" ]; then
-   exit 0
-fi
+task_build() {
+   local Cfg=$1
+   local BuildDir
+   local AompCmake
+   local Jobs
+   BuildDir="$(get_build_dir "$Cfg")"
+   AompCmake="$(cfgvar AOMP_CMAKE)"
+   Jobs="$(cfgvar AOMP_JOB_THREADS)"
 
-cd "$BUILD_DIR/build/rocm-xio" || exit
-echo
-echo " -----Running $AOMP_CMAKE -j $AOMP_JOB_THREADS for xio ---- "
-
-if ! ${AOMP_CMAKE} --build . --target all -j "$AOMP_JOB_THREADS" ; then
+   pushd "$BuildDir" >& /dev/null || exit
+   echo " -----Running $AompCmake --build -j $Jobs for xio $Cfg ---- "
+   if ! "$AompCmake" --build . --target all -j "$Jobs" ; then
       echo " "
-      echo "ERROR: ${AOMP_CMAKE} -j $AOMP_JOB_THREADS  FAILED"
+      echo "ERROR: $AompCmake -j $Jobs  FAILED"
       echo "To restart:"
-      echo "  cd $BUILD_DIR/build/rocm-xio"
-      echo "  $AOMP_CMAKE "
+      echo "  cd $BuildDir"
+      echo "  $AompCmake "
       exit 1
-else
-  if [ "$1" != "install" ] ; then
-      echo
-      echo " BUILD COMPLETE! To install xio component run this command:"
-      echo "  $0 install"
-      echo
-  fi
-fi
+   fi
+   popd >& /dev/null || exit
+}
 
-#  ----------- Install only if asked  ----------------------------
-if [ "$1" == "install" ] ; then
-   cd "$BUILD_DIR/build/rocm-xio" || exit
-   echo
-   echo " -----Installing to $INSTALL_XIO ----- "
+task_install() {
+   local Cfg=$1
+   local BuildDir
+   local InstallDir
+   BuildDir="$(get_build_dir "$Cfg")"
+   InstallDir="$(get_install_dir "$Cfg")"
+
+   pushd "$BuildDir" >& /dev/null || exit
+   echo " -----Installing to $InstallDir ----- "
+   echo "$SUDO make install "
 
    if ! $SUDO make install; then
       echo "ERROR make install failed "
       exit 1
    fi
-   removepatch "$AOMP_REPOS/rocm-xio"
-fi
+   popd >& /dev/null || exit
+}
+
+do_list_configs() {
+  echo "default"
+}
+
+do_list_init() {
+  echo "fetch"
+  echo "precheck"
+  echo "patch"
+}
+
+do_list_fini() {
+  echo "unpatch"
+}
+
+# List of tasks per config.
+do_list_tasks() {
+  local Cfg=$1
+  if valid_config "$Cfg"; then
+    echo "clean"
+    echo "cmake"
+    echo "build"
+    echo "install"
+  else
+    echo "Unknown config '$Cfg'"
+  fi
+}
+
+command_dispatcher "$@"
