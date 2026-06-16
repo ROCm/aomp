@@ -291,7 +291,7 @@ get_config_var_string() {
       return
       ;;
     LLVM_INSTALL_LOC|AOMP_PROC|CUDABIN|CUDAT|CUDAINCLUDE|REPO_DIR|\
-    AOMP_NINJA_BIN|AOMP_JOB_THREADS|LLVM_PROJECT_ROOT)
+    AOMP_NINJA_BIN|AOMP_JOB_THREADS|LLVM_PROJECT_ROOT|INSTALL_COMGR)
       ;;
     *)
       >&2 echo "Unknown string configuration variable '$2'"

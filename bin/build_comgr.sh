@@ -3,8 +3,13 @@
 #  build_comgr.sh:  Script to build the code object manager for aomp
 #
 
+# Without these options, we can lose error status from command subtitutions,
+# etc.
+set -e
+shopt -s inherit_errexit
+
 # --- Start standard header to set AOMP environment variables ----
-realpath=$(realpath "$0")
+realpath=$(realpath -- "$0")
 thisdir=$(dirname "$realpath")
 . "$thisdir/aomp_utils"
 . "$thisdir/aomp_common_vars"
@@ -14,11 +19,20 @@ INSTALL_COMGR=${INSTALL_COMGR:-$AOMP_INSTALL_DIR}
 
 REPO_DIR=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/amd/$AOMP_COMGR_REPO_NAME
 
+# Get a configuration (environment) variable for this config
+cfgvar() {
+  get_config_var_string comgr "$1"
+}
+
+cfgbool() {
+  get_config_var_bool comgr "$1"
+}
+
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   echo " "
   echo " This script builds the code object manager"
-  echo " It gets the source from:  $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/amd/$AOMP_COMGR_REPO_NAME"
-  echo " It builds libraries in:   $BUILD_AOMP/build/comgr"
+  echo " It gets the source from:  $REPO_DIR"
+  echo " It builds libraries in:   $(cfgvar BUILD_DIR)/comgr"
   echo " It installs in:           $INSTALL_COMGR"
   echo " "
   echo "Example commands and actions: "
@@ -28,145 +42,211 @@ if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   echo " "
   echo "To build aomp, see the README file in this directory"
   echo " "
-  exit 
-fi
-
-if [ ! -d "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/amd/$AOMP_COMGR_REPO_NAME" ] ; then
-   echo "ERROR:  Missing repository $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/amd/$AOMP_COMGR_REPO_NAME"
-   echo "        Are environment variables AOMP_REPOS and AOMP_COMGR_REPO_NAME set correctly?"
-   exit 1
-fi
-
-check_writable_installdir "$1" "$INSTALL_COMGR"
-
-osversion=$(cat /etc/os-release)
-#if [ "$AOMP_MAJOR_VERSION" != "12" ] && [[ "$osversion" =~ "Ubuntu 16" ]];  then
-  patchrepo "$REPO_DIR"
-#fi
-
-#if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
-  #LDFLAGS=$(shquot '-fuse-ld=lld' "${ASAN_FLAGS[@]}")
-  #export LDFLAGS
-#fi
-
-if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
-
-   echo " " 
-   echo "This is a FRESH START. ERASING any previous builds in $BUILD_AOMP/build_comgr"
-   echo "Use ""$0 nocmake"" or ""$0 install"" to avoid FRESH START."
-
-   BUILDTYPE="Release"
-   echo $SUDO rm -rf "$BUILD_AOMP/build/comgr"
-   $SUDO rm -rf "$BUILD_AOMP/build/comgr"
-   export LLVM_DIR=$AOMP_INSTALL_DIR
-   export Clang_DIR=$AOMP_INSTALL_DIR
-
-   mkdir -p "$BUILD_AOMP/build/comgr"
-   cd "$BUILD_AOMP/build/comgr" || exit
-   echo " -----Running comgr cmake ---- " 
-
-   DEVICELIBS_BUILD_PATH=$AOMP_REPOS/build/AOMP_LIBDEVICE_REPO_NAME
-   PACKAGE_ROOT=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/amd/$AOMP_COMGR_REPO_NAME
-   COMMON_PREFIX_PATH="$AOMP/include/amd_comgr;$DEVICELIBS_BUILD_PATH;$PACKAGE_ROOT;$LLVM_INSTALL_LOC"
-   MYCMAKEOPTS=(
-      -DCMAKE_INSTALL_PREFIX="$INSTALL_COMGR"
-      -DCMAKE_BUILD_TYPE="$BUILDTYPE"
-      -DBUILD_TESTING=OFF
-      -DROCM_DIR="$AOMP_INSTALL_DIR"
-      -DLLVM_DIR="$AOMP_INSTALL_DIR"
-      -DClang_DIR="$AOMP_INSTALL_DIR")
-   echo "${AOMP_CMAKE}" "$(shquot "${MYCMAKEOPTS[@]}")" \
-      -DCMAKE_PREFIX_PATH="$AOMP/lib/cmake;$COMMON_PREFIX_PATH" \
-      -DCMAKE_INSTALL_LIBDIR=lib "${AOMP_ORIGIN_RPATH[@]}" \
-      "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/amd/$AOMP_COMGR_REPO_NAME"
-
-   if ! ${AOMP_CMAKE} "${MYCMAKEOPTS[@]}" \
-          -DCMAKE_PREFIX_PATH="$AOMP/lib/cmake;$COMMON_PREFIX_PATH" \
-          -DCMAKE_INSTALL_LIBDIR=lib "${AOMP_ORIGIN_RPATH[@]}" \
-          "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/amd/$AOMP_COMGR_REPO_NAME"; then
-      echo "ERROR comgr cmake failed. cmake flags"
-      exit 1
-   fi
-
-   if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
-      mkdir -p "$BUILD_AOMP/build/comgr/asan"
-      cd "$BUILD_AOMP/build/comgr/asan" || exit
-      echo " -----Running comgr-asan cmake ----- "
-      ASAN_CMAKE_OPTS=("${MYCMAKEOPTS[@]}"
-                       -DCMAKE_C_COMPILER="$LLVM_INSTALL_LOC/bin/clang"
-                       -DCMAKE_CXX_COMPILER="$LLVM_INSTALL_LOC/bin/clang++")
-      echo "${AOMP_CMAKE}" "$(shquot "${ASAN_CMAKE_OPTS[@]}")" \
-        -DCMAKE_PREFIX_PATH="$AOMP/lib/asan/cmake;$COMMON_PREFIX_PATH:$AOMP/lib/cmake" \
-        -DCMAKE_INSTALL_LIBDIR=lib/asan "$(shquot "${AOMP_ASAN_ORIGIN_RPATH[@]}")" \
-        -DCMAKE_C_FLAGS="\"$(cmquot "${ASAN_FLAGS[@]}")\"" \
-        -DCMAKE_CXX_FLAGS="\"$(cmquot "${ASAN_FLAGS[@]}")\"" \
-        "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/amd/$AOMP_COMGR_REPO_NAME"
-
-      if ! ${AOMP_CMAKE} "${ASAN_CMAKE_OPTS[@]}" \
-            -DCMAKE_PREFIX_PATH="$AOMP/lib/asan/cmake;$COMMON_PREFIX_PATH;$AOMP/lib/cmake" \
-            -DCMAKE_INSTALL_LIBDIR=lib/asan "${AOMP_ASAN_ORIGIN_RPATH[@]}" \
-            -DCMAKE_C_FLAGS="$(cmquot "${ASAN_FLAGS[@]}")" \
-            -DCMAKE_CXX_FLAGS="$(cmquot "${ASAN_FLAGS[@]}")" \
-            "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/amd/$AOMP_COMGR_REPO_NAME"; then
-         echo "ERROR comgr-asan cmake failed. cmake flags"
-         exit 1
-      fi
-   fi
-fi
-
-if [ "$1" = "cmake" ]; then
   exit 0
 fi
 
-cd "$BUILD_AOMP/build/comgr" || exit
-echo
-echo " -----Running make for comgr ---- " 
+get_src_dir() {
+   echo "$REPO_DIR"
+}
 
-if ! make -j "$AOMP_JOB_THREADS"; then
-      echo " "
-      echo "ERROR: make -j $AOMP_JOB_THREADS  FAILED"
-      echo "To restart:" 
-      echo "  cd $BUILD_AOMP/build/comgr"
-      echo "  make"
+# Print the build dir for a given config, passed as $1.
+get_build_dir() {
+   local Cfg=$1
+   local BuildDir
+   BuildDir="$(cfgvar BUILD_DIR)"
+
+   case "$Cfg" in
+   "default")
+     echo -n "$BuildDir/comgr"
+     ;;
+   "asan")
+     echo -n "$BuildDir/comgr/asan"
+     ;;
+   *)
+     >&2 echo "Unknown config '$Cfg'"
+     exit 1
+     ;;
+   esac
+}
+
+# Print the install dir for a given config, passed as $1.
+get_install_dir() {
+   cfgvar INSTALL_COMGR
+}
+
+asan_config() {
+   local Cfg=$1
+   case "$Cfg" in
+     asan|*+asan)
+       return 0
+       ;;
+     *)
+       ;;
+   esac
+   return 1
+}
+
+task_precheck() {
+   local SrcDir
+   SrcDir="$(get_src_dir)"
+
+   if [ ! -d "$SrcDir" ] ; then
+      echo "ERROR:  Missing repository $SrcDir"
+      echo "        Are environment variables AOMP_REPOS and AOMP_COMGR_REPO_NAME set correctly?"
       exit 1
-fi
+   fi
 
-if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
-   cd "$BUILD_AOMP/build/comgr/asan" || exit
-   echo " -----Running make for comgr-asan ---- "
+   check_writable_installdir "$1" "$(cfgvar INSTALL_COMGR)"
+}
 
-   if ! make -j "$AOMP_JOB_THREADS"; then
+task_patch() {
+   patchrepo "$REPO_DIR"
+}
+
+task_unpatch() {
+   local osversion
+   osversion=$(cat /etc/os-release)
+   if [ "$AOMP_MAJOR_VERSION" != "12" ] && [[ "$osversion" =~ "Ubuntu 16" ]]; then
+      removepatch "$REPO_DIR"
+   fi
+}
+
+task_clean() {
+   local Cfg=$1
+   local BuildDir
+   BuildDir=$(get_build_dir "$Cfg")
+   echo "$SUDO rm -rf $(shquot "$BuildDir")"
+   $SUDO rm -rf "$BuildDir"
+}
+
+task_cmake() {
+   local Cfg=$1
+   local BuildDir
+   local SrcDir
+   local DEVICELIBS_BUILD_PATH
+   local PACKAGE_ROOT
+   local COMMON_PREFIX_PATH
+   local -a MYCMAKEOPTS
+
+   SrcDir="$(get_src_dir)"
+   BuildDir="$(get_build_dir "$Cfg")"
+
+   export LLVM_DIR=$AOMP_INSTALL_DIR
+   export Clang_DIR=$AOMP_INSTALL_DIR
+
+   DEVICELIBS_BUILD_PATH=$AOMP_REPOS/build/AOMP_LIBDEVICE_REPO_NAME
+   PACKAGE_ROOT=$SrcDir
+   COMMON_PREFIX_PATH="$AOMP/include/amd_comgr;$DEVICELIBS_BUILD_PATH;$PACKAGE_ROOT;$LLVM_INSTALL_LOC"
+
+   MYCMAKEOPTS=(-DCMAKE_INSTALL_PREFIX="$(cfgvar INSTALL_COMGR)"
+                -DCMAKE_BUILD_TYPE=Release
+                -DBUILD_TESTING=OFF
+                -DROCM_DIR="$AOMP_INSTALL_DIR"
+                -DLLVM_DIR="$AOMP_INSTALL_DIR"
+                -DClang_DIR="$AOMP_INSTALL_DIR")
+
+   if asan_config "$Cfg"; then
+      MYCMAKEOPTS+=(-DCMAKE_C_COMPILER="$LLVM_INSTALL_LOC/bin/clang"
+                    -DCMAKE_CXX_COMPILER="$LLVM_INSTALL_LOC/bin/clang++"
+                    -DCMAKE_PREFIX_PATH="$AOMP/lib/asan/cmake;$COMMON_PREFIX_PATH;$AOMP/lib/cmake"
+                    -DCMAKE_INSTALL_LIBDIR=lib/asan
+                    "${AOMP_ASAN_ORIGIN_RPATH[@]}"
+                    -DCMAKE_C_FLAGS="$(cmquot "${ASAN_FLAGS[@]}")"
+                    -DCMAKE_CXX_FLAGS="$(cmquot "${ASAN_FLAGS[@]}")")
+   else
+      MYCMAKEOPTS+=(-DCMAKE_PREFIX_PATH="$AOMP/lib/cmake;$COMMON_PREFIX_PATH"
+                    -DCMAKE_INSTALL_LIBDIR=lib
+                    "${AOMP_ORIGIN_RPATH[@]}")
+   fi
+
+   mkdir -p "$BuildDir"
+   pushd "$BuildDir" >& /dev/null || exit
+   echo " -----Running comgr $Cfg cmake ---- "
+   echo "${AOMP_CMAKE}" "$(shquot "${MYCMAKEOPTS[@]}")" "$SrcDir"
+
+   if ! ${AOMP_CMAKE} "${MYCMAKEOPTS[@]}" "$SrcDir"; then
+      echo "ERROR comgr $Cfg cmake failed. cmake flags"
+      echo "      $(shquot "${MYCMAKEOPTS[@]}")"
+      exit 1
+   fi
+   popd >& /dev/null || exit
+}
+
+task_build() {
+   local Cfg=$1
+   local BuildDir
+   local Jobs
+   BuildDir="$(get_build_dir "$Cfg")"
+   Jobs="$(cfgvar AOMP_JOB_THREADS)"
+
+   pushd "$BuildDir" >& /dev/null || exit
+   echo " -----Running make for comgr $Cfg ---- "
+   if ! make -j "$Jobs"; then
       echo " "
-      echo "ERROR: make -j $AOMP_JOB_THREADS FAILED"
+      echo "ERROR: make -j $Jobs  FAILED"
       echo "To restart:"
-      echo "  cd $BUILD_AOMP/build/comgr/asan"
+      echo "  cd $BuildDir"
       echo "  make"
       exit 1
    fi
-fi
+   popd >& /dev/null || exit
+}
 
-#  ----------- Install only if asked  ----------------------------
-if [ "$1" == "install" ] ; then
-      cd "$BUILD_AOMP/build/comgr" || exit
-      echo " -----Installing to $INSTALL_COMGR/lib ----- " 
+task_install() {
+   local Cfg=$1
+   local BuildDir
+   local InstallDir
+   BuildDir="$(get_build_dir "$Cfg")"
+   InstallDir="$(get_install_dir "$Cfg")"
 
-      if ! $SUDO make install; then 
-         echo "ERROR make install failed "
-         exit 1
+   pushd "$BuildDir" >& /dev/null || exit
+   if asan_config "$Cfg"; then
+      echo " -----Installing to $InstallDir/lib/asan ----"
+   else
+      echo " -----Installing to $InstallDir/lib ----- "
+   fi
+
+   if ! $SUDO make install; then
+      echo "ERROR make install failed "
+      exit 1
+   fi
+   popd >& /dev/null || exit
+
+   if ! asan_config "$Cfg"; then
+      # amd_comgr.h is now in amd_comgr/amd_comgr.h, so remove deprecated file
+      if [ -f "$InstallDir/include/amd_comgr.h" ]; then
+         rm "$InstallDir/include/amd_comgr.h"
       fi
+   fi
+}
 
-      if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
-         cd "$BUILD_AOMP/build/comgr/asan" || exit
-         echo " -----Installing to $INSTALL_COMGR/lib/asan ----"
+do_list_configs() {
+  echo "default"
+  if "$(cfgbool AOMP_BUILD_SANITIZER)"; then
+    echo "asan"
+  fi
+}
 
-         if ! $SUDO make install; then
-            echo "ERROR make install failed"
-            exit 1
-         fi
-      fi
-      # amd_comgr.h is now in amd_comgr/amd_comgr.h, so remove depracated file
-      [ -f "$INSTALL_COMGR/include/amd_comgr.h" ] && rm "$INSTALL_COMGR/include/amd_comgr.h"
-      if [ "$AOMP_MAJOR_VERSION" != "12" ] && [[ "$osversion" =~ "Ubuntu 16" ]]; then
-        removepatch "$REPO_DIR"
-      fi
-fi
+do_list_init() {
+  echo "precheck"
+  echo "patch"
+}
+
+do_list_fini() {
+  echo "unpatch"
+}
+
+# List of tasks per config.
+do_list_tasks() {
+  local Cfg=$1
+  if valid_config "$Cfg"; then
+    echo "clean"
+    echo "cmake"
+    echo "build"
+    echo "install"
+  else
+    echo "Unknown config '$Cfg'"
+  fi
+}
+
+command_dispatcher "$@"
