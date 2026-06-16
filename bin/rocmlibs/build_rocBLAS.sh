@@ -21,23 +21,8 @@ thisdir=$(dirname "$realpath")
 . "$thisdir/../aomp_common_vars"
 # --- end standard header ----
 
-_repo_dir=$AOMP_REPOS/rocmlibs/rocBLAS
-_tensile_repo_dir=$AOMP_REPOS/rocmlibs/Tensile
-
-AOMP_BUILD_TENSILE=${AOMP_BUILD_TENSILE:-1}
-ROCBLAS_USE_HIPBLASLT=${ROCBLAS_USE_HIPBLASLT:-0}
-
-export CC=$LLVM_INSTALL_LOC/bin/amdclang
-export CXX=$LLVM_INSTALL_LOC/bin/amdclang++
-export FC=$LLVM_INSTALL_LOC/bin/amdflang
-export ROCM_DIR=$AOMP_INSTALL_DIR
-export ROCM_PATH=$AOMP_INSTALL_DIR
-export PATH=$AOMP_SUPP/cmake/bin:$AOMP_INSTALL_DIR/bin:$AOMP/llvm/bin:$PATH
-export HIP_USE_PERL_SCRIPTS=1
-export USE_PERL_SCRIPTS=1
-export CXXFLAGS="-I$AOMP_INSTALL_DIR/include -D__HIP_PLATFORM_AMD__=1"
-export LDFLAGS="-fPIC"
-
+# All user-controllable (environment) values are read through these wrappers so
+# that they can later be driven by an orchestration layer.
 cfgvar() {
   get_config_var_string rocblas "$1"
 }
@@ -45,6 +30,25 @@ cfgvar() {
 cfgbool() {
   get_config_var_bool rocblas "$1"
 }
+
+_repo_dir="$(cfgvar AOMP_REPOS)/rocmlibs/rocBLAS"
+_tensile_repo_dir="$(cfgvar AOMP_REPOS)/rocmlibs/Tensile"
+
+AOMP_BUILD_TENSILE=${AOMP_BUILD_TENSILE:-1}
+ROCBLAS_USE_HIPBLASLT=${ROCBLAS_USE_HIPBLASLT:-0}
+
+_aomp_supp="$(cfgvar AOMP_SUPP)"
+_aomp="$(cfgvar AOMP)"
+export CC=$LLVM_INSTALL_LOC/bin/amdclang
+export CXX=$LLVM_INSTALL_LOC/bin/amdclang++
+export FC=$LLVM_INSTALL_LOC/bin/amdflang
+export ROCM_DIR=$AOMP_INSTALL_DIR
+export ROCM_PATH=$AOMP_INSTALL_DIR
+export PATH="$_aomp_supp/cmake/bin:$AOMP_INSTALL_DIR/bin:$_aomp/llvm/bin:$PATH"
+export HIP_USE_PERL_SCRIPTS=1
+export USE_PERL_SCRIPTS=1
+export CXXFLAGS="-I$AOMP_INSTALL_DIR/include -D__HIP_PLATFORM_AMD__=1"
+export LDFLAGS="-fPIC"
 
 get_src_dir() {
    echo "$_repo_dir"
@@ -76,12 +80,14 @@ do_nocmake() {
 }
 
 task_precheck() {
+   local Aomp
+   Aomp="$(cfgvar AOMP)"
    if ! "$(cfgbool AOMP_STANDALONE_BUILD)"; then
       echo "ERROR: $0 only valid for AOMP_STANDALONE_BUILD=1"
       exit 1
    fi
-   if [ ! -L "$AOMP" ] && [ -d "$AOMP" ] ; then
-      echo "ERROR: Directory $AOMP is a physical directory."
+   if [ ! -L "$Aomp" ] && [ -d "$Aomp" ] ; then
+      echo "ERROR: Directory $Aomp is a physical directory."
       echo "       It must be a symbolic link or not exist"
       exit 1
    fi
@@ -126,10 +132,14 @@ task_cmake() {
    local Cfg=$1
    local BuildDir
    local SrcDir
+   local AompCmake
+   local Gfxlist
    local -a MYCMAKEOPTS
 
    BuildDir="$(get_build_dir "$Cfg")"
    SrcDir="$(get_src_dir)"
+   AompCmake="$(cfgvar AOMP_CMAKE)"
+   Gfxlist="$(cfgvar ROCMLIBS_GFXLIST)"
 
    if ! "$(cfgbool AOMP_BUILD_TENSILE)"; then
       echo
@@ -152,20 +162,20 @@ task_cmake() {
                 -DCMAKE_BUILD_TYPE=Release
                 -DTensile_CODE_OBJECT_VERSION=default
                 -DTensile_LOGIC=asm_full
-                -DTensile_TEST_LOCAL_PATH="$AOMP_REPOS/rocmlibs/Tensile"
+                -DTensile_TEST_LOCAL_PATH="$_tensile_repo_dir"
                 -DTensile_SEPARATE_ARCHITECTURES=ON
                 -DTensile_LAZY_LIBRARY_LOADING=ON
                 -DTensile_LIBRARY_FORMAT=msgpack
                 -DBUILD_WITH_HIPBLASLT=OFF
                 -DROCTX_PATH="$AOMP_INSTALL_DIR"
-                -DGPU_TARGETS="$ROCMLIBS_GFXLIST")
+                -DGPU_TARGETS="$Gfxlist")
 
    echo "Beginning cmake for rocblas..."
    mkdir -p "$BuildDir"
    pushd "$BuildDir" >& /dev/null || exit
-   echo "${AOMP_CMAKE}" "$(shquot "${MYCMAKEOPTS[@]}")" "$SrcDir"
+   echo "$AompCmake" "$(shquot "${MYCMAKEOPTS[@]}")" "$SrcDir"
 
-   if ! ${AOMP_CMAKE} "${MYCMAKEOPTS[@]}" "$SrcDir"; then
+   if ! "$AompCmake" "${MYCMAKEOPTS[@]}" "$SrcDir"; then
       echo "ERROR cmake failed. Cmake flags"
       echo "      $(shquot "${MYCMAKEOPTS[@]}")"
       exit 1
