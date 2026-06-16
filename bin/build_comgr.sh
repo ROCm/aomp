@@ -15,11 +15,8 @@ thisdir=$(dirname "$realpath")
 . "$thisdir/aomp_common_vars"
 # --- end standard header ----
 
-INSTALL_COMGR=${INSTALL_COMGR:-$AOMP_INSTALL_DIR}
-
-REPO_DIR=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/amd/$AOMP_COMGR_REPO_NAME
-
-# Get a configuration (environment) variable for this config
+# All user-controllable (environment) values are read through these wrappers so
+# that they can later be driven by an orchestration layer.
 cfgvar() {
   get_config_var_string comgr "$1"
 }
@@ -27,6 +24,9 @@ cfgvar() {
 cfgbool() {
   get_config_var_bool comgr "$1"
 }
+
+INSTALL_COMGR=${INSTALL_COMGR:-$AOMP_INSTALL_DIR}
+REPO_DIR="$(cfgvar AOMP_REPOS)/$(cfgvar AOMP_PROJECT_REPO_NAME)/amd/$(cfgvar AOMP_COMGR_REPO_NAME)"
 
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   echo " "
@@ -123,6 +123,9 @@ task_cmake() {
    local Cfg=$1
    local BuildDir
    local SrcDir
+   local Aomp
+   local AompCmake
+   local Repos
    local DEVICELIBS_BUILD_PATH
    local PACKAGE_ROOT
    local COMMON_PREFIX_PATH
@@ -130,14 +133,18 @@ task_cmake() {
 
    SrcDir="$(get_src_dir)"
    BuildDir="$(get_build_dir "$Cfg")"
+   Aomp="$(cfgvar AOMP)"
+   AompCmake="$(cfgvar AOMP_CMAKE)"
+   Repos="$(cfgvar AOMP_REPOS)"
 
    export LLVM_DIR=$AOMP_INSTALL_DIR
    export Clang_DIR=$AOMP_INSTALL_DIR
 
-   DEVICELIBS_BUILD_PATH=$AOMP_REPOS/build/AOMP_LIBDEVICE_REPO_NAME
+   DEVICELIBS_BUILD_PATH=$Repos/build/AOMP_LIBDEVICE_REPO_NAME
    PACKAGE_ROOT=$SrcDir
-   COMMON_PREFIX_PATH="$AOMP/include/amd_comgr;$DEVICELIBS_BUILD_PATH;$PACKAGE_ROOT;$LLVM_INSTALL_LOC"
+   COMMON_PREFIX_PATH="$Aomp/include/amd_comgr;$DEVICELIBS_BUILD_PATH;$PACKAGE_ROOT;$LLVM_INSTALL_LOC"
 
+   # Settings common to every config.
    MYCMAKEOPTS=(-DCMAKE_INSTALL_PREFIX="$(cfgvar INSTALL_COMGR)"
                 -DCMAKE_BUILD_TYPE=Release
                 -DBUILD_TESTING=OFF
@@ -145,16 +152,17 @@ task_cmake() {
                 -DLLVM_DIR="$AOMP_INSTALL_DIR"
                 -DClang_DIR="$AOMP_INSTALL_DIR")
 
+   # Variant-specific settings.
    if asan_config "$Cfg"; then
       MYCMAKEOPTS+=(-DCMAKE_C_COMPILER="$LLVM_INSTALL_LOC/bin/clang"
                     -DCMAKE_CXX_COMPILER="$LLVM_INSTALL_LOC/bin/clang++"
-                    -DCMAKE_PREFIX_PATH="$AOMP/lib/asan/cmake;$COMMON_PREFIX_PATH;$AOMP/lib/cmake"
+                    -DCMAKE_PREFIX_PATH="$Aomp/lib/asan/cmake;$COMMON_PREFIX_PATH;$Aomp/lib/cmake"
                     -DCMAKE_INSTALL_LIBDIR=lib/asan
                     "${AOMP_ASAN_ORIGIN_RPATH[@]}"
                     -DCMAKE_C_FLAGS="$(cmquot "${ASAN_FLAGS[@]}")"
                     -DCMAKE_CXX_FLAGS="$(cmquot "${ASAN_FLAGS[@]}")")
    else
-      MYCMAKEOPTS+=(-DCMAKE_PREFIX_PATH="$AOMP/lib/cmake;$COMMON_PREFIX_PATH"
+      MYCMAKEOPTS+=(-DCMAKE_PREFIX_PATH="$Aomp/lib/cmake;$COMMON_PREFIX_PATH"
                     -DCMAKE_INSTALL_LIBDIR=lib
                     "${AOMP_ORIGIN_RPATH[@]}")
    fi
@@ -162,9 +170,9 @@ task_cmake() {
    mkdir -p "$BuildDir"
    pushd "$BuildDir" >& /dev/null || exit
    echo " -----Running comgr $Cfg cmake ---- "
-   echo "${AOMP_CMAKE}" "$(shquot "${MYCMAKEOPTS[@]}")" "$SrcDir"
+   echo "$AompCmake" "$(shquot "${MYCMAKEOPTS[@]}")" "$SrcDir"
 
-   if ! ${AOMP_CMAKE} "${MYCMAKEOPTS[@]}" "$SrcDir"; then
+   if ! "$AompCmake" "${MYCMAKEOPTS[@]}" "$SrcDir"; then
       echo "ERROR comgr $Cfg cmake failed. cmake flags"
       echo "      $(shquot "${MYCMAKEOPTS[@]}")"
       exit 1
