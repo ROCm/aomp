@@ -252,6 +252,9 @@ task_cmake() {
    UseNinja="$(cfgbool AOMP_USE_NINJA)"
    Standalone="$(cfgbool AOMP_STANDALONE_BUILD)"
    Altaomp="$(cfgvar ALTAOMP)"
+   # Build the runtimes with the just-installed AOMP compiler by default (same
+   # as build_openmp.sh/build_offload.sh); an explicit ALTAOMP still wins.
+   Altaomp="${Altaomp:-$LLVM_INSTALL_LOC}"
 
    if "$UseNinja"; then
       AOMP_SET_NINJA_GEN=(-G Ninja)
