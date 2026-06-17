@@ -49,9 +49,13 @@ AOMP_LFL_DIR=${AOMP_LFL_DIR:-"17.0-4"}
 # directly rather than through cfgbool.
 if [ "$AOMP_BUILD_FLANG_CLASSIC" == 0 ] ; then
    if [ "$1" != "install" ] ; then
-      echo "WARNING:  ROCM install for $AOMP_FLANG_CLASSIC_REL/llvm-classic not found."
-      echo "          This build will skip build of flang-classic."
-      echo "          The flang will link to the clang driver."
+      # Warn on stderr so introspection commands (list, list_configs, ...)
+      # keep a clean stdout for the orchestrator.
+      {
+         echo "WARNING:  ROCM install for $AOMP_FLANG_CLASSIC_REL/llvm-classic not found."
+         echo "          This build will skip build of flang-classic."
+         echo "          The flang will link to the clang driver."
+      } >&2
    fi
    exit 0
 fi
