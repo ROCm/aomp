@@ -1,101 +1,173 @@
 #!/bin/bash
-# 
-#  build_rocsolver.sh:  Script to build and install rocsolver library
 #
+#Copyright © Advanced Micro Devices, Inc., or its affiliates.
 #
-BUILD_TYPE=${BUILD_TYPE:-Release}
+#SPDX-License-Identifier:  MIT
+#
+#  build_hipSOLVER.sh:  Script to build and install hipSOLVER library
+#
+
+# Without these options, we can lose error status from command subtitutions,
+# etc.
+set -e
+shopt -s inherit_errexit
 
 # --- Start standard header to set AOMP environment variables ----
-realpath=`realpath $0`
-thisdir=`dirname $realpath`
+realpath=$(realpath -- "$0")
+thisdir=$(dirname "$realpath")
 . "$thisdir/../aomp_utils"
-. $thisdir/../aomp_common_vars
+. "$thisdir/../aomp_common_vars"
 # --- end standard header ----
 
-_source_dir=$AOMP_REPOS/rocmlibs/hipSOLVER
-_curdir=$PWD
-cd $_source_dir
+# All user-controllable (environment) values are read through these wrappers so
+# that they can later be driven by an orchestration layer.
+cfgvar() {
+  get_config_var_string hipsolver "$1"
+}
 
-patchrepo $_source_dir
+cfgbool() {
+  get_config_var_bool hipsolver "$1"
+}
 
-if [ $AOMP_STANDALONE_BUILD == 1 ] ; then 
-   if [ ! -L $AOMP ] ; then 
-     if [ -d $AOMP ] ; then 
-        echo "ERROR: Directory $AOMP is a physical directory."
-        echo "       It must be a symbolic link or not exist"
-        exit 1
-     fi
-   fi
-else
-   echo "ERROR: $0 only valid for AOMP_STANDALONE_BUILD=1"
-   exit 1
-fi
+_repo_dir="$(cfgvar AOMP_REPOS)/rocmlibs/hipSOLVER"
 
-if [ "$1" == "nocmake" ] ; then 
-   echo "ERROR: nocmake is not an option for $0"
-   exit 1
-fi
+get_src_dir() {
+   echo "$_repo_dir"
+}
 
-# Make sure we can update the install directory 
-if [ "$1" == "install" ] ; then
-   $SUDO mkdir -p $AOMP_INSTALL_DIR
-   $SUDO touch $AOMP_INSTALL_DIR/testfile
-   if [ $? != 0 ] ; then 
-      echo "ERROR: No update access to $AOMP_INSTALL_DIR"
+# Print the build dir for a given config, passed as $1.
+#
+# hipSOLVER does not follow the AOMP build directory convention because its
+# install.sh assumes the build directory is a subdirectory of the source
+# directory.
+get_build_dir() {
+   local Cfg=$1
+   case "$Cfg" in
+   "default")
+     echo -n "$_repo_dir/build"
+     ;;
+   *)
+     >&2 echo "Unknown config '$Cfg'"
+     exit 1
+     ;;
+   esac
+}
+
+# Print the install dir for a given config, passed as $1.
+get_install_dir() {
+   echo "$AOMP_INSTALL_DIR"
+}
+
+task_precheck() {
+   if ! "$(cfgbool AOMP_STANDALONE_BUILD)"; then
+      echo "ERROR: $0 only valid for AOMP_STANDALONE_BUILD=1"
       exit 1
    fi
-   $SUDO rm $AOMP_INSTALL_DIR/testfile
-fi
-
-# This does not follow AOMP build directories convention because install.sh 
-# assumes build directory is a subdirectory of source_directory.
-# Changes to install.sh to fix this would be difficult.
-_build_dir=$_source_dir/build
-if [ "$1" != "install" ] ; then
-   echo 
-   echo "This is a FRESH START. ERASING any previous builds in $_build_dir"
-   echo "Use ""$0 install"" to avoid FRESH START."
-   echo rm -rf $_build_dir
-   rm -rf $_build_dir
-   mkdir -p $_build_dir
-else
-   if [ ! -d $_build_dir ] ; then 
-      echo "ERROR: The build directory $_build_dir does not exist"
-      echo "       run $0 without install option. "
+   if [ ! -L "$AOMP" ] && [ -d "$AOMP" ] ; then
+      echo "ERROR: Directory $AOMP is a physical directory."
+      echo "       It must be a symbolic link or not exist"
       exit 1
    fi
-fi
 
-cd $_source_dir
-if [ "$1" != "install" ] ; then
-   # Remember start directory to return on exit
-   _curdir=$PWD
-   echo " ----- Running hipSOLVER install.sh -----"
+   check_writable_installdir "$1" "$AOMP_INSTALL_DIR"
+}
+
+task_patch() {
+   patchrepo "$_repo_dir"
+}
+
+task_unpatch() {
+   removepatch "$_repo_dir"
+}
+
+task_clean() {
+   local Cfg=$1
+   local BuildDir
+   BuildDir=$(get_build_dir "$Cfg")
+   echo "rm -rf $(shquot "$BuildDir")"
+   rm -rf "$BuildDir"
+   mkdir -p "$BuildDir"
+}
+
+task_cmake() {
+   local Cfg=$1
+   local SrcDir
+   local -a INSTALL_OPTS
+
+   SrcDir="$(get_src_dir)"
    export ROCM_PATH=$AOMP_INSTALL_DIR
-   _cmd="./install.sh --compiler $AOMP_INSTALL_DIR/lib/llvm/bin/clang++ --rocblas-path $AOMP_INSTALL_DIR --hipblas-path $AOMP_INSTALL_DIR --rocsolver-path $AOMP_INSTALL_DIR --cmakepp $AOMP_INSTALL_DIR --no-sparse --no-hip-clang --relocatable --cmake-arg -DCMAKE_INSTALL_PREFIX=$AOMP_INSTALL_DIR"
-   $_cmd
-   if [ $? != 0 ] ; then 
-      echo "ERROR $_cmd failed."
-      cd $_curdir
-      exit 1
-   fi
-fi
 
-if [ "$1" == "install" ] ; then
-   echo " -----Installing to $AOMP_INSTALL_DIR ---- "
-   cd $_build_dir/release
-   make install
-   if [ $? != 0 ] ; then
-      echo "ERROR install to $AOMP_INSTALL_DIR failed "
+   # hipSOLVER's install.sh both configures and builds the library.
+   INSTALL_OPTS=(--compiler "$AOMP_INSTALL_DIR/lib/llvm/bin/clang++"
+                 --rocblas-path "$AOMP_INSTALL_DIR"
+                 --hipblas-path "$AOMP_INSTALL_DIR"
+                 --rocsolver-path "$AOMP_INSTALL_DIR"
+                 --cmakepp "$AOMP_INSTALL_DIR"
+                 --no-sparse
+                 --no-hip-clang
+                 --relocatable
+                 --cmake-arg -DCMAKE_INSTALL_PREFIX="$AOMP_INSTALL_DIR")
+
+   pushd "$SrcDir" >& /dev/null || exit
+   echo " ----- Running hipSOLVER install.sh for $Cfg -----"
+   echo "./install.sh $(shquot "${INSTALL_OPTS[@]}")"
+   if ! ./install.sh "${INSTALL_OPTS[@]}"; then
+      echo "ERROR ./install.sh failed."
       exit 1
    fi
+   popd >& /dev/null || exit
+}
+
+task_build() {
+   local Cfg=$1
+   # hipSOLVER's install.sh (run in the cmake task) both configures and builds
+   # the library, so there is no separate build step.
+   echo " -----No separate build step for hipSOLVER $Cfg ---- "
+}
+
+task_install() {
+   local Cfg=$1
+   local BuildDir
+   local InstallDir
+   BuildDir="$(get_build_dir "$Cfg")"
+   InstallDir="$(get_install_dir "$Cfg")"
+
+   pushd "$BuildDir/release" >& /dev/null || exit
+   echo " -----Installing to $InstallDir ---- "
+   if ! make install; then
+      echo "ERROR install to $InstallDir failed "
+      exit 1
+   fi
+   popd >& /dev/null || exit
    echo
-   echo "SUCCESSFUL INSTALL to $AOMP_INSTALL_DIR"
+   echo "SUCCESSFUL INSTALL to $InstallDir"
    echo
-   removepatch $_source_dir
-else 
-   echo 
-   echo "SUCCESSFUL BUILD, please run:  $0 install"
-   echo "  to install into $AOMP_INSTALL_DIR"
-   echo 
-fi
+}
+
+do_list_configs() {
+  echo "default"
+}
+
+do_list_init() {
+  echo "precheck"
+  echo "patch"
+}
+
+do_list_fini() {
+  echo "unpatch"
+}
+
+# List of tasks per config.
+do_list_tasks() {
+  local Cfg=$1
+  if valid_config "$Cfg"; then
+    echo "clean"
+    echo "cmake"
+    echo "build"
+    echo "install"
+  else
+    echo "Unknown config '$Cfg'"
+  fi
+}
+
+command_dispatcher "$@"
