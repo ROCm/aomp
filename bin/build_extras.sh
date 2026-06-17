@@ -136,7 +136,10 @@ task_build() {
 
    echo "----- Copy util scripts to $BuildDir -----"
    cp "$SrcDir"/utils/* "$BuildDir"
-   cp "$(cfgvar AOMP_REPOS)/$(cfgvar AOMP_PROJECT_REPO_NAME)"/offload/utils/gpurun "$BuildDir"
+   # gpurun was restructured upstream from a single file into a directory
+   # (offload/utils/gpurun/) holding the script plus its CMakeLists; copy the
+   # script itself out of it.
+   cp "$(cfgvar AOMP_REPOS)/$(cfgvar AOMP_PROJECT_REPO_NAME)"/offload/utils/gpurun/gpurun "$BuildDir"
 
    for util in $install_list; do
       if [ "$util" == "rebundle_hip_lib.sh" ]; then
