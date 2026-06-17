@@ -127,7 +127,7 @@ aomp_build.py [options] [selector ...]
 | `-c`, `--config FILE` | CUDF config file. Default: `bin/configs/aomp.cudf`. |
 | `--add NAMES` | Add component(s) or feature(s). Comma-separated and/or repeatable. |
 | `--remove NAMES` | Remove component(s) or feature(s) (cascades to dependents). Comma-separated and/or repeatable. |
-| `--variant SPEC` | Strict variant filter: `cfg` (global) or `comp=cfg` (per-component). Comma-separated and/or repeatable. Components with no matching config are skipped (so `--variant default` skips the runtimes). See [Build variants](#build-variants). |
+| `--variant SPEC` | Variant filter: `cfg` (global) or `comp=cfg` (per-component). Comma-separated and/or repeatable. `default` is always built when offered (so `--variant debug` = default+debug); components offering neither are skipped (so `--variant default` skips the runtimes). See [Build variants](#build-variants). |
 | `-C`, `--clean` | Include `clean` tasks (skipped by default for incremental builds). |
 
 ### Build environment knobs (exported to child build scripts)
@@ -207,22 +207,29 @@ Each component advertises one or more *configs* (variants) through its
   variants such as `asan` and `debug`.
 - **Style B** (e.g. `llvm_runtimes_standalone`): derive their config set from
   the environment (`AOMP_BUILD_SANITIZER`, `AOMP_BUILD_PERF`,
-  `AOMP_BUILD_DEBUG`) and have **no** plain `default`; the advertised set is
-  the normal build (e.g. `asan`, `perf`, `perf+asan`, `debug`, plus
-  `*-devicertl` device-runtime passes).
+  `AOMP_BUILD_DEBUG`) and have **no** plain `default` — their default runtime
+  libraries are produced by the `project`/LLVM build itself. The advertised set
+  is the extra instrumented variants (e.g. `asan`, `perf`, `perf+asan`,
+  `debug`, plus `*-devicertl` device-runtime passes).
+
+The `default` config is the baseline an installable build needs, so it is
+**always built when a component offers it**.
 
 Selection policy:
 
-- **No `--variant`:** build `default` if the component offers it; otherwise
-  build **every** advertised config (faithful to style B — this is the normal
-  full build, including the runtimes matrix).
-- **`--variant` (any explicit value):** a **strict filter**. Each component
-  builds only the requested configs it advertises (in the requested order). A
-  component with **no** matching config is **skipped entirely** (no tasks, not
-  even `precheck`/`patch`). In particular, `--variant default` builds just the
-  `default` config of each component and therefore **skips
-  `llvm_runtimes_standalone`** (its default runtime libraries are produced by
-  the `project`/LLVM build itself).
+- **No `--variant`:** build **every** advertised config for every component
+  (the full build — `default` plus all variants such as `asan`/`debug`/`perf`,
+  including the runtimes matrix).
+- **`--variant` (any explicit value):** build `default` (where offered) **plus**
+  the requested variants each component advertises. So `--variant debug` means
+  `default,debug` everywhere: default-only components (e.g. `comgr`) still build
+  their `default`, components offering `debug` add it, and components offering
+  no `default` (e.g. the runtimes) build just their `debug`. A component that
+  offers **neither** `default` **nor** any requested variant is **skipped
+  entirely** (no tasks, not even `precheck`/`patch`). In particular,
+  `--variant default` builds only the `default` config of each component and
+  therefore **skips `llvm_runtimes_standalone`** (its default runtime libraries
+  are produced by the `project`/LLVM build itself).
 
 Forms (all combinable, comma-separated and/or repeated):
 
@@ -240,8 +247,8 @@ Examples:
 
 ```bash
 ./aomp_build.py --variant default          # default everywhere; skips the runtimes
-./aomp_build.py --variant debug,asan        # only debug + asan library variants
-./aomp_build.py --variant asan list
+./aomp_build.py --variant debug,asan        # default + debug + asan (where offered)
+./aomp_build.py --variant asan list         # default + asan
 ./aomp_build.py --variant llvm_runtimes_standalone=perf list
 ./aomp_build.py --variant rocr=debug,llvm_runtimes_standalone=asan
 ```

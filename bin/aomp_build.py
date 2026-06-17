@@ -293,28 +293,33 @@ def select_variants(
     has no "default" because its default build is produced by the compiler
     (project) build itself.
 
-    Selection:
-      * No explicit --variant: build "default" when offered, otherwise every
-        advertised config (the intended normal build for style-B).
-      * Explicit --variant (global and/or per-component): a strict filter -
-        build only the requested configs the component advertises, in the
-        requested order. A component with no matching config yields an empty
-        list and is skipped entirely. So `--variant default` builds just the
-        default config and skips components that have none (e.g. the runtimes).
-    """
-    if comp in per_comp:
-        wanted = per_comp[comp]
-    elif global_variants:
-        wanted = global_variants
-    else:
-        wanted = None  # no explicit request
+    The "default" config is the baseline an installable build needs, so it is
+    always built when the component offers it.
 
-    if wanted is None:
-        if "default" in available:
-            return ["default"]
+    Selection:
+      * No --variant anywhere: build *every* advertised config (the full build:
+        default plus all variants the component offers).
+      * --variant given: build "default" (when offered) plus the requested
+        variants the component advertises. Requested variants apply globally,
+        or to a single component via "comp=cfg" (which overrides the global
+        list for that component). A component that offers neither "default" nor
+        any requested variant yields an empty list and is skipped entirely - so
+        `--variant default` builds just the default config and skips components
+        that have none (e.g. the runtimes, built by the project build).
+    """
+    if not global_variants and not per_comp:
+        # No filter at all: build everything the component advertises.
         return list(available)
 
-    return [v for v in wanted if v in available]
+    requested = per_comp[comp] if comp in per_comp else global_variants
+
+    wanted: list[str] = []
+    if "default" in available:
+        wanted.append("default")
+    for variant in requested:
+        if variant in available and variant not in wanted:
+            wanted.append(variant)
+    return wanted
 
 
 def elaborate_tasks(
@@ -690,11 +695,14 @@ def build_arg_parser() -> argparse.ArgumentParser:
                         help="remove component(s)/feature(s); comma-separated "
                              "and/or repeatable")
     parser.add_argument("--variant", action="append", default=[], metavar="SPEC",
-                        help="strict variant filter: 'cfg' (global) or "
-                             "'comp=cfg' (per-component). Comma-separated and/or "
-                             "repeatable (e.g. 'debug,asan'). Components with no "
-                             "matching config are skipped; 'default' thus skips "
-                             "the runtimes build.")
+                        help="variant filter: 'cfg' (global) or 'comp=cfg' "
+                             "(per-component). Comma-separated and/or repeatable "
+                             "(e.g. 'debug,asan'). 'default' is always built when "
+                             "offered, so '--variant debug' means default+debug; "
+                             "components offering neither default nor a requested "
+                             "variant are skipped (so '--variant default' skips "
+                             "the runtimes). With no --variant, all advertised "
+                             "configs are built.")
     parser.add_argument("-C", "--clean", action="store_true",
                         help="include 'clean' tasks (default: skip for "
                              "incremental builds)")
