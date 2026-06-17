@@ -114,7 +114,7 @@ aomp_build.py [options] [selector ...]
 
 | Option | Description |
 |--------|-------------|
-| `list` (selector) | Print the numbered task list and exit. |
+| `list` (selector) | Print the numbered task list and exit (`[NNN] [✓] component/stage`; the tick marks completed tasks, see [Completion stamps](#completion-stamps)). |
 | `--components` | Print the resolved, dependency-ordered component list and exit. |
 | `-n`, `--dry-run` | Show what would run (command + log path per task) without executing. |
 | `--export-manifest [FILE]` | Write a git fingerprint manifest and exit. Default path: `<BUILD_DIR>/manifests/<config>-manifest.json`. |
@@ -223,6 +223,7 @@ run. The grammar mirrors `amd-build`:
 | `N` | Run task number `N` (1-based, as shown by `list`). |
 | `N--M` | Run the inclusive range of tasks `N` through `M`. |
 | `comp/variant/stage` | Glob/substring match on task names; supports `{a,b}` brace expansion. |
+| `continue` | On its own, resume from the first task that is not marked complete (see [Completion stamps](#completion-stamps)) through to the end. |
 | `... X continue` | Trailing `continue` turns the preceding selector `X` into a "from `X` to the end" anchor. Any earlier selectors are selected normally. |
 
 Multiple selectors can be combined; the union of matched tasks runs in task
@@ -423,6 +424,33 @@ timestamp and the return code.
 On failure, the orchestrator prints the failing task and tails the log to
 stderr, then stops (non-zero exit). Re-run with `<failed-task> continue` after
 fixing the problem.
+
+### Completion stamps
+
+Each task records its progress with two stamp files in a `stamps/` directory
+alongside the log dir (e.g. `<BUILD_DIR>/stamps/`):
+
+- `component-stage.start` — written when the task begins, and
+- `component-stage.done` — written when it finishes successfully.
+
+The `list` selector reflects this with a colored mark:
+
+| Mark | Meaning | Stamps |
+|------|---------|--------|
+| green `✓` | completed | `.done` present |
+| red `✗` | started but did not finish (failed/interrupted) | `.start` only |
+| (blank) | not built | neither |
+
+```
+[005] [✓] project/cmake
+[006] [✗] project/build
+[007] [ ] project/install
+```
+
+**Clearing.** Any run clears the stamps for every task from the lowest task
+index being run through to the end, *before* executing. So a full build (no
+selector) resets all stamps, and running a subset or `continue` resets that
+point onward. Deleting the `stamps/` directory also resets everything.
 
 ---
 

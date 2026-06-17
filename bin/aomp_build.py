@@ -515,14 +515,63 @@ def tail_file(path: str, n: int = 40) -> str:
     return "".join(lines[-n:])
 
 
+def stamp_path(stamp_dir: str, task: Task, kind: str) -> str:
+    """Path of a task's stamp file (keyed by its stable name). kind is one of
+    'start' (written when the task begins) or 'done' (written on success)."""
+    return os.path.join(stamp_dir, task.name.replace("/", "-") + "." + kind)
+
+
+def task_state(stamp_dir: str | None, task: Task) -> str:
+    """Completion state inferred from the stamps:
+
+      'done'       -> the task finished (a 'done' stamp is present)
+      'incomplete' -> it started but did not finish ('start' only)
+      'none'       -> no stamp at all
+    """
+    if not stamp_dir:
+        return "none"
+    if os.path.exists(stamp_path(stamp_dir, task, "done")):
+        return "done"
+    if os.path.exists(stamp_path(stamp_dir, task, "start")):
+        return "incomplete"
+    return "none"
+
+
+def render_mark(state: str) -> str:
+    """A mark for a task state: green check (done), red cross (incomplete),
+    or a blank of the same width (none)."""
+    tty = sys.stdout.isatty()
+    if state == "done":
+        return "\033[32m\u2713\033[0m" if tty else "\u2713"
+    if state == "incomplete":
+        return "\033[31m\u2717\033[0m" if tty else "\u2717"
+    return " "
+
+
+def clear_stamps_from(stamp_dir: str, tasks: list[Task], start_index: int) -> None:
+    """Remove both stamps for every task at index >= start_index."""
+    for task in tasks[start_index:]:
+        for kind in ("start", "done"):
+            try:
+                os.remove(stamp_path(stamp_dir, task, kind))
+            except FileNotFoundError:
+                pass
+
+
 def run_tasks(
     tasks: list[Task], indices: list[int], env: dict[str, str], log_dir: str,
     dry_run: bool, build_type_global: str | None = None,
     build_type_per_comp: dict[str, str] | None = None,
-    log_base: str | None = None,
+    log_base: str | None = None, stamp_dir: str | None = None,
 ) -> int:
     build_type_per_comp = build_type_per_comp or {}
     os.makedirs(log_dir, exist_ok=True)
+    # Any run clears stamps from the lowest task index onward (a full run thus
+    # resets everything), so the stamps reflect only the current build attempt.
+    if stamp_dir and not dry_run:
+        os.makedirs(stamp_dir, exist_ok=True)
+        if indices:
+            clear_stamps_from(stamp_dir, tasks, min(indices))
     # The progress counter is relative to the whole build: num is the task's
     # absolute position (1-based) in the full elaborated task list and total is
     # the full count, so a selected subset still reports its real task numbers.
@@ -554,6 +603,12 @@ def run_tasks(
             continue
         print(f"{header}{bt_note} -> {rel_log}", flush=True)
         start = datetime.datetime.now()
+        # Mark the task as started (start stamp without a done stamp == an
+        # incomplete/failed build until the done stamp is written below).
+        if stamp_dir:
+            with open(stamp_path(stamp_dir, task, "start"), "w",
+                      encoding="utf-8") as st:
+                st.write(start.isoformat() + "\n")
         with open(log_path, "w", encoding="utf-8") as log:
             log.write(f"### task {num}: {task.name}\n")
             log.write(f"### command: {' '.join(cmd)}\n")
@@ -574,6 +629,11 @@ def run_tasks(
             print(f"--- tail of {log_path} ---", file=sys.stderr)
             print(tail_file(log_path), file=sys.stderr)
             return proc.returncode
+        # Mark the task complete.
+        if stamp_dir:
+            with open(stamp_path(stamp_dir, task, "done"), "w",
+                      encoding="utf-8") as st:
+                st.write(end.isoformat() + "\n")
     return 0
 
 
@@ -789,10 +849,15 @@ def build_arg_parser() -> argparse.ArgumentParser:
             "  N--M          run the inclusive range of tasks N..M\n"
             "  comp/variant/stage  glob/substring match (supports {a,b} braces);\n"
             "                  config-less init/fini tasks are comp/stage\n"
+            "  continue        on its own, resume from the first task not marked\n"
+            "                  complete (by its stamp) through to the end\n"
             "  ... X continue  trailing 'continue' makes the preceding selector\n"
             "                  X a 'from X to the end' anchor, e.g.\n"
             "                  'comp1 comp2 continue' builds comp1 then continues\n"
             "                  from comp2 onward\n"
+            "\n"
+            "Any run clears completion stamps from the lowest selected task\n"
+            "onward; 'list' shows a green check (done) or red cross (incomplete).\n"
         ),
     )
     parser.add_argument("selectors", nargs="*", help="task selector(s); see below")
@@ -895,6 +960,8 @@ def main(argv: list[str]) -> int:
 
     build_dir = env_info["BUILD_DIR"]
     log_dir = args.log_dir or os.path.join(build_dir, "aomp_build_logs")
+    # Completion stamps live alongside the log dir.
+    stamp_dir = os.path.join(os.path.dirname(os.path.abspath(log_dir)), "stamps")
     manifest_dir = os.path.join(build_dir, "manifests")
 
     # Manifest export is a standalone action.
@@ -918,14 +985,28 @@ def main(argv: list[str]) -> int:
         include_clean=args.clean,
     )
 
-    # `list` selector: print the numbered task list and exit.
+    # `list` selector: print the numbered task list and exit. A green check
+    # marks completed tasks, a red cross marks started-but-unfinished ones.
     if args.selectors and args.selectors[0] == "list":
         width = len(str(len(tasks)))
         for i, task in enumerate(tasks, start=1):
-            print(f"{i:>{width}}  {task.name}")
+            mark = render_mark(task_state(stamp_dir, task))
+            print(f"[{i:0{width}d}] [{mark}] {task.name}")
         return 0
 
-    indices = select_tasks(tasks, args.selectors)
+    # Bare `continue`: resume from the first task that is not yet done.
+    if args.selectors == ["continue"]:
+        resume = next(
+            (i for i, t in enumerate(tasks)
+             if task_state(stamp_dir, t) != "done"),
+            None,
+        )
+        if resume is None:
+            print("aomp_build: all tasks already complete")
+            return 0
+        indices = list(range(resume, len(tasks)))
+    else:
+        indices = select_tasks(tasks, args.selectors)
     if not indices:
         print("aomp_build: no tasks selected")
         return 0
@@ -934,7 +1015,7 @@ def main(argv: list[str]) -> int:
         tasks, indices, child_env, log_dir, args.dry_run,
         build_type_global=build_type_global,
         build_type_per_comp=build_type_per_comp,
-        log_base=build_dir,
+        log_base=build_dir, stamp_dir=stamp_dir,
     )
 
 
