@@ -62,23 +62,7 @@ fi
 
 cd "$SROCK_THEROCK_DIR" || exit
 
-if [ -d "$SROCK_THEROCK_DIR/.venv/bin" ] ; then
-   echo
-   echo "===== Activating virtual environment ====="
-   cd "$SROCK_THEROCK_DIR" || exit
-   echo "source .venv/bin/activate"
-   source ".venv/bin/activate"
-else
-   echo
-   echo "===== Building virtual environment in .venv and updating PATH ====="
-   cd "$SROCK_THEROCK_DIR" || exit
-   echo "python3 -m venv .venv && source .venv/bin/activate"
-   # shellcheck disable=1091
-   python3 -m venv .venv && source ".venv/bin/activate"
-fi
-echo "pip install -r requirements.txt"
-pip install -r requirements.txt
-export PATH=$SROCK_THEROCK_DIR/.venv/bin:$PATH
+srock_venv_activate
 
 if [ "$ARG" != "restart" ]; then
    echo
