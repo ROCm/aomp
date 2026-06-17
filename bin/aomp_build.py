@@ -523,8 +523,12 @@ def run_tasks(
 ) -> int:
     build_type_per_comp = build_type_per_comp or {}
     os.makedirs(log_dir, exist_ok=True)
-    total = len(indices)
-    for count, idx in enumerate(indices, start=1):
+    # The progress counter is relative to the whole build: num is the task's
+    # absolute position (1-based) in the full elaborated task list and total is
+    # the full count, so a selected subset still reports its real task numbers.
+    total = len(tasks)
+    width = len(str(total))
+    for idx in indices:
         task = tasks[idx]
         num = idx + 1
         safe = task.name.replace("/", "-")
@@ -536,7 +540,7 @@ def run_tasks(
         if build_type:
             task_env = dict(env)
             task_env["BUILD_TYPE"] = build_type
-        header = f"[{count}/{total}] {task.name}"
+        header = f"[{num:0{width}d}/{total}] {task.name}"
         bt_note = f"  BUILD_TYPE={build_type}" if build_type else ""
         # Show the log path relative to the build root (where logs live) for
         # brevity; fall back to the absolute path if it lies elsewhere.
