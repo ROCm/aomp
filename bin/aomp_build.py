@@ -519,6 +519,7 @@ def run_tasks(
     tasks: list[Task], indices: list[int], env: dict[str, str], log_dir: str,
     dry_run: bool, build_type_global: str | None = None,
     build_type_per_comp: dict[str, str] | None = None,
+    log_base: str | None = None,
 ) -> int:
     build_type_per_comp = build_type_per_comp or {}
     os.makedirs(log_dir, exist_ok=True)
@@ -535,12 +536,19 @@ def run_tasks(
         if build_type:
             task_env = dict(env)
             task_env["BUILD_TYPE"] = build_type
-        header = f"[{count}/{total}] task {num}: {task.name}"
+        header = f"[{count}/{total}] {task.name}"
         bt_note = f"  BUILD_TYPE={build_type}" if build_type else ""
+        # Show the log path relative to the build root (where logs live) for
+        # brevity; fall back to the absolute path if it lies elsewhere.
+        rel_log = log_path
+        if log_base:
+            candidate = os.path.relpath(log_path, log_base)
+            if not candidate.startswith(".."):
+                rel_log = candidate
         if dry_run:
-            print(f"{header}\n    {' '.join(cmd)}{bt_note}  > {log_path}")
+            print(f"{header}\n    {' '.join(cmd)}{bt_note}  > {rel_log}")
             continue
-        print(f"{header}{bt_note} -> {log_path}", flush=True)
+        print(f"{header}{bt_note} -> {rel_log}", flush=True)
         start = datetime.datetime.now()
         with open(log_path, "w", encoding="utf-8") as log:
             log.write(f"### task {num}: {task.name}\n")
@@ -741,6 +749,7 @@ def build_child_env(args: argparse.Namespace) -> dict[str, str]:
         if value is not None:
             env[name] = os.path.abspath(os.path.expanduser(value))
 
+    setdir("AOMP_REPOS", args.source)
     setdir("AOMP", args.install)
     setdir("BUILD_AOMP", args.build)
     setdir("AOMP_SUPP", args.prereq)
@@ -786,6 +795,10 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("-c", "--config", default=DEFAULT_CONFIG,
                         help=f"CUDF config file (default: {DEFAULT_CONFIG})")
     # Core directory layout (exported to child build scripts).
+    parser.add_argument("-s", "--source", default=None, metavar="DIR",
+                        help="source/repo root (AOMP_REPOS) holding the cloned "
+                             "component repos. The build dir defaults to it "
+                             "unless -b is given. Default: $HOME/git/aomp<ver>")
     parser.add_argument("-i", "--install", default=None, metavar="DIR",
                         help="installation directory root (AOMP); the versioned "
                              "install dir AOMP_<version> derives from it. "
@@ -917,6 +930,7 @@ def main(argv: list[str]) -> int:
         tasks, indices, child_env, log_dir, args.dry_run,
         build_type_global=build_type_global,
         build_type_per_comp=build_type_per_comp,
+        log_base=build_dir,
     )
 
 

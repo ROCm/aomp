@@ -134,6 +134,7 @@ aomp_build.py [options] [selector ...]
 
 | Option | Environment variable | Notes |
 |--------|----------------------|-------|
+| `-s`, `--source DIR` | `AOMP_REPOS` | Source/repo root holding the cloned component repos. The build dir (`BUILD_AOMP`) defaults to it unless `-b` is given. Default: `$HOME/git/aomp<version>`. |
 | `-i`, `--install DIR` | `AOMP` | Install root. The versioned install dir `AOMP_<version>` (`AOMP_INSTALL_DIR`) derives from it. Default: `$HOME/rocm/aomp`. |
 | `-b`, `--build DIR` | `BUILD_AOMP` | Where cmake/make run and object files go (also `BUILD_DIR`, used for the default log/manifest locations). Default: the repo dir (`AOMP_REPOS`). |
 | `-p`, `--prereq DIR` | `AOMP_SUPP` | Prerequisite/supplemental root. Its build (`AOMP_SUPP_BUILD`), install (`AOMP_SUPP_INSTALL`), and the prereq `cmake` all derive from it. Default: `$HOME/local`. |
@@ -485,16 +486,18 @@ with a trailing `continue`:
 ./aomp_build.py --pass-env CC,CXX,LD_LIBRARY_PATH   # leak specific env vars
 ```
 
-### Use custom install / build / prereq directories
+### Use custom source / install / build / prereq directories
 
 ```bash
-./aomp_build.py -i /opt/aomp -b /scratch/aompbuild -p /opt/aomp-supp
+./aomp_build.py -s /scratch/aomp-src -i /opt/aomp -b /scratch/aompbuild -p /opt/aomp-supp
 ```
 
-`-i/--install` sets the install root (`AOMP`), `-b/--build` sets where builds run
-and object files go (`BUILD_AOMP`, and the default log/manifest location), and
-`-p/--prereq` sets the supplemental/prerequisite root (`AOMP_SUPP`). All three
-are made absolute and exported to every child script.
+`-s/--source` sets the repo/source root (`AOMP_REPOS`), `-i/--install` sets the
+install root (`AOMP`), `-b/--build` sets where builds run and object files go
+(`BUILD_AOMP`, and the default log/manifest location), and `-p/--prereq` sets the
+supplemental/prerequisite root (`AOMP_SUPP`). All are made absolute and exported
+to every child script. Note `BUILD_AOMP` defaults to `AOMP_REPOS`, so `-s`
+without `-b` puts builds under the source root.
 
 ### Reproduce an earlier build
 
@@ -628,8 +631,8 @@ indices; `run_tasks()` runs them:
   copy the caller's environment): a curated pass-through of identity/locale vars
   (`ENV_PASSTHROUGH` + `LC_*`), a controlled `PATH` (`DEFAULT_CHILD_PATH`, or the
   caller's PATH with `--inherit-path`), any vars named by `--pass-env`, the
-  directory knobs (`-i`/`AOMP`, `-b`/`BUILD_AOMP`, `-p`/`AOMP_SUPP`, made
-  absolute), and then the values implied by the global build-knob flags (`-j`,
+  directory knobs (`-s`/`AOMP_REPOS`, `-i`/`AOMP`, `-b`/`BUILD_AOMP`,
+  `-p`/`AOMP_SUPP`, made absolute), and then the values implied by the global build-knob flags (`-j`,
   `--ninja`, `--ccache`, `--gfx`, `--sudo`). This same environment is used for every child
   script invocation (introspection, execution, and git/manifest probes), so
   introspection sees the same configs that will actually be built — and isolates
