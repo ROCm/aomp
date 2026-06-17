@@ -97,12 +97,20 @@ task_precheck() {
 
 task_patch() {
    local _tensile_commit_sha
+   local _tensile_tag_file="$_repo_dir/tensile_tag.txt"
    if "$(cfgbool AOMP_BUILD_TENSILE)"; then
       cd "$_tensile_repo_dir" || exit
-      # Read the commit SHA from the file rocBLAS/tensile_tag.txt
-      _tensile_commit_sha=$(cat "$_repo_dir/tensile_tag.txt")
-      echo "Checking out Tensile commit $_tensile_commit_sha"
-      git checkout "$_tensile_commit_sha"
+      # rocBLAS historically pinned the Tensile commit in rocBLAS/tensile_tag.txt.
+      # That file is deprecated and removed in recent rocBLAS (>= rocm 7.1); when
+      # it is absent, build against the Tensile revision the manifest already
+      # checked out rather than failing on a missing file.
+      if [ -f "$_tensile_tag_file" ]; then
+         _tensile_commit_sha=$(cat "$_tensile_tag_file")
+         echo "Checking out Tensile commit $_tensile_commit_sha"
+         git checkout "$_tensile_commit_sha"
+      else
+         echo "No $_tensile_tag_file (deprecated); using checked-out Tensile revision $(git rev-parse --short HEAD)"
+      fi
       patchrepo "$_tensile_repo_dir"
    fi
    patchrepo "$_repo_dir"
