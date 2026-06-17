@@ -111,7 +111,7 @@ task_cmake() {
    setup_env
 
    MYCMAKEOPTS=(-DCMAKE_CXX_COMPILER="$CXX"
-                -DCMAKE_CXX_FLAGS="-I$LLVM_INSTALL_LOC/include;-D__HIP_PLATFORM_AMD__=1"
+                -DCMAKE_CXX_FLAGS="-I$LLVM_INSTALL_LOC/include -D__HIP_PLATFORM_AMD__=1"
                 -DROCM_DIR="$AOMP_INSTALL_DIR"
                 -DBUILD_FORTRAN_WRAPPER=ON
                 -DROCM_PATH="$AOMP_INSTALL_DIR"
