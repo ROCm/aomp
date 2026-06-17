@@ -168,10 +168,16 @@ run. The grammar mirrors `amd-build`:
 
 Multiple selectors can be combined; the union of matched tasks runs in task
 order. Task names take the form `component/variant/stage` for build tasks
-(e.g. `comgr/default/cmake`, `llvm_runtimes_standalone/asan/build`) and
-`component/stage` for the config-less init/fini tasks (`precheck`, `patch`,
-`unpatch` — e.g. `comgr/patch`). Putting the variant in the middle makes it
-easy to glob a whole variant across components, e.g. `*/asan/*`.
+(e.g. `comgr/default/cmake`, `llvm_runtimes_standalone/asan/build`). The variant
+segment is dropped (giving `component/stage`) for:
+
+- the config-less init/fini tasks (`precheck`, `patch`, `unpatch` — e.g.
+  `comgr/patch`), and
+- components whose only advertised config is `default` (e.g. `prereq/build`,
+  `rocminfo/cmake`).
+
+Putting the variant in the middle makes it easy to glob a whole variant across
+components, e.g. `*/asan/*`.
 
 `continue` is a **trailing** keyword: it must be the last argument, and it
 applies to the selector immediately before it. `X` may be a task number or a
@@ -347,7 +353,8 @@ Each executed task writes a numbered log:
 <log-dir>/NNN-component-variant-stage.log
 ```
 
-(config-less init/fini tasks are `NNN-component-stage.log`.)
+(config-less init/fini tasks and default-only components are
+`NNN-component-stage.log`.)
 
 where `NNN` is the global task number (matching `list`) and `<log-dir>`
 defaults to `<BUILD_DIR>/aomp_build_logs`. Each log begins with the task
@@ -524,7 +531,8 @@ component list:
 
 Each surviving task is recorded as a `Task` (component, action, config, script
 path, and the exact `script_args` to pass back). Its display name is
-`component/variant/stage` (or `component/stage` when the task has no config).
+`component/variant/stage`, shortened to `component/stage` when the task has no
+config or when the component advertises only the `default` config.
 
 ### Execution
 

@@ -266,12 +266,15 @@ class Task:
     cfgname: str | None  # build config/variant, e.g. "default" / "asan"
     script: str          # path to build_<comp>.sh
     script_args: list[str]  # args to pass back to the script
+    single_config: bool = False  # component advertises only "default"
 
     @property
     def name(self) -> str:
-        # "component/variant/stage" for config-bearing tasks; config-less
-        # init/fini tasks (precheck/patch/unpatch) are "component/stage".
-        if self.cfgname:
+        # "component/variant/stage" for config-bearing tasks. The variant
+        # segment is dropped (-> "component/stage") for the config-less
+        # init/fini tasks (precheck/patch/unpatch) and for components whose only
+        # advertised config is "default".
+        if self.cfgname and not self.single_config:
             return f"{self.comp}/{self.cfgname}/{self.action}"
         return f"{self.comp}/{self.action}"
 
@@ -340,6 +343,9 @@ def elaborate_tasks(
         # configs skips the component outright (no init/fini tasks either).
         if available and not wanted:
             continue
+        # Components whose only advertised config is "default" use the short
+        # two-element task name (comp/stage) instead of comp/default/stage.
+        single_config = available == ["default"]
         listing = run_script_capture(script, ["list"], env).splitlines()
         for line in listing:
             toks = line.split()
@@ -363,6 +369,7 @@ def elaborate_tasks(
                     cfgname=taskcfg,
                     script=script,
                     script_args=toks,
+                    single_config=single_config,
                 )
             )
     return tasks
