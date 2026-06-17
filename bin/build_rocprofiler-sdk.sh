@@ -130,7 +130,7 @@ task_cmake() {
       exit 1
    fi
 
-   MYCMAKEOPTS=(-DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR;$HOME/local/aqlprofile"
+   MYCMAKEOPTS=(-DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR;$AOMP_SUPP/aqlprofile"
                 -DCMAKE_INSTALL_PREFIX="$InstallDir"
                 -DCMAKE_BUILD_TYPE=Release
                 -DROCM_ROOT_DIR="$AOMP_INSTALL_DIR"
@@ -198,9 +198,9 @@ task_postinstall() {
    local InstallDir
    InstallDir="$(get_install_dir "$Cfg")"
 
-   if [ -d "$HOME/local/aqlprofile/lib" ]; then
-      echo "Copying aqlprofile libraries from $HOME/local/aqlprofile/lib to $InstallDir/lib"
-      cp -r "$HOME"/local/aqlprofile/lib/* "$InstallDir"/lib
+   if [ -d "$AOMP_SUPP/aqlprofile/lib" ]; then
+      echo "Copying aqlprofile libraries from $AOMP_SUPP/aqlprofile/lib to $InstallDir/lib"
+      cp -r "$AOMP_SUPP"/aqlprofile/lib/* "$InstallDir"/lib
    else
       echo "Error: rocprofiler-sdk needs aqlprofile libraries to exist in $InstallDir/lib. Please run ./build_prereq.sh first."
       exit 1

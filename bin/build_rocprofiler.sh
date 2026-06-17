@@ -121,7 +121,7 @@ task_cmake() {
    export HIP_CLANG_PATH="$LLVM_INSTALL_LOC/bin"
    export ROCM_PATH="$AOMP_INSTALL_DIR"
    export CMAKE_BUILD_TYPE=Release
-   export CMAKE_PREFIX_PATH="$ROCM_DIR/roctracer/include/ext;$ROCM_DIR/include/platform;$ROCM_DIR/include;$ROCM_DIR/lib;$ROCM_DIR;$HOME/.local/bin;$HOME/local/aqlprofile;$LLVM_INSTALL_LOC"
+   export CMAKE_PREFIX_PATH="$ROCM_DIR/roctracer/include/ext;$ROCM_DIR/include/platform;$ROCM_DIR/include;$ROCM_DIR/lib;$ROCM_DIR;$HOME/.local/bin;$AOMP_SUPP/aqlprofile;$LLVM_INSTALL_LOC"
    export PATH=$HOME/.local/bin:$InstallDir/bin:$PATH
 
    CMAKE_WITH_EXPERIMENTAL=()
@@ -148,9 +148,9 @@ task_cmake() {
                 -DPROF_API_HEADER_PATH="$InstallDir/include/roctracer/ext"
                 -DHIP_ROOT_DIR="$InstallDir/hip"
                 -DAQLPROFILE_LIB="$(cfgvar AOMP_SUPP)/aqlprofile/lib/libhsa-amd-aqlprofile64.so"
-                -DCMAKE_CXX_FLAGS="-I$HOME/local/rocmsmilib/include"
-                -DHIP_HIPCC_FLAGS="-I$HOME/local/rocmsmilib/include"
-                -DCMAKE_EXE_LINKER_FLAGS="-L$HOME/local/rocmsmilib/lib -L$HOME/local/rocmsmilib/lib64 -Wl,--disable-new-dtags")
+                -DCMAKE_CXX_FLAGS="-I$AOMP_SUPP/rocmsmilib/include"
+                -DHIP_HIPCC_FLAGS="-I$AOMP_SUPP/rocmsmilib/include"
+                -DCMAKE_EXE_LINKER_FLAGS="-L$AOMP_SUPP/rocmsmilib/lib -L$AOMP_SUPP/rocmsmilib/lib64 -Wl,--disable-new-dtags")
 
    mkdir -p "$BuildDir"
    pushd "$BuildDir" >& /dev/null || exit

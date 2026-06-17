@@ -219,7 +219,7 @@ task_cmake() {
       export ROCM_RPATH="$AOMP_ORIGIN_RPATH_LIST"
       CMAKEOPTS=("${MYCMAKEOPTS[@]}"
                  "${AOMP_ASAN_ORIGIN_RPATH[@]}"
-                 -DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR/lib/asan/cmake;$AOMP_INSTALL_DIR;$HOME/local/openclicdloader;$BuildRoot/hipamd/opencl/khronos/icd"
+                 -DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR/lib/asan/cmake;$AOMP_INSTALL_DIR;$AOMP_SUPP/openclicdloader;$BuildRoot/hipamd/opencl/khronos/icd"
                  -DCMAKE_INSTALL_LIBDIR=lib/asan
                  -DCMAKE_C_COMPILER="$LLVM_INSTALL_LOC/bin/clang"
                  -DCMAKE_CXX_COMPILER="$LLVM_INSTALL_LOC/bin/clang++"
@@ -230,7 +230,7 @@ task_cmake() {
       CMAKEOPTS=("${MYCMAKEOPTS[@]}"
                  "${AOMP_DEBUG_ORIGIN_RPATH[@]}"
                  -DCMAKE_BUILD_TYPE=DEBUG
-                 -DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR;$HOME/local/openclicdloader;$BuildRoot/hipamd/opencl/khronos/icd"
+                 -DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR;$AOMP_SUPP/openclicdloader;$BuildRoot/hipamd/opencl/khronos/icd"
                  -DCMAKE_INSTALL_LIBDIR=lib-debug
                  -DCMAKE_C_COMPILER="$LLVM_INSTALL_LOC/bin/clang"
                  -DCMAKE_CXX_COMPILER="$LLVM_INSTALL_LOC/bin/clang++"
@@ -239,7 +239,7 @@ task_cmake() {
                  -DCMAKE_C_FLAGS="$(cmquot -g "${_prefix_map[@]}")")
    else
       CMAKEOPTS=("${MYCMAKEOPTS[@]}"
-                 -DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR;$HOME/local/openclicdloader;$BuildRoot/hipamd/opencl/khronos/icd"
+                 -DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR;$AOMP_SUPP/openclicdloader;$BuildRoot/hipamd/opencl/khronos/icd"
                  -DCMAKE_INSTALL_LIBDIR=lib
                  -DCMAKE_CXX_FLAGS=-I"${AOMP_INSTALL_DIR}/include/amd_comgr"
                  -DCMAKE_CXX_FLAGS=-Wno-error=deprecated-declarations

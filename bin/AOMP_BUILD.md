@@ -130,6 +130,17 @@ aomp_build.py [options] [selector ...]
 | `--variant SPEC` | Variant filter: `cfg` (global) or `comp=cfg` (per-component). Comma-separated and/or repeatable. `default` is always built when offered (so `--variant debug` = default+debug); components offering neither are skipped (so `--variant default` skips the runtimes). See [Build variants](#build-variants). |
 | `-C`, `--clean` | Include `clean` tasks (skipped by default for incremental builds). |
 
+### Directory layout (exported to child build scripts)
+
+| Option | Environment variable | Notes |
+|--------|----------------------|-------|
+| `-i`, `--install DIR` | `AOMP` | Install root. The versioned install dir `AOMP_<version>` (`AOMP_INSTALL_DIR`) derives from it. Default: `$HOME/rocm/aomp`. |
+| `-b`, `--build DIR` | `BUILD_AOMP` | Where cmake/make run and object files go (also `BUILD_DIR`, used for the default log/manifest locations). Default: the repo dir (`AOMP_REPOS`). |
+| `-p`, `--prereq DIR` | `AOMP_SUPP` | Prerequisite/supplemental root. Its build (`AOMP_SUPP_BUILD`), install (`AOMP_SUPP_INSTALL`), and the prereq `cmake` all derive from it. Default: `$HOME/local`. |
+
+Each is expanded to an absolute path (with `~`) before being handed to the
+child scripts, so they resolve identically regardless of working directory.
+
 ### Build environment knobs (exported to child build scripts)
 
 | Option | Environment variable | Notes |
@@ -153,14 +164,49 @@ environment variable at execution time (it does not affect other components):
 ./aomp_build.py --build-type Release,project=Debug     # global Release, project Debug
 ```
 
+### Environment isolation
+
+Child build scripts run in an **isolated environment built from scratch** by the
+orchestrator, not a copy of your shell's environment. This keeps *what* gets
+built under the orchestrator's control and prevents stray exports (a Homebrew
+`pkg-config` ahead of the system one, a leftover `CC`/`LD_LIBRARY_PATH`, a stale
+`PKG_CONFIG_PATH`, etc.) from silently changing the build.
+
+What the child environment contains:
+
+- A controlled `PATH` of standard system locations only:
+  `/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin`.
+- A curated pass-through of identity/locale/terminal variables that do not
+  affect *what* is compiled: `HOME`, `USER`, `LOGNAME`, `SHELL`, `TERM`, `LANG`,
+  `LANGUAGE`, `LC_*`, `TZ`, `TMPDIR`, `DISPLAY`, `XAUTHORITY`, and the `SSH_*`
+  variables (so git-over-ssh and your `~/.gitconfig` keep working).
+- The build knobs set by the flags above (`AOMP_JOB_THREADS`, `GFXLIST`, ...).
+
+Everything else (`CC`, `CXX`, `LD_LIBRARY_PATH`, `PKG_CONFIG_*`, `AOMP_*`,
+`ROCM_*`, ...) is **dropped** unless the orchestrator sets it from a flag or you
+opt in explicitly:
+
+| Option | Description |
+|--------|-------------|
+| `--inherit-path` | Use your shell's `PATH` for child scripts instead of the controlled default. |
+| `--pass-env VARS` | Leak named variable(s) into the child environment. Comma-separated and/or repeatable, e.g. `--pass-env CC,CXX,LD_LIBRARY_PATH`. |
+
+```bash
+./aomp_build.py --inherit-path                     # let my PATH through
+./aomp_build.py --pass-env LD_LIBRARY_PATH         # leak one var
+./aomp_build.py --inherit-path --pass-env CC,CXX   # both
+```
+
+Because the classic `AOMP_*` overrides are no longer inherited automatically,
+drive non-flag knobs either with `--pass-env` or by exporting them and letting a
+flag carry them. (`AOMP_JOB_THREADS=32 ./aomp_build.py` no longer leaks through;
+use `-j 32` instead.)
+
 ### Logging
 
 | Option | Description |
 |--------|-------------|
 | `--log-dir DIR` | Directory for per-task logs. Default: `<BUILD_DIR>/aomp_build_logs`. |
-
-Any variable not set via a flag is inherited from the environment, so you can
-still drive the build the "classic" way (`AOMP_JOB_THREADS=32 ./aomp_build.py`).
 
 ---
 
@@ -435,7 +481,20 @@ with a trailing `continue`:
 ```bash
 ./aomp_build.py -j 32 --ninja --ccache         # threads + ninja + ccache
 ./aomp_build.py --gfx "gfx90a;gfx942"          # specific GPU targets
+./aomp_build.py --inherit-path                 # use my PATH (not the clean default)
+./aomp_build.py --pass-env CC,CXX,LD_LIBRARY_PATH   # leak specific env vars
 ```
+
+### Use custom install / build / prereq directories
+
+```bash
+./aomp_build.py -i /opt/aomp -b /scratch/aompbuild -p /opt/aomp-supp
+```
+
+`-i/--install` sets the install root (`AOMP`), `-b/--build` sets where builds run
+and object files go (`BUILD_AOMP`, and the default log/manifest location), and
+`-p/--prereq` sets the supplemental/prerequisite root (`AOMP_SUPP`). All three
+are made absolute and exported to every child script.
 
 ### Reproduce an earlier build
 
@@ -565,11 +624,16 @@ indices; `run_tasks()` runs them:
 - `discover_env()` sources `aomp_utils` + `aomp_common_vars` in a subshell and
   reads back `BUILD_DIR`, `AOMP_REPOS`, and `AOMP_REPO_NAME` — used only to
   locate the default log and manifest directories.
-- `build_child_env()` starts from the current environment and overlays the
-  values implied by the global build-knob flags (`-j`, `--ninja`, `--ccache`,
-  `--gfx`, `--sudo`). This same environment is used for every child script
-  invocation (introspection, execution, and git/manifest probes), so
-  introspection sees the same configs that will actually be built.
+- `build_child_env()` builds the child environment **from scratch** (it does not
+  copy the caller's environment): a curated pass-through of identity/locale vars
+  (`ENV_PASSTHROUGH` + `LC_*`), a controlled `PATH` (`DEFAULT_CHILD_PATH`, or the
+  caller's PATH with `--inherit-path`), any vars named by `--pass-env`, the
+  directory knobs (`-i`/`AOMP`, `-b`/`BUILD_AOMP`, `-p`/`AOMP_SUPP`, made
+  absolute), and then the values implied by the global build-knob flags (`-j`,
+  `--ninja`, `--ccache`, `--gfx`, `--sudo`). This same environment is used for every child
+  script invocation (introspection, execution, and git/manifest probes), so
+  introspection sees the same configs that will actually be built — and isolates
+  the build from stray exports on the caller's side.
 - `--build-type` is resolved separately into a global value plus per-component
   overrides and applied as the `BUILD_TYPE` variable on each task's subprocess
   at execution time (`run_tasks`), so different components can build with
@@ -600,6 +664,14 @@ A target repo is dirty. Commit/stash/clean it, or drop it from the resolved set
 **A task fails.**
 Read the tailed log (path printed on failure, under the log dir). After fixing,
 resume with `<task> continue`.
+
+**A tool isn't found, or the wrong one is picked up.**
+Child scripts use a controlled `PATH` and a clean environment by default (see
+[Environment isolation](#environment-isolation)), so a tool living only in a
+non-standard location (e.g. a Homebrew prefix) won't be on `PATH`, and
+build-affecting exports like `PKG_CONFIG_PATH`, `CC`, or `LD_LIBRARY_PATH` are
+not inherited. Use `--inherit-path` to restore your `PATH`, and/or
+`--pass-env VAR[,VAR...]` to leak the specific variables the build needs.
 
 ---
 

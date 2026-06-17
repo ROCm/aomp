@@ -55,7 +55,7 @@ declare -a extra_cmake_opts=()
 if [ "$_sname" == "build_emissary_mpi.sh" ] ; then
   EMISSARY_SRC_SUBDIR=MPI
   EMISSARY_BUILD_SUBDIR=emissary_mpi
-  extra_cmake_opts+=("-DLLVM_EXTERNAL_EMISSARY_MPI_INSTALL=$HOME/local/rocmopenmpi")
+  extra_cmake_opts+=("-DLLVM_EXTERNAL_EMISSARY_MPI_INSTALL=$AOMP_SUPP/rocmopenmpi")
 elif [ "$_sname" == "build_emissary_hdf5.sh" ] ; then
   EMISSARY_SRC_SUBDIR=HDF5
   EMISSARY_BUILD_SUBDIR=emissary_hdf5
@@ -68,7 +68,7 @@ fi
 # Install EMISSARY in the compiler directory of ROCm
 INSTALL_EMISSARY=${INSTALL_EMISSARY:-$AOMP_INSTALL_DIR}/lib/llvm
 REPO_DIR="$(cfgvar AOMP_REPOS)/emissary"
-export OPENMPI_DIR=$HOME/local/rocmopenmpi
+export OPENMPI_DIR=$AOMP_SUPP/rocmopenmpi
 
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   echo " "

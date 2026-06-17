@@ -36,6 +36,28 @@ from dataclasses import dataclass, field
 BIN_DIR = os.path.dirname(os.path.abspath(__file__))
 DEFAULT_CONFIG = os.path.join(BIN_DIR, "configs", "aomp.cudf")
 
+# Child build scripts run in an isolated environment built from scratch by this
+# orchestrator, so that what gets built is under the orchestrator's control and
+# not at the mercy of whatever the caller happened to have exported. Only the
+# variables below are passed through unchanged: these are identity / locale /
+# terminal settings that affect *how* things look or *who* git acts as, not
+# *what* gets compiled. Everything else (CC, CXX, LD_LIBRARY_PATH, PKG_CONFIG_*,
+# AOMP_*, ROCM_*, ...) is dropped unless the orchestrator sets it explicitly or
+# the user opts in with --pass-env. Any variable named LC_* is also passed
+# through (locale categories).
+ENV_PASSTHROUGH = (
+    "HOME", "USER", "LOGNAME", "SHELL", "TERM",
+    "LANG", "LANGUAGE", "TZ", "TMPDIR",
+    "DISPLAY", "XAUTHORITY",
+    "SSH_AUTH_SOCK", "SSH_CONNECTION", "SSH_CLIENT", "SSH_TTY",
+)
+
+# Deterministic PATH handed to child build scripts. Standard system locations
+# only, so tool resolution is predictable and not shadowed by whatever the
+# caller put earlier on their PATH (e.g. a Homebrew pkg-config that cannot see
+# the system .pc files). Override with --inherit-path to use the caller's PATH.
+DEFAULT_CHILD_PATH = "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
 
 # --------------------------------------------------------------------------- #
 # Config model + CUDF parser
@@ -237,15 +259,20 @@ def run_script_capture(path: str, args: list[str], env: dict[str, str]) -> str:
     return proc.stdout
 
 
-def discover_env() -> dict[str, str]:
-    """Source aomp_utils + aomp_common_vars to learn BUILD_DIR/AOMP_REPOS."""
+def discover_env(env: dict[str, str] | None = None) -> dict[str, str]:
+    """Source aomp_utils + aomp_common_vars to learn BUILD_DIR/AOMP_REPOS.
+
+    The same isolated child environment used for the build is passed in, so the
+    discovered values reflect any -i/-b/-p directory overrides (e.g. BUILD_DIR
+    follows --build, used for the default log/manifest locations).
+    """
     snippet = (
         f'. "{BIN_DIR}/aomp_utils" >/dev/null 2>&1; '
         f'. "{BIN_DIR}/aomp_common_vars" >/dev/null 2>&1; '
         'printf "%s\\n" "$BUILD_DIR" "$AOMP_REPOS" "$AOMP_REPO_NAME"'
     )
     proc = subprocess.run(
-        ["bash", "-c", snippet], capture_output=True, text=True
+        ["bash", "-c", snippet], capture_output=True, text=True, env=env
     )
     out = proc.stdout.splitlines()
     out += [""] * (3 - len(out))
@@ -676,10 +703,47 @@ def parse_build_type_specs(specs: list[str]) -> tuple[str | None, dict[str, str]
 
 
 def build_child_env(args: argparse.Namespace) -> dict[str, str]:
-    env = dict(os.environ)
+    """Construct the isolated environment for child build scripts.
+
+    Rather than inheriting the caller's environment wholesale, the env is built
+    from scratch: a curated pass-through of identity/locale vars (ENV_PASSTHROUGH
+    plus LC_*), a controlled PATH, and the build knobs derived from CLI flags.
+    --inherit-path leaks the caller's PATH through; --pass-env leaks named vars.
+    """
+    src = os.environ
+    env: dict[str, str] = {}
+
+    for name in ENV_PASSTHROUGH:
+        if name in src:
+            env[name] = src[name]
+    for name, value in src.items():
+        if name.startswith("LC_"):
+            env[name] = value
+
+    # PATH: controlled by default, optionally inherited from the caller.
+    if args.inherit_path:
+        env["PATH"] = src.get("PATH", DEFAULT_CHILD_PATH)
+    else:
+        env["PATH"] = DEFAULT_CHILD_PATH
+
+    # Escape hatch: explicitly leak named variables for machine-specific needs.
+    for name in args.pass_env:
+        for var in (n.strip() for n in name.split(",")):
+            if var and var in src:
+                env[var] = src[var]
 
     def setenv(name: str, value: str) -> None:
         env[name] = value
+
+    def setdir(name: str, value: str | None) -> None:
+        # Directory knobs are made absolute (with ~ expansion) so child scripts
+        # resolve them identically regardless of their working directory.
+        if value is not None:
+            env[name] = os.path.abspath(os.path.expanduser(value))
+
+    setdir("AOMP", args.install)
+    setdir("BUILD_AOMP", args.build)
+    setdir("AOMP_SUPP", args.prereq)
 
     if args.jobs is not None:
         setenv("AOMP_JOB_THREADS", str(args.jobs))
@@ -721,6 +785,18 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("selectors", nargs="*", help="task selector(s); see below")
     parser.add_argument("-c", "--config", default=DEFAULT_CONFIG,
                         help=f"CUDF config file (default: {DEFAULT_CONFIG})")
+    # Core directory layout (exported to child build scripts).
+    parser.add_argument("-i", "--install", default=None, metavar="DIR",
+                        help="installation directory root (AOMP); the versioned "
+                             "install dir AOMP_<version> derives from it. "
+                             "Default: $HOME/rocm/aomp")
+    parser.add_argument("-b", "--build", default=None, metavar="DIR",
+                        help="directory where builds run / object files go "
+                             "(BUILD_AOMP). Default: the repo dir (AOMP_REPOS)")
+    parser.add_argument("-p", "--prereq", default=None, metavar="DIR",
+                        help="prerequisite/supplemental component root (AOMP_SUPP); "
+                             "its build/install subdirs and the prereq cmake "
+                             "derive from it. Default: $HOME/local")
     parser.add_argument("--add", action="append", default=[], metavar="NAMES",
                         help="add component(s)/feature(s); comma-separated and/or "
                              "repeatable")
@@ -766,6 +842,16 @@ def build_arg_parser() -> argparse.ArgumentParser:
                              "repeatable, e.g. 'project=Debug,comgr=Debug'.")
     parser.add_argument("--sudo", action="store_true",
                         help="install with sudo (SUDO=yes)")
+    # Environment isolation.
+    parser.add_argument("--inherit-path", action="store_true",
+                        help="use the caller's PATH for child build scripts "
+                             "instead of the controlled default "
+                             f"({DEFAULT_CHILD_PATH})")
+    parser.add_argument("--pass-env", action="append", default=[], metavar="VARS",
+                        help="leak named environment variable(s) from the caller "
+                             "into the otherwise-isolated child environment; "
+                             "comma-separated and/or repeatable "
+                             "(e.g. --pass-env CC,CXX,LD_LIBRARY_PATH)")
     # Version manifest.
     parser.add_argument("--export-manifest", nargs="?", const="", metavar="FILE",
                         help="export a git fingerprint manifest and exit "
@@ -780,8 +866,8 @@ def main(argv: list[str]) -> int:
 
     cfg = parse_cudf(args.config)
     config_name = os.path.splitext(os.path.basename(args.config))[0]
-    env_info = discover_env()
     child_env = build_child_env(args)
+    env_info = discover_env(child_env)
 
     components = resolve_components(cfg, args.add, args.remove)
 

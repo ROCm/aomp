@@ -31,7 +31,7 @@ cfgbool() {
 }
 
 _repo_dir="$(cfgvar AOMP_REPOS)/rocmlibs/rccl"
-_rocm_core_info="$HOME/local/rocm-core/.info"
+_rocm_core_info="$AOMP_SUPP/rocm-core/.info"
 
 get_src_dir() {
    echo "$_repo_dir"
@@ -71,7 +71,7 @@ setup_env() {
    # rccl needs cmake 3.25, so put prereq cmake first in path
    export PATH="$AompSupp/cmake/bin:$AOMP_INSTALL_DIR/bin:$PATH"
    export NUM_PROC="$Jobs"
-   export CXXFLAGS="-I$HOME/local/rocm-core/include"
+   export CXXFLAGS="-I$AompSupp/rocm-core/include"
    export LDFLAGS="-fPIC"
    EXPLICIT_ROCM_VERSION=$(grep -E "[0-9]+\.[0-9]+\.[0-9]+" < "$_rocm_core_info/version")
    export EXPLICIT_ROCM_VERSION

@@ -165,8 +165,8 @@ if [ ! -f "$AOMP_CMAKE" ] ; then
     exit 1
   else
     # FIXME: Add version check here for system cmake.
-    echo "WARNING: Using system cmake $AOMP_CMAKE "
-    echo "         consider building cmake with: ./build_prereq.sh cmake"
+    echo "WARNING: Using system cmake $AOMP_CMAKE " >&2
+    echo "         consider building cmake with: ./build_prereq.sh cmake" >&2
   fi
 fi
 
