@@ -490,8 +490,10 @@ def tail_file(path: str, n: int = 40) -> str:
 
 def run_tasks(
     tasks: list[Task], indices: list[int], env: dict[str, str], log_dir: str,
-    dry_run: bool,
+    dry_run: bool, build_type_global: str | None = None,
+    build_type_per_comp: dict[str, str] | None = None,
 ) -> int:
+    build_type_per_comp = build_type_per_comp or {}
     os.makedirs(log_dir, exist_ok=True)
     total = len(indices)
     for count, idx in enumerate(indices, start=1):
@@ -500,18 +502,29 @@ def run_tasks(
         safe = task.name.replace("/", "-")
         log_path = os.path.join(log_dir, f"{num:03d}-{safe}.log")
         cmd = ["bash", task.script, *task.script_args]
+        # Per-component BUILD_TYPE override (per-component wins over global).
+        build_type = build_type_per_comp.get(task.comp, build_type_global)
+        task_env = env
+        if build_type:
+            task_env = dict(env)
+            task_env["BUILD_TYPE"] = build_type
         header = f"[{count}/{total}] task {num}: {task.name}"
+        bt_note = f"  BUILD_TYPE={build_type}" if build_type else ""
         if dry_run:
-            print(f"{header}\n    {' '.join(cmd)}  > {log_path}")
+            print(f"{header}\n    {' '.join(cmd)}{bt_note}  > {log_path}")
             continue
-        print(f"{header} -> {log_path}", flush=True)
+        print(f"{header}{bt_note} -> {log_path}", flush=True)
         start = datetime.datetime.now()
         with open(log_path, "w", encoding="utf-8") as log:
             log.write(f"### task {num}: {task.name}\n")
             log.write(f"### command: {' '.join(cmd)}\n")
+            if build_type:
+                log.write(f"### env: BUILD_TYPE={build_type}\n")
             log.write(f"### start: {start.isoformat()}\n\n")
             log.flush()
-            proc = subprocess.run(cmd, stdout=log, stderr=subprocess.STDOUT, env=env)
+            proc = subprocess.run(
+                cmd, stdout=log, stderr=subprocess.STDOUT, env=task_env
+            )
             end = datetime.datetime.now()
             log.write(f"\n### end: {end.isoformat()} (rc={proc.returncode})\n")
         if proc.returncode != 0:
@@ -622,19 +635,19 @@ def import_manifest(
 # --------------------------------------------------------------------------- #
 # Environment / CLI flag mapping
 # --------------------------------------------------------------------------- #
-def parse_variant_specs(specs: list[str]) -> tuple[list[str], dict[str, list[str]]]:
-    """Split --variant values into global variants and per-component overrides.
+def parse_scoped_specs(specs: list[str]) -> tuple[list[str], dict[str, list[str]]]:
+    """Split scoped option values into global values and per-component overrides.
 
-    Each --variant value may be a comma-separated list, and the option is
-    repeatable, so these are all equivalent ways to ask for two variants:
+    Used by both --variant and --build-type. Each value may be a comma-separated
+    list, and the option is repeatable, so these are equivalent:
         --variant debug,asan
         --variant debug --variant asan
-    An entry of the form "comp=cfg" overrides a single component; bare entries
-    apply globally. Both forms can be mixed in one comma-separated value, e.g.
+    An entry of the form "comp=value" applies to a single component; bare
+    entries apply globally. Both forms can be mixed in one value, e.g.
         --variant comp1=debug,comp2=asan
-    Multiple "comp=cfg" entries for the same component accumulate.
+    Multiple "comp=value" entries for the same component accumulate, in order.
     """
-    global_variants: list[str] = []
+    global_values: list[str] = []
     per_comp: dict[str, list[str]] = {}
     for spec in specs:
         for entry in spec.split(","):
@@ -645,8 +658,21 @@ def parse_variant_specs(specs: list[str]) -> tuple[list[str], dict[str, list[str
                 comp, _, val = entry.partition("=")
                 per_comp.setdefault(comp.strip(), []).append(val.strip())
             else:
-                global_variants.append(entry)
-    return global_variants, per_comp
+                global_values.append(entry)
+    return global_values, per_comp
+
+
+def parse_build_type_specs(specs: list[str]) -> tuple[str | None, dict[str, str]]:
+    """Resolve --build-type into a single global type and per-component types.
+
+    Same grammar as --variant (global value or 'comp=type', comma-separated
+    and/or repeatable), but a build type is a single value per scope, so the
+    last value wins if several are given for the same scope.
+    """
+    global_values, per_comp_lists = parse_scoped_specs(specs)
+    global_bt = global_values[-1] if global_values else None
+    per_comp_bt = {comp: vals[-1] for comp, vals in per_comp_lists.items()}
+    return global_bt, per_comp_bt
 
 
 def build_child_env(args: argparse.Namespace) -> dict[str, str]:
@@ -663,8 +689,8 @@ def build_child_env(args: argparse.Namespace) -> dict[str, str]:
         setenv("AOMP_USE_CCACHE", "1" if args.ccache else "0")
     if args.gfx:
         setenv("GFXLIST", args.gfx)
-    if args.build_type:
-        setenv("BUILD_TYPE", args.build_type)
+    # BUILD_TYPE is applied per-component at execution time (see run_tasks),
+    # so it is intentionally not set in the shared child environment here.
     if args.sudo:
         setenv("SUDO", "yes")
     return env
@@ -733,8 +759,11 @@ def build_arg_parser() -> argparse.ArgumentParser:
                         help="do not use ccache (AOMP_USE_CCACHE=0)")
     parser.add_argument("--gfx", default=None, metavar="LIST",
                         help="GPU target list (GFXLIST)")
-    parser.add_argument("--build-type", default=None, metavar="TYPE",
-                        help="CMake build type (BUILD_TYPE)")
+    parser.add_argument("--build-type", action="append", default=[],
+                        metavar="SPEC",
+                        help="CMake build type (BUILD_TYPE): 'type' (global) or "
+                             "'comp=type' (per-component). Comma-separated and/or "
+                             "repeatable, e.g. 'project=Debug,comgr=Debug'.")
     parser.add_argument("--sudo", action="store_true",
                         help="install with sudo (SUDO=yes)")
     # Version manifest.
@@ -779,7 +808,8 @@ def main(argv: list[str]) -> int:
         if rc != 0:
             return rc
 
-    global_variants, per_comp_variants = parse_variant_specs(args.variant)
+    global_variants, per_comp_variants = parse_scoped_specs(args.variant)
+    build_type_global, build_type_per_comp = parse_build_type_specs(args.build_type)
     tasks = elaborate_tasks(
         cfg, components, child_env, global_variants, per_comp_variants,
         include_clean=args.clean,
@@ -797,7 +827,11 @@ def main(argv: list[str]) -> int:
         print("aomp_build: no tasks selected")
         return 0
 
-    return run_tasks(tasks, indices, child_env, log_dir, args.dry_run)
+    return run_tasks(
+        tasks, indices, child_env, log_dir, args.dry_run,
+        build_type_global=build_type_global,
+        build_type_per_comp=build_type_per_comp,
+    )
 
 
 if __name__ == "__main__":

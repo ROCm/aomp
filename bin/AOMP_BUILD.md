@@ -138,8 +138,20 @@ aomp_build.py [options] [selector ...]
 | `--ninja` / `--no-ninja` | `AOMP_USE_NINJA=1` / `0` | Use the Ninja generator. |
 | `--ccache` / `--no-ccache` | `AOMP_USE_CCACHE=1` / `0` | Use ccache. |
 | `--gfx LIST` | `GFXLIST` | GPU target list. |
-| `--build-type TYPE` | `BUILD_TYPE` | CMake build type. |
+| `--build-type SPEC` | `BUILD_TYPE` | CMake build type; global or per-component (see below). |
 | `--sudo` | `SUDO=yes` | Install with sudo. |
+
+`--build-type` uses the same scoped grammar as `--variant`: a bare value applies
+globally, while `comp=type` sets the build type for one component only. It is
+comma-separated and/or repeatable, and per-component values override the global
+one. The type is applied to each component's tasks via the `BUILD_TYPE`
+environment variable at execution time (it does not affect other components):
+
+```bash
+./aomp_build.py --build-type RelWithDebInfo            # global
+./aomp_build.py --build-type project=Debug,comgr=Debug # per-component
+./aomp_build.py --build-type Release,project=Debug     # global Release, project Debug
+```
 
 ### Logging
 
@@ -554,10 +566,14 @@ indices; `run_tasks()` runs them:
   reads back `BUILD_DIR`, `AOMP_REPOS`, and `AOMP_REPO_NAME` — used only to
   locate the default log and manifest directories.
 - `build_child_env()` starts from the current environment and overlays the
-  values implied by the build-knob flags (`-j`, `--ninja`, `--ccache`,
-  `--gfx`, `--build-type`, `--sudo`). This same environment is used for every
-  child script invocation (introspection, execution, and git/manifest probes),
-  so introspection sees the same configs that will actually be built.
+  values implied by the global build-knob flags (`-j`, `--ninja`, `--ccache`,
+  `--gfx`, `--sudo`). This same environment is used for every child script
+  invocation (introspection, execution, and git/manifest probes), so
+  introspection sees the same configs that will actually be built.
+- `--build-type` is resolved separately into a global value plus per-component
+  overrides and applied as the `BUILD_TYPE` variable on each task's subprocess
+  at execution time (`run_tasks`), so different components can build with
+  different CMake build types.
 
 ---
 
