@@ -125,13 +125,21 @@ def parse_cudf(path: str) -> Config:
 # Feature expansion + dependency resolution
 # --------------------------------------------------------------------------- #
 def expand_names(names: list[str], cfg: Config) -> set[str]:
-    """Expand a list of component/feature names into a set of components."""
+    """Expand component/feature names into a set of components.
+
+    Each entry may itself be a comma-separated list (so `--add a,b` and
+    `--add a --add b` are equivalent), and any entry naming a feature is
+    expanded to that feature's components.
+    """
     result: set[str] = set()
-    for name in names:
-        if name in cfg.features:
-            result.update(cfg.features[name])
-        else:
-            result.add(name)
+    for entry in names:
+        for name in (n.strip() for n in entry.split(",")):
+            if not name:
+                continue
+            if name in cfg.features:
+                result.update(cfg.features[name])
+            else:
+                result.add(name)
     return result
 
 
@@ -364,24 +372,66 @@ def brace_expand(token: str) -> list[str]:
 def select_tasks(tasks: list[Task], selectors: list[str]) -> list[int]:
     """Return the indices (into tasks) selected by the positional selectors.
 
-    Grammar (mirrors amd-build):
+    Grammar (mirrors amd-build, with a trailing `continue`):
       * no selectors            -> all tasks
       * N                       -> task number N (1-based)
       * N--M                    -> inclusive range
-      * continue [N|name]       -> from the given task to the end
       * glob (with {a,b} braces)-> substring/glob match on "comp/action"
+      * ... X continue          -> trailing `continue` turns the preceding
+                                   selector X into a "from X to the end" anchor;
+                                   any earlier selectors are selected normally.
+                                   e.g. `comp1 comp2 continue` runs comp1's
+                                   tasks then everything from comp2 onward.
     """
     if not selectors:
         return list(range(len(tasks)))
 
     names = [t.name for t in tasks]
+    selectors = list(selectors)
+
+    # `continue` is a trailing modifier: it must be the final token and turns
+    # the selector immediately before it into a continue-to-the-end anchor.
+    continue_from_last = False
+    if selectors and selectors[-1] == "continue":
+        selectors.pop()
+        if not selectors:
+            sys.exit(
+                "aomp_build: trailing 'continue' requires a preceding task "
+                "number or name (e.g. 'comp2 continue')"
+            )
+        continue_from_last = True
+    if "continue" in selectors:
+        sys.exit(
+            "aomp_build: 'continue' must be the last selector "
+            "(e.g. 'comp1 comp2 continue' builds comp1 then continues from comp2)"
+        )
+
     selected: list[int] = []
 
     def add(idx: int) -> None:
         if 0 <= idx < len(tasks) and idx not in selected:
             selected.append(idx)
 
-    def resolve_point(token: str) -> int:
+    def match_indices(sel: str) -> list[int]:
+        """Indices matched by a single (non-continue) selector."""
+        if sel.isdigit():
+            return [int(sel) - 1]
+        if "--" in sel:
+            lo_s, hi_s = sel.split("--", 1)
+            lo, hi = match_point(lo_s), match_point(hi_s)
+            if lo > hi:
+                lo, hi = hi, lo
+            return list(range(lo, hi + 1))
+        out: list[int] = []
+        for pat in brace_expand(sel):
+            for idx, nm in enumerate(names):
+                if fnmatch.fnmatch(nm, pat) or pat == nm or pat in nm:
+                    out.append(idx)
+        if not out:
+            sys.exit(f"aomp_build: selector '{sel}' matched no task")
+        return out
+
+    def match_point(token: str) -> int:
         if token.isdigit():
             return int(token) - 1
         for i, nm in enumerate(names):
@@ -389,40 +439,16 @@ def select_tasks(tasks: list[Task], selectors: list[str]) -> list[int]:
                 return i
         sys.exit(f"aomp_build: selector '{token}' matched no task")
 
-    i = 0
-    while i < len(selectors):
-        sel = selectors[i]
-        if sel == "continue":
-            if i + 1 >= len(selectors):
-                sys.exit("aomp_build: 'continue' requires a task number or name")
-            start = resolve_point(selectors[i + 1])
+    last = len(selectors) - 1
+    for i, sel in enumerate(selectors):
+        if continue_from_last and i == last:
+            # Anchor: from this selector's first matched task to the end.
+            start = min(match_indices(sel))
             for idx in range(start, len(tasks)):
                 add(idx)
-            i += 2
-            continue
-        if "--" in sel:
-            lo_s, hi_s = sel.split("--", 1)
-            lo, hi = resolve_point(lo_s), resolve_point(hi_s)
-            if lo > hi:
-                lo, hi = hi, lo
-            for idx in range(lo, hi + 1):
+        else:
+            for idx in match_indices(sel):
                 add(idx)
-            i += 1
-            continue
-        if sel.isdigit():
-            add(int(sel) - 1)
-            i += 1
-            continue
-        # Glob / substring match (with brace expansion).
-        matched = False
-        for pat in brace_expand(sel):
-            for idx, nm in enumerate(names):
-                if fnmatch.fnmatch(nm, pat) or pat == nm or pat in nm:
-                    add(idx)
-                    matched = True
-        if not matched:
-            sys.exit(f"aomp_build: selector '{sel}' matched no task")
-        i += 1
 
     selected.sort()
     return selected
@@ -629,17 +655,22 @@ def build_arg_parser() -> argparse.ArgumentParser:
             "  list          print the numbered task list and exit\n"
             "  N             run task number N (1-based)\n"
             "  N--M          run the inclusive range of tasks N..M\n"
-            "  continue X    run from task X (number or name) to the end\n"
             "  comp/action   glob/substring match (supports {a,b} braces)\n"
+            "  ... X continue  trailing 'continue' makes the preceding selector\n"
+            "                  X a 'from X to the end' anchor, e.g.\n"
+            "                  'comp1 comp2 continue' builds comp1 then continues\n"
+            "                  from comp2 onward\n"
         ),
     )
     parser.add_argument("selectors", nargs="*", help="task selector(s); see below")
     parser.add_argument("-c", "--config", default=DEFAULT_CONFIG,
                         help=f"CUDF config file (default: {DEFAULT_CONFIG})")
-    parser.add_argument("--add", action="append", default=[], metavar="NAME",
-                        help="add a component or feature (repeatable)")
-    parser.add_argument("--remove", action="append", default=[], metavar="NAME",
-                        help="remove a component or feature (repeatable)")
+    parser.add_argument("--add", action="append", default=[], metavar="NAMES",
+                        help="add component(s)/feature(s); comma-separated and/or "
+                             "repeatable")
+    parser.add_argument("--remove", action="append", default=[], metavar="NAMES",
+                        help="remove component(s)/feature(s); comma-separated "
+                             "and/or repeatable")
     parser.add_argument("--variant", action="append", default=[], metavar="SPEC",
                         help="build variant: 'cfg' (global) or 'comp=cfg' "
                              "(per-component); repeatable")

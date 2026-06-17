@@ -218,6 +218,7 @@ x-dir: rocmlibs
 #-----------------------------------------------------------------------------
 
 # Classic Flang and the LLVM it depends on (build_aomp.sh AOMP_SKIP_FLANG==0).
+# Deprecated and omitted from the default request; re-enable with --add flang.
 feature: flang
 expands: llvm-classic, flang-classic, pgmath, flang, flang_runtime
 
@@ -240,12 +241,12 @@ expands: rocm-cmake, rocBLAS, rocPRIM, rocSPARSE, rocSOLVER, hipBLAS-common,
 
 #-----------------------------------------------------------------------------
 # Default requested build set: the standalone x86_64 AOMP build from
-# build_aomp.sh (with classic Flang, without the optional debug/hipfort
-# components and without rocmlibs). Modify with --add / --remove.
+# build_aomp.sh, omitting the deprecated classic Flang stack (llvm-classic,
+# flang-classic, pgmath, flang, flang_runtime; re-add with --add flang) and the
+# optional debug/hipfort components and rocmlibs. Modify with --add / --remove.
 #-----------------------------------------------------------------------------
 
 request:
 install: prereq, project, rocprofiler-register, rocr, llvm_runtimes_standalone,
-         extras, comgr, rocminfo, rocm_smi_lib, amdsmi, llvm-classic,
-         flang-classic, pgmath, flang, flang_runtime, hipcc, hipamd, hipify,
+         extras, comgr, rocminfo, rocm_smi_lib, amdsmi, hipcc, hipamd, hipify,
          rocprofiler-sdk
