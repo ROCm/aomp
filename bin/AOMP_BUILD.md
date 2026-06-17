@@ -76,7 +76,7 @@ cd $AOMP_REPOS/aomp/bin
 ./aomp_build.py 'comgr/*'
 
 # Resume from a component after fixing a failure (trailing 'continue').
-./aomp_build.py comgr/cmake continue
+./aomp_build.py comgr/default/cmake continue
 ```
 
 ---
@@ -127,7 +127,7 @@ aomp_build.py [options] [selector ...]
 | `-c`, `--config FILE` | CUDF config file. Default: `bin/configs/aomp.cudf`. |
 | `--add NAMES` | Add component(s) or feature(s). Comma-separated and/or repeatable. |
 | `--remove NAMES` | Remove component(s) or feature(s) (cascades to dependents). Comma-separated and/or repeatable. |
-| `--variant SPEC` | Build variant: `cfg` (global) or `comp=cfg` (per-component). Repeatable. |
+| `--variant SPEC` | Strict variant filter: `cfg` (global) or `comp=cfg` (per-component). Comma-separated and/or repeatable. Components with no matching config are skipped (so `--variant default` skips the runtimes). See [Build variants](#build-variants). |
 | `-C`, `--clean` | Include `clean` tasks (skipped by default for incremental builds). |
 
 ### Build environment knobs (exported to child build scripts)
@@ -163,12 +163,15 @@ run. The grammar mirrors `amd-build`:
 | `list` | Print the numbered task list and exit (does not run anything). |
 | `N` | Run task number `N` (1-based, as shown by `list`). |
 | `N--M` | Run the inclusive range of tasks `N` through `M`. |
-| `comp/action` | Glob/substring match on task names; supports `{a,b}` brace expansion. |
+| `comp/variant/stage` | Glob/substring match on task names; supports `{a,b}` brace expansion. |
 | `... X continue` | Trailing `continue` turns the preceding selector `X` into a "from `X` to the end" anchor. Any earlier selectors are selected normally. |
 
 Multiple selectors can be combined; the union of matched tasks runs in task
-order. Names take the form `component/action` (e.g. `comgr/cmake`,
-`flang/build`).
+order. Task names take the form `component/variant/stage` for build tasks
+(e.g. `comgr/default/cmake`, `llvm_runtimes_standalone/asan/build`) and
+`component/stage` for the config-less init/fini tasks (`precheck`, `patch`,
+`unpatch` — e.g. `comgr/patch`). Putting the variant in the middle makes it
+easy to glob a whole variant across components, e.g. `*/asan/*`.
 
 `continue` is a **trailing** keyword: it must be the last argument, and it
 applies to the selector immediately before it. `X` may be a task number or a
@@ -181,12 +184,13 @@ Examples:
 ./aomp_build.py 5                      # just task 5
 ./aomp_build.py 5--12                  # tasks 5 through 12
 ./aomp_build.py 30 continue            # from task 30 to the end
-./aomp_build.py flang/cmake continue   # from flang's cmake task onward
+./aomp_build.py rocr/default/cmake continue   # from rocr's cmake task onward
 ./aomp_build.py comgr continue         # from comgr's first task to the end
-./aomp_build.py project/build comgr continue   # project's build, then comgr onward
+./aomp_build.py project/default/build comgr continue  # project's build, then comgr onward
 ./aomp_build.py 'comgr/*'              # every comgr task
-./aomp_build.py '*/install'            # every install task
-./aomp_build.py '{comgr,rocr}/build'   # comgr build + rocr build
+./aomp_build.py '*/install'            # every install task (any component/variant)
+./aomp_build.py '*/asan/*'             # every asan-variant task
+./aomp_build.py '{comgr,rocr}/*/build' # comgr build + rocr build
 ```
 
 > Tip: quote selectors containing `*`, `?`, or `{}` so your shell doesn't try
@@ -210,19 +214,36 @@ Each component advertises one or more *configs* (variants) through its
 Selection policy:
 
 - **No `--variant`:** build `default` if the component offers it; otherwise
-  build **every** advertised config (faithful to style B).
-- **`--variant cfg` (global):** build config `cfg` for every component that
-  advertises it. Components that don't advertise `cfg` fall back to `default`
-  (or all advertised configs if they have no `default`).
-- **`--variant comp=cfg` (per-component):** override the variant for `comp`
-  only. Repeatable to request multiple configs for one component
-  (`--variant llvm_runtimes_standalone=asan --variant llvm_runtimes_standalone=perf`).
+  build **every** advertised config (faithful to style B — this is the normal
+  full build, including the runtimes matrix).
+- **`--variant` (any explicit value):** a **strict filter**. Each component
+  builds only the requested configs it advertises (in the requested order). A
+  component with **no** matching config is **skipped entirely** (no tasks, not
+  even `precheck`/`patch`). In particular, `--variant default` builds just the
+  `default` config of each component and therefore **skips
+  `llvm_runtimes_standalone`** (its default runtime libraries are produced by
+  the `project`/LLVM build itself).
+
+Forms (all combinable, comma-separated and/or repeated):
+
+| Form | Meaning |
+|------|---------|
+| `--variant cfg` | Apply `cfg` globally (every component that advertises it). |
+| `--variant cfg1,cfg2` | Multiple global variants (e.g. `debug,asan`). |
+| `--variant comp=cfg` | Override one component only. |
+| `--variant comp1=cfg1,comp2=cfg2` | Per-component overrides in one value. |
+
+When only per-component overrides are given (no global value), components not
+named build their normal default.
 
 Examples:
 
 ```bash
+./aomp_build.py --variant default          # default everywhere; skips the runtimes
+./aomp_build.py --variant debug,asan        # only debug + asan library variants
 ./aomp_build.py --variant asan list
 ./aomp_build.py --variant llvm_runtimes_standalone=perf list
+./aomp_build.py --variant rocr=debug,llvm_runtimes_standalone=asan
 ```
 
 ---
@@ -316,8 +337,10 @@ Manifests live under `<BUILD_DIR>/manifests/` by default
 Each executed task writes a numbered log:
 
 ```
-<log-dir>/NNN-component-action.log
+<log-dir>/NNN-component-variant-stage.log
 ```
+
+(config-less init/fini tasks are `NNN-component-stage.log`.)
 
 where `NNN` is the global task number (matching `list`) and `<log-dir>`
 defaults to `<BUILD_DIR>/aomp_build_logs`. Each log begins with the task
@@ -352,7 +375,7 @@ cd $AOMP_REPOS/aomp/bin
 ```bash
 ./aomp_build.py 'comgr/*'              # all comgr tasks (incremental: no clean)
 ./aomp_build.py -C 'comgr/*'           # force a clean rebuild of comgr
-./aomp_build.py comgr/build            # just re-run comgr's build step
+./aomp_build.py comgr/default/build    # just re-run comgr's build step
 ```
 
 ### Resume after a failure
@@ -361,7 +384,7 @@ A task fails; its log is tailed to your terminal. Fix the issue, then resume
 with a trailing `continue`:
 
 ```bash
-./aomp_build.py comgr/cmake continue   # re-run from comgr's cmake onward
+./aomp_build.py comgr/default/cmake continue   # re-run from comgr's cmake onward
 # or by number, using the value shown in `list`:
 ./aomp_build.py 30 continue
 ```
@@ -485,7 +508,8 @@ component list:
 1. For each component, locate its script via `script_path()` (honoring
    `x-dir`).
 2. Query `list_configs`; pick the configs to build via `select_variants()`
-   (see [Build variants](#build-variants)).
+   (see [Build variants](#build-variants)). If an explicit `--variant` filter
+   matches none of the component's configs, the component is skipped entirely.
 3. Query `list`; parse each `task_<action> [cfg]` line.
 4. Keep a task if either it has no config (init/fini tasks such as `precheck`,
    `patch`, `unpatch` always run) or its config is in the selected set.
@@ -493,7 +517,7 @@ component list:
 
 Each surviving task is recorded as a `Task` (component, action, config, script
 path, and the exact `script_args` to pass back). Its display name is
-`component/action`.
+`component/variant/stage` (or `component/stage` when the task has no config).
 
 ### Execution
 
@@ -501,7 +525,7 @@ path, and the exact `script_args` to pass back). Its display name is
 indices; `run_tasks()` runs them:
 
 - Creates the log directory.
-- For each task, opens `NNN-component-action.log`, writes a header
+- For each task, opens `NNN-component-variant-stage.log`, writes a header
   (number, command, start time), runs `bash build_<name>.sh task_<action>
   [cfg]` with stdout+stderr redirected to the log, and writes a footer (end
   time, return code).

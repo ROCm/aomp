@@ -269,6 +269,10 @@ class Task:
 
     @property
     def name(self) -> str:
+        # "component/variant/stage" for config-bearing tasks; config-less
+        # init/fini tasks (precheck/patch/unpatch) are "component/stage".
+        if self.cfgname:
+            return f"{self.comp}/{self.cfgname}/{self.action}"
         return f"{self.comp}/{self.action}"
 
 
@@ -286,9 +290,17 @@ def select_variants(
     Components advertise their configs via `list_configs`. Two styles exist:
     style-A always offers a plain "default" plus opt-in variants (asan/debug);
     style-B (e.g. the runtimes) derives its config set from the environment and
-    has no "default". So with no explicit --variant we build "default" when it
-    is offered, otherwise every advertised config (the intended normal build
-    for style-B). An explicit --variant is intersected with the advertised set.
+    has no "default" because its default build is produced by the compiler
+    (project) build itself.
+
+    Selection:
+      * No explicit --variant: build "default" when offered, otherwise every
+        advertised config (the intended normal build for style-B).
+      * Explicit --variant (global and/or per-component): a strict filter -
+        build only the requested configs the component advertises, in the
+        requested order. A component with no matching config yields an empty
+        list and is skipped entirely. So `--variant default` builds just the
+        default config and skips components that have none (e.g. the runtimes).
     """
     if comp in per_comp:
         wanted = per_comp[comp]
@@ -302,14 +314,7 @@ def select_variants(
             return ["default"]
         return list(available)
 
-    chosen = [v for v in wanted if v in available]
-    if chosen:
-        return chosen
-    # Explicit variant request didn't match this component: fall back to a
-    # plain default if it has one, else all advertised configs.
-    if "default" in available:
-        return ["default"]
-    return list(available)
+    return [v for v in wanted if v in available]
 
 
 def elaborate_tasks(
@@ -326,6 +331,10 @@ def elaborate_tasks(
         wanted = select_variants(
             comp, available, global_variants, per_comp_variants
         )
+        # An explicit --variant filter that matches none of this component's
+        # configs skips the component outright (no init/fini tasks either).
+        if available and not wanted:
+            continue
         listing = run_script_capture(script, ["list"], env).splitlines()
         for line in listing:
             toks = line.split()
@@ -376,7 +385,8 @@ def select_tasks(tasks: list[Task], selectors: list[str]) -> list[int]:
       * no selectors            -> all tasks
       * N                       -> task number N (1-based)
       * N--M                    -> inclusive range
-      * glob (with {a,b} braces)-> substring/glob match on "comp/action"
+      * glob (with {a,b} braces)-> substring/glob match on
+                                   "comp/variant/stage" (or "comp/stage")
       * ... X continue          -> trailing `continue` turns the preceding
                                    selector X into a "from X to the end" anchor;
                                    any earlier selectors are selected normally.
@@ -478,10 +488,7 @@ def run_tasks(
         safe = task.name.replace("/", "-")
         log_path = os.path.join(log_dir, f"{num:03d}-{safe}.log")
         cmd = ["bash", task.script, *task.script_args]
-        header = (
-            f"[{count}/{total}] task {num}: {task.name}"
-            f"{(' (' + task.cfgname + ')') if task.cfgname else ''}"
-        )
+        header = f"[{count}/{total}] task {num}: {task.name}"
         if dry_run:
             print(f"{header}\n    {' '.join(cmd)}  > {log_path}")
             continue
@@ -606,17 +613,27 @@ def import_manifest(
 def parse_variant_specs(specs: list[str]) -> tuple[list[str], dict[str, list[str]]]:
     """Split --variant values into global variants and per-component overrides.
 
-    A bare value (e.g. "asan") applies globally; "comp=cfg" overrides one
-    component. Repeatable; "comp=cfg" accumulates multiple configs per comp.
+    Each --variant value may be a comma-separated list, and the option is
+    repeatable, so these are all equivalent ways to ask for two variants:
+        --variant debug,asan
+        --variant debug --variant asan
+    An entry of the form "comp=cfg" overrides a single component; bare entries
+    apply globally. Both forms can be mixed in one comma-separated value, e.g.
+        --variant comp1=debug,comp2=asan
+    Multiple "comp=cfg" entries for the same component accumulate.
     """
     global_variants: list[str] = []
     per_comp: dict[str, list[str]] = {}
     for spec in specs:
-        if "=" in spec:
-            comp, _, val = spec.partition("=")
-            per_comp.setdefault(comp.strip(), []).append(val.strip())
-        else:
-            global_variants.append(spec.strip())
+        for entry in spec.split(","):
+            entry = entry.strip()
+            if not entry:
+                continue
+            if "=" in entry:
+                comp, _, val = entry.partition("=")
+                per_comp.setdefault(comp.strip(), []).append(val.strip())
+            else:
+                global_variants.append(entry)
     return global_variants, per_comp
 
 
@@ -655,7 +672,8 @@ def build_arg_parser() -> argparse.ArgumentParser:
             "  list          print the numbered task list and exit\n"
             "  N             run task number N (1-based)\n"
             "  N--M          run the inclusive range of tasks N..M\n"
-            "  comp/action   glob/substring match (supports {a,b} braces)\n"
+            "  comp/variant/stage  glob/substring match (supports {a,b} braces);\n"
+            "                  config-less init/fini tasks are comp/stage\n"
             "  ... X continue  trailing 'continue' makes the preceding selector\n"
             "                  X a 'from X to the end' anchor, e.g.\n"
             "                  'comp1 comp2 continue' builds comp1 then continues\n"
@@ -672,8 +690,11 @@ def build_arg_parser() -> argparse.ArgumentParser:
                         help="remove component(s)/feature(s); comma-separated "
                              "and/or repeatable")
     parser.add_argument("--variant", action="append", default=[], metavar="SPEC",
-                        help="build variant: 'cfg' (global) or 'comp=cfg' "
-                             "(per-component); repeatable")
+                        help="strict variant filter: 'cfg' (global) or "
+                             "'comp=cfg' (per-component). Comma-separated and/or "
+                             "repeatable (e.g. 'debug,asan'). Components with no "
+                             "matching config are skipped; 'default' thus skips "
+                             "the runtimes build.")
     parser.add_argument("-C", "--clean", action="store_true",
                         help="include 'clean' tasks (default: skip for "
                              "incremental builds)")
@@ -753,8 +774,7 @@ def main(argv: list[str]) -> int:
     if args.selectors and args.selectors[0] == "list":
         width = len(str(len(tasks)))
         for i, task in enumerate(tasks, start=1):
-            cfgstr = f"  [{task.cfgname}]" if task.cfgname else ""
-            print(f"{i:>{width}}  {task.name}{cfgstr}")
+            print(f"{i:>{width}}  {task.name}")
         return 0
 
     indices = select_tasks(tasks, args.selectors)
