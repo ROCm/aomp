@@ -88,7 +88,7 @@ cd $AOMP_REPOS/aomp/bin
 | **Component** | A buildable unit with a `build_<name>.sh` script (e.g. `project`, `comgr`, `flang`, `rocBLAS`). |
 | **Feature** | A named alias expanding to a set of components (e.g. `flang`, `rocmlibs`), used by `--add`/`--remove`. |
 | **Config / variant** | A build configuration a component advertises (e.g. `default`, `asan`, `perf`, `debug`, `*-devicertl`). |
-| **Task** | A single step of a component build: `precheck`, `patch`, `clean`, `cmake`, `build`, `install`, `postinstall`, `unpatch`. |
+| **Task** | A single step of a component build: `precheck`, `patch`, `clean`, `cmake`, `build`, `install`, `postinstall`, `unpatch`. A `clean` task wipes that component's build dir and is listed right before its `cmake`. |
 | **Request** | The default set of components to build, declared in the config's `request:` stanza. |
 | **Selector** | A positional argument that picks which elaborated tasks to run. |
 
@@ -128,7 +128,7 @@ aomp_build.py [options] [selector ...]
 | `--add NAMES` | Add component(s) or feature(s). Comma-separated and/or repeatable. |
 | `--remove NAMES` | Remove component(s) or feature(s) (cascades to dependents). Comma-separated and/or repeatable. |
 | `--variant SPEC` | Variant filter: `cfg` (global) or `comp=cfg` (per-component). Comma-separated and/or repeatable. `default` is always built when offered (so `--variant debug` = default+debug); components offering neither are skipped (so `--variant default` skips the runtimes). See [Build variants](#build-variants). |
-| `-C`, `--clean` | Include `clean` tasks (skipped by default for incremental builds). |
+| `-C`, `--clean` | Prepend an `install/clean` task that wipes the install directory — the versioned symlink *target* (`AOMP_INSTALL_DIR`), then the symlink itself — before building. Per-component `clean` tasks (build dirs) are always listed and run like any other task. |
 
 ### Directory layout (exported to child build scripts)
 
@@ -474,8 +474,9 @@ cd $AOMP_REPOS/aomp/bin
 ### Rebuild a single component
 
 ```bash
-./aomp_build.py 'comgr/*'              # all comgr tasks (incremental: no clean)
-./aomp_build.py -C 'comgr/*'           # force a clean rebuild of comgr
+./aomp_build.py 'comgr/*'              # all comgr tasks (includes its clean)
+./aomp_build.py comgr/default/cmake continue  # reconfigure comgr, then onward
+./aomp_build.py -C                     # wipe the install dir, then full build
 ./aomp_build.py comgr/default/build    # just re-run comgr's build step
 ```
 
@@ -629,7 +630,12 @@ component list:
 3. Query `list`; parse each `task_<action> [cfg]` line.
 4. Keep a task if either it has no config (init/fini tasks such as `precheck`,
    `patch`, `unpatch` always run) or its config is in the selected set.
-5. Drop `clean` tasks unless `-C/--clean` was given (incremental by default).
+
+`clean` tasks (which wipe a component's build dir) are kept like any other
+task — they sit right before each `cmake`. With `-C/--clean`, a single
+`install/clean` pseudo-task is prepended to the whole list; it wipes the
+install directory (the versioned symlink target, then the symlink) and is run
+by the orchestrator itself (no backing script).
 
 Each surviving task is recorded as a `Task` (component, action, config, script
 path, and the exact `script_args` to pass back). Its display name is

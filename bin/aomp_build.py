@@ -269,17 +269,22 @@ def discover_env(env: dict[str, str] | None = None) -> dict[str, str]:
     snippet = (
         f'. "{BIN_DIR}/aomp_utils" >/dev/null 2>&1; '
         f'. "{BIN_DIR}/aomp_common_vars" >/dev/null 2>&1; '
-        'printf "%s\\n" "$BUILD_DIR" "$AOMP_REPOS" "$AOMP_REPO_NAME"'
+        'printf "%s\\n" "$BUILD_DIR" "$AOMP_REPOS" "$AOMP_REPO_NAME" '
+        '"$AOMP_INSTALL_DIR" "$AOMP"'
     )
     proc = subprocess.run(
         ["bash", "-c", snippet], capture_output=True, text=True, env=env
     )
     out = proc.stdout.splitlines()
-    out += [""] * (3 - len(out))
+    out += [""] * (5 - len(out))
     return {
         "BUILD_DIR": out[0] or os.path.join(os.path.expanduser("~"), "git", "aomp"),
         "AOMP_REPOS": out[1] or os.path.join(os.path.expanduser("~"), "git", "aomp"),
         "AOMP_REPO_NAME": out[2] or "aomp",
+        # The versioned install dir (the real target the scripts symlink to) and
+        # the symlink itself; used by -C/--clean to wipe a stale installation.
+        "AOMP_INSTALL_DIR": out[3],
+        "AOMP": out[4],
     }
 
 
@@ -294,6 +299,11 @@ class Task:
     script: str          # path to build_<comp>.sh
     script_args: list[str]  # args to pass back to the script
     single_config: bool = False  # component advertises only "default"
+    # Builtin (orchestrator-run) tasks have no backing script. Currently only
+    # "install_clean": wipe the install dir. `targets` then holds the paths it
+    # operates on ([install_dir, symlink]).
+    builtin: str | None = None
+    targets: list[str] = field(default_factory=list)
 
     @property
     def name(self) -> str:
@@ -355,7 +365,6 @@ def select_variants(
 def elaborate_tasks(
     cfg: Config, components: list[str], env: dict[str, str],
     global_variants: list[str], per_comp_variants: dict[str, list[str]],
-    include_clean: bool,
 ) -> list[Task]:
     tasks: list[Task] = []
     for comp in components:
@@ -386,8 +395,6 @@ def elaborate_tasks(
             # Variant filter: config-bearing tasks must match a wanted config;
             # config-less tasks (init/fini such as patch/unpatch) always run.
             if taskcfg is not None and taskcfg not in wanted:
-                continue
-            if action == "clean" and not include_clean:
                 continue
             tasks.append(
                 Task(
@@ -558,6 +565,49 @@ def clear_stamps_from(stamp_dir: str, tasks: list[Task], start_index: int) -> No
                 pass
 
 
+def make_install_clean_task(env_info: dict[str, str]) -> Task:
+    """The -C/--clean pseudo-task: wipe the install directory (the versioned
+    symlink *target*, not just the symlink). Inserted at the front of the task
+    list so a stale/partially-installed tree is removed before anything builds.
+    """
+    install_dir = env_info.get("AOMP_INSTALL_DIR", "")
+    symlink = env_info.get("AOMP", "")
+    return Task(
+        comp="install", action="clean", cfgname=None,
+        script="", script_args=[], single_config=True,
+        builtin="install_clean", targets=[install_dir, symlink],
+    )
+
+
+def run_install_clean(targets: list[str], env: dict[str, str], log) -> int:
+    """Wipe the install dir (targets[0]) and drop the symlink (targets[1]) if it
+    is a distinct symlink. Honors SUDO (the install may be root-owned)."""
+    install_dir = targets[0] if targets else ""
+    symlink = targets[1] if len(targets) > 1 else ""
+
+    abs_install = os.path.abspath(install_dir) if install_dir else ""
+    if not abs_install or abs_install in ("/", os.path.abspath(os.path.expanduser("~"))):
+        log.write(f"ERROR: refusing to wipe unsafe install dir '{install_dir}'\n")
+        log.flush()
+        return 1
+
+    sudo = env.get("SUDO", "")
+    prefix = ["sudo"] if sudo in ("set", "yes", "YES") else []
+
+    def run(cmd: list[str]) -> int:
+        log.write(" ".join(cmd) + "\n")
+        log.flush()
+        return subprocess.run(
+            cmd, stdout=log, stderr=subprocess.STDOUT, env=env
+        ).returncode
+
+    rc = run(prefix + ["rm", "-rf", "--", install_dir])
+    # If the symlink is distinct from the target, remove the dangling link too.
+    if rc == 0 and symlink and symlink != install_dir and os.path.islink(symlink):
+        rc = run(prefix + ["rm", "-f", "--", symlink])
+    return rc
+
+
 def run_tasks(
     tasks: list[Task], indices: list[int], env: dict[str, str], log_dir: str,
     dry_run: bool, build_type_global: str | None = None,
@@ -582,7 +632,10 @@ def run_tasks(
         num = idx + 1
         safe = task.name.replace("/", "-")
         log_path = os.path.join(log_dir, f"{num:03d}-{safe}.log")
-        cmd = ["bash", task.script, *task.script_args]
+        if task.builtin == "install_clean":
+            cmd = ["rm", "-rf", *(t for t in task.targets if t)]
+        else:
+            cmd = ["bash", task.script, *task.script_args]
         # Per-component BUILD_TYPE override (per-component wins over global).
         build_type = build_type_per_comp.get(task.comp, build_type_global)
         task_env = env
@@ -616,19 +669,22 @@ def run_tasks(
                 log.write(f"### env: BUILD_TYPE={build_type}\n")
             log.write(f"### start: {start.isoformat()}\n\n")
             log.flush()
-            proc = subprocess.run(
-                cmd, stdout=log, stderr=subprocess.STDOUT, env=task_env
-            )
+            if task.builtin == "install_clean":
+                rc = run_install_clean(task.targets, task_env, log)
+            else:
+                rc = subprocess.run(
+                    cmd, stdout=log, stderr=subprocess.STDOUT, env=task_env
+                ).returncode
             end = datetime.datetime.now()
-            log.write(f"\n### end: {end.isoformat()} (rc={proc.returncode})\n")
-        if proc.returncode != 0:
+            log.write(f"\n### end: {end.isoformat()} (rc={rc})\n")
+        if rc != 0:
             print(
-                f"\naomp_build: FAILED task {num} ({task.name}), rc={proc.returncode}",
+                f"\naomp_build: FAILED task {num} ({task.name}), rc={rc}",
                 file=sys.stderr,
             )
             print(f"--- tail of {log_path} ---", file=sys.stderr)
             print(tail_file(log_path), file=sys.stderr)
-            return proc.returncode
+            return rc
         # Mark the task complete.
         if stamp_dir:
             with open(stamp_path(stamp_dir, task, "done"), "w",
@@ -895,8 +951,11 @@ def build_arg_parser() -> argparse.ArgumentParser:
                              "the runtimes). With no --variant, all advertised "
                              "configs are built.")
     parser.add_argument("-C", "--clean", action="store_true",
-                        help="include 'clean' tasks (default: skip for "
-                             "incremental builds)")
+                        help="prepend an 'install/clean' task that wipes the "
+                             "install directory (the versioned symlink target, "
+                             "not just the symlink) before building. Per-"
+                             "component 'clean' tasks (build dirs) are always "
+                             "listed and run like any other task.")
     parser.add_argument("-n", "--dry-run", action="store_true",
                         help="show what would run without executing")
     parser.add_argument("--components", action="store_true",
@@ -982,8 +1041,12 @@ def main(argv: list[str]) -> int:
     build_type_global, build_type_per_comp = parse_build_type_specs(args.build_type)
     tasks = elaborate_tasks(
         cfg, components, child_env, global_variants, per_comp_variants,
-        include_clean=args.clean,
     )
+    # -C/--clean prepends a pseudo-task that wipes the install directory so a
+    # stale install is removed before anything builds. Per-component build-dir
+    # "clean" tasks are always in the list and run like any other task.
+    if args.clean:
+        tasks.insert(0, make_install_clean_task(env_info))
 
     # `list` selector: print the numbered task list and exit. A green check
     # marks completed tasks, a red cross marks started-but-unfinished ones.
