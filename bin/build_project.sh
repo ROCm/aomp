@@ -417,9 +417,11 @@ task_install() {
 
    # add executables forgot by make install but needed for testing
    $SUDO cp -p "$BuildDir/bin/llvm-lit" "$LLVM_INSTALL_LOC/bin/llvm-lit"
-   # update map_config and llvm_source_root paths in the copied llvm-lit file
-   SED_AOMP_REPOS=$(echo "$Repos" | sed -e 's/\//\\\\\//g')
-   sed -ie "s/..\/..\/..\//$SED_AOMP_REPOS\//g" "$LLVM_INSTALL_LOC/bin/llvm-lit"
+   # update map_config and llvm_source_root paths in the copied llvm-lit file.
+   # Use a sed delimiter ('|') that cannot occur in a path so the slashes in
+   # $Repos need no escaping (the old slash-escaping was buggy and broke on
+   # ordinary absolute paths).
+   sed -i "s|\.\./\.\./\.\./|$Repos/|g" "$LLVM_INSTALL_LOC/bin/llvm-lit"
 
    $SUDO cp -p "$BuildDir/bin/FileCheck" "$LLVM_INSTALL_LOC/bin/FileCheck"
    $SUDO cp -p "$BuildDir/bin/count" "$LLVM_INSTALL_LOC/bin/count"
