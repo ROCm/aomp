@@ -324,10 +324,11 @@ Examples:
 ## Components and features
 
 The default component set is the `request:` stanza of the config — the
-standalone x86_64 AOMP build from `build_aomp.sh`, **omitting the deprecated
-classic Flang stack** (`llvm-classic`, `flang-classic`, `pgmath`, `flang`,
-`flang_runtime`) as well as the optional debug/hipfort components and the ROCm
-math libraries. Re-enable classic Flang with `--add flang`.
+standalone x86_64 AOMP build from `build_aomp.sh` (including `hipfort` and the
+`rocdbgapi`/`rocgdb` debugger), **omitting the deprecated classic Flang stack**
+(`llvm-classic`, `flang-classic`, `pgmath`, `flang`, `flang_runtime`) and the
+ROCm math libraries. Re-enable classic Flang with `--add flang` and the math
+libraries with `--add rocmlibs`.
 
 Adjust it with `--add` / `--remove`, which accept **component** names or
 **feature** names. Each option is repeatable and also accepts a comma-separated
@@ -338,7 +339,7 @@ equivalent. Features defined in the default config:
 |---------|-----------|
 | `flang` | `llvm-classic`, `flang-classic`, `pgmath`, `flang`, `flang_runtime` (deprecated classic Flang; not in the default set) |
 | `hip` | `hipcc`, `hipamd`, `hipify` |
-| `debug` | `rocdbgapi`, `rocgdb` |
+| `debug` | `rocdbgapi`, `rocgdb` (the ROCm debugger; in the default set — drop with `--remove debug`) |
 | `profiler` | `rocprofiler-register`, `rocprofiler-sdk` |
 | `rocmlibs` | `rocm-cmake`, `rocBLAS`, `rocPRIM`, `rocSPARSE`, `rocSOLVER`, `hipBLAS-common`, `hipBLAS`, `rocRAND`, `hipRAND`, `rccl`, `half`, `hipSOLVER` |
 
@@ -350,10 +351,10 @@ Resolution rules:
   depends on them** (the removal cascades).
 
 ```bash
-./aomp_build.py --add rocmlibs --components       # core AOMP + ROCm libraries
+./aomp_build.py --add rocmlibs --components       # default set + ROCm math libraries
 ./aomp_build.py --remove flang --components       # drop the whole Flang group
-./aomp_build.py --add rocgdb --components          # adds rocdbgapi too (dependency)
-./aomp_build.py --add rocmlibs,debug --components  # comma-separated list
+./aomp_build.py --remove debug --components         # drop the debugger (rocgdb + rocdbgapi)
+./aomp_build.py --add rocmlibs --remove debug --components  # combine adds and removes
 ```
 
 ---
@@ -529,9 +530,9 @@ with a trailing `continue`:
 ### Build extra component sets
 
 ```bash
-./aomp_build.py --add rocmlibs                 # core AOMP + ROCm math libs
+./aomp_build.py --add rocmlibs                 # default set + ROCm math libs
 ./aomp_build.py --add rocmlibs 'rocBLAS/*'     # only rocBLAS tasks (deps still resolved)
-./aomp_build.py --add debug                    # add rocdbgapi + rocgdb
+./aomp_build.py --remove debug                 # drop the debugger (rocdbgapi + rocgdb)
 ```
 
 ### Build a sanitizer / perf / debug variant
