@@ -48,6 +48,78 @@ A manual start of the container should look similar to
 sudo docker run --rm -it --network=host --device=/dev/kfd --device=/dev/dri --group-add video --cpuset-cpus 0-31 --user botworker <container-image> bash
 ```
 
+## Quick setup with `run.py`
+
+`run.py` is a helper that lets a developer quickly set up an environment from one
+of the manylinux image directories (e.g. `manylinux-build-only`, `manylinux-hip-tpl`)
+for local debugging and reproduction. It downloads the base build context from
+[TheRock](https://github.com/ROCm/TheRock/tree/main/dockerfiles), builds the
+images, and creates a container ready to `docker exec` into.
+
+### Usage
+
+```
+python run.py <target> [--pull] [--build] [--clean] [options]
+```
+
+`<target>` is one of `manylinux-build-only` or `manylinux-hip-tpl`.
+
+When no operation flag is given, the default flow is **pull then build** (download
+the base files, build the images, and start the container). The operations run in
+a fixed order (`clean` -> `pull` -> `build`) and abort if any step fails.
+
+| Operation | Meaning                                                                                                                                       |
+| --------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--pull`  | Download `build_manylinux_x86_64.Dockerfile` and the helper scripts it needs into `<dest>/manylinux-base`.                                     |
+| `--build` | Build the base image `localhost/manylinux:base` (only if missing), build the target image (tagged `<target>`), then create and run a container. |
+| `--clean` | Remove the container, the target image, and the base image.                                                                                   |
+
+| Option     | Default        | Meaning                                                              |
+| ---------- | -------------- | -------------------------------------------------------------------- |
+| `--dest`   | current dir    | Where the base build context (`manylinux-base/`) is downloaded/read. |
+| `--name`   | `test-<target>` | Container name.                                                      |
+| `--no-gpu` | (off)          | Skip the GPU device/group run flags when starting the container.     |
+
+`--dest` is not remembered between runs. If you split `--pull` and `--build` into
+two separate invocations and pulled to a non-default location, you must pass the
+same `--dest` to `--build` so it can find the downloaded base files. For example,
+after `python run.py manylinux-build-only --pull --dest ~/test`, build with:
+
+```
+python run.py manylinux-build-only --build --dest ~/test
+```
+
+Omitting `--dest` on the build step would look in `./manylinux-base` instead and
+fail with a "Run a pull first" error (the base image is only built by `--build`,
+not by `--pull`).
+
+The container is started detached and kept alive, so you can open a shell with:
+
+```
+docker exec -it test-<target> bash
+```
+
+### Examples
+
+```
+# Default: pull base files, build the images, and start the container
+python run.py manylinux-build-only
+
+# Only download the base Dockerfile + helper scripts
+python run.py manylinux-build-only --pull
+
+# Split pull and build into two steps with a custom location
+# (pass the same --dest to both so build can find the pulled files)
+python run.py manylinux-build-only --pull --dest ~/test
+python run.py manylinux-build-only --build --dest ~/test
+
+# Build and run without GPU device flags
+python run.py manylinux-build-only --build --no-gpu
+
+# Remove the container and images
+python run.py manylinux-build-only --clean
+```
+
 ## Assumptions / Requirements
 
 - The images require a working AMDGPU dkms / KFD to be installed in order to test work on the GPU.
