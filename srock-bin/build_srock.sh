@@ -25,6 +25,8 @@ if [ ! -d "$SROCK_THEROCK_DIR" ] ; then
    exit 1
 fi
 
+srock_venv_activate
+
 # Print the start banner similar to DONE banner, useful if fails
 echo
 echo "===== START $0 on $_start_date"

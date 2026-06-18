@@ -51,6 +51,18 @@ DoTest='no'
 DoUpdate='no'
 IsVerbose='no'
 
+# Optional External/HIP library components, selectable via long options.
+# Maps the long-option name (e.g. --rocprim) to the CMake variable that
+# enables it. The build/test targets follow the build-<name>/test-<name>
+# convention used by External/HIP/CMakeLists.txt. Adding a new component is
+# a single entry here; it is wired into getopt and the build/test phases
+# automatically.
+declare -A LIB_CMAKE_VAR=(
+  [rocprim]=EXTERNAL_HIP_TESTS_ROCPRIM
+)
+# Populated by the argument parser with the components the user requested.
+declare -A LIB_ENABLED=()
+
 usage() {
   echo "Usage: $(basename "$0") [-j build_jobs] [-c configure] [-b build] [-t test] [-v verbose] [-u update_sources]"
   echo ""
@@ -63,6 +75,12 @@ usage() {
   echo "  -v  Verbose mode (set -x)"
   echo "  -h  Show this help message"
   echo ""
+  echo "Library Options (additive; enable extra External/HIP components):"
+  for Lib in "${!LIB_CMAKE_VAR[@]}"; do
+    echo "  --${Lib}"
+  done
+  echo "  Combine with phase flags, e.g. -cbt --rocprim"
+  echo ""
   echo "Environment Variables:"
   echo "  LLVMTS_TLDIR         - Top-level directory (default: \$AOMP_REPOS_TEST/llvm-test-suite)"
   echo "  LLVMTS_GPU           - Target GPU(s) (default: \$AOMP_GPU)"
@@ -73,9 +91,16 @@ usage() {
   echo "                         Only needed if AOMP doesn't contain HIP libraries"
 }
 
-# Parse options with GNU getopt, which supports long options (added later) and
-# the bundled/short forms (-cbt, -j8, -j 8) the script already accepted.
-if ! ParsedArgs=$(getopt -o j:cbtvhu -n "$(basename "$0")" -- "$@"); then
+# Parse options with GNU getopt, which supports both the bundled/short forms
+# (-cbt, -j8, -j 8) the script already accepted and the long library options.
+# The library long options are derived from LIB_CMAKE_VAR so the table is the
+# single source of truth.
+LongOpts="help"
+for Lib in "${!LIB_CMAKE_VAR[@]}"; do
+  LongOpts+=",${Lib}"
+done
+
+if ! ParsedArgs=$(getopt -o j:cbtvhu -l "${LongOpts}" -n "$(basename "$0")" -- "$@"); then
   usage >&2
   exit 1
 fi
@@ -107,13 +132,19 @@ while true; do
     DoUpdate='yes'
     shift
     ;;
-  -h)
+  -h | --help)
     usage
     exit 0
     ;;
   --)
     shift
     break
+    ;;
+  *)
+    # getopt has already validated long options against LongOpts, so any
+    # remaining --<name> is a known library component from LIB_CMAKE_VAR.
+    LIB_ENABLED["${1#--}"]='yes'
+    shift
     ;;
   esac
 done
@@ -207,6 +238,14 @@ fi
 # Configure with CMake
 if [ "${DoConfigure}" == "yes" ]; then
   echo "Configuring build with CMake..."
+
+  # Enable any requested External/HIP library components.
+  ExtraCmakeArgs=()
+  for Lib in "${!LIB_ENABLED[@]}"; do
+    ExtraCmakeArgs+=("-D${LIB_CMAKE_VAR[${Lib}]}=ON")
+    echo "Enabling library component: ${Lib} (${LIB_CMAKE_VAR[${Lib}]})"
+  done
+
   rm -rf "${LLVMTS_BUILD_DIR}"
   cmake ${CmakeGenerator} \
     -B "${LLVMTS_BUILD_DIR}" \
@@ -222,13 +261,20 @@ if [ "${DoConfigure}" == "yes" ]; then
     -DENABLE_HIP_CATCH_TESTS=ON \
     -DCMAKE_BUILD_TYPE="${LLVMTS_BUILD_TYPE}" \
     -DCMAKE_C_COMPILER="${AOMP}/bin/clang" \
-    -DCMAKE_CXX_COMPILER="${AOMP}/bin/clang++"
+    -DCMAKE_CXX_COMPILER="${AOMP}/bin/clang++" \
+    "${ExtraCmakeArgs[@]}"
 fi
 
 # Build
 if [ "${DoCompile}" == "yes" ]; then
   echo "Building llvm-test-suite..."
   cmake --build "${LLVMTS_BUILD_DIR}" --parallel -j "${AOMP_BUILD_JOBS}"
+
+  # Build the targets for any requested library components.
+  for Lib in "${!LIB_ENABLED[@]}"; do
+    echo "Building library component target: build-${Lib}"
+    cmake --build "${LLVMTS_BUILD_DIR}" --target "build-${Lib}" --parallel -j "${AOMP_BUILD_JOBS}"
+  done
 fi
 
 # Run tests
@@ -238,7 +284,13 @@ if [ "${DoTest}" == "yes" ]; then
 
   echo "Log in ${LLVMTS_LOGS_DIR}/test-output.log"
 
-  for TestTarget in check-hip-simple check-hip-catch; do
+  # Base HIP test targets plus a test-<name> target per requested library.
+  TestTargets=(check-hip-simple check-hip-catch)
+  for Lib in "${!LIB_ENABLED[@]}"; do
+    TestTargets+=("test-${Lib}")
+  done
+
+  for TestTarget in "${TestTargets[@]}"; do
   # Use timeout to prevent tests from hanging
   # -k 30: Send SIGKILL after 30 seconds if SIGTERM doesn't terminate the process
   # This ensures even completely hung processes are killed
