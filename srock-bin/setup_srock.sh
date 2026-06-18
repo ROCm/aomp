@@ -16,6 +16,7 @@ thisdir=$(dirname "$realpath")
 
 # Accept a single command as an argument.  Only "restart" is accepted so far.
 ARG=$1
+export _build_srock_mode="$ARG"
 
 if [ -d "$SROCK_THEROCK_DIR" ] && [ "$ARG" != "restart" ]; then
    echo " ERROR:  $0 requires that $SROCK_THEROCK_DIR NOT exist"
