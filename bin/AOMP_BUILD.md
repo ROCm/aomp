@@ -118,7 +118,7 @@ aomp_build.py [options] [selector ...]
 | `--components` | Print the resolved, dependency-ordered component list and exit. |
 | `-n`, `--dry-run` | Show what would run (command + log path per task) without executing. |
 | `--export-manifest [FILE]` | Write a git fingerprint manifest and exit. Default path: `<BUILD_DIR>/manifests/<config>-manifest.json`. |
-| `--import-manifest FILE` | Check out recorded git SHAs before building (refuses if any repo is dirty). |
+| `--import-manifest FILE` | Check out recorded git SHAs before building (refuses if any repo is dirty; `extras` is kept at HEAD). |
 
 ### Component selection
 
@@ -382,11 +382,39 @@ The JSON records, per component that has a git source:
       "sha": "…",
       "repo": "https://github.com/…",
       "branch": "amd-staging",
+      "dirty": false,
+      "subdir": "llvm"
+    },
+    "comgr": {
+      "sha": "…",
+      "repo": "https://github.com/…",
+      "branch": "amd-staging",
+      "dirty": false,
+      "subdir": "amd/comgr"
+    }
+  },
+  "externals": {
+    "SPIRV-LLVM-Translator": {
+      "sha": "…",
+      "repo": "https://github.com/…",
+      "branch": "amd-staging-npi",
       "dirty": false
     }
   }
 }
 ```
+
+- The git fingerprint is taken from the repository that **contains** a
+  component's source, so components that build from a subdirectory of a shared
+  checkout are all recorded. The LLVM `project`, `comgr`, `hipcc` and
+  `llvm_runtimes_standalone` all live in the single `llvm-project` repo (same
+  `sha`/`branch`), distinguished by their `subdir` (`llvm`, `amd/comgr`,
+  `amd/hipcc`, `runtimes`).
+- `externals` records repos that are pulled into a component build but are not
+  standalone components (e.g. `SPIRV-LLVM-Translator`, consumed by the LLVM
+  build via `LLVM_EXTERNAL_PROJECTS`). These are tightly coupled to the
+  LLVM/comgr toolchain and a frequent source of build breakage, so their exact
+  versions are worth recording alongside LLVM and comgr.
 
 Import (a pre-step before building):
 
@@ -394,10 +422,17 @@ Import (a pre-step before building):
 ./aomp_build.py --import-manifest m.json [selectors...]
 ```
 
-- For each component in the manifest that is also in the resolved set, the
-  recorded SHA is checked out (`git checkout <sha>`).
+- For each component in the manifest that is also in the resolved set (plus the
+  recorded `externals`), the recorded SHA is checked out (`git checkout <sha>`).
+  Components that share a repository (the `llvm-project` family) are deduped, so
+  the shared checkout is moved once.
+- **`extras` stays at HEAD.** The `extras` component is the AOMP build-scripts
+  repo (this tree); it is never rolled back, since the scripts are meant to
+  build arbitrary AOMP/ROCm versions and pinning them would change the build
+  logic mid-flight.
 - **Safety:** if any target repo has local modifications, the import is
   **refused** entirely (nothing is checked out) and the dirty repos are listed.
+  `extras` being dirty does not block the import.
 - Components without a git source (e.g. `prereq`) are skipped.
 
 Manifests live under `<BUILD_DIR>/manifests/` by default

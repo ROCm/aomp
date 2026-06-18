@@ -696,22 +696,62 @@ def run_tasks(
 # --------------------------------------------------------------------------- #
 # Version manifest (git fingerprint)
 # --------------------------------------------------------------------------- #
+# Repositories consumed by component builds (e.g. via LLVM_EXTERNAL_PROJECTS)
+# that are not standalone components. Paths are relative to AOMP_REPOS. These
+# are recorded under the manifest "externals" section and restored on import
+# because they are tightly coupled to the LLVM/comgr toolchain and are a
+# frequent source of build breakage, so their exact versions matter.
+EXTERNAL_REPOS = {
+    "SPIRV-LLVM-Translator": "SPIRV-LLVM-Translator",
+}
+
+# Components whose source must never be rolled back on import: their checkout
+# is meant to track HEAD. "extras" is the AOMP build-scripts repo (this very
+# tree) -- pinning it would change the build logic mid-flight, and the scripts
+# are intended to (eventually) build arbitrary AOMP/ROCm versions.
+FLOATING_COMPONENTS = {"extras"}
+
+
+def _git(src: str, *args: str) -> str:
+    proc = subprocess.run(
+        ["git", "-C", src, *args], capture_output=True, text=True
+    )
+    return proc.stdout.strip() if proc.returncode == 0 else ""
+
+
+def git_toplevel(src: str) -> str:
+    """Absolute path of the git repository containing `src` (or "")."""
+    if not src or not os.path.isdir(src):
+        return ""
+    return _git(src, "rev-parse", "--show-toplevel")
+
+
 def git_facts(src: str) -> dict | None:
-    if not src or not os.path.isdir(os.path.join(src, ".git")):
+    """Git fingerprint of the repository containing `src`.
+
+    `src` may be a subdirectory of its repository: the LLVM project, comgr,
+    hipcc and the standalone runtimes all build from different subdirs of the
+    single llvm-project checkout. We resolve the enclosing repository root via
+    `git rev-parse --show-toplevel` so each such component is recorded, and
+    note the build subdir (relative to that root) when it is not the root.
+    """
+    top = git_toplevel(src)
+    if not top:
         return None
 
-    def git(*args: str) -> str:
-        proc = subprocess.run(
-            ["git", "-C", src, *args], capture_output=True, text=True
-        )
-        return proc.stdout.strip() if proc.returncode == 0 else ""
-
-    return {
-        "sha": git("rev-parse", "HEAD"),
-        "repo": git("config", "--get", "remote.origin.url"),
-        "branch": git("rev-parse", "--abbrev-ref", "HEAD"),
-        "dirty": bool(git("status", "--porcelain")),
+    facts = {
+        "sha": _git(src, "rev-parse", "HEAD"),
+        "repo": _git(src, "config", "--get", "remote.origin.url"),
+        "branch": _git(src, "rev-parse", "--abbrev-ref", "HEAD"),
+        "dirty": bool(_git(src, "status", "--porcelain")),
     }
+    # Build subdir relative to the repo root (handles src being a subdir of a
+    # shared repo, e.g. llvm-project/{llvm,amd/comgr,amd/hipcc,runtimes}).
+    # `--show-prefix` is symlink-safe, unlike relpath against --show-toplevel.
+    subdir = _git(src, "rev-parse", "--show-prefix").rstrip("/")
+    if subdir:
+        facts["subdir"] = subdir
+    return facts
 
 
 def component_src_dir(cfg: Config, comp: str, env: dict[str, str]) -> str:
@@ -730,18 +770,28 @@ def export_manifest(
         "config": config_name,
         "order": components,
         "components": {},
+        "externals": {},
     }
     for comp in components:
         src = component_src_dir(cfg, comp, env)
         facts = git_facts(src)
         if facts is not None:
             manifest["components"][comp] = facts
+
+    # External (non-component) repos consumed by the LLVM/comgr toolchain.
+    repos = discover_env(env)["AOMP_REPOS"]
+    for name, rel in EXTERNAL_REPOS.items():
+        facts = git_facts(os.path.join(repos, rel))
+        if facts is not None:
+            manifest["externals"][name] = facts
+
     os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
     with open(path, "w", encoding="utf-8") as handle:
         json.dump(manifest, handle, indent=2, sort_keys=True)
         handle.write("\n")
     print(f"aomp_build: wrote manifest for {len(manifest['components'])} "
-          f"component(s) to {path}")
+          f"component(s) and {len(manifest['externals'])} external repo(s) "
+          f"to {path}")
 
 
 def import_manifest(
@@ -754,20 +804,45 @@ def import_manifest(
         sys.exit(f"aomp_build: cannot read manifest '{path}': {exc}")
 
     recorded = manifest.get("components", {})
-    targets = [c for c in components if c in recorded]
+    recorded_ext = manifest.get("externals", {})
 
-    # First pass: refuse if any target repo has local modifications.
-    plan: list[tuple[str, str, str]] = []  # (comp, src, sha)
+    # First pass: build a checkout plan and refuse if any target repo is dirty.
+    # Several components (project, comgr, hipcc, runtimes) share the single
+    # llvm-project checkout, so we dedupe by repository root to avoid repeated
+    # (and redundant) checkouts/dirty reports.
+    plan: list[tuple[str, str, str]] = []  # (label, src, sha)
     dirty: list[str] = []
-    for comp in targets:
-        src = component_src_dir(cfg, comp, env)
+    seen_tops: set[str] = set()
+
+    def schedule(label: str, src: str, sha: str) -> None:
         facts = git_facts(src)
         if facts is None:
-            print(f"aomp_build: skipping '{comp}' (no git source at {src})")
-            continue
+            print(f"aomp_build: skipping '{label}' (no git source at {src})")
+            return
+        top = git_toplevel(src)
+        if top in seen_tops:
+            return
+        seen_tops.add(top)
         if facts["dirty"]:
-            dirty.append(comp)
-        plan.append((comp, src, recorded[comp]["sha"]))
+            dirty.append(label)
+        plan.append((label, src, sha))
+
+    # Components, in build order. Floating components track HEAD and are never
+    # rolled back.
+    for comp in components:
+        if comp not in recorded:
+            continue
+        if comp in FLOATING_COMPONENTS:
+            print(f"aomp_build: keeping '{comp}' at HEAD (floating; not rolled back)")
+            continue
+        schedule(comp, component_src_dir(cfg, comp, env), recorded[comp]["sha"])
+
+    # External repos (e.g. SPIRV-LLVM-Translator).
+    repos = discover_env(env)["AOMP_REPOS"]
+    for name, rel in EXTERNAL_REPOS.items():
+        if name not in recorded_ext:
+            continue
+        schedule(name, os.path.join(repos, rel), recorded_ext[name]["sha"])
 
     if dirty:
         sys.exit(
@@ -776,14 +851,14 @@ def import_manifest(
         )
 
     # Second pass: check out recorded SHAs.
-    for comp, src, sha in plan:
+    for label, src, sha in plan:
         if not sha:
-            print(f"aomp_build: skipping '{comp}' (no recorded sha)")
+            print(f"aomp_build: skipping '{label}' (no recorded sha)")
             continue
-        print(f"aomp_build: checking out {comp} @ {sha[:12]} in {src}")
+        print(f"aomp_build: checking out {label} @ {sha[:12]} in {src}")
         proc = subprocess.run(["git", "-C", src, "checkout", sha])
         if proc.returncode != 0:
-            sys.exit(f"aomp_build: git checkout failed for '{comp}'")
+            sys.exit(f"aomp_build: git checkout failed for '{label}'")
     return 0
 
 
