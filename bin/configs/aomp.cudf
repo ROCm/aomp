@@ -130,7 +130,10 @@ x-dir: .
 
 package: hipfort
 version: 1
-depends: hipamd, flang_runtime
+# hipfort builds with the modern LLVM flang (project) and HIP (hipamd); it does
+# not need the deprecated classic flang_runtime stack (build_hipfort.sh uses
+# $LLVM_INSTALL_LOC/bin/flang).
+depends: hipamd, project
 x-dir: .
 
 package: rocdbgapi
@@ -243,10 +246,10 @@ expands: rocm-cmake, rocBLAS, rocPRIM, rocSPARSE, rocSOLVER, hipBLAS-common,
 # Default requested build set: the standalone x86_64 AOMP build from
 # build_aomp.sh, omitting the deprecated classic Flang stack (llvm-classic,
 # flang-classic, pgmath, flang, flang_runtime; re-add with --add flang) and the
-# optional debug/hipfort components and rocmlibs. Modify with --add / --remove.
+# optional debug components and rocmlibs. Modify with --add / --remove.
 #-----------------------------------------------------------------------------
 
 request:
 install: prereq, project, rocprofiler-register, rocr, llvm_runtimes_standalone,
          extras, comgr, rocminfo, rocm_smi_lib, amdsmi, hipcc, hipamd, hipify,
-         rocprofiler-sdk
+         hipfort, rocprofiler-sdk
