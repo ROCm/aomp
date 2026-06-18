@@ -245,11 +245,11 @@ expands: rocm-cmake, rocBLAS, rocPRIM, rocSPARSE, rocSOLVER, hipBLAS-common,
 #-----------------------------------------------------------------------------
 # Default requested build set: the standalone x86_64 AOMP build from
 # build_aomp.sh, omitting the deprecated classic Flang stack (llvm-classic,
-# flang-classic, pgmath, flang, flang_runtime; re-add with --add flang) and the
-# optional debug components and rocmlibs. Modify with --add / --remove.
+# flang-classic, pgmath, flang, flang_runtime; re-add with --add flang) and
+# rocmlibs. Modify with --add / --remove.
 #-----------------------------------------------------------------------------
 
 request:
 install: prereq, project, rocprofiler-register, rocr, llvm_runtimes_standalone,
          extras, comgr, rocminfo, rocm_smi_lib, amdsmi, hipcc, hipamd, hipify,
-         hipfort, rocprofiler-sdk
+         hipfort, rocdbgapi, rocgdb, rocprofiler-sdk
