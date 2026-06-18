@@ -15,6 +15,7 @@
 #  large capacity (100GB+) directory 100GB+
 
 function test_apply_patch() {
+   # shellcheck disable=SC2154 # $_patch_file &_curdir are set externally
    if ! patch -p1 -t -N --merge --dry-run < "$_patch_file"  >/dev/null; then
       echo "ERROR:  patch --dry-run failed.  Could not apply $_patch_file "
       cd "$_curdir" || exit 1
@@ -31,15 +32,15 @@ function srock_venv_activate() {
        echo "===== Activating virtual environment ====="
        cd "$SROCK_THEROCK_DIR" || exit
        echo "source $SROCK_VENV/bin/activate"
-       # shellcheck disable=1091 # don't analyze activate
+       # shellcheck disable=SC1091 # don't analyze activate
        source "$SROCK_VENV/bin/activate"
     else
        echo
        echo "===== Building virtual environment in $SROCK_VENV and updating PATH ====="
        cd "$SROCK_THEROCK_DIR" || exit
        echo "python3 -m venv $SROCK_VENV && source $SROCK_VENV/bin/activate"
-       # shellcheck disable=1091 # don't analyze activate
-       python3 -m venv $SROCK_VENV && source "$SROCK_VENV/bin/activate"
+       # shellcheck disable=SC1091 # don't analyze activate
+       python3 -m venv "$SROCK_VENV" && source "$SROCK_VENV/bin/activate"
     fi
     echo "pip install -r requirements.txt"
     pip install -r requirements.txt
@@ -64,13 +65,16 @@ function chk_cmake() {
     fi
 }
 
+# shellcheck disable=SC2034 # currently unused
 SROCK="NEVER_USE_'\$SROCK'_ENV_VARIABLE" # Use SROCK_LINK
 
 #  SROCK_REPOS is the parent directory for TheRock and srock repos.  
 SROCK_REPOS=${SROCK_REPOS:-${HOME}/git/srock-repos}
-if [ ! -d $SROCK_REPOS ] ; then
-  mkdir -p $SROCK_REPOS
-  [ $? != 0 ] && echo "ERROR: Could not create $SROCK_REPOS" && exit 1
+if [ ! -d "$SROCK_REPOS" ] ; then
+  if ! mkdir -p "$SROCK_REPOS"; then
+      echo "ERROR: Could not create $SROCK_REPOS"
+      exit 1
+  fi
 fi
 
 SROCK_VERSION=${SROCK_VERSION:-"7.13"}
@@ -99,7 +103,9 @@ export SROCK_REPOS SROCK_VERSION_STRING SROCK_VERSION SROCK_VERSION_MOD SROCK_MA
 SROCK_REPO_NAME=${SROCK_REPO_NAME:-aomp}
 # These local variables are only used during build to log important information.
 SROCK_VERSION_INFO_DIR=$SROCK_REPOS/$SROCK_REPO_NAME/srock-bin/srock_$SROCK_VERSION_STRING
+# shellcheck disable=SC2034 # currently unused
 SROCK_INFO_FILE=$SROCK_VERSION_INFO_DIR/srock_$SROCK_VERSION_STRING.info
+# shellcheck disable=SC2034 # currently unused
 SROCK_SUBMOD_FILE=$SROCK_VERSION_INFO_DIR/srock_$SROCK_VERSION_STRING.submodules
 
 # SROCK_SUPP is for SUPPlemental software components needed for testing.
