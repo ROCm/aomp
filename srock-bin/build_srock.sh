@@ -37,7 +37,17 @@ echo "      TheRock Dir:       $SROCK_THEROCK_DIR"
 echo "      TheRock branch:    $SROCK_THEROCK_BRANCH"
 echo "      Compiler branch:   $SROCK_COMPILER_BRANCH"
 echo "      SROCK config name: $SROCK_CONFIG"
+echo "      cmake command:     $SROCK_CMAKE"
 echo "      cmake args:        ${_cmake_args[*]}"
+echo "      ninja command:     $(which ninja)"
+echo "      PATH:              $PATH"
+
+# Run srock prebuild which includes finding suitable cmake
+# also performed in setup_srock.sh, but repeat here to verify binaries exist
+echo
+echo "===== Sourcing prebuild_srock.sh"
+. "$thisdir/prebuild_srock.sh"
+echo "===== DONE Sourcing prebuild_srock.sh"
 
 (
 cd "$SROCK_THEROCK_DIR" || exit
@@ -50,7 +60,7 @@ echo "${smsha}${LLVM_SHA_EXTRA}" >> "$smrev"
 )
 
 cd "$SROCK_THEROCK_DIR" || exit
-_cmd="cmake --build build"
+_cmd="$SROCK_CMAKE --build build"
 echo 
 echo "===== build CMD: $_cmd"
 $_cmd
@@ -108,16 +118,19 @@ ln -sf "$SROCK_INSTALL_DIR" "$SROCK_LINK"
 echo
 echo "===== DONE $0 on $_end_date"
 echo "      THEROCK targets:   $_gfxsemicolons"
+echo "      THEROCK families:  $_gfamsemicolons"
 echo "      ROCm install dir:  $SROCK_INSTALL_DIR"
 echo "      TheRock Dir:       $SROCK_THEROCK_DIR"
 echo "      TheRock branch:    $SROCK_THEROCK_BRANCH"
 echo "      Compiler branch:   $SROCK_COMPILER_BRANCH"
 echo "      SROCK config name: $SROCK_CONFIG"
 echo "      cmake command:     $SROCK_CMAKE"
+echo "      cmake args:        ${_cmake_args[*]}"
+echo "      ninja command:     $(which ninja)"
+echo "      PATH:              $PATH"
 echo "      Build time:        $_secs_to_build (seconds)"
 echo "      Files:             $_filecount"
 echo "      Size:              $_size"
-echo "      cmake args:        ${_cmake_args[*]}"
 echo
 echo "      For aomp testing, set AOMP=$SROCK_LINK"
 echo "         or AOMP=$SROCK_INSTALL_DIR"
