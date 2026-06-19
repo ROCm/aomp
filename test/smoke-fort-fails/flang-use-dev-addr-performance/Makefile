@@ -9,7 +9,7 @@ HIPCC ?= $(AOMPHIP)/bin/hipcc
 HIP_CLANG_PATH ?= $(AOMP)/bin
 
 CFLAGS = -O3
-FLANG        ?= flang -save-temps
+FLANG        ?= flang
 OMP_BIN      = $(AOMP)/bin/$(FLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
 EXTRA_CFLAGS = -L$(AOMPHIP)/lib -lamdhip64 -Wl,-rpath,$(AOMPHIP)/lib -fPIC
