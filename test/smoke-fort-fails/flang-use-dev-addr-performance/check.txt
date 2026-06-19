@@ -1,0 +1,13 @@
+; CHECK: Creating new map entry
+; CHECK: Creating new map entry
+; CHECK-NOT: Creating new map entry
+; CHECK: Removing map entry
+; CHECK: Removing map entry
+; CHECK-NOT: Removing map entry
+; CHECK: Success
+; CHECK: pointer x [[ADDR:[0-9a-f]+]] number of calls: 1
+; CHECK: pointer x [[ADDR]] number of calls: 2
+; CHECK: pointer x [[GPU_ADDR:[0-9a-f]+]] number of calls: 3
+; CHECK: pointer x [[GPU_ADDR]] number of calls: 4
+; CHECK: pointer x [[ADDR]] number of calls: 5
+
