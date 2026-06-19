@@ -17,41 +17,42 @@ thisdir=$(dirname "$realpath")
 
 echo "= 1 = Checking if cmake needs to be built"
 echo "      building $_cmake_local"
-$thisdir/build_cmake.sh         # check is performed within build_cmake.sh
+"$thisdir/build_cmake.sh"       # check is performed within build_cmake.sh
 echo "      The cmake for srock is $SROCK_CMAKE"
 
 # Skip these updates if this is a restart
+# shellcheck disable=SC2154 # $__build_srock_mode assigned before call
 if [ "$_build_srock_mode" == "restart" ] ; then
    return
 fi
 
-cd $SROCK_REPOS
+cd "$SROCK_REPOS" || exit 1
 echo "= 2 = Updating aomp repo"
-if [ -d $SROCK_REPOS/aomp ] ; then
+if [ -d "$SROCK_REPOS/aomp" ] ; then
    echo "      Skipping aomp clone, $SROCK_REPOS/srock already exists"
 else
    echo "      git clone -b $SROCK_DEV_BRANCH https://github.com/ROCm/aomp"
-   git clone -b $SROCK_DEV_BRANCH  https://github.com/ROCm/aomp 2>/dev/null >/dev/null
+   git clone -b "$SROCK_DEV_BRANCH" https://github.com/ROCm/aomp 2>/dev/null >/dev/null
 fi
 echo "      cd $SROCK_REPOS/aomp"
-cd $SROCK_REPOS/aomp
+cd "$SROCK_REPOS/aomp" || exit 1
 echo "      git checkout $SROCK_DEV_BRANCH"
-git checkout $SROCK_DEV_BRANCH
+git checkout "$SROCK_DEV_BRANCH"
 echo "      git pull"
 git pull
 
-cd $SROCK_REPOS
+cd "$SROCK_REPOS" || exit 1
 echo "= 3 = Updating hipfort repo"
-if [ -d $SROCK_REPOS/hipfort ] ; then
+if [ -d "$SROCK_REPOS/hipfort" ] ; then
    echo "      Skipping hipfort clone, $SROCK_REPOS/hipfort already exists"
 else
    echo "      git clone -b $SROCK_HIPFORT_BRANCH https://github.com/ROCm/hipfort"
-   git clone -b $SROCK_HIPFORT_BRANCH  https://github.com/ROCm/hipfort 2>/dev/null >/dev/null
+   git clone -b "$SROCK_HIPFORT_BRANCH" https://github.com/ROCm/hipfort 2>/dev/null >/dev/null
 fi
 echo "      cd $SROCK_REPOS/hipfort"
-cd $SROCK_REPOS/hipfort
+cd "$SROCK_REPOS/hipfort" || exit 1
 echo "      git checkout $SROCK_HIPFORT_BRANCH"
-git checkout $SROCK_HIPFORT_BRANCH
+git checkout "$SROCK_HIPFORT_BRANCH"
 echo "      git pull"
 git pull
 
