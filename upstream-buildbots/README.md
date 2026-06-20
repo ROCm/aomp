@@ -79,6 +79,7 @@ a fixed order (`clean` -> `pull` -> `build`) and abort if any step fails.
 | `--dest`   | current dir    | Where the base build context (`manylinux-base/`) is downloaded/read. |
 | `--name`   | `test-<target>` | Container name.                                                      |
 | `--no-gpu` | (off)          | Skip the GPU device/group run flags when starting the container.     |
+| `--llvm-src` | (none)       | Bind-mount a local LLVM source tree at `/home/botworker/bbot/llvm-project`. |
 
 `--dest` is not remembered between runs. If you split `--pull` and `--build` into
 two separate invocations and pulled to a non-default location, you must pass the
@@ -92,6 +93,9 @@ python run.py manylinux-build-only --build --dest ~/test
 Omitting `--dest` on the build step would look in `./manylinux-base` instead and
 fail with a "Run a pull first" error (the base image is only built by `--build`,
 not by `--pull`).
+
+Use `--llvm-src` to mount an existing local LLVM checkout instead of cloning
+inside the container; it appears at `/home/botworker/bbot/llvm-project`.
 
 The container is started detached and kept alive, so you can open a shell with:
 
@@ -115,6 +119,9 @@ python run.py manylinux-build-only --build --dest ~/test
 
 # Build and run without GPU device flags
 python run.py manylinux-build-only --build --no-gpu
+
+# Mount a local LLVM source tree instead of cloning inside the container
+python run.py manylinux-hip-tpl --build --llvm-src ~/git/llvm-project
 
 # Remove the container and images
 python run.py manylinux-build-only --clean

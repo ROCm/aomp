@@ -32,6 +32,9 @@ THEROCK_LINK = "https://raw.githubusercontent.com/ROCm/TheRock/main/dockerfiles"
 # Update this when onboarding a new buildbot image.
 TARGETS = ["manylinux-build-only", "manylinux-hip-tpl"]
 
+# Host LLVM source tree is mounted here in the container.
+LLVM_MOUNT_TARGET = "/home/botworker/bbot/llvm-project"
+
 # Necessary files.
 BASE_FILES = [
     BASE_DOCKERFILE,
@@ -169,6 +172,13 @@ def cmd_build(args):
 
     if not args.no_gpu:
         run_args += GPU_RUN_FLAGS
+
+    if args.llvm_src:
+        src = Path(args.llvm_src).expanduser().resolve()
+        if not src.is_dir():
+            sys.exit(f"error: --llvm-src path not found or not a directory: {src}")
+        run_args += ["-v", f"{src}:{LLVM_MOUNT_TARGET}"]
+
     run_args += [image_tag, "sleep", "infinity"]
 
     log(f"Starting container {name}")
@@ -213,6 +223,9 @@ def build_parser():
     parser.add_argument("--name", help="container name (default: test-<target>)")
     parser.add_argument("--no-gpu", action="store_true",
                         help="skip GPU device/group run flags (build)")
+    parser.add_argument("--llvm-src", metavar="PATH",
+                        help="mount a local LLVM source tree at "
+                             "/home/botworker/bbot/llvm-project in the container")
 
 
     return parser
