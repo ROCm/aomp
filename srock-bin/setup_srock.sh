@@ -16,6 +16,7 @@ thisdir=$(dirname "$realpath")
 
 # Accept a single command as an argument.  Only "restart" is accepted so far.
 ARG=$1
+export _build_srock_mode="$ARG"
 
 if [ -d "$SROCK_THEROCK_DIR" ] && [ "$ARG" != "restart" ]; then
    echo " ERROR:  $0 requires that $SROCK_THEROCK_DIR NOT exist"
@@ -39,6 +40,7 @@ echo "      TheRock Dir:       $SROCK_THEROCK_DIR"
 echo "      TheRock branch:    $SROCK_THEROCK_BRANCH"
 echo "      Compiler branch:   $SROCK_COMPILER_BRANCH"
 echo "      SROCK config name: $SROCK_CONFIG"
+echo "      cmake:             $SROCK_CMAKE"
 echo "      cmake args:        ${_cmake_args[*]}"
 
 # Run srock prebuild which includes finding suitable cmake
