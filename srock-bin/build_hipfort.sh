@@ -49,6 +49,7 @@ if [ ! -f "$SROCK_INSTALL_DIR/lib/llvm/bin/clang" ] ; then
 fi
 
 if [ -d "$BUILD_DIR" ] ; then
+   # shellcheck disable=SC2154 # $_build_srock_mode is set externally
    if [ "$_build_srock_mode" == "restart" ] ; then
       echo "===== Skipping $0"
       return
@@ -58,7 +59,7 @@ if [ -d "$BUILD_DIR" ] ; then
    echo "      rm -rf $BUILD_DIR"
    rm -rf "$BUILD_DIR"
 fi
-mkdir -p $BUILD_DIR
+mkdir -p "$BUILD_DIR"
 
 declare -a MYCMAKEOPTS
 MYCMAKEOPTS=(-DCMAKE_INSTALL_PREFIX="$SROCK_INSTALL_DIR/lib/llvm"
@@ -72,13 +73,13 @@ MYCMAKEOPTS=(-DCMAKE_INSTALL_PREFIX="$SROCK_INSTALL_DIR/lib/llvm"
 cd "$REPO_DIR" || exit
 echo
 echo "===== Running $SROCK_CMAKE for hipfort"
-$SROCK_CMAKE  -S. -Bbuild ${MYCMAKEOPTS[@]} -DCMAKE_Fortran_FLAGS='-ffree-form -fPIC' $REPO_DIRi 
+$SROCK_CMAKE  -S. -Bbuild "${MYCMAKEOPTS[@]}" -DCMAKE_Fortran_FLAGS='-ffree-form -fPIC' "$REPO_DIR"
 _cmakerc=$?
 echo "===== DONE Running hipfort cmake"
 if [ $_cmakerc != 0 ] ; then 
    echo
    echo "ERROR hipfort cmake failed with $SROCK_CMAKE. Cmake flags:"
-   echo "      ${MYCMAKEOPTS[@]} -DCMAKE_Fortran_FLAGS='-ffree-form -fPIC'"
+   echo "      ${MYCMAKEOPTS[*]} -DCMAKE_Fortran_FLAGS='-ffree-form -fPIC'"
    exit 1
 fi
 
