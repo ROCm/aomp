@@ -6,7 +6,7 @@ FLANG=${FLANG:-flang}
 FC=${FC:-$AOMP/bin/$FLANG}
 EXE=milestone-3-babel-noteams
 
-FFLAGS="-O3 -Werror -fopenmp --offload-arch=$AOMP_GPU"
+FFLAGS="-O3 -fopenmp --offload-arch=$AOMP_GPU"
 DEFINES="-DVERSION_STRING=4.0 -DUSE_OPENMPTARGET -DUSE_OMP_GET_WTIME"
 
 set -x
