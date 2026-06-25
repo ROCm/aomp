@@ -1,8 +1,9 @@
 ! example of simple Fortran AMD GPU offloading
 program main
+  implicit none
   parameter (nsize=1000)
   real a(nsize), b(nsize), c(nsize)
-  integer i
+  integer i, nsize
 
   do i=1,nsize
     a(i)=0
@@ -24,9 +25,10 @@ program main
 ! call exit(1)
 end
 subroutine foo(a,b,c)
+  implicit none
   parameter (nsize=1000)
   real a(nsize), b(nsize), c(nsize)
-  integer i
+  integer i, omp_q, nsize
 !$omp target map(from:a) map(to:b,c) depend(out:omp_q)
 !$omp parallel do
   do i=1,nsize
