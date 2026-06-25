@@ -58,11 +58,12 @@ PREREQUISITE_COMPONENTS=${PREREQUISITE_COMPONENTS:-cmake rocmsmilib hwloc aqlpro
 # --- Start standard header to set AOMP environment variables ----
 realpath=$(realpath "$0")
 thisdir=$(dirname "$realpath")
+. "$thisdir/aomp_utils"
 . "$thisdir/aomp_common_vars"
 # --- end standard header ----
 FLANG=${FLANG:-flang}
 
-function runcmd(){
+function supp_runcmd(){
    THISCMD=$1
    if [ "$DRYRUN" ] ; then
       echo "$THISCMD"
@@ -77,6 +78,128 @@ function runcmd(){
          exit $rc
       fi
    fi
+}
+
+# Helper: build a space-separated list of supplemental/prerequisite components.
+build_components(){
+  local _components="$1"
+  local curdir=$PWD
+  local _component
+  local _thisdate
+  for _component in $_components ; do
+    _thisdate=$(date)
+    {
+      echo ""
+      echo "# -------------------------------------------------"
+      echo "# $_component build started on $_thisdate"
+    } >> "$CMDLOGFILE"
+    if [ "$_component" == "openmpi" ] ; then
+      buildopenmpi
+    elif [ "$_component" == "rocmopenmpi" ] ; then
+      buildrocmopenmpi
+    elif [ "$_component" == "xpmem" ] ; then
+      buildxpmem
+    elif [ "$_component" == "ucx" ] ; then
+      builducx
+    elif [ "$_component" == "ucc" ] ; then
+      builducc
+    elif [ "$_component" == "silo" ] ; then
+      buildsilo
+    elif [ "$_component" == "hdf5" ] ; then
+      buildhdf5
+    elif [ "$_component" == "fftw" ] ; then
+      buildfftw
+    elif [ "$_component" == "hwloc" ] ; then
+      buildhwloc
+    elif [ "$_component" == "cmake" ] ; then
+      buildcmake
+    elif [ "$_component" == "rocmsmilib" ] ; then
+      buildrocmsmilib
+    elif [ "$_component" == "ninja" ] ; then
+      buildninja
+    elif [ "$_component" == "aqlprofile" ] ; then
+      getrocmpackage aqlprofile hsa-amd-aqlprofile 1.0.0
+    elif [ "$_component" == "openclicdloader" ] ; then
+      getrocmpackage openclicdloader rocm-opencl-icd-loader 1.2
+    elif [ "$_component" == "rocm-core" ] ; then
+      getrocmpackage rocm-core rocm-core 7.1.0
+    else
+      echo "ERROR:  Invalid component name $_component" >>"$CMDLOGFILE"
+      echo "ERROR:  Invalid component name $_component"
+      if [ "$sname" == "build_prereq.sh" ] ; then
+         echo "        Must be a subset of: $PREREQUISITE_COMPONENTS"
+      else
+         echo "        Must be a subset of: $SUPPLEMENTAL_COMPONENTS"
+      fi
+      exit 0
+    fi
+    _thisdate=$(date)
+    echo "# DONE: successful build of $_component on $_thisdate " >>"$CMDLOGFILE"
+  done
+  cd "$curdir" || exit
+}
+
+# Return the default component list for the current invocation name. When
+# invoked through the build_prereq.sh symlink, build the prerequisite set;
+# otherwise build the supplemental set.
+default_components(){
+  if [ "$sname" == "build_prereq.sh" ] ; then
+    echo "$PREREQUISITE_COMPONENTS"
+  else
+    echo "$SUPPLEMENTAL_COMPONENTS"
+  fi
+}
+
+# These components are downloaded/cloned on demand rather than tracked as a
+# single git source tree, so there is no meaningful source directory.
+get_src_dir(){
+  echo ""
+}
+
+get_build_dir(){
+  echo -n "$AOMP_SUPP_BUILD"
+}
+
+get_install_dir(){
+  echo -n "$AOMP_SUPP"
+}
+
+# build_supp/build_prereq is modeled as a single coarse "build everything"
+# task. The actual per-component dependency handling lives in the build
+# helpers above (e.g. ucc pulls in ucx/xpmem on demand).
+task_build(){
+  local Cfg=$1
+  build_components "$(default_components)"
+}
+
+# build_aomp.sh will try to install each component (including "prereq"), but
+# supplemental/prerequisite artifacts are not installed into the AOMP
+# installation, so install is intentionally a no-op.
+task_install(){
+  local Cfg=$1
+  echo "Nothing to install for $sname (supplemental/prerequisite components)"
+}
+
+do_list_configs(){
+  echo "default"
+}
+
+do_list_init(){
+  :
+}
+
+do_list_fini(){
+  :
+}
+
+do_list_tasks(){
+  local Cfg=$1
+  if valid_config "$Cfg"; then
+    echo "build"
+    echo "install"
+  else
+    echo "Unknown config '$Cfg'"
+  fi
 }
 
 function runcmdout(){
@@ -177,25 +300,25 @@ function buildxpmem(){
     return
   fi
   if [ -d "$_builddir" ] ; then
-    runcmd "rm -rf $_builddir"
+    supp_runcmd "rm -rf $_builddir"
   fi
-  runcmd "mkdir -p $_builddir"
-  runcmd "cd $_builddir"
-  runcmd "wget https://github.com/openucx/xpmem/archive/refs/tags/v$_version.tar.gz"
-  runcmd "tar -xzf v$_version.tar.gz"
-  runcmd "cd xpmem-$_version"
+  supp_runcmd "mkdir -p $_builddir"
+  supp_runcmd "cd $_builddir"
+  supp_runcmd "wget https://github.com/openucx/xpmem/archive/refs/tags/v$_version.tar.gz"
+  supp_runcmd "tar -xzf v$_version.tar.gz"
+  supp_runcmd "cd xpmem-$_version"
   if [ -d "$_installdir" ] ; then
-    runcmd "rm -rf $_installdir"
+    supp_runcmd "rm -rf $_installdir"
   fi
-  runcmd "mkdir -p $_installdir"
-  runcmd "./autogen.sh"
-  runcmd "./configure --prefix=$_installdir"
-  runcmd "make -j${AOMP_JOB_THREADS}"
-  runcmd "make install"
+  supp_runcmd "mkdir -p $_installdir"
+  supp_runcmd "./autogen.sh"
+  supp_runcmd "./configure --prefix=$_installdir"
+  supp_runcmd "make -j${AOMP_JOB_THREADS}"
+  supp_runcmd "make install"
   if [ -L "$_linkfrom" ] ; then
-    runcmd "rm $_linkfrom"
+    supp_runcmd "rm $_linkfrom"
   fi
-  runcmd "ln -sfr $_installdir $_linkfrom"
+  supp_runcmd "ln -sfr $_installdir $_linkfrom"
   echo "# $_linkfrom is now symbolic link to $_installdir " >>"$CMDLOGFILE"
 }
 
@@ -230,22 +353,22 @@ function builducx(){
     return
   fi
   if [ -d "$_builddir" ] ; then
-    runcmd "rm -rf $_builddir"
+    supp_runcmd "rm -rf $_builddir"
   fi
-  runcmd "mkdir -p $_builddir"
-  runcmd "cd $_builddir"
-  runcmd "wget https://github.com/openucx/ucx/releases/download/v$_version/ucx-$_version.tar.gz"
-  runcmd "tar -xzf ucx-$_version.tar.gz"
-  runcmd "cd ucx-$_version"
-  runcmd "mkdir -p build"
-  runcmd "cd build"
+  supp_runcmd "mkdir -p $_builddir"
+  supp_runcmd "cd $_builddir"
+  supp_runcmd "wget https://github.com/openucx/ucx/releases/download/v$_version/ucx-$_version.tar.gz"
+  supp_runcmd "tar -xzf ucx-$_version.tar.gz"
+  supp_runcmd "cd ucx-$_version"
+  supp_runcmd "mkdir -p build"
+  supp_runcmd "cd build"
   if [ -d "$_installdir" ] ; then
-    runcmd "rm -rf $_installdir"
+    supp_runcmd "rm -rf $_installdir"
   fi
-  runcmd "mkdir -p $_installdir"
+  supp_runcmd "mkdir -p $_installdir"
 
   # Configure UCX with ROCm and XPMEM support
-  runcmd "../contrib/configure-release \
+  supp_runcmd "../contrib/configure-release \
     --prefix=$_installdir \
     --with-rocm=$ROCM_PATH \
     --with-xpmem=$XPMEM_PATH \
@@ -258,12 +381,12 @@ function builducx(){
     --enable-params-check \
     --enable-examples"
 
-  runcmd "make -j${AOMP_JOB_THREADS}"
-  runcmd "make install"
+  supp_runcmd "make -j${AOMP_JOB_THREADS}"
+  supp_runcmd "make install"
   if [ -L "$_linkfrom" ] ; then
-    runcmd "rm $_linkfrom"
+    supp_runcmd "rm $_linkfrom"
   fi
-  runcmd "ln -sfr $_installdir $_linkfrom"
+  supp_runcmd "ln -sfr $_installdir $_linkfrom"
   echo "# $_linkfrom is now symbolic link to $_installdir " >>"$CMDLOGFILE"
 }
 
@@ -298,31 +421,31 @@ function builducc(){
     return
   fi
   if [ -d "$_builddir" ] ; then
-    runcmd "rm -rf $_builddir"
+    supp_runcmd "rm -rf $_builddir"
   fi
-  runcmd "mkdir -p $_builddir"
-  runcmd "cd $_builddir"
-  runcmd "wget https://github.com/openucx/ucc/archive/refs/tags/v$_version.tar.gz"
-  runcmd "tar -xzf v$_version.tar.gz"
-  runcmd "cd ucc-$_version"
+  supp_runcmd "mkdir -p $_builddir"
+  supp_runcmd "cd $_builddir"
+  supp_runcmd "wget https://github.com/openucx/ucc/archive/refs/tags/v$_version.tar.gz"
+  supp_runcmd "tar -xzf v$_version.tar.gz"
+  supp_runcmd "cd ucc-$_version"
   if [ -d "$_installdir" ] ; then
-    runcmd "rm -rf $_installdir"
+    supp_runcmd "rm -rf $_installdir"
   fi
-  runcmd "mkdir -p $_installdir"
-  runcmd "./autogen.sh"
+  supp_runcmd "mkdir -p $_installdir"
+  supp_runcmd "./autogen.sh"
 
   # Configure UCC with ROCm and UCX support
-  runcmd "./configure \
+  supp_runcmd "./configure \
     --prefix=$_installdir \
     --with-rocm=$ROCM_PATH \
     --with-ucx=$UCX_PATH"
 
-  runcmd "make -j${AOMP_JOB_THREADS}"
-  runcmd "make install"
+  supp_runcmd "make -j${AOMP_JOB_THREADS}"
+  supp_runcmd "make install"
   if [ -L "$_linkfrom" ] ; then
-    runcmd "rm $_linkfrom"
+    supp_runcmd "rm $_linkfrom"
   fi
-  runcmd "ln -sfr $_installdir $_linkfrom"
+  supp_runcmd "ln -sfr $_installdir $_linkfrom"
   echo "# $_linkfrom is now symbolic link to $_installdir " >>"$CMDLOGFILE"
 }
 
@@ -364,25 +487,25 @@ function _buildopenmpi_impl(){
   fi
 
   if [ -d "$_builddir" ] ; then
-    runcmd "rm -rf $_builddir"
+    supp_runcmd "rm -rf $_builddir"
   fi
-  runcmd "mkdir -p $_builddir"
-  runcmd "cd $_builddir"
-  runcmd "wget https://download.open-mpi.org/release/open-mpi/$_release/openmpi-$_version.tar.bz2"
-  runcmd "bzip2 -d openmpi-$_version.tar.bz2"
-  runcmd "tar -xf openmpi-$_version.tar"
-  runcmd "cd openmpi-$_version"
+  supp_runcmd "mkdir -p $_builddir"
+  supp_runcmd "cd $_builddir"
+  supp_runcmd "wget https://download.open-mpi.org/release/open-mpi/$_release/openmpi-$_version.tar.bz2"
+  supp_runcmd "bzip2 -d openmpi-$_version.tar.bz2"
+  supp_runcmd "tar -xf openmpi-$_version.tar"
+  supp_runcmd "cd openmpi-$_version"
   if [ -d "$_installdir" ] ; then
-    runcmd "rm -rf $_installdir"
+    supp_runcmd "rm -rf $_installdir"
   fi
-  runcmd "mkdir -p $_installdir"
+  supp_runcmd "mkdir -p $_installdir"
 
   # Update configure to recognize flang
-  runcmd "cp configure configure-orig"
+  supp_runcmd "cp configure configure-orig"
   runcmdout "sed -e s/flang\s*)/flang*)/ configure-orig" configure
 
   # Configure with common options plus any extra options
-  runcmd "./configure \
+  supp_runcmd "./configure \
     --prefix=$_installdir \
     --with-hwloc=$AOMP_SUPP/hwloc \
     --with-hwloc-libdir=$AOMP_SUPP/hwloc/lib \
@@ -400,12 +523,12 @@ function _buildopenmpi_impl(){
     fi
   fi
 
-  runcmd "make -j${AOMP_JOB_THREADS}"
-  runcmd "make install"
+  supp_runcmd "make -j${AOMP_JOB_THREADS}"
+  supp_runcmd "make install"
   if [ -L "$_linkfrom" ] ; then
-    runcmd "rm $_linkfrom"
+    supp_runcmd "rm $_linkfrom"
   fi
-  runcmd "ln -sfr $_installdir $_linkfrom"
+  supp_runcmd "ln -sfr $_installdir $_linkfrom"
   echo "# $_linkfrom is now symbolic link to $_installdir " >>"$CMDLOGFILE"
 }
 
@@ -487,29 +610,29 @@ function buildninja(){
     return
   fi
   if [ -d "$_builddir" ] ; then
-    runcmd "rm -rf $_builddir"
+    supp_runcmd "rm -rf $_builddir"
   fi
-  runcmd "mkdir -p $_builddir"
-  runcmd "cd $_builddir"
-  runcmd "wget https://github.com/ninja-build/ninja/archive/refs/tags/v${_version}.tar.gz"
-  runcmd "tar -xzf v${_version}.tar.gz"
-  runcmd "cd ninja-$_version"
+  supp_runcmd "mkdir -p $_builddir"
+  supp_runcmd "cd $_builddir"
+  supp_runcmd "wget https://github.com/ninja-build/ninja/archive/refs/tags/v${_version}.tar.gz"
+  supp_runcmd "tar -xzf v${_version}.tar.gz"
+  supp_runcmd "cd ninja-$_version"
   _patch_file="$thisdir/patches/ninja-nprocs-v${_version}.patch"
   if [ -r "$_patch_file" ]; then
     runcmd   "cp $_patch_file $_builddir"
     runcmdin "patch --merge -p1" "$_patch_file"
   fi
   if [ -d "$_installdir" ] ; then
-    runcmd "rm -rf $_installdir"
+    supp_runcmd "rm -rf $_installdir"
   fi
-  runcmd "mkdir -p $_installdir/bin"
-  runcmd "$AOMP_SUPP/cmake/bin/cmake -Bbuild-cmake"
-  runcmd "$AOMP_SUPP/cmake/bin/cmake --build build-cmake"
-  runcmd "cp -p build-cmake/ninja $_installdir/bin/."
+  supp_runcmd "mkdir -p $_installdir/bin"
+  supp_runcmd "$AOMP_SUPP/cmake/bin/cmake -Bbuild-cmake"
+  supp_runcmd "$AOMP_SUPP/cmake/bin/cmake --build build-cmake"
+  supp_runcmd "cp -p build-cmake/ninja $_installdir/bin/."
   if [ -L "$_linkfrom" ] ; then
-    runcmd "rm $_linkfrom"
+    supp_runcmd "rm $_linkfrom"
   fi
-  runcmd "ln -sfr $_installdir $_linkfrom"
+  supp_runcmd "ln -sfr $_installdir $_linkfrom"
   echo "# $_linkfrom is now symbolic link to $_installdir " >>"$CMDLOGFILE"
 }
 
@@ -536,44 +659,44 @@ function getrocmpackage(){
     return
   fi
   if [ -d "$_builddir" ] ; then
-    runcmd "rm -rf $_builddir"
+    supp_runcmd "rm -rf $_builddir"
   fi
-  runcmd "mkdir -p $_builddir"
-  runcmd "cd $_builddir"
+  supp_runcmd "mkdir -p $_builddir"
+  supp_runcmd "cd $_builddir"
   osname=$(grep -e ^NAME= < /etc/os-release)
   if [[ $osname =~ "Ubuntu" ]]; then
     # not sure if deb_version is 20 or 22
     deb_version="24"
     os_version=$(grep VERSION_ID /etc/os-release | cut -d"\"" -f2)
     [ "$os_version" == "22.04" ] && deb_version="22"
-    runcmd "wget https://repo.radeon.com/rocm/apt/$_version/pool/main/$_directory/$_packagename$_packageversion/$_packagename${_packageversion}_${_componentversion}.${_fullversion}-${_buildnumber}~${deb_version}.04_amd64.deb"
-    runcmd "dpkg -x $_packagename${_packageversion}_${_componentversion}.${_fullversion}-${_buildnumber}~${deb_version}.04_amd64.deb $_builddir"
+    supp_runcmd "wget https://repo.radeon.com/rocm/apt/$_version/pool/main/$_directory/$_packagename$_packageversion/$_packagename${_packageversion}_${_componentversion}.${_fullversion}-${_buildnumber}~${deb_version}.04_amd64.deb"
+    supp_runcmd "dpkg -x $_packagename${_packageversion}_${_componentversion}.${_fullversion}-${_buildnumber}~${deb_version}.04_amd64.deb $_builddir"
   elif [[ $osname =~ "SLES" ]]; then
-    runcmd "wget https://repo.radeon.com/rocm/zyp/$_version/main/$_packagename$_packageversion-$_componentversion.$_fullversion-sles156.$_buildnumber.x86_64.rpm"
+    supp_runcmd "wget https://repo.radeon.com/rocm/zyp/$_version/main/$_packagename$_packageversion-$_componentversion.$_fullversion-sles156.$_buildnumber.x86_64.rpm"
     echo "$_packagename$_packageversion-$_componentversion.$_fullversion-sles156.$_buildnumber.x86_64.rpm | cpio -idm"
     rpm2cpio "$_packagename$_packageversion-$_componentversion.$_fullversion-sles156.$_buildnumber.x86_64.rpm" | cpio -idm
   else
-    runcmd "wget https://repo.radeon.com/rocm/rhel8/$_version/main/$_packagename$_packageversion-$_componentversion.$_fullversion-$_buildnumber.el8.x86_64.rpm"
+    supp_runcmd "wget https://repo.radeon.com/rocm/rhel8/$_version/main/$_packagename$_packageversion-$_componentversion.$_fullversion-$_buildnumber.el8.x86_64.rpm"
     echo "$_packagename$_packageversion-$_componentversion.$_fullversion-$_buildnumber.el8.x86_64.rpm | cpio -idm"
     rpm2cpio "$_packagename$_packageversion-$_componentversion.$_fullversion-$_buildnumber.el8.x86_64.rpm" | cpio -idm
   fi
 
   if [ -d "$_installdir" ] ; then
-    runcmd "rm -rf $_installdir"
+    supp_runcmd "rm -rf $_installdir"
   fi
   if [ "$_cname" == "rocm-core" ] ; then
-    runcmd "mkdir -p $_installdir"
-    runcmd "cp -rp $_builddir/opt/rocm-$_packageversion/. $_installdir"
+    supp_runcmd "mkdir -p $_installdir"
+    supp_runcmd "cp -rp $_builddir/opt/rocm-$_packageversion/. $_installdir"
   else
-    runcmd "mkdir -p $_installdir/lib"
-    runcmd "cd $_installdir"
-    runcmd "cp -rp $_builddir/opt/rocm-$_packageversion/lib  $_installdir"
+    supp_runcmd "mkdir -p $_installdir/lib"
+    supp_runcmd "cd $_installdir"
+    supp_runcmd "cp -rp $_builddir/opt/rocm-$_packageversion/lib  $_installdir"
   fi
 
   if [ -L "$_linkfrom" ] ; then
-    runcmd "rm $_linkfrom"
+    supp_runcmd "rm $_linkfrom"
   fi
-  runcmd "ln -sfr $_installdir $_linkfrom"
+  supp_runcmd "ln -sfr $_installdir $_linkfrom"
   echo "# $_linkfrom is now symbolic link to $_installdir " >>"$CMDLOGFILE"
 }
 
@@ -591,25 +714,25 @@ function buildhdf5(){
   fi
 
   if [ -d "$_builddir" ] ; then 
-    runcmd "rm -rf $_builddir"
+    supp_runcmd "rm -rf $_builddir"
   fi
-  runcmd "mkdir -p $_builddir"
-  runcmd "cd $_builddir"
-  runcmd " wget https://support.hdfgroup.org/ftp/HDF5/releases/$_release/hdf5-$_version/src/hdf5-$_version.tar.bz2"
-  runcmd "bzip2 -d hdf5-$_version.tar.bz2"
-  runcmd "tar -xf hdf5-$_version.tar"
-  runcmd "cd hdf5-$_version"
+  supp_runcmd "mkdir -p $_builddir"
+  supp_runcmd "cd $_builddir"
+  supp_runcmd " wget https://support.hdfgroup.org/ftp/HDF5/releases/$_release/hdf5-$_version/src/hdf5-$_version.tar.bz2"
+  supp_runcmd "bzip2 -d hdf5-$_version.tar.bz2"
+  supp_runcmd "tar -xf hdf5-$_version.tar"
+  supp_runcmd "cd hdf5-$_version"
   if [ -d "$_installdir" ] ; then 
-    runcmd "rm -rf $_installdir"
+    supp_runcmd "rm -rf $_installdir"
   fi
-  runcmd "mkdir -p $_installdir"
-  runcmd "./configure --enable-fortran --prefix=$_installdir"
-  runcmd "make -j${AOMP_JOB_THREADS}"
-  runcmd "make install"
+  supp_runcmd "mkdir -p $_installdir"
+  supp_runcmd "./configure --enable-fortran --prefix=$_installdir"
+  supp_runcmd "make -j${AOMP_JOB_THREADS}"
+  supp_runcmd "make install"
   if [ -L "$_linkfrom" ] ; then 
-    runcmd "rm $_linkfrom"
+    supp_runcmd "rm $_linkfrom"
   fi
-  runcmd "ln -sfr $_installdir $_linkfrom"
+  supp_runcmd "ln -sfr $_installdir $_linkfrom"
   echo "# $_linkfrom is now symbolic link to $_installdir " >>"$CMDLOGFILE"
 }
 
@@ -626,24 +749,24 @@ function buildsilo(){
   fi
 
   if [ -d "$_builddir" ] ; then 
-    runcmd "rm -rf $_builddir"
+    supp_runcmd "rm -rf $_builddir"
   fi
-  runcmd "mkdir -p $_builddir"
-  runcmd "cd $_builddir"
-  runcmd "wget https://github.com/LLNL/Silo/releases/download/$_version/silo-$_version.tar.xz"
-  runcmd "tar -x --xz -f silo-$_version.tar.xz"
-  runcmd "cd silo-$_version"
+  supp_runcmd "mkdir -p $_builddir"
+  supp_runcmd "cd $_builddir"
+  supp_runcmd "wget https://github.com/LLNL/Silo/releases/download/$_version/silo-$_version.tar.xz"
+  supp_runcmd "tar -x --xz -f silo-$_version.tar.xz"
+  supp_runcmd "cd silo-$_version"
   if [ -d "$_installdir" ] ; then
-    runcmd "rm -rf $_installdir"
+    supp_runcmd "rm -rf $_installdir"
   fi
-  runcmd "mkdir -p $_installdir"
-  runcmd "./configure --prefix=$_installdir"
-  runcmd "make -j${AOMP_JOB_THREADS}"
-  runcmd "make install"
+  supp_runcmd "mkdir -p $_installdir"
+  supp_runcmd "./configure --prefix=$_installdir"
+  supp_runcmd "make -j${AOMP_JOB_THREADS}"
+  supp_runcmd "make install"
   if [ -L "$_linkfrom" ] ; then
-    runcmd "rm $_linkfrom"
+    supp_runcmd "rm $_linkfrom"
   fi
-  runcmd "ln -sfr $_installdir $_linkfrom"
+  supp_runcmd "ln -sfr $_installdir $_linkfrom"
   echo "# $_linkfrom is now symbolic link to $_installdir " >>"$CMDLOGFILE"
 }
 
@@ -660,28 +783,28 @@ function buildfftw(){
   fi
 
   if [ -d "$_builddir" ] ; then
-    runcmd "rm -rf $_builddir"
+    supp_runcmd "rm -rf $_builddir"
   fi
-  runcmd "mkdir -p $_builddir"
-  runcmd "cd $_builddir"
-  runcmd "wget http://www.fftw.org/fftw-$_version.tar.gz"
-  runcmd "tar -xzf fftw-$_version.tar.gz"
-  runcmd "cd fftw-$_version"
+  supp_runcmd "mkdir -p $_builddir"
+  supp_runcmd "cd $_builddir"
+  supp_runcmd "wget http://www.fftw.org/fftw-$_version.tar.gz"
+  supp_runcmd "tar -xzf fftw-$_version.tar.gz"
+  supp_runcmd "cd fftw-$_version"
   if [ -d "$_installdir" ] ; then
-    runcmd "rm -rf $_installdir"
+    supp_runcmd "rm -rf $_installdir"
   fi
-  runcmd "mkdir -p $_installdir"
-  runcmd "./configure --prefix=$_installdir --enable-shared --enable-threads --enable-sse2 --enable-avx"
-  runcmd "make -j${AOMP_JOB_THREADS}"
-  runcmd "make install"
-  runcmd "make clean"
-  runcmd "./configure --prefix=$_installdir --enable-shared --enable-threads --enable-sse2 --enable-avx --enable-float"
-  runcmd "make -j${AOMP_JOB_THREADS}"
-  runcmd "make install"
+  supp_runcmd "mkdir -p $_installdir"
+  supp_runcmd "./configure --prefix=$_installdir --enable-shared --enable-threads --enable-sse2 --enable-avx"
+  supp_runcmd "make -j${AOMP_JOB_THREADS}"
+  supp_runcmd "make install"
+  supp_runcmd "make clean"
+  supp_runcmd "./configure --prefix=$_installdir --enable-shared --enable-threads --enable-sse2 --enable-avx --enable-float"
+  supp_runcmd "make -j${AOMP_JOB_THREADS}"
+  supp_runcmd "make install"
   if [ -L "$_linkfrom" ] ; then
-    runcmd "rm $_linkfrom"
+    supp_runcmd "rm $_linkfrom"
   fi
-  runcmd "ln -sfr $_installdir $_linkfrom"
+  supp_runcmd "ln -sfr $_installdir $_linkfrom"
   echo "# $_linkfrom is now symbolic link to $_installdir " >>"$CMDLOGFILE"
 }
 
@@ -699,24 +822,24 @@ function buildcmake(){
   fi
 
   if [ -d "$_builddir" ] ; then
-    runcmd "rm -rf $_builddir"
+    supp_runcmd "rm -rf $_builddir"
   fi
-  runcmd "mkdir -p $_builddir"
-  runcmd "cd $_builddir"
-  runcmd "wget https://github.com/Kitware/CMake/releases/download/v$_version/cmake-$_version.tar.gz"
-  runcmd "tar -xzf cmake-$_version.tar.gz"
-  runcmd "cd cmake-$_version"
+  supp_runcmd "mkdir -p $_builddir"
+  supp_runcmd "cd $_builddir"
+  supp_runcmd "wget https://github.com/Kitware/CMake/releases/download/v$_version/cmake-$_version.tar.gz"
+  supp_runcmd "tar -xzf cmake-$_version.tar.gz"
+  supp_runcmd "cd cmake-$_version"
   if [ -d "$_installdir" ] ; then
-    runcmd "rm -rf $_installdir"
+    supp_runcmd "rm -rf $_installdir"
   fi
-  runcmd "mkdir -p $_installdir"
-  runcmd "./bootstrap --parallel=8 --prefix=$_installdir"
-  runcmd "make -j${AOMP_JOB_THREADS}"
-  runcmd "make install"
+  supp_runcmd "mkdir -p $_installdir"
+  supp_runcmd "./bootstrap --parallel=8 --prefix=$_installdir"
+  supp_runcmd "make -j${AOMP_JOB_THREADS}"
+  supp_runcmd "make install"
   if [ -L "$_linkfrom" ] ; then
-    runcmd "rm $_linkfrom"
+    supp_runcmd "rm $_linkfrom"
   fi
-  runcmd "ln -sfr $_installdir $_linkfrom"
+  supp_runcmd "ln -sfr $_installdir $_linkfrom"
   echo "# $_linkfrom is now symbolic link to $_installdir " >>"$CMDLOGFILE"
 }
 
@@ -733,25 +856,25 @@ function buildrocmsmilib(){
   fi
 
   if [ -d "$_builddir" ] ; then
-    runcmd "rm -rf $_builddir"
+    supp_runcmd "rm -rf $_builddir"
   fi
-  runcmd "mkdir -p $_builddir"
-  runcmd "cd $_builddir"
-  runcmd "git clone -b release/rocm-rel-7.1 https://github.com/ROCm/rocm_smi_lib rocmsmilib-$_version"
-  runcmd "cd rocmsmilib-$_version"
-  runcmd "mkdir -p build"
-  runcmd "cd build"
-  runcmd "$AOMP_SUPP/cmake/bin/cmake -DCMAKE_INSTALL_PREFIX=$_installdir .."
+  supp_runcmd "mkdir -p $_builddir"
+  supp_runcmd "cd $_builddir"
+  supp_runcmd "git clone -b release/rocm-rel-7.1 https://github.com/ROCm/rocm_smi_lib rocmsmilib-$_version"
+  supp_runcmd "cd rocmsmilib-$_version"
+  supp_runcmd "mkdir -p build"
+  supp_runcmd "cd build"
+  supp_runcmd "$AOMP_SUPP/cmake/bin/cmake -DCMAKE_INSTALL_PREFIX=$_installdir .."
   if [ -d "$_installdir" ] ; then
-    runcmd "rm -rf $_installdir"
+    supp_runcmd "rm -rf $_installdir"
   fi
-  runcmd "mkdir -p $_installdir"
-  runcmd "make -j${AOMP_JOB_THREADS}"
-  runcmd "make install"
+  supp_runcmd "mkdir -p $_installdir"
+  supp_runcmd "make -j${AOMP_JOB_THREADS}"
+  supp_runcmd "make install"
   if [ -L "$_linkfrom" ] ; then
-    runcmd "rm $_linkfrom"
+    supp_runcmd "rm $_linkfrom"
   fi
-  runcmd "ln -sfr $_installdir $_linkfrom"
+  supp_runcmd "ln -sfr $_installdir $_linkfrom"
   echo "# $_linkfrom is now symbolic link to $_installdir " >>"$CMDLOGFILE"
 }
 
@@ -774,25 +897,25 @@ function buildhwloc(){
     exit 1
   fi
   if [ -d "$_builddir" ] ; then
-    runcmd "rm -rf $_builddir"
+    supp_runcmd "rm -rf $_builddir"
   fi
-  runcmd "mkdir -p $_builddir"
-  runcmd "cd $_builddir"
-  runcmd "git clone https://github.com/open-mpi/hwloc hwloc-$_version"
-  runcmd "cd hwloc-$_version"
-  runcmd "git checkout v$_version"
-  runcmd "./autogen.sh"
-  runcmd "./configure --prefix=$_installdir --with-pic=yes --enable-static=yes --enable-shared=no --disable-io --disable-libudev --disable-libxml2 --with-rocm=$AOMP_SUPP/rocsmilib"
+  supp_runcmd "mkdir -p $_builddir"
+  supp_runcmd "cd $_builddir"
+  supp_runcmd "git clone https://github.com/open-mpi/hwloc hwloc-$_version"
+  supp_runcmd "cd hwloc-$_version"
+  supp_runcmd "git checkout v$_version"
+  supp_runcmd "./autogen.sh"
+  supp_runcmd "./configure --prefix=$_installdir --with-pic=yes --enable-static=yes --enable-shared=no --disable-io --disable-libudev --disable-libxml2 --with-rocm=$AOMP_SUPP/rocsmilib"
   if [ -d "$_installdir" ] ; then
-    runcmd "rm -rf $_installdir"
+    supp_runcmd "rm -rf $_installdir"
   fi
-  runcmd "mkdir -p $_installdir"
-  runcmd "make -j${AOMP_JOB_THREADS}"
-  runcmd "make install"
+  supp_runcmd "mkdir -p $_installdir"
+  supp_runcmd "make -j${AOMP_JOB_THREADS}"
+  supp_runcmd "make install"
   if [ -L "$_linkfrom" ] ; then
-    runcmd "rm $_linkfrom"
+    supp_runcmd "rm $_linkfrom"
   fi
-  runcmd "ln -sfr $_installdir $_linkfrom"
+  supp_runcmd "ln -sfr $_installdir $_linkfrom"
   echo "# $_linkfrom is now symbolic link to $_installdir " >>"$CMDLOGFILE"
 }
 
@@ -804,6 +927,19 @@ if [ "$1" == "-h" ] ; then
   build_supp_help
   exit 0
 fi
+
+# Task interface for the aomp_build.py orchestrator and the standard component
+# task introspection. These keywords are routed to command_dispatcher; any
+# other argument (or no argument) falls through to the legacy direct
+# invocation below, which builds the default set or a list of named components.
+case "$1" in
+  list|list_configs|list_tasks|list_init|list_fini|\
+  show_src_dir|show_build_dir|show_install_dir|all|cmake|nocmake|task_*)
+    command_dispatcher "$@"
+    exit $?
+    ;;
+esac
+
 if [ "$1" == "install" ] ; then
   # build_aomp.sh will try to install each aomp component including "prereq"
   # but they are already installed so we just return here to avoid error message.
@@ -811,65 +947,8 @@ if [ "$1" == "install" ] ; then
   exit 0
 fi
 if [ "$1" == "" ] ; then 
-  if [ "$sname" == "build_prereq.sh" ] ; then
-    _components="$PREREQUISITE_COMPONENTS"
-  else 
-    _components="$SUPPLEMENTAL_COMPONENTS"
-  fi
+  _components="$(default_components)"
 else
   _components=$*
 fi
-# save the current directory
-curdir=$PWD
-for _component in $_components ; do 
-  _thisdate=$(date)
-  {
-    echo ""
-    echo "# -------------------------------------------------"
-    echo "# $_component build started on $_thisdate"
-  } >> "$CMDLOGFILE"
-  if [ "$_component" == "openmpi" ] ; then
-    buildopenmpi
-  elif [ "$_component" == "rocmopenmpi" ] ; then
-    buildrocmopenmpi
-  elif [ "$_component" == "xpmem" ] ; then
-    buildxpmem
-  elif [ "$_component" == "ucx" ] ; then
-    builducx
-  elif [ "$_component" == "ucc" ] ; then
-    builducc
-  elif [ "$_component" == "silo" ] ; then
-    buildsilo
-  elif [ "$_component" == "hdf5" ] ; then
-    buildhdf5
-  elif [ "$_component" == "fftw" ] ; then
-    buildfftw
-  elif [ "$_component" == "hwloc" ] ; then
-    buildhwloc
-  elif [ "$_component" == "cmake" ] ; then
-    buildcmake
-  elif [ "$_component" == "rocmsmilib" ] ; then
-    buildrocmsmilib
-  elif [ "$_component" == "ninja" ] ; then
-    buildninja
-  elif [ "$_component" == "aqlprofile" ] ; then
-    getrocmpackage aqlprofile hsa-amd-aqlprofile 1.0.0
-  elif [ "$_component" == "openclicdloader" ] ; then
-    getrocmpackage openclicdloader rocm-opencl-icd-loader 1.2
-  elif [ "$_component" == "rocm-core" ] ; then
-    getrocmpackage rocm-core rocm-core 7.1.0
-  else
-    echo "ERROR:  Invalid component name $_component" >>"$CMDLOGFILE"
-    echo "ERROR:  Invalid component name $_component"
-    if [ "$sname" == "build_prereq.sh" ] ; then
-       echo "        Must be a subset of: $PREREQUISITE_COMPONENTS"
-    else
-       echo "        Must be a subset of: $SUPPLEMENTAL_COMPONENTS"
-    fi
-    exit 0
-  fi
-  _thisdate=$(date)
-  echo "# DONE: successful build of $_component on $_thisdate " >>"$CMDLOGFILE"
-done
-
-cd "$curdir" || exit
+build_components "$_components"

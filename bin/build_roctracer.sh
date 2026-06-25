@@ -3,27 +3,37 @@
 #  build_roctracer.sh:  Script to build roctracer for AOMP standalone build
 #
 
-# --- Start standard header to set AOMP environment variables ----
+# Without these options, we can lose error status from command subtitutions,
+# etc.
+set -e
+shopt -s inherit_errexit
 
-realpath=$(realpath "$0")
+# --- Start standard header to set AOMP environment variables ----
+realpath=$(realpath -- "$0")
 thisdir=$(dirname "$realpath")
+. "$thisdir/aomp_utils"
 . "$thisdir/aomp_common_vars"
 # --- end standard header ----
 
+# All user-controllable (environment) values are read through these wrappers so
+# that they can later be driven by an orchestration layer.
+cfgvar() {
+  get_config_var_string roctracer "$1"
+}
+
+cfgbool() {
+  get_config_var_bool roctracer "$1"
+}
+
 INSTALL_ROCTRACE=${INSTALL_ROCTRACE:-$AOMP_INSTALL_DIR}
-export HIP_CLANG_PATH=$LLVM_INSTALL_LOC/bin
-echo "$HIP_CLANG_PATH"
-export ROCM_PATH=$ROCM_DIR
-
-# Needed for systems that have both AMD and Nvidia cards installed.
 HIP_PLATFORM=${HIP_PLATFORM:-amd}
-export HIP_PLATFORM
+REPO_DIR="$(cfgvar AOMP_REPOS)/$(cfgvar AOMP_TRACE_REPO_NAME)"
 
-if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then 
+if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   echo " "
   echo " This script builds the ROCM runtime libraries"
-  echo " It gets the source from:  $AOMP_REPOS/$AOMP_TRACE_REPO_NAME"
-  echo " It builds libraries in:   $BUILD_AOMP/build/roctracer"
+  echo " It gets the source from:  $REPO_DIR"
+  echo " It builds libraries in:   $(cfgvar BUILD_DIR)/roctracer"
   echo " It installs in:           $INSTALL_ROCTRACE"
   echo " "
   echo "Example commands and actions: "
@@ -33,26 +43,91 @@ if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   echo " "
   echo "To build aomp, see the README file in this directory"
   echo " "
-  exit 
+  exit 0
 fi
 
-if [ ! -d "$AOMP_REPOS/$AOMP_TRACE_REPO_NAME" ] ; then
-   echo "ERROR:  Missing repository $AOMP_REPOS/$AOMP_TRACE_REPO_NAME"
-   echo "        Are environment variables AOMP_REPOS and AOMP_TRACE_REPO_NAME set correctly?"
-   exit 1
-fi
+get_src_dir() {
+   echo "$REPO_DIR"
+}
 
-check_writable_installdir "$1" "$INSTALL_ROCTRACE"
+# Print the build dir for a given config, passed as $1.
+get_build_dir() {
+   local Cfg=$1
+   local BuildDir
+   BuildDir="$(cfgvar BUILD_DIR)"
 
-patchrepo "$AOMP_REPOS/$AOMP_TRACE_REPO_NAME"
+   case "$Cfg" in
+   "default")
+     echo -n "$BuildDir/roctracer"
+     ;;
+   *)
+     >&2 echo "Unknown config '$Cfg'"
+     exit 1
+     ;;
+   esac
+}
 
-if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then 
-   echo " " 
-   echo "This is a FRESH START. ERASING any previous builds in $BUILD_AOMP/build_roctracer"
-   echo "Use ""$0 nocmake"" or ""$0 install"" to avoid FRESH START."
+# Print the install dir for a given config, passed as $1.
+get_install_dir() {
+   cfgvar INSTALL_ROCTRACE
+}
 
-   echo "rm -rf $BUILD_AOMP/build/roctracer"
-   rm -rf "$BUILD_AOMP/build/roctracer"
+task_precheck() {
+   local SrcDir
+   SrcDir="$(get_src_dir)"
+
+   if [ ! -d "$SrcDir" ] ; then
+      echo "ERROR:  Missing repository $SrcDir"
+      echo "        Are environment variables AOMP_REPOS and AOMP_TRACE_REPO_NAME set correctly?"
+      exit 1
+   fi
+
+   check_writable_installdir "$1" "$(cfgvar INSTALL_ROCTRACE)"
+}
+
+task_patch() {
+   patchrepo "$REPO_DIR"
+}
+
+task_unpatch() {
+   removepatch "$REPO_DIR"
+}
+
+task_clean() {
+   local Cfg=$1
+   local BuildDir
+   BuildDir=$(get_build_dir "$Cfg")
+   echo "rm -rf $(shquot "$BuildDir")"
+   rm -rf "$BuildDir"
+}
+
+task_cmake() {
+   local Cfg=$1
+   local BuildDir
+   local SrcDir
+   local AompCmake
+   local InstallDir
+   local GfxSemicolons
+   local HipPlatform
+   local _loc
+   local _gccver
+   local -a CMAKE_WITH_EXPERIMENTAL
+   local -a MYCMAKEOPTS
+
+   SrcDir="$(get_src_dir)"
+   BuildDir="$(get_build_dir "$Cfg")"
+   AompCmake="$(cfgvar AOMP_CMAKE)"
+   InstallDir="$(cfgvar INSTALL_ROCTRACE)"
+   GfxSemicolons=$(cfgvar GFXLIST | tr ' ' ';')
+   HipPlatform="$(cfgvar HIP_PLATFORM)"
+
+   export HIP_CLANG_PATH="$LLVM_INSTALL_LOC/bin"
+   export HIP_PLATFORM="$HipPlatform"
+   export ROCM_PATH="$ROCM_DIR"
+   export CMAKE_BUILD_TYPE=Release
+   export CMAKE_PREFIX_PATH="$ROCM_DIR/include/hsa;$ROCM_DIR/include;$ROCM_DIR/lib;$ROCM_DIR;$LLVM_INSTALL_LOC"
+   export HIPCC_COMPILE_FLAGS_APPEND="--rocm-path=$ROCM_DIR"
+
    CMAKE_WITH_EXPERIMENTAL=()
    if [ -d "/usr/include/c++/5/experimental" ] ; then
       _loc=$(which gcc)
@@ -63,73 +138,102 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
          fi
       fi
    fi
-   BUILD_TYPE="Release"
-   export CMAKE_BUILD_TYPE=$BUILD_TYPE
-   CMAKE_PREFIX_PATH="$ROCM_DIR/include/hsa;$ROCM_DIR/include;$ROCM_DIR/lib;$ROCM_DIR;$LLVM_INSTALL_LOC"
-   export CMAKE_PREFIX_PATH
-   GFXSEMICOLONS=$(echo "$GFXLIST" | tr ' ' ';')
-   export ROCM_PATH=$ROCM_DIR
-   export HIPCC_COMPILE_FLAGS_APPEND="--rocm-path=$ROCM_PATH"
-   mkdir -p "$BUILD_AOMP/build/roctracer"
-   cd "$BUILD_AOMP/build/roctracer" || exit
-   echo " -----Running roctracer cmake ---- " 
 
-   if ! ${AOMP_CMAKE} -DCMAKE_INSTALL_LIBDIR=lib \
-                      -DCMAKE_BUILD_TYPE="$BUILD_TYPE" \
-                      -DCMAKE_INSTALL_PREFIX="$INSTALL_ROCTRACE" \
-                      -DCMAKE_PREFIX_PATH="$CMAKE_PREFIX_PATH" \
-                      "${CMAKE_WITH_EXPERIMENTAL[@]}" \
-                      "${AOMP_ORIGIN_RPATH[@]}" \
-                      -DGPU_TARGETS="$GFXSEMICOLONS" \
-                      -DROCM_PATH="$ROCM_DIR" \
-                      "$AOMP_REPOS/$AOMP_TRACE_REPO_NAME"; then
-      echo "ERROR roctracer cmake failed. cmake flags"
+   MYCMAKEOPTS=(-DCMAKE_INSTALL_LIBDIR=lib
+                -DCMAKE_BUILD_TYPE=Release
+                -DCMAKE_INSTALL_PREFIX="$InstallDir"
+                -DCMAKE_PREFIX_PATH="$CMAKE_PREFIX_PATH"
+                "${CMAKE_WITH_EXPERIMENTAL[@]}"
+                "${AOMP_ORIGIN_RPATH[@]}"
+                -DGPU_TARGETS="$GfxSemicolons"
+                -DROCM_PATH="$ROCM_DIR")
+
+   mkdir -p "$BuildDir"
+   pushd "$BuildDir" >& /dev/null || exit
+   echo " -----Running cmake for roctracer $Cfg ---- "
+   echo "$AompCmake $(shquot "${MYCMAKEOPTS[@]}") $SrcDir"
+
+   if ! "$AompCmake" "${MYCMAKEOPTS[@]}" "$SrcDir"; then
+      echo "ERROR roctracer $Cfg cmake failed. cmake flags"
       echo "      $(shquot "${MYCMAKEOPTS[@]}")"
       exit 1
    fi
-fi
+   popd >& /dev/null || exit
+}
 
-if [ "$1" = "cmake" ]; then
-   exit 0
-fi
+task_build() {
+   local Cfg=$1
+   local BuildDir
+   local Jobs
+   local doxygen
+   BuildDir="$(get_build_dir "$Cfg")"
+   Jobs="$(cfgvar AOMP_JOB_THREADS)"
 
-cd "$BUILD_AOMP/build/roctracer" || exit
-echo
-echo " -----Running make for roctracer ---- " 
-echo "make -j $AOMP_JOB_THREADS"
-
-if ! make -j "$AOMP_JOB_THREADS"; then
+   pushd "$BuildDir" >& /dev/null || exit
+   echo " -----Running make for roctracer $Cfg ---- "
+   echo "make -j $Jobs"
+   if ! make -j "$Jobs"; then
       echo " "
-      echo "ERROR: make -j $AOMP_JOB_THREADS  FAILED"
-      echo "To restart:" 
-      echo "  cd $BUILD_AOMP/build/roctracer"
+      echo "ERROR: make -j $Jobs  FAILED"
+      echo "To restart:"
+      echo "  cd $BuildDir"
       echo "  make"
       exit 1
-fi
+   fi
 
-doxygen=$(which doxygen)
-if [ -n "$doxygen" ] ; then
-   # the roctracer CMakeLists.txt will prepare docs install if doxygen found.
-   # However, the make doc has issues.  But if you dont make doc, the install
-   # fails.  This 'make doc' will do enough so install does not fail.
-   echo "make -j $AOMP_JOB_THREADS doc"
-   make -j "$AOMP_JOB_THREADS" doc 2>/dev/null >/dev/null
-fi
+   doxygen=$(which doxygen || true)
+   if [ -n "$doxygen" ] ; then
+      # the roctracer CMakeLists.txt will prepare docs install if doxygen found.
+      # However, the make doc has issues.  But if you dont make doc, the install
+      # fails.  This 'make doc' will do enough so install does not fail.
+      echo "make -j $Jobs doc"
+      make -j "$Jobs" doc 2>/dev/null >/dev/null || true
+   fi
+   popd >& /dev/null || exit
+}
 
-#  ----------- Install only if asked  ----------------------------
-if [ "$1" == "install" ] ; then
-      cd "$BUILD_AOMP/build/roctracer" || exit
-      echo " -----Installing to $INSTALL_ROCTRACE/lib ----- " 
-      echo "$SUDO make install "
+task_install() {
+   local Cfg=$1
+   local BuildDir
+   local InstallDir
+   BuildDir="$(get_build_dir "$Cfg")"
+   InstallDir="$(get_install_dir "$Cfg")"
 
-      if ! $SUDO make install; then 
-         echo "ERROR make install failed "
-         exit 1
-      fi
-      removepatch "$AOMP_REPOS/$AOMP_TRACE_REPO_NAME"
-else
-   echo
-   echo "SUCCESSFUL BUILD, please run:  $0 install"
-   echo "  to install into $AOMP"
-   echo
-fi
+   pushd "$BuildDir" >& /dev/null || exit
+   echo " -----Installing to $InstallDir/lib ----- "
+   echo "$SUDO make install "
+
+   if ! $SUDO make install; then
+      echo "ERROR make install failed "
+      exit 1
+   fi
+   popd >& /dev/null || exit
+}
+
+do_list_configs() {
+  echo "default"
+}
+
+do_list_init() {
+  echo "precheck"
+  echo "patch"
+}
+
+do_list_fini() {
+  echo "unpatch"
+}
+
+# List of tasks per config.
+do_list_tasks() {
+  local Cfg=$1
+  if valid_config "$Cfg"; then
+    echo "clean"
+    echo "cmake"
+    echo "build"
+    echo "install"
+  else
+    echo "Unknown config '$Cfg'"
+  fi
+}
+
+command_dispatcher "$@"

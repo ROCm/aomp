@@ -1,0 +1,255 @@
+# aomp.cudf - AOMP build component dependency description
+#
+# CUDF-style (Common Upgradeability Description Format) stanzas describing the
+# AOMP build components, their dependencies, and the default requested build
+# set. This file is consumed by bin/aomp_build.py to resolve a component set,
+# topologically order it, and elaborate per-component build tasks.
+#
+# Format
+# ------
+#   * Stanzas are separated by one or more blank lines.
+#   * Within a stanza, each line is "key: value".
+#   * Lines beginning with '#' and blank lines are ignored.
+#   * Lists (depends, expands, install) are comma-separated and may wrap onto
+#     continuation lines (any line that does not contain a ':' before the first
+#     whitespace is treated as a continuation of the previous value).
+#
+# Stanza kinds
+# ------------
+#   package:  a buildable component. Fields:
+#               package:  component name (drives build_<name>.sh)
+#               version:  schema version of this stanza (currently always 1)
+#               depends:  components that must be built first (optional)
+#               x-dir:    bin subdirectory holding build_<name>.sh; one of
+#                         "." (default) or "rocmlibs".
+#   feature:  a named alias expanding to a set of components. Fields:
+#               feature:  feature/group name
+#               expands:  comma-separated component names
+#             Used by aomp_build.py --add/--remove to toggle whole groups.
+#   request:  the default requested build set. Field:
+#               install:  comma-separated components built by default.
+#
+# Source of truth for the component list, ordering, and grouping is
+# bin/build_aomp.sh (the standalone x86_64 build) and bin/rocmlibs/build_rocmlibs.sh.
+# Dependencies are expressed as a DAG; aomp_build.py performs a deterministic
+# topological sort that breaks ties using the package declaration order below,
+# which reproduces the canonical build_aomp.sh ordering.
+
+#-----------------------------------------------------------------------------
+# Core AOMP components (bin/build_<name>.sh), in build_aomp.sh order.
+#-----------------------------------------------------------------------------
+
+package: prereq
+version: 1
+x-dir: .
+
+package: project
+version: 1
+depends: prereq
+x-dir: .
+
+package: rocprofiler-register
+version: 1
+depends: project
+x-dir: .
+
+package: rocr
+version: 1
+depends: project
+x-dir: .
+
+package: llvm_runtimes_standalone
+version: 1
+depends: project, rocr
+x-dir: .
+
+package: extras
+version: 1
+depends: llvm_runtimes_standalone
+x-dir: .
+
+package: comgr
+version: 1
+depends: project, rocr
+x-dir: .
+
+package: rocminfo
+version: 1
+depends: rocr
+x-dir: .
+
+package: rocm_smi_lib
+version: 1
+depends: prereq
+x-dir: .
+
+package: amdsmi
+version: 1
+depends: prereq
+x-dir: .
+
+package: llvm-classic
+version: 1
+depends: project
+x-dir: .
+
+package: flang-classic
+version: 1
+depends: llvm-classic
+x-dir: .
+
+package: pgmath
+version: 1
+depends: flang-classic
+x-dir: .
+
+package: flang
+version: 1
+depends: pgmath
+x-dir: .
+
+package: flang_runtime
+version: 1
+depends: flang
+x-dir: .
+
+package: hipcc
+version: 1
+depends: llvm_runtimes_standalone
+x-dir: .
+
+package: hipamd
+version: 1
+depends: hipcc, comgr
+x-dir: .
+
+package: hipify
+version: 1
+depends: hipcc
+x-dir: .
+
+package: hipfort
+version: 1
+# hipfort builds with the modern LLVM flang (project) and HIP (hipamd); it does
+# not need the deprecated classic flang_runtime stack (build_hipfort.sh uses
+# $LLVM_INSTALL_LOC/bin/flang).
+depends: hipamd, project
+x-dir: .
+
+package: rocdbgapi
+version: 1
+depends: comgr
+x-dir: .
+
+package: rocgdb
+version: 1
+depends: rocdbgapi
+x-dir: .
+
+package: rocprofiler-sdk
+version: 1
+depends: hipamd, rocprofiler-register
+x-dir: .
+
+#-----------------------------------------------------------------------------
+# ROCm math/communication libraries (bin/rocmlibs/build_<name>.sh), in
+# build_rocmlibs.sh order. Not built by default; add with --add rocmlibs.
+#-----------------------------------------------------------------------------
+
+package: rocm-cmake
+version: 1
+depends: prereq
+x-dir: .
+
+package: rocBLAS
+version: 1
+depends: rocm-cmake, hipamd
+x-dir: rocmlibs
+
+package: rocPRIM
+version: 1
+depends: rocm-cmake, hipamd
+x-dir: rocmlibs
+
+package: rocSPARSE
+version: 1
+depends: rocBLAS, rocPRIM
+x-dir: rocmlibs
+
+package: rocSOLVER
+version: 1
+depends: rocBLAS, rocPRIM, rocSPARSE
+x-dir: rocmlibs
+
+package: hipBLAS-common
+version: 1
+depends: rocm-cmake
+x-dir: rocmlibs
+
+package: hipBLAS
+version: 1
+depends: rocBLAS, hipBLAS-common, rocSOLVER
+x-dir: rocmlibs
+
+package: rocRAND
+version: 1
+depends: rocm-cmake, hipamd
+x-dir: rocmlibs
+
+package: hipRAND
+version: 1
+depends: rocRAND
+x-dir: rocmlibs
+
+package: rccl
+version: 1
+depends: rocm-cmake, hipamd
+x-dir: rocmlibs
+
+package: half
+version: 1
+depends: rocm-cmake
+x-dir: rocmlibs
+
+package: hipSOLVER
+version: 1
+depends: rocSOLVER, hipBLAS
+x-dir: rocmlibs
+
+#-----------------------------------------------------------------------------
+# Feature aliases: named groups for --add / --remove.
+#-----------------------------------------------------------------------------
+
+# Classic Flang and the LLVM it depends on (build_aomp.sh AOMP_SKIP_FLANG==0).
+# Deprecated and omitted from the default request; re-enable with --add flang.
+feature: flang
+expands: llvm-classic, flang-classic, pgmath, flang, flang_runtime
+
+# HIP runtime/toolchain.
+feature: hip
+expands: hipcc, hipamd, hipify
+
+# Debugger components (build_aomp.sh AOMP_BUILD_DEBUG==1).
+feature: debug
+expands: rocdbgapi, rocgdb
+
+# Profiler components.
+feature: profiler
+expands: rocprofiler-register, rocprofiler-sdk
+
+# ROCm math/communication libraries.
+feature: rocmlibs
+expands: rocm-cmake, rocBLAS, rocPRIM, rocSPARSE, rocSOLVER, hipBLAS-common,
+         hipBLAS, rocRAND, hipRAND, rccl, half, hipSOLVER
+
+#-----------------------------------------------------------------------------
+# Default requested build set: the standalone x86_64 AOMP build from
+# build_aomp.sh, omitting the deprecated classic Flang stack (llvm-classic,
+# flang-classic, pgmath, flang, flang_runtime; re-add with --add flang) and
+# rocmlibs. Modify with --add / --remove.
+#-----------------------------------------------------------------------------
+
+request:
+install: prereq, project, rocprofiler-register, rocr, llvm_runtimes_standalone,
+         extras, comgr, rocminfo, rocm_smi_lib, amdsmi, hipcc, hipamd, hipify,
+         hipfort, rocdbgapi, rocgdb, rocprofiler-sdk

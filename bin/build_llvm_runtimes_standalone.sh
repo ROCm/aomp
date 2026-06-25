@@ -4,11 +4,27 @@
 #                This script will install in location defined by AOMP env variable
 #
 
+# Without these options, we can lose error status from command subtitutions,
+# etc.
+set -e
+shopt -s inherit_errexit
+
 # --- Start standard header to set AOMP environment variables ----
-realpath=$(realpath "$0")
+realpath=$(realpath -- "$0")
 thisdir=$(dirname "$realpath")
+. "$thisdir/aomp_utils"
 . "$thisdir/aomp_common_vars"
 # --- end standard header ----
+
+# All user-controllable (environment) values are read through these wrappers so
+# that they can later be driven by an orchestration layer.
+cfgvar() {
+  get_config_var_string llvm_runtimes_standalone "$1"
+}
+
+cfgbool() {
+  get_config_var_bool llvm_runtimes_standalone "$1"
+}
 
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   help_build_aomp
@@ -16,255 +32,315 @@ fi
 
 REPO_DIR=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME
 _ompd_src_dir="$LLVM_INSTALL_LOC/share/gdb/python/ompd/src"
-OPENMP_BUILD_DEVICERTL=${OPENMP_BUILD_DEVICERTL:-0}
 RUNTIMES_BUILD_DIR=${RUNTIMES_BUILD_DIR:-"llvm_runtimes_standalone"}
 
-if [ "$AOMP_BUILD_CUDA" == 1 ] ; then
-   CUDAH=$(find "$CUDAT" -type f,l -name "cuda.h" 2>/dev/null)
-   if [ "$CUDAH" == "" ] ; then
-      CUDAH=$(find "$CUDAINCLUDE" -type f,l -name "cuda.h" 2>/dev/null)
+get_src_dir() {
+   echo "$REPO_DIR/runtimes"
+}
+
+# Return success if the config is a "device runtime library" pass, which builds
+# the same set of variants in a separate build directory with the amdgcn
+# default target triple.
+devicertl_config() {
+   local Cfg=$1
+   case "$Cfg" in
+     *-devicertl)
+       return 0
+       ;;
+     *)
+       ;;
+   esac
+   return 1
+}
+
+asan_config() {
+   local Cfg=${1%-devicertl}
+   case "$Cfg" in
+     asan|*+asan)
+       return 0
+       ;;
+     *)
+       ;;
+   esac
+   return 1
+}
+
+debug_config() {
+   local Cfg=${1%-devicertl}
+   case "$Cfg" in
+     debug|debug+*)
+       return 0
+       ;;
+     *)
+       ;;
+   esac
+   return 1
+}
+
+perf_config() {
+   local Cfg=${1%-devicertl}
+   case "$Cfg" in
+     perf|perf+*)
+       return 0
+       ;;
+     *)
+       ;;
+   esac
+   return 1
+}
+
+# Print the base build directory name (without variant suffix) for a config.
+runtimes_dir_base() {
+   local Cfg=$1
+   if devicertl_config "$Cfg"; then
+      echo -n "$(cfgvar RUNTIMES_BUILD_DIR)-devicertl"
+   else
+      echo -n "$(cfgvar RUNTIMES_BUILD_DIR)"
    fi
-   if [ "$CUDAH" == "" ] ; then
-      echo
-      echo "ERROR:  THE cuda.h FILE WAS NOT FOUND WITH ARCH $AOMP_PROC"
-      echo "        A CUDA installation is necessary to build libomptarget deviceRTLs"
-      echo "        Please install CUDA to build llvm_runtimes_standalone"
-      echo
+}
+
+# Print the build dir for a given config, passed as $1.
+get_build_dir() {
+   local Cfg=$1
+   local Base=${Cfg%-devicertl}
+   local BuildDir
+   local DirBase
+   BuildDir="$(cfgvar BUILD_DIR)"
+   DirBase="$(runtimes_dir_base "$Cfg")"
+
+   case "$Base" in
+   "asan")
+     echo -n "$BuildDir/$DirBase/asan"
+     ;;
+   "perf")
+     echo -n "$BuildDir/${DirBase}_perf"
+     ;;
+   "perf+asan")
+     echo -n "$BuildDir/${DirBase}_perf/asan"
+     ;;
+   "debug")
+     echo -n "$BuildDir/${DirBase}_debug"
+     ;;
+   "debug+asan")
+     echo -n "$BuildDir/${DirBase}_debug/asan"
+     ;;
+   *)
+     >&2 echo "Unknown config '$Cfg'"
+     exit 1
+     ;;
+   esac
+}
+
+# Print the install dir for a given config, passed as $1.
+get_install_dir() {
+   echo "$LLVM_INSTALL_LOC"
+}
+
+# Print the OFFLOAD/LLVM libdir suffix for a given config.
+libdir_suffix() {
+   local Cfg=${1%-devicertl}
+   case "$Cfg" in
+     asan)
+       printf "%s" "/asan"
+       ;;
+     perf)
+       printf "%s" "-perf"
+       ;;
+     perf+asan)
+       printf "%s" "-perf/asan"
+       ;;
+     debug)
+       printf "%s" "-debug"
+       ;;
+     debug+asan)
+       printf "%s" "-debug/asan"
+       ;;
+     *)
+       >&2 echo "Unknown config '$Cfg'"
+       exit 1
+       ;;
+   esac
+}
+
+task_precheck() {
+   local CUDAH
+   local CUDAVER
+   local CUDATop
+   local CUDAInclude
+   local CUDABin
+   local AOMPProc
+
+   if [ ! -d "$REPO_DIR" ] ; then
+      echo "ERROR:  Missing repository $REPO_DIR "
+      echo "        Consider setting env variables AOMP_REPOS and/or AOMP_PROJECT_REPO_NAME "
       exit 1
    fi
-   # I don't see now nvcc is called, but this eliminates the deprecated warnings
-   export CUDAFE_FLAGS="-w"
-fi
 
-if [ ! -d "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME" ] ; then
-   echo "ERROR:  Missing repository $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME "
-   echo "        Consider setting env variables AOMP_REPOS and/or AOMP_PROJECT_REPO_NAME "
-   exit 1
-fi
+   check_writable_installdir "$1" "$LLVM_INSTALL_LOC"
 
-check_writable_installdir "$1" "$LLVM_INSTALL_LOC"
-
-if [ "$AOMP_BUILD_CUDA" == 1 ] ; then
-   if [ -f "$CUDABIN/nvcc" ] ; then
-      CUDAVER=$("$CUDABIN"/nvcc --version | grep compilation | cut -d" " -f5 | cut -d"." -f1)
-      echo "CUDA VERSION IS $CUDAVER"
-   fi
-fi
-
-if [ "$AOMP_USE_NINJA" == 0 ] ; then
-    AOMP_SET_NINJA_GEN=()
-else
-    AOMP_SET_NINJA_GEN=(-G Ninja)
-fi
-
-export LLVM_DIR=$AOMP_INSTALL_DIR
-GFXSEMICOLONS=$(echo "$GFXLIST" | tr ' ' ';')
-ALTAOMP=${ALTAOMP:-$LLVM_INSTALL_LOC}
-
-LLVM_VERSION_MAJOR=$("${LLVM_INSTALL_LOC}"/bin/clang --version | grep -oP '(?<=clang version )[0-9]+')
-
-declare -a COMMON_CMAKE_OPTS
-
-COMMON_CMAKE_OPTS=("${AOMP_SET_NINJA_GEN[@]}" -DOPENMP_ENABLE_LIBOMPTARGET=1
-                   -DCMAKE_INSTALL_PREFIX="$LLVM_INSTALL_LOC"
-                   -DOPENMP_TEST_C_COMPILER="$LLVM_INSTALL_LOC/bin/clang"
-                   -DOPENMP_TEST_CXX_COMPILER="$LLVM_INSTALL_LOC/bin/clang++"
-                   -DCMAKE_C_COMPILER="$ALTAOMP/bin/clang"
-                   -DCMAKE_CXX_COMPILER="$ALTAOMP/bin/clang++"
-                   -DLIBOMPTARGET_AMDGCN_GFXLIST="$GFXSEMICOLONS"
-                   -DLIBOMPTARGET_ENABLE_DEBUG=ON
-                   -DDEVICELIBS_ROOT="$DEVICELIBS_ROOT"
-                   -DLIBOMP_COPY_EXPORTS=OFF
-                   -DLIBOMPTEST_INSTALL_COMPONENTS=ON
-                   -DLLVM_DIR="$LLVM_DIR"
-                   -DLIBOMPTEST_BUILD_STANDALONE=1 -DLIBOMPTARGET_BUILD_DEVICE_FORTRT=On)
-
-LLVM_RUNTIMES="openmp;offload"
-if [ "$OPENMP_BUILD_DEVICERTL" -eq 1 ]; then
-  if [ -f "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/device/CMakeLists.txt" ]; then
-    LLVM_RUNTIMES=openmp
-    COMMON_CMAKE_OPTS=("${COMMON_CMAKE_OPTS[@]}"
-                       -DLLVM_DEFAULT_TARGET_TRIPLE=amdgcn-amd-amdhsa
-                       -DLLVM_ENABLE_RUNTIMES="$LLVM_RUNTIMES")
-  fi
-fi
-
-COMMON_CMAKE_OPTS=("${COMMON_CMAKE_OPTS[@]}"
-                    -DLLVM_BINARY_DIR="$LLVM_INSTALL_LOC"
-                    -DLLVM_ENABLE_RUNTIMES="$LLVM_RUNTIMES"
-                    -DCLANG_VERSION_MAJOR="$LLVM_VERSION_MAJOR")
-
-if [ "$AOMP_STANDALONE_BUILD" == 0 ]; then
-  # For static package builds, set BUILD_SHARED_LIBS to OFF
-  if [ "$STATIC_PKG_DEPS" == "ON" ]; then
-    COMMON_CMAKE_OPTS=("${COMMON_CMAKE_OPTS[@]}" -DBUILD_SHARED_LIBS=OFF)
-  fi
-
-  COMMON_CMAKE_OPTS=("${COMMON_CMAKE_OPTS[@]}"
-                     -DLLVM_MAIN_INCLUDE_DIR="$LLVM_PROJECT_ROOT/llvm/include"
-                     -DLIBOMPTARGET_LLVM_INCLUDE_DIRS="$LLVM_PROJECT_ROOT/llvm/include"
-                     -DROCM_DIR="$ROCM_DIR"
-                     -DAOMP_STANDALONE_BUILD="$AOMP_STANDALONE_BUILD"
-                     -DCMAKE_MODULE_PATH="$LLVM_PROJECT_ROOT/llvm/cmake/modules")
-else
-  COMMON_CMAKE_OPTS=("${COMMON_CMAKE_OPTS[@]}"
-                     -DLLVM_MAIN_INCLUDE_DIR="$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/llvm/include"
-                     -DLIBOMPTARGET_LLVM_INCLUDE_DIRS="$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/llvm/include"
-                     -DCMAKE_MODULE_PATH="$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/llvm/cmake/modules"
-                     -DLLVM_INSTALL_PREFIX="$LLVM_INSTALL_LOC")
-fi
-
-if [ "$AOMP_BUILD_CUDA" == 1 ] ; then
-   COMMON_CMAKE_OPTS=("${COMMON_CMAKE_OPTS[@]}"
-                      -DLIBOMPTARGET_NVPTX_ENABLE_BCLIB=ON
-                      -DLIBOMPTARGET_NVPTX_CUDA_COMPILER="$AOMP/bin/clang++"
-                      -DLIBOMPTARGET_NVPTX_BC_LINKER="$AOMP/bin/llvm-link"
-                      -DLIBOMPTARGET_NVPTX_COMPUTE_CAPABILITIES="$NVPTXGPUS")
-else
-#  Need to force CUDA off this way in case cuda is installed in this system
-   COMMON_CMAKE_OPTS=("${COMMON_CMAKE_OPTS[@]}"
-                      -DCUDA_TOOLKIT_ROOT_DIR=OFF)
-fi
-
-# This is how we tell the hsa plugin where to find hsa
-export HSA_RUNTIME_PATH=$ROCM_DIR
-
-# Patch llvm-project with ATD patch customized for amd-staging.
-# WARNING: This patch (ATD_ASO_full.patch) rarely applies cleanly
-#          because of its size and constant trunk merges to amd-staging.
-#          This is why default is 0 (OFF).
-if [ "$AOMP_APPLY_ATD_AMD_STAGING_PATCH"  == 1 ] ; then
-   patchrepo "$REPO_DIR"
-fi
-
-declare -a ASAN_CMAKE_OPTS
-
-if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
-   echo " "
-   echo "This is a FRESH START. ERASING any previous builds in $BUILD_DIR/llvm_runtimes_standalone."
-   echo "Use ""$0 nocmake"" or ""$0 install"" to avoid FRESH START."
-   echo "rm -rf $BUILD_DIR/build/$RUNTIMES_BUILD_DIR"
-   rm -rf "$BUILD_DIR/build/$RUNTIMES_BUILD_DIR"
-   declare -a MYCMAKEOPTS
-   if [ "$AOMP_STANDALONE_BUILD" == 1 ]; then
-     MYCMAKEOPTS=("${COMMON_CMAKE_OPTS[@]}"
-                  -DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR/lib/cmake;$AOMP_INSTALL_DIR/lib64/cmake"
-                  -DCMAKE_BUILD_TYPE=Release "${AOMP_ORIGIN_RPATH[@]}")
-   else
-     MYCMAKEOPTS=("${COMMON_CMAKE_OPTS[@]}"
-                  -DCMAKE_PREFIX_PATH="$INSTALL_PREFIX/lib/cmake"
-                  -DCMAKE_BUILD_TYPE=Release "${OPENMP_EXTRAS_ORIGIN_RPATH[@]}")
-
-     # XXX: Crude way to detect if we should enable building the mod files with flang.
-     # Is it preferrable to set it from the outside or based on branch name, some other in-tree file?
-     AOMP_BUILD_MODFILES_WITH_FLANG_NEW=0
-     if [ -e "${LLVM_INSTALL_LOC}/bin/flang" ]; then
-       AOMP_BUILD_MODFILES_WITH_FLANG_NEW=1
-     fi
-
-     if [ "$AOMP_BUILD_MODFILES_WITH_FLANG_NEW" == 1 ]; then
-       echo "Building .mod files via:  $LLVM_INSTALL_LOC/bin/flang"
-       echo "Installing .mod files to: $LLVM_INSTALL_LOC/include/flang/"
-       MYCMAKEOPTS=("${MYCMAKEOPTS[@]}"
-                    -DLIBOMP_FORTRAN_MODULES_COMPILER="$LLVM_INSTALL_LOC/bin/flang"
-                    -DLIBOMP_MODULES_INSTALL_PATH="$LLVM_INSTALL_LOC/include/flang/")
-     fi
-   fi
-
-      if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
-        if [ "$AOMP_STANDALONE_BUILD" == 1 ]; then
-          ASAN_CMAKE_OPTS=("${COMMON_CMAKE_OPTS[@]}"
-                           -DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR/lib/asan/cmake;$AOMP_INSTALL_DIR/lib/cmake;$AOMP_INSTALL_DIR/lib64/cmake"
-                           -DSANITIZER_AMDGPU=1 -DCMAKE_BUILD_TYPE=Release
-                           -DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=OFF
-                           "${AOMP_ASAN_ORIGIN_RPATH[@]}")
-        else
-          ASAN_CMAKE_OPTS=("${COMMON_CMAKE_OPTS[@]}"
-                           -DCMAKE_PREFIX_PATH="$ROCM_CMAKECONFIG_PATH;$INSTALL_PREFIX/lib/llvm/lib/asan"
-                           -DSANITIZER_AMDGPU=1 -DCMAKE_BUILD_TYPE=Release
-                           -DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=OFF
-                           "${OPENMP_EXTRAS_ORIGIN_RPATH[@]}")
-        fi
-        echo " -----Running llvm_runtimes_standalone cmake for asan ---- "
-        mkdir -p "$BUILD_DIR/build/$RUNTIMES_BUILD_DIR/asan"
-        cd "$BUILD_DIR/build/$RUNTIMES_BUILD_DIR/asan" || exit
-        echo "${AOMP_CMAKE}" "$(shquot "${ASAN_CMAKE_OPTS[@]}")" \
-                             -DCMAKE_C_FLAGS="\"$(cmquot "${ASAN_FLAGS[@]}")\"" \
-                             -DCMAKE_CXX_FLAGS="\"$(cmquot "${ASAN_FLAGS[@]}")\"" \
-                             -DOFFLOAD_LIBDIR_SUFFIX="/asan" \
-                             -DLLVM_LIBDIR_SUFFIX="/asan" \
-                             "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/runtimes"
-        if ! ${AOMP_CMAKE} "${ASAN_CMAKE_OPTS[@]}" \
-                           -DCMAKE_C_FLAGS="$(cmquot "${ASAN_FLAGS[@]}")" \
-                           -DCMAKE_CXX_FLAGS="$(cmquot "${ASAN_FLAGS[@]}")" \
-                           -DOFFLOAD_LIBDIR_SUFFIX="/asan" \
-                           -DLLVM_LIBDIR_SUFFIX="/asan" \
-                           "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/runtimes"; then
-           echo "ERROR llvm_runtimes_standalone cmake failed. Cmake flags"
-           echo "      $(shquot "${ASAN_CMAKE_OPTS[@]}")"
-           exit 1
-        fi
+   if "$(cfgbool AOMP_BUILD_CUDA)"; then
+      CUDATop=$(cfgvar CUDAT)
+      CUDAH=$(find "$CUDATop" -type f,l -name "cuda.h" 2>/dev/null)
+      if [ "$CUDAH" == "" ] ; then
+         CUDAInclude=$(cfgvar CUDAINCLUDE)
+         CUDAH=$(find "$CUDAInclude" -type f,l -name "cuda.h" 2>/dev/null)
       fi
+      if [ "$CUDAH" == "" ] ; then
+         AOMPProc=$(cfgvar AOMP_PROC)
+         echo
+         echo "ERROR:  THE cuda.h FILE WAS NOT FOUND WITH ARCH $AOMPProc"
+         echo "        A CUDA installation is necessary to build libomptarget deviceRTLs"
+         echo "        Please install CUDA to build llvm_runtimes_standalone"
+         echo
+         exit 1
+      fi
+      # I don't see now nvcc is called, but this eliminates the deprecated warnings
+      export CUDAFE_FLAGS="-w"
 
-  # Build a dedicatd "performance" version of libomptarget
-  if [ "$AOMP_BUILD_PERF" == "1" ]; then
-    echo "rm -rf $BUILD_DIR/build/${RUNTIMES_BUILD_DIR}_perf"
-    rm -rf "$BUILD_DIR/build/${RUNTIMES_BUILD_DIR}_perf"
-    MYCMAKEOPTS=("${COMMON_CMAKE_OPTS[@]}"
-                 -DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR/lib/cmake;$AOMP_INSTALL_DIR/lib64/cmake"
-                 -DLIBOMPTARGET_ENABLE_DEBUG=OFF -DCMAKE_BUILD_TYPE=Release
-                 -DLIBOMPTARGET_PERF=ON -DOFFLOAD_LIBDIR_SUFFIX=-perf
-                 -DLLVM_LIBDIR_SUFFIX="-perf")
-    mkdir -p "$BUILD_DIR/build/${RUNTIMES_BUILD_DIR}_perf"
-    cd "$BUILD_DIR/build/${RUNTIMES_BUILD_DIR}_perf" || exit
-    echo " -----Running llvm_runtimes_standalone cmake for perf ---- "
-    echo "${AOMP_CMAKE}" "$(shquot "${MYCMAKEOPTS[@]}")" \
-                         "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/runtimes" \
-                         "$(shquot "${AOMP_ORIGIN_RPATH[@]}")"
+      CUDABin=$(cfgvar CUDABIN)
+      if [ -f "$CUDABin/nvcc" ] ; then
+         CUDAVER=$("$CUDABin"/nvcc --version | grep compilation | cut -d" " -f5 | cut -d"." -f1)
+         echo "CUDA VERSION IS $CUDAVER"
+      fi
+   fi
+   return 0
+}
 
-    if ! ${AOMP_CMAKE} "${MYCMAKEOPTS[@]}" \
-                       "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/runtimes" \
-                       "${AOMP_ORIGIN_RPATH[@]}"; then
-       echo "error llvm_runtimes_standalone cmake failed. cmake flags"
-       echo "      $(shquot "${MYCMAKEOPTS[@]}")"
-       exit 1
-    fi
-    if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
-       ASAN_CMAKE_OPTS=("${COMMON_CMAKE_OPTS[@]}"
-                        -DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR/lib/asan/cmake;$AOMP_INSTALL_DIR/lib/cmake;$AOMP_INSTALL_DIR/lib64/cmake"
-                        -DLIBOMPTARGET_ENABLE_DEBUG=OFF
-                        -DCMAKE_BUILD_TYPE=Release
-                        -DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=OFF
-                        -DLIBOMPTARGET_PERF=ON -DSANITIZER_AMDGPU=1
-                        "${AOMP_ASAN_ORIGIN_RPATH[@]}")
-       echo " -----Running llvm_runtimes_standalone cmake for perf-asan ---- "
-       mkdir -p "$BUILD_DIR/build/${RUNTIMES_BUILD_DIR}_perf/asan"
-       cd "$BUILD_DIR/build/${RUNTIMES_BUILD_DIR}_perf/asan" || exit
-       echo "${AOMP_CMAKE}" "$(shquot "${ASAN_CMAKE_OPTS[@]}")" \
-                            -DCMAKE_C_FLAGS="\"$(cmquot "${ASAN_FLAGS[@]}")\"" \
-                            -DCMAKE_CXX_FLAGS="\"$(cmquot "${ASAN_FLAGS[@]}")\"" \
-                            -DOFFLOAD_LIBDIR_SUFFIX="-perf/asan" \
-                            -DLLVM_LIBDIR_SUFFIX="-perf/asan" \
-                            "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/runtimes"
+task_patch() {
+   # Patch llvm-project with ATD patch customized for amd-staging.
+   # WARNING: This patch (ATD_ASO_full.patch) rarely applies cleanly
+   #          because of its size and constant trunk merges to amd-staging.
+   #          This is why default is 0 (OFF).
+   if "$(cfgbool AOMP_APPLY_ATD_AMD_STAGING_PATCH)" ; then
+      patchrepo "$REPO_DIR"
+   fi
+}
 
-       if ! ${AOMP_CMAKE} "${ASAN_CMAKE_OPTS[@]}" \
-                          -DCMAKE_C_FLAGS="$(cmquot "${ASAN_FLAGS[@]}")" \
-                          -DCMAKE_CXX_FLAGS="$(cmquot "${ASAN_FLAGS[@]}")" \
-                          -DOFFLOAD_LIBDIR_SUFFIX="-perf/asan" \
-                          -DLLVM_LIBDIR_SUFFIX="-perf/asan" \
-                          "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/runtimes"; then
-          echo "error llvm_runtimes_standalone cmake failed. cmake flags"
-          echo "      $(shquot "${ASAN_CMAKE_OPTS[@]}")"
-          exit 1
-       fi
-    fi
-  fi
+task_unpatch() {
+   if "$(cfgbool AOMP_APPLY_ATD_AMD_STAGING_PATCH)" ; then
+      removepatch "$REPO_DIR"
+   fi
+}
 
-   if [ "$AOMP_BUILD_DEBUG" == "1" ] ; then
-      _prefix_map=(-fdebug-prefix-map="$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload=$_ompd_src_dir/offload")
+task_clean() {
+   local Cfg=$1
+   local BuildDir
+   BuildDir=$(get_build_dir "$Cfg")
+   echo "rm -rf $(shquot "$BuildDir")"
+   rm -rf "$BuildDir"
+}
 
-      declare -a DEBUGCMAKEOPTS
+task_cmake() {
+   local Cfg=$1
+   local SrcDir
+   local BuildDir
+   local AompCmake
+   local UseNinja
+   local Standalone
+   local GFXSEMICOLONS
+   local LlvmVersionMajor
+   local LlvmRuntimes
+   local LibdirSuffix
+   local Altaomp
+   local -a AOMP_SET_NINJA_GEN
+   local -a MYCMAKEOPTS
+   local -a DEBUGCMAKEOPTS
 
+   SrcDir="$(get_src_dir)"
+   BuildDir="$(get_build_dir "$Cfg")"
+   AompCmake="$(cfgvar AOMP_CMAKE)"
+   UseNinja="$(cfgbool AOMP_USE_NINJA)"
+   Standalone="$(cfgbool AOMP_STANDALONE_BUILD)"
+   Altaomp="$(cfgvar ALTAOMP)"
+   # Build the runtimes with the just-installed AOMP compiler by default (same
+   # as build_openmp.sh/build_offload.sh); an explicit ALTAOMP still wins.
+   Altaomp="${Altaomp:-$LLVM_INSTALL_LOC}"
+
+   if "$UseNinja"; then
+      AOMP_SET_NINJA_GEN=(-G Ninja)
+   fi
+
+   export LLVM_DIR=$AOMP_INSTALL_DIR
+   GFXSEMICOLONS=$(cfgvar GFXLIST | tr ' ' ';')
+   LlvmVersionMajor=$("${LLVM_INSTALL_LOC}"/bin/clang --version | grep -oP '(?<=clang version )[0-9]+')
+
+   # This is how we tell the hsa plugin where to find hsa
+   export HSA_RUNTIME_PATH=$ROCM_DIR
+
+   # Settings common to every config.
+   MYCMAKEOPTS=("${AOMP_SET_NINJA_GEN[@]}"
+                -DOPENMP_ENABLE_LIBOMPTARGET=1
+                -DCMAKE_INSTALL_PREFIX="$LLVM_INSTALL_LOC"
+                -DOPENMP_TEST_C_COMPILER="$LLVM_INSTALL_LOC/bin/clang"
+                -DOPENMP_TEST_CXX_COMPILER="$LLVM_INSTALL_LOC/bin/clang++"
+                -DCMAKE_C_COMPILER="$Altaomp/bin/clang"
+                -DCMAKE_CXX_COMPILER="$Altaomp/bin/clang++"
+                -DLIBOMPTARGET_AMDGCN_GFXLIST="$GFXSEMICOLONS"
+                -DLIBOMPTARGET_ENABLE_DEBUG=ON
+                -DDEVICELIBS_ROOT="$DEVICELIBS_ROOT"
+                -DLIBOMP_COPY_EXPORTS=OFF
+                -DLIBOMPTEST_INSTALL_COMPONENTS=ON
+                -DLLVM_DIR="$LLVM_DIR"
+                -DLIBOMPTEST_BUILD_STANDALONE=1
+                -DLIBOMPTARGET_BUILD_DEVICE_FORTRT=On)
+
+   LlvmRuntimes="openmp;offload"
+   # The device runtime library pass builds only openmp for the amdgcn triple.
+   if devicertl_config "$Cfg"; then
+      if [ -f "$REPO_DIR/openmp/device/CMakeLists.txt" ]; then
+         LlvmRuntimes=openmp
+         MYCMAKEOPTS+=(-DLLVM_DEFAULT_TARGET_TRIPLE=amdgcn-amd-amdhsa)
+      fi
+   fi
+
+   MYCMAKEOPTS+=(-DLLVM_BINARY_DIR="$LLVM_INSTALL_LOC"
+                 -DLLVM_ENABLE_RUNTIMES="$LlvmRuntimes"
+                 -DCLANG_VERSION_MAJOR="$LlvmVersionMajor")
+
+   if ! "$Standalone"; then
+      # For static package builds, set BUILD_SHARED_LIBS to OFF
+      if [ "$STATIC_PKG_DEPS" == "ON" ]; then
+         MYCMAKEOPTS+=(-DBUILD_SHARED_LIBS=OFF)
+      fi
+      MYCMAKEOPTS+=(-DLLVM_MAIN_INCLUDE_DIR="$LLVM_PROJECT_ROOT/llvm/include"
+                    -DLIBOMPTARGET_LLVM_INCLUDE_DIRS="$LLVM_PROJECT_ROOT/llvm/include"
+                    -DROCM_DIR="$ROCM_DIR"
+                    -DAOMP_STANDALONE_BUILD="$(cfgvar AOMP_STANDALONE_BUILD)"
+                    -DCMAKE_MODULE_PATH="$LLVM_PROJECT_ROOT/llvm/cmake/modules")
+   else
+      MYCMAKEOPTS+=(-DLLVM_MAIN_INCLUDE_DIR="$REPO_DIR/llvm/include"
+                    -DLIBOMPTARGET_LLVM_INCLUDE_DIRS="$REPO_DIR/llvm/include"
+                    -DCMAKE_MODULE_PATH="$REPO_DIR/llvm/cmake/modules"
+                    -DLLVM_INSTALL_PREFIX="$LLVM_INSTALL_LOC")
+   fi
+
+   if "$(cfgbool AOMP_BUILD_CUDA)"; then
+      MYCMAKEOPTS+=(-DLIBOMPTARGET_NVPTX_ENABLE_BCLIB=ON
+                    -DLIBOMPTARGET_NVPTX_CUDA_COMPILER="$AOMP/bin/clang++"
+                    -DLIBOMPTARGET_NVPTX_BC_LINKER="$AOMP/bin/llvm-link"
+                    -DLIBOMPTARGET_NVPTX_COMPUTE_CAPABILITIES="$NVPTXGPUS")
+   else
+      #  Need to force CUDA off this way in case cuda is installed in this system
+      MYCMAKEOPTS+=(-DCUDA_TOOLKIT_ROOT_DIR=OFF)
+   fi
+
+   # Variant-specific settings.
+   if perf_config "$Cfg"; then
+      MYCMAKEOPTS+=(-DLIBOMPTARGET_ENABLE_DEBUG=OFF
+                    -DCMAKE_BUILD_TYPE=Release
+                    -DLIBOMPTARGET_PERF=ON)
+      if asan_config "$Cfg"; then
+         MYCMAKEOPTS+=(-DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR/lib/asan/cmake;$AOMP_INSTALL_DIR/lib/cmake;$AOMP_INSTALL_DIR/lib64/cmake"
+                       -DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=OFF
+                       -DSANITIZER_AMDGPU=1
+                       "${AOMP_ASAN_ORIGIN_RPATH[@]}"
+                       -DCMAKE_C_FLAGS="$(cmquot "${ASAN_FLAGS[@]}")"
+                       -DCMAKE_CXX_FLAGS="$(cmquot "${ASAN_FLAGS[@]}")")
+      else
+         MYCMAKEOPTS+=(-DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR/lib/cmake;$AOMP_INSTALL_DIR/lib64/cmake"
+                       "${AOMP_ORIGIN_RPATH[@]}")
+      fi
+   elif debug_config "$Cfg"; then
       DEBUGCMAKEOPTS=(-DLIBOMPTARGET_NVPTX_DEBUG=ON
                       -DLLVM_ENABLE_ASSERTIONS=ON
                       -DCMAKE_BUILD_TYPE=Debug
@@ -280,254 +356,228 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
       # the system option if the debian_version file is not present.
       if [ ! -f /etc/debian_version ]; then
          echo "==> Non-Debian OS, disabling use of pip install --system"
-         DEBUGCMAKEOPTS=("${DEBUGCMAKEOPTS[@]}" -DDISABLE_SYSTEM_NON_DEBIAN=1)
+         DEBUGCMAKEOPTS+=(-DDISABLE_SYSTEM_NON_DEBIAN=1)
       fi
 
       # Redhat 7.6 does not have python36-devel package, which is needed for ompd compilation.
       # This is acquired through RH Software Collections.
       if [ -f /opt/rh/rh-python36/enable ]; then
          echo "==> Using python3.6 out of rh tools."
-         DEBUGCMAKEOPTS=("${DEBUGCMAKEOPTS[@]}"
-                         -DPython3_ROOT_DIR=/opt/rh/rh-python36/root/bin
-                         -DPYTHON_HEADERS=/opt/rh/rh-python36/root/usr/include/python3.6m)
+         DEBUGCMAKEOPTS+=(-DPython3_ROOT_DIR=/opt/rh/rh-python36/root/bin
+                          -DPYTHON_HEADERS=/opt/rh/rh-python36/root/usr/include/python3.6m)
       fi
 
-      echo
-      if [ "$SANITIZER" != 1 ] ; then
-         echo "rm -rf $BUILD_DIR/build/${RUNTIMES_BUILD_DIR}_debug"
-         rm -rf "$BUILD_DIR/build/${RUNTIMES_BUILD_DIR}_debug"
-         echo " -----Running llvm_runtimes_standalone cmake for debug ---- "
-         mkdir -p "$BUILD_DIR/build/${RUNTIMES_BUILD_DIR}_debug"
-         cd "$BUILD_DIR/build/${RUNTIMES_BUILD_DIR}_debug" || exit
-         if [ "$AOMP_STANDALONE_BUILD" == 1 ]; then
-           PREFIX_PATH="-DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR/lib/cmake;$AOMP_INSTALL_DIR/lib64/cmake"
-           MYCMAKEOPTS=("${COMMON_CMAKE_OPTS[@]}" "${DEBUGCMAKEOPTS[@]}"
-                        "${AOMP_DEBUG_ORIGIN_RPATH[@]}")
+      MYCMAKEOPTS+=("${DEBUGCMAKEOPTS[@]}")
+
+      if asan_config "$Cfg"; then
+         MYCMAKEOPTS+=(-DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=OFF
+                       -DSANITIZER_AMDGPU=1)
+         if "$Standalone"; then
+            MYCMAKEOPTS+=(-DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR/lib/asan/cmake;$AOMP_INSTALL_DIR/lib/cmake;$AOMP_INSTALL_DIR/lib64/cmake"
+                          "${AOMP_ASAN_ORIGIN_RPATH[@]}")
          else
-           PREFIX_PATH="-DCMAKE_PREFIX_PATH=$INSTALL_PREFIX/lib/cmake"
-           MYCMAKEOPTS=("${COMMON_CMAKE_OPTS[@]}" "${DEBUGCMAKEOPTS[@]}"
-                        "${OPENMP_EXTRAS_ORIGIN_RPATH[@]}")
+            MYCMAKEOPTS+=(-DCMAKE_PREFIX_PATH="$ROCM_CMAKECONFIG_PATH;$INSTALL_PREFIX/lib/llvm/lib/asan"
+                          "${OPENMP_EXTRAS_ORIGIN_RPATH[@]}")
          fi
-
-         if ! ${AOMP_CMAKE} "${MYCMAKEOPTS[@]}" "$PREFIX_PATH" \
-                            -DCMAKE_C_FLAGS="$CFLAGS -g" \
-                            -DCMAKE_CXX_FLAGS="$CXXFLAGS -g $(cmquot "${_prefix_map[@]}")" \
-                            -DOFFLOAD_LIBDIR_SUFFIX="-debug" \
-                            -DLLVM_LIBDIR_SUFFIX="-debug" \
-                            "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/runtimes"; then
-            echo "ERROR llvm_runtimes_standalone debug cmake failed. Cmake flags"
-            echo "      $(shquot "${MYCMAKEOPTS[@]}")"
-            exit 1
-         fi
-      fi
-      if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
-         ASAN_CMAKE_OPTS=("${COMMON_CMAKE_OPTS[@]}" "${DEBUGCMAKEOPTS[@]}"
-                          -DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=OFF
-                          -DSANITIZER_AMDGPU=1)
-         if [ "$AOMP_STANDALONE_BUILD" == 1 ]; then
-           ASAN_CMAKE_OPTS=("${ASAN_CMAKE_OPTS[@]}"
-                            -DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR/lib/asan/cmake;$AOMP_INSTALL_DIR/lib/cmake;$AOMP_INSTALL_DIR/lib64/cmake"
-                            "${AOMP_ASAN_ORIGIN_RPATH[@]}")
+         MYCMAKEOPTS+=(-DCMAKE_C_FLAGS="$(cmquot "${ASAN_FLAGS[@]}")"
+                       -DCMAKE_CXX_FLAGS="$(cmquot "${ASAN_FLAGS[@]}")")
+      else
+         local -a _prefix_map
+         _prefix_map=(-fdebug-prefix-map="$REPO_DIR/offload=$_ompd_src_dir/offload")
+         if "$Standalone"; then
+            MYCMAKEOPTS+=(-DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR/lib/cmake;$AOMP_INSTALL_DIR/lib64/cmake"
+                          "${AOMP_DEBUG_ORIGIN_RPATH[@]}")
          else
-           ASAN_CMAKE_OPTS=("${ASAN_CMAKE_OPTS[@]}"
-                            -DCMAKE_PREFIX_PATH="$ROCM_CMAKECONFIG_PATH;$INSTALL_PREFIX/lib/llvm/lib/asan"
-                            "${OPENMP_EXTRAS_ORIGIN_RPATH[@]}")
+            MYCMAKEOPTS+=(-DCMAKE_PREFIX_PATH="$INSTALL_PREFIX/lib/cmake"
+                          "${OPENMP_EXTRAS_ORIGIN_RPATH[@]}")
          fi
-         echo " -----Running llvm_runtimes_standalone cmake for debug-asan ---- "
-         mkdir -p "$BUILD_DIR/build/${RUNTIMES_BUILD_DIR}_debug/asan"
-         cd "$BUILD_DIR/build/${RUNTIMES_BUILD_DIR}_debug/asan" || exit
-         echo "${AOMP_CMAKE}" "${ASAN_CMAKE_OPTS[@]}" \
-                              -DCMAKE_C_FLAGS="\"$(cmquot "${ASAN_FLAGS[@]}")\"" \
-                              -DCMAKE_CXX_FLAGS="\"$(cmquot "${ASAN_FLAGS[@]}")\"" \
-                              -DOFFLOAD_LIBDIR_SUFFIX="-debug/asan" \
-                              -DLLVM_LIBDIR_SUFFIX="-debug/asan" \
-                              "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/runtimes"
-
-         if ! ${AOMP_CMAKE} "${ASAN_CMAKE_OPTS[@]}" \
-                            -DCMAKE_C_FLAGS="$(cmquot "${ASAN_FLAGS[@]}")" \
-                            -DCMAKE_CXX_FLAGS="$(cmquot "${ASAN_FLAGS[@]}")" \
-                            -DOFFLOAD_LIBDIR_SUFFIX="-debug/asan" \
-                            -DLLVM_LIBDIR_SUFFIX="-debug/asan" \
-                            "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/runtimes"; then
-            echo "ERROR llvm_runtimes_standalone debug cmake failed. Cmake flags"
-            echo "      $(shquot "${ASAN_CMAKE_OPTS[@]}")"
-            exit 1
-         fi
+         MYCMAKEOPTS+=(-DCMAKE_C_FLAGS="$CFLAGS -g"
+                       -DCMAKE_CXX_FLAGS="$CXXFLAGS -g $(cmquot "${_prefix_map[@]}")")
       fi
+   elif asan_config "$Cfg"; then
+      MYCMAKEOPTS+=(-DSANITIZER_AMDGPU=1
+                    -DCMAKE_BUILD_TYPE=Release
+                    -DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=OFF)
+      if "$Standalone"; then
+         MYCMAKEOPTS+=(-DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR/lib/asan/cmake;$AOMP_INSTALL_DIR/lib/cmake;$AOMP_INSTALL_DIR/lib64/cmake"
+                       "${AOMP_ASAN_ORIGIN_RPATH[@]}")
+      else
+         MYCMAKEOPTS+=(-DCMAKE_PREFIX_PATH="$ROCM_CMAKECONFIG_PATH;$INSTALL_PREFIX/lib/llvm/lib/asan"
+                       "${OPENMP_EXTRAS_ORIGIN_RPATH[@]}")
+      fi
+      MYCMAKEOPTS+=(-DCMAKE_C_FLAGS="$(cmquot "${ASAN_FLAGS[@]}")"
+                    -DCMAKE_CXX_FLAGS="$(cmquot "${ASAN_FLAGS[@]}")")
    fi
-fi
 
-if [ "$1" = "cmake" ]; then
-   exit 0
-fi
+   # OFFLOAD/LLVM libdir suffix options
+   LibdirSuffix=$(libdir_suffix "$Cfg")
+   MYCMAKEOPTS+=(-DOFFLOAD_LIBDIR_SUFFIX="$LibdirSuffix"
+                 -DLLVM_LIBDIR_SUFFIX="$LibdirSuffix")
 
-if [ "$1" != "install" ] ; then
-  if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
-    cd "$BUILD_DIR/build/$RUNTIMES_BUILD_DIR/asan" || exit
-    echo " -----Running $AOMP_NINJA_BIN for $BUILD_DIR/build/$RUNTIMES_BUILD_DIR/asan ---- "
+   mkdir -p "$BuildDir"
+   pushd "$BuildDir" >& /dev/null || exit
+   echo " -----Running llvm_runtimes_standalone $Cfg cmake ---- "
+   echo "$AompCmake $(shquot "${MYCMAKEOPTS[@]}") $SrcDir"
 
-    if ! $AOMP_NINJA_BIN -j "$AOMP_JOB_THREADS"; then
+   if ! "$AompCmake" "${MYCMAKEOPTS[@]}" "$SrcDir"; then
+      echo "ERROR llvm_runtimes_standalone $Cfg cmake failed. Cmake flags"
+      echo "      $(shquot "${MYCMAKEOPTS[@]}")"
+      exit 1
+   fi
+   popd >& /dev/null || exit
+}
+
+task_build() {
+   local Cfg=$1
+   local BuildDir
+   local NinjaBin
+   local Jobs
+   BuildDir="$(get_build_dir "$Cfg")"
+   NinjaBin="$(cfgvar AOMP_NINJA_BIN)"
+   Jobs="$(cfgvar AOMP_JOB_THREADS)"
+
+   pushd "$BuildDir" >& /dev/null || exit
+   echo " -----Running $NinjaBin for $BuildDir ---- "
+   if ! $NinjaBin -j "$Jobs"; then
       echo " "
-      echo "ERROR: $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS  FAILED"
+      echo "ERROR: $NinjaBin -j $Jobs  FAILED"
       echo "To restart:"
-      echo "  cd $BUILD_DIR/build/$RUNTIMES_BUILD_DIR/asan"
-      echo "  $AOMP_NINJA_BIN"
+      echo "  cd $BuildDir"
+      echo "  $NinjaBin"
       exit 1
-    fi
-  fi
+   fi
+   popd >& /dev/null || exit
+}
 
-  if [ "$AOMP_BUILD_PERF" == "1" ] ; then
-    cd "$BUILD_DIR/build/${RUNTIMES_BUILD_DIR}_perf" || exit
-    echo
-    echo
-    echo " -----Running $AOMP_NINJA_BIN for $BUILD_DIR/build/${RUNTIMES_BUILD_DIR}_perf ---- "
+task_install() {
+   local Cfg=$1
+   local BuildDir
+   local NinjaBin
+   local Jobs
+   local LibdirSuffix
+   BuildDir="$(get_build_dir "$Cfg")"
+   NinjaBin="$(cfgvar AOMP_NINJA_BIN)"
+   Jobs="$(cfgvar AOMP_JOB_THREADS)"
+   LibdirSuffix=$(libdir_suffix "$Cfg")
 
-    if ! $AOMP_NINJA_BIN -j "$AOMP_JOB_THREADS"; then
-      echo "ERROR $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS failed"
+   pushd "$BuildDir" >& /dev/null || exit
+   echo " -----Installing to $LLVM_INSTALL_LOC/lib${LibdirSuffix} ----- "
+
+   if ! $SUDO "$NinjaBin" -j "$Jobs" install; then
+      echo "ERROR $NinjaBin install failed "
       exit 1
-    fi
-    if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
-      cd "$BUILD_DIR/build/${RUNTIMES_BUILD_DIR}_perf/asan" || exit
-      echo
-      echo
-      echo " ----- Running $AOMP_NINJA_BIN for $BUILD_DIR/build/${RUNTIMES_BUILD_DIR}_perf/asan ----- "
+   fi
+   popd >& /dev/null || exit
+}
 
-      if ! $AOMP_NINJA_BIN -j "$AOMP_JOB_THREADS"; then
-         echo "ERROR $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS failed"
-         exit 1
-      fi
-    fi
-  fi
+task_postinstall() {
+   local Cfg=$1
+   local Standalone
+   local _from_dir_src
+   local _from_dir_plugins
+   Standalone="$(cfgbool AOMP_STANDALONE_BUILD)"
 
-  if [ "$AOMP_BUILD_DEBUG" == "1" ] ; then
-    if [ "$SANITIZER" != 1 ] ; then
-      cd "$BUILD_DIR/build/${RUNTIMES_BUILD_DIR}_debug" || exit
-      echo
-      echo
-      echo " -----Running $AOMP_NINJA_BIN for $BUILD_DIR/build/${RUNTIMES_BUILD_DIR}_debug ---- "
+   # Copy selected debugable runtime sources into the installation directory
+   # $_ompd_src_dir directory to satisfy the debug -fdebug-prefix-map.
+   $SUDO mkdir -p "$_ompd_src_dir/offload"
+   $SUDO mkdir -p "$_ompd_src_dir/offload/plugins-nextgen"
+   if "$Standalone"; then
+      _from_dir_src="$REPO_DIR/offload/libomptarget"
+      _from_dir_plugins="$REPO_DIR/offload/plugins-nextgen"
+   else
+      _from_dir_src="$LLVM_PROJECT_ROOT/offload/libomptarget"
+      _from_dir_plugins="$LLVM_PROJECT_ROOT/offload/plugins-nextgen"
+   fi
+   echo cp -rp "$_from_dir_src" "$_ompd_src_dir/offload"
+   $SUDO cp -rp "$_from_dir_src" "$_ompd_src_dir/offload"
+   echo cp -rp "$_from_dir_plugins" "$_ompd_src_dir/offload"
+   $SUDO cp -rp "$_from_dir_plugins" "$_ompd_src_dir/offload"
 
-      if ! $AOMP_NINJA_BIN -j "$AOMP_JOB_THREADS"; then
-         echo "ERROR $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS failed"
-         exit 1
-      fi
-    fi
-    if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
-      cd "$BUILD_DIR/build/${RUNTIMES_BUILD_DIR}_debug/asan" || exit
-      echo
-      echo
-      echo " -----Running $AOMP_NINJA_BIN for $BUILD_DIR/build/${RUNTIMES_BUILD_DIR}_debug/asan ---- "
-
-      if ! $AOMP_NINJA_BIN -j "$AOMP_JOB_THREADS"; then
-        echo "ERROR $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS failed"
-        exit 1
-      fi
-    fi
-  fi
-
-  echo
-  echo "Successful build of ./build_llvm_runtimes_standalone.sh .  Please run:"
-  echo "  ./build_llvm_runtimes_standalone.sh install "
-  echo
-fi
-
-#  ----------- Install only if asked  ----------------------------
-if [ "$1" == "install" ] ; then
-  if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
-    cd "$BUILD_DIR/build/$RUNTIMES_BUILD_DIR/asan" || exit
-    echo
-    echo " -----Installing to $LLVM_INSTALL_LOC/lib/asan ----- "
-
-    if ! $SUDO "$AOMP_NINJA_BIN" -j "$AOMP_JOB_THREADS" install; then
-      echo "ERROR $AOMP_NINJA_BIN install failed "
-      exit 1
-    fi
-  fi
-
-  if [ "$AOMP_BUILD_PERF" == "1" ]; then
-    cd "$BUILD_DIR/build/${RUNTIMES_BUILD_DIR}_perf" || exit
-    echo
-    echo " -----Installing to $LLVM_INSTALL_LOC/lib-perf ----- "
-
-    if ! $SUDO "$AOMP_NINJA_BIN" -j "$AOMP_JOB_THREADS" install; then
-      echo "ERROR $AOMP_NINJA_BIN install failed "
-      exit 1
-    fi
-
-    if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
-      cd "$BUILD_DIR/build/${RUNTIMES_BUILD_DIR}_perf/asan" || exit
-      echo
-      echo " ----- Installing to $LLVM_INSTALL_LOC/lib-perf/asan ----- "
-
-      if ! $SUDO "$AOMP_NINJA_BIN" -j "$AOMP_JOB_THREADS" install; then
-        echo "ERROR $AOMP_NINJA_BIN install failed "
-        exit 1
-      fi
-    fi
-  fi
-
-  if [ "$AOMP_BUILD_DEBUG" == "1" ] ; then
-    if [ "$SANITIZER" != 1 ] ; then
-      cd "$BUILD_DIR/build/${RUNTIMES_BUILD_DIR}_debug" || exit
-      echo
-      echo " -----Installing to $LLVM_INSTALL_LOC/lib-debug ---- "
-
-      if ! $SUDO "$AOMP_NINJA_BIN" -j "$AOMP_JOB_THREADS" install; then
-        echo "ERROR $AOMP_NINJA_BIN install failed "
-        exit 1
-      fi
-    fi
-    if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
-      cd "$BUILD_DIR/build/${RUNTIMES_BUILD_DIR}_debug/asan" || exit
-      echo " -----Installing to $LLVM_INSTALL_LOC/lib-debug/asan ---- "
-
-      if ! $SUDO "$AOMP_NINJA_BIN" -j "$AOMP_JOB_THREADS" install; then
-        echo "ERROR $AOMP_NINJA_BIN install failed "
-        exit 1
-      fi
-    fi
-
-    # Copy selected debugable runtime sources into the installation directory
-    # $_ompd_src_dir directory to satisfy the above CXXOPT  -fdebug-prefix-map.
-    $SUDO mkdir -p "$_ompd_src_dir/offload"
-    $SUDO mkdir -p "$_ompd_src_dir/offload/plugins-nextgen"
-    if [ "$AOMP_STANDALONE_BUILD" == 1 ]; then
-       _from_dir_src="$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload/libomptarget"
-       _from_dir_plugins="$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload/plugins-nextgen"
-    else
-       _from_dir_src="$LLVM_PROJECT_ROOT/offload/libomptarget"
-       _from_dir_plugins="$LLVM_PROJECT_ROOT/offload/plugins-nextgen"
-    fi
-    echo cp -rp "$_from_dir_src" "$_ompd_src_dir/offload"
-    $SUDO cp -rp "$_from_dir_src" "$_ompd_src_dir/offload"
-    echo cp -rp "$_from_dir_plugins" "$_ompd_src_dir/offload"
-    $SUDO cp -rp "$_from_dir_plugins" "$_ompd_src_dir/offload"
-
-    # Copy selected debugable runtime sources into the installation $ompd_src_dir/src directory
-    # to satisfy the above -fdebug-prefix-map.
-    $SUDO mkdir -p "$_ompd_src_dir/openmp/runtime"
-    $SUDO mkdir -p "$_ompd_src_dir/openmp/libompd"
-    $SUDO mkdir -p "$_ompd_src_dir/openmp/device"
-    if [ "$AOMP_STANDALONE_BUILD" == 1 ]; then
-      $SUDO cp -rp "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/runtime/src" "$_ompd_src_dir/openmp/runtime"
-      $SUDO cp -rp "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/libompd/src" "$_ompd_src_dir/openmp/libompd"
-      $SUDO cp -rp "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/device/src" "$_ompd_src_dir/openmp/device"
-    else
+   # Copy selected debugable runtime sources into the installation
+   # $_ompd_src_dir/src directory to satisfy the debug -fdebug-prefix-map.
+   $SUDO mkdir -p "$_ompd_src_dir/openmp/runtime"
+   $SUDO mkdir -p "$_ompd_src_dir/openmp/libompd"
+   $SUDO mkdir -p "$_ompd_src_dir/openmp/device"
+   if "$Standalone"; then
+      $SUDO cp -rp "$REPO_DIR/openmp/runtime/src" "$_ompd_src_dir/openmp/runtime"
+      $SUDO cp -rp "$REPO_DIR/openmp/libompd/src" "$_ompd_src_dir/openmp/libompd"
+      $SUDO cp -rp "$REPO_DIR/openmp/device/src" "$_ompd_src_dir/openmp/device"
+   else
       $SUDO cp -rp "$LLVM_PROJECT_ROOT/openmp/runtime/src" "$_ompd_src_dir/openmp/runtime"
       $SUDO cp -rp "$LLVM_PROJECT_ROOT/openmp/libompd/src" "$_ompd_src_dir/openmp/libompd"
       $SUDO cp -rp "$LLVM_PROJECT_ROOT/openmp/device/src" "$_ompd_src_dir/openmp/device"
-    fi
-  fi # end of AOMP_BUILD_DEBUG install block
+   fi
+}
 
-  if [ "$AOMP_APPLY_ATD_AMD_STAGING_PATCH"  == 1 ] ; then
-    removepatch "$REPO_DIR"
+do_list_configs() {
+  local Sanitizer
+  local BuildSanitizer
+  local BuildPerf
+  local BuildDebug
+  local -a cfgs
+  local c
+
+  Sanitizer="$(cfgbool SANITIZER)"
+  BuildSanitizer="$(cfgbool AOMP_BUILD_SANITIZER)"
+  BuildPerf="$(cfgbool AOMP_BUILD_PERF)"
+  BuildDebug="$(cfgbool AOMP_BUILD_DEBUG)"
+
+  cfgs=()
+  if "$BuildSanitizer"; then
+    cfgs+=("asan")
+  fi
+  if "$BuildPerf"; then
+    cfgs+=("perf")
+    if "$BuildSanitizer"; then
+      cfgs+=("perf+asan")
+    fi
+  fi
+  if "$BuildDebug" ; then
+    if ! "$Sanitizer"; then
+      cfgs+=("debug")
+    fi
+    if "$BuildSanitizer"; then
+      cfgs+=("debug+asan")
+    fi
   fi
 
-fi # end of install block
+  # First build/install every variant in the host build dir, then repeat the
+  # whole set as a device runtime library pass in the -devicertl dir.
+  for c in "${cfgs[@]}"; do
+    echo "$c"
+  done
+  for c in "${cfgs[@]}"; do
+    echo "$c-devicertl"
+  done
+}
 
-# We have to build the deviceRTL by itself as it requires a different target
-if [ "$1" != "install" ] && [ "$OPENMP_BUILD_DEVICERTL" == 0 ] ; then
-  RUNTIMES_BUILD_DIR="llvm_runtimes_standalone-devicertl" OPENMP_BUILD_DEVICERTL=1 "$thisdir"/build_llvm_runtimes_standalone.sh
-fi
-if [ "$1" == "install" ] && [ "$OPENMP_BUILD_DEVICERTL" == 0 ]; then
-  RUNTIMES_BUILD_DIR="llvm_runtimes_standalone-devicertl" OPENMP_BUILD_DEVICERTL=1 "$thisdir"/build_llvm_runtimes_standalone.sh install
-fi
+do_list_init() {
+  echo "precheck"
+  echo "patch"
+}
+
+do_list_fini() {
+  echo "unpatch"
+}
+
+# List of tasks per config.
+do_list_tasks() {
+  local Cfg=$1
+  if valid_config "$Cfg"; then
+    echo "clean"
+    echo "cmake"
+    echo "build"
+    echo "install"
+    case "$Cfg" in
+      debug)
+        echo "postinstall"
+        ;;
+      *)
+        ;;
+    esac
+  else
+    echo "Unknown config '$Cfg'"
+  fi
+}
+
+command_dispatcher "$@"

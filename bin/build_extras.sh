@@ -29,20 +29,33 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+# Without these options, we can lose error status from command subtitutions,
+# etc.
+set -e
+shopt -s inherit_errexit
+
 # --- Start standard header to set AOMP environment variables ----
-realpath=$(realpath "$0")
+realpath=$(realpath -- "$0")
 thisdir=$(dirname "$realpath")
+. "$thisdir/aomp_utils"
 . "$thisdir/aomp_common_vars"
 # --- end standard header ----
 
-AOMP_REPO_DIR=$AOMP_REPOS/$AOMP_REPO_NAME
+# All user-controllable (environment) values are read through these wrappers so
+# that they can later be driven by an orchestration layer.
+cfgvar() {
+  get_config_var_string extras "$1"
+}
 
-BUILD_DIR=${BUILD_AOMP}
+cfgbool() {
+  get_config_var_bool extras "$1"
+}
 
 INSTALL_EXTRAS=${INSTALL_EXTRAS:-$LLVM_INSTALL_LOC}
+REPO_DIR="$(cfgvar AOMP_REPOS)/$(cfgvar AOMP_REPO_NAME)"
 export LLVM_DIR=$LLVM_INSTALL_LOC
 
-if [ "$AOMP_STANDALONE_BUILD" == 1 ] ; then
+if [ "$(cfgbool AOMP_STANDALONE_BUILD)" == "true" ] ; then
   install_list="gpurun rebundle_hip_lib.sh raja_build.sh kokkos_build.sh aompversion blt.patch raja.patch modulefile"
 else
   install_list="gpurun"
@@ -54,70 +67,136 @@ if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   echo "  ./build_extras.sh                   copy to build location, NO Install "
   echo "  ./build_extras.sh install           install "
   echo " "
-  exit
+  exit 0
 fi
 
-# Make sure we can update the install directory
-check_writable_installdir "$1" "$INSTALL_EXTRAS"
+get_src_dir() {
+   echo "$REPO_DIR"
+}
 
-if [ "$1" != "install" ] ; then
-  if [ -d "$BUILD_DIR/build/extras" ] ; then
-    echo
-    echo "FRESH START , CLEANING UP FROM PREVIOUS BUILD"
-    echo "rm -rf $BUILD_DIR/build/extras"
-    rm -rf "$BUILD_DIR/build/extras"
-  fi
+# Print the build dir for a given config, passed as $1.
+get_build_dir() {
+   local Cfg=$1
+   local BuildDir
+   BuildDir="$(cfgvar BUILD_DIR)"
 
-  if [ "$AOMP_STANDALONE_BUILD" == 0 ] ; then
-    export AOMP_VERSION_STRING=$ROCM_VERSION
-  fi
+   case "$Cfg" in
+   "default")
+     echo -n "$BuildDir/extras"
+     ;;
+   *)
+     >&2 echo "Unknown config '$Cfg'"
+     exit 1
+     ;;
+   esac
+}
 
-  mkdir -p "$BUILD_DIR/build/extras"
-  cd "$BUILD_DIR/build/extras" || exit
+# Print the install dir for a given config, passed as $1.
+get_install_dir() {
+   cfgvar INSTALL_EXTRAS
+}
 
-  if [ "$AOMP_STANDALONE_BUILD" == 0 ] ; then
-    SED_INSTALL_DIR=$(echo /opt/rocm/llvm | sed -e 's,/,\\/,g')
+task_precheck() {
+   check_writable_installdir "$1" "$(cfgvar INSTALL_EXTRAS)"
+}
+
+task_clean() {
+   local Cfg=$1
+   local BuildDir
+   BuildDir=$(get_build_dir "$Cfg")
+   echo "rm -rf $(shquot "$BuildDir")"
+   rm -rf "$BuildDir"
+}
+
+# extras has no cmake/make; the "build" stage copies utility scripts into the
+# build directory and patches their install path placeholders with sed.
+task_build() {
+   local Cfg=$1
+   local BuildDir
+   local SrcDir
+   local SED_INSTALL_DIR
+   local util
+   BuildDir="$(get_build_dir "$Cfg")"
+   SrcDir="$(get_src_dir)"
+
+   if [ "$(cfgbool AOMP_STANDALONE_BUILD)" == "false" ] ; then
+      export AOMP_VERSION_STRING=$ROCM_VERSION
+   fi
+
+   mkdir -p "$BuildDir"
+   pushd "$BuildDir" >& /dev/null || exit
+
+   if [ "$(cfgbool AOMP_STANDALONE_BUILD)" == "false" ] ; then
+      SED_INSTALL_DIR=$(echo /opt/rocm/llvm | sed -e 's,/,\\/,g')
+   else
+      SED_INSTALL_DIR="$(cfgvar INSTALL_EXTRAS)"
+      SED_INSTALL_DIR="${SED_INSTALL_DIR//\//\\/}"
+   fi
+   export SED_INSTALL_DIR
+
+   echo "----- Copy util scripts to $BuildDir -----"
+   cp "$SrcDir"/utils/* "$BuildDir"
+   # gpurun was restructured upstream from a single file into a directory
+   # (offload/utils/gpurun/) holding the script plus its CMakeLists; copy the
+   # script itself out of it.
+   cp "$(cfgvar AOMP_REPOS)/$(cfgvar AOMP_PROJECT_REPO_NAME)"/offload/utils/gpurun/gpurun "$BuildDir"
+
+   for util in $install_list; do
+      if [ "$util" == "rebundle_hip_lib.sh" ]; then
+         /bin/sed -i -e "s/X\\.Y\\-Z/${AOMP_VERSION_STRING}/g" -e "s/_LLVM_INSTALL_DIR_/${SED_INSTALL_DIR}/g" "$util"
+      else
+         /bin/sed -i -e "s/X\\.Y\\-Z/${AOMP_VERSION_STRING}/g" -e "s/_AOMP_INSTALL_DIR_/${SED_INSTALL_DIR}/g" "$util"
+      fi
+   done
+   popd >& /dev/null || exit
+}
+
+task_install() {
+   local Cfg=$1
+   local BuildDir
+   local InstallDir
+   local util
+   BuildDir="$(get_build_dir "$Cfg")"
+   InstallDir="$(get_install_dir "$Cfg")"
+
+   pushd "$BuildDir" >& /dev/null || exit
+   echo " -----Installing to $InstallDir/bin ----- "
+   for util in $install_list; do
+      echo "-- Installing: $InstallDir/bin/$util"
+      cp "$BuildDir/$util" "$InstallDir"/bin
+      echo "$InstallDir/bin/$util" >> install_manifest.txt
+   done
+   if [ "$(cfgbool AOMP_STANDALONE_BUILD)" == "true" ] ; then
+      if [ -f "$LLVM_INSTALL_LOC/bin/gpurun" ] && [ ! -h "$AOMP_INSTALL_DIR/bin/gpurun" ]; then
+         echo "Creating gpurun symlink: ${AOMP_INSTALL_DIR}/bin/gpurun -> ${LLVM_INSTALL_LOC}/bin/gpurun"
+         ln -s ../lib/llvm/bin/gpurun "$AOMP_INSTALL_DIR"/bin/gpurun
+      fi
+   fi
+   popd >& /dev/null || exit
+}
+
+do_list_configs() {
+  echo "default"
+}
+
+do_list_init() {
+  echo "precheck"
+}
+
+do_list_fini() {
+  :
+}
+
+# List of tasks per config.  extras has no cmake step.
+do_list_tasks() {
+  local Cfg=$1
+  if valid_config "$Cfg"; then
+    echo "clean"
+    echo "build"
+    echo "install"
   else
-    SED_INSTALL_DIR="${INSTALL_EXTRAS//\//\\/}"
+    echo "Unknown config '$Cfg'"
   fi
+}
 
-  export SED_INSTALL_DIR
-
-  echo "----- Copy util scripts to $BUILD_DIR/build/extras -----"
-  cp "$AOMP_REPO_DIR"/utils/* "$BUILD_DIR"/build/extras
-  cp "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME"/offload/utils/gpurun "$BUILD_DIR"/build/extras
-
-  for util in $install_list; do
-    if [ "$util" == "rebundle_hip_lib.sh" ]; then
-      /bin/sed -i -e "s/X\\.Y\\-Z/${AOMP_VERSION_STRING}/g" -e "s/_LLVM_INSTALL_DIR_/${SED_INSTALL_DIR}/g" "$util"
-    else
-      /bin/sed -i -e "s/X\\.Y\\-Z/${AOMP_VERSION_STRING}/g" -e "s/_AOMP_INSTALL_DIR_/${SED_INSTALL_DIR}/g" "$util"
-    fi
-  done
-fi
-
-cd "$BUILD_DIR/build/extras" || exit
-echo
-if [ "$1" != "install" ] ; then
-  echo
-  echo " BUILD COMPLETE! To install extras component run this command:"
-  echo "  $0 install"
-  echo
-fi
-
-#  ----------- Install only if asked  ----------------------------
-if [ "$1" == "install" ] ; then
-  cd "$BUILD_DIR/build/extras" || exit
-  echo " -----Installing to $INSTALL_EXTRAS/bin ----- "
-  for util in $install_list; do
-    echo "-- Installing: $INSTALL_EXTRAS/bin/$util"
-    cp "$BUILD_DIR"/build/extras/"$util" "$INSTALL_EXTRAS"/bin
-    echo "$INSTALL_EXTRAS/bin/$util" >> install_manifest.txt
-  done
-  if [ "$AOMP_STANDALONE_BUILD" == 1 ] ; then
-    if [ -f "$LLVM_INSTALL_LOC/bin/gpurun" ] && [ ! -h "$AOMP_INSTALL_DIR/bin/gpurun" ]; then
-      echo "Creating gpurun symlink: ${AOMP_INSTALL_DIR}/bin/gpurun -> ${LLVM_INSTALL_LOC}/bin/gpurun"
-      ln -s ../lib/llvm/bin/gpurun "$AOMP_INSTALL_DIR"/bin/gpurun
-    fi
-  fi
-fi
+command_dispatcher "$@"

@@ -7,20 +7,36 @@
 #  build_rocprofiler-register.sh:  Script to build rocprofiler-register for AOMP standalone build
 #
 
+# Without these options, we can lose error status from command subtitutions,
+# etc.
+set -e
+shopt -s inherit_errexit
+
 # --- Start standard header to set AOMP environment variables ----
-realpath=$(realpath "$0")
+realpath=$(realpath -- "$0")
 thisdir=$(dirname "$realpath")
+. "$thisdir/aomp_utils"
 . "$thisdir/aomp_common_vars"
 # --- end standard header ----
 
-INSTALL_ROCPROF_REGISTER=${INSTALL_ROCPROF_REGISTER:-$AOMP_INSTALL_DIR}
-export HIP_CLANG_PATH=$INSTALL_ROCPROF_REGISTER/bin
+# All user-controllable (environment) values are read through these wrappers so
+# that they can later be driven by an orchestration layer.
+cfgvar() {
+  get_config_var_string rocprofiler-register "$1"
+}
 
-if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then 
+cfgbool() {
+  get_config_var_bool rocprofiler-register "$1"
+}
+
+INSTALL_ROCPROF_REGISTER=${INSTALL_ROCPROF_REGISTER:-$AOMP_INSTALL_DIR}
+REPO_DIR="$(cfgvar AOMP_REPOS)/$(cfgvar AOMP_PROF_REGISTER_REPO_NAME)"
+
+if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   echo " "
   echo " This script builds the ROCM runtime libraries"
-  echo " It gets the source from:  $AOMP_REPOS/$AOMP_PROF_REGISTER_REPO_NAME"
-  echo " It builds libraries in:   $BUILD_AOMP/build/$AOMP_PROF_REGISTER_REPO_NAME"
+  echo " It gets the source from:  $REPO_DIR"
+  echo " It builds libraries in:   $(cfgvar BUILD_DIR)/$(cfgvar AOMP_PROF_REGISTER_REPO_NAME)"
   echo " It installs in:           $INSTALL_ROCPROF_REGISTER"
   echo " "
   echo "Example commands and actions: "
@@ -30,92 +46,158 @@ if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   echo " "
   echo "To build aomp, see the README file in this directory"
   echo " "
-  exit 
+  exit 0
 fi
 
-if [ ! -d "$AOMP_REPOS/$AOMP_PROF_REGISTER_REPO_NAME" ] ; then
-   echo "ERROR:  Missing repository $AOMP_REPOS/$AOMP_PROF_REGISTER_REPO_NAME"
-   echo "        Are environment variables AOMP_REPOS and AOMP_PROF_REGISTER_REPO_NAME set correctly?"
-   exit 1
-fi
+get_src_dir() {
+   echo "$REPO_DIR"
+}
 
-check_writable_installdir "$1" "$INSTALL_ROCPROF_REGISTER"
+# Print the build dir for a given config, passed as $1.
+get_build_dir() {
+   local Cfg=$1
+   local BuildDir
+   BuildDir="$(cfgvar BUILD_DIR)/$(cfgvar AOMP_PROF_REGISTER_REPO_NAME)"
 
-if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then 
-   echo " " 
-   echo "This is a FRESH START. ERASING any previous builds in $BUILD_AOMP/$AOMP_PROF_REGISTER_REPO_NAME"
-   echo "Use ""$0 nocmake"" or ""$0 install"" to avoid FRESH START."
+   case "$Cfg" in
+   "default")
+     echo -n "$BuildDir"
+     ;;
+   *)
+     >&2 echo "Unknown config '$Cfg'"
+     exit 1
+     ;;
+   esac
+}
 
-   echo "rm -rf $BUILD_AOMP/build/$AOMP_PROF_REGISTER_REPO_NAME"
-   rm -rf "$BUILD_AOMP/build/$AOMP_PROF_REGISTER_REPO_NAME"
-   BUILD_TYPE="Release"
-   export CMAKE_BUILD_TYPE=$BUILD_TYPE
-   CMAKE_PREFIX_PATH="$ROCM_DIR/include;$ROCM_DIR/lib;$ROCM_DIR"
-   export CMAKE_PREFIX_PATH
-   mkdir -p "$BUILD_AOMP/build/$AOMP_PROF_REGISTER_REPO_NAME"
-   cd "$BUILD_AOMP/build/$AOMP_PROF_REGISTER_REPO_NAME" || exit
-   echo " -----Running $AOMP_PROF_REGISTER_REPO_NAME cmake ---- " 
-   echo "${AOMP_CMAKE}" "-DCMAKE_INSTALL_LIBDIR=lib" \
-                        "-DCMAKE_BUILD_TYPE=$BUILD_TYPE" \
-                        "-DROCM_PATH=$AOMP_INSTALL_DIR" \
-                        "-DCMAKE_INSTALL_PREFIX=$INSTALL_ROCPROF_REGISTER" \
-                        "-DCMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH" \
-                        "-DCMAKE_EXE_LINKER_FLAGS=-Wl,--disable-new-dtags" \
-                        "-DROCPROFILER_REGISTER_BUILD_TESTS=0" \
-                        "-DROCPROFILER_REGISTER_BUILD_SAMPLES=1" \
-                        "-DCMAKE_EXE_LINKER_FLAGS=-Wl,--disable-new-dtags" \
-                        "-DBUILD_SHARED_LIBS=ON -DENABLE_LDCONFIG=OFF" \
-                        "$(shquot "${AOMP_ORIGIN_RPATH[@]}")" \
-                        "$AOMP_REPOS/$AOMP_PROF_REGISTER_REPO_NAME"
+# Print the install dir for a given config, passed as $1.
+get_install_dir() {
+   cfgvar INSTALL_ROCPROF_REGISTER
+}
 
-   if ! ${AOMP_CMAKE} -DCMAKE_INSTALL_LIBDIR=lib \
-                      -DCMAKE_BUILD_TYPE="$BUILD_TYPE" \
-                      -DROCM_PATH="$AOMP_INSTALL_DIR" \
-                      -DCMAKE_INSTALL_PREFIX="$INSTALL_ROCPROF_REGISTER" \
-                      -DCMAKE_PREFIX_PATH="$CMAKE_PREFIX_PATH" \
-                      "${AOMP_ORIGIN_RPATH[@]}" \
-                      -DCMAKE_EXE_LINKER_FLAGS="-Wl,--disable-new-dtags" \
-                      -DBUILD_SHARED_LIBS=ON -DENABLE_LDCONFIG=OFF \
-                      -DROCPROFILER_REGISTER_BUILD_TESTS=0 \
-                      -DROCPROFILER_REGISTER_BUILD_SAMPLES=1 \
-                      "$AOMP_REPOS/$AOMP_PROF_REGISTER_REPO_NAME"; then 
-      echo "ERROR $AOMP_PROF_REGISTER_REPO_NAME cmake failed. cmake flags"
-      echo "      $MYCMAKEOPTS"
+task_precheck() {
+   local SrcDir
+   SrcDir="$(get_src_dir)"
+
+   if [ ! -d "$SrcDir" ] ; then
+      echo "ERROR:  Missing repository $SrcDir"
+      echo "        Are environment variables AOMP_REPOS and AOMP_PROF_REGISTER_REPO_NAME set correctly?"
       exit 1
    fi
-fi
 
-if [ "$1" = "cmake" ]; then
-   exit 0
-fi
+   check_writable_installdir "$1" "$(cfgvar INSTALL_ROCPROF_REGISTER)"
+}
 
-cd "$BUILD_AOMP/build/$AOMP_PROF_REGISTER_REPO_NAME" || exit
-echo
-echo " -----Running make for $AOMP_PROF_REGISTER_REPO_NAME ---- " 
-echo "make -j $AOMP_JOB_THREADS"
+task_clean() {
+   local Cfg=$1
+   local BuildDir
+   BuildDir=$(get_build_dir "$Cfg")
+   echo "rm -rf $(shquot "$BuildDir")"
+   rm -rf "$BuildDir"
+}
 
-if ! make -j "$AOMP_JOB_THREADS"; then
+task_cmake() {
+   local Cfg=$1
+   local BuildDir
+   local SrcDir
+   local AompCmake
+   local InstallDir
+   local -a MYCMAKEOPTS
+
+   SrcDir="$(get_src_dir)"
+   BuildDir="$(get_build_dir "$Cfg")"
+   AompCmake="$(cfgvar AOMP_CMAKE)"
+   InstallDir="$(cfgvar INSTALL_ROCPROF_REGISTER)"
+
+   export HIP_CLANG_PATH="$InstallDir/bin"
+
+   MYCMAKEOPTS=(-DCMAKE_INSTALL_LIBDIR=lib
+                -DCMAKE_BUILD_TYPE=Release
+                -DROCM_PATH="$AOMP_INSTALL_DIR"
+                -DCMAKE_INSTALL_PREFIX="$InstallDir"
+                -DCMAKE_PREFIX_PATH="$ROCM_DIR/include;$ROCM_DIR/lib;$ROCM_DIR"
+                "${AOMP_ORIGIN_RPATH[@]}"
+                -DCMAKE_EXE_LINKER_FLAGS="-Wl,--disable-new-dtags"
+                -DBUILD_SHARED_LIBS=ON
+                -DENABLE_LDCONFIG=OFF
+                -DROCPROFILER_REGISTER_BUILD_TESTS=0
+                -DROCPROFILER_REGISTER_BUILD_SAMPLES=1)
+
+   mkdir -p "$BuildDir"
+   pushd "$BuildDir" >& /dev/null || exit
+   echo " -----Running cmake for rocprofiler-register $Cfg ---- "
+   echo "$AompCmake $(shquot "${MYCMAKEOPTS[@]}") $SrcDir"
+
+   if ! "$AompCmake" "${MYCMAKEOPTS[@]}" "$SrcDir"; then
+      echo "ERROR rocprofiler-register $Cfg cmake failed. cmake flags"
+      echo "      $(shquot "${MYCMAKEOPTS[@]}")"
+      exit 1
+   fi
+   popd >& /dev/null || exit
+}
+
+task_build() {
+   local Cfg=$1
+   local BuildDir
+   local Jobs
+   BuildDir="$(get_build_dir "$Cfg")"
+   Jobs="$(cfgvar AOMP_JOB_THREADS)"
+
+   pushd "$BuildDir" >& /dev/null || exit
+   echo " -----Running make for rocprofiler-register $Cfg ---- "
+   echo "make -j $Jobs"
+   if ! make -j "$Jobs"; then
       echo " "
-      echo "ERROR: make -j $AOMP_JOB_THREADS  FAILED"
-      echo "To restart:" 
-      echo "  cd $BUILD_AOMP/build/$AOMP_PROF_REGISTER_REPO_NAME"
+      echo "ERROR: make -j $Jobs  FAILED"
+      echo "To restart:"
+      echo "  cd $BuildDir"
       echo "  make"
       exit 1
-fi
+   fi
+   popd >& /dev/null || exit
+}
 
-#  ----------- Install only if asked  ----------------------------
-if [ "$1" == "install" ] ; then
-      cd "$BUILD_AOMP/build/$AOMP_PROF_REGISTER_REPO_NAME" || exit
-      echo " -----Installing to $INSTALL_ROCPROF_REGISTER/lib ----- " 
-      echo "$SUDO make install"
+task_install() {
+   local Cfg=$1
+   local BuildDir
+   local InstallDir
+   BuildDir="$(get_build_dir "$Cfg")"
+   InstallDir="$(get_install_dir "$Cfg")"
 
-      if ! $SUDO make install; then 
-         echo "ERROR make install failed "
-         exit 1
-      fi
-else
-   echo
-   echo "SUCCESSFUL BUILD, please run:  $0 install"
-   echo "  to install into $AOMP"
-   echo
-fi
+   pushd "$BuildDir" >& /dev/null || exit
+   echo " -----Installing to $InstallDir/lib ----- "
+   echo "$SUDO make install"
+
+   if ! $SUDO make install; then
+      echo "ERROR make install failed "
+      exit 1
+   fi
+   popd >& /dev/null || exit
+}
+
+do_list_configs() {
+  echo "default"
+}
+
+do_list_init() {
+  echo "precheck"
+}
+
+do_list_fini() {
+  :
+}
+
+# List of tasks per config.
+do_list_tasks() {
+  local Cfg=$1
+  if valid_config "$Cfg"; then
+    echo "clean"
+    echo "cmake"
+    echo "build"
+    echo "install"
+  else
+    echo "Unknown config '$Cfg'"
+  fi
+}
+
+command_dispatcher "$@"

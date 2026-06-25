@@ -5,19 +5,37 @@
 #                  Requires that "build_roct.sh install" be installed first
 #
 
+# Without these options, we can lose error status from command subtitutions,
+# etc.
+set -e
+shopt -s inherit_errexit
+
 # --- Start standard header to set AOMP environment variables ----
-realpath=$(realpath "$0")
+realpath=$(realpath -- "$0")
 thisdir=$(dirname "$realpath")
+. "$thisdir/aomp_utils"
 . "$thisdir/aomp_common_vars"
 # --- end standard header ----
 
+# All user-controllable (environment) values are read through these wrappers so
+# that they can later be driven by an orchestration layer.
+cfgvar() {
+  get_config_var_string rocr "$1"
+}
+
+cfgbool() {
+  get_config_var_bool rocr "$1"
+}
+
 INSTALL_ROCM=${INSTALL_ROCM:-$AOMP_INSTALL_DIR}
+REPO_DIR="$(cfgvar AOMP_REPOS)/$(cfgvar AOMP_ROCR_REPO_NAME)"
+_ompd_src_dir="$LLVM_INSTALL_LOC/share/gdb/python/ompd/src"
 
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then 
   echo " "
   echo " This script builds the ROCM runtime libraries"
-  echo " It gets the source from:  $AOMP_REPOS/$AOMP_ROCR_REPO_NAME"
-  echo " It builds libraries in:   $BUILD_AOMP/build/rocr"
+  echo " It gets the source from:  $REPO_DIR"
+  echo " It builds libraries in:   $(cfgvar BUILD_DIR)/rocr"
   echo " It installs in:           $INSTALL_ROCM"
   echo " "
   echo "Example commands and actions: "
@@ -27,209 +45,252 @@ if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   echo " "
   echo "To build aomp, see the README file in this directory"
   echo " "
-  exit 
+  exit 0
 fi
 
-if [ ! -d "$AOMP_REPOS/$AOMP_ROCR_REPO_NAME" ] ; then
-   echo "ERROR:  Missing repository $AOMP_REPOS/$AOMP_ROCR_REPO_NAME"
-   echo "        Are environment variables AOMP_REPOS and AOMP_ROCR_REPO_NAME set correctly?"
-   exit 1
-fi
+get_src_dir() {
+   echo "$REPO_DIR"
+}
 
-check_writable_installdir "$1" "$INSTALL_ROCM"
+# Print the build dir for a given config, passed as $1.
+get_build_dir() {
+   local Cfg=$1
+   local BuildDir
+   BuildDir="$(cfgvar BUILD_DIR)"
 
-patchrepo "$AOMP_REPOS/$AOMP_ROCR_REPO_NAME"
+   case "$Cfg" in
+   "default")
+     echo -n "$BuildDir/rocr"
+     ;;
+   "asan")
+     echo -n "$BuildDir/rocr/asan"
+     ;;
+   "debug")
+     echo -n "$BuildDir/rocr_debug"
+     ;;
+   *)
+     >&2 echo "Unknown config '$Cfg'"
+     exit 1
+     ;;
+   esac
+}
 
-#if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
-  #LDFLAGS=$(shquot '-fuse-ld=lld' "${ASAN_FLAGS[@]}")
-  #export LDFLAGS
-#fi
+# Print the install dir for a given config, passed as $1.
+get_install_dir() {
+   cfgvar INSTALL_ROCM
+}
 
-_ompd_src_dir="$LLVM_INSTALL_LOC/share/gdb/python/ompd/src"
+asan_config() {
+   local Cfg=$1
+   case "$Cfg" in
+     asan|*+asan)
+       return 0
+       ;;
+     *)
+       ;;
+   esac
+   return 1
+}
 
-if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then 
+debug_config() {
+   local Cfg=$1
+   case "$Cfg" in
+     debug|debug+*)
+       return 0
+       ;;
+     *)
+       ;;
+   esac
+   return 1
+}
 
-   echo " " 
-   echo "This is a FRESH START. ERASING any previous builds in $BUILD_AOMP/build_rocr"
-   echo "Use ""$0 nocmake"" or ""$0 install"" to avoid FRESH START."
+task_precheck() {
+   local SrcDir
+   SrcDir="$(get_src_dir)"
 
-   BUILDTYPE="Release"
-   echo "rm -rf $BUILD_AOMP/build/rocr"
-   rm -rf "$BUILD_AOMP/build/rocr"
+   if [ ! -d "$SrcDir" ] ; then
+      echo "ERROR:  Missing repository $SrcDir"
+      echo "        Are environment variables AOMP_REPOS and AOMP_ROCR_REPO_NAME set correctly?"
+      exit 1
+   fi
+
+   check_writable_installdir "$1" "$(cfgvar INSTALL_ROCM)"
+}
+
+task_patch() {
+   patchrepo "$REPO_DIR"
+}
+
+task_unpatch() {
+   removepatch "$REPO_DIR"
+}
+
+task_clean() {
+   local Cfg=$1
+   local BuildDir
+   BuildDir=$(get_build_dir "$Cfg")
+   echo "rm -rf $(shquot "$BuildDir")"
+   rm -rf "$BuildDir"
+}
+
+task_cmake() {
+   local Cfg=$1
+   local BuildDir
+   local SrcDir
+   local AompCmake
+   local -a MYCMAKEOPTS
+   local -a _prefix_map
+
+   SrcDir="$(get_src_dir)"
+   BuildDir="$(get_build_dir "$Cfg")"
+   AompCmake="$(cfgvar AOMP_CMAKE)"
    export PATH=/opt/rocm/llvm/bin:$PATH
-   declare -a MYCMAKEOPTS
-   MYCMAKEOPTS=(-DCMAKE_INSTALL_PREFIX="$INSTALL_ROCM"
-                -DCMAKE_BUILD_TYPE="$BUILDTYPE"
-                -DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR/lib"
-                -DIMAGE_SUPPORT=OFF "${AOMP_ORIGIN_RPATH[@]}"
-                -DCMAKE_INSTALL_LIBDIR=lib
-                -DCMAKE_C_COMPILER="${AOMP_INSTALL_DIR}/lib/llvm/bin/clang"
-                -DCMAKE_CXX_COMPILER="${AOMP_INSTALL_DIR}/lib/llvm/bin/clang++"
-                -DLLVM_DIR="$AOMP_INSTALL_DIR/lib/llvm/bin"
-                -DBUILD_SHARED_LIBS=On)
-   mkdir -p "$BUILD_AOMP/build/rocr"
-   cd "$BUILD_AOMP/build/rocr" || exit
-   echo
-   echo " -----Running rocr cmake ---- " 
-   echo "${AOMP_CMAKE}" "$(shquot "${MYCMAKEOPTS[@]}")" \
-        "$AOMP_REPOS/$AOMP_ROCR_REPO_NAME"
 
-   if ! ${AOMP_CMAKE} "${MYCMAKEOPTS[@]}" "$AOMP_REPOS/$AOMP_ROCR_REPO_NAME"; then 
-      echo "ERROR rocr cmake failed. cmake flags"
+   # Settings common to every config.
+   MYCMAKEOPTS=(-DCMAKE_C_COMPILER="$AOMP_INSTALL_DIR/lib/llvm/bin/clang"
+                -DCMAKE_CXX_COMPILER="$AOMP_INSTALL_DIR/lib/llvm/bin/clang++"
+                -DLLVM_DIR="$AOMP_INSTALL_DIR/lib/llvm/bin"
+                -DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR/lib"
+                -DIMAGE_SUPPORT=OFF
+                -DBUILD_SHARED_LIBS=On)
+
+   # Variant-specific settings.
+   if asan_config "$Cfg"; then
+      MYCMAKEOPTS+=(-DCMAKE_INSTALL_PREFIX="$AOMP_INSTALL_DIR"
+                    -DCMAKE_INSTALL_LIBDIR=lib/asan
+                    -DCMAKE_BUILD_TYPE="$(cfgvar BUILD_TYPE)"
+                    "${AOMP_ASAN_ORIGIN_RPATH[@]}"
+                    -DCMAKE_C_FLAGS="$(cmquot "${ASAN_FLAGS[@]}")"
+                    -DCMAKE_CXX_FLAGS="$(cmquot "${ASAN_FLAGS[@]}")")
+   elif debug_config "$Cfg"; then
+      _prefix_map=(-fdebug-prefix-map="$SrcDir=$_ompd_src_dir/rocr")
+      MYCMAKEOPTS+=(-DCMAKE_INSTALL_PREFIX="$AOMP_INSTALL_DIR"
+                    -DCMAKE_BUILD_TYPE=Debug
+                    "${AOMP_DEBUG_ORIGIN_RPATH[@]}"
+                    -DCMAKE_INSTALL_LIBDIR=lib-debug
+                    -DTARGET_DEVICES="gfx900;gfx90a;gfx942;gfx1010;gfx1030;gfx1100;gfx1200"
+                    -DCMAKE_C_FLAGS="$(cmquot -g "${_prefix_map[@]}")"
+                    -DCMAKE_CXX_FLAGS="$(cmquot -g "${_prefix_map[@]}")")
+   else
+      MYCMAKEOPTS+=(-DCMAKE_INSTALL_PREFIX="$(cfgvar INSTALL_ROCM)"
+                    -DCMAKE_BUILD_TYPE=Release
+                    -DCMAKE_INSTALL_LIBDIR=lib
+                    "${AOMP_ORIGIN_RPATH[@]}")
+   fi
+
+   mkdir -p "$BuildDir"
+   pushd "$BuildDir" >& /dev/null || exit
+   echo " -----Running rocr $Cfg cmake ---- "
+   echo "$AompCmake" "$(shquot "${MYCMAKEOPTS[@]}")" "$SrcDir"
+
+   if ! "$AompCmake" "${MYCMAKEOPTS[@]}" "$SrcDir"; then
+      echo "ERROR rocr $Cfg cmake failed. cmake flags"
       echo "      $(shquot "${MYCMAKEOPTS[@]}")"
       exit 1
    fi
+   popd >& /dev/null || exit
+}
 
-   if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
-      declare -a ASAN_CMAKE_OPTS
-      # unused prefix path :$ROCM_DIR/lib/asan/cmake;${AOMP_INSTALL_DIR}/lib/cmake 
-      ASAN_CMAKE_OPTS=(-DCMAKE_C_COMPILER="${AOMP_INSTALL_DIR}/lib/llvm/bin/clang"
-                       -DCMAKE_CXX_COMPILER="${AOMP_INSTALL_DIR}/lib/llvm/bin/clang++"
-                       -DLLVM_DIR="$AOMP_INSTALL_DIR/lib/llvm/bin"
-                       -DCMAKE_INSTALL_PREFIX="$AOMP_INSTALL_DIR"
-                       -DCMAKE_INSTALL_LIBDIR=lib/asan
-                       -DCMAKE_BUILD_TYPE="$BUILD_TYPE"
-                       -DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR/lib"
-                       -DIMAGE_SUPPORT=OFF "${AOMP_ASAN_ORIGIN_RPATH[@]}"
-                       -DBUILD_SHARED_LIBS=On)
-      mkdir -p "$BUILD_AOMP/build/rocr/asan"
-      cd "$BUILD_AOMP/build/rocr/asan" || exit
-      echo
-      echo " ----Running rocr-asan cmake ----- "
-      echo "${AOMP_CMAKE}" "$(shquot "${ASAN_CMAKE_OPTS[@]}")" \
-                           -DCMAKE_C_FLAGS="\"$(cmquot "${ASAN_FLAGS[@]}")\"" \
-                           -DCMAKE_CXX_FLAGS="\"$(cmquot "${ASAN_FLAGS[@]}")\"" \
-                           "$AOMP_REPOS/$AOMP_ROCR_REPO_NAME"
+task_build() {
+   local Cfg=$1
+   local BuildDir
+   local Jobs
+   BuildDir="$(get_build_dir "$Cfg")"
+   Jobs="$(cfgvar AOMP_JOB_THREADS)"
 
-      if ! ${AOMP_CMAKE} "${ASAN_CMAKE_OPTS[@]}" \
-                         -DCMAKE_C_FLAGS="$(cmquot "${ASAN_FLAGS[@]}")" \
-                         -DCMAKE_CXX_FLAGS="$(cmquot "${ASAN_FLAGS[@]}")" \
-                         "$AOMP_REPOS/$AOMP_ROCR_REPO_NAME"; then
-         echo "ERROR rocr-asan cmake failed. cmake flags"
-         echo "      $(shquot "${ASAN_CMAKE_OPTS[@]}")"
-         exit 1
-      fi
-   fi
-   if [ "$AOMP_BUILD_DEBUG" == "1" ] ; then
-      echo "rm -rf $BUILD_AOMP/build/rocr_debug"
-      [ -d "$BUILD_AOMP/build/rocr_debug" ] && rm -rf "$BUILD_AOMP/build/rocr_debug"
-      declare -a ROCR_CMAKE_OPTS
-      ROCR_CMAKE_OPTS=(-DCMAKE_C_COMPILER="$AOMP_INSTALL_DIR/lib/llvm/bin/clang"
-                       -DCMAKE_CXX_COMPILER="$AOMP_INSTALL_DIR/lib/llvm/bin/clang++"
-                       -DLLVM_DIR="$AOMP_INSTALL_DIR/lib/llvm/bin"
-                       -DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR/lib"
-                       -DCMAKE_INSTALL_PREFIX="$AOMP_INSTALL_DIR"
-                       -DCMAKE_BUILD_TYPE=Debug
-                       "${AOMP_DEBUG_ORIGIN_RPATH[@]}"
-                       -DCMAKE_INSTALL_LIBDIR=lib-debug
-                       -DBUILD_SHARED_LIBS=On
-                       -DIMAGE_SUPPORT=OFF
-                       -DTARGET_DEVICES="gfx900;gfx90a;gfx942;gfx1010;gfx1030;gfx1100;gfx1200")
-      echo  
-      echo " -----Running rocr_debug cmake -----"
-      mkdir -p "$BUILD_AOMP/build/rocr_debug"
-      cd "$BUILD_AOMP/build/rocr_debug" || exit
-      _prefix_map=(-fdebug-prefix-map="$AOMP_REPOS/$AOMP_ROCR_REPO_NAME=$_ompd_src_dir/rocr")
-      echo "${AOMP_CMAKE}" "$(shquot "${ROCR_CMAKE_OPTS[@]}")" \
-           -DCMAKE_C_FLAGS="\"$(cmquot -g "${_prefix_map[@]}")\"" \
-           -DCMAKE_CXX_FLAGS="\"$(cmquot -g "${_prefix_map[@]}")\"" \
-           "$AOMP_REPOS/$AOMP_ROCR_REPO_NAME"
-
-      if ! ${AOMP_CMAKE} "${ROCR_CMAKE_OPTS[@]}" \
-             -DCMAKE_C_FLAGS="$(cmquot -g "${_prefix_map[@]}")" \
-             -DCMAKE_CXX_FLAGS="$(cmquot -g "${_prefix_map[@]}")" \
-             "$AOMP_REPOS/$AOMP_ROCR_REPO_NAME"; then
-         echo "ERROR rocr_debug cmake failed.cmake flags"
-         echo "      $(shquot "${ROCR_CMAKE_OPTS[@]}")"
-         exit 1
-      fi
-   fi
-fi
-
-if [ "$1" = "cmake" ]; then
-   exit 0
-fi
-
-cd "$BUILD_AOMP/build/rocr" || exit
-echo
-echo " -----Running make for rocr ---- " 
-echo "make -j $AOMP_JOB_THREADS"
-
-if ! make -j "$AOMP_JOB_THREADS"; then
+   pushd "$BuildDir" >& /dev/null || exit
+   echo " -----Running make for rocr $Cfg ---- "
+   echo "make -j $Jobs"
+   if ! make -j "$Jobs"; then
       echo " "
-      echo "ERROR: make -j $AOMP_JOB_THREADS  FAILED"
-      echo "To restart:" 
-      echo "  cd $BUILD_AOMP/build/rocr"
-      echo "  make"
-      exit 1
-fi
-
-if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
-   cd "$BUILD_AOMP/build/rocr/asan" || exit
-   echo
-   echo " -----Running make for rocr-asan ---- "
-   echo "make -j $AOMP_JOB_THREADS"
-
-   if ! make -j "$AOMP_JOB_THREADS"; then
-      echo " "
-      echo "ERROR: make -j $AOMP_JOB_THREADS FAILED"
+      echo "ERROR: make -j $Jobs  FAILED"
       echo "To restart:"
-      echo "  cd $BUILD_AOMP/build/rocr/asan"
+      echo "  cd $BuildDir"
       echo "  make"
       exit 1
    fi
-fi
-if [ "$AOMP_BUILD_DEBUG" == 1 ] ; then
-   cd "$BUILD_AOMP/build/rocr_debug" || exit
-   echo
-   echo " ----- Running make for rocr_debug ----- "
+   popd >& /dev/null || exit
+}
 
-   if ! make -j "$AOMP_JOB_THREADS"; then
-     echo " "
-     echo "ERROR: make -j $AOMP_JOB_THREADS FAILED"
-     echo "To restart:"
-     echo "  cd $BUILD_AOMP/build/rocr_debug"
-     echo "  make"
-     exit 1
+task_install() {
+   local Cfg=$1
+   local BuildDir
+   local InstallDir
+   BuildDir="$(get_build_dir "$Cfg")"
+   InstallDir="$(get_install_dir "$Cfg")"
+
+   pushd "$BuildDir" >& /dev/null || exit
+   if asan_config "$Cfg"; then
+      echo " ------Installing to $InstallDir/lib/asan ------ "
+   elif debug_config "$Cfg"; then
+      echo " -----Installing to $InstallDir/lib-debug ----- "
+   else
+      echo " -----Installing to $InstallDir/lib ----- "
    fi
-fi
-#  ----------- Install only if asked  ----------------------------
-if [ "$1" == "install" ] ; then 
-      cd "$BUILD_AOMP/build/rocr" || exit
-      echo " -----Installing to $INSTALL_ROCM/lib ----- " 
-      echo "$SUDO make install "
+   echo "$SUDO make install "
 
-      if ! $SUDO make install; then
-         echo "ERROR make install failed "
-         exit 1
-      fi
+   if ! $SUDO make install; then
+      echo "ERROR make install failed "
+      exit 1
+   fi
+   popd >& /dev/null || exit
+}
 
-      if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
-         cd "$BUILD_AOMP/build/rocr/asan" || exit
-         echo " ------Installing to $INSTALL_ROCM/lib/asan ------ "
-         echo "$SUDO make install"
+task_postinstall() {
+   local Cfg=$1
+   local SrcDir
+   local _dirs
+   local _dirname
+   SrcDir="$(get_src_dir)"
 
-         if ! $SUDO make install; then
-            echo "ERROR make install failed "
-            exit 1
-         fi
-      fi
-      if [ "$AOMP_BUILD_DEBUG" == 1 ] ; then
-         cd "$BUILD_AOMP/build/rocr_debug" || exit
-         echo " -----Installing to $INSTALL_ROCM/lib-debug ----- "
-         if ! $SUDO make install; then
-            echo "ERROR make install for rocr  failed "
-            exit 1
-         fi
-	 # copy rocr sources into the installation for runtime source debugging
-	 _dirs="runtime/hsa-runtime/image runtime/hsa-runtime/inc runtime/hsa-runtime/core runtime/hsa-runtime/loader runtime/hsa-runtime/pcs libhsakmt/src libhsakmt/include"
-         for _dirname in $_dirs ; do
-            $SUDO mkdir -p "$_ompd_src_dir/rocr/$_dirname"
-            echo "cp -r $AOMP_REPOS/$AOMP_ROCR_REPO_NAME/$_dirname/ $_ompd_src_dir/rocr/$_dirname/"
-            $SUDO cp -r "$AOMP_REPOS/$AOMP_ROCR_REPO_NAME/$_dirname/" "$_ompd_src_dir/rocr/$_dirname/"
-         done
-         # remove non-source files to save space
-         find "$_ompd_src_dir/rocr"  -type f  | grep  -v "\.cpp$\|\.h$\|\.hpp$\|\.c$\|\.s$" | xargs rm
-      fi
-      removepatch "$AOMP_REPOS/$AOMP_ROCR_REPO_NAME"
-fi
+   # copy rocr sources into the installation for runtime source debugging
+   _dirs="runtime/hsa-runtime/image runtime/hsa-runtime/inc runtime/hsa-runtime/core runtime/hsa-runtime/loader runtime/hsa-runtime/pcs libhsakmt/src libhsakmt/include"
+   for _dirname in $_dirs ; do
+      $SUDO mkdir -p "$_ompd_src_dir/rocr/$_dirname"
+      echo "cp -r $SrcDir/$_dirname/ $_ompd_src_dir/rocr/$_dirname/"
+      $SUDO cp -r "$SrcDir/$_dirname/" "$_ompd_src_dir/rocr/$_dirname/"
+   done
+   # remove non-source files to save space
+   find "$_ompd_src_dir/rocr" -type f | grep -v "\.cpp$\|\.h$\|\.hpp$\|\.c$\|\.s$" | xargs -r rm
+}
+
+do_list_configs() {
+  echo "default"
+  if "$(cfgbool AOMP_BUILD_SANITIZER)"; then
+    echo "asan"
+  fi
+  if "$(cfgbool AOMP_BUILD_DEBUG)"; then
+    echo "debug"
+  fi
+}
+
+do_list_init() {
+  echo "precheck"
+  echo "patch"
+}
+
+do_list_fini() {
+  echo "unpatch"
+}
+
+# List of tasks per config.
+do_list_tasks() {
+  local Cfg=$1
+  if valid_config "$Cfg"; then
+    echo "clean"
+    echo "cmake"
+    echo "build"
+    echo "install"
+    case "$Cfg" in
+      debug)
+        echo "postinstall"
+        ;;
+      *)
+        ;;
+    esac
+  else
+    echo "Unknown config '$Cfg'"
+  fi
+}
+
+command_dispatcher "$@"

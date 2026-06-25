@@ -25,6 +25,7 @@
 # --- Start standard header to set AOMP environment variables ----
 realpath=$(realpath "$0")
 thisdir=$(dirname "$realpath")
+. "$thisdir/aomp_utils"
 . "$thisdir/aomp_common_vars"
 # --- end standard header ----
 
@@ -52,10 +53,10 @@ else
    # Need the following packaages from ubuntu: libxml2-dev, libfftw3-dev, libboost-dev
    BOOST_ROOT=${BOOST_ROOT:-/usr/lib/x86_64-linux-gnu}
    #  We now get FFTW, OPENMPI, and HDF5 from AOMP supplemental component installs.
-   #  run build_supp.sh to install supplemental components into $HOME/local.
-   FFTW_HOME=${FFTW_HOME:-$HOME/local/fftw}
-   OPENMPI_INSTALL=${OPENMPI_INSTALL:-$HOME/local/openmpi}
-   HDF5_ROOT=${HDF5_ROOT:-$HOME/local/hdf5}
+   #  run build_supp.sh to install supplemental components into $AOMP_SUPP.
+   FFTW_HOME=${FFTW_HOME:-$AOMP_SUPP/fftw}
+   OPENMPI_INSTALL=${OPENMPI_INSTALL:-$AOMP_SUPP/openmpi}
+   HDF5_ROOT=${HDF5_ROOT:-$AOMP_SUPP/hdf5}
    export BOOST_ROOT FFTW_HOME HDF5_ROOT
 fi
 

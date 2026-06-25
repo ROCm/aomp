@@ -4,11 +4,26 @@
 #                This script will install in location defined by AOMP env variable
 #
 
+# Without these options, we can lose error status from command subtitutions,
+# etc.
+set -e
+shopt -s inherit_errexit
+
 # --- Start standard header to set AOMP environment variables ----
-realpath=$(realpath "$0")
+realpath=$(realpath -- "$0")
 thisdir=$(dirname "$realpath")
+. "$thisdir/aomp_utils"
 . "$thisdir/aomp_common_vars"
 # --- end standard header ----
+
+# Get a configuration (environment) variable for this config
+cfgvar() {
+  get_config_var_string offload "$1"
+}
+
+cfgbool() {
+  get_config_var_bool offload "$1"
+}
 
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   help_build_aomp
@@ -17,491 +32,487 @@ fi
 REPO_DIR=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME
 _ompd_src_dir="$LLVM_INSTALL_LOC/share/gdb/python/ompd/src"
 
-if [ "$AOMP_BUILD_CUDA" == 1 ] ; then
-   CUDAH=$(find "$CUDAT" -type f,l -name "cuda.h" 2>/dev/null)
-   if [ "$CUDAH" == "" ] ; then
-      CUDAH=$(find "$CUDAINCLUDE" -type f,l -name "cuda.h" 2>/dev/null)
-   fi
-   if [ "$CUDAH" == "" ] ; then
-      echo
-      echo "ERROR:  THE cuda.h FILE WAS NOT FOUND WITH ARCH $AOMP_PROC"
-      echo "        A CUDA installation is necessary to build libomptarget deviceRTLs"
-      echo "        Please install CUDA to build offload"
-      echo
+get_src_dir() {
+   echo "$REPO_DIR/offload"
+}
+
+# Print the build dir for a given config, passed as $1.
+get_build_dir() {
+   local Cfg=$1
+   local BuildDir
+   BuildDir="$(cfgvar BUILD_DIR)"
+
+   case "$Cfg" in
+   "default")
+     echo -n "$BuildDir/offload"
+     ;;
+   "asan")
+     echo -n "$BuildDir/offload/asan"
+     ;;
+   "perf")
+     echo -n "$BuildDir/offload_perf"
+     ;;
+   "perf+asan")
+     echo -n "$BuildDir/offload_perf/asan"
+     ;;
+   "debug")
+     echo -n "$BuildDir/offload_debug"
+     ;;
+   "debug+asan")
+     echo -n "$BuildDir/offload_debug/asan"
+     ;;
+   *)
+     >&2 echo "Unknown config '$Cfg'"
+     exit 1
+     ;;
+   esac
+}
+
+# Print the install dir for a given config, passed as $1.
+get_install_dir() {
+   cfgvar LLVM_INSTALL_LOC
+}
+
+task_precheck() {
+   local CUDAVER
+   local SrcDir
+   local CUDAH
+   local CUDAVER
+   local BuildCUDA
+   local CUDATop
+   local CUDAInclude
+   local CUDABin
+   local AOMPProc
+
+   SrcDir="$(get_src_dir)"
+
+   if [ ! -d "$SrcDir" ] ; then
+      echo "ERROR:  Missing repository $SrcDir "
+      echo "        Consider setting env variables AOMP_REPOS and/or AOMP_PROJECT_REPO_NAME "
       exit 1
    fi
-   # I don't see now nvcc is called, but this eliminates the deprecated warnings
-   export CUDAFE_FLAGS="-w"
-fi
 
-if [ ! -d "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME" ] ; then
-   echo "ERROR:  Missing repository $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME "
-   echo "        Consider setting env variables AOMP_REPOS and/or AOMP_PROJECT_REPO_NAME "
-   exit 1
-fi
+   check_writable_installdir "$1" "$(cfgvar LLVM_INSTALL_LOC)"
 
-check_writable_installdir "$1" "$LLVM_INSTALL_LOC"
+   BuildCUDA="$(cfgbool AOMP_BUILD_CUDA)"
 
-if [ "$AOMP_BUILD_CUDA" == 1 ] ; then
-   if [ -f "$CUDABIN/nvcc" ] ; then
-      CUDAVER=$("$CUDABIN"/nvcc --version | grep compilation | cut -d" " -f5 | cut -d"." -f1)
-      echo "CUDA VERSION IS $CUDAVER"
-   fi
-fi
-
-if [ "$AOMP_USE_NINJA" == 0 ] ; then
-    AOMP_SET_NINJA_GEN=()
-else
-    AOMP_SET_NINJA_GEN=(-G Ninja)
-fi
-
-export LLVM_DIR=$AOMP_INSTALL_DIR
-GFXSEMICOLONS=$(echo "$GFXLIST" | tr ' ' ';')
-ALTAOMP=${ALTAOMP:-$LLVM_INSTALL_LOC}
-
-declare -a COMMON_CMAKE_OPTS
-
-COMMON_CMAKE_OPTS=("${AOMP_SET_NINJA_GEN[@]}" -DOPENMP_ENABLE_LIBOMPTARGET=1
-                   -DCMAKE_INSTALL_PREFIX="$LLVM_INSTALL_LOC"
-                   -DOPENMP_TEST_C_COMPILER="$LLVM_INSTALL_LOC/bin/clang"
-                   -DOPENMP_TEST_CXX_COMPILER="$LLVM_INSTALL_LOC/bin/clang++"
-                   -DCMAKE_C_COMPILER="$ALTAOMP/bin/clang"
-                   -DCMAKE_CXX_COMPILER="$ALTAOMP/bin/clang++"
-                   -DLIBOMPTARGET_AMDGCN_GFXLIST="$GFXSEMICOLONS"
-                   -DLIBOMPTARGET_ENABLE_DEBUG=ON
-                   -DLLVM_DIR="$LLVM_DIR")
-
-if [ "$AOMP_STANDALONE_BUILD" == 0 ]; then
-  COMMON_CMAKE_OPTS=("${COMMON_CMAKE_OPTS[@]}"
-                     -DLLVM_MAIN_INCLUDE_DIR="$LLVM_PROJECT_ROOT/llvm/include"
-                     -DLIBOMPTARGET_LLVM_INCLUDE_DIRS="$LLVM_PROJECT_ROOT/llvm/include")
-else
-  COMMON_CMAKE_OPTS=("${COMMON_CMAKE_OPTS[@]}"
-                     -DLLVM_MAIN_INCLUDE_DIR="$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/llvm/include"
-                     -DLIBOMPTARGET_LLVM_INCLUDE_DIRS="$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/llvm/include")
-fi
-
-if [ "$AOMP_BUILD_CUDA" == 1 ] ; then
-   COMMON_CMAKE_OPTS=("${COMMON_CMAKE_OPTS[@]}"
-                      -DLIBOMPTARGET_NVPTX_ENABLE_BCLIB=ON
-                      -DLIBOMPTARGET_NVPTX_CUDA_COMPILER="$AOMP/bin/clang++"
-                      -DLIBOMPTARGET_NVPTX_BC_LINKER="$AOMP/bin/llvm-link"
-                      -DLIBOMPTARGET_NVPTX_COMPUTE_CAPABILITIES="$NVPTXGPUS")
-else
-#  Need to force CUDA off this way in case cuda is installed in this system
-   COMMON_CMAKE_OPTS=("${COMMON_CMAKE_OPTS[@]}"
-                      -DCUDA_TOOLKIT_ROOT_DIR=OFF)
-fi
-
-#if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
-   #LDFLAGS=$(shquot '-fuse-ld=lld' "${ASAN_FLAGS[@]}")
-   #export LDFLAGS
-#fi
-
-# This is how we tell the hsa plugin where to find hsa
-export HSA_RUNTIME_PATH=$ROCM_DIR
-
-#breaks build as it cant find rocm-path
-#export HIP_DEVICE_LIB_PATH=$ROCM_DIR/lib
-
-# Patch llvm-project with ATD patch customized for amd-staging.
-# WARNING: This patch (ATD_ASO_full.patch) rarely applies cleanly
-#          because of its size and constant trunk merges to amd-staging.
-#          This is why default is 0 (OFF).
-if [ "$AOMP_APPLY_ATD_AMD_STAGING_PATCH"  == 1 ] ; then
-   patchrepo "$REPO_DIR"
-fi
-
-declare -a ASAN_CMAKE_OPTS
-
-if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
-   echo " "
-   echo "This is a FRESH START. ERASING any previous builds in $BUILD_DIR/offload."
-   echo "Use ""$0 nocmake"" or ""$0 install"" to avoid FRESH START."
-   echo "rm -rf $BUILD_DIR/build/offload"
-   rm -rf "$BUILD_DIR/build/offload"
-   declare -a MYCMAKEOPTS
-   if [ "$AOMP_STANDALONE_BUILD" == 1 ]; then
-     MYCMAKEOPTS=("${COMMON_CMAKE_OPTS[@]}"
-                  -DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR/lib/cmake;$AOMP_INSTALL_DIR/lib64/cmake"
-                  -DCMAKE_BUILD_TYPE=Release "${AOMP_ORIGIN_RPATH[@]}")
-   else
-     MYCMAKEOPTS=("${COMMON_CMAKE_OPTS[@]}"
-                  -DCMAKE_PREFIX_PATH="$INSTALL_PREFIX/lib/cmake"
-                  -DCMAKE_BUILD_TYPE=Release "${OPENMP_EXTRAS_ORIGIN_RPATH[@]}")
-   fi
-   if [ "$AOMP_LEGACY_OPENMP" == "1" ] && [ "$SANITIZER" != 1 ]; then
-      echo " -----Running offload cmake ---- "
-      mkdir -p "$BUILD_DIR/build/offload"
-      cd "$BUILD_DIR/build/offload" || exit
-      echo "${AOMP_CMAKE}" "$(shquot "${MYCMAKEOPTS[@]}")" \
-                           "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload"
-
-      if ! ${AOMP_CMAKE} "${MYCMAKEOPTS[@]}" \
-                         "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload"; then
-         echo "ERROR offload cmake failed. Cmake flags"
-         echo "      $(shquot "${MYCMAKEOPTS[@]}")"
+   if "$BuildCUDA"; then
+      CUDATop=$(cfgvar CUDAT)
+      CUDAH=$(find "$CUDATop" -type f,l -name "cuda.h" 2>/dev/null)
+      if [ "$CUDAH" == "" ] ; then
+         CUDAInclude=$(cfgvar CUDAINCLUDE)
+         CUDAH=$(find "$CUDAInclude" -type f,l -name "cuda.h" 2>/dev/null)
+      fi
+      if [ "$CUDAH" == "" ] ; then
+         AOMPProc=$(cfgvar AOMP_PROC)
+         echo
+         echo "ERROR:  THE cuda.h FILE WAS NOT FOUND WITH ARCH $AOMPProc"
+         echo "        A CUDA installation is necessary to build libomptarget deviceRTLs"
+         echo "        Please install CUDA to build offload"
+         echo
          exit 1
       fi
-   fi
-      if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
-        if [ "$AOMP_STANDALONE_BUILD" == 1 ]; then
-          ASAN_CMAKE_OPTS=("${COMMON_CMAKE_OPTS[@]}"
-                           -DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR/lib/asan/cmake;$AOMP_INSTALL_DIR/lib/cmake;$AOMP_INSTALL_DIR/lib64/cmake"
-                           -DSANITIZER_AMDGPU=1 -DCMAKE_BUILD_TYPE=Release
-                           -DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=OFF
-                           "${AOMP_ASAN_ORIGIN_RPATH[@]}")
-        else
-          ASAN_CMAKE_OPTS=("${COMMON_CMAKE_OPTS[@]}"
-                           -DCMAKE_PREFIX_PATH="$ROCM_CMAKECONFIG_PATH;$INSTALL_PREFIX/lib/llvm/lib/asan"
-                           -DSANITIZER_AMDGPU=1 -DCMAKE_BUILD_TYPE=Release
-                           -DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=OFF
-                           "${OPENMP_EXTRAS_ORIGIN_RPATH[@]}")
-        fi
-        echo " -----Running offload cmake for asan ---- "
-        mkdir -p "$BUILD_DIR/build/offload/asan"
-        cd "$BUILD_DIR/build/offload/asan" || exit
-        echo "${AOMP_CMAKE}" "$(shquot "${ASAN_CMAKE_OPTS[@]}")" \
-                             -DCMAKE_C_FLAGS="\"$(cmquot "${ASAN_FLAGS[@]}")\"" \
-                             -DCMAKE_CXX_FLAGS="\"$(cmquot "${ASAN_FLAGS[@]}")\"" \
-                             -DOFFLOAD_LIBDIR_SUFFIX="/asan" \
-                             -DLLVM_LIBDIR_SUFFIX="/asan" \
-                             "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload"
-        if ! ${AOMP_CMAKE} "${ASAN_CMAKE_OPTS[@]}" \
-                           -DCMAKE_C_FLAGS="$(cmquot "${ASAN_FLAGS[@]}")" \
-                           -DCMAKE_CXX_FLAGS="$(cmquot "${ASAN_FLAGS[@]}")" \
-                           -DOFFLOAD_LIBDIR_SUFFIX="/asan" \
-                           -DLLVM_LIBDIR_SUFFIX="/asan" \
-                           "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload"; then
-           echo "ERROR offload cmake failed. Cmake flags"
-           echo "      $(shquot "${ASAN_CMAKE_OPTS[@]}")"
-           exit 1
-        fi
+      # I don't see now nvcc is called, but this eliminates the deprecated warnings
+      export CUDAFE_FLAGS="-w"
+
+      CUDABin=$(cfgvar CUDABIN)
+      if [ -f "$CUDABin/nvcc" ] ; then
+         CUDAVER=$("$CUDABin"/nvcc --version | grep compilation | cut -d" " -f5 | cut -d"." -f1)
+         echo "CUDA VERSION IS $CUDAVER"
       fi
+   fi
+}
 
-  # Build a dedicatd "performance" version of libomptarget
-  if [ "$AOMP_BUILD_PERF" == "1" ]; then
-    echo "rm -rf $BUILD_DIR/build/offload_perf"
-    rm -rf "$BUILD_DIR/build/offload_perf"
-    MYCMAKEOPTS=("${COMMON_CMAKE_OPTS[@]}"
-                 -DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR/lib/cmake;$AOMP_INSTALL_DIR/lib64/cmake"
-                 -DLIBOMPTARGET_ENABLE_DEBUG=OFF -DCMAKE_BUILD_TYPE=Release
-                 -DLIBOMPTARGET_PERF=ON -DOFFLOAD_LIBDIR_SUFFIX=-perf
-                 -DLLVM_LIBDIR_SUFFIX="-perf")
-    mkdir -p "$BUILD_DIR/build/offload_perf"
-    cd "$BUILD_DIR/build/offload_perf" || exit
-    echo " -----Running offload cmake for perf ---- "
-    echo "${AOMP_CMAKE}" "$(shquot "${MYCMAKEOPTS[@]}")" \
-                         "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload" \
-                         "$(shquot "${AOMP_ORIGIN_RPATH[@]}")"
+task_clean() {
+   local Cfg=$1
+   local BuildDir
+   BuildDir=$(get_build_dir "$1")
+   echo "rm -rf $(shquot "$BuildDir")"
+   rm -rf "$BuildDir"
+}
 
-    if ! ${AOMP_CMAKE} "${MYCMAKEOPTS[@]}" \
-                       "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload" \
-                       "${AOMP_ORIGIN_RPATH[@]}"; then
-       echo "error offload cmake failed. cmake flags"
-       echo "      $(shquot "${MYCMAKEOPTS[@]}")"
-       exit 1
-    fi
-    if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
-       ASAN_CMAKE_OPTS=("${COMMON_CMAKE_OPTS[@]}"
-                        -DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR/lib/asan/cmake;$AOMP_INSTALL_DIR/lib/cmake;$AOMP_INSTALL_DIR/lib64/cmake"
-                        -DLIBOMPTARGET_ENABLE_DEBUG=OFF
-                        -DCMAKE_BUILD_TYPE=Release
-                        -DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=OFF
-                        -DLIBOMPTARGET_PERF=ON -DSANITIZER_AMDGPU=1
-                        "${AOMP_ASAN_ORIGIN_RPATH[@]}")
-       echo " -----Running offload cmake for perf-asan ---- "
-       mkdir -p "$BUILD_DIR/build/offload_perf/asan"
-       cd "$BUILD_DIR/build/offload_perf/asan" || exit
-       echo "${AOMP_CMAKE}" "$(shquot "${ASAN_CMAKE_OPTS[@]}")" \
-                            -DCMAKE_C_FLAGS="\"$(cmquot "${ASAN_FLAGS[@]}")\"" \
-                            -DCMAKE_CXX_FLAGS="\"$(cmquot "${ASAN_FLAGS[@]}")\"" \
-                            -DOFFLOAD_LIBDIR_SUFFIX="-perf/asan" \
-                            -DLLVM_LIBDIR_SUFFIX="-perf/asan" \
-                            "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload"
+task_patch() {
+   local ApplyPatch
+   local RepoDir
+   ApplyPatch=$(cfgbool AOMP_APPLY_ATD_AMD_STAGING_PATCH)
+   RepoDir=$(cfgvar REPO_DIR)
+   # Patch llvm-project with ATD patch customized for amd-staging.
+   # WARNING: This patch (ATD_ASO_full.patch) rarely applies cleanly
+   #          because of its size and constant trunk merges to amd-staging.
+   #          This is why default is 0 (OFF).
+   if "$ApplyPatch" ; then
+      patchrepo "$RepoDir"
+   fi
+}
 
-       if ! ${AOMP_CMAKE} "${ASAN_CMAKE_OPTS[@]}" \
-                          -DCMAKE_C_FLAGS="$(cmquot "${ASAN_FLAGS[@]}")" \
-                          -DCMAKE_CXX_FLAGS="$(cmquot "${ASAN_FLAGS[@]}")" \
-                          -DOFFLOAD_LIBDIR_SUFFIX="-perf/asan" \
-                          -DLLVM_LIBDIR_SUFFIX="-perf/asan" \
-                          "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload"; then
-          echo "error offload cmake failed. cmake flags"
-          echo "      $(shquot "${ASAN_CMAKE_OPTS[@]}")"
-          exit 1
-       fi
-    fi
-  fi
+task_unpatch() {
+   local ApplyPatch
+   local RepoDir
+   ApplyPatch=$(cfgbool AOMP_APPLY_ATD_AMD_STAGING_PATCH)
+   RepoDir=$(cfgvar REPO_DIR)
+   if "$ApplyPatch" ; then
+      removepatch "$RepoDir"
+   fi
+}
 
-   if [ "$AOMP_BUILD_DEBUG" == "1" ] ; then
-      _prefix_map=(-fdebug-prefix-map="$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload=$_ompd_src_dir/offload")
+asan_config() {
+   local Cfg=$1
+   case "$Cfg" in
+     asan|*+asan)
+       return 0
+       ;;
+   *)
+      ;;
+   esac
+   return 1
+}
 
-      declare -a DEBUGCMAKEOPTS
+debug_config() {
+   local Cfg=$1
+   case "$Cfg" in
+     debug|debug+*)
+       return 0
+       ;;
+     *)
+       ;;
+   esac
+   return 1
+}
 
-      DEBUGCMAKEOPTS=(-DLIBOMPTARGET_NVPTX_DEBUG=ON
-                      -DLLVM_ENABLE_ASSERTIONS=ON
-                      -DCMAKE_BUILD_TYPE=Debug
-                      -DROCM_DIR="$ROCM_DIR"
-                      -DLIBOMP_ARCH=x86_64
-                      -DLIBOMP_OMPT_SUPPORT=ON
-                      -DLIBOMP_USE_DEBUGGER=ON
-                      -DLIBOMP_CPPFLAGS='-O0'
-                      -DLIBOMP_OMPD_SUPPORT=ON
-                      -DLIBOMP_OMPT_DEBUG=ON)
+perf_config() {
+   local Cfg=$1
+   case "$Cfg" in
+      perf|perf+*)
+        return 0
+        ;;
+      *)
+        ;;
+   esac
+   return 1
+}
+
+libdir_suffix() {
+   local Cfg=$1
+   case "$Cfg" in
+     default)
+       ;;
+     asan)
+       echo "/asan"
+       ;;
+     perf)
+       printf "%s" "-perf"
+       ;;
+     perf+asan)
+       printf "%s" "-perf/asan"
+       ;;
+     debug)
+       printf "%s" "-debug"
+       ;;
+     debug+asan)
+       printf "%s" "-debug/asan"
+       ;;
+     *)
+        >&2 echo "Unknown config '$Cfg'"
+        exit 1
+   esac
+}
+
+task_cmake() {
+   local Cfg=$1
+   local UseNinja
+   local -a AOMP_SET_NINJA_GEN
+   local GFXSEMICOLONS
+   local ALTAOMP
+   local Standalone
+   local -a MYCMAKEOPTS
+   local HSA_RUNTIME_PATH
+   local BuildDir
+   local _prefix_map
+   local LibdirSuffix
+
+   UseNinja=$(cfgbool AOMP_USE_NINJA)
+
+   if "$UseNinja"; then
+      AOMP_SET_NINJA_GEN=(-G Ninja)
+   fi
+
+   BuildDir=$(get_build_dir "$Cfg")
+
+   export LLVM_DIR=$AOMP_INSTALL_DIR
+   GFXSEMICOLONS=$(echo "$GFXLIST" | tr ' ' ';')
+   ALTAOMP=${ALTAOMP:-$LLVM_INSTALL_LOC}
+
+   Standalone=$(cfgbool AOMP_STANDALONE_BUILD)
+
+   MYCMAKEOPTS=("${AOMP_SET_NINJA_GEN[@]}"
+                -DOPENMP_ENABLE_LIBOMPTARGET=1
+                -DCMAKE_INSTALL_PREFIX="$LLVM_INSTALL_LOC"
+                -DOPENMP_TEST_C_COMPILER="$LLVM_INSTALL_LOC/bin/clang"
+                -DOPENMP_TEST_CXX_COMPILER="$LLVM_INSTALL_LOC/bin/clang++"
+                -DCMAKE_C_COMPILER="$ALTAOMP/bin/clang"
+                -DCMAKE_CXX_COMPILER="$ALTAOMP/bin/clang++"
+                -DLIBOMPTARGET_AMDGCN_GFXLIST="$GFXSEMICOLONS"
+                -DLLVM_DIR="$LLVM_DIR")
+
+   if ! "$Standalone" ; then
+      MYCMAKEOPTS+=(-DLLVM_MAIN_INCLUDE_DIR="$LLVM_PROJECT_ROOT/llvm/include"
+                    -DLIBOMPTARGET_LLVM_INCLUDE_DIRS="$LLVM_PROJECT_ROOT/llvm/include")
+   else
+      MYCMAKEOPTS+=(-DLLVM_MAIN_INCLUDE_DIR="$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/llvm/include"
+                    -DLIBOMPTARGET_LLVM_INCLUDE_DIRS="$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/llvm/include")
+   fi
+
+   if "$(cfgbool AOMP_BUILD_CUDA)"; then
+      MYCMAKEOPTS+=(-DLIBOMPTARGET_NVPTX_ENABLE_BCLIB=ON
+                    -DLIBOMPTARGET_NVPTX_CUDA_COMPILER="$AOMP/bin/clang++"
+                    -DLIBOMPTARGET_NVPTX_BC_LINKER="$AOMP/bin/llvm-link"
+                    -DLIBOMPTARGET_NVPTX_COMPUTE_CAPABILITIES="$NVPTXGPUS")
+   else
+   #  Need to force CUDA off this way in case cuda is installed in this system
+      MYCMAKEOPTS+=(-DCUDA_TOOLKIT_ROOT_DIR=OFF)
+   fi
+
+   #if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
+      #LDFLAGS=$(shquot '-fuse-ld=lld' "${ASAN_FLAGS[@]}")
+      #export LDFLAGS
+   #fi
+
+   # This is how we tell the hsa plugin where to find hsa
+   export HSA_RUNTIME_PATH=$ROCM_DIR
+
+   #breaks build as it cant find rocm-path
+   #export HIP_DEVICE_LIB_PATH=$ROCM_DIR/lib
+
+   mkdir -p "$BuildDir"
+   pushd "$BuildDir" >& /dev/null || exit
+
+   if perf_config "$Cfg"; then
+      MYCMAKEOPTS+=(-DLIBOMPTARGET_PERF=ON
+                    -DLIBOMPTARGET_ENABLE_DEBUG=OFF)
+   else
+      MYCMAKEOPTS+=(-DLIBOMPTARGET_ENABLE_DEBUG=ON)
+   fi
+
+   if debug_config "$Cfg"; then
+      MYCMAKEOPTS+=(-DLIBOMPTARGET_NVPTX_DEBUG=ON
+                    -DLLVM_ENABLE_ASSERTIONS=ON
+                    -DROCM_DIR="$ROCM_DIR"
+                    -DCMAKE_BUILD_TYPE=Debug
+                    -DLIBOMP_ARCH=x86_64
+                    -DLIBOMP_OMPT_SUPPORT=ON
+                    -DLIBOMP_USE_DEBUGGER=ON
+                    -DLIBOMP_CPPFLAGS='-O0'
+                    -DLIBOMP_OMPD_SUPPORT=ON
+                    -DLIBOMP_OMPT_DEBUG=ON)
 
       # The 'pip install --system' command is not supported on non-debian systems. This will disable
       # the system option if the debian_version file is not present.
       if [ ! -f /etc/debian_version ]; then
          echo "==> Non-Debian OS, disabling use of pip install --system"
-         DEBUGCMAKEOPTS=("${DEBUGCMAKEOPTS[@]}" -DDISABLE_SYSTEM_NON_DEBIAN=1)
+         MYCMAKEOPTS+=(-DDISABLE_SYSTEM_NON_DEBIAN=1)
       fi
 
       # Redhat 7.6 does not have python36-devel package, which is needed for ompd compilation.
       # This is acquired through RH Software Collections.
       if [ -f /opt/rh/rh-python36/enable ]; then
          echo "==> Using python3.6 out of rh tools."
-         DEBUGCMAKEOPTS=("${DEBUGCMAKEOPTS[@]}"
-                         -DPython3_ROOT_DIR=/opt/rh/rh-python36/root/bin
-                         -DPYTHON_HEADERS=/opt/rh/rh-python36/root/usr/include/python3.6m)
+         MYCMAKEOPTS+=(-DPython3_ROOT_DIR=/opt/rh/rh-python36/root/bin
+                       -DPYTHON_HEADERS=/opt/rh/rh-python36/root/usr/include/python3.6m)
       fi
-
-      echo
-      if [ "$SANITIZER" != 1 ] ; then
-         echo "rm -rf $BUILD_DIR/build/offload_debug"
-         rm -rf "$BUILD_DIR/build/offload_debug"
-         echo " -----Running offload cmake for debug ---- "
-         mkdir -p "$BUILD_DIR/build/offload_debug"
-         cd "$BUILD_DIR/build/offload_debug" || exit
-         if [ "$AOMP_STANDALONE_BUILD" == 1 ]; then
-           PREFIX_PATH="-DCMAKE_PREFIX_PATH=$AOMP_INSTALL_DIR/lib/cmake;$AOMP_INSTALL_DIR/lib64/cmake"
-           MYCMAKEOPTS=("${COMMON_CMAKE_OPTS[@]}" "${DEBUGCMAKEOPTS[@]}"
-                        "${AOMP_DEBUG_ORIGIN_RPATH[@]}")
-         else
-           PREFIX_PATH="-DCMAKE_PREFIX_PATH=$INSTALL_PREFIX/lib/cmake"
-           MYCMAKEOPTS=("${COMMON_CMAKE_OPTS[@]}" "${DEBUGCMAKEOPTS[@]}"
-                        "${OPENMP_EXTRAS_ORIGIN_RPATH[@]}")
-         fi
-
-         if ! ${AOMP_CMAKE} "${MYCMAKEOPTS[@]}" "$PREFIX_PATH" \
-                            -DCMAKE_C_FLAGS="$CFLAGS -g" \
-                            -DCMAKE_CXX_FLAGS="$CXXFLAGS -g $(cmquot "${_prefix_map[@]}")" \
-                            -DOFFLOAD_LIBDIR_SUFFIX="-debug" \
-                            -DLLVM_LIBDIR_SUFFIX="-debug" \
-                            "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload"; then
-            echo "ERROR offload debug cmake failed. Cmake flags"
-            echo "      $(shquot "${MYCMAKEOPTS[@]}")"
-            exit 1
-         fi
-      fi
-      if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
-         ASAN_CMAKE_OPTS=("${COMMON_CMAKE_OPTS[@]}" "${DEBUGCMAKEOPTS[@]}"
-                          -DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=OFF
-                          -DSANITIZER_AMDGPU=1)
-         if [ "$AOMP_STANDALONE_BUILD" == 1 ]; then
-           ASAN_CMAKE_OPTS=("${ASAN_CMAKE_OPTS[@]}"
-                            -DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR/lib/asan/cmake;$AOMP_INSTALL_DIR/lib/cmake;$AOMP_INSTALL_DIR/lib64/cmake"
-                            "${AOMP_ASAN_ORIGIN_RPATH[@]}")
-         else
-           ASAN_CMAKE_OPTS=("${ASAN_CMAKE_OPTS[@]}"
-                            -DCMAKE_PREFIX_PATH="$ROCM_CMAKECONFIG_PATH;$INSTALL_PREFIX/lib/llvm/lib/asan"
-                            "${OPENMP_EXTRAS_ORIGIN_RPATH[@]}")
-         fi
-         echo " -----Running offload cmake for debug-asan ---- "
-         mkdir -p "$BUILD_DIR/build/offload_debug/asan"
-         cd "$BUILD_DIR/build/offload_debug/asan" || exit
-         echo "${AOMP_CMAKE}" "${ASAN_CMAKE_OPTS[@]}" \
-                              -DCMAKE_C_FLAGS="\"$(cmquot "${ASAN_FLAGS[@]}")\"" \
-                              -DCMAKE_CXX_FLAGS="\"$(cmquot "${ASAN_FLAGS[@]}")\"" \
-                              -DOFFLOAD_LIBDIR_SUFFIX="-debug/asan" \
-                              -DLLVM_LIBDIR_SUFFIX="-debug/asan" \
-                              "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload"
-
-         if ! ${AOMP_CMAKE} "${ASAN_CMAKE_OPTS[@]}" \
-                            -DCMAKE_C_FLAGS="$(cmquot "${ASAN_FLAGS[@]}")" \
-                            -DCMAKE_CXX_FLAGS="$(cmquot "${ASAN_FLAGS[@]}")" \
-                            -DOFFLOAD_LIBDIR_SUFFIX="-debug/asan" \
-                            -DLLVM_LIBDIR_SUFFIX="-debug/asan" \
-                            "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload"; then
-            echo "ERROR offload debug cmake failed. Cmake flags"
-            echo "      $(shquot "${ASAN_CMAKE_OPTS[@]}")"
-            exit 1
-         fi
-      fi
+   else
+      MYCMAKEOPTS+=(-DCMAKE_BUILD_TYPE=Release)
    fi
-fi
 
-if [ "$1" = "cmake" ]; then
-   exit 0
-fi
+   if asan_config "$Cfg"; then
+      MYCMAKEOPTS+=(-DSANITIZER_AMDGPU=1
+                    -DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=OFF)
+   fi
 
-if [ "$1" != "install" ] ; then
-if [ "$AOMP_LEGACY_OPENMP" == "1" ] && [ "$SANITIZER" != 1 ] ; then
-  cd "$BUILD_DIR/build/offload" || exit
-  echo " -----Running $AOMP_NINJA_BIN for $BUILD_DIR/build/offload ---- "
-  if ! $AOMP_NINJA_BIN -j "$AOMP_JOB_THREADS"; then
-        echo " "
-        echo "ERROR: $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS  FAILED"
-        echo "To restart:"
-        echo "  cd $BUILD_DIR/build/offload"
-        echo "  $AOMP_NINJA_BIN"
-        exit 1
-  fi
-fi
+   # rpath options
+   if "$Standalone"; then
+      if asan_config "$Cfg"; then
+         MYCMAKEOPTS+=("${AOMP_ASAN_ORIGIN_RPATH[@]}"
+                       -DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR/lib/asan/cmake;$AOMP_INSTALL_DIR/lib/cmake;$AOMP_INSTALL_DIR/lib64/cmake")
+      else
+         if debug_config "$Cfg"; then
+            MYCMAKEOPTS+=("${AOMP_DEBUG_ORIGIN_RPATH[@]}")
+         else
+            MYCMAKEOPTS+=("${AOMP_ORIGIN_RPATH[@]}")
+         fi
+         MYCMAKEOPTS+=(-DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR/lib/cmake;$AOMP_INSTALL_DIR/lib64/cmake")
+      fi
+   else
+      if asan_config "$Cfg"; then
+         MYCMAKEOPTS+=(-DCMAKE_PREFIX_PATH="$ROCM_CMAKECONFIG_PATH;$INSTALL_PREFIX/lib/llvm/lib/asan")
+      else
+         MYCMAKEOPTS+=(-DCMAKE_PREFIX_PATH="$INSTALL_PREFIX/lib/cmake")
+      fi
+      MYCMAKEOPTS+=("${OPENMP_EXTRAS_ORIGIN_RPATH[@]}")
+   fi
 
-if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
-   cd "$BUILD_DIR/build/offload/asan" || exit
-   echo " -----Running $AOMP_NINJA_BIN for $BUILD_DIR/build/offload/asan ---- "
+   # libdir suffix options
+   LibdirSuffix=$(libdir_suffix "$Cfg")
 
-   if ! $AOMP_NINJA_BIN -j "$AOMP_JOB_THREADS"; then
-      echo " "
-      echo "ERROR: $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS  FAILED"
-      echo "To restart:"
-      echo "  cd $BUILD_DIR/build/offload/asan"
-      echo "  $AOMP_NINJA_BIN"
+   if [ -n "$LibdirSuffix" ]; then
+      MYCMAKEOPTS+=(-DOFFLOAD_LIBDIR_SUFFIX="$LibdirSuffix"
+                    -DLLVM_LIBDIR_SUFFIX="$LibdirSuffix")
+   fi
+
+   # C/C++ flags
+   if asan_config "$Cfg"; then
+      MYCMAKEOPTS+=(-DCMAKE_C_FLAGS="$(cmquot "${ASAN_FLAGS[@]}")"
+                    -DCMAKE_CXX_FLAGS="$(cmquot "${ASAN_FLAGS[@]}")")
+   elif debug_config "$Cfg"; then
+      _prefix_map=(-fdebug-prefix-map="$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload=$_ompd_src_dir/offload")
+      MYCMAKEOPTS+=(-DCMAKE_C_FLAGS="$CFLAGS -g"
+                    -DCMAKE_CXX_FLAGS="$CXXFLAGS -g $(cmquot "${_prefix_map[@]}")")
+   fi
+
+   echo "${AOMP_CMAKE}" "$(shquot "${MYCMAKEOPTS[@]}")" \
+                        "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload"
+         
+   if ! ${AOMP_CMAKE} "${MYCMAKEOPTS[@]}" \
+                      "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload"; then
+      echo "ERROR offload cmake failed. Cmake flags"
+      echo "      $(shquot "${MYCMAKEOPTS[@]}")"
       exit 1
    fi
-fi
 
-if [ "$AOMP_BUILD_PERF" == "1" ] ; then
-   cd "$BUILD_DIR/build/offload_perf" || exit
-   echo
-   echo
-   echo " -----Running $AOMP_NINJA_BIN for $BUILD_DIR/build/offload_perf ---- "
+   popd >& /dev/null || exit
+}
 
-   if ! $AOMP_NINJA_BIN -j "$AOMP_JOB_THREADS"; then
-         echo "ERROR $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS failed"
-         exit 1
-   fi
-   if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
-      cd "$BUILD_DIR/build/offload_perf/asan" || exit
-      echo
-      echo
-      echo " ----- Running $AOMP_NINJA_BIN for $BUILD_DIR/build/offload_perf/asan ----- "
+task_build() {
+   local Cfg=$1
+   local BuildDir
+   local NinjaBin
+   local Jobs
+   BuildDir=$(get_build_dir "$Cfg")
+   NinjaBin="$(cfgvar AOMP_NINJA_BIN)"
+   Jobs="$(cfgvar AOMP_JOB_THREADS)"
 
-      if ! $AOMP_NINJA_BIN -j "$AOMP_JOB_THREADS"; then
-         echo "ERROR $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS failed"
-         exit 1
-      fi
-   fi
-fi
-
-if [ "$AOMP_BUILD_DEBUG" == "1" ] ; then
-   if [ "$SANITIZER" != 1 ] ; then
-      cd "$BUILD_DIR/build/offload_debug" || exit
-      echo
-      echo
-      echo " -----Running $AOMP_NINJA_BIN for $BUILD_DIR/build/offload_debug ---- "
-
-      if ! $AOMP_NINJA_BIN -j "$AOMP_JOB_THREADS"; then
-         echo "ERROR $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS failed"
-         exit 1
-      fi
-   fi
-   if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
-      cd "$BUILD_DIR/build/offload_debug/asan" || exit
-      echo
-      echo
-      echo " -----Running $AOMP_NINJA_BIN for $BUILD_DIR/build/offload_debug/asan ---- "
-
-      if ! $AOMP_NINJA_BIN -j "$AOMP_JOB_THREADS"; then
-         echo "ERROR $AOMP_NINJA_BIN -j $AOMP_JOB_THREADS failed"
-         exit 1
-      fi
-   fi
-fi
-
-   echo
-   echo "Successful build of ./build_offload.sh .  Please run:"
-   echo "  ./build_offload.sh install "
-   echo
-fi
-
-#  ----------- Install only if asked  ----------------------------
-if [ "$1" == "install" ] ; then
-   if [ "$AOMP_LEGACY_OPENMP" == "1" ] && [ "$SANITIZER" != 1 ] ; then
-      cd "$BUILD_DIR/build/offload" || exit
-      echo
-      echo " -----Installing to $LLVM_INSTALL_LOC/lib ----- "
-
-      if ! $SUDO "$AOMP_NINJA_BIN" -j "$AOMP_JOB_THREADS" install; then
-         echo "ERROR $AOMP_NINJA_BIN install failed "
-         exit 1
-      fi
-   fi
-
-   if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
-      cd "$BUILD_DIR/build/offload/asan" || exit
-      echo
-      echo " -----Installing to $LLVM_INSTALL_LOC/lib/asan ----- "
-
-      if ! $SUDO "$AOMP_NINJA_BIN" -j "$AOMP_JOB_THREADS" install; then
-         echo "ERROR $AOMP_NINJA_BIN install failed "
-         exit 1
-      fi
-   fi
-
-   if [ "$AOMP_BUILD_PERF" == "1" ]; then
-     cd "$BUILD_DIR/build/offload_perf" || exit
-     echo
-     echo " -----Installing to $LLVM_INSTALL_LOC/lib-perf ----- "
-
-     if ! $SUDO "$AOMP_NINJA_BIN" -j "$AOMP_JOB_THREADS" install; then
-        echo "ERROR $AOMP_NINJA_BIN install failed "
-        exit 1
-     fi
-
-     if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
-        cd "$BUILD_DIR/build/offload_perf/asan" || exit
-        echo
-        echo " ----- Installing to $LLVM_INSTALL_LOC/lib-perf/asan ----- "
-
-        if ! $SUDO "$AOMP_NINJA_BIN" -j "$AOMP_JOB_THREADS" install; then
-           echo "ERROR $AOMP_NINJA_BIN install failed "
-           exit 1
-        fi
-     fi
-   fi
-
-   if [ "$AOMP_BUILD_DEBUG" == "1" ] ; then
-      if [ "$SANITIZER" != 1 ] ; then
-         cd "$BUILD_DIR/build/offload_debug" || exit
-         echo
-         echo " -----Installing to $LLVM_INSTALL_LOC/lib-debug ---- "
-
-         if ! $SUDO "$AOMP_NINJA_BIN" -j "$AOMP_JOB_THREADS" install; then
-            echo "ERROR $AOMP_NINJA_BIN install failed "
+   pushd "$BuildDir" >& /dev/null || exit
+     echo " -----Running $NinjaBin for $BuildDir ---- "
+      if ! $NinjaBin -j "$Jobs"; then
+            echo " "
+            echo "ERROR: $NinjaBin -j $Jobs FAILED"
+            echo "To restart:"
+            echo "  cd $BuildDir"
+            echo "  $NinjaBin"
             exit 1
-         fi
       fi
-      if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
-         cd "$BUILD_DIR/build/offload_debug/asan" || exit
-         echo " -----Installing to $LLVM_INSTALL_LOC/lib-debug/asan ---- "
+   popd >& /dev/null || exit
+}
 
-         if ! $SUDO "$AOMP_NINJA_BIN" -j "$AOMP_JOB_THREADS" install; then
-            echo "ERROR $AOMP_NINJA_BIN install failed "
-            exit 1
-         fi
-      fi
+task_install() {
+   local Cfg=$1
+   local BuildDir
+   local NinjaBin
+   local Jobs
+   BuildDir=$(get_build_dir "$Cfg")
+   NinjaBin="$(cfgvar AOMP_NINJA_BIN)"
+   Jobs="$(cfgvar AOMP_JOB_THREADS)"
 
-      # Copy selected debugable runtime sources into the installation directory
-      # $_ompd_src_dir directory to satisfy the above CXXOPT  -fdebug-prefix-map.
-      $SUDO mkdir -p "$_ompd_src_dir/offload"
-      $SUDO mkdir -p "$_ompd_src_dir/offload/plugins-nextgen"
-      if [ "$AOMP_STANDALONE_BUILD" == 1 ]; then
-         _from_dir_src="$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload/libomptarget"
-         _from_dir_plugins="$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload/plugins-nextgen"
-      else
-         _from_dir_src="$LLVM_PROJECT_ROOT/offload/libomptarget"
-         _from_dir_plugins="$LLVM_PROJECT_ROOT/offload/plugins-nextgen"
-      fi
-      echo cp -rp "$_from_dir_src" "$_ompd_src_dir/offload"
-      $SUDO cp -rp "$_from_dir_src" "$_ompd_src_dir/offload"
-      echo cp -rp "$_from_dir_plugins" "$_ompd_src_dir/offload"
-      $SUDO cp -rp "$_from_dir_plugins" "$_ompd_src_dir/offload"
-   fi # end of AOMP_BUILD_DEBUG install block
+   pushd "$BuildDir" >& /dev/null || exit
 
-   if [ "$AOMP_APPLY_ATD_AMD_STAGING_PATCH"  == 1 ] ; then
-      removepatch "$REPO_DIR"
+   echo " -----Installing to $LLVM_INSTALL_LOC/lib ----- "
+
+   if ! $SUDO "$NinjaBin" -j "$Jobs" install; then
+      echo "ERROR $NinjaBin install failed "
+      exit 1
    fi
 
-fi # end of install block
+   popd >& /dev/null || exit
+}
+
+task_postinstall() {
+   local Cfg=$1
+   local Standalone
+   local LLVMRoot
+   local _from_dir_src
+   local _from_dir_plugins
+   
+   Standalone="$(cfgbool AOMP_STANDALONE_BUILD)"
+   LLVMRoot="$(cfgvar LLVM_PROJECT_ROOT)"
+
+   # Copy selected debugable runtime sources into the installation directory
+   # $_ompd_src_dir directory to satisfy the above CXXOPT  -fdebug-prefix-map.
+   $SUDO mkdir -p "$_ompd_src_dir/offload"
+   $SUDO mkdir -p "$_ompd_src_dir/offload/plugins-nextgen"
+   if "$Standalone"; then
+      _from_dir_src="$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload/libomptarget"
+      _from_dir_plugins="$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload/plugins-nextgen"
+   else
+      _from_dir_src="$LLVMRoot/offload/libomptarget"
+      _from_dir_plugins="$LLVMRoot/offload/plugins-nextgen"
+   fi
+   echo cp -rp "$_from_dir_src" "$_ompd_src_dir/offload"
+   $SUDO cp -rp "$_from_dir_src" "$_ompd_src_dir/offload"
+   echo cp -rp "$_from_dir_plugins" "$_ompd_src_dir/offload"
+   $SUDO cp -rp "$_from_dir_plugins" "$_ompd_src_dir/offload"
+}
+
+do_list_configs() {
+  local Sanitizer
+  local LegacyOpenMP
+  local BuildSanitizer
+  local BuildPerf
+  local BuildDebug
+
+  Sanitizer="$(cfgbool SANITIZER)"
+  LegacyOpenMP="$(cfgbool AOMP_LEGACY_OPENMP)"
+  BuildSanitizer="$(cfgbool AOMP_BUILD_SANITIZER)"
+  BuildPerf="$(cfgbool AOMP_BUILD_PERF)"
+  BuildDebug="$(cfgbool AOMP_BUILD_DEBUG)"
+
+  if ! "$Sanitizer" && "$LegacyOpenMP" ; then
+    echo "default"
+  fi
+  if "$BuildSanitizer"; then
+    echo "asan"
+  fi
+  if "$BuildPerf"; then
+    echo "perf"
+    if "$BuildSanitizer"; then
+      echo "perf+asan"
+    fi
+  fi
+  if "$BuildDebug" ; then
+    if ! "$Sanitizer"; then
+      echo "debug"
+    fi
+    if "$BuildSanitizer"; then
+      echo "debug+asan"
+    fi
+  fi
+}
+
+do_list_init() {
+  echo "precheck"
+  echo "patch"
+}
+
+do_list_fini() {
+  echo "unpatch"
+}
+
+# List of tasks per config.
+do_list_tasks() {
+  local Cfg=$1
+  if valid_config "$Cfg"; then
+    echo "clean"
+    echo "cmake"
+    echo "build"
+    echo "install"
+    case "$Cfg" in
+      debug)
+        echo "postinstall"
+        ;;
+      *)
+        ;;
+    esac
+  else
+    echo "Unknown config '$Cfg'"
+  fi
+}
+
+command_dispatcher "$@"

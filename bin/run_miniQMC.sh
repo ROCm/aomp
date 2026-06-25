@@ -14,6 +14,8 @@ thisdir=$(dirname "$realpath")
 export AOMP_USE_CCACHE=0
 
 # shellcheck source-path=SCRIPTDIR
+. "$thisdir"/aomp_utils
+# shellcheck source-path=SCRIPTDIR
 . "$thisdir"/aomp_common_vars
 # --- end standard header ----
 

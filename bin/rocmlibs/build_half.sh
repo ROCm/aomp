@@ -1,102 +1,179 @@
 #!/bin/bash
-# 
+#
+#Copyright © Advanced Micro Devices, Inc., or its affiliates.
+#
+#SPDX-License-Identifier:  MIT
+#
 #  build_half.sh: script to build and install half
 #
+
+# Without these options, we can lose error status from command subtitutions,
+# etc.
+set -e
+shopt -s inherit_errexit
+
 # --- Start standard header to set AOMP environment variables ----
-realpath=`realpath $0`
-thisdir=`dirname $realpath`
-. $thisdir/../aomp_common_vars
+realpath=$(realpath -- "$0")
+thisdir=$(dirname "$realpath")
+. "$thisdir/../aomp_utils"
+. "$thisdir/../aomp_common_vars"
 # --- end standard header ----
 
-_libname=half
-_repo_dir=$AOMP_REPOS/rocmlibs/$_libname
-patchrepo $_repo_dir
+# All user-controllable (environment) values are read through these wrappers so
+# that they can later be driven by an orchestration layer.
+cfgvar() {
+  get_config_var_string half "$1"
+}
 
-if [ $AOMP_STANDALONE_BUILD == 1 ] ; then 
-   if [ ! -L $AOMP ] ; then 
-     if [ -d $AOMP ] ; then 
-        echo "ERROR: Directory $AOMP is a physical directory."
-        echo "       It must be a symbolic link or not exist"
-        exit 1
-     fi
-   fi
-else
-   echo "ERROR: $0 only valid for AOMP_STANDALONE_BUILD=1"
-   exit 1
-fi
+cfgbool() {
+  get_config_var_bool half "$1"
+}
 
-if [ "$1" == "nocmake" ] ; then 
-   echo "ERROR: nocmake is not an option for $0"
-   exit 1
-fi
+_repo_dir="$(cfgvar AOMP_REPOS)/rocmlibs/half"
 
-# Make sure we can update the install directory 
-if [ "$1" == "install" ] ; then
-   $SUDO mkdir -p $AOMP_INSTALL_DIR
-   $SUDO touch $AOMP_INSTALL_DIR/testfile
-   if [ $? != 0 ] ; then 
-      echo "ERROR: No update access to $AOMP_INSTALL_DIR"
+get_src_dir() {
+   echo "$_repo_dir"
+}
+
+# Print the build dir for a given config, passed as $1.
+get_build_dir() {
+   local Cfg=$1
+   case "$Cfg" in
+   "default")
+     echo -n "$(cfgvar BUILD_DIR)/rocmlibs/half"
+     ;;
+   *)
+     >&2 echo "Unknown config '$Cfg'"
+     exit 1
+     ;;
+   esac
+}
+
+# Print the install dir for a given config, passed as $1.
+get_install_dir() {
+   echo "$AOMP_INSTALL_DIR"
+}
+
+task_precheck() {
+   if ! "$(cfgbool AOMP_STANDALONE_BUILD)"; then
+      echo "ERROR: $0 only valid for AOMP_STANDALONE_BUILD=1"
       exit 1
    fi
-   $SUDO rm $AOMP_INSTALL_DIR/testfile
-fi
-
-if [ "$1" != "install" ] ; then
-   echo 
-   echo "This is a FRESH START. ERASING any previous builds in $BUILD_DIR/build/rocmlibs/$_libname"
-   echo "Use ""$0 install"" to avoid FRESH START."
-   echo rm -rf $BUILD_DIR/build/rocmlibs/$_libname
-   rm -rf $BUILD_DIR/build/rocmlibs/$_libname
-   mkdir -p $BUILD_DIR/build/rocmlibs/$_libname
-else
-   if [ ! -d $BUILD_DIR/build/rocmlibs/$_libname ] ; then 
-      echo "ERROR: The build directory $BUILD_DIR/build/rocmlibs/$_libname does not exist"
-      echo "       run $0 without install option. "
+   if [ ! -L "$AOMP" ] && [ -d "$AOMP" ] ; then
+      echo "ERROR: Directory $AOMP is a physical directory."
+      echo "       It must be a symbolic link or not exist"
       exit 1
    fi
-fi
 
-if [ "$1" != "install" ] ; then
-   # Remember start directory to return on exit
-   _curdir=$PWD
+   check_writable_installdir "$1" "$AOMP_INSTALL_DIR"
+}
+
+task_patch() {
+   patchrepo "$_repo_dir"
+}
+
+task_unpatch() {
+   removepatch "$_repo_dir"
+}
+
+task_clean() {
+   local Cfg=$1
+   local BuildDir
+   BuildDir=$(get_build_dir "$Cfg")
+   echo "rm -rf $(shquot "$BuildDir")"
+   rm -rf "$BuildDir"
+   mkdir -p "$BuildDir"
+}
+
+task_cmake() {
+   local Cfg=$1
+   local BuildDir
+   local SrcDir
+   local AompCmake
+   local -a MYCMAKEOPTS
+
+   BuildDir="$(get_build_dir "$Cfg")"
+   SrcDir="$(get_src_dir)"
+   AompCmake="$(cfgvar AOMP_CMAKE)"
+
+   MYCMAKEOPTS=(-DCMAKE_INSTALL_PREFIX="$AOMP_INSTALL_DIR")
+
+   mkdir -p "$BuildDir"
+   pushd "$BuildDir" >& /dev/null || exit
+   echo " -----Running cmake for half $Cfg ---- "
+   echo "$AompCmake $(shquot "${MYCMAKEOPTS[@]}") $SrcDir"
+
+   if ! "$AompCmake" "${MYCMAKEOPTS[@]}" "$SrcDir"; then
+      echo "ERROR cmake failed. Cmake flags"
+      echo "      $(shquot "${MYCMAKEOPTS[@]}")"
+      exit 1
+   fi
+   popd >& /dev/null || exit
+}
+
+task_build() {
+   local Cfg=$1
+   local BuildDir
+   local AompCmake
+   local Jobs
+   BuildDir="$(get_build_dir "$Cfg")"
+   AompCmake="$(cfgvar AOMP_CMAKE)"
+   Jobs="$(cfgvar AOMP_JOB_THREADS)"
+
+   pushd "$BuildDir" >& /dev/null || exit
+   echo " -----Running $AompCmake --build for half $Cfg ---- "
+   if ! "$AompCmake" --build . -j "$Jobs"; then
+      echo "ERROR $AompCmake --build . -j $Jobs failed"
+      exit 1
+   fi
+   popd >& /dev/null || exit
+}
+
+task_install() {
+   local Cfg=$1
+   local BuildDir
+   local InstallDir
+   local Jobs
+   BuildDir="$(get_build_dir "$Cfg")"
+   InstallDir="$(get_install_dir "$Cfg")"
+   Jobs="$(cfgvar AOMP_JOB_THREADS)"
+
+   pushd "$BuildDir" >& /dev/null || exit
+   echo " -----Installing to $InstallDir ---- "
+   if ! make -j"$Jobs" install; then
+      echo "ERROR install to $InstallDir failed "
+      exit 1
+   fi
+   popd >& /dev/null || exit
    echo
-   echo " -----Running cmake ---"
-   echo cd $AOMP_REPOS/build/rocmlibs/$_libname
-   cd $AOMP_REPOS/build/rocmlibs/$_libname
-   pwd
-   MYCMAKEOPTS="-DCMAKE_INSTALL_PREFIX=$AOMP_INSTALL_DIR"
-   echo " ----- Running $AOMP_CMAKE $MYCMAKEOPTS $_repo_dir -----"
-   $AOMP_CMAKE $MYCMAKEOPTS $_repo_dir
-   if [ $? != 0 ] ; then 
-      echo "ERROR cmake failed."
-      echo "       $MYCMAKEOPTS"
-      cd $_curdir
-      exit 1
-   fi
-
-   echo " ----- Running ${AOMP_CMAKE} --build . -j $AOMP_JOB_THREADS -----"
-   ${AOMP_CMAKE} --build . -j $AOMP_JOB_THREADS
-   if [ $? != 0 ] ; then
-      echo "ERROR: ${AOMP_CMAKE} --build . -j $AOMP_JOB_THREADS FAILED"
-      exit 1
-   fi
-fi
-
-if [ "$1" == "install" ] ; then
-   echo " ----- Installing to $AOMP_INSTALL_DIR ----- "
-   cd $AOMP_REPOS/build/rocmlibs/$_libname
-   make -j$AOMP_JOB_THREADS install
-   if [ $? != 0 ] ; then
-      echo "ERROR install to $AOMP_INSTALL_DIR failed "
-      exit 1
-   fi
+   echo "SUCCESSFUL INSTALL to $InstallDir"
    echo
-   echo "SUCCESSFUL INSTALL to $AOMP_INSTALL_DIR"
-   echo
-   removepatch $_repo_dir
-else 
-   echo 
-   echo "SUCCESSFUL BUILD, please run:  $0 install"
-   echo "  to install into $AOMP_INSTALL_DIR"
-   echo 
-fi
+}
+
+do_list_configs() {
+  echo "default"
+}
+
+do_list_init() {
+  echo "precheck"
+  echo "patch"
+}
+
+do_list_fini() {
+  echo "unpatch"
+}
+
+# List of tasks per config.
+do_list_tasks() {
+  local Cfg=$1
+  if valid_config "$Cfg"; then
+    echo "clean"
+    echo "cmake"
+    echo "build"
+    echo "install"
+  else
+    echo "Unknown config '$Cfg'"
+  fi
+}
+
+command_dispatcher "$@"

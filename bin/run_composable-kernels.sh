@@ -28,6 +28,8 @@ realpath=$(realpath "$0")
 thisdir=$(dirname "$realpath")
 
 # shellcheck disable=SC1091
+. "$thisdir"/aomp_utils
+# shellcheck disable=SC1091
 . "$thisdir"/aomp_common_vars
 
 export PATH=$AOMP/bin:$PATH
