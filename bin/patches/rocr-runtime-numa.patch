@@ -1,8 +1,8 @@
-diff --git a/runtime/hsa-runtime/CMakeLists.txt b/runtime/hsa-runtime/CMakeLists.txt
-index cfcd3fba..cdc500bb 100644
---- a/runtime/hsa-runtime/CMakeLists.txt
-+++ b/runtime/hsa-runtime/CMakeLists.txt
-@@ -335,7 +335,7 @@ if(${IMAGE_SUPPORT})
+diff --git a/projects/rocr-runtime/runtime/hsa-runtime/CMakeLists.txt b/projects/rocr-runtime/runtime/hsa-runtime/CMakeLists.txt
+index bae0f4b3f1..4e370ec67e 100644
+--- a/projects/rocr-runtime/runtime/hsa-runtime/CMakeLists.txt
++++ b/projects/rocr-runtime/runtime/hsa-runtime/CMakeLists.txt
+@@ -374,7 +374,7 @@ if(${IMAGE_SUPPORT})
  endif()
  
  if (UNIX)
