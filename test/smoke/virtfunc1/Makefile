@@ -14,6 +14,7 @@ else
   LLIB = -L$(AOMPHIP)/lib
 endif
 endif
+RUNENV       += LD_LIBRARY_PATH=$(AOMP)/lib:$(LD_LIBRARY_PATH)
 CLANG        ?= clang++ -D__HIP_PLATFORM_AMD__=1 $(LLIB) -lamdhip64 $(RPTH) -I$(AOMPHIP)/include
 OMP_BIN      = $(AOMP)/bin/$(CLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
