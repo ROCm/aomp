@@ -1,0 +1,6 @@
+Both kernels must appear in the merged host+device profile. host_kernel is the
+host-shadow path; mod_kernel (from the hipModuleLoad'd code object, no host
+shadow) can only be present if the HSA-introspection drain collected it.
+
+CHECK-DAG: host_kernel
+CHECK-DAG: mod_kernel
