@@ -54,10 +54,12 @@ if [ -d "$repodirname" ] ; then
    if [ "$STASH_BEFORE_PULL" == "YES" ] ; then
      git stash -u
    fi
-   echo "git pull "
-   if ! git pull && [ "$IGNORE_GIT_ERROR" != 1 ] ; then
-     echo "git pull failed for: $repodirname"
-     exit 1
+   if [ "$sha_key_used" -eq 0 ] && [ "$tag_used" -eq 0 ]; then
+     echo "git pull "
+     if ! git pull && [ "$IGNORE_GIT_ERROR" != 1 ] ; then
+       echo "git pull failed for: $repodirname"
+       exit 1
+     fi
    fi
    echo "cd $repodirname ; git checkout $COBRANCH"
    if ! git checkout "$COBRANCH" && [ "$IGNORE_GIT_ERROR" != 1 ] ; then
@@ -256,6 +258,7 @@ if [[ "$AOMP_VERSION" == "13.1" ]] || [[ $AOMP_MAJOR_VERSION -gt 13 ]] ; then
       line_is_good=1
       remote=$(echo "$line" | grep remote | cut -d"=" -f2)
       sha_key_used=0
+      tag_used=0
       COSHAKEY=""
       for field in $line; do
          if [[ "$field" =~ remote=\"([^\"]*)\" ]]; then
@@ -275,6 +278,10 @@ if [[ "$AOMP_VERSION" == "13.1" ]] || [[ $AOMP_MAJOR_VERSION -gt 13 ]] ; then
            COSHAKEY=${BASH_REMATCH[1]}
          elif [[ "$field" =~ revision=\"([^\"]*)\" ]]; then
            COBRANCH=${BASH_REMATCH[1]}
+         fi
+         if [[ "$field" =~ tag=\"true\" ]]; then
+           tag_used=1
+           sha_key_used=0
          fi
       done
       reponame=$path

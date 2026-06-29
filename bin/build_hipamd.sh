@@ -33,10 +33,10 @@ thisdir=$(dirname "$realpath")
 . "$thisdir/aomp_common_vars"
 # --- end standard header ----
 
-export HIPAMD_DIR=$AOMP_REPOS/clr
-export HIP_DIR=$AOMP_REPOS/hip
-export ROCclr_DIR=$AOMP_REPOS/clr/rocclr
-export OPENCL_DIR=$AOMP_REPOS/clr/opencl
+export HIPAMD_DIR=$AOMP_REPOS/${AOMP_ROCM_SYSTEMS_NAME}/clr
+export HIP_DIR=$AOMP_REPOS/${AOMP_ROCM_SYSTEMS_NAME}/hip
+export ROCclr_DIR=$AOMP_REPOS/${AOMP_ROCM_SYSTEMS_NAME}/clr/rocclr
+export OPENCL_DIR=$AOMP_REPOS/${AOMP_ROCM_SYSTEMS_NAME}/clr/opencl
 [[ ! -d $HIPAMD_DIR ]] && echo "ERROR:  Missing $HIPAMD_DIR" && exit 1
 [[ ! -d $HIP_DIR ]]    && echo "ERROR:  Missing $HIP_DIR"    && exit 1
 [[ ! -d $ROCclr_DIR ]] && echo "ERROR:  Missing $ROCclr_DIR" && exit 1

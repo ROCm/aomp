@@ -34,7 +34,7 @@ thisdir=$(dirname "$realpath")
 . "$thisdir/aomp_common_vars"
 # --- end standard header ----
 
-RSMILIB_REPO_DIR=$AOMP_REPOS/rocm_smi_lib
+RSMILIB_REPO_DIR=$AOMP_REPOS/${AOMP_ROCM_SYSTEMS_NAME}/rocm-smi-lib
 
 BUILD_DIR=${BUILD_AOMP}
 
