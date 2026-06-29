@@ -21,11 +21,6 @@ INSTALL_PROJECT=${INSTALL_PROJECT:-$LLVM_INSTALL_LOC}
 
 WEBSITE="http\:\/\/github.com\/ROCm\/aomp"
 
-# Check-openmp prep
-# Patch rocr
-ROCR_REPO_DIR=$AOMP_REPOS/$AOMP_ROCR_REPO_NAME
-patchrepo "$ROCR_REPO_DIR"
-
 # Patch llvm-project with ATD patch customized for amd-staging.
 # WARNING: This patch (ATD_ASO_full.patch) rarely applies cleanly
 #          because of its size and constant trunk merges to amd-staging.
@@ -129,8 +124,6 @@ MYCMAKEOPTS=(-DCMAKE_BUILD_TYPE="$BUILD_TYPE"
              -DLLVM_BUILD_LLVM_DYLIB=ON
              -DLLVM_LINK_LLVM_DYLIB=ON
              -DCLANG_LINK_CLANG_DYLIB=ON
-             -DLIBOMPTARGET_EXTERNAL_PROJECT_HSA_PATH="$AOMP_REPOS/$AOMP_ROCR_REPO_NAME"
-             -DOFFLOAD_EXTERNAL_PROJECT_UNIFIED_ROCR=On
              -DLIBOMPTARGET_EXTERNAL_PROJECT_ROCM_DEVICE_LIBS_PATH="$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/amd/device-libs"
              -DLLVM_EXTERNAL_PROJECTS=SPIRV_TRANSLATOR
              -DLLVM_EXTERNAL_SPIRV_TRANSLATOR_SOURCE_DIR="$AOMP_REPOS/SPIRV-LLVM-Translator"
@@ -323,7 +316,6 @@ if [ "$1" == "install" ] ; then
    if [ "$AOMP_APPLY_ATD_AMD_STAGING_PATCH"  == 1 ] ; then
       removepatch "$REPO_DIR"
    fi
-   removepatch "$ROCR_REPO_DIR"
    amd_compiler_symlinks=("amdclang" "amdclang++" "amdclang-cl" "amdclang-cpp" "amdflang" "amdlld")
    amd_compiler_cfg=("clang" "clang++" "clang-cpp" "clang-${AOMP_MAJOR_VERSION}" "clang-cl" "flang")
 
