@@ -45,12 +45,13 @@ rm -f ./*.profraw mod.co merged.profdata builder builder.*.host-* \
   -fprofile-instr-generate -fcoverage-mapping --rocm-path="$ROCM" \
   mod.hip -o builder -L"$ROCM/lib" -lamdhip64 -Wl,-rpath,"$ROCM/lib"
 "$OBJDUMP" --offloading builder >/dev/null 2>&1 || true
-co="$(ls builder*.hip-amdgcn-amd-amdhsa--*gfx* 2>/dev/null | head -1)"
-if [ -z "$co" ]; then
+shopt -s nullglob
+extracted=(builder*.hip-amdgcn-amd-amdhsa--*gfx*)
+if [ ${#extracted[@]} -eq 0 ]; then
   echo "FAIL HipDevCov: could not extract device code object from builder"
   exit 1
 fi
-cp "$co" mod.co
+cp "${extracted[0]}" mod.co
 
 # 2. main is built by the smoke harness (TESTNAME=main). Build it here too if it
 #    is missing, so the script also works when run standalone.
