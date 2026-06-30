@@ -267,7 +267,7 @@ if [ "${AOMP_PARALLEL_SMOKE}" == 1 ]; then
           flock -e lockfile -c "echo $base  >> ../passing-tests.txt"
         fi
       else
-        sem --jobs $AOMP_JOB_THREADS  --id def_sem -u 'base=$(basename $(pwd)); make clean > /dev/null; make &> make-log.txt; if [ $? -ne 0 ]; then flock -e lockfile -c "echo $base: Make Failed >> ../make-fail.txt"; fi;'
+        sem --jobs "${AOMP_JOB_THREADS}"  --id def_sem -u 'base=$(basename $(pwd)); make clean > /dev/null; make &> make-log.txt; if [ $? -ne 0 ]; then flock -e lockfile -c "echo $base: Make Failed >> ../make-fail.txt"; fi;'
       fi
       popd > /dev/null || exit
     done
