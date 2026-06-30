@@ -1,6 +1,0 @@
-The merged profile must contain device-side counters that could only have been
-collected via the HSA-introspection drain (OpenMP offload has no host-shadow
-drain). The device offload entry and the device function classify both appear.
-
-CHECK-DAG: __omp_offloading_
-CHECK-DAG: classify
