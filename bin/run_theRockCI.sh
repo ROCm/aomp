@@ -7,13 +7,14 @@
 #    override with SUITE_LIST
 #  Please check with Ron or Ethan for script modifications.
 date
-SUITE_LIST=${SUITE_LIST:-"smoke-limbo smoke-fort-limbo smoke smoke-fort nekbone babelstream fortran-babelstream bldopenmpi openmpapps"}
+SUITE_LIST=${SUITE_LIST:-"smoke-limbo smoke-fort-limbo smoke smoke-dev smoke-fort nekbone babelstream fortran-babelstream bldopenmpi openmpapps"}
 echo "Removed hpc2021 and accel2023 for CI since external runners are not supposed to be able to access artifactory"
 #SUITE_LIST=${SUITE_LIST:-"smoke-limbo smoke-fort-limbo smoke smoke-fort nekbone babelstream fortran-babelstream accel2023 bldopenmpi hpc2021 openmpapps"}
 declare -A assocSuite=(
 ["smoke-limbo"]=" 5 minutes"
 ["smoke-fort-limbo"]=" 2 minutes"
 ["smoke"]=" 20 minutes"
+["smoke-dev"]=" 4 minutes"
 ["smoke-fort"]=" 8 minutes"
 ["nekbone"]=" 1 minute"
 ["babelstream"]=" 1 minute"
@@ -242,6 +243,20 @@ function smoke-fort-limbo(){
   else
      echo "FAILED smoke-fort-limbo" >> $TLOG
   fi
+}
+
+function smoke-dev(){
+  echo "%================ smoke-dev"
+  cd "$aompdir"/test/smoke-dev
+  export SKIP_OMPT=1
+  ./check_smoke_dev.sh > $tmpfile 2>&1
+  unset SKIP_OMPT
+  checkRes $tmpfile
+#  if [ "$?" == 0 ]; then
+     echo "Passed smoke-dev" >> $TLOG
+#  else
+#     echo "FAILED smoke-dev" >> $TLOG
+#  fi
 }
 
 function smoke-limbo(){

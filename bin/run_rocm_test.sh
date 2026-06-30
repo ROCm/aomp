@@ -62,7 +62,7 @@ fi
 blockinglist="examples smoke smoke-limbo openmpapps sollve45 sollve50 sollve51 sollve52 babelstream ovo hpc2021 nekbone smoke-fort"
 
 EPSDB_LIST=${EPSDB_LIST:-"examples smoke-limbo smoke-dev smoke smoke-asan omp5 openmpapps LLNL nekbone ovo babelstream fortran-babelstream accel2023 hpc2021  smoke-fort smoke-fort-limbo smoke-fort-dev"}
-THEROCK_LIST=${THEROCK_LIST:-"smoke smoke-fort smoke-fort-limbo nekbone babelstream fortran-babelstream accel2023 hpc2021"}
+THEROCK_LIST=${THEROCK_LIST:-"smoke smoke-fort smoke-fort-limbo smoke-dev nekbone babelstream fortran-babelstream accel2023 hpc2021"}
 
 export AOMP_USE_CCACHE=0
 
