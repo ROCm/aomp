@@ -1,0 +1,33 @@
+# shellcheck shell=bash
+#
+# Copyright © Advanced Micro Devices, Inc., or its affiliates.
+#
+# SPDX-License-Identifier:  MIT
+#
+# semaphore_isolation.src - shared helper for GNU parallel's "sem" semaphore.
+#
+# Source this file and call isolate_semaphore before any "sem" use. It gives
+# "sem" a private, self-cleaning semaphore namespace (its own PARALLEL_HOME) so
+# that a leaked/stale token can neither deadlock a run nor leak across runs, and
+# optionally bounds a stuck semaphore with a timeout.
+#
+# Background: on hosts whose name contains uppercase letters, GNU parallel's
+# dead-lock reaper (remove_dead_locks) never matches its own token files, so a
+# token left behind by an unclean death is never reclaimed and every later
+# "sem --wait" deadlocks. A per-run private namespace sidesteps this entirely.
+#
+# Design:
+#   - No-op when PARALLEL_HOME is already set, so an outer caller never collides.
+#   - AOMP_SEMAPHORE_TIMEOUT (seconds), if set, is passed to every "sem" call as
+#     --semaphoretimeout: a wedged sem/sem --wait then steals and proceeds
+#     instead of hanging. Left unset => pure isolation, no timeout.
+
+isolate_semaphore() {
+  [ -n "${PARALLEL_HOME:-}" ] && return 0
+  _semaphore_home=$(mktemp -d "${TMPDIR:-/tmp}/aomp-sem.XXXXXX") || return 0
+  export PARALLEL_HOME="$_semaphore_home"
+  if [ -n "${AOMP_SEMAPHORE_TIMEOUT:-}" ]; then
+    export PARALLEL="--semaphoretimeout ${AOMP_SEMAPHORE_TIMEOUT}${PARALLEL:+ $PARALLEL}"
+  fi
+  trap 'rm -rf "$_semaphore_home"' EXIT
+}
