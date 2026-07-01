@@ -1,5 +1,9 @@
 #!/bin/bash
 #
+# Copyright © Advanced Micro Devices, Inc., or its affiliates.
+#
+# SPDX-License-Identifier:  MIT
+#
 # Checks all tests in smoke directory using make check. Programs return 0 for success or a number > 0 for failure.
 # Tests that need to be visually inspected: devices, stream
 #
@@ -228,6 +232,10 @@ if [ "${AOMP_PARALLEL_SMOKE}" == 1 ]; then
     export AOMP_NO_PREREQ=1     # disable prereq target so builds can be reused
   fi
   if sem --help > /dev/null; then
+    # Give "sem" a private, self-cleaning semaphore namespace (no-op if the
+    # caller already set PARALLEL_HOME). Prevents stale-token deadlocks/leaks.
+    # shellcheck source=/dev/null
+    source "${path}/../../bin/semaphore_isolation.src" 2>/dev/null && isolate_semaphore
     COMP_THREADS=1
     if [ -n "$(which getconf)" ]; then
        COMP_THREADS=$(getconf _NPROCESSORS_ONLN)
