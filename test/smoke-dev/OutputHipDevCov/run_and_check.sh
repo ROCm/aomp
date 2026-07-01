@@ -11,7 +11,7 @@
 # present in the merged profile (the latter requires the HSA drain).
 
 set -u
-AOMP="$1"; ARCH="$2"; FILECHECK="$3"; ROCM="$4"
+AOMP="$1"; ARCH="$2"; ROCM="$4"
 CLANG="$AOMP/bin/clang"
 PROFDATA="$AOMP/bin/llvm-profdata"
 OBJDUMP="$AOMP/bin/llvm-objdump"
