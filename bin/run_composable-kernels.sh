@@ -282,7 +282,14 @@ if [ ! -d "${CK_TOP}" ]; then
   mkdir -p "${CK_TOP}" || exit 1
 fi
 
-if [ ! -d "${CK_REPO}" ]; then
+# Validate that CK_REPO is an actual git checkout, not just an existing
+# directory. Alola periodically wipes the *contents* of old node-local dirs
+# while leaving the directory shells behind, which yields a CK_REPO that
+# exists but has no .git (and no CMakeLists.txt), breaking the build. A plain
+# "-d" test would skip the clone and then fail. Re-clone when the tree is
+# missing or not a valid repo; only pull when it is a healthy checkout.
+if ! git -C "${CK_REPO}" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  rm -rf "${CK_REPO}"
   git clone --single-branch --depth 1 ${CKRepoURL} "${CK_REPO}"
 elif [ "${ShouldUpdateCKRepo}" == 'yes' ]; then
   pushd "${CK_REPO}" || exit 1
