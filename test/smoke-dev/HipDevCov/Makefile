@@ -21,10 +21,10 @@ LINK_FLAGS   = -L$(ROCM_PATH)/lib -lamdhip64 -Wl,-rpath,$(ROCM_PATH)/lib
 
 CC           = $(AOMP)/bin/clang $(VERBOSE)
 
-RUNCMD       = ./run_and_check.sh "$(AOMP)" "$(GPU_W_FEATURES)" "$(FILECHECK)" "$(ROCM_PATH)"
+RUNCMD       = ./run_and_check.sh "$(AOMP)" "$(GPU_W_FEATURES)" "$(ROCM_PATH)"
 
 include ../Makefile.rules
 
 clean::
 	rm -f mod.co builder builder.*.host-* builder.*.hip-amdgcn-amd-amdhsa--* \
-	      *.profraw merged.profdata
+	      *.profraw merged.profdata devcov-profile.txt DEVCOV-SKIPPED.txt
