@@ -218,26 +218,15 @@ if [[ "$AOMP_VERSION" == "13.1" ]] || [[ $AOMP_MAJOR_VERSION -gt 13 ]] ; then
    # However, we gave up on using the repo command to clone the repos. 
    # That is all done here by parsing the manifest file.
 
-   # According to git documentation this ssh command should return 1 if authentication is successful
-   ssh -T $AOMP_GIT_INTERNAL_IP 2> /dev/null
-   if [ $? == 1 ] && [ "$AOMP_EXTERNAL_MANIFEST" != 1 ]; then
-      # AMD internal repo file
-      if [ "$AOMP_NEW" == "1" ]; then
-         manifest_file=$thisdir/../manifests/aompi_new_${AOMP_VERSION}.xml
-      else
-         manifest_file=$thisdir/../manifests/aompi_${AOMP_VERSION}.xml
-      fi
+   abranch=$(git branch | awk '/\*/ { print $2; }')
+   # Use release manifest if on release branch
+   if [ "$abranch" == "aomp-${AOMP_VERSION_STRING}" ]; then
+      manifest_file=$thisdir/../manifests/aomp_${AOMP_VERSION_STRING}.xml
    else
-      abranch=$(git branch | awk '/\*/ { print $2; }')
-      # Use release manifest if on release branch
-      if [ "$abranch" == "aomp-${AOMP_VERSION_STRING}" ]; then
-         manifest_file=$thisdir/../manifests/aomp_${AOMP_VERSION_STRING}.xml
+      if [ "$AOMP_NEW" == "1" ]; then
+        manifest_file=$thisdir/../manifests/aomp_new_${AOMP_VERSION}.xml
       else
-	 if [ "$AOMP_NEW" == "1" ]; then
-            manifest_file=$thisdir/../manifests/aomp_new_${AOMP_VERSION}.xml
-         else
-            manifest_file=$thisdir/../manifests/aomp_${AOMP_VERSION}.xml
-	 fi
+        manifest_file=$thisdir/../manifests/aomp_${AOMP_VERSION}.xml
       fi
    fi
    echo "USED manifest file: $manifest_file"
