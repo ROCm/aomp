@@ -18,9 +18,9 @@ LINK_FLAGS   = -Wl,-rpath,$(AOMP)/lib
 
 CC           = $(AOMP)/bin/clang $(VERBOSE)
 
-RUNCMD       = ./run_and_check.sh "$(AOMP)" "$(GPU_W_FEATURES)" "$(FILECHECK)"
+RUNCMD       = ./run_and_check.sh "$(AOMP)" "$(GPU_W_FEATURES)"
 
 include ../Makefile.rules
 
 clean::
-	rm -f omp_pgo omp_pgo_use *.profraw merged.profdata
+	rm -f omp_pgo omp_pgo_use *.profraw merged.profdata devcov-profile.txt DEVCOV-SKIPPED.txt
