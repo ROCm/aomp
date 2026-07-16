@@ -1,10 +1,10 @@
 diff --git a/compiler/CMakeLists.txt b/compiler/CMakeLists.txt
-index bf625919..cdc6c493 100644
+index 7279cdbb3..103eb2332 100644
 --- a/compiler/CMakeLists.txt
 +++ b/compiler/CMakeLists.txt
-@@ -13,6 +13,10 @@ if(THEROCK_ENABLE_COMPILER)
-   if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-     list(APPEND _extra_llvm_cmake_args "-DLLVM_ENABLE_PEDANTIC=OFF")
+@@ -22,6 +22,10 @@ if(THEROCK_ENABLE_COMPILER)
+   if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+     list(APPEND _extra_llvm_cmake_args "-DCMAKE_DISABLE_PRECOMPILE_HEADERS=ON")
    endif()
 +  if (DEFINED ENV{SROCK_VERSION_MOD})
 +    list(APPEND _extra_llvm_cmake_args "-DLLVM_VERSION_SUFFIX=_SROCK")
