@@ -1,0 +1,15 @@
+openlibm: openlibm.patch
+RAJA: raja.patch
+RAJAPerf: rajaperf.patch
+GenASis: genasis.patch
+GenASiS_Basics: genasis_basics.patch
+hipamd:
+bolt: bolt.patch
+rocr-runtime: rocr-runtime-numa.patch
+clr:
+rocprofiler:
+rocprofiler-sdk:
+babelstream: babelstream-usm.patch
+llvm-project: ATD_ASO_full.patch
+UMT: umt.patch
+rocm-xio: xio.patch

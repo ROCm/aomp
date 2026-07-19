@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest>
+  <!-- Manifest for AOMP 24.0-x which uses ROCM 7.13 release branches of external repositories -->
+
+    <remote name="roc"  fetch="https://github.com/ROCm" />
+    <remote name="simde"  fetch="https://github.com/simd-everywhere" />
+
+<!-- These first 4 repos are NOT rocm 7.13. They are compiler developer branches -->
+    <project remote="roc" path="llvm-project" name="llvm-project.git" revision="amd-staging" groups="unlocked" />
+    <project remote="roc" path="SPIRV-LLVM-Translator" name="spirv-llvm-translator.git" revision="amd-staging" groups="unlocked" />
+    <project remote="roc" path="hipify" name="hipify.git" revision="amd-staging" groups="unlocked" />
+    <project remote="simde" path="simde" name="simde" revision="master" groups="unlocked" />
+
+    <project remote="roc" path="aomp" name="aomp"                 revision="aomp-dev" groups="unlocked" />
+
+    <project remote="roc" path="ROCgdb" name="ROCgdb"       upstream="amd-staging"     revision="therock-7.13" tag="true" groups="revlocked" />
+    <project remote="roc" path="rocm-cmake" name="rocm-cmake"  upstream="develop"  revision="therock-7.13" tag="true" groups="revlocked" />
+    <project remote="roc" path="hipfort" name="hipfort"          revision="release/rocm-rel-7.2" groups="unlocked" />
+    <project remote="roc" path="rocm-systems" name="rocm-systems" upstream="develop" revision="therock-7.13" tag="true" groups="revlocked" />
+</manifest>
