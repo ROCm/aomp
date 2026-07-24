@@ -138,18 +138,18 @@ MYCMAKEOPTS=(-DCMAKE_BUILD_TYPE="$BUILD_TYPE"
              -DLIBOMP_USE_HWLOC=ON
              -DLIBOMP_HWLOC_INSTALL_DIR="$AOMP_SUPP/hwloc"
              -DOPENMP_ENABLE_LIBOMPTARGET=1
-             -DLIBOMP_SHARED_LINKER_FLAGS="-Wl,--disable-new-dtags"
+             -DLIBOMP_SHARED_LINKER_FLAGS="-Wl,--enable-new-dtags"
              -DLIBOMP_INSTALL_RPATH="$AOMP_ORIGIN_RPATH_LIST"
              -DLIBOMPTARGET_INSTALL_RPATH="$AOMP_ORIGIN_RPATH_LIST"
              -DLIBOMPTARGET_NO_SANITIZER_AMDGPU=1
              -DLIBOMPTARGET_BUILD_DEVICE_FORTRT=On
+	     -DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=On
              -DCMAKE_EXPORT_COMPILE_COMMANDS=ON)
 
 if [ -f "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/device/CMakeLists.txt" ]; then
   MYCMAKEOPTS=("${MYCMAKEOPTS[@]}"
                -DLLVM_RUNTIME_TARGETS='default;amdgcn-amd-amdhsa'
-               -DRUNTIMES_amdgcn-amd-amdhsa_LLVM_ENABLE_RUNTIMES='compiler-rt;libc;libcxx;libcxxabi;flang-rt;openmp'
-               -DRUNTIMES_amdgcn-amd-amdhsa_LLVM_ENABLE_PER_TARGET_RUNTIME_DIR=ON)
+	       -DRUNTIMES_amdgcn-amd-amdhsa_LLVM_ENABLE_RUNTIMES='compiler-rt;libc;libcxx;libcxxabi;flang-rt;openmp')
 fi
 
 # -DCLANG_LINK_FLANG_LEGACY=ON
@@ -330,6 +330,7 @@ if [ "$1" == "install" ] ; then
 
    # rocm.cfg content
    {
+      echo "-Wl,--enable-new-dtags"
       echo "--rocm-path='<CFGDIR>/../../..'"
       echo "-frtlib-add-rpath"
     } > "${LLVM_INSTALL_LOC}/bin/rocm.cfg"
