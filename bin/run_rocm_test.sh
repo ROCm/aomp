@@ -139,6 +139,10 @@ else
   echo "       Note that AOMP needs the llvm or lib/llvm path suffix."
   exit 1
 fi
+
+echo ROCMDIR=$ROCMDIR/bin
+export PATH=$PATH:$ROCMDIR/bin
+
 export AOMP
 echo "AOMP = $AOMP"
 export REAL_AOMP=`realpath $AOMP`
