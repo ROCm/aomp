@@ -59,7 +59,7 @@ images, and creates a container ready to `docker exec` into.
 ### Usage
 
 ```
-python run.py <target> [--pull] [--build] [--clean] [options]
+python run.py <target> [--pull] [--build] [--rebuild-base] [--clean] [--clean-all] [options]
 ```
 
 `<target>` is one of `manylinux-build-only` or `manylinux-hip-tpl`.
@@ -72,12 +72,14 @@ a fixed order (`clean` -> `pull` -> `build`) and abort if any step fails.
 | --------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
 | `--pull`  | Download `build_manylinux_x86_64.Dockerfile` and the helper scripts it needs into `<dest>/manylinux-base`.                                     |
 | `--build` | Build the base image `localhost/manylinux:base` (only if missing), build the target image (tagged `<target>`), then create and run a container. |
-| `--clean` | Remove the container, the target image, and the base image.                                                                                   |
+| `--rebuild-base` | Rebuild `localhost/manylinux:base` even if it already exists, then build the target image and run a container.                         |
+| `--clean` | Remove the selected container.                                                                                                                |
+| `--clean-all` | Remove the selected container, the target image, and the base image.                                                                     |
 
 | Option     | Default        | Meaning                                                              |
 | ---------- | -------------- | -------------------------------------------------------------------- |
 | `--dest`   | current dir    | Where the base build context (`manylinux-base/`) is downloaded/read. |
-| `--name`   | `test-<target>` | Container name.                                                      |
+| `--name`   | generated for build, required for clean | Container name.                                      |
 | `--no-gpu` | (off)          | Skip the GPU device/group run flags when starting the container.     |
 | `--llvm-src` | (none)       | Bind-mount a local LLVM source tree at `/home/botworker/bbot/llvm-project`. |
 
@@ -94,13 +96,26 @@ Omitting `--dest` on the build step would look in `./manylinux-base` instead and
 fail with a "Run a pull first" error (the base image is only built by `--build`,
 not by `--pull`).
 
+If upstream TheRock base files changed and you want to rebuild the local
+`localhost/manylinux:base` image from the downloaded files, pass `--rebuild-base`
+with the build step.
+
 Use `--llvm-src` to mount an existing local LLVM checkout instead of cloning
 inside the container; it appears at `/home/botworker/bbot/llvm-project`.
+This is a normal read-write Docker bind mount: Docker preserves the host
+checkout's UID/GID ownership, and `run.py` does not remap UID/GID. The container
+runs as the image default user, so access follows normal Unix file permissions.
+
+When `--build` is used without `--name`, `run.py` generates a container name with
+the form `test-<target>-<5-digit-random-number>`, such as
+`test-manylinux-build-only-12345`. The generated name is printed after the
+container starts. `--clean` and `--clean-all` require `--name` so the script knows
+which container to remove.
 
 The container is started detached and kept alive, so you can open a shell with:
 
 ```
-docker exec -it test-<target> bash
+docker exec -it <container-name> bash
 ```
 
 ### Examples
@@ -120,11 +135,17 @@ python run.py manylinux-build-only --build --dest ~/test
 # Build and run without GPU device flags
 python run.py manylinux-build-only --build --no-gpu
 
+# Rebuild the local base image from downloaded TheRock files
+python run.py manylinux-build-only --build --rebuild-base
+
 # Mount a local LLVM source tree instead of cloning inside the container
 python run.py manylinux-hip-tpl --build --llvm-src ~/git/llvm-project
 
-# Remove the container and images
-python run.py manylinux-build-only --clean
+# Remove the selected container
+python run.py manylinux-build-only --clean --name test-manylinux-build-only-12345
+
+# Remove the selected container and images
+python run.py manylinux-build-only --clean-all --name test-manylinux-build-only-12345
 ```
 
 ## Assumptions / Requirements
