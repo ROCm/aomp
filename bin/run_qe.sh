@@ -20,11 +20,12 @@
 #
 
 # --- Start standard header to set AOMP environment variables ----
-realpath=`realpath $0`
-thisdir=`dirname $realpath`
+realpath=$(realpath "$0")
+thisdir=$(dirname "$realpath")
 export AOMP_USE_CCACHE=0
 
-. $thisdir/aomp_common_vars
+# shellcheck disable=SC1091
+. "$thisdir"/aomp_common_vars
 # --- end standard header ----
 
 # Offload kernel tracing is very noisy across a full test-suite; default off.
@@ -108,25 +109,21 @@ fi
 # ===========================================================================
 # Embedded OpenMPI affinity helpers (from openmpi_helpers.sh)
 # ===========================================================================
-get_nthread_node()
-{
-  echo "$(( $(lscpu --parse=CPU | tail -n1 ) + 1 ))"
-}
-
 get_ngpu_node()
 {
     local count=0
     local file
-    for file in $(ls /dev/dri/by-path/pci-*-render 2> /dev/null); do
+    for file in /dev/dri/by-path/pci-*-render; do
+	[[ -e ${file} ]] || continue
 	[[ -w ${file} ]] && count=$(( count + 1))
     done
-    echo ${count}
+    echo "${count}"
 }
 
 get_openmpi_node_binding()
 {
     if [ "${#}" -ne "5" ]; then
-	echo "Usage: ${FUNCNAME} <nnodes> <ntasks> <nthreads> <ntasks_per_node> <ngpus_per_node>"
+	echo "Usage: ${FUNCNAME[0]} <nnodes> <ntasks> <nthreads> <ntasks_per_node> <ngpus_per_node>"
         return 1
     fi
     local nnodes=${1}
@@ -134,10 +131,10 @@ get_openmpi_node_binding()
     local nthreads=${3}
     local ntasks_per_node=${4}
     local ngpus_per_node=${5}
-    if [ ${ngpus_per_node} -gt ${ntasks_per_node} ]; then
+    if [ "${ngpus_per_node}" -gt "${ntasks_per_node}" ]; then
 	ngpus_per_node=${ntasks_per_node}
     fi
-    if [ ${ntasks} -lt ${ntasks_per_node} ]; then
+    if [ "${ntasks}" -lt "${ntasks_per_node}" ]; then
         ntasks_per_node=${ntasks}
     fi
     local nthread_node_req=$(( ntasks_per_node * nthreads ))
@@ -149,10 +146,10 @@ get_openmpi_node_binding()
     local ntasks_per_numa=$(( ntasks_per_node / nnuma_node_avail ))
 
     # Underpopulation rules
-    if [ $(( ntasks_per_socket * nsocket_node_avail )) -ne ${ntasks_per_node} ]; then
+    if [ $(( ntasks_per_socket * nsocket_node_avail )) -ne "${ntasks_per_node}" ]; then
         ntasks_per_socket=0
     fi
-    if [ $(( ntasks_per_numa * nnuma_node_avail )) -ne ${ntasks_per_node} ]; then
+    if [ $(( ntasks_per_numa * nnuma_node_avail )) -ne "${ntasks_per_node}" ]; then
         ntasks_per_numa=0
     fi
 
@@ -173,17 +170,17 @@ get_openmpi_node_binding()
     local mpibind
 
     # Set ntasks_per_numa according to GPUs (if any)
-    if [ ${ngpus_per_numa} -gt ${ntasks_per_numa} ]; then
+    if [ "${ngpus_per_numa}" -gt "${ntasks_per_numa}" ]; then
 	ntasks_per_numa=${ngpus_per_numa}
     fi
-    if [ ${ntasks_per_numa} -gt ${ntasks} ]; then
+    if [ "${ntasks_per_numa}" -gt "${ntasks}" ]; then
 	ntasks_per_numa=${ntasks}
     fi
 
     # Distribute numa nodes evenly via nthreads
     ncpus_per_numa=$(( ncpu_node_avail / nnuma_node_avail ))
     nthreads_per_numa=$(( ncpus_per_numa / ntasks_per_numa ))
-    if [ ${nthreads_per_numa} -gt ${nthreads} ]; then
+    if [ "${nthreads_per_numa}" -gt "${nthreads}" ]; then
 	nthreads=${nthreads_per_numa}
     fi
 
@@ -195,7 +192,7 @@ get_openmpi_node_binding()
 	# Not enough CPUs available!
 	echo "ERROR: nthread_node_req=${nthread_node_req} > nthread_node_avail=${nthread_node_avail}"
 	return 1
-    elif [ "${nthread_node_req}" -le "${nthread_node_avail}" -a "${nthread_node_req}" -gt "${ncpu_node_avail}" ]; then
+    elif [ "${nthread_node_req}" -le "${nthread_node_avail}" ] && [ "${nthread_node_req}" -gt "${ncpu_node_avail}" ]; then
 	mpibind="ppr:${ntasks_per_node}:node:PE=${nthreads} --bind-to hwthread"
     elif [ "${nthread_node_req}" -le "${ncpu_node_avail}" ]; then
 	mpibind="ppr:${ntasks_per_numa}:${task_place}:PE=${nthreads} --bind-to ${corespec:-core}"
@@ -206,17 +203,18 @@ get_openmpi_node_binding()
 get_openmpi_host_binding()
 {
     if [ "$#" -ne "1" ]; then
-	echo "Usage: ${FUNCNAME} <nodelist>"
+	echo "Usage: ${FUNCNAME[0]} <nodelist>"
 	return 1
     fi
 
     local nodelist=${1}
     local ncore_node=$(( $(lscpu --parse=CPU | tail -n1 ) + 1 ))
-    local nodes=( $(scontrol show hostnames ${1}) )
+    local nodes
+    mapfile -t nodes < <(scontrol show hostnames "${nodelist}")
     # Construct nodelist with slot counts for OpenMPI
     local nodes_ompi=""
     local node
-    for node in ${nodes[@]}; do
+    for node in "${nodes[@]}"; do
 	if [ -z "${nodes_ompi}" ]; then
 	    nodes_ompi="${node}:${ncore_node}"
 	else
@@ -378,7 +376,7 @@ ulimit -s unlimited
 
 # --- run_pw_tests: modify run-pw.sh, run PW test-suite, restore ------------
 run_pw_tests() {
-  cd $QE_REPO/test-suite || exit 1
+  cd "$QE_REPO"/test-suite || exit 1
 
   # Generate the per-rank GPU pinning launcher used by mpirun.
   gpu_affinity="$QE_REPO/test-suite/gpu_affinity_close.sh"
@@ -417,7 +415,7 @@ run_pw_tests() {
 
   VERBOSE=${VERBOSE:-"1"}
   set -x
-  if [ $VERBOSE -eq 0 ]; then
+  if [ "$VERBOSE" -eq 0 ]; then
     make run-tests-pw NPROCS=4 2>&1 | tee log_aware.log > /dev/null
   else
     make run-tests-pw NPROCS=4 2>&1 | tee log_aware.log
@@ -430,12 +428,12 @@ run_pw_tests() {
   chmod 770 run-pw.sh
   rm -f "$gpu_affinity"
 
-  if [ $ret -ne 0 ]; then
-    echo "quantum-espresso-pw" >> $QE_REPO/failing-tests.txt
+  if [ "$ret" -ne 0 ]; then
+    echo "quantum-espresso-pw" >> "$QE_REPO"/failing-tests.txt
   else
-    echo "quantum-espresso-pw" >> $QE_REPO/passing-tests.txt
+    echo "quantum-espresso-pw" >> "$QE_REPO"/passing-tests.txt
   fi
-  return $ret
+  return "$ret"
 }
 
 # --- rerun: skip the build, just re-run the PW tests -----------------------
@@ -444,7 +442,7 @@ if [ "$1" == "rerun" ]; then
   exit $?
 fi
 
-cd $QE_REPO || exit 1
+cd "$QE_REPO" || exit 1
 rm -f make-fail.txt failing-tests.txt passing-tests.txt
 
 # --- Configure -------------------------------------------------------------
@@ -459,9 +457,9 @@ if [ "$1" != "nocmake" ]; then
   echo "./configure ARCH=amdflang --enable-omp_gpu --with-rocm=$ROCM_PATH --enable-omp_mpi_gpu --with-gpu-arch=$GPU_ARCH"
   ./configure ARCH=amdflang \
     --enable-omp_gpu \
-    --with-rocm=$ROCM_PATH \
+    --with-rocm="$ROCM_PATH" \
     --enable-omp_mpi_gpu \
-    --with-gpu-arch=$GPU_ARCH
+    --with-gpu-arch="$GPU_ARCH"
   ret=$?
   if [ $ret -ne 0 ]; then
     echo "quantum-espresso-configure" >> make-fail.txt
@@ -470,7 +468,7 @@ if [ "$1" != "nocmake" ]; then
 fi
 
 # --- Build PWscf -----------------------------------------------------------
-make -j$AOMP_JOB_THREADS pw
+make -j"$AOMP_JOB_THREADS" pw
 ret=$?
 if [ $ret -ne 0 ]; then
   echo "quantum-espresso-pw" >> make-fail.txt
