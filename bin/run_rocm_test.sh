@@ -183,32 +183,40 @@ if [ ! -f "$AOMP/bin/gpurun" ]; then
   chmod 755 "$HOME/openmp-utils/bin/gpurun"
   export GPURUN_BINDIR="$HOME/openmp-utils/bin"
 fi
-clangversion=`$AOMP/bin/clang --version`
+clangversion=$($AOMP/bin/clang --version)
 aomp=0
 if [[ "$clangversion" =~ "AOMP_STANDALONE" ]]; then
+  echo "Detected AOMP"
   aomp=1
 fi
 
+therock=0
 if [ $aomp -eq 0 ]; then
   # Determine ROCm version.
   echo ROCMINF=$ROCMINF
   rocm=$(cat "$ROCMINF"/.info/version*|head -1)
+  rocmregexpartial="([0-9]+)\.([0-9]+)"
   rocmregex="([0-9]+\.[0-9]+\.[0-9]+)"
-  therock=0
-  rocmver=0
   if [[ "$rocm" =~ $rocmregex ]]; then
     rocmver=$(echo ${BASH_REMATCH[1]} | sed "s/\.//g")
-    echo rocmver: $rocmver
-    if [ $rocmver -ge 7100 ]; then
-      echo "--- Using TheRock Compiler ---"
+  else
+    echo Unable to determine rocm version.
+    exit 1
+  fi
+  if [[ "$rocm" =~ $rocmregexpartial ]]; then
+    rocmvermajor=${BASH_REMATCH[1]}
+    rocmverminor=${BASH_REMATCH[2]}
+    echo "rocmvermajor: $rocmvermajor"
+    echo "rocmverminor: $rocmverminor"
+    if [ "$rocmvermajor" -gt 7 ]; then
+      echo "Detected TheRock"
       therock=1
-    fi
-    if [ $rocmver -le 2900 ]; then
-      echo "--- Using TheRock 10 Compiler ---"
+    elif [ "$rocmvermajor" -eq 7 ] && [ "$rocmverminor" -ge 10 ]; then
+      echo "Detected TheRock"
       therock=1
     fi
   else
-    echo Unable to determine rocm version.
+    echo Unable to determine major/minor rocm version.
     exit 1
   fi
 fi
