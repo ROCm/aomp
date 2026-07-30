@@ -157,7 +157,7 @@ export REAL_AOMP=`realpath $AOMP`
 # Makefile.defs uses SKIP_USM env var to disable compilation and execution
 # of the tests which require USM support.
 SKIP_USM=0
-XNACK_PLUS=$(HSA_XNACK=1 "$ROCMINFO/bin/rocminfo" | grep -i "xnack+" | wc -l)
+XNACK_PLUS=$(HSA_XNACK=1 "$ROCMINF/bin/rocminfo" | grep -i "xnack+" | wc -l)
 if [ $XNACK_PLUS -eq 0 ]; then
   SKIP_USM=1
 fi
@@ -183,7 +183,7 @@ if [ ! -f "$AOMP/bin/gpurun" ]; then
   chmod 755 "$HOME/openmp-utils/bin/gpurun"
   export GPURUN_BINDIR="$HOME/openmp-utils/bin"
 fi
-clangversion=$($AOMP/bin/clang --version)
+clangversion=$("$AOMP/bin/clang" --version)
 aomp=0
 if [[ "$clangversion" =~ "AOMP_STANDALONE" ]]; then
   echo "Detected AOMP"
