@@ -93,7 +93,11 @@ if [ "$EPSDB" == "1" ]; then
  git log -1
 fi
 
-EPSDB=1 ./clone_test.sh > /dev/null
+if [ "$SKIP_CLONE" == "1" ]; then
+  echo skipping clone
+else
+  EPSDB=1 ./clone_test.sh > /dev/null
+fi
 AOMP_TEST_DIR=${AOMP_TEST_DIR:-"$HOME/git/aomp-test"}
 echo AOMP before : $AOMP
 if [ ! -e $AOMP/bin ]; then
@@ -153,7 +157,7 @@ export REAL_AOMP=`realpath $AOMP`
 # Makefile.defs uses SKIP_USM env var to disable compilation and execution
 # of the tests which require USM support.
 SKIP_USM=0
-XNACK_PLUS=$(HSA_XNACK=1 "$ROCMINFO/binrocminfo" | grep -i "xnack+" | wc -l)
+XNACK_PLUS=$(HSA_XNACK=1 "$ROCMINFO/bin/rocminfo" | grep -i "xnack+" | wc -l)
 if [ $XNACK_PLUS -eq 0 ]; then
   SKIP_USM=1
 fi
@@ -197,6 +201,10 @@ if [ $aomp -eq 0 ]; then
     echo rocmver: $rocmver
     if [ $rocmver -ge 7100 ]; then
       echo "--- Using TheRock Compiler ---"
+      therock=1
+    fi
+    if [ $rocmver -le 2900 ]; then
+      echo "--- Using TheRock 10 Compiler ---"
       therock=1
     fi
   else
