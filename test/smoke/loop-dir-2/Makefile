@@ -8,7 +8,7 @@ TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 
 #RUNCMD      = ./$(TESTNAME) 2>&1 | $(FILECHECK) $(TESTSRC_MAIN)
 
-CFLAGS       += -fopenmp-target-ignore-env-vars -fopenmp-assume-no-nested-parallelism -fopenmp-assume-no-thread-state
+CFLAGS       += -fopenmp-assume-teams-oversubscription -fopenmp-assume-threads-oversubscription -fopenmp-assume-no-nested-parallelism -fopenmp-assume-no-thread-state
 CLANG        = clang
 OMP_BIN      = $(AOMP)/bin/$(CLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
