@@ -8,7 +8,7 @@ RUNENV      += LIBOMPTARGET_KERNEL_TRACE=1
 
 RUNCMD      = ./$(TESTNAME) 2>&1 | $(FILECHECK) $(TESTSRC_MAIN)
 
-CFLAGS       += -fopenmp-target-fast -fno-openmp-target-ignore-env-vars
+CFLAGS       += -fopenmp-assume-no-thread-state -fopenmp-assume-no-nested-parallelism
 CLANG        = clang
 OMP_BIN      = $(AOMP)/bin/$(CLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
