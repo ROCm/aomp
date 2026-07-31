@@ -129,8 +129,6 @@ MYCMAKEOPTS=(-DCMAKE_BUILD_TYPE="$BUILD_TYPE"
              -DLLVM_EXTERNAL_SPIRV_TRANSLATOR_SOURCE_DIR="$AOMP_REPOS/SPIRV-LLVM-Translator"
              -DROCM_DEVICE_LIBS_INSTALL_PREFIX_PATH="$AOMP_INSTALL_DIR"
              -DROCM_DEVICE_LIBS_BITCODE_INSTALL_LOC="$rocmdevicelib_loc_new"
-             -DROCM_LLVM_BACKWARD_COMPAT_LINK="$AOMP_INSTALL_DIR/llvm"
-             -DROCM_LLVM_BACKWARD_COMPAT_LINK_TARGET="./lib/llvm"
              -DLIBOMP_COPY_EXPORTS=OFF
              -DLIBOMPTARGET_ENABLE_DEBUG=ON
              -DLIBOMPTEST_INSTALL_COMPONENTS=ON
@@ -344,6 +342,12 @@ if [ "$1" == "install" ] ; then
          #cp ${LLVM_INSTALL_LOC}/bin/rocm.cfg $config_file
       fi
    done
+   # Install llvm -> lib/llvm symlink. The cmake in llvm will be removed. ROCM_LLVM_BACKWARD_COMPAT_LINK
+   # ROCM_LLVM_BACKWARD_COMPAT_LINK_TARGET will be deprecated.
+   if [ ! -L "$AOMP_INSTALL_DIR/llvm" ] && [ ! -e "$AOMP_INSTALL_DIR/llvm" ]; then
+      echo "Creating llvm -> lib/llvm symlink in $AOMP_INSTALL_DIR"
+      ln -s lib/llvm "$AOMP_INSTALL_DIR"/llvm
+   fi
 else
    echo
    echo "SUCCESSFUL BUILD, please run:  $0 install"

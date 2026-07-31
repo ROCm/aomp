@@ -4,7 +4,7 @@
 
 #### ManyLinux (AlmaLinux 8)
 ```
-  sudo dnf -y install bison ccache cmake elfutils-libelf-devel elfutis-devel expat-devel flex fmt-devel gcc-c++ gcc-toolset-12-gcc gcc-toolset-12-gcc-c++ gcc-toolset-12-gcc-gfortran gcc-toolset-12-libatomic-devel gcc-toolset-12-libstdc++-devel gdb git gmp-devel gtest-devel libatomic libbabeltrace-devel libffi-devel libquadmath-devel libtool mesa-libGL-devel mpfr-devel msgpack-devel ncurses-devel numactl-devel openssl-devel ocl-icd-devel pciutils-devel python3-devel rpm-build rsync sqlite-devel systemd-devel texinfo vim wget xz-devel
+  sudo dnf -y install bison ccache cmake elfutils-libelf-devel elfutis-devel expat-devel flex fmt-devel gcc-c++ gcc-toolset-12-gcc gcc-toolset-12-gcc-c++ gcc-toolset-12-gcc-gfortran gcc-toolset-12-libatomic-devel gcc-toolset-12-libstdc++-devel gdb git gmp-devel gtest-devel libatomic libbabeltrace-devel libffi-devel libquadmath-devel libtool mesa-libGL-devel mpfr-devel msgpack-devel ncurses-devel numactl-devel openssl-devel ocl-icd-devel pciutils-devel python3-devel rpm-build rsync sqlite-devel systemd-devel texinfo vim wget xz-devel libmnl-devel libnl3-devel
 
   # Download and install Python 3.10.18
   wget https://www.python.org/ftp/python/3.10.18/Python-3.10.18.tgz; tar xf Python-3.10.18.tgz; cd Python-3.10.18; ./configure --enable-optimizations --enable-shared; make altinstall; --prefix=$HOME/local/Python-3.10.18;  ln -s $HOME/local/Python-3.10.18/bin/python3.10 $HOME/local/Python-3.10.18/bin/python3
@@ -21,7 +21,7 @@
 #### Debian or Ubuntu Packages
 
 ```
-  sudo apt-get install wget gcc g++ pkg-config libpci-dev libnuma-dev libffi-dev git python3 libopenmpi-dev gawk mesa-common-dev libtool libdrm-amdgpu1 libdrm-dev ccache libdw-dev libgtest-dev libsystemd-dev cmake openssl libssl-dev libgmp-dev libmpfr-dev libelf-dev patchelf pciutils python3.10-dev libudev-dev libgtest-dev libstdc++-12-dev python3-lxml ocl-icd-opencl-dev libsystemd-dev libfmt-dev libmsgpack-dev libsqlite3-dev
+  sudo apt-get install wget gcc g++ pkg-config libpci-dev libnuma-dev libffi-dev git python3 libopenmpi-dev gawk mesa-common-dev libtool libdrm-amdgpu1 libdrm-dev ccache libdw-dev libgtest-dev libsystemd-dev cmake openssl libssl-dev libgmp-dev libmpfr-dev libelf-dev patchelf pciutils python3.10-dev libudev-dev libgtest-dev libstdc++-12-dev python3-lxml ocl-icd-opencl-dev libsystemd-dev libfmt-dev libmsgpack-dev libsqlite3-dev libnl-3-dev libnl-genl-3-dev libmnl-dev
 
   # Additional packages used by rocgdb
   sudo apt-get install texinfo libbison-dev bison flex libbabeltrace-dev python3-pip libncurses5-dev liblzma-dev python3-setuptools python3-dev libudev-dev libgmp-dev libmpfr-dev libdw-dev
