@@ -93,7 +93,11 @@ if [ "$EPSDB" == "1" ]; then
  git log -1
 fi
 
-EPSDB=1 ./clone_test.sh > /dev/null
+if [ "$SKIP_CLONE" == "1" ]; then
+  echo skipping clone
+else
+  EPSDB=1 ./clone_test.sh > /dev/null
+fi
 AOMP_TEST_DIR=${AOMP_TEST_DIR:-"$HOME/git/aomp-test"}
 echo AOMP before : $AOMP
 if [ ! -e $AOMP/bin ]; then
@@ -153,7 +157,7 @@ export REAL_AOMP=`realpath $AOMP`
 # Makefile.defs uses SKIP_USM env var to disable compilation and execution
 # of the tests which require USM support.
 SKIP_USM=0
-XNACK_PLUS=$(HSA_XNACK=1 "$ROCMINFO/binrocminfo" | grep -i "xnack+" | wc -l)
+XNACK_PLUS=$(HSA_XNACK=1 "$ROCMINF/bin/rocminfo" | grep -i "xnack+" | wc -l)
 if [ $XNACK_PLUS -eq 0 ]; then
   SKIP_USM=1
 fi
@@ -179,28 +183,40 @@ if [ ! -f "$AOMP/bin/gpurun" ]; then
   chmod 755 "$HOME/openmp-utils/bin/gpurun"
   export GPURUN_BINDIR="$HOME/openmp-utils/bin"
 fi
-clangversion=`$AOMP/bin/clang --version`
+clangversion=$("$AOMP/bin/clang" --version)
 aomp=0
 if [[ "$clangversion" =~ "AOMP_STANDALONE" ]]; then
+  echo "Detected AOMP"
   aomp=1
 fi
 
+therock=0
 if [ $aomp -eq 0 ]; then
   # Determine ROCm version.
   echo ROCMINF=$ROCMINF
   rocm=$(cat "$ROCMINF"/.info/version*|head -1)
+  rocmregexpartial="([0-9]+)\.([0-9]+)"
   rocmregex="([0-9]+\.[0-9]+\.[0-9]+)"
-  therock=0
-  rocmver=0
   if [[ "$rocm" =~ $rocmregex ]]; then
     rocmver=$(echo ${BASH_REMATCH[1]} | sed "s/\.//g")
-    echo rocmver: $rocmver
-    if [ $rocmver -ge 7100 ]; then
-      echo "--- Using TheRock Compiler ---"
+  else
+    echo Unable to determine rocm version.
+    exit 1
+  fi
+  if [[ "$rocm" =~ $rocmregexpartial ]]; then
+    rocmvermajor=${BASH_REMATCH[1]}
+    rocmverminor=${BASH_REMATCH[2]}
+    echo "rocmvermajor: $rocmvermajor"
+    echo "rocmverminor: $rocmverminor"
+    if [ "$rocmvermajor" -gt 7 ]; then
+      echo "Detected TheRock"
+      therock=1
+    elif [ "$rocmvermajor" -eq 7 ] && [ "$rocmverminor" -ge 10 ]; then
+      echo "Detected TheRock"
       therock=1
     fi
   else
-    echo Unable to determine rocm version.
+    echo Unable to determine major/minor rocm version.
     exit 1
   fi
 fi
