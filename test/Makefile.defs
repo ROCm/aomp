@@ -37,7 +37,9 @@ else
                 gfx1010, gfx1010:xnack+\
                 gfx1011, gfx1011:xnack+\
                 gfx1012, gfx1012:xnack+\
-                gfx1013, gfx1013:xnack+
+                gfx1013, gfx1013:xnack+\
+                gfx1250,\
+                gfx1251
 endif
 
 
@@ -274,6 +276,18 @@ ifeq ($(AOMP_SANITIZER),1)
   #ASan requires xnack+ by default
   AOMP_TARGET_FEATURES = :xnack+
   ASAN_UNSUPPORTED = ASAN_COMPILE ASAN_RUNTIME
+endif
+
+# gfx1250 and gfx1251 always operate with xnack enabled and the compiler
+# rejects an explicit xnack target feature (e.g. :xnack+) on these
+# architectures. Drop any requested xnack feature so tests that hard-code
+# AOMP_TARGET_FEATURES still build and run. All other architectures keep the
+# existing behavior.
+ifneq (,$(findstring gfx1250,$(AOMP_GPU)))
+  AOMP_TARGET_FEATURES := $(subst :xnack-,,$(subst :xnack+,,$(AOMP_TARGET_FEATURES)))
+endif
+ifneq (,$(findstring gfx1251,$(AOMP_GPU)))
+  AOMP_TARGET_FEATURES := $(subst :xnack-,,$(subst :xnack+,,$(AOMP_TARGET_FEATURES)))
 endif
 
 ifeq ($(AOMP_TARGET_FEATURES),)
