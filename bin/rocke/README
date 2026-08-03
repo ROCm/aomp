@@ -1,0 +1,15 @@
+Worker modules for ../run_rocke.sh, the rocKE compiler-of-the-day test driver.
+
+- rocke_result.py         the ROCKE_RESULT line format every lane emits
+- rocke_relevance.py      pytest plugin: can a red row be a COD regression?
+- rocke_cod_probe.py      which comgr rocKE would load, for the hygiene gate
+- rocke_cod_smoke.py      COD interop smoke lanes (codegen / comgr / occupancy)
+- rocke_junit_results.py  JUnit XML -> result rows, joined with the relevance
+                          manifest
+
+The rocke_ prefix stays: these go on the PYTHONPATH of rocKE's own pytest
+session, where a plain result.py would shadow the project's module.
+
+The CI-side extractor and the full documentation live in the apps repo under
+openmp-ci/rocKE (extract-rocke.sh, README.md); the extractor imports
+rocke_result.py and rocke_relevance.py from here so the format cannot drift.
