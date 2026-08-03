@@ -1,5 +1,12 @@
 USE_OFFLOAD_ARCH = 1
-AOMP_TARGET_FEATURES=:xnack-
+
+ifeq ("$(AOMP_GPU)","gfx1250")
+  AOMP_TARGET_FEATURES =
+else ifeq ("$(AOMP_GPU)","gfx1251")
+  AOMP_TARGET_FEATURES =
+else
+  AOMP_TARGET_FEATURES = :xnack-
+endif
 
 include ../../Makefile.defs
 
