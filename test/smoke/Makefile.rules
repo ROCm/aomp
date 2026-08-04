@@ -28,6 +28,19 @@ prerequisites:
 	@echo ">>> $(SCRIPT_INIT) >>>"
 endif
 
+# gfx1250 and gfx1251 always operate with xnack enabled and the compiler
+# rejects an explicit xnack target feature (e.g. :xnack+) on these
+# architectures. Individual tests set AOMP_TARGET_FEATURES after including
+# Makefile.defs, so strip any requested xnack feature here (Makefile.rules is
+# included last) to keep it off the compile line and out of the SUPPORTED
+# matching. All other architectures keep the existing behavior.
+ifneq (,$(findstring gfx1250,$(AOMP_GPU)))
+  AOMP_TARGET_FEATURES := $(subst :xnack-,,$(subst :xnack+,,$(AOMP_TARGET_FEATURES)))
+endif
+ifneq (,$(findstring gfx1251,$(AOMP_GPU)))
+  AOMP_TARGET_FEATURES := $(subst :xnack-,,$(subst :xnack+,,$(AOMP_TARGET_FEATURES)))
+endif
+
 # ----- If SUPPORTED is empty then it means that there is no
 # restriction for the test and the test can be compiled and run
 # on the current GPU architecture.
