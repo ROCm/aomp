@@ -76,7 +76,7 @@ cmake -B "${MQMC_BUILD_DIR}" -S "${MQMC_SOURCE_DIR}" \
   -DQMC_GPU="openmp" \
   -DQMC_GPU_ARCHS="${AOMP_GPU}" \
   -DCMAKE_CXX_FLAGS='-fopenmp-assume-no-nested-parallelism -DCUDART_VERSION=10000 -DcudaMemoryTypeManaged=hipMemoryTypeManaged ' \
-  -DAMDGPU_DISABLE_HOST_DEVMEM=ON \
+  -DAMDGPU_DISABLE_HOST_DEVMEM=OFF \
   -DCMAKE_VERBOSE_MAKEFILE=ON
 
 # Build miniqmc binaries
