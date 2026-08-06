@@ -87,7 +87,7 @@ if [ "$1" == "build_umt" ]; then
     fi
 
     pushd $AOMP_REPOS_TEST/$CAMP_SRC_DIR
-    git clone https://github.com/LLNL/camp.git .
+    git clone --branch v2025.12.0 https://github.com/LLNL/camp.git .
     rm -rf build
     mkdir build
     pushd build
@@ -120,6 +120,7 @@ if [ "$1" == "build_umt" ]; then
     pushd $AOMP_REPOS_TEST/$UMPIRE_SRC_DIR
     git clone https://github.com/LLNL/Umpire.git .
     git submodule update --init
+    git -C src/tpl/umpire/camp checkout v2025.12.0
     rm -rf build
     mkdir build
     pushd build
