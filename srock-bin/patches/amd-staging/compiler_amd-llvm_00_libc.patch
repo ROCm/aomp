@@ -1,8 +1,8 @@
 diff --git a/libc/CMakeLists.txt b/libc/CMakeLists.txt
-index 46d799cbec11..e1228651d856 100644
+index 7cbea4d8a0a8..b656c8da4f76 100644
 --- a/libc/CMakeLists.txt
 +++ b/libc/CMakeLists.txt
-@@ -420,10 +420,9 @@ add_subdirectory(lib)
+@@ -456,10 +456,9 @@ add_subdirectory(lib)
  if(LLVM_INCLUDE_TESTS)
    add_subdirectory(test)
    add_subdirectory(fuzzing)
@@ -11,6 +11,6 @@ index 46d799cbec11..e1228651d856 100644
  
 -add_subdirectory(benchmarks)
 -
- if (LIBC_INCLUDE_DOCS)
+ if(LIBC_INCLUDE_DOCS)
    add_subdirectory(docs)
  endif()
