@@ -14,9 +14,8 @@
 #   AOMP              LLVM compiler tree (clang++, libomp)
 #                     if unset: /opt/rocm/lib/llvm
 #                     if set: use as-is
-#   ROCM              HIP/ROCm install root (hipcc, libamdhip64)
-#                     if unset and AOMP set: realpath(AOMP/../..)
-#                     if unset and AOMP unset: /opt/rocm
+#   ROCM_PATH         HIP/ROCm install root (hipcc, libamdhip64)
+#                     if unset: realpath(AOMP/../..) (e.g. /opt/rocm)
 #   AOMP_GPU          GPU arch for OpenMP builds (ARCH= in Makefile.aomp);
 #                     auto-detected via rocm_agent_enumerator if unset
 #
@@ -49,31 +48,24 @@ thisdir=$(dirname "$realpath")
 export AOMP_USE_CCACHE=0
 
 # shellcheck source=aomp_common_vars
-_AOMP_USER_SET=0
-_ROCM_USER_SET=0
-[ -n "${AOMP+x}" ] && _AOMP_USER_SET=1
-[ -n "${ROCM+x}" ] && _ROCM_USER_SET=1
+_had_aomp=${AOMP+1}
+_had_rocm_path=${ROCM_PATH+1}
 # shellcheck disable=SC1091
 . "$thisdir/aomp_common_vars"
 # --- end standard header ----
 
-# Setup AOMP / ROCM (see header for rules)
-if [ "$_AOMP_USER_SET" -eq 1 ]; then
-  if [ "$_ROCM_USER_SET" -eq 0 ]; then
-    ROCM=$(realpath -m "$(realpath -m "$AOMP")"/../..)
-  fi
-else
-  export AOMP=/opt/rocm/lib/llvm
-  if [ "$_ROCM_USER_SET" -eq 0 ]; then
-    export ROCM=/opt/rocm
-  fi
+# Setup AOMP / ROCM_PATH (see header for rules)
+[ -z "$_had_aomp" ] && export AOMP=/opt/rocm/lib/llvm
+if [ -z "$_had_rocm_path" ]; then
+  ROCM_PATH=$(realpath -m "$(realpath -m "$AOMP")"/../..)
+  export ROCM_PATH
 fi
 AOMPTOP=$(echo "$AOMP" | sed -e 's|/lib[/]*llvm||' -e 's|/llvm||')
-export AOMP AOMPTOP ROCM
+export AOMP AOMPTOP ROCM_PATH
 
 warn_hipcc_clang_mismatch() {
   local hipcc_bin clang_bin hipcc_ver clang_ver hipcc_clang_line
-  hipcc_bin=$(PATH="$ROCM/bin:$AOMPTOP/bin:$PATH" command -v hipcc 2>/dev/null)
+  hipcc_bin=$(PATH="$ROCM_PATH/bin:$AOMPTOP/bin:$PATH" command -v hipcc 2>/dev/null)
   clang_bin=$(PATH="$AOMP/bin:$PATH" command -v clang 2>/dev/null)
   if [ -z "$hipcc_bin" ] || [ -z "$clang_bin" ]; then
     return 0
@@ -114,8 +106,8 @@ fi
 results=$hecbench_root/results.txt
 rm -f "$results"
 
-export PATH=$AOMP/bin:$AOMPTOP/bin:$ROCM/bin:$PATH
-export LD_LIBRARY_PATH=$AOMP/lib:$AOMPTOP/lib:$ROCM/lib:$LD_LIBRARY_PATH
+export PATH=$AOMP/bin:$AOMPTOP/bin:$ROCM_PATH/bin:$PATH
+export LD_LIBRARY_PATH=$AOMP/lib:$AOMPTOP/lib:$ROCM_PATH/lib:$LD_LIBRARY_PATH
 
 warn_hipcc_clang_mismatch
 
