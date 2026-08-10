@@ -18,13 +18,13 @@
 
 set -u
 
-# The lanes this driver knows, in the order 'all' runs them: the cheap gates that
-# prove the COD can build rocKE at all come first, then the interop probes, and
-# perf last because a register-spill verdict is only worth reading once the
-# kernels it measures are known to compile.
+# The lanes this driver knows, in the order 'all' runs them: the cheap host-only
+# gates first so a broken COD is reported in seconds, the ~1000-row pytest lane
+# next, then the on-device lane, and perf last because a register-spill verdict is
+# only worth reading once the kernels it measures are known to compile.
 # Single source of truth: the stage check, the help text and the 'all' lane list
 # all derive from it, so none of them can be updated without the others.
-LaneOrder=(engine ctest cod-codegen cod-comgr perf)
+LaneOrder=(engine ctest pytest cod-codegen cod-comgr gpu-numeric perf)
 Lanes="all|$(IFS="|"; printf '%s' "${LaneOrder[*]}")"
 
 function printUsage {
@@ -156,7 +156,7 @@ export LD_LIBRARY_PATH="${AOMP}/lib:${RocmRoot}/lib${LD_LIBRARY_PATH:+:${LD_LIBR
 : "${ROCKE_TOP:=${AOMP_REPOS_TEST}/composable-kernels/rocm-libraries/dnn-providers/hip-kernel-provider/rocke/platform}"
 # -s keeps this in ROCKE_TOP's path namespace. Resolving symlinks can put the
 # library test root under a different prefix (/work/... vs /home/...), which makes
-# a test runner root its collection tree at / and scan shared parents like /work,
+# pytest root its collection tree at / and scan shared parents like /work,
 # aborting on the first unreadable entry there.
 ROCKE_PROJECT_ROOT="$(realpath -m -s "${ROCKE_TOP}/..")"
 # Path from the shared rocm-libraries repo root down to the rocKE platform dir.
@@ -189,7 +189,7 @@ fi
 : "${ROCKE_CI_BUILD_ROOT:=${ROCKE_REPO_ROOT%/*}/rocke-build}"
 ROCKE_CI_BUILD_ROOT="$(realpath -m "${ROCKE_CI_BUILD_ROOT}")"
 # Lanes 'all' runs, in LaneOrder (see the top of this file for why that order).
-# Override to scope a run, e.g. ROCKE_ALL_LANES='engine'.
+# Override to scope a run, e.g. ROCKE_ALL_LANES='engine ctest'.
 : "${ROCKE_ALL_LANES:=${LaneOrder[*]}}"
 
 # Run-shape knobs. The nightly wrappers pin both gates to 1; run by hand they
@@ -200,6 +200,9 @@ ROCKE_CI_BUILD_ROOT="$(realpath -m "${ROCKE_CI_BUILD_ROOT}")"
 : "${ROCKE_SETUP_VENV:=1}"
 : "${ROCKE_REPO_URL:=https://github.com/ROCm/rocm-libraries.git}"
 : "${ROCKE_REPO_BRANCH:=develop}"
+: "${ROCKE_TORCH_INDEX_URL:=}"
+# rocKE uses these without declaring them in its dev extras.
+: "${ROCKE_EXTRA_TEST_DEPS:=pyarrow}"
 # Identity of this run, inherited by the child lanes of 'all'. A bare PID would do
 # for that, but it is also persisted as the engine-extension rebuild stamp, and PIDs
 # repeat: a night that drew a previous run's PID would silently skip a demanded
@@ -333,21 +336,149 @@ function acquireDirLock {  # <lock-dir> <description>
   HeldLockDirs+=("${Lock}")
 }
 
+# A directory that exists is not necessarily one pytest can build a collector
+# for; an argument it cannot collect from aborts the whole run. Require visible
+# test files, matching pytest's default python_files patterns.
+function hasTests {  # <dir>
+  [[ -d "${1}" && -r "${1}" ]] || return 1
+  [[ -n "$(find "${1}" \( -name 'test_*.py' -o -name '*_test.py' \) \
+             -print -quit 2>/dev/null)" ]]
+}
 
+# pytest reports a usage error (an unopenable root, conftest or plugin) on its
+# output only, so a row saying just "exited with status 4" is undiagnosable.
+function runnerDetail {  # <runner-log>
+  local Log="${1:-}" Line
+  [[ -n "${Log}" && -f "${Log}" ]] || return 0
+  Line="$(grep -m1 -E '^(ERROR|ImportError while loading)' "${Log}")" || return 0
+  [[ -n "${Line}" ]] && printf ': %s' "${Line:0:160}"
+}
 
+# Build rocKE's C++ engine extension (`rocke_engine`) so the pytest lanes can
+# import it, reporting where it landed in EngineExtDir.
+#
+# rocKE's cross-engine tests skip without it, and it is not a side concern: the
+# extension is 200k lines of C++ compiled by the COD, and the tests it unlocks
+# compare the COD-built engine against the Python one. Built through rocKE's own
+# ROCKE_BUILD_PYBIND option -- one tree yields both the archive and the module -- so
+# there is no second recipe of ours to keep in step with theirs.
+#
+# It is shared across lanes rather than per-lane, so the 'all' run builds it once.
+# That puts it outside the per-lane build dir ROCKE_REBUILD cleans, so this honours
+# that knob itself: a nightly gets a build from scratch (a stale CMake cache survives
+# a source move, which is exactly the drift a fast-moving upstream produces), while a
+# hand rerun reuses whatever is still newer than rocKE's C++ sources. The stamp is the
+# run's identity, so only the first lane of an 'all' run pays for the rebuild.
+#
+# It reports through a global because it also prints progress and, on failure, a
+# result row: a caller capturing stdout would swallow the row into a variable.
+EngineExtDir=""
+function ensureEngineExtension {  # sets EngineExtDir
+  local Root="${ROCKE_CI_BUILD_ROOT}/engine-ext" Ext Stamp Run
+  EngineExtDir=""
+  Stamp="${Root}/.rocke-run"
+  Run="${ROCKE_RUN_ID}"
+  if [[ ! -d "${ROCKE_TOP}/cpp" ]]; then
+    rockeResult setup engine-extension 1 \
+      "no ${ROCKE_TOP}/cpp: cannot tell whether the engine extension is current" \
+      "${LaneRelevance}"
+    return 1
+  fi
+  # Lock before deciding, not after: the decision reads the tree and one arm of it
+  # deletes the tree, so an unlocked decision can race a concurrent build into
+  # either a half-linked module or an rm -rf underneath it. prepareBuildRoot orders
+  # it this way for the same reason.
+  mkdir -p "${Root}"
+  acquireDirLock "${Root}.lock" "engine extension build"
+  if [[ "${ROCKE_REBUILD}" == 1 && "$(cat "${Stamp}" 2>/dev/null)" != "${Run}" ]]; then
+    rm -rf "${Root}"
+    mkdir -p "${Root}"
+  else
+    Ext="$(find "${Root}" -name 'rocke_engine*.so' -print -quit 2>/dev/null)"
+    # Ask directly whether any C++ source is newer than the module we already have,
+    # rather than sorting the tree: one stat walk, and no filename can confuse it.
+    if [[ -n "${Ext}" ]] && [[ -z "$(find "${ROCKE_TOP}/cpp" -newer "${Ext}" \
+         \( -name '*.cpp' -o -name '*.hpp' -o -name '*.h' -o -name 'CMakeLists.txt' \) \
+         -print -quit 2>/dev/null)" ]]; then
+      EngineExtDir="$(dirname "${Ext}")"; return 0
+    fi
+  fi
+  local PyBind
+  PyBind="$("${PyBin}" -m pybind11 --cmakedir 2>/dev/null)"
+  if [[ -z "${PyBind}" ]]; then
+    rockeResult setup engine-extension 1 \
+      "pybind11 unavailable in ${ROCKE_VENV}; rocKE's cross-engine tests cannot run" \
+      "${LaneRelevance}"
+    return 1
+  fi
+  echo "building the rocKE C++ engine extension (${Root})"
+  if ! cmake -S "${ROCKE_TOP}" -B "${Root}" -DCMAKE_BUILD_TYPE=Release \
+         -DROCKE_BUILD_PYBIND=ON -Dpybind11_DIR="${PyBind}" \
+         -DPython3_EXECUTABLE="${PyBin}" > "${Root}/configure.log" 2>&1; then
+    rockeResult setup engine-extension 1 \
+      "cmake configure failed for the engine extension (see ${Root}/configure.log)" \
+      "${LaneRelevance}"
+    return 1
+  fi
+  if ! cmake --build "${Root}" --target rocke_core rocke_engine \
+         -j"$(nproc 2>/dev/null || echo 4)" > "${Root}/build.log" 2>&1; then
+    # The COD compiles this, so a failure here is a genuine COD finding, not noise.
+    rockeResult setup engine-extension 1 \
+      "COD build of the engine extension failed (see ${Root}/build.log)" \
+      "${LaneRelevance}"
+    return 1
+  fi
+  Ext="$(find "${Root}" -name 'rocke_engine*.so' -print -quit 2>/dev/null)"
+  if [[ -z "${Ext}" ]]; then
+    rockeResult setup engine-extension 1 \
+      "engine extension not produced under ${Root}" "${LaneRelevance}"
+    return 1
+  fi
+  # Stamped only now: a failed build must not claim this run already rebuilt.
+  printf '%s\n' "${Run}" > "${Stamp}"
+  EngineExtDir="$(dirname "${Ext}")"
+}
 
+# Run pytest from the tests dir under the relevance plugin, teeing to <log> so a
+# usage error stays diagnosable. Returns pytest's own status.
+function runPytest {  # <xml> <manifest> <log> [pytest args...]
+  local Xml="${1}" Manifest="${2}" Log="${3}"; shift 3
+  # A reused build dir (ROCKE_REBUILD=0) still holds the previous report; if
+  # this run never writes one, emitJunit would republish it as today's verdict.
+  rm -f "${Xml}" "${Manifest}" "${Log}"
+  # --continue-on-collection-errors, because upstream moves files weekly: without it
+  # one unimportable module aborts collection and the lane reports two rows instead
+  # of a thousand, which reads as a catastrophic night when five rocKE tests broke.
+  ( cd "${ROCKE_TOP}/tests" \
+    && ROCKE_RELEVANCE_OUT="${Manifest}" \
+       PYTHONPATH="${PYTHONPATH}:${HelperDir}${EngineExtDir:+:${EngineExtDir}}" \
+       "${PyBin}" -m pytest "$@" -p rocke_relevance -q \
+         --continue-on-collection-errors --junitxml="${Xml}" ) 2>&1 \
+    | tee "${Log}"
+  return "${PIPESTATUS[0]}"
+}
 
 # Turn a JUnit report into result rows, or emit a red row when it is missing.
 # Preserve an unexplained nonzero runner exit even when it left a partial XML
 # containing only completed, passing testcases.
-function emitJunit {  # <xml> <default-group> [runner-status]
-  local Xml="${1}" GroupDefault="${2}" RunStatus="${3:-0}"
+function emitJunit {  # <xml> <default-group> [runner-status] [manifest] [runner-log]
+  local Xml="${1}" GroupDefault="${2}" RunStatus="${3:-0}" Manifest="${4:-}"
+  local RunnerLog="${5:-}"
   local ParseStatus=0
   # The status a runner uses for "tests ran, some failed", which is not an error of
   # ours. Set by the caller (ctest uses 8), because deriving it from the group label
   # meant renaming a group silently changed how the runner's status was read.
   local ExpectedFailureStatus="${ExpectedRunnerFailure:-1}"
   local -a RelevanceArgs=(--relevance-default "${LaneRelevance}")
+  # Pass the path whenever the lane asked for one, present or not: gating on -f
+  # here meant a plugin that failed to write it produced no --relevance, hence no
+  # red row, and a thousand rows quietly fell back to the lane default. The
+  # converter reports an unreadable manifest itself.
+  [[ -n "${Manifest}" ]] && RelevanceArgs+=(--relevance "${Manifest}")
+  # A lane whose every test drives the toolchain by construction says so, so a row
+  # cannot be reported below that even when the evidence is empty (work in a child).
+  [[ -n "${LaneRelevanceFloor:-}" ]] \
+    && RelevanceArgs+=(--relevance-floor "${LaneRelevanceFloor}")
   if [[ -f "${Xml}" ]]; then
     "${PyBin}" "${HelperDir}/rocke_junit_results.py" \
       --junit "${Xml}" --group-default "${GroupDefault}" \
@@ -360,18 +491,18 @@ function emitJunit {  # <xml> <default-group> [runner-status]
       && { (( RunStatus != ExpectedFailureStatus )) \
         || ! grep -Eq '<(failure|error)[ />]' "${Xml}"; }; then
       rockeResult setup "${GroupDefault}-runner" 1 \
-        "test runner exited with status ${RunStatus}"
+        "test runner exited with status ${RunStatus}$(runnerDetail "${RunnerLog}")"
     fi
   else
     rockeResult setup "${GroupDefault}-report" 1 \
-      "no JUnit report produced"
+      "no JUnit report produced$(runnerDetail "${RunnerLog}")"
   fi
 }
 
-# Reuse an existing venv, else create one (numpy) outside the source
+# Reuse an existing venv, else create one (numpy + pytest) outside the source
 # tree; fall back to the system python only if the venv cannot be built.
 function setupPython {
-  local Need='import numpy' Existed=1
+  local Need='import numpy, pytest' Existed=1
   PyBin=""
   if [[ -x "${ROCKE_VENV}/bin/python" ]]; then
     PyBin="${ROCKE_VENV}/bin/python"
@@ -379,13 +510,13 @@ function setupPython {
     # would adopt and then fail on; top it up instead of inheriting the damage,
     # unless the caller asked this script to install nothing.
     if [[ "${ROCKE_SETUP_VENV}" == "1" ]] && ! "${PyBin}" -c "${Need}" 2>/dev/null; then
-      "${PyBin}" -m pip install --quiet numpy || true
+      "${PyBin}" -m pip install --quiet numpy pytest || true
     fi
   elif [[ "${ROCKE_SETUP_VENV}" == "1" ]]; then
     [[ -e "${ROCKE_VENV}" ]] || Existed=0
     if python3 -m venv "${ROCKE_VENV}" \
       && "${ROCKE_VENV}/bin/python" -m pip install --quiet --upgrade pip \
-      && "${ROCKE_VENV}/bin/python" -m pip install --quiet numpy; then
+      && "${ROCKE_VENV}/bin/python" -m pip install --quiet numpy pytest; then
       PyBin="${ROCKE_VENV}/bin/python"
     elif (( Existed == 0 )); then
       rm -rf "${ROCKE_VENV}"  # only what this run created
@@ -400,15 +531,194 @@ function setupPython {
   fi
   # Print once: the 'all' children resolve the same PyBin and would only repeat it.
   [[ "${InternalAllChild:-0}" == 1 ]] || echo "# PyBin=${PyBin}"
+  # pytest matters as much as numpy: without it a lane exits 1 with no report
+  # and the row blames a missing JUnit file.
   "${PyBin}" -c "${Need}" 2>/dev/null \
-    || fatalSetup "numpy must be importable with ${PyBin} (venv ${ROCKE_VENV})" python
+    || fatalSetup "numpy and pytest must be importable with ${PyBin} (venv ${ROCKE_VENV})" python
 }
 
+# Refuse to install into an interpreter this script did not create. Standalone,
+# PyBin can be the engineer's system python3, and these are large packages that
+# would stay behind in ~/.local long after the run.
+function pipInstallable {  # <what>
+  [[ "${PyBin}" == "${ROCKE_VENV}/bin/"* ]] && return 0
+  echo "WARNING: not installing ${1} into ${PyBin}: outside ${ROCKE_VENV}." \
+       "Allow the venv (ROCKE_SETUP_VENV=1) or preinstall it yourself."
+  return 1
+}
 
+# Dependencies declared by rocKE's platform `[project.optional-dependencies].dev`
+# that are needed by its package-local heuristics tests. Keep torch separate: it
+# must match the GPU stack and is provisioned only by gpu-numeric.
+# rocKE's own declared dev extras, so a dependency it adds arrives here without an
+# edit. A hardcoded list silently rots: rocKE has declared pybind11 for a while and
+# our list omitted it, which left every cross-engine test unable to run.
+# ${ROCKE_EXTRA_TEST_DEPS} covers what rocKE uses but does not declare.
+function rockeDeclaredTestDeps {
+  # Diagnostics go to stderr on purpose: the caller captures stdout, and a parse
+  # failure has to say *why* in the log rather than look like an empty extras list.
+  "${PyBin}" - "${ROCKE_TOP}/pyproject.toml" <<'PY'
+import re, sys
 
+path = sys.argv[1]
+try:
+    text = open(path, encoding="utf-8").read()
+except OSError as exc:
+    sys.exit(f"cannot read {path}: {exc}")
 
+specs = []
+try:  # an exact parse wherever the interpreter has it (3.11+)
+    import tomllib
 
+    specs = (
+        tomllib.loads(text)
+        .get("project", {})
+        .get("optional-dependencies", {})
+        .get("dev", [])
+    )
+except ModuleNotFoundError:  # 3.10: read the one table we need
+    # Closing bracket at line start, not the first one seen: a spec carrying its own
+    # extras ("pandas[performance]") ends the list early otherwise, and installing a
+    # silently short list is the rot this reads their file to avoid.
+    # Anchored inside the table we mean: a bare `dev = [` search would happily take
+    # a PEP 735 [dependency-groups] list, which is a different set of requirements.
+    table = re.search(
+        r"^\[project\.optional-dependencies\](.*?)(?=^\[|\Z)", text, re.M | re.S
+    )
+    block = (
+        re.search(r"^\s*dev\s*=\s*\[(.*?)^\s*\]", table.group(1), re.M | re.S)
+        if table
+        else None
+    )
+    if block:
+        specs = re.findall(r'"([^"]+)"', block.group(1))
+except (ValueError, TypeError) as exc:
+    sys.exit(f"cannot parse {path}: {exc}")
 
+# Whole requirement, version bound included. Reducing these to bare names let an
+# installed pybind11 2.x satisfy rocKE's `pybind11>=3.0`, so pip did nothing and the
+# bound rocKE had just raised was never applied -- the rot this reads their file to
+# avoid. One per line, because a PEP 508 spec may contain spaces.
+specs = [s.strip() for s in dict.fromkeys(specs) if s.strip()]
+if not specs:
+    sys.exit(f"no [project.optional-dependencies].dev entries in {path}")
+print("\n".join(specs))
+PY
+}
+
+function ensureProjectTestDeps {
+  local -a Deps=() Extra=()
+  # Read on its own, not folded in with ROCKE_EXTRA_TEST_DEPS: a non-empty extra
+  # would make the combined list look healthy and hide the very rot this reads
+  # rocKE's file to avoid -- installing a stale subset and leaving its own tests
+  # unable to run.
+  mapfile -t Deps < <(rockeDeclaredTestDeps)
+  if (( ${#Deps[@]} == 0 )); then
+    rockeResult setup python-test-deps 1 \
+      "cannot read rocKE's declared dev dependencies from ${ROCKE_TOP}/pyproject.toml"
+    return 1
+  fi
+  read -ra Extra <<< "${ROCKE_EXTRA_TEST_DEPS}"
+  Deps+=("${Extra[@]}")
+  # Import names differ from distribution names often enough that checking them is
+  # its own maintenance burden; pip already decides in milliseconds when satisfied.
+  echo "provisioning rocKE-declared test dependencies: ${Deps[*]}"
+  if pipInstallable "rocKE dev test dependencies" \
+    && "${PyBin}" -m pip install --quiet "${Deps[@]}"
+  then
+    return 0
+  fi
+  rockeResult setup python-test-deps 1 "cannot provision rocKE dev test dependencies"
+  return 1
+}
+
+# COD ROCm major.minor, from this install's own metadata only: rocKE's comgr
+# resolver falls back to /opt/rocm when COD metadata is absent, and that
+# unrelated version would select an incompatible multi-gigabyte torch wheel.
+function codRocmVersion {
+  head -1 "${RocmRoot}/.info/version" 2>/dev/null | cut -d. -f1,2
+}
+
+# Datalayout generation a ROCm major.minor implies (>= 7.2 emits the indexed p8 shape).
+# Empty when the version is unusable.
+function rocmEra {  # <major[.minor[.patch]]>
+  local Major="${1%%.*}" Rest="${1#*.}" Minor=0
+  # A bare major must not borrow itself as the minor: "7" is 7.0, not 7.7.
+  [[ "${1}" == *.* ]] && Minor="${Rest%%.*}"
+  [[ "${Major}" =~ ^[0-9]+$ && "${Minor}" =~ ^[0-9]+$ ]] || return 1
+  # The datalayout generation, not the flavor. What a torch build has to match is
+  # the IR shape its HIP runtime speaks, and every flavor from llvm22 on shares the
+  # indexed p8 shape -- so this stays correct when rocKE adds a flavor, which a copy
+  # of its release ladder did not (it kept saying llvm22 after llvm23 arrived).
+  if (( Major > 7 || (Major == 7 && Minor >= 2) )); then echo indexed-p8; else echo plain-p8; fi
+}
+
+# Accept a torch that can serve as the numeric reference for this COD.
+#
+# Not an exact ROCm match: a COD carries an in-development ROCm (7.15, 10.0) that
+# no published torch will ever match, so requiring equality makes the lane dead on
+# every COD. What keeps the toolchain honest is ROCKE_COMGR_LIB, which pins rocKE
+# to the COD comgr ahead of any torch-bundled one; torch's job here is to be a
+# numeric oracle. So require only the same IR flavor era -- across eras its HIP
+# runtime pairs badly with COD kernels -- and note a difference within one.
+function validateTorch {
+  local Ver TorchVer TorchMajorMinor CodEra TorchEra
+  "${PyBin}" -c 'import torch' 2>/dev/null || return 1
+  TorchVer="$("${PyBin}" -c 'import torch; print(torch.version.hip or "")' 2>/dev/null)"
+  [[ -n "${TorchVer}" ]] || {
+    echo "ERROR: ROCKE_VENV contains a non-ROCm torch build"
+    return 1
+  }
+  TorchMajorMinor="$(cut -d. -f1,2 <<< "${TorchVer}")"
+  Ver="$(codRocmVersion)"
+  CodEra="$(rocmEra "${Ver}" || true)"
+  TorchEra="$(rocmEra "${TorchMajorMinor}" || true)"
+  if [[ -n "${CodEra}" && -n "${TorchEra}" && "${CodEra}" != "${TorchEra}" ]]; then
+    echo "ERROR: torch ROCm ${TorchVer} speaks the ${TorchEra} datalayout, COD ROCm ${Ver} the ${CodEra} one"
+    return 1
+  fi
+  if [[ -n "${Ver}" && "${TorchMajorMinor}" != "${Ver}" ]]; then
+    echo "using torch ROCm ${TorchVer} as the numeric reference for COD ROCm ${Ver}" \
+         "(same ${CodEra} datalayout; rocKE still compiles through the COD comgr)"
+  else
+    echo "using torch ROCm ${TorchVer} from ${ROCKE_VENV}"
+  fi
+  return 0
+}
+
+# Provision rocKE's numeric reference (torch) on demand from the pytorch ROCm
+# wheel index for the COD's ROCm major.minor; ROCKE_TORCH_INDEX_URL overrides it.
+function ensureTorch {
+  local Idx="${ROCKE_TORCH_INDEX_URL}" Ver
+  validateTorch && return 0
+  if [[ -z "${Idx}" ]]; then
+    Ver="$(codRocmVersion)"
+    if [[ -z "${Ver}" ]]; then
+      echo "ERROR: COD has no .info/version; set ROCKE_TORCH_INDEX_URL or preinstall torch in ROCKE_VENV"
+      return 1
+    fi
+    # A guess, and often a wrong one: pytorch publishes an index per *released*
+    # ROCm, and a COD carries an unreleased one. The failure path below says what
+    # to do about it.
+    Idx="https://download.pytorch.org/whl/rocm${Ver}"
+  fi
+  pipInstallable "torch (multiple GB)" || return 1
+  # A wheel for the wrong ROCm still satisfies the requirement, so a plain
+  # install would be a no-op here and validateTorch would fail again.
+  local -a Force=()
+  "${PyBin}" -c 'import torch' 2>/dev/null && Force=(--force-reinstall)
+  echo "provisioning torch for gpu-numeric from ${Idx}"
+  "${PyBin}" -m pip install "${Force[@]}" --index-url "${Idx}" torch || {
+    echo "ERROR: no torch at ${Idx}"
+    echo "       An unreleased COD ROCm has no published torch. Set" \
+         "ROCKE_TORCH_INDEX_URL to a released"
+    echo "       index of the same era ($(rocmEra "$(codRocmVersion)" || echo '?'))," \
+         "e.g. https://download.pytorch.org/whl/rocm7.2,"
+    echo "       or preinstall torch in ${ROCKE_VENV}."
+    return 1
+  }
+  validateTorch
+}
 
 # branch@shortsha of the rocKE checkout, or '?' when it is not a git tree.
 function rockeSrcRev {
@@ -620,6 +930,7 @@ function assertCodToolchain {
   # shellcheck disable=SC2086 # intended word splitting of the lane list
   for Lane in ${Running}; do
     case "${Lane}" in
+      pytest|gpu-numeric) HipHard=1; HipccHard=1 ;;
       cod-comgr)          HipHard=1 ;;
       perf)               ReadelfHard=1 ;;
       # rocKE builds the engine archive by invoking `c++`; the shim points that name
@@ -753,10 +1064,119 @@ function stageCtest {
   ExpectedRunnerFailure=8 emitJunit "${Xml}" ctest "${RunRc}"
 }
 
+function stagePytest {
+  local RunRc Root
+  local -a TestRoots=() Missing=()
+  # A root pytest cannot collect from is a usage error that ends the lane before
+  # any test runs, so the ~1000 rows vanish instead of turning red. Report the
+  # gap and run the roots that are usable.
+  # Every root is reported the same way when it disappears. Treating one as optional
+  # is how a whole tree leaves the suite unnoticed -- and library/tests is precisely
+  # the tree rocKE's own gap registry says nothing else gates.
+  for Root in "${ROCKE_TOP}/tests" \
+              "${ROCKE_TOP}/python/rocke/benchmark" \
+              "${ROCKE_TOP}/python/rocke/heuristics/tests" \
+              ; do
+    if hasTests "${Root}"; then TestRoots+=("${Root}"); else Missing+=("${Root}"); fi
+  done
+  # library/tests belongs to the surrounding rocm-libraries checkout, so it is only
+  # required when we are in one: ROCKE_TOP is documented as accepting a bare rocKE
+  # tree, and demanding it there would make that mode permanently red.
+  if [[ "${ROCKE_REPO_ROOT}" != "${ROCKE_TOP}" ]]; then
+    Root="${ROCKE_PROJECT_ROOT}/library/tests"
+    if hasTests "${Root}"; then TestRoots+=("${Root}"); else Missing+=("${Root}"); fi
+  fi
+  if (( ${#Missing[@]} )); then
+    rockeResult setup pytest-roots 1 "unusable test roots: ${Missing[*]}"
+  fi
+  if (( ${#TestRoots[@]} == 0 )); then
+    rockeResult setup pytest-roots 1 "no pytest roots under ${ROCKE_TOP}"
+    return
+  fi
+  ensureProjectTestDeps || return
+  # rocKE's cross-engine tests need its C++ extension; without it they skip, and a
+  # skip naming the toolchain is a blocked row. Its absence is reported by the
+  # builder itself, so a failure here degrades the lane instead of ending it.
+  ensureEngineExtension || true
+  echo "relative-path guard"
+  if "${PyBin}" "${ROCKE_TOP}/tests/run_all.py" --no-gate --no-pytest \
+      --build-root "${BuildRoot}/guard"; then
+    rockeResult guard relative-path 0 ok "${LaneRelevance}"
+  else
+    rockeResult guard relative-path 1 "guard failed" "${LaneRelevance}"
+  fi
+  echo "pytest (project unit-test roots)"
+  local Xml="${BuildRoot}/pytest-junit.xml"
+  local Manifest="${BuildRoot}/pytest-relevance.json"
+  local Out="${BuildRoot}/pytest-output.log"
+  runPytest "${Xml}" "${Manifest}" "${Out}" "${TestRoots[@]}" \
+    --ignore="${ROCKE_TOP}/tests/instances/test_rocke_numeric.py"
+  RunRc=$?
+  emitJunit "${Xml}" pytest "${RunRc}" "${Manifest}" "${Out}"
+}
+
+function stageGpuNumeric {
+  local DeviceArch RunRc
+  # Pin the device here rather than in a wrapper: this lane launches kernels, and
+  # the 'all' wrapper runs it too, so a wrapper-only export made the consolidated
+  # nightly and the standalone lane measure different GPUs on a multi-GPU host.
+  # The probe below asks about index 0 of whatever is visible, so both agree.
+  export ROCR_VISIBLE_DEVICES="${ROCR_VISIBLE_DEVICES:-0}"
+  # "This host has no GPU" is a green skip; "we could not ask" is not. Collapsing
+  # the two would let a rocKE rename retire the only lane that can catch a
+  # miscompile without a single red row, so the probe reports which happened.
+  # stdout only: the probe already reports its own failure there, and folding
+  # stderr in would let one HSA warning line prepend itself to the value the arms
+  # below match -- promoting noise to "this is the device".
+  DeviceArch="$("${PyBin}" - <<'PY'
+try:
+    from rocke.runtime.hip_module import get_device_arch
+
+    print(get_device_arch(0) or "none")
+except Exception as exc:  # noqa: BLE001 - any failure here means "cannot ask"
+    print(f"error: {type(exc).__name__}: {exc}".replace("\n", "; "))
+PY
+)"
+  case "${DeviceArch}" in
+    none)
+      rockeResult environment device Check "no ROCm GPU agent on this host"
+      return ;;
+    gfx[0-9a-f]*) ;;
+    *)
+      # Anything that is not "none" and not an arch is a broken probe, including
+      # the empty string and any unexpected chatter.
+      rockeResult environment device 1 \
+        "cannot query the device through rocKE: ${DeviceArch:-no output}" "${LaneRelevance}"
+      return ;;
+  esac
+  # Past the device check this host *can* certify numerics, so a missing reference
+  # is a misconfiguration of ours, not an environment this lane may shrug off: it
+  # is the only lane that can catch a miscompile, and a green row saying "no
+  # coverage" is how that goes unnoticed. A GPU-less host already returned above.
+  if ! ensureTorch || ! "${PyBin}" -c 'import torch' 2>/dev/null; then
+    rockeResult environment torch 1 \
+      "no numeric reference on a ${DeviceArch} host: install a ROCm torch in ${ROCKE_VENV} or set ROCKE_TORCH_INDEX_URL"
+    return
+  fi
+  # Every case here emits a kernel, compiles it through the COD and launches it on
+  # the device -- rocKE runs each in a child process, so the in-process probe sees
+  # none of it and would otherwise file the most compiler-driven rows we have as
+  # 'logic'.
+  local LaneRelevanceFloor=compiler
+  echo "numeric certification: ${DeviceArch}"
+  local Xml="${BuildRoot}/numeric-junit.xml"
+  local Manifest="${BuildRoot}/numeric-relevance.json"
+  local Out="${BuildRoot}/numeric-output.log"
+  runPytest "${Xml}" "${Manifest}" "${Out}" \
+    "${ROCKE_TOP}/tests/instances/test_rocke_numeric.py"
+  RunRc=$?
+  emitJunit "${Xml}" "numeric-${DeviceArch}" "${RunRc}" "${Manifest}" "${Out}"
+}
+
 function stagePerf {
   # Host-only codegen signal: per arch, compile the smoke kernel with the COD
   # comgr and read its resource footprint from the HSACO's ELF notes -- no GPU,
-  # no numeric reference. A spill on this fixed kernel is a real regression.
+  # no torch. A spill on this fixed kernel is a real regression. See README.
   echo "codegen resource footprint (native rocke.benchmark.perf.occupancy)"
   codSmokeSweep occupancy
 }
@@ -803,20 +1223,21 @@ function stageCodComgr { codSmokeSweep comgr; }
 function laneOrigin {  # <lane> [group]
   case "${2:-}" in setup|environment) echo ci-harness; return ;; esac
   case "${1}" in
-    engine|ctest)                    echo rocKE ;;
+    engine|ctest|pytest|gpu-numeric) echo rocKE ;;
     *)                               echo ci-harness ;;
   esac
 }
 
 # How a red row from a lane should be triaged when there is no per-test evidence
 # for it. The COD lanes drive the compiler by construction, so they are
-# 'compiler' outright.
+# 'compiler' outright; the pytest lanes measure it per test (rocke_relevance.py)
 # and fall back to 'compiler-capable' -- never 'logic' -- so an unmeasured row is
 # always looked at rather than silently written off. See README.md
 # "Test relevance".
 function laneRelevance {  # <lane>
   case "${1}" in
     cod-codegen|cod-comgr|engine|ctest|perf) echo compiler ;;
+    pytest|gpu-numeric)                      echo compiler-capable ;;
     *)                                       echo unregistered ;;
   esac
 }
@@ -862,7 +1283,7 @@ Names=(); Pass=(); Tot=(); Secs=(); Skip=(); Fails=()
 #
 # Everything else in this driver reports what it *did*; nothing noticed a lane that
 # quietly stopped doing anything. rocKE relocates test trees routinely, and a root
-# that keeps one file behind takes a lane from hundreds of rows to one -- all green,
+# that keeps one file behind takes the pytest lane from ~1150 rows to 1 -- all green,
 # because every row that ran passed. The house reads silence as success, so shrinking
 # coverage has to be an explicit failure.
 #
@@ -877,7 +1298,9 @@ function laneRowFloor {  # <lane>
   read -ra Experimental <<< "${ROCKE_CI_ARCHES_EXPERIMENTAL}"
   local -a Flavors; read -ra Flavors <<< "${EngineFlavorList:-${ROCKE_ENGINE_FLAVORS}}"
   case "${1}" in
+    pytest)                 echo 400 ;;   # ~1150 today
     ctest)                  echo 3 ;;     # 6 registered today
+    gpu-numeric)            echo 5 ;;     # 7 test functions today, parametrised
     engine)                 echo "${#Flavors[@]}" ;;
     # Both sweeps, because codSmokeSweep runs the experimental arches too: counting
     # only the production ones let every experimental row vanish inside the floor.
@@ -1062,6 +1485,8 @@ LaneRelevance="$(laneRelevance "${Stage}")"
 case "${Stage}" in
   engine)      stageEngine ;;
   ctest)       stageCtest ;;
+  pytest)      stagePytest ;;
+  gpu-numeric) stageGpuNumeric ;;
   perf)        stagePerf ;;
   cod-codegen) stageCodCodegen ;;
   cod-comgr)   stageCodComgr ;;
