@@ -18,12 +18,13 @@
 
 set -u
 
-# The lanes this driver knows, in the order 'all' runs them: the gates that prove
-# the COD can build rocKE at all, cheapest first, so a broken compiler is
-# reported in seconds rather than after a full run.
+# The lanes this driver knows, in the order 'all' runs them: the cheap gates that
+# prove the COD can build rocKE at all come first, then the interop probes, and
+# perf last because a register-spill verdict is only worth reading once the
+# kernels it measures are known to compile.
 # Single source of truth: the stage check, the help text and the 'all' lane list
 # all derive from it, so none of them can be updated without the others.
-LaneOrder=(engine ctest)
+LaneOrder=(engine ctest cod-codegen cod-comgr perf)
 Lanes="all|$(IFS="|"; printf '%s' "${LaneOrder[*]}")"
 
 function printUsage {
@@ -44,10 +45,11 @@ Common knobs (every ROCKE_* default is set together at the top of this script;
 the lane table and the full list are in openmp-ci/rocKE/README.md):
   AOMP=<llvm dir>            COD compiler under test
   ROCKE_ALL_LANES='...'      lanes 'all' runs, in order
+  ROCKE_CI_ARCHES='...'      arch sweep for the cod-*/perf lanes
   ROCKE_TOP=<dir>            rocKE platform checkout to test (else one is cloned)
   ROCKE_CI_BUILD_ROOT=<dir>  out-of-tree build root
   ROCKE_VENV=<dir>           the only interpreter this script may install into
-  ROCKE_DEBUG=1              full Python tracebacks from the helper modules
+  ROCKE_DEBUG=1              full Python tracebacks from the cod-*/perf lanes
 EOF
 }
 
@@ -164,6 +166,10 @@ ROCKE_REPO_ROOT="${ROCKE_TOP%"${ROCKE_TOP_SUFFIX}"}"
 : "${ROCKE_CODEGEN_FLAVOR:=auto}"
 : "${ROCKE_COMGR_FLAVOR:=auto}"
 : "${ROCKE_CI_ARCHES:=gfx950 gfx942 gfx1151 gfx1201}"
+# Experimental arches, appended to the COD compile lanes only (not part of the
+# production sweep); each compiles through the COD and exercises the on-device
+# HSACO load when the runner matches. Set empty to disable.
+: "${ROCKE_CI_ARCHES_EXPERIMENTAL=gfx90a gfx1250}"
 # Default to every flavor rocKE declares (it publishes the list; asking keeps a new
 # one from going unswept, which is how llvm23 arrived unnoticed). Falls back to the
 # pair we know if the list cannot be read -- resolved late, in stageEngine, since
@@ -582,9 +588,9 @@ function assertCodToolchain {
   if [[ "${ComgrVer}" != "?" && ! -e "${RocmRoot}/.info/version" ]] && underCod "${Comgr}"; then
     ComgrVersionTrusted=0
   fi
-  # Published for the probes that need it: rocKE's own vintage lookup may be
-  # pinned only when it cannot be believed, since pinning it otherwise would
-  # also satisfy rocKE's IR-flavor guard and hide a comgr-vs-clang split.
+  # rocke_cod_smoke.py pins rocKE's vintage lookup only when it cannot be
+  # believed; pinning it otherwise would also satisfy rocKE's IR-flavor guard
+  # and hide a genuine comgr-vs-clang split.
   export ROCKE_COMGR_VERSION_TRUSTED="${ComgrVersionTrusted}"
   if (( ComgrVersionTrusted == 1 )); then
     echo "                       comgr interface ${ComgrIface}, rocm vintage ${ComgrVer} -> rocke flavor ${ComgrFlavor}"
@@ -614,6 +620,8 @@ function assertCodToolchain {
   # shellcheck disable=SC2086 # intended word splitting of the lane list
   for Lane in ${Running}; do
     case "${Lane}" in
+      cod-comgr)          HipHard=1 ;;
+      perf)               ReadelfHard=1 ;;
       # rocKE builds the engine archive by invoking `c++`; the shim points that name
       # at the COD, and this row is what proves it rather than assuming it.
       engine)             CxxHard=1 ;;
@@ -745,8 +753,52 @@ function stageCtest {
   ExpectedRunnerFailure=8 emitJunit "${Xml}" ctest "${RunRc}"
 }
 
+function stagePerf {
+  # Host-only codegen signal: per arch, compile the smoke kernel with the COD
+  # comgr and read its resource footprint from the HSACO's ELF notes -- no GPU,
+  # no numeric reference. A spill on this fixed kernel is a real regression.
+  echo "codegen resource footprint (native rocke.benchmark.perf.occupancy)"
+  codSmokeSweep occupancy
+}
+
+# Run the single-arch cod smoke for one arch. Extra args (e.g. --experimental)
+# are forwarded to the driver; the aborted-row keeps the same experimental tag.
+function codSmoke {  # <mode> <arch> [extra driver args...]
+  local Mode="${1}" Arch="${2}"; shift 2
+  local -a Args=(--mode "${Mode}" --arch "${Arch}" --flavor)
+  if [[ "${Mode}" == codegen ]]; then
+    Args+=("${ROCKE_CODEGEN_FLAVOR}" --clang "${AOMP}/bin/clang" --out "${BuildRoot}")
+  else
+    Args+=("${ROCKE_COMGR_FLAVOR}")
+    [[ "${Mode}" == occupancy ]] \
+      && Args+=(--readelf "${AOMP}/bin/llvm-readelf")
+  fi
+  # Mirror the driver's grouping so a hard abort files where its own rows would;
+  # a plain universal_gemm would collide across modes. See rocke_cod_smoke.py.
+  local Group="universal_gemm.${Mode}"
+  [[ "${Mode}" == occupancy ]] && Group="occupancy"
+  local Suffix=""; [[ "$*" == *--experimental* ]] && Suffix=" (experimental)"
+  "${PyBin}" "${HelperDir}/rocke_cod_smoke.py" "${Args[@]}" "$@" \
+    || rockeResult "${Group}" "${Arch}${Suffix}" 1 "${Mode} driver aborted (see log)" \
+         "${LaneRelevance}"
+}
+
+# Sweep the production arches, then the experimental ones (tagged as such).
+function codSmokeSweep {  # <mode>
+  local Mode="${1}"
+  local -a Prod Experimental
+  local Arch
+  read -ra Prod <<< "${ROCKE_CI_ARCHES}"
+  read -ra Experimental <<< "${ROCKE_CI_ARCHES_EXPERIMENTAL}"
+  for Arch in "${Prod[@]}"; do codSmoke "${Mode}" "${Arch}"; done
+  for Arch in "${Experimental[@]}"; do codSmoke "${Mode}" "${Arch}" --experimental; done
+}
+
+function stageCodCodegen { codSmokeSweep codegen; }
+function stageCodComgr { codSmokeSweep comgr; }
+
 # Origin of a report row: 'rocKE' = the project's own tests/tools, 'ci-harness'
-# = a probe this CI adds or its own plumbing, whichever lane hit it.
+# = a probe this CI adds (cod-*/perf) or its own plumbing, whichever lane hit it.
 # Mirrors rocke_extract.py's area classifier. See README.md "Test origin".
 function laneOrigin {  # <lane> [group]
   case "${2:-}" in setup|environment) echo ci-harness; return ;; esac
@@ -764,7 +816,7 @@ function laneOrigin {  # <lane> [group]
 # "Test relevance".
 function laneRelevance {  # <lane>
   case "${1}" in
-    engine|ctest)                            echo compiler ;;
+    cod-codegen|cod-comgr|engine|ctest|perf) echo compiler ;;
     *)                                       echo unregistered ;;
   esac
 }
@@ -820,10 +872,16 @@ Names=(); Pass=(); Tot=(); Secs=(); Skip=(); Fails=()
 # absolute numbers are the price of noticing a corpus disappear, and a legitimate
 # shrink below them is a one-line edit here with the reason in the commit.
 function laneRowFloor {  # <lane>
+  local -a Arches Experimental
+  read -ra Arches <<< "${ROCKE_CI_ARCHES}"
+  read -ra Experimental <<< "${ROCKE_CI_ARCHES_EXPERIMENTAL}"
   local -a Flavors; read -ra Flavors <<< "${EngineFlavorList:-${ROCKE_ENGINE_FLAVORS}}"
   case "${1}" in
     ctest)                  echo 3 ;;     # 6 registered today
     engine)                 echo "${#Flavors[@]}" ;;
+    # Both sweeps, because codSmokeSweep runs the experimental arches too: counting
+    # only the production ones let every experimental row vanish inside the floor.
+    perf|cod-codegen|cod-comgr) echo "$(( ${#Arches[@]} + ${#Experimental[@]} ))" ;;
     # Not a benign default: reaching it means a lane was added to LaneOrder and not
     # to this table, and a floor of 1 would have hidden that with a green row.
     *)                      echo "?" ;;
@@ -1004,6 +1062,9 @@ LaneRelevance="$(laneRelevance "${Stage}")"
 case "${Stage}" in
   engine)      stageEngine ;;
   ctest)       stageCtest ;;
+  perf)        stagePerf ;;
+  cod-codegen) stageCodCodegen ;;
+  cod-comgr)   stageCodComgr ;;
 esac
 
 # Before the tally reads the same log, so a floor breach is counted like any red row.
