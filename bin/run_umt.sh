@@ -104,7 +104,7 @@ if [ "$1" == "build_umt" ]; then
     popd
 
     pushd $AOMP_REPOS_TEST/$CONDUIT_SRC_DIR
-    git clone https://github.com/LLNL/conduit.git .
+    git clone --branch v0.9.6 https://github.com/LLNL/conduit.git .
     rm -rf build
     mkdir build
     pushd build
