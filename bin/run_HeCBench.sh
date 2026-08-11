@@ -45,7 +45,6 @@
 # --- Start standard header to set AOMP environment variables ----
 realpath=$(realpath "$0")
 thisdir=$(dirname "$realpath")
-export AOMP_USE_CCACHE=0
 
 # shellcheck source=aomp_common_vars
 _had_aomp=${AOMP+1}
@@ -60,12 +59,10 @@ if [ -z "$_had_rocm_path" ]; then
   ROCM_PATH=$(realpath -m "$(realpath -m "$AOMP")"/../..)
   export ROCM_PATH
 fi
-AOMPTOP=$(echo "$AOMP" | sed -e 's|/lib[/]*llvm||' -e 's|/llvm||')
-export AOMP AOMPTOP ROCM_PATH
 
 warn_hipcc_clang_mismatch() {
   local hipcc_bin clang_bin hipcc_ver clang_ver hipcc_clang_line
-  hipcc_bin=$(PATH="$ROCM_PATH/bin:$AOMPTOP/bin:$PATH" command -v hipcc 2>/dev/null)
+  hipcc_bin=$(PATH="$ROCM_PATH/bin:$PATH" command -v hipcc 2>/dev/null)
   clang_bin=$(PATH="$AOMP/bin:$PATH" command -v clang 2>/dev/null)
   if [ -z "$hipcc_bin" ] || [ -z "$clang_bin" ]; then
     return 0
@@ -106,8 +103,8 @@ fi
 results=$hecbench_root/results.txt
 rm -f "$results"
 
-export PATH=$AOMP/bin:$AOMPTOP/bin:$ROCM_PATH/bin:$PATH
-export LD_LIBRARY_PATH=$AOMP/lib:$AOMPTOP/lib:$ROCM_PATH/lib:$LD_LIBRARY_PATH
+export PATH=$AOMP/bin:$ROCM_PATH/bin:$PATH
+export LD_LIBRARY_PATH=$AOMP/lib:$ROCM_PATH/lib:$LD_LIBRARY_PATH
 
 warn_hipcc_clang_mismatch
 
