@@ -24,15 +24,15 @@
 #                     expects: $AOMP_REPOS_TEST/HeCBench/src/<bench>-{omp,hip}
 #
 # Run control:
-#   RUN_OPTIONS       space-separated list of build variants to run;
+#   PROGRAMMING_MODELS       space-separated list of build variants to run;
 #                     default: "openmp hip" (both)
 #                       openmp  - src/*-omp dirs, build with Makefile.aomp
 #                                 (clang++, ARCH=$AOMP_GPU)
 #                       hip     - src/*-hip dirs, build with Makefile (hipcc)
 #                     examples:
-#                       RUN_OPTIONS=openmp
-#                       RUN_OPTIONS="openmp hip"
-#                       RUN_OPTIONS=hip
+#                       PROGRAMMING_MODELS=openmp
+#                       PROGRAMMING_MODELS="openmp hip"
+#                       PROGRAMMING_MODELS=hip
 #   HECBENCH_LIST     space-separated benchmark dirs to run (default: all)
 #   HECBENCH_TIMEOUT  per-benchmark timeout in seconds (default: 180)
 #   LAUNCHER          passed to Makefile run target (e.g. "gpurun time -p")
@@ -46,19 +46,13 @@
 realpath=$(realpath "$0")
 thisdir=$(dirname "$realpath")
 
-# shellcheck source=aomp_common_vars
-_had_aomp=${AOMP+1}
-_had_rocm_path=${ROCM_PATH+1}
 # shellcheck disable=SC1091
 . "$thisdir/aomp_common_vars"
-# --- end standard header ----
 
-# Setup AOMP / ROCM_PATH (see header for rules)
-[ -z "$_had_aomp" ] && export AOMP=/opt/rocm/lib/llvm
-if [ -z "$_had_rocm_path" ]; then
-  ROCM_PATH=$(realpath -m "$(realpath -m "$AOMP")"/../..)
-  export ROCM_PATH
-fi
+# If AOMP and ROCM_PATH are already set, use them.  If not, use defaults.
+# The default for AOMP is /opt/rocm/llvm.  The default for ROCM_PATH is $AOMP/../..
+export AOMP="${AOMP:-/opt/rocm/lib/llvm}"
+export ROCM_PATH="${ROCM_PATH:-$(realpath -m "${AOMP}/../..")}"
 
 warn_hipcc_clang_mismatch() {
   local hipcc_bin clang_bin hipcc_ver clang_ver hipcc_clang_line
@@ -82,7 +76,7 @@ warn_hipcc_clang_mismatch() {
 # Use function to set and test AOMP_GPU
 setaompgpu
 
-RUN_OPTIONS=${RUN_OPTIONS:-"openmp hip"}
+PROGRAMMING_MODELS=${PROGRAMMING_MODELS:-"openmp hip"}
 HECBENCH_TIMEOUT=${HECBENCH_TIMEOUT:-180}
 HECBENCH_LIST=${HECBENCH_LIST:-""}
 LAUNCHER=${LAUNCHER:-}
@@ -108,8 +102,8 @@ export LD_LIBRARY_PATH=$AOMP/lib:$ROCM_PATH/lib:$LD_LIBRARY_PATH
 
 warn_hipcc_clang_mismatch
 
-echo RUN_OPTIONS: "$RUN_OPTIONS"
-for option in $RUN_OPTIONS; do
+echo PROGRAMMING_MODELS: "$PROGRAMMING_MODELS"
+for option in $PROGRAMMING_MODELS; do
   if [ "$option" == "openmp" ]; then
     suffix="-omp"
     makefile="Makefile.aomp"
