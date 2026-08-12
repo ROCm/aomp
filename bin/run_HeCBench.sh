@@ -150,15 +150,10 @@ for option in $PROGRAMMING_MODELS; do
       fi
       "${make_clean[@]}" >/dev/null 2>&1
       if timeout "$HECBENCH_TIMEOUT" "${make_run[@]}" >>"$results" 2>&1; then
-        rc=0
-      else
-        rc=$?
-      fi
-      if [ $rc -eq 0 ]; then
         echo "STATUS $d: PASS" | tee -a "$results"
         "${make_clean[@]}" >/dev/null 2>&1
       else
-        echo "STATUS $d: FAIL(rc=$rc)" | tee -a "$results"
+        echo "STATUS $d: FAIL(rc=$?)" | tee -a "$results"
       fi
     )
   done
