@@ -44,6 +44,16 @@ function srock_venv_activate() {
     fi
     echo "pip install -r requirements.txt"
     pip install -r requirements.txt
+    # WORKAROUND: meson 1.12.0 has a regression in
+    # mesonbuild/compilers/mixins/clike.py where CLikeCompiler's
+    # _sanity_check_compile_args() double-applies LDFLAGS-derived link
+    # args. TheRock's libdrm build passes a -Wl,--version-script= via
+    # LDFLAGS, so the duplicate causes `ld: duplicate version tag` and
+    # meson reports "Compiler cc cannot compile programs." Pin below
+    # requirements.txt's floor until upstream releases a fix.
+    echo "pip install 'meson>=1.7.0,<1.12.0'  # workaround for meson 1.12.0 LDFLAGS dup bug"
+    pip install 'meson>=1.7.0,<1.12.0'
+
     export PATH=$SROCK_THEROCK_DIR/$SROCK_VENV/bin:$PATH
 }
 
