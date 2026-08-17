@@ -29,7 +29,7 @@ int main()
 
   fprintf(stderr, "Starting test 1 on target\n");
   init(&sum, c);
-#pragma omp target teams private(tmp) map(tofrom:sum) 
+#pragma omp target teams private(tmp) map(tofrom:sum) reduction(+:sum)
 #pragma omp distribute parallel for reduction(+:sum) collapse(2) 
   for (int j = 0; j< N; j=j+1) {
     for (int i = 0; i < N; ++i) {
@@ -47,7 +47,7 @@ int main()
 
   fprintf(stderr, "Starting test 2 on target\n");
   init(&sum, c);
-#pragma omp target teams map(tofrom:sum) 
+#pragma omp target teams map(tofrom:sum) reduction(+:sum)
 #pragma omp distribute parallel for reduction(+:sum) collapse(2) private(tmp)
   for (int j = 0; j< N; j=j+1) {
     for (int i = 0; i < N; ++i) {
@@ -66,7 +66,7 @@ int main()
   fprintf(stderr, "Starting test 3 on target\n");
   init(&sum, c);
 #pragma omp target map(tofrom:sum) private(tmp)
-#pragma omp teams 
+#pragma omp teams reduction(+:sum)
 #pragma omp distribute parallel for reduction(+:sum) collapse(2)
   for (int j = 0; j< N; j=j+1) {
     for (int i = 0; i < N; ++i) {
@@ -85,7 +85,7 @@ int main()
   fprintf(stderr, "Starting test 4 on target\n");
   init(&sum, c);
 #pragma omp target map(tofrom:sum) 
-#pragma omp teams private(tmp)
+#pragma omp teams private(tmp) reduction(+:sum)
 #pragma omp distribute parallel for reduction(+:sum) collapse(2)
   for (int j = 0; j< N; j=j+1) {
     for (int i = 0; i < N; ++i) {
@@ -104,7 +104,7 @@ int main()
   fprintf(stderr, "Starting test 5 on target\n");
   init(&sum, c);
 #pragma omp target map(tofrom:sum) 
-#pragma omp teams 
+#pragma omp teams reduction(+:sum)
 #pragma omp distribute parallel for reduction(+:sum) collapse(2) private(tmp)
   for (int j = 0; j< N; j=j+1) {
     for (int i = 0; i < N; ++i) {
@@ -123,7 +123,7 @@ int main()
   fprintf(stderr, "Starting test 6 on target\n");
   init(&sum, c);
 #pragma omp target map(tofrom:sum) private(tmp)
-#pragma omp teams private(tmp)
+#pragma omp teams private(tmp) reduction(+:sum)
 #pragma omp distribute parallel for reduction(+:sum) collapse(2) private(tmp)
   for (int j = 0; j< N; j=j+1) {
     for (int i = 0; i < N; ++i) {
@@ -178,13 +178,20 @@ int main()
   return 0;
 }
 
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:8
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:8
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:8
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:8
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:8
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:8
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:8
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:8
+// Cross-team reductions are emitted as plain SPMD kernels (SGN:2); the
+// downstream Xteam reduction execution mode (SGN:8) has been removed.
+//
+// The teams-level 'reduction' clause on the split (non-combined) forms above is
+// required: without it every team accumulates into the same shared variable,
+// which is a data race. The removed downstream implementation used to paper
+// over that by always reducing across teams.
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2
 
 

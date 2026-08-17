@@ -15,12 +15,14 @@ int main()
   sum1 = my_max = 0;
   my_min = N;
 
-  // This is supported by Xteam reduction 
+  // A '+' reduction: the canonical cross-team reduction shape.
 #pragma omp target teams distribute parallel for map(tofrom:sum1) reduction(+:sum1)
   for (int j = 0; j< N; j=j+1)
     sum1 += 3*a[j];
 
-  // The rest are not supported
+  // The remaining shapes ('-', min, max) used to fall back to a plain SPMD
+  // kernel because the downstream Xteam reduction did not handle them. They
+  // are all plain SPMD kernels now, but must still compute the right answer.
 #pragma omp target teams distribute parallel for map(tofrom:sum1) reduction(-:sum1)
   for (int j = 0; j< N; j=j+1)
     sum1 -= a[j];
@@ -47,9 +49,11 @@ int main()
   return rc;
 }
 
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:8
+// Cross-team reductions are emitted as plain SPMD kernels (SGN:2); the
+// downstream Xteam reduction execution mode (SGN:8) has been removed.
 /// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2
 /// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:8
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:8
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2
 
