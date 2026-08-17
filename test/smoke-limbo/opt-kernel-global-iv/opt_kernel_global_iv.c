@@ -49,6 +49,9 @@ int main()
   return rc;
 }
 
+// The last kernel is a cross-team reduction. Those are emitted as plain SPMD
+// kernels (SGN:2) now; the downstream Xteam reduction execution mode (SGN:8)
+// has been removed.
 /// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:6
 /// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:6
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:8
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2

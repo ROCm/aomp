@@ -18,7 +18,7 @@ int main()
   double sum1, sum2, sum3, sum4;
   sum1 = sum2 = sum3 = sum4 = 0;
 
-#pragma omp target teams map(tofrom:sum1)
+#pragma omp target teams map(tofrom:sum1) reduction(+:sum1)
 #pragma omp distribute parallel for reduction(+:sum1)
   {
       for (int k = 0; k< N; k++) {
@@ -26,7 +26,7 @@ int main()
       }
   }
 
-#pragma omp target teams map(tofrom:sum1) thread_limit(64)
+#pragma omp target teams map(tofrom:sum1) reduction(+:sum1) thread_limit(64)
 #pragma omp distribute parallel for reduction(+:sum1)
   {
       for (int k = 0; k< N; k++) {
@@ -35,7 +35,7 @@ int main()
   }
 
 #pragma omp target map(tofrom:sum1)
-#pragma omp teams   
+#pragma omp teams reduction(+:sum1)
 #pragma omp distribute parallel for reduction(+:sum1)
   {
     {
@@ -46,7 +46,7 @@ int main()
   }
 
 #pragma omp target map(tofrom:sum1)
-#pragma omp teams   
+#pragma omp teams reduction(+:sum1)
 #pragma omp distribute parallel for reduction(+:sum1) num_threads(128)
   {
     {
@@ -57,14 +57,14 @@ int main()
   }
 
 #pragma omp target map(tofrom:sum1)
-#pragma omp teams
+#pragma omp teams reduction(+:sum1)
 #pragma omp distribute parallel for reduction(+:sum1)
   for (int k = 0; k< N; k++) {
     sum1 += a[k];
   }
 
 #pragma omp target map(tofrom:sum1)
-#pragma omp teams
+#pragma omp teams reduction(+:sum1)
 #pragma omp distribute parallel for reduction(+:sum1) num_threads(128)
   for (int k = 0; k< N; k++) {
     sum1 += a[k];
@@ -143,17 +143,30 @@ int main()
   return rc;
 }
 
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:8 ConstWGSize:64  args: 7 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X  32)
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:8 ConstWGSize:64  args: 7 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X  64)
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:8 ConstWGSize:64  args: 7 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X  32)
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:8 ConstWGSize:64  args: 7 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X  32)
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:8 ConstWGSize:64  args: 7 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X  32)
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:8 ConstWGSize:64  args: 7 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X  32)
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:8 ConstWGSize:64  args: 7 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X  32)
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:8 ConstWGSize:64  args: 7 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X  64)
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:8 ConstWGSize:64  args: 7 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X  32)
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:8 ConstWGSize:64  args: 7 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X  64)
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:8 ConstWGSize:64  args: 7 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X  32)
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:8 ConstWGSize:64  args: 7 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X  64)
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:8 ConstWGSize:64  args:10 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X  32)
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:8 ConstWGSize:64  args:10 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X  64)
+// Cross-team reductions are emitted as plain SPMD kernels (SGN:2); the
+// downstream Xteam reduction execution mode (SGN:8) has been removed, and with
+// it the two extra kernel arguments it used to add ('args: 7'/'args:10' before,
+// 'args: 5'/'args: 6' now).
+//
+// The teams-level 'reduction' clause on the split (non-combined) forms above is
+// required: without it every team accumulates into the same shared variable,
+// which is a data race. The removed downstream implementation used to paper
+// over that by always reducing across teams.
+// Every kernel here has a block size of 64: an explicitly requested
+// '-fopenmp-target-xteam-reduction-blocksize=' overrides the thread_limit and
+// num_threads clauses on the constructs below, which is how the block size of
+// a cross-team reduction kernel has always been selected.
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2 ConstWGSize:64 args: 5 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 32)
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2 ConstWGSize:64 args: 5 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 64)
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2 ConstWGSize:64 args: 5 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 32)
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2 ConstWGSize:64 args: 5 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 32)
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2 ConstWGSize:64 args: 5 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 32)
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2 ConstWGSize:64 args: 5 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 32)
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2 ConstWGSize:64 args: 5 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 32)
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2 ConstWGSize:64 args: 5 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 64)
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2 ConstWGSize:64 args: 5 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 32)
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2 ConstWGSize:64 args: 5 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 64)
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2 ConstWGSize:64 args: 5 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 32)
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2 ConstWGSize:64 args: 5 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 64)
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2 ConstWGSize:64 args: 6 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 32)
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2 ConstWGSize:64 args: 6 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 64)

@@ -47,8 +47,12 @@ int main()
   return rc;
 }
 
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:8 ConstWGSize:512 args: 7 teamsXthrds:(   1X 512) 
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:8 ConstWGSize:512 args: 7 teamsXthrds:( 5X 512)
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:8 ConstWGSize:512 args: 7 teamsXthrds:( 40X 512)
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:8 ConstWGSize:512 args: 7 teamsXthrds:( 10X 512)
-
+// Cross-team reductions are emitted as plain SPMD kernels (SGN:2); the
+// downstream Xteam reduction execution mode (SGN:8) has been removed. The
+// kernels no longer carry the two extra Xteam arguments either, hence
+// 'args: 5' instead of the former 'args: 7'. The num_teams clause is still
+// honored verbatim.
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2 ConstWGSize:512 args: 5 teamsXthrds:( 1X 512)
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2 ConstWGSize:512 args: 5 teamsXthrds:( 5X 512)
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2 ConstWGSize:512 args: 5 teamsXthrds:( 40X 512)
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2 ConstWGSize:512 args: 5 teamsXthrds:( 10X 512)

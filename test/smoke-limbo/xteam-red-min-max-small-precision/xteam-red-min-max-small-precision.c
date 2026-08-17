@@ -57,9 +57,11 @@ int main() {
   return rc;
 }
 
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:8
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:8
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:8
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:8
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:8
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:8
+// Cross-team reductions are emitted as plain SPMD kernels (SGN:2); the
+// downstream Xteam reduction execution mode (SGN:8) has been removed.
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:2
