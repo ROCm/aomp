@@ -14,7 +14,7 @@ if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   help_build_aomp
 fi
 
-REPO_DIR=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME
+REPO_DIR=$AOMP_PROJECT_SRC
 _ompd_src_dir="$LLVM_INSTALL_LOC/share/gdb/python/ompd/src"
 _ompd_dir="$LLVM_INSTALL_LOC/share/gdb/python/ompd"
 OPENMP_BUILD_DEVICERTL=${OPENMP_BUILD_DEVICERTL:-0}
@@ -37,8 +37,8 @@ if [ "$AOMP_BUILD_CUDA" == 1 ] ; then
    export CUDAFE_FLAGS="-w"
 fi
 
-if [ ! -d "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME" ] ; then
-  echo "ERROR:  Missing repository $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME "
+if [ ! -d "$AOMP_PROJECT_SRC" ] ; then
+  echo "ERROR:  Missing repository $AOMP_PROJECT_SRC "
   echo "        Consider setting env variables AOMP_REPOS and/or AOMP_PROJECT_REPO_NAME "
   exit 1
 fi
@@ -76,7 +76,7 @@ COMMON_CMAKE_OPTS=("${AOMP_SET_NINJA_GEN[@]}" -DOPENMP_ENABLE_LIBOMPTARGET=1
                    -DLLVM_DIR="$LLVM_DIR")
 
 if [ "$OPENMP_BUILD_DEVICERTL" -eq 1 ]; then
-  if [ -f "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/device/CMakeLists.txt" ]; then
+  if [ -f "$AOMP_PROJECT_SRC/openmp/device/CMakeLists.txt" ]; then
     COMMON_CMAKE_OPTS=("${COMMON_CMAKE_OPTS[@]}"
                        -DLLVM_DEFAULT_TARGET_TRIPLE=amdgcn-amd-amdhsa)
   fi
@@ -94,8 +94,8 @@ if [ "$AOMP_STANDALONE_BUILD" == 0 ]; then
                      -DAOMP_STANDALONE_BUILD="$AOMP_STANDALONE_BUILD")
 else
   COMMON_CMAKE_OPTS=("${COMMON_CMAKE_OPTS[@]}"
-                     -DLLVM_MAIN_INCLUDE_DIR="$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/llvm/include"
-                     -DLIBOMPTARGET_LLVM_INCLUDE_DIRS="$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/llvm/include"
+                     -DLLVM_MAIN_INCLUDE_DIR="$AOMP_PROJECT_SRC/llvm/include"
+                     -DLIBOMPTARGET_LLVM_INCLUDE_DIRS="$AOMP_PROJECT_SRC/llvm/include"
                      -DLIBOMP_USE_HWLOC=ON
                      -DLIBOMP_HWLOC_INSTALL_DIR="$AOMP_SUPP/hwloc")
 fi
@@ -170,10 +170,10 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
       mkdir -p "$BUILD_DIR/build/$OPENMP_BUILD_DIR"
       cd "$BUILD_DIR/build/$OPENMP_BUILD_DIR" || exit
       echo "${AOMP_CMAKE}" "${MYCMAKEOPTS[@]}" \
-                           "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp"
+                           "$AOMP_PROJECT_SRC/openmp"
 
       if ! ${AOMP_CMAKE} "${MYCMAKEOPTS[@]}" \
-                         "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp"; then
+                         "$AOMP_PROJECT_SRC/openmp"; then
          echo "ERROR openmp cmake failed. Cmake flags"
          echo "      $(shquot "${MYCMAKEOPTS[@]}")"
          exit 1
@@ -201,13 +201,13 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
                              -DCMAKE_C_FLAGS="\"$(cmquot "${ASAN_FLAGS[@]}")\"" \
                              -DCMAKE_CXX_FLAGS="\"$(cmquot "${ASAN_FLAGS[@]}")\"" \
                              -DLLVM_LIBDIR_SUFFIX="/asan" \
-                             "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp"
+                             "$AOMP_PROJECT_SRC/openmp"
 
         if ! ${AOMP_CMAKE} "${ASAN_CMAKE_OPTS[@]}" \
                            -DCMAKE_C_FLAGS="$(cmquot "${ASAN_FLAGS[@]}")" \
                            -DCMAKE_CXX_FLAGS="$(cmquot "${ASAN_FLAGS[@]}")" \
                            -DLLVM_LIBDIR_SUFFIX="/asan" \
-                           "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp"; then
+                           "$AOMP_PROJECT_SRC/openmp"; then
            echo "ERROR openmp cmake failed. Cmake flags"
            echo "      $(shquot "${ASAN_CMAKE_OPTS[@]}")"
            exit 1
@@ -227,12 +227,12 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
     echo "${AOMP_CMAKE}" "$(shquot "${MYCMAKEOPTS[@]}")" \
                          -DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR/lib/cmake" \
                          "$(shquot "${AOMP_ORIGIN_RPATH[@]}")" \
-                         "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp"
+                         "$AOMP_PROJECT_SRC/openmp"
 
     if ! ${AOMP_CMAKE} "${MYCMAKEOPTS[@]}" \
                        -DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR/lib/cmake" \
                        "${AOMP_ORIGIN_RPATH[@]}" \
-                       "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp"; then
+                       "$AOMP_PROJECT_SRC/openmp"; then
        echo "error openmp cmake failed. cmake flags"
        echo "      $(shquot "${MYCMAKEOPTS[@]}")"
        exit 1
@@ -251,7 +251,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
                             -DCMAKE_C_FLAGS="\"$(cmquot "${ASAN_FLAGS[@]}")\"" \
                             -DCMAKE_CXX_FLAGS="\"$(cmquot "${ASAN_FLAGS[@]}")\"" \
                             -DLLVM_LIBDIR_SUFFIX="-perf/asan" \
-                            "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp"
+                            "$AOMP_PROJECT_SRC/openmp"
 
        if ! ${AOMP_CMAKE} "${ASAN_CMAKE_OPTS[@]}" \
                           -DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR/lib/asan/cmake;$AOMP_INSTALL_DIR/lib/cmake/AMDDeviceLibs" \
@@ -259,7 +259,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
                           -DCMAKE_C_FLAGS="$(cmquot "${ASAN_FLAGS[@]}")" \
                           -DCMAKE_CXX_FLAGS="$(cmquot "${ASAN_FLAGS[@]}")" \
                           -DLLVM_LIBDIR_SUFFIX="-perf/asan" \
-                          "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp"; then
+                          "$AOMP_PROJECT_SRC/openmp"; then
           echo "error openmp cmake failed. cmake flags"
           echo "      $(shquot "${ASAN_CMAKE_OPTS[@]}")"
           exit 1
@@ -283,7 +283,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
                       -DLIBOMP_CPPFLAGS='-O0'
                       -DLIBOMP_OMPD_SUPPORT=ON
                       -DLIBOMP_OMPT_DEBUG=ON
-                      -DOPENMP_SOURCE_DEBUG_MAP="-fdebug-prefix-map=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp=$_ompd_src_dir/openmp")
+                      -DOPENMP_SOURCE_DEBUG_MAP="-fdebug-prefix-map=$AOMP_PROJECT_SRC/openmp=$_ompd_src_dir/openmp")
 
       # The 'pip install --system' command is not supported on non-debian systems. This will disable
       # the system option if the debian_version file is not present.
@@ -317,13 +317,13 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
                               -DCMAKE_C_FLAGS="$CFLAGS -g" \
                               -DCMAKE_CXX_FLAGS="$CXXFLAGS -g" \
                               -DLLVM_LIBDIR_SUFFIX=-debug \
-                              "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp"
+                              "$AOMP_PROJECT_SRC/openmp"
 
          if ! ${AOMP_CMAKE} "${MYCMAKEOPTS[@]}" "$PREFIX_PATH" \
                             -DCMAKE_C_FLAGS="$CFLAGS -g" \
                             -DCMAKE_CXX_FLAGS="$CXXFLAGS -g" \
                             -DLLVM_LIBDIR_SUFFIX=-debug \
-                            "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp"; then
+                            "$AOMP_PROJECT_SRC/openmp"; then
             echo "ERROR openmp debug cmake failed. Cmake flags"
             echo "      $(shquot "${MYCMAKEOPTS[@]}")"
             exit 1
@@ -350,13 +350,13 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
                               -DCMAKE_C_FLAGS="\"$(cmquot "${ASAN_FLAGS[@]}")\"" \
                               -DCMAKE_CXX_FLAGS="\"$(cmquot "${ASAN_FLAGS[@]}")\"" \
                               -DLLVM_LIBDIR_SUFFIX="-debug/asan" \
-                              "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp"
+                              "$AOMP_PROJECT_SRC/openmp"
 
          if ! ${AOMP_CMAKE} "${ASAN_CMAKE_OPTS[@]}" \
                             -DCMAKE_C_FLAGS="$(cmquot "${ASAN_FLAGS[@]}")" \
                             -DCMAKE_CXX_FLAGS="$(cmquot "${ASAN_FLAGS[@]}")" \
                             -DLLVM_LIBDIR_SUFFIX="-debug/asan" \
-                            "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp"; then
+                            "$AOMP_PROJECT_SRC/openmp"; then
             echo "ERROR openmp debug cmake failed. Cmake flags"
             echo "      $(shquot "${ASAN_CMAKE_OPTS[@]}")"
             exit 1
@@ -541,9 +541,9 @@ if [ "$1" == "install" ] ; then
       $SUDO mkdir -p "$_ompd_src_dir/openmp/libompd"
       $SUDO mkdir -p "$_ompd_src_dir/openmp/device"
       if [ "$AOMP_STANDALONE_BUILD" == 1 ]; then
-        $SUDO cp -rp "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/runtime/src" "$_ompd_src_dir/openmp/runtime"
-        $SUDO cp -rp "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/libompd/src" "$_ompd_src_dir/openmp/libompd"
-        $SUDO cp -rp "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/device/src" "$_ompd_src_dir/openmp/device"
+        $SUDO cp -rp "$AOMP_PROJECT_SRC/openmp/runtime/src" "$_ompd_src_dir/openmp/runtime"
+        $SUDO cp -rp "$AOMP_PROJECT_SRC/openmp/libompd/src" "$_ompd_src_dir/openmp/libompd"
+        $SUDO cp -rp "$AOMP_PROJECT_SRC/openmp/device/src" "$_ompd_src_dir/openmp/device"
       else
         $SUDO cp -rp "$LLVM_PROJECT_ROOT/openmp/runtime/src" "$_ompd_src_dir/openmp/runtime"
         $SUDO cp -rp "$LLVM_PROJECT_ROOT/openmp/libompd/src" "$_ompd_src_dir/openmp/libompd"

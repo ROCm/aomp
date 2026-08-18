@@ -21,7 +21,7 @@ INSTALL_DIR=$INSTALL_ROOT_DIR
 export LLVM_DIR=$AOMP_INSTALL_DIR
 export LLVM_BUILD=$AOMP_INSTALL_DIR
 
-REPO_DIR=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/amd/$AOMP_LIBDEVICE_REPO_NAME
+REPO_DIR=$AOMP_PROJECT_SRC/amd/$AOMP_LIBDEVICE_REPO_NAME
 
 declare -a MYCMAKEOPTS
 
@@ -56,11 +56,11 @@ if [ "$1" != "install" ] && [ "$1" != "nocmake" ]; then
       export CC
       echo "${AOMP_CMAKE}" "$(shquot "${MYCMAKEOPTS[@]}")" \
            "-DCMAKE_INSTALL_PREFIX=$INSTALL_DIR" \
-           "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/amd/$AOMP_LIBDEVICE_REPO_NAME"
+           "$AOMP_PROJECT_SRC/amd/$AOMP_LIBDEVICE_REPO_NAME"
 
       if ! ${AOMP_CMAKE} "${MYCMAKEOPTS[@]}" \
                          -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
-                         "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/amd/$AOMP_LIBDEVICE_REPO_NAME"; then 
+                         "$AOMP_PROJECT_SRC/amd/$AOMP_LIBDEVICE_REPO_NAME"; then 
          echo "ERROR cmake failed  command was:"
          echo "      ${AOMP_CMAKE} $(shquot "${MYCMAKEOPTS[@]}") -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR $BUILD_DIR/$AOMP_LIBDEVICE_REPO_NAME"
          exit 1
