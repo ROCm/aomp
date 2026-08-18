@@ -32,7 +32,7 @@ export AOMP_USE_CCACHE=0
 export LIBOMPTARGET_KERNEL_TRACE=${LIBOMPTARGET_KERNEL_TRACE:-0}
 
 # Setup AOMP variables
-AOMP=${AOMP:-/usr/lib/aomp}
+AOMP=${AOMP:-$HOME/rocm/srock/llvm}
 
 # Use function to set and test AOMP_GPU
 setaompgpu
@@ -43,9 +43,9 @@ setaompgpu
 AOMP_QE_REPO_NAME=${AOMP_QE_REPO_NAME:-q-e-omp}
 QE_REPO=${QE_REPO:-$AOMP_REPOS_TEST/$AOMP_QE_REPO_NAME}
 
-# ROCm root passed to QE configure (--with-rocm). ROCM_DIR is set by
-# aomp_common_vars; fall back to /opt/rocm for a standard ROCm install.
-ROCM_PATH=${ROCM_PATH:-${ROCM_DIR:-/opt/rocm}}
+# ROCm root passed to QE configure (--with-rocm). ROCM_PATH can be set
+# explicitly; or computed relative to the given $AOMP llvm directory.
+ROCM_PATH=${ROCM_PATH:-"$(realpath -m "$(realpath -m "$AOMP")/../..")"}
 
 # GPU arch passed to QE configure (--with-gpu-arch). Defaults to detected AOMP_GPU.
 GPU_ARCH=${GPU_ARCH:-$AOMP_GPU}
@@ -75,6 +75,7 @@ export OMPI_FC=${OMPI_FC:-amdflang}
 export OMPI_CC=${OMPI_CC:-amdclang}
 export OMPI_CXX=${OMPI_CXX:-amdclang++}
 
+echo "ROCM_PATH= $ROCM_PATH"
 # --- Runtime environment ---------------------------------------------------
 export OMP_NUM_THREADS=1
 
@@ -154,11 +155,11 @@ get_openmpi_node_binding()
     fi
 
     local task_place=numa
-    if [ ${ntasks_per_socket} -eq 0 ]; then
+    if [ "${ntasks_per_socket}" -eq 0 ]; then
 	ntasks_per_numa=${ntasks_per_node}
 	nnuma_node_avail=${nsocket_node_avail}
 	task_place=node
-    elif [ ${ntasks_per_numa} -eq 0 ]; then
+    elif [ "${ntasks_per_numa}" -eq 0 ]; then
 	ntasks_per_numa=${ntasks_per_socket}
 	nnuma_node_avail=${nsocket_node_avail}
 	task_place=socket
