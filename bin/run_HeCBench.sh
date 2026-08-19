@@ -53,19 +53,28 @@ thisdir=$(dirname "$realpath")
 # The default for AOMP is /opt/rocm/llvm.  The default for ROCM_PATH is $AOMP/../..
 export AOMP="${AOMP:-/opt/rocm/lib/llvm}"
 export ROCM_PATH="${ROCM_PATH:-$(realpath -m "${AOMP}/../..")}"
+export PATH=$AOMP/bin:$ROCM_PATH/bin:$PATH
+export LD_LIBRARY_PATH=$AOMP/lib:$ROCM_PATH/lib:$LD_LIBRARY_PATH
+
+PROGRAMMING_MODELS=${PROGRAMMING_MODELS:-"openmp hip"}
+HECBENCH_TIMEOUT=${HECBENCH_TIMEOUT:-180}
+HECBENCH_LIST=${HECBENCH_LIST:-""}
+LAUNCHER=${LAUNCHER:-}
+
+hecbench_root=$AOMP_REPOS_TEST/HeCBench
+hecbench_src=$hecbench_root/src
 
 warn_hipcc_clang_mismatch() {
-  local hipcc_bin clang_bin hipcc_ver clang_ver hipcc_clang_line
-  hipcc_bin=$(PATH="$ROCM_PATH/bin:$PATH" command -v hipcc 2>/dev/null)
+  local hipcc_bin clang_bin hipcc_ver clang_ver
+  hipcc_bin=$(PATH="$AOMP/bin:$ROCM_PATH/bin:$PATH" command -v hipcc 2>/dev/null)
   clang_bin=$(PATH="$AOMP/bin:$PATH" command -v clang 2>/dev/null)
   if [ -z "$hipcc_bin" ] || [ -z "$clang_bin" ]; then
     return 0
   fi
-  hipcc_ver=$("$hipcc_bin" --version 2>/dev/null | head -2)
-  clang_ver=$("$clang_bin" --version 2>/dev/null | head -1)
-  hipcc_clang_line=$(echo "$hipcc_ver" | grep -i 'clang version' | head -1)
-  if [ -n "$hipcc_clang_line" ] && [ -n "$clang_ver" ] &&
-     [ "$hipcc_clang_line" != "$clang_ver" ]; then
+  hipcc_ver=$("$hipcc_bin" --version 2>&1 | grep -i 'clang version')
+  clang_ver=$("$clang_bin" --version 2>&1 | grep -i 'clang version')
+  if [ -n "$hipcc_ver" ] && [ -n "$clang_ver" ] &&
+     [ "$hipcc_ver" != "$clang_ver" ]; then
     echo "WARNING: hipcc and clang report different compiler versions:" >&2
     echo "  hipcc ($hipcc_bin):" >&2
     printf '    %s\n' "$hipcc_ver" >&2
@@ -76,42 +85,32 @@ warn_hipcc_clang_mismatch() {
 # Use function to set and test AOMP_GPU
 setaompgpu
 
-PROGRAMMING_MODELS=${PROGRAMMING_MODELS:-"openmp hip"}
-HECBENCH_TIMEOUT=${HECBENCH_TIMEOUT:-180}
-HECBENCH_LIST=${HECBENCH_LIST:-""}
-LAUNCHER=${LAUNCHER:-}
-
-hecbench_root=$AOMP_REPOS_TEST/HeCBench
-hecbench_src=$hecbench_root/src
-
-if [ -d "$hecbench_src" ]; then
-  cd "$hecbench_src" || exit 1
-elif [ -d "$hecbench_root" ]; then
+if [ ! -d "$hecbench_src" ]; then
   echo "ERROR: HeCBench src not found: $hecbench_src"
   exit 1
-else
+elif [ ! -d "$hecbench_root" ]; then
   echo "ERROR: HeCBench not found in $AOMP_REPOS_TEST."
   exit 1
 fi
 
+cd "$hecbench_src" || exit 1
+
 results=$hecbench_root/results.txt
 rm -f "$results"
 
-export PATH=$AOMP/bin:$ROCM_PATH/bin:$PATH
-export LD_LIBRARY_PATH=$AOMP/lib:$ROCM_PATH/lib:$LD_LIBRARY_PATH
-
+# Check for a mismatch.
 warn_hipcc_clang_mismatch
 
 echo PROGRAMMING_MODELS: "$PROGRAMMING_MODELS"
-for option in $PROGRAMMING_MODELS; do
-  if [ "$option" == "openmp" ]; then
+for model in $PROGRAMMING_MODELS; do
+  if [ "$model" == "openmp" ]; then
     suffix="-omp"
     makefile="Makefile.aomp"
-  elif [ "$option" == "hip" ]; then
+  elif [ "$model" == "hip" ]; then
     suffix="-hip"
     makefile="Makefile"
   else
-    echo "ERROR: Option not recognized: $option."
+    echo "ERROR: Option not recognized: $model."
     exit 1
   fi
 
@@ -122,7 +121,7 @@ for option in $PROGRAMMING_MODELS; do
   fi
 
   if [ -z "$dirs" ]; then
-    echo "WARNING: No benchmark dirs found for option=$option suffix=$suffix in $(pwd)"
+    echo "WARNING: No benchmark dirs found for model=$model suffix=$suffix in $(pwd)"
     continue
   fi
 
@@ -138,10 +137,10 @@ for option in $PROGRAMMING_MODELS; do
       continue
     fi
     NumTestsRun=$((NumTestsRun + 1))
-    echo "=== [$option] $d ===" | tee -a "$results"
+    echo "=== [$model] $d ===" | tee -a "$results"
     (
       cd "$d" || exit 1
-      if [ "$option" == "openmp" ]; then
+      if [ "$model" == "openmp" ]; then
         make_clean=(make -f "$makefile" "ARCH=$AOMP_GPU" clean)
         make_run=(make -f "$makefile" "ARCH=$AOMP_GPU" "LAUNCHER=$LAUNCHER" run)
       else
@@ -157,6 +156,9 @@ for option in $PROGRAMMING_MODELS; do
       fi
     )
   done
-  echo "[$option] NumTestsRun=$NumTestsRun NumTestsSkipped=$NumTestsSkipped"
+  echo "[$model] NumTestsRun=$NumTestsRun NumTestsSkipped=$NumTestsSkipped"
   echo >> "$results"
+  echo "=== SUMMARY [$model] ===" | tee -a "$results"
+  echo "NumTestsRun=$NumTestsRun" | tee -a "$results"
+  echo "NumTestsSkipped=$NumTestsSkipped" | tee -a "$results"
 done
