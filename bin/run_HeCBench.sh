@@ -64,32 +64,37 @@ LAUNCHER=${LAUNCHER:-}
 hecbench_root=$AOMP_REPOS_TEST/HeCBench
 hecbench_src=$hecbench_root/src
 
-warn_hipcc_clang_mismatch() {
-  local hipcc_bin clang_bin hipcc_ver clang_ver
+check_hipcc_clang_mismatch() {
+  local hipcc_bin clang_bin hipcc_clang_line clang_ver
   hipcc_bin=$(PATH="$AOMP/bin:$ROCM_PATH/bin:$PATH" command -v hipcc 2>/dev/null)
   clang_bin=$(PATH="$AOMP/bin:$PATH" command -v clang 2>/dev/null)
   if [ -z "$hipcc_bin" ] || [ -z "$clang_bin" ]; then
     return 0
   fi
-  hipcc_ver=$("$hipcc_bin" --version 2>&1 | grep -i 'clang version')
+  hipcc_clang_line=$("$hipcc_bin" --version 2>&1 | grep -i 'clang version')
   clang_ver=$("$clang_bin" --version 2>&1 | grep -i 'clang version')
-  if [ -n "$hipcc_ver" ] && [ -n "$clang_ver" ] &&
-     [ "$hipcc_ver" != "$clang_ver" ]; then
-    echo "WARNING: hipcc and clang report different compiler versions:" >&2
-    echo "  hipcc ($hipcc_bin):" >&2
-    printf '    %s\n' "$hipcc_ver" >&2
-    echo "  clang ($clang_bin): $clang_ver" >&2
+  if [ -n "$hipcc_clang_line" ] && [ -n "$clang_ver" ]; then
+    if [ "$hipcc_clang_line" == "$clang_ver" ]; then
+      echo "INFO: hipcc and clang compiler versions match." >&2
+    else
+      echo "WARNING: hipcc and clang report different compiler versions:" >&2
+      echo "  hipcc ($hipcc_bin):" >&2
+      printf '    %s\n' "$hipcc_clang_line" >&2
+      echo "  clang ($clang_bin): $clang_ver" >&2
+    fi
+  else
+    echo "WARNING: hipcc and clang compiler versions unverified." >&2
   fi
 }
 
 # Use function to set and test AOMP_GPU
 setaompgpu
 
-if [ ! -d "$hecbench_src" ]; then
-  echo "ERROR: HeCBench src not found: $hecbench_src"
-  exit 1
-elif [ ! -d "$hecbench_root" ]; then
+if [ ! -d "$hecbench_root" ]; then
   echo "ERROR: HeCBench not found in $AOMP_REPOS_TEST."
+  exit 1
+elif [ ! -d "$hecbench_src" ]; then
+  echo "ERROR: HeCBench src not found: $hecbench_src"
   exit 1
 fi
 
@@ -99,7 +104,7 @@ results=$hecbench_root/results.txt
 rm -f "$results"
 
 # Check for a mismatch.
-warn_hipcc_clang_mismatch
+check_hipcc_clang_mismatch
 
 echo PROGRAMMING_MODELS: "$PROGRAMMING_MODELS"
 for model in $PROGRAMMING_MODELS; do
