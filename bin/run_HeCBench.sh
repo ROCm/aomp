@@ -36,6 +36,9 @@
 #   HECBENCH_LIST     space-separated benchmark dirs to run (default: all)
 #   HECBENCH_TIMEOUT  per-benchmark timeout in seconds (default: 180)
 #   LAUNCHER          passed to Makefile run target (e.g. "gpurun time -p")
+#   HECBENCH_CLONE    1 (default) clones HeCBench when it is absent
+#   HECBENCH_REPO     what to clone; default: the upstream HeCBench on GitHub
+#   HECBENCH_BRANCH   which branch of it; default: master
 #
 # Compiler flags:
 #   EXTRA_CFLAGS      extra compiler flags (Makefile.aomp / Makefile); not set
@@ -55,7 +58,10 @@ export ROCM_PATH="${ROCM_PATH:-$(realpath -m "${AOMP}/../..")}"
 export PATH="${AOMP}/bin:${ROCM_PATH}/bin:${PATH}"
 export LD_LIBRARY_PATH="${AOMP}/lib:${ROCM_PATH}/lib:${LD_LIBRARY_PATH}"
 
+HECBENCH_BRANCH="${HECBENCH_BRANCH:-master}"
+HECBENCH_CLONE="${HECBENCH_CLONE:-1}"
 HECBENCH_LIST="${HECBENCH_LIST:-}"
+HECBENCH_REPO="${HECBENCH_REPO:-https://github.com/zjin-lcf/HeCBench}"
 HECBENCH_TIMEOUT="${HECBENCH_TIMEOUT:-180}"
 LAUNCHER="${LAUNCHER:-}"
 PROGRAMMING_MODELS="${PROGRAMMING_MODELS:-"openmp hip"}"
@@ -84,6 +90,21 @@ function checkHipccClangMismatch {
     echo "  hipcc (${HipccBin}):" >&2
     printf '    %s\n' "${HipccClangVersion}" >&2
     echo "  clang (${ClangBin}): ${ClangVersion}" >&2
+  fi
+}
+
+# Clone HeCBench into a staging directory first, so an interrupted clone cannot
+# leave a half-checkout behind that later runs would take for a good one.
+function cloneHecBench {
+  local Staging=${HecBenchRoot}.incoming
+  echo "Cloning ${HECBENCH_REPO} (${HECBENCH_BRANCH}) into ${HecBenchRoot}"
+  rm -rf "${Staging}"
+  mkdir -p "$(dirname "${HecBenchRoot}")"
+  if git clone -b "${HECBENCH_BRANCH}" "${HECBENCH_REPO}" "${Staging}"; then
+    mv "${Staging}" "${HecBenchRoot}"
+  else
+    rm -rf "${Staging}"
+    echo "WARNING: clone failed"
   fi
 }
 
@@ -125,8 +146,15 @@ rm -f "${ResultsFile}" 2>/dev/null
 
 setaompgpu
 
+# Clone on demand so this script works on a machine that has never run
+# clone_test.sh. Set HECBENCH_CLONE=0 to require an existing checkout.
+if [ ! -d "${HecBenchRoot}" ] && [ "${HECBENCH_CLONE}" != 0 ]; then
+  cloneHecBench
+fi
+
 if [ ! -d "${HecBenchRoot}" ]; then
-  echo "ERROR: HeCBench not found in ${AOMP_REPOS_TEST}."
+  echo "ERROR: no HeCBench checkout at ${HecBenchRoot}."
+  echo "       Run clone_test.sh, or unset HECBENCH_CLONE to clone here."
   exit 1
 elif [ ! -d "${HecBenchSrc}" ]; then
   echo "ERROR: HeCBench src not found: ${HecBenchSrc}"
