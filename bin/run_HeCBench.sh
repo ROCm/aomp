@@ -119,6 +119,10 @@ function runBenchmark {
 }
 
 # --- Start of the run ----
+# Ahead of the refusals below, which used to exit leaving the previous run's
+# PASS totals in place, where nothing distinguished them from this run's.
+rm -f "${ResultsFile}" 2>/dev/null
+
 setaompgpu
 
 if [ ! -d "${HecBenchRoot}" ]; then
@@ -131,7 +135,14 @@ fi
 
 cd "${HecBenchSrc}" || exit 1
 
-rm -f "${ResultsFile}"
+# Truncating proves the path is writable before the first line is teed to it.
+# tee reports a write failure on its own stderr and nowhere else, so a results
+# file that cannot be written produced a complete PASS report on the terminal,
+# exit 0, and no file to read it back from.
+if ! : >"${ResultsFile}" 2>/dev/null; then
+  echo "ERROR: cannot write the results file: ${ResultsFile}"
+  exit 1
+fi
 
 checkHipccClangMismatch
 
