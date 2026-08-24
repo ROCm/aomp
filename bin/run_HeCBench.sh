@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
 #
-#Copyright © Advanced Micro Devices, Inc., or its affiliates.
+# Copyright © Advanced Micro Devices, Inc., or its affiliates.
 #
-#SPDX-License-Identifier:  MIT
+# SPDX-License-Identifier:  MIT
 #
 
 # run_HeCBench.sh - runs HeCBench benchmarks in the $AOMP_REPOS_TEST dir.
@@ -43,127 +43,136 @@
 #                       export EXTRA_CFLAGS='-fopenmp-target-fast'
 
 # --- Start standard header to set AOMP environment variables ----
-realpath=$(realpath "$0")
-thisdir=$(dirname "$realpath")
+ScriptDir=$(dirname "$(realpath "$0")")
 
 # shellcheck disable=SC1091
-. "$thisdir/aomp_common_vars"
+. "${ScriptDir}/aomp_common_vars"
 
 # If AOMP and ROCM_PATH are already set, use them.  If not, use defaults.
-# The default for AOMP is /opt/rocm/llvm.  The default for ROCM_PATH is $AOMP/../..
+# The default for AOMP is /opt/rocm/lib/llvm.  The default for ROCM_PATH is $AOMP/../..
 export AOMP="${AOMP:-/opt/rocm/lib/llvm}"
 export ROCM_PATH="${ROCM_PATH:-$(realpath -m "${AOMP}/../..")}"
-export PATH=$AOMP/bin:$ROCM_PATH/bin:$PATH
-export LD_LIBRARY_PATH=$AOMP/lib:$ROCM_PATH/lib:$LD_LIBRARY_PATH
+export PATH="${AOMP}/bin:${ROCM_PATH}/bin:${PATH}"
+export LD_LIBRARY_PATH="${AOMP}/lib:${ROCM_PATH}/lib:${LD_LIBRARY_PATH}"
 
-PROGRAMMING_MODELS=${PROGRAMMING_MODELS:-"openmp hip"}
-HECBENCH_TIMEOUT=${HECBENCH_TIMEOUT:-180}
-HECBENCH_LIST=${HECBENCH_LIST:-""}
-LAUNCHER=${LAUNCHER:-}
+HECBENCH_LIST="${HECBENCH_LIST:-}"
+HECBENCH_TIMEOUT="${HECBENCH_TIMEOUT:-180}"
+LAUNCHER="${LAUNCHER:-}"
+PROGRAMMING_MODELS="${PROGRAMMING_MODELS:-"openmp hip"}"
 
-hecbench_root=$AOMP_REPOS_TEST/HeCBench
-hecbench_src=$hecbench_root/src
+HecBenchRoot="${AOMP_REPOS_TEST}/HeCBench"
+HecBenchSrc="${HecBenchRoot}/src"
+ResultsFile="${HecBenchRoot}/results.txt"
 
-check_hipcc_clang_mismatch() {
-  local hipcc_bin clang_bin hipcc_clang_line clang_ver
-  hipcc_bin=$(PATH="$AOMP/bin:$ROCM_PATH/bin:$PATH" command -v hipcc 2>/dev/null)
-  clang_bin=$(PATH="$AOMP/bin:$PATH" command -v clang 2>/dev/null)
-  if [ -z "$hipcc_bin" ] || [ -z "$clang_bin" ]; then
+# Warn when hipcc and clang do not come from the same compiler build, which a
+# hip benchmark would otherwise mix silently.
+function checkHipccClangMismatch {
+  local HipccBin ClangBin HipccClangVersion ClangVersion
+  HipccBin=$(command -v hipcc 2>/dev/null)
+  ClangBin=$(command -v clang 2>/dev/null)
+  if [ -z "${HipccBin}" ] || [ -z "${ClangBin}" ]; then
     return 0
   fi
-  hipcc_clang_line=$("$hipcc_bin" --version 2>&1 | grep -i 'clang version')
-  clang_ver=$("$clang_bin" --version 2>&1 | grep -i 'clang version')
-  if [ -n "$hipcc_clang_line" ] && [ -n "$clang_ver" ]; then
-    if [ "$hipcc_clang_line" == "$clang_ver" ]; then
-      echo "INFO: hipcc and clang compiler versions match." >&2
-    else
-      echo "WARNING: hipcc and clang report different compiler versions:" >&2
-      echo "  hipcc ($hipcc_bin):" >&2
-      printf '    %s\n' "$hipcc_clang_line" >&2
-      echo "  clang ($clang_bin): $clang_ver" >&2
-    fi
-  else
+  HipccClangVersion=$("${HipccBin}" --version 2>&1 | grep -i 'clang version')
+  ClangVersion=$("${ClangBin}" --version 2>&1 | grep -i 'clang version')
+  if [ -z "${HipccClangVersion}" ] || [ -z "${ClangVersion}" ]; then
     echo "WARNING: hipcc and clang compiler versions unverified." >&2
+  elif [ "${HipccClangVersion}" == "${ClangVersion}" ]; then
+    echo "INFO: hipcc and clang compiler versions match." >&2
+  else
+    echo "WARNING: hipcc and clang report different compiler versions:" >&2
+    echo "  hipcc (${HipccBin}):" >&2
+    printf '    %s\n' "${HipccClangVersion}" >&2
+    echo "  clang (${ClangBin}): ${ClangVersion}" >&2
   fi
 }
 
-# Use function to set and test AOMP_GPU
+# Build and run benchmark $1 under model $2 with makefile $3, and record the
+# verdict in the results log. The body is a subshell, so the build directory
+# stays inside it.
+function runBenchmark {
+  (
+    local Dir=$1 Model=$2 MakeFile=$3
+    local -a MakeClean MakeRun
+    local Rc
+    cd "${Dir}" || exit 1
+
+    if [ "${Model}" == "openmp" ]; then
+      MakeClean=(make -f "${MakeFile}" "ARCH=${AOMP_GPU}" clean)
+      MakeRun=(make -f "${MakeFile}" "ARCH=${AOMP_GPU}" "LAUNCHER=${LAUNCHER}" run)
+    else
+      MakeClean=(make -f "${MakeFile}" clean)
+      MakeRun=(make -f "${MakeFile}" "LAUNCHER=${LAUNCHER}" run)
+    fi
+
+    "${MakeClean[@]}" >/dev/null 2>&1
+    timeout "${HECBENCH_TIMEOUT}" "${MakeRun[@]}" 2>&1 | tee -a "${ResultsFile}"
+    # Gather the return code of the timeout command specifically.
+    Rc=${PIPESTATUS[0]}
+    if [ "${Rc}" -eq 0 ]; then
+      echo "STATUS ${Dir}: PASS" | tee -a "${ResultsFile}"
+      "${MakeClean[@]}" >/dev/null 2>&1
+    else
+      echo "STATUS ${Dir}: FAIL(rc=${Rc})" | tee -a "${ResultsFile}"
+    fi
+  )
+}
+
+# --- Start of the run ----
 setaompgpu
 
-if [ ! -d "$hecbench_root" ]; then
-  echo "ERROR: HeCBench not found in $AOMP_REPOS_TEST."
+if [ ! -d "${HecBenchRoot}" ]; then
+  echo "ERROR: HeCBench not found in ${AOMP_REPOS_TEST}."
   exit 1
-elif [ ! -d "$hecbench_src" ]; then
-  echo "ERROR: HeCBench src not found: $hecbench_src"
+elif [ ! -d "${HecBenchSrc}" ]; then
+  echo "ERROR: HeCBench src not found: ${HecBenchSrc}"
   exit 1
 fi
 
-cd "$hecbench_src" || exit 1
+cd "${HecBenchSrc}" || exit 1
 
-results=$hecbench_root/results.txt
-rm -f "$results"
+rm -f "${ResultsFile}"
 
-# Check for a mismatch.
-check_hipcc_clang_mismatch
+checkHipccClangMismatch
 
-echo PROGRAMMING_MODELS: "$PROGRAMMING_MODELS"
-for model in $PROGRAMMING_MODELS; do
-  if [ "$model" == "openmp" ]; then
-    suffix="-omp"
-    makefile="Makefile.aomp"
-  elif [ "$model" == "hip" ]; then
-    suffix="-hip"
-    makefile="Makefile"
+echo PROGRAMMING_MODELS: "${PROGRAMMING_MODELS}"
+for Model in ${PROGRAMMING_MODELS}; do
+  if [ "${Model}" == "openmp" ]; then
+    Suffix="-omp"
+    MakeFile="Makefile.aomp"
+  elif [ "${Model}" == "hip" ]; then
+    Suffix="-hip"
+    MakeFile="Makefile"
   else
-    echo "ERROR: Option not recognized: $model."
+    echo "ERROR: Option not recognized: ${Model}."
     exit 1
   fi
 
-  if [ -n "$HECBENCH_LIST" ]; then
-    dirs="$HECBENCH_LIST"
+  if [ -n "${HECBENCH_LIST}" ]; then
+    Dirs=${HECBENCH_LIST}
   else
-    dirs=$(find . -maxdepth 1 -type d -name "*$suffix" | sort | sed 's|^\./||')
+    Dirs=$(find . -maxdepth 1 -type d -name "*${Suffix}" | sort | sed 's|^\./||')
   fi
 
-  if [ -z "$dirs" ]; then
-    echo "WARNING: No benchmark dirs found for model=$model suffix=$suffix in $(pwd)"
+  if [ -z "${Dirs}" ]; then
+    echo "WARNING: No benchmark dirs found for model=${Model} suffix=${Suffix} in $(pwd)"
     continue
   fi
 
   NumTestsRun=0
   NumTestsSkipped=0
-  for d in $dirs; do
-    if [ ! -d "$d" ]; then
-      NumTestsSkipped=$((NumTestsSkipped + 1))
-      continue
-    fi
-    if [ ! -f "$d/$makefile" ]; then
+  for Dir in ${Dirs}; do
+    if [ ! -d "${Dir}" ] || [ ! -f "${Dir}/${MakeFile}" ]; then
       NumTestsSkipped=$((NumTestsSkipped + 1))
       continue
     fi
     NumTestsRun=$((NumTestsRun + 1))
-    echo "=== [$model] $d ===" | tee -a "$results"
-    (
-      cd "$d" || exit 1
-      if [ "$model" == "openmp" ]; then
-        make_clean=(make -f "$makefile" "ARCH=$AOMP_GPU" clean)
-        make_run=(make -f "$makefile" "ARCH=$AOMP_GPU" "LAUNCHER=$LAUNCHER" run)
-      else
-        make_clean=(make -f "$makefile" clean)
-        make_run=(make -f "$makefile" "LAUNCHER=$LAUNCHER" run)
-      fi
-      "${make_clean[@]}" >/dev/null 2>&1
-      if timeout "$HECBENCH_TIMEOUT" "${make_run[@]}" >>"$results" 2>&1; then
-        echo "STATUS $d: PASS" | tee -a "$results"
-        "${make_clean[@]}" >/dev/null 2>&1
-      else
-        echo "STATUS $d: FAIL(rc=$?)" | tee -a "$results"
-      fi
-    )
+    echo "=== [${Model}] ${Dir} ===" | tee -a "${ResultsFile}"
+    runBenchmark "${Dir}" "${Model}" "${MakeFile}"
   done
-  echo "[$model] NumTestsRun=$NumTestsRun NumTestsSkipped=$NumTestsSkipped"
-  echo >> "$results"
-  echo "=== SUMMARY [$model] ===" | tee -a "$results"
-  echo "NumTestsRun=$NumTestsRun" | tee -a "$results"
-  echo "NumTestsSkipped=$NumTestsSkipped" | tee -a "$results"
+
+  echo "[${Model}] NumTestsRun=${NumTestsRun} NumTestsSkipped=${NumTestsSkipped}"
+  echo -e "\n=== SUMMARY [${Model}] ===" | tee -a "${ResultsFile}"
+  echo "NumTestsRun=${NumTestsRun}" | tee -a "${ResultsFile}"
+  echo "NumTestsSkipped=${NumTestsSkipped}" | tee -a "${ResultsFile}"
 done
