@@ -86,11 +86,11 @@ else
     exit
 fi
 if [ -d "$HDF5_DIR" ] ; then
-    echo "HDF5-1.14.0 exists."
+    echo "HDF5-2.2.0 exists."
     export INCLUDE_HDF5="-I$HDF5_DIR/include"
     export LIBRARY_HDF5="-L$HDF5_DIR/lib -lhdf5_fortran -lhdf5"
 else
-    echo "HDF5-1.14.0 does not exist. Please run ./build_supp.sh hdf5 in $thisdir"
+    echo "HDF5-2.2.0 does not exist. Please run ./build_supp.sh hdf5 in $thisdir"
     exit
 fi
 if [ -d "$OPENMPI_DIR" ] ; then
