@@ -36,7 +36,9 @@ function build_supp_help(){
 # $AOMP_SUPP/install/<cname>-<version> Download directory for version <version>
 #                                      of component <cname>.
 # $AOMP_SUPP/build/<cname>             Build directory for component <cname>
-$ $AOMP_SUPP/build/cmdlog              File with log of all components built
+# $AOMP_SUPP/build/cmdlog              File with log of all components built
+# $AOMP_SUPP/build/source-cache/...   Persistent downloaded archives (not removed
+#                                      with per-component build dir cleanup)
 # $AOMP_SUPP/<cname>                   Symbolic link to last intall directory
 #                                      of component <cname>
 #
@@ -115,6 +117,25 @@ function runcmdin(){
    fi
 }
 
+# Persistent cache for source archives (survives rm -rf $AOMP_SUPP_BUILD/<cname>).
+# Override with AOMP_SUPP_SOURCE_CACHE. Same script version => same path => no re-download.
+AOMP_SUPP_SOURCE_CACHE=${AOMP_SUPP_SOURCE_CACHE:-$AOMP_SUPP_BUILD/source-cache}
+
+# _supp_fetch_to_cache <cname> <version> <archive_basename> <url>
+function _supp_fetch_to_cache(){
+  local _cn="$1"
+  local _ver="$2"
+  local _arc="$3"
+  local _url="$4"
+  local _dir="$AOMP_SUPP_SOURCE_CACHE/$_cn/$_ver"
+  mkdir -p "$_dir"
+  if [ ! -s "$_dir/$_arc" ]; then
+    runcmd "wget -O $_dir/$_arc $_url"
+  else
+    echo "Info: Reusing cached source archive $_dir/$_arc"
+  fi
+}
+
 function checkversion(){
   # inputs: $_linkfrom, $_cname, $CMDLOGFILE, $_version
   # output: $SKIPBUILD
@@ -180,10 +201,9 @@ function buildxpmem(){
     runcmd "rm -rf $_builddir"
   fi
   runcmd "mkdir -p $_builddir"
-  runcmd "cd $_builddir"
-  runcmd "wget https://github.com/openucx/xpmem/archive/refs/tags/v$_version.tar.gz"
-  runcmd "tar -xzf v$_version.tar.gz"
-  runcmd "cd xpmem-$_version"
+  _supp_fetch_to_cache "$_cname" "$_version" "v$_version.tar.gz" "https://github.com/openucx/xpmem/archive/refs/tags/v$_version.tar.gz"
+  runcmd "tar -xzf $AOMP_SUPP_SOURCE_CACHE/$_cname/$_version/v$_version.tar.gz -C $_builddir"
+  runcmd "cd $_builddir/xpmem-$_version"
   if [ -d "$_installdir" ] ; then
     runcmd "rm -rf $_installdir"
   fi
@@ -233,10 +253,9 @@ function builducx(){
     runcmd "rm -rf $_builddir"
   fi
   runcmd "mkdir -p $_builddir"
-  runcmd "cd $_builddir"
-  runcmd "wget https://github.com/openucx/ucx/releases/download/v$_version/ucx-$_version.tar.gz"
-  runcmd "tar -xzf ucx-$_version.tar.gz"
-  runcmd "cd ucx-$_version"
+  _supp_fetch_to_cache "$_cname" "$_version" "ucx-$_version.tar.gz" "https://github.com/openucx/ucx/releases/download/v$_version/ucx-$_version.tar.gz"
+  runcmd "tar -xzf $AOMP_SUPP_SOURCE_CACHE/$_cname/$_version/ucx-$_version.tar.gz -C $_builddir"
+  runcmd "cd $_builddir/ucx-$_version"
   runcmd "mkdir -p build"
   runcmd "cd build"
   if [ -d "$_installdir" ] ; then
@@ -301,10 +320,9 @@ function builducc(){
     runcmd "rm -rf $_builddir"
   fi
   runcmd "mkdir -p $_builddir"
-  runcmd "cd $_builddir"
-  runcmd "wget https://github.com/openucx/ucc/archive/refs/tags/v$_version.tar.gz"
-  runcmd "tar -xzf v$_version.tar.gz"
-  runcmd "cd ucc-$_version"
+  _supp_fetch_to_cache "$_cname" "$_version" "v$_version.tar.gz" "https://github.com/openucx/ucc/archive/refs/tags/v$_version.tar.gz"
+  runcmd "tar -xzf $AOMP_SUPP_SOURCE_CACHE/$_cname/$_version/v$_version.tar.gz -C $_builddir"
+  runcmd "cd $_builddir/ucc-$_version"
   if [ -d "$_installdir" ] ; then
     runcmd "rm -rf $_installdir"
   fi
@@ -367,8 +385,9 @@ function _buildopenmpi_impl(){
     runcmd "rm -rf $_builddir"
   fi
   runcmd "mkdir -p $_builddir"
+  _supp_fetch_to_cache "$_cname" "$_version" "openmpi-$_version.tar.bz2" "https://download.open-mpi.org/release/open-mpi/$_release/openmpi-$_version.tar.bz2"
+  runcmd "cp -p $AOMP_SUPP_SOURCE_CACHE/$_cname/$_version/openmpi-$_version.tar.bz2 $_builddir/"
   runcmd "cd $_builddir"
-  runcmd "wget https://download.open-mpi.org/release/open-mpi/$_release/openmpi-$_version.tar.bz2"
   runcmd "bzip2 -d openmpi-$_version.tar.bz2"
   runcmd "tar -xf openmpi-$_version.tar"
   runcmd "cd openmpi-$_version"
@@ -490,10 +509,9 @@ function buildninja(){
     runcmd "rm -rf $_builddir"
   fi
   runcmd "mkdir -p $_builddir"
-  runcmd "cd $_builddir"
-  runcmd "wget https://github.com/ninja-build/ninja/archive/refs/tags/v${_version}.tar.gz"
-  runcmd "tar -xzf v${_version}.tar.gz"
-  runcmd "cd ninja-$_version"
+  _supp_fetch_to_cache "$_cname" "$_version" "v${_version}.tar.gz" "https://github.com/ninja-build/ninja/archive/refs/tags/v${_version}.tar.gz"
+  runcmd "tar -xzf $AOMP_SUPP_SOURCE_CACHE/$_cname/$_version/v${_version}.tar.gz -C $_builddir"
+  runcmd "cd $_builddir/ninja-$_version"
   _patch_file="$thisdir/patches/ninja-nprocs-v${_version}.patch"
   if [ -r "$_patch_file" ]; then
     runcmd   "cp $_patch_file $_builddir"
@@ -539,23 +557,31 @@ function getrocmpackage(){
     runcmd "rm -rf $_builddir"
   fi
   runcmd "mkdir -p $_builddir"
-  runcmd "cd $_builddir"
   osname=$(grep -e ^NAME= < /etc/os-release)
   if [[ $osname =~ "Ubuntu" ]]; then
     # not sure if deb_version is 20 or 22
     deb_version="24"
     os_version=$(grep VERSION_ID /etc/os-release | cut -d"\"" -f2)
     [ "$os_version" == "22.04" ] && deb_version="22"
-    runcmd "wget https://repo.radeon.com/rocm/apt/$_version/pool/main/$_directory/$_packagename$_packageversion/$_packagename${_packageversion}_${_componentversion}.${_fullversion}-${_buildnumber}~${deb_version}.04_amd64.deb"
-    runcmd "dpkg -x $_packagename${_packageversion}_${_componentversion}.${_fullversion}-${_buildnumber}~${deb_version}.04_amd64.deb $_builddir"
+    _deb_file=$_packagename${_packageversion}_${_componentversion}.${_fullversion}-${_buildnumber}~${deb_version}.04_amd64.deb
+    _deb_url=https://repo.radeon.com/rocm/apt/$_version/pool/main/$_directory/$_packagename$_packageversion/$_deb_file
+    _supp_fetch_to_cache "$_cname" "$_version" "$_deb_file" "$_deb_url"
+    runcmd "cp -p $AOMP_SUPP_SOURCE_CACHE/$_cname/$_version/$_deb_file $_builddir/"
+    runcmd "dpkg -x $_builddir/$_deb_file $_builddir"
   elif [[ $osname =~ "SLES" ]]; then
-    runcmd "wget https://repo.radeon.com/rocm/zyp/$_version/main/$_packagename$_packageversion-$_componentversion.$_fullversion-sles156.$_buildnumber.x86_64.rpm"
-    echo "$_packagename$_packageversion-$_componentversion.$_fullversion-sles156.$_buildnumber.x86_64.rpm | cpio -idm"
-    rpm2cpio "$_packagename$_packageversion-$_componentversion.$_fullversion-sles156.$_buildnumber.x86_64.rpm" | cpio -idm
+    _sles_rpm=$_packagename$_packageversion-$_componentversion.$_fullversion-sles156.$_buildnumber.x86_64.rpm
+    _sles_url=https://repo.radeon.com/rocm/zyp/$_version/main/$_sles_rpm
+    _supp_fetch_to_cache "$_cname" "$_version" "$_sles_rpm" "$_sles_url"
+    runcmd "cp -p $AOMP_SUPP_SOURCE_CACHE/$_cname/$_version/$_sles_rpm $_builddir/"
+    echo "$_sles_rpm | cpio -idm"
+    rpm2cpio "$_builddir/$_sles_rpm" | ( cd "$_builddir" && cpio -idm )
   else
-    runcmd "wget https://repo.radeon.com/rocm/rhel8/$_version/main/$_packagename$_packageversion-$_componentversion.$_fullversion-$_buildnumber.el8.x86_64.rpm"
-    echo "$_packagename$_packageversion-$_componentversion.$_fullversion-$_buildnumber.el8.x86_64.rpm | cpio -idm"
-    rpm2cpio "$_packagename$_packageversion-$_componentversion.$_fullversion-$_buildnumber.el8.x86_64.rpm" | cpio -idm
+    _rhel_rpm=$_packagename$_packageversion-$_componentversion.$_fullversion-$_buildnumber.el8.x86_64.rpm
+    _rhel_url=https://repo.radeon.com/rocm/rhel8/$_version/main/$_rhel_rpm
+    _supp_fetch_to_cache "$_cname" "$_version" "$_rhel_rpm" "$_rhel_url"
+    runcmd "cp -p $AOMP_SUPP_SOURCE_CACHE/$_cname/$_version/$_rhel_rpm $_builddir/"
+    echo "$_rhel_rpm | cpio -idm"
+    rpm2cpio "$_builddir/$_rhel_rpm" | ( cd "$_builddir" && cpio -idm )
   fi
 
   if [ -d "$_installdir" ] ; then
@@ -594,8 +620,9 @@ function buildhdf5(){
     runcmd "rm -rf $_builddir"
   fi
   runcmd "mkdir -p $_builddir"
+  _supp_fetch_to_cache "$_cname" "$_version" "hdf5-$_version.tar.bz2" "https://support.hdfgroup.org/ftp/HDF5/releases/$_release/hdf5-$_version/src/hdf5-$_version.tar.bz2"
+  runcmd "cp -p $AOMP_SUPP_SOURCE_CACHE/$_cname/$_version/hdf5-$_version.tar.bz2 $_builddir/"
   runcmd "cd $_builddir"
-  runcmd " wget https://support.hdfgroup.org/ftp/HDF5/releases/$_release/hdf5-$_version/src/hdf5-$_version.tar.bz2"
   runcmd "bzip2 -d hdf5-$_version.tar.bz2"
   runcmd "tar -xf hdf5-$_version.tar"
   runcmd "cd hdf5-$_version"
@@ -629,8 +656,9 @@ function buildsilo(){
     runcmd "rm -rf $_builddir"
   fi
   runcmd "mkdir -p $_builddir"
+  _supp_fetch_to_cache "$_cname" "$_version" "silo-$_version.tar.xz" "https://github.com/LLNL/Silo/releases/download/$_version/silo-$_version.tar.xz"
+  runcmd "cp -p $AOMP_SUPP_SOURCE_CACHE/$_cname/$_version/silo-$_version.tar.xz $_builddir/"
   runcmd "cd $_builddir"
-  runcmd "wget https://github.com/LLNL/Silo/releases/download/$_version/silo-$_version.tar.xz"
   runcmd "tar -x --xz -f silo-$_version.tar.xz"
   runcmd "cd silo-$_version"
   if [ -d "$_installdir" ] ; then
@@ -663,10 +691,9 @@ function buildfftw(){
     runcmd "rm -rf $_builddir"
   fi
   runcmd "mkdir -p $_builddir"
-  runcmd "cd $_builddir"
-  runcmd "wget http://www.fftw.org/fftw-$_version.tar.gz"
-  runcmd "tar -xzf fftw-$_version.tar.gz"
-  runcmd "cd fftw-$_version"
+  _supp_fetch_to_cache "$_cname" "$_version" "fftw-$_version.tar.gz" "http://www.fftw.org/fftw-$_version.tar.gz"
+  runcmd "tar -xzf $AOMP_SUPP_SOURCE_CACHE/$_cname/$_version/fftw-$_version.tar.gz -C $_builddir"
+  runcmd "cd $_builddir/fftw-$_version"
   if [ -d "$_installdir" ] ; then
     runcmd "rm -rf $_installdir"
   fi
@@ -702,10 +729,9 @@ function buildcmake(){
     runcmd "rm -rf $_builddir"
   fi
   runcmd "mkdir -p $_builddir"
-  runcmd "cd $_builddir"
-  runcmd "wget https://github.com/Kitware/CMake/releases/download/v$_version/cmake-$_version.tar.gz"
-  runcmd "tar -xzf cmake-$_version.tar.gz"
-  runcmd "cd cmake-$_version"
+  _supp_fetch_to_cache "$_cname" "$_version" "cmake-$_version.tar.gz" "https://github.com/Kitware/CMake/releases/download/v$_version/cmake-$_version.tar.gz"
+  runcmd "tar -xzf $AOMP_SUPP_SOURCE_CACHE/$_cname/$_version/cmake-$_version.tar.gz -C $_builddir"
+  runcmd "cd $_builddir/cmake-$_version"
   if [ -d "$_installdir" ] ; then
     runcmd "rm -rf $_installdir"
   fi
