@@ -12,6 +12,7 @@ PREREQUISITE_COMPONENTS=${PREREQUISITE_COMPONENTS:-cmake rocmsmilib hwloc aqlpro
 # --- Start standard header to set SROCK environment variables ----
 realpath=$(realpath "$0")
 thisdir=$(dirname "$realpath")
+# shellcheck disable=SC1091
 . "$thisdir/srock_common_vars"
 # --- end standard header ----
 FLANG=${FLANG:-flang}
@@ -89,62 +90,6 @@ function checkversion(){
       echo "# Missing existing_install_dir $existing_install_dir, creating version of $_cname $_version" >>"$CMDLOGFILE"
     fi
   fi
-}
-function buildopenmpi(){
-  # Not all builds, trunk for example, install clang into lib/llvm/bin. Fall back on $SROCK/bin.
-  if [ ! -f "$LLVM_INSTALL_LOC/bin/${FLANG}" ] ; then
-    LLVM_INSTALL_LOC=$SROCK
-    if [ ! -f "$LLVM_INSTALL_LOC/bin/${FLANG}" ] ; then
-      LLVM_INSTALL_LOC=$SROCK/lib/llvm
-      if [ ! -f "$LLVM_INSTALL_LOC/bin/${FLANG}" ] ; then
-        echo "Error: buildopenmpi cannot find ${FLANG} executable. Set SROCK to location of $FLANG "
-        exit 1
-      fi
-    fi
-  fi
-  if [ ! -d "$SROCK_SUPP/hwloc" ] ; then
-    echo "Error: 'build_supp.sh openmpi' requires that hwloc is installed at $SROCK_SUPP/hwloc"
-    echo "       Please run 'build_supp.sh hwloc' "
-    exit 1
-  fi
-
-  _cname="openmpi"
-  _version=5.0.7
-  _release=v5.0
-  _installdir=$SROCK_SUPP_INSTALL/$_cname-$_version
-  _linkfrom=$SROCK_SUPP/$_cname
-  _builddir=$SROCK_SUPP_BUILD/$_cname
-
-  SKIPBUILD="FALSE"
-  checkversion
-  if [ "$SKIPBUILD" == "TRUE"  ] ; then 
-    return
-  fi
-  if [ -d "$_builddir" ] ; then
-    runcmd "rm -rf $_builddir"
-  fi
-  runcmd "mkdir -p $_builddir"
-  runcmd "cd $_builddir"
-  runcmd "wget https://download.open-mpi.org/release/open-mpi/$_release/openmpi-$_version.tar.bz2"
-  runcmd "bzip2 -d openmpi-$_version.tar.bz2"
-  runcmd "tar -xf openmpi-$_version.tar"
-  runcmd "cd openmpi-$_version"
-  if [ -d "$_installdir" ] ; then
-    runcmd "rm -rf $_installdir"
-  fi
-  runcmd "mkdir -p $_installdir"
-  ### update configure to recognize flang
-  runcmd "cp configure configure-orig"
-  runcmdout "sed -e s/flang\s*)/flang*)/ configure-orig" configure
-  ###
-  runcmd "./configure --with-hwloc=$SROCK_SUPP/hwloc --with-hwloc-libdir=$SROCK_SUPP/hwloc/lib OMPI_CC=$LLVM_INSTALL_LOC/bin/clang OMPI_CXX=$LLVM_INSTALL_LOC/bin/clang++ OMPI_F90=$LLVM_INSTALL_LOC/bin/${FLANG} CXX=$LLVM_INSTALL_LOC/bin/clang++ CC=$LLVM_INSTALL_LOC/bin/clang FC=$LLVM_INSTALL_LOC/bin/${FLANG} --prefix=$_installdir"
-  runcmd "make -j8"
-  runcmd "make install"
-  if [ -L "$_linkfrom" ] ; then
-    runcmd "rm $_linkfrom"
-  fi
-  runcmd "ln -sf $_installdir $_linkfrom"
-  echo "# $_linkfrom is now symbolic link to $_installdir " >>"$CMDLOGFILE"
 }
 
 function buildninja(){
@@ -255,117 +200,6 @@ function getrocmpackage(){
   echo "# $_linkfrom is now symbolic link to $_installdir " >>"$CMDLOGFILE"
 }
 
-function buildhdf5(){
-  _cname="hdf5"
-  _version=1.12.0
-  _release=hdf5-1.12
-  _installdir=$SROCK_SUPP_INSTALL/hdf5-$_version
-  _linkfrom=$SROCK_SUPP/hdf5
-  _builddir=$SROCK_SUPP_BUILD/hdf5
-  SKIPBUILD="FALSE"
-  checkversion
-  if [ "$SKIPBUILD" == "TRUE"  ] ; then 
-    return
-  fi
-
-  if [ -d "$_builddir" ] ; then 
-    runcmd "rm -rf $_builddir"
-  fi
-  runcmd "mkdir -p $_builddir"
-  runcmd "cd $_builddir"
-  runcmd " wget https://support.hdfgroup.org/ftp/HDF5/releases/$_release/hdf5-$_version/src/hdf5-$_version.tar.bz2"
-  runcmd "bzip2 -d hdf5-$_version.tar.bz2"
-  runcmd "tar -xf hdf5-$_version.tar"
-  runcmd "cd hdf5-$_version"
-  if [ -d "$_installdir" ] ; then 
-    runcmd "rm -rf $_installdir"
-  fi
-  runcmd "mkdir -p $_installdir"
-  runcmd "./configure --enable-fortran --prefix=$_installdir"
-  runcmd "make -j8"
-  runcmd "make install"
-  if [ -L "$_linkfrom" ] ; then 
-    runcmd "rm $_linkfrom"
-  fi
-  runcmd "ln -sf $_installdir $_linkfrom"
-  echo "# $_linkfrom is now symbolic link to $_installdir " >>"$CMDLOGFILE"
-}
-
-function buildsilo(){
-  _cname="silo"
-  _version=4.10.2
-  _installdir=$SROCK_SUPP_INSTALL/silo-$_version
-  _linkfrom=$SROCK_SUPP/silo
-  _builddir=$SROCK_SUPP_BUILD/silo
-  SKIPBUILD="FALSE"
-  checkversion
-  if [ "$SKIPBUILD" == "TRUE"  ] ; then 
-    return
-  fi
-
-  if [ -d "$_builddir" ] ; then 
-    runcmd "rm -rf $_builddir"
-  fi
-  runcmd "mkdir -p $_builddir"
-  runcmd "cd $_builddir"
-  # runcmd "wget https://wci.llnl.gov/sites/wci/files/2021-01/silo-$_version.tgz"
-  # runcmd "tar -xzf silo-$_version.tgz"
-  runcmd "wget https://software.llnl.gov/Silo/ghpages/releases/silo-$_version.tar.xz"
-  runcmd "tar -x --xz -f silo-$_version.tar.xz"
-  runcmd "cd silo-$_version"
-  if [ -d "$_installdir" ] ; then
-    runcmd "rm -rf $_installdir"
-  fi
-  runcmd "mkdir -p $_installdir"
-  runcmd "./configure --prefix=$_installdir"
-  runcmd "make -j8"
-  runcmd "make install"
-  if [ -L "$_linkfrom" ] ; then
-    runcmd "rm $_linkfrom"
-  fi
-  runcmd "ln -sf $_installdir $_linkfrom"
-  echo "# $_linkfrom is now symbolic link to $_installdir " >>"$CMDLOGFILE"
-}
-
-function buildfftw(){
-  _cname="fftw"
-  _version=3.3.8
-  _installdir=$SROCK_SUPP_INSTALL/fftw-$_version
-  _linkfrom=$SROCK_SUPP/fftw
-  _builddir=$SROCK_SUPP_BUILD/fftw
-  SKIPBUILD="FALSE"
-  checkversion
-  if [ "$SKIPBUILD" == "TRUE"  ] ; then
-    return
-  fi
-
-  if [ -d "$_builddir" ] ; then
-    runcmd "rm -rf $_builddir"
-  fi
-  runcmd "mkdir -p $_builddir"
-  runcmd "cd $_builddir"
-  runcmd "wget http://www.fftw.org/fftw-$_version.tar.gz"
-  runcmd "tar -xzf fftw-$_version.tar.gz"
-  runcmd "cd fftw-$_version"
-  if [ -d "$_installdir" ] ; then
-    runcmd "rm -rf $_installdir"
-  fi
-  runcmd "mkdir -p $_installdir"
-  runcmd "./configure --prefix=$_installdir --enable-shared --enable-threads --enable-sse2 --enable-avx"
-  runcmd "make -j8"
-  runcmd "make install"
-  runcmd "make clean"
-  runcmd "./configure --prefix=$_installdir --enable-shared --enable-threads --enable-sse2 --enable-avx --enable-float"
-  runcmd "make -j8"
-  runcmd "make install"
-  if [ -L "$_linkfrom" ] ; then
-    runcmd "rm $_linkfrom"
-  fi
-  runcmd "ln -sf $_installdir $_linkfrom"
-  echo "# $_linkfrom is now symbolic link to $_installdir " >>"$CMDLOGFILE"
-}
-
-
 function buildcmake(){
   _cname="cmake"
   _version=3.31.0
@@ -391,82 +225,6 @@ function buildcmake(){
   fi
   runcmd "mkdir -p $_installdir"
   runcmd "./bootstrap --parallel=8 --prefix=$_installdir"
-  runcmd "make -j8"
-  runcmd "make install"
-  if [ -L "$_linkfrom" ] ; then
-    runcmd "rm $_linkfrom"
-  fi
-  runcmd "ln -sf $_installdir $_linkfrom"
-  echo "# $_linkfrom is now symbolic link to $_installdir " >>"$CMDLOGFILE"
-}
-
-function buildrocmsmilib(){
-  _cname="rocmsmilib"
-  _version=7.0.x
-  _installdir=$SROCK_SUPP_INSTALL/rocmsmilib-$_version
-  _linkfrom=$SROCK_SUPP/rocmsmilib
-  _builddir=$SROCK_SUPP_BUILD/rocmsmilib
-  SKIPBUILD="FALSE"
-  checkversion
-  if [ "$SKIPBUILD" == "TRUE"  ] ; then 
-    return
-  fi
-
-  if [ -d "$_builddir" ] ; then
-    runcmd "rm -rf $_builddir"
-  fi
-  runcmd "mkdir -p $_builddir"
-  runcmd "cd $_builddir"
-  runcmd "git clone -b release/rocm-rel-7.0 https://github.com/ROCm/rocm_smi_lib rocmsmilib-$_version"
-  runcmd "cd rocmsmilib-$_version"
-  runcmd "mkdir -p build"
-  runcmd "cd build"
-  runcmd "$SROCK_SUPP/cmake/bin/cmake -DCMAKE_INSTALL_PREFIX=$_installdir .."
-  if [ -d "$_installdir" ] ; then
-    runcmd "rm -rf $_installdir"
-  fi
-  runcmd "mkdir -p $_installdir"
-  runcmd "make -j8"
-  runcmd "make install"
-  if [ -L "$_linkfrom" ] ; then
-    runcmd "rm $_linkfrom"
-  fi
-  runcmd "ln -sf $_installdir $_linkfrom"
-  echo "# $_linkfrom is now symbolic link to $_installdir " >>"$CMDLOGFILE"
-}
-
-function buildhwloc(){
-  _cname="hwloc"
-  _version=2.7
-  _installdir=$SROCK_SUPP_INSTALL/hwloc-$_version
-  _linkfrom=$SROCK_SUPP/hwloc
-  _builddir=$SROCK_SUPP_BUILD/hwloc
-  SKIPBUILD="FALSE"
-  checkversion
-  if [ "$SKIPBUILD" == "TRUE"  ] ; then 
-    return
-  fi
-
-  if [ ! -d "$SROCK_SUPP/rocmsmilib/lib" ] && [ ! -d "$SROCK_SUPP/rocmsmilib/lib64" ]; then
-    echo "ERROR: Must build rocmsmilib before hwloc. Try:"
-    echo "       $0 rocmsmilib"
-    echo "#ERROR: You must build rocmsmilib before hwloc because static build of hwloc depends on rocsmilib">>"$CMDLOGFILE"
-    exit 1
-  fi
-  if [ -d "$_builddir" ] ; then
-    runcmd "rm -rf $_builddir"
-  fi
-  runcmd "mkdir -p $_builddir"
-  runcmd "cd $_builddir"
-  runcmd "git clone https://github.com/open-mpi/hwloc hwloc-$_version"
-  runcmd "cd hwloc-$_version"
-  runcmd "git checkout v$_version"
-  runcmd "./autogen.sh"
-  runcmd "./configure --prefix=$_installdir --with-pic=yes --enable-static=yes --enable-shared=no --disable-io --disable-libudev --disable-libxml2 --with-rocm=$SROCK_SUPP/rocsmilib"
-  if [ -d "$_installdir" ] ; then
-    runcmd "rm -rf $_installdir"
-  fi
-  runcmd "mkdir -p $_installdir"
   runcmd "make -j8"
   runcmd "make install"
   if [ -L "$_linkfrom" ] ; then
