@@ -368,7 +368,7 @@ function buildfftw(){
 
 function buildcmake(){
   _cname="cmake"
-  _version=3.25.2
+  _version=3.31.0
   _installdir=$SROCK_SUPP_INSTALL/$_cname-$_version
   _linkfrom=$SROCK_SUPP/$_cname
   _builddir=$SROCK_SUPP_BUILD/$_cname 

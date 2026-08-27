@@ -579,12 +579,30 @@ function getrocmpackage(){
 
 function buildhdf5(){
   _cname="hdf5"
-  _version=1.14.0
-  _release=hdf5-1.14
+  _version=2.2.0
+  _release=hdf5-2.2.0
   _installdir=$AOMP_SUPP_INSTALL/hdf5-$_version
   _linkfrom=$AOMP_SUPP/hdf5
   _builddir=$AOMP_SUPP_BUILD/hdf5
   SKIPBUILD="FALSE"
+  BUILD_TYPE=${BUILD_TYPE:-Release}
+  declare -a MYCMAKEOPTS
+  MYCMAKEOPTS=(-DCMAKE_BUILD_TYPE="$BUILD_TYPE"
+             -DCMAKE_INSTALL_PREFIX="$_installdir"
+             -DCMAKE_CXX_COMPILER="$AOMP/bin/clang++"
+             -DCMAKE_C_COMPILER="$AOMP/bin/clang"
+             -DCMAKE_Fortran_COMPILER="$AOMP/bin/flang"
+             -DHDF5_BUILD_FORTRAN=ON
+             -DHDF5_BUILD_HL_LIB=ON
+             -DHDF5_BUILD_TOOLS=ON
+             -DBUILD_SHARED_LIBS=ON
+             -DBUILD_STATIC_LIBS=ON
+             -DHDF5_ENABLE_ZLIB_SUPPORT=ON
+             -DHDF5_ENABLE_SZIP_SUPPORT=OFF
+             -DHDF5_ENABLE_THREADSAFE=OFF
+             -DBUILD_TESTING=OFF
+             -DHDF5_INSTALL_MOD_FORTRAN=STATIC)
+
   checkversion
   if [ "$SKIPBUILD" == "TRUE"  ] ; then 
     return
@@ -595,15 +613,27 @@ function buildhdf5(){
   fi
   runcmd "mkdir -p $_builddir"
   runcmd "cd $_builddir"
-  runcmd " wget https://support.hdfgroup.org/ftp/HDF5/releases/$_release/hdf5-$_version/src/hdf5-$_version.tar.bz2"
-  runcmd "bzip2 -d hdf5-$_version.tar.bz2"
-  runcmd "tar -xf hdf5-$_version.tar"
+  #runcmd " wget https://support.hdfgroup.org/ftp/HDF5/releases/$_release/hdf5-$_version/src/hdf5-$_version.tar.bz2"
+  runcmd " wget https://github.com/HDFGroup/hdf5/releases/download/$_version/hdf5-$_version.tar.gz"
+  runcmd "tar -xzf hdf5-$_version.tar.gz"
   runcmd "cd hdf5-$_version"
   if [ -d "$_installdir" ] ; then 
     runcmd "rm -rf $_installdir"
   fi
   runcmd "mkdir -p $_installdir"
-  runcmd "./configure --enable-fortran --prefix=$_installdir"
+  runcmd "mkdir -p build"
+  runcmd "cd build"
+  #runcmd "./configure --enable-fortran --prefix=$_installdir"
+  echo
+  echo " -----Running cmake ---- "
+  echo "${AOMP_CMAKE}" "$(shquot "${MYCMAKEOPTS[@]}")" \
+       "$AOMP_REPOS/$AOMP_FLANG_REPO_NAME"
+
+  if ! ${AOMP_CMAKE} "${MYCMAKEOPTS[@]}" ../; then
+    echo "ERROR cmake failed. Cmake flags"
+    echo "      $(shquot "${MYCMAKEOPTS[@]}")"
+    exit 1
+  fi
   runcmd "make -j${AOMP_JOB_THREADS}"
   runcmd "make install"
   if [ -L "$_linkfrom" ] ; then 
