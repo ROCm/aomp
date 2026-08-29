@@ -4,18 +4,19 @@
 #
 
 # --- Start standard header to set AOMP environment variables ----
-realpath=`realpath $0`
-thisdir=`dirname $realpath`
+realpath=$(realpath "$0")
+thisdir=$(dirname "$realpath")
 export AOMP_USE_CCACHE=0
 
-. $thisdir/aomp_common_vars
+# shellcheck disable=SC1091
+. "$thisdir"/aomp_common_vars
 # --- end standard header ----
 
 # Setup AOMP variables
 AOMP=${AOMP:-$HOME/rocm/aomp/llvm}
-AOMPHIP=${AOMPHIP:-$(realpath -m $(realpath -m $AOMP)/../..)}
+AOMPHIP=${AOMPHIP:-$(realpath -m "$(realpath -m "$AOMP")/../..")}
 # for ROCm utilities (e.g. rocm_agent_enumerator)
-ROCM=${ROCM:-$(realpath -m $(realpath -m $AOMP)/../..)}
+ROCM=${ROCM:-$(realpath -m "$(realpath -m "$AOMP")/../..")}
 FLANG=${FLANG:-flang}
 
 echo "AOMP    = $AOMP"
@@ -31,16 +32,16 @@ SRC_DIR=${SRC_DIR:-GenASis}             # old source
 
 REPO_DIR=$AOMP_REPOS_TEST/$SRC_DIR
 if [ -d "$REPO_DIR" ] ; then
-    echo $REPO_DIR " exists."
+    echo "$REPO_DIR exists."
 else
     echo "$REPO_DIR does not exist. Please run ./clone_test.sh and re-run this script."
     exit
 fi
 
 # Copy Makefile_ROCm to GenASis repository
-cp Makefile_ROCm $REPO_DIR/Build/Machines/
+cp Makefile_ROCm "$REPO_DIR"/Build/Machines/
 
-cd $REPO_DIR
+cd "$REPO_DIR" || exit 1
 
 AOMP_SUPP=${AOMP_SUPP:-$HOME/local}
 export OPENMPI_DIR="$AOMP_SUPP/openmpi"
@@ -49,13 +50,14 @@ export HDF5_DIR="$AOMP_SUPP/hdf5"
 export GENASIS_MACHINE=ROCm
 
 if [ -d "$AOMP" ] ; then
-    echo $AOMP " exists."
+    echo "$AOMP exists."
 else
     echo "Install latest AOMP and try again!"
     exit
 fi
 
-export GPU_ID=$($ROCM/bin/rocm_agent_enumerator | grep -m 1 -E gfx[^0]{1}.{2})
+GPU_ID=$("$ROCM"/bin/rocm_agent_enumerator | grep -m 1 -E 'gfx[^0]{1}.{2}')
+export GPU_ID
 currdir=$(pwd)
 if [ -d "$SILO_DIR" ] ; then
     echo "SILO 4.11.1 exists."
@@ -64,11 +66,11 @@ else
     exit
 fi
 if [ -d "$HDF5_DIR" ] ; then
-    echo "HDF5-1.14.0 exists."
+    echo "HDF5-2.2.0 exists."
     export INCLUDE_HDF5="-I$HDF5_DIR/include"
     export LIBRARY_HDF5="-L$HDF5_DIR/lib -lhdf5_fortran -lhdf5"
 else
-    echo "HDF5-1.14.0 does not exist. Please run ./build_supp.sh hdf5 in $thisdir"
+    echo "HDF5-2.2.0 does not exist. Please run ./build_supp.sh hdf5 in $thisdir"
     exit
 fi
 if [ -d "$OPENMPI_DIR" ] ; then
@@ -87,9 +89,9 @@ export FORTRAN_LINK="$AOMP/bin/clang $OTHER_LIBS"
 export DEVICE_COMPILE="$AOMPHIP/bin/hipcc -D__HIP_PLATFORM_HCC__"
 export HIP_DIR=$ROCM
 export HIP_CLANG_PATH=$AOMP/bin
-cd $currdir
+cd "$currdir" || exit 1
 if [ "$1" != "runonly" ] ; then
-  cd $REPO_DIR/Programs/UnitTests/Basics/Runtime/Executables
+  cd "$REPO_DIR"/Programs/UnitTests/Basics/Runtime/Executables || exit 1
   echo "=================  STARTING 1st MAKE in $PWD ========"
   make clean
   make PURPOSE=OPTIMIZE all
@@ -99,7 +101,7 @@ if [ "$1" != "runonly" ] ; then
      exit
   fi
   echo
-  cd $REPO_DIR/Programs/Examples/Basics/FluidDynamics/Executables
+  cd "$REPO_DIR"/Programs/Examples/Basics/FluidDynamics/Executables || exit 1
   echo "=================  STARTING 2nd  MAKE in $PWD ========"
   make clean
   make PURPOSE=OPTIMIZE all
@@ -109,7 +111,7 @@ if [ "$1" != "runonly" ] ; then
      exit
   fi
   echo
-  cd $REPO_DIR/Programs/UnitTests/Basics/Devices/Executables
+  cd "$REPO_DIR"/Programs/UnitTests/Basics/Devices/Executables || exit 1
   echo "=================  STARTING 3rd  MAKE in $PWD ========"
   make clean
   make PURPOSE=OPTIMIZE all
@@ -125,29 +127,32 @@ if [ "$1" != "buildonly" ] ; then
   export LIBOMPTARGET_KERNEL_TRACE=1
   export LIBOMPTARGET_INFO=1
   export OMP_TARGET_OFFLOAD=MANDATORY
-  cd $REPO_DIR/Programs/UnitTests/Basics/Runtime/Executables
+  cd "$REPO_DIR"/Programs/UnitTests/Basics/Runtime/Executables || exit 1
   echo ./PROGRAM_HEADER_Singleton_Test_$GENASIS_MACHINE
   ./PROGRAM_HEADER_Singleton_Test_$GENASIS_MACHINE
   echo
-  cd $REPO_DIR/Programs/Examples/Basics/FluidDynamics/Executables
+  cd "$REPO_DIR"/Programs/Examples/Basics/FluidDynamics/Executables || exit 1
   echo
   echo "=================  2D RiemannProblem ========"
-  _cmd="./RiemannProblem_$GENASIS_MACHINE Verbosity=INFO_2 nCells=256,256 \ Dimensionality=2D FinishTime=0.25 nWrite=10"
-  echo $_cmd
-  time $_cmd
-  echo "Done: $_cmd"
+  _cmd=(./RiemannProblem_"$GENASIS_MACHINE" Verbosity=INFO_2 "nCells=256,256"
+        Dimensionality=2D FinishTime=0.25 nWrite=10)
+  echo "${_cmd[@]}"
+  time "${_cmd[@]}"
+  echo "Done: ${_cmd[*]}"
   echo
   echo "=================  attempting mpirun  ========"
   echo
   #echo ldd ./SineWaveAdvection_$GENASIS_MACHINE
   #ldd ./SineWaveAdvection_$GENASIS_MACHINE
   echo
-  _cmd="$OPENMPI_DIR/bin/mpirun -np 1 $AOMP/bin/gpurun $REPO_DIR/Programs/Examples/Basics/FluidDynamics/Executables/SineWaveAdvection_$GENASIS_MACHINE nCells=128,128,128"
-  echo $_cmd
-  time $_cmd
+  _cmd=("$OPENMPI_DIR"/bin/mpirun -np 1 "$AOMP"/bin/gpurun
+        "$REPO_DIR"/Programs/Examples/Basics/FluidDynamics/Executables/SineWaveAdvection_"$GENASIS_MACHINE"
+        "nCells=128,128,128")
+  echo "${_cmd[@]}"
+  time "${_cmd[@]}"
   echo "=================  end mpirun  ========"
   echo "================= Now running Unitests related to offloading ========"
-  cd $REPO_DIR/Programs/UnitTests/Basics/Devices/Executables
+  cd "$REPO_DIR"/Programs/UnitTests/Basics/Devices/Executables || exit 1
   ./AllocateDevice_Command_Test_$GENASIS_MACHINE
   echo "AllocateDevice_Command_Test_$GENASIS_MACHINE done!"
   ./AllocateHost_Command_Test_$GENASIS_MACHINE
