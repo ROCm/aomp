@@ -260,14 +260,19 @@ done
 : "${AOMP_LIB_PATH:="${AOMP}/.."}"
 
 if [ -z "${CK_GPU_TARGETS}" ]; then
-  NumGpuArchs=$(amdgpu-arch | sort | uniq | wc -l)
-  if [ "${NumGpuArchs}" -gt 1 ]; then
-    echo "Error: More than one GPU architecture detected. This may cause issues."
-    echo "       Please set the CK_GPU_TARGETS variable to the desired GPU arch."
-    exit 1
+  # First check AOMP_GPU to see if the user has set a target GPU architecture.
+  if [ -n "${AOMP_GPU}" ]; then
+    CK_GPU_TARGETS="${AOMP_GPU}"
   else
-    # If only one GPU arch is detected, set it as the default.
-    CK_GPU_TARGETS=$(amdgpu-arch | uniq)
+    NumGpuArchs=$(amdgpu-arch | sort | uniq | wc -l)
+    if [ "${NumGpuArchs}" -gt 1 ]; then
+      echo "Error: More than one GPU architecture detected. This may cause issues."
+      echo "       Please set the CK_GPU_TARGETS variable to the desired GPU arch."
+      exit 1
+    else
+      # If only one GPU arch is detected, set it as the default.
+      CK_GPU_TARGETS=$(amdgpu-arch | uniq)
+    fi
   fi
 fi
 
