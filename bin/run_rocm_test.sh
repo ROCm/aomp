@@ -1090,6 +1090,7 @@ function ovo(){
 function accel2023(){
   mkdir -p "$resultsdir"/accel2023
   cd "$aompdir"/bin
+  export GPURUN_BYPASS=1
   ./run_accel2023.sh -clean
   cd $AOMP_TEST_DIR/accel2023-2.0.18
   grep ratio= result/*.log
