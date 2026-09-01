@@ -125,7 +125,7 @@ if [ "$AOMP_STANDALONE_BUILD" == 1 ] ; then
   # rocprofiler-sdk adds rocprofv3 binary and rocprof/rocprofv2 will be phased out.
   # We removed roctracer/rocprofiler because ROCm favors rocprofiler-sdk.
   if [ "$TARBALL_INSTALL" != 1 ] && [ "$_hostarch" == "x86_64" ] ; then
-    components="$components rocprofiler-sdk"
+    components="$components rocprof-trace-decoder rocprofiler-sdk"
   fi
 else
   # For ROCM build (AOMP_STANDALONE_BUILD=0) the components roct, rocr,
