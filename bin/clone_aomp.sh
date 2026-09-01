@@ -54,22 +54,35 @@ if [ -d "$repodirname" ] ; then
    if [ "$STASH_BEFORE_PULL" == "YES" ] ; then
      git stash -u
    fi
-   if [ "$sha_key_used" -eq 0 ] && [ "$tag_used" -eq 0 ]; then
-     echo "git pull "
-     if ! git pull && [ "$IGNORE_GIT_ERROR" != 1 ] ; then
-       echo "git pull failed for: $repodirname"
+   if [ "$sha_key_used" -eq 1 ] || [ "$tag_used" -eq 1 ]; then
+     echo "This repos uses a hash or tag. First checkout $BASEBRANCH before 'git pull'"
+     echo "git checkout $BASEBRANCH"
+     if [[ -n $BASEBRANCH ]]; then
+       if ! git checkout $BASEBRANCH; then
+         echo "git checkout failed for: $repodirname"
+         exit 1
+       fi
+     else
+       echo "Error: A tag or hash is used and no BASEBRANCH was detected from the 'upstream' manifest entry."
        exit 1
      fi
+   fi
+   echo "git pull "
+   if ! git pull && [ "$IGNORE_GIT_ERROR" != 1 ] ; then
+     echo "git pull failed for: $repodirname"
+     exit 1
    fi
    echo "cd $repodirname ; git checkout $COBRANCH"
    if ! git checkout "$COBRANCH" && [ "$IGNORE_GIT_ERROR" != 1 ] ; then
      echo "git checkout failed for: $repodirname"
      exit 1
    fi
-   echo "git pull "
-   if ! git pull && [ "$IGNORE_GIT_ERROR" != 1 ]; then
-     echo "git pull failed for: $repodirname"
-     exit 1
+   if [ "$sha_key_used" -eq 0 ] && [ "$tag_used" -eq 0 ]; then
+     echo "git pull "
+     if ! git pull && [ "$IGNORE_GIT_ERROR" != 1 ]; then
+       echo "git pull failed for: $repodirname"
+       exit 1
+     fi
    fi
 else 
    echo "--- NEW CLONE of repo $repogitname to $repodirname ----"
@@ -151,7 +164,7 @@ function list_repo_from_manifest(){
    else
       printbranch=${REPO_RREV##*release/}
    fi
-   url=$(grep url .git/config | grep -v google | grep -v fmtlib | cut -d":" -f2- | cut -d"/" -f3-)
+   url=$(grep "url = " .git/config | grep -v google | grep -v fmtlib | cut -d":" -f2- | cut -d"/" -f3-)
    project_name=$(echo $url | cut -d"/" -f2- | cut -d" " -f1 | tr '[:upper:]' '[:lower:]')
    REPO_PROJECT=${REPO_PROJECT%*\.git}
    if [[ "$REPO_REMOTE" == "githubemu-lightning" ]] ; then
@@ -249,6 +262,7 @@ if [[ "$AOMP_VERSION" == "13.1" ]] || [[ $AOMP_MAJOR_VERSION -gt 13 ]] ; then
       sha_key_used=0
       tag_used=0
       COSHAKEY=""
+      BASEBRANCH=""
       for field in $line; do
          if [[ "$field" =~ remote=\"([^\"]*)\" ]]; then
            remote=${BASH_REMATCH[1]}
@@ -259,18 +273,23 @@ if [[ "$AOMP_VERSION" == "13.1" ]] || [[ $AOMP_MAJOR_VERSION -gt 13 ]] ; then
          if [[ "$field" =~ path=\"([^\"]*)\" ]]; then
            path=${BASH_REMATCH[1]}
          fi
-         if [[ "$field" =~ upstream=\"([^\"]*)\" ]]; then
+         if [[ "$field" =~ tag=\"true\" ]]; then
+           tag_used=1
+           sha_key_used=0
+         fi
+         if [[ "$field" =~ upstream=\"([^\"]*)\" ]] && [[ "$sha_key_used" == 1 || "$tag_used" == 1 ]]; then
+           BASEBRANCH=${BASH_REMATCH[1]}
+         fi
+         if [[ "$field" =~ upstream=\"([^\"]*)\" ]] && [ "$sha_key_used" == 0 ] && [ "$tag_used" == 0 ]; then
            COBRANCH=${BASH_REMATCH[1]}
            sha_key_used=1
          fi
          if [[ "$field" =~ revision=\"([^\"]*)\" ]] && [ "$sha_key_used" == 1 ]; then
            COSHAKEY=${BASH_REMATCH[1]}
+         elif [[ "$field" =~ revision=\"([^\"]*)\" ]] && [ "$tag_used" == 1 ]; then
+           COBRANCH=${BASH_REMATCH[1]}
          elif [[ "$field" =~ revision=\"([^\"]*)\" ]]; then
            COBRANCH=${BASH_REMATCH[1]}
-         fi
-         if [[ "$field" =~ tag=\"true\" ]]; then
-           tag_used=1
-           sha_key_used=0
          fi
       done
       reponame=$path
