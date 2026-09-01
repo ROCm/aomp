@@ -144,8 +144,9 @@ else
   exit 1
 fi
 
+ls /opt
 echo ROCMDIR=$ROCMDIR/bin
-export PATH=$PATH:$ROCMDIR/bin
+export PATH=$PATH:$ROCMDIR/bin:/opt/rocm/bin
 
 export AOMP
 echo "AOMP = $AOMP"
