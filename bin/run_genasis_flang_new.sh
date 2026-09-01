@@ -129,6 +129,8 @@ export FORTRAN_LINK="$AOMP/bin/clang $OTHER_LIBS"
 export DEVICE_COMPILE="$AOMPHIP/bin/hipcc -D__HIP_PLATFORM_HCC__"
 export HIP_DIR=$ROCM
 export HIP_CLANG_PATH=$AOMP/bin
+# for gpurun
+export PYTHONPATH=${PYTHONPATH:-$ROCM/share/amd_smi}
 cd "$currdir" || exit 1
 
 echo "LD_LIBRARY_PATH = $LD_LIBRARY_PATH"
@@ -140,6 +142,7 @@ echo "FORTRAN_LINK    = $FORTRAN_LINK"
 echo "DEVICE_COMPILE  = $DEVICE_COMPILE"
 echo "HIP_DIR         = $HIP_DIR"
 echo "HIP_CLANG_PATH  = $HIP_CLANG_PATH"
+echo "PYTHONPATH      = $PYTHONPATH"
 
 if [ "$1" != "runonly" ] ; then
   cd "$REPO_DIR"/Programs/UnitTests/Basics/Runtime/Executables || exit 1
