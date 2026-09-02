@@ -9,6 +9,7 @@ realpath=$(realpath "$0")
 thisdir=$(dirname "$realpath")
 export AOMP_USE_CCACHE=${AOMP_USE_CCACHE:-0}
 
+# shellcheck disable=SC1091
 . "$thisdir/aomp_common_vars"
 # --- end standard header ----
 
