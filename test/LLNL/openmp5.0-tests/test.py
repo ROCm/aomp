@@ -100,7 +100,7 @@ def compile(CC,LIBS, tests):
 def main():
     tests=get_tests("test_list")
 # Change Compile line in CC and LIBS
-    CC="{}/bin/clang++  -O2  -target x86_64-pc-linux-gnu -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march={}".format(AOMP, AOMP_GPU)
+    CC="{}/bin/clang++  -O2  -fopenmp --offload-arch={}".format(AOMP, AOMP_GPU)
     LIBS = ""
 # End Compile line 
     runnables=compile(CC,LIBS, tests)
