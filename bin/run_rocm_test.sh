@@ -1044,6 +1044,7 @@ function babelstream(){
   if [ $aomp -eq 0 ]; then
     export ROCMINFO_BINARY=$ROCMINF/bin/rocminfo
   fi
+  export GPURUN_BYPASS=1
   export RUN_OPTIONS="omp-default omp-fast"
   ./run_babelstream.sh
   cd "$AOMP_TEST_DIR"/babelstream
@@ -1058,6 +1059,7 @@ function fortran-babelstream(){
   if [ $aomp -eq 0 ]; then
     export ROCMINFO_BINARY=$ROCMINF/bin/rocminfo
   fi
+  export GPURUN_BYPASS=1
   ./run_fBabel.sh
   checkrc $?
   cd "$AOMP_TEST_DIR"/fortran-babelstream
@@ -1090,6 +1092,7 @@ function ovo(){
 function accel2023(){
   mkdir -p "$resultsdir"/accel2023
   cd "$aompdir"/bin
+  export GPURUN_BYPASS=1
   ./run_accel2023.sh -clean
   cd $AOMP_TEST_DIR/accel2023-2.0.18
   grep ratio= result/*.log

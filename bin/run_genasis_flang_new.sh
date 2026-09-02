@@ -59,6 +59,8 @@ fi
 
 # Copy Makefile_ROCm to GenASis repository
 cp Makefile_ROCmFlangNew "$REPO_DIR"/Build/Machines/
+# Copy WH07.d.stripped(WoosleyHeger input file) to GenASis repository
+cp patches/WH07.d.stripped "$REPO_DIR"/Programs/Applications/WoosleyHeger_07/Parameters/
 
 patchrepo "$AOMP_REPOS_TEST/$SRC_DIR"
 trap 'removepatch "$AOMP_REPOS_TEST/$SRC_DIR"' EXIT
@@ -129,6 +131,8 @@ export FORTRAN_LINK="$AOMP/bin/clang $OTHER_LIBS"
 export DEVICE_COMPILE="$AOMPHIP/bin/hipcc -D__HIP_PLATFORM_HCC__"
 export HIP_DIR=$ROCM
 export HIP_CLANG_PATH=$AOMP/bin
+# for gpurun
+export PYTHONPATH=${PYTHONPATH:-$ROCM/share/amd_smi}
 cd "$currdir" || exit 1
 
 echo "LD_LIBRARY_PATH = $LD_LIBRARY_PATH"
@@ -140,6 +144,7 @@ echo "FORTRAN_LINK    = $FORTRAN_LINK"
 echo "DEVICE_COMPILE  = $DEVICE_COMPILE"
 echo "HIP_DIR         = $HIP_DIR"
 echo "HIP_CLANG_PATH  = $HIP_CLANG_PATH"
+echo "PYTHONPATH      = $PYTHONPATH"
 
 if [ "$1" != "runonly" ] ; then
   cd "$REPO_DIR"/Programs/UnitTests/Basics/Runtime/Executables || exit 1
@@ -170,6 +175,18 @@ if [ "$1" != "runonly" ] ; then
   if [ $rc != 0 ] ; then
      echo "ERROR in 3rd Make"
      exit
+  fi
+  if [ "$1" == "woosley_heger" ] || [ "$2" == "woosley_heger" ] ; then
+     cd "$REPO_DIR"/Programs/Applications/WoosleyHeger_07/Executables || exit 1
+     echo "=================  STARTING WoosleyHeger_07 MAKE in $PWD ========"
+     make clean
+     make PURPOSE=OPTIMIZE all
+     rc=$?
+     if [ $rc != 0 ] ; then
+        echo "ERROR in WoosleyHeger_07 Make"
+        exit
+     fi
+     echo
   fi
   echo "=================  BUILD IS DONE ========"
 fi
@@ -219,13 +236,25 @@ if [ "$1" != "buildonly" ] ; then
   echo
   echo "=================  attempting mpirun  ========"
   echo
-  #echo ldd ./SineWaveAdvection_$GENASIS_MACHINE
-  #ldd ./SineWaveAdvection_$GENASIS_MACHINE
   echo
   _cmd=("$OPENMPI_DIR"/bin/mpirun -np 1 "$AOMP"/bin/gpurun
         "$REPO_DIR"/Programs/Examples/Basics/FluidDynamics/Executables/SineWaveAdvection_"$GENASIS_MACHINE"
         "nCells=128,128,128" Verbosity=INFO_5)
   echo "${_cmd[@]}"
   time "${_cmd[@]}"
+  if [ "$1" == "woosley_heger" ] || [ "$2" == "woosley_heger" ] ; then
+     cd "$REPO_DIR"/Programs/Applications/WoosleyHeger_07/Executables || exit 1
+     _cmd=("$OPENMPI_DIR"/bin/mpirun -np 1 "$AOMP"/bin/gpurun
+           ./WoosleyHeger_07_A_ROCmFlangNew Dimensionality=2D Verbosity=INFO_2
+           DevicesCommunicate=F nCellsPolar=192 FinishCycle=1000 NoWrite=T)
+     echo "${_cmd[@]}"
+     time "${_cmd[@]}"
+     _cmd=("$OPENMPI_DIR"/bin/mpirun -np 1 "$AOMP"/bin/gpurun
+           ./WoosleyHeger_07_A_ROCmFlangNew Dimensionality=2D Verbosity=INFO_2
+           DevicesCommunicate=F nCellsPolar=192 T_Finish=0.70)
+     echo "${_cmd[@]}"
+     time "${_cmd[@]}"
+     echo "WoosleyHeger_07_A_ROCmFlangNew DONE!"
+  fi
   echo "=================  end mpirun  ========"
 fi

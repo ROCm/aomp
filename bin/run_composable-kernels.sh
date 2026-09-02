@@ -30,8 +30,6 @@ thisdir=$(dirname "$realpath")
 # shellcheck disable=SC1091
 . "$thisdir"/aomp_common_vars
 
-export PATH=$AOMP/bin:$PATH
-
 function printHelp {
   set +x
   echo "Usage: run_composable-kernels.sh"
@@ -255,9 +253,11 @@ done
 : "${CK_CLIENT_EXAMPLES_TO_EXCLUDE:=""}"
 
 # Get some info on the system
-: "${ROCM_PATH:=/opt/rocm}"
+: "${ROCM_PATH:=$(realpath -m "${AOMP}/../..")}"
 : "${CK_GPU_TARGETS:=""}"
 : "${AOMP_LIB_PATH:="${AOMP}/.."}"
+
+export PATH="${AOMP}/bin:${ROCM_PATH}/bin:${PATH}"
 
 if [ -z "${CK_GPU_TARGETS}" ]; then
   # First check AOMP_GPU to see if the user has set a target GPU architecture.
