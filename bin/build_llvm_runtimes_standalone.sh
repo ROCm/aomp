@@ -14,7 +14,7 @@ if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   help_build_aomp
 fi
 
-REPO_DIR=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME
+REPO_DIR=$AOMP_PROJECT_SRC
 _ompd_src_dir="$LLVM_INSTALL_LOC/share/gdb/python/ompd/src"
 OPENMP_BUILD_DEVICERTL=${OPENMP_BUILD_DEVICERTL:-0}
 RUNTIMES_BUILD_DIR=${RUNTIMES_BUILD_DIR:-"llvm_runtimes_standalone"}
@@ -36,8 +36,8 @@ if [ "$AOMP_BUILD_CUDA" == 1 ] ; then
    export CUDAFE_FLAGS="-w"
 fi
 
-if [ ! -d "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME" ] ; then
-   echo "ERROR:  Missing repository $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME "
+if [ ! -d "$AOMP_PROJECT_SRC" ] ; then
+   echo "ERROR:  Missing repository $AOMP_PROJECT_SRC "
    echo "        Consider setting env variables AOMP_REPOS and/or AOMP_PROJECT_REPO_NAME "
    exit 1
 fi
@@ -81,7 +81,7 @@ COMMON_CMAKE_OPTS=("${AOMP_SET_NINJA_GEN[@]}" -DOPENMP_ENABLE_LIBOMPTARGET=1
 
 LLVM_RUNTIMES="openmp;offload"
 if [ "$OPENMP_BUILD_DEVICERTL" -eq 1 ]; then
-  if [ -f "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/device/CMakeLists.txt" ]; then
+  if [ -f "$AOMP_PROJECT_SRC/openmp/device/CMakeLists.txt" ]; then
     LLVM_RUNTIMES=openmp
     COMMON_CMAKE_OPTS=("${COMMON_CMAKE_OPTS[@]}"
                        -DLLVM_DEFAULT_TARGET_TRIPLE=amdgcn-amd-amdhsa
@@ -108,9 +108,9 @@ if [ "$AOMP_STANDALONE_BUILD" == 0 ]; then
                      -DCMAKE_MODULE_PATH="$LLVM_PROJECT_ROOT/llvm/cmake/modules")
 else
   COMMON_CMAKE_OPTS=("${COMMON_CMAKE_OPTS[@]}"
-                     -DLLVM_MAIN_INCLUDE_DIR="$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/llvm/include"
-                     -DLIBOMPTARGET_LLVM_INCLUDE_DIRS="$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/llvm/include"
-                     -DCMAKE_MODULE_PATH="$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/llvm/cmake/modules"
+                     -DLLVM_MAIN_INCLUDE_DIR="$AOMP_PROJECT_SRC/llvm/include"
+                     -DLIBOMPTARGET_LLVM_INCLUDE_DIRS="$AOMP_PROJECT_SRC/llvm/include"
+                     -DCMAKE_MODULE_PATH="$AOMP_PROJECT_SRC/llvm/cmake/modules"
                      -DLLVM_INSTALL_PREFIX="$LLVM_INSTALL_LOC")
 fi
 
@@ -193,13 +193,13 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
                              -DCMAKE_CXX_FLAGS="\"$(cmquot "${ASAN_FLAGS[@]}")\"" \
                              -DOFFLOAD_LIBDIR_SUFFIX="/asan" \
                              -DLLVM_LIBDIR_SUFFIX="/asan" \
-                             "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/runtimes"
+                             "$AOMP_PROJECT_SRC/runtimes"
         if ! ${AOMP_CMAKE} "${ASAN_CMAKE_OPTS[@]}" \
                            -DCMAKE_C_FLAGS="$(cmquot "${ASAN_FLAGS[@]}")" \
                            -DCMAKE_CXX_FLAGS="$(cmquot "${ASAN_FLAGS[@]}")" \
                            -DOFFLOAD_LIBDIR_SUFFIX="/asan" \
                            -DLLVM_LIBDIR_SUFFIX="/asan" \
-                           "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/runtimes"; then
+                           "$AOMP_PROJECT_SRC/runtimes"; then
            echo "ERROR llvm_runtimes_standalone cmake failed. Cmake flags"
            echo "      $(shquot "${ASAN_CMAKE_OPTS[@]}")"
            exit 1
@@ -219,11 +219,11 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
     cd "$BUILD_DIR/build/${RUNTIMES_BUILD_DIR}_perf" || exit
     echo " -----Running llvm_runtimes_standalone cmake for perf ---- "
     echo "${AOMP_CMAKE}" "$(shquot "${MYCMAKEOPTS[@]}")" \
-                         "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/runtimes" \
+                         "$AOMP_PROJECT_SRC/runtimes" \
                          "$(shquot "${AOMP_ORIGIN_RPATH[@]}")"
 
     if ! ${AOMP_CMAKE} "${MYCMAKEOPTS[@]}" \
-                       "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/runtimes" \
+                       "$AOMP_PROJECT_SRC/runtimes" \
                        "${AOMP_ORIGIN_RPATH[@]}"; then
        echo "error llvm_runtimes_standalone cmake failed. cmake flags"
        echo "      $(shquot "${MYCMAKEOPTS[@]}")"
@@ -245,14 +245,14 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
                             -DCMAKE_CXX_FLAGS="\"$(cmquot "${ASAN_FLAGS[@]}")\"" \
                             -DOFFLOAD_LIBDIR_SUFFIX="-perf/asan" \
                             -DLLVM_LIBDIR_SUFFIX="-perf/asan" \
-                            "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/runtimes"
+                            "$AOMP_PROJECT_SRC/runtimes"
 
        if ! ${AOMP_CMAKE} "${ASAN_CMAKE_OPTS[@]}" \
                           -DCMAKE_C_FLAGS="$(cmquot "${ASAN_FLAGS[@]}")" \
                           -DCMAKE_CXX_FLAGS="$(cmquot "${ASAN_FLAGS[@]}")" \
                           -DOFFLOAD_LIBDIR_SUFFIX="-perf/asan" \
                           -DLLVM_LIBDIR_SUFFIX="-perf/asan" \
-                          "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/runtimes"; then
+                          "$AOMP_PROJECT_SRC/runtimes"; then
           echo "error llvm_runtimes_standalone cmake failed. cmake flags"
           echo "      $(shquot "${ASAN_CMAKE_OPTS[@]}")"
           exit 1
@@ -261,7 +261,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
   fi
 
    if [ "$AOMP_BUILD_DEBUG" == "1" ] ; then
-      _prefix_map=(-fdebug-prefix-map="$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload=$_ompd_src_dir/offload")
+      _prefix_map=(-fdebug-prefix-map="$AOMP_PROJECT_SRC/offload=$_ompd_src_dir/offload")
 
       declare -a DEBUGCMAKEOPTS
 
@@ -314,7 +314,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
                             -DCMAKE_CXX_FLAGS="$CXXFLAGS -g $(cmquot "${_prefix_map[@]}")" \
                             -DOFFLOAD_LIBDIR_SUFFIX="-debug" \
                             -DLLVM_LIBDIR_SUFFIX="-debug" \
-                            "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/runtimes"; then
+                            "$AOMP_PROJECT_SRC/runtimes"; then
             echo "ERROR llvm_runtimes_standalone debug cmake failed. Cmake flags"
             echo "      $(shquot "${MYCMAKEOPTS[@]}")"
             exit 1
@@ -341,14 +341,14 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
                               -DCMAKE_CXX_FLAGS="\"$(cmquot "${ASAN_FLAGS[@]}")\"" \
                               -DOFFLOAD_LIBDIR_SUFFIX="-debug/asan" \
                               -DLLVM_LIBDIR_SUFFIX="-debug/asan" \
-                              "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/runtimes"
+                              "$AOMP_PROJECT_SRC/runtimes"
 
          if ! ${AOMP_CMAKE} "${ASAN_CMAKE_OPTS[@]}" \
                             -DCMAKE_C_FLAGS="$(cmquot "${ASAN_FLAGS[@]}")" \
                             -DCMAKE_CXX_FLAGS="$(cmquot "${ASAN_FLAGS[@]}")" \
                             -DOFFLOAD_LIBDIR_SUFFIX="-debug/asan" \
                             -DLLVM_LIBDIR_SUFFIX="-debug/asan" \
-                            "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/runtimes"; then
+                            "$AOMP_PROJECT_SRC/runtimes"; then
             echo "ERROR llvm_runtimes_standalone debug cmake failed. Cmake flags"
             echo "      $(shquot "${ASAN_CMAKE_OPTS[@]}")"
             exit 1
@@ -491,8 +491,8 @@ if [ "$1" == "install" ] ; then
     $SUDO mkdir -p "$_ompd_src_dir/offload"
     $SUDO mkdir -p "$_ompd_src_dir/offload/plugins-nextgen"
     if [ "$AOMP_STANDALONE_BUILD" == 1 ]; then
-       _from_dir_src="$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload/libomptarget"
-       _from_dir_plugins="$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload/plugins-nextgen"
+       _from_dir_src="$AOMP_PROJECT_SRC/offload/libomptarget"
+       _from_dir_plugins="$AOMP_PROJECT_SRC/offload/plugins-nextgen"
     else
        _from_dir_src="$LLVM_PROJECT_ROOT/offload/libomptarget"
        _from_dir_plugins="$LLVM_PROJECT_ROOT/offload/plugins-nextgen"
@@ -508,9 +508,9 @@ if [ "$1" == "install" ] ; then
     $SUDO mkdir -p "$_ompd_src_dir/openmp/libompd"
     $SUDO mkdir -p "$_ompd_src_dir/openmp/device"
     if [ "$AOMP_STANDALONE_BUILD" == 1 ]; then
-      $SUDO cp -rp "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/runtime/src" "$_ompd_src_dir/openmp/runtime"
-      $SUDO cp -rp "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/libompd/src" "$_ompd_src_dir/openmp/libompd"
-      $SUDO cp -rp "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/device/src" "$_ompd_src_dir/openmp/device"
+      $SUDO cp -rp "$AOMP_PROJECT_SRC/openmp/runtime/src" "$_ompd_src_dir/openmp/runtime"
+      $SUDO cp -rp "$AOMP_PROJECT_SRC/openmp/libompd/src" "$_ompd_src_dir/openmp/libompd"
+      $SUDO cp -rp "$AOMP_PROJECT_SRC/openmp/device/src" "$_ompd_src_dir/openmp/device"
     else
       $SUDO cp -rp "$LLVM_PROJECT_ROOT/openmp/runtime/src" "$_ompd_src_dir/openmp/runtime"
       $SUDO cp -rp "$LLVM_PROJECT_ROOT/openmp/libompd/src" "$_ompd_src_dir/openmp/libompd"

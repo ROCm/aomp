@@ -25,7 +25,7 @@ WEBSITE="http\:\/\/github.com\/ROCm\/aomp"
 # WARNING: This patch (ATD_ASO_full.patch) rarely applies cleanly
 #          because of its size and constant trunk merges to amd-staging.
 #          This is why default is 0 (OFF).
-REPO_DIR=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME
+REPO_DIR=$AOMP_PROJECT_SRC
 if [ "$AOMP_APPLY_ATD_AMD_STAGING_PATCH" == 1 ] ; then
    patchrepo "$REPO_DIR"
 fi
@@ -124,9 +124,9 @@ MYCMAKEOPTS=(-DCMAKE_BUILD_TYPE="$BUILD_TYPE"
              -DLLVM_BUILD_LLVM_DYLIB=ON
              -DLLVM_LINK_LLVM_DYLIB=ON
              -DCLANG_LINK_CLANG_DYLIB=ON
-             -DLIBOMPTARGET_EXTERNAL_PROJECT_ROCM_DEVICE_LIBS_PATH="$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/amd/device-libs"
+             -DLIBOMPTARGET_EXTERNAL_PROJECT_ROCM_DEVICE_LIBS_PATH="$AOMP_PROJECT_SRC/amd/device-libs"
              -DLLVM_EXTERNAL_PROJECTS=SPIRV_TRANSLATOR
-             -DLLVM_EXTERNAL_SPIRV_TRANSLATOR_SOURCE_DIR="$AOMP_REPOS/SPIRV-LLVM-Translator"
+             -DLLVM_EXTERNAL_SPIRV_TRANSLATOR_SOURCE_DIR="$AOMP_SPIRV_SRC"
              -DROCM_DEVICE_LIBS_INSTALL_PREFIX_PATH="$AOMP_INSTALL_DIR"
              -DROCM_DEVICE_LIBS_BITCODE_INSTALL_LOC="$rocmdevicelib_loc_new"
              -DLIBOMP_COPY_EXPORTS=OFF
@@ -143,7 +143,7 @@ MYCMAKEOPTS=(-DCMAKE_BUILD_TYPE="$BUILD_TYPE"
              -DLIBOMPTARGET_BUILD_DEVICE_FORTRT=On
              -DCMAKE_EXPORT_COMPILE_COMMANDS=ON)
 
-if [ -f "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/device/CMakeLists.txt" ]; then
+if [ -f "$AOMP_PROJECT_SRC/openmp/device/CMakeLists.txt" ]; then
   MYCMAKEOPTS=("${MYCMAKEOPTS[@]}"
                -DLLVM_RUNTIME_TARGETS='default;amdgcn-amd-amdhsa'
                -DRUNTIMES_amdgcn-amd-amdhsa_LLVM_ENABLE_RUNTIMES='compiler-rt;libc;libcxx;libcxxabi;flang-rt;openmp'
@@ -164,14 +164,14 @@ MYCMAKEOPTS=("${MYCMAKEOPTS[@]}"
              -DLLVM_RUNTIME_TARGETS="default;amdgcn-amd-amdhsa"
              -DRUNTIMES_amdgcn-amd-amdhsa_FLANG_RT_LIBC_PROVIDER=llvm
              -DRUNTIMES_amdgcn-amd-amdhsa_FLANG_RT_LIBCXX_PROVIDER=llvm
-             -DRUNTIMES_amdgcn-amd-amdhsa_CACHE_FILES="$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/compiler-rt/cmake/caches/AMDGPU.cmake;$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/libcxx/cmake/caches/AMDGPU.cmake"
+             -DRUNTIMES_amdgcn-amd-amdhsa_CACHE_FILES="$AOMP_PROJECT_SRC/compiler-rt/cmake/caches/AMDGPU.cmake;$AOMP_PROJECT_SRC/libcxx/cmake/caches/AMDGPU.cmake"
              )
 
 # Enable Compiler-rt Sanitizer Build
 if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
     MYCMAKEOPTS=("${MYCMAKEOPTS[@]}" -DSANITIZER_AMDGPU=1
                  -DSANITIZER_HSA_INCLUDE_PATH="$AOMP_REPOS/$AOMP_ROCR_REPO_NAME/runtime/hsa-runtime/inc"
-                 -DSANITIZER_COMGR_INCLUDE_PATH="$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/amd/comgr/include")
+                 -DSANITIZER_COMGR_INCLUDE_PATH="$AOMP_PROJECT_SRC/amd/comgr/include")
 fi
 
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
@@ -190,11 +190,11 @@ check_writable_installdir "$1" "$INSTALL_PROJECT"
 
 # Fix the banner to print the AOMP version string.
 if [ "$AOMP_STANDALONE_BUILD" == 1 ] ; then
-   cd "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME" || exit
+   cd "$AOMP_PROJECT_SRC" || exit
    MONO_REPO_ID=$(git log | grep -m1 commit | cut -d" " -f2)
    SOURCEID="Source ID:$AOMP_VERSION_STRING-$MONO_REPO_ID"
    TEMPCLFILE="/tmp/clfile$$.cpp"
-   ORIGCLFILE="$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/llvm/lib/Support/CommandLine.cpp"
+   ORIGCLFILE="$AOMP_PROJECT_SRC/llvm/lib/Support/CommandLine.cpp"
    BUILDCLFILE=$ORIGCLFILE
 
    if ! sed "s/LLVM (http:\/\/llvm\.org\/):/AOMP-${AOMP_VERSION_STRING} ($WEBSITE):\\\n $SOURCEID/" "$ORIGCLFILE" > "$TEMPCLFILE"; then
@@ -244,11 +244,11 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    MYLITOPTS=(-DLLVM_LIT_ARGS='-vv --show-unsupported --show-xfail -j 16')
    echo "${AOMP_CMAKE}" "$(shquot "${MYLITOPTS[@]}")" \
                         "$(shquot "${MYCMAKEOPTS[@]}")" \
-                        "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/llvm"
+                        "$AOMP_PROJECT_SRC/llvm"
 
    if ! ${AOMP_CMAKE} "${MYLITOPTS[@]}" \
                       "${MYCMAKEOPTS[@]}" \
-                      "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/llvm" 2>&1; then
+                      "$AOMP_PROJECT_SRC/llvm" 2>&1; then
       echo "ERROR cmake failed. Cmake flags"
       echo "      $(shquot "${MYCMAKEOPTS[@]}")"
       exit 1
@@ -306,7 +306,7 @@ if [ "$1" == "install" ] ; then
    $SUDO cp -p "$BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME/bin/count" "$LLVM_INSTALL_LOC/bin/count"
    $SUDO cp -p "$BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME/bin/not" "$LLVM_INSTALL_LOC/bin/not"
    $SUDO cp -p "$BUILD_DIR/build/$AOMP_PROJECT_REPO_NAME/bin/yaml-bench" "$LLVM_INSTALL_LOC/bin/yaml-bench"
-   cd "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME" || exit
+   cd "$AOMP_PROJECT_SRC" || exit
    git checkout llvm/lib/Support/CommandLine.cpp
    echo
    echo "SUCCESSFUL INSTALL to $INSTALL_PROJECT with link to $AOMP"

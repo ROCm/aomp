@@ -24,14 +24,14 @@ function build_aomp_component() {
    start_date=$(date)
    start_secs=$(date +%s)
 
-   "$AOMP_REPOS/$AOMP_REPO_NAME/bin/build_$COMPONENT.sh" "$@"
+   "$AOMP_SRC/bin/build_$COMPONENT.sh" "$@"
    rc=$?
    if [ $rc != 0 ] ; then 
       echo " !!!  build_aomp.sh: BUILD FAILED FOR COMPONENT $COMPONENT !!!"
       exit $rc
    fi  
    if [ $# -eq 0 ] ; then
-       "$AOMP_REPOS/$AOMP_REPO_NAME/bin/build_$COMPONENT.sh" install
+       "$AOMP_SRC/bin/build_$COMPONENT.sh" install
        rc=$?
        if [ $rc != 0 ] ; then 
            echo " !!!  build_aomp.sh: INSTALL FAILED FOR COMPONENT $COMPONENT !!!"
@@ -188,7 +188,7 @@ for COMPONENT in $components ; do
 done
 
 #Run build_fixups.sh to clean the AOMP directory before packaging
-#$AOMP_REPOS/$AOMP_REPO_NAME/bin/build_fixups.sh
+#$AOMP_SRC/bin/build_fixups.sh
 echo 
 date
 echo " =================  END build_aomp.sh ==================="   
