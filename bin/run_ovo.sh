@@ -1,11 +1,11 @@
 #!/bin/bash
 
 # --- Start standard header to set AOMP environment variables ----
-realpath=`realpath $0`
-thisdir=`dirname $realpath`
+realpath=$(realpath "$0")
+thisdir=$(dirname "$realpath")
 export AOMP_USE_CCACHE=0
 
-. $thisdir/aomp_common_vars
+. "$thisdir"/aomp_common_vars
 # --- end standard header ----
 
 # Setup AOMP variables
@@ -15,7 +15,7 @@ FLANG=${FLANG:-flang}
 # Use function to set and test AOMP_GPU
 setaompgpu
 
-AOMP_GPU=${AOMP_GPU:-`$AOMP/bin/mygpu`}
+AOMP_GPU=${AOMP_GPU:-$("$AOMP"/bin/mygpu)}
 PATH=$AOMP/bin:$PATH
 CXX=clang++
 FC=$FLANG
@@ -25,7 +25,10 @@ OMP_TARGET_OFFLOAD=mandatory
 
 export AOMP AOMP_GPU PATH CXX FC FFLAGS CXXFLAGS OMP_TARGET_OFFLOAD
 
-cd $AOMP_REPOS_TEST/$AOMP_OVO_REPO_NAME
+# Apply OvO patch before running tests
+patchrepo "$AOMP_REPOS_TEST/$AOMP_OVO_REPO_NAME"
+
+cd "$AOMP_REPOS_TEST/$AOMP_OVO_REPO_NAME" || exit
 rm -f ovo.run.log*
 HALF_THREADS=$(( AOMP_JOB_THREADS/2 ))
 echo "Using $HALF_THREADS threads for make."
@@ -34,7 +37,7 @@ export MAKEFLAGS=-j$HALF_THREADS
 ./ovo.sh run
 ./ovo.sh report --summary
 
-date=${BLOG_DATE:-`date '+%Y-%m-%d'`}
+date=${BLOG_DATE:-$(date '+%Y-%m-%d')}
 if [ "$1" == "log" ]; then
   if [ "$2" != "" ]; then
     prefix=$2
@@ -43,6 +46,9 @@ if [ "$1" == "log" ]; then
     log="ovo.run.log.$date"
   fi
   echo "Log enabled: $log"
-  ./ovo.sh report --failed 2>&1 | tee $log
-  ./ovo.sh report --passed 2>&1 | tee -a $log
+  ./ovo.sh report --failed 2>&1 | tee "$log"
+  ./ovo.sh report --passed 2>&1 | tee -a "$log"
 fi
+
+# Remove patch after test execution
+removepatch "$AOMP_REPOS_TEST/$AOMP_OVO_REPO_NAME"

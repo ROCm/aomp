@@ -12,4 +12,5 @@ rocprofiler-sdk:
 babelstream: babelstream-usm.patch
 llvm-project: ATD_ASO_full.patch
 UMT: umt.patch
+OvO: ovo.patch
 rocm-xio: xio.patch
