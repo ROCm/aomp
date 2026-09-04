@@ -93,6 +93,12 @@ else
   LLVM_RUNTIMES="libcxx;libcxxabi;libunwind;openmp;offload;compiler-rt;flang-rt"
 fi
 
+declare -a TASKGRAPH_OPTS
+
+if [ "$AOMP_BUILD_TASKGRAPH" == 1 ] ; then
+   TASKGRAPH_OPTS=(-DLIBOMP_OMPX_TASKGRAPH=ON)
+fi
+
 rocmdevicelib_loc_new=lib/llvm/lib/clang/$AOMP_MAJOR_VERSION/lib/amdgcn
 
 GFXSEMICOLONS=$(echo "$GFXLIST" | tr ' ' ';')
@@ -141,7 +147,8 @@ MYCMAKEOPTS=(-DCMAKE_BUILD_TYPE="$BUILD_TYPE"
              -DLIBOMPTARGET_INSTALL_RPATH="$AOMP_ORIGIN_RPATH_LIST"
              -DLIBOMPTARGET_NO_SANITIZER_AMDGPU=1
              -DLIBOMPTARGET_BUILD_DEVICE_FORTRT=On
-             -DCMAKE_EXPORT_COMPILE_COMMANDS=ON)
+             -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+             "${TASKGRAPH_OPTS[@]}")
 
 if [ -f "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/device/CMakeLists.txt" ]; then
   MYCMAKEOPTS=("${MYCMAKEOPTS[@]}"

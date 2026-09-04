@@ -58,6 +58,12 @@ else
     AOMP_SET_NINJA_GEN=(-G Ninja)
 fi
 
+declare -a TASKGRAPH_OPTS
+
+if [ "$AOMP_BUILD_TASKGRAPH" == 1 ] ; then
+   TASKGRAPH_OPTS=(-DLIBOMP_OMPX_TASKGRAPH=ON)
+fi
+
 export LLVM_DIR=$AOMP_INSTALL_DIR
 GFXSEMICOLONS=$(echo "$GFXLIST" | tr ' ' ';')
 ALTAOMP=${ALTAOMP:-$LLVM_INSTALL_LOC}
@@ -73,7 +79,8 @@ COMMON_CMAKE_OPTS=("${AOMP_SET_NINJA_GEN[@]}" -DOPENMP_ENABLE_LIBOMPTARGET=1
                    -DLIBOMP_COPY_EXPORTS=OFF
                    -DLIBOMPTARGET_ENABLE_DEBUG=ON
                    -DLIBOMPTEST_INSTALL_COMPONENTS=ON
-                   -DLLVM_DIR="$LLVM_DIR")
+                   -DLLVM_DIR="$LLVM_DIR"
+                   "${TASKGRAPH_OPTS[@]}")
 
 if [ "$OPENMP_BUILD_DEVICERTL" -eq 1 ]; then
   if [ -f "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/openmp/device/CMakeLists.txt" ]; then
