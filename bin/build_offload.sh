@@ -14,7 +14,7 @@ if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   help_build_aomp
 fi
 
-REPO_DIR=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME
+REPO_DIR=$AOMP_PROJECT_SRC
 _ompd_src_dir="$LLVM_INSTALL_LOC/share/gdb/python/ompd/src"
 
 if [ "$AOMP_BUILD_CUDA" == 1 ] ; then
@@ -34,8 +34,8 @@ if [ "$AOMP_BUILD_CUDA" == 1 ] ; then
    export CUDAFE_FLAGS="-w"
 fi
 
-if [ ! -d "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME" ] ; then
-   echo "ERROR:  Missing repository $AOMP_REPOS/$AOMP_PROJECT_REPO_NAME "
+if [ ! -d "$AOMP_PROJECT_SRC" ] ; then
+   echo "ERROR:  Missing repository $AOMP_PROJECT_SRC "
    echo "        Consider setting env variables AOMP_REPOS and/or AOMP_PROJECT_REPO_NAME "
    exit 1
 fi
@@ -77,8 +77,8 @@ if [ "$AOMP_STANDALONE_BUILD" == 0 ]; then
                      -DLIBOMPTARGET_LLVM_INCLUDE_DIRS="$LLVM_PROJECT_ROOT/llvm/include")
 else
   COMMON_CMAKE_OPTS=("${COMMON_CMAKE_OPTS[@]}"
-                     -DLLVM_MAIN_INCLUDE_DIR="$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/llvm/include"
-                     -DLIBOMPTARGET_LLVM_INCLUDE_DIRS="$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/llvm/include")
+                     -DLLVM_MAIN_INCLUDE_DIR="$AOMP_PROJECT_SRC/llvm/include"
+                     -DLIBOMPTARGET_LLVM_INCLUDE_DIRS="$AOMP_PROJECT_SRC/llvm/include")
 fi
 
 if [ "$AOMP_BUILD_CUDA" == 1 ] ; then
@@ -135,10 +135,10 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
       mkdir -p "$BUILD_DIR/build/offload"
       cd "$BUILD_DIR/build/offload" || exit
       echo "${AOMP_CMAKE}" "$(shquot "${MYCMAKEOPTS[@]}")" \
-                           "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload"
+                           "$AOMP_PROJECT_SRC/offload"
 
       if ! ${AOMP_CMAKE} "${MYCMAKEOPTS[@]}" \
-                         "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload"; then
+                         "$AOMP_PROJECT_SRC/offload"; then
          echo "ERROR offload cmake failed. Cmake flags"
          echo "      $(shquot "${MYCMAKEOPTS[@]}")"
          exit 1
@@ -166,13 +166,13 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
                              -DCMAKE_CXX_FLAGS="\"$(cmquot "${ASAN_FLAGS[@]}")\"" \
                              -DOFFLOAD_LIBDIR_SUFFIX="/asan" \
                              -DLLVM_LIBDIR_SUFFIX="/asan" \
-                             "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload"
+                             "$AOMP_PROJECT_SRC/offload"
         if ! ${AOMP_CMAKE} "${ASAN_CMAKE_OPTS[@]}" \
                            -DCMAKE_C_FLAGS="$(cmquot "${ASAN_FLAGS[@]}")" \
                            -DCMAKE_CXX_FLAGS="$(cmquot "${ASAN_FLAGS[@]}")" \
                            -DOFFLOAD_LIBDIR_SUFFIX="/asan" \
                            -DLLVM_LIBDIR_SUFFIX="/asan" \
-                           "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload"; then
+                           "$AOMP_PROJECT_SRC/offload"; then
            echo "ERROR offload cmake failed. Cmake flags"
            echo "      $(shquot "${ASAN_CMAKE_OPTS[@]}")"
            exit 1
@@ -192,11 +192,11 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
     cd "$BUILD_DIR/build/offload_perf" || exit
     echo " -----Running offload cmake for perf ---- "
     echo "${AOMP_CMAKE}" "$(shquot "${MYCMAKEOPTS[@]}")" \
-                         "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload" \
+                         "$AOMP_PROJECT_SRC/offload" \
                          "$(shquot "${AOMP_ORIGIN_RPATH[@]}")"
 
     if ! ${AOMP_CMAKE} "${MYCMAKEOPTS[@]}" \
-                       "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload" \
+                       "$AOMP_PROJECT_SRC/offload" \
                        "${AOMP_ORIGIN_RPATH[@]}"; then
        echo "error offload cmake failed. cmake flags"
        echo "      $(shquot "${MYCMAKEOPTS[@]}")"
@@ -218,14 +218,14 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
                             -DCMAKE_CXX_FLAGS="\"$(cmquot "${ASAN_FLAGS[@]}")\"" \
                             -DOFFLOAD_LIBDIR_SUFFIX="-perf/asan" \
                             -DLLVM_LIBDIR_SUFFIX="-perf/asan" \
-                            "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload"
+                            "$AOMP_PROJECT_SRC/offload"
 
        if ! ${AOMP_CMAKE} "${ASAN_CMAKE_OPTS[@]}" \
                           -DCMAKE_C_FLAGS="$(cmquot "${ASAN_FLAGS[@]}")" \
                           -DCMAKE_CXX_FLAGS="$(cmquot "${ASAN_FLAGS[@]}")" \
                           -DOFFLOAD_LIBDIR_SUFFIX="-perf/asan" \
                           -DLLVM_LIBDIR_SUFFIX="-perf/asan" \
-                          "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload"; then
+                          "$AOMP_PROJECT_SRC/offload"; then
           echo "error offload cmake failed. cmake flags"
           echo "      $(shquot "${ASAN_CMAKE_OPTS[@]}")"
           exit 1
@@ -234,7 +234,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
   fi
 
    if [ "$AOMP_BUILD_DEBUG" == "1" ] ; then
-      _prefix_map=(-fdebug-prefix-map="$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload=$_ompd_src_dir/offload")
+      _prefix_map=(-fdebug-prefix-map="$AOMP_PROJECT_SRC/offload=$_ompd_src_dir/offload")
 
       declare -a DEBUGCMAKEOPTS
 
@@ -287,7 +287,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
                             -DCMAKE_CXX_FLAGS="$CXXFLAGS -g $(cmquot "${_prefix_map[@]}")" \
                             -DOFFLOAD_LIBDIR_SUFFIX="-debug" \
                             -DLLVM_LIBDIR_SUFFIX="-debug" \
-                            "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload"; then
+                            "$AOMP_PROJECT_SRC/offload"; then
             echo "ERROR offload debug cmake failed. Cmake flags"
             echo "      $(shquot "${MYCMAKEOPTS[@]}")"
             exit 1
@@ -314,14 +314,14 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
                               -DCMAKE_CXX_FLAGS="\"$(cmquot "${ASAN_FLAGS[@]}")\"" \
                               -DOFFLOAD_LIBDIR_SUFFIX="-debug/asan" \
                               -DLLVM_LIBDIR_SUFFIX="-debug/asan" \
-                              "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload"
+                              "$AOMP_PROJECT_SRC/offload"
 
          if ! ${AOMP_CMAKE} "${ASAN_CMAKE_OPTS[@]}" \
                             -DCMAKE_C_FLAGS="$(cmquot "${ASAN_FLAGS[@]}")" \
                             -DCMAKE_CXX_FLAGS="$(cmquot "${ASAN_FLAGS[@]}")" \
                             -DOFFLOAD_LIBDIR_SUFFIX="-debug/asan" \
                             -DLLVM_LIBDIR_SUFFIX="-debug/asan" \
-                            "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload"; then
+                            "$AOMP_PROJECT_SRC/offload"; then
             echo "ERROR offload debug cmake failed. Cmake flags"
             echo "      $(shquot "${ASAN_CMAKE_OPTS[@]}")"
             exit 1
@@ -488,8 +488,8 @@ if [ "$1" == "install" ] ; then
       $SUDO mkdir -p "$_ompd_src_dir/offload"
       $SUDO mkdir -p "$_ompd_src_dir/offload/plugins-nextgen"
       if [ "$AOMP_STANDALONE_BUILD" == 1 ]; then
-         _from_dir_src="$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload/libomptarget"
-         _from_dir_plugins="$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/offload/plugins-nextgen"
+         _from_dir_src="$AOMP_PROJECT_SRC/offload/libomptarget"
+         _from_dir_plugins="$AOMP_PROJECT_SRC/offload/plugins-nextgen"
       else
          _from_dir_src="$LLVM_PROJECT_ROOT/offload/libomptarget"
          _from_dir_plugins="$LLVM_PROJECT_ROOT/offload/plugins-nextgen"
