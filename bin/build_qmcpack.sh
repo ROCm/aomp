@@ -105,8 +105,8 @@ cxx="-DCMAKE_CXX_COMPILER="
 mpicc="-DMPI_C_COMPILER="
 mpicxx="-DMPI_CXX_COMPILER="
 qmc_data="-DQMC_DATA="
-cuda="-DENABLE_CUDA="
-cuda2hip="-DQMC_CUDA2HIP="
+gpu="-DQMC_GPU="
+gpu_archs="-DQMC_GPU_ARCHS="
 
 declare -A opts_array
 # Default to:
@@ -115,11 +115,12 @@ opts_array[$complex]=OFF
 opts_array[$mixed]=OFF
 if [[ -z "${USE_HIP_OPENMP}" ]]; then
     echo "Building OpenMP only version"
+    opts_array[$gpu]="openmp"
 else
     echo "Building OpenMP+HIP production version"
-    opts_array[$cuda]=ON
-    opts_array[$cuda2hip]=ON
+    opts_array[$gpu]="openmp;hip"
 fi
+opts_array[$gpu_archs]=$AOMP_GPU
 
 opts_array[$cc]=$AOMP/bin/clang
 opts_array[$cxx]=$AOMP/bin/clang++
@@ -172,10 +173,7 @@ if [[ ! -e $OPENMPI_INSTALL/bin/mpicc ]] && [ "$mpi" == "1" ]; then
 fi
 
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
-  $AOMP_CMAKE -DOFFLOAD_ARCH="$AOMP_GPU" \
-              -DQMC_GPU=openmp \
-              -DOFFLOAD_TARGET="amdgcn-amd-amdhsa" \
-              "${custom_opts[@]}" \
+  $AOMP_CMAKE "${custom_opts[@]}" \
               ..
 fi
 
