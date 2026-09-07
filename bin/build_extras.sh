@@ -35,7 +35,7 @@ thisdir=$(dirname "$realpath")
 . "$thisdir/aomp_common_vars"
 # --- end standard header ----
 
-AOMP_REPO_DIR=$AOMP_REPOS/$AOMP_REPO_NAME
+AOMP_REPO_DIR=$AOMP_SRC
 
 BUILD_DIR=${BUILD_AOMP}
 
@@ -85,7 +85,7 @@ if [ "$1" != "install" ] ; then
 
   echo "----- Copy util scripts to $BUILD_DIR/build/extras -----"
   cp "$AOMP_REPO_DIR"/utils/* "$BUILD_DIR"/build/extras
-  cp "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME"/offload/utils/gpurun "$BUILD_DIR"/build/extras
+  cp "$AOMP_PROJECT_SRC"/offload/utils/gpurun "$BUILD_DIR"/build/extras
 
   for util in $install_list; do
     if [ "$util" == "rebundle_hip_lib.sh" ]; then

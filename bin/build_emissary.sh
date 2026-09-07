@@ -118,7 +118,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
   MYCMAKEOPTS=(
     -DCMAKE_BUILD_TYPE="$BUILDTYPE"
     "${extra_cmake_opts[@]}"
-    "-DLLVM_MAIN_SRC_DIR=$AOMP_REPOS/llvm-project"
+    "-DLLVM_MAIN_SRC_DIR=$AOMP_PROJECT_SRC"
     -DCMAKE_INSTALL_PREFIX="$INSTALL_EMISSARY")
 
 
