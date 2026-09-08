@@ -29,7 +29,7 @@ thisdir=$(dirname "$realpath")
 . "$thisdir/aomp_common_vars"
 # --- end standard header ----
 
-HIPCC_REPO_DIR=$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME/amd/hipcc
+HIPCC_REPO_DIR=$AOMP_PROJECT_SRC/amd/hipcc
 
 BUILD_DIR=${BUILD_AOMP}
 
