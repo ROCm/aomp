@@ -435,6 +435,22 @@ fi
 #  These aomp development repositories
 AOMP_REPO_NAME=${AOMP_REPO_NAME:-aomp}
 
+# Centralized source roots for the interdependent components that a developer may
+# check out per task (e.g. in a dedicated worktree). The build_* scripts read
+# their sources from these variables instead of hardcoding $AOMP_REPOS/<name>, so
+# a single environment override redirects a component's source without moving the
+# shared checkout of all the other components. Defaults preserve the historical
+# $AOMP_REPOS/<name> layout, so unset behavior is unchanged.
+#   AOMP_PROJECT_SRC : the llvm-project monorepo root (also holds amd/comgr,
+#                      amd/device-libs, amd/hipcc, offload, openmp, runtimes).
+#   AOMP_SPIRV_SRC   : the SPIRV-LLVM-Translator source, built as an LLVM
+#                      external project by build_project.sh.
+#   AOMP_SRC         : the aomp repo root (build scripts, examples, Makefile).
+AOMP_PROJECT_SRC=${AOMP_PROJECT_SRC:-$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME}
+AOMP_SPIRV_SRC=${AOMP_SPIRV_SRC:-$AOMP_REPOS/SPIRV-LLVM-Translator}
+AOMP_SRC=${AOMP_SRC:-$AOMP_REPOS/$AOMP_REPO_NAME}
+export AOMP_PROJECT_SRC AOMP_SPIRV_SRC AOMP_SRC
+
 #  These extra repositories are needed but we cannot update them
 AOMP_ROCM_SYSTEMS_NAME=${AOMP_ROCM_SYSTEMS_NAME:-rocm-systems/projects}
 AOMP_ROCT_REPO_NAME=${AOMP_ROCT_REPO_NAME:-roct-thunk-interface}
