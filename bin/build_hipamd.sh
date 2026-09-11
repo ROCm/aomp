@@ -64,8 +64,7 @@ fi
 
 check_writable_installdir "$1" "$AOMP_INSTALL_DIR"
 
-patchrepo "$AOMP_REPOS/hipamd"
-patchrepo "$AOMP_REPOS/clr"
+patchrepo "$AOMP_REPOS/rocm-systems"
 
 #if [ "$AOMP_BUILD_SANITIZER" == 1 ] ; then
   #LDFLAGS=$(shquot '-fuse-ld=lld' "${ASAN_FLAGS[@]}")"
@@ -322,8 +321,7 @@ if [ "$1" == "install" ] ; then
       $SUDO cp -r "$HIPAMD_DIR/rocclr" "$_ompd_src_dir"
    fi
 
-   removepatch "$AOMP_REPOS/hipamd"
-   removepatch "$AOMP_REPOS/clr"
+   removepatch "$AOMP_REPOS/rocm-systems"
 
    # The hip perl scripts have /opt/rocm hardcoded, so fix them after then are installed
    # but only if not installing to rocm.
