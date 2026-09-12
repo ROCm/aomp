@@ -1,0 +1,124 @@
+From fa52d588ebe02f3253d5c2272e3734fc3fc36fb2 Mon Sep 17 00:00:00 2001
+From: Jacob Lambert <jacob.lambert@amd.com>
+Date: Fri, 21 Aug 2026 12:22:52 -0700
+Subject: [PATCH] fix(clr): drop version-script entries for symbols the
+ libraries don't define
+
+hip_hcc.map.in still lists the 18 hiprtc* entry points, which moved to the
+separate libhiprtc when hiprtc was split out; libamdhip64 exports none of
+them and hiprtc.map.in already covers them. amdocl.map lists 19 acl*
+symbols that no longer exist anywhere in the tree, plus two D3D10 entries
+(cl_d3d10.cpp is entirely under #ifdef _WIN32, and WIN32 links amdocl.def
+instead) and two clEnqueue*ExternalObjects entries with no definition.
+
+lld has defaulted to --no-undefined-version since 241dbd310599, so a
+literal version-script pattern matching nothing is a hard link error.
+
+Changes:
+- hipamd/src/hip_hcc.map.in: remove 18 hiprtc* entries
+- opencl/amdocl/amdocl.map: remove 19 acl*, 2 D3D10, 2 ExternalObjects
+
+After the change every literal in amdocl.map is exported by the shipped
+libamdocl64.so, and every literal in hip_hcc.map.in has a definition in
+the tree.
+---
+ projects/clr/hipamd/src/hip_hcc.map.in | 18 ------------------
+ projects/clr/opencl/amdocl/amdocl.map  | 24 ------------------------
+ 2 files changed, 42 deletions(-)
+
+diff --git a/projects/clr/hipamd/src/hip_hcc.map.in b/projects/clr/hipamd/src/hip_hcc.map.in
+index c96ac29b737..6408f54f314 100644
+--- a/projects/clr/hipamd/src/hip_hcc.map.in
++++ b/projects/clr/hipamd/src/hip_hcc.map.in
+@@ -198,22 +198,6 @@ global:
+     hipGetStreamDeviceId;
+     hipProfilerStart;
+     hipProfilerStop;
+-    hiprtcCompileProgram;
+-    hiprtcCreateProgram;
+-    hiprtcDestroyProgram;
+-    hiprtcGetLoweredName;
+-    hiprtcGetProgramLog;
+-    hiprtcGetProgramLogSize;
+-    hiprtcGetCode;
+-    hiprtcGetCodeSize;
+-    hiprtcGetErrorString;
+-    hiprtcAddNameExpression;
+-    hiprtcVersion;
+-    hiprtcLinkCreate;
+-    hiprtcLinkAddFile;
+-    hiprtcLinkAddData;
+-    hiprtcLinkComplete;
+-    hiprtcLinkDestroy;
+     hipBindTexture;
+     hipBindTexture2D;
+     hipBindTextureToArray;
+@@ -472,8 +456,6 @@ local:
+ hip_5.3 {
+ global:
+     hipDeviceSetLimit;
+-    hiprtcGetBitcode;
+-    hiprtcGetBitcodeSize;
+     hipGraphLaunch_spt;
+     hipStreamBeginCapture_spt;
+     hipStreamEndCapture_spt;
+diff --git a/projects/clr/opencl/amdocl/amdocl.map b/projects/clr/opencl/amdocl/amdocl.map
+index d379214455e..ba53945620f 100644
+--- a/projects/clr/opencl/amdocl/amdocl.map
++++ b/projects/clr/opencl/amdocl/amdocl.map
+@@ -5,20 +5,17 @@ global:
+     clCreateCommandQueue;
+     clCreateContext;
+     clCreateContextFromType;
+-    clCreateFromD3D10Buffer;
+     clCreateFromGLBuffer;
+     clCreateFromGLRenderbuffer;
+     clCreateFromGLTexture2D;
+     clCreateFromGLTexture3D;
+     clCreateImage2D;
+     clCreateImage3D;
+-    clCreateImageFromD3D10Resource;
+     clCreateKernel;
+     clCreateKernelsInProgram;
+     clCreateProgramWithBinary;
+     clCreateProgramWithSource;
+     clCreateSampler;
+-    clEnqueueAcquireExternalObjects;
+     clEnqueueAcquireGLObjects;
+     clEnqueueBarrier;
+     clEnqueueCopyBuffer;
+@@ -32,7 +29,6 @@ global:
+     clEnqueueNativeKernel;
+     clEnqueueReadBuffer;
+     clEnqueueReadImage;
+-    clEnqueueReleaseExternalObjects;
+     clEnqueueReleaseGLObjects;
+     clEnqueueTask;
+     clEnqueueUnmapMemObject;
+@@ -94,26 +90,6 @@ global:
+     clEnqueueReadBufferRect;
+     clEnqueueWriteBufferRect;
+     clEnqueueCopyBufferRect;
+-
+-    aclGetTargetInfo;
+-    aclCompilerInit;
+-    aclCompilerFini;
+-    aclReadFromMem;
+-    aclReadFromFile;
+-    aclBinaryInit;
+-    aclBinaryFini;
+-    aclWriteToMem;
+-    aclInsertSection;
+-    aclExtractSection;
+-    aclRemoveSection;
+-    aclQueryInfo;
+-    aclDbgAddArgument;
+-    aclExtractSymbol;
+-    aclInsertSymbol;
+-    aclRemoveSymbol;
+-    aclCompile;
+-    aclInsertKernelStatistics;
+-    aclDisassemble;
+ } OPENCL_1.0;
+ 
+ OPENCL_1.2 {
