@@ -62,17 +62,17 @@ function buildlibdrm(){
 
   if [ "$1" != "install" ]; then
     if [ -d "$_builddir" ] ; then
-      rm -rf $_builddir
+      rm -rf "$_builddir"
     fi
-    mkdir -p $_builddir
-    cd $_builddir
+    mkdir -p "$_builddir"
+    cd "$_builddir"
 
     wget $THEROCK/inline_amdgpu_ids.sh
     chmod +x inline_amdgpu_ids.sh
     wget "$TARBALL_URL"
     tar -xf $_cname-$_cname-$_version.tar.bz2
     # Need to copy to patch directory or inline_amdgpu_ids.sh complains about patching source
-    cp -a $_srcdir $_patcheddir
+    cp -a "$_srcdir" "$_patcheddir"
 
     # Patch libdrm source with additional amdgpu ids
     cat >> "$AMDGPU_IDS" << 'EOF'
@@ -89,8 +89,8 @@ function buildlibdrm(){
 7551,   C8,     AMD Radeon AI Pro R9600D
 EOF
 
-    $_builddir/inline_amdgpu_ids.sh $_patcheddir
-    cd $_cname-$_cname-$_version
+    "$_builddir"/inline_amdgpu_ids.sh "$_patcheddir"
+    cd "$_cname-$_cname-$_version"
     # Configure libdrm
     meson setup "$_builddir" "$_patcheddir" \
     --prefix "$_installdir/rocm_sysdeps" \
@@ -104,17 +104,17 @@ EOF
     -Dvmwgfx=disabled
 
     # Build libdrm
-    meson compile -C $_builddir --verbose
+    meson compile -C "$_builddir" --verbose
   fi
   if [ "$1" == "install" ]; then
-    meson install -C $_builddir
+    meson install -C "$_builddir"
   fi
 }
 
 function main(){
   for _component in $ROCM_SYSDEPS_LIST ; do
     if [ "$_component" == "libdrm" ] ; then
-    buildlibdrm $1
+    buildlibdrm "$1"
   else
     echo "ERROR:  Invalid component name $_component"
     exit 1
