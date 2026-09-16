@@ -198,10 +198,17 @@ def claim_device_for_torch() -> str:
         import torch
     except Exception:  # noqa: BLE001
         return ""
+    # Name the build, not just the outcome. Once the context is claimed, this lane's
+    # GPU results are torch's to influence -- on the prepared host eighty tests run
+    # only because it works -- and a row whose producer is not named is the thing the
+    # hygiene gate exists to prevent for every other tool in the run.
+    build = getattr(torch, "__version__", "?")
+    hip = getattr(getattr(torch, "version", None), "hip", None)
+    who = f"torch {build} ({'hip ' + hip if hip else 'not a ROCm build'})"
     try:
-        return f"torch claimed the device context first: available={torch.cuda.is_available()}"
+        return f"{who} claimed the device context first: available={torch.cuda.is_available()}"
     except Exception as exc:  # noqa: BLE001
-        return f"torch could not claim the device context: {exc!r}"
+        return f"{who} could not claim the device context: {exc!r}"
 
 
 # --- pytest hooks ----------------------------------------------------------
