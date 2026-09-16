@@ -105,6 +105,7 @@ class _State:
         self.install_errors: list[str] = []
         self.tree: str | None = None
         self.device_claimed = False
+        self.device_claim_note = ""
 
 
 _S = _State()
@@ -214,16 +215,19 @@ def pytest_load_initial_conftests(early_config, parser, args):  # noqa: ANN001, 
     context before we could. Nothing in today's conftests does, but the ordering
     guarantee should not depend on that staying true.
     """
-    claimed = claim_device_for_torch()
-    if claimed:
-        print(claimed)
+    _S.device_claim_note = claim_device_for_torch()
 
 
 def pytest_configure(config):  # noqa: ANN001, ARG001
     # Fallback for a pytest that did not call the hook above; claiming is idempotent.
-    claimed = claim_device_for_torch()
-    if claimed:
-        print(claimed)
+    _S.device_claim_note = _S.device_claim_note or claim_device_for_torch()
+    # Printed here rather than where the claim happens: pytest starts its global
+    # capture during pytest_load_initial_conftests, so anything written there is
+    # swallowed and the log shows nothing -- which is exactly what happened on the
+    # first prepared-host run, leaving no evidence that the ordering had been set.
+    # A report header would do, but the lanes run pytest with -q, which drops it.
+    if _S.device_claim_note:
+        print(_S.device_claim_note)
     sys.addaudithook(_audit)
     try:
         _install_native_probe()
