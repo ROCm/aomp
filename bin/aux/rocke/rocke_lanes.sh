@@ -263,7 +263,7 @@ PY
   emitJunit "${Xml}" "numeric-${DeviceArch}" "${RunRc}" "${Manifest}" "${Out}"
 }
 
-function stagePerf {
+function stageCodOccupancy {
   # Host-only codegen signal: per arch, compile the smoke kernel with the COD
   # comgr and read its resource footprint from the HSACO's ELF notes -- no GPU,
   # no torch. A spill on this fixed kernel is a real regression. See README.
@@ -309,7 +309,7 @@ function stageCodCodegen { codSmokeSweep codegen; }
 function stageCodComgr { codSmokeSweep comgr; }
 
 # Origin of a report row: 'rocKE' = the project's own tests/tools, 'ci-harness'
-# = a probe this CI adds (cod-*/perf) or its own plumbing, whichever lane hit it.
+# = a probe this CI adds (cod-*) or its own plumbing, whichever lane hit it.
 # Mirrors rocke_extract.py's area classifier. See README.md "Test origin".
 # Everything the run needs to know about a lane, in run order, one line each:
 #
@@ -320,9 +320,10 @@ function stageCodComgr { codSmokeSweep comgr; }
 # tool-hardness map -- and a lane added to five of them looked like it worked.
 #
 # The handler is not a field: it is derived from the name by laneHandler, so the
-# table cannot name the wrong one. It could, once. Pointing perf's handler at
-# stageCodCodegen passed the "is it a function?" check, ran codegen twice, emitted
-# no occupancy row at all, and still cleared perf's floor because both lanes size
+# table cannot name the wrong one. It could, once. Pointing the occupancy lane's
+# handler at stageCodCodegen passed the "is it a function?" check, ran codegen
+# twice, emitted no occupancy row at all, and still cleared its floor, because
+# both lanes size
 # their floor by the arch sweep -- a whole check gone, with nothing red to show it.
 #
 # floor is the row count below which the lane is not credible: a number, or a token
@@ -335,7 +336,7 @@ LaneRegistry=(
   "cod-codegen|ci-harness|compiler|arches|"
   "cod-comgr|ci-harness|compiler|arches|hip-runtime"
   "gpu-numeric|rocKE|compiler-capable|5|hip-runtime,hipcc"
-  "perf|ci-harness|compiler|arches|llvm-readelf"
+  "cod-occupancy|ci-harness|compiler|arches|llvm-readelf"
 )
 
 # Field values the table may carry. Named here so a typo is caught at startup

@@ -55,7 +55,7 @@ unset Module
 
 # The lanes this driver knows, in the order 'all' runs them: the cheap host-only
 # gates first so a broken COD is reported in seconds, the ~1000-row pytest lane
-# next, then the on-device lane, and perf last because a register-spill verdict is
+# next, then the on-device lane, and cod-occupancy last because a register-spill verdict is
 # only worth reading once the kernels it measures are known to compile. That order,
 # and everything else per-lane, comes from LaneRegistry in rocke_lanes.sh, so the
 # stage check, the help text, the 'all' list and the dispatch cannot disagree.
@@ -80,11 +80,11 @@ Common knobs (every ROCKE_* default is set together at the top of this script;
 the lane table and the full list are in openmp-ci/rocKE/README.md):
   AOMP=<llvm dir>            COD compiler under test
   ROCKE_ALL_LANES='...'      lanes 'all' runs, in order
-  ROCKE_CI_ARCHES='...'      arch sweep for the cod-*/perf lanes
+  ROCKE_CI_ARCHES='...'      arch sweep for the cod-* lanes
   ROCKE_TOP=<dir>            rocKE platform checkout to test (else one is cloned)
   ROCKE_CI_BUILD_ROOT=<dir>  out-of-tree build root
   ROCKE_VENV=<dir>           the only interpreter this script may install into
-  ROCKE_DEBUG=1              full Python tracebacks from the cod-*/perf lanes
+  ROCKE_DEBUG=1              full Python tracebacks from the cod-* lanes
 EOF
 }
 
@@ -525,7 +525,7 @@ function absorbLaneLog {  # <lane> <row-log> <elapsed-seconds>
 function printRunSummary {
   local i SumP=0 SumT=0 Note Fail FLane FRest FLoc FTier FReason
   echo "#= rocKE ${Stage} summary  ($(date '+%Y-%m-%d %H:%M:%S'))"
-  echo "#= origin: [rocKE] project test/tool  |  [ci-harness] a probe this CI adds (cod-*/perf; see README)"
+  echo "#= origin: [rocKE] project test/tool  |  [ci-harness] a probe this CI adds (cod-*; see README)"
   for (( i = 0; i < ${#Names[@]}; i++ )); do
     Note=""
     if (( Skip[i] > 0 )); then
