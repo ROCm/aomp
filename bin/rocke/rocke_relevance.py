@@ -171,10 +171,43 @@ def _mangle(nodeid: str) -> tuple[str, str]:
     return ".".join(names[:-1]), names[-1]
 
 
+def claim_device_for_torch() -> str:
+    """Let torch take the process HIP context first, and say what happened.
+
+    rocKE's HIP runtime and torch's compete for the context; whichever initialises
+    first wins, and a rocke-first process leaves torch reporting no GPU for every
+    test after it. rocKE guards the modules it knows about by importing torch above
+    its own imports (see library/tests/test_direct_conv_correctness.py), but that
+    only protects the module holding the guard: in a shared session any earlier
+    module decides the order. Doing it here, before collection imports anything,
+    makes the order the same every run instead of a property of collection order.
+
+    On for pytest sessions and disabled with ROCKE_CLAIM_DEVICE_FOR_TORCH=0, which
+    is how the ordering gets reproduced when a failure needs to be attributed to it.
+    A host without torch says nothing: its absence is already reported by the lane
+    that needs it, and a line per run about a dependency nobody asked for is noise.
+    Never raises -- a session that cannot claim the context should report whatever
+    the tests then find, not die here.
+    """
+    if os.environ.get("ROCKE_CLAIM_DEVICE_FOR_TORCH", "1") != "1":
+        return ""
+    try:
+        import torch
+    except Exception:  # noqa: BLE001
+        return ""
+    try:
+        return f"torch claimed the device context first: available={torch.cuda.is_available()}"
+    except Exception as exc:  # noqa: BLE001
+        return f"torch could not claim the device context: {exc!r}"
+
+
 # --- pytest hooks ----------------------------------------------------------
 
 
 def pytest_configure(config):  # noqa: ANN001, ARG001
+    claimed = claim_device_for_torch()
+    if claimed:
+        print(claimed)
     sys.addaudithook(_audit)
     try:
         _install_native_probe()

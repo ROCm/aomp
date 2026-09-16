@@ -1103,6 +1103,13 @@ function stagePytest {
   # library/tests belongs to the surrounding rocm-libraries checkout, so it is only
   # required when we are in one: ROCKE_TOP is documented as accepting a bare rocKE
   # tree, and demanding it there would make that mode permanently red.
+  #
+  # It stays in the same pytest invocation as the roots above. Running it in its own
+  # process to isolate torch from rocKE's HIP runtime looked attractive, but pytest
+  # derives a nodeid from the argument set: dropping one root rewrote 1226 of 2704
+  # classnames, so every one of those rows would leave the dashboard and return under
+  # a new name. The ordering is fixed in-process instead, by rocke_relevance.py's
+  # claim_device_for_torch().
   if [[ "${ROCKE_REPO_ROOT}" != "${ROCKE_TOP}" ]]; then
     Root="${ROCKE_PROJECT_ROOT}/library/tests"
     if hasTests "${Root}"; then TestRoots+=("${Root}"); else Missing+=("${Root}"); fi
