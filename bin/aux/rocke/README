@@ -1,7 +1,7 @@
 Worker modules for ../../run_rocke.sh, the rocKE compiler-of-the-day test driver.
 
-Bash, sourced by the driver in this order. Each defines functions and nothing
-else, so sourcing cannot change state or fail a run:
+Bash, sourced by the driver in this order. Sourcing defines functions and
+constant tables; it starts nothing and cannot fail a run:
 
 - rocke_toolchain.sh      resolve the compiler under test, prove every tool
                           comes from it, pin the IR flavor
@@ -25,8 +25,9 @@ session, where a plain result.py would shadow the project's module.
 
 Checks, both of which the driver's own lanes do not cover:
 
-  shellcheck -x ../../run_rocke.sh rocke_*.sh
+  shellcheck -x ../../run_rocke.sh rocke_*.sh tests/*.sh
   python3 -m unittest discover -s tests
+  bash tests/test_lane_registry.sh
 
 Name the bash modules in that shellcheck command. `-x` follows a sourced file
 to learn what it defines but reports nothing inside it, so checking the driver

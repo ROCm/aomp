@@ -3,15 +3,17 @@
 #
 # Resolving the compiler under test, and proving every tool comes from it.
 #
-# Sourced by ../../run_rocke.sh, which owns the run: this file defines functions
-# and nothing else, so sourcing it cannot change state or fail a run on its own.
+# Sourced by ../../run_rocke.sh, which owns the run. Sourcing defines functions and
+# constant tables; it starts nothing, touches no file and cannot fail a run.
 # shellcheck shell=bash
 #
 # The driver owns the run's state -- RocmRoot, PyBin, BuildRoot, Stage,
-# LaneRelevance and the rest -- and these functions read it without ever
-# assigning it. Checked on its own, shellcheck cannot see where that state
-# comes from, so SC2154 is off for the file; check the driver too, since -x
-# follows a source for definitions but reports nothing inside it.
+# LaneRelevance and the rest -- which these functions read, and in a few cases
+# set for the driver to use later (setupPython assigns PyBin, engineFlavors
+# assigns EngineFlavorList, the toolchain functions export the flavor knobs).
+# Checked on its own, shellcheck cannot see where that state comes from, so
+# SC2154 is off for the file; check the driver too, since -x follows a source
+# for definitions but reports nothing inside it.
 # shellcheck disable=SC2154
 
 # Walk up from the resolved llvm dir to the nearest ancestor shipping comgr or
@@ -29,8 +31,9 @@ function resolveRocmRoot {
   realpath -m "$(dirname "${Start}")"  # give up; prefix check + hygiene flag it
 }
 
-# Populate the shim named in PATH above. Separate from the PATH line because it
-# needs fatalSetup, and definitions in this file come after that line runs.
+# Populate the shim the driver already named in PATH. Separate from that line
+# because filling it needs fatalSetup, which cannot run until the driver has set up
+# its row channel: PATH is built while the environment is still being decided.
 function installCodShim {
   if ! mkdir -p "${CodShim}" \
     || ! ln -sf "${AOMP}/bin/clang++" "${CodShim}/c++" \
@@ -191,8 +194,12 @@ function assertCodToolchain {
         hipcc)        HipccHard=1 ;;
         llvm-readelf) ReadelfHard=1 ;;
         c++)          CxxHard=1 ;;
-        *) rockeResult setup lane-tools 1 \
-             "lane ${Lane} requires '${Tool}', which the hygiene gate does not check" \
+        # Not a warning: the lane declared a tool this gate cannot prove belongs
+        # to the COD, so every row it goes on to emit would claim a provenance
+        # nobody checked. assertLaneTables rejects unknown tokens at startup, so
+        # reaching here means the two lists drifted apart.
+        *) fatalSetup \
+             "lane ${Lane} requires '${Tool}', which the hygiene gate cannot verify" \
              harness ;;
       esac
     done

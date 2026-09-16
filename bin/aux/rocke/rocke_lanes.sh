@@ -4,17 +4,26 @@
 # The lanes: what each one runs, what it is worth to the compiler team, and
 # the floor below which its row count is not credible.
 #
-# Sourced by ../../run_rocke.sh, which owns the run: this file defines functions
-# and nothing else, so sourcing it cannot change state or fail a run on its own.
+# Sourced by ../../run_rocke.sh, which owns the run. Sourcing defines functions and
+# constant tables; it starts nothing, touches no file and cannot fail a run.
 # shellcheck shell=bash
 #
 # The driver owns the run's state -- RocmRoot, PyBin, BuildRoot, Stage,
-# LaneRelevance and the rest -- and these functions read it without ever
-# assigning it. Checked on its own, shellcheck cannot see where that state
-# comes from, so SC2154 is off for the file; check the driver too, since -x
-# follows a source for definitions but reports nothing inside it.
+# LaneRelevance and the rest -- which these functions read, and in a few cases
+# set for the driver to use later (setupPython assigns PyBin, engineFlavors
+# assigns EngineFlavorList, the toolchain functions export the flavor knobs).
+# Checked on its own, shellcheck cannot see where that state comes from, so
+# SC2154 is off for the file; check the driver too, since -x follows a source
+# for definitions but reports nothing inside it.
 # shellcheck disable=SC2154
 
+# Flavors the byte-identity gate sweeps. 'auto' asks rocKE for its own published
+# list, so a flavor it adds is swept the night it appears instead of waiting for
+# someone here to notice; the fallback is the pair that predates the list.
+#
+# Reports through a global for the same reason ensureEngineExtension does: it may
+# emit a result row, and a caller capturing stdout would read the row itself as the
+# answer -- eight words of a red row swept as eight flavors.
 function engineFlavors {  # sets EngineFlavorList
   if [[ "${ROCKE_ENGINE_FLAVORS}" != auto ]]; then
     EngineFlavorList="${ROCKE_ENGINE_FLAVORS}"; return
@@ -214,11 +223,17 @@ PY
   #
   # Either way the row names the one command that fixes it.
   if ! ensureTorch; then
-    local Fix
+    local Fix Replace
     Fix="install a ROCm torch in ${ROCKE_VENV} (same datalayout generation as the COD, e.g. $(rocmWheelIndex 7.2)) or set ROCKE_TORCH_INDEX_URL"
-    if "${PyBin}" -c 'import torch' 2>/dev/null; then
+    # Replacing, not installing: pip counts an installed-but-wrong torch as
+    # satisfying the requirement, so an index alone will not repair this one.
+    Replace="uninstall it and install a ROCm torch of the COD's datalayout generation in ${ROCKE_VENV}, e.g. from $(rocmWheelIndex 7.2)"
+    # Installed is not the same question as importable: a torch whose shared
+    # libraries are missing fails to import, and reading that as "no torch here"
+    # would downgrade a broken installation to an unprepared host.
+    if "${PyBin}" -c 'import importlib.util,sys; sys.exit(0 if importlib.util.find_spec("torch") else 1)' 2>/dev/null; then
       rockeResult environment torch 1 \
-        "the torch in ${ROCKE_VENV} cannot serve as a numeric reference for this COD: ${Fix}"
+        "the torch in ${ROCKE_VENV} cannot serve as a numeric reference for this COD: ${Replace}"
     elif [[ "${ROCKE_NUMERIC_HOST}" == 1 ]]; then
       rockeResult environment torch 1 \
         "no numeric reference on a ${DeviceArch} host declared ROCKE_NUMERIC_HOST=1: ${Fix}"
@@ -298,26 +313,48 @@ function stageCodComgr { codSmokeSweep comgr; }
 # Mirrors rocke_extract.py's area classifier. See README.md "Test origin".
 # Everything the run needs to know about a lane, in run order, one line each:
 #
-#   name | handler | origin | relevance | floor | tools that must be the COD's
+#   name | origin | relevance | floor | tools that must be the COD's
 #
 # One table because the same seven lanes used to be spelled out in six places --
 # an order list, a dispatch, an origin map, a relevance map, a floor table and a
 # tool-hardness map -- and a lane added to five of them looked like it worked.
-# assertLaneTables still checks the table is complete, but now there is one thing
-# to complete rather than six to keep in step.
+#
+# The handler is not a field: it is derived from the name by laneHandler, so the
+# table cannot name the wrong one. It could, once. Pointing perf's handler at
+# stageCodCodegen passed the "is it a function?" check, ran codegen twice, emitted
+# no occupancy row at all, and still cleared perf's floor because both lanes size
+# their floor by the arch sweep -- a whole check gone, with nothing red to show it.
 #
 # floor is the row count below which the lane is not credible: a number, or a token
 # for the counts only known at run time (flavors, arches). Tools is a comma list,
 # empty when the lane needs nothing beyond clang and comgr, which every lane needs.
 LaneRegistry=(
-  "engine|stageEngine|rocKE|compiler|flavors|c++"
-  "ctest|stageCtest|rocKE|compiler|3|"
-  "pytest|stagePytest|rocKE|compiler-capable|400|hip-runtime,hipcc"
-  "cod-codegen|stageCodCodegen|ci-harness|compiler|arches|"
-  "cod-comgr|stageCodComgr|ci-harness|compiler|arches|hip-runtime"
-  "gpu-numeric|stageGpuNumeric|rocKE|compiler-capable|5|hip-runtime,hipcc"
-  "perf|stagePerf|ci-harness|compiler|arches|llvm-readelf"
+  "engine|rocKE|compiler|flavors|c++"
+  "ctest|rocKE|compiler|3|"
+  "pytest|rocKE|compiler-capable|400|hip-runtime,hipcc"
+  "cod-codegen|ci-harness|compiler|arches|"
+  "cod-comgr|ci-harness|compiler|arches|hip-runtime"
+  "gpu-numeric|rocKE|compiler-capable|5|hip-runtime,hipcc"
+  "perf|ci-harness|compiler|arches|llvm-readelf"
 )
+
+# Field values the table may carry. Named here so a typo is caught at startup
+# instead of turning into a silently mis-filed row: an unknown origin would
+# misattribute a failure between rocKE and this CI, and an unknown relevance sorts
+# last and drops out of the compiler count. Floors validate themselves: laneRowFloor
+# answers "?" for anything that is neither a token nor a count. The relevance list
+# mirrors rocke_tiers.py, which bash cannot import.
+LaneOrigins="rocKE ci-harness"
+LaneRelevances="compiler compiler-capable logic harness unmeasured"
+LaneKnownTools="c++ hip-runtime hipcc llvm-readelf"
+
+# The stage function for a lane: cod-codegen -> stageCodCodegen. Derived rather
+# than stored, so a lane can only ever run its own body.
+function laneHandler {  # <lane>
+  local Part Name=""
+  for Part in ${1//-/ }; do Name+="${Part^}"; done
+  printf 'stage%s\n' "${Name}"
+}
 
 # Field <n> of <lane>'s row, empty when the lane is not registered. Callers that
 # must not accept an unregistered lane check for empty rather than defaulting,
@@ -339,7 +376,7 @@ function laneNames {
 
 function laneOrigin {  # <lane> [group]
   case "${2:-}" in setup|environment) echo ci-harness; return ;; esac
-  laneField "${1}" 3 || echo ci-harness
+  laneField "${1}" 2 || echo ci-harness
 }
 
 # How a red row from a lane should be triaged when there is no per-test evidence
@@ -349,14 +386,14 @@ function laneOrigin {  # <lane> [group]
 # always looked at rather than silently written off. See README.md
 # "Test relevance".
 function laneRelevance {  # <lane>
-  laneField "${1}" 4 || echo unregistered
+  laneField "${1}" 3 || echo unregistered
 }
 
 # The tools this lane must find inside the COD, beyond clang and comgr which every
 # lane needs. Hardness follows the lanes actually running, so a host missing hipcc
 # still runs the lanes that never call it.
 function laneHardTools {  # <lane>
-  laneField "${1}" 6 | tr ',' ' '
+  laneField "${1}" 5 | tr ',' ' '
 }
 
 # Rows below which a lane cannot be healthy, and a red row when it falls there.
@@ -376,7 +413,7 @@ function laneHardTools {  # <lane>
 # lane reached here without a row in the table, and a floor of 1 would have hidden
 # that behind a green row.
 function laneRowFloor {  # <lane>
-  local Floor; Floor="$(laneField "${1}" 5)" || { echo "?"; return; }
+  local Floor; Floor="$(laneField "${1}" 4)" || { echo "?"; return; }
   local -a Arches Experimental Flavors
   case "${Floor}" in
     flavors)
@@ -388,6 +425,8 @@ function laneRowFloor {  # <lane>
       read -ra Arches <<< "${ROCKE_CI_ARCHES}"
       read -ra Experimental <<< "${ROCKE_CI_ARCHES_EXPERIMENTAL}"
       echo "$(( ${#Arches[@]} + ${#Experimental[@]} ))" ;;
+    # Anything that is neither a token nor a plain count, including the empty
+    # string a missing field yields, is not a floor.
     ''|*[!0-9]*) echo "?" ;;
     *)           echo "${Floor}" ;;
   esac
@@ -398,7 +437,7 @@ function assertRowFloor {  # <lane> <row-log> <relevance>
   Floor="$(laneRowFloor "${Lane}")"
   if [[ "${Floor}" == "?" ]]; then
     rockeResult setup "${Lane}-coverage" 1 \
-      "lane ${Lane} has no row floor: add it to laneRowFloor" harness
+      "lane ${Lane} has no row floor: give it one in LaneRegistry" harness
     return
   fi
   # A lane that reported an environment blocker (no GPU, no numeric reference) never
@@ -411,24 +450,36 @@ function assertRowFloor {  # <lane> <row-log> <relevance>
     "${Relevance}"
 }
 
-# Every lane must resolve in every table keyed on a lane name. They are spread over
-# a thousand lines, and each used to fall through to a plausible-looking default: a
-# lane missing from laneRelevance was triaged as our own plumbing, one missing from
-# laneRowFloor was floored at a single row. Both are silent, which is the one failure
-# mode this driver is not allowed to have -- so an omission is a startup error.
+# Each lookup used to fall through to a plausible-looking default: a lane missing
+# from the relevance map was triaged as our own plumbing, one missing from the floor
+# table was floored at a single row. Both are silent, which is the one failure mode
+# this driver is not allowed to have, so a gap is a startup error.
+# Prove the registry says something valid, not merely something. A field that is
+# absent, duplicated or misspelt has to stop the run here: every one of those turns
+# into a row that looks like a result later, and the point of this suite is that a
+# row means what it says.
+#
+# Checked before anything runs, including before 'all' forks its children, so a
+# malformed table fails once at startup rather than seven times inside lanes that
+# have already claimed to test something.
 function assertLaneTables {
-  local Lane Handler Gaps=""
-  for Lane in "${LaneOrder[@]}"; do
-    [[ "$(laneRelevance "${Lane}")" != unregistered ]] || Gaps+=" relevance:${Lane}"
-    [[ "$(laneRowFloor "${Lane}")" != "?" ]] || Gaps+=" floor:${Lane}"
-    [[ -n "$(laneOrigin "${Lane}")" ]] || Gaps+=" origin:${Lane}"
-    # A handler named in the table but not defined would dispatch to nothing and
-    # end the lane green with no rows, which is the failure this whole gate exists
-    # to prevent -- so the name is checked, not just its presence.
-    Handler="$(laneField "${Lane}" 2 || true)"
-    [[ -n "${Handler}" ]] && declare -F "${Handler}" >/dev/null \
-      || Gaps+=" handler:${Lane}"
+  local Row Lane Tool Seen=" " Bad=""
+  for Row in "${LaneRegistry[@]}"; do
+    Lane="${Row%%|*}"
+    # cut reports success and an empty string for a field that is not there, so
+    # the row's shape is counted rather than inferred from a lookup.
+    (( $(awk -F'|' '{print NF}' <<< "${Row}") == 5 )) || { Bad+=" fields:${Lane:-<empty>}"; continue; }
+    [[ -n "${Lane}" ]] || { Bad+=" name:<empty>"; continue; }
+    [[ "${Seen}" != *" ${Lane} "* ]] || Bad+=" duplicate:${Lane}"
+    Seen+="${Lane} "
+    [[ " ${LaneOrigins} " == *" $(laneField "${Lane}" 2) "* ]] || Bad+=" origin:${Lane}"
+    [[ " ${LaneRelevances} " == *" $(laneField "${Lane}" 3) "* ]] || Bad+=" relevance:${Lane}"
+    [[ "$(laneRowFloor "${Lane}")" != "?" ]] || Bad+=" floor:${Lane}"
+    for Tool in $(laneHardTools "${Lane}"); do
+      [[ " ${LaneKnownTools} " == *" ${Tool} "* ]] || Bad+=" tool:${Lane}:${Tool}"
+    done
+    declare -F "$(laneHandler "${Lane}")" >/dev/null || Bad+=" handler:${Lane}"
   done
-  [[ -z "${Gaps}" ]] \
-    || fatalSetup "lanes missing from the registry:${Gaps}" harness
+  [[ -z "${Bad}" ]] \
+    || fatalSetup "the lane registry is not usable:${Bad}" harness
 }

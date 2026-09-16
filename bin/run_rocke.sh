@@ -18,6 +18,14 @@
 
 set -u
 
+# mapfile, ${Part^} and associative-style lookups below need bash 4. Said here
+# rather than left to a confusing failure three hundred lines in, because this
+# script is also the one an engineer runs by hand on an unfamiliar machine.
+if (( BASH_VERSINFO[0] < 4 )); then
+  echo "ERROR: ${0##*/} needs bash 4 or newer; this is ${BASH_VERSION}" >&2
+  exit 2
+fi
+
 ScriptDir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # The worker modules keep their rocke_ prefix: they go on the PYTHONPATH of
 # rocKE's own test session, where a plain result.py would shadow the project's.
@@ -111,7 +119,6 @@ fi
 AompInput="${AOMP}"
 AOMP="$(realpath -m "${AompInput}")"
 export AOMP
-
 
 # ROCM_PATH (the house-standard knob) may override the derived root, but only
 # while realpath(ROCM_PATH) is a prefix of realpath(AOMP): otherwise a stray
@@ -368,42 +375,10 @@ function acquireDirLock {  # <lock-dir> <description>
   HeldLockDirs+=("${Lock}")
 }
 
-
-
-# Build rocKE's C++ engine extension (`rocke_engine`) so the pytest lanes can
-# import it, reporting where it landed in EngineExtDir.
-#
-# rocKE's cross-engine tests skip without it, and it is not a side concern: the
-# extension is 200k lines of C++ compiled by the COD, and the tests it unlocks
-# compare the COD-built engine against the Python one. Built through rocKE's own
-# ROCKE_BUILD_PYBIND option -- one tree yields both the archive and the module -- so
-# there is no second recipe of ours to keep in step with theirs.
-#
-# It is shared across lanes rather than per-lane, so the 'all' run builds it once.
-# That puts it outside the per-lane build dir ROCKE_REBUILD cleans, so this honours
-# that knob itself: a nightly gets a build from scratch (a stale CMake cache survives
-# a source move, which is exactly the drift a fast-moving upstream produces), while a
-# hand rerun reuses whatever is still newer than rocKE's C++ sources. The stamp is the
-# run's identity, so only the first lane of an 'all' run pays for the rebuild.
-#
-# It reports through a global because it also prints progress and, on failure, a
-# result row: a caller capturing stdout would swallow the row into a variable.
 # Read and written by the lane and environment modules; the driver owns the state
 # those functions share, so that sourcing a module stays free of side effects.
 # shellcheck disable=SC2034
 EngineExtDir=""
-
-
-
-
-
-
-
-
-
-
-
-
 
 # branch@shortsha of the rocKE checkout, or '?' when it is not a git tree.
 function rockeSrcRev {
@@ -481,37 +456,9 @@ function updateRockeSource {
   echo "rocKE src = $(rockeSrcRev)  (rocm-libraries: ${ROCKE_TOP})"
 }
 
-
-
-
-
-
-
-
-
-
-# Flavors the byte-identity gate sweeps. 'auto' asks rocKE for its own published
-# list, so a flavor it adds is swept the night it appears instead of waiting for
-# someone here to notice; the fallback is the pair that predates the list.
-#
-# Reports through a global for the same reason ensureEngineExtension does: it may
-# emit a result row, and a caller capturing stdout would read the row itself as the
-# answer -- eight words of a red row swept as eight flavors.
 # Shared with the lane module, for the same reason as EngineExtDir above.
 # shellcheck disable=SC2034
 EngineFlavorList=""
-
-
-
-
-
-
-
-
-
-
-
-
 
 [[ -e "${AOMP}/bin/clang++" ]] || fatalSetup "COD compiler not found: ${AOMP}/bin/clang++" compiler
 [[ -f "${HelperDir}/rocke_result.py" ]] \
@@ -528,6 +475,11 @@ if [[ -n "${ROCKE_INTERNAL_PARENT_PID:-}" \
 else
   unset ROCKE_INTERNAL_PARENT_PID
 fi
+# Before every consumer of the registry, the hygiene gate included: it reads each
+# lane's required tools, so a table that has not been proved usable would decide
+# what provenance gets checked.
+assertLaneTables
+
 if (( InternalAllChild == 0 )); then
   printBanner
   updateRockeSource
@@ -549,8 +501,6 @@ if (( InternalAllChild == 0 )) && [[ "${Stage}" != all ]]; then
 fi
 
 Names=(); Pass=(); Tot=(); Secs=(); Skip=(); Fails=()
-
-
 
 # Fold one lane's rows into the run summary, from whichever log holds them.
 # Green rows that only record a skip are counted too: a lane that certified
@@ -686,17 +636,13 @@ function prepareBuildRoot {
   export AMD_COMGR_REDIRECT_LOGS="${BuildRoot}/comgr.log"
 }
 
-
-assertLaneTables
 prepareBuildRoot
 
 # Triage class for this lane's rows that carry no per-test evidence of their own.
 LaneRelevance="$(laneRelevance "${Stage}")"
 
-# The registry names the handler, and assertLaneTables above has already proved
-# that the name exists as a function: a lane listed in the table but dispatched to
-# nothing would end green with no rows at all.
-"$(laneField "${Stage}" 2)"
+# Derived from the lane name, never stored, so a lane can only run its own body.
+"$(laneHandler "${Stage}")"
 
 # Before the tally reads the same log, so a floor breach is counted like any red row.
 [[ -n "${RowLog}" ]] && assertRowFloor "${Stage}" "${RowLog}" "${LaneRelevance}"

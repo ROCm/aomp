@@ -4,15 +4,17 @@
 # The Python environment, its declared dependencies, the numeric reference,
 # the COD-built engine extension, and turning a runner's report into rows.
 #
-# Sourced by ../../run_rocke.sh, which owns the run: this file defines functions
-# and nothing else, so sourcing it cannot change state or fail a run on its own.
+# Sourced by ../../run_rocke.sh, which owns the run. Sourcing defines functions and
+# constant tables; it starts nothing, touches no file and cannot fail a run.
 # shellcheck shell=bash
 #
 # The driver owns the run's state -- RocmRoot, PyBin, BuildRoot, Stage,
-# LaneRelevance and the rest -- and these functions read it without ever
-# assigning it. Checked on its own, shellcheck cannot see where that state
-# comes from, so SC2154 is off for the file; check the driver too, since -x
-# follows a source for definitions but reports nothing inside it.
+# LaneRelevance and the rest -- which these functions read, and in a few cases
+# set for the driver to use later (setupPython assigns PyBin, engineFlavors
+# assigns EngineFlavorList, the toolchain functions export the flavor knobs).
+# Checked on its own, shellcheck cannot see where that state comes from, so
+# SC2154 is off for the file; check the driver too, since -x follows a source
+# for definitions but reports nothing inside it.
 # shellcheck disable=SC2154
 
 # Reuse an existing venv, else create one (numpy + pytest) outside the source
@@ -189,7 +191,16 @@ function validateTorch {
   Ver="$(codRocmVersion)"
   CodEra="$(rocmEra "${Ver}" || true)"
   TorchEra="$(rocmEra "${TorchMajorMinor}" || true)"
-  if [[ -n "${CodEra}" && -n "${TorchEra}" && "${CodEra}" != "${TorchEra}" ]]; then
+  # An era that cannot be established is not a match. Skipping the comparison when
+  # either side is unknown -- a COD with no .info/version, an unparseable
+  # torch.version.hip -- certified the reference without ever proving it could
+  # serve as one, which is the same lie as a green row for a test that never ran.
+  if [[ -z "${CodEra}" || -z "${TorchEra}" ]]; then
+    echo "ERROR: cannot establish the datalayout generation of torch ROCm ${TorchVer:-?}" \
+         "against COD ROCm ${Ver:-?}, so it cannot be trusted as the numeric reference"
+    return 1
+  fi
+  if [[ "${CodEra}" != "${TorchEra}" ]]; then
     echo "ERROR: torch ROCm ${TorchVer} speaks the ${TorchEra} datalayout, COD ROCm ${Ver} the ${CodEra} one"
     return 1
   fi
@@ -267,6 +278,24 @@ function requireCmake {
   return 0
 }
 
+# Build rocKE's C++ engine extension (`rocke_engine`) so the pytest lanes can
+# import it, reporting where it landed in EngineExtDir.
+#
+# rocKE's cross-engine tests skip without it, and it is not a side concern: the
+# extension is 200k lines of C++ compiled by the COD, and the tests it unlocks
+# compare the COD-built engine against the Python one. Built through rocKE's own
+# ROCKE_BUILD_PYBIND option -- one tree yields both the archive and the module -- so
+# there is no second recipe of ours to keep in step with theirs.
+#
+# It is shared across lanes rather than per-lane, so the 'all' run builds it once.
+# That puts it outside the per-lane build dir ROCKE_REBUILD cleans, so this honours
+# that knob itself: a nightly gets a build from scratch (a stale CMake cache survives
+# a source move, which is exactly the drift a fast-moving upstream produces), while a
+# hand rerun reuses whatever is still newer than rocKE's C++ sources. The stamp is the
+# run's identity, so only the first lane of an 'all' run pays for the rebuild.
+#
+# It reports through a global because it also prints progress and, on failure, a
+# result row: a caller capturing stdout would swallow the row into a variable.
 function ensureEngineExtension {  # sets EngineExtDir
   local Root="${ROCKE_CI_BUILD_ROOT}/engine-ext" Ext Stamp Run
   EngineExtDir=""
