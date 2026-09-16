@@ -225,6 +225,14 @@ ROCKE_CI_BUILD_ROOT="$(realpath -m "${ROCKE_CI_BUILD_ROOT}")"
 : "${ROCKE_REPO_URL:=https://github.com/ROCm/rocm-libraries.git}"
 : "${ROCKE_REPO_BRANCH:=develop}"
 : "${ROCKE_TORCH_INDEX_URL:=}"
+# Installing a numeric reference is host preparation, not part of a test run: the
+# index a COD's own ROCm implies is almost never published, so doing it inside the
+# nightly turns a prepared-host question into a red lane. Opt in for a one-off.
+: "${ROCKE_PROVISION_TORCH:=0}"
+# Set on the host that is supposed to certify numerics. There, a missing reference
+# is a defect and reddens; anywhere else it is an unprepared host and stays a Check,
+# because a row nobody can act on is the noise this suite exists without.
+: "${ROCKE_NUMERIC_HOST:=0}"
 # rocKE uses these without declaring them in its dev extras.
 : "${ROCKE_EXTRA_TEST_DEPS:=pyarrow}"
 # Identity of this run, inherited by the child lanes of 'all'. A bare PID would do
@@ -717,35 +725,49 @@ function validateTorch {
 
 # Provision rocKE's numeric reference (torch) on demand from the pytorch ROCm
 # wheel index for the COD's ROCm major.minor; ROCKE_TORCH_INDEX_URL overrides it.
-function ensureTorch {
-  local Idx="${ROCKE_TORCH_INDEX_URL}" Ver
-  validateTorch && return 0
-  if [[ -z "${Idx}" ]]; then
-    Ver="$(codRocmVersion)"
-    if [[ -z "${Ver}" ]]; then
-      echo "ERROR: COD has no .info/version; set ROCKE_TORCH_INDEX_URL or preinstall torch in ROCKE_VENV"
-      return 1
-    fi
-    # A guess, and often a wrong one: pytorch publishes an index per *released*
-    # ROCm, and a COD carries an unreleased one. The failure path below says what
-    # to do about it.
-    Idx="https://download.pytorch.org/whl/rocm${Ver}"
-  fi
-  pipInstallable "torch (multiple GB)" || return 1
-  # A wheel for the wrong ROCm still satisfies the requirement, so a plain
-  # install would be a no-op here and validateTorch would fail again.
-  local -a Force=()
-  "${PyBin}" -c 'import torch' 2>/dev/null && Force=(--force-reinstall)
-  echo "provisioning torch for gpu-numeric from ${Idx}"
-  "${PyBin}" -m pip install "${Force[@]}" --index-url "${Idx}" torch || {
-    echo "ERROR: no torch at ${Idx}"
-    echo "       An unreleased COD ROCm has no published torch. Set" \
-         "ROCKE_TORCH_INDEX_URL to a released"
+# The wheel index a released ROCm publishes. A COD carries an unreleased ROCm, so
+# the index its own version implies usually does not exist -- which is why callers
+# pass a released one of the same datalayout generation (rocmEra) instead.
+function rocmWheelIndex {  # <major.minor>
+  [[ -n "${1}" ]] || return 1
+  echo "https://download.pytorch.org/whl/rocm${1}"
+}
+
+# Install one package from a ROCm wheel index into the suite-owned venv. Separate
+# from any particular package so the next one that has to match a ROCm generation
+# does not grow its own copy of this.
+function installRocmPackage {  # <package> <index>
+  local Pkg="${1}" Idx="${2}"
+  pipInstallable "${Pkg} (may be several GB)" || return 1
+  echo "provisioning ${Pkg} from ${Idx}"
+  "${PyBin}" -m pip install --index-url "${Idx}" "${Pkg}" || {
+    echo "ERROR: no ${Pkg} at ${Idx}"
+    echo "       An unreleased COD ROCm has no published wheels. Point" \
+         "ROCKE_TORCH_INDEX_URL at a released"
     echo "       index of the same era ($(rocmEra "$(codRocmVersion)" || echo '?'))," \
-         "e.g. https://download.pytorch.org/whl/rocm7.2,"
-    echo "       or preinstall torch in ${ROCKE_VENV}."
+         "e.g. $(rocmWheelIndex 7.2), or install it in ${ROCKE_VENV}."
     return 1
   }
+}
+
+# Provide the numeric reference, provisioning only when a caller asked for it.
+#
+# Deriving an index from the COD's own ROCm and installing gigabytes mid-run was
+# the old default, and it could only succeed by luck: the run that needed it spent
+# its two seconds discovering that rocm10.2 publishes nothing. A prepared host
+# installs torch once, which is what both successful numeric runs did. No
+# --force-reinstall either: replacing a working wheel is not this script's business.
+function ensureTorch {
+  validateTorch && return 0
+  local Idx="${ROCKE_TORCH_INDEX_URL}"
+  if [[ -z "${Idx}" ]]; then
+    [[ "${ROCKE_PROVISION_TORCH}" == 1 ]] || return 1
+    Idx="$(rocmWheelIndex "$(codRocmVersion)")" || {
+      echo "ERROR: COD has no .info/version; set ROCKE_TORCH_INDEX_URL"
+      return 1
+    }
+  fi
+  installRocmPackage torch "${Idx}" || return 1
   validateTorch
 }
 
@@ -1222,13 +1244,33 @@ PY
         "cannot query the device through rocKE: ${DeviceArch:-no output}" "${LaneRelevance}"
       return ;;
   esac
-  # Past the device check this host *can* certify numerics, so a missing reference
-  # is a misconfiguration of ours, not an environment this lane may shrug off: it
-  # is the only lane that can catch a miscompile, and a green row saying "no
-  # coverage" is how that goes unnoticed. A GPU-less host already returned above.
-  if ! ensureTorch || ! "${PyBin}" -c 'import torch' 2>/dev/null; then
-    rockeResult environment torch 1 \
-      "no numeric reference on a ${DeviceArch} host: install a ROCm torch in ${ROCKE_VENV} or set ROCKE_TORCH_INDEX_URL"
+  # Past the device check this host *can* certify numerics, and this is the only
+  # lane that can catch a miscompile, so a missing reference must never read as
+  # coverage. It is still worth telling two cases apart, because one is a defect
+  # and the other is a host nobody prepared:
+  #
+  #   present but unusable -- a non-ROCm build, or one from the wrong datalayout
+  #     generation -- is red wherever it happens. Someone prepared this host, and
+  #     prepared it wrongly.
+  #   absent is red on the host that is supposed to certify numerics
+  #     (ROCKE_NUMERIC_HOST=1) and unmeasured anywhere else. Reddening every host
+  #     that was never meant to run numerics produced a nightly red nobody could
+  #     act on, which is how a tier stops being read.
+  #
+  # Either way the row names the one command that fixes it.
+  if ! ensureTorch; then
+    local Fix
+    Fix="install a ROCm torch in ${ROCKE_VENV} (same datalayout generation as the COD, e.g. $(rocmWheelIndex 7.2)) or set ROCKE_TORCH_INDEX_URL"
+    if "${PyBin}" -c 'import torch' 2>/dev/null; then
+      rockeResult environment torch 1 \
+        "the torch in ${ROCKE_VENV} cannot serve as a numeric reference for this COD: ${Fix}"
+    elif [[ "${ROCKE_NUMERIC_HOST}" == 1 ]]; then
+      rockeResult environment torch 1 \
+        "no numeric reference on a ${DeviceArch} host declared ROCKE_NUMERIC_HOST=1: ${Fix}"
+    else
+      rockeResult environment torch Check \
+        "no numeric reference on this ${DeviceArch} host, so nothing was certified: ${Fix}"
+    fi
     return
   fi
   # Every case here emits a kernel, compiles it through the COD and launches it on
