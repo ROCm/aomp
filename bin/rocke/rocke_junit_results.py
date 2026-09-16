@@ -49,6 +49,17 @@ _BLOCKED_SKIP = re.compile(
 # would waste its time. A COD failure while building it is reported by the builder.
 _BLOCKED_OURS = re.compile(r"rocke_engine|c\+\+ engine", re.IGNORECASE)
 
+# rocKE's datalayout drift guard validates the constant for the flavor it reads from
+# the *host* /opt/rocm against IR emitted by the hipcc on PATH -- which this CI points
+# at the COD. On a host whose ROCm is a different vintage than the COD, the two halves
+# come from different toolchains and the comparison says nothing about the COD, so it
+# would sit red every night in the tier that must stay worth reading. The failure names
+# the flavor it used, which is the evidence: reported under any flavor but the COD's,
+# nothing about the COD was measured. Drift under the COD's own flavor stays red --
+# that is the case the guard exists for. run_rocke.sh's own cod-datalayout probe checks
+# the COD end from the clang's emitted shape, which no host ROCm can reach.
+_DATALAYOUT_DRIFT = re.compile(r"[Dd]atalayout drift detected for \S+ under (\S+?)\b")
+
 
 def _at_least(tier: str, floor: str) -> str:
     """The more compiler-relevant of the two, when a floor is given.
@@ -107,6 +118,12 @@ def main() -> int:
         help="least relevance a case that ran may report, for a lane whose every "
         "test drives the toolchain by construction (e.g. on-device numerics)",
     )
+    ap.add_argument(
+        "--cod-flavor",
+        default="",
+        help="IR flavor the COD speaks, so a check that measured another "
+        "toolchain's flavor is reported as unmeasured rather than as a COD failure",
+    )
     args = ap.parse_args()
 
     tiers: dict[str, str] = {}
@@ -137,7 +154,12 @@ def main() -> int:
         tier = tiers.get(f"{case.get('classname') or ''}\t{case.get('name') or ''}")
         if tier is None:
             tier = args.relevance_default
-            unjoined += 1
+            # A module skipped at collection never became a test item, so the plugin
+            # had nothing to record and the manifest cannot hold an entry. pytest
+            # reports these with no classname. Counting them as lost relevance turned
+            # "this host has no gfx1250" into a red harness row every night.
+            if case.get("classname"):
+                unjoined += 1
         tier = _at_least(tier, args.relevance_floor)
         failure = case.find("failure")
         error = case.find("error")
@@ -151,7 +173,18 @@ def main() -> int:
         ):
             node = failure if failure is not None else error
             msg = (node.get("message") if node is not None else "") or "failed"
-            _emit(group, subtest, 1, msg, tier)
+            drift = args.cod_flavor and _DATALAYOUT_DRIFT.search(msg)
+            if drift and drift.group(1) != args.cod_flavor:
+                _emit(
+                    group,
+                    subtest,
+                    STATUS_CHECK,
+                    f"measured the host toolchain's {drift.group(1)} datalayout, "
+                    f"not the COD's {args.cod_flavor}: nothing here is the COD's",
+                    TIER_UNMEASURED,
+                )
+            else:
+                _emit(group, subtest, 1, msg, tier)
         elif skipped is not None or status_attr in ("notrun", "disabled", "skipped"):
             reason = (
                 skipped.get("message") if skipped is not None else ""

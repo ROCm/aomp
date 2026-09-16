@@ -217,8 +217,15 @@ def pytest_sessionfinish(session, exitstatus):  # noqa: ANN001, ARG001
     tests: dict[str, dict[str, object]] = {}
     for nid, module in _S.module_of.items():
         kinds = sorted(_S.evidence.get(nid, ()))
-        if kinds:
+        # A spawned Python child is evidence that work left the process, not that the
+        # toolchain was used: rocKE tests shell out to their own pure-Python drivers.
+        # Only direct evidence -- a native call, a library load, a tool spawn, the
+        # COD-built extension -- puts a test in the compiler tier.
+        direct = [k for k in kinds if not k.startswith("spawn:py:")]
+        if direct:
             tier = TIER_COMPILER
+        elif kinds:
+            tier = TIER_CAPABLE
         elif module in touched_modules:
             tier = TIER_CAPABLE
         else:

@@ -129,6 +129,10 @@ export HIP_PATH="${RocmRoot}"
 export HIP_CLANG_PATH="${AOMP}/bin"
 export ROCKE_COMGR_LIB="${ROCKE_COMGR_LIB:-${RocmRoot}/lib/libamd_comgr.so}"
 export ROCKE_HIP_LIB="${ROCKE_HIP_LIB:-${RocmRoot}/lib/libamdhip64.so}"
+# Compile from cold. comgr caches compile results on disk, keyed partly on its own
+# version id rather than a build hash, and every lane's compile is seconds: the cache
+# buys nothing here and would make a green row depend on state no row can show.
+export AMD_COMGR_CACHE="${AMD_COMGR_CACHE:-0}"
 export CC="${AOMP}/bin/clang"
 export CXX="${AOMP}/bin/clang++"
 # rocKE compiles its C++ engine by invoking the plain name `c++` (see
@@ -479,6 +483,11 @@ function emitJunit {  # <xml> <default-group> [runner-status] [manifest] [runner
   # cannot be reported below that even when the evidence is empty (work in a child).
   [[ -n "${LaneRelevanceFloor:-}" ]] \
     && RelevanceArgs+=(--relevance-floor "${LaneRelevanceFloor}")
+  # The flavor the COD speaks, pinned from its clang's own datalayout. A check that
+  # reports drift under a different flavor measured another toolchain (see the
+  # converter's _DATALAYOUT_DRIFT), which is not a verdict on this COD.
+  [[ "${ROCKE_CODEGEN_FLAVOR:-auto}" != auto ]] \
+    && RelevanceArgs+=(--cod-flavor "${ROCKE_CODEGEN_FLAVOR}")
   if [[ -f "${Xml}" ]]; then
     "${PyBin}" "${HelperDir}/rocke_junit_results.py" \
       --junit "${Xml}" --group-default "${GroupDefault}" \
@@ -903,9 +912,9 @@ function assertCodToolchain {
   # and hide a genuine comgr-vs-clang split.
   export ROCKE_COMGR_VERSION_TRUSTED="${ComgrVersionTrusted}"
   if (( ComgrVersionTrusted == 1 )); then
-    echo "                       comgr interface ${ComgrIface}, rocm vintage ${ComgrVer} -> rocke flavor ${ComgrFlavor}"
+    echo "                       comgr interface ${ComgrIface} ($(basename "$(realpath -m "${Comgr}" 2>/dev/null)")), rocm vintage ${ComgrVer} -> rocke flavor ${ComgrFlavor}"
   else
-    echo "                       comgr interface ${ComgrIface}, rocm vintage metadata unavailable in COD"
+    echo "                       comgr interface ${ComgrIface} ($(basename "$(realpath -m "${Comgr}" 2>/dev/null)")), rocm vintage metadata unavailable in COD"
   fi
   echo "                       cod clang emits the ${ClangShape} p8 datalayout"
   # The probe reports both bases: the flavor the comgr's ROCm number implies and the
@@ -915,11 +924,23 @@ function assertCodToolchain {
   if (( ComgrVersionTrusted == 1 )) && [[ "${ComgrFlavor}" != "?" && "${Pin}" != "${ComgrFlavor}" ]]; then
     echo "WARNING: datalayout split -- comgr rocm ${ComgrVer} implies ${ComgrFlavor}, but the COD"
     echo "         clang emits the ${ClangShape} p8 shape; pinning ${Pin} to match the clang."
+    # A row, not only a warning: this says the comgr and the clang in one install
+    # disagree about the IR they speak, which is the sharpest packaging signal this
+    # gate produces, and the dashboard never sees an echo.
+    rockeResult setup cod-datalayout-split 1 \
+      "comgr rocm ${ComgrVer} implies ${ComgrFlavor} but the COD clang emits the ${ClangShape} p8 shape; pinned ${Pin}" \
+      compiler
   fi
   # A COD shipping no .info/version lets rocke's vintage number leak from the
   # system /opt/rocm. Only worth saying for a COD-resident comgr: an external one
   # already failed hard above.
   if (( ComgrVersionTrusted == 0 )); then
+    # Also a row: on a COD that ships no .info/version this is the branch that
+    # fires, and it means rocKE keys its feature decisions off a foreign vintage --
+    # which is how a compile the COD can do gets refused. Packaging, hence compiler.
+    rockeResult setup cod-vintage-leak 1 \
+      "COD ships no .info/version, so the comgr vintage ${ComgrVer} came from the system installation; rocKE will gate features on it" \
+      compiler
     echo "WARNING: ignoring comgr rocm vintage ${ComgrVer}: it leaked from the system /opt/rocm fallback"
     echo "         ($(cat /opt/rocm/.info/version 2>/dev/null || echo '?')); the flavor knobs keep whatever rocKE derived from it."
   fi
@@ -1458,6 +1479,9 @@ function prepareBuildRoot {
   if [[ "${ROCKE_REBUILD}" == 1 ]]; then rm -rf "${BuildRoot}"; fi
   mkdir -p "${BuildRoot}" \
     || fatalSetup "cannot create lane build dir: ${BuildRoot}" build-root
+  # comgr's own diagnostics, kept beside the build rather than discarded: an
+  # in-process compile failure is otherwise opaque and needs a second run to explain.
+  export AMD_COMGR_REDIRECT_LOGS="${BuildRoot}/comgr.log"
 }
 
 # Every lane must resolve in every table keyed on a lane name. They are spread over
