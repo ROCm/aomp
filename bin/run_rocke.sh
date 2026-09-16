@@ -151,12 +151,32 @@ export PATH="${AOMP}/bin:${CodShim}:${RocmRoot}/bin:${PATH}"
 # trailing ':' -- an empty entry means CWD, which would breach COD isolation.
 export LD_LIBRARY_PATH="${AOMP}/lib:${RocmRoot}/lib${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
 
-# rocKE's CMakeLists uses block(), which needs CMake >= 3.25; prefer a modern
-# local cmake when the distro one is older.
-: "${ROCKE_CMAKE_BIN:=${HOME}/local/cmake/bin}"
-[[ -x "${ROCKE_CMAKE_BIN}/cmake" ]] && export PATH="${ROCKE_CMAKE_BIN}:${PATH}"
-
+# Where the house keeps test checkouts and supplemental tools is defined in
+# bin/aomp_common_vars, and a copy of those paths here is a copy that rots. Read them
+# from it instead of restating them -- but in a subshell, because sourcing it outright
+# would bring four ways to kill this run into the nightly: it exits when no cmake
+# exists anywhere, when a caller's ROCMLIBS_GFXLIST is not a subset of GFXLIST, and
+# when ccache or ninja are demanded but missing. It also exports
+# ROCMINFO_BINARY=/opt/rocm/bin/rocminfo whenever the compiler tree has no rocminfo,
+# which is always true of a COD lib/llvm directory -- a system path into the one
+# environment this driver spends its hygiene gate keeping clean. A subshell takes the
+# values and leaves the rest; an unset name simply falls through to our default below.
+# Its own `${VAR:-}` defaults mean anything already set by the caller still wins.
+eval "$(
+  ( . "${ScriptDir}/aomp_common_vars" >/dev/null 2>&1 || exit 0
+    for Name in AOMP_REPOS_TEST AOMP_SUPP; do
+      [[ -n "${!Name-}" ]] && printf '%s=%q\n' "${Name}" "${!Name}"
+    done ) || true
+)"
 : "${AOMP_REPOS_TEST:=${HOME}/git/aomp-test}"
+
+# rocKE's CMakeLists uses block(), which needs CMake >= 3.25; prefer a modern
+# local cmake when the distro one is older. Only this directory goes on PATH, never
+# the directory of whatever `cmake` the house file settled on: that can be /usr/bin,
+# and putting /usr/bin ahead of the COD would let a system clang answer to a name
+# this driver has just proved belongs to the compiler under test.
+: "${ROCKE_CMAKE_BIN:=${AOMP_SUPP:-${HOME}/local}/cmake/bin}"
+[[ -x "${ROCKE_CMAKE_BIN}/cmake" ]] && export PATH="${ROCKE_CMAKE_BIN}:${PATH}"
 : "${ROCKE_TOP:=${AOMP_REPOS_TEST}/composable-kernels/rocm-libraries/dnn-providers/hip-kernel-provider/rocke/platform}"
 # -s keeps this in ROCKE_TOP's path namespace. Resolving symlinks can put the
 # library test root under a different prefix (/work/... vs /home/...), which makes
@@ -966,6 +986,31 @@ function assertCodToolchain {
   (( Rc == 0 )) || fatalSetup \
     "compiler toolchain resolves outside the COD (${RocmRoot}); refusing to test a stale system ROCm" \
     toolchain
+  reportArchDrift
+}
+
+# Say when rocKE wires a target this suite does not sweep, or sweeps one it has
+# dropped. Which targets to cover is this team's policy, so rocKE's list is not
+# adopted wholesale: it carries entries our sweep deliberately omits, such as the
+# non-physical gfx11-generic, and taking it would both change the row population and
+# hand coverage policy to upstream. Asking it is still how we hear about a target
+# arriving, which a hardcoded list can only tell us by staying silent.
+#
+# Reported as unmeasured rather than red: the difference is a decision waiting to be
+# made, not a fault, and a red row that nobody can resolve is the thing this suite
+# has spent the most effort removing.
+function reportArchDrift {
+  local Wired Arch Ours Unswept=""
+  Wired="$("${PyBin}" -c 'from rocke.core.isa.backend import wired_arches
+print(" ".join(wired_arches()))' 2>/dev/null)" || return 0
+  [[ -n "${Wired}" ]] || return 0
+  Ours=" ${ROCKE_CI_ARCHES} ${ROCKE_CI_ARCHES_EXPERIMENTAL} "
+  for Arch in ${Wired}; do
+    [[ "${Ours}" == *" ${Arch} "* ]] || Unswept+="${Unswept:+ }${Arch}"
+  done
+  [[ -n "${Unswept}" ]] && rockeResult setup arch-coverage Check \
+    "rocKE wires ${Unswept}, which this suite does not sweep (ROCKE_CI_ARCHES)" harness
+  return 0
 }
 
 # Ensure a CMake new enough for rocKE's block() (>= 3.25); emit a clear setup
