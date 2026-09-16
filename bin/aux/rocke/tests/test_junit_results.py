@@ -13,6 +13,7 @@
 
 from __future__ import annotations
 
+import os
 import subprocess
 import sys
 import tempfile
@@ -21,6 +22,9 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 CONVERTER = HERE.parent / "rocke_junit_results.py"
+sys.path.insert(0, str(HERE.parent))
+
+from rocke_relevance import MANIFEST_VERSION, claim_device_for_torch  # noqa: E402
 
 
 def convert(xml: str, *args: str) -> list[list[str]]:
@@ -66,6 +70,18 @@ class BlockedSkips(unittest.TestCase):
         self.assertEqual(rows[0][3], "Check")
         self.assertEqual(rows[0][5], "unmeasured")
 
+    def test_a_reason_saying_both_things_stays_red(self):
+        # A suppression that wins over a genuine blocker is the one mistake this
+        # rule must never make, so the exemption matches the whole reason or not
+        # at all.
+        rows = convert(suite(
+            '<testcase classname="m.C" name="t">'
+            "<skipped message=\"no gfx942 golden recorded for llvm flavor 'llvm23'"
+            '; comgr cannot target gfx950"/>'
+            "</testcase>", tests=1, failures=0, skipped=1))
+        self.assertEqual(rows[0][3], "1")
+        self.assertEqual(rows[0][5], "compiler")
+
     def test_an_environmental_skip_is_neither_pass_nor_failure(self):
         rows = convert(suite(
             '<testcase classname="m.C" name="t">'
@@ -101,32 +117,65 @@ class DatalayoutDrift(unittest.TestCase):
 class RunnerTallies(unittest.TestCase):
     """The runner counts what it ran; we count what it wrote down."""
 
-    def test_subtest_collapse_is_accepted(self):
-        # pytest-subtests counts each failing subtest in the header while the body
-        # carries one testcase per test. Reporting that as loss would redden a
-        # correct report: 65 declared against 57 testcases is the normal case.
+    def tally(self, rows: list[list[str]]) -> list[list[str]]:
+        return [r for r in rows if "junit-tally" in r[2]]
+
+    def test_subtests_are_counted_in_the_runners_unit(self):
+        # pytest-subtests writes one testcase per test but a <failure> per failing
+        # subtest, so a report declaring 3 failures carries 3 elements in 1
+        # testcase. Counting testcases instead would tolerate any number from 1 to
+        # 3, which is no check at all.
         rows = convert(suite(
-            '<testcase classname="m.C" name="t"><failure message="boom"/></testcase>',
+            '<testcase classname="m.C" name="t">'
+            '<failure message="a"/><failure message="b"/><failure message="c"/>'
+            "</testcase>", tests=4, failures=3, skipped=0))
+        self.assertFalse(self.tally(rows))
+
+    def test_losing_all_but_one_failure_is_reported(self):
+        rows = convert(suite(
+            '<testcase classname="m.C" name="t"><failure message="a"/></testcase>',
             tests=4, failures=3, skipped=0))
-        self.assertFalse([r for r in rows if "junit-tally" in r[2]])
+        self.assertEqual(len(self.tally(rows)), 1)
+        self.assertEqual(self.tally(rows)[0][3], "1")
+        self.assertEqual(self.tally(rows)[0][5], "harness")
 
     def test_a_declared_failure_that_reaches_no_row_is_reported(self):
         rows = convert(suite(
             '<testcase classname="m.C" name="t"/>', tests=1, failures=2, skipped=0))
-        tally = [r for r in rows if "junit-tally" in r[2]]
-        self.assertEqual(len(tally), 1)
-        self.assertEqual(tally[0][3], "1")
-        self.assertEqual(tally[0][5], "harness")
+        self.assertEqual(len(self.tally(rows)), 1)
 
     def test_a_skip_that_did_not_become_a_row_is_reported(self):
         rows = convert(suite(
             '<testcase classname="m.C" name="t"/>', tests=1, failures=0, skipped=3))
-        self.assertTrue([r for r in rows if "junit-tally" in r[2]])
+        self.assertTrue(self.tally(rows))
 
     def test_a_runner_without_tallies_is_not_second_guessed(self):
         rows = convert('<testsuite name="ctest">'
                        '<testcase classname="m.C" name="t"/></testsuite>')
-        self.assertFalse([r for r in rows if "junit-tally" in r[2]])
+        self.assertFalse(self.tally(rows))
+
+    def test_an_outcome_reported_only_by_status_counts(self):
+        # ctest declares failures and marks the case with an attribute rather than
+        # an element; counting elements alone would report a false loss.
+        rows = convert('<testsuite name="ctest" tests="1" failures="1">'
+                       '<testcase classname="m.C" name="t" status="fail"/>'
+                       "</testsuite>")
+        self.assertFalse(self.tally(rows))
+
+    def test_an_attribute_the_runner_omits_is_not_read_as_zero(self):
+        rows = convert('<testsuite name="ctest" tests="1" failures="1">'
+                       '<testcase classname="m.C" name="t">'
+                       '<failure message="boom"/></testcase></testsuite>')
+        self.assertFalse(self.tally(rows))
+
+    def test_tallies_across_several_suites_are_summed(self):
+        rows = convert(
+            '<testsuites><testsuite name="a" tests="1" failures="1">'
+            '<testcase classname="m.A" name="t"><failure message="x"/></testcase>'
+            '</testsuite><testsuite name="b" tests="1" failures="1">'
+            '<testcase classname="m.B" name="t"><failure message="y"/></testcase>'
+            "</testsuite></testsuites>")
+        self.assertFalse(self.tally(rows))
 
 
 class Coverage(unittest.TestCase):
@@ -138,10 +187,13 @@ class Coverage(unittest.TestCase):
         self.assertEqual(rows[0][3], "1")
 
     def test_a_module_skipped_at_collection_is_not_a_lost_measurement(self):
-        # No test item ever existed, so no relevance entry can exist for it.
+        # No test item ever existed, so no relevance entry can exist for it. The
+        # manifest has to carry the current version, or the converter rejects it
+        # and the test would pass on the wrong row.
         with tempfile.TemporaryDirectory() as tmp:
             manifest = Path(tmp) / "relevance.json"
-            manifest.write_text('{"version": 0, "tests": {}}', encoding="utf-8")
+            manifest.write_text(f'{{"version": {MANIFEST_VERSION}, "tests": {{}}}}',
+                                encoding="utf-8")
             rows = convert(suite(
                 '<testcase classname="" name="m.mod">'
                 '<skipped message="collection skipped"/></testcase>',
@@ -166,6 +218,57 @@ class RowShape(unittest.TestCase):
             tests=1, failures=1, skipped=0))
         self.assertEqual(len(rows[0]), 6)
         self.assertEqual(rows[0][5], "unmeasured")
+
+
+class DeviceClaim(unittest.TestCase):
+    """Claiming the context must never become a way to lose a result."""
+
+    def setUp(self):
+        self.saved = os.environ.get("ROCKE_CLAIM_DEVICE_FOR_TORCH")
+        import rocke_relevance
+        rocke_relevance._S.device_claimed = False
+
+    def tearDown(self):
+        os.environ.pop("ROCKE_CLAIM_DEVICE_FOR_TORCH", None)
+        if self.saved is not None:
+            os.environ["ROCKE_CLAIM_DEVICE_FOR_TORCH"] = self.saved
+
+    def test_disabling_it_says_nothing_and_does_nothing(self):
+        os.environ["ROCKE_CLAIM_DEVICE_FOR_TORCH"] = "0"
+        self.assertEqual(claim_device_for_torch(), "")
+
+    def test_a_host_without_torch_is_silent(self):
+        # Absence of torch is reported by the lane that needs it; a line per run
+        # about a dependency nobody asked for is noise.
+        os.environ["ROCKE_CLAIM_DEVICE_FOR_TORCH"] = "1"
+        if _torch_present():
+            self.skipTest("torch is installed here")
+        self.assertEqual(claim_device_for_torch(), "")
+
+    def test_it_claims_once(self):
+        os.environ["ROCKE_CLAIM_DEVICE_FOR_TORCH"] = "1"
+        first = claim_device_for_torch()
+        self.assertEqual(claim_device_for_torch(), "")
+        if _torch_present():
+            self.assertIn("torch", first)
+
+    def test_a_torch_that_cannot_claim_reports_rather_than_raises(self):
+        os.environ["ROCKE_CLAIM_DEVICE_FOR_TORCH"] = "1"
+        import rocke_relevance
+        broken = type(sys)("torch")
+        broken.cuda = type("cuda", (), {"is_available": staticmethod(
+            lambda: (_ for _ in ()).throw(RuntimeError("no driver")))})
+        sys.modules["torch"] = broken
+        try:
+            rocke_relevance._S.device_claimed = False
+            self.assertIn("could not claim", claim_device_for_torch())
+        finally:
+            del sys.modules["torch"]
+
+
+def _torch_present() -> bool:
+    import importlib.util
+    return importlib.util.find_spec("torch") is not None
 
 
 if __name__ == "__main__":

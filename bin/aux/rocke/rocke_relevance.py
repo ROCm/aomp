@@ -104,6 +104,7 @@ class _State:
         self.module_of: dict[str, str] = {}
         self.install_errors: list[str] = []
         self.tree: str | None = None
+        self.device_claimed = False
 
 
 _S = _State()
@@ -189,8 +190,9 @@ def claim_device_for_torch() -> str:
     Never raises -- a session that cannot claim the context should report whatever
     the tests then find, not die here.
     """
-    if os.environ.get("ROCKE_CLAIM_DEVICE_FOR_TORCH", "1") != "1":
+    if _S.device_claimed or os.environ.get("ROCKE_CLAIM_DEVICE_FOR_TORCH", "1") != "1":
         return ""
+    _S.device_claimed = True
     try:
         import torch
     except Exception:  # noqa: BLE001
@@ -204,7 +206,21 @@ def claim_device_for_torch() -> str:
 # --- pytest hooks ----------------------------------------------------------
 
 
+def pytest_load_initial_conftests(early_config, parser, args):  # noqa: ANN001, ARG001
+    """Earliest hook a -p plugin gets, and the point of claiming here.
+
+    pytest_configure already runs after the initial conftest files have been
+    imported, and a conftest that touches rocKE's runtime would decide the device
+    context before we could. Nothing in today's conftests does, but the ordering
+    guarantee should not depend on that staying true.
+    """
+    claimed = claim_device_for_torch()
+    if claimed:
+        print(claimed)
+
+
 def pytest_configure(config):  # noqa: ANN001, ARG001
+    # Fallback for a pytest that did not call the hook above; claiming is idempotent.
     claimed = claim_device_for_torch()
     if claimed:
         print(claimed)

@@ -53,11 +53,15 @@ _BLOCKED_OURS = re.compile(r"rocke_engine|c\+\+ engine", re.IGNORECASE)
 # data*: no golden was recorded for a flavor, so nothing was ever asked of the
 # compiler. The blocked rule above matches such a reason on the bare word "llvm" and
 # turns "upstream has not got here yet" into a compiler failure -- red every night in
-# the one tier triage is told to read first. Matched on the phrasing upstream actually
-# uses: a new phrasing falls through to the blocked rule and reddens, which is the
-# safe direction for a rule that suppresses a red.
+# the one tier triage is told to read first.
+#
+# Anchored to the whole reason, not searched within it. A reason that says both
+# things -- "no golden recorded; comgr cannot target gfx950" -- describes a compiler
+# that could not do the work, and a suppression that wins over a blocker is the one
+# mistake this rule must never make. Anything reworded or extended upstream stops
+# matching and reddens, which is the safe direction.
 _MISSING_UPSTREAM_DATA = re.compile(
-    r"\bno\b[^.]*\bgolden\b[^.]*\brecorded\b|\bgolden\b[^.]*\bnot recorded\b",
+    r"\s*no (?:\S+ )*golden recorded for llvm flavor '[^']*'\s*\Z",
     re.IGNORECASE,
 )
 
@@ -119,44 +123,32 @@ def _declared(root, name: str) -> int | None:  # noqa: ANN001
         return None
 
 
-def _reconcile(group_default: str, root, bad: int, skips: int) -> None:  # noqa: ANN001
-    """Check the rows against the tallies the runner declared for itself.
+def _reconcile(group_default: str, root, counts: dict[str, int]) -> None:  # noqa: ANN001
+    """Check what the report carries against the tallies the runner declared.
 
-    A runner counts what it ran; we count the testcases it wrote down. The two may
-    legitimately differ upward: pytest-subtests counts every failing subtest in the
-    header while the body carries one testcase per test, which is why 65 declared
-    failures can be 57 failing testcases. What must never happen is a failure the
-    runner counted that reaches no row at all, so only the directions that mean lost
-    results are reported -- a runner that says it failed while no testcase carries a
-    failure, more failing testcases than were declared, or a skip that did not become
-    a row. Silence here is the quietest way a green report can be wrong.
+    Counted in the unit the runner counts in: outcome *elements*, not testcases.
+    pytest-subtests writes one testcase per test but a <failure> per failing subtest,
+    so a report declaring 65 failures carries 65 <failure> elements across 57
+    testcases. Comparing against testcases would have meant tolerating any number
+    between 1 and 65, which is no check at all: 64 failures could vanish unnoticed.
+
+    A runner that reports an outcome through a status attribute instead of an element
+    is counted too, so ctest -- which writes `status` and declares `failures` -- is
+    measured the same way.
+
+    Each attribute is compared only where the runner declares it, because an absent
+    attribute is not a claim of zero, and a false red here would be its own lie.
     """
-    declared_bad = (_declared(root, "failures") or 0) + (_declared(root, "errors") or 0)
-    if declared_bad and not bad:
-        _emit(
-            "setup",
-            f"{group_default}-junit-tally",
-            1,
-            f"runner declared {declared_bad} failure(s) but no testcase carries one",
-            TIER_HARNESS,
-        )
-    elif bad > declared_bad and _declared(root, "failures") is not None:
-        _emit(
-            "setup",
-            f"{group_default}-junit-tally",
-            1,
-            f"{bad} failing testcases exceed the {declared_bad} the runner declared",
-            TIER_HARNESS,
-        )
-    declared_skips = _declared(root, "skipped")
-    if declared_skips is not None and declared_skips != skips:
-        _emit(
-            "setup",
-            f"{group_default}-junit-tally",
-            1,
-            f"runner declared {declared_skips} skip(s), {skips} became rows",
-            TIER_HARNESS,
-        )
+    for attr, seen in counts.items():
+        declared = _declared(root, attr)
+        if declared is not None and declared != seen:
+            _emit(
+                "setup",
+                f"{group_default}-junit-tally",
+                1,
+                f"runner declared {declared} {attr}, the report carries {seen}",
+                TIER_HARNESS,
+            )
 
 
 def main() -> int:
@@ -208,10 +200,13 @@ def main() -> int:
 
     seen = 0
     unjoined = 0
-    bad = 0
-    skips = 0
+    # Outcome elements, in the runner's own unit -- see _reconcile.
+    counts = {"failures": 0, "errors": 0, "skipped": 0}
     for case in root.iter("testcase"):
         seen += 1
+        for attr, tag in (("failures", "failure"), ("errors", "error"),
+                          ("skipped", "skipped")):
+            counts[attr] += len(case.findall(tag))
         group = case.get("classname") or args.group_default
         subtest = case.get("name") or "unnamed"
         tier = tiers.get(f"{case.get('classname') or ''}\t{case.get('name') or ''}")
@@ -229,12 +224,18 @@ def main() -> int:
         skipped = case.find("skipped")
         status_attr = (case.get("status") or "").lower()
 
+        # A runner that reports through `status` alone still counts, so the tally
+        # below measures ctest's shape as well as pytest's.
+        if failure is None and error is None and status_attr in ("fail", "failed"):
+            counts["failures"] += 1
+        if skipped is None and status_attr in ("notrun", "disabled", "skipped"):
+            counts["skipped"] += 1
+
         if (
             failure is not None
             or error is not None
             or status_attr in ("fail", "failed")
         ):
-            bad += 1
             node = failure if failure is not None else error
             msg = (node.get("message") if node is not None else "") or "failed"
             drift = args.cod_flavor and _DATALAYOUT_DRIFT.search(msg)
@@ -250,11 +251,10 @@ def main() -> int:
             else:
                 _emit(group, subtest, 1, msg, tier)
         elif skipped is not None or status_attr in ("notrun", "disabled", "skipped"):
-            skips += 1
             reason = (
                 skipped.get("message") if skipped is not None else ""
             ) or "skipped"
-            if _BLOCKED_SKIP.search(reason) and not _MISSING_UPSTREAM_DATA.search(
+            if _BLOCKED_SKIP.search(reason) and not _MISSING_UPSTREAM_DATA.match(
                 reason
             ):
                 blocked_tier = (
@@ -292,7 +292,7 @@ def main() -> int:
         )
 
     if seen:
-        _reconcile(args.group_default, root, bad, skips)
+        _reconcile(args.group_default, root, counts)
 
     return 0
 
