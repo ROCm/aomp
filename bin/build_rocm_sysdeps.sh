@@ -22,7 +22,7 @@ cmd_error(){
 
 trap cmd_error ERR
 
-INSTALL_ROCM_SYSDEPS=${INSTALL_ROCM_SYSDEPS:-$AOMP_INSTALL_DIR}
+INSTALL_ROCM_SYSDEPS=${INSTALL_ROCM_SYSDEPS:-$AOMP_INSTALL_DIR/rocm_sysdeps}
 ROCM_SYSDEPS_LIST=${ROCM_SYSDEPS_LIST:-libdrm}
 BUILD_DIR=$BUILD_AOMP/build/rocm_sysdeps
 
@@ -93,7 +93,7 @@ EOF
     cd "$_cname-$_cname-$_version"
     # Configure libdrm
     meson setup "$_builddir" "$_patcheddir" \
-    --prefix "$_installdir/rocm_sysdeps" \
+    --prefix "$_installdir" \
     -Dpkgconfig.relocatable=true \
     -Dlibdir=lib \
     -Damdgpu=enabled \
@@ -143,4 +143,7 @@ if [ "$1" == "install" ] ; then
   echo " -----Installing to $INSTALL_ROCM_SYSDEPS/lib ----- "
   # Call main function install
   main install
+  # hwloc depends on rocmsmilib due to (--with-rocm) build option. rocmsmilib depends on libdrm. Moving hwloc and rocmsmilib build invocation here.
+  ROCM_SYSDEPS_PATH=$INSTALL_ROCM_SYSDEPS PREREQUISITE_COMPONENTS="rocmsmilib hwloc" "$thisdir/build_prereq.sh"
 fi
+
