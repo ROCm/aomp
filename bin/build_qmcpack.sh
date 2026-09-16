@@ -3,7 +3,8 @@
 #  build_qmcpack.sh: 
 #
 #  Users can override the following variables:
-#  AOMP, AOMP_GPU, BOOST_ROOT, FFTW_HOME, OPENMPI_INSTALL, QMCPACK_REPO, HDF5_ROOT, USE_MODULES
+#  AOMP, AOMP_GPU, BOOST_ROOT, FFTW_ROOT, OPENMPI_INSTALL, QMCPACK_REPO, HDF5_ROOT, USE_MODULES
+#  (FFTW_HOME is accepted as a deprecated alias for FFTW_ROOT)
 #
 #  To build OpenMP+HIP version (off by default):
 #  1. export cmake prefix path to cmake folder in rocm libs, such as:
@@ -45,18 +46,18 @@ if [ "$USE_MODULES" == "1" ] && [ -e /etc/profile.d/modules.sh ] ; then
      module load "$ROCM_VER"
    fi
    BOOST_ROOT=${BOOST_ROOT:-/cm/shared/opt/boost/1.72.0}
-   FFTW_HOME=${FFTW_HOME:-/cm/shared/apps/fftw/openmpi/gcc/64/3.3.8}
+   FFTW_ROOT=${FFTW_ROOT:-${FFTW_HOME:-/cm/shared/apps/fftw/openmpi/gcc/64/3.3.8}}
    OPENMPI_INSTALL=${OPENMPI_INSTALL:-~/openmpi-4.0.3-install}
-   export BOOST_ROOT FFTW_HOME
+   export BOOST_ROOT FFTW_ROOT
 else
    # Need the following packaages from ubuntu: libxml2-dev, libfftw3-dev, libboost-dev
    BOOST_ROOT=${BOOST_ROOT:-/usr/lib/x86_64-linux-gnu}
    #  We now get FFTW, OPENMPI, and HDF5 from AOMP supplemental component installs.
    #  run build_supp.sh to install supplemental components into $HOME/local.
-   FFTW_HOME=${FFTW_HOME:-$HOME/local/fftw}
+   FFTW_ROOT=${FFTW_ROOT:-${FFTW_HOME:-$HOME/local/fftw}}
    OPENMPI_INSTALL=${OPENMPI_INSTALL:-$HOME/local/openmpi}
    HDF5_ROOT=${HDF5_ROOT:-$HOME/local/hdf5}
-   export BOOST_ROOT FFTW_HOME HDF5_ROOT
+   export BOOST_ROOT FFTW_ROOT HDF5_ROOT
 fi
 
 # Use function to set and test AOMP_GPU
@@ -85,7 +86,7 @@ echo "AOMP: $AOMP"
 echo "AOMP_GPU: $AOMP_GPU"
 echo "OPENMPI_INSTALL: $OPENMPI_INSTALL"
 echo "BOOST_ROOT: $BOOST_ROOT"
-echo "FFTW_HOME: $FFTW_HOME"
+echo "FFTW_ROOT: $FFTW_ROOT"
 echo "QMCPACK_REPO: $QMCPACK_REPO"
 echo "HDF5_ROOT: $HDF5_ROOT"
 echo
@@ -105,8 +106,8 @@ cxx="-DCMAKE_CXX_COMPILER="
 mpicc="-DMPI_C_COMPILER="
 mpicxx="-DMPI_CXX_COMPILER="
 qmc_data="-DQMC_DATA="
-cuda="-DENABLE_CUDA="
-cuda2hip="-DQMC_CUDA2HIP="
+gpu="-DQMC_GPU="
+gpu_archs="-DQMC_GPU_ARCHS="
 
 declare -A opts_array
 # Default to:
@@ -115,11 +116,12 @@ opts_array[$complex]=OFF
 opts_array[$mixed]=OFF
 if [[ -z "${USE_HIP_OPENMP}" ]]; then
     echo "Building OpenMP only version"
+    opts_array[$gpu]="openmp"
 else
     echo "Building OpenMP+HIP production version"
-    opts_array[$cuda]=ON
-    opts_array[$cuda2hip]=ON
+    opts_array[$gpu]="openmp;hip"
 fi
+opts_array[$gpu_archs]=$AOMP_GPU
 
 opts_array[$cc]=$AOMP/bin/clang
 opts_array[$cxx]=$AOMP/bin/clang++
@@ -172,10 +174,7 @@ if [[ ! -e $OPENMPI_INSTALL/bin/mpicc ]] && [ "$mpi" == "1" ]; then
 fi
 
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
-  $AOMP_CMAKE -DOFFLOAD_ARCH="$AOMP_GPU" \
-              -DQMC_GPU=openmp \
-              -DOFFLOAD_TARGET="amdgcn-amd-amdhsa" \
-              "${custom_opts[@]}" \
+  $AOMP_CMAKE "${custom_opts[@]}" \
               ..
 fi
 
