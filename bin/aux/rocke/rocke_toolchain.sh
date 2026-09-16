@@ -42,30 +42,100 @@ function installCodShim {
   fi
 }
 
-function printBanner {
-  local ClangVer LlvmSha HipVer
-  ClangVer="$("${CXX}" --version 2>/dev/null | head -1)"
-  # The COD clang embeds its llvm-project git SHA in --version; grab it so a stale
-  # COD (or a re-tagged same-SHA build) is identifiable from the log alone.
-  LlvmSha="$("${CXX}" --version 2>/dev/null | grep -oE '[0-9a-f]{12,40}' | tail -1)"
-  HipVer="$(awk -F= '
+# The HIP runtime the COD ships, which decides half of what an on-device row means.
+function codHipVersion {
+  awk -F= '
     /^HIP_VERSION_(MAJOR|MINOR|PATCH|GITHASH)=/ { v[$1] = $2 }
     END { if (v["HIP_VERSION_MAJOR"] != "")
             printf "%s.%s.%s-%s", v["HIP_VERSION_MAJOR"], v["HIP_VERSION_MINOR"], \
                                   v["HIP_VERSION_PATCH"], v["HIP_VERSION_GITHASH"] }
-  ' "${RocmRoot}/share/hip/version" 2>/dev/null)"
+  ' "${RocmRoot}/share/hip/version" 2>/dev/null
+}
+
+# Said before anything is refreshed or built, so a run that dies early still names
+# what it was testing. The rest of the provenance waits for printProvenance, where
+# the gate has resolved the parts that are still 'auto' here.
+function printBanner {
   echo "==============================================================================="
   echo "rocKE ${Stage}  ($(date '+%Y-%m-%d %H:%M:%S'))"
   echo "  AOMP        = ${AompInput} -> ${AOMP}"
   echo "  ROCM_PATH   = ${ROCM_PATH} (${RocmRootSource})"
-  echo "  clang       = ${ClangVer}"
-  echo "  llvm SHA    = ${LlvmSha:-?}"
-  echo "  HIP         = ${HipVer:-?}"
-  echo "  flavors     = codegen:${ROCKE_CODEGEN_FLAVOR}  comgr:${ROCKE_COMGR_FLAVOR}  engine:${ROCKE_ENGINE_FLAVORS}"
   echo "==============================================================================="
 }
 
 # True when a resolved path lives inside the COD install root.
+# Everything that decides what a row means, in one block, once the gate has resolved
+# it. Scattered provenance is provenance nobody reads: the flavor knobs still said
+# 'auto' in the opening banner because they are pinned later, the comgr facts were
+# echoed mid-gate, and which torch produced a GPU result was not recorded anywhere.
+#
+# The rule this serves is the suite's oldest: a green row must name what produced it.
+# That means the compiler, but also the packages a verdict depends on -- pytest
+# decides what ran and how it is counted, pytest-subtests decides the shape of the
+# report this CI reconciles against, numpy and torch are the numeric references, and
+# pybind11 builds the engine extension the cross-engine tests compare. A version
+# change in any of them can move a row without the compiler moving at all.
+function printProvenance {
+  local Dev Driver Os
+  echo "== provenance ================================================================="
+  # Sourced in a subshell: /etc/os-release sets a dozen common names, and this
+  # function must not take NAME or VERSION from the host into the run's scope.
+  Os="$( . /etc/os-release 2>/dev/null && printf '%s' "${PRETTY_NAME:-${NAME:-} ${VERSION_ID:-}}" )"
+  echo "  host        $(uname -n)  ${Os:-$(uname -s)}, kernel $(uname -r)"
+  Driver="$(cat /sys/module/amdgpu/version 2>/dev/null)"
+  # The node is often shared, so which device this run was given is part of the
+  # result: two runs on one host can see different GPUs.
+  Dev="$("${PyBin}" - <<'PY' 2>/dev/null
+try:
+    from rocke.runtime.hip_module import get_device_arch
+    print(get_device_arch(0) or "no GPU agent")
+except Exception as exc:  # noqa: BLE001
+    print(f"cannot ask rocKE: {type(exc).__name__}")
+PY
+)"
+  echo "  device      ${Dev:-?}  (ROCR_VISIBLE_DEVICES=${ROCR_VISIBLE_DEVICES:-<unset>}${Driver:+, amdgpu ${Driver}})"
+  echo "  COD         ${RocmRoot}"
+  echo "              clang $("${CXX}" --version 2>/dev/null | head -1 | sed 's/^AMD clang version //;s/ (http.*//')" \
+       "(llvm $("${CXX}" --version 2>/dev/null | grep -oE '[0-9a-f]{12,40}' | tail -1 | cut -c1-12))"
+  echo "              HIP $(codHipVersion)"
+  echo "              comgr ${CodComgrIface:-?} ($(basename "$(realpath -m "${CodComgrLib:-?}" 2>/dev/null)"))," \
+       "rocm $(if (( ${ComgrVersionTrusted:-1} == 1 )); then echo "${CodComgrVintage:-?} -> ${CodComgrFlavor:-?}"; else echo "vintage not in the COD"; fi)"
+  echo "              emits the ${CodClangShape:-?} p8 datalayout;" \
+       "flavors codegen:${ROCKE_CODEGEN_FLAVOR} comgr:${ROCKE_COMGR_FLAVOR}" \
+       "engine:$(if [[ "${ROCKE_ENGINE_FLAVORS}" == auto ]]; then echo "auto (rocKE's list, swept by the engine lane)"; else echo "${ROCKE_ENGINE_FLAVORS}"; fi)"
+  echo "  rocKE       $(rockeSrcRev)  ${ROCKE_TOP}"
+  echo "  python      $("${PyBin}" -V 2>&1 | sed 's/^Python //')  ${PyBin}"
+  # Reported, never required: a package this suite does not need on every host must
+  # not turn its absence into a failure here. The lane that needs one says so itself.
+  "${PyBin}" - <<'PY' || true
+import importlib.metadata as md
+import pathlib
+for name in ("pytest", "pytest-subtests", "numpy", "pybind11", "torch"):
+    try:
+        ver = md.version(name)
+    except Exception:  # noqa: BLE001
+        print(f"              {name:16} absent")
+        continue
+    where = ""
+    try:
+        mod = __import__(name.replace("-", "_"))
+        where = str(pathlib.Path(getattr(mod, "__file__", "") or "").parent)
+    except Exception:  # noqa: BLE001
+        where = "(not importable)"
+    hip = ""
+    if name == "torch":
+        try:
+            import torch
+            hip = f" hip {torch.version.hip}" if torch.version.hip else " not a ROCm build"
+        except Exception:  # noqa: BLE001
+            hip = " (not importable)"
+    print(f"              {name:16} {ver}{hip}  {where}")
+PY
+  echo "  build       cmake $(cmake --version 2>/dev/null | head -1 | awk '{print $3}')," \
+       "ninja $(ninja --version 2>/dev/null || echo absent)"
+  echo "==============================================================================="
+}
+
 function underCod {
   [[ -n "${1}" && -e "${1}" && "$(realpath -m "${1}")" == "${RocmRoot}"/* ]]
 }
@@ -116,55 +186,49 @@ function resolveFlavorKnob {  # <env-var-name> <flavor>
 # green row can never come from a stale system ROCm. clang/comgr are always hard
 # requirements; HIP/hipcc/llvm-readelf are hard only in the lanes that use them.
 function assertCodToolchain {
-  local Probe Comgr ComgrVer ComgrFlavor ComgrIface ClangShape Pin Rc=0
+  local Probe Pin Rc=0
   local HipHard=0 HipccHard=0 ReadelfHard=0 CxxHard=0 ComgrVersionTrusted=1
   # rocke_cod_probe.py reports the comgr lib rocKE will actually load, its ROCm
   # vintage, the IR flavor *rocKE derives* from that vintage, and the lib's own
   # interface version. The flavor comes from rocKE's own ladder, so a release that
   # adds a flavor needs no edit here.
-  ClangShape="$(codClangP8Shape "${ROCKE_CI_ARCHES%% *}")"
+  CodClangShape="$(codClangP8Shape "${ROCKE_CI_ARCHES%% *}")"
   # The clang datalayout is the one basis for the flavor that cannot leak in from an
   # unrelated tree. Losing it means the flavor falls back to the comgr's ROCm number,
   # which is exactly the value this gate spends thirty lines distrusting -- so say so
   # in a row instead of continuing on the weaker basis in silence. A new p8 shape
   # upstream lands here, and that is worth a night's attention.
-  if [[ "${ClangShape}" == unknown ]]; then
+  if [[ "${CodClangShape}" == unknown ]]; then
     rockeResult setup cod-datalayout 1 \
       "the COD clang emits a p8 datalayout rocKE does not describe: pinning the flavor from the comgr's ROCm number instead" \
       harness
   fi
-  Probe="$("${PyBin}" "${HelperDir}/rocke_cod_probe.py" "${ClangShape}" 2>/dev/null)"
-  read -r Pin ComgrFlavor ComgrVer ComgrIface Comgr <<< "${Probe}"
+  Probe="$("${PyBin}" "${HelperDir}/rocke_cod_probe.py" "${CodClangShape}" 2>/dev/null)"
+  read -r Pin CodComgrFlavor CodComgrVintage CodComgrIface CodComgrLib <<< "${Probe}"
   resolveFlavorKnob ROCKE_CODEGEN_FLAVOR "${Pin}"
   resolveFlavorKnob ROCKE_COMGR_FLAVOR "${Pin}"
   echo "COD toolchain hygiene (compiler-critical rows must read [COD]):"
   codToolchainRow clang++ "$(command -v clang++)" 1 || Rc=1
-  codToolchainRow comgr "${Comgr}" 1 || Rc=1
-  if [[ "${ComgrVer}" != "?" && ! -e "${RocmRoot}/.info/version" ]] && underCod "${Comgr}"; then
+  codToolchainRow comgr "${CodComgrLib}" 1 || Rc=1
+  if [[ "${CodComgrVintage}" != "?" && ! -e "${RocmRoot}/.info/version" ]] && underCod "${CodComgrLib}"; then
     ComgrVersionTrusted=0
   fi
   # rocke_cod_smoke.py pins rocKE's vintage lookup only when it cannot be
   # believed; pinning it otherwise would also satisfy rocKE's IR-flavor guard
   # and hide a genuine comgr-vs-clang split.
   export ROCKE_COMGR_VERSION_TRUSTED="${ComgrVersionTrusted}"
-  if (( ComgrVersionTrusted == 1 )); then
-    echo "                       comgr interface ${ComgrIface} ($(basename "$(realpath -m "${Comgr}" 2>/dev/null)")), rocm vintage ${ComgrVer} -> rocke flavor ${ComgrFlavor}"
-  else
-    echo "                       comgr interface ${ComgrIface} ($(basename "$(realpath -m "${Comgr}" 2>/dev/null)")), rocm vintage metadata unavailable in COD"
-  fi
-  echo "                       cod clang emits the ${ClangShape} p8 datalayout"
   # The probe reports both bases: the flavor the comgr's ROCm number implies and the
   # one it chose from the clang's datalayout generation. They differ only when those
   # two disagree, which means one of them is not from this install -- and the clang
   # wins, because a datalayout cannot leak from an unrelated tree.
-  if (( ComgrVersionTrusted == 1 )) && [[ "${ComgrFlavor}" != "?" && "${Pin}" != "${ComgrFlavor}" ]]; then
-    echo "WARNING: datalayout split -- comgr rocm ${ComgrVer} implies ${ComgrFlavor}, but the COD"
-    echo "         clang emits the ${ClangShape} p8 shape; pinning ${Pin} to match the clang."
+  if (( ComgrVersionTrusted == 1 )) && [[ "${CodComgrFlavor}" != "?" && "${Pin}" != "${CodComgrFlavor}" ]]; then
+    echo "WARNING: datalayout split -- comgr rocm ${CodComgrVintage} implies ${CodComgrFlavor}, but the COD"
+    echo "         clang emits the ${CodClangShape} p8 shape; pinning ${Pin} to match the clang."
     # A row, not only a warning: this says the comgr and the clang in one install
     # disagree about the IR they speak, which is the sharpest packaging signal this
     # gate produces, and the dashboard never sees an echo.
     rockeResult setup cod-datalayout-split 1 \
-      "comgr rocm ${ComgrVer} implies ${ComgrFlavor} but the COD clang emits the ${ClangShape} p8 shape; pinned ${Pin}" \
+      "comgr rocm ${CodComgrVintage} implies ${CodComgrFlavor} but the COD clang emits the ${CodClangShape} p8 shape; pinned ${Pin}" \
       compiler
   fi
   # A COD shipping no .info/version lets rocke's vintage number leak from the
@@ -175,9 +239,9 @@ function assertCodToolchain {
     # fires, and it means rocKE keys its feature decisions off a foreign vintage --
     # which is how a compile the COD can do gets refused. Packaging, hence compiler.
     rockeResult setup cod-vintage-leak 1 \
-      "COD ships no .info/version, so the comgr vintage ${ComgrVer} came from the system installation; rocKE will gate features on it" \
+      "COD ships no .info/version, so the comgr vintage ${CodComgrVintage} came from the system installation; rocKE will gate features on it" \
       compiler
-    echo "WARNING: ignoring comgr rocm vintage ${ComgrVer}: it leaked from the system /opt/rocm fallback"
+    echo "WARNING: ignoring comgr rocm vintage ${CodComgrVintage}: it leaked from the system /opt/rocm fallback"
     echo "         ($(cat /opt/rocm/.info/version 2>/dev/null || echo '?')); the flavor knobs keep whatever rocKE derived from it."
   fi
   # A hard requirement is a property of the lanes actually running, so 'all'
@@ -211,7 +275,6 @@ function assertCodToolchain {
   (( Rc == 0 )) || fatalSetup \
     "compiler toolchain resolves outside the COD (${RocmRoot}); refusing to test a stale system ROCm" \
     toolchain
-  reportArchDrift
 }
 
 # Say when rocKE wires a target this suite does not sweep, or sweeps one it has

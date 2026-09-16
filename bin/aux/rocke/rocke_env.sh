@@ -48,7 +48,6 @@ function setupPython {
       || fatalSetup "venv unavailable and no python3 in PATH" python
   fi
   # Print once: the 'all' children resolve the same PyBin and would only repeat it.
-  [[ "${InternalAllChild:-0}" == 1 ]] || echo "# PyBin=${PyBin}"
   # pytest matters as much as numpy: without it a lane exits 1 with no report
   # and the row blames a missing JUnit file.
   "${PyBin}" -c "${Need}" 2>/dev/null \

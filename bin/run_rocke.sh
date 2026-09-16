@@ -453,7 +453,6 @@ function updateRockeSource {
         || fatalSetup "failed to fast-forward ${Branch}; refusing to test stale source" source
     fi
   fi
-  echo "rocKE src = $(rockeSrcRev)  (rocm-libraries: ${ROCKE_TOP})"
 }
 
 # Shared with the lane module, for the same reason as EngineExtDir above.
@@ -487,6 +486,10 @@ if (( InternalAllChild == 0 )); then
   setupPython
   installCodShim
   assertCodToolchain
+  printProvenance
+  # After the block, so the opening of a log reads as one description of the run
+  # before any result row appears.
+  reportArchDrift
 else
   setupPython
   installCodShim
