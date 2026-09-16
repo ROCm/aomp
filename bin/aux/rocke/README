@@ -1,5 +1,17 @@
 Worker modules for ../../run_rocke.sh, the rocKE compiler-of-the-day test driver.
 
+Bash, sourced by the driver in this order. Each defines functions and nothing
+else, so sourcing cannot change state or fail a run:
+
+- rocke_toolchain.sh      resolve the compiler under test, prove every tool
+                          comes from it, pin the IR flavor
+- rocke_env.sh            the venv and its declared dependencies, the numeric
+                          reference, the COD-built engine extension, and
+                          turning a runner's report into result rows
+- rocke_lanes.sh          the lanes, their relevance, and their row floors
+
+Python, run as programs or imported by rocKE's pytest session:
+
 - rocke_result.py         the ROCKE_RESULT line format every lane emits
 - rocke_tiers.py          the relevance vocabulary, shared by all of the below
 - rocke_relevance.py      pytest plugin: can a red row be a COD regression?
@@ -10,6 +22,15 @@ Worker modules for ../../run_rocke.sh, the rocKE compiler-of-the-day test driver
 
 The rocke_ prefix stays: these go on the PYTHONPATH of rocKE's own pytest
 session, where a plain result.py would shadow the project's module.
+
+Checks, both of which the driver's own lanes do not cover:
+
+  shellcheck -x ../../run_rocke.sh rocke_*.sh
+  python3 -m unittest discover -s tests
+
+Name the bash modules in that shellcheck command. `-x` follows a sourced file
+to learn what it defines but reports nothing inside it, so checking the driver
+alone leaves every module unexamined while still reporting clean.
 
 The CI-side extractor and the full documentation live in the apps repo under
 openmp-ci/rocKE (extract-rocke.sh, README.md); the extractor imports

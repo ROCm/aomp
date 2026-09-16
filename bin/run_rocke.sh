@@ -74,6 +74,28 @@ ScriptDir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # rocKE's own test session, where a plain result.py would shadow the project's.
 HelperDir="${ScriptDir}/aux/rocke"
 InheritedPythonPath="${PYTHONPATH:-}"
+
+# The bash side of the worker, sourced by name rather than discovered: a glob would
+# quietly run whatever a stale file left in the directory, and the list is what says
+# these four files are one program. Each module defines functions only, so sourcing
+# cannot change state or fail a run; a missing one is fatal here, before any lane
+# has claimed to test anything.
+for Module in rocke_toolchain.sh rocke_env.sh rocke_lanes.sh; do
+  [[ -r "${HelperDir}/${Module}" ]] || {
+    echo "ERROR: ${HelperDir}/${Module} is missing; this driver is incomplete" >&2
+    exit 2
+  }
+done
+unset Module
+# Sourced one literal path at a time, not in the loop above: shellcheck -x cannot
+# follow a path built from a variable, so a loop would leave every module
+# unchecked while the driver still reported clean.
+# shellcheck source=aux/rocke/rocke_toolchain.sh
+. "${HelperDir}/rocke_toolchain.sh"
+# shellcheck source=aux/rocke/rocke_env.sh
+. "${HelperDir}/rocke_env.sh"
+# shellcheck source=aux/rocke/rocke_lanes.sh
+. "${HelperDir}/rocke_lanes.sh"
 if [[ -z "${Stage}" ]]; then
   printUsage; exit 2
 elif [[ "|${Lanes}|" != *"|${Stage}|"* ]]; then
@@ -89,20 +111,6 @@ AompInput="${AOMP}"
 AOMP="$(realpath -m "${AompInput}")"
 export AOMP
 
-# Walk up from the resolved llvm dir to the nearest ancestor shipping comgr or
-# hipcc. Key on those, not on include/hip or amdgcn/bitcode: some packagings put
-# headers and device-libs under llvm/, so keying on those would stop one level
-# below the real root and let comgr fall back to a system /opt/rocm.
-function resolveRocmRoot {
-  local Dir="${1}" Start="${1}" _Hop
-  for _Hop in 0 1 2 3; do
-    if [[ -e "${Dir}/lib/libamd_comgr.so" || -x "${Dir}/bin/hipcc" ]]; then
-      echo "${Dir}"; return 0
-    fi
-    Dir="$(realpath -m "${Dir}/..")"
-  done
-  realpath -m "$(dirname "${Start}")"  # give up; prefix check + hygiene flag it
-}
 
 # ROCM_PATH (the house-standard knob) may override the derived root, but only
 # while realpath(ROCM_PATH) is a prefix of realpath(AOMP): otherwise a stray
@@ -292,15 +300,6 @@ function fatalSetup {
 # Directory locks avoid inheritable file descriptors, so an external tool (or a
 # daemon it starts) cannot retain a nightly lock after this worker exits.
 HeldLockDirs=()
-# Populate the shim named in PATH above. Separate from the PATH line because it
-# needs fatalSetup, and definitions in this file come after that line runs.
-function installCodShim {
-  if ! mkdir -p "${CodShim}" \
-    || ! ln -sf "${AOMP}/bin/clang++" "${CodShim}/c++" \
-    || ! ln -sf "${AOMP}/bin/clang" "${CodShim}/cc"; then
-    fatalSetup "cannot create the COD compiler shim in ${CodShim}" harness
-  fi
-}
 
 # shellcheck disable=SC2317 # invoked indirectly by the EXIT trap
 function cleanupOnExit {
@@ -368,23 +367,7 @@ function acquireDirLock {  # <lock-dir> <description>
   HeldLockDirs+=("${Lock}")
 }
 
-# A directory that exists is not necessarily one pytest can build a collector
-# for; an argument it cannot collect from aborts the whole run. Require visible
-# test files, matching pytest's default python_files patterns.
-function hasTests {  # <dir>
-  [[ -d "${1}" && -r "${1}" ]] || return 1
-  [[ -n "$(find "${1}" \( -name 'test_*.py' -o -name '*_test.py' \) \
-             -print -quit 2>/dev/null)" ]]
-}
 
-# pytest reports a usage error (an unopenable root, conftest or plugin) on its
-# output only, so a row saying just "exited with status 4" is undiagnosable.
-function runnerDetail {  # <runner-log>
-  local Log="${1:-}" Line
-  [[ -n "${Log}" && -f "${Log}" ]] || return 0
-  Line="$(grep -m1 -E '^(ERROR|ImportError while loading)' "${Log}")" || return 0
-  [[ -n "${Line}" ]] && printf ': %s' "${Line:0:160}"
-}
 
 # Build rocKE's C++ engine extension (`rocke_engine`) so the pytest lanes can
 # import it, reporting where it landed in EngineExtDir.
@@ -404,372 +387,22 @@ function runnerDetail {  # <runner-log>
 #
 # It reports through a global because it also prints progress and, on failure, a
 # result row: a caller capturing stdout would swallow the row into a variable.
+# Read and written by the lane and environment modules; the driver owns the state
+# those functions share, so that sourcing a module stays free of side effects.
+# shellcheck disable=SC2034
 EngineExtDir=""
-function ensureEngineExtension {  # sets EngineExtDir
-  local Root="${ROCKE_CI_BUILD_ROOT}/engine-ext" Ext Stamp Run
-  EngineExtDir=""
-  Stamp="${Root}/.rocke-run"
-  Run="${ROCKE_RUN_ID}"
-  if [[ ! -d "${ROCKE_TOP}/cpp" ]]; then
-    rockeResult setup engine-extension 1 \
-      "no ${ROCKE_TOP}/cpp: cannot tell whether the engine extension is current" \
-      "${LaneRelevance}"
-    return 1
-  fi
-  # Lock before deciding, not after: the decision reads the tree and one arm of it
-  # deletes the tree, so an unlocked decision can race a concurrent build into
-  # either a half-linked module or an rm -rf underneath it. prepareBuildRoot orders
-  # it this way for the same reason.
-  mkdir -p "${Root}"
-  acquireDirLock "${Root}.lock" "engine extension build"
-  if [[ "${ROCKE_REBUILD}" == 1 && "$(cat "${Stamp}" 2>/dev/null)" != "${Run}" ]]; then
-    rm -rf "${Root}"
-    mkdir -p "${Root}"
-  else
-    Ext="$(find "${Root}" -name 'rocke_engine*.so' -print -quit 2>/dev/null)"
-    # Ask directly whether any C++ source is newer than the module we already have,
-    # rather than sorting the tree: one stat walk, and no filename can confuse it.
-    if [[ -n "${Ext}" ]] && [[ -z "$(find "${ROCKE_TOP}/cpp" -newer "${Ext}" \
-         \( -name '*.cpp' -o -name '*.hpp' -o -name '*.h' -o -name 'CMakeLists.txt' \) \
-         -print -quit 2>/dev/null)" ]]; then
-      EngineExtDir="$(dirname "${Ext}")"; return 0
-    fi
-  fi
-  local PyBind
-  PyBind="$("${PyBin}" -m pybind11 --cmakedir 2>/dev/null)"
-  if [[ -z "${PyBind}" ]]; then
-    rockeResult setup engine-extension 1 \
-      "pybind11 unavailable in ${ROCKE_VENV}; rocKE's cross-engine tests cannot run" \
-      "${LaneRelevance}"
-    return 1
-  fi
-  echo "building the rocKE C++ engine extension (${Root})"
-  if ! cmake -S "${ROCKE_TOP}" -B "${Root}" -DCMAKE_BUILD_TYPE=Release \
-         -DROCKE_BUILD_PYBIND=ON -Dpybind11_DIR="${PyBind}" \
-         -DPython3_EXECUTABLE="${PyBin}" > "${Root}/configure.log" 2>&1; then
-    rockeResult setup engine-extension 1 \
-      "cmake configure failed for the engine extension (see ${Root}/configure.log)" \
-      "${LaneRelevance}"
-    return 1
-  fi
-  if ! cmake --build "${Root}" --target rocke_core rocke_engine \
-         -j"$(nproc 2>/dev/null || echo 4)" > "${Root}/build.log" 2>&1; then
-    # The COD compiles this, so a failure here is a genuine COD finding, not noise.
-    rockeResult setup engine-extension 1 \
-      "COD build of the engine extension failed (see ${Root}/build.log)" \
-      "${LaneRelevance}"
-    return 1
-  fi
-  Ext="$(find "${Root}" -name 'rocke_engine*.so' -print -quit 2>/dev/null)"
-  if [[ -z "${Ext}" ]]; then
-    rockeResult setup engine-extension 1 \
-      "engine extension not produced under ${Root}" "${LaneRelevance}"
-    return 1
-  fi
-  # Stamped only now: a failed build must not claim this run already rebuilt.
-  printf '%s\n' "${Run}" > "${Stamp}"
-  EngineExtDir="$(dirname "${Ext}")"
-}
 
-# Run pytest from the tests dir under the relevance plugin, teeing to <log> so a
-# usage error stays diagnosable. Returns pytest's own status.
-function runPytest {  # <xml> <manifest> <log> [pytest args...]
-  local Xml="${1}" Manifest="${2}" Log="${3}"; shift 3
-  # A reused build dir (ROCKE_REBUILD=0) still holds the previous report; if
-  # this run never writes one, emitJunit would republish it as today's verdict.
-  rm -f "${Xml}" "${Manifest}" "${Log}"
-  # --continue-on-collection-errors, because upstream moves files weekly: without it
-  # one unimportable module aborts collection and the lane reports two rows instead
-  # of a thousand, which reads as a catastrophic night when five rocKE tests broke.
-  ( cd "${ROCKE_TOP}/tests" \
-    && ROCKE_RELEVANCE_OUT="${Manifest}" \
-       PYTHONPATH="${PYTHONPATH}:${HelperDir}${EngineExtDir:+:${EngineExtDir}}" \
-       "${PyBin}" -m pytest "$@" -p rocke_relevance -q \
-         --continue-on-collection-errors --junitxml="${Xml}" ) 2>&1 \
-    | tee "${Log}"
-  return "${PIPESTATUS[0]}"
-}
 
-# Turn a JUnit report into result rows, or emit a red row when it is missing.
-# Preserve an unexplained nonzero runner exit even when it left a partial XML
-# containing only completed, passing testcases.
-function emitJunit {  # <xml> <default-group> [runner-status] [manifest] [runner-log]
-  local Xml="${1}" GroupDefault="${2}" RunStatus="${3:-0}" Manifest="${4:-}"
-  local RunnerLog="${5:-}"
-  local ParseStatus=0
-  # The status a runner uses for "tests ran, some failed", which is not an error of
-  # ours. Set by the caller (ctest uses 8), because deriving it from the group label
-  # meant renaming a group silently changed how the runner's status was read.
-  local ExpectedFailureStatus="${ExpectedRunnerFailure:-1}"
-  local -a RelevanceArgs=(--relevance-default "${LaneRelevance}")
-  # Pass the path whenever the lane asked for one, present or not: gating on -f
-  # here meant a plugin that failed to write it produced no --relevance, hence no
-  # red row, and a thousand rows quietly fell back to the lane default. The
-  # converter reports an unreadable manifest itself.
-  [[ -n "${Manifest}" ]] && RelevanceArgs+=(--relevance "${Manifest}")
-  # A lane whose every test drives the toolchain by construction says so, so a row
-  # cannot be reported below that even when the evidence is empty (work in a child).
-  [[ -n "${LaneRelevanceFloor:-}" ]] \
-    && RelevanceArgs+=(--relevance-floor "${LaneRelevanceFloor}")
-  # The flavor the COD speaks, pinned from its clang's own datalayout. A check that
-  # reports drift under a different flavor measured another toolchain (see the
-  # converter's _DATALAYOUT_DRIFT), which is not a verdict on this COD.
-  [[ "${ROCKE_CODEGEN_FLAVOR:-auto}" != auto ]] \
-    && RelevanceArgs+=(--cod-flavor "${ROCKE_CODEGEN_FLAVOR}")
-  if [[ -f "${Xml}" ]]; then
-    "${PyBin}" "${HelperDir}/rocke_junit_results.py" \
-      --junit "${Xml}" --group-default "${GroupDefault}" \
-      "${RelevanceArgs[@]}" || ParseStatus=$?
-    if (( ParseStatus != 0 )); then
-      rockeResult setup "${GroupDefault}-junit" 1 \
-        "cannot parse JUnit report (status ${ParseStatus})"
-    fi
-    if (( RunStatus != 0 )) \
-      && { (( RunStatus != ExpectedFailureStatus )) \
-        || ! grep -Eq '<(failure|error)[ />]' "${Xml}"; }; then
-      rockeResult setup "${GroupDefault}-runner" 1 \
-        "test runner exited with status ${RunStatus}$(runnerDetail "${RunnerLog}")"
-    fi
-  else
-    rockeResult setup "${GroupDefault}-report" 1 \
-      "no JUnit report produced$(runnerDetail "${RunnerLog}")"
-  fi
-}
 
-# Reuse an existing venv, else create one (numpy + pytest) outside the source
-# tree; fall back to the system python only if the venv cannot be built.
-function setupPython {
-  local Need='import numpy, pytest' Existed=1
-  PyBin=""
-  if [[ -x "${ROCKE_VENV}/bin/python" ]]; then
-    PyBin="${ROCKE_VENV}/bin/python"
-    # An interrupted or offline bootstrap leaves a venv that every later run
-    # would adopt and then fail on; top it up instead of inheriting the damage,
-    # unless the caller asked this script to install nothing.
-    if [[ "${ROCKE_SETUP_VENV}" == "1" ]] && ! "${PyBin}" -c "${Need}" 2>/dev/null; then
-      "${PyBin}" -m pip install --quiet numpy pytest || true
-    fi
-  elif [[ "${ROCKE_SETUP_VENV}" == "1" ]]; then
-    [[ -e "${ROCKE_VENV}" ]] || Existed=0
-    if python3 -m venv "${ROCKE_VENV}" \
-      && "${ROCKE_VENV}/bin/python" -m pip install --quiet --upgrade pip \
-      && "${ROCKE_VENV}/bin/python" -m pip install --quiet numpy pytest; then
-      PyBin="${ROCKE_VENV}/bin/python"
-    elif (( Existed == 0 )); then
-      rm -rf "${ROCKE_VENV}"  # only what this run created
-    fi
-  fi
-  if [[ -z "${PyBin}" ]]; then
-    echo "# WARN: venv unavailable, falling back to system python3"
-    # Name the real problem here: an empty PyBin would fail the import check
-    # below and report a missing module instead of a missing interpreter.
-    PyBin="$(command -v python3)" \
-      || fatalSetup "venv unavailable and no python3 in PATH" python
-  fi
-  # Print once: the 'all' children resolve the same PyBin and would only repeat it.
-  [[ "${InternalAllChild:-0}" == 1 ]] || echo "# PyBin=${PyBin}"
-  # pytest matters as much as numpy: without it a lane exits 1 with no report
-  # and the row blames a missing JUnit file.
-  "${PyBin}" -c "${Need}" 2>/dev/null \
-    || fatalSetup "numpy and pytest must be importable with ${PyBin} (venv ${ROCKE_VENV})" python
-}
 
-# Refuse to install into an interpreter this script did not create. Standalone,
-# PyBin can be the engineer's system python3, and these are large packages that
-# would stay behind in ~/.local long after the run.
-function pipInstallable {  # <what>
-  [[ "${PyBin}" == "${ROCKE_VENV}/bin/"* ]] && return 0
-  echo "WARNING: not installing ${1} into ${PyBin}: outside ${ROCKE_VENV}." \
-       "Allow the venv (ROCKE_SETUP_VENV=1) or preinstall it yourself."
-  return 1
-}
 
-# Dependencies declared by rocKE's platform `[project.optional-dependencies].dev`
-# that are needed by its package-local heuristics tests. Keep torch separate: it
-# must match the GPU stack and is provisioned only by gpu-numeric.
-# rocKE's own declared dev extras, so a dependency it adds arrives here without an
-# edit. A hardcoded list silently rots: rocKE has declared pybind11 for a while and
-# our list omitted it, which left every cross-engine test unable to run.
-# ${ROCKE_EXTRA_TEST_DEPS} covers what rocKE uses but does not declare.
-function rockeDeclaredTestDeps {
-  # Diagnostics go to stderr on purpose: the caller captures stdout, and a parse
-  # failure has to say *why* in the log rather than look like an empty extras list.
-  "${PyBin}" - "${ROCKE_TOP}/pyproject.toml" <<'PY'
-import re, sys
 
-path = sys.argv[1]
-try:
-    text = open(path, encoding="utf-8").read()
-except OSError as exc:
-    sys.exit(f"cannot read {path}: {exc}")
 
-specs = []
-try:  # an exact parse wherever the interpreter has it (3.11+)
-    import tomllib
 
-    specs = (
-        tomllib.loads(text)
-        .get("project", {})
-        .get("optional-dependencies", {})
-        .get("dev", [])
-    )
-except ModuleNotFoundError:  # 3.10: read the one table we need
-    # Closing bracket at line start, not the first one seen: a spec carrying its own
-    # extras ("pandas[performance]") ends the list early otherwise, and installing a
-    # silently short list is the rot this reads their file to avoid.
-    # Anchored inside the table we mean: a bare `dev = [` search would happily take
-    # a PEP 735 [dependency-groups] list, which is a different set of requirements.
-    table = re.search(
-        r"^\[project\.optional-dependencies\](.*?)(?=^\[|\Z)", text, re.M | re.S
-    )
-    block = (
-        re.search(r"^\s*dev\s*=\s*\[(.*?)^\s*\]", table.group(1), re.M | re.S)
-        if table
-        else None
-    )
-    if block:
-        specs = re.findall(r'"([^"]+)"', block.group(1))
-except (ValueError, TypeError) as exc:
-    sys.exit(f"cannot parse {path}: {exc}")
 
-# Whole requirement, version bound included. Reducing these to bare names let an
-# installed pybind11 2.x satisfy rocKE's `pybind11>=3.0`, so pip did nothing and the
-# bound rocKE had just raised was never applied -- the rot this reads their file to
-# avoid. One per line, because a PEP 508 spec may contain spaces.
-specs = [s.strip() for s in dict.fromkeys(specs) if s.strip()]
-if not specs:
-    sys.exit(f"no [project.optional-dependencies].dev entries in {path}")
-print("\n".join(specs))
-PY
-}
 
-function ensureProjectTestDeps {
-  local -a Deps=() Extra=()
-  # Read on its own, not folded in with ROCKE_EXTRA_TEST_DEPS: a non-empty extra
-  # would make the combined list look healthy and hide the very rot this reads
-  # rocKE's file to avoid -- installing a stale subset and leaving its own tests
-  # unable to run.
-  mapfile -t Deps < <(rockeDeclaredTestDeps)
-  if (( ${#Deps[@]} == 0 )); then
-    rockeResult setup python-test-deps 1 \
-      "cannot read rocKE's declared dev dependencies from ${ROCKE_TOP}/pyproject.toml"
-    return 1
-  fi
-  read -ra Extra <<< "${ROCKE_EXTRA_TEST_DEPS}"
-  Deps+=("${Extra[@]}")
-  # Import names differ from distribution names often enough that checking them is
-  # its own maintenance burden; pip already decides in milliseconds when satisfied.
-  echo "provisioning rocKE-declared test dependencies: ${Deps[*]}"
-  if pipInstallable "rocKE dev test dependencies" \
-    && "${PyBin}" -m pip install --quiet "${Deps[@]}"
-  then
-    return 0
-  fi
-  rockeResult setup python-test-deps 1 "cannot provision rocKE dev test dependencies"
-  return 1
-}
 
-# COD ROCm major.minor, from this install's own metadata only: rocKE's comgr
-# resolver falls back to /opt/rocm when COD metadata is absent, and that
-# unrelated version would select an incompatible multi-gigabyte torch wheel.
-function codRocmVersion {
-  head -1 "${RocmRoot}/.info/version" 2>/dev/null | cut -d. -f1,2
-}
 
-# Datalayout generation a ROCm major.minor implies (>= 7.2 emits the indexed p8 shape).
-# Empty when the version is unusable.
-function rocmEra {  # <major[.minor[.patch]]>
-  local Major="${1%%.*}" Rest="${1#*.}" Minor=0
-  # A bare major must not borrow itself as the minor: "7" is 7.0, not 7.7.
-  [[ "${1}" == *.* ]] && Minor="${Rest%%.*}"
-  [[ "${Major}" =~ ^[0-9]+$ && "${Minor}" =~ ^[0-9]+$ ]] || return 1
-  # The datalayout generation, not the flavor. What a torch build has to match is
-  # the IR shape its HIP runtime speaks, and every flavor from llvm22 on shares the
-  # indexed p8 shape -- so this stays correct when rocKE adds a flavor, which a copy
-  # of its release ladder did not (it kept saying llvm22 after llvm23 arrived).
-  if (( Major > 7 || (Major == 7 && Minor >= 2) )); then echo indexed-p8; else echo plain-p8; fi
-}
-
-# Accept a torch that can serve as the numeric reference for this COD.
-#
-# Not an exact ROCm match: a COD carries an in-development ROCm (7.15, 10.0) that
-# no published torch will ever match, so requiring equality makes the lane dead on
-# every COD. What keeps the toolchain honest is ROCKE_COMGR_LIB, which pins rocKE
-# to the COD comgr ahead of any torch-bundled one; torch's job here is to be a
-# numeric oracle. So require only the same IR flavor era -- across eras its HIP
-# runtime pairs badly with COD kernels -- and note a difference within one.
-function validateTorch {
-  local Ver TorchVer TorchMajorMinor CodEra TorchEra
-  "${PyBin}" -c 'import torch' 2>/dev/null || return 1
-  TorchVer="$("${PyBin}" -c 'import torch; print(torch.version.hip or "")' 2>/dev/null)"
-  [[ -n "${TorchVer}" ]] || {
-    echo "ERROR: ROCKE_VENV contains a non-ROCm torch build"
-    return 1
-  }
-  TorchMajorMinor="$(cut -d. -f1,2 <<< "${TorchVer}")"
-  Ver="$(codRocmVersion)"
-  CodEra="$(rocmEra "${Ver}" || true)"
-  TorchEra="$(rocmEra "${TorchMajorMinor}" || true)"
-  if [[ -n "${CodEra}" && -n "${TorchEra}" && "${CodEra}" != "${TorchEra}" ]]; then
-    echo "ERROR: torch ROCm ${TorchVer} speaks the ${TorchEra} datalayout, COD ROCm ${Ver} the ${CodEra} one"
-    return 1
-  fi
-  if [[ -n "${Ver}" && "${TorchMajorMinor}" != "${Ver}" ]]; then
-    echo "using torch ROCm ${TorchVer} as the numeric reference for COD ROCm ${Ver}" \
-         "(same ${CodEra} datalayout; rocKE still compiles through the COD comgr)"
-  else
-    echo "using torch ROCm ${TorchVer} from ${ROCKE_VENV}"
-  fi
-  return 0
-}
-
-# Provision rocKE's numeric reference (torch) on demand from the pytorch ROCm
-# wheel index for the COD's ROCm major.minor; ROCKE_TORCH_INDEX_URL overrides it.
-# The wheel index a released ROCm publishes. A COD carries an unreleased ROCm, so
-# the index its own version implies usually does not exist -- which is why callers
-# pass a released one of the same datalayout generation (rocmEra) instead.
-function rocmWheelIndex {  # <major.minor>
-  [[ -n "${1}" ]] || return 1
-  echo "https://download.pytorch.org/whl/rocm${1}"
-}
-
-# Install one package from a ROCm wheel index into the suite-owned venv. Separate
-# from any particular package so the next one that has to match a ROCm generation
-# does not grow its own copy of this.
-function installRocmPackage {  # <package> <index>
-  local Pkg="${1}" Idx="${2}"
-  pipInstallable "${Pkg} (may be several GB)" || return 1
-  echo "provisioning ${Pkg} from ${Idx}"
-  "${PyBin}" -m pip install --index-url "${Idx}" "${Pkg}" || {
-    echo "ERROR: no ${Pkg} at ${Idx}"
-    echo "       An unreleased COD ROCm has no published wheels. Point" \
-         "ROCKE_TORCH_INDEX_URL at a released"
-    echo "       index of the same era ($(rocmEra "$(codRocmVersion)" || echo '?'))," \
-         "e.g. $(rocmWheelIndex 7.2), or install it in ${ROCKE_VENV}."
-    return 1
-  }
-}
-
-# Provide the numeric reference, provisioning only when a caller asked for it.
-#
-# Deriving an index from the COD's own ROCm and installing gigabytes mid-run was
-# the old default, and it could only succeed by luck: the run that needed it spent
-# its two seconds discovering that rocm10.2 publishes nothing. A prepared host
-# installs torch once, which is what both successful numeric runs did. No
-# --force-reinstall either: replacing a working wheel is not this script's business.
-function ensureTorch {
-  validateTorch && return 0
-  local Idx="${ROCKE_TORCH_INDEX_URL}"
-  if [[ -z "${Idx}" ]]; then
-    [[ "${ROCKE_PROVISION_TORCH}" == 1 ]] || return 1
-    Idx="$(rocmWheelIndex "$(codRocmVersion)")" || {
-      echo "ERROR: COD has no .info/version; set ROCKE_TORCH_INDEX_URL"
-      return 1
-    }
-  fi
-  installRocmPackage torch "${Idx}" || return 1
-  validateTorch
-}
 
 # branch@shortsha of the rocKE checkout, or '?' when it is not a git tree.
 function rockeSrcRev {
@@ -847,210 +480,14 @@ function updateRockeSource {
   echo "rocKE src = $(rockeSrcRev)  (rocm-libraries: ${ROCKE_TOP})"
 }
 
-function printBanner {
-  local ClangVer LlvmSha HipVer
-  ClangVer="$("${CXX}" --version 2>/dev/null | head -1)"
-  # The COD clang embeds its llvm-project git SHA in --version; grab it so a stale
-  # COD (or a re-tagged same-SHA build) is identifiable from the log alone.
-  LlvmSha="$("${CXX}" --version 2>/dev/null | grep -oE '[0-9a-f]{12,40}' | tail -1)"
-  HipVer="$(awk -F= '
-    /^HIP_VERSION_(MAJOR|MINOR|PATCH|GITHASH)=/ { v[$1] = $2 }
-    END { if (v["HIP_VERSION_MAJOR"] != "")
-            printf "%s.%s.%s-%s", v["HIP_VERSION_MAJOR"], v["HIP_VERSION_MINOR"], \
-                                  v["HIP_VERSION_PATCH"], v["HIP_VERSION_GITHASH"] }
-  ' "${RocmRoot}/share/hip/version" 2>/dev/null)"
-  echo "==============================================================================="
-  echo "rocKE ${Stage}  ($(date '+%Y-%m-%d %H:%M:%S'))"
-  echo "  AOMP        = ${AompInput} -> ${AOMP}"
-  echo "  ROCM_PATH   = ${ROCM_PATH} (${RocmRootSource})"
-  echo "  clang       = ${ClangVer}"
-  echo "  llvm SHA    = ${LlvmSha:-?}"
-  echo "  HIP         = ${HipVer:-?}"
-  echo "  flavors     = codegen:${ROCKE_CODEGEN_FLAVOR}  comgr:${ROCKE_COMGR_FLAVOR}  engine:${ROCKE_ENGINE_FLAVORS}"
-  echo "==============================================================================="
-}
-
-# True when a resolved path lives inside the COD install root.
-function underCod {
-  [[ -n "${1}" && -e "${1}" && "$(realpath -m "${1}")" == "${RocmRoot}"/* ]]
-}
-
-# Print one hygiene row; return non-zero when a *hard* requirement is external.
-function codToolchainRow {  # <label> <path> <hard:1|0>
-  local Label="${1}" Path="${2}" Hard="${3}" Tag="MISSING"
-  if [[ -n "${Path}" && -e "${Path}" ]]; then
-    Tag="EXTERNAL"
-    underCod "${Path}" && Tag="COD"
-  fi
-  printf '  %-13s [%-8s] %s\n' "${Label}" "${Tag}" "${Path:-<not found>}"
-  [[ "${Hard}" == 1 && "${Tag}" != COD ]] && return 1
-  return 0
-}
-
-# Datalayout generation the COD clang itself emits, from its target datalayout p8
-# field. This cannot name a flavor: rocKE's llvm22 and llvm23 share the indexed p8
-# shape, so the field distinguishes generations, not releases. It is still the one
-# signal that cannot leak from an unrelated tree, which makes it the right
-# cross-check against the ROCm number the comgr reports.
-function codClangP8Shape {
-  local Arch="${1}" Dl
-  Dl=$(printf 'int _rocke_flavor_probe;\n' | "${AOMP}/bin/clang" -x c \
-        -target amdgcn-amd-amdhsa -mcpu="${Arch}" -emit-llvm -S - -o - 2>/dev/null \
-        | sed -n 's/^target datalayout = "\(.*\)"/\1/p')
-  case "${Dl}" in
-    *p8:128:128:128:48*) echo indexed ;;
-    *p8:128:128-*)       echo plain ;;
-    *)                   echo unknown ;;
-  esac
-}
 
 
-# Pin one flavor knob to the COD clang's own flavor when it is 'auto'; warn when
-# an explicit value disagrees, since rocKE would then lower IR in the wrong one.
-function resolveFlavorKnob {  # <env-var-name> <flavor>
-  local Name="${1}" Flavor="${2}" Cur="${!1}"
-  if [[ "${Cur}" == auto ]]; then
-    [[ "${Flavor}" != "?" && -n "${Flavor}" ]] \
-      || fatalSetup "cannot determine the IR flavor for ${Name}" toolchain
-    export "${Name}=${Flavor}"
-  elif [[ "${Flavor}" != "?" && "${Cur}" != "${Flavor}" ]]; then
-    echo "WARNING: ${Name}=${Cur} overrides the flavor this COD implies (${Flavor})"
-  fi
-}
 
-# Prove the compiler-critical tools/libs resolve *inside* the COD install, so a
-# green row can never come from a stale system ROCm. clang/comgr are always hard
-# requirements; HIP/hipcc/llvm-readelf are hard only in the lanes that use them.
-function assertCodToolchain {
-  local Probe Comgr ComgrVer ComgrFlavor ComgrIface ClangShape Pin Rc=0
-  local HipHard=0 HipccHard=0 ReadelfHard=0 CxxHard=0 ComgrVersionTrusted=1
-  # rocke_cod_probe.py reports the comgr lib rocKE will actually load, its ROCm
-  # vintage, the IR flavor *rocKE derives* from that vintage, and the lib's own
-  # interface version. The flavor comes from rocKE's own ladder, so a release that
-  # adds a flavor needs no edit here.
-  ClangShape="$(codClangP8Shape "${ROCKE_CI_ARCHES%% *}")"
-  # The clang datalayout is the one basis for the flavor that cannot leak in from an
-  # unrelated tree. Losing it means the flavor falls back to the comgr's ROCm number,
-  # which is exactly the value this gate spends thirty lines distrusting -- so say so
-  # in a row instead of continuing on the weaker basis in silence. A new p8 shape
-  # upstream lands here, and that is worth a night's attention.
-  if [[ "${ClangShape}" == unknown ]]; then
-    rockeResult setup cod-datalayout 1 \
-      "the COD clang emits a p8 datalayout rocKE does not describe: pinning the flavor from the comgr's ROCm number instead" \
-      harness
-  fi
-  Probe="$("${PyBin}" "${HelperDir}/rocke_cod_probe.py" "${ClangShape}" 2>/dev/null)"
-  read -r Pin ComgrFlavor ComgrVer ComgrIface Comgr <<< "${Probe}"
-  resolveFlavorKnob ROCKE_CODEGEN_FLAVOR "${Pin}"
-  resolveFlavorKnob ROCKE_COMGR_FLAVOR "${Pin}"
-  echo "COD toolchain hygiene (compiler-critical rows must read [COD]):"
-  codToolchainRow clang++ "$(command -v clang++)" 1 || Rc=1
-  codToolchainRow comgr "${Comgr}" 1 || Rc=1
-  if [[ "${ComgrVer}" != "?" && ! -e "${RocmRoot}/.info/version" ]] && underCod "${Comgr}"; then
-    ComgrVersionTrusted=0
-  fi
-  # rocke_cod_smoke.py pins rocKE's vintage lookup only when it cannot be
-  # believed; pinning it otherwise would also satisfy rocKE's IR-flavor guard
-  # and hide a genuine comgr-vs-clang split.
-  export ROCKE_COMGR_VERSION_TRUSTED="${ComgrVersionTrusted}"
-  if (( ComgrVersionTrusted == 1 )); then
-    echo "                       comgr interface ${ComgrIface} ($(basename "$(realpath -m "${Comgr}" 2>/dev/null)")), rocm vintage ${ComgrVer} -> rocke flavor ${ComgrFlavor}"
-  else
-    echo "                       comgr interface ${ComgrIface} ($(basename "$(realpath -m "${Comgr}" 2>/dev/null)")), rocm vintage metadata unavailable in COD"
-  fi
-  echo "                       cod clang emits the ${ClangShape} p8 datalayout"
-  # The probe reports both bases: the flavor the comgr's ROCm number implies and the
-  # one it chose from the clang's datalayout generation. They differ only when those
-  # two disagree, which means one of them is not from this install -- and the clang
-  # wins, because a datalayout cannot leak from an unrelated tree.
-  if (( ComgrVersionTrusted == 1 )) && [[ "${ComgrFlavor}" != "?" && "${Pin}" != "${ComgrFlavor}" ]]; then
-    echo "WARNING: datalayout split -- comgr rocm ${ComgrVer} implies ${ComgrFlavor}, but the COD"
-    echo "         clang emits the ${ClangShape} p8 shape; pinning ${Pin} to match the clang."
-    # A row, not only a warning: this says the comgr and the clang in one install
-    # disagree about the IR they speak, which is the sharpest packaging signal this
-    # gate produces, and the dashboard never sees an echo.
-    rockeResult setup cod-datalayout-split 1 \
-      "comgr rocm ${ComgrVer} implies ${ComgrFlavor} but the COD clang emits the ${ClangShape} p8 shape; pinned ${Pin}" \
-      compiler
-  fi
-  # A COD shipping no .info/version lets rocke's vintage number leak from the
-  # system /opt/rocm. Only worth saying for a COD-resident comgr: an external one
-  # already failed hard above.
-  if (( ComgrVersionTrusted == 0 )); then
-    # Also a row: on a COD that ships no .info/version this is the branch that
-    # fires, and it means rocKE keys its feature decisions off a foreign vintage --
-    # which is how a compile the COD can do gets refused. Packaging, hence compiler.
-    rockeResult setup cod-vintage-leak 1 \
-      "COD ships no .info/version, so the comgr vintage ${ComgrVer} came from the system installation; rocKE will gate features on it" \
-      compiler
-    echo "WARNING: ignoring comgr rocm vintage ${ComgrVer}: it leaked from the system /opt/rocm fallback"
-    echo "         ($(cat /opt/rocm/.info/version 2>/dev/null || echo '?')); the flavor knobs keep whatever rocKE derived from it."
-  fi
-  # A hard requirement is a property of the lanes actually running, so 'all'
-  # expands to its lane list and the lane -> tool mapping is stated once.
-  local Lane Running="${Stage}"
-  [[ "${Stage}" == all ]] && Running="${ROCKE_ALL_LANES}"
-  # shellcheck disable=SC2086 # intended word splitting of the lane list
-  for Lane in ${Running}; do
-    case "${Lane}" in
-      pytest|gpu-numeric) HipHard=1; HipccHard=1 ;;
-      cod-comgr)          HipHard=1 ;;
-      perf)               ReadelfHard=1 ;;
-      # rocKE builds the engine archive by invoking `c++`; the shim points that name
-      # at the COD, and this row is what proves it rather than assuming it.
-      engine)             CxxHard=1 ;;
-    esac
-  done
-  codToolchainRow hip-runtime "${ROCKE_HIP_LIB}" "${HipHard}" || Rc=1
-  codToolchainRow hipcc "$(command -v hipcc)" "${HipccHard}" || Rc=1
-  codToolchainRow llvm-readelf "$(command -v llvm-readelf)" "${ReadelfHard}" || Rc=1
-  codToolchainRow c++ "$(command -v c++)" "${CxxHard}" || Rc=1
-  (( Rc == 0 )) || fatalSetup \
-    "compiler toolchain resolves outside the COD (${RocmRoot}); refusing to test a stale system ROCm" \
-    toolchain
-  reportArchDrift
-}
 
-# Say when rocKE wires a target this suite does not sweep, or sweeps one it has
-# dropped. Which targets to cover is this team's policy, so rocKE's list is not
-# adopted wholesale: it carries entries our sweep deliberately omits, such as the
-# non-physical gfx11-generic, and taking it would both change the row population and
-# hand coverage policy to upstream. Asking it is still how we hear about a target
-# arriving, which a hardcoded list can only tell us by staying silent.
-#
-# Reported as unmeasured rather than red: the difference is a decision waiting to be
-# made, not a fault, and a red row that nobody can resolve is the thing this suite
-# has spent the most effort removing.
-function reportArchDrift {
-  local Wired Arch Ours Unswept=""
-  Wired="$("${PyBin}" -c 'from rocke.core.isa.backend import wired_arches
-print(" ".join(wired_arches()))' 2>/dev/null)" || return 0
-  [[ -n "${Wired}" ]] || return 0
-  Ours=" ${ROCKE_CI_ARCHES} ${ROCKE_CI_ARCHES_EXPERIMENTAL} "
-  for Arch in ${Wired}; do
-    [[ "${Ours}" == *" ${Arch} "* ]] || Unswept+="${Unswept:+ }${Arch}"
-  done
-  [[ -n "${Unswept}" ]] && rockeResult setup arch-coverage Check \
-    "rocKE wires ${Unswept}, which this suite does not sweep (ROCKE_CI_ARCHES)" harness
-  return 0
-}
 
-# Ensure a CMake new enough for rocKE's block() (>= 3.25); emit a clear setup
-# row and signal failure otherwise (the ctest/engine lanes build via cmake).
-function requireCmake {
-  local Ver Major Minor
-  Ver="$(cmake --version 2>/dev/null | head -1 | grep -oE '[0-9]+\.[0-9]+' | head -1)"
-  if [[ -z "${Ver}" ]]; then
-    rockeResult setup cmake 1 "cmake not found (need >= 3.25 for rocKE's block(); set ROCKE_CMAKE_BIN)"
-    return 1
-  fi
-  Major="${Ver%%.*}"; Minor="${Ver#*.}"
-  if (( Major < 3 || (Major == 3 && Minor < 25) )); then
-    rockeResult setup cmake 1 "cmake ${Ver} too old (need >= 3.25; set ROCKE_CMAKE_BIN)"
-    return 1
-  fi
-  return 0
-}
+
+
+
 
 # Flavors the byte-identity gate sweeps. 'auto' asks rocKE for its own published
 # list, so a flavor it adds is swept the night it appears instead of waiting for
@@ -1059,303 +496,21 @@ function requireCmake {
 # Reports through a global for the same reason ensureEngineExtension does: it may
 # emit a result row, and a caller capturing stdout would read the row itself as the
 # answer -- eight words of a red row swept as eight flavors.
+# Shared with the lane module, for the same reason as EngineExtDir above.
+# shellcheck disable=SC2034
 EngineFlavorList=""
-function engineFlavors {  # sets EngineFlavorList
-  if [[ "${ROCKE_ENGINE_FLAVORS}" != auto ]]; then
-    EngineFlavorList="${ROCKE_ENGINE_FLAVORS}"; return
-  fi
-  EngineFlavorList="$("${PyBin}" -c 'from rocke.core.lower_llvm import LLVM_FLAVORS
-print(" ".join(LLVM_FLAVORS))' 2>/dev/null)"
-  if [[ -z "${EngineFlavorList}" ]]; then
-    EngineFlavorList="llvm20 llvm22"
-    rockeResult setup engine-flavors 1 \
-      "cannot read rocKE's LLVM_FLAVORS; sweeping ${EngineFlavorList} only" harness
-  fi
-}
 
-# How much the byte-identity gate covered, and what it faulted on, so a result row
-# can carry both instead of pointing at the log.
-# Echoes the count, or nothing when the gate did not report one. Both are red, but
-# they are different findings and the row must not blame rocKE's corpus for a change
-# in how the gate prints.
-function gateFamilyCount {  # <gate-log>
-  grep -m1 -oP 'families=\K[0-9]+' "${1}" 2>/dev/null || true
-}
 
-function gateFailures {  # <gate-log>
-  local Bad
-  # Anchored on the per-family line only. The gate also prints "<TAG> <count>" and
-  # "<TAG> families: a, b" with the same leading tags, and a looser pattern
-  # harvested "2" and "families:" into the row instead of family names.
-  Bad="$(grep -oP '^ {2}(DRIFT|RANGE_DRIFT|COMPILE_FAIL|MODE_UNSUPPORTED) {2,}\K[A-Za-z_][A-Za-z0-9_]*' \
-         "${1}" 2>/dev/null | sort -u | head -5 | tr '\n' ' ')"
-  printf '%s' "${Bad:-no family named by the gate; see the lane log}"
-}
 
-function stageEngine {
-  requireCmake || return
-  # The C++ archive is flavor-independent -- the flavor only changes run_diff's .ll
-  # emission -- so every flavor gets the same --build-root and cmake's incrementality
-  # covers the rebuilds after the first. The gate reconfigures each time regardless;
-  # this only avoids recompiling.
-  local -a Flavors
-  engineFlavors
-  read -ra Flavors <<< "${EngineFlavorList}"
-  local Flavor
-  for Flavor in "${Flavors[@]}"; do
-    echo "byte-identity gate: ${Flavor}"
-    local Gate="${BuildRoot}/byte-identity-${Flavor}.log"
-    # Keep a copy of the gate's own output so the row can name what it faulted on;
-    # PIPESTATUS because tee would otherwise report its own success as the verdict.
-    ROCKE_LLVM_FLAVOR="${Flavor}" "${PyBin}" "${ROCKE_TOP}/tools/check_byte_identity.py" \
-      --build-root "${BuildRoot}" 2>&1 | tee "${Gate}"
-    if (( PIPESTATUS[0] == 0 )); then
-      # An empty corpus passes this gate trivially, so the coverage it claims is part
-      # of the verdict rather than decoration: too few families is a red row, however
-      # green the comparison was.
-      local Fams; Fams="$(gateFamilyCount "${Gate}")"
-      if [[ -z "${Fams}" ]]; then
-        rockeResult byte-identity "${Flavor}" 1 \
-          "gate passed but reported no family count: cannot tell what it covered" \
-          "${LaneRelevance}"
-      elif (( Fams < ROCKE_MIN_GATE_FAMILIES )); then
-        rockeResult byte-identity "${Flavor}" 1 \
-          "gate passed over only ${Fams} families (floor ${ROCKE_MIN_GATE_FAMILIES}): its corpus shrank" \
-          "${LaneRelevance}"
-      else
-        rockeResult byte-identity "${Flavor}" 0 \
-          "engine == python .ll over ${Fams} families" "${LaneRelevance}"
-      fi
-    else
-      # Name the families that drifted: "see log" sends the reader into a
-      # thousand-line file for something a one-line message can carry.
-      rockeResult byte-identity "${Flavor}" 1 \
-        "gate RED: $(gateFailures "${Gate}")" "${LaneRelevance}"
-    fi
-  done
-}
 
-function stageCtest {
-  local RunRc
-  requireCmake || return
-  echo "cmake configure"
-  cmake -S "${ROCKE_TOP}" -B "${BuildRoot}" -DCMAKE_BUILD_TYPE=Release \
-    || { rockeResult ctest configure 1 "cmake configure failed" "${LaneRelevance}"; return; }
-  echo "cmake build"
-  cmake --build "${BuildRoot}" -j"$(nproc 2>/dev/null || echo 4)" \
-    || { rockeResult ctest build 1 "cmake build failed" "${LaneRelevance}"; return; }
-  echo "ctest"
-  local Xml="${BuildRoot}/ctest-junit.xml"
-  rm -f "${Xml}"  # never let a reused build dir's stale report stand in
-  ( cd "${BuildRoot}" && ctest --output-on-failure --no-tests=ignore --output-junit "${Xml}" )
-  RunRc=$?
-  ExpectedRunnerFailure=8 emitJunit "${Xml}" ctest "${RunRc}"
-}
 
-function stagePytest {
-  local RunRc Root
-  local -a TestRoots=() Missing=()
-  # A root pytest cannot collect from is a usage error that ends the lane before
-  # any test runs, so the ~1000 rows vanish instead of turning red. Report the
-  # gap and run the roots that are usable.
-  # Every root is reported the same way when it disappears. Treating one as optional
-  # is how a whole tree leaves the suite unnoticed -- and library/tests is precisely
-  # the tree rocKE's own gap registry says nothing else gates.
-  for Root in "${ROCKE_TOP}/tests" \
-              "${ROCKE_TOP}/python/rocke/benchmark" \
-              "${ROCKE_TOP}/python/rocke/heuristics/tests" \
-              ; do
-    if hasTests "${Root}"; then TestRoots+=("${Root}"); else Missing+=("${Root}"); fi
-  done
-  # library/tests belongs to the surrounding rocm-libraries checkout, so it is only
-  # required when we are in one: ROCKE_TOP is documented as accepting a bare rocKE
-  # tree, and demanding it there would make that mode permanently red.
-  #
-  # It stays in the same pytest invocation as the roots above. Running it in its own
-  # process to isolate torch from rocKE's HIP runtime looked attractive, but pytest
-  # derives a nodeid from the argument set: dropping one root rewrote 1226 of 2704
-  # classnames, so every one of those rows would leave the dashboard and return under
-  # a new name. The ordering is fixed in-process instead, by rocke_relevance.py's
-  # claim_device_for_torch().
-  if [[ "${ROCKE_REPO_ROOT}" != "${ROCKE_TOP}" ]]; then
-    Root="${ROCKE_PROJECT_ROOT}/library/tests"
-    if hasTests "${Root}"; then TestRoots+=("${Root}"); else Missing+=("${Root}"); fi
-  fi
-  if (( ${#Missing[@]} )); then
-    rockeResult setup pytest-roots 1 "unusable test roots: ${Missing[*]}"
-  fi
-  if (( ${#TestRoots[@]} == 0 )); then
-    rockeResult setup pytest-roots 1 "no pytest roots under ${ROCKE_TOP}"
-    return
-  fi
-  ensureProjectTestDeps || return
-  # rocKE's cross-engine tests need its C++ extension; without it they skip, and a
-  # skip naming the toolchain is a blocked row. Its absence is reported by the
-  # builder itself, so a failure here degrades the lane instead of ending it.
-  ensureEngineExtension || true
-  echo "relative-path guard"
-  if "${PyBin}" "${ROCKE_TOP}/tests/run_all.py" --no-gate --no-pytest \
-      --build-root "${BuildRoot}/guard"; then
-    rockeResult guard relative-path 0 ok "${LaneRelevance}"
-  else
-    rockeResult guard relative-path 1 "guard failed" "${LaneRelevance}"
-  fi
-  echo "pytest (project unit-test roots)"
-  local Xml="${BuildRoot}/pytest-junit.xml"
-  local Manifest="${BuildRoot}/pytest-relevance.json"
-  local Out="${BuildRoot}/pytest-output.log"
-  runPytest "${Xml}" "${Manifest}" "${Out}" "${TestRoots[@]}" \
-    --ignore="${ROCKE_TOP}/tests/instances/test_rocke_numeric.py"
-  RunRc=$?
-  emitJunit "${Xml}" pytest "${RunRc}" "${Manifest}" "${Out}"
-}
 
-function stageGpuNumeric {
-  local DeviceArch RunRc
-  # Pin the device here rather than in a wrapper: this lane launches kernels, and
-  # the 'all' wrapper runs it too, so a wrapper-only export made the consolidated
-  # nightly and the standalone lane measure different GPUs on a multi-GPU host.
-  # The probe below asks about index 0 of whatever is visible, so both agree.
-  export ROCR_VISIBLE_DEVICES="${ROCR_VISIBLE_DEVICES:-0}"
-  # "This host has no GPU" is a green skip; "we could not ask" is not. Collapsing
-  # the two would let a rocKE rename retire the only lane that can catch a
-  # miscompile without a single red row, so the probe reports which happened.
-  # stdout only: the probe already reports its own failure there, and folding
-  # stderr in would let one HSA warning line prepend itself to the value the arms
-  # below match -- promoting noise to "this is the device".
-  DeviceArch="$("${PyBin}" - <<'PY'
-try:
-    from rocke.runtime.hip_module import get_device_arch
 
-    print(get_device_arch(0) or "none")
-except Exception as exc:  # noqa: BLE001 - any failure here means "cannot ask"
-    print(f"error: {type(exc).__name__}: {exc}".replace("\n", "; "))
-PY
-)"
-  case "${DeviceArch}" in
-    none)
-      rockeResult environment device Check "no ROCm GPU agent on this host"
-      return ;;
-    gfx[0-9a-f]*) ;;
-    *)
-      # Anything that is not "none" and not an arch is a broken probe, including
-      # the empty string and any unexpected chatter.
-      rockeResult environment device 1 \
-        "cannot query the device through rocKE: ${DeviceArch:-no output}" "${LaneRelevance}"
-      return ;;
-  esac
-  # Past the device check this host *can* certify numerics, and this is the only
-  # lane that can catch a miscompile, so a missing reference must never read as
-  # coverage. It is still worth telling two cases apart, because one is a defect
-  # and the other is a host nobody prepared:
-  #
-  #   present but unusable -- a non-ROCm build, or one from the wrong datalayout
-  #     generation -- is red wherever it happens. Someone prepared this host, and
-  #     prepared it wrongly.
-  #   absent is red on the host that is supposed to certify numerics
-  #     (ROCKE_NUMERIC_HOST=1) and unmeasured anywhere else. Reddening every host
-  #     that was never meant to run numerics produced a nightly red nobody could
-  #     act on, which is how a tier stops being read.
-  #
-  # Either way the row names the one command that fixes it.
-  if ! ensureTorch; then
-    local Fix
-    Fix="install a ROCm torch in ${ROCKE_VENV} (same datalayout generation as the COD, e.g. $(rocmWheelIndex 7.2)) or set ROCKE_TORCH_INDEX_URL"
-    if "${PyBin}" -c 'import torch' 2>/dev/null; then
-      rockeResult environment torch 1 \
-        "the torch in ${ROCKE_VENV} cannot serve as a numeric reference for this COD: ${Fix}"
-    elif [[ "${ROCKE_NUMERIC_HOST}" == 1 ]]; then
-      rockeResult environment torch 1 \
-        "no numeric reference on a ${DeviceArch} host declared ROCKE_NUMERIC_HOST=1: ${Fix}"
-    else
-      rockeResult environment torch Check \
-        "no numeric reference on this ${DeviceArch} host, so nothing was certified: ${Fix}"
-    fi
-    return
-  fi
-  # Every case here emits a kernel, compiles it through the COD and launches it on
-  # the device -- rocKE runs each in a child process, so the in-process probe sees
-  # none of it and would otherwise file the most compiler-driven rows we have as
-  # 'logic'.
-  local LaneRelevanceFloor=compiler
-  echo "numeric certification: ${DeviceArch}"
-  local Xml="${BuildRoot}/numeric-junit.xml"
-  local Manifest="${BuildRoot}/numeric-relevance.json"
-  local Out="${BuildRoot}/numeric-output.log"
-  runPytest "${Xml}" "${Manifest}" "${Out}" \
-    "${ROCKE_TOP}/tests/instances/test_rocke_numeric.py"
-  RunRc=$?
-  emitJunit "${Xml}" "numeric-${DeviceArch}" "${RunRc}" "${Manifest}" "${Out}"
-}
 
-function stagePerf {
-  # Host-only codegen signal: per arch, compile the smoke kernel with the COD
-  # comgr and read its resource footprint from the HSACO's ELF notes -- no GPU,
-  # no torch. A spill on this fixed kernel is a real regression. See README.
-  echo "codegen resource footprint (native rocke.benchmark.perf.occupancy)"
-  codSmokeSweep occupancy
-}
 
-# Run the single-arch cod smoke for one arch. Extra args (e.g. --experimental)
-# are forwarded to the driver; the aborted-row keeps the same experimental tag.
-function codSmoke {  # <mode> <arch> [extra driver args...]
-  local Mode="${1}" Arch="${2}"; shift 2
-  local -a Args=(--mode "${Mode}" --arch "${Arch}" --flavor)
-  if [[ "${Mode}" == codegen ]]; then
-    Args+=("${ROCKE_CODEGEN_FLAVOR}" --clang "${AOMP}/bin/clang" --out "${BuildRoot}")
-  else
-    Args+=("${ROCKE_COMGR_FLAVOR}")
-    [[ "${Mode}" == occupancy ]] \
-      && Args+=(--readelf "${AOMP}/bin/llvm-readelf")
-  fi
-  # Mirror the driver's grouping so a hard abort files where its own rows would;
-  # a plain universal_gemm would collide across modes. See rocke_cod_smoke.py.
-  local Group="universal_gemm.${Mode}"
-  [[ "${Mode}" == occupancy ]] && Group="occupancy"
-  local Suffix=""; [[ "$*" == *--experimental* ]] && Suffix=" (experimental)"
-  "${PyBin}" "${HelperDir}/rocke_cod_smoke.py" "${Args[@]}" "$@" \
-    || rockeResult "${Group}" "${Arch}${Suffix}" 1 "${Mode} driver aborted (see log)" \
-         "${LaneRelevance}"
-}
 
-# Sweep the production arches, then the experimental ones (tagged as such).
-function codSmokeSweep {  # <mode>
-  local Mode="${1}"
-  local -a Prod Experimental
-  local Arch
-  read -ra Prod <<< "${ROCKE_CI_ARCHES}"
-  read -ra Experimental <<< "${ROCKE_CI_ARCHES_EXPERIMENTAL}"
-  for Arch in "${Prod[@]}"; do codSmoke "${Mode}" "${Arch}"; done
-  for Arch in "${Experimental[@]}"; do codSmoke "${Mode}" "${Arch}" --experimental; done
-}
 
-function stageCodCodegen { codSmokeSweep codegen; }
-function stageCodComgr { codSmokeSweep comgr; }
 
-# Origin of a report row: 'rocKE' = the project's own tests/tools, 'ci-harness'
-# = a probe this CI adds (cod-*/perf) or its own plumbing, whichever lane hit it.
-# Mirrors rocke_extract.py's area classifier. See README.md "Test origin".
-function laneOrigin {  # <lane> [group]
-  case "${2:-}" in setup|environment) echo ci-harness; return ;; esac
-  case "${1}" in
-    engine|ctest|pytest|gpu-numeric) echo rocKE ;;
-    *)                               echo ci-harness ;;
-  esac
-}
-
-# How a red row from a lane should be triaged when there is no per-test evidence
-# for it. The COD lanes drive the compiler by construction, so they are
-# 'compiler' outright; the pytest lanes measure it per test (rocke_relevance.py)
-# and fall back to 'compiler-capable' -- never 'logic' -- so an unmeasured row is
-# always looked at rather than silently written off. See README.md
-# "Test relevance".
-function laneRelevance {  # <lane>
-  case "${1}" in
-    cod-codegen|cod-comgr|engine|ctest|perf) echo compiler ;;
-    pytest|gpu-numeric)                      echo compiler-capable ;;
-    *)                                       echo unregistered ;;
-  esac
-}
 
 [[ -e "${AOMP}/bin/clang++" ]] || fatalSetup "COD compiler not found: ${AOMP}/bin/clang++" compiler
 [[ -f "${HelperDir}/rocke_result.py" ]] \
@@ -1394,55 +549,7 @@ fi
 
 Names=(); Pass=(); Tot=(); Secs=(); Skip=(); Fails=()
 
-# Rows below which a lane cannot be healthy, and a red row when it falls there.
-#
-# Everything else in this driver reports what it *did*; nothing noticed a lane that
-# quietly stopped doing anything. rocKE relocates test trees routinely, and a root
-# that keeps one file behind takes the pytest lane from ~1150 rows to 1 -- all green,
-# because every row that ran passed. The house reads silence as success, so shrinking
-# coverage has to be an explicit failure.
-#
-# These are floors, not expectations: set far below today's counts so ordinary
-# upstream churn never trips them, and only a collapse does. The arch and flavor
-# lanes are derived from the lists they iterate, so they need no maintenance; the two
-# absolute numbers are the price of noticing a corpus disappear, and a legitimate
-# shrink below them is a one-line edit here with the reason in the commit.
-function laneRowFloor {  # <lane>
-  local -a Arches Experimental
-  read -ra Arches <<< "${ROCKE_CI_ARCHES}"
-  read -ra Experimental <<< "${ROCKE_CI_ARCHES_EXPERIMENTAL}"
-  local -a Flavors; read -ra Flavors <<< "${EngineFlavorList:-${ROCKE_ENGINE_FLAVORS}}"
-  case "${1}" in
-    pytest)                 echo 400 ;;   # ~1150 today
-    ctest)                  echo 3 ;;     # 6 registered today
-    gpu-numeric)            echo 5 ;;     # 7 test functions today, parametrised
-    engine)                 echo "${#Flavors[@]}" ;;
-    # Both sweeps, because codSmokeSweep runs the experimental arches too: counting
-    # only the production ones let every experimental row vanish inside the floor.
-    perf|cod-codegen|cod-comgr) echo "$(( ${#Arches[@]} + ${#Experimental[@]} ))" ;;
-    # Not a benign default: reaching it means a lane was added to LaneOrder and not
-    # to this table, and a floor of 1 would have hidden that with a green row.
-    *)                      echo "?" ;;
-  esac
-}
 
-function assertRowFloor {  # <lane> <row-log> <relevance>
-  local Lane="${1}" Log="${2}" Relevance="${3}" Floor Rows
-  Floor="$(laneRowFloor "${Lane}")"
-  if [[ "${Floor}" == "?" ]]; then
-    rockeResult setup "${Lane}-coverage" 1 \
-      "lane ${Lane} has no row floor: add it to laneRowFloor" harness
-    return
-  fi
-  # A lane that reported an environment blocker (no GPU, no numeric reference) never
-  # reached its tests, so a low row count is that row's news and not a second finding.
-  grep -aq '^ROCKE_RESULT|environment|' "${Log}" 2>/dev/null && return 0
-  Rows="$(grep -ac '^ROCKE_RESULT|' "${Log}" 2>/dev/null || true)"
-  (( ${Rows:-0} < Floor )) || return 0
-  rockeResult setup "${Lane}-coverage" 1 \
-    "only ${Rows:-0} result rows, below this lane's floor of ${Floor}: its corpus shrank" \
-    "${Relevance}"
-}
 
 # Fold one lane's rows into the run summary, from whichever log holds them.
 # Green rows that only record a skip are counted too: a lane that certified
@@ -1578,21 +685,6 @@ function prepareBuildRoot {
   export AMD_COMGR_REDIRECT_LOGS="${BuildRoot}/comgr.log"
 }
 
-# Every lane must resolve in every table keyed on a lane name. They are spread over
-# a thousand lines, and each used to fall through to a plausible-looking default: a
-# lane missing from laneRelevance was triaged as our own plumbing, one missing from
-# laneRowFloor was floored at a single row. Both are silent, which is the one failure
-# mode this driver is not allowed to have -- so an omission is a startup error.
-function assertLaneTables {
-  local Lane Gaps=""
-  for Lane in "${LaneOrder[@]}"; do
-    [[ "$(laneRelevance "${Lane}")" != unregistered ]] || Gaps+=" laneRelevance:${Lane}"
-    [[ "$(laneRowFloor "${Lane}")" != "?" ]] || Gaps+=" laneRowFloor:${Lane}"
-    [[ -n "$(laneOrigin "${Lane}")" ]] || Gaps+=" laneOrigin:${Lane}"
-  done
-  [[ -z "${Gaps}" ]] \
-    || fatalSetup "lanes missing from a per-lane table:${Gaps}" harness
-}
 
 assertLaneTables
 prepareBuildRoot
