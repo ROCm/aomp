@@ -296,12 +296,50 @@ function stageCodComgr { codSmokeSweep comgr; }
 # Origin of a report row: 'rocKE' = the project's own tests/tools, 'ci-harness'
 # = a probe this CI adds (cod-*/perf) or its own plumbing, whichever lane hit it.
 # Mirrors rocke_extract.py's area classifier. See README.md "Test origin".
+# Everything the run needs to know about a lane, in run order, one line each:
+#
+#   name | handler | origin | relevance | floor | tools that must be the COD's
+#
+# One table because the same seven lanes used to be spelled out in six places --
+# an order list, a dispatch, an origin map, a relevance map, a floor table and a
+# tool-hardness map -- and a lane added to five of them looked like it worked.
+# assertLaneTables still checks the table is complete, but now there is one thing
+# to complete rather than six to keep in step.
+#
+# floor is the row count below which the lane is not credible: a number, or a token
+# for the counts only known at run time (flavors, arches). Tools is a comma list,
+# empty when the lane needs nothing beyond clang and comgr, which every lane needs.
+LaneRegistry=(
+  "engine|stageEngine|rocKE|compiler|flavors|c++"
+  "ctest|stageCtest|rocKE|compiler|3|"
+  "pytest|stagePytest|rocKE|compiler-capable|400|hip-runtime,hipcc"
+  "cod-codegen|stageCodCodegen|ci-harness|compiler|arches|"
+  "cod-comgr|stageCodComgr|ci-harness|compiler|arches|hip-runtime"
+  "gpu-numeric|stageGpuNumeric|rocKE|compiler-capable|5|hip-runtime,hipcc"
+  "perf|stagePerf|ci-harness|compiler|arches|llvm-readelf"
+)
+
+# Field <n> of <lane>'s row, empty when the lane is not registered. Callers that
+# must not accept an unregistered lane check for empty rather than defaulting,
+# because a plausible default is what let a half-added lane pass unnoticed.
+function laneField {  # <lane> <1-based field>
+  local Row
+  for Row in "${LaneRegistry[@]}"; do
+    [[ "${Row%%|*}" == "${1}" ]] || continue
+    cut -d'|' -f"${2}" <<< "${Row}"
+    return 0
+  done
+  return 1
+}
+
+function laneNames {
+  local Row
+  for Row in "${LaneRegistry[@]}"; do printf '%s\n' "${Row%%|*}"; done
+}
+
 function laneOrigin {  # <lane> [group]
   case "${2:-}" in setup|environment) echo ci-harness; return ;; esac
-  case "${1}" in
-    engine|ctest|pytest|gpu-numeric) echo rocKE ;;
-    *)                               echo ci-harness ;;
-  esac
+  laneField "${1}" 3 || echo ci-harness
 }
 
 # How a red row from a lane should be triaged when there is no per-test evidence
@@ -311,11 +349,14 @@ function laneOrigin {  # <lane> [group]
 # always looked at rather than silently written off. See README.md
 # "Test relevance".
 function laneRelevance {  # <lane>
-  case "${1}" in
-    cod-codegen|cod-comgr|engine|ctest|perf) echo compiler ;;
-    pytest|gpu-numeric)                      echo compiler-capable ;;
-    *)                                       echo unregistered ;;
-  esac
+  laneField "${1}" 4 || echo unregistered
+}
+
+# The tools this lane must find inside the COD, beyond clang and comgr which every
+# lane needs. Hardness follows the lanes actually running, so a host missing hipcc
+# still runs the lanes that never call it.
+function laneHardTools {  # <lane>
+  laneField "${1}" 6 | tr ',' ' '
 }
 
 # Rows below which a lane cannot be healthy, and a red row when it falls there.
@@ -331,22 +372,24 @@ function laneRelevance {  # <lane>
 # lanes are derived from the lists they iterate, so they need no maintenance; the two
 # absolute numbers are the price of noticing a corpus disappear, and a legitimate
 # shrink below them is a one-line edit here with the reason in the commit.
+# Resolve the registry's floor field. A '?' is not a benign default: it means the
+# lane reached here without a row in the table, and a floor of 1 would have hidden
+# that behind a green row.
 function laneRowFloor {  # <lane>
-  local -a Arches Experimental
-  read -ra Arches <<< "${ROCKE_CI_ARCHES}"
-  read -ra Experimental <<< "${ROCKE_CI_ARCHES_EXPERIMENTAL}"
-  local -a Flavors; read -ra Flavors <<< "${EngineFlavorList:-${ROCKE_ENGINE_FLAVORS}}"
-  case "${1}" in
-    pytest)                 echo 400 ;;   # ~1150 today
-    ctest)                  echo 3 ;;     # 6 registered today
-    gpu-numeric)            echo 5 ;;     # 7 test functions today, parametrised
-    engine)                 echo "${#Flavors[@]}" ;;
+  local Floor; Floor="$(laneField "${1}" 5)" || { echo "?"; return; }
+  local -a Arches Experimental Flavors
+  case "${Floor}" in
+    flavors)
+      read -ra Flavors <<< "${EngineFlavorList:-${ROCKE_ENGINE_FLAVORS}}"
+      echo "${#Flavors[@]}" ;;
     # Both sweeps, because codSmokeSweep runs the experimental arches too: counting
     # only the production ones let every experimental row vanish inside the floor.
-    perf|cod-codegen|cod-comgr) echo "$(( ${#Arches[@]} + ${#Experimental[@]} ))" ;;
-    # Not a benign default: reaching it means a lane was added to LaneOrder and not
-    # to this table, and a floor of 1 would have hidden that with a green row.
-    *)                      echo "?" ;;
+    arches)
+      read -ra Arches <<< "${ROCKE_CI_ARCHES}"
+      read -ra Experimental <<< "${ROCKE_CI_ARCHES_EXPERIMENTAL}"
+      echo "$(( ${#Arches[@]} + ${#Experimental[@]} ))" ;;
+    ''|*[!0-9]*) echo "?" ;;
+    *)           echo "${Floor}" ;;
   esac
 }
 
@@ -374,12 +417,18 @@ function assertRowFloor {  # <lane> <row-log> <relevance>
 # laneRowFloor was floored at a single row. Both are silent, which is the one failure
 # mode this driver is not allowed to have -- so an omission is a startup error.
 function assertLaneTables {
-  local Lane Gaps=""
+  local Lane Handler Gaps=""
   for Lane in "${LaneOrder[@]}"; do
-    [[ "$(laneRelevance "${Lane}")" != unregistered ]] || Gaps+=" laneRelevance:${Lane}"
-    [[ "$(laneRowFloor "${Lane}")" != "?" ]] || Gaps+=" laneRowFloor:${Lane}"
-    [[ -n "$(laneOrigin "${Lane}")" ]] || Gaps+=" laneOrigin:${Lane}"
+    [[ "$(laneRelevance "${Lane}")" != unregistered ]] || Gaps+=" relevance:${Lane}"
+    [[ "$(laneRowFloor "${Lane}")" != "?" ]] || Gaps+=" floor:${Lane}"
+    [[ -n "$(laneOrigin "${Lane}")" ]] || Gaps+=" origin:${Lane}"
+    # A handler named in the table but not defined would dispatch to nothing and
+    # end the lane green with no rows, which is the failure this whole gate exists
+    # to prevent -- so the name is checked, not just its presence.
+    Handler="$(laneField "${Lane}" 2 || true)"
+    [[ -n "${Handler}" ]] && declare -F "${Handler}" >/dev/null \
+      || Gaps+=" handler:${Lane}"
   done
   [[ -z "${Gaps}" ]] \
-    || fatalSetup "lanes missing from a per-lane table:${Gaps}" harness
+    || fatalSetup "lanes missing from the registry:${Gaps}" harness
 }

@@ -178,19 +178,24 @@ function assertCodToolchain {
     echo "         ($(cat /opt/rocm/.info/version 2>/dev/null || echo '?')); the flavor knobs keep whatever rocKE derived from it."
   fi
   # A hard requirement is a property of the lanes actually running, so 'all'
-  # expands to its lane list and the lane -> tool mapping is stated once.
-  local Lane Running="${Stage}"
+  # expands to its lane list and each lane names its own tools in LaneRegistry.
+  # `c++` is there because rocKE builds the engine archive by invoking that bare
+  # name; the shim points it at the COD and this row is what proves it.
+  local Lane Tool Running="${Stage}"
   [[ "${Stage}" == all ]] && Running="${ROCKE_ALL_LANES}"
   # shellcheck disable=SC2086 # intended word splitting of the lane list
   for Lane in ${Running}; do
-    case "${Lane}" in
-      pytest|gpu-numeric) HipHard=1; HipccHard=1 ;;
-      cod-comgr)          HipHard=1 ;;
-      perf)               ReadelfHard=1 ;;
-      # rocKE builds the engine archive by invoking `c++`; the shim points that name
-      # at the COD, and this row is what proves it rather than assuming it.
-      engine)             CxxHard=1 ;;
-    esac
+    for Tool in $(laneHardTools "${Lane}"); do
+      case "${Tool}" in
+        hip-runtime)  HipHard=1 ;;
+        hipcc)        HipccHard=1 ;;
+        llvm-readelf) ReadelfHard=1 ;;
+        c++)          CxxHard=1 ;;
+        *) rockeResult setup lane-tools 1 \
+             "lane ${Lane} requires '${Tool}', which the hygiene gate does not check" \
+             harness ;;
+      esac
+    done
   done
   codToolchainRow hip-runtime "${ROCKE_HIP_LIB}" "${HipHard}" || Rc=1
   codToolchainRow hipcc "$(command -v hipcc)" "${HipccHard}" || Rc=1

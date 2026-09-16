@@ -18,13 +18,40 @@
 
 set -u
 
+ScriptDir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# The worker modules keep their rocke_ prefix: they go on the PYTHONPATH of
+# rocKE's own test session, where a plain result.py would shadow the project's.
+HelperDir="${ScriptDir}/aux/rocke"
+
+# The bash side of the worker, sourced by name rather than discovered: a glob would
+# quietly run whatever a stale file left in the directory, and the list is what says
+# these four files are one program. Each module defines functions and constant
+# tables only, so sourcing cannot change state or fail a run; a missing one is fatal
+# here, before any lane has claimed to test anything.
+for Module in rocke_toolchain.sh rocke_env.sh rocke_lanes.sh; do
+  [[ -r "${HelperDir}/${Module}" ]] || {
+    echo "ERROR: ${HelperDir}/${Module} is missing; this driver is incomplete" >&2
+    exit 2
+  }
+done
+unset Module
+# Sourced one literal path at a time, not in the loop above: shellcheck -x cannot
+# follow a path built from a variable, so a loop would leave every module
+# unchecked while the driver still reported clean.
+# shellcheck source=aux/rocke/rocke_toolchain.sh
+. "${HelperDir}/rocke_toolchain.sh"
+# shellcheck source=aux/rocke/rocke_env.sh
+. "${HelperDir}/rocke_env.sh"
+# shellcheck source=aux/rocke/rocke_lanes.sh
+. "${HelperDir}/rocke_lanes.sh"
+
 # The lanes this driver knows, in the order 'all' runs them: the cheap host-only
 # gates first so a broken COD is reported in seconds, the ~1000-row pytest lane
 # next, then the on-device lane, and perf last because a register-spill verdict is
-# only worth reading once the kernels it measures are known to compile.
-# Single source of truth: the stage check, the help text and the 'all' lane list
-# all derive from it, so none of them can be updated without the others.
-LaneOrder=(engine ctest pytest cod-codegen cod-comgr gpu-numeric perf)
+# only worth reading once the kernels it measures are known to compile. That order,
+# and everything else per-lane, comes from LaneRegistry in rocke_lanes.sh, so the
+# stage check, the help text, the 'all' list and the dispatch cannot disagree.
+mapfile -t LaneOrder < <(laneNames)
 Lanes="all|$(IFS="|"; printf '%s' "${LaneOrder[*]}")"
 
 function printUsage {
@@ -69,33 +96,7 @@ done
 
 Stage="${1:-}"
 (( $# > 1 )) && { echo "ERROR: unexpected argument: ${2}" >&2; printUsage; exit 2; }
-ScriptDir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# The worker modules keep their rocke_ prefix: they go on the PYTHONPATH of
-# rocKE's own test session, where a plain result.py would shadow the project's.
-HelperDir="${ScriptDir}/aux/rocke"
 InheritedPythonPath="${PYTHONPATH:-}"
-
-# The bash side of the worker, sourced by name rather than discovered: a glob would
-# quietly run whatever a stale file left in the directory, and the list is what says
-# these four files are one program. Each module defines functions only, so sourcing
-# cannot change state or fail a run; a missing one is fatal here, before any lane
-# has claimed to test anything.
-for Module in rocke_toolchain.sh rocke_env.sh rocke_lanes.sh; do
-  [[ -r "${HelperDir}/${Module}" ]] || {
-    echo "ERROR: ${HelperDir}/${Module} is missing; this driver is incomplete" >&2
-    exit 2
-  }
-done
-unset Module
-# Sourced one literal path at a time, not in the loop above: shellcheck -x cannot
-# follow a path built from a variable, so a loop would leave every module
-# unchecked while the driver still reported clean.
-# shellcheck source=aux/rocke/rocke_toolchain.sh
-. "${HelperDir}/rocke_toolchain.sh"
-# shellcheck source=aux/rocke/rocke_env.sh
-. "${HelperDir}/rocke_env.sh"
-# shellcheck source=aux/rocke/rocke_lanes.sh
-. "${HelperDir}/rocke_lanes.sh"
 if [[ -z "${Stage}" ]]; then
   printUsage; exit 2
 elif [[ "|${Lanes}|" != *"|${Stage}|"* ]]; then
@@ -692,15 +693,10 @@ prepareBuildRoot
 # Triage class for this lane's rows that carry no per-test evidence of their own.
 LaneRelevance="$(laneRelevance "${Stage}")"
 
-case "${Stage}" in
-  engine)      stageEngine ;;
-  ctest)       stageCtest ;;
-  pytest)      stagePytest ;;
-  gpu-numeric) stageGpuNumeric ;;
-  perf)        stagePerf ;;
-  cod-codegen) stageCodCodegen ;;
-  cod-comgr)   stageCodComgr ;;
-esac
+# The registry names the handler, and assertLaneTables above has already proved
+# that the name exists as a function: a lane listed in the table but dispatched to
+# nothing would end green with no rows at all.
+"$(laneField "${Stage}" 2)"
 
 # Before the tally reads the same log, so a floor breach is counted like any red row.
 [[ -n "${RowLog}" ]] && assertRowFloor "${Stage}" "${RowLog}" "${LaneRelevance}"
