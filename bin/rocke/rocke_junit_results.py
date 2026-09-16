@@ -49,6 +49,18 @@ _BLOCKED_SKIP = re.compile(
 # would waste its time. A COD failure while building it is reported by the builder.
 _BLOCKED_OURS = re.compile(r"rocke_engine|c\+\+ engine", re.IGNORECASE)
 
+# A skip whose reason names the toolchain only because it reports *absent upstream
+# data*: no golden was recorded for a flavor, so nothing was ever asked of the
+# compiler. The blocked rule above matches such a reason on the bare word "llvm" and
+# turns "upstream has not got here yet" into a compiler failure -- red every night in
+# the one tier triage is told to read first. Matched on the phrasing upstream actually
+# uses: a new phrasing falls through to the blocked rule and reddens, which is the
+# safe direction for a rule that suppresses a red.
+_MISSING_UPSTREAM_DATA = re.compile(
+    r"\bno\b[^.]*\bgolden\b[^.]*\brecorded\b|\bgolden\b[^.]*\bnot recorded\b",
+    re.IGNORECASE,
+)
+
 # rocKE's datalayout drift guard validates the constant for the flavor it reads from
 # the *host* /opt/rocm against IR emitted by the hipcc on PATH -- which this CI points
 # at the COD. On a host whose ROCm is a different vintage than the COD, the two halves
@@ -96,6 +108,55 @@ def _load_manifest(path: str) -> tuple[dict[str, str], list[str]]:
     tests = (data.get("tests") or {}).items()
     tiers = {k: t for k, v in tests if (t := str(v.get("tier") or ""))}
     return tiers, list(data.get("install_errors") or [])
+
+
+def _declared(root, name: str) -> int | None:  # noqa: ANN001
+    """Sum of a <testsuite> tally attribute, or None when the runner omits it."""
+    found = [s.get(name) for s in root.iter("testsuite") if s.get(name) is not None]
+    try:
+        return sum(int(v) for v in found) if found else None
+    except ValueError:
+        return None
+
+
+def _reconcile(group_default: str, root, bad: int, skips: int) -> None:  # noqa: ANN001
+    """Check the rows against the tallies the runner declared for itself.
+
+    A runner counts what it ran; we count the testcases it wrote down. The two may
+    legitimately differ upward: pytest-subtests counts every failing subtest in the
+    header while the body carries one testcase per test, which is why 65 declared
+    failures can be 57 failing testcases. What must never happen is a failure the
+    runner counted that reaches no row at all, so only the directions that mean lost
+    results are reported -- a runner that says it failed while no testcase carries a
+    failure, more failing testcases than were declared, or a skip that did not become
+    a row. Silence here is the quietest way a green report can be wrong.
+    """
+    declared_bad = (_declared(root, "failures") or 0) + (_declared(root, "errors") or 0)
+    if declared_bad and not bad:
+        _emit(
+            "setup",
+            f"{group_default}-junit-tally",
+            1,
+            f"runner declared {declared_bad} failure(s) but no testcase carries one",
+            TIER_HARNESS,
+        )
+    elif bad > declared_bad and _declared(root, "failures") is not None:
+        _emit(
+            "setup",
+            f"{group_default}-junit-tally",
+            1,
+            f"{bad} failing testcases exceed the {declared_bad} the runner declared",
+            TIER_HARNESS,
+        )
+    declared_skips = _declared(root, "skipped")
+    if declared_skips is not None and declared_skips != skips:
+        _emit(
+            "setup",
+            f"{group_default}-junit-tally",
+            1,
+            f"runner declared {declared_skips} skip(s), {skips} became rows",
+            TIER_HARNESS,
+        )
 
 
 def main() -> int:
@@ -147,6 +208,8 @@ def main() -> int:
 
     seen = 0
     unjoined = 0
+    bad = 0
+    skips = 0
     for case in root.iter("testcase"):
         seen += 1
         group = case.get("classname") or args.group_default
@@ -171,6 +234,7 @@ def main() -> int:
             or error is not None
             or status_attr in ("fail", "failed")
         ):
+            bad += 1
             node = failure if failure is not None else error
             msg = (node.get("message") if node is not None else "") or "failed"
             drift = args.cod_flavor and _DATALAYOUT_DRIFT.search(msg)
@@ -186,10 +250,13 @@ def main() -> int:
             else:
                 _emit(group, subtest, 1, msg, tier)
         elif skipped is not None or status_attr in ("notrun", "disabled", "skipped"):
+            skips += 1
             reason = (
                 skipped.get("message") if skipped is not None else ""
             ) or "skipped"
-            if _BLOCKED_SKIP.search(reason):
+            if _BLOCKED_SKIP.search(reason) and not _MISSING_UPSTREAM_DATA.search(
+                reason
+            ):
                 blocked_tier = (
                     TIER_HARNESS if _BLOCKED_OURS.search(reason) else TIER_COMPILER
                 )
@@ -223,6 +290,9 @@ def main() -> int:
             f"{' (the manifest matched nothing)' if not tiers else ''}",
             TIER_HARNESS,
         )
+
+    if seen:
+        _reconcile(args.group_default, root, bad, skips)
 
     return 0
 
