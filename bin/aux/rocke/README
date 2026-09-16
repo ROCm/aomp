@@ -1,4 +1,4 @@
-Worker modules for ../run_rocke.sh, the rocKE compiler-of-the-day test driver.
+Worker modules for ../../run_rocke.sh, the rocKE compiler-of-the-day test driver.
 
 - rocke_result.py         the ROCKE_RESULT line format every lane emits
 - rocke_tiers.py          the relevance vocabulary, shared by all of the below

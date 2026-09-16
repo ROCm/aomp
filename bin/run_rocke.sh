@@ -5,7 +5,7 @@
 # rocKE driver: run one lane against the compiler-of-the-day (COD), emit
 # canonical "ROCKE_RESULT|group|subtest|status|message|relevance" lines and
 # close with a short summary. Self-contained, so an engineer can run it by hand;
-# the nightly drives the same lanes. The worker modules it runs are in bin/rocke;
+# the nightly drives the same lanes. The worker modules it runs are in bin/aux/rocke;
 # the ROCKE_* knobs default just below. The
 # CI-side extractor that turns the rows into dashboard rows, and the full
 # documentation, live in the apps repo under openmp-ci/rocKE (extract-rocke.sh,
@@ -72,7 +72,7 @@ Stage="${1:-}"
 ScriptDir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # The worker modules keep their rocke_ prefix: they go on the PYTHONPATH of
 # rocKE's own test session, where a plain result.py would shadow the project's.
-HelperDir="${ScriptDir}/rocke"
+HelperDir="${ScriptDir}/aux/rocke"
 InheritedPythonPath="${PYTHONPATH:-}"
 if [[ -z "${Stage}" ]]; then
   printUsage; exit 2
