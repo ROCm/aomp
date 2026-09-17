@@ -348,6 +348,9 @@ function initRunState {
   HeldLockDirs=()
   HostName="$(uname -n)"
 
+  # What a build tree is stamped with, resolved on first use.
+  ToolchainId=""
+
   # shellcheck disable=SC2034
   EngineExtDir=""
   # shellcheck disable=SC2034
@@ -587,7 +590,7 @@ function prepareBuildRoot {
   BuildLock="${ROCKE_CI_BUILD_ROOT}/.${Stage}.lock.d"
   acquireDirLock "${BuildLock}" "lane build"
   if [[ "${ROCKE_REBUILD}" == 1 ]]; then rm -rf "${BuildRoot}"; fi
-  mkdir -p "${BuildRoot}" \
+  prepareToolchainTree "${BuildRoot}" \
     || failSetup "cannot create lane build dir: ${BuildRoot}" build-root
 
   # Keep comgr's diagnostics: an in-process compile failure is otherwise opaque.

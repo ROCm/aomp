@@ -169,6 +169,42 @@ function printProvenance {
   echo "${BannerRule}"
 }
 
+# What a build tree was configured for: the compiler binary and the version it
+# reports, so a compiler rebuilt at the same path counts as a change too.
+function readToolchainId {
+  [[ -n "${ToolchainId}" ]] && { printf '%s' "${ToolchainId}"; return; }
+
+  ToolchainId="$(realpath -m "${CXX}")"
+  ToolchainId+=" $("${CXX}" --version 2>/dev/null | head -1)"
+  printf '%s' "${ToolchainId}"
+}
+
+# Make a build tree belong to this toolchain: an existing one built by another
+# is discarded, and the tree is stamped with what built it. cmake keeps the
+# compiler it was first given in its cache and reads CC/CXX only when it has
+# none, so a reused tree would build with the previous compiler while the run
+# reports this one.
+function prepareToolchainTree {  # <dir>
+  local Dir="${1}" Stamp="${1}/.rocke-toolchain" Id Was
+
+  Id="$(readToolchainId)"
+  if [[ -f "${Stamp}" ]]; then
+    Was="$(< "${Stamp}")"
+    [[ "${Was}" == "${Id}" ]] && return 0
+    echo "discarding ${Dir}: it was configured for ${Was%% *}"
+    rm -rf "${Dir}"
+  elif [[ -n "$(find "${Dir}" -mindepth 1 -maxdepth 1 -print -quit \
+                  2>/dev/null)" ]]; then
+    # No stamp: a tree from before this check, whose compiler cannot be
+    # established. Discarded once rather than trusted.
+    echo "discarding ${Dir}: it names no toolchain"
+    rm -rf "${Dir}"
+  fi
+
+  mkdir -p "${Dir}" || return 1
+  printf '%s\n' "${Id}" > "${Stamp}"
+}
+
 # True when a path resolves inside the compiler toolchain under test.
 function isToolchainPath {  # <path>
   [[ -n "${1}" && -e "${1}" && "$(realpath -m "${1}")" == "${RocmRoot}"/* ]]

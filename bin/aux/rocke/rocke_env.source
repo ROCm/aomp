@@ -334,10 +334,19 @@ function ensureEngineExtension {  # sets EngineExtDir
   mkdir -p "${Root}"
   acquireDirLock "${Root}.lock" "engine extension build"
 
+  # Before the decision below: a module built by another toolchain must not be
+  # adopted as current.
+  prepareToolchainTree "${Root}" || {
+    emitRockeResult setup engine-extension 1 \
+      "cannot prepare the engine extension build dir ${Root}" \
+      "${LaneRelevance}"
+    return 1
+  }
+
   if [[ "${ROCKE_REBUILD}" == 1 \
     && "$(cat "${Stamp}" 2>/dev/null)" != "${Run}" ]]; then
     rm -rf "${Root}"
-    mkdir -p "${Root}"
+    prepareToolchainTree "${Root}" || return 1
   else
     Ext="$(find "${Root}" -name 'rocke_engine*.so' -print -quit 2>/dev/null)"
     # Rebuild only when a C++ source is newer than the module already built.
@@ -361,6 +370,7 @@ function ensureEngineExtension {  # sets EngineExtDir
 
   echo "building the rocKE C++ engine extension (${Root})"
   if ! cmake -S "${ROCKE_TOP}" -B "${Root}" -DCMAKE_BUILD_TYPE=Release \
+         -DCMAKE_C_COMPILER="${CC}" -DCMAKE_CXX_COMPILER="${CXX}" \
          -DROCKE_BUILD_PYBIND=ON -Dpybind11_DIR="${PyBind}" \
          -DPython3_EXECUTABLE="${PyBin}" > "${Root}/configure.log" 2>&1; then
     local ConfigureFailed="cmake configure failed for the engine extension"
