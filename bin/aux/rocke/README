@@ -1,12 +1,15 @@
-Worker modules for ../../run_rocke.sh, the rocKE compiler-of-the-day test driver.
+Worker modules for ../../run_rocke.sh, the rocKE test driver.
+
+A walkthrough of the whole run, and the reference for every knob and row, are in the
+apps repo under openmp-ci/rocKE (WALKTHROUGH.md and README.md).
 
 Bash, sourced by the driver in this order. Sourcing defines functions and
 constant tables; it starts nothing and cannot fail a run:
 
-- rocke_toolchain.source  resolve the compiler under test, prove every tool
+- rocke_toolchain.source  resolve the compiler toolchain, prove every tool
                           comes from it, pin the IR flavor
 - rocke_env.source        the venv and its declared dependencies, the numeric
-                          reference, the COD-built engine extension, and
+                          reference, the toolchain-built engine extension, and
                           turning a runner's report into result rows
 - rocke_lanes.source      the lanes, their relevance, and their row floors
 
@@ -14,9 +17,10 @@ Python, run as programs or imported by rocKE's pytest session:
 
 - rocke_result.py         the ROCKE_RESULT line format every lane emits
 - rocke_tiers.py          the relevance vocabulary, shared by all of the below
-- rocke_relevance.py      pytest plugin: can a red row be a COD regression?
+- rocke_relevance.py      pytest plugin: can a red row be a toolchain regression?
 - rocke_probe.py          comgr, device, packages and declared dependencies
-- rocke_cod_smoke.py      COD interop smoke lanes (codegen / comgr / occupancy)
+- rocke_comgr_version.py  which ROCm version rocKE sees, when it cannot be trusted
+- rocke_smoke.py          toolchain interop smoke lanes (codegen / comgr / occupancy)
 - rocke_junit_results.py  JUnit XML -> result rows, joined with the relevance
                           manifest
 

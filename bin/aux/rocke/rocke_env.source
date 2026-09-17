@@ -1,36 +1,26 @@
 # Copyright (c) Advanced Micro Devices, Inc., or its affiliates.
 # SPDX-License-Identifier: MIT
 #
-# The Python environment, the numeric reference, the COD-built engine extension,
-# and turning a runner's report into rows.
+# Python environment, numeric reference, toolchain-built engine extension,
+# and the conversion of a runner's report into result rows.
 #
-# Sourced by ../../run_rocke.sh; defines functions and tables only.
+# Sourced by the driver; defines functions and tables only.
 # shellcheck shell=bash
 #
-# Run state (RocmRoot, PyBin, BuildRoot, Stage, ...) belongs to the driver, which
-# a check of this file alone cannot see.
+# Run state is owned by the driver and invisible to a check of this file alone.
 # shellcheck disable=SC2154
 
-# Reuse an existing venv, else create one (numpy + pytest) outside the source
-# tree; fall back to the system python only if the venv cannot be built.
-# One value out of bin/aomp_common_vars, read without running it here: that file
-# exits on several missing prerequisites and exports a /opt/rocm tool path into an
-# environment this driver keeps pinned to the COD. A separate shell, not a subshell,
-# so nothing it assigns touches our scope. Empty when it is missing or exits.
-function houseVar {  # <name>
-  bash -c '. "${1}" >/dev/null 2>&1 || exit 0; printf "%s" "${!2-}"' \
-    houseVar "${ScriptDir}/aomp_common_vars" "${1}"
-}
-
+# Resolve the run's interpreter: reuse the virtual environment, else create it.
 function setupPython {
   local Need='import numpy, pytest' Existed=1
   PyBin=""
+
   if [[ -x "${ROCKE_VENV}/bin/python" ]]; then
     PyBin="${ROCKE_VENV}/bin/python"
-    # An interrupted or offline bootstrap leaves a venv that every later run
-    # would adopt and then fail on; top it up instead of inheriting the damage,
-    # unless the caller asked this script to install nothing.
-    if [[ "${ROCKE_SETUP_VENV}" == "1" ]] && ! "${PyBin}" -c "${Need}" 2>/dev/null; then
+    # An interrupted bootstrap leaves a venv that subsequent runs adopt, so
+    # top it up.
+    if [[ "${ROCKE_SETUP_VENV}" == "1" ]] \
+      && ! "${PyBin}" -c "${Need}" 2>/dev/null; then
       "${PyBin}" -m pip install --quiet numpy pytest || true
     fi
   elif [[ "${ROCKE_SETUP_VENV}" == "1" ]]; then
@@ -43,344 +33,374 @@ function setupPython {
       rm -rf "${ROCKE_VENV}"  # only what this run created
     fi
   fi
+
   if [[ -z "${PyBin}" ]]; then
     echo "# WARN: venv unavailable, falling back to system python3"
-    # Name the real problem here: an empty PyBin would fail the import check
-    # below and report a missing module instead of a missing interpreter.
+    # Report the missing interpreter here; an empty one reports as a missing
+    # module.
     PyBin="$(command -v python3)" \
-      || fatalSetup "venv unavailable and no python3 in PATH" python
+      || failSetup "venv unavailable and no python3 in PATH" python
   fi
-  # Print once: the 'all' children resolve the same PyBin and would only repeat it.
-  # pytest matters as much as numpy: without it a lane exits 1 with no report
-  # and the row blames a missing JUnit file.
+
+  # pytest matters as much as numpy: without it a lane produces no report at
+  # all.
+  local NotImportable="numpy and pytest must be importable with ${PyBin}"
   "${PyBin}" -c "${Need}" 2>/dev/null \
-    || fatalSetup "numpy and pytest must be importable with ${PyBin} (venv ${ROCKE_VENV})" python
+    || failSetup "${NotImportable} (venv ${ROCKE_VENV})" python
 }
 
-# Refuse to install into an interpreter this script did not create. Standalone,
-# PyBin can be the engineer's system python3, and these are large packages that
-# would stay behind in ~/.local long after the run.
-function pipInstallable {  # <what>
+# Refuse to install into an interpreter this suite did not create: these are
+# large packages and would stay behind in a user's own python long after the
+# run.
+function isPipInstallable {  # <what>
   [[ "${PyBin}" == "${ROCKE_VENV}/bin/"* ]] && return 0
+
   echo "WARNING: not installing ${1} into ${PyBin}: outside ${ROCKE_VENV}." \
        "Allow the venv (ROCKE_SETUP_VENV=1) or preinstall it yourself."
   return 1
 }
 
-# Dependencies declared by rocKE's platform `[project.optional-dependencies].dev`
-# that are needed by its package-local heuristics tests. Keep torch separate: it
-# must match the GPU stack and is provisioned only by gpu-numeric.
-# rocKE's own declared dev extras, so a dependency it adds arrives here without an
-# edit. A hardcoded list silently rots: rocKE has declared pybind11 for a while and
-# our list omitted it, which left every cross-engine test unable to run.
-# ${ROCKE_EXTRA_TEST_DEPS} covers what rocKE uses but does not declare.
-function rockeDeclaredTestDeps {
-  # Diagnostics go to stderr on purpose: the caller captures stdout, and a parse
-  # failure has to say *why* in the log rather than look like an empty extras list.
-  "${PyBin}" "${HelperDir}/rocke_probe.py" project-deps "${ROCKE_TOP}/pyproject.toml"
+# Read the dev extras rocKE declares in pyproject.toml, so a dependency it adds
+# arrives without an edit here. torch stays separate: it must match the GPU
+# stack.
+function readRockeTestDeps {
+  # Diagnostics go to stderr: the caller captures stdout as the dependency list.
+  "${PyBin}" "${HelperDir}/rocke_probe.py" project-deps \
+    "${ROCKE_TOP}/pyproject.toml"
 }
 
+# Install the test dependencies the project declares, so a missing one is a red
+# row.
 function ensureProjectTestDeps {
   local -a Deps=() Extra=()
-  # Read on its own: folded in with ROCKE_EXTRA_TEST_DEPS, a non-empty extra makes
-  # a stale subset look like a healthy list.
-  mapfile -t Deps < <(rockeDeclaredTestDeps)
+
+  # Read separately: merged with the extras, an empty declared list stays
+  # detectable.
+  mapfile -t Deps < <(readRockeTestDeps)
   if (( ${#Deps[@]} == 0 )); then
-    rockeResult setup python-test-deps 1 \
-      "cannot read rocKE's declared dev dependencies from ${ROCKE_TOP}/pyproject.toml"
+    local CannotRead="cannot read rocKE's declared dev dependencies from"
+    emitRockeResult setup python-test-deps 1 \
+      "${CannotRead} ${ROCKE_TOP}/pyproject.toml"
     return 1
   fi
+
   read -ra Extra <<< "${ROCKE_EXTRA_TEST_DEPS}"
   Deps+=("${Extra[@]}")
-  # Import names differ from distribution names often enough that checking them is
-  # its own maintenance burden; pip already decides in milliseconds when satisfied.
+
+  # No import check: import names differ from distribution names and pip is
+  # fast.
   echo "provisioning rocKE-declared test dependencies: ${Deps[*]}"
-  if pipInstallable "rocKE dev test dependencies" \
+  if isPipInstallable "rocKE dev test dependencies" \
     && "${PyBin}" -m pip install --quiet "${Deps[@]}"
   then
     return 0
   fi
-  rockeResult setup python-test-deps 1 "cannot provision rocKE dev test dependencies"
+
+  emitRockeResult setup python-test-deps 1 \
+    "cannot provision rocKE dev test dependencies"
   return 1
 }
 
-# COD ROCm major.minor, from this install's own metadata only: rocKE's comgr
-# resolver falls back to /opt/rocm when COD metadata is absent, and that
-# unrelated version would select an incompatible multi-gigabyte torch wheel.
-function codRocmVersion {
-  head -1 "${RocmRoot}/.info/version" 2>/dev/null | cut -d. -f1,2
-}
-
-# Datalayout generation a ROCm major.minor implies (>= 7.2 emits the indexed p8 shape).
-# Empty when the version is unusable.
-function rocmEra {  # <major[.minor[.patch]]>
+# Datalayout generation a ROCm major.minor implies; empty when it is unusable.
+function deriveDatalayoutGeneration {  # <major[.minor[.patch]]>
   local Major="${1%%.*}" Rest="${1#*.}" Minor=0
+
   # A bare major must not borrow itself as the minor: "7" is 7.0, not 7.7.
   [[ "${1}" == *.* ]] && Minor="${Rest%%.*}"
   [[ "${Major}" =~ ^[0-9]+$ && "${Minor}" =~ ^[0-9]+$ ]] || return 1
-  # The datalayout generation, not the flavor: what torch must match is the IR shape
-  # its HIP runtime speaks, and every flavor from llvm22 on shares indexed p8.
-  if (( Major > 7 || (Major == 7 && Minor >= 2) )); then echo indexed-p8; else echo plain-p8; fi
+
+  # Generation, not flavor: every flavor from llvm22 on shares the indexed p8
+  # shape.
+  if (( Major > 7 || (Major == 7 && Minor >= 2) )); then
+    echo indexed-p8
+  else
+    echo plain-p8
+  fi
 }
 
-# Accept a torch that can serve as the numeric reference for this COD.
-#
-# Not an exact ROCm match: a COD carries an in-development ROCm (7.15, 10.0) that
-# no published torch will ever match, so requiring equality makes the lane dead on
-# every COD. What keeps the toolchain honest is ROCKE_COMGR_LIB, which pins rocKE
-# to the COD comgr ahead of any torch-bundled one; torch's job here is to be a
-# numeric oracle. So require only the same IR flavor era -- across eras its HIP
-# runtime pairs badly with COD kernels -- and note a difference within one.
+# Accept a torch usable as the numeric reference for this toolchain.
+# Require the same datalayout generation, not the exact version: a toolchain
+# carries an in-development ROCm no published torch matches, and rocKE uses its
+# comgr anyway.
 function validateTorch {
-  local Ver TorchVer TorchMajorMinor CodEra TorchEra
+  local TorchVer TorchMajorMinor ToolchainGeneration TorchGeneration
+
   "${PyBin}" -c 'import torch' 2>/dev/null || return 1
-  TorchVer="$("${PyBin}" -c 'import torch; print(torch.version.hip or "")' 2>/dev/null)"
+  TorchVer="$("${PyBin}" -c 'import torch; print(torch.version.hip or "")' \
+    2>/dev/null)"
   [[ -n "${TorchVer}" ]] || {
     echo "ERROR: ROCKE_VENV contains a non-ROCm torch build"
     return 1
   }
+
   TorchMajorMinor="$(cut -d. -f1,2 <<< "${TorchVer}")"
-  Ver="$(codRocmVersion)"
-  CodEra="$(rocmEra "${Ver}" || true)"
-  TorchEra="$(rocmEra "${TorchMajorMinor}" || true)"
-  # An era that cannot be established is not a match: skipping the comparison
-  # certified the reference without proving it could serve as one.
-  if [[ -z "${CodEra}" || -z "${TorchEra}" ]]; then
-    echo "ERROR: cannot establish the datalayout generation of torch ROCm ${TorchVer:-?}" \
-         "against COD ROCm ${Ver:-?}, so it cannot be trusted as the numeric reference"
+  ToolchainGeneration="$(deriveDatalayoutGeneration "${RocmVersion}" || true)"
+  TorchGeneration="$(deriveDatalayoutGeneration "${TorchMajorMinor}" || true)"
+
+  # A generation that cannot be established is not a match.
+  if [[ -z "${ToolchainGeneration}" || -z "${TorchGeneration}" ]]; then
+    echo "ERROR: cannot establish the datalayout generation of torch ROCm" \
+         "${TorchVer:-?} against toolchain ROCm ${RocmVersion:-?}, so it" \
+         "cannot be trusted as the numeric reference"
     return 1
   fi
-  if [[ "${CodEra}" != "${TorchEra}" ]]; then
-    echo "ERROR: torch ROCm ${TorchVer} speaks the ${TorchEra} datalayout, COD ROCm ${Ver} the ${CodEra} one"
+
+  if [[ "${ToolchainGeneration}" != "${TorchGeneration}" ]]; then
+    echo "ERROR: torch ROCm ${TorchVer} speaks the ${TorchGeneration}" \
+         "datalayout, toolchain ROCm ${RocmVersion} the" \
+         "${ToolchainGeneration} one"
     return 1
   fi
-  if [[ -n "${Ver}" && "${TorchMajorMinor}" != "${Ver}" ]]; then
-    echo "using torch ROCm ${TorchVer} as the numeric reference for COD ROCm ${Ver}" \
-         "(same ${CodEra} datalayout; rocKE still compiles through the COD comgr)"
+
+  if [[ -n "${RocmVersion}" && "${TorchMajorMinor}" != "${RocmVersion}" ]]; then
+    echo "using torch ROCm ${TorchVer} as the numeric reference for" \
+         "toolchain ROCm ${RocmVersion}" \
+         "(same ${ToolchainGeneration} datalayout; rocKE still compiles" \
+         "through the toolchain's comgr)"
   else
     echo "using torch ROCm ${TorchVer} from ${ROCKE_VENV}"
   fi
+
   return 0
 }
 
-# Provide the numeric reference. Provisioning is opt-in, because the index a COD's
-# own unreleased ROCm implies does not exist; a prepared host installs torch once.
-# The wheel index a released ROCm publishes. A COD's own version usually has none,
-# so callers pass a released index of the same datalayout generation.
-function rocmWheelIndex {  # <major.minor>
+# The wheel index a released ROCm publishes; an unreleased version has none.
+function resolveRocmWheelIndex {  # <major.minor>
   [[ -n "${1}" ]] || return 1
   echo "https://download.pytorch.org/whl/rocm${1}"
 }
 
-# Install one package from a ROCm wheel index into the suite-owned venv. Separate
-# from any particular package so the next one that has to match a ROCm generation
-# does not grow its own copy of this.
+# Install one package from a ROCm wheel index into the suite-owned venv.
 function installRocmPackage {  # <package> <index>
   local Pkg="${1}" Idx="${2}"
-  pipInstallable "${Pkg} (may be several GB)" || return 1
+
+  isPipInstallable "${Pkg} (may be several GB)" || return 1
   echo "provisioning ${Pkg} from ${Idx}"
   "${PyBin}" -m pip install --index-url "${Idx}" "${Pkg}" || {
     echo "ERROR: no ${Pkg} at ${Idx}"
-    echo "       An unreleased COD ROCm has no published wheels. Point" \
+    echo "       An unreleased toolchain ROCm has no published wheels. Point" \
          "ROCKE_TORCH_INDEX_URL at a released"
-    echo "       index of the same era ($(rocmEra "$(codRocmVersion)" || echo '?'))," \
-         "e.g. $(rocmWheelIndex 7.2), or install it in ${ROCKE_VENV}."
+    echo "       index of the same generation" \
+         "($(deriveDatalayoutGeneration "${RocmVersion}" || echo '?'))," \
+         "e.g. $(resolveRocmWheelIndex 7.2), or install it in ${ROCKE_VENV}."
     return 1
   }
 }
 
-# Provide the numeric reference, provisioning only when a caller asked for it.
-#
-# Deriving an index from the COD's own ROCm and installing gigabytes mid-run was
-# the old default, and it could only succeed by luck: the run that needed it spent
-# its two seconds discovering that rocm10.2 publishes nothing. A prepared host
-# installs torch once, which is what both successful numeric runs did. No
-# --force-reinstall either: replacing a working wheel is not this script's business.
+# Provide the numeric reference, provisioning only when a caller asked for it:
+# an unreleased toolchain ROCm has no wheel index, so prepared hosts preinstall
+# it.
 function ensureTorch {
   validateTorch && return 0
+
   local Idx="${ROCKE_TORCH_INDEX_URL}"
   if [[ -z "${Idx}" ]]; then
     [[ "${ROCKE_PROVISION_TORCH}" == 1 ]] || return 1
-    Idx="$(rocmWheelIndex "$(codRocmVersion)")" || {
-      echo "ERROR: COD has no .info/version; set ROCKE_TORCH_INDEX_URL"
+    Idx="$(resolveRocmWheelIndex "${RocmVersion}")" || {
+      echo "ERROR: no ROCm version for this install; set ROCKE_TORCH_INDEX_URL"
       return 1
     }
   fi
+
   installRocmPackage torch "${Idx}" || return 1
   validateTorch
 }
 
-# Ensure a CMake new enough for rocKE's block() (>= 3.25); emit a clear setup
-# row and signal failure otherwise (the ctest/engine lanes build via cmake).
+# Require a cmake new enough for rocKE's block() (>= 3.25), which build lanes
+# need.
 function requireCmake {
   local Ver Major Minor
-  Ver="$(cmake --version 2>/dev/null | head -1 | grep -oE '[0-9]+\.[0-9]+' | head -1)"
-  if [[ -z "${Ver}" ]]; then
-    rockeResult setup cmake 1 "cmake not found (need >= 3.25 for rocKE's block(); set ROCKE_CMAKE_BIN)"
+
+  Ver="$(cmake --version 2>/dev/null | head -1 \
+    | grep -oE '[0-9]+\.[0-9]+' | head -1)"
+  if [[ -z "${RocmVersion}" ]]; then
+    emitRockeResult setup cmake 1 \
+      "cmake not found (need >= 3.25 for rocKE's block(); set ROCKE_CMAKE_BIN)"
     return 1
   fi
+
   Major="${Ver%%.*}"; Minor="${Ver#*.}"
   if (( Major < 3 || (Major == 3 && Minor < 25) )); then
-    rockeResult setup cmake 1 "cmake ${Ver} too old (need >= 3.25; set ROCKE_CMAKE_BIN)"
+    emitRockeResult setup cmake 1 \
+      "cmake ${RocmVersion} too old (need >= 3.25; set ROCKE_CMAKE_BIN)"
     return 1
   fi
+
   return 0
 }
 
-# Build rocKE's `rocke_engine` extension, which its cross-engine tests need to
-# compare the COD-built engine against the Python one. Built through rocKE's own
-# ROCKE_BUILD_PYBIND, so there is no second recipe to keep in step.
-#
-# Shared across lanes, so it sits outside the per-lane build dir and honours
-# ROCKE_REBUILD itself: a nightly rebuilds from scratch (a stale CMake cache
-# survives a source move), a hand rerun reuses it. Answers through a global because
-# it also emits a result row, which a caller capturing stdout would swallow.
+# Build rocKE's engine extension through rocKE's own pybind option, so there is
+# no second recipe. Shared across lanes, so it lives outside the per-lane build
+# dir and answers through a global: it also emits a result row on stdout.
 function ensureEngineExtension {  # sets EngineExtDir
   local Root="${ROCKE_CI_BUILD_ROOT}/engine-ext" Ext Stamp Run
   EngineExtDir=""
   Stamp="${Root}/.rocke-run"
   Run="${ROCKE_RUN_ID}"
+
   if [[ ! -d "${ROCKE_TOP}/cpp" ]]; then
-    rockeResult setup engine-extension 1 \
-      "no ${ROCKE_TOP}/cpp: cannot tell whether the engine extension is current" \
+    local NoCpp="no ${ROCKE_TOP}/cpp:"
+    emitRockeResult setup engine-extension 1 \
+      "${NoCpp} cannot tell whether the engine extension is current" \
       "${LaneRelevance}"
     return 1
   fi
-  # Lock before deciding, not after: the decision reads the tree and one arm of it
-  # deletes the tree, so an unlocked decision can race a concurrent build into
-  # either a half-linked module or an rm -rf underneath it. prepareBuildRoot orders
-  # it this way for the same reason.
+
+  # Lock before deciding: the decision reads the tree and one arm deletes it,
+  # so a concurrent build could race into a half-linked module.
   mkdir -p "${Root}"
   acquireDirLock "${Root}.lock" "engine extension build"
-  if [[ "${ROCKE_REBUILD}" == 1 && "$(cat "${Stamp}" 2>/dev/null)" != "${Run}" ]]; then
+
+  if [[ "${ROCKE_REBUILD}" == 1 \
+    && "$(cat "${Stamp}" 2>/dev/null)" != "${Run}" ]]; then
     rm -rf "${Root}"
     mkdir -p "${Root}"
   else
     Ext="$(find "${Root}" -name 'rocke_engine*.so' -print -quit 2>/dev/null)"
-    # Ask directly whether any C++ source is newer than the module we already have,
-    # rather than sorting the tree: one stat walk, and no filename can confuse it.
+    # Rebuild only when a C++ source is newer than the module already built.
     if [[ -n "${Ext}" ]] && [[ -z "$(find "${ROCKE_TOP}/cpp" -newer "${Ext}" \
-         \( -name '*.cpp' -o -name '*.hpp' -o -name '*.h' -o -name 'CMakeLists.txt' \) \
+         \( -name '*.cpp' -o -name '*.hpp' -o -name '*.h' \
+            -o -name 'CMakeLists.txt' \) \
          -print -quit 2>/dev/null)" ]]; then
       EngineExtDir="$(dirname "${Ext}")"; return 0
     fi
   fi
+
   local PyBind
   PyBind="$("${PyBin}" -m pybind11 --cmakedir 2>/dev/null)"
   if [[ -z "${PyBind}" ]]; then
-    rockeResult setup engine-extension 1 \
-      "pybind11 unavailable in ${ROCKE_VENV}; rocKE's cross-engine tests cannot run" \
+    local NoPybind="pybind11 unavailable in ${ROCKE_VENV};"
+    emitRockeResult setup engine-extension 1 \
+      "${NoPybind} rocKE's cross-engine tests cannot run" \
       "${LaneRelevance}"
     return 1
   fi
+
   echo "building the rocKE C++ engine extension (${Root})"
   if ! cmake -S "${ROCKE_TOP}" -B "${Root}" -DCMAKE_BUILD_TYPE=Release \
          -DROCKE_BUILD_PYBIND=ON -Dpybind11_DIR="${PyBind}" \
          -DPython3_EXECUTABLE="${PyBin}" > "${Root}/configure.log" 2>&1; then
-    rockeResult setup engine-extension 1 \
-      "cmake configure failed for the engine extension (see ${Root}/configure.log)" \
+    local ConfigureFailed="cmake configure failed for the engine extension"
+    emitRockeResult setup engine-extension 1 \
+      "${ConfigureFailed} (see ${Root}/configure.log)" \
       "${LaneRelevance}"
     return 1
   fi
+
   if ! cmake --build "${Root}" --target rocke_core rocke_engine \
          -j"$(nproc 2>/dev/null || echo 4)" > "${Root}/build.log" 2>&1; then
-    # The COD compiles this, so a failure here is a genuine COD finding, not noise.
-    rockeResult setup engine-extension 1 \
-      "COD build of the engine extension failed (see ${Root}/build.log)" \
+    # The toolchain compiles this, so a failure here is a toolchain finding.
+    emitRockeResult setup engine-extension 1 \
+      "toolchain build of the engine extension failed (see ${Root}/build.log)" \
       "${LaneRelevance}"
     return 1
   fi
+
   Ext="$(find "${Root}" -name 'rocke_engine*.so' -print -quit 2>/dev/null)"
   if [[ -z "${Ext}" ]]; then
-    rockeResult setup engine-extension 1 \
+    emitRockeResult setup engine-extension 1 \
       "engine extension not produced under ${Root}" "${LaneRelevance}"
     return 1
   fi
-  # Stamped only now: a failed build must not claim this run already rebuilt.
+
+  # Stamp only now: a failed build must not claim this run already rebuilt.
   printf '%s\n' "${Run}" > "${Stamp}"
   EngineExtDir="$(dirname "${Ext}")"
 }
 
-# A directory that exists is not necessarily one pytest can build a collector
-# for; an argument it cannot collect from aborts the whole run. Require visible
-# test files, matching pytest's default python_files patterns.
+# Require test files matching pytest's default python_files patterns: an
+# argument pytest cannot collect from aborts the whole run.
 function hasTests {  # <dir>
   [[ -d "${1}" && -r "${1}" ]] || return 1
   [[ -n "$(find "${1}" \( -name 'test_*.py' -o -name '*_test.py' \) \
              -print -quit 2>/dev/null)" ]]
 }
 
-# pytest reports a usage error (an unopenable root, conftest or plugin) on its
-# output only, so a row saying just "exited with status 4" is undiagnosable.
-function runnerDetail {  # <runner-log>
+# Extract a usage error from a runner log: pytest reports those on its output
+# only.
+function summarizeRunnerLog {  # <runner-log>
   local Log="${1:-}" Line
+
   [[ -n "${Log}" && -f "${Log}" ]] || return 0
-  Line="$(grep -m1 -E '^(ERROR|ImportError while loading)' "${Log}")" || return 0
+  Line="$(grep -m1 -E '^(ERROR|ImportError while loading)' "${Log}")" \
+    || return 0
   [[ -n "${Line}" ]] && printf ': %s' "${Line:0:160}"
 }
 
-# Run pytest from the tests dir under the relevance plugin, teeing to <log> so a
-# usage error stays diagnosable. Returns pytest's own status.
+# Run pytest from the tests dir under the relevance plugin; returns pytest's
+# status.
 function runPytest {  # <xml> <manifest> <log> [pytest args...]
   local Xml="${1}" Manifest="${2}" Log="${3}"; shift 3
-  # A reused build dir (ROCKE_REBUILD=0) still holds the previous report; if
-  # this run never writes one, emitJunit would republish it as today's verdict.
+
+  # A reused build dir still holds the previous report, which would be
+  # republished as this run's verdict.
   rm -f "${Xml}" "${Manifest}" "${Log}"
-  # --continue-on-collection-errors, because upstream moves files weekly: without it
-  # one unimportable module aborts collection and the lane reports two rows instead
-  # of a thousand, which reads as a catastrophic night when five rocKE tests broke.
+
+  # --continue-on-collection-errors: one unimportable module must not abort
+  # collection of every other test.
   ( cd "${ROCKE_TOP}/tests" \
     && ROCKE_RELEVANCE_OUT="${Manifest}" \
-       PYTHONPATH="${PYTHONPATH}:${HelperDir}${EngineExtDir:+:${EngineExtDir}}" \
-       "${PyBin}" -m pytest "$@" -p rocke_relevance -q \
-         --continue-on-collection-errors --junitxml="${Xml}" ) 2>&1 \
+      PYTHONPATH="${PYTHONPATH}:${HelperDir}${EngineExtDir:+:${EngineExtDir}}" \
+      "${PyBin}" -m pytest "$@" -p rocke_relevance -q \
+        --continue-on-collection-errors --junitxml="${Xml}" ) 2>&1 \
     | tee "${Log}"
   return "${PIPESTATUS[0]}"
 }
 
-# Turn a JUnit report into result rows, or emit a red row when it is missing.
-# Preserve an unexplained nonzero runner exit even when it left a partial XML
-# containing only completed, passing testcases.
-function emitJunit {  # <xml> <default-group> [runner-status] [manifest] [runner-log]
+# Turn a JUnit report into result rows, or a red row when it is missing. An
+# unexplained nonzero runner exit survives a partial, all-passing report.
+# <xml> <group> [runner-status] [manifest] [runner-log] [-- <args>]
+function emitJunit {
   local Xml="${1}" GroupDefault="${2}" RunStatus="${3:-0}" Manifest="${4:-}"
   local RunnerLog="${5:-}"
-  local ParseStatus=0
-  # The status a runner uses for "tests ran, some failed", which is not an error of
-  # ours. Set by the caller (ctest uses 8), because deriving it from the group label
-  # meant renaming a group silently changed how the runner's status was read.
+  local ParseStatus=0 Summary
+
+  # Arguments after "--" reach the converter unchanged.
+  shift $(( $# > 5 ? 5 : $# ))
+  [[ "${1:-}" == "--" ]] && shift
+  local -a LaneArgs=( "$@" )
+
+  # The status a runner uses for "tests ran, some failed" (ctest uses 8). The
+  # caller sets it; deriving it from the group label would tie it to a label
+  # rename.
   local ExpectedFailureStatus="${ExpectedRunnerFailure:-1}"
   local -a RelevanceArgs=(--relevance-default "${LaneRelevance}")
-  # Pass the path whenever the lane asked for one, present or not: gating on -f
-  # here meant a plugin that failed to write it produced no --relevance, hence no
-  # red row, and a thousand rows quietly fell back to the lane default. The
-  # converter reports an unreadable manifest itself.
+
+  # Pass the path whenever the lane asked for one, present or not: the converter
+  # reports an unreadable manifest, while gating here would fall back without a
+  # row.
   [[ -n "${Manifest}" ]] && RelevanceArgs+=(--relevance "${Manifest}")
-  # A lane whose every test drives the toolchain by construction says so, so a row
-  # cannot be reported below that even when the evidence is empty (work in a child).
+
+  # A lane whose tests all drive the toolchain sets a floor under empty
+  # evidence.
   [[ -n "${LaneRelevanceFloor:-}" ]] \
     && RelevanceArgs+=(--relevance-floor "${LaneRelevanceFloor}")
-  # The flavor the COD speaks, pinned from its clang's own datalayout. A check that
-  # reports drift under a different flavor measured another toolchain (see the
-  # converter's _DATALAYOUT_DRIFT), which is not a verdict on this COD.
+
+  # Pin the flavor from the toolchain's own clang: a drift check run under
+  # another flavor measures a different toolchain.
   [[ "${ROCKE_CODEGEN_FLAVOR:-auto}" != auto ]] \
-    && RelevanceArgs+=(--cod-flavor "${ROCKE_CODEGEN_FLAVOR}"
-                       --cod-datalayout "${CodDatalayout:-}")
+    && RelevanceArgs+=(--toolchain-flavor "${ROCKE_CODEGEN_FLAVOR}"
+                       --toolchain-datalayout "${ToolchainDatalayout:-}")
+
   if [[ -f "${Xml}" ]]; then
     "${PyBin}" "${HelperDir}/rocke_junit_results.py" \
       --junit "${Xml}" --group-default "${GroupDefault}" \
-      "${RelevanceArgs[@]}" || ParseStatus=$?
+      "${RelevanceArgs[@]}" ${LaneArgs[@]+"${LaneArgs[@]}"} || ParseStatus=$?
+
     if (( ParseStatus != 0 )); then
-      rockeResult setup "${GroupDefault}-junit" 1 \
+      emitRockeResult setup "${GroupDefault}-junit" 1 \
         "cannot parse JUnit report (status ${ParseStatus})"
     fi
+
     if (( RunStatus != 0 )) \
       && { (( RunStatus != ExpectedFailureStatus )) \
         || ! grep -Eq '<(failure|error)[ />]' "${Xml}"; }; then
-      rockeResult setup "${GroupDefault}-runner" 1 \
-        "test runner exited with status ${RunStatus}$(runnerDetail "${RunnerLog}")"
+      Summary="$(summarizeRunnerLog "${RunnerLog}")"
+      emitRockeResult setup "${GroupDefault}-runner" 1 \
+        "test runner exited with status ${RunStatus}${Summary}"
     fi
   else
-    rockeResult setup "${GroupDefault}-report" 1 \
-      "no JUnit report produced$(runnerDetail "${RunnerLog}")"
+    emitRockeResult setup "${GroupDefault}-report" 1 \
+      "no JUnit report produced$(summarizeRunnerLog "${RunnerLog}")"
   fi
 }

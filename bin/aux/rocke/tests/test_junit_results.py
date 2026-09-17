@@ -1,15 +1,15 @@
 # Copyright (c) Advanced Micro Devices, Inc., or its affiliates.
 # SPDX-License-Identifier: MIT
 #
-# Characterization tests for the JUnit converter: they pin the decisions that make a
-# row honest, so a later refactor cannot quietly change one. Each test names the lie
-# it prevents rather than the branch it covers.
+# Tests for the step that turns a test runner's JUnit XML report into this suite's
+# result rows. They pin the classification decisions -- which outcomes become red,
+# which are reported without failing, and which tier a row is filed under -- so a
+# later change to the converter has to restate its intent rather than drift.
 #
 # Run: python3 -m unittest discover -s bin/rocke/tests
 #
-# The converter is exercised as a subprocess through its real CLI, because that is
-# the only interface run_rocke.sh uses and an import-level test would not notice an
-# argument that stopped being passed.
+# The converter runs as a subprocess through its command line, the same interface the
+# driver uses, so an argument that stops being passed shows up here.
 
 from __future__ import annotations
 
@@ -37,9 +37,8 @@ def convert(xml: str, *args: str) -> list[list[str]]:
              "--group-default", "pytest", *args],
             capture_output=True, text=True, check=True,
         ).stdout
-    # Split on newlines only: str.splitlines() also breaks on \x1e and \x1f, which
-    # are exactly the sentinels rocke_result.py encodes pipes and newlines with, so
-    # it would tear a row apart and make the encoding look broken.
+    # Split on newlines only: str.splitlines() also breaks on the sentinels the row
+    # format uses for embedded pipes and newlines, which would tear a row apart.
     return [line.split("|") for line in out.split("\n")
             if line.startswith("ROCKE_RESULT|")]
 
@@ -91,7 +90,7 @@ class BlockedSkips(unittest.TestCase):
 
 
 class DatalayoutDrift(unittest.TestCase):
-    """Drift measured against another toolchain is not a verdict on the COD."""
+    """Drift measured against another toolchain is not a verdict on the toolchain."""
 
     DRIFT = ("AssertionError: 'e-p:64:64' != 'e-m:e-p:64:64' : "
              "Datalayout drift detected for gfx11-generic under llvm20.")
@@ -102,13 +101,13 @@ class DatalayoutDrift(unittest.TestCase):
             "</testcase>", tests=1, failures=1, skipped=0), *args)[0]
 
     def test_drift_under_another_flavor_is_unmeasured(self):
-        row = self._row("--cod-flavor", "llvm23")
+        row = self._row("--toolchain-flavor", "llvm23")
         self.assertEqual(row[3], "Check")
         self.assertIn("llvm20", row[4])
         self.assertIn("llvm23", row[4])
 
     def test_drift_under_the_cods_own_flavor_stays_red(self):
-        self.assertEqual(self._row("--cod-flavor", "llvm20")[3], "1")
+        self.assertEqual(self._row("--toolchain-flavor", "llvm20")[3], "1")
 
     def test_without_a_pinned_flavor_it_stays_red(self):
         self.assertEqual(self._row()[3], "1")

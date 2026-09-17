@@ -1,11 +1,11 @@
 # Copyright (c) Advanced Micro Devices, Inc., or its affiliates.
 # SPDX-License-Identifier: MIT
 #
-# rocKE <-> compiler-of-the-day (COD) interop smoke for a single GPU arch.
+# rocKE <-> compiler toolchain interop smoke for a single GPU arch.
 #
-# Modes, all feeding rocKE-issued IR to the COD (see README's lane table):
-#   codegen   : -> COD `clang` -> amdgcn relocatable object
-#   comgr     : -> COD `libamd_comgr` -> HSACO, plus an on-device load+symbol
+# Modes, all feeding rocKE-issued IR to the toolchain (see README's lane table):
+#   codegen   : -> toolchain `clang` -> amdgcn relocatable object
+#   comgr     : -> toolchain `libamd_comgr` -> HSACO, plus an on-device load+symbol
 #               check when the local device matches the target arch
 #   occupancy : -> HSACO, then its codegen resource footprint from the ELF notes
 #               via rocke.benchmark.perf.occupancy; a spill is reported red
@@ -27,6 +27,8 @@ import traceback
 from pathlib import Path
 from typing import Any
 
+import rocke_comgr_version
+
 from rocke_tiers import TIER_COMPILER
 from rocke_result import emit as _result_emit
 
@@ -36,7 +38,7 @@ _SUBTEST_SUFFIX = ""
 
 
 def _emit(subtest: str, status: int, message: str = "") -> None:
-    # Every row here comes from driving the COD toolchain, so a red one is
+    # Every row here comes from driving the compiler toolchain, so a red one is
     # always a candidate compiler regression.
     _result_emit(GROUP, subtest + _SUBTEST_SUFFIX, status, message, TIER_COMPILER)
 
@@ -53,7 +55,7 @@ def _is_rdna(arch: str) -> bool:
 
 
 def _comgr_flavor(requested: str) -> str:
-    """Resolve `auto` from the flavor the worker pinned for this COD.
+    """Resolve `auto` from the flavor the worker pinned for this toolchain.
 
     Validated against rocKE's own flavor list rather than a set written here, which
     would silently exclude a flavor rocKE adds.
@@ -66,7 +68,7 @@ def _comgr_flavor(requested: str) -> str:
     flavor = os.environ.get("ROCKE_COMGR_FLAVOR", "")
     if flavor not in LLVM_FLAVORS:
         raise RuntimeError(
-            "auto comgr flavor requires ROCKE_COMGR_FLAVOR from the COD worker; "
+            "auto comgr flavor requires ROCKE_COMGR_FLAVOR from the toolchain worker; "
             f"got {flavor!r}, expected one of {', '.join(LLVM_FLAVORS)}"
         )
     return flavor
@@ -132,29 +134,6 @@ def _patch(module: Any, name: str, value: Any) -> None:
     setattr(module, name, value)
 
 
-def _pin_comgr_flavor_metadata(comgr: Any, flavor: str) -> None:
-    """Prevent rocKE's `/opt/rocm` fallback from misclassifying COD comgr.
-
-    A COD root without ``.info/version`` makes rocKE consult unrelated system
-    metadata and reject matching IR before invoking comgr. Only for that case:
-    pinning the version also satisfies rocKE's own IR-flavor guard, so applying
-    it when the COD does carry trustworthy metadata would suppress the
-    comgr-vs-clang mismatch this suite exists to report.
-    """
-    # Read the vintage off rocKE's ladder rather than inverting it by hand: a
-    # hand-written inverse said (7, 1) for anything but llvm22, so llvm23 was pinned
-    # to a plain-p8 vintage and rocKE's own flavor guard then rejected the indexed IR
-    # it had just been asked to lower -- a red compiler-tier row for a harness bug.
-    from rocke.core.lower_llvm import _ROCM_FLAVOR_LADDER
-
-    version = next((v for v, f in _ROCM_FLAVOR_LADDER if f == flavor), None)
-    if version is None:
-        # Below the oldest ladder row: the flavor that predates every entry.
-        oldest = _ROCM_FLAVOR_LADDER[-1][0]
-        version = (oldest[0], oldest[1] - 1) if oldest[1] else (oldest[0] - 1, 0)
-    _patch(comgr, "resolved_lib_rocm_version", lambda: version)
-
-
 def _build_hsaco(arch: str, flavor: str) -> tuple[bytes, str, str] | None:
     """(HSACO, kernel symbol, resolved flavor); None after emitting the red row."""
     try:
@@ -171,8 +150,7 @@ def _build_hsaco(arch: str, flavor: str) -> tuple[bytes, str, str] | None:
     try:
         from rocke.runtime import comgr
 
-        if os.environ.get("ROCKE_COMGR_VERSION_TRUSTED") == "0":
-            _pin_comgr_flavor_metadata(comgr, flavor)
+        rocke_comgr_version.pinWhenUntrusted(comgr, flavor)
         hsaco, _timings = comgr.build_hsaco_from_llvm_ir(
             ir, isa=f"amdgcn-amd-amdhsa--{arch}"
         )
@@ -201,14 +179,14 @@ def _run_codegen(arch: str, flavor: str, clang: str, out_dir: str | None) -> Non
         out = Path(out_dir)
     else:
         # A caller-given --out is theirs to keep; one we invent is ours to remove.
-        out = Path(tempfile.mkdtemp(prefix="rocke-cod-"))
+        out = Path(tempfile.mkdtemp(prefix="rocke-smoke-"))
         atexit.register(shutil.rmtree, out, True)
     out.mkdir(parents=True, exist_ok=True)
     ll_path = out / f"{arch}.ll"
     obj_path = out / f"{arch}.o"
     ll_path.write_text(ir, encoding="utf-8")
 
-    # The COD clang drives the same AMDGPU backend as a standalone llc and is
+    # The toolchain clang drives the same AMDGPU backend as a standalone llc and is
     # already hard-gated, so this needs no extra tool. `-x ir` marks .ll as IR.
     cmd = [
         clang, "-x", "ir", str(ll_path), "-c",
@@ -266,7 +244,7 @@ def _run_comgr(arch: str, flavor: str) -> None:
 
 
 def _run_occupancy(arch: str, flavor: str, readelf: str) -> None:
-    """Compile with the COD comgr, then report the HSACO's codegen resources."""
+    """Compile with the toolchain's comgr, then report the HSACO's codegen resources."""
     built = _build_hsaco(arch, flavor)
     if built is None:
         return
@@ -280,8 +258,8 @@ def _run_occupancy(arch: str, flavor: str, readelf: str) -> None:
 
     try:
         # rocKE currently prefers /opt/rocm's readelf over PATH. Override its
-        # private resolver so this COD probe uses the binary whose provenance
-        # run_rocke.sh validated. Assigning a missing attribute would succeed
+        # private resolver so this toolchain probe uses the binary whose provenance
+        # the driver validated. Assigning a missing attribute would succeed
         # silently and hand the probe back to system ROCm, so insist it is there.
         _patch(occupancy, "_readelf", lambda: readelf)
         res = occupancy.resources(hsaco, arch)
@@ -315,13 +293,13 @@ def _run_occupancy(arch: str, flavor: str, readelf: str) -> None:
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description="rocKE<->COD interop smoke (single arch)")
+    ap = argparse.ArgumentParser(description="rocKE<->toolchain interop smoke (single arch)")
     ap.add_argument("--mode", required=True, choices=("codegen", "comgr", "occupancy"))
     ap.add_argument("--arch", required=True)
     ap.add_argument("--flavor", default="llvm22")
-    ap.add_argument("--clang", default="clang", help="COD clang (codegen mode)")
+    ap.add_argument("--clang", default="clang", help="toolchain clang (codegen mode)")
     ap.add_argument(
-        "--readelf", default="llvm-readelf", help="COD llvm-readelf (occupancy mode)"
+        "--readelf", default="llvm-readelf", help="toolchain llvm-readelf (occupancy mode)"
     )
     ap.add_argument("--out", help="object dir (codegen); default: a private temp dir")
     ap.add_argument(

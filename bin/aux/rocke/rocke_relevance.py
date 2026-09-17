@@ -1,7 +1,7 @@
 # Copyright (c) Advanced Micro Devices, Inc., or its affiliates.
 # SPDX-License-Identifier: MIT
 #
-# Per-test COD-toolchain relevance for the rocKE nightly, as a pytest plugin.
+# Per-test toolchain-toolchain relevance for the rocKE nightly, as a pytest plugin.
 #
 # Whether a red row can be a compiler regression is a property of what a test
 # *did*, not of what it imports: rocke/__init__.py eagerly imports the comgr, HIP
@@ -10,10 +10,10 @@
 # decreasing precision:
 #   1. rocke.runtime._ctypes_bind._LazyFn.__call__ -- the chokepoint every comgr
 #      and HIP native call goes through; level-triggered, so it sees every call.
-#   2. ctypes.dlopen / subprocess.Popen audit hooks -- a COD library load or a
+#   2. ctypes.dlopen / subprocess.Popen audit hooks -- a toolchain library load or a
 #      hipcc/clang/llvm-* spawn from anywhere, including code this plugin knows
 #      nothing about. Edge-triggered backstop.
-#   3. the rocke_engine import -- the C++ engine is built by the COD.
+#   3. the rocke_engine import -- the C++ engine is built by the toolchain.
 #
 # No allowlist, so a new test that compiles is flagged the moment it does. A
 # chokepoint lost to a rocke refactor becomes an install error and then a red
@@ -33,7 +33,7 @@ from rocke_tiers import TIER_CAPABLE, TIER_COMPILER, TIER_LOGIC
 MANIFEST_VERSION = 1
 
 # Shared-library roles worth attributing; the path is kept too, since rocke may
-# prefer a torch-bundled libamd_comgr over the COD one and the report must say so.
+# prefer a torch-bundled libamd_comgr over the toolchain one and the report must say so.
 _LIB_ROLES = (
     ("comgr", re.compile(r"libamd_comgr|amd_comgr\.dll")),
     ("hiprtc", re.compile(r"hiprtc")),
@@ -106,6 +106,7 @@ class _State:
         self.tree: str | None = None
         self.device_claimed = False
         self.device_claim_note = ""
+        self.version_pin_note = ""
 
 
 _S = _State()
@@ -223,18 +224,42 @@ def pytest_load_initial_conftests(early_config, parser, args):  # noqa: ANN001, 
     guarantee should not depend on that staying true.
     """
     _S.device_claim_note = claim_device_for_torch()
+    _S.version_pin_note = pin_rocm_version_for_build()
+
+
+def pin_rocm_version_for_build() -> str:
+    """Tell rocKE the build's ROCm version where the one it reads is foreign.
+
+    A compiler-only install ships no ROCm version file, and rocKE then gates
+    features on the system number: architectures the compiler supports get refused
+    before comgr is called. Done before collection, since a module may resolve the
+    version at import.
+    """
+    try:
+        from rocke.runtime import comgr
+
+        import rocke_comgr_version
+
+        pinned = rocke_comgr_version.pinWhenUntrusted(comgr)
+    except Exception as exc:  # noqa: BLE001
+        _S.install_errors.append(f"ROCm version not pinned: {exc!r}")
+        return ""
+    if pinned is None:
+        return ""
+    return f"rocke_relevance: rocKE reads ROCm {pinned[0]}.{pinned[1]} for this build"
 
 
 def pytest_configure(config):  # noqa: ANN001, ARG001
-    # Fallback for a pytest that did not call the hook above; claiming is idempotent.
+    # Fallback for a pytest that skipped the initial-conftest hook; claiming is idempotent.
     _S.device_claim_note = _S.device_claim_note or claim_device_for_torch()
     # Printed here rather than where the claim happens: pytest starts its global
     # capture during pytest_load_initial_conftests, so anything written there is
     # swallowed and the log shows nothing -- which is exactly what happened on the
     # first prepared-host run, leaving no evidence that the ordering had been set.
     # A report header would do, but the lanes run pytest with -q, which drops it.
-    if _S.device_claim_note:
-        print(_S.device_claim_note)
+    for note in (_S.device_claim_note, _S.version_pin_note):
+        if note:
+            print(note)
     sys.addaudithook(_audit)
     try:
         _install_native_probe()
@@ -265,7 +290,7 @@ def pytest_sessionfinish(session, exitstatus):  # noqa: ANN001, ARG001
         return
 
     # A test failing before its compile step leaves no evidence of its own, but
-    # its module's other tests still show whether the area drives the COD -- so
+    # its module's other tests still show whether the area drives the toolchain -- so
     # promote it to compiler-capable rather than writing it off as pure logic.
     touched_modules = {
         _S.module_of.get(nid, "")
@@ -280,7 +305,7 @@ def pytest_sessionfinish(session, exitstatus):  # noqa: ANN001, ARG001
         # A spawned Python child is evidence that work left the process, not that the
         # toolchain was used: rocKE tests shell out to their own pure-Python drivers.
         # Only direct evidence -- a native call, a library load, a tool spawn, the
-        # COD-built extension -- puts a test in the compiler tier.
+        # toolchain-built extension -- puts a test in the compiler tier.
         direct = [k for k in kinds if not k.startswith("spawn:py:")]
         if direct:
             tier = TIER_COMPILER

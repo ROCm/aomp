@@ -17,8 +17,8 @@ Fail=0
 
 # The module needs two things from the driver: somewhere to report, and the arch
 # and flavor lists the run-time floors are sized from.
-function fatalSetup { echo "FATAL: ${1}"; exit 9; }
-function rockeResult { :; }
+function failSetup { echo "FATAL: ${1}"; exit 9; }
+function emitRockeResult { :; }
 export ROCKE_CI_ARCHES="gfx950 gfx942"
 export ROCKE_CI_ARCHES_EXPERIMENTAL="gfx90a"
 export ROCKE_ENGINE_FLAVORS="llvm20 llvm22"
@@ -27,7 +27,7 @@ export ROCKE_ENGINE_FLAVORS="llvm20 llvm22"
 . "${Here}/../rocke_lanes.source"
 # Stand-ins for the lane bodies, which live in the same module but are not what is
 # under test here.
-for Lane in $(laneNames); do eval "function $(laneHandler "${Lane}") { :; }"; done
+for Lane in $(listLaneNames); do eval "function $(deriveLaneHandler "${Lane}") { :; }"; done
 
 function check {  # <description> <expected> <actual>
   if [[ "${2}" == "${3}" ]]; then
@@ -38,13 +38,13 @@ function check {  # <description> <expected> <actual>
   fi
 }
 
-# Run assertLaneTables over a registry of our own and report what it said, so each
+# Run assertLaneRegistry over a registry of our own and report what it said, so each
 # case below states a malformed table and the complaint it must produce.
 function verdict {  # <registry row>...
   ( LaneRegistry=("$@")
     LaneOrder=()
     for Row in "${LaneRegistry[@]}"; do LaneOrder+=("${Row%%|*}"); done
-    assertLaneTables 2>&1 | sed -n 's/.*not usable: *//p' ) | tr -d '\n'
+    assertLaneRegistry 2>&1 | sed -n 's/.*not usable: *//p' ) | tr -d '\n'
 }
 
 Good="ctest|rocKE|compiler|3|"
@@ -63,18 +63,18 @@ check "a lane with no body is refused" "handler:nosuchlane" \
   "$(verdict "nosuchlane|rocKE|compiler|3|")"
 
 # The handler is derived, not stored, so no table can name another lane's body.
-check "handler of engine" "stageEngine" "$(laneHandler engine)"
-check "handler of cod-codegen" "stageCodCodegen" "$(laneHandler cod-codegen)"
-check "handler of gpu-numeric" "stageGpuNumeric" "$(laneHandler gpu-numeric)"
+check "handler of engine" "runEngineLane" "$(deriveLaneHandler engine)"
+check "handler of codegen" "runCodegenLane" "$(deriveLaneHandler codegen)"
+check "handler of gpu-numeric" "runGpuNumericLane" "$(deriveLaneHandler gpu-numeric)"
 check "every registered lane has a body defined" "" \
-  "$(for L in $(laneNames); do declare -F "$(laneHandler "${L}")" >/dev/null || echo "${L}"; done)"
+  "$(for L in $(listLaneNames); do declare -F "$(deriveLaneHandler "${L}")" >/dev/null || echo "${L}"; done)"
 
 # Floors sized at run time follow the lists they are sized from.
-check "the engine floor counts flavors" "2" "$(laneRowFloor engine)"
-check "an arch floor counts both sweeps" "3" "$(laneRowFloor cod-comgr)"
-check "an unregistered lane has no floor" "?" "$(laneRowFloor nosuchlane)"
-check "an unregistered lane has no relevance" "unregistered" "$(laneRelevance nosuchlane)"
-check "an empty tools field yields nothing" "" "$(laneHardTools ctest)"
+check "the engine floor counts flavors" "2" "$(readLaneRowFloor engine)"
+check "an arch floor counts both sweeps" "3" "$(readLaneRowFloor comgr)"
+check "an unregistered lane has no floor" "?" "$(readLaneRowFloor nosuchlane)"
+check "an unregistered lane has no relevance" "unregistered" "$(readLaneRelevance nosuchlane)"
+check "an empty tools field yields nothing" "" "$(readLaneHardTools ctest)"
 
 printf '%s passed, %s failed\n' "${Pass}" "${Fail}"
 (( Fail == 0 ))

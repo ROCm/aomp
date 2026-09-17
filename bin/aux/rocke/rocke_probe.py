@@ -31,14 +31,14 @@ import sys
 REPORTED_PACKAGES = ("pytest", "pytest-subtests", "numpy", "pybind11", "torch")
 
 
-def probeComgr(shape: str) -> str:
+def probeComgr(shape: str, buildRocm: str = "") -> str:
     """The comgr rocKE resolves, and the IR flavor to pin for it.
 
     Which flavors exist, which ROCm each belongs to and which datalayout each emits
     are read from rocKE, so a flavor it adds needs no edit here.
 
     Two guards, not one: folded together, a renamed flavor helper also made the path
-    read UNRESOLVED, and the hygiene gate then blamed the COD install for it.
+    read UNRESOLVED, and the hygiene gate then blamed the toolchain install for it.
     """
     try:
         from rocke.runtime.comgr import resolved_lib_path, resolved_lib_rocm_version
@@ -55,6 +55,20 @@ def probeComgr(shape: str) -> str:
         vintageFlavor = "?" if version is None else _flavor_for_rocm(*version)
     except Exception:  # noqa: BLE001
         vintageFlavor = "?"
+
+    # The ROCm version of the build under test, when the caller could establish it
+    # from an install that ships one. Used only to place the flavor inside the
+    # generation the clang settles, so a compiler-only install pins what a complete
+    # one would rather than the generation's first flavor.
+    buildFlavor = "?"
+    try:
+        from rocke.core.lower_llvm import _flavor_for_rocm
+
+        if buildRocm:
+            major, minor = (int(part) for part in buildRocm.split(".")[:2])
+            buildFlavor = _flavor_for_rocm(major, minor)
+    except Exception:  # noqa: BLE001
+        buildFlavor = "?"
 
     # The clang's datalayout generation decides, because it cannot leak from another
     # tree while a ROCm version can. Inside that generation the vintage is believed
@@ -76,11 +90,10 @@ def probeComgr(shape: str) -> str:
                 f for f in LLVM_FLAVORS if _datalayout_kind_for_flavor(f) == want
             ]
             if sameGeneration:
-                chosen = (
-                    vintageFlavor
-                    if vintageFlavor in sameGeneration
-                    else sameGeneration[0]
-                )
+                for candidate in (vintageFlavor, buildFlavor, sameGeneration[0]):
+                    if candidate in sameGeneration:
+                        chosen = candidate
+                        break
     except Exception:  # noqa: BLE001
         pass
 
@@ -191,6 +204,8 @@ def main() -> int:
     comgr = sub.add_parser("comgr")
     comgr.add_argument("shape", nargs="?", default="unknown",
                        choices=("plain", "indexed", "unknown"))
+    comgr.add_argument("--build-rocm", default="",
+                       help="ROCm version of the build under test, as major.minor")
     sub.add_parser("device")
     sub.add_parser("packages")
     deps = sub.add_parser("project-deps")
@@ -198,7 +213,7 @@ def main() -> int:
     args = parser.parse_args()
 
     if args.probe == "comgr":
-        print(probeComgr(args.shape))
+        print(probeComgr(args.shape, args.build_rocm))
     elif args.probe == "device":
         print(probeDevice())
     elif args.probe == "packages":

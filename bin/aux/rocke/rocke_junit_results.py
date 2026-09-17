@@ -9,7 +9,7 @@
 # status is 0 (pass), 1 (fail), or Check (nothing was measurable). A skip is Check
 # only when the *host* is what is missing -- no GPU of the right arch, no ROCm torch
 # -- so a GPU-free host is not reported as failing, and equally not as passing. A skip
-# whose reason names the toolchain is a red "blocked: ..." row instead: it means the compiler under test could not do the
+# whose reason names the toolchain is a red "blocked: ..." row instead: it means the compiler toolchain could not do the
 # work, which is the one thing this CI exists to catch. --relevance attaches the
 # per-test evidence rocke_relevance.py recorded; --relevance-default covers lanes
 # with none.
@@ -46,12 +46,12 @@ _BLOCKED_SKIP = re.compile(
 
 # Of those, the ones naming an artifact *this CI* is responsible for building. Still
 # red -- the tests did not run -- but ours to fix, so pointing triage at the compiler
-# would waste its time. A COD failure while building it is reported by the builder.
+# would waste its time. A toolchain failure while building it is reported by the builder.
 _BLOCKED_OURS = re.compile(r"rocke_engine|c\+\+ engine", re.IGNORECASE)
 
 # A skip whose reason names the toolchain only because it reports *absent upstream
 # data*: no golden was recorded for a flavor, so nothing was ever asked of the
-# compiler. The blocked rule above matches such a reason on the bare word "llvm" and
+# compiler. The blocked-skip rule matches such a reason on the bare word "llvm" and
 # turns "upstream has not got here yet" into a compiler failure -- red every night in
 # the one tier triage is told to read first.
 #
@@ -67,13 +67,13 @@ _MISSING_UPSTREAM_DATA = re.compile(
 
 # rocKE's datalayout drift guard validates the constant for the flavor it reads from
 # the *host* /opt/rocm against IR emitted by the hipcc on PATH -- which this CI points
-# at the COD. On a host whose ROCm is a different vintage than the COD, the two halves
-# come from different toolchains and the comparison says nothing about the COD, so it
+# at the toolchain. On a host whose ROCm is a different vintage than the toolchain, the two halves
+# come from different toolchains and the comparison says nothing about the toolchain, so it
 # would sit red every night in the tier that must stay worth reading. The failure names
-# the flavor it used, which is the evidence: reported under any flavor but the COD's,
-# nothing about the COD was measured. Drift under the COD's own flavor stays red --
-# that is the case the guard exists for. run_rocke.sh's own cod-datalayout probe checks
-# the COD end from the clang's emitted shape, which no host ROCm can reach.
+# the flavor it used, which is the evidence: reported under any flavor but the toolchain's,
+# nothing about the toolchain was measured. Drift under the toolchain's own flavor stays red --
+# that is the case the guard exists for. The driver's own datalayout probe checks
+# the toolchain end from the clang's emitted shape, which no host ROCm can reach.
 _DATALAYOUT_DRIFT = re.compile(r"[Dd]atalayout drift detected for \S+ under (\S+?)\b")
 
 
@@ -159,6 +159,11 @@ def main() -> int:
         default="tests",
         help="group used when a testcase has no classname",
     )
+    ap.add_argument(
+        "--flat-group",
+        action="store_true",
+        help="group every case under --group-default, keeping only its name",
+    )
     ap.add_argument("--relevance", help="path to the rocke_relevance.py manifest")
     ap.add_argument(
         "--relevance-default",
@@ -172,15 +177,15 @@ def main() -> int:
         "test drives the toolchain by construction (e.g. on-device numerics)",
     )
     ap.add_argument(
-        "--cod-flavor",
+        "--toolchain-flavor",
         default="",
-        help="IR flavor the COD speaks, so a check that measured another "
-        "toolchain's flavor is reported as unmeasured rather than as a COD failure",
+        help="IR flavor the toolchain speaks, so a check that measured another "
+        "toolchain's flavor is reported as unmeasured rather than as a toolchain failure",
     )
     ap.add_argument(
-        "--cod-datalayout",
+        "--toolchain-datalayout",
         default="",
-        help="datalayout the COD emits, carried on such a row so it still records "
+        help="datalayout the toolchain emits, carried on such a row so it still records "
         "what this compiler did",
     )
     args = ap.parse_args()
@@ -213,7 +218,8 @@ def main() -> int:
         for attr, tag in (("failures", "failure"), ("errors", "error"),
                           ("skipped", "skipped")):
             counts[attr] += len(case.findall(tag))
-        group = case.get("classname") or args.group_default
+        group = args.group_default if args.flat_group else (
+            case.get("classname") or args.group_default)
         subtest = case.get("name") or "unnamed"
         tier = tiers.get(f"{case.get('classname') or ''}\t{case.get('name') or ''}")
         if tier is None:
@@ -231,7 +237,7 @@ def main() -> int:
         status_attr = (case.get("status") or "").lower()
 
         # A runner that reports through `status` alone still counts, so the tally
-        # below measures ctest's shape as well as pytest's.
+        # counts outcome elements, which covers both ctest's and pytest's shape.
         if failure is None and error is None and status_attr in ("fail", "failed"):
             counts["failures"] += 1
         if skipped is None and status_attr in ("notrun", "disabled", "skipped"):
@@ -244,20 +250,20 @@ def main() -> int:
         ):
             node = failure if failure is not None else error
             msg = (node.get("message") if node is not None else "") or "failed"
-            drift = args.cod_flavor and _DATALAYOUT_DRIFT.search(msg)
-            # The COD's own datalayout goes on the row: the check is not a verdict,
+            drift = args.toolchain_flavor and _DATALAYOUT_DRIFT.search(msg)
+            # The toolchain's own datalayout goes on the row: the check is not a verdict,
             # but what this compiler emits is still worth recording where the
             # suppression happens.
             codLayout = (
-                f". The COD emits: {args.cod_datalayout}" if args.cod_datalayout else ""
+                f". The toolchain emits: {args.toolchain_datalayout}" if args.toolchain_datalayout else ""
             )
-            if drift and drift.group(1) != args.cod_flavor:
+            if drift and drift.group(1) != args.toolchain_flavor:
                 _emit(
                     group,
                     subtest,
                     STATUS_CHECK,
                     f"measured the host toolchain's {drift.group(1)} datalayout, "
-                    f"not the COD's {args.cod_flavor}, so it is no verdict on this "
+                    f"not the toolchain's {args.toolchain_flavor}, so it is no verdict on this "
                     f"compiler{codLayout}",
                     TIER_UNMEASURED,
                 )
