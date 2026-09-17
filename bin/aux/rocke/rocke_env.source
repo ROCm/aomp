@@ -11,6 +11,28 @@
 # shellcheck disable=SC2154
 
 # Resolve the run's interpreter: reuse the virtual environment, else create it.
+# Run a command that writes into the virtual environment, holding a lock for
+# just that command. The environment can sit on a filesystem shared between
+# machines, where two runs would otherwise install into it at once.
+function withVenvLock {  # <description> <command>...
+  local Description="${1}" Status=0
+  local Lock="${ROCKE_VENV}.lock.d"
+  shift
+
+  acquireDirLock "${Lock}" "${Description}"
+  "$@" || Status=$?
+  releaseDirLock "${Lock}"
+  return "${Status}"
+}
+
+# Create the virtual environment and put the two modules every lane imports in
+# it. Called under the lock, so the steps cannot interleave with another run.
+function createVenv {
+  python3 -m venv "${ROCKE_VENV}" \
+    && "${ROCKE_VENV}/bin/python" -m pip install --quiet --upgrade pip \
+    && "${ROCKE_VENV}/bin/python" -m pip install --quiet numpy pytest
+}
+
 function setupPython {
   local Need='import numpy, pytest' Existed=1
   PyBin=""
@@ -21,13 +43,12 @@ function setupPython {
     # top it up.
     if [[ "${ROCKE_SETUP_VENV}" == "1" ]] \
       && ! "${PyBin}" -c "${Need}" 2>/dev/null; then
-      "${PyBin}" -m pip install --quiet numpy pytest || true
+      withVenvLock "virtual environment" \
+        "${PyBin}" -m pip install --quiet numpy pytest || true
     fi
   elif [[ "${ROCKE_SETUP_VENV}" == "1" ]]; then
     [[ -e "${ROCKE_VENV}" ]] || Existed=0
-    if python3 -m venv "${ROCKE_VENV}" \
-      && "${ROCKE_VENV}/bin/python" -m pip install --quiet --upgrade pip \
-      && "${ROCKE_VENV}/bin/python" -m pip install --quiet numpy pytest; then
+    if withVenvLock "virtual environment" createVenv; then
       PyBin="${ROCKE_VENV}/bin/python"
     elif (( Existed == 0 )); then
       rm -rf "${ROCKE_VENV}"  # only what this run created
@@ -91,7 +112,8 @@ function ensureProjectTestDeps {
   # fast.
   echo "provisioning rocKE-declared test dependencies: ${Deps[*]}"
   if isPipInstallable "rocKE dev test dependencies" \
-    && "${PyBin}" -m pip install --quiet "${Deps[@]}"
+    && withVenvLock "virtual environment" \
+      "${PyBin}" -m pip install --quiet "${Deps[@]}"
   then
     return 0
   fi
@@ -100,6 +122,12 @@ function ensureProjectTestDeps {
     "cannot provision rocKE dev test dependencies"
   return 1
 }
+
+# Oldest ROCm release of each datalayout generation. Their wheel indexes stay
+# published, while a toolchain often carries a ROCm that never ships one, and a
+# torch of the same generation serves as the numeric reference either way.
+IndexedGenerationFloor="7.2"
+PlainGenerationFloor="6.4"
 
 # Datalayout generation a ROCm major.minor implies; empty when it is unusable.
 function deriveDatalayoutGeneration {  # <major[.minor[.patch]]>
@@ -116,6 +144,15 @@ function deriveDatalayoutGeneration {  # <major[.minor[.patch]]>
   else
     echo plain-p8
   fi
+}
+
+# Oldest ROCm release that speaks the same datalayout as the given version.
+function deriveGenerationFloor {  # <major[.minor]>
+  case "$(deriveDatalayoutGeneration "${1}" 2>/dev/null)" in
+    indexed-p8) echo "${IndexedGenerationFloor}" ;;
+    plain-p8) echo "${PlainGenerationFloor}" ;;
+    *) return 1 ;;
+  esac
 }
 
 # Accept a torch usable as the numeric reference for this toolchain.
@@ -176,34 +213,61 @@ function installRocmPackage {  # <package> <index>
 
   isPipInstallable "${Pkg} (may be several GB)" || return 1
   echo "provisioning ${Pkg} from ${Idx}"
-  "${PyBin}" -m pip install --index-url "${Idx}" "${Pkg}" || {
-    echo "ERROR: no ${Pkg} at ${Idx}"
-    echo "       An unreleased toolchain ROCm has no published wheels. Point" \
-         "ROCKE_TORCH_INDEX_URL at a released"
-    echo "       index of the same generation" \
-         "($(deriveDatalayoutGeneration "${RocmVersion}" || echo '?'))," \
-         "e.g. $(resolveRocmWheelIndex 7.2), or install it in ${ROCKE_VENV}."
-    return 1
-  }
+  withVenvLock "virtual environment" \
+    "${PyBin}" -m pip install --index-url "${Idx}" "${Pkg}" \
+    || { echo "no ${Pkg} at ${Idx}"; return 1; }
 }
 
-# Provide the numeric reference, provisioning only when a caller asked for it:
-# an unreleased toolchain ROCm has no wheel index, so prepared hosts preinstall
-# it.
+# Provide the numeric reference, installing one when the host has none. A
+# toolchain's own ROCm often publishes no wheel, so the generation's floor
+# release is tried after it: what a reference must match is the datalayout
+# generation, not the version. ROCKE_PROVISION_TORCH=0 forbids the download.
 function ensureTorch {
   validateTorch && return 0
+  [[ "${ROCKE_PROVISION_TORCH}" == 1 ]] || return 1
 
-  local Idx="${ROCKE_TORCH_INDEX_URL}"
-  if [[ -z "${Idx}" ]]; then
-    [[ "${ROCKE_PROVISION_TORCH}" == 1 ]] || return 1
-    Idx="$(resolveRocmWheelIndex "${RocmVersion}")" || {
-      echo "ERROR: no ROCm version for this install; set ROCKE_TORCH_INDEX_URL"
-      return 1
-    }
+  local Floor Idx
+  local -a Indexes=()
+  if [[ -n "${ROCKE_TORCH_INDEX_URL}" ]]; then
+    Indexes=("${ROCKE_TORCH_INDEX_URL}")
+  else
+    [[ -n "${RocmVersion}" ]] \
+      && Indexes+=("$(resolveRocmWheelIndex "${RocmVersion}")")
+    Floor="$(deriveGenerationFloor "${RocmVersion}")" \
+      && [[ "${Floor}" != "${RocmVersion}" ]] \
+      && Indexes+=("$(resolveRocmWheelIndex "${Floor}")")
   fi
 
-  installRocmPackage torch "${Idx}" || return 1
-  validateTorch
+  if (( ${#Indexes[@]} == 0 )); then
+    echo "ERROR: no ROCm version for this install and no" \
+         "ROCKE_TORCH_INDEX_URL, so no wheel index can be chosen"
+    return 1
+  fi
+
+  for Idx in "${Indexes[@]}"; do
+    installRocmPackage torch "${Idx}" || continue
+    validateTorch || return 1
+
+    # A row, not only a log line: numeric coverage appearing on a host is part
+    # of what a report means.
+    emitRockeResult environment torch-provisioned Check \
+      "installed torch from ${Idx}" harness
+    return 0
+  done
+
+  # Said once, after every candidate: the advice names what to set, and the
+  # generation a reference has to speak.
+  local Generation
+  Generation="$(deriveDatalayoutGeneration "${RocmVersion}" || true)"
+  echo "ERROR: no torch published at ${Indexes[*]}"
+  if [[ -n "${Generation}" ]]; then
+    echo "       Point ROCKE_TORCH_INDEX_URL at a published index of the" \
+         "${Generation} generation, or install torch in ${ROCKE_VENV}."
+  else
+    echo "       Set ROCKE_ROCM_VERSION so a generation can be established," \
+         "or point ROCKE_TORCH_INDEX_URL at a published index."
+  fi
+  return 1
 }
 
 # Require a cmake new enough for rocKE's block() (>= 3.25), which build lanes

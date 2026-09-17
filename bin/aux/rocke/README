@@ -6,6 +6,8 @@ apps repo under openmp-ci/rocKE (WALKTHROUGH.md and README.md).
 Bash, sourced by the driver in this order. Sourcing defines functions and
 constant tables; it starts nothing and cannot fail a run:
 
+- rocke_locks.source      directory locks, so two runs cannot share a build
+                          tree, a checkout or an interpreter
 - rocke_toolchain.source  resolve the compiler toolchain, prove every tool
                           comes from it, pin the IR flavor
 - rocke_env.source        the venv and its declared dependencies, the numeric
@@ -33,6 +35,7 @@ Checks, both of which the driver's own lanes do not cover:
   python3 -m unittest discover -s tests
   bash tests/test_lane_registry.sh
   bash tests/test_env_checks.sh
+  bash tests/test_locks.sh
 
 Name the bash modules in that shellcheck command. `-x` follows a sourced file
 to learn what it defines but reports nothing inside it, so checking the driver

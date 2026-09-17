@@ -1,0 +1,94 @@
+# Copyright (c) Advanced Micro Devices, Inc., or its affiliates.
+# SPDX-License-Identifier: MIT
+#
+# Directory locks, so two runs cannot share a build tree, a checkout or an
+# interpreter. Directories rather than descriptors: a tool this suite starts
+# cannot inherit one and keep a nightly lock alive after the run exits.
+# Sourced by the driver; defines functions only.
+# shellcheck shell=bash
+#
+# Run state is owned by the driver and invisible to a check of this file alone.
+# shellcheck disable=SC2154
+
+# Take a directory lock, waiting for a live owner and reclaiming one left by a
+# dead process, so two runs cannot share a build or a virtual environment.
+# The owner record names its host: a venv can live on a shared filesystem, where
+# a process table proves nothing about a lock another machine holds.
+function acquireDirLock {  # <lock-dir> <description>
+  local Lock="${1}" Description="${2}" Owner OwnerHost OwnerPid Entry Stale Msg
+  local Waited=0 Announced=0
+  while ! mkdir "${Lock}" 2>/dev/null; do
+    [[ ! -L "${Lock}" ]] \
+      || failSetup "refusing symlinked ${Description} lock: ${Lock}" lock
+    Msg="gave up after ${ROCKE_LOCK_WAIT}s waiting for the"
+    Msg+=" ${Description} lock: ${Lock}"
+    (( Waited < ROCKE_LOCK_WAIT )) || failSetup "${Msg}" lock
+    Owner="$(cat "${Lock}/owner" 2>/dev/null || true)"
+    OwnerHost="${Owner%% *}"
+    OwnerPid="${Owner##* }"
+
+    # A lock held from another machine can only be waited for: this process
+    # table says nothing about that one. /proc, not kill -0, for a local owner:
+    # kill reports EPERM for another user's live process, and treating that as
+    # dead would let two runs into the same tree.
+    if [[ "${OwnerPid}" =~ ^[0-9]+$ ]] \
+      && { [[ "${OwnerHost}" != "${HostName}" ]] \
+        || [[ -d "/proc/${OwnerPid}" ]]; }; then
+      # Say it once: an unexplained wait looks like a hang.
+      (( Announced )) || echo "waiting for the ${Description} lock held by" \
+        "${OwnerHost} pid ${OwnerPid}: ${Lock}"
+      Announced=1
+      sleep 1; (( ++Waited ))
+      continue
+    fi
+
+    if [[ ! "${OwnerPid}" =~ ^[0-9]+$ ]]; then
+      sleep 1; (( ++Waited ))
+      [[ ! -e "${Lock}" ]] && continue
+      Owner="$(cat "${Lock}/owner" 2>/dev/null || true)"
+      [[ "${Owner##* }" =~ ^[0-9]+$ ]] || failSetup \
+        "malformed ${Description} lock owner: ${Lock}" lock
+      continue
+    fi
+
+    Entry="$(find "${Lock}" -mindepth 1 -maxdepth 1 ! -name owner \
+      -print -quit 2>/dev/null)"
+    if [[ -d "${Lock}" && -z "${Entry}" ]]; then
+      Stale="${Lock}.stale.${BASHPID}"
+      [[ ! -e "${Stale}" ]] \
+        || failSetup "stale-lock quarantine already exists: ${Stale}" lock
+      if mv "${Lock}" "${Stale}" 2>/dev/null; then
+        rm -f "${Stale}/owner"
+        rmdir "${Stale}" 2>/dev/null \
+          || failSetup "cannot remove stale ${Description} lock: ${Stale}" lock
+        continue
+      fi
+      # Lost the race, or the directory is not ours to move: retry as for a
+      # live owner.
+      sleep 1; (( ++Waited ))
+      continue
+    fi
+
+    failSetup "cannot recover stale ${Description} lock: ${Lock}" lock
+  done
+
+  printf '%s %s\n' "${HostName}" "${BASHPID}" > "${Lock}/owner" \
+    || failSetup "cannot record ${Description} lock owner: ${Lock}" lock
+  HeldLockDirs+=("${Lock}")
+}
+
+# Drop one lock this process owns. Separate from the exit path, so a short
+# critical section does not hold a shared lock for a whole run.
+# shellcheck disable=SC2317 # also invoked indirectly by the EXIT trap
+function releaseDirLock {  # <lock-dir>
+  local Lock="${1}" Owner="${1}/owner" i
+  [[ -f "${Owner}" && "$(< "${Owner}")" == "${HostName} ${BASHPID}" ]] \
+    || return 0
+
+  rm -f "${Owner}"
+  rmdir "${Lock}" 2>/dev/null || true
+  for i in "${!HeldLockDirs[@]}"; do
+    [[ "${HeldLockDirs[i]}" == "${Lock}" ]] && unset 'HeldLockDirs[i]'
+  done
+  return 0
+}

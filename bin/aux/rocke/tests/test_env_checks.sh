@@ -74,5 +74,64 @@ check "a bare major does not borrow itself as the minor" \
 check "a version that is not a number is refused" \
   "" "$(deriveDatalayoutGeneration nonsense 2>/dev/null || true)"
 
+# The oldest release of a datalayout generation is what provisioning falls back
+# to, since a toolchain's own ROCm often publishes no wheel.
+check "an unreleased ROCm falls back to its generation's floor" \
+  "7.2" "$(deriveGenerationFloor 10.2)"
+check "a released ROCm of the same generation is its own floor" \
+  "7.2" "$(deriveGenerationFloor 7.2)"
+check "an older generation has its own floor" \
+  "6.4" "$(deriveGenerationFloor 7.1)"
+check "a version that is not a number has no floor" \
+  "" "$(deriveGenerationFloor nonsense 2>/dev/null || true)"
+
+# Provisioning order and consent. Both are checked with stubs: on a host that
+# already has a usable torch, every path looks the same.
+function validateTorch { [[ "${TorchUsable:-0}" == 1 ]]; }
+function installRocmPackage {  # <package> <index>
+  printf 'tried %s
+' "${2}"
+  [[ "${2}" == "${WorkingIndex:-}" ]] && TorchUsable=1
+  [[ "${TorchUsable:-0}" == 1 ]]
+}
+
+TorchUsable=0
+RocmVersion="10.2"
+ROCKE_VENV="${TMPDIR:-/tmp}/a-venv-that-is-never-written"
+ROCKE_PROVISION_TORCH=1
+ROCKE_TORCH_INDEX_URL=""
+WorkingIndex="https://download.pytorch.org/whl/rocm7.2"
+Whl="https://download.pytorch.org/whl"
+Want="tried ${Whl}/rocm10.2 tried ${Whl}/rocm7.2"
+Want+=" row|Check|installed torch from ${Whl}/rocm7.2"
+check "the toolchain's own index is tried before the floor" \
+  "${Want}" "$(ensureTorch | paste -sd' ' -)"
+
+TorchUsable=0
+WorkingIndex="https://download.pytorch.org/whl/rocm10.2"
+Want="tried ${Whl}/rocm10.2"
+Want+=" row|Check|installed torch from ${Whl}/rocm10.2"
+check "a working toolchain index stops the search" \
+  "${Want}" "$(ensureTorch | paste -sd' ' -)"
+
+TorchUsable=0
+WorkingIndex=""
+ROCKE_PROVISION_TORCH=0
+check "the opt-out forbids the download" "" \
+  "$(ensureTorch | paste -sd' ' -)"
+
+ROCKE_PROVISION_TORCH=1
+ROCKE_TORCH_INDEX_URL="file:///tmp/an-index"
+WorkingIndex="file:///tmp/an-index"
+TorchUsable=0
+Want="tried file:///tmp/an-index"
+Want+=" row|Check|installed torch from file:///tmp/an-index"
+check "a stated index is used on its own" \
+  "${Want}" "$(ensureTorch | paste -sd' ' -)"
+
+TorchUsable=1
+check "a usable torch is left alone" "" \
+  "$(ensureTorch | paste -sd' ' -)"
+
 echo "${Passed} passed, ${Failed} failed"
 (( Failed == 0 ))

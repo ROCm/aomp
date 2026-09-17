@@ -29,7 +29,8 @@ HelperDir="${ScriptDir}/aux/rocke"
 
 # The bash side of the worker, sourced by explicit name rather than by glob, so
 # a stale file cannot join it. A missing module is fatal before any lane runs.
-for Module in rocke_toolchain.source rocke_env.source rocke_lanes.source; do
+for Module in rocke_locks.source rocke_toolchain.source rocke_env.source \
+  rocke_lanes.source; do
   [[ -r "${HelperDir}/${Module}" ]] || {
     echo \
       "ERROR: ${HelperDir}/${Module} is missing; this driver is incomplete" >&2
@@ -40,6 +41,8 @@ unset Module
 
 # One literal path per source, not a loop: shellcheck -x cannot follow a path
 # built from a variable, which would leave every module unchecked.
+# shellcheck source=aux/rocke/rocke_locks.source
+. "${HelperDir}/rocke_locks.source"
 # shellcheck source=aux/rocke/rocke_toolchain.source
 . "${HelperDir}/rocke_toolchain.source"
 # shellcheck source=aux/rocke/rocke_env.source
@@ -279,10 +282,10 @@ function configureKnobs {
   : "${ROCKE_REPO_BRANCH:=develop}"
   : "${ROCKE_TORCH_INDEX_URL:=}"
 
-  # Installing a numeric reference is host preparation, not part of a test run:
-  # the index a toolchain's ROCm implies is rarely published. Opt in for a
-  # one-off.
-  : "${ROCKE_PROVISION_TORCH:=0}"
+  # A first run sets the host up, including the numeric reference, and later
+  # runs find it in place. Set to 0 where a multi-gigabyte download is
+  # unwelcome; the GPU lane then reports that it certified nothing.
+  : "${ROCKE_PROVISION_TORCH:=1}"
 
   # Set on the host that certifies numerics: there a missing reference is a
   # defect and reddens; elsewhere it is an unprepared host and stays an
@@ -334,8 +337,10 @@ function initRunState {
 
   # Directory locks avoid inheritable file descriptors, so an external tool
   # (or a daemon it starts) cannot retain a nightly lock after this worker
-  # exits.
+  # exits. The host is part of an owner record, since a lock can sit on a
+  # filesystem shared between machines.
   HeldLockDirs=()
+  HostName="$(uname -n)"
 
   # shellcheck disable=SC2034
   EngineExtDir=""
@@ -369,76 +374,13 @@ function failSetup {
 # Release the locks this process still owns and drop its temporaries.
 # shellcheck disable=SC2317 # invoked indirectly by the EXIT trap
 function cleanupOnExit {
-  local Lock Owner
+  local Lock
   for Lock in "${HeldLockDirs[@]}"; do
-    Owner="${Lock}/owner"
-    if [[ -f "${Owner}" && "$(< "${Owner}")" == "${BASHPID}" ]]; then
-      rm -f "${Owner}"
-      rmdir "${Lock}" 2>/dev/null || true
-    fi
+    releaseDirLock "${Lock}"
   done
   [[ -n "${RowLog}" ]] && rm -f "${RowLog}"
   [[ -n "${ToolchainShim}" ]] && rm -rf "${ToolchainShim}"
   return 0
-}
-
-# Take a directory lock, waiting for a live owner and reclaiming one left by a
-# dead process, so two runs cannot share a build or a virtual environment.
-function acquireDirLock {  # <lock-dir> <description>
-  local Lock="${1}" Description="${2}" OwnerPid Entry Stale Msg
-  local Waited=0 Announced=0
-  while ! mkdir "${Lock}" 2>/dev/null; do
-    [[ ! -L "${Lock}" ]] \
-      || failSetup "refusing symlinked ${Description} lock: ${Lock}" lock
-    Msg="gave up after ${ROCKE_LOCK_WAIT}s waiting for the"
-    Msg+=" ${Description} lock: ${Lock}"
-    (( Waited < ROCKE_LOCK_WAIT )) || failSetup "${Msg}" lock
-    OwnerPid="$(cat "${Lock}/owner" 2>/dev/null || true)"
-
-    # /proc, not kill -0: kill reports EPERM for another user's live process,
-    # and treating that as dead would let two runs into the same tree.
-    if [[ "${OwnerPid}" =~ ^[0-9]+$ && -d "/proc/${OwnerPid}" ]]; then
-      # Say it once: an unexplained wait looks like a hang.
-      (( Announced )) || echo "waiting for the ${Description} lock held by" \
-        "pid ${OwnerPid}: ${Lock}"
-      Announced=1
-      sleep 1; (( ++Waited ))
-      continue
-    fi
-
-    if [[ ! "${OwnerPid}" =~ ^[0-9]+$ ]]; then
-      sleep 1; (( ++Waited ))
-      [[ ! -e "${Lock}" ]] && continue
-      OwnerPid="$(cat "${Lock}/owner" 2>/dev/null || true)"
-      [[ "${OwnerPid}" =~ ^[0-9]+$ ]] || failSetup \
-        "malformed ${Description} lock owner: ${Lock}" lock
-      continue
-    fi
-
-    Entry="$(find "${Lock}" -mindepth 1 -maxdepth 1 ! -name owner \
-      -print -quit 2>/dev/null)"
-    if [[ -d "${Lock}" && -z "${Entry}" ]]; then
-      Stale="${Lock}.stale.${BASHPID}"
-      [[ ! -e "${Stale}" ]] \
-        || failSetup "stale-lock quarantine already exists: ${Stale}" lock
-      if mv "${Lock}" "${Stale}" 2>/dev/null; then
-        rm -f "${Stale}/owner"
-        rmdir "${Stale}" 2>/dev/null \
-          || failSetup "cannot remove stale ${Description} lock: ${Stale}" lock
-        continue
-      fi
-      # Lost the race, or the directory is not ours to move: retry as for a
-      # live owner.
-      sleep 1; (( ++Waited ))
-      continue
-    fi
-
-    failSetup "cannot recover stale ${Description} lock: ${Lock}" lock
-  done
-
-  printf '%s\n' "${BASHPID}" > "${Lock}/owner" \
-    || failSetup "cannot record ${Description} lock owner: ${Lock}" lock
-  HeldLockDirs+=("${Lock}")
 }
 
 # --- The rocKE checkout
@@ -781,6 +723,7 @@ function printRunSummary {
     done
   fi
 }
+
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
