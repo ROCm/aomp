@@ -177,6 +177,12 @@ def main() -> int:
         help="IR flavor the COD speaks, so a check that measured another "
         "toolchain's flavor is reported as unmeasured rather than as a COD failure",
     )
+    ap.add_argument(
+        "--cod-datalayout",
+        default="",
+        help="datalayout the COD emits, carried on such a row so it still records "
+        "what this compiler did",
+    )
     args = ap.parse_args()
 
     tiers: dict[str, str] = {}
@@ -239,13 +245,20 @@ def main() -> int:
             node = failure if failure is not None else error
             msg = (node.get("message") if node is not None else "") or "failed"
             drift = args.cod_flavor and _DATALAYOUT_DRIFT.search(msg)
+            # The COD's own datalayout goes on the row: the check is not a verdict,
+            # but what this compiler emits is still worth recording where the
+            # suppression happens.
+            codLayout = (
+                f". The COD emits: {args.cod_datalayout}" if args.cod_datalayout else ""
+            )
             if drift and drift.group(1) != args.cod_flavor:
                 _emit(
                     group,
                     subtest,
                     STATUS_CHECK,
                     f"measured the host toolchain's {drift.group(1)} datalayout, "
-                    f"not the COD's {args.cod_flavor}: nothing here is the COD's",
+                    f"not the COD's {args.cod_flavor}, so it is no verdict on this "
+                    f"compiler{codLayout}",
                     TIER_UNMEASURED,
                 )
             else:

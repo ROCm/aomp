@@ -363,7 +363,8 @@ function emitJunit {  # <xml> <default-group> [runner-status] [manifest] [runner
   # reports drift under a different flavor measured another toolchain (see the
   # converter's _DATALAYOUT_DRIFT), which is not a verdict on this COD.
   [[ "${ROCKE_CODEGEN_FLAVOR:-auto}" != auto ]] \
-    && RelevanceArgs+=(--cod-flavor "${ROCKE_CODEGEN_FLAVOR}")
+    && RelevanceArgs+=(--cod-flavor "${ROCKE_CODEGEN_FLAVOR}"
+                       --cod-datalayout "${CodDatalayout:-}")
   if [[ -f "${Xml}" ]]; then
     "${PyBin}" "${HelperDir}/rocke_junit_results.py" \
       --junit "${Xml}" --group-default "${GroupDefault}" \

@@ -79,7 +79,8 @@ function printProvenance {
   echo "              HIP $(codHipVersion)"
   echo "              comgr ${CodComgrIface:-?} ($(basename "$(realpath -m "${CodComgrLib:-?}" 2>/dev/null)"))," \
        "rocm $(if (( ${CodVintageTrusted:-1} == 1 )); then echo "${CodComgrVintage:-?} -> ${CodComgrFlavor:-?}"; else echo "vintage not in the COD"; fi)"
-  echo "              emits the ${CodClangShape:-?} p8 datalayout;" \
+  echo "              emits the ${CodClangShape:-?} p8 datalayout," \
+       "whole string sha $(printf '%s' "${CodDatalayout:-}" | sha256sum | cut -c1-12);" \
        "flavors codegen:${ROCKE_CODEGEN_FLAVOR} comgr:${ROCKE_COMGR_FLAVOR}" \
        "engine:$(if [[ "${ROCKE_ENGINE_FLAVORS}" == auto ]]; then echo "auto (rocKE's list, swept by the engine lane)"; else echo "${ROCKE_ENGINE_FLAVORS}"; fi)"
   echo "  rocKE       $(rockeSrcRev)  ${ROCKE_TOP}"
@@ -114,15 +115,20 @@ function codToolchainRow {  # <label> <path> <hard:1|0>
 # shape, so the field distinguishes generations, not releases. It is still the one
 # signal that cannot leak from an unrelated tree, which makes it the right
 # cross-check against the ROCm number the comgr reports.
-function codClangP8Shape {
-  local Arch="${1}" Dl
-  Dl=$(printf 'int _rocke_flavor_probe;\n' | "${AOMP}/bin/clang" -x c \
+# The datalayout the COD clang emits, whole. Sets CodDatalayout and CodClangShape:
+# the shape is what picks a flavor, but it only distinguishes plain from indexed p8,
+# so the string itself is kept and recorded -- a change anywhere else in it (an added
+# address space, a new ABI field) is a change in what the compiler emits, and the
+# shape alone cannot see it.
+function readCodDatalayout {
+  local Arch="${1}"
+  CodDatalayout=$(printf 'int _rocke_flavor_probe;\n' | "${AOMP}/bin/clang" -x c \
         -target amdgcn-amd-amdhsa -mcpu="${Arch}" -emit-llvm -S - -o - 2>/dev/null \
         | sed -n 's/^target datalayout = "\(.*\)"/\1/p')
-  case "${Dl}" in
-    *p8:128:128:128:48*) echo indexed ;;
-    *p8:128:128-*)       echo plain ;;
-    *)                   echo unknown ;;
+  case "${CodDatalayout}" in
+    *p8:128:128:128:48*) CodClangShape=indexed ;;
+    *p8:128:128-*)       CodClangShape=plain ;;
+    *)                   CodClangShape=unknown ;;
   esac
 }
 
@@ -153,7 +159,7 @@ function resolveCodFlavor {
   # rocke_probe.py reports the comgr rocKE will load, its vintage, the flavor rocKE
   # derives from it, and the lib's interface version -- all from rocKE's own ladder,
   # so a release that adds a flavor needs no edit here.
-  CodClangShape="$(codClangP8Shape "${ROCKE_CI_ARCHES%% *}")"
+  readCodDatalayout "${ROCKE_CI_ARCHES%% *}"
   # The clang datalayout is the one basis for the flavor that cannot leak in from an
   # unrelated tree. Losing it means the flavor falls back to the comgr's ROCm number,
   # which is exactly the value this gate spends thirty lines distrusting -- so say so
