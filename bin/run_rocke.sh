@@ -16,6 +16,8 @@
 # (see USER-run-rocKE-all); schedule the per-lane wrappers for one report each.
 # The -r/-u flags mirror CK's; the nightly wrappers set both by env instead.
 
+# Source directives below resolve from this script's directory, not the caller's.
+# shellcheck source-path=SCRIPTDIR
 set -u
 
 # mapfile, ${Part^} and associative-style lookups below need bash 4. Said here
@@ -168,30 +170,18 @@ export PATH="${AOMP}/bin:${CodShim}:${RocmRoot}/bin:${PATH}"
 export LD_LIBRARY_PATH="${AOMP}/lib:${RocmRoot}/lib${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
 
 # Where the house keeps test checkouts and supplemental tools is defined in
-# bin/aomp_common_vars, and a copy of those paths here is a copy that rots. Read them
-# from it instead of restating them -- but in a subshell, because sourcing it outright
-# would bring four ways to kill this run into the nightly: it exits when no cmake
-# exists anywhere, when a caller's ROCMLIBS_GFXLIST is not a subset of GFXLIST, and
-# when ccache or ninja are demanded but missing. It also exports
-# ROCMINFO_BINARY=/opt/rocm/bin/rocminfo whenever the compiler tree has no rocminfo,
-# which is always true of a COD lib/llvm directory -- a system path into the one
-# environment this driver spends its hygiene gate keeping clean. A subshell takes the
-# values and leaves the rest; an unset name simply falls through to our default below.
-# Its own `${VAR:-}` defaults mean anything already set by the caller still wins.
-eval "$(
-  ( . "${ScriptDir}/aomp_common_vars" >/dev/null 2>&1 || exit 0
-    for Name in AOMP_REPOS_TEST AOMP_SUPP; do
-      [[ -n "${!Name-}" ]] && printf '%s=%q\n' "${Name}" "${!Name}"
-    done ) || true
-)"
+# bin/aomp_common_vars, and a copy of those paths here is a copy that rots. houseVar
+# reads them out of it without running it in this shell; see the reasoning there.
+: "${AOMP_REPOS_TEST:=$(houseVar AOMP_REPOS_TEST)}"
 : "${AOMP_REPOS_TEST:=${HOME}/git/aomp-test}"
+HouseSupp="$(houseVar AOMP_SUPP)"
 
 # rocKE's CMakeLists uses block(), which needs CMake >= 3.25; prefer a modern
 # local cmake when the distro one is older. Only this directory goes on PATH, never
 # the directory of whatever `cmake` the house file settled on: that can be /usr/bin,
 # and putting /usr/bin ahead of the COD would let a system clang answer to a name
 # this driver has just proved belongs to the compiler under test.
-: "${ROCKE_CMAKE_BIN:=${AOMP_SUPP:-${HOME}/local}/cmake/bin}"
+: "${ROCKE_CMAKE_BIN:=${HouseSupp:-${HOME}/local}/cmake/bin}"
 [[ -x "${ROCKE_CMAKE_BIN}/cmake" ]] && export PATH="${ROCKE_CMAKE_BIN}:${PATH}"
 : "${ROCKE_TOP:=${AOMP_REPOS_TEST}/composable-kernels/rocm-libraries/dnn-providers/hip-kernel-provider/rocke/platform}"
 # -s keeps this in ROCKE_TOP's path namespace. Resolving symlinks can put the

@@ -8,6 +8,8 @@
 #
 # Run: bash bin/aux/rocke/tests/test_lane_registry.sh
 
+# Source directives below resolve from this script's directory, not the caller's.
+# shellcheck source-path=SCRIPTDIR
 set -u
 Here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 Pass=0

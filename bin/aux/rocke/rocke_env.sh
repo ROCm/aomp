@@ -19,6 +19,29 @@
 
 # Reuse an existing venv, else create one (numpy + pytest) outside the source
 # tree; fall back to the system python only if the venv cannot be built.
+# One value out of the house variable file, read without running it here.
+#
+# Sourcing bin/aomp_common_vars outright would bring four ways to kill a run into
+# the nightly: it exits when no cmake exists anywhere, when a caller's
+# ROCMLIBS_GFXLIST is not a subset of GFXLIST, and when ccache or ninja are demanded
+# but missing. It also exports ROCMINFO_BINARY=/opt/rocm/bin/rocminfo whenever the
+# compiler tree has no rocminfo, which is always true of a COD lib/llvm directory --
+# a system path into the one environment this driver keeps pinned to the compiler
+# under test. rocKE reads none of the variables it exports, so the values are worth
+# taking; the file is not worth running.
+#
+# Read in a separate shell, not a subshell of this one: the house file assigns names
+# this driver also uses -- AOMP among them -- and a subshell would leave every later
+# read of them looking like a read of something assigned elsewhere, to a human as
+# much as to shellcheck. A separate shell also inherits none of our options or
+# functions, which is what "read the values, do not run the file" should mean.
+# Answers empty when the file is missing or exits; every caller carries its own
+# default for that.
+function houseVar {  # <name>
+  bash -c '. "${1}" >/dev/null 2>&1 || exit 0; printf "%s" "${!2-}"' \
+    houseVar "${ScriptDir}/aomp_common_vars" "${1}"
+}
+
 function setupPython {
   local Need='import numpy, pytest' Existed=1
   PyBin=""
