@@ -78,7 +78,7 @@ function printProvenance {
        "(llvm $("${CXX}" --version 2>/dev/null | grep -oE '[0-9a-f]{12,40}' | tail -1 | cut -c1-12))"
   echo "              HIP $(codHipVersion)"
   echo "              comgr ${CodComgrIface:-?} ($(basename "$(realpath -m "${CodComgrLib:-?}" 2>/dev/null)"))," \
-       "rocm $(if (( ${ComgrVersionTrusted:-1} == 1 )); then echo "${CodComgrVintage:-?} -> ${CodComgrFlavor:-?}"; else echo "vintage not in the COD"; fi)"
+       "rocm $(if (( ${CodVintageTrusted:-1} == 1 )); then echo "${CodComgrVintage:-?} -> ${CodComgrFlavor:-?}"; else echo "vintage not in the COD"; fi)"
   echo "              emits the ${CodClangShape:-?} p8 datalayout;" \
        "flavors codegen:${ROCKE_CODEGEN_FLAVOR} comgr:${ROCKE_COMGR_FLAVOR}" \
        "engine:$(if [[ "${ROCKE_ENGINE_FLAVORS}" == auto ]]; then echo "auto (rocKE's list, swept by the engine lane)"; else echo "${ROCKE_ENGINE_FLAVORS}"; fi)"
@@ -142,9 +142,14 @@ function resolveFlavorKnob {  # <env-var-name> <flavor>
 # Prove the compiler-critical tools/libs resolve *inside* the COD install, so a
 # green row can never come from a stale system ROCm. clang/comgr are always hard
 # requirements; HIP/hipcc/llvm-readelf are hard only in the lanes that use them.
-function assertCodToolchain {
-  local Probe Pin Rc=0
-  local HipHard=0 HipccHard=0 ReadelfHard=0 CxxHard=0 ComgrVersionTrusted=1
+# Pin the IR flavor from the COD itself: the clang's datalayout generation
+# decides, because it cannot leak in from another tree the way a ROCm version
+# can. Leaves CodFlavorPin and the CodComgr* facts for the block below.
+function resolveCodFlavor {
+  local Probe
+  # Trusted until the comgr row below proves otherwise; printProvenance and
+  # assertCodToolchain both read it, so it is a fact of the run, not a local.
+  CodVintageTrusted=1
   # rocke_probe.py reports the comgr rocKE will load, its vintage, the flavor rocKE
   # derives from it, and the lib's interface version -- all from rocKE's own ladder,
   # so a release that adds a flavor needs no edit here.
@@ -160,37 +165,43 @@ function assertCodToolchain {
       harness
   fi
   Probe="$("${PyBin}" "${HelperDir}/rocke_probe.py" comgr "${CodClangShape}" 2>/dev/null)"
-  read -r Pin CodComgrFlavor CodComgrVintage CodComgrIface CodComgrLib <<< "${Probe}"
-  resolveFlavorKnob ROCKE_CODEGEN_FLAVOR "${Pin}"
-  resolveFlavorKnob ROCKE_COMGR_FLAVOR "${Pin}"
+  read -r CodFlavorPin CodComgrFlavor CodComgrVintage CodComgrIface CodComgrLib <<< "${Probe}"
+  resolveFlavorKnob ROCKE_CODEGEN_FLAVOR "${CodFlavorPin}"
+  resolveFlavorKnob ROCKE_COMGR_FLAVOR "${CodFlavorPin}"
+}
+
+# Prove every compiler-critical tool resolves inside the COD, so a green row can
+# never come from a stale system ROCm.
+function assertCodToolchain {
+  local Rc=0 HipHard=0 HipccHard=0 ReadelfHard=0 CxxHard=0
   echo "COD toolchain hygiene (compiler-critical rows must read [COD]):"
   codToolchainRow clang++ "$(command -v clang++)" 1 || Rc=1
   codToolchainRow comgr "${CodComgrLib}" 1 || Rc=1
   if [[ "${CodComgrVintage}" != "?" && ! -e "${RocmRoot}/.info/version" ]] && underCod "${CodComgrLib}"; then
-    ComgrVersionTrusted=0
+    CodVintageTrusted=0
   fi
   # rocke_cod_smoke.py pins rocKE's vintage lookup only when it cannot be
   # believed; pinning it otherwise would also satisfy rocKE's IR-flavor guard
   # and hide a genuine comgr-vs-clang split.
-  export ROCKE_COMGR_VERSION_TRUSTED="${ComgrVersionTrusted}"
+  export ROCKE_COMGR_VERSION_TRUSTED="${CodVintageTrusted}"
   # The probe reports both bases: the flavor the comgr's ROCm number implies and the
   # one it chose from the clang's datalayout generation. They differ only when those
   # two disagree, which means one of them is not from this install -- and the clang
   # wins, because a datalayout cannot leak from an unrelated tree.
-  if (( ComgrVersionTrusted == 1 )) && [[ "${CodComgrFlavor}" != "?" && "${Pin}" != "${CodComgrFlavor}" ]]; then
+  if (( CodVintageTrusted == 1 )) && [[ "${CodComgrFlavor}" != "?" && "${CodFlavorPin}" != "${CodComgrFlavor}" ]]; then
     echo "WARNING: datalayout split -- comgr rocm ${CodComgrVintage} implies ${CodComgrFlavor}, but the COD"
-    echo "         clang emits the ${CodClangShape} p8 shape; pinning ${Pin} to match the clang."
+    echo "         clang emits the ${CodClangShape} p8 shape; pinning ${CodFlavorPin} to match the clang."
     # A row, not only a warning: this says the comgr and the clang in one install
     # disagree about the IR they speak, which is the sharpest packaging signal this
     # gate produces, and the dashboard never sees an echo.
     rockeResult setup cod-datalayout-split 1 \
-      "comgr rocm ${CodComgrVintage} implies ${CodComgrFlavor} but the COD clang emits the ${CodClangShape} p8 shape; pinned ${Pin}" \
+      "comgr rocm ${CodComgrVintage} implies ${CodComgrFlavor} but the COD clang emits the ${CodClangShape} p8 shape; pinned ${CodFlavorPin}" \
       compiler
   fi
   # A COD shipping no .info/version lets rocke's vintage number leak from the
   # system /opt/rocm. Only worth saying for a COD-resident comgr: an external one
   # already failed hard above.
-  if (( ComgrVersionTrusted == 0 )); then
+  if (( CodVintageTrusted == 0 )); then
     # Also a row: on a COD that ships no .info/version this is the branch that
     # fires, and it means rocKE keys its feature decisions off a foreign vintage --
     # which is how a compile the COD can do gets refused. Packaging, hence compiler.

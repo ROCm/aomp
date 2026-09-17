@@ -464,6 +464,7 @@ if (( InternalAllChild == 0 )); then
   [[ -d "${ROCKE_TOP}/python/rocke" ]] || fatalSetup "rocKE source not found: ${ROCKE_TOP}" source
   setupPython
   installCodShim
+  resolveCodFlavor
   assertCodToolchain
   printProvenance
   # After the block, so the opening of a log reads as one description of the run
