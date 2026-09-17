@@ -3,18 +3,14 @@
 # SPDX-License-Identifier: MIT
 #
 # rocKE driver: run one lane against the compiler-of-the-day (COD), emit
-# canonical "ROCKE_RESULT|group|subtest|status|message|relevance" lines and
-# close with a short summary. Self-contained, so an engineer can run it by hand;
-# the nightly drives the same lanes. The worker modules it runs are in bin/aux/rocke;
-# the ROCKE_* knobs default just below. The
-# CI-side extractor that turns the rows into dashboard rows, and the full
-# documentation, live in the apps repo under openmp-ci/rocKE (extract-rocke.sh,
-# README.md).
+# "ROCKE_RESULT|group|subtest|status|message|relevance" lines, close with a summary.
+# Self-contained, so it can be run by hand; the nightly drives the same lanes.
 #
 # Usage: run_rocke.sh [-r] [-u] <lane>; -h lists the lanes and the common knobs.
-# 'all' runs every lane in one process for a single consolidated report/mail
-# (see USER-run-rocKE-all); schedule the per-lane wrappers for one report each.
-# The -r/-u flags mirror CK's; the nightly wrappers set both by env instead.
+# 'all' runs every lane in one process for one consolidated report.
+#
+# Worker modules: bin/aux/rocke. Extractor and documentation: the apps repo, under
+# openmp-ci/rocKE.
 
 # Source directives below resolve from this script's directory, not the caller's.
 # shellcheck source-path=SCRIPTDIR
@@ -38,7 +34,7 @@ HelperDir="${ScriptDir}/aux/rocke"
 # these four files are one program. Each module defines functions and constant
 # tables only, so sourcing cannot change state or fail a run; a missing one is fatal
 # here, before any lane has claimed to test anything.
-for Module in rocke_toolchain.sh rocke_env.sh rocke_lanes.sh; do
+for Module in rocke_toolchain.source rocke_env.source rocke_lanes.source; do
   [[ -r "${HelperDir}/${Module}" ]] || {
     echo "ERROR: ${HelperDir}/${Module} is missing; this driver is incomplete" >&2
     exit 2
@@ -48,18 +44,18 @@ unset Module
 # Sourced one literal path at a time, not in the loop above: shellcheck -x cannot
 # follow a path built from a variable, so a loop would leave every module
 # unchecked while the driver still reported clean.
-# shellcheck source=aux/rocke/rocke_toolchain.sh
-. "${HelperDir}/rocke_toolchain.sh"
-# shellcheck source=aux/rocke/rocke_env.sh
-. "${HelperDir}/rocke_env.sh"
-# shellcheck source=aux/rocke/rocke_lanes.sh
-. "${HelperDir}/rocke_lanes.sh"
+# shellcheck source=aux/rocke/rocke_toolchain.source
+. "${HelperDir}/rocke_toolchain.source"
+# shellcheck source=aux/rocke/rocke_env.source
+. "${HelperDir}/rocke_env.source"
+# shellcheck source=aux/rocke/rocke_lanes.source
+. "${HelperDir}/rocke_lanes.source"
 
 # The lanes this driver knows, in the order 'all' runs them: the cheap host-only
 # gates first so a broken COD is reported in seconds, the ~1000-row pytest lane
 # next, then the on-device lane, and cod-occupancy last because a register-spill verdict is
 # only worth reading once the kernels it measures are known to compile. That order,
-# and everything else per-lane, comes from LaneRegistry in rocke_lanes.sh, so the
+# and everything else per-lane, comes from LaneRegistry in rocke_lanes.source, so the
 # stage check, the help text, the 'all' list and the dispatch cannot disagree.
 mapfile -t LaneOrder < <(laneNames)
 Lanes="all|$(IFS="|"; printf '%s' "${LaneOrder[*]}")"
@@ -153,14 +149,10 @@ export ROCKE_HIP_LIB="${ROCKE_HIP_LIB:-${RocmRoot}/lib/libamdhip64.so}"
 export AMD_COMGR_CACHE="${AMD_COMGR_CACHE:-0}"
 export CC="${AOMP}/bin/clang"
 export CXX="${AOMP}/bin/clang++"
-# rocKE compiles its C++ engine by invoking the plain name `c++` (see
-# tests/instances/differential/run_diff.py), and no COD ships that name -- it shipped
-# clang++ only -- so `c++` resolved to the system compiler and the byte-identity lane
-# built rocKE's engine with /usr/bin/c++ while its rows claimed COD provenance. A
-# shim directory ahead of everything makes that name mean the COD's clang++, which is
-# what the lane is supposed to be measuring. Anything else upstream invokes by a bare
-# name can be added here rather than patched into rocKE.
-# installCodShim fills this in; PATH may name a directory that does not exist yet.
+# rocKE builds its engine by invoking the bare name `c++`, which no COD ships, so it
+# resolved to /usr/bin/c++ while the rows claimed COD provenance. The shim makes that
+# name the COD's clang++; installCodShim fills it in, so PATH names it before it
+# exists. Other bare names upstream invokes belong here, not in a patch to rocKE.
 CodShim="${TMPDIR:-/tmp}/rocke-cod-shim-$$"
 # COD llvm tools first, then the shim, then the install bin (hipcc, rocprofv3).
 export PATH="${AOMP}/bin:${CodShim}:${RocmRoot}/bin:${PATH}"
@@ -241,13 +233,10 @@ ROCKE_CI_BUILD_ROOT="$(realpath -m "${ROCKE_CI_BUILD_ROOT}")"
 : "${ROCKE_NUMERIC_HOST:=0}"
 # rocKE uses these without declaring them in its dev extras.
 : "${ROCKE_EXTRA_TEST_DEPS:=pyarrow}"
-# Identity of this run, inherited by the child lanes of 'all'. A bare PID would do
-# for that, but it is also persisted as the engine-extension rebuild stamp, and PIDs
-# repeat: a night that drew a previous run's PID would silently skip a demanded
-# rebuild and test yesterday's artefact. Seconds since the epoch cannot repeat.
-# Only a lane of this run may inherit it; an ambient value from an unrelated shell
-# would otherwise be adopted as this run's identity and cancel a demanded rebuild,
-# which is the failure the id exists to prevent.
+# Run identity, inherited by the children of 'all' and persisted as the
+# engine-extension rebuild stamp. Epoch seconds, not a bare PID: PIDs repeat, and a
+# run that drew a previous one's would skip a demanded rebuild. Accepted only from a
+# child of this run, so an ambient value cannot cancel that rebuild either.
 if [[ -z "${ROCKE_INTERNAL_PARENT_PID:-}" || "${ROCKE_INTERNAL_PARENT_PID}" != "${PPID}" ]]; then
   ROCKE_RUN_ID=""
 fi

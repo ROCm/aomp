@@ -1,29 +1,18 @@
 # Copyright (c) Advanced Micro Devices, Inc., or its affiliates.
 # SPDX-License-Identifier: MIT
 #
-# The lanes: what each one runs, what it is worth to the compiler team, and
-# the floor below which its row count is not credible.
+# The lanes, their triage class and their row floors.
 #
-# Sourced by ../../run_rocke.sh, which owns the run. Sourcing defines functions and
-# constant tables; it starts nothing, touches no file and cannot fail a run.
+# Sourced by ../../run_rocke.sh; defines functions and tables only.
 # shellcheck shell=bash
 #
-# The driver owns the run's state -- RocmRoot, PyBin, BuildRoot, Stage,
-# LaneRelevance and the rest -- which these functions read, and in a few cases
-# set for the driver to use later (setupPython assigns PyBin, engineFlavors
-# assigns EngineFlavorList, the toolchain functions export the flavor knobs).
-# Checked on its own, shellcheck cannot see where that state comes from, so
-# SC2154 is off for the file; check the driver too, since -x follows a source
-# for definitions but reports nothing inside it.
+# Run state (RocmRoot, PyBin, BuildRoot, Stage, ...) belongs to the driver, which
+# a check of this file alone cannot see.
 # shellcheck disable=SC2154
 
-# Flavors the byte-identity gate sweeps. 'auto' asks rocKE for its own published
-# list, so a flavor it adds is swept the night it appears instead of waiting for
-# someone here to notice; the fallback is the pair that predates the list.
-#
-# Reports through a global for the same reason ensureEngineExtension does: it may
-# emit a result row, and a caller capturing stdout would read the row itself as the
-# answer -- eight words of a red row swept as eight flavors.
+# 'auto' asks rocKE for its published list, so a flavor it adds is swept the night
+# it appears. Answers through a global because it may emit a result row, and a
+# caller capturing stdout would sweep that row's words as flavors.
 function engineFlavors {  # sets EngineFlavorList
   if [[ "${ROCKE_ENGINE_FLAVORS}" != auto ]]; then
     EngineFlavorList="${ROCKE_ENGINE_FLAVORS}"; return
@@ -37,20 +26,17 @@ print(" ".join(LLVM_FLAVORS))' 2>/dev/null)"
   fi
 }
 
-# How much the byte-identity gate covered, and what it faulted on, so a result row
-# can carry both instead of pointing at the log.
-# Echoes the count, or nothing when the gate did not report one. Both are red, but
-# they are different findings and the row must not blame rocKE's corpus for a change
-# in how the gate prints.
+# Coverage and faults of the byte-identity gate, for the row to carry. Empty when
+# the gate reported no count: "corpus shrank" and "the gate changed its output" are
+# different findings.
 function gateFamilyCount {  # <gate-log>
   grep -m1 -oP 'families=\K[0-9]+' "${1}" 2>/dev/null || true
 }
 
 function gateFailures {  # <gate-log>
   local Bad
-  # Anchored on the per-family line only. The gate also prints "<TAG> <count>" and
-  # "<TAG> families: a, b" with the same leading tags, and a looser pattern
-  # harvested "2" and "families:" into the row instead of family names.
+  # Per-family lines only: the gate prints "<TAG> <count>" and "<TAG> families: ..."
+  # with the same tags, which a looser pattern harvested as family names.
   Bad="$(grep -oP '^ {2}(DRIFT|RANGE_DRIFT|COMPILE_FAIL|MODE_UNSUPPORTED) {2,}\K[A-Za-z_][A-Za-z0-9_]*' \
          "${1}" 2>/dev/null | sort -u | head -5 | tr '\n' ' ')"
   printf '%s' "${Bad:-no family named by the gate; see the lane log}"
@@ -131,16 +117,11 @@ function stagePytest {
               ; do
     if hasTests "${Root}"; then TestRoots+=("${Root}"); else Missing+=("${Root}"); fi
   done
-  # library/tests belongs to the surrounding rocm-libraries checkout, so it is only
-  # required when we are in one: ROCKE_TOP is documented as accepting a bare rocKE
-  # tree, and demanding it there would make that mode permanently red.
-  #
-  # It stays in the same pytest invocation as the roots above. Running it in its own
-  # process to isolate torch from rocKE's HIP runtime looked attractive, but pytest
-  # derives a nodeid from the argument set: dropping one root rewrote 1226 of 2704
-  # classnames, so every one of those rows would leave the dashboard and return under
-  # a new name. The ordering is fixed in-process instead, by rocke_relevance.py's
-  # claim_device_for_torch().
+  # Only required inside a rocm-libraries checkout; ROCKE_TOP also accepts a bare
+  # rocKE tree, where demanding it would be permanently red. It shares the pytest
+  # invocation above: pytest derives nodeids from the argument set, so isolating it
+  # renamed 1226 of 2704 rows. Torch ordering is handled in-process instead, by
+  # rocke_relevance.py's claim_device_for_torch().
   if [[ "${ROCKE_REPO_ROOT}" != "${ROCKE_TOP}" ]]; then
     Root="${ROCKE_PROJECT_ROOT}/library/tests"
     if hasTests "${Root}"; then TestRoots+=("${Root}"); else Missing+=("${Root}"); fi
@@ -187,15 +168,7 @@ function stageGpuNumeric {
   # stdout only: the probe already reports its own failure there, and folding
   # stderr in would let one HSA warning line prepend itself to the value the arms
   # below match -- promoting noise to "this is the device".
-  DeviceArch="$("${PyBin}" - <<'PY'
-try:
-    from rocke.runtime.hip_module import get_device_arch
-
-    print(get_device_arch(0) or "none")
-except Exception as exc:  # noqa: BLE001 - any failure here means "cannot ask"
-    print(f"error: {type(exc).__name__}: {exc}".replace("\n", "; "))
-PY
-)"
+  DeviceArch="$("${PyBin}" "${HelperDir}/rocke_probe.py" device 2>/dev/null)"
   case "${DeviceArch}" in
     none)
       rockeResult environment device Check "no ROCm GPU agent on this host"
@@ -208,20 +181,10 @@ PY
         "cannot query the device through rocKE: ${DeviceArch:-no output}" "${LaneRelevance}"
       return ;;
   esac
-  # Past the device check this host *can* certify numerics, and this is the only
-  # lane that can catch a miscompile, so a missing reference must never read as
-  # coverage. It is still worth telling two cases apart, because one is a defect
-  # and the other is a host nobody prepared:
-  #
-  #   present but unusable -- a non-ROCm build, or one from the wrong datalayout
-  #     generation -- is red wherever it happens. Someone prepared this host, and
-  #     prepared it wrongly.
-  #   absent is red on the host that is supposed to certify numerics
-  #     (ROCKE_NUMERIC_HOST=1) and unmeasured anywhere else. Reddening every host
-  #     that was never meant to run numerics produced a nightly red nobody could
-  #     act on, which is how a tier stops being read.
-  #
-  # Either way the row names the one command that fixes it.
+  # This host can certify numerics, so a missing reference must never read as
+  # coverage. Two cases, because one is a defect and the other an unprepared host:
+  # a torch that is present but unusable is red anywhere, an absent one only on the
+  # host declared ROCKE_NUMERIC_HOST=1. Both rows name the command that fixes it.
   if ! ensureTorch; then
     local Fix Replace
     Fix="install a ROCm torch in ${ROCKE_VENV} (same datalayout generation as the COD, e.g. $(rocmWheelIndex 7.2)) or set ROCKE_TORCH_INDEX_URL"
@@ -247,10 +210,9 @@ PY
   # the device -- rocKE runs each in a child process, so the in-process probe sees
   # none of it and would otherwise file the most compiler-driven rows we have as
   # 'logic'.
-  # Read by emitJunit in rocke_env.sh through dynamic scope, which is why it is a
-  # local here and looks unused in this file. The lane guarantees every case it runs
-  # drives the toolchain, and the floor is how a row with no measured evidence still
-  # says so rather than reading as unrelated logic.
+  # Read by emitJunit in rocke_env.source through dynamic scope, hence local here
+  # and apparently unused. Every case in this lane drives the toolchain, so a row
+  # with no measured evidence must not read as unrelated logic.
   # shellcheck disable=SC2034
   local LaneRelevanceFloor=compiler
   echo "numeric certification: ${DeviceArch}"
@@ -308,27 +270,17 @@ function stageCodCodegen { codSmokeSweep codegen; }
 
 function stageCodComgr { codSmokeSweep comgr; }
 
-# Origin of a report row: 'rocKE' = the project's own tests/tools, 'ci-harness'
-# = a probe this CI adds (cod-*) or its own plumbing, whichever lane hit it.
-# Mirrors rocke_extract.py's area classifier. See README.md "Test origin".
-# Everything the run needs to know about a lane, in run order, one line each:
+# Every lane, in run order:
 #
-#   name | origin | relevance | floor | tools that must be the COD's
+#   name | origin | relevance | floor | tools that must resolve inside the COD
 #
-# One table because the same seven lanes used to be spelled out in six places --
-# an order list, a dispatch, an origin map, a relevance map, a floor table and a
-# tool-hardness map -- and a lane added to five of them looked like it worked.
+# One table, because these lanes were once spelled out in six, and a lane added to
+# five of them looked like it worked. floor is a row count or a token resolved at
+# run time (flavors, arches); tools is empty when clang and comgr suffice.
 #
-# The handler is not a field: it is derived from the name by laneHandler, so the
-# table cannot name the wrong one. It could, once. Pointing the occupancy lane's
-# handler at stageCodCodegen passed the "is it a function?" check, ran codegen
-# twice, emitted no occupancy row at all, and still cleared its floor, because
-# both lanes size
-# their floor by the arch sweep -- a whole check gone, with nothing red to show it.
-#
-# floor is the row count below which the lane is not credible: a number, or a token
-# for the counts only known at run time (flavors, arches). Tools is a comma list,
-# empty when the lane needs nothing beyond clang and comgr, which every lane needs.
+# The handler is derived from the name (laneHandler), never stored: a stored one
+# pointed a lane at another lane's body, which passed every check and dropped a
+# whole check silently. See knowledge/90-case-study-rocke.md.
 LaneRegistry=(
   "engine|rocKE|compiler|flavors|c++"
   "ctest|rocKE|compiler|3|"
@@ -339,12 +291,9 @@ LaneRegistry=(
   "cod-occupancy|ci-harness|compiler|arches|llvm-readelf"
 )
 
-# Field values the table may carry. Named here so a typo is caught at startup
-# instead of turning into a silently mis-filed row: an unknown origin would
-# misattribute a failure between rocKE and this CI, and an unknown relevance sorts
-# last and drops out of the compiler count. Floors validate themselves: laneRowFloor
-# answers "?" for anything that is neither a token nor a count. The relevance list
-# mirrors rocke_tiers.py, which bash cannot import.
+# Accepted field values, so a typo stops the run instead of mis-filing a row: an
+# unknown origin misattributes a failure, an unknown relevance drops out of the
+# compiler count. Mirrors rocke_tiers.py, which bash cannot import.
 LaneOrigins="rocKE ci-harness"
 LaneRelevances="compiler compiler-capable logic harness unmeasured"
 LaneKnownTools="c++ hip-runtime hipcc llvm-readelf"
@@ -397,22 +346,11 @@ function laneHardTools {  # <lane>
   laneField "${1}" 5 | tr ',' ' '
 }
 
-# Rows below which a lane cannot be healthy, and a red row when it falls there.
+# Floors, not expectations: far below today's counts, so only a collapse trips them.
+# A relocated test root can take the pytest lane from ~1150 rows to 1, all green,
+# because every row that ran passed -- and the house reads silence as success.
 #
-# Everything else in this driver reports what it *did*; nothing noticed a lane that
-# quietly stopped doing anything. rocKE relocates test trees routinely, and a root
-# that keeps one file behind takes the pytest lane from ~1150 rows to 1 -- all green,
-# because every row that ran passed. The house reads silence as success, so shrinking
-# coverage has to be an explicit failure.
-#
-# These are floors, not expectations: set far below today's counts so ordinary
-# upstream churn never trips them, and only a collapse does. The arch and flavor
-# lanes are derived from the lists they iterate, so they need no maintenance; the two
-# absolute numbers are the price of noticing a corpus disappear, and a legitimate
-# shrink below them is a one-line edit here with the reason in the commit.
-# Resolve the registry's floor field. A '?' is not a benign default: it means the
-# lane reached here without a row in the table, and a floor of 1 would have hidden
-# that behind a green row.
+# '?' is not a benign default: it means the lane has no row in the registry.
 function laneRowFloor {  # <lane>
   local Floor; Floor="$(laneField "${1}" 4)" || { echo "?"; return; }
   local -a Arches Experimental Flavors
@@ -451,18 +389,10 @@ function assertRowFloor {  # <lane> <row-log> <relevance>
     "${Relevance}"
 }
 
-# Each lookup used to fall through to a plausible-looking default: a lane missing
-# from the relevance map was triaged as our own plumbing, one missing from the floor
-# table was floored at a single row. Both are silent, which is the one failure mode
-# this driver is not allowed to have, so a gap is a startup error.
-# Prove the registry says something valid, not merely something. A field that is
-# absent, duplicated or misspelt has to stop the run here: every one of those turns
-# into a row that looks like a result later, and the point of this suite is that a
-# row means what it says.
-#
-# Checked before anything runs, including before 'all' forks its children, so a
-# malformed table fails once at startup rather than seven times inside lanes that
-# have already claimed to test something.
+# Prove the registry says something valid, not merely something: an absent,
+# duplicated or misspelt field becomes a row that looks like a result later. Runs
+# before anything else, including before 'all' forks, so a malformed table fails
+# once at startup rather than inside seven lanes.
 function assertLaneTables {
   local Row Lane Tool Seen=" " Bad=""
   for Row in "${LaneRegistry[@]}"; do

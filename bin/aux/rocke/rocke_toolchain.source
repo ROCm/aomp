@@ -3,17 +3,11 @@
 #
 # Resolving the compiler under test, and proving every tool comes from it.
 #
-# Sourced by ../../run_rocke.sh, which owns the run. Sourcing defines functions and
-# constant tables; it starts nothing, touches no file and cannot fail a run.
+# Sourced by ../../run_rocke.sh; defines functions and tables only.
 # shellcheck shell=bash
 #
-# The driver owns the run's state -- RocmRoot, PyBin, BuildRoot, Stage,
-# LaneRelevance and the rest -- which these functions read, and in a few cases
-# set for the driver to use later (setupPython assigns PyBin, engineFlavors
-# assigns EngineFlavorList, the toolchain functions export the flavor knobs).
-# Checked on its own, shellcheck cannot see where that state comes from, so
-# SC2154 is off for the file; check the driver too, since -x follows a source
-# for definitions but reports nothing inside it.
+# Run state (RocmRoot, PyBin, BuildRoot, Stage, ...) belongs to the driver, which
+# a check of this file alone cannot see.
 # shellcheck disable=SC2154
 
 # Walk up from the resolved llvm dir to the nearest ancestor shipping comgr or
@@ -64,17 +58,9 @@ function printBanner {
 }
 
 # True when a resolved path lives inside the COD install root.
-# Everything that decides what a row means, in one block, once the gate has resolved
-# it. Scattered provenance is provenance nobody reads: the flavor knobs still said
-# 'auto' in the opening banner because they are pinned later, the comgr facts were
-# echoed mid-gate, and which torch produced a GPU result was not recorded anywhere.
-#
-# The rule this serves is the suite's oldest: a green row must name what produced it.
-# That means the compiler, but also the packages a verdict depends on -- pytest
-# decides what ran and how it is counted, pytest-subtests decides the shape of the
-# report this CI reconciles against, numpy and torch are the numeric references, and
-# pybind11 builds the engine extension the cross-engine tests compare. A version
-# change in any of them can move a row without the compiler moving at all.
+# Everything that decides what a row means, in one block, after the gate has
+# resolved it -- a green row must name what produced it. That includes the packages
+# in REPORTED_PACKAGES, whose versions can move a row with no compiler change.
 function printProvenance {
   local Dev Driver Os
   echo "== provenance ================================================================="
@@ -85,14 +71,7 @@ function printProvenance {
   Driver="$(cat /sys/module/amdgpu/version 2>/dev/null)"
   # The node is often shared, so which device this run was given is part of the
   # result: two runs on one host can see different GPUs.
-  Dev="$("${PyBin}" - <<'PY' 2>/dev/null
-try:
-    from rocke.runtime.hip_module import get_device_arch
-    print(get_device_arch(0) or "no GPU agent")
-except Exception as exc:  # noqa: BLE001
-    print(f"cannot ask rocKE: {type(exc).__name__}")
-PY
-)"
+  Dev="$("${PyBin}" "${HelperDir}/rocke_probe.py" device 2>/dev/null)"
   echo "  device      ${Dev:-?}  (ROCR_VISIBLE_DEVICES=${ROCR_VISIBLE_DEVICES:-<unset>}${Driver:+, amdgpu ${Driver}})"
   echo "  COD         ${RocmRoot}"
   echo "              clang $("${CXX}" --version 2>/dev/null | head -1 | sed 's/^AMD clang version //;s/ (http.*//')" \
@@ -107,30 +86,8 @@ PY
   echo "  python      $("${PyBin}" -V 2>&1 | sed 's/^Python //')  ${PyBin}"
   # Reported, never required: a package this suite does not need on every host must
   # not turn its absence into a failure here. The lane that needs one says so itself.
-  "${PyBin}" - <<'PY' || true
-import importlib.metadata as md
-import pathlib
-for name in ("pytest", "pytest-subtests", "numpy", "pybind11", "torch"):
-    try:
-        ver = md.version(name)
-    except Exception:  # noqa: BLE001
-        print(f"              {name:16} absent")
-        continue
-    where = ""
-    try:
-        mod = __import__(name.replace("-", "_"))
-        where = str(pathlib.Path(getattr(mod, "__file__", "") or "").parent)
-    except Exception:  # noqa: BLE001
-        where = "(not importable)"
-    hip = ""
-    if name == "torch":
-        try:
-            import torch
-            hip = f" hip {torch.version.hip}" if torch.version.hip else " not a ROCm build"
-        except Exception:  # noqa: BLE001
-            hip = " (not importable)"
-    print(f"              {name:16} {ver}{hip}  {where}")
-PY
+  "${PyBin}" "${HelperDir}/rocke_probe.py" packages 2>/dev/null \
+    | sed 's/^/              /' || true
   echo "  build       cmake $(cmake --version 2>/dev/null | head -1 | awk '{print $3}')," \
        "ninja $(ninja --version 2>/dev/null || echo absent)"
   echo "==============================================================================="
@@ -188,10 +145,9 @@ function resolveFlavorKnob {  # <env-var-name> <flavor>
 function assertCodToolchain {
   local Probe Pin Rc=0
   local HipHard=0 HipccHard=0 ReadelfHard=0 CxxHard=0 ComgrVersionTrusted=1
-  # rocke_cod_probe.py reports the comgr lib rocKE will actually load, its ROCm
-  # vintage, the IR flavor *rocKE derives* from that vintage, and the lib's own
-  # interface version. The flavor comes from rocKE's own ladder, so a release that
-  # adds a flavor needs no edit here.
+  # rocke_probe.py reports the comgr rocKE will load, its vintage, the flavor rocKE
+  # derives from it, and the lib's interface version -- all from rocKE's own ladder,
+  # so a release that adds a flavor needs no edit here.
   CodClangShape="$(codClangP8Shape "${ROCKE_CI_ARCHES%% *}")"
   # The clang datalayout is the one basis for the flavor that cannot leak in from an
   # unrelated tree. Losing it means the flavor falls back to the comgr's ROCm number,
@@ -203,7 +159,7 @@ function assertCodToolchain {
       "the COD clang emits a p8 datalayout rocKE does not describe: pinning the flavor from the comgr's ROCm number instead" \
       harness
   fi
-  Probe="$("${PyBin}" "${HelperDir}/rocke_cod_probe.py" "${CodClangShape}" 2>/dev/null)"
+  Probe="$("${PyBin}" "${HelperDir}/rocke_probe.py" comgr "${CodClangShape}" 2>/dev/null)"
   read -r Pin CodComgrFlavor CodComgrVintage CodComgrIface CodComgrLib <<< "${Probe}"
   resolveFlavorKnob ROCKE_CODEGEN_FLAVOR "${Pin}"
   resolveFlavorKnob ROCKE_COMGR_FLAVOR "${Pin}"
@@ -277,16 +233,10 @@ function assertCodToolchain {
     toolchain
 }
 
-# Say when rocKE wires a target this suite does not sweep, or sweeps one it has
-# dropped. Which targets to cover is this team's policy, so rocKE's list is not
-# adopted wholesale: it carries entries our sweep deliberately omits, such as the
-# non-physical gfx11-generic, and taking it would both change the row population and
-# hand coverage policy to upstream. Asking it is still how we hear about a target
-# arriving, which a hardcoded list can only tell us by staying silent.
-#
-# Reported as unmeasured rather than red: the difference is a decision waiting to be
-# made, not a fault, and a red row that nobody can resolve is the thing this suite
-# has spent the most effort removing.
+# Report targets rocKE wires that this suite does not sweep. Its list is not adopted
+# wholesale -- coverage is this team's policy, and the list carries entries we omit
+# deliberately, such as the non-physical gfx11-generic. Unmeasured, not red: the
+# difference is a decision waiting to be made, not a fault.
 function reportArchDrift {
   local Wired Arch Ours Unswept=""
   Wired="$("${PyBin}" -c 'from rocke.core.isa.backend import wired_arches

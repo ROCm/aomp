@@ -3,19 +3,19 @@ Worker modules for ../../run_rocke.sh, the rocKE compiler-of-the-day test driver
 Bash, sourced by the driver in this order. Sourcing defines functions and
 constant tables; it starts nothing and cannot fail a run:
 
-- rocke_toolchain.sh      resolve the compiler under test, prove every tool
+- rocke_toolchain.source  resolve the compiler under test, prove every tool
                           comes from it, pin the IR flavor
-- rocke_env.sh            the venv and its declared dependencies, the numeric
+- rocke_env.source        the venv and its declared dependencies, the numeric
                           reference, the COD-built engine extension, and
                           turning a runner's report into result rows
-- rocke_lanes.sh          the lanes, their relevance, and their row floors
+- rocke_lanes.source      the lanes, their relevance, and their row floors
 
 Python, run as programs or imported by rocKE's pytest session:
 
 - rocke_result.py         the ROCKE_RESULT line format every lane emits
 - rocke_tiers.py          the relevance vocabulary, shared by all of the below
 - rocke_relevance.py      pytest plugin: can a red row be a COD regression?
-- rocke_cod_probe.py      which comgr rocKE would load, for the hygiene gate
+- rocke_probe.py          comgr, device, packages and declared dependencies
 - rocke_cod_smoke.py      COD interop smoke lanes (codegen / comgr / occupancy)
 - rocke_junit_results.py  JUnit XML -> result rows, joined with the relevance
                           manifest
@@ -25,7 +25,7 @@ session, where a plain result.py would shadow the project's module.
 
 Checks, both of which the driver's own lanes do not cover:
 
-  shellcheck -x ../../run_rocke.sh rocke_*.sh tests/*.sh
+  shellcheck -x ../../run_rocke.sh rocke_*.source tests/*.sh
   python3 -m unittest discover -s tests
   bash tests/test_lane_registry.sh
 

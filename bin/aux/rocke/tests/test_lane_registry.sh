@@ -23,8 +23,8 @@ export ROCKE_CI_ARCHES="gfx950 gfx942"
 export ROCKE_CI_ARCHES_EXPERIMENTAL="gfx90a"
 export ROCKE_ENGINE_FLAVORS="llvm20 llvm22"
 
-# shellcheck source=../rocke_lanes.sh
-. "${Here}/../rocke_lanes.sh"
+# shellcheck source=../rocke_lanes.source
+. "${Here}/../rocke_lanes.source"
 # Stand-ins for the lane bodies, which live in the same module but are not what is
 # under test here.
 for Lane in $(laneNames); do eval "function $(laneHandler "${Lane}") { :; }"; done
