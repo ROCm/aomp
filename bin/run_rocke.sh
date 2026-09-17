@@ -64,31 +64,34 @@ Lanes="all|$(IFS="|"; printf '%s' "${LaneOrder[*]}")"
 # gone.
 function printUsage {
   cat <<EOF
-usage: ${0##*/} [-r] [-u] <${Lanes//|/ | }>
+usage: ${0##*/} [-r] [-u] <lane>
 
-Runs one rocKE lane against the compiler toolchain and prints ROCKE_RESULT rows;
-'all' runs every lane and adds a pass/total tally per lane. A failing test is a
-result row, not a driver error, so a red row does not change the exit \
-status: read
-the closing summary or the rows, not \$?. ('all' does exit non-zero if a \
-lane died
-or produced no rows at all -- that is a broken run, not a test result.)
+  lanes: all ${LaneOrder[*]}
 
-  -r  rebuild each lane from a clean build dir   (ROCKE_REBUILD=1; off by \
-default)
-  -u  refresh the shared rocm-libraries checkout (ROCKE_UPDATE_REPO=1; off by \
-default)
+Runs one rocKE lane against the compiler toolchain and prints ROCKE_RESULT
+rows; 'all' runs every lane and adds a pass/total tally per lane.
+
+A failing test is a result row, not a driver error, so a red row does not
+change the exit status: read the closing summary or the rows, not \$?.
+('all' does exit non-zero if a lane died or produced no rows at all --
+that is a broken run, not a test result.)
+
+  -r  rebuild each lane from a clean build dir    (ROCKE_REBUILD=1)
+  -u  refresh the shared rocm-libraries checkout  (ROCKE_UPDATE_REPO=1)
   -h  this help
 
-Common knobs (every ROCKE_* default is set together at the top of this script;
-the lane table and the full list are in openmp-ci/rocKE/README.md):
-  AOMP=<llvm dir>            the compiler toolchain to test
+Both gates default off, so a rerun by hand neither wipes the lane build dir
+nor touches the shared checkout.
+
+Common knobs (the full list, and the lane table, are in the suite README
+under openmp-ci/rocKE):
+  AOMP=<dir>                 the compiler toolchain to test
   ROCKE_ALL_LANES='...'      lanes 'all' runs, in order
   ROCKE_CI_ARCHES='...'      arch sweep for the smoke lanes
-  ROCKE_TOP=<dir>            rocKE platform checkout to test (else one is \
-cloned)
+  ROCKE_TOP=<dir>            rocKE checkout to test (else one is cloned)
   ROCKE_CI_BUILD_ROOT=<dir>  out-of-tree build root
-  ROCKE_VENV=<dir>           the only interpreter this script may install into
+  ROCKE_VENV=<dir>           the only interpreter this script installs into
+  ROCKE_ROCM_VERSION=<x.y>   ROCm version, when the install states none
   ROCKE_DEBUG=1              full Python tracebacks from the smoke lanes
 EOF
 }
@@ -198,8 +201,8 @@ function configureToolchain {
 
   # Compiler runtime first (libomp/libomptarget), then the pinned ROCm runtime.
   # The tail guard matters: an empty entry from a trailing ':' means CWD.
-  export LD_LIBRARY_PATH="${AOMP}/lib:${RocmRoot}/lib\
-${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
+  local Libs="${AOMP}/lib:${RocmRoot}/lib"
+  export LD_LIBRARY_PATH="${Libs}${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
 }
 
 # Where the suite reads and writes: the checkout under test, the build root,
@@ -213,18 +216,17 @@ function configurePaths {
   [[ -x "${ROCKE_CMAKE_BIN}/cmake" ]] \
     && export PATH="${ROCKE_CMAKE_BIN}:${PATH}"
 
-  : "${ROCKE_TOP:=${AOMP_REPOS_TEST}/composable-kernels/rocm-libraries\
-/dnn-providers/hip-kernel-provider/rocke/platform}"
+  # The path from the shared rocm-libraries repo root down to the rocKE
+  # platform dir, which derives each of the two from the other.
+  ROCKE_TOP_SUFFIX="/dnn-providers/hip-kernel-provider/rocke/platform"
+  local Shared="${AOMP_REPOS_TEST}/composable-kernels/rocm-libraries"
+  : "${ROCKE_TOP:=${Shared}${ROCKE_TOP_SUFFIX}}"
+  ROCKE_REPO_ROOT="${ROCKE_TOP%"${ROCKE_TOP_SUFFIX}"}"
 
   # -s keeps this in ROCKE_TOP's path namespace: a symlink-resolved path can
   # land under a different prefix, making pytest root its collection tree at /
   # and scan upward.
   ROCKE_PROJECT_ROOT="$(realpath -m -s "${ROCKE_TOP}/..")"
-
-  # Path from the shared rocm-libraries repo root down to the rocKE platform
-  # dir.
-  ROCKE_TOP_SUFFIX="/dnn-providers/hip-kernel-provider/rocke/platform"
-  ROCKE_REPO_ROOT="${ROCKE_TOP%"${ROCKE_TOP_SUFFIX}"}"
 
   # Sibling of the rocm-libraries checkout, matching the ck-src/ck-build layout
   # beside it. Off /tmp, so no reaper can drop the tree or its root marker.
@@ -383,14 +385,14 @@ function cleanupOnExit {
 # Take a directory lock, waiting for a live owner and reclaiming one left by a
 # dead process, so two runs cannot share a build or a virtual environment.
 function acquireDirLock {  # <lock-dir> <description>
-  local Lock="${1}" Description="${2}" OwnerPid Entry Stale Waited=0 Announced=0
+  local Lock="${1}" Description="${2}" OwnerPid Entry Stale Msg
+  local Waited=0 Announced=0
   while ! mkdir "${Lock}" 2>/dev/null; do
     [[ ! -L "${Lock}" ]] \
       || failSetup "refusing symlinked ${Description} lock: ${Lock}" lock
-    (( Waited < ROCKE_LOCK_WAIT )) || failSetup \
-      "gave up after ${ROCKE_LOCK_WAIT}s waiting for the \
-${Description} lock: ${Lock}" \
-      lock
+    Msg="gave up after ${ROCKE_LOCK_WAIT}s waiting for the"
+    Msg+=" ${Description} lock: ${Lock}"
+    (( Waited < ROCKE_LOCK_WAIT )) || failSetup "${Msg}" lock
     OwnerPid="$(cat "${Lock}/owner" 2>/dev/null || true)"
 
     # /proc, not kill -0: kill reports EPERM for another user's live process,
@@ -455,7 +457,7 @@ function readRockeSrcRev {
 # missing or empty path, require a clean checkout, and advance by fast-forward
 # only.
 function updateRockeSource {
-  local Top Origin SourceLock
+  local Top Origin SourceLock Msg
   local Repo="${ROCKE_REPO_ROOT}"
   local Url="${ROCKE_REPO_URL}"
   local Branch="${ROCKE_REPO_BRANCH}"
@@ -485,10 +487,11 @@ function updateRockeSource {
   else
     Top="$(realpath -m "$(git -C "${Repo}" rev-parse --show-toplevel)")"
     [[ "${Top}" == "$(realpath -m "${Repo}")" ]] \
-      || failSetup \
-        "source path is nested in another repository (${Top}); \
-refusing to update: ${Repo}" \
-        source
+      || {
+        Msg="source path is nested in another repository (${Top});"
+        Msg+=" refusing to update: ${Repo}"
+        failSetup "${Msg}" source
+      }
 
     if [[ "${ROCKE_UPDATE_REPO}" == 1 ]]; then
       git check-ref-format --branch "${Branch}" >/dev/null 2>&1 \
@@ -501,10 +504,9 @@ refusing to update: ${Repo}" \
           source
 
       if [[ -n "$(git -C "${Repo}" status --porcelain)" ]]; then
-        failSetup \
-          "rocm-libraries checkout has local changes; \
-refusing to update: ${Repo}" \
-          source
+        Msg="rocm-libraries checkout has local changes;"
+        Msg+=" refusing to update: ${Repo}"
+        failSetup "${Msg}" source
       fi
 
       echo "updating rocm-libraries (${Repo})"
@@ -517,10 +519,11 @@ refusing to update: ${Repo}" \
       if git -C "${Repo}" show-ref --verify --quiet "refs/heads/${Branch}"; then
         git -C "${Repo}" merge-base --is-ancestor \
           "${Branch}" "origin/${Branch}" \
-          || failSetup \
-            "local ${Branch} is not a fast-forward of origin/${Branch}; \
-refusing to rewrite it" \
-            source
+          || {
+            Msg="local ${Branch} is not a fast-forward of"
+            Msg+=" origin/${Branch}; refusing to rewrite it"
+            failSetup "${Msg}" source
+          }
         git -C "${Repo}" switch "${Branch}" \
           || failSetup "failed to switch to source branch ${Branch}" source
       else
@@ -603,7 +606,7 @@ function openRowLog {
 # before any recursive deletion, so a typo or a symlinked stage path deletes
 # nothing else.
 function prepareBuildRoot {
-  local Marker="${ROCKE_CI_BUILD_ROOT}/.rocke-ci-root" BuildLock
+  local Marker="${ROCKE_CI_BUILD_ROOT}/.rocke-ci-root" BuildLock Msg
   [[ "${BuildRoot}" == "${ROCKE_CI_BUILD_ROOT}/"* ]] \
     || failSetup "build path escapes ROCKE_CI_BUILD_ROOT: ${BuildRoot}" \
       build-root
@@ -622,10 +625,9 @@ function prepareBuildRoot {
   if [[ ! -f "${Marker}" ]]; then
     if [[ -n "$(find "${ROCKE_CI_BUILD_ROOT}" \
       -mindepth 1 -maxdepth 1 -print -quit)" ]]; then
-      failSetup \
-        "unmarked non-empty ROCKE_CI_BUILD_ROOT; \
-refusing recursive cleanup: ${ROCKE_CI_BUILD_ROOT}" \
-        build-root
+      Msg="unmarked non-empty ROCKE_CI_BUILD_ROOT; refusing recursive"
+      Msg+=" cleanup: ${ROCKE_CI_BUILD_ROOT}"
+      failSetup "${Msg}" build-root
     fi
     printf 'rocKE CI build root\n' > "${Marker}" \
       || failSetup "cannot mark build root: ${ROCKE_CI_BUILD_ROOT}" build-root
@@ -644,56 +646,54 @@ refusing recursive cleanup: ${ROCKE_CI_BUILD_ROOT}" \
   export AMD_COMGR_REDIRECT_LOGS="${BuildRoot}/comgr.log"
 }
 
-# Run every lane of 'all' as a child, then print the consolidated summary.
+# Run every lane in one session for one consolidated report. Each lane is a
+# child with its own build dir, and one failing lane does not stop the rest.
 function runAllLanes {
-  # The 'all' meta-stage runs every lane in one session for one consolidated
-  # report. Each lane is a child with its own build dir; a lane failure does
-  # not stop the rest.
-    export ROCKE_INTERNAL_PARENT_PID="${BASHPID}"
-    Rc=0
+  export ROCKE_INTERNAL_PARENT_PID="${BASHPID}"
+  Rc=0
 
-    # shellcheck disable=SC2086 # intended word splitting of the lane list
-    for Lane in ${ROCKE_ALL_LANES}; do
-      # A nested 'all' in the lane list would re-enter here and fork unbounded.
-      [[ "${Lane}" == all ]] && {
-        echo "WARN: skipping nested 'all' in ROCKE_ALL_LANES"
-        continue
-      }
+  # shellcheck disable=SC2086 # intended word splitting of the lane list
+  for Lane in ${ROCKE_ALL_LANES}; do
+    # A nested 'all' in the lane list would re-enter here and fork unbounded.
+    [[ "${Lane}" == all ]] && {
+      echo "WARN: skipping nested 'all' in ROCKE_ALL_LANES"
+      continue
+    }
 
-      echo "########## lane: ${Lane} ##########"
-      LaneLog="$(mktemp)"; LaneStart="${SECONDS}"
+    echo "########## lane: ${Lane} ##########"
+    LaneLog="$(mktemp)"; LaneStart="${SECONDS}"
 
-      # Absolute, cd-resolved path, so a PATH-launched parent still finds the
-      # child; tee keeps the live stream while the lane's rows are tallied.
-      "${ScriptDir}/run_rocke.sh" "${Lane}" 2>&1 | tee "${LaneLog}"
-      LaneRc="${PIPESTATUS[0]}"
-      if (( LaneRc != 0 )); then
-        Rc=1
-        emitRockeResult setup "lane-${Lane}" 1 \
-          "lane exited with status ${LaneRc}" \
-          | tee -a "${LaneLog}"
-      elif ! grep -aq '^ROCKE_RESULT|' "${LaneLog}"; then
-        Rc=1
-        emitRockeResult setup "lane-${Lane}" 1 "lane produced no result rows" \
-          | tee -a "${LaneLog}"
-      fi
-
-      assertRowFloor "${Lane}" "${LaneLog}" "$(readLaneRelevance "${Lane}")" \
-        | tee -a "${LaneLog}"
-      absorbLaneLog "${Lane}" "${LaneLog}" "$(( SECONDS - LaneStart ))"
-      rm -f "${LaneLog}"
-    done
-
-    if (( ${#Names[@]} == 0 )); then
-      Msg="ROCKE_ALL_LANES selected no lanes"
-      emitRockeResult setup lanes 1 "${Msg}"
-      Names=(all); Pass=(0); Tot=(1); Secs=(0)
-      Fails=("all|setup::lanes|harness|${Msg}")
+    # Absolute, cd-resolved path, so a PATH-launched parent still finds the
+    # child; tee keeps the live stream while the lane's rows are tallied.
+    "${ScriptDir}/run_rocke.sh" "${Lane}" 2>&1 | tee "${LaneLog}"
+    LaneRc="${PIPESTATUS[0]}"
+    if (( LaneRc != 0 )); then
       Rc=1
+      emitRockeResult setup "lane-${Lane}" 1 \
+        "lane exited with status ${LaneRc}" \
+        | tee -a "${LaneLog}"
+    elif ! grep -aq '^ROCKE_RESULT|' "${LaneLog}"; then
+      Rc=1
+      emitRockeResult setup "lane-${Lane}" 1 "lane produced no result rows" \
+        | tee -a "${LaneLog}"
     fi
 
-    printRunSummary
-    exit "${Rc}"
+    assertRowFloor "${Lane}" "${LaneLog}" "$(readLaneRelevance "${Lane}")" \
+      | tee -a "${LaneLog}"
+    absorbLaneLog "${Lane}" "${LaneLog}" "$(( SECONDS - LaneStart ))"
+    rm -f "${LaneLog}"
+  done
+
+  if (( ${#Names[@]} == 0 )); then
+    Msg="ROCKE_ALL_LANES selected no lanes"
+    emitRockeResult setup lanes 1 "${Msg}"
+    Names=(all); Pass=(0); Tot=(1); Secs=(0)
+    Fails=("all|setup::lanes|harness|${Msg}")
+    Rc=1
+  fi
+
+  printRunSummary
+  exit "${Rc}"
 }
 
 # Close the lane: check its row floor, then tally what it produced.

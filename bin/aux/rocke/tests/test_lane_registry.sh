@@ -8,7 +8,7 @@
 #
 # Run: bash bin/aux/rocke/tests/test_lane_registry.sh
 
-# Source directives below resolve from this script's directory, not the caller's.
+# Source directives resolve from this script's directory, not the caller's.
 # shellcheck source-path=SCRIPTDIR
 set -u
 Here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -25,21 +25,24 @@ export ROCKE_ENGINE_FLAVORS="llvm20 llvm22"
 
 # shellcheck source=../rocke_lanes.source
 . "${Here}/../rocke_lanes.source"
-# Stand-ins for the lane bodies, which live in the same module but are not what is
-# under test here.
-for Lane in $(listLaneNames); do eval "function $(deriveLaneHandler "${Lane}") { :; }"; done
+# Stand-ins for the lane bodies, which live in the same module but are not what
+# these tests are about.
+for Lane in $(listLaneNames); do
+  eval "function $(deriveLaneHandler "${Lane}") { :; }"
+done
 
 function check {  # <description> <expected> <actual>
   if [[ "${2}" == "${3}" ]]; then
     Pass=$((Pass + 1))
   else
     Fail=$((Fail + 1))
-    printf 'FAIL  %s\n      expected [%s]\n      got      [%s]\n' "${1}" "${2}" "${3}"
+    printf 'FAIL  %s\n      expected [%s]\n      got      [%s]\n' \
+      "${1}" "${2}" "${3}"
   fi
 }
 
-# Run assertLaneRegistry over a registry of our own and report what it said, so each
-# case below states a malformed table and the complaint it must produce.
+# Run the registry check over a table of our own and report what it said, so
+# each case states a malformed table and the complaint it must produce.
 function verdict {  # <registry row>...
   ( LaneRegistry=("$@")
     LaneOrder=()
@@ -50,30 +53,44 @@ function verdict {  # <registry row>...
 Good="ctest|rocKE|compiler|3|"
 
 check "a valid row is accepted" "" "$(verdict "${Good}")"
-check "a missing field is refused" "fields:ctest" "$(verdict "ctest|rocKE|compiler|3")"
-check "an extra field is refused" "fields:ctest" "$(verdict "ctest|rocKE|compiler|3||x")"
-check "an empty name is refused" "name:<empty>" "$(verdict "|rocKE|compiler|3|")"
-check "a duplicate lane is refused" "duplicate:ctest" "$(verdict "${Good}" "${Good}")"
-check "an unknown origin is refused" "origin:ctest" "$(verdict "ctest|elsewhere|compiler|3|")"
-check "an unknown relevance is refused" "relevance:ctest" "$(verdict "ctest|rocKE|typo|3|")"
-check "an empty floor is refused" "floor:ctest" "$(verdict "ctest|rocKE|compiler||")"
-check "a non-numeric floor is refused" "floor:ctest" "$(verdict "ctest|rocKE|compiler|many|")"
-check "an unknown tool is refused" "tool:ctest:nosuch" "$(verdict "ctest|rocKE|compiler|3|nosuch")"
+check "a missing field is refused" "fields:ctest" \
+  "$(verdict "ctest|rocKE|compiler|3")"
+check "an extra field is refused" "fields:ctest" \
+  "$(verdict "ctest|rocKE|compiler|3||x")"
+check "an empty name is refused" "name:<empty>" \
+  "$(verdict "|rocKE|compiler|3|")"
+check "a duplicate lane is refused" "duplicate:ctest" \
+  "$(verdict "${Good}" "${Good}")"
+check "an unknown origin is refused" "origin:ctest" \
+  "$(verdict "ctest|elsewhere|compiler|3|")"
+check "an unknown relevance is refused" "relevance:ctest" \
+  "$(verdict "ctest|rocKE|typo|3|")"
+check "an empty floor is refused" "floor:ctest" \
+  "$(verdict "ctest|rocKE|compiler||")"
+check "a non-numeric floor is refused" "floor:ctest" \
+  "$(verdict "ctest|rocKE|compiler|many|")"
+check "an unknown tool is refused" "tool:ctest:nosuch" \
+  "$(verdict "ctest|rocKE|compiler|3|nosuch")"
 check "a lane with no body is refused" "handler:nosuchlane" \
   "$(verdict "nosuchlane|rocKE|compiler|3|")"
 
 # The handler is derived, not stored, so no table can name another lane's body.
 check "handler of engine" "runEngineLane" "$(deriveLaneHandler engine)"
 check "handler of codegen" "runCodegenLane" "$(deriveLaneHandler codegen)"
-check "handler of gpu-numeric" "runGpuNumericLane" "$(deriveLaneHandler gpu-numeric)"
+check "handler of gpu-numeric" "runGpuNumericLane" \
+  "$(deriveLaneHandler gpu-numeric)"
 check "every registered lane has a body defined" "" \
-  "$(for L in $(listLaneNames); do declare -F "$(deriveLaneHandler "${L}")" >/dev/null || echo "${L}"; done)"
+  "$(for L in $(listLaneNames); do
+       declare -F "$(deriveLaneHandler "${L}")" >/dev/null || echo "${L}"
+     done)"
 
 # Floors sized at run time follow the lists they are sized from.
 check "the engine floor counts flavors" "2" "$(readLaneRowFloor engine)"
-check "an arch floor counts both sweeps" "3" "$(readLaneRowFloor comgr)"
+check "an arch floor counts both sweeps" "3" \
+  "$(readLaneRowFloor comgr)"
 check "an unregistered lane has no floor" "?" "$(readLaneRowFloor nosuchlane)"
-check "an unregistered lane has no relevance" "unregistered" "$(readLaneRelevance nosuchlane)"
+check "an unregistered lane has no relevance" "unregistered" \
+  "$(readLaneRelevance nosuchlane)"
 check "an empty tools field yields nothing" "" "$(readLaneHardTools ctest)"
 
 printf '%s passed, %s failed\n' "${Pass}" "${Fail}"

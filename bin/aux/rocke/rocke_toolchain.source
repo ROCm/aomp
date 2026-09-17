@@ -35,6 +35,9 @@ function installToolchainShim {
   fi
 }
 
+# Rule across the provenance blocks, the width the banner text assumes.
+BannerRule="$(printf '%.0s=' $(seq 79))"
+
 # The file a build tree writes beside the packages it built in one go.
 CoBuildManifest="all.sha"
 
@@ -110,13 +113,11 @@ function describeRocmVersion {
 # names what it was testing; the full provenance block waits for resolved
 # values.
 function printBanner {
-  echo "========================================\
-======================================="
+  echo "${BannerRule}"
   echo "rocKE ${Stage}  ($(date '+%Y-%m-%d %H:%M:%S'))"
   echo "  AOMP        = ${AompInput} -> ${AOMP}"
   echo "  ROCM_PATH   = ${ROCM_PATH} (${RocmRootSource})"
-  echo "========================================\
-======================================="
+  echo "${BannerRule}"
 }
 
 # Everything that decides what a row means, printed once the gate has resolved
@@ -135,8 +136,8 @@ function printProvenance {
   Driver="$(cat /sys/module/amdgpu/version 2>/dev/null)"
   # Nodes are shared: two runs on one host can be given different GPUs.
   Dev="$("${PyBin}" "${HelperDir}/rocke_probe.py" device 2>/dev/null)"
-  echo "  device      ${Dev:-?}  (ROCR_VISIBLE_DEVICES=\
-${ROCR_VISIBLE_DEVICES:-<unset>}${Driver:+, amdgpu ${Driver}})"
+  local Seen="ROCR_VISIBLE_DEVICES=${ROCR_VISIBLE_DEVICES:-<unset>}"
+  echo "  device      ${Dev:-?}  (${Seen}${Driver:+, amdgpu ${Driver}})"
 
   echo "  toolchain         ${RocmRoot}"
   echo "              clang $("${CXX}" --version 2>/dev/null \
@@ -165,8 +166,7 @@ ${ROCR_VISIBLE_DEVICES:-<unset>}${Driver:+, amdgpu ${Driver}})"
   echo "  build       cmake" \
        "$(cmake --version 2>/dev/null | head -1 | awk '{print $3}')," \
        "ninja $(ninja --version 2>/dev/null || echo absent)"
-  echo "========================================\
-======================================="
+  echo "${BannerRule}"
 }
 
 # True when a path resolves inside the compiler toolchain under test.
@@ -236,10 +236,9 @@ function resolveToolchainFlavor {
   # Without the datalayout the flavor falls back to the comgr's ROCm number,
   # which this gate distrusts, so an undescribed p8 shape gets a row of its own.
   if [[ "${ToolchainDatalayoutShape}" == unknown ]]; then
-    emitRockeResult setup toolchain-datalayout 1 \
-      "the toolchain's clang emits a p8 datalayout rocKE does not describe: \
-pinning the flavor from the comgr's ROCm number instead" \
-      harness
+    local Msg="the toolchain's clang emits a p8 datalayout rocKE does not"
+    Msg+=" describe: pinning the flavor from the comgr's ROCm number instead"
+    emitRockeResult setup toolchain-datalayout 1 "${Msg}" harness
   fi
 
   # The probe helper derives the comgr facts from rocKE's own ladder, so a
@@ -257,7 +256,7 @@ pinning the flavor from the comgr's ROCm number instead" \
 # Prove every compiler-critical tool resolves inside the toolchain, not a
 # system ROCm.
 function assertToolchainProvenance {
-  local Rc=0 HipHard=0 HipccHard=0 ReadelfHard=0 CxxHard=0
+  local Rc=0 HipHard=0 HipccHard=0 ReadelfHard=0 CxxHard=0 Msg
 
   echo "toolchain provenance (compiler-critical rows must read [toolchain]):"
   reportToolchainTool clang++ "$(command -v clang++)" 1 || Rc=1
@@ -287,11 +286,10 @@ function assertToolchainProvenance {
     echo "         clang emits the ${ToolchainDatalayoutShape} p8 shape;" \
          "pinning ${ToolchainFlavorPin} to match the clang."
     # A row, not only a warning: the dashboard does not see an echo.
-    emitRockeResult setup toolchain-flavor-split 1 \
-      "comgr rocm ${ToolchainComgrVintage} implies ${ToolchainComgrFlavor} \
-but the toolchain's clang emits the ${ToolchainDatalayoutShape} p8 shape; \
-pinned ${ToolchainFlavorPin}" \
-      compiler
+    Msg="comgr rocm ${ToolchainComgrVintage} implies"
+    Msg+=" ${ToolchainComgrFlavor} but the toolchain's clang emits the"
+    Msg+=" ${ToolchainDatalayoutShape} p8 shape; pinned ${ToolchainFlavorPin}"
+    emitRockeResult setup toolchain-flavor-split 1 "${Msg}" compiler
   fi
 
   # Reported, not failed: a system-install version number is not the compiler's
@@ -334,10 +332,9 @@ pinned ${ToolchainFlavorPin}" \
         # Not a warning: rows from a lane whose tools cannot be placed would
         # claim an unchecked provenance. Startup validation means the two lists
         # drifted.
-        *) failSetup \
-             "lane ${Lane} requires '${Tool}', which the hygiene gate \
-cannot verify" \
-             harness ;;
+        *) Msg="lane ${Lane} requires '${Tool}', which the hygiene gate"
+           Msg+=" cannot verify"
+           failSetup "${Msg}" harness ;;
       esac
     done
   done
@@ -348,10 +345,9 @@ cannot verify" \
     "${ReadelfHard}" || Rc=1
   reportToolchainTool c++ "$(command -v c++)" "${CxxHard}" || Rc=1
 
-  (( Rc == 0 )) || failSetup \
-    "compiler toolchain resolves outside the toolchain (${RocmRoot}); \
-refusing to test a stale system ROCm" \
-    toolchain
+  Msg="a compiler-critical tool resolves outside the toolchain"
+  Msg+=" (${RocmRoot}); refusing to test a stale system ROCm"
+  (( Rc == 0 )) || failSetup "${Msg}" toolchain
 }
 
 # Report targets rocKE wires that this suite does not sweep. Coverage stays this
@@ -368,8 +364,9 @@ print(" ".join(wired_arches()))' 2>/dev/null)" || return 0
     [[ "${Ours}" == *" ${Arch} "* ]] || Unswept+="${Unswept:+ }${Arch}"
   done
 
+  local Msg="rocKE wires ${Unswept}, which this suite does not sweep"
+  Msg+=" (ROCKE_CI_ARCHES)"
   [[ -n "${Unswept}" ]] && emitRockeResult setup arch-coverage Check \
-    "rocKE wires ${Unswept}, which this suite does not sweep \
-(ROCKE_CI_ARCHES)" harness
+    "${Msg}" harness
   return 0
 }

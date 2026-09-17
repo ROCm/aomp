@@ -32,6 +32,7 @@ Checks, both of which the driver's own lanes do not cover:
   shellcheck -x ../../run_rocke.sh rocke_*.source tests/*.sh
   python3 -m unittest discover -s tests
   bash tests/test_lane_registry.sh
+  bash tests/test_env_checks.sh
 
 Name the bash modules in that shellcheck command. `-x` follows a sourced file
 to learn what it defines but reports nothing inside it, so checking the driver

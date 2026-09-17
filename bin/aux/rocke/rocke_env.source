@@ -213,7 +213,7 @@ function requireCmake {
 
   Ver="$(cmake --version 2>/dev/null | head -1 \
     | grep -oE '[0-9]+\.[0-9]+' | head -1)"
-  if [[ -z "${RocmVersion}" ]]; then
+  if [[ -z "${Ver}" ]]; then
     emitRockeResult setup cmake 1 \
       "cmake not found (need >= 3.25 for rocKE's block(); set ROCKE_CMAKE_BIN)"
     return 1
@@ -222,7 +222,7 @@ function requireCmake {
   Major="${Ver%%.*}"; Minor="${Ver#*.}"
   if (( Major < 3 || (Major == 3 && Minor < 25) )); then
     emitRockeResult setup cmake 1 \
-      "cmake ${RocmVersion} too old (need >= 3.25; set ROCKE_CMAKE_BIN)"
+      "cmake ${Ver} too old (need >= 3.25; set ROCKE_CMAKE_BIN)"
     return 1
   fi
 
