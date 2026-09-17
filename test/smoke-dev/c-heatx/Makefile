@@ -5,7 +5,7 @@ TESTSRC_MAIN = c-heatx.c
 TESTSRC_AUX  =
 TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 
-CLANG        = clang -fopenmp-target-ignore-env-vars
+CLANG        = clang -fopenmp-assume-teams-oversubscription -fopenmp-assume-threads-oversubscription
 OMP_BIN      = $(AOMP)/bin/$(CLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
 #-ccc-print-phases
