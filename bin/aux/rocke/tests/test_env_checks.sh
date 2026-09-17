@@ -74,6 +74,17 @@ check "a bare major does not borrow itself as the minor" \
 check "a version that is not a number is refused" \
   "" "$(deriveDatalayoutGeneration nonsense 2>/dev/null || true)"
 
+# A reset deletes and rebuilds a directory, so it must refuse anything that is
+# not this suite's own interpreter.
+NotAVenv="$(mktemp -d)"
+ROCKE_VENV="${NotAVenv}" \
+  check "a reset refuses a path that is not a virtual environment" \
+  "ERROR: ${NotAVenv} is not a virtual environment: refusing to reset" \
+  "$(ROCKE_VENV="${NotAVenv}" resetVenv 2>&1)"
+check "and leaves it alone" "present" \
+  "$([[ -d "${NotAVenv}" ]] && echo present || echo gone)"
+rmdir "${NotAVenv}"
+
 # The oldest release of a datalayout generation is what provisioning falls back
 # to, since a toolchain's own ROCm often publishes no wheel.
 check "an unreleased ROCm falls back to its generation's floor" \

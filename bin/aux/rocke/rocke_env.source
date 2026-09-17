@@ -27,15 +27,34 @@ function withVenvLock {  # <description> <command>...
 
 # Create the virtual environment and put the two modules every lane imports in
 # it. Called under the lock, so the steps cannot interleave with another run.
-function createVenv {
-  python3 -m venv "${ROCKE_VENV}" \
+function createVenv {  # [python -m venv options]
+  python3 -m venv "$@" "${ROCKE_VENV}" \
     && "${ROCKE_VENV}/bin/python" -m pip install --quiet --upgrade pip \
     && "${ROCKE_VENV}/bin/python" -m pip install --quiet numpy pytest
+}
+
+# Rebuild the interpreter from scratch, for a node that needs a clean slate.
+# Refuses a path that is not a virtual environment, so a mistyped knob cannot
+# delete a tree, and leaves the existing one in place when the rebuild fails.
+function resetVenv {
+  [[ -f "${ROCKE_VENV}/pyvenv.cfg" ]] || {
+    echo "ERROR: ${ROCKE_VENV} is not a virtual environment: refusing to reset"
+    return 1
+  }
+
+  echo "resetting the virtual environment ${ROCKE_VENV}"
+  createVenv --clear
 }
 
 function setupPython {
   local Need='import numpy, pytest' Existed=1
   PyBin=""
+
+  # Asked for a clean slate: rebuild before anything adopts what is there.
+  if [[ "${ROCKE_RESET_VENV}" == 1 && -e "${ROCKE_VENV}" ]]; then
+    withVenvLock "virtual environment" resetVenv \
+      || failSetup "cannot reset the virtual environment ${ROCKE_VENV}" python
+  fi
 
   if [[ -x "${ROCKE_VENV}/bin/python" ]]; then
     PyBin="${ROCKE_VENV}/bin/python"

@@ -94,6 +94,7 @@ under openmp-ci/rocKE):
   ROCKE_TOP=<dir>            rocKE checkout to test (else one is cloned)
   ROCKE_CI_BUILD_ROOT=<dir>  out-of-tree build root
   ROCKE_VENV=<dir>           the only interpreter this script installs into
+  ROCKE_RESET_VENV=1         rebuild that interpreter from scratch first
   ROCKE_ROCM_VERSION=<x.y>   ROCm version, when the install states none
   ROCKE_DEBUG=1              full Python tracebacks from the smoke lanes
 EOF
@@ -278,6 +279,11 @@ function configureKnobs {
   : "${ROCKE_REBUILD:=0}"
   : "${ROCKE_UPDATE_REPO:=0}"
   : "${ROCKE_SETUP_VENV:=1}"
+
+  # A clean slate for one node: the interpreter is rebuilt before any lane
+  # adopts it, and its packages are installed again from scratch. Pair it with
+  # ROCKE_REBUILD=1 to discard the build trees as well.
+  : "${ROCKE_RESET_VENV:=0}"
   : "${ROCKE_REPO_URL:=https://github.com/ROCm/rocm-libraries.git}"
   : "${ROCKE_REPO_BRANCH:=develop}"
   : "${ROCKE_TORCH_INDEX_URL:=}"
