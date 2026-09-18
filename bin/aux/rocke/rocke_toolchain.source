@@ -103,7 +103,7 @@ function describeRocmVersion {
     echo "${ToolchainComgrVintage:-?} -> ${ToolchainComgrFlavor:-?}"
   elif [[ -n "${RocmVersion:-}" ]]; then
     echo "${RocmVersion} from ${RocmVersionSource}," \
-         "not from the toolchain itself"
+         "which rocKE is told (it reads ${ToolchainComgrVintage:-?})"
   else
     echo "unavailable (${RocmVersionSource:-no version file in the toolchain})"
   fi
@@ -298,9 +298,12 @@ function assertToolchainProvenance {
   reportToolchainTool clang++ "$(command -v clang++)" 1 || Rc=1
   reportToolchainTool comgr "${ToolchainComgrLib}" 1 || Rc=1
 
-  # With no version file rocKE reads the system number; distrust it only if it
-  # differs.
-  if [[ "${ToolchainComgrVintage}" != "?" && ! -e "${RocmRoot}/.info/version" \
+  # rocKE derives its ROCm number by climbing from the comgr it loaded to an
+  # install that ships a version file, and takes the outermost one it passes. It
+  # therefore reads the system number where this install ships none, and a
+  # parent tree's number where one sits above the install. Believe it only where
+  # it matches the version this install states for itself.
+  if [[ "${ToolchainComgrVintage}" != "?" && -n "${RocmVersion}" \
         && "${ToolchainComgrVintage}" != "${RocmVersion}" ]] \
     && isToolchainPath "${ToolchainComgrLib}"; then
     ToolchainVintageTrusted=0
@@ -333,12 +336,12 @@ function assertToolchainProvenance {
   if (( ToolchainVintageTrusted == 0 )); then
     local Msg
     if [[ -n "${RocmVersion}" ]]; then
-      Msg="rocKE reads ROCm ${ToolchainComgrVintage} from the system install;"
-      Msg+=" this build is ROCm ${RocmVersion}, which rocKE is told instead"
-      echo "NOTE: no ROCm version file in the toolchain, so rocKE reports the" \
-           "system rocm ${ToolchainComgrVintage};"
-      echo "      this build is rocm ${RocmVersion} (from" \
-           "${RocmVersionSource}), which it is told instead."
+      Msg="rocKE reads ROCm ${ToolchainComgrVintage}, this install states"
+      Msg+=" ${RocmVersion} (${RocmVersionSource}); rocKE is told the latter"
+      echo "NOTE: rocKE reads rocm ${ToolchainComgrVintage} for this comgr," \
+           "while the install states"
+      echo "      rocm ${RocmVersion} (${RocmVersionSource})." \
+           "rocKE is told the version the install states."
     else
       Msg="rocKE reads ROCm ${ToolchainComgrVintage} from the system install"
       Msg+=" and this build's own version is unknown; set ROCKE_ROCM_VERSION"
