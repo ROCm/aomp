@@ -53,7 +53,9 @@ EOF
 }
 
 SUPPLEMENTAL_COMPONENTS=${SUPPLEMENTAL_COMPONENTS:-openmpi silo hdf5 fftw ninja rocmopenmpi xpmem ucx ucc}
-PREREQUISITE_COMPONENTS=${PREREQUISITE_COMPONENTS:-cmake rocmsmilib hwloc aqlprofile rocm-core}
+
+# rocsmilib and hwloc build invocation moved to build_rocm_sysdeps.sh (libdrm support). rocmsmi is dependent on libdrm and hwloc depends on rocmsmi.
+PREREQUISITE_COMPONENTS=${PREREQUISITE_COMPONENTS:-cmake aqlprofile rocm-core}
 
 # --- Start standard header to set AOMP environment variables ----
 realpath=$(realpath "$0")
@@ -752,7 +754,7 @@ function buildcmake(){
 
 function buildrocmsmilib(){
   _cname="rocmsmilib"
-  _version=7.1.x
+  _version=10.0
   _installdir=$AOMP_SUPP_INSTALL/rocmsmilib-$_version
   _linkfrom=$AOMP_SUPP/rocmsmilib
   _builddir=$AOMP_SUPP_BUILD/rocmsmilib
@@ -767,11 +769,21 @@ function buildrocmsmilib(){
   fi
   runcmd "mkdir -p $_builddir"
   runcmd "cd $_builddir"
-  runcmd "git clone -b release/rocm-rel-7.1 https://github.com/ROCm/rocm_smi_lib rocmsmilib-$_version"
-  runcmd "cd rocmsmilib-$_version"
+  runcmd "wget https://github.com/ROCm/rocm-systems/releases/download/therock-10.0/rocm-smi-lib.tar.gz"
+  runcmd "tar xf rocm-smi-lib.tar.gz"
+  runcmd "mv rocm-smi-lib rocm-smi-lib-$_version"
+  runcmd "cd rocm-smi-lib-$_version"
+
+  # Patch rocm_smi/CMakeLists.txt to add DRM_INCLUDE_DIRS to SMI_EXAMPLE_EXE. TheRock does not need this because they
+  # have a global include_directories() before rocm_smi is built. runcmd does not like the variables and expands them.
+  # Just run without the check for now.
+  # TODO: rocmsmi will be deprecated in 10.1
+  grep -Fq 'target_include_directories(${SMI_EXAMPLE_EXE} PRIVATE ${DRM_INCLUDE_DIRS})' rocm_smi/CMakeLists.txt || \
+  sed -i '/target_link_libraries(${SMI_EXAMPLE_EXE} ${ROCM_SMI_TARGET})/a target_include_directories(${SMI_EXAMPLE_EXE} PRIVATE ${DRM_INCLUDE_DIRS})' rocm_smi/CMakeLists.txt
+
   runcmd "mkdir -p build"
   runcmd "cd build"
-  runcmd "$AOMP_SUPP/cmake/bin/cmake -DCMAKE_INSTALL_PREFIX=$_installdir .."
+  runcmd "$AOMP_SUPP/cmake/bin/cmake -DCMAKE_INSTALL_PREFIX=$_installdir -DCMAKE_PREFIX_PATH=$ROCM_SYSDEPS_PATH .."
   if [ -d "$_installdir" ] ; then
     runcmd "rm -rf $_installdir"
   fi
