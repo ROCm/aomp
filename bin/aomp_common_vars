@@ -99,9 +99,7 @@ else
                     -DCMAKE_CXX_COMPILER_LAUNCHER="$_ccache_bin")
 fi
 
-AOMP_SKIP_FLANG=${AOMP_SKIP_FLANG:-1}
 AOMP_SKIP_FLANG_NEW=${AOMP_SKIP_FLANG_NEW:-0}
-AOMP_FLANG_DRIVER=${AOMP_FLANG_DRIVER:-flang}
 AOMP_SKIP_AMD_FLANGRT=${AOMP_SKIP_AMD_FLANGRT:-1}
 
 if [ "$AOMP_SKIP_FLANG_NEW" == 1 ] ; then
@@ -419,16 +417,6 @@ else
   if [ ! -d "$AOMP_REPOS/$AOMP_PROJECT_REPO_NAME" ]; then
     AOMP_PROJECT_REPO_NAME="../llvm-project"
   fi
-fi
-AOMP_FLANG_REPO_NAME=${AOMP_FLANG_REPO_NAME:-flang}
-
-# Last version of rocm (5.5) that supports the legacy driver (command generation)
-# The archives are built during flang-classic.
-AOMP_FLANG_CLASSIC_REL=${AOMP_FLANG_CLASSIC_REL:-${AOMP_REPOS}/${AOMP_FLANG_REPO_NAME}/flang-classic}
-if [ -d "$AOMP_FLANG_CLASSIC_REL/llvm-classic" ] ; then
-   AOMP_BUILD_FLANG_CLASSIC=1
-else
-   AOMP_BUILD_FLANG_CLASSIC=0
 fi
 
 # The AOMP_XXX_REPO_NAME is the directory name following $AOMP_REPOS.
