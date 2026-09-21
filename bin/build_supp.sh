@@ -627,7 +627,7 @@ function buildhdf5(){
   echo
   echo " -----Running cmake ---- "
   echo "${AOMP_CMAKE}" "$(shquot "${MYCMAKEOPTS[@]}")" \
-       "$AOMP_REPOS/$AOMP_FLANG_REPO_NAME"
+       "../"
 
   if ! ${AOMP_CMAKE} "${MYCMAKEOPTS[@]}" ../; then
     echo "ERROR cmake failed. Cmake flags"
