@@ -1,0 +1,12 @@
+diff --git a/projects/rocprofiler-sdk/source/lib/aqlprofile/CMakeLists.txt b/projects/rocprofiler-sdk/source/lib/aqlprofile/CMakeLists.txt
+index 7d6e67a064..6b5fa842b7 100644
+--- a/projects/rocprofiler-sdk/source/lib/aqlprofile/CMakeLists.txt
++++ b/projects/rocprofiler-sdk/source/lib/aqlprofile/CMakeLists.txt
+@@ -35,6 +35,7 @@ target_link_libraries(
+             $<BUILD_INTERFACE:rocprofiler-sdk::rocprofiler-sdk-dl>
+             $<BUILD_INTERFACE:rocprofiler-sdk::rocprofiler-sdk-hsa-runtime-nolink>)
+ set_target_properties(rocprofiler-sdk-aqlprofile PROPERTIES POSITION_INDEPENDENT_CODE ON)
++target_include_directories(rocprofiler-sdk-aqlprofile PRIVATE ${DRM_INCLUDE_DIRS} ${DRM_AMDGPU_INCLUDE_DIRS})
+ 
+ add_subdirectory(core)
+ add_subdirectory(util)
