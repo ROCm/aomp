@@ -9,7 +9,7 @@ CLANG        ?= clang
 OMP_BIN      = $(AOMP)/bin/$(CLANG)
 CC           = $(OMP_BIN) $(VERBOSE)
 RUNENV       = ulimit -s unlimited;
-RUNCMD       = $(AOMPHIP)/bin/rocprofv3 --output-format csv --kernel-trace --stats -- ./$(TESTNAME) 2>/dev/null && python3 printLatency.py
+RUNCMD       = $(AOMPHIP)/bin/rocprofv3 --output-format csv --kernel-trace --stats -- ./$(TESTNAME) 2> ./rocprofv3.log && python3 printLatency.py
 
 #-ccc-print-phases
 #"-\#\#\#"
