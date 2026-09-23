@@ -46,7 +46,7 @@ if [ "$1" == "install" ] ; then
    $SUDO rm "$INSTALL_ROCPROF_SDK"/testfile
 fi
 
-patchrepo "$AOMP_REPOS/rocprofiler-sdk"
+patchrepo "$AOMP_REPOS/rocm-systems"
 
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    echo " "
@@ -76,6 +76,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 
    MYCMAKEOPTS=(-DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR;$HOME/local/aqlprofile"
                 -DCMAKE_INSTALL_PREFIX="$INSTALL_ROCPROF_SDK"
+                -DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR/rocm_sysdeps"
 	        -DCMAKE_BUILD_TYPE="$BUILD_TYPE"
 	        -DROCM_ROOT_DIR="$AOMP_INSTALL_DIR"
 	        -DBUILD_SHARED_LIBS=On
@@ -128,7 +129,7 @@ if [ "$1" == "install" ] ; then
         exit 1
       fi
 
-      removepatch "$AOMP_REPOS/rocprofiler-sdk"
+      removepatch "$AOMP_REPOS/rocm-systems"
 else
    echo
    echo "SUCCESSFUL BUILD, please run:  $0 install"
