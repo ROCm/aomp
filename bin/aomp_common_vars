@@ -866,3 +866,48 @@ function help_build_aomp(){
 EOF
    exit 0
 }
+
+# Merge the contents of a variable with a list of input items.
+# Usage: merge_variable_with_inputs <VarName> --delimiter <Delim> \
+#          [--append|--prepend] <Input1> [<Input2> ...]
+# Default delimiter: ":"
+# Default mode: --prepend (new inputs take priority / appear first).
+# Empty/unset inputs are skipped; no dangling delimiters are produced.
+#
+# Example:
+# merge_variable_with_inputs PATH "${AOMP:+${AOMP}/bin}"
+# merge_variable_with_inputs CMAKE_MODULE_PATH --delimiter ";" \
+#                            --append "${AOMP:+${AOMP}/lib/cmake}"
+function merge_variable_with_inputs() {
+  local VarName="$1"; shift
+  local Delimiter=":"
+  local Mode="prepend"
+
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+      --delimiter) Delimiter="$2"; shift 2 ;;
+      --append)    Mode="append";  shift   ;;
+      --prepend)   Mode="prepend"; shift   ;;
+      --)          shift; break ;;
+      *)           break ;;
+    esac
+  done
+
+  local -a InputItems=("$@")
+  local -n __MergeTargetVar="${VarName}"
+
+  local Joined=""
+  local Item
+  for Item in "${InputItems[@]}"; do
+    [ -n "${Item}" ] && \
+      Joined="${Joined:+${Joined}${Delimiter}}${Item}"
+  done
+
+  # join2(a, b): a + Delimiter + b, but only if BOTH are non-empty;
+  # otherwise whichever side is non-empty (or "" if both are).
+  if [ "${Mode}" == "append" ]; then
+    __MergeTargetVar="${__MergeTargetVar}${__MergeTargetVar:+${Joined:+${Delimiter}}}${Joined}"
+  else
+    __MergeTargetVar="${Joined}${Joined:+${__MergeTargetVar:+${Delimiter}}}${__MergeTargetVar}"
+  fi
+}
