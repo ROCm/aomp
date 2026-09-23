@@ -1,0 +1,25 @@
+diff --git a/ovo.sh b/ovo.sh
+index 2da7d7ca..0f83db48 100755
+--- a/ovo.sh
++++ b/ovo.sh
+@@ -10,6 +10,8 @@ fclean() { for dir in $(find_tests_folder $@); do make --silent -C "$dir" clean;
+ frun() {
+     SYNC=$(make -v | head -n1 |  awk '$NF >= 4 {print "--output-sync"}')
+     if [ -n "$SYNC" ]; then NPROC=$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || getconf _NPROCESSORS_ONLN 2>/dev/null); fi
++    # Set wide terminal width to prevent line wrapping in compiler timing output
++    export COLUMNS=1000
+     export MAKEFLAGS="${MAKEFLAGS:--j${NPROC:-1} $SYNC}"
+
+     for dir in $(find_tests_folder $@); do
+@@ -24,9 +26,9 @@ frun() {
+             set +x
+         } &> "$nresult"/env.log
+         # Compile in parallel
+-        make --no-print-directory -C "$dir" exe 2>&1 | tee "$nresult"/compilation.log
++        COLUMNS=1000 make --no-print-directory -C "$dir" exe 2>&1 | tee "$nresult"/compilation.log
+         # But Run serially
+-        make -j1 --no-print-directory -C "$dir" run 2>&1 | tee "$nresult"/runtime.log
++        COLUMNS=1000 make -j1 --no-print-directory -C "$dir" run 2>&1 | tee "$nresult"/runtime.log
+     done
+ }
+
