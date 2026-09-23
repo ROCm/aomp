@@ -174,7 +174,8 @@ fi
 
 if [ "${DoCompile}" == "yes" ]; then
   echo "Building LLaMA..."
-  cmake --build "${LLAMA_BUILD_DIR}" --parallel -j "${AOMP_BUILD_JOBS}"
+  cmake --build "${LLAMA_BUILD_DIR}" --parallel -j "${AOMP_BUILD_JOBS}" 2>&1 |
+    tee "${LLAMA_TESTS_LOG_LOCATION}/cmake-build.log"
 fi
 
 if [ "${DoCTest}" == "yes" ]; then
