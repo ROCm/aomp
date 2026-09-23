@@ -8,9 +8,12 @@
 
 # Build script for LLaMA with HIP support using AOMP compiler
 
-# shellcheck source=/dev/null
-. aomp_common_vars
+ScriptDir=$(dirname "$(realpath "$0")")
 
+# shellcheck source=/dev/null
+. "${ScriptDir}"/aomp_common_vars
+
+: "${ROCM_PATH:=$(realpath -m "${AOMP}/../..")}"
 : "${AOMP_GPU:=gfx90a}"
 : "${LLAMA_GPU:=$AOMP_GPU}"
 
@@ -23,6 +26,17 @@
 # Model to use in benchmarks (default is a smaller model)
 : "${LLAMA_BENCH_HF_ID:=ggml-org/gemma-3-1b-it-GGUF}"
 : "${LLAMA_CACHE:=$HOME/.cache/llama.cpp}"
+
+# Add AOMP and ROCM_PATH to PATH and LD_LIBRARY_PATH and export them.
+merge_variable_with_inputs PATH "${AOMP:+${AOMP}/bin}" "${ROCM_PATH:+${ROCM_PATH}/bin}"
+merge_variable_with_inputs LD_LIBRARY_PATH \
+  "${AOMP:+${AOMP}/lib}" \
+  "${AOMP:+${AOMP}/lib/x86_64-unknown-linux-gnu}" \
+  "${ROCM_PATH:+${ROCM_PATH}/lib}"
+
+export PATH
+export LD_LIBRARY_PATH
+export ROCM_PATH
 
 pushd "${AOMP_REPOS_TEST}" || exit
 mkdir -p "${LLAMA_TLDIR}" && cd "${LLAMA_TLDIR}" || exit
@@ -92,19 +106,28 @@ else
   cd ..
 fi
 
-echo "Configuring build with CMake..."
 if [ "${DoConfigure}" == "yes" ]; then
+  echo "Configuring build with CMake..."
   rm -rf "${LLAMA_BUILD_DIR}"
-  cmake -B build \
-    -S src \
-    -DCMAKE_PREFIX_PATH="${AOMP}"/lib/cmake \
-    -DGGML_HIP=On \
-    -DCMAKE_BUILD_TYPE="${LLAMA_BUILD_MODE}" \
-    -DGPU_TARGETS="${LLAMA_GPU}" \
-    ${CmakeGenerator:+"${CmakeGenerator}"} \
-    -DCMAKE_C_COMPILER="${AOMP}"/bin/clang \
-    -DCMAKE_CXX_COMPILER="${AOMP}"/bin/clang++ \
-    -DCMAKE_HIP_COMPILER="${AOMP}"/bin/clang++
+
+  CMakeArgs=()
+  if [ -n "${CmakeGenerator}" ]; then
+    CMakeArgs+=("${CmakeGenerator}")
+  fi
+
+  CMakeArgs+=("-S" "src")
+  CMakeArgs+=("-B" "build")
+  CMakeArgs+=("-DCMAKE_PREFIX_PATH=${ROCM_PATH}")
+  CMakeArgs+=("-DGGML_HIP=On")
+  CMakeArgs+=("-DCMAKE_BUILD_TYPE=${LLAMA_BUILD_MODE}")
+  CMakeArgs+=("-DGPU_TARGETS=${LLAMA_GPU}")
+  CMakeArgs+=("-DCMAKE_C_COMPILER=${AOMP}/bin/clang")
+  CMakeArgs+=("-DCMAKE_CXX_COMPILER=${AOMP}/bin/clang++")
+  CMakeArgs+=("-DCMAKE_HIP_COMPILER=${AOMP}/bin/clang++")
+
+  printf 'cmake'; printf ' %q' "${CMakeArgs[@]}"; printf '\n'
+  cmake "${CMakeArgs[@]}" 2>&1 |
+    tee "${LLAMA_TESTS_LOG_LOCATION}/cmake-configure.log"
 fi
 
 if [ "${DoCompile}" == "yes" ]; then
