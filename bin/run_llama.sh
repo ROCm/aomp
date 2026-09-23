@@ -163,6 +163,9 @@ if [ "${DoConfigure}" == "yes" ]; then
   printf 'cmake'; printf ' %q' "${CMakeArgs[@]}"; printf '\n'
   cmake "${CMakeArgs[@]}" 2>&1 |
     tee "${LLAMA_TESTS_LOG_LOCATION}/cmake-configure.log"
+
+  # Make sure the ROCm header priority is preserved.
+  check_cmake_rocm_header_priority "${LLAMA_BUILD_DIR}" "${ROCM_PATH}" || exit 1
 fi
 
 if [ "${DoCompile}" == "yes" ]; then
