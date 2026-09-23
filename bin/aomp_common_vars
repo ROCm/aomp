@@ -973,3 +973,39 @@ function add_cmake_rocm_header_priority_args() {
       "-DCMAKE_${Language}_COMPILER_ARG1:STRING=-isystem ${RocmRoot}/include")
   done
 }
+
+# Verify that the ROCm header priority survived the CMake run.
+# Usage: check_cmake_rocm_header_priority <BuildDir> <RocmRoot> [<Lang> ...]
+# A lost entry only breaks the build while the two ROCm header sets are
+# incompatible, otherwise it silently builds against the wrong ones.
+function check_cmake_rocm_header_priority() {
+  local BuildDir="$1"; shift
+  local RocmRoot="$1"; shift
+  local -a Languages=("$@")
+  [ "${#Languages[@]}" -gt 0 ] || Languages=("HIP")
+
+  [ -n "${RocmRoot}" ] && [ -d "${RocmRoot}/include/hip" ] || return 0
+
+  local CacheFile="${BuildDir}/CMakeCache.txt"
+  if [ ! -f "${CacheFile}" ]; then
+    echo "ERROR: ${CacheFile} not found"
+    return 1
+  fi
+
+  local Language Entry Msg Status=0
+  for Language in "${Languages[@]}"; do
+    Entry=$(grep "^CMAKE_${Language}_COMPILER_ARG1:" "${CacheFile}" || true)
+    case "${Entry}" in
+    *"-isystem ${RocmRoot}/include"*) ;;
+    *)
+      Msg="ERROR: CMAKE_${Language}_COMPILER_ARG1 lost"
+      Msg+=" ${RocmRoot}/include, its HIP headers can be shadowed"
+      Msg+=" by another ROCm"
+      echo "${Msg}"
+      Status=1
+      ;;
+    esac
+  done
+
+  return "${Status}"
+}
