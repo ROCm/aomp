@@ -115,9 +115,40 @@ if [ "${DoConfigure}" == "yes" ]; then
     CMakeArgs+=("${CmakeGenerator}")
   fi
 
+  # Determine the CMake module paths of required ROCm packages.
+  CMakePrefixPath="${ROCM_PATH}"
+  declare -A SeenPrefix=()
+  for Package in hip hipblas rocblas; do
+    if ! PackageCmakeDir=$(get_cmake_module_path "${Package}"); then
+      Msg="ERROR: no CMake package '${Package}' below ${AOMP},"
+      Msg+=" ${ROCM_PATH} or /opt/rocm"
+      echo "${Msg}"
+      exit 1
+    fi
+
+    # Anything found below the ROCm under test needs no extra prefix.
+    # Removing a prefix that is present shortens the path, so a path that
+    # comes back unchanged did not start with it.
+    if [ "${PackageCmakeDir#"${AOMP}"/}" != "${PackageCmakeDir}" ] ||
+       [ "${PackageCmakeDir#"${ROCM_PATH}"/}" != "${PackageCmakeDir}" ]; then
+      continue
+    fi
+
+    Msg="WARNING: ${ROCM_PATH} does not provide ${Package},"
+    Msg+=" using ${PackageCmakeDir}"
+    echo "${Msg}"
+
+    # Two packages commonly resolve to the same place; append it only once.
+    if [ -z "${SeenPrefix[${PackageCmakeDir}]:-}" ]; then
+      SeenPrefix["${PackageCmakeDir}"]=1
+      CMakePrefixPath+=";${PackageCmakeDir}"
+    fi
+  done
+  unset SeenPrefix
+
   CMakeArgs+=("-S" "src")
   CMakeArgs+=("-B" "build")
-  CMakeArgs+=("-DCMAKE_PREFIX_PATH=${ROCM_PATH}")
+  CMakeArgs+=("-DCMAKE_PREFIX_PATH=${CMakePrefixPath}")
   CMakeArgs+=("-DGGML_HIP=On")
   CMakeArgs+=("-DCMAKE_BUILD_TYPE=${LLAMA_BUILD_MODE}")
   CMakeArgs+=("-DGPU_TARGETS=${LLAMA_GPU}")
