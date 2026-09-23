@@ -23,6 +23,10 @@ ScriptDir=$(dirname "$(realpath "$0")")
 : "${LLAMA_BUILD_MODE:=Release}"
 : "${LLAMA_TESTS_LOG_LOCATION:=$LLAMA_TLDIR/logs}"
 
+# CTest 'test-backend-ops' exceeds the 1500s default timeout.
+# Measured on MI350X: ~2500s
+: "${LLAMA_CTEST_TIMEOUT:=3600}"
+
 # Model to use in benchmarks (default is a smaller model)
 : "${LLAMA_BENCH_HF_ID:=ggml-org/gemma-3-1b-it-GGUF}"
 : "${LLAMA_CACHE:=$HOME/.cache/llama.cpp}"
@@ -179,7 +183,8 @@ if [ "${DoCTest}" == "yes" ]; then
   echo "Log in ${LLAMA_TESTS_LOG_LOCATION}/ctest.log"
 
   # Some model files are git-lfs and come from huggingface. They will auto-download during test
-  ctest --output-on-failure 2>&1 | tee "${LLAMA_TESTS_LOG_LOCATION}/ctest.log"
+  ctest --output-on-failure --timeout "${LLAMA_CTEST_TIMEOUT}" 2>&1 |
+    tee "${LLAMA_TESTS_LOG_LOCATION}/ctest.log"
 fi
 
 run_llama_bench() {
