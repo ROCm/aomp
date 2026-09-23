@@ -948,3 +948,28 @@ function get_cmake_module_path() {
   done
   return 1
 }
+
+# Keep the HIP headers of the ROCm under test ahead of every other ROCm's.
+# Usage: add_cmake_rocm_header_priority_args <ArrayName> <RocmRoot> [<Lang> ...]
+# Appends one CMake argument per language (default: HIP); does nothing when
+# <RocmRoot> ships no HIP headers of its own.
+#
+# A borrowed hipBLAS/rocBLAS exports its whole include directory, which CMake
+# emits as -isystem, ahead of the compiler's own ROCm that clang searches last.
+# CMAKE_<LANG>_COMPILER_ARG1 is the only slot in front of those includes; every
+# *_FLAGS variable lands behind them.  Keep CMAKE_<LANG>_COMPILER a plain path,
+# CMake reassigns ARG1 when the compiler itself carries arguments.
+function add_cmake_rocm_header_priority_args() {
+  local -n __HeaderPriorityArgs="$1"; shift
+  local RocmRoot="$1"; shift
+  local -a Languages=("$@")
+  [ "${#Languages[@]}" -gt 0 ] || Languages=("HIP")
+
+  [ -n "${RocmRoot}" ] && [ -d "${RocmRoot}/include/hip" ] || return 0
+
+  local Language
+  for Language in "${Languages[@]}"; do
+    __HeaderPriorityArgs+=(
+      "-DCMAKE_${Language}_COMPILER_ARG1:STRING=-isystem ${RocmRoot}/include")
+  done
+}
