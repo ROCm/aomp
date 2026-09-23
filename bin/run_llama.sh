@@ -156,6 +156,10 @@ if [ "${DoConfigure}" == "yes" ]; then
   CMakeArgs+=("-DCMAKE_CXX_COMPILER=${AOMP}/bin/clang++")
   CMakeArgs+=("-DCMAKE_HIP_COMPILER=${AOMP}/bin/clang++")
 
+  # CMake modules export their whole include directory, HIP headers included,
+  # which would shadow the ROCm under test and e.g. its HIP headers.
+  add_cmake_rocm_header_priority_args CMakeArgs "${ROCM_PATH}"
+
   printf 'cmake'; printf ' %q' "${CMakeArgs[@]}"; printf '\n'
   cmake "${CMakeArgs[@]}" 2>&1 |
     tee "${LLAMA_TESTS_LOG_LOCATION}/cmake-configure.log"
