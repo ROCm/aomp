@@ -911,3 +911,40 @@ function merge_variable_with_inputs() {
     __MergeTargetVar="${Joined}${Joined:+${__MergeTargetVar:+${Delimiter}}}${__MergeTargetVar}"
   fi
 }
+
+# Return the path containing the requested CMake module directory.
+# Usage: get_cmake_module_path <Module> [<Path1> <Path2> ...]
+# Searches each given Path, in order, for <Path>/lib/cmake/<Module>.
+# Empty path arguments are skipped (safe to pass an unset/empty variable).
+# If no Path arguments are given, defaults to searching AOMP, then ROCM_PATH
+# (or a path derived from AOMP, if set), then /opt/rocm.
+function get_cmake_module_path() {
+  local Module="$1"
+  shift
+  local -a SearchPaths=("$@")
+
+  # No explicit candidates given: fall back to the default search order.
+  # Default: AOMP -> ROCM_PATH (if empty: AOMP/../..) -> /opt/rocm
+  if [ "$#" -eq 0 ]; then
+    SearchPaths=(
+      "${AOMP}"
+      "${ROCM_PATH:-${AOMP:+$(realpath -m "${AOMP}/../../")}}"
+      "/opt/rocm"
+    )
+  fi
+
+  # Assumptions:
+  # All CMake modules are located within ./lib/cmake/<Module>.
+  # All CMake module configuration files are named <Module>*onfig*.cmake.
+  local Path
+  for Path in "${SearchPaths[@]}"; do
+    if [ -n "${Path}" ] && [ -d "${Path}/lib/cmake/${Module}" ] &&
+       compgen -G "${Path}/lib/cmake/${Module}/${Module}"'*onfig*.cmake' \
+         > /dev/null; then
+      # Return the parent(!) directory.
+      echo "${Path}/lib/cmake"
+      return 0
+    fi
+  done
+  return 1
+}
