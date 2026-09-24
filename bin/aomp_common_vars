@@ -854,3 +854,146 @@ function help_build_aomp(){
 EOF
    exit 0
 }
+
+# Merge the contents of a variable with a list of input items.
+# Usage: merge_variable_with_inputs <VarName> --delimiter <Delim> \
+#          [--append|--prepend] <Input1> [<Input2> ...]
+# Default delimiter: ":"
+# Default mode: --prepend (new inputs take priority / appear first).
+# Empty/unset inputs are skipped; no dangling delimiters are produced.
+#
+# Example:
+# merge_variable_with_inputs PATH "${AOMP:+${AOMP}/bin}"
+# merge_variable_with_inputs CMAKE_MODULE_PATH --delimiter ";" \
+#                            --append "${AOMP:+${AOMP}/lib/cmake}"
+function merge_variable_with_inputs() {
+  local VarName="$1"; shift
+  local Delimiter=":"
+  local Mode="prepend"
+
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+      --delimiter) Delimiter="$2"; shift 2 ;;
+      --append)    Mode="append";  shift   ;;
+      --prepend)   Mode="prepend"; shift   ;;
+      --)          shift; break ;;
+      *)           break ;;
+    esac
+  done
+
+  local -a InputItems=("$@")
+  local -n __MergeTargetVar="${VarName}"
+
+  local Joined=""
+  local Item
+  for Item in "${InputItems[@]}"; do
+    [ -n "${Item}" ] && \
+      Joined="${Joined:+${Joined}${Delimiter}}${Item}"
+  done
+
+  # join2(a, b): a + Delimiter + b, but only if BOTH are non-empty;
+  # otherwise whichever side is non-empty (or "" if both are).
+  if [ "${Mode}" == "append" ]; then
+    __MergeTargetVar="${__MergeTargetVar}${__MergeTargetVar:+${Joined:+${Delimiter}}}${Joined}"
+  else
+    __MergeTargetVar="${Joined}${Joined:+${__MergeTargetVar:+${Delimiter}}}${__MergeTargetVar}"
+  fi
+}
+
+# Return the path containing the requested CMake module directory.
+# Usage: get_cmake_module_path <Module> [<Path1> <Path2> ...]
+# Searches each given Path, in order, for <Path>/lib/cmake/<Module>.
+# Empty path arguments are skipped (safe to pass an unset/empty variable).
+# If no Path arguments are given, defaults to searching AOMP, then ROCM_PATH
+# (or a path derived from AOMP, if set), then /opt/rocm.
+function get_cmake_module_path() {
+  local Module="$1"
+  shift
+  local -a SearchPaths=("$@")
+
+  # No explicit candidates given: fall back to the default search order.
+  # Default: AOMP -> ROCM_PATH (if empty: AOMP/../..) -> /opt/rocm
+  if [ "$#" -eq 0 ]; then
+    SearchPaths=(
+      "${AOMP}"
+      "${ROCM_PATH:-${AOMP:+$(realpath -m "${AOMP}/../../")}}"
+      "/opt/rocm"
+    )
+  fi
+
+  # Assumptions:
+  # All CMake modules are located within ./lib/cmake/<Module>.
+  # All CMake module configuration files are named <Module>*onfig*.cmake.
+  local Path
+  for Path in "${SearchPaths[@]}"; do
+    if [ -n "${Path}" ] && [ -d "${Path}/lib/cmake/${Module}" ] &&
+       compgen -G "${Path}/lib/cmake/${Module}/${Module}"'*onfig*.cmake' \
+         > /dev/null; then
+      # Return the parent(!) directory.
+      echo "${Path}/lib/cmake"
+      return 0
+    fi
+  done
+  return 1
+}
+
+# Keep the HIP headers of the ROCm under test ahead of every other ROCm's.
+# Usage: add_cmake_rocm_header_priority_args <ArrayName> <RocmRoot> [<Lang> ...]
+# Appends one CMake argument per language (default: HIP); does nothing when
+# <RocmRoot> ships no HIP headers of its own.
+#
+# A borrowed hipBLAS/rocBLAS exports its whole include directory, which CMake
+# emits as -isystem, ahead of the compiler's own ROCm that clang searches last.
+# CMAKE_<LANG>_COMPILER_ARG1 is the only slot in front of those includes; every
+# *_FLAGS variable lands behind them.  Keep CMAKE_<LANG>_COMPILER a plain path,
+# CMake reassigns ARG1 when the compiler itself carries arguments.
+function add_cmake_rocm_header_priority_args() {
+  local -n __HeaderPriorityArgs="$1"; shift
+  local RocmRoot="$1"; shift
+  local -a Languages=("$@")
+  [ "${#Languages[@]}" -gt 0 ] || Languages=("HIP")
+
+  [ -n "${RocmRoot}" ] && [ -d "${RocmRoot}/include/hip" ] || return 0
+
+  local Language
+  for Language in "${Languages[@]}"; do
+    __HeaderPriorityArgs+=(
+      "-DCMAKE_${Language}_COMPILER_ARG1:STRING=-isystem ${RocmRoot}/include")
+  done
+}
+
+# Verify that the ROCm header priority survived the CMake run.
+# Usage: check_cmake_rocm_header_priority <BuildDir> <RocmRoot> [<Lang> ...]
+# A lost entry only breaks the build while the two ROCm header sets are
+# incompatible, otherwise it silently builds against the wrong ones.
+function check_cmake_rocm_header_priority() {
+  local BuildDir="$1"; shift
+  local RocmRoot="$1"; shift
+  local -a Languages=("$@")
+  [ "${#Languages[@]}" -gt 0 ] || Languages=("HIP")
+
+  [ -n "${RocmRoot}" ] && [ -d "${RocmRoot}/include/hip" ] || return 0
+
+  local CacheFile="${BuildDir}/CMakeCache.txt"
+  if [ ! -f "${CacheFile}" ]; then
+    echo "ERROR: ${CacheFile} not found"
+    return 1
+  fi
+
+  local Language Entry Msg Status=0
+  for Language in "${Languages[@]}"; do
+    Entry=$(grep "^CMAKE_${Language}_COMPILER_ARG1:" "${CacheFile}" || true)
+    case "${Entry}" in
+    *"-isystem ${RocmRoot}/include"*) ;;
+    *)
+      Msg="ERROR: CMAKE_${Language}_COMPILER_ARG1 lost"
+      Msg+=" ${RocmRoot}/include, its HIP headers can be shadowed"
+      Msg+=" by another ROCm"
+      echo "${Msg}"
+      Status=1
+      ;;
+    esac
+  done
+
+  return "${Status}"
+}
