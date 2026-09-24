@@ -65,7 +65,7 @@ fi
 
 check_writable_installdir "$1" "$AOMP_INSTALL_DIR"
 
-patchrepo "$AOMP_REPOS/rocm_smi_lib"
+patchrepo "$AOMP_REPOS/rocm-systems"
 
 if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
   if [ -d "$BUILD_DIR/build/rocm_smi_lib" ] ; then
@@ -79,6 +79,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 
   MYCMAKEOPTS=("${AOMP_ORIGIN_RPATH[@]}" -DCMAKE_BUILD_TYPE="$BUILDTYPE"
                -DCMAKE_INSTALL_PREFIX="$AOMP_INSTALL_DIR"
+               -DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR/rocm_sysdeps"
                -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON
                -DCMAKE_INSTALL_RPATH="\$ORIGIN/../lib"
                -DCMAKE_EXE_LINKER_FLAGS='-Wl,--disable-new-dtags')
@@ -130,5 +131,5 @@ if [ "$1" == "install" ] ; then
          echo "ERROR make install failed "
          exit 1
       fi
-      removepatch "$AOMP_REPOS/rocm_smi_lib"
+      removepatch "$AOMP_REPOS/rocm-systems"
 fi
