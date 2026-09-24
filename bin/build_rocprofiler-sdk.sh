@@ -74,9 +74,8 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
 
    declare -a MYCMAKEOPTS
 
-   MYCMAKEOPTS=(-DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR;$HOME/local/aqlprofile"
+   MYCMAKEOPTS=(-DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR;$HOME/local/aqlprofile;$AOMP_INSTALL_DIR/rocm_sysdeps"
                 -DCMAKE_INSTALL_PREFIX="$INSTALL_ROCPROF_SDK"
-                -DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR/rocm_sysdeps"
 	        -DCMAKE_BUILD_TYPE="$BUILD_TYPE"
 	        -DROCM_ROOT_DIR="$AOMP_INSTALL_DIR"
 	        -DBUILD_SHARED_LIBS=On
