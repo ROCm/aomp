@@ -9,6 +9,10 @@
 #
 #     The bash syntax ENVNAME=${ENVNAME:-value} checks if ENVNAME is
 #     already set. If not, it assigns it the value following the :-
+#
+#     Most variables defined here are consumed by the sourcing scripts,
+#     so their uses are invisible to static analysis.
+# shellcheck disable=SC2034
 
 # --- Start standard header to set AOMP environment variables ----
 realpath=$(realpath "$0")
@@ -262,9 +266,11 @@ function cmquot() {
 # copy & pasted into the user's terminal.  Output should not be further quoted.
 function shquot() {
   local -a output
+  local arg Escaped
   output=()
   for arg in "$@"; do
-    output+=(\'${arg//\'/\'\\\'\'}\')
+    Escaped=${arg//\'/\'\\\'\'}
+    output+=("'${Escaped}'")
   done
   printf '%s' "${output[*]}"
 }
@@ -568,11 +574,11 @@ declare -a ASAN_FLAGS
 
 if [ "$AOMP_BUILD_SANITIZER" == 1 ]; then
    if [ -f "${LLVM_INSTALL_LOC}/bin/clang" ]; then
-      ASAN_LIB=$(${LLVM_INSTALL_LOC}/bin/clang --print-file-name=libclang_rt.asan-x86_64.so)
+      ASAN_LIB=$("${LLVM_INSTALL_LOC}"/bin/clang --print-file-name=libclang_rt.asan-x86_64.so)
       ASAN_LIB_PATH=$(dirname "$ASAN_LIB")
       if [ ! -d "$ASAN_LIB_PATH" ]; then
         #Suppose above search path fails then via 'LLVM_ENABLE_PER_TARGET_RUNTIME_DIR=ON' the host asan library would lose the suffix
-        ASAN_LIB=$(${LLVM_INSTALL_LOC}/bin/clang --print-file-name=libclang_rt.asan.so)
+        ASAN_LIB=$("${LLVM_INSTALL_LOC}"/bin/clang --print-file-name=libclang_rt.asan.so)
         ASAN_LIB_PATH=$(dirname "$ASAN_LIB")
       fi
     else
