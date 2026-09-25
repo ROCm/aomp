@@ -4,7 +4,7 @@
 
 #### ManyLinux (AlmaLinux 8)
 ```
-  sudo dnf -y install bison ccache cmake elfutils-libelf-devel elfutis-devel expat-devel flex fmt-devel gcc-c++ gcc-toolset-12-gcc gcc-toolset-12-gcc-c++ gcc-toolset-12-gcc-gfortran gcc-toolset-12-libatomic-devel gcc-toolset-12-libstdc++-devel gdb git gmp-devel gtest-devel libatomic libbabeltrace-devel libffi-devel libquadmath-devel libtool mesa-libGL-devel mpfr-devel msgpack-devel ncurses-devel numactl-devel openssl-devel ocl-icd-devel pciutils-devel python3-devel rpm-build rsync sqlite-devel systemd-devel texinfo vim wget xz-devel libmnl-devel libnl3-devel meson
+  sudo dnf -y install bison ccache cmake elfutils-libelf-devel elfutis-devel expat-devel flex fmt-devel gcc-c++ gcc-toolset-12-gcc gcc-toolset-12-gcc-c++ gcc-toolset-12-gcc-gfortran gcc-toolset-12-libatomic-devel gcc-toolset-12-libstdc++-devel gdb git gmp-devel gtest-devel libatomic libbabeltrace-devel libffi-devel libquadmath-devel libtool mesa-libGL-devel mpfr-devel msgpack-devel ncurses-devel numactl-devel openssl-devel ocl-icd-devel pciutils-devel python3-devel rpm-build rsync sqlite-devel systemd-devel texinfo vim wget xz-devel libmnl-devel libnl3-devel
 
   # Download and install Python 3.10.18
   wget https://www.python.org/ftp/python/3.10.18/Python-3.10.18.tgz; tar xf Python-3.10.18.tgz; cd Python-3.10.18; ./configure --enable-optimizations --enable-shared; make altinstall; --prefix=$HOME/local/Python-3.10.18;  ln -s $HOME/local/Python-3.10.18/bin/python3.10 $HOME/local/Python-3.10.18/bin/python3
@@ -21,7 +21,7 @@
 #### Debian or Ubuntu Packages
 
 ```
-  sudo apt-get install wget gcc g++ pkg-config libpci-dev libnuma-dev libffi-dev git python3 libopenmpi-dev mesa-common-dev libtool libdrm-amdgpu1 libdrm-dev ccache libdw-dev libgtest-dev libsystemd-dev cmake openssl libssl-dev libgmp-dev libmpfr-dev libelf-dev patchelf pciutils python3.10-dev libudev-dev libgtest-dev libstdc++-12-dev python3-lxml ocl-icd-opencl-dev libsystemd-dev libfmt-dev libmsgpack-dev libsqlite3-dev libnl-3-dev libnl-genl-3-dev libmnl-dev meson
+  sudo apt-get install wget gcc g++ pkg-config libpci-dev libnuma-dev libffi-dev git python3 libopenmpi-dev mesa-common-dev libtool libdrm-amdgpu1 libdrm-dev ccache libdw-dev libgtest-dev libsystemd-dev cmake openssl libssl-dev libgmp-dev libmpfr-dev libelf-dev patchelf pciutils python3.10-dev libudev-dev libgtest-dev libstdc++-12-dev python3-lxml ocl-icd-opencl-dev libsystemd-dev libfmt-dev libmsgpack-dev libsqlite3-dev libnl-3-dev libnl-genl-3-dev libmnl-dev
 
   # Additional packages used by rocgdb
   sudo apt-get install texinfo libbison-dev bison flex libbabeltrace-dev python3-pip libncurses5-dev liblzma-dev python3-setuptools python3-dev libudev-dev libgmp-dev libmpfr-dev libdw-dev
@@ -45,7 +45,7 @@ Ubuntu 24.04 Only
 
 #### SLES-15-SP6 Packages
 ```
-  sudo zypper install wget libopenssl-devel elfutils libelf-devel git pciutils-devel libffi-devel gcc gcc-c++ libnuma-devel openmpi4-devel Mesa-libGL-devel libquadmath0 libtool libX11-devel systemd-devel hwdata unzip mpfr-devel ocl-icd-devel gcc7-fortran ncurses-devel gcc13-c++ gcc13 libstdc++6-devel-gcc13 libc++-devel sqlite-devel meson
+  sudo zypper install wget libopenssl-devel elfutils libelf-devel git pciutils-devel libffi-devel gcc gcc-c++ libnuma-devel openmpi4-devel Mesa-libGL-devel libquadmath0 libtool libX11-devel systemd-devel hwdata unzip mpfr-devel ocl-icd-devel gcc7-fortran ncurses-devel gcc13-c++ gcc13 libstdc++6-devel-gcc13 libc++-devel sqlite-devel
 
   A symbolic link may be required at /usr/lib64: /usr/lib64/libquadmath.so -> /usr/lib64/libquadmath.so.0.
 
@@ -77,7 +77,7 @@ Ubuntu 24.04 Only
 #### RHEL Packages
 RHEL 8
 ```
-  sudo yum install dnf-plugins-core gcc-c++ git wget openssl-devel elfutils-libelf-devel elfutils-devel ccache pciutils-devel numactl-devel libffi-devel mesa-libGL-devel libtool libdrm libdrm-devel gmp-devel rpm-build gcc-gfortran libdw-devel libgtest-devel systemd-devel mpfr-devel python38 python38-devel ocl-icd-devel libatomic libquadmath-devel sqlite-devel meson
+  sudo yum install dnf-plugins-core gcc-c++ git wget openssl-devel elfutils-libelf-devel elfutils-devel ccache pciutils-devel numactl-devel libffi-devel mesa-libGL-devel libtool libdrm libdrm-devel gmp-devel rpm-build gcc-gfortran libdw-devel libgtest-devel systemd-devel mpfr-devel python38 python38-devel ocl-icd-devel libatomic libquadmath-devel sqlite-devel
 
   # Additional packages used by rocgdb and roctracer
   sudo yum install texinfo bison flex ncurses-devel expat-devel xz-devel libbabeltrace-devel libatomic libdwarf-devel gtest-devel
@@ -91,7 +91,7 @@ RHEL 8
 
 RHEL 9
 ```
-  sudo dnf install dnf-plugins-core gcc-c++ git wget openssl-devel elfutils-libelf-devel elfutils-devel ccache pciutils-devel numactl-devel libffi-devel mesa-libGL-devel libtool libdrm libdrm-devel gmp-devel rpm-build gcc-gfortran libdw-devel libgtest-devel systemd-devel mpfr-devel python3-devel ocl-icd-devel libatomic libquadmath-devel sqlite-devel meson
+  sudo dnf install dnf-plugins-core gcc-c++ git wget openssl-devel elfutils-libelf-devel elfutils-devel ccache pciutils-devel numactl-devel libffi-devel mesa-libGL-devel libtool libdrm libdrm-devel gmp-devel rpm-build gcc-gfortran libdw-devel libgtest-devel systemd-devel mpfr-devel python3-devel ocl-icd-devel libatomic libquadmath-devel sqlite-devel
 
   # Additional packages used by rocgdb and roctracer
   sudo dnf install texinfo bison flex ncurses-devel expat-devel xz-devel libbabeltrace-devel libatomic libdwarf-devel gtest-devel
@@ -112,22 +112,22 @@ After all the required system package from section 1 are installed, there are so
 
 ManyLinux (AlmaLinux 8)
 ```
-  python3 -m pip install --ignore-installed --no-cache-dir barectf==3.1.2 PyYAML==5.3.1; python3.10 -m pip install CppHeaderParser argparse wheel lit lxml pandas
+  python3 -m pip install --ignore-installed --no-cache-dir barectf==3.1.2 PyYAML==5.3.1; python3.10 -m pip install CppHeaderParser argparse wheel lit lxml pandas meson
 ```
 
 Ubuntu 22.04
 ```
-  python3 -m pip install --ignore-installed --no-cache-dir barectf==3.1.2 PyYAML==5.3.1; python3 -m pip install CppHeaderParser argparse wheel lit lxml pandas
+  python3 -m pip install --ignore-installed --no-cache-dir barectf==3.1.2 PyYAML==5.3.1; python3 -m pip install CppHeaderParser argparse wheel lit lxml pandas meson
 ```
 
 Ubuntu 24.04
 ```
-  python3 -m venv /opt/venv; PATH=/opt/venv/bin:$PATH python3 -m pip install CppHeaderParser argparse lxml pandas setuptools PyYAML pandas
+  python3 -m venv /opt/venv; PATH=/opt/venv/bin:$PATH python3 -m pip install CppHeaderParser argparse lxml pandas setuptools PyYAML pandas meson
 ```
 
 RHEL 8/9 and SLES15
 ```
-  python3 -m pip install CppHeaderParser argparse wheel lit lxml barectf termcolor pandas
+  python3 -m pip install CppHeaderParser argparse wheel lit lxml barectf termcolor pandas meson
 ```
 
 ### 3. cmake

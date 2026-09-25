@@ -26,6 +26,17 @@ INSTALL_ROCM_SYSDEPS=${INSTALL_ROCM_SYSDEPS:-$AOMP_INSTALL_DIR/rocm_sysdeps}
 ROCM_SYSDEPS_LIST=${ROCM_SYSDEPS_LIST:-libdrm}
 BUILD_DIR=$BUILD_AOMP/build/rocm_sysdeps
 
+# On older operating systems like Ubuntu 22.04, meson's version is too old
+# for the pkgconfig.relocatable option (v1.1.0 minimum). AOMP docs suggest installing meson via pip.
+# Add default install path ~/.local/bin to PATH.
+PATH=$HOME/.local/bin:$PATH
+
+echo "Checking meson version..."
+meson_loc=$(which meson)
+echo "--- Meson location: $(which meson)"
+meson_version=$($meson_loc --version)
+echo "--- Meson version: $meson_version"
+
 if [ "$1" == "-h" ] || [ "$1" == "help" ] || [ "$1" == "-help" ] ; then
   echo " "
   echo " This script builds the ROCM sysdeps libraries"
