@@ -23,13 +23,6 @@ This will create directores tmpc and tmpf
 For the current (1/10/2024) amd-trunk-dev branch patched as above, 
 this test works for c and gets the wrong answer (0) for flang-new. 
 
-This test works with AOMP.  To test with AOMP, save your tmpf and tmpc 
-directories. then run these commands
-
-export TRUNK=/CAR/aomp_18.0-0
-export FLANG=flang-legacy
-./reduction_sim.sh
-
 Both sources reduction_sim.c and reduction_sim.f95 use the 
 fast_add version of the helper function.  If you change the sources
 to use the nonfast version (remove _fast_sum suffix in the CALL)
