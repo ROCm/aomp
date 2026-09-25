@@ -162,7 +162,7 @@ There are options to select a subset of components to build and install.
 ```
 2) Select a subset of components to build.
 ```
-  ./build_aomp.sh select openmp flang flang_runtime
+  ./build_aomp.sh select openmp
 ```
 The default AOMP source build is a standalone build of all components needed for compilation and execution with the exception of the kfd Linux kernel module for AMD GPUs or the CUDA SDK for Nvidia GPUs.
 
@@ -298,7 +298,7 @@ export AOMP_GPU=`/opt/rocm/lib/llvm/bin/offload-arch`
 
 ## The AOMP developer patch subsystem
 
-Of the many repos identified above, AOMP developers may only change core aomp repositories (llvm-project, aomp, aomp-extras, and flang).  AOMP required changes to other non-core components must be patched. The [patches/README.md](patches/README.md)  describes the AOMP patch mechanism in detail.
+Of the many repos identified above, AOMP developers may only change core aomp repositories (llvm-project, aomp, and aomp-extras).  AOMP required changes to other non-core components must be patched. The [patches/README.md](patches/README.md)  describes the AOMP patch mechanism in detail.
 
 ## Building debuggable compiler
 
@@ -328,16 +328,3 @@ The default is 1, which creates these CMake vars:
 ```
 
 Change it to 0 to avoid `ccache`.
-
-
-## AOMP_SKIP_FLANG
-
-The default for this variable is 0. Setting this to 1 will shorten build time by
-changing the defaults for AOMP_COMPONENT_LIST and AOMP_PROJECTS_LIST to
-
-```
-AOMP_COMPONENT_LIST=" prereq project"
-AOMP_PROJECTS_LIST="clang;lld"
-```
-
-The AOMP_SKIP_FLANG variable is for developers working upstream but not on LLVM flang.
