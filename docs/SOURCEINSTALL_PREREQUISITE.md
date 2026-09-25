@@ -21,7 +21,7 @@
 #### Debian or Ubuntu Packages
 
 ```
-  sudo apt-get install wget gcc g++ pkg-config libpci-dev libnuma-dev libffi-dev git python3 libopenmpi-dev gawk mesa-common-dev libtool libdrm-amdgpu1 libdrm-dev ccache libdw-dev libgtest-dev libsystemd-dev cmake openssl libssl-dev libgmp-dev libmpfr-dev libelf-dev patchelf pciutils python3.10-dev libudev-dev libgtest-dev libstdc++-12-dev python3-lxml ocl-icd-opencl-dev libsystemd-dev libfmt-dev libmsgpack-dev libsqlite3-dev libnl-3-dev libnl-genl-3-dev libmnl-dev
+  sudo apt-get install wget gcc g++ pkg-config libpci-dev libnuma-dev libffi-dev git python3 libopenmpi-dev mesa-common-dev libtool libdrm-amdgpu1 libdrm-dev ccache libdw-dev libgtest-dev libsystemd-dev cmake openssl libssl-dev libgmp-dev libmpfr-dev libelf-dev patchelf pciutils python3.10-dev libudev-dev libgtest-dev libstdc++-12-dev python3-lxml ocl-icd-opencl-dev libsystemd-dev libfmt-dev libmsgpack-dev libsqlite3-dev libnl-3-dev libnl-genl-3-dev libmnl-dev
 
   # Additional packages used by rocgdb
   sudo apt-get install texinfo libbison-dev bison flex libbabeltrace-dev python3-pip libncurses5-dev liblzma-dev python3-setuptools python3-dev libudev-dev libgmp-dev libmpfr-dev libdw-dev
@@ -112,22 +112,22 @@ After all the required system package from section 1 are installed, there are so
 
 ManyLinux (AlmaLinux 8)
 ```
-  python3 -m pip install --ignore-installed --no-cache-dir barectf==3.1.2 PyYAML==5.3.1; python3.10 -m pip install CppHeaderParser argparse wheel lit lxml pandas
+  python3 -m pip install --ignore-installed --no-cache-dir barectf==3.1.2 PyYAML==5.3.1; python3.10 -m pip install CppHeaderParser argparse wheel lit lxml pandas meson
 ```
 
 Ubuntu 22.04
 ```
-  python3 -m pip install --ignore-installed --no-cache-dir barectf==3.1.2 PyYAML==5.3.1; python3 -m pip install CppHeaderParser argparse wheel lit lxml pandas
+  python3 -m pip install --ignore-installed --no-cache-dir barectf==3.1.2 PyYAML==5.3.1; python3 -m pip install CppHeaderParser argparse wheel lit lxml pandas meson
 ```
 
 Ubuntu 24.04
 ```
-  python3 -m venv /opt/venv; PATH=/opt/venv/bin:$PATH python3 -m pip install CppHeaderParser argparse lxml pandas setuptools PyYAML pandas
+  python3 -m venv /opt/venv; PATH=/opt/venv/bin:$PATH python3 -m pip install CppHeaderParser argparse lxml pandas setuptools PyYAML pandas meson
 ```
 
 RHEL 8/9 and SLES15
 ```
-  python3 -m pip install CppHeaderParser argparse wheel lit lxml barectf termcolor pandas
+  python3 -m pip install CppHeaderParser argparse wheel lit lxml barectf termcolor pandas meson
 ```
 
 ### 3. cmake

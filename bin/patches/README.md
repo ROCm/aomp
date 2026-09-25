@@ -10,7 +10,7 @@ If we created a mirror, we would not get maintenance unless we kept updating the
 
 The components that AOMP developers have direct control over are: 
   
-   llvm-project, aomp-extras, flang, aomp
+   llvm-project, aomp-extras, aomp
 
 All other components are non-AOMP components that often require patching to
 work with AOMP. The AOMP build scripts for non-AOMP components use this patching process:
