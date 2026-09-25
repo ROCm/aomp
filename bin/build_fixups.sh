@@ -25,8 +25,6 @@ if [ "$AOMP_STANDALONE_BUILD" == 1 ] ; then
   $SUDO cp "$AOMP_SRC/LICENSE" "$AOMP/share/doc/aomp/LICENSE.apache2"
   echo $SUDO cp "$AOMP_REPOS/$AOMP_EXTRAS_REPO_NAME/LICENSE" "$AOMP/share/doc/aomp/LICENSE.mit"
   $SUDO cp "$AOMP_REPOS/$AOMP_EXTRAS_REPO_NAME/LICENSE" "$AOMP/share/doc/aomp/LICENSE.mit"
-  echo $SUDO cp "$AOMP_REPOS/$AOMP_FLANG_REPO_NAME/LICENSE.txt" "$AOMP/share/doc/aomp/LICENSE.flang"
-  $SUDO cp "$AOMP_REPOS/$AOMP_FLANG_REPO_NAME/LICENSE.txt" "$AOMP/share/doc/aomp/LICENSE.flang"
 fi
 
 echo Cleaning AOMP Directory...
