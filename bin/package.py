@@ -23,11 +23,6 @@ class Aomp(MakefilePackage):
         makefile = FileFilter('Makefile')
         filter_file('add_subdirectory(test)', '#add_subdirectory(test)','llvm-project/compiler-rt/CMakeLists.txt', string=True)
         filter_file('add_subdirectory(test)', '#add_subdirectory(test)','llvm-project/llvm/CMakeLists.txt', string=True)
-        filter_file('add_subdirectory(test)', '#add_subdirectory(test)','flang/CMakeLists.txt', string=True)
-
-        # Add -w to suppress warnings, which spack thinks are errors
-        filter_file('-std=c11', '-std=c11 -w','flang/tools/flang1/flang1exe/CMakeLists.txt', string=True)
-        filter_file('PRIVATE -fPIC)', 'PRIVATE -fPIC PRIVATE -w)','flang/runtime/flang/CMakeLists.txt', string=True)
 
     def install(self, spec, prefix):
         make()

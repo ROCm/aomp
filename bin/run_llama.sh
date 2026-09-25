@@ -8,9 +8,12 @@
 
 # Build script for LLaMA with HIP support using AOMP compiler
 
-# shellcheck source=/dev/null
-. aomp_common_vars
+ScriptDir=$(dirname "$(realpath "$0")")
 
+# shellcheck source=/dev/null
+. "${ScriptDir}"/aomp_common_vars
+
+: "${ROCM_PATH:=$(realpath -m "${AOMP}/../..")}"
 : "${AOMP_GPU:=gfx90a}"
 : "${LLAMA_GPU:=$AOMP_GPU}"
 
@@ -20,9 +23,24 @@
 : "${LLAMA_BUILD_MODE:=Release}"
 : "${LLAMA_TESTS_LOG_LOCATION:=$LLAMA_TLDIR/logs}"
 
+# CTest 'test-backend-ops' exceeds the 1500s default timeout.
+# Measured on MI350X: ~2500s
+: "${LLAMA_CTEST_TIMEOUT:=3600}"
+
 # Model to use in benchmarks (default is a smaller model)
 : "${LLAMA_BENCH_HF_ID:=ggml-org/gemma-3-1b-it-GGUF}"
 : "${LLAMA_CACHE:=$HOME/.cache/llama.cpp}"
+
+# Add AOMP and ROCM_PATH to PATH and LD_LIBRARY_PATH and export them.
+merge_variable_with_inputs PATH "${AOMP:+${AOMP}/bin}" "${ROCM_PATH:+${ROCM_PATH}/bin}"
+merge_variable_with_inputs LD_LIBRARY_PATH \
+  "${AOMP:+${AOMP}/lib}" \
+  "${AOMP:+${AOMP}/lib/x86_64-unknown-linux-gnu}" \
+  "${ROCM_PATH:+${ROCM_PATH}/lib}"
+
+export PATH
+export LD_LIBRARY_PATH
+export ROCM_PATH
 
 pushd "${AOMP_REPOS_TEST}" || exit
 mkdir -p "${LLAMA_TLDIR}" && cd "${LLAMA_TLDIR}" || exit
@@ -92,24 +110,72 @@ else
   cd ..
 fi
 
-echo "Configuring build with CMake..."
 if [ "${DoConfigure}" == "yes" ]; then
+  echo "Configuring build with CMake..."
   rm -rf "${LLAMA_BUILD_DIR}"
-  cmake -B build \
-    -S src \
-    -DCMAKE_PREFIX_PATH="${AOMP}"/lib/cmake \
-    -DGGML_HIP=On \
-    -DCMAKE_BUILD_TYPE="${LLAMA_BUILD_MODE}" \
-    -DGPU_TARGETS="${LLAMA_GPU}" \
-    ${CmakeGenerator:+"${CmakeGenerator}"} \
-    -DCMAKE_C_COMPILER="${AOMP}"/bin/clang \
-    -DCMAKE_CXX_COMPILER="${AOMP}"/bin/clang++ \
-    -DCMAKE_HIP_COMPILER="${AOMP}"/bin/clang++
+
+  CMakeArgs=()
+  if [ -n "${CmakeGenerator}" ]; then
+    CMakeArgs+=("${CmakeGenerator}")
+  fi
+
+  # Determine the CMake module paths of required ROCm packages.
+  CMakePrefixPath="${ROCM_PATH}"
+  declare -A SeenPrefix=()
+  for Package in hip hipblas rocblas; do
+    if ! PackageCmakeDir=$(get_cmake_module_path "${Package}"); then
+      Msg="ERROR: no CMake package '${Package}' below ${AOMP},"
+      Msg+=" ${ROCM_PATH} or /opt/rocm"
+      echo "${Msg}"
+      exit 1
+    fi
+
+    # Anything found below the ROCm under test needs no extra prefix.
+    # Removing a prefix that is present shortens the path, so a path that
+    # comes back unchanged did not start with it.
+    if [ "${PackageCmakeDir#"${AOMP}"/}" != "${PackageCmakeDir}" ] ||
+       [ "${PackageCmakeDir#"${ROCM_PATH}"/}" != "${PackageCmakeDir}" ]; then
+      continue
+    fi
+
+    Msg="WARNING: ${ROCM_PATH} does not provide ${Package},"
+    Msg+=" using ${PackageCmakeDir}"
+    echo "${Msg}"
+
+    # Two packages commonly resolve to the same place; append it only once.
+    if [ -z "${SeenPrefix[${PackageCmakeDir}]:-}" ]; then
+      SeenPrefix["${PackageCmakeDir}"]=1
+      CMakePrefixPath+=";${PackageCmakeDir}"
+    fi
+  done
+  unset SeenPrefix
+
+  CMakeArgs+=("-S" "src")
+  CMakeArgs+=("-B" "build")
+  CMakeArgs+=("-DCMAKE_PREFIX_PATH=${CMakePrefixPath}")
+  CMakeArgs+=("-DGGML_HIP=On")
+  CMakeArgs+=("-DCMAKE_BUILD_TYPE=${LLAMA_BUILD_MODE}")
+  CMakeArgs+=("-DGPU_TARGETS=${LLAMA_GPU}")
+  CMakeArgs+=("-DCMAKE_C_COMPILER=${AOMP}/bin/clang")
+  CMakeArgs+=("-DCMAKE_CXX_COMPILER=${AOMP}/bin/clang++")
+  CMakeArgs+=("-DCMAKE_HIP_COMPILER=${AOMP}/bin/clang++")
+
+  # CMake modules export their whole include directory, HIP headers included,
+  # which would shadow the ROCm under test and e.g. its HIP headers.
+  add_cmake_rocm_header_priority_args CMakeArgs "${ROCM_PATH}"
+
+  printf 'cmake'; printf ' %q' "${CMakeArgs[@]}"; printf '\n'
+  cmake "${CMakeArgs[@]}" 2>&1 |
+    tee "${LLAMA_TESTS_LOG_LOCATION}/cmake-configure.log"
+
+  # Make sure the ROCm header priority is preserved.
+  check_cmake_rocm_header_priority "${LLAMA_BUILD_DIR}" "${ROCM_PATH}" || exit 1
 fi
 
 if [ "${DoCompile}" == "yes" ]; then
   echo "Building LLaMA..."
-  cmake --build "${LLAMA_BUILD_DIR}" --parallel -j "${AOMP_BUILD_JOBS}"
+  cmake --build "${LLAMA_BUILD_DIR}" --parallel -j "${AOMP_BUILD_JOBS}" 2>&1 |
+    tee "${LLAMA_TESTS_LOG_LOCATION}/cmake-build.log"
 fi
 
 if [ "${DoCTest}" == "yes" ]; then
@@ -118,7 +184,8 @@ if [ "${DoCTest}" == "yes" ]; then
   echo "Log in ${LLAMA_TESTS_LOG_LOCATION}/ctest.log"
 
   # Some model files are git-lfs and come from huggingface. They will auto-download during test
-  ctest --output-on-failure 2>&1 | tee "${LLAMA_TESTS_LOG_LOCATION}/ctest.log"
+  ctest --output-on-failure --timeout "${LLAMA_CTEST_TIMEOUT}" 2>&1 |
+    tee "${LLAMA_TESTS_LOG_LOCATION}/ctest.log"
 fi
 
 run_llama_bench() {
