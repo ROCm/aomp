@@ -79,7 +79,6 @@ The above command will produce output like this showing you the location and bra
   --------       ------                 ----                 ---------    ---------    -------           --------         ----------
        emu  amd-staging         llvm-project lightning/ec/llvm-project f986706166c9 2023-12-06      Ron Lieberman            JP Lehr
        emu  amd-staging   SPIRV-LLVM-Translator  SPIRV-LLVM-Translator 0659e45216b2 2024-12-04            AlexVlx            AlexVlx
-       roc     aomp-dev                flang                     flang 88b81b0a8ead 2023-11-30             GitHub    Emma Pilkington
        roc     aomp-dev                 aomp                      aomp df5b5d8ddffa 2023-12-05 Dhruva Chakrabarti Dhruva Chakrabarti
        roc   release/rocm-rel-7.2   rocprofiler-sdk    rocprofiler-sdk 7283f62b2c16 2025-09-22             GitHub      Ammar ELWazir
        roc   release/rocm-rel-7.2   roctracer                roctracer 6fbf7673aa7f 2023-07-13 Ranjith Ramakrishnan Ranjith Ramakrishnan

@@ -8,10 +8,6 @@
 #    OARCH:  Offload architecture, sm_70, gfx908, etc
 #    FLANG: binary name for flang compiler, default is flang-new
 #
-# To test this script with AOMP legacy flang compiler
-#    export TRUNK=$AOMP (where AOMP is installed)
-#    export FLANG=flang-legacy
-#
 # Set environment variable defaults here:
 TRUNK=${TRUNK:-$HOME/rocm/trunk}
 OFFLOAD=${OFFLOAD:-MANDATORY}
