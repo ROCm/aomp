@@ -13,4 +13,4 @@ babelstream: babelstream-usm.patch
 llvm-project: ATD_ASO_full.patch
 UMT: umt.patch
 rocm-xio: xio.patch
-rocm-systems: rocm-systems-hip-drop-undefined-version-script-entries.patch
+rocm-systems: rocm-systems-hip-drop-undefined-version-script-entries.patch rocm-systems-rocm-smi-drm-example-include.patch rocm-systems-rocprofiler-sdk-drm-include.patch

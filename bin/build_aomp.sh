@@ -76,17 +76,6 @@ if ! $TOPSUDO touch "$AOMP_INSTALL_DIR/testfile"; then
 fi
 $TOPSUDO rm "$AOMP_INSTALL_DIR/testfile"
 
-#Check for gawk on Ubuntu, which is needed for the flang build.
-GAWK=$(gawk --version | grep "^GNU Awk")
-OS=$(grep "^NAME=" < /etc/os-release)
-
-if [[ -z "$GAWK" ]] && [[ "$OS" == *"Ubuntu"* ]] ; then
-   echo
-   echo "Build Error: gawk was not found and is required for building flang! Please run 'sudo apt-get install gawk' and run build_aomp.sh again."
-   echo
-   exit 1
-fi
-
 if [ "$DISABLE_LLVM_TESTS" == "1" ]; then
   export DO_TESTS="-DLLVM_INCLUDE_TESTS=OFF -DCLANG_INCLUDE_TESTS=OFF"
 fi
@@ -104,12 +93,9 @@ if [ "$AOMP_STANDALONE_BUILD" == 1 ] ; then
   # rocclr, we have no HIP or OpenCL for ppc64 :-( However, rocr works for ppc64 so AOMP works.
   if [ "$_hostarch" == "x86_64" ] ; then
     # These components build on x86_64, so add them to components list
-    if [ "$AOMP_SKIP_FLANG" == 0 ] ; then
-      components="$components llvm-classic flang-classic pgmath flang flang_runtime"
-    fi
     components="$components hipcc hipamd hipify"
   fi
-  if [ "$AOMP_SKIP_FLANG_NEW" == 0 ] && [ "$AOMP_SKIP_FLANG" == 1 ] ; then
+  if [ "$AOMP_SKIP_FLANG_NEW" == 0 ] ; then
     # We can only build hipfort for flang
     components="$components hipfort "
   fi
@@ -133,13 +119,6 @@ else
   # roctracer, rocprofiler, rocm_smi_lib, and amdsmi should be found
   # in ROCM in /opt/rocm.  The ROCM build only needs these components:
   components="llvm_runtimes_standalone"
-  if [ "$AOMP_SKIP_FLANG" == 0 ] ; then
-    if [ "$SANITIZER" == 1 ] && [ -f "$AOMP/bin/flang-classic" ] ; then
-      components="$components pgmath flang flang_runtime"
-    else
-      components="$components llvm-classic flang-classic pgmath flang flang_runtime"
-    fi
-  fi
 fi
 echo "COMPONENTS:$components"
 
@@ -196,12 +175,10 @@ echo
 
 if [ "$AOMP_STANDALONE_BUILD" -eq 0 ]; then
   cd "$BUILD_DIR/build" || exit
-  classic_version=$(ls flang-classic)
-  classic_install_manifest=$classic_version/install_manifest.txt
   if [ "$SANITIZER" == 1 ]; then
-    install_manifest_orig=asan/install_manifest.txt
+    install_manifest=asan/install_manifest.txt
   else
-    install_manifest_orig=install_manifest.txt
+    install_manifest=install_manifest.txt
   fi
 
   # Clean file log
@@ -209,11 +186,6 @@ if [ "$AOMP_STANDALONE_BUILD" -eq 0 ]; then
 
   for directory in ./*/; do
     pushd "$directory" > /dev/null || exit
-    if [[ "$directory" =~ "flang-classic" ]]; then
-      install_manifest=$classic_install_manifest
-    else
-      install_manifest="$install_manifest_orig"
-    fi
     if [ -f "$install_manifest" ]; then
       cat "$install_manifest" >> "$BUILD_DIR/build/installed_files.txt"
       echo "" >> "$BUILD_DIR/build/installed_files.txt"
