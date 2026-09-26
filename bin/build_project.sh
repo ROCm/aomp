@@ -151,8 +151,6 @@ if [ -f "$AOMP_PROJECT_SRC/openmp/device/CMakeLists.txt" ]; then
                -DRUNTIMES_amdgcn-amd-amdhsa_LLVM_ENABLE_PER_TARGET_RUNTIME_DIR=ON)
 fi
 
-# -DCLANG_LINK_FLANG_LEGACY=ON
-
 # Enable amdflang, amdclang, amdclang++, amdllvm.
 # clang-tools-extra added to LLVM_ENABLE_PROJECTS above.
 MYCMAKEOPTS=("${MYCMAKEOPTS[@]}"

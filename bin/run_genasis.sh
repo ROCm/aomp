@@ -84,7 +84,7 @@ fi
 export LD_LIBRARY_PATH=$AOMP/lib:$AOMPHIP/lib:$OPENMPI_DIR/lib:$LD_LIBRARY_PATH
 export FORTRAN_COMPILE="$AOMP/bin/$FLANG -c -fPIC -I$OPENMPI_DIR/lib"
 export CC_COMPILE="$AOMP/bin/clang -fPIC"
-export OTHER_LIBS="-lm -L$AOMP/lib -lflang -lflangmain -lflangrti -lpgmath -lomp -lomptarget -z muldefs"
+export OTHER_LIBS="-lm -L$AOMP/lib -lomp -lomptarget -z muldefs"
 export FORTRAN_LINK="$AOMP/bin/clang $OTHER_LIBS"
 export DEVICE_COMPILE="$AOMPHIP/bin/hipcc -D__HIP_PLATFORM_HCC__"
 export HIP_DIR=$ROCM
