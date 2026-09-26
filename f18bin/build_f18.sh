@@ -68,17 +68,6 @@ if [ $? != 0 ] ; then
 fi
 $TOPSUDO rm $F18_INSTALL_DIR/testfile
 
-#Check for gawk on Ubuntu, which is needed for the flang build.
-GAWK=$(gawk --version | grep "^GNU Awk")
-OS=$(cat /etc/os-release | grep "^NAME=")
-
-if [[ -z $GAWK ]] && [[ "$OS" == *"Ubuntu"* ]] ; then
-   echo
-   echo "Build Error: gawk was not found and is required for building flang! Please run 'sudo apt-get install gawk' and run build_f18.sh again."
-   echo
-   exit 1
-fi
-
 echo 
 date
 echo " =================  START build_f18.sh ==================="   
@@ -86,7 +75,6 @@ echo
    if [ "$F18_STANDALONE_BUILD" == 1 ] ; then
       # There is no good external repo for the opencl runtime but we only need the headers for build_vdi.sh
       # So build_ocl.sh is currently not called.
-      #components="roct rocr project libdevice extras openmp pgmath flang flang_runtime comgr rocminfo vdi hipvdi ocl "
       components="project"
    else
       # With AOMP 11, ROCM integrated build will not need roct rocr libdevice comgr and rocminfo

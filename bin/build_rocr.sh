@@ -60,7 +60,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
    declare -a MYCMAKEOPTS
    MYCMAKEOPTS=(-DCMAKE_INSTALL_PREFIX="$INSTALL_ROCM"
                 -DCMAKE_BUILD_TYPE="$BUILDTYPE"
-                -DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR/lib"
+                -DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR/lib/llvm;$AOMP_INSTALL_DIR/rocm_sysdeps"
                 -DIMAGE_SUPPORT=OFF "${AOMP_ORIGIN_RPATH[@]}"
                 -DCMAKE_INSTALL_LIBDIR=lib
                 -DCMAKE_C_COMPILER="${AOMP_INSTALL_DIR}/lib/llvm/bin/clang"
@@ -89,7 +89,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
                        -DCMAKE_INSTALL_PREFIX="$AOMP_INSTALL_DIR"
                        -DCMAKE_INSTALL_LIBDIR=lib/asan
                        -DCMAKE_BUILD_TYPE="$BUILD_TYPE"
-                       -DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR/lib"
+                       -DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR/lib/llvm;$AOMP_INSTALL_DIR/rocm_sysdeps"
                        -DIMAGE_SUPPORT=OFF "${AOMP_ASAN_ORIGIN_RPATH[@]}"
                        -DBUILD_SHARED_LIBS=On)
       mkdir -p "$BUILD_AOMP/build/rocr/asan"
@@ -117,7 +117,7 @@ if [ "$1" != "nocmake" ] && [ "$1" != "install" ] ; then
       ROCR_CMAKE_OPTS=(-DCMAKE_C_COMPILER="$AOMP_INSTALL_DIR/lib/llvm/bin/clang"
                        -DCMAKE_CXX_COMPILER="$AOMP_INSTALL_DIR/lib/llvm/bin/clang++"
                        -DLLVM_DIR="$AOMP_INSTALL_DIR/lib/llvm/bin"
-                       -DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR/lib"
+                       -DCMAKE_PREFIX_PATH="$AOMP_INSTALL_DIR/lib/llvm;$AOMP_INSTALL_DIR/rocm_sysdeps"
                        -DCMAKE_INSTALL_PREFIX="$AOMP_INSTALL_DIR"
                        -DCMAKE_BUILD_TYPE=Debug
                        "${AOMP_DEBUG_ORIGIN_RPATH[@]}"

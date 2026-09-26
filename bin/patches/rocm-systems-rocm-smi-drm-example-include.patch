@@ -1,0 +1,12 @@
+diff --git a/projects/rocm-smi-lib/rocm_smi/CMakeLists.txt b/projects/rocm-smi-lib/rocm_smi/CMakeLists.txt
+index 88c7f34c..965296a1 100644
+--- a/projects/rocm-smi-lib/rocm_smi/CMakeLists.txt
++++ b/projects/rocm-smi-lib/rocm_smi/CMakeLists.txt
+@@ -81,6 +81,7 @@ set(SMI_EXAMPLE_EXE "rocm_smi_ex")
+ 
+ add_executable(${SMI_EXAMPLE_EXE} "example/rocm_smi_example.cc")
+ target_link_libraries(${SMI_EXAMPLE_EXE} ${ROCM_SMI_TARGET})
++target_include_directories(${SMI_EXAMPLE_EXE} PRIVATE ${DRM_INCLUDE_DIRS})
+ add_library(${ROCM_SMI_TARGET} ${CMN_SRC_LIST} ${SMI_SRC_LIST} ${CMN_INC_LIST} ${SMI_INC_LIST})
+ target_link_libraries(${ROCM_SMI_TARGET} PRIVATE pthread rt dl)
+ target_include_directories(
