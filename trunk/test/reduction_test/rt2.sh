@@ -8,10 +8,6 @@
 #    OARCH:  Offload architecture, sm_70, gfx908, etc
 #    FLANG: binary name for flang compiler, default is flang-new
 #
-# To test this script with the AOMP legacy flang compiler, set these vars
-#    export TRUNK=$AOMP (where AOMP is installed)
-#    export FLANG=flang-legacy
-#
 # pt2.sh is identical to reduction_test.sh except pt2.sh
 #    does not use -save-temps because sometimes -save-temps changes behavior or fails
 #    outputs to directories tmpc2 and tmpf2 instead of tmpc and tmpf
