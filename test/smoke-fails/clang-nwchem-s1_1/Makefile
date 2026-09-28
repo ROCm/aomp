@@ -16,5 +16,5 @@ include ../Makefile.rules
 run: $(TESTNAME)
 	ulimit -s unlimited ;\
 	$(RUNENV) ./$(TESTNAME) > run.log 2>&1 ; \
-	grep target_team_region run.log | awk '{print $$2, $$3}' 
+	grep launch_kernel run.log | awk '{print $$2, $$3}'
 
