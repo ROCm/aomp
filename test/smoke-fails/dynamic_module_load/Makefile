@@ -8,8 +8,6 @@ TESTSRC_ALL  := $(TESTSRC_MAIN)
 ARGS         := ./$(TEST_SO)
 
 # We do not get double free detected in tcache 2 with clang-linker-wrapper
-# which is used with --no-opaque-offload-linker
-# FIXARG       := --no-opaque-offload-linker
 
 CLANG        ?= clang
 OMP_BIN      = $(AOMP)/bin/$(CLANG)
@@ -24,4 +22,4 @@ include ../Makefile.rules
 $(TESTSRC_ALL) : $(TEST_SO)
 
 $(TEST_SO) : $(TESTSRC_SO)
-	$(CC) -fopenmp $(TARGET) $(FIXARG) -fPIC -shared $(TESTSRC_SO) -o $(TEST_SO)
+	$(CC) -fopenmp $(TARGET) -fPIC -shared $(TESTSRC_SO) -o $(TEST_SO)
