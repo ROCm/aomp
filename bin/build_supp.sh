@@ -226,11 +226,6 @@ function builducx(){
   fi
   XPMEM_PATH=$AOMP_SUPP/xpmem
 
-  _cname="ucx"
-  _version=1.20.0
-  _installdir=$AOMP_SUPP_INSTALL/$_cname-$_version
-  _linkfrom=$AOMP_SUPP/$_cname
-  _builddir=$AOMP_SUPP_BUILD/$_cname
   SKIPBUILD="FALSE"
   checkversion
   if [ "$SKIPBUILD" == "TRUE" ] ; then
@@ -299,11 +294,6 @@ function builducc(){
   fi
   UCX_PATH=$AOMP_SUPP/ucx
 
-  _cname="ucc"
-  _version=1.6.0
-  _installdir=$AOMP_SUPP_INSTALL/$_cname-$_version
-  _linkfrom=$AOMP_SUPP/$_cname
-  _builddir=$AOMP_SUPP_BUILD/$_cname
   SKIPBUILD="FALSE"
   checkversion
   if [ "$SKIPBUILD" == "TRUE" ] ; then
@@ -462,12 +452,6 @@ function buildrocmopenmpi(){
     builducc
   fi
   UCC_PATH=$AOMP_SUPP/ucc
-
-  _cname="rocmopenmpi"
-  _version=5.0.10
-  _installdir=$AOMP_SUPP_INSTALL/$_cname-$_version
-  _linkfrom=$AOMP_SUPP/$_cname
-  _builddir=$AOMP_SUPP_BUILD/$_cname
 
   # Build OpenMPI with ROCm-specific configure options
   _buildopenmpi_impl $_cname $_version \
