@@ -52,7 +52,7 @@ $ $AOMP_SUPP/build/cmdlog              File with log of all components built
 EOF
 }
 
-SUPPLEMENTAL_COMPONENTS=${SUPPLEMENTAL_COMPONENTS:-openmpi silo hdf5 fftw ninja rocmopenmpi hdf5-parallel xpmem ucx ucc}
+SUPPLEMENTAL_COMPONENTS=${SUPPLEMENTAL_COMPONENTS:-openmpi silo hdf5 fftw ninja xpmem ucx ucc rocmopenmpi hdf5-parallel}
 
 # rocsmilib and hwloc build invocation moved to build_rocm_sysdeps.sh (libdrm support). rocmsmi is dependent on libdrm and hwloc depends on rocmsmi.
 PREREQUISITE_COMPONENTS=${PREREQUISITE_COMPONENTS:-cmake aqlprofile rocm-core}
