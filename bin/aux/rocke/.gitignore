@@ -1,0 +1,7 @@
+# Caches the interpreter and the linter drop here when these modules are run or
+# checked from this directory. The repo root already ignores *.pyc; these are the
+# directories themselves, so nothing a future tool writes inside them can show up as
+# untracked. Without the .ruff_cache entry the only thing hiding that tree is an
+# ignore file ruff writes inside its own cache, which is not something to rely on.
+__pycache__/
+.ruff_cache/

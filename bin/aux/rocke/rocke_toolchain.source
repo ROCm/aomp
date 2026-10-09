@@ -1,0 +1,372 @@
+# Copyright (c) Advanced Micro Devices, Inc., or its affiliates.
+# SPDX-License-Identifier: MIT
+#
+# Resolves the compiler toolchain and proves every tool comes from it.
+# Sourced by the driver; defines functions and tables only.
+# shellcheck shell=bash
+#
+# Run state is owned by the driver and not visible from this file alone.
+# shellcheck disable=SC2154
+
+# Nearest ancestor of the llvm dir shipping comgr or hipcc. Headers and
+# device-libs can live under llvm/, so keying on those stops short of the root
+# that comgr needs.
+function resolveRocmRoot {
+  local Dir="${1}" Start="${1}" _Hop
+
+  for _Hop in 0 1 2 3; do
+    if [[ -e "${Dir}/lib/libamd_comgr.so" || -x "${Dir}/bin/hipcc" ]]; then
+      echo "${Dir}"; return 0
+    fi
+    Dir="$(realpath -m "${Dir}/..")"
+  done
+
+  realpath -m "$(dirname "${Start}")"  # give up; prefix check + hygiene flag it
+}
+
+# Populate the shim the driver already named in PATH. Filling it needs the
+# failure path, which is unavailable while PATH is still being built.
+function installToolchainShim {
+  if ! mkdir -p "${ToolchainShim}" \
+    || ! ln -sf "${AOMP}/bin/clang++" "${ToolchainShim}/c++" \
+    || ! ln -sf "${AOMP}/bin/clang" "${ToolchainShim}/cc"; then
+    failSetup \
+      "cannot create the toolchain compiler shim in ${ToolchainShim}" harness
+  fi
+}
+
+# Rule across the provenance blocks, the width the banner text assumes.
+BannerRule="$(printf '%.0s=' $(seq 79))"
+
+# The file a build tree writes beside the packages it built in one go.
+CoBuildManifest="all.sha"
+
+# ROCm version of the toolchain, as major.minor. A compiler-only package ships
+# no version file; a complete ROCm install built alongside it does, so that
+# sibling supplies the number where the tree shows they were built together.
+function resolveRocmVersion {
+  local Parent File Version Sibling Found="" FoundIn=""
+
+  RocmVersion=""
+  RocmVersionSource=""
+
+  if [[ -n "${ROCKE_ROCM_VERSION:-}" ]]; then
+    RocmVersion="${ROCKE_ROCM_VERSION}"
+    RocmVersionSource="the ROCKE_ROCM_VERSION knob"
+    return 0
+  fi
+
+  Version="$(head -1 "${RocmRoot}/.info/version" 2>/dev/null | cut -d. -f1,2)"
+  if [[ -n "${Version}" ]]; then
+    RocmVersion="${Version}"
+    RocmVersionSource="the toolchain"
+    return 0
+  fi
+
+  # Siblings only count where the tree says they were built together: an install
+  # directory holds unrelated compilers, whose ROCm version says nothing here.
+  Parent="$(dirname "${RocmRoot}")"
+  [[ -f "${Parent}/${CoBuildManifest}" ]] || return 1
+
+  for File in "${Parent}"/*/.info/version; do
+    [[ -r "${File}" ]] || continue
+    Version="$(head -1 "${File}" | cut -d. -f1,2)"
+    Sibling="${File%/.info/version}"
+    if [[ -n "${Found}" && "${Found}" != "${Version}" ]]; then
+      RocmVersionSource="siblings disagree (${FoundIn}, ${Sibling##*/})"
+      return 1
+    fi
+    Found="${Version}"
+    FoundIn="${Sibling##*/}"
+  done
+
+  [[ -n "${Found}" ]] || return 1
+  RocmVersion="${Found}"
+  RocmVersionSource="the ${FoundIn} install of the same build"
+}
+
+# HIP runtime the toolchain ships; it co-determines what an on-device row means.
+function readToolchainHipVersion {
+  awk -F= '
+    /^HIP_VERSION_(MAJOR|MINOR|PATCH|GITHASH)=/ { v[$1] = $2 }
+    END { if (v["HIP_VERSION_MAJOR"] != "")
+            printf "%s.%s.%s-%s", \
+                   v["HIP_VERSION_MAJOR"], v["HIP_VERSION_MINOR"], \
+                   v["HIP_VERSION_PATCH"], v["HIP_VERSION_GITHASH"] }
+  ' "${RocmRoot}/share/hip/version" 2>/dev/null
+}
+
+# One phrase for the provenance block: the version rocKE derives when it can be
+# believed, otherwise where the build's own number came from.
+function describeRocmVersion {
+  if (( ${ToolchainVintageTrusted:-1} == 1 )); then
+    echo "${ToolchainComgrVintage:-?} -> ${ToolchainComgrFlavor:-?}"
+  elif [[ -n "${RocmVersion:-}" ]]; then
+    echo "${RocmVersion} from ${RocmVersionSource}," \
+         "not from the toolchain itself"
+  else
+    echo "unavailable (${RocmVersionSource:-no version file in the toolchain})"
+  fi
+}
+
+# Printed before anything is refreshed or built, so a run that dies early still
+# names what it was testing; the full provenance block waits for resolved
+# values.
+function printBanner {
+  echo "${BannerRule}"
+  echo "rocKE ${Stage}  ($(date '+%Y-%m-%d %H:%M:%S'))"
+  echo "  AOMP        = ${AompInput} -> ${AOMP}"
+  echo "  ROCM_PATH   = ${ROCM_PATH} (${RocmRootSource})"
+  echo "${BannerRule}"
+}
+
+# Everything that decides what a row means, printed once the gate has resolved
+# it.
+function printProvenance {
+  local Dev Driver Os
+
+  echo "== provenance" \
+       "================================================================="
+
+  # Subshell: /etc/os-release sets common names such as NAME and VERSION.
+  Os="$( . /etc/os-release 2>/dev/null \
+         && printf '%s' "${PRETTY_NAME:-${NAME:-} ${VERSION_ID:-}}" )"
+  echo "  host        $(uname -n)  ${Os:-$(uname -s)}, kernel $(uname -r)"
+
+  Driver="$(cat /sys/module/amdgpu/version 2>/dev/null)"
+  # Nodes are shared: two runs on one host can be given different GPUs.
+  Dev="$("${PyBin}" "${HelperDir}/rocke_probe.py" device 2>/dev/null)"
+  local Seen="ROCR_VISIBLE_DEVICES=${ROCR_VISIBLE_DEVICES:-<unset>}"
+  echo "  device      ${Dev:-?}  (${Seen}${Driver:+, amdgpu ${Driver}})"
+
+  echo "  toolchain         ${RocmRoot}"
+  echo "              clang $("${CXX}" --version 2>/dev/null \
+           | head -1 | sed 's/^AMD clang version //;s/ (http.*//')" \
+       "(llvm $("${CXX}" --version 2>/dev/null \
+           | grep -oE '[0-9a-f]{12,40}' | tail -1 | cut -c1-12))"
+  echo "              HIP $(readToolchainHipVersion)"
+  echo "              comgr ${ToolchainComgrInterface:-?}" \
+       "($(basename "$(realpath -m "${ToolchainComgrLib:-?}" 2>/dev/null)"))," \
+       "rocm $(describeRocmVersion)"
+  echo "              emits the ${ToolchainDatalayoutShape:-?} p8 datalayout," \
+       "whole string sha" \
+       "$(printf '%s' "${ToolchainDatalayout:-}" | sha256sum | cut -c1-12);" \
+       "flavors codegen:${ROCKE_CODEGEN_FLAVOR} comgr:${ROCKE_COMGR_FLAVOR}" \
+       "engine:$(if [[ "${ROCKE_ENGINE_FLAVORS}" == auto ]]; \
+                 then echo "auto (rocKE's list, swept by the engine lane)"; \
+                 else echo "${ROCKE_ENGINE_FLAVORS}"; fi)"
+
+  echo "  rocKE       $(readRockeSrcRev)  ${ROCKE_TOP}"
+  echo "  python      $("${PyBin}" -V 2>&1 | sed 's/^Python //')  ${PyBin}"
+
+  # Reported, not required: the lane that needs a package says so itself.
+  "${PyBin}" "${HelperDir}/rocke_probe.py" packages 2>/dev/null \
+    | sed 's/^/              /' || true
+
+  echo "  build       cmake" \
+       "$(cmake --version 2>/dev/null | head -1 | awk '{print $3}')," \
+       "ninja $(ninja --version 2>/dev/null || echo absent)"
+  echo "${BannerRule}"
+}
+
+# True when a path resolves inside the compiler toolchain under test.
+function isToolchainPath {  # <path>
+  [[ -n "${1}" && -e "${1}" && "$(realpath -m "${1}")" == "${RocmRoot}"/* ]]
+}
+
+# Print one hygiene row; return non-zero when a *hard* requirement is external.
+function reportToolchainTool {  # <label> <path> <hard:1|0>
+  local Label="${1}" Path="${2}" Hard="${3}" Tag="MISSING"
+
+  if [[ -n "${Path}" && -e "${Path}" ]]; then
+    Tag="EXTERNAL"
+    isToolchainPath "${Path}" && Tag="toolchain"
+  fi
+
+  printf '  %-13s [%-8s] %s\n' "${Label}" "${Tag}" "${Path:-<not found>}"
+
+  [[ "${Hard}" == 1 && "${Tag}" != toolchain ]] && return 1
+  return 0
+}
+
+# The whole datalayout the toolchain's clang emits, plus its p8 shape. The shape
+# tells IR generations apart, not releases, so the full string is recorded too:
+# a change anywhere else in it is a change in what the compiler emits.
+function readToolchainDatalayout {
+  local Arch="${1}"
+
+  ToolchainDatalayout=$(printf 'int _rocke_flavor_probe;\n' \
+        | "${AOMP}/bin/clang" -x c -target amdgcn-amd-amdhsa -mcpu="${Arch}" \
+              -emit-llvm -S - -o - 2>/dev/null \
+        | sed -n 's/^target datalayout = "\(.*\)"/\1/p')
+
+  case "${ToolchainDatalayout}" in
+    *p8:128:128:128:48*) ToolchainDatalayoutShape=indexed ;;
+    *p8:128:128-*)       ToolchainDatalayoutShape=plain ;;
+    *)                   ToolchainDatalayoutShape=unknown ;;
+  esac
+}
+
+# Pin one flavor knob to the toolchain's own flavor when 'auto'; an explicit
+# value that disagrees is warned about, since rocKE would lower IR in the wrong
+# flavor.
+function resolveFlavorKnob {  # <env-var-name> <flavor>
+  local Name="${1}" Flavor="${2}" Cur="${!1}"
+
+  if [[ "${Cur}" == auto ]]; then
+    [[ "${Flavor}" != "?" && -n "${Flavor}" ]] \
+      || failSetup "cannot determine the IR flavor for ${Name}" toolchain
+    export "${Name}=${Flavor}"
+  elif [[ "${Flavor}" != "?" && "${Cur}" != "${Flavor}" ]]; then
+    echo "WARNING: ${Name}=${Cur} overrides the flavor this toolchain implies" \
+         "(${Flavor})"
+  fi
+}
+
+# Pin the IR flavor from the toolchain itself: the clang's datalayout decides,
+# since it cannot come from another tree the way a ROCm version can.
+function resolveToolchainFlavor {
+  local Probe
+
+  # Trusted until the comgr row proves otherwise; the provenance block reads it
+  # too.
+  ToolchainVintageTrusted=1
+  readToolchainDatalayout "${ROCKE_CI_ARCHES%% *}"
+
+  # Without the datalayout the flavor falls back to the comgr's ROCm number,
+  # which this gate distrusts, so an undescribed p8 shape gets a row of its own.
+  if [[ "${ToolchainDatalayoutShape}" == unknown ]]; then
+    local Msg="the toolchain's clang emits a p8 datalayout rocKE does not"
+    Msg+=" describe: pinning the flavor from the comgr's ROCm number instead"
+    emitRockeResult setup toolchain-datalayout 1 "${Msg}" harness
+  fi
+
+  # The probe helper derives the comgr facts from rocKE's own ladder, so a
+  # release that adds a flavor needs no edit here.
+  Probe="$("${PyBin}" "${HelperDir}/rocke_probe.py" comgr \
+             "${ToolchainDatalayoutShape}" --build-rocm "${RocmVersion}" \
+             2>/dev/null)"
+  read -r ToolchainFlavorPin ToolchainComgrFlavor ToolchainComgrVintage \
+          ToolchainComgrInterface ToolchainComgrLib <<< "${Probe}"
+
+  resolveFlavorKnob ROCKE_CODEGEN_FLAVOR "${ToolchainFlavorPin}"
+  resolveFlavorKnob ROCKE_COMGR_FLAVOR "${ToolchainFlavorPin}"
+}
+
+# Prove every compiler-critical tool resolves inside the toolchain, not a
+# system ROCm.
+function assertToolchainProvenance {
+  local Rc=0 HipHard=0 HipccHard=0 ReadelfHard=0 CxxHard=0 Msg
+
+  echo "toolchain provenance (compiler-critical rows must read [toolchain]):"
+  reportToolchainTool clang++ "$(command -v clang++)" 1 || Rc=1
+  reportToolchainTool comgr "${ToolchainComgrLib}" 1 || Rc=1
+
+  # With no version file rocKE reads the system number; distrust it only if it
+  # differs.
+  if [[ "${ToolchainComgrVintage}" != "?" && ! -e "${RocmRoot}/.info/version" \
+        && "${ToolchainComgrVintage}" != "${RocmVersion}" ]] \
+    && isToolchainPath "${ToolchainComgrLib}"; then
+    ToolchainVintageTrusted=0
+  fi
+
+  # Pin rocKE's vintage lookup only when the number is untrustworthy: pinning
+  # it otherwise satisfies rocKE's IR-flavor guard and masks a real comgr/clang
+  # split.
+  export ROCKE_COMGR_VERSION_TRUSTED="${ToolchainVintageTrusted}"
+  export ROCKE_BUILD_ROCM_VERSION="${RocmVersion}"
+
+  # The two bases differ only when the comgr and the clang disagree; the clang
+  # wins, since its datalayout cannot come from an unrelated tree.
+  if (( ToolchainVintageTrusted == 1 )) \
+     && [[ "${ToolchainComgrFlavor}" != "?" \
+           && "${ToolchainFlavorPin}" != "${ToolchainComgrFlavor}" ]]; then
+    echo "WARNING: datalayout split -- comgr rocm ${ToolchainComgrVintage}" \
+         "implies ${ToolchainComgrFlavor}, but the toolchain"
+    echo "         clang emits the ${ToolchainDatalayoutShape} p8 shape;" \
+         "pinning ${ToolchainFlavorPin} to match the clang."
+    # A row, not only a warning: the dashboard does not see an echo.
+    Msg="comgr rocm ${ToolchainComgrVintage} implies"
+    Msg+=" ${ToolchainComgrFlavor} but the toolchain's clang emits the"
+    Msg+=" ${ToolchainDatalayoutShape} p8 shape; pinned ${ToolchainFlavorPin}"
+    emitRockeResult setup toolchain-flavor-split 1 "${Msg}" compiler
+  fi
+
+  # Reported, not failed: a system-install version number is not the compiler's
+  # fault. What to say depends on whether this build's own number is known.
+  if (( ToolchainVintageTrusted == 0 )); then
+    local Msg
+    if [[ -n "${RocmVersion}" ]]; then
+      Msg="rocKE reads ROCm ${ToolchainComgrVintage} from the system install;"
+      Msg+=" this build is ROCm ${RocmVersion}, which rocKE is told instead"
+      echo "NOTE: no ROCm version file in the toolchain, so rocKE reports the" \
+           "system rocm ${ToolchainComgrVintage};"
+      echo "      this build is rocm ${RocmVersion} (from" \
+           "${RocmVersionSource}), which it is told instead."
+    else
+      Msg="rocKE reads ROCm ${ToolchainComgrVintage} from the system install"
+      Msg+=" and this build's own version is unknown; set ROCKE_ROCM_VERSION"
+      Msg+=" to state it"
+      echo "NOTE: no ROCm version file in the toolchain and none beside it," \
+           "so rocKE reports"
+      echo "      the system rocm ${ToolchainComgrVintage}. Set" \
+           "ROCKE_ROCM_VERSION to state this build's own number."
+    fi
+    emitRockeResult setup toolchain-rocm-version Check "${Msg}" harness
+  fi
+
+  # A hard requirement is a property of the lanes actually running, so 'all'
+  # expands to its lane list and each lane names its own tools; `c++` is one,
+  # via the shim.
+  local Lane Tool Running="${Stage}"
+  [[ "${Stage}" == all ]] && Running="${ROCKE_ALL_LANES}"
+
+  # shellcheck disable=SC2086 # intended word splitting of the lane list
+  for Lane in ${Running}; do
+    for Tool in $(readLaneHardTools "${Lane}"); do
+      case "${Tool}" in
+        hip-runtime)  HipHard=1 ;;
+        hipcc)        HipccHard=1 ;;
+        llvm-readelf) ReadelfHard=1 ;;
+        c++)          CxxHard=1 ;;
+        # Not a warning: rows from a lane whose tools cannot be placed would
+        # claim an unchecked provenance. Startup validation means the two lists
+        # drifted.
+        *) Msg="lane ${Lane} requires '${Tool}', which the hygiene gate"
+           Msg+=" cannot verify"
+           failSetup "${Msg}" harness ;;
+      esac
+    done
+  done
+
+  reportToolchainTool hip-runtime "${ROCKE_HIP_LIB}" "${HipHard}" || Rc=1
+  reportToolchainTool hipcc "$(command -v hipcc)" "${HipccHard}" || Rc=1
+  reportToolchainTool llvm-readelf "$(command -v llvm-readelf)" \
+    "${ReadelfHard}" || Rc=1
+  reportToolchainTool c++ "$(command -v c++)" "${CxxHard}" || Rc=1
+
+  Msg="a compiler-critical tool resolves outside the toolchain"
+  Msg+=" (${RocmRoot}); refusing to test a stale system ROCm"
+  (( Rc == 0 )) || failSetup "${Msg}" toolchain
+}
+
+# Report targets rocKE wires that this suite does not sweep. Coverage stays this
+# team's policy: some entries, such as gfx11-generic, are omitted deliberately.
+function reportArchDrift {
+  local Wired Arch Ours Unswept=""
+
+  Wired="$("${PyBin}" -c 'from rocke.core.isa.backend import wired_arches
+print(" ".join(wired_arches()))' 2>/dev/null)" || return 0
+  [[ -n "${Wired}" ]] || return 0
+
+  Ours=" ${ROCKE_CI_ARCHES} ${ROCKE_CI_ARCHES_EXPERIMENTAL} "
+  for Arch in ${Wired}; do
+    [[ "${Ours}" == *" ${Arch} "* ]] || Unswept+="${Unswept:+ }${Arch}"
+  done
+
+  local Msg="rocKE wires ${Unswept}, which this suite does not sweep"
+  Msg+=" (ROCKE_CI_ARCHES)"
+  [[ -n "${Unswept}" ]] && emitRockeResult setup arch-coverage Check \
+    "${Msg}" harness
+  return 0
+}
