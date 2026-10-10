@@ -24,6 +24,7 @@
 <remote name="XSBench" fetch="https://github.com/ANL-CESAR/" />
 <remote name="su3_bench" fetch="https://gitlab.com/NERSC/nersc-proxies/" />
 <remote name="qeomp" fetch="https://gitlab.com/QEF/" />
+<remote name="kmturbulenz" fetch="https://github.com/kmturbulenz/" />
 
 <!-- --- List of test repos and the path they are cloned to --- -->
 
@@ -51,5 +52,6 @@
 <project remote="XSBench"  path="XSBench"  name="XSBench" revision="master" groups="unlocked" />
 <project remote="su3_bench"  path="su3bench"  name="su3_bench.git" revision="master" groups="unlocked" />
 <project remote="qeomp" path="q-e-omp" name="q-e-omp-repository" revision="develop_omp5_75omp" groups="unlocked" />
+<project remote="kmturbulenz" path="mglet-base" name="mglet-base" revision="master" groups="unlocked" />
 
 </manifest>
