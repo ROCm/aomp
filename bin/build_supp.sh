@@ -52,7 +52,7 @@ $ $AOMP_SUPP/build/cmdlog              File with log of all components built
 EOF
 }
 
-SUPPLEMENTAL_COMPONENTS=${SUPPLEMENTAL_COMPONENTS:-openmpi silo hdf5 fftw ninja rocmopenmpi xpmem ucx ucc}
+SUPPLEMENTAL_COMPONENTS=${SUPPLEMENTAL_COMPONENTS:-openmpi silo hdf5 fftw ninja xpmem ucx ucc rocmopenmpi hdf5-parallel}
 
 # rocsmilib and hwloc build invocation moved to build_rocm_sysdeps.sh (libdrm support). rocmsmi is dependent on libdrm and hwloc depends on rocmsmi.
 PREREQUISITE_COMPONENTS=${PREREQUISITE_COMPONENTS:-cmake aqlprofile rocm-core}
@@ -118,8 +118,12 @@ function runcmdin(){
 }
 
 function checkversion(){
-  # inputs: $_linkfrom, $_cname, $CMDLOGFILE, $_version
-  # output: $SKIPBUILD
+  # inputs: $_cname, $_version, $_linkfrom
+  # output: 0 (version already exists, can skip build), 1 (need to build)
+  local _cname="$1"
+  local _version="$2"
+  local _linkfrom="$3"
+
   if [ -L "$_linkfrom" ] ; then 
     existing_install_dir=$(readlink -f "$_linkfrom")
     if [ -d "$existing_install_dir" ] ; then 
@@ -127,7 +131,7 @@ function checkversion(){
       if [ "$existing_version" == "$_version" ] ; then 
         echo "Info: Skipping build for $_cname, version $_version already exists" 
         echo "# skipping build for $_cname, version $_version already exists" >>"$CMDLOGFILE"
-        SKIPBUILD=TRUE
+        return 0
       else
         echo "Info: creating new version of $_cname $_version"
         echo "Info: creating new version of $_cname $_version" >>"$CMDLOGFILE"
@@ -137,6 +141,7 @@ function checkversion(){
       echo "# Missing existing_install_dir $existing_install_dir, creating version of $_cname $_version" >>"$CMDLOGFILE"
     fi
   fi
+  return 1
 }
 
 function derive_rocm_path(){
@@ -167,17 +172,16 @@ function derive_rocm_path(){
 # XPMEM - Cross-Process Memory Access for high-performance shared memory
 ################################################################################
 function buildxpmem(){
-  _cname="xpmem"
-  _version=2.7.4
-  _installdir=$AOMP_SUPP_INSTALL/$_cname-$_version
-  _linkfrom=$AOMP_SUPP/$_cname
-  _builddir=$AOMP_SUPP_BUILD/$_cname
+  local _cname="xpmem"
+  local _version=2.7.4
+  local _installdir=$AOMP_SUPP_INSTALL/$_cname-$_version
+  local _linkfrom=$AOMP_SUPP/$_cname
+  local _builddir=$AOMP_SUPP_BUILD/$_cname
 
-  SKIPBUILD="FALSE"
-  checkversion
-  if [ "$SKIPBUILD" == "TRUE" ] ; then
+  if checkversion "$_cname" "$_version" "$_linkfrom"; then
     return
   fi
+
   if [ -d "$_builddir" ] ; then
     runcmd "rm -rf $_builddir"
   fi
@@ -205,15 +209,13 @@ function buildxpmem(){
 # UCX - Unified Communication X for high-performance networking
 ################################################################################
 function builducx(){
-  _cname="ucx"
-  _version=1.20.0
-  _installdir=$AOMP_SUPP_INSTALL/$_cname-$_version
-  _linkfrom=$AOMP_SUPP/$_cname
-  _builddir=$AOMP_SUPP_BUILD/$_cname
+  local _cname="ucx"
+  local _version=1.20.0
+  local _installdir=$AOMP_SUPP_INSTALL/$_cname-$_version
+  local _linkfrom=$AOMP_SUPP/$_cname
+  local _builddir=$AOMP_SUPP_BUILD/$_cname
 
-  SKIPBUILD="FALSE"
-  checkversion
-  if [ "$SKIPBUILD" == "TRUE"  ] ; then
+  if checkversion "$_cname" "$_version" "$_linkfrom"; then
     return
   fi
 
@@ -226,11 +228,10 @@ function builducx(){
   fi
   XPMEM_PATH=$AOMP_SUPP/xpmem
 
-  SKIPBUILD="FALSE"
-  checkversion
-  if [ "$SKIPBUILD" == "TRUE" ] ; then
+  if checkversion "$_cname" "$_version" "$_linkfrom"; then
     return
   fi
+
   if [ -d "$_builddir" ] ; then
     runcmd "rm -rf $_builddir"
   fi
@@ -273,15 +274,13 @@ function builducx(){
 # UCC - Unified Collective Communication for collective operations
 ################################################################################
 function builducc(){
-  _cname="ucc"
-  _version=1.6.0
-  _installdir=$AOMP_SUPP_INSTALL/$_cname-$_version
-  _linkfrom=$AOMP_SUPP/$_cname
-  _builddir=$AOMP_SUPP_BUILD/$_cname
+  local _cname="ucc"
+  local _version=1.6.0
+  local _installdir=$AOMP_SUPP_INSTALL/$_cname-$_version
+  local _linkfrom=$AOMP_SUPP/$_cname
+  local _builddir=$AOMP_SUPP_BUILD/$_cname
 
-  SKIPBUILD="FALSE"
-  checkversion
-  if [ "$SKIPBUILD" == "TRUE"  ] ; then
+  if checkversion "$_cname" "$_version" "$_linkfrom"; then
     return
   fi
 
@@ -294,11 +293,10 @@ function builducc(){
   fi
   UCX_PATH=$AOMP_SUPP/ucx
 
-  SKIPBUILD="FALSE"
-  checkversion
-  if [ "$SKIPBUILD" == "TRUE" ] ; then
+  if checkversion "$_cname" "$_version" "$_linkfrom"; then
     return
   fi
+
   if [ -d "$_builddir" ] ; then
     runcmd "rm -rf $_builddir"
   fi
@@ -359,9 +357,7 @@ function _buildopenmpi_impl(){
     exit 1
   fi
 
-  SKIPBUILD="FALSE"
-  checkversion
-  if [ "$SKIPBUILD" == "TRUE" ] ; then
+  if checkversion "$_cname" "$_version" "$_linkfrom"; then
     return
   fi
 
@@ -415,8 +411,8 @@ function _buildopenmpi_impl(){
 # OpenMPI (standard build without ROCm support)
 ################################################################################
 function buildopenmpi(){
-  _cname="openmpi"
-  _version=5.0.8
+  local _cname="openmpi"
+  local _version=5.0.8
   _buildopenmpi_impl $_cname $_version
 }
 
@@ -425,15 +421,13 @@ function buildopenmpi(){
 # This builds OpenMPI with UCX, UCC, and ROCm support for GPU-aware MPI
 ################################################################################
 function buildrocmopenmpi(){
-  _cname="rocmopenmpi"
-  _version=5.0.10
-  _installdir=$AOMP_SUPP_INSTALL/$_cname-$_version
-  _linkfrom=$AOMP_SUPP/$_cname
-  _builddir=$AOMP_SUPP_BUILD/$_cname
+  local _cname="rocmopenmpi"
+  local _version=5.0.10
+  local _installdir=$AOMP_SUPP_INSTALL/$_cname-$_version
+  local _linkfrom=$AOMP_SUPP/$_cname
+  local _builddir=$AOMP_SUPP_BUILD/$_cname
 
-  SKIPBUILD="FALSE"
-  checkversion
-  if [ "$SKIPBUILD" == "TRUE"  ] ; then
+  if checkversion "$_cname" "$_version" "$_linkfrom"; then
     return
   fi
 
@@ -477,17 +471,16 @@ function buildrocmopenmpi(){
   fi
 }
 function buildninja(){
-  _cname="ninja"
-  _version=1.13.2
-  _installdir=$AOMP_SUPP_INSTALL/$_cname-$_version
-  _linkfrom=$AOMP_SUPP/$_cname
-  _builddir=$AOMP_SUPP_BUILD/$_cname
+  local _cname="ninja"
+  local _version=1.13.2
+  local _installdir=$AOMP_SUPP_INSTALL/$_cname-$_version
+  local _linkfrom=$AOMP_SUPP/$_cname
+  local _builddir=$AOMP_SUPP_BUILD/$_cname
 
-  SKIPBUILD="FALSE"
-  checkversion
-  if [ "$SKIPBUILD" == "TRUE"  ] ; then
+  if checkversion "$_cname" "$_version" "$_linkfrom"; then
     return
   fi
+
   if [ -d "$_builddir" ] ; then
     runcmd "rm -rf $_builddir"
   fi
@@ -520,23 +513,23 @@ function getrocmpackage(){
     echo "ERROR: getrocmpackage requires 3 parameters - localname packagename componentversion"
     exit 1
   fi
-  _cname="$1"
-  _packagename="$2"
-  _componentversion="$3"
-  _directory=$(echo "$2" | cut -b 1)
-  _version=7.1
-  _packageversion=7.1.0
-  _fullversion=70100
-  _buildnumber=20
-  _installdir=$AOMP_SUPP_INSTALL/$_cname-$_version
-  _linkfrom=$AOMP_SUPP/$_cname
-  _builddir=$AOMP_SUPP_BUILD/$_cname
+  local _cname="$1"
+  local _packagename="$2"
+  local _componentversion="$3"
+  local _directory
+        _directory=$(echo "$2" | cut -b 1)
+  local _version=7.1
+  local _packageversion=7.1.0
+  local _fullversion=70100
+  local _buildnumber=20
+  local _installdir=$AOMP_SUPP_INSTALL/$_cname-$_version
+  local _linkfrom=$AOMP_SUPP/$_cname
+  local _builddir=$AOMP_SUPP_BUILD/$_cname
 
-  SKIPBUILD="FALSE"
-  checkversion
-  if [ "$SKIPBUILD" == "TRUE"  ] ; then
+  if checkversion "$_cname" "$_version" "$_linkfrom"; then
     return
   fi
+
   if [ -d "$_builddir" ] ; then
     runcmd "rm -rf $_builddir"
   fi
@@ -580,13 +573,12 @@ function getrocmpackage(){
 }
 
 function buildhdf5(){
-  _cname="hdf5"
-  _version=2.2.0
-  _release=hdf5-2.2.0
-  _installdir=$AOMP_SUPP_INSTALL/hdf5-$_version
-  _linkfrom=$AOMP_SUPP/hdf5
-  _builddir=$AOMP_SUPP_BUILD/hdf5
-  SKIPBUILD="FALSE"
+  local _cname="hdf5"
+  local _version=2.2.0
+  local _release=hdf5-2.2.0
+  local _installdir=$AOMP_SUPP_INSTALL/hdf5-$_version
+  local _linkfrom=$AOMP_SUPP/hdf5
+  local _builddir=$AOMP_SUPP_BUILD/hdf5
   BUILD_TYPE=${BUILD_TYPE:-Release}
   declare -a MYCMAKEOPTS
   MYCMAKEOPTS=(-DCMAKE_BUILD_TYPE="$BUILD_TYPE"
@@ -605,8 +597,7 @@ function buildhdf5(){
              -DBUILD_TESTING=OFF
              -DHDF5_INSTALL_MOD_FORTRAN=STATIC)
 
-  checkversion
-  if [ "$SKIPBUILD" == "TRUE"  ] ; then 
+  if checkversion "$_cname" "$_version" "$_linkfrom"; then
     return
   fi
 
@@ -645,15 +636,109 @@ function buildhdf5(){
   echo "# $_linkfrom is now symbolic link to $_installdir " >>"$CMDLOGFILE"
 }
 
+function getaompcompiler(){
+  if [ "$#" -ne "2" ]; then
+    echo "Usage: ${FUNCNAME[0]} <primary> <fallback>"
+    return 1
+  fi
+  local primary=$1
+  local fallback=$2
+  if [ -x "$AOMP/bin/$primary" ]; then
+    echo "$AOMP/bin/$primary"
+  elif [ -x "$AOMP/bin/$fallback" ]; then
+    echo "$AOMP/bin/$fallback"
+  else
+    echo "ERROR: Cannot find $primary or $fallback under $AOMP/bin" >&2
+    return 1
+  fi
+}
+
+function buildhdf5parallel(){
+  local _cname="hdf5-parallel"
+  local _version=2.2.0
+  local _release=hdf5-2.2.0
+  local _installdir=$AOMP_SUPP_INSTALL/$_cname-$_version
+  local _linkfrom=$AOMP_SUPP/$_cname
+  local _builddir=$AOMP_SUPP_BUILD/$_cname
+  BUILD_TYPE=${BUILD_TYPE:-Release}
+  OPENMPI_INSTALL=${OPENMPI_INSTALL:-$AOMP_SUPP/rocmopenmpi}
+
+  if [ ! -x "$OPENMPI_INSTALL/bin/mpicc" ] || [ ! -x "$OPENMPI_INSTALL/bin/mpifort" ]; then
+    echo "ERROR: hdf5-parallel requires ROCm-aware OpenMPI at $OPENMPI_INSTALL"
+    echo "       Build it first with: $0 rocmopenmpi"
+    exit 1
+  fi
+
+  AOMP_CC=${AOMP_CC:-$(getaompcompiler amdclang clang)}
+  AOMP_CXX=${AOMP_CXX:-$(getaompcompiler amdclang++ clang++)}
+  AOMP_FC=${AOMP_FC:-$(getaompcompiler amdflang "$FLANG")}
+  export OMPI_CC=${OMPI_CC:-$AOMP_CC}
+  export OMPI_CXX=${OMPI_CXX:-$AOMP_CXX}
+  export OMPI_FC=${OMPI_FC:-$AOMP_FC}
+
+  declare -a MYCMAKEOPTS
+  MYCMAKEOPTS=(-DCMAKE_BUILD_TYPE="$BUILD_TYPE"
+             -DCMAKE_INSTALL_PREFIX="$_installdir"
+             -DCMAKE_CXX_COMPILER="$OPENMPI_INSTALL/bin/mpicxx"
+             -DCMAKE_C_COMPILER="$OPENMPI_INSTALL/bin/mpicc"
+             -DCMAKE_Fortran_COMPILER="$OPENMPI_INSTALL/bin/mpifort"
+             -DHDF5_BUILD_FORTRAN=ON
+             -DHDF5_BUILD_HL_LIB=ON
+             -DHDF5_BUILD_TOOLS=ON
+             -DHDF5_ENABLE_PARALLEL=ON
+             -DBUILD_SHARED_LIBS=ON
+             -DBUILD_STATIC_LIBS=ON
+             -DHDF5_ENABLE_ZLIB_SUPPORT=ON
+             -DHDF5_ENABLE_SZIP_SUPPORT=OFF
+             -DHDF5_ENABLE_THREADSAFE=OFF
+             -DBUILD_TESTING=OFF
+             -DHDF5_INSTALL_MOD_FORTRAN=STATIC)
+
+  if checkversion "$_cname" "$_version" "$_linkfrom"; then
+    return
+  fi
+
+  if [ -d "$_builddir" ] ; then
+    runcmd "rm -rf $_builddir"
+  fi
+  runcmd "mkdir -p $_builddir"
+  runcmd "cd $_builddir"
+  runcmd " wget https://github.com/HDFGroup/hdf5/releases/download/$_version/hdf5-$_version.tar.gz"
+  runcmd "tar -xzf hdf5-$_version.tar.gz"
+  runcmd "cd hdf5-$_version"
+  if [ -d "$_installdir" ] ; then
+    runcmd "rm -rf $_installdir"
+  fi
+  runcmd "mkdir -p $_installdir"
+  runcmd "mkdir -p build"
+  runcmd "cd build"
+  echo
+  echo " -----Running cmake ---- "
+  echo "${AOMP_CMAKE}" "$(shquot "${MYCMAKEOPTS[@]}")" \
+       "../"
+
+  if ! ${AOMP_CMAKE} "${MYCMAKEOPTS[@]}" ../; then
+    echo "ERROR cmake failed. Cmake flags"
+    echo "      $(shquot "${MYCMAKEOPTS[@]}")"
+    exit 1
+  fi
+  runcmd "make -j${AOMP_JOB_THREADS}"
+  runcmd "make install"
+  if [ -L "$_linkfrom" ] ; then
+    runcmd "rm $_linkfrom"
+  fi
+  runcmd "ln -sfr $_installdir $_linkfrom"
+  echo "# $_linkfrom is now symbolic link to $_installdir " >>"$CMDLOGFILE"
+}
+
 function buildsilo(){
-  _cname="silo"
-  _version=4.11.1
-  _installdir=$AOMP_SUPP_INSTALL/silo-$_version
-  _linkfrom=$AOMP_SUPP/silo
-  _builddir=$AOMP_SUPP_BUILD/silo
-  SKIPBUILD="FALSE"
-  checkversion
-  if [ "$SKIPBUILD" == "TRUE"  ] ; then 
+  local _cname="silo"
+  local _version=4.11.1
+  local _installdir=$AOMP_SUPP_INSTALL/silo-$_version
+  local _linkfrom=$AOMP_SUPP/silo
+  local _builddir=$AOMP_SUPP_BUILD/silo
+
+  if checkversion "$_cname" "$_version" "$_linkfrom"; then
     return
   fi
 
@@ -680,14 +765,13 @@ function buildsilo(){
 }
 
 function buildfftw(){
-  _cname="fftw"
-  _version=3.3.8
-  _installdir=$AOMP_SUPP_INSTALL/fftw-$_version
-  _linkfrom=$AOMP_SUPP/fftw
-  _builddir=$AOMP_SUPP_BUILD/fftw
-  SKIPBUILD="FALSE"
-  checkversion
-  if [ "$SKIPBUILD" == "TRUE"  ] ; then
+  local _cname="fftw"
+  local _version=3.3.8
+  local _installdir=$AOMP_SUPP_INSTALL/fftw-$_version
+  local _linkfrom=$AOMP_SUPP/fftw
+  local _builddir=$AOMP_SUPP_BUILD/fftw
+
+  if checkversion "$_cname" "$_version" "$_linkfrom"; then
     return
   fi
 
@@ -719,14 +803,13 @@ function buildfftw(){
 
 
 function buildcmake(){
-  _cname="cmake"
-  _version=3.31.0
-  _installdir=$AOMP_SUPP_INSTALL/$_cname-$_version
-  _linkfrom=$AOMP_SUPP/$_cname
-  _builddir=$AOMP_SUPP_BUILD/$_cname 
-  SKIPBUILD="FALSE"
-  checkversion
-  if [ "$SKIPBUILD" == "TRUE"  ] ; then 
+  local _cname="cmake"
+  local _version=3.31.0
+  local _installdir=$AOMP_SUPP_INSTALL/$_cname-$_version
+  local _linkfrom=$AOMP_SUPP/$_cname
+  local _builddir=$AOMP_SUPP_BUILD/$_cname
+
+  if checkversion "$_cname" "$_version" "$_linkfrom"; then
     return
   fi
 
@@ -753,14 +836,13 @@ function buildcmake(){
 }
 
 function buildrocmsmilib(){
-  _cname="rocmsmilib"
-  _version=10.0
-  _installdir=$AOMP_SUPP_INSTALL/rocmsmilib-$_version
-  _linkfrom=$AOMP_SUPP/rocmsmilib
-  _builddir=$AOMP_SUPP_BUILD/rocmsmilib
-  SKIPBUILD="FALSE"
-  checkversion
-  if [ "$SKIPBUILD" == "TRUE"  ] ; then 
+  local _cname="rocmsmilib"
+  local _version=10.0
+  local _installdir=$AOMP_SUPP_INSTALL/rocmsmilib-$_version
+  local _linkfrom=$AOMP_SUPP/rocmsmilib
+  local _builddir=$AOMP_SUPP_BUILD/rocmsmilib
+
+  if checkversion "$_cname" "$_version" "$_linkfrom"; then
     return
   fi
 
@@ -798,14 +880,13 @@ function buildrocmsmilib(){
 }
 
 function buildhwloc(){
-  _cname="hwloc"
-  _version=2.7
-  _installdir=$AOMP_SUPP_INSTALL/hwloc-$_version
-  _linkfrom=$AOMP_SUPP/hwloc
-  _builddir=$AOMP_SUPP_BUILD/hwloc
-  SKIPBUILD="FALSE"
-  checkversion
-  if [ "$SKIPBUILD" == "TRUE"  ] ; then 
+  local _cname="hwloc"
+  local _version=2.7
+  local _installdir=$AOMP_SUPP_INSTALL/hwloc-$_version
+  local _linkfrom=$AOMP_SUPP/hwloc
+  local _builddir=$AOMP_SUPP_BUILD/hwloc
+
+  if checkversion "$_cname" "$_version" "$_linkfrom"; then
     return
   fi
 
@@ -884,6 +965,8 @@ for _component in $_components ; do
     buildsilo
   elif [ "$_component" == "hdf5" ] ; then
     buildhdf5
+  elif [ "$_component" == "hdf5-parallel" ] ; then
+    buildhdf5parallel
   elif [ "$_component" == "fftw" ] ; then
     buildfftw
   elif [ "$_component" == "hwloc" ] ; then
