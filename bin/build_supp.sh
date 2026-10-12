@@ -572,70 +572,6 @@ function getrocmpackage(){
   echo "# $_linkfrom is now symbolic link to $_installdir " >>"$CMDLOGFILE"
 }
 
-function buildhdf5(){
-  local _cname="hdf5"
-  local _version=2.2.0
-  local _release=hdf5-2.2.0
-  local _installdir=$AOMP_SUPP_INSTALL/hdf5-$_version
-  local _linkfrom=$AOMP_SUPP/hdf5
-  local _builddir=$AOMP_SUPP_BUILD/hdf5
-  BUILD_TYPE=${BUILD_TYPE:-Release}
-  declare -a MYCMAKEOPTS
-  MYCMAKEOPTS=(-DCMAKE_BUILD_TYPE="$BUILD_TYPE"
-             -DCMAKE_INSTALL_PREFIX="$_installdir"
-             -DCMAKE_CXX_COMPILER="$AOMP/bin/clang++"
-             -DCMAKE_C_COMPILER="$AOMP/bin/clang"
-             -DCMAKE_Fortran_COMPILER="$AOMP/bin/flang"
-             -DHDF5_BUILD_FORTRAN=ON
-             -DHDF5_BUILD_HL_LIB=ON
-             -DHDF5_BUILD_TOOLS=ON
-             -DBUILD_SHARED_LIBS=ON
-             -DBUILD_STATIC_LIBS=ON
-             -DHDF5_ENABLE_ZLIB_SUPPORT=ON
-             -DHDF5_ENABLE_SZIP_SUPPORT=OFF
-             -DHDF5_ENABLE_THREADSAFE=OFF
-             -DBUILD_TESTING=OFF
-             -DHDF5_INSTALL_MOD_FORTRAN=STATIC)
-
-  if checkversion "$_cname" "$_version" "$_linkfrom"; then
-    return
-  fi
-
-  if [ -d "$_builddir" ] ; then 
-    runcmd "rm -rf $_builddir"
-  fi
-  runcmd "mkdir -p $_builddir"
-  runcmd "cd $_builddir"
-  #runcmd " wget https://support.hdfgroup.org/ftp/HDF5/releases/$_release/hdf5-$_version/src/hdf5-$_version.tar.bz2"
-  runcmd " wget https://github.com/HDFGroup/hdf5/releases/download/$_version/hdf5-$_version.tar.gz"
-  runcmd "tar -xzf hdf5-$_version.tar.gz"
-  runcmd "cd hdf5-$_version"
-  if [ -d "$_installdir" ] ; then 
-    runcmd "rm -rf $_installdir"
-  fi
-  runcmd "mkdir -p $_installdir"
-  runcmd "mkdir -p build"
-  runcmd "cd build"
-  #runcmd "./configure --enable-fortran --prefix=$_installdir"
-  echo
-  echo " -----Running cmake ---- "
-  echo "${AOMP_CMAKE}" "$(shquot "${MYCMAKEOPTS[@]}")" \
-       "../"
-
-  if ! ${AOMP_CMAKE} "${MYCMAKEOPTS[@]}" ../; then
-    echo "ERROR cmake failed. Cmake flags"
-    echo "      $(shquot "${MYCMAKEOPTS[@]}")"
-    exit 1
-  fi
-  runcmd "make -j${AOMP_JOB_THREADS}"
-  runcmd "make install"
-  if [ -L "$_linkfrom" ] ; then 
-    runcmd "rm $_linkfrom"
-  fi
-  runcmd "ln -sfr $_installdir $_linkfrom"
-  echo "# $_linkfrom is now symbolic link to $_installdir " >>"$CMDLOGFILE"
-}
-
 function getaompcompiler(){
   if [ "$#" -ne "2" ]; then
     echo "Usage: ${FUNCNAME[0]} <primary> <fallback>"
@@ -653,39 +589,50 @@ function getaompcompiler(){
   fi
 }
 
-function buildhdf5parallel(){
-  local _cname="hdf5-parallel"
+function buildhdf5(){
+  local variant=$1
+  local _cname="hdf5$variant"
   local _version=2.2.0
   local _release=hdf5-2.2.0
   local _installdir=$AOMP_SUPP_INSTALL/$_cname-$_version
   local _linkfrom=$AOMP_SUPP/$_cname
   local _builddir=$AOMP_SUPP_BUILD/$_cname
   BUILD_TYPE=${BUILD_TYPE:-Release}
-  OPENMPI_INSTALL=${OPENMPI_INSTALL:-$AOMP_SUPP/rocmopenmpi}
 
-  if [ ! -x "$OPENMPI_INSTALL/bin/mpicc" ] || [ ! -x "$OPENMPI_INSTALL/bin/mpifort" ]; then
-    echo "ERROR: hdf5-parallel requires ROCm-aware OpenMPI at $OPENMPI_INSTALL"
-    echo "       Build it first with: $0 rocmopenmpi"
-    exit 1
+  declare -a MYVAROPTS
+  MYVAROPTS=(-DCMAKE_CXX_COMPILER="$AOMP/bin/clang++"
+             -DCMAKE_C_COMPILER="$AOMP/bin/clang"
+             -DCMAKE_Fortran_COMPILER="$AOMP/bin/flang")
+
+  if [ "$variant" == "-parallel" ]; then
+      OPENMPI_INSTALL=${OPENMPI_INSTALL:-$AOMP_SUPP/rocmopenmpi}
+
+      if [ ! -x "$OPENMPI_INSTALL/bin/mpicc" ] || [ ! -x "$OPENMPI_INSTALL/bin/mpifort" ]; then
+        echo "ERROR: hdf5-parallel requires ROCm-aware OpenMPI at $OPENMPI_INSTALL"
+        echo "       Build it first with: $0 rocmopenmpi"
+        exit 1
+      fi
+
+      AOMP_CC=${AOMP_CC:-$(getaompcompiler amdclang clang)}
+      AOMP_CXX=${AOMP_CXX:-$(getaompcompiler amdclang++ clang++)}
+      AOMP_FC=${AOMP_FC:-$(getaompcompiler amdflang "$FLANG")}
+      export OMPI_CC=${OMPI_CC:-$AOMP_CC}
+      export OMPI_CXX=${OMPI_CXX:-$AOMP_CXX}
+      export OMPI_FC=${OMPI_FC:-$AOMP_FC}
+
+      MYVAROPTS=(-DCMAKE_CXX_COMPILER="$OPENMPI_INSTALL/bin/mpicxx"
+                 -DCMAKE_C_COMPILER="$OPENMPI_INSTALL/bin/mpicc"
+                 -DCMAKE_Fortran_COMPILER="$OPENMPI_INSTALL/bin/mpifort"
+                 -DHDF5_ENABLE_PARALLEL=ON)
   fi
-
-  AOMP_CC=${AOMP_CC:-$(getaompcompiler amdclang clang)}
-  AOMP_CXX=${AOMP_CXX:-$(getaompcompiler amdclang++ clang++)}
-  AOMP_FC=${AOMP_FC:-$(getaompcompiler amdflang "$FLANG")}
-  export OMPI_CC=${OMPI_CC:-$AOMP_CC}
-  export OMPI_CXX=${OMPI_CXX:-$AOMP_CXX}
-  export OMPI_FC=${OMPI_FC:-$AOMP_FC}
 
   declare -a MYCMAKEOPTS
   MYCMAKEOPTS=(-DCMAKE_BUILD_TYPE="$BUILD_TYPE"
              -DCMAKE_INSTALL_PREFIX="$_installdir"
-             -DCMAKE_CXX_COMPILER="$OPENMPI_INSTALL/bin/mpicxx"
-             -DCMAKE_C_COMPILER="$OPENMPI_INSTALL/bin/mpicc"
-             -DCMAKE_Fortran_COMPILER="$OPENMPI_INSTALL/bin/mpifort"
+             "${MYVAROPTS[@]}"
              -DHDF5_BUILD_FORTRAN=ON
              -DHDF5_BUILD_HL_LIB=ON
              -DHDF5_BUILD_TOOLS=ON
-             -DHDF5_ENABLE_PARALLEL=ON
              -DBUILD_SHARED_LIBS=ON
              -DBUILD_STATIC_LIBS=ON
              -DHDF5_ENABLE_ZLIB_SUPPORT=ON
@@ -703,6 +650,7 @@ function buildhdf5parallel(){
   fi
   runcmd "mkdir -p $_builddir"
   runcmd "cd $_builddir"
+  #runcmd " wget https://support.hdfgroup.org/ftp/HDF5/releases/$_release/hdf5-$_version/src/hdf5-$_version.tar.bz2"
   runcmd " wget https://github.com/HDFGroup/hdf5/releases/download/$_version/hdf5-$_version.tar.gz"
   runcmd "tar -xzf hdf5-$_version.tar.gz"
   runcmd "cd hdf5-$_version"
@@ -712,6 +660,7 @@ function buildhdf5parallel(){
   runcmd "mkdir -p $_installdir"
   runcmd "mkdir -p build"
   runcmd "cd build"
+  #runcmd "./configure --enable-fortran --prefix=$_installdir"
   echo
   echo " -----Running cmake ---- "
   echo "${AOMP_CMAKE}" "$(shquot "${MYCMAKEOPTS[@]}")" \
@@ -966,7 +915,7 @@ for _component in $_components ; do
   elif [ "$_component" == "hdf5" ] ; then
     buildhdf5
   elif [ "$_component" == "hdf5-parallel" ] ; then
-    buildhdf5parallel
+    buildhdf5 "-parallel"
   elif [ "$_component" == "fftw" ] ; then
     buildfftw
   elif [ "$_component" == "hwloc" ] ; then
