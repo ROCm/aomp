@@ -168,6 +168,23 @@ function derive_rocm_path(){
   return 0
 }
 
+function getaompcompiler(){
+  if [ "$#" -ne "2" ]; then
+    echo "Usage: ${FUNCNAME[0]} <primary> <fallback>"
+    return 1
+  fi
+  local primary=$1
+  local fallback=$2
+  if [ -x "$AOMP/bin/$primary" ]; then
+    echo "$AOMP/bin/$primary"
+  elif [ -x "$AOMP/bin/$fallback" ]; then
+    echo "$AOMP/bin/$fallback"
+  else
+    echo "ERROR: Cannot find $primary or $fallback under $AOMP/bin" >&2
+    return 1
+  fi
+}
+
 ################################################################################
 # XPMEM - Cross-Process Memory Access for high-performance shared memory
 ################################################################################
@@ -570,23 +587,6 @@ function getrocmpackage(){
   fi
   runcmd "ln -sfr $_installdir $_linkfrom"
   echo "# $_linkfrom is now symbolic link to $_installdir " >>"$CMDLOGFILE"
-}
-
-function getaompcompiler(){
-  if [ "$#" -ne "2" ]; then
-    echo "Usage: ${FUNCNAME[0]} <primary> <fallback>"
-    return 1
-  fi
-  local primary=$1
-  local fallback=$2
-  if [ -x "$AOMP/bin/$primary" ]; then
-    echo "$AOMP/bin/$primary"
-  elif [ -x "$AOMP/bin/$fallback" ]; then
-    echo "$AOMP/bin/$fallback"
-  else
-    echo "ERROR: Cannot find $primary or $fallback under $AOMP/bin" >&2
-    return 1
-  fi
 }
 
 function buildhdf5(){
