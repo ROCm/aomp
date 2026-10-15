@@ -25,6 +25,7 @@
 <remote name="su3_bench" fetch="https://gitlab.com/NERSC/nersc-proxies/" />
 <remote name="qeomp" fetch="https://gitlab.com/QEF/" />
 <remote name="kmturbulenz" fetch="https://github.com/kmturbulenz/" />
+<remote name="ecmwf-ifs" fetch="https://github.com/ecmwf-ifs/" />
 
 <!-- --- List of test repos and the path they are cloned to --- -->
 
@@ -53,5 +54,6 @@
 <project remote="su3_bench"  path="su3bench"  name="su3_bench.git" revision="master" groups="unlocked" />
 <project remote="qeomp" path="q-e-omp" name="q-e-omp-repository" revision="develop_omp5_75omp" groups="unlocked" />
 <project remote="kmturbulenz" path="mglet-base" name="mglet-base" revision="master" groups="unlocked" />
+<project remote="ecmwf-ifs" path="ecrad" name="ecrad" revision="master-omp" groups="unlocked" />
 
 </manifest>
