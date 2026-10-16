@@ -242,10 +242,8 @@ int main()
       recordError(&errors, "DEVICE NUMBER", i, default_dev, NULL);
 
     //check warp #
-    if (i % MAX_TEAMS * num_threads[i] == 0){
-      correctWarpId++;
-      correctWarpId = correctWarpId % (MAX_THREADS_PER_TEAM/WARP_SIZE);
-    }
+    // Warp id is local to the team: thread index divided by wavefront size.
+    correctWarpId = thread_num[i] / WARP_SIZE;
     if (warp_id[i] != correctWarpId)
       recordError(&errors, "WARP NUMBER", i, warp_id, NULL);
 
