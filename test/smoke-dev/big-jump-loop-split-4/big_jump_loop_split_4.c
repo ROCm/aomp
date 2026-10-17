@@ -129,17 +129,21 @@ int main()
   return rc;
 }
 
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:7 ConstWGSize:1024  args: 6 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 128)
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:7 ConstWGSize:1024  args: 6 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X1024)
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:7 ConstWGSize:1024  args: 6 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 768)
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:7 ConstWGSize:1024  args: 6 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X1024)
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:7 ConstWGSize:1024  args: 6 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X1024)
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:7 ConstWGSize:1024  args: 6 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X1024)
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:3 ConstWGSize:{{288|320}}  args: 8 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 128)
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:7 ConstWGSize:1024  args: 6 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 512)
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:7 ConstWGSize:1024  args: 6 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X1024)
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:7 ConstWGSize:1024  args: 6 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X  64)
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:7 ConstWGSize:1024  args: 6 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X1024)
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:7 ConstWGSize:1024  args: 6 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X1024)
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:7 ConstWGSize:1024  args: 6 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X  32)
+// Every kernel gets the full block size (ConstWGSize, or the thread_limit or
+// num_threads clause) and as many teams as its trip count needs, at most
+// num_teams. Where num_teams asks for more teams than needed, the runtime may
+// launch either.
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:7 ConstWGSize:1024  args: 6 teamsXthrds:({{ *}}5X 128)
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:7 ConstWGSize:1024  args: 6 teamsXthrds:({{ *}}{{1[0-9]|20}}X1024)
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:7 ConstWGSize:1024  args: 6 teamsXthrds:({{ *}}{{1[0-9]|20}}X 768)
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:7 ConstWGSize:1024  args: 6 teamsXthrds:({{ *}}10X1024)
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:7 ConstWGSize:1024  args: 6 teamsXthrds:({{ *}}10X1024)
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:7 ConstWGSize:1024  args: 6 teamsXthrds:({{ *}}10X1024)
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:3 ConstWGSize:{{288|320}}  args: 8 teamsXthrds:({{ *}}20X 128)
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:7 ConstWGSize:1024  args: 6 teamsXthrds:({{ *}}20X 512)
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:7 ConstWGSize:1024  args: 6 teamsXthrds:({{ *}}7X1024)
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:7 ConstWGSize:1024  args: 6 teamsXthrds:({{ *}}20X  64)
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:7 ConstWGSize:1024  args: 6 teamsXthrds:({{ *}}10X1024)
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:7 ConstWGSize:1024  args: 6 teamsXthrds:({{ *}}10X1024)
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:7 ConstWGSize:1024  args: 6 teamsXthrds:({{ *}}3X1024)
 
