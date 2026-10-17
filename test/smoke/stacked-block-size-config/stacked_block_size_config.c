@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define SMALL 15000
+#define SMALL 1000
 #define LARGE 1000000
 
 int main() {
@@ -32,8 +32,10 @@ int main() {
   free(x);
   free(y);
 
-  /// CHECK: DEVID:{{.*}}SGN:7 ConstWGSize:128  args: 2 teamsXthrds:({{.*}}X  16) {{.*}}tripcount:15000 rpc:0
-  /// CHECK: DEVID:{{.*}}SGN:7 ConstWGSize:128  args: 2 teamsXthrds:({{.*}}X 128) {{.*}}tripcount:1000000 rpc:0
+  /// The block size from the command line is not a user override: the low
+  /// trip count rule still lowers the threads to the minimum.
+  /// CHECK: DEVID:{{.*}}SGN:2 ConstWGSize:128  args: 2 teamsXthrds:({{ *}}63X  16) {{.*}}tripcount:1000 rpc:0
+  /// CHECK: DEVID:{{.*}}SGN:2 ConstWGSize:128  args: 2 teamsXthrds:({{.*}}X 128) {{.*}}tripcount:1000000 rpc:0
 
   /// CHECK: x[3] = 4
   /// CHECK: y[500000] = 8
