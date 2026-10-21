@@ -437,6 +437,22 @@ run_pw_tests() {
   return "$ret"
 }
 
+if cd "$QE_REPO"; then
+    echo "patching $QE_REPO"
+    patch="$thisdir/patches/qeomp-elapsed-time.patch"
+    if patch -p1 --merge --dry-run < "$patch"; then
+        patch -p1 --merge < "$patch"
+        mystat=$?
+        if [[ $mystat -eq 0 ]]; then
+            echo "PATCH SUCCESS $AOMP_QE_REPO_NAME"
+        else
+            echo "PATCH FAILED $AOMP_QE_REPO_NAME, mystat: $mystat"
+        fi
+    else
+       echo "PATCH SKIPPED $AOMP_QE_REPO_NAME"
+    fi
+fi
+
 # --- rerun: skip the build, just re-run the PW tests -----------------------
 if [ "$1" == "rerun" ]; then
   run_pw_tests
@@ -469,8 +485,12 @@ if [ "$1" != "nocmake" ]; then
 fi
 
 # --- Build PWscf -----------------------------------------------------------
+t_build_start_s=$(date +"%s")
 make -j"$AOMP_JOB_THREADS" pw
 ret=$?
+t_build_stop_s=$(date +"%s")
+t_build_diff_s=$((t_build_stop_s - t_build_start_s))
+echo "Build status: $ret, time elapsed: $t_build_diff_s s"
 if [ $ret -ne 0 ]; then
   echo "quantum-espresso-pw" >> make-fail.txt
   exit 1
