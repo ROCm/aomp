@@ -10,7 +10,7 @@ subroutine sub_a(var_a)
   integer,  pointer, intent (inout) :: var_a(:)
 
 !$omp target map(tofrom: var_a(2:6))
-  do var_b = 1, 10
+  do var_b = 2, 6
     var_a(var_b) = var_a(var_b) + var_b
   end do
 !$omp end target
@@ -35,7 +35,7 @@ subroutine sub_b
   var_c => var_d
 
 !$omp target map(tofrom: var_c(2:6))
-  do var_a = 1, 10
+  do var_a = 2, 6
     var_c(var_a) = var_a
   end do
 !$omp end target
@@ -60,7 +60,7 @@ integer, target :: var_d(10)
 var_c => var_d
 
 !$omp target map(tofrom: var_c(2:6))
-  do var_a = 1, 10
+  do var_a = 2, 6
     var_c(var_a) = var_a
   end do
 !$omp end target
