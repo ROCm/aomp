@@ -1,0 +1,32 @@
+diff --git a/test-suite/testcode/lib/testcode2/__init__.py b/test-suite/testcode/lib/testcode2/__init__.py
+index 223f3493e..5acd28305 100644
+--- a/test-suite/testcode/lib/testcode2/__init__.py
++++ b/test-suite/testcode/lib/testcode2/__init__.py
+@@ -14,6 +14,7 @@ import os
+ import shlex
+ import shutil
+ import subprocess
++import time
+ import sys
+ 
+ try:
+@@ -268,8 +269,11 @@ class Test:
+                                 out, shlex.quote(test_files[ind]))
+                 test_cmds = ['\n'.join(test_cmds)]
+             for (ind, test) in enumerate(test_cmds):
++                t_start = int(time.time())
+                 job = self.start_job(test, cluster_queue, verbose)
+                 job.wait()
++                t_stop = int(time.time())
++                t_elapsed = t_stop - t_start
+                 # Analyse tests as they finish.
+                 if cluster_queue:
+                     # Did all of them at once.
+@@ -303,6 +307,7 @@ class Test:
+                         raise exceptions.RunError(err[0])
+                     else:
+                         self.verify_job(test_input, test_arg, verbose, rundir)
++                print(f"  time elapsed: {t_elapsed} s")
+                 sys.stdout.flush()
+         except exceptions.RunError:
+             err = sys.exc_info()[1]
