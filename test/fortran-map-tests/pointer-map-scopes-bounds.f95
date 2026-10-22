@@ -10,7 +10,7 @@ subroutine sub_a(var_a)
   integer :: var_b, var_c
 
 !$omp target map(tofrom: var_a(2:6))
-  do var_b = 1, 10
+  do var_b = 2, 6
     var_a(var_b) = var_a(var_b) + var_b
   end do
 !$omp end target
@@ -34,7 +34,7 @@ subroutine sub_b
   allocate(var_a(10))
 
 !$omp target map(tofrom: var_a(2:6))
-  do var_b = 1, 10
+  do var_b = 2, 6
     var_a(var_b) = var_b
   end do
 !$omp end target
@@ -61,7 +61,7 @@ integer,  pointer :: var_a(:)
 allocate(var_a(10))
 
 !$omp target map(tofrom: var_a(2:6))
-  do var_b = 1, 10
+  do var_b = 2, 6
     var_a(var_b) = var_b
   end do
 !$omp end target
