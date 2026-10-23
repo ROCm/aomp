@@ -39,8 +39,8 @@ function printHelp {
   echo "  -r: Rebuild the CK repo"
   echo "  -u: Update the CK repo"
   echo "  -b: Update the CK benchmarks repo"
-  echo "  -s <suite>: Select <suite> from:" \
-    "[benchmarks client-examples smoke regression skip]. (Default: skip)"
+  echo "  -s <suite>: Select <suite> from: [benchmarks client-examples" \
+    "examples fmha fmha-benchmarks smoke regression skip]. (Default: skip)"
   echo "  -t <test>: Run <test> from selected suite (e.g. 'gemm/fa1.yaml')"
   exit 0
 }
@@ -136,6 +136,28 @@ function getLDLibraryPathExportCmd {
   echo "export LD_LIBRARY_PATH=${LDLibraryPath}"
 }
 
+# Make sure the FMHA examples get built by the compiler under test for the
+# selected GPU targets. Ninja does not track the compiler binary, so it keeps
+# objects compiled by an earlier compiler. Remove those to have them rebuilt.
+function prepareFmhaBuild {
+  local CacheFile="${CK_BUILD}/CMakeCache.txt"
+  local Compiler
+  local CachedCompiler
+  local CachedTargets
+  Compiler=$(realpath -e "${AOMP}/bin/clang++") || return 1
+  CachedCompiler=$(sed -n 's/^CMAKE_CXX_COMPILER:[A-Z]*=//p' "${CacheFile}")
+  CachedTargets=$(sed -n 's/^GPU_TARGETS:[A-Z]*=//p' "${CacheFile}")
+  if [ "$(realpath -m "${CachedCompiler}")" != "${Compiler}" ] ||
+    [ "${CachedTargets}" != "${CK_GPU_TARGETS}" ]; then
+    echo "Error: ${CK_BUILD} is configured for '${CachedTargets}' using" \
+      "'${CachedCompiler}', expected '${CK_GPU_TARGETS}' using '${Compiler}'"
+    return 1
+  fi
+  echo "Removing FMHA objects not newer than ${Compiler}"
+  find "${CK_BUILD}/example/ck_tile/01_fmha" -name '*.o' \
+    ! -newer "${Compiler}" -delete
+}
+
 # Some tests may require an installed instance of CK.
 ShouldInstallCK='no'
 # It my be desired to build the CK library only, without any examples or tests.
@@ -209,6 +231,14 @@ while getopts "j:hilrubs:t:" opt; do
       ;;
     regression)
       # A minimal regression test suite.
+      SelectedSuite="${OPTARG}"
+      ;;
+    fmha)
+      # Build and run the FMHA example smoke tests.
+      SelectedSuite="${OPTARG}"
+      ;;
+    fmha-benchmarks)
+      # Build and run the FMHA example benchmarks.
       SelectedSuite="${OPTARG}"
       ;;
     *)
@@ -414,6 +444,86 @@ if [ "${SelectedSuite}" == 'regression' ]; then
   # shellcheck disable=SC2086
   ${CKBuildTool} -j "${CKBuildParallelism}" ${DashKArg} regression 2>&1 | tee "${CK_TESTS_LOG_LOCATION}/regression_tests.log"
   echo "Log at ${CK_TESTS_LOG_LOCATION}/regression_tests.log"
+  popd || exit 1
+fi
+
+CKFmhaScriptDir="${CK_SRC}/example/ck_tile/01_fmha/script"
+
+# tile_example_fmha_{fwd,bwd} are not ctest tests, so neither smoke nor
+# regression runs them. Like CK's CI, build them and run CK's smoke scripts.
+# To keep failures separate, each direction is built and tested on its own.
+if [ "${SelectedSuite}" == 'fmha' ]; then
+  echo "Running CK FMHA example tests"
+  # The scripts choose tests and known fails by the GPU arch they are given.
+  if [[ "${CK_GPU_TARGETS}" == *[\;,]* ]]; then
+    echo "Error: FMHA tests need a single GPU target, got: ${CK_GPU_TARGETS}"
+    exit 1
+  fi
+  if [ ! -d "${CK_TESTS_LOG_LOCATION}" ]; then
+    mkdir -p "${CK_TESTS_LOG_LOCATION}" || exit 1
+  fi
+  prepareFmhaBuild || exit 1
+  echo "CK-FMHA-LOGS: $(realpath "${CK_TESTS_LOG_LOCATION}")"
+
+  pushd "${CK_BUILD}" || exit 1
+  FmhaBuildFailed='no'
+  for Direction in fwd bwd; do
+    FmhaTarget="tile_example_fmha_${Direction}"
+    FmhaTestLog="${CK_TESTS_LOG_LOCATION}/fmha_${Direction}_tests.log"
+    FmhaFailsFile="${CK_TESTS_LOG_LOCATION}/fmha_${Direction}_fails.txt"
+    # Avoid picking up stale results
+    rm -f "${FmhaTestLog}" "${FmhaFailsFile}" || exit 1
+
+    # shellcheck disable=SC2086
+    if ! ${CKBuildTool} -j "${CKBuildParallelism}" ${DashKArg} \
+      "${FmhaTarget}"; then
+      echo "CK-FMHA-BUILD-FAILED: ${FmhaTarget}"
+      FmhaBuildFailed='yes'
+      continue
+    fi
+    echo "CK-FMHA-BUILD-SUCCESS: ${FmhaTarget}"
+
+    # The scripts run the first matching binary below the working directory.
+    pushd bin || exit 1
+    GPU_arch="${CK_GPU_TARGETS}" CURR_FAILS_FILE="${FmhaFailsFile}" \
+      "${CKFmhaScriptDir}/smoke_test_${Direction}.sh" 2>&1 |
+      tee "${FmhaTestLog}"
+    echo "CK-FMHA-SMOKE-EXIT: ${Direction} ${PIPESTATUS[0]}"
+    popd || exit 1
+  done
+  popd || exit 1
+
+  if [ "${FmhaBuildFailed}" == 'yes' ]; then
+    exit 1
+  fi
+fi
+
+# As CK's run_full_test.sh, but the log header names the compiler under test.
+if [ "${SelectedSuite}" == 'fmha-benchmarks' ]; then
+  echo "Running CK FMHA example benchmarks"
+  if [ ! -d "${CK_TESTS_LOG_LOCATION}" ]; then
+    mkdir -p "${CK_TESTS_LOG_LOCATION}" || exit 1
+  fi
+  prepareFmhaBuild || exit 1
+
+  pushd "${CK_BUILD}" || exit 1
+  # shellcheck disable=SC2086
+  ${CKBuildTool} -j "${CKBuildParallelism}" ${DashKArg} \
+    tile_example_fmha_fwd tile_example_fmha_bwd || exit 1
+
+  # The scripts run the first matching binary below the working directory.
+  pushd bin || exit 1
+  for Direction in fwd bwd; do
+    BenchmarkLog="${CK_TESTS_LOG_LOCATION}/fmha_${Direction}_benchmark.log"
+    {
+      rocminfo | grep -E 'Name:\s+gfx|Compute Unit:'
+      "${AOMP}/bin/clang++" --version
+    } >"${BenchmarkLog}" 2>&1
+    "${CKFmhaScriptDir}/benchmark_${Direction}.sh" 2>&1 |
+      tee -a "${BenchmarkLog}"
+  done
+  echo "Logs at ${CK_TESTS_LOG_LOCATION}/fmha_*_benchmark.log"
+  popd || exit 1
   popd || exit 1
 fi
 
