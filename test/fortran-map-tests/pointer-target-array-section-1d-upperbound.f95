@@ -17,7 +17,7 @@ program prog_a
     end do
 
     !$omp target map(tofrom:var_a(2:6)) map(tofrom:var_b(2:6))
-        do var_e = 1, 10
+        do var_e = 2, 6
             var_b(var_e) = var_a(var_e)
         end do
     !$omp end target
