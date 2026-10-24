@@ -105,15 +105,16 @@ int main()
   return rc;
 }
 
-// Every loop here is small. Its kernel gets the full block size (ConstWGSize,
-// or the thread_limit clause) and as many teams as its trip count needs.
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:7 ConstWGSize:256  args: 6 teamsXthrds:({{ *}}1X 256)
+// Every loop here is small. With a thread_limit clause, its kernel gets the
+// full block size; otherwise the low-trip-count rule gives it 32 threads per
+// team. Either way, it gets as many teams as its trip count needs.
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:7 ConstWGSize:256  args: 6 teamsXthrds:({{ *}}1X  32)
 /// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:7 ConstWGSize:64  args: 6 teamsXthrds:({{ *}}1X  64)
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:7 ConstWGSize:256  args: 6 teamsXthrds:({{ *}}1X 256)
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:7 ConstWGSize:128  args: 6 teamsXthrds:({{ *}}1X 128)
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:7 ConstWGSize:256  args: 6 teamsXthrds:({{ *}}1X 256)
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:7 ConstWGSize:256  args: 6 teamsXthrds:({{ *}}1X  32)
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:7 ConstWGSize:128  args: 6 teamsXthrds:({{ *}}1X  32)
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:7 ConstWGSize:256  args: 6 teamsXthrds:({{ *}}1X  32)
 /// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:3 ConstWGSize:{{288|320}}  args: 8 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 256)
 /// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:7 ConstWGSize:128  args: 6 teamsXthrds:({{ *}}1X 128)
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:7 ConstWGSize:256  args: 6 teamsXthrds:({{ *}}1X 256)
-/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:7 ConstWGSize:256  args: 6 teamsXthrds:({{ *}}1X 256)
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:7 ConstWGSize:256  args: 6 teamsXthrds:({{ *}}1X  32)
+/// CHECK: DEVID:[[S:[ ]*]][[DEVID:[0-9]+]] SGN:7 ConstWGSize:256  args: 6 teamsXthrds:({{ *}}1X  32)
 
