@@ -141,9 +141,8 @@ function getCachedPath {
   realpath -m "$(sed -n "s/^$1:[A-Z]*=//p" "${CK_BUILD}/CMakeCache.txt")"
 }
 
-# Print why the CK build would not build the FMHA examples with the compiler
-# under test and its HIP runtime, for the selected GPU targets.
-# The examples are C++, while their kernel instances are HIP sources.
+# Print why the CK build would not build the FMHA examples (C++ and HIP) with
+# the compiler under test and its HIP runtime, for the selected GPU targets.
 function checkFmhaBuildConfig {
   local Compiler
   local HipConfigDir
@@ -179,20 +178,25 @@ function refuseFmhaRun {
   exit 1
 }
 
-# Prepare a run of the FMHA examples or refuse it. Sets FmhaLogDir and runs
-# on the first visible GPU of the target arch. The scripts choose tests and
-# known fails by the GPU arch they are given, so it must be a single one.
 # Ninja does not track the compiler binary, so it keeps objects compiled by
 # an earlier compiler at the same path. Remove those to have them rebuilt.
+function removeStaleFmhaObjects {
+  local Compiler
+  Compiler=$(realpath -e "${AOMP}/bin/clang++") || return 1
+  echo "Removing FMHA objects not newer than ${Compiler}"
+  find "${CK_BUILD}/example/ck_tile/01_fmha" -name '*.o' \
+    ! -newer "${Compiler}" -delete
+}
+
+# Prepare a run of the FMHA examples on a GPU of the single target arch, or
+# refuse it. Sets FmhaLogDir and announces it to the extraction.
 function prepareFmhaRun {
   local Reason
   local GPUList
-  local Compiler
+  # CK's scripts choose tests and known fails by the one GPU arch they get.
   if [ -z "${CK_GPU_TARGETS}" ] || [[ "${CK_GPU_TARGETS}" == *[\;,]* ]]; then
     refuseFmhaRun "Need a single GPU target, got '${CK_GPU_TARGETS}'"
   fi
-  mkdir -p "${CK_TESTS_LOG_LOCATION}" || exit 1
-  FmhaLogDir=$(realpath "${CK_TESTS_LOG_LOCATION}")
   if ! Reason=$(checkFmhaBuildConfig); then
     refuseFmhaRun "${Reason}"
   fi
@@ -202,10 +206,53 @@ function prepareFmhaRun {
   fi
   export ROCR_VISIBLE_DEVICES="${GPUList%% *}"
 
-  Compiler=$(realpath -e "${AOMP}/bin/clang++")
-  echo "Removing FMHA objects not newer than ${Compiler}"
-  find "${CK_BUILD}/example/ck_tile/01_fmha" -name '*.o' \
-    ! -newer "${Compiler}" -delete || exit 1
+  mkdir -p "${CK_TESTS_LOG_LOCATION}" || exit 1
+  FmhaLogDir=$(realpath "${CK_TESTS_LOG_LOCATION}")
+  echo "CK-FMHA-LOGS: ${FmhaLogDir}"
+  removeStaleFmhaObjects || exit 1
+}
+
+# Build the FMHA example of a direction and announce the result.
+function buildFmhaExample {
+  local Target="tile_example_fmha_$1"
+  # shellcheck disable=SC2086
+  if ! ${CKBuildTool} -C "${CK_BUILD}" -j "${CKBuildParallelism}" ${DashKArg} \
+    "${Target}"; then
+    echo "CK-FMHA-BUILD-FAILED: ${Target}"
+    return 1
+  fi
+  echo "CK-FMHA-BUILD-SUCCESS: ${Target}"
+}
+
+# Run CK's smoke tests of a direction. CK's scripts run the first matching
+# binary below the working directory, and trace with the default prefix.
+function runFmhaSmokeTests {
+  local Direction=$1
+  pushd "${CK_BUILD}/bin" || exit 1
+  PS4='+ ' GPU_arch="${CK_GPU_TARGETS}" \
+    CURR_FAILS_FILE="${FmhaLogDir}/fmha_${Direction}_fails.txt" \
+    "${CK_FMHA_SCRIPT_DIR}/smoke_test_${Direction}.sh" 2>&1 |
+    tee "${FmhaLogDir}/fmha_${Direction}_tests.log"
+  echo "CK-FMHA-SMOKE-EXIT: ${Direction} ${PIPESTATUS[0]}"
+  popd || exit 1
+}
+
+# Run CK's benchmarks of a direction, as CK's run_full_test.sh does, but with
+# the compiler under test in the log header. Tracing names each run.
+function runFmhaBenchmarks {
+  local Direction=$1
+  local BenchmarkLog="${FmhaLogDir}/fmha_${Direction}_benchmark.log"
+  pushd "${CK_BUILD}/bin" || exit 1
+  {
+    rocminfo | grep -E 'Name:\s+gfx|Compute Unit:'
+    "${AOMP}/bin/clang++" --version
+    echo "composablekernel repo SHA:" \
+      "$(git -C "${CK_SRC}" log -1 --format=%H -- .)"
+  } >"${BenchmarkLog}"
+  PS4='+ ' sh -x "${CK_FMHA_SCRIPT_DIR}/benchmark_${Direction}.sh" 2>&1 |
+    tee -a "${BenchmarkLog}"
+  echo "CK-FMHA-BENCHMARK-EXIT: ${Direction} ${PIPESTATUS[0]}"
+  popd || exit 1
 }
 
 # Some tests may require an installed instance of CK.
@@ -225,6 +272,9 @@ SelectedSuite='skip'
 
 # CK may be run using a specfic test from the selected suite.
 SelectedTest=''
+
+# The FMHA suites build their examples per direction and may fail for one.
+FmhaBuildFailed='no'
 
 while getopts "j:hilrubs:t:" opt; do
   case ${opt} in
@@ -322,6 +372,7 @@ done
 : "${CK_INSTALL:=$CK_TOP/ck-install}"
 : "${CK_CLIENT_EXAMPLES_SOURCE:=$CK_SRC/client_example}"
 : "${CK_CLIENT_EXAMPLES_BUILD:=$CK_TOP/ck-client-examples-build}"
+: "${CK_FMHA_SCRIPT_DIR:=$CK_SRC/example/ck_tile/01_fmha/script}"
 # Run regular and client examples on multiple GPUs (if present)
 : "${CK_EXAMPLES_PARALLEL:="yes"}"
 : "${CK_EXAMPLES_PREFIX:="example_"}"
@@ -497,85 +548,39 @@ if [ "${SelectedSuite}" == 'regression' ]; then
   popd || exit 1
 fi
 
-CKFmhaScriptDir="${CK_SRC}/example/ck_tile/01_fmha/script"
-
 # tile_example_fmha_{fwd,bwd} are not ctest tests, so neither smoke nor
-# regression runs them. Like CK's CI, build them and run CK's smoke scripts.
-# To keep failures separate, each direction is built and tested on its own.
+# regression runs them. Like CK's CI, build them and run CK's scripts.
+# To keep failures separate, each direction is built and run on its own.
 if [ "${SelectedSuite}" == 'fmha' ]; then
   echo "Running CK FMHA example tests"
   prepareFmhaRun
-  echo "CK-FMHA-LOGS: ${FmhaLogDir}"
-
-  pushd "${CK_BUILD}" || exit 1
-  FmhaBuildFailed='no'
   for Direction in fwd bwd; do
-    FmhaTarget="tile_example_fmha_${Direction}"
-    FmhaTestLog="${FmhaLogDir}/fmha_${Direction}_tests.log"
-    FmhaFailsFile="${FmhaLogDir}/fmha_${Direction}_fails.txt"
     # Avoid picking up stale results
-    rm -f "${FmhaTestLog}" "${FmhaFailsFile}" || exit 1
-
-    # shellcheck disable=SC2086
-    if ! ${CKBuildTool} -j "${CKBuildParallelism}" ${DashKArg} \
-      "${FmhaTarget}"; then
-      echo "CK-FMHA-BUILD-FAILED: ${FmhaTarget}"
+    rm -f "${FmhaLogDir}/fmha_${Direction}_tests.log" \
+      "${FmhaLogDir}/fmha_${Direction}_fails.txt" || exit 1
+    if buildFmhaExample "${Direction}"; then
+      runFmhaSmokeTests "${Direction}"
+    else
       FmhaBuildFailed='yes'
-      continue
     fi
-    echo "CK-FMHA-BUILD-SUCCESS: ${FmhaTarget}"
-
-    # The scripts run the first matching binary below the working directory.
-    pushd bin || exit 1
-    GPU_arch="${CK_GPU_TARGETS}" CURR_FAILS_FILE="${FmhaFailsFile}" \
-      "${CKFmhaScriptDir}/smoke_test_${Direction}.sh" 2>&1 |
-      tee "${FmhaTestLog}"
-    echo "CK-FMHA-SMOKE-EXIT: ${Direction} ${PIPESTATUS[0]}"
-    popd || exit 1
   done
-  popd || exit 1
-
   if [ "${FmhaBuildFailed}" == 'yes' ]; then
     exit 1
   fi
 fi
 
-# As CK's run_full_test.sh, but the log header names the compiler under test.
 if [ "${SelectedSuite}" == 'fmha-benchmarks' ]; then
   echo "Running CK FMHA example benchmarks"
   prepareFmhaRun
-
-  pushd "${CK_BUILD}" || exit 1
-  FmhaBuildFailed='no'
   for Direction in fwd bwd; do
-    FmhaTarget="tile_example_fmha_${Direction}"
-    BenchmarkLog="${FmhaLogDir}/fmha_${Direction}_benchmark.log"
     # Avoid picking up stale results
-    rm -f "${BenchmarkLog}" || exit 1
-
-    # shellcheck disable=SC2086
-    if ! ${CKBuildTool} -j "${CKBuildParallelism}" ${DashKArg} \
-      "${FmhaTarget}"; then
-      echo "CK-FMHA-BUILD-FAILED: ${FmhaTarget}"
+    rm -f "${FmhaLogDir}/fmha_${Direction}_benchmark.log" || exit 1
+    if buildFmhaExample "${Direction}"; then
+      runFmhaBenchmarks "${Direction}"
+    else
       FmhaBuildFailed='yes'
-      continue
     fi
-    echo "CK-FMHA-BUILD-SUCCESS: ${FmhaTarget}"
-
-    pushd bin || exit 1
-    {
-      rocminfo | grep -E 'Name:\s+gfx|Compute Unit:'
-      "${AOMP}/bin/clang++" --version
-      echo "composablekernel repo SHA:" \
-        "$(git -C "${CK_SRC}" log -1 --format=%H -- .)"
-    } >"${BenchmarkLog}"
-    "${CKFmhaScriptDir}/benchmark_${Direction}.sh" 2>&1 |
-      tee -a "${BenchmarkLog}"
-    popd || exit 1
   done
-  echo "Logs at ${FmhaLogDir}/fmha_*_benchmark.log"
-  popd || exit 1
-
   if [ "${FmhaBuildFailed}" == 'yes' ]; then
     exit 1
   fi
