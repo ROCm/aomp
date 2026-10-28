@@ -51,7 +51,7 @@
 <project remote="RSBench"  path="RSBench"  name="RSBench" revision="master" groups="unlocked" />
 <project remote="XSBench"  path="XSBench"  name="XSBench" revision="master" groups="unlocked" />
 <project remote="su3_bench"  path="su3bench"  name="su3_bench.git" revision="master" groups="unlocked" />
-<project remote="qeomp" path="q-e-omp" name="q-e-omp-repository" revision="develop_omp5_75omp" groups="unlocked" />
+<project remote="qeomp" path="q-e-omp" name="q-e-omp-repository" revision="develop_omp5_76omp" groups="unlocked" />
 <project remote="kmturbulenz" path="mglet-base" name="mglet-base" revision="master" groups="unlocked" />
 
 </manifest>
