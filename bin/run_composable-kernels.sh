@@ -136,9 +136,14 @@ function getLDLibraryPathExportCmd {
   echo "export LD_LIBRARY_PATH=${LDLibraryPath}"
 }
 
+# Print the value of an entry of the CK build's CMake cache.
+function getCachedValue {
+  sed -n "s/^$1:[A-Z]*=//p" "${CK_BUILD}/CMakeCache.txt"
+}
+
 # Print the resolved path held by an entry of the CK build's CMake cache.
 function getCachedPath {
-  realpath -m "$(sed -n "s/^$1:[A-Z]*=//p" "${CK_BUILD}/CMakeCache.txt")"
+  realpath -m "$(getCachedValue "$1")"
 }
 
 # Print why the CK build would not build the FMHA examples (C++ and HIP) with
@@ -156,8 +161,7 @@ function checkFmhaBuildConfig {
     return 1
   fi
   HipConfigDir=$(realpath -m "${ROCM_PATH}/lib/cmake/hip")
-  CachedTargets=$(sed -n 's/^GPU_TARGETS:[A-Z]*=//p' \
-    "${CK_BUILD}/CMakeCache.txt")
+  CachedTargets=$(getCachedValue GPU_TARGETS)
   if [ "$(getCachedPath CMAKE_CXX_COMPILER)" != "${Compiler}" ] ||
     [ "$(getCachedPath CMAKE_HIP_COMPILER)" != "${Compiler}" ]; then
     echo "${CK_BUILD} is not configured for ${Compiler}"
