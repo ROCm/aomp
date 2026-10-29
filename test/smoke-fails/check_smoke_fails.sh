@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Checks all tests in smoke-fails directory using make check. 
+# Checks all tests in smoke-fails directory using make check.
 # Programs return 0 for success or a number > 0 for failure.
 # Tests that need to be visually inspected: devices, pfspecify, pfspecify_str, stream
 #
@@ -28,10 +28,10 @@ function gatherdata(){
   fi
 
   #Print Results
-  echo -e "$BLU"-------------------- Results --------------------"$BLK"
-  echo -e "$BLU"Number of tests: $total_tests"$BLK"
+  echo -e "${BLU}-------------------- Results --------------------${BLK}"
+  echo -e "${BLU}Number of tests: ${total_tests}${BLK}"
   echo ""
-  echo -e "$GRN"Passing tests: $passing_tests/$total_tests""
+  echo -e "${GRN}Passing tests: ${passing_tests}/${total_tests}"
 
   #Print passing tests, if any
   if [ -e passing-tests.txt ]; then
@@ -40,7 +40,7 @@ function gatherdata(){
   fi
 
   #Print failed tests
-  echo -e "$RED"
+  echo -e "${RED}"
   echo ""
   if [ -e failing-tests.txt ]; then
     echo "Runtime Fails"
@@ -54,7 +54,7 @@ function gatherdata(){
     echo "--------------------"
     cat make-fail.txt
   fi
-  echo -e "$BLK"
+  echo -e "${BLK}"
 }
 
 if [ "$1" == "gatherdata" ]; then
@@ -70,7 +70,7 @@ cleanup(){
 }
 
 script_dir=$(dirname "$0")
-pushd $script_dir
+pushd "${script_dir}" || exit
 path=$(pwd)
 
 #Clean all testing directories
@@ -78,18 +78,18 @@ cleanup
 
 if [ "$1" == "-clean" ]; then
   for directory in ./*/; do
-    pushd $directory > /dev/null
+    pushd "${directory}" > /dev/null || continue
     make clean
-    popd > /dev/null
+    popd > /dev/null || exit
   done
   exit 0
 fi
 
 export OMP_TARGET_OFFLOAD=${OMP_TARGET_OFFLOAD:-MANDATORY}
-echo OMP_TARGET_OFFLOAD=$OMP_TARGET_OFFLOAD
+echo "OMP_TARGET_OFFLOAD=${OMP_TARGET_OFFLOAD}"
 
 echo ""
-echo -e "$ORG"RUNNING ALL TESTS IN: $path"$BLK"
+echo -e "${ORG}RUNNING ALL TESTS IN: ${path}${BLK}"
 echo ""
 
 echo "************************************************************************************" > check-smoke.txt
@@ -97,49 +97,50 @@ echo "                   A non-zero exit code means a failure occured." >> check
 echo "***********************************************************************************" >> check-smoke.txt
 
 skip_tests=""
-if [ "$SKIP_FORTRAN" == 1 ] ; then
-  skip_tests+="`find .  -iname '*.f9[50]' | sed s^./^^ | awk -F/ '{print $1}'` "
-  echo $skip_tests
+if [ "${SKIP_FORTRAN}" == 1 ] ; then
+  skip_tests+="$(find .  -iname '*.f9[50]' | sed s^./^^ | awk -F/ '{print $1}') "
+  echo "${skip_tests}"
 fi
 
 # ---------- Begin parallel logic ----------
-if [ "$AOMP_PARALLEL_SMOKE" == 1 ]; then
-  sem --help > /dev/null
-  if [ $? -eq 0 ]; then
+if [ "${AOMP_PARALLEL_SMOKE}" == 1 ]; then
+  if sem --help > /dev/null; then
+    # Give "sem" a private, self-cleaning semaphore namespace (no-op if the
+    # caller already set PARALLEL_HOME). Prevents stale-token deadlocks/leaks.
+    # shellcheck source=/dev/null
+    source "${path}/../../bin/semaphore_isolation.src" 2>/dev/null && isolate_semaphore
     COMP_THREADS=1
-    MAX_THREADS=16
-    if [ ! -z `which "getconf"` ]; then
-       COMP_THREADS=$(`which "getconf"` _NPROCESSORS_ONLN)
-       if [ "$AOMP_PROC" == "ppc64le" ] ; then
+    if [ -n "$(which getconf)" ]; then
+       COMP_THREADS=$(getconf _NPROCESSORS_ONLN)
+       if [ "${AOMP_PROC}" == "ppc64le" ] ; then
           COMP_THREADS=$(( COMP_THREADS / 6))
        fi
-       if [ "$AOMP_PROC" == "aarch64" ] ; then
+       if [ "${AOMP_PROC}" == "aarch64" ] ; then
           COMP_THREADS=$(( COMP_THREADS / 4))
        fi
     fi
     AOMP_JOB_THREADS=${AOMP_JOB_THREADS:-$COMP_THREADS}
-    if [ $AOMP_JOB_THREADS -gt 16 ]; then
+    if [ "${AOMP_JOB_THREADS}" -gt 16 ]; then
       AOMP_JOB_THREADS=16
-      echo "Limiting job threads to $AOMP_JOB_THREADS."
+      echo "Limiting job threads to ${AOMP_JOB_THREADS}."
     fi
-    echo THREADS: $AOMP_JOB_THREADS
+    echo "THREADS: ${AOMP_JOB_THREADS}"
     # Parallel Make
     for directory in ./*/; do
-      pushd $directory > /dev/null
-      base=$(basename `pwd`)
-      echo Make: $base
-      if [ $base == "gpus" ]; then # Compile and link only test
+      pushd "${directory}" > /dev/null || continue
+      base=$(basename "$(pwd)")
+      echo "Make: ${base}"
+      if [ "${base}" == "gpus" ]; then # Compile and link only test
         make clean > /dev/null
-        make &> make-log.txt
-        if [ $? -ne 0 ]; then
+        if ! make &> make-log.txt; then
           flock -e lockfile -c "echo $base: Make Failed >> ../make-fail.txt"
         else
           flock -e lockfile -c "echo $base  >> ../passing-tests.txt"
         fi
       else
-        sem --jobs $AOMP_JOB_THREADS  --id def_sem -u 'base=$(basename $(pwd)); make clean > /dev/null; make &> make-log.txt; if [ $? -ne 0 ]; then flock -e lockfile -c "echo $base: Make Failed >> ../make-fail.txt"; fi;'
+        sem --jobs "${AOMP_JOB_THREADS}"  --id def_sem -u 'base=$(basename $(pwd)); make clean > /dev/null; make &> make-log.txt; if [ $? -ne 0 ]; then flock -e lockfile -c "echo $base: Make Failed >> ../make-fail.txt"; fi;'
       fi
-      popd > /dev/null
+      popd > /dev/null || exit
     done
 
     # Wait for jobs to finish before execution
@@ -147,32 +148,31 @@ if [ "$AOMP_PARALLEL_SMOKE" == 1 ]; then
 
     # Parallel execution, currently limited to 4 jobs
     for directory in ./*/; do
-      pushd $directory > /dev/null
-      base=$(basename `pwd`)
-      echo RUN $base
-      if [ $base == 'hip_rocblas' ] ; then
-        ls $AOMPROCM/rocblas > /dev/null 2>&1
-        if [ $? -ne 0 ]; then
-          echo -e "$RED"$base - needs rocblas installed at $AOMPROCM/rocblas:"$BLK"
-          echo -e "$RED"$base - ROCBLAS NOT FOUND!!! SKIPPING TEST!"$BLK"
-          popd > /dev/null
+      pushd "${directory}" > /dev/null || continue
+      base=$(basename "$(pwd)")
+      echo "RUN ${base}"
+      if [ "${base}" == 'hip_rocblas' ] ; then
+        if ! ls "${AOMPROCM}/rocblas" > /dev/null 2>&1; then
+          echo -e "${RED}${base} - needs rocblas installed at ${AOMPROCM}/rocblas:${BLK}"
+          echo -e "${RED}${base} - ROCBLAS NOT FOUND!!! SKIPPING TEST!${BLK}"
+          popd > /dev/null || exit
           continue
         fi
-      elif [ $base == 'devices' ] || [ $base == 'stream' ] ; then
+      elif [ "${base}" == 'devices' ] || [ "${base}" == 'stream' ] ; then
         sem --jobs 4 --id def_sem -u 'make run > /dev/null 2>&1'
         sem --jobs 4 --id def_sem -u 'make check > /dev/null 2>&1'
-      elif [ $base == 'printf_parallel_for_target' ] || [ $base == 'omp_places' ] || [ $base == 'pfspecifier' ] || [ $base == 'pfspecifier_str' ] ; then
+      elif [ "${base}" == 'printf_parallel_for_target' ] || [ "${base}" == 'omp_places' ] || [ "${base}" == 'pfspecifier' ] || [ "${base}" == 'pfspecifier_str' ] ; then
         sem --jobs 4 --id def_sem -u 'make verify-log > /dev/null'
-      elif [ $base == 'flags' ] ; then
+      elif [ "${base}" == 'flags' ] ; then
         make run
-      elif [ $base == 'liba_bundled' ] || [ $base == 'liba_bundled_cmdline' ]; then
+      elif [ "${base}" == 'liba_bundled' ] || [ "${base}" == 'liba_bundled_cmdline' ]; then
         sem --jobs 4 --id def_sem -u 'base=$(basename $(pwd)); make check > /dev/null; if [ $? -ne 0 ]; then flock -e lockfile -c "echo $base: Make Failed >> ../make-fail.txt"; fi;'
-      elif [ $base == "gpus" ]; then # Compile and link only test
-        echo gpus is compile only!
+      elif [ "${base}" == "gpus" ]; then # Compile and link only test
+        echo "gpus is compile only!"
       else
         sem --jobs 4 --id def_sem -u 'make check > /dev/null 2>&1'
       fi
-      popd > /dev/null
+      popd > /dev/null || exit
     done
 
     # Wait for jobs to finish executing
@@ -190,79 +190,81 @@ fi
 
 #Loop over all directories and make run / make check depending on directory name
 for directory in ./*/; do
-  (cd "$directory" && path=$(pwd) && base=$(basename $path)
-  if [ "$NO_CLEAN" != 1 ] ; then	
+  pushd "${directory}" > /dev/null || continue
+  path=$(pwd)
+  base=$(basename "${path}")
+  if [ "${NO_CLEAN}" != 1 ] ; then
     make clean
   fi
   #Skip tests that are known failures
   skip=0
-  for test in $skip_tests ; do
-    if [ $test == $base ] ; then
+  for test in ${skip_tests} ; do
+    if [ "${test}" == "${base}" ] ; then
       skip=1
-      echo "$test $base"
+      echo "${test} ${base}"
       break
     fi
   done
-  if [ $skip -ne 0 ] ; then
-    echo "Skipping $base"
+  if [ "${skip}" -ne 0 ] ; then
+    echo "Skipping ${base}"
     echo ""
-  else  
+  else
     AOMPROCM=${AOMPROCM:-/opt/rocm}
-    if [ $base == 'hip_rocblas' ] ; then
-      ls $AOMPROCM/rocblas > /dev/null 2>&1
-      if [ $? -ne 0 ]; then
-        echo -e "$RED"$base - needs rocblas installed at $AOMPROCM/rocblas:"$BLK"
-        echo -e "$RED"$base - ROCBLAS NOT FOUND!!! SKIPPING TEST!"$BLK"
+    if [ "${base}" == 'hip_rocblas' ] ; then
+      if ! ls "${AOMPROCM}/rocblas" > /dev/null 2>&1; then
+        echo -e "${RED}${base} - needs rocblas installed at ${AOMPROCM}/rocblas:${BLK}"
+        echo -e "${RED}${base} - ROCBLAS NOT FOUND!!! SKIPPING TEST!${BLK}"
+        popd > /dev/null || exit
         continue
       fi
     fi
-    if [ $base == 'devices' ] || [ $base == 'pfspecifier' ] || [ $base == 'pfspecifier_str' ] || [ $base == 'stream' ] ; then
-      make
-      if [ $? -ne 0 ]; then
-        echo "$base: Make Failed" >> ../make-fail.txt
+    if [ "${base}" == 'devices' ] || [ "${base}" == 'pfspecifier' ] || [ "${base}" == 'pfspecifier_str' ] || [ "${base}" == 'stream' ] ; then
+      if ! make; then
+        echo "${base}: Make Failed" >> ../make-fail.txt
       fi
       make run > /dev/null 2>&1
       make check > /dev/null 2>&1
 
     #flags has multiple runs
-    elif [ $base == 'flags' ] ; then
+    elif [ "${base}" == 'flags' ] ; then
       make
       make run > /dev/null 2>&1
-    elif [ $base == "gpus" ]; then # Compile and link only test
-      echo "$base" >> ../passing-tests.txt
-    elif [ $base == 'printf_parallel_for_target' ] ; then
+    elif [ "${base}" == "gpus" ]; then # Compile and link only test
+      echo "${base}" >> ../passing-tests.txt
+    elif [ "${base}" == 'printf_parallel_for_target' ] ; then
       make verify-log
     else
-      make
-      if [ $? -ne 0 ]; then
-        echo "$base: Make Failed" >> ../make-fail.txt
+      if ! make; then
+        echo "${base}: Make Failed" >> ../make-fail.txt
       fi
-      make check > /dev/null 2>&1
       #liba_bundled has an additional Makefile, that may fail on the make check
-      if [ $? -ne 0 ] && ( [ $base == 'liba_bundled' ] || [ $base == 'liba_bundled_cmdline' ] ) ; then
-        echo "$base: Make Failed" >> ../make-fail.txt
+      if ! make check > /dev/null 2>&1; then
+        if [ "${base}" == 'liba_bundled' ] || [ "${base}" == 'liba_bundled_cmdline' ] ; then
+          echo "${base}: Make Failed" >> ../make-fail.txt
+        fi
       fi
     fi
   fi
   echo ""
- )
-	
+  popd > /dev/null || exit
 done
 
 #Print run.log for all tests that need visual inspection
 for directory in ./*/; do
-  (cd "$directory" && path=$(pwd) && base=$(basename $path)
-    if [ $base == 'devices' ] || [ $base == 'pfspecifier' ] || [ $base == 'pfspecifier_str' ] || [ $base == 'stream' ] ; then
-      echo ""
-      echo -e "$ORG"$base - Run Log:"$BLK"
-      echo "--------------------------"
-      if [ -e run.log ]; then
-        cat run.log
-      fi
-      echo ""
-      echo ""
+  pushd "${directory}" > /dev/null || continue
+  path=$(pwd)
+  base=$(basename "${path}")
+  if [ "${base}" == 'devices' ] || [ "${base}" == 'pfspecifier' ] || [ "${base}" == 'pfspecifier_str' ] || [ "${base}" == 'stream' ] ; then
+    echo ""
+    echo -e "${ORG}${base} - Run Log:${BLK}"
+    echo "--------------------------"
+    if [ -e run.log ]; then
+      cat run.log
     fi
-  )
+    echo ""
+    echo ""
+  fi
+  popd > /dev/null || exit
 done
 
 #Replace false positive return codes with 'Check the run.log' so that user knows to visually inspect those.
@@ -280,37 +282,37 @@ gatherdata
 
 # Print run logs for runtime fails, EPSDB only
 # Disable printing of runtime fails for smoke-fails
-if [ "$EPSDB" == 2 ] ; then
+if [ "${EPSDB}" == 2 ] ; then
   file='failing-tests.txt'
   flags_test_done=0
-  if [ -e $file ]; then
-    echo ----------Printing Runtime Fail Logs---------
+  if [ -e "${file}" ]; then
+    echo "----------Printing Runtime Fail Logs---------"
     while read -r line; do
       # The flags test has multiple numbered runs. We cannot pushd flags 1 because only the flags dir exists.
       # We must re-run the entire flags test to get run.log. If more than one flags subtest fails only run once.
-      if [[ "$line" =~ "flags" ]]; then
-        if [[ "$flags_test_done" == 0 ]]; then
+      if [[ "${line}" =~ "flags" ]]; then
+        if [[ "${flags_test_done}" == 0 ]]; then
           echo
-          pushd flags > /dev/null
-          echo Test: flags run log:
-          echo The flags test must run all iterations if one subtest fails.
+          pushd flags > /dev/null || exit
+          echo "Test: flags run log:"
+          echo "The flags test must run all iterations if one subtest fails."
           make run
           cat run.log
           flags_test_done=1
-          popd > /dev/null
+          popd > /dev/null || exit
         fi
       else
         echo
-        pushd $line > /dev/null
+        pushd "${line}" > /dev/null || exit
         echo
         make run > /dev/null
-        echo Test: $line run log:
+        echo "Test: ${line} run log:"
         cat run.log
-        popd > /dev/null
+        popd > /dev/null || exit
       fi
-    done < "$file"
+    done < "${file}"
     echo
   fi
 fi
 
-popd
+popd || exit
