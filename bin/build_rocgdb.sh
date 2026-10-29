@@ -70,7 +70,14 @@ if [ "$1" != "noconfigure" ] && [ "$1" != "install" ] ; then
                  PKG_CONFIG_PATH="$AOMP_INSTALL_DIR/share/pkgconfig")
 
    mkdir -p "$BUILD_AOMP/build/rocgdb"
-   export LDFLAGS="-Wl,-rpath=$AOMP_INSTALL_DIR/lib"
+   # $ORIGIN/../lib makes the installed rocgdb relocatable; the absolute
+   # path lets the uninstalled build-tree gdb find rocm-dbgapi.
+   # $ORIGIN can't go in LDFLAGS: binutils-gdb's recursive make and shell
+   # levels expand it. The linker reads the response file verbatim.
+   # shellcheck disable=SC2016
+   printf '%s\n' '-rpath=$ORIGIN/../lib' "-rpath=$AOMP_INSTALL_DIR/lib" \
+     > "$BUILD_AOMP/build/rocgdb/rpath.rsp"
+   export LDFLAGS="-Wl,@$BUILD_AOMP/build/rocgdb/rpath.rsp"
    cd "$BUILD_AOMP/build/rocgdb" || exit
    echo " -----Running gdb configure ---- " 
    echo "$AOMP_REPOS/$AOMP_GDB_REPO_NAME/configure $(shquot "${MYCONFIGOPTS[@]}")"
