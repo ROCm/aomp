@@ -401,8 +401,11 @@ else
 endif
 
 # ompTest: Set header include path + linker flag for corresponding OMPT tests
+# The -D must match how the installed library was built. find_package consumers
+# inherit it from the exported target; these link directly, so set it here.
 CLANG_RESOURCE_DIR := $(shell $(AOMP)/bin/clang -print-resource-dir)
-OMPTEST             = -I$(CLANG_RESOURCE_DIR)/include/omptest -lomptest
+OMPTEST             = -I$(CLANG_RESOURCE_DIR)/include/omptest -lomptest \
+                      -DOPENMP_LIBOMPTEST_BUILD_STANDALONE
 
 # ompTest: Locate and export the CMake config path.
 # Current layout first: the per-target copy is never refreshed and points at a
