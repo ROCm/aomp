@@ -106,6 +106,10 @@ fi
 if [ "$AOMP_PARALLEL_SMOKE" == 1 ]; then
   sem --help > /dev/null
   if [ $? -eq 0 ]; then
+    # Give "sem" a private, self-cleaning semaphore namespace (no-op if the
+    # caller already set PARALLEL_HOME). Prevents stale-token deadlocks/leaks.
+    # shellcheck source=/dev/null
+    source "${path}/../../bin/semaphore_isolation.src" 2>/dev/null && isolate_semaphore
     COMP_THREADS=1
     MAX_THREADS=16
     if [ ! -z `which "getconf"` ]; then
