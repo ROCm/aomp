@@ -471,11 +471,12 @@ if [ "$1" != "nocmake" ]; then
   echo "make veryclean"
   make veryclean || true
 
-  echo "./configure ARCH=amdflang --enable-omp_gpu --with-rocm=$ROCM_PATH --enable-omp_mpi_gpu --with-gpu-arch=$GPU_ARCH"
+  echo "./configure ARCH=amdflang --with-gpu=openmp --with-rocm=$ROCM_PATH --enable-omp_mpi_gpu --with-omp-many-fft=yes --with-gpu-arch=$GPU_ARCH"
   ./configure ARCH=amdflang \
-    --enable-omp_gpu \
+    --with-gpu=openmp \
     --with-rocm="$ROCM_PATH" \
     --enable-omp_mpi_gpu \
+	--with-omp-many-fft=yes \
     --with-gpu-arch="$GPU_ARCH"
   ret=$?
   if [ $ret -ne 0 ]; then
