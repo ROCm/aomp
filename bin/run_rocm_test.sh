@@ -107,39 +107,39 @@ fi
 # Set AOMP to point to rocm symlink or newest version.
 newestrocm=$(ls --sort=time /opt | grep -m 1 rocm)
 echo "newestrocm: $newestrocm"
-if [ -e /opt/rocm/lib/llvm/bin ]; then
-  AOMP=${AOMP:-"/opt/rocm/lib/llvm"}
-  ROCMINF="$AOMP/../../"
-  ROCMDIR="$AOMP/../../"
-  echo setting 1 $AOMP
-elif [ -e /opt/rocm/llvm/bin ]; then
-  AOMP=${AOMP:-"/opt/rocm/llvm"}
-  ROCMINF="$AOMP/../"
-  ROCMDIR="$AOMP/../"
-  echo setting 2 $AOMP
-elif [ -e "/opt/$newestrocm/lib/llvm/bin" ]; then
-  AOMP=${AOMP:-"/opt/$newestrocm/lib/llvm"}
-  ROCMINF=/opt/$newestrocm
-  ROCMDIR=$ROCMINF
-  echo setting 3 $AOMP
-elif [ -e "/opt/$newestrocm/llvm/bin" ]; then
-  AOMP=${AOMP:-"/opt/$newestrocm/llvm"}
-  ROCMINF=/opt/$newestrocm/
-  ROCMDIR=$ROCMINF/lib
-  echo setting 4 $AOMP
-elif [ -e "$ROCM_PATH/lib/llvm/bin" ]; then
+if [ -e "$ROCM_PATH/lib/llvm/bin" ]; then
   AOMP=${AOMP:-"$ROCM_PATH/lib/llvm"}
   ROCMINF="$AOMP/../../"
   ROCMDIR="$AOMP/../../"
-  echo setting 5 $AOMP
+  echo setting 1 $AOMP
 elif [ -e "$ROCM_PATH/llvm/bin" ]; then
   AOMP=${AOMP:-"$ROCM_PATH/llvm"}
   ROCMINF="$AOMP/../"
   ROCMDIR="$AOMP/../"
+  echo setting 2 $AOMP
+elif [ -e /opt/rocm/lib/llvm/bin ]; then
+  AOMP=${AOMP:-"/opt/rocm/lib/llvm"}
+  ROCMINF="$AOMP/../../"
+  ROCMDIR="$AOMP/../../"
+  echo setting 3 $AOMP
+elif [ -e /opt/rocm/llvm/bin ]; then
+  AOMP=${AOMP:-"/opt/rocm/llvm"}
+  ROCMINF="$AOMP/../"
+  ROCMDIR="$AOMP/../"
+  echo setting 4 $AOMP
+elif [ -e "/opt/$newestrocm/lib/llvm/bin" ]; then
+  AOMP=${AOMP:-"/opt/$newestrocm/lib/llvm"}
+  ROCMINF=/opt/$newestrocm
+  ROCMDIR=$ROCMINF
+  echo setting 5 $AOMP
+elif [ -e "/opt/$newestrocm/llvm/bin" ]; then
+  AOMP=${AOMP:-"/opt/$newestrocm/llvm"}
+  ROCMINF=/opt/$newestrocm/
+  ROCMDIR=$ROCMINF/lib
   echo setting 6 $AOMP
 else
   echo "Error: A valid ROCm install was not found. Please point ROCM_PATH or AOMP to a valid ROCm install."
-  echo "       Examples: ROCM_PATH=/opt/rocm; ROCM_PATH=/opt/rocm-7.10; AOMP=/opt/rocm/llvm; AOMP=/opt/rocm-7.10/lib/llvm"
+  echo "       Examples: ROCM_PATH=/opt/rocm; ROCM_PATH=/opt/rocm-10.0; AOMP=/opt/rocm/llvm; AOMP=/opt/rocm-10.0/lib/llvm"
   echo "       Note that AOMP needs the llvm or lib/llvm path suffix."
   exit 1
 fi
