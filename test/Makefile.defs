@@ -401,12 +401,31 @@ else
 endif
 
 # ompTest: Set header include path + linker flag for corresponding OMPT tests
+# The -D must match how the installed library was built. find_package consumers
+# inherit it from the exported target; these link directly, so set it here.
 CLANG_RESOURCE_DIR := $(shell $(AOMP)/bin/clang -print-resource-dir)
-OMPTEST             = -I$(CLANG_RESOURCE_DIR)/include/omptest -lomptest
+OMPTEST             = -I$(CLANG_RESOURCE_DIR)/include/omptest -lomptest \
+                      -DOPENMP_LIBOMPTEST_BUILD_STANDALONE
 
-# ompTest: Set and export CMake config path
-omptest_DIR = $(AOMP)/lib/cmake/openmp/omptest/
+# ompTest: Locate and export the CMake config path.
+# Current layout first: the per-target copy is never refreshed and points at a
+# stale libomptest.so. ompTest is a host library, so the per-target copy lives
+# under CLANG_HOST_TARGET.
+OMPTEST_CONFIG_CURRENT   := $(wildcard $(AOMP)/lib/cmake/openmp/omptest/omptest-config.cmake)
+OMPTEST_CONFIG_PERTARGET := $(wildcard $(AOMP)/lib/$(CLANG_HOST_TARGET)/cmake/openmp/omptest/omptest-config.cmake)
+OMPTEST_CONFIGS := $(strip $(OMPTEST_CONFIG_CURRENT) $(OMPTEST_CONFIG_PERTARGET))
+omptest_DIR = $(dir $(firstword $(OMPTEST_CONFIGS)))
 export omptest_DIR
+
+ifeq ($(OMPTEST_CONFIGS),)
+  $(info WARNING: Found no omptest-config.cmake below $(AOMP)/lib/cmake/openmp/omptest or $(AOMP)/lib/$(CLANG_HOST_TARGET)/cmake/openmp/omptest. ompTest tests using find_package will fail.)
+endif
+
+ifneq ($(OMPTEST_CONFIG_CURRENT),)
+ifneq ($(OMPTEST_CONFIG_PERTARGET),)
+  $(info WARNING: Found ompTest package configs in both layouts. Using $(omptest_DIR). The copy below $(AOMP)/lib/$(CLANG_HOST_TARGET)/cmake is stale and should be removed.)
+endif
+endif
 
 # Individual tests need to set OVERFLOW_GUARD=1 to enable available memory
 # computation at the runtime and passing it to the test as the first argument.
