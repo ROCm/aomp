@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define SMALL 1000
+#define SMALL 64
 #define LARGE 1000000
 
 int main() {
@@ -33,8 +33,9 @@ int main() {
   free(y);
 
   /// The block size from the command line is not a user override: the low
-  /// trip count rule still lowers the threads to the minimum.
-  /// CHECK: DEVID:{{.*}}SGN:2 ConstWGSize:128  args: 2 teamsXthrds:({{ *}}63X  16) {{.*}}tripcount:1000 rpc:0
+  /// trip count rule still lowers the threads to the minimum. SMALL is low
+  /// enough that the grid does not depend on the number of CUs.
+  /// CHECK: DEVID:{{.*}}SGN:2 ConstWGSize:128  args: 2 teamsXthrds:({{ *}}4X  16) {{.*}}tripcount:64 rpc:0
   /// CHECK: DEVID:{{.*}}SGN:2 ConstWGSize:128  args: 2 teamsXthrds:({{.*}}X 128) {{.*}}tripcount:1000000 rpc:0
 
   /// CHECK: x[3] = 4
