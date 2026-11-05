@@ -52,7 +52,7 @@ cmake -B ${BUILD_DIR} -S .                                                     \
 -DAOMP_DIR=${AOMP_DIR}                                                         \
 -DTGT_OFFLOAD_ARCH=${TGT_OFFLOAD_ARCH} \
 -DCMAKE_C_COMPILER=${AOMP_DIR}/bin/clang \
--DCMAKE_CXX_COMPILER=${AOMP_DIR}/bin/clang++
+-DCMAKE_CXX_COMPILER=${AOMP_DIR}/bin/clang++ || exit 1
 
 echo " >>> Build ..."
 cmake --build ${BUILD_DIR} --clean-first --parallel || exit 1
