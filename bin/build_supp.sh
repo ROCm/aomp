@@ -52,7 +52,7 @@ $ $AOMP_SUPP/build/cmdlog              File with log of all components built
 EOF
 }
 
-SUPPLEMENTAL_COMPONENTS=${SUPPLEMENTAL_COMPONENTS:-openmpi silo hdf5 fftw ninja xpmem ucx ucc rocmopenmpi hdf5-parallel}
+SUPPLEMENTAL_COMPONENTS=${SUPPLEMENTAL_COMPONENTS:-openmpi silo hdf5 netcdf-c netcdf-fortran ecbuild fiat fftw ninja xpmem ucx ucc rocmopenmpi hdf5-parallel}
 
 # rocsmilib and hwloc build invocation moved to build_rocm_sysdeps.sh (libdrm support). rocmsmi is dependent on libdrm and hwloc depends on rocmsmi.
 PREREQUISITE_COMPONENTS=${PREREQUISITE_COMPONENTS:-cmake aqlprofile rocm-core}
@@ -680,6 +680,251 @@ function buildhdf5(){
   echo "# $_linkfrom is now symbolic link to $_installdir " >>"$CMDLOGFILE"
 }
 
+function buildnetcdfc(){
+  local _cname="netcdf-c"
+  local _version=4.10.0
+  local _installdir=$AOMP_SUPP_INSTALL/$_cname-$_version
+  local _linkfrom=$AOMP_SUPP/$_cname
+  local _builddir=$AOMP_SUPP_BUILD/$_cname
+  BUILD_TYPE=${BUILD_TYPE:-Release}
+
+  if checkversion "$_cname" "$_version" "$_linkfrom"; then
+    return
+  fi
+
+  if [ ! -d "$AOMP_SUPP/hdf5" ] ; then
+    echo "Info: HDF5 not found at $AOMP_SUPP/hdf5, building it first..."
+    buildhdf5
+  fi
+  local _hdf5_path=$AOMP_SUPP/hdf5
+
+  declare -a MYCMAKEOPTS
+  MYCMAKEOPTS=(-DCMAKE_BUILD_TYPE="$BUILD_TYPE"
+             -DCMAKE_INSTALL_PREFIX="$_installdir"
+             -DCMAKE_INSTALL_LIBDIR=lib
+             -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON
+             -DCMAKE_C_COMPILER="$AOMP/bin/clang"
+             -DCMAKE_PREFIX_PATH="$_hdf5_path"
+             -DBUILD_SHARED_LIBS=ON
+             -DNETCDF_ENABLE_HDF5=ON
+             -DNETCDF_ENABLE_CDF5=ON
+             -DNETCDF_ENABLE_DAP=OFF
+             -DNETCDF_ENABLE_BYTERANGE=OFF
+             -DNETCDF_ENABLE_S3=OFF
+             -DNETCDF_ENABLE_NCZARR=OFF
+             -DNETCDF_ENABLE_FILTER_SZIP=OFF
+             -DNETCDF_BUILD_UTILITIES=ON
+             -DNETCDF_ENABLE_EXAMPLES=OFF
+             -DNETCDF_ENABLE_TESTS=OFF
+             -DNETCDF_ENABLE_PARALLEL_TESTS=OFF)
+
+  if [ -d "$_builddir" ] ; then
+    runcmd "rm -rf $_builddir"
+  fi
+  runcmd "mkdir -p $_builddir"
+  runcmd "cd $_builddir"
+  runcmd "wget https://github.com/Unidata/netcdf-c/archive/refs/tags/v$_version.tar.gz"
+  runcmd "tar -xzf v$_version.tar.gz"
+  runcmd "cd netcdf-c-$_version"
+  if [ -d "$_installdir" ] ; then
+    runcmd "rm -rf $_installdir"
+  fi
+  runcmd "mkdir -p $_installdir"
+  runcmd "mkdir -p build"
+  runcmd "cd build"
+  echo
+  echo " -----Running cmake ---- "
+  echo "${AOMP_CMAKE}" "$(shquot "${MYCMAKEOPTS[@]}")" \
+       "../"
+
+  if ! ${AOMP_CMAKE} "${MYCMAKEOPTS[@]}" ../; then
+    echo "ERROR cmake failed. Cmake flags"
+    echo "      $(shquot "${MYCMAKEOPTS[@]}")"
+    exit 1
+  fi
+  runcmd "make -j${AOMP_JOB_THREADS}"
+  runcmd "make install"
+  if [ -L "$_linkfrom" ] ; then
+    runcmd "rm $_linkfrom"
+  fi
+  runcmd "ln -sfr $_installdir $_linkfrom"
+  echo "# $_linkfrom is now symbolic link to $_installdir " >>"$CMDLOGFILE"
+}
+
+function buildnetcdffortran(){
+  local _cname="netcdf-fortran"
+  local _version=4.6.2
+  local _installdir=$AOMP_SUPP_INSTALL/$_cname-$_version
+  local _linkfrom=$AOMP_SUPP/$_cname
+  local _builddir=$AOMP_SUPP_BUILD/$_cname
+  BUILD_TYPE=${BUILD_TYPE:-Release}
+
+  if checkversion "$_cname" "$_version" "$_linkfrom"; then
+    return
+  fi
+
+  if [ ! -d "$AOMP_SUPP/netcdf-c" ] ; then
+    echo "Info: NetCDF-C not found at $AOMP_SUPP/netcdf-c, building it first..."
+    buildnetcdfc
+  fi
+  local _netcdfc_path=$AOMP_SUPP/netcdf-c
+  local _hdf5_path=$AOMP_SUPP/hdf5
+
+  declare -a MYCMAKEOPTS
+  MYCMAKEOPTS=(-DCMAKE_BUILD_TYPE="$BUILD_TYPE"
+             -DCMAKE_INSTALL_PREFIX="$_installdir"
+             -DCMAKE_INSTALL_LIBDIR=lib
+             -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON
+             -DCMAKE_C_COMPILER="$AOMP/bin/clang"
+             -DCMAKE_Fortran_COMPILER="$AOMP/bin/flang"
+             -DCMAKE_PREFIX_PATH="$_netcdfc_path;$_hdf5_path"
+             -DBUILD_SHARED_LIBS=ON
+             -DENABLE_TESTS=OFF
+             -DBUILD_EXAMPLES=OFF)
+
+  if [ -d "$_builddir" ] ; then
+    runcmd "rm -rf $_builddir"
+  fi
+  runcmd "mkdir -p $_builddir"
+  runcmd "cd $_builddir"
+  runcmd "wget https://github.com/Unidata/netcdf-fortran/archive/refs/tags/v$_version.tar.gz"
+  runcmd "tar -xzf v$_version.tar.gz"
+  runcmd "cd netcdf-fortran-$_version"
+  if [ -d "$_installdir" ] ; then
+    runcmd "rm -rf $_installdir"
+  fi
+  runcmd "mkdir -p $_installdir"
+  runcmd "mkdir -p build"
+  runcmd "cd build"
+  echo
+  echo " -----Running cmake ---- "
+  echo "${AOMP_CMAKE}" "$(shquot "${MYCMAKEOPTS[@]}")" \
+       "../"
+
+  if ! ${AOMP_CMAKE} "${MYCMAKEOPTS[@]}" ../; then
+    echo "ERROR cmake failed. Cmake flags"
+    echo "      $(shquot "${MYCMAKEOPTS[@]}")"
+    exit 1
+  fi
+  runcmd "make -j${AOMP_JOB_THREADS}"
+  runcmd "make install"
+  if [ -L "$_linkfrom" ] ; then
+    runcmd "rm $_linkfrom"
+  fi
+  runcmd "ln -sfr $_installdir $_linkfrom"
+  echo "# $_linkfrom is now symbolic link to $_installdir " >>"$CMDLOGFILE"
+}
+
+function buildecbuild(){
+  local _cname="ecbuild"
+  local _version=3.16.0
+  local _installdir=$AOMP_SUPP_INSTALL/$_cname-$_version
+  local _linkfrom=$AOMP_SUPP/$_cname
+  local _builddir=$AOMP_SUPP_BUILD/$_cname
+
+  if checkversion "$_cname" "$_version" "$_linkfrom"; then
+    return
+  fi
+
+  declare -a MYCMAKEOPTS
+  MYCMAKEOPTS=(-DCMAKE_INSTALL_PREFIX="$_installdir"
+             -DENABLE_TESTS=OFF)
+
+  if [ -d "$_builddir" ] ; then
+    runcmd "rm -rf $_builddir"
+  fi
+  runcmd "mkdir -p $_builddir"
+  runcmd "cd $_builddir"
+  runcmd "wget https://github.com/ecmwf/ecbuild/archive/refs/tags/$_version.tar.gz"
+  runcmd "tar -xzf $_version.tar.gz"
+  runcmd "cd ecbuild-$_version"
+  if [ -d "$_installdir" ] ; then
+    runcmd "rm -rf $_installdir"
+  fi
+  runcmd "mkdir -p $_installdir"
+  runcmd "mkdir -p build"
+  runcmd "cd build"
+  echo
+  echo " -----Running cmake ---- "
+  echo "${AOMP_CMAKE}" "$(shquot "${MYCMAKEOPTS[@]}")" \
+       "../"
+
+  if ! ${AOMP_CMAKE} "${MYCMAKEOPTS[@]}" ../; then
+    echo "ERROR cmake failed. Cmake flags"
+    echo "      $(shquot "${MYCMAKEOPTS[@]}")"
+    exit 1
+  fi
+  runcmd "make install"
+  if [ -L "$_linkfrom" ] ; then
+    runcmd "rm $_linkfrom"
+  fi
+  runcmd "ln -sfr $_installdir $_linkfrom"
+  echo "# $_linkfrom is now symbolic link to $_installdir " >>"$CMDLOGFILE"
+}
+
+function buildfiat(){
+  local _cname="fiat"
+  local _version=2.0.1
+  local _installdir=$AOMP_SUPP_INSTALL/$_cname-$_version
+  local _linkfrom=$AOMP_SUPP/$_cname
+  local _builddir=$AOMP_SUPP_BUILD/$_cname
+  BUILD_TYPE=${BUILD_TYPE:-Release}
+
+  if checkversion "$_cname" "$_version" "$_linkfrom"; then
+    return
+  fi
+
+  if [ ! -d "$AOMP_SUPP/ecbuild" ] ; then
+    echo "Info: ecbuild not found at $AOMP_SUPP/ecbuild, building it first..."
+    buildecbuild
+  fi
+  local _ecbuild_path=$AOMP_SUPP/ecbuild
+
+  declare -a MYCMAKEOPTS
+  MYCMAKEOPTS=(-DCMAKE_BUILD_TYPE="$BUILD_TYPE"
+             -DCMAKE_INSTALL_PREFIX="$_installdir"
+             -Decbuild_ROOT="$_ecbuild_path"
+             -DCMAKE_C_COMPILER="$AOMP/bin/clang"
+             -DCMAKE_Fortran_COMPILER="$AOMP/bin/flang"
+             "-DCMAKE_C_FLAGS=-fopenmp -fPIC"
+             "-DCMAKE_Fortran_FLAGS=-fopenmp -fPIC"
+             -DENABLE_MPI=OFF
+             -DENABLE_DR_HOOK_ROCTX=OFF
+             -DENABLE_TESTS=OFF)
+
+  if [ -d "$_builddir" ] ; then
+    runcmd "rm -rf $_builddir"
+  fi
+  runcmd "mkdir -p $_builddir"
+  runcmd "cd $_builddir"
+  runcmd "wget https://github.com/ecmwf-ifs/fiat/archive/refs/tags/$_version.tar.gz"
+  runcmd "tar -xzf $_version.tar.gz"
+  runcmd "cd fiat-$_version"
+  if [ -d "$_installdir" ] ; then
+    runcmd "rm -rf $_installdir"
+  fi
+  runcmd "mkdir -p $_installdir"
+  runcmd "mkdir -p build"
+  runcmd "cd build"
+  echo
+  echo " -----Running cmake ---- "
+  echo "${AOMP_CMAKE}" "$(shquot "${MYCMAKEOPTS[@]}")" \
+       "../"
+
+  if ! ${AOMP_CMAKE} "${MYCMAKEOPTS[@]}" ../; then
+    echo "ERROR cmake failed. Cmake flags"
+    echo "      $(shquot "${MYCMAKEOPTS[@]}")"
+    exit 1
+  fi
+  runcmd "make -j${AOMP_JOB_THREADS}"
+  runcmd "make install"
+  if [ -L "$_linkfrom" ] ; then
+    runcmd "rm $_linkfrom"
+  fi
+  runcmd "ln -sfr $_installdir $_linkfrom"
+  echo "# $_linkfrom is now symbolic link to $_installdir " >>"$CMDLOGFILE"
+}
+
 function buildsilo(){
   local _cname="silo"
   local _version=4.11.1
@@ -916,6 +1161,14 @@ for _component in $_components ; do
     buildhdf5
   elif [ "$_component" == "hdf5-parallel" ] ; then
     buildhdf5 "-parallel"
+  elif [ "$_component" == "netcdf-c" ] ; then
+    buildnetcdfc
+  elif [ "$_component" == "netcdf-fortran" ] ; then
+    buildnetcdffortran
+  elif [ "$_component" == "ecbuild" ] ; then
+    buildecbuild
+  elif [ "$_component" == "fiat" ] ; then
+    buildfiat
   elif [ "$_component" == "fftw" ] ; then
     buildfftw
   elif [ "$_component" == "hwloc" ] ; then
