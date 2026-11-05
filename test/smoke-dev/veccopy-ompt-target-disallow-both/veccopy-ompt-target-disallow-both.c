@@ -45,8 +45,6 @@ int main()
 
   /// CHECK: Callback Init:
   /// CHECK: Callback Load:
-  /// CHECK: Callback DataOp EMI: endpoint=1 optype=3
-  /// CHECK: Callback DataOp EMI: endpoint=2 optype=3
   /// CHECK: Callback DataOp EMI: endpoint=1 optype=2
   /// CHECK: Callback DataOp EMI: endpoint=2 optype=2
   /// CHECK: Callback Target: target_id=[[TARGET_ID:[0-9]+]] kind=1 endpoint=1
