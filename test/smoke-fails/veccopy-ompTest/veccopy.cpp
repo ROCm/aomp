@@ -20,16 +20,12 @@ TEST(InitialSuite, veccopy) {
       "User DeviceLoad", "Group", omptest::ObserveState::Always,
       /*DeviceNum=*/0));
 
-  // Initializing a device image performs two transfers of its own: reading the
-  // optional 'fast reduction' flag out of the image, then writing the device
-  // environment into it. The runtime reports these to the tool rather than
-  // hiding them, so they appear before any user target region. Their sizes are
-  // implementation details, hence left unasserted. They also carry no target
-  // id, so they must stay in the default group -- a named group is only active
-  // between the begin and end of a target region.
-  SequenceAsserter->insert(omptest::OmptAssertEvent::TargetDataOp(
-      "Device init DataOp", "", omptest::ObserveState::Always,
-      /*OpType=*/D2H));
+  // Initializing a device image writes the device environment into it. The
+  // runtime reports this transfer to the tool rather than hiding it, so it
+  // appears before any user target region. Its size is an implementation
+  // detail, hence left unasserted. It also carries no target id, so it must
+  // stay in the default group -- a named group is only active between the
+  // begin and end of a target region.
   SequenceAsserter->insert(omptest::OmptAssertEvent::TargetDataOp(
       "Device init DataOp", "", omptest::ObserveState::Always,
       /*OpType=*/H2D));
