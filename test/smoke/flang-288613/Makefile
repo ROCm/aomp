@@ -8,6 +8,7 @@ TESTSRC_ALL  = $(TESTSRC_MAIN) $(TESTSRC_AUX)
 FLANG        ?= flang
 OMP_BIN      = $(AOMP)/bin/$(FLANG)
 CC           = $(OMP_BIN) $(VERBOSE) -mmlir --enable-gpu-heap-alloc
+RUNENV       += OMP_NUM_TEAMS=10
 #-ccc-print-phases
 #"-\#\#\#"
 
