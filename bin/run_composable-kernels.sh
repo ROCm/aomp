@@ -193,7 +193,7 @@ function removeStaleFmhaObjects {
 }
 
 # Prepare a run of the FMHA examples on a GPU of the single target arch, or
-# refuse it. Sets FmhaLogDir and announces it to the extraction.
+# refuse it.
 function prepareFmhaRun {
   local Reason
   local GPUList
@@ -211,8 +211,6 @@ function prepareFmhaRun {
   export ROCR_VISIBLE_DEVICES="${GPUList%% *}"
 
   mkdir -p "${CK_TESTS_LOG_LOCATION}" || exit 1
-  FmhaLogDir=$(realpath "${CK_TESTS_LOG_LOCATION}")
-  echo "CK-FMHA-LOGS: ${FmhaLogDir}"
   removeStaleFmhaObjects || exit 1
 }
 
@@ -228,16 +226,26 @@ function buildFmhaExample {
   echo "CK-FMHA-BUILD-SUCCESS: ${Target}"
 }
 
-# Run CK's smoke tests of a direction. CK's scripts run the first matching
-# binary below the working directory, and trace with the default prefix.
+# CK's FMHA scripts trace with this prefix, telling their commands, which name
+# the test runs, from the runner's own trace. Pass it with env: a variable
+# assigned for one command also applies to the runner's trace of that command.
+FmhaTracePrefix='CK-FMHA-TRACE: '
+
+# Run CK's smoke tests of a direction and add its fails to the run log, the
+# only input of the extraction. CK's scripts run the first matching binary
+# below the working directory.
 function runFmhaSmokeTests {
   local Direction=$1
+  local FailsFile="${CK_TESTS_LOG_LOCATION}/fmha_${Direction}_fails.txt"
+  local ExitCode
   pushd "${CK_BUILD}/bin" || exit 1
-  PS4='+ ' GPU_arch="${CK_GPU_TARGETS}" \
-    CURR_FAILS_FILE="${FmhaLogDir}/fmha_${Direction}_fails.txt" \
+  env PS4="${FmhaTracePrefix}" GPU_arch="${CK_GPU_TARGETS}" \
+    CURR_FAILS_FILE="${FailsFile}" \
     "${CK_FMHA_SCRIPT_DIR}/smoke_test_${Direction}.sh" 2>&1 |
-    tee "${FmhaLogDir}/fmha_${Direction}_tests.log"
-  echo "CK-FMHA-SMOKE-EXIT: ${Direction} ${PIPESTATUS[0]}"
+    tee "${CK_TESTS_LOG_LOCATION}/fmha_${Direction}_tests.log"
+  ExitCode=${PIPESTATUS[0]}
+  sed "s/^/CK-FMHA-FAIL: ${Direction} /" "${FailsFile}"
+  echo "CK-FMHA-SMOKE-EXIT: ${Direction} ${ExitCode}"
   popd || exit 1
 }
 
@@ -245,7 +253,7 @@ function runFmhaSmokeTests {
 # the compiler under test in the log header. Tracing names each run.
 function runFmhaBenchmarks {
   local Direction=$1
-  local BenchmarkLog="${FmhaLogDir}/fmha_${Direction}_benchmark.log"
+  local BenchmarkLog="${CK_TESTS_LOG_LOCATION}/fmha_${Direction}_benchmark.log"
   pushd "${CK_BUILD}/bin" || exit 1
   {
     rocminfo | grep -E 'Name:\s+gfx|Compute Unit:'
@@ -253,7 +261,8 @@ function runFmhaBenchmarks {
     echo "composablekernel repo SHA:" \
       "$(git -C "${CK_SRC}" log -1 --format=%H -- .)"
   } >"${BenchmarkLog}"
-  PS4='+ ' sh -x "${CK_FMHA_SCRIPT_DIR}/benchmark_${Direction}.sh" 2>&1 |
+  env PS4="${FmhaTracePrefix}" sh -x \
+    "${CK_FMHA_SCRIPT_DIR}/benchmark_${Direction}.sh" 2>&1 |
     tee -a "${BenchmarkLog}"
   echo "CK-FMHA-BENCHMARK-EXIT: ${Direction} ${PIPESTATUS[0]}"
   popd || exit 1
@@ -560,8 +569,8 @@ if [ "${SelectedSuite}" == 'fmha' ]; then
   prepareFmhaRun
   for Direction in fwd bwd; do
     # Avoid picking up stale results
-    rm -f "${FmhaLogDir}/fmha_${Direction}_tests.log" \
-      "${FmhaLogDir}/fmha_${Direction}_fails.txt" || exit 1
+    rm -f "${CK_TESTS_LOG_LOCATION}/fmha_${Direction}_tests.log" \
+      "${CK_TESTS_LOG_LOCATION}/fmha_${Direction}_fails.txt" || exit 1
     if buildFmhaExample "${Direction}"; then
       runFmhaSmokeTests "${Direction}"
     else
@@ -578,7 +587,7 @@ if [ "${SelectedSuite}" == 'fmha-benchmarks' ]; then
   prepareFmhaRun
   for Direction in fwd bwd; do
     # Avoid picking up stale results
-    rm -f "${FmhaLogDir}/fmha_${Direction}_benchmark.log" || exit 1
+    rm -f "${CK_TESTS_LOG_LOCATION}/fmha_${Direction}_benchmark.log" || exit 1
     if buildFmhaExample "${Direction}"; then
       runFmhaBenchmarks "${Direction}"
     else
