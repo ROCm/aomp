@@ -489,13 +489,13 @@ if [ "$1" == "install" ] ; then
     # Copy selected debugable runtime sources into the installation directory
     # $_ompd_src_dir directory to satisfy the above CXXOPT  -fdebug-prefix-map.
     $SUDO mkdir -p "$_ompd_src_dir/offload"
-    $SUDO mkdir -p "$_ompd_src_dir/offload/plugins-nextgen"
+    $SUDO mkdir -p "$_ompd_src_dir/offload/liboffload"
     if [ "$AOMP_STANDALONE_BUILD" == 1 ]; then
        _from_dir_src="$AOMP_PROJECT_SRC/offload/libomptarget"
-       _from_dir_plugins="$AOMP_PROJECT_SRC/offload/plugins-nextgen"
+       _from_dir_plugins="$AOMP_PROJECT_SRC/offload/liboffload"
     else
        _from_dir_src="$LLVM_PROJECT_ROOT/offload/libomptarget"
-       _from_dir_plugins="$LLVM_PROJECT_ROOT/offload/plugins-nextgen"
+       _from_dir_plugins="$LLVM_PROJECT_ROOT/offload/liboffload"
     fi
     echo cp -rp "$_from_dir_src" "$_ompd_src_dir/offload"
     $SUDO cp -rp "$_from_dir_src" "$_ompd_src_dir/offload"
