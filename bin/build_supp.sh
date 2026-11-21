@@ -127,7 +127,11 @@ function checkversion(){
   if [ -L "$_linkfrom" ] ; then 
     existing_install_dir=$(readlink -f "$_linkfrom")
     if [ -d "$existing_install_dir" ] ; then 
-      existing_version=${existing_install_dir##*-} 
+      echo "Info: check '$existing_install_dir'"
+      existing_version=${existing_install_dir##*/}      # remove directory
+      existing_version=${existing_version#*-[^r0-9]}    # remove one hyphen in name that isn't rc or ver
+      existing_version=${existing_version#*-}           # remove name before version
+      echo "Info: compare '$existing_version' to '$_version'"
       if [ "$existing_version" == "$_version" ] ; then 
         echo "Info: Skipping build for $_cname, version $_version already exists" 
         echo "# skipping build for $_cname, version $_version already exists" >>"$CMDLOGFILE"
@@ -227,12 +231,13 @@ function buildxpmem(){
 ################################################################################
 function builducx(){
   local _cname="ucx"
-  local _version=1.20.0
-  local _installdir=$AOMP_SUPP_INSTALL/$_cname-$_version
+  local _version=1.23.0
+  local _rc="-rc4"
+  local _installdir=$AOMP_SUPP_INSTALL/$_cname-$_version$_rc
   local _linkfrom=$AOMP_SUPP/$_cname
   local _builddir=$AOMP_SUPP_BUILD/$_cname
 
-  if checkversion "$_cname" "$_version" "$_linkfrom"; then
+  if checkversion "$_cname" "$_version$_rc" "$_linkfrom"; then
     return
   fi
 
@@ -245,7 +250,7 @@ function builducx(){
   fi
   XPMEM_PATH=$AOMP_SUPP/xpmem
 
-  if checkversion "$_cname" "$_version" "$_linkfrom"; then
+  if checkversion "$_cname" "$_version$_rc" "$_linkfrom"; then
     return
   fi
 
@@ -254,9 +259,12 @@ function builducx(){
   fi
   runcmd "mkdir -p $_builddir"
   runcmd "cd $_builddir"
-  runcmd "wget https://github.com/openucx/ucx/releases/download/v$_version/ucx-$_version.tar.gz"
+  runcmd "wget https://github.com/openucx/ucx/releases/download/v$_version$_rc/ucx-$_version.tar.gz"
   runcmd "tar -xzf ucx-$_version.tar.gz"
-  runcmd "cd ucx-$_version"
+  if [[ "$_rc" != "" ]]; then   # make $_rc appear in directory name
+    mv ucx-$_version ucx-$_version$_rc
+  fi
+  runcmd "cd ucx-$_version$_rc"
   runcmd "mkdir -p build"
   runcmd "cd build"
   if [ -d "$_installdir" ] ; then
