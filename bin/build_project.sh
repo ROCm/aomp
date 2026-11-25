@@ -31,6 +31,10 @@ if [ "$AOMP_APPLY_ATD_AMD_STAGING_PATCH" == 1 ] ; then
 fi
 
 # End check-openmp prep
+if [ "$AOMP_PROC" == "ppc64le" ] || [ "$AOMP_PROC" == "aarch64" ] ; then
+   echo "WARNING: You are about to build AOMP for the *untested* target $AOMP_PROC."
+   sleep 6
+fi
 
 declare -a COMPILERS
 declare -a _qmathopt
