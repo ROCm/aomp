@@ -1,6 +1,7 @@
 program main
 
    use omp_lib
+   use iso_c_binding
    implicit none
    interface
      subroutine fortran_callable_init(a,N) bind(c)
@@ -40,7 +41,17 @@ program main
    !$OMP TASKWAIT
 
    !$OMP END TARGET DATA
-   print *,arr1, crr1
+
+   do x =1, nx
+       if (arr1(x) .ne. x * 2.0) then
+            print *, "Wrong initialization of arr1"
+            stop 1
+       end if
+       if (crr1(x) .ne. arr1(x)+1.0) then
+            print *, "Wrong value of crr1"
+            stop 1
+       end if
+   end do
    deallocate(arr1)
    deallocate(crr1)
   
