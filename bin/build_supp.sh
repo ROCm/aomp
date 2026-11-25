@@ -543,10 +543,10 @@ function getrocmpackage(){
   local _componentversion="$3"
   local _directory
         _directory=$(echo "$2" | cut -b 1)
-  local _version=7.1
-  local _packageversion=7.1.0
-  local _fullversion=70100
-  local _buildnumber=20
+  local _version=10.2
+  local _packageversion=10.2.0
+  local _fullversion=100200
+  local _buildnumber=2
   local _installdir=$AOMP_SUPP_INSTALL/$_cname-$_version
   local _linkfrom=$AOMP_SUPP/$_cname
   local _builddir=$AOMP_SUPP_BUILD/$_cname
@@ -563,27 +563,35 @@ function getrocmpackage(){
   osname=$(grep -e ^NAME= < /etc/os-release)
   if [[ $osname =~ "Ubuntu" ]]; then
     # not sure if deb_version is 20 or 22
-    deb_version="24"
-    os_version=$(grep VERSION_ID /etc/os-release | cut -d"\"" -f2)
-    [ "$os_version" == "22.04" ] && deb_version="22"
-    runcmd "wget https://repo.radeon.com/rocm/apt/$_version/pool/main/$_directory/$_packagename$_packageversion/$_packagename${_packageversion}_${_componentversion}.${_fullversion}-${_buildnumber}~${deb_version}.04_amd64.deb"
-    runcmd "dpkg -x $_packagename${_packageversion}_${_componentversion}.${_fullversion}-${_buildnumber}~${deb_version}.04_amd64.deb $_builddir"
+    os_version=$(grep VERSION_ID /etc/os-release | cut -d"\"" -f2 | tr -d '.')
+    # Currently unused as of ROCm 10.2.0
+    #deb_version="24"
+    #[ "$os_version" == "2204" ] && deb_version="22"
+    runcmd "wget https://stable.repo.amd.com/rocm/core/packages/ubuntu$os_version/pool/main/${_packagename}${_version}_${_packageversion}-${_buildnumber}_amd64.deb"
+    runcmd "dpkg -x ${_packagename}${_version}_${_packageversion}-${_buildnumber}_amd64.deb $_builddir"
   elif [[ $osname =~ "SLES" ]]; then
-    runcmd "wget https://repo.radeon.com/rocm/zyp/$_version/main/$_packagename$_packageversion-$_componentversion.$_fullversion-sles156.$_buildnumber.x86_64.rpm"
-    echo "$_packagename$_packageversion-$_componentversion.$_fullversion-sles156.$_buildnumber.x86_64.rpm | cpio -idm"
-    rpm2cpio "$_packagename$_packageversion-$_componentversion.$_fullversion-sles156.$_buildnumber.x86_64.rpm" | cpio -idm
+    runcmd "wget https://stable.repo.amd.com/rocm/core/packages/sles15/x86_64/$_packagename$_version-$_packageversion-$_buildnumber.x86_64.rpm"
+    echo "$_packagename$_version-$_packageversion-$_buildnumber.x86_64.rpm | cpio -idm"
+    rpm2cpio "$_packagename$_version-$_packageversion-$_buildnumber.x86_64.rpm" | cpio -idm
   else
-    runcmd "wget https://repo.radeon.com/rocm/rhel8/$_version/main/$_packagename$_packageversion-$_componentversion.$_fullversion-$_buildnumber.el8.x86_64.rpm"
-    echo "$_packagename$_packageversion-$_componentversion.$_fullversion-$_buildnumber.el8.x86_64.rpm | cpio -idm"
-    rpm2cpio "$_packagename$_packageversion-$_componentversion.$_fullversion-$_buildnumber.el8.x86_64.rpm" | cpio -idm
+    runcmd "wget https://stable.repo.amd.com/rocm/core/packages/rhel8/x86_64/$_packagename$_version-$_packageversion-$_buildnumber.x86_64.rpm"
+    echo "$_packagename$_version-$_packageversion-$_buildnumber.x86_64.rpm | cpio -idm"
+    rpm2cpio "$_packagename$_version-$_packageversion-$_buildnumber.x86_64.rpm" | cpio -idm
   fi
 
   if [ -d "$_installdir" ] ; then
     runcmd "rm -rf $_installdir"
   fi
   if [ "$_cname" == "rocm-core" ] ; then
-    runcmd "mkdir -p $_installdir"
-    runcmd "cp -rp $_builddir/opt/rocm-$_packageversion/. $_installdir"
+    runcmd "mkdir -p $_installdir/lib"
+    runcmd "mkdir -p $_installdir/include"
+    runcmd "cp -rp $_builddir/opt/rocm/core-$_version/include/rocm-core $_installdir/include"
+    runcmd "cp -rp $_builddir/opt/rocm/core-$_version/lib/librocm-core* $_installdir/lib"
+    runcmd "cp -rp $_builddir/opt/rocm/core-$_version/.info $_installdir"
+  elif [ "$_cname" == "aqlprofile" ] ; then
+    runcmd "mkdir -p $_installdir/lib"
+    runcmd "cd $_installdir"
+    runcmd "cp -rp $_builddir/opt/rocm/core-$_version/lib/libhsa-amd-aqlprofile* $_installdir/lib"
   else
     runcmd "mkdir -p $_installdir/lib"
     runcmd "cd $_installdir"
@@ -794,7 +802,7 @@ function buildcmake(){
 
 function buildrocmsmilib(){
   local _cname="rocmsmilib"
-  local _version=10.0
+  local _version=10.2
   local _installdir=$AOMP_SUPP_INSTALL/rocmsmilib-$_version
   local _linkfrom=$AOMP_SUPP/rocmsmilib
   local _builddir=$AOMP_SUPP_BUILD/rocmsmilib
@@ -808,7 +816,7 @@ function buildrocmsmilib(){
   fi
   runcmd "mkdir -p $_builddir"
   runcmd "cd $_builddir"
-  runcmd "wget https://github.com/ROCm/rocm-systems/releases/download/therock-10.0/rocm-smi-lib.tar.gz"
+  runcmd "wget https://github.com/ROCm/rocm-systems/releases/download/therock-10.2/rocm-smi-lib.tar.gz"
   runcmd "tar xf rocm-smi-lib.tar.gz"
   runcmd "mv rocm-smi-lib rocm-smi-lib-$_version"
   runcmd "cd rocm-smi-lib-$_version"
@@ -935,11 +943,11 @@ for _component in $_components ; do
   elif [ "$_component" == "ninja" ] ; then
     buildninja
   elif [ "$_component" == "aqlprofile" ] ; then
-    getrocmpackage aqlprofile hsa-amd-aqlprofile 1.0.0
+    getrocmpackage aqlprofile amdrocm-profiler-base 10.2.0
   elif [ "$_component" == "openclicdloader" ] ; then
     getrocmpackage openclicdloader rocm-opencl-icd-loader 1.2
   elif [ "$_component" == "rocm-core" ] ; then
-    getrocmpackage rocm-core rocm-core 7.1.0
+    getrocmpackage rocm-core amdrocm-base 10.2.0
   else
     echo "ERROR:  Invalid component name $_component" >>"$CMDLOGFILE"
     echo "ERROR:  Invalid component name $_component"
