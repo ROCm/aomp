@@ -1,13 +1,17 @@
 #include <stdio.h>
 #include <omp.h>
 
+// More iterations than the runtime's low-trip-count rule handles on any
+// device, so that the kernels keep the command-line block size.
+#define SIZE 4000000
+
+static int a[SIZE];
+static int b[SIZE];
+static int c[SIZE];
+
 int main() {
   int num_threads = 0;
-  int N = 100000;
-
-  int a[N];
-  int b[N];
-  int c[N];
+  int N = SIZE;
 
   int i;
 
@@ -74,7 +78,7 @@ int main() {
 
 /// CHECK: DEVID: 0 SGN:3 ConstWGSize:{{288|320}}  args: 2 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 256)
 /// CHECK: DEVID: 0 SGN:3 ConstWGSize:{{288|320}}  args: 2 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 256)
-/// CHECK: DEVID: 0 SGN:2 ConstWGSize:1024  args: 6 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X1024)
-/// CHECK: DEVID: 0 SGN:3 ConstWGSize:1024  args: 8 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 256)
-/// CHECK: DEVID: 0 SGN:7 ConstWGSize:1024  args: 6 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X1024)
-/// CHECK: DEVID: 0 SGN:7 ConstWGSize:1024  args: 6 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 64)
+/// CHECK: DEVID: 0 SGN:2 ConstWGSize:1024  args: 4 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X1024)
+/// CHECK: DEVID: 0 SGN:3 ConstWGSize:1024  args: 5 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 256)
+/// CHECK: DEVID: 0 SGN:7 ConstWGSize:1024  args: 4 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X1024)
+/// CHECK: DEVID: 0 SGN:7 ConstWGSize:1024  args: 4 teamsXthrds:([[S:[ ]*]][[NUM_TEAMS:[0-9]+]]X 64)
